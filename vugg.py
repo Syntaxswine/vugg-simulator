@@ -101,6 +101,9 @@ class VugWall:
     wall_Mn_ppm: float = 500.0        # manganese in host rock
     wall_Mg_ppm: float = 1000.0       # magnesium (higher if dolomite)
     
+    # Provenance tracking — how much Ca in the fluid came from the wall?
+    ca_from_wall_total: float = 0.0   # cumulative Ca²⁺ released from wall dissolution
+    
     def dissolve(self, acid_strength: float, fluid: 'FluidChemistry') -> dict:
         """Dissolve wall rock in response to acid conditions.
         
@@ -140,6 +143,9 @@ class VugWall:
         fluid.Mn += mn_released
         fluid.pH += ph_recovery
         fluid.pH = min(fluid.pH, 8.5)  # can't go above carbonate buffered equilibrium
+        
+        # Track provenance
+        self.ca_from_wall_total += ca_released
         
         return {
             "dissolved": True,
@@ -279,6 +285,11 @@ class GrowthZone:
     fluid_inclusion: bool = False
     inclusion_type: str = ""     # "2-phase", "3-phase", "vapor-rich"
     note: str = ""
+    # Provenance tracking — where did the building material come from?
+    ca_from_wall: float = 0.0    # fraction of Ca²⁺ derived from wall dissolution (0-1)
+    ca_from_fluid: float = 0.0   # fraction from original fluid
+    is_phantom: bool = False     # marks a dissolution surface (phantom boundary)
+    dissolution_depth_um: float = 0.0  # how much was dissolved at this boundary
 
 
 @dataclass
@@ -308,9 +319,29 @@ class Crystal:
     active: bool = True            # still growing?
     dissolved: bool = False        # partially dissolved?
     
+    # Enclosure tracking — crystals that got swallowed by this one
+    enclosed_crystals: List[int] = field(default_factory=list)  # crystal_ids enclosed
+    enclosed_at_step: List[int] = field(default_factory=list)   # step when enclosure happened
+    enclosed_by: Optional[int] = None  # crystal_id that enclosed THIS crystal
+    
+    # Phantom tracking — dissolution surfaces preserved as internal boundaries
+    phantom_surfaces: List[int] = field(default_factory=list)  # zone indices where dissolution occurred
+    phantom_count: int = 0         # number of phantom boundaries
+    
     def add_zone(self, zone: GrowthZone):
+        # Detect phantom boundaries — dissolution followed by regrowth
+        if zone.thickness_um < 0:
+            zone.is_phantom = True
+            zone.dissolution_depth_um = abs(zone.thickness_um)
+            self.phantom_surfaces.append(len(self.zones))
+            self.phantom_count += 1
+        elif self.zones and self.zones[-1].thickness_um < 0 and zone.thickness_um > 0:
+            # This zone is growing OVER a dissolution surface — mark the boundary
+            zone.note = (zone.note + " [phantom boundary — growing over dissolution surface]").strip()
+        
         self.zones.append(zone)
         self.total_growth_um += zone.thickness_um
+        self.total_growth_um = max(self.total_growth_um, 0)  # can't go negative
         self.c_length_mm = self.total_growth_um / 1000.0
         # Width grows slower than length for prismatic habit
         if self.habit == "prismatic":
@@ -529,6 +560,16 @@ def grow_calcite(crystal: Crystal, conditions: VugConditions, step: int) -> Opti
     Fe_partition = 0.08
     trace_Fe = conditions.fluid.Fe * Fe_partition
     
+    # Provenance tracking — what fraction of Ca came from the wall?
+    wall = conditions.wall
+    total_ca = conditions.fluid.Ca
+    ca_wall_fraction = 0.0
+    ca_fluid_fraction = 1.0
+    if total_ca > 0 and wall.ca_from_wall_total > 0:
+        # Approximate: wall-derived Ca as fraction of total Ca in fluid
+        ca_wall_fraction = min(wall.ca_from_wall_total / total_ca, 1.0)
+        ca_fluid_fraction = 1.0 - ca_wall_fraction
+    
     # Morphology
     if conditions.temperature > 200:
         crystal.habit = "scalenohedral"
@@ -551,6 +592,11 @@ def grow_calcite(crystal: Crystal, conditions: VugConditions, step: int) -> Opti
     elif trace_Mn > 1.0 and trace_Fe > 2.0:
         note = "Fe quenching Mn fluorescence — dark CL zone"
     
+    # Provenance note when significant wall-derived material
+    if ca_wall_fraction > 0.3:
+        prov_note = f"[{ca_wall_fraction*100:.0f}% recycled wall rock]"
+        note = f"{note} {prov_note}".strip() if note else prov_note
+    
     fi = False
     fi_type = ""
     if rate > 8 and random.random() < 0.2:
@@ -562,7 +608,9 @@ def grow_calcite(crystal: Crystal, conditions: VugConditions, step: int) -> Opti
         thickness_um=rate, growth_rate=rate,
         trace_Fe=trace_Fe, trace_Mn=trace_Mn,
         fluid_inclusion=fi, inclusion_type=fi_type,
-        note=note
+        note=note,
+        ca_from_wall=ca_wall_fraction,
+        ca_from_fluid=ca_fluid_fraction,
     )
 
 
@@ -1111,10 +1159,11 @@ class VugSimulator:
             c = self.nucleate("fluorite", position="vug wall")
             self.log.append(f"  ✦ NUCLEATION: Fluorite #{c.crystal_id} on {c.position}")
         
-        # Pyrite nucleation
+        # Pyrite nucleation (limit to 3 — microcrystalline swarms aren't interesting individually)
         sigma_py = self.conditions.supersaturation_pyrite()
-        existing_py = [c for c in self.crystals if c.mineral == "pyrite" and c.active]
-        if sigma_py > 1.0 and not existing_py:
+        all_py = [c for c in self.crystals if c.mineral == "pyrite"]
+        existing_py = [c for c in all_py if c.active]
+        if sigma_py > 1.0 and not existing_py and len(all_py) < 3:
             pos = "vug wall"
             existing_sph = [c for c in self.crystals if c.mineral == "sphalerite" and c.active]
             if existing_sph and random.random() < 0.5:
@@ -1174,6 +1223,110 @@ class VugSimulator:
                     self.conditions.fluid.Cu = max(self.conditions.fluid.Cu - dep * 0.8, 0)
                 if c.mineral == "sphalerite":
                     self.conditions.fluid.Zn = max(self.conditions.fluid.Zn - dep * 0.8, 0)
+    
+    def check_enclosure(self):
+        """Check if growing crystals have enclosed smaller crystals.
+        
+        This is the Sweetwater mechanism: pyrite forms first, then calcite 
+        grows around it. The pyrite ends up INSIDE the calcite — not because 
+        it grew there, but because the calcite swallowed it.
+        
+        Rule: if crystal A is growing and crystal B is:
+          1. Smaller than A
+          2. Positioned on the same surface or on A itself
+          3. Crystal B has stopped growing (inactive or very slow)
+        Then A can enclose B.
+        """
+        for grower in self.crystals:
+            if not grower.active or grower.c_length_mm < 0.5:
+                continue
+            if grower.enclosed_by is not None:
+                continue  # already enclosed itself
+            
+            for candidate in self.crystals:
+                if candidate.crystal_id == grower.crystal_id:
+                    continue
+                if candidate.enclosed_by is not None:
+                    continue  # already enclosed
+                if candidate.crystal_id in grower.enclosed_crystals:
+                    continue  # already swallowed this one
+                
+                # Can this grower enclose this candidate?
+                # Conditions: grower must be significantly larger
+                # and candidate must be adjacent (same position, or on grower)
+                size_ratio = grower.c_length_mm / max(candidate.c_length_mm, 0.001)
+                
+                adjacent = (
+                    candidate.position == grower.position or  # same wall
+                    f"#{grower.crystal_id}" in candidate.position or  # candidate is ON grower
+                    grower.position == candidate.position  # same spot
+                )
+                
+                # Candidate should be relatively inactive (slow/stopped growth)
+                candidate_slowing = True
+                if candidate.zones and len(candidate.zones) >= 3:
+                    recent_growth = sum(z.thickness_um for z in candidate.zones[-3:])
+                    candidate_slowing = recent_growth < 3.0  # barely growing
+                
+                if size_ratio > 3.0 and adjacent and candidate_slowing:
+                    # Enclosure event!
+                    grower.enclosed_crystals.append(candidate.crystal_id)
+                    grower.enclosed_at_step.append(self.step)
+                    candidate.enclosed_by = grower.crystal_id
+                    candidate.active = False  # can't grow once enclosed
+                    
+                    self.log.append(
+                        f"  💎 ENCLOSURE: {grower.mineral.capitalize()} #{grower.crystal_id} "
+                        f"({grower.c_length_mm:.1f}mm) has grown around "
+                        f"{candidate.mineral} #{candidate.crystal_id} ({candidate.c_length_mm:.2f}mm). "
+                        f"The {candidate.mineral} is now an inclusion inside the {grower.mineral}."
+                    )
+    
+    def check_liberation(self):
+        """Check if dissolution has freed enclosed crystals.
+        
+        When a host crystal dissolves back past the point where it 
+        enclosed something, the inclusion is freed. The pyrite that was 
+        trapped inside calcite is exposed again when acid eats the calcite.
+        
+        Track enclosure by the host's size at enclosure time. If the host
+        dissolves below that size, the inclusion is liberated.
+        """
+        for host in self.crystals:
+            if not host.enclosed_crystals:
+                continue
+            if not host.dissolved:
+                continue  # only check hosts that are actively dissolving
+            
+            # Check each enclosed crystal — was it enclosed when host was bigger?
+            freed = []
+            for i, (enc_id, enc_step) in enumerate(zip(host.enclosed_crystals, host.enclosed_at_step)):
+                enc_crystal = next((x for x in self.crystals if x.crystal_id == enc_id), None)
+                if not enc_crystal:
+                    continue
+                
+                # Estimate host size at enclosure time
+                # Find the zone closest to enc_step
+                host_size_at_enc = 0
+                for z in host.zones:
+                    if z.step <= enc_step:
+                        host_size_at_enc += z.thickness_um
+                
+                # If host has dissolved back past the enclosure size, free the crystal
+                if host.total_growth_um < host_size_at_enc * 0.7:
+                    freed.append(i)
+                    enc_crystal.enclosed_by = None
+                    enc_crystal.active = True  # can grow again!
+                    self.log.append(
+                        f"  🔓 LIBERATION: {enc_crystal.mineral} #{enc_id} freed from "
+                        f"dissolving {host.mineral} #{host.crystal_id}! "
+                        f"The inclusion is exposed again and can resume growth."
+                    )
+            
+            # Remove freed crystals from enclosure list (reverse order to preserve indices)
+            for i in sorted(freed, reverse=True):
+                host.enclosed_crystals.pop(i)
+                host.enclosed_at_step.pop(i)
     
     def dissolve_wall(self):
         """Check if acid conditions are dissolving the vug wall.
@@ -1247,6 +1400,12 @@ class VugSimulator:
                     self.log.append(f"  ▲ {crystal.mineral.capitalize()} #{crystal.crystal_id}: "
                                   f"{crystal.describe_latest_zone()}")
         
+        # Check for enclosure events — larger crystals swallowing smaller ones
+        self.check_enclosure()
+        
+        # Check for liberation events — dissolution freeing enclosed crystals
+        self.check_liberation()
+        
         # Ambient cooling
         self.ambient_cooling()
         
@@ -1305,6 +1464,46 @@ class VugSimulator:
             
             if c.dissolved:
                 lines.append(f"  Note: partially dissolved (late-stage undersaturation)")
+            
+            # Phantom surfaces
+            if c.phantom_count > 0:
+                lines.append(f"  Phantom boundaries: {c.phantom_count} (dissolution surfaces preserved inside crystal)")
+            
+            # Enclosure — batch by mineral type
+            if c.enclosed_crystals:
+                enc_by_mineral = {}
+                for enc_id, enc_step in zip(c.enclosed_crystals, c.enclosed_at_step):
+                    enc_crystal = next((x for x in self.crystals if x.crystal_id == enc_id), None)
+                    if enc_crystal:
+                        enc_by_mineral.setdefault(enc_crystal.mineral, []).append(
+                            (enc_crystal, enc_step))
+                for mineral, group in enc_by_mineral.items():
+                    if len(group) <= 2:
+                        for enc_crystal, enc_step in group:
+                            lines.append(f"  Enclosed: {mineral} #{enc_crystal.crystal_id} "
+                                       f"({enc_crystal.c_length_mm:.2f}mm) at step {enc_step}")
+                    else:
+                        steps = [s for _, s in group]
+                        lines.append(f"  Enclosed: {len(group)} {mineral} inclusions "
+                                   f"(steps {min(steps)}-{max(steps)})")
+            if c.enclosed_by is not None:
+                encloser = next((x for x in self.crystals if x.crystal_id == c.enclosed_by), None)
+                if encloser:
+                    lines.append(f"  ⚠ Now an inclusion inside {encloser.mineral} #{c.enclosed_by}")
+            
+            # Provenance (for calcite with wall dissolution)
+            if c.mineral == "calcite" and c.zones:
+                wall_zones = [z for z in c.zones if z.ca_from_wall > 0.1]
+                if wall_zones:
+                    avg_wall = sum(z.ca_from_wall for z in wall_zones) / len(wall_zones)
+                    max_wall = max(z.ca_from_wall for z in wall_zones)
+                    lines.append(f"  Provenance: {len(wall_zones)}/{len(c.zones)} zones contain wall-derived Ca²⁺")
+                    lines.append(f"    Average wall contribution: {avg_wall*100:.0f}%, peak: {max_wall*100:.0f}%")
+                    # Find the transition
+                    first_wall_zone = next((z for z in c.zones if z.ca_from_wall > 0.1), None)
+                    if first_wall_zone:
+                        lines.append(f"    Wall-derived Ca first appears at step {first_wall_zone.step} "
+                                   f"(T={first_wall_zone.temperature:.0f}°C)")
             
             # Fluorescence prediction
             fl = c.predict_fluorescence()
@@ -1452,6 +1651,84 @@ class VugSimulator:
                 story = ""
             if story and c not in first_minerals:
                 paragraphs.append(story)
+        
+        # Enclosure events — batch by host crystal and enclosed mineral type
+        enclosers = [c for c in self.crystals if c.enclosed_crystals]
+        for c in enclosers:
+            enclosed = []
+            for enc_id in c.enclosed_crystals:
+                enc = next((x for x in self.crystals if x.crystal_id == enc_id), None)
+                if enc:
+                    enclosed.append(enc)
+            
+            if not enclosed:
+                continue
+            
+            # Group by mineral type
+            by_mineral = {}
+            for enc in enclosed:
+                by_mineral.setdefault(enc.mineral, []).append(enc)
+            
+            for mineral, group in by_mineral.items():
+                if len(group) == 1:
+                    enc = group[0]
+                    paragraphs.append(
+                        f"As {c.mineral} #{c.crystal_id} continued to grow, it engulfed "
+                        f"{enc.mineral} #{enc.crystal_id} ({enc.c_length_mm:.2f}mm). The "
+                        f"{enc.mineral} is now an inclusion — a crystal trapped inside a crystal, "
+                        f"recording the moment the {c.mineral}'s growth front overtook it."
+                    )
+                else:
+                    sizes = [f"{e.c_length_mm:.2f}mm" for e in group]
+                    paragraphs.append(
+                        f"As {c.mineral} #{c.crystal_id} grew, it swallowed {len(group)} "
+                        f"{mineral} crystals (sizes: {', '.join(sizes)}). These are now "
+                        f"inclusions — a constellation of tiny {mineral} specks frozen "
+                        f"inside the {c.mineral}, each marking where a microcrystal nucleated "
+                        f"and was overtaken by the larger crystal's advancing growth front."
+                    )
+            
+            # Note any liberated crystals
+            freed = [x for x in self.crystals if x.enclosed_by is None and x.active 
+                     and any(x.crystal_id not in c.enclosed_crystals for c2 in enclosers)]
+            # (liberation is handled in the log, not the narrative — events are ephemeral)
+        
+        # Phantom growth narrative
+        phantom_crystals = [c for c in self.crystals if c.phantom_count > 0]
+        for c in phantom_crystals:
+            if c.phantom_count >= 2:
+                paragraphs.append(
+                    f"{c.mineral.capitalize()} #{c.crystal_id} shows {c.phantom_count} phantom "
+                    f"boundaries — internal surfaces where acid dissolved the crystal before "
+                    f"new growth covered the damage. Each phantom preserves the shape of the "
+                    f"crystal at the moment the acid arrived. In a polished section, these "
+                    f"appear as ghost outlines nested inside the final crystal — the crystal's "
+                    f"autobiography, written in dissolution and regrowth."
+                )
+            elif c.phantom_count == 1:
+                paragraphs.append(
+                    f"{c.mineral.capitalize()} #{c.crystal_id} contains a single phantom surface — "
+                    f"a dissolution boundary where the crystal was partially eaten and then "
+                    f"regrew over the wound. The phantom preserves the crystal's earlier shape "
+                    f"as a ghost outline inside the final form."
+                )
+        
+        # Provenance narrative for calcite
+        for c in self.crystals:
+            if c.mineral == "calcite" and c.zones:
+                wall_zones = [z for z in c.zones if z.ca_from_wall > 0.3]
+                fluid_zones = [z for z in c.zones if z.ca_from_wall < 0.1 and z.thickness_um > 0]
+                if wall_zones and fluid_zones:
+                    paragraphs.append(
+                        f"The calcite tells two stories in one crystal. Early growth zones "
+                        f"are built from the original fluid — Ca²⁺ that traveled through the "
+                        f"basin. Later zones are built from recycled wall rock — limestone that "
+                        f"was dissolved by acid and reprecipitated. The trace element signature "
+                        f"shifts at the boundary: wall-derived zones carry the host rock's Fe "
+                        f"and Mn signature, distinct from the fluid-derived zones. A "
+                        f"microprobe traverse across this crystal would show the moment the "
+                        f"vug started eating itself to feed its children."
+                    )
         
         # Closing — what would a collector see?
         paragraphs.append(self._narrate_collectors_view())
