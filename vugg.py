@@ -45,6 +45,8 @@ class FluidChemistry:
     Al: float = 3.0            # ppm — aluminum (smoky quartz)
     Ti: float = 0.5            # ppm — titanium (TitaniQ geothermometer)
     Pb: float = 0.0            # ppm — lead (sensitizer)
+    Cu: float = 0.0            # ppm — copper
+    O2: float = 0.0            # relative oxygen fugacity (0=reducing, 1=neutral, 2=oxidizing)
     pH: float = 6.5
     salinity: float = 5.0      # wt% NaCl equivalent
 
@@ -63,8 +65,14 @@ class FluidChemistry:
             parts.append(f"Zn-rich ({self.Zn:.0f} ppm)")
         if self.S > 50:
             parts.append(f"sulfur-bearing ({self.S:.0f} ppm)")
+        if self.Cu > 20:
+            parts.append(f"Cu-bearing ({self.Cu:.0f} ppm)")
         if self.F > 20:
             parts.append(f"fluorine-rich ({self.F:.0f} ppm)")
+        if self.O2 > 1.0:
+            parts.append("oxidizing")
+        elif self.O2 < 0.3 and (self.S > 20 or self.Fe > 20):
+            parts.append("reducing")
         if self.pH < 5:
             parts.append(f"acidic (pH {self.pH:.1f})")
         elif self.pH > 8:
@@ -122,6 +130,35 @@ class VugConditions:
             return 0
         product = (self.fluid.Zn / 100.0) * (self.fluid.S / 100.0)
         return product * 2.0 * math.exp(-0.004 * self.temperature)
+    
+    def supersaturation_pyrite(self) -> float:
+        """Pyrite (FeS2) supersaturation. Needs Fe + S, reducing conditions.
+        
+        Pyrite is the most common sulfide. Forms over huge T range (25-700°C).
+        Needs iron AND sulfur AND not too oxidizing.
+        """
+        if self.fluid.Fe < 5 or self.fluid.S < 10:
+            return 0
+        # Oxidizing conditions destroy sulfides
+        if self.fluid.O2 > 1.5:
+            return 0
+        product = (self.fluid.Fe / 50.0) * (self.fluid.S / 80.0)
+        # Pyrite is stable over a wide T range, slight preference for moderate T
+        T_factor = 1.0 if 100 < self.temperature < 400 else 0.5
+        return product * T_factor * (1.5 - self.fluid.O2)
+    
+    def supersaturation_chalcopyrite(self) -> float:
+        """Chalcopyrite (CuFeS2) supersaturation. Needs Cu + Fe + S.
+        
+        Main copper ore mineral. Competes with pyrite for Fe and S.
+        """
+        if self.fluid.Cu < 10 or self.fluid.Fe < 5 or self.fluid.S < 15:
+            return 0
+        if self.fluid.O2 > 1.5:
+            return 0
+        product = (self.fluid.Cu / 80.0) * (self.fluid.Fe / 50.0) * (self.fluid.S / 80.0)
+        T_factor = 1.2 if 150 < self.temperature < 350 else 0.6
+        return product * T_factor * (1.5 - self.fluid.O2)
 
 
 # ============================================================
@@ -234,6 +271,8 @@ class Crystal:
             if avg_Al > 5:
                 return "weak blue (Al-related defects)"
             return "non-fluorescent"
+        elif self.mineral in ("pyrite", "chalcopyrite"):
+            return "non-fluorescent (opaque sulfide)"
         return "unknown"
 
 
@@ -476,12 +515,122 @@ def grow_fluorite(crystal: Crystal, conditions: VugConditions, step: int) -> Opt
     )
 
 
+def grow_pyrite(crystal: Crystal, conditions: VugConditions, step: int) -> Optional[GrowthZone]:
+    """Pyrite (FeS2) growth model.
+    
+    The most common sulfide mineral. Famous for cubic and pyritohedral habits.
+    Framboids (raspberry-shaped aggregates) form at low T from rapid nucleation.
+    """
+    sigma = conditions.supersaturation_pyrite()
+    
+    if sigma < 1.0:
+        # Check for oxidation/dissolution
+        if crystal.total_growth_um > 10 and conditions.fluid.O2 > 1.0:
+            crystal.dissolved = True
+            return GrowthZone(
+                step=step, temperature=conditions.temperature,
+                thickness_um=-3.0, growth_rate=-3.0,
+                note="oxidizing — pyrite weathering to goethite/limonite"
+            )
+        return None
+    
+    excess = sigma - 1.0
+    rate = 5.0 * excess * random.uniform(0.7, 1.3)
+    
+    # Temperature controls habit
+    if conditions.temperature > 300:
+        crystal.habit = "cubic"
+        crystal.dominant_forms = ["{100} cube"]
+    elif conditions.temperature > 200:
+        crystal.habit = "pyritohedral"
+        crystal.dominant_forms = ["{210} pyritohedron"]
+    elif conditions.temperature > 100:
+        # Mix of forms
+        crystal.habit = "cubo-pyritohedral"
+        crystal.dominant_forms = ["{100} + {210}"]
+    else:
+        # Low T — framboidal possible
+        if excess > 1.0:
+            crystal.habit = "framboidal"
+            crystal.dominant_forms = ["framboidal aggregate"]
+        else:
+            crystal.habit = "cubic"
+            crystal.dominant_forms = ["{100} cube, microcrystalline"]
+    
+    # Trace elements — As substitutes for S, Co/Ni substitute for Fe
+    trace_note = "brassy yellow metallic luster"
+    if conditions.fluid.Cu > 20:
+        trace_note += ", Cu traces (may exsolve chalcopyrite inclusions)"
+    
+    # Twinning — iron cross twins
+    if not crystal.twinned and random.random() < 0.08:
+        crystal.twinned = True
+        crystal.twin_law = "iron cross {110}"
+    
+    return GrowthZone(
+        step=step, temperature=conditions.temperature,
+        thickness_um=rate, growth_rate=rate,
+        trace_Fe=conditions.fluid.Fe * 0.15,
+        note=trace_note
+    )
+
+
+def grow_chalcopyrite(crystal: Crystal, conditions: VugConditions, step: int) -> Optional[GrowthZone]:
+    """Chalcopyrite (CuFeS2) growth model.
+    
+    Main copper ore mineral. Tetragonal but often looks tetrahedral.
+    Brassy yellow, develops iridescent tarnish (peacock ore = bornite, 
+    but chalcopyrite tarnishes similarly).
+    """
+    sigma = conditions.supersaturation_chalcopyrite()
+    
+    if sigma < 1.0:
+        if crystal.total_growth_um > 10 and conditions.fluid.O2 > 1.0:
+            crystal.dissolved = True
+            return GrowthZone(
+                step=step, temperature=conditions.temperature,
+                thickness_um=-4.0, growth_rate=-4.0,
+                note="oxidizing — chalcopyrite weathering (→ malachite/azurite at surface)"
+            )
+        return None
+    
+    excess = sigma - 1.0
+    rate = 4.5 * excess * random.uniform(0.7, 1.3)
+    
+    crystal.habit = "disphenoidal"
+    crystal.dominant_forms = ["{112} disphenoid", "{012}"]
+    
+    # Color/tarnish note
+    if conditions.temperature < 100:
+        color_note = "brassy yellow, may develop iridescent tarnish"
+    else:
+        color_note = "brassy yellow, metallic"
+    
+    # Cu content tracking through Fe field (reusing for display)
+    trace_Cu = conditions.fluid.Cu * 0.1
+    
+    # Twinning — penetration twins common
+    if not crystal.twinned and random.random() < 0.12:
+        crystal.twinned = True
+        crystal.twin_law = "penetration twin {112}"
+    
+    # Competes with pyrite for Fe and S — deplete both
+    return GrowthZone(
+        step=step, temperature=conditions.temperature,
+        thickness_um=rate, growth_rate=rate,
+        trace_Fe=conditions.fluid.Fe * 0.1,
+        note=f"{color_note}, Cu: {trace_Cu:.1f} ppm incorporated"
+    )
+
+
 # Mineral registry
 MINERAL_ENGINES = {
     "quartz": grow_quartz,
     "calcite": grow_calcite,
     "sphalerite": grow_sphalerite,
     "fluorite": grow_fluorite,
+    "pyrite": grow_pyrite,
+    "chalcopyrite": grow_chalcopyrite,
 }
 
 
@@ -521,6 +670,29 @@ def event_tectonic_shock(conditions: VugConditions) -> str:
     conditions.pressure += 0.5
     conditions.temperature += 15  # adiabatic compression
     return "Tectonic event. Pressure spike. Crystals may twin."
+
+
+def event_copper_injection(conditions: VugConditions) -> str:
+    """Copper-bearing magmatic fluid enters the vug."""
+    conditions.fluid.Cu = 120.0
+    conditions.fluid.Fe += 40.0
+    conditions.fluid.S += 80.0
+    conditions.fluid.SiO2 += 200.0
+    conditions.fluid.O2 = 0.3  # reducing, sulfide-stable
+    conditions.temperature += 30
+    conditions.flow_rate = 4.0
+    return (f"Copper-bearing magmatic fluid surges into the vug. "
+            f"Cu spikes to {conditions.fluid.Cu:.0f} ppm. T rises to {conditions.temperature:.0f}°C. "
+            f"Reducing conditions — sulfides stable.")
+
+
+def event_oxidation(conditions: VugConditions) -> str:
+    """Oxidizing meteoric water infiltrates — sulfides become unstable."""
+    conditions.fluid.O2 = 1.8
+    conditions.fluid.S *= 0.3  # sulfur oxidizes out
+    conditions.temperature -= 40
+    return (f"Oxidizing meteoric water infiltrates. Sulfides becoming unstable. "
+            f"T drops to {conditions.temperature:.0f}°C.")
 
 
 def event_fluid_mixing(conditions: VugConditions) -> str:
@@ -581,10 +753,31 @@ def scenario_mvt() -> Tuple[VugConditions, List[Event], int]:
     return conditions, events, 120
 
 
+def scenario_porphyry() -> Tuple[VugConditions, List[Event], int]:
+    """Copper porphyry deposit — magmatic fluid with copper, then oxidation."""
+    conditions = VugConditions(
+        temperature=400.0,
+        pressure=2.0,
+        fluid=FluidChemistry(
+            SiO2=700, Ca=80, CO3=50, Fe=30, Mn=2,
+            Zn=0, S=60, F=5, Cu=0, O2=0.2,
+            pH=4.5, salinity=10.0
+        )
+    )
+    events = [
+        Event(25, "Copper Pulse", "Magmatic copper fluid arrives", event_copper_injection),
+        Event(60, "Second Cu Pulse", "Another copper surge", event_copper_injection),
+        Event(85, "Oxidation", "Meteoric water infiltrates", event_oxidation),
+        Event(95, "Cooling", "Rapid cooling event", event_cooling_pulse),
+    ]
+    return conditions, events, 120
+
+
 SCENARIOS = {
     "cooling": scenario_cooling,
     "pulse": scenario_pulse,
     "mvt": scenario_mvt,
+    "porphyry": scenario_porphyry,
 }
 
 
@@ -625,6 +818,12 @@ class VugSimulator:
         elif mineral == "fluorite":
             crystal.habit = "cubic"
             crystal.dominant_forms = ["{100} cube"]
+        elif mineral == "pyrite":
+            crystal.habit = "cubic"
+            crystal.dominant_forms = ["{100} cube"]
+        elif mineral == "chalcopyrite":
+            crystal.habit = "disphenoidal"
+            crystal.dominant_forms = ["{112} disphenoid"]
         self.crystals.append(crystal)
         return crystal
     
@@ -661,6 +860,29 @@ class VugSimulator:
         if sigma_f > 1.2 and not existing_fl:
             c = self.nucleate("fluorite", position="vug wall")
             self.log.append(f"  ✦ NUCLEATION: Fluorite #{c.crystal_id} on {c.position}")
+        
+        # Pyrite nucleation
+        sigma_py = self.conditions.supersaturation_pyrite()
+        existing_py = [c for c in self.crystals if c.mineral == "pyrite" and c.active]
+        if sigma_py > 1.0 and not existing_py:
+            pos = "vug wall"
+            existing_sph = [c for c in self.crystals if c.mineral == "sphalerite" and c.active]
+            if existing_sph and random.random() < 0.5:
+                pos = f"on sphalerite #{existing_sph[0].crystal_id}"
+            c = self.nucleate("pyrite", position=pos)
+            self.log.append(f"  ✦ NUCLEATION: Pyrite #{c.crystal_id} on {c.position} "
+                          f"(T={self.conditions.temperature:.0f}°C, σ={sigma_py:.2f})")
+        
+        # Chalcopyrite nucleation
+        sigma_cp = self.conditions.supersaturation_chalcopyrite()
+        existing_cp = [c for c in self.crystals if c.mineral == "chalcopyrite" and c.active]
+        if sigma_cp > 1.0 and not existing_cp:
+            pos = "vug wall"
+            if existing_py and random.random() < 0.4:
+                pos = f"on pyrite #{existing_py[0].crystal_id}"
+            c = self.nucleate("chalcopyrite", position=pos)
+            self.log.append(f"  ✦ NUCLEATION: Chalcopyrite #{c.crystal_id} on {c.position} "
+                          f"(T={self.conditions.temperature:.0f}°C, σ={sigma_cp:.2f})")
     
     def apply_events(self):
         """Apply any events scheduled for this step."""
@@ -680,11 +902,23 @@ class VugSimulator:
         if self.conditions.flow_rate > 1.0:
             self.conditions.flow_rate *= 0.9
         
-        # Slight fluid evolution — silica depletes as quartz grows
+        # Slight fluid evolution — elements deplete as minerals grow
         active_quartz = [c for c in self.crystals if c.mineral == "quartz" and c.active]
         if active_quartz:
             depletion = sum(c.zones[-1].thickness_um if c.zones else 0 for c in active_quartz) * 0.1
             self.conditions.fluid.SiO2 = max(self.conditions.fluid.SiO2 - depletion, 10)
+        
+        # Sulfide growth depletes Fe, S, Cu, Zn
+        active_sulfides = [c for c in self.crystals if c.mineral in ("pyrite", "chalcopyrite", "sphalerite") and c.active]
+        for c in active_sulfides:
+            if c.zones:
+                dep = c.zones[-1].thickness_um * 0.05
+                self.conditions.fluid.S = max(self.conditions.fluid.S - dep, 0)
+                self.conditions.fluid.Fe = max(self.conditions.fluid.Fe - dep * 0.5, 0)
+                if c.mineral == "chalcopyrite":
+                    self.conditions.fluid.Cu = max(self.conditions.fluid.Cu - dep * 0.8, 0)
+                if c.mineral == "sphalerite":
+                    self.conditions.fluid.Zn = max(self.conditions.fluid.Zn - dep * 0.8, 0)
     
     def run_step(self) -> List[str]:
         """Execute one time step."""
@@ -889,6 +1123,10 @@ class VugSimulator:
                 story = self._narrate_sphalerite(c)
             elif c.mineral == "fluorite":
                 story = self._narrate_fluorite(c)
+            elif c.mineral == "pyrite":
+                story = self._narrate_pyrite(c)
+            elif c.mineral == "chalcopyrite":
+                story = self._narrate_chalcopyrite(c)
             else:
                 story = ""
             if story and c not in first_minerals:
@@ -1048,6 +1286,69 @@ class VugSimulator:
         
         return " ".join(parts)
     
+    def _narrate_pyrite(self, c: Crystal) -> str:
+        """Narrate a pyrite crystal's story."""
+        parts = [f"Pyrite #{c.crystal_id} grew to {c.c_length_mm:.1f} mm."]
+        
+        if c.habit == "framboidal":
+            parts.append(
+                "The low temperature produced framboidal pyrite — microscopic "
+                "raspberry-shaped aggregates of tiny crystallites, a texture "
+                "common in sedimentary environments."
+            )
+        elif c.habit == "pyritohedral":
+            parts.append(
+                "The crystal developed the characteristic pyritohedral habit — "
+                "twelve pentagonal faces, a form unique to pyrite and one of "
+                "nature's few non-crystallographic symmetries."
+            )
+        elif "cubic" in c.habit:
+            parts.append(
+                "Clean cubic habit with bright metallic luster. The striations "
+                "on each cube face (perpendicular on adjacent faces) are the "
+                "fingerprint of pyrite's lower symmetry disguised as cubic."
+            )
+        
+        if c.twinned:
+            parts.append(
+                f"Twinned as an {c.twin_law} — two crystals interpenetrating at "
+                f"90°, one of the most recognizable twin forms in mineralogy."
+            )
+        
+        if c.dissolved:
+            parts.append(
+                "Late-stage oxidation attacked the pyrite — in nature this would "
+                "produce a limonite/goethite boxwork pseudomorph, the rusty ghost "
+                "of the original crystal."
+            )
+        
+        return " ".join(parts)
+    
+    def _narrate_chalcopyrite(self, c: Crystal) -> str:
+        """Narrate a chalcopyrite crystal's story."""
+        parts = [f"Chalcopyrite #{c.crystal_id} grew to {c.c_length_mm:.1f} mm."]
+        
+        parts.append(
+            "Brassy yellow with a greenish tint — distinguishable from pyrite by "
+            "its deeper color and softer hardness (3.5 vs 6). The disphenoidal "
+            "crystals often look tetrahedral, a common misidentification."
+        )
+        
+        if c.twinned:
+            parts.append(
+                f"Shows {c.twin_law} twinning — repeated twins create "
+                f"spinel-like star shapes."
+            )
+        
+        if c.dissolved:
+            parts.append(
+                "Oxidation began converting the chalcopyrite — at the surface, this "
+                "weathering produces malachite (green) and azurite (blue), the "
+                "colorful signal that led ancient prospectors to copper deposits."
+            )
+        
+        return " ".join(parts)
+    
     def _narrate_mixing_event(self, batch: List[Crystal], event: Event) -> str:
         """Narrate what happened after a fluid mixing event."""
         mineral_names = set(c.mineral for c in batch)
@@ -1132,6 +1433,30 @@ class VugSimulator:
                 fl = c.predict_fluorescence()
                 if fl != "non-fluorescent":
                     desc += f" — fluoresces {fl.split('(')[0].strip()}"
+                parts.append(f"  • {desc}")
+            
+            elif c.mineral == "pyrite":
+                desc = f"a {c.c_length_mm:.1f}mm pyrite"
+                if c.habit == "framboidal":
+                    desc = f"framboidal pyrite aggregate"
+                elif c.habit == "pyritohedral":
+                    desc += f" pyritohedron"
+                else:
+                    desc += f" cube"
+                if c.twinned:
+                    desc += f" ({c.twin_law})"
+                desc += " — bright metallic luster"
+                if c.dissolved:
+                    desc += ", partially oxidized (limonite staining)"
+                parts.append(f"  • {desc}")
+            
+            elif c.mineral == "chalcopyrite":
+                desc = f"a {c.c_length_mm:.1f}mm chalcopyrite"
+                if c.twinned:
+                    desc += f" ({c.twin_law})"
+                desc += " — brassy yellow, greenish tint"
+                if c.dissolved:
+                    desc += ", oxidation rind (green Cu carbonate staining)"
                 parts.append(f"  • {desc}")
         
         if len(parts) == 1:
