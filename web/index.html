@@ -32,6 +32,38 @@ h1 {
   font-style: italic;
 }
 
+/* ---- Mode Toggle ---- */
+.mode-toggle {
+  display: flex;
+  gap: 0;
+  margin-bottom: 1rem;
+  border: 1px solid #3a3520;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.mode-toggle button {
+  border: none;
+  border-radius: 0;
+  padding: 0.5rem 1.5rem;
+  font-size: 0.9rem;
+  background: #1a1a14;
+  color: #8a7a40;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+
+.mode-toggle button.active {
+  background: #3a3518;
+  color: #f0c050;
+  text-shadow: 0 0 6px rgba(240,192,80,0.3);
+}
+
+.mode-toggle button:hover:not(.active) {
+  background: #2a2510;
+  color: #d4a843;
+}
+
 .controls {
   display: flex;
   flex-wrap: wrap;
@@ -168,6 +200,432 @@ button:disabled {
   margin-bottom: 0.4rem;
 }
 
+/* ---- Fortress Mode Styles ---- */
+#fortress-panel {
+  max-width: 900px;
+  width: 100%;
+  display: none;
+}
+
+.fortress-setup {
+  background: #0e0e0a;
+  border: 1px solid #2a2518;
+  border-radius: 4px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+.fortress-setup h3 {
+  color: #f0c050;
+  font-size: 1rem;
+  margin-bottom: 0.8rem;
+}
+
+.setup-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 0.8rem;
+  align-items: center;
+}
+
+.setup-row label {
+  color: #a89040;
+  font-size: 0.8rem;
+  min-width: 90px;
+}
+
+.setup-row input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  background: #1a1a14;
+  height: 6px;
+  border-radius: 3px;
+  outline: none;
+  width: 180px;
+}
+
+.setup-row input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #d4a843;
+  cursor: pointer;
+}
+
+.setup-row input[type="range"]::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #d4a843;
+  cursor: pointer;
+  border: none;
+}
+
+.setup-row .range-val {
+  color: #d4a843;
+  font-size: 0.85rem;
+  min-width: 60px;
+}
+
+.preset-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.3rem;
+}
+
+.preset-btn {
+  padding: 0.4rem 0.8rem;
+  font-size: 0.75rem;
+  background: #1a1a14;
+  border: 1px solid #3a3520;
+  color: #a89040;
+}
+
+.preset-btn:hover {
+  background: #2a2510;
+  color: #d4a843;
+  border-color: #5a4a20;
+}
+
+.preset-btn.selected {
+  background: #2a3510;
+  border-color: #5a7a20;
+  color: #90c040;
+}
+
+.btn-begin {
+  background: #2a3510;
+  border-color: #5a7a20;
+  padding: 0.6rem 2rem;
+  font-size: 1rem;
+  margin-top: 0.5rem;
+}
+
+.btn-begin:hover {
+  background: #3a4518;
+  border-color: #90c040;
+}
+
+/* ---- Status Bar ---- */
+.status-bar {
+  background: #0e0e0a;
+  border: 1px solid #2a2518;
+  border-radius: 4px;
+  padding: 0.6rem 1rem;
+  margin-bottom: 0.8rem;
+  display: none;
+}
+
+.status-conditions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 0.5rem;
+  font-size: 0.85rem;
+}
+
+.status-conditions .cond-item {
+  color: #d4a843;
+}
+
+.status-conditions .cond-label {
+  color: #8a7a40;
+  font-size: 0.75rem;
+}
+
+.supersaturation-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  font-size: 0.75rem;
+}
+
+.sat-indicator {
+  padding: 0.2rem 0.5rem;
+  border-radius: 3px;
+  border: 1px solid #3a3520;
+}
+
+.sat-super {
+  color: #50e080;
+  border-color: #2a5a20;
+  background: rgba(50,180,80,0.1);
+}
+
+.sat-under {
+  color: #cc5555;
+  border-color: #5a2020;
+  background: rgba(180,50,50,0.1);
+}
+
+/* ---- Action Buttons ---- */
+.action-panel {
+  display: none;
+  margin-bottom: 0.8rem;
+}
+
+.action-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 0.6rem;
+}
+
+.action-btn {
+  padding: 0.5rem 1rem;
+  font-size: 0.8rem;
+  border-radius: 3px;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+/* Wait — neutral gray */
+.action-btn.act-wait {
+  background: #222;
+  border-color: #555;
+  color: #aaa;
+}
+.action-btn.act-wait:hover { background: #333; border-color: #888; color: #ccc; }
+
+/* Heat — warm red/orange */
+.action-btn.act-heat {
+  background: #3a1a0a;
+  border-color: #7a3a10;
+  color: #ff8844;
+}
+.action-btn.act-heat:hover { background: #4a2510; border-color: #cc6620; }
+
+/* Cool — cool blue */
+.action-btn.act-cool {
+  background: #0a1a3a;
+  border-color: #1a3a7a;
+  color: #4488ff;
+}
+.action-btn.act-cool:hover { background: #102a4a; border-color: #2050aa; }
+
+/* Chemical injections — green */
+.action-btn.act-chem {
+  background: #0a2a10;
+  border-color: #1a5a20;
+  color: #50cc60;
+}
+.action-btn.act-chem:hover { background: #103a18; border-color: #2a7a30; }
+
+/* Tectonic — purple/violet */
+.action-btn.act-tectonic {
+  background: #2a0a3a;
+  border-color: #5a1a7a;
+  color: #bb66ee;
+}
+.action-btn.act-tectonic:hover { background: #3a1a4a; border-color: #7a30aa; }
+
+/* Flood — teal */
+.action-btn.act-flood {
+  background: #0a2a2a;
+  border-color: #1a5a5a;
+  color: #50cccc;
+}
+.action-btn.act-flood:hover { background: #103a3a; border-color: #2a7a7a; }
+
+.end-btns {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.btn-finish {
+  background: #2a3510;
+  border-color: #5a7a20;
+}
+.btn-finish:hover { background: #3a4518; border-color: #90c040; }
+
+.btn-reset {
+  background: #351a1a;
+  border-color: #7a3030;
+  color: #cc6060;
+}
+.btn-reset:hover { background: #452020; border-color: #aa4040; }
+
+/* ---- Fortress Layout: log + inventory side by side ---- */
+.fortress-main {
+  display: none;
+  gap: 0.8rem;
+  max-width: 900px;
+  width: 100%;
+}
+
+.fortress-log-col {
+  flex: 1;
+  min-width: 0;
+}
+
+.fortress-log {
+  background: #0e0e0a;
+  border: 1px solid #2a2518;
+  border-radius: 4px;
+  padding: 0.8rem;
+  min-height: 250px;
+  max-height: 55vh;
+  overflow-y: auto;
+  font-size: 0.8rem;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.fortress-log::-webkit-scrollbar { width: 8px; }
+.fortress-log::-webkit-scrollbar-track { background: #0e0e0a; }
+.fortress-log::-webkit-scrollbar-thumb { background: #3a3520; border-radius: 4px; }
+
+.inventory-col {
+  width: 260px;
+  flex-shrink: 0;
+}
+
+.inventory-panel {
+  background: #0e0e0a;
+  border: 1px solid #2a2518;
+  border-radius: 4px;
+  padding: 0.8rem;
+  max-height: 55vh;
+  overflow-y: auto;
+}
+
+.inventory-panel::-webkit-scrollbar { width: 6px; }
+.inventory-panel::-webkit-scrollbar-track { background: #0e0e0a; }
+.inventory-panel::-webkit-scrollbar-thumb { background: #3a3520; border-radius: 3px; }
+
+.inventory-panel h4 {
+  color: #f0c050;
+  font-size: 0.85rem;
+  margin-bottom: 0.5rem;
+  border-bottom: 1px solid #2a2518;
+  padding-bottom: 0.3rem;
+}
+
+.inv-crystal {
+  padding: 0.4rem 0.5rem;
+  margin-bottom: 0.3rem;
+  border: 1px solid #2a2518;
+  border-radius: 3px;
+  cursor: pointer;
+  font-size: 0.75rem;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.inv-crystal:hover {
+  background: #1a1a14;
+  border-color: #5a4a20;
+}
+
+.inv-crystal .inv-mineral {
+  color: #50e0c0;
+  font-weight: bold;
+  text-transform: uppercase;
+  font-size: 0.7rem;
+}
+
+.inv-crystal .inv-size {
+  color: #a89040;
+}
+
+.inv-crystal .inv-habit {
+  color: #8a7a40;
+}
+
+.inv-crystal .inv-twin {
+  color: #bb66ee;
+  font-style: italic;
+}
+
+.inv-empty {
+  color: #5a4a30;
+  font-style: italic;
+  font-size: 0.75rem;
+}
+
+/* ---- Zone history modal ---- */
+.zone-overlay {
+  display: none;
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.8);
+  z-index: 100;
+  justify-content: center;
+  align-items: center;
+  padding: 1rem;
+}
+
+.zone-overlay.visible {
+  display: flex;
+}
+
+.zone-modal {
+  background: #0e0e0a;
+  border: 1px solid #5a4a20;
+  border-radius: 6px;
+  padding: 1.2rem;
+  max-width: 650px;
+  width: 100%;
+  max-height: 80vh;
+  overflow-y: auto;
+  position: relative;
+}
+
+.zone-modal::-webkit-scrollbar { width: 6px; }
+.zone-modal::-webkit-scrollbar-track { background: #0e0e0a; }
+.zone-modal::-webkit-scrollbar-thumb { background: #3a3520; border-radius: 3px; }
+
+.zone-modal h3 {
+  color: #f0c050;
+  margin-bottom: 0.6rem;
+}
+
+.zone-close {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.8rem;
+  background: none;
+  border: none;
+  color: #8a7a40;
+  font-size: 1.2rem;
+  cursor: pointer;
+  padding: 0.2rem 0.4rem;
+}
+.zone-close:hover { color: #f0c050; background: none; }
+
+.zone-entry {
+  font-size: 0.75rem;
+  padding: 0.3rem 0;
+  border-bottom: 1px solid #1a1a14;
+  line-height: 1.4;
+}
+
+.zone-entry .z-step { color: #8a7a40; }
+.zone-entry .z-temp { color: #ff8844; }
+.zone-entry .z-thick { color: #50e0c0; }
+.zone-entry .z-note { color: #c0a848; }
+.zone-entry .z-fi { color: #bb66ee; }
+
+/* Step counter */
+.step-counter {
+  color: #8a7a40;
+  font-size: 0.85rem;
+  margin-bottom: 0.5rem;
+  text-align: center;
+}
+
+.step-counter .step-num {
+  color: #f0c050;
+  font-weight: bold;
+  font-size: 1rem;
+}
+
 footer {
   margin-top: 2rem;
   padding: 1rem;
@@ -191,6 +649,11 @@ footer a:hover {
   .controls { gap: 0.5rem; }
   #output { font-size: 0.7rem; max-height: 60vh; padding: 0.6rem; }
   body { padding: 0.5rem; }
+  .fortress-main { flex-direction: column; }
+  .inventory-col { width: 100%; }
+  .action-grid { flex-direction: column; }
+  .action-btn { width: 100%; justify-content: center; }
+  .setup-row input[type="range"] { width: 120px; }
 }
 </style>
 </head>
@@ -199,7 +662,14 @@ footer a:hover {
 <h1>🪨 Vugg Simulator</h1>
 <div class="subtitle">A text-based crystal growth engine</div>
 
-<div class="controls">
+<!-- Mode Toggle -->
+<div class="mode-toggle">
+  <button id="mode-legends" class="active" onclick="switchMode('legends')">⛏️ Legends Mode</button>
+  <button id="mode-fortress" onclick="switchMode('fortress')">🏰 Fortress Mode</button>
+</div>
+
+<!-- Legends Mode Controls (existing) -->
+<div class="controls" id="legends-controls">
   <div class="control-group">
     <label for="scenario">Scenario</label>
     <select id="scenario">
@@ -223,16 +693,109 @@ footer a:hover {
   </div>
 </div>
 
+<!-- Legends Mode Output -->
 <div id="output-container">
   <div id="output">Welcome to the Vugg Simulator.
 
 Select a scenario and press Grow, or hit Random for a surprise.
+Switch to 🏰 Fortress Mode for step-by-step interactive control.
 
 Scenarios:
   cooling — Simple cooling: hot fluid cools slowly in a vug
   pulse   — Cooling with a mid-growth fluid pulse event
   mvt     — Mississippi Valley-type: fluid mixing produces sphalerite + calcite + fluorite
 </div>
+</div>
+
+<!-- Fortress Mode Panel -->
+<div id="fortress-panel">
+
+  <!-- Setup Phase -->
+  <div class="fortress-setup" id="fortress-setup">
+    <h3>🏰 Fortress Mode — Build Your Vug</h3>
+
+    <div class="setup-row">
+      <label>Temperature</label>
+      <input type="range" id="f-temp" min="50" max="500" value="300" oninput="document.getElementById('f-temp-val').textContent=this.value+'°C'">
+      <span class="range-val" id="f-temp-val">300°C</span>
+    </div>
+
+    <div class="setup-row">
+      <label>Pressure</label>
+      <input type="range" id="f-pressure" min="1" max="30" value="15" step="1" oninput="document.getElementById('f-pressure-val').textContent=(this.value/10).toFixed(1)+' kbar'">
+      <span class="range-val" id="f-pressure-val">1.5 kbar</span>
+    </div>
+
+    <div class="setup-row" style="flex-direction:column;align-items:flex-start">
+      <label>Fluid Chemistry Preset</label>
+      <div class="preset-grid" id="preset-grid">
+        <button class="preset-btn selected" data-preset="silica" onclick="selectPreset('silica')">🔮 Silica-rich</button>
+        <button class="preset-btn" data-preset="carbonate" onclick="selectPreset('carbonate')">�ite Carbonate</button>
+        <button class="preset-btn" data-preset="mvt" onclick="selectPreset('mvt')">⚗️ MVT Brine</button>
+        <button class="preset-btn" data-preset="clean" onclick="selectPreset('clean')">💧 Clean/Dilute</button>
+      </div>
+    </div>
+
+    <div id="preset-desc" style="color:#8a7a40;font-size:0.75rem;margin:0.5rem 0;padding:0.4rem;background:#12120c;border-radius:3px;">
+      High silica (600 ppm SiO₂), moderate Ca, low metals. Quartz-dominant growth.
+    </div>
+
+    <div style="text-align:center;margin-top:0.5rem">
+      <button class="btn-begin" onclick="fortressBegin()">⛏️ Begin</button>
+    </div>
+  </div>
+
+  <!-- Active Phase -->
+  <div class="status-bar" id="fortress-status">
+    <div class="step-counter">Step <span class="step-num" id="f-step-num">0</span></div>
+    <div class="status-conditions">
+      <div class="cond-item"><span class="cond-label">Temp</span> <span id="f-stat-temp">—</span></div>
+      <div class="cond-item"><span class="cond-label">Press</span> <span id="f-stat-press">—</span></div>
+      <div class="cond-item"><span class="cond-label">pH</span> <span id="f-stat-ph">—</span></div>
+      <div class="cond-item"><span class="cond-label">Flow</span> <span id="f-stat-flow">—</span></div>
+    </div>
+    <div class="supersaturation-bar" id="f-sat-bar"></div>
+  </div>
+
+  <div class="action-panel" id="fortress-actions">
+    <div class="action-grid">
+      <button class="action-btn act-wait" onclick="fortressStep('wait')" title="Ambient cooling, nothing special">⏳ Wait</button>
+      <button class="action-btn act-heat" onclick="fortressStep('heat')" title="Temperature +25°C">🔥 Heat +25°C</button>
+      <button class="action-btn act-cool" onclick="fortressStep('cool')" title="Temperature -25°C">❄️ Cool −25°C</button>
+      <button class="action-btn act-chem" onclick="fortressStep('silica')" title="Boost SiO₂ significantly">🔮 Inject Silica</button>
+      <button class="action-btn act-chem" onclick="fortressStep('metals')" title="Boost Fe, Mn">⚙️ Inject Metals</button>
+      <button class="action-btn act-chem" onclick="fortressStep('brine')" title="Inject Zn + S (sphalerite potential)">⚗️ Mix Brine</button>
+      <button class="action-btn act-chem" onclick="fortressStep('fluorine')" title="Boost F + Ca (fluorite potential)">💎 Add Fluorine</button>
+      <button class="action-btn act-tectonic" onclick="fortressStep('tectonic')" title="Pressure spike, twinning trigger">🌋 Tectonic Shock</button>
+      <button class="action-btn act-flood" onclick="fortressStep('flood')" title="High flow rate, fresh fluid pulse">🌊 Flood</button>
+    </div>
+    <div class="end-btns">
+      <button class="btn-finish" onclick="fortressFinish()">📜 Finish &amp; Narrate</button>
+      <button class="btn-reset" onclick="fortressReset()">↩️ Reset</button>
+      <button class="btn-copy" onclick="copyFortressLog()">Copy to clipboard</button>
+    </div>
+  </div>
+
+  <div class="fortress-main" id="fortress-main">
+    <div class="fortress-log-col">
+      <div class="fortress-log" id="fortress-log"></div>
+    </div>
+    <div class="inventory-col">
+      <div class="inventory-panel" id="fortress-inventory">
+        <h4>💎 Crystal Inventory</h4>
+        <div class="inv-empty">No crystals yet. Begin and take actions to grow your vug.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Zone History Modal -->
+<div class="zone-overlay" id="zone-overlay" onclick="if(event.target===this)closeZoneModal()">
+  <div class="zone-modal" id="zone-modal">
+    <button class="zone-close" onclick="closeZoneModal()">✕</button>
+    <h3 id="zone-modal-title">Crystal Zone History</h3>
+    <div id="zone-modal-body"></div>
+  </div>
 </div>
 
 <footer>
@@ -1142,7 +1705,7 @@ function capitalize(s) {
 }
 
 // ============================================================
-// UI LOGIC
+// UI LOGIC — LEGENDS MODE (unchanged)
 // ============================================================
 
 let running = false;
@@ -1205,8 +1768,6 @@ function displayLines(lines) {
   output.innerHTML = '';
 
   let i = 0;
-  const narrativeStart = lines.indexOf('GEOLOGICAL HISTORY');
-  const narrativeSep = narrativeStart >= 0 ? narrativeStart + 1 : -1; // the ─ line after it
   let inNarrative = false;
   let narrativeEl = null;
 
@@ -1221,7 +1782,6 @@ function displayLines(lines) {
     const line = lines[i];
     i++;
 
-    // Detect narrative section
     if (line === 'GEOLOGICAL HISTORY') {
       const box = document.createElement('div');
       box.className = 'narrative-box';
@@ -1238,10 +1798,8 @@ function displayLines(lines) {
       return;
     }
 
-    // End narrative on the closing ═ line after it started
     if (inNarrative && line.startsWith('═'.repeat(10))) {
       inNarrative = false;
-      // Add the closing bar outside the box
       const span = document.createElement('div');
       span.textContent = line;
       span.className = 'line-header';
@@ -1251,7 +1809,6 @@ function displayLines(lines) {
       return;
     }
 
-    // Skip the ─ separator after GEOLOGICAL HISTORY title (already in the box)
     if (inNarrative && line.startsWith('─'.repeat(10))) {
       setTimeout(addLine, 5);
       return;
@@ -1292,7 +1849,6 @@ function copyOutput() {
     btn.textContent = 'Copied!';
     setTimeout(() => { btn.textContent = orig; }, 1500);
   }).catch(() => {
-    // Fallback
     const ta = document.createElement('textarea');
     ta.value = text;
     document.body.appendChild(ta);
@@ -1305,6 +1861,448 @@ function copyOutput() {
     setTimeout(() => { btn.textContent = orig; }, 1500);
   });
 }
+
+// ============================================================
+// MODE SWITCHING
+// ============================================================
+
+function switchMode(mode) {
+  const legendsControls = document.getElementById('legends-controls');
+  const outputContainer = document.getElementById('output-container');
+  const fortressPanel = document.getElementById('fortress-panel');
+  const modeLegends = document.getElementById('mode-legends');
+  const modeFortress = document.getElementById('mode-fortress');
+
+  if (mode === 'legends') {
+    legendsControls.style.display = 'flex';
+    outputContainer.style.display = 'block';
+    fortressPanel.style.display = 'none';
+    modeLegends.classList.add('active');
+    modeFortress.classList.remove('active');
+  } else {
+    legendsControls.style.display = 'none';
+    outputContainer.style.display = 'none';
+    fortressPanel.style.display = 'block';
+    modeLegends.classList.remove('active');
+    modeFortress.classList.add('active');
+  }
+}
+
+// ============================================================
+// FORTRESS MODE
+// ============================================================
+
+const FLUID_PRESETS = {
+  silica: {
+    label: 'Silica-rich',
+    desc: 'High silica (600 ppm SiO₂), moderate Ca, low metals. Quartz-dominant growth.',
+    fluid: { SiO2: 600, Ca: 150, CO3: 100, Fe: 8, Mn: 3, Ti: 0.8, Al: 4, F: 10, Zn: 0, S: 0, pH: 6.5, salinity: 5.0 }
+  },
+  carbonate: {
+    label: 'Carbonate',
+    desc: 'Ca-CO₃ rich fluid (Ca 300, CO₃ 250 ppm), moderate Mn. Calcite-dominant.',
+    fluid: { SiO2: 80, Ca: 300, CO3: 250, Fe: 10, Mn: 8, Ti: 0.2, Al: 1, F: 5, Zn: 0, S: 0, pH: 7.0, salinity: 8.0 }
+  },
+  mvt: {
+    label: 'MVT Brine',
+    desc: 'Zinc + sulfur-bearing brine (Zn 150, S 120 ppm), high Ca + F. Sphalerite + fluorite potential.',
+    fluid: { SiO2: 100, Ca: 350, CO3: 200, Fe: 25, Mn: 5, Ti: 0.3, Al: 2, F: 30, Zn: 150, S: 120, pH: 5.5, salinity: 18.0 }
+  },
+  clean: {
+    label: 'Clean/Dilute',
+    desc: 'Low-concentration fluid. Slow growth, high purity crystals. Near-equilibrium conditions.',
+    fluid: { SiO2: 200, Ca: 80, CO3: 60, Fe: 2, Mn: 1, Ti: 0.1, Al: 1, F: 3, Zn: 0, S: 0, pH: 7.0, salinity: 2.0 }
+  }
+};
+
+let fortressSim = null;
+let fortressActive = false;
+let fortressLogLines = [];
+let selectedPreset = 'silica';
+
+function selectPreset(preset) {
+  selectedPreset = preset;
+  document.querySelectorAll('#preset-grid .preset-btn').forEach(btn => {
+    btn.classList.toggle('selected', btn.dataset.preset === preset);
+  });
+  document.getElementById('preset-desc').textContent = FLUID_PRESETS[preset].desc;
+}
+
+function fortressBegin() {
+  const temp = parseFloat(document.getElementById('f-temp').value);
+  const pressure = parseFloat(document.getElementById('f-pressure').value) / 10;
+  const presetData = FLUID_PRESETS[selectedPreset];
+  const fluid = new FluidChemistry(presetData.fluid);
+  const conditions = new VugConditions({ temperature: temp, pressure, fluid });
+
+  rng = new SeededRandom(Date.now());
+  fortressSim = new VugSimulator(conditions, []);
+  fortressActive = true;
+  fortressLogLines = [];
+
+  // Show active panels, hide setup
+  document.getElementById('fortress-setup').style.display = 'none';
+  document.getElementById('fortress-status').style.display = 'block';
+  document.getElementById('fortress-actions').style.display = 'block';
+  const main = document.getElementById('fortress-main');
+  main.style.display = 'flex';
+
+  // Initial log
+  const logEl = document.getElementById('fortress-log');
+  logEl.innerHTML = '';
+  const initLines = [
+    `🏰 Fortress Mode — Your Vug Awaits`,
+    `   Temperature: ${temp.toFixed(0)}°C | Pressure: ${pressure.toFixed(1)} kbar`,
+    `   Fluid: ${presetData.label} — ${fluid.describe()}`,
+    `═`.repeat(60),
+    ``,
+    `Choose an action to advance one step at a time.`,
+  ];
+  initLines.forEach(line => {
+    fortressLogLines.push(line);
+    appendFortressLine(logEl, line);
+  });
+
+  updateFortressStatus();
+  updateFortressInventory();
+}
+
+function fortressStep(action) {
+  if (!fortressSim || !fortressActive) return;
+
+  const c = fortressSim.conditions;
+  let actionDesc = '';
+
+  // Apply action modifications BEFORE running the step
+  switch (action) {
+    case 'wait':
+      actionDesc = '⏳ Waiting — ambient cooling';
+      break;
+    case 'heat':
+      c.temperature += 25;
+      c.temperature = Math.min(c.temperature, 600);
+      actionDesc = '🔥 Heat +25°C → ' + c.temperature.toFixed(0) + '°C';
+      break;
+    case 'cool':
+      c.temperature -= 25;
+      c.temperature = Math.max(c.temperature, 25);
+      actionDesc = '❄️ Cool −25°C → ' + c.temperature.toFixed(0) + '°C';
+      break;
+    case 'silica':
+      c.fluid.SiO2 += 400;
+      c.fluid.Al += 2;
+      c.fluid.Ti += 0.3;
+      actionDesc = '🔮 Silica injected — SiO₂ +400 ppm (now ' + c.fluid.SiO2.toFixed(0) + ')';
+      break;
+    case 'metals':
+      c.fluid.Fe += 40;
+      c.fluid.Mn += 15;
+      actionDesc = '⚙️ Metals injected — Fe +40, Mn +15 ppm';
+      break;
+    case 'brine':
+      c.fluid.Zn += 150;
+      c.fluid.S += 120;
+      c.temperature -= 10;
+      actionDesc = '⚗️ Brine mixed — Zn +150, S +120 ppm, T −10°C (mixing)';
+      break;
+    case 'fluorine':
+      c.fluid.F += 25;
+      c.fluid.Ca += 80;
+      actionDesc = '💎 Fluorine added — F +25, Ca +80 ppm';
+      break;
+    case 'tectonic':
+      c.pressure += 0.5;
+      c.temperature += 15;
+      // Force twinning check on existing crystals
+      for (const crystal of fortressSim.crystals) {
+        if (!crystal.twinned && crystal.zones.length > 2 && rng.random() < 0.4) {
+          crystal.twinned = true;
+          if (crystal.mineral === 'quartz') crystal.twin_law = 'Dauphiné';
+          else if (crystal.mineral === 'calcite') crystal.twin_law = 'c-twin {001}';
+          else if (crystal.mineral === 'sphalerite') crystal.twin_law = 'spinel-law {111}';
+          else if (crystal.mineral === 'fluorite') crystal.twin_law = 'penetration twin {111}';
+        }
+      }
+      actionDesc = '🌋 Tectonic shock — P +0.5 kbar, T +15°C. Crystals stressed!';
+      break;
+    case 'flood':
+      c.flow_rate = 5.0;
+      c.fluid.SiO2 *= 0.6;
+      c.fluid.Ca *= 1.3;
+      c.fluid.CO3 *= 1.2;
+      c.fluid.pH += 0.3;
+      actionDesc = '🌊 Flood — fresh fluid pulse, silica diluted, carbonates refreshed';
+      break;
+  }
+
+  // Run one step
+  const log = fortressSim.run_step();
+
+  // Build output
+  const logEl = document.getElementById('fortress-log');
+  const lines = [];
+  lines.push('');
+  lines.push(`── ${actionDesc}`);
+  lines.push(fortressSim.format_header());
+  if (log.length) {
+    for (const l of log) lines.push(l);
+  } else {
+    lines.push('  (no growth or events this step)');
+  }
+
+  lines.forEach(line => {
+    fortressLogLines.push(line);
+    appendFortressLine(logEl, line);
+  });
+
+  logEl.scrollTop = logEl.scrollHeight;
+  updateFortressStatus();
+  updateFortressInventory();
+}
+
+function appendFortressLine(container, line) {
+  const span = document.createElement('div');
+  span.textContent = line;
+  if (line.includes('⚡')) span.className = 'line-event';
+  else if (line.includes('✦')) span.className = 'line-nucleation';
+  else if (line.includes('═══ Step') || (line.startsWith('═') && line.length > 5)) span.className = 'line-header';
+  else if (line.includes('⬇') || line.includes('DISSOLUTION')) span.className = 'line-dissolution';
+  container.appendChild(span);
+}
+
+function updateFortressStatus() {
+  if (!fortressSim) return;
+  const c = fortressSim.conditions;
+
+  document.getElementById('f-step-num').textContent = fortressSim.step;
+  document.getElementById('f-stat-temp').textContent = c.temperature.toFixed(1) + '°C';
+  document.getElementById('f-stat-press').textContent = c.pressure.toFixed(2) + ' kbar';
+  document.getElementById('f-stat-ph').textContent = c.fluid.pH.toFixed(1);
+  document.getElementById('f-stat-flow').textContent = c.flow_rate.toFixed(1);
+
+  // Supersaturation indicators
+  const satBar = document.getElementById('f-sat-bar');
+  satBar.innerHTML = '';
+
+  const minerals = [
+    { name: 'Quartz', sigma: c.supersaturation_quartz() },
+    { name: 'Calcite', sigma: c.supersaturation_calcite() },
+    { name: 'Fluorite', sigma: c.supersaturation_fluorite() },
+    { name: 'Sphalerite', sigma: c.supersaturation_sphalerite() },
+  ];
+
+  for (const m of minerals) {
+    const el = document.createElement('span');
+    const isSuper = m.sigma >= 1.0;
+    el.className = 'sat-indicator ' + (isSuper ? 'sat-super' : 'sat-under');
+    el.textContent = `${m.name} σ=${m.sigma.toFixed(2)}`;
+    el.title = isSuper ? 'Supersaturated — will grow!' : 'Undersaturated — no growth';
+    satBar.appendChild(el);
+  }
+}
+
+function updateFortressInventory() {
+  if (!fortressSim) return;
+  const panel = document.getElementById('fortress-inventory');
+  panel.innerHTML = '<h4>💎 Crystal Inventory</h4>';
+
+  if (!fortressSim.crystals.length) {
+    const empty = document.createElement('div');
+    empty.className = 'inv-empty';
+    empty.textContent = 'No crystals yet. Conditions may need to reach supersaturation first.';
+    panel.appendChild(empty);
+    return;
+  }
+
+  for (const crystal of fortressSim.crystals) {
+    const el = document.createElement('div');
+    el.className = 'inv-crystal';
+    el.onclick = () => showZoneHistory(crystal);
+
+    let html = `<div class="inv-mineral">${crystal.mineral} #${crystal.crystal_id}</div>`;
+    html += `<div class="inv-size">${crystal.c_length_mm.toFixed(1)} × ${crystal.a_width_mm.toFixed(1)} mm</div>`;
+    html += `<div class="inv-habit">${crystal.habit}`;
+    if (crystal.dominant_forms.length) html += ` [${crystal.dominant_forms[0]}]`;
+    html += `</div>`;
+    if (crystal.twinned) html += `<div class="inv-twin">⟁ ${crystal.twin_law}</div>`;
+    html += `<div style="color:#5a4a30;font-size:0.65rem;margin-top:0.2rem">${crystal.zones.length} zones · tap for history</div>`;
+
+    el.innerHTML = html;
+    panel.appendChild(el);
+  }
+}
+
+function showZoneHistory(crystal) {
+  const overlay = document.getElementById('zone-overlay');
+  const title = document.getElementById('zone-modal-title');
+  const body = document.getElementById('zone-modal-body');
+
+  title.textContent = `${capitalize(crystal.mineral)} #${crystal.crystal_id} — Zone History`;
+  body.innerHTML = '';
+
+  // Crystal summary
+  const summary = document.createElement('div');
+  summary.style.cssText = 'margin-bottom:0.8rem;font-size:0.8rem;color:#c0a848;line-height:1.5';
+  summary.innerHTML = `
+    <div>Nucleated: step ${crystal.nucleation_step} at ${crystal.nucleation_temp.toFixed(0)}°C</div>
+    <div>Morphology: ${crystal.describe_morphology()}</div>
+    <div>Total growth: ${crystal.total_growth_um.toFixed(0)} µm (${crystal.c_length_mm.toFixed(1)} mm)</div>
+    ${crystal.twinned ? `<div style="color:#bb66ee">Twinned: ${crystal.twin_law}</div>` : ''}
+    ${crystal.dissolved ? `<div style="color:#cc4444">Partially dissolved</div>` : ''}
+    <div>Fluorescence: ${crystal.predict_fluorescence()}</div>
+  `;
+  body.appendChild(summary);
+
+  if (!crystal.zones.length) {
+    const noZones = document.createElement('div');
+    noZones.className = 'inv-empty';
+    noZones.textContent = 'No growth zones recorded yet.';
+    body.appendChild(noZones);
+  } else {
+    const header = document.createElement('div');
+    header.style.cssText = 'color:#8a7a40;font-size:0.7rem;border-bottom:1px solid #2a2518;padding-bottom:0.3rem;margin-bottom:0.3rem';
+    header.textContent = `${crystal.zones.length} growth zone${crystal.zones.length > 1 ? 's' : ''}:`;
+    body.appendChild(header);
+
+    for (const z of crystal.zones) {
+      const entry = document.createElement('div');
+      entry.className = 'zone-entry';
+      let html = `<span class="z-step">Step ${z.step}</span> · `;
+      html += `<span class="z-temp">${z.temperature.toFixed(0)}°C</span> · `;
+      if (z.thickness_um >= 0) {
+        html += `<span class="z-thick">+${z.thickness_um.toFixed(1)} µm</span>`;
+      } else {
+        html += `<span style="color:#cc4444">${z.thickness_um.toFixed(1)} µm (dissolution)</span>`;
+      }
+
+      const traces = [];
+      if (z.trace_Fe > 0.5) traces.push(`Fe ${z.trace_Fe.toFixed(1)}`);
+      if (z.trace_Mn > 0.3) traces.push(`Mn ${z.trace_Mn.toFixed(1)}`);
+      if (z.trace_Ti > 0.01) traces.push(`Ti ${z.trace_Ti.toFixed(3)}`);
+      if (z.trace_Al > 0.5) traces.push(`Al ${z.trace_Al.toFixed(1)}`);
+      if (traces.length) html += ` · <span style="color:#a89040">${traces.join(', ')} ppm</span>`;
+
+      if (z.fluid_inclusion) html += ` · <span class="z-fi">FI: ${z.inclusion_type}</span>`;
+      if (z.note) html += `<div class="z-note">${z.note}</div>`;
+
+      entry.innerHTML = html;
+      body.appendChild(entry);
+    }
+  }
+
+  overlay.classList.add('visible');
+}
+
+function closeZoneModal() {
+  document.getElementById('zone-overlay').classList.remove('visible');
+}
+
+function fortressFinish() {
+  if (!fortressSim) return;
+
+  const logEl = document.getElementById('fortress-log');
+  const summaryLines = fortressSim.format_summary();
+
+  fortressLogLines.push('');
+  const sep = document.createElement('div');
+  sep.innerHTML = '<br>';
+  logEl.appendChild(sep);
+
+  // Render summary with narrative box
+  let inNarrative = false;
+  let narrativeEl = null;
+
+  for (const line of summaryLines) {
+    fortressLogLines.push(line);
+
+    if (line === 'GEOLOGICAL HISTORY') {
+      const box = document.createElement('div');
+      box.className = 'narrative-box';
+      const title = document.createElement('div');
+      title.className = 'narrative-title';
+      title.textContent = 'GEOLOGICAL HISTORY';
+      box.appendChild(title);
+      narrativeEl = document.createElement('div');
+      box.appendChild(narrativeEl);
+      logEl.appendChild(box);
+      inNarrative = true;
+      continue;
+    }
+
+    if (inNarrative && line.startsWith('═'.repeat(10))) {
+      inNarrative = false;
+      appendFortressLine(logEl, line);
+      continue;
+    }
+
+    if (inNarrative && line.startsWith('─'.repeat(10))) continue;
+
+    if (inNarrative) {
+      const span = document.createElement('div');
+      span.textContent = line;
+      span.style.marginBottom = line === '' ? '0.5em' : '0';
+      narrativeEl.appendChild(span);
+      continue;
+    }
+
+    appendFortressLine(logEl, line);
+  }
+
+  logEl.scrollTop = logEl.scrollHeight;
+
+  // Disable action buttons
+  fortressActive = false;
+  document.querySelectorAll('.action-grid .action-btn').forEach(btn => btn.disabled = true);
+}
+
+function fortressReset() {
+  fortressSim = null;
+  fortressActive = false;
+  fortressLogLines = [];
+
+  // Reset UI
+  document.getElementById('fortress-setup').style.display = 'block';
+  document.getElementById('fortress-status').style.display = 'none';
+  document.getElementById('fortress-actions').style.display = 'none';
+  document.getElementById('fortress-main').style.display = 'none';
+  document.getElementById('fortress-log').innerHTML = '';
+  document.getElementById('fortress-inventory').innerHTML = '<h4>💎 Crystal Inventory</h4><div class="inv-empty">No crystals yet. Begin and take actions to grow your vug.</div>';
+
+  // Re-enable action buttons
+  document.querySelectorAll('.action-grid .action-btn').forEach(btn => btn.disabled = false);
+
+  // Reset sliders
+  document.getElementById('f-temp').value = 300;
+  document.getElementById('f-temp-val').textContent = '300°C';
+  document.getElementById('f-pressure').value = 15;
+  document.getElementById('f-pressure-val').textContent = '1.5 kbar';
+  selectPreset('silica');
+}
+
+function copyFortressLog() {
+  const text = fortressLogLines.join('\n');
+  navigator.clipboard.writeText(text).then(() => {
+    const btns = document.querySelectorAll('.end-btns .btn-copy');
+    if (btns.length) {
+      const btn = btns[0];
+      const orig = btn.textContent;
+      btn.textContent = 'Copied!';
+      setTimeout(() => { btn.textContent = orig; }, 1500);
+    }
+  }).catch(() => {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+  });
+}
+
+// Handle Escape key for zone modal
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closeZoneModal();
+});
 </script>
 </body>
 </html>
