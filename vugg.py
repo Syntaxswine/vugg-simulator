@@ -97,11 +97,21 @@ class VugConditions:
         SiO2 concentration would be in equilibrium.
         
         Simplified model: solubility ≈ 50 * exp(0.008 * T) ppm
+        
+        HF ATTACK: Low pH + high fluorine dissolves quartz as SiF4.
+        This is real — HF is the only common acid that attacks silicates.
         """
         equilibrium_SiO2 = 50.0 * math.exp(0.008 * self.temperature)
         if equilibrium_SiO2 <= 0:
             return 0
-        return self.fluid.SiO2 / equilibrium_SiO2
+        sigma = self.fluid.SiO2 / equilibrium_SiO2
+        
+        # HF attack on quartz: low pH + high F = dissolution
+        if self.fluid.pH < 4.0 and self.fluid.F > 20:
+            hf_attack = (4.0 - self.fluid.pH) * (self.fluid.F / 50.0) * 0.3
+            sigma -= hf_attack
+        
+        return max(sigma, 0)
     
     def supersaturation_calcite(self) -> float:
         """Calcite supersaturation (simplified).
@@ -109,12 +119,26 @@ class VugConditions:
         Calcite has RETROGRADE solubility — less soluble at higher T.
         So heating causes precipitation (opposite of quartz).
         Simplified: solubility ≈ 300 * exp(-0.005 * T)
+        
+        pH EFFECT: Acid dissolves carbonates. Below pH ~5, calcite
+        dissolves readily. This is how caves form — slightly acidic
+        groundwater eats limestone.
         """
         equilibrium_Ca = 300.0 * math.exp(-0.005 * self.temperature)
         if equilibrium_Ca <= 0:
             return 0
         ca_co3_product = min(self.fluid.Ca, self.fluid.CO3)
-        return ca_co3_product / equilibrium_Ca
+        sigma = ca_co3_product / equilibrium_Ca
+        
+        # Acid dissolution of carbonates
+        if self.fluid.pH < 5.5:
+            acid_attack = (5.5 - self.fluid.pH) * 0.5
+            sigma -= acid_attack
+        # Alkaline conditions favor carbonate precipitation
+        elif self.fluid.pH > 7.5:
+            sigma *= 1.0 + (self.fluid.pH - 7.5) * 0.15
+        
+        return max(sigma, 0)
     
     def supersaturation_fluorite(self) -> float:
         """Fluorite (CaF2) supersaturation. Precipitates when Ca and F meet."""
@@ -288,10 +312,20 @@ def grow_quartz(crystal: Crystal, conditions: VugConditions, step: int) -> Optio
         # Undersaturated — dissolution
         if crystal.total_growth_um > 10:
             crystal.dissolved = True
+            dissolved_um = min(5.0, crystal.total_growth_um * 0.1)
+            # RECYCLING: dissolved SiO2 returns to fluid
+            conditions.fluid.SiO2 += dissolved_um * 0.8
+            
+            # Determine dissolution type
+            if conditions.fluid.pH < 4.0 and conditions.fluid.F > 20:
+                note = "HF etching — trigonal etch pits on prism faces, SiO₂ dissolved as SiF₄"
+            else:
+                note = "dissolution — etching on prism faces"
+            
             return GrowthZone(
                 step=step, temperature=conditions.temperature,
-                thickness_um=-5.0, growth_rate=-5.0,
-                note="dissolution — etching on prism faces"
+                thickness_um=-dissolved_um, growth_rate=-dissolved_um,
+                note=note
             )
         return None
     
@@ -388,6 +422,24 @@ def grow_calcite(crystal: Crystal, conditions: VugConditions, step: int) -> Opti
     sigma = conditions.supersaturation_calcite()
     
     if sigma < 1.0:
+        # Acid dissolution — calcite dissolves easily in acid
+        if crystal.total_growth_um > 5 and conditions.fluid.pH < 5.5:
+            crystal.dissolved = True
+            dissolved_um = min(8.0, crystal.total_growth_um * 0.15)
+            # RECYCLING: Ca, CO3, and trace elements return to fluid
+            conditions.fluid.Ca += dissolved_um * 0.5
+            conditions.fluid.CO3 += dissolved_um * 0.3
+            # Mn and Fe that were in the crystal go back into solution
+            if crystal.zones:
+                avg_mn = sum(z.trace_Mn for z in crystal.zones[-3:]) / min(len(crystal.zones), 3)
+                avg_fe = sum(z.trace_Fe for z in crystal.zones[-3:]) / min(len(crystal.zones), 3)
+                conditions.fluid.Mn += avg_mn * 0.5
+                conditions.fluid.Fe += avg_fe * 0.5
+            return GrowthZone(
+                step=step, temperature=conditions.temperature,
+                thickness_um=-dissolved_um, growth_rate=-dissolved_um,
+                note=f"acid dissolution (pH {conditions.fluid.pH:.1f}) — Ca²⁺ + CO₃²⁻ released back to fluid"
+            )
         return None  # undersaturated for calcite
     
     excess = sigma - 1.0
@@ -527,10 +579,24 @@ def grow_pyrite(crystal: Crystal, conditions: VugConditions, step: int) -> Optio
         # Check for oxidation/dissolution
         if crystal.total_growth_um > 10 and conditions.fluid.O2 > 1.0:
             crystal.dissolved = True
+            dissolved_um = min(3.0, crystal.total_growth_um * 0.1)
+            # RECYCLING: Fe and S return to fluid
+            conditions.fluid.Fe += dissolved_um * 1.0
+            conditions.fluid.S += dissolved_um * 0.5
             return GrowthZone(
                 step=step, temperature=conditions.temperature,
-                thickness_um=-3.0, growth_rate=-3.0,
-                note="oxidizing — pyrite weathering to goethite/limonite"
+                thickness_um=-dissolved_um, growth_rate=-dissolved_um,
+                note="oxidizing — pyrite weathering to goethite/limonite, Fe²⁺ released to fluid"
+            )
+        # Also dissolves in strong acid
+        if crystal.total_growth_um > 10 and conditions.fluid.pH < 3.0:
+            crystal.dissolved = True
+            conditions.fluid.Fe += 2.0
+            conditions.fluid.S += 1.5
+            return GrowthZone(
+                step=step, temperature=conditions.temperature,
+                thickness_um=-2.0, growth_rate=-2.0,
+                note=f"acid dissolution (pH {conditions.fluid.pH:.1f}) — Fe + S released"
             )
         return None
     
@@ -587,10 +653,15 @@ def grow_chalcopyrite(crystal: Crystal, conditions: VugConditions, step: int) ->
     if sigma < 1.0:
         if crystal.total_growth_um > 10 and conditions.fluid.O2 > 1.0:
             crystal.dissolved = True
+            dissolved_um = min(4.0, crystal.total_growth_um * 0.1)
+            # RECYCLING: Cu, Fe, S return to fluid
+            conditions.fluid.Cu += dissolved_um * 0.8
+            conditions.fluid.Fe += dissolved_um * 0.5
+            conditions.fluid.S += dissolved_um * 0.3
             return GrowthZone(
                 step=step, temperature=conditions.temperature,
-                thickness_um=-4.0, growth_rate=-4.0,
-                note="oxidizing — chalcopyrite weathering (→ malachite/azurite at surface)"
+                thickness_um=-dissolved_um, growth_rate=-dissolved_um,
+                note="oxidizing — chalcopyrite weathering, Cu²⁺ + Fe²⁺ released (→ malachite/azurite at surface)"
             )
         return None
     
@@ -693,6 +764,22 @@ def event_oxidation(conditions: VugConditions) -> str:
     conditions.temperature -= 40
     return (f"Oxidizing meteoric water infiltrates. Sulfides becoming unstable. "
             f"T drops to {conditions.temperature:.0f}°C.")
+
+
+def event_acidify(conditions: VugConditions) -> str:
+    """Acidic fluid enters — carbonates become unstable."""
+    conditions.fluid.pH -= 2.0
+    conditions.fluid.pH = max(conditions.fluid.pH, 2.0)
+    return (f"Acidic fluid incursion. pH drops to {conditions.fluid.pH:.1f}. "
+            f"Carbonates becoming unstable — calcite may dissolve.")
+
+
+def event_alkalinize(conditions: VugConditions) -> str:
+    """Alkaline fluid enters — carbonates favored, sulfides stressed."""
+    conditions.fluid.pH += 2.0
+    conditions.fluid.pH = min(conditions.fluid.pH, 10.0)
+    return (f"Alkaline fluid incursion. pH rises to {conditions.fluid.pH:.1f}. "
+            f"Carbonate precipitation favored.")
 
 
 def event_fluid_mixing(conditions: VugConditions) -> str:
