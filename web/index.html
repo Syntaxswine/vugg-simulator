@@ -759,6 +759,33 @@ Scenarios:
       High silica (600 ppm SiO₂), moderate Ca, low metals. Quartz-dominant growth.
     </div>
 
+    <div style="margin:0.8rem 0;padding:0.6rem;background:#12120c;border:1px solid #2a2518;border-radius:4px;">
+      <label style="color:#a89040;font-size:0.8rem;display:block;margin-bottom:0.5rem;">Trace Elements — adjust after choosing preset</label>
+      <div class="setup-row">
+        <label style="width:60px">Iron</label>
+        <input type="range" id="f-fe" min="0" max="200" value="5" oninput="document.getElementById('f-fe-val').textContent=this.value+' ppm'">
+        <span class="range-val" id="f-fe-val">5 ppm</span>
+      </div>
+      <div class="setup-row">
+        <label style="width:60px">Mn</label>
+        <input type="range" id="f-mn" min="0" max="50" value="2" oninput="document.getElementById('f-mn-val').textContent=this.value+' ppm'">
+        <span class="range-val" id="f-mn-val">2 ppm</span>
+      </div>
+      <div class="setup-row">
+        <label style="width:60px">Copper</label>
+        <input type="range" id="f-cu" min="0" max="200" value="0" oninput="document.getElementById('f-cu-val').textContent=this.value+' ppm'">
+        <span class="range-val" id="f-cu-val">0 ppm</span>
+      </div>
+      <div class="setup-row">
+        <label style="width:60px">Sulfur</label>
+        <input type="range" id="f-s" min="0" max="200" value="0" oninput="document.getElementById('f-s-val').textContent=this.value+' ppm'">
+        <span class="range-val" id="f-s-val">0 ppm</span>
+      </div>
+      <div style="color:#5a4a30;font-size:0.65rem;margin-top:0.3rem;font-style:italic;">
+        Iron quenches calcite fluorescence and darkens sphalerite. Mn activates fluorescence. Cu+S+Fe = chalcopyrite. Fe+S = pyrite.
+      </div>
+    </div>
+
     <div style="text-align:center;margin-top:0.5rem">
       <button class="btn-begin" onclick="fortressBegin()">⛏️ Begin</button>
     </div>
@@ -2210,13 +2237,29 @@ function selectPreset(preset) {
     btn.classList.toggle('selected', btn.dataset.preset === preset);
   });
   document.getElementById('preset-desc').textContent = FLUID_PRESETS[preset].desc;
+  // Sync trace element sliders to preset values
+  const f = FLUID_PRESETS[preset].fluid;
+  document.getElementById('f-fe').value = f.Fe;
+  document.getElementById('f-fe-val').textContent = f.Fe + ' ppm';
+  document.getElementById('f-mn').value = f.Mn;
+  document.getElementById('f-mn-val').textContent = f.Mn + ' ppm';
+  document.getElementById('f-cu').value = f.Cu;
+  document.getElementById('f-cu-val').textContent = f.Cu + ' ppm';
+  document.getElementById('f-s').value = f.S;
+  document.getElementById('f-s-val').textContent = f.S + ' ppm';
 }
 
 function fortressBegin() {
   const temp = parseFloat(document.getElementById('f-temp').value);
   const pressure = parseFloat(document.getElementById('f-pressure').value) / 10;
   const presetData = FLUID_PRESETS[selectedPreset];
-  const fluid = new FluidChemistry(presetData.fluid);
+  const fluidParams = Object.assign({}, presetData.fluid);
+  // Override with slider values
+  fluidParams.Fe = parseFloat(document.getElementById('f-fe').value);
+  fluidParams.Mn = parseFloat(document.getElementById('f-mn').value);
+  fluidParams.Cu = parseFloat(document.getElementById('f-cu').value);
+  fluidParams.S = parseFloat(document.getElementById('f-s').value);
+  const fluid = new FluidChemistry(fluidParams);
   const conditions = new VugConditions({ temperature: temp, pressure, fluid });
 
   rng = new SeededRandom(Date.now());
