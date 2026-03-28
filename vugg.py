@@ -579,7 +579,7 @@ def grow_quartz(crystal: Crystal, conditions: VugConditions, step: int) -> Optio
         if len(crystal.zones) >= 2:
             prev_T = crystal.zones[-1].temperature
             delta_T = abs(conditions.temperature - prev_T)
-            if delta_T > 30 and random.random() < 0.4:
+            if delta_T > 30 and random.random() < 0.15:
                 crystal.twinned = True
                 crystal.twin_law = "Dauphiné"
     
@@ -720,7 +720,7 @@ def grow_sphalerite(crystal: Crystal, conditions: VugConditions, step: int) -> O
         color_note = "pale yellow (cleiophane — gem quality)"
     
     # Twinning common in sphalerite
-    if not crystal.twinned and random.random() < 0.15:
+    if not crystal.twinned and random.random() < 0.015:
         crystal.twinned = True
         crystal.twin_law = "spinel-law {111}"
     
@@ -772,7 +772,7 @@ def grow_fluorite(crystal: Crystal, conditions: VugConditions, step: int) -> Opt
     else:
         color = "blue-violet"
     
-    if not crystal.twinned and random.random() < 0.08:
+    if not crystal.twinned and random.random() < 0.008:
         crystal.twinned = True
         crystal.twin_law = "penetration twin {111}"
     
@@ -847,7 +847,7 @@ def grow_pyrite(crystal: Crystal, conditions: VugConditions, step: int) -> Optio
         trace_note += ", Cu traces (may exsolve chalcopyrite inclusions)"
     
     # Twinning — iron cross twins
-    if not crystal.twinned and random.random() < 0.08:
+    if not crystal.twinned and random.random() < 0.008:
         crystal.twinned = True
         crystal.twin_law = "iron cross {110}"
     
@@ -899,7 +899,7 @@ def grow_chalcopyrite(crystal: Crystal, conditions: VugConditions, step: int) ->
     trace_Cu = conditions.fluid.Cu * 0.1
     
     # Twinning — penetration twins common
-    if not crystal.twinned and random.random() < 0.12:
+    if not crystal.twinned and random.random() < 0.012:
         crystal.twinned = True
         crystal.twin_law = "penetration twin {112}"
     

@@ -1581,7 +1581,7 @@ function grow_calcite(crystal, conditions, step) {
     crystal.dominant_forms = ['e{104}', 'possibly nail-head'];
   }
 
-  if (!crystal.twinned && rng.random() < 0.1) {
+  if (!crystal.twinned && rng.random() < 0.01) {
     crystal.twinned = true;
     crystal.twin_law = 'c-twin {001}';
   }
@@ -1631,7 +1631,7 @@ function grow_sphalerite(crystal, conditions, step) {
   else if (Fe_mol_percent > 3) color_note = 'honey/amber';
   else color_note = 'pale yellow (cleiophane — gem quality)';
 
-  if (!crystal.twinned && rng.random() < 0.15) {
+  if (!crystal.twinned && rng.random() < 0.015) {
     crystal.twinned = true;
     crystal.twin_law = 'spinel-law {111}';
   }
@@ -1674,7 +1674,7 @@ function grow_fluorite(crystal, conditions, step) {
   else if (conditions.temperature > 200) color = 'colorless';
   else color = 'blue-violet';
 
-  if (!crystal.twinned && rng.random() < 0.08) {
+  if (!crystal.twinned && rng.random() < 0.008) {
     crystal.twinned = true;
     crystal.twin_law = 'penetration twin {111}';
   }
@@ -1746,7 +1746,7 @@ function grow_pyrite(crystal, conditions, step) {
     trace_note += ', Cu traces (may exsolve chalcopyrite inclusions)';
   }
 
-  if (!crystal.twinned && rng.random() < 0.08) {
+  if (!crystal.twinned && rng.random() < 0.008) {
     crystal.twinned = true;
     crystal.twin_law = 'iron cross {110}';
   }
@@ -1794,7 +1794,7 @@ function grow_chalcopyrite(crystal, conditions, step) {
 
   const trace_Cu = conditions.fluid.Cu * 0.1;
 
-  if (!crystal.twinned && rng.random() < 0.12) {
+  if (!crystal.twinned && rng.random() < 0.012) {
     crystal.twinned = true;
     crystal.twin_law = 'penetration twin {112}';
   }
@@ -3012,7 +3012,7 @@ function fortressStep(action) {
       c.temperature += 15;
       // Force twinning check on existing crystals
       for (const crystal of fortressSim.crystals) {
-        if (!crystal.twinned && crystal.zones.length > 2 && rng.random() < 0.4) {
+        if (!crystal.twinned && crystal.zones.length > 2 && rng.random() < 0.15) {
           crystal.twinned = true;
           if (crystal.mineral === 'quartz') crystal.twin_law = 'Dauphiné';
           else if (crystal.mineral === 'calcite') crystal.twin_law = 'c-twin {001}';
