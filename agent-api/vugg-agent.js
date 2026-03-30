@@ -156,8 +156,37 @@ class VugConditions {
     return this.temperature;
   }
 
+  // SiO₂ solubility lookup (ppm) — Fournier & Potter 1982 / Rimstidt 1997
+  static _SiO2_SOLUBILITY = [
+    [25,6],[50,15],[75,30],[100,60],[125,90],[150,130],[175,200],
+    [200,300],[225,390],[250,500],[275,600],[300,700],[325,850],
+    [350,1000],[375,1100],[400,1200],[450,1400],[500,1500],[600,1600]
+  ];
+
+  silica_equilibrium(T) {
+    const table = VugConditions._SiO2_SOLUBILITY;
+    if (T <= table[0][0]) return table[0][1];
+    if (T >= table[table.length-1][0]) return table[table.length-1][1];
+    for (let i = 0; i < table.length - 1; i++) {
+      if (T >= table[i][0] && T <= table[i+1][0]) {
+        const frac = (T - table[i][0]) / (table[i+1][0] - table[i][0]);
+        return table[i][1] + frac * (table[i+1][1] - table[i][1]);
+      }
+    }
+    return table[table.length-1][1];
+  }
+
+  silica_polymorph() {
+    const T = this.temperature;
+    if (T < 100) return 'opal';
+    if (T < 200) return 'chalcedony';
+    if (T < 573) return 'alpha-quartz';
+    if (T < 870) return 'beta-quartz';
+    return 'tridymite';
+  }
+
   supersaturation_quartz() {
-    const eq = 50.0 * Math.exp(0.008 * this.effectiveTemperature);
+    const eq = this.silica_equilibrium(this.effectiveTemperature);
     if (eq <= 0) return 0;
     let sigma = this.fluid.SiO2 / eq;
     if (this.fluid.pH < 4.0 && this.fluid.F > 20) {
@@ -168,6 +197,7 @@ class VugConditions {
   }
 
   supersaturation_calcite() {
+    if (this.temperature > 500) return 0; // thermal decomposition
     const eq = 300.0 * Math.exp(-0.005 * this.temperature);
     if (eq <= 0) return 0;
     const ca_co3 = Math.min(this.fluid.Ca, this.fluid.CO3);
@@ -184,7 +214,13 @@ class VugConditions {
   supersaturation_fluorite() {
     if (this.fluid.Ca < 10 || this.fluid.F < 5) return 0;
     let product = (this.fluid.Ca / 200.0) * (this.fluid.F / 20.0);
-    let sigma = product * Math.exp(-0.003 * this.temperature);
+    let T_factor = 1.0;
+    if (this.temperature < 50) T_factor = this.temperature / 50.0;
+    else if (this.temperature < 100) T_factor = 0.8;
+    else if (this.temperature <= 250) T_factor = 1.2;
+    else if (this.temperature <= 350) T_factor = 1.0;
+    else T_factor = Math.max(0.1, 1.0 - (this.temperature - 350) / 200);
+    let sigma = product * T_factor;
     if (this.fluid.pH < 5.0) {
       const acid_attack = (5.0 - this.fluid.pH) * 0.4;
       sigma -= acid_attack;
@@ -212,7 +248,12 @@ class VugConditions {
     if (this.fluid.O2 > 1.5) return 0;
     const product = (this.fluid.Cu / 80.0) * (this.fluid.Fe / 50.0) * (this.fluid.S / 80.0);
     const eT = this.effectiveTemperature;
-    const T_factor = (150 < eT && eT < 350) ? 1.2 : 0.6;
+    // Porphyry window 300-500°C (Seo et al. 2012), viable 200-300°C, rare below 180°C
+    let T_factor;
+    if (eT < 180) T_factor = 0.2;
+    else if (eT < 300) T_factor = 0.8;
+    else if (eT <= 500) T_factor = 1.3;
+    else T_factor = 0.5;
     return product * T_factor * (1.5 - this.fluid.O2);
   }
 
@@ -473,35 +514,72 @@ function grow_quartz(crystal, conditions, step) {
     else fi_type = 'single-phase liquid';
   }
 
-  if (conditions.temperature > 400) {
-    crystal.habit = 'prismatic';
-    crystal.dominant_forms = ['m{100} prism', 'r{101} rhombohedron'];
-  } else if (conditions.temperature > 250) {
-    crystal.habit = 'prismatic';
-    crystal.dominant_forms = ['m{100} prism', 'r{101}', 'z{011}'];
-  } else if (conditions.temperature > 150) {
-    crystal.dominant_forms = ['m{100}', 'r{101}', 'z{011} dominant'];
-    if (excess > 1.0) crystal.habit = 'scepter overgrowth possible';
+  // SiO₂ polymorph determines habit
+  const polymorph = conditions.silica_polymorph();
+  crystal._polymorph = polymorph;
+  if (polymorph === 'tridymite') {
+    crystal.habit = 'tridymite (thin hexagonal plates)';
+    crystal.dominant_forms = ['thin tabular {0001}', 'pseudo-hexagonal'];
+    crystal.mineral_display = 'tridymite';
+  } else if (polymorph === 'beta-quartz') {
+    crystal.habit = 'β-quartz bipyramidal (paramorphic)';
+    crystal.dominant_forms = ['hexagonal bipyramid {10̄11}', 'no prism faces'];
+    crystal.mineral_display = 'quartz (β→α)';
+  } else if (polymorph === 'alpha-quartz') {
+    if (conditions.temperature > 400) {
+      crystal.habit = 'prismatic';
+      crystal.dominant_forms = ['m{100} prism', 'r{101} rhombohedron'];
+    } else if (conditions.temperature > 250) {
+      crystal.habit = 'prismatic';
+      crystal.dominant_forms = ['m{100} prism', 'r{101}', 'z{011}'];
+    } else {
+      crystal.dominant_forms = ['m{100}', 'r{101}', 'z{011} dominant'];
+      if (excess > 1.0) crystal.habit = 'scepter overgrowth possible';
+    }
+  } else if (polymorph === 'chalcedony') {
+    crystal.habit = 'chalcedony (microcrystalline)';
+    crystal.dominant_forms = ['fibrous aggregates', 'botryoidal'];
+    crystal.mineral_display = 'chalcedony';
+    rate *= 1.5;
   } else {
-    crystal.dominant_forms = ['m{100}', 'r{101}', 'z{011}'];
-    if (excess > 1.5) crystal.habit = 'skeletal/fenster';
+    crystal.habit = 'opal (amorphous silica)';
+    crystal.dominant_forms = ['botryoidal', 'colloform'];
+    crystal.mineral_display = 'opal';
+    rate *= 2.0;
   }
 
-  if (!crystal.twinned && crystal.zones.length > 5) {
-    if (crystal.zones.length >= 2) {
-      const prev_T = crystal.zones[crystal.zones.length - 1].temperature;
+  // Dauphiné twinning: β→α inversion at 573°C or thermal shock
+  if (!crystal.twinned && crystal.zones.length > 2) {
+    const prev_T = crystal.zones[crystal.zones.length - 1].temperature;
+    const crossed_573 = (prev_T > 573 && conditions.temperature <= 573) ||
+                         (prev_T <= 573 && conditions.temperature > 573);
+    if (crossed_573 && rng.random() < 0.7) {
+      crystal.twinned = true;
+      crystal.twin_law = 'Dauphiné (β→α inversion)';
+    } else if (!crossed_573) {
       const delta_T = Math.abs(conditions.temperature - prev_T);
-      if (delta_T > 30 && rng.random() < 0.4) {
+      if (delta_T > 50 && rng.random() < 0.25) {
         crystal.twinned = true;
-        crystal.twin_law = 'Dauphiné';
+        crystal.twin_law = 'Dauphiné (thermal stress)';
       }
     }
   }
 
   let note = '';
-  if (excess > 1.5) note = 'rapid growth — growth hillocks developing on prism faces';
-  else if (excess > 1.0) note = 'moderate supersaturation — clean layer growth';
-  else if (excess < 0.2) note = 'near-equilibrium — very slow, high-quality growth';
+  if (polymorph === 'opal') {
+    note = 'amorphous silica precipitating — colloidal deposition';
+  } else if (polymorph === 'chalcedony') {
+    note = 'chalcedony — fibrous microcrystalline growth';
+    if (excess > 1.5) note += ', rapid banding possible';
+  } else if (polymorph === 'beta-quartz') {
+    note = 'β-quartz crystallizing — hexagonal bipyramids, will invert to α on cooling';
+  } else if (polymorph === 'tridymite') {
+    note = 'tridymite crystallizing — high-T silica polymorph, thin hexagonal plates';
+  } else {
+    if (excess > 1.5) note = 'rapid growth — growth hillocks developing on prism faces';
+    else if (excess > 1.0) note = 'moderate supersaturation — clean layer growth';
+    else if (excess < 0.2) note = 'near-equilibrium — very slow, high-quality growth';
+  }
 
   return new GrowthZone({
     step, temperature: conditions.temperature,

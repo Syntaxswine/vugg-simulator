@@ -1581,8 +1581,40 @@ class VugConditions {
     return this.temperature;
   }
 
+  // SiO₂ solubility in water (ppm) — based on Fournier & Potter 1982 / Rimstidt 1997
+  // Quartz solubility is PROGRADE: increases with temperature.
+  // Quartz precipitates when silica-rich hot fluid COOLS.
+  static _SiO2_SOLUBILITY = [
+    [25,6],[50,15],[75,30],[100,60],[125,90],[150,130],[175,200],
+    [200,300],[225,390],[250,500],[275,600],[300,700],[325,850],
+    [350,1000],[375,1100],[400,1200],[450,1400],[500,1500],[600,1600]
+  ];
+
+  silica_equilibrium(T) {
+    const table = VugConditions._SiO2_SOLUBILITY;
+    if (T <= table[0][0]) return table[0][1];
+    if (T >= table[table.length-1][0]) return table[table.length-1][1];
+    for (let i = 0; i < table.length - 1; i++) {
+      if (T >= table[i][0] && T <= table[i+1][0]) {
+        const frac = (T - table[i][0]) / (table[i+1][0] - table[i][0]);
+        return table[i][1] + frac * (table[i+1][1] - table[i][1]);
+      }
+    }
+    return table[table.length-1][1];
+  }
+
+  // Which SiO₂ polymorph precipitates at this temperature?
+  silica_polymorph() {
+    const T = this.temperature;
+    if (T < 100) return 'opal';           // Amorphous silica
+    if (T < 200) return 'chalcedony';     // Microcrystalline quartz
+    if (T < 573) return 'alpha-quartz';   // α-quartz — the classic
+    if (T < 870) return 'beta-quartz';    // β-quartz (inverts to α on cooling)
+    return 'tridymite';                    // High-T volcanic polymorph
+  }
+
   supersaturation_quartz() {
-    const eq = 50.0 * Math.exp(0.008 * this.effectiveTemperature);
+    const eq = this.silica_equilibrium(this.effectiveTemperature);
     if (eq <= 0) return 0;
     let sigma = this.fluid.SiO2 / eq;
 
@@ -1596,6 +1628,10 @@ class VugConditions {
   }
 
   supersaturation_calcite() {
+    // Calcite has RETROGRADE solubility — less soluble at higher T.
+    // Precipitates on heating or CO₂ degassing. Forms at 10-500°C.
+    // Decomposes to CaO + CO₂ above ~500°C.
+    if (this.temperature > 500) return 0; // thermal decomposition
     const eq = 300.0 * Math.exp(-0.005 * this.temperature);
     if (eq <= 0) return 0;
     const ca_co3 = Math.min(this.fluid.Ca, this.fluid.CO3);
@@ -1617,7 +1653,16 @@ class VugConditions {
   supersaturation_fluorite() {
     if (this.fluid.Ca < 10 || this.fluid.F < 5) return 0;
     let product = (this.fluid.Ca / 200.0) * (this.fluid.F / 20.0);
-    let sigma = product * Math.exp(-0.003 * this.temperature);
+    // Fluorite has RETROGRADE solubility (like calcite) — less soluble at higher T.
+    // MVT deposits: 85-185°C. Can form up to ~300°C. Sweet spot ~100-250°C.
+    // Below 50°C: kinetically inhibited. Above 350°C: rare.
+    let T_factor = 1.0;
+    if (this.temperature < 50) T_factor = this.temperature / 50.0;        // kinetically slow below 50°C
+    else if (this.temperature < 100) T_factor = 0.8;                       // warming up
+    else if (this.temperature <= 250) T_factor = 1.2;                      // sweet spot
+    else if (this.temperature <= 350) T_factor = 1.0;                      // still viable
+    else T_factor = Math.max(0.1, 1.0 - (this.temperature - 350) / 200);  // fades above 350°C
+    let sigma = product * T_factor;
     // Acid dissolution — fluorite dissolves in strong acid
     if (this.fluid.pH < 5.0) {
       const acid_attack = (5.0 - this.fluid.pH) * 0.4;
@@ -1646,7 +1691,13 @@ class VugConditions {
     if (this.fluid.O2 > 1.5) return 0;
     const product = (this.fluid.Cu / 80.0) * (this.fluid.Fe / 50.0) * (this.fluid.S / 80.0);
     const eT = this.effectiveTemperature; // Mo flux widens T window
-    const T_factor = (150 < eT && eT < 350) ? 1.2 : 0.6;
+    // Chalcopyrite: main porphyry window 300-500°C, ~90% deposits before 400°C (Seo et al. 2012)
+    // Can form at lower T (200-300°C) but less efficiently. Rare below 180°C.
+    let T_factor;
+    if (eT < 180) T_factor = 0.2;            // rare at low T
+    else if (eT < 300) T_factor = 0.8;       // viable, not peak
+    else if (eT <= 500) T_factor = 1.3;      // sweet spot — porphyry window
+    else T_factor = 0.5;                      // fades above 500°C
     return product * T_factor * (1.5 - this.fluid.O2);
   }
 
@@ -1907,35 +1958,81 @@ function grow_quartz(crystal, conditions, step) {
     else fi_type = 'single-phase liquid';
   }
 
-  if (conditions.temperature > 400) {
-    crystal.habit = 'prismatic';
-    crystal.dominant_forms = ['m{100} prism', 'r{101} rhombohedron'];
-  } else if (conditions.temperature > 250) {
-    crystal.habit = 'prismatic';
-    crystal.dominant_forms = ['m{100} prism', 'r{101}', 'z{011}'];
-  } else if (conditions.temperature > 150) {
-    crystal.dominant_forms = ['m{100}', 'r{101}', 'z{011} dominant'];
-    if (excess > 1.0) crystal.habit = 'scepter overgrowth possible';
-  } else {
-    crystal.dominant_forms = ['m{100}', 'r{101}', 'z{011}'];
-    if (excess > 1.5) crystal.habit = 'skeletal/fenster';
+  // SiO₂ polymorph determines habit — different crystal structures at different T
+  const polymorph = conditions.silica_polymorph();
+  crystal._polymorph = polymorph; // store for narrative
+  if (polymorph === 'tridymite') {
+    crystal.habit = 'tridymite (thin hexagonal plates)';
+    crystal.dominant_forms = ['thin tabular {0001}', 'pseudo-hexagonal'];
+    crystal.mineral_display = 'tridymite';
+  } else if (polymorph === 'beta-quartz') {
+    // β-quartz: hexagonal bipyramids, no prism faces. Inverts to α-quartz on cooling.
+    crystal.habit = 'β-quartz bipyramidal (paramorphic)';
+    crystal.dominant_forms = ['hexagonal bipyramid {10̄11}', 'no prism faces'];
+    crystal.mineral_display = 'quartz (β→α)';
+  } else if (polymorph === 'alpha-quartz') {
+    // Classic hydrothermal quartz
+    if (conditions.temperature > 400) {
+      crystal.habit = 'prismatic';
+      crystal.dominant_forms = ['m{100} prism', 'r{101} rhombohedron'];
+    } else if (conditions.temperature > 250) {
+      crystal.habit = 'prismatic';
+      crystal.dominant_forms = ['m{100} prism', 'r{101}', 'z{011}'];
+    } else {
+      crystal.dominant_forms = ['m{100}', 'r{101}', 'z{011} dominant'];
+      if (excess > 1.0) crystal.habit = 'scepter overgrowth possible';
+    }
+  } else if (polymorph === 'chalcedony') {
+    crystal.habit = 'chalcedony (microcrystalline)';
+    crystal.dominant_forms = ['fibrous aggregates', 'botryoidal'];
+    crystal.mineral_display = 'chalcedony';
+    // Chalcedony grows faster than crystalline quartz due to disordered structure
+    rate *= 1.5;
+  } else { // opal
+    crystal.habit = 'opal (amorphous silica)';
+    crystal.dominant_forms = ['botryoidal', 'colloform'];
+    crystal.mineral_display = 'opal';
+    rate *= 2.0; // amorphous precipitates fastest
   }
 
-  if (!crystal.twinned && crystal.zones.length > 5) {
-    if (crystal.zones.length >= 2) {
-      const prev_T = crystal.zones[crystal.zones.length - 1].temperature;
+  // Dauphiné twinning: occurs during β→α quartz inversion at 573°C,
+  // or from mechanical stress / thermal shock. Most common when crystal
+  // grew as β-quartz and cooled through the transition.
+  if (!crystal.twinned && crystal.zones.length > 2) {
+    const prev_T = crystal.zones[crystal.zones.length - 1].temperature;
+    const crossed_573 = (prev_T > 573 && conditions.temperature <= 573) ||
+                         (prev_T <= 573 && conditions.temperature > 573);
+    if (crossed_573 && rng.random() < 0.7) {
+      // High probability when crossing the β→α inversion
+      crystal.twinned = true;
+      crystal.twin_law = 'Dauphiné (β→α inversion)';
+    } else if (!crossed_573) {
       const delta_T = Math.abs(conditions.temperature - prev_T);
-      if (delta_T > 30 && rng.random() < 0.4) {
+      if (delta_T > 50 && rng.random() < 0.25) {
+        // Thermal shock twinning — less common
         crystal.twinned = true;
-        crystal.twin_law = 'Dauphiné';
+        crystal.twin_law = 'Dauphiné (thermal stress)';
       }
     }
   }
 
   let note = '';
-  if (excess > 1.5) note = 'rapid growth — growth hillocks developing on prism faces';
-  else if (excess > 1.0) note = 'moderate supersaturation — clean layer growth';
-  else if (excess < 0.2) note = 'near-equilibrium — very slow, high-quality growth';
+  // Polymorph-specific growth notes
+  if (polymorph === 'opal') {
+    note = 'amorphous silica precipitating — colloidal deposition';
+  } else if (polymorph === 'chalcedony') {
+    note = 'chalcedony — fibrous microcrystalline growth';
+    if (excess > 1.5) note += ', rapid banding possible';
+  } else if (polymorph === 'beta-quartz') {
+    note = 'β-quartz crystallizing — hexagonal bipyramids, will invert to α on cooling';
+  } else if (polymorph === 'tridymite') {
+    note = 'tridymite crystallizing — high-T silica polymorph, thin hexagonal plates';
+  } else {
+    // α-quartz notes
+    if (excess > 1.5) note = 'rapid growth — growth hillocks developing on prism faces';
+    else if (excess > 1.0) note = 'moderate supersaturation — clean layer growth';
+    else if (excess < 0.2) note = 'near-equilibrium — very slow, high-quality growth';
+  }
 
   return new GrowthZone({
     step, temperature: conditions.temperature,
