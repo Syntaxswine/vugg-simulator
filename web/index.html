@@ -4602,7 +4602,8 @@ function grooveDraw() {
         const oy = ny * laneOffset;
 
         const val = p1.vals[a];
-        const width = minLineWidth + val * val * (maxLineWidth - minLineWidth);
+        // Cube root curve: quiet parameters stay visible, dominant ones still swell
+        const width = minLineWidth + Math.cbrt(val) * (maxLineWidth - minLineWidth);
         if (width < 0.15) continue;
 
         // Offset all four control points by the same perpendicular
