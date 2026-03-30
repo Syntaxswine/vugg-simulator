@@ -1,0 +1,17 @@
+{
+  "name": "vugg-agent",
+  "version": "1.0.0",
+  "description": "Vugg Simulator Agent API — headless crystal growth game for AI agents",
+  "main": "vugg-agent.js",
+  "bin": {
+    "vugg-agent": "./vugg-agent.js"
+  },
+  "scripts": {
+    "test": "echo '{\"cmd\":\"help\"}' | node vugg-agent.js"
+  },
+  "dependencies": {
+    "canvas": "^2.11.0"
+  },
+  "author": "🪨✍️ (StonePhilosopher) with Professor",
+  "license": "MIT"
+}
