@@ -825,6 +825,83 @@ button:disabled {
   cursor: crosshair;
 }
 
+/* Detail Strip — unrolled zone view */
+.groove-detail-strip {
+  margin-top: 0.8rem;
+  background: #0a0a08;
+  border: 1px solid #2a2518;
+  border-radius: 4px;
+  padding: 0.6rem;
+  display: none;
+}
+
+.groove-detail-strip h4 {
+  color: #f0c050;
+  font-size: 0.8rem;
+  margin-bottom: 0.5rem;
+  border-bottom: 1px solid #2a2518;
+  padding-bottom: 0.3rem;
+}
+
+.groove-detail-strip .detail-hint {
+  color: #5a4a30;
+  font-size: 0.7rem;
+  margin-bottom: 0.4rem;
+  font-style: italic;
+}
+
+.groove-detail-strip canvas {
+  width: 100%;
+  height: auto;
+  border: 1px solid #1a1a14;
+  border-radius: 3px;
+  background: #070706;
+}
+
+.groove-detail-zones {
+  display: flex;
+  overflow-x: auto;
+  gap: 0;
+  margin-top: 0.4rem;
+  padding-bottom: 0.3rem;
+}
+
+.groove-detail-zone {
+  flex-shrink: 0;
+  width: 52px;
+  padding: 0.25rem 0.15rem;
+  border-right: 1px solid #1a1a14;
+  font-family: monospace;
+  font-size: 0.55rem;
+  line-height: 1.4;
+  color: #a89040;
+}
+
+.groove-detail-zone.dissolution {
+  background: rgba(204, 68, 68, 0.1);
+}
+
+.groove-detail-zone.has-event {
+  background: rgba(187, 102, 238, 0.08);
+}
+
+.groove-detail-zone .dz-header {
+  color: #f0c050;
+  font-weight: bold;
+  font-size: 0.6rem;
+  margin-bottom: 0.15rem;
+  white-space: nowrap;
+}
+
+.groove-detail-zone .dz-temp { color: #ff8844; }
+.groove-detail-zone .dz-rate { color: #50e0c0; }
+.groove-detail-zone .dz-fe { color: #cc6644; }
+.groove-detail-zone .dz-mn { color: #ffaa44; }
+.groove-detail-zone .dz-al { color: #8888cc; }
+.groove-detail-zone .dz-ti { color: #88cc88; }
+.groove-detail-zone .dz-event { color: #bb66ee; font-size: 0.5rem; }
+.groove-detail-zone .dz-note { color: #5a4a30; font-size: 0.5rem; word-break: break-word; }
+
 .groove-sidebar {
   width: 220px;
   flex-shrink: 0;
@@ -1381,6 +1458,7 @@ Scenarios:
       <canvas id="groove-canvas" width="640" height="640" style="display:none"></canvas>
       <div class="groove-tooltip" id="groove-tooltip"></div>
     </div>
+    </div>
     <div class="groove-sidebar">
       <div class="groove-controls">
         <h4>📀 Turntable</h4>
@@ -1420,6 +1498,12 @@ Scenarios:
         <div class="groove-legend-item"><div class="groove-legend-swatch" style="background:#5a4a30"></div> Phantom boundary</div>
       </div>
     </div>
+  </div>
+  <div class="groove-detail-strip" id="groove-detail-strip">
+    <h4>🔬 Thin Section — <span id="detail-range-label">click a zone on the groove</span></h4>
+    <div class="detail-hint" id="detail-hint">Click any zone on the spiral to unroll that section. Drag to select a range.</div>
+    <canvas id="detail-canvas" width="800" height="120" style="display:none"></canvas>
+    <div class="groove-detail-zones" id="detail-zones"></div>
   </div>
 </div>
 
@@ -5183,6 +5267,185 @@ function grooveFromModal() {
     grooveCrystal = grooveModalCrystal;
     closeZoneModal();
     switchMode('groove');
+  }
+}
+
+// ---- Detail Strip: click-to-unroll ----
+let detailDragStart = null;
+let detailSelectedRange = null;
+
+function findNearestZone(mx, my) {
+  const drawUpTo = Math.max(1, Math.floor(grooveProgress * groovePoints.length));
+  let bestDist = 25;
+  let bestIdx = -1;
+  for (let i = 0; i < drawUpTo; i++) {
+    const p = groovePoints[i];
+    const dx = p.x - mx, dy = p.y - my;
+    const d = Math.sqrt(dx * dx + dy * dy);
+    if (d < bestDist) { bestDist = d; bestIdx = i; }
+  }
+  return bestIdx;
+}
+
+function grooveCanvasCoords(e) {
+  const canvas = document.getElementById('groove-canvas');
+  const rect = canvas.getBoundingClientRect();
+  const scaleX = canvas.width / rect.width;
+  const scaleY = canvas.height / rect.height;
+  return {
+    x: (e.clientX - rect.left) * scaleX,
+    y: (e.clientY - rect.top) * scaleY
+  };
+}
+
+(function() {
+  const canvas = document.getElementById('groove-canvas');
+
+  canvas.addEventListener('mousedown', function(e) {
+    const {x, y} = grooveCanvasCoords(e);
+    const idx = findNearestZone(x, y);
+    if (idx >= 0) {
+      detailDragStart = idx;
+    }
+  });
+
+  canvas.addEventListener('mouseup', function(e) {
+    if (detailDragStart === null) return;
+    const {x, y} = grooveCanvasCoords(e);
+    let endIdx = findNearestZone(x, y);
+    if (endIdx < 0) endIdx = detailDragStart;
+
+    const lo = Math.max(0, Math.min(detailDragStart, endIdx) - 2);
+    const hi = Math.min(groovePoints.length - 1, Math.max(detailDragStart, endIdx) + 2);
+
+    // If single click (no drag), show ±5 zones around the click
+    if (lo === hi || Math.abs(detailDragStart - endIdx) <= 1) {
+      const center = detailDragStart;
+      const radius = 5;
+      detailSelectedRange = [
+        Math.max(0, center - radius),
+        Math.min(groovePoints.length - 1, center + radius)
+      ];
+    } else {
+      detailSelectedRange = [lo, hi];
+    }
+
+    detailDragStart = null;
+    renderDetailStrip(detailSelectedRange[0], detailSelectedRange[1]);
+  });
+})();
+
+function renderDetailStrip(startIdx, endIdx) {
+  if (!grooveCrystal || !grooveCrystal.zones.length) return;
+
+  const strip = document.getElementById('groove-detail-strip');
+  const label = document.getElementById('detail-range-label');
+  const hint = document.getElementById('detail-hint');
+  const zonesDiv = document.getElementById('detail-zones');
+  const detailCanvas = document.getElementById('detail-canvas');
+
+  strip.style.display = 'block';
+  hint.style.display = 'none';
+  label.textContent = `Zones ${startIdx + 1}–${endIdx + 1} of ${grooveCrystal.zones.length}`;
+
+  const zones = grooveCrystal.zones.slice(startIdx, endIdx + 1);
+  const nZones = zones.length;
+
+  // Render the unrolled strip canvas — horizontal bar chart per axis
+  const zoneW = Math.max(12, Math.min(60, Math.floor(800 / nZones)));
+  const W = zoneW * nZones;
+  const H = 120;
+  detailCanvas.width = W;
+  detailCanvas.height = H;
+  detailCanvas.style.display = 'block';
+
+  const ctx = detailCanvas.getContext('2d');
+  ctx.fillStyle = '#070706';
+  ctx.fillRect(0, 0, W, H);
+
+  // Normalize within selection for visual contrast
+  const norm = (arr) => {
+    const mn = Math.min(...arr);
+    const mx = Math.max(...arr);
+    const range = mx - mn || 1;
+    return arr.map(v => (v - mn) / range);
+  };
+
+  const nTemp = norm(zones.map(z => z.temperature));
+  const nThick = norm(zones.map(z => Math.abs(z.thickness_um)));
+  const nFe = norm(zones.map(z => z.trace_Fe));
+  const nMn = norm(zones.map(z => z.trace_Mn));
+  const nAl = norm(zones.map(z => z.trace_Al));
+  const nTi = norm(zones.map(z => z.trace_Ti));
+
+  const allNorm = [nTemp, nThick, nFe, nMn, nAl, nTi];
+  const laneH = Math.floor(H / GROOVE_AXES.length);
+
+  for (let a = 0; a < GROOVE_AXES.length; a++) {
+    const y0 = a * laneH;
+    for (let i = 0; i < nZones; i++) {
+      const val = allNorm[a][i];
+      const x = i * zoneW;
+
+      // Bar fill
+      ctx.fillStyle = GROOVE_AXES[a].color;
+      ctx.globalAlpha = 0.2 + val * 0.7;
+      const barH = Math.max(1, val * (laneH - 2));
+      ctx.fillRect(x + 1, y0 + laneH - barH - 1, zoneW - 2, barH);
+      ctx.globalAlpha = 1;
+
+      // Dissolution marker
+      if (zones[i].thickness_um < 0) {
+        ctx.fillStyle = '#cc4444';
+        ctx.globalAlpha = 0.4;
+        ctx.fillRect(x, y0, zoneW, laneH);
+        ctx.globalAlpha = 1;
+      }
+    }
+
+    // Lane label
+    ctx.fillStyle = GROOVE_AXES[a].color;
+    ctx.globalAlpha = 0.5;
+    ctx.font = '8px monospace';
+    ctx.textAlign = 'left';
+    ctx.fillText(GROOVE_AXES[a].name, 3, y0 + 9);
+    ctx.globalAlpha = 1;
+
+    // Lane separator
+    ctx.strokeStyle = '#1a1a14';
+    ctx.beginPath();
+    ctx.moveTo(0, y0 + laneH);
+    ctx.lineTo(W, y0 + laneH);
+    ctx.stroke();
+  }
+
+  // Render the number readouts below
+  zonesDiv.innerHTML = '';
+  for (let i = 0; i < nZones; i++) {
+    const z = zones[i];
+    const globalIdx = startIdx + i;
+    const div = document.createElement('div');
+    div.className = 'groove-detail-zone';
+    if (z.thickness_um < 0) div.classList.add('dissolution');
+    if (z.fluid_inclusion || (z.note && z.note.toLowerCase().includes('twin'))) div.classList.add('has-event');
+
+    let html = `<div class="dz-header">Z${globalIdx + 1}</div>`;
+    html += `<div class="dz-temp">🌡${z.temperature.toFixed(0)}°</div>`;
+    if (z.thickness_um >= 0) {
+      html += `<div class="dz-rate">+${z.thickness_um.toFixed(1)}µm</div>`;
+    } else {
+      html += `<div style="color:#cc4444">${z.thickness_um.toFixed(1)}µm</div>`;
+    }
+    if (z.trace_Fe > 0.1) html += `<div class="dz-fe">Fe ${z.trace_Fe.toFixed(1)}</div>`;
+    if (z.trace_Mn > 0.05) html += `<div class="dz-mn">Mn ${z.trace_Mn.toFixed(1)}</div>`;
+    if (z.trace_Al > 0.1) html += `<div class="dz-al">Al ${z.trace_Al.toFixed(1)}</div>`;
+    if (z.trace_Ti > 0.005) html += `<div class="dz-ti">Ti ${z.trace_Ti.toFixed(2)}</div>`;
+    if (z.fluid_inclusion) html += `<div class="dz-event">💧 ${z.inclusion_type}</div>`;
+    if (z.note && z.note.toLowerCase().includes('twin')) html += `<div class="dz-event">⟁ twin</div>`;
+    if (z.note && !z.note.toLowerCase().includes('twin')) html += `<div class="dz-note">${z.note}</div>`;
+
+    div.innerHTML = html;
+    zonesDiv.appendChild(div);
   }
 }
 
