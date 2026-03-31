@@ -2558,12 +2558,177 @@ function applyAction(type) {
 // RECORD GROOVE — Headless PNG Rendering
 // ============================================================
 
+function renderGrooveSVG(crystal, outputPath) {
+  const zones = crystal.zones;
+  if (!zones.length) return { ok: false, error: 'Crystal has no zones' };
+
+  const W = 640, H = 640;
+  const n = zones.length;
+  const cx = 320, cy = 320;
+  const maxRadius = 280, minRadius = 30;
+  const stepsPerRev = 5;
+  const amplitude = 40;
+
+  const norm = (arr) => {
+    const mn = Math.min(...arr);
+    const mx = Math.max(...arr);
+    const range = mx - mn || 1;
+    return arr.map(v => (v - mn) / range);
+  };
+
+  const nTemp = norm(zones.map(z => z.temperature));
+  const nThick = norm(zones.map(z => Math.abs(z.thickness_um)));
+  const nFe = norm(zones.map(z => z.trace_Fe));
+  const nMn = norm(zones.map(z => z.trace_Mn));
+  const nAl = norm(zones.map(z => z.trace_Al));
+  const nTi = norm(zones.map(z => z.trace_Ti));
+
+  // Compute groove points (same algorithm as PNG)
+  const points = [];
+  for (let i = 0; i < n; i++) {
+    const z = zones[i];
+    const t = i / Math.max(n - 1, 1);
+    const baseRadius = minRadius + t * (maxRadius - minRadius);
+    const angle = (i / stepsPerRev) * Math.PI * 2;
+
+    const vals = [nTemp[i], nThick[i], nFe[i], nMn[i], nAl[i], nTi[i]];
+    const nAxes = GROOVE_AXES.length;
+
+    let wobbleR = 0;
+    for (let a = 0; a < nAxes; a++) {
+      const freq = a + 1;
+      const phase = (a / nAxes) * Math.PI * 2;
+      const deviation = (vals[a] - 0.5) * 2;
+      wobbleR += deviation * Math.sin(angle * freq + phase) * amplitude * 0.4;
+    }
+    const wobbleX = wobbleR * Math.cos(angle + Math.PI / 2);
+    const wobbleY = wobbleR * Math.sin(angle + Math.PI / 2);
+
+    let dissolutionDip = 0;
+    if (z.thickness_um < 0) {
+      dissolutionDip = -Math.min(Math.abs(z.thickness_um) * 0.5, amplitude * 0.8);
+    }
+
+    const r = baseRadius + dissolutionDip;
+    const x = cx + (r * Math.cos(angle)) + wobbleX;
+    const y = cy + (r * Math.sin(angle)) + wobbleY;
+
+    points.push({
+      x, y, vals, angle,
+      isDissolution: z.thickness_um < 0,
+      isPhantom: z.is_phantom,
+      hasInclusion: z.fluid_inclusion,
+      isTwin: !!(z.note && z.note.toLowerCase().includes('twin')),
+    });
+  }
+
+  // Build SVG
+  let svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">`;
+  svg += `<rect width="${W}" height="${H}" fill="#070706"/>`;
+
+  // Axis guides
+  const nAxes = GROOVE_AXES.length;
+  for (let a = 0; a < nAxes; a++) {
+    const axisAngle = (a / nAxes) * Math.PI * 2;
+    const ex = cx + 300 * Math.cos(axisAngle);
+    const ey = cy + 300 * Math.sin(axisAngle);
+    svg += `<line x1="${cx}" y1="${cy}" x2="${ex.toFixed(1)}" y2="${ey.toFixed(1)}" stroke="${GROOVE_AXES[a].color}" stroke-width="1" opacity="0.08"/>`;
+  }
+
+  // Rainbow ribbon lanes — use cubic bezier curves for smooth rendering
+  const laneSpacing = 2.5;
+  const maxLineWidth = 4;
+  const minLineWidth = 0.3;
+  const tension = 0.3;
+
+  for (let a = 0; a < nAxes; a++) {
+    // Pre-compute lane-offset points
+    const lanePoints = [];
+    for (let i = 0; i < points.length; i++) {
+      const p1 = points[i];
+      const p2 = points[Math.min(i + 1, points.length - 1)];
+      const dx = p2.x - p1.x;
+      const dy = p2.y - p1.y;
+      const len = Math.sqrt(dx * dx + dy * dy) || 1;
+      const nx = -dy / len;
+      const ny = dx / len;
+      const laneOffset = (a - (nAxes - 1) / 2) * laneSpacing;
+      lanePoints.push({ x: p1.x + nx * laneOffset, y: p1.y + ny * laneOffset, val: p1.vals[a] });
+    }
+
+    // Draw segments with bezier curves, varying width by splitting into sub-paths
+    for (let i = 0; i < lanePoints.length - 1; i++) {
+      const val = lanePoints[i].val;
+      const width = minLineWidth + Math.cbrt(val) * (maxLineWidth - minLineWidth);
+      if (width < 0.15) continue;
+
+      const p0 = lanePoints[Math.max(0, i - 1)];
+      const p1 = lanePoints[i];
+      const p2 = lanePoints[i + 1];
+      const p3 = lanePoints[Math.min(lanePoints.length - 1, i + 2)];
+
+      const cp1x = p1.x + (p2.x - p0.x) * tension;
+      const cp1y = p1.y + (p2.y - p0.y) * tension;
+      const cp2x = p2.x - (p3.x - p1.x) * tension;
+      const cp2y = p2.y - (p3.y - p1.y) * tension;
+
+      const alpha = (0.4 + val * 0.6).toFixed(2);
+      svg += `<path d="M${p1.x.toFixed(1)},${p1.y.toFixed(1)} C${cp1x.toFixed(1)},${cp1y.toFixed(1)} ${cp2x.toFixed(1)},${cp2y.toFixed(1)} ${p2.x.toFixed(1)},${p2.y.toFixed(1)}" fill="none" stroke="${GROOVE_AXES[a].color}" stroke-width="${width.toFixed(1)}" opacity="${alpha}" stroke-linecap="round"/>`;
+    }
+  }
+
+  // Dissolution overlay
+  for (let i = 1; i < points.length; i++) {
+    if (points[i].isDissolution) {
+      svg += `<line x1="${points[i-1].x.toFixed(1)}" y1="${points[i-1].y.toFixed(1)}" x2="${points[i].x.toFixed(1)}" y2="${points[i].y.toFixed(1)}" stroke="#cc4444" stroke-width="2.5"/>`;
+    }
+  }
+
+  // Phantom boundaries
+  for (const p of points) {
+    if (p.isPhantom) svg += `<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="4" fill="rgba(90,74,48,0.8)"/>`;
+  }
+
+  // Fluid inclusions
+  for (const p of points) {
+    if (p.hasInclusion) svg += `<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="3.5" fill="#50e0c0"/>`;
+  }
+
+  // Twin events
+  for (const p of points) {
+    if (p.isTwin) {
+      svg += `<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="5" fill="#bb66ee"/>`;
+      svg += `<line x1="${(p.x-4).toFixed(1)}" y1="${p.y.toFixed(1)}" x2="${(p.x+4).toFixed(1)}" y2="${p.y.toFixed(1)}" stroke="#ddaaff" stroke-width="1"/>`;
+      svg += `<line x1="${p.x.toFixed(1)}" y1="${(p.y-4).toFixed(1)}" x2="${p.x.toFixed(1)}" y2="${(p.y+4).toFixed(1)}" stroke="#ddaaff" stroke-width="1"/>`;
+    }
+  }
+
+  // Nucleation dot
+  if (points.length) {
+    svg += `<circle cx="${points[0].x.toFixed(1)}" cy="${points[0].y.toFixed(1)}" r="4" fill="#f0c050"/>`;
+  }
+
+  // Label
+  svg += `<text x="${W-10}" y="${H-10}" fill="#5a4a30" font-family="monospace" font-size="11" text-anchor="end">${crystal.mineral} #${crystal.crystal_id} — ${zones.length} zones</text>`;
+
+  svg += '</svg>';
+
+  const fs = require('fs');
+  const pathMod = require('path');
+  const dir = pathMod.dirname(outputPath);
+  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+  fs.writeFileSync(outputPath, svg);
+  return { ok: true, path: outputPath, size: svg.length, format: 'svg' };
+}
+
 function renderGroovePNG(crystal, outputPath) {
   let createCanvas;
   try {
     createCanvas = require('canvas').createCanvas;
   } catch (e) {
-    return { ok: false, error: 'canvas npm package not installed. Run: npm install canvas' };
+    // Fallback to SVG when canvas package isn't available
+    const svgPath = outputPath.replace(/\.png$/i, '.svg');
+    return renderGrooveSVG(crystal, svgPath);
   }
 
   const W = 640, H = 640;
