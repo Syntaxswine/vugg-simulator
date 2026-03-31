@@ -366,6 +366,9 @@ class Crystal {
   }
 
   add_zone(zone) {
+    // Time compression — agents play at 5× (same physics, more years per step)
+    zone.thickness_um *= 5.0;
+    zone.growth_rate *= 5.0;
     // Detect phantom boundaries
     if (zone.thickness_um < 0) {
       zone.is_phantom = true;
