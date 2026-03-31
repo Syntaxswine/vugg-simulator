@@ -1254,7 +1254,7 @@ footer a:hover {
   </div>
   <div class="control-group">
     <label for="steps">Time Steps (optional)</label>
-    <input type="number" id="steps" placeholder="default" style="width:100px" min="1" step="1" title="Each step = one tick of geological time. More steps = longer cooling history. Default: 100-120 depending on scenario." oninput="if(this.value<1&&this.value!=='')this.value=1">
+    <input type="number" id="steps" placeholder="default" style="width:100px" min="1" step="1" title="Each step ≈ 50,000 years of geological time. 200 steps ≈ 10 million years of fluid activity. More steps = longer cooling history. Default: 100-120 depending on scenario." oninput="if(this.value<1&&this.value!=='')this.value=1">
   </div>
   <div style="display:flex;gap:0.5rem;align-items:flex-end;padding-top:0.8rem">
     <button class="btn-grow" id="btn-grow" onclick="runSimulation()">Grow</button>
@@ -1392,7 +1392,7 @@ Scenarios:
 
   <div class="action-panel" id="fortress-actions">
     <div class="action-grid">
-      <button class="action-btn act-wait" onclick="fortressStep('wait')" title="Advance one time step with current conditions" style="min-width:140px;font-weight:bold">⏳ Advance Step</button>
+      <button class="action-btn act-wait" onclick="fortressStep('wait')" title="Advance one time step (~50,000 years) with current conditions" style="min-width:140px;font-weight:bold">⏳ Advance Step</button>
       <button class="action-btn act-heat" onclick="fortressStep('heat')" title="Temperature +25°C">🔥 Heat +25°C</button>
       <button class="action-btn act-cool" onclick="fortressStep('cool')" title="Temperature -25°C">❄️ Cool −25°C</button>
       <button class="action-btn act-chem" onclick="fortressStep('silica')" title="Boost SiO₂ significantly">🔮 Inject Silica</button>
@@ -3457,8 +3457,11 @@ class VugSimulator {
   format_summary() {
     const lines = [];
     lines.push('');
+    const yearsPerStep = timeScale * 10000;
+    const totalYears = this.step * yearsPerStep;
+    const timeStr = totalYears >= 1e6 ? `~${(totalYears / 1e6).toFixed(1)} million years` : `~${(totalYears / 1000).toFixed(0)},000 years`;
     lines.push('═'.repeat(70));
-    lines.push('FINAL VUG INVENTORY');
+    lines.push(`FINAL VUG INVENTORY — ${this.step} steps (${timeStr})`);
     lines.push('═'.repeat(70));
 
     // Vug wall stats if dissolution occurred
@@ -3565,8 +3568,11 @@ class VugSimulator {
       vug_growth = ` The cavity itself expanded from ${(w.vug_diameter_mm - w.total_dissolved_mm * 2).toFixed(0)}mm to ${w.vug_diameter_mm.toFixed(0)}mm diameter as acid pulses dissolved ${w.total_dissolved_mm.toFixed(1)}mm of the ${w.composition} host rock.`;
     }
 
+    const yearsPerStep = timeScale * 10000;
+    const totalYears = this.step * yearsPerStep;
+    const timeStr = totalYears >= 1e6 ? `${(totalYears / 1e6).toFixed(1)} million years` : `${(totalYears / 1000).toFixed(0)},000 years`;
     paragraphs.push(
-      `This vug records a ${setting} crystallization history beginning at ${start_T.toFixed(0)}°C. ${this.crystals.length} crystals grew across ${this.step} time steps, producing an assemblage of ${mineral_names.join(', ')}.${vug_growth}`
+      `This vug records a ${setting} crystallization history spanning approximately ${timeStr}, beginning at ${start_T.toFixed(0)}°C. ${this.crystals.length} crystals grew across ${this.step} time steps (~${(yearsPerStep/1000).toFixed(0)},000 years each), producing an assemblage of ${mineral_names.join(', ')}.${vug_growth}`
     );
 
     const first_step = Math.min(...this.crystals.map(c => c.nucleation_step));
