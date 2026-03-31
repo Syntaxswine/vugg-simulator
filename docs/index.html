@@ -532,24 +532,26 @@ button:disabled {
 
 .broth-group-label {
   color: #8a7a40;
-  font-size: 0.7rem;
+  font-size: 0.8rem;
   text-transform: uppercase;
   letter-spacing: 0.05em;
   margin-bottom: 0.4rem;
   border-bottom: 1px solid #1a1a14;
   padding-bottom: 0.2rem;
+  cursor: help;
 }
 
 .broth-slider-row {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  margin-bottom: 0.3rem;
+  margin-bottom: 0.35rem;
+  cursor: help;
 }
 
 .broth-slider-row label {
   color: #a89040;
-  font-size: 0.75rem;
+  font-size: 0.85rem;
   min-width: 70px;
   text-align: right;
 }
@@ -586,7 +588,7 @@ button:disabled {
 
 .broth-slider-row .broth-val {
   color: #d4a843;
-  font-size: 0.75rem;
+  font-size: 0.85rem;
   min-width: 65px;
   text-align: left;
 }
@@ -1316,8 +1318,8 @@ Scenarios:
       <div class="broth-body" id="broth-body">
 
         <div class="broth-group">
-          <div class="broth-group-label">🌡️ Temperature &amp; Pressure</div>
-          <div class="broth-slider-row">
+          <div class="broth-group-label" title="Controls the thermal environment. Higher T increases silica solubility. 573°C = β→α quartz inversion. Above 500°C calcite decomposes.">🌡️ Temperature &amp; Pressure</div>
+          <div class="broth-slider-row" title="Fluid temperature (°C). Controls solubility, growth rate, and which polymorph crystallizes. Below 200°C: chalcedony. 200-573°C: α-quartz. Above 573°C: β-quartz.">
             <label>Temp</label>
             <input type="range" id="broth-temp" min="25" max="600" value="300" step="1"
               oninput="setBrothValue('temp',this.value)">
@@ -1326,26 +1328,26 @@ Scenarios:
         </div>
 
         <div class="broth-group">
-          <div class="broth-group-label">⚗️ Major Elements</div>
-          <div class="broth-slider-row">
+          <div class="broth-group-label" title="Primary dissolved components. SiO₂ → quartz/chalcedony/opal. Ca + CO₃ → calcite. pH controls which minerals survive.">⚗️ Major Elements</div>
+          <div class="broth-slider-row" title="Dissolved silica (ppm). Building block of quartz, chalcedony, opal. Solubility rises with temperature — cooling forces crystallization.">
             <label>SiO₂</label>
             <input type="range" id="broth-sio2" min="0" max="2000" value="500" step="1"
               oninput="setBrothValue('sio2',this.value)">
             <span class="broth-val" id="broth-sio2-val">500 ppm</span>
           </div>
-          <div class="broth-slider-row">
+          <div class="broth-slider-row" title="Dissolved calcium (ppm). Forms calcite with CO₃, fluorite with F. Essential for carbonate and fluoride minerals.">
             <label>Ca</label>
             <input type="range" id="broth-ca" min="0" max="1000" value="200" step="1"
               oninput="setBrothValue('ca',this.value)">
             <span class="broth-val" id="broth-ca-val">200 ppm</span>
           </div>
-          <div class="broth-slider-row">
+          <div class="broth-slider-row" title="Dissolved carbonate (ppm). Forms calcite with Ca. High pH favors precipitation. Acid dissolves it.">
             <label>CO₃</label>
             <input type="range" id="broth-co3" min="0" max="500" value="150" step="1"
               oninput="setBrothValue('co3',this.value)">
             <span class="broth-val" id="broth-co3-val">150 ppm</span>
           </div>
-          <div class="broth-slider-row">
+          <div class="broth-slider-row" title="Acidity/alkalinity. Low pH (<5): dissolves calcite, HF attacks quartz. High pH (>7.5): favors carbonate growth. Controls which minerals survive.">
             <label>pH</label>
             <input type="range" id="broth-ph" min="20" max="100" value="65" step="1"
               oninput="setBrothValue('ph',this.value)">
@@ -1354,44 +1356,44 @@ Scenarios:
         </div>
 
         <div class="broth-group">
-          <div class="broth-group-label">⚙️ Trace Metals</div>
-          <div class="broth-slider-row">
+          <div class="broth-group-label" title="Metals that substitute into crystal lattices, creating color, fluorescence, and diagnostic signatures in the Record Groove.">⚙️ Trace Metals</div>
+          <div class="broth-slider-row" title="Iron (ppm). Colors quartz smoky/amethyst. QUENCHES Mn²⁺ fluorescence in calcite. Required for pyrite, chalcopyrite, hematite.">
             <label>Fe</label>
             <input type="range" id="broth-fe" min="0" max="200" value="5" step="1"
               oninput="setBrothValue('fe',this.value)">
             <span class="broth-val" id="broth-fe-val">5 ppm</span>
           </div>
-          <div class="broth-slider-row">
+          <div class="broth-slider-row" title="Manganese (ppm). The fluorescence ACTIVATOR in calcite — Mn²⁺ gives orange-red UV glow. Iron quenches it. Also colors calcite amber/pink.">
             <label>Mn</label>
             <input type="range" id="broth-mn" min="0" max="100" value="2" step="1"
               oninput="setBrothValue('mn',this.value)">
             <span class="broth-val" id="broth-mn-val">2 ppm</span>
           </div>
-          <div class="broth-slider-row">
+          <div class="broth-slider-row" title="Copper (ppm). Required for chalcopyrite (with Fe + S) and malachite (with CO₃ + O₂). Porphyry deposits: 300-500°C sweet spot.">
             <label>Cu</label>
             <input type="range" id="broth-cu" min="0" max="200" value="0" step="1"
               oninput="setBrothValue('cu',this.value)">
             <span class="broth-val" id="broth-cu-val">0 ppm</span>
           </div>
-          <div class="broth-slider-row">
+          <div class="broth-slider-row" title="Zinc (ppm). Forms sphalerite with sulfur. Common in MVT deposits alongside galena and fluorite.">
             <label>Zn</label>
             <input type="range" id="broth-zn" min="0" max="500" value="0" step="1"
               oninput="setBrothValue('zn',this.value)">
             <span class="broth-val" id="broth-zn-val">0 ppm</span>
           </div>
-          <div class="broth-slider-row">
+          <div class="broth-slider-row" title="Uranium (ppm). Forms uraninite in reducing conditions. Radioactive — creates radiation halos in adjacent crystals.">
             <label>U</label>
             <input type="range" id="broth-u" min="0" max="200" value="0" step="1"
               oninput="setBrothValue('u',this.value)">
             <span class="broth-val" id="broth-u-val">0 ppm</span>
           </div>
-          <div class="broth-slider-row">
+          <div class="broth-slider-row" title="Lead (ppm). Forms galena (PbS) with sulfur. Dense metallic cubes. Needs lead + Mo + O₂ for wulfenite.">
             <label>Pb</label>
             <input type="range" id="broth-pb" min="0" max="200" value="0" step="1"
               oninput="setBrothValue('pb',this.value)">
             <span class="broth-val" id="broth-pb-val">0 ppm</span>
           </div>
-          <div class="broth-slider-row">
+          <div class="broth-slider-row" title="Molybdenum (ppm). Forms wulfenite (PbMoO₄) — bright orange tabular crystals. Needs Pb and oxidizing conditions.">
             <label>Mo</label>
             <input type="range" id="broth-mo" min="0" max="100" value="0" step="1"
               oninput="setBrothValue('mo',this.value)">
@@ -1400,20 +1402,20 @@ Scenarios:
         </div>
 
         <div class="broth-group">
-          <div class="broth-group-label">💨 Volatiles</div>
-          <div class="broth-slider-row">
+          <div class="broth-group-label" title="Dissolved gases and reactive species. S enables sulfides. F enables fluorite. O₂ controls redox — sulfides vs oxides.">💨 Volatiles</div>
+          <div class="broth-slider-row" title="Dissolved sulfur (ppm). Required for ALL sulfides: pyrite, sphalerite, galena, chalcopyrite. No sulfur = no sulfides.">
             <label>S</label>
             <input type="range" id="broth-s" min="0" max="500" value="0" step="1"
               oninput="setBrothValue('s',this.value)">
             <span class="broth-val" id="broth-s-val">0 ppm</span>
           </div>
-          <div class="broth-slider-row">
+          <div class="broth-slider-row" title="Fluorine (ppm). Forms fluorite with Ca (sweet spot 100-250°C). At low pH, HF etches quartz — trigonal etch pits.">
             <label>F</label>
             <input type="range" id="broth-f" min="0" max="100" value="10" step="1"
               oninput="setBrothValue('f',this.value)">
             <span class="broth-val" id="broth-f-val">10 ppm</span>
           </div>
-          <div class="broth-slider-row">
+          <div class="broth-slider-row" title="Dissolved oxygen. High = oxidizing (hematite, malachite, wulfenite). Low = reducing (pyrite, galena, chalcopyrite). Sulfides unstable when oxidized.">
             <label>O₂</label>
             <input type="range" id="broth-o2" min="0" max="20" value="0" step="1"
               oninput="setBrothValue('o2',this.value)">
@@ -1422,8 +1424,8 @@ Scenarios:
         </div>
 
         <div class="broth-group">
-          <div class="broth-group-label">🌊 Flow</div>
-          <div class="broth-slider-row">
+          <div class="broth-group-label" title="How fast fresh fluid moves through the vug. High flow replenishes components. Low flow = closed system.">🌊 Flow</div>
+          <div class="broth-slider-row" title="Fluid flow rate. Higher = more replenishment of dissolved components. Lower = closed system, elements deplete as crystals grow.">
             <label>Flow rate</label>
             <input type="range" id="broth-flow" min="0" max="50" value="10" step="1"
               oninput="setBrothValue('flow',this.value)">
