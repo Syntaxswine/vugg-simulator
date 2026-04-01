@@ -1894,11 +1894,147 @@ const MINERAL_GAME_COLORS = {
   wulfenite: '#ff8833'
 };
 
-// Build a mineral thumbnail HTML element (photo with game-color tint overlay)
-function mineralThumbHTML(mineral, size) {
+// Derive crystal color from its growth history and chemistry
+function crystalColor(crystal) {
+  if (!crystal || !crystal.zones || !crystal.zones.length) {
+    return MINERAL_GAME_COLORS[crystal?.mineral] || '#d4a843';
+  }
+
+  const n = crystal.zones.length;
+  const avgFe = crystal.zones.reduce((s, z) => s + (z.trace_Fe || 0), 0) / n;
+  const avgMn = crystal.zones.reduce((s, z) => s + (z.trace_Mn || 0), 0) / n;
+  const avgTi = crystal.zones.reduce((s, z) => s + (z.trace_Ti || 0), 0) / n;
+  const avgAl = crystal.zones.reduce((s, z) => s + (z.trace_Al || 0), 0) / n;
+  const fiCount = crystal.zones.filter(z => z.fluid_inclusion).length;
+  const fiRatio = fiCount / n;
+  const radDmg = crystal.radiation_damage || 0;
+
+  switch (crystal.mineral) {
+    case 'quartz':
+      // Smoky: radiation damage (Al color centers)
+      if (radDmg > 0.6) return '#3a2a1a'; // dark smoky
+      if (radDmg > 0.3) return '#6b5040'; // smoky
+      // Amethyst: Fe³⁺ + some radiation
+      if (avgFe > 3 && radDmg > 0.1) return '#9966cc'; // amethyst
+      // Milky: dense fluid inclusions from rapid growth
+      if (fiRatio > 0.4) return '#e8ddd0'; // milky white
+      // Citrine: Fe³⁺ (heated amethyst conditions)
+      if (avgFe > 5 && crystal.zones.some(z => z.temperature > 350)) return '#e6a820';
+      // Rose: Ti + Mn traces (rare)
+      if (avgTi > 0.5 && avgMn > 1) return '#dda0a0';
+      // Clear/rock crystal
+      return '#e8e8e8';
+
+    case 'calcite':
+      // Pink: Co traces (not tracked, use high Mn + low Fe)
+      if (avgMn > 5 && avgFe < 1) return '#e8a0b0';
+      // Amber/honey: Mn²⁺ activator
+      if (avgMn > 2) return '#d4a040';
+      // Brown: high Fe
+      if (avgFe > 5) return '#a08050';
+      // Clear/white
+      return '#f0e8d8';
+
+    case 'fluorite':
+      // Purple: Mn or radiation-induced color centers
+      if (avgMn > 1 || radDmg > 0.1) return '#b088dd';
+      // Green: REE (approximate via low Fe + moderate Ca environment)
+      if (avgFe < 2 && avgMn < 1) return '#44bb88';
+      // Yellow: O vacancies from radiation
+      if (radDmg > 0.05) return '#ddcc44';
+      // Blue: trace Ca excess
+      if (avgFe < 1) return '#88aadd';
+      // Deep purple: high Mn
+      if (avgMn > 3) return '#7744aa';
+      return '#b088dd';
+
+    case 'pyrite':
+      return '#c8b830'; // always brassy
+
+    case 'chalcopyrite':
+      return '#c89830'; // brassy with Cu tarnish potential
+
+    case 'galena':
+      return '#a0a0a0'; // lead gray
+
+    case 'hematite':
+      // Specular: well-crystallized
+      if (crystal.c_length_mm > 2) return '#8a2020'; // deep red
+      return '#b04040';
+
+    case 'malachite':
+      // Darker with more Cu
+      return '#2e8b57';
+
+    case 'sphalerite':
+      // Iron-rich (marmatite): dark
+      if (avgFe > 10) return '#553322';
+      // Clean: honey/amber
+      if (avgFe < 3) return '#ddaa44';
+      return '#cc8844';
+
+    case 'goethite':
+      return '#8b6914';
+
+    case 'smithsonite':
+      // Blue-green (Cu): 
+      if (crystal.zones.some(z => z.trace_Fe > 2)) return '#88aa88';
+      return '#88bbcc';
+
+    case 'wulfenite':
+      return '#ff8833';
+
+    case 'uraninite':
+      return '#44dd44';
+
+    default:
+      return MINERAL_GAME_COLORS[crystal.mineral] || '#d4a843';
+  }
+}
+
+// Get a display name for the crystal including variety
+function crystalDisplayName(crystal) {
+  if (!crystal) return 'unknown';
+  let name = crystal.mineral;
+  
+  if (crystal.mineral === 'quartz') {
+    const n = crystal.zones.length || 1;
+    const avgFe = crystal.zones.reduce((s, z) => s + (z.trace_Fe || 0), 0) / n;
+    const fiCount = crystal.zones.filter(z => z.fluid_inclusion).length;
+    const fiRatio = fiCount / n;
+    const radDmg = crystal.radiation_damage || 0;
+    
+    if (radDmg > 0.3) name = 'quartz (smoky)';
+    else if (avgFe > 3 && radDmg > 0.1) name = 'quartz (amethyst)';
+    else if (fiRatio > 0.4) name = 'quartz (milky)';
+    else if (avgFe > 5 && crystal.zones.some(z => z.temperature > 350)) name = 'quartz (citrine)';
+    else name = 'quartz (rock crystal)';
+  }
+  
+  if (crystal.mineral === 'fluorite') {
+    const color = crystalColor(crystal);
+    if (color === '#44bb88') name = 'fluorite (green)';
+    else if (color === '#ddcc44') name = 'fluorite (yellow)';
+    else if (color === '#88aadd') name = 'fluorite (blue)';
+    else name = 'fluorite (purple)';
+  }
+
+  if (crystal.mineral === 'sphalerite') {
+    const n = crystal.zones.length || 1;
+    const avgFe = crystal.zones.reduce((s, z) => s + (z.trace_Fe || 0), 0) / n;
+    if (avgFe > 10) name = 'sphalerite (marmatite)';
+    else if (avgFe < 3) name = 'sphalerite (honey)';
+  }
+
+  return name;
+}
+
+// Build a mineral thumbnail HTML element (photo with crystal-specific color tint overlay)
+function mineralThumbHTML(mineral, size, crystal) {
   size = size || 60;
   const src = MINERAL_THUMBS[mineral];
-  const color = MINERAL_GAME_COLORS[mineral] || '#d4a843';
+  // Use crystal-specific color if crystal provided, otherwise fall back to species color
+  const color = crystal ? crystalColor(crystal) : (MINERAL_GAME_COLORS[mineral] || '#d4a843');
   if (!src) {
     // No photo yet — colored placeholder square
     return `<div style="width:${size}px;height:${size}px;border-radius:4px;background:${color}22;border:1px solid ${color}44;display:flex;align-items:center;justify-content:center;font-size:${size*0.4}px;flex-shrink:0" title="${mineral}">💎</div>`;
@@ -4937,15 +5073,13 @@ function updateLegendsInventory(sim) {
     el.className = 'inv-crystal';
     el.onclick = () => showZoneHistory(crystal);
 
-    let displayName = crystal.mineral;
-    if (crystal.mineral === 'quartz' && crystal.radiation_damage > 0.3) {
-      displayName = 'quartz (smoky)';
-    }
+    const displayName = crystalDisplayName(crystal);
+    const cColor = crystalColor(crystal);
 
     let html = `<div style="display:flex;gap:0.6rem;align-items:flex-start">`;
-    html += mineralThumbHTML(crystal.mineral, 56);
+    html += mineralThumbHTML(crystal.mineral, 56, crystal);
     html += `<div style="flex:1;min-width:0">`;
-    html += `<div class="inv-mineral">${displayName} #${crystal.crystal_id}</div>`;
+    html += `<div class="inv-mineral" style="color:${cColor}">${displayName} #${crystal.crystal_id}</div>`;
     html += `<div class="inv-size">${crystal.c_length_mm.toFixed(1)} × ${crystal.a_width_mm.toFixed(1)} mm</div>`;
     html += `<div class="inv-habit">${crystal.habit}`;
     if (crystal.dominant_forms.length) html += ` [${crystal.dominant_forms[0]}]`;
@@ -4978,15 +5112,13 @@ function updateFortressInventory() {
     el.className = 'inv-crystal';
     el.onclick = () => showZoneHistory(crystal);
 
-    let displayName = crystal.mineral;
-    if (crystal.mineral === 'quartz' && crystal.radiation_damage > 0.3) {
-      displayName = 'quartz (smoky)';
-    }
+    const displayName = crystalDisplayName(crystal);
+    const cColor = crystalColor(crystal);
 
     let html = `<div style="display:flex;gap:0.6rem;align-items:flex-start">`;
-    html += mineralThumbHTML(crystal.mineral, 56);
+    html += mineralThumbHTML(crystal.mineral, 56, crystal);
     html += `<div style="flex:1;min-width:0">`;
-    html += `<div class="inv-mineral">${displayName} #${crystal.crystal_id}</div>`;
+    html += `<div class="inv-mineral" style="color:${cColor}">${displayName} #${crystal.crystal_id}</div>`;
     html += `<div class="inv-size">${crystal.c_length_mm.toFixed(1)} × ${crystal.a_width_mm.toFixed(1)} mm</div>`;
     html += `<div class="inv-habit">${crystal.habit}`;
     if (crystal.dominant_forms.length) html += ` [${crystal.dominant_forms[0]}]`;
@@ -5006,7 +5138,9 @@ function showZoneHistory(crystal) {
   const title = document.getElementById('zone-modal-title');
   const body = document.getElementById('zone-modal-body');
 
-  title.textContent = `${capitalize(crystal.mineral)} #${crystal.crystal_id} — Zone History`;
+  const cColor = crystalColor(crystal);
+  title.textContent = `${capitalize(crystalDisplayName(crystal))} #${crystal.crystal_id} — Zone History`;
+  title.style.color = cColor;
   body.innerHTML = '';
 
   // Crystal summary
@@ -5019,7 +5153,7 @@ function showZoneHistory(crystal) {
     ${crystal.twinned ? `<div style="color:#bb66ee">Twinned: ${crystal.twin_law}</div>` : ''}
     ${crystal.dissolved ? `<div style="color:#cc4444">Partially dissolved</div>` : ''}
     <div>Fluorescence: ${crystal.predict_fluorescence()}</div>
-    ${MINERAL_ASCII[crystal.mineral] ? `<pre style="margin:0.8rem 0;font-size:0.45rem;line-height:1.1;color:${MINERAL_GAME_COLORS[crystal.mineral] || '#d4a843'};overflow-x:auto;text-align:center">${MINERAL_ASCII[crystal.mineral]}</pre>` : (MINERAL_THUMBS[crystal.mineral] ? `<div style="margin:0.8rem 0;text-align:center">${mineralThumbHTML(crystal.mineral, 160)}</div>` : '')}
+    ${MINERAL_ASCII[crystal.mineral] ? `<pre style="margin:0.8rem 0;font-size:0.45rem;line-height:1.1;color:${cColor};overflow-x:auto;text-align:center">${MINERAL_ASCII[crystal.mineral]}</pre>` : (MINERAL_THUMBS[crystal.mineral] ? `<div style="margin:0.8rem 0;text-align:center">${mineralThumbHTML(crystal.mineral, 160, crystal)}</div>` : '')}
     <div style="margin-top:0.5rem"><button onclick="grooveFromModal()" style="background:#2a2510;border:1px solid #5a4a20;color:#d4a843;padding:0.3rem 0.8rem;font-size:0.75rem;border-radius:3px;cursor:pointer">📀 Play Record</button></div>
   `;
   grooveModalCrystal = crystal;
