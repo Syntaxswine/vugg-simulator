@@ -3634,9 +3634,13 @@ function event_copper_injection(conditions) {
 
 function event_oxidation(conditions) {
   conditions.fluid.O2 = 1.8;
-  conditions.fluid.S *= 0.3;
+  // Oxidation converts sulfide (S²⁻) to sulfate (SO₄²⁻) — sulfur doesn't vanish,
+  // it changes oxidation state. Some S is consumed by sulfide dissolution,
+  // but most stays in solution as sulfate. This is what enables selenite.
+  const sulfide_consumed = conditions.fluid.S * 0.3; // 30% consumed by sulfide mineral reactions
+  conditions.fluid.S = conditions.fluid.S - sulfide_consumed + (sulfide_consumed * 0.7); // net: keep ~80% as sulfate
   conditions.temperature -= 40;
-  return `Oxidizing meteoric water infiltrates. Sulfides becoming unstable. T drops to ${conditions.temperature.toFixed(0)}°C.`;
+  return `Oxidizing meteoric water infiltrates. Sulfides becoming unstable — S²⁻ oxidizing to SO₄²⁻. T drops to ${conditions.temperature.toFixed(0)}°C. Sulfate available for gypsum/selenite.`;
 }
 
 function event_acidify(conditions) {
