@@ -5489,6 +5489,83 @@ function updateFortressStatus() {
     radContainer.style.display = 'none';
   }
 
+  // What each mineral needs to thrive
+  function mineralNeeds(name, c) {
+    const T = c.temperature, f = c.fluid;
+    const clean = n => n.replace(/^[^\w]*/, ''); // strip emoji
+    switch (clean(name).toLowerCase()) {
+      case 'quartz':
+        if (f.SiO2 < 200) return 'more SiO₂';
+        if (T > 573) return 'lower temperature (<573°C)';
+        return 'higher SiO₂ concentration';
+      case 'calcite':
+        if (f.Ca < 50) return 'more Ca';
+        if (f.CO3 < 30) return 'more CO₃';
+        if (f.pH < 5.5) return 'higher pH (less acidic)';
+        return 'more Ca + CO₃';
+      case 'fluorite':
+        if (f.Ca < 30) return 'more Ca';
+        if (f.F < 5) return 'more F (fluorine)';
+        return 'more Ca + F';
+      case 'sphalerite':
+        if (f.Zn < 20) return 'more Zn';
+        if (f.S < 10) return 'more S (sulfur)';
+        return 'more Zn + S';
+      case 'pyrite':
+        if (f.Fe < 5) return 'more Fe';
+        if (f.S < 10) return 'more S (sulfur)';
+        return 'more Fe + S';
+      case 'chalcopyrite':
+        if (f.Cu < 5) return 'more Cu';
+        if (f.Fe < 5) return 'more Fe';
+        if (f.S < 10) return 'more S (sulfur)';
+        return 'more Cu + Fe + S';
+      case 'hematite':
+        if (f.Fe < 10) return 'more Fe';
+        if (f.O2 < 0.3) return 'more O₂ (oxidizing conditions)';
+        return 'more Fe + O₂';
+      case 'malachite':
+        if (f.Cu < 10) return 'more Cu';
+        if (f.CO3 < 20) return 'more CO₃';
+        if (f.O2 < 0.2) return 'more O₂ (oxidizing conditions)';
+        return 'Cu + CO₃ + O₂';
+      case 'uraninite':
+        if (f.U < 20) return 'more U (uranium)';
+        if (T < 200) return 'higher temperature';
+        return 'more U';
+      case 'galena':
+        if (f.Pb < 10) return 'more Pb (lead)';
+        if (f.S < 10) return 'more S (sulfur)';
+        return 'more Pb + S';
+      case 'smithsonite':
+        if (f.Zn < 10) return 'more Zn';
+        if (f.CO3 < 20) return 'more CO₃';
+        if (f.O2 < 0.2) return 'O₂ (oxidized Zn environment)';
+        return 'Zn + CO₃ + O₂';
+      case 'wulfenite':
+        if (f.Pb < 10) return 'more Pb (lead)';
+        if (f.Mo < 5) return 'more Mo (molybdenum)';
+        if (f.O2 < 0.2) return 'more O₂ (oxidizing conditions)';
+        if (T > 250) return 'lower temperature (<250°C)';
+        return 'Pb + Mo + O₂';
+      case 'selenite':
+        if (f.Ca < 20) return 'more Ca';
+        if (f.S < 10) return 'more S (sulfate)';
+        if (f.O2 < 0.3) return 'more O₂ (to convert S²⁻ to SO₄²⁻)';
+        if (T > 80) return 'lower temperature (<80°C)';
+        return 'Ca + SO₄ + low temperature';
+      case 'feldspar':
+        if (f.K < 15 && f.Na < 15) return 'more K or Na (alkalis)';
+        if (f.Al < 5) return 'more Al (aluminum)';
+        if (f.SiO2 < 100) return 'more SiO₂';
+        if (T < 150) return 'higher temperature (>150°C)';
+        if (T > 800) return 'lower temperature (<800°C)';
+        return 'K/Na + Al + SiO₂';
+      default:
+        return 'different conditions';
+    }
+  }
+
   // Supersaturation indicators
   const satBar = document.getElementById('f-sat-bar');
   satBar.innerHTML = '';
@@ -5515,7 +5592,7 @@ function updateFortressStatus() {
     const isSuper = m.sigma >= 1.0;
     el.className = 'sat-indicator ' + (isSuper ? 'sat-super' : 'sat-under');
     el.textContent = `${m.name} σ=${m.sigma.toFixed(2)}`;
-    el.title = isSuper ? 'Supersaturated — will grow!' : 'Undersaturated — no growth';
+    el.title = isSuper ? 'Supersaturated — will grow!' : `Undersaturated — needs ${mineralNeeds(m.name, c)}`;
     satBar.appendChild(el);
   }
 }
