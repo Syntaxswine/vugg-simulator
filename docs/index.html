@@ -4230,16 +4230,18 @@ class VugSimulator {
     }
 
     this.check_nucleation(vugFill);
+    let currentFill = vugFill; // Track fill dynamically during growth loop
     for (const crystal of this.crystals) {
       if (!crystal.active) continue;
       // If vug is full, no more growth (dissolution still allowed)
-      if (vugFill >= 1.0) {
+      if (currentFill >= 1.0) {
         // Still allow dissolution (negative zones)
         const engine = MINERAL_ENGINES[crystal.mineral];
         if (!engine) continue;
         const zone = engine(crystal, this.conditions, this.step);
         if (zone && zone.thickness_um < 0) {
           crystal.add_zone(zone);
+          currentFill = this.get_vug_fill(); // Update after dissolution
           this.log.push(`  ⬇ ${capitalize(crystal.mineral)} #${crystal.crystal_id}: DISSOLUTION ${zone.note}`);
         }
         continue;
@@ -4249,12 +4251,37 @@ class VugSimulator {
       const zone = engine(crystal, this.conditions, this.step);
       if (zone) {
         crystal.add_zone(zone);
+        // Re-check fill after each crystal grows to prevent >100% overshoot
+        if (zone.thickness_um > 0) {
+          currentFill = this.get_vug_fill();
+        }
         if (zone.thickness_um < 0) {
+          currentFill = this.get_vug_fill();
           this.log.push(`  ⬇ ${capitalize(crystal.mineral)} #${crystal.crystal_id}: DISSOLUTION ${zone.note}`);
         } else if (Math.abs(zone.thickness_um) > 0.5) {
           this.log.push(`  ▲ ${capitalize(crystal.mineral)} #${crystal.crystal_id}: ${crystal.describe_latest_zone()}`);
         }
       }
+    }
+    // Check for vug seal after growth loop (may cross 1.0 during crystal growth)
+    if (currentFill >= 1.0 && !this._vug_sealed) {
+      this._vug_sealed = true;
+      const mineralVols = {};
+      for (const c of this.crystals) {
+        if (!c.active) continue;
+        const a = c.c_length_mm / 2, b = c.a_width_mm / 2;
+        const v = (4/3) * Math.PI * a * b * b;
+        mineralVols[c.mineral] = (mineralVols[c.mineral] || 0) + v;
+      }
+      const sorted = Object.entries(mineralVols).sort((a,b) => b[1] - a[1]);
+      const dominant = sorted[0] ? sorted[0][0] : 'mineral';
+      let sealMsg = `🪨 VUG SEALED — cavity completely filled after ${this.step} steps`;
+      if (dominant === 'quartz' && sorted[0][1] / Object.values(mineralVols).reduce((a,b)=>a+b,0) > 0.8) {
+        sealMsg += ` — AGATE (>80% quartz)`;
+      } else if (sorted.length > 1) {
+        sealMsg += ` — dominant: ${dominant}, with ${sorted.slice(1).map(s=>s[0]).join(', ')}`;
+      }
+      this.log.push(sealMsg);
     }
     // ---- Radiation damage processing ----
     const active_uraninite = this.crystals.filter(c => c.mineral === 'uraninite' && c.active);
