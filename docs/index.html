@@ -2268,6 +2268,18 @@ function crystalColor(crystal) {
     case 'uraninite':
       return '#44dd44';
 
+    case 'adamite':
+      // Cu content determines color — cuproadamite is vivid green
+      if (crystal.zones.some(z => z.note && z.note.includes('cuproadamite'))) return '#33cc55';
+      if (crystal.zones.some(z => z.note && z.note.includes('weakly fluorescent'))) return '#66bb44';
+      return '#bbcc33'; // yellow-green (Cu-free)
+
+    case 'mimetite':
+      // Fe-rich = orange-brown campylite, otherwise yellow-orange
+      if (crystal.habit && crystal.habit.includes('campylite')) return '#cc7733';
+      if (avgFe > 1) return '#ddaa33';
+      return '#eebb44'; // classic mimetite yellow
+
     default:
       return MINERAL_GAME_COLORS[crystal.mineral] || '#d4a843';
   }
@@ -2701,18 +2713,28 @@ class VugConditions {
   // The crystal that grows when everything else is ending
   supersaturation_selenite() {
     if (this.fluid.Ca < 20 || this.fluid.S < 10) return 0;
-    // Needs oxidizing conditions — sulfide S must become sulfate
     if (this.fluid.O2 < 0.3) return 0;
-    // Only forms at low temperature (<60°C in nature, allow up to 80 in game)
     if (this.temperature > 80) return 0;
-    // Neutral to slightly acidic pH
     if (this.fluid.pH < 5 || this.fluid.pH > 8) return 0;
-    // Supersaturation from Ca and oxidized S
     let sigma = (this.fluid.Ca / 100.0) * (this.fluid.S / 50.0) * (this.fluid.O2 / 1.0);
-    // Strongly favored at very low temperatures — evaporative concentration
-    if (this.temperature < 40) {
-      sigma *= 1.5;
-    }
+    if (this.temperature < 40) sigma *= 1.5;
+    return Math.max(sigma, 0);
+  }
+
+  supersaturation_adamite() {
+    if (this.fluid.Zn < 10 || this.fluid.As < 5 || this.fluid.O2 < 0.3) return 0;
+    let sigma = (this.fluid.Zn / 80.0) * (this.fluid.As / 30.0) * (this.fluid.O2 / 1.0);
+    if (this.temperature > 100) sigma *= Math.exp(-0.02 * (this.temperature - 100));
+    if (this.fluid.pH < 4.0) sigma -= (4.0 - this.fluid.pH) * 0.4;
+    else if (this.fluid.pH > 8.0) sigma *= 0.5;
+    return Math.max(sigma, 0);
+  }
+
+  supersaturation_mimetite() {
+    if (this.fluid.Pb < 5 || this.fluid.As < 3 || this.fluid.Cl < 2 || this.fluid.O2 < 0.3) return 0;
+    let sigma = (this.fluid.Pb / 60.0) * (this.fluid.As / 25.0) * (this.fluid.Cl / 30.0) * (this.fluid.O2 / 1.0);
+    if (this.temperature > 150) sigma *= Math.exp(-0.015 * (this.temperature - 150));
+    if (this.fluid.pH < 3.5) sigma -= (3.5 - this.fluid.pH) * 0.5;
     return Math.max(sigma, 0);
   }
 }
@@ -3858,7 +3880,100 @@ const MINERAL_ENGINES = {
   wulfenite: grow_wulfenite,
   selenite: grow_selenite,
   feldspar: grow_feldspar,
+  adamite: grow_adamite,
+  mimetite: grow_mimetite,
 };
+
+function grow_adamite(crystal, conditions, step) {
+  const sigma = conditions.supersaturation_adamite();
+  if (sigma < 1.0) {
+    if (crystal.total_growth_um > 3 && conditions.fluid.pH < 3.5) {
+      crystal.dissolved = true;
+      const d = Math.min(4.0, crystal.total_growth_um * 0.12);
+      conditions.fluid.Zn += d * 0.5;
+      conditions.fluid.As += d * 0.3;
+      return new GrowthZone({ step, temperature: conditions.temperature, thickness_um: -d, growth_rate: -d, note: `acid dissolution (pH ${conditions.fluid.pH.toFixed(1)})` });
+    }
+    return null;
+  }
+  let rate = 4.0 * (sigma - 1.0) * (0.8 + Math.random() * 0.4);
+  if (rate < 0.1) return null;
+  
+  const zc = crystal.zones.length;
+  if (rate > 6) {
+    crystal.habit = 'acicular sprays';
+    crystal.dominant_forms = ['radiating fan-shaped sprays'];
+    crystal.a_width_mm = crystal.c_length_mm * 0.15;
+  } else if (zc > 15) {
+    crystal.habit = 'prismatic';
+    crystal.dominant_forms = ['elongated prisms', 'wedge-shaped'];
+    crystal.a_width_mm = crystal.c_length_mm * 0.4;
+  } else {
+    crystal.habit = 'tabular';
+    crystal.dominant_forms = ['tabular crystals'];
+    crystal.a_width_mm = crystal.c_length_mm * 0.7;
+  }
+  
+  const cuInCrystal = conditions.fluid.Cu * 0.02;
+  let colorNote;
+  if (cuInCrystal > 0.5) colorNote = 'vivid green (cuproadamite) — UV-FLUORESCENT 💚';
+  else if (cuInCrystal > 0.1) colorNote = 'green — weakly fluorescent';
+  else colorNote = 'yellow-green — NON-FLUORESCENT (no Cu)';
+  
+  conditions.fluid.Zn -= rate * 0.008; conditions.fluid.Zn = Math.max(conditions.fluid.Zn, 0);
+  conditions.fluid.As -= rate * 0.005; conditions.fluid.As = Math.max(conditions.fluid.As, 0);
+  
+  return new GrowthZone({ step, temperature: conditions.temperature, thickness_um: rate, growth_rate: rate, trace_Fe: conditions.fluid.Fe * 0.01, note: `${crystal.habit}, ${colorNote}` });
+}
+
+function grow_mimetite(crystal, conditions, step) {
+  const sigma = conditions.supersaturation_mimetite();
+  if (sigma < 1.0) {
+    if (crystal.total_growth_um > 3 && conditions.fluid.pH < 3.0) {
+      crystal.dissolved = true;
+      const d = Math.min(5.0, crystal.total_growth_um * 0.10);
+      conditions.fluid.Pb += d * 0.8;
+      conditions.fluid.As += d * 0.3;
+      conditions.fluid.Cl += d * 0.1;
+      return new GrowthZone({ step, temperature: conditions.temperature, thickness_um: -d, growth_rate: -d, note: `acid dissolution (pH ${conditions.fluid.pH.toFixed(1)})` });
+    }
+    return null;
+  }
+  let rate = 5.0 * (sigma - 1.0) * (0.8 + Math.random() * 0.4);
+  if (rate < 0.1) return null;
+  
+  const zc = crystal.zones.length;
+  const feRatio = conditions.fluid.Fe / Math.max(conditions.fluid.Pb, 1);
+  
+  if (feRatio > 0.3 && Math.random() < 0.4) {
+    crystal.habit = 'campylite (barrel-shaped)';
+    crystal.dominant_forms = ['barrel-shaped hexagonal prisms', 'curved faces'];
+    crystal.a_width_mm = crystal.c_length_mm * 0.6;
+  } else if (rate > 7) {
+    crystal.habit = 'acicular';
+    crystal.dominant_forms = ['thin hexagonal needles'];
+    crystal.a_width_mm = crystal.c_length_mm * 0.15;
+  } else if (zc > 10) {
+    crystal.habit = 'prismatic';
+    crystal.dominant_forms = ['hexagonal prisms'];
+    crystal.a_width_mm = crystal.c_length_mm * 0.4;
+  } else {
+    crystal.habit = 'tabular';
+    crystal.dominant_forms = ['thick tabular hexagons'];
+    crystal.a_width_mm = crystal.c_length_mm * 0.8;
+  }
+  
+  let colorNote;
+  if (feRatio > 0.3) colorNote = 'orange-brown (campylite)';
+  else if (conditions.fluid.Pb > 100) colorNote = 'bright yellow-orange';
+  else colorNote = 'pale yellow';
+  
+  conditions.fluid.Pb -= rate * 0.015; conditions.fluid.Pb = Math.max(conditions.fluid.Pb, 0);
+  conditions.fluid.As -= rate * 0.008; conditions.fluid.As = Math.max(conditions.fluid.As, 0);
+  conditions.fluid.Cl -= rate * 0.003; conditions.fluid.Cl = Math.max(conditions.fluid.Cl, 0);
+  
+  return new GrowthZone({ step, temperature: conditions.temperature, thickness_um: rate, growth_rate: rate, trace_Fe: conditions.fluid.Fe * 0.02, note: `${crystal.habit}, ${colorNote}` });
+}
 
 // ============================================================
 // EVENT SYSTEM
@@ -4360,6 +4475,44 @@ class VugSimulator {
         this.log.push(`  ✦ NUCLEATION: Galena #${c.crystal_id} on ${c.position} (T=${this.conditions.temperature.toFixed(0)}°C, σ=${sigma_gal.toFixed(2)})`);
       }
     }
+
+    // Adamite nucleation — Zn + As + O₂, low T oxidation zone
+    const sigma_adam = this.conditions.supersaturation_adamite();
+    const existing_adam = this.crystals.filter(c => c.mineral === 'adamite' && c.active);
+    const total_adam = this.crystals.filter(c => c.mineral === 'adamite').length;
+    if (sigma_adam > 1.0 && !existing_adam.length && total_adam < 4) {
+      let pos = 'vug wall';
+      const existing_goe = this.crystals.filter(c => c.mineral === 'goethite' && c.active);
+      if (existing_goe.length && rng.random() < 0.6) {
+        pos = `on goethite #${existing_goe[0].crystal_id}`;
+      } else if (existing_hem.length && rng.random() < 0.4) {
+        pos = `on hematite #${existing_hem[0].crystal_id}`;
+      }
+      const c = this.nucleate('adamite', pos);
+      this.log.push(`  ✦ NUCLEATION: Adamite #${c.crystal_id} on ${c.position} (T=${this.conditions.temperature.toFixed(0)}°C, σ=${sigma_adam.toFixed(2)})`);
+      // Second crystal — fluorescent/non-fluorescent pair
+      if (sigma_adam > 1.3 && rng.random() < 0.5) {
+        const c2 = this.nucleate('adamite', pos);
+        this.log.push(`  ✦ NUCLEATION: Adamite #${c2.crystal_id} alongside #${c.crystal_id} — will one fluoresce and the other stay dark?`);
+      }
+    }
+
+    // Mimetite nucleation — Pb + As + Cl + O₂, oxidation zone
+    const sigma_mim = this.conditions.supersaturation_mimetite();
+    const existing_mim = this.crystals.filter(c => c.mineral === 'mimetite' && c.active);
+    const total_mim = this.crystals.filter(c => c.mineral === 'mimetite').length;
+    if (sigma_mim > 1.0 && !existing_mim.length && total_mim < 3) {
+      let pos = 'vug wall';
+      const existing_gal2 = this.crystals.filter(c => c.mineral === 'galena');
+      const existing_goe2 = this.crystals.filter(c => c.mineral === 'goethite' && c.active);
+      if (existing_gal2.length && rng.random() < 0.6) {
+        pos = `on galena #${existing_gal2[0].crystal_id}`;
+      } else if (existing_goe2.length && rng.random() < 0.3) {
+        pos = `on goethite #${existing_goe2[0].crystal_id}`;
+      }
+      const c = this.nucleate('mimetite', pos);
+      this.log.push(`  ✦ NUCLEATION: Mimetite #${c.crystal_id} on ${c.position} (T=${this.conditions.temperature.toFixed(0)}°C, σ=${sigma_mim.toFixed(2)})`);
+    }
   }
 
   apply_events() {
@@ -4779,6 +4932,8 @@ class VugSimulator {
       else if (c.mineral === 'wulfenite') story = this._narrate_wulfenite(c);
       else if (c.mineral === 'selenite') story = this._narrate_selenite(c);
       else if (c.mineral === 'feldspar') story = this._narrate_feldspar(c);
+      else if (c.mineral === 'adamite') story = this._narrate_adamite(c);
+      else if (c.mineral === 'mimetite') story = this._narrate_mimetite(c);
       if (story && !first_minerals.includes(c)) paragraphs.push(story);
     }
 
@@ -5111,6 +5266,41 @@ class VugSimulator {
     return parts.join(' ');
   }
 
+  _narrate_adamite(c) {
+    const parts = [`Adamite #${c.crystal_id} — zinc arsenate hydroxide, Zn₂(AsO₄)(OH).`];
+    const isFluorescent = c.zones.some(z => z.note && z.note.includes('FLUORESCENT'));
+    const isNonFluorescent = c.zones.some(z => z.note && z.note.includes('NON-FLUORESCENT'));
+    if (isFluorescent) {
+      parts.push('This crystal contains copper substituting for zinc — enough Cu²⁺ to activate brilliant green fluorescence under UV light. The cuproadamite variety: the same mineral, but one that carries light inside it.');
+    } else if (isNonFluorescent) {
+      parts.push('No copper in this one. Under UV, it stays dark while its siblings glow green around it. The contradiction crystal — identical composition except for the trace element that makes all the difference. The non-glowing needles among the fluorescence.');
+    }
+    if (c.position.includes('goethite') || c.position.includes('hematite')) {
+      parts.push('Growing on iron oxide — the classic association. Limonite and goethite are the matrix, the rusty scaffolding left behind when primary sulfides oxidize. Adamite grows in the gaps, the secondary crystal decorating the ruins of earlier chemistry.');
+    }
+    if (c.habit === 'acicular sprays') {
+      parts.push('Fan-shaped sprays of acicular crystals radiating from a point. Each needle is a single crystal, but together they form a structure that looks like a frozen firework.');
+    }
+    parts.push('Adamite is a collector\'s mineral — not a building block of the crust, but a rare secondary phase that forms only when zinc, arsenic, and oxygen meet in the oxidation zone of a very specific kind of deposit. Every adamite specimen is evidence that something dramatic happened here first.');
+    return parts.join(' ');
+  }
+
+  _narrate_mimetite(c) {
+    const parts = [`Mimetite #${c.crystal_id} — lead arsenate chloride, Pb₅(AsO₄)₃Cl.`];
+    if (c.habit && c.habit.includes('campylite')) {
+      parts.push('Campylite variety — the hexagonal prisms have curved, barrel-shaped faces from iron substituting for lead. The name comes from the Greek "kampylos" (bent). These are among the most sought-after mimetite specimens: orange-brown barrels with an almost waxy luster.');
+    } else if (c.habit === 'prismatic') {
+      parts.push('Hexagonal prisms — the classic apatite supergroup habit. Mimetite, pyromorphite, and vanadinite are all Pb₅(XO₄)₃Cl where X is As, P, or V respectively. Same structure, different chemistry, all beautiful.');
+    } else {
+      parts.push('Tabular crystals with a resinous to adamantine luster. The lead gives them density — you can feel the weight of a mimetite specimen in your hand.');
+    }
+    if (c.position.includes('galena')) {
+      parts.push('Growing on galena — its parent mineral. Galena (PbS) oxidizes, liberating lead into solution. That lead meets arsenic and chlorine in the oxidation zone and reprecipitates as mimetite. The child grows on the corpse of the parent. Every mimetite crystal is a record of galena\'s death.');
+    }
+    parts.push('Mimetite\'s name means "imitator" — it was confused with pyromorphite for centuries because they\'re isostructural. Only chemistry tells them apart. The mineral that pretends to be something else, growing on the foundation of something that used to be.');
+    return parts.join(' ');
+  }
+
   _narrate_mixing_event(batch, event) {
     const mineral_names = new Set(batch.map(c => c.mineral));
     const parts = [];
@@ -5267,6 +5457,22 @@ class VugSimulator {
       } else if (c.mineral === 'goethite') {
         let desc = `a ${c.c_length_mm.toFixed(1)}mm goethite — earthy brown-yellow`;
         parts.push(`  • ${desc}`);
+      } else if (c.mineral === 'adamite') {
+        let desc = `a ${c.c_length_mm.toFixed(1)}mm adamite`;
+        const isFluorescent = c.zones.some(z => z.note && z.note.includes('FLUORESCENT') && !z.note.includes('NON-'));
+        if (isFluorescent) desc += ' — vivid green (cuproadamite), UV-fluorescent 💚';
+        else desc += ' — yellow-green, non-fluorescent';
+        if (c.habit === 'acicular sprays') desc += ', fan-shaped sprays';
+        if (c.position.includes('goethite') || c.position.includes('hematite')) desc += ' (on iron oxide)';
+        if (c.dissolved) desc += ', partially dissolved';
+        parts.push(`  • 💚 ${desc}`);
+      } else if (c.mineral === 'mimetite') {
+        let desc = `a ${c.c_length_mm.toFixed(1)}mm mimetite`;
+        if (c.habit && c.habit.includes('campylite')) desc += ' — orange-brown barrel-shaped campylite!';
+        else desc += ' — yellow-orange hexagonal prisms';
+        if (c.position.includes('galena')) desc += ' (on galena — child on parent)';
+        if (c.dissolved) desc += ', partially dissolved';
+        parts.push(`  • 🟡 ${desc}`);
       } else {
         // Catch-all for any future minerals
         let desc = `a ${c.c_length_mm.toFixed(1)}mm ${c.mineral}`;
@@ -5940,6 +6146,8 @@ function updateFortressStatus() {
     { name: '🟠 Wulfenite', sigma: c.supersaturation_wulfenite() },
     { name: '💎 Selenite', sigma: c.supersaturation_selenite() },
     { name: '🏔️ Feldspar', sigma: c.supersaturation_feldspar() },
+    { name: '💚 Adamite', sigma: c.supersaturation_adamite() },
+    { name: '🟡 Mimetite', sigma: c.supersaturation_mimetite() },
   ];
 
   for (const m of minerals) {
@@ -7264,6 +7472,8 @@ function idleRecordHistory() {
   try { supersats.wulfenite = c.supersaturation_wulfenite(); } catch(e) {}
   try { supersats.selenite = c.supersaturation_selenite(); } catch(e) {}
   try { supersats.feldspar = c.supersaturation_feldspar(); } catch(e) {}
+  try { supersats.adamite = c.supersaturation_adamite(); } catch(e) {}
+  try { supersats.mimetite = c.supersaturation_mimetite(); } catch(e) {}
 
   idleHistory.push({
     step: idleSim.step,

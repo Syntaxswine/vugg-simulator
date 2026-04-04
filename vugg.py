@@ -333,6 +333,49 @@ class VugConditions:
         return max(sigma, 0)
 
 
+    def supersaturation_adamite(self) -> float:
+        """Adamite (Zn₂(AsO₄)(OH)) supersaturation. Needs Zn + As + oxidizing + low T.
+        
+        Secondary mineral forming in oxidation zones of zinc-arsenic deposits.
+        Bright green fluorescence under UV (activated by Cu²⁺ substitution).
+        Non-fluorescent crystals coexist with fluorescent ones — the contradiction.
+        Prismatic to tabular crystals, often on limonite.
+        Forms at low temperature (<100°C) in near-surface oxidation zones.
+        """
+        if self.fluid.Zn < 10 or self.fluid.As < 5 or self.fluid.O2 < 0.3:
+            return 0
+        sigma = (self.fluid.Zn / 80.0) * (self.fluid.As / 30.0) * (self.fluid.O2 / 1.0)
+        # Low temperature mineral — suppressed above 100°C
+        if self.temperature > 100:
+            sigma *= math.exp(-0.02 * (self.temperature - 100))
+        # pH preference: slightly acidic to neutral (4.5-7.5)
+        if self.fluid.pH < 4.0:
+            sigma -= (4.0 - self.fluid.pH) * 0.4
+        elif self.fluid.pH > 8.0:
+            sigma *= 0.5
+        return max(sigma, 0)
+    
+    def supersaturation_mimetite(self) -> float:
+        """Mimetite (Pb₅(AsO₄)₃Cl) supersaturation. Needs Pb + As + Cl + oxidizing.
+        
+        Secondary lead arsenate chloride. Isostructural with pyromorphite and vanadinite
+        (the apatite supergroup). Bright yellow-orange barrel-shaped hexagonal prisms.
+        "Campylite" variety has barrel-curved faces (Fe substitution).
+        Forms in oxidation zones of lead deposits alongside wulfenite, cerussite.
+        My foundation stone (TN422) — wulfenite on mimetite, Sonora Mexico.
+        """
+        if self.fluid.Pb < 5 or self.fluid.As < 3 or self.fluid.Cl < 2 or self.fluid.O2 < 0.3:
+            return 0
+        sigma = (self.fluid.Pb / 60.0) * (self.fluid.As / 25.0) * (self.fluid.Cl / 30.0) * (self.fluid.O2 / 1.0)
+        # Low temperature mineral — suppressed above 150°C
+        if self.temperature > 150:
+            sigma *= math.exp(-0.015 * (self.temperature - 150))
+        # Acid penalty — dissolves in strong acid
+        if self.fluid.pH < 3.5:
+            sigma -= (3.5 - self.fluid.pH) * 0.5
+        return max(sigma, 0)
+
+
 # ============================================================
 # CRYSTAL MODELS
 # ============================================================
@@ -1154,6 +1197,162 @@ def grow_malachite(crystal: Crystal, conditions: VugConditions, step: int) -> Op
     )
 
 
+def grow_adamite(crystal: Crystal, conditions: VugConditions, step: int) -> Optional[GrowthZone]:
+    """Adamite (Zn₂(AsO₄)(OH)) growth model.
+    
+    TN467 — my rock. The contradiction: green-fluorescing crystals next to
+    non-fluorescing ones, on the same specimen. Cu²⁺ substitution activates
+    the fluorescence; crystals without Cu are dark under UV.
+    
+    Prismatic to tabular, often fan-shaped sprays. On limonite (iron oxide).
+    Color: yellow-green (pure) to vivid green (Cu-bearing = cuproadamite).
+    """
+    sigma = conditions.supersaturation_adamite()
+    
+    if sigma < 1.0:
+        # Acid dissolution
+        if crystal.total_growth_um > 3 and conditions.fluid.pH < 3.5:
+            crystal.dissolved = True
+            dissolved_um = min(4.0, crystal.total_growth_um * 0.12)
+            conditions.fluid.Zn += dissolved_um * 0.5
+            conditions.fluid.As += dissolved_um * 0.3
+            return GrowthZone(
+                step=step, temperature=conditions.temperature,
+                thickness_um=-dissolved_um, growth_rate=-dissolved_um,
+                note=f"acid dissolution (pH {conditions.fluid.pH:.1f}) — Zn²⁺ + AsO₄³⁻ released"
+            )
+        return None
+    
+    excess = sigma - 1.0
+    rate = 4.0 * excess * random.uniform(0.8, 1.2)
+    
+    if rate < 0.1:
+        return None
+    
+    # Habit
+    zone_count = len(crystal.zones)
+    if rate > 6:
+        crystal.habit = "acicular sprays"
+        crystal.dominant_forms = ["radiating fan-shaped sprays", "acicular needles"]
+        crystal.a_width_mm = crystal.c_length_mm * 0.15
+    elif zone_count > 15:
+        crystal.habit = "prismatic"
+        crystal.dominant_forms = ["elongated prisms", "wedge-shaped"]
+        crystal.a_width_mm = crystal.c_length_mm * 0.4
+    else:
+        crystal.habit = "tabular"
+        crystal.dominant_forms = ["tabular crystals", "flattened prisms"]
+        crystal.a_width_mm = crystal.c_length_mm * 0.7
+    
+    # Cu substitution → determines fluorescence!
+    cu_in_crystal = conditions.fluid.Cu * 0.02
+    
+    # Color depends on Cu content
+    if cu_in_crystal > 0.5:
+        color_note = "vivid green (cuproadamite) — UV-FLUORESCENT 💚"
+    elif cu_in_crystal > 0.1:
+        color_note = "green — weakly fluorescent"
+    else:
+        color_note = "yellow-green — NON-FLUORESCENT (no Cu)"
+    
+    # Deplete Zn and As from fluid
+    conditions.fluid.Zn -= rate * 0.008
+    conditions.fluid.Zn = max(conditions.fluid.Zn, 0)
+    conditions.fluid.As -= rate * 0.005
+    conditions.fluid.As = max(conditions.fluid.As, 0)
+    
+    trace_Fe = conditions.fluid.Fe * 0.01
+    
+    return GrowthZone(
+        step=step, temperature=conditions.temperature,
+        thickness_um=rate, growth_rate=rate,
+        trace_Fe=trace_Fe,
+        note=f"{crystal.habit}, {color_note}"
+    )
+
+
+def grow_mimetite(crystal: Crystal, conditions: VugConditions, step: int) -> Optional[GrowthZone]:
+    """Mimetite (Pb₅(AsO₄)₃Cl) growth model.
+    
+    TN422's substrate — my foundation stone's foundation. Wulfenite sits on this.
+    Isostructural with pyromorphite (phosphate) and vanadinite (vanadate).
+    All three are apatite supergroup: hexagonal prisms, barrel-shaped ("campylite"),
+    or tabular. Pb₅(XO₄)₃Cl where X = As (mimetite), P (pyromorphite), V (vanadinite).
+    
+    Color: yellow, orange, yellow-brown. Campylite variety has curved barrel faces
+    from Fe substitution. Resinous to adamantine luster.
+    """
+    sigma = conditions.supersaturation_mimetite()
+    
+    if sigma < 1.0:
+        # Acid dissolution
+        if crystal.total_growth_um > 3 and conditions.fluid.pH < 3.0:
+            crystal.dissolved = True
+            dissolved_um = min(5.0, crystal.total_growth_um * 0.10)
+            conditions.fluid.Pb += dissolved_um * 0.8
+            conditions.fluid.As += dissolved_um * 0.3
+            conditions.fluid.Cl += dissolved_um * 0.1
+            return GrowthZone(
+                step=step, temperature=conditions.temperature,
+                thickness_um=-dissolved_um, growth_rate=-dissolved_um,
+                note=f"acid dissolution (pH {conditions.fluid.pH:.1f}) — Pb²⁺ + AsO₄³⁻ + Cl⁻ released"
+            )
+        return None
+    
+    excess = sigma - 1.0
+    rate = 5.0 * excess * random.uniform(0.8, 1.2)
+    
+    if rate < 0.1:
+        return None
+    
+    # Habit — the classic apatite supergroup morphologies
+    zone_count = len(crystal.zones)
+    fe_ratio = conditions.fluid.Fe / max(conditions.fluid.Pb, 1)
+    
+    if fe_ratio > 0.3 and random.random() < 0.4:
+        # Campylite! Barrel-shaped from Fe substitution
+        crystal.habit = "campylite (barrel-shaped)"
+        crystal.dominant_forms = ["barrel-shaped hexagonal prisms", "curved faces"]
+        crystal.a_width_mm = crystal.c_length_mm * 0.6
+    elif rate > 7:
+        crystal.habit = "acicular"
+        crystal.dominant_forms = ["thin hexagonal needles", "hair-like prisms"]
+        crystal.a_width_mm = crystal.c_length_mm * 0.15
+    elif zone_count > 10:
+        crystal.habit = "prismatic"
+        crystal.dominant_forms = ["hexagonal prisms", "pinacoidal terminations"]
+        crystal.a_width_mm = crystal.c_length_mm * 0.4
+    else:
+        crystal.habit = "tabular"
+        crystal.dominant_forms = ["thick tabular hexagons", "stubby prisms"]
+        crystal.a_width_mm = crystal.c_length_mm * 0.8
+    
+    # Color
+    if fe_ratio > 0.3:
+        color_note = "orange-brown (Fe-rich campylite)"
+    elif conditions.fluid.Pb > 100:
+        color_note = "bright yellow-orange"
+    else:
+        color_note = "pale yellow"
+    
+    # Deplete Pb, As, Cl from fluid
+    conditions.fluid.Pb -= rate * 0.015
+    conditions.fluid.Pb = max(conditions.fluid.Pb, 0)
+    conditions.fluid.As -= rate * 0.008
+    conditions.fluid.As = max(conditions.fluid.As, 0)
+    conditions.fluid.Cl -= rate * 0.003
+    conditions.fluid.Cl = max(conditions.fluid.Cl, 0)
+    
+    trace_Fe = conditions.fluid.Fe * 0.02  # Fe substitution (campylite factor)
+    
+    return GrowthZone(
+        step=step, temperature=conditions.temperature,
+        thickness_um=rate, growth_rate=rate,
+        trace_Fe=trace_Fe,
+        note=f"{crystal.habit}, {color_note}"
+    )
+
+
 # Mineral registry
 MINERAL_ENGINES = {
     "quartz": grow_quartz,
@@ -1164,6 +1363,8 @@ MINERAL_ENGINES = {
     "chalcopyrite": grow_chalcopyrite,
     "hematite": grow_hematite,
     "malachite": grow_malachite,
+    "adamite": grow_adamite,
+    "mimetite": grow_mimetite,
 }
 
 
@@ -1559,6 +1760,45 @@ class VugSimulator:
             c = self.nucleate("malachite", position=pos)
             self.log.append(f"  ✦ NUCLEATION: Malachite #{c.crystal_id} on {c.position} "
                           f"(T={self.conditions.temperature:.0f}°C, σ={sigma_mal:.2f})")
+        
+        # Adamite nucleation — Zn + As + O₂, low T oxidation zone
+        sigma_adam = self.conditions.supersaturation_adamite()
+        existing_adam = [c for c in self.crystals if c.mineral == "adamite" and c.active]
+        total_adam = len([c for c in self.crystals if c.mineral == "adamite"])
+        if sigma_adam > 1.0 and not existing_adam and total_adam < 4:
+            pos = "vug wall"
+            # Preference for limonite/goethite substrate (classic association)
+            existing_goethite = [c for c in self.crystals if c.mineral == "goethite" and c.active]
+            existing_hem = [c for c in self.crystals if c.mineral == "hematite" and c.active]
+            if existing_goethite and random.random() < 0.6:
+                pos = f"on goethite #{existing_goethite[0].crystal_id}"
+            elif existing_hem and random.random() < 0.4:
+                pos = f"on hematite #{existing_hem[0].crystal_id}"
+            # Nucleate multiple crystals — adamite forms sprays
+            c = self.nucleate("adamite", position=pos)
+            self.log.append(f"  ✦ NUCLEATION: Adamite #{c.crystal_id} on {c.position} "
+                          f"(T={self.conditions.temperature:.0f}°C, σ={sigma_adam:.2f})")
+            # Second crystal often nucleates nearby — the fluorescent/non-fluorescent pair
+            if sigma_adam > 1.3 and random.random() < 0.5:
+                c2 = self.nucleate("adamite", position=pos)
+                self.log.append(f"  ✦ NUCLEATION: Adamite #{c2.crystal_id} alongside #{c.crystal_id} "
+                              f"— will one fluoresce and the other stay dark?")
+        
+        # Mimetite nucleation — Pb + As + Cl + O₂, oxidation zone
+        sigma_mim = self.conditions.supersaturation_mimetite()
+        existing_mim = [c for c in self.crystals if c.mineral == "mimetite" and c.active]
+        total_mim = len([c for c in self.crystals if c.mineral == "mimetite"])
+        if sigma_mim > 1.0 and not existing_mim and total_mim < 3:
+            pos = "vug wall"
+            # Preference for galena surface (classic! mimetite replaces/coats galena)
+            existing_galena = [c for c in self.crystals if c.mineral == "galena"]
+            if existing_galena and random.random() < 0.6:
+                pos = f"on galena #{existing_galena[0].crystal_id}"
+            elif existing_goethite and random.random() < 0.3:
+                pos = f"on goethite #{existing_goethite[0].crystal_id}"
+            c = self.nucleate("mimetite", position=pos)
+            self.log.append(f"  ✦ NUCLEATION: Mimetite #{c.crystal_id} on {c.position} "
+                          f"(T={self.conditions.temperature:.0f}°C, σ={sigma_mim:.2f})")
     
     def apply_events(self):
         """Apply any events scheduled for this step."""
