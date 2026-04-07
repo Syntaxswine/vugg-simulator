@@ -249,14 +249,36 @@ class VugConditions:
     def supersaturation_fluorite(self) -> float:
         """Fluorite (CaF2) supersaturation. Precipitates when Ca and F meet.
         
+        Fluorite has RETROGRADE solubility — less soluble at higher T,
+        so it precipitates preferentially as fluid cools from depth.
+        Sweet spot: 100-250°C (real hydrothermal fluorite deposits).
+        Too cold: slow kinetics. Too hot: limited by fluid composition.
+        
         Fluorite dissolves in strong acid: CaF₂ + 2H⁺ → Ca²⁺ + 2HF
-        pH below 5.0 progressively destabilizes fluorite.
+        At very high F concentrations, Ca forms fluoro-complexes
+        (CaF₃⁻, CaF₄²⁻) which re-dissolve fluorite — this caps runaway growth.
         """
         if self.fluid.Ca < 10 or self.fluid.F < 5:
             return 0
-        # Simple product model
-        product = (self.fluid.Ca / 200.0) * (self.fluid.F / 20.0)
-        sigma = product * math.exp(-0.003 * self.temperature)
+        # Retrograde solubility: fluorite precipitates MORE at moderate T
+        # Sweet spot 100-250°C, drops off outside that range
+        if 100 <= self.temperature <= 250:
+            T_factor = 1.0
+        elif self.temperature < 100:
+            T_factor = 0.4 + 0.006 * self.temperature  # slow kinetics at low T
+        else:
+            T_factor = max(0.1, 1.0 - 0.004 * (self.temperature - 250))  # declines above 250
+        
+        # Product model with reduced base to prevent domination
+        product = (self.fluid.Ca / 300.0) * (self.fluid.F / 30.0) * T_factor
+        sigma = product
+        
+        # Fluoro-complex cap: at very high F, Ca²⁺ + nF⁻ → CaFₙ complexes
+        # re-dissolve fluorite. Real effect: solubility minimum around 0.01-0.05 M F⁻.
+        if self.fluid.F > 80:
+            complex_penalty = (self.fluid.F - 80) / 200.0
+            sigma -= complex_penalty
+        
         # Acid attack on fluorite
         if self.fluid.pH < 5.0:
             acid_attack = (5.0 - self.fluid.pH) * 0.4
@@ -889,7 +911,7 @@ def grow_fluorite(crystal: Crystal, conditions: VugConditions, step: int) -> Opt
         return None
     
     excess = sigma - 1.0
-    rate = 7.0 * excess * random.uniform(0.8, 1.2)
+    rate = 5.0 * excess * random.uniform(0.8, 1.2)  # was 7.0, reduced to prevent Groove domination
     
     crystal.habit = "cubic"
     crystal.dominant_forms = ["{100} cube"]
@@ -1366,6 +1388,80 @@ MINERAL_ENGINES = {
     "adamite": grow_adamite,
     "mimetite": grow_mimetite,
 }
+
+
+# ============================================================
+# THERMAL DECOMPOSITION SYSTEM
+# ============================================================
+# Minerals have real melting/decomposition temperatures.
+# Extreme heating events (igneous intrusion, deep burial) can
+# destroy low-stability minerals, reopening sealed vug space.
+# This is a natural balancing mechanism against runaway growth.
+
+THERMAL_DECOMPOSITION = {
+    # mineral: (decomp_temp_°C, description, products)
+    "calcite":    (840,  "CaCO₃ → CaO + CO₂ (calcination)",                     {"Ca": 0.5, "CO3": 0.4}),
+    "malachite":  (200,  "Cu₂CO₃(OH)₂ → CuO + CO₂ + H₂O",                      {"Cu": 0.6, "CO3": 0.3}),
+    "sphalerite": (1020, "ZnS → Zn + S (sublimes)",                              {"Zn": 0.3, "S": 0.5}),
+    "fluorite":   (1360, "CaF₂ melting — extremely refractory",                   {"Ca": 0.4, "F": 0.4}),
+    "pyrite":     (743,  "FeS₂ → FeS + S (sulfur driven off)",                    {"Fe": 0.5, "S": 0.4}),
+    "chalcopyrite": (880, "CuFeS₂ decomposition",                                {"Cu": 0.3, "Fe": 0.3, "S": 0.4}),
+    "hematite":   (1560, "Fe₂O₃ — very refractory, barely melts",                 {}),
+    "quartz":     (1713, "SiO₂ melting — takes hell itself to melt quartz",       {"SiO2": 0.3}),
+    "adamite":    (500,  "Zn₂AsO₄OH → decomposition",                            {"Zn": 0.4, "As": 0.3}),
+    "mimetite":   (400,  "Pb₅Cl(AsO₄)₃ → decomposition",                         {"Pb": 0.5, "As": 0.3, "Cl": 0.1}),
+}
+
+
+def check_thermal_decomposition(crystals: list, conditions, step: int) -> list:
+    """Check if any crystals should thermally decompose at current temperature.
+    Returns list of log messages.
+    """
+    log = []
+    T = conditions.temperature
+    
+    for crystal in crystals:
+        if not crystal.active or crystal.dissolved:
+            continue
+        if crystal.mineral not in THERMAL_DECOMPOSITION:
+            continue
+        
+        decomp_temp, description, products = THERMAL_DECOMPOSITION[crystal.mineral]
+        
+        # Need to be within 50°C of decomposition to start, OR over it
+        if T < decomp_temp - 50:
+            continue
+        
+        # Probability increases as T approaches and exceeds decomp_temp
+        if T >= decomp_temp:
+            prob = 0.8  # almost certain above decomp point
+        else:
+            # Linear ramp from 0 to 0.3 over the 50°C approach zone
+            prob = 0.3 * (T - (decomp_temp - 50)) / 50.0
+        
+        if random.random() < prob:
+            # Decompose this crystal
+            dissolved_um = crystal.total_growth_um * random.uniform(0.3, 0.7)
+            crystal.total_growth_um -= dissolved_um
+            crystal.c_length_mm = crystal.total_growth_um / 1000.0
+            
+            if crystal.total_growth_um < 1.0:
+                crystal.active = False
+                crystal.dissolved = True
+                status = "DESTROYED"
+            else:
+                status = f"DECOMPOSING ({dissolved_um:.0f}µm lost)"
+            
+            # Release decomposition products back to fluid
+            for element, fraction in products.items():
+                released = dissolved_um * fraction
+                if hasattr(conditions.fluid, element):
+                    current = getattr(conditions.fluid, element)
+                    setattr(conditions.fluid, element, current + released)
+            
+            log.append(f"  🔥 {crystal.mineral.capitalize()} #{crystal.crystal_id}: {status} — {description}")
+    
+    return log
 
 
 # ============================================================
@@ -2073,6 +2169,11 @@ class VugSimulator:
         
         # Check for liberation events — dissolution freeing enclosed crystals
         self.check_liberation()
+        
+        # Thermal decomposition — extreme heat destroys low-stability minerals
+        decomp_logs = check_thermal_decomposition(self.crystals, self.conditions, self.step)
+        if decomp_logs:
+            self.log.extend(decomp_logs)
         
         # Ambient cooling
         self.ambient_cooling()
