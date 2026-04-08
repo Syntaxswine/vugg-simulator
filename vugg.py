@@ -397,6 +397,161 @@ class VugConditions:
             sigma -= (3.5 - self.fluid.pH) * 0.5
         return max(sigma, 0)
 
+    def supersaturation_galena(self) -> float:
+        """Galena (PbS) supersaturation. Needs Pb + S + reducing conditions.
+
+        The most common lead mineral. Perfect cubic cleavage, metallic luster.
+        Forms in hydrothermal veins at moderate temperatures (100-400°C).
+        Extremely dense (SG 7.6) — "the heavy one" in every collection.
+        """
+        if self.fluid.Pb < 5 or self.fluid.S < 10:
+            return 0
+        if self.fluid.O2 > 1.5:
+            return 0  # sulfides can't survive oxidation
+        sigma = (self.fluid.Pb / 50.0) * (self.fluid.S / 80.0) * (1.5 - self.fluid.O2)
+        # Moderate temperature preference
+        if self.temperature > 450:
+            sigma *= math.exp(-0.008 * (self.temperature - 450))
+        return max(sigma, 0)
+
+    def supersaturation_smithsonite(self) -> float:
+        """Smithsonite (ZnCO₃) supersaturation. Needs Zn + CO₃ + oxidizing.
+
+        Secondary zinc carbonate — the oxidation product of sphalerite.
+        Named for James Smithson (founder of the Smithsonian).
+        Botryoidal blue-green (Cu), pink (Co), yellow (Cd), white (pure).
+        Low temperature mineral — forms in the oxidation zone.
+        """
+        if self.fluid.Zn < 15 or self.fluid.CO3 < 30 or self.fluid.O2 < 0.3:
+            return 0
+        sigma = (self.fluid.Zn / 60.0) * (self.fluid.CO3 / 80.0) * (self.fluid.O2 / 1.0)
+        # Suppressed above 100°C — it's a supergene mineral
+        if self.temperature > 100:
+            sigma *= math.exp(-0.02 * (self.temperature - 100))
+        # Dissolves in acid
+        if self.fluid.pH < 4.0:
+            sigma -= (4.0 - self.fluid.pH) * 0.4
+        return max(sigma, 0)
+
+    def supersaturation_wulfenite(self) -> float:
+        """Wulfenite (PbMoO₄) supersaturation. Needs Pb + Mo + oxidizing.
+
+        Lead molybdate — thin square plates, bright orange-red to yellow.
+        The oxidized-zone product of galena + molybdenite destruction.
+        My foundation stone (TN422). "The sunset caught in stone."
+        Requires BOTH Pb and Mo to arrive — typically a late-stage mineral.
+        """
+        if self.fluid.Pb < 5 or self.fluid.Mo < 2 or self.fluid.O2 < 0.5:
+            return 0
+        sigma = (self.fluid.Pb / 40.0) * (self.fluid.Mo / 15.0) * (self.fluid.O2 / 1.0)
+        # Very low temperature — oxidation zone mineral
+        if self.temperature > 80:
+            sigma *= math.exp(-0.025 * (self.temperature - 80))
+        # Needs the right pH window — dissolves in both acid and strong base
+        if self.fluid.pH < 3.5:
+            sigma -= (3.5 - self.fluid.pH) * 0.4
+        elif self.fluid.pH > 9.0:
+            sigma -= (self.fluid.pH - 9.0) * 0.3
+        return max(sigma, 0)
+
+    def supersaturation_selenite(self) -> float:
+        """Selenite / Gypsum (CaSO₄·2H₂O) supersaturation. Needs Ca + S + O₂.
+
+        The mineral of Marey's crystal. Evaporite — grows when water evaporates.
+        Swallow-tail twins, desert rose, satin spar, cathedral blades.
+        Forms at LOW temperatures (<60°C). Above that → anhydrite wins.
+        Selenite = transparent; gypsum = massive variety. Same mineral.
+        """
+        if self.fluid.Ca < 20 or self.fluid.S < 15 or self.fluid.O2 < 0.2:
+            return 0
+        # Need oxidized sulfur (sulfate, not sulfide)
+        sigma = (self.fluid.Ca / 60.0) * (self.fluid.S / 50.0) * (self.fluid.O2 / 0.5)
+        # STRICT low temperature cap — anhydrite takes over above 60°C
+        if self.temperature > 60:
+            sigma *= math.exp(-0.06 * (self.temperature - 60))
+        # Neutral to slightly alkaline pH preferred
+        if self.fluid.pH < 5.0:
+            sigma -= (5.0 - self.fluid.pH) * 0.2
+        return max(sigma, 0)
+
+    def supersaturation_feldspar(self) -> float:
+        """Feldspar supersaturation. Needs K (or Na) + Al + SiO₂.
+
+        The most common minerals in Earth's crust.
+        Temperature determines the polymorph:
+        - High T (>600°C): sanidine (monoclinic)
+        - Moderate T (400-600°C): orthoclase (monoclinic)
+        - Low T (<400°C): microcline (triclinic, cross-hatched twinning)
+        Pb + microcline = amazonite (green, from Pb²⁺ substituting for K⁺).
+        Albite (Na-feldspar) from Na instead of K.
+        """
+        # Need either K or Na, plus Al and SiO₂
+        alkali = max(self.fluid.K, self.fluid.Na)
+        if alkali < 10 or self.fluid.Al < 3 or self.fluid.SiO2 < 200:
+            return 0
+        sigma = (alkali / 40.0) * (self.fluid.Al / 10.0) * (self.fluid.SiO2 / 400.0)
+        # Feldspars need HIGH temperature — they're igneous/metamorphic
+        if self.temperature < 300:
+            sigma *= math.exp(-0.01 * (300 - self.temperature))
+        return max(sigma, 0)
+
+    def supersaturation_uraninite(self) -> float:
+        """Uraninite (UO₂) supersaturation. Needs U + reducing conditions.
+
+        Primary uranium mineral — pitchy black masses, rarely crystalline.
+        RADIOACTIVE. The mineral that let Röntgen's successors see inside atoms.
+        Needs STRONGLY reducing conditions. Any oxygen destroys it.
+        Forms in pegmatites (high T) and reduced sedimentary environments (low T).
+        """
+        if self.fluid.U < 5 or self.fluid.O2 > 0.3:
+            return 0  # needs reducing conditions
+        sigma = (self.fluid.U / 20.0) * (0.5 - self.fluid.O2)
+        # Stable across wide T range, slight preference for high T
+        if self.temperature > 200:
+            sigma *= 1.3
+        return max(sigma, 0)
+
+    def supersaturation_goethite(self) -> float:
+        """Goethite (FeO(OH)) supersaturation. Needs Fe + oxidizing + moderate pH.
+
+        The most common iron oxyhydroxide. Rust's crystal name.
+        Botryoidal blackish-brown masses, velvety surfaces.
+        The pseudomorph mineral — replaces pyrite, marcasite, siderite.
+        Egyptian "Prophecy Stones" = goethite after marcasite.
+        Low temperature, oxidation zone. Dissolves in acid.
+        """
+        if self.fluid.Fe < 15 or self.fluid.O2 < 0.4:
+            return 0
+        sigma = (self.fluid.Fe / 60.0) * (self.fluid.O2 / 1.0)
+        # Low temperature preferred
+        if self.temperature > 150:
+            sigma *= math.exp(-0.015 * (self.temperature - 150))
+        # Dissolves in acid
+        if self.fluid.pH < 3.0:
+            sigma -= (3.0 - self.fluid.pH) * 0.5
+        return max(sigma, 0)
+
+    def supersaturation_molybdenite(self) -> float:
+        """Molybdenite (MoS₂) supersaturation. Needs Mo + S + reducing.
+
+        Lead-gray, hexagonal, greasy feel — the softest metallic mineral (H=1).
+        Looks like graphite but has a different streak (greenish vs black).
+        Primary molybdenum ore. Arrives in a SEPARATE pulse from Cu
+        in porphyry systems (Seo et al. 2012, Bingham Canyon).
+        Wulfenite requires destroying BOTH molybdenite AND galena.
+        """
+        if self.fluid.Mo < 3 or self.fluid.S < 10:
+            return 0
+        if self.fluid.O2 > 1.2:
+            return 0  # sulfide, needs reducing
+        sigma = (self.fluid.Mo / 15.0) * (self.fluid.S / 60.0) * (1.5 - self.fluid.O2)
+        # Moderate to high temperature
+        if self.temperature < 150:
+            sigma *= math.exp(-0.01 * (150 - self.temperature))
+        elif 300 < self.temperature < 500:
+            sigma *= 1.3  # sweet spot for porphyry Mo
+        return max(sigma, 0)
+
 
 # ============================================================
 # CRYSTAL MODELS
@@ -1410,6 +1565,14 @@ THERMAL_DECOMPOSITION = {
     "quartz":     (1713, "SiO₂ melting — takes hell itself to melt quartz",       {"SiO2": 0.3}),
     "adamite":    (500,  "Zn₂AsO₄OH → decomposition",                            {"Zn": 0.4, "As": 0.3}),
     "mimetite":   (400,  "Pb₅Cl(AsO₄)₃ → decomposition",                         {"Pb": 0.5, "As": 0.3, "Cl": 0.1}),
+    "galena":     (1115, "PbS → Pb + S (melting)",                                     {"Pb": 0.5, "S": 0.4}),
+    "smithsonite": (300,  "ZnCO₃ → ZnO + CO₂ (calcination)",                            {"Zn": 0.4, "CO3": 0.4}),
+    "wulfenite":   (1120, "PbMoO₄ → Pb + MoO₃ (decomposition)",                         {"Pb": 0.4, "Mo": 0.3}),
+    "selenite":    (150,  "CaSO₄·2H₂O → CaSO₄ (anhydrite) + H₂O",                       {"Ca": 0.3, "S": 0.2}),
+    "feldspar":    (1170, "KAlSi₃O₈ melting — feldspar is refractory",                    {"K": 0.3, "Al": 0.2, "SiO2": 0.3}),
+    "uraninite":   (2800, "UO₂ — one of the most refractory oxides",                      {"U": 0.5}),
+    "goethite":    (300,  "FeO(OH) → Fe₂O₃ + H₂O (dehydrates to hematite)",              {"Fe": 0.5}),
+    "molybdenite": (1185, "MoS₂ decomposition",                                         {"Mo": 0.4, "S": 0.4}),
 }
 
 
@@ -1763,6 +1926,30 @@ class VugSimulator:
         elif mineral == "malachite":
             crystal.habit = "botryoidal"
             crystal.dominant_forms = ["botryoidal masses"]
+        elif mineral == "galena":
+            crystal.habit = "cubic"
+            crystal.dominant_forms = ["{100} cube"]
+        elif mineral == "smithsonite":
+            crystal.habit = "botryoidal"
+            crystal.dominant_forms = ["botryoidal masses", "{101̅4} scalenohedra"]
+        elif mineral == "wulfenite":
+            crystal.habit = "tabular"
+            crystal.dominant_forms = ["{001} thin square plates"]
+        elif mineral == "selenite":
+            crystal.habit = "tabular"
+            crystal.dominant_forms = ["{010} plates", "swallow-tail twins"]
+        elif mineral == "feldspar":
+            crystal.habit = "prismatic"
+            crystal.dominant_forms = ["{001} cleavage", "{010} face", "Carlsbad twin"]
+        elif mineral == "uraninite":
+            crystal.habit = "massive"
+            crystal.dominant_forms = ["massive pitchy aggregates"]
+        elif mineral == "goethite":
+            crystal.habit = "botryoidal"
+            crystal.dominant_forms = ["botryoidal masses", "velvety surface"]
+        elif mineral == "molybdenite":
+            crystal.habit = "platy"
+            crystal.dominant_forms = ["{0001} basal plates", "hexagonal outline"]
         self.crystals.append(crystal)
         return crystal
     
