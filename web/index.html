@@ -2145,7 +2145,7 @@ const MINERAL_THUMBS = {
 // Game colors for each mineral (used in charts, inventory tinting)
 const MINERAL_GAME_COLORS = {
   quartz: '#e8e8e8', calcite: '#ffd699', fluorite: '#b088dd',
-  pyrite: '#c8b830', chalcopyrite: '#c89830', galena: '#a0a0a0',
+  pyrite: '#c8b830', chalcopyrite: '#c89830', galena: '#a0a0a0', molybdenite: '#707888',
   hematite: '#b04040', malachite: '#2e8b57', sphalerite: '#cc8844',
   goethite: '#8b6914', uraninite: '#44dd44', smithsonite: '#88bbcc',
   wulfenite: '#ff8833', selenite: '#e8e0d8', feldspar: '#f0d0b0'
@@ -2213,6 +2213,9 @@ function crystalColor(crystal) {
 
     case 'galena':
       return '#a0a0a0'; // lead gray
+
+    case 'molybdenite':
+      return '#707888'; // bluish-gray metallic
 
     case 'hematite':
       // Specular: well-crystallized
@@ -2674,15 +2677,34 @@ class VugConditions {
     return Math.max(sigma, 0);
   }
 
+  // Wulfenite (PbMoO₄) — supergene mineral requiring oxidation of BOTH galena and molybdenite
+  // Per Seo et al. 2012: wulfenite forms when Pb²⁺ (from oxidized galena) meets MoO₄²⁻ (from oxidized molybdenite)
   supersaturation_wulfenite() {
     if (this.fluid.Pb < 10 || this.fluid.Mo < 5 || this.fluid.O2 < 0.2) return 0;
     if (this.temperature > 250) return 0;
     if (this.fluid.pH < 4 || this.fluid.pH > 7) return 0;
     let sigma = (this.fluid.Pb / 60.0) * (this.fluid.Mo / 30.0) * (this.fluid.O2 / 1.0);
+    // Boost if dissolved molybdenite exists (MoO₄²⁻ source from oxidation)
+    // This is checked externally by the nucleation code, but we add a small σ boost here too
     if (this.temperature > 150) {
       sigma *= Math.exp(-0.006 * (this.temperature - 150));
     }
     return Math.max(sigma, 0);
+  }
+
+  // Molybdenite (MoS₂) — primary molybdenum sulfide, porphyry deposits
+  // High-temperature primary mineral (300-500°C). Mo arrives in separate later pulse from Cu.
+  // Per Seo et al. 2012 (Bingham Canyon): MoS₂ is the primary Mo-bearing phase.
+  supersaturation_molybdenite() {
+    if (this.fluid.Mo < 5 || this.fluid.S < 10) return 0;
+    let sigma = (this.fluid.Mo / 40.0) * (this.fluid.S / 80.0);
+    const eT = this.effectiveTemperature;
+    if (eT >= 300 && eT <= 500) {
+      sigma *= 1.4; // porphyry sweet spot
+    } else if (eT < 200 || eT > 600) {
+      sigma *= 0.3;
+    }
+    return sigma;
   }
 
   // Feldspar (KAlSi3O8 / NaAlSi3O8) — the most abundant mineral on Earth
@@ -3457,6 +3479,51 @@ function grow_uraninite(crystal, conditions, step) {
   });
 }
 
+// Molybdenite (MoS₂) — primary molybdenum sulfide
+// Hexagonal platy crystals. Bluish-gray metallic. Soft (H=1-1.5), sectile.
+// Forms at high T (300-500°C) in porphyry systems. Mo arrives in separate pulse from Cu.
+// Dissolves under oxidizing conditions, releasing MoO₄²⁻ to fluid — essential for wulfenite.
+function grow_molybdenite(crystal, conditions, step) {
+  const sigma = conditions.supersaturation_molybdenite();
+  if (sigma < 1.0) {
+    // Oxidation: MoS₂ + 3.5O₂ → MoO₄²⁻ + SO₄²⁻ (releases Mo back to fluid)
+    if (crystal.total_growth_um > 3 && conditions.fluid.O2 > 0.3) {
+      crystal.dissolved = true;
+      const dissolved_um = Math.min(4.0, crystal.total_growth_um * 0.15);
+      conditions.fluid.Mo += dissolved_um * 0.8; // MoO₄²⁻ back to fluid
+      conditions.fluid.S += dissolved_um * 0.2;  // some S returns as sulfate
+      return new GrowthZone({
+        step, temperature: conditions.temperature,
+        thickness_um: -dissolved_um, growth_rate: -dissolved_um,
+        note: `oxidation — molybdenite dissolves, releasing MoO₄²⁻ (Mo fluid: ${conditions.fluid.Mo.toFixed(0)} ppm)`
+      });
+    }
+    return null;
+  }
+
+  let rate = 0.008 * sigma * 1000 * rng.uniform(0.8, 1.2); // slow growth — rare mineral
+  if (conditions.temperature >= 300 && conditions.temperature <= 500) {
+    rate *= 1.3;
+  }
+  if (rate < 0.1) return null;
+
+  crystal.habit = 'hexagonal platy';
+  crystal.dominant_forms = ['{0001} basal pinacoid', '{10-10} prism'];
+
+  // Mo and S consumption
+  conditions.fluid.Mo -= rate * 0.004;
+  conditions.fluid.Mo = Math.max(conditions.fluid.Mo, 0);
+  conditions.fluid.S -= rate * 0.003;
+  conditions.fluid.S = Math.max(conditions.fluid.S, 0);
+
+  return new GrowthZone({
+    step, temperature: conditions.temperature,
+    thickness_um: rate, growth_rate: rate,
+    trace_Fe: conditions.fluid.Fe * 0.002,
+    note: `bluish-gray metallic, platy habit, Mo fluid: ${conditions.fluid.Mo.toFixed(0)} ppm`
+  });
+}
+
 function grow_galena(crystal, conditions, step) {
   const sigma = conditions.supersaturation_galena();
   if (sigma < 1.0) return null;
@@ -3876,6 +3943,7 @@ const MINERAL_ENGINES = {
   malachite: grow_malachite,
   uraninite: grow_uraninite,
   galena: grow_galena,
+  molybdenite: grow_molybdenite,
   smithsonite: grow_smithsonite,
   wulfenite: grow_wulfenite,
   selenite: grow_selenite,
@@ -4408,11 +4476,18 @@ class VugSimulator {
     const total_wulf = this.crystals.filter(c => c.mineral === 'wulfenite').length;
     if (sigma_wulf > 1.2 && !existing_wulf.length && total_wulf < 2) {
       let pos = 'vug wall';
-      // Prefers to nucleate on dissolved galena
+      // Prefers to nucleate on dissolved galena AND/OR dissolved molybdenite
+      // Wulfenite = Pb²⁺ (from oxidized galena) + MoO₄²⁻ (from oxidized molybdenite)
       const dissolved_gal = this.crystals.filter(c => c.mineral === 'galena' && c.dissolved);
+      const dissolved_moly = this.crystals.filter(c => c.mineral === 'molybdenite' && c.dissolved);
       const any_gal = this.crystals.filter(c => c.mineral === 'galena');
-      if (dissolved_gal.length && rng.random() < 0.7) {
+      const any_moly = this.crystals.filter(c => c.mineral === 'molybdenite');
+      if (dissolved_moly.length && dissolved_gal.length && rng.random() < 0.7) {
+        pos = `on molybdenite #${dissolved_moly[0].crystal_id} (oxidized, near galena #${dissolved_gal[0].crystal_id})`;
+      } else if (dissolved_gal.length && rng.random() < 0.6) {
         pos = `on galena #${dissolved_gal[0].crystal_id} (oxidized)`;
+      } else if (dissolved_moly.length && rng.random() < 0.5) {
+        pos = `on molybdenite #${dissolved_moly[0].crystal_id} (oxidized)`;
       } else if (any_gal.length && rng.random() < 0.3) {
         pos = `on galena #${any_gal[0].crystal_id}`;
       }
@@ -4473,6 +4548,26 @@ class VugSimulator {
         }
         const c = this.nucleate('galena', pos);
         this.log.push(`  ✦ NUCLEATION: Galena #${c.crystal_id} on ${c.position} (T=${this.conditions.temperature.toFixed(0)}°C, σ=${sigma_gal.toFixed(2)})`);
+      }
+    }
+
+    // Molybdenite nucleation — Mo + S at high T (porphyry), max 3 active / 6 total
+    const sigma_moly = this.conditions.supersaturation_molybdenite();
+    const existing_moly = this.crystals.filter(c => c.mineral === 'molybdenite' && c.active);
+    const total_moly = this.crystals.filter(c => c.mineral === 'molybdenite').length;
+    if (sigma_moly > 1.0 && existing_moly.length < 3 && total_moly < 6) {
+      if (!existing_moly.length || (sigma_moly > 1.5 && rng.random() < 0.25)) {
+        let pos = 'vug wall';
+        // Often associates with chalcopyrite or pyrite in porphyry systems
+        const existing_cp2 = this.crystals.filter(c => c.mineral === 'chalcopyrite' && c.active);
+        const existing_py2 = this.crystals.filter(c => c.mineral === 'pyrite' && c.active);
+        if (existing_cp2.length && rng.random() < 0.4) {
+          pos = `on chalcopyrite #${existing_cp2[0].crystal_id}`;
+        } else if (existing_py2.length && rng.random() < 0.3) {
+          pos = `on pyrite #${existing_py2[0].crystal_id}`;
+        }
+        const c = this.nucleate('molybdenite', pos);
+        this.log.push(`  ✦ NUCLEATION: Molybdenite #${c.crystal_id} on ${c.position} (T=${this.conditions.temperature.toFixed(0)}°C, σ=${sigma_moly.toFixed(2)}) — Mo pulse arriving`);
       }
     }
 
@@ -4928,6 +5023,7 @@ class VugSimulator {
       else if (c.mineral === 'malachite') story = this._narrate_malachite(c);
       else if (c.mineral === 'uraninite') story = `Uraninite #${c.crystal_id}: ${c.describe_morphology()}. Dense, black, radioactive. Each atom of U-238 is a clock counting down to lead.`;
       else if (c.mineral === 'galena') story = `Galena #${c.crystal_id}: ${c.describe_morphology()}. Lead-gray with bright metallic luster. Perfect cubic cleavage — break it and you get smaller cubes.`;
+      else if (c.mineral === 'molybdenite') story = `Molybdenite #${c.crystal_id}: ${c.describe_morphology()}. Bluish-gray metallic, hexagonal platy. Soft enough to scratch with a fingernail (H=1-1.5). The molybdenum source — when it oxidizes, it feeds wulfenite.`;
       else if (c.mineral === 'smithsonite') story = this._narrate_smithsonite(c);
       else if (c.mineral === 'wulfenite') story = this._narrate_wulfenite(c);
       else if (c.mineral === 'selenite') story = this._narrate_selenite(c);
@@ -5182,7 +5278,7 @@ class VugSimulator {
     if (c.position.includes('galena')) {
       const oxidized = c.position.includes('oxidized');
       if (oxidized) {
-        parts.push('It nucleated on oxidized galena — lead molybdate born from the death of lead sulfide. The Pb²⁺ liberated by oxidation met molybdate in the vug fluid, and wulfenite crystallized in the space galena vacated. Destruction made the room; the room grew the prize.');
+        parts.push('It nucleated on the ghosts of two sulfides — oxidized galena (Pb²⁺) and oxidized molybdenite (MoO₄²⁻). Lead molybdate born from the death of both parents. The Pb²⁺ liberated from galena met molybdate released from dissolving molybdenite, and wulfenite crystallized in the space they vacated. Destruction made the room; the room grew the prize.');
       } else {
         parts.push('It grew on galena, drawing lead from the same source mineral. A secondary generation claiming the primary mineral as its substrate.');
       }
@@ -5473,6 +5569,12 @@ class VugSimulator {
         if (c.position.includes('galena')) desc += ' (on galena — child on parent)';
         if (c.dissolved) desc += ', partially dissolved';
         parts.push(`  • 🟡 ${desc}`);
+      } else if (c.mineral === 'molybdenite') {
+        let desc = `a ${c.c_length_mm.toFixed(1)}mm molybdenite`;
+        desc += ' — bluish-gray hexagonal plates, soft and sectile';
+        if (c.dissolved) desc += ', oxidized — MoO₄²⁻ released to fluid';
+        else desc += '. The Mo source for wulfenite if conditions oxidize.';
+        parts.push(`  • ${desc}`);
       } else {
         // Catch-all for any future minerals
         let desc = `a ${c.c_length_mm.toFixed(1)}mm ${c.mineral}`;
@@ -6142,6 +6244,7 @@ function updateFortressStatus() {
     { name: 'Malachite', sigma: c.supersaturation_malachite() },
     { name: '☢️ Uraninite', sigma: c.supersaturation_uraninite() },
     { name: 'Galena', sigma: c.supersaturation_galena() },
+    { name: 'Molybdenite', sigma: c.supersaturation_molybdenite() },
     { name: 'Smithsonite', sigma: c.supersaturation_smithsonite() },
     { name: '🟠 Wulfenite', sigma: c.supersaturation_wulfenite() },
     { name: '💎 Selenite', sigma: c.supersaturation_selenite() },
@@ -7470,6 +7573,7 @@ function idleRecordHistory() {
   try { supersats.goethite = c.supersaturation_goethite(); } catch(e) {}
   try { supersats.smithsonite = c.supersaturation_smithsonite(); } catch(e) {}
   try { supersats.wulfenite = c.supersaturation_wulfenite(); } catch(e) {}
+  try { supersats.molybdenite = c.supersaturation_molybdenite(); } catch(e) {}
   try { supersats.selenite = c.supersaturation_selenite(); } catch(e) {}
   try { supersats.feldspar = c.supersaturation_feldspar(); } catch(e) {}
   try { supersats.adamite = c.supersaturation_adamite(); } catch(e) {}
