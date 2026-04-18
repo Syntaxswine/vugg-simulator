@@ -17,6 +17,18 @@
 // ============================================================
 
 // ============================================================
+// MINERAL SPEC — single source of truth from ../data/minerals.json
+// ============================================================
+// Declares every template field per mineral. Runtime reads max_size_cm
+// to enforce the 2× world-record cap — the fix for the 321,248% bug.
+const MINERAL_SPEC = require('../data/minerals.json').minerals;
+
+function maxSizeCm(mineral) {
+  const entry = MINERAL_SPEC[mineral];
+  return entry ? entry.max_size_cm : null;
+}
+
+// ============================================================
 // SEEDED PRNG (Mulberry32)
 // ============================================================
 class SeededRandom {
@@ -316,6 +328,15 @@ class VugConditions {
     if (this.temperature > 150) {
       sigma *= Math.exp(-0.006 * (this.temperature - 150));
     }
+    return Math.max(sigma, 0);
+  }
+
+  // Goethite (FeO(OH)) — the ghost mineral, now real across all runtimes.
+  supersaturation_goethite() {
+    if (this.fluid.Fe < 15 || this.fluid.O2 < 0.4) return 0;
+    let sigma = (this.fluid.Fe / 60.0) * (this.fluid.O2 / 1.0);
+    if (this.temperature > 150) sigma *= Math.exp(-0.015 * (this.temperature - 150));
+    if (this.fluid.pH < 3.0) sigma -= (3.0 - this.fluid.pH) * 0.5;
     return Math.max(sigma, 0);
   }
 }
@@ -1123,6 +1144,49 @@ function grow_wulfenite(crystal, conditions, step) {
   return new GrowthZone({ step, temperature: conditions.temperature, thickness_um: rate, growth_rate: rate, trace_Fe: conditions.fluid.Fe * 0.005, note: `${color_note}, Pb: ${conditions.fluid.Pb.toFixed(0)} Mo: ${conditions.fluid.Mo.toFixed(0)} ppm` });
 }
 
+// Goethite (FeO(OH)) — ghost mineral made real.
+function grow_goethite(crystal, conditions, step) {
+  const sigma = conditions.supersaturation_goethite();
+  if (sigma < 1.0) {
+    if (crystal.total_growth_um > 3 && conditions.fluid.pH < 3.0) {
+      crystal.dissolved = true;
+      const d = Math.min(4.0, crystal.total_growth_um * 0.12);
+      conditions.fluid.Fe += d * 0.5;
+      return new GrowthZone({ step, temperature: conditions.temperature, thickness_um: -d, growth_rate: -d, note: `acid dissolution (pH ${conditions.fluid.pH.toFixed(1)}) — goethite releases Fe³⁺` });
+    }
+    return null;
+  }
+  const excess = sigma - 1.0;
+  const rate = 4.0 * excess * rng.uniform(0.7, 1.3);
+  if (rate < 0.1) return null;
+
+  const zoneCount = crystal.zones.length;
+  if (zoneCount >= 20) {
+    crystal.habit = 'botryoidal/stalactitic';
+    crystal.dominant_forms = ['botryoidal masses', 'velvety surfaces'];
+  } else if (zoneCount >= 8) {
+    crystal.habit = 'botryoidal';
+    crystal.dominant_forms = ['grape-like clusters', 'reniform masses'];
+  } else if (crystal.position.includes('pseudomorph after')) {
+    crystal.habit = 'pseudomorph_after_sulfide';
+    crystal.dominant_forms = ['replaces sulfide cube', 'preserves parent habit'];
+  } else {
+    crystal.habit = 'fibrous_acicular';
+    crystal.dominant_forms = ['radiating needles', 'velvet crust'];
+  }
+  if (crystal.habit.includes('botryoidal')) crystal.a_width_mm = crystal.c_length_mm * 1.6;
+
+  conditions.fluid.Fe = Math.max(conditions.fluid.Fe - rate * 0.008, 0);
+  conditions.fluid.O2 = Math.max(conditions.fluid.O2 - rate * 0.001, 0);
+
+  let colorNote;
+  if (crystal.habit.includes('pseudomorph')) colorNote = 'yellow-brown pseudomorph after pyrite — the boxwork ghost';
+  else if (crystal.habit.includes('botryoidal')) colorNote = 'black lustrous botryoidal surfaces, velvety sheen';
+  else colorNote = 'yellow-brown earthy to ochre';
+
+  return new GrowthZone({ step, temperature: conditions.temperature, thickness_um: rate, growth_rate: rate, trace_Fe: conditions.fluid.Fe * 0.02, note: colorNote });
+}
+
 const MINERAL_ENGINES = {
   quartz: grow_quartz,
   calcite: grow_calcite,
@@ -1136,6 +1200,7 @@ const MINERAL_ENGINES = {
   galena: grow_galena,
   smithsonite: grow_smithsonite,
   wulfenite: grow_wulfenite,
+  goethite: grow_goethite,
 };
 
 // ============================================================
@@ -1414,6 +1479,9 @@ class VugSimulator {
     } else if (mineral === 'galena') {
       crystal.habit = 'cubic';
       crystal.dominant_forms = ['{100} cube', '{111} octahedron'];
+    } else if (mineral === 'goethite') {
+      crystal.habit = 'fibrous_acicular';
+      crystal.dominant_forms = ['radiating needles'];
     }
     this.crystals.push(crystal);
     return crystal;
@@ -1562,6 +1630,22 @@ class VugSimulator {
         this.log.push(`  ✦ NUCLEATION: Galena #${c.crystal_id} on ${c.position} (T=${this.conditions.temperature.toFixed(0)}°C, σ=${sigma_gal.toFixed(2)})`);
       }
     }
+
+    // Goethite nucleation — the ghost mineral, now real.
+    const sigma_goe = this.conditions.supersaturation_goethite();
+    const existing_goe = this.crystals.filter(c => c.mineral === 'goethite' && c.active);
+    const total_goe = this.crystals.filter(c => c.mineral === 'goethite').length;
+    if (sigma_goe > 1.0 && !existing_goe.length && total_goe < 3) {
+      let pos = 'vug wall';
+      const dissolving_py = this.crystals.filter(c => c.mineral === 'pyrite' && c.dissolved);
+      const dissolving_cp = this.crystals.filter(c => c.mineral === 'chalcopyrite' && c.dissolved);
+      const active_hem = this.crystals.filter(c => c.mineral === 'hematite' && c.active);
+      if (dissolving_py.length && rng.random() < 0.7) pos = `pseudomorph after pyrite #${dissolving_py[0].crystal_id}`;
+      else if (dissolving_cp.length && rng.random() < 0.5) pos = `pseudomorph after chalcopyrite #${dissolving_cp[0].crystal_id}`;
+      else if (active_hem.length && rng.random() < 0.3) pos = `on hematite #${active_hem[0].crystal_id}`;
+      const c = this.nucleate('goethite', pos);
+      this.log.push(`  ✦ NUCLEATION: Goethite #${c.crystal_id} on ${c.position} (T=${this.conditions.temperature.toFixed(0)}°C, σ=${sigma_goe.toFixed(2)})`);
+    }
   }
 
   apply_events() {
@@ -1668,6 +1752,15 @@ class VugSimulator {
     this.check_nucleation();
     for (const crystal of this.crystals) {
       if (!crystal.active) continue;
+
+      // Universal max-size cap — fix for 321,248% runaway growth bug.
+      const capCm = maxSizeCm(crystal.mineral);
+      if (capCm != null && crystal.c_length_mm / 10.0 >= capCm) {
+        crystal.active = false;
+        this.log.push(`  ⛔ ${capitalize(crystal.mineral)} #${crystal.crystal_id}: reached size cap (${capCm} cm = 2× world record) — growth halts`);
+        continue;
+      }
+
       const engine = MINERAL_ENGINES[crystal.mineral];
       if (!engine) continue;
       const zone = engine(crystal, this.conditions, this.step);
@@ -1894,21 +1987,11 @@ class VugSimulator {
       }
     }
 
+    // Dispatch via this['_narrate_' + mineral] — spec says every mineral has one.
     const significant = this.crystals.filter(c => c.total_growth_um > 100);
     for (const c of significant) {
-      let story = '';
-      if (c.mineral === 'quartz') story = this._narrate_quartz(c);
-      else if (c.mineral === 'calcite') story = this._narrate_calcite(c);
-      else if (c.mineral === 'sphalerite') story = this._narrate_sphalerite(c);
-      else if (c.mineral === 'fluorite') story = this._narrate_fluorite(c);
-      else if (c.mineral === 'pyrite') story = this._narrate_pyrite(c);
-      else if (c.mineral === 'chalcopyrite') story = this._narrate_chalcopyrite(c);
-      else if (c.mineral === 'hematite') story = this._narrate_hematite(c);
-      else if (c.mineral === 'malachite') story = this._narrate_malachite(c);
-      else if (c.mineral === 'uraninite') story = `Uraninite #${c.crystal_id}: ${c.describe_morphology()}. Dense, black, radioactive. Each atom of U-238 is a clock counting down to lead.`;
-      else if (c.mineral === 'galena') story = `Galena #${c.crystal_id}: ${c.describe_morphology()}. Lead-gray with bright metallic luster. Perfect cubic cleavage — break it and you get smaller cubes.`;
-      else if (c.mineral === 'smithsonite') story = this._narrate_smithsonite(c);
-      else if (c.mineral === 'wulfenite') story = this._narrate_wulfenite(c);
+      const fn = this[`_narrate_${c.mineral}`];
+      const story = typeof fn === 'function' ? fn.call(this, c) : '';
       if (story && !first_minerals.includes(c)) paragraphs.push(story);
     }
 
@@ -2155,6 +2238,40 @@ class VugSimulator {
     }
     if (c.twinned) parts.push(`Penetration twinned (${c.twin_law}) — two plates interpenetrating, forming a butterfly shape.`);
     parts.push('Wulfenite requires both lead AND molybdenum in an oxidized environment — a narrow window that rewards destroying sulfides in a Mo-bearing system.');
+    return parts.join(' ');
+  }
+
+  _narrate_goethite(c) {
+    const parts = [`Goethite #${c.crystal_id} grew to ${c.c_length_mm.toFixed(1)} mm.`];
+    if (c.position.includes('pseudomorph after pyrite')) {
+      parts.push("It replaced pyrite atom-for-atom — the classic boxwork pseudomorph. What looks like a rusty pyrite cube is actually goethite that has inherited the sulfide's habit while the Fe-S lattice dissolved and Fe-O-OH precipitated in its place.");
+    } else if (c.position.includes('pseudomorph after chalcopyrite')) {
+      parts.push("Chalcopyrite oxidized and goethite took its place — a copper sulfide's iron heir. The copper went to malachite; the iron stayed here.");
+    }
+    if (c.habit === 'botryoidal/stalactitic') {
+      parts.push("Built up into stalactitic, botryoidal masses — the velvety black surfaces that collectors call 'black goethite.'");
+    } else if (c.habit === 'fibrous_acicular') {
+      parts.push('Radiating needle habit — the fibrous goethite that grows as velvet crusts on cavity walls.');
+    }
+    return parts.join(' ');
+  }
+
+  _narrate_uraninite(c) {
+    const parts = [`Uraninite #${c.crystal_id} grew to ${c.c_length_mm.toFixed(1)} mm ☢️.`];
+    parts.push("UO₂ — pitch-black, submetallic, one of Earth's densest oxides. It formed under strongly reducing conditions: any oxygen would have converted it to yellow secondary uranium minerals.");
+    if (c.nucleation_temp > 400) {
+      parts.push('Pegmatite-scale uraninite, possibly with Th substituting for U and radiogenic Pb accumulating in the structure.');
+    } else {
+      parts.push('Sedimentary / roll-front style, precipitated where reducing organic matter met U-bearing groundwater.');
+    }
+    return parts.join(' ');
+  }
+
+  _narrate_galena(c) {
+    const parts = [`Galena #${c.crystal_id} grew to ${c.c_length_mm.toFixed(1)} mm.`];
+    parts.push("PbS — the densest common sulfide (SG 7.6), perfect cubic cleavage, bright lead-gray metallic luster.");
+    if (c.twinned) parts.push(`Twinned on the ${c.twin_law} — spinel-law twins create interpenetrating cubes in galena, rare but diagnostic.`);
+    if (c.dissolved) parts.push('Oxidation attacked the galena — Pb²⁺ went into solution and can reprecipitate as cerussite, anglesite, or wulfenite (if Mo is present).');
     return parts.join(' ');
   }
 
