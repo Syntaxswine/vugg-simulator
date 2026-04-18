@@ -22,10 +22,36 @@ and the output format is extensible.
 import argparse
 import json
 import math
+import os
 import random
 import sys
 from dataclasses import dataclass, field
 from typing import List, Dict, Optional, Tuple
+
+
+# ============================================================
+# MINERAL SPEC — single source of truth
+# ============================================================
+# Loaded from data/minerals.json. Every mineral declares every
+# template field (max_size_cm, thermal_decomp_C, fluorescence,
+# twin_laws, acid_dissolution, …). Runtime code reads from here
+# so that vugg.py / web/index.html / agent-api stay consistent.
+
+_SPEC_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                          "data", "minerals.json")
+with open(_SPEC_PATH, "r", encoding="utf-8") as _f:
+    _SPEC_DOC = json.load(_f)
+MINERAL_SPEC: Dict[str, dict] = _SPEC_DOC["minerals"]
+
+
+def spec_for(mineral: str) -> dict:
+    """Return spec row for a mineral. Raises KeyError if not declared."""
+    return MINERAL_SPEC[mineral]
+
+
+def max_size_cm(mineral: str) -> float:
+    """Hard cap on crystal size (2x world record). The fix for the 321,248% bug."""
+    return MINERAL_SPEC[mineral]["max_size_cm"]
 
 
 # ============================================================
@@ -825,12 +851,42 @@ class Crystal:
             if avg_Al > 5:
                 return "weak blue (Al-related defects)"
             return "non-fluorescent"
-        elif self.mineral in ("pyrite", "chalcopyrite"):
+        elif self.mineral in ("pyrite", "chalcopyrite", "galena", "molybdenite"):
             return "non-fluorescent (opaque sulfide)"
+        elif self.mineral == "sphalerite":
+            # Mn²⁺ activates, Fe quenches — same as calcite
+            if avg_Mn > 5 and avg_Fe < 10:
+                return "orange or blue (Mn²⁺-activated; color varies by site)"
+            elif avg_Mn > 5 and avg_Fe > 10:
+                return "quenched (Fe²⁺ masks Mn²⁺ emission)"
+            return "non-fluorescent"
         elif self.mineral == "hematite":
             return "non-fluorescent (opaque oxide)"
+        elif self.mineral == "goethite":
+            return "non-fluorescent (opaque hydroxide)"
         elif self.mineral == "malachite":
             return "non-fluorescent"
+        elif self.mineral == "uraninite":
+            # Uraninite itself is weakly fluorescent; daughter uranyl minerals are brilliant
+            return "weak green-yellow (U) — daughter autunite/torbernite would glow brightly"
+        elif self.mineral == "smithsonite":
+            if avg_Mn > 2:
+                return "pink under LW UV (Mn²⁺-activated)"
+            return "non-fluorescent"
+        elif self.mineral == "wulfenite":
+            return "non-fluorescent (typical)"
+        elif self.mineral == "selenite":
+            return "non-fluorescent (typical gypsum)"
+        elif self.mineral == "adamite":
+            # Cu trace: low Cu → strong SW fluorescence; heavy Cu quenches
+            avg_Cu = sum(getattr(z, "trace_Cu", 0.0) for z in self.zones) / max(len(self.zones), 1)
+            if avg_Cu > 10:
+                return "quenched (heavy Cu turns off SW emission)"
+            if avg_Cu > 0.5:
+                return "bright apple-green under SW UV (cuproadamite)"
+            return "green-yellow under SW UV (intrinsic adamite)"
+        elif self.mineral == "mimetite":
+            return "orange under SW UV (intrinsic emission)"
         elif self.mineral == "feldspar":
             # Amazonite can fluoresce yellow-green under LW UV
             if any("amazonite" in z.note for z in self.zones):
@@ -1824,7 +1880,355 @@ def grow_albite(crystal: Crystal, conditions: VugConditions, step: int) -> Optio
     )
 
 
-# Mineral registry
+def grow_galena(crystal: Crystal, conditions: VugConditions, step: int) -> Optional[GrowthZone]:
+    """Galena (PbS) growth. Cubic lead sulfide, bright metallic luster, very dense."""
+    sigma = conditions.supersaturation_galena()
+
+    if sigma < 1.0:
+        # Oxidative dissolution under O2 — becomes Pb-sulfate/carbonate pathway
+        if crystal.total_growth_um > 3 and conditions.fluid.O2 > 1.0:
+            crystal.dissolved = True
+            dissolved_um = min(4.0, crystal.total_growth_um * 0.12)
+            conditions.fluid.Pb += dissolved_um * 0.5
+            conditions.fluid.S += dissolved_um * 0.3
+            return GrowthZone(
+                step=step, temperature=conditions.temperature,
+                thickness_um=-dissolved_um, growth_rate=-dissolved_um,
+                note="oxidation — galena dissolving, releasing Pb²⁺ (path to cerussite/anglesite)"
+            )
+        return None
+
+    excess = sigma - 1.0
+    rate = 5.0 * excess * random.uniform(0.8, 1.2)
+    if 200 <= conditions.temperature <= 400:
+        rate *= 1.2
+    if rate < 0.1:
+        return None
+
+    crystal.habit = "cubic"
+    crystal.dominant_forms = ["{100} cube", "{111} octahedron"]
+
+    conditions.fluid.Pb = max(conditions.fluid.Pb - rate * 0.005, 0)
+    conditions.fluid.S = max(conditions.fluid.S - rate * 0.003, 0)
+
+    if not crystal.twinned and random.random() < 0.008:
+        crystal.twinned = True
+        crystal.twin_law = "spinel-law {111}"
+
+    color_note = "lead-gray, bright metallic luster"
+    if conditions.fluid.Ag > 5:
+        color_note += ", argentiferous (Ag inclusions)"
+
+    return GrowthZone(
+        step=step, temperature=conditions.temperature,
+        thickness_um=rate, growth_rate=rate,
+        trace_Fe=conditions.fluid.Fe * 0.005,
+        trace_Pb=conditions.fluid.Pb * 0.01,
+        note=color_note
+    )
+
+
+def grow_uraninite(crystal: Crystal, conditions: VugConditions, step: int) -> Optional[GrowthZone]:
+    """Uraninite (UO₂) growth. Pitch-black primary uranium mineral. Emits radiation."""
+    sigma = conditions.supersaturation_uraninite()
+    if sigma < 1.0:
+        return None
+
+    rate = 4.0 * sigma * random.uniform(0.8, 1.2)
+    if rate < 0.1:
+        return None
+
+    crystal.habit = "cubic"
+    crystal.dominant_forms = ["{100} cube", "{111} octahedron"]
+
+    conditions.fluid.U = max(conditions.fluid.U - rate * 0.005, 0)
+
+    color_note = "pitch-black, submetallic luster" if conditions.temperature > 450 else "black to dark green, submetallic luster"
+
+    return GrowthZone(
+        step=step, temperature=conditions.temperature,
+        thickness_um=rate, growth_rate=rate,
+        trace_Fe=conditions.fluid.Fe * 0.01,
+        note=f"{color_note} — radioactive"
+    )
+
+
+def grow_molybdenite(crystal: Crystal, conditions: VugConditions, step: int) -> Optional[GrowthZone]:
+    """Molybdenite (MoS₂) growth. Soft hexagonal platy, bluish-gray metallic."""
+    sigma = conditions.supersaturation_molybdenite()
+
+    if sigma < 1.0:
+        # Oxidation releases Mo back to fluid — essential for wulfenite
+        if crystal.total_growth_um > 3 and conditions.fluid.O2 > 0.3:
+            crystal.dissolved = True
+            dissolved_um = min(4.0, crystal.total_growth_um * 0.15)
+            conditions.fluid.Mo += dissolved_um * 0.8
+            conditions.fluid.S += dissolved_um * 0.2
+            return GrowthZone(
+                step=step, temperature=conditions.temperature,
+                thickness_um=-dissolved_um, growth_rate=-dissolved_um,
+                note=f"oxidation — molybdenite dissolves, releasing MoO₄²⁻ (Mo fluid: {conditions.fluid.Mo:.0f} ppm)"
+            )
+        return None
+
+    rate = 4.0 * sigma * random.uniform(0.8, 1.2)
+    if 300 <= conditions.temperature <= 500:
+        rate *= 1.3
+    if rate < 0.1:
+        return None
+
+    crystal.habit = "hexagonal platy"
+    crystal.dominant_forms = ["{0001} basal pinacoid", "{10-10} prism"]
+
+    conditions.fluid.Mo = max(conditions.fluid.Mo - rate * 0.004, 0)
+    conditions.fluid.S = max(conditions.fluid.S - rate * 0.003, 0)
+
+    return GrowthZone(
+        step=step, temperature=conditions.temperature,
+        thickness_um=rate, growth_rate=rate,
+        trace_Fe=conditions.fluid.Fe * 0.002,
+        note="bluish-gray metallic, platy habit, sectile"
+    )
+
+
+def grow_goethite(crystal: Crystal, conditions: VugConditions, step: int) -> Optional[GrowthZone]:
+    """Goethite (FeO(OH)) growth — the ghost mineral made real.
+
+    FeO(OH) — rust with a crystal name. Low-temperature oxidation product of
+    Fe-sulfides and Fe²⁺ fluids. Botryoidal, mammillary, fibrous. Often
+    pseudomorphs pyrite/marcasite (Egyptian Prophecy Stones = goethite after
+    marcasite). Dehydrates to hematite above 300°C — hence the thermal cap.
+    """
+    sigma = conditions.supersaturation_goethite()
+
+    if sigma < 1.0:
+        # Acid dissolution (FeO(OH) + 3H⁺ → Fe³⁺ + 2H₂O)
+        if crystal.total_growth_um > 3 and conditions.fluid.pH < 3.0:
+            crystal.dissolved = True
+            dissolved_um = min(4.0, crystal.total_growth_um * 0.12)
+            conditions.fluid.Fe += dissolved_um * 0.5
+            return GrowthZone(
+                step=step, temperature=conditions.temperature,
+                thickness_um=-dissolved_um, growth_rate=-dissolved_um,
+                note=f"acid dissolution (pH {conditions.fluid.pH:.1f}) — goethite releases Fe³⁺"
+            )
+        return None
+
+    excess = sigma - 1.0
+    rate = 4.0 * excess * random.uniform(0.7, 1.3)
+    if rate < 0.1:
+        return None
+
+    # Habit evolves with zone count — botryoidal aggregates build up
+    zone_count = len(crystal.zones)
+    if zone_count >= 20:
+        crystal.habit = "botryoidal/stalactitic"
+        crystal.dominant_forms = ["botryoidal masses", "velvety surfaces"]
+    elif zone_count >= 8:
+        crystal.habit = "botryoidal"
+        crystal.dominant_forms = ["grape-like clusters", "reniform masses"]
+    elif "pseudomorph after" in crystal.position:
+        crystal.habit = "pseudomorph_after_sulfide"
+        crystal.dominant_forms = ["replaces sulfide cube", "preserves parent habit"]
+    else:
+        crystal.habit = "fibrous_acicular"
+        crystal.dominant_forms = ["radiating needles", "velvet crust"]
+
+    # Botryoidal aggregates expand laterally too
+    if "botryoidal" in crystal.habit:
+        crystal.a_width_mm = crystal.c_length_mm * 1.6
+
+    conditions.fluid.Fe = max(conditions.fluid.Fe - rate * 0.008, 0)
+    # Goethite incorporation of oxygen — decrement O2 slightly
+    conditions.fluid.O2 = max(conditions.fluid.O2 - rate * 0.001, 0)
+
+    # Color note
+    if "pseudomorph" in crystal.habit:
+        color_note = "yellow-brown pseudomorph after pyrite — the boxwork ghost"
+    elif "botryoidal" in crystal.habit:
+        color_note = "black lustrous botryoidal surfaces, velvety sheen"
+    else:
+        color_note = "yellow-brown earthy to ochre"
+
+    return GrowthZone(
+        step=step, temperature=conditions.temperature,
+        thickness_um=rate, growth_rate=rate,
+        trace_Fe=conditions.fluid.Fe * 0.02,
+        note=color_note
+    )
+
+
+def grow_smithsonite(crystal: Crystal, conditions: VugConditions, step: int) -> Optional[GrowthZone]:
+    """Smithsonite (ZnCO₃) growth. Botryoidal supergene carbonate — sphalerite's oxidation heir."""
+    sigma = conditions.supersaturation_smithsonite()
+
+    if sigma < 1.0:
+        if crystal.total_growth_um > 5 and conditions.fluid.pH < 4.5:
+            crystal.dissolved = True
+            dissolved_um = min(5.0, crystal.total_growth_um * 0.12)
+            conditions.fluid.Zn += dissolved_um * 0.6
+            conditions.fluid.CO3 += dissolved_um * 0.4
+            return GrowthZone(
+                step=step, temperature=conditions.temperature,
+                thickness_um=-dissolved_um, growth_rate=-dissolved_um,
+                note=f"acid dissolution (pH {conditions.fluid.pH:.1f}) — smithsonite fizzes, releasing Zn²⁺"
+            )
+        return None
+
+    excess = sigma - 1.0
+    rate = 5.0 * excess * random.uniform(0.8, 1.2)
+    if rate < 0.1:
+        return None
+
+    zone_count = len(crystal.zones)
+    if zone_count >= 15:
+        crystal.habit = "botryoidal/stalactitic"
+        crystal.dominant_forms = ["botryoidal crusts", "stalactitic masses"]
+    elif rate > 6:
+        crystal.habit = "rhombohedral"
+        crystal.dominant_forms = ["{10-11} rhombohedron", "curved faces"]
+    else:
+        crystal.habit = "botryoidal"
+        crystal.dominant_forms = ["grape-like clusters", "reniform masses"]
+
+    if "botryoidal" in crystal.habit:
+        crystal.a_width_mm = crystal.c_length_mm * 1.8
+
+    conditions.fluid.Zn = max(conditions.fluid.Zn - rate * 0.008, 0)
+    conditions.fluid.CO3 = max(conditions.fluid.CO3 - rate * 0.005, 0)
+
+    if not crystal.twinned and random.random() < 0.01:
+        crystal.twinned = True
+        crystal.twin_law = "cyclic {01-12}"
+
+    if conditions.fluid.Cu > 15:
+        color_note = "apple-green (Cu impurity)"
+    elif conditions.fluid.Fe > 20:
+        color_note = "yellow-brown (Fe impurity)"
+    elif conditions.fluid.Mn > 10:
+        color_note = "pink (Mn impurity)"
+    else:
+        color_note = "blue-green" if random.random() < 0.4 else "white to pale blue"
+
+    return GrowthZone(
+        step=step, temperature=conditions.temperature,
+        thickness_um=rate, growth_rate=rate,
+        trace_Fe=conditions.fluid.Fe * 0.01,
+        trace_Mn=conditions.fluid.Mn * 0.03,
+        note=f"{crystal.habit}, {color_note}"
+    )
+
+
+def grow_wulfenite(crystal: Crystal, conditions: VugConditions, step: int) -> Optional[GrowthZone]:
+    """Wulfenite (PbMoO₄) growth. Thin tabular plates, orange-yellow. The sunset mineral."""
+    sigma = conditions.supersaturation_wulfenite()
+
+    if sigma < 1.0:
+        if crystal.total_growth_um > 3 and conditions.fluid.pH < 3.5:
+            crystal.dissolved = True
+            dissolved_um = min(4.0, crystal.total_growth_um * 0.10)
+            conditions.fluid.Pb += dissolved_um * 0.5
+            conditions.fluid.Mo += dissolved_um * 0.3
+            return GrowthZone(
+                step=step, temperature=conditions.temperature,
+                thickness_um=-dissolved_um, growth_rate=-dissolved_um,
+                note="acid dissolution — wulfenite releases Pb²⁺ and MoO₄²⁻"
+            )
+        return None
+
+    excess = sigma - 1.0
+    rate = 3.5 * excess * random.uniform(0.8, 1.2)
+    if rate < 0.1:
+        return None
+
+    crystal.habit = "tabular"
+    crystal.dominant_forms = ["{001} tabular plates", "square outline"]
+    # Very flat plates
+    crystal.a_width_mm = crystal.c_length_mm * 3.0
+
+    conditions.fluid.Pb = max(conditions.fluid.Pb - rate * 0.006, 0)
+    conditions.fluid.Mo = max(conditions.fluid.Mo - rate * 0.004, 0)
+
+    if not crystal.twinned and random.random() < 0.03:
+        crystal.twinned = True
+        crystal.twin_law = "penetration twin {001}/{100}"
+
+    if conditions.fluid.Cr > 5:
+        color_note = "red-orange (Cr impurity)"
+    elif rate > 5:
+        color_note = "honey-yellow, translucent"
+    else:
+        color_note = "orange tabular plates" if random.random() < 0.5 else "honey-orange, vitreous luster"
+
+    return GrowthZone(
+        step=step, temperature=conditions.temperature,
+        thickness_um=rate, growth_rate=rate,
+        trace_Fe=conditions.fluid.Fe * 0.005,
+        trace_Pb=conditions.fluid.Pb * 0.01,
+        note=color_note
+    )
+
+
+def grow_selenite(crystal: Crystal, conditions: VugConditions, step: int) -> Optional[GrowthZone]:
+    """Selenite / Gypsum (CaSO₄·2H₂O) growth. Low-T evaporite, Naica's giant crystals."""
+    sigma = conditions.supersaturation_selenite()
+
+    if sigma < 1.0:
+        if crystal.total_growth_um > 5 and conditions.fluid.pH < 5.0:
+            crystal.dissolved = True
+            dissolved_um = min(5.0, crystal.total_growth_um * 0.10)
+            conditions.fluid.Ca += dissolved_um * 0.4
+            conditions.fluid.S += dissolved_um * 0.4
+            return GrowthZone(
+                step=step, temperature=conditions.temperature,
+                thickness_um=-dissolved_um, growth_rate=-dissolved_um,
+                note=f"acid dissolution (pH {conditions.fluid.pH:.1f}) — selenite dissolves slowly"
+            )
+        return None
+
+    excess = sigma - 1.0
+    rate = 6.0 * excess * random.uniform(0.8, 1.2)
+    # Naica sweet spot — exceptionally stable 58°C grows monster crystals
+    if 55 <= conditions.temperature <= 58:
+        rate *= 1.4
+    if rate < 0.1:
+        return None
+
+    zone_count = len(crystal.zones)
+    if zone_count >= 30:
+        crystal.habit = "cathedral_blade"
+        crystal.dominant_forms = ["{010} blade", "{110} prism", "swallowtail tip"]
+    elif rate > 8:
+        crystal.habit = "tabular"
+        crystal.dominant_forms = ["{010} tabular", "{120} lateral pinacoid"]
+    else:
+        crystal.habit = "prismatic"
+        crystal.dominant_forms = ["{110} prism", "{011} dome"]
+
+    conditions.fluid.Ca = max(conditions.fluid.Ca - rate * 0.008, 0)
+    conditions.fluid.S = max(conditions.fluid.S - rate * 0.005, 0)
+
+    if not crystal.twinned and random.random() < 0.08:
+        crystal.twinned = True
+        crystal.twin_law = "swallowtail {100}"
+
+    if conditions.temperature < 30:
+        color_note = "colorless, glassy, transparent"
+    elif conditions.fluid.Fe > 20:
+        color_note = "pale amber (Fe stain)"
+    else:
+        color_note = "water-clear selenite"
+
+    return GrowthZone(
+        step=step, temperature=conditions.temperature,
+        thickness_um=rate, growth_rate=rate,
+        trace_Fe=conditions.fluid.Fe * 0.004,
+        note=color_note
+    )
+
+
+# Mineral registry — every spec'd mineral has a growth engine.
+# See data/minerals.json for the source-of-truth field declarations.
 MINERAL_ENGINES = {
     "quartz": grow_quartz,
     "calcite": grow_calcite,
@@ -1838,6 +2242,13 @@ MINERAL_ENGINES = {
     "mimetite": grow_mimetite,
     "feldspar": grow_feldspar,
     "albite": grow_albite,
+    "galena": grow_galena,
+    "uraninite": grow_uraninite,
+    "molybdenite": grow_molybdenite,
+    "goethite": grow_goethite,
+    "smithsonite": grow_smithsonite,
+    "wulfenite": grow_wulfenite,
+    "selenite": grow_selenite,
 }
 
 
@@ -2457,6 +2868,55 @@ class VugSimulator:
                 self.log.append(f"  ✦ NUCLEATION: Wulfenite #{c.crystal_id} on {c.position} "
                               f"(T={self.conditions.temperature:.0f}°C, σ={sigma_wul:.2f})")
 
+        # Uraninite nucleation — strongly reducing, U-bearing. Emits radiation each step.
+        sigma_ur = self.conditions.supersaturation_uraninite()
+        existing_ur = [c for c in self.crystals if c.mineral == "uraninite"]
+        if sigma_ur > 1.5 and len(existing_ur) < 3 and random.random() < 0.08:
+            c = self.nucleate("uraninite", position="vug wall")
+            self.log.append(f"  ✦ NUCLEATION: Uraninite #{c.crystal_id} on {c.position} "
+                          f"☢️  (T={self.conditions.temperature:.0f}°C, σ={sigma_ur:.2f})")
+
+        # Goethite nucleation — the ghost mineral, now real.
+        # Classic pseudomorph after pyrite/marcasite; also forms on hematite, or free on walls.
+        sigma_goe = self.conditions.supersaturation_goethite()
+        existing_goe = [c for c in self.crystals if c.mineral == "goethite" and c.active]
+        total_goe = len([c for c in self.crystals if c.mineral == "goethite"])
+        if sigma_goe > 1.0 and not existing_goe and total_goe < 3:
+            pos = "vug wall"
+            dissolving_py = [c for c in self.crystals if c.mineral == "pyrite" and c.dissolved]
+            dissolving_cp = [c for c in self.crystals if c.mineral == "chalcopyrite" and c.dissolved]
+            active_hem = [c for c in self.crystals if c.mineral == "hematite" and c.active]
+            if dissolving_py and random.random() < 0.7:
+                pos = f"pseudomorph after pyrite #{dissolving_py[0].crystal_id}"
+            elif dissolving_cp and random.random() < 0.5:
+                pos = f"pseudomorph after chalcopyrite #{dissolving_cp[0].crystal_id}"
+            elif active_hem and random.random() < 0.3:
+                pos = f"on hematite #{active_hem[0].crystal_id}"
+            c = self.nucleate("goethite", position=pos)
+            self.log.append(f"  ✦ NUCLEATION: Goethite #{c.crystal_id} on {c.position} "
+                          f"(T={self.conditions.temperature:.0f}°C, σ={sigma_goe:.2f})")
+
+        # Smithsonite nucleation — supergene ZnCO₃ from sphalerite oxidation
+        sigma_sm = self.conditions.supersaturation_smithsonite()
+        existing_sm = [c for c in self.crystals if c.mineral == "smithsonite" and c.active]
+        total_sm = len([c for c in self.crystals if c.mineral == "smithsonite"])
+        if sigma_sm > 1.0 and not existing_sm and total_sm < 3:
+            pos = "vug wall"
+            dissolving_sph = [c for c in self.crystals if c.mineral == "sphalerite" and c.dissolved]
+            if dissolving_sph and random.random() < 0.6:
+                pos = f"on sphalerite #{dissolving_sph[0].crystal_id}"
+            c = self.nucleate("smithsonite", position=pos)
+            self.log.append(f"  ✦ NUCLEATION: Smithsonite #{c.crystal_id} on {c.position} "
+                          f"(T={self.conditions.temperature:.0f}°C, σ={sigma_sm:.2f})")
+
+        # Selenite nucleation — low-T evaporite, needs oxidized Ca-SO4 fluid
+        sigma_sel = self.conditions.supersaturation_selenite()
+        total_sel = len([c for c in self.crystals if c.mineral == "selenite"])
+        if sigma_sel > 1.0 and total_sel < 4 and random.random() < 0.12:
+            c = self.nucleate("selenite", position="vug wall")
+            self.log.append(f"  ✦ NUCLEATION: Selenite #{c.crystal_id} on {c.position} "
+                          f"(T={self.conditions.temperature:.0f}°C, σ={sigma_sel:.2f})")
+
     def apply_events(self):
         """Apply any events scheduled for this step."""
         for event in self.events:
@@ -2710,11 +3170,23 @@ class VugSimulator:
         for crystal in self.crystals:
             if not crystal.active:
                 continue
-            
+
             engine = MINERAL_ENGINES.get(crystal.mineral)
             if not engine:
                 continue
-            
+
+            # Universal max-size cap — 2x world record per data/minerals.json.
+            # Closes the 321,248% runaway growth bug: crystals that hit the cap
+            # retire from growth but remain in the inventory.
+            cap_cm = MINERAL_SPEC.get(crystal.mineral, {}).get("max_size_cm")
+            if cap_cm is not None and crystal.c_length_mm / 10.0 >= cap_cm:
+                crystal.active = False
+                self.log.append(
+                    f"  ⛔ {crystal.mineral.capitalize()} #{crystal.crystal_id}: "
+                    f"reached size cap ({cap_cm:g} cm = 2× world record) — growth halts"
+                )
+                continue
+
             zone = engine(crystal, self.conditions, self.step)
             if zone:
                 crystal.add_zone(zone)
@@ -2967,27 +3439,12 @@ class VugSimulator:
                         f"({batch[0].nucleation_temp:.0f}°C)."
                     )
         
-        # Narrate individual crystal stories for the larger ones
+        # Narrate individual crystal stories for the larger ones.
+        # Dispatch via _narrate_<mineral> — spec says every mineral must have one.
         significant = [c for c in self.crystals if c.total_growth_um > 100]
         for c in significant:
-            if c.mineral == "quartz":
-                story = self._narrate_quartz(c)
-            elif c.mineral == "calcite":
-                story = self._narrate_calcite(c)
-            elif c.mineral == "sphalerite":
-                story = self._narrate_sphalerite(c)
-            elif c.mineral == "fluorite":
-                story = self._narrate_fluorite(c)
-            elif c.mineral == "pyrite":
-                story = self._narrate_pyrite(c)
-            elif c.mineral == "chalcopyrite":
-                story = self._narrate_chalcopyrite(c)
-            elif c.mineral == "hematite":
-                story = self._narrate_hematite(c)
-            elif c.mineral == "malachite":
-                story = self._narrate_malachite(c)
-            else:
-                story = ""
+            fn = getattr(self, f"_narrate_{c.mineral}", None)
+            story = fn(c) if fn else ""
             if story and c not in first_minerals:
                 paragraphs.append(story)
         
@@ -3378,9 +3835,367 @@ class VugSimulator:
         color = c.predict_color()
         if color:
             parts.append(f"Color: {color}.")
-        
+
         return " ".join(parts)
-    
+
+    def _narrate_goethite(self, c: Crystal) -> str:
+        """Narrate a goethite crystal's story — the ghost mineral, now real."""
+        parts = [f"Goethite #{c.crystal_id} grew to {c.c_length_mm:.1f} mm."]
+
+        if "pseudomorph after pyrite" in c.position:
+            parts.append(
+                "It replaced pyrite atom-for-atom — the classic boxwork pseudomorph. "
+                "What looks like a rusty pyrite cube is actually goethite that has "
+                "inherited the sulfide's habit while the Fe-S lattice was dissolved "
+                "and Fe-O-OH precipitated in its place. These are the Egyptian "
+                "Prophecy Stones' cousin — the rusty ghost of a crystal that was."
+            )
+        elif "pseudomorph after chalcopyrite" in c.position:
+            parts.append(
+                "Chalcopyrite oxidized and goethite took its place — a copper sulfide's "
+                "iron heir. The copper went to malachite; the iron stayed here."
+            )
+        elif "hematite" in c.position:
+            parts.append(
+                "Nucleated on hematite — the hydrated/anhydrous iron oxide pair coexist "
+                "in oxidation zones, separated only by how much water the fluid carried."
+            )
+
+        if c.habit == "botryoidal/stalactitic":
+            parts.append(
+                "Built up into stalactitic, botryoidal masses — the velvety black "
+                "surfaces that collectors call 'black goethite.' Each layer a separate "
+                "pulse of Fe-saturated water, together the signature of persistent "
+                "slow oxidation."
+            )
+        elif c.habit == "fibrous_acicular":
+            parts.append(
+                "Radiating needle habit — the fibrous goethite that grows as "
+                "velvet crusts on cavity walls when Fe³⁺-rich fluid seeps slowly."
+            )
+
+        if c.dissolved:
+            parts.append(
+                "Acid attack released Fe³⁺ back to the fluid. Goethite survives "
+                "oxidation but not strong acid — the rusty armor has a pH floor."
+            )
+
+        return " ".join(parts)
+
+    def _narrate_uraninite(self, c: Crystal) -> str:
+        """Narrate a uraninite crystal's story — the radioactive heart of the vug."""
+        parts = [f"Uraninite #{c.crystal_id} grew to {c.c_length_mm:.1f} mm ☢️."]
+
+        parts.append(
+            "UO₂ — pitch-black, submetallic, one of Earth's densest oxides. It "
+            "formed under strongly reducing conditions: any oxygen would have "
+            "converted it to yellow secondary uranium minerals. While it grew, "
+            "it emitted alpha particles into the surrounding crystal lattice, "
+            "radiation-damaging any nearby quartz toward smoky coloration."
+        )
+
+        if c.nucleation_temp > 400:
+            parts.append(
+                "Nucleated at high temperature — a pegmatite-scale uraninite, "
+                "possibly with Th substituting for U and radiogenic Pb already "
+                "accumulating in the crystal structure."
+            )
+        else:
+            parts.append(
+                "Low-T uraninite — the sedimentary / roll-front style, precipitated "
+                "where reducing organic matter met U-bearing groundwater."
+            )
+
+        if c.dissolved:
+            parts.append(
+                "Partial dissolution as O₂ invaded the system — uranium went back "
+                "into solution as uranyl (UO₂²⁺) and may re-precipitate as autunite "
+                "or torbernite elsewhere."
+            )
+
+        return " ".join(parts)
+
+    def _narrate_galena(self, c: Crystal) -> str:
+        """Narrate a galena crystal's story — the heavy one."""
+        parts = [f"Galena #{c.crystal_id} grew to {c.c_length_mm:.1f} mm."]
+
+        parts.append(
+            "PbS — the densest common sulfide (SG 7.6), perfect cubic cleavage, "
+            "bright lead-gray metallic luster. Pick up a piece and it's "
+            "surprisingly heavy; tap it and it cleaves into perfect little cubes."
+        )
+
+        if c.twinned:
+            parts.append(
+                f"Twinned on the {c.twin_law} — spinel-law twins create striking "
+                f"interpenetrating cubes in galena, rare but diagnostic."
+            )
+
+        avg_Ag = sum(getattr(z, "trace_Ag", 0.0) for z in c.zones) / max(len(c.zones), 1)
+        if avg_Ag > 0 or any("Ag inclusions" in z.note for z in c.zones):
+            parts.append(
+                "The fluid carried silver — argentiferous galena, the historic "
+                "source of most of the world's silver (Potosí, Leadville, Broken Hill)."
+            )
+
+        if c.dissolved:
+            parts.append(
+                "Oxidation attacked the galena — Pb²⁺ went into solution and can "
+                "reprecipitate as cerussite (PbCO₃), anglesite (PbSO₄), or — if "
+                "Mo is present — wulfenite (PbMoO₄)."
+            )
+
+        return " ".join(parts)
+
+    def _narrate_molybdenite(self, c: Crystal) -> str:
+        """Narrate a molybdenite crystal's story — the wulfenite precursor."""
+        parts = [f"Molybdenite #{c.crystal_id} grew to {c.c_length_mm:.1f} mm."]
+
+        parts.append(
+            "MoS₂ — soft hexagonal platy crystals, bluish-gray metallic, "
+            "greasy to the touch. Softest metallic mineral on Mohs (1–1.5); "
+            "leaves a mark on paper like graphite."
+        )
+
+        if 300 <= c.nucleation_temp <= 500:
+            parts.append(
+                "Nucleated in the porphyry sweet spot — Mo arrived in a separate "
+                "pulse from Cu (Seo et al. 2012, Bingham Canyon), a late magmatic "
+                "fluid delivering molybdenum on its own timeline."
+            )
+
+        if c.dissolved:
+            parts.append(
+                "Oxidation dissolved the molybdenite, releasing MoO₄²⁻ into solution. "
+                "If Pb is also present in the oxidation zone, the combination "
+                "becomes wulfenite — the sunset mineral."
+            )
+
+        return " ".join(parts)
+
+    def _narrate_smithsonite(self, c: Crystal) -> str:
+        """Narrate a smithsonite crystal's story — sphalerite's carbonate heir."""
+        parts = [f"Smithsonite #{c.crystal_id} grew to {c.c_length_mm:.1f} mm."]
+
+        parts.append(
+            "ZnCO₃ — the supergene zinc carbonate, the oxidation product of "
+            "sphalerite. Named for James Smithson, who left his fortune to "
+            "found the Smithsonian."
+        )
+
+        if "sphalerite" in c.position:
+            parts.append(
+                "It grew directly on dissolving sphalerite — the classic "
+                "oxidation-zone replacement. Zn²⁺ from the sulfide met CO₃²⁻ "
+                "from percolating carbonated water."
+            )
+
+        if "botryoidal" in c.habit:
+            parts.append(
+                "Built up in grape-like botryoidal masses — the habit that makes "
+                "smithsonite a collector's mineral. Turquoise-blue (Cu-bearing) "
+                "or apple-green varieties are the most prized."
+            )
+
+        if c.dissolved:
+            parts.append(
+                "Acid attack dissolved smithsonite — like calcite, it fizzes "
+                "as a carbonate and releases Zn²⁺ back to the fluid."
+            )
+
+        return " ".join(parts)
+
+    def _narrate_wulfenite(self, c: Crystal) -> str:
+        """Narrate a wulfenite crystal's story — the sunset caught in stone."""
+        parts = [f"Wulfenite #{c.crystal_id} grew to {c.c_length_mm:.1f} mm."]
+
+        parts.append(
+            "PbMoO₄ — thin tabular plates, square outline, orange to honey-yellow. "
+            "Bright vitreous luster, adamantine in the best crystals. The mineral "
+            "that requires BOTH galena AND molybdenite to have oxidized in the "
+            "same vug (Seo et al. 2012) — a paragenesis puzzle."
+        )
+
+        if c.twinned:
+            parts.append(
+                f"Twinned on {c.twin_law} — penetration twins in wulfenite "
+                "create stacked or cross-shaped tablets."
+            )
+
+        if c.dissolved:
+            parts.append(
+                "Acid dissolution — wulfenite's pH window is narrow (dissolves "
+                "below 3.5 and above 9), and a late acid pulse closed the door."
+            )
+
+        return " ".join(parts)
+
+    def _narrate_selenite(self, c: Crystal) -> str:
+        """Narrate a selenite crystal's story — the cool-water cathedral blade."""
+        parts = [f"Selenite #{c.crystal_id} grew to {c.c_length_mm:.1f} mm."]
+
+        parts.append(
+            "CaSO₄·2H₂O — the dihydrate form of gypsum, water-clear, glassy. "
+            "Selenite grows only below ~60°C; above that, anhydrite wins. "
+            "This is the crystal of Naica, where 58°C brine held steady for "
+            "half a million years and produced the largest natural crystals "
+            "on Earth."
+        )
+
+        if c.habit == "cathedral_blade":
+            parts.append(
+                "Built up into a cathedral blade — the Naica habit. Sustained "
+                "supersaturation at a metastable temperature just below the "
+                "anhydrite transition, uninterrupted for millennia."
+            )
+
+        if c.twinned and "swallowtail" in c.twin_law:
+            parts.append(
+                "Swallowtail twin — the diagnostic growth twin of selenite, "
+                "two crystals joined at the base with tails flaring outward."
+            )
+
+        if c.dissolved:
+            parts.append(
+                "Acid or warmer water attacked the selenite — gypsum is one of "
+                "the more soluble common minerals, surviving only where water "
+                "is scarce or chemistry is right."
+            )
+
+        return " ".join(parts)
+
+    def _narrate_adamite(self, c: Crystal) -> str:
+        """Narrate an adamite crystal's story — the fluorescent zinc arsenate."""
+        parts = [f"Adamite #{c.crystal_id} grew to {c.c_length_mm:.1f} mm."]
+
+        avg_Cu = sum(getattr(z, "trace_Cu", 0.0) for z in c.zones) / max(len(c.zones), 1)
+        if avg_Cu > 0.5 or "cuproadamite" in " ".join(z.note for z in c.zones):
+            parts.append(
+                "Copper incorporated as trace — cuproadamite, the bright green "
+                "fluorescent variety. Under short-wave UV it glows apple-green."
+            )
+        else:
+            parts.append(
+                "Yellow-green adamite — the classic habit of Ojuela Mine, Mexico. "
+                "Under short-wave UV the low-Cu zones fluoresce intensely; "
+                "heavy Cu zones stay dark."
+            )
+
+        if "goethite" in c.position:
+            parts.append(
+                "Nucleated on goethite — the limonite/adamite pairing that every "
+                "Ojuela specimen carries."
+            )
+
+        if c.dissolved:
+            parts.append(
+                "Acid dissolved the adamite — released Zn²⁺ and arsenate back "
+                "to the fluid, potentially feeding later mimetite or olivenite growth."
+            )
+
+        return " ".join(parts)
+
+    def _narrate_mimetite(self, c: Crystal) -> str:
+        """Narrate a mimetite crystal's story — the mimic of pyromorphite."""
+        parts = [f"Mimetite #{c.crystal_id} grew to {c.c_length_mm:.1f} mm."]
+
+        parts.append(
+            "Pb₅(AsO₄)₃Cl — a lead arsenate chloride, named 'mimic' because it "
+            "looks so similar to pyromorphite (Pb phosphate). Hexagonal prisms, "
+            "yellow to orange; the barrel-shaped campylite variety is a Cumbrian "
+            "classic."
+        )
+
+        if "galena" in c.position:
+            parts.append(
+                "It nucleated directly on galena — the classic paragenesis. "
+                "Oxidizing arsenic-bearing groundwater attacked the lead sulfide, "
+                "and the released Pb²⁺ combined with arsenate + chloride."
+            )
+
+        if c.dissolved:
+            parts.append(
+                "Acid dissolution released Pb²⁺ and arsenate back to the fluid — "
+                "mimetite is stable only in a narrow oxidizing, near-neutral window."
+            )
+
+        return " ".join(parts)
+
+    def _narrate_feldspar(self, c: Crystal) -> str:
+        """Narrate a K-feldspar crystal's story — the polymorph clock."""
+        parts = [f"K-feldspar #{c.crystal_id} grew to {c.c_length_mm:.1f} mm."]
+
+        # Polymorph inference from nucleation T
+        if c.nucleation_temp > 500:
+            polymorph = "sanidine (high-T monoclinic)"
+        elif c.nucleation_temp > 300:
+            polymorph = "orthoclase (moderate-T monoclinic)"
+        else:
+            polymorph = "microcline (low-T triclinic, cross-hatched)"
+
+        parts.append(
+            f"It formed as {polymorph}. Temperature is feldspar's clock — the "
+            f"polymorph you see records the thermal history of the fluid that "
+            f"grew it."
+        )
+
+        amazonite = any("amazonite" in z.note for z in c.zones)
+        if amazonite:
+            parts.append(
+                "Pb²⁺ substituted for K⁺ in trace amounts — amazonite, the "
+                "blue-green K-feldspar colored by lead. Under LW UV the "
+                "Pb-rich zones fluoresce yellow-green."
+            )
+
+        if c.twinned:
+            parts.append(
+                f"Twinned on the {c.twin_law} — a diagnostic twin of the "
+                f"feldspar family."
+            )
+
+        if c.dissolved:
+            parts.append(
+                "Acid weathering attacked the feldspar — kaolinization released "
+                "K⁺, Al³⁺, and SiO₂ into the fluid. The slow-motion breakdown "
+                "that makes clay."
+            )
+
+        return " ".join(parts)
+
+    def _narrate_albite(self, c: Crystal) -> str:
+        """Narrate an albite crystal's story — the sodium end-member."""
+        parts = [f"Albite #{c.crystal_id} grew to {c.c_length_mm:.1f} mm."]
+
+        parts.append(
+            "NaAlSi₃O₈ — the sodium plagioclase end-member. At T < 450°C, albite "
+            "orders to 'low-albite' (fully ordered Al/Si). Platy 'cleavelandite' "
+            "habit is the pegmatite signature."
+        )
+
+        peristerite = any("peristerite" in z.note for z in c.zones)
+        if peristerite:
+            parts.append(
+                "Ca²⁺ intergrowth produced peristerite — fine albite/oligoclase "
+                "exsolution lamellae that scatter light into blue-white "
+                "adularescence. The moonstone shimmer."
+            )
+
+        if c.twinned:
+            parts.append(
+                f"Twinned on the {c.twin_law} — polysynthetic albite twinning "
+                "creates the characteristic striped appearance of plagioclase "
+                "in thin section."
+            )
+
+        if c.dissolved:
+            parts.append(
+                "Acid released Na⁺, Al³⁺, and SiO₂ — albite is slightly more "
+                "resistant than K-feldspar but still weathers to kaolinite "
+                "under persistent acid attack."
+            )
+
+        return " ".join(parts)
+
     def _narrate_mixing_event(self, batch: List[Crystal], event: Event) -> str:
         """Narrate what happened after a fluid mixing event."""
         mineral_names = set(c.mineral for c in batch)
