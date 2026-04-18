@@ -3921,6 +3921,285 @@ class VugSimulator:
 
         return "\n\n".join(paragraphs)
 
+    def _render_fluid_table(self) -> str:
+        """Render the pre-growth fluid as a markdown-style stats block:
+        header line (T/P/pH) + element ppm table (descending) + absence callout
+        for the marquee elements that are missing.
+        """
+        fluid = self.conditions.fluid
+        T, P, pH = self.conditions.temperature, self.conditions.pressure, fluid.pH
+
+        # Which elements we bother to report (ppm-scale species only)
+        candidates = [
+            'SiO2', 'Ca', 'CO3', 'Fe', 'Mn', 'Mg', 'Al', 'Ti', 'F', 'S', 'Cl',
+            'Zn', 'Cu', 'Pb', 'Mo', 'U', 'Na', 'K', 'Ba', 'Sr', 'Cr', 'P', 'As',
+            'V', 'W', 'Ag', 'Au', 'Bi', 'Sb', 'Ni', 'Co', 'B', 'Li', 'Be',
+            'Te', 'Se', 'Ge',
+        ]
+        present, absent = [], []
+        # Elements whose *absence* is narratively interesting to call out
+        marquee = {'Zn', 'Mo', 'Cu', 'Pb', 'W', 'U', 'Au', 'Ag', 'F', 'S', 'As'}
+        for c in candidates:
+            val = getattr(fluid, c, 0) or 0
+            if val > 0.1:
+                present.append((c, val))
+            elif c in marquee:
+                absent.append(c)
+        present.sort(key=lambda kv: -kv[1])
+
+        rows = ["| Element | ppm |", "|---------|-----|"]
+        for elem, val in present:
+            rows.append(f"| {elem:<7s} | {val:>5.0f} |")
+        table = "\n".join(rows)
+
+        abs_line = ""
+        if absent:
+            abs_line = "\n\n" + ". ".join(f"No {a}" for a in absent) + ". The absence is data too. 🪨"
+
+        header = f"🌡️ {T:.0f}°C at {P:.1f} kbar | pH {pH:.1f}"
+        return header + "\n\n" + table + abs_line
+
+    def narrate_preamble(self, archetype: str) -> str:
+        """Text-adventure preamble for a random vugg. Second-person, present
+        tense, scene-setting. Called *before* the simulation runs so the
+        reader enters the cavity as it is: bare walls, fluid at supersaturation,
+        nothing yet crystallized. Ends with a chemistry stats table and a
+        callout of marquee elements that are absent.
+        """
+        fluid = self.conditions.fluid
+        T, P, pH = self.conditions.temperature, self.conditions.pressure, fluid.pH
+        depth_km = max(P * 1.0, 0.1)  # rough: 1 kbar ≈ 1 km crustal overburden
+
+        def have(elem, thresh=0.5):
+            return (getattr(fluid, elem, 0) or 0) > thresh
+
+        def ppm(elem):
+            return getattr(fluid, elem, 0) or 0
+
+        paragraphs = []
+
+        if archetype == "pegmatite":
+            paragraphs.append(
+                f"You stand at the mouth of a cavity in cooling granite, deep underground. "
+                f"The rock around you bears the weight of {depth_km:.1f} kilometers of crust. "
+                f"The air here isn't air — it's supercritical fluid, {T:.0f} degrees, thick with dissolved metal."
+            )
+            dom_line = []
+            if have('Fe', 10):
+                dom_line.append(f"The walls gleam wet. Not with water — with iron-rich brine, {ppm('Fe'):.0f} parts per million, the color of old blood if you could see it through the heat shimmer.")
+            if have('Cu', 5) and have('U', 10):
+                dom_line.append(f"Copper threads through it at {ppm('Cu'):.0f} ppm, and uranium glows invisibly at {ppm('U'):.0f}.")
+            elif have('U', 10):
+                dom_line.append(f"Uranium glows invisibly at {ppm('U'):.0f} ppm — the cavity is faintly radioactive even before anything precipitates.")
+            elif have('Cu', 5):
+                dom_line.append(f"Copper threads through it at {ppm('Cu'):.0f} ppm, a warm-blooded metal in a hotter fluid.")
+            dom_line.append("The rock itself is warm to the touch. Hot, actually. Everything is hot.")
+            paragraphs.append(" ".join(dom_line))
+            paragraphs.append(
+                "This pocket formed when the granite cracked as it cooled. Magma doesn't shrink quietly — "
+                "it fractures, and the last gasp of mineral-rich fluid fills every void. That's where you are now: "
+                "inside that last gasp."
+            )
+            rare = []
+            if have('Li', 5): rare.append(f"lithium at {ppm('Li'):.0f} ppm")
+            if have('Be', 3): rare.append(f"beryllium at {ppm('Be'):.0f}")
+            if have('B',  5): rare.append(f"boron at {ppm('B'):.0f}")
+            if have('P',  2): rare.append(f"phosphorus at {ppm('P'):.0f}")
+            if rare:
+                paragraphs.append(
+                    "The broth carries the signature of a rare-element pegmatite: "
+                    + ", ".join(rare) + ". These elements ride the same fluid path and rarely end up here by accident."
+                )
+            paragraphs.append(
+                "Nothing has crystallized yet. The walls are bare granite, still dissolving at their margins, "
+                "feeding K and Al and SiO₂ back into the mix. The fluid is oversaturated with possibility but "
+                "nothing has tipped over the edge."
+            )
+            paragraphs.append(
+                "The temperature is falling. Slowly, imperceptibly, but falling. And when it crosses the right "
+                "threshold — when supersaturation finally exceeds nucleation energy — the first crystal will spark "
+                "into existence on these bare walls."
+            )
+
+        elif archetype == "hydrothermal":
+            paragraphs.append(
+                f"You stand inside a vein cavity split open in foliated country rock, roughly {depth_km:.1f} kilometers "
+                f"below daylight. The walls are dark — slate and quartzite shot through with older, gray-white quartz "
+                f"ribbons from earlier fluid pulses. The fluid filling this space is {T:.0f} degrees; hot enough to "
+                f"sting, not quite to scald."
+            )
+            metal = []
+            if have('Fe', 5): metal.append(f"Iron rides at {ppm('Fe'):.0f} ppm")
+            if have('Mn', 2): metal.append(f"manganese at {ppm('Mn'):.0f}")
+            if have('Zn', 5): metal.append(f"zinc at {ppm('Zn'):.0f}")
+            if have('Cu', 5): metal.append(f"copper at {ppm('Cu'):.0f}")
+            if have('Pb', 5): metal.append(f"lead at {ppm('Pb'):.0f}")
+            if metal:
+                paragraphs.append(
+                    ", ".join(metal)
+                    + f". Silica saturates the fluid at roughly {ppm('SiO2'):.0f} ppm — enough that a degree of cooling "
+                      "will start to crack out quartz."
+                )
+            paragraphs.append(
+                "This cavity opened when tectonic stress bent the host rock and a fracture propagated through. "
+                "Fluid rose from deeper still, following the path of least resistance, and this particular pocket is "
+                "where the flow eddied long enough to begin depositing. You're standing in a pause in the plumbing."
+            )
+            paragraphs.append(
+                "The walls are not idle. Hot fluid at pH "
+                f"{pH:.1f} is slowly stripping Ca and CO₃ from carbonate seams in the country rock and feeding them "
+                "into the broth. The vug is eating its way larger, one millimeter per millennium."
+            )
+            paragraphs.append(
+                "Somewhere upstream, the heat source is dying. This fluid has a finite window. When the broth cools "
+                "below quartz's solubility curve, or pH climbs past calcite's, the cavity will begin to fill."
+            )
+
+        elif archetype == "supergene":
+            paragraphs.append(
+                f"You stand inside a cavity maybe ten meters below the ground surface, in the oxidized zone above the "
+                f"water table. The air is cool — {T:.0f} degrees, barely warmer than the bedrock. Oxygen-rich rainwater "
+                f"has been percolating through for a long time, finding its way down through soil and fractures."
+            )
+            paragraphs.append(
+                "The walls are stained. Rust-orange where iron oxidized, patchy green where copper lingered, "
+                "dark where sulfides are still rotting quietly. Everything here has already been something else — the "
+                "primary ore that made this zone interesting is being rewritten. "
+                f"The fluid carries those rewrites in solution: Zn {ppm('Zn'):.0f}, Pb {ppm('Pb'):.0f}, "
+                f"Cu {ppm('Cu'):.0f}, O₂ {fluid.O2:.1f}."
+            )
+            paragraphs.append(
+                "This cavity is a negative-space museum. Oxygen-bearing groundwater attacked the softest parts of the "
+                "primary ore, and the walls retreated. What remains is the argument that the ore is making with the "
+                "atmosphere."
+            )
+            secondary = []
+            if have('As', 3): secondary.append(f"arsenic at {ppm('As'):.0f} ppm (from arsenopyrite dying somewhere upslope)")
+            if have('Mo', 2): secondary.append(f"molybdenum at {ppm('Mo'):.0f} (galena + molybdenite both oxidizing — wulfenite weather)")
+            if have('Cl', 5): secondary.append(f"chloride at {ppm('Cl'):.0f} (rain carrying salt air, or an evaporite signature)")
+            if secondary:
+                paragraphs.append("Trace hints: " + "; ".join(secondary) + ".")
+            paragraphs.append(
+                "The fluid does not have to cool to precipitate here. It only has to change: shift its pH, lose its "
+                "dissolved oxygen, or meet a fresh surface that will let secondary minerals nucleate. Any of those "
+                "triggers will do."
+            )
+
+        elif archetype == "mvt":
+            paragraphs.append(
+                f"You stand inside a limestone dissolution cavity — karst, the geologist's word for rock with holes. "
+                f"The air is dark and faintly briny. {T:.0f} degrees. The walls are pale Paleozoic limestone, still "
+                f"retreating wherever the brine touches them."
+            )
+            paragraphs.append(
+                f"The fluid here is a dense saline brine, roughly {fluid.salinity:.0f}% NaCl, mineralized with base metals. "
+                f"Zinc at {ppm('Zn'):.0f} ppm, lead at {ppm('Pb'):.0f}, sulfur at {ppm('S'):.0f} — which in this "
+                f"environment means H₂S, the smell of rotten eggs if the brine weren't in the way."
+            )
+            paragraphs.append(
+                "This cavity was dissolved into limestone by an earlier, lower-pH brine. Then a second fluid arrived — "
+                "the one you're standing in — bearing metals from a basin possibly hundreds of kilometers away. Two "
+                "fluids met; this cavity is where they're still mixing."
+            )
+            mvt_hints = []
+            if have('F', 10): mvt_hints.append(f"fluorite is already saturating ({ppm('F'):.0f} ppm F)")
+            if have('Ba', 10): mvt_hints.append(f"barium at {ppm('Ba'):.0f} ppm is a barite near-miss")
+            if have('Ag', 1):  mvt_hints.append(f"silver at {ppm('Ag'):.0f} hints at argentiferous galena to come")
+            if mvt_hints:
+                paragraphs.append("; ".join(h[0].upper() + h[1:] for h in mvt_hints) + ".")
+            paragraphs.append(
+                "The limestone doesn't fight back. It dissolves peacefully, releasing Ca²⁺ and CO₃²⁻ into the broth. "
+                "The vug grows slowly larger, and every Ca²⁺ released is a future growth band waiting to happen."
+            )
+
+        elif archetype == "porphyry":
+            paragraphs.append(
+                f"You stand inside a vug at the top of an intrusive porphyry stock — a shallow magma body that "
+                f"crystallized into a cupola of ore-bearing granite. Two kilometers of rock above you, daylight; "
+                f"immediately below, the still-magma continues to exhale metal-laden fluid. {T:.0f} degrees here, "
+                f"{P:.2f} kbar, on the borderline between supercritical and boiling."
+            )
+            paragraphs.append(
+                f"The fluid is metal-rich soup. Copper at {ppm('Cu'):.0f} ppm, iron at {ppm('Fe'):.0f}, sulfur at "
+                f"{ppm('S'):.0f}. The walls weep with it. Everything looks brassy and wet, and the whole pocket smells "
+                f"metallic even through the hiss of pressure."
+            )
+            paragraphs.append(
+                "This pocket is one of many. Porphyry systems are lacework: fractures, veins, stockwork cavities all "
+                "feeding off the same cooling intrusion. Each vug is a local eddy where the flow paused long enough to "
+                "deposit. You're in one of those eddies."
+            )
+            porp_hints = []
+            if have('Mo', 5): porp_hints.append(f"Molybdenum at {ppm('Mo'):.0f} ppm — the Mo pulse has already arrived; molybdenite is likely")
+            if have('Au', 0.1): porp_hints.append(f"gold at {ppm('Au'):.1f} (invisible in pyrite, traditionally)")
+            if have('W', 0.3): porp_hints.append(f"tungsten at {ppm('W'):.1f} (scheelite-adjacent)")
+            if have('Bi', 0.3): porp_hints.append(f"bismuth at {ppm('Bi'):.1f}")
+            if porp_hints:
+                paragraphs.append(". ".join(p[0].upper() + p[1:] for p in porp_hints) + ".")
+            paragraphs.append(
+                "The walls are quartz-feldspar porphyry, potassically altered — the intrusion has already stained them "
+                "pink with K-feldspar metasomatism. That alteration is older than the fluid you're standing in."
+            )
+            paragraphs.append(
+                "The first sulfides will form within a few degrees of cooling. Pyrite nucleates fastest, then "
+                "chalcopyrite settles onto it, then — if the late Mo pulse keeps delivering — molybdenite platelets."
+            )
+
+        elif archetype == "evaporite":
+            paragraphs.append(
+                f"You stand inside a crust that hasn't been buried deep. Barely below the surface. {T:.0f} degrees — "
+                f"the sun warmed the ground this morning; by night it will cool again. The air is dry and still."
+            )
+            paragraphs.append(
+                f"The fluid is a brine so concentrated it feels like syrup. Calcium at {ppm('Ca'):.0f} ppm, sulfate "
+                f"(as S) at {ppm('S'):.0f}, with a pH of {pH:.1f} — the chemistry of drying out. The walls are pale "
+                f"Ca-SO₄ with streaks of iron where earlier water rusted through."
+            )
+            paragraphs.append(
+                "A shallow pond sat here once. Inflow slowed, or stopped; evaporation didn't. The water retreated, "
+                "concentrating its dissolved ions, until the first crystals formed on the sediment surface and the "
+                "whole thing went from pond to crust. You're inside the crust."
+            )
+            evap_hints = []
+            if have('Mg', 20): evap_hints.append(f"magnesium at {ppm('Mg'):.0f} ppm hints at dolomite-adjacent chemistry, or epsomite if the brine dries further")
+            if have('Sr', 10): evap_hints.append(f"strontium at {ppm('Sr'):.0f} is a celestine near-miss — the missing SrSO₄ is the ghost sulfate")
+            if have('Cl', 15): evap_hints.append(f"chloride at {ppm('Cl'):.0f} is halite-adjacent; one more round of drying and NaCl will crust out alongside the gypsum")
+            if evap_hints:
+                paragraphs.append(". ".join(h[0].upper() + h[1:] for h in evap_hints) + ".")
+            paragraphs.append(
+                "There are no walls to dissolve here. The cavity IS the fluid, and the fluid is shrinking. The only "
+                "question is how slowly it shrinks, and whether the temperature holds below 60°C long enough for "
+                "selenite to finish what anhydrite might otherwise interrupt."
+            )
+
+        else:  # mixed
+            paragraphs.append(
+                f"You stand inside a pocket that has seen two fluids. The older one left behind mineral coatings on "
+                f"the walls — dull sulfides, margins slightly oxidized. The new fluid is different: cooler, more "
+                f"oxidizing. {T:.0f} degrees, and the mix is unsettled."
+            )
+            paragraphs.append(
+                f"Metal is in solution: {ppm('Zn'):.0f} ppm Zn, {ppm('Pb'):.0f} ppm Pb, {ppm('Fe'):.0f} ppm Fe. "
+                f"O₂ is {fluid.O2:.1f} — enough to attack the old sulfide coatings where it touches them."
+            )
+            paragraphs.append(
+                "This is an overprint. A pocket that once equilibrated with reducing brine is being re-visited by "
+                "something newer. Two timescales meet here: the older paragenesis frozen in the walls, and the new "
+                "one about to begin on top of it."
+            )
+            paragraphs.append(
+                "The walls are dissolving where the new fluid is undersaturated, and re-precipitating where it's "
+                "saturated. You can watch both processes happen at once, on different parts of the same crystal — if "
+                "you have patience measured in centuries."
+            )
+            paragraphs.append(
+                "What grows next will tell you which fluid won. Secondary minerals on primary — that's the signature "
+                "of overprint. The vug is writing its second chapter."
+            )
+
+        # Append chemistry stats block
+        return "\n\n".join(paragraphs) + "\n\n" + self._render_fluid_table()
+
     def _narrate_discovery(self, archetype: str) -> str:
         """Procedural discovery flavor for the random scenario.
 
@@ -4929,8 +5208,19 @@ def main():
     for e in events:
         print(f"     Step {e.step}: {e.name}")
     print("═" * 70)
-    
+
     sim = VugSimulator(conditions, events)
+
+    # Text-adventure preamble for random scenarios: scene-setting BEFORE sim.
+    archetype = getattr(conditions, "_random_archetype", None)
+    if archetype:
+        print()
+        print("┈┈┈┈┈ PREAMBLE ┈┈┈┈┈")
+        print()
+        print(sim.narrate_preamble(archetype))
+        print()
+        print("═" * 70)
+        print()
     
     for step in range(total_steps):
         log = sim.run_step()

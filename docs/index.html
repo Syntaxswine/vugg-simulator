@@ -6765,6 +6765,124 @@ function buildRandomScenario(forcedArchetype) {
   return { conditions, events, defaultSteps: steps, archetype };
 }
 
+// Render the pre-growth fluid as a markdown-style stats block.
+function renderFluidTable(conditions) {
+  const fluid = conditions.fluid;
+  const T = conditions.temperature, P = conditions.pressure, pH = fluid.pH;
+  const candidates = [
+    'SiO2','Ca','CO3','Fe','Mn','Mg','Al','Ti','F','S','Cl',
+    'Zn','Cu','Pb','Mo','U','Na','K','Ba','Sr','Cr','P','As',
+    'V','W','Ag','Au','Bi','Sb','Ni','Co','B','Li','Be','Te','Se','Ge'
+  ];
+  const marquee = new Set(['Zn','Mo','Cu','Pb','W','U','Au','Ag','F','S','As']);
+  const present = [], absent = [];
+  for (const c of candidates) {
+    const val = (fluid[c] || 0);
+    if (val > 0.1) present.push([c, val]);
+    else if (marquee.has(c)) absent.push(c);
+  }
+  present.sort((a, b) => b[1] - a[1]);
+  const rows = ['| Element | ppm |', '|---------|-----|'];
+  for (const [e, v] of present) {
+    rows.push(`| ${e.padEnd(7)} | ${Math.round(v).toString().padStart(5)} |`);
+  }
+  const header = `🌡️ ${T.toFixed(0)}°C at ${P.toFixed(1)} kbar | pH ${pH.toFixed(1)}`;
+  const abs = absent.length ? '\n\n' + absent.map(a => `No ${a}`).join('. ') + '. The absence is data too. 🪨' : '';
+  return header + '\n\n' + rows.join('\n') + abs;
+}
+
+// Text-adventure preamble: second-person scene-setting BEFORE the simulation runs.
+function narratePreamble(conditions, archetype) {
+  const fluid = conditions.fluid;
+  const T = conditions.temperature, P = conditions.pressure, pH = fluid.pH;
+  const depth_km = Math.max(P * 1.0, 0.1);
+  const have = (e, t = 0.5) => (fluid[e] || 0) > t;
+  const ppm = (e) => (fluid[e] || 0);
+  const paras = [];
+
+  if (archetype === 'pegmatite') {
+    paras.push(`You stand at the mouth of a cavity in cooling granite, deep underground. The rock around you bears the weight of ${depth_km.toFixed(1)} kilometers of crust. The air here isn't air — it's supercritical fluid, ${T.toFixed(0)} degrees, thick with dissolved metal.`);
+    const dom = [];
+    if (have('Fe', 10)) dom.push(`The walls gleam wet. Not with water — with iron-rich brine, ${ppm('Fe').toFixed(0)} parts per million, the color of old blood if you could see it through the heat shimmer.`);
+    if (have('Cu', 5) && have('U', 10)) dom.push(`Copper threads through it at ${ppm('Cu').toFixed(0)} ppm, and uranium glows invisibly at ${ppm('U').toFixed(0)}.`);
+    else if (have('U', 10)) dom.push(`Uranium glows invisibly at ${ppm('U').toFixed(0)} ppm — the cavity is faintly radioactive even before anything precipitates.`);
+    else if (have('Cu', 5)) dom.push(`Copper threads through it at ${ppm('Cu').toFixed(0)} ppm, a warm-blooded metal in a hotter fluid.`);
+    dom.push('The rock itself is warm to the touch. Hot, actually. Everything is hot.');
+    paras.push(dom.join(' '));
+    paras.push("This pocket formed when the granite cracked as it cooled. Magma doesn't shrink quietly — it fractures, and the last gasp of mineral-rich fluid fills every void. That's where you are now: inside that last gasp.");
+    const rare = [];
+    if (have('Li', 5)) rare.push(`lithium at ${ppm('Li').toFixed(0)} ppm`);
+    if (have('Be', 3)) rare.push(`beryllium at ${ppm('Be').toFixed(0)}`);
+    if (have('B', 5))  rare.push(`boron at ${ppm('B').toFixed(0)}`);
+    if (have('P', 2))  rare.push(`phosphorus at ${ppm('P').toFixed(0)}`);
+    if (rare.length) paras.push('The broth carries the signature of a rare-element pegmatite: ' + rare.join(', ') + '. These elements ride the same fluid path and rarely end up here by accident.');
+    paras.push('Nothing has crystallized yet. The walls are bare granite, still dissolving at their margins, feeding K and Al and SiO₂ back into the mix. The fluid is oversaturated with possibility but nothing has tipped over the edge.');
+    paras.push('The temperature is falling. Slowly, imperceptibly, but falling. And when it crosses the right threshold — when supersaturation finally exceeds nucleation energy — the first crystal will spark into existence on these bare walls.');
+  } else if (archetype === 'hydrothermal') {
+    paras.push(`You stand inside a vein cavity split open in foliated country rock, roughly ${depth_km.toFixed(1)} kilometers below daylight. The walls are dark — slate and quartzite shot through with older, gray-white quartz ribbons from earlier fluid pulses. The fluid filling this space is ${T.toFixed(0)} degrees; hot enough to sting, not quite to scald.`);
+    const metal = [];
+    if (have('Fe', 5)) metal.push(`Iron rides at ${ppm('Fe').toFixed(0)} ppm`);
+    if (have('Mn', 2)) metal.push(`manganese at ${ppm('Mn').toFixed(0)}`);
+    if (have('Zn', 5)) metal.push(`zinc at ${ppm('Zn').toFixed(0)}`);
+    if (have('Cu', 5)) metal.push(`copper at ${ppm('Cu').toFixed(0)}`);
+    if (have('Pb', 5)) metal.push(`lead at ${ppm('Pb').toFixed(0)}`);
+    if (metal.length) paras.push(metal.join(', ') + `. Silica saturates the fluid at roughly ${ppm('SiO2').toFixed(0)} ppm — enough that a degree of cooling will start to crack out quartz.`);
+    paras.push("This cavity opened when tectonic stress bent the host rock and a fracture propagated through. Fluid rose from deeper still, following the path of least resistance, and this particular pocket is where the flow eddied long enough to begin depositing. You're standing in a pause in the plumbing.");
+    paras.push(`The walls are not idle. Hot fluid at pH ${pH.toFixed(1)} is slowly stripping Ca and CO₃ from carbonate seams in the country rock and feeding them into the broth. The vug is eating its way larger, one millimeter per millennium.`);
+    paras.push("Somewhere upstream, the heat source is dying. This fluid has a finite window. When the broth cools below quartz's solubility curve, or pH climbs past calcite's, the cavity will begin to fill.");
+  } else if (archetype === 'supergene') {
+    paras.push(`You stand inside a cavity maybe ten meters below the ground surface, in the oxidized zone above the water table. The air is cool — ${T.toFixed(0)} degrees, barely warmer than the bedrock. Oxygen-rich rainwater has been percolating through for a long time, finding its way down through soil and fractures.`);
+    paras.push(`The walls are stained. Rust-orange where iron oxidized, patchy green where copper lingered, dark where sulfides are still rotting quietly. Everything here has already been something else — the primary ore that made this zone interesting is being rewritten. The fluid carries those rewrites in solution: Zn ${ppm('Zn').toFixed(0)}, Pb ${ppm('Pb').toFixed(0)}, Cu ${ppm('Cu').toFixed(0)}, O₂ ${fluid.O2.toFixed(1)}.`);
+    paras.push('This cavity is a negative-space museum. Oxygen-bearing groundwater attacked the softest parts of the primary ore, and the walls retreated. What remains is the argument that the ore is making with the atmosphere.');
+    const sec = [];
+    if (have('As', 3)) sec.push(`arsenic at ${ppm('As').toFixed(0)} ppm (from arsenopyrite dying somewhere upslope)`);
+    if (have('Mo', 2)) sec.push(`molybdenum at ${ppm('Mo').toFixed(0)} (galena + molybdenite both oxidizing — wulfenite weather)`);
+    if (have('Cl', 5)) sec.push(`chloride at ${ppm('Cl').toFixed(0)} (rain carrying salt air, or an evaporite signature)`);
+    if (sec.length) paras.push('Trace hints: ' + sec.join('; ') + '.');
+    paras.push('The fluid does not have to cool to precipitate here. It only has to change: shift its pH, lose its dissolved oxygen, or meet a fresh surface that will let secondary minerals nucleate. Any of those triggers will do.');
+  } else if (archetype === 'mvt') {
+    paras.push(`You stand inside a limestone dissolution cavity — karst, the geologist's word for rock with holes. The air is dark and faintly briny. ${T.toFixed(0)} degrees. The walls are pale Paleozoic limestone, still retreating wherever the brine touches them.`);
+    paras.push(`The fluid here is a dense saline brine, roughly ${fluid.salinity.toFixed(0)}% NaCl, mineralized with base metals. Zinc at ${ppm('Zn').toFixed(0)} ppm, lead at ${ppm('Pb').toFixed(0)}, sulfur at ${ppm('S').toFixed(0)} — which in this environment means H₂S, the smell of rotten eggs if the brine weren't in the way.`);
+    paras.push("This cavity was dissolved into limestone by an earlier, lower-pH brine. Then a second fluid arrived — the one you're standing in — bearing metals from a basin possibly hundreds of kilometers away. Two fluids met; this cavity is where they're still mixing.");
+    const hints = [];
+    if (have('F', 10)) hints.push(`Fluorite is already saturating (${ppm('F').toFixed(0)} ppm F)`);
+    if (have('Ba', 10)) hints.push(`Barium at ${ppm('Ba').toFixed(0)} ppm is a barite near-miss`);
+    if (have('Ag', 1)) hints.push(`Silver at ${ppm('Ag').toFixed(0)} hints at argentiferous galena to come`);
+    if (hints.length) paras.push(hints.join('; ') + '.');
+    paras.push("The limestone doesn't fight back. It dissolves peacefully, releasing Ca²⁺ and CO₃²⁻ into the broth. The vug grows slowly larger, and every Ca²⁺ released is a future growth band waiting to happen.");
+  } else if (archetype === 'porphyry') {
+    paras.push(`You stand inside a vug at the top of an intrusive porphyry stock — a shallow magma body that crystallized into a cupola of ore-bearing granite. Two kilometers of rock above you, daylight; immediately below, the still-magma continues to exhale metal-laden fluid. ${T.toFixed(0)} degrees here, ${P.toFixed(2)} kbar, on the borderline between supercritical and boiling.`);
+    paras.push(`The fluid is metal-rich soup. Copper at ${ppm('Cu').toFixed(0)} ppm, iron at ${ppm('Fe').toFixed(0)}, sulfur at ${ppm('S').toFixed(0)}. The walls weep with it. Everything looks brassy and wet, and the whole pocket smells metallic even through the hiss of pressure.`);
+    paras.push("This pocket is one of many. Porphyry systems are lacework: fractures, veins, stockwork cavities all feeding off the same cooling intrusion. Each vug is a local eddy where the flow paused long enough to deposit. You're in one of those eddies.");
+    const porp = [];
+    if (have('Mo', 5)) porp.push(`Molybdenum at ${ppm('Mo').toFixed(0)} ppm — the Mo pulse has already arrived; molybdenite is likely`);
+    if (have('Au', 0.1)) porp.push(`gold at ${ppm('Au').toFixed(1)} (invisible in pyrite, traditionally)`);
+    if (have('W', 0.3))  porp.push(`tungsten at ${ppm('W').toFixed(1)} (scheelite-adjacent)`);
+    if (have('Bi', 0.3)) porp.push(`bismuth at ${ppm('Bi').toFixed(1)}`);
+    if (porp.length) paras.push(porp.join('. ') + '.');
+    paras.push("The walls are quartz-feldspar porphyry, potassically altered — the intrusion has already stained them pink with K-feldspar metasomatism. That alteration is older than the fluid you're standing in.");
+    paras.push('The first sulfides will form within a few degrees of cooling. Pyrite nucleates fastest, then chalcopyrite settles onto it, then — if the late Mo pulse keeps delivering — molybdenite platelets.');
+  } else if (archetype === 'evaporite') {
+    paras.push(`You stand inside a crust that hasn't been buried deep. Barely below the surface. ${T.toFixed(0)} degrees — the sun warmed the ground this morning; by night it will cool again. The air is dry and still.`);
+    paras.push(`The fluid is a brine so concentrated it feels like syrup. Calcium at ${ppm('Ca').toFixed(0)} ppm, sulfate (as S) at ${ppm('S').toFixed(0)}, with a pH of ${pH.toFixed(1)} — the chemistry of drying out. The walls are pale Ca-SO₄ with streaks of iron where earlier water rusted through.`);
+    paras.push("A shallow pond sat here once. Inflow slowed, or stopped; evaporation didn't. The water retreated, concentrating its dissolved ions, until the first crystals formed on the sediment surface and the whole thing went from pond to crust. You're inside the crust.");
+    const evap = [];
+    if (have('Mg', 20)) evap.push(`Magnesium at ${ppm('Mg').toFixed(0)} ppm hints at dolomite-adjacent chemistry, or epsomite if the brine dries further`);
+    if (have('Sr', 10)) evap.push(`Strontium at ${ppm('Sr').toFixed(0)} is a celestine near-miss — the missing SrSO₄ is the ghost sulfate`);
+    if (have('Cl', 15)) evap.push(`Chloride at ${ppm('Cl').toFixed(0)} is halite-adjacent; one more round of drying and NaCl will crust out alongside the gypsum`);
+    if (evap.length) paras.push(evap.join('. ') + '.');
+    paras.push('There are no walls to dissolve here. The cavity IS the fluid, and the fluid is shrinking. The only question is how slowly it shrinks, and whether the temperature holds below 60°C long enough for selenite to finish what anhydrite might otherwise interrupt.');
+  } else { // mixed
+    paras.push(`You stand inside a pocket that has seen two fluids. The older one left behind mineral coatings on the walls — dull sulfides, margins slightly oxidized. The new fluid is different: cooler, more oxidizing. ${T.toFixed(0)} degrees, and the mix is unsettled.`);
+    paras.push(`Metal is in solution: ${ppm('Zn').toFixed(0)} ppm Zn, ${ppm('Pb').toFixed(0)} ppm Pb, ${ppm('Fe').toFixed(0)} ppm Fe. O₂ is ${fluid.O2.toFixed(1)} — enough to attack the old sulfide coatings where it touches them.`);
+    paras.push('This is an overprint. A pocket that once equilibrated with reducing brine is being re-visited by something newer. Two timescales meet here: the older paragenesis frozen in the walls, and the new one about to begin on top of it.');
+    paras.push("The walls are dissolving where the new fluid is undersaturated, and re-precipitating where it's saturated. You can watch both processes happen at once, on different parts of the same crystal — if you have patience measured in centuries.");
+    paras.push("What grows next will tell you which fluid won. Secondary minerals on primary — that's the signature of overprint. The vug is writing its second chapter.");
+  }
+
+  return paras.join('\n\n') + '\n\n' + renderFluidTable(conditions);
+}
+
 function narrateDiscovery(sim, archetype) {
   const grown = sim.crystals.filter(c => c.total_growth_um > 0);
   if (!grown.length) {
@@ -6853,6 +6971,10 @@ function runRandomVugg() {
   const forced = document.getElementById('random-archetype').value;
 
   const scen = buildRandomScenario(forced);
+
+  // Capture the pre-growth preamble BEFORE the simulation mutates the fluid.
+  const preamble = narratePreamble(scen.conditions, scen.archetype);
+
   const sim = new VugSimulator(scen.conditions, scen.events);
   for (let i = 0; i < scen.defaultSteps; i++) sim.run_step();
 
@@ -6865,12 +6987,15 @@ function runRandomVugg() {
     .map(c => `  • ${c.mineral} #${c.crystal_id} — ${c.c_length_mm.toFixed(2)} mm, ${c.habit}${c.twinned ? ', twinned (' + c.twin_law + ')' : ''}`)
     .join('\n');
 
-  const header = `═══ 🎲 Random Vugg — archetype: ${scen.archetype} — seed: ${seed} ═══\n\n` +
-                 `T = ${scen.conditions.temperature.toFixed(1)}°C · P = ${scen.conditions.pressure.toFixed(2)} kbar · pH = ${scen.conditions.fluid.pH.toFixed(1)} · ran ${scen.defaultSteps} steps\n` +
-                 `Fluid: ${scen.conditions.fluid.describe ? scen.conditions.fluid.describe() : ''}\n\n`;
-  const inventory = crystalList ? `CRYSTALS\n${crystalList}\n\n` : 'CRYSTALS\n  (nothing nucleated)\n\n';
+  const header = `═══ 🎲 Random Vugg — archetype: ${scen.archetype} — seed: ${seed} ═══\n` +
+                 `ran ${scen.defaultSteps} steps · events: ${scen.events.length}\n`;
+  const rule   = '─'.repeat(70);
+  const preambleBlock = `\n┈┈┈┈┈ PREAMBLE ┈┈┈┈┈\n\n${preamble}\n\n${rule}\n`;
+  const inventory = crystalList ? `\nCRYSTALS\n${crystalList}\n\n${rule}\n` : `\nCRYSTALS\n  (nothing nucleated)\n\n${rule}\n`;
+  const discoveryBlock = `\n${discovery}\n\n${rule}\n`;
+  const fullBlock = full ? `\n${full}\n` : '';
 
-  out.textContent = header + inventory + discovery + '\n\n' + (full || '');
+  out.textContent = header + preambleBlock + inventory + discoveryBlock + fullBlock;
   out.scrollTop = 0;
 }
 
