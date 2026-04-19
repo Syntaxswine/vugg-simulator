@@ -377,7 +377,118 @@ button:disabled {
   max-width: 800px;
   width: 100%;
   margin: 0 auto;
-  padding: 1rem 0;
+  padding: 1rem 0 2rem 0;
+  text-align: center;
+}
+
+/* Hide the default page header when the title screen is the active view;
+   the logo inside the title-screen takes its place. */
+body.title-on > h1,
+body.title-on > .subtitle {
+  display: none;
+}
+
+.title-logo {
+  font-family: "Courier New", ui-monospace, Menlo, monospace;
+  font-size: clamp(1.7rem, 5vw, 2.6rem);
+  letter-spacing: 0.5em;
+  color: #f0c050;
+  text-shadow: 0 0 12px rgba(240, 192, 80, 0.25);
+  padding: 0.4rem 0 0.2rem 0.5em; /* offset-right to center with letter-spacing */
+  margin: 0 auto 0.4rem auto;
+  font-weight: 700;
+}
+
+.title-ascii-wrap {
+  display: flex;
+  justify-content: center;
+  margin: 0.2rem auto 1rem auto;
+}
+.title-ascii {
+  color: #c0a043;
+  font-family: "Courier New", ui-monospace, Menlo, monospace;
+  font-size: clamp(6px, 1.05vw, 11px);
+  line-height: 1.03;
+  letter-spacing: 0.02em;
+  white-space: pre;
+  margin: 0;
+  opacity: 0.85;
+  text-shadow: 0 0 6px rgba(240, 192, 80, 0.12);
+  user-select: none;
+  pointer-events: none;
+}
+@media (max-width: 600px) {
+  .title-ascii {
+    font-size: 6px;
+    line-height: 1.0;
+  }
+}
+
+.title-tagline {
+  color: #8a7a40;
+  font-style: italic;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  letter-spacing: 0.08em;
+  margin: 0.3rem auto 1.6rem auto;
+  text-align: center;
+}
+.title-tagline .line1 {
+  color: #a89040;
+}
+.title-tagline .line2 {
+  color: #6a5a30;
+  font-size: 0.82rem;
+  letter-spacing: 0.05em;
+}
+
+.title-buttons {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(140px, 200px));
+  gap: 0.8rem 1.2rem;
+  justify-content: center;
+  margin: 0 auto 1.5rem auto;
+}
+.title-buttons button {
+  background: #0e0e0a;
+  color: #d4a843;
+  border: 1px solid #3a3520;
+  padding: 0.65rem 1rem;
+  font-family: "Courier New", ui-monospace, Menlo, monospace;
+  font-size: 0.95rem;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s, color 0.15s, transform 0.1s;
+}
+.title-buttons button:hover:not(:disabled) {
+  border-color: #f0c050;
+  background: #1a1a14;
+  color: #f0c050;
+  transform: translateY(-1px);
+}
+.title-buttons button:disabled {
+  color: #4a3a20;
+  border-color: #2a2518;
+  cursor: not-allowed;
+  font-style: italic;
+}
+
+.title-more {
+  margin-top: 1rem;
+  color: #6a5a30;
+  font-size: 0.8rem;
+}
+.title-more summary {
+  cursor: pointer;
+  padding: 0.4rem;
+  letter-spacing: 0.06em;
+}
+.title-more summary:hover {
+  color: #a89040;
+}
+.title-more[open] summary {
+  color: #a89040;
+  margin-bottom: 0.8rem;
 }
 
 .title-intro {
@@ -1539,43 +1650,76 @@ footer a:hover {
 }
 </style>
 </head>
-<body>
+<body class="title-on">
 
 <h1>🪨 Vugg Simulator</h1>
 <div class="subtitle">A text-based crystal growth engine</div>
 
 <!-- Title Screen -->
 <div id="title-screen" class="title-screen">
-  <div class="title-intro">
-    <p>A vugg is a small cavity in rock where crystals grow in the dark over thousands of years. Temperature shifts, chemical pulses, and tectonic shocks leave their signatures in the crystal's growth zones — a geological record written in mineral.</p>
-    <p>This simulator lets you watch that process unfold, control it, or read the record afterward. Choose a mode:</p>
+  <div class="title-logo">VUGG&nbsp;&nbsp;SIMULATOR</div>
+  <div class="title-ascii-wrap">
+    <pre class="title-ascii" aria-hidden="true">                                          ..
+                                        .,:,,.
+                                 ..   ., :fi1;,. .
+                               .,:::.,::::Lfiii;. .
+                       ..,,,,.,::;11;:;;,..,,,11;,,,
+                           .;;;;itfff,,.   :,.:f1i;;,
+            .. .         ..,:1tttLLC;        .,;1ffti:,....::,,,:,.
+          .,::   .    .,i1Lf itCLf.  tt:      ..:CCLG1,;i,:;:,,;i;,
+       . .::.        .:1fG1.   ti   tG00; :  .. .:;;1.;Lf1tt:.,::i,.
+      .,  ..        :;1tCf          ,G00G,C1;CCi ;LL ,CCCCGL..,,:t::.
+    ..,:          .,ittLC            1GG0CC0GCG1iG0i;GGCCCGt.,:i1i;,..
+  .,:  .           .;; ,.  .,,   ;1:.tLC08GCLLffffCLGCLCCCCCff1ti:,..
+,. .        .              ,tt;  :LCffftLCf1ttti;;tGCLft1f11t11i;:,...
+  .             ..   .;    ,tf11t::LLt11i11i;i;:::itLf1,:i:;;;:,:,...  ..,::
+ ,,             :1ffifGL :11i1;;fLtfL1ii::::,,,:,::;1i:,;,.... ..       ..,.
+                  1ffCCGCtf1;i;::11i1;:::,,....,,,,:;:.,.
+                  ;1i1fLLLf1;;;;:,::::,,...       ....
+                   ;iiiii;;::,:,.......,.       ..
+             ,    :,,,,;::,,,,,.   ...          .....
+       .,   .;;,      ..,,,,.
+      ..,,.               .</pre>
   </div>
-  <div class="title-modes">
-    <div class="title-mode-card" onclick="switchMode('legends')">
-      <h3>🔬 Simulation</h3>
-      <p>Play preset scenarios based on real geological settings. Watch crystals nucleate, grow, dissolve, and twin as temperature and chemistry evolve. The vugg tells its own story — you observe.</p>
-    </div>
-    <div class="title-mode-card" onclick="switchMode('fortress')">
-      <h3>🏰 Creative</h3>
-      <p>You control the variables. Adjust temperature, inject silica, flood with brine, trigger tectonic shocks. You have the freedom to decide the vugg's fate. Will you help it prosper, or will it sleep silently?</p>
-    </div>
-    <div class="title-mode-card" onclick="switchMode('groove')">
-      <h3>📀 Record Player</h3>
-      <p>View a visual representation of a crystal's life journey. Like tree rings, the spiral pattern reveals repeating motifs that shaped the crystal into what it became.</p>
-    </div>
-    <div class="title-mode-card" onclick="switchMode('idle')">
-      <h3>🌀 The Groove</h3>
-      <p>An idle vug that runs forever. Temperature drifts, chemistry shifts, crystals come and go. Leave it running overnight — come back to see what grew. Screensaver for geologists.</p>
-    </div>
-    <div class="title-mode-card" onclick="switchMode('library')">
-      <h3>📚 Library</h3>
-      <p>Browse every mineral the simulator knows. Filter by class, fluorescence, or element; look up what grows in each scenario, or what conditions a mineral needs. Reference — no simulation.</p>
-    </div>
-    <div class="title-mode-card" onclick="switchMode('random')">
-      <h3>🎲 Random Vugg</h3>
-      <p>Roll a specimen. Each run picks a random geological archetype — pegmatite, supergene, MVT, evaporite — and generates plausible fluid chemistry within it. What grew, what didn't, what trace elements hint at. Feels like a discovery because it is one.</p>
-    </div>
+  <div class="title-tagline">
+    <div class="line1">an adventure in crystal growing</div>
+    <div class="line2">millions of years in the making</div>
   </div>
+  <div class="title-buttons">
+    <button onclick="titleNewGame()">New Game</button>
+    <button id="title-btn-load" onclick="titleLoadGame()">Load Game</button>
+    <button onclick="titleQuickPlay()">Quick Play</button>
+    <button onclick="switchMode('library')">Library</button>
+  </div>
+  <details class="title-more">
+    <summary>more modes…</summary>
+    <div class="title-modes">
+      <div class="title-mode-card" onclick="switchMode('legends')">
+        <h3>🔬 Simulation</h3>
+        <p>Play preset scenarios based on real geological settings. Watch crystals nucleate, grow, dissolve, and twin as temperature and chemistry evolve.</p>
+      </div>
+      <div class="title-mode-card" onclick="switchMode('fortress')">
+        <h3>🏰 Creative</h3>
+        <p>You control the variables. Adjust temperature, inject silica, flood with brine, trigger tectonic shocks. Decide the vugg's fate step by step.</p>
+      </div>
+      <div class="title-mode-card" onclick="switchMode('groove')">
+        <h3>📀 Record Player</h3>
+        <p>Spiral visualization of a crystal's life journey. Like tree rings, the pattern reveals what shaped it.</p>
+      </div>
+      <div class="title-mode-card" onclick="switchMode('idle')">
+        <h3>🌀 The Groove</h3>
+        <p>An idle vug that runs forever. Temperature drifts, chemistry shifts, crystals come and go. Screensaver for geologists.</p>
+      </div>
+      <div class="title-mode-card" onclick="switchMode('random')">
+        <h3>🎲 Random Vugg</h3>
+        <p>Roll a specimen. Random archetype, procedural chemistry, text-adventure preamble. A discovery because it is one.</p>
+      </div>
+      <div class="title-mode-card" onclick="switchMode('library')">
+        <h3>📚 Library</h3>
+        <p>Browse every mineral. Filter by class, fluorescence, or element. Reference — no simulation.</p>
+      </div>
+    </div>
+  </details>
 </div>
 
 <!-- Mode Toggle -->
@@ -6408,7 +6552,9 @@ function showTitleScreen() {
   const groovePanel = document.getElementById('groove-panel');
   const idlePanel = document.getElementById('idle-panel');
   const libraryPanel = document.getElementById('library-panel');
+  const randomPanel = document.getElementById('random-panel');
 
+  document.body.classList.add('title-on');
   titleScreen.style.display = 'block';
   modeToggle.style.display = 'none';
   legendsControls.style.display = 'none';
@@ -6417,7 +6563,52 @@ function showTitleScreen() {
   groovePanel.style.display = 'none';
   if (idlePanel) idlePanel.style.display = 'none';
   if (libraryPanel) libraryPanel.style.display = 'none';
+  if (randomPanel) randomPanel.style.display = 'none';
   idleStop(); // stop any running idle simulation
+  // Update the Load Game button state based on saved state presence.
+  try {
+    const btn = document.getElementById('title-btn-load');
+    if (btn) {
+      const hasSave = !!localStorage.getItem('vugg-save-v1');
+      btn.disabled = !hasSave;
+      btn.title = hasSave ? 'Resume a saved vugg' : 'No saved game — start a new one first';
+    }
+  } catch (e) { /* localStorage unavailable (private browsing); leave button enabled */ }
+}
+
+// Title screen button handlers.
+function titleNewGame() {
+  // Primary entry: Simulation mode (scenario dropdown). User can switch to
+  // Creative via the mode-toggle bar once they're in.
+  switchMode('legends');
+}
+function titleQuickPlay() {
+  // Jump straight into Random Vugg mode and roll a specimen on arrival.
+  switchMode('random');
+  try { runRandomVugg(); } catch (e) { console.error('Quick Play failed to roll:', e); }
+}
+function titleLoadGame() {
+  // Minimal save/load — looks for a serialized Fortress/Creative session
+  // in localStorage. If absent, tell the user; if present, restore.
+  let raw;
+  try { raw = localStorage.getItem('vugg-save-v1'); }
+  catch (e) { alert('localStorage is unavailable in this browser context.'); return; }
+  if (!raw) {
+    alert('No saved game found. Start a new run first, then use Save inside Creative mode.');
+    return;
+  }
+  try {
+    const save = JSON.parse(raw);
+    switchMode('fortress');
+    if (typeof fortressRestoreFromSave === 'function') {
+      fortressRestoreFromSave(save);
+    } else {
+      console.info('Loaded save:', save);
+      alert('Save found but Creative-mode restore is not yet wired. Full restore will come in a follow-up; your save file is intact.');
+    }
+  } catch (e) {
+    alert('Saved game could not be read: ' + e.message);
+  }
 }
 
 function switchMode(mode) {
@@ -6436,6 +6627,7 @@ function switchMode(mode) {
   const modeLibrary = document.getElementById('mode-library');
 
   // Hide title screen, show mode toggle
+  document.body.classList.remove('title-on');
   titleScreen.style.display = 'none';
   modeToggle.style.display = 'flex';
 
@@ -9186,6 +9378,18 @@ function idlePickScenario(val) {
     }
   }
 }
+
+// On initial page load, update the title-screen Load Game button state
+// based on whether a saved game exists in localStorage.
+(function titleInit() {
+  try {
+    const btn = document.getElementById('title-btn-load');
+    if (!btn) return;
+    const hasSave = !!localStorage.getItem('vugg-save-v1');
+    btn.disabled = !hasSave;
+    btn.title = hasSave ? 'Resume a saved vugg' : 'No saved game — start a new one first';
+  } catch (e) { /* localStorage unavailable; leave default */ }
+})();
 
 </script>
 </body>
