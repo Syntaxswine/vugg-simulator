@@ -234,6 +234,167 @@ h1 {
   font-style: italic;
 }
 
+/* ============== SAVE BUTTONS + COLLECTION VIEWER ============== */
+.btn-save {
+  background: #1a1a14;
+  color: #d4a843;
+  border: 1px solid #3a3520;
+  padding: 0.5rem 0.9rem;
+  font-family: inherit;
+  font-size: 0.85rem;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s, color 0.15s;
+}
+.btn-save:hover:not(:disabled) {
+  border-color: #f0c050;
+  color: #f0c050;
+  background: #2a2510;
+}
+.btn-save:disabled {
+  color: #5a4a30;
+  cursor: not-allowed;
+}
+
+.collection-viewer {
+  display: none;
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(5, 5, 4, 0.92);
+  z-index: 1000;
+  justify-content: center;
+  align-items: center;
+  padding: 2rem;
+}
+.collection-modal {
+  background: #0e0e0a;
+  border: 1px solid #3a3520;
+  border-radius: 8px;
+  width: min(1200px, 100%);
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.collection-head {
+  padding: 0.8rem 1.2rem;
+  border-bottom: 1px solid #2a2518;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+.collection-head h2 {
+  color: #f0c050;
+  margin: 0;
+  font-size: 1.25rem;
+  letter-spacing: 0.08em;
+}
+.collection-head .collection-progress {
+  color: #a89040;
+  font-size: 0.82rem;
+  font-style: italic;
+}
+.collection-close {
+  background: transparent;
+  color: #8a7a40;
+  border: 1px solid #3a3520;
+  padding: 0.3rem 0.8rem;
+  border-radius: 4px;
+  font-family: inherit;
+  cursor: pointer;
+}
+.collection-close:hover { color: #f0c050; border-color: #f0c050; }
+.collection-body {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+}
+.collection-list {
+  width: 38%;
+  border-right: 1px solid #2a2518;
+  overflow-y: auto;
+  padding: 0.6rem;
+}
+.collection-detail {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1rem 1.4rem;
+}
+.spec-row {
+  padding: 0.7rem 0.9rem;
+  border: 1px solid #2a2518;
+  border-radius: 5px;
+  margin-bottom: 0.5rem;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+.spec-row:hover { border-color: #8a7a40; background: #15150e; }
+.spec-row-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0.5rem;
+  margin-bottom: 0.35rem;
+}
+.spec-name { color: #f0c050; font-weight: bold; font-size: 0.92rem; }
+.spec-date { color: #5a4a30; font-size: 0.72rem; font-style: italic; white-space: nowrap; }
+.spec-row-body { font-size: 0.75rem; color: #8a7a40; }
+.spec-chip {
+  display: inline-block;
+  padding: 2px 6px;
+  background: rgba(138,122,64,0.14);
+  color: #a89040;
+  border-radius: 3px;
+  margin-right: 4px;
+  font-family: ui-monospace, Menlo, monospace;
+  font-size: 0.7rem;
+}
+.collection-detail h3 {
+  color: #f0c050;
+  margin: 0 0 0.3rem 0;
+  letter-spacing: 0.04em;
+}
+.collection-detail .spec-meta {
+  color: #6a5a30;
+  font-size: 0.78rem;
+  margin-bottom: 1rem;
+  font-style: italic;
+}
+.spec-crystals {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  margin-bottom: 1rem;
+}
+.spec-crystal {
+  border: 1px solid #2a2518;
+  border-radius: 4px;
+  padding: 0.5rem 0.8rem;
+  background: #12120a;
+}
+.spec-crystal-name {
+  color: #f0c050;
+  text-transform: capitalize;
+  font-weight: bold;
+  margin-right: 0.6rem;
+}
+.spec-crystal-size { color: #d4a843; font-family: ui-monospace, Menlo, monospace; font-size: 0.85rem; }
+.spec-crystal-details { color: #8a7a40; font-size: 0.75rem; margin-top: 0.2rem; }
+.spec-actions { text-align: right; }
+.spec-actions button {
+  background: transparent;
+  color: #8a5a40;
+  border: 1px solid #3a3520;
+  padding: 0.35rem 0.8rem;
+  border-radius: 4px;
+  font-family: inherit;
+  font-size: 0.78rem;
+  cursor: pointer;
+}
+.spec-actions button:hover { color: #ff9090; border-color: #8a5a40; }
+
 .controls {
   display: flex;
   flex-wrap: wrap;
@@ -1759,6 +1920,7 @@ footer a:hover {
     <button class="btn-grow" id="btn-grow" onclick="runSimulation()">Grow</button>
     <button class="btn-random" id="btn-random" onclick="runRandom()">Random</button>
     <button class="btn-copy" id="btn-copy" onclick="copyOutput()">Copy to clipboard</button>
+    <button class="btn-save" id="btn-save-legends" onclick="saveCurrentLegends()" disabled title="Run a scenario first">💾 Save</button>
   </div>
 </div>
 
@@ -2294,6 +2456,7 @@ Scenarios:
 
     <div class="end-btns">
       <button class="btn-finish" onclick="fortressFinish()">📜 Finish &amp; Narrate</button>
+      <button class="btn-save" onclick="saveCurrentFortress()">💾 Save to Collection</button>
       <button class="btn-reset" onclick="fortressReset()">↩️ Reset</button>
       <button class="btn-copy" onclick="copyFortressLog()">Copy to clipboard</button>
     </div>
@@ -2445,8 +2608,24 @@ Scenarios:
       <input type="text" id="random-seed" placeholder="optional integer" style="width:10rem">
     </div>
     <button onclick="runRandomVugg()" style="background:#3a3518; color:#f0c050; border:1px solid #6a5420; padding:0.55rem 1.2rem; font-family:inherit; border-radius:4px; cursor:pointer;">🎲 Generate Vugg</button>
+    <button id="random-save-btn" onclick="saveCurrentRandom()" disabled title="Roll a vugg first" style="background:#1a1a14; color:#d4a843; border:1px solid #3a3520; padding:0.55rem 1rem; font-family:inherit; border-radius:4px; cursor:pointer;">💾 Save to Collection</button>
   </div>
   <div id="random-output" class="log" style="max-width:1100px;margin:1rem auto"></div>
+</div>
+
+<!-- Collection Viewer (modal, opens from title-screen Load Game button) -->
+<div class="collection-viewer" id="collection-viewer" onclick="if(event.target===this)closeCollectionViewer()">
+  <div class="collection-modal">
+    <div class="collection-head">
+      <h2>💎 YOUR COLLECTION</h2>
+      <span class="collection-progress" id="collection-progress"></span>
+      <button class="collection-close" onclick="closeCollectionViewer()">Close</button>
+    </div>
+    <div class="collection-body">
+      <div class="collection-list" id="collection-list"></div>
+      <div class="collection-detail" id="collection-detail"></div>
+    </div>
+  </div>
 </div>
 
 <!-- Library Mode -->
@@ -6406,6 +6585,8 @@ function runSimulation() {
 
   const sim = new VugSimulator(conditions, events);
   legendsSim = sim;
+  const legendsSaveBtn = document.getElementById('btn-save-legends');
+  if (legendsSaveBtn) { legendsSaveBtn.disabled = false; legendsSaveBtn.title = 'Save this run to your collection'; }
 
   for (let s = 0; s < totalSteps; s++) {
     const log = sim.run_step();
@@ -6569,11 +6750,204 @@ function showTitleScreen() {
   try {
     const btn = document.getElementById('title-btn-load');
     if (btn) {
-      const hasSave = !!localStorage.getItem('vugg-save-v1');
-      btn.disabled = !hasSave;
-      btn.title = hasSave ? 'Resume a saved vugg' : 'No saved game — start a new one first';
+      const items = loadCollection();
+      const hasItems = items.length > 0;
+      btn.disabled = !hasItems;
+      btn.title = hasItems
+        ? `Open your collection (${items.length} specimen${items.length === 1 ? '' : 's'})`
+        : 'No specimens saved yet — grow a vugg and press Save';
     }
   } catch (e) { /* localStorage unavailable (private browsing); leave button enabled */ }
+}
+
+// ============================================================
+// SPECIMEN COLLECTION — persistent records of every vugg you save
+// ============================================================
+// A "specimen" is a snapshot of a finished run: what grew, how big,
+// in what habit, under what scenario/archetype. Saves are appended
+// to localStorage['vugg-collection-v1']. The Load Game button opens
+// a browser that lists every saved specimen and tracks which minerals
+// you've 'unlocked' (grown at least once across any saved run).
+const COLLECTION_KEY = 'vugg-collection-v1';
+
+function loadCollection() {
+  try {
+    const raw = localStorage.getItem(COLLECTION_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch (e) {
+    console.warn('collection parse failed:', e);
+    return [];
+  }
+}
+function persistCollection(items) {
+  try { localStorage.setItem(COLLECTION_KEY, JSON.stringify(items)); return true; }
+  catch (e) { console.error('collection persist failed:', e); return false; }
+}
+function uniqueMineralsDiscovered() {
+  const seen = new Set();
+  for (const sp of loadCollection()) {
+    for (const c of (sp.crystals || [])) seen.add(c.mineral);
+  }
+  return seen;
+}
+
+// Convert a live VugSimulator into a lightweight specimen record.
+function buildSpecimenRecord(sim, meta) {
+  const crystals = (sim.crystals || [])
+    .filter(c => c.total_growth_um > 0 || (c.zones && c.zones.length))
+    .map(c => ({
+      mineral: c.mineral,
+      id: c.crystal_id,
+      mm: +c.c_length_mm.toFixed(3),
+      a_mm: +((c.a_width_mm || 0).toFixed(3)),
+      habit: c.habit || '',
+      forms: c.dominant_forms || [],
+      twinned: !!c.twinned,
+      twin_law: c.twin_law || null,
+      position: c.position || '',
+      zones: (c.zones || []).length,
+      fluorescence: typeof c.predict_fluorescence === 'function' ? c.predict_fluorescence() : null,
+    }));
+
+  // Friendly auto-name: "Porphyry · 7 crystals" or "Pegmatite specimen · 5"
+  const base = meta.archetype
+    ? meta.archetype.replace(/_/g, ' ')
+    : (meta.scenario || meta.mode || 'vugg');
+  const displayName = `${base[0].toUpperCase() + base.slice(1)} · ${crystals.length} crystal${crystals.length === 1 ? '' : 's'}`;
+
+  return {
+    id: `spec-${Date.now().toString(36)}-${Math.floor(Math.random() * 1296).toString(36)}`,
+    saved_at: new Date().toISOString(),
+    name: meta.name || displayName,
+    mode: meta.mode || 'simulation',
+    scenario: meta.scenario || null,
+    archetype: meta.archetype || null,
+    seed: meta.seed ?? null,
+    steps: sim.step || 0,
+    final_T: sim.conditions ? +sim.conditions.temperature.toFixed(1) : null,
+    pH: sim.conditions ? +sim.conditions.fluid.pH.toFixed(2) : null,
+    crystal_count: crystals.length,
+    crystals,
+  };
+}
+
+function saveSpecimen(sim, meta) {
+  if (!sim || !sim.crystals) {
+    alert('Nothing to save — no simulation has run yet.');
+    return false;
+  }
+  const grown = sim.crystals.filter(c => c.total_growth_um > 0);
+  if (!grown.length) {
+    if (!confirm('No crystals grew in this run. Save the empty specimen anyway?')) return false;
+  }
+  const rec = buildSpecimenRecord(sim, meta);
+  const newlyDiscovered = Array.from(new Set(rec.crystals.map(c => c.mineral)))
+    .filter(m => !uniqueMineralsDiscovered().has(m));
+  const items = loadCollection();
+  items.push(rec);
+  if (!persistCollection(items)) {
+    alert('Could not save — localStorage is full or unavailable.');
+    return false;
+  }
+  // Update the title-screen Load Game button if present.
+  const btn = document.getElementById('title-btn-load');
+  if (btn) btn.disabled = false;
+  const discoveryMsg = newlyDiscovered.length
+    ? `\n\n🆕 First time growing: ${newlyDiscovered.join(', ')}`
+    : '';
+  alert(`Saved "${rec.name}" to your collection.${discoveryMsg}`);
+  return true;
+}
+
+function deleteSpecimen(id) {
+  const items = loadCollection().filter(s => s.id !== id);
+  persistCollection(items);
+  if (!items.length) {
+    const btn = document.getElementById('title-btn-load');
+    if (btn) btn.disabled = true;
+  }
+}
+
+// ============================================================
+// COLLECTION VIEWER — opened from the title-screen Load Game button
+// ============================================================
+function openCollectionViewer() {
+  const items = loadCollection();
+  const wrap = document.getElementById('collection-viewer');
+  const list = document.getElementById('collection-list');
+  const progress = document.getElementById('collection-progress');
+  const detail = document.getElementById('collection-detail');
+
+  // Progress line: X of N unique minerals grown
+  const discovered = uniqueMineralsDiscovered();
+  const totalSpecies = typeof MINERAL_SPEC === 'object' ? Object.keys(MINERAL_SPEC).length : 19;
+  progress.textContent = `${discovered.size} of ${totalSpecies} mineral species unlocked · ${items.length} specimen${items.length === 1 ? '' : 's'} in collection`;
+
+  if (!items.length) {
+    list.innerHTML = '<div class="library-empty">Nothing saved yet. Grow a vugg, then press Save.</div>';
+    detail.innerHTML = '';
+  } else {
+    list.innerHTML = items
+      .slice()
+      .reverse()
+      .map(s => {
+        const d = new Date(s.saved_at);
+        const dateStr = d.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+        const mins = [...new Set((s.crystals || []).map(c => c.mineral))];
+        const chips = mins.slice(0, 4).map(m => `<span class="spec-chip">${m}</span>`).join('') + (mins.length > 4 ? `<span class="spec-chip">+${mins.length - 4}</span>` : '');
+        return `<div class="spec-row" data-id="${s.id}" onclick="showSpecimen('${s.id}')">
+          <div class="spec-row-head">
+            <span class="spec-name">${s.name}</span>
+            <span class="spec-date">${dateStr}</span>
+          </div>
+          <div class="spec-row-body">${chips || '<em>(empty)</em>'}</div>
+        </div>`;
+      }).join('');
+    // Auto-open most recent
+    const latest = items[items.length - 1];
+    if (latest) showSpecimen(latest.id);
+  }
+  wrap.style.display = 'flex';
+}
+
+function closeCollectionViewer() {
+  document.getElementById('collection-viewer').style.display = 'none';
+}
+
+function showSpecimen(id) {
+  const spec = loadCollection().find(s => s.id === id);
+  const detail = document.getElementById('collection-detail');
+  if (!spec) { detail.innerHTML = '<div class="library-empty">Specimen not found.</div>'; return; }
+  const d = new Date(spec.saved_at);
+  const header = [
+    `<h3>${spec.name}</h3>`,
+    `<div class="spec-meta">${d.toLocaleString()} · ${spec.mode}`,
+    spec.scenario ? ` · scenario: ${spec.scenario}` : '',
+    spec.archetype ? ` · archetype: ${spec.archetype}` : '',
+    spec.seed != null ? ` · seed: ${spec.seed}` : '',
+    ` · ran ${spec.steps} steps · final T ${spec.final_T}°C · pH ${spec.pH}`,
+    '</div>',
+  ].join('');
+
+  const crystals = (spec.crystals || [])
+    .slice()
+    .sort((a, b) => b.mm - a.mm)
+    .map(c => {
+      const twin = c.twinned ? ` · twinned (${c.twin_law || 'unknown law'})` : '';
+      const pos = c.position ? ` · ${c.position}` : '';
+      const fl = c.fluorescence && c.fluorescence !== 'non-fluorescent' ? ` · ${c.fluorescence}` : '';
+      return `<div class="spec-crystal">
+        <span class="spec-crystal-name">${c.mineral}</span>
+        <span class="spec-crystal-size">${c.mm.toFixed(2)} mm</span>
+        <div class="spec-crystal-details">${c.habit}${twin}${pos}${fl} · ${c.zones} growth zones</div>
+      </div>`;
+    }).join('');
+
+  detail.innerHTML = header +
+    (crystals ? `<div class="spec-crystals">${crystals}</div>` : '<div class="library-empty">No crystals recorded.</div>') +
+    `<div class="spec-actions"><button onclick="if(confirm('Delete this specimen from your collection?')){deleteSpecimen('${spec.id}'); openCollectionViewer();}">🗑 Delete</button></div>`;
 }
 
 // Title screen button handlers.
@@ -6588,27 +6962,32 @@ function titleQuickPlay() {
   try { runRandomVugg(); } catch (e) { console.error('Quick Play failed to roll:', e); }
 }
 function titleLoadGame() {
-  // Minimal save/load — looks for a serialized Fortress/Creative session
-  // in localStorage. If absent, tell the user; if present, restore.
-  let raw;
-  try { raw = localStorage.getItem('vugg-save-v1'); }
-  catch (e) { alert('localStorage is unavailable in this browser context.'); return; }
-  if (!raw) {
-    alert('No saved game found. Start a new run first, then use Save inside Creative mode.');
-    return;
-  }
-  try {
-    const save = JSON.parse(raw);
-    switchMode('fortress');
-    if (typeof fortressRestoreFromSave === 'function') {
-      fortressRestoreFromSave(save);
-    } else {
-      console.info('Loaded save:', save);
-      alert('Save found but Creative-mode restore is not yet wired. Full restore will come in a follow-up; your save file is intact.');
-    }
-  } catch (e) {
-    alert('Saved game could not be read: ' + e.message);
-  }
+  // Opens the Collection viewer: list of saved specimens + unlocked mineral progress.
+  openCollectionViewer();
+}
+
+// Save handlers per mode — called by the in-mode Save buttons.
+function saveCurrentLegends() {
+  if (!legendsSim) { alert('Nothing to save — press Grow first.'); return; }
+  const scenario = document.getElementById('scenario').value;
+  const seedInput = document.getElementById('seed').value;
+  saveSpecimen(legendsSim, {
+    mode: 'simulation',
+    scenario,
+    seed: seedInput ? parseInt(seedInput, 10) : null,
+  });
+}
+function saveCurrentFortress() {
+  if (!fortressSim) { alert('Nothing to save — start a run first.'); return; }
+  saveSpecimen(fortressSim, { mode: 'creative' });
+}
+function saveCurrentRandom() {
+  if (!randomSim) { alert('Nothing to save — press Generate first.'); return; }
+  saveSpecimen(randomSim, {
+    mode: 'random',
+    archetype: randomSimArchetype,
+    seed: randomSimSeed,
+  });
 }
 
 function switchMode(mode) {
@@ -7154,6 +7533,10 @@ function narrateDiscovery(sim, archetype) {
   return parts.join(' ');
 }
 
+let randomSim = null;
+let randomSimArchetype = null;
+let randomSimSeed = null;
+
 function runRandomVugg() {
   const out = document.getElementById('random-output');
   if (!out) return;
@@ -7169,6 +7552,11 @@ function runRandomVugg() {
 
   const sim = new VugSimulator(scen.conditions, scen.events);
   for (let i = 0; i < scen.defaultSteps; i++) sim.run_step();
+  randomSim = sim;
+  randomSimArchetype = scen.archetype;
+  randomSimSeed = seed;
+  const saveBtn = document.getElementById('random-save-btn');
+  if (saveBtn) saveBtn.disabled = false;
 
   const discovery = narrateDiscovery(sim, scen.archetype);
   const full = sim.narrate ? sim.narrate() : '';
@@ -9380,14 +9768,17 @@ function idlePickScenario(val) {
 }
 
 // On initial page load, update the title-screen Load Game button state
-// based on whether a saved game exists in localStorage.
+// based on whether the specimen collection has any entries.
 (function titleInit() {
   try {
     const btn = document.getElementById('title-btn-load');
     if (!btn) return;
-    const hasSave = !!localStorage.getItem('vugg-save-v1');
-    btn.disabled = !hasSave;
-    btn.title = hasSave ? 'Resume a saved vugg' : 'No saved game — start a new one first';
+    const items = (typeof loadCollection === 'function') ? loadCollection() : [];
+    const hasItems = items.length > 0;
+    btn.disabled = !hasItems;
+    btn.title = hasItems
+      ? `Open your collection (${items.length} specimen${items.length === 1 ? '' : 's'})`
+      : 'No specimens saved yet — grow a vugg and press Save';
   } catch (e) { /* localStorage unavailable; leave default */ }
 })();
 
