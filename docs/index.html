@@ -3338,7 +3338,10 @@ class VugConditions {
 
   supersaturation_malachite() {
     if (this.fluid.Cu < 5 || this.fluid.CO3 < 20 || this.fluid.O2 < 0.3) return 0;
-    let sigma = (this.fluid.Cu / 50.0) * (this.fluid.CO3 / 200.0) * (this.fluid.O2 / 1.0);
+    // Denominators reference realistic supergene weathering fluid (Cu ~25 ppm,
+    // CO₃ ~100 ppm). The older 50/200 values were tuned for Cu-saturated
+    // porphyry fluids and starved supergene vugs of their flagship Cu mineral.
+    let sigma = (this.fluid.Cu / 25.0) * (this.fluid.CO3 / 100.0) * (this.fluid.O2 / 1.0);
     if (this.temperature > 50) {
       sigma *= Math.exp(-0.005 * (this.temperature - 50));
     }

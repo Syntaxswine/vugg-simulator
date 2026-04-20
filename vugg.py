@@ -364,14 +364,19 @@ class VugConditions:
     
     def supersaturation_malachite(self) -> float:
         """Malachite (Cu₂(CO₃)(OH)₂) supersaturation. Needs Cu + CO₃ + oxidizing.
-        
+
         The classic green copper carbonate — botryoidal, banded, gorgeous.
         Low-temperature mineral. Forms from oxidation of primary copper sulfides.
         Dissolves easily in acid (fizzes — it's a carbonate).
+
+        Denominators reference realistic supergene weathering fluid
+        (Cu ~25 ppm, CO₃ ~100 ppm from dissolved meteoric CO₂). The older
+        50/200 values were tuned for Cu-saturated porphyry fluids and
+        starved supergene vugs of their flagship copper mineral.
         """
         if self.fluid.Cu < 5 or self.fluid.CO3 < 20 or self.fluid.O2 < 0.3:
             return 0
-        sigma = (self.fluid.Cu / 50.0) * (self.fluid.CO3 / 200.0) * (self.fluid.O2 / 1.0)
+        sigma = (self.fluid.Cu / 25.0) * (self.fluid.CO3 / 100.0) * (self.fluid.O2 / 1.0)
         # Temperature penalty at high T — malachite is a LOW temperature mineral
         if self.temperature > 50:
             sigma *= math.exp(-0.005 * (self.temperature - 50))
