@@ -319,11 +319,17 @@ class WallState:
     vug_diameter_mm: float = 50.0
     initial_radius_mm: float = 25.0
     ring_spacing_mm: float = 1.0
+    # Monotonic scale reference for the renderer. Seeded generously
+    # (2× initial radius) so moderate dissolution doesn't shrink the
+    # rendered view, and only grows — never snaps back.
+    max_seen_radius_mm: float = 0.0
     rings: List[List[WallCell]] = field(default_factory=list)
 
     def __post_init__(self):
         if self.initial_radius_mm <= 0:
             self.initial_radius_mm = self.vug_diameter_mm / 2.0
+        if self.max_seen_radius_mm <= 0:
+            self.max_seen_radius_mm = self.initial_radius_mm * 2.0
         if not self.rings:
             self.rings = [
                 [WallCell() for _ in range(self.cells_per_ring)]
@@ -381,6 +387,12 @@ class WallState:
         per_cell = rate_mm * N / len(unblocked)
         for i in unblocked:
             ring0[i].wall_depth += per_cell
+        # Bump the monotonic render scale if any cell just passed the
+        # running max.
+        for c in ring0:
+            r = self.initial_radius_mm + c.wall_depth
+            if r > self.max_seen_radius_mm:
+                self.max_seen_radius_mm = r
         return len(unblocked)
 
     def clear(self) -> None:
@@ -396,22 +408,33 @@ class WallState:
         """Mark the cells this crystal occupies with its id / mineral /
         thickness. Called after growth each step. Only ring[0] is painted
         in v1; when multi-ring rendering arrives, void_reach will extend
-        the paint deeper."""
-        if crystal.wall_center_cell is None or crystal.total_growth_um <= 0:
+        the paint deeper.
+
+        Footprint math: wall_spread × total_growth gives the raw arc,
+        but the spec's spread values (0.2–0.9) describe the fraction of
+        the crystal's base that hugs the wall, so the actual arc a
+        coating habit sweeps needs a multiplier. FOOTPRINT_SCALE = 4.0
+        puts a 5mm coating (0.8) at ~16mm of arc and a 5mm prismatic
+        (0.2) at ~4mm. Anchor cells are painted even at zero thickness
+        so fresh nucleations shield their slice of wall immediately.
+        """
+        if crystal.wall_center_cell is None:
             return
-        # Lateral arc coverage grows with size × wall_spread. Convert mm
-        # of arc to cells using the current mean cell_arc_mm.
-        arc_mm = (crystal.total_growth_um / 1000.0) * max(crystal.wall_spread, 0.01)
+        FOOTPRINT_SCALE = 4.0
+        arc_mm = ((crystal.total_growth_um / 1000.0)
+                  * max(crystal.wall_spread, 0.05)
+                  * FOOTPRINT_SCALE)
         half_cells = max(1, int(round(arc_mm / self.cell_arc_mm / 2.0)))
+        thickness = max(crystal.total_growth_um, 1.0)  # nucleated = visible
         ring0 = self.rings[0]
         N = self.cells_per_ring
         for offset in range(-half_cells, half_cells + 1):
             idx = (crystal.wall_center_cell + offset) % N
             cell = ring0[idx]
-            if cell.thickness_um < crystal.total_growth_um:
+            if cell.thickness_um < thickness:
                 cell.crystal_id = crystal.crystal_id
                 cell.mineral = crystal.mineral
-                cell.thickness_um = crystal.total_growth_um
+                cell.thickness_um = thickness
 
 
 @dataclass

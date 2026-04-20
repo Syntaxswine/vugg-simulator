@@ -3381,6 +3381,12 @@ class WallState {
     this.vug_diameter_mm = opts.vug_diameter_mm ?? 50.0;
     this.initial_radius_mm = opts.initial_radius_mm ?? (this.vug_diameter_mm / 2);
     this.ring_spacing_mm = opts.ring_spacing_mm ?? 1.0;
+    // Monotonic scale reference for the renderer. Starts generously (2×
+    // initial radius) so the vug can enlarge without the view zooming
+    // in, and only grows — it never shrinks back. Without this the
+    // auto-fit rescales every step and the rendered circle literally
+    // gets smaller as the wall dissolves outward.
+    this.max_seen_radius_mm = this.initial_radius_mm * 2;
     this.rings = [];
     for (let r = 0; r < this.ring_count; r++) {
       const ring = [];
@@ -3432,6 +3438,12 @@ class WallState {
     if (!unblocked.length) return 0;
     const perCell = rateMm * N / unblocked.length;
     for (const i of unblocked) ring0[i].wall_depth += perCell;
+    // Bump the monotonic render scale if any cell just passed the
+    // current maximum.
+    for (const c of ring0) {
+      const r = this.initial_radius_mm + c.wall_depth;
+      if (r > this.max_seen_radius_mm) this.max_seen_radius_mm = r;
+    }
     return unblocked.length;
   }
 
@@ -3448,19 +3460,34 @@ class WallState {
 
   // Mark the cells this crystal occupies with its id / mineral / thickness.
   // Only ring[0] in v1; multi-ring paint will follow void_reach later.
+  //
+  // Footprint math: wall_spread × total_growth gives the raw arc, but
+  // the spec's spread values (0.2–0.9) describe the *fraction* of the
+  // crystal's base that hugs the wall, so the actual arc a coating
+  // habit sweeps needs a multiplier. FOOTPRINT_SCALE of 4 puts a 5mm
+  // coating (0.8) at ~16mm of arc (a realistic coating footprint) and
+  // a 5mm prismatic (0.2) at ~4mm (a realistic projecting stub).
+  // Also paint the anchor cell *always* for nucleated crystals, even
+  // before their first growth zone — otherwise a fresh crystal leaves
+  // its slice of wall unshielded, the acid burns through, and the
+  // crystal appears to vanish on the topo map.
   paintCrystal(crystal) {
-    if (crystal.wall_center_cell == null || crystal.total_growth_um <= 0) return;
-    const arcMm = (crystal.total_growth_um / 1000.0) * Math.max(crystal.wall_spread, 0.01);
+    if (crystal.wall_center_cell == null) return;
+    const FOOTPRINT_SCALE = 4.0;
+    const arcMm = (crystal.total_growth_um / 1000.0)
+                  * Math.max(crystal.wall_spread, 0.05)
+                  * FOOTPRINT_SCALE;
     const halfCells = Math.max(1, Math.round(arcMm / this.cell_arc_mm / 2));
+    const thickness = Math.max(crystal.total_growth_um, 1);  // nucleated = visible
     const ring0 = this.rings[0];
     const N = this.cells_per_ring;
     for (let offset = -halfCells; offset <= halfCells; offset++) {
       const idx = ((crystal.wall_center_cell + offset) % N + N) % N;
       const cell = ring0[idx];
-      if (cell.thickness_um < crystal.total_growth_um) {
+      if (cell.thickness_um < thickness) {
         cell.crystal_id = crystal.crystal_id;
         cell.mineral = crystal.mineral;
-        cell.thickness_um = crystal.total_growth_um;
+        cell.thickness_um = thickness;
       }
     }
   }
@@ -7492,6 +7519,7 @@ function hideAllMenuAndModePanels() {
     'legends-controls', 'output-container',
     'fortress-panel', 'groove-panel', 'idle-panel',
     'library-panel', 'random-panel',
+    'topo-panel',
   ];
   for (const id of ids) {
     const el = document.getElementById(id);
@@ -7499,6 +7527,13 @@ function hideAllMenuAndModePanels() {
   }
   const modeToggle = document.getElementById('mode-toggle');
   if (modeToggle) modeToggle.style.display = 'none';
+  // Stop any replay timer — the canvas is about to be hidden.
+  if (typeof _topoPlaybackTimer !== 'undefined' && _topoPlaybackTimer) {
+    clearInterval(_topoPlaybackTimer);
+    _topoPlaybackTimer = null;
+    const btn = document.getElementById('topo-replay-btn');
+    if (btn) { btn.textContent = '▶'; btn.classList.remove('playing'); }
+  }
 }
 
 function openNewGameMenu() {
@@ -10201,14 +10236,15 @@ function topoRender(optOverrideRing) {
   const N = ring0.length;
   const initR = wall ? wall.initial_radius_mm : 25;
 
-  // Scale the view so the widest point of the current wall fills ~82%
-  // of the shorter canvas dimension. As the vug dissolves outward, the
-  // scale re-tightens so the full shape stays visible.
-  let maxWallR = initR;
+  // Scale monotonically: use max_seen_radius_mm (seeded at 2× initial
+  // radius, only grows) so the rendered vug doesn't shrink back when
+  // new dissolution doesn't push further than the running max.
+  let maxWallR = wall ? wall.max_seen_radius_mm : initR * 2;
   for (const c of ring0) {
     const r = initR + c.wall_depth;
     if (r > maxWallR) maxWallR = r;
   }
+  if (wall && maxWallR > wall.max_seen_radius_mm) wall.max_seen_radius_mm = maxWallR;
   const centerPad = 48;  // leave room for the scale bar and legend
   const fit = Math.min(cssW, cssH - centerPad) * 0.82 / 2;
   const mmToPx = fit / maxWallR;
@@ -10326,7 +10362,7 @@ function _topoTooltipFromEvent(ev) {
   const cssW = rect.width, cssH = rect.height;
   const N = ring0.length;
   const initR = sim.wall_state.initial_radius_mm;
-  let maxWallR = initR;
+  let maxWallR = sim.wall_state.max_seen_radius_mm || initR * 2;
   for (const c of ring0) {
     const r = initR + c.wall_depth;
     if (r > maxWallR) maxWallR = r;
