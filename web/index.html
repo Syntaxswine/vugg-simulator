@@ -64,6 +64,15 @@ h1 {
   color: #d4a843;
 }
 
+@media (max-width: 600px) {
+  .mode-toggle button {
+    padding: 0.5rem 0.6rem;
+    font-size: 0.8rem;
+    flex: 1;
+    min-width: 0;
+  }
+}
+
 /* ============== LIBRARY MODE ============== */
 .library-panel {
   display: none;
@@ -1942,13 +1951,10 @@ footer a:hover {
 
 <!-- Mode Toggle -->
 <div class="mode-toggle" id="mode-toggle" style="display:none">
-  <button id="mode-legends" onclick="switchMode('legends')">🔬 Simulation</button>
-  <button id="mode-fortress" onclick="switchMode('fortress')">🏰 Creative</button>
+  <button id="mode-current" onclick="goToCurrentGame()">▶ Current Game</button>
   <button id="mode-groove" onclick="switchMode('groove')">📀 Record Player</button>
-  <button id="mode-idle" onclick="switchMode('idle')">🌀 The Groove</button>
   <button id="mode-library" onclick="switchMode('library')">📚 Library</button>
-  <button id="mode-random" onclick="switchMode('random')">🎲 Random Vugg</button>
-  <button class="mode-home-btn" onclick="showTitleScreen()">🏠</button>
+  <button id="mode-home" class="mode-home-btn" onclick="showTitleScreen()">🏠 Home</button>
 </div>
 
 <!-- Legends Mode Controls (existing) -->
@@ -6768,6 +6774,8 @@ function showTitleScreen() {
   const titleScreen = document.getElementById('title-screen');
   if (titleScreen) titleScreen.style.display = 'block';
   idleStop(); // stop any running idle simulation
+  if (typeof grooveStop === 'function' && groovePlaying) grooveStop();
+  currentGameMode = null;
   refreshTitleLoadButton();
 }
 
@@ -7123,6 +7131,13 @@ function titleLoadGame() {
   switchMode('library');
 }
 
+// The last "playable" mode the user was in. Used by the Current Game
+// nav button so it can return the player to their in-progress vugg
+// (or their just-finished narrated result) from Record Player /
+// Library. Cleared when the user goes Home.
+let currentGameMode = null;
+const GAME_MODES = ['legends', 'fortress', 'idle', 'random'];
+
 function switchMode(mode) {
   const titleScreen = document.getElementById('title-screen');
   const modeToggle = document.getElementById('mode-toggle');
@@ -7132,11 +7147,17 @@ function switchMode(mode) {
   const groovePanel = document.getElementById('groove-panel');
   const idlePanel = document.getElementById('idle-panel');
   const libraryPanel = document.getElementById('library-panel');
-  const modeLegends = document.getElementById('mode-legends');
-  const modeFortress = document.getElementById('mode-fortress');
+  const modeCurrent = document.getElementById('mode-current');
   const modeGroove = document.getElementById('mode-groove');
-  const modeIdle = document.getElementById('mode-idle');
   const modeLibrary = document.getElementById('mode-library');
+
+  // Pause background activity before leaving it.
+  if (mode !== 'idle' && idleRunning && !idlePaused && typeof idleTogglePause === 'function') {
+    idleTogglePause();
+  }
+  if (mode !== 'groove' && groovePlaying && typeof grooveStop === 'function') {
+    grooveStop();
+  }
 
   // Hide title screen, show mode toggle
   document.body.classList.remove('title-on');
@@ -7155,31 +7176,24 @@ function switchMode(mode) {
   if (newGamePanel) newGamePanel.style.display = 'none';
   const scenariosPanel = document.getElementById('scenarios-panel');
   if (scenariosPanel) scenariosPanel.style.display = 'none';
-  modeLegends.classList.remove('active');
-  modeFortress.classList.remove('active');
-  modeGroove.classList.remove('active');
-  if (modeIdle) modeIdle.classList.remove('active');
+  if (modeCurrent) modeCurrent.classList.remove('active');
+  if (modeGroove) modeGroove.classList.remove('active');
   if (modeLibrary) modeLibrary.classList.remove('active');
-  const modeRandom = document.getElementById('mode-random');
-  if (modeRandom) modeRandom.classList.remove('active');
 
   if (mode === 'legends') {
     legendsControls.style.display = 'flex';
     outputContainer.style.display = 'block';
-    modeLegends.classList.add('active');
     timeScale = 5.0; // ~50,000 years per step
   } else if (mode === 'fortress') {
     fortressPanel.style.display = 'block';
-    modeFortress.classList.add('active');
     timeScale = 5.0; // ~50,000 years per step
   } else if (mode === 'groove') {
     groovePanel.style.display = 'block';
-    modeGroove.classList.add('active');
+    if (modeGroove) modeGroove.classList.add('active');
     groovePopulateCrystals();
     timeScale = 1.0; // ~10,000 years per step (real-time geological pace)
   } else if (mode === 'idle') {
     if (idlePanel) idlePanel.style.display = 'block';
-    if (modeIdle) modeIdle.classList.add('active');
     timeScale = 1.0; // ~10,000 years per step
     idleInit();
   } else if (mode === 'library') {
@@ -7189,9 +7203,14 @@ function switchMode(mode) {
   } else if (mode === 'random') {
     const rp = document.getElementById('random-panel');
     if (rp) rp.style.display = 'block';
-    const mr = document.getElementById('mode-random');
-    if (mr) mr.classList.add('active');
     timeScale = 5.0;
+  }
+
+  // Remember the active game so the Current Game nav button can
+  // return the player here from Record Player / Library.
+  if (GAME_MODES.includes(mode)) {
+    currentGameMode = mode;
+    if (modeCurrent) modeCurrent.classList.add('active');
   }
 
   // Leaving Groove (or opening any non-groove mode) drops any
@@ -7200,6 +7219,16 @@ function switchMode(mode) {
   if (mode !== 'groove' && typeof clearGrooveCollection === 'function') {
     clearGrooveCollection();
   }
+}
+
+// Nav handler: return to the active game, or start a Quick Play
+// (Random Vugg) if there isn't one.
+function goToCurrentGame() {
+  if (currentGameMode && GAME_MODES.includes(currentGameMode)) {
+    switchMode(currentGameMode);
+    return;
+  }
+  titleQuickPlay();
 }
 
 // ============================================================
