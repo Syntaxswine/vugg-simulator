@@ -613,6 +613,10 @@ class GrowthZone:
     trace_Al: float = 0.0
     trace_Ti: float = 0.0
     trace_Pb: float = 0.0       # Pb — amazonite, galena inclusions
+    radiation_damage: float = 0.0  # cumulative α-dose (arbitrary units). Quartz
+                                   # zones irradiated by nearby uraninite accrue
+                                   # damage step-by-step; ≥0.3 averaged across
+                                   # zones starts to read as smoky.
     fluid_inclusion: bool = False
     inclusion_type: str = ""     # "2-phase", "3-phase", "vapor-rich"
     note: str = ""
@@ -723,13 +727,29 @@ class Crystal:
         avg_Mn = sum(z.trace_Mn for z in self.zones) / len(self.zones)
         avg_Al = sum(z.trace_Al for z in self.zones) / len(self.zones)
         avg_Ti = sum(z.trace_Ti for z in self.zones) / len(self.zones)
-        
+        avg_rad = sum(z.radiation_damage for z in self.zones) / len(self.zones)
+
         if self.mineral == "quartz":
-            # Quartz color depends on trace elements + radiation history
-            # Fe³⁺ → amethyst (with radiation), citrine (with heat or no radiation)
-            # Al + radiation → smoky quartz
-            # Ti → rutilated (but that's inclusions, not substitution)
-            # Pure → colorless/milky
+            # Quartz color depends on trace elements + actual radiation dose
+            # integrated across growth zones. Thresholds match the color_rules
+            # block in data/minerals.json — pegmatite-grade dose + trace Al
+            # produces smoky quartz even when Al is sub-ppm.
+            if avg_rad > 0.6:
+                if avg_Fe > 3.0 and avg_Al > 1.0:
+                    return "dark smoky amethyst — heavy α-dose, Al + Fe color centers"
+                if avg_Al > 0.3:
+                    return "dark smoky to morion — heavy α-damage in Al-bearing lattice"
+                return "faintly smoky — heavy α-dose but Al-starved lattice"
+            if avg_rad > 0.3:
+                if avg_Fe > 3.0 and avg_Al > 1.0:
+                    return "smoky amethyst — α-damage plus Fe³⁺ color centers (zoned)"
+                if avg_Al > 0.3:
+                    return "smoky — α-damage activated Al-hole color centers"
+                if avg_Fe > 3.0:
+                    return "amethyst — Fe³⁺ color centers activated by radiation"
+                return "pale smoky tint — moderate α-dose, Al-poor lattice"
+            if avg_rad > 0.1:
+                return "pale smoky tint — modest α-dose"
             if avg_Fe > 3.0 and avg_Al > 3.0:
                 return ("iron+aluminum bearing — amethyst if irradiated (Fe³⁺ color centers), "
                         "smoky if Al-dominated radiation damage, citrine if heated")
@@ -3070,6 +3090,28 @@ class VugSimulator:
         self.crystals.append(crystal)
         return crystal
 
+    def _apply_radiation_dose(self) -> None:
+        """Accumulate α-damage on every quartz growth zone while any uraninite
+        is still active in the vug. The damage is stored per-zone so it persists
+        after the uraninite later dissolves; the crystal's final color depends
+        on integrated dose across all zones (see Crystal.predict_color)."""
+        # Enclosed uraninite still emits — active=False via enclosure doesn't
+        # stop alpha decay. Only dissolution removes the crystal as a source
+        # (the uranium went back into solution).
+        uraninite_sources = [c for c in self.crystals if c.mineral == "uraninite" and not c.dissolved]
+        if not uraninite_sources:
+            return
+        # Dose scales with number of uraninite sources present. 0.02 per source
+        # per step puts ~15-25 steps of single-source exposure at the smoky
+        # threshold (0.3 avg), matching the spec color_rules in minerals.json.
+        dose = 0.02 * len(uraninite_sources)
+        for crystal in self.crystals:
+            if crystal.mineral != "quartz":
+                continue
+            for zone in crystal.zones:
+                if zone.thickness_um > 0:
+                    zone.radiation_damage += dose
+
     def _at_nucleation_cap(self, mineral: str) -> bool:
         """True if the mineral has reached its spec max_nucleation_count.
         Counts every crystal of the species in self.crystals (active + dissolved),
@@ -3580,6 +3622,11 @@ class VugSimulator:
                     self.log.append(f"  ▲ {crystal.mineral.capitalize()} #{crystal.crystal_id}: "
                                   f"{crystal.describe_latest_zone()}")
         
+        # Alpha-damage any quartz present while uraninite exists in the vug.
+        # Each existing zone accumulates dose per step — damage is permanent,
+        # persisting even after the uraninite later dissolves away.
+        self._apply_radiation_dose()
+
         # Check for enclosure events — larger crystals swallowing smaller ones
         self.check_enclosure()
         
@@ -4395,12 +4442,42 @@ class VugSimulator:
                 f"producing growth hillocks) and slow, high-quality periods near equilibrium. "
                 f"This oscillation would be visible as alternating clear and milky zones."
             )
-        
+
+        # Alpha-damage history from nearby uraninite.
+        rad_zones = [z for z in c.zones if z.radiation_damage > 0]
+        if rad_zones:
+            avg_rad = sum(z.radiation_damage for z in c.zones) / len(c.zones)
+            avg_Al = sum(z.trace_Al for z in c.zones) / len(c.zones)
+            avg_Fe = sum(z.trace_Fe for z in c.zones) / len(c.zones)
+            dosed_fraction = len(rad_zones) / len(c.zones)
+            if avg_rad > 0.6 and avg_Al > 0.3:
+                parts.append(
+                    f"Sustained α-bombardment from a uraninite neighbor darkened the "
+                    f"lattice to dark smoky — morion in the deepest zones. {len(rad_zones)} "
+                    f"of {len(c.zones)} growth zones record the irradiation."
+                )
+            elif avg_rad > 0.3 and avg_Al > 0.3:
+                parts.append(
+                    f"Alpha-damage from nearby uraninite activated Al-hole color centers "
+                    f"in {dosed_fraction*100:.0f}% of the growth zones — this crystal reads "
+                    f"as smoky quartz."
+                )
+            elif avg_rad > 0.3 and avg_Fe > 3.0:
+                parts.append(
+                    f"Radiation from adjacent uraninite activated Fe³⁺ color centers — "
+                    f"the crystal carries an amethyst tint where dose overlapped Fe-rich zones."
+                )
+            elif avg_rad > 0.1:
+                parts.append(
+                    f"A modest α-dose ({avg_rad:.2f}) crossed the growth history — the "
+                    f"crystal carries a faint smoky tint in the irradiated zones."
+                )
+
         size_desc = "microscopic" if c.c_length_mm < 0.5 else "thumbnail" if c.c_length_mm < 5 else "cabinet-sized"
         parts.append(f"Final size: {size_desc} ({c.c_length_mm:.1f} × {c.a_width_mm:.1f} mm).")
-        
+
         return " ".join(parts)
-    
+
     def _narrate_sphalerite(self, c: Crystal) -> str:
         """Narrate a sphalerite crystal's story."""
         parts = [f"Sphalerite #{c.crystal_id} grew to {c.c_length_mm:.1f} mm."]
