@@ -3064,23 +3064,31 @@ class VugSimulator:
             crystal.dominant_forms = ["{0001} basal plates", "hexagonal outline"]
         self.crystals.append(crystal)
         return crystal
-    
+
+    def _at_nucleation_cap(self, mineral: str) -> bool:
+        """True if the mineral has reached its spec max_nucleation_count.
+        Counts every crystal of the species in self.crystals (active + dissolved),
+        so swarms stay capped even as earlier crystals dissolve away."""
+        cap = MINERAL_SPEC.get(mineral, {}).get("max_nucleation_count")
+        if cap is None:
+            return False
+        return sum(1 for c in self.crystals if c.mineral == mineral) >= cap
+
     def check_nucleation(self):
         """Check if new crystals should nucleate."""
         # Quartz nucleation
         sigma_q = self.conditions.supersaturation_quartz()
-        all_quartz = [c for c in self.crystals if c.mineral == "quartz"]
-        existing_quartz = [c for c in all_quartz if c.active]
-        if sigma_q > 1.2 and len(all_quartz) < 3:
+        existing_quartz = [c for c in self.crystals if c.mineral == "quartz" and c.active]
+        if sigma_q > 1.2 and not self._at_nucleation_cap("quartz"):
             if not existing_quartz or (sigma_q > 2.0 and random.random() < 0.3):
                 c = self.nucleate("quartz")
                 self.log.append(f"  ✦ NUCLEATION: Quartz #{c.crystal_id} on {c.position} "
                               f"(T={self.conditions.temperature:.0f}°C, σ={sigma_q:.2f})")
         
-        # Calcite nucleation  
+        # Calcite nucleation
         sigma_c = self.conditions.supersaturation_calcite()
         existing_calcite = [c for c in self.crystals if c.mineral == "calcite" and c.active]
-        if sigma_c > 1.3 and not existing_calcite:
+        if sigma_c > 1.3 and not existing_calcite and not self._at_nucleation_cap("calcite"):
             c = self.nucleate("calcite")
             self.log.append(f"  ✦ NUCLEATION: Calcite #{c.crystal_id} on {c.position} "
                           f"(T={self.conditions.temperature:.0f}°C, σ={sigma_c:.2f})")
@@ -3088,7 +3096,7 @@ class VugSimulator:
         # Sphalerite nucleation
         sigma_s = self.conditions.supersaturation_sphalerite()
         existing_sph = [c for c in self.crystals if c.mineral == "sphalerite" and c.active]
-        if sigma_s > 1.0 and not existing_sph:
+        if sigma_s > 1.0 and not existing_sph and not self._at_nucleation_cap("sphalerite"):
             c = self.nucleate("sphalerite", position="vug wall")
             self.log.append(f"  ✦ NUCLEATION: Sphalerite #{c.crystal_id} on {c.position} "
                           f"(T={self.conditions.temperature:.0f}°C, σ={sigma_s:.2f})")
@@ -3096,15 +3104,15 @@ class VugSimulator:
         # Fluorite nucleation
         sigma_f = self.conditions.supersaturation_fluorite()
         existing_fl = [c for c in self.crystals if c.mineral == "fluorite" and c.active]
-        if sigma_f > 1.2 and not existing_fl:
+        if sigma_f > 1.2 and not existing_fl and not self._at_nucleation_cap("fluorite"):
             c = self.nucleate("fluorite", position="vug wall")
             self.log.append(f"  ✦ NUCLEATION: Fluorite #{c.crystal_id} on {c.position}")
         
-        # Pyrite nucleation (limit to 3 — microcrystalline swarms aren't interesting individually)
+        # Pyrite nucleation — microcrystalline swarms aren't interesting individually
+        # (cap comes from spec).
         sigma_py = self.conditions.supersaturation_pyrite()
-        all_py = [c for c in self.crystals if c.mineral == "pyrite"]
-        existing_py = [c for c in all_py if c.active]
-        if sigma_py > 1.0 and not existing_py and len(all_py) < 3:
+        existing_py = [c for c in self.crystals if c.mineral == "pyrite" and c.active]
+        if sigma_py > 1.0 and not existing_py and not self._at_nucleation_cap("pyrite"):
             pos = "vug wall"
             existing_sph = [c for c in self.crystals if c.mineral == "sphalerite" and c.active]
             if existing_sph and random.random() < 0.5:
@@ -3116,7 +3124,7 @@ class VugSimulator:
         # Chalcopyrite nucleation
         sigma_cp = self.conditions.supersaturation_chalcopyrite()
         existing_cp = [c for c in self.crystals if c.mineral == "chalcopyrite" and c.active]
-        if sigma_cp > 1.0 and not existing_cp:
+        if sigma_cp > 1.0 and not existing_cp and not self._at_nucleation_cap("chalcopyrite"):
             pos = "vug wall"
             if existing_py and random.random() < 0.4:
                 pos = f"on pyrite #{existing_py[0].crystal_id}"
@@ -3127,8 +3135,7 @@ class VugSimulator:
         # Hematite nucleation — needs sigma > 1.2 (harder to nucleate)
         sigma_hem = self.conditions.supersaturation_hematite()
         existing_hem = [c for c in self.crystals if c.mineral == "hematite" and c.active]
-        total_hem = len([c for c in self.crystals if c.mineral == "hematite"])
-        if sigma_hem > 1.2 and not existing_hem and total_hem < 3:
+        if sigma_hem > 1.2 and not existing_hem and not self._at_nucleation_cap("hematite"):
             pos = "vug wall"
             # Can nucleate on existing quartz
             if existing_quartz and random.random() < 0.4:
@@ -3140,8 +3147,7 @@ class VugSimulator:
         # Malachite nucleation — needs sigma > 1.0
         sigma_mal = self.conditions.supersaturation_malachite()
         existing_mal = [c for c in self.crystals if c.mineral == "malachite" and c.active]
-        total_mal = len([c for c in self.crystals if c.mineral == "malachite"])
-        if sigma_mal > 1.0 and not existing_mal and total_mal < 3:
+        if sigma_mal > 1.0 and not existing_mal and not self._at_nucleation_cap("malachite"):
             pos = "vug wall"
             # Preference for chalcopyrite surface (classic! oxidation paragenesis)
             dissolving_cp = [c for c in self.crystals if c.mineral == "chalcopyrite" and c.dissolved]
@@ -3159,8 +3165,7 @@ class VugSimulator:
         # Adamite nucleation — Zn + As + O₂, low T oxidation zone
         sigma_adam = self.conditions.supersaturation_adamite()
         existing_adam = [c for c in self.crystals if c.mineral == "adamite" and c.active]
-        total_adam = len([c for c in self.crystals if c.mineral == "adamite"])
-        if sigma_adam > 1.0 and not existing_adam and total_adam < 4:
+        if sigma_adam > 1.0 and not existing_adam and not self._at_nucleation_cap("adamite"):
             pos = "vug wall"
             # Preference for limonite/goethite substrate (classic association)
             existing_goethite = [c for c in self.crystals if c.mineral == "goethite" and c.active]
@@ -3174,7 +3179,7 @@ class VugSimulator:
             self.log.append(f"  ✦ NUCLEATION: Adamite #{c.crystal_id} on {c.position} "
                           f"(T={self.conditions.temperature:.0f}°C, σ={sigma_adam:.2f})")
             # Second crystal often nucleates nearby — the fluorescent/non-fluorescent pair
-            if sigma_adam > 1.3 and random.random() < 0.5:
+            if sigma_adam > 1.3 and random.random() < 0.5 and not self._at_nucleation_cap("adamite"):
                 c2 = self.nucleate("adamite", position=pos)
                 self.log.append(f"  ✦ NUCLEATION: Adamite #{c2.crystal_id} alongside #{c.crystal_id} "
                               f"— will one fluoresce and the other stay dark?")
@@ -3182,8 +3187,7 @@ class VugSimulator:
         # Mimetite nucleation — Pb + As + Cl + O₂, oxidation zone
         sigma_mim = self.conditions.supersaturation_mimetite()
         existing_mim = [c for c in self.crystals if c.mineral == "mimetite" and c.active]
-        total_mim = len([c for c in self.crystals if c.mineral == "mimetite"])
-        if sigma_mim > 1.0 and not existing_mim and total_mim < 3:
+        if sigma_mim > 1.0 and not existing_mim and not self._at_nucleation_cap("mimetite"):
             pos = "vug wall"
             # Preference for galena surface (classic! mimetite replaces/coats galena)
             existing_galena = [c for c in self.crystals if c.mineral == "galena"]
@@ -3196,11 +3200,9 @@ class VugSimulator:
                           f"(T={self.conditions.temperature:.0f}°C, σ={sigma_mim:.2f})")
         
         # Feldspar nucleation — K-feldspar (orthoclase/microcline/sanidine)
-        # Needs high T, limits to 2 crystals
         sigma_fsp = self.conditions.supersaturation_feldspar()
-        all_fsp = [c for c in self.crystals if c.mineral == "feldspar"]
-        existing_fsp = [c for c in all_fsp if c.active]
-        if sigma_fsp > 1.0 and not existing_fsp and len(all_fsp) < 2:
+        existing_fsp = [c for c in self.crystals if c.mineral == "feldspar" and c.active]
+        if sigma_fsp > 1.0 and not existing_fsp and not self._at_nucleation_cap("feldspar"):
             pos = "vug wall"
             # Feldspar can nucleate on quartz — common in pegmatites
             if existing_quartz and random.random() < 0.4:
@@ -3210,11 +3212,10 @@ class VugSimulator:
                           f"(T={self.conditions.temperature:.0f}°C, σ={sigma_fsp:.2f})")
         
         # Albite nucleation — Na-feldspar
-        # Can coexist with K-feldspar (perthite pair)
+        # Can coexist with K-feldspar (perthite pair).
         sigma_ab = self.conditions.supersaturation_albite()
-        all_ab = [c for c in self.crystals if c.mineral == "albite"]
-        existing_ab = [c for c in all_ab if c.active]
-        if sigma_ab > 1.0 and not existing_ab and len(all_ab) < 2:
+        existing_ab = [c for c in self.crystals if c.mineral == "albite" and c.active]
+        if sigma_ab > 1.0 and not existing_ab and not self._at_nucleation_cap("albite"):
             pos = "vug wall"
             # Albite often nucleates on feldspar — the perthite association
             if existing_fsp and random.random() < 0.5:
@@ -3227,8 +3228,7 @@ class VugSimulator:
 
         # Molybdenite nucleation (rare — porphyry systems don't flood the vug)
         sigma_mol = self.conditions.supersaturation_molybdenite()
-        existing_mol = len([c for c in self.crystals if c.mineral == "molybdenite"])
-        if sigma_mol > 2.0 and existing_mol < 3:
+        if sigma_mol > 2.0 and not self._at_nucleation_cap("molybdenite"):
             if random.random() < 0.08:
                 c = self.nucleate("molybdenite", position="vug wall")
                 self.log.append(f"  ✦ NUCLEATION: Molybdenite #{c.crystal_id} on {c.position} "
@@ -3236,8 +3236,7 @@ class VugSimulator:
 
         # Galena nucleation
         sigma_gal = self.conditions.supersaturation_galena()
-        existing_gal = len([c for c in self.crystals if c.mineral == "galena"])
-        if sigma_gal > 1.5 and existing_gal < 4:
+        if sigma_gal > 1.5 and not self._at_nucleation_cap("galena"):
             if random.random() < 0.12:
                 c = self.nucleate("galena", position="vug wall")
                 self.log.append(f"  ✦ NUCLEATION: Galena #{c.crystal_id} on {c.position} "
@@ -3245,7 +3244,7 @@ class VugSimulator:
 
         # Wulfenite nucleation — needs both Pb AND Mo oxidized (late-stage)
         sigma_wul = self.conditions.supersaturation_wulfenite()
-        if sigma_wul > 1.3:
+        if sigma_wul > 1.3 and not self._at_nucleation_cap("wulfenite"):
             if random.random() < 0.15:
                 c = self.nucleate("wulfenite", position="vug wall")
                 self.log.append(f"  ✦ NUCLEATION: Wulfenite #{c.crystal_id} on {c.position} "
@@ -3253,8 +3252,7 @@ class VugSimulator:
 
         # Uraninite nucleation — strongly reducing, U-bearing. Emits radiation each step.
         sigma_ur = self.conditions.supersaturation_uraninite()
-        existing_ur = [c for c in self.crystals if c.mineral == "uraninite"]
-        if sigma_ur > 1.5 and len(existing_ur) < 3 and random.random() < 0.08:
+        if sigma_ur > 1.5 and not self._at_nucleation_cap("uraninite") and random.random() < 0.08:
             c = self.nucleate("uraninite", position="vug wall")
             self.log.append(f"  ✦ NUCLEATION: Uraninite #{c.crystal_id} on {c.position} "
                           f"☢️  (T={self.conditions.temperature:.0f}°C, σ={sigma_ur:.2f})")
@@ -3263,8 +3261,7 @@ class VugSimulator:
         # Classic pseudomorph after pyrite/marcasite; also forms on hematite, or free on walls.
         sigma_goe = self.conditions.supersaturation_goethite()
         existing_goe = [c for c in self.crystals if c.mineral == "goethite" and c.active]
-        total_goe = len([c for c in self.crystals if c.mineral == "goethite"])
-        if sigma_goe > 1.0 and not existing_goe and total_goe < 3:
+        if sigma_goe > 1.0 and not existing_goe and not self._at_nucleation_cap("goethite"):
             pos = "vug wall"
             dissolving_py = [c for c in self.crystals if c.mineral == "pyrite" and c.dissolved]
             dissolving_cp = [c for c in self.crystals if c.mineral == "chalcopyrite" and c.dissolved]
@@ -3282,8 +3279,7 @@ class VugSimulator:
         # Smithsonite nucleation — supergene ZnCO₃ from sphalerite oxidation
         sigma_sm = self.conditions.supersaturation_smithsonite()
         existing_sm = [c for c in self.crystals if c.mineral == "smithsonite" and c.active]
-        total_sm = len([c for c in self.crystals if c.mineral == "smithsonite"])
-        if sigma_sm > 1.0 and not existing_sm and total_sm < 3:
+        if sigma_sm > 1.0 and not existing_sm and not self._at_nucleation_cap("smithsonite"):
             pos = "vug wall"
             dissolving_sph = [c for c in self.crystals if c.mineral == "sphalerite" and c.dissolved]
             if dissolving_sph and random.random() < 0.6:
@@ -3294,8 +3290,7 @@ class VugSimulator:
 
         # Selenite nucleation — low-T evaporite, needs oxidized Ca-SO4 fluid
         sigma_sel = self.conditions.supersaturation_selenite()
-        total_sel = len([c for c in self.crystals if c.mineral == "selenite"])
-        if sigma_sel > 1.0 and total_sel < 4 and random.random() < 0.12:
+        if sigma_sel > 1.0 and not self._at_nucleation_cap("selenite") and random.random() < 0.12:
             c = self.nucleate("selenite", position="vug wall")
             self.log.append(f"  ✦ NUCLEATION: Selenite #{c.crystal_id} on {c.position} "
                           f"(T={self.conditions.temperature:.0f}°C, σ={sigma_sel:.2f})")

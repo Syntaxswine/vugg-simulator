@@ -5,6 +5,7 @@
   "_schema": {
     "formula": "Chemical formula.",
     "nucleation_sigma": "Minimum supersaturation for nucleation.",
+    "max_nucleation_count": "Maximum number of crystals of this species that can ever nucleate in a single run. Counted across the whole simulation (active + dissolved). Keeps common minerals like wulfenite from producing microcrystalline swarms that get immediately swallowed by other phases.",
     "max_size_cm": "Hard cap on crystal size — 2x world record per research/mineral-accuracy-audit.md. Growth halts when reached; this is the fix for the 321248% bug.",
     "growth_rate_mult": "Relative growth rate, calcite=1.0 baseline. Multiply the runtime base rate.",
     "T_range_C": "[min, max] temperature window for growth (C). null,null = unbounded.",
@@ -60,6 +61,7 @@
     "quartz": {
       "formula": "SiO2",
       "nucleation_sigma": 1.0,
+      "max_nucleation_count": 10,
       "max_size_cm": 1200,
       "growth_rate_mult": 0.3,
       "habit_variants": ["prismatic", "scepter_overgrowth", "skeletal_fenster", "amethyst_druse"],
@@ -96,6 +98,7 @@
     "calcite": {
       "formula": "CaCO3",
       "nucleation_sigma": 1.0,
+      "max_nucleation_count": 10,
       "max_size_cm": 2000,
       "growth_rate_mult": 1.0,
       "habit_variants": ["scalenohedral_dogtooth", "rhombohedral_nailhead", "prismatic", "botryoidal", "flos-ferri_acicular"],
@@ -130,6 +133,7 @@
     "sphalerite": {
       "formula": "ZnS",
       "nucleation_sigma": 1.0,
+      "max_nucleation_count": 5,
       "max_size_cm": 80,
       "growth_rate_mult": 0.6,
       "habit_variants": ["tetrahedral", "dodecahedral", "cleiophane_massive", "marmatite_black"],
@@ -165,6 +169,7 @@
     "fluorite": {
       "formula": "CaF2",
       "nucleation_sigma": 1.0,
+      "max_nucleation_count": 5,
       "max_size_cm": 400,
       "growth_rate_mult": 0.5,
       "habit_variants": ["cubic", "octahedral", "cubo-octahedral", "penetration-twinned"],
@@ -201,6 +206,7 @@
     "pyrite": {
       "formula": "FeS2",
       "nucleation_sigma": 1.0,
+      "max_nucleation_count": 3,
       "max_size_cm": 40,
       "growth_rate_mult": 0.3,
       "habit_variants": ["cubic_striated", "pyritohedral", "octahedral", "framboidal", "radiating_sun"],
@@ -234,6 +240,7 @@
     "chalcopyrite": {
       "formula": "CuFeS2",
       "nucleation_sigma": 1.0,
+      "max_nucleation_count": 5,
       "max_size_cm": 30,
       "growth_rate_mult": 0.3,
       "habit_variants": ["disphenoidal", "massive_vein", "iridescent_tarnished"],
@@ -268,6 +275,7 @@
     "hematite": {
       "formula": "Fe2O3",
       "nucleation_sigma": 1.5,
+      "max_nucleation_count": 3,
       "max_size_cm": 60,
       "growth_rate_mult": 0.5,
       "habit_variants": ["specular_platy", "rhombohedral", "botryoidal_kidney_ore", "earthy_red_ochre", "rosette_iron-rose"],
@@ -301,6 +309,7 @@
     "malachite": {
       "formula": "Cu2(CO3)(OH)2",
       "nucleation_sigma": 1.0,
+      "max_nucleation_count": 3,
       "max_size_cm": 200,
       "growth_rate_mult": 0.8,
       "habit_variants": ["botryoidal", "acicular_spray", "banded_massive", "pseudomorph_after_azurite", "stalactitic"],
@@ -332,6 +341,7 @@
     "uraninite": {
       "formula": "UO2",
       "nucleation_sigma": 1.5,
+      "max_nucleation_count": 3,
       "max_size_cm": 10,
       "growth_rate_mult": 0.1,
       "habit_variants": ["cubic", "octahedral", "pitchblende_massive", "botryoidal_reniform"],
@@ -364,6 +374,7 @@
     "galena": {
       "formula": "PbS",
       "nucleation_sigma": 1.0,
+      "max_nucleation_count": 4,
       "max_size_cm": 60,
       "growth_rate_mult": 0.5,
       "habit_variants": ["cubic", "octahedral", "cubo-octahedral", "skeletal_hopper"],
@@ -395,6 +406,7 @@
     "smithsonite": {
       "formula": "ZnCO3",
       "nucleation_sigma": 1.0,
+      "max_nucleation_count": 3,
       "max_size_cm": 60,
       "growth_rate_mult": 0.7,
       "habit_variants": ["botryoidal", "rhombohedral_scalenohedral", "mammillary", "stalactitic_turquoise"],
@@ -429,6 +441,7 @@
     "wulfenite": {
       "formula": "PbMoO4",
       "nucleation_sigma": 1.0,
+      "max_nucleation_count": 5,
       "max_size_cm": 20,
       "growth_rate_mult": 0.2,
       "habit_variants": ["tabular_square", "pyramidal", "pseudo-octahedral", "thin_plate_honey"],
@@ -461,6 +474,7 @@
     "molybdenite": {
       "formula": "MoS2",
       "nucleation_sigma": 1.0,
+      "max_nucleation_count": 3,
       "max_size_cm": 40,
       "growth_rate_mult": 0.3,
       "habit_variants": ["hexagonal_platy", "massive_foliated", "rosette"],
@@ -492,6 +506,7 @@
     "adamite": {
       "formula": "Zn2(AsO4)(OH)",
       "nucleation_sigma": 1.0,
+      "max_nucleation_count": 4,
       "max_size_cm": 10,
       "growth_rate_mult": 0.3,
       "habit_variants": ["prismatic", "rosette_spray", "druzy_crust", "cuproadamite_green"],
@@ -525,6 +540,7 @@
     "mimetite": {
       "formula": "Pb5(AsO4)3Cl",
       "nucleation_sigma": 1.0,
+      "max_nucleation_count": 3,
       "max_size_cm": 10,
       "growth_rate_mult": 0.3,
       "habit_variants": ["hexagonal_prism", "campylite_barrel", "globular_mammillary"],
@@ -557,6 +573,7 @@
     "feldspar": {
       "formula": "KAlSi3O8",
       "nucleation_sigma": 1.0,
+      "max_nucleation_count": 2,
       "max_size_cm": 1400,
       "growth_rate_mult": 0.4,
       "habit_variants": ["prismatic_blocky", "tabular_sanidine", "Carlsbad_twinned", "cross-hatched_microcline", "adularia_pseudo-orthorhombic", "amazonite_blue-green"],
@@ -594,6 +611,7 @@
     "albite": {
       "formula": "NaAlSi3O8",
       "nucleation_sigma": 1.0,
+      "max_nucleation_count": 2,
       "max_size_cm": 40,
       "growth_rate_mult": 0.4,
       "habit_variants": ["tabular", "cleavelandite_platy", "polysynthetic_striated", "peristerite_moonstone"],
@@ -629,6 +647,7 @@
     "selenite": {
       "formula": "CaSO4·2H2O",
       "nucleation_sigma": 1.0,
+      "max_nucleation_count": 10,
       "max_size_cm": 2400,
       "growth_rate_mult": 0.7,
       "habit_variants": ["tabular", "prismatic", "fibrous_satin_spar", "swallowtail_twin", "cathedral_blade", "desert_rose"],
@@ -663,6 +682,7 @@
     "goethite": {
       "formula": "FeO(OH)",
       "nucleation_sigma": 1.0,
+      "max_nucleation_count": 3,
       "max_size_cm": 60,
       "growth_rate_mult": 0.4,
       "habit_variants": ["botryoidal_black", "mammillary", "fibrous_acicular", "pseudomorph_after_sulfide", "earthy_ochre", "stalactitic"],
