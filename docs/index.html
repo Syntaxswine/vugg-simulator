@@ -12643,6 +12643,66 @@ let _topoZoom = 1.0;                  // multiplier applied to mmToPx in the ren
 // falling through to the host's wall cell.
 const _topoInclusions = [];
 
+// ---- Selective-highlight state (TASK-BRIEF-TOPO-HIGHLIGHT) -----------
+// A highlight "target" narrows the map: matching crystals render at
+// full opacity, non-matching crystals ghost to 25%, wall and scale
+// stay opaque. Target shape is { type: 'mineral' | 'class', value: str }
+// or null. Canvas hover sets _topoHoverTarget (transient), legend hover
+// sets _topoLegendHoverTarget (transient, lower priority than canvas),
+// clicks toggle _topoLockTarget (persistent). Effective target = lock
+// if set, else canvas hover, else legend hover. When null → no ghosting.
+const TOPO_GHOST_ALPHA = 0.25;
+let _topoHoverTarget = null;
+let _topoLegendHoverTarget = null;
+let _topoLockTarget = null;
+
+function topoEffectiveTarget() {
+  return _topoLockTarget || _topoHoverTarget || _topoLegendHoverTarget;
+}
+
+// Does the given mineral match the active highlight target?
+// With no active target, everything matches (no ghosting).
+function topoMineralHighlighted(mineral) {
+  const t = topoEffectiveTarget();
+  if (!t) return true;
+  if (t.type === 'mineral') return t.value === mineral;
+  if (t.type === 'class') {
+    const spec = MINERAL_SPEC[mineral];
+    return !!(spec && spec.class === t.value);
+  }
+  return false;
+}
+
+// Alpha multiplier for a given mineral under the current highlight.
+function topoAlphaFor(mineral) {
+  return !topoEffectiveTarget() || topoMineralHighlighted(mineral)
+    ? 1.0 : TOPO_GHOST_ALPHA;
+}
+
+function topoSetHoverTarget(target) {
+  if (JSON.stringify(_topoHoverTarget) === JSON.stringify(target)) return;
+  _topoHoverTarget = target;
+  topoRender();
+}
+function topoSetLegendHoverTarget(target) {
+  if (JSON.stringify(_topoLegendHoverTarget) === JSON.stringify(target)) return;
+  _topoLegendHoverTarget = target;
+  topoRender();
+}
+function topoToggleLockTarget(target) {
+  // null target → clear lock. Same as current lock → toggle off.
+  // Different target → switch lock.
+  if (!target) { _topoLockTarget = null; }
+  else if (_topoLockTarget
+           && _topoLockTarget.type === target.type
+           && _topoLockTarget.value === target.value) {
+    _topoLockTarget = null;
+  } else {
+    _topoLockTarget = target;
+  }
+  topoRender();
+}
+
 // The 12-class order from the topo palette in the brief. Used by the
 // legend. We render all 12 even if not all present in the current run so
 // the color vocabulary is visible.
@@ -12694,10 +12754,38 @@ function topoBuildLegend() {
   for (const cls of TOPO_CLASS_ORDER) {
     if (classColor[cls]) entries.push([cls, classColor[cls]]);
   }
-  host.innerHTML = entries.map(([label, color]) =>
-    `<span class="topo-legend-entry"><span class="topo-legend-swatch" style="background:${color}"></span>${label}</span>`
-  ).join('');
+  host.innerHTML = entries.map(([label, color]) => {
+    // 'wall' is just the amber-substrate reminder — no highlight target.
+    // Real class entries carry a data-hl-class attribute that the hover/
+    // click handlers read to drive the highlight state.
+    const attr = label === 'wall' ? '' : ` data-hl-class="${label}"`;
+    return `<span class="topo-legend-entry"${attr}><span class="topo-legend-swatch" style="background:${color}"></span>${label}</span>`;
+  }).join('');
+  _wireTopoLegendEvents(host);
   if (Object.keys(classColor).length > 0) _topoLegendBuilt = true;
+}
+
+// Idempotent — wires hover/click delegation on the legend host once.
+// Re-running topoBuildLegend replaces innerHTML but keeps the listeners
+// since they're on the container, not individual entries.
+let _topoLegendWired = false;
+function _wireTopoLegendEvents(host) {
+  if (_topoLegendWired) return;
+  _topoLegendWired = true;
+  host.addEventListener('mouseover', (ev) => {
+    const entry = ev.target.closest('.topo-legend-entry');
+    const cls = entry && entry.dataset.hlClass;
+    topoSetLegendHoverTarget(cls ? { type: 'class', value: cls } : null);
+  });
+  host.addEventListener('mouseleave', () => {
+    topoSetLegendHoverTarget(null);
+  });
+  host.addEventListener('click', (ev) => {
+    const entry = ev.target.closest('.topo-legend-entry');
+    const cls = entry && entry.dataset.hlClass;
+    topoToggleLockTarget(cls ? { type: 'class', value: cls } : null);
+    ev.stopPropagation();
+  });
 }
 
 // Resize the canvas backing store to match its CSS size so the line is
@@ -12836,6 +12924,7 @@ function topoRender(optOverrideRing) {
     const exIn = cx + rEndIn * Math.cos(a1), eyIn = cy + rEndIn * Math.sin(a1);
     const innerCpX = 2 * mxIn - (sxIn + exIn) / 2;
     const innerCpY = 2 * myIn - (syIn + eyIn) / 2;
+    ctx.globalAlpha = topoAlphaFor(cell.mineral);
     ctx.fillStyle = topoClassColor(cell.mineral);
     ctx.beginPath();
     ctx.moveTo(sx, sy);
@@ -12845,6 +12934,7 @@ function topoRender(optOverrideRing) {
     ctx.closePath();
     ctx.fill();
   }
+  ctx.globalAlpha = 1;
 
   // Wall outline — one quadratic Bezier per cell, with the cell's
   // midpoint as the de-facto pass-through. Control point is placed so
@@ -12864,15 +12954,20 @@ function topoRender(optOverrideRing) {
     const rMid = cellR[i];
     const rEnd = boundaryR[(i + 1) % N];
     const cell = ring0[i];
-    let stroke, width;
+    let stroke, width, alpha;
     if (cell.crystal_id == null) {
+      // Bare wall — amber, always fully opaque (wall is the substrate,
+      // not a mineral; it shouldn't ghost with the highlight).
       stroke = TOPO_WALL_COLOR;
       width = TOPO_WALL_STROKE_PX;
+      alpha = 1;
     } else {
       stroke = topoClassColor(cell.mineral);
       const t = Math.min(cell.thickness_um / maxT, 1);
       width = TOPO_WALL_STROKE_PX + t * (TOPO_WALL_STROKE_MAX_PX - TOPO_WALL_STROKE_PX);
+      alpha = topoAlphaFor(cell.mineral);
     }
+    ctx.globalAlpha = alpha;
     ctx.strokeStyle = stroke;
     ctx.lineWidth = width;
     const sx = cx + rStart * Math.cos(a0), sy = cy + rStart * Math.sin(a0);
@@ -12885,6 +12980,7 @@ function topoRender(optOverrideRing) {
     ctx.quadraticCurveTo(cpX, cpY, ex, ey);
     ctx.stroke();
   }
+  ctx.globalAlpha = 1;
 
   // Inclusion dots — render each host's swallowed crystals as small
   // colored circles inside the host's radial band, at the enclosed
@@ -12931,6 +13027,10 @@ function topoRender(optOverrideRing) {
         const x = cx + rMid * Math.cos(angle);
         const y = cy + rMid * Math.sin(angle);
         const dotR = Math.max(2.5, Math.min(5.5, enc.c_length_mm * mmToPx * 0.4));
+        // Inclusion alpha follows the INCLUSION's own mineral (not the
+        // host's) per the highlight brief — lets you pick a sulfide and
+        // watch its inclusion pointillism across every host.
+        ctx.globalAlpha = topoAlphaFor(enc.mineral);
         ctx.fillStyle = topoClassColor(enc.mineral);
         ctx.beginPath();
         ctx.arc(x, y, dotR, 0, 2 * Math.PI);
@@ -12938,10 +13038,11 @@ function topoRender(optOverrideRing) {
         ctx.strokeStyle = 'rgba(10, 10, 8, 0.9)';
         ctx.lineWidth = 1;
         ctx.stroke();
-        _topoInclusions.push({ x, y, r: dotR + 2, crystal_id: enc.crystal_id });
+        _topoInclusions.push({ x, y, r: dotR + 2, crystal_id: enc.crystal_id, mineral: enc.mineral });
       }
     }
   }
+  ctx.globalAlpha = 1;
 
   // (Removed the dotted initial-radius reference ring — with the
   // bubble-merge profile the wall is already irregular from t=0, so a
@@ -12977,6 +13078,60 @@ function topoRender(optOverrideRing) {
   }
 }
 
+// Hit-test: resolve (mouseX, mouseY) on the canvas into a mineral
+// under the cursor. Returns { mineral, isInclusion, cell } or null
+// if the cursor is not on a crystal. Called by both the tooltip and
+// the highlight hover/click handlers so their geometry stays in sync.
+function _topoHitTest(ev) {
+  const canvas = document.getElementById('topo-canvas');
+  const sim = topoActiveSim();
+  if (!canvas || !sim) return null;
+  const ring0 = sim.wall_state.rings[0];
+  if (!ring0 || !ring0.length) return null;
+  const rect = canvas.getBoundingClientRect();
+  const mx = ev.clientX - rect.left;
+  const my = ev.clientY - rect.top;
+
+  // Inclusion hit-test first — dots take priority over host wall cell.
+  for (const inc of _topoInclusions) {
+    const dx = mx - inc.x, dy = my - inc.y;
+    if (dx * dx + dy * dy <= inc.r * inc.r) {
+      if (inc.mineral) return { mineral: inc.mineral, isInclusion: true };
+      const crystal = sim.crystals.find(c => c.crystal_id === inc.crystal_id);
+      if (crystal) return { mineral: crystal.mineral, isInclusion: true };
+    }
+  }
+
+  // Same scale reconstruction as topoRender / tooltip.
+  const cssW = rect.width, cssH = rect.height;
+  const N = ring0.length;
+  const initR = sim.wall_state.initial_radius_mm;
+  let maxWallR = sim.wall_state.max_seen_radius_mm || initR * 2;
+  for (const c of ring0) {
+    const baseR = c.base_radius_mm > 0 ? c.base_radius_mm : initR;
+    const r = baseR + c.wall_depth;
+    if (r > maxWallR) maxWallR = r;
+  }
+  const centerPad = 48;
+  const fit = Math.min(cssW, cssH - centerPad) * 0.82 / 2;
+  const mmToPx = (fit / maxWallR) * _topoZoom;
+  const cx = cssW / 2;
+  const cy = (cssH - centerPad) / 2 + 8;
+
+  const dx = mx - cx, dy = my - cy;
+  const rMouse = Math.hypot(dx, dy);
+  let a = Math.atan2(dy, dx) + Math.PI / 2;
+  while (a < 0) a += 2 * Math.PI;
+  while (a >= 2 * Math.PI) a -= 2 * Math.PI;
+  const idx = Math.min(N - 1, Math.max(0, Math.round((a / (2 * Math.PI)) * N) % N));
+  const cell = ring0[idx];
+  const baseR = cell.base_radius_mm > 0 ? cell.base_radius_mm : initR;
+  const cellOuterPx = (baseR + cell.wall_depth) * mmToPx;
+  if (rMouse > cellOuterPx + 10 || rMouse < cellOuterPx * 0.15) return null;
+  if (cell.crystal_id == null) return { mineral: null, isInclusion: false, cell };
+  return { mineral: cell.mineral, isInclusion: false, cell };
+}
+
 // Hover: translate mouse position into a polar angle around the vug
 // and look up the corresponding wall cell. Inclusion dots take priority
 // — if the cursor is over one, show the enclosed crystal instead of
@@ -12991,6 +13146,14 @@ function _topoTooltipFromEvent(ev) {
   const rect = canvas.getBoundingClientRect();
   const mx = ev.clientX - rect.left;
   const my = ev.clientY - rect.top;
+
+  // Update highlight hover target from the same hit-test. Inclusion
+  // hovers resolve to the inclusion's mineral, wall cell hovers to the
+  // occupying crystal's mineral. Bare wall clears the hover.
+  const hit = _topoHitTest(ev);
+  topoSetHoverTarget(
+    hit && hit.mineral ? { type: 'mineral', value: hit.mineral } : null
+  );
 
   // Inclusion hit-test first.
   for (const inc of _topoInclusions) {
@@ -13083,6 +13246,21 @@ function _topoTooltipFromEvent(ev) {
 function _topoHideTooltip() {
   const tip = document.getElementById('topo-tooltip');
   if (tip) tip.style.display = 'none';
+  // Canvas hover also stops contributing to the highlight when the
+  // cursor leaves — the legend hover (if any) becomes the effective
+  // target, or nothing if neither is active.
+  topoSetHoverTarget(null);
+}
+
+// Canvas click — toggle lock on the crystal under the cursor, or clear
+// the lock if clicking empty space. Brief edge case: clicks on the
+// legend propagate up to canvas if not stopped; the legend handler
+// calls stopPropagation to prevent that crossover.
+function _topoClickFromEvent(ev) {
+  const hit = _topoHitTest(ev);
+  topoToggleLockTarget(
+    hit && hit.mineral ? { type: 'mineral', value: hit.mineral } : null
+  );
 }
 
 // Zoom — multiplies mmToPx in the renderer. `dir` is +1 (in) or -1 (out).
@@ -13102,6 +13280,7 @@ function topoEnsureWired() {
   if (!canvas) return;
   canvas.addEventListener('mousemove', _topoTooltipFromEvent);
   canvas.addEventListener('mouseleave', _topoHideTooltip);
+  canvas.addEventListener('click', _topoClickFromEvent);
   // Wheel = zoom. Preventing default so the page doesn't scroll past
   // the canvas while the player is framing the vug.
   canvas.addEventListener('wheel', (ev) => {
