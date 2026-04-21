@@ -3933,6 +3933,12 @@ class Crystal {
     this.dissolved = false;
     this.phantom_surfaces = [];
     this.phantom_count = 0;
+    // Enclosure: crystals this one has swallowed, and the host that
+    // swallowed this one (if any). Drives the topo map's inclusion
+    // dots and the Sweetwater-style narration.
+    this.enclosed_crystals = [];
+    this.enclosed_at_step = [];
+    this.enclosed_by = null;
   }
 
   add_zone(zone) {
@@ -6281,11 +6287,88 @@ class VugSimulator {
       }
     }
 
+    // Enclosure / liberation — bigger crystals swallow adjacent smaller
+    // ones; dissolving hosts can free what they held.
+    this._check_enclosure();
+    this._check_liberation();
+
     // Refresh the topo-map wall state from the current crystal list.
     this._repaintWallState();
 
     this.ambient_cooling();
     return this.log;
+  }
+
+  // When a big crystal grows past an adjacent smaller one that's stopped
+  // growing, the smaller crystal becomes an inclusion inside the bigger
+  // one. Classic "Sweetwater mechanism" — pyrite first, then calcite
+  // grows around it. Ports check_enclosure from vugg.py 1:1.
+  _check_enclosure() {
+    for (const grower of this.crystals) {
+      if (!grower.active || grower.c_length_mm < 0.5) continue;
+      if (grower.enclosed_by != null) continue;
+      for (const candidate of this.crystals) {
+        if (candidate.crystal_id === grower.crystal_id) continue;
+        if (candidate.enclosed_by != null) continue;
+        if (grower.enclosed_crystals.includes(candidate.crystal_id)) continue;
+
+        const sizeRatio = grower.c_length_mm / Math.max(candidate.c_length_mm, 0.001);
+        const adjacent = (
+          candidate.position === grower.position
+          || candidate.position.includes(`#${grower.crystal_id}`)
+        );
+        let slowing = true;
+        if (candidate.zones && candidate.zones.length >= 3) {
+          const recent = candidate.zones.slice(-3).reduce((s, z) => s + z.thickness_um, 0);
+          slowing = recent < 3.0;
+        }
+        if (sizeRatio > 3.0 && adjacent && slowing) {
+          grower.enclosed_crystals.push(candidate.crystal_id);
+          grower.enclosed_at_step.push(this.step);
+          candidate.enclosed_by = grower.crystal_id;
+          candidate.active = false;
+          this.log.push(
+            `  💎 ENCLOSURE: ${capitalize(grower.mineral)} #${grower.crystal_id} ` +
+            `(${grower.c_length_mm.toFixed(1)}mm) has grown around ` +
+            `${candidate.mineral} #${candidate.crystal_id} (${candidate.c_length_mm.toFixed(2)}mm). ` +
+            `The ${candidate.mineral} is now an inclusion inside the ${grower.mineral}.`
+          );
+        }
+      }
+    }
+  }
+
+  // When the host crystal is dissolving back past the point it enclosed
+  // a neighbor, the neighbor is freed. Ports check_liberation from
+  // vugg.py 1:1.
+  _check_liberation() {
+    for (const host of this.crystals) {
+      if (!host.enclosed_crystals.length) continue;
+      if (!host.dissolved) continue;
+      const freed = [];
+      for (let i = 0; i < host.enclosed_crystals.length; i++) {
+        const encId = host.enclosed_crystals[i];
+        const encStep = host.enclosed_at_step[i];
+        const enc = this.crystals.find(c => c.crystal_id === encId);
+        if (!enc) continue;
+        let hostSizeAtEnc = 0;
+        for (const z of host.zones) if (z.step <= encStep) hostSizeAtEnc += z.thickness_um;
+        if (host.total_growth_um < hostSizeAtEnc * 0.7) {
+          freed.push(i);
+          enc.enclosed_by = null;
+          enc.active = true;
+          this.log.push(
+            `  🔓 LIBERATION: ${enc.mineral} #${encId} freed from ` +
+            `dissolving ${host.mineral} #${host.crystal_id}! ` +
+            `The inclusion is exposed again and can resume growth.`
+          );
+        }
+      }
+      for (const i of freed.sort((a, b) => b - a)) {
+        host.enclosed_crystals.splice(i, 1);
+        host.enclosed_at_step.splice(i, 1);
+      }
+    }
   }
 
   format_header() {
@@ -10230,6 +10313,10 @@ const TOPO_ZOOM_MIN = 0.3;
 const TOPO_ZOOM_MAX = 6.0;
 const TOPO_ZOOM_STEP = 1.25;          // one click / wheel tick multiplies by this
 let _topoZoom = 1.0;                  // multiplier applied to mmToPx in the renderer
+// Cache of inclusion-dot hitboxes built each render. Hover checks
+// this first so the tooltip shows the enclosed crystal instead of
+// falling through to the host's wall cell.
+const _topoInclusions = [];
 
 // The 12-class order from the topo palette in the brief. Used by the
 // legend. We render all 12 even if not all present in the current run so
@@ -10412,6 +10499,57 @@ function topoRender(optOverrideRing) {
     ctx.stroke();
   }
 
+  // Inclusion dots — render each host's swallowed crystals as small
+  // colored circles inside the host's radial band, at the enclosed
+  // crystal's original wall anchor angle so it sits where the
+  // original crystal lived.
+  _topoInclusions.length = 0;
+  if (sim && sim.crystals) {
+    for (const host of sim.crystals) {
+      if (!host.enclosed_crystals || !host.enclosed_crystals.length) continue;
+      if (host.dissolved || host.wall_center_cell == null) continue;
+      const hostCell = ring0[host.wall_center_cell];
+      if (!hostCell) continue;
+      const rHostOuter = (initR + hostCell.wall_depth) * mmToPx;
+      const voidReach = Math.max(host.void_reach, 0.05);
+      const inwardMm = (hostCell.thickness_um / 1000.0) * voidReach;
+      const inwardPx = Math.min(inwardMm * mmToPx, rHostOuter * TOPO_CRYSTAL_CAP_FRAC);
+      const rHostInner = rHostOuter - Math.max(inwardPx, TOPO_WALL_STROKE_PX + 1);
+      const rMid = (rHostOuter + rHostInner) / 2;
+      const allIds = host.enclosed_crystals;
+      // Cap visible dots per host — runaway enclosure can produce
+      // hundreds of swallowed crystals (fractured pyrite swarms etc.)
+      // and a dot per one makes the canvas unreadable.
+      const MAX_PER_HOST = 12;
+      const renderedIds = allIds.length > MAX_PER_HOST
+        ? allIds.slice(0, MAX_PER_HOST)
+        : allIds;
+      const n = renderedIds.length;
+      for (let k = 0; k < n; k++) {
+        const enc = sim.crystals.find(c => c.crystal_id === renderedIds[k]);
+        if (!enc) continue;
+        const anchorCell = enc.wall_center_cell != null ? enc.wall_center_cell : host.wall_center_cell;
+        const baseAngle = -Math.PI / 2 + (anchorCell / N) * 2 * Math.PI;
+        // If multiple inclusions share the host cell, fan them across
+        // a capped arc range so they don't wrap around the circle.
+        const maxFanRad = Math.min(arcStep * 3, 0.25);
+        const fan = (n > 1) ? ((k / (n - 1) - 0.5) * maxFanRad) : 0;
+        const angle = baseAngle + fan;
+        const x = cx + rMid * Math.cos(angle);
+        const y = cy + rMid * Math.sin(angle);
+        const dotR = Math.max(2.5, Math.min(5.5, enc.c_length_mm * mmToPx * 0.4));
+        ctx.fillStyle = topoClassColor(enc.mineral);
+        ctx.beginPath();
+        ctx.arc(x, y, dotR, 0, 2 * Math.PI);
+        ctx.fill();
+        ctx.strokeStyle = 'rgba(10, 10, 8, 0.9)';
+        ctx.lineWidth = 1;
+        ctx.stroke();
+        _topoInclusions.push({ x, y, r: dotR + 2, crystal_id: enc.crystal_id });
+      }
+    }
+  }
+
   // Dim the initial-radius reference ring so dissolution is obvious
   // at a glance. Dotted so it doesn't compete with the wall.
   ctx.save();
@@ -10452,7 +10590,9 @@ function topoRender(optOverrideRing) {
 }
 
 // Hover: translate mouse position into a polar angle around the vug
-// and look up the corresponding wall cell.
+// and look up the corresponding wall cell. Inclusion dots take priority
+// — if the cursor is over one, show the enclosed crystal instead of
+// the host's wall info.
 function _topoTooltipFromEvent(ev) {
   const canvas = document.getElementById('topo-canvas');
   const tip = document.getElementById('topo-tooltip');
@@ -10463,6 +10603,31 @@ function _topoTooltipFromEvent(ev) {
   const rect = canvas.getBoundingClientRect();
   const mx = ev.clientX - rect.left;
   const my = ev.clientY - rect.top;
+
+  // Inclusion hit-test first.
+  for (const inc of _topoInclusions) {
+    const dx = mx - inc.x, dy = my - inc.y;
+    if (dx * dx + dy * dy <= inc.r * inc.r) {
+      const crystal = sim.crystals.find(c => c.crystal_id === inc.crystal_id);
+      if (!crystal) break;
+      const host = sim.crystals.find(c => c.crystal_id === crystal.enclosed_by);
+      const spec = MINERAL_SPEC[crystal.mineral] || {};
+      const color = spec.class_color || TOPO_WALL_COLOR;
+      const lines = [];
+      lines.push(`<b style="color:${color}">◆ ${crystal.mineral} #${crystal.crystal_id}</b>`);
+      lines.push(`${crystal.habit}${crystal.twinned ? ` (${crystal.twin_law} twin)` : ''}`);
+      lines.push(`${crystal.c_length_mm.toFixed(2)} mm — inclusion`);
+      if (host) lines.push(`inside ${host.mineral} #${host.crystal_id}`);
+      tip.innerHTML = lines.join('<br>');
+      tip.style.display = 'block';
+      const wrapRect = canvas.parentElement.getBoundingClientRect();
+      const tipX = Math.min(wrapRect.width - tip.offsetWidth - 6, Math.max(6, ev.clientX - wrapRect.left + 12));
+      const tipY = Math.min(wrapRect.height - 40, Math.max(6, ev.clientY - wrapRect.top + 12));
+      tip.style.left = `${tipX}px`;
+      tip.style.top = `${tipY}px`;
+      return;
+    }
+  }
 
   // Reconstruct the render's center + scale (same logic as topoRender)
   const cssW = rect.width, cssH = rect.height;
