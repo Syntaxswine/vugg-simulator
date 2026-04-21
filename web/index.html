@@ -2971,6 +2971,7 @@ const MINERAL_SPEC_FALLBACK = {
   selenite: { formula: "CaSO4·2H2O", nucleation_sigma: 1.0, max_size_cm: 2400, growth_rate_mult: 0.7, thermal_decomp_C: 150, fluorescence: null, twin_laws: [{ name: "swallowtail", probability: 0.08 }], acid_dissolution: { pH_threshold: 5.0 } },
   goethite: { formula: "FeO(OH)", nucleation_sigma: 1.0, max_size_cm: 60, growth_rate_mult: 0.4, thermal_decomp_C: 300, fluorescence: null, twin_laws: [], acid_dissolution: { pH_threshold: 3.0 }, nucleation_preferences: { grows_on: ["pyrite", "chalcopyrite", "marcasite"], forms_pseudomorph_after: ["pyrite"] } },
   topaz: { formula: "Al2SiO4(F,OH)2", nucleation_sigma: 1.4, max_size_cm: 200, growth_rate_mult: 0.3, thermal_decomp_C: null, fluorescence: { activator: "trace Ti", threshold_ppm: 2, color: "weak_greenish_LW" }, twin_laws: [], acid_dissolution: { pH_threshold: 2.0 } },
+  tourmaline: { formula: "Na(Fe,Li,Al)3Al6(BO3)3Si6O18(OH)4", nucleation_sigma: 1.3, max_size_cm: 300, growth_rate_mult: 0.4, thermal_decomp_C: null, fluorescence: null, twin_laws: [], acid_dissolution: null },
 };
 
 // Live spec — swapped in by the fetch below if data/minerals.json loads.
@@ -3879,6 +3880,27 @@ class VugConditions {
     if (this.fluid.Na < 10 || this.fluid.Al < 3 || this.fluid.SiO2 < 200) return 0;
     let sigma = (this.fluid.Na / 35.0) * (this.fluid.Al / 10.0) * (this.fluid.SiO2 / 400.0);
     if (this.temperature < 300) sigma *= Math.exp(-0.01 * (300 - this.temperature));
+    return Math.max(sigma, 0);
+  }
+
+  // Tourmaline (Na(Fe,Li,Al)₃Al₆(BO₃)₃Si₆O₁₈(OH)₄) — B-gated cyclosilicate.
+  // Schorl (Fe²⁺, early) → elbaite (Li-rich, late) series records fluid
+  // evolution. T window 350–700°C, optimum 400–600°C. Extremely resistant.
+  supersaturation_tourmaline() {
+    if (this.fluid.Na < 3 || this.fluid.B < 6 || this.fluid.Al < 8 || this.fluid.SiO2 < 60) return 0;
+    const na_f = Math.min(this.fluid.Na / 20.0, 1.5);
+    const b_f  = Math.min(this.fluid.B / 15.0, 2.0);
+    const al_f = Math.min(this.fluid.Al / 15.0, 1.5);
+    const si_f = Math.min(this.fluid.SiO2 / 400.0, 1.5);
+    let sigma = na_f * b_f * al_f * si_f;
+    const T = this.temperature;
+    let T_factor;
+    if (T >= 400 && T <= 600) T_factor = 1.0;
+    else if (T >= 350 && T < 400) T_factor = 0.5 + 0.01 * (T - 350);
+    else if (T > 600 && T <= 700) T_factor = Math.max(0.3, 1.0 - 0.007 * (T - 600));
+    else if (T > 700) T_factor = 0.2;
+    else T_factor = Math.max(0.1, 0.5 - 0.008 * (350 - T));
+    sigma *= T_factor;
     return Math.max(sigma, 0);
   }
 
@@ -5238,6 +5260,84 @@ function grow_albite(crystal, conditions, step) {
   return new GrowthZone({ step, temperature: conditions.temperature, thickness_um: rate, growth_rate: rate, trace_Al: conditions.fluid.Al * 0.03, note });
 }
 
+function grow_tourmaline(crystal, conditions, step) {
+  // Tourmaline (schorl→elbaite series). Cyclosilicate — no practical
+  // dissolution path in this simplified model. Color is chosen per-zone
+  // from the current fluid composition, matching vugg.py.
+  const sigma = conditions.supersaturation_tourmaline();
+  if (sigma < 1.0) return null;
+
+  const excess = sigma - 1.0;
+  const rate = 3.0 * excess * rng.uniform(0.8, 1.2);
+  if (rate < 0.1) return null;
+
+  const f = conditions.fluid;
+  const is_li_rich = f.Li > 10.0;
+  let variety = 'schorl';
+  let color_note = '';
+  if (f.Cu > 1.0) {
+    variety = 'paraiba';
+    color_note = `neon Paraíba blue (Cu²⁺ ${f.Cu.toFixed(2)} ppm — extreme rarity)`;
+  } else if (is_li_rich && f.Mn > 0.3 && f.Fe < 15) {
+    variety = 'rubellite';
+    color_note = `pink rubellite (Mn²⁺ ${f.Mn.toFixed(1)} + Li ${f.Li.toFixed(0)} ppm)`;
+  } else if (is_li_rich && (f.Cr > 0.5 || f.V > 1.0)) {
+    variety = 'verdelite';
+    color_note = `green verdelite (${f.Cr > 0.5 ? 'Cr³⁺' : 'V³⁺'} + Li ${f.Li.toFixed(0)} ppm)`;
+  } else if (is_li_rich && f.Fe > 5 && f.Ti > 0.3) {
+    variety = 'indicolite';
+    color_note = `blue indicolite (Fe²⁺+Ti with Li ${f.Li.toFixed(0)} ppm)`;
+  } else if (f.Fe > 15 && f.Li < 5) {
+    variety = 'schorl';
+    color_note = `black schorl (Fe²⁺ ${f.Fe.toFixed(0)} ppm dominant, Li-depleted)`;
+  } else if (is_li_rich) {
+    variety = 'elbaite';
+    color_note = 'colorless achroite (Li-bearing elbaite, trace elements muted)';
+  } else {
+    color_note = 'dark olive-brown (mixed Fe/Mg character)';
+  }
+
+  crystal.habit = variety;
+  if (conditions.temperature > 500) {
+    crystal.dominant_forms = ['m{10̄10} prism', 'r{101̄1} + o{022̄1} terminations', 'deep striations'];
+  } else {
+    crystal.dominant_forms = ['m{10̄10} prism', 'slightly rounded triangular cross-section', 'deep striations'];
+  }
+
+  const trace_Fe = f.Fe * 0.04;
+  const trace_Mn = f.Mn * 0.02;
+  const trace_Al = f.Al * 0.03;
+  const trace_Ti = f.Ti * 0.01;
+
+  f.B  = Math.max(f.B  - rate * 0.025, 0);
+  f.Na = Math.max(f.Na - rate * 0.008, 0);
+  f.Al = Math.max(f.Al - rate * 0.015, 0);
+  f.SiO2 = Math.max(f.SiO2 - rate * 0.020, 0);
+  if (variety === 'schorl' || variety === 'indicolite') {
+    f.Fe = Math.max(f.Fe - rate * 0.012, 0);
+  }
+  if (is_li_rich || ['rubellite','verdelite','indicolite','elbaite'].includes(variety)) {
+    f.Li = Math.max(f.Li - rate * 0.010, 0);
+  }
+  if (variety === 'rubellite') f.Mn = Math.max(f.Mn - rate * 0.008, 0);
+  if (variety === 'verdelite') {
+    if (f.Cr > 0.5) f.Cr = Math.max(f.Cr - rate * 0.005, 0);
+    else f.V = Math.max(f.V - rate * 0.006, 0);
+  }
+  if (variety === 'paraiba') f.Cu = Math.max(f.Cu - rate * 0.015, 0);
+
+  const parts = [color_note, 'vertical striations deepen — every growth pulse leaves a ridge'];
+  if (excess > 1.5) parts.push('rapid growth — radial sprays possible');
+  else if (excess < 0.2) parts.push('near-equilibrium — clean prismatic growth');
+
+  return new GrowthZone({
+    step, temperature: conditions.temperature,
+    thickness_um: rate, growth_rate: rate,
+    trace_Fe, trace_Mn, trace_Al, trace_Ti,
+    note: parts.join(', '),
+  });
+}
+
 function grow_topaz(crystal, conditions, step) {
   // Topaz (Al₂SiO₄(F,OH)₂) — orthorhombic nesosilicate. F-gated nucleation.
   // Imperial color (Cr³⁺ substitution) kicks in when fluid Cr > 3 ppm; pink
@@ -5344,6 +5444,7 @@ const MINERAL_ENGINES = {
   goethite: grow_goethite,
   albite: grow_albite,
   topaz: grow_topaz,
+  tourmaline: grow_tourmaline,
 };
 
 function grow_adamite(crystal, conditions, step) {
@@ -5852,6 +5953,8 @@ class VugSimulator {
       crystal.dominant_forms = ['{010} pinacoid', '{110} prism'];
     } else if (mineral === 'topaz') {
       crystal.dominant_forms = ['m{110} prism', 'y{041} pyramid', 'c{001} basal cleavage'];
+    } else if (mineral === 'tourmaline') {
+      crystal.dominant_forms = ['m{10̄10} trigonal prism', 'striated faces', 'slightly rounded triangular cross-section'];
     }
     this.crystals.push(crystal);
     return crystal;
@@ -6270,6 +6373,35 @@ class VugSimulator {
       }
       const c = this.nucleate('mimetite', pos, sigma_mim);
       this.log.push(`  ✦ NUCLEATION: Mimetite #${c.crystal_id} on ${c.position} (T=${this.conditions.temperature.toFixed(0)}°C, σ=${sigma_mim.toFixed(2)})`);
+    }
+
+    // Tourmaline nucleation — Na + B + Al + SiO₂ (B-gated, σ=1.3).
+    // Schorl (Fe²⁺-dominant black) early, elbaite varieties (rubellite,
+    // verdelite, indicolite, Paraíba) late as Fe depletes and Li
+    // accumulates. Nucleation label previews the variety likely to grow.
+    const sigma_tml = this.conditions.supersaturation_tourmaline();
+    const existing_tml = this.crystals.filter(c => c.mineral === 'tourmaline' && c.active);
+    if (sigma_tml > 1.3 && !this._atNucleationCap('tourmaline')) {
+      if (!existing_tml.length || (sigma_tml > 2.0 && rng.random() < 0.25)) {
+        let pos = 'vug wall';
+        const existing_qtz_tml = this.crystals.filter(c => c.mineral === 'quartz' && c.active);
+        const existing_feldspar_tml = this.crystals.filter(c => c.mineral === 'feldspar' && c.active);
+        if (existing_qtz_tml.length && rng.random() < 0.4) {
+          pos = `on quartz #${existing_qtz_tml[0].crystal_id}`;
+        } else if (existing_feldspar_tml.length && rng.random() < 0.4) {
+          pos = `on feldspar #${existing_feldspar_tml[0].crystal_id}`;
+        }
+        const c = this.nucleate('tourmaline', pos, sigma_tml);
+        const f = this.conditions.fluid;
+        let tag;
+        if (f.Cu > 1.0) tag = 'Paraíba';
+        else if (f.Li > 10 && f.Mn > 0.3) tag = 'rubellite';
+        else if (f.Li > 10 && (f.Cr > 0.5 || f.V > 1.0)) tag = 'verdelite';
+        else if (f.Fe > 15 && f.Li < 5) tag = 'schorl';
+        else if (f.Li > 10) tag = 'elbaite';
+        else tag = 'mixed';
+        this.log.push(`  ✦ NUCLEATION: Tourmaline #${c.crystal_id} (${tag}) on ${c.position} (T=${this.conditions.temperature.toFixed(0)}°C, σ=${sigma_tml.toFixed(2)}, B=${f.B.toFixed(0)} ppm, Fe=${f.Fe.toFixed(0)}, Li=${f.Li.toFixed(0)})`);
+      }
     }
 
     // Topaz nucleation — Al + SiO₂ + F (F-gated, nucleation_sigma=1.4).
@@ -7223,6 +7355,42 @@ class VugSimulator {
       parts.push('Strong acid attack etched the surface — topaz is very resistant, but pH below 2 with long exposure releases Al³⁺, SiO₂, and F⁻ slowly back into the fluid.');
     }
 
+    return parts.join(' ');
+  }
+
+  _narrate_tourmaline(c) {
+    const parts = [`Tourmaline #${c.crystal_id} grew to ${c.c_length_mm.toFixed(1)} mm.`];
+    parts.push('Complex cyclosilicate, trigonal — elongated prisms with deep vertical striations and a slightly rounded triangular cross-section {10̄10}. Each striation is a growth pulse. Color is a fluid composition snapshot: boron found a home, and which cations came with it wrote the hue.');
+
+    const notes = c.zones.map(z => (z.note || '').toLowerCase());
+    const varieties = new Set();
+    for (const n of notes) {
+      if (n.includes('schorl')) varieties.add('schorl');
+      if (n.includes('rubellite')) varieties.add('rubellite');
+      if (n.includes('verdelite')) varieties.add('verdelite');
+      if (n.includes('indicolite')) varieties.add('indicolite');
+      if (n.includes('paraíba') || n.includes('paraiba')) varieties.add('paraiba');
+      if (n.includes('achroite')) varieties.add('achroite');
+    }
+
+    if (varieties.has('schorl') && varieties.size > 1) {
+      const other = [...varieties].filter(v => v !== 'schorl').sort();
+      parts.push(`Color-zoned: started as schorl (Fe²⁺-dominant black core) and transitioned to ${other.join(', ')} as the pegmatite fluid depleted iron and built up lithium. The crystal is a diary of incompatible-element accumulation.`);
+    } else if (varieties.has('paraiba')) {
+      parts.push('Paraíba blue — the Cu²⁺-activated glow discovered in northeastern Brazil in 1989 and fetching tens of thousands of dollars per carat at auction. Copper is the rarest chromophore in tourmaline; this zone documents a fluid that briefly carried Cu²⁺ among its trace metals.');
+    } else if (varieties.has('rubellite')) {
+      parts.push("Rubellite — Li-rich elbaite with Mn²⁺ giving pink color. The Jonas mine in Minas Gerais was perhaps the world's greatest rubellite producer. This composition marks the late pocket-growth phase, after iron had been scavenged by earlier schorl.");
+    } else if (varieties.has('verdelite')) {
+      parts.push("Verdelite — green elbaite. Cr³⁺ or V³⁺ substitution into the Al site drives the color; both trace elements come from ultramafic country rock contact. Emerald's cousin by chromophore.");
+    } else if (varieties.has('indicolite')) {
+      parts.push('Indicolite — blue elbaite. Fe²⁺→Ti⁴⁺ charge transfer produces the color, requiring both cations plus Li to have coexisted in the growth fluid. A tricky composition to hit, which is why good indicolite is collector-priced.');
+    } else if (varieties.has('schorl')) {
+      parts.push('Schorl — the black Fe²⁺-dominant end-member that dominates the early phases of pegmatite crystallization. Opaque in thick section, dark green-black by transmitted light. The most common tourmaline species globally.');
+    } else if (varieties.has('achroite')) {
+      parts.push('Achroite — colorless elbaite. All trace elements muted or absent; the pure lithium-aluminum end-member looking through. Rare in the field, beautiful under UV sometimes from structural defects.');
+    }
+
+    parts.push('The cross-section, if you sliced this crystal perpendicular to its c-axis, would read like a tree-ring record — concentric zones of color marking each fluid event the vug witnessed.');
     return parts.join(' ');
   }
 

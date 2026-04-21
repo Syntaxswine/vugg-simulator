@@ -38,14 +38,15 @@
     "class_color": "Hex color for topographic map visualization. Derived from mineral class — all classes of the same type share one hue on a 12-color wheel (30° spacing). Wall/matrix = #D2691E (amber)."
   },
   "_audit_summary": {
-    "total_minerals": 20,
-    "_note": "Post-phase-2 state. The _initial_audit block below is frozen at phase-1 start for historical reference — do not edit. +topaz (Minas Gerais B).",
+    "total_minerals": 21,
+    "_note": "Post-phase-2 state. The _initial_audit block below is frozen at phase-1 start for historical reference — do not edit. +topaz (Minas Gerais B), +tourmaline (Minas Gerais A — commit 1).",
     "missing_growth_engine": [],
     "missing_narrate_function": [],
     "missing_from_vugg_py_registry": [],
     "missing_from_web_index": [],
     "missing_from_agent_api": [
-      "topaz"
+      "topaz",
+      "tourmaline"
     ],
     "scenarios_that_can_nucleate": {
       "cooling": [
@@ -85,7 +86,8 @@
         "quartz",
         "feldspar",
         "albite",
-        "galena"
+        "galena",
+        "tourmaline"
       ],
       "supergene_oxidation": [
         "goethite",
@@ -2302,6 +2304,121 @@
         "web/index.html"
       ],
       "audit_status": "new (Minas Gerais Variant B, Ouro Preto Imperial Topaz). F-threshold gated nucleation; Cr³⁺ trace drives imperial color. Not yet in agent-api/vugg-agent.js.",
+      "class_color": "#1313eb"
+    },
+    "tourmaline": {
+      "formula": "Na(Fe²⁺,Li,Al)₃Al₆(BO₃)₃Si₆O₁₈(OH)₄",
+      "nucleation_sigma": 1.3,
+      "max_nucleation_count": 8,
+      "max_size_cm": 300,
+      "growth_rate_mult": 0.4,
+      "habit_variants": [
+        {
+          "name": "striated_prism_schorl",
+          "wall_spread": 0.15,
+          "void_reach": 0.85,
+          "vector": "projecting",
+          "trigger": "low σ, high T, Fe²⁺-dominant early growth"
+        },
+        {
+          "name": "striated_prism_elbaite",
+          "wall_spread": 0.15,
+          "void_reach": 0.85,
+          "vector": "projecting",
+          "trigger": "low σ, moderate T, Li-dominant late growth"
+        },
+        {
+          "name": "radial_spray",
+          "wall_spread": 0.4,
+          "void_reach": 0.7,
+          "vector": "projecting",
+          "trigger": "moderate-high σ, nucleation burst"
+        },
+        {
+          "name": "parallel_aggregate",
+          "wall_spread": 0.5,
+          "void_reach": 0.6,
+          "vector": "coating",
+          "trigger": "high σ, space-constrained"
+        },
+        {
+          "name": "default_striated_prism",
+          "wall_spread": 0.2,
+          "void_reach": 0.8,
+          "vector": "projecting",
+          "trigger": "default — striated trigonal prism"
+        }
+      ],
+      "class": "silicate",
+      "description": "Complex cyclosilicate — trigonal, elongated prisms with deep vertical striations and a slightly rounded triangular cross-section. Schorl (black, Fe²⁺-dominant) crystallizes early from pegmatite melt; elbaite (colored, Li-dominant) crystallizes late from residual pocket fluid as Fe depletes and Li accumulates. Striations are growth records — each ridge is a growth pulse. Color is a fluid composition snapshot: Mn²⁺ → pink (rubellite), Cr³⁺/V³⁺ → green (verdelite), Fe²⁺+Ti → blue (indicolite), Cu²⁺ → neon Paraíba blue (extreme rarity). The Jonas mine in Minas Gerais was the world's greatest rubellite producer. The most Minas Gerais mineral there is.",
+      "scenarios": [
+        "gem_pegmatite",
+        "radioactive_pegmatite"
+      ],
+      "T_range_C": [
+        350,
+        700
+      ],
+      "T_optimum_C": [
+        400,
+        600
+      ],
+      "T_behavior": "window",
+      "pH_dissolution_below": null,
+      "pH_dissolution_above": null,
+      "redox_requirement": "any",
+      "required_ingredients": {
+        "Na": 3,
+        "B": 6,
+        "Al": 8,
+        "SiO2": 60
+      },
+      "trace_ingredients": {
+        "Fe": "black schorl (Fe²⁺-dominant, early crystallization)",
+        "Li": "elbaite series (late, Li replaces Fe)",
+        "Mn": "pink rubellite (with Li)",
+        "Cr": "green verdelite (with Li)",
+        "Ti": "blue indicolite (with Fe + Li)",
+        "Cu": "neon Paraíba blue (extreme rarity)",
+        "V": "green verdelite (Cr alternative)"
+      },
+      "thermal_decomp_C": null,
+      "thermal_decomp_reaction": null,
+      "thermal_decomp_products": null,
+      "fluorescence": null,
+      "twin_laws": [],
+      "acid_dissolution": {
+        "pH_threshold": null,
+        "reaction": "extremely resistant — no practical acid dissolution",
+        "products": null
+      },
+      "habit": "striated_prism",
+      "color_rules": {
+        "black_schorl": {
+          "trigger": "Fe²⁺ > 15 and Li < 5 (schorl, early)"
+        },
+        "pink_rubellite": {
+          "trigger": "Li > 10 and Mn > 0.3 (rubellite)"
+        },
+        "green_verdelite": {
+          "trigger": "Li > 10 and (Cr > 0.5 or V > 1)"
+        },
+        "blue_indicolite": {
+          "trigger": "Li > 10 and Fe > 5 and Ti > 0.3"
+        },
+        "neon_paraiba": {
+          "trigger": "Cu > 1 (Paraíba type, extremely rare)"
+        },
+        "colorless_achroite": {
+          "default": true
+        }
+      },
+      "narrate_function": "_narrate_tourmaline",
+      "runtimes_present": [
+        "vugg.py",
+        "web/index.html"
+      ],
+      "audit_status": "new (Minas Gerais Variant A, tourmaline schorl→elbaite series). First B consumer in the sim. Not yet in agent-api/vugg-agent.js.",
       "class_color": "#1313eb"
     }
   }

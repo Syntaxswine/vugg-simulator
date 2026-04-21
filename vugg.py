@@ -765,6 +765,46 @@ class VugConditions:
             sigma *= math.exp(-0.01 * (300 - self.temperature))
         return max(sigma, 0)
 
+    def supersaturation_tourmaline(self) -> float:
+        """Tourmaline (Na(Fe,Li,Al)₃Al₆(BO₃)₃Si₆O₁₈(OH)₄) supersaturation.
+
+        Cyclosilicate — needs Na + B + Al + SiO₂. The B channel is what
+        makes tourmaline rare outside pegmatites: boron is incompatible in
+        common rock-forming minerals, so it accumulates in residual
+        pegmatite fluid until tourmaline crosses saturation.
+
+        Forms high-T (350–700°C, optimum 400–600°C). Extremely acid- and
+        weathering-resistant — no dissolution in the sim. The schorl/elbaite
+        distinction is a color/composition flag set in grow_tourmaline
+        based on which cations the fluid carries when the zone deposits.
+        """
+        if (self.fluid.Na < 3 or self.fluid.B < 6 or
+                self.fluid.Al < 8 or self.fluid.SiO2 < 60):
+            return 0
+        # Cap each factor — pegmatite fluids can have thousands of ppm SiO₂
+        # and tens of ppm of the incompatible elements. The real limiter is
+        # the boron channel and temperature window, not sheer abundance.
+        na_f = min(self.fluid.Na / 20.0, 1.5)
+        b_f  = min(self.fluid.B / 15.0, 2.0)   # B is the gate
+        al_f = min(self.fluid.Al / 15.0, 1.5)
+        si_f = min(self.fluid.SiO2 / 400.0, 1.5)
+        sigma = na_f * b_f * al_f * si_f
+        # Temperature window — stable up to ~700°C but nucleates best in
+        # the 400–600°C band. Falls off outside.
+        T = self.temperature
+        if 400 <= T <= 600:
+            T_factor = 1.0
+        elif 350 <= T < 400:
+            T_factor = 0.5 + 0.01 * (T - 350)  # 0.5 → 1.0
+        elif 600 < T <= 700:
+            T_factor = max(0.3, 1.0 - 0.007 * (T - 600))
+        elif 700 < T:
+            T_factor = 0.2  # outside stability field
+        else:
+            T_factor = max(0.1, 0.5 - 0.008 * (350 - T))  # below 350 → starved
+        sigma *= T_factor
+        return max(sigma, 0)
+
     def supersaturation_topaz(self) -> float:
         """Topaz (Al₂SiO₄(F,OH)₂) supersaturation. Needs Al + SiO₂ + F.
 
@@ -2297,6 +2337,120 @@ def grow_topaz(crystal: Crystal, conditions: VugConditions, step: int) -> Option
     )
 
 
+def grow_tourmaline(crystal: Crystal, conditions: VugConditions, step: int) -> Optional[GrowthZone]:
+    """Tourmaline growth model (schorl → elbaite series).
+
+    Cyclosilicate, trigonal, elongated prisms with deep vertical
+    striations and a slightly rounded triangular cross-section {101̄0}.
+    The schorl→elbaite transition records the pegmatite fluid's
+    evolution: schorl (Fe²⁺-dominant black) early, elbaite (Li-dominant
+    colored) late as Fe depletes and Li accumulates.
+
+    Color is a fluid composition snapshot, chosen per growth zone:
+    - Fe²⁺ dominant → schorl (black)
+    - Li-rich + Mn²⁺ → rubellite (pink)
+    - Li-rich + Cr³⁺/V³⁺ → verdelite (green)
+    - Li-rich + Fe²⁺ + Ti → indicolite (blue)
+    - Cu²⁺ trace → Paraíba (neon blue, rare)
+    - Otherwise → achroite (colorless)
+
+    Extremely resistant to weathering — no dissolution path in this
+    simplified model.
+    """
+    sigma = conditions.supersaturation_tourmaline()
+    if sigma < 1.0:
+        return None  # tourmaline is basically immortal once grown
+
+    excess = sigma - 1.0
+    rate = 3.0 * excess * random.uniform(0.8, 1.2)
+    if rate < 0.1:
+        return None
+
+    # Color variant from current fluid composition. Log-order checks: most
+    # distinctive flags win. Track via zone notes so _narrate_tourmaline
+    # can read them; also set crystal.habit on the first colored zone so
+    # the library UI picks up the species name.
+    f = conditions.fluid
+    is_li_rich = f.Li > 10.0
+    color_note = ""
+    variety = "schorl"  # default — the early Fe²⁺ end-member
+    if f.Cu > 1.0:
+        variety = "paraiba"
+        color_note = f"neon Paraíba blue (Cu²⁺ {f.Cu:.2f} ppm — extreme rarity)"
+    elif is_li_rich and f.Mn > 0.3 and f.Fe < 15:
+        variety = "rubellite"
+        color_note = f"pink rubellite (Mn²⁺ {f.Mn:.1f} + Li {f.Li:.0f} ppm)"
+    elif is_li_rich and (f.Cr > 0.5 or f.V > 1.0):
+        variety = "verdelite"
+        color_note = f"green verdelite ({'Cr³⁺' if f.Cr > 0.5 else 'V³⁺'} + Li {f.Li:.0f} ppm)"
+    elif is_li_rich and f.Fe > 5 and f.Ti > 0.3:
+        variety = "indicolite"
+        color_note = f"blue indicolite (Fe²⁺+Ti with Li {f.Li:.0f} ppm)"
+    elif f.Fe > 15 and f.Li < 5:
+        variety = "schorl"
+        color_note = f"black schorl (Fe²⁺ {f.Fe:.0f} ppm dominant, Li-depleted)"
+    elif is_li_rich:
+        variety = "elbaite"
+        color_note = f"colorless achroite (Li-bearing elbaite, trace elements muted)"
+    else:
+        color_note = "dark olive-brown (mixed Fe/Mg character)"
+
+    # Stamp the variety onto the crystal. A crystal can span schorl→elbaite
+    # zones during a single life — the habit reflects whatever the latest
+    # zone says, which is how color-zoned tourmaline records time evolution.
+    crystal.habit = variety
+
+    if conditions.temperature > 500:
+        crystal.dominant_forms = ["m{10̄10} prism", "r{101̄1} + o{022̄1} terminations", "deep striations"]
+    else:
+        crystal.dominant_forms = ["m{10̄10} prism", "slight rounded triangular cross-section", "deep striations"]
+
+    # Trace incorporation — Mn, Fe, Cr, Li all captured in notes, but we
+    # stash Fe/Mn on the zone so predict_fluorescence and color averaging
+    # across zones work.
+    trace_Fe = f.Fe * 0.04   # tourmaline is a decent Fe sink
+    trace_Mn = f.Mn * 0.02
+    trace_Al = f.Al * 0.03
+    trace_Ti = f.Ti * 0.01
+
+    # Deplete the fluid — this is how the schorl→elbaite transition drives
+    # itself: Fe goes down, Li builds up relative to Fe, and later zones
+    # start reading as elbaite varieties.
+    f.B = max(f.B - rate * 0.025, 0)
+    f.Na = max(f.Na - rate * 0.008, 0)
+    f.Al = max(f.Al - rate * 0.015, 0)
+    f.SiO2 = max(f.SiO2 - rate * 0.020, 0)
+    if variety == "schorl" or variety == "indicolite":
+        f.Fe = max(f.Fe - rate * 0.012, 0)
+    if is_li_rich or variety in ("rubellite", "verdelite", "indicolite", "elbaite"):
+        f.Li = max(f.Li - rate * 0.010, 0)
+    if variety == "rubellite":
+        f.Mn = max(f.Mn - rate * 0.008, 0)
+    if variety == "verdelite":
+        if f.Cr > 0.5:
+            f.Cr = max(f.Cr - rate * 0.005, 0)
+        else:
+            f.V = max(f.V - rate * 0.006, 0)
+    if variety == "paraiba":
+        f.Cu = max(f.Cu - rate * 0.015, 0)
+
+    parts = [color_note]
+    # Striated growth is ubiquitous — every zone gets the record.
+    parts.append("vertical striations deepen — every growth pulse leaves a ridge")
+    if excess > 1.5:
+        parts.append("rapid growth — radial sprays possible")
+    elif excess < 0.2:
+        parts.append("near-equilibrium — clean prismatic growth")
+
+    return GrowthZone(
+        step=step, temperature=conditions.temperature,
+        thickness_um=rate, growth_rate=rate,
+        trace_Fe=trace_Fe, trace_Mn=trace_Mn,
+        trace_Al=trace_Al, trace_Ti=trace_Ti,
+        note=", ".join(parts),
+    )
+
+
 def grow_galena(crystal: Crystal, conditions: VugConditions, step: int) -> Optional[GrowthZone]:
     """Galena (PbS) growth. Cubic lead sulfide, bright metallic luster, very dense."""
     sigma = conditions.supersaturation_galena()
@@ -2679,6 +2833,7 @@ MINERAL_ENGINES = {
     "wulfenite": grow_wulfenite,
     "selenite": grow_selenite,
     "topaz": grow_topaz,
+    "tourmaline": grow_tourmaline,
 }
 
 
@@ -3644,6 +3799,8 @@ class VugSimulator:
             crystal.dominant_forms = ["{0001} basal plates", "hexagonal outline"]
         elif mineral == "topaz":
             crystal.dominant_forms = ["m{110} prism", "y{041} pyramid", "c{001} basal cleavage"]
+        elif mineral == "tourmaline":
+            crystal.dominant_forms = ["m{10̄10} trigonal prism", "striated faces", "slightly rounded triangular cross-section"]
         self.crystals.append(crystal)
         return crystal
 
@@ -3988,6 +4145,37 @@ class VugSimulator:
             c = self.nucleate("selenite", position="vug wall", sigma=sigma_sel)
             self.log.append(f"  ✦ NUCLEATION: Selenite #{c.crystal_id} on {c.position} "
                           f"(T={self.conditions.temperature:.0f}°C, σ={sigma_sel:.2f})")
+
+        # Tourmaline nucleation — Na + B + Al + SiO₂ (B-gated).
+        # Threshold nucleation_sigma=1.3 is the pegmatite gate: needs
+        # boron accumulated past saturation, which no other current
+        # mineral consumes, so B builds freely in the pegmatite fluid.
+        # Schorl (Fe²⁺-dominant black) nucleates first when Fe is high;
+        # later zones transition to elbaite varieties as Fe depletes
+        # and Li accumulates in residual pocket fluid.
+        sigma_tml = self.conditions.supersaturation_tourmaline()
+        existing_tml = [c for c in self.crystals if c.mineral == "tourmaline" and c.active]
+        if sigma_tml > 1.3 and not self._at_nucleation_cap("tourmaline"):
+            if not existing_tml or (sigma_tml > 2.0 and random.random() < 0.25):
+                pos = "vug wall"
+                # Can nucleate on quartz or feldspar substrate in pegmatites
+                existing_feldspar = [c for c in self.crystals if c.mineral == "feldspar" and c.active]
+                if existing_quartz and random.random() < 0.4:
+                    pos = f"on quartz #{existing_quartz[0].crystal_id}"
+                elif existing_feldspar and random.random() < 0.4:
+                    pos = f"on feldspar #{existing_feldspar[0].crystal_id}"
+                c = self.nucleate("tourmaline", position=pos, sigma=sigma_tml)
+                # Preview variety label from current fluid
+                f = self.conditions.fluid
+                if f.Cu > 1.0: tag = "Paraíba"
+                elif f.Li > 10 and f.Mn > 0.3: tag = "rubellite"
+                elif f.Li > 10 and (f.Cr > 0.5 or f.V > 1.0): tag = "verdelite"
+                elif f.Fe > 15 and f.Li < 5: tag = "schorl"
+                elif f.Li > 10: tag = "elbaite"
+                else: tag = "mixed"
+                self.log.append(f"  ✦ NUCLEATION: Tourmaline #{c.crystal_id} ({tag}) on {c.position} "
+                              f"(T={self.conditions.temperature:.0f}°C, σ={sigma_tml:.2f}, "
+                              f"B={f.B:.0f} ppm, Fe={f.Fe:.0f}, Li={f.Li:.0f})")
 
         # Topaz nucleation — Al + SiO₂ + F (F-gated).
         # Threshold nucleation_sigma=1.4 is the Ouro Preto gate — early
@@ -5897,6 +6085,93 @@ class VugSimulator:
                 "resistant, but pH below 2 with long exposure releases Al³⁺, "
                 "SiO₂, and F⁻ slowly back into the fluid."
             )
+
+        return " ".join(parts)
+
+    def _narrate_tourmaline(self, c: Crystal) -> str:
+        """Narrate a tourmaline crystal — schorl→elbaite color diary."""
+        parts = [f"Tourmaline #{c.crystal_id} grew to {c.c_length_mm:.1f} mm."]
+
+        parts.append(
+            "Complex cyclosilicate, trigonal — elongated prisms with deep "
+            "vertical striations and a slightly rounded triangular "
+            "cross-section {10̄10}. Each striation is a growth pulse. Color "
+            "is a fluid composition snapshot: boron found a home, and which "
+            "cations came with it wrote the hue."
+        )
+
+        # Identify what varieties appeared across the crystal's life by
+        # scanning zone notes. A single crystal can span schorl→elbaite
+        # zoning if Fe depleted and Li accumulated between zones — which
+        # is exactly how Minas Gerais rubellite grows over schorl cores.
+        zone_notes = [z.note or "" for z in c.zones]
+        varieties = set()
+        for n in zone_notes:
+            if "schorl" in n: varieties.add("schorl")
+            if "rubellite" in n: varieties.add("rubellite")
+            if "verdelite" in n: varieties.add("verdelite")
+            if "indicolite" in n: varieties.add("indicolite")
+            if "Paraíba" in n or "paraiba" in n: varieties.add("paraiba")
+            if "achroite" in n: varieties.add("achroite")
+
+        if {"schorl"} < varieties:
+            other = sorted(varieties - {"schorl"})
+            parts.append(
+                f"Color-zoned: started as schorl (Fe²⁺-dominant black core) "
+                f"and transitioned to {', '.join(other)} as the pegmatite "
+                f"fluid depleted iron and built up lithium. The crystal is a "
+                f"diary of incompatible-element accumulation."
+            )
+        elif "paraiba" in varieties:
+            parts.append(
+                "Paraíba blue — the Cu²⁺-activated glow discovered in "
+                "northeastern Brazil in 1989 and fetching tens of thousands "
+                "of dollars per carat at auction. Copper is the rarest "
+                "chromophore in tourmaline; this zone documents a fluid "
+                "that briefly carried Cu²⁺ among its trace metals."
+            )
+        elif "rubellite" in varieties:
+            parts.append(
+                "Rubellite — Li-rich elbaite with Mn²⁺ giving pink color. "
+                "The Jonas mine in Minas Gerais was perhaps the world's "
+                "greatest rubellite producer. This composition marks the "
+                "late pocket-growth phase, after iron had been scavenged by "
+                "earlier schorl."
+            )
+        elif "verdelite" in varieties:
+            parts.append(
+                "Verdelite — green elbaite. Cr³⁺ or V³⁺ substitution into "
+                "the Al site drives the color; both trace elements come "
+                "from ultramafic country rock contact. Emerald's cousin by "
+                "chromophore."
+            )
+        elif "indicolite" in varieties:
+            parts.append(
+                "Indicolite — blue elbaite. Fe²⁺→Ti⁴⁺ charge transfer "
+                "produces the color, requiring both cations plus Li to have "
+                "coexisted in the growth fluid. A tricky composition to "
+                "hit, which is why good indicolite is collector-priced."
+            )
+        elif "schorl" in varieties:
+            parts.append(
+                "Schorl — the black Fe²⁺-dominant end-member that dominates "
+                "the early phases of pegmatite crystallization. Opaque in "
+                "thick section, dark green-black by transmitted light. The "
+                "most common tourmaline species globally."
+            )
+        elif "achroite" in varieties:
+            parts.append(
+                "Achroite — colorless elbaite. All trace elements muted or "
+                "absent; the pure lithium-aluminum end-member looking "
+                "through. Rare in the field, beautiful under UV sometimes "
+                "from structural defects."
+            )
+
+        parts.append(
+            "The cross-section, if you sliced this crystal perpendicular to "
+            "its c-axis, would read like a tree ring record — concentric "
+            "zones of color marking each fluid event the vug witnessed."
+        )
 
         return " ".join(parts)
 
