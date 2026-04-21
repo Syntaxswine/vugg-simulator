@@ -2987,6 +2987,12 @@ const MINERAL_SPEC_FALLBACK = {
   cuprite: { formula: "Cu2O", nucleation_sigma: 1.2, max_size_cm: 15, growth_rate_mult: 0.35, thermal_decomp_C: 1235, fluorescence: null, twin_laws: [{ name: "spinel_law", probability: 0.05 }], acid_dissolution: { pH_threshold: 3.5 } },
   azurite: { formula: "Cu3(CO3)2(OH)2", nucleation_sigma: 1.4, max_size_cm: 25, growth_rate_mult: 0.3, thermal_decomp_C: 220, fluorescence: null, twin_laws: [], acid_dissolution: { pH_threshold: 5.0 } },
   native_copper: { formula: "Cu", nucleation_sigma: 1.6, max_size_cm: 300, growth_rate_mult: 0.2, thermal_decomp_C: 1083, fluorescence: null, twin_laws: [{ name: "spinel_law", probability: 0.04 }], acid_dissolution: { pH_threshold: 4.0 } },
+  magnetite: { formula: "Fe3O4", nucleation_sigma: 1.0, max_size_cm: 15, growth_rate_mult: 0.35, thermal_decomp_C: 1590, fluorescence: null, twin_laws: [{ name: "spinel_law", probability: 0.03 }], acid_dissolution: { pH_threshold: 2.5 } },
+  lepidocrocite: { formula: "FeO(OH)-gamma", nucleation_sigma: 1.1, max_size_cm: 0.5, growth_rate_mult: 0.5, thermal_decomp_C: 300, fluorescence: null, twin_laws: [], acid_dissolution: { pH_threshold: 3.0 } },
+  stibnite: { formula: "Sb2S3", nucleation_sigma: 1.2, max_size_cm: 60, growth_rate_mult: 0.35, thermal_decomp_C: 550, fluorescence: null, twin_laws: [], acid_dissolution: { pH_threshold: 2.0 } },
+  bismuthinite: { formula: "Bi2S3", nucleation_sigma: 1.3, max_size_cm: 5, growth_rate_mult: 0.4, thermal_decomp_C: 760, fluorescence: null, twin_laws: [], acid_dissolution: { pH_threshold: 2.0 } },
+  native_bismuth: { formula: "Bi", nucleation_sigma: 1.4, max_size_cm: 5, growth_rate_mult: 0.4, thermal_decomp_C: 271, fluorescence: null, twin_laws: [], acid_dissolution: { pH_threshold: 3.0 } },
+  clinobisvanite: { formula: "BiVO4", nucleation_sigma: 1.5, max_size_cm: 0.1, growth_rate_mult: 0.2, thermal_decomp_C: null, fluorescence: null, twin_laws: [], acid_dissolution: { pH_threshold: 2.5 } },
 };
 
 // Live spec — swapped in by the fetch below if data/minerals.json loads.
@@ -3925,6 +3931,101 @@ class VugConditions {
     else if (T > 700) T_factor = 0.2;
     else T_factor = Math.max(0.1, 0.5 - 0.008 * (400 - T));
     sigma *= T_factor;
+    return Math.max(sigma, 0);
+  }
+
+  // Magnetite (Fe₃O₄) — mixed-valence Fe²⁺Fe³⁺ at the HM redox buffer.
+  supersaturation_magnetite() {
+    if (this.fluid.Fe < 25 || this.fluid.O2 < 0.1 || this.fluid.O2 > 1.0) return 0;
+    const fe_f = Math.min(this.fluid.Fe / 60.0, 2.0);
+    const o_f = Math.max(0.4, 1.0 - Math.abs(this.fluid.O2 - 0.4) * 1.5);
+    let sigma = fe_f * o_f;
+    const T = this.temperature;
+    let T_factor;
+    if (T >= 300 && T <= 600) T_factor = 1.0;
+    else if (T >= 100 && T < 300) T_factor = 0.5 + 0.0025 * (T - 100);
+    else if (T > 600 && T <= 800) T_factor = Math.max(0.4, 1.0 - 0.003 * (T - 600));
+    else T_factor = 0.2;
+    sigma *= T_factor;
+    if (this.fluid.pH < 2.5) sigma -= (2.5 - this.fluid.pH) * 0.3;
+    return Math.max(sigma, 0);
+  }
+
+  // Lepidocrocite (γ-FeOOH) — ruby-red dimorph of goethite, rapid oxidation.
+  supersaturation_lepidocrocite() {
+    if (this.fluid.Fe < 15 || this.fluid.O2 < 0.8) return 0;
+    const fe_f = Math.min(this.fluid.Fe / 50.0, 2.0);
+    const o_f = Math.min(this.fluid.O2 / 1.5, 1.5);
+    let sigma = fe_f * o_f;
+    if (this.temperature > 50) sigma *= Math.exp(-0.02 * (this.temperature - 50));
+    if (this.fluid.pH < 3.0) sigma -= (3.0 - this.fluid.pH) * 0.4;
+    if (this.fluid.pH > 7.5) sigma *= Math.max(0.5, 1.0 - (this.fluid.pH - 7.5) * 0.3);
+    return Math.max(sigma, 0);
+  }
+
+  // Stibnite (Sb₂S₃) — sword-blade antimony sulfide.
+  supersaturation_stibnite() {
+    if (this.fluid.Sb < 10 || this.fluid.S < 15 || this.fluid.O2 > 1.0) return 0;
+    const sb_f = Math.min(this.fluid.Sb / 20.0, 2.0);
+    const s_f  = Math.min(this.fluid.S / 40.0, 1.5);
+    let sigma = sb_f * s_f;
+    const T = this.temperature;
+    let T_factor;
+    if (T >= 150 && T <= 300) T_factor = 1.0;
+    else if (T >= 100 && T < 150) T_factor = 0.5 + 0.01 * (T - 100);
+    else if (T > 300 && T <= 400) T_factor = Math.max(0.3, 1.0 - 0.007 * (T - 300));
+    else T_factor = 0.2;
+    sigma *= T_factor;
+    sigma *= Math.max(0.5, 1.3 - this.fluid.O2);
+    if (this.fluid.pH < 2.0) sigma -= (2.0 - this.fluid.pH) * 0.3;
+    return Math.max(sigma, 0);
+  }
+
+  // Bismuthinite (Bi₂S₃) — same structure as stibnite, Bi cousin.
+  supersaturation_bismuthinite() {
+    if (this.fluid.Bi < 5 || this.fluid.S < 15 || this.fluid.O2 > 1.0) return 0;
+    const bi_f = Math.min(this.fluid.Bi / 20.0, 2.0);
+    const s_f  = Math.min(this.fluid.S / 50.0, 1.5);
+    let sigma = bi_f * s_f;
+    const T = this.temperature;
+    let T_factor;
+    if (T >= 200 && T <= 400) T_factor = 1.0;
+    else if (T >= 150 && T < 200) T_factor = 0.5 + 0.01 * (T - 150);
+    else if (T > 400 && T <= 500) T_factor = Math.max(0.3, 1.0 - 0.007 * (T - 400));
+    else T_factor = 0.2;
+    sigma *= T_factor;
+    sigma *= Math.max(0.5, 1.3 - this.fluid.O2);
+    if (this.fluid.pH < 2.0) sigma -= (2.0 - this.fluid.pH) * 0.3;
+    return Math.max(sigma, 0);
+  }
+
+  // Native bismuth (Bi) — elemental; forms when S runs out.
+  supersaturation_native_bismuth() {
+    if (this.fluid.Bi < 15 || this.fluid.S > 12 || this.fluid.O2 > 0.6) return 0;
+    const bi_f = Math.min(this.fluid.Bi / 25.0, 2.0);
+    const s_mask = Math.max(0.4, 1.0 - this.fluid.S / 20.0);
+    const red_f = Math.max(0.4, 1.0 - this.fluid.O2 * 1.5);
+    let sigma = bi_f * s_mask * red_f;
+    const T = this.temperature;
+    let T_factor;
+    if (T >= 100 && T <= 250) T_factor = 1.0;
+    else if (T < 100) T_factor = 0.6;
+    else if (T <= 270) T_factor = Math.max(0.3, 1.0 - 0.05 * (T - 250));
+    else T_factor = 0.1;
+    sigma *= T_factor;
+    if (this.fluid.pH < 3.0) sigma -= (3.0 - this.fluid.pH) * 0.3;
+    return Math.max(sigma, 0);
+  }
+
+  // Clinobisvanite (BiVO₄) — end of the Bi oxidation sequence.
+  supersaturation_clinobisvanite() {
+    if (this.fluid.Bi < 2 || this.fluid.V < 2 || this.fluid.O2 < 1.0) return 0;
+    const bi_f = Math.min(this.fluid.Bi / 5.0, 2.0);
+    const v_f  = Math.min(this.fluid.V / 5.0, 2.0);
+    const o_f  = Math.min(this.fluid.O2 / 1.5, 1.3);
+    let sigma = bi_f * v_f * o_f;
+    if (this.temperature > 40) sigma *= Math.exp(-0.04 * (this.temperature - 40));
+    if (this.fluid.pH < 2.5) sigma -= (2.5 - this.fluid.pH) * 0.3;
     return Math.max(sigma, 0);
   }
 
@@ -5470,6 +5571,152 @@ function grow_albite(crystal, conditions, step) {
   return new GrowthZone({ step, temperature: conditions.temperature, thickness_um: rate, growth_rate: rate, trace_Al: conditions.fluid.Al * 0.03, note });
 }
 
+function grow_magnetite(crystal, conditions, step) {
+  const sigma = conditions.supersaturation_magnetite();
+  if (sigma < 1.0) {
+    if (crystal.total_growth_um > 5 && (conditions.fluid.pH < 2.5 || conditions.fluid.O2 > 1.4)) {
+      crystal.dissolved = true;
+      const d = Math.min(2.0, crystal.total_growth_um * 0.05);
+      conditions.fluid.Fe += d * 0.5;
+      return new GrowthZone({ step, temperature: conditions.temperature, thickness_um: -d, growth_rate: -d, note: `dissolution (pH ${conditions.fluid.pH.toFixed(1)}, O₂ ${conditions.fluid.O2.toFixed(1)}) — martite conversion if oxidizing` });
+    }
+    return null;
+  }
+  const excess = sigma - 1.0;
+  const rate = 3.0 * excess * rng.uniform(0.8, 1.2);
+  if (rate < 0.1) return null;
+  const f = conditions.fluid;
+  let color_note;
+  if (excess > 1.5) { crystal.habit = 'granular_massive'; crystal.dominant_forms = ['granular massive aggregate']; color_note = 'black massive magnetite'; }
+  else if (conditions.temperature > 400 && excess > 0.5 && excess < 1.2) { crystal.habit = 'rhombic_dodecahedral'; crystal.dominant_forms = ['{110} rhombic dodecahedron', 'with mineralizer']; color_note = 'black rhombic dodecahedral (high-T, mineralizer-assisted)'; }
+  else { crystal.habit = 'octahedral'; crystal.dominant_forms = ['{111} octahedron', 'metallic black']; color_note = 'black octahedral — strongly magnetic (lodestone)'; }
+  f.Fe = Math.max(f.Fe - rate * 0.025, 0);
+  f.O2 = Math.max(f.O2 - rate * 0.003, 0);
+  return new GrowthZone({ step, temperature: conditions.temperature, thickness_um: rate, growth_rate: rate, trace_Fe: f.Fe * 0.03, note: color_note });
+}
+
+function grow_lepidocrocite(crystal, conditions, step) {
+  const sigma = conditions.supersaturation_lepidocrocite();
+  if (sigma < 1.0) {
+    if (crystal.total_growth_um > 5 && conditions.fluid.pH < 3.0) {
+      crystal.dissolved = true;
+      const d = Math.min(1.5, crystal.total_growth_um * 0.06);
+      conditions.fluid.Fe += d * 0.4;
+      return new GrowthZone({ step, temperature: conditions.temperature, thickness_um: -d, growth_rate: -d, note: `acid dissolution (pH ${conditions.fluid.pH.toFixed(1)})` });
+    }
+    return null;
+  }
+  const excess = sigma - 1.0;
+  const rate = 4.0 * excess * rng.uniform(0.8, 1.2);
+  if (rate < 0.1) return null;
+  const f = conditions.fluid;
+  let color_note;
+  if (excess > 1.0) { crystal.habit = 'fibrous_micaceous'; crystal.dominant_forms = ['fibrous micaceous aggregate', 'rapid-oxidation signature']; color_note = 'rust-brown fibrous (fast Fe²⁺ oxidation, coarser particles)'; }
+  else if (excess > 0.4) { crystal.habit = 'plumose_rosette'; crystal.dominant_forms = ['plumose rosette', 'radiating platy']; color_note = 'ruby-red plumose rosette'; }
+  else { crystal.habit = 'platy_scales'; crystal.dominant_forms = ['{010} platy scales', 'perfect basal cleavage (mica-like)']; color_note = "pink-mauve to ruby-red platy (nanoscale 'lithium quartz' pigment scale)"; }
+  f.Fe = Math.max(f.Fe - rate * 0.020, 0);
+  f.O2 = Math.max(f.O2 - rate * 0.002, 0);
+  return new GrowthZone({ step, temperature: conditions.temperature, thickness_um: rate, growth_rate: rate, trace_Fe: f.Fe * 0.02, note: color_note });
+}
+
+function grow_stibnite(crystal, conditions, step) {
+  const sigma = conditions.supersaturation_stibnite();
+  if (sigma < 1.0) {
+    if (crystal.total_growth_um > 5 && conditions.fluid.pH < 2.0) {
+      crystal.dissolved = true;
+      const d = Math.min(2.0, crystal.total_growth_um * 0.06);
+      conditions.fluid.Sb += d * 0.3;
+      conditions.fluid.S += d * 0.3;
+      return new GrowthZone({ step, temperature: conditions.temperature, thickness_um: -d, growth_rate: -d, note: `acid dissolution (pH ${conditions.fluid.pH.toFixed(1)})` });
+    }
+    return null;
+  }
+  const excess = sigma - 1.0;
+  const rate = 3.5 * excess * rng.uniform(0.8, 1.2);
+  if (rate < 0.1) return null;
+  const f = conditions.fluid;
+  let color_note;
+  if (excess > 1.2) { crystal.habit = 'massive_granular'; crystal.dominant_forms = ['massive granular aggregate']; color_note = 'lead-gray massive granular stibnite'; }
+  else if (excess > 0.5) { crystal.habit = 'radiating_spray'; crystal.dominant_forms = ['radiating bladed spray', 'sword-blade aggregate']; color_note = 'radiating spray of steel-gray blades'; }
+  else { crystal.habit = 'elongated_prism_blade'; crystal.dominant_forms = ['elongated {110} prism', 'sword-blade terminations', 'brilliant metallic luster']; color_note = 'elongated sword-blade — the Ichinokawa habit (lead-gray metallic)'; }
+  f.Sb = Math.max(f.Sb - rate * 0.025, 0);
+  f.S = Math.max(f.S - rate * 0.018, 0);
+  return new GrowthZone({ step, temperature: conditions.temperature, thickness_um: rate, growth_rate: rate, note: color_note });
+}
+
+function grow_bismuthinite(crystal, conditions, step) {
+  const sigma = conditions.supersaturation_bismuthinite();
+  if (sigma < 1.0) {
+    if (crystal.total_growth_um > 5 && conditions.fluid.pH < 2.0) {
+      crystal.dissolved = true;
+      const d = Math.min(2.0, crystal.total_growth_um * 0.06);
+      conditions.fluid.Bi += d * 0.3;
+      conditions.fluid.S += d * 0.3;
+      return new GrowthZone({ step, temperature: conditions.temperature, thickness_um: -d, growth_rate: -d, note: `acid dissolution (pH ${conditions.fluid.pH.toFixed(1)})` });
+    }
+    return null;
+  }
+  const excess = sigma - 1.0;
+  const rate = 4.0 * excess * rng.uniform(0.8, 1.2);
+  if (rate < 0.1) return null;
+  const f = conditions.fluid;
+  const T = conditions.temperature;
+  let color_note;
+  if (T > 350) { crystal.habit = 'stout_prismatic'; crystal.dominant_forms = ['stout {110} prism', 'tin-white metallic']; color_note = `stout prismatic bismuthinite (high-T form, T=${T.toFixed(0)}°C)`; }
+  else if (excess > 1.0) { crystal.habit = 'radiating_cluster'; crystal.dominant_forms = ['radiating cluster', 'needle bundle']; color_note = 'radiating cluster of fine bismuthinite needles'; }
+  else { crystal.habit = 'acicular_needle'; crystal.dominant_forms = ['acicular {110} needles', 'lead-gray with iridescent tarnish']; color_note = `acicular needles (low-T form, T=${T.toFixed(0)}°C) — iridescent tarnish develops`; }
+  f.Bi = Math.max(f.Bi - rate * 0.030, 0);
+  f.S = Math.max(f.S - rate * 0.018, 0);
+  return new GrowthZone({ step, temperature: conditions.temperature, thickness_um: rate, growth_rate: rate, note: color_note });
+}
+
+function grow_native_bismuth(crystal, conditions, step) {
+  const sigma = conditions.supersaturation_native_bismuth();
+  if (sigma < 1.0) {
+    if (crystal.total_growth_um > 5 && conditions.fluid.O2 > 0.8) {
+      crystal.dissolved = true;
+      const d = Math.min(2.0, crystal.total_growth_um * 0.05);
+      conditions.fluid.Bi += d * 0.5;
+      return new GrowthZone({ step, temperature: conditions.temperature, thickness_um: -d, growth_rate: -d, note: `oxidation (O₂ ${conditions.fluid.O2.toFixed(1)}) — bismite/bismutite surface forms` });
+    }
+    return null;
+  }
+  const excess = sigma - 1.0;
+  const rate = 3.0 * excess * rng.uniform(0.8, 1.2);
+  if (rate < 0.1) return null;
+  const f = conditions.fluid;
+  let color_note;
+  if (excess > 1.0) { crystal.habit = 'massive_granular'; crystal.dominant_forms = ['massive granular silver-white']; color_note = 'massive granular native bismuth'; }
+  else if (excess > 0.25 && rng.random() < 0.1) { crystal.habit = 'rhombohedral_crystal'; crystal.dominant_forms = ['{0001} basal pinacoid', 'rhombohedral trigonal']; color_note = 'rhombohedral crystal (rare — well-formed in open vug)'; }
+  else { crystal.habit = 'arborescent_dendritic'; crystal.dominant_forms = ['arborescent branching', 'dendritic fracture fill']; color_note = 'arborescent native bismuth — silver-white tree-like growth, iridescent tarnish expected'; }
+  f.Bi = Math.max(f.Bi - rate * 0.035, 0);
+  return new GrowthZone({ step, temperature: conditions.temperature, thickness_um: rate, growth_rate: rate, note: color_note });
+}
+
+function grow_clinobisvanite(crystal, conditions, step) {
+  const sigma = conditions.supersaturation_clinobisvanite();
+  if (sigma < 1.0) {
+    if (crystal.total_growth_um > 3 && conditions.fluid.pH < 2.5) {
+      crystal.dissolved = true;
+      const d = Math.min(0.5, crystal.total_growth_um * 0.05);
+      conditions.fluid.Bi += d * 0.4;
+      conditions.fluid.V += d * 0.3;
+      return new GrowthZone({ step, temperature: conditions.temperature, thickness_um: -d, growth_rate: -d, note: `acid dissolution (pH ${conditions.fluid.pH.toFixed(1)})` });
+    }
+    return null;
+  }
+  const excess = sigma - 1.0;
+  const rate = 2.0 * excess * rng.uniform(0.8, 1.2);
+  if (rate < 0.1) return null;
+  const f = conditions.fluid;
+  let color_note;
+  if (excess > 1.0) { crystal.habit = 'powdery_aggregate'; crystal.dominant_forms = ['powdery yellow-orange aggregate', 'micro-crystalline']; color_note = 'powdery orange-yellow clinobisvanite (rapid growth, thicker crust)'; }
+  else { crystal.habit = 'micro_plates_yellow'; crystal.dominant_forms = ['{010} micro plates', 'yellow monoclinic']; color_note = 'bright yellow micro-platy clinobisvanite (photocatalyst for water splitting)'; }
+  f.Bi = Math.max(f.Bi - rate * 0.025, 0);
+  f.V = Math.max(f.V - rate * 0.012, 0);
+  return new GrowthZone({ step, temperature: conditions.temperature, thickness_um: rate, growth_rate: rate, note: color_note });
+}
+
 function grow_cuprite(crystal, conditions, step) {
   const sigma = conditions.supersaturation_cuprite();
   if (sigma < 1.0) {
@@ -6135,6 +6382,12 @@ const MINERAL_ENGINES = {
   cuprite: grow_cuprite,
   azurite: grow_azurite,
   native_copper: grow_native_copper,
+  magnetite: grow_magnetite,
+  lepidocrocite: grow_lepidocrocite,
+  stibnite: grow_stibnite,
+  bismuthinite: grow_bismuthinite,
+  native_bismuth: grow_native_bismuth,
+  clinobisvanite: grow_clinobisvanite,
 };
 
 function grow_adamite(crystal, conditions, step) {
@@ -6348,6 +6601,9 @@ function scenario_porphyry() {
       SiO2: 700, Ca: 80, CO3: 50, Fe: 30, Mn: 2,
       Zn: 0, S: 60, F: 5, Cu: 0, O2: 0.2,
       K: 40, Na: 25, Al: 15,
+      // Sb + Bi traces — greisen signature. Enough to nucleate
+      // stibnite + bismuthinite at a handful of sites each.
+      Sb: 25, Bi: 30,
       pH: 4.5, salinity: 10.0
     })
   });
@@ -6765,6 +7021,18 @@ class VugSimulator {
       crystal.dominant_forms = ['monoclinic prism', 'deep azure-blue'];
     } else if (mineral === 'native_copper') {
       crystal.dominant_forms = ['arborescent branching', 'copper-red metallic'];
+    } else if (mineral === 'magnetite') {
+      crystal.dominant_forms = ['{111} octahedron', 'black metallic, strongly magnetic'];
+    } else if (mineral === 'lepidocrocite') {
+      crystal.dominant_forms = ['{010} platy scales', 'ruby-red micaceous'];
+    } else if (mineral === 'stibnite') {
+      crystal.dominant_forms = ['elongated {110} prism', 'lead-gray sword-blade'];
+    } else if (mineral === 'bismuthinite') {
+      crystal.dominant_forms = ['acicular {110} needle', 'lead-gray metallic'];
+    } else if (mineral === 'native_bismuth') {
+      crystal.dominant_forms = ['arborescent silver-white', 'iridescent oxide tarnish'];
+    } else if (mineral === 'clinobisvanite') {
+      crystal.dominant_forms = ['micro-platy {010}', 'bright yellow'];
     }
     this.crystals.push(crystal);
     return crystal;
@@ -7183,6 +7451,90 @@ class VugSimulator {
       }
       const c = this.nucleate('mimetite', pos, sigma_mim);
       this.log.push(`  ✦ NUCLEATION: Mimetite #${c.crystal_id} on ${c.position} (T=${this.conditions.temperature.toFixed(0)}°C, σ=${sigma_mim.toFixed(2)})`);
+    }
+
+    // Magnetite nucleation — Fe + moderate O2 (HM buffer).
+    const sigma_mag = this.conditions.supersaturation_magnetite();
+    const existing_mag = this.crystals.filter(c => c.mineral === 'magnetite' && c.active);
+    if (sigma_mag > 1.0 && !this._atNucleationCap('magnetite')) {
+      if (!existing_mag.length || (sigma_mag > 1.7 && rng.random() < 0.2)) {
+        let pos = 'vug wall';
+        const active_hem_mag = this.crystals.filter(c => c.mineral === 'hematite' && c.active);
+        if (active_hem_mag.length && rng.random() < 0.3) pos = `on hematite #${active_hem_mag[0].crystal_id}`;
+        const c = this.nucleate('magnetite', pos, sigma_mag);
+        this.log.push(`  ✦ NUCLEATION: Magnetite #${c.crystal_id} on ${c.position} (T=${this.conditions.temperature.toFixed(0)}°C, σ=${sigma_mag.toFixed(2)}, Fe=${this.conditions.fluid.Fe.toFixed(0)}, O₂=${this.conditions.fluid.O2.toFixed(2)})`);
+      }
+    }
+
+    // Lepidocrocite nucleation — Fe + rapid oxidation at low T.
+    const sigma_lep = this.conditions.supersaturation_lepidocrocite();
+    const existing_lep = this.crystals.filter(c => c.mineral === 'lepidocrocite' && c.active);
+    if (sigma_lep > 1.1 && !this._atNucleationCap('lepidocrocite')) {
+      if (!existing_lep.length || (sigma_lep > 1.7 && rng.random() < 0.25)) {
+        let pos = 'vug wall';
+        const dissolving_py_lep = this.crystals.filter(c => c.mineral === 'pyrite' && c.dissolved);
+        const active_qtz_lep = this.crystals.filter(c => c.mineral === 'quartz' && c.active);
+        if (dissolving_py_lep.length && rng.random() < 0.6) pos = `on pyrite #${dissolving_py_lep[0].crystal_id}`;
+        else if (active_qtz_lep.length && rng.random() < 0.3) pos = `on quartz #${active_qtz_lep[0].crystal_id}`;
+        const c = this.nucleate('lepidocrocite', pos, sigma_lep);
+        this.log.push(`  ✦ NUCLEATION: Lepidocrocite #${c.crystal_id} on ${c.position} (T=${this.conditions.temperature.toFixed(0)}°C, σ=${sigma_lep.toFixed(2)}, Fe=${this.conditions.fluid.Fe.toFixed(0)})`);
+      }
+    }
+
+    // Stibnite nucleation — Sb + S + moderate T + reducing.
+    const sigma_stb = this.conditions.supersaturation_stibnite();
+    const existing_stb = this.crystals.filter(c => c.mineral === 'stibnite' && c.active);
+    if (sigma_stb > 1.2 && !this._atNucleationCap('stibnite')) {
+      if (!existing_stb.length || (sigma_stb > 1.8 && rng.random() < 0.2)) {
+        let pos = 'vug wall';
+        const active_qtz_stb = this.crystals.filter(c => c.mineral === 'quartz' && c.active);
+        if (active_qtz_stb.length && rng.random() < 0.4) pos = `on quartz #${active_qtz_stb[0].crystal_id}`;
+        const c = this.nucleate('stibnite', pos, sigma_stb);
+        this.log.push(`  ✦ NUCLEATION: Stibnite #${c.crystal_id} on ${c.position} (T=${this.conditions.temperature.toFixed(0)}°C, σ=${sigma_stb.toFixed(2)}, Sb=${this.conditions.fluid.Sb.toFixed(0)}, S=${this.conditions.fluid.S.toFixed(0)})`);
+      }
+    }
+
+    // Bismuthinite nucleation — Bi + S + high T + reducing.
+    const sigma_bmt = this.conditions.supersaturation_bismuthinite();
+    const existing_bmt = this.crystals.filter(c => c.mineral === 'bismuthinite' && c.active);
+    if (sigma_bmt > 1.3 && !this._atNucleationCap('bismuthinite')) {
+      if (!existing_bmt.length || (sigma_bmt > 1.8 && rng.random() < 0.2)) {
+        let pos = 'vug wall';
+        const active_qtz_bmt = this.crystals.filter(c => c.mineral === 'quartz' && c.active);
+        const active_cp_bmt = this.crystals.filter(c => c.mineral === 'chalcopyrite' && c.active);
+        if (active_qtz_bmt.length && rng.random() < 0.3) pos = `on quartz #${active_qtz_bmt[0].crystal_id}`;
+        else if (active_cp_bmt.length && rng.random() < 0.3) pos = `on chalcopyrite #${active_cp_bmt[0].crystal_id}`;
+        const c = this.nucleate('bismuthinite', pos, sigma_bmt);
+        this.log.push(`  ✦ NUCLEATION: Bismuthinite #${c.crystal_id} on ${c.position} (T=${this.conditions.temperature.toFixed(0)}°C, σ=${sigma_bmt.toFixed(2)}, Bi=${this.conditions.fluid.Bi.toFixed(0)}, S=${this.conditions.fluid.S.toFixed(0)})`);
+      }
+    }
+
+    // Native bismuth nucleation — Bi + very low S + reducing.
+    const sigma_nbi = this.conditions.supersaturation_native_bismuth();
+    const existing_nbi = this.crystals.filter(c => c.mineral === 'native_bismuth' && c.active);
+    if (sigma_nbi > 1.4 && !this._atNucleationCap('native_bismuth')) {
+      if (!existing_nbi.length || (sigma_nbi > 2.0 && rng.random() < 0.15)) {
+        let pos = 'vug wall';
+        const dissolving_bmt = this.crystals.filter(c => c.mineral === 'bismuthinite' && c.dissolved);
+        if (dissolving_bmt.length && rng.random() < 0.5) pos = `on bismuthinite #${dissolving_bmt[0].crystal_id}`;
+        const c = this.nucleate('native_bismuth', pos, sigma_nbi);
+        this.log.push(`  ✦ NUCLEATION: Native bismuth #${c.crystal_id} on ${c.position} (T=${this.conditions.temperature.toFixed(0)}°C, σ=${sigma_nbi.toFixed(2)}, Bi=${this.conditions.fluid.Bi.toFixed(0)}, S=${this.conditions.fluid.S.toFixed(0)})`);
+      }
+    }
+
+    // Clinobisvanite nucleation — Bi + V + oxidizing + low T.
+    const sigma_cbv = this.conditions.supersaturation_clinobisvanite();
+    const existing_cbv = this.crystals.filter(c => c.mineral === 'clinobisvanite' && c.active);
+    if (sigma_cbv > 1.5 && !this._atNucleationCap('clinobisvanite')) {
+      if (!existing_cbv.length || (sigma_cbv > 2.0 && rng.random() < 0.3)) {
+        let pos = 'vug wall';
+        const dissolving_nbi = this.crystals.filter(c => c.mineral === 'native_bismuth' && c.dissolved);
+        const dissolving_bmt_cbv = this.crystals.filter(c => c.mineral === 'bismuthinite' && c.dissolved);
+        if (dissolving_nbi.length && rng.random() < 0.5) pos = `on native_bismuth #${dissolving_nbi[0].crystal_id}`;
+        else if (dissolving_bmt_cbv.length && rng.random() < 0.4) pos = `on bismuthinite #${dissolving_bmt_cbv[0].crystal_id}`;
+        const c = this.nucleate('clinobisvanite', pos, sigma_cbv);
+        this.log.push(`  ✦ NUCLEATION: Clinobisvanite #${c.crystal_id} on ${c.position} (T=${this.conditions.temperature.toFixed(0)}°C, σ=${sigma_cbv.toFixed(2)}, Bi=${this.conditions.fluid.Bi.toFixed(1)}, V=${this.conditions.fluid.V.toFixed(1)})`);
+      }
     }
 
     // Cuprite nucleation — Cu + narrow O₂ window (Eh-boundary mineral).
@@ -8632,6 +8984,60 @@ class VugSimulator {
       parts.push('Cubic/dodecahedral well-formed crystal — rare for native copper, which usually grows as dendrites.');
     }
     parts.push("The Statue of Liberty's iconic green patina is malachite growing on native copper — the mineralogical fate of most surface copper, given enough time and rain.");
+    return parts.join(' ');
+  }
+
+  _narrate_magnetite(c) {
+    const parts = [`Magnetite #${c.crystal_id} grew to ${c.c_length_mm.toFixed(1)} mm.`];
+    parts.push("Fe₃O₄ — the mixed-valence Fe²⁺Fe³⁺₂O₄ spinel oxide. Black, strongly magnetic (lodestone is natural permanent-magnet magnetite — the first compass). Sits at the HM (hematite-magnetite) redox buffer; cross that buffer and entire mineral assemblages shift. Streak is black, not red like hematite's.");
+    if (c.habit === 'octahedral') parts.push('Octahedral {111} — the classic magnetite habit, sharp on matrix from Cerro Huanaquino (Bolivia) and Binn Valley (Switzerland).');
+    else if (c.habit === 'rhombic_dodecahedral') parts.push('Rhombic dodecahedral {110} — high-T mineralizer-assisted habit. Cl-bearing fluids promote this form over simple octahedra.');
+    else parts.push('Granular massive — rapid precipitation, aggregate of tiny individual crystals.');
+    if (c.dissolved) parts.push('Dissolving to hematite (martite pseudomorph) as O₂ climbed past the HM buffer.');
+    return parts.join(' ');
+  }
+
+  _narrate_lepidocrocite(c) {
+    const parts = [`Lepidocrocite #${c.crystal_id} grew to ${c.c_length_mm.toFixed(1)} mm.`];
+    parts.push('γ-FeOOH — the ruby-red platy dimorph of goethite. Same formula, different crystal structure: goethite is a 3D framework (yellow-brown needles), lepidocrocite is layered (ruby-red platy, peels like mica). Kinetically favored when Fe²⁺ oxidizes FAST.');
+    if (c.habit === 'platy_scales') parts.push("Platy scales — the default habit. 'Lithium quartz' sold in rock shops is quartz with nanoscale lepidocrocite inclusions that scatter pink-mauve through the clear host.");
+    else if (c.habit === 'plumose_rosette') parts.push('Plumose rosette — radiating platy blades. Cornwall and Siegerland (Germany) produced the best.');
+    else parts.push('Fibrous micaceous — very rapid growth, coarser particle size, rust-brown color.');
+    parts.push('Given geological time, lepidocrocite converts to goethite (the thermodynamically stable dimorph).');
+    return parts.join(' ');
+  }
+
+  _narrate_stibnite(c) {
+    const parts = [`Stibnite #${c.crystal_id} grew to ${c.c_length_mm.toFixed(1)} mm.`];
+    parts.push('Sb₂S₃ — orthorhombic antimony sulfide, same structure as bismuthinite. Lead-gray to steel-gray, brilliant metallic luster on fresh cleavage. Ichinokawa (Japan) produced swords over 60 cm long — perhaps the most visually striking sulfide specimens ever collected.');
+    if (c.habit === 'elongated_prism_blade') parts.push('Elongated sword-blade — the signature habit that makes stibnite museum-worthy. Slow growth at moderate supersaturation lets the crystal extend along c-axis without branching.');
+    else if (c.habit === 'radiating_spray') parts.push('Radiating spray — multiple nucleation centers fanning outward. Herja (Romania) and Sierra Mojada (Mexico) produce the best sprays.');
+    else parts.push('Massive granular — the bread-and-butter form. Most mineable Sb ore.');
+    return parts.join(' ');
+  }
+
+  _narrate_bismuthinite(c) {
+    const parts = [`Bismuthinite #${c.crystal_id} grew to ${c.c_length_mm.toFixed(1)} mm.`];
+    parts.push('Bi₂S₃ — orthorhombic bismuth sulfide, same structure as stibnite (Sb and Bi are geochemical cousins). Lead-gray to tin-white with yellowish/iridescent tarnish. Classic companion of arsenopyrite, cassiterite, and wolframite in tin-tungsten greisen deposits.');
+    if ((c.habit || '').includes('stout')) parts.push('Stout prismatic — the high-T habit (T > 350°C). Characteristic of primary greisen growth.');
+    else if ((c.habit || '').includes('radiating')) parts.push('Radiating cluster of needles — multiple nucleation, moderate supersaturation burst.');
+    else parts.push('Acicular needles — low-T habit. Long, thin, easily mistaken for stibnite until the tin-white color and higher density give it away.');
+    return parts.join(' ');
+  }
+
+  _narrate_native_bismuth(c) {
+    const parts = [`Native bismuth #${c.crystal_id} grew to ${c.c_length_mm.toFixed(1)} mm.`];
+    parts.push("Bi — elemental bismuth. Silver-white on fresh fracture, iridescent rainbow tarnish within hours. Melts at an unusually low 271.5°C — the lowest melting point of any native metal. Only forms when sulfur runs out before bismuth does. The square hoppered rainbow Bi crystals sold in rock shops are LAB-GROWN — natural native bismuth is typically arborescent or massive.");
+    if (c.habit === 'arborescent_dendritic') parts.push('Arborescent dendritic — tree-like branches filling a fracture. Cobalt (Germany), the Kingsgate mine (Australia), and Schneeberg (Saxony) produced the best historically.');
+    else if (c.habit === 'rhombohedral_crystal') parts.push('Rhombohedral crystal — RARE. Well-formed natural crystals are among the rarest native-element specimens collectors seek.');
+    else parts.push('Massive granular — silver-white metallic blob, iridescent within days of exposure to air.');
+    return parts.join(' ');
+  }
+
+  _narrate_clinobisvanite(c) {
+    const parts = [`Clinobisvanite #${c.crystal_id} grew to ${c.c_length_mm.toFixed(1)} mm.`];
+    parts.push('BiVO₄ — bright yellow to orange-yellow monoclinic Bi-vanadate. End of the bismuth oxidation sequence: bismuthinite → native bismuth → bismite/bismutite → clinobisvanite. Microscopic — the crystals are individually sub-millimeter.');
+    parts.push('And: BiVO₄ is a photocatalyst for solar-driven water splitting. The same mineral that forms as a supergene afterthought is being engineered to make hydrogen fuel from sunlight.');
     return parts.join(' ');
   }
 

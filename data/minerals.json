@@ -38,8 +38,8 @@
     "class_color": "Hex color for topographic map visualization. Derived from mineral class — all classes of the same type share one hue on a 12-color wheel (30° spacing). Wall/matrix = #D2691E (amber)."
   },
   "_audit_summary": {
-    "total_minerals": 33,
-    "_note": "Post-phase-2 state. The _initial_audit block below is frozen at phase-1 start for historical reference — do not edit. +topaz (MG-B), +tourmaline/beryl/spodumene (MG-A), +anglesite/cerussite/pyromorphite/vanadinite (supergene Pb oxidation), +bornite/chalcocite/covellite (supergene Cu sulfide enrichment), +cuprite/azurite/native_copper (supergene Cu oxide-native).",
+    "total_minerals": 39,
+    "_note": "Post-phase-2 state. The _initial_audit block below is frozen at phase-1 start for historical reference — do not edit. +topaz (MG-B), +tourmaline/beryl/spodumene (MG-A), +anglesite/cerussite/pyromorphite/vanadinite (Pb oxidation), +bornite/chalcocite/covellite (Cu sulfide enrichment), +cuprite/azurite/native_copper (Cu oxide-native), +magnetite/lepidocrocite/stibnite/bismuthinite/native_bismuth/clinobisvanite (Fe/Sb/Bi suite).",
     "missing_growth_engine": [],
     "missing_narrate_function": [],
     "missing_from_vugg_py_registry": [],
@@ -58,7 +58,13 @@
       "covellite",
       "cuprite",
       "azurite",
-      "native_copper"
+      "native_copper",
+      "magnetite",
+      "lepidocrocite",
+      "stibnite",
+      "bismuthinite",
+      "native_bismuth",
+      "clinobisvanite"
     ],
     "scenarios_that_can_nucleate": {
       "cooling": [
@@ -121,7 +127,9 @@
         "covellite",
         "cuprite",
         "azurite",
-        "native_copper"
+        "native_copper",
+        "lepidocrocite",
+        "clinobisvanite"
       ],
       "ouro_preto": [
         "quartz",
@@ -3688,6 +3696,553 @@
       ],
       "audit_status": "new (supergene round 3). First native-element mineral. Shares native-hue class_color with future native bismuth. Not in agent-api/vugg-agent.js.",
       "class_color": "#eb13eb"
+    },
+    "magnetite": {
+      "formula": "Fe3O4",
+      "nucleation_sigma": 1.0,
+      "max_nucleation_count": 5,
+      "max_size_cm": 15,
+      "growth_rate_mult": 0.35,
+      "habit_variants": [
+        {
+          "name": "octahedral_111",
+          "wall_spread": 0.25,
+          "void_reach": 0.6,
+          "vector": "equant",
+          "trigger": "moderate σ, high T, crystalline"
+        },
+        {
+          "name": "rhombic_dodecahedral",
+          "wall_spread": 0.3,
+          "void_reach": 0.5,
+          "vector": "equant",
+          "trigger": "moderate σ, moderate T, with mineralizers"
+        },
+        {
+          "name": "granular_massive",
+          "wall_spread": 0.6,
+          "void_reach": 0.3,
+          "vector": "coating",
+          "trigger": "high σ, high T, rapid growth"
+        },
+        {
+          "name": "default_octahedral",
+          "wall_spread": 0.25,
+          "void_reach": 0.6,
+          "vector": "equant",
+          "trigger": "default — octahedral {111}"
+        }
+      ],
+      "class": "oxide",
+      "description": "Fe₃O₄ — mixed-valence Fe²⁺Fe³⁺₂O₄ spinel oxide. Black, metallic-to-submetallic, strongly magnetic (lodestone is natural permanent-magnet magnetite). Forms at the hematite-magnetite (HM) redox buffer — one of geochemistry's most important reference frames. Crossing the HM boundary transforms the entire mineral assemblage. Octahedral {111} and rhombic dodecahedral {110} are the classic habits; martite pseudomorph is magnetite after oxidation to hematite at the crystal surface. Streak: black (diagnostic against hematite's red streak).",
+      "scenarios": [
+        "porphyry",
+        "reactive_wall",
+        "radioactive_pegmatite"
+      ],
+      "T_range_C": [
+        100,
+        800
+      ],
+      "T_optimum_C": [
+        300,
+        600
+      ],
+      "T_behavior": "window",
+      "pH_dissolution_below": 2.5,
+      "pH_dissolution_above": null,
+      "redox_requirement": "moderate_reducing",
+      "required_ingredients": {
+        "Fe": 25,
+        "O2": 0.1
+      },
+      "trace_ingredients": {
+        "Ti": "titanomagnetite (solid solution to ulvöspinel)",
+        "Mg": "magnesioferrite component",
+        "Mn": "jacobsite component"
+      },
+      "thermal_decomp_C": 1590,
+      "thermal_decomp_reaction": "Fe₃O₄ oxidizes to Fe₂O₃ above 800°C in air (martite)",
+      "thermal_decomp_products": {
+        "Fe": 0.4
+      },
+      "fluorescence": null,
+      "twin_laws": [
+        {
+          "name": "spinel_law",
+          "miller_indices": "{111}",
+          "trigger": "growth",
+          "probability": 0.03
+        }
+      ],
+      "acid_dissolution": {
+        "pH_threshold": 2.5,
+        "reaction": "Fe₃O₄ + 8H⁺ → Fe²⁺ + 2Fe³⁺ + 4H₂O (slow, oxidative)",
+        "products": {
+          "Fe": 0.5
+        }
+      },
+      "habit": "octahedral",
+      "color_rules": {
+        "black_metallic": {
+          "default": true
+        }
+      },
+      "narrate_function": "_narrate_magnetite",
+      "runtimes_present": [
+        "vugg.py",
+        "web/index.html"
+      ],
+      "audit_status": "new (round 4, iron + Sb-Bi + misc). Mixed-valence Fe²⁺Fe³⁺ oxide at the HM redox buffer. Not in agent-api/vugg-agent.js.",
+      "class_color": "#eb1313"
+    },
+    "lepidocrocite": {
+      "formula": "FeO(OH)-gamma",
+      "nucleation_sigma": 1.1,
+      "max_nucleation_count": 10,
+      "max_size_cm": 0.5,
+      "growth_rate_mult": 0.5,
+      "habit_variants": [
+        {
+          "name": "platy_scales",
+          "wall_spread": 0.5,
+          "void_reach": 0.2,
+          "vector": "tabular",
+          "trigger": "moderate σ, low T, default"
+        },
+        {
+          "name": "plumose_rosette",
+          "wall_spread": 0.4,
+          "void_reach": 0.35,
+          "vector": "coating",
+          "trigger": "moderate σ, low T, radiating"
+        },
+        {
+          "name": "fibrous_micaceous",
+          "wall_spread": 0.35,
+          "void_reach": 0.4,
+          "vector": "coating",
+          "trigger": "high σ, low T, rapid oxidation"
+        },
+        {
+          "name": "default_platy",
+          "wall_spread": 0.5,
+          "void_reach": 0.2,
+          "vector": "tabular",
+          "trigger": "default — platy scales"
+        }
+      ],
+      "class": "hydroxide",
+      "description": "γ-FeOOH — the ruby-red hydroxide dimorph of goethite. Same formula, different crystal structure: goethite is a 3D framework (yellow-brown needles), lepidocrocite is layered (ruby-red micaceous plates). Particle size controls the hue — nanoscale plates appear pink to mauve, coarser crystals rust-red. Kinetically favored over goethite under RAPID oxidation of Fe²⁺ (e.g., pyrite weathering in situ); slow oxidation gives goethite instead. Transforms to goethite over geological time or to maghemite/hematite when heated. 'Lithium quartz' sold in rock shops is actually nanoscale lepidocrocite included in quartz.",
+      "scenarios": [
+        "supergene_oxidation",
+        "reactive_wall"
+      ],
+      "T_range_C": [
+        0,
+        250
+      ],
+      "T_optimum_C": [
+        10,
+        50
+      ],
+      "T_behavior": "window",
+      "pH_dissolution_below": 3.0,
+      "pH_dissolution_above": null,
+      "redox_requirement": "oxidizing",
+      "required_ingredients": {
+        "Fe": 15,
+        "O2": 0.8
+      },
+      "trace_ingredients": {
+        "Mn": "subtle color shift toward brown"
+      },
+      "thermal_decomp_C": 300,
+      "thermal_decomp_reaction": "γ-FeOOH → γ-Fe₂O₃ (maghemite) → α-Fe₂O₃ (hematite)",
+      "thermal_decomp_products": {
+        "Fe": 0.4
+      },
+      "fluorescence": null,
+      "twin_laws": [],
+      "acid_dissolution": {
+        "pH_threshold": 3.0,
+        "reaction": "γ-FeOOH + 3H⁺ → Fe³⁺ + 2H₂O",
+        "products": {
+          "Fe": 0.4
+        }
+      },
+      "habit": "platy_scales",
+      "color_rules": {
+        "ruby_red": {
+          "default": true
+        },
+        "pink_mauve": {
+          "trigger": "nanoscale particle size"
+        },
+        "rust_brown": {
+          "trigger": "coarser crystals"
+        }
+      },
+      "narrate_function": "_narrate_lepidocrocite",
+      "runtimes_present": [
+        "vugg.py",
+        "web/index.html"
+      ],
+      "audit_status": "new (round 4). γ-FeOOH dimorph of goethite, kinetically favored in rapid oxidation. Not in agent-api/vugg-agent.js.",
+      "class_color": "#13ebeb"
+    },
+    "stibnite": {
+      "formula": "Sb2S3",
+      "nucleation_sigma": 1.2,
+      "max_nucleation_count": 4,
+      "max_size_cm": 60,
+      "growth_rate_mult": 0.35,
+      "habit_variants": [
+        {
+          "name": "elongated_prism_blade",
+          "wall_spread": 0.1,
+          "void_reach": 0.95,
+          "vector": "projecting",
+          "trigger": "low σ, moderate T, steady growth"
+        },
+        {
+          "name": "radiating_spray",
+          "wall_spread": 0.3,
+          "void_reach": 0.7,
+          "vector": "projecting",
+          "trigger": "moderate-high σ, moderate T, burst"
+        },
+        {
+          "name": "massive_granular",
+          "wall_spread": 0.5,
+          "void_reach": 0.4,
+          "vector": "coating",
+          "trigger": "high σ, moderate T, space-constrained"
+        },
+        {
+          "name": "default_elongated_blade",
+          "wall_spread": 0.1,
+          "void_reach": 0.95,
+          "vector": "projecting",
+          "trigger": "default — elongated prismatic blade"
+        }
+      ],
+      "class": "sulfide",
+      "description": "Sb₂S₃ — orthorhombic antimony sulfide, lead-gray to steel-gray with brilliant metallic luster on fresh cleavage. One of the most visually striking minerals: sword-like elongated blades up to 60 cm at Ichinokawa (Japan). Same structure as bismuthinite (Bi₂S₃) — Sb and Bi are geochemical cousins. Low-melting (550°C), so stibnite is destroyed by minor metamorphism. Primary Sb ore. Dendritic growth when rapidly deposited; single sword-blades when slow.",
+      "scenarios": [],
+      "T_range_C": [
+        100,
+        400
+      ],
+      "T_optimum_C": [
+        150,
+        300
+      ],
+      "T_behavior": "window",
+      "pH_dissolution_below": 2.0,
+      "pH_dissolution_above": null,
+      "redox_requirement": "reducing",
+      "required_ingredients": {
+        "Sb": 10,
+        "S": 15
+      },
+      "trace_ingredients": {
+        "Ag": "argentiferous stibnite",
+        "As": "minor arsenic substitution"
+      },
+      "thermal_decomp_C": 550,
+      "thermal_decomp_reaction": "Sb₂S₃ melts at 550°C (below that, stable)",
+      "thermal_decomp_products": {
+        "Sb": 0.3,
+        "S": 0.4
+      },
+      "fluorescence": null,
+      "twin_laws": [],
+      "acid_dissolution": {
+        "pH_threshold": 2.0,
+        "reaction": "Sb₂S₃ + 6H⁺ → 2Sb³⁺ + 3H₂S",
+        "products": {
+          "Sb": 0.3,
+          "S": 0.3
+        }
+      },
+      "habit": "elongated_blade",
+      "color_rules": {
+        "lead_steel_gray": {
+          "default": true
+        },
+        "iridescent_tarnish": {
+          "trigger": "oxidation on fresh cleavage"
+        }
+      },
+      "narrate_function": "_narrate_stibnite",
+      "runtimes_present": [
+        "vugg.py",
+        "web/index.html"
+      ],
+      "audit_status": "new (round 4). First Sb consumer. Not tied to existing scenario — needs future hydrothermal scenario with Sb-rich fluid. Not in agent-api/vugg-agent.js.",
+      "class_color": "#7feb13"
+    },
+    "bismuthinite": {
+      "formula": "Bi2S3",
+      "nucleation_sigma": 1.3,
+      "max_nucleation_count": 4,
+      "max_size_cm": 5,
+      "growth_rate_mult": 0.4,
+      "habit_variants": [
+        {
+          "name": "acicular_needle",
+          "wall_spread": 0.1,
+          "void_reach": 0.9,
+          "vector": "projecting",
+          "trigger": "low σ, low T, slow growth"
+        },
+        {
+          "name": "stout_prismatic",
+          "wall_spread": 0.2,
+          "void_reach": 0.75,
+          "vector": "projecting",
+          "trigger": "low σ, high T, stout"
+        },
+        {
+          "name": "radiating_cluster",
+          "wall_spread": 0.35,
+          "void_reach": 0.6,
+          "vector": "projecting",
+          "trigger": "moderate-high σ, moderate T, nucleation burst"
+        },
+        {
+          "name": "default_acicular",
+          "wall_spread": 0.1,
+          "void_reach": 0.9,
+          "vector": "projecting",
+          "trigger": "default — acicular"
+        }
+      ],
+      "class": "sulfide",
+      "description": "Bi₂S₃ — orthorhombic bismuth sulfide, same structure as stibnite. Lead-gray to tin-white metallic, often showing yellowish/iridescent tarnish. Forms in high-T hydrothermal veins associated with arsenopyrite, chalcopyrite, cassiterite, wolframite — the tin-tungsten-arsenic greisen suite. Temperature-driven habit switch: acicular needles at T < 350°C, stout prisms at T > 350°C. When S²⁻ runs out before Bi, switches to native bismuth.",
+      "scenarios": [],
+      "T_range_C": [
+        150,
+        500
+      ],
+      "T_optimum_C": [
+        200,
+        400
+      ],
+      "T_behavior": "window",
+      "pH_dissolution_below": 2.0,
+      "pH_dissolution_above": null,
+      "redox_requirement": "reducing",
+      "required_ingredients": {
+        "Bi": 5,
+        "S": 15
+      },
+      "trace_ingredients": {
+        "Pb": "galenobismutite series",
+        "Ag": "matildite series"
+      },
+      "thermal_decomp_C": 760,
+      "thermal_decomp_reaction": "Bi₂S₃ melts at 760°C",
+      "thermal_decomp_products": {
+        "Bi": 0.3,
+        "S": 0.4
+      },
+      "fluorescence": null,
+      "twin_laws": [],
+      "acid_dissolution": {
+        "pH_threshold": 2.0,
+        "reaction": "Bi₂S₃ + 6H⁺ → 2Bi³⁺ + 3H₂S",
+        "products": {
+          "Bi": 0.3,
+          "S": 0.3
+        }
+      },
+      "habit": "acicular",
+      "color_rules": {
+        "lead_tin_white": {
+          "default": true
+        },
+        "iridescent_tarnish": {
+          "trigger": "yellow-to-rainbow oxidation film"
+        }
+      },
+      "narrate_function": "_narrate_bismuthinite",
+      "runtimes_present": [
+        "vugg.py",
+        "web/index.html"
+      ],
+      "audit_status": "new (round 4). First Bi consumer. Same structure as stibnite. Not in agent-api/vugg-agent.js.",
+      "class_color": "#7feb13"
+    },
+    "native_bismuth": {
+      "formula": "Bi",
+      "nucleation_sigma": 1.4,
+      "max_nucleation_count": 3,
+      "max_size_cm": 5,
+      "growth_rate_mult": 0.4,
+      "habit_variants": [
+        {
+          "name": "arborescent_dendritic",
+          "wall_spread": 0.3,
+          "void_reach": 0.7,
+          "vector": "dendritic",
+          "trigger": "moderate σ, moderate T, fracture-fill"
+        },
+        {
+          "name": "massive_granular",
+          "wall_spread": 0.5,
+          "void_reach": 0.4,
+          "vector": "coating",
+          "trigger": "high σ, moderate T, massive fill"
+        },
+        {
+          "name": "rhombohedral_crystal",
+          "wall_spread": 0.25,
+          "void_reach": 0.55,
+          "vector": "equant",
+          "trigger": "low σ, moderate T, open vug (rare)"
+        },
+        {
+          "name": "default_arborescent",
+          "wall_spread": 0.3,
+          "void_reach": 0.7,
+          "vector": "dendritic",
+          "trigger": "default — arborescent tree-like growth"
+        }
+      ],
+      "class": "native",
+      "description": "Bi — elemental native bismuth. Silver-white on fresh surface, iridescent oxide tarnish (yellow, blue, pink) develops rapidly. Melts at an unusually low 271.5°C — the lowest of any native metal. Forms only when sulfur runs out before bismuth does — bismuthinite uses the available S first, then residual Bi crystallizes native. The rainbow 'hoppered' Bi crystals sold in rock shops are lab-grown, not natural; natural native bismuth is typically arborescent/massive/rarely rhombohedral.",
+      "scenarios": [],
+      "T_range_C": [
+        50,
+        271
+      ],
+      "T_optimum_C": [
+        100,
+        250
+      ],
+      "T_behavior": "window",
+      "pH_dissolution_below": 3.0,
+      "pH_dissolution_above": null,
+      "redox_requirement": "reducing",
+      "required_ingredients": {
+        "Bi": 15
+      },
+      "trace_ingredients": {
+        "Ag": "silver-bismuth alloy (rare)"
+      },
+      "thermal_decomp_C": 271,
+      "thermal_decomp_reaction": "Bi melts at 271.5°C — the lowest melting native metal",
+      "thermal_decomp_products": {
+        "Bi": 0.5
+      },
+      "fluorescence": null,
+      "twin_laws": [],
+      "acid_dissolution": {
+        "pH_threshold": 3.0,
+        "reaction": "Bi + oxidizing acid → Bi³⁺",
+        "products": {
+          "Bi": 0.5
+        }
+      },
+      "habit": "arborescent",
+      "color_rules": {
+        "silver_white_fresh": {
+          "default": true
+        },
+        "iridescent_tarnish": {
+          "trigger": "exposed to air — rainbow oxide film"
+        }
+      },
+      "narrate_function": "_narrate_native_bismuth",
+      "runtimes_present": [
+        "vugg.py",
+        "web/index.html"
+      ],
+      "audit_status": "new (round 4). Second native element. Forms after bismuthinite when S runs out. Not in agent-api/vugg-agent.js.",
+      "class_color": "#eb13eb"
+    },
+    "clinobisvanite": {
+      "formula": "BiVO4",
+      "nucleation_sigma": 1.5,
+      "max_nucleation_count": 8,
+      "max_size_cm": 0.1,
+      "growth_rate_mult": 0.2,
+      "habit_variants": [
+        {
+          "name": "micro_plates_yellow",
+          "wall_spread": 0.4,
+          "void_reach": 0.2,
+          "vector": "coating",
+          "trigger": "low-moderate σ, low T, default"
+        },
+        {
+          "name": "powdery_aggregate",
+          "wall_spread": 0.6,
+          "void_reach": 0.15,
+          "vector": "coating",
+          "trigger": "high σ, low T, rapid"
+        },
+        {
+          "name": "default_micro_plates",
+          "wall_spread": 0.4,
+          "void_reach": 0.2,
+          "vector": "coating",
+          "trigger": "default — micro-crystalline yellow plates"
+        }
+      ],
+      "class": "phosphate",
+      "description": "BiVO₄ — bright yellow to orange-yellow monoclinic bismuth vanadate. End of the bismuth oxidation sequence: bismuthinite → native bismuth → bismite/bismutite → clinobisvanite (if V is present). Microscopic — individual crystals rarely exceed 0.1 mm, so clinobisvanite appears as a powdery to micro-platy coating on matrix. Famously, BiVO₄ is a photocatalyst for water splitting — the same mineral that forms as a supergene afterthought is being engineered to make solar fuel. Folded into phosphate class_color (#13eb7f) per the 12-hue palette decision.",
+      "scenarios": [
+        "supergene_oxidation"
+      ],
+      "T_range_C": [
+        0,
+        80
+      ],
+      "T_optimum_C": [
+        10,
+        40
+      ],
+      "T_behavior": "window",
+      "pH_dissolution_below": 2.5,
+      "pH_dissolution_above": null,
+      "redox_requirement": "oxidizing",
+      "required_ingredients": {
+        "Bi": 2,
+        "V": 2
+      },
+      "trace_ingredients": {},
+      "thermal_decomp_C": null,
+      "thermal_decomp_reaction": null,
+      "thermal_decomp_products": null,
+      "fluorescence": null,
+      "twin_laws": [],
+      "acid_dissolution": {
+        "pH_threshold": 2.5,
+        "reaction": "BiVO₄ + 4H⁺ → Bi³⁺ + VO₂⁺ + 2H₂O",
+        "products": {
+          "Bi": 0.4,
+          "V": 0.3
+        }
+      },
+      "habit": "micro_plates",
+      "color_rules": {
+        "bright_yellow": {
+          "default": true
+        },
+        "orange_yellow": {
+          "trigger": "thicker aggregates"
+        }
+      },
+      "narrate_function": "_narrate_clinobisvanite",
+      "runtimes_present": [
+        "vugg.py",
+        "web/index.html"
+      ],
+      "audit_status": "new (round 4). Bi-vanadate — folded into phosphate class_color per 12-hue palette. End of the Bi oxidation sequence. Photocatalyst for water-splitting research. Not in agent-api/vugg-agent.js.",
+      "class_color": "#13eb7f"
     }
   }
 }

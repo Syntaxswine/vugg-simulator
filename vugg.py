@@ -958,6 +958,160 @@ class VugConditions:
             sigma *= 1.3
         return max(sigma, 0)
 
+    def supersaturation_magnetite(self) -> float:
+        """Magnetite (Fe₃O₄) supersaturation. Fe + moderate O₂ (HM buffer).
+
+        Mixed-valence Fe²⁺Fe³⁺₂O₄. Forms at the hematite-magnetite (HM)
+        redox buffer — too reducing and Fe stays as Fe²⁺ (siderite/
+        pyrite); too oxidizing and it goes to hematite/goethite.
+        Wide T stability (100–800°C) but prefers moderate/high T.
+        """
+        if self.fluid.Fe < 25 or self.fluid.O2 < 0.1 or self.fluid.O2 > 1.0:
+            return 0
+        fe_f = min(self.fluid.Fe / 60.0, 2.0)
+        # HM buffer peak around O2=0.4, falls off on both sides
+        o_f = max(0.4, 1.0 - abs(self.fluid.O2 - 0.4) * 1.5)
+        sigma = fe_f * o_f
+        T = self.temperature
+        if 300 <= T <= 600:
+            T_factor = 1.0
+        elif 100 <= T < 300:
+            T_factor = 0.5 + 0.0025 * (T - 100)
+        elif 600 < T <= 800:
+            T_factor = max(0.4, 1.0 - 0.003 * (T - 600))
+        else:
+            T_factor = 0.2
+        sigma *= T_factor
+        if self.fluid.pH < 2.5:
+            sigma -= (2.5 - self.fluid.pH) * 0.3
+        return max(sigma, 0)
+
+    def supersaturation_lepidocrocite(self) -> float:
+        """Lepidocrocite (γ-FeOOH) supersaturation. Fe + rapid oxidation.
+
+        Kinetically favored over goethite when Fe²⁺ oxidizes FAST —
+        e.g. pyrite weathering in situ. If oxidation is slow, goethite
+        wins. We approximate this with higher O₂ and higher growth rate
+        preference.
+        """
+        if self.fluid.Fe < 15 or self.fluid.O2 < 0.8:
+            return 0
+        fe_f = min(self.fluid.Fe / 50.0, 2.0)
+        o_f = min(self.fluid.O2 / 1.5, 1.5)
+        sigma = fe_f * o_f
+        # Low-T preference — strictly supergene/weathering
+        if self.temperature > 50:
+            sigma *= math.exp(-0.02 * (self.temperature - 50))
+        if self.fluid.pH < 3.0:
+            sigma -= (3.0 - self.fluid.pH) * 0.4
+        # pH 5-7 is the sweet spot; outside penalty
+        if self.fluid.pH > 7.5:
+            sigma *= max(0.5, 1.0 - (self.fluid.pH - 7.5) * 0.3)
+        return max(sigma, 0)
+
+    def supersaturation_stibnite(self) -> float:
+        """Stibnite (Sb₂S₃) supersaturation. Sb + S + moderate T + reducing.
+
+        Hydrothermal antimony sulfide. Low-melting (550°C) so requires
+        moderate temperatures — above 400°C it approaches melting;
+        below 100°C the chemistry doesn't work.
+        """
+        if self.fluid.Sb < 10 or self.fluid.S < 15 or self.fluid.O2 > 1.0:
+            return 0
+        sb_f = min(self.fluid.Sb / 20.0, 2.0)
+        s_f  = min(self.fluid.S / 40.0, 1.5)
+        sigma = sb_f * s_f
+        T = self.temperature
+        if 150 <= T <= 300:
+            T_factor = 1.0
+        elif 100 <= T < 150:
+            T_factor = 0.5 + 0.01 * (T - 100)
+        elif 300 < T <= 400:
+            T_factor = max(0.3, 1.0 - 0.007 * (T - 300))
+        else:
+            T_factor = 0.2
+        sigma *= T_factor
+        sigma *= max(0.5, 1.3 - self.fluid.O2)
+        if self.fluid.pH < 2.0:
+            sigma -= (2.0 - self.fluid.pH) * 0.3
+        return max(sigma, 0)
+
+    def supersaturation_bismuthinite(self) -> float:
+        """Bismuthinite (Bi₂S₃) supersaturation. Bi + S + high T + reducing.
+
+        Same orthorhombic structure as stibnite. High-T hydrothermal —
+        forms at 200–500°C with cassiterite, wolframite, arsenopyrite
+        (greisen suite).
+        """
+        if self.fluid.Bi < 5 or self.fluid.S < 15 or self.fluid.O2 > 1.0:
+            return 0
+        bi_f = min(self.fluid.Bi / 20.0, 2.0)
+        s_f  = min(self.fluid.S / 50.0, 1.5)
+        sigma = bi_f * s_f
+        T = self.temperature
+        if 200 <= T <= 400:
+            T_factor = 1.0
+        elif 150 <= T < 200:
+            T_factor = 0.5 + 0.01 * (T - 150)
+        elif 400 < T <= 500:
+            T_factor = max(0.3, 1.0 - 0.007 * (T - 400))
+        else:
+            T_factor = 0.2
+        sigma *= T_factor
+        sigma *= max(0.5, 1.3 - self.fluid.O2)
+        if self.fluid.pH < 2.0:
+            sigma -= (2.0 - self.fluid.pH) * 0.3
+        return max(sigma, 0)
+
+    def supersaturation_native_bismuth(self) -> float:
+        """Native bismuth (Bi) supersaturation. Bi + very low S + reducing.
+
+        Forms when sulfur runs out before bismuth does — bismuthinite
+        scavenged the available S and residual Bi crystallizes native.
+        Melts at unusually low 271.5°C; beyond that, the crystal is
+        liquid metal.
+        """
+        if (self.fluid.Bi < 15 or self.fluid.S > 12 or
+                self.fluid.O2 > 0.6):
+            return 0
+        bi_f = min(self.fluid.Bi / 25.0, 2.0)
+        # Low-S preference — any S pulls Bi into bismuthinite instead
+        s_mask = max(0.4, 1.0 - self.fluid.S / 20.0)
+        red_f = max(0.4, 1.0 - self.fluid.O2 * 1.5)
+        sigma = bi_f * s_mask * red_f
+        T = self.temperature
+        if 100 <= T <= 250:
+            T_factor = 1.0
+        elif T < 100:
+            T_factor = 0.6
+        elif T <= 270:
+            T_factor = max(0.3, 1.0 - 0.05 * (T - 250))   # sharply approaches melting
+        else:
+            T_factor = 0.1   # melted
+        sigma *= T_factor
+        if self.fluid.pH < 3.0:
+            sigma -= (3.0 - self.fluid.pH) * 0.3
+        return max(sigma, 0)
+
+    def supersaturation_clinobisvanite(self) -> float:
+        """Clinobisvanite (BiVO₄) supersaturation. Bi + V + oxidizing + low T.
+
+        End of the Bi oxidation sequence: bismuthinite → native bismuth
+        → bismite/bismutite → clinobisvanite (if V is available).
+        Microscopic — growth_rate_mult 0.2 is slow.
+        """
+        if self.fluid.Bi < 2 or self.fluid.V < 2 or self.fluid.O2 < 1.0:
+            return 0
+        bi_f = min(self.fluid.Bi / 5.0, 2.0)
+        v_f  = min(self.fluid.V / 5.0, 2.0)
+        o_f  = min(self.fluid.O2 / 1.5, 1.3)
+        sigma = bi_f * v_f * o_f
+        if self.temperature > 40:
+            sigma *= math.exp(-0.04 * (self.temperature - 40))
+        if self.fluid.pH < 2.5:
+            sigma -= (2.5 - self.fluid.pH) * 0.3
+        return max(sigma, 0)
+
     def supersaturation_cuprite(self) -> float:
         """Cuprite (Cu₂O) supersaturation. Cu + narrow O₂ window.
 
@@ -3023,6 +3177,241 @@ def grow_spodumene(crystal: Crystal, conditions: VugConditions, step: int) -> Op
     )
 
 
+def grow_magnetite(crystal: Crystal, conditions: VugConditions, step: int) -> Optional[GrowthZone]:
+    """Magnetite (Fe₃O₄) growth — octahedral at the HM redox buffer."""
+    sigma = conditions.supersaturation_magnetite()
+    if sigma < 1.0:
+        if crystal.total_growth_um > 5 and (conditions.fluid.pH < 2.5 or conditions.fluid.O2 > 1.4):
+            crystal.dissolved = True
+            d = min(2.0, crystal.total_growth_um * 0.05)
+            conditions.fluid.Fe += d * 0.5
+            return GrowthZone(
+                step=step, temperature=conditions.temperature,
+                thickness_um=-d, growth_rate=-d,
+                note=f"dissolution (pH {conditions.fluid.pH:.1f}, O₂ {conditions.fluid.O2:.1f}) — martite conversion if oxidizing"
+            )
+        return None
+    excess = sigma - 1.0
+    rate = 3.0 * excess * random.uniform(0.8, 1.2)
+    if rate < 0.1:
+        return None
+    f = conditions.fluid
+    if excess > 1.5:
+        crystal.habit = "granular_massive"
+        crystal.dominant_forms = ["granular massive aggregate"]
+        color_note = "black massive magnetite"
+    elif conditions.temperature > 400 and 0.5 < excess < 1.2:
+        crystal.habit = "rhombic_dodecahedral"
+        crystal.dominant_forms = ["{110} rhombic dodecahedron", "with mineralizer"]
+        color_note = "black rhombic dodecahedral (high-T, mineralizer-assisted)"
+    else:
+        crystal.habit = "octahedral"
+        crystal.dominant_forms = ["{111} octahedron", "metallic black"]
+        color_note = "black octahedral — strongly magnetic (lodestone)"
+    f.Fe = max(f.Fe - rate * 0.025, 0)
+    f.O2 = max(f.O2 - rate * 0.003, 0)
+    return GrowthZone(
+        step=step, temperature=conditions.temperature,
+        thickness_um=rate, growth_rate=rate,
+        trace_Fe=f.Fe * 0.03, note=color_note,
+    )
+
+
+def grow_lepidocrocite(crystal: Crystal, conditions: VugConditions, step: int) -> Optional[GrowthZone]:
+    """Lepidocrocite (γ-FeOOH) growth — ruby-red platy dimorph of goethite."""
+    sigma = conditions.supersaturation_lepidocrocite()
+    if sigma < 1.0:
+        if crystal.total_growth_um > 5 and conditions.fluid.pH < 3.0:
+            crystal.dissolved = True
+            d = min(1.5, crystal.total_growth_um * 0.06)
+            conditions.fluid.Fe += d * 0.4
+            return GrowthZone(
+                step=step, temperature=conditions.temperature,
+                thickness_um=-d, growth_rate=-d,
+                note=f"acid dissolution (pH {conditions.fluid.pH:.1f})"
+            )
+        return None
+    excess = sigma - 1.0
+    rate = 4.0 * excess * random.uniform(0.8, 1.2)
+    if rate < 0.1:
+        return None
+    f = conditions.fluid
+    if excess > 1.0:
+        crystal.habit = "fibrous_micaceous"
+        crystal.dominant_forms = ["fibrous micaceous aggregate", "rapid-oxidation signature"]
+        color_note = "rust-brown fibrous (fast Fe²⁺ oxidation, coarser particles)"
+    elif excess > 0.4:
+        crystal.habit = "plumose_rosette"
+        crystal.dominant_forms = ["plumose rosette", "radiating platy"]
+        color_note = "ruby-red plumose rosette"
+    else:
+        crystal.habit = "platy_scales"
+        crystal.dominant_forms = ["{010} platy scales", "perfect basal cleavage (mica-like)"]
+        color_note = "pink-mauve to ruby-red platy (nanoscale 'lithium quartz' pigment scale)"
+    f.Fe = max(f.Fe - rate * 0.020, 0)
+    f.O2 = max(f.O2 - rate * 0.002, 0)
+    return GrowthZone(
+        step=step, temperature=conditions.temperature,
+        thickness_um=rate, growth_rate=rate,
+        trace_Fe=f.Fe * 0.02, note=color_note,
+    )
+
+
+def grow_stibnite(crystal: Crystal, conditions: VugConditions, step: int) -> Optional[GrowthZone]:
+    """Stibnite (Sb₂S₃) growth — sword-blade sulfide."""
+    sigma = conditions.supersaturation_stibnite()
+    if sigma < 1.0:
+        if crystal.total_growth_um > 5 and conditions.fluid.pH < 2.0:
+            crystal.dissolved = True
+            d = min(2.0, crystal.total_growth_um * 0.06)
+            conditions.fluid.Sb += d * 0.3
+            conditions.fluid.S += d * 0.3
+            return GrowthZone(
+                step=step, temperature=conditions.temperature,
+                thickness_um=-d, growth_rate=-d,
+                note=f"acid dissolution (pH {conditions.fluid.pH:.1f})"
+            )
+        return None
+    excess = sigma - 1.0
+    rate = 3.5 * excess * random.uniform(0.8, 1.2)
+    if rate < 0.1:
+        return None
+    f = conditions.fluid
+    if excess > 1.2:
+        crystal.habit = "massive_granular"
+        crystal.dominant_forms = ["massive granular aggregate"]
+        color_note = "lead-gray massive granular stibnite"
+    elif excess > 0.5:
+        crystal.habit = "radiating_spray"
+        crystal.dominant_forms = ["radiating bladed spray", "sword-blade aggregate"]
+        color_note = "radiating spray of steel-gray blades"
+    else:
+        crystal.habit = "elongated_prism_blade"
+        crystal.dominant_forms = ["elongated {110} prism", "sword-blade terminations", "brilliant metallic luster"]
+        color_note = "elongated sword-blade — the Ichinokawa habit (lead-gray metallic)"
+    f.Sb = max(f.Sb - rate * 0.025, 0)
+    f.S = max(f.S - rate * 0.018, 0)
+    return GrowthZone(
+        step=step, temperature=conditions.temperature,
+        thickness_um=rate, growth_rate=rate, note=color_note,
+    )
+
+
+def grow_bismuthinite(crystal: Crystal, conditions: VugConditions, step: int) -> Optional[GrowthZone]:
+    """Bismuthinite (Bi₂S₃) growth — stibnite's Bi cousin."""
+    sigma = conditions.supersaturation_bismuthinite()
+    if sigma < 1.0:
+        if crystal.total_growth_um > 5 and conditions.fluid.pH < 2.0:
+            crystal.dissolved = True
+            d = min(2.0, crystal.total_growth_um * 0.06)
+            conditions.fluid.Bi += d * 0.3
+            conditions.fluid.S += d * 0.3
+            return GrowthZone(
+                step=step, temperature=conditions.temperature,
+                thickness_um=-d, growth_rate=-d,
+                note=f"acid dissolution (pH {conditions.fluid.pH:.1f})"
+            )
+        return None
+    excess = sigma - 1.0
+    rate = 4.0 * excess * random.uniform(0.8, 1.2)
+    if rate < 0.1:
+        return None
+    f = conditions.fluid
+    T = conditions.temperature
+    if T > 350:
+        crystal.habit = "stout_prismatic"
+        crystal.dominant_forms = ["stout {110} prism", "tin-white metallic"]
+        color_note = f"stout prismatic bismuthinite (high-T form, T={T:.0f}°C)"
+    elif excess > 1.0:
+        crystal.habit = "radiating_cluster"
+        crystal.dominant_forms = ["radiating cluster", "needle bundle"]
+        color_note = "radiating cluster of fine bismuthinite needles"
+    else:
+        crystal.habit = "acicular_needle"
+        crystal.dominant_forms = ["acicular {110} needles", "lead-gray with iridescent tarnish"]
+        color_note = f"acicular needles (low-T form, T={T:.0f}°C) — iridescent tarnish develops"
+    f.Bi = max(f.Bi - rate * 0.030, 0)
+    f.S = max(f.S - rate * 0.018, 0)
+    return GrowthZone(
+        step=step, temperature=conditions.temperature,
+        thickness_um=rate, growth_rate=rate, note=color_note,
+    )
+
+
+def grow_native_bismuth(crystal: Crystal, conditions: VugConditions, step: int) -> Optional[GrowthZone]:
+    """Native bismuth (Bi) growth — the lowest-melting native metal."""
+    sigma = conditions.supersaturation_native_bismuth()
+    if sigma < 1.0:
+        if crystal.total_growth_um > 5 and conditions.fluid.O2 > 0.8:
+            crystal.dissolved = True
+            d = min(2.0, crystal.total_growth_um * 0.05)
+            conditions.fluid.Bi += d * 0.5
+            return GrowthZone(
+                step=step, temperature=conditions.temperature,
+                thickness_um=-d, growth_rate=-d,
+                note=f"oxidation (O₂ {conditions.fluid.O2:.1f}) — bismite/bismutite surface forms"
+            )
+        return None
+    excess = sigma - 1.0
+    rate = 3.0 * excess * random.uniform(0.8, 1.2)
+    if rate < 0.1:
+        return None
+    f = conditions.fluid
+    if excess > 1.0:
+        crystal.habit = "massive_granular"
+        crystal.dominant_forms = ["massive granular silver-white"]
+        color_note = "massive granular native bismuth"
+    elif excess > 0.25 and random.random() < 0.1:
+        crystal.habit = "rhombohedral_crystal"
+        crystal.dominant_forms = ["{0001} basal pinacoid", "rhombohedral trigonal"]
+        color_note = "rhombohedral crystal (rare — well-formed in open vug)"
+    else:
+        crystal.habit = "arborescent_dendritic"
+        crystal.dominant_forms = ["arborescent branching", "dendritic fracture fill"]
+        color_note = "arborescent native bismuth — silver-white tree-like growth, iridescent tarnish expected"
+    f.Bi = max(f.Bi - rate * 0.035, 0)
+    return GrowthZone(
+        step=step, temperature=conditions.temperature,
+        thickness_um=rate, growth_rate=rate, note=color_note,
+    )
+
+
+def grow_clinobisvanite(crystal: Crystal, conditions: VugConditions, step: int) -> Optional[GrowthZone]:
+    """Clinobisvanite (BiVO₄) growth — microscopic yellow Bi-vanadate."""
+    sigma = conditions.supersaturation_clinobisvanite()
+    if sigma < 1.0:
+        if crystal.total_growth_um > 3 and conditions.fluid.pH < 2.5:
+            crystal.dissolved = True
+            d = min(0.5, crystal.total_growth_um * 0.05)
+            conditions.fluid.Bi += d * 0.4
+            conditions.fluid.V += d * 0.3
+            return GrowthZone(
+                step=step, temperature=conditions.temperature,
+                thickness_um=-d, growth_rate=-d,
+                note=f"acid dissolution (pH {conditions.fluid.pH:.1f})"
+            )
+        return None
+    excess = sigma - 1.0
+    rate = 2.0 * excess * random.uniform(0.8, 1.2)   # microscopic, slow
+    if rate < 0.1:
+        return None
+    f = conditions.fluid
+    if excess > 1.0:
+        crystal.habit = "powdery_aggregate"
+        crystal.dominant_forms = ["powdery yellow-orange aggregate", "micro-crystalline"]
+        color_note = "powdery orange-yellow clinobisvanite (rapid growth, thicker crust)"
+    else:
+        crystal.habit = "micro_plates_yellow"
+        crystal.dominant_forms = ["{010} micro plates", "yellow monoclinic"]
+        color_note = "bright yellow micro-platy clinobisvanite (photocatalyst for water splitting)"
+    f.Bi = max(f.Bi - rate * 0.025, 0)
+    f.V = max(f.V - rate * 0.012, 0)
+    return GrowthZone(
+        step=step, temperature=conditions.temperature,
+        thickness_um=rate, growth_rate=rate, note=color_note,
+    )
+
+
 def grow_cuprite(crystal: Crystal, conditions: VugConditions, step: int) -> Optional[GrowthZone]:
     """Cuprite (Cu₂O) growth — the Eh-boundary mineral.
 
@@ -4002,6 +4391,12 @@ MINERAL_ENGINES = {
     "cuprite": grow_cuprite,
     "azurite": grow_azurite,
     "native_copper": grow_native_copper,
+    "magnetite": grow_magnetite,
+    "lepidocrocite": grow_lepidocrocite,
+    "stibnite": grow_stibnite,
+    "bismuthinite": grow_bismuthinite,
+    "native_bismuth": grow_native_bismuth,
+    "clinobisvanite": grow_clinobisvanite,
 }
 
 
@@ -4253,8 +4648,14 @@ def scenario_porphyry() -> Tuple[VugConditions, List[Event], int]:
         pressure=2.0,
         fluid=FluidChemistry(
             SiO2=700, Ca=80, CO3=50, Fe=30, Mn=2,
-            Zn=0, S=60, F=5, Cu=0, Pb=15, O2=0.2,
-            pH=4.5, salinity=10.0
+            Zn=0, S=60, F=5, Cu=0, Pb=15,
+            # Sb + Bi traces — porphyries carry a greisen signature
+            # when the late hydrothermal phase taps tin-tungsten-
+            # arsenic-bearing granites. 25 ppm Sb and 30 ppm Bi are in
+            # the published range for Sb-Bi-bearing porphyry fluids
+            # (see Heinrich 2007 greisen fluid chemistry).
+            Sb=25, Bi=30,
+            O2=0.2, pH=4.5, salinity=10.0
         )
     )
     events = [
@@ -5266,6 +5667,18 @@ class VugSimulator:
             crystal.dominant_forms = ["monoclinic prism", "deep azure-blue"]
         elif mineral == "native_copper":
             crystal.dominant_forms = ["arborescent branching", "copper-red metallic"]
+        elif mineral == "magnetite":
+            crystal.dominant_forms = ["{111} octahedron", "black metallic, strongly magnetic"]
+        elif mineral == "lepidocrocite":
+            crystal.dominant_forms = ["{010} platy scales", "ruby-red micaceous"]
+        elif mineral == "stibnite":
+            crystal.dominant_forms = ["elongated {110} prism", "lead-gray sword-blade"]
+        elif mineral == "bismuthinite":
+            crystal.dominant_forms = ["acicular {110} needle", "lead-gray metallic"]
+        elif mineral == "native_bismuth":
+            crystal.dominant_forms = ["arborescent silver-white", "iridescent oxide tarnish"]
+        elif mineral == "clinobisvanite":
+            crystal.dominant_forms = ["micro-platy {010}", "bright yellow"]
         self.crystals.append(crystal)
         return crystal
 
@@ -5666,6 +6079,99 @@ class VugSimulator:
                 self.log.append(f"  ✦ NUCLEATION: Beryl #{c.crystal_id} ({tag}) on {c.position} "
                               f"(T={self.conditions.temperature:.0f}°C, σ={sigma_ber:.2f}, "
                               f"Be={f.Be:.0f} ppm, Cr={f.Cr:.2f}, Fe={f.Fe:.0f})")
+
+        # Magnetite nucleation — Fe + moderate O2 (HM buffer).
+        sigma_mag = self.conditions.supersaturation_magnetite()
+        existing_mag = [c for c in self.crystals if c.mineral == "magnetite" and c.active]
+        if sigma_mag > 1.0 and not self._at_nucleation_cap("magnetite"):
+            if not existing_mag or (sigma_mag > 1.7 and random.random() < 0.2):
+                pos = "vug wall"
+                active_hem_mag = [c for c in self.crystals if c.mineral == "hematite" and c.active]
+                if active_hem_mag and random.random() < 0.3:
+                    pos = f"on hematite #{active_hem_mag[0].crystal_id}"
+                c = self.nucleate("magnetite", position=pos, sigma=sigma_mag)
+                self.log.append(f"  ✦ NUCLEATION: Magnetite #{c.crystal_id} on {c.position} "
+                              f"(T={self.conditions.temperature:.0f}°C, σ={sigma_mag:.2f}, "
+                              f"Fe={self.conditions.fluid.Fe:.0f}, O₂={self.conditions.fluid.O2:.2f})")
+
+        # Lepidocrocite nucleation — Fe + rapid oxidation at low T.
+        sigma_lep = self.conditions.supersaturation_lepidocrocite()
+        existing_lep = [c for c in self.crystals if c.mineral == "lepidocrocite" and c.active]
+        if sigma_lep > 1.1 and not self._at_nucleation_cap("lepidocrocite"):
+            if not existing_lep or (sigma_lep > 1.7 and random.random() < 0.25):
+                pos = "vug wall"
+                dissolving_py_lep = [c for c in self.crystals if c.mineral == "pyrite" and c.dissolved]
+                active_qtz_lep = [c for c in self.crystals if c.mineral == "quartz" and c.active]
+                if dissolving_py_lep and random.random() < 0.6:
+                    pos = f"on pyrite #{dissolving_py_lep[0].crystal_id}"
+                elif active_qtz_lep and random.random() < 0.3:
+                    pos = f"on quartz #{active_qtz_lep[0].crystal_id}"
+                c = self.nucleate("lepidocrocite", position=pos, sigma=sigma_lep)
+                self.log.append(f"  ✦ NUCLEATION: Lepidocrocite #{c.crystal_id} on {c.position} "
+                              f"(T={self.conditions.temperature:.0f}°C, σ={sigma_lep:.2f}, "
+                              f"Fe={self.conditions.fluid.Fe:.0f})")
+
+        # Stibnite nucleation — Sb + S + moderate T + reducing.
+        sigma_stb = self.conditions.supersaturation_stibnite()
+        existing_stb = [c for c in self.crystals if c.mineral == "stibnite" and c.active]
+        if sigma_stb > 1.2 and not self._at_nucleation_cap("stibnite"):
+            if not existing_stb or (sigma_stb > 1.8 and random.random() < 0.2):
+                pos = "vug wall"
+                active_qtz_stb = [c for c in self.crystals if c.mineral == "quartz" and c.active]
+                if active_qtz_stb and random.random() < 0.4:
+                    pos = f"on quartz #{active_qtz_stb[0].crystal_id}"
+                c = self.nucleate("stibnite", position=pos, sigma=sigma_stb)
+                self.log.append(f"  ✦ NUCLEATION: Stibnite #{c.crystal_id} on {c.position} "
+                              f"(T={self.conditions.temperature:.0f}°C, σ={sigma_stb:.2f}, "
+                              f"Sb={self.conditions.fluid.Sb:.0f}, S={self.conditions.fluid.S:.0f})")
+
+        # Bismuthinite nucleation — Bi + S + high T + reducing.
+        sigma_bmt = self.conditions.supersaturation_bismuthinite()
+        existing_bmt = [c for c in self.crystals if c.mineral == "bismuthinite" and c.active]
+        if sigma_bmt > 1.3 and not self._at_nucleation_cap("bismuthinite"):
+            if not existing_bmt or (sigma_bmt > 1.8 and random.random() < 0.2):
+                pos = "vug wall"
+                active_qtz_bmt = [c for c in self.crystals if c.mineral == "quartz" and c.active]
+                active_cp_bmt = [c for c in self.crystals if c.mineral == "chalcopyrite" and c.active]
+                if active_qtz_bmt and random.random() < 0.3:
+                    pos = f"on quartz #{active_qtz_bmt[0].crystal_id}"
+                elif active_cp_bmt and random.random() < 0.3:
+                    pos = f"on chalcopyrite #{active_cp_bmt[0].crystal_id}"
+                c = self.nucleate("bismuthinite", position=pos, sigma=sigma_bmt)
+                self.log.append(f"  ✦ NUCLEATION: Bismuthinite #{c.crystal_id} on {c.position} "
+                              f"(T={self.conditions.temperature:.0f}°C, σ={sigma_bmt:.2f}, "
+                              f"Bi={self.conditions.fluid.Bi:.0f}, S={self.conditions.fluid.S:.0f})")
+
+        # Native bismuth nucleation — Bi + very low S + reducing.
+        sigma_nbi = self.conditions.supersaturation_native_bismuth()
+        existing_nbi = [c for c in self.crystals if c.mineral == "native_bismuth" and c.active]
+        if sigma_nbi > 1.4 and not self._at_nucleation_cap("native_bismuth"):
+            if not existing_nbi or (sigma_nbi > 2.0 and random.random() < 0.15):
+                pos = "vug wall"
+                dissolving_bmt = [c for c in self.crystals if c.mineral == "bismuthinite" and c.dissolved]
+                if dissolving_bmt and random.random() < 0.5:
+                    pos = f"on bismuthinite #{dissolving_bmt[0].crystal_id}"
+                c = self.nucleate("native_bismuth", position=pos, sigma=sigma_nbi)
+                self.log.append(f"  ✦ NUCLEATION: Native bismuth #{c.crystal_id} on {c.position} "
+                              f"(T={self.conditions.temperature:.0f}°C, σ={sigma_nbi:.2f}, "
+                              f"Bi={self.conditions.fluid.Bi:.0f}, S={self.conditions.fluid.S:.0f})")
+
+        # Clinobisvanite nucleation — Bi + V + oxidizing + low T.
+        sigma_cbv = self.conditions.supersaturation_clinobisvanite()
+        existing_cbv = [c for c in self.crystals if c.mineral == "clinobisvanite" and c.active]
+        if sigma_cbv > 1.5 and not self._at_nucleation_cap("clinobisvanite"):
+            if not existing_cbv or (sigma_cbv > 2.0 and random.random() < 0.3):
+                pos = "vug wall"
+                dissolving_nbi = [c for c in self.crystals if c.mineral == "native_bismuth" and c.dissolved]
+                dissolving_bmt_cbv = [c for c in self.crystals if c.mineral == "bismuthinite" and c.dissolved]
+                if dissolving_nbi and random.random() < 0.5:
+                    pos = f"on native_bismuth #{dissolving_nbi[0].crystal_id}"
+                elif dissolving_bmt_cbv and random.random() < 0.4:
+                    pos = f"on bismuthinite #{dissolving_bmt_cbv[0].crystal_id}"
+                c = self.nucleate("clinobisvanite", position=pos, sigma=sigma_cbv)
+                self.log.append(f"  ✦ NUCLEATION: Clinobisvanite #{c.crystal_id} on {c.position} "
+                              f"(T={self.conditions.temperature:.0f}°C, σ={sigma_cbv:.2f}, "
+                              f"Bi={self.conditions.fluid.Bi:.1f}, V={self.conditions.fluid.V:.1f})")
 
         # Cuprite nucleation — Cu + narrow O₂ window.
         # Prefers native copper substrate (next step in the oxidation
@@ -8451,6 +8957,185 @@ class VugSimulator:
             "The Statue of Liberty's iconic green patina is malachite "
             "growing on native copper — the mineralogical fate of most "
             "surface copper, given enough time and rain."
+        )
+        return " ".join(parts)
+
+    def _narrate_magnetite(self, c: Crystal) -> str:
+        parts = [f"Magnetite #{c.crystal_id} grew to {c.c_length_mm:.1f} mm."]
+        parts.append(
+            "Fe₃O₄ — the mixed-valence Fe²⁺Fe³⁺₂O₄ spinel oxide. Black, "
+            "strongly magnetic (lodestone is natural permanent-magnet "
+            "magnetite — the first compass). Sits at the HM (hematite-"
+            "magnetite) redox buffer: cross that buffer and entire "
+            "mineral assemblages shift. Streak is black, not red like "
+            "hematite's — the field test."
+        )
+        if c.habit == "octahedral":
+            parts.append(
+                "Octahedral {111} — the classic magnetite habit, still "
+                "sharp on matrix from Cerro Huanaquino (Bolivia) and "
+                "Binn Valley (Switzerland)."
+            )
+        elif c.habit == "rhombic_dodecahedral":
+            parts.append(
+                "Rhombic dodecahedral {110} — the high-T, mineralizer-"
+                "assisted habit. Cl-bearing fluids promote this form "
+                "over simple octahedra."
+            )
+        else:
+            parts.append(
+                "Granular massive — rapid precipitation, aggregate of "
+                "tiny individual crystals."
+            )
+        if c.dissolved:
+            parts.append(
+                "Dissolving to hematite (martite pseudomorph) as O₂ "
+                "climbed past the HM buffer — one of the clearest "
+                "paragenetic signals a collector can read."
+            )
+        return " ".join(parts)
+
+    def _narrate_lepidocrocite(self, c: Crystal) -> str:
+        parts = [f"Lepidocrocite #{c.crystal_id} grew to {c.c_length_mm:.1f} mm."]
+        parts.append(
+            "γ-FeOOH — the ruby-red platy dimorph of goethite. Same "
+            "formula, different crystal structure: goethite is a 3D "
+            "framework (yellow-brown needles), lepidocrocite is "
+            "layered (ruby-red platy, peels like mica). Kinetically "
+            "favored when Fe²⁺ oxidizes FAST — e.g. pyrite weathering "
+            "in situ; slow oxidation produces goethite instead."
+        )
+        if c.habit == "platy_scales":
+            parts.append(
+                "Platy scales — the default habit. 'Lithium quartz' "
+                "sold in rock shops is quartz with nanoscale "
+                "lepidocrocite inclusions that scatter pink-mauve "
+                "through the clear host."
+            )
+        elif c.habit == "plumose_rosette":
+            parts.append(
+                "Plumose rosette — radiating platy blades. Best at "
+                "Cornwall and the Siegerland (Germany)."
+            )
+        else:
+            parts.append(
+                "Fibrous micaceous — very rapid growth, coarser particle "
+                "size, rust-brown color."
+            )
+        parts.append(
+            "Given geological time, lepidocrocite converts to goethite "
+            "(the thermodynamically stable dimorph). This crystal is "
+            "a freeze-frame of the moment oxidation caught Fe²⁺."
+        )
+        return " ".join(parts)
+
+    def _narrate_stibnite(self, c: Crystal) -> str:
+        parts = [f"Stibnite #{c.crystal_id} grew to {c.c_length_mm:.1f} mm."]
+        parts.append(
+            "Sb₂S₃ — orthorhombic antimony sulfide, same structure as "
+            "bismuthinite. Lead-gray to steel-gray, brilliant metallic "
+            "luster on fresh cleavage. Ichinokawa (Japan) produced "
+            "swords over 60 cm long — perhaps the most visually striking "
+            "sulfide specimens ever collected. Low-melting (550°C), so "
+            "any metamorphism destroys it."
+        )
+        if c.habit == "elongated_prism_blade":
+            parts.append(
+                "Elongated sword-blade — the signature habit that makes "
+                "stibnite museum-worthy. Slow growth at moderate "
+                "supersaturation lets the crystal extend along c-axis "
+                "without branching."
+            )
+        elif c.habit == "radiating_spray":
+            parts.append(
+                "Radiating spray — multiple nucleation centers fanning "
+                "outward. Herja (Romania) and Sierra Mojada (Mexico) "
+                "produce the best sprays."
+            )
+        else:
+            parts.append(
+                "Massive granular — the bread-and-butter form. Most "
+                "mineable Sb ore."
+            )
+        return " ".join(parts)
+
+    def _narrate_bismuthinite(self, c: Crystal) -> str:
+        parts = [f"Bismuthinite #{c.crystal_id} grew to {c.c_length_mm:.1f} mm."]
+        parts.append(
+            "Bi₂S₃ — orthorhombic bismuth sulfide, same structure as "
+            "stibnite (Sb and Bi are geochemical cousins). Lead-gray "
+            "to tin-white with yellowish/iridescent tarnish. Classic "
+            "companion of arsenopyrite, cassiterite, and wolframite "
+            "in tin-tungsten greisen deposits (Cornwall, Erzgebirge, "
+            "Bolivian tin belt)."
+        )
+        if "stout" in (c.habit or ""):
+            parts.append(
+                "Stout prismatic — the high-T habit (T > 350°C). "
+                "Characteristic of primary greisen growth."
+            )
+        elif "radiating" in (c.habit or ""):
+            parts.append(
+                "Radiating cluster of needles — multiple nucleation, "
+                "moderate supersaturation burst."
+            )
+        else:
+            parts.append(
+                "Acicular needles — the low-T habit. Long, thin, "
+                "easily mistaken for stibnite until the tin-white "
+                "color and higher density give it away."
+            )
+        return " ".join(parts)
+
+    def _narrate_native_bismuth(self, c: Crystal) -> str:
+        parts = [f"Native bismuth #{c.crystal_id} grew to {c.c_length_mm:.1f} mm."]
+        parts.append(
+            "Bi — elemental bismuth. Silver-white on fresh fracture, "
+            "iridescent rainbow tarnish within hours. Melts at an "
+            "unusually low 271.5°C — the lowest melting point of any "
+            "native metal. Only forms when sulfur runs out before "
+            "bismuth does (otherwise it makes bismuthinite). The "
+            "square hoppered rainbow Bi crystals sold in rock shops "
+            "are LAB-GROWN — natural native bismuth is typically "
+            "arborescent or massive."
+        )
+        if c.habit == "arborescent_dendritic":
+            parts.append(
+                "Arborescent dendritic — tree-like branches filling a "
+                "fracture. Cobalt (Germany), the Kingsgate mine "
+                "(Australia), and Schneeberg (Saxony) produced the "
+                "best historically."
+            )
+        elif c.habit == "rhombohedral_crystal":
+            parts.append(
+                "Rhombohedral crystal — RARE. Bismuth crystallizes in "
+                "trigonal symmetry with {0001} basal pinacoid; well-"
+                "formed natural crystals are among the rarest native-"
+                "element specimens collectors seek."
+            )
+        else:
+            parts.append(
+                "Massive granular — silver-white metallic blob, "
+                "iridescent within days of exposure to air."
+            )
+        return " ".join(parts)
+
+    def _narrate_clinobisvanite(self, c: Crystal) -> str:
+        parts = [f"Clinobisvanite #{c.crystal_id} grew to {c.c_length_mm:.1f} mm."]
+        parts.append(
+            "BiVO₄ — bright yellow to orange-yellow monoclinic "
+            "Bi-vanadate. End of the bismuth oxidation sequence: "
+            "bismuthinite → native bismuth → bismite/bismutite → "
+            "clinobisvanite (if V is available). Microscopic — the "
+            "crystals are individually sub-millimeter, so "
+            "clinobisvanite appears as a powdery yellow coating on "
+            "matrix."
+        )
+        parts.append(
+            "And: BiVO₄ is a photocatalyst for solar-driven water "
+            "splitting. The same mineral that forms as a supergene "
+            "afterthought is being engineered to make hydrogen fuel "
+            "from sunlight. Nature had it first."
         )
         return " ".join(parts)
 
