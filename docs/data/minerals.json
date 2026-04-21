@@ -106,6 +106,15 @@
         "quartz",
         "topaz",
         "goethite"
+      ],
+      "gem_pegmatite": [
+        "feldspar",
+        "albite",
+        "quartz",
+        "tourmaline",
+        "beryl",
+        "spodumene",
+        "topaz"
       ]
     }
   },

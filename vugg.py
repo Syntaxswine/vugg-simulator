@@ -3608,6 +3608,189 @@ def scenario_supergene_oxidation() -> Tuple[VugConditions, List[Event], int]:
     return conditions, events, 180
 
 
+def scenario_gem_pegmatite() -> Tuple[VugConditions, List[Event], int]:
+    """Minas Gerais Gem Pegmatite Pocket — Variant A.
+
+    A miarolitic cavity in a complex zoned pegmatite at the São Francisco
+    craton margin. Brasiliano orogeny, 700–450 Ma. The outer pegmatite
+    shell (microcline + quartz + muscovite + schorl) has already
+    crystallized; this vug is the residual pocket where incompatible
+    elements (Be, B, Li, F) accumulate beyond belief before crossing
+    saturation and nucleating their exotic species.
+
+    Thermal regime: 650 → 300°C over ~220 steps in three phases.
+    Phase 1 (650–550°C): wall-zone crystallization (microcline, quartz,
+    early schorl).
+    Phase 2 (550–400°C): main pocket growth. Beryl finally nucleates
+    when Be crosses threshold; spodumene when Li crosses; schorl
+    transitions to elbaite as Fe depletes and Li accumulates.
+    Phase 3 (400–300°C): late hydrothermal — topaz if F survives,
+    goethite if any Fe-sulfides weathered.
+
+    Saturation cascade mechanic: there is no explicit "nucleate beryl
+    now" command. Each mineral's supersaturation formula reads the
+    current fluid, and the nucleation gates fire in order naturally
+    as chemistry evolves — microcline first (K-feldspar = feldspar here),
+    then the Be/Li/B gates cross as incompatible elements build up.
+    """
+    conditions = VugConditions(
+        temperature=650.0,
+        pressure=3.0,
+        fluid=FluidChemistry(
+            # Pegmatite-level silica saturation — far above the quartz
+            # equilibrium at any T, so quartz is supersaturated throughout.
+            SiO2=8000,
+            # Al starts high so six competing silicate engines can all
+            # draw on it for the scenario's duration. 80 ppm keeps Al
+            # above topaz's 3 ppm threshold at phase-3 handoff.
+            Ca=30, CO3=15, Fe=50, Mn=8, Al=80,
+            # Alkali feldspar chemistry — microcline first, then
+            # ev_albitization flips K → Na.
+            K=80, Na=40,
+            # Incompatible elements — these are the point of the scenario.
+            # All start above their respective mineral's minimum required
+            # threshold but below the nucleation σ threshold; they build
+            # (unused early) and then the cascade fires.
+            Be=25,     # beryl nucleation σ 1.8 — waits longest
+            B=35,      # tourmaline σ 1.3 — fires earliest once hot
+            Li=35,     # spodumene σ 1.5, also feeds elbaite
+            F=25,      # topaz σ 1.4 — fires late when T drops into window
+            # Color-element traces. Cr from the hinted ultramafic contact;
+            # Mn for morganite/kunzite/rubellite; Cu for the Paraíba long-
+            # shot (1 in 20 scenarios lands it given seed variance).
+            Cr=2.5, Cu=0.3, V=2.0, Ti=0.8,
+            O2=0.1, pH=6.8, salinity=6.0,
+        )
+    )
+
+    def ev_outer_shell(cond):
+        """Phase 1: outer shell continues crystallizing, wall zone fills in."""
+        cond.temperature = 620
+        cond.flow_rate = 1.0
+        return ("The outer pegmatite shell is already cooling. Microcline "
+                "and quartz dominate the wall zone, growing inward into "
+                "the void. The pocket fluid inside is enriched in the "
+                "elements nothing else wanted: beryllium, boron, lithium, "
+                "fluorine. They haven't crossed any saturation thresholds "
+                "yet — they are simply accumulating.")
+
+    def ev_first_schorl(cond):
+        """Phase 1→2: Fe + B supersaturation crosses, schorl begins.
+        Schorl takes B and Fe — the first incompatible-element mineral
+        to fire in the cascade."""
+        cond.temperature = 560
+        cond.flow_rate = 0.9
+        return ("The pocket has cooled enough that tourmaline can form. "
+                "Boron has been accumulating in the fluid for thousands of "
+                "years; with Fe²⁺ still abundant, the schorl variety "
+                "nucleates. Deep black prisms begin projecting from the "
+                "wall. Each new zone records a fluid pulse — the "
+                "striations are the pocket's diary.")
+
+    def ev_albitization(cond):
+        """Phase 2: the albitization event. As quartz + K-feldspar
+        crystallize, the residual fluid's K/Na ratio inverts. Na now
+        dominates, and albite begins replacing microcline. Microcline
+        dissolution releases K back to the fluid (a second muscovite-
+        style pulse is implied). Textbook pegmatite replacement."""
+        cond.fluid.K = max(cond.fluid.K - 30, 10)     # K is consumed by microcline
+        cond.fluid.Na += 40                            # Na surges
+        cond.fluid.Al += 10                            # from feldspar breakdown
+        cond.fluid.pH += 0.2
+        cond.temperature = 500
+        return ("Albitization event. The pocket's K has depleted faster than "
+                "its Na — microcline starts dissolving and albite begins "
+                "precipitating in its place. K²⁺ returns to the fluid, "
+                "enabling a second generation of mica-like phases. This "
+                "replacement cascade is the most Minas Gerais thing about "
+                "a Minas Gerais pegmatite: the pocket is rearranging itself.")
+
+    def ev_be_saturation(cond):
+        """Phase 2: Be finally crosses beryl's nucleation threshold.
+        The dramatic moment the scenario builds toward."""
+        cond.temperature = 450
+        cond.flow_rate = 0.8
+        return ("Beryllium has been accumulating for a dozen thousand "
+                "years. Every earlier mineral refused it. Now σ crosses "
+                "1.8 and the first beryl crystal nucleates. Because Be "
+                "had so long to build, the crystal has a lot of material "
+                "waiting — this is how meter-long beryls form. What "
+                "color depends on who else is in the fluid. Morganite if "
+                "Mn won the lottery; aquamarine if Fe did; emerald if "
+                "Cr leached in from an ultramafic contact somewhere.")
+
+    def ev_li_phase(cond):
+        """Phase 2→3: temperature drops into the Li-bearing mineral
+        sweet spot. Spodumene and elbaite tourmaline compete for Li."""
+        cond.temperature = 420
+        cond.fluid.Fe = max(cond.fluid.Fe - 20, 5)   # Fe depleting — elbaite territory
+        return ("Temperature drops into the 400s. Lithium, which has been "
+                "accumulating since the beginning, is now abundant enough "
+                "to nucleate Li-bearing minerals. Spodumene will take "
+                "most of it — the Li pyroxene wants its own crystals. "
+                "Any remaining Li goes into elbaite overgrowths on the "
+                "schorl cores: the crystals become color-zoned as iron "
+                "depletes and lithium takes its place.")
+
+    def ev_late_hydrothermal(cond):
+        """Phase 3: below ~400°C, topaz window opens. Late hydrothermal
+        fluid picks up Al from breakdown of wall-zone feldspars, giving
+        topaz enough Al to nucleate even after the incompatible-element
+        silicates have had their turn. If F survived earlier phases
+        (nothing else consumes it), topaz fires."""
+        cond.temperature = 360
+        cond.fluid.pH = 6.0
+        cond.flow_rate = 0.5
+        cond.fluid.Al += 12.0   # Al recovers from wall-feldspar breakdown
+        return ("Late hydrothermal phase. Temperature drops into the topaz "
+                "window. Feldspars in the wall zone are breaking down, "
+                "releasing aluminum back into the pocket fluid. Fluorine "
+                "has been sitting unused — nothing else in this pocket "
+                "wanted it. Now both Al and F are present in the right "
+                "range at the right temperature, and topaz finally has "
+                "its moment — projecting from the quartz lining or "
+                "filling gaps between the bigger crystals.")
+
+    def ev_clay_softening(cond):
+        """Phase 3: kaolinite forms from feldspar breakdown; pocket
+        walls soften. Doesn't dissolve crystals here, but changes the
+        'texture' of the pocket described in the narrator."""
+        cond.temperature = 320
+        cond.fluid.pH = 5.5
+        cond.flow_rate = 0.3
+        return ("Cooler now. Kaolinite begins replacing any remaining "
+                "microcline in the pocket walls — the signature soft "
+                "'gloop' that coats every Minas Gerais gem pocket by "
+                "the time garimpeiros crack it open. Spodumene and topaz "
+                "snap cleanly along their perfect cleavages when the "
+                "wall shifts. Cleavage fragments accumulate on the floor "
+                "of the pocket.")
+
+    def ev_final(cond):
+        """Phase 3 end: system cools to 300°C and then ambient over
+        deep time. No more growth, no more events."""
+        cond.temperature = 300
+        cond.flow_rate = 0.1
+        return ("The system cools to 300°C, below spodumene's window and "
+                "approaching topaz's lower edge. Growth slows to near-"
+                "zero. Deep time will do the rest: this pocket will wait "
+                "half a billion years before human hands crack it open, "
+                "and the garimpeiros will sort the crystals by color in "
+                "the order the fluid deposited them.")
+
+    events = [
+        Event(5,   "Outer Shell",      "Wall-zone microcline + quartz",           ev_outer_shell),
+        Event(30,  "Schorl Arrives",   "B + Fe²⁺ supersaturation — first tourmaline", ev_first_schorl),
+        Event(60,  "Albitization",     "K-feldspar → albite replacement cascade", ev_albitization),
+        Event(90,  "Be Saturation",    "Beryl finally nucleates — enormous crystals incoming", ev_be_saturation),
+        Event(130, "Li Phase",         "Spodumene + elbaite territory",           ev_li_phase),
+        Event(160, "Late Hydrothermal", "Topaz window opens — F survivors fire",   ev_late_hydrothermal),
+        Event(190, "Clay Softening",   "Kaolinite replaces pocket walls",         ev_clay_softening),
+        Event(215, "Final Cooling",    "System approaches 300°C floor",           ev_final),
+    ]
+    return conditions, events, 230
+
+
 def scenario_ouro_preto() -> Tuple[VugConditions, List[Event], int]:
     """Ouro Preto Imperial Topaz Veins — Minas Gerais, Brazil (Variant B).
 
@@ -3972,6 +4155,7 @@ SCENARIOS = {
     "radioactive_pegmatite": scenario_radioactive_pegmatite,
     "supergene_oxidation": scenario_supergene_oxidation,
     "ouro_preto": scenario_ouro_preto,
+    "gem_pegmatite": scenario_gem_pegmatite,
     "random": scenario_random,
 }
 
