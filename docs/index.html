@@ -12983,27 +12983,45 @@ function topoRender(optOverrideRing) {
   ctx.globalAlpha = 1;
 
   // Inclusion dots — render each host's swallowed crystals as small
-  // colored circles inside the host's radial band, at the enclosed
-  // crystal's original wall anchor angle so it sits where the
-  // original crystal lived.
+  // colored circles WITHIN the host's currently-painted wall band.
+  //
+  // Placement model:
+  //   * Find every ring-0 cell the host actually paints (crystal_id
+  //     matches). That set IS the host's visible footprint on the topo.
+  //   * Spread the inclusions across those cells, one-per-cell until
+  //     we run out (then round-robin).
+  //   * Each inclusion's radius uses its assigned cell's OWN local wall
+  //     radius + the host's band offset at that cell. That way the dot
+  //     sits inside the host's painted band at that cell, even when the
+  //     bubble-merge profile makes adjacent cells differ by 10×.
+  //   * Ghost alpha follows the inclusion's own mineral (highlight
+  //     brief: "if you highlight the inclusion's mineral species, those
+  //     dots go to 100% everywhere they appear").
+  //
+  // Why not use enc.wall_center_cell directly? Because that's where the
+  // inclusion was anchored BEFORE the host engulfed it — once swallowed,
+  // the inclusion moves with the host's spatial extent, and using its
+  // old anchor angle puts the dot wherever the inclusion USED to be.
+  // On a bubble-merge wall, that's often nowhere near the host's
+  // current footprint, and with the old (host-radius × inclusion-angle)
+  // combination the dot lands outside the wall entirely.
   _topoInclusions.length = 0;
   if (sim && sim.crystals) {
     for (const host of sim.crystals) {
       if (!host.enclosed_crystals || !host.enclosed_crystals.length) continue;
       if (host.dissolved || host.wall_center_cell == null) continue;
-      const hostCell = ring0[host.wall_center_cell];
-      if (!hostCell) continue;
-      // Phase-1 per-cell base radius; fallback for legacy snapshots.
-      const hostBaseR = hostCell.base_radius_mm > 0 ? hostCell.base_radius_mm : initR;
-      const rHostOuter = (hostBaseR + hostCell.wall_depth) * mmToPx;
+
+      // Build the host's painted-cell set. Fall back to its center cell
+      // if nothing paints (a smaller overlapping crystal may have
+      // overwritten its paint — rare but possible).
+      const hostPaintedCells = [];
+      for (let i = 0; i < N; i++) {
+        if (ring0[i].crystal_id === host.crystal_id) hostPaintedCells.push(i);
+      }
+      if (!hostPaintedCells.length) hostPaintedCells.push(host.wall_center_cell);
+      const mCells = hostPaintedCells.length;
+
       const voidReach = Math.max(host.void_reach, 0.05);
-      const inwardMm = (hostCell.thickness_um / 1000.0) * voidReach;
-      // Same absolute-offset pattern as the wedge fill — inclusion dots
-      // sit at the midpoint of the host's band, floored so a thick host
-      // in a dip cell still leaves a visible inner edge.
-      const inwardPx = Math.max(inwardMm * mmToPx, TOPO_WALL_STROKE_PX + 1);
-      const rHostInner = Math.max(rHostOuter - inwardPx, rHostOuter * (1 - TOPO_CRYSTAL_CAP_FRAC));
-      const rMid = (rHostOuter + rHostInner) / 2;
       const allIds = host.enclosed_crystals;
       // Cap visible dots per host — real Sweetwater-style calcite can
       // carry hundreds of pyrite or chalcopyrite inclusions and a
@@ -13017,19 +13035,28 @@ function topoRender(optOverrideRing) {
       for (let k = 0; k < n; k++) {
         const enc = sim.crystals.find(c => c.crystal_id === renderedIds[k]);
         if (!enc) continue;
-        const anchorCell = enc.wall_center_cell != null ? enc.wall_center_cell : host.wall_center_cell;
-        const baseAngle = -Math.PI / 2 + (anchorCell / N) * 2 * Math.PI;
-        // If multiple inclusions share the host cell, fan them across
-        // a capped arc range so they don't wrap around the circle.
-        const maxFanRad = Math.min(arcStep * 3, 0.25);
-        const fan = (n > 1) ? ((k / (n - 1) - 0.5) * maxFanRad) : 0;
-        const angle = baseAngle + fan;
+
+        // Spread inclusions evenly across painted cells. Floating index
+        // gives a sub-cell offset used to fan dots within one cell when
+        // more inclusions than cells.
+        const cellPos = (k + 0.5) * mCells / n;
+        const cellIdx = hostPaintedCells[Math.min(mCells - 1, Math.floor(cellPos))];
+        const withinCell = cellPos - Math.floor(cellPos) - 0.5;  // −0.5 .. +0.5
+        const cell = ring0[cellIdx];
+        const baseR = cell.base_radius_mm > 0 ? cell.base_radius_mm : initR;
+        const rOuterCell = (baseR + cell.wall_depth) * mmToPx;
+        const inwardMm = (cell.thickness_um / 1000.0) * voidReach;
+        const inwardPx = Math.max(inwardMm * mmToPx, TOPO_WALL_STROKE_PX + 1);
+        const rInnerCell = Math.max(rOuterCell - inwardPx, rOuterCell * (1 - TOPO_CRYSTAL_CAP_FRAC));
+        const rMid = (rOuterCell + rInnerCell) / 2;
+        // Cell angular centre, plus a small fan when multiple inclusions
+        // land in the same cell (otherwise they'd stack exactly).
+        const baseAngle = -Math.PI / 2 + (cellIdx / N) * 2 * Math.PI;
+        const angle = baseAngle + withinCell * arcStep * 0.8;
+
         const x = cx + rMid * Math.cos(angle);
         const y = cy + rMid * Math.sin(angle);
         const dotR = Math.max(2.5, Math.min(5.5, enc.c_length_mm * mmToPx * 0.4));
-        // Inclusion alpha follows the INCLUSION's own mineral (not the
-        // host's) per the highlight brief — lets you pick a sulfide and
-        // watch its inclusion pointillism across every host.
         ctx.globalAlpha = topoAlphaFor(enc.mineral);
         ctx.fillStyle = topoClassColor(enc.mineral);
         ctx.beginPath();
