@@ -3428,19 +3428,20 @@ class VugWall {
     this.wall_Mg_ppm = opts.wall_Mg_ppm ?? 1000.0;
     this.ca_from_wall_total = opts.ca_from_wall_total ?? 0.0;
     // Phase-1 naturalistic void shape (visual only — growth engines
-    // still read meanDiameterMm). Bubble-merge model: N random circles
-    // overlap to form a botryoidal dissolution cavity with natural
-    // alcoves (where bubbles overlap from inside) and promontories
-    // (where they don't). See WallState._buildProfile() for the
-    // geometry.
-    //   bubble_count: number of overlapping circles (1 = perfect
-    //     circle after rescale, 4–12 typical).
-    //   bubble_size_range: [min, max] bubble radius as fraction of
-    //     initial_radius_mm. Tight ranges read spherical; wide ranges
-    //     read botryoidal.
+    // still read meanDiameterMm). Two-stage bubble-merge model:
+    //   Stage 1 — primary void: a few large bubbles (radii 40–70% of
+    //     vug_diameter_mm) forming the main cavity. Guaranteed to
+    //     contain the sampling origin.
+    //   Stage 2 — secondary dissolution: smaller bubbles (radii 10–30%
+    //     of vug_diameter_mm) spawned ON the outer edge of the primary
+    //     union — models percolating fluids eating satellite alcoves
+    //     from the cavity wall.
+    // See WallState._buildProfile() for the geometry.
+    //   primary_bubbles: stage-1 count (>= 1, 2–5 typical).
+    //   secondary_bubbles: stage-2 count (>= 0, 3–10 typical).
     //   shape_seed: deterministic seed for bubble positions / radii.
-    this.bubble_count = opts.bubble_count ?? 6;
-    this.bubble_size_range = opts.bubble_size_range ?? [0.2, 0.6];
+    this.primary_bubbles = opts.primary_bubbles ?? 3;
+    this.secondary_bubbles = opts.secondary_bubbles ?? 6;
     this.shape_seed = opts.shape_seed ?? 0;
   }
 
@@ -3532,6 +3533,44 @@ function _mulberry32(seed) {
   };
 }
 
+// Bubble size ranges as fractions of vug_diameter_mm (the canonical
+// unit the brief uses). Primary radii form the main cavity; secondary
+// radii are small enough to read as satellite alcoves on the wall.
+// Must match WallState._PRIMARY_SIZE_RANGE / _SECONDARY_SIZE_RANGE in
+// vugg.py.
+const PRIMARY_SIZE_RANGE = [0.4, 0.7];
+const SECONDARY_SIZE_RANGE = [0.1, 0.3];
+// Primary cluster tightness — secondary primaries' centres beyond
+// bubble 0 are within this fraction of R of origin, so primaries
+// overlap each other cohesively.
+const PRIMARY_SPREAD = 0.3;
+
+// Raycast the bubble union at angle theta, honouring origin
+// connectivity. Returns the outer wall distance from origin.
+function _raycastUnion(bubbles, theta) {
+  const cosT = Math.cos(theta), sinT = Math.sin(theta);
+  const intervals = [];
+  for (const [cx, cy, r] of bubbles) {
+    const b = cx * cosT + cy * sinT;
+    const c = cx * cx + cy * cy - r * r;
+    const disc = b * b - c;
+    if (disc < 0) continue;
+    const rt = Math.sqrt(disc);
+    const tExit = b + rt;
+    if (tExit <= 0) continue;
+    intervals.push([Math.max(0, b - rt), tExit]);
+  }
+  if (!intervals.length) return 0;
+  intervals.sort((a, b) => a[0] - b[0]);
+  let wall = intervals[0][1];
+  for (let j = 1; j < intervals.length; j++) {
+    const [s, e] = intervals[j];
+    if (s <= wall) { if (e > wall) wall = e; }
+    else break;
+  }
+  return wall;
+}
+
 class WallState {
   constructor(opts = {}) {
     this.cells_per_ring = opts.cells_per_ring ?? 120;
@@ -3539,11 +3578,12 @@ class WallState {
     this.vug_diameter_mm = opts.vug_diameter_mm ?? 50.0;
     this.initial_radius_mm = opts.initial_radius_mm ?? (this.vug_diameter_mm / 2);
     this.ring_spacing_mm = opts.ring_spacing_mm ?? 1.0;
-    // Phase-1 naturalistic void shape parameters (see VugWall).
-    this.bubble_count = opts.bubble_count ?? 6;
-    this.bubble_size_range = opts.bubble_size_range ?? [0.2, 0.6];
+    // Phase-1 two-stage bubble-merge parameters (see VugWall).
+    this.primary_bubbles = opts.primary_bubbles ?? 3;
+    this.secondary_bubbles = opts.secondary_bubbles ?? 6;
     this.shape_seed = opts.shape_seed ?? 0;
     // Populated by _buildProfile() — [[cx, cy, r], …] in mm after rescale.
+    // Primaries come first, then secondaries.
     this.bubbles = [];
 
     this.rings = [];
@@ -3568,80 +3608,64 @@ class WallState {
     this.max_seen_radius_mm = maxBase * 2;
   }
 
-  // Phase 1: compute per-cell base_radius_mm via bubble merging.
-  // Algorithm (per the bubble-void brief):
-  //   1. Place bubble 0 at origin with radius = mid(bubble_size_range).
-  //      Guarantees the union is connected through the sampling centre
-  //      so every ray at t=0 is inside at least one bubble.
-  //   2. Place bubble_count - 1 additional bubbles at seed points
-  //      uniformly sampled (by area) within the bounding disk, with
-  //      radii drawn from bubble_size_range × initial_radius_mm.
-  //   3. At each of cells_per_ring angles θ, compute wall distance as
-  //      the maximum t where (t·cosθ, t·sinθ) is inside the union AND
-  //      connected to the origin through it. Ray-circle intersection
-  //      per bubble, sort by entry t, merge overlapping intervals from
-  //      t=0 — the first merged segment's endpoint is the wall.
-  //   4. Rescale uniformly so the mean wall radius equals
-  //      initial_radius_mm, keeping mean_diameter_mm correct for the
-  //      growth engines and the vug visually sized to nominal.
-  // Mirrors WallState._build_profile in vugg.py (same math, different
-  // RNG — see _mulberry32 note above).
+  // Phase 1: compute per-cell base_radius_mm via two-stage bubble
+  // merging. Stage 1 places a few large bubbles near origin forming
+  // the main cavity; stage 2 places smaller bubbles on the primary
+  // union's outer edge (satellite alcoves eaten from the wall by
+  // percolating fluids). Sample the full union at each cell angle,
+  // then rescale mean to nominal.
+  //
+  // Mirrors WallState._build_profile in vugg.py. Backward compatible:
+  // primary_bubbles=1, secondary_bubbles=0 rescales to a perfect
+  // circle.
   _buildProfile() {
     const rng = _mulberry32(this.shape_seed | 0);
     const R = this.initial_radius_mm;
-    let lo = this.bubble_size_range[0], hi = this.bubble_size_range[1];
-    if (lo > hi) { const t = lo; lo = hi; hi = t; }
+    const D = 2 * R;
+    const [pLo, pHi] = PRIMARY_SIZE_RANGE;
+    const [sLo, sHi] = SECONDARY_SIZE_RANGE;
 
-    // Bubble 0: at origin, mid-range radius. Guarantees origin coverage.
-    const r0 = R * (lo + hi) * 0.5;
-    const bubbles = [[0, 0, r0]];
-    // Remaining bubbles: uniform-by-area seed in bounding disk, random
-    // radius in range.
-    for (let k = 0; k < Math.max(0, (this.bubble_count | 0) - 1); k++) {
-      const d = R * Math.sqrt(rng());
+    // ---- Stage 1: primary void ----
+    // Primary 0 always at origin, mid-size. Anchors the main cavity
+    // and guarantees origin coverage.
+    const r0 = D * (pLo + pHi) * 0.5;
+    const primaries = [[0, 0, r0]];
+    for (let k = 0; k < Math.max(0, (this.primary_bubbles | 0) - 1); k++) {
+      // Clustered near origin so primaries overlap into one cavity.
+      const d = PRIMARY_SPREAD * R * rng();
       const phi = rng() * 2 * Math.PI;
       const cx = d * Math.cos(phi);
       const cy = d * Math.sin(phi);
-      const r = R * (lo + (hi - lo) * rng());
-      bubbles.push([cx, cy, r]);
+      const r = D * (pLo + (pHi - pLo) * rng());
+      primaries.push([cx, cy, r]);
     }
 
+    // ---- Stage 2: secondary dissolution ----
+    // Each secondary spawns ON the primary union's outer edge at a
+    // random angle. Half the bubble extends past the primary (the
+    // alcove), inner half overlaps harmlessly back into the primary.
+    const secondaries = [];
+    for (let k = 0; k < Math.max(0, this.secondary_bubbles | 0); k++) {
+      const theta = rng() * 2 * Math.PI;
+      const rPrim = _raycastUnion(primaries, theta);
+      if (rPrim <= 0) continue;
+      const cx = rPrim * Math.cos(theta);
+      const cy = rPrim * Math.sin(theta);
+      const r = D * (sLo + (sHi - sLo) * rng());
+      secondaries.push([cx, cy, r]);
+    }
+
+    const bubbles = primaries.concat(secondaries);
+
+    // ---- Sample the full union at cell angles ----
     const N = this.cells_per_ring;
     const rawRadii = new Array(N);
-
     for (let i = 0; i < N; i++) {
-      const theta = 2 * Math.PI * i / N;
-      const cosT = Math.cos(theta), sinT = Math.sin(theta);
-      // Ray/bubble intersection intervals, clipped to t >= 0.
-      const intervals = [];
-      for (const [cx, cy, r] of bubbles) {
-        const b = cx * cosT + cy * sinT;
-        const c = cx * cx + cy * cy - r * r;
-        const disc = b * b - c;
-        if (disc < 0) continue;         // ray misses this bubble
-        const rt = Math.sqrt(disc);
-        const tEnter = b - rt;
-        const tExit = b + rt;
-        if (tExit <= 0) continue;       // bubble entirely behind origin
-        intervals.push([Math.max(0, tEnter), tExit]);
-      }
-      if (!intervals.length) { rawRadii[i] = R; continue; }
-
-      // Merge intervals starting from 0. Sort by entry t; extend wall
-      // as long as next interval overlaps current reach. Stop at the
-      // first gap — disconnected-from-origin segments don't count.
-      intervals.sort((a, b) => a[0] - b[0]);
-      let wall = intervals[0][1];
-      for (let j = 1; j < intervals.length; j++) {
-        const [start, end] = intervals[j];
-        if (start <= wall) { if (end > wall) wall = end; }
-        else break;
-      }
-      rawRadii[i] = wall;
+      const w = _raycastUnion(bubbles, 2 * Math.PI * i / N);
+      rawRadii[i] = w > 0 ? w : R;
     }
 
-    // Rescale so mean wall radius matches nominal. Bubbles rescale too
-    // so `this.bubbles` reflects what the renderer actually draws.
+    // ---- Rescale to nominal mean ----
     let meanRaw = 0;
     for (const v of rawRadii) meanRaw += v;
     meanRaw /= Math.max(rawRadii.length, 1);
@@ -6703,7 +6727,7 @@ function scenario_cooling() {
     temperature: 380.0, pressure: 1.5,
     fluid: new FluidChemistry({ SiO2: 600, Ca: 150, CO3: 100, Fe: 8, Mn: 3, Ti: 0.8, Al: 8, K: 30, Na: 15 }),
     // Phase-1 void shape: gentle gas-bubble profile.
-    wall: new VugWall({ bubble_count: 4, bubble_size_range: [0.4, 0.5], shape_seed: 1 }),
+    wall: new VugWall({ primary_bubbles: 2, secondary_bubbles: 3, shape_seed: 1 }),
   });
   return { conditions, events: [], defaultSteps: 100 };
 }
@@ -6712,7 +6736,7 @@ function scenario_pulse() {
   const conditions = new VugConditions({
     temperature: 350.0, pressure: 1.2,
     fluid: new FluidChemistry({ SiO2: 500, Ca: 200, CO3: 120, Fe: 5, Mn: 2, Ti: 0.5, Al: 3 }),
-    wall: new VugWall({ bubble_count: 4, bubble_size_range: [0.4, 0.5], shape_seed: 2 }),
+    wall: new VugWall({ primary_bubbles: 2, secondary_bubbles: 3, shape_seed: 2 }),
   });
   const events = [
     { step: 40, name: 'Fluid Pulse', description: 'Fresh hydrothermal fluid', apply_fn: event_fluid_pulse },
@@ -6729,7 +6753,7 @@ function scenario_mvt() {
       Zn: 0, S: 0, F: 5, Pb: 40, pH: 7.2, salinity: 15.0
     }),
     // MVT dissolution cavity in limestone — all-axis lumpiness.
-    wall: new VugWall({ bubble_count: 8, bubble_size_range: [0.2, 0.6], shape_seed: 3 }),
+    wall: new VugWall({ primary_bubbles: 3, secondary_bubbles: 8, shape_seed: 3 }),
   });
   const events = [
     { step: 20, name: 'Fluid Mixing', description: 'Brine meets groundwater', apply_fn: event_fluid_mixing },
@@ -6752,7 +6776,7 @@ function scenario_porphyry() {
       pH: 4.5, salinity: 10.0
     }),
     // Porphyry veins — elongated cross-section, modest harmonics.
-    wall: new VugWall({ bubble_count: 6, bubble_size_range: [0.25, 0.55], shape_seed: 4 }),
+    wall: new VugWall({ primary_bubbles: 3, secondary_bubbles: 6, shape_seed: 4 }),
   });
   const events = [
     { step: 25, name: 'Copper Pulse', description: 'Magmatic copper fluid arrives', apply_fn: event_copper_injection },
@@ -6780,10 +6804,10 @@ function scenario_reactive_wall() {
       vug_diameter_mm: 40.0,
       wall_Fe_ppm: 3000.0,
       wall_Mn_ppm: 800.0,
-      // Aggressive acid dissolution — many bubbles, wide range for a
-      // deeply lobed cavity with multiple alcoves.
-      bubble_count: 10,
-      bubble_size_range: [0.2, 0.6],
+      // Aggressive acid dissolution — 3 primary + 10 secondary for
+      // the deeply lobed cavity of a reactive front.
+      primary_bubbles: 3,
+      secondary_bubbles: 10,
       shape_seed: 5,
     })
   });
@@ -6849,7 +6873,7 @@ function scenario_radioactive_pegmatite() {
       O2: 0, pH: 6.5, salinity: 8.0
     }),
     // Pegmatite pockets are fracture-controlled — n=2 "slot" profile.
-    wall: new VugWall({ bubble_count: 5, bubble_size_range: [0.25, 0.55], shape_seed: 6 }),
+    wall: new VugWall({ primary_bubbles: 4, secondary_bubbles: 5, shape_seed: 6 }),
   });
   const events = [
     { step: 20, name: 'Pegmatite Crystallization', description: 'Main crystallization pulse', apply_fn: (cond) => {
@@ -6898,7 +6922,7 @@ function scenario_supergene_oxidation() {
       O2: 1.8, pH: 6.8, salinity: 2.0,
     }),
     // Supergene meteoric dissolution cavity — broad all-axis lumpiness.
-    wall: new VugWall({ bubble_count: 7, bubble_size_range: [0.2, 0.6], shape_seed: 7 }),
+    wall: new VugWall({ primary_bubbles: 3, secondary_bubbles: 7, shape_seed: 7 }),
   });
   const events = [
     { step: 20,  name: 'Meteoric Flush',   description: 'Oxygenated rainwater', apply_fn: (c) => { c.fluid.O2 = 2.2; c.fluid.CO3 += 30; c.fluid.pH = 6.2; c.flow_rate = 1.5; return 'Rain infiltrates the soil zone and percolates down, picking up CO₂ and oxygen. Fresh supergene brine — cold, oxygen-rich, slightly acidic.'; } },
@@ -6930,10 +6954,10 @@ function scenario_gem_pegmatite() {
       composition: 'pegmatite',
       thickness_mm: 500.0,
       vug_diameter_mm: 50.0,
-      // Miarolitic pocket — moderate bubble count + range, cohesive
-      // gem pocket feel.
-      bubble_count: 5,
-      bubble_size_range: [0.25, 0.55],
+      // Miarolitic gem pocket — 4 primary + 5 secondary, same shape
+      // family as the radioactive pegmatite.
+      primary_bubbles: 4,
+      secondary_bubbles: 5,
       shape_seed: 8,
     }),
     fluid: new FluidChemistry({
@@ -7024,7 +7048,7 @@ function scenario_ouro_preto() {
     }),
     // Ouro Preto topaz vein — few bubbles, tight size range; the
     // hydrothermal vein in quartzite reads as a small cohesive pocket.
-    wall: new VugWall({ bubble_count: 5, bubble_size_range: [0.4, 0.5], shape_seed: 9 }),
+    wall: new VugWall({ primary_bubbles: 2, secondary_bubbles: 4, shape_seed: 9 }),
   });
   const events = [
     { step: 5,   name: 'Vein Opening',     description: 'Fracture propagates, fresh brine',
@@ -7103,12 +7127,12 @@ class VugSimulator {
     this.wall_state = new WallState({
       vug_diameter_mm: d0,
       initial_radius_mm: d0 / 2,
-      // Phase-1 bubble-merge void shape. Scenarios set these on
-      // VugWall; default (6 bubbles, [0.2, 0.6]) gives a botryoidal
-      // dissolution cavity so scenarios that don't opt in still get
-      // an organic outline rather than a perfect circle.
-      bubble_count: this.conditions.wall.bubble_count,
-      bubble_size_range: this.conditions.wall.bubble_size_range,
+      // Phase-1 two-stage bubble-merge void shape. Scenarios set these
+      // on VugWall; defaults (3 primary, 6 secondary) give a cohesive
+      // main cavity with satellite alcoves so scenarios that don't opt
+      // in still get an organic dissolution profile.
+      primary_bubbles: this.conditions.wall.primary_bubbles,
+      secondary_bubbles: this.conditions.wall.secondary_bubbles,
       shape_seed: this.conditions.wall.shape_seed,
     });
     // Per-step snapshot of ring[0] for the Replay button. Captured at
