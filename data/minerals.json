@@ -38,7 +38,7 @@
     "class_color": "Hex color for topographic map visualization. Derived from mineral class — all classes of the same type share one hue on a 12-color wheel (30° spacing). Wall/matrix = #D2691E (amber)."
   },
   "_audit_summary": {
-    "total_minerals": 39,
+    "total_minerals": 40,
     "_note": "Post-phase-2 state. The _initial_audit block below is frozen at phase-1 start for historical reference — do not edit. +topaz (MG-B), +tourmaline/beryl/spodumene (MG-A), +anglesite/cerussite/pyromorphite/vanadinite (Pb oxidation), +bornite/chalcocite/covellite (Cu sulfide enrichment), +cuprite/azurite/native_copper (Cu oxide-native), +magnetite/lepidocrocite/stibnite/bismuthinite/native_bismuth/clinobisvanite (Fe/Sb/Bi suite).",
     "missing_growth_engine": [],
     "missing_narrate_function": [],
@@ -64,7 +64,8 @@
       "stibnite",
       "bismuthinite",
       "native_bismuth",
-      "clinobisvanite"
+      "clinobisvanite",
+      "chrysocolla"
     ],
     "scenarios_that_can_nucleate": {
       "cooling": [
@@ -129,7 +130,8 @@
         "azurite",
         "native_copper",
         "lepidocrocite",
-        "clinobisvanite"
+        "clinobisvanite",
+        "chrysocolla"
       ],
       "ouro_preto": [
         "quartz",
@@ -144,6 +146,9 @@
         "beryl",
         "spodumene",
         "topaz"
+      ],
+      "bisbee": [
+        "chrysocolla"
       ]
     }
   },
@@ -3387,6 +3392,112 @@
       ],
       "audit_status": "new (supergene round 2). The only common naturally blue mineral. Not in agent-api/vugg-agent.js.",
       "class_color": "#7feb13"
+    },
+    "chrysocolla": {
+      "formula": "Cu2H2Si2O5(OH)4",
+      "nucleation_sigma": 1.2,
+      "max_nucleation_count": 5,
+      "max_size_cm": 30,
+      "growth_rate_mult": 0.45,
+      "habit_variants": [
+        {
+          "name": "botryoidal_crust",
+          "wall_spread": 0.9,
+          "void_reach": 0.15,
+          "vector": "coating",
+          "trigger": "default — Cu²⁺ + SiO₂ meet on wall, cyan enamel"
+        },
+        {
+          "name": "reniform_globules",
+          "wall_spread": 0.85,
+          "void_reach": 0.25,
+          "vector": "coating",
+          "trigger": "moderate σ, thicker grape-cluster lobes"
+        },
+        {
+          "name": "pseudomorph_after_azurite",
+          "wall_spread": 0.4,
+          "void_reach": 0.55,
+          "vector": "equant",
+          "trigger": "Si arrives after pCO₂ drop — replaces azurite prisms"
+        },
+        {
+          "name": "enamel_on_cuprite",
+          "wall_spread": 0.95,
+          "void_reach": 0.08,
+          "vector": "coating",
+          "trigger": "thin film over earlier cuprite — Bisbee signature"
+        },
+        {
+          "name": "silica_gel_hemisphere",
+          "wall_spread": 0.7,
+          "void_reach": 0.3,
+          "vector": "coating",
+          "trigger": "high SiO₂, low σ, rounded gel drops"
+        }
+      ],
+      "class": "silicate",
+      "description": "Cu₂H₂Si₂O₅(OH)₄, the cyan-blue copper silicate. Cryptocrystalline and X-ray amorphous — technically a mineraloid, though sanctioned as a mineral since 1803. Forms at 5–60 °C where meteoric groundwater carries Cu²⁺ out of a weathering copper deposit and picks up SiO₂ from silicate wall rock. At Bisbee it crusts over cuprite and native copper and famously pseudomorphs azurite once pCO₂ drops and silica floods in.",
+      "scenarios": [
+        "bisbee",
+        "supergene_oxidation"
+      ],
+      "T_range_C": [
+        5,
+        80
+      ],
+      "T_optimum_C": [
+        15,
+        40
+      ],
+      "T_behavior": "strict_low_T",
+      "pH_dissolution_below": 4.5,
+      "pH_dissolution_above": null,
+      "redox_requirement": "oxidizing",
+      "required_ingredients": {
+        "Cu": 5,
+        "SiO2": 20,
+        "O2": 0.3
+      },
+      "trace_ingredients": {
+        "Al": "kaolin contamination — green-grey shift",
+        "Fe": "limonite contamination — brown shift"
+      },
+      "thermal_decomp_C": 100,
+      "thermal_decomp_reaction": "chrysocolla dehydrates above ~100 °C, tending toward plancheite/shattuckite",
+      "thermal_decomp_products": {
+        "Cu": 0.4,
+        "SiO2": 0.4
+      },
+      "fluorescence": null,
+      "twin_laws": [],
+      "acid_dissolution": {
+        "pH_threshold": 4.5,
+        "reaction": "chrysocolla dissolves in strong acid — Cu²⁺ + silicic acid released",
+        "products": {
+          "Cu": 0.4,
+          "SiO2": 0.4
+        }
+      },
+      "habit": "botryoidal_cryptocrystalline",
+      "color_rules": {
+        "cyan_sky_blue": {
+          "default": true
+        },
+        "blue_green": {
+          "trigger": "Fe trace"
+        },
+        "pale_green_grey": {
+          "trigger": "Al kaolin contamination"
+        }
+      },
+      "narrate_function": "_narrate_chrysocolla",
+      "runtimes_present": [
+        "vugg.py",
+        "web/index.html"
+      ],
+      "audit_status": "new — Bisbee scenario centrepiece, azurite-pseudomorph pCO₂-drop mechanic",
+      "class_color": "#1313eb"
     },
     "cuprite": {
       "formula": "Cu2O",

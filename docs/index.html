@@ -2126,6 +2126,7 @@ footer a:hover {
     <button onclick="startScenarioInCreative('supergene_oxidation')">Supergene Oxidation.</button>
     <button onclick="startScenarioInCreative('ouro_preto')">Ouro Preto (Imperial Topaz).</button>
     <button onclick="startScenarioInCreative('gem_pegmatite')">Gem Pegmatite Pocket (Minas Gerais).</button>
+    <button onclick="startScenarioInCreative('bisbee')">Bisbee (Warren District Cu Oxidation).</button>
     <button class="menu-home" onclick="openNewGameMenu()">← Back.</button>
   </div>
 </div>
@@ -2178,6 +2179,7 @@ footer a:hover {
       <option value="supergene_oxidation">supergene_oxidation</option>
       <option value="ouro_preto">ouro_preto</option>
       <option value="gem_pegmatite">gem_pegmatite</option>
+      <option value="bisbee">bisbee</option>
     </select>
   </div>
   <div class="control-group">
@@ -2994,6 +2996,7 @@ const MINERAL_SPEC_FALLBACK = {
   covellite: { formula: "CuS", nucleation_sigma: 1.2, max_size_cm: 10, growth_rate_mult: 0.45, thermal_decomp_C: 507, fluorescence: null, twin_laws: [], acid_dissolution: { pH_threshold: 3.0 } },
   cuprite: { formula: "Cu2O", nucleation_sigma: 1.2, max_size_cm: 15, growth_rate_mult: 0.35, thermal_decomp_C: 1235, fluorescence: null, twin_laws: [{ name: "spinel_law", probability: 0.05 }], acid_dissolution: { pH_threshold: 3.5 } },
   azurite: { formula: "Cu3(CO3)2(OH)2", nucleation_sigma: 1.4, max_size_cm: 25, growth_rate_mult: 0.3, thermal_decomp_C: 220, fluorescence: null, twin_laws: [], acid_dissolution: { pH_threshold: 5.0 } },
+  chrysocolla: { formula: "Cu2H2Si2O5(OH)4", nucleation_sigma: 1.2, max_size_cm: 30, growth_rate_mult: 0.45, thermal_decomp_C: 100, fluorescence: null, twin_laws: [], acid_dissolution: { pH_threshold: 4.5 } },
   native_copper: { formula: "Cu", nucleation_sigma: 1.6, max_size_cm: 300, growth_rate_mult: 0.2, thermal_decomp_C: 1083, fluorescence: null, twin_laws: [{ name: "spinel_law", probability: 0.04 }], acid_dissolution: { pH_threshold: 4.0 } },
   magnetite: { formula: "Fe3O4", nucleation_sigma: 1.0, max_size_cm: 15, growth_rate_mult: 0.35, thermal_decomp_C: 1590, fluorescence: null, twin_laws: [{ name: "spinel_law", probability: 0.03 }], acid_dissolution: { pH_threshold: 2.5 } },
   lepidocrocite: { formula: "FeO(OH)-gamma", nucleation_sigma: 1.1, max_size_cm: 0.5, growth_rate_mult: 0.5, thermal_decomp_C: 300, fluorescence: null, twin_laws: [], acid_dissolution: { pH_threshold: 3.0 } },
@@ -4221,6 +4224,34 @@ class VugConditions {
     let sigma = cu_f * co_f * o_f;
     if (this.temperature > 50) sigma *= Math.exp(-0.06 * (this.temperature - 50));
     if (this.fluid.pH < 5.0) sigma -= (5.0 - this.fluid.pH) * 0.4;
+    return Math.max(sigma, 0);
+  }
+
+  // Chrysocolla (Cu₂H₂Si₂O₅(OH)₄) — hydrous copper silicate, the cyan
+  // enamel of Cu oxidation zones. Strictly low-T, meteoric. Needs
+  // Cu²⁺ + SiO₂ simultaneously in a near-neutral pH window (5.5–7.5).
+  // Chrysocolla loses to the carbonates when CO₃ > SiO₂ — it's the
+  // late-stage "pCO₂ has dropped" mineral. Mirrors
+  // supersaturation_chrysocolla in vugg.py.
+  supersaturation_chrysocolla() {
+    if (this.fluid.Cu < 5 || this.fluid.SiO2 < 20 || this.fluid.O2 < 0.3) return 0;
+    if (this.temperature < 5 || this.temperature > 80) return 0;
+    if (this.fluid.pH < 5.0 || this.fluid.pH > 8.0) return 0;
+    if (this.fluid.CO3 > this.fluid.SiO2) return 0;
+    const cu_f = Math.min(this.fluid.Cu / 30.0, 3.0);
+    const si_f = Math.min(this.fluid.SiO2 / 60.0, 2.5);
+    const o_f  = Math.min(this.fluid.O2 / 1.0, 1.5);
+    const T = this.temperature;
+    let t_f;
+    if (T >= 15 && T <= 40) t_f = 1.0;
+    else if (T < 15) t_f = Math.max(0.3, T / 15.0);
+    else t_f = Math.max(0.3, 1.0 - (T - 40) / 40.0);
+    const pH = this.fluid.pH;
+    let ph_f;
+    if (pH >= 6.0 && pH <= 7.5) ph_f = 1.0;
+    else if (pH < 6.0) ph_f = Math.max(0.4, 1.0 - (6.0 - pH) * 0.6);
+    else ph_f = Math.max(0.4, 1.0 - (pH - 7.5) * 0.6);
+    const sigma = cu_f * si_f * o_f * t_f * ph_f;
     return Math.max(sigma, 0);
   }
 
@@ -5945,6 +5976,46 @@ function grow_azurite(crystal, conditions, step) {
   return new GrowthZone({ step, temperature: conditions.temperature, thickness_um: rate, growth_rate: rate, note: color_note });
 }
 
+// Chrysocolla (Cu₂H₂Si₂O₅(OH)₄) — hydrous copper silicate, cyan-blue
+// enamel of Cu oxidation zones. Mirrors grow_chrysocolla in vugg.py.
+function grow_chrysocolla(crystal, conditions, step) {
+  const sigma = conditions.supersaturation_chrysocolla();
+  if (sigma < 1.0) {
+    if (crystal.total_growth_um > 5 && conditions.fluid.pH < 4.5) {
+      crystal.dissolved = true;
+      const d = Math.min(2.5, crystal.total_growth_um * 0.08);
+      conditions.fluid.Cu += d * 0.4;
+      conditions.fluid.SiO2 += d * 0.4;
+      return new GrowthZone({ step, temperature: conditions.temperature, thickness_um: -d, growth_rate: -d, note: `acid dissolution (pH ${conditions.fluid.pH.toFixed(1)}) — Cu²⁺ + silicic acid released` });
+    }
+    if (crystal.total_growth_um > 5 && conditions.temperature > 120) {
+      crystal.dissolved = true;
+      const d = Math.min(1.5, crystal.total_growth_um * 0.05);
+      conditions.fluid.Cu += d * 0.3;
+      conditions.fluid.SiO2 += d * 0.3;
+      return new GrowthZone({ step, temperature: conditions.temperature, thickness_um: -d, growth_rate: -d, note: `dehydration at ${conditions.temperature.toFixed(0)} °C — chrysocolla is a strict low-T phase` });
+    }
+    return null;
+  }
+  const excess = sigma - 1.0;
+  const rate = 2.5 * excess * rng.uniform(0.8, 1.2);
+  if (rate < 0.1) return null;
+  const pos = crystal.position || '';
+  const on_cuprite   = pos.includes('cuprite');
+  const on_azurite   = pos.includes('azurite') || pos.includes('pseudomorph after azurite');
+  const on_native_cu = pos.includes('native_copper');
+  let color_note;
+  if (on_azurite) { crystal.habit = 'pseudomorph_after_azurite'; crystal.dominant_forms = ['azurite prism outline preserved', 'chrysocolla fill']; color_note = "cyan chrysocolla pseudomorph — azurite's monoclinic prisms outline preserved in copper silicate"; }
+  else if (on_cuprite) { crystal.habit = 'enamel_on_cuprite'; crystal.dominant_forms = ['thin conformal film']; color_note = 'sky-blue enamel over the earlier cuprite — Bisbee signature'; }
+  else if (on_native_cu) { crystal.habit = 'botryoidal_crust'; crystal.dominant_forms = ['grape-cluster lobes']; color_note = 'cyan botryoidal crust coating the native copper sheets'; }
+  else if (excess > 1.2) { crystal.habit = 'reniform_globules'; crystal.dominant_forms = ['reniform globule cluster', 'glassy conchoidal fracture']; color_note = 'thick reniform chrysocolla globules — grape-cluster cyan'; }
+  else if (excess > 0.3) { crystal.habit = 'botryoidal_crust'; crystal.dominant_forms = ['botryoidal crust', 'enamel-like']; color_note = 'cyan-blue botryoidal crust — hydrous copper silicate enamel'; }
+  else { crystal.habit = 'silica_gel_hemisphere'; crystal.dominant_forms = ['gel hemisphere']; color_note = 'pale cyan silica-gel hemisphere — low σ, rounded drop'; }
+  conditions.fluid.Cu = Math.max(conditions.fluid.Cu - rate * 0.020, 0);
+  conditions.fluid.SiO2 = Math.max(conditions.fluid.SiO2 - rate * 0.035, 0);
+  return new GrowthZone({ step, temperature: conditions.temperature, thickness_um: rate, growth_rate: rate, note: color_note });
+}
+
 function grow_native_copper(crystal, conditions, step) {
   const sigma = conditions.supersaturation_native_copper();
   if (sigma < 1.0) {
@@ -6553,6 +6624,7 @@ const MINERAL_ENGINES = {
   covellite: grow_covellite,
   cuprite: grow_cuprite,
   azurite: grow_azurite,
+  chrysocolla: grow_chrysocolla,
   native_copper: grow_native_copper,
   magnetite: grow_magnetite,
   lepidocrocite: grow_lepidocrocite,
@@ -7111,7 +7183,128 @@ function scenario_ouro_preto() {
   return { conditions, events, defaultSteps: 260 };
 }
 
-const SCENARIOS = { cooling: scenario_cooling, pulse: scenario_pulse, mvt: scenario_mvt, porphyry: scenario_porphyry, reactive_wall: scenario_reactive_wall, radioactive_pegmatite: scenario_radioactive_pegmatite, supergene_oxidation: scenario_supergene_oxidation, ouro_preto: scenario_ouro_preto, gem_pegmatite: scenario_gem_pegmatite };
+// Bisbee, Arizona — Warren Mining District, Cochise County.
+// Classic Cu porphyry with world-class oxidation zone: primary
+// chalcopyrite+bornite → supergene chalcocite+covellite → cuprite +
+// native Cu → azurite (high pCO₂) → malachite (pCO₂ drop) →
+// chrysocolla (silica seep). Limestone-hosted with silicate
+// contribution from the Sacramento Hill quartz-monzonite porphyry —
+// represented as `limestone` wall + SiO₂ injected by ev_silica_seep.
+// Mirrors scenario_bisbee in vugg.py.
+function scenario_bisbee() {
+  const conditions = new VugConditions({
+    temperature: 400.0,
+    pressure: 1.0,
+    fluid: new FluidChemistry({
+      SiO2: 500, Ca: 60, CO3: 30, Fe: 200, Mn: 4,
+      Cu: 400, S: 150, F: 6, Cl: 400, Pb: 15,
+      K: 80, Na: 120, Al: 20,
+      As: 8, Bi: 2,
+      O2: 0.05, pH: 5.0, salinity: 30.0,
+    }),
+    wall: new VugWall({
+      composition: 'limestone',
+      thickness_mm: 500.0,
+      vug_diameter_mm: 50.0,
+      wall_Fe_ppm: 2500.0,
+      wall_Mn_ppm: 400.0,
+      primary_bubbles: 3,
+      secondary_bubbles: 7,
+      shape_seed: 13,
+    }),
+  });
+  const events = [
+    { step: 25, name: 'Primary Cooling', description: 'Chalcopyrite + bornite lock in',
+      apply_fn: (c) => {
+        c.temperature = 320;
+        c.fluid.SiO2 += 100;
+        c.fluid.Cu -= 50;
+        c.fluid.O2 = 0.08;
+        c.flow_rate = 1.2;
+        return 'The Sacramento Hill porphyry finishes its main crystallization pulse. Chalcopyrite and bornite precipitate in the vein selvages of the Escabrosa mantos — Cu:Fe:S in the magmatic ratio. Pyrite frames the assemblage, locked in at 300+ °C. The ore body is set. For 180 million years, nothing will happen.';
+      } },
+    { step: 65, name: 'Uplift + Weathering', description: 'Meteoric acid strips primary ore',
+      apply_fn: (c) => {
+        c.temperature = 35;
+        c.fluid.pH = 4.0;
+        c.fluid.O2 = 0.8;
+        c.fluid.S += 80;
+        c.fluid.Cu += 100;
+        c.fluid.Fe += 50;
+        c.flow_rate = 1.8;
+        return 'Mesozoic–Cenozoic uplift tips the Warren basin and strips the Cretaceous cover. Meteoric water percolates down through fractures, hitting pyrite; sulfuric acid is the first product. The pH crashes to 4, and Cu²⁺ starts descending with the water table. This is the enrichment pulse — primary ore above is dissolving, concentrating its copper at the redox interface below.';
+      } },
+    { step: 95, name: 'Enrichment Blanket', description: 'Chalcocite replaces chalcopyrite',
+      apply_fn: (c) => {
+        c.temperature = 30;
+        c.fluid.Cu += 80;
+        c.fluid.S += 40;
+        c.fluid.O2 = 0.6;
+        c.fluid.pH = 4.5;
+        c.flow_rate = 1.3;
+        return 'The descending Cu²⁺-bearing fluid reaches the reducing layer just below the water table. Chalcocite replaces chalcopyrite atom-for-atom — the Bisbee enrichment blanket, 5–10× the primary grade. Covellite forms where S activity is highest. This is the mineable ore. For two generations of miners, this is what Bisbee MEANS.';
+      } },
+    { step: 120, name: 'Reducing Pulse', description: 'Native copper fracture fillings',
+      apply_fn: (c) => {
+        c.fluid.O2 = 0.05;
+        c.fluid.S = 15;
+        c.fluid.Cu += 150;
+        c.fluid.pH = 6.0;
+        c.temperature = 28;
+        c.flow_rate = 1.1;
+        return 'A barren reducing fluid pulses up from depth — lower than any water table. For a few thousand years the pocket\'s Eh is below cuprite stability. Native copper precipitates in the fracture selvages as arborescent sheets and wire. The Bisbee native-copper specimens — the Cornish-style copper trees — are products of exactly these brief windows.';
+      } },
+    { step: 145, name: 'Oxidation Zone', description: 'Cuprite mantles native copper',
+      apply_fn: (c) => {
+        c.temperature = 25;
+        c.fluid.O2 = 1.0;
+        c.fluid.pH = 6.2;
+        c.fluid.S = Math.max(c.fluid.S - 60, 20);
+        c.fluid.Cu += 40;
+        c.fluid.Fe -= 30;
+        c.fluid.CO3 += 30;
+        c.flow_rate = 1.0;
+        return 'The water table drops another 50 meters. The enrichment blanket is now in the unsaturated zone — oxygen reaches it directly. Cuprite forms where the Eh is still low; native copper sheets get mantled by the cuprite shell. The limestone walls are finally participating — pH climbs toward neutral, and CO₃ rises with it.';
+      } },
+    { step: 180, name: 'Azurite Peak', description: 'High-pCO₂ monsoon — Bisbee Blue',
+      apply_fn: (c) => {
+        c.fluid.CO3 += 80;
+        c.fluid.Cu += 30;
+        c.fluid.O2 = 1.3;
+        c.fluid.pH = 7.0;
+        c.flow_rate = 0.9;
+        return 'A monsoon season — the first in many. CO₂-charged rainwater infiltrates fast, dissolves limestone aggressively, and hits the copper pocket at pH 7 with CO₃ at 110+ ppm. Azurite — deep midnight-blue monoclinic prisms and radiating rosettes — nucleates from the supersaturated brine. This phase produces the showpiece \'Bisbee Blue\' specimens.';
+      } },
+    { step: 225, name: 'pCO₂ Drop', description: 'Azurite → malachite conversion',
+      apply_fn: (c) => {
+        c.fluid.CO3 = Math.max(c.fluid.CO3 - 120, 50);
+        c.fluid.O2 = 1.4;
+        c.fluid.pH = 6.8;
+        c.flow_rate = 0.7;
+        return 'The climate dries. Without CO₂-charged infiltration the pocket\'s pCO₂ falls below azurite\'s stability — every azurite crystal in the vug starts converting. The color shift creeps crystal-by-crystal: deep blue → green rind → green core. Vink (1986) put the crossover at log(pCO₂) ≈ −3.5 at 25 °C, right where we are. Malachite pseudomorphs after azurite are the diagnostic Bisbee specimen — frozen mid-transition.';
+      } },
+    { step: 265, name: 'Silica Seep', description: 'Chrysocolla crusts + pseudomorphs',
+      apply_fn: (c) => {
+        c.fluid.SiO2 += 90;
+        c.fluid.Cu += 20;
+        c.fluid.CO3 = Math.max(c.fluid.CO3 - 30, 20);
+        c.fluid.pH = 6.5;
+        c.fluid.O2 = 1.3;
+        c.flow_rate = 0.8;
+        return 'A new seep arrives — from weathering of the Sacramento Hill quartz-monzonite porphyry uphill, not the limestone. It brings dissolved SiO₂ at 100+ ppm. Where this fluid meets the Cu²⁺ still in solution the cyan enamel of chrysocolla precipitates: thin films over cuprite, botryoidal crusts on native copper, and — the Bisbee centerpiece — pseudomorphs replacing the last azurite blues.';
+      } },
+    { step: 305, name: 'Final Drying', description: 'Fractures seal, system locks',
+      apply_fn: (c) => {
+        c.temperature = 20;
+        c.flow_rate = 0.1;
+        c.fluid.O2 = 1.0;
+        return 'The fractures seal with calcite cement. Groundwater stops. The pocket is a closed system again, this time with the full oxidation assemblage frozen in place: chalcopyrite cores wrapped in chalcocite, those wrapped in cuprite, those overgrown by native copper, those overgrown by azurite, those converted to malachite, those pseudomorphed by chrysocolla. A million years from now, when a mining shaft intersects this pocket, an assayer will photograph the specimen and write \'Bisbee, Cochise County\' on the label.';
+      } },
+  ];
+  return { conditions, events, defaultSteps: 340 };
+}
+
+const SCENARIOS = { cooling: scenario_cooling, pulse: scenario_pulse, mvt: scenario_mvt, porphyry: scenario_porphyry, reactive_wall: scenario_reactive_wall, radioactive_pegmatite: scenario_radioactive_pegmatite, supergene_oxidation: scenario_supergene_oxidation, ouro_preto: scenario_ouro_preto, gem_pegmatite: scenario_gem_pegmatite, bisbee: scenario_bisbee };
 
 // ============================================================
 // SIMULATION ENGINE
@@ -7229,6 +7422,8 @@ class VugSimulator {
       crystal.dominant_forms = ['{111} octahedron', 'dark red with ruby internal reflections'];
     } else if (mineral === 'azurite') {
       crystal.dominant_forms = ['monoclinic prism', 'deep azure-blue'];
+    } else if (mineral === 'chrysocolla') {
+      crystal.dominant_forms = ['botryoidal crust', 'cyan-blue cryptocrystalline enamel'];
     } else if (mineral === 'native_copper') {
       crystal.dominant_forms = ['arborescent branching', 'copper-red metallic'];
     } else if (mineral === 'magnetite') {
@@ -7776,6 +7971,27 @@ class VugSimulator {
         else if (active_nc_azr.length && rng.random() < 0.3) pos = `on native_copper #${active_nc_azr[0].crystal_id}`;
         const c = this.nucleate('azurite', pos, sigma_azr);
         this.log.push(`  ✦ NUCLEATION: Azurite #${c.crystal_id} on ${c.position} (T=${this.conditions.temperature.toFixed(0)}°C, σ=${sigma_azr.toFixed(2)}, Cu=${this.conditions.fluid.Cu.toFixed(0)}, CO₃=${this.conditions.fluid.CO3.toFixed(0)})`);
+      }
+    }
+
+    // Chrysocolla nucleation — Cu²⁺ + SiO₂ at low-T oxidation, the
+    // cyan finale of the copper paragenesis. Pseudomorphs azurite when
+    // the pCO₂ drop arrives with silica — the Bisbee signature.
+    const sigma_chry = this.conditions.supersaturation_chrysocolla();
+    const existing_chry = this.crystals.filter(c => c.mineral === 'chrysocolla' && c.active);
+    if (sigma_chry > 1.2 && !this._atNucleationCap('chrysocolla')) {
+      if (!existing_chry.length || (sigma_chry > 1.8 && rng.random() < 0.25)) {
+        let pos = 'vug wall';
+        const active_azr_chry = this.crystals.filter(c => c.mineral === 'azurite' && c.active);
+        const dissolving_azr_chry = this.crystals.filter(c => c.mineral === 'azurite' && c.dissolved);
+        const active_cpr_chry = this.crystals.filter(c => c.mineral === 'cuprite' && c.active);
+        const active_nc_chry = this.crystals.filter(c => c.mineral === 'native_copper' && c.active);
+        if (dissolving_azr_chry.length && rng.random() < 0.6) pos = `pseudomorph after azurite #${dissolving_azr_chry[0].crystal_id}`;
+        else if (active_azr_chry.length && rng.random() < 0.3) pos = `on azurite #${active_azr_chry[0].crystal_id}`;
+        else if (active_cpr_chry.length && rng.random() < 0.5) pos = `on cuprite #${active_cpr_chry[0].crystal_id}`;
+        else if (active_nc_chry.length && rng.random() < 0.4) pos = `on native_copper #${active_nc_chry[0].crystal_id}`;
+        const c = this.nucleate('chrysocolla', pos, sigma_chry);
+        this.log.push(`  ✦ NUCLEATION: Chrysocolla #${c.crystal_id} on ${c.position} (T=${this.conditions.temperature.toFixed(0)}°C, σ=${sigma_chry.toFixed(2)}, Cu=${this.conditions.fluid.Cu.toFixed(0)}, SiO₂=${this.conditions.fluid.SiO2.toFixed(0)}, CO₃=${this.conditions.fluid.CO3.toFixed(0)})`);
       }
     }
 

@@ -1336,6 +1336,62 @@ class VugConditions:
             sigma -= (5.0 - self.fluid.pH) * 0.4
         return max(sigma, 0)
 
+    def supersaturation_chrysocolla(self) -> float:
+        """Chrysocolla (Cu₂H₂Si₂O₅(OH)₄) supersaturation — hydrous copper
+        silicate, the cyan enamel of Cu oxidation zones.
+
+        Strictly low-T (<80 °C), strictly meteoric. Needs Cu²⁺ AND
+        dissolved SiO₂ above the amorphous-silica floor simultaneously,
+        in a near-neutral pH window (5.5–7.5) where both are soluble
+        together. Silicate-hosted (or mixed-host) systems supply the Si;
+        the limestone-only MVT-style scenarios lack SiO₂ in the fluid
+        so chrysocolla stays ~0 there — correct geologically.
+
+        Azurite ↔ malachite ↔ chrysocolla competition rule: when
+        CO₃²⁻ > SiO₂ (molar — ppm is close enough in our fluid scale
+        since both MW ≈ 60), the carbonates out-compete and
+        chrysocolla's σ collapses. Chrysocolla only wins when pCO₂
+        has dropped and SiO₂ has risen (the Bisbee late-oxidation
+        sequence).
+        """
+        # Hard gates: the no-go conditions
+        if (self.fluid.Cu < 5 or self.fluid.SiO2 < 20 or
+                self.fluid.O2 < 0.3):
+            return 0
+        if self.temperature < 5 or self.temperature > 80:
+            return 0
+        if self.fluid.pH < 5.0 or self.fluid.pH > 8.0:
+            return 0
+        # Malachite / azurite win when CO₃ dominates — chrysocolla is
+        # the late-stage "no more CO₂" mineral.
+        if self.fluid.CO3 > self.fluid.SiO2:
+            return 0
+
+        cu_f = min(self.fluid.Cu / 30.0, 3.0)
+        si_f = min(self.fluid.SiO2 / 60.0, 2.5)
+        o_f = min(self.fluid.O2 / 1.0, 1.5)
+
+        # Temperature factor — optimum 15–40 °C
+        T = self.temperature
+        if 15 <= T <= 40:
+            t_f = 1.0
+        elif T < 15:
+            t_f = max(0.3, T / 15.0)
+        else:
+            t_f = max(0.3, 1.0 - (T - 40) / 40.0)
+
+        # pH factor — optimum 6.0–7.5, roll off at edges
+        pH = self.fluid.pH
+        if 6.0 <= pH <= 7.5:
+            ph_f = 1.0
+        elif pH < 6.0:
+            ph_f = max(0.4, 1.0 - (6.0 - pH) * 0.6)
+        else:
+            ph_f = max(0.4, 1.0 - (pH - 7.5) * 0.6)
+
+        sigma = cu_f * si_f * o_f * t_f * ph_f
+        return max(sigma, 0)
+
     def supersaturation_native_copper(self) -> float:
         """Native copper (Cu) supersaturation. Very high Cu + strongly reducing.
 
@@ -3716,6 +3772,89 @@ def grow_azurite(crystal: Crystal, conditions: VugConditions, step: int) -> Opti
     )
 
 
+def grow_chrysocolla(crystal: Crystal, conditions: VugConditions, step: int) -> Optional[GrowthZone]:
+    """Chrysocolla (Cu₂H₂Si₂O₅(OH)₄) growth — cryptocrystalline cyan-blue
+    copper silicate. Grows as botryoidal enamel crusts, grape-cluster
+    reniform globules, pseudomorphs after azurite, or thin films over
+    earlier cuprite.
+
+    Dissolves in strong acid (pH < 4.5) — releases Cu + SiO₂. Unlike
+    azurite/malachite it does NOT pseudomorph further — it's the
+    terminal member of the copper oxidation sequence in the sim.
+    """
+    sigma = conditions.supersaturation_chrysocolla()
+    if sigma < 1.0:
+        # Acid dissolution — Cu²⁺ + silicic acid released
+        if crystal.total_growth_um > 5 and conditions.fluid.pH < 4.5:
+            crystal.dissolved = True
+            d = min(2.5, crystal.total_growth_um * 0.08)
+            conditions.fluid.Cu += d * 0.4
+            conditions.fluid.SiO2 += d * 0.4
+            return GrowthZone(
+                step=step, temperature=conditions.temperature,
+                thickness_um=-d, growth_rate=-d,
+                note=f"acid dissolution (pH {conditions.fluid.pH:.1f}) — Cu²⁺ + silicic acid released"
+            )
+        # Thermal decomposition — dehydrates toward plancheite/shattuckite
+        # above ~100 °C. Modeled as quiet removal so the Cu is returned
+        # to the fluid pool without a growth zone.
+        if crystal.total_growth_um > 5 and conditions.temperature > 120:
+            crystal.dissolved = True
+            d = min(1.5, crystal.total_growth_um * 0.05)
+            conditions.fluid.Cu += d * 0.3
+            conditions.fluid.SiO2 += d * 0.3
+            return GrowthZone(
+                step=step, temperature=conditions.temperature,
+                thickness_um=-d, growth_rate=-d,
+                note=f"dehydration at {conditions.temperature:.0f} °C — chrysocolla is a strict low-T phase"
+            )
+        return None
+
+    excess = sigma - 1.0
+    # Cryptocrystalline / slow — growth_rate_mult 0.45 from spec
+    rate = 2.5 * excess * random.uniform(0.8, 1.2)
+    if rate < 0.1:
+        return None
+
+    # Habit selection — based on substrate and σ
+    on_cuprite = "cuprite" in (crystal.position or "")
+    on_azurite = "azurite" in (crystal.position or "") or "pseudomorph after azurite" in (crystal.position or "")
+    on_native_cu = "native_copper" in (crystal.position or "")
+    if on_azurite:
+        crystal.habit = "pseudomorph_after_azurite"
+        crystal.dominant_forms = ["azurite prism outline preserved", "chrysocolla fill"]
+        color_note = "cyan chrysocolla pseudomorph — azurite's monoclinic prisms outline preserved in copper silicate"
+    elif on_cuprite:
+        crystal.habit = "enamel_on_cuprite"
+        crystal.dominant_forms = ["thin conformal film"]
+        color_note = "sky-blue enamel over the earlier cuprite — Bisbee signature"
+    elif on_native_cu:
+        crystal.habit = "botryoidal_crust"
+        crystal.dominant_forms = ["grape-cluster lobes"]
+        color_note = "cyan botryoidal crust coating the native copper sheets"
+    elif excess > 1.2:
+        crystal.habit = "reniform_globules"
+        crystal.dominant_forms = ["reniform globule cluster", "glassy conchoidal fracture"]
+        color_note = "thick reniform chrysocolla globules — grape-cluster cyan"
+    elif excess > 0.3:
+        crystal.habit = "botryoidal_crust"
+        crystal.dominant_forms = ["botryoidal crust", "enamel-like"]
+        color_note = "cyan-blue botryoidal crust — hydrous copper silicate enamel"
+    else:
+        crystal.habit = "silica_gel_hemisphere"
+        crystal.dominant_forms = ["gel hemisphere"]
+        color_note = "pale cyan silica-gel hemisphere — low σ, rounded drop"
+
+    conditions.fluid.Cu = max(conditions.fluid.Cu - rate * 0.020, 0)
+    conditions.fluid.SiO2 = max(conditions.fluid.SiO2 - rate * 0.035, 0)
+
+    return GrowthZone(
+        step=step, temperature=conditions.temperature,
+        thickness_um=rate, growth_rate=rate,
+        note=color_note,
+    )
+
+
 def grow_native_copper(crystal: Crystal, conditions: VugConditions, step: int) -> Optional[GrowthZone]:
     """Native copper (Cu) growth — the elemental metal."""
     sigma = conditions.supersaturation_native_copper()
@@ -4573,6 +4712,7 @@ MINERAL_ENGINES = {
     "covellite": grow_covellite,
     "cuprite": grow_cuprite,
     "azurite": grow_azurite,
+    "chrysocolla": grow_chrysocolla,
     "native_copper": grow_native_copper,
     "magnetite": grow_magnetite,
     "lepidocrocite": grow_lepidocrocite,
@@ -5518,6 +5658,245 @@ def scenario_ouro_preto() -> Tuple[VugConditions, List[Event], int]:
     return conditions, events, 260
 
 
+def scenario_bisbee() -> Tuple[VugConditions, List[Event], int]:
+    """Bisbee, Arizona — Warren Mining District, Cochise County.
+
+    The classic copper porphyry with a world-class oxidation zone. The
+    complete Cu paragenesis from primary sulfides through supergene
+    enrichment to the cyan-blue chrysocolla of the oxidation finale.
+
+    Host rock: a combo — Laramide quartz-monzonite porphyry intruded
+    into Paleozoic Escabrosa Limestone + Abrigo Formation. In the sim
+    this is represented as a limestone wall (the pH buffer, the CO₃
+    source for azurite) with scenario events that inject dissolved
+    SiO₂ from the surrounding silicate matrix weathering — the supply
+    path for late chrysocolla.
+
+    Centerpiece mechanic: the azurite ↔ malachite ↔ chrysocolla
+    cascade. Azurite dominates at high pCO₂ (event 4, CO₃ ≥ 120 ppm).
+    A pCO₂-drop event (event 6) dissolves azurite and fires
+    malachite. A silica-seep event (event 7) dissolves malachite-
+    without-silica and fires chrysocolla pseudomorphs on the
+    remaining azurite crystals. Three carbonate/silicate phases
+    recording three different groundwater chemistries, each one
+    freezing a different step of the Cochise County monsoon.
+
+    References:
+      * Graeme, Graeme & Graeme (2019) — the modern Bisbee monograph
+      * Bryant (1968), Crane (1911) — district geology
+      * Vink (1986) — azurite ↔ malachite pCO₂ thermodynamics
+      * Mote et al. (2001) — supergene chrysocolla geochemistry
+    """
+    conditions = VugConditions(
+        # Primary porphyry stage — hot magmatic-hydrothermal brine.
+        # Graeme et al. 2019 fluid inclusion data: 320–450 °C,
+        # 0.5–1.5 kbar, hypersaline (35–55 wt% NaCl eq).
+        temperature=400.0,
+        pressure=1.0,
+        fluid=FluidChemistry(
+            # Cu 400 ppm — upper end of primary porphyry; the whole
+            # district budget. Concentrated in the sim relative to
+            # nature because we don't model the open-system leaching
+            # that strips Cu from 10 km³ of rock into a small pocket.
+            SiO2=500, Ca=60, CO3=30, Fe=200, Mn=4,
+            Cu=400, S=150, F=6, Cl=400, Pb=15,
+            K=80, Na=120, Al=20,
+            # Trace — arsenic from arsenopyrite, bismuth greisen
+            # signature (Bisbee has documented bismuth enrichment).
+            As=8, Bi=2,
+            # Very reducing primary — chalcopyrite/bornite-stable.
+            O2=0.05, pH=5.0, salinity=30.0
+        ),
+        wall=VugWall(
+            composition="limestone",
+            thickness_mm=500.0,
+            vug_diameter_mm=50.0,
+            wall_Fe_ppm=2500.0,
+            wall_Mn_ppm=400.0,
+            # Primary cavity dug by magmatic-hydrothermal replacement
+            # of limestone. Secondary alcoves from the supergene
+            # overprint. 3+7 matches the supergene_oxidation profile.
+            primary_bubbles=3,
+            secondary_bubbles=7,
+            shape_seed=13,
+        )
+    )
+
+    def ev_primary_cooling(cond):
+        """First cooling step — chalcopyrite and bornite crystallize,
+        pyrite + magnetite pin down the Fe budget. Still reducing."""
+        cond.temperature = 320
+        cond.fluid.SiO2 += 100     # late-stage silica injection
+        cond.fluid.Cu -= 50        # some Cu locked into early sulfides
+        cond.fluid.O2 = 0.08
+        cond.flow_rate = 1.2
+        return ("The Sacramento Hill porphyry finishes its main crystallization "
+                "pulse. Chalcopyrite and bornite precipitate in the vein selvages "
+                "of the Escabrosa mantos — Cu:Fe:S in the magmatic ratio. Pyrite "
+                "frames the assemblage, locked in at 300+ °C. The ore body is set. "
+                "For 180 million years, nothing will happen.")
+
+    def ev_uplift_weathering(cond):
+        """Uplift exposes the ore to meteoric water. Pyrite oxidizes,
+        releasing H⁺ and SO₄. pH drops — the supergene engine starts."""
+        cond.temperature = 35
+        cond.fluid.pH = 4.0         # acidic from pyrite oxidation
+        cond.fluid.O2 = 0.8         # oxygenated meteoric water
+        cond.fluid.S += 80          # sulfate released from pyrite
+        cond.fluid.Cu += 100        # Cu²⁺ leached from primary chalcopyrite
+        cond.fluid.Fe += 50
+        cond.flow_rate = 1.8
+        return ("Mesozoic–Cenozoic uplift tips the Warren basin and strips the "
+                "Cretaceous cover. Meteoric water percolates down through "
+                "fractures, hitting pyrite; sulfuric acid is the first product. "
+                "The pH crashes to 4, and Cu²⁺ starts descending with the water "
+                "table. This is the enrichment pulse — primary ore above is "
+                "dissolving, concentrating its copper at the redox interface "
+                "below.")
+
+    def ev_enrichment_blanket(cond):
+        """Descending Cu²⁺ hits the reducing front beneath the water table.
+        Chalcocite and covellite mantle the remaining primary sulfides —
+        the high-grade supergene enrichment zone."""
+        cond.temperature = 30
+        cond.fluid.Cu += 80         # still descending from above
+        cond.fluid.S += 40
+        cond.fluid.O2 = 0.6         # right at the redox front
+        cond.fluid.pH = 4.5
+        cond.flow_rate = 1.3
+        return ("The descending Cu²⁺-bearing fluid reaches the reducing layer "
+                "just below the water table. Chalcocite replaces chalcopyrite "
+                "atom-for-atom — the Bisbee enrichment blanket, 5–10× the "
+                "primary grade. Covellite forms where S activity is highest. "
+                "This is the mineable ore. For two generations of miners, this "
+                "is what Bisbee MEANS.")
+
+    def ev_reducing_pulse(cond):
+        """Brief reducing pulse — a barren deep fluid displaces the
+        sulfate-rich enrichment brine. Eh drops below cuprite stability
+        for a short window and native copper precipitates as arborescent
+        sheets in fracture fillings. Accounts for the isolated native-Cu
+        pockets that occur throughout the Bisbee oxidation zone.
+
+        Needs strong chemistry: native-Cu's supersaturation floor
+        demands very low O₂ (the floor clause in red_f kicks in above
+        0.3), S below sulfide threshold, and Cu well above 80 ppm.
+        """
+        cond.fluid.O2 = 0.05         # strongly reducing
+        cond.fluid.S = 15             # sulfate almost entirely flushed
+        cond.fluid.Cu += 150          # Cu²⁺ surges from above
+        cond.fluid.pH = 6.0
+        cond.temperature = 28
+        cond.flow_rate = 1.1
+        return ("A barren reducing fluid pulses up from depth — lower than "
+                "any water table. For a few thousand years the pocket's Eh "
+                "is below cuprite stability. Native copper precipitates in "
+                "the fracture selvages as arborescent sheets and wire. The "
+                "Bisbee native-copper specimens — the Cornish-style copper "
+                "trees — are products of exactly these brief windows.")
+
+    def ev_oxidation_zone(cond):
+        """Water table drops further; the whole system oxidizes. Cuprite
+        mantles the native copper sheets — the narrow Eh band between
+        sulfide-stable and fully-oxidized."""
+        cond.temperature = 25
+        cond.fluid.O2 = 1.0          # oxidizing but not fully
+        cond.fluid.pH = 6.2          # limestone buffer kicks in
+        cond.fluid.S = max(cond.fluid.S - 60, 20)  # sulfate flushed
+        cond.fluid.Cu += 40
+        cond.fluid.Fe -= 30          # goethite locks up Fe
+        cond.fluid.CO3 += 30         # limestone dissolution starts
+        cond.flow_rate = 1.0
+        return ("The water table drops another 50 meters. The enrichment "
+                "blanket is now in the unsaturated zone — oxygen reaches it "
+                "directly. Cuprite forms where the Eh is still low; native "
+                "copper sheets grow in the fractures where reducing pockets "
+                "survive. The limestone walls are finally participating — "
+                "pH climbs toward neutral, and CO₃ rises with it.")
+
+    def ev_azurite_peak(cond):
+        """High pCO₂ groundwater surges through — azurite forms in the
+        limestone-hosted chambers. This is the Bisbee blue."""
+        cond.fluid.CO3 += 80          # pCO₂ peak, limestone actively dissolving
+        cond.fluid.Cu += 30
+        cond.fluid.O2 = 1.3
+        cond.fluid.pH = 7.0
+        cond.flow_rate = 0.9
+        return ("A monsoon season — the first in many. CO₂-charged rainwater "
+                "infiltrates fast, dissolves limestone aggressively, and hits "
+                "the copper pocket at pH 7 with CO₃ at 110+ ppm. Azurite — "
+                "deep midnight-blue monoclinic prisms and radiating rosettes "
+                "— nucleates from the supersaturated brine. This phase "
+                "produces the showpiece 'Bisbee Blue' specimens.")
+
+    def ev_co2_drop(cond):
+        """pCO₂ drops as the monsoon seasonal pattern shifts. Azurite
+        becomes thermodynamically unstable; existing crystals begin
+        converting to malachite (pseudomorphs). Fresh malachite nucleates
+        from the released Cu + CO₃."""
+        cond.fluid.CO3 = max(cond.fluid.CO3 - 120, 50)  # crash below azurite threshold
+        cond.fluid.O2 = 1.4
+        cond.fluid.pH = 6.8
+        cond.flow_rate = 0.7
+        return ("The climate dries. Without CO₂-charged infiltration the "
+                "pocket's pCO₂ falls below azurite's stability — every "
+                "azurite crystal in the vug starts converting. The color "
+                "shift creeps crystal-by-crystal: deep blue → green rind → "
+                "green core. Vink (1986) put the crossover at log(pCO₂) ≈ "
+                "−3.5 at 25 °C, right where we are. Malachite pseudomorphs "
+                "after azurite are the diagnostic Bisbee specimen — frozen "
+                "mid-transition.")
+
+    def ev_silica_seep(cond):
+        """Percolating groundwater now carries dissolved SiO₂ leached from
+        the quartz-monzonite porphyry upslope. Chrysocolla starts forming
+        wherever Cu²⁺ meets SiO₂ — crusts over cuprite/native copper,
+        pseudomorphs surviving azurite."""
+        cond.fluid.SiO2 += 90        # porphyry weathering delivers silica
+        cond.fluid.Cu += 20
+        cond.fluid.CO3 = max(cond.fluid.CO3 - 30, 20)   # CO₂ still trending down
+        cond.fluid.pH = 6.5
+        cond.fluid.O2 = 1.3
+        cond.flow_rate = 0.8
+        return ("A new seep arrives — from weathering of the Sacramento Hill "
+                "quartz-monzonite porphyry uphill, not the limestone. It "
+                "brings dissolved SiO₂ at 100+ ppm. Where this fluid meets "
+                "the Cu²⁺ still in solution the cyan enamel of chrysocolla "
+                "precipitates: thin films over cuprite, botryoidal crusts "
+                "on native copper, and — the Bisbee centerpiece — "
+                "pseudomorphs replacing the last azurite blues.")
+
+    def ev_final_drying(cond):
+        """Flow stops. The system seals. The assemblage the miners will
+        find a million years from now is committed."""
+        cond.temperature = 20
+        cond.flow_rate = 0.1
+        cond.fluid.O2 = 1.0
+        return ("The fractures seal with calcite cement. Groundwater stops. "
+                "The pocket is a closed system again, this time with the "
+                "full oxidation assemblage frozen in place: chalcopyrite "
+                "cores wrapped in chalcocite, those wrapped in cuprite, "
+                "those overgrown by native copper, those overgrown by "
+                "azurite, those converted to malachite, those pseudomorphed "
+                "by chrysocolla. A million years from now, when a mining "
+                "shaft intersects this pocket, an assayer will photograph "
+                "the specimen and write 'Bisbee, Cochise County' on the "
+                "label.")
+
+    events = [
+        Event(25,  "Primary Cooling",      "Chalcopyrite + bornite lock in",    ev_primary_cooling),
+        Event(65,  "Uplift + Weathering",  "Meteoric acid strips primary ore",  ev_uplift_weathering),
+        Event(95,  "Enrichment Blanket",   "Chalcocite replaces chalcopyrite",  ev_enrichment_blanket),
+        Event(120, "Reducing Pulse",       "Native copper fracture fillings",   ev_reducing_pulse),
+        Event(145, "Oxidation Zone",       "Cuprite mantles native copper",     ev_oxidation_zone),
+        Event(180, "Azurite Peak",         "High-pCO₂ monsoon — Bisbee Blue",   ev_azurite_peak),
+        Event(225, "pCO₂ Drop",            "Azurite → malachite conversion",    ev_co2_drop),
+        Event(265, "Silica Seep",          "Chrysocolla crusts + pseudomorphs", ev_silica_seep),
+        Event(305, "Final Drying",         "Fractures seal, system locks",      ev_final_drying),
+    ]
+    return conditions, events, 340
+
+
 def scenario_random() -> Tuple[VugConditions, List[Event], int]:
     """Procedurally-generated vugg — each run a different discovery.
 
@@ -5776,6 +6155,7 @@ SCENARIOS = {
     "supergene_oxidation": scenario_supergene_oxidation,
     "ouro_preto": scenario_ouro_preto,
     "gem_pegmatite": scenario_gem_pegmatite,
+    "bisbee": scenario_bisbee,
     "random": scenario_random,
 }
 
@@ -5909,6 +6289,8 @@ class VugSimulator:
             crystal.dominant_forms = ["{111} octahedron", "dark red with ruby internal reflections"]
         elif mineral == "azurite":
             crystal.dominant_forms = ["monoclinic prism", "deep azure-blue"]
+        elif mineral == "chrysocolla":
+            crystal.dominant_forms = ["botryoidal crust", "cyan-blue cryptocrystalline enamel"]
         elif mineral == "native_copper":
             crystal.dominant_forms = ["arborescent branching", "copper-red metallic"]
         elif mineral == "magnetite":
@@ -6453,6 +6835,37 @@ class VugSimulator:
                 self.log.append(f"  ✦ NUCLEATION: Azurite #{c.crystal_id} on {c.position} "
                               f"(T={self.conditions.temperature:.0f}°C, σ={sigma_azr:.2f}, "
                               f"Cu={self.conditions.fluid.Cu:.0f}, CO₃={self.conditions.fluid.CO3:.0f})")
+
+        # Chrysocolla nucleation — Cu²⁺ + SiO₂ at low-T oxidation, the
+        # cyan finale of the copper paragenesis. Wins over azurite/
+        # malachite when CO₃ has dropped and SiO₂ has risen (see
+        # supersaturation_chrysocolla's CO₃/SiO₂ gate). Prefers to
+        # crust over cuprite or native copper and to pseudomorph
+        # azurite once the pCO₂ drop arrives — the Bisbee story.
+        sigma_chry = self.conditions.supersaturation_chrysocolla()
+        existing_chry = [c for c in self.crystals if c.mineral == "chrysocolla" and c.active]
+        if sigma_chry > 1.2 and not self._at_nucleation_cap("chrysocolla"):
+            if not existing_chry or (sigma_chry > 1.8 and random.random() < 0.25):
+                pos = "vug wall"
+                active_azr_chry = [c for c in self.crystals if c.mineral == "azurite" and c.active]
+                dissolving_azr_chry = [c for c in self.crystals if c.mineral == "azurite" and c.dissolved]
+                active_cpr_chry = [c for c in self.crystals if c.mineral == "cuprite" and c.active]
+                active_nc_chry = [c for c in self.crystals if c.mineral == "native_copper" and c.active]
+                # Pseudomorph-after-azurite preferred when azurite has
+                # just dissolved (pCO₂ drop) AND silica is available.
+                if dissolving_azr_chry and random.random() < 0.6:
+                    pos = f"pseudomorph after azurite #{dissolving_azr_chry[0].crystal_id}"
+                elif active_azr_chry and random.random() < 0.3:
+                    pos = f"on azurite #{active_azr_chry[0].crystal_id}"
+                elif active_cpr_chry and random.random() < 0.5:
+                    pos = f"on cuprite #{active_cpr_chry[0].crystal_id}"
+                elif active_nc_chry and random.random() < 0.4:
+                    pos = f"on native_copper #{active_nc_chry[0].crystal_id}"
+                c = self.nucleate("chrysocolla", position=pos, sigma=sigma_chry)
+                self.log.append(f"  ✦ NUCLEATION: Chrysocolla #{c.crystal_id} on {c.position} "
+                              f"(T={self.conditions.temperature:.0f}°C, σ={sigma_chry:.2f}, "
+                              f"Cu={self.conditions.fluid.Cu:.0f}, SiO₂={self.conditions.fluid.SiO2:.0f}, "
+                              f"CO₃={self.conditions.fluid.CO3:.0f})")
 
         # Native copper nucleation — Cu + strongly reducing + low S.
         # Grows on chalcocite/bornite or free on wall when the fluid is
@@ -9153,6 +9566,62 @@ class VugSimulator:
             parts.append(
                 "Acid dissolution — fizzes like calcite because it's a "
                 "carbonate. Cu²⁺ and CO₃²⁻ released to fluid."
+            )
+        return " ".join(parts)
+
+    def _narrate_chrysocolla(self, c: Crystal) -> str:
+        """Narrate a chrysocolla crystal — the cyan copper silicate."""
+        parts = [f"Chrysocolla #{c.crystal_id} grew to {c.c_length_mm:.1f} mm."]
+        parts.append(
+            "Cu₂H₂Si₂O₅(OH)₄ — the cryptocrystalline copper silicate. "
+            "X-ray amorphous in most samples (a 'mineraloid' by strict "
+            "definition; sanctioned as a mineral since 1803). Forms "
+            "only at meteoric temperatures, where Cu²⁺ from weathering "
+            "sulfides meets dissolved SiO₂ from silicate wall rock in "
+            "a narrow pH window. At Bisbee the quartz-monzonite "
+            "porphyry supplies the silica and the Paleozoic limestones "
+            "buffer the pH — the union gives the district's signature "
+            "sky-blue enamel over cuprite and native copper."
+        )
+        if c.habit == "pseudomorph_after_azurite":
+            parts.append(
+                "Pseudomorph after azurite — the pCO₂ in the pocket "
+                "fluid dropped below azurite's stability, and incoming "
+                "silica-bearing water replaced the monoclinic prisms "
+                "atom-by-atom. Outline preserved, interior converted. "
+                "These specimens are the Bisbee centerpiece."
+            )
+        elif c.habit == "enamel_on_cuprite":
+            parts.append(
+                "Enamel over cuprite — a thin conformal film coating "
+                "the earlier red Cu₂O. Where both are exposed on one "
+                "specimen the colors pop: cochineal red under sky-blue. "
+                "The textbook Bisbee pairing."
+            )
+        elif c.habit == "botryoidal_crust":
+            parts.append(
+                "Botryoidal crust — grape-cluster lobes, enamel-like "
+                "luster, conchoidal fracture. Hardness varies with "
+                "water content; the more hydrated the softer."
+            )
+        elif c.habit == "reniform_globules":
+            parts.append(
+                "Reniform globules — kidney-shaped lobes nucleating "
+                "on earlier crystals. The glassy fracture means the "
+                "material is closer to an amorphous silica gel than a "
+                "true mineral lattice."
+            )
+        else:
+            parts.append(
+                "Silica-gel hemisphere — low supersaturation regime, "
+                "rounded drop-like habit. Freshly precipitated "
+                "chrysocolla is genuinely gel-like before it sets."
+            )
+        if c.dissolved:
+            parts.append(
+                "Dissolution — acid or high-T exposure has released "
+                "the Cu²⁺ and SiO₂ back to fluid. Above ~100 °C it "
+                "would dehydrate to plancheite or shattuckite instead."
             )
         return " ".join(parts)
 
