@@ -210,10 +210,10 @@ class FluidChemistry:
 @dataclass
 class VugWall:
     """Reactive carbonate wall of the vug.
-    
+
     In real MVT systems, the vug wall IS the host limestone/dolomite.
     Acid dissolves it, releasing Ca²⁺ and CO₃²⁻, neutralizing pH,
-    and enlarging the cavity. The dissolved carbonate can then 
+    and enlarging the cavity. The dissolved carbonate can then
     reprecipitate on existing crystals during the pH recovery —
     creating rapid growth bursts.
     """
@@ -221,14 +221,29 @@ class VugWall:
     thickness_mm: float = 500.0       # wall thickness (effectively infinite for our purposes)
     vug_diameter_mm: float = 50.0     # initial cavity diameter
     total_dissolved_mm: float = 0.0   # cumulative wall dissolution
-    
+
     # Trace elements in the host rock (released during dissolution)
     wall_Fe_ppm: float = 2000.0       # iron in the limestone/dolomite
     wall_Mn_ppm: float = 500.0        # manganese in host rock
     wall_Mg_ppm: float = 1000.0       # magnesium (higher if dolomite)
-    
+
     # Provenance tracking — how much Ca in the fluid came from the wall?
     ca_from_wall_total: float = 0.0   # cumulative Ca²⁺ released from wall dissolution
+
+    # Phase-1 naturalistic void shape (visual only — growth engines still
+    # read mean_diameter_mm). See WallState._build_profile() for how these
+    # compose into per-cell base radii.
+    #   void_style: one of "gas_bubble", "dissolution_cavity",
+    #               "fracture_pocket", "vein", "reactive_front".
+    #               Picks the harmonic palette used by the Fourier profile.
+    #   irregularity: 0.0 = perfect circle, 1.0 = wild.
+    #   aspect: cross-section ellipse ratio (>=1, area-preserving).
+    #   shape_seed: deterministic seed for the Fourier coefficients so
+    #               the same scenario re-runs to the same void shape.
+    void_style: str = "gas_bubble"
+    irregularity: float = 0.15
+    aspect: float = 1.0
+    shape_seed: int = 0
     
     def dissolve(self, acid_strength: float, fluid: 'FluidChemistry') -> dict:
         """Dissolve wall rock in response to acid conditions.
@@ -303,11 +318,18 @@ class VugWall:
 class WallCell:
     """One cell of the topo-map wall state. Every (ring, cell) pair has
     one — the topo renderer walks the cells in order and draws a line
-    whose color and thickness come from the crystal occupying that cell."""
+    whose color and thickness come from the crystal occupying that cell.
+
+    `base_radius_mm` is the pre-run irregular-profile baseline (Phase 1
+    naturalistic void shape). Dissolution `wall_depth` then adds on top
+    of it, so a cell's current outer radius is `base_radius_mm + wall_depth`.
+    Backward-compatible: when left at 0, the renderer substitutes the
+    parent WallState's `initial_radius_mm` — old snapshots stay round."""
     wall_depth: float = 0.0            # dissolution depth, mm (negative = eroded)
     crystal_id: Optional[int] = None   # id of the crystal occupying this cell
     mineral: Optional[str] = None      # mineral name for class_color lookup
     thickness_um: float = 0.0          # crystal thickness at this cell, µm
+    base_radius_mm: float = 0.0        # Phase-1 Fourier profile baseline, mm
 
 
 @dataclass
@@ -325,6 +347,13 @@ class WallState:
     outward more aggressively (total acid budget conserved) and the
     wall ends up shaped like the deposit history rather than a perfect
     circle.
+
+    Phase 1 adds a naturalistic void shape on top: a Fourier profile
+    r(θ) computed deterministically from `void_style` + `irregularity` +
+    `aspect` + `shape_seed` bakes a per-cell `base_radius_mm` at init,
+    so even a pristine vug with zero dissolution renders as an irregular
+    organic cavity. Crystal growth mechanics still read `mean_diameter_mm`
+    (visual-only change for Phase 1).
     """
     cells_per_ring: int = 120
     ring_count: int = 1
@@ -337,24 +366,146 @@ class WallState:
     max_seen_radius_mm: float = 0.0
     rings: List[List[WallCell]] = field(default_factory=list)
 
+    # Phase-1 naturalistic void shape parameters (see VugWall docstring).
+    void_style: str = "gas_bubble"
+    irregularity: float = 0.15
+    aspect: float = 1.0
+    shape_seed: int = 0
+    # Populated by _build_profile() — exposed so the renderer (and a
+    # future Phase-2 3D slice view) can reconstruct the analytic shape
+    # without re-seeding RNG. Each entry is (n, a_cos, b_sin).
+    fourier_coeffs: List[Tuple[int, float, float]] = field(default_factory=list)
+    # Random per-shape orientation of the ellipse's long axis, radians.
+    # Captured so the shape is fully reproducible from (seed, style, etc.).
+    _theta_offset: float = 0.0
+
     def __post_init__(self):
         if self.initial_radius_mm <= 0:
             self.initial_radius_mm = self.vug_diameter_mm / 2.0
-        if self.max_seen_radius_mm <= 0:
-            self.max_seen_radius_mm = self.initial_radius_mm * 2.0
         if not self.rings:
             self.rings = [
                 [WallCell() for _ in range(self.cells_per_ring)]
                 for _ in range(self.ring_count)
             ]
+        # Compute per-cell base_radius_mm deterministically from the
+        # shape params. Must run before max_seen_radius_mm is seeded so
+        # it can include the largest bulge.
+        self._build_profile()
+        if self.max_seen_radius_mm <= 0:
+            max_base = self.initial_radius_mm
+            for ring in self.rings:
+                for c in ring:
+                    if c.base_radius_mm > max_base:
+                        max_base = c.base_radius_mm
+            self.max_seen_radius_mm = max_base * 2.0
+
+    # --- Phase 1: Fourier profile -----------------------------------------
+    # Per-style harmonic palette. Each tuple is (n, weight) — the weight
+    # biases a given harmonic's amplitude up or down relative to the
+    # style's baseline amp budget. Low-n harmonics dominate (smooth
+    # shapes), with style-specific accents:
+    #   gas_bubble: almost pure n=2 — a gentle oblate bubble.
+    #   dissolution_cavity: broad n=2..5 — all-axis lumpiness.
+    #   fracture_pocket: strong n=2 ("slot" bimodal), medium n=3..5.
+    #   vein: relies mostly on aspect; minor n=2,3 for pinch-swell.
+    #   reactive_front: jagged, high-frequency content up to n=7.
+    _VOID_STYLE_HARMONICS = {
+        "gas_bubble":         [(2, 1.0)],
+        "dissolution_cavity": [(2, 1.0), (3, 0.9), (4, 0.7), (5, 0.5)],
+        "fracture_pocket":    [(2, 2.0), (3, 0.9), (4, 0.7), (5, 0.5)],
+        "vein":               [(2, 0.8), (3, 0.6)],
+        "reactive_front":     [(2, 0.9), (3, 0.9), (4, 0.8), (5, 0.8),
+                               (6, 0.6), (7, 0.5)],
+    }
+    # Per-style peak amplitude budget (fraction of base radius). Scaled
+    # further by the `irregularity` knob.
+    _VOID_STYLE_AMP_MAX = {
+        "gas_bubble":         0.08,
+        "dissolution_cavity": 0.16,
+        "fracture_pocket":    0.18,
+        "vein":               0.08,
+        "reactive_front":     0.22,
+    }
+
+    def _build_profile(self) -> None:
+        """Compute per-cell base_radius_mm from the shape params.
+
+        Two ingredients combine:
+
+          1. An area-preserving ellipse modulation controlled by `aspect`.
+             Aspect=1 → perfect circle; aspect>1 stretches along a random
+             axis (so veins and fracture pockets look directionally
+             elongated without pinning the long axis to screen-east).
+
+          2. A sum of low-frequency Fourier harmonics chosen from the
+             style's palette, with phases and amplitudes drawn from a
+             seeded RNG. Each harmonic is stored as (n, a_cos, b_sin) so
+             the renderer (or a 3D Phase-2 slicer) can reconstruct the
+             profile without re-seeding.
+        """
+        import random as _random
+        rng = _random.Random(int(self.shape_seed) & 0xFFFFFFFF)
+
+        palette = self._VOID_STYLE_HARMONICS.get(
+            self.void_style, self._VOID_STYLE_HARMONICS["gas_bubble"]
+        )
+        amp_max = self._VOID_STYLE_AMP_MAX.get(self.void_style, 0.08)
+        # Clamp irregularity to [0, 1]. 0 = perfect ellipse (or circle if
+        # aspect also == 1), 1 = full style amplitude.
+        irreg = max(0.0, min(1.0, float(self.irregularity)))
+        amp_budget = amp_max * irreg
+
+        coeffs: List[Tuple[int, float, float]] = []
+        for (n, weight) in palette:
+            # Per-harmonic amplitude: the style weight, the shared amp
+            # budget, a uniform jitter, and a 1/sqrt(n) rolloff so higher
+            # frequencies stay subordinate. Keeps shapes smooth.
+            amp = amp_budget * weight * rng.uniform(0.5, 1.0) / math.sqrt(float(n))
+            phase = rng.uniform(0.0, 2.0 * math.pi)
+            coeffs.append((n, amp * math.cos(phase), amp * math.sin(phase)))
+        self.fourier_coeffs = coeffs
+
+        # Ellipse: semi-major = base * sqrt(A), semi-minor = base / sqrt(A).
+        # Area = π·base² regardless of A (area-preserving). aspect<1
+        # treated as 1/aspect for safety.
+        A = float(self.aspect) if self.aspect and self.aspect > 0 else 1.0
+        if A < 1.0:
+            A = 1.0 / A
+        semi_a = math.sqrt(A)
+        semi_b = 1.0 / math.sqrt(A)
+        self._theta_offset = rng.uniform(0.0, 2.0 * math.pi)
+
+        N = self.cells_per_ring
+        for ring in self.rings:
+            for i, cell in enumerate(ring):
+                # Cell angular center. Subtract the random theta_offset
+                # so the ellipse's long axis lands at a random screen
+                # orientation per seed.
+                theta = (2.0 * math.pi * i / N) - self._theta_offset
+                ca, sa = math.cos(theta), math.sin(theta)
+                # Polar radius of a centered ellipse:
+                #   r(θ) = a·b / sqrt((b·cosθ)² + (a·sinθ)²)
+                ellipse_r = (semi_a * semi_b) / math.sqrt(
+                    (semi_b * ca) ** 2 + (semi_a * sa) ** 2
+                )
+                # Multiplicative Fourier perturbation — kept < 1 in
+                # practice by the amp budget, so the baseline stays
+                # positive even for reactive_front at irregularity=1.
+                pert = 0.0
+                for (n, acoef, bcoef) in coeffs:
+                    pert += acoef * math.cos(n * theta) + bcoef * math.sin(n * theta)
+                cell.base_radius_mm = self.initial_radius_mm * ellipse_r * (1.0 + pert)
+
+    # ----------------------------------------------------------------------
 
     @property
     def cell_arc_mm(self) -> float:
         """Wall arc length represented by one cell, in millimeters.
-        Uses mean current radius so the arc metric tracks dissolution."""
+        Uses mean current radius (including per-cell base + depth) so
+        the arc metric tracks both the irregular profile and dissolution."""
         ring0 = self.rings[0] if self.rings else []
         if ring0:
-            mean_r = self.initial_radius_mm + sum(c.wall_depth for c in ring0) / len(ring0)
+            mean_r = sum(c.base_radius_mm + c.wall_depth for c in ring0) / len(ring0)
         else:
             mean_r = self.initial_radius_mm
         return 2.0 * math.pi * mean_r / max(self.cells_per_ring, 1)
@@ -362,14 +513,14 @@ class WallState:
     def cell_radius_mm(self, cell_idx: int) -> float:
         """Outer radius of a specific ring-0 cell, including dissolution."""
         cell = self.rings[0][cell_idx % self.cells_per_ring]
-        return self.initial_radius_mm + cell.wall_depth
+        return cell.base_radius_mm + cell.wall_depth
 
     def mean_diameter_mm(self) -> float:
         """Effective vug diameter, averaged across all cells."""
         ring0 = self.rings[0]
         if not ring0:
             return self.vug_diameter_mm
-        mean_r = self.initial_radius_mm + sum(c.wall_depth for c in ring0) / len(ring0)
+        mean_r = sum(c.base_radius_mm + c.wall_depth for c in ring0) / len(ring0)
         return 2.0 * mean_r
 
     def update_diameter(self, new_diameter_mm: float) -> None:
@@ -400,9 +551,10 @@ class WallState:
         for i in unblocked:
             ring0[i].wall_depth += per_cell
         # Bump the monotonic render scale if any cell just passed the
-        # running max.
+        # running max. Uses per-cell base_radius_mm so bulges in the
+        # Fourier profile contribute correctly.
         for c in ring0:
-            r = self.initial_radius_mm + c.wall_depth
+            r = c.base_radius_mm + c.wall_depth
             if r > self.max_seen_radius_mm:
                 self.max_seen_radius_mm = r
         return len(unblocked)
@@ -4603,7 +4755,11 @@ def scenario_cooling() -> Tuple[VugConditions, List[Event], int]:
     conditions = VugConditions(
         temperature=380.0,
         pressure=1.5,
-        fluid=FluidChemistry(SiO2=600, Ca=150, CO3=100, Fe=8, Mn=3, Ti=0.8, Al=4)
+        fluid=FluidChemistry(SiO2=600, Ca=150, CO3=100, Fe=8, Mn=3, Ti=0.8, Al=4),
+        # Phase-1 void shape: gentle gas-bubble profile. Cooling pulses
+        # leave gas cavities nearly round — low harmonics, tight budget.
+        wall=VugWall(void_style="gas_bubble", irregularity=0.15, aspect=1.0,
+                     shape_seed=1),
     )
     events = []
     return conditions, events, 100
@@ -4614,7 +4770,9 @@ def scenario_pulse() -> Tuple[VugConditions, List[Event], int]:
     conditions = VugConditions(
         temperature=350.0,
         pressure=1.2,
-        fluid=FluidChemistry(SiO2=500, Ca=200, CO3=120, Fe=5, Mn=2, Ti=0.5, Al=3)
+        fluid=FluidChemistry(SiO2=500, Ca=200, CO3=120, Fe=5, Mn=2, Ti=0.5, Al=3),
+        wall=VugWall(void_style="gas_bubble", irregularity=0.15, aspect=1.0,
+                     shape_seed=2),
     )
     events = [
         Event(40, "Fluid Pulse", "Fresh hydrothermal fluid", event_fluid_pulse),
@@ -4631,7 +4789,11 @@ def scenario_mvt() -> Tuple[VugConditions, List[Event], int]:
         fluid=FluidChemistry(
             SiO2=100, Ca=300, CO3=250, Fe=15, Mn=8,
             Zn=0, S=0, F=5, pH=7.2, salinity=15.0
-        )
+        ),
+        # MVT vugs are dissolution cavities in limestone — all-axis
+        # lumpiness, slight vertical sag.
+        wall=VugWall(void_style="dissolution_cavity", irregularity=0.4,
+                     aspect=1.1, shape_seed=3),
     )
     events = [
         Event(20, "Fluid Mixing", "Brine meets groundwater", event_fluid_mixing),
@@ -4656,7 +4818,11 @@ def scenario_porphyry() -> Tuple[VugConditions, List[Event], int]:
             # (see Heinrich 2007 greisen fluid chemistry).
             Sb=25, Bi=30,
             O2=0.2, pH=4.5, salinity=10.0
-        )
+        ),
+        # Porphyry mineralization is vein-hosted — elongated cross-section
+        # (aspect 1.8), modest harmonics for pinch-and-swell feel.
+        wall=VugWall(void_style="vein", irregularity=0.35, aspect=1.8,
+                     shape_seed=4),
     )
     events = [
         Event(25, "Copper Pulse", "Magmatic copper fluid arrives", event_copper_injection),
@@ -4698,6 +4864,12 @@ def scenario_reactive_wall() -> Tuple[VugConditions, List[Event], int]:
             vug_diameter_mm=40.0,
             wall_Fe_ppm=3000.0,   # iron-bearing limestone
             wall_Mn_ppm=800.0,    # Mn in the host rock
+            # Aggressive acid dissolution etches a ragged front —
+            # high-frequency content through n=7, big amp budget.
+            void_style="reactive_front",
+            irregularity=0.65,
+            aspect=1.2,
+            shape_seed=5,
         )
     )
     
@@ -4779,7 +4951,12 @@ def scenario_radioactive_pegmatite() -> Tuple[VugConditions, List[Event], int]:
             # beryl/spodumene/tourmaline/apatite country.
             Be=20, Li=40, B=25, P=8,
             O2=0.0, pH=6.5, salinity=8.0,
-        )
+        ),
+        # Pegmatite pockets are fracture-controlled — the Fourier n=2
+        # harmonic gets boosted to carve a "slot" profile, plus modest
+        # vertical elongation (aspect 1.5).
+        wall=VugWall(void_style="fracture_pocket", irregularity=0.5,
+                     aspect=1.5, shape_seed=6),
     )
 
     def ev_pegmatite_crystallization(cond):
@@ -4854,7 +5031,11 @@ def scenario_supergene_oxidation() -> Tuple[VugConditions, List[Event], int]:
             # event later in the scenario.
             P=0.5,
             O2=1.8, pH=6.8, salinity=2.0,
-        )
+        ),
+        # Supergene zones are meteoric dissolution cavities — broad
+        # all-axis lumpiness, no strong directionality.
+        wall=VugWall(void_style="dissolution_cavity", irregularity=0.55,
+                     aspect=1.0, shape_seed=7),
     )
 
     def ev_meteoric_flush(cond):
@@ -5004,6 +5185,13 @@ def scenario_gem_pegmatite() -> Tuple[VugConditions, List[Event], int]:
             composition="pegmatite",
             thickness_mm=500.0,
             vug_diameter_mm=50.0,
+            # Miarolitic pockets are textbook fracture-controlled voids —
+            # strong n=2 "slot" with moderate irregularity, elongated
+            # along the fracture plane (aspect 1.6).
+            void_style="fracture_pocket",
+            irregularity=0.6,
+            aspect=1.6,
+            shape_seed=8,
         ),
         fluid=FluidChemistry(
             # Pegmatite-level silica saturation — far above the quartz
@@ -5212,7 +5400,11 @@ def scenario_ouro_preto() -> Tuple[VugConditions, List[Event], int]:
             Cr=0.5,
             Ti=0.6,
             O2=0.3, pH=6.5, salinity=3.0,
-        )
+        ),
+        # Ouro Preto topaz veins are narrow, prolate fractures — strong
+        # aspect 2.2 for the pinch-swell tube feel, gentle harmonics.
+        wall=VugWall(void_style="vein", irregularity=0.4, aspect=2.2,
+                     shape_seed=9),
     )
 
     def ev_vein_opening(cond):
@@ -5523,7 +5715,32 @@ def scenario_random() -> Tuple[VugConditions, List[Event], int]:
         ]
         steps = random.randint(160, 220)
 
-    conditions = VugConditions(temperature=T, pressure=random.uniform(0.3, 2.0), fluid=fluid)
+    # Phase-1 void shape: map the archetype to a void_style with
+    # reasonable jitter on irregularity / aspect. Shape seed is a fresh
+    # random so each run of "random" looks different.
+    _archetype_shape = {
+        "hydrothermal": ("dissolution_cavity", (0.3, 0.5),  (1.0, 1.3)),
+        "pegmatite":    ("fracture_pocket",    (0.4, 0.65), (1.3, 1.7)),
+        "supergene":    ("dissolution_cavity", (0.45, 0.65),(1.0, 1.2)),
+        "mvt":          ("dissolution_cavity", (0.3, 0.5),  (1.0, 1.2)),
+        "porphyry":     ("vein",               (0.3, 0.45), (1.5, 2.0)),
+        "evaporite":    ("gas_bubble",         (0.1, 0.2),  (1.0, 1.1)),
+        "mixed":        ("dissolution_cavity", (0.4, 0.6),  (1.0, 1.4)),
+    }
+    _style, _irr_range, _asp_range = _archetype_shape.get(
+        archetype, ("dissolution_cavity", (0.3, 0.5), (1.0, 1.2)))
+    _rand_wall = VugWall(
+        void_style=_style,
+        irregularity=random.uniform(*_irr_range),
+        aspect=random.uniform(*_asp_range),
+        shape_seed=random.randint(1, 2 ** 30),
+    )
+    conditions = VugConditions(
+        temperature=T,
+        pressure=random.uniform(0.3, 2.0),
+        fluid=fluid,
+        wall=_rand_wall,
+    )
     # Side-channel for the narrator to read after simulation.
     conditions._random_archetype = archetype
     return conditions, events, steps
@@ -5565,6 +5782,14 @@ class VugSimulator:
         self.wall_state = WallState(
             vug_diameter_mm=conditions.wall.vug_diameter_mm,
             initial_radius_mm=conditions.wall.vug_diameter_mm / 2.0,
+            # Phase-1 naturalistic void shape. Scenarios set these on
+            # VugWall; defaults (gas_bubble, irr=0.15, aspect=1.0) give
+            # a gentle bubble so scenarios that don't opt in still get a
+            # mild organic outline rather than a perfect circle.
+            void_style=conditions.wall.void_style,
+            irregularity=conditions.wall.irregularity,
+            aspect=conditions.wall.aspect,
+            shape_seed=conditions.wall.shape_seed,
         )
     
     def nucleate(self, mineral: str, position: str = "vug wall",

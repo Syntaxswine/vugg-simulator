@@ -3427,6 +3427,19 @@ class VugWall {
     this.wall_Mn_ppm = opts.wall_Mn_ppm ?? 500.0;
     this.wall_Mg_ppm = opts.wall_Mg_ppm ?? 1000.0;
     this.ca_from_wall_total = opts.ca_from_wall_total ?? 0.0;
+    // Phase-1 naturalistic void shape (visual only — growth engines
+    // still read meanDiameterMm). See WallState._buildProfile() for
+    // how these compose into per-cell base radii.
+    //   void_style: one of 'gas_bubble', 'dissolution_cavity',
+    //     'fracture_pocket', 'vein', 'reactive_front'. Picks the
+    //     harmonic palette used by the Fourier profile.
+    //   irregularity: 0.0 perfect circle, 1.0 wild.
+    //   aspect: cross-section ellipse ratio (>=1, area-preserving).
+    //   shape_seed: deterministic seed for the Fourier coefficients.
+    this.void_style = opts.void_style ?? 'gas_bubble';
+    this.irregularity = opts.irregularity ?? 0.15;
+    this.aspect = opts.aspect ?? 1.0;
+    this.shape_seed = opts.shape_seed ?? 0;
   }
 
   dissolve(acid_strength, fluid) {
@@ -3486,6 +3499,11 @@ class WallCell {
     this.crystal_id = null;    // id of the crystal occupying this cell
     this.mineral = null;       // mineral name for class_color lookup
     this.thickness_um = 0;     // crystal thickness at this cell, µm
+    // Phase-1 Fourier profile baseline — the cell's pre-run outer
+    // radius. Dissolution wall_depth stacks on top; current outer
+    // radius is base_radius_mm + wall_depth. Default 0 means the
+    // parent WallState's initial_radius_mm is used (backward-compat).
+    this.base_radius_mm = 0;
   }
 }
 
@@ -3495,6 +3513,44 @@ class WallCell {
 // Dissolution is per-cell: cells covered by acid-resistant crystals
 // shield their slice, so unblocked cells erode faster — the wall ends
 // up shaped like the deposit history rather than a perfect circle.
+// Per-style harmonic palette for the Fourier profile. Each entry is
+// (n, weight) — weight biases a harmonic up/down relative to the style's
+// baseline amp budget. Low-n harmonics dominate (smooth shapes) with
+// style-specific accents. Must mirror WallState._VOID_STYLE_HARMONICS
+// in vugg.py.
+const VOID_STYLE_HARMONICS = {
+  gas_bubble:         [[2, 1.0]],
+  dissolution_cavity: [[2, 1.0], [3, 0.9], [4, 0.7], [5, 0.5]],
+  fracture_pocket:    [[2, 2.0], [3, 0.9], [4, 0.7], [5, 0.5]],
+  vein:               [[2, 0.8], [3, 0.6]],
+  reactive_front:     [[2, 0.9], [3, 0.9], [4, 0.8], [5, 0.8],
+                       [6, 0.6], [7, 0.5]],
+};
+const VOID_STYLE_AMP_MAX = {
+  gas_bubble:         0.08,
+  dissolution_cavity: 0.16,
+  fracture_pocket:    0.18,
+  vein:               0.08,
+  reactive_front:     0.22,
+};
+
+// Minimal mulberry32 PRNG — 32-bit seed in, [0,1) out. Same seed always
+// produces the same stream. Used so JS + Python produce *different*
+// concrete coefficients (their RNGs don't share streams) but both are
+// deterministic per their own shape_seed. For exact cross-runtime shape
+// parity we'd mirror Python's Mersenne Twister, but Phase 1 doesn't
+// require that — only reproducibility within a runtime.
+function _mulberry32(seed) {
+  let s = (seed | 0) >>> 0;
+  return function() {
+    s = (s + 0x6d2b79f5) >>> 0;
+    let t = s;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
 class WallState {
   constructor(opts = {}) {
     this.cells_per_ring = opts.cells_per_ring ?? 120;
@@ -3502,30 +3558,90 @@ class WallState {
     this.vug_diameter_mm = opts.vug_diameter_mm ?? 50.0;
     this.initial_radius_mm = opts.initial_radius_mm ?? (this.vug_diameter_mm / 2);
     this.ring_spacing_mm = opts.ring_spacing_mm ?? 1.0;
-    // Monotonic scale reference for the renderer. Starts generously (2×
-    // initial radius) so the vug can enlarge without the view zooming
-    // in, and only grows — it never shrinks back. Without this the
-    // auto-fit rescales every step and the rendered circle literally
-    // gets smaller as the wall dissolves outward.
-    this.max_seen_radius_mm = this.initial_radius_mm * 2;
+    // Phase-1 naturalistic void shape parameters (see VugWall).
+    this.void_style = opts.void_style ?? 'gas_bubble';
+    this.irregularity = opts.irregularity ?? 0.0;
+    this.aspect = opts.aspect ?? 1.0;
+    this.shape_seed = opts.shape_seed ?? 0;
+    this.fourier_coeffs = [];
+    this._theta_offset = 0;
+
     this.rings = [];
     for (let r = 0; r < this.ring_count; r++) {
       const ring = [];
       for (let c = 0; c < this.cells_per_ring; c++) ring.push(new WallCell());
       this.rings.push(ring);
     }
+    // Bake the per-cell base_radius_mm from the Fourier profile. Must
+    // happen before max_seen_radius_mm is seeded so the largest bulge
+    // contributes.
+    this._buildProfile();
+
+    // Monotonic scale reference for the renderer. Starts generously
+    // (2× the largest base radius — or 2× initial_radius_mm for a
+    // default-round vug) so the view doesn't zoom in on enlargement,
+    // and only grows — it never snaps back.
+    let maxBase = this.initial_radius_mm;
+    for (const ring of this.rings)
+      for (const c of ring)
+        if (c.base_radius_mm > maxBase) maxBase = c.base_radius_mm;
+    this.max_seen_radius_mm = maxBase * 2;
   }
 
-  // Wall arc length for one cell — uses current mean radius so the
-  // metric tracks the vug as it enlarges.
+  // Phase 1: compute per-cell base_radius_mm from void_style +
+  // irregularity + aspect + shape_seed. Ellipse modulation (area-
+  // preserving) + Fourier harmonic sum, both deterministic per seed.
+  // Mirrors WallState._build_profile in vugg.py (same math, different
+  // RNG — see _mulberry32 note).
+  _buildProfile() {
+    const rng = _mulberry32(this.shape_seed | 0);
+    const palette = VOID_STYLE_HARMONICS[this.void_style]
+                 || VOID_STYLE_HARMONICS.gas_bubble;
+    const ampMax = VOID_STYLE_AMP_MAX[this.void_style] ?? 0.08;
+    const irreg = Math.max(0, Math.min(1, this.irregularity));
+    const ampBudget = ampMax * irreg;
+
+    const coeffs = [];
+    for (const [n, weight] of palette) {
+      const amp = ampBudget * weight * (0.5 + 0.5 * rng()) / Math.sqrt(n);
+      const phase = rng() * 2 * Math.PI;
+      coeffs.push([n, amp * Math.cos(phase), amp * Math.sin(phase)]);
+    }
+    this.fourier_coeffs = coeffs;
+
+    let A = (this.aspect && this.aspect > 0) ? this.aspect : 1.0;
+    if (A < 1.0) A = 1.0 / A;
+    const semiA = Math.sqrt(A);
+    const semiB = 1 / Math.sqrt(A);
+    this._theta_offset = rng() * 2 * Math.PI;
+
+    const N = this.cells_per_ring;
+    for (const ring of this.rings) {
+      for (let i = 0; i < ring.length; i++) {
+        const theta = (2 * Math.PI * i / N) - this._theta_offset;
+        const ca = Math.cos(theta), sa = Math.sin(theta);
+        const ellipseR = (semiA * semiB)
+            / Math.sqrt((semiB * ca) ** 2 + (semiA * sa) ** 2);
+        let pert = 0;
+        for (const [n, acoef, bcoef] of coeffs) {
+          pert += acoef * Math.cos(n * theta) + bcoef * Math.sin(n * theta);
+        }
+        ring[i].base_radius_mm = this.initial_radius_mm * ellipseR * (1 + pert);
+      }
+    }
+  }
+
+  // Wall arc length for one cell — uses current mean radius (per-cell
+  // base + wall_depth) so the metric tracks both the irregular profile
+  // and dissolution.
   get cell_arc_mm() {
     const ring0 = this.rings[0] || [];
-    let meanR = this.initial_radius_mm;
-    if (ring0.length) {
-      let sum = 0;
-      for (const c of ring0) sum += c.wall_depth;
-      meanR = this.initial_radius_mm + sum / ring0.length;
+    if (!ring0.length) {
+      return 2 * Math.PI * this.initial_radius_mm / Math.max(this.cells_per_ring, 1);
     }
+    let sum = 0;
+    for (const c of ring0) sum += c.base_radius_mm + c.wall_depth;
+    const meanR = sum / ring0.length;
     return 2 * Math.PI * meanR / Math.max(this.cells_per_ring, 1);
   }
 
@@ -3533,15 +3649,15 @@ class WallState {
   cellRadiusMm(cellIdx) {
     const N = this.cells_per_ring;
     const cell = this.rings[0][((cellIdx % N) + N) % N];
-    return this.initial_radius_mm + cell.wall_depth;
+    return cell.base_radius_mm + cell.wall_depth;
   }
 
   meanDiameterMm() {
     const ring0 = this.rings[0];
     if (!ring0 || !ring0.length) return this.vug_diameter_mm;
     let sum = 0;
-    for (const c of ring0) sum += c.wall_depth;
-    return 2 * (this.initial_radius_mm + sum / ring0.length);
+    for (const c of ring0) sum += c.base_radius_mm + c.wall_depth;
+    return 2 * sum / ring0.length;
   }
 
   updateDiameter(newDiameter) { this.vug_diameter_mm = newDiameter; }
@@ -3560,9 +3676,10 @@ class WallState {
     const perCell = rateMm * N / unblocked.length;
     for (const i of unblocked) ring0[i].wall_depth += perCell;
     // Bump the monotonic render scale if any cell just passed the
-    // current maximum.
+    // current maximum. Uses per-cell base_radius_mm so Fourier-profile
+    // bulges contribute correctly.
     for (const c of ring0) {
-      const r = this.initial_radius_mm + c.wall_depth;
+      const r = c.base_radius_mm + c.wall_depth;
       if (r > this.max_seen_radius_mm) this.max_seen_radius_mm = r;
     }
     return unblocked.length;
@@ -6561,7 +6678,9 @@ function event_fluid_mixing(conditions) {
 function scenario_cooling() {
   const conditions = new VugConditions({
     temperature: 380.0, pressure: 1.5,
-    fluid: new FluidChemistry({ SiO2: 600, Ca: 150, CO3: 100, Fe: 8, Mn: 3, Ti: 0.8, Al: 8, K: 30, Na: 15 })
+    fluid: new FluidChemistry({ SiO2: 600, Ca: 150, CO3: 100, Fe: 8, Mn: 3, Ti: 0.8, Al: 8, K: 30, Na: 15 }),
+    // Phase-1 void shape: gentle gas-bubble profile.
+    wall: new VugWall({ void_style: 'gas_bubble', irregularity: 0.15, aspect: 1.0, shape_seed: 1 }),
   });
   return { conditions, events: [], defaultSteps: 100 };
 }
@@ -6569,7 +6688,8 @@ function scenario_cooling() {
 function scenario_pulse() {
   const conditions = new VugConditions({
     temperature: 350.0, pressure: 1.2,
-    fluid: new FluidChemistry({ SiO2: 500, Ca: 200, CO3: 120, Fe: 5, Mn: 2, Ti: 0.5, Al: 3 })
+    fluid: new FluidChemistry({ SiO2: 500, Ca: 200, CO3: 120, Fe: 5, Mn: 2, Ti: 0.5, Al: 3 }),
+    wall: new VugWall({ void_style: 'gas_bubble', irregularity: 0.15, aspect: 1.0, shape_seed: 2 }),
   });
   const events = [
     { step: 40, name: 'Fluid Pulse', description: 'Fresh hydrothermal fluid', apply_fn: event_fluid_pulse },
@@ -6584,7 +6704,9 @@ function scenario_mvt() {
     fluid: new FluidChemistry({
       SiO2: 100, Ca: 300, CO3: 250, Fe: 15, Mn: 8,
       Zn: 0, S: 0, F: 5, Pb: 40, pH: 7.2, salinity: 15.0
-    })
+    }),
+    // MVT dissolution cavity in limestone — all-axis lumpiness.
+    wall: new VugWall({ void_style: 'dissolution_cavity', irregularity: 0.4, aspect: 1.1, shape_seed: 3 }),
   });
   const events = [
     { step: 20, name: 'Fluid Mixing', description: 'Brine meets groundwater', apply_fn: event_fluid_mixing },
@@ -6605,7 +6727,9 @@ function scenario_porphyry() {
       // stibnite + bismuthinite at a handful of sites each.
       Sb: 25, Bi: 30,
       pH: 4.5, salinity: 10.0
-    })
+    }),
+    // Porphyry veins — elongated cross-section, modest harmonics.
+    wall: new VugWall({ void_style: 'vein', irregularity: 0.35, aspect: 1.8, shape_seed: 4 }),
   });
   const events = [
     { step: 25, name: 'Copper Pulse', description: 'Magmatic copper fluid arrives', apply_fn: event_copper_injection },
@@ -6633,6 +6757,11 @@ function scenario_reactive_wall() {
       vug_diameter_mm: 40.0,
       wall_Fe_ppm: 3000.0,
       wall_Mn_ppm: 800.0,
+      // Aggressive acid dissolution etches a ragged front.
+      void_style: 'reactive_front',
+      irregularity: 0.65,
+      aspect: 1.2,
+      shape_seed: 5,
     })
   });
 
@@ -6695,7 +6824,9 @@ function scenario_radioactive_pegmatite() {
       // beryl/spodumene/tourmaline/apatite country.
       Be: 20, Li: 40, B: 25, P: 8,
       O2: 0, pH: 6.5, salinity: 8.0
-    })
+    }),
+    // Pegmatite pockets are fracture-controlled — n=2 "slot" profile.
+    wall: new VugWall({ void_style: 'fracture_pocket', irregularity: 0.5, aspect: 1.5, shape_seed: 6 }),
   });
   const events = [
     { step: 20, name: 'Pegmatite Crystallization', description: 'Main crystallization pulse', apply_fn: (cond) => {
@@ -6743,6 +6874,8 @@ function scenario_supergene_oxidation() {
       P: 0.5,
       O2: 1.8, pH: 6.8, salinity: 2.0,
     }),
+    // Supergene meteoric dissolution cavity — broad all-axis lumpiness.
+    wall: new VugWall({ void_style: 'dissolution_cavity', irregularity: 0.55, aspect: 1.0, shape_seed: 7 }),
   });
   const events = [
     { step: 20,  name: 'Meteoric Flush',   description: 'Oxygenated rainwater', apply_fn: (c) => { c.fluid.O2 = 2.2; c.fluid.CO3 += 30; c.fluid.pH = 6.2; c.flow_rate = 1.5; return 'Rain infiltrates the soil zone and percolates down, picking up CO₂ and oxygen. Fresh supergene brine — cold, oxygen-rich, slightly acidic.'; } },
@@ -6770,7 +6903,17 @@ function scenario_gem_pegmatite() {
     // pocket fluid turns mildly acidic in phase 3, pH actually stays
     // low instead of being buffered by carbonate dissolution. That's
     // what lets the grow_feldspar kaolinization branch fire.
-    wall: new VugWall({ composition: 'pegmatite', thickness_mm: 500.0, vug_diameter_mm: 50.0 }),
+    wall: new VugWall({
+      composition: 'pegmatite',
+      thickness_mm: 500.0,
+      vug_diameter_mm: 50.0,
+      // Miarolitic pocket — strong n=2 slot profile, elongated along
+      // the fracture plane.
+      void_style: 'fracture_pocket',
+      irregularity: 0.6,
+      aspect: 1.6,
+      shape_seed: 8,
+    }),
     fluid: new FluidChemistry({
       SiO2: 8000,
       // Al 150 — upper end of realistic pegmatite pocket fluid. Six
@@ -6857,6 +7000,8 @@ function scenario_ouro_preto() {
       Ti: 0.6,
       O2: 0.3, pH: 6.5, salinity: 3.0,
     }),
+    // Ouro Preto topaz veins — narrow prolate fractures, aspect 2.2.
+    wall: new VugWall({ void_style: 'vein', irregularity: 0.4, aspect: 2.2, shape_seed: 9 }),
   });
   const events = [
     { step: 5,   name: 'Vein Opening',     description: 'Fracture propagates, fresh brine',
@@ -6932,7 +7077,18 @@ class VugSimulator {
     // start so later per-cell wall_depth reads as "this slice retreated
     // N mm from where it started."
     const d0 = this.conditions.wall.vug_diameter_mm;
-    this.wall_state = new WallState({ vug_diameter_mm: d0, initial_radius_mm: d0 / 2 });
+    this.wall_state = new WallState({
+      vug_diameter_mm: d0,
+      initial_radius_mm: d0 / 2,
+      // Phase-1 naturalistic void shape. Scenarios set these on
+      // VugWall; defaults (gas_bubble, irr=0.15, aspect=1.0) give a
+      // gentle bubble so scenarios that don't opt in still get a mild
+      // organic outline rather than a perfect circle.
+      void_style: this.conditions.wall.void_style,
+      irregularity: this.conditions.wall.irregularity,
+      aspect: this.conditions.wall.aspect,
+      shape_seed: this.conditions.wall.shape_seed,
+    });
     // Per-step snapshot of ring[0] for the Replay button. Captured at
     // the end of each step; small (~120 cells × ~4 numbers × 100-200
     // steps), so the memory cost of a whole run is trivial.
@@ -7107,7 +7263,8 @@ class VugSimulator {
       this.wall_state.paintCrystal(crystal);
     }
     // Snapshot ring[0] for the Replay button. Shallow clone of each
-    // cell's four render-relevant fields.
+    // cell's render-relevant fields — including base_radius_mm so the
+    // Phase-1 Fourier profile is preserved across replay frames.
     const snap = new Array(this.wall_state.rings[0].length);
     for (let i = 0; i < snap.length; i++) {
       const c = this.wall_state.rings[0][i];
@@ -7116,6 +7273,7 @@ class VugSimulator {
         crystal_id: c.crystal_id,
         mineral: c.mineral,
         thickness_um: c.thickness_um,
+        base_radius_mm: c.base_radius_mm,
       };
     }
     this.wall_state_history.push(snap);
@@ -12540,10 +12698,26 @@ function topoRender(optOverrideRing) {
   const cx = cssW / 2;
   const cy = (cssH - centerPad) / 2 + 8;
 
-  // Per-cell outer radius in px, plus the Cartesian point for that cell.
+  // Per-cell outer radius in px. Phase 1: each cell has its own
+  // base_radius_mm baked from the Fourier profile, so cellR[i] already
+  // varies cell-to-cell even on a pristine vug. Dissolution stacks on
+  // top via wall_depth. Fallback to initR for snapshots saved before
+  // the Phase-1 schema (base_radius_mm=0 by default).
   const cellR = new Array(N);
   for (let i = 0; i < N; i++) {
-    cellR[i] = (initR + ring0[i].wall_depth) * mmToPx;
+    const cell = ring0[i];
+    const baseR = cell.base_radius_mm > 0 ? cell.base_radius_mm : initR;
+    cellR[i] = (baseR + cell.wall_depth) * mmToPx;
+  }
+
+  // Boundary radii — average the two adjacent cell radii so each cell's
+  // wedge shares its endpoints with its neighbors'. Without this the
+  // outline would render as disconnected circular arcs with radial
+  // "teeth" at every cell boundary once Fourier irregularity is in play.
+  const boundaryR = new Array(N);
+  for (let i = 0; i < N; i++) {
+    const prev = (i - 1 + N) % N;
+    boundaryR[i] = (cellR[prev] + cellR[i]) / 2;
   }
 
   // Find the heaviest crystal on the wall so stroke widths scale to
@@ -12554,38 +12728,55 @@ function topoRender(optOverrideRing) {
 
   const arcStep = 2 * Math.PI / N;
 
-  // Radial wedges: for each occupied cell, fill a band from the wall
-  // inward by (thickness × void_reach) in the class_color. Capped at
-  // TOPO_CRYSTAL_CAP_FRAC so a center void always reads.
+  // Radial wedges: for each occupied cell, fill a polygon that runs
+  // from the shared boundary at a0, through the cell's own midpoint
+  // radius, to the shared boundary at a1, then back on the inner edge.
+  // Using polygons (not arcs) keeps the outer silhouette continuous
+  // across cells with different base_radius_mm. Inner edge mirrors the
+  // outer edge proportionally so the inward band hugs the profile.
   for (let i = 0; i < N; i++) {
     const cell = ring0[i];
     if (cell.crystal_id == null) continue;
     const a0 = _topoAngleFor(i, N) - arcStep / 2;
+    const aMid = _topoAngleFor(i, N);
     const a1 = a0 + arcStep;
-    const rOuter = cellR[i];
+    const rStart = boundaryR[i];
+    const rMid = cellR[i];
+    const rEnd = boundaryR[(i + 1) % N];
     const crystal = sim?.crystals?.find(c => c.crystal_id === cell.crystal_id);
     const voidReach = crystal ? Math.max(crystal.void_reach, 0.05) : 0.5;
     const inwardMm = (cell.thickness_um / 1000.0) * voidReach;
-    const inwardPx = Math.min(inwardMm * mmToPx, rOuter * TOPO_CRYSTAL_CAP_FRAC);
-    const rInner = rOuter - Math.max(inwardPx, TOPO_WALL_STROKE_PX + 1);
+    const inwardPx = Math.min(inwardMm * mmToPx, rMid * TOPO_CRYSTAL_CAP_FRAC);
+    const shrink = (rMid - Math.max(inwardPx, TOPO_WALL_STROKE_PX + 1)) / Math.max(rMid, 0.001);
+    const rStartIn = rStart * shrink;
+    const rMidIn = rMid * shrink;
+    const rEndIn = rEnd * shrink;
     ctx.fillStyle = topoClassColor(cell.mineral);
     ctx.beginPath();
-    ctx.arc(cx, cy, rOuter, a0, a1);
-    ctx.arc(cx, cy, rInner, a1, a0, true);
+    ctx.moveTo(cx + rStart * Math.cos(a0), cy + rStart * Math.sin(a0));
+    ctx.lineTo(cx + rMid * Math.cos(aMid), cy + rMid * Math.sin(aMid));
+    ctx.lineTo(cx + rEnd * Math.cos(a1), cy + rEnd * Math.sin(a1));
+    ctx.lineTo(cx + rEndIn * Math.cos(a1), cy + rEndIn * Math.sin(a1));
+    ctx.lineTo(cx + rMidIn * Math.cos(aMid), cy + rMidIn * Math.sin(aMid));
+    ctx.lineTo(cx + rStartIn * Math.cos(a0), cy + rStartIn * Math.sin(a0));
     ctx.closePath();
     ctx.fill();
   }
 
-  // Wall outline — draw per-cell arc segments so each slice of wall
-  // takes the color of whatever crystal is shielding it. Bare cells
-  // stroke thin amber; occupied cells stroke thicker in the mineral's
-  // class_color, scaled to crystal thickness so chunky coatings read
-  // heavier than microcrystals.
+  // Wall outline — two-segment polyline per cell (boundary → midpoint
+  // → next boundary) so adjacent cells share endpoints and the outline
+  // flows continuously around the irregular Fourier profile. Bare
+  // cells stroke thin amber; occupied cells stroke thicker in the
+  // mineral's class_color, scaled to crystal thickness.
   ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
   for (let i = 0; i < N; i++) {
     const a0 = _topoAngleFor(i, N) - arcStep / 2;
+    const aMid = _topoAngleFor(i, N);
     const a1 = a0 + arcStep;
-    const rOuter = cellR[i];
+    const rStart = boundaryR[i];
+    const rMid = cellR[i];
+    const rEnd = boundaryR[(i + 1) % N];
     const cell = ring0[i];
     let stroke, width;
     if (cell.crystal_id == null) {
@@ -12599,7 +12790,9 @@ function topoRender(optOverrideRing) {
     ctx.strokeStyle = stroke;
     ctx.lineWidth = width;
     ctx.beginPath();
-    ctx.arc(cx, cy, rOuter, a0, a1);
+    ctx.moveTo(cx + rStart * Math.cos(a0), cy + rStart * Math.sin(a0));
+    ctx.lineTo(cx + rMid * Math.cos(aMid), cy + rMid * Math.sin(aMid));
+    ctx.lineTo(cx + rEnd * Math.cos(a1), cy + rEnd * Math.sin(a1));
     ctx.stroke();
   }
 
@@ -12614,7 +12807,9 @@ function topoRender(optOverrideRing) {
       if (host.dissolved || host.wall_center_cell == null) continue;
       const hostCell = ring0[host.wall_center_cell];
       if (!hostCell) continue;
-      const rHostOuter = (initR + hostCell.wall_depth) * mmToPx;
+      // Phase-1 per-cell base radius; fallback for legacy snapshots.
+      const hostBaseR = hostCell.base_radius_mm > 0 ? hostCell.base_radius_mm : initR;
+      const rHostOuter = (hostBaseR + hostCell.wall_depth) * mmToPx;
       const voidReach = Math.max(host.void_reach, 0.05);
       const inwardMm = (hostCell.thickness_um / 1000.0) * voidReach;
       const inwardPx = Math.min(inwardMm * mmToPx, rHostOuter * TOPO_CRYSTAL_CAP_FRAC);
@@ -12740,7 +12935,9 @@ function _topoTooltipFromEvent(ev) {
   const initR = sim.wall_state.initial_radius_mm;
   let maxWallR = sim.wall_state.max_seen_radius_mm || initR * 2;
   for (const c of ring0) {
-    const r = initR + c.wall_depth;
+    // Phase-1 per-cell base radius; fallback for legacy snapshots.
+    const baseR = c.base_radius_mm > 0 ? c.base_radius_mm : initR;
+    const r = baseR + c.wall_depth;
     if (r > maxWallR) maxWallR = r;
   }
   const centerPad = 48;
@@ -12759,7 +12956,9 @@ function _topoTooltipFromEvent(ev) {
   while (a < 0) a += 2 * Math.PI;
   while (a >= 2 * Math.PI) a -= 2 * Math.PI;
   const idx = Math.min(N - 1, Math.max(0, Math.round((a / (2 * Math.PI)) * N) % N));
-  const cellOuterPx = (initR + ring0[idx].wall_depth) * mmToPx;
+  // Phase-1 per-cell base radius; fallback for legacy snapshots.
+  const hitBaseR = ring0[idx].base_radius_mm > 0 ? ring0[idx].base_radius_mm : initR;
+  const cellOuterPx = (hitBaseR + ring0[idx].wall_depth) * mmToPx;
   if (rMouse > cellOuterPx + 10 || rMouse < cellOuterPx * 0.15) {
     tip.style.display = 'none';
     return;
