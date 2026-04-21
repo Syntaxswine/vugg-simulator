@@ -765,6 +765,39 @@ class VugConditions:
             sigma *= math.exp(-0.01 * (300 - self.temperature))
         return max(sigma, 0)
 
+    def supersaturation_spodumene(self) -> float:
+        """Spodumene (LiAlSi₂O₆) supersaturation. Needs Li + Al + SiO₂.
+
+        Monoclinic pyroxene. Lithium is mildly incompatible — builds up
+        late in pegmatite crystallization because no early-stage mineral
+        takes it (elbaite tourmaline takes some later, but that's
+        approximately simultaneous with spodumene). Spodumene + elbaite
+        compete for Li in the residual pocket fluid.
+
+        T window 400–700°C with optimum 450–600°C (higher than beryl —
+        spodumene takes a hotter pocket).
+        """
+        if self.fluid.Li < 8 or self.fluid.Al < 5 or self.fluid.SiO2 < 40:
+            return 0
+        li_f = min(self.fluid.Li / 20.0, 2.0)
+        al_f = min(self.fluid.Al / 10.0, 1.5)
+        si_f = min(self.fluid.SiO2 / 300.0, 1.5)
+        sigma = li_f * al_f * si_f
+        # Temperature window
+        T = self.temperature
+        if 450 <= T <= 600:
+            T_factor = 1.0
+        elif 400 <= T < 450:
+            T_factor = 0.5 + 0.01 * (T - 400)   # 0.5 → 1.0
+        elif 600 < T <= 700:
+            T_factor = max(0.3, 1.0 - 0.007 * (T - 600))
+        elif T > 700:
+            T_factor = 0.2
+        else:
+            T_factor = max(0.1, 0.5 - 0.008 * (400 - T))
+        sigma *= T_factor
+        return max(sigma, 0)
+
     def supersaturation_beryl(self) -> float:
         """Beryl (Be₃Al₂Si₆O₁₈) supersaturation. Needs Be + Al + SiO₂.
 
@@ -2611,6 +2644,86 @@ def grow_beryl(crystal: Crystal, conditions: VugConditions, step: int) -> Option
     )
 
 
+def grow_spodumene(crystal: Crystal, conditions: VugConditions, step: int) -> Optional[GrowthZone]:
+    """Spodumene (LiAlSi₂O₆) growth model.
+
+    Monoclinic pyroxene — the "book shape" flattened tabular prism.
+    Two cleavage directions at ~87° produce the characteristic parting
+    planes; when the crystal survives dissolution events, parting
+    fragments litter the pocket floor.
+
+    Varieties:
+    - Pure/Fe-trace → triphane (yellow-green, the default)
+    - Mn²⁺ → kunzite (pink-lilac, strong SW fluorescence)
+    - Cr³⁺ → hiddenite (green, rarer than kunzite)
+
+    No practical acid dissolution. Can span triphane→kunzite zones
+    if Mn rises mid-growth.
+    """
+    sigma = conditions.supersaturation_spodumene()
+    if sigma < 1.0:
+        return None  # resistant to acids; no dissolution path
+
+    excess = sigma - 1.0
+    rate = 3.5 * excess * random.uniform(0.8, 1.2)
+    if rate < 0.1:
+        return None
+
+    f = conditions.fluid
+
+    # Variety selection. Cr → hiddenite; Mn → kunzite; nothing → triphane
+    if f.Cr > 0.5:
+        variety = "hiddenite"
+        color_note = f"hiddenite green (Cr³⁺ {f.Cr:.2f} ppm)"
+    elif f.Mn > 2.0:
+        variety = "kunzite"
+        color_note = f"kunzite pink-lilac (Mn²⁺ {f.Mn:.1f} ppm — strong SW fluorescence)"
+    elif f.Fe > 10:
+        variety = "triphane_yellow"
+        color_note = f"yellow-green triphane (Fe {f.Fe:.0f} ppm, pale tint)"
+    else:
+        variety = "triphane"
+        color_note = "colorless to pale yellow triphane (pure)"
+
+    crystal.habit = variety
+
+    # Dominant forms — monoclinic pyroxene, flattened tabular habit is
+    # the signature. Two cleavages at ~87° always written into the form
+    # list so narrators can pick it up.
+    T = conditions.temperature
+    if T > 550:
+        crystal.dominant_forms = ["m{110} prism", "a{100} pinacoid", "{110}∧{1̄10} ≈87° prismatic cleavages", "blade"]
+    else:
+        crystal.dominant_forms = ["m{110} prism", "a{100} + b{010} pinacoids", "{110}∧{1̄10} ≈87° cleavages", "flattened tabular 'book'"]
+
+    trace_Fe = f.Fe * 0.008
+    trace_Mn = f.Mn * 0.025   # Mn is a strong spodumene partitioner (kunzite)
+    trace_Al = f.Al * 0.020
+
+    # Deplete fluid — Li is the gate element.
+    f.Li = max(f.Li - rate * 0.020, 0)
+    f.Al = max(f.Al - rate * 0.008, 0)
+    f.SiO2 = max(f.SiO2 - rate * 0.020, 0)
+    if variety == "kunzite":
+        f.Mn = max(f.Mn - rate * 0.010, 0)
+    elif variety == "hiddenite":
+        f.Cr = max(f.Cr - rate * 0.004, 0)
+
+    parts = [color_note]
+    parts.append("~87° pyroxene cleavage direction established")
+    if excess > 1.0:
+        parts.append("rapid growth — more color-causing impurity trapped")
+    elif excess < 0.2:
+        parts.append("near-equilibrium — clean gem-grade interior")
+
+    return GrowthZone(
+        step=step, temperature=conditions.temperature,
+        thickness_um=rate, growth_rate=rate,
+        trace_Fe=trace_Fe, trace_Mn=trace_Mn, trace_Al=trace_Al,
+        note=", ".join(parts),
+    )
+
+
 def grow_galena(crystal: Crystal, conditions: VugConditions, step: int) -> Optional[GrowthZone]:
     """Galena (PbS) growth. Cubic lead sulfide, bright metallic luster, very dense."""
     sigma = conditions.supersaturation_galena()
@@ -2995,6 +3108,7 @@ MINERAL_ENGINES = {
     "topaz": grow_topaz,
     "tourmaline": grow_tourmaline,
     "beryl": grow_beryl,
+    "spodumene": grow_spodumene,
 }
 
 
@@ -3964,6 +4078,8 @@ class VugSimulator:
             crystal.dominant_forms = ["m{10̄10} trigonal prism", "striated faces", "slightly rounded triangular cross-section"]
         elif mineral == "beryl":
             crystal.dominant_forms = ["m{10̄10} hex prism", "c{0001} flat basal pinacoid"]
+        elif mineral == "spodumene":
+            crystal.dominant_forms = ["m{110} prism", "a{100} + b{010} pinacoids", "~87° pyroxene cleavages"]
         self.crystals.append(crystal)
         return crystal
 
@@ -4308,6 +4424,32 @@ class VugSimulator:
             c = self.nucleate("selenite", position="vug wall", sigma=sigma_sel)
             self.log.append(f"  ✦ NUCLEATION: Selenite #{c.crystal_id} on {c.position} "
                           f"(T={self.conditions.temperature:.0f}°C, σ={sigma_sel:.2f})")
+
+        # Spodumene nucleation — Li + Al + SiO₂ (Li-gated).
+        # Lithium is mildly incompatible — accumulates late in pegmatite
+        # crystallization. Spodumene competes with elbaite tourmaline for
+        # Li; whichever threshold fires first depending on which other
+        # ingredients are available (B for tourmaline, SiO₂ window for
+        # spodumene). max_nucleation_count=4 keeps it realistic.
+        sigma_spd = self.conditions.supersaturation_spodumene()
+        existing_spd = [c for c in self.crystals if c.mineral == "spodumene" and c.active]
+        if sigma_spd > 1.5 and not self._at_nucleation_cap("spodumene"):
+            if not existing_spd or (sigma_spd > 2.5 and random.random() < 0.15):
+                pos = "vug wall"
+                existing_feldspar_spd = [c for c in self.crystals if c.mineral == "feldspar" and c.active]
+                if existing_quartz and random.random() < 0.35:
+                    pos = f"on quartz #{existing_quartz[0].crystal_id}"
+                elif existing_feldspar_spd and random.random() < 0.35:
+                    pos = f"on feldspar #{existing_feldspar_spd[0].crystal_id}"
+                c = self.nucleate("spodumene", position=pos, sigma=sigma_spd)
+                f = self.conditions.fluid
+                if f.Cr > 0.5: tag = "hiddenite"
+                elif f.Mn > 2.0: tag = "kunzite"
+                elif f.Fe > 10: tag = "triphane-yellow"
+                else: tag = "triphane"
+                self.log.append(f"  ✦ NUCLEATION: Spodumene #{c.crystal_id} ({tag}) on {c.position} "
+                              f"(T={self.conditions.temperature:.0f}°C, σ={sigma_spd:.2f}, "
+                              f"Li={f.Li:.0f} ppm, Mn={f.Mn:.1f}, Cr={f.Cr:.2f})")
 
         # Beryl nucleation — Be + Al + SiO₂ (Be-gated, high σ threshold).
         # Beryllium is the most incompatible common element: no other
@@ -6457,6 +6599,64 @@ class VugSimulator:
                 "resistant, but fluoride-rich acid fluids will eventually "
                 "eat it, releasing Be²⁺ and SiO₂ back to the pocket."
             )
+
+        return " ".join(parts)
+
+    def _narrate_spodumene(self, c: Crystal) -> str:
+        """Narrate a spodumene crystal — the lithium pyroxene book."""
+        parts = [f"Spodumene #{c.crystal_id} grew to {c.c_length_mm:.1f} mm."]
+
+        parts.append(
+            "LiAlSi₂O₆ — monoclinic pyroxene. Two cleavage directions "
+            "intersect at ~87°, and that's the diagnostic feature: when "
+            "spodumene survives dissolution events, parting fragments from "
+            "those cleavage planes litter the pocket floor. The 'book "
+            "shape' flattened tabular habit is the signature. Can reach 14 "
+            "meters in real pegmatites (Etta mine, South Dakota) — among "
+            "the longest single crystals on Earth."
+        )
+
+        # Variety detection
+        zone_notes = [z.note or "" for z in c.zones]
+        varieties = set()
+        for n in zone_notes:
+            if "kunzite" in n: varieties.add("kunzite")
+            if "hiddenite" in n: varieties.add("hiddenite")
+            if "triphane" in n: varieties.add("triphane")
+
+        if "kunzite" in varieties:
+            parts.append(
+                "Kunzite — the pink-lilac Mn²⁺ variety, named for George "
+                "Kunz, Tiffany & Co.'s mineralogist who bought Minas Gerais "
+                "specimens by the crate in the early 1900s. Kunzite "
+                "fluoresces strongly pink-orange under SW UV, a diagnostic "
+                "test no other pink gem material passes. Color depth "
+                "correlates with growth rate — faster growth traps more "
+                "color-causing impurity."
+            )
+        elif "hiddenite" in varieties:
+            parts.append(
+                "Hiddenite — the green Cr³⁺ variety, named for William Earl "
+                "Hidden, who discovered the North Carolina locality in 1879. "
+                "Much rarer than kunzite because Cr³⁺ needs to diffuse from "
+                "country rock into the pegmatite fluid at just the right "
+                "moment. Minas Gerais produces the world's best hiddenite."
+            )
+        elif "triphane" in varieties:
+            parts.append(
+                "Triphane — pale yellow-green or colorless, the iron-trace "
+                "end-member. The name means 'three-appearing' (Greek), for "
+                "the dichroism that shifts the hue depending on viewing "
+                "angle. The default spodumene species when no strong "
+                "chromophore is present."
+            )
+
+        parts.append(
+            "A cross-section of this crystal perpendicular to the c-axis "
+            "would show the pyroxene chain silicate structure: SiO₄ "
+            "tetrahedra linked into single chains along c, with Li and Al "
+            "occupying the M1 and M2 octahedral sites between them."
+        )
 
         return " ".join(parts)
 

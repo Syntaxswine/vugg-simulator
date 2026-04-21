@@ -2973,6 +2973,7 @@ const MINERAL_SPEC_FALLBACK = {
   topaz: { formula: "Al2SiO4(F,OH)2", nucleation_sigma: 1.4, max_size_cm: 200, growth_rate_mult: 0.3, thermal_decomp_C: null, fluorescence: { activator: "trace Ti", threshold_ppm: 2, color: "weak_greenish_LW" }, twin_laws: [], acid_dissolution: { pH_threshold: 2.0 } },
   tourmaline: { formula: "Na(Fe,Li,Al)3Al6(BO3)3Si6O18(OH)4", nucleation_sigma: 1.3, max_size_cm: 300, growth_rate_mult: 0.4, thermal_decomp_C: null, fluorescence: null, twin_laws: [], acid_dissolution: null },
   beryl: { formula: "Be3Al2Si6O18", nucleation_sigma: 1.8, max_size_cm: 1200, growth_rate_mult: 0.25, thermal_decomp_C: null, fluorescence: null, twin_laws: [], acid_dissolution: null },
+  spodumene: { formula: "LiAlSi2O6", nucleation_sigma: 1.5, max_size_cm: 1400, growth_rate_mult: 0.35, thermal_decomp_C: null, fluorescence: { activator: "Mn", threshold_ppm: 2, color: "strong_pink_orange_SW" }, twin_laws: [], acid_dissolution: null },
 };
 
 // Live spec — swapped in by the fetch below if data/minerals.json loads.
@@ -3881,6 +3882,26 @@ class VugConditions {
     if (this.fluid.Na < 10 || this.fluid.Al < 3 || this.fluid.SiO2 < 200) return 0;
     let sigma = (this.fluid.Na / 35.0) * (this.fluid.Al / 10.0) * (this.fluid.SiO2 / 400.0);
     if (this.temperature < 300) sigma *= Math.exp(-0.01 * (300 - this.temperature));
+    return Math.max(sigma, 0);
+  }
+
+  // Spodumene (LiAlSi₂O₆) — Li-gated monoclinic pyroxene. Kunzite (Mn²⁺
+  // pink), hiddenite (Cr³⁺ green), triphane (pure/yellow). T window
+  // 400–700°C with optimum 450–600°C (hotter than beryl's window).
+  supersaturation_spodumene() {
+    if (this.fluid.Li < 8 || this.fluid.Al < 5 || this.fluid.SiO2 < 40) return 0;
+    const li_f = Math.min(this.fluid.Li / 20.0, 2.0);
+    const al_f = Math.min(this.fluid.Al / 10.0, 1.5);
+    const si_f = Math.min(this.fluid.SiO2 / 300.0, 1.5);
+    let sigma = li_f * al_f * si_f;
+    const T = this.temperature;
+    let T_factor;
+    if (T >= 450 && T <= 600) T_factor = 1.0;
+    else if (T >= 400 && T < 450) T_factor = 0.5 + 0.01 * (T - 400);
+    else if (T > 600 && T <= 700) T_factor = Math.max(0.3, 1.0 - 0.007 * (T - 600));
+    else if (T > 700) T_factor = 0.2;
+    else T_factor = Math.max(0.1, 0.5 - 0.008 * (400 - T));
+    sigma *= T_factor;
     return Math.max(sigma, 0);
   }
 
@@ -5283,6 +5304,61 @@ function grow_albite(crystal, conditions, step) {
   return new GrowthZone({ step, temperature: conditions.temperature, thickness_um: rate, growth_rate: rate, trace_Al: conditions.fluid.Al * 0.03, note });
 }
 
+function grow_spodumene(crystal, conditions, step) {
+  // Spodumene (LiAlSi₂O₆) — monoclinic pyroxene, "book shape" flattened
+  // tabular habit, two ~87° cleavages. No practical acid dissolution.
+  const sigma = conditions.supersaturation_spodumene();
+  if (sigma < 1.0) return null;
+  const excess = sigma - 1.0;
+  const rate = 3.5 * excess * rng.uniform(0.8, 1.2);
+  if (rate < 0.1) return null;
+
+  const f = conditions.fluid;
+  let variety, color_note;
+  if (f.Cr > 0.5) {
+    variety = 'hiddenite';
+    color_note = `hiddenite green (Cr³⁺ ${f.Cr.toFixed(2)} ppm)`;
+  } else if (f.Mn > 2.0) {
+    variety = 'kunzite';
+    color_note = `kunzite pink-lilac (Mn²⁺ ${f.Mn.toFixed(1)} ppm — strong SW fluorescence)`;
+  } else if (f.Fe > 10) {
+    variety = 'triphane_yellow';
+    color_note = `yellow-green triphane (Fe ${f.Fe.toFixed(0)} ppm, pale tint)`;
+  } else {
+    variety = 'triphane';
+    color_note = 'colorless to pale yellow triphane (pure)';
+  }
+
+  crystal.habit = variety;
+  const T = conditions.temperature;
+  if (T > 550) {
+    crystal.dominant_forms = ['m{110} prism', 'a{100} pinacoid', '{110}∧{1̄10} ≈87° prismatic cleavages', 'blade'];
+  } else {
+    crystal.dominant_forms = ['m{110} prism', 'a{100} + b{010} pinacoids', '{110}∧{1̄10} ≈87° cleavages', 'flattened tabular "book"'];
+  }
+
+  const trace_Fe = f.Fe * 0.008;
+  const trace_Mn = f.Mn * 0.025;
+  const trace_Al = f.Al * 0.020;
+
+  f.Li = Math.max(f.Li - rate * 0.020, 0);
+  f.Al = Math.max(f.Al - rate * 0.008, 0);
+  f.SiO2 = Math.max(f.SiO2 - rate * 0.020, 0);
+  if (variety === 'kunzite') f.Mn = Math.max(f.Mn - rate * 0.010, 0);
+  else if (variety === 'hiddenite') f.Cr = Math.max(f.Cr - rate * 0.004, 0);
+
+  const parts = [color_note, '~87° pyroxene cleavage direction established'];
+  if (excess > 1.0) parts.push('rapid growth — more color-causing impurity trapped');
+  else if (excess < 0.2) parts.push('near-equilibrium — clean gem-grade interior');
+
+  return new GrowthZone({
+    step, temperature: conditions.temperature,
+    thickness_um: rate, growth_rate: rate,
+    trace_Fe, trace_Mn, trace_Al,
+    note: parts.join(', '),
+  });
+}
+
 function grow_beryl(crystal, conditions, step) {
   // Beryl (Be₃Al₂Si₆O₁₈). Dissolves only in strong HF. Variety flag set
   // per growth zone from current fluid chemistry; a single crystal can
@@ -5557,6 +5633,7 @@ const MINERAL_ENGINES = {
   topaz: grow_topaz,
   tourmaline: grow_tourmaline,
   beryl: grow_beryl,
+  spodumene: grow_spodumene,
 };
 
 function grow_adamite(crystal, conditions, step) {
@@ -6069,6 +6146,8 @@ class VugSimulator {
       crystal.dominant_forms = ['m{10̄10} trigonal prism', 'striated faces', 'slightly rounded triangular cross-section'];
     } else if (mineral === 'beryl') {
       crystal.dominant_forms = ['m{10̄10} hex prism', 'c{0001} flat basal pinacoid'];
+    } else if (mineral === 'spodumene') {
+      crystal.dominant_forms = ['m{110} prism', 'a{100} + b{010} pinacoids', '~87° pyroxene cleavages'];
     }
     this.crystals.push(crystal);
     return crystal;
@@ -6487,6 +6566,34 @@ class VugSimulator {
       }
       const c = this.nucleate('mimetite', pos, sigma_mim);
       this.log.push(`  ✦ NUCLEATION: Mimetite #${c.crystal_id} on ${c.position} (T=${this.conditions.temperature.toFixed(0)}°C, σ=${sigma_mim.toFixed(2)})`);
+    }
+
+    // Spodumene nucleation — Li + Al + SiO₂ (Li-gated, σ > 1.5).
+    // Lithium competes with elbaite tourmaline for the same fluid Li —
+    // spodumene also needs a hotter fluid (T > 400°C), so pocket
+    // paragenesis tends to see schorl → spodumene → elbaite as the
+    // fluid cools and Li remains. max_nucleation_count=4.
+    const sigma_spd = this.conditions.supersaturation_spodumene();
+    const existing_spd = this.crystals.filter(c => c.mineral === 'spodumene' && c.active);
+    if (sigma_spd > 1.5 && !this._atNucleationCap('spodumene')) {
+      if (!existing_spd.length || (sigma_spd > 2.5 && rng.random() < 0.15)) {
+        let pos = 'vug wall';
+        const existing_qtz_spd = this.crystals.filter(c => c.mineral === 'quartz' && c.active);
+        const existing_feld_spd = this.crystals.filter(c => c.mineral === 'feldspar' && c.active);
+        if (existing_qtz_spd.length && rng.random() < 0.35) {
+          pos = `on quartz #${existing_qtz_spd[0].crystal_id}`;
+        } else if (existing_feld_spd.length && rng.random() < 0.35) {
+          pos = `on feldspar #${existing_feld_spd[0].crystal_id}`;
+        }
+        const c = this.nucleate('spodumene', pos, sigma_spd);
+        const f = this.conditions.fluid;
+        let tag;
+        if (f.Cr > 0.5) tag = 'hiddenite';
+        else if (f.Mn > 2.0) tag = 'kunzite';
+        else if (f.Fe > 10) tag = 'triphane-yellow';
+        else tag = 'triphane';
+        this.log.push(`  ✦ NUCLEATION: Spodumene #${c.crystal_id} (${tag}) on ${c.position} (T=${this.conditions.temperature.toFixed(0)}°C, σ=${sigma_spd.toFixed(2)}, Li=${f.Li.toFixed(0)} ppm, Mn=${f.Mn.toFixed(1)}, Cr=${f.Cr.toFixed(2)})`);
+      }
     }
 
     // Beryl nucleation — Be + Al + SiO₂ (Be-gated, high σ threshold 1.8).
@@ -7576,6 +7683,30 @@ class VugSimulator {
       parts.push('HF-assisted dissolution etched the surface — beryl is very resistant, but fluoride-rich acid fluids will eventually eat it, releasing Be²⁺ and SiO₂ back to the pocket.');
     }
 
+    return parts.join(' ');
+  }
+
+  _narrate_spodumene(c) {
+    const parts = [`Spodumene #${c.crystal_id} grew to ${c.c_length_mm.toFixed(1)} mm.`];
+    parts.push("LiAlSi₂O₆ — monoclinic pyroxene. Two cleavage directions intersect at ~87°, and that's the diagnostic feature: when spodumene survives dissolution events, parting fragments from those cleavage planes litter the pocket floor. The 'book shape' flattened tabular habit is the signature. Can reach 14 meters in real pegmatites (Etta mine, South Dakota) — among the longest single crystals on Earth.");
+
+    const notes = c.zones.map(z => (z.note || '').toLowerCase());
+    const varieties = new Set();
+    for (const n of notes) {
+      if (n.includes('kunzite')) varieties.add('kunzite');
+      if (n.includes('hiddenite')) varieties.add('hiddenite');
+      if (n.includes('triphane')) varieties.add('triphane');
+    }
+
+    if (varieties.has('kunzite')) {
+      parts.push("Kunzite — the pink-lilac Mn²⁺ variety, named for George Kunz, Tiffany & Co.'s mineralogist who bought Minas Gerais specimens by the crate in the early 1900s. Kunzite fluoresces strongly pink-orange under SW UV, a diagnostic test no other pink gem material passes. Color depth correlates with growth rate — faster growth traps more color-causing impurity.");
+    } else if (varieties.has('hiddenite')) {
+      parts.push('Hiddenite — the green Cr³⁺ variety, named for William Earl Hidden, who discovered the North Carolina locality in 1879. Much rarer than kunzite because Cr³⁺ needs to diffuse from country rock into the pegmatite fluid at just the right moment. Minas Gerais produces the world\u2019s best hiddenite.');
+    } else if (varieties.has('triphane')) {
+      parts.push("Triphane — pale yellow-green or colorless, the iron-trace end-member. The name means 'three-appearing' (Greek), for the dichroism that shifts the hue depending on viewing angle. The default spodumene species when no strong chromophore is present.");
+    }
+
+    parts.push('A cross-section of this crystal perpendicular to the c-axis would show the pyroxene chain silicate structure: SiO₄ tetrahedra linked into single chains along c, with Li and Al occupying the M1 and M2 octahedral sites between them.');
     return parts.join(' ');
   }
 

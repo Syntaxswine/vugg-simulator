@@ -38,8 +38,8 @@
     "class_color": "Hex color for topographic map visualization. Derived from mineral class — all classes of the same type share one hue on a 12-color wheel (30° spacing). Wall/matrix = #D2691E (amber)."
   },
   "_audit_summary": {
-    "total_minerals": 22,
-    "_note": "Post-phase-2 state. The _initial_audit block below is frozen at phase-1 start for historical reference — do not edit. +topaz (Minas Gerais B), +tourmaline + beryl (Minas Gerais A — commits 1 and 2).",
+    "total_minerals": 23,
+    "_note": "Post-phase-2 state. The _initial_audit block below is frozen at phase-1 start for historical reference — do not edit. +topaz (Minas Gerais B), +tourmaline/beryl/spodumene (Minas Gerais A — commits 1-3).",
     "missing_growth_engine": [],
     "missing_narrate_function": [],
     "missing_from_vugg_py_registry": [],
@@ -47,7 +47,8 @@
     "missing_from_agent_api": [
       "topaz",
       "tourmaline",
-      "beryl"
+      "beryl",
+      "spodumene"
     ],
     "scenarios_that_can_nucleate": {
       "cooling": [
@@ -89,7 +90,8 @@
         "albite",
         "galena",
         "tourmaline",
-        "beryl"
+        "beryl",
+        "spodumene"
       ],
       "supergene_oxidation": [
         "goethite",
@@ -2530,6 +2532,109 @@
         "web/index.html"
       ],
       "audit_status": "new (Minas Gerais Variant A, beryl). First Be consumer — Be is the incompatible element that accumulates forever until beryl threshold. Not yet in agent-api/vugg-agent.js.",
+      "class_color": "#1313eb"
+    },
+    "spodumene": {
+      "formula": "LiAlSi2O6",
+      "nucleation_sigma": 1.5,
+      "max_nucleation_count": 4,
+      "max_size_cm": 1400,
+      "growth_rate_mult": 0.35,
+      "habit_variants": [
+        {
+          "name": "tabular_prism_book",
+          "wall_spread": 0.2,
+          "void_reach": 0.85,
+          "vector": "projecting",
+          "trigger": "low σ, moderate T, Li available"
+        },
+        {
+          "name": "elongated_blade",
+          "wall_spread": 0.15,
+          "void_reach": 0.9,
+          "vector": "projecting",
+          "trigger": "low σ, high T, sustained Li supply"
+        },
+        {
+          "name": "stubby_equant",
+          "wall_spread": 0.4,
+          "void_reach": 0.5,
+          "vector": "equant",
+          "trigger": "moderate-high σ, high T"
+        },
+        {
+          "name": "default_tabular_book",
+          "wall_spread": 0.25,
+          "void_reach": 0.8,
+          "vector": "projecting",
+          "trigger": "default — flattened tabular prism (book shape)"
+        }
+      ],
+      "class": "silicate",
+      "description": "LiAlSi₂O₆ — monoclinic pyroxene. Flattened tabular prisms that read as 'book' shape, with two cleavage directions at ~87° producing characteristic parting. Can reach 14 meters — among the longest single crystals on Earth (Etta mine, South Dakota). Lithium accumulates late in pegmatite crystallization because no early mineral takes it, so spodumene is the residual-fluid signature. Kunzite (pink-lilac) from Mn²⁺ substitution shows strong pink-orange SW fluorescence. Hiddenite (green) from Cr³⁺ is rarer. Named for George Kunz, Tiffany's mineralogist, who bought Minas Gerais specimens by the crate.",
+      "scenarios": [
+        "gem_pegmatite",
+        "radioactive_pegmatite"
+      ],
+      "T_range_C": [
+        400,
+        700
+      ],
+      "T_optimum_C": [
+        450,
+        600
+      ],
+      "T_behavior": "window",
+      "pH_dissolution_below": null,
+      "pH_dissolution_above": null,
+      "redox_requirement": "any",
+      "required_ingredients": {
+        "Li": 8,
+        "Al": 5,
+        "SiO2": 40
+      },
+      "trace_ingredients": {
+        "Mn": "kunzite (pink-lilac) with strong SW fluorescence",
+        "Cr": "hiddenite (green), rarer",
+        "Fe": "yellow-brown cast in triphane"
+      },
+      "thermal_decomp_C": null,
+      "thermal_decomp_reaction": null,
+      "thermal_decomp_products": null,
+      "fluorescence": {
+        "activator": "Mn",
+        "threshold_ppm": 2,
+        "color": "strong_pink_orange_SW",
+        "quencher": null,
+        "note": "kunzite variety; hiddenite shows weaker orange-red"
+      },
+      "twin_laws": [],
+      "acid_dissolution": {
+        "pH_threshold": null,
+        "reaction": "resistant to common acids",
+        "products": null
+      },
+      "habit": "tabular_prism",
+      "color_rules": {
+        "yellow_triphane": {
+          "default": true
+        },
+        "pink_kunzite": {
+          "trigger": "Mn > 2 ppm"
+        },
+        "green_hiddenite": {
+          "trigger": "Cr > 0.5 ppm"
+        },
+        "colorless": {
+          "trigger": "pure, no chromophore"
+        }
+      },
+      "narrate_function": "_narrate_spodumene",
+      "runtimes_present": [
+        "vugg.py",
+        "web/index.html"
+      ],
+      "audit_status": "new (Minas Gerais Variant A, spodumene). First Li consumer — Li has been tracked as pegmatite trace since phase-2 but had no sink until now. Not yet in agent-api/vugg-agent.js.",
       "class_color": "#1313eb"
     }
   }
