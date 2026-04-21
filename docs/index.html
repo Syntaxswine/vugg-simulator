@@ -10264,7 +10264,7 @@ function topoClassColor(mineral) {
 let _topoLegendBuilt = false;
 function topoBuildLegend() {
   const host = document.getElementById('topo-legend');
-  if (!host || _topoLegendBuilt) return;
+  if (!host) return;
   // Pull the class→hex mapping from the spec (any mineral of that class
   // works) so the palette is the single source of truth.
   const classColor = {};
@@ -10273,6 +10273,10 @@ function topoBuildLegend() {
       classColor[m.class] = m.class_color;
     }
   }
+  // The first call can land while MINERAL_SPEC is still the fallback
+  // object — no class_color fields there. Rebuild each call until the
+  // real spec has loaded; only then latch.
+  if (_topoLegendBuilt && Object.keys(classColor).length > 0) return;
   // Wall first, then the 12 classes in palette order.
   const entries = [['wall', TOPO_WALL_COLOR]];
   for (const cls of TOPO_CLASS_ORDER) {
@@ -10281,7 +10285,7 @@ function topoBuildLegend() {
   host.innerHTML = entries.map(([label, color]) =>
     `<span class="topo-legend-entry"><span class="topo-legend-swatch" style="background:${color}"></span>${label}</span>`
   ).join('');
-  _topoLegendBuilt = true;
+  if (Object.keys(classColor).length > 0) _topoLegendBuilt = true;
 }
 
 // Resize the canvas backing store to match its CSS size so the line is
