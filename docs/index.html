@@ -2903,6 +2903,14 @@ Scenarios:
       </select>
     </div>
     <div class="filter-group">
+      <label for="lib-collected">Collected</label>
+      <select id="lib-collected" onchange="libraryRender()">
+        <option value="all">All minerals</option>
+        <option value="yes">Collected only</option>
+        <option value="no">Not yet collected</option>
+      </select>
+    </div>
+    <div class="filter-group">
       <label for="lib-temp">Temperature</label>
       <select id="lib-temp" onchange="libraryRender()">
         <option value="all">Any</option>
@@ -10256,7 +10264,7 @@ function libraryInit() {
 }
 
 function libraryResetFilters() {
-  ['lib-class','lib-fluor','lib-temp','lib-element','lib-scenario'].forEach(id => { const el = document.getElementById(id); if (el) el.value = 'all'; });
+  ['lib-class','lib-fluor','lib-collected','lib-temp','lib-element','lib-scenario'].forEach(id => { const el = document.getElementById(id); if (el) el.value = 'all'; });
   const s = document.getElementById('lib-search'); if (s) s.value = '';
   libraryRender();
 }
@@ -10265,6 +10273,11 @@ function libraryMatches(mineral, m, filters) {
   if (filters.cls !== 'all' && m.class !== filters.cls) return false;
   if (filters.fluor === 'yes' && !m.fluorescence) return false;
   if (filters.fluor === 'no'  && m.fluorescence) return false;
+  if (filters.collected && filters.collected !== 'all') {
+    const isCollected = filters.collectedSet && filters.collectedSet.has(mineral);
+    if (filters.collected === 'yes' && !isCollected) return false;
+    if (filters.collected === 'no'  && isCollected)  return false;
+  }
   if (filters.temp !== 'all') {
     const range = m.T_range_C || [0, 1000];
     const opt = m.T_optimum_C || range;
@@ -10401,12 +10414,16 @@ function libraryRender() {
     return;
   }
   const filters = {
-    cls:      document.getElementById('lib-class').value,
-    fluor:    document.getElementById('lib-fluor').value,
-    temp:     document.getElementById('lib-temp').value,
-    element:  document.getElementById('lib-element').value,
-    scenario: document.getElementById('lib-scenario').value,
-    search:   document.getElementById('lib-search').value.trim(),
+    cls:          document.getElementById('lib-class').value,
+    fluor:        document.getElementById('lib-fluor').value,
+    collected:    document.getElementById('lib-collected').value,
+    temp:         document.getElementById('lib-temp').value,
+    element:      document.getElementById('lib-element').value,
+    scenario:     document.getElementById('lib-scenario').value,
+    search:       document.getElementById('lib-search').value.trim(),
+    // Precompute the collected set once per render so libraryMatches
+    // doesn't thrash localStorage + JSON.parse for every mineral.
+    collectedSet: uniqueCollectedMinerals(),
   };
   const entries = Object.entries(MINERAL_SPEC)
     .filter(([name, m]) => libraryMatches(name, m, filters))
