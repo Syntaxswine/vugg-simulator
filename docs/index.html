@@ -5673,6 +5673,21 @@ class VugSimulator {
     return (occupied / ring0.length) >= 0.5;
   }
 
+  _atNucleationCap(mineral) {
+    // True if the mineral has hit its spec max_nucleation_count. Counts
+    // every crystal of this species ever nucleated in the run (active +
+    // enclosed + dissolved) — without this, enclosure lets a fresh one
+    // re-nucleate every step and the vug fills with hundreds of
+    // identical chadacrysts.
+    const cap = MINERAL_SPEC[mineral]?.max_nucleation_count;
+    if (cap == null) return false;
+    let n = 0;
+    for (const c of this.crystals) {
+      if (c.mineral === mineral) { n++; if (n >= cap) return true; }
+    }
+    return false;
+  }
+
   _assignWallCell(position) {
     // Host-substrate overgrowths inherit the host's cell; free-wall
     // nucleations claim a random empty cell (or a random cell at all
@@ -5766,7 +5781,7 @@ class VugSimulator {
     if (vugFill !== undefined && vugFill >= 0.95) return;
     const sigma_q = this.conditions.supersaturation_quartz();
     const existing_quartz = this.crystals.filter(c => c.mineral === 'quartz' && c.active);
-    if (sigma_q > 1.2 && existing_quartz.length < 3) {
+    if (sigma_q > 1.2 && existing_quartz.length < 3 && !this._atNucleationCap('quartz')) {
       if (!existing_quartz.length || (sigma_q > 2.0 && rng.random() < 0.3)) {
         const c = this.nucleate('quartz', 'vug wall', sigma_q);
         this.log.push(`  ✦ NUCLEATION: Quartz #${c.crystal_id} on ${c.position} (T=${this.conditions.temperature.toFixed(0)}°C, σ=${sigma_q.toFixed(2)})`);
@@ -5775,21 +5790,21 @@ class VugSimulator {
 
     const sigma_c = this.conditions.supersaturation_calcite();
     const existing_calcite = this.crystals.filter(c => c.mineral === 'calcite' && c.active);
-    if (sigma_c > 1.3 && !existing_calcite.length) {
+    if (sigma_c > 1.3 && !existing_calcite.length && !this._atNucleationCap('calcite')) {
       const c = this.nucleate('calcite', 'vug wall', sigma_c);
       this.log.push(`  ✦ NUCLEATION: Calcite #${c.crystal_id} on ${c.position} (T=${this.conditions.temperature.toFixed(0)}°C, σ=${sigma_c.toFixed(2)})`);
     }
 
     const sigma_s = this.conditions.supersaturation_sphalerite();
     const existing_sph = this.crystals.filter(c => c.mineral === 'sphalerite' && c.active);
-    if (sigma_s > 1.0 && !existing_sph.length) {
+    if (sigma_s > 1.0 && !existing_sph.length && !this._atNucleationCap('sphalerite')) {
       const c = this.nucleate('sphalerite', 'vug wall', sigma_s);
       this.log.push(`  ✦ NUCLEATION: Sphalerite #${c.crystal_id} on ${c.position} (T=${this.conditions.temperature.toFixed(0)}°C, σ=${sigma_s.toFixed(2)})`);
     }
 
     const sigma_f = this.conditions.supersaturation_fluorite();
     const existing_fl = this.crystals.filter(c => c.mineral === 'fluorite' && c.active);
-    if (sigma_f > 1.2 && !existing_fl.length) {
+    if (sigma_f > 1.2 && !existing_fl.length && !this._atNucleationCap('fluorite')) {
       const c = this.nucleate('fluorite', 'vug wall', sigma_f);
       this.log.push(`  ✦ NUCLEATION: Fluorite #${c.crystal_id} on ${c.position}`);
     }
@@ -5797,7 +5812,7 @@ class VugSimulator {
     // Pyrite nucleation
     const sigma_py = this.conditions.supersaturation_pyrite();
     const existing_py = this.crystals.filter(c => c.mineral === 'pyrite' && c.active);
-    if (sigma_py > 1.0 && !existing_py.length) {
+    if (sigma_py > 1.0 && !existing_py.length && !this._atNucleationCap('pyrite')) {
       let pos = 'vug wall';
       const existing_sph2 = this.crystals.filter(c => c.mineral === 'sphalerite' && c.active);
       if (existing_sph2.length && rng.random() < 0.5) {
@@ -5810,7 +5825,7 @@ class VugSimulator {
     // Chalcopyrite nucleation
     const sigma_cp = this.conditions.supersaturation_chalcopyrite();
     const existing_cp = this.crystals.filter(c => c.mineral === 'chalcopyrite' && c.active);
-    if (sigma_cp > 1.0 && !existing_cp.length) {
+    if (sigma_cp > 1.0 && !existing_cp.length && !this._atNucleationCap('chalcopyrite')) {
       let pos = 'vug wall';
       if (existing_py.length && rng.random() < 0.4) {
         pos = `on pyrite #${existing_py[0].crystal_id}`;
@@ -5823,7 +5838,7 @@ class VugSimulator {
     const sigma_hem = this.conditions.supersaturation_hematite();
     const existing_hem = this.crystals.filter(c => c.mineral === 'hematite' && c.active);
     const total_hem = this.crystals.filter(c => c.mineral === 'hematite').length;
-    if (sigma_hem > 1.2 && !existing_hem.length && total_hem < 3) {
+    if (sigma_hem > 1.2 && !existing_hem.length && total_hem < 3 && !this._atNucleationCap('hematite')) {
       let pos = 'vug wall';
       if (existing_quartz.length && rng.random() < 0.4) {
         pos = `on quartz #${existing_quartz[0].crystal_id}`;
@@ -5836,7 +5851,7 @@ class VugSimulator {
     const sigma_mal = this.conditions.supersaturation_malachite();
     const existing_mal = this.crystals.filter(c => c.mineral === 'malachite' && c.active);
     const total_mal = this.crystals.filter(c => c.mineral === 'malachite').length;
-    if (sigma_mal > 1.0 && !existing_mal.length && total_mal < 3) {
+    if (sigma_mal > 1.0 && !existing_mal.length && total_mal < 3 && !this._atNucleationCap('malachite')) {
       let pos = 'vug wall';
       // Preference for chalcopyrite surface (classic oxidation paragenesis!)
       const dissolving_cp = this.crystals.filter(c => c.mineral === 'chalcopyrite' && c.dissolved);
@@ -5856,7 +5871,7 @@ class VugSimulator {
     const sigma_urn = this.conditions.supersaturation_uraninite();
     const existing_urn = this.crystals.filter(c => c.mineral === 'uraninite' && c.active);
     const total_urn = this.crystals.filter(c => c.mineral === 'uraninite').length;
-    if (sigma_urn > 1.5 && existing_urn.length < 3 && total_urn < 5) {
+    if (sigma_urn > 1.5 && existing_urn.length < 3 && total_urn < 5 && !this._atNucleationCap('uraninite')) {
       if (!existing_urn.length || (sigma_urn > 2.5 && rng.random() < 0.3)) {
         const c = this.nucleate('uraninite', 'vug wall', sigma_urn);
         this.log.push(`  ✦ NUCLEATION: ☢️ Uraninite #${c.crystal_id} on ${c.position} (T=${this.conditions.temperature.toFixed(0)}°C, σ=${sigma_urn.toFixed(2)}) — radioactive!`);
@@ -5867,7 +5882,7 @@ class VugSimulator {
     const sigma_sm = this.conditions.supersaturation_smithsonite();
     const existing_sm = this.crystals.filter(c => c.mineral === 'smithsonite' && c.active);
     const total_sm = this.crystals.filter(c => c.mineral === 'smithsonite').length;
-    if (sigma_sm > 1.0 && !existing_sm.length && total_sm < 3) {
+    if (sigma_sm > 1.0 && !existing_sm.length && total_sm < 3 && !this._atNucleationCap('smithsonite')) {
       let pos = 'vug wall';
       // Prefers to nucleate on dissolved sphalerite — classic oxidation zone paragenesis
       const dissolved_sph = this.crystals.filter(c => c.mineral === 'sphalerite' && c.dissolved);
@@ -5885,7 +5900,7 @@ class VugSimulator {
     const sigma_wulf = this.conditions.supersaturation_wulfenite();
     const existing_wulf = this.crystals.filter(c => c.mineral === 'wulfenite' && c.active);
     const total_wulf = this.crystals.filter(c => c.mineral === 'wulfenite').length;
-    if (sigma_wulf > 1.2 && !existing_wulf.length && total_wulf < 2) {
+    if (sigma_wulf > 1.2 && !existing_wulf.length && total_wulf < 2 && !this._atNucleationCap('wulfenite')) {
       let pos = 'vug wall';
       // Prefers to nucleate on dissolved galena AND/OR dissolved molybdenite
       // Wulfenite = Pb²⁺ (from oxidized galena) + MoO₄²⁻ (from oxidized molybdenite)
@@ -5911,7 +5926,7 @@ class VugSimulator {
     const sigma_sel = this.conditions.supersaturation_selenite();
     const existing_sel = this.crystals.filter(c => c.mineral === 'selenite' && c.active);
     const total_sel = this.crystals.filter(c => c.mineral === 'selenite').length;
-    if (sigma_sel > 1.0 && existing_sel.length < 2 && total_sel < 4) {
+    if (sigma_sel > 1.0 && existing_sel.length < 2 && total_sel < 4 && !this._atNucleationCap('selenite')) {
       if (!existing_sel.length || (sigma_sel > 1.8 && rng.random() < 0.3)) {
         let pos = 'vug wall';
         // Prefers to grow on dissolved sulfide surfaces — the oxidation zone paragenesis
@@ -5931,7 +5946,7 @@ class VugSimulator {
     const sigma_feld = this.conditions.supersaturation_feldspar();
     const existing_feld = this.crystals.filter(c => c.mineral === 'feldspar' && c.active);
     const total_feld = this.crystals.filter(c => c.mineral === 'feldspar').length;
-    if (sigma_feld > 1.0 && existing_feld.length < 3 && total_feld < 6) {
+    if (sigma_feld > 1.0 && existing_feld.length < 3 && total_feld < 6 && !this._atNucleationCap('feldspar')) {
       if (!existing_feld.length || (sigma_feld > 1.8 && rng.random() < 0.3)) {
         let pos = 'vug wall';
         // Can nucleate on quartz in pegmatite conditions
@@ -5950,7 +5965,7 @@ class VugSimulator {
     const sigma_alb = this.conditions.supersaturation_albite();
     const existing_alb = this.crystals.filter(c => c.mineral === 'albite' && c.active);
     const total_alb = this.crystals.filter(c => c.mineral === 'albite').length;
-    if (sigma_alb > 1.0 && existing_alb.length < 2 && total_alb < 4) {
+    if (sigma_alb > 1.0 && existing_alb.length < 2 && total_alb < 4 && !this._atNucleationCap('albite')) {
       if (!existing_alb.length || (sigma_alb > 1.5 && rng.random() < 0.25)) {
         let pos = 'vug wall';
         // Classic perthite association — albite on feldspar host
@@ -5965,7 +5980,7 @@ class VugSimulator {
     const sigma_gal = this.conditions.supersaturation_galena();
     const existing_gal = this.crystals.filter(c => c.mineral === 'galena' && c.active);
     const total_gal = this.crystals.filter(c => c.mineral === 'galena').length;
-    if (sigma_gal > 1.0 && existing_gal.length < 4 && total_gal < 8) {
+    if (sigma_gal > 1.0 && existing_gal.length < 4 && total_gal < 8 && !this._atNucleationCap('galena')) {
       if (!existing_gal.length || (sigma_gal > 2.0 && rng.random() < 0.3)) {
         let pos = 'vug wall';
         const existing_sph3 = this.crystals.filter(c => c.mineral === 'sphalerite' && c.active);
@@ -5981,7 +5996,7 @@ class VugSimulator {
     const sigma_moly = this.conditions.supersaturation_molybdenite();
     const existing_moly = this.crystals.filter(c => c.mineral === 'molybdenite' && c.active);
     const total_moly = this.crystals.filter(c => c.mineral === 'molybdenite').length;
-    if (sigma_moly > 1.0 && existing_moly.length < 3 && total_moly < 6) {
+    if (sigma_moly > 1.0 && existing_moly.length < 3 && total_moly < 6 && !this._atNucleationCap('molybdenite')) {
       if (!existing_moly.length || (sigma_moly > 1.5 && rng.random() < 0.25)) {
         let pos = 'vug wall';
         // Often associates with chalcopyrite or pyrite in porphyry systems
@@ -6002,7 +6017,7 @@ class VugSimulator {
     const sigma_goe = this.conditions.supersaturation_goethite();
     const existing_goe_active = this.crystals.filter(c => c.mineral === 'goethite' && c.active);
     const total_goe = this.crystals.filter(c => c.mineral === 'goethite').length;
-    if (sigma_goe > 1.0 && !existing_goe_active.length && total_goe < 3) {
+    if (sigma_goe > 1.0 && !existing_goe_active.length && total_goe < 3 && !this._atNucleationCap('goethite')) {
       let pos = 'vug wall';
       const dissolving_py = this.crystals.filter(c => c.mineral === 'pyrite' && c.dissolved);
       const dissolving_cp = this.crystals.filter(c => c.mineral === 'chalcopyrite' && c.dissolved);
@@ -6022,7 +6037,7 @@ class VugSimulator {
     const sigma_adam = this.conditions.supersaturation_adamite();
     const existing_adam = this.crystals.filter(c => c.mineral === 'adamite' && c.active);
     const total_adam = this.crystals.filter(c => c.mineral === 'adamite').length;
-    if (sigma_adam > 1.0 && !existing_adam.length && total_adam < 4) {
+    if (sigma_adam > 1.0 && !existing_adam.length && total_adam < 4 && !this._atNucleationCap('adamite')) {
       let pos = 'vug wall';
       const existing_goe = this.crystals.filter(c => c.mineral === 'goethite' && c.active);
       if (existing_goe.length && rng.random() < 0.6) {
@@ -6033,7 +6048,7 @@ class VugSimulator {
       const c = this.nucleate('adamite', pos, sigma_adam);
       this.log.push(`  ✦ NUCLEATION: Adamite #${c.crystal_id} on ${c.position} (T=${this.conditions.temperature.toFixed(0)}°C, σ=${sigma_adam.toFixed(2)})`);
       // Second crystal — fluorescent/non-fluorescent pair
-      if (sigma_adam > 1.3 && rng.random() < 0.5) {
+      if (sigma_adam > 1.3 && rng.random() < 0.5 && !this._atNucleationCap('adamite')) {
         const c2 = this.nucleate('adamite', pos, sigma_adam);
         this.log.push(`  ✦ NUCLEATION: Adamite #${c2.crystal_id} alongside #${c.crystal_id} — will one fluoresce and the other stay dark?`);
       }
@@ -6043,7 +6058,7 @@ class VugSimulator {
     const sigma_mim = this.conditions.supersaturation_mimetite();
     const existing_mim = this.crystals.filter(c => c.mineral === 'mimetite' && c.active);
     const total_mim = this.crystals.filter(c => c.mineral === 'mimetite').length;
-    if (sigma_mim > 1.0 && !existing_mim.length && total_mim < 3) {
+    if (sigma_mim > 1.0 && !existing_mim.length && total_mim < 3 && !this._atNucleationCap('mimetite')) {
       let pos = 'vug wall';
       const existing_gal2 = this.crystals.filter(c => c.mineral === 'galena');
       const existing_goe2 = this.crystals.filter(c => c.mineral === 'goethite' && c.active);
