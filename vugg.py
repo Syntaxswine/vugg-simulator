@@ -231,19 +231,20 @@ class VugWall:
     ca_from_wall_total: float = 0.0   # cumulative Ca²⁺ released from wall dissolution
 
     # Phase-1 naturalistic void shape (visual only — growth engines still
-    # read mean_diameter_mm). Bubble-merge model: N random circles are
-    # overlapped to form a botryoidal dissolution cavity with natural
-    # alcoves (where bubbles overlap from inside) and promontories (where
-    # they don't). See WallState._build_profile() for the geometry.
-    #   bubble_count: number of overlapping circles (1 = perfect circle
-    #                 after rescale, 4–12 typical).
-    #   bubble_size_range: (min, max) bubble radius as fraction of
-    #                 initial_radius_mm. Tight ranges read spherical;
-    #                 wide ranges read botryoidal.
-    #   shape_seed: deterministic seed for the bubble positions and
-    #                 radii so the same scenario re-runs to the same void.
-    bubble_count: int = 6
-    bubble_size_range: Tuple[float, float] = (0.2, 0.6)
+    # read mean_diameter_mm). Two-stage bubble-merge model:
+    #   Stage 1 — primary void: a few large bubbles (radii 40–70% of
+    #     vug_diameter_mm) forming the main cavity. Guaranteed to
+    #     contain the sampling origin.
+    #   Stage 2 — secondary dissolution: smaller bubbles (radii 10–30%
+    #     of vug_diameter_mm) spawned ON the outer edge of the primary
+    #     union — models percolating fluids eating satellite alcoves
+    #     from the cavity wall.
+    # See WallState._build_profile() for the geometry.
+    #   primary_bubbles: number of stage-1 bubbles (>= 1; 2–5 typical).
+    #   secondary_bubbles: number of stage-2 bubbles (>= 0; 3–10 typical).
+    #   shape_seed: deterministic seed for bubble positions / radii.
+    primary_bubbles: int = 3
+    secondary_bubbles: int = 6
     shape_seed: int = 0
     
     def dissolve(self, acid_strength: float, fluid: 'FluidChemistry') -> dict:
@@ -349,13 +350,13 @@ class WallState:
     wall ends up shaped like the deposit history rather than a perfect
     circle.
 
-    Phase 1 adds a naturalistic void shape on top: a bubble-merge
-    profile built deterministically from `bubble_count` +
-    `bubble_size_range` + `shape_seed` bakes a per-cell
-    `base_radius_mm` at init, so even a pristine vug with zero
-    dissolution renders as a botryoidal organic cavity. Crystal growth
-    mechanics still read `mean_diameter_mm` (visual-only change for
-    Phase 1).
+    Phase 1 adds a naturalistic void shape on top: a two-stage
+    bubble-merge profile built deterministically from `primary_bubbles`
+    + `secondary_bubbles` + `shape_seed` bakes a per-cell
+    `base_radius_mm` at init. Stage 1 is the main cavity (few large
+    bubbles); stage 2 is satellite alcoves dug from the cavity's outer
+    surface. Crystal growth mechanics still read `mean_diameter_mm`
+    (visual-only change for Phase 1).
     """
     cells_per_ring: int = 120
     ring_count: int = 1
@@ -368,15 +369,15 @@ class WallState:
     max_seen_radius_mm: float = 0.0
     rings: List[List[WallCell]] = field(default_factory=list)
 
-    # Phase-1 naturalistic void shape parameters (see VugWall docstring).
-    bubble_count: int = 6
-    bubble_size_range: Tuple[float, float] = (0.2, 0.6)
+    # Phase-1 two-stage bubble-merge parameters (see VugWall docstring).
+    primary_bubbles: int = 3
+    secondary_bubbles: int = 6
     shape_seed: int = 0
     # Populated by _build_profile() — the list of (cx, cy, r) circles
-    # in mm whose union is the void. Exposed so the renderer (and a
-    # future Phase-2 3D slice view) can reconstruct the analytic shape
-    # without re-seeding RNG. Already rescaled to match the nominal
-    # mean radius.
+    # in mm whose union is the void, primaries followed by secondaries.
+    # Exposed so the renderer (and a future Phase-2 3D slice view) can
+    # reconstruct the analytic shape without re-seeding RNG. Already
+    # rescaled to match the nominal mean radius.
     bubbles: List[Tuple[float, float, float]] = field(default_factory=list)
 
     def __post_init__(self):
@@ -399,102 +400,126 @@ class WallState:
                         max_base = c.base_radius_mm
             self.max_seen_radius_mm = max_base * 2.0
 
-    # --- Phase 1: bubble-merge profile ------------------------------------
+    # --- Phase 1: two-stage bubble-merge profile --------------------------
+    # Bubble size ranges as fractions of vug_diameter_mm. Chosen to
+    # match the two-stage dissolution brief: primaries are big enough
+    # that a couple of them fill the main cavity, secondaries small
+    # enough to read as satellite alcoves on the cavity wall.
+    _PRIMARY_SIZE_RANGE = (0.4, 0.7)
+    _SECONDARY_SIZE_RANGE = (0.1, 0.3)
+    # Primary cluster tightness — secondary bubble centres beyond
+    # bubble 0 are placed within this fraction of R of the origin so
+    # primaries consistently overlap into one cohesive cavity.
+    _PRIMARY_SPREAD = 0.3
+
+    @staticmethod
+    def _raycast_union(bubbles: List[Tuple[float, float, float]],
+                       theta: float) -> float:
+        """Return the outer wall distance from origin at angle `theta`
+        through the bubble-union, honouring origin-connectivity.
+
+        Ray-circle intersection per bubble → [(t_enter, t_exit), …]
+        clipped to t ≥ 0; sort by t_enter; merge overlapping intervals
+        starting from the first; return the endpoint of the first
+        merged segment (disconnected-from-origin segments don't count).
+        """
+        cos_t, sin_t = math.cos(theta), math.sin(theta)
+        intervals: List[Tuple[float, float]] = []
+        for (cx, cy, r) in bubbles:
+            b = cx * cos_t + cy * sin_t
+            c = cx * cx + cy * cy - r * r
+            disc = b * b - c
+            if disc < 0:
+                continue
+            rt = math.sqrt(disc)
+            t_exit = b + rt
+            if t_exit <= 0.0:
+                continue
+            intervals.append((max(0.0, b - rt), t_exit))
+        if not intervals:
+            return 0.0
+        intervals.sort(key=lambda iv: iv[0])
+        wall = intervals[0][1]
+        for (start, end) in intervals[1:]:
+            if start <= wall:
+                if end > wall:
+                    wall = end
+            else:
+                break
+        return wall
+
     def _build_profile(self) -> None:
-        """Compute per-cell base_radius_mm via bubble merging.
+        """Compute per-cell base_radius_mm via two-stage bubble merging.
 
-        Algorithm (per the bubble-void brief):
-          1. Place bubble 0 at origin with radius = mid(bubble_size_range).
-             Guarantees the union is connected through the sampling
-             centre — every ray at t=0 is inside at least one bubble.
-          2. Place bubble_count - 1 additional bubbles at seed points
-             uniformly sampled (by area) within the bounding disk, with
-             radii drawn from bubble_size_range × initial_radius_mm.
-          3. At each of cells_per_ring angles θ, compute the wall
-             distance as the maximum t where (t·cosθ, t·sinθ) is inside
-             the bubble union AND connected to the origin through the
-             union. Ray-circle intersection per bubble, merge overlapping
-             t-intervals, return the endpoint of the first merged segment.
-          4. Rescale uniformly so the mean wall radius equals
-             initial_radius_mm. This preserves mean_diameter_mm for the
-             growth engines and keeps the vug visually sized to the
-             scenario's nominal diameter even after random bubble choices.
+        Stage 1 — primary void: a few large bubbles (radii 40–70% of
+        vug_diameter_mm) clustered near origin, forming the main cavity.
+        Bubble 0 is anchored at origin so every ray starts inside the
+        union regardless of the random seeds.
 
-        The result is botryoidal — alcoves appear where neighbouring
-        bubbles overlap from inside (the ray exits one bubble inside
-        another), promontories where bubbles only graze (ray exits into
-        near-vacuum). Backward compatible: bubble_count=1,
-        bubble_size_range=(0.5, 0.5) rescales to a perfect circle.
+        Stage 2 — secondary dissolution: smaller bubbles (radii 10–30%
+        of vug_diameter_mm) spawned on the primary union's outer edge
+        at random angles. Half of each secondary extends beyond the
+        primary boundary (the alcove), the inner half overlaps
+        harmlessly back into the primary.
+
+        After both stages, the per-cell profile is sampled by raycasting
+        the full union at each of cells_per_ring angles, then rescaled
+        so the mean wall radius equals initial_radius_mm. That keeps
+        mean_diameter_mm correct for the growth engines.
+
+        Backward compatible: primary_bubbles=1, secondary_bubbles=0
+        rescales to a perfect circle.
         """
         import random as _random
         rng = _random.Random(int(self.shape_seed) & 0xFFFFFFFF)
 
         R = float(self.initial_radius_mm)
-        lo, hi = float(self.bubble_size_range[0]), float(self.bubble_size_range[1])
-        if lo > hi:
-            lo, hi = hi, lo
+        D = 2.0 * R  # vug_diameter_mm, the canonical unit the brief uses
+        p_lo, p_hi = self._PRIMARY_SIZE_RANGE
+        s_lo, s_hi = self._SECONDARY_SIZE_RANGE
 
-        # Bubble 0: at origin, mid-range radius. Guarantees origin
-        # coverage regardless of how the random seeds land.
-        r0 = R * (lo + hi) * 0.5
-        bubbles: List[Tuple[float, float, float]] = [(0.0, 0.0, r0)]
-        # Remaining bubbles: uniform-by-area seed in bounding disk, random
-        # radius in range.
-        for _ in range(max(0, int(self.bubble_count) - 1)):
-            d = R * math.sqrt(rng.random())
+        # ---- Stage 1: primary void -------------------------------------
+        # Primary 0 always at origin, mid-size. Anchors the main cavity
+        # and guarantees origin coverage no matter what seed lands.
+        r0 = D * (p_lo + p_hi) * 0.5
+        primaries: List[Tuple[float, float, float]] = [(0.0, 0.0, r0)]
+        for _ in range(max(0, int(self.primary_bubbles) - 1)):
+            # Clustered near origin — primaries need to overlap each
+            # other to read as one cavity, not multiple.
+            d = self._PRIMARY_SPREAD * R * rng.random()
             phi = rng.random() * 2.0 * math.pi
             cx = d * math.cos(phi)
             cy = d * math.sin(phi)
-            r = R * rng.uniform(lo, hi)
-            bubbles.append((cx, cy, r))
+            r = D * rng.uniform(p_lo, p_hi)
+            primaries.append((cx, cy, r))
 
+        # ---- Stage 2: secondary dissolution ----------------------------
+        # Each secondary spawns ON the primary union's outer edge at a
+        # random angle. The raycast returns the radial wall distance
+        # through the primary union at that angle; the secondary centre
+        # is placed at that point so half of the bubble extends into the
+        # wall (the alcove) and half overlaps back into the primary.
+        secondaries: List[Tuple[float, float, float]] = []
+        for _ in range(max(0, int(self.secondary_bubbles))):
+            theta = rng.random() * 2.0 * math.pi
+            r_prim = self._raycast_union(primaries, theta)
+            if r_prim <= 0:
+                continue   # primary raycast failed at this angle — skip
+            cx = r_prim * math.cos(theta)
+            cy = r_prim * math.sin(theta)
+            r = D * rng.uniform(s_lo, s_hi)
+            secondaries.append((cx, cy, r))
+
+        bubbles = primaries + secondaries
+
+        # ---- Sample the full union at cell angles ----------------------
         N = self.cells_per_ring
-        raw_radii: List[float] = [0.0] * N
+        raw_radii: List[float] = [
+            self._raycast_union(bubbles, 2.0 * math.pi * i / N) or R
+            for i in range(N)
+        ]
 
-        for i in range(N):
-            theta = 2.0 * math.pi * i / N
-            cos_t, sin_t = math.cos(theta), math.sin(theta)
-            # Collect ray/bubble intersection intervals, clipped to t >= 0.
-            intervals: List[Tuple[float, float]] = []
-            for (cx, cy, r) in bubbles:
-                # (t·cosθ − cx)² + (t·sinθ − cy)² ≤ r²
-                # t² − 2t·b + c ≤ 0 with:
-                b = cx * cos_t + cy * sin_t
-                c = cx * cx + cy * cy - r * r
-                disc = b * b - c
-                if disc < 0:
-                    continue   # ray misses this bubble entirely
-                rt = math.sqrt(disc)
-                t_enter = b - rt
-                t_exit = b + rt
-                if t_exit <= 0.0:
-                    continue   # bubble is entirely behind origin
-                intervals.append((max(0.0, t_enter), t_exit))
-
-            if not intervals:
-                # Shouldn't happen because bubble 0 covers origin, but
-                # fall back to nominal radius if the seed somehow dodged
-                # every circle — visible clue something's wrong.
-                raw_radii[i] = R
-                continue
-
-            # Merge intervals starting from 0. Walk sorted; extend wall
-            # as long as next interval overlaps current reach. Stop at
-            # the first gap — disconnected-from-origin segments don't
-            # count toward the wall distance.
-            intervals.sort(key=lambda iv: iv[0])
-            wall = intervals[0][1]
-            for (start, end) in intervals[1:]:
-                if start <= wall:
-                    if end > wall:
-                        wall = end
-                else:
-                    break
-            raw_radii[i] = wall
-
-        # Rescale so the mean wall radius matches the scenario's nominal
-        # radius. Bubble coordinates and radii rescale too, so `bubbles`
-        # reflects what the renderer actually draws.
+        # ---- Rescale to nominal mean -----------------------------------
         mean_raw = sum(raw_radii) / max(len(raw_radii), 1)
         scale = R / mean_raw if mean_raw > 1e-6 else 1.0
         self.bubbles = [(cx * scale, cy * scale, r * scale) for (cx, cy, r) in bubbles]
@@ -4762,10 +4787,9 @@ def scenario_cooling() -> Tuple[VugConditions, List[Event], int]:
         temperature=380.0,
         pressure=1.5,
         fluid=FluidChemistry(SiO2=600, Ca=150, CO3=100, Fe=8, Mn=3, Ti=0.8, Al=4),
-        # Phase-1 void shape: near-spherical gas bubble — few bubbles,
-        # tight size range leaves the union close to round.
-        wall=VugWall(bubble_count=4, bubble_size_range=(0.4, 0.5),
-                     shape_seed=1),
+        # Phase-1 void shape: gas-bubble cavity — few primaries, minimal
+        # satellite dissolution.
+        wall=VugWall(primary_bubbles=2, secondary_bubbles=3, shape_seed=1),
     )
     events = []
     return conditions, events, 100
@@ -4777,8 +4801,7 @@ def scenario_pulse() -> Tuple[VugConditions, List[Event], int]:
         temperature=350.0,
         pressure=1.2,
         fluid=FluidChemistry(SiO2=500, Ca=200, CO3=120, Fe=5, Mn=2, Ti=0.5, Al=3),
-        wall=VugWall(bubble_count=4, bubble_size_range=(0.4, 0.5),
-                     shape_seed=2),
+        wall=VugWall(primary_bubbles=2, secondary_bubbles=3, shape_seed=2),
     )
     events = [
         Event(40, "Fluid Pulse", "Fresh hydrothermal fluid", event_fluid_pulse),
@@ -4796,10 +4819,9 @@ def scenario_mvt() -> Tuple[VugConditions, List[Event], int]:
             SiO2=100, Ca=300, CO3=250, Fe=15, Mn=8,
             Zn=0, S=0, F=5, pH=7.2, salinity=15.0
         ),
-        # MVT vugs are dissolution cavities in limestone — many bubbles,
-        # wide size range gives the classic merged-cavity morphology.
-        wall=VugWall(bubble_count=8, bubble_size_range=(0.2, 0.6),
-                     shape_seed=3),
+        # MVT — dissolution cavity in limestone. Cohesive primary void
+        # plus heavy secondary alcoves: the classic merged-cavity feel.
+        wall=VugWall(primary_bubbles=3, secondary_bubbles=8, shape_seed=3),
     )
     events = [
         Event(20, "Fluid Mixing", "Brine meets groundwater", event_fluid_mixing),
@@ -4825,10 +4847,9 @@ def scenario_porphyry() -> Tuple[VugConditions, List[Event], int]:
             Sb=25, Bi=30,
             O2=0.2, pH=4.5, salinity=10.0
         ),
-        # Porphyry stockwork — moderate bubble count + range so vein
-        # intersections read as merged pockets.
-        wall=VugWall(bubble_count=6, bubble_size_range=(0.25, 0.55),
-                     shape_seed=4),
+        # Porphyry stockwork — primary void plus a moderate set of
+        # secondary alcoves where vein intersections widen the pocket.
+        wall=VugWall(primary_bubbles=3, secondary_bubbles=6, shape_seed=4),
     )
     events = [
         Event(25, "Copper Pulse", "Magmatic copper fluid arrives", event_copper_injection),
@@ -4870,10 +4891,10 @@ def scenario_reactive_wall() -> Tuple[VugConditions, List[Event], int]:
             vug_diameter_mm=40.0,
             wall_Fe_ppm=3000.0,   # iron-bearing limestone
             wall_Mn_ppm=800.0,    # Mn in the host rock
-            # Aggressive acid dissolution — many bubbles, wide range for
-            # a deeply lobed cavity with multiple alcoves.
-            bubble_count=10,
-            bubble_size_range=(0.2, 0.6),
+            # Aggressive acid dissolution — 3 primary + 10 secondary
+            # bubbles give the deeply lobed cavity of a reactive front.
+            primary_bubbles=3,
+            secondary_bubbles=10,
             shape_seed=5,
         )
     )
@@ -4957,10 +4978,9 @@ def scenario_radioactive_pegmatite() -> Tuple[VugConditions, List[Event], int]:
             Be=20, Li=40, B=25, P=8,
             O2=0.0, pH=6.5, salinity=8.0,
         ),
-        # Pegmatite pocket — moderate bubble count + range for a
-        # fracture-controlled cavity feel.
-        wall=VugWall(bubble_count=5, bubble_size_range=(0.25, 0.55),
-                     shape_seed=6),
+        # Pegmatite pocket — 4 primaries form a fracture-controlled
+        # cavity, 5 secondaries add modest alcoves.
+        wall=VugWall(primary_bubbles=4, secondary_bubbles=5, shape_seed=6),
     )
 
     def ev_pegmatite_crystallization(cond):
@@ -5036,10 +5056,9 @@ def scenario_supergene_oxidation() -> Tuple[VugConditions, List[Event], int]:
             P=0.5,
             O2=1.8, pH=6.8, salinity=2.0,
         ),
-        # Supergene oxidation front — many bubbles, wide range for a
-        # complex meteoric dissolution cavity.
-        wall=VugWall(bubble_count=7, bubble_size_range=(0.2, 0.6),
-                     shape_seed=7),
+        # Supergene oxidation front — 3 primary + 7 secondary bubbles
+        # model complex meteoric dissolution cavity formation.
+        wall=VugWall(primary_bubbles=3, secondary_bubbles=7, shape_seed=7),
     )
 
     def ev_meteoric_flush(cond):
@@ -5189,10 +5208,10 @@ def scenario_gem_pegmatite() -> Tuple[VugConditions, List[Event], int]:
             composition="pegmatite",
             thickness_mm=500.0,
             vug_diameter_mm=50.0,
-            # Miarolitic pocket — moderate bubble count + range, tight
-            # enough that the gem pocket reads as a cohesive cavity.
-            bubble_count=5,
-            bubble_size_range=(0.25, 0.55),
+            # Miarolitic gem pocket — 4 primary + 5 secondary bubbles,
+            # same shape family as the radioactive pegmatite.
+            primary_bubbles=4,
+            secondary_bubbles=5,
             shape_seed=8,
         ),
         fluid=FluidChemistry(
@@ -5403,10 +5422,9 @@ def scenario_ouro_preto() -> Tuple[VugConditions, List[Event], int]:
             Ti=0.6,
             O2=0.3, pH=6.5, salinity=3.0,
         ),
-        # Ouro Preto topaz vein — few bubbles, tight size range; the
+        # Ouro Preto topaz vein — 2 primary + 4 secondary bubbles;
         # hydrothermal vein in quartzite reads as a small cohesive pocket.
-        wall=VugWall(bubble_count=5, bubble_size_range=(0.4, 0.5),
-                     shape_seed=9),
+        wall=VugWall(primary_bubbles=2, secondary_bubbles=4, shape_seed=9),
     )
 
     def ev_vein_opening(cond):
@@ -5717,24 +5735,24 @@ def scenario_random() -> Tuple[VugConditions, List[Event], int]:
         ]
         steps = random.randint(160, 220)
 
-    # Phase-1 void shape: map the archetype to a bubble-count +
-    # size-range preset. Shape seed is a fresh random so each run of
-    # "random" looks different. Tight ranges give near-round cavities;
-    # wide ranges give lobed botryoidal ones.
+    # Phase-1 void shape: map the archetype to two-stage bubble counts.
+    # Shape seed is a fresh random so each run of "random" looks
+    # different. Fewer secondaries = more cohesive cavity; more
+    # secondaries = more satellite alcoves.
     _archetype_shape = {
-        # archetype:     (bubble_count, (lo, hi))
-        "hydrothermal": (6,  (0.25, 0.55)),
-        "pegmatite":    (5,  (0.25, 0.55)),
-        "supergene":    (7,  (0.20, 0.60)),
-        "mvt":          (8,  (0.20, 0.60)),
-        "porphyry":     (6,  (0.25, 0.55)),
-        "evaporite":    (4,  (0.40, 0.50)),
-        "mixed":        (7,  (0.20, 0.60)),
+        # archetype:     (primary_bubbles, secondary_bubbles)
+        "hydrothermal": (3, 6),
+        "pegmatite":    (4, 5),
+        "supergene":    (3, 7),
+        "mvt":          (3, 8),
+        "porphyry":     (3, 6),
+        "evaporite":    (2, 3),
+        "mixed":        (3, 6),
     }
-    _bc, _brange = _archetype_shape.get(archetype, (6, (0.25, 0.55)))
+    _pb, _sb = _archetype_shape.get(archetype, (3, 6))
     _rand_wall = VugWall(
-        bubble_count=_bc,
-        bubble_size_range=_brange,
+        primary_bubbles=_pb,
+        secondary_bubbles=_sb,
         shape_seed=random.randint(1, 2 ** 30),
     )
     conditions = VugConditions(
@@ -5784,13 +5802,12 @@ class VugSimulator:
         self.wall_state = WallState(
             vug_diameter_mm=conditions.wall.vug_diameter_mm,
             initial_radius_mm=conditions.wall.vug_diameter_mm / 2.0,
-            # Phase-1 bubble-merge void shape. Scenarios set these on
-            # VugWall; the default (6 bubbles, 0.2–0.6 R) gives a
-            # botryoidal dissolution cavity so scenarios that don't opt
-            # in still get an organic outline rather than a perfect
-            # circle.
-            bubble_count=conditions.wall.bubble_count,
-            bubble_size_range=conditions.wall.bubble_size_range,
+            # Phase-1 two-stage bubble-merge void shape. Scenarios set
+            # these on VugWall; defaults (3 primary, 6 secondary) give
+            # a cohesive main cavity with satellite alcoves so scenarios
+            # that don't opt in still get an organic dissolution profile.
+            primary_bubbles=conditions.wall.primary_bubbles,
+            secondary_bubbles=conditions.wall.secondary_bubbles,
             shape_seed=conditions.wall.shape_seed,
         )
     
