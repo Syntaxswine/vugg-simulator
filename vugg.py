@@ -765,6 +765,41 @@ class VugConditions:
             sigma *= math.exp(-0.01 * (300 - self.temperature))
         return max(sigma, 0)
 
+    def supersaturation_beryl(self) -> float:
+        """Beryl (Be₃Al₂Si₆O₁₈) supersaturation. Needs Be + Al + SiO₂.
+
+        Beryllium is the most incompatible common element in magmatic
+        systems — no rock-forming mineral takes it, so it concentrates in
+        residual pegmatite fluid until finally, at a high threshold
+        (nucleation_sigma 1.8), beryl nucleates. That accumulation delay
+        is why beryl crystals can be enormous: by the time it forms there's
+        a lot of Be waiting. T window 300–650°C with optimum 350–550°C.
+        """
+        if self.fluid.Be < 10 or self.fluid.Al < 6 or self.fluid.SiO2 < 50:
+            return 0
+        # Cap each factor — see supersaturation_tourmaline for rationale.
+        be_f = min(self.fluid.Be / 15.0, 2.5)   # Be is the gate; allow
+                                                # slightly higher cap so the
+                                                # high σ nucleation_sigma=1.8
+                                                # threshold is reachable.
+        al_f = min(self.fluid.Al / 12.0, 1.5)
+        si_f = min(self.fluid.SiO2 / 350.0, 1.5)
+        sigma = be_f * al_f * si_f
+        # Temperature window
+        T = self.temperature
+        if 350 <= T <= 550:
+            T_factor = 1.0
+        elif 300 <= T < 350:
+            T_factor = 0.6 + 0.008 * (T - 300)  # 0.6 → 1.0
+        elif 550 < T <= 650:
+            T_factor = max(0.3, 1.0 - 0.007 * (T - 550))
+        elif T > 650:
+            T_factor = 0.2
+        else:
+            T_factor = max(0.1, 0.6 - 0.006 * (300 - T))
+        sigma *= T_factor
+        return max(sigma, 0)
+
     def supersaturation_tourmaline(self) -> float:
         """Tourmaline (Na(Fe,Li,Al)₃Al₆(BO₃)₃Si₆O₁₈(OH)₄) supersaturation.
 
@@ -2451,6 +2486,131 @@ def grow_tourmaline(crystal: Crystal, conditions: VugConditions, step: int) -> O
     )
 
 
+def grow_beryl(crystal: Crystal, conditions: VugConditions, step: int) -> Optional[GrowthZone]:
+    """Beryl (Be₃Al₂Si₆O₁₈) growth model.
+
+    Hexagonal cyclosilicate. The growth-rate_mult of 0.25 is slow, but
+    beryl rides it for a long time because Be accumulates for ages
+    before crossing the nucleation threshold — by the time the first
+    crystal fires, the fluid is Be-saturated enough to sustain growth
+    for many steps. That's the real-world mechanism behind meter-long
+    beryl crystals.
+
+    Color variants (set per zone):
+    - Pure / no significant trace → goshenite (colorless)
+    - Fe²⁺ + oxidizing → heliodor (yellow)
+    - Fe²⁺ + reducing → aquamarine (blue)
+    - Cr³⁺ or V³⁺ → emerald (green) — the emerald paradox, needs
+      ultramafic country-rock contact
+    - Mn²⁺ → morganite (pink)
+    """
+    sigma = conditions.supersaturation_beryl()
+    if sigma < 1.0:
+        # Resistant to most acids; dissolution only in HF (pH < 3 + F > 30).
+        if crystal.total_growth_um > 20 and conditions.fluid.pH < 3.0 and conditions.fluid.F > 30:
+            crystal.dissolved = True
+            dissolved_um = min(1.5, crystal.total_growth_um * 0.03)
+            conditions.fluid.Be += dissolved_um * 0.2
+            conditions.fluid.Al += dissolved_um * 0.2
+            conditions.fluid.SiO2 += dissolved_um * 0.4
+            return GrowthZone(
+                step=step, temperature=conditions.temperature,
+                thickness_um=-dissolved_um, growth_rate=-dissolved_um,
+                note=f"HF-assisted dissolution (pH {conditions.fluid.pH:.1f}, F {conditions.fluid.F:.0f}) — Be²⁺, Al³⁺, SiO₂ released"
+            )
+        return None
+
+    excess = sigma - 1.0
+    # Slow engine (spec growth_rate_mult 0.25) — multiplier already baked
+    # into the rate constant here.
+    rate = 2.2 * excess * random.uniform(0.8, 1.2)
+    if rate < 0.1:
+        return None
+
+    f = conditions.fluid
+    # Variety selection. Cr/V beats Mn beats Fe — the emerald paradox is
+    # the rarest, so it gets the highest priority if the chemistry is
+    # there. Fe+oxidizing splits heliodor (yellow) from aquamarine (blue).
+    if f.Cr > 0.5 or f.V > 1.0:
+        variety = "emerald"
+        color_note = f"emerald green ({'Cr³⁺' if f.Cr > 0.5 else 'V³⁺'} — the ultramafic-pegmatite paradox met)"
+    elif f.Mn > 2.0:
+        variety = "morganite"
+        color_note = f"morganite pink (Mn²⁺ {f.Mn:.1f} ppm)"
+    elif f.Fe > 15 and f.O2 > 0.5:
+        variety = "heliodor"
+        color_note = f"heliodor yellow (Fe³⁺ {f.Fe:.0f} ppm, oxidized)"
+    elif f.Fe > 8:
+        variety = "aquamarine"
+        color_note = f"aquamarine blue (Fe²⁺ {f.Fe:.0f} ppm, reducing)"
+    else:
+        variety = "goshenite"
+        color_note = "goshenite colorless (pure beryl — no chromophore)"
+
+    # Color variants all share the hexagonal habit — zone note records
+    # the variety, allowing a single crystal to be zoned (aquamarine core
+    # with heliodor rim if Fe oxidation state flipped mid-growth).
+    crystal.habit = variety
+
+    T = conditions.temperature
+    if T > 500:
+        crystal.dominant_forms = ["m{10̄10} hex prism", "c{0001} basal pinacoid", "elongated"]
+    elif T > 380:
+        crystal.dominant_forms = ["m{10̄10} hex prism", "c{0001} flat pinacoid", "classic hexagonal"]
+    else:
+        crystal.dominant_forms = ["m{10̄10} hex prism", "c{0001} pinacoid", "stubby tabular"]
+
+    # Trace incorporation — Fe, Mn, Al structural; Cr/V through emerald
+    # substitution (not tracked in zones, but consumed from fluid).
+    trace_Fe = f.Fe * 0.015
+    trace_Mn = f.Mn * 0.02
+    trace_Al = f.Al * 0.025
+
+    # Fluid inclusion frequency — beryl famously traps inclusions at
+    # zone boundaries (Colombian emerald trapiche pattern, aquamarine's
+    # stepped growth voids).
+    fi = False
+    fi_type = ""
+    if rate > 3 and random.random() < 0.22:
+        fi = True
+        if T > 350:
+            fi_type = "2-phase (liquid + vapor) — beryl geothermometer"
+        elif T > 150:
+            fi_type = "2-phase (liquid-dominant)"
+        else:
+            fi_type = "single-phase liquid (late)"
+
+    # Deplete fluid. Be is the big one — beryl is a Be sink.
+    f.Be = max(f.Be - rate * 0.025, 0)
+    f.Al = max(f.Al - rate * 0.010, 0)
+    f.SiO2 = max(f.SiO2 - rate * 0.015, 0)
+    if variety == "emerald":
+        if f.Cr > 0.5:
+            f.Cr = max(f.Cr - rate * 0.004, 0)
+        else:
+            f.V = max(f.V - rate * 0.005, 0)
+    elif variety == "morganite":
+        f.Mn = max(f.Mn - rate * 0.006, 0)
+    elif variety in ("aquamarine", "heliodor"):
+        f.Fe = max(f.Fe - rate * 0.008, 0)
+
+    parts = [color_note]
+    if excess > 1.0:
+        parts.append("rapid growth — wider growth ring, thermal history recorder")
+    elif excess < 0.2:
+        parts.append("near-equilibrium — clean gem-grade interior")
+    if crystal.twinned:
+        parts.append(f"{crystal.twin_law} present")
+
+    return GrowthZone(
+        step=step, temperature=conditions.temperature,
+        thickness_um=rate, growth_rate=rate,
+        trace_Fe=trace_Fe, trace_Mn=trace_Mn, trace_Al=trace_Al,
+        fluid_inclusion=fi, inclusion_type=fi_type,
+        note=", ".join(parts),
+    )
+
+
 def grow_galena(crystal: Crystal, conditions: VugConditions, step: int) -> Optional[GrowthZone]:
     """Galena (PbS) growth. Cubic lead sulfide, bright metallic luster, very dense."""
     sigma = conditions.supersaturation_galena()
@@ -2834,6 +2994,7 @@ MINERAL_ENGINES = {
     "selenite": grow_selenite,
     "topaz": grow_topaz,
     "tourmaline": grow_tourmaline,
+    "beryl": grow_beryl,
 }
 
 
@@ -3801,6 +3962,8 @@ class VugSimulator:
             crystal.dominant_forms = ["m{110} prism", "y{041} pyramid", "c{001} basal cleavage"]
         elif mineral == "tourmaline":
             crystal.dominant_forms = ["m{10̄10} trigonal prism", "striated faces", "slightly rounded triangular cross-section"]
+        elif mineral == "beryl":
+            crystal.dominant_forms = ["m{10̄10} hex prism", "c{0001} flat basal pinacoid"]
         self.crystals.append(crystal)
         return crystal
 
@@ -4145,6 +4308,35 @@ class VugSimulator:
             c = self.nucleate("selenite", position="vug wall", sigma=sigma_sel)
             self.log.append(f"  ✦ NUCLEATION: Selenite #{c.crystal_id} on {c.position} "
                           f"(T={self.conditions.temperature:.0f}°C, σ={sigma_sel:.2f})")
+
+        # Beryl nucleation — Be + Al + SiO₂ (Be-gated, high σ threshold).
+        # Beryllium is the most incompatible common element: no other
+        # mineral consumes it, so it accumulates freely in pegmatite
+        # fluids until σ finally crosses 1.8. The delay is part of the
+        # point — when beryl does nucleate, there's a LOT of Be waiting,
+        # which is why crystals can reach meters. max_nucleation_count=4
+        # keeps the count realistic (pegmatite pockets usually have a
+        # handful of large beryls, not dozens of small ones).
+        sigma_ber = self.conditions.supersaturation_beryl()
+        existing_ber = [c for c in self.crystals if c.mineral == "beryl" and c.active]
+        if sigma_ber > 1.8 and not self._at_nucleation_cap("beryl"):
+            if not existing_ber or (sigma_ber > 2.5 and random.random() < 0.15):
+                pos = "vug wall"
+                existing_feldspar_ber = [c for c in self.crystals if c.mineral == "feldspar" and c.active]
+                if existing_quartz and random.random() < 0.4:
+                    pos = f"on quartz #{existing_quartz[0].crystal_id}"
+                elif existing_feldspar_ber and random.random() < 0.4:
+                    pos = f"on feldspar #{existing_feldspar_ber[0].crystal_id}"
+                c = self.nucleate("beryl", position=pos, sigma=sigma_ber)
+                f = self.conditions.fluid
+                if f.Cr > 0.5 or f.V > 1.0: tag = "emerald"
+                elif f.Mn > 2.0: tag = "morganite"
+                elif f.Fe > 15 and f.O2 > 0.5: tag = "heliodor"
+                elif f.Fe > 8: tag = "aquamarine"
+                else: tag = "goshenite"
+                self.log.append(f"  ✦ NUCLEATION: Beryl #{c.crystal_id} ({tag}) on {c.position} "
+                              f"(T={self.conditions.temperature:.0f}°C, σ={sigma_ber:.2f}, "
+                              f"Be={f.Be:.0f} ppm, Cr={f.Cr:.2f}, Fe={f.Fe:.0f})")
 
         # Tourmaline nucleation — Na + B + Al + SiO₂ (B-gated).
         # Threshold nucleation_sigma=1.3 is the pegmatite gate: needs
@@ -6172,6 +6364,99 @@ class VugSimulator:
             "its c-axis, would read like a tree ring record — concentric "
             "zones of color marking each fluid event the vug witnessed."
         )
+
+        return " ".join(parts)
+
+    def _narrate_beryl(self, c: Crystal) -> str:
+        """Narrate a beryl crystal — the incompatible-element crown jewel."""
+        parts = [f"Beryl #{c.crystal_id} grew to {c.c_length_mm:.1f} mm."]
+
+        parts.append(
+            "Be₃Al₂Si₆O₁₈ — hexagonal cyclosilicate. Beryllium is the most "
+            "incompatible common element in magmatic systems: no rock-forming "
+            "mineral will take it, so Be accumulates in residual pegmatite "
+            "fluid until beryl finally nucleates at high threshold. That's "
+            "why beryl crystals can be enormous — by the time the first "
+            "crystal fires, there's a lot of beryllium waiting."
+        )
+
+        # Identify variety/varieties present across zones
+        zone_notes = [z.note or "" for z in c.zones]
+        varieties = set()
+        for n in zone_notes:
+            if "emerald" in n: varieties.add("emerald")
+            if "morganite" in n: varieties.add("morganite")
+            if "heliodor" in n: varieties.add("heliodor")
+            if "aquamarine" in n: varieties.add("aquamarine")
+            if "goshenite" in n: varieties.add("goshenite")
+
+        if "emerald" in varieties:
+            parts.append(
+                "Emerald — the chromium variety. The Cr³⁺ (or V³⁺) in this "
+                "crystal came from ultramafic country rock dissolving in "
+                "trace, meeting Be that could only come from the pegmatite "
+                "fluid. Two different rock types had to intersect in space "
+                "for this one crystal to form. That's the emerald paradox, "
+                "and it's why emerald is the rarest major gemstone."
+            )
+        elif "morganite" in varieties:
+            parts.append(
+                "Morganite — the Mn²⁺ variety, pink to peach. Named for "
+                "J.P. Morgan by George Kunz of Tiffany & Co., who named "
+                "half the gem-grade pegmatite minerals after the men who "
+                "could afford them. Minas Gerais produces the world's best."
+            )
+        elif "heliodor" in varieties and "aquamarine" in varieties:
+            parts.append(
+                "Color-zoned between heliodor (Fe³⁺, oxidizing) and "
+                "aquamarine (Fe²⁺, reducing) — the crystal recorded a redox "
+                "shift in the pocket fluid. Iron stayed in solution, but "
+                "its oxidation state flipped partway through growth, and "
+                "the color zoning captures that moment."
+            )
+        elif "heliodor" in varieties:
+            parts.append(
+                "Heliodor — the yellow Fe³⁺ variety. Oxidizing conditions "
+                "during growth locked iron in the Fe³⁺ state rather than "
+                "Fe²⁺. A late-stage pocket characteristic."
+            )
+        elif "aquamarine" in varieties:
+            parts.append(
+                "Aquamarine — the Fe²⁺ variety, sky blue. The pegmatite "
+                "fluid stayed reducing throughout growth. Aquamarine is the "
+                "classic Minas Gerais beryl — Governador Valadares and "
+                "Araçuaí alone have produced more aquamarine than the rest "
+                "of the world combined."
+            )
+        elif "goshenite" in varieties:
+            parts.append(
+                "Goshenite — pure colorless beryl. No chromophore found the "
+                "crystal's Al site. Rare because trace elements are almost "
+                "always present somewhere in the fluid; when the pocket "
+                "stayed truly clean, goshenite is what grew."
+            )
+
+        inclusion_zones = [z for z in c.zones if z.fluid_inclusion]
+        if inclusion_zones:
+            parts.append(
+                f"{len(inclusion_zones)} fluid inclusion horizons preserved "
+                "at growth-zone boundaries — beryl is notorious for these, "
+                "including the stepped 'growth tubes' that make aquamarine "
+                "cat's-eyes possible."
+            )
+
+        parts.append(
+            "If you sliced this beryl perpendicular to the c-axis, the "
+            "growth rings would map the thermal history. Wider bands mark "
+            "warmer, faster growth; tight bands mark slow cool periods."
+        )
+
+        if c.dissolved:
+            parts.append(
+                "HF-assisted dissolution etched the surface — beryl is very "
+                "resistant, but fluoride-rich acid fluids will eventually "
+                "eat it, releasing Be²⁺ and SiO₂ back to the pocket."
+            )
 
         return " ".join(parts)
 

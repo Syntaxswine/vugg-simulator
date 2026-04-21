@@ -38,15 +38,16 @@
     "class_color": "Hex color for topographic map visualization. Derived from mineral class — all classes of the same type share one hue on a 12-color wheel (30° spacing). Wall/matrix = #D2691E (amber)."
   },
   "_audit_summary": {
-    "total_minerals": 21,
-    "_note": "Post-phase-2 state. The _initial_audit block below is frozen at phase-1 start for historical reference — do not edit. +topaz (Minas Gerais B), +tourmaline (Minas Gerais A — commit 1).",
+    "total_minerals": 22,
+    "_note": "Post-phase-2 state. The _initial_audit block below is frozen at phase-1 start for historical reference — do not edit. +topaz (Minas Gerais B), +tourmaline + beryl (Minas Gerais A — commits 1 and 2).",
     "missing_growth_engine": [],
     "missing_narrate_function": [],
     "missing_from_vugg_py_registry": [],
     "missing_from_web_index": [],
     "missing_from_agent_api": [
       "topaz",
-      "tourmaline"
+      "tourmaline",
+      "beryl"
     ],
     "scenarios_that_can_nucleate": {
       "cooling": [
@@ -87,7 +88,8 @@
         "feldspar",
         "albite",
         "galena",
-        "tourmaline"
+        "tourmaline",
+        "beryl"
       ],
       "supergene_oxidation": [
         "goethite",
@@ -2419,6 +2421,115 @@
         "web/index.html"
       ],
       "audit_status": "new (Minas Gerais Variant A, tourmaline schorl→elbaite series). First B consumer in the sim. Not yet in agent-api/vugg-agent.js.",
+      "class_color": "#1313eb"
+    },
+    "beryl": {
+      "formula": "Be3Al2Si6O18",
+      "nucleation_sigma": 1.8,
+      "max_nucleation_count": 4,
+      "max_size_cm": 1200,
+      "growth_rate_mult": 0.25,
+      "habit_variants": [
+        {
+          "name": "hexagonal_prism",
+          "wall_spread": 0.2,
+          "void_reach": 0.9,
+          "vector": "projecting",
+          "trigger": "low σ, steady growth, moderate T"
+        },
+        {
+          "name": "elongated_prism",
+          "wall_spread": 0.15,
+          "void_reach": 0.95,
+          "vector": "projecting",
+          "trigger": "low σ, high T, sustained Be supply"
+        },
+        {
+          "name": "tabular_hexagonal",
+          "wall_spread": 0.4,
+          "void_reach": 0.4,
+          "vector": "tabular",
+          "trigger": "moderate-high σ, space-constrained"
+        },
+        {
+          "name": "doubly_terminated",
+          "wall_spread": 0.2,
+          "void_reach": 0.85,
+          "vector": "projecting",
+          "trigger": "low σ, moderate T, free-growing pocket"
+        },
+        {
+          "name": "default_hex_prism",
+          "wall_spread": 0.25,
+          "void_reach": 0.85,
+          "vector": "projecting",
+          "trigger": "default — hexagonal prism with flat basal pinacoid"
+        }
+      ],
+      "class": "silicate",
+      "description": "Be₃Al₂Si₆O₁₈ — hexagonal cyclosilicate, prismatic crystals that can exceed a meter in length. Beryllium is the most incompatible common element in magmatic systems: it refuses to fit into any rock-forming mineral and accumulates in residual pegmatite fluid until beryl finally nucleates. That's why the crystals are enormous — by the time the threshold is reached, there's a lot of Be waiting to crystallize. Color requires trace elements from country rock, not from the pegmatite itself: Fe²⁺ → aquamarine (blue), Mn²⁺ → morganite (pink), Cr³⁺/V³⁺ → emerald (green). The emerald paradox: you need BOTH pegmatite fluid (Be source) AND ultramafic wall rock (Cr source) to meet.",
+      "scenarios": [
+        "gem_pegmatite",
+        "radioactive_pegmatite"
+      ],
+      "T_range_C": [
+        300,
+        650
+      ],
+      "T_optimum_C": [
+        350,
+        550
+      ],
+      "T_behavior": "window",
+      "pH_dissolution_below": null,
+      "pH_dissolution_above": null,
+      "redox_requirement": "any",
+      "required_ingredients": {
+        "Be": 10,
+        "Al": 6,
+        "SiO2": 50
+      },
+      "trace_ingredients": {
+        "Fe": "aquamarine (blue)",
+        "Cr": "emerald (green) — requires ultramafic country-rock contact",
+        "V": "emerald (green, Cr alternative)",
+        "Mn": "morganite (pink)",
+        "Cs": "red beryl (extremely rare, not tracked here)"
+      },
+      "thermal_decomp_C": null,
+      "thermal_decomp_reaction": null,
+      "thermal_decomp_products": null,
+      "fluorescence": null,
+      "twin_laws": [],
+      "acid_dissolution": {
+        "pH_threshold": null,
+        "reaction": "resistant to most acids; dissolves slowly in HF",
+        "products": null
+      },
+      "habit": "hexagonal_prism",
+      "color_rules": {
+        "colorless_goshenite": {
+          "default": true
+        },
+        "blue_aquamarine": {
+          "trigger": "Fe > 8 ppm, no Cr/Mn"
+        },
+        "pink_morganite": {
+          "trigger": "Mn > 2 ppm"
+        },
+        "green_emerald": {
+          "trigger": "Cr > 0.5 ppm or V > 1 ppm (ultramafic contact)"
+        },
+        "yellow_heliodor": {
+          "trigger": "Fe > 15 ppm with oxidizing fluid"
+        }
+      },
+      "narrate_function": "_narrate_beryl",
+      "runtimes_present": [
+        "vugg.py",
+        "web/index.html"
+      ],
+      "audit_status": "new (Minas Gerais Variant A, beryl). First Be consumer — Be is the incompatible element that accumulates forever until beryl threshold. Not yet in agent-api/vugg-agent.js.",
       "class_color": "#1313eb"
     }
   }
