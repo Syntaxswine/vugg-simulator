@@ -876,6 +876,41 @@ class VugConditions:
         return max(sigma, 0)
 
 
+    def supersaturation_apophyllite(self) -> float:
+        """Apophyllite (KCa₄Si₈O₂₀(F,OH)·8H₂O) — zeolite-facies basalt vesicle fill.
+
+        Hydrothermal silicate of the zeolite group, T 50-250°C optimum 100-200°C.
+        Requires K + Ca + lots of SiO₂ + F + alkaline fluid + low pressure
+        (near-surface vesicle conditions). Stage III Deccan Traps mineral per
+        Ottens et al. 2019. Hematite-included variety ('bloody apophyllite')
+        from Nashik when Fe activity is significant.
+        """
+        if (self.fluid.K < 5 or self.fluid.Ca < 30
+                or self.fluid.SiO2 < 800 or self.fluid.F < 2):
+            return 0
+        if self.temperature < 50 or self.temperature > 250:
+            return 0
+        if self.fluid.pH < 7.0 or self.fluid.pH > 10.0:
+            return 0
+        # Low-pressure mineral — vesicle filling, doesn't form at depth
+        if self.pressure > 0.5:
+            return 0
+        product = ((self.fluid.K / 30.0) * (self.fluid.Ca / 100.0)
+                   * (self.fluid.SiO2 / 1500.0) * (self.fluid.F / 8.0))
+        # T peak 100-200°C
+        if 100 <= self.temperature <= 200:
+            T_factor = 1.4
+        elif 80 <= self.temperature < 100 or 200 < self.temperature <= 230:
+            T_factor = 1.0
+        else:
+            T_factor = 0.6
+        # pH peak in 7.5-9 range — strong alkaline preference
+        if 7.5 <= self.fluid.pH <= 9.0:
+            pH_factor = 1.2
+        else:
+            pH_factor = 0.8
+        return product * T_factor * pH_factor
+
     def supersaturation_tetrahedrite(self) -> float:
         """Tetrahedrite (Cu₁₂Sb₄S₁₃) — the Sb-endmember fahlore sulfosalt.
 
@@ -2878,6 +2913,65 @@ def grow_malachite(crystal: Crystal, conditions: VugConditions, step: int) -> Op
         thickness_um=rate, growth_rate=rate,
         trace_Fe=trace_Fe,
         note=f"{crystal.habit}, {color_note}, Cu fluid: {conditions.fluid.Cu:.0f} ppm"
+    )
+
+
+def grow_apophyllite(crystal: Crystal, conditions: VugConditions, step: int) -> Optional[GrowthZone]:
+    """Apophyllite (KCa₄Si₈O₂₀(F,OH)·8H₂O) growth — zeolite-facies vesicle filling.
+
+    Habits: prismatic_tabular (default, classic pseudo-cubic blocks),
+    hopper_growth (stepped/terraced faces at high σ), druzy_crust (very high σ),
+    chalcedony_pseudomorph (when an earlier zeolite blade gets replaced).
+    Hematite-bearing growth zones produce the 'bloody apophyllite' phantom
+    inclusions of Nashik fame.
+    """
+    sigma = conditions.supersaturation_apophyllite()
+
+    if sigma < 1.0:
+        # Acid attack — apophyllite is alkaline-stable, dissolves at low pH
+        if crystal.total_growth_um > 5 and conditions.fluid.pH < 5.0:
+            crystal.dissolved = True
+            conditions.fluid.K += 0.5
+            conditions.fluid.Ca += 2.0
+            conditions.fluid.SiO2 += 8.0
+            conditions.fluid.F += 0.5
+            return GrowthZone(
+                step=step, temperature=conditions.temperature,
+                thickness_um=-2.0, growth_rate=-2.0,
+                note=f"acid dissolution (pH {conditions.fluid.pH:.1f}) — K, Ca, SiO₂, F released"
+            )
+        return None
+
+    excess = sigma - 1.0
+    rate = 5.0 * excess * random.uniform(0.7, 1.3)
+
+    # Habit selection — σ controls form
+    if excess > 1.8:
+        crystal.habit = "druzy_crust"
+        crystal.dominant_forms = ["fine-grained drusy coating", "sparkling colorless"]
+    elif excess > 1.0:
+        crystal.habit = "hopper_growth"
+        crystal.dominant_forms = ["stepped/terraced {001} faces", "skeletal hopper crystals"]
+    elif excess > 0.4:
+        crystal.habit = "prismatic_tabular"
+        crystal.dominant_forms = ["pseudo-cubic tabular {001} + {110}", "transparent to pearly"]
+    else:
+        # Lower σ — slow growth, possible chalcedony pseudomorph after earlier zeolite
+        crystal.habit = "chalcedony_pseudomorph"
+        crystal.dominant_forms = ["chalcedony pseudomorph after earlier zeolite blade", "massive milky"]
+
+    # Hematite phantom inclusions — when Fe activity is high enough,
+    # microcrystalline hematite needles enclose in growth zones, producing
+    # the 'bloody apophyllite' habit of Nashik (Deccan Traps).
+    hematite_note = ""
+    if conditions.fluid.Fe > 8 and conditions.fluid.O2 > 0.2 and random.random() < 0.4:
+        hematite_note = " (hematite needle phantoms — bloody apophyllite zone)"
+
+    return GrowthZone(
+        step=step, temperature=conditions.temperature,
+        thickness_um=rate, growth_rate=rate,
+        trace_Fe=conditions.fluid.Fe * 0.05,
+        note=f"{crystal.habit} K-Ca-Si zeolite{hematite_note}"
     )
 
 
@@ -5241,6 +5335,7 @@ MINERAL_ENGINES = {
     "annabergite": grow_annabergite,
     "tetrahedrite": grow_tetrahedrite,
     "tennantite": grow_tennantite,
+    "apophyllite": grow_apophyllite,
     "feldspar": grow_feldspar,
     "albite": grow_albite,
     "galena": grow_galena,
@@ -5300,6 +5395,7 @@ THERMAL_DECOMPOSITION = {
     "annabergite": (200, "Ni₃(AsO₄)₂·8H₂O → dehydration (lattice water lost)",    {"Ni": 0.5, "As": 0.3}),
     "tetrahedrite": (650, "Cu₁₂Sb₄S₁₃ → decomposition (Cu + Sb + S released)",    {"Cu": 0.4, "Sb": 0.3, "S": 0.3}),
     "tennantite":  (620, "Cu₁₂As₄S₁₃ → decomposition (Cu + As + S released)",    {"Cu": 0.4, "As": 0.3, "S": 0.3}),
+    "apophyllite": (350, "KCa₄Si₈O₂₀(F,OH)·8H₂O → dehydration (lattice water lost)",    {"K": 0.3, "Ca": 0.4, "SiO2": 0.4, "F": 0.2}),
     "galena":     (1115, "PbS → Pb + S (melting)",                                     {"Pb": 0.5, "S": 0.4}),
     "smithsonite": (300,  "ZnCO₃ → ZnO + CO₂ (calcination)",                            {"Zn": 0.4, "CO3": 0.4}),
     "wulfenite":   (1120, "PbMoO₄ → Pb + MoO₃ (decomposition)",                         {"Pb": 0.4, "Mo": 0.3}),
@@ -6464,6 +6560,123 @@ def scenario_bisbee() -> Tuple[VugConditions, List[Event], int]:
     return conditions, events, 340
 
 
+def scenario_deccan_zeolite() -> Tuple[VugConditions, List[Event], int]:
+    """Deccan Traps zeolite vesicle — Stage III (~21–58 Ma post-eruption).
+
+    Per Ottens et al. 2019, the Deccan basalt vesicles fill in stages over
+    tens of millions of years. Stage I (early): silica veneers, chalcedony
+    coating. Stage II: zeolite blades (stilbite, scolecite, heulandite) and
+    early calcite. Stage III: the apophyllite stage — alkaline K-Ca-Si-F
+    fluid percolates through cooled basalt vesicles and crystallizes pseudo-
+    cubic apophyllite blocks, sometimes carrying hematite-needle phantoms
+    (the 'bloody apophyllite' of Nashik).
+
+    Compared to the metamorphic / hydrothermal scenarios, this is gentle:
+    no acid pulses, no dramatic T excursions. The story is patient
+    crystallization in alkaline groundwater over geologic time.
+    """
+    conditions = VugConditions(
+        temperature=250.0,        # hot Stage I post-eruption
+        pressure=0.05,            # vesicle in basalt — atmospheric-ish
+        fluid=FluidChemistry(
+            # Alkaline silica-rich groundwater leaching the basalt:
+            # high SiO2 from glass + plagioclase weathering, low K and F
+            # initially — those climb in Stage III when alkali-rich
+            # groundwater finally percolates through, gating apophyllite
+            # behind that explicit pulse so it doesn't preempt hematite.
+            # Iron is already abundant from basalt groundmass leaching;
+            # combined with high O2 it lets Stage I deposit hematite
+            # needles before Stage III brings apophyllite.
+            SiO2=900, Ca=180, CO3=80, Fe=180, Mn=4, Mg=8, Al=15,
+            K=2, Na=40, F=1,
+            O2=1.5, pH=8.2, salinity=2.0,
+        ),
+        # Vesicle in basalt — a single primary cavity with minor
+        # post-eruption coalescence. Smooth, sub-spherical.
+        wall=VugWall(
+            composition="basalt",
+            thickness_mm=200.0,
+            vug_diameter_mm=50.0,
+            wall_Fe_ppm=8000.0,    # iron-rich basalt host
+            wall_Mn_ppm=400.0,
+            primary_bubbles=2,
+            secondary_bubbles=3,
+            shape_seed=21,         # Deccan eruption ~66 Ma
+        ),
+    )
+
+    def ev_silica_veneer(cond):
+        """Stage I: hot early silica + hematite needle deposition."""
+        cond.fluid.SiO2 += 400
+        cond.fluid.Fe += 50
+        cond.fluid.O2 = 0.9
+        cond.temperature = 200
+        return ("Stage I — hot post-eruption hydrothermal fluid coats the "
+                "vesicle wall with chalcedony. Silica activity peaks; iron "
+                "stripped from the basalt groundmass deposits as hematite "
+                "needles on the chalcedony rind. These needles will become "
+                "the seeds for the 'bloody apophyllite' phantom inclusions "
+                "in Stage III.")
+
+    def ev_zeolite_stage_ii(cond):
+        """Stage II: zeolite blades + calcite."""
+        cond.fluid.Ca += 80
+        cond.fluid.K += 10
+        cond.fluid.SiO2 += 200
+        cond.fluid.pH = 8.5
+        cond.temperature = 130
+        return ("Stage II — zeolite blades begin to fill the vesicle. "
+                "Stilbite, scolecite, heulandite (modeled here as the "
+                "zeolite paragenesis pH/Si signature). Calcite forms "
+                "as a late-stage carbonate. The vug is filling slowly.")
+
+    def ev_apophyllite_stage_iii(cond):
+        """Stage III: apophyllite-saturating event."""
+        cond.fluid.K += 25
+        cond.fluid.Ca += 50
+        cond.fluid.SiO2 += 300
+        cond.fluid.F += 4
+        cond.fluid.pH = 8.8
+        cond.temperature = 150
+        return ("Stage III — the apophyllite-bearing pulse arrives, alkaline "
+                "K-Ca-Si-F groundwater. Per Ottens et al. 2019 this is the "
+                "long-lasting late stage, 21–58 Ma after the original eruption. "
+                "The pseudo-cubic apophyllite tablets begin to crystallize on "
+                "the wall, on the chalcedony, on the hematite needles already "
+                "present — wherever a nucleation site offers itself.")
+
+    def ev_hematite_pulse(cond):
+        """Iron pulse — produces the bloody apophyllite phantom zone."""
+        cond.fluid.Fe += 80
+        cond.fluid.O2 = 1.0
+        cond.temperature = 175
+        return ("An iron-bearing pulse threads through the vesicle. Hematite "
+                "needles seed the surfaces of any growing apophyllite. When "
+                "the apophyllite resumes crystallization, those needles get "
+                "trapped in the next growth zone — the Nashik 'bloody "
+                "apophyllite' phantom band.")
+
+    def ev_late_cooling(cond):
+        """Stage IV: late cooling, growth slows."""
+        cond.temperature = 80
+        cond.fluid.pH = 8.0
+        cond.flow_rate = 0.1
+        return ("Late cooling. The vesicle fluid drops back toward ambient. "
+                "Apophyllite growth slows but doesn't stop entirely; the "
+                "remaining K-Ca-Si-F supersaturation keeps adding micron-thin "
+                "growth zones on the existing crystals. Time, not chemistry, "
+                "becomes the limiting reagent.")
+
+    events = [
+        Event(20,  "Silica Veneer",       "Stage I early chalcedony coating",       ev_silica_veneer),
+        Event(35,  "Hematite Pulse",      "Iron seeds the vesicle wall — pre-zeolite needle deposition", ev_hematite_pulse),
+        Event(70,  "Zeolite Stage II",    "Stilbite + heulandite + calcite blades", ev_zeolite_stage_ii),
+        Event(110, "Apophyllite Stage III", "Alkaline K-Ca-Si-F pulse — apophyllite grows around the hematite needles, producing the 'bloody apophyllite' phantom band", ev_apophyllite_stage_iii),
+        Event(160, "Late Cooling",        "System cools toward ambient",            ev_late_cooling),
+    ]
+    return conditions, events, 200
+
+
 def scenario_random() -> Tuple[VugConditions, List[Event], int]:
     """Procedurally-generated vugg — each run a different discovery.
 
@@ -6723,6 +6936,7 @@ SCENARIOS = {
     "ouro_preto": scenario_ouro_preto,
     "gem_pegmatite": scenario_gem_pegmatite,
     "bisbee": scenario_bisbee,
+    "deccan_zeolite": scenario_deccan_zeolite,
     "random": scenario_random,
 }
 
@@ -6858,6 +7072,8 @@ class VugSimulator:
             crystal.dominant_forms = ["{111} tetrahedron", "steel-gray metallic"]
         elif mineral == "tennantite":
             crystal.dominant_forms = ["{111} tetrahedron", "gray-black metallic with cherry-red transmission"]
+        elif mineral == "apophyllite":
+            crystal.dominant_forms = ["pseudo-cubic tabular {001} + {110}", "transparent to pearly"]
         elif mineral == "bornite":
             crystal.dominant_forms = ["massive granular", "iridescent tarnish"]
         elif mineral == "chalcocite":
@@ -7119,6 +7335,22 @@ class VugSimulator:
             c = self.nucleate("tennantite", position=pos, sigma=sigma_tn)
             self.log.append(f"  ✦ NUCLEATION: Tennantite #{c.crystal_id} on {c.position} "
                           f"(T={self.conditions.temperature:.0f}°C, σ={sigma_tn:.2f})")
+
+        # Apophyllite nucleation — alkaline silicate, low-T zeolite vesicle filling.
+        sigma_ap = self.conditions.supersaturation_apophyllite()
+        existing_ap = [c for c in self.crystals if c.mineral == "apophyllite" and c.active]
+        if sigma_ap > 1.0 and not existing_ap and not self._at_nucleation_cap("apophyllite"):
+            pos = "vug wall"
+            existing_q_ap = [c for c in self.crystals if c.mineral == "quartz" and c.active]
+            existing_hem_ap = [c for c in self.crystals if c.mineral == "hematite" and c.active]
+            # Hematite-included apophyllite is the Nashik 'bloody apophyllite' habit
+            if existing_hem_ap and random.random() < 0.4:
+                pos = f"on hematite #{existing_hem_ap[0].crystal_id}"
+            elif existing_q_ap and random.random() < 0.3:
+                pos = f"on quartz #{existing_q_ap[0].crystal_id}"
+            c = self.nucleate("apophyllite", position=pos, sigma=sigma_ap)
+            self.log.append(f"  ✦ NUCLEATION: Apophyllite #{c.crystal_id} on {c.position} "
+                          f"(T={self.conditions.temperature:.0f}°C, σ={sigma_ap:.2f})")
 
         # Hematite nucleation — needs sigma > 1.2 (harder to nucleate)
         sigma_hem = self.conditions.supersaturation_hematite()
@@ -9575,6 +9807,68 @@ class VugSimulator:
                 "mimetite is stable only in a narrow oxidizing, near-neutral window."
             )
 
+        return " ".join(parts)
+
+    def _narrate_apophyllite(self, c: Crystal) -> str:
+        """Narrate an apophyllite crystal's story — the Deccan Traps vesicle filling."""
+        parts = [f"Apophyllite #{c.crystal_id} grew to {c.c_length_mm:.1f} mm."]
+        parts.append(
+            "KCa₄Si₈O₂₀(F,OH)·8H₂O — a tetragonal sheet silicate, technically a "
+            "phyllosilicate that's classed with the zeolites because of its hydrated, "
+            "vesicle-filling behavior. Stage III Deccan Traps mineral per Ottens et "
+            "al. 2019: forms tens of millions of years after the basalt eruption, "
+            "when groundwater finally percolates into the cooled vesicles."
+        )
+
+        if c.habit == "prismatic_tabular":
+            parts.append(
+                "Pseudo-cubic tabular habit — the hallmark apophyllite block: "
+                "{001} basal pinacoid combined with {110} prism faces, transparent "
+                "to pearly. The c-axis cleavage is famously perfect — split a "
+                "crystal along {001} and the surface is pure mirror."
+            )
+        elif c.habit == "hopper_growth":
+            parts.append(
+                "Stepped/terraced faces — high-supersaturation hopper habit. The "
+                "crystal grew so fast that the corners outpaced the centers, "
+                "producing skeletal terraces visible on every face."
+            )
+        elif c.habit == "druzy_crust":
+            parts.append(
+                "Fine-grained drusy coating — the very-high-σ form, microcrystals "
+                "carpeting the vesicle wall in a sparkling colorless crust."
+            )
+        else:
+            parts.append(
+                "Chalcedony pseudomorph — at low σ the crystal grew over an earlier "
+                "zeolite blade (stilbite or scolecite typically) and replaced its "
+                "habit, producing massive milky chalcedony shapes that preserve the "
+                "predecessor's blade outlines."
+            )
+
+        # Hematite phantom inclusions in growth zones
+        hematite_zones = [z for z in c.zones if z.note and "hematite needle phantom" in z.note]
+        if hematite_zones:
+            parts.append(
+                f"{len(hematite_zones)} growth zones carry hematite needle phantoms — "
+                f"this is the 'bloody apophyllite' variety from Nashik. The needles "
+                f"trapped during growth give the otherwise colorless crystal a distinct "
+                f"reddish ghost zone visible by transmitted light."
+            )
+
+        if "hematite" in c.position:
+            parts.append(
+                f"Nucleated directly on a pre-existing hematite — the iron oxide "
+                f"became the seed for vesicle filling, and the apophyllite grew "
+                f"around it as a colorless cap."
+            )
+
+        if c.dissolved:
+            parts.append(
+                "Acid attack dissolved the crystal — apophyllite is an alkaline-stable "
+                "phase, intolerant of pH below 5. K, Ca, SiO₂, and F all returned to "
+                "the fluid, available for downstream zeolite or carbonate growth."
+            )
         return " ".join(parts)
 
     def _narrate_tetrahedrite(self, c: Crystal) -> str:
