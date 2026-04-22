@@ -741,9 +741,13 @@ class VugConditions:
     
     def supersaturation_pyrite(self) -> float:
         """Pyrite (FeS2) supersaturation. Needs Fe + S, reducing conditions.
-        
+
         Pyrite is the most common sulfide. Forms over huge T range (25-700°C).
         Needs iron AND sulfur AND not too oxidizing.
+
+        Below pH 5, the orthorhombic dimorph marcasite is favored over cubic
+        pyrite — same formula, different crystal structure. pH rolloff here
+        lets marcasite win that competition without breaking neutral scenarios.
         """
         if self.fluid.Fe < 5 or self.fluid.S < 10:
             return 0
@@ -753,7 +757,38 @@ class VugConditions:
         product = (self.fluid.Fe / 50.0) * (self.fluid.S / 80.0)
         # Pyrite is stable over a wide T range, slight preference for moderate T
         T_factor = 1.0 if 100 < self.temperature < 400 else 0.5
-        return product * T_factor * (1.5 - self.fluid.O2)
+        # pH rolloff below 5 — marcasite takes over
+        pH_factor = 1.0
+        if self.fluid.pH < 5.0:
+            pH_factor = max(0.3, (self.fluid.pH - 3.5) / 1.5)
+        return product * T_factor * pH_factor * (1.5 - self.fluid.O2)
+
+    def supersaturation_marcasite(self) -> float:
+        """Marcasite (FeS2) — orthorhombic dimorph of pyrite, acid-favored.
+
+        Same composition as pyrite, different crystal structure. Acidic conditions
+        (pH < 5) and low temperature (< 240°C) switch the structure from cubic to
+        orthorhombic. Metastable — above 240°C, marcasite converts to pyrite.
+
+        The switch is hard: pH ≥ 5 or T > 240°C returns zero. Pyrite handles
+        those regimes. Below pH 5, marcasite sigma rises as acidity increases,
+        giving it a clean win over pyrite in reactive_wall / supergene fluids.
+        """
+        if self.fluid.Fe < 5 or self.fluid.S < 10:
+            return 0
+        if self.fluid.O2 > 1.5:
+            return 0
+        # Hard gates: acid AND low-T regime only
+        if self.fluid.pH >= 5.0:
+            return 0
+        if self.temperature > 240:
+            return 0
+        product = (self.fluid.Fe / 50.0) * (self.fluid.S / 80.0)
+        # Stronger in more acidic fluids — peaks at pH 3
+        pH_factor = min(1.4, (5.0 - self.fluid.pH) / 1.2)
+        # Low-T preference — marcasite is a surficial/near-surface crystal
+        T_factor = 1.2 if self.temperature < 150 else 0.6
+        return product * pH_factor * T_factor * (1.5 - self.fluid.O2)
     
     def supersaturation_chalcopyrite(self) -> float:
         """Chalcopyrite (CuFeS2) supersaturation. Needs Cu + Fe + S.
@@ -1948,7 +1983,7 @@ class Crystal:
             if avg_Al > 5:
                 return "weak blue (Al-related defects)"
             return "non-fluorescent"
-        elif self.mineral in ("pyrite", "chalcopyrite", "galena", "molybdenite"):
+        elif self.mineral in ("pyrite", "marcasite", "chalcopyrite", "galena", "molybdenite"):
             return "non-fluorescent (opaque sulfide)"
         elif self.mineral == "sphalerite":
             # Mn²⁺ activates, Fe quenches — same as calcite
@@ -2361,6 +2396,88 @@ def grow_pyrite(crystal: Crystal, conditions: VugConditions, step: int) -> Optio
         crystal.twinned = True
         crystal.twin_law = "iron cross {110}"
     
+    return GrowthZone(
+        step=step, temperature=conditions.temperature,
+        thickness_um=rate, growth_rate=rate,
+        trace_Fe=conditions.fluid.Fe * 0.15,
+        note=trace_note
+    )
+
+
+def grow_marcasite(crystal: Crystal, conditions: VugConditions, step: int) -> Optional[GrowthZone]:
+    """Marcasite (FeS2) growth model — orthorhombic dimorph of pyrite.
+
+    Same composition as pyrite; pH<5 and T<240°C are the switches. Habits are
+    the diagnostic — cockscomb crests, spearhead tips, radiating blades. The
+    classic museum-specimen rot: left in humidity, marcasite decomposes to
+    sulfuric acid + iron sulfate. Metastable to pyrite on heating above 240°C.
+    """
+    # Metastable conversion to pyrite — if pH rises or T exceeds 240, the
+    # orthorhombic structure collapses to the cubic form. Treat as dissolution
+    # with Fe/S released, letting a new pyrite seed nucleate in its place.
+    if crystal.total_growth_um > 10 and (conditions.fluid.pH >= 5.0 or conditions.temperature > 240):
+        crystal.dissolved = True
+        conditions.fluid.Fe += 1.5
+        conditions.fluid.S += 1.2
+        trigger = "pH rose above 5" if conditions.fluid.pH >= 5.0 else "T exceeded 240°C"
+        return GrowthZone(
+            step=step, temperature=conditions.temperature,
+            thickness_um=-1.5, growth_rate=-1.5,
+            note=f"metastable inversion — {trigger}, orthorhombic FeS2 converting to pyrite"
+        )
+
+    sigma = conditions.supersaturation_marcasite()
+
+    if sigma < 1.0:
+        # Oxidative dissolution — marcasite decomposes faster than pyrite
+        if crystal.total_growth_um > 10 and conditions.fluid.O2 > 0.8:
+            crystal.dissolved = True
+            dissolved_um = min(4.0, crystal.total_growth_um * 0.12)
+            conditions.fluid.Fe += dissolved_um * 1.0
+            conditions.fluid.S += dissolved_um * 0.5
+            return GrowthZone(
+                step=step, temperature=conditions.temperature,
+                thickness_um=-dissolved_um, growth_rate=-dissolved_um,
+                note="oxidative breakdown — FeS2 + O2 + H2O → FeSO4 + H2SO4 (the museum rot)"
+            )
+        # Acid-stable down to pH 1.5 — but extreme acid still dissolves
+        if crystal.total_growth_um > 10 and conditions.fluid.pH < 1.5:
+            crystal.dissolved = True
+            conditions.fluid.Fe += 2.0
+            conditions.fluid.S += 1.5
+            return GrowthZone(
+                step=step, temperature=conditions.temperature,
+                thickness_um=-2.0, growth_rate=-2.0,
+                note=f"extreme-acid dissolution (pH {conditions.fluid.pH:.1f})"
+            )
+        return None
+
+    excess = sigma - 1.0
+    rate = 4.5 * excess * random.uniform(0.7, 1.3)
+
+    # Habit selection — sigma + T control the form
+    if excess > 1.5 and conditions.temperature < 100:
+        crystal.habit = "radiating_blade"
+        crystal.dominant_forms = ["radiating blades", "fibrous stellate clusters"]
+    elif excess > 0.8:
+        crystal.habit = "cockscomb"
+        crystal.dominant_forms = ["cockscomb aggregate", "crested tabular {010}"]
+    elif excess > 0.3:
+        crystal.habit = "spearhead"
+        crystal.dominant_forms = ["spearhead twins", "pyramidal terminations"]
+    else:
+        crystal.habit = "tabular_plate"
+        crystal.dominant_forms = ["{010} tabular plate"]
+
+    trace_note = "pale brass-yellow metallic, tarnishing iridescent"
+    if conditions.fluid.pH < 3.5:
+        trace_note += " (strong acid — extra-rapid cockscomb growth)"
+
+    # Twinning — marcasite forms characteristic spearhead (swallowtail) twins
+    if crystal.habit == "spearhead" and not crystal.twinned and random.random() < 0.05:
+        crystal.twinned = True
+        crystal.twin_law = "spearhead {101}"
+
     return GrowthZone(
         step=step, temperature=conditions.temperature,
         thickness_um=rate, growth_rate=rate,
@@ -4685,6 +4802,7 @@ MINERAL_ENGINES = {
     "sphalerite": grow_sphalerite,
     "fluorite": grow_fluorite,
     "pyrite": grow_pyrite,
+    "marcasite": grow_marcasite,
     "chalcopyrite": grow_chalcopyrite,
     "hematite": grow_hematite,
     "malachite": grow_malachite,
@@ -4738,6 +4856,7 @@ THERMAL_DECOMPOSITION = {
     "sphalerite": (1020, "ZnS → Zn + S (sublimes)",                              {"Zn": 0.3, "S": 0.5}),
     "fluorite":   (1360, "CaF₂ melting — extremely refractory",                   {"Ca": 0.4, "F": 0.4}),
     "pyrite":     (743,  "FeS₂ → FeS + S (sulfur driven off)",                    {"Fe": 0.5, "S": 0.4}),
+    "marcasite":  (240,  "orthorhombic FeS₂ → cubic FeS₂ (pyrite) — metastable inversion", {"Fe": 0.4, "S": 0.3}),
     "chalcopyrite": (880, "CuFeS₂ decomposition",                                {"Cu": 0.3, "Fe": 0.3, "S": 0.4}),
     "hematite":   (1560, "Fe₂O₃ — very refractory, barely melts",                 {}),
     "quartz":     (1713, "SiO₂ melting — takes hell itself to melt quartz",       {"SiO2": 0.3}),
@@ -6239,6 +6358,8 @@ class VugSimulator:
             crystal.dominant_forms = ["{100} cube"]
         elif mineral == "pyrite":
             crystal.dominant_forms = ["{100} cube"]
+        elif mineral == "marcasite":
+            crystal.dominant_forms = ["cockscomb aggregate", "{010} tabular crests"]
         elif mineral == "chalcopyrite":
             crystal.dominant_forms = ["{112} disphenoid"]
         elif mineral == "hematite":
@@ -6475,7 +6596,23 @@ class VugSimulator:
             c = self.nucleate("pyrite", position=pos, sigma=sigma_py)
             self.log.append(f"  ✦ NUCLEATION: Pyrite #{c.crystal_id} on {c.position} "
                           f"(T={self.conditions.temperature:.0f}°C, σ={sigma_py:.2f})")
-        
+
+        # Marcasite nucleation — pH<5, T<240. The acidic dimorph.
+        sigma_mc = self.conditions.supersaturation_marcasite()
+        existing_mc = [c for c in self.crystals if c.mineral == "marcasite" and c.active]
+        if sigma_mc > 1.0 and not existing_mc and not self._at_nucleation_cap("marcasite"):
+            pos = "vug wall"
+            # Prefer existing sphalerite or galena substrate — classic MVT association
+            existing_sph = [c for c in self.crystals if c.mineral == "sphalerite" and c.active]
+            existing_gal = [c for c in self.crystals if c.mineral == "galena" and c.active]
+            if existing_sph and random.random() < 0.5:
+                pos = f"on sphalerite #{existing_sph[0].crystal_id}"
+            elif existing_gal and random.random() < 0.4:
+                pos = f"on galena #{existing_gal[0].crystal_id}"
+            c = self.nucleate("marcasite", position=pos, sigma=sigma_mc)
+            self.log.append(f"  ✦ NUCLEATION: Marcasite #{c.crystal_id} on {c.position} "
+                          f"(pH={self.conditions.fluid.pH:.1f}, σ={sigma_mc:.2f})")
+
         # Chalcopyrite nucleation
         sigma_cp = self.conditions.supersaturation_chalcopyrite()
         existing_cp = [c for c in self.crystals if c.mineral == "chalcopyrite" and c.active]
@@ -8399,9 +8536,56 @@ class VugSimulator:
                 "produce a limonite/goethite boxwork pseudomorph, the rusty ghost "
                 "of the original crystal."
             )
-        
+
         return " ".join(parts)
-    
+
+    def _narrate_marcasite(self, c: Crystal) -> str:
+        """Narrate a marcasite crystal's story — the acid-loving iron sulfide."""
+        parts = [f"Marcasite #{c.crystal_id} grew to {c.c_length_mm:.1f} mm."]
+
+        if c.habit == "cockscomb":
+            parts.append(
+                "The crystal developed the classic cockscomb habit — aggregated tabular "
+                "plates on {010}, edges ridged like a rooster's comb. This shape is the "
+                "diagnostic fingerprint: pyrite never crests like this."
+            )
+        elif c.habit == "spearhead":
+            parts.append(
+                "Spearhead twins — paired tabular crystals tapered to pyramidal tips. "
+                "The {101} twin law produces a swallowtail shape unique to marcasite."
+            )
+        elif c.habit == "radiating_blade":
+            parts.append(
+                "Radiating blades sprayed outward from a common center — low-temperature, "
+                "high-supersaturation growth in acid fluids, the same style that gives "
+                "sedimentary marcasite nodules their stellate fracture patterns."
+            )
+        else:
+            parts.append(
+                "Flat tabular {010} plates — the slow-growth marcasite form, pale brass "
+                "already starting to iridesce as surface sulfur oxidizes."
+            )
+
+        if c.twinned:
+            parts.append(
+                f"Shows the {c.twin_law} swallowtail twin, diagnostic of marcasite "
+                f"and absent from its cubic cousin pyrite."
+            )
+
+        if c.dissolved:
+            parts.append(
+                "Metastable inversion or oxidative breakdown destroyed the crystal — "
+                "marcasite is the unstable FeS₂ dimorph. Over geologic time it converts "
+                "to pyrite; on museum shelves it rots to sulfuric acid and iron sulfate."
+            )
+        else:
+            parts.append(
+                "The pH/T regime kept it in the orthorhombic field; given geologic time "
+                "or a temperature excursion above 240°C, this crystal would invert to pyrite."
+            )
+
+        return " ".join(parts)
+
     def _narrate_chalcopyrite(self, c: Crystal) -> str:
         """Narrate a chalcopyrite crystal's story."""
         parts = [f"Chalcopyrite #{c.crystal_id} grew to {c.c_length_mm:.1f} mm."]
@@ -9952,7 +10136,24 @@ class VugSimulator:
                 if c.dissolved:
                     desc += ", partially oxidized (limonite staining)"
                 parts.append(f"  • {desc}")
-            
+
+            elif c.mineral == "marcasite":
+                desc = f"a {c.c_length_mm:.1f}mm marcasite"
+                if c.habit == "cockscomb":
+                    desc += " cockscomb"
+                elif c.habit == "spearhead":
+                    desc += " spearhead"
+                elif c.habit == "radiating_blade":
+                    desc = f"radiating marcasite blades, {c.c_length_mm:.1f}mm across"
+                else:
+                    desc += " tabular plate"
+                if c.twinned:
+                    desc += f" ({c.twin_law})"
+                desc += " — pale brass, iridescent tarnish"
+                if c.dissolved:
+                    desc += ", partially replaced by pyrite (metastable inversion)"
+                parts.append(f"  • {desc}")
+
             elif c.mineral == "chalcopyrite":
                 desc = f"a {c.c_length_mm:.1f}mm chalcopyrite"
                 if c.twinned:

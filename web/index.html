@@ -2969,6 +2969,7 @@ const MINERAL_SPEC_FALLBACK = {
   sphalerite: { formula: "ZnS", nucleation_sigma: 1.0, max_size_cm: 80, growth_rate_mult: 0.6, thermal_decomp_C: 1020, fluorescence: { activator: "Mn", threshold_ppm: 5, color: "orange_or_blue_variable", quencher: { species: "Fe", threshold_ppm: 10 } }, twin_laws: [{ name: "spinel_law", probability: 0.015 }], acid_dissolution: { pH_threshold: 2.0 } },
   fluorite: { formula: "CaF2", nucleation_sigma: 1.0, max_size_cm: 400, growth_rate_mult: 0.5, thermal_decomp_C: 1360, fluorescence: { activator: "REE_or_defects", color: "blue_violet_LW_and_SW" }, twin_laws: [{ name: "penetration", probability: 0.008 }], acid_dissolution: { pH_threshold: 4.0 } },
   pyrite: { formula: "FeS2", nucleation_sigma: 1.0, max_size_cm: 40, growth_rate_mult: 0.3, thermal_decomp_C: 743, fluorescence: null, twin_laws: [{ name: "iron_cross", probability: 0.008 }], acid_dissolution: { pH_threshold: 3.0 } },
+  marcasite: { formula: "FeS2", nucleation_sigma: 1.0, max_size_cm: 15, growth_rate_mult: 0.3, thermal_decomp_C: 240, fluorescence: null, twin_laws: [{ name: "spearhead", probability: 0.05 }], acid_dissolution: { pH_threshold: 1.5 } },
   chalcopyrite: { formula: "CuFeS2", nucleation_sigma: 1.0, max_size_cm: 30, growth_rate_mult: 0.3, thermal_decomp_C: 880, fluorescence: null, twin_laws: [{ name: "penetration", probability: 0.012 }], acid_dissolution: { pH_threshold: 3.0 } },
   hematite: { formula: "Fe2O3", nucleation_sigma: 1.5, max_size_cm: 60, growth_rate_mult: 0.5, thermal_decomp_C: 1560, fluorescence: null, twin_laws: [], acid_dissolution: { pH_threshold: 3.0 } },
   malachite: { formula: "Cu2(CO3)(OH)2", nucleation_sigma: 1.0, max_size_cm: 200, growth_rate_mult: 0.8, thermal_decomp_C: 200, fluorescence: null, twin_laws: [], acid_dissolution: { pH_threshold: 4.5 } },
@@ -3911,7 +3912,24 @@ class VugConditions {
     const product = (this.fluid.Fe / 50.0) * (this.fluid.S / 80.0);
     const eT = this.effectiveTemperature; // Mo flux widens T window
     const T_factor = (100 < eT && eT < 400) ? 1.0 : 0.5;
-    return product * T_factor * (1.5 - this.fluid.O2);
+    // pH rolloff below 5 — marcasite (orthorhombic FeS2) wins in acid
+    let pH_factor = 1.0;
+    if (this.fluid.pH < 5.0) {
+      pH_factor = Math.max(0.3, (this.fluid.pH - 3.5) / 1.5);
+    }
+    return product * T_factor * pH_factor * (1.5 - this.fluid.O2);
+  }
+
+  supersaturation_marcasite() {
+    // Orthorhombic FeS2 dimorph of pyrite. pH<5 AND T<240 hard gates.
+    if (this.fluid.Fe < 5 || this.fluid.S < 10) return 0;
+    if (this.fluid.O2 > 1.5) return 0;
+    if (this.fluid.pH >= 5.0) return 0;
+    if (this.temperature > 240) return 0;
+    const product = (this.fluid.Fe / 50.0) * (this.fluid.S / 80.0);
+    const pH_factor = Math.min(1.4, (5.0 - this.fluid.pH) / 1.2);
+    const T_factor = this.temperature < 150 ? 1.2 : 0.6;
+    return product * pH_factor * T_factor * (1.5 - this.fluid.O2);
   }
 
   supersaturation_chalcopyrite() {
@@ -4572,7 +4590,7 @@ class Crystal {
       if (avg_Mn > 5 && avg_Fe > 10) return 'quenched (Fe²⁺ masks Mn²⁺ emission)';
       return 'non-fluorescent';
     }
-    if (this.mineral === 'pyrite' || this.mineral === 'chalcopyrite' || this.mineral === 'galena' || this.mineral === 'molybdenite') {
+    if (this.mineral === 'pyrite' || this.mineral === 'marcasite' || this.mineral === 'chalcopyrite' || this.mineral === 'galena' || this.mineral === 'molybdenite') {
       return 'non-fluorescent (opaque sulfide)';
     }
     if (this.mineral === 'hematite') {
@@ -4981,6 +4999,83 @@ function grow_pyrite(crystal, conditions, step) {
   if (!crystal.twinned && rng.random() < 0.008) {
     crystal.twinned = true;
     crystal.twin_law = 'iron cross {110}';
+  }
+
+  return new GrowthZone({
+    step, temperature: conditions.temperature,
+    thickness_um: rate, growth_rate: rate,
+    trace_Fe: conditions.fluid.Fe * 0.15,
+    note: trace_note
+  });
+}
+
+function grow_marcasite(crystal, conditions, step) {
+  // Metastable inversion to pyrite if pH rises above 5 or T exceeds 240
+  if (crystal.total_growth_um > 10 && (conditions.fluid.pH >= 5.0 || conditions.temperature > 240)) {
+    crystal.dissolved = true;
+    conditions.fluid.Fe += 1.5;
+    conditions.fluid.S += 1.2;
+    const trigger = conditions.fluid.pH >= 5.0 ? 'pH rose above 5' : 'T exceeded 240°C';
+    return new GrowthZone({
+      step, temperature: conditions.temperature,
+      thickness_um: -1.5, growth_rate: -1.5,
+      note: `metastable inversion — ${trigger}, orthorhombic FeS2 converting to pyrite`
+    });
+  }
+
+  const sigma = conditions.supersaturation_marcasite();
+
+  if (sigma < 1.0) {
+    // Oxidative breakdown — the classic museum rot
+    if (crystal.total_growth_um > 10 && conditions.fluid.O2 > 0.8) {
+      crystal.dissolved = true;
+      const dissolved_um = Math.min(4.0, crystal.total_growth_um * 0.12);
+      conditions.fluid.Fe += dissolved_um * 1.0;
+      conditions.fluid.S += dissolved_um * 0.5;
+      return new GrowthZone({
+        step, temperature: conditions.temperature,
+        thickness_um: -dissolved_um, growth_rate: -dissolved_um,
+        note: 'oxidative breakdown — FeS2 + O2 + H2O → FeSO4 + H2SO4 (the museum rot)'
+      });
+    }
+    if (crystal.total_growth_um > 10 && conditions.fluid.pH < 1.5) {
+      crystal.dissolved = true;
+      conditions.fluid.Fe += 2.0;
+      conditions.fluid.S += 1.5;
+      return new GrowthZone({
+        step, temperature: conditions.temperature,
+        thickness_um: -2.0, growth_rate: -2.0,
+        note: `extreme-acid dissolution (pH ${conditions.fluid.pH.toFixed(1)})`
+      });
+    }
+    return null;
+  }
+
+  const excess = sigma - 1.0;
+  const rate = 4.5 * excess * rng.uniform(0.7, 1.3);
+
+  if (excess > 1.5 && conditions.temperature < 100) {
+    crystal.habit = 'radiating_blade';
+    crystal.dominant_forms = ['radiating blades', 'fibrous stellate clusters'];
+  } else if (excess > 0.8) {
+    crystal.habit = 'cockscomb';
+    crystal.dominant_forms = ['cockscomb aggregate', 'crested tabular {010}'];
+  } else if (excess > 0.3) {
+    crystal.habit = 'spearhead';
+    crystal.dominant_forms = ['spearhead twins', 'pyramidal terminations'];
+  } else {
+    crystal.habit = 'tabular_plate';
+    crystal.dominant_forms = ['{010} tabular plate'];
+  }
+
+  let trace_note = 'pale brass-yellow metallic, tarnishing iridescent';
+  if (conditions.fluid.pH < 3.5) {
+    trace_note += ' (strong acid — extra-rapid cockscomb growth)';
+  }
+
+  if (crystal.habit === 'spearhead' && !crystal.twinned && rng.random() < 0.05) {
+    crystal.twinned = true;
+    crystal.twin_law = 'spearhead {101}';
   }
 
   return new GrowthZone({
@@ -6597,6 +6692,7 @@ const MINERAL_ENGINES = {
   sphalerite: grow_sphalerite,
   fluorite: grow_fluorite,
   pyrite: grow_pyrite,
+  marcasite: grow_marcasite,
   chalcopyrite: grow_chalcopyrite,
   hematite: grow_hematite,
   malachite: grow_malachite,
@@ -7382,6 +7478,8 @@ class VugSimulator {
       crystal.dominant_forms = ['{100} cube'];
     } else if (mineral === 'pyrite') {
       crystal.dominant_forms = ['{100} cube'];
+    } else if (mineral === 'marcasite') {
+      crystal.dominant_forms = ['cockscomb aggregate', '{010} tabular crests'];
     } else if (mineral === 'chalcopyrite') {
       crystal.dominant_forms = ['{112} disphenoid'];
     } else if (mineral === 'hematite') {
@@ -7609,6 +7707,22 @@ class VugSimulator {
       }
       const c = this.nucleate('pyrite', pos, sigma_py);
       this.log.push(`  ✦ NUCLEATION: Pyrite #${c.crystal_id} on ${c.position} (T=${this.conditions.temperature.toFixed(0)}°C, σ=${sigma_py.toFixed(2)})`);
+    }
+
+    // Marcasite nucleation — pH<5, T<240. The acidic dimorph.
+    const sigma_mc = this.conditions.supersaturation_marcasite();
+    const existing_mc = this.crystals.filter(c => c.mineral === 'marcasite' && c.active);
+    if (sigma_mc > 1.0 && !existing_mc.length && !this._atNucleationCap('marcasite')) {
+      let pos = 'vug wall';
+      const existing_sph3 = this.crystals.filter(c => c.mineral === 'sphalerite' && c.active);
+      const existing_gal = this.crystals.filter(c => c.mineral === 'galena' && c.active);
+      if (existing_sph3.length && rng.random() < 0.5) {
+        pos = `on sphalerite #${existing_sph3[0].crystal_id}`;
+      } else if (existing_gal.length && rng.random() < 0.4) {
+        pos = `on galena #${existing_gal[0].crystal_id}`;
+      }
+      const c = this.nucleate('marcasite', pos, sigma_mc);
+      this.log.push(`  ✦ NUCLEATION: Marcasite #${c.crystal_id} on ${c.position} (pH=${this.conditions.fluid.pH.toFixed(1)}, σ=${sigma_mc.toFixed(2)})`);
     }
 
     // Chalcopyrite nucleation
@@ -8960,6 +9074,28 @@ class VugSimulator {
     return parts.join(' ');
   }
 
+  _narrate_marcasite(c) {
+    const parts = [`Marcasite #${c.crystal_id} grew to ${c.c_length_mm.toFixed(1)} mm.`];
+    if (c.habit === 'cockscomb') {
+      parts.push("The crystal developed the classic cockscomb habit — aggregated tabular plates on {010}, edges ridged like a rooster's comb. This shape is the diagnostic fingerprint: pyrite never crests like this.");
+    } else if (c.habit === 'spearhead') {
+      parts.push('Spearhead twins — paired tabular crystals tapered to pyramidal tips. The {101} twin law produces a swallowtail shape unique to marcasite.');
+    } else if (c.habit === 'radiating_blade') {
+      parts.push('Radiating blades sprayed outward from a common center — low-temperature, high-supersaturation growth in acid fluids, the same style that gives sedimentary marcasite nodules their stellate fracture patterns.');
+    } else {
+      parts.push('Flat tabular {010} plates — the slow-growth marcasite form, pale brass already starting to iridesce as surface sulfur oxidizes.');
+    }
+    if (c.twinned) {
+      parts.push(`Shows the ${c.twin_law} swallowtail twin, diagnostic of marcasite and absent from its cubic cousin pyrite.`);
+    }
+    if (c.dissolved) {
+      parts.push('Metastable inversion or oxidative breakdown destroyed the crystal — marcasite is the unstable FeS₂ dimorph. Over geologic time it converts to pyrite; on museum shelves it rots to sulfuric acid and iron sulfate.');
+    } else {
+      parts.push('The pH/T regime kept it in the orthorhombic field; given geologic time or a temperature excursion above 240°C, this crystal would invert to pyrite.');
+    }
+    return parts.join(' ');
+  }
+
   _narrate_chalcopyrite(c) {
     const parts = [`Chalcopyrite #${c.crystal_id} grew to ${c.c_length_mm.toFixed(1)} mm.`];
     parts.push('Brassy yellow with a greenish tint — distinguishable from pyrite by its deeper color and softer hardness (3.5 vs 6). The disphenoidal crystals often look tetrahedral, a common misidentification.');
@@ -9659,6 +9795,21 @@ class VugSimulator {
         if (c.twinned) desc += ` (${c.twin_law})`;
         desc += ' — bright metallic luster';
         if (c.dissolved) desc += ', partially oxidized (limonite staining)';
+        parts.push(`  • ${desc}`);
+      } else if (c.mineral === 'marcasite') {
+        let desc = `a ${c.c_length_mm.toFixed(1)}mm marcasite`;
+        if (c.habit === 'cockscomb') {
+          desc += ' cockscomb';
+        } else if (c.habit === 'spearhead') {
+          desc += ' spearhead';
+        } else if (c.habit === 'radiating_blade') {
+          desc = `radiating marcasite blades, ${c.c_length_mm.toFixed(1)}mm across`;
+        } else {
+          desc += ' tabular plate';
+        }
+        if (c.twinned) desc += ` (${c.twin_law})`;
+        desc += ' — pale brass, iridescent tarnish';
+        if (c.dissolved) desc += ', partially replaced by pyrite (metastable inversion)';
         parts.push(`  • ${desc}`);
       } else if (c.mineral === 'chalcopyrite') {
         let desc = `a ${c.c_length_mm.toFixed(1)}mm chalcopyrite`;
@@ -11432,6 +11583,7 @@ function updateFortressStatus() {
     { name: 'Fluorite', sigma: c.supersaturation_fluorite() },
     { name: 'Sphalerite', sigma: c.supersaturation_sphalerite() },
     { name: 'Pyrite', sigma: c.supersaturation_pyrite() },
+    { name: 'Marcasite', sigma: c.supersaturation_marcasite() },
     { name: 'Chalcopyrite', sigma: c.supersaturation_chalcopyrite() },
     { name: 'Hematite', sigma: c.supersaturation_hematite() },
     { name: 'Malachite', sigma: c.supersaturation_malachite() },
@@ -12810,6 +12962,7 @@ function idleRecordHistory() {
   if (typeof c.supersaturation_calcite === 'function') supersats.calcite = c.supersaturation_calcite();
   if (typeof c.supersaturation_fluorite === 'function') supersats.fluorite = c.supersaturation_fluorite();
   if (typeof c.supersaturation_pyrite === 'function') supersats.pyrite = c.supersaturation_pyrite();
+  if (typeof c.supersaturation_marcasite === 'function') supersats.marcasite = c.supersaturation_marcasite();
   if (typeof c.supersaturation_chalcopyrite === 'function') supersats.chalcopyrite = c.supersaturation_chalcopyrite();
   if (typeof c.supersaturation_hematite === 'function') supersats.hematite = c.supersaturation_hematite();
   if (typeof c.supersaturation_sphalerite === 'function') supersats.sphalerite = c.supersaturation_sphalerite();

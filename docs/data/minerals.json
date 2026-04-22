@@ -38,8 +38,8 @@
     "class_color": "Hex color for topographic map visualization. Derived from mineral class — all classes of the same type share one hue on a 12-color wheel (30° spacing). Wall/matrix = #D2691E (amber)."
   },
   "_audit_summary": {
-    "total_minerals": 40,
-    "_note": "Post-phase-2 state. The _initial_audit block below is frozen at phase-1 start for historical reference — do not edit. +topaz (MG-B), +tourmaline/beryl/spodumene (MG-A), +anglesite/cerussite/pyromorphite/vanadinite (Pb oxidation), +bornite/chalcocite/covellite (Cu sulfide enrichment), +cuprite/azurite/native_copper (Cu oxide-native), +magnetite/lepidocrocite/stibnite/bismuthinite/native_bismuth/clinobisvanite (Fe/Sb/Bi suite).",
+    "total_minerals": 41,
+    "_note": "Post-phase-2 state. The _initial_audit block below is frozen at phase-1 start for historical reference — do not edit. +topaz (MG-B), +tourmaline/beryl/spodumene (MG-A), +anglesite/cerussite/pyromorphite/vanadinite (Pb oxidation), +bornite/chalcocite/covellite (Cu sulfide enrichment), +cuprite/azurite/native_copper (Cu oxide-native), +magnetite/lepidocrocite/stibnite/bismuthinite/native_bismuth/clinobisvanite (Fe/Sb/Bi suite), +chrysocolla (Bisbee), +marcasite (round-2: pH<5 pyrite dimorph).",
     "missing_growth_engine": [],
     "missing_narrate_function": [],
     "missing_from_vugg_py_registry": [],
@@ -65,7 +65,8 @@
       "bismuthinite",
       "native_bismuth",
       "clinobisvanite",
-      "chrysocolla"
+      "chrysocolla",
+      "marcasite"
     ],
     "scenarios_that_can_nucleate": {
       "cooling": [
@@ -99,6 +100,7 @@
       "reactive_wall": [
         "calcite",
         "pyrite",
+        "marcasite",
         "sphalerite"
       ],
       "radioactive_pegmatite": [
@@ -768,6 +770,115 @@
         "agent-api/vugg-agent.js"
       ],
       "audit_status": "ok",
+      "class_color": "#7feb13"
+    },
+    "marcasite": {
+      "formula": "FeS2",
+      "nucleation_sigma": 1.0,
+      "max_nucleation_count": 4,
+      "max_size_cm": 15,
+      "growth_rate_mult": 0.3,
+      "habit_variants": [
+        {
+          "name": "cockscomb",
+          "wall_spread": 0.6,
+          "void_reach": 0.35,
+          "vector": "projecting",
+          "trigger": "moderate σ, acid fluid — tabular plates crested like a rooster's comb"
+        },
+        {
+          "name": "spearhead",
+          "wall_spread": 0.35,
+          "void_reach": 0.55,
+          "vector": "projecting",
+          "trigger": "moderate σ — swallowtail {101} twins with pyramidal terminations"
+        },
+        {
+          "name": "radiating_blade",
+          "wall_spread": 0.3,
+          "void_reach": 0.65,
+          "vector": "projecting",
+          "trigger": "high σ, low T (<100°C) — fibrous stellate sprays from a common center"
+        },
+        {
+          "name": "tabular_plate",
+          "wall_spread": 0.55,
+          "void_reach": 0.2,
+          "vector": "tabular",
+          "trigger": "low σ, slow growth — flat {010} plates"
+        }
+      ],
+      "class": "sulfide",
+      "description": "FeS₂, the orthorhombic dimorph of pyrite — same formula, different crystal structure. Acidic (pH<5), low-T (<240°C) fluids switch FeS₂ from cubic pyrite to orthorhombic marcasite. Diagnostic cockscomb and spearhead habits, paler brass than pyrite with iridescent tarnish. Metastable: converts to pyrite over geologic time or on heating, and rots in humid air to sulfuric acid and iron sulfate (the classic museum-specimen problem).",
+      "scenarios": [
+        "reactive_wall"
+      ],
+      "T_range_C": [
+        5,
+        240
+      ],
+      "T_optimum_C": [
+        20,
+        120
+      ],
+      "T_behavior": "retrograde_solubility",
+      "pH_dissolution_below": 1.5,
+      "pH_dissolution_above": 5.0,
+      "redox_requirement": "reducing",
+      "required_ingredients": {
+        "Fe": 5,
+        "S": 10
+      },
+      "trace_ingredients": {
+        "As": "arsenian marcasite (greenish tarnish)",
+        "Cu": "minor Cu substitution (rarely)"
+      },
+      "thermal_decomp_C": 240,
+      "thermal_decomp_reaction": "orthorhombic FeS2 → cubic FeS2 (pyrite) — metastable inversion, not true decomposition",
+      "thermal_decomp_products": {
+        "Fe": 0.4,
+        "S": 0.3
+      },
+      "fluorescence": null,
+      "twin_laws": [
+        {
+          "name": "spearhead",
+          "miller_indices": "{101}",
+          "trigger": "growth in spearhead habit",
+          "probability": 0.05
+        }
+      ],
+      "acid_dissolution": {
+        "pH_threshold": 1.5,
+        "reaction": "oxidative breakdown in humid air — FeS2 + O2 + H2O → FeSO4 + H2SO4 (museum rot); extreme acid dissolves directly",
+        "products": {
+          "Fe": 0.5,
+          "S": 0.3
+        }
+      },
+      "habit": "cockscomb_or_spearhead",
+      "color_rules": {
+        "pale_brass_yellow": {
+          "default": true
+        },
+        "iridescent_tarnish": {
+          "trigger": "surface oxidation"
+        }
+      },
+      "nucleation_preferences": {
+        "grows_on": [
+          "sphalerite",
+          "galena",
+          "vug wall"
+        ],
+        "note": "Acid-loving FeS2 dimorph. In MVT deposits marcasite often coats earlier sphalerite/galena. Subsurface goethite/limonite pseudomorphs after marcasite are the classic Egyptian Prophecy Stones."
+      },
+      "narrate_function": "_narrate_marcasite",
+      "runtimes_present": [
+        "vugg.py",
+        "web/index.html"
+      ],
+      "audit_status": "ok (round-2 add: pH<5 & T<240 dimorph of pyrite, full habit set, metastable inversion handled).",
       "class_color": "#7feb13"
     },
     "chalcopyrite": {
