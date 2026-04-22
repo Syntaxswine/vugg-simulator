@@ -153,6 +153,7 @@ h1 {
   position: absolute;
   right: 10px;
   bottom: 10px;
+  z-index: 5;
   background: rgba(20, 20, 14, 0.75);
   color: #d4a843;
   border: 1px solid #3a3520;
@@ -188,6 +189,16 @@ h1 {
   background: #050504;
   border: 1px solid #1a1a14;
   border-radius: 3px;
+}
+/* When 3D mode is active, let the tilted slice extend past the wrap's
+   bounds — perspective scaling makes the near edge bigger than the
+   layout box, and clipping it back into the box ruins the "physical
+   object in space" illusion. The fixed zoom/camera buttons sit above
+   the wrap (z-index:5) so they remain visible no matter how far the
+   slice overflows. Trade-off: at extreme tilts + high zoom the slice
+   can visually bleed into adjacent UI. User can recenter to fix. */
+.topo-canvas-wrap.is-3d {
+  overflow: visible;
 }
 #topo-canvas {
   display: block;
@@ -15429,6 +15440,10 @@ function topoSetDragMode(mode) {
   const panBtn = document.getElementById('topo-pan-btn');
   if (rotateBtn) rotateBtn.style.color = (mode === 'rotate') ? '#f0c050' : '';
   if (panBtn) panBtn.style.color = (mode === 'pan') ? '#f0c050' : '';
+  // Flip the wrap's overflow so the tilted slice can extend past the
+  // layout box in 3D mode (illusion of physical object in space).
+  const wrap = document.querySelector('.topo-canvas-wrap');
+  if (wrap) wrap.classList.toggle('is-3d', _topoView3D);
   _topoApplyTransform();
   topoRender();
 }
