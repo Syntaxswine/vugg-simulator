@@ -14392,6 +14392,20 @@ const TOPO_ZOOM_MIN = 0.3;
 const TOPO_ZOOM_MAX = 6.0;
 const TOPO_ZOOM_STEP = 1.25;          // one click / wheel tick multiplies by this
 let _topoZoom = 1.0;                  // multiplier applied to mmToPx in the renderer
+// Pan offsets — added to (cx, cy) so the user can drag the vug
+// around the canvas. Set by the pan drag handlers in topoEnsureWired.
+let _topoPanX = 0;
+let _topoPanY = 0;
+// Drag state. Drag starts on mousedown over a non-crystal area and
+// ends on mouseup (or mouseleave). Document-level handlers are
+// attached only while a drag is in flight so they don't interfere
+// with other UI when idle.
+let _topoDragging = false;
+let _topoDragStartClientX = 0;
+let _topoDragStartClientY = 0;
+let _topoDragOriginPanX = 0;
+let _topoDragOriginPanY = 0;
+const TOPO_DRAG_THRESHOLD_PX = 4;     // movement before drag starts (lets clicks still fire)
 // Cache of inclusion-dot hitboxes built each render. Hover checks
 // this first so the tooltip shows the enclosed crystal instead of
 // falling through to the host's wall cell.
@@ -14584,6 +14598,25 @@ const HABIT_TO_TEXTURE = {
   'framboidal':          'botryoidal', // pyrite microspheres (sweetwater style)
   'reniform_globules':   'botryoidal', // chrysocolla — bigger lobes, same family
   'botryoidal_crust':    'botryoidal', // chrysocolla
+  // Stage 4 — acicular / needle / radiating bundles.
+  // PLACEHOLDER: dispatches to sawtooth with dogtooth-cloned params
+  // pending its own design (true acicular wants a denser, spikier feel).
+  'acicular':            'acicular',   // apatite, hemimorphite alt
+  'acicular_needle':     'acicular',   // aragonite, bismuthinite low-T
+  'acicular sprays':     'acicular',   // (with-space variant)
+  'radiating_blade':     'acicular',   // marcasite
+  'radiating_columnar':  'acicular',   // hemimorphite
+  'radiating_cluster':   'acicular',   // bismuthinite
+  'radiating_spray':     'acicular',   // stibnite
+  'radiating_fibrous':   'acicular',   // erythrite on cobaltite, etc.
+  'cockscomb':           'acicular',   // marcasite — iconic habit name
+  'spearhead':           'acicular',   // marcasite
+  'elongated_prism_blade': 'acicular', // stibnite Ichinokawa
+  'fibrous_acicular':    'acicular',   // chalcedony-style fibrous, also annabergite
+  'plumose_rosette':     'acicular',   // erythrite plumose
+  // Stage 5 — dolomite habits (THE headline texture: saddle_rhomb).
+  'saddle_rhomb':        'saddle_rhomb', // dolomite default — diagnostic curved-face habit
+  'coarse_rhomb':        'rhomb',        // dolomite hydrothermal (textbook flat-face rhomb)
 };
 
 // Mineral-specific overrides: HABIT_TO_TEXTURE_BY_MINERAL[mineral][habit]
@@ -14616,6 +14649,17 @@ const TEXTURE_PARAMS = {
   // half-circle (amplitude = pitch/2). Below saturation bumps flatten into
   // gentle scallops — still reads as round, just less plump.
   botryoidal:     { amplitude_factor: 1.0, pitch_mm: 2.5, max_amplitude_pitch_ratio: 0.5 },
+  // Acicular PLACEHOLDER — clones dogtooth's params pending its own
+  // design. Future polish: denser pitch, taller amplitude, possibly
+  // a "needle bundle" function that draws many tightly-packed spikes
+  // instead of a sawtooth. Token kept distinct so swap is one line.
+  acicular:       { amplitude_factor: 1.5, pitch_mm: 2.0 },
+  // Saddle rhomb — dolomite's diagnostic curved-face signature.
+  // bulge_factor controls how far each face bows outward in chord
+  // direction (0 = straight rhomb, 1 = extreme curl). 0.4 gives a
+  // visibly-curved-but-still-rhomb feel matching textbook saddle
+  // dolomite cross-sections.
+  saddle_rhomb:   { amplitude_factor: 0.7, pitch_mm: 2.5, max_amplitude_pitch_ratio: 0.5, bulge_factor: 0.4 },
 };
 
 // Draw the inner (fluid-facing) edge of a wedge from (fromX,fromY) to
@@ -14649,6 +14693,14 @@ function drawHabitTexture(ctx, mineral, habit, fromX, fromY, toX, toY, controlX,
     case 'botryoidal':
       _texture_botryoidal(ctx, fromX, fromY, toX, toY, thicknessMm, cellArcMm, mmToPx, cx, cy, TEXTURE_PARAMS.botryoidal);
       return;
+    case 'acicular':
+      // PLACEHOLDER: same _texture_sawtooth as dogtooth pending its own
+      // design. Swap this line when a real acicular function arrives.
+      _texture_sawtooth(ctx, fromX, fromY, toX, toY, thicknessMm, cellArcMm, mmToPx, cx, cy, TEXTURE_PARAMS.acicular);
+      return;
+    case 'saddle_rhomb':
+      _texture_saddle_rhomb(ctx, fromX, fromY, toX, toY, thicknessMm, cellArcMm, mmToPx, cx, cy, TEXTURE_PARAMS.saddle_rhomb);
+      return;
     case 'smooth':
     default:
       ctx.quadraticCurveTo(controlX, controlY, toX, toY);
@@ -14670,6 +14722,7 @@ function _resolveTexture(mineral, habit) {
   if (habit) {
     const h = habit.toLowerCase();
     if (h.includes('botryoidal') || h.includes('reniform') || h.includes('globule') || h.includes('framboidal')) return 'botryoidal';
+    if (h.includes('acicular') || h.includes('needle') || h.includes('radiating') || h.includes('spray') || h.includes('cockscomb') || h.includes('plumose')) return 'acicular';
   }
   return 'smooth';
 }
@@ -14724,6 +14777,57 @@ function _texture_botryoidal(ctx, fromX, fromY, toX, toY, thicknessMm, cellArcMm
     const cpX = segMidX + nx * amplitudePx * 2;
     const cpY = segMidY + ny * amplitudePx * 2;
     ctx.quadraticCurveTo(cpX, cpY, endX, endY);
+  }
+}
+
+// Saddle rhomb — dolomite's diagnostic curved-face signature. Each
+// tooth has the sawtooth tip-pushed-inward geometry of rhomb, but
+// each side is a quadratic Bezier with the control point bulged in
+// the chord direction AWAY from the tooth's apex. That bows each
+// face outward, giving the wider-at-middle / narrower-at-tip "saddle"
+// profile you see in real dolomite cross-sections.
+//
+// bulge_factor (0..1) sets how far the control points are offset in
+// chord-space relative to half the tooth length. 0 = straight V
+// (degenerate to rhomb); ~0.4 = textbook saddle; ~0.8 = exaggerated
+// fish-scale feel.
+//
+// This is the texture that makes ordered dolomite (Kim 2023 sabkha
+// scenario) visibly distinct from straight calcite rhombohedra on
+// the wall — the "dolomite problem" reveal in pictorial form.
+function _texture_saddle_rhomb(ctx, fromX, fromY, toX, toY, thicknessMm, cellArcMm, mmToPx, cx, cy, params) {
+  const dx = toX - fromX, dy = toY - fromY;
+  const len = Math.sqrt(dx * dx + dy * dy);
+  if (len < 1) { ctx.lineTo(toX, toY); return; }
+  const ux = dx / len, uy = dy / len;
+  const midX = (fromX + toX) / 2, midY = (fromY + toY) / 2;
+  const inX = cx - midX, inY = cy - midY;
+  const inLen = Math.sqrt(inX * inX + inY * inY) || 1;
+  const nx = inX / inLen, ny = inY / inLen;
+  const amplitudeMm = _textureAmplitudeMm(thicknessMm, cellArcMm, params);
+  const amplitudePx = amplitudeMm * mmToPx;
+  const pitchPx = params.pitch_mm * mmToPx;
+  const nTeeth = Math.max(1, Math.round(len / pitchPx));
+  const toothLen = len / nTeeth;
+  const bulgePx = (params.bulge_factor != null ? params.bulge_factor : 0.4) * (toothLen / 2);
+  for (let i = 0; i < nTeeth; i++) {
+    const t0 = i * toothLen;
+    const tipT = (i + 0.5) * toothLen;
+    const t1 = (i + 1) * toothLen;
+    const startX = fromX + t0 * ux, startY = fromY + t0 * uy;
+    const tipX   = fromX + tipT * ux + nx * amplitudePx;
+    const tipY   = fromY + tipT * uy + ny * amplitudePx;
+    const endX   = fromX + t1 * ux, endY = fromY + t1 * uy;
+    // Side 1 (start → tip): control point at chord-midpoint of (start,tip),
+    // pushed in -chord-direction (away from apex, toward t0).
+    const cp1X = (startX + tipX) / 2 - ux * bulgePx;
+    const cp1Y = (startY + tipY) / 2 - uy * bulgePx;
+    ctx.quadraticCurveTo(cp1X, cp1Y, tipX, tipY);
+    // Side 2 (tip → end): control point at chord-midpoint of (tip,end),
+    // pushed in +chord-direction (away from apex, toward t1).
+    const cp2X = (tipX + endX) / 2 + ux * bulgePx;
+    const cp2Y = (tipY + endY) / 2 + uy * bulgePx;
+    ctx.quadraticCurveTo(cp2X, cp2Y, endX, endY);
   }
 }
 
@@ -14800,8 +14904,11 @@ function topoRender(optOverrideRing) {
   const fit = Math.min(cssW, cssH - centerPad) * 0.82 / 2;
   const mmToPx = (fit / maxWallR) * _topoZoom;
 
-  const cx = cssW / 2;
-  const cy = (cssH - centerPad) / 2 + 8;
+  // Pan offsets let the user drag the vug around the canvas. Hit-test
+  // and tooltip code below MUST apply the same offsets or clicks will
+  // miss what the user sees on screen.
+  const cx = cssW / 2 + _topoPanX;
+  const cy = (cssH - centerPad) / 2 + 8 + _topoPanY;
 
   // Per-cell outer radius in px. Phase 1: each cell has its own
   // base_radius_mm baked from the Fourier profile, so cellR[i] already
@@ -15102,8 +15209,8 @@ function _topoHitTest(ev) {
   const centerPad = 48;
   const fit = Math.min(cssW, cssH - centerPad) * 0.82 / 2;
   const mmToPx = (fit / maxWallR) * _topoZoom;
-  const cx = cssW / 2;
-  const cy = (cssH - centerPad) / 2 + 8;
+  const cx = cssW / 2 + _topoPanX;
+  const cy = (cssH - centerPad) / 2 + 8 + _topoPanY;
 
   const dx = mx - cx, dy = my - cy;
   const rMouse = Math.hypot(dx, dy);
@@ -15181,8 +15288,8 @@ function _topoTooltipFromEvent(ev) {
   const centerPad = 48;
   const fit = Math.min(cssW, cssH - centerPad) * 0.82 / 2;
   const mmToPx = (fit / maxWallR) * _topoZoom;
-  const cx = cssW / 2;
-  const cy = (cssH - centerPad) / 2 + 8;
+  const cx = cssW / 2 + _topoPanX;
+  const cy = (cssH - centerPad) / 2 + 8 + _topoPanY;
 
   const dx = mx - cx, dy = my - cy;
   const rMouse = Math.hypot(dx, dy);
@@ -15259,7 +15366,8 @@ function topoZoom(dir) {
   topoRender();
 }
 
-// Wire hover + zoom wheel once — called from the panel's first show. Idempotent.
+// Wire hover + zoom wheel + click-drag pan once — called from the
+// panel's first show. Idempotent.
 let _topoWired = false;
 function topoEnsureWired() {
   if (_topoWired) return;
@@ -15274,8 +15382,59 @@ function topoEnsureWired() {
     ev.preventDefault();
     topoZoom(ev.deltaY < 0 ? +1 : -1);
   }, { passive: false });
+  // Click-drag pan. Only starts on mousedown over a NON-crystal area
+  // (void, bare wall, or outside vug) — clicks on crystals fall through
+  // to the existing tooltip / click handlers.
+  canvas.addEventListener('mousedown', _topoPanMouseDown);
   window.addEventListener('resize', () => topoRender());
   _topoWired = true;
+}
+
+// Pan drag start. _topoHitTest returns null for void / outside, or
+// {mineral: null, ...} for bare wall, or {mineral: 'something', ...}
+// for a crystal. We allow drag in all cases EXCEPT clicks on a
+// crystal — that's "non-crystal part of the map" per the brief.
+function _topoPanMouseDown(ev) {
+  if (ev.button !== 0) return;  // left button only
+  const hit = _topoHitTest(ev);
+  if (hit && hit.mineral) return;  // click was on a crystal — no pan
+  _topoDragging = false;          // becomes true once movement exceeds threshold
+  _topoDragStartClientX = ev.clientX;
+  _topoDragStartClientY = ev.clientY;
+  _topoDragOriginPanX = _topoPanX;
+  _topoDragOriginPanY = _topoPanY;
+  document.addEventListener('mousemove', _topoPanMouseMove);
+  document.addEventListener('mouseup', _topoPanMouseUp);
+}
+
+// Document-level mousemove during a candidate drag. Only commits to a
+// real drag once movement exceeds TOPO_DRAG_THRESHOLD_PX, which lets
+// short clicks fall through to the existing click handler unchanged.
+function _topoPanMouseMove(ev) {
+  const dx = ev.clientX - _topoDragStartClientX;
+  const dy = ev.clientY - _topoDragStartClientY;
+  if (!_topoDragging) {
+    if (Math.hypot(dx, dy) < TOPO_DRAG_THRESHOLD_PX) return;
+    _topoDragging = true;
+    const canvas = document.getElementById('topo-canvas');
+    if (canvas) canvas.style.cursor = 'grabbing';
+  }
+  _topoPanX = _topoDragOriginPanX + dx;
+  _topoPanY = _topoDragOriginPanY + dy;
+  topoRender();
+}
+
+// Mouseup ends the drag and tears down the document-level listeners.
+// If the user never crossed the movement threshold, the click event
+// will still fire on the canvas (browser default behavior).
+function _topoPanMouseUp() {
+  document.removeEventListener('mousemove', _topoPanMouseMove);
+  document.removeEventListener('mouseup', _topoPanMouseUp);
+  if (_topoDragging) {
+    _topoDragging = false;
+    const canvas = document.getElementById('topo-canvas');
+    if (canvas) canvas.style.cursor = '';
+  }
 }
 
 // Replay: walk the per-step ring[0] snapshots captured during the run,
