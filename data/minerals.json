@@ -38,8 +38,8 @@
     "class_color": "Hex color for topographic map visualization. Derived from mineral class — all classes of the same type share one hue on a 12-color wheel (30° spacing). Wall/matrix = #D2691E (amber)."
   },
   "_audit_summary": {
-    "total_minerals": 47,
-    "_note": "Post-phase-2 state. The _initial_audit block below is frozen at phase-1 start for historical reference — do not edit. +topaz (MG-B), +tourmaline/beryl/spodumene (MG-A), +anglesite/cerussite/pyromorphite/vanadinite (Pb oxidation), +bornite/chalcocite/covellite (Cu sulfide enrichment), +cuprite/azurite/native_copper (Cu oxide-native), +magnetite/lepidocrocite/stibnite/bismuthinite/native_bismuth/clinobisvanite (Fe/Sb/Bi suite), +chrysocolla (Bisbee), +marcasite (round-2: pH<5 pyrite dimorph), +wurtzite (round-2: T>95 sphalerite dimorph), +erythrite/annabergite (round-2: paired vivianite-group arsenates), +tetrahedrite/tennantite (round-2: paired fahlore Sb/As sulfosalts), +apophyllite (round-2: zeolite-facies silicate, hematite-phantom 'bloody apophyllite' habit, deccan_zeolite scenario added).",
+    "total_minerals": 48,
+    "_note": "Post-phase-2 state. The _initial_audit block below is frozen at phase-1 start for historical reference — do not edit. +topaz (MG-B), +tourmaline/beryl/spodumene (MG-A), +anglesite/cerussite/pyromorphite/vanadinite (Pb oxidation), +bornite/chalcocite/covellite (Cu sulfide enrichment), +cuprite/azurite/native_copper (Cu oxide-native), +magnetite/lepidocrocite/stibnite/bismuthinite/native_bismuth/clinobisvanite (Fe/Sb/Bi suite), +chrysocolla (Bisbee), +marcasite (round-2: pH<5 pyrite dimorph), +wurtzite (round-2: T>95 sphalerite dimorph), +erythrite/annabergite (round-2: paired vivianite-group arsenates), +tetrahedrite/tennantite (round-2: paired fahlore Sb/As sulfosalts), +apophyllite (round-2: zeolite-facies silicate, hematite-phantom 'bloody apophyllite' habit, deccan_zeolite scenario added), +aragonite (round-3: orthorhombic CaCO3, Mg/Ca-driven polymorph competition with calcite per Folk 1974/Morse 1997).",
     "missing_growth_engine": [],
     "missing_narrate_function": [],
     "missing_from_vugg_py_registry": [],
@@ -72,7 +72,8 @@
       "annabergite",
       "tetrahedrite",
       "tennantite",
-      "apophyllite"
+      "apophyllite",
+      "aragonite"
     ],
     "scenarios_that_can_nucleate": {
       "cooling": [
@@ -444,7 +445,133 @@
         "web/index.html",
         "agent-api/vugg-agent.js"
       ],
-      "audit_status": "ok — most complete implementation, use as template",
+      "audit_status": "ok — most complete implementation, use as template (round-3 update: Mg-poisoning factor added so calcite yields to aragonite when Mg/Ca > ~2)",
+      "class_color": "#eb7f13"
+    },
+    "aragonite": {
+      "formula": "CaCO3",
+      "nucleation_sigma": 1.0,
+      "max_nucleation_count": 4,
+      "max_size_cm": 30,
+      "growth_rate_mult": 0.5,
+      "habit_variants": [
+        {
+          "name": "columnar",
+          "wall_spread": 0.3,
+          "void_reach": 0.65,
+          "vector": "projecting",
+          "trigger": "low σ — default columnar prisms, transparent to white"
+        },
+        {
+          "name": "twinned_cyclic",
+          "wall_spread": 0.35,
+          "void_reach": 0.6,
+          "vector": "projecting",
+          "trigger": "moderate σ — pseudo-hexagonal cyclic twin on {110}, six-pointed star (the diagnostic aragonite habit)"
+        },
+        {
+          "name": "acicular_needle",
+          "wall_spread": 0.4,
+          "void_reach": 0.55,
+          "vector": "projecting",
+          "trigger": "high σ — long thin needles in radiating sprays"
+        },
+        {
+          "name": "flos_ferri",
+          "wall_spread": 0.45,
+          "void_reach": 0.5,
+          "vector": "projecting",
+          "trigger": "Fe-rich (Fe > 30 ppm) and moderate σ — dendritic 'iron flower' coral, the Eisenerz Austrian variety"
+        }
+      ],
+      "class": "carbonate",
+      "description": "CaCO₃ in the orthorhombic crystal system — the metastable polymorph of calcite. Same composition, different structure, kinetically favored over thermodynamically-stable calcite when (Folk 1974, Morse 1997, Sun 2015): Mg/Ca > ~1.5 (dominant control — Mg poisons calcite growth steps but is excluded from aragonite's orthorhombic structure); T > ~50°C in low-Mg waters; supersaturation Ω > ~10 (Ostwald step rule); or trace Sr/Pb/Ba present (these cations match Ca²⁺ in aragonite's 9-fold coordination but not calcite's 6-fold). At surface pressure aragonite is metastable — over geologic time it converts to calcite (half-life ~10⁵ yr at 25°C, ~10³ yr at 80°C, faster in hot wet systems).",
+      "scenarios": [],
+      "T_range_C": [
+        5,
+        500
+      ],
+      "T_optimum_C": [
+        50,
+        200
+      ],
+      "T_behavior": "retrograde_solubility",
+      "pH_dissolution_below": 5.5,
+      "pH_dissolution_above": null,
+      "redox_requirement": "any",
+      "required_ingredients": {
+        "Ca": 30,
+        "CO3": 20
+      },
+      "trace_ingredients": {
+        "Sr": "scavenged into the lattice (aragonite hosts Sr that calcite can't accommodate)",
+        "Pb": "scavenged into the lattice (same reason as Sr)",
+        "Ba": "scavenged into the lattice (same reason as Sr)",
+        "Mg": "EXCLUDED — Mg's smaller ionic radius doesn't fit aragonite's 9-fold Ca site",
+        "Mn": "minor incorporation (less than calcite, which has the right coordination)",
+        "Fe": "Fe-rich fluids produce the dendritic 'flos ferri' habit"
+      },
+      "thermal_decomp_C": 520,
+      "thermal_decomp_reaction": "orthorhombic CaCO3 -> trigonal calcite (polymorphic conversion before calcination at ~840°C)",
+      "thermal_decomp_products": {
+        "Ca": 0.5,
+        "CO3": 0.4
+      },
+      "fluorescence": {
+        "activator": "Mn",
+        "threshold_ppm": 2,
+        "color": "orange_yellow",
+        "quencher": {
+          "species": "Fe",
+          "threshold_ppm": 10
+        }
+      },
+      "twin_laws": [
+        {
+          "name": "cyclic_sextet",
+          "miller_indices": "{110}",
+          "trigger": "growth in twinned_cyclic habit",
+          "probability": 0.40
+        },
+        {
+          "name": "contact",
+          "miller_indices": "{110}",
+          "trigger": "growth (any habit)",
+          "probability": 0.05
+        }
+      ],
+      "acid_dissolution": {
+        "pH_threshold": 5.5,
+        "reaction": "CaCO3 + 2H+ -> Ca2+ + H2O + CO2 (same as calcite — fizzes)",
+        "products": {
+          "Ca": 0.6,
+          "CO3": 0.5
+        }
+      },
+      "habit": "columnar_or_cyclic_twinned",
+      "color_rules": {
+        "white": {
+          "default": true
+        },
+        "transparent": {
+          "trigger": "slow growth, low impurities"
+        }
+      },
+      "polymorphic_conversion": {
+        "to_mineral": "calcite",
+        "trigger": "T > 100°C and aragonite supersaturation drops below 0.8 (kinetic favorability lost)",
+        "half_life_note": "Bischoff & Fyfe 1968 — solution-mediated, ~10³ yr at 80°C in water-bearing systems, ~10⁵ yr at 25°C, much longer in dry/closed systems. Pleistocene reef aragonite commonly survives; pre-Pleistocene rarely does.",
+        "products": {
+          "Ca": 0.5,
+          "CO3": 0.4
+        }
+      },
+      "narrate_function": "_narrate_aragonite",
+      "runtimes_present": [
+        "vugg.py",
+        "web/index.html"
+      ],
+      "audit_status": "ok (round-3 add: orthorhombic CaCO3 polymorph, Mg/Ca dominant control per Folk 1974/Morse 1997, polymorphic conversion to calcite at T>100°C, four habits including iconic cyclic twin and flos ferri). Scenarios array empty until SCENARIO-CHEMISTRY-AUDIT brief runs — none of the existing scenarios have realistic enough Mg/Ca (>1.5) to nucleate aragonite at seed 42; existing scenarios use realistic low-Mg brines that correctly favor calcite. Aragonite gate is verified working with manually elevated Mg.",
       "class_color": "#eb7f13"
     },
     "sphalerite": {

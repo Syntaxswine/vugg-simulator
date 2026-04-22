@@ -2968,6 +2968,7 @@ Scenarios:
 const MINERAL_SPEC_FALLBACK = {
   quartz: { formula: "SiO2", nucleation_sigma: 1.0, max_size_cm: 1200, growth_rate_mult: 0.3, thermal_decomp_C: 1713, fluorescence: { activator: "Al", threshold_ppm: 5, color: "weak_blue_LW" }, twin_laws: [{ name: "Dauphine", probability: 0.15 }], acid_dissolution: { pH_threshold: 4.0, requires: { F: 20 } } },
   calcite: { formula: "CaCO3", nucleation_sigma: 1.0, max_size_cm: 2000, growth_rate_mult: 1.0, thermal_decomp_C: 840, fluorescence: { activator: "Mn", threshold_ppm: 2, color: "orange_red", quencher: { species: "Fe", threshold_ppm: 10 } }, twin_laws: [{ name: "c_twin", probability: 0.10 }], acid_dissolution: { pH_threshold: 5.5 } },
+  aragonite: { formula: "CaCO3", nucleation_sigma: 1.0, max_size_cm: 30, growth_rate_mult: 0.5, thermal_decomp_C: 520, fluorescence: { activator: "Mn", threshold_ppm: 2, color: "orange_yellow", quencher: { species: "Fe", threshold_ppm: 10 } }, twin_laws: [{ name: "cyclic_sextet", probability: 0.40 }], acid_dissolution: { pH_threshold: 5.5 } },
   sphalerite: { formula: "ZnS", nucleation_sigma: 1.0, max_size_cm: 80, growth_rate_mult: 0.6, thermal_decomp_C: 1020, fluorescence: { activator: "Mn", threshold_ppm: 5, color: "orange_or_blue_variable", quencher: { species: "Fe", threshold_ppm: 10 } }, twin_laws: [{ name: "spinel_law", probability: 0.015 }], acid_dissolution: { pH_threshold: 2.0 } },
   wurtzite: { formula: "(Zn,Fe)S", nucleation_sigma: 1.0, max_size_cm: 20, growth_rate_mult: 0.55, thermal_decomp_C: 1020, fluorescence: { activator: "Mn", threshold_ppm: 5, color: "orange_or_blue_variable", quencher: { species: "Fe", threshold_ppm: 10 } }, twin_laws: [{ name: "basal_contact", probability: 0.008 }], acid_dissolution: { pH_threshold: 2.0 } },
   fluorite: { formula: "CaF2", nucleation_sigma: 1.0, max_size_cm: 400, growth_rate_mult: 0.5, thermal_decomp_C: 1360, fluorescence: { activator: "REE_or_defects", color: "blue_violet_LW_and_SW" }, twin_laws: [{ name: "penetration", probability: 0.008 }], acid_dissolution: { pH_threshold: 4.0 } },
@@ -3868,6 +3869,9 @@ class VugConditions {
     // Calcite has RETROGRADE solubility — less soluble at higher T.
     // Precipitates on heating or CO₂ degassing. Forms at 10-500°C.
     // Decomposes to CaO + CO₂ above ~500°C.
+    // Mg poisoning: Mg²⁺ stalls calcite {10ī4} growth steps (Davis 2000;
+    // Nielsen 2013). Mg/Ca > ~2 hands the polymorph to aragonite. Capped
+    // at 85% inhibition — high-Mg calcite (HMC) always forms some fraction.
     if (this.temperature > 500) return 0; // thermal decomposition
     const eq = 300.0 * Math.exp(-0.005 * this.temperature);
     if (eq <= 0) return 0;
@@ -3884,7 +3888,40 @@ class VugConditions {
       sigma *= 1.0 + (this.fluid.pH - 7.5) * 0.15;
     }
 
+    // Mg poisoning of calcite growth steps — sigmoid centered on Mg/Ca=2
+    const mg_ratio = this.fluid.Mg / Math.max(this.fluid.Ca, 0.01);
+    const mg_inhibition = 1.0 / (1.0 + Math.exp(-(mg_ratio - 2.0) / 0.5));
+    sigma *= (1.0 - 0.85 * mg_inhibition);
+
     return Math.max(sigma, 0);
+  }
+
+  supersaturation_aragonite() {
+    // Orthorhombic CaCO₃ dimorph — metastable at surface but kinetically
+    // favored when Mg/Ca > ~1.5 (dominant, Folk 1974 / Morse 1997),
+    // T > ~50°C (Burton & Walter 1987 in low-Mg), or Ω > ~10 (Ostwald
+    // step rule, Sun 2015). Trace Sr/Pb/Ba give a small additional boost.
+    // Pressure is the thermodynamic sorter (stable above ~0.4 GPa) but is
+    // irrelevant at vug/hot-spring pressures — don't use it as a gate.
+    if (this.fluid.Ca < 30 || this.fluid.CO3 < 20) return 0;
+    if (this.fluid.pH < 6.0 || this.fluid.pH > 9.0) return 0;
+
+    const eq = 300.0 * Math.exp(-0.005 * this.temperature);
+    if (eq <= 0) return 0;
+    const ca_co3 = Math.min(this.fluid.Ca, this.fluid.CO3);
+    const omega = ca_co3 / eq;
+
+    const mg_ratio = this.fluid.Mg / Math.max(this.fluid.Ca, 0.01);
+    const mg_factor = 1.0 / (1.0 + Math.exp(-(mg_ratio - 1.5) / 0.3));
+    const T_factor = 1.0 / (1.0 + Math.exp(-(this.temperature - 50.0) / 15.0));
+    const omega_factor = 1.0 / (1.0 + Math.exp(-(Math.log10(Math.max(omega, 0.01)) - 1.0) / 0.3));
+    const trace_sum = this.fluid.Sr + this.fluid.Pb + this.fluid.Ba;
+    const trace_ratio = trace_sum / Math.max(this.fluid.Ca, 0.01);
+    const trace_factor = 1.0 + 0.3 / (1.0 + Math.exp(-(trace_ratio - 0.01) / 0.005));
+
+    // Weighted sum, not product — Mg/Ca alone is enough at high values.
+    const favorability = (0.70 * mg_factor + 0.20 * T_factor + 0.10 * omega_factor) * trace_factor;
+    return omega * favorability;
   }
 
   supersaturation_fluorite() {
@@ -4943,6 +4980,90 @@ function grow_calcite(crystal, conditions, step) {
     fluid_inclusion: fi, inclusion_type: fi_type, note,
     ca_from_wall: ca_wall_fraction,
     ca_from_fluid: ca_fluid_fraction,
+  });
+}
+
+function grow_aragonite(crystal, conditions, step) {
+  const sigma = conditions.supersaturation_aragonite();
+
+  // Polymorphic conversion to calcite — aragonite is metastable. At T > 100°C
+  // when the kinetic favorability has dropped, the orthorhombic structure
+  // inverts to trigonal calcite via solution-mediated dissolution + reprecipitation.
+  if (crystal.total_growth_um > 10
+      && conditions.temperature > 100
+      && sigma < 0.8) {
+    crystal.dissolved = true;
+    conditions.fluid.Ca += 2.0;
+    conditions.fluid.CO3 += 1.5;
+    return new GrowthZone({
+      step, temperature: conditions.temperature,
+      thickness_um: -2.0, growth_rate: -2.0,
+      note: `polymorphic conversion — orthorhombic CaCO₃ → trigonal calcite (T=${conditions.temperature.toFixed(0)}°C, sigma_arag=${sigma.toFixed(2)})`
+    });
+  }
+
+  if (sigma < 1.0) {
+    if (crystal.total_growth_um > 5 && conditions.fluid.pH < 5.5) {
+      crystal.dissolved = true;
+      const dissolved_um = Math.min(8.0, crystal.total_growth_um * 0.15);
+      conditions.fluid.Ca += dissolved_um * 0.5;
+      conditions.fluid.CO3 += dissolved_um * 0.3;
+      return new GrowthZone({
+        step, temperature: conditions.temperature,
+        thickness_um: -dissolved_um, growth_rate: -dissolved_um,
+        note: `acid dissolution (pH ${conditions.fluid.pH.toFixed(1)}) — Ca²⁺ + CO₃²⁻ released`
+      });
+    }
+    return null;
+  }
+
+  const excess = sigma - 1.0;
+  const rate = 5.5 * excess * rng.uniform(0.7, 1.3);
+
+  // Habit selection
+  if (conditions.fluid.Fe > 30 && excess > 0.6) {
+    crystal.habit = 'flos_ferri';
+    crystal.dominant_forms = ["dendritic 'iron flower' coral", 'stalactitic ferruginous'];
+  } else if (excess > 1.5) {
+    crystal.habit = 'acicular_needle';
+    crystal.dominant_forms = ['acicular needles', 'radiating spray'];
+  } else if (excess > 0.6) {
+    crystal.habit = 'twinned_cyclic';
+    crystal.dominant_forms = ['pseudo-hexagonal cyclic twin {110}', 'six-pointed star (cerussite-like)'];
+  } else {
+    crystal.habit = 'columnar';
+    crystal.dominant_forms = ['columnar prisms', 'transparent to white'];
+  }
+
+  const trace_Mn = conditions.fluid.Mn * 0.05;
+  const trace_Fe = conditions.fluid.Fe * 0.06;
+
+  if (crystal.habit === 'twinned_cyclic' && !crystal.twinned && rng.random() < 0.4) {
+    crystal.twinned = true;
+    crystal.twin_law = 'cyclic {110} sextet';
+  } else if (!crystal.twinned && rng.random() < 0.05) {
+    crystal.twinned = true;
+    crystal.twin_law = 'contact {110}';
+  }
+
+  let note = `${crystal.habit} CaCO₃`;
+  const sr_uptake = conditions.fluid.Sr * 0.15;
+  const pb_uptake = conditions.fluid.Pb * 0.10;
+  if (sr_uptake > 0.5 || pb_uptake > 0.5) {
+    note += ' (Sr+Pb scavenged: aragonite hosts what calcite can\'t)';
+  }
+  if (conditions.fluid.Mg > 0) {
+    const mg_ratio = conditions.fluid.Mg / Math.max(conditions.fluid.Ca, 0.01);
+    if (mg_ratio > 1.5) {
+      note += ` — Mg/Ca=${mg_ratio.toFixed(1)}, calcite is poisoned here`;
+    }
+  }
+
+  return new GrowthZone({
+    step, temperature: conditions.temperature,
+    thickness_um: rate, growth_rate: rate,
+    trace_Fe, trace_Mn,
+    note,
   });
 }
 
@@ -6827,6 +6948,7 @@ function grow_topaz(crystal, conditions, step) {
 const MINERAL_ENGINES = {
   quartz: grow_quartz,
   calcite: grow_calcite,
+  aragonite: grow_aragonite,
   sphalerite: grow_sphalerite,
   wurtzite: grow_wurtzite,
   fluorite: grow_fluorite,
@@ -7333,7 +7455,7 @@ function scenario_mvt() {
     temperature: 180.0, pressure: 0.3,
     fluid: new FluidChemistry({
       SiO2: 100, Ca: 300, CO3: 250, Fe: 15, Mn: 8,
-      Zn: 0, S: 0, F: 5, Pb: 40, pH: 7.2, salinity: 15.0
+      Zn: 0, S: 0, F: 5, Pb: 40, Mg: 30, pH: 7.2, salinity: 15.0
     }),
     // MVT dissolution cavity in limestone — all-axis lumpiness.
     wall: new VugWall({ primary_bubbles: 3, secondary_bubbles: 8, shape_seed: 3 }),
@@ -7379,7 +7501,7 @@ function scenario_reactive_wall() {
       // hosted vugs almost always carry Pb too (galena travels with
       // sphalerite), and Ba is classic (barite is a common late phase).
       Zn: 80, Pb: 30, Ba: 25, S: 60, F: 8,
-      pH: 7.0, salinity: 18.0
+      Mg: 80, pH: 7.0, salinity: 18.0
     }),
     wall: new VugWall({
       composition: 'limestone',
@@ -7926,6 +8048,8 @@ class VugSimulator {
       crystal.dominant_forms = ['m{100} prism', 'r{101} rhombohedron'];
     } else if (mineral === 'calcite') {
       crystal.dominant_forms = ['e{104} rhombohedron'];
+    } else if (mineral === 'aragonite') {
+      crystal.dominant_forms = ['columnar prisms', '{110} cyclic twin (six-pointed)'];
     } else if (mineral === 'sphalerite') {
       crystal.dominant_forms = ['{111} tetrahedron'];
     } else if (mineral === 'wurtzite') {
@@ -8146,6 +8270,20 @@ class VugSimulator {
     if (sigma_c > 1.3 && !existing_calcite.length && !this._atNucleationCap('calcite')) {
       const c = this.nucleate('calcite', 'vug wall', sigma_c);
       this.log.push(`  ✦ NUCLEATION: Calcite #${c.crystal_id} on ${c.position} (T=${this.conditions.temperature.toFixed(0)}°C, σ=${sigma_c.toFixed(2)})`);
+    }
+
+    // Aragonite nucleation — Mg/Ca + T + Ω + trace Sr/Pb/Ba favorability.
+    const sigma_arag = this.conditions.supersaturation_aragonite();
+    const existing_arag = this.crystals.filter(c => c.mineral === 'aragonite' && c.active);
+    if (sigma_arag > 1.0 && !existing_arag.length && !this._atNucleationCap('aragonite')) {
+      let pos = 'vug wall';
+      const existing_goe_a = this.crystals.filter(c => c.mineral === 'goethite' && c.active);
+      const existing_hem_a = this.crystals.filter(c => c.mineral === 'hematite' && c.active);
+      if (existing_goe_a.length && rng.random() < 0.4) pos = `on goethite #${existing_goe_a[0].crystal_id}`;
+      else if (existing_hem_a.length && rng.random() < 0.3) pos = `on hematite #${existing_hem_a[0].crystal_id}`;
+      const mg_ratio = this.conditions.fluid.Mg / Math.max(this.conditions.fluid.Ca, 0.01);
+      const c = this.nucleate('aragonite', pos, sigma_arag);
+      this.log.push(`  ✦ NUCLEATION: Aragonite #${c.crystal_id} on ${c.position} (T=${this.conditions.temperature.toFixed(0)}°C, Mg/Ca=${mg_ratio.toFixed(2)}, σ=${sigma_arag.toFixed(2)})`);
     }
 
     const sigma_s = this.conditions.supersaturation_sphalerite();
@@ -9529,6 +9667,31 @@ class VugSimulator {
     return parts.join(' ');
   }
 
+  _narrate_aragonite(c) {
+    const parts = [`Aragonite #${c.crystal_id} grew to ${c.c_length_mm.toFixed(1)} mm.`];
+    parts.push("CaCO₃ — same composition as calcite, different crystal structure. The orthorhombic polymorph that exists by kinetic favor, not thermodynamic stability: at vug T/P, calcite is the ground-state phase. Folk 1974 / Morse 1997 — Mg/Ca ratio is the dominant control on which polymorph nucleates.");
+    if (c.habit === 'acicular_needle') {
+      parts.push('Acicular needles — the high-supersaturation form. Long thin prisms radiating from a common nucleation point, often forming sprays that look like frozen explosions in cabinet specimens.');
+    } else if (c.habit === 'twinned_cyclic') {
+      parts.push('Cyclic twin on {110} — three crystals interpenetrating at 120° to produce a pseudo-hexagonal six-pointed prism. This is the diagnostic aragonite habit, easily mistaken for a true hexagonal mineral until the re-entrant angles between the twin lobes give it away.');
+    } else if (c.habit === 'flos_ferri') {
+      parts.push("'Flos ferri' — the iron flower variety. Fe-rich aragonite forms delicate dendritic / coral-like white branches, named for the famous Eisenerz, Austria specimens.");
+    } else {
+      parts.push('Columnar prisms — the default low-σ habit. Transparent to white blades easily confused with calcite at first glance, until the chemistry (Mg/Ca, Sr/Pb signatures, lack of perfect rhombohedral cleavage) gives it away.');
+    }
+    if (c.dissolved) {
+      const note = c.zones.length ? c.zones[c.zones.length - 1].note : '';
+      if (note && note.includes('polymorphic conversion')) {
+        parts.push('The crystal underwent polymorphic conversion to calcite — the thermodynamic sink. Aragonite metastability has limits: above 100°C with water present, the structure inverts on geologic-short timescales (Bischoff & Fyfe 1968, half-life ~10³ yr at 80°C). What remains is a calcite pseudomorph after aragonite, preserving the original orthorhombic outline filled with trigonal cleavage.');
+      } else {
+        parts.push("Acid attack dissolved the crystal — aragonite shares calcite's vulnerability below pH 5.5. Ca²⁺ + CO₃²⁻ returned to the fluid.");
+      }
+    } else {
+      parts.push('The crystal is preserved at vug-scale geologic moment. In nature, aragonite from cold marine settings can survive millions of years; from hot springs it converts to calcite in centuries to millennia.');
+    }
+    return parts.join(' ');
+  }
+
   _narrate_quartz(c) {
     const parts = [];
     if (!c.zones.length) return `Quartz #${c.crystal_id} nucleated but failed to develop — growth kinetics were too slow at ${c.nucleation_temp.toFixed(0)}°C.`;
@@ -10450,6 +10613,16 @@ class VugSimulator {
         if (c.twinned) desc += ' (twinned)';
         if (fl.includes('orange')) desc += ' — glows orange under UV';
         else if (fl.includes('quenched')) desc += " — patchy UV response (Mn zones glow, Fe zones dark)";
+        parts.push(`  • ${desc}`);
+      } else if (c.mineral === 'aragonite') {
+        let desc = `a ${c.c_length_mm.toFixed(1)}mm aragonite`;
+        if (c.habit === 'twinned_cyclic') desc += ' six-pointed cyclic twin';
+        else if (c.habit === 'acicular_needle') desc = `acicular aragonite spray, ${c.c_length_mm.toFixed(1)}mm`;
+        else if (c.habit === 'flos_ferri') desc = `flos ferri aragonite — dendritic 'iron flower', ${c.c_length_mm.toFixed(1)}mm`;
+        else desc += ' columnar prism';
+        if (c.twinned && c.habit !== 'twinned_cyclic') desc += ` (${c.twin_law})`;
+        desc += ' — orthorhombic CaCO₃';
+        if (c.dissolved) desc += ', converted to calcite (pseudomorph)';
         parts.push(`  • ${desc}`);
       } else if (c.mineral === 'sphalerite') {
         let desc = `a ${c.c_length_mm.toFixed(1)}mm sphalerite`;
@@ -12275,6 +12448,7 @@ function updateFortressStatus() {
   const minerals = [
     { name: 'Quartz', sigma: c.supersaturation_quartz() },
     { name: 'Calcite', sigma: c.supersaturation_calcite() },
+    { name: 'Aragonite', sigma: c.supersaturation_aragonite() },
     { name: 'Fluorite', sigma: c.supersaturation_fluorite() },
     { name: 'Sphalerite', sigma: c.supersaturation_sphalerite() },
     { name: 'Wurtzite', sigma: c.supersaturation_wurtzite() },
@@ -13661,6 +13835,7 @@ function idleRecordHistory() {
   const supersats = {};
   if (typeof c.supersaturation_quartz === 'function') supersats.quartz = c.supersaturation_quartz();
   if (typeof c.supersaturation_calcite === 'function') supersats.calcite = c.supersaturation_calcite();
+  if (typeof c.supersaturation_aragonite === 'function') supersats.aragonite = c.supersaturation_aragonite();
   if (typeof c.supersaturation_fluorite === 'function') supersats.fluorite = c.supersaturation_fluorite();
   if (typeof c.supersaturation_pyrite === 'function') supersats.pyrite = c.supersaturation_pyrite();
   if (typeof c.supersaturation_marcasite === 'function') supersats.marcasite = c.supersaturation_marcasite();

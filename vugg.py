@@ -668,21 +668,28 @@ class VugConditions:
     
     def supersaturation_calcite(self) -> float:
         """Calcite supersaturation (simplified).
-        
+
         Calcite has RETROGRADE solubility — less soluble at higher T.
         So heating causes precipitation (opposite of quartz).
         Simplified: solubility ≈ 300 * exp(-0.005 * T)
-        
+
         pH EFFECT: Acid dissolves carbonates. Below pH ~5, calcite
         dissolves readily. This is how caves form — slightly acidic
         groundwater eats limestone.
+
+        Mg POISONING: Mg²⁺ adsorbs onto calcite's {10ī4} growth steps
+        and the dehydration penalty stalls step advancement (Davis et al.
+        2000; Nielsen et al. 2013). When Mg/Ca > ~2, calcite nucleation
+        gives way to aragonite, which excludes Mg structurally. The
+        poisoning factor caps at 85% (some high-Mg calcite always forms
+        in marine settings — Folk's HMC).
         """
         equilibrium_Ca = 300.0 * math.exp(-0.005 * self.temperature)
         if equilibrium_Ca <= 0:
             return 0
         ca_co3_product = min(self.fluid.Ca, self.fluid.CO3)
         sigma = ca_co3_product / equilibrium_Ca
-        
+
         # Acid dissolution of carbonates
         if self.fluid.pH < 5.5:
             acid_attack = (5.5 - self.fluid.pH) * 0.5
@@ -690,8 +697,68 @@ class VugConditions:
         # Alkaline conditions favor carbonate precipitation
         elif self.fluid.pH > 7.5:
             sigma *= 1.0 + (self.fluid.pH - 7.5) * 0.15
-        
+
+        # Mg poisoning of calcite growth steps — sigmoid centered on Mg/Ca=2
+        mg_ratio = self.fluid.Mg / max(self.fluid.Ca, 0.01)
+        mg_inhibition = 1.0 / (1.0 + math.exp(-(mg_ratio - 2.0) / 0.5))
+        sigma *= (1.0 - 0.85 * mg_inhibition)
+
         return max(sigma, 0)
+
+    def supersaturation_aragonite(self) -> float:
+        """Aragonite (CaCO₃, orthorhombic) — the metastable polymorph.
+
+        Same Ca + CO₃ ingredients as calcite, but a different crystal structure
+        favored kinetically by four converging factors (Folk 1974; Morse et al.
+        1997; Sun et al. 2015):
+
+        1. Mg/Ca ratio (dominant ~70% of signal): Mg poisons calcite growth
+           steps but is excluded from aragonite's orthorhombic structure.
+           Threshold ~Mg/Ca > 2 molar.
+        2. Temperature: aragonite kinetics favored above ~50°C in low-Mg
+           waters; in Mg-rich fluid the threshold drops to ~25°C.
+        3. Saturation state Ω (Ostwald step rule): high supersaturation
+           favors metastable aragonite over thermodynamic calcite.
+        4. Trace Sr/Pb/Ba: secondary — these cations match Ca²⁺ in 9-fold
+           aragonite coordination but not 6-fold calcite.
+
+        Pressure is the THERMODYNAMIC sorter (aragonite stable above
+        ~0.4 GPa) but is irrelevant in vugs and hot springs at <0.5 kbar —
+        every natural surface aragonite is metastable. Don't use P as a gate
+        unless the scenario is genuinely deep-burial / blueschist.
+        """
+        if self.fluid.Ca < 30 or self.fluid.CO3 < 20:
+            return 0
+        if self.fluid.pH < 6.0 or self.fluid.pH > 9.0:
+            return 0
+
+        equilibrium_Ca = 300.0 * math.exp(-0.005 * self.temperature)
+        if equilibrium_Ca <= 0:
+            return 0
+        ca_co3 = min(self.fluid.Ca, self.fluid.CO3)
+        omega = ca_co3 / equilibrium_Ca
+
+        # Factor 1 (~70%) — Mg/Ca, sigmoid centered Mg/Ca = 1.5
+        mg_ratio = self.fluid.Mg / max(self.fluid.Ca, 0.01)
+        mg_factor = 1.0 / (1.0 + math.exp(-(mg_ratio - 1.5) / 0.3))
+
+        # Factor 2 (~20%) — T, sigmoid centered 50°C
+        T_factor = 1.0 / (1.0 + math.exp(-(self.temperature - 50.0) / 15.0))
+
+        # Factor 3 (~10%) — Ostwald step rule, Ω > ~10 favors aragonite kinetically
+        omega_factor = 1.0 / (1.0 + math.exp(-(math.log10(max(omega, 0.01)) - 1.0) / 0.3))
+
+        # Factor 4 (small bonus) — Sr/Pb/Ba trace cation incorporation
+        trace_sum = self.fluid.Sr + self.fluid.Pb + self.fluid.Ba
+        trace_ratio = trace_sum / max(self.fluid.Ca, 0.01)
+        trace_factor = 1.0 + 0.3 / (1.0 + math.exp(-(trace_ratio - 0.01) / 0.005))
+
+        # Weighted SUM (not product) — Mg/Ca dominates; T and Ω each push
+        # aragonite over the line in low-Mg regimes. Trace factor multiplies
+        # the result. A pure-product would force ALL factors to align, which
+        # is wrong: high Mg/Ca alone is enough in nature, regardless of Ω.
+        favorability = (0.70 * mg_factor + 0.20 * T_factor + 0.10 * omega_factor) * trace_factor
+        return omega * favorability
     
     def supersaturation_fluorite(self) -> float:
         """Fluorite (CaF2) supersaturation. Precipitates when Ca and F meet.
@@ -2390,6 +2457,98 @@ def grow_calcite(crystal: Crystal, conditions: VugConditions, step: int) -> Opti
         note=note,
         ca_from_wall=ca_wall_fraction,
         ca_from_fluid=ca_fluid_fraction,
+    )
+
+
+def grow_aragonite(crystal: Crystal, conditions: VugConditions, step: int) -> Optional[GrowthZone]:
+    """Aragonite (CaCO₃, orthorhombic) growth — the metastable polymorph.
+
+    Habits: acicular_needle (high-σ fast growth), twinned_cyclic (the iconic
+    pseudo-hexagonal six-pointed cyclic twin), columnar (default), flos_ferri
+    (Fe-rich dendritic — the 'iron flower' coral-shaped variety from Eisenerz).
+
+    Polymorphic conversion: aragonite is metastable. Above 80°C with water
+    present, it converts to calcite over short geologic time (Bischoff & Fyfe
+    1968 — half-life ~10³ yr at 80°C, ~10⁵ yr at 25°C). In the simulator,
+    sustained T > 100°C triggers in-place pseudomorphic conversion: the
+    aragonite dissolves, releasing Ca + CO₃ for a new calcite seed.
+    """
+    sigma = conditions.supersaturation_aragonite()
+
+    # Polymorphic inversion to calcite — the long-term thermodynamic sink.
+    # Triggers when the crystal is mature, the system is hot enough for
+    # solution-mediated conversion, and aragonite is no longer favored
+    # (Mg/Ca dropped, T pushed it out of the kinetic window, etc.).
+    if (crystal.total_growth_um > 10
+            and conditions.temperature > 100
+            and sigma < 0.8):
+        crystal.dissolved = True
+        conditions.fluid.Ca += 2.0
+        conditions.fluid.CO3 += 1.5
+        return GrowthZone(
+            step=step, temperature=conditions.temperature,
+            thickness_um=-2.0, growth_rate=-2.0,
+            note=f"polymorphic conversion — orthorhombic CaCO₃ → trigonal calcite (T={conditions.temperature:.0f}°C, sigma_arag={sigma:.2f})"
+        )
+
+    if sigma < 1.0:
+        # Acid dissolution — same vulnerability as calcite
+        if crystal.total_growth_um > 5 and conditions.fluid.pH < 5.5:
+            crystal.dissolved = True
+            dissolved_um = min(8.0, crystal.total_growth_um * 0.15)
+            conditions.fluid.Ca += dissolved_um * 0.5
+            conditions.fluid.CO3 += dissolved_um * 0.3
+            return GrowthZone(
+                step=step, temperature=conditions.temperature,
+                thickness_um=-dissolved_um, growth_rate=-dissolved_um,
+                note=f"acid dissolution (pH {conditions.fluid.pH:.1f}) — Ca²⁺ + CO₃²⁻ released"
+            )
+        return None
+
+    excess = sigma - 1.0
+    rate = 5.5 * excess * random.uniform(0.7, 1.3)
+
+    # Habit selection — Fe-rich → flos_ferri; high σ → acicular; moderate → twinned; low → columnar
+    if conditions.fluid.Fe > 30 and excess > 0.6:
+        crystal.habit = "flos_ferri"
+        crystal.dominant_forms = ["dendritic 'iron flower' coral", "stalactitic ferruginous"]
+    elif excess > 1.5:
+        crystal.habit = "acicular_needle"
+        crystal.dominant_forms = ["acicular needles", "radiating spray"]
+    elif excess > 0.6:
+        crystal.habit = "twinned_cyclic"
+        crystal.dominant_forms = ["pseudo-hexagonal cyclic twin {110}", "six-pointed star (cerussite-like)"]
+    else:
+        crystal.habit = "columnar"
+        crystal.dominant_forms = ["columnar prisms", "transparent to white"]
+
+    # Sr / Pb / Ba uptake — aragonite scavenges these where calcite can't
+    sr_uptake = conditions.fluid.Sr * 0.15
+    pb_uptake = conditions.fluid.Pb * 0.10
+    trace_Mn = conditions.fluid.Mn * 0.05  # less Mn than calcite (orthorhombic excludes it)
+    trace_Fe = conditions.fluid.Fe * 0.06
+
+    # Cyclic twins are the diagnostic — high probability when habit selects them
+    if crystal.habit == "twinned_cyclic" and not crystal.twinned and random.random() < 0.4:
+        crystal.twinned = True
+        crystal.twin_law = "cyclic {110} sextet"
+    elif not crystal.twinned and random.random() < 0.05:
+        crystal.twinned = True
+        crystal.twin_law = "contact {110}"
+
+    note = f"{crystal.habit} CaCO₃"
+    if sr_uptake > 0.5 or pb_uptake > 0.5:
+        note += f" (Sr+Pb scavenged: aragonite hosts what calcite can't)"
+    if conditions.fluid.Mg > 0:
+        mg_ratio = conditions.fluid.Mg / max(conditions.fluid.Ca, 0.01)
+        if mg_ratio > 1.5:
+            note += f" — Mg/Ca={mg_ratio:.1f}, calcite is poisoned here"
+
+    return GrowthZone(
+        step=step, temperature=conditions.temperature,
+        thickness_um=rate, growth_rate=rate,
+        trace_Fe=trace_Fe, trace_Mn=trace_Mn,
+        note=note,
     )
 
 
@@ -5321,6 +5480,7 @@ def grow_selenite(crystal: Crystal, conditions: VugConditions, step: int) -> Opt
 MINERAL_ENGINES = {
     "quartz": grow_quartz,
     "calcite": grow_calcite,
+    "aragonite": grow_aragonite,
     "sphalerite": grow_sphalerite,
     "wurtzite": grow_wurtzite,
     "fluorite": grow_fluorite,
@@ -5380,6 +5540,7 @@ MINERAL_ENGINES = {
 THERMAL_DECOMPOSITION = {
     # mineral: (decomp_temp_°C, description, products)
     "calcite":    (840,  "CaCO₃ → CaO + CO₂ (calcination)",                     {"Ca": 0.5, "CO3": 0.4}),
+    "aragonite":  (520,  "orthorhombic CaCO₃ → calcite (polymorphic conversion before calcination)", {"Ca": 0.5, "CO3": 0.4}),
     "malachite":  (200,  "Cu₂CO₃(OH)₂ → CuO + CO₂ + H₂O",                      {"Cu": 0.6, "CO3": 0.3}),
     "sphalerite": (1020, "ZnS → Zn + S (sublimes)",                              {"Zn": 0.3, "S": 0.5}),
     "wurtzite":   (1020, "hexagonal ZnS → sublimation (shares sphalerite decomposition)", {"Zn": 0.3, "S": 0.5}),
@@ -5604,13 +5765,21 @@ def scenario_pulse() -> Tuple[VugConditions, List[Event], int]:
 
 
 def scenario_mvt() -> Tuple[VugConditions, List[Event], int]:
-    """Mississippi Valley-type deposit — fluid mixing produces sphalerite + calcite + fluorite."""
+    """Mississippi Valley-type deposit — fluid mixing produces sphalerite + calcite + fluorite.
+
+    Anchor: Tri-State district (Joplin / Picher) Sr-Pb-Zn brines. Per Roedder 1976
+    and Ohle 1959, Tri-State brines are >200,000 mg/L TDS, Mg/Ca ~0.05–0.1
+    (low-Mg → favors calcite, not aragonite). Mg ~30 ppm at our scaled
+    abstraction keeps that ratio realistic and lets the audit brief (the
+    SCENARIO-CHEMISTRY-AUDIT.md task) sharpen it later.
+    """
     conditions = VugConditions(
         temperature=180.0,
         pressure=0.3,
         fluid=FluidChemistry(
             SiO2=100, Ca=300, CO3=250, Fe=15, Mn=8,
-            Zn=0, S=0, F=5, pH=7.2, salinity=15.0
+            Zn=0, S=0, F=5, Mg=30,  # realistic Tri-State Mg/Ca ratio
+            pH=7.2, salinity=15.0
         ),
         # MVT — dissolution cavity in limestone. Cohesive primary void
         # plus heavy secondary alcoves: the classic merged-cavity feel.
@@ -5678,6 +5847,11 @@ def scenario_reactive_wall() -> Tuple[VugConditions, List[Event], int]:
             # with sphalerite), and Ba is classic (barite is a common
             # late-stage phase).
             Zn=80, Pb=30, Ba=25, S=60, F=8,
+            # Limestone-hosted brines (Sweetwater / Viburnum Trend per
+            # Sverjensky 1981) carry Mg ~50–150 ppm. Mg/Ca ~0.3 stays
+            # calcite-favoring on average; the late acid pulses can
+            # raise the ratio enough to flip aragonite for the right seed.
+            Mg=80,
             pH=7.0, salinity=18.0
         ),
         wall=VugWall(
@@ -7014,6 +7188,8 @@ class VugSimulator:
             crystal.dominant_forms = ["m{100} prism", "r{101} rhombohedron"]
         elif mineral == "calcite":
             crystal.dominant_forms = ["e{104} rhombohedron"]
+        elif mineral == "aragonite":
+            crystal.dominant_forms = ["columnar prisms", "{110} cyclic twin (six-pointed)"]
         elif mineral == "sphalerite":
             crystal.dominant_forms = ["{111} tetrahedron"]
         elif mineral == "wurtzite":
@@ -7242,7 +7418,26 @@ class VugSimulator:
             c = self.nucleate("calcite", sigma=sigma_c)
             self.log.append(f"  ✦ NUCLEATION: Calcite #{c.crystal_id} on {c.position} "
                           f"(T={self.conditions.temperature:.0f}°C, σ={sigma_c:.2f})")
-        
+
+        # Aragonite nucleation — Mg/Ca + T + Ω + trace Sr/Pb/Ba favorability.
+        # Polymorph competition with calcite: when Mg poisons calcite's growth
+        # steps OR T is high OR Ω is high, aragonite nucleates instead.
+        sigma_arag = self.conditions.supersaturation_aragonite()
+        existing_arag = [c for c in self.crystals if c.mineral == "aragonite" and c.active]
+        if sigma_arag > 1.0 and not existing_arag and not self._at_nucleation_cap("aragonite"):
+            pos = "vug wall"
+            # Aragonite often nucleates in fissures or on existing iron oxide
+            existing_goe_a = [c for c in self.crystals if c.mineral == "goethite" and c.active]
+            existing_hem_a = [c for c in self.crystals if c.mineral == "hematite" and c.active]
+            if existing_goe_a and random.random() < 0.4:
+                pos = f"on goethite #{existing_goe_a[0].crystal_id}"
+            elif existing_hem_a and random.random() < 0.3:
+                pos = f"on hematite #{existing_hem_a[0].crystal_id}"
+            mg_ratio = self.conditions.fluid.Mg / max(self.conditions.fluid.Ca, 0.01)
+            c = self.nucleate("aragonite", position=pos, sigma=sigma_arag)
+            self.log.append(f"  ✦ NUCLEATION: Aragonite #{c.crystal_id} on {c.position} "
+                          f"(T={self.conditions.temperature:.0f}°C, Mg/Ca={mg_ratio:.2f}, σ={sigma_arag:.2f})")
+
         # Sphalerite nucleation
         sigma_s = self.conditions.supersaturation_sphalerite()
         existing_sph = [c for c in self.crystals if c.mineral == "sphalerite" and c.active]
@@ -9115,9 +9310,77 @@ class VugSimulator:
         
         size_desc = "microscopic" if c.c_length_mm < 0.5 else "small" if c.c_length_mm < 2 else "well-developed"
         parts.append(f"Final size: {size_desc} ({c.c_length_mm:.1f} mm), {c.habit} habit.")
-        
+
         return " ".join(parts)
-    
+
+    def _narrate_aragonite(self, c: Crystal) -> str:
+        """Narrate an aragonite crystal's story — the metastable polymorph."""
+        parts = [f"Aragonite #{c.crystal_id} grew to {c.c_length_mm:.1f} mm."]
+        parts.append(
+            "CaCO₃ — same composition as calcite, different crystal structure. "
+            "The orthorhombic polymorph that exists by kinetic favor, not thermodynamic "
+            "stability: at the temperature and pressure of this vug, calcite is the "
+            "ground-state phase, and given enough geologic time aragonite would convert. "
+            "Folk 1974 / Morse 1997 — Mg/Ca ratio is the dominant control on which "
+            "polymorph nucleates from a given fluid."
+        )
+
+        if c.habit == "acicular_needle":
+            parts.append(
+                "Acicular needles — the high-supersaturation form. Long thin prisms "
+                "radiating from a common nucleation point, often forming sprays that "
+                "look like frozen explosions in cabinet specimens."
+            )
+        elif c.habit == "twinned_cyclic":
+            parts.append(
+                "Cyclic twin on {110} — three crystals interpenetrating at 120° to "
+                "produce a pseudo-hexagonal six-pointed prism. This is the diagnostic "
+                "aragonite habit, easily mistaken for a true hexagonal mineral until "
+                "the re-entrant angles between the twin lobes give it away."
+            )
+        elif c.habit == "flos_ferri":
+            parts.append(
+                "'Flos ferri' — the iron flower variety. Fe-rich aragonite forms "
+                "delicate dendritic / coral-like white branches, a habit named for "
+                "the famous Eisenerz, Austria specimens. Stalactitic and visually "
+                "stunning despite (or because of) its fragility."
+            )
+        else:
+            parts.append(
+                "Columnar prisms — the default low-σ habit. Transparent to white "
+                "blades that are easily confused with calcite at first glance, "
+                "until you read the chemistry: Mg/Ca ratio, trace Sr/Pb signatures, "
+                "or the lack of perfect rhombohedral cleavage."
+            )
+
+        # Polymorph context
+        # (Note: at narration time we don't have the original fluid state, but
+        #  we can comment on the narrative arc.)
+        if c.dissolved:
+            note = c.zones[-1].note if c.zones else ""
+            if "polymorphic conversion" in note:
+                parts.append(
+                    "The crystal underwent polymorphic conversion to calcite — the "
+                    "thermodynamic sink. Aragonite metastability has limits: above "
+                    "100°C with water present, the structure inverts on geologic-short "
+                    "timescales (Bischoff & Fyfe 1968, half-life ~10³ yr at 80°C). "
+                    "What remains is a calcite pseudomorph after aragonite, preserving "
+                    "the original orthorhombic outline filled with trigonal cleavage."
+                )
+            else:
+                parts.append(
+                    "Acid attack dissolved the crystal — aragonite shares calcite's "
+                    "vulnerability below pH 5.5. Ca²⁺ + CO₃²⁻ returned to the fluid."
+                )
+        else:
+            parts.append(
+                "The crystal is preserved at vug-scale geologic moment. In nature, "
+                "aragonite from cold marine settings can survive millions of years; "
+                "from hot springs it converts to calcite in centuries to millennia."
+            )
+
+        return " ".join(parts)
+
     def _narrate_quartz(self, c: Crystal) -> str:
         """Narrate a quartz crystal's story."""
         parts = []
