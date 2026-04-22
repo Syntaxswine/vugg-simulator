@@ -260,6 +260,39 @@
         "Morteani et al. 2002 covers Brazilian pegmatite-hydrothermal systems broadly; Ouro-Preto-specific LA-ICP-MS fluid-inclusion data is sparse.",
         "Cr source attribution to 'nearby ultramafic dikes' is geologically reasonable but not directly traced in the published literature for individual mines."
       ]
+    },
+    "cruzeiro_doce_valley": {
+      "scenario_id": "gem_pegmatite",
+      "audit_status": "anchored",
+      "display_name": "Cruzeiro mine, São José da Safira, Doce Valley, Minas Gerais",
+      "host_formation": "Brasiliano-age (Neoproterozoic, 700-450 Ma) granite-pegmatite cutting Macaúbas Group meta-sediments, eastern São Francisco craton margin",
+      "production_history": "Type-locality for fine schorl-elbaite tourmaline + smoky quartz + beryl pockets. Active since the early 20th century, still producing world-class specimens.",
+      "fluid_event_summary": "Miarolitic gem cavity in the residual pocket of a complex zoned pegmatite. Crystallization 650 -> 300 C across 7 events: outer-shell wall zone, schorl arrival, albitization (K -> Na), Be saturation (beryl), Li phase (spodumene + elbaite), late hydrothermal (topaz), kaolinization (microcline -> kaolinite). Apatite is a documented Cruzeiro accessory mineral [Cassedanne 1991].",
+      "audit_pass": "gap-fill (Apr 2026) — added P (apatite-enabling, was the gate keeping a documented Cruzeiro accessory from nucleating), Mg (brief-required non-zero baseline, pegmatite-pocket-appropriate low value). No drift between Python and JS init. Existing chemistry (Be, B, Li, F, Cr, Cu, V, Ti, K, Na, Al, etc.) preserved; 7-event cooling cascade preserved.",
+      "fluid": {
+        "P": {"value": 8, "note": "Pegmatite residual pocket fluids are P-enriched. Apatite (Ca5(PO4)3F) is a documented Cruzeiro accessory; existing Ca=30 + F=25 already supported apatite chemistry — P=0 was the gate. Conservative value — apatite should nucleate as a minor accessory, not dominate the gem signature."},
+        "Mg": {"value": 5, "note": "Pegmatite pocket fluids are Mg-poor (Mg partitions strongly into outer-shell biotite/chlorite during pegmatite differentiation). Conservative; brief-required non-zero Mg."}
+      },
+      "preserved_intentional_values": {
+        "SiO2": 8000, "Ca": 30, "CO3": 15, "Fe": 50, "Mn": 8, "Al": 150,
+        "K": 80, "Na": 40,
+        "Be": 25, "B": 35, "Li": 35, "F": 25,
+        "Cr": 2.5, "Cu": 0.3, "V": 2.0, "Ti": 0.8,
+        "O2": 0.1, "pH": 6.8, "salinity": 6.0,
+        "SiO2_note": "Pegmatite-level silica saturation — far above quartz equilibrium at any T, so quartz is supersaturated throughout.",
+        "incompatible_elements_note": "Be, B, Li, F all start above their respective minerals' minimum required threshold but below the nucleation σ threshold; they build (unused early) and then the cascade fires as T drops.",
+        "Cu_note": "Cu=0.3 is the Paraíba long-shot (1 in 20 scenarios lands the cuprian elbaite given seed variance)."
+      },
+      "references": [
+        "Cassedanne, J.P. (1991). Tourmaline-bearing pegmatites in Brazil. Mineralogical Record 22(5): 343-364. [Cruzeiro mine paragenesis, including accessory apatite]",
+        "Proctor, K. (1985). Gem pegmatites of Minas Gerais, Brazil: the tourmalines of the Governador Valadares district. Gems & Gemology 21(1): 3-19. [Doce Valley district context]",
+        "London, D. (2008). Pegmatites. Canadian Mineralogist Special Publication 10. [Pegmatite fluid chemistry baseline — Al budget, residual-pocket evolution]",
+        "Morteani, G., Preinfalk, C., Horn, A.H. (2002). Classification and mineralization potential of the pegmatites of the eastern Brazilian pegmatite province. Mineralium Deposita 37: 786-799. [Fluid-inclusion microthermometry]"
+      ],
+      "data_gaps": [
+        "P=8 enables apatite nucleation but real Cruzeiro pocket fluid P content is not directly published in fluid-inclusion analyses; conservative estimate.",
+        "Cu=0.3 (the Paraíba long-shot) is a deliberately-low value to make cuprian elbaite a rare seed-roll; not a real Cruzeiro Cu measurement."
+      ]
     }
   }
 }

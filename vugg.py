@@ -6911,7 +6911,8 @@ def scenario_supergene_oxidation() -> Tuple[VugConditions, List[Event], int]:
 
 
 def scenario_gem_pegmatite() -> Tuple[VugConditions, List[Event], int]:
-    """Minas Gerais Gem Pegmatite Pocket — Variant A.
+    """Minas Gerais Gem Pegmatite Pocket — anchored to the Cruzeiro mine,
+    Doce Valley, Minas Gerais (Variant A).
 
     A miarolitic cavity in a complex zoned pegmatite at the São Francisco
     craton margin. Brasiliano orogeny, 700–450 Ma. The outer pegmatite
@@ -6919,6 +6920,14 @@ def scenario_gem_pegmatite() -> Tuple[VugConditions, List[Event], int]:
     crystallized; this vug is the residual pocket where incompatible
     elements (Be, B, Li, F) accumulate beyond belief before crossing
     saturation and nucleating their exotic species.
+
+    Anchor: Cruzeiro mine (São José da Safira, Doce Valley, MG) — the
+    type-locality for fine schorl-elbaite tourmaline + smoky quartz
+    pockets, with documented beryl, spodumene, lepidolite, and
+    accessory apatite. Brasiliano-age (Neoproterozoic) pegmatite field
+    cutting Macaúbas Group meta-sediments. Morteani et al. 2002 covers
+    fluid chemistry; Cassedanne (1991) and Proctor (1985) cover the
+    Cruzeiro-specific paragenesis.
 
     Thermal regime: 650 → 300°C over ~220 steps in three phases.
     Phase 1 (650–550°C): wall-zone crystallization (microcline, quartz,
@@ -6981,6 +6990,20 @@ def scenario_gem_pegmatite() -> Tuple[VugConditions, List[Event], int]:
             # Mn for morganite/kunzite/rubellite; Cu for the Paraíba long-
             # shot (1 in 20 scenarios lands it given seed variance).
             Cr=2.5, Cu=0.3, V=2.0, Ti=0.8,
+            # ── Audit gap-fills (Apr 2026) ────────────────────────────
+            # P=8: pegmatite residual pocket fluids are P-enriched —
+            # apatite (Ca5(PO4)3F) is a documented Cruzeiro accessory
+            # alongside the gem species. Existing Ca=30 + F=25 already
+            # support apatite chemistry; P=0 was the gate. Conservative
+            # value — apatite should nucleate as a minor accessory, not
+            # dominate the gem signature [Cassedanne 1991].
+            P=8,
+            # Mg=5: pegmatite residual pocket fluids are Mg-poor (Mg
+            # partitions strongly into outer-shell biotite/chlorite
+            # during pegmatite differentiation). Conservative; brief-
+            # required non-zero Mg.
+            Mg=5,
+            # ──────────────────────────────────────────────────────────
             O2=0.1, pH=6.8, salinity=6.0,
         )
     )

@@ -8140,6 +8140,12 @@ function scenario_supergene_oxidation() {
 // craton margin. The outer shell has already crystallized; this vug is
 // the residual pocket where Be/B/Li/F accumulate past saturation. Eight
 // events walk a 230-step cooling path through the pegmatite paragenesis.
+// Cruzeiro mine, São José da Safira, Doce Valley, Minas Gerais. Type-
+// locality for fine schorl-elbaite + smoky quartz pockets, with beryl,
+// spodumene, lepidolite, and accessory apatite. Brasiliano-age (700-450
+// Ma) pegmatite cutting Macaúbas Group. Audit gap-fills (Apr 2026):
+// P=8 (apatite-enabling) + Mg=5 (brief baseline). See vugg.py docstring
+// + locality_chemistry.json#cruzeiro_doce_valley.
 function scenario_gem_pegmatite() {
   const conditions = new VugConditions({
     temperature: 650.0,
@@ -8167,6 +8173,9 @@ function scenario_gem_pegmatite() {
       K: 80, Na: 40,
       Be: 25, B: 35, Li: 35, F: 25,
       Cr: 2.5, Cu: 0.3, V: 2.0, Ti: 0.8,
+      // ── Audit gap-fills (Apr 2026) ────────────────────────────────
+      P: 8,             // pegmatite residual P; enables Cruzeiro accessory apatite
+      Mg: 5,            // brief-required non-zero Mg (pegmatite pocket Mg-poor baseline)
       O2: 0.1, pH: 6.8, salinity: 6.0,
     }),
   });
