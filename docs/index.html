@@ -2177,20 +2177,32 @@ footer a:hover {
 <!-- Scenarios Picker (opened from New Game Menu's "Scenarios" button) -->
 <div id="scenarios-panel" class="menu-panel" style="display:none">
   <div class="menu-heading">Scenarios</div>
-  <div class="menu-subheading">Each one plays in Creative mode — events fire on their scheduled steps.</div>
+
+  <div class="menu-subheading">Location-based — anchored to a real-world locality. Events fire on their scheduled steps.</div>
   <div class="menu-buttons">
-    <button onclick="startScenarioInCreative('cooling')">Cooling.</button>
+    <button onclick="startScenarioInCreative('cooling')">Cooling (Herkimer ❄️).</button>
     <button onclick="startScenarioInCreative('pulse')">Fluid Pulse.</button>
     <button onclick="startScenarioInCreative('mvt')">Mississippi Valley-type.</button>
     <button onclick="startScenarioInCreative('porphyry')">Porphyry Copper.</button>
     <button onclick="startScenarioInCreative('reactive_wall')">Reactive Wall.</button>
     <button onclick="startScenarioInCreative('radioactive_pegmatite')">Radioactive Pegmatite.</button>
-    <button onclick="startScenarioInCreative('supergene_oxidation')">Supergene Oxidation.</button>
+    <button onclick="startScenarioInCreative('supergene_oxidation')">Supergene Oxidation (Tsumeb).</button>
     <button onclick="startScenarioInCreative('ouro_preto')">Ouro Preto (Imperial Topaz).</button>
     <button onclick="startScenarioInCreative('gem_pegmatite')">Gem Pegmatite Pocket (Minas Gerais).</button>
     <button onclick="startScenarioInCreative('bisbee')">Bisbee (Warren District Cu Oxidation).</button>
     <button onclick="startScenarioInCreative('deccan_zeolite')">Deccan Traps Zeolite Vesicle (Apophyllite).</button>
     <button onclick="startScenarioInCreative('sabkha_dolomitization')">Coorong Sabkha (Kim 2023 Cycled Dolomite).</button>
+  </div>
+
+  <div class="menu-subheading">Starter Fluids — generic test recipes representing what leaks naturally from the host rock. No events; perturb in-game.</div>
+  <div class="menu-buttons">
+    <button onclick="startStarterFluidInCreative('silica')">🔮 Silica-rich.</button>
+    <button onclick="startStarterFluidInCreative('carbonate')">🧪 Carbonate.</button>
+    <button onclick="startStarterFluidInCreative('clean')">💧 Clean / Dilute.</button>
+    <button onclick="startStarterFluidInCreative('oxidized_cu')">🟢 Oxidized Copper.</button>
+  </div>
+
+  <div class="menu-buttons">
     <button class="menu-home" onclick="openNewGameMenu()">← Back.</button>
   </div>
 </div>
@@ -2322,7 +2334,7 @@ Scenarios:
       <label>Fluid Chemistry Preset</label>
       <div class="preset-grid" id="preset-grid">
         <button class="preset-btn selected" data-preset="silica" onclick="selectPreset('silica')">🔮 Silica-rich</button>
-        <button class="preset-btn" data-preset="carbonate" onclick="selectPreset('carbonate')">�ite Carbonate</button>
+        <button class="preset-btn" data-preset="carbonate" onclick="selectPreset('carbonate')">🧪 Carbonate</button>
         <button class="preset-btn" data-preset="mvt" onclick="selectPreset('mvt')">⚗️ MVT Brine</button>
         <button class="preset-btn" data-preset="clean" onclick="selectPreset('clean')">💧 Clean/Dilute</button>
         <button class="preset-btn" data-preset="porphyry" onclick="selectPreset('porphyry')">🟠 Copper Porphyry</button>
@@ -11896,6 +11908,69 @@ function startScenarioInCreative(scenarioName) {
   fortressBeginFromScenario(scenarioName);
 }
 
+// Take a FLUID_PRESETS[id] starter fluid and run it inside Creative as a
+// no-event sim. The starter fluid represents what would naturally leak
+// from the host rock; the player perturbs it via in-game actions
+// (Heat / Cool / Inject / Tectonic). No scripted events fire.
+function startStarterFluidInCreative(presetId) {
+  const preset = FLUID_PRESETS[presetId];
+  if (!preset) { alert('Unknown starter fluid: ' + presetId); return; }
+  switchMode('fortress');
+  fortressBeginFromStarterFluid(presetId);
+}
+
+// Parallel to fortressBeginFromScenario but uses a FLUID_PRESETS entry
+// rather than a full scenario. Defaults T/P/wall to mid-range generics
+// since starter fluids don't carry that metadata. Player can intervene
+// from step 1.
+function fortressBeginFromStarterFluid(presetId) {
+  const preset = FLUID_PRESETS[presetId];
+  if (!preset) return;
+
+  const fluid = new FluidChemistry(Object.assign({}, preset.fluid));
+  // Generic mid-range conditions — see Creative-mode rework backlog item
+  // for surfacing T/P/wall as starter-fluid-level controls.
+  const wall = new VugWall({
+    composition: 'limestone', thickness_mm: 500, vug_diameter_mm: 50,
+    wall_Fe_ppm: 2000, wall_Mn_ppm: 500, wall_Mg_ppm: 1000,
+    primary_bubbles: 3, secondary_bubbles: 5, shape_seed: Date.now() & 0xff
+  });
+  const conditions = new VugConditions({
+    temperature: 200.0, pressure: 1.0, fluid, wall
+  });
+
+  rng = new SeededRandom(Date.now());
+  fortressSim = new VugSimulator(conditions, []);
+  fortressActive = true;
+  fortressLogLines = [];
+
+  document.getElementById('fortress-setup').style.display = 'none';
+  document.getElementById('fortress-status').style.display = 'block';
+  document.getElementById('fortress-actions').style.display = 'block';
+  const main = document.getElementById('fortress-main');
+  main.style.display = 'flex';
+
+  const logEl = document.getElementById('fortress-log');
+  logEl.innerHTML = '';
+  const initLines = [
+    `🏰 Creative Mode — Starter Fluid: ${preset.label}`,
+    `   Temperature: 200°C | Pressure: 1.00 kbar | pH: ${conditions.fluid.pH.toFixed(1)}`,
+    `   Fluid: ${conditions.fluid.describe()}`,
+    `   ${preset.desc}`,
+    `   No scripted events — only your actions + ambient drift will shape this vug.`,
+    '═'.repeat(60), '',
+    'Advance with Wait. Intervene with Heat/Cool/Inject/Tectonic/etc. at any time.'
+  ];
+  initLines.forEach(line => {
+    fortressLogLines.push(line);
+    appendFortressLine(logEl, line);
+  });
+
+  updateFortressStatus();
+  updateFortressInventory();
+  if (typeof syncBrothSliders === 'function') syncBrothSliders();
+}
+
 // Parallel to fortressBegin() but uses a scenario's conditions + events
 // instead of the setup sliders. The sim is pre-wired with events so they
 // fire automatically on Wait/Heat/Cool/etc. advances.
@@ -12656,41 +12731,65 @@ function runRandomVugg() {
 // FORTRESS MODE
 // ============================================================
 
+// FLUID_PRESETS: starting-fluid recipes shown in the Creative-mode setup
+// preset bar AND under "Starter Fluids" in the Scenarios picker. Two
+// flavors:
+//   * Generic test recipes (silica, carbonate, clean, oxidized_cu) — not
+//     anchored to any locality; tuned by feel as broad mineral-class
+//     starting points. Edit freely.
+//   * Synced-to-scenario recipes (mvt, porphyry, radioactive) — these
+//     pull their fluid from the corresponding scenario_* function via
+//     getter so they cannot drift. Edit the scenario, the preset
+//     follows.
+//
+// Every preset must declare every FluidChemistry field the scenario
+// would set, so the Creative-mode setup sliders see them and can
+// over-ride. (Sliders that are blank for a preset's missing field still
+// inherit the FluidChemistry constructor default, which is 0 for most
+// trace elements — that's the "starter-fluid hidden chemistry" issue
+// flagged for the Creative-mode rework backlog.)
+function _scenarioFluidParams(scenarioName) {
+  const f = SCENARIOS[scenarioName]().conditions.fluid;
+  // Spread own enumerable properties of the FluidChemistry instance
+  // into a plain object that fortressBegin's Object.assign() can copy.
+  return Object.assign({}, f);
+}
+
 const FLUID_PRESETS = {
   silica: {
     label: 'Silica-rich',
-    desc: 'High silica (600 ppm SiO₂), moderate Ca, low metals. Quartz-dominant growth.',
+    desc: 'Test recipe — high silica (600 ppm SiO₂), moderate Ca, low metals. Quartz-dominant growth. Generic; not anchored to a locality.',
     fluid: { SiO2: 600, Ca: 150, CO3: 100, Fe: 8, Mn: 3, Ti: 0.8, Al: 4, F: 10, Zn: 0, S: 0, Cu: 0, O2: 0, pH: 6.5, salinity: 5.0 }
   },
   carbonate: {
     label: 'Carbonate',
-    desc: 'Ca-CO₃ rich fluid (Ca 300, CO₃ 250 ppm), moderate Mn. Calcite-dominant.',
+    desc: 'Test recipe — Ca-CO₃ rich fluid (Ca 300, CO₃ 250 ppm), moderate Mn. Calcite-dominant. Generic; not anchored to a locality.',
     fluid: { SiO2: 80, Ca: 300, CO3: 250, Fe: 10, Mn: 8, Ti: 0.2, Al: 1, F: 5, Zn: 0, S: 0, Cu: 0, O2: 0, pH: 7.0, salinity: 8.0 }
   },
   mvt: {
-    label: 'MVT Brine',
-    desc: 'Zinc + sulfur-bearing brine (Zn 150, S 120 ppm), high Ca + F. Sphalerite + fluorite + smithsonite potential. Mo flux.',
-    fluid: { SiO2: 100, Ca: 350, CO3: 200, Fe: 25, Mn: 5, Ti: 0.3, Al: 2, F: 30, Zn: 150, S: 120, Cu: 0, Mo: 20, O2: 0, pH: 5.5, salinity: 18.0 }
+    label: 'MVT Brine (synced to scenario_mvt)',
+    desc: 'Mirrors scenario_mvt. Edit the scenario in vugg.py / web/index.html to change this preset.',
+    get fluid() { return _scenarioFluidParams('mvt'); }
   },
   clean: {
     label: 'Clean/Dilute',
-    desc: 'Low-concentration fluid. Slow growth, high purity crystals. Near-equilibrium conditions.',
+    desc: 'Test recipe — low-concentration fluid. Slow growth, high-purity crystals. Near-equilibrium conditions. Generic; not anchored to a locality.',
     fluid: { SiO2: 200, Ca: 80, CO3: 60, Fe: 2, Mn: 1, Ti: 0.1, Al: 1, F: 3, Zn: 0, S: 0, Cu: 0, O2: 0, pH: 7.0, salinity: 2.0 }
   },
   porphyry: {
-    label: 'Copper Porphyry',
-    desc: 'Cu-Fe-S bearing magmatic fluid (Cu 100, Fe 40, S 80 ppm), reducing. Pyrite + chalcopyrite potential.',
-    fluid: { SiO2: 500, Ca: 80, CO3: 50, Fe: 40, Mn: 2, Ti: 0.5, Al: 3, F: 5, Zn: 0, S: 80, Cu: 100, O2: 0.2, pH: 4.5, salinity: 10.0 }
+    label: 'Copper Porphyry (synced to scenario_porphyry)',
+    desc: 'Mirrors scenario_porphyry. Edit the scenario to change this preset.',
+    get fluid() { return _scenarioFluidParams('porphyry'); }
   },
   oxidized_cu: {
     label: 'Oxidized Copper',
-    desc: 'Cu-bearing oxidized fluid (Cu 60, Fe 40, O₂ 1.5), CO₃-rich. Malachite + hematite potential. Low temperature favored.',
+    desc: 'Test recipe — Cu-bearing oxidized fluid (Cu 60, Fe 40, O₂ 1.5), CO₃-rich. Malachite + hematite potential. Low temperature favored. Generic; not anchored to a locality.',
     fluid: { SiO2: 100, Ca: 150, CO3: 200, Fe: 40, Mn: 3, Ti: 0.2, Al: 1, F: 5, Zn: 0, S: 5, Cu: 60, O2: 1.5, pH: 6.0, salinity: 5.0 }
   },
   radioactive: {
-    label: 'Radioactive Pegmatite',
-    desc: 'U-bearing pegmatite: high silica, uranium-rich. Uraninite crystallizes first, quartz grows around it, radiation darkens quartz over deep time. ☢️',
-    fluid: { SiO2: 800, Ca: 50, CO3: 20, Fe: 40, Mn: 5, Ti: 0.5, Al: 3, F: 15, Zn: 0, S: 30, Cu: 0, U: 100, Pb: 20, O2: 0, pH: 6.0, salinity: 5.0 }
+    label: 'Radioactive Pegmatite (synced to scenario_radioactive_pegmatite)',
+    desc: 'Mirrors scenario_radioactive_pegmatite. Edit the scenario to change this preset. ☢️',
+    get fluid() { return _scenarioFluidParams('radioactive_pegmatite'); }
   }
 };
 
