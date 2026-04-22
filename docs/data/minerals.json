@@ -38,8 +38,8 @@
     "class_color": "Hex color for topographic map visualization. Derived from mineral class — all classes of the same type share one hue on a 12-color wheel (30° spacing). Wall/matrix = #D2691E (amber)."
   },
   "_audit_summary": {
-    "total_minerals": 48,
-    "_note": "Post-phase-2 state. The _initial_audit block below is frozen at phase-1 start for historical reference — do not edit. +topaz (MG-B), +tourmaline/beryl/spodumene (MG-A), +anglesite/cerussite/pyromorphite/vanadinite (Pb oxidation), +bornite/chalcocite/covellite (Cu sulfide enrichment), +cuprite/azurite/native_copper (Cu oxide-native), +magnetite/lepidocrocite/stibnite/bismuthinite/native_bismuth/clinobisvanite (Fe/Sb/Bi suite), +chrysocolla (Bisbee), +marcasite (round-2: pH<5 pyrite dimorph), +wurtzite (round-2: T>95 sphalerite dimorph), +erythrite/annabergite (round-2: paired vivianite-group arsenates), +tetrahedrite/tennantite (round-2: paired fahlore Sb/As sulfosalts), +apophyllite (round-2: zeolite-facies silicate, hematite-phantom 'bloody apophyllite' habit, deccan_zeolite scenario added), +aragonite (round-3: orthorhombic CaCO3, Mg/Ca-driven polymorph competition with calcite per Folk 1974/Morse 1997).",
+    "total_minerals": 49,
+    "_note": "Post-phase-2 state. The _initial_audit block below is frozen at phase-1 start for historical reference — do not edit. +topaz (MG-B), +tourmaline/beryl/spodumene (MG-A), +anglesite/cerussite/pyromorphite/vanadinite (Pb oxidation), +bornite/chalcocite/covellite (Cu sulfide enrichment), +cuprite/azurite/native_copper (Cu oxide-native), +magnetite/lepidocrocite/stibnite/bismuthinite/native_bismuth/clinobisvanite (Fe/Sb/Bi suite), +chrysocolla (Bisbee), +marcasite (round-2: pH<5 pyrite dimorph), +wurtzite (round-2: T>95 sphalerite dimorph), +erythrite/annabergite (round-2: paired vivianite-group arsenates), +tetrahedrite/tennantite (round-2: paired fahlore Sb/As sulfosalts), +apophyllite (round-2: zeolite-facies silicate, hematite-phantom 'bloody apophyllite' habit, deccan_zeolite scenario added), +aragonite (round-3: orthorhombic CaCO3, Mg/Ca-driven polymorph competition with calcite per Folk 1974/Morse 1997), +rhodochrosite (round-3: Mn carbonate, biggest collection-weight miss at 35 specimens).",
     "missing_growth_engine": [],
     "missing_narrate_function": [],
     "missing_from_vugg_py_registry": [],
@@ -73,7 +73,8 @@
       "tetrahedrite",
       "tennantite",
       "apophyllite",
-      "aragonite"
+      "aragonite",
+      "rhodochrosite"
     ],
     "scenarios_that_can_nucleate": {
       "cooling": [
@@ -91,7 +92,8 @@
         "sphalerite",
         "wurtzite",
         "fluorite",
-        "galena"
+        "galena",
+        "rhodochrosite"
       ],
       "porphyry": [
         "calcite",
@@ -572,6 +574,135 @@
         "web/index.html"
       ],
       "audit_status": "ok (round-3 add: orthorhombic CaCO3 polymorph, Mg/Ca dominant control per Folk 1974/Morse 1997, polymorphic conversion to calcite at T>100°C, four habits including iconic cyclic twin and flos ferri). Scenarios array empty until SCENARIO-CHEMISTRY-AUDIT brief runs — none of the existing scenarios have realistic enough Mg/Ca (>1.5) to nucleate aragonite at seed 42; existing scenarios use realistic low-Mg brines that correctly favor calcite. Aragonite gate is verified working with manually elevated Mg.",
+      "class_color": "#eb7f13"
+    },
+    "rhodochrosite": {
+      "formula": "MnCO3",
+      "nucleation_sigma": 1.0,
+      "max_nucleation_count": 4,
+      "max_size_cm": 25,
+      "growth_rate_mult": 0.5,
+      "_collection_specimens": 35,
+      "habit_variants": [
+        {
+          "name": "rhombohedral",
+          "wall_spread": 0.3,
+          "void_reach": 0.65,
+          "vector": "equant",
+          "trigger": "moderate σ — curved 'button' rhombohedra, the diagnostic habit (the {104} faces bow outward)"
+        },
+        {
+          "name": "scalenohedral",
+          "wall_spread": 0.25,
+          "void_reach": 0.7,
+          "vector": "projecting",
+          "trigger": "high σ — sharp 'dog-tooth' v{211} crystals, deep raspberry-red"
+        },
+        {
+          "name": "stalactitic",
+          "wall_spread": 0.7,
+          "void_reach": 0.25,
+          "vector": "coating",
+          "trigger": "drip / on goethite substrate — concentric mammillary rose-pink banding (Capillitas)"
+        },
+        {
+          "name": "banding_agate",
+          "wall_spread": 0.6,
+          "void_reach": 0.3,
+          "vector": "tabular",
+          "trigger": "low σ — rhythmic Mn/Ca banded layers, kutnohorite-rhodochrosite intermediate compositions"
+        }
+      ],
+      "class": "carbonate",
+      "description": "MnCO₃ — the rosy manganese carbonate, the pink mineral of cabinet specimens. Same R3̄c calcite-group structure with Mn²⁺ replacing Ca²⁺. Forms a continuous solid solution toward calcite via the kutnohorite (CaMn carbonate) intermediate, producing the diagnostic agate-like banding when Mn/Ca ratios oscillate. Color is intrinsic (Mn²⁺ chromophore), not a trace activator. Stability requires moderate-to-reducing conditions: aggressive oxidation flips Mn²⁺ to Mn³⁺/Mn⁴⁺ and the surface converts to black manganese oxides (pyrolusite, psilomelane). Forms in epithermal Mn-bearing veins (Capillitas Argentina, Sweet Home Colorado), metamorphosed Mn sediments (N'Chwaning South Africa), and low-T carbonate replacement zones.",
+      "scenarios": [
+        "mvt"
+      ],
+      "T_range_C": [
+        20,
+        250
+      ],
+      "T_optimum_C": [
+        50,
+        150
+      ],
+      "T_behavior": "retrograde_solubility",
+      "pH_dissolution_below": 5.5,
+      "pH_dissolution_above": null,
+      "redox_requirement": "reducing",
+      "required_ingredients": {
+        "Mn": 5,
+        "CO3": 20
+      },
+      "trace_ingredients": {
+        "Ca": "kutnohorite intermediate solid solution (Ca-rich pales the color; Mn-dominant gives deep raspberry-red)",
+        "Fe": "darkens toward brown when Fe-rich (siderite intermediate)",
+        "Mg": "minor substitution (manganodolomite-like)",
+        "Zn": "trace substitution"
+      },
+      "thermal_decomp_C": 600,
+      "thermal_decomp_reaction": "MnCO3 -> MnO + CO2 (calcination, lower than calcite's 840°C)",
+      "thermal_decomp_products": {
+        "Mn": 0.5,
+        "CO3": 0.4
+      },
+      "fluorescence": {
+        "activator": "intrinsic",
+        "color": "red_pink_LW",
+        "note": "Mn²⁺ is the intrinsic chromophore; the same ion is the activator in calcite/sphalerite. Some rhodochrosite fluoresces dull red under LW UV, but the high Mn content can be self-quenching."
+      },
+      "twin_laws": [
+        {
+          "name": "polysynthetic",
+          "miller_indices": "{012}",
+          "trigger": "growth or stress",
+          "probability": 0.02
+        }
+      ],
+      "acid_dissolution": {
+        "pH_threshold": 5.5,
+        "reaction": "MnCO3 + 2H+ -> Mn2+ + H2O + CO2 (fizzes — same as calcite)",
+        "products": {
+          "Mn": 0.6,
+          "CO3": 0.5
+        }
+      },
+      "oxidation_breakdown": {
+        "O2_threshold": 1.0,
+        "reaction": "MnCO3 + O2 -> Mn3+/Mn4+ oxide rind (pyrolusite/psilomelane staining) + CO2",
+        "note": "Mn²⁺ is the cation that makes rhodochrosite pink; oxidation converts it to higher valence Mn that forms black insoluble oxides. Museum specimens require careful storage to avoid surface darkening."
+      },
+      "habit": "rhombohedral_or_scalenohedral",
+      "color_rules": {
+        "rose_pink": {
+          "default": true
+        },
+        "deep_raspberry_red": {
+          "trigger": "Ca/(Mn+Ca) < 0.2 — Mn-dominant end-member"
+        },
+        "pale_pink": {
+          "trigger": "Ca/(Mn+Ca) > 0.5 — kutnohorite intermediate"
+        },
+        "brownish_pink": {
+          "trigger": "Fe-rich (Fe > 30 ppm)"
+        }
+      },
+      "nucleation_preferences": {
+        "grows_on": [
+          "goethite",
+          "sphalerite",
+          "pyrite",
+          "galena",
+          "vug wall"
+        ],
+        "note": "Goethite substrate produces the Capillitas-style stalactitic habit. Sulfide substrate (pyrite, sphalerite, galena) is the classic epithermal vein paragenesis — rhodochrosite fills space between earlier sulfides as the system cools."
+      },
+      "narrate_function": "_narrate_rhodochrosite",
+      "runtimes_present": [
+        "vugg.py",
+        "web/index.html"
+      ],
+      "audit_status": "ok (round-3 add: Mn carbonate, R3̄c calcite-group structure, four habits, Ca substitution → kutnohorite intermediate color shift, oxidation breakdown to Mn-oxide rind). Empirically verified in mvt at seed 42 (initial Mn bumped 8→25 within Tri-State district brine range per Roedder 1976). The biggest collection-weight miss is now in the game (35 specimens). Future SCENARIO-CHEMISTRY-AUDIT will surface it more broadly via dedicated Capillitas / Sweet Home / N'Chwaning scenarios.",
       "class_color": "#eb7f13"
     },
     "sphalerite": {

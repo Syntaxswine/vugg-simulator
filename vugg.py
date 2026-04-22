@@ -705,6 +705,48 @@ class VugConditions:
 
         return max(sigma, 0)
 
+    def supersaturation_rhodochrosite(self) -> float:
+        """Rhodochrosite (MnCO₃) — the manganese carbonate, the pink mineral.
+
+        Trigonal carbonate, structurally identical to calcite (R3̄c) but with
+        Mn²⁺ replacing Ca²⁺. Forms a continuous solid solution toward calcite
+        through the kutnohorite (CaMn carbonate) intermediate, so high-Mn
+        carbonates have characteristic banding.
+
+        T range 20-250°C — epithermal vein settings (Capillitas, Sweet Home),
+        sedimentary Mn deposits (N'Chwaning), and low-T carbonate replacement.
+        Mn²⁺ is stable in moderate-to-reducing conditions; aggressive oxidation
+        flips it to Mn³⁺/Mn⁴⁺ → black manganese oxide staining (pyrolusite,
+        psilomelane).
+        """
+        if self.fluid.Mn < 5 or self.fluid.CO3 < 20:
+            return 0
+        if self.temperature < 20 or self.temperature > 250:
+            return 0
+        if self.fluid.pH < 5.0 or self.fluid.pH > 9.0:
+            return 0
+        # Mn²⁺ stability — too oxidizing converts it to insoluble Mn oxides
+        if self.fluid.O2 > 1.5:
+            return 0
+        # Same retrograde-style equilibrium as calcite
+        equilibrium_Mn = 50.0 * math.exp(-0.005 * self.temperature)
+        if equilibrium_Mn <= 0:
+            return 0
+        mn_co3 = min(self.fluid.Mn, self.fluid.CO3)
+        sigma = mn_co3 / equilibrium_Mn
+
+        # Acid dissolution
+        if self.fluid.pH < 5.5:
+            sigma -= (5.5 - self.fluid.pH) * 0.5
+        elif self.fluid.pH > 7.5:
+            sigma *= 1.0 + (self.fluid.pH - 7.5) * 0.1
+
+        # Mild oxidation penalty — Mn carbonate degrades faster than Ca carbonate
+        if self.fluid.O2 > 0.8:
+            sigma *= max(0.3, 1.5 - self.fluid.O2)
+
+        return max(sigma, 0)
+
     def supersaturation_aragonite(self) -> float:
         """Aragonite (CaCO₃, orthorhombic) — the metastable polymorph.
 
@@ -2549,6 +2591,93 @@ def grow_aragonite(crystal: Crystal, conditions: VugConditions, step: int) -> Op
         thickness_um=rate, growth_rate=rate,
         trace_Fe=trace_Fe, trace_Mn=trace_Mn,
         note=note,
+    )
+
+
+def grow_rhodochrosite(crystal: Crystal, conditions: VugConditions, step: int) -> Optional[GrowthZone]:
+    """Rhodochrosite (MnCO₃) growth — the pink/red carbonate.
+
+    Habits: rhombohedral (default — curved 'button' rhombs are the diagnostic),
+    scalenohedral (high σ, sharp dog-tooth crystals), stalactitic (drip
+    environments — the famous Capillitas crystals are stalactitic in cross-
+    section), banding_agate (low σ rhythmic Mn/Ca alternation).
+
+    Oxidation breakdown: in O₂-rich conditions, Mn²⁺ → Mn³⁺/Mn⁴⁺ and the
+    rhodochrosite converts to a black Mn oxide rind (pyrolusite/psilomelane).
+    The rosy crystal goes black. Acid dissolution releases Mn + CO₃ back.
+    """
+    sigma = conditions.supersaturation_rhodochrosite()
+
+    if sigma < 1.0:
+        # Aggressive oxidation — Mn²⁺ flipped to Mn-oxide
+        if crystal.total_growth_um > 5 and conditions.fluid.O2 > 1.0:
+            crystal.dissolved = True
+            dissolved_um = min(5.0, crystal.total_growth_um * 0.12)
+            conditions.fluid.Mn += dissolved_um * 0.4  # most of the Mn locks up as oxide
+            conditions.fluid.CO3 += dissolved_um * 0.4
+            return GrowthZone(
+                step=step, temperature=conditions.temperature,
+                thickness_um=-dissolved_um, growth_rate=-dissolved_um,
+                note=f"oxidative breakdown — Mn²⁺ → Mn³⁺/Mn⁴⁺, surface converting to black manganese oxide (pyrolusite/psilomelane staining)"
+            )
+        # Acid attack
+        if crystal.total_growth_um > 5 and conditions.fluid.pH < 5.5:
+            crystal.dissolved = True
+            dissolved_um = min(6.0, crystal.total_growth_um * 0.15)
+            conditions.fluid.Mn += dissolved_um * 0.5
+            conditions.fluid.CO3 += dissolved_um * 0.4
+            return GrowthZone(
+                step=step, temperature=conditions.temperature,
+                thickness_um=-dissolved_um, growth_rate=-dissolved_um,
+                note=f"acid dissolution (pH {conditions.fluid.pH:.1f}) — Mn²⁺ + CO₃²⁻ released"
+            )
+        return None
+
+    excess = sigma - 1.0
+    rate = 5.0 * excess * random.uniform(0.7, 1.3)
+
+    # Substrate-aware: stalactitic when growing on goethite (Capillitas-style
+    # ferruginous drip) or on existing rhodochrosite (stalactite cross-section).
+    pos_str = crystal.position if isinstance(crystal.position, str) else ""
+    on_drip = "goethite" in pos_str or "stalactit" in pos_str
+
+    if on_drip:
+        crystal.habit = "stalactitic"
+        crystal.dominant_forms = ["concentric stalactitic banding", "rose-pink mammillary aggregates"]
+    elif excess > 1.5:
+        crystal.habit = "scalenohedral"
+        crystal.dominant_forms = ["v{211} scalenohedral 'dog-tooth'", "sharp deep-rose crystals"]
+    elif excess > 0.5:
+        crystal.habit = "rhombohedral"
+        crystal.dominant_forms = ["e{104} curved 'button' rhombohedron", "rose-pink to raspberry"]
+    else:
+        crystal.habit = "banding_agate"
+        crystal.dominant_forms = ["rhythmic Mn/Ca banding", "agate-like layered cross-section"]
+
+    # Color depends on Ca substitution (kutnohorite intermediate)
+    ca_in_lattice = conditions.fluid.Ca / max(conditions.fluid.Mn + conditions.fluid.Ca, 0.01)
+    if ca_in_lattice > 0.5:
+        color_note = "pale pink (Ca-rich, approaching kutnohorite intermediate)"
+    elif ca_in_lattice > 0.2:
+        color_note = "rose-pink (some Ca substitution)"
+    else:
+        color_note = "deep raspberry-red (Mn-dominant, end-member rhodochrosite)"
+
+    # Trace Fe darkens toward brown
+    if conditions.fluid.Fe > 30:
+        color_note += " with brownish tint (Fe-rich)"
+
+    # Mn carbonate twins exist but are uncommon
+    if not crystal.twinned and random.random() < 0.02:
+        crystal.twinned = True
+        crystal.twin_law = "polysynthetic {012}"
+
+    return GrowthZone(
+        step=step, temperature=conditions.temperature,
+        thickness_um=rate, growth_rate=rate,
+        trace_Mn=conditions.fluid.Mn * 0.4,  # rhodochrosite IS Mn — high uptake
+        trace_Fe=conditions.fluid.Fe * 0.05,
+        note=f"{crystal.habit} — {color_note}",
     )
 
 
@@ -5481,6 +5610,7 @@ MINERAL_ENGINES = {
     "quartz": grow_quartz,
     "calcite": grow_calcite,
     "aragonite": grow_aragonite,
+    "rhodochrosite": grow_rhodochrosite,
     "sphalerite": grow_sphalerite,
     "wurtzite": grow_wurtzite,
     "fluorite": grow_fluorite,
@@ -5541,6 +5671,7 @@ THERMAL_DECOMPOSITION = {
     # mineral: (decomp_temp_°C, description, products)
     "calcite":    (840,  "CaCO₃ → CaO + CO₂ (calcination)",                     {"Ca": 0.5, "CO3": 0.4}),
     "aragonite":  (520,  "orthorhombic CaCO₃ → calcite (polymorphic conversion before calcination)", {"Ca": 0.5, "CO3": 0.4}),
+    "rhodochrosite": (600, "MnCO₃ → MnO + CO₂ (calcination, lower than calcite)", {"Mn": 0.5, "CO3": 0.4}),
     "malachite":  (200,  "Cu₂CO₃(OH)₂ → CuO + CO₂ + H₂O",                      {"Cu": 0.6, "CO3": 0.3}),
     "sphalerite": (1020, "ZnS → Zn + S (sublimes)",                              {"Zn": 0.3, "S": 0.5}),
     "wurtzite":   (1020, "hexagonal ZnS → sublimation (shares sphalerite decomposition)", {"Zn": 0.3, "S": 0.5}),
@@ -5777,7 +5908,11 @@ def scenario_mvt() -> Tuple[VugConditions, List[Event], int]:
         temperature=180.0,
         pressure=0.3,
         fluid=FluidChemistry(
-            SiO2=100, Ca=300, CO3=250, Fe=15, Mn=8,
+            # Mn=25 within Tri-State district brine range (Roedder 1976
+            # reports Mn 10-50 ppm in carbonate-hosted Pb-Zn fluid
+            # inclusions); enough to push rhodochrosite into saturation
+            # late in the run as carbonate concentrates.
+            SiO2=100, Ca=300, CO3=250, Fe=15, Mn=25,
             Zn=0, S=0, F=5, Mg=30,  # realistic Tri-State Mg/Ca ratio
             pH=7.2, salinity=15.0
         ),
@@ -7190,6 +7325,8 @@ class VugSimulator:
             crystal.dominant_forms = ["e{104} rhombohedron"]
         elif mineral == "aragonite":
             crystal.dominant_forms = ["columnar prisms", "{110} cyclic twin (six-pointed)"]
+        elif mineral == "rhodochrosite":
+            crystal.dominant_forms = ["e{104} curved 'button' rhombohedron", "rose-pink"]
         elif mineral == "sphalerite":
             crystal.dominant_forms = ["{111} tetrahedron"]
         elif mineral == "wurtzite":
@@ -7437,6 +7574,26 @@ class VugSimulator:
             c = self.nucleate("aragonite", position=pos, sigma=sigma_arag)
             self.log.append(f"  ✦ NUCLEATION: Aragonite #{c.crystal_id} on {c.position} "
                           f"(T={self.conditions.temperature:.0f}°C, Mg/Ca={mg_ratio:.2f}, σ={sigma_arag:.2f})")
+
+        # Rhodochrosite nucleation — Mn carbonate, the pink mineral.
+        sigma_rho = self.conditions.supersaturation_rhodochrosite()
+        existing_rho = [c for c in self.crystals if c.mineral == "rhodochrosite" and c.active]
+        if sigma_rho > 1.0 and not existing_rho and not self._at_nucleation_cap("rhodochrosite"):
+            pos = "vug wall"
+            # Substrate preference: goethite (Capillitas-style stalactitic
+            # ferruginous drip), then existing sulfides (epithermal vein paragenesis).
+            existing_goe_r = [c for c in self.crystals if c.mineral == "goethite" and c.active]
+            existing_py_r = [c for c in self.crystals if c.mineral == "pyrite" and c.active]
+            existing_sph_r = [c for c in self.crystals if c.mineral == "sphalerite" and c.active]
+            if existing_goe_r and random.random() < 0.5:
+                pos = f"on goethite #{existing_goe_r[0].crystal_id}"
+            elif existing_sph_r and random.random() < 0.4:
+                pos = f"on sphalerite #{existing_sph_r[0].crystal_id}"
+            elif existing_py_r and random.random() < 0.3:
+                pos = f"on pyrite #{existing_py_r[0].crystal_id}"
+            c = self.nucleate("rhodochrosite", position=pos, sigma=sigma_rho)
+            self.log.append(f"  ✦ NUCLEATION: Rhodochrosite #{c.crystal_id} on {c.position} "
+                          f"(T={self.conditions.temperature:.0f}°C, Mn={self.conditions.fluid.Mn:.0f}, σ={sigma_rho:.2f})")
 
         # Sphalerite nucleation
         sigma_s = self.conditions.supersaturation_sphalerite()
@@ -9379,6 +9536,72 @@ class VugSimulator:
                 "from hot springs it converts to calcite in centuries to millennia."
             )
 
+        return " ".join(parts)
+
+    def _narrate_rhodochrosite(self, c: Crystal) -> str:
+        """Narrate a rhodochrosite crystal's story — the manganese carbonate."""
+        parts = [f"Rhodochrosite #{c.crystal_id} grew to {c.c_length_mm:.1f} mm."]
+        parts.append(
+            "MnCO₃ — the rosy manganese carbonate, structurally identical to "
+            "calcite (R3̄c) but with Mn²⁺ replacing Ca²⁺. The pink-to-raspberry "
+            "color is intrinsic to the Mn²⁺ chromophore, not a trace activator. "
+            "Forms in epithermal Mn-bearing veins (Capillitas, Sweet Home), "
+            "metamorphosed Mn sediments (N'Chwaning), and low-T carbonate "
+            "replacement zones."
+        )
+
+        if c.habit == "rhombohedral":
+            parts.append(
+                "Curved 'button' rhombohedra — the diagnostic rhodochrosite habit. "
+                "The {104} faces aren't quite flat; they bow outward, giving each "
+                "crystal a domed, button-like profile that's hard to mistake for "
+                "anything else."
+            )
+        elif c.habit == "scalenohedral":
+            parts.append(
+                "Sharp scalenohedral 'dog-tooth' crystals — the high-σ habit. "
+                "Deep-rose to raspberry-red where Mn is dominant. Visually similar "
+                "to scalenohedral calcite at distance, but the color settles the "
+                "identification."
+            )
+        elif c.habit == "stalactitic":
+            parts.append(
+                "Stalactitic / mammillary aggregates — the famous Capillitas, "
+                "Argentina habit. Concentric rose-pink banding when sliced; "
+                "reflects rhythmic drip-water deposition over geologically short "
+                "intervals."
+            )
+        else:
+            parts.append(
+                "Rhythmic Mn/Ca banding — the agate-like layered cross-section. "
+                "Each band records a slight shift in the Mn:Ca ratio of the "
+                "incoming fluid, captured in the kutnohorite (CaMn carbonate) "
+                "solid-solution series between rhodochrosite and calcite."
+            )
+
+        # Sulfide inclusion paragenesis
+        if "sphalerite" in c.position or "pyrite" in c.position or "galena" in c.position:
+            parts.append(
+                f"Growing on {c.position} — classic epithermal vein paragenesis: "
+                f"the carbonate fills space between earlier sulfides as the system "
+                f"cools, Mn-bearing fluids replacing or coating the sulfide phases."
+            )
+
+        if c.dissolved:
+            note = c.zones[-1].note if c.zones else ""
+            if "oxidative breakdown" in note:
+                parts.append(
+                    "Oxidative breakdown destroyed the crystal — Mn²⁺ is unstable "
+                    "above O₂ ~1.0; it flips to Mn³⁺/Mn⁴⁺ and the surface converts "
+                    "to a black manganese-oxide rind (pyrolusite, psilomelane). "
+                    "The rosy crystal goes black from the outside in. This is why "
+                    "rhodochrosite specimens require careful storage."
+                )
+            else:
+                parts.append(
+                    "Acid attack dissolved the crystal — like calcite, "
+                    "rhodochrosite fizzes in HCl, releasing Mn²⁺ and CO₃²⁻."
+                )
         return " ".join(parts)
 
     def _narrate_quartz(self, c: Crystal) -> str:
