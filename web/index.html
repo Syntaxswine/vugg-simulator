@@ -8233,6 +8233,12 @@ function scenario_gem_pegmatite() {
 // 3.5 kbar (Morteani et al. 2002). Quartz first, then F-gated topaz once
 // phyllite dehydration pulses fluorine into the fluid. Imperial color
 // (Cr³⁺ from ultramafic country rock) lands the Ouro Preto signature.
+// Ouro Preto Imperial Topaz veins, Minas Gerais, Brazil. Hydrothermal
+// veins in Precambrian phyllite + quartzite. Metamorphic brine ex
+// devolatilizing phyllite per Morteani et al. 2002. Audit gap-fills
+// (Apr 2026): Na, K, Mg added — phyllite devolatilization releases
+// alkali cations from muscovite/biotite/albite breakdown. See vugg.py
+// scenario_ouro_preto + locality_chemistry.json#ouro_preto.
 function scenario_ouro_preto() {
   const conditions = new VugConditions({
     temperature: 360.0,
@@ -8242,6 +8248,9 @@ function scenario_ouro_preto() {
       F: 12,      // below topaz threshold — quartz lines vein walls first
       Cr: 0.5,    // sub-threshold Cr; ev_cr_leach bumps into imperial window
       Ti: 0.6,
+      // ── Audit gap-fills (Apr 2026) ────────────────────────────────
+      Na: 60, K: 40,    // phyllite muscovite/albite breakdown [Morteani 2002]
+      Mg: 15,           // phyllite chlorite/biotite, brief-required non-zero Mg
       O2: 0.3, pH: 6.5, salinity: 3.0,
     }),
     // Ouro Preto topaz vein — few bubbles, tight size range; the

@@ -230,6 +230,36 @@
           "minerals_unlocked": ["native_gold", "auriferous chalcocite trace"]
         }
       }
+    },
+    "ouro_preto": {
+      "scenario_id": "ouro_preto",
+      "audit_status": "anchored",
+      "display_name": "Ouro Preto Imperial Topaz veins, Minas Gerais, Brazil",
+      "host_formation": "Precambrian phyllite + quartzite (Brasília fold belt)",
+      "fluid_event_summary": "Hydrothermal veins cutting Precambrian phyllite. Crystallization at ~360 C, 3.5 kbar from metamorphic brines derived from devolatilization of phyllite (Morteani et al. 2002 fluid-inclusion study). The diagnostic imperial color (golden-orange to pink) requires Cr from nearby ultramafic bodies; without Cr the topaz is colorless or pale blue. Single clean cooling curve 360 C -> 50 C; F-pulse mid-scenario gates topaz nucleation.",
+      "audit_pass": "gap-fill (Apr 2026) — added Na, K (phyllite-devolatilization signature: muscovite + biotite + albite breakdown releases alkali cations), Mg (phyllite chlorite/biotite breakdown). No drift between Python and JS init. Existing chemistry preserved (no retuning); 6-event cooling cascade preserved.",
+      "fluid": {
+        "Na": {"value": 60, "note": "Phyllite albite + muscovite breakdown; metamorphic brine baseline [Morteani 2002]. Na > K typical of phyllite devolatilization."},
+        "K": {"value": 40, "note": "Muscovite + biotite breakdown; K/Na ~0.7 (higher than basinal-brine ~0.2 because phyllite micas are K-rich)."},
+        "Mg": {"value": 15, "note": "Phyllite chlorite + biotite breakdown. Conservative — host is quartzite + phyllite, not mafic. Brief-required non-zero Mg."}
+      },
+      "preserved_intentional_values": {
+        "SiO2": 1200, "Ca": 40, "CO3": 20, "Fe": 6, "Mn": 2, "Al": 15,
+        "F": 12, "Cr": 0.5, "Ti": 0.6,
+        "O2": 0.3, "pH": 6.5, "salinity": 3.0,
+        "F_note": "F=12 is intentionally below topaz saturation threshold (~20 ppm). ev_f_pulse adds +30 from phyllite mica devolatilization to gate topaz nucleation.",
+        "Cr_note": "Cr=0.5 is intentionally sub-threshold. ev_cr_leach adds +4 to push into the imperial-color window (3-8 ppm Cr3+ in topaz).",
+        "salinity_note": "salinity=3 wt% NaCl-eq is the low-TDS metamorphic-brine signature; consistent with devolatilization-derived fluid (not basinal brine)."
+      },
+      "references": [
+        "Morteani, G., Preinfalk, C., Horn, A.H. (2002). Classification and mineralization potential of the pegmatites of the eastern Brazilian pegmatite province. Mineralium Deposita 37: 786-799. [Fluid-inclusion microthermometry for Brazilian topaz / pegmatite hydrothermal veins]",
+        "Sauer, J.R. (1982). Brazil: Paradise of Gemstones. Lithografia, Sao Paulo. [Imperial topaz field-relations and historical context]",
+        "Pearson, R.S. (1992). The Imperial topaz of Ouro Preto, Brazil. Gems & Gemology 28(2): 88-101. [Color chemistry — Cr3+ origin]"
+      ],
+      "data_gaps": [
+        "Morteani et al. 2002 covers Brazilian pegmatite-hydrothermal systems broadly; Ouro-Preto-specific LA-ICP-MS fluid-inclusion data is sparse.",
+        "Cr source attribution to 'nearby ultramafic dikes' is geologically reasonable but not directly traced in the published literature for individual mines."
+      ]
     }
   }
 }

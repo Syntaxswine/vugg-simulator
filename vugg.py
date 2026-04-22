@@ -7160,6 +7160,21 @@ def scenario_ouro_preto() -> Tuple[VugConditions, List[Event], int]:
             # lands on an already-elevated baseline.
             Cr=0.5,
             Ti=0.6,
+            # ── Audit gap-fills (Apr 2026) ────────────────────────────
+            # Na=60, K=40: phyllite devolatilization releases Na and K
+            # from breakdown of muscovite (KAl2[AlSi3O10](OH)2), biotite,
+            # and albite. Morteani et al. 2002 fluid inclusion data for
+            # Ouro Preto reports moderate-salinity metamorphic brines
+            # with Na > K (typical phyllite-devolatilization signature).
+            # The very-low salinity=3 stays — these values are
+            # consistent with low-TDS metamorphic brines, just need the
+            # individual cation accounting.
+            Na=60, K=40,
+            # Mg=15: phyllite chlorite + biotite breakdown. Conservative
+            # — Ouro Preto fluid is not Mg-rich (the host is quartzite +
+            # phyllite, not mafic). Brief-required non-zero Mg.
+            Mg=15,
+            # ──────────────────────────────────────────────────────────
             O2=0.3, pH=6.5, salinity=3.0,
         ),
         # Ouro Preto topaz vein — 2 primary + 4 secondary bubbles;
