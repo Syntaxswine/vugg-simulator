@@ -640,6 +640,32 @@ class VugConditions:
     fluid: FluidChemistry = field(default_factory=FluidChemistry)
     flow_rate: float = 1.0        # relative (0 = stagnant, 1 = normal, 5 = flood)
     wall: VugWall = field(default_factory=VugWall)  # reactive wall
+
+    # Fluid-level cycle tracking for the Kim 2023 dolomite mechanism.
+    # Per-crystal tracking via phantom_count would work in principle but
+    # dolomite seeds get enclosed by other carbonates faster than they
+    # accumulate cycles. Tracking at the fluid level captures the
+    # geological insight ("this environment has been cycling") and
+    # propagates ordering credit to ALL active dolomites.
+    _dol_cycle_count: int = 0
+    _dol_prev_sigma: float = 0.0
+    _dol_in_undersat: bool = False
+
+    def update_dol_cycles(self) -> None:
+        """Track dolomite saturation crossings — call once per step.
+
+        Counts full undersaturation→supersaturation cycles. Each completed
+        cycle ratchets up the f_ord ordering fraction used in grow_dolomite.
+        """
+        sigma = self.supersaturation_dolomite()
+        prev = self._dol_prev_sigma
+        if prev > 0.0:  # skip the first call where prev is unset
+            if prev >= 1.0 and sigma < 1.0:
+                self._dol_in_undersat = True
+            elif prev < 1.0 and sigma >= 1.0 and self._dol_in_undersat:
+                self._dol_cycle_count += 1
+                self._dol_in_undersat = False
+        self._dol_prev_sigma = sigma
     
     def supersaturation_quartz(self) -> float:
         """Calculate quartz supersaturation (simplified).
@@ -668,21 +694,28 @@ class VugConditions:
     
     def supersaturation_calcite(self) -> float:
         """Calcite supersaturation (simplified).
-        
+
         Calcite has RETROGRADE solubility — less soluble at higher T.
         So heating causes precipitation (opposite of quartz).
         Simplified: solubility ≈ 300 * exp(-0.005 * T)
-        
+
         pH EFFECT: Acid dissolves carbonates. Below pH ~5, calcite
         dissolves readily. This is how caves form — slightly acidic
         groundwater eats limestone.
+
+        Mg POISONING: Mg²⁺ adsorbs onto calcite's {10ī4} growth steps
+        and the dehydration penalty stalls step advancement (Davis et al.
+        2000; Nielsen et al. 2013). When Mg/Ca > ~2, calcite nucleation
+        gives way to aragonite, which excludes Mg structurally. The
+        poisoning factor caps at 85% (some high-Mg calcite always forms
+        in marine settings — Folk's HMC).
         """
         equilibrium_Ca = 300.0 * math.exp(-0.005 * self.temperature)
         if equilibrium_Ca <= 0:
             return 0
         ca_co3_product = min(self.fluid.Ca, self.fluid.CO3)
         sigma = ca_co3_product / equilibrium_Ca
-        
+
         # Acid dissolution of carbonates
         if self.fluid.pH < 5.5:
             acid_attack = (5.5 - self.fluid.pH) * 0.5
@@ -690,8 +723,217 @@ class VugConditions:
         # Alkaline conditions favor carbonate precipitation
         elif self.fluid.pH > 7.5:
             sigma *= 1.0 + (self.fluid.pH - 7.5) * 0.15
-        
+
+        # Mg poisoning of calcite growth steps — sigmoid centered on Mg/Ca=2
+        mg_ratio = self.fluid.Mg / max(self.fluid.Ca, 0.01)
+        mg_inhibition = 1.0 / (1.0 + math.exp(-(mg_ratio - 2.0) / 0.5))
+        sigma *= (1.0 - 0.85 * mg_inhibition)
+
         return max(sigma, 0)
+
+    def supersaturation_dolomite(self) -> float:
+        """Dolomite (CaMg(CO₃)₂) — the ordered Ca-Mg double carbonate.
+
+        Trigonal carbonate (R3̄) with alternating Ca and Mg layers — distinct
+        from calcite (R3̄c, all Ca). Forms at T > 50°C from fluids carrying
+        substantial Mg alongside Ca; surface-T dolomite is rare ('dolomite
+        problem' in geology — modern oceans should produce it but don't,
+        for kinetic reasons that a vug simulator doesn't try to capture).
+
+        Mg/Ca ratio gate: needs roughly 0.5 < Mg/Ca < 5 (Mg present in
+        significant quantity but not so dominant it leaves no Ca). Outside
+        that window, calcite (low Mg) or magnesite (no Ca) wins.
+        """
+        if self.fluid.Mg < 25 or self.fluid.Ca < 30 or self.fluid.CO3 < 20:
+            return 0
+        # Hard T floor lowered to 10°C (was 50°C) — Kim 2023 shows that
+        # ambient-T ordered dolomite is achievable WITH cycling. The
+        # f_ord gate in grow_dolomite enforces the kinetics: cool fluids
+        # can nucleate but only grow well if they're cycling.
+        if self.temperature < 10 or self.temperature > 400:
+            return 0
+        if self.fluid.pH < 6.5 or self.fluid.pH > 10.0:
+            return 0
+
+        # Mg/Ca window — dolomite needs both. Upper gate relaxed to 30
+        # because modern sabkha porewaters can reach Mg/Ca 10–25 after
+        # aragonite/gypsum precipitation strips Ca preferentially (Hardie
+        # 1987; Patterson & Kinsman 1981). The ratio_factor below still
+        # heavily penalizes off-1:1 ratios; the gate just permits the
+        # high-Mg regime where dolomite still forms in nature.
+        mg_ratio = self.fluid.Mg / max(self.fluid.Ca, 0.01)
+        if mg_ratio < 0.3 or mg_ratio > 30.0:
+            return 0
+
+        # Equilibrium product — both cations matter
+        equilibrium = 200.0 * math.exp(-0.005 * self.temperature)
+        if equilibrium <= 0:
+            return 0
+        # Geometric mean of Ca and Mg, capped by CO3 availability
+        ca_mg = math.sqrt(self.fluid.Ca * self.fluid.Mg)
+        co3_limit = self.fluid.CO3 * 2.0  # dolomite uses 2 CO3 per Ca+Mg
+        product = min(ca_mg, co3_limit)
+        sigma = product / equilibrium
+
+        # Mg/Ca = 1 is the sweet spot — gentle sigmoid bonus near unity ratio.
+        ratio_distance = abs(math.log10(mg_ratio))  # 0 at Mg/Ca=1
+        ratio_factor = math.exp(-ratio_distance * 1.0)
+        sigma *= ratio_factor
+
+        # T-window now does NOT penalize low T (Kim 2023 — ambient T is
+        # thermodynamically fine, the kinetic problem is solved by cycling
+        # which f_ord captures separately). High-T penalty preserved.
+        if self.temperature > 250:
+            sigma *= max(0.3, 1.0 - (self.temperature - 250) / 200.0)
+
+        # Acid dissolution
+        if self.fluid.pH < 6.5:
+            sigma -= (6.5 - self.fluid.pH) * 0.3
+
+        return max(sigma, 0)
+
+    def supersaturation_siderite(self) -> float:
+        """Siderite (FeCO₃) — the iron carbonate, the brown rhomb.
+
+        Trigonal carbonate, calcite-group structure (R3̄c) with Fe²⁺ in the
+        Ca site. Forms only in REDUCING conditions — Fe must stay Fe²⁺ to
+        be soluble and precipitate as carbonate. Above O₂ ~0.5, Fe oxidizes
+        to Fe³⁺ and locks up as goethite/hematite instead.
+
+        Habit signature: curved rhombohedral 'saddle' faces (the {104} faces
+        bow, like rhodochrosite's button rhombs). Tan to dark brown with Fe
+        content. Sedimentary spherosiderite forms spherulitic concretions in
+        coal seams; hydrothermal siderite forms vein crystals.
+
+        Oxidation breakdown is the textbook diagenetic story: siderite →
+        goethite → hematite as the system progressively oxidizes. In the
+        simulator, rising O₂ dissolves the siderite and releases Fe + CO₃
+        for downstream Fe-oxide precipitation.
+        """
+        if self.fluid.Fe < 10 or self.fluid.CO3 < 20:
+            return 0
+        if self.temperature < 20 or self.temperature > 300:
+            return 0
+        if self.fluid.pH < 5.0 or self.fluid.pH > 9.0:
+            return 0
+        # Hard reducing gate — Fe²⁺ must stay reduced
+        if self.fluid.O2 > 0.8:
+            return 0
+
+        equilibrium_Fe = 80.0 * math.exp(-0.005 * self.temperature)
+        if equilibrium_Fe <= 0:
+            return 0
+        fe_co3 = min(self.fluid.Fe, self.fluid.CO3)
+        sigma = fe_co3 / equilibrium_Fe
+
+        # Acid dissolution
+        if self.fluid.pH < 5.5:
+            sigma -= (5.5 - self.fluid.pH) * 0.5
+        elif self.fluid.pH > 7.5:
+            sigma *= 1.0 + (self.fluid.pH - 7.5) * 0.1
+
+        # Mild oxidation rolloff in 0.3-0.8 O2 window
+        if self.fluid.O2 > 0.3:
+            sigma *= max(0.2, 1.0 - (self.fluid.O2 - 0.3) * 1.5)
+
+        return max(sigma, 0)
+
+    def supersaturation_rhodochrosite(self) -> float:
+        """Rhodochrosite (MnCO₃) — the manganese carbonate, the pink mineral.
+
+        Trigonal carbonate, structurally identical to calcite (R3̄c) but with
+        Mn²⁺ replacing Ca²⁺. Forms a continuous solid solution toward calcite
+        through the kutnohorite (CaMn carbonate) intermediate, so high-Mn
+        carbonates have characteristic banding.
+
+        T range 20-250°C — epithermal vein settings (Capillitas, Sweet Home),
+        sedimentary Mn deposits (N'Chwaning), and low-T carbonate replacement.
+        Mn²⁺ is stable in moderate-to-reducing conditions; aggressive oxidation
+        flips it to Mn³⁺/Mn⁴⁺ → black manganese oxide staining (pyrolusite,
+        psilomelane).
+        """
+        if self.fluid.Mn < 5 or self.fluid.CO3 < 20:
+            return 0
+        if self.temperature < 20 or self.temperature > 250:
+            return 0
+        if self.fluid.pH < 5.0 or self.fluid.pH > 9.0:
+            return 0
+        # Mn²⁺ stability — too oxidizing converts it to insoluble Mn oxides
+        if self.fluid.O2 > 1.5:
+            return 0
+        # Same retrograde-style equilibrium as calcite
+        equilibrium_Mn = 50.0 * math.exp(-0.005 * self.temperature)
+        if equilibrium_Mn <= 0:
+            return 0
+        mn_co3 = min(self.fluid.Mn, self.fluid.CO3)
+        sigma = mn_co3 / equilibrium_Mn
+
+        # Acid dissolution
+        if self.fluid.pH < 5.5:
+            sigma -= (5.5 - self.fluid.pH) * 0.5
+        elif self.fluid.pH > 7.5:
+            sigma *= 1.0 + (self.fluid.pH - 7.5) * 0.1
+
+        # Mild oxidation penalty — Mn carbonate degrades faster than Ca carbonate
+        if self.fluid.O2 > 0.8:
+            sigma *= max(0.3, 1.5 - self.fluid.O2)
+
+        return max(sigma, 0)
+
+    def supersaturation_aragonite(self) -> float:
+        """Aragonite (CaCO₃, orthorhombic) — the metastable polymorph.
+
+        Same Ca + CO₃ ingredients as calcite, but a different crystal structure
+        favored kinetically by four converging factors (Folk 1974; Morse et al.
+        1997; Sun et al. 2015):
+
+        1. Mg/Ca ratio (dominant ~70% of signal): Mg poisons calcite growth
+           steps but is excluded from aragonite's orthorhombic structure.
+           Threshold ~Mg/Ca > 2 molar.
+        2. Temperature: aragonite kinetics favored above ~50°C in low-Mg
+           waters; in Mg-rich fluid the threshold drops to ~25°C.
+        3. Saturation state Ω (Ostwald step rule): high supersaturation
+           favors metastable aragonite over thermodynamic calcite.
+        4. Trace Sr/Pb/Ba: secondary — these cations match Ca²⁺ in 9-fold
+           aragonite coordination but not 6-fold calcite.
+
+        Pressure is the THERMODYNAMIC sorter (aragonite stable above
+        ~0.4 GPa) but is irrelevant in vugs and hot springs at <0.5 kbar —
+        every natural surface aragonite is metastable. Don't use P as a gate
+        unless the scenario is genuinely deep-burial / blueschist.
+        """
+        if self.fluid.Ca < 30 or self.fluid.CO3 < 20:
+            return 0
+        if self.fluid.pH < 6.0 or self.fluid.pH > 9.0:
+            return 0
+
+        equilibrium_Ca = 300.0 * math.exp(-0.005 * self.temperature)
+        if equilibrium_Ca <= 0:
+            return 0
+        ca_co3 = min(self.fluid.Ca, self.fluid.CO3)
+        omega = ca_co3 / equilibrium_Ca
+
+        # Factor 1 (~70%) — Mg/Ca, sigmoid centered Mg/Ca = 1.5
+        mg_ratio = self.fluid.Mg / max(self.fluid.Ca, 0.01)
+        mg_factor = 1.0 / (1.0 + math.exp(-(mg_ratio - 1.5) / 0.3))
+
+        # Factor 2 (~20%) — T, sigmoid centered 50°C
+        T_factor = 1.0 / (1.0 + math.exp(-(self.temperature - 50.0) / 15.0))
+
+        # Factor 3 (~10%) — Ostwald step rule, Ω > ~10 favors aragonite kinetically
+        omega_factor = 1.0 / (1.0 + math.exp(-(math.log10(max(omega, 0.01)) - 1.0) / 0.3))
+
+        # Factor 4 (small bonus) — Sr/Pb/Ba trace cation incorporation
+        trace_sum = self.fluid.Sr + self.fluid.Pb + self.fluid.Ba
+        trace_ratio = trace_sum / max(self.fluid.Ca, 0.01)
+        trace_factor = 1.0 + 0.3 / (1.0 + math.exp(-(trace_ratio - 0.01) / 0.005))
+
+        # Weighted SUM (not product) — Mg/Ca dominates; T and Ω each push
+        # aragonite over the line in low-Mg regimes. Trace factor multiplies
+        # the result. A pure-product would force ALL factors to align, which
+        # is wrong: high Mg/Ca alone is enough in nature, regardless of Ω.
+        favorability = (0.70 * mg_factor + 0.20 * T_factor + 0.10 * omega_factor) * trace_factor
+        return omega * favorability
     
     def supersaturation_fluorite(self) -> float:
         """Fluorite (CaF2) supersaturation. Precipitates when Ca and F meet.
@@ -2390,6 +2632,379 @@ def grow_calcite(crystal: Crystal, conditions: VugConditions, step: int) -> Opti
         note=note,
         ca_from_wall=ca_wall_fraction,
         ca_from_fluid=ca_fluid_fraction,
+    )
+
+
+def grow_aragonite(crystal: Crystal, conditions: VugConditions, step: int) -> Optional[GrowthZone]:
+    """Aragonite (CaCO₃, orthorhombic) growth — the metastable polymorph.
+
+    Habits: acicular_needle (high-σ fast growth), twinned_cyclic (the iconic
+    pseudo-hexagonal six-pointed cyclic twin), columnar (default), flos_ferri
+    (Fe-rich dendritic — the 'iron flower' coral-shaped variety from Eisenerz).
+
+    Polymorphic conversion: aragonite is metastable. Above 80°C with water
+    present, it converts to calcite over short geologic time (Bischoff & Fyfe
+    1968 — half-life ~10³ yr at 80°C, ~10⁵ yr at 25°C). In the simulator,
+    sustained T > 100°C triggers in-place pseudomorphic conversion: the
+    aragonite dissolves, releasing Ca + CO₃ for a new calcite seed.
+    """
+    sigma = conditions.supersaturation_aragonite()
+
+    # Polymorphic inversion to calcite — the long-term thermodynamic sink.
+    # Triggers when the crystal is mature, the system is hot enough for
+    # solution-mediated conversion, and aragonite is no longer favored
+    # (Mg/Ca dropped, T pushed it out of the kinetic window, etc.).
+    if (crystal.total_growth_um > 10
+            and conditions.temperature > 100
+            and sigma < 0.8):
+        crystal.dissolved = True
+        conditions.fluid.Ca += 2.0
+        conditions.fluid.CO3 += 1.5
+        return GrowthZone(
+            step=step, temperature=conditions.temperature,
+            thickness_um=-2.0, growth_rate=-2.0,
+            note=f"polymorphic conversion — orthorhombic CaCO₃ → trigonal calcite (T={conditions.temperature:.0f}°C, sigma_arag={sigma:.2f})"
+        )
+
+    if sigma < 1.0:
+        # Acid dissolution — same vulnerability as calcite
+        if crystal.total_growth_um > 5 and conditions.fluid.pH < 5.5:
+            crystal.dissolved = True
+            dissolved_um = min(8.0, crystal.total_growth_um * 0.15)
+            conditions.fluid.Ca += dissolved_um * 0.5
+            conditions.fluid.CO3 += dissolved_um * 0.3
+            return GrowthZone(
+                step=step, temperature=conditions.temperature,
+                thickness_um=-dissolved_um, growth_rate=-dissolved_um,
+                note=f"acid dissolution (pH {conditions.fluid.pH:.1f}) — Ca²⁺ + CO₃²⁻ released"
+            )
+        return None
+
+    excess = sigma - 1.0
+    rate = 5.5 * excess * random.uniform(0.7, 1.3)
+
+    # Habit selection — Fe-rich → flos_ferri; high σ → acicular; moderate → twinned; low → columnar
+    if conditions.fluid.Fe > 30 and excess > 0.6:
+        crystal.habit = "flos_ferri"
+        crystal.dominant_forms = ["dendritic 'iron flower' coral", "stalactitic ferruginous"]
+    elif excess > 1.5:
+        crystal.habit = "acicular_needle"
+        crystal.dominant_forms = ["acicular needles", "radiating spray"]
+    elif excess > 0.6:
+        crystal.habit = "twinned_cyclic"
+        crystal.dominant_forms = ["pseudo-hexagonal cyclic twin {110}", "six-pointed star (cerussite-like)"]
+    else:
+        crystal.habit = "columnar"
+        crystal.dominant_forms = ["columnar prisms", "transparent to white"]
+
+    # Sr / Pb / Ba uptake — aragonite scavenges these where calcite can't
+    sr_uptake = conditions.fluid.Sr * 0.15
+    pb_uptake = conditions.fluid.Pb * 0.10
+    trace_Mn = conditions.fluid.Mn * 0.05  # less Mn than calcite (orthorhombic excludes it)
+    trace_Fe = conditions.fluid.Fe * 0.06
+
+    # Cyclic twins are the diagnostic — high probability when habit selects them
+    if crystal.habit == "twinned_cyclic" and not crystal.twinned and random.random() < 0.4:
+        crystal.twinned = True
+        crystal.twin_law = "cyclic {110} sextet"
+    elif not crystal.twinned and random.random() < 0.05:
+        crystal.twinned = True
+        crystal.twin_law = "contact {110}"
+
+    note = f"{crystal.habit} CaCO₃"
+    if sr_uptake > 0.5 or pb_uptake > 0.5:
+        note += f" (Sr+Pb scavenged: aragonite hosts what calcite can't)"
+    if conditions.fluid.Mg > 0:
+        mg_ratio = conditions.fluid.Mg / max(conditions.fluid.Ca, 0.01)
+        if mg_ratio > 1.5:
+            note += f" — Mg/Ca={mg_ratio:.1f}, calcite is poisoned here"
+
+    return GrowthZone(
+        step=step, temperature=conditions.temperature,
+        thickness_um=rate, growth_rate=rate,
+        trace_Fe=trace_Fe, trace_Mn=trace_Mn,
+        note=note,
+    )
+
+
+def grow_dolomite(crystal: Crystal, conditions: VugConditions, step: int) -> Optional[GrowthZone]:
+    """Dolomite (CaMg(CO₃)₂) growth — the Ca-Mg ordered carbonate.
+
+    Habits: saddle_rhomb (default — curved 'saddle-shaped' rhombs are the
+    diagnostic dolomite habit, the most extreme curved-face expression of
+    any calcite-group mineral), massive (low σ), coarse_rhomb (slow growth
+    high T — clear textbook rhombohedra).
+
+    KIM 2023 KINETICS — the "dolomite problem" partly resolved.
+    Per Kim, Kimura, Putnis, Putnis, Lee, Sun (2023) Science 382:915-920
+    (doi:10.1126/science.adi3690), dolomite growth requires CYCLIC
+    dissolution-precipitation. Steady-state precipitation produces
+    disordered Ca/Mg surface layers that prevent the ordered structure
+    from forming. Brief undersaturation strips the disordered fraction
+    preferentially (it's more soluble), leaving ordered atoms as a
+    template. Each cycle ratchets ordering up; ~10²-10³ cycles in lab,
+    less in the abstract sim timescale.
+
+    Mechanism here: when σ_dolomite drops below 1 from above (transient
+    undersaturation), emit a small "Kim-cycle etch" zone (-0.3 µm) that
+    increments crystal.phantom_count via add_zone(). Growth-rate factor
+    f_ord = 1 - exp(-phantom_count / 50) ramps from ~0% (no cycling) to
+    ~95% (well-cycled). Steady-state high-σ runs grow disordered HMC;
+    only event-driven scenarios (acid pulses, T cycles, mixing-zone
+    oscillation) build true dolomite.
+    """
+    sigma = conditions.supersaturation_dolomite()
+
+    if sigma < 1.0:
+        # Strong acid: full dissolution
+        if crystal.total_growth_um > 5 and conditions.fluid.pH < 6.0:
+            crystal.dissolved = True
+            dissolved_um = min(5.0, crystal.total_growth_um * 0.12)
+            conditions.fluid.Ca += dissolved_um * 0.3
+            conditions.fluid.Mg += dissolved_um * 0.3
+            conditions.fluid.CO3 += dissolved_um * 0.5
+            return GrowthZone(
+                step=step, temperature=conditions.temperature,
+                thickness_um=-dissolved_um, growth_rate=-dissolved_um,
+                note=f"acid dissolution (pH {conditions.fluid.pH:.1f}) — Ca²⁺ + Mg²⁺ + CO₃²⁻ released"
+            )
+
+        # Kim 2023 cycle etch — detected by transition from growth-zone
+        # to undersaturation. Last zone was positive (growth) → emit one
+        # tiny etch zone to record the cycle. Subsequent low-σ steps wait
+        # until σ recovers (last zone is now negative, so this branch skips).
+        if crystal.zones and crystal.zones[-1].thickness_um > 0:
+            return GrowthZone(
+                step=step, temperature=conditions.temperature,
+                thickness_um=-0.3, growth_rate=-0.3,
+                note=f"Kim-cycle etch (Sun & Kim 2023) — disordered Ca/Mg surface stripped, ordered template preserved (cycle #{crystal.phantom_count + 1})"
+            )
+        return None
+
+    excess = sigma - 1.0
+    base_rate = 4.5 * excess * random.uniform(0.7, 1.3)
+
+    # Kim 2023: ordering fraction f_ord ramps with cycle count.
+    # Cycles are tracked at the FLUID level (conditions._dol_cycle_count)
+    # rather than per-crystal — this captures the geological insight that
+    # an oscillatory environment ratchets ordering across all dolomite
+    # nuclei, not just the ones lucky enough to survive enclosure.
+    # N₀=10 calibrated so that:
+    #   - Accidental 1-2 saturation crossings stay DISORDERED (f_ord<0.3)
+    #   - Dedicated cycling scenarios (sabkha, microbial mat) reach
+    #     ORDERED (f_ord>0.7) within ~12-15 cycles
+    #   - Each sim cycle represents many lab cycles (Kim's lab N₀~200-300
+    #     was over minute-scale e-beam pulses; one sim "tide" stands in
+    #     for thousands of real tidal cycles).
+    cycle_count = conditions._dol_cycle_count
+    f_ord = 1.0 - math.exp(-cycle_count / 7.0)
+    # Min 30% growth (some dolomite always forms, just disordered HMC initially);
+    # cycle bonus brings it to ~100% as ordering approaches saturation.
+    rate = base_rate * (0.30 + 0.70 * f_ord)
+
+    # Habit selection
+    if conditions.temperature > 200 and excess < 0.5:
+        crystal.habit = "coarse_rhomb"
+        crystal.dominant_forms = ["coarse rhombohedral {104}", "transparent to white textbook crystals"]
+    elif excess > 1.2:
+        crystal.habit = "massive"
+        crystal.dominant_forms = ["massive granular", "white to gray sugary aggregate"]
+    else:
+        crystal.habit = "saddle_rhomb"
+        crystal.dominant_forms = ["e{104} saddle-shaped curved rhombohedron", "the diagnostic dolomite habit (curved-face signature)"]
+
+    # Color by Fe content (Fe-rich dolomite = ankerite intermediate)
+    if conditions.fluid.Fe > 30:
+        color_note = "tan to brown (Fe-rich, approaching ankerite intermediate)"
+    elif conditions.fluid.Mn > 10:
+        color_note = "pinkish-white (Mn-bearing kutnohorite-dolomite intermediate)"
+    else:
+        color_note = "white to colorless (Ca-Mg end-member dolomite)"
+
+    if not crystal.twinned and random.random() < 0.02:
+        crystal.twinned = True
+        crystal.twin_law = "polysynthetic {012}"
+
+    # Annotate ordering state — disordered HMC at low f_ord, true dolomite at high
+    if f_ord < 0.3:
+        order_note = f" [DISORDERED — f_ord={f_ord:.2f}, fluid_cycles={cycle_count}, growing as Mg-calcite intermediate]"
+    elif f_ord < 0.7:
+        order_note = f" [PARTIALLY ORDERED — f_ord={f_ord:.2f}, fluid_cycles={cycle_count}]"
+    else:
+        order_note = f" [ORDERED dolomite — f_ord={f_ord:.2f}, fluid_cycles={cycle_count}]"
+
+    return GrowthZone(
+        step=step, temperature=conditions.temperature,
+        thickness_um=rate, growth_rate=rate,
+        trace_Fe=conditions.fluid.Fe * 0.08,
+        trace_Mn=conditions.fluid.Mn * 0.05,
+        note=f"{crystal.habit} — {color_note}{order_note}",
+    )
+
+
+def grow_siderite(crystal: Crystal, conditions: VugConditions, step: int) -> Optional[GrowthZone]:
+    """Siderite (FeCO₃) growth — the iron carbonate.
+
+    Habits: rhombohedral (default — curved 'saddle' rhombs are diagnostic),
+    scalenohedral (high σ), botryoidal (fast growth, colloidal), spherulitic
+    (sedimentary 'spherosiderite' concretions).
+
+    Oxidation pseudomorphism: when O₂ climbs above 0.5, Fe²⁺ → Fe³⁺ and
+    siderite progressively converts to goethite/limonite. Models the
+    classic 'limonite cube after pyrite' diagenetic story (here goethite
+    after siderite). Fe + CO₃ are released to drive Fe-oxide growth
+    elsewhere in the simulator.
+    """
+    sigma = conditions.supersaturation_siderite()
+
+    if sigma < 1.0:
+        # Oxidative dissolution — the textbook siderite-to-goethite story
+        if crystal.total_growth_um > 5 and conditions.fluid.O2 > 0.5:
+            crystal.dissolved = True
+            dissolved_um = min(5.0, crystal.total_growth_um * 0.13)
+            conditions.fluid.Fe += dissolved_um * 0.5
+            conditions.fluid.CO3 += dissolved_um * 0.4
+            return GrowthZone(
+                step=step, temperature=conditions.temperature,
+                thickness_um=-dissolved_um, growth_rate=-dissolved_um,
+                note=f"oxidative breakdown (O₂={conditions.fluid.O2:.2f}) — Fe²⁺ → Fe³⁺, siderite converting to goethite/limonite (the classic diagenetic pseudomorph)"
+            )
+        # Acid dissolution
+        if crystal.total_growth_um > 5 and conditions.fluid.pH < 5.5:
+            crystal.dissolved = True
+            dissolved_um = min(6.0, crystal.total_growth_um * 0.15)
+            conditions.fluid.Fe += dissolved_um * 0.5
+            conditions.fluid.CO3 += dissolved_um * 0.4
+            return GrowthZone(
+                step=step, temperature=conditions.temperature,
+                thickness_um=-dissolved_um, growth_rate=-dissolved_um,
+                note=f"acid dissolution (pH {conditions.fluid.pH:.1f}) — Fe²⁺ + CO₃²⁻ released"
+            )
+        return None
+
+    excess = sigma - 1.0
+    rate = 5.0 * excess * random.uniform(0.7, 1.3)
+
+    # Habit selection
+    if excess > 1.5:
+        crystal.habit = "botryoidal"
+        crystal.dominant_forms = ["botryoidal mammillary crusts", "tan-brown rounded aggregates"]
+    elif excess > 1.0 and conditions.temperature < 80:
+        crystal.habit = "spherulitic"
+        crystal.dominant_forms = ["spherulitic concretions ('spherosiderite')", "radial fibrous interior"]
+    elif excess > 0.6:
+        crystal.habit = "scalenohedral"
+        crystal.dominant_forms = ["v{211} scalenohedral", "sharp brown crystals"]
+    else:
+        crystal.habit = "rhombohedral"
+        crystal.dominant_forms = ["e{104} curved 'saddle' rhombohedron", "tan to brown"]
+
+    # Color depends on Fe content vs trace Mn/Ca substitution
+    if conditions.fluid.Mn > 5:
+        # Manganosiderite intermediate — toward rhodochrosite
+        color_note = "pinkish-brown (Mn-bearing manganosiderite)"
+    elif conditions.fluid.Ca > 100:
+        color_note = "tan to pale brown (Ca-bearing intermediate toward ankerite)"
+    else:
+        color_note = "deep brown (Fe-dominant end-member)"
+
+    if not crystal.twinned and random.random() < 0.02:
+        crystal.twinned = True
+        crystal.twin_law = "polysynthetic {012}"
+
+    return GrowthZone(
+        step=step, temperature=conditions.temperature,
+        thickness_um=rate, growth_rate=rate,
+        trace_Fe=conditions.fluid.Fe * 0.4,  # siderite IS Fe — high uptake
+        trace_Mn=conditions.fluid.Mn * 0.05,
+        note=f"{crystal.habit} — {color_note}",
+    )
+
+
+def grow_rhodochrosite(crystal: Crystal, conditions: VugConditions, step: int) -> Optional[GrowthZone]:
+    """Rhodochrosite (MnCO₃) growth — the pink/red carbonate.
+
+    Habits: rhombohedral (default — curved 'button' rhombs are the diagnostic),
+    scalenohedral (high σ, sharp dog-tooth crystals), stalactitic (drip
+    environments — the famous Capillitas crystals are stalactitic in cross-
+    section), banding_agate (low σ rhythmic Mn/Ca alternation).
+
+    Oxidation breakdown: in O₂-rich conditions, Mn²⁺ → Mn³⁺/Mn⁴⁺ and the
+    rhodochrosite converts to a black Mn oxide rind (pyrolusite/psilomelane).
+    The rosy crystal goes black. Acid dissolution releases Mn + CO₃ back.
+    """
+    sigma = conditions.supersaturation_rhodochrosite()
+
+    if sigma < 1.0:
+        # Aggressive oxidation — Mn²⁺ flipped to Mn-oxide
+        if crystal.total_growth_um > 5 and conditions.fluid.O2 > 1.0:
+            crystal.dissolved = True
+            dissolved_um = min(5.0, crystal.total_growth_um * 0.12)
+            conditions.fluid.Mn += dissolved_um * 0.4  # most of the Mn locks up as oxide
+            conditions.fluid.CO3 += dissolved_um * 0.4
+            return GrowthZone(
+                step=step, temperature=conditions.temperature,
+                thickness_um=-dissolved_um, growth_rate=-dissolved_um,
+                note=f"oxidative breakdown — Mn²⁺ → Mn³⁺/Mn⁴⁺, surface converting to black manganese oxide (pyrolusite/psilomelane staining)"
+            )
+        # Acid attack
+        if crystal.total_growth_um > 5 and conditions.fluid.pH < 5.5:
+            crystal.dissolved = True
+            dissolved_um = min(6.0, crystal.total_growth_um * 0.15)
+            conditions.fluid.Mn += dissolved_um * 0.5
+            conditions.fluid.CO3 += dissolved_um * 0.4
+            return GrowthZone(
+                step=step, temperature=conditions.temperature,
+                thickness_um=-dissolved_um, growth_rate=-dissolved_um,
+                note=f"acid dissolution (pH {conditions.fluid.pH:.1f}) — Mn²⁺ + CO₃²⁻ released"
+            )
+        return None
+
+    excess = sigma - 1.0
+    rate = 5.0 * excess * random.uniform(0.7, 1.3)
+
+    # Substrate-aware: stalactitic when growing on goethite (Capillitas-style
+    # ferruginous drip) or on existing rhodochrosite (stalactite cross-section).
+    pos_str = crystal.position if isinstance(crystal.position, str) else ""
+    on_drip = "goethite" in pos_str or "stalactit" in pos_str
+
+    if on_drip:
+        crystal.habit = "stalactitic"
+        crystal.dominant_forms = ["concentric stalactitic banding", "rose-pink mammillary aggregates"]
+    elif excess > 1.5:
+        crystal.habit = "scalenohedral"
+        crystal.dominant_forms = ["v{211} scalenohedral 'dog-tooth'", "sharp deep-rose crystals"]
+    elif excess > 0.5:
+        crystal.habit = "rhombohedral"
+        crystal.dominant_forms = ["e{104} curved 'button' rhombohedron", "rose-pink to raspberry"]
+    else:
+        crystal.habit = "banding_agate"
+        crystal.dominant_forms = ["rhythmic Mn/Ca banding", "agate-like layered cross-section"]
+
+    # Color depends on Ca substitution (kutnohorite intermediate)
+    ca_in_lattice = conditions.fluid.Ca / max(conditions.fluid.Mn + conditions.fluid.Ca, 0.01)
+    if ca_in_lattice > 0.5:
+        color_note = "pale pink (Ca-rich, approaching kutnohorite intermediate)"
+    elif ca_in_lattice > 0.2:
+        color_note = "rose-pink (some Ca substitution)"
+    else:
+        color_note = "deep raspberry-red (Mn-dominant, end-member rhodochrosite)"
+
+    # Trace Fe darkens toward brown
+    if conditions.fluid.Fe > 30:
+        color_note += " with brownish tint (Fe-rich)"
+
+    # Mn carbonate twins exist but are uncommon
+    if not crystal.twinned and random.random() < 0.02:
+        crystal.twinned = True
+        crystal.twin_law = "polysynthetic {012}"
+
+    return GrowthZone(
+        step=step, temperature=conditions.temperature,
+        thickness_um=rate, growth_rate=rate,
+        trace_Mn=conditions.fluid.Mn * 0.4,  # rhodochrosite IS Mn — high uptake
+        trace_Fe=conditions.fluid.Fe * 0.05,
+        note=f"{crystal.habit} — {color_note}",
     )
 
 
@@ -5321,6 +5936,10 @@ def grow_selenite(crystal: Crystal, conditions: VugConditions, step: int) -> Opt
 MINERAL_ENGINES = {
     "quartz": grow_quartz,
     "calcite": grow_calcite,
+    "aragonite": grow_aragonite,
+    "siderite": grow_siderite,
+    "rhodochrosite": grow_rhodochrosite,
+    "dolomite": grow_dolomite,
     "sphalerite": grow_sphalerite,
     "wurtzite": grow_wurtzite,
     "fluorite": grow_fluorite,
@@ -5380,6 +5999,10 @@ MINERAL_ENGINES = {
 THERMAL_DECOMPOSITION = {
     # mineral: (decomp_temp_°C, description, products)
     "calcite":    (840,  "CaCO₃ → CaO + CO₂ (calcination)",                     {"Ca": 0.5, "CO3": 0.4}),
+    "aragonite":  (520,  "orthorhombic CaCO₃ → calcite (polymorphic conversion before calcination)", {"Ca": 0.5, "CO3": 0.4}),
+    "rhodochrosite": (600, "MnCO₃ → MnO + CO₂ (calcination, lower than calcite)", {"Mn": 0.5, "CO3": 0.4}),
+    "siderite":     (550, "FeCO₃ → Fe₃O₄/FeO + CO₂ (decarbonation; oxidation route → goethite at low T)", {"Fe": 0.5, "CO3": 0.4}),
+    "dolomite":     (700, "CaMg(CO₃)₂ → CaO + MgO + 2CO₂ (decarbonation in two stages: MgCO₃ first ~500°C, CaCO₃ at ~840°C)", {"Ca": 0.4, "Mg": 0.4, "CO3": 0.4}),
     "malachite":  (200,  "Cu₂CO₃(OH)₂ → CuO + CO₂ + H₂O",                      {"Cu": 0.6, "CO3": 0.3}),
     "sphalerite": (1020, "ZnS → Zn + S (sublimes)",                              {"Zn": 0.3, "S": 0.5}),
     "wurtzite":   (1020, "hexagonal ZnS → sublimation (shares sphalerite decomposition)", {"Zn": 0.3, "S": 0.5}),
@@ -5604,13 +6227,25 @@ def scenario_pulse() -> Tuple[VugConditions, List[Event], int]:
 
 
 def scenario_mvt() -> Tuple[VugConditions, List[Event], int]:
-    """Mississippi Valley-type deposit — fluid mixing produces sphalerite + calcite + fluorite."""
+    """Mississippi Valley-type deposit — fluid mixing produces sphalerite + calcite + fluorite.
+
+    Anchor: Tri-State district (Joplin / Picher) Sr-Pb-Zn brines. Per Roedder 1976
+    and Ohle 1959, Tri-State brines are >200,000 mg/L TDS, Mg/Ca ~0.05–0.1
+    (low-Mg → favors calcite, not aragonite). Mg ~30 ppm at our scaled
+    abstraction keeps that ratio realistic and lets the audit brief (the
+    SCENARIO-CHEMISTRY-AUDIT.md task) sharpen it later.
+    """
     conditions = VugConditions(
         temperature=180.0,
         pressure=0.3,
         fluid=FluidChemistry(
-            SiO2=100, Ca=300, CO3=250, Fe=15, Mn=8,
-            Zn=0, S=0, F=5, pH=7.2, salinity=15.0
+            # Mn=25 within Tri-State district brine range (Roedder 1976
+            # reports Mn 10-50 ppm in carbonate-hosted Pb-Zn fluid
+            # inclusions); enough to push rhodochrosite into saturation
+            # late in the run as carbonate concentrates.
+            SiO2=100, Ca=300, CO3=250, Fe=15, Mn=25,
+            Zn=0, S=0, F=5, Mg=30,  # realistic Tri-State Mg/Ca ratio
+            pH=7.2, salinity=15.0
         ),
         # MVT — dissolution cavity in limestone. Cohesive primary void
         # plus heavy secondary alcoves: the classic merged-cavity feel.
@@ -5678,6 +6313,12 @@ def scenario_reactive_wall() -> Tuple[VugConditions, List[Event], int]:
             # with sphalerite), and Ba is classic (barite is a common
             # late-stage phase).
             Zn=80, Pb=30, Ba=25, S=60, F=8,
+            # Limestone-hosted brines (Sweetwater / Viburnum Trend per
+            # Sverjensky 1981) carry Mg ~50–150 ppm. Mg=100 sets Mg/Ca
+            # ~0.4, above dolomite's ratio gate so dolomitization can
+            # fire. Calcite still dominates (Mg-poisoning at 0.4 ratio
+            # is mild); aragonite stays absent (its threshold is ~1.5).
+            Mg=100,
             pH=7.0, salinity=18.0
         ),
         wall=VugWall(
@@ -6677,6 +7318,124 @@ def scenario_deccan_zeolite() -> Tuple[VugConditions, List[Event], int]:
     return conditions, events, 200
 
 
+def scenario_sabkha_dolomitization() -> Tuple[VugConditions, List[Event], int]:
+    """Sabkha dolomitization — Coorong-style cycling brine.
+
+    Anchor: Coorong lagoon system (South Australia) and the Persian Gulf
+    sabkhas. The classic natural laboratory for direct-from-solution
+    dolomite formation. Surface T (~25°C), high-Mg evaporative brine,
+    seasonal flood-evaporate cycles that drive Ω across the dolomite
+    saturation boundary repeatedly.
+
+    Per Kim, Sun et al. (2023, Science 382:915), exactly this kind of
+    cyclic Ω modulation is what's needed to produce ordered dolomite at
+    ambient T. The acid-pulse-and-relax style of reactive_wall produces
+    only DISORDERED HMC because the dissolution events are too aggressive
+    (full dissolution rather than gentle surface etch). Sabkha tidal
+    pumping is the right kind of cycling — gentle, frequent, repeated.
+
+    Twelve flood/evap pulses over 240 steps produce ~12 dissolution-
+    precipitation cycles. With N₀=10 in the f_ord formula, this reaches
+    ORDERED (f_ord > 0.7) by mid-scenario. The result: true ordered
+    dolomite, the geological prize the Kim 2023 paper made accessible.
+    """
+    conditions = VugConditions(
+        # Coorong surface T — ambient. The Kim mechanism's whole point is
+        # that ordered dolomite at this T is achievable with cycling.
+        temperature=25.0,
+        pressure=0.05,            # near-surface lagoonal vug
+        fluid=FluidChemistry(
+            # Marine evaporative brine baseline (~3x seawater concentration):
+            # Mg high, Ca moderate, Mg/Ca ~3.5 (above 1, dolomite-favoring),
+            # CO3 modest, alkaline pH from photosynthetic mats. Na+Cl
+            # carry the salinity but don't drive minerals here.
+            SiO2=20, Ca=400, CO3=300, Fe=5, Mn=2, Mg=1400,
+            Na=10500, K=380, S=2700, F=2, Cl=18000,
+            # Sr is the bonus tracer — marine brines carry ~8 ppm Sr,
+            # gets concentrated by evaporation. Aragonite scavenges it.
+            Sr=20,
+            O2=1.5, pH=8.3, salinity=120.0,
+        ),
+        wall=VugWall(
+            composition="limestone",   # Coorong lagoon floor is bioclastic carbonate
+            thickness_mm=300.0,
+            vug_diameter_mm=30.0,
+            wall_Fe_ppm=200.0,
+            wall_Mn_ppm=50.0,
+            primary_bubbles=2,
+            secondary_bubbles=4,
+            shape_seed=24,             # 24 hours = one tidal cycle
+        ),
+    )
+
+    def make_flood(idx):
+        """Tidal flood — incoming low-alkalinity seawater RESETS chemistry.
+
+        Each cycle resets to a defined low-σ state, modeling continuous
+        tidal pumping (otherwise progressive aragonite/gypsum precipitation
+        would drift the brine out of any defined regime within a few cycles).
+        Flood state: marine baseline with depressed CO₃ (river input), mid
+        Mg/Ca, alkaline pH but kinetically below dolomite saturation.
+        """
+        def fn(cond):
+            cond.fluid.Mg = 800     # marine baseline
+            cond.fluid.Ca = 250     # marine + bivalve dissolution
+            cond.fluid.CO3 = 50     # depressed by freshwater mixing
+            cond.fluid.Sr = 12
+            cond.fluid.pH = 8.0
+            cond.flow_rate = 1.5
+            return (f"Flood pulse #{idx}: low-alkalinity tidal seawater enters "
+                    f"the lagoon. CO₃ crashes from sabkha brine levels back to "
+                    f"~50 ppm. Dolomite supersaturation drops below 1 — the "
+                    f"disordered Ca/Mg surface layer detaches preferentially "
+                    f"(Kim 2023 etch).")
+        return fn
+
+    def make_evap(idx):
+        """Evaporation — sun concentrates the lagoon back to sabkha brine.
+
+        Set values are high enough that aragonite/selenite consumption
+        between events doesn't drag dolomite back below saturation —
+        the alkalinity reservoir from microbial mats is generous.
+        """
+        def fn(cond):
+            cond.fluid.Mg = 2000    # >5× seawater Mg (modern Coorong+)
+            cond.fluid.Ca = 600     # marine + microbial-mat dissolution
+            cond.fluid.CO3 = 800    # microbial mat alkalinity (high)
+            cond.fluid.Sr = 30
+            cond.fluid.pH = 8.4
+            cond.flow_rate = 0.1
+            cond.temperature = 28
+            return (f"Evaporation pulse #{idx}: sun bakes the lagoon. Brine "
+                    f"reconcentrates to sabkha state — Mg=2000, Ca=600, CO₃=800. "
+                    f"Dolomite saturation climbs back well above 1; growth "
+                    f"resumes on the ordered template the previous etch left "
+                    f"behind. Cycle #{idx} complete; ordering ratchets up.")
+        return fn
+
+    # Twelve flood/evap pairs over 240 steps — each pair = one Kim cycle.
+    events = []
+    for i in range(1, 13):
+        flood_step = 10 + (i - 1) * 20
+        evap_step = flood_step + 10
+        events.append(Event(flood_step, f"Tidal Flood #{i}", "Seawater dilution", make_flood(i)))
+        events.append(Event(evap_step,  f"Evaporation #{i}",  "Brine reconcentration", make_evap(i)))
+
+    # Final seal — the lagoon dries up permanently.
+    def ev_final_seal(cond):
+        cond.flow_rate = 0.05
+        cond.temperature = 22
+        return ("Sabkha matures, then seals. The crust hardens and "
+                "groundwater stops cycling. What remains is the result of "
+                "twelve dissolution-precipitation cycles — ordered dolomite "
+                "where the cycling did its work, disordered HMC where it didn't. "
+                "The Coorong recipe for ambient-T ordered dolomite, the natural "
+                "laboratory that Kim 2023 finally explained at the atomic scale.")
+    events.append(Event(245, "Final Seal", "Sabkha matures, fluids stop cycling", ev_final_seal))
+
+    return conditions, events, 260
+
+
 def scenario_random() -> Tuple[VugConditions, List[Event], int]:
     """Procedurally-generated vugg — each run a different discovery.
 
@@ -6937,6 +7696,7 @@ SCENARIOS = {
     "gem_pegmatite": scenario_gem_pegmatite,
     "bisbee": scenario_bisbee,
     "deccan_zeolite": scenario_deccan_zeolite,
+    "sabkha_dolomitization": scenario_sabkha_dolomitization,
     "random": scenario_random,
 }
 
@@ -7014,6 +7774,14 @@ class VugSimulator:
             crystal.dominant_forms = ["m{100} prism", "r{101} rhombohedron"]
         elif mineral == "calcite":
             crystal.dominant_forms = ["e{104} rhombohedron"]
+        elif mineral == "aragonite":
+            crystal.dominant_forms = ["columnar prisms", "{110} cyclic twin (six-pointed)"]
+        elif mineral == "rhodochrosite":
+            crystal.dominant_forms = ["e{104} curved 'button' rhombohedron", "rose-pink"]
+        elif mineral == "siderite":
+            crystal.dominant_forms = ["e{104} curved 'saddle' rhombohedron", "tan to brown"]
+        elif mineral == "dolomite":
+            crystal.dominant_forms = ["e{104} saddle-shaped curved rhombohedron", "white to colorless"]
         elif mineral == "sphalerite":
             crystal.dominant_forms = ["{111} tetrahedron"]
         elif mineral == "wurtzite":
@@ -7242,7 +8010,77 @@ class VugSimulator:
             c = self.nucleate("calcite", sigma=sigma_c)
             self.log.append(f"  ✦ NUCLEATION: Calcite #{c.crystal_id} on {c.position} "
                           f"(T={self.conditions.temperature:.0f}°C, σ={sigma_c:.2f})")
-        
+
+        # Aragonite nucleation — Mg/Ca + T + Ω + trace Sr/Pb/Ba favorability.
+        # Polymorph competition with calcite: when Mg poisons calcite's growth
+        # steps OR T is high OR Ω is high, aragonite nucleates instead.
+        sigma_arag = self.conditions.supersaturation_aragonite()
+        existing_arag = [c for c in self.crystals if c.mineral == "aragonite" and c.active]
+        if sigma_arag > 1.0 and not existing_arag and not self._at_nucleation_cap("aragonite"):
+            pos = "vug wall"
+            # Aragonite often nucleates in fissures or on existing iron oxide
+            existing_goe_a = [c for c in self.crystals if c.mineral == "goethite" and c.active]
+            existing_hem_a = [c for c in self.crystals if c.mineral == "hematite" and c.active]
+            if existing_goe_a and random.random() < 0.4:
+                pos = f"on goethite #{existing_goe_a[0].crystal_id}"
+            elif existing_hem_a and random.random() < 0.3:
+                pos = f"on hematite #{existing_hem_a[0].crystal_id}"
+            mg_ratio = self.conditions.fluid.Mg / max(self.conditions.fluid.Ca, 0.01)
+            c = self.nucleate("aragonite", position=pos, sigma=sigma_arag)
+            self.log.append(f"  ✦ NUCLEATION: Aragonite #{c.crystal_id} on {c.position} "
+                          f"(T={self.conditions.temperature:.0f}°C, Mg/Ca={mg_ratio:.2f}, σ={sigma_arag:.2f})")
+
+        # Dolomite nucleation — Ca-Mg carbonate, needs both cations + T > 50°C.
+        sigma_dol = self.conditions.supersaturation_dolomite()
+        existing_dol = [c for c in self.crystals if c.mineral == "dolomite" and c.active]
+        if sigma_dol > 1.0 and not existing_dol and not self._at_nucleation_cap("dolomite"):
+            pos = "vug wall"
+            # Often grows on calcite as the system evolves toward dolomitization
+            existing_cal_d = [c for c in self.crystals if c.mineral == "calcite" and c.active]
+            if existing_cal_d and random.random() < 0.4:
+                pos = f"on calcite #{existing_cal_d[0].crystal_id}"
+            mg_ratio = self.conditions.fluid.Mg / max(self.conditions.fluid.Ca, 0.01)
+            c = self.nucleate("dolomite", position=pos, sigma=sigma_dol)
+            self.log.append(f"  ✦ NUCLEATION: Dolomite #{c.crystal_id} on {c.position} "
+                          f"(T={self.conditions.temperature:.0f}°C, Mg/Ca={mg_ratio:.2f}, σ={sigma_dol:.2f})")
+
+        # Siderite nucleation — Fe carbonate, the brown rhomb. Reducing only.
+        sigma_sid = self.conditions.supersaturation_siderite()
+        existing_sid = [c for c in self.crystals if c.mineral == "siderite" and c.active]
+        if sigma_sid > 1.0 and not existing_sid and not self._at_nucleation_cap("siderite"):
+            pos = "vug wall"
+            # Substrate: pyrite (concentrated Fe), sphalerite (Fe-bearing host
+            # in MVT systems), or wall.
+            existing_py_s = [c for c in self.crystals if c.mineral == "pyrite" and c.active]
+            existing_sph_s = [c for c in self.crystals if c.mineral == "sphalerite" and c.active]
+            if existing_py_s and random.random() < 0.4:
+                pos = f"on pyrite #{existing_py_s[0].crystal_id}"
+            elif existing_sph_s and random.random() < 0.3:
+                pos = f"on sphalerite #{existing_sph_s[0].crystal_id}"
+            c = self.nucleate("siderite", position=pos, sigma=sigma_sid)
+            self.log.append(f"  ✦ NUCLEATION: Siderite #{c.crystal_id} on {c.position} "
+                          f"(T={self.conditions.temperature:.0f}°C, Fe={self.conditions.fluid.Fe:.0f}, σ={sigma_sid:.2f})")
+
+        # Rhodochrosite nucleation — Mn carbonate, the pink mineral.
+        sigma_rho = self.conditions.supersaturation_rhodochrosite()
+        existing_rho = [c for c in self.crystals if c.mineral == "rhodochrosite" and c.active]
+        if sigma_rho > 1.0 and not existing_rho and not self._at_nucleation_cap("rhodochrosite"):
+            pos = "vug wall"
+            # Substrate preference: goethite (Capillitas-style stalactitic
+            # ferruginous drip), then existing sulfides (epithermal vein paragenesis).
+            existing_goe_r = [c for c in self.crystals if c.mineral == "goethite" and c.active]
+            existing_py_r = [c for c in self.crystals if c.mineral == "pyrite" and c.active]
+            existing_sph_r = [c for c in self.crystals if c.mineral == "sphalerite" and c.active]
+            if existing_goe_r and random.random() < 0.5:
+                pos = f"on goethite #{existing_goe_r[0].crystal_id}"
+            elif existing_sph_r and random.random() < 0.4:
+                pos = f"on sphalerite #{existing_sph_r[0].crystal_id}"
+            elif existing_py_r and random.random() < 0.3:
+                pos = f"on pyrite #{existing_py_r[0].crystal_id}"
+            c = self.nucleate("rhodochrosite", position=pos, sigma=sigma_rho)
+            self.log.append(f"  ✦ NUCLEATION: Rhodochrosite #{c.crystal_id} on {c.position} "
+                          f"(T={self.conditions.temperature:.0f}°C, Mn={self.conditions.fluid.Mn:.0f}, σ={sigma_rho:.2f})")
+
         # Sphalerite nucleation
         sigma_s = self.conditions.supersaturation_sphalerite()
         existing_sph = [c for c in self.crystals if c.mineral == "sphalerite" and c.active]
@@ -8238,10 +9076,15 @@ class VugSimulator:
         """Execute one time step."""
         self.log = []
         self.step += 1
-        
+
         # Apply events first
         self.apply_events()
-        
+
+        # Track dolomite saturation crossings for the Kim 2023 cycle
+        # mechanism — must run after events (which set chemistry) and
+        # before crystal growth (which reads the cycle count).
+        self.conditions.update_dol_cycles()
+
         # Wall dissolution BEFORE crystal growth — this is the feedback loop
         # Acid attacks wall → releases Ca/CO3 → supersaturates → crystals grow fast
         self.dissolve_wall()
@@ -9115,9 +9958,290 @@ class VugSimulator:
         
         size_desc = "microscopic" if c.c_length_mm < 0.5 else "small" if c.c_length_mm < 2 else "well-developed"
         parts.append(f"Final size: {size_desc} ({c.c_length_mm:.1f} mm), {c.habit} habit.")
-        
+
         return " ".join(parts)
-    
+
+    def _narrate_aragonite(self, c: Crystal) -> str:
+        """Narrate an aragonite crystal's story — the metastable polymorph."""
+        parts = [f"Aragonite #{c.crystal_id} grew to {c.c_length_mm:.1f} mm."]
+        parts.append(
+            "CaCO₃ — same composition as calcite, different crystal structure. "
+            "The orthorhombic polymorph that exists by kinetic favor, not thermodynamic "
+            "stability: at the temperature and pressure of this vug, calcite is the "
+            "ground-state phase, and given enough geologic time aragonite would convert. "
+            "Folk 1974 / Morse 1997 — Mg/Ca ratio is the dominant control on which "
+            "polymorph nucleates from a given fluid."
+        )
+
+        if c.habit == "acicular_needle":
+            parts.append(
+                "Acicular needles — the high-supersaturation form. Long thin prisms "
+                "radiating from a common nucleation point, often forming sprays that "
+                "look like frozen explosions in cabinet specimens."
+            )
+        elif c.habit == "twinned_cyclic":
+            parts.append(
+                "Cyclic twin on {110} — three crystals interpenetrating at 120° to "
+                "produce a pseudo-hexagonal six-pointed prism. This is the diagnostic "
+                "aragonite habit, easily mistaken for a true hexagonal mineral until "
+                "the re-entrant angles between the twin lobes give it away."
+            )
+        elif c.habit == "flos_ferri":
+            parts.append(
+                "'Flos ferri' — the iron flower variety. Fe-rich aragonite forms "
+                "delicate dendritic / coral-like white branches, a habit named for "
+                "the famous Eisenerz, Austria specimens. Stalactitic and visually "
+                "stunning despite (or because of) its fragility."
+            )
+        else:
+            parts.append(
+                "Columnar prisms — the default low-σ habit. Transparent to white "
+                "blades that are easily confused with calcite at first glance, "
+                "until you read the chemistry: Mg/Ca ratio, trace Sr/Pb signatures, "
+                "or the lack of perfect rhombohedral cleavage."
+            )
+
+        # Polymorph context
+        # (Note: at narration time we don't have the original fluid state, but
+        #  we can comment on the narrative arc.)
+        if c.dissolved:
+            note = c.zones[-1].note if c.zones else ""
+            if "polymorphic conversion" in note:
+                parts.append(
+                    "The crystal underwent polymorphic conversion to calcite — the "
+                    "thermodynamic sink. Aragonite metastability has limits: above "
+                    "100°C with water present, the structure inverts on geologic-short "
+                    "timescales (Bischoff & Fyfe 1968, half-life ~10³ yr at 80°C). "
+                    "What remains is a calcite pseudomorph after aragonite, preserving "
+                    "the original orthorhombic outline filled with trigonal cleavage."
+                )
+            else:
+                parts.append(
+                    "Acid attack dissolved the crystal — aragonite shares calcite's "
+                    "vulnerability below pH 5.5. Ca²⁺ + CO₃²⁻ returned to the fluid."
+                )
+        else:
+            parts.append(
+                "The crystal is preserved at vug-scale geologic moment. In nature, "
+                "aragonite from cold marine settings can survive millions of years; "
+                "from hot springs it converts to calcite in centuries to millennia."
+            )
+
+        return " ".join(parts)
+
+    def _narrate_dolomite(self, c: Crystal) -> str:
+        """Narrate a dolomite crystal's story — the Ca-Mg ordered carbonate."""
+        parts = [f"Dolomite #{c.crystal_id} grew to {c.c_length_mm:.1f} mm."]
+
+        # Compute final ordering fraction for narration — use fluid-level cycles
+        cycle_count = self.conditions._dol_cycle_count
+        f_ord = 1.0 - math.exp(-cycle_count / 7.0) if cycle_count > 0 else 0.0
+
+        parts.append(
+            "CaMg(CO₃)₂ — the ordered double carbonate, with Ca and Mg in "
+            "alternating cation layers (R3̄ space group, distinct from "
+            "calcite's R3̄c). The host rock of MVT deposits and a major "
+            "sedimentary carbonate. The 'dolomite problem' — that modern "
+            "surface oceans should but don't precipitate it — was partly "
+            "resolved by Kim, Sun et al. (2023, Science 382:915) who showed "
+            "that periodic dissolution-precipitation cycles strip disordered "
+            "Ca/Mg surface layers and ratchet ordering up over many cycles."
+        )
+
+        if cycle_count > 0:
+            if f_ord > 0.7:
+                parts.append(
+                    f"The vug fluid cycled across dolomite saturation "
+                    f"{cycle_count} times during this crystal's growth "
+                    f"(f_ord={f_ord:.2f}). Each cycle stripped the disordered "
+                    f"surface layer that steady precipitation would otherwise "
+                    f"lock in, leaving an ordered Ca/Mg template for the next "
+                    f"growth pulse. The result is true ordered dolomite, not "
+                    f"a Mg-calcite intermediate."
+                )
+            elif f_ord > 0.3:
+                parts.append(
+                    f"The vug fluid cycled {cycle_count} times across "
+                    f"saturation (f_ord={f_ord:.2f}) — partially ordered. "
+                    f"Some growth zones are well-ordered dolomite, others "
+                    f"disordered HMC; X-ray diffraction would show a smeared "
+                    f"peak rather than the sharp dolomite signature."
+                )
+            else:
+                parts.append(
+                    f"Only {cycle_count} saturation cycle(s) (f_ord="
+                    f"{f_ord:.2f}) — most of this crystal is disordered "
+                    f"high-Mg calcite, not true ordered dolomite. With more "
+                    f"cycles it would have ratcheted up; the system sealed too "
+                    f"quickly."
+                )
+        else:
+            parts.append(
+                "No saturation cycles occurred — this is steady-state growth, "
+                "which Kim 2023 predicts will be disordered Mg-calcite rather "
+                "than true ordered dolomite. In nature the ratio of true "
+                "dolomite to disordered HMC depends on how oscillatory the "
+                "fluid history was."
+            )
+
+        if c.habit == "saddle_rhomb":
+            parts.append(
+                "Saddle-shaped curved rhombohedra — the most extreme example "
+                "of the calcite-group curved-face signature. Each {104} face "
+                "bows so sharply that the crystal looks twisted, which it "
+                "isn't — it's the lattice strain from cation ordering "
+                "expressed in surface geometry."
+            )
+        elif c.habit == "coarse_rhomb":
+            parts.append(
+                "Coarse textbook rhombohedra — the slow-growth high-T form. "
+                "Transparent to white, the crystal looks like calcite at "
+                "first glance until you check the cleavage and density."
+            )
+        else:
+            parts.append(
+                "Massive granular aggregate — the rock-forming form. White "
+                "to gray sugary texture, no individual crystal faces visible."
+            )
+
+        if "calcite" in c.position:
+            parts.append(
+                f"Growing on calcite — classic dolomitization texture, the "
+                f"Mg-bearing fluid converting earlier calcite to dolomite "
+                f"as the system evolves."
+            )
+
+        if c.dissolved:
+            parts.append(
+                "Acid attack dissolved the crystal — dolomite is somewhat "
+                "more acid-resistant than calcite (the Mg slows the reaction), "
+                "but pH < 6 still releases Ca²⁺ + Mg²⁺ + 2 CO₃²⁻."
+            )
+        return " ".join(parts)
+
+    def _narrate_siderite(self, c: Crystal) -> str:
+        """Narrate a siderite crystal's story — the iron carbonate."""
+        parts = [f"Siderite #{c.crystal_id} grew to {c.c_length_mm:.1f} mm."]
+        parts.append(
+            "FeCO₃ — the iron carbonate, a calcite-group mineral (R3̄c) with "
+            "Fe²⁺ in the Ca site. Tan to deep brown, depending on Fe content "
+            "and trace substitution. Forms only in REDUCING conditions because "
+            "Fe²⁺ must stay reduced to be soluble; the moment O₂ rises above "
+            "~0.5, siderite begins converting to goethite/limonite."
+        )
+
+        if c.habit == "rhombohedral":
+            parts.append(
+                "Curved 'saddle' rhombohedra — the diagnostic siderite habit. "
+                "The {104} faces aren't flat; they bow outward into a saddle "
+                "shape, parallel to the curved-rhomb signature shared with "
+                "rhodochrosite and dolomite (the calcite-group tells include "
+                "this faceting tic)."
+            )
+        elif c.habit == "scalenohedral":
+            parts.append(
+                "Sharp scalenohedral 'dog-tooth' crystals — the high-σ habit. "
+                "Less common than the rhombohedral form; sharp brown crystals "
+                "that resemble brown calcite at distance."
+            )
+        elif c.habit == "botryoidal":
+            parts.append(
+                "Botryoidal mammillary crusts — the colloidal habit, formed "
+                "when supersaturation outruns ordered crystal growth. Tan-brown "
+                "rounded aggregates, often coating fracture walls."
+            )
+        else:
+            parts.append(
+                "Spherulitic concretions — sedimentary 'spherosiderite,' the "
+                "concretionary habit found in coal seams and Fe-rich shales. "
+                "Each sphere is a radial fibrous internal structure capped by "
+                "a thin smooth surface."
+            )
+
+        if c.dissolved:
+            note = c.zones[-1].note if c.zones else ""
+            if "oxidative breakdown" in note:
+                parts.append(
+                    "Oxidative breakdown destroyed the crystal — the textbook "
+                    "diagenetic story. Rising O₂ pushed Fe²⁺ → Fe³⁺, which is "
+                    "insoluble as carbonate; the lattice collapsed and Fe + CO₃ "
+                    "moved on to grow goethite/limonite elsewhere. In nature "
+                    "this is the mechanism behind the 'limonite cube after "
+                    "siderite' diagenetic pseudomorphs."
+                )
+            else:
+                parts.append(
+                    "Acid attack dissolved the crystal — like all calcite-group "
+                    "carbonates, siderite fizzes in HCl. Fe²⁺ + CO₃²⁻ released."
+                )
+        return " ".join(parts)
+
+    def _narrate_rhodochrosite(self, c: Crystal) -> str:
+        """Narrate a rhodochrosite crystal's story — the manganese carbonate."""
+        parts = [f"Rhodochrosite #{c.crystal_id} grew to {c.c_length_mm:.1f} mm."]
+        parts.append(
+            "MnCO₃ — the rosy manganese carbonate, structurally identical to "
+            "calcite (R3̄c) but with Mn²⁺ replacing Ca²⁺. The pink-to-raspberry "
+            "color is intrinsic to the Mn²⁺ chromophore, not a trace activator. "
+            "Forms in epithermal Mn-bearing veins (Capillitas, Sweet Home), "
+            "metamorphosed Mn sediments (N'Chwaning), and low-T carbonate "
+            "replacement zones."
+        )
+
+        if c.habit == "rhombohedral":
+            parts.append(
+                "Curved 'button' rhombohedra — the diagnostic rhodochrosite habit. "
+                "The {104} faces aren't quite flat; they bow outward, giving each "
+                "crystal a domed, button-like profile that's hard to mistake for "
+                "anything else."
+            )
+        elif c.habit == "scalenohedral":
+            parts.append(
+                "Sharp scalenohedral 'dog-tooth' crystals — the high-σ habit. "
+                "Deep-rose to raspberry-red where Mn is dominant. Visually similar "
+                "to scalenohedral calcite at distance, but the color settles the "
+                "identification."
+            )
+        elif c.habit == "stalactitic":
+            parts.append(
+                "Stalactitic / mammillary aggregates — the famous Capillitas, "
+                "Argentina habit. Concentric rose-pink banding when sliced; "
+                "reflects rhythmic drip-water deposition over geologically short "
+                "intervals."
+            )
+        else:
+            parts.append(
+                "Rhythmic Mn/Ca banding — the agate-like layered cross-section. "
+                "Each band records a slight shift in the Mn:Ca ratio of the "
+                "incoming fluid, captured in the kutnohorite (CaMn carbonate) "
+                "solid-solution series between rhodochrosite and calcite."
+            )
+
+        # Sulfide inclusion paragenesis
+        if "sphalerite" in c.position or "pyrite" in c.position or "galena" in c.position:
+            parts.append(
+                f"Growing on {c.position} — classic epithermal vein paragenesis: "
+                f"the carbonate fills space between earlier sulfides as the system "
+                f"cools, Mn-bearing fluids replacing or coating the sulfide phases."
+            )
+
+        if c.dissolved:
+            note = c.zones[-1].note if c.zones else ""
+            if "oxidative breakdown" in note:
+                parts.append(
+                    "Oxidative breakdown destroyed the crystal — Mn²⁺ is unstable "
+                    "above O₂ ~1.0; it flips to Mn³⁺/Mn⁴⁺ and the surface converts "
+                    "to a black manganese-oxide rind (pyrolusite, psilomelane). "
+                    "The rosy crystal goes black from the outside in. This is why "
+                    "rhodochrosite specimens require careful storage."
+                )
+            else:
+                parts.append(
+                    "Acid attack dissolved the crystal — like calcite, "
+                    "rhodochrosite fizzes in HCl, releasing Mn²⁺ and CO₃²⁻."
+                )
+        return " ".join(parts)
+
     def _narrate_quartz(self, c: Crystal) -> str:
         """Narrate a quartz crystal's story."""
         parts = []

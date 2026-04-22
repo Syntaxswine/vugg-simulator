@@ -38,8 +38,8 @@
     "class_color": "Hex color for topographic map visualization. Derived from mineral class — all classes of the same type share one hue on a 12-color wheel (30° spacing). Wall/matrix = #D2691E (amber)."
   },
   "_audit_summary": {
-    "total_minerals": 47,
-    "_note": "Post-phase-2 state. The _initial_audit block below is frozen at phase-1 start for historical reference — do not edit. +topaz (MG-B), +tourmaline/beryl/spodumene (MG-A), +anglesite/cerussite/pyromorphite/vanadinite (Pb oxidation), +bornite/chalcocite/covellite (Cu sulfide enrichment), +cuprite/azurite/native_copper (Cu oxide-native), +magnetite/lepidocrocite/stibnite/bismuthinite/native_bismuth/clinobisvanite (Fe/Sb/Bi suite), +chrysocolla (Bisbee), +marcasite (round-2: pH<5 pyrite dimorph), +wurtzite (round-2: T>95 sphalerite dimorph), +erythrite/annabergite (round-2: paired vivianite-group arsenates), +tetrahedrite/tennantite (round-2: paired fahlore Sb/As sulfosalts), +apophyllite (round-2: zeolite-facies silicate, hematite-phantom 'bloody apophyllite' habit, deccan_zeolite scenario added).",
+    "total_minerals": 51,
+    "_note": "Post-phase-2 state. The _initial_audit block below is frozen at phase-1 start for historical reference — do not edit. +topaz (MG-B), +tourmaline/beryl/spodumene (MG-A), +anglesite/cerussite/pyromorphite/vanadinite (Pb oxidation), +bornite/chalcocite/covellite (Cu sulfide enrichment), +cuprite/azurite/native_copper (Cu oxide-native), +magnetite/lepidocrocite/stibnite/bismuthinite/native_bismuth/clinobisvanite (Fe/Sb/Bi suite), +chrysocolla (Bisbee), +marcasite (round-2: pH<5 pyrite dimorph), +wurtzite (round-2: T>95 sphalerite dimorph), +erythrite/annabergite (round-2: paired vivianite-group arsenates), +tetrahedrite/tennantite (round-2: paired fahlore Sb/As sulfosalts), +apophyllite (round-2: zeolite-facies silicate, hematite-phantom 'bloody apophyllite' habit, deccan_zeolite scenario added), +aragonite (round-3: orthorhombic CaCO3, Mg/Ca-driven polymorph competition with calcite per Folk 1974/Morse 1997), +rhodochrosite (round-3: Mn carbonate, biggest collection-weight miss at 35 specimens), +siderite (round-3: Fe carbonate, oxidation breakdown to goethite is the diagenetic pseudomorph mechanism), +dolomite (round-3: Ca-Mg ordered carbonate, completes the carbonate quartet calcite/aragonite/rhodochrosite/siderite/dolomite).",
     "missing_growth_engine": [],
     "missing_narrate_function": [],
     "missing_from_vugg_py_registry": [],
@@ -72,7 +72,11 @@
       "annabergite",
       "tetrahedrite",
       "tennantite",
-      "apophyllite"
+      "apophyllite",
+      "aragonite",
+      "rhodochrosite",
+      "siderite",
+      "dolomite"
     ],
     "scenarios_that_can_nucleate": {
       "cooling": [
@@ -90,7 +94,9 @@
         "sphalerite",
         "wurtzite",
         "fluorite",
-        "galena"
+        "galena",
+        "rhodochrosite",
+        "siderite"
       ],
       "porphyry": [
         "calcite",
@@ -110,7 +116,8 @@
         "calcite",
         "pyrite",
         "marcasite",
-        "sphalerite"
+        "sphalerite",
+        "dolomite"
       ],
       "radioactive_pegmatite": [
         "uraninite",
@@ -165,6 +172,11 @@
         "apophyllite",
         "hematite",
         "quartz"
+      ],
+      "sabkha_dolomitization": [
+        "dolomite",
+        "aragonite",
+        "selenite"
       ]
     }
   },
@@ -444,7 +456,503 @@
         "web/index.html",
         "agent-api/vugg-agent.js"
       ],
-      "audit_status": "ok — most complete implementation, use as template",
+      "audit_status": "ok — most complete implementation, use as template (round-3 update: Mg-poisoning factor added so calcite yields to aragonite when Mg/Ca > ~2)",
+      "class_color": "#eb7f13"
+    },
+    "aragonite": {
+      "formula": "CaCO3",
+      "nucleation_sigma": 1.0,
+      "max_nucleation_count": 4,
+      "max_size_cm": 30,
+      "growth_rate_mult": 0.5,
+      "habit_variants": [
+        {
+          "name": "columnar",
+          "wall_spread": 0.3,
+          "void_reach": 0.65,
+          "vector": "projecting",
+          "trigger": "low σ — default columnar prisms, transparent to white"
+        },
+        {
+          "name": "twinned_cyclic",
+          "wall_spread": 0.35,
+          "void_reach": 0.6,
+          "vector": "projecting",
+          "trigger": "moderate σ — pseudo-hexagonal cyclic twin on {110}, six-pointed star (the diagnostic aragonite habit)"
+        },
+        {
+          "name": "acicular_needle",
+          "wall_spread": 0.4,
+          "void_reach": 0.55,
+          "vector": "projecting",
+          "trigger": "high σ — long thin needles in radiating sprays"
+        },
+        {
+          "name": "flos_ferri",
+          "wall_spread": 0.45,
+          "void_reach": 0.5,
+          "vector": "projecting",
+          "trigger": "Fe-rich (Fe > 30 ppm) and moderate σ — dendritic 'iron flower' coral, the Eisenerz Austrian variety"
+        }
+      ],
+      "class": "carbonate",
+      "description": "CaCO₃ in the orthorhombic crystal system — the metastable polymorph of calcite. Same composition, different structure, kinetically favored over thermodynamically-stable calcite when (Folk 1974, Morse 1997, Sun 2015): Mg/Ca > ~1.5 (dominant control — Mg poisons calcite growth steps but is excluded from aragonite's orthorhombic structure); T > ~50°C in low-Mg waters; supersaturation Ω > ~10 (Ostwald step rule); or trace Sr/Pb/Ba present (these cations match Ca²⁺ in aragonite's 9-fold coordination but not calcite's 6-fold). At surface pressure aragonite is metastable — over geologic time it converts to calcite (half-life ~10⁵ yr at 25°C, ~10³ yr at 80°C, faster in hot wet systems).",
+      "scenarios": [],
+      "T_range_C": [
+        5,
+        500
+      ],
+      "T_optimum_C": [
+        50,
+        200
+      ],
+      "T_behavior": "retrograde_solubility",
+      "pH_dissolution_below": 5.5,
+      "pH_dissolution_above": null,
+      "redox_requirement": "any",
+      "required_ingredients": {
+        "Ca": 30,
+        "CO3": 20
+      },
+      "trace_ingredients": {
+        "Sr": "scavenged into the lattice (aragonite hosts Sr that calcite can't accommodate)",
+        "Pb": "scavenged into the lattice (same reason as Sr)",
+        "Ba": "scavenged into the lattice (same reason as Sr)",
+        "Mg": "EXCLUDED — Mg's smaller ionic radius doesn't fit aragonite's 9-fold Ca site",
+        "Mn": "minor incorporation (less than calcite, which has the right coordination)",
+        "Fe": "Fe-rich fluids produce the dendritic 'flos ferri' habit"
+      },
+      "thermal_decomp_C": 520,
+      "thermal_decomp_reaction": "orthorhombic CaCO3 -> trigonal calcite (polymorphic conversion before calcination at ~840°C)",
+      "thermal_decomp_products": {
+        "Ca": 0.5,
+        "CO3": 0.4
+      },
+      "fluorescence": {
+        "activator": "Mn",
+        "threshold_ppm": 2,
+        "color": "orange_yellow",
+        "quencher": {
+          "species": "Fe",
+          "threshold_ppm": 10
+        }
+      },
+      "twin_laws": [
+        {
+          "name": "cyclic_sextet",
+          "miller_indices": "{110}",
+          "trigger": "growth in twinned_cyclic habit",
+          "probability": 0.40
+        },
+        {
+          "name": "contact",
+          "miller_indices": "{110}",
+          "trigger": "growth (any habit)",
+          "probability": 0.05
+        }
+      ],
+      "acid_dissolution": {
+        "pH_threshold": 5.5,
+        "reaction": "CaCO3 + 2H+ -> Ca2+ + H2O + CO2 (same as calcite — fizzes)",
+        "products": {
+          "Ca": 0.6,
+          "CO3": 0.5
+        }
+      },
+      "habit": "columnar_or_cyclic_twinned",
+      "color_rules": {
+        "white": {
+          "default": true
+        },
+        "transparent": {
+          "trigger": "slow growth, low impurities"
+        }
+      },
+      "polymorphic_conversion": {
+        "to_mineral": "calcite",
+        "trigger": "T > 100°C and aragonite supersaturation drops below 0.8 (kinetic favorability lost)",
+        "half_life_note": "Bischoff & Fyfe 1968 — solution-mediated, ~10³ yr at 80°C in water-bearing systems, ~10⁵ yr at 25°C, much longer in dry/closed systems. Pleistocene reef aragonite commonly survives; pre-Pleistocene rarely does.",
+        "products": {
+          "Ca": 0.5,
+          "CO3": 0.4
+        }
+      },
+      "narrate_function": "_narrate_aragonite",
+      "runtimes_present": [
+        "vugg.py",
+        "web/index.html"
+      ],
+      "audit_status": "ok (round-3 add: orthorhombic CaCO3 polymorph, Mg/Ca dominant control per Folk 1974/Morse 1997, polymorphic conversion to calcite at T>100°C, four habits including iconic cyclic twin and flos ferri). Scenarios array empty until SCENARIO-CHEMISTRY-AUDIT brief runs — none of the existing scenarios have realistic enough Mg/Ca (>1.5) to nucleate aragonite at seed 42; existing scenarios use realistic low-Mg brines that correctly favor calcite. Aragonite gate is verified working with manually elevated Mg.",
+      "class_color": "#eb7f13"
+    },
+    "dolomite": {
+      "formula": "CaMg(CO3)2",
+      "nucleation_sigma": 1.0,
+      "max_nucleation_count": 4,
+      "max_size_cm": 30,
+      "growth_rate_mult": 0.45,
+      "_collection_specimens": 7,
+      "habit_variants": [
+        {
+          "name": "saddle_rhomb",
+          "wall_spread": 0.3,
+          "void_reach": 0.65,
+          "vector": "equant",
+          "trigger": "moderate σ — saddle-shaped curved rhombohedra, the diagnostic dolomite habit (most extreme curved-face expression of any calcite-group carbonate)"
+        },
+        {
+          "name": "coarse_rhomb",
+          "wall_spread": 0.25,
+          "void_reach": 0.7,
+          "vector": "equant",
+          "trigger": "T > 200°C and low σ — coarse textbook rhombohedra, transparent to white"
+        },
+        {
+          "name": "massive",
+          "wall_spread": 0.7,
+          "void_reach": 0.2,
+          "vector": "equant",
+          "trigger": "high σ — massive granular, white to gray sugary aggregate (rock-forming form)"
+        }
+      ],
+      "class": "carbonate",
+      "description": "CaMg(CO₃)₂ — the ordered double carbonate, with Ca and Mg in alternating cation layers (R3̄ space group, distinct from calcite's R3̄c). Rarely forms at surface temperature ('dolomite problem' in geology — modern oceans should but don't precipitate it for kinetic reasons). Above 50°C with both Ca and Mg present in roughly comparable amounts (Mg/Ca ratio 0.3-5, optimum 1:1), dolomite competes with calcite (low Mg) and theoretical magnesite (no Ca, not modeled). The host rock of MVT deposits and a major sedimentary carbonate. Saddle-shaped curved rhombohedra are the diagnostic habit — the lattice strain from cation ordering shows in the surface geometry.",
+      "scenarios": [
+        "reactive_wall",
+        "sabkha_dolomitization"
+      ],
+      "T_range_C": [
+        10,
+        400
+      ],
+      "T_optimum_C": [
+        100,
+        250
+      ],
+      "T_behavior": "retrograde_solubility",
+      "pH_dissolution_below": 6.0,
+      "pH_dissolution_above": null,
+      "redox_requirement": "any",
+      "required_ingredients": {
+        "Mg": 25,
+        "Ca": 30,
+        "CO3": 20
+      },
+      "trace_ingredients": {
+        "Fe": "ankerite intermediate (tan-brown when Fe-rich)",
+        "Mn": "kutnohorite-dolomite intermediate (pinkish when Mn-bearing)",
+        "Zn": "minrecordite intermediate"
+      },
+      "thermal_decomp_C": 700,
+      "thermal_decomp_reaction": "CaMg(CO3)2 -> CaO + MgO + 2 CO2 (decarbonation in two stages: MgCO3 first ~500°C, CaCO3 at ~840°C)",
+      "thermal_decomp_products": {
+        "Ca": 0.4,
+        "Mg": 0.4,
+        "CO3": 0.4
+      },
+      "fluorescence": null,
+      "twin_laws": [
+        {
+          "name": "polysynthetic",
+          "miller_indices": "{012}",
+          "trigger": "growth or stress",
+          "probability": 0.02
+        }
+      ],
+      "acid_dissolution": {
+        "pH_threshold": 6.0,
+        "reaction": "CaMg(CO3)2 + 4H+ -> Ca2+ + Mg2+ + 2 H2O + 2 CO2 (slower than calcite — Mg slows the kinetics)",
+        "products": {
+          "Ca": 0.5,
+          "Mg": 0.5,
+          "CO3": 0.5
+        }
+      },
+      "habit": "saddle_rhomb_or_massive",
+      "color_rules": {
+        "white_to_colorless": {
+          "default": true
+        },
+        "tan_brown": {
+          "trigger": "Fe-rich (Fe > 30 ppm) — ankerite intermediate"
+        },
+        "pinkish_white": {
+          "trigger": "Mn-bearing — kutnohorite-dolomite intermediate"
+        }
+      },
+      "nucleation_preferences": {
+        "grows_on": [
+          "calcite",
+          "vug wall"
+        ],
+        "note": "Calcite substrate is the classic dolomitization texture — Mg-bearing fluid replaces earlier calcite as Mg/Ca ratio climbs. Direct vug-wall nucleation also common in Mg-rich brines."
+      },
+      "narrate_function": "_narrate_dolomite",
+      "runtimes_present": [
+        "vugg.py",
+        "web/index.html"
+      ],
+      "audit_status": "ok (round-3 add: ordered Ca-Mg carbonate, R3̄ space group, three habits including diagnostic saddle rhombs, Mg/Ca ratio gate 0.3-5 with sweet-spot bonus near 1:1). Empirically verified in reactive_wall at seed 42 (initial Mg bumped 80→100 within Sverjensky 1981 limestone-brine range). KIM 2023 KINETICS: per Kim, Sun et al. (Science 382:915, doi:10.1126/science.adi3690), dolomite growth requires cyclic dissolution-precipitation. Implementation tracks crystal.phantom_count as cycle counter; growth rate scales by f_ord = 1 - exp(-N/50), gating from 30% (no cycling) to 100% (well-cycled). Steady-state runs produce disordered Mg-calcite intermediate, not true ordered dolomite — matches the geological observation that most natural settings produce disordered HMC, with true dolomite requiring oscillatory environments (sabkhas, microbial mats, evaporitic basins).",
+      "kim_2023_kinetics": {
+        "citation": "Kim J, Kimura Y, Putnis CV, Putnis A, Lee MR, Sun W (2023) Science 382:915-920, doi:10.1126/science.adi3690",
+        "mechanism": "Disordered Ca/Mg surface layer is more soluble than ordered alternation; brief undersaturation strips disordered atoms preferentially, leaving ordered template for next growth pulse",
+        "f_ord_formula": "1 - exp(-fluid_cycle_count / 7)",
+        "cycle_tracking": "Fluid-level — VugConditions._dol_cycle_count counts full undersaturation→supersaturation crossings, updated each step in run_step. All active dolomites benefit from accumulated cycles, even those that succeed earlier dolomite seeds enclosed by other carbonates.",
+        "rate_scaling": "0.30 + 0.70 * f_ord",
+        "etch_per_cycle_um": 0.3,
+        "natural_settings": "evaporitic/lacustrine wet-dry cycles (Coorong, Deep Springs Lake), sabkha tidal pumping, microbial mat diurnal pH swings",
+        "demo_scenario": "sabkha_dolomitization (12 flood/evap cycles → ~9 fluid cycles → f_ord ~0.72 → ORDERED dolomite)"
+      },
+      "class_color": "#eb7f13"
+    },
+    "siderite": {
+      "formula": "FeCO3",
+      "nucleation_sigma": 1.0,
+      "max_nucleation_count": 4,
+      "max_size_cm": 20,
+      "growth_rate_mult": 0.5,
+      "_collection_specimens": 3,
+      "habit_variants": [
+        {
+          "name": "rhombohedral",
+          "wall_spread": 0.3,
+          "void_reach": 0.65,
+          "vector": "equant",
+          "trigger": "moderate σ — curved 'saddle' rhombs (the {104} faces bow outward), the diagnostic siderite habit"
+        },
+        {
+          "name": "scalenohedral",
+          "wall_spread": 0.25,
+          "void_reach": 0.7,
+          "vector": "projecting",
+          "trigger": "high σ — sharp brown 'dog-tooth' v{211} crystals"
+        },
+        {
+          "name": "botryoidal",
+          "wall_spread": 0.7,
+          "void_reach": 0.25,
+          "vector": "coating",
+          "trigger": "very high σ — colloidal mammillary crusts on fracture walls"
+        },
+        {
+          "name": "spherulitic",
+          "wall_spread": 0.5,
+          "void_reach": 0.4,
+          "vector": "equant",
+          "trigger": "low T (<80°C), high σ — sedimentary 'spherosiderite' concretions in coal seams and Fe-rich shales"
+        }
+      ],
+      "class": "carbonate",
+      "description": "FeCO₃ — the iron carbonate, a calcite-group mineral (R3̄c) with Fe²⁺ in the Ca site. Tan to deep brown depending on Fe content and trace substitution (manganosiderite ↔ rhodochrosite, ankerite ↔ dolomite). Hard-gated to REDUCING conditions because Fe²⁺ must stay reduced to be soluble; rising O₂ progressively converts siderite to goethite/limonite — the diagenetic 'limonite cube after siderite' pseudomorph mechanism. Forms in MVT veins (accessory), sedimentary ironstone formations, hydrothermal Fe veins, and coal-seam concretions (spherosiderite).",
+      "scenarios": [
+        "mvt"
+      ],
+      "T_range_C": [
+        20,
+        300
+      ],
+      "T_optimum_C": [
+        50,
+        150
+      ],
+      "T_behavior": "retrograde_solubility",
+      "pH_dissolution_below": 5.5,
+      "pH_dissolution_above": null,
+      "redox_requirement": "reducing",
+      "required_ingredients": {
+        "Fe": 10,
+        "CO3": 20
+      },
+      "trace_ingredients": {
+        "Mn": "manganosiderite intermediate (pinkish-brown shift toward rhodochrosite)",
+        "Ca": "ankerite intermediate (pale brown shift toward dolomite)",
+        "Mg": "Mg-bearing variety",
+        "Zn": "Zn-bearing variety (smithsonite intermediate)"
+      },
+      "thermal_decomp_C": 550,
+      "thermal_decomp_reaction": "FeCO3 -> Fe3O4/FeO + CO2 (decarbonation; oxidation route at low T -> goethite)",
+      "thermal_decomp_products": {
+        "Fe": 0.5,
+        "CO3": 0.4
+      },
+      "fluorescence": null,
+      "twin_laws": [
+        {
+          "name": "polysynthetic",
+          "miller_indices": "{012}",
+          "trigger": "growth or stress",
+          "probability": 0.02
+        }
+      ],
+      "acid_dissolution": {
+        "pH_threshold": 5.5,
+        "reaction": "FeCO3 + 2H+ -> Fe2+ + H2O + CO2 (fizzes — same as calcite)",
+        "products": {
+          "Fe": 0.6,
+          "CO3": 0.5
+        }
+      },
+      "oxidation_breakdown": {
+        "O2_threshold": 0.5,
+        "reaction": "FeCO3 + O2 -> Fe2O3·H2O (goethite/limonite) + CO2",
+        "note": "The textbook diagenetic story. Rising O2 pushes Fe²⁺ → Fe³⁺ (insoluble as carbonate); the lattice collapses and Fe + CO3 move on to grow goethite or limonite elsewhere. Mechanism behind 'limonite cube after siderite' pseudomorphs."
+      },
+      "habit": "rhombohedral_or_botryoidal",
+      "color_rules": {
+        "deep_brown": {
+          "default": true,
+          "trigger": "Fe-dominant end-member"
+        },
+        "pinkish_brown": {
+          "trigger": "Mn-bearing manganosiderite"
+        },
+        "pale_brown": {
+          "trigger": "Ca-bearing ankerite intermediate"
+        }
+      },
+      "nucleation_preferences": {
+        "grows_on": [
+          "pyrite",
+          "sphalerite",
+          "vug wall"
+        ],
+        "note": "Pyrite substrate is classic — Fe-rich sulfide oxidation upstream feeds Fe²⁺ into the carbonate-saturating fluid. In MVT systems, siderite often coats earlier sphalerite + galena as the system cools and CO3 climbs."
+      },
+      "narrate_function": "_narrate_siderite",
+      "runtimes_present": [
+        "vugg.py",
+        "web/index.html"
+      ],
+      "audit_status": "ok (round-3 add: Fe carbonate, R3̄c calcite-group structure, four habits including spherosiderite, oxidation breakdown to goethite/limonite — the diagenetic pseudomorph mechanism). Empirically verified in mvt at seed 42.",
+      "class_color": "#eb7f13"
+    },
+    "rhodochrosite": {
+      "formula": "MnCO3",
+      "nucleation_sigma": 1.0,
+      "max_nucleation_count": 4,
+      "max_size_cm": 25,
+      "growth_rate_mult": 0.5,
+      "_collection_specimens": 35,
+      "habit_variants": [
+        {
+          "name": "rhombohedral",
+          "wall_spread": 0.3,
+          "void_reach": 0.65,
+          "vector": "equant",
+          "trigger": "moderate σ — curved 'button' rhombohedra, the diagnostic habit (the {104} faces bow outward)"
+        },
+        {
+          "name": "scalenohedral",
+          "wall_spread": 0.25,
+          "void_reach": 0.7,
+          "vector": "projecting",
+          "trigger": "high σ — sharp 'dog-tooth' v{211} crystals, deep raspberry-red"
+        },
+        {
+          "name": "stalactitic",
+          "wall_spread": 0.7,
+          "void_reach": 0.25,
+          "vector": "coating",
+          "trigger": "drip / on goethite substrate — concentric mammillary rose-pink banding (Capillitas)"
+        },
+        {
+          "name": "banding_agate",
+          "wall_spread": 0.6,
+          "void_reach": 0.3,
+          "vector": "tabular",
+          "trigger": "low σ — rhythmic Mn/Ca banded layers, kutnohorite-rhodochrosite intermediate compositions"
+        }
+      ],
+      "class": "carbonate",
+      "description": "MnCO₃ — the rosy manganese carbonate, the pink mineral of cabinet specimens. Same R3̄c calcite-group structure with Mn²⁺ replacing Ca²⁺. Forms a continuous solid solution toward calcite via the kutnohorite (CaMn carbonate) intermediate, producing the diagnostic agate-like banding when Mn/Ca ratios oscillate. Color is intrinsic (Mn²⁺ chromophore), not a trace activator. Stability requires moderate-to-reducing conditions: aggressive oxidation flips Mn²⁺ to Mn³⁺/Mn⁴⁺ and the surface converts to black manganese oxides (pyrolusite, psilomelane). Forms in epithermal Mn-bearing veins (Capillitas Argentina, Sweet Home Colorado), metamorphosed Mn sediments (N'Chwaning South Africa), and low-T carbonate replacement zones.",
+      "scenarios": [
+        "mvt"
+      ],
+      "T_range_C": [
+        20,
+        250
+      ],
+      "T_optimum_C": [
+        50,
+        150
+      ],
+      "T_behavior": "retrograde_solubility",
+      "pH_dissolution_below": 5.5,
+      "pH_dissolution_above": null,
+      "redox_requirement": "reducing",
+      "required_ingredients": {
+        "Mn": 5,
+        "CO3": 20
+      },
+      "trace_ingredients": {
+        "Ca": "kutnohorite intermediate solid solution (Ca-rich pales the color; Mn-dominant gives deep raspberry-red)",
+        "Fe": "darkens toward brown when Fe-rich (siderite intermediate)",
+        "Mg": "minor substitution (manganodolomite-like)",
+        "Zn": "trace substitution"
+      },
+      "thermal_decomp_C": 600,
+      "thermal_decomp_reaction": "MnCO3 -> MnO + CO2 (calcination, lower than calcite's 840°C)",
+      "thermal_decomp_products": {
+        "Mn": 0.5,
+        "CO3": 0.4
+      },
+      "fluorescence": {
+        "activator": "intrinsic",
+        "color": "red_pink_LW",
+        "note": "Mn²⁺ is the intrinsic chromophore; the same ion is the activator in calcite/sphalerite. Some rhodochrosite fluoresces dull red under LW UV, but the high Mn content can be self-quenching."
+      },
+      "twin_laws": [
+        {
+          "name": "polysynthetic",
+          "miller_indices": "{012}",
+          "trigger": "growth or stress",
+          "probability": 0.02
+        }
+      ],
+      "acid_dissolution": {
+        "pH_threshold": 5.5,
+        "reaction": "MnCO3 + 2H+ -> Mn2+ + H2O + CO2 (fizzes — same as calcite)",
+        "products": {
+          "Mn": 0.6,
+          "CO3": 0.5
+        }
+      },
+      "oxidation_breakdown": {
+        "O2_threshold": 1.0,
+        "reaction": "MnCO3 + O2 -> Mn3+/Mn4+ oxide rind (pyrolusite/psilomelane staining) + CO2",
+        "note": "Mn²⁺ is the cation that makes rhodochrosite pink; oxidation converts it to higher valence Mn that forms black insoluble oxides. Museum specimens require careful storage to avoid surface darkening."
+      },
+      "habit": "rhombohedral_or_scalenohedral",
+      "color_rules": {
+        "rose_pink": {
+          "default": true
+        },
+        "deep_raspberry_red": {
+          "trigger": "Ca/(Mn+Ca) < 0.2 — Mn-dominant end-member"
+        },
+        "pale_pink": {
+          "trigger": "Ca/(Mn+Ca) > 0.5 — kutnohorite intermediate"
+        },
+        "brownish_pink": {
+          "trigger": "Fe-rich (Fe > 30 ppm)"
+        }
+      },
+      "nucleation_preferences": {
+        "grows_on": [
+          "goethite",
+          "sphalerite",
+          "pyrite",
+          "galena",
+          "vug wall"
+        ],
+        "note": "Goethite substrate produces the Capillitas-style stalactitic habit. Sulfide substrate (pyrite, sphalerite, galena) is the classic epithermal vein paragenesis — rhodochrosite fills space between earlier sulfides as the system cools."
+      },
+      "narrate_function": "_narrate_rhodochrosite",
+      "runtimes_present": [
+        "vugg.py",
+        "web/index.html"
+      ],
+      "audit_status": "ok (round-3 add: Mn carbonate, R3̄c calcite-group structure, four habits, Ca substitution → kutnohorite intermediate color shift, oxidation breakdown to Mn-oxide rind). Empirically verified in mvt at seed 42 (initial Mn bumped 8→25 within Tri-State district brine range per Roedder 1976). The biggest collection-weight miss is now in the game (35 specimens). Future SCENARIO-CHEMISTRY-AUDIT will surface it more broadly via dedicated Capillitas / Sweet Home / N'Chwaning scenarios.",
       "class_color": "#eb7f13"
     },
     "sphalerite": {
