@@ -2334,10 +2334,10 @@ Scenarios:
       <span class="range-val" id="f-pressure-val">1.5 kbar</span>
     </div>
 
-    <div class="setup-row" title="Multiplier on wall dissolution rate. 0 = inert (no dissolution even with strong acid); 1 = default limestone (current behavior); 2 = fast-dissolving fresh limestone with mild water-only dissolution. Only affects carbonate walls (limestone, dolomite); silicate walls stay inert regardless.">
+    <div class="setup-row" title="Multiplier on wall dissolution rate. 0 = inert (no dissolution even with strong acid — equivalent to a silicate wall); 1 = default limestone (current behavior); 2 = fast-dissolving fresh limestone with mild water-only dissolution. Only affects carbonate walls (limestone, dolomite); silicate walls stay inert regardless.">
       <label>Wall reactivity</label>
-      <input type="range" id="f-wall-reactivity" min="0" max="20" value="10" step="1" oninput="(function(){var v=parseFloat(this.value)/10;var lbl;if(v===0)lbl='inert';else if(v<0.6)lbl='sluggish';else if(v<1.4)lbl='default';else if(v<1.7)lbl='reactive';else lbl='fresh';document.getElementById('f-wall-reactivity-val').textContent=v.toFixed(1)+'× ('+lbl+')';}).call(this)">
-      <span class="range-val" id="f-wall-reactivity-val">1.0× (default)</span>
+      <input type="range" id="f-wall-reactivity" min="0" max="20" value="10" step="1" oninput="(function(){var v=parseFloat(this.value)/10;var lbl;if(v===0)lbl='inert / silicate-like';else if(v<0.6)lbl='sluggish';else if(v<1.4)lbl='default limestone';else if(v<1.7)lbl='reactive';else lbl='fresh / fast';document.getElementById('f-wall-reactivity-val').textContent=v.toFixed(1)+'× ('+lbl+')';}).call(this)">
+      <span class="range-val" id="f-wall-reactivity-val">1.0× (default limestone)</span>
     </div>
 
     <div class="setup-row" style="flex-direction:column;align-items:flex-start">
