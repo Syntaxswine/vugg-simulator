@@ -14563,33 +14563,93 @@ function _topoAngleFor(i, N) {
 }
 
 // ─── Habit-driven edge textures ──────────────────────────────────────
-// Maps each crystal habit string to a texture token. Empty/missing
-// entries fall through to 'smooth' (the existing Bezier — no visible
-// change). Stage 0 only registers 'smooth'; later stages add dogtooth,
-// cube_edge, botryoidal, acicular, saddle_rhomb. See
+// Maps each crystal habit string to a texture token. Missing entries
+// fall through to 'smooth' (the existing Bezier — no visible change).
+// Populated incrementally per stage. See
 // proposals/PROPOSAL-EDGE-TEXTURES.md.
 const HABIT_TO_TEXTURE = {
-  // (populated incrementally per stage)
+  // Stage 1 — calcite habits.
+  'scalenohedral': 'dogtooth',  // sharp tall triangles (T>200°C; "dog-tooth spar")
+  'rhombohedral':  'rhomb',     // broader, shorter triangles (T<200°C, e.g. MVT)
 };
+
+// Per-texture parameters. amplitude_factor scales tooth height from
+// crystal thickness; pitch_mm sets tooth spacing.
+const TEXTURE_PARAMS = {
+  dogtooth: { amplitude_factor: 0.6, pitch_mm: 0.8 },
+  rhomb:    { amplitude_factor: 0.3, pitch_mm: 1.2 },
+};
+
+// Geometric cap: tooth amplitude can't exceed this fraction of the
+// cell's arc length, or teeth crash through the wedge boundaries.
+const TEXTURE_MAX_AMPLITUDE_FRAC = 0.45;
 
 // Draw the inner (fluid-facing) edge of a wedge from (fromX,fromY) to
 // (toX,toY). For 'smooth', emits the existing quadratic Bezier through
 // (controlX,controlY) — bit-for-bit identical to the pre-refactor code.
-// crystalArcStartMm and mmToPx are passed for future textures that need
-// continuous tooth phase across a crystal's painted footprint; smooth
-// ignores them.
 //
 // Direction note: the wedge path traverses outer-start → outer-end →
 // inner-end → inner-start, so this function draws inner edge END→START.
-// Future textured polylines must respect that direction or the fill
-// winds wrong.
-function drawHabitTexture(ctx, habit, fromX, fromY, toX, toY, controlX, controlY, crystalArcStartMm, mmToPx) {
+// Textured polylines must respect that direction or the fill winds wrong.
+//
+// thicknessMm/cellArcMm bound the texture amplitude; (cx,cy) gives the
+// vug center so textures can compute the inward (toward-void) normal.
+function drawHabitTexture(ctx, habit, fromX, fromY, toX, toY, controlX, controlY, thicknessMm, cellArcMm, mmToPx, cx, cy) {
   const texture = HABIT_TO_TEXTURE[habit] || 'smooth';
   switch (texture) {
+    case 'dogtooth':
+      _texture_sawtooth(ctx, fromX, fromY, toX, toY, thicknessMm, cellArcMm, mmToPx, cx, cy, TEXTURE_PARAMS.dogtooth);
+      return;
+    case 'rhomb':
+      _texture_sawtooth(ctx, fromX, fromY, toX, toY, thicknessMm, cellArcMm, mmToPx, cx, cy, TEXTURE_PARAMS.rhomb);
+      return;
     case 'smooth':
     default:
       ctx.quadraticCurveTo(controlX, controlY, toX, toY);
       return;
+  }
+}
+
+// Compute texture amplitude in mm, capped by both physical (crystal
+// thickness × factor) and geometric (cell arc × max-frac) limits.
+function _textureAmplitudeMm(thicknessMm, cellArcMm, amplitudeFactor) {
+  const physical = thicknessMm * amplitudeFactor;
+  const geometric = cellArcMm * TEXTURE_MAX_AMPLITUDE_FRAC;
+  return Math.min(physical, geometric);
+}
+
+// Sawtooth — shared by 'dogtooth' (sharp tall, T>200°C scalenohedral
+// calcite — "dog-tooth spar") and 'rhomb' (shorter wider, T<200°C
+// rhombohedral calcite). Both push triangular teeth inward toward the
+// void; only the amplitude_factor and pitch_mm in `params` differ.
+function _texture_sawtooth(ctx, fromX, fromY, toX, toY, thicknessMm, cellArcMm, mmToPx, cx, cy, params) {
+  const dx = toX - fromX, dy = toY - fromY;
+  const len = Math.sqrt(dx * dx + dy * dy);
+  if (len < 1) { ctx.lineTo(toX, toY); return; }
+  const ux = dx / len, uy = dy / len;
+  // Perpendicular pointing inward (toward vug center). Use chord
+  // midpoint → center direction so we don't have to reason about
+  // tangent rotation sign in canvas y-down coordinates.
+  const midX = (fromX + toX) / 2, midY = (fromY + toY) / 2;
+  const inX = cx - midX, inY = cy - midY;
+  const inLen = Math.sqrt(inX * inX + inY * inY) || 1;
+  const nx = inX / inLen, ny = inY / inLen;
+  const amplitudeMm = _textureAmplitudeMm(thicknessMm, cellArcMm, params.amplitude_factor);
+  const amplitudePx = amplitudeMm * mmToPx;
+  const pitchPx = params.pitch_mm * mmToPx;
+  const nTeeth = Math.max(1, Math.round(len / pitchPx));
+  const toothLen = len / nTeeth;
+  // Pen is at (fromX,fromY); emit sawtooth → (toX,toY).
+  // Each tooth: tip pushed inward by amplitudePx, then valley back on chord.
+  for (let i = 0; i < nTeeth; i++) {
+    const tipT = (i + 0.5) * toothLen;
+    const valleyT = (i + 1) * toothLen;
+    const tipX = fromX + tipT * ux + nx * amplitudePx;
+    const tipY = fromY + tipT * uy + ny * amplitudePx;
+    const valleyX = fromX + valleyT * ux;
+    const valleyY = fromY + valleyT * uy;
+    ctx.lineTo(tipX, tipY);
+    ctx.lineTo(valleyX, valleyY);
   }
 }
 
@@ -14715,11 +14775,13 @@ function topoRender(optOverrideRing) {
     ctx.moveTo(sx, sy);
     ctx.quadraticCurveTo(outerCpX, outerCpY, ex, ey);
     ctx.lineTo(exIn, eyIn);
-    // Inner (fluid-facing) edge — dispatched on crystal habit. Stage 0:
-    // all habits fall through to 'smooth' (the original Bezier). Later
-    // stages register dogtooth/cube_edge/etc. crystalArcStartMm passed
-    // as 0 for now; Stage 1 will add the per-crystal accumulator.
-    drawHabitTexture(ctx, crystal?.habit, exIn, eyIn, sxIn, syIn, innerCpX, innerCpY, 0, mmToPx);
+    // Inner (fluid-facing) edge — dispatched on crystal habit. Unknown
+    // habits fall through to 'smooth' (the original Bezier). Each cell
+    // draws its own complete teeth on the local chord; for typical 5°
+    // arcs the chord/arc difference is <0.5%, visually invisible.
+    const thicknessMmForTex = cell.thickness_um / 1000.0;
+    const cellArcMmForTex = (rMidIn * arcStep) / mmToPx;
+    drawHabitTexture(ctx, crystal?.habit, exIn, eyIn, sxIn, syIn, innerCpX, innerCpY, thicknessMmForTex, cellArcMmForTex, mmToPx, cx, cy);
     ctx.closePath();
     ctx.fill();
   }
