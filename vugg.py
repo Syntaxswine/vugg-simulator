@@ -6692,10 +6692,17 @@ def scenario_reactive_wall() -> Tuple[VugConditions, List[Event], int]:
 def scenario_radioactive_pegmatite() -> Tuple[VugConditions, List[Event], int]:
     """Radioactive pegmatite — high-T alkali granite pocket.
 
-    Pegmatitic fluids are silica-saturated melts with abundant K+Na+Al+U.
-    Grows uraninite, smoky quartz (from radiation), feldspar/albite,
-    and late-stage galena from radiogenic Pb. Already declared in web/;
-    ported to vugg.py so uraninite / feldspar / albite actually nucleate.
+    Generic testing scenario — not anchored to a real locality (per the
+    user's clarification on the audit brief). Pegmatitic fluids are
+    silica-saturated melts with abundant K+Na+Al+U. Grows uraninite,
+    smoky quartz (from radiation), feldspar/albite, and late-stage
+    galena from radiogenic Pb. Already declared in web/; ported to
+    vugg.py so uraninite / feldspar / albite actually nucleate.
+
+    Audit gap-fill (Apr 2026): Mg=5 added — brief-required non-zero
+    Mg baseline. Pegmatite pocket fluids are Mg-poor (Mg partitions
+    into outer-shell biotite/chlorite during pegmatite differentiation),
+    matches the gem_pegmatite scenario's Mg=5 abstraction.
     """
     conditions = VugConditions(
         temperature=600.0,
@@ -6708,6 +6715,10 @@ def scenario_radioactive_pegmatite() -> Tuple[VugConditions, List[Event], int]:
             # mineral consumes them, but the narrator reads them as
             # beryl/spodumene/tourmaline/apatite country.
             Be=20, Li=40, B=25, P=8,
+            # Audit gap-fill (Apr 2026): brief-required non-zero Mg.
+            # Pegmatite-pocket appropriate low value matching
+            # gem_pegmatite's Mg=5.
+            Mg=5,
             O2=0.0, pH=6.5, salinity=8.0,
         ),
         # Pegmatite pocket — 4 primaries form a fracture-controlled
