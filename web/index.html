@@ -2160,6 +2160,8 @@ footer a:hover {
         <button class="topo-zoom-btn" onclick="topoZoom(-1)" title="Zoom out">−</button>
         <span id="topo-zoom-label" class="topo-zoom-label">100%</span>
         <button class="topo-zoom-btn" onclick="topoZoom(+1)" title="Zoom in">+</button>
+        <button class="topo-zoom-btn" id="topo-3d-btn" onclick="topoToggle3D()" title="Toggle 3D tilt view (drag to rotate)">3D</button>
+        <button class="topo-zoom-btn" onclick="topoRecenter()" title="Reset pan and rotation">⊙</button>
       </div>
       <button id="topo-replay-btn" class="topo-replay" onclick="topoReplay()" title="Replay wall history">▶</button>
       <div id="topo-tooltip" class="topo-tooltip" style="display:none"></div>
@@ -14406,6 +14408,13 @@ let _topoDragStartClientY = 0;
 let _topoDragOriginPanX = 0;
 let _topoDragOriginPanY = 0;
 const TOPO_DRAG_THRESHOLD_PX = 4;     // movement before drag starts (lets clicks still fire)
+// 3D tilt state. When _topoView3D is true, the canvas element gets a
+// CSS 3D rotation applied (rotateX, rotateY) and click-drag rotates
+// the disc instead of panning. Tilts in radians.
+let _topoView3D = false;
+let _topoTiltX = 0;                   // pitch (viewer above/below)
+let _topoTiltY = 0;                   // yaw   (viewer left/right of disc)
+const TOPO_TILT_X_MAX = Math.PI / 2 - 0.05;   // don't flip past vertical
 // Cache of inclusion-dot hitboxes built each render. Hover checks
 // this first so the tooltip shows the enclosed crystal instead of
 // falling through to the host's wall cell.
@@ -15366,6 +15375,47 @@ function topoZoom(dir) {
   topoRender();
 }
 
+// Toggle 3D tilt view. When active, the canvas gets a CSS 3D rotation
+// applied via _topoApplyTransform and click-drag rotates the disc
+// instead of panning. Hit-tests (tooltip, click) are disabled in 3D
+// mode — this is MVP scope; a future tier can swap to manual 3D
+// projection for accurate picking.
+function topoToggle3D() {
+  _topoView3D = !_topoView3D;
+  const btn = document.getElementById('topo-3d-btn');
+  if (btn) btn.style.color = _topoView3D ? '#f0c050' : '';
+  _topoApplyTransform();
+}
+
+// Reset pan and tilt to zero. Zoom is preserved (user probably wants
+// to keep their zoom level when recentering).
+function topoRecenter() {
+  _topoPanX = 0;
+  _topoPanY = 0;
+  _topoTiltX = 0;
+  _topoTiltY = 0;
+  _topoApplyTransform();
+  topoRender();
+}
+
+// Apply (or clear) the CSS 3D transform on the canvas element. Called
+// whenever _topoView3D / _topoTiltX / _topoTiltY change. 2D mode leaves
+// the canvas un-transformed; 3D mode tilts it via rotateX + rotateY.
+// perspective() sits in front so the tilt produces real foreshortening.
+function _topoApplyTransform() {
+  const canvas = document.getElementById('topo-canvas');
+  if (!canvas) return;
+  if (!_topoView3D) {
+    canvas.style.transform = '';
+    canvas.style.transformOrigin = '';
+    return;
+  }
+  const rx = (_topoTiltX * 180 / Math.PI).toFixed(2);
+  const ry = (_topoTiltY * 180 / Math.PI).toFixed(2);
+  canvas.style.transformOrigin = 'center center';
+  canvas.style.transform = `perspective(1200px) rotateX(${rx}deg) rotateY(${ry}deg)`;
+}
+
 // Wire hover + zoom wheel + click-drag pan once — called from the
 // panel's first show. Idempotent.
 let _topoWired = false;
@@ -15390,26 +15440,37 @@ function topoEnsureWired() {
   _topoWired = true;
 }
 
-// Pan drag start. _topoHitTest returns null for void / outside, or
-// {mineral: null, ...} for bare wall, or {mineral: 'something', ...}
-// for a crystal. We allow drag in all cases EXCEPT clicks on a
-// crystal — that's "non-crystal part of the map" per the brief.
+// Drag start. Branches on view mode:
+//   2D mode: pan, but only if the click wasn't on a crystal
+//            (_topoHitTest returns {mineral: 'X'} → tooltip/click wins)
+//   3D mode: rotate, from anywhere on the canvas (hit-tests are
+//            inaccurate under CSS 3D transform anyway)
+// Stores ORIGIN values for whichever mode we're in so mousemove can
+// compute deltas against them.
+let _topoDragOriginTiltX = 0;
+let _topoDragOriginTiltY = 0;
 function _topoPanMouseDown(ev) {
   if (ev.button !== 0) return;  // left button only
-  const hit = _topoHitTest(ev);
-  if (hit && hit.mineral) return;  // click was on a crystal — no pan
+  if (!_topoView3D) {
+    const hit = _topoHitTest(ev);
+    if (hit && hit.mineral) return;  // click on a crystal — let tooltip/click win
+  }
   _topoDragging = false;          // becomes true once movement exceeds threshold
   _topoDragStartClientX = ev.clientX;
   _topoDragStartClientY = ev.clientY;
   _topoDragOriginPanX = _topoPanX;
   _topoDragOriginPanY = _topoPanY;
+  _topoDragOriginTiltX = _topoTiltX;
+  _topoDragOriginTiltY = _topoTiltY;
   document.addEventListener('mousemove', _topoPanMouseMove);
   document.addEventListener('mouseup', _topoPanMouseUp);
 }
 
-// Document-level mousemove during a candidate drag. Only commits to a
-// real drag once movement exceeds TOPO_DRAG_THRESHOLD_PX, which lets
-// short clicks fall through to the existing click handler unchanged.
+// Document-level mousemove during a candidate drag. Only commits once
+// movement exceeds TOPO_DRAG_THRESHOLD_PX, letting short clicks still
+// fire the existing click handler unchanged. In 2D mode updates pan;
+// in 3D mode updates tilts (rotateX = vertical drag, rotateY = horiz).
+const TOPO_DRAG_ROTATE_RAD_PER_PX = 0.5 * Math.PI / 180;  // 0.5° per px
 function _topoPanMouseMove(ev) {
   const dx = ev.clientX - _topoDragStartClientX;
   const dy = ev.clientY - _topoDragStartClientY;
@@ -15419,9 +15480,18 @@ function _topoPanMouseMove(ev) {
     const canvas = document.getElementById('topo-canvas');
     if (canvas) canvas.style.cursor = 'grabbing';
   }
-  _topoPanX = _topoDragOriginPanX + dx;
-  _topoPanY = _topoDragOriginPanY + dy;
-  topoRender();
+  if (_topoView3D) {
+    // Vertical drag → rotateX (pitch); horizontal drag → rotateY (yaw).
+    // Negative dy gives intuitive "pull up to tilt toward viewer" feel.
+    _topoTiltX = _topoDragOriginTiltX + (-dy) * TOPO_DRAG_ROTATE_RAD_PER_PX;
+    _topoTiltY = _topoDragOriginTiltY + dx * TOPO_DRAG_ROTATE_RAD_PER_PX;
+    _topoTiltX = Math.max(-TOPO_TILT_X_MAX, Math.min(TOPO_TILT_X_MAX, _topoTiltX));
+    _topoApplyTransform();
+  } else {
+    _topoPanX = _topoDragOriginPanX + dx;
+    _topoPanY = _topoDragOriginPanY + dy;
+    topoRender();
+  }
 }
 
 // Mouseup ends the drag and tears down the document-level listeners.
