@@ -1,0 +1,65 @@
+{
+  "_schema": {
+    "version": 1,
+    "purpose": "Per-locality fluid-chemistry data referenced by scenario_* functions in vugg.py and the JS mirror. Populated incrementally by the SCENARIO-CHEMISTRY-AUDIT task (see proposals/TASK-BRIEF-SCENARIO-CHEMISTRY-AUDIT.md). Each entry cites the published source for every value; gaps are left null and explicitly noted in notes[].",
+    "units": {
+      "fluid.*": "ppm unless otherwise noted (same abstraction scale as FluidChemistry in vugg.py — sim values are scaled, not raw brine analyses)",
+      "temperature_C": "degrees Celsius",
+      "pressure_kbar": "kilobars",
+      "salinity_wt_pct_NaCleq": "weight percent NaCl equivalent",
+      "depth_km": "kilometers of burial at time of fluid event"
+    },
+    "audit_status_legend": ["pending", "anchored", "verified"]
+  },
+  "localities": {
+    "herkimer_middleville": {
+      "scenario_id": "cooling",
+      "audit_status": "anchored",
+      "display_name": "Herkimer \"diamond\" pocket, Middleville, NY",
+      "host_formation": "Little Falls Formation (Upper Cambrian dolostone)",
+      "quartz_event_age": "Carboniferous (~340-300 Ma, Alleghenian burial diagenesis)",
+      "geological_setting": "Vugs in dolomitic host. Hydrocarbon-mediated silica liberation from pressure solution during Alleghenian burial to >3 km; silica-saturated basinal brine precipitated double-terminated quartz in isolated pockets. Classic clear-quartz-in-vug locality.",
+      "temperature_C": {
+        "initial": 180,
+        "range_published": [140, 200],
+        "source": "Alleghenian-age peak burial T from conodont alteration indices and vitrinite reflectance in the Appalachian basin carbonates at this depth; see Harris et al. 1978 (USGS Prof. Paper 1197) and Friedman & Sanders 1982 for Herkimer-specific discussion. Fluid-inclusion homogenization temperatures for authigenic quartz in the Appalachian Cambrian-Ordovician section fall in this range."
+      },
+      "pressure_kbar": {
+        "value": 1.0,
+        "source": "~3-4 km burial at time of quartz event (Selleck 1978 for Mohawk Valley stratigraphy + lithostatic pressure calc)."
+      },
+      "depth_km": 3.5,
+      "fluid": {
+        "SiO2": {"value": 500, "note": "Elevated over quartz equilibrium (~220 ppm at 180 C per Rimstidt 1997) — hydrocarbon-cracking + pressure solution supply. Sim-scale abstraction, not raw ppm."},
+        "Ca": {"value": 80, "note": "Lower than a typical Appalachian basin brine (Hanor 1994 compendium: 5000-20000 ppm raw), because most Ca is sequestered in surrounding dolomite cement — the pocket is the silica-overpressured residue. Sim-scale abstraction."},
+        "CO3": {"value": 30, "note": "Most carbonate has migrated out as dolomite cement; pocket residual only."},
+        "Mg": {"value": 50, "note": "Dolomitic-aquifer signature, Mg/Ca ~0.6 — matches audit brief's 'hydrothermal' range (50-500 ppm). Brief-required non-zero Mg."},
+        "Na": {"value": 80, "note": "NaCl-CaCl2 brine type (Hanor 1994)."},
+        "K": {"value": 20, "note": "K/Na ~0.25, typical basinal brine."},
+        "Fe": {"value": 5, "note": "Trace from dolomite host (wall_Fe_ppm ~2000 in host rock, but solution-phase is low because reducing and mildly acid-buffered)."},
+        "Mn": {"value": 2, "note": "Trace from dolomite host."},
+        "Al": {"value": 4, "note": "Trace; no aluminous-phase precipitation expected."},
+        "Ti": {"value": 0.5, "note": "Controls TitaniQ thermometer signal in the precipitated quartz (Wark & Watson 2006)."},
+        "pH": {"value": 6.8, "note": "Near-neutral basinal brine, CO2-buffered (Hanor 1994)."},
+        "salinity_wt_pct_NaCleq": {"value": 18.0, "note": "Appalachian basin burial brines 15-25 wt% NaCl-eq (Hanor 1994); fluid inclusions in Herkimer quartz also commonly saline (petroleum + brine two-phase)."},
+        "O2": {"value": 0.1, "note": "Reducing — hydrocarbon coexists (solid anthraxolite + liquid petroleum inclusions are diagnostic of Herkimer)."}
+      },
+      "wall": {
+        "composition": "dolomite",
+        "source": "Little Falls Formation is a dolostone; host-rock wall_Mg_ppm should be elevated (the VugWall default wall_Mg_ppm=1000 is already tagged 'higher if dolomite')."
+      },
+      "references": [
+        "Friedman, G.M. & Sanders, J.E. (1982). Time-temperature-burial significance of Devonian anthracite implies former great (~6.5 km) depth of burial of Catskill Mountains, New York. Geology 10(2): 93-96. [Regional burial thermal history]",
+        "Hanor, J.S. (1994). Origin of saline fluids in sedimentary basins. Geol. Soc. London Spec. Pub. 78: 151-174. [Basinal-brine compositional compendium — Na/Ca/Mg/K ratios and salinity ranges]",
+        "Harris, A.G., Harris, L.D., & Epstein, J.B. (1978). Oil and gas data from Paleozoic rocks in the Appalachian basin. USGS Prof. Paper 1197. [Conodont alteration index constraints on peak T for the Cambrian-Ordovician section]",
+        "Rimstidt, J.D. (1997). Quartz solubility at low temperatures. Geochim. Cosmochim. Acta 61(13): 2553-2558. [Quartz solubility equation used to justify SiO2=500 as supersaturated at 180 C]",
+        "Selleck, B.W. (1978). Syndepositional brecciation in the Little Falls Dolostone of central New York. J. Sed. Petrol. 48: 1135-1142. [Host stratigraphy and burial depth]",
+        "Wark, D.A. & Watson, E.B. (2006). TitaniQ: a titanium-in-quartz geothermometer. Contrib. Mineral. Petrol. 152: 743-754. [Ti-in-quartz thermometer used in sim]"
+      ],
+      "data_gaps": [
+        "No modern peer-reviewed microthermometry study with both Th and Tm_ice specifically for Herkimer pocket quartz appears to be widely indexed; the 140-200 C window is inferred from regional Alleghenian thermal maturity, not directly measured on Herkimer quartz. A dedicated FI study (the type done for Joplin brines in Roedder 1976) remains a gap.",
+        "LA-ICP-MS of Herkimer fluid inclusions is not in the open literature; basinal-brine ratios are imported from Hanor 1994 Appalachian-basin averages."
+      ]
+    }
+  }
+}

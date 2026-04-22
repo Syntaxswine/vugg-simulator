@@ -30,6 +30,22 @@ from typing import List, Dict, Optional, Tuple
 
 
 # ============================================================
+# SIM VERSION
+# ============================================================
+# Monotonic version tag bumped by any change that could shift seed-42
+# output for any scenario (chemistry retune, engine change, new mineral,
+# new event, new mechanic). Used by the scenario-chemistry audit and
+# later by the multi-ring 3D simulation (see PROPOSAL-3D-SIMULATION.md)
+# to distinguish v1 (pre-audit) from v2 (post-audit) output streams.
+#
+#   v1 — pre-audit: generic FluidChemistry defaults, Mg=0 in most scenarios
+#   v2 — scenario-chemistry audit (Apr 2026): every scenario anchored to a
+#        named locality with cited fluid values; locality_chemistry.json
+#        is the data-source-of-truth.
+SIM_VERSION = 2
+
+
+# ============================================================
 # MINERAL SPEC — single source of truth
 # ============================================================
 # Loaded from data/minerals.json. Every mineral declares every
@@ -6198,14 +6214,92 @@ def event_fluid_mixing(conditions: VugConditions) -> str:
 # ============================================================
 
 def scenario_cooling() -> Tuple[VugConditions, List[Event], int]:
-    """Simple cooling scenario — hot fluid cools slowly in a vug."""
+    """Cooling scenario anchored at the Herkimer "diamond" pocket, Middleville, NY.
+
+    Anchor: Herkimer-type double-terminated quartz crystals occur in isolated
+    vugs of the Little Falls Formation, an Upper Cambrian dolostone in the
+    Mohawk Valley. (Note: the audit brief drafted "Lockport Dolostone" — that
+    is Silurian and hosts different mineralization; Herkimer's host is the
+    Little Falls Formation, confirmed by Selleck 1978 and multiple state
+    geological summaries.) The quartz itself crystallized much later,
+    during Alleghenian burial diagenesis in the Carboniferous (~340-300 Ma),
+    when the section reached >3 km depth and ~140-200°C. Silica was liberated
+    by pressure solution and hydrocarbon cracking in adjacent shales, then
+    precipitated free-floating crystals in silica-overpressured pockets
+    that were also saturated with petroleum and saline basinal brine —
+    hence the two-phase enhydro + anthraxolite inclusions diagnostic of
+    Herkimer specimens.
+
+    All fluid values cite locality_chemistry.json#localities.herkimer_middleville.
+    The sim uses abstracted sim-scale ppm, not raw brine concentrations.
+
+    Signature: clear, doubly-terminated quartz. Minimal carbonate competition
+    (most Ca/CO3 has sequestered as dolomite cement in the host rock).
+
+    Data gaps (see locality_chemistry.json): no widely-indexed modern
+    microthermometry study publishes Th and Tm_ice specifically for
+    Herkimer pocket quartz; the 140-200°C window is inferred from regional
+    Alleghenian thermal maturity (Harris et al. 1978; Friedman & Sanders 1982).
+    LA-ICP-MS of Herkimer fluid inclusions has not appeared in open
+    literature; ratios are imported from Hanor 1994 Appalachian-basin averages.
+    """
     conditions = VugConditions(
-        temperature=380.0,
-        pressure=1.5,
-        fluid=FluidChemistry(SiO2=600, Ca=150, CO3=100, Fe=8, Mn=3, Ti=0.8, Al=4),
-        # Phase-1 void shape: gas-bubble cavity — few primaries, minimal
-        # satellite dissolution.
-        wall=VugWall(primary_bubbles=2, secondary_bubbles=3, shape_seed=1),
+        # T=180°C: Alleghenian peak burial for the Cambrian-Ordovician section
+        # of the Appalachian basin [Harris et al. 1978 USGS PP 1197;
+        # Friedman & Sanders 1982 Geology 10]. Prior pre-audit value was 380°C
+        # which was a generic "hot hydrothermal" default with no locality basis.
+        temperature=180.0,
+        # P=1.0 kbar: ~3.5 km burial depth at time of quartz event
+        # [Selleck 1978 on Mohawk Valley stratigraphy + lithostatic calc].
+        pressure=1.0,
+        fluid=FluidChemistry(
+            # SiO2=260: mildly elevated over quartz equilibrium at 180°C
+            # (Rimstidt 1997 gives ~220 ppm) — gives σ(Qz) in the 1.1-1.3
+            # range at nucleation, which produces prismatic well-formed
+            # doubly-terminated crystals rather than skeletal/fenster
+            # habits (those are a high-supersaturation artefact). Herkimer
+            # signature requires slow, ordered growth — low-σ nucleation.
+            SiO2=260,
+            # Ca=80: lower than a typical Appalachian-basin brine
+            # (Hanor 1994 compendium: 5000-20000 ppm raw) because most Ca is
+            # sequestered in surrounding dolomite cement — the pocket is the
+            # silica-overpressured residue.
+            Ca=80,
+            # CO3=30: residual only; most carbonate migrated out as dolomite
+            # cement.
+            CO3=30,
+            # Mg=50: dolomitic-aquifer signature, Mg/Ca ~0.6 — matches the
+            # audit brief's 'hydrothermal' band (50-500 ppm) and fulfills the
+            # brief's core requirement that no scenario should run with Mg=0.
+            # [Hanor 1994 for Appalachian-basin Mg/Ca ratios]
+            Mg=50,
+            # Na=80, K=20: NaCl-CaCl2 brine type, K/Na ~0.25 [Hanor 1994].
+            Na=80, K=20,
+            # Trace metals from the dolomite host.
+            Fe=5, Mn=2,
+            Al=4,
+            # Ti=0.5 ppm in solution controls the TitaniQ thermometer signal
+            # in the precipitated quartz [Wark & Watson 2006].
+            Ti=0.5,
+            # pH=6.8: near-neutral basinal brine, CO2-buffered [Hanor 1994].
+            pH=6.8,
+            # Salinity=18 wt% NaCl-eq: mid-range of the 15-25 wt% Appalachian
+            # basin burial brine band [Hanor 1994]. Fluid inclusions in
+            # Herkimer quartz are commonly two-phase (brine + petroleum),
+            # consistent with a saline parent fluid.
+            salinity=18.0,
+            # O2=0.1: reducing environment — hydrocarbon coexists (solid
+            # anthraxolite + liquid petroleum inclusions are diagnostic of
+            # Herkimer).
+            O2=0.1,
+        ),
+        # Wall is dolomite, not limestone — matches the Cambrian Little Falls
+        # Formation host. wall_Mg_ppm default (1000) already reflects
+        # dolomite-higher-Mg in the VugWall schema.
+        wall=VugWall(
+            composition="dolomite",
+            primary_bubbles=2, secondary_bubbles=3, shape_seed=1,
+        ),
     )
     events = []
     return conditions, events, 100

@@ -3444,6 +3444,18 @@ let rng = new SeededRandom(Date.now());
 let timeScale = 5.0;
 
 // ============================================================
+// SIM VERSION
+// ============================================================
+// Monotonic version tag bumped by any change that could shift seed-42
+// output for any scenario. Mirrors SIM_VERSION in vugg.py.
+//   v1 — pre-audit: generic FluidChemistry defaults, Mg=0 in most scenarios
+//   v2 — scenario-chemistry audit (Apr 2026): every scenario anchored to a
+//        named locality with cited fluid values; locality_chemistry.json
+//        is the data-source-of-truth.
+const SIM_VERSION = 2;
+
+
+// ============================================================
 // PHYSICAL CONSTANTS AND MODELS
 // ============================================================
 
@@ -7790,12 +7802,34 @@ function event_fluid_mixing(conditions) {
 // SCENARIOS
 // ============================================================
 
+// Herkimer "diamond" pocket, Middleville, NY. Host: Little Falls Formation
+// (Upper Cambrian dolostone). Quartz event: Carboniferous Alleghenian burial
+// diagenesis (~140-200 C, ~3.5 km depth). Signature: clear, doubly-terminated
+// quartz in silica-overpressured pockets also saturated with petroleum and
+// saline basinal brine. See data/locality_chemistry.json#herkimer_middleville
+// and the vugg.py scenario_cooling docstring for full citation tags
+// (Hanor 1994, Harris et al. 1978, Friedman & Sanders 1982, Rimstidt 1997,
+// Selleck 1978, Wark & Watson 2006).
 function scenario_cooling() {
   const conditions = new VugConditions({
-    temperature: 380.0, pressure: 1.5,
-    fluid: new FluidChemistry({ SiO2: 600, Ca: 150, CO3: 100, Fe: 8, Mn: 3, Ti: 0.8, Al: 8, K: 30, Na: 15 }),
-    // Phase-1 void shape: gentle gas-bubble profile.
-    wall: new VugWall({ primary_bubbles: 2, secondary_bubbles: 3, shape_seed: 1 }),
+    // T=180 C: Alleghenian peak burial T [Harris et al. 1978; Friedman &
+    // Sanders 1982]. Prior pre-audit value was 380 C, a generic default.
+    // P=1.0 kbar: ~3.5 km burial depth [Selleck 1978].
+    temperature: 180.0, pressure: 1.0,
+    fluid: new FluidChemistry({
+      SiO2: 260,          // mildly over Qz equilibrium (~220 ppm at 180 C [Rimstidt 1997]); tuned for prismatic (not skeletal) habit
+      Ca: 80,             // low; Ca sequestered in host dolomite cement [Hanor 1994]
+      CO3: 30,            // residual only; most carbonate migrated to dolomite cement
+      Mg: 50,             // dolomitic-aquifer Mg/Ca ~0.6 [Hanor 1994]; brief-required non-zero Mg
+      Na: 80, K: 20,      // NaCl-CaCl2 brine type, K/Na ~0.25 [Hanor 1994]
+      Fe: 5, Mn: 2,       // trace from dolomite host
+      Al: 4, Ti: 0.5,     // Ti drives TitaniQ thermometer [Wark & Watson 2006]
+      pH: 6.8,            // near-neutral basinal brine [Hanor 1994]
+      salinity: 18.0,     // Appalachian-basin burial brine band 15-25 wt% NaCl-eq [Hanor 1994]
+      O2: 0.1,            // reducing — hydrocarbons coexist (diagnostic Herkimer enhydros)
+    }),
+    // Wall is dolomite (Little Falls Formation), not limestone.
+    wall: new VugWall({ composition: 'dolomite', primary_bubbles: 2, secondary_bubbles: 3, shape_seed: 1 }),
   });
   return { conditions, events: [], defaultSteps: 100 };
 }
