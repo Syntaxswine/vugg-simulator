@@ -172,6 +172,11 @@
         "apophyllite",
         "hematite",
         "quartz"
+      ],
+      "sabkha_dolomitization": [
+        "dolomite",
+        "aragonite",
+        "selenite"
       ]
     }
   },
@@ -613,10 +618,11 @@
       "class": "carbonate",
       "description": "CaMg(CO₃)₂ — the ordered double carbonate, with Ca and Mg in alternating cation layers (R3̄ space group, distinct from calcite's R3̄c). Rarely forms at surface temperature ('dolomite problem' in geology — modern oceans should but don't precipitate it for kinetic reasons). Above 50°C with both Ca and Mg present in roughly comparable amounts (Mg/Ca ratio 0.3-5, optimum 1:1), dolomite competes with calcite (low Mg) and theoretical magnesite (no Ca, not modeled). The host rock of MVT deposits and a major sedimentary carbonate. Saddle-shaped curved rhombohedra are the diagnostic habit — the lattice strain from cation ordering shows in the surface geometry.",
       "scenarios": [
-        "reactive_wall"
+        "reactive_wall",
+        "sabkha_dolomitization"
       ],
       "T_range_C": [
-        50,
+        10,
         400
       ],
       "T_optimum_C": [
@@ -690,10 +696,12 @@
       "kim_2023_kinetics": {
         "citation": "Kim J, Kimura Y, Putnis CV, Putnis A, Lee MR, Sun W (2023) Science 382:915-920, doi:10.1126/science.adi3690",
         "mechanism": "Disordered Ca/Mg surface layer is more soluble than ordered alternation; brief undersaturation strips disordered atoms preferentially, leaving ordered template for next growth pulse",
-        "f_ord_formula": "1 - exp(-phantom_count / 50)",
+        "f_ord_formula": "1 - exp(-fluid_cycle_count / 7)",
+        "cycle_tracking": "Fluid-level — VugConditions._dol_cycle_count counts full undersaturation→supersaturation crossings, updated each step in run_step. All active dolomites benefit from accumulated cycles, even those that succeed earlier dolomite seeds enclosed by other carbonates.",
         "rate_scaling": "0.30 + 0.70 * f_ord",
         "etch_per_cycle_um": 0.3,
-        "natural_settings": "evaporitic/lacustrine wet-dry cycles (Coorong, Deep Springs Lake), sabkha tidal pumping, microbial mat diurnal pH swings"
+        "natural_settings": "evaporitic/lacustrine wet-dry cycles (Coorong, Deep Springs Lake), sabkha tidal pumping, microbial mat diurnal pH swings",
+        "demo_scenario": "sabkha_dolomitization (12 flood/evap cycles → ~9 fluid cycles → f_ord ~0.72 → ORDERED dolomite)"
       },
       "class_color": "#eb7f13"
     },
