@@ -6377,7 +6377,29 @@ def scenario_mvt() -> Tuple[VugConditions, List[Event], int]:
 
 
 def scenario_porphyry() -> Tuple[VugConditions, List[Event], int]:
-    """Copper porphyry deposit — magmatic fluid with copper, then oxidation."""
+    """Copper porphyry deposit — anchored to Bingham Canyon, Utah.
+
+    Anchor: Bingham Canyon Cu-Mo-Au deposit, Oquirrh Mountains, UT.
+    Late-Eocene (~38 Ma) quartz-monzonite-porphyry intrusion with
+    classic potassic-core / phyllic-shell / propylitic-rim alteration
+    zoning. Fluid evolution from the Landtwing et al. 2010 (Econ. Geol.
+    105) LA-ICP-MS study: deep central brine ~7 wt% NaCl-eq with
+    subequal Na/K/Fe/Cu, upper brine endmember ~45 wt% NaCl-eq
+    coexisting with a low-density vapor (~0.2 g/cm³). Mo arrives in a
+    distinct later pulse from Cu (Seo et al. 2012; already encoded in
+    event_molybdenum_pulse).
+
+    Chemistry-audit gap-fill pass (Apr 2026): added Na, K, Cl, Mg, Ag,
+    Te to populate the brine-element baseline that was missing from
+    the original scenario. Initial Cu and Mo remain at zero by design
+    — they are delivered by event_copper_injection (step 25, 60) and
+    event_molybdenum_pulse (step 45) respectively, modeling the
+    discrete pulse pattern documented at Bingham.
+
+    Existing values (SiO2, Ca, CO3, Fe, Mn, Pb, Sb, As, Bi, S, F,
+    pH, salinity, O2) were intentional and were not retuned. This is
+    a gap-fill audit, not a rewrite.
+    """
     conditions = VugConditions(
         temperature=400.0,
         pressure=2.0,
@@ -6392,6 +6414,38 @@ def scenario_porphyry() -> Tuple[VugConditions, List[Event], int]:
             # activity in epithermal Cu systems). Enables the tetrahedrite
             # (Cu-Sb-S) / tennantite (Cu-As-S) fahlore pair.
             Sb=25, As=15, Bi=30,
+            # ── Drift-consistency: mirror JS-side intentional values ─
+            # Na=25, K=40, Al=15: the JS scenario_porphyry has carried
+            # these since round 2 but Python had them at default 0.
+            # Drift bug, not gap. Mirroring the JS values rather than
+            # imposing literature numbers (Landtwing 2010 would suggest
+            # Na/K ~10x higher) so existing non-zero intent is preserved.
+            # See the audit brief's consistency-check directive.
+            Na=25, K=40, Al=15,
+            # ── Audit gap-fills (Apr 2026) ────────────────────────────
+            # Cl=600: porphyry brines are NaCl-KCl rich. The salinity
+            # field already encodes 10 wt% NaCl-eq, but Cl as a free
+            # trace lets halite/chlorargyrite/atacamite chemistry engage
+            # if downstream events push that direction. Landtwing et al.
+            # 2010 LA-ICP-MS at Bingham confirms Cl as the dominant
+            # anion in the deep-center brine.
+            Cl=600,
+            # Mg=40: porphyry brines pick up Mg through wallrock
+            # interaction, especially against mafic or carbonate host.
+            # Bingham's Pennsylvanian-Permian sediment + intrusive
+            # contact yields fluid Mg in the 50-200 ppm range raw;
+            # 40 sim-ppm is mid-range conservative. Brief-required
+            # non-zero Mg.
+            Mg=40,
+            # Ag=8: argentiferous-Cu signature. Bingham galena and
+            # tetrahedrite carry Ag; brine-stage fluid Ag 1-50 ppm raw
+            # in published porphyry-fluid LA-ICP-MS (Heinrich 2007).
+            Ag=8,
+            # Te=2: epithermal-cap trace. Bingham's upper levels carry
+            # tellurides (calaverite, sylvanite) — fluid Te is low but
+            # non-zero in the porphyry-distal apron.
+            Te=2,
+            # ──────────────────────────────────────────────────────────
             O2=0.2, pH=4.5, salinity=10.0
         ),
         # Porphyry stockwork — primary void plus a moderate set of

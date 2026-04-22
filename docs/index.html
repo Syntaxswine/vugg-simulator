@@ -7775,10 +7775,25 @@ function event_copper_injection(conditions) {
   conditions.fluid.Fe += 40.0;
   conditions.fluid.S += 80.0;
   conditions.fluid.SiO2 += 200.0;
+  // Drift-fix: Python event also bumps Pb +20 (porphyry fluids carry Pb).
+  // Was missing from JS.
+  conditions.fluid.Pb += 20.0;
   conditions.fluid.O2 = 0.3;
   conditions.temperature += 30;
   conditions.flow_rate = 4.0;
   return `Copper-bearing magmatic fluid surges into the vug. Cu spikes to ${conditions.fluid.Cu.toFixed(0)} ppm. T rises to ${conditions.temperature.toFixed(0)}°C. Reducing conditions — sulfides stable.`;
+}
+
+// Late-stage Mo pulse — separate from Cu in porphyry systems. Per Seo et
+// al. 2012 (Bingham Canyon), Mo arrives in a distinct later pulse from Cu.
+// This mirror was added to JS in the porphyry chemistry-audit pass — the
+// Python equivalent has existed since carbonate round 3.
+function event_molybdenum_pulse(conditions) {
+  conditions.fluid.Mo = 80.0;
+  conditions.fluid.S += 40.0;
+  conditions.fluid.O2 = 0.3;
+  conditions.temperature += 15;
+  return `Late-stage molybdenum fluid arrives separately from Cu. Mo spikes to ${conditions.fluid.Mo.toFixed(0)} ppm. T rises to ${conditions.temperature.toFixed(0)}°C. Molybdenite may form — future wulfenite precursor.`;
 }
 
 function event_oxidation(conditions) {
@@ -7885,16 +7900,30 @@ function scenario_mvt() {
   return { conditions, events, defaultSteps: 120 };
 }
 
+// Bingham Canyon Cu-Mo-Au porphyry, Oquirrh Mountains UT. Late-Eocene
+// quartz-monzonite intrusion, classic potassic/phyllic/propylitic zoning.
+// Fluid evolution per Landtwing et al. 2010 (Econ. Geol. 105) LA-ICP-MS.
+// Mo arrives in a separate later pulse from Cu (Seo et al. 2012) — encoded
+// in the molybdenum_pulse event below. See vugg.py scenario_porphyry
+// docstring + data/locality_chemistry.json for full citation tags.
 function scenario_porphyry() {
   const conditions = new VugConditions({
     temperature: 400.0, pressure: 2.0,
     fluid: new FluidChemistry({
       SiO2: 700, Ca: 80, CO3: 50, Fe: 30, Mn: 2,
       Zn: 0, S: 60, F: 5, Cu: 0, O2: 0.2,
+      // Drift-fix: Pb=15 was set in Python (porphyry fluids carry Pb)
+      // but missing from JS until this audit pass.
+      Pb: 15,
       K: 40, Na: 25, Al: 15,
       // Sb + Bi traces — greisen signature. Enough to nucleate
       // stibnite + bismuthinite at a handful of sites each.
       Sb: 25, As: 15, Bi: 30,
+      // ── Audit gap-fills (Apr 2026) ────────────────────────────────
+      Cl: 600,            // NaCl-KCl brine, anion match for Na+K [Landtwing 2010]
+      Mg: 40,             // wallrock interaction, Bingham brine Mg 50-200 ppm raw
+      Ag: 8,              // argentiferous Cu signature [Heinrich 2007]
+      Te: 2,              // epithermal-cap telluride trace
       pH: 4.5, salinity: 10.0
     }),
     // Porphyry veins — elongated cross-section, modest harmonics.
@@ -7902,6 +7931,9 @@ function scenario_porphyry() {
   });
   const events = [
     { step: 25, name: 'Copper Pulse', description: 'Magmatic copper fluid arrives', apply_fn: event_copper_injection },
+    // Drift-fix: Python had this molybdenum_pulse event since Seo et al.
+    // 2012 was incorporated; JS was missing it. Added in audit pass.
+    { step: 45, name: 'Molybdenum Pulse', description: 'Late-stage Mo fluid (Seo et al. 2012)', apply_fn: event_molybdenum_pulse },
     { step: 60, name: 'Second Cu Pulse', description: 'Another copper surge', apply_fn: event_copper_injection },
     { step: 85, name: 'Oxidation', description: 'Meteoric water infiltrates', apply_fn: event_oxidation },
     { step: 95, name: 'Cooling', description: 'Rapid cooling event', apply_fn: event_cooling_pulse },

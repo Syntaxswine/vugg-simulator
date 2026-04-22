@@ -60,6 +60,41 @@
         "No modern peer-reviewed microthermometry study with both Th and Tm_ice specifically for Herkimer pocket quartz appears to be widely indexed; the 140-200 C window is inferred from regional Alleghenian thermal maturity, not directly measured on Herkimer quartz. A dedicated FI study (the type done for Joplin brines in Roedder 1976) remains a gap.",
         "LA-ICP-MS of Herkimer fluid inclusions is not in the open literature; basinal-brine ratios are imported from Hanor 1994 Appalachian-basin averages."
       ]
+    },
+    "bingham_canyon": {
+      "scenario_id": "porphyry",
+      "audit_status": "anchored",
+      "display_name": "Bingham Canyon Cu-Mo-Au porphyry, Oquirrh Mountains, UT",
+      "host_formation": "Late-Eocene (~38 Ma) quartz-monzonite-porphyry intruding Pennsylvanian-Permian sediments",
+      "alteration_zoning": "potassic core, phyllic shell, propylitic rim",
+      "fluid_event_summary": "Magmatic-hydrothermal evolution from deep-center brine (~7 wt% NaCl-eq, subequal Na/K/Fe/Cu) to upper-level brine endmember (~45 wt% NaCl-eq) coexisting with low-density vapor (~0.2 g/cm3). Discrete pulses: early Cu, late Mo (Seo et al. 2012), epithermal Au-Te-Ag cap. Vug-stage fluid is interpreted as the cooled, vapor-condensate-mixed residue of the brine plume.",
+      "audit_pass": "gap-fill (Apr 2026) — added Cl, Mg, Ag, Te to populate the brine-element baseline. Drift fixes between Python and JS scenario_porphyry: Pb=15 mirrored from Python to JS, Na/K/Al mirrored from JS to Python, event_molybdenum_pulse mirrored from Python to JS, event_copper_injection Pb increment mirrored from Python to JS. Existing chemistry preserved (no retuning).",
+      "fluid": {
+        "Cl": {"value": 600, "note": "NaCl-KCl brine anion, paired with existing Na+K. salinity=10 wt% NaCl-eq remains the bulk indicator [Landtwing et al. 2010]."},
+        "Mg": {"value": 40, "note": "Wallrock interaction; Bingham brine fluid Mg 50-200 ppm raw [Landtwing et al. 2010]; sim-scale conservative. Brief-required non-zero Mg."},
+        "Ag": {"value": 8, "note": "Argentiferous-Cu signature; brine-stage fluid Ag 1-50 ppm raw in published porphyry-fluid LA-ICP-MS [Heinrich 2007]."},
+        "Te": {"value": 2, "note": "Epithermal-cap telluride trace (calaverite, sylvanite at Bingham upper levels)."}
+      },
+      "preserved_intentional_values": {
+        "SiO2": 700, "Ca": 80, "CO3": 50, "Fe": 30, "Mn": 2,
+        "Pb": 15, "K": 40, "Na": 25, "Al": 15,
+        "Sb": 25, "As": 15, "Bi": 30,
+        "S": 60, "F": 5, "Cu": 0,
+        "O2": 0.2, "pH": 4.5, "salinity": 10.0,
+        "Cu_note": "Cu=0 at init by design; delivered in pulses by event_copper_injection at steps 25 and 60.",
+        "Mo_note": "Mo=0 at init by design; delivered by event_molybdenum_pulse at step 45 (Seo et al. 2012)."
+      },
+      "references": [
+        "Landtwing, M.R., Furrer, C., Redmond, P.B., Pettke, T., Guillong, M., Heinrich, C.A. (2010). The Bingham Canyon Porphyry Cu-Mo-Au Deposit. III. Zoned Copper-Gold Ore Deposition by Magmatic Vapor Expansion. Economic Geology 105(1): 91-118. [Primary LA-ICP-MS fluid-inclusion source for Bingham brine compositions]",
+        "Seo, J.H., Guillong, M., Heinrich, C.A. (2012). The Role of Sulfur in the Formation of Magmatic-Hydrothermal Copper-Gold Deposits. Earth Planet. Sci. Lett. 282: 323-328. [Mo timing decoupled from Cu — basis for event_molybdenum_pulse]",
+        "Heinrich, C.A. (2007). Fluid-fluid interactions in magmatic-hydrothermal ore formation. Rev. Mineral. Geochem. 65: 363-387. [Porphyry-fluid Ag/Te/Sb/Bi range]",
+        "Kouzmanov, K. & Pokrovski, G.S. (2012). Hydrothermal controls on metal distribution in porphyry Cu (-Mo-Au) systems. SEG Spec. Pub. 16: 573-618. [As activity in epithermal Cu, Sb-As-Bi greisen signature]",
+        "Klemm, L.M., Pettke, T., Heinrich, C.A. (2007). Hydrothermal evolution of the El Teniente deposit, Chile: porphyry Cu-Mo ore deposition from low-salinity magmatic fluids. Econ. Geol. 102(6): 1021-1045. [Comparison brine compositions]"
+      ],
+      "data_gaps": [
+        "Te trace is asserted from epithermal-cap evidence; direct Te quantification from Bingham core fluid inclusions is not widely published.",
+        "Au trace would naturally accompany Te+Ag in this system but FluidChemistry does not currently expose an Au field — out of scope for this audit pass."
+      ]
     }
   }
 }
