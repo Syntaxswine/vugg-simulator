@@ -4952,7 +4952,14 @@ function grow_quartz(crystal, conditions, step) {
   if (excess < 0.5) rate = 8.0 * excess * excess;
   else rate = 4.0 * excess;
 
-  rate *= Math.exp(-3000.0 / (conditions.temperature + 273.15)) * 50.0;
+  // Arrhenius rescaled so prefactor ~= 1.0 at 200 C (sim's most-common
+  // working temperature). Previous exp(-3000/T_K) * 50 was calibrated
+  // for 400 C porphyry quartz and collapsed to 0.03-0.09 at Herkimer /
+  // MVT / Alpine temperatures, starving quartz below the 0.1 um cutoff.
+  // New slope keeps real T-dependence (400:100 ratio ~3.3x) without
+  // suppressing mid-T growth. See vugg.py grow_quartz comment for full
+  // rationale and the look-up table.
+  rate *= Math.exp(-1000.0 / (conditions.temperature + 273.15)) * 8.27;
   rate *= rng.uniform(0.7, 1.3);
 
   if (rate < 0.1) return null;

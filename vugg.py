@@ -2481,9 +2481,32 @@ def grow_quartz(crystal: Crystal, conditions: VugConditions, step: int) -> Optio
         rate = 8.0 * excess * excess  # slow, orderly spiral growth
     else:
         rate = 4.0 * excess           # faster, may produce growth hillocks
-    
-    # Temperature effect on rate
-    rate *= math.exp(-3000.0 / (conditions.temperature + 273.15)) * 50.0
+
+    # Temperature effect on rate.
+    #
+    # History: previous formulation was exp(-3000/T_K) * 50, which was
+    # calibrated for hot porphyry-style hydrothermal quartz (~400°C). At
+    # mid-T (150-250°C, typical of MVT / Herkimer / Alpine / basinal
+    # brines) it collapsed the prefactor to 0.03-0.09, suppressing growth
+    # below the 0.1 µm "negligible" cutoff and starving scenarios where
+    # quartz is actually the most prolific mineral in the field
+    # (Herkimer crystals are cm-scale; sim was producing µm-scale
+    # micro-crust). The BCF σ²-scaling was left alone — that is
+    # physically correct, and real low-σ quartz IS slower than calcite
+    # at the same σ.
+    #
+    # New formulation is normalised so the prefactor ≈ 1.0 at 200°C
+    # (the sim's most-common working temperature), with a gentler slope
+    # (activation energy ~8 kJ/mol vs 25 kJ/mol previously) that keeps
+    # real T-dependence (400°C grows ~3× faster than 100°C) without
+    # suppressing mid-T output:
+    #   T(°C):   400    300    250    200    180    150    100    50
+    #   factor: 1.87   1.44   1.22   1.00   0.90   0.78   0.56  0.38
+    # The low activation energy is sim-appropriate — one step compresses
+    # ~10,000 yr of real time, so quartz T-sensitivity is effectively
+    # integrated down. See proposals TODO for a future refactor that
+    # properly separates kinetic rate from step-duration scaling.
+    rate *= math.exp(-1000.0 / (conditions.temperature + 273.15)) * 8.27
     
     # Add some natural variation
     rate *= random.uniform(0.7, 1.3)
