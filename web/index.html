@@ -14562,6 +14562,37 @@ function _topoAngleFor(i, N) {
   return -Math.PI / 2 + (i / N) * 2 * Math.PI;
 }
 
+// ─── Habit-driven edge textures ──────────────────────────────────────
+// Maps each crystal habit string to a texture token. Empty/missing
+// entries fall through to 'smooth' (the existing Bezier — no visible
+// change). Stage 0 only registers 'smooth'; later stages add dogtooth,
+// cube_edge, botryoidal, acicular, saddle_rhomb. See
+// proposals/PROPOSAL-EDGE-TEXTURES.md.
+const HABIT_TO_TEXTURE = {
+  // (populated incrementally per stage)
+};
+
+// Draw the inner (fluid-facing) edge of a wedge from (fromX,fromY) to
+// (toX,toY). For 'smooth', emits the existing quadratic Bezier through
+// (controlX,controlY) — bit-for-bit identical to the pre-refactor code.
+// crystalArcStartMm and mmToPx are passed for future textures that need
+// continuous tooth phase across a crystal's painted footprint; smooth
+// ignores them.
+//
+// Direction note: the wedge path traverses outer-start → outer-end →
+// inner-end → inner-start, so this function draws inner edge END→START.
+// Future textured polylines must respect that direction or the fill
+// winds wrong.
+function drawHabitTexture(ctx, habit, fromX, fromY, toX, toY, controlX, controlY, crystalArcStartMm, mmToPx) {
+  const texture = HABIT_TO_TEXTURE[habit] || 'smooth';
+  switch (texture) {
+    case 'smooth':
+    default:
+      ctx.quadraticCurveTo(controlX, controlY, toX, toY);
+      return;
+  }
+}
+
 function topoRender(optOverrideRing) {
   const canvas = document.getElementById('topo-canvas');
   const panel = document.getElementById('topo-panel');
@@ -14684,7 +14715,11 @@ function topoRender(optOverrideRing) {
     ctx.moveTo(sx, sy);
     ctx.quadraticCurveTo(outerCpX, outerCpY, ex, ey);
     ctx.lineTo(exIn, eyIn);
-    ctx.quadraticCurveTo(innerCpX, innerCpY, sxIn, syIn);
+    // Inner (fluid-facing) edge — dispatched on crystal habit. Stage 0:
+    // all habits fall through to 'smooth' (the original Bezier). Later
+    // stages register dogtooth/cube_edge/etc. crystalArcStartMm passed
+    // as 0 for now; Stage 1 will add the per-crystal accumulator.
+    drawHabitTexture(ctx, crystal?.habit, exIn, eyIn, sxIn, syIn, innerCpX, innerCpY, 0, mmToPx);
     ctx.closePath();
     ctx.fill();
   }
