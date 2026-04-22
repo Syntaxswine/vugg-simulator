@@ -2160,6 +2160,8 @@ footer a:hover {
         <button class="topo-zoom-btn" onclick="topoZoom(-1)" title="Zoom out">−</button>
         <span id="topo-zoom-label" class="topo-zoom-label">100%</span>
         <button class="topo-zoom-btn" onclick="topoZoom(+1)" title="Zoom in">+</button>
+        <button class="topo-zoom-btn" id="topo-3d-btn" onclick="topoToggle3D()" title="Toggle 3D tilt view (drag to rotate)">3D</button>
+        <button class="topo-zoom-btn" onclick="topoRecenter()" title="Reset pan and rotation">⊙</button>
       </div>
       <button id="topo-replay-btn" class="topo-replay" onclick="topoReplay()" title="Replay wall history">▶</button>
       <div id="topo-tooltip" class="topo-tooltip" style="display:none"></div>
@@ -14406,6 +14408,13 @@ let _topoDragStartClientY = 0;
 let _topoDragOriginPanX = 0;
 let _topoDragOriginPanY = 0;
 const TOPO_DRAG_THRESHOLD_PX = 4;     // movement before drag starts (lets clicks still fire)
+// 3D tilt state. When _topoView3D is true, the canvas element gets a
+// CSS 3D rotation applied (rotateX, rotateY) and click-drag rotates
+// the disc instead of panning. Tilts in radians.
+let _topoView3D = false;
+let _topoTiltX = 0;                   // pitch (viewer above/below)
+let _topoTiltY = 0;                   // yaw   (viewer left/right of disc)
+const TOPO_TILT_X_MAX = Math.PI / 2 - 0.05;   // don't flip past vertical
 // Cache of inclusion-dot hitboxes built each render. Hover checks
 // this first so the tooltip shows the enclosed crystal instead of
 // falling through to the host's wall cell.
@@ -15364,6 +15373,47 @@ function topoZoom(dir) {
   const label = document.getElementById('topo-zoom-label');
   if (label) label.textContent = `${Math.round(_topoZoom * 100)}%`;
   topoRender();
+}
+
+// Toggle 3D tilt view. When active, the canvas gets a CSS 3D rotation
+// applied via _topoApplyTransform and click-drag rotates the disc
+// instead of panning. Hit-tests (tooltip, click) are disabled in 3D
+// mode — this is MVP scope; a future tier can swap to manual 3D
+// projection for accurate picking.
+function topoToggle3D() {
+  _topoView3D = !_topoView3D;
+  const btn = document.getElementById('topo-3d-btn');
+  if (btn) btn.style.color = _topoView3D ? '#f0c050' : '';
+  _topoApplyTransform();
+}
+
+// Reset pan and tilt to zero. Zoom is preserved (user probably wants
+// to keep their zoom level when recentering).
+function topoRecenter() {
+  _topoPanX = 0;
+  _topoPanY = 0;
+  _topoTiltX = 0;
+  _topoTiltY = 0;
+  _topoApplyTransform();
+  topoRender();
+}
+
+// Apply (or clear) the CSS 3D transform on the canvas element. Called
+// whenever _topoView3D / _topoTiltX / _topoTiltY change. 2D mode leaves
+// the canvas un-transformed; 3D mode tilts it via rotateX + rotateY.
+// perspective() sits in front so the tilt produces real foreshortening.
+function _topoApplyTransform() {
+  const canvas = document.getElementById('topo-canvas');
+  if (!canvas) return;
+  if (!_topoView3D) {
+    canvas.style.transform = '';
+    canvas.style.transformOrigin = '';
+    return;
+  }
+  const rx = (_topoTiltX * 180 / Math.PI).toFixed(2);
+  const ry = (_topoTiltY * 180 / Math.PI).toFixed(2);
+  canvas.style.transformOrigin = 'center center';
+  canvas.style.transform = `perspective(1200px) rotateX(${rx}deg) rotateY(${ry}deg)`;
 }
 
 // Wire hover + zoom wheel + click-drag pan once — called from the
