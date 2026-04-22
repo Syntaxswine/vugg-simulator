@@ -2206,6 +2206,90 @@
       "audit_status": "ok (phase-2: wired in vugg.py, narrators in all 3 runtimes). Requires both galena AND molybdenite to have oxidized first (Seo et al. 2012).",
       "class_color": "#137feb"
     },
+    "ferrimolybdite": {
+      "formula": "Fe2(MoO4)3·nH2O",
+      "nucleation_sigma": 1.0,
+      "max_nucleation_count": 6,
+      "max_size_cm": 5,
+      "growth_rate_mult": 0.5,
+      "habit_variants": [
+        {
+          "name": "acicular_tuft",
+          "wall_spread": 0.5,
+          "void_reach": 0.6,
+          "vector": "radiating",
+          "trigger": "default — classic canary-yellow radiating hair-tufts"
+        },
+        {
+          "name": "fibrous_mat",
+          "wall_spread": 0.85,
+          "void_reach": 0.2,
+          "vector": "felted",
+          "trigger": "high σ — dense mats on dissolving molybdenite"
+        },
+        {
+          "name": "powdery_crust",
+          "wall_spread": 0.95,
+          "void_reach": 0.05,
+          "vector": "coating",
+          "trigger": "very high σ — earthy yellow powder, no crystal form"
+        }
+      ],
+      "class": "molybdate",
+      "description": "Fe₂(MoO₄)₃·nH₂O, the no-lead branch of Mo oxidation. Canary-yellow acicular tufts to powdery crusts on molybdenite surfaces. Fast-growing, powdery, hardness ~2. Coexists with wulfenite (both draw on oxidized MoO₄²⁻) but wins the early window. Geologically more common than wulfenite; under-represented in collections because it's yellow fuzz, not display material. Type locality Climax (Colorado); abundant in any porphyry Cu-Mo oxidation zone.",
+      "scenarios": [
+        "porphyry",
+        "bisbee",
+        "supergene_oxidation"
+      ],
+      "T_range_C": [
+        5,
+        150
+      ],
+      "T_optimum_C": [
+        15,
+        50
+      ],
+      "T_behavior": "window",
+      "pH_dissolution_below": 2.0,
+      "redox_requirement": "oxidizing",
+      "required_ingredients": {
+        "Fe": 3,
+        "Mo": 2,
+        "O2": 0.5
+      },
+      "trace_ingredients": {},
+      "thermal_decomp_C": 150,
+      "thermal_decomp_reaction": "Fe2(MoO4)3·nH2O -> Fe2(MoO4)3 + nH2O (dehydration); then MoO4 released if T higher",
+      "thermal_decomp_products": {
+        "Fe": 0.5,
+        "Mo": 0.4
+      },
+      "fluorescence": null,
+      "twin_laws": [],
+      "acid_dissolution": {
+        "pH_threshold": 2.0,
+        "reaction": "dissolves in strong acid, releasing Fe³⁺ + MoO₄²⁻",
+        "products": {
+          "Fe": 0.5,
+          "Mo": 0.4
+        },
+        "status": "newly_added"
+      },
+      "habit": "acicular_tuft",
+      "color_rules": {
+        "canary_yellow": {
+          "default": true
+        }
+      },
+      "narrate_function": null,
+      "runtimes_present": [
+        "vugg.py",
+        "web/index.html"
+      ],
+      "audit_status": "phase-2: wired in vugg.py and web/index.html. Research source: proposals/MINERALS-RESEARCH-UNIMPLEMENTED.md. The 'Pb-absent fork' of Mo oxidation — complements wulfenite which requires Pb. Ferrimolybdite nucleates earlier (σ>1.0) and grows faster; wulfenite needs σ>1.2 + Pb.",
+      "class_color": "#f5dc14"
+    },
     "molybdenite": {
       "formula": "MoS2",
       "nucleation_sigma": 1.0,

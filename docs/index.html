@@ -3078,6 +3078,7 @@ const MINERAL_SPEC_FALLBACK = {
   galena: { formula: "PbS", nucleation_sigma: 1.0, max_size_cm: 60, growth_rate_mult: 0.5, thermal_decomp_C: 1115, fluorescence: null, twin_laws: [{ name: "spinel_law", probability: 0.008 }], acid_dissolution: { pH_threshold: 2.0 } },
   smithsonite: { formula: "ZnCO3", nucleation_sigma: 1.0, max_size_cm: 60, growth_rate_mult: 0.7, thermal_decomp_C: 300, fluorescence: { activator: "Mn", threshold_ppm: 2, color: "pink_LW" }, twin_laws: [{ name: "cyclic", probability: 0.01 }], acid_dissolution: { pH_threshold: 4.0 } },
   wulfenite: { formula: "PbMoO4", nucleation_sigma: 1.0, max_size_cm: 20, growth_rate_mult: 0.2, thermal_decomp_C: 1120, fluorescence: null, twin_laws: [{ name: "penetration", probability: 0.03 }], acid_dissolution: { pH_threshold: 3.5 } },
+  ferrimolybdite: { formula: "Fe2(MoO4)3·nH2O", nucleation_sigma: 1.0, max_size_cm: 5, growth_rate_mult: 0.5, thermal_decomp_C: 150, fluorescence: null, twin_laws: [], acid_dissolution: { pH_threshold: 2.0 } },
   molybdenite: { formula: "MoS2", nucleation_sigma: 1.0, max_size_cm: 40, growth_rate_mult: 0.3, thermal_decomp_C: 1185, fluorescence: null, twin_laws: [], acid_dissolution: null },
   adamite: { formula: "Zn2(AsO4)(OH)", nucleation_sigma: 1.0, max_size_cm: 10, growth_rate_mult: 0.3, thermal_decomp_C: 500, fluorescence: { activator: "intrinsic", color: "green_yellow_SW", quencher: { species: "Cu", threshold_ppm: 10 } }, twin_laws: [], acid_dissolution: { pH_threshold: 3.5 } },
   mimetite: { formula: "Pb5(AsO4)3Cl", nucleation_sigma: 1.0, max_size_cm: 10, growth_rate_mult: 0.3, thermal_decomp_C: 400, fluorescence: { activator: "intrinsic", color: "orange_SW" }, twin_laws: [], acid_dissolution: { pH_threshold: 3.0 } },
@@ -3250,7 +3251,7 @@ const MINERAL_GAME_COLORS = {
   pyrite: '#c8b830', chalcopyrite: '#c89830', galena: '#a0a0a0', molybdenite: '#707888',
   hematite: '#b04040', malachite: '#2e8b57', sphalerite: '#cc8844',
   goethite: '#8b6914', uraninite: '#44dd44', smithsonite: '#88bbcc',
-  wulfenite: '#ff8833', selenite: '#e8e0d8', feldspar: '#f0d0b0'
+  wulfenite: '#ff8833', ferrimolybdite: '#f5dc14', selenite: '#e8e0d8', feldspar: '#f0d0b0'
 };
 
 // Derive crystal color from its growth history and chemistry
@@ -3474,7 +3475,15 @@ let timeScale = 5.0;
 //   v2 — scenario-chemistry audit (Apr 2026): every scenario anchored to a
 //        named locality with cited fluid values; locality_chemistry.json
 //        is the data-source-of-truth.
-const SIM_VERSION = 2;
+//   v3 — supergene/arsenate expansion (Apr 2026): ferrimolybdite
+//        (Pb-absent Mo-oxidation fork), arsenopyrite (Au-trapping
+//        primary sulfide), and scorodite (arsenate supergene with
+//        pH-gated dissolution) engines added. Shifts Mo distribution
+//        wherever O₂/Fe are available (porphyry, bisbee, supergene),
+//        and shifts Au distribution in reducing-As scenarios
+//        (arsenopyrite now traps a fraction of Au as invisible-gold
+//        trace before native_gold can nucleate).
+const SIM_VERSION = 3;
 
 
 // ============================================================
@@ -4286,6 +4295,29 @@ class VugConditions {
       sigma *= 0.3;
     }
     return sigma;
+  }
+
+  // Ferrimolybdite (Fe₂(MoO₄)₃·nH₂O) — the no-lead branch of Mo oxidation.
+  // Canary-yellow acicular tufts; fast-growing, powdery, under-displayed
+  // but geologically more common than wulfenite. Forms from oxidized
+  // molybdenite when Fe is around and Pb is either absent or already
+  // committed elsewhere. Coexists with wulfenite in Pb-bearing systems
+  // (both draw on MoO₄²⁻ pool).
+  supersaturation_ferrimolybdite() {
+    if (this.fluid.Mo < 2 || this.fluid.Fe < 3 || this.fluid.O2 < 0.5) return 0;
+    // Lower Mo threshold + /10 scaling reflects faster, less-picky growth.
+    let sigma = (this.fluid.Mo / 10.0) * (this.fluid.Fe / 20.0) * (this.fluid.O2 / 1.0);
+    // Strongly low-temperature — supergene/weathering zone only.
+    if (this.temperature > 50) {
+      sigma *= Math.exp(-0.02 * (this.temperature - 50));
+    }
+    // pH window — mild acidic to neutral.
+    if (this.fluid.pH > 7) {
+      sigma *= Math.max(0.2, 1.0 - 0.2 * (this.fluid.pH - 7));
+    } else if (this.fluid.pH < 3) {
+      sigma *= Math.max(0.3, 1.0 - 0.25 * (3 - this.fluid.pH));
+    }
+    return Math.max(sigma, 0);
   }
 
   // Feldspar (KAlSi3O8 / NaAlSi3O8) — the most abundant mineral on Earth
@@ -6190,6 +6222,63 @@ function grow_wulfenite(crystal, conditions, step) {
   });
 }
 
+// Ferrimolybdite — Fe₂(MoO₄)₃·nH₂O
+// Canary-yellow acicular tufts. The "no-lead branch" of Mo oxidation —
+// forms on molybdenite surfaces during supergene weathering when Fe is
+// around. Coexists with wulfenite; faster growth, less particular.
+// Dehydrates > 150°C or acid-dissolves at pH < 2 (releasing Fe + MoO₄²⁻).
+function grow_ferrimolybdite(crystal, conditions, step) {
+  const sigma = conditions.supersaturation_ferrimolybdite();
+
+  if (sigma < 1.0) {
+    if (crystal.total_growth_um > 2 && (conditions.fluid.pH < 2 || conditions.temperature > 150)) {
+      crystal.dissolved = true;
+      const dissolved_um = Math.min(2.5, crystal.total_growth_um * 0.18);
+      conditions.fluid.Fe += dissolved_um * 0.5;
+      conditions.fluid.Mo += dissolved_um * 0.4;
+      return new GrowthZone({
+        step, temperature: conditions.temperature,
+        thickness_um: -dissolved_um, growth_rate: -dissolved_um,
+        note: 'dehydration — ferrimolybdite crumbles, releasing Fe³⁺ + MoO₄²⁻'
+      });
+    }
+    return null;
+  }
+
+  const excess = sigma - 1.0;
+  let rate = 5.0 * excess * rng.uniform(0.8, 1.2); // fast growth — the defining trait
+  if (rate < 0.1) return null;
+
+  // Habit by σ excess:
+  //   very high σ → powdery crust (mass accretion, no crystal form)
+  //   high σ → fibrous mat (felted yellow aggregate)
+  //   moderate σ → acicular tufts (classic radiating hair habit)
+  let habit_note;
+  if (excess > 2.0) {
+    crystal.habit = 'powdery crust';
+    crystal.dominant_forms = ['earthy yellow powder', 'sulfur-yellow coating'];
+    habit_note = 'canary-yellow powdery crust on molybdenite';
+  } else if (excess > 0.8) {
+    crystal.habit = 'fibrous mat';
+    crystal.dominant_forms = ['dense fibrous mats', 'yellow felted aggregate'];
+    habit_note = 'fibrous mat of yellow ferrimolybdite';
+  } else {
+    crystal.habit = 'acicular tuft';
+    crystal.dominant_forms = ['radiating acicular tufts', 'hair-like fibers'];
+    habit_note = 'acicular radiating tufts of canary-yellow ferrimolybdite';
+  }
+
+  conditions.fluid.Mo = Math.max(conditions.fluid.Mo - rate * 0.003, 0);
+  conditions.fluid.Fe = Math.max(conditions.fluid.Fe - rate * 0.004, 0);
+
+  return new GrowthZone({
+    step, temperature: conditions.temperature,
+    thickness_um: rate, growth_rate: rate,
+    trace_Fe: conditions.fluid.Fe * 0.01,
+    note: habit_note
+  });
+}
+
 // Feldspar — KAlSi3O8 / NaAlSi3O8
 // Temperature determines polymorph: sanidine (>500) → orthoclase (300-500) → microcline (<300)
 // Pb in fluid + microcline = amazonite (green)
@@ -7433,6 +7522,7 @@ const MINERAL_ENGINES = {
   molybdenite: grow_molybdenite,
   smithsonite: grow_smithsonite,
   wulfenite: grow_wulfenite,
+  ferrimolybdite: grow_ferrimolybdite,
   selenite: grow_selenite,
   feldspar: grow_feldspar,
   adamite: grow_adamite,
@@ -9181,6 +9271,28 @@ class VugSimulator {
       }
       const c = this.nucleate('wulfenite', pos, sigma_wulf);
       this.log.push(`  ✦ NUCLEATION: 🟠 Wulfenite #${c.crystal_id} on ${c.position} (T=${this.conditions.temperature.toFixed(0)}°C, σ=${sigma_wulf.toFixed(2)}) — the collector's prize!`);
+    }
+
+    // Ferrimolybdite nucleation — the no-lead Mo-oxidation fork.
+    // Lower σ threshold (1.0 vs wulfenite's 1.2) + higher per-check
+    // probability (0.18) reflect its faster, less-picky growth. Substrate:
+    // dissolving molybdenite (direct oxidation product) > active
+    // molybdenite > free vug wall. Coexists with wulfenite; both draw
+    // on the MoO₄²⁻ pool but ferrimolybdite wins the early window.
+    const sigma_fmo = this.conditions.supersaturation_ferrimolybdite();
+    if (sigma_fmo > 1.0 && !this._atNucleationCap('ferrimolybdite')) {
+      if (rng.random() < 0.18) {
+        let pos = 'vug wall';
+        const dissolving_mol = this.crystals.filter(c => c.mineral === 'molybdenite' && c.dissolved);
+        const active_mol = this.crystals.filter(c => c.mineral === 'molybdenite' && c.active);
+        if (dissolving_mol.length && rng.random() < 0.7) {
+          pos = `on dissolving molybdenite #${dissolving_mol[0].crystal_id}`;
+        } else if (active_mol.length && rng.random() < 0.4) {
+          pos = `on molybdenite #${active_mol[0].crystal_id}`;
+        }
+        const c = this.nucleate('ferrimolybdite', pos, sigma_fmo);
+        this.log.push(`  ✦ NUCLEATION: 🟡 Ferrimolybdite #${c.crystal_id} on ${c.position} (T=${this.conditions.temperature.toFixed(0)}°C, σ=${sigma_fmo.toFixed(2)}, Mo=${this.conditions.fluid.Mo.toFixed(0)}, Fe=${this.conditions.fluid.Fe.toFixed(0)}) — canary-yellow tufts on oxidizing molybdenite`);
+      }
     }
 
     // Selenite nucleation — low temperature, oxidized sulfate environment
@@ -14620,7 +14732,7 @@ const IDLE_MINERAL_COLORS = {
   pyrite: '#c8b830', chalcopyrite: '#c89830', galena: '#a0a0a0',
   hematite: '#b04040', malachite: '#2e8b57', sphalerite: '#cc8844',
   goethite: '#8b6914', uraninite: '#44dd44', smithsonite: '#88bbcc',
-  wulfenite: '#ff8833', selenite: '#e8e0d8', feldspar: '#f0d0b0'
+  wulfenite: '#ff8833', ferrimolybdite: '#f5dc14', selenite: '#e8e0d8', feldspar: '#f0d0b0'
 };
 
 const IDLE_SPEED_MAP = [0.5, 1, 2, 5, 10]; // steps per second

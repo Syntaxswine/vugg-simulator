@@ -42,7 +42,15 @@ from typing import List, Dict, Optional, Tuple
 #   v2 — scenario-chemistry audit (Apr 2026): every scenario anchored to a
 #        named locality with cited fluid values; locality_chemistry.json
 #        is the data-source-of-truth.
-SIM_VERSION = 2
+#   v3 — supergene/arsenate expansion (Apr 2026): ferrimolybdite
+#        (Pb-absent Mo-oxidation fork), arsenopyrite (Au-trapping primary
+#        sulfide), and scorodite (arsenate supergene product with
+#        pH-gated dissolution) engines added. Shifts Mo distribution
+#        wherever O₂/Fe are available (porphyry, bisbee, supergene), and
+#        shifts Au distribution in reducing-As scenarios (arsenopyrite
+#        now traps a fraction of Au as invisible-gold trace before
+#        native_gold can nucleate).
+SIM_VERSION = 3
 
 
 # ============================================================
@@ -2185,6 +2193,40 @@ class VugConditions:
             sigma *= math.exp(-0.01 * (150 - self.temperature))
         elif 300 < self.temperature < 500:
             sigma *= 1.3  # sweet spot for porphyry Mo
+        return max(sigma, 0)
+
+    def supersaturation_ferrimolybdite(self) -> float:
+        """Ferrimolybdite (Fe₂(MoO₄)₃·nH₂O) — the no-lead branch of Mo oxidation.
+
+        Canary-yellow acicular tufts, the fast-growing powdery fork that
+        takes MoO₄²⁻ when it oxidizes out of molybdenite and no Pb is
+        around to make wulfenite. In the sim, both fork products can
+        coexist — ferrimolybdite's lower σ threshold and higher growth
+        rate let it win the early oxidation window; wulfenite catches up
+        later if Pb is available.
+
+        Paragenesis: molybdenite → MoO₄²⁻ + Fe³⁺ → ferrimolybdite
+        Geology: Climax (Colorado), Kingman (Arizona), and porphyry
+        Cu-Mo oxidation zones worldwide. Geologically MORE common than
+        wulfenite but under-represented in collections (powdery yellow
+        fuzz, not display material — collectors walk past it to get to
+        the wulfenite plates).
+        """
+        if self.fluid.Mo < 2 or self.fluid.Fe < 3 or self.fluid.O2 < 0.5:
+            return 0
+        # Lower Mo threshold (2 vs wulfenite's 2; scaled /10 vs /15)
+        # reflects the faster, less picky growth.
+        sigma = (self.fluid.Mo / 10.0) * (self.fluid.Fe / 20.0) * (self.fluid.O2 / 1.0)
+        # Strongly low-temperature — supergene/weathering zone only.
+        # Cuts off above ~150°C via Arrhenius-shape decay.
+        if self.temperature > 50:
+            sigma *= math.exp(-0.02 * (self.temperature - 50))
+        # pH window — mild acidic to neutral. Acid rock drainage
+        # pH 3-6 is typical of sulfide-oxidation environments.
+        if self.fluid.pH > 7:
+            sigma *= max(0.2, 1.0 - 0.2 * (self.fluid.pH - 7))
+        elif self.fluid.pH < 3:
+            sigma *= max(0.3, 1.0 - 0.25 * (3 - self.fluid.pH))
         return max(sigma, 0)
 
 
@@ -6060,6 +6102,70 @@ def grow_wulfenite(crystal: Crystal, conditions: VugConditions, step: int) -> Op
     )
 
 
+def grow_ferrimolybdite(crystal: Crystal, conditions: VugConditions, step: int) -> Optional[GrowthZone]:
+    """Ferrimolybdite (Fe₂(MoO₄)₃·nH₂O) growth. Canary-yellow acicular tufts.
+
+    The "no-lead branch" of Mo oxidation. Fast-growing, powdery to
+    fibrous; rarely forms display-grade crystals. Hardness ~2, very
+    soft. Coexists with wulfenite (both nucleate from oxidized MoO₄²⁻)
+    but wins the early window because ferrimolybdite's σ threshold and
+    growth rate are higher.
+
+    Dehydrates / dissolves at moderate T (>150°C) or very acidic
+    (pH<2) — Mo and Fe return to fluid, potentially feeding a late
+    wulfenite pulse if Pb is present.
+    """
+    sigma = conditions.supersaturation_ferrimolybdite()
+
+    if sigma < 1.0:
+        # Dehydration (T>150) or acid-loss (pH<2) releases Fe + MoO₄²⁻.
+        # Ferrimolybdite is metastable — it gives up its MoO₄²⁻ relatively
+        # easily compared to wulfenite's stable lead lock.
+        if crystal.total_growth_um > 2 and (conditions.fluid.pH < 2 or conditions.temperature > 150):
+            crystal.dissolved = True
+            dissolved_um = min(2.5, crystal.total_growth_um * 0.18)
+            conditions.fluid.Fe += dissolved_um * 0.5
+            conditions.fluid.Mo += dissolved_um * 0.4
+            return GrowthZone(
+                step=step, temperature=conditions.temperature,
+                thickness_um=-dissolved_um, growth_rate=-dissolved_um,
+                note="dehydration — ferrimolybdite crumbles, releasing Fe³⁺ + MoO₄²⁻"
+            )
+        return None
+
+    excess = sigma - 1.0
+    rate = 5.0 * excess * random.uniform(0.8, 1.2)  # fast growth — the defining trait
+    if rate < 0.1:
+        return None
+
+    # Habit by σ excess:
+    #   very high σ → powdery crust (mass accretion, no crystal form)
+    #   high σ → fibrous mat (felted yellow aggregate)
+    #   moderate σ → acicular tufts (classic radiating hair-like habit)
+    if excess > 2.0:
+        crystal.habit = "powdery crust"
+        crystal.dominant_forms = ["earthy yellow powder", "sulfur-yellow coating"]
+        habit_note = "canary-yellow powdery crust on molybdenite"
+    elif excess > 0.8:
+        crystal.habit = "fibrous mat"
+        crystal.dominant_forms = ["dense fibrous mats", "yellow felted aggregate"]
+        habit_note = "fibrous mat of yellow ferrimolybdite"
+    else:
+        crystal.habit = "acicular tuft"
+        crystal.dominant_forms = ["radiating acicular tufts", "hair-like fibers"]
+        habit_note = "acicular radiating tufts of canary-yellow ferrimolybdite"
+
+    conditions.fluid.Mo = max(conditions.fluid.Mo - rate * 0.003, 0)
+    conditions.fluid.Fe = max(conditions.fluid.Fe - rate * 0.004, 0)
+
+    return GrowthZone(
+        step=step, temperature=conditions.temperature,
+        thickness_um=rate, growth_rate=rate,
+        trace_Fe=conditions.fluid.Fe * 0.01,
+        note=habit_note
+    )
+
+
 def grow_selenite(crystal: Crystal, conditions: VugConditions, step: int) -> Optional[GrowthZone]:
     """Selenite / Gypsum (CaSO₄·2H₂O) growth. Low-T evaporite, Naica's giant crystals."""
     sigma = conditions.supersaturation_selenite()
@@ -6150,6 +6256,7 @@ MINERAL_ENGINES = {
     "goethite": grow_goethite,
     "smithsonite": grow_smithsonite,
     "wulfenite": grow_wulfenite,
+    "ferrimolybdite": grow_ferrimolybdite,
     "selenite": grow_selenite,
     "topaz": grow_topaz,
     "tourmaline": grow_tourmaline,
@@ -8916,6 +9023,27 @@ class VugSimulator:
                 c = self.nucleate("wulfenite", position="vug wall", sigma=sigma_wul)
                 self.log.append(f"  ✦ NUCLEATION: Wulfenite #{c.crystal_id} on {c.position} "
                               f"(T={self.conditions.temperature:.0f}°C, σ={sigma_wul:.2f})")
+
+        # Ferrimolybdite nucleation — the no-lead Mo-oxidation fork.
+        # Lower σ threshold (1.0 vs wulfenite's 1.3) + higher probability
+        # per check (0.18 vs 0.15) reflect its faster, less-picky growth.
+        # Substrate preference: dissolving molybdenite (direct oxidation
+        # product) > active molybdenite > free vug wall. Can coexist
+        # with wulfenite — both take MoO₄²⁻ from the same pool.
+        sigma_fmo = self.conditions.supersaturation_ferrimolybdite()
+        if sigma_fmo > 1.0 and not self._at_nucleation_cap("ferrimolybdite"):
+            if random.random() < 0.18:
+                pos = "vug wall"
+                dissolving_mol = [c for c in self.crystals if c.mineral == "molybdenite" and c.dissolved]
+                active_mol = [c for c in self.crystals if c.mineral == "molybdenite" and c.active]
+                if dissolving_mol and random.random() < 0.7:
+                    pos = f"on dissolving molybdenite #{dissolving_mol[0].crystal_id}"
+                elif active_mol and random.random() < 0.4:
+                    pos = f"on molybdenite #{active_mol[0].crystal_id}"
+                c = self.nucleate("ferrimolybdite", position=pos, sigma=sigma_fmo)
+                self.log.append(f"  ✦ NUCLEATION: Ferrimolybdite #{c.crystal_id} on {c.position} "
+                              f"(T={self.conditions.temperature:.0f}°C, σ={sigma_fmo:.2f}, "
+                              f"Mo={self.conditions.fluid.Mo:.0f}, Fe={self.conditions.fluid.Fe:.0f})")
 
         # Uraninite nucleation — strongly reducing, U-bearing. Emits radiation each step.
         sigma_ur = self.conditions.supersaturation_uraninite()
