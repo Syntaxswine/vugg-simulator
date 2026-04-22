@@ -8477,6 +8477,7 @@ function scenario_deccan_zeolite() {
     fluid: new FluidChemistry({
       SiO2: 900, Ca: 180, CO3: 80, Fe: 180, Mn: 4, Mg: 8, Al: 15,
       K: 2, Na: 40, F: 1,
+      Sr: 2,            // audit gap-fill: zeolites carry Sr substituting for Ca
       O2: 1.5, pH: 8.2, salinity: 2.0
     }),
     wall: new VugWall({

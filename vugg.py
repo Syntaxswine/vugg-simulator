@@ -7654,6 +7654,12 @@ def scenario_deccan_zeolite() -> Tuple[VugConditions, List[Event], int]:
             # needles before Stage III brings apophyllite.
             SiO2=900, Ca=180, CO3=80, Fe=180, Mn=4, Mg=8, Al=15,
             K=2, Na=40, F=1,
+            # Audit gap-fill (Apr 2026): Sr=2 — Deccan zeolites
+            # (heulandite, stilbite, mesolite) carry Sr substituting
+            # for Ca, sometimes 100s of ppm in the mineral. Sim-scale
+            # 2 ppm in the parent fluid documents the source. Brief-
+            # required non-zero Mg already covered by Mg=8.
+            Sr=2,
             O2=1.5, pH=8.2, salinity=2.0,
         ),
         # Vesicle in basalt — a single primary cavity with minor
