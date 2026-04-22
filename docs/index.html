@@ -14594,16 +14594,25 @@ function _wireTopoLegendEvents(host) {
 
 // Resize the canvas backing store to match its CSS size so the line is
 // crisp on any window width. Called on each render; cheap if unchanged.
+//
+// IMPORTANT: uses clientWidth/clientHeight (CSS layout box, unaffected
+// by CSS transforms) rather than getBoundingClientRect() (which returns
+// the transformed visual box). With the 3D tilt feature, using rect.width
+// creates a positive-shrink feedback loop: each render reads a smaller
+// transformed rect, writes it to canvas.width, flex layout shrinks the
+// container, next rect is even smaller. clientWidth breaks that cycle
+// because it's the pre-transform layout size.
 function _topoResize(canvas) {
   const dpr = window.devicePixelRatio || 1;
-  const rect = canvas.getBoundingClientRect();
-  const w = Math.max(1, Math.round(rect.width * dpr));
-  const h = Math.max(1, Math.round(rect.height * dpr));
+  const cssW = canvas.clientWidth;
+  const cssH = canvas.clientHeight;
+  const w = Math.max(1, Math.round(cssW * dpr));
+  const h = Math.max(1, Math.round(cssH * dpr));
   if (canvas.width !== w || canvas.height !== h) {
     canvas.width = w;
     canvas.height = h;
   }
-  return { cssW: rect.width, cssH: rect.height, dpr };
+  return { cssW, cssH, dpr };
 }
 
 // Cell i maps to an angle around the vug. 0 starts at the top (12 o'clock)
