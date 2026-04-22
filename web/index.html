@@ -8303,6 +8303,13 @@ function scenario_ouro_preto() {
 // contribution from the Sacramento Hill quartz-monzonite porphyry —
 // represented as `limestone` wall + SiO₂ injected by ev_silica_seep.
 // Mirrors scenario_bisbee in vugg.py.
+// Bisbee, Arizona — Warren Mining District, Cochise County. Laramide
+// quartz-monzonite porphyry intruding Paleozoic Escabrosa Limestone +
+// Abrigo Formation. Major Cu-Ag-Au district (~8 Mt Cu, ~25 Moz Ag,
+// ~3 Moz Au historically). Centerpiece mechanic: azurite ↔ malachite
+// ↔ chrysocolla cascade tracking pCO2 evolution. See vugg.py
+// scenario_bisbee docstring + locality_chemistry.json#warren_district
+// for full citation tags.
 function scenario_bisbee() {
   const conditions = new VugConditions({
     temperature: 400.0,
@@ -8312,6 +8319,16 @@ function scenario_bisbee() {
       Cu: 400, S: 150, F: 6, Cl: 400, Pb: 15,
       K: 80, Na: 120, Al: 20,
       As: 8, Bi: 2,
+      // ── Audit gap-fills (Apr 2026) ────────────────────────────────
+      Ag: 40,             // Warren District ~25 Moz Ag [Graeme et al. 2019]
+      Mg: 50,             // Escabrosa Limestone host (dolomitic in places)
+      P: 5,               // enables pyromorphite (Pb+Cl+P now all present)
+      Sb: 5,              // tetrahedrite-tennantite sulfosalt trace
+      // Pre-researched, pending FluidChemistry schema:
+      //   When Au is added, set Au: 3. Bisbee ~3 Moz Au historically;
+      //   slightly higher than Bingham's Au=2 reflecting Bisbee's well-
+      //   preserved supergene Au accumulation. See vugg.py comment +
+      //   locality_chemistry.json warren_district.pending_schema_additions.
       O2: 0.05, pH: 5.0, salinity: 30.0,
     }),
     wall: new VugWall({

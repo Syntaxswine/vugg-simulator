@@ -183,6 +183,53 @@
         "Sweetwater-specific (vs district-wide Viburnum) fluid-inclusion LA-ICP-MS data is sparse; trace-element values are inferred from district averages.",
         "The 'acid pulse' mechanic is an abstraction — real Viburnum mineralization is interpreted as continuous brine flow with pH evolving via wallrock buffering, not discrete acid injections. The pulse model preserves the dissolution-precipitation cycle pedagogically."
       ]
+    },
+    "warren_district": {
+      "scenario_id": "bisbee",
+      "audit_status": "anchored",
+      "display_name": "Bisbee / Warren Mining District, Cochise County, Arizona",
+      "host_formation": "Laramide (Late Cretaceous - Early Tertiary, ~70-65 Ma) quartz-monzonite porphyry intruding Paleozoic Escabrosa Limestone + Abrigo Formation",
+      "production_history": "~8 Mt Cu, ~25 Moz Ag, ~3 Moz Au historically (1880-1975). Type-locality for the supergene Cu paragenesis cascade (chalcopyrite -> chalcocite -> cuprite -> native Cu -> azurite -> malachite -> chrysocolla).",
+      "fluid_event_summary": "Three-phase history: (1) primary Laramide magmatic-hydrothermal phase, hot reducing brine, chalcopyrite-bornite-pyrite-magnetite assemblage; (2) Mesozoic-Cenozoic uplift exposes ore to meteoric water, pyrite oxidation drops pH, Cu^2+ leaches and descends; (3) supergene cascade: chalcocite enrichment blanket -> cuprite -> native Cu -> azurite (high pCO2 monsoon) -> malachite (pCO2 drop) -> chrysocolla (silica seep). Each step corresponds to a documented Bisbee specimen type.",
+      "audit_pass": "gap-fill (Apr 2026) — added Ag (~25 Moz Ag historical production), Mg (Escabrosa Limestone host), P (enables pyromorphite given Pb+Cl already present), Sb (tetrahedrite-tennantite sulfosalt trace). No drift between Python and JS init (both already consistent). Existing chemistry preserved (no retuning); event sequence (9 events spanning 340 steps) preserved.",
+      "fluid": {
+        "Ag": {"value": 40, "note": "Warren District produced ~25 Moz Ag historically — argentiferous galena + tetrahedrite + argentite + minor native Ag. Higher than the prior MVT scenarios (Tri-State Ag=5, Sweetwater Ag=3) reflecting Bisbee's Ag-rich character."},
+        "Mg": {"value": 50, "note": "Escabrosa Limestone host is dolomitic in places; brine Mg from carbonate dissolution. Conservative — Bisbee doesn't have prominent dolomitization."},
+        "P": {"value": 5, "note": "Enables pyromorphite (Pb-Cl-PO4) given existing Pb=15 + Cl=400 + supergene oxidation events. Pyromorphite is a documented minor Bisbee supergene Pb species alongside cerussite + anglesite."},
+        "Sb": {"value": 5, "note": "Tetrahedrite (Cu-Sb-S) is the documented sulfosalt at Bisbee. Mirrors the existing Bi=2 / As=8 greisen-trace triplet."}
+      },
+      "preserved_intentional_values": {
+        "SiO2": 500, "Ca": 60, "CO3": 30, "Fe": 200, "Mn": 4,
+        "Cu": 400, "S": 150, "F": 6, "Cl": 400, "Pb": 15,
+        "K": 80, "Na": 120, "Al": 20,
+        "As": 8, "Bi": 2,
+        "O2": 0.05, "pH": 5.0, "salinity": 30.0,
+        "Cu_note": "Cu=400 is upper end of primary porphyry; the whole district budget concentrated in the sim relative to nature (we don't model the 10 km^3 of leached rock).",
+        "Cl_note": "Cl=400 + salinity=30 wt% NaCl-eq reflects the hypersaline (35-55 wt%) primary brine per Graeme et al. 2019 fluid inclusion data.",
+        "T_note": "T=400 is mid-range of Graeme et al. 2019 fluid-inclusion 320-450 C. Cooling events drop T through the supergene sequence."
+      },
+      "references": [
+        "Graeme, R.W., Graeme, R.W. III, Graeme, D.B. (2019). Bisbee, Arizona: A Mineralogical History. Mineralogical Record, vol. 50 monograph. [The modern Bisbee mineralogy + paragenesis monograph]",
+        "Bryant, D.G. (1968). Intrusive breccias associated with ore, Warren (Bisbee) Mining District, Arizona. Econ. Geol. 63(1): 1-12. [District geology + Sacramento Hill intrusion]",
+        "Crane, W.R. (1911). Geology of the Bisbee district, Arizona. USGS Prof. Paper 21. [Historical district geology baseline]",
+        "Vink, B.W. (1986). Stability relations of malachite and azurite. Mineral. Mag. 50: 41-47. [pCO2 thermodynamics of azurite-malachite-chrysocolla cascade — core mechanic]",
+        "Mote, T.I., Becker, T.A., Renne, P., Brimhall, G.H. (2001). Chronology of exotic mineralization at El Salvador, Chile, by 40Ar/39Ar dating of copper chlorides and chrysocolla. Econ. Geol. 96(2): 351-366. [Supergene chrysocolla geochemistry — applicable to Bisbee chrysocolla]"
+      ],
+      "data_gaps": [
+        "P=5 is a minimum-viable value to enable pyromorphite nucleation; actual Bisbee fluid P content not directly published in fluid-inclusion studies.",
+        "Sb=5 mirrors the Bi/As traces conservatively; Bisbee tetrahedrite Sb content is well-documented in mineral analyses but fluid-stage Sb is not."
+      ],
+      "pending_schema_additions": {
+        "_purpose": "Values pre-researched and ready to plug in once the corresponding FluidChemistry schema field exists.",
+        "Au": {
+          "value": 3,
+          "unit": "ppm (sim-scale, slightly higher than Bingham's pending Au=2)",
+          "rationale": "Bisbee was a moderate Au producer (~3 Moz historically). Higher sim-scale Au than Bingham reflects Bisbee's well-preserved supergene Au accumulation: native gold + auriferous chalcocite are documented throughout the oxidation zone (Graeme et al. 2019). The same Au field that lands for Bingham unlocks Bisbee's gold paragenesis automatically.",
+          "source": "Graeme, R.W. et al. (2019); USGS Bisbee bulletins; production statistics from the Phelps Dodge / Freeport-McMoRan archive.",
+          "blockers": "Same as bingham_canyon Au — needs Au field in FluidChemistry + grow_native_gold (and ideally an auriferous-chalcocite trace tracker).",
+          "minerals_unlocked": ["native_gold", "auriferous chalcocite trace"]
+        }
+      }
     }
   }
 }

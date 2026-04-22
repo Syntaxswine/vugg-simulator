@@ -7291,6 +7291,42 @@ def scenario_bisbee() -> Tuple[VugConditions, List[Event], int]:
             # Trace — arsenic from arsenopyrite, bismuth greisen
             # signature (Bisbee has documented bismuth enrichment).
             As=8, Bi=2,
+            # ── Audit gap-fills (Apr 2026) ────────────────────────────
+            # Ag=40: Bisbee / Warren District was a major Ag producer
+            # (~25 Moz historically) alongside Cu and Au. Argentiferous
+            # galena + tetrahedrite + argentite + minor native Ag are
+            # documented [Graeme et al. 2019]. Higher than the prior
+            # MVT scenarios (Tri-State Ag=5, Sweetwater Ag=3) reflecting
+            # Bisbee's Ag-rich character.
+            Ag=40,
+            # Mg=50: Escabrosa Limestone host is dolomitic in places;
+            # brine Mg from carbonate dissolution. Conservative —
+            # Bisbee doesn't have prominent dolomitization, but the
+            # brief requires every scenario have non-zero Mg.
+            Mg=50,
+            # P=5: enables pyromorphite (Pb-Cl-PO4) given existing
+            # Pb=15 + Cl=400 + supergene oxidation events. Bisbee has
+            # documented pyromorphite as a minor supergene Pb species
+            # alongside cerussite and anglesite [Graeme et al. 2019].
+            P=5,
+            # Sb=5: tetrahedrite (Cu-Sb-S) is the documented sulfosalt
+            # at Bisbee. Bi=2 is already set; mirroring with comparable
+            # low Sb completes the Sb-As-Bi greisen-trace triplet.
+            Sb=5,
+            # ── Pre-researched, pending FluidChemistry schema ─────────
+            # When Au is added to the FluidChemistry dataclass, set:
+            #     Au=3,
+            # Justification: Bisbee was a moderate Au producer (~3 Moz
+            # historically), classic Cu-Au porphyry. Lower than Bingham's
+            # Au=2 in some sense (Bingham is the type Cu-Au porphyry)
+            # but Bisbee's preserved Au is documented in the supergene
+            # zone as native gold + auriferous chalcocite. Sim-scale
+            # Au=3 slightly higher than Bingham reflecting Bisbee's
+            # preserved oxidation zone where Au accumulates.
+            # Source: Graeme et al. 2019 + USGS Bisbee bulletins.
+            # Procedure: same as bingham_canyon Au — add field, mirror,
+            # uncomment, re-run seed-42.
+            # ──────────────────────────────────────────────────────────
             # Very reducing primary — chalcopyrite/bornite-stable.
             O2=0.05, pH=5.0, salinity=30.0
         ),
