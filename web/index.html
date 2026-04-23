@@ -14311,16 +14311,25 @@ function renderCollectedForMineral(name) {
       const playBtn = canPlay
         ? `<button onclick="playCollectedInGroove('${c.id}')" title="Open this crystal in the Record Player">▶ Play</button>`
         : `<button disabled title="No zone data saved — collect a fresh one">▶ Play</button>`;
-      return `<div class="collected-row">
-        <div class="collected-row-head">
-          <span class="collected-name" title="${safeName}">${c.name}</span>
-          <span class="collected-size">${c.mm.toFixed(2)} mm</span>
-        </div>
-        <div class="collected-row-meta">${c.habit}${twin} · ${src}${seed} · ${zoneCount} zones</div>
-        <div class="collected-row-actions">
-          ${playBtn}
-          <button onclick="renameCollectedCrystal('${c.id}')">✎ Rename</button>
-          <button onclick="deleteCollectedCrystal('${c.id}')" class="danger">🗑 Delete</button>
+      // Zone-viz Phase 1d: bar-graph thumbnail for each collected specimen.
+      // crystalThumbHTML is duck-typed — it reads .mineral + .zones, which
+      // the serialized record has. For records saved before zone data was
+      // persisted (c.zones undefined), falls back to the generic mineral
+      // photo/placeholder automatically.
+      const thumbHTML = crystalThumbHTML(c, 40);
+      return `<div class="collected-row" style="display:flex;gap:0.5rem;align-items:flex-start">
+        ${thumbHTML}
+        <div style="flex:1;min-width:0">
+          <div class="collected-row-head">
+            <span class="collected-name" title="${safeName}">${c.name}</span>
+            <span class="collected-size">${c.mm.toFixed(2)} mm</span>
+          </div>
+          <div class="collected-row-meta">${c.habit}${twin} · ${src}${seed} · ${zoneCount} zones</div>
+          <div class="collected-row-actions">
+            ${playBtn}
+            <button onclick="renameCollectedCrystal('${c.id}')">✎ Rename</button>
+            <button onclick="deleteCollectedCrystal('${c.id}')" class="danger">🗑 Delete</button>
+          </div>
         </div>
       </div>`;
     }).join('');
