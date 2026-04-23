@@ -15290,6 +15290,39 @@ function updateFortressStatus() {
   }
 }
 
+// Zone-viz Phase 1c: bar-graph thumbnail for Crystal Inventory specimen
+// cards. Falls back to the generic mineral photo/placeholder thumb when
+// the crystal has fewer than 2 zones (no history worth rendering).
+//
+// Implementation note: renderCrystalRow builds its content as an HTML
+// string and commits it via el.innerHTML. A live canvas can't be painted
+// via innerHTML — it needs a post-insert JS paint. So we render off-
+// screen via renderZoneBarCanvas + toDataURL and embed as an <img>.
+// The underlying canvas width may exceed the thumbnail display box (e.g.
+// 150 zones × 1px-zone = 150px canvas); the <img> CSS stretches/squashes
+// it to the display size, which is the right trade-off — the color
+// pattern is the message, not pixel-precise zone boundaries.
+function crystalThumbHTML(crystal, size) {
+  size = size || 56;
+  const cColor = crystalColor(crystal);
+  if (crystal && crystal.zones && crystal.zones.length >= 2) {
+    const thumbCanvas = document.createElement('canvas');
+    renderZoneBarCanvas(thumbCanvas, crystal.zones, {
+      height: size,
+      maxWidth: size,
+      minZoneWidth: 1,
+      maxZoneWidth: 4,
+      showLaneLabels: false,
+      showFIGlyphs: true,
+    });
+    const dataUrl = thumbCanvas.toDataURL();
+    return `<div style="width:${size}px;height:${size}px;border-radius:4px;overflow:hidden;flex-shrink:0;border:1px solid ${cColor}44;background:#070706" title="${crystal.mineral} · ${crystal.zones.length} zones">
+      <img src="${dataUrl}" style="width:100%;height:100%;display:block;image-rendering:pixelated" alt="${crystal.mineral} growth history">
+    </div>`;
+  }
+  return mineralThumbHTML(crystal.mineral, size, crystal);
+}
+
 // Shared renderer — builds the crystal row HTML + wires click-for-zones
 // + per-crystal Collect button. `onCollect` takes (index, event) so
 // the caller can route to the right mode's collect helper.
@@ -15302,7 +15335,7 @@ function renderCrystalRow(crystal, idx, onCollect) {
   const cColor = crystalColor(crystal);
 
   let html = `<div style="display:flex;gap:0.6rem;align-items:flex-start">`;
-  html += mineralThumbHTML(crystal.mineral, 56, crystal);
+  html += crystalThumbHTML(crystal, 56);
   html += `<div style="flex:1;min-width:0">`;
   html += `<div class="inv-mineral" style="color:${cColor}">${displayName} #${crystal.crystal_id}</div>`;
   html += `<div class="inv-size">${crystal.c_length_mm.toFixed(1)} × ${crystal.a_width_mm.toFixed(1)} mm</div>`;
