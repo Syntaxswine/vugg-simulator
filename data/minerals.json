@@ -542,7 +542,7 @@
           "name": "cyclic_sextet",
           "miller_indices": "{110}",
           "trigger": "growth in twinned_cyclic habit",
-          "probability": 0.40
+          "probability": 0.4
         },
         {
           "name": "contact",
@@ -4546,9 +4546,9 @@
       "pH_dissolution_above": null,
       "redox_requirement": "any",
       "required_ingredients": {
-        "Al": 8,
-        "SiO2": 30,
-        "F": 25
+        "Al": 3,
+        "SiO2": 200,
+        "F": 20
       },
       "trace_ingredients": {
         "Cr": "imperial golden-orange (>3 ppm), pink (>8 ppm with radiation)",
