@@ -3094,6 +3094,8 @@ const MINERAL_SPEC_FALLBACK = {
   selenite: { formula: "CaSO4·2H2O", nucleation_sigma: 1.0, max_size_cm: 2400, growth_rate_mult: 0.7, thermal_decomp_C: 150, fluorescence: null, twin_laws: [{ name: "swallowtail", probability: 0.08 }], acid_dissolution: { pH_threshold: 5.0 } },
   barite: { formula: "BaSO4", nucleation_sigma: 1.0, max_size_cm: 60, growth_rate_mult: 0.3, thermal_decomp_C: 1149, fluorescence: { activator: "intrinsic", color: "creamy_white_SW_Sterling" }, twin_laws: [{ name: "cyclic_cockscomb", probability: 0.05 }], acid_dissolution: null },
   celestine: { formula: "SrSO4", nucleation_sigma: 1.0, max_size_cm: 30, growth_rate_mult: 0.3, thermal_decomp_C: 1100, fluorescence: null, twin_laws: [], acid_dissolution: null },
+  jarosite: { formula: "KFe3(SO4)2(OH)6", nucleation_sigma: 1.0, max_size_cm: 3, growth_rate_mult: 0.4, thermal_decomp_C: 250, fluorescence: null, twin_laws: [], acid_dissolution: null },
+  alunite: { formula: "KAl3(SO4)2(OH)6", nucleation_sigma: 1.0, max_size_cm: 5, growth_rate_mult: 0.35, thermal_decomp_C: 450, fluorescence: null, twin_laws: [], acid_dissolution: null },
   goethite: { formula: "FeO(OH)", nucleation_sigma: 1.0, max_size_cm: 60, growth_rate_mult: 0.4, thermal_decomp_C: 300, fluorescence: null, twin_laws: [], acid_dissolution: { pH_threshold: 3.0 }, nucleation_preferences: { grows_on: ["pyrite", "chalcopyrite", "marcasite"], forms_pseudomorph_after: ["pyrite"] } },
   topaz: { formula: "Al2SiO4(F,OH)2", nucleation_sigma: 1.4, max_size_cm: 200, growth_rate_mult: 0.3, thermal_decomp_C: null, fluorescence: { activator: "trace Ti", threshold_ppm: 2, color: "weak_greenish_LW" }, twin_laws: [], acid_dissolution: { pH_threshold: 2.0 } },
   tourmaline: { formula: "Na(Fe,Li,Al)3Al6(BO3)3Si6O18(OH)4", nucleation_sigma: 1.3, max_size_cm: 300, growth_rate_mult: 0.4, thermal_decomp_C: null, fluorescence: null, twin_laws: [], acid_dissolution: null },
@@ -3256,7 +3258,7 @@ const MINERAL_GAME_COLORS = {
   pyrite: '#c8b830', chalcopyrite: '#c89830', galena: '#a0a0a0', molybdenite: '#707888',
   hematite: '#b04040', malachite: '#2e8b57', sphalerite: '#cc8844',
   goethite: '#8b6914', uraninite: '#44dd44', smithsonite: '#88bbcc',
-  wulfenite: '#ff8833', ferrimolybdite: '#f5dc14', arsenopyrite: '#c8c0b8', scorodite: '#5a9a8a', selenite: '#e8e0d8', barite: '#eb137f', celestine: '#a4c8e0', feldspar: '#f0d0b0'
+  wulfenite: '#ff8833', ferrimolybdite: '#f5dc14', arsenopyrite: '#c8c0b8', scorodite: '#5a9a8a', selenite: '#e8e0d8', barite: '#eb137f', celestine: '#a4c8e0', jarosite: '#dcb43c', alunite: '#f0e0d8', feldspar: '#f0d0b0'
 };
 
 // Derive crystal color from its growth history and chemistry
@@ -4359,6 +4361,61 @@ class VugConditions {
       sigma *= Math.max(0.4, 1.0 - 0.2 * (4 - this.fluid.pH));
     } else if (this.fluid.pH > 9) {
       sigma *= Math.max(0.4, 1.0 - 0.2 * (this.fluid.pH - 9));
+    }
+    return Math.max(sigma, 0);
+  }
+
+  // Jarosite (KFe³⁺₃(SO₄)₂(OH)₆) — the diagnostic acid-mine-drainage mineral.
+  // Yellow rhombs/crusts; supergene Fe-sulfate that takes over from goethite
+  // when pH drops below 4. Confirmed on Mars (Klingelhöfer et al. 2004).
+  // Stability: K, Fe, S, O2; pH 1-5 (above pH 5 dissolves to feed goethite).
+  // Strongly low-T — supergene only.
+  supersaturation_jarosite() {
+    if (this.fluid.K < 5 || this.fluid.Fe < 10 || this.fluid.S < 20
+        || this.fluid.O2 < 0.5) return 0;
+    if (this.fluid.pH > 5) return 0;
+    const k_f  = Math.min(this.fluid.K  / 15.0, 2.0);
+    const fe_f = Math.min(this.fluid.Fe / 30.0, 2.5);
+    const s_f  = Math.min(this.fluid.S  / 50.0, 2.5);
+    const o2_f = Math.min(this.fluid.O2 / 1.0, 1.5);
+    let sigma = k_f * fe_f * s_f * o2_f;
+    if (this.temperature > 50) {
+      sigma *= Math.exp(-0.04 * (this.temperature - 50));
+    }
+    if (this.fluid.pH > 4) {
+      sigma *= Math.max(0.2, 1.0 - 0.6 * (this.fluid.pH - 4));
+    } else if (this.fluid.pH < 1) {
+      sigma *= 0.4;
+    }
+    return Math.max(sigma, 0);
+  }
+
+  // Alunite (KAl₃(SO₄)₂(OH)₆) — the Al sister of jarosite (alunite group).
+  // The index mineral of advanced argillic alteration in porphyry-Cu lithocaps
+  // and high-sulfidation epithermal Au deposits. Marysvale UT type locality.
+  // Wider T window than jarosite (50-300 °C — hydrothermal acid-sulfate spans
+  // the porphyry-epithermal range, not just supergene).
+  supersaturation_alunite() {
+    if (this.fluid.K < 5 || this.fluid.Al < 10 || this.fluid.S < 20
+        || this.fluid.O2 < 0.5) return 0;
+    if (this.fluid.pH > 5) return 0;
+    const k_f  = Math.min(this.fluid.K  / 15.0, 2.0);
+    const al_f = Math.min(this.fluid.Al / 25.0, 2.5);
+    const s_f  = Math.min(this.fluid.S  / 50.0, 2.5);
+    const o2_f = Math.min(this.fluid.O2 / 1.0, 1.5);
+    let sigma = k_f * al_f * s_f * o2_f;
+    const T = this.temperature;
+    if (T >= 50 && T <= 200) {
+      sigma *= 1.2;
+    } else if (T < 25) {
+      sigma *= 0.5;
+    } else if (T > 350) {
+      sigma *= Math.max(0.2, 1.0 - 0.005 * (T - 350));
+    }
+    if (this.fluid.pH > 4) {
+      sigma *= Math.max(0.2, 1.0 - 0.6 * (this.fluid.pH - 4));
+    } else if (this.fluid.pH < 1) {
+      sigma *= 0.4;
     }
     return Math.max(sigma, 0);
   }
@@ -6656,6 +6713,125 @@ function grow_celestine(crystal, conditions, step) {
   });
 }
 
+// Jarosite — KFe³⁺₃(SO4)2(OH)6
+// Yellow AMD Fe-sulfate; substrate-prefers dissolving pyrite/marcasite.
+// Dissolves above pH 4 → releases K + Fe³⁺ + SO4 (jarosite-to-goethite
+// AMN succession when pH neutralizes).
+function grow_jarosite(crystal, conditions, step) {
+  const sigma = conditions.supersaturation_jarosite();
+
+  if (sigma < 1.0) {
+    if (crystal.total_growth_um > 2 && conditions.fluid.pH > 4.5) {
+      crystal.dissolved = true;
+      const dissolved_um = Math.min(2.5, crystal.total_growth_um * 0.15);
+      conditions.fluid.K  += dissolved_um * 0.3;
+      conditions.fluid.Fe += dissolved_um * 0.5;
+      conditions.fluid.S  += dissolved_um * 0.4;
+      return new GrowthZone({
+        step, temperature: conditions.temperature,
+        thickness_um: -dissolved_um, growth_rate: -dissolved_um,
+        note: 'dissolution (pH > 4) — jarosite releases K + Fe³⁺ + SO₄²⁻; goethite-stable territory now'
+      });
+    }
+    return null;
+  }
+
+  const excess = sigma - 1.0;
+  const rate = 4.0 * excess * rng.uniform(0.8, 1.2);
+  if (rate < 0.1) return null;
+
+  let habit_note;
+  if (excess > 1.5) {
+    crystal.habit = 'earthy_crust';
+    crystal.dominant_forms = ['powdery yellow coating', 'AMD stain'];
+    habit_note = 'powdery yellow jarosite crust on weathered sulfide — the diagnostic AMD signature';
+  } else if (excess > 0.5) {
+    crystal.habit = 'druzy';
+    crystal.dominant_forms = ['microcrystalline druse'];
+    habit_note = 'druzy jarosite microcrystals — yellow honeycomb on pyrite oxidation surfaces';
+  } else {
+    crystal.habit = 'pseudocubic';
+    crystal.dominant_forms = ['pseudocubic rhombs', 'tabular {0001}'];
+    habit_note = 'pseudocubic golden-yellow jarosite rhombs';
+  }
+
+  conditions.fluid.K  = Math.max(conditions.fluid.K  - rate * 0.003, 0);
+  conditions.fluid.Fe = Math.max(conditions.fluid.Fe - rate * 0.005, 0);
+  conditions.fluid.S  = Math.max(conditions.fluid.S  - rate * 0.004, 0);
+
+  return new GrowthZone({
+    step, temperature: conditions.temperature,
+    thickness_um: rate, growth_rate: rate,
+    trace_Fe: conditions.fluid.Fe * 0.005,
+    note: habit_note
+  });
+}
+
+// Alunite — KAl3(SO4)2(OH)6
+// Advanced argillic alteration index mineral; substrate-prefers dissolving
+// feldspar. Wider T than jarosite (hydrothermal acid-sulfate). Dissolves
+// above pH 4 OR above 350°C.
+function grow_alunite(crystal, conditions, step) {
+  const sigma = conditions.supersaturation_alunite();
+
+  if (sigma < 1.0) {
+    if (crystal.total_growth_um > 2 && (conditions.fluid.pH > 4.5
+                                         || conditions.temperature > 350)) {
+      crystal.dissolved = true;
+      const dissolved_um = Math.min(2.5, crystal.total_growth_um * 0.12);
+      conditions.fluid.K  += dissolved_um * 0.3;
+      conditions.fluid.Al += dissolved_um * 0.4;
+      conditions.fluid.S  += dissolved_um * 0.4;
+      const cause = conditions.fluid.pH > 4.5 ? 'pH > 4' : 'T > 350°C';
+      return new GrowthZone({
+        step, temperature: conditions.temperature,
+        thickness_um: -dissolved_um, growth_rate: -dissolved_um,
+        note: `dissolution (${cause}) — alunite releases K + Al³⁺ + SO₄²⁻`
+      });
+    }
+    return null;
+  }
+
+  const excess = sigma - 1.0;
+  const rate = 3.5 * excess * rng.uniform(0.8, 1.2);
+  if (rate < 0.1) return null;
+
+  let habit_note;
+  if (excess > 1.5) {
+    crystal.habit = 'earthy';
+    crystal.dominant_forms = ['chalky white masses', 'feldspar-replacement habit'];
+    habit_note = 'earthy alunite — chalky white replacement of feldspathic wall (Marysvale alunite-stone habit)';
+  } else if (excess > 0.8) {
+    crystal.habit = 'fibrous';
+    crystal.dominant_forms = ['radiating fibers', 'vein-fill'];
+    habit_note = 'fibrous alunite — vein-fill, radiating from substrate';
+  } else if (excess > 0.3) {
+    crystal.habit = 'tabular';
+    crystal.dominant_forms = ['sharp tabular blades'];
+    habit_note = 'tabular alunite blades — Goldfield epithermal habit';
+  } else {
+    crystal.habit = 'pseudocubic';
+    crystal.dominant_forms = ['pseudocubic rhombs'];
+    habit_note = 'pseudocubic alunite rhombs';
+  }
+
+  if (conditions.fluid.Fe > 20) {
+    habit_note += '; pinkish (intermediate to jarosite — natroalunite series)';
+  }
+
+  conditions.fluid.K  = Math.max(conditions.fluid.K  - rate * 0.003, 0);
+  conditions.fluid.Al = Math.max(conditions.fluid.Al - rate * 0.005, 0);
+  conditions.fluid.S  = Math.max(conditions.fluid.S  - rate * 0.004, 0);
+
+  return new GrowthZone({
+    step, temperature: conditions.temperature,
+    thickness_um: rate, growth_rate: rate,
+    trace_Fe: conditions.fluid.Fe * 0.002,
+    trace_Al: conditions.fluid.Al * 0.005,
+    note: habit_note
+  });
+}
+
 // Feldspar — KAlSi3O8 / NaAlSi3O8
 // Temperature determines polymorph: sanidine (>500) → orthoclase (300-500) → microcline (<300)
 // Pb in fluid + microcline = amazonite (green)
@@ -7904,6 +8080,8 @@ const MINERAL_ENGINES = {
   scorodite: grow_scorodite,
   barite: grow_barite,
   celestine: grow_celestine,
+  jarosite: grow_jarosite,
+  alunite: grow_alunite,
   selenite: grow_selenite,
   feldspar: grow_feldspar,
   adamite: grow_adamite,
@@ -9755,6 +9933,45 @@ class VugSimulator {
         }
         const c = this.nucleate('celestine', pos, sigma_cel);
         this.log.push(`  ✦ NUCLEATION: 🟦 Celestine #${c.crystal_id} on ${c.position} (T=${this.conditions.temperature.toFixed(0)}°C, σ=${sigma_cel.toFixed(2)}, Sr=${this.conditions.fluid.Sr.toFixed(0)}, S=${this.conditions.fluid.S.toFixed(0)}, O₂=${this.conditions.fluid.O2.toFixed(2)}) — pale celestial blue, Sr sulfate`);
+      }
+    }
+
+    // Jarosite nucleation — the AMD-yellow Fe sulfate. Substrate prefers
+    // dissolving pyrite/marcasite (the diagnostic yellow rim).
+    const sigma_jar = this.conditions.supersaturation_jarosite();
+    if (sigma_jar > 1.0 && !this._atNucleationCap('jarosite')) {
+      if (rng.random() < 0.18) {
+        let pos = 'vug wall';
+        const diss_py_jar = this.crystals.filter(c => c.mineral === 'pyrite' && c.dissolved);
+        const diss_mar_jar = this.crystals.filter(c => c.mineral === 'marcasite' && c.dissolved);
+        const active_py_jar = this.crystals.filter(c => c.mineral === 'pyrite' && c.active);
+        if (diss_py_jar.length && rng.random() < 0.7) {
+          pos = `on dissolving pyrite #${diss_py_jar[0].crystal_id}`;
+        } else if (diss_mar_jar.length && rng.random() < 0.6) {
+          pos = `on dissolving marcasite #${diss_mar_jar[0].crystal_id}`;
+        } else if (active_py_jar.length && rng.random() < 0.4) {
+          pos = `on pyrite #${active_py_jar[0].crystal_id}`;
+        }
+        const c = this.nucleate('jarosite', pos, sigma_jar);
+        this.log.push(`  ✦ NUCLEATION: 🟡 Jarosite #${c.crystal_id} on ${c.position} (T=${this.conditions.temperature.toFixed(0)}°C, σ=${sigma_jar.toFixed(2)}, K=${this.conditions.fluid.K.toFixed(0)}, Fe=${this.conditions.fluid.Fe.toFixed(0)}, pH=${this.conditions.fluid.pH.toFixed(1)}) — AMD yellow, Mars-class mineral`);
+      }
+    }
+
+    // Alunite nucleation — advanced argillic alteration; substrate prefers
+    // dissolving feldspar (the wall-leaching origin of Al).
+    const sigma_alu = this.conditions.supersaturation_alunite();
+    if (sigma_alu > 1.0 && !this._atNucleationCap('alunite')) {
+      if (rng.random() < 0.15) {
+        let pos = 'vug wall';
+        const diss_fel_alu = this.crystals.filter(c => c.mineral === 'feldspar' && c.dissolved);
+        const active_fel_alu = this.crystals.filter(c => c.mineral === 'feldspar' && c.active);
+        if (diss_fel_alu.length && rng.random() < 0.7) {
+          pos = `on dissolving feldspar #${diss_fel_alu[0].crystal_id}`;
+        } else if (active_fel_alu.length && rng.random() < 0.4) {
+          pos = `on feldspar #${active_fel_alu[0].crystal_id}`;
+        }
+        const c = this.nucleate('alunite', pos, sigma_alu);
+        this.log.push(`  ✦ NUCLEATION: ⚪ Alunite #${c.crystal_id} on ${c.position} (T=${this.conditions.temperature.toFixed(0)}°C, σ=${sigma_alu.toFixed(2)}, K=${this.conditions.fluid.K.toFixed(0)}, Al=${this.conditions.fluid.Al.toFixed(0)}, pH=${this.conditions.fluid.pH.toFixed(1)}) — advanced argillic alteration index`);
       }
     }
 
@@ -15195,7 +15412,7 @@ const IDLE_MINERAL_COLORS = {
   pyrite: '#c8b830', chalcopyrite: '#c89830', galena: '#a0a0a0',
   hematite: '#b04040', malachite: '#2e8b57', sphalerite: '#cc8844',
   goethite: '#8b6914', uraninite: '#44dd44', smithsonite: '#88bbcc',
-  wulfenite: '#ff8833', ferrimolybdite: '#f5dc14', arsenopyrite: '#c8c0b8', scorodite: '#5a9a8a', selenite: '#e8e0d8', barite: '#eb137f', celestine: '#a4c8e0', feldspar: '#f0d0b0'
+  wulfenite: '#ff8833', ferrimolybdite: '#f5dc14', arsenopyrite: '#c8c0b8', scorodite: '#5a9a8a', selenite: '#e8e0d8', barite: '#eb137f', celestine: '#a4c8e0', jarosite: '#dcb43c', alunite: '#f0e0d8', feldspar: '#f0d0b0'
 };
 
 const IDLE_SPEED_MAP = [0.5, 1, 2, 5, 10]; // steps per second

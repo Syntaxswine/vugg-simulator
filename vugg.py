@@ -2363,6 +2363,88 @@ class VugConditions:
             sigma *= max(0.4, 1.0 - 0.2 * (self.fluid.pH - 9))
         return max(sigma, 0)
 
+    def supersaturation_jarosite(self) -> float:
+        """Jarosite (KFe³⁺₃(SO₄)₂(OH)₆) — the diagnostic acid-mine-drainage mineral.
+
+        Yellow-to-ocher pseudocubic rhombs and powdery crusts; the
+        supergene Fe-sulfate that takes over from goethite when pH
+        drops below 4. Confirmed on Mars at Meridiani Planum by MER
+        Opportunity Mössbauer (Klingelhöfer et al. 2004) — proof of
+        past acidic surface water on Mars. Earth localities: Rio Tinto,
+        Red Mountain Pass (CO), every active sulfide-mine tailings pond.
+
+        Stability gates: K ≥ 5 (from concurrent feldspar weathering),
+        Fe ≥ 10, S ≥ 20, O2 ≥ 0.5 (strongly oxidizing), pH 1-4
+        (above pH 4 jarosite dissolves and Fe goes to goethite),
+        T < 100 °C (kinetically supergene only — never hydrothermal).
+
+        Source: Bigham et al. 1996 (Geochim. Cosmochim. Acta 60);
+        Stoffregen et al. 2000 (Reviews in Mineralogy 40).
+        """
+        if (self.fluid.K < 5 or self.fluid.Fe < 10 or self.fluid.S < 20
+                or self.fluid.O2 < 0.5):
+            return 0
+        if self.fluid.pH > 5:
+            return 0  # hard gate; jarosite only stable in acid drainage
+        # Factor caps
+        k_f = min(self.fluid.K / 15.0, 2.0)
+        fe_f = min(self.fluid.Fe / 30.0, 2.5)
+        s_f = min(self.fluid.S / 50.0, 2.5)
+        o2_f = min(self.fluid.O2 / 1.0, 1.5)
+        sigma = k_f * fe_f * s_f * o2_f
+        # Strongly low-T — supergene only
+        if self.temperature > 50:
+            sigma *= math.exp(-0.04 * (self.temperature - 50))
+        # pH peak around 2-3, falls outside 1-4
+        if self.fluid.pH > 4:
+            sigma *= max(0.2, 1.0 - 0.6 * (self.fluid.pH - 4))
+        elif self.fluid.pH < 1:
+            sigma *= 0.4
+        return max(sigma, 0)
+
+    def supersaturation_alunite(self) -> float:
+        """Alunite (KAl₃(SO₄)₂(OH)₆) — the Al sister of jarosite (alunite group).
+
+        Same trigonal structure as jarosite, with Al³⁺ replacing Fe³⁺.
+        The index mineral of "advanced argillic" alteration in
+        porphyry-Cu lithocaps and high-sulfidation epithermal Au
+        deposits (Marysvale UT type locality, Goldfield NV, Summitville,
+        Yanacocha). Mined as a K source 1900s before potash mining
+        took over.
+
+        Stability gates: K ≥ 5, Al ≥ 10 (from feldspar leaching), S ≥ 20,
+        O2 ≥ 0.5, pH 1-4. Wider T window than jarosite (50-300 °C
+        — hydrothermal acid-sulfate alteration spans the porphyry
+        epithermal range, not just supergene).
+
+        Source: Hemley et al. 1969 (Econ. Geol. 64); Stoffregen 1987
+        (Summitville Au-Cu-Ag); Stoffregen et al. 2000 (Rev. Mineral. 40).
+        """
+        if (self.fluid.K < 5 or self.fluid.Al < 10 or self.fluid.S < 20
+                or self.fluid.O2 < 0.5):
+            return 0
+        if self.fluid.pH > 5:
+            return 0
+        k_f = min(self.fluid.K / 15.0, 2.0)
+        al_f = min(self.fluid.Al / 25.0, 2.5)
+        s_f = min(self.fluid.S / 50.0, 2.5)
+        o2_f = min(self.fluid.O2 / 1.0, 1.5)
+        sigma = k_f * al_f * s_f * o2_f
+        # Wider T window than jarosite — hydrothermal acid-sulfate
+        T = self.temperature
+        if 50 <= T <= 200:
+            sigma *= 1.2
+        elif T < 25:
+            sigma *= 0.5
+        elif T > 350:
+            sigma *= max(0.2, 1.0 - 0.005 * (T - 350))
+        # pH peak 2-3
+        if self.fluid.pH > 4:
+            sigma *= max(0.2, 1.0 - 0.6 * (self.fluid.pH - 4))
+        elif self.fluid.pH < 1:
+            sigma *= 0.4
+        return max(sigma, 0)
+
     def supersaturation_celestine(self) -> float:
         """Celestine (SrSO₄) — the Sr sequestration mineral.
 
@@ -6578,6 +6660,129 @@ def grow_barite(crystal: Crystal, conditions: VugConditions, step: int) -> Optio
     )
 
 
+def grow_jarosite(crystal: Crystal, conditions: VugConditions, step: int) -> Optional[GrowthZone]:
+    """Jarosite (KFe³⁺₃(SO₄)₂(OH)₆) growth — the AMD-yellow Fe sulfate.
+
+    Pseudocubic yellow rhombs and earthy crusts on weathered sulfides.
+    Substrate-prefers dissolving pyrite/marcasite (the classic yellow
+    rim). Dissolves above pH 4 — releases K + Fe³⁺ + SO₄ which then
+    re-precipitates as goethite (the diagnostic AMD → AMN succession).
+    """
+    sigma = conditions.supersaturation_jarosite()
+
+    if sigma < 1.0:
+        # Alkaline-shift dissolution — releases ions that feed goethite.
+        # Hysteresis at pH 4.5 to avoid oscillation.
+        if crystal.total_growth_um > 2 and conditions.fluid.pH > 4.5:
+            crystal.dissolved = True
+            dissolved_um = min(2.5, crystal.total_growth_um * 0.15)
+            conditions.fluid.K += dissolved_um * 0.3
+            conditions.fluid.Fe += dissolved_um * 0.5
+            conditions.fluid.S += dissolved_um * 0.4
+            return GrowthZone(
+                step=step, temperature=conditions.temperature,
+                thickness_um=-dissolved_um, growth_rate=-dissolved_um,
+                note="dissolution (pH > 4) — jarosite releases K + Fe³⁺ + SO₄²⁻; goethite-stable territory now"
+            )
+        return None
+
+    excess = sigma - 1.0
+    rate = 4.0 * excess * random.uniform(0.8, 1.2)  # fast growth
+    if rate < 0.1:
+        return None
+
+    # Habit by σ excess
+    if excess > 1.5:
+        crystal.habit = "earthy_crust"
+        crystal.dominant_forms = ["powdery yellow coating", "AMD stain"]
+        habit_note = "powdery yellow jarosite crust on weathered sulfide — the diagnostic AMD signature"
+    elif excess > 0.5:
+        crystal.habit = "druzy"
+        crystal.dominant_forms = ["microcrystalline druse"]
+        habit_note = "druzy jarosite microcrystals — yellow honeycomb on pyrite oxidation surfaces"
+    else:
+        crystal.habit = "pseudocubic"
+        crystal.dominant_forms = ["pseudocubic rhombs", "tabular {0001}"]
+        habit_note = "pseudocubic golden-yellow jarosite rhombs"
+
+    conditions.fluid.K = max(conditions.fluid.K - rate * 0.003, 0)
+    conditions.fluid.Fe = max(conditions.fluid.Fe - rate * 0.005, 0)
+    conditions.fluid.S = max(conditions.fluid.S - rate * 0.004, 0)
+
+    return GrowthZone(
+        step=step, temperature=conditions.temperature,
+        thickness_um=rate, growth_rate=rate,
+        trace_Fe=conditions.fluid.Fe * 0.005,
+        note=habit_note
+    )
+
+
+def grow_alunite(crystal: Crystal, conditions: VugConditions, step: int) -> Optional[GrowthZone]:
+    """Alunite (KAl₃(SO₄)₂(OH)₆) growth — the advanced argillic index mineral.
+
+    Pseudocubic rhombs in the lithocap of porphyry-Cu systems and in
+    high-sulfidation epithermal Au deposits. Substrate-prefers
+    dissolving feldspar (the wall-leaching origin of Al). Dissolves
+    above pH 4 OR above 350 °C → releases K + Al + SO₄.
+    """
+    sigma = conditions.supersaturation_alunite()
+
+    if sigma < 1.0:
+        if crystal.total_growth_um > 2 and (conditions.fluid.pH > 4.5
+                                             or conditions.temperature > 350):
+            crystal.dissolved = True
+            dissolved_um = min(2.5, crystal.total_growth_um * 0.12)
+            conditions.fluid.K += dissolved_um * 0.3
+            conditions.fluid.Al += dissolved_um * 0.4
+            conditions.fluid.S += dissolved_um * 0.4
+            cause = "pH > 4" if conditions.fluid.pH > 4.5 else "T > 350°C"
+            return GrowthZone(
+                step=step, temperature=conditions.temperature,
+                thickness_um=-dissolved_um, growth_rate=-dissolved_um,
+                note=f"dissolution ({cause}) — alunite releases K + Al³⁺ + SO₄²⁻"
+            )
+        return None
+
+    excess = sigma - 1.0
+    rate = 3.5 * excess * random.uniform(0.8, 1.2)
+    if rate < 0.1:
+        return None
+
+    # Habit by σ excess
+    if excess > 1.5:
+        crystal.habit = "earthy"
+        crystal.dominant_forms = ["chalky white masses", "feldspar-replacement habit"]
+        habit_note = "earthy alunite — chalky white replacement of feldspathic wall (Marysvale alunite-stone habit)"
+    elif excess > 0.8:
+        crystal.habit = "fibrous"
+        crystal.dominant_forms = ["radiating fibers", "vein-fill"]
+        habit_note = "fibrous alunite — vein-fill, radiating from substrate"
+    elif excess > 0.3:
+        crystal.habit = "tabular"
+        crystal.dominant_forms = ["sharp tabular blades"]
+        habit_note = "tabular alunite blades — Goldfield epithermal habit"
+    else:
+        crystal.habit = "pseudocubic"
+        crystal.dominant_forms = ["pseudocubic rhombs"]
+        habit_note = "pseudocubic alunite rhombs"
+
+    # Pinkish tint when present in iron-bearing systems (intermediate to jarosite)
+    if conditions.fluid.Fe > 20:
+        habit_note += "; pinkish (intermediate to jarosite — natroalunite series)"
+
+    conditions.fluid.K = max(conditions.fluid.K - rate * 0.003, 0)
+    conditions.fluid.Al = max(conditions.fluid.Al - rate * 0.005, 0)
+    conditions.fluid.S = max(conditions.fluid.S - rate * 0.004, 0)
+
+    return GrowthZone(
+        step=step, temperature=conditions.temperature,
+        thickness_um=rate, growth_rate=rate,
+        trace_Fe=conditions.fluid.Fe * 0.002,
+        trace_Al=conditions.fluid.Al * 0.005,
+        note=habit_note
+    )
+
+
 def grow_celestine(crystal: Crystal, conditions: VugConditions, step: int) -> Optional[GrowthZone]:
     """Celestine (SrSO₄) growth — pale celestial blue, the Sr sister of barite.
 
@@ -6733,6 +6938,8 @@ MINERAL_ENGINES = {
     "scorodite": grow_scorodite,
     "barite": grow_barite,
     "celestine": grow_celestine,
+    "jarosite": grow_jarosite,
+    "alunite": grow_alunite,
     "selenite": grow_selenite,
     "topaz": grow_topaz,
     "tourmaline": grow_tourmaline,
@@ -6804,6 +7011,8 @@ THERMAL_DECOMPOSITION = {
     "scorodite":     (160, "FeAsO₄·2H₂O → FeAsO₄ + 2H₂O (dehydration to anhydrous arsenate)",  {"Fe": 0.4, "As": 0.4}),
     "barite":        (1149, "BaSO₄ → BaO + SO₃ (decomposition; very high T — outside normal sim range)", {"Ba": 0.5, "S": 0.4}),
     "celestine":     (1100, "SrSO₄ → SrO + SO₃ (decomposition; high T — outside normal sim range)", {"Sr": 0.5, "S": 0.4}),
+    "jarosite":      (250, "KFe³⁺₃(SO₄)₂(OH)₆ → K-jarosite dehydration → hematite + K-sulfate (loses lattice OH)", {"K": 0.3, "Fe": 0.5, "S": 0.3}),
+    "alunite":       (450, "KAl₃(SO₄)₂(OH)₆ → corundum + K-Al-sulfate (loses lattice OH; basis for the early-1900s K-fertilizer process)", {"K": 0.3, "Al": 0.4, "S": 0.3}),
 }
 
 
@@ -9618,6 +9827,48 @@ class VugSimulator:
                               f"Sr={self.conditions.fluid.Sr:.0f}, S={self.conditions.fluid.S:.0f}, "
                               f"O₂={self.conditions.fluid.O2:.2f})")
 
+        # Jarosite nucleation — the AMD-yellow Fe sulfate. Substrate prefers
+        # dissolving pyrite/marcasite (the diagnostic yellow rim on weathered
+        # sulfide). σ threshold 1.0 + per-check 0.18 reflects supergene speed.
+        sigma_jar = self.conditions.supersaturation_jarosite()
+        if sigma_jar > 1.0 and not self._at_nucleation_cap("jarosite"):
+            if random.random() < 0.18:
+                pos = "vug wall"
+                diss_py_jar = [c for c in self.crystals if c.mineral == "pyrite" and c.dissolved]
+                diss_mar_jar = [c for c in self.crystals if c.mineral == "marcasite" and c.dissolved]
+                active_py_jar = [c for c in self.crystals if c.mineral == "pyrite" and c.active]
+                if diss_py_jar and random.random() < 0.7:
+                    pos = f"on dissolving pyrite #{diss_py_jar[0].crystal_id}"
+                elif diss_mar_jar and random.random() < 0.6:
+                    pos = f"on dissolving marcasite #{diss_mar_jar[0].crystal_id}"
+                elif active_py_jar and random.random() < 0.4:
+                    pos = f"on pyrite #{active_py_jar[0].crystal_id}"
+                c = self.nucleate("jarosite", position=pos, sigma=sigma_jar)
+                self.log.append(f"  ✦ NUCLEATION: Jarosite #{c.crystal_id} on {c.position} "
+                              f"(T={self.conditions.temperature:.0f}°C, σ={sigma_jar:.2f}, "
+                              f"K={self.conditions.fluid.K:.0f}, Fe={self.conditions.fluid.Fe:.0f}, "
+                              f"pH={self.conditions.fluid.pH:.1f})")
+
+        # Alunite nucleation — advanced argillic alteration index mineral.
+        # Substrate prefers dissolving feldspar (the wall-leaching origin
+        # of Al). Wider T window than jarosite (50-300 °C — hydrothermal
+        # acid-sulfate). σ threshold 1.0 + per-check 0.15.
+        sigma_alu = self.conditions.supersaturation_alunite()
+        if sigma_alu > 1.0 and not self._at_nucleation_cap("alunite"):
+            if random.random() < 0.15:
+                pos = "vug wall"
+                diss_fel_alu = [c for c in self.crystals if c.mineral == "feldspar" and c.dissolved]
+                active_fel_alu = [c for c in self.crystals if c.mineral == "feldspar" and c.active]
+                if diss_fel_alu and random.random() < 0.7:
+                    pos = f"on dissolving feldspar #{diss_fel_alu[0].crystal_id}"
+                elif active_fel_alu and random.random() < 0.4:
+                    pos = f"on feldspar #{active_fel_alu[0].crystal_id}"
+                c = self.nucleate("alunite", position=pos, sigma=sigma_alu)
+                self.log.append(f"  ✦ NUCLEATION: Alunite #{c.crystal_id} on {c.position} "
+                              f"(T={self.conditions.temperature:.0f}°C, σ={sigma_alu:.2f}, "
+                              f"K={self.conditions.fluid.K:.0f}, Al={self.conditions.fluid.Al:.0f}, "
+                              f"pH={self.conditions.fluid.pH:.1f})")
+
         # Uraninite nucleation — strongly reducing, U-bearing. Emits radiation each step.
         sigma_ur = self.conditions.supersaturation_uraninite()
         if sigma_ur > 1.5 and not self._at_nucleation_cap("uraninite") and random.random() < 0.08:
@@ -12306,6 +12557,123 @@ class VugSimulator:
             "the modern scientific use — celestine preserves the Sr-isotope "
             "ratio of its parent fluid almost perfectly across geological "
             "time, making it a paleobrine fingerprint."
+        )
+        return " ".join(parts)
+
+    def _narrate_jarosite(self, c: Crystal) -> str:
+        """Narrate a jarosite crystal — the AMD-yellow Fe sulfate."""
+        parts = [f"Jarosite #{c.crystal_id} grew to {c.c_length_mm:.1f} mm."]
+        parts.append(
+            "KFe³⁺₃(SO₄)₂(OH)₆ — the diagnostic acid-mine-drainage "
+            "mineral. Yellow-to-ocher pseudocubic rhombs and powdery "
+            "crusts; the supergene Fe-sulfate that takes over from "
+            "goethite when pH drops below 4. Every active sulfide-mine "
+            "tailings pond on Earth has this yellow stain. Rio Tinto in "
+            "Spain runs red-orange through volume of jarosite + Fe³⁺ "
+            "load — the Phoenicians named the river for the color "
+            "and the Romans + Spanish + UK Rio Tinto Co. mined it for "
+            "Cu, Ag, and S over 5000 years."
+        )
+        if c.habit == "earthy_crust":
+            parts.append(
+                "Powdery yellow crust — the textbook AMD signature. "
+                "Microscopic crystals coat weathered pyrite surfaces "
+                "as fast oxidation outpaces crystal growth. Walk any "
+                "sulfide-mine tailings dump and this is what stains "
+                "your boots."
+            )
+        elif c.habit == "druzy":
+            parts.append(
+                "Druzy microcrystalline jarosite — yellow honeycomb "
+                "covering pyrite oxidation surfaces. Hand-lens reveals "
+                "tiny pseudocubic rhombs."
+            )
+        else:
+            parts.append(
+                "Pseudocubic rhombs — the diagnostic display habit, "
+                "looks cubic but the crystal system is actually trigonal. "
+                "Red Mountain Pass (CO) and Mojave (CA) produce sharp "
+                "specimens to ~1 cm."
+            )
+        if c.dissolved:
+            parts.append(
+                "Alkaline shift attacked the jarosite — pH crossed "
+                "above 4 (carbonate buffering, fluid mixing, neutralization), "
+                "releasing K + Fe³⁺ + SO₄²⁻. The Fe³⁺ now sits in goethite "
+                "territory; expect rust-brown goethite to nucleate from "
+                "the released cation pool. Jarosite-to-goethite is the "
+                "diagnostic AMD weathering succession."
+            )
+        parts.append(
+            "Mars connection: NASA's Mars Exploration Rover Opportunity "
+            "found jarosite at Meridiani Planum (Klingelhöfer et al. 2004) "
+            "via Mössbauer spectrometer — direct evidence that liquid "
+            "water flowed on Mars, and that it was acidic. Without "
+            "liquid water in the right pH/Eh window, jarosite cannot "
+            "form. The discovery rewrote the Mars hydrology timeline."
+        )
+        return " ".join(parts)
+
+    def _narrate_alunite(self, c: Crystal) -> str:
+        """Narrate an alunite crystal — the advanced argillic alteration index mineral."""
+        parts = [f"Alunite #{c.crystal_id} grew to {c.c_length_mm:.1f} mm."]
+        parts.append(
+            "KAl₃(SO₄)₂(OH)₆ — the K-Al sister of jarosite (alunite "
+            "group, isostructural). The index mineral of 'advanced "
+            "argillic' alteration in porphyry-Cu lithocaps and high-"
+            "sulfidation epithermal Au deposits. When you read about "
+            "porphyry-Cu lithocap kilometers wide, alunite is a major "
+            "phase. Marysvale (Utah) is the type locality; alunite was "
+            "mined there as a K-fertilizer source 1915-1930s before "
+            "Carlsbad potash made K cheaper to mine elsewhere."
+        )
+        if c.habit == "earthy":
+            parts.append(
+                "Earthy chalky white masses — the Marysvale 'alunite-stone' "
+                "habit, where alunite has wholesale-replaced feldspathic "
+                "wall rock. The hills of US-89 in southern Utah are visible "
+                "as pinkish-white alunite outcrops."
+            )
+        elif c.habit == "fibrous":
+            parts.append(
+                "Fibrous radiating alunite — vein-fill habit, where "
+                "acid-sulfate fluid percolated through fractures. Common "
+                "at Goldfield (Nevada) high-sulfidation epithermal Au."
+            )
+        elif c.habit == "tabular":
+            parts.append(
+                "Sharp tabular blades — the Goldfield + Summitville "
+                "epithermal habit, sometimes pseudohexagonal. Display "
+                "specimens are rare; alunite is usually massive."
+            )
+        else:
+            parts.append(
+                "Pseudocubic rhombs — same shape as jarosite, the alunite-"
+                "group structural family. Sharp display crystals are scarce."
+            )
+        any_note = " ".join(z.note or "" for z in c.zones)
+        if "pinkish" in any_note or "natroalunite" in any_note:
+            parts.append(
+                "Pinkish tint — Fe-substitution moves toward the "
+                "natroalunite-jarosite series; alunite-group minerals "
+                "form a continuous solid-solution loop across K↔Na "
+                "and Al↔Fe end members."
+            )
+        if c.dissolved:
+            parts.append(
+                "Alkaline shift OR thermal attack dissolved the alunite "
+                "— releases K + Al + SO₄ to the fluid. Above 350 °C "
+                "alunite's lattice OH dehydrates to corundum + K-Al "
+                "sulfate (the basis for the early-1900s K-fertilizer "
+                "process: heat alunite, leach the K-sulfate)."
+            )
+        parts.append(
+            "⁴⁰Ar/³⁹Ar geochronology connection: alunite preserves the "
+            "K-Ar age of its parent acid-sulfate hydrothermal event with "
+            "high precision (Stoffregen et al. 2000). For porphyry-Cu "
+            "and epithermal-Au exploration, dating alunite tells you "
+            "when the lithocap formed — and by inference, when the "
+            "underlying intrusive event occurred."
         )
         return " ".join(parts)
 

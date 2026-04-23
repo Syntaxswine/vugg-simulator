@@ -2586,6 +2586,207 @@
       "audit_status": "phase-2: wired in vugg.py and web/index.html. Research source: proposals/MINERALS-RESEARCH-SULFATES.md. The Sr sequestration mineral; activates the dormant fluid.Sr pool. **Coorong sabkha (Sr=20, S=2700, O2=1.5) produces immediate strong celestine activation — the seed-42 shift driving the SIM_VERSION 3→4 bump.** Tri-State Sr=15 + Sweetwater Sr=12 currently dormant due to O2=0.0 (gap flagged in audit alongside barite).",
       "class_color": "#eb137f"
     },
+    "jarosite": {
+      "formula": "KFe3(SO4)2(OH)6",
+      "nucleation_sigma": 1.0,
+      "max_nucleation_count": 6,
+      "max_size_cm": 3,
+      "growth_rate_mult": 0.4,
+      "habit_variants": [
+        {
+          "name": "pseudocubic",
+          "wall_spread": 0.4,
+          "void_reach": 0.5,
+          "vector": "equant",
+          "trigger": "default — pseudocubic golden-yellow rhombs (looks cubic, actually trigonal)"
+        },
+        {
+          "name": "druzy",
+          "wall_spread": 0.7,
+          "void_reach": 0.2,
+          "vector": "coating",
+          "trigger": "moderate σ — yellow honeycomb microcrystalline druse on pyrite oxidation surface"
+        },
+        {
+          "name": "earthy_crust",
+          "wall_spread": 0.95,
+          "void_reach": 0.05,
+          "vector": "coating",
+          "trigger": "high σ, fast growth — powdery yellow AMD stain"
+        }
+      ],
+      "class": "sulfate",
+      "description": "KFe³⁺₃(SO₄)₂(OH)₆, the diagnostic acid-mine-drainage mineral. Yellow-to-ocher pseudocubic rhombs and powdery crusts; the supergene Fe-sulfate that takes over from goethite when pH drops below 4. Confirmed on Mars at Meridiani Planum by NASA's MER Opportunity Mössbauer spectrometer in 2004 (Klingelhöfer et al. 2004) — the first confirmation of past liquid water + acidic conditions on Mars. Earth localities: Rio Tinto (Spain — the Phoenician + Roman + Spanish + Rio Tinto Co. mining district that names the red-orange river), Red Mountain Pass (Colorado), Mojave acid drainage sites, every active sulfide-mine tailings pond. Above pH 4 dissolves and the released Fe³⁺ goes to goethite — the diagnostic AMD weathering succession.",
+      "scenarios": [
+        "porphyry",
+        "bisbee",
+        "supergene_oxidation"
+      ],
+      "T_range_C": [
+        5,
+        100
+      ],
+      "T_optimum_C": [
+        15,
+        50
+      ],
+      "T_behavior": "supergene_window",
+      "pH_dissolution_above": 4.5,
+      "redox_requirement": "oxidizing",
+      "required_ingredients": {
+        "K": 5,
+        "Fe": 10,
+        "S": 20,
+        "O2": 0.5
+      },
+      "trace_ingredients": {
+        "Na": "natrojarosite (Na replaces K) — common in salty AMD",
+        "Pb": "plumbojarosite (Pb in K site) — at Pb-rich AMD localities",
+        "Ag": "argentojarosite (Ag in K site) — rare"
+      },
+      "thermal_decomp_C": 250,
+      "thermal_decomp_reaction": "KFe3(SO4)2(OH)6 -> hematite + K-sulfate + H2O (loses lattice OH)",
+      "thermal_decomp_products": {
+        "K": 0.3,
+        "Fe": 0.5,
+        "S": 0.3
+      },
+      "fluorescence": null,
+      "twin_laws": [],
+      "acid_dissolution": {
+        "pH_threshold": 4.5,
+        "reaction": "dissolves above pH 4 (alkaline-side dissolution, not acid), releasing K + Fe³⁺ + SO₄²⁻; goethite-stable territory now",
+        "products": {
+          "K": 0.3,
+          "Fe": 0.5,
+          "S": 0.4
+        },
+        "status": "newly_added",
+        "note": "jarosite is the acid mineral; pH > 4 destabilizes it. Inverse of typical acid_dissolution semantics (same as scorodite)."
+      },
+      "habit": "pseudocubic",
+      "color_rules": {
+        "golden_yellow": {
+          "default": true
+        },
+        "ocher_brown": {
+          "trigger": "Fe³⁺ overload or partial goethitization"
+        },
+        "pale_yellow": {
+          "trigger": "high purity / low Fe"
+        }
+      },
+      "narrate_function": "_narrate_jarosite",
+      "runtimes_present": [
+        "vugg.py",
+        "web/index.html"
+      ],
+      "audit_status": "phase-2: wired in vugg.py and web/index.html. Research source: proposals/MINERALS-RESEARCH-SULFATES.md. The Mars-class AMD mineral. Activates after Bingham event_oxidation (step 85) and Bisbee ev_uplift_weathering (step 65) when pH drops + O2 rises. Tsumeb pH=6.8 too high (same Tsumeb pH-gap as scorodite — flagged in audit). Closes a known modeling gap: previously all oxidized Fe in Bingham/Bisbee went to goethite, missing the diagnostic acid-drainage yellow.",
+      "class_color": "#eb137f"
+    },
+    "alunite": {
+      "formula": "KAl3(SO4)2(OH)6",
+      "nucleation_sigma": 1.0,
+      "max_nucleation_count": 5,
+      "max_size_cm": 5,
+      "growth_rate_mult": 0.35,
+      "habit_variants": [
+        {
+          "name": "pseudocubic",
+          "wall_spread": 0.4,
+          "void_reach": 0.5,
+          "vector": "equant",
+          "trigger": "default — pseudocubic rhombs (alunite-group structure, isostructural with jarosite)"
+        },
+        {
+          "name": "tabular",
+          "wall_spread": 0.5,
+          "void_reach": 0.4,
+          "vector": "tabular",
+          "trigger": "low σ — sharp tabular blades, Goldfield epithermal habit"
+        },
+        {
+          "name": "fibrous",
+          "wall_spread": 0.3,
+          "void_reach": 0.6,
+          "vector": "projecting",
+          "trigger": "moderate σ — radiating fibers, vein-fill habit"
+        },
+        {
+          "name": "earthy",
+          "wall_spread": 0.9,
+          "void_reach": 0.1,
+          "vector": "coating",
+          "trigger": "high σ — chalky white Marysvale alunite-stone replacement of feldspathic wall"
+        }
+      ],
+      "class": "sulfate",
+      "description": "KAl₃(SO₄)₂(OH)₆, the K-Al sister of jarosite (alunite group, isostructural). The index mineral of 'advanced argillic' alteration in porphyry-Cu lithocaps and high-sulfidation epithermal Au deposits — when geologists say a porphyry has a 'lithocap', alunite + kaolinite + pyrophyllite + dickite are the diagnostic phases of the kilometers-wide acid-altered horizon above the intrusion. Type locality Marysvale (Utah), where alunite was mined as a K-fertilizer source 1915-1930s before Carlsbad potash made K cheaper to mine elsewhere. World-class epithermal-Au localities: Goldfield (Nevada), Summitville (Colorado), Tambo (Chile), Yanacocha (Peru), Nansatsu district (Japan). ⁴⁰Ar/³⁹Ar geochronology preserves the K-Ar age of the acid-sulfate hydrothermal event, critical for porphyry-system timing (Stoffregen et al. 2000).",
+      "scenarios": [
+        "porphyry",
+        "supergene_oxidation"
+      ],
+      "T_range_C": [
+        25,
+        450
+      ],
+      "T_optimum_C": [
+        50,
+        200
+      ],
+      "T_behavior": "wide",
+      "pH_dissolution_above": 4.5,
+      "redox_requirement": "oxidizing",
+      "required_ingredients": {
+        "K": 5,
+        "Al": 10,
+        "S": 20,
+        "O2": 0.5
+      },
+      "trace_ingredients": {
+        "Na": "natroalunite (Na replaces K) — high-sulfidation epithermal common variant",
+        "Fe": "natroalunite-jarosite intermediate (pinkish tint at Fe > 20)"
+      },
+      "thermal_decomp_C": 450,
+      "thermal_decomp_reaction": "KAl3(SO4)2(OH)6 -> corundum + K-Al-sulfate (loses lattice OH; basis for the early-1900s K-fertilizer process)",
+      "thermal_decomp_products": {
+        "K": 0.3,
+        "Al": 0.4,
+        "S": 0.3
+      },
+      "fluorescence": null,
+      "twin_laws": [],
+      "acid_dissolution": {
+        "pH_threshold": 4.5,
+        "reaction": "dissolves above pH 4 OR above 350°C, releasing K + Al³⁺ + SO₄²⁻",
+        "products": {
+          "K": 0.3,
+          "Al": 0.4,
+          "S": 0.4
+        },
+        "status": "newly_added",
+        "note": "alunite is the acid mineral; pH > 4 destabilizes it. Same inverse semantics as jarosite."
+      },
+      "habit": "pseudocubic",
+      "color_rules": {
+        "white": {
+          "default": true
+        },
+        "pinkish": {
+          "trigger": "Marysvale type locality OR Fe > 20 (intermediate to jarosite, natroalunite series)"
+        },
+        "pale_yellow": {
+          "trigger": "minor Fe substitution"
+        }
+      },
+      "narrate_function": "_narrate_alunite",
+      "runtimes_present": [
+        "vugg.py",
+        "web/index.html"
+      ],
+      "audit_status": "phase-2: wired in vugg.py and web/index.html. Research source: proposals/MINERALS-RESEARCH-SULFATES.md. The advanced argillic alteration index mineral. Activates after Bingham event_oxidation when both pH drops AND O2 rises (porphyry lithocap simulation). Tsumeb K=10 borderline + Al=3 too low + pH=6.8 too high — won't form there. Bisbee K=80 + Al=20 + S=150 strong but needs ev_uplift_weathering for the right pH/O2 window. Closes a known modeling gap: previously the sim had no representation of advanced argillic alteration (the kilometers-wide lithocap above porphyry-Cu intrusions).",
+      "class_color": "#eb137f"
+    },
     "scorodite": {
       "formula": "FeAsO4·2H2O",
       "nucleation_sigma": 1.0,
