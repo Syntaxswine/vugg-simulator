@@ -14343,7 +14343,17 @@ function libraryBuildCard(name, m) {
   const twinText = Array.isArray(m.twin_laws) && m.twin_laws.length
     ? m.twin_laws.map(t => t.name + (t.probability ? ` (${(t.probability*100).toFixed(1)}%)` : '')).join(', ')
     : '—';
-  const acidText = m.acid_dissolution ? `pH &lt; ${m.acid_dissolution.pH_threshold}` : '—';
+  const acidText = (() => {
+    // Null-guard: `acid_dissolution` may be a dict whose pH_threshold is null
+    // for minerals that ARE acid-sensitive but only under special conditions
+    // (beryl/tourmaline/spodumene/anhydrite — HF-only or rehydration-only).
+    // Before this guard the Library showed the literal string "pH < null".
+    if (!m.acid_dissolution) return '—';
+    if (m.acid_dissolution.pH_threshold != null) {
+      return `pH &lt; ${m.acid_dissolution.pH_threshold}`;
+    }
+    return 'resistant';
+  })();
   const decompText = m.thermal_decomp_C ? `${m.thermal_decomp_C}°C` : '—';
   const collectedCount = crystalsOfMineral(name).length;
   const collectedBadge = collectedCount
@@ -14362,7 +14372,16 @@ function libraryBuildCard(name, m) {
       <div class="mineral-card-desc">${m.description || '<em>No description.</em>'}</div>
       <div class="mineral-card-stats">
         <div class="stat-key">Habits</div>
-        <div class="stat-val">${(m.habit_variants || [m.habit || '?']).join(', ')}</div>
+        <div class="stat-val">${(() => {
+          // habit_variants entries are objects like {name, wall_spread, ...};
+          // plain .join(', ') stringifies them as "[object Object]". Map to
+          // the .name field first so the Library shows readable variant names.
+          const hv = m.habit_variants;
+          if (Array.isArray(hv) && hv.length) {
+            return hv.map(v => (v && v.name) || String(v)).join(', ');
+          }
+          return m.habit || '?';
+        })()}</div>
         <div class="stat-key">T window</div>
         <div class="stat-val">${Tmin}–${Tmax}°C (optimum ${Topt})</div>
         <div class="stat-key">Requires</div>
