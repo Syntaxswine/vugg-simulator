@@ -3078,6 +3078,9 @@ const MINERAL_SPEC_FALLBACK = {
   galena: { formula: "PbS", nucleation_sigma: 1.0, max_size_cm: 60, growth_rate_mult: 0.5, thermal_decomp_C: 1115, fluorescence: null, twin_laws: [{ name: "spinel_law", probability: 0.008 }], acid_dissolution: { pH_threshold: 2.0 } },
   smithsonite: { formula: "ZnCO3", nucleation_sigma: 1.0, max_size_cm: 60, growth_rate_mult: 0.7, thermal_decomp_C: 300, fluorescence: { activator: "Mn", threshold_ppm: 2, color: "pink_LW" }, twin_laws: [{ name: "cyclic", probability: 0.01 }], acid_dissolution: { pH_threshold: 4.0 } },
   wulfenite: { formula: "PbMoO4", nucleation_sigma: 1.0, max_size_cm: 20, growth_rate_mult: 0.2, thermal_decomp_C: 1120, fluorescence: null, twin_laws: [{ name: "penetration", probability: 0.03 }], acid_dissolution: { pH_threshold: 3.5 } },
+  ferrimolybdite: { formula: "Fe2(MoO4)3·nH2O", nucleation_sigma: 1.0, max_size_cm: 5, growth_rate_mult: 0.5, thermal_decomp_C: 150, fluorescence: null, twin_laws: [], acid_dissolution: { pH_threshold: 2.0 } },
+  arsenopyrite: { formula: "FeAsS", nucleation_sigma: 1.2, max_size_cm: 15, growth_rate_mult: 0.3, thermal_decomp_C: 720, fluorescence: null, twin_laws: [{ name: "trillings_120", probability: 0.02 }], acid_dissolution: null },
+  scorodite: { formula: "FeAsO4·2H2O", nucleation_sigma: 1.0, max_size_cm: 8, growth_rate_mult: 0.25, thermal_decomp_C: 160, fluorescence: null, twin_laws: [], acid_dissolution: { pH_threshold: 5.5 } },
   molybdenite: { formula: "MoS2", nucleation_sigma: 1.0, max_size_cm: 40, growth_rate_mult: 0.3, thermal_decomp_C: 1185, fluorescence: null, twin_laws: [], acid_dissolution: null },
   adamite: { formula: "Zn2(AsO4)(OH)", nucleation_sigma: 1.0, max_size_cm: 10, growth_rate_mult: 0.3, thermal_decomp_C: 500, fluorescence: { activator: "intrinsic", color: "green_yellow_SW", quencher: { species: "Cu", threshold_ppm: 10 } }, twin_laws: [], acid_dissolution: { pH_threshold: 3.5 } },
   mimetite: { formula: "Pb5(AsO4)3Cl", nucleation_sigma: 1.0, max_size_cm: 10, growth_rate_mult: 0.3, thermal_decomp_C: 400, fluorescence: { activator: "intrinsic", color: "orange_SW" }, twin_laws: [], acid_dissolution: { pH_threshold: 3.0 } },
@@ -3250,7 +3253,7 @@ const MINERAL_GAME_COLORS = {
   pyrite: '#c8b830', chalcopyrite: '#c89830', galena: '#a0a0a0', molybdenite: '#707888',
   hematite: '#b04040', malachite: '#2e8b57', sphalerite: '#cc8844',
   goethite: '#8b6914', uraninite: '#44dd44', smithsonite: '#88bbcc',
-  wulfenite: '#ff8833', selenite: '#e8e0d8', feldspar: '#f0d0b0'
+  wulfenite: '#ff8833', ferrimolybdite: '#f5dc14', arsenopyrite: '#c8c0b8', scorodite: '#5a9a8a', selenite: '#e8e0d8', feldspar: '#f0d0b0'
 };
 
 // Derive crystal color from its growth history and chemistry
@@ -3474,7 +3477,15 @@ let timeScale = 5.0;
 //   v2 — scenario-chemistry audit (Apr 2026): every scenario anchored to a
 //        named locality with cited fluid values; locality_chemistry.json
 //        is the data-source-of-truth.
-const SIM_VERSION = 2;
+//   v3 — supergene/arsenate expansion (Apr 2026): ferrimolybdite
+//        (Pb-absent Mo-oxidation fork), arsenopyrite (Au-trapping
+//        primary sulfide), and scorodite (arsenate supergene with
+//        pH-gated dissolution) engines added. Shifts Mo distribution
+//        wherever O₂/Fe are available (porphyry, bisbee, supergene),
+//        and shifts Au distribution in reducing-As scenarios
+//        (arsenopyrite now traps a fraction of Au as invisible-gold
+//        trace before native_gold can nucleate).
+const SIM_VERSION = 3;
 
 
 // ============================================================
@@ -3519,6 +3530,7 @@ class FluidChemistry {
     this.Te = opts.Te ?? 0.0;    // tellurium — calaverite
     this.Se = opts.Se ?? 0.0;    // selenium — clausthalite
     this.Ge = opts.Ge ?? 0.0;    // germanium — Tsumeb sphalerite
+    this.Au = opts.Au ?? 0.0;    // gold — native gold; Bingham/Bisbee porphyry-Cu-Au
     this.O2 = opts.O2 ?? 0.0;
     this.pH = opts.pH ?? 6.5;
     this.salinity = opts.salinity ?? 5.0;
@@ -4287,6 +4299,82 @@ class VugConditions {
     return sigma;
   }
 
+  // Ferrimolybdite (Fe₂(MoO₄)₃·nH₂O) — the no-lead branch of Mo oxidation.
+  // Canary-yellow acicular tufts; fast-growing, powdery, under-displayed
+  // but geologically more common than wulfenite. Forms from oxidized
+  // molybdenite when Fe is around and Pb is either absent or already
+  // committed elsewhere. Coexists with wulfenite in Pb-bearing systems
+  // (both draw on MoO₄²⁻ pool).
+  supersaturation_ferrimolybdite() {
+    if (this.fluid.Mo < 2 || this.fluid.Fe < 3 || this.fluid.O2 < 0.5) return 0;
+    // Lower Mo threshold + /10 scaling reflects faster, less-picky growth.
+    let sigma = (this.fluid.Mo / 10.0) * (this.fluid.Fe / 20.0) * (this.fluid.O2 / 1.0);
+    // Strongly low-temperature — supergene/weathering zone only.
+    if (this.temperature > 50) {
+      sigma *= Math.exp(-0.02 * (this.temperature - 50));
+    }
+    // pH window — mild acidic to neutral.
+    if (this.fluid.pH > 7) {
+      sigma *= Math.max(0.2, 1.0 - 0.2 * (this.fluid.pH - 7));
+    } else if (this.fluid.pH < 3) {
+      sigma *= Math.max(0.3, 1.0 - 0.25 * (3 - this.fluid.pH));
+    }
+    return Math.max(sigma, 0);
+  }
+
+  // Scorodite (FeAsO₄·2H₂O) — the arsenic sequestration mineral.
+  // Pseudo-octahedral pale blue-green dipyramids; the most common
+  // supergene arsenate. Forms from oxidized arsenopyrite (Fe³⁺ +
+  // AsO₄³⁻ both required) in acidic oxidizing conditions. The
+  // acidic-end of the arsenate stability field — at pH > 5 it
+  // dissolves, releasing AsO₄³⁻ for the higher-pH arsenate suite
+  // (erythrite, mimetite, adamite, etc.). World-class deep blue-green
+  // crystals at Tsumeb (Gröbner & Becker 1973).
+  supersaturation_scorodite() {
+    if (this.fluid.Fe < 5 || this.fluid.As < 3 || this.fluid.O2 < 0.3) return 0;
+    if (this.fluid.pH > 6) return 0;  // dissolves above pH 5; nucleation gate at 6 for hysteresis
+    let sigma = (this.fluid.Fe / 30.0) * (this.fluid.As / 15.0) * (this.fluid.O2 / 1.0);
+    if (this.temperature > 80) {
+      sigma *= Math.exp(-0.025 * (this.temperature - 80));
+    }
+    if (this.fluid.pH > 5) {
+      sigma *= Math.max(0.3, 1.0 - 0.5 * (this.fluid.pH - 5));
+    } else if (this.fluid.pH < 2) {
+      sigma *= Math.max(0.4, 1.0 - 0.3 * (2 - this.fluid.pH));
+    }
+    return Math.max(sigma, 0);
+  }
+
+  // Arsenopyrite (FeAsS) — the arsenic gateway, the #1 Au-trapping mineral.
+  // Mesothermal primary sulfide co-precipitates with pyrite in orogenic
+  // gold systems and arrives in the later-stage porphyry evolution.
+  // Structurally traps Au up to ~1500 ppm as "invisible gold" — released
+  // back to fluid when the crystal later oxidizes (supergene Au
+  // enrichment). Oxidation pathway: arsenopyrite + O₂ + H₂O →
+  // Fe³⁺ + AsO₄³⁻ + H₂SO₄ → feeds scorodite + acidifies further.
+  supersaturation_arsenopyrite() {
+    if (this.fluid.Fe < 5 || this.fluid.As < 3 || this.fluid.S < 10) return 0;
+    if (this.fluid.O2 > 0.8) return 0;  // sulfide — needs reducing
+    let sigma = (this.fluid.Fe / 30.0) * (this.fluid.As / 15.0)
+              * (this.fluid.S / 50.0) * (1.5 - this.fluid.O2);
+    // Mesothermal sweet spot 300-500°C
+    const T = this.temperature;
+    if (T >= 300 && T <= 500) {
+      sigma *= 1.4;
+    } else if (T < 200) {
+      sigma *= Math.exp(-0.01 * (200 - T));
+    } else if (T > 600) {
+      sigma *= Math.exp(-0.015 * (T - 600));
+    }
+    // pH window 3-6.5
+    if (this.fluid.pH < 3) {
+      sigma *= 0.5;
+    } else if (this.fluid.pH > 6.5) {
+      sigma *= Math.max(0.2, 1.0 - 0.3 * (this.fluid.pH - 6.5));
+    }
+    return Math.max(sigma, 0);
+  }
+
   // Feldspar (KAlSi3O8 / NaAlSi3O8) — the most abundant mineral on Earth
   // Temperature determines polymorph: sanidine (>500°C) → orthoclase (300-500°C) → microcline (<300°C)
   // Needs K or Na + Al + Si in fluid
@@ -4589,6 +4677,26 @@ class VugConditions {
     return Math.max(sigma, 0);
   }
 
+  // Native gold (Au) — noble metal. Two precipitation paths collapsed
+  // into one σ: high-T Au-Cl decomplexation (Bingham vapor plume) and
+  // low-T Au-Cl reduction at supergene redox interface (Bisbee oxidation
+  // cap). Tolerates both Eh regimes — only S-suppression and Au activity
+  // matter. See vugg.py supersaturation_native_gold for full rationale.
+  supersaturation_native_gold() {
+    if (this.fluid.Au < 0.5) return 0;
+    const au_f = Math.min(this.fluid.Au / 1.0, 4.0);
+    const s_f = Math.max(0.2, 1.0 - this.fluid.S / 200.0);
+    let sigma = au_f * s_f;
+    const T = this.temperature;
+    let T_factor;
+    if (T >= 20 && T <= 400) T_factor = 1.0;
+    else if (T < 20) T_factor = 0.5;
+    else if (T <= 700) T_factor = Math.max(0.5, 1.0 - 0.001 * (T - 400));
+    else T_factor = 0.3;
+    sigma *= T_factor;
+    return Math.max(sigma, 0);
+  }
+
   // Native copper (Cu) — elemental, strongly reducing + low S.
   supersaturation_native_copper() {
     if (this.fluid.Cu < 50 || this.fluid.O2 > 0.4 || this.fluid.S > 30) return 0;
@@ -4781,6 +4889,8 @@ class GrowthZone {
     this.trace_Mn = opts.trace_Mn ?? 0;
     this.trace_Al = opts.trace_Al ?? 0;
     this.trace_Ti = opts.trace_Ti ?? 0;
+    this.trace_Pb = opts.trace_Pb ?? 0;
+    this.trace_Au = opts.trace_Au ?? 0;  // invisible-gold trace (arsenopyrite)
     this.fluid_inclusion = opts.fluid_inclusion ?? false;
     this.inclusion_type = opts.inclusion_type ?? '';
     this.note = opts.note ?? '';
@@ -6169,6 +6279,212 @@ function grow_wulfenite(crystal, conditions, step) {
   });
 }
 
+// Ferrimolybdite — Fe₂(MoO₄)₃·nH₂O
+// Canary-yellow acicular tufts. The "no-lead branch" of Mo oxidation —
+// forms on molybdenite surfaces during supergene weathering when Fe is
+// around. Coexists with wulfenite; faster growth, less particular.
+// Dehydrates > 150°C or acid-dissolves at pH < 2 (releasing Fe + MoO₄²⁻).
+function grow_ferrimolybdite(crystal, conditions, step) {
+  const sigma = conditions.supersaturation_ferrimolybdite();
+
+  if (sigma < 1.0) {
+    if (crystal.total_growth_um > 2 && (conditions.fluid.pH < 2 || conditions.temperature > 150)) {
+      crystal.dissolved = true;
+      const dissolved_um = Math.min(2.5, crystal.total_growth_um * 0.18);
+      conditions.fluid.Fe += dissolved_um * 0.5;
+      conditions.fluid.Mo += dissolved_um * 0.4;
+      return new GrowthZone({
+        step, temperature: conditions.temperature,
+        thickness_um: -dissolved_um, growth_rate: -dissolved_um,
+        note: 'dehydration — ferrimolybdite crumbles, releasing Fe³⁺ + MoO₄²⁻'
+      });
+    }
+    return null;
+  }
+
+  const excess = sigma - 1.0;
+  let rate = 5.0 * excess * rng.uniform(0.8, 1.2); // fast growth — the defining trait
+  if (rate < 0.1) return null;
+
+  // Habit by σ excess:
+  //   very high σ → powdery crust (mass accretion, no crystal form)
+  //   high σ → fibrous mat (felted yellow aggregate)
+  //   moderate σ → acicular tufts (classic radiating hair habit)
+  let habit_note;
+  if (excess > 2.0) {
+    crystal.habit = 'powdery crust';
+    crystal.dominant_forms = ['earthy yellow powder', 'sulfur-yellow coating'];
+    habit_note = 'canary-yellow powdery crust on molybdenite';
+  } else if (excess > 0.8) {
+    crystal.habit = 'fibrous mat';
+    crystal.dominant_forms = ['dense fibrous mats', 'yellow felted aggregate'];
+    habit_note = 'fibrous mat of yellow ferrimolybdite';
+  } else {
+    crystal.habit = 'acicular tuft';
+    crystal.dominant_forms = ['radiating acicular tufts', 'hair-like fibers'];
+    habit_note = 'acicular radiating tufts of canary-yellow ferrimolybdite';
+  }
+
+  conditions.fluid.Mo = Math.max(conditions.fluid.Mo - rate * 0.003, 0);
+  conditions.fluid.Fe = Math.max(conditions.fluid.Fe - rate * 0.004, 0);
+
+  return new GrowthZone({
+    step, temperature: conditions.temperature,
+    thickness_um: rate, growth_rate: rate,
+    trace_Fe: conditions.fluid.Fe * 0.01,
+    note: habit_note
+  });
+}
+
+// Scorodite — FeAsO₄·2H₂O
+// Pale blue-green pseudo-octahedral dipyramids; the arsenic sequestration
+// mineral. Forms from oxidized arsenopyrite. Releases AsO₄³⁻ back to
+// fluid above pH 5.5 (feeds higher-pH arsenates) or above 160°C
+// (dehydrates to anhydrous FeAsO₄).
+function grow_scorodite(crystal, conditions, step) {
+  const sigma = conditions.supersaturation_scorodite();
+
+  if (sigma < 1.0) {
+    if (crystal.total_growth_um > 2 && (conditions.fluid.pH > 5.5 || conditions.temperature > 160)) {
+      crystal.dissolved = true;
+      const dissolved_um = Math.min(3.0, crystal.total_growth_um * 0.10);
+      conditions.fluid.Fe += dissolved_um * 0.5;
+      conditions.fluid.As += dissolved_um * 0.5;  // AsO4³⁻ for downstream arsenates
+      const cause = conditions.fluid.pH > 5.5 ? 'pH>5' : 'T>160°C';
+      return new GrowthZone({
+        step, temperature: conditions.temperature,
+        thickness_um: -dissolved_um, growth_rate: -dissolved_um,
+        note: `dissolution (${cause}) — scorodite releases AsO₄³⁻ for downstream arsenates`
+      });
+    }
+    return null;
+  }
+
+  const excess = sigma - 1.0;
+  const rate = 3.0 * excess * rng.uniform(0.8, 1.2);
+  if (rate < 0.1) return null;
+
+  let habit_note;
+  if (excess > 1.5) {
+    crystal.habit = 'earthy_crust';
+    crystal.dominant_forms = ['powdery greenish-brown crust'];
+    habit_note = 'earthy greenish-brown scorodite crust on arsenopyrite';
+  } else if (excess > 0.5) {
+    crystal.habit = 'dipyramidal';
+    crystal.dominant_forms = ['pseudo-octahedral dipyramids'];
+    habit_note = 'pseudo-octahedral pale blue-green scorodite dipyramids';
+  } else {
+    crystal.habit = 'dipyramidal';
+    crystal.dominant_forms = ['well-formed dipyramids', 'deep blue-green'];
+    habit_note = 'well-formed deep blue-green scorodite (Tsumeb-style)';
+  }
+
+  if (conditions.fluid.Fe > 30) {
+    habit_note += ' (deep blue, Fe-rich)';
+  }
+
+  conditions.fluid.Fe = Math.max(conditions.fluid.Fe - rate * 0.005, 0);
+  conditions.fluid.As = Math.max(conditions.fluid.As - rate * 0.005, 0);
+
+  return new GrowthZone({
+    step, temperature: conditions.temperature,
+    thickness_um: rate, growth_rate: rate,
+    trace_Fe: conditions.fluid.Fe * 0.005,
+    note: habit_note
+  });
+}
+
+// Arsenopyrite — FeAsS
+// Mesothermal primary sulfide; striated prismatic crystals with diamond
+// cross-section; metallic silver-white. The #1 Au-trapping mineral —
+// captures fluid Au as "invisible gold" trace_Au on growth zones,
+// competing with grow_native_gold for the fluid Au pool. On supergene
+// oxidation (O₂>0.5), the trapped Au is released back to fluid along
+// with Fe³⁺ + AsO₄³⁻ + H₂SO₄ — feeds scorodite + supergene-gold pockets.
+function grow_arsenopyrite(crystal, conditions, step) {
+  const sigma = conditions.supersaturation_arsenopyrite();
+
+  if (sigma < 1.0) {
+    // Oxidation-dissolution: arsenopyrite + O₂ + H₂O →
+    //   Fe³⁺ + AsO₄³⁻ + H₂SO₄. Releases trapped Au back to fluid.
+    if (crystal.total_growth_um > 3 && conditions.fluid.O2 > 0.5) {
+      crystal.dissolved = true;
+      const dissolved_um = Math.min(4.0, crystal.total_growth_um * 0.12);
+      conditions.fluid.Fe += dissolved_um * 0.5;
+      conditions.fluid.As += dissolved_um * 0.4;
+      conditions.fluid.S += dissolved_um * 0.4;
+      conditions.fluid.pH = Math.max(2.0, conditions.fluid.pH - dissolved_um * 0.02);
+      // Release 12% of zone-summed trapped invisible-gold per step.
+      const total_trapped_au = crystal.growth_zones.reduce((sum, z) => sum + (z.trace_Au || 0), 0);
+      const released_au = total_trapped_au * 0.12;
+      if (released_au > 0) {
+        conditions.fluid.Au += released_au;
+      }
+      let note_str = 'oxidation — arsenopyrite → Fe³⁺ + AsO₄³⁻ + H₂SO₄';
+      if (released_au > 0.005) {
+        note_str += ` (releases ${released_au.toFixed(3)} ppm trapped Au — supergene enrichment)`;
+      }
+      return new GrowthZone({
+        step, temperature: conditions.temperature,
+        thickness_um: -dissolved_um, growth_rate: -dissolved_um,
+        note: note_str
+      });
+    }
+    return null;
+  }
+
+  const excess = sigma - 1.0;
+  const rate = 3.5 * excess * rng.uniform(0.8, 1.2);
+  if (rate < 0.1) return null;
+
+  let habit_note;
+  if (excess > 2.0) {
+    crystal.habit = 'massive_granular';
+    crystal.dominant_forms = ['granular masses', 'metallic silver-white'];
+    habit_note = 'granular massive arsenopyrite';
+  } else if (excess > 1.2) {
+    crystal.habit = 'acicular';
+    crystal.dominant_forms = ['thin needles', 'acicular aggregates'];
+    habit_note = 'acicular arsenopyrite needles';
+  } else if (excess > 0.4) {
+    crystal.habit = 'rhombic_blade';
+    crystal.dominant_forms = ['flattened rhombic blades'];
+    habit_note = 'rhombic-bladed arsenopyrite';
+  } else {
+    crystal.habit = 'striated_prism';
+    crystal.dominant_forms = ['{110} striated prisms', 'diamond cross-section'];
+    habit_note = 'striated prismatic arsenopyrite with diamond cross-section';
+  }
+
+  // Au-trapping — invisible-gold mechanic. 5% per step, 30% of trap rate
+  // actually leaves the fluid (rest is reversibly partitioned). Cap at
+  // 1.5 ppm per zone.
+  let au_trap_ppm = 0.0;
+  if (conditions.fluid.Au > 0.01) {
+    au_trap_ppm = Math.min(conditions.fluid.Au * 0.05, 1.5);
+    conditions.fluid.Au = Math.max(conditions.fluid.Au - au_trap_ppm * 0.3, 0);
+    if (au_trap_ppm > 0.02) {
+      habit_note += `; traps invisible-Au (${au_trap_ppm.toFixed(3)} ppm)`;
+    }
+  }
+
+  if (conditions.fluid.Co > 2) {
+    habit_note += ' (Co-bearing, pinkish tinge)';
+  }
+
+  conditions.fluid.Fe = Math.max(conditions.fluid.Fe - rate * 0.004, 0);
+  conditions.fluid.As = Math.max(conditions.fluid.As - rate * 0.004, 0);
+  conditions.fluid.S = Math.max(conditions.fluid.S - rate * 0.003, 0);
+
+  return new GrowthZone({
+    step, temperature: conditions.temperature,
+    thickness_um: rate, growth_rate: rate,
+    trace_Fe: conditions.fluid.Fe * 0.003,
+    trace_Au: au_trap_ppm,
+    note: habit_note
+  });
+}
+
 // Feldspar — KAlSi3O8 / NaAlSi3O8
 // Temperature determines polymorph: sanidine (>500) → orthoclase (300-500) → microcline (<300)
 // Pb in fluid + microcline = amazonite (green)
@@ -6784,6 +7100,39 @@ function grow_chrysocolla(crystal, conditions, step) {
   return new GrowthZone({ step, temperature: conditions.temperature, thickness_um: rate, growth_rate: rate, note: color_note });
 }
 
+// Native gold (Au) — noble metal. No acid-dissolution path; gold is
+// indestructible under sim conditions. See vugg.py grow_native_gold for
+// full habit / alloying / σ rationale.
+function grow_native_gold(crystal, conditions, step) {
+  const sigma = conditions.supersaturation_native_gold();
+  if (sigma < 1.0) return null;
+  const excess = sigma - 1.0;
+  const rate = 1.5 * excess * rng.uniform(0.8, 1.2);
+  if (rate < 0.05) return null;
+  let habit_note;
+  if (excess > 1.5) {
+    crystal.habit = 'nugget';
+    crystal.dominant_forms = ['rounded nugget', 'massive native gold'];
+    habit_note = 'nugget — rapid precipitation in pocket';
+  } else if (excess > 0.5) {
+    crystal.habit = 'dendritic';
+    crystal.dominant_forms = ['dendritic {111} branching', 'spongy gold'];
+    habit_note = 'dendritic / spongy native gold (the fishbone-and-leaf habit of supergene Au)';
+  } else {
+    crystal.habit = 'octahedral';
+    crystal.dominant_forms = ['{111} octahedron', 'rare well-formed crystal'];
+    habit_note = 'octahedral well-formed native gold (rare — slow growth)';
+  }
+  // Alloying note — pick whichever alloying element is dominant.
+  if (conditions.fluid.Ag > conditions.fluid.Cu * 0.5 && conditions.fluid.Ag > 5) {
+    habit_note += '; Ag-alloyed (electrum, pale yellow tint)';
+  } else if (conditions.fluid.Cu > 50) {
+    habit_note += '; Cu-alloyed (rose-gold tint, cuproauride affinity)';
+  }
+  conditions.fluid.Au = Math.max(conditions.fluid.Au - rate * 0.05, 0);
+  return new GrowthZone({ step, temperature: conditions.temperature, thickness_um: rate, growth_rate: rate, note: habit_note });
+}
+
 function grow_native_copper(crystal, conditions, step) {
   const sigma = conditions.supersaturation_native_copper();
   if (sigma < 1.0) {
@@ -7379,6 +7728,9 @@ const MINERAL_ENGINES = {
   molybdenite: grow_molybdenite,
   smithsonite: grow_smithsonite,
   wulfenite: grow_wulfenite,
+  ferrimolybdite: grow_ferrimolybdite,
+  arsenopyrite: grow_arsenopyrite,
+  scorodite: grow_scorodite,
   selenite: grow_selenite,
   feldspar: grow_feldspar,
   adamite: grow_adamite,
@@ -7405,6 +7757,7 @@ const MINERAL_ENGINES = {
   azurite: grow_azurite,
   chrysocolla: grow_chrysocolla,
   native_copper: grow_native_copper,
+  native_gold: grow_native_gold,
   magnetite: grow_magnetite,
   lepidocrocite: grow_lepidocrocite,
   stibnite: grow_stibnite,
@@ -7972,12 +8325,7 @@ function scenario_porphyry() {
       Mg: 40,             // wallrock interaction, Bingham brine Mg 50-200 ppm raw
       Ag: 8,              // argentiferous Cu signature [Heinrich 2007]
       Te: 2,              // epithermal-cap telluride trace
-      // Pre-researched, pending FluidChemistry schema:
-      //   When Au is added to the FluidChemistry class, set Au: 2.
-      //   Landtwing et al. 2010 LA-ICP-MS: ~1 ppm Au in porphyry Cu-Au
-      //   fluid inclusions; sim-scale 2 matches Te=2 trace abstraction.
-      //   See vugg.py scenario_porphyry comment + locality_chemistry
-      //   .json bingham_canyon.pending_schema_additions for full note.
+      Au: 2,              // porphyry-Cu-Au signature [Landtwing 2010]; Bingham produced ~200 t Au cumulatively
       pH: 4.5, salinity: 10.0
     }),
     // Porphyry veins — elongated cross-section, modest harmonics.
@@ -8152,6 +8500,7 @@ function scenario_supergene_oxidation() {
       Ge: 5,            // Tsumeb is THE Ge type locality — germanite, renierite, briartite [Melcher 2003]
       Sb: 5,            // proustite/pyrargyrite (ruby silvers) + tetrahedrite enabling
       Na: 30, K: 10,    // minor groundwater cation traces
+      Au: 0.3,          // rare native gold documented [Pinch & Wilson 1977]; sub-0.5-ppm threshold so no nucleation, just chemistry trace
       O2: 1.8, pH: 6.8, salinity: 2.0,
     }),
     // Supergene meteoric dissolution cavity — broad all-axis lumpiness.
@@ -8383,11 +8732,7 @@ function scenario_bisbee() {
       Mg: 50,             // Escabrosa Limestone host (dolomitic in places)
       P: 5,               // enables pyromorphite (Pb+Cl+P now all present)
       Sb: 5,              // tetrahedrite-tennantite sulfosalt trace
-      // Pre-researched, pending FluidChemistry schema:
-      //   When Au is added, set Au: 3. Bisbee ~3 Moz Au historically;
-      //   slightly higher than Bingham's Au=2 reflecting Bisbee's well-
-      //   preserved supergene Au accumulation. See vugg.py comment +
-      //   locality_chemistry.json warren_district.pending_schema_additions.
+      Au: 3,              // Bisbee ~3 Moz Au historically; supergene-preserved native Au + auriferous chalcocite [Graeme et al. 2019]
       O2: 0.05, pH: 5.0, salinity: 30.0,
     }),
     wall: new VugWall({
@@ -9136,6 +9481,75 @@ class VugSimulator {
       this.log.push(`  ✦ NUCLEATION: 🟠 Wulfenite #${c.crystal_id} on ${c.position} (T=${this.conditions.temperature.toFixed(0)}°C, σ=${sigma_wulf.toFixed(2)}) — the collector's prize!`);
     }
 
+    // Ferrimolybdite nucleation — the no-lead Mo-oxidation fork.
+    // Lower σ threshold (1.0 vs wulfenite's 1.2) + higher per-check
+    // probability (0.18) reflect its faster, less-picky growth. Substrate:
+    // dissolving molybdenite (direct oxidation product) > active
+    // molybdenite > free vug wall. Coexists with wulfenite; both draw
+    // on the MoO₄²⁻ pool but ferrimolybdite wins the early window.
+    const sigma_fmo = this.conditions.supersaturation_ferrimolybdite();
+    if (sigma_fmo > 1.0 && !this._atNucleationCap('ferrimolybdite')) {
+      if (rng.random() < 0.18) {
+        let pos = 'vug wall';
+        const dissolving_mol = this.crystals.filter(c => c.mineral === 'molybdenite' && c.dissolved);
+        const active_mol = this.crystals.filter(c => c.mineral === 'molybdenite' && c.active);
+        if (dissolving_mol.length && rng.random() < 0.7) {
+          pos = `on dissolving molybdenite #${dissolving_mol[0].crystal_id}`;
+        } else if (active_mol.length && rng.random() < 0.4) {
+          pos = `on molybdenite #${active_mol[0].crystal_id}`;
+        }
+        const c = this.nucleate('ferrimolybdite', pos, sigma_fmo);
+        this.log.push(`  ✦ NUCLEATION: 🟡 Ferrimolybdite #${c.crystal_id} on ${c.position} (T=${this.conditions.temperature.toFixed(0)}°C, σ=${sigma_fmo.toFixed(2)}, Mo=${this.conditions.fluid.Mo.toFixed(0)}, Fe=${this.conditions.fluid.Fe.toFixed(0)}) — canary-yellow tufts on oxidizing molybdenite`);
+      }
+    }
+
+    // Arsenopyrite nucleation — mesothermal primary sulfide, reducing
+    // Fe+As+S. Substrate preference: pyrite (orogenic-gold co-precipitation
+    // habit — arsenopyrite rhombs on pyrite cubes) > chalcopyrite > vug
+    // wall. σ threshold 1.2 reflects mesothermal pickiness. Au-trapping
+    // (in grow_arsenopyrite) competes with native_gold for the fluid Au
+    // pool when both are forming.
+    const sigma_apy = this.conditions.supersaturation_arsenopyrite();
+    if (sigma_apy > 1.2 && !this._atNucleationCap('arsenopyrite')) {
+      if (rng.random() < 0.12) {
+        let pos = 'vug wall';
+        const active_py_apy = this.crystals.filter(c => c.mineral === 'pyrite' && c.active);
+        const active_cp_apy = this.crystals.filter(c => c.mineral === 'chalcopyrite' && c.active);
+        if (active_py_apy.length && rng.random() < 0.5) {
+          pos = `on pyrite #${active_py_apy[0].crystal_id}`;
+        } else if (active_cp_apy.length && rng.random() < 0.3) {
+          pos = `on chalcopyrite #${active_cp_apy[0].crystal_id}`;
+        }
+        const c = this.nucleate('arsenopyrite', pos, sigma_apy);
+        this.log.push(`  ✦ NUCLEATION: ⚪ Arsenopyrite #${c.crystal_id} on ${c.position} (T=${this.conditions.temperature.toFixed(0)}°C, σ=${sigma_apy.toFixed(2)}, Fe=${this.conditions.fluid.Fe.toFixed(0)}, As=${this.conditions.fluid.As.toFixed(0)}, Au=${this.conditions.fluid.Au.toFixed(2)} ppm) — striated diamond-section prisms; will trap invisible-gold`);
+      }
+    }
+
+    // Scorodite nucleation — the arsenate supergene gateway; classic
+    // "crystallized on dissolving arsenopyrite" habit. σ threshold 1.0
+    // + per-check 0.20 reflect supergene speed. Substrate priority:
+    // dissolving arsenopyrite (direct parent — the famous habit) >
+    // active arsenopyrite > dissolving pyrite (often co-occurs) > vug
+    // wall.
+    const sigma_sco = this.conditions.supersaturation_scorodite();
+    if (sigma_sco > 1.0 && !this._atNucleationCap('scorodite')) {
+      if (rng.random() < 0.20) {
+        let pos = 'vug wall';
+        const diss_apy_sco = this.crystals.filter(c => c.mineral === 'arsenopyrite' && c.dissolved);
+        const active_apy_sco = this.crystals.filter(c => c.mineral === 'arsenopyrite' && c.active);
+        const diss_py_sco = this.crystals.filter(c => c.mineral === 'pyrite' && c.dissolved);
+        if (diss_apy_sco.length && rng.random() < 0.8) {
+          pos = `on dissolving arsenopyrite #${diss_apy_sco[0].crystal_id}`;
+        } else if (active_apy_sco.length && rng.random() < 0.5) {
+          pos = `on arsenopyrite #${active_apy_sco[0].crystal_id}`;
+        } else if (diss_py_sco.length && rng.random() < 0.4) {
+          pos = `on dissolving pyrite #${diss_py_sco[0].crystal_id}`;
+        }
+        const c = this.nucleate('scorodite', pos, sigma_sco);
+        this.log.push(`  ✦ NUCLEATION: 💎 Scorodite #${c.crystal_id} on ${c.position} (T=${this.conditions.temperature.toFixed(0)}°C, σ=${sigma_sco.toFixed(2)}, Fe=${this.conditions.fluid.Fe.toFixed(0)}, As=${this.conditions.fluid.As.toFixed(0)}, pH=${this.conditions.fluid.pH.toFixed(1)}) — pale blue-green dipyramids, sequesters arsenic`);
+      }
+    }
+
     // Selenite nucleation — low temperature, oxidized sulfate environment
     // The crystal that grows when everything else is ending
     const sigma_sel = this.conditions.supersaturation_selenite();
@@ -9465,6 +9879,26 @@ class VugSimulator {
         else if (active_brn_nc.length && rng.random() < 0.3) pos = `on bornite #${active_brn_nc[0].crystal_id}`;
         const c = this.nucleate('native_copper', pos, sigma_nc);
         this.log.push(`  ✦ NUCLEATION: Native copper #${c.crystal_id} on ${c.position} (T=${this.conditions.temperature.toFixed(0)}°C, σ=${sigma_nc.toFixed(2)}, Cu=${this.conditions.fluid.Cu.toFixed(0)}, O₂=${this.conditions.fluid.O2.toFixed(2)})`);
+      }
+    }
+
+    // Native gold nucleation — Au + tolerant of both Eh regimes.
+    // Substrate preference: chalcocite (supergene Au-on-chalcocite,
+    // Bisbee enrichment-blanket habit) > pyrite (orogenic gold-on-pyrite)
+    // > bornite > free vug wall.
+    const sigma_au = this.conditions.supersaturation_native_gold();
+    const existing_au = this.crystals.filter(c => c.mineral === 'native_gold' && c.active);
+    if (sigma_au > 1.0 && !this._atNucleationCap('native_gold')) {
+      if (!existing_au.length || (sigma_au > 1.5 && rng.random() < 0.2)) {
+        let pos = 'vug wall';
+        const active_chc_au = this.crystals.filter(c => c.mineral === 'chalcocite' && c.active);
+        const active_py_au = this.crystals.filter(c => c.mineral === 'pyrite' && c.active);
+        const active_brn_au = this.crystals.filter(c => c.mineral === 'bornite' && c.active);
+        if (active_chc_au.length && rng.random() < 0.4) pos = `on chalcocite #${active_chc_au[0].crystal_id}`;
+        else if (active_py_au.length && rng.random() < 0.25) pos = `on pyrite #${active_py_au[0].crystal_id}`;
+        else if (active_brn_au.length && rng.random() < 0.2) pos = `on bornite #${active_brn_au[0].crystal_id}`;
+        const c = this.nucleate('native_gold', pos, sigma_au);
+        this.log.push(`  ✦ NUCLEATION: Native gold #${c.crystal_id} on ${c.position} (T=${this.conditions.temperature.toFixed(0)}°C, σ=${sigma_au.toFixed(2)}, Au=${this.conditions.fluid.Au.toFixed(2)} ppm)`);
       }
     }
 
@@ -14553,7 +14987,7 @@ const IDLE_MINERAL_COLORS = {
   pyrite: '#c8b830', chalcopyrite: '#c89830', galena: '#a0a0a0',
   hematite: '#b04040', malachite: '#2e8b57', sphalerite: '#cc8844',
   goethite: '#8b6914', uraninite: '#44dd44', smithsonite: '#88bbcc',
-  wulfenite: '#ff8833', selenite: '#e8e0d8', feldspar: '#f0d0b0'
+  wulfenite: '#ff8833', ferrimolybdite: '#f5dc14', arsenopyrite: '#c8c0b8', scorodite: '#5a9a8a', selenite: '#e8e0d8', feldspar: '#f0d0b0'
 };
 
 const IDLE_SPEED_MAP = [0.5, 1, 2, 5, 10]; // steps per second

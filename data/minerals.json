@@ -2206,6 +2206,279 @@
       "audit_status": "ok (phase-2: wired in vugg.py, narrators in all 3 runtimes). Requires both galena AND molybdenite to have oxidized first (Seo et al. 2012).",
       "class_color": "#137feb"
     },
+    "ferrimolybdite": {
+      "formula": "Fe2(MoO4)3·nH2O",
+      "nucleation_sigma": 1.0,
+      "max_nucleation_count": 6,
+      "max_size_cm": 5,
+      "growth_rate_mult": 0.5,
+      "habit_variants": [
+        {
+          "name": "acicular_tuft",
+          "wall_spread": 0.5,
+          "void_reach": 0.6,
+          "vector": "radiating",
+          "trigger": "default — classic canary-yellow radiating hair-tufts"
+        },
+        {
+          "name": "fibrous_mat",
+          "wall_spread": 0.85,
+          "void_reach": 0.2,
+          "vector": "felted",
+          "trigger": "high σ — dense mats on dissolving molybdenite"
+        },
+        {
+          "name": "powdery_crust",
+          "wall_spread": 0.95,
+          "void_reach": 0.05,
+          "vector": "coating",
+          "trigger": "very high σ — earthy yellow powder, no crystal form"
+        }
+      ],
+      "class": "molybdate",
+      "description": "Fe₂(MoO₄)₃·nH₂O, the no-lead branch of Mo oxidation. Canary-yellow acicular tufts to powdery crusts on molybdenite surfaces. Fast-growing, powdery, hardness ~2. Coexists with wulfenite (both draw on oxidized MoO₄²⁻) but wins the early window. Geologically more common than wulfenite; under-represented in collections because it's yellow fuzz, not display material. Type locality Climax (Colorado); abundant in any porphyry Cu-Mo oxidation zone.",
+      "scenarios": [
+        "porphyry",
+        "bisbee",
+        "supergene_oxidation"
+      ],
+      "T_range_C": [
+        5,
+        150
+      ],
+      "T_optimum_C": [
+        15,
+        50
+      ],
+      "T_behavior": "window",
+      "pH_dissolution_below": 2.0,
+      "redox_requirement": "oxidizing",
+      "required_ingredients": {
+        "Fe": 3,
+        "Mo": 2,
+        "O2": 0.5
+      },
+      "trace_ingredients": {},
+      "thermal_decomp_C": 150,
+      "thermal_decomp_reaction": "Fe2(MoO4)3·nH2O -> Fe2(MoO4)3 + nH2O (dehydration); then MoO4 released if T higher",
+      "thermal_decomp_products": {
+        "Fe": 0.5,
+        "Mo": 0.4
+      },
+      "fluorescence": null,
+      "twin_laws": [],
+      "acid_dissolution": {
+        "pH_threshold": 2.0,
+        "reaction": "dissolves in strong acid, releasing Fe³⁺ + MoO₄²⁻",
+        "products": {
+          "Fe": 0.5,
+          "Mo": 0.4
+        },
+        "status": "newly_added"
+      },
+      "habit": "acicular_tuft",
+      "color_rules": {
+        "canary_yellow": {
+          "default": true
+        }
+      },
+      "narrate_function": null,
+      "runtimes_present": [
+        "vugg.py",
+        "web/index.html"
+      ],
+      "audit_status": "phase-2: wired in vugg.py and web/index.html. Research source: proposals/MINERALS-RESEARCH-UNIMPLEMENTED.md. The 'Pb-absent fork' of Mo oxidation — complements wulfenite which requires Pb. Ferrimolybdite nucleates earlier (σ>1.0) and grows faster; wulfenite needs σ>1.2 + Pb.",
+      "class_color": "#f5dc14"
+    },
+    "arsenopyrite": {
+      "formula": "FeAsS",
+      "nucleation_sigma": 1.2,
+      "max_nucleation_count": 4,
+      "max_size_cm": 15,
+      "growth_rate_mult": 0.3,
+      "habit_variants": [
+        {
+          "name": "striated_prism",
+          "wall_spread": 0.35,
+          "void_reach": 0.5,
+          "vector": "prismatic",
+          "trigger": "default — diamond-cross-section prisms with deep longitudinal striations"
+        },
+        {
+          "name": "rhombic_blade",
+          "wall_spread": 0.55,
+          "void_reach": 0.3,
+          "vector": "tabular",
+          "trigger": "moderate σ — flattened rhombic blades"
+        },
+        {
+          "name": "acicular",
+          "wall_spread": 0.4,
+          "void_reach": 0.65,
+          "vector": "needle",
+          "trigger": "fast growth, high σ — thin needle-like aggregates"
+        },
+        {
+          "name": "massive_granular",
+          "wall_spread": 0.9,
+          "void_reach": 0.1,
+          "vector": "coating",
+          "trigger": "very high σ — granular masses, no visible crystals"
+        }
+      ],
+      "class": "sulfide",
+      "description": "FeAsS, the arsenic gateway mineral and the #1 gold-trapping mineral. Mesothermal primary sulfide (300-500°C, reducing); silver-white metallic prisms with diamond cross-section, deep longitudinal striations. Emits garlic odor when struck (As vapor — diagnostic). Structurally traps Au up to ~1500 ppm as 'invisible gold' (Reich et al. 2005; Cook & Chryssoulis 1990) — released to fluid on supergene oxidation, producing the orogenic Au-enrichment signature (Graeme et al. 2019 for Bisbee). Oxidation pathway: FeAsS + O₂ + H₂O → Fe³⁺ + AsO₄³⁻ + H₂SO₄ → feeds scorodite + acidifies.",
+      "scenarios": [
+        "porphyry",
+        "bisbee"
+      ],
+      "T_range_C": [
+        150,
+        700
+      ],
+      "T_optimum_C": [
+        300,
+        500
+      ],
+      "T_behavior": "window",
+      "redox_requirement": "reducing",
+      "required_ingredients": {
+        "Fe": 5,
+        "As": 3,
+        "S": 10
+      },
+      "trace_ingredients": {
+        "Au": "invisible-gold up to 1500 ppm structurally bound",
+        "Co": "cobaltian substitution — slight pinkish tinge",
+        "Sb": "minor substitution",
+        "Ni": "substitutional"
+      },
+      "thermal_decomp_C": 720,
+      "thermal_decomp_reaction": "FeAsS -> FeAs2 (loellingite) + S; As vapor at higher T",
+      "thermal_decomp_products": {
+        "Fe": 0.4,
+        "As": 0.3,
+        "S": 0.3
+      },
+      "fluorescence": null,
+      "twin_laws": [
+        {
+          "name": "trillings_120",
+          "probability": 0.02
+        }
+      ],
+      "acid_dissolution": null,
+      "habit": "striated_prism",
+      "color_rules": {
+        "silver_white_metallic": {
+          "default": true
+        },
+        "yellow_tarnish": {
+          "trigger": "oxidation_surface"
+        },
+        "pinkish_tinge": {
+          "trigger": "Co > 2"
+        }
+      },
+      "narrate_function": null,
+      "runtimes_present": [
+        "vugg.py",
+        "web/index.html"
+      ],
+      "audit_status": "phase-2: wired in vugg.py and web/index.html. Research source: proposals/MINERALS-RESEARCH-UNIMPLEMENTED.md. The #1 gold-trapping mineral — Au-trapping mechanic consumes fluid Au (30% of 5%/step) and records as trace_Au on GrowthZone; supergene oxidation releases 12%/step back to fluid (feeds scorodite + native_gold supergene enrichment). Competes with grow_native_gold for fluid Au in reducing high-T scenarios.",
+      "class_color": "#c8c0b8"
+    },
+    "scorodite": {
+      "formula": "FeAsO4·2H2O",
+      "nucleation_sigma": 1.0,
+      "max_nucleation_count": 5,
+      "max_size_cm": 8,
+      "growth_rate_mult": 0.25,
+      "habit_variants": [
+        {
+          "name": "dipyramidal",
+          "wall_spread": 0.4,
+          "void_reach": 0.55,
+          "vector": "equant",
+          "trigger": "default — pseudo-octahedral pale blue-green dipyramids (Tsumeb-style)"
+        },
+        {
+          "name": "earthy_crust",
+          "wall_spread": 0.85,
+          "void_reach": 0.1,
+          "vector": "coating",
+          "trigger": "high σ — powdery greenish-brown crust on weathered arsenopyrite"
+        },
+        {
+          "name": "crystallized_on_arsenopyrite",
+          "wall_spread": 0.4,
+          "void_reach": 0.5,
+          "vector": "perched",
+          "trigger": "substrate present — distinct crystals nucleating directly on parent mineral"
+        }
+      ],
+      "class": "arsenate",
+      "description": "FeAsO₄·2H₂O, the arsenic-sequestration mineral. Pseudo-octahedral pale blue-green dipyramids; the most common supergene oxidation product of arsenopyrite. Locks AsO₄³⁻ in stable crystals as long as pH stays below 5; above pH 5 it dissolves and releases AsO₄³⁻ for the higher-pH arsenate suite (erythrite, mimetite, adamite, pharmacosiderite). Type locality Freiberg, Saxony; world-class deep-blue crystals at Tsumeb (Gröbner & Becker 1973). Dehydrates to anhydrous FeAsO₄ above 160°C.",
+      "scenarios": [
+        "supergene_oxidation",
+        "bisbee",
+        "porphyry"
+      ],
+      "T_range_C": [
+        5,
+        200
+      ],
+      "T_optimum_C": [
+        15,
+        80
+      ],
+      "T_behavior": "window",
+      "pH_dissolution_above": 5.5,
+      "redox_requirement": "oxidizing",
+      "required_ingredients": {
+        "Fe": 5,
+        "As": 3,
+        "O2": 0.3
+      },
+      "trace_ingredients": {},
+      "thermal_decomp_C": 160,
+      "thermal_decomp_reaction": "FeAsO4·2H2O -> FeAsO4 + 2H2O (dehydration to anhydrous arsenate)",
+      "thermal_decomp_products": {
+        "Fe": 0.4,
+        "As": 0.4
+      },
+      "fluorescence": null,
+      "twin_laws": [],
+      "acid_dissolution": {
+        "pH_threshold": 5.5,
+        "reaction": "dissolves above pH 5 (alkaline-side dissolution, not acid), releasing Fe³⁺ + AsO₄³⁻",
+        "products": {
+          "Fe": 0.5,
+          "As": 0.5
+        },
+        "status": "newly_added",
+        "note": "scorodite is the acidic-end arsenate; pH > 5 destabilizes it. Inverse of typical acid_dissolution semantics."
+      },
+      "habit": "dipyramidal",
+      "color_rules": {
+        "pale_blue_green": {
+          "default": true
+        },
+        "deep_blue": {
+          "trigger": "Fe > 30"
+        },
+        "greenish_brown": {
+          "trigger": "earthy_crust habit (high σ powder)"
+        }
+      },
+      "narrate_function": null,
+      "runtimes_present": [
+        "vugg.py",
+        "web/index.html"
+      ],
+      "audit_status": "phase-2: wired in vugg.py and web/index.html. Research source: proposals/MINERALS-RESEARCH-UNIMPLEMENTED.md. The arsenic-sequestration mineral and the gateway to the rest of the supergene arsenate suite. Substrate preference for dissolving arsenopyrite drives the canonical paragenesis: arsenopyrite→scorodite cascade. pH>5.5 dissolution releases AsO₄³⁻ for downstream arsenates (erythrite/mimetite/adamite already implemented).",
+      "class_color": "#5a9a8a"
+    },
     "molybdenite": {
       "formula": "MoS2",
       "nucleation_sigma": 1.0,
@@ -5086,6 +5359,103 @@
       ],
       "audit_status": "new (supergene round 3). First native-element mineral. Shares native-hue class_color with future native bismuth. Not in agent-api/vugg-agent.js.",
       "class_color": "#eb13eb"
+    },
+    "native_gold": {
+      "formula": "Au",
+      "nucleation_sigma": 1.0,
+      "max_nucleation_count": 4,
+      "max_size_cm": 30,
+      "growth_rate_mult": 0.15,
+      "habit_variants": [
+        {
+          "name": "octahedral",
+          "wall_spread": 0.2,
+          "void_reach": 0.5,
+          "vector": "equant",
+          "trigger": "low σ, slow growth — well-formed crystal"
+        },
+        {
+          "name": "dendritic",
+          "wall_spread": 0.3,
+          "void_reach": 0.7,
+          "vector": "dendritic",
+          "trigger": "moderate σ, supergene reduction — spongy / fishbone gold"
+        },
+        {
+          "name": "nugget",
+          "wall_spread": 0.7,
+          "void_reach": 0.4,
+          "vector": "equant",
+          "trigger": "high σ, rapid precipitation — rounded massive nugget"
+        },
+        {
+          "name": "default_dendritic",
+          "wall_spread": 0.3,
+          "void_reach": 0.7,
+          "vector": "dendritic",
+          "trigger": "default — dendritic supergene gold"
+        }
+      ],
+      "class": "native",
+      "description": "Au — elemental native gold, the noble metal. Two precipitation pathways the sim collapses into one supersaturation function: (1) high-T magmatic-hydrothermal Au-Cl complex destabilization at boiling/decompression (Bingham vapor-plume mechanism per Landtwing et al. 2010), and (2) low-T supergene Au-Cl reduction at the redox interface, often coupled with chalcocite enrichment (Bisbee oxidation-cap mechanism per Graeme et al. 2019). Tolerates both oxidizing AND reducing fluids because the two transport complexes (Au-Cl and Au-HS) cover both Eh regimes. Crystal habits range from octahedral {111} (slow growth, rare) through dendritic / spongy (the diagnostic supergene Au) to massive nuggets (rapid precipitation in pockets). Color goes from rich yellow at pure Au through pale yellow electrum (>10% Ag alloy) to rose-gold cuproauride affinity (Cu-rich systems like Bisbee). Essentially indestructible in surface conditions — no acid-dissolution path in the engine.",
+      "scenarios": [
+        "porphyry",
+        "bisbee"
+      ],
+      "T_range_C": [
+        20,
+        700
+      ],
+      "T_optimum_C": [
+        25,
+        400
+      ],
+      "T_behavior": "window",
+      "pH_dissolution_below": null,
+      "pH_dissolution_above": null,
+      "redox_requirement": "tolerant_both",
+      "required_ingredients": {
+        "Au": 0.5
+      },
+      "trace_ingredients": {
+        "Ag": "Ag-Au electrum (pale-yellow alloy >10% Ag)",
+        "Cu": "Cu-Au cuproauride / rose-gold affinity (Cu-rich systems)",
+        "Te": "Au-Te telluride competition (calaverite/sylvanite if Te + S available — future engine)"
+      },
+      "thermal_decomp_C": 1064,
+      "thermal_decomp_reaction": "Au melts at 1064°C; mineral itself stable at all sim T (no thermal decomposition path)",
+      "thermal_decomp_products": {
+        "Au": 0.5
+      },
+      "fluorescence": null,
+      "twin_laws": [
+        {
+          "name": "spinel_law",
+          "miller_indices": "{111}",
+          "trigger": "growth",
+          "probability": 0.05
+        }
+      ],
+      "acid_dissolution": null,
+      "habit": "dendritic",
+      "color_rules": {
+        "rich_yellow": {
+          "default": true
+        },
+        "pale_yellow_electrum": {
+          "trigger": "Ag-alloy (Ag > 5 ppm and Ag dominant over Cu)"
+        },
+        "rose_gold": {
+          "trigger": "Cu-alloy (Cu > 50 ppm)"
+        }
+      },
+      "narrate_function": "_narrate_native_gold",
+      "runtimes_present": [
+        "vugg.py",
+        "web/index.html"
+      ],
+      "audit_status": "new (Au field + grow_native_gold landed via Bingham/Bisbee pending_schema_additions promotion). Activates Bingham Au=2 and Bisbee Au=3 fluid values that were pre-researched during the chemistry audit. Not in agent-api/vugg-agent.js.",
+      "class_color": "#ffd700"
     },
     "magnetite": {
       "formula": "Fe3O4",

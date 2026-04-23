@@ -42,7 +42,15 @@ from typing import List, Dict, Optional, Tuple
 #   v2 — scenario-chemistry audit (Apr 2026): every scenario anchored to a
 #        named locality with cited fluid values; locality_chemistry.json
 #        is the data-source-of-truth.
-SIM_VERSION = 2
+#   v3 — supergene/arsenate expansion (Apr 2026): ferrimolybdite
+#        (Pb-absent Mo-oxidation fork), arsenopyrite (Au-trapping primary
+#        sulfide), and scorodite (arsenate supergene product with
+#        pH-gated dissolution) engines added. Shifts Mo distribution
+#        wherever O₂/Fe are available (porphyry, bisbee, supergene), and
+#        shifts Au distribution in reducing-As scenarios (arsenopyrite
+#        now traps a fraction of Au as invisible-gold trace before
+#        native_gold can nucleate).
+SIM_VERSION = 3
 
 
 # ============================================================
@@ -189,6 +197,7 @@ class FluidChemistry:
     Te: float = 0.0            # ppm — tellurium (calaverite, sylvanite — Au-Te tellurides)
     Se: float = 0.0            # ppm — selenium (clausthalite, naumannite — often with Ag)
     Ge: float = 0.0            # ppm — germanium (renierite — Tsumeb speciality, Zn sphalerite trace)
+    Au: float = 0.0            # ppm — gold (native gold; Bingham/Bisbee porphyry-Cu-Au; eventually calaverite/sylvanite when Te-Au coupling lands)
     O2: float = 0.0            # relative oxygen fugacity (0=reducing, 1=neutral, 2=oxidizing)
     pH: float = 6.5
     salinity: float = 5.0      # wt% NaCl equivalent
@@ -1870,6 +1879,59 @@ class VugConditions:
         sigma = cu_f * si_f * o_f * t_f * ph_f
         return max(sigma, 0)
 
+    def supersaturation_native_gold(self) -> float:
+        """Native gold (Au) supersaturation.
+
+        Au has extreme affinity for the native form across most natural
+        conditions — equilibrium Au activity in any aqueous fluid is
+        sub-ppb, so even fractional ppm Au in the broth is hugely
+        supersaturated against equilibrium. The threshold here (Au ≥
+        0.5 ppm) is the practical sim minimum; below that level the
+        gold stays partitioned in solution as Au-Cl or Au-HS complexes
+        without nucleating distinct crystals.
+
+        Two precipitation pathways the model collapses into one σ:
+          1. High-T magmatic-hydrothermal — Au-Cl complex destabilizes
+             at boiling / decompression / cooling. The Bingham
+             vapor-plume Au mechanism (Landtwing et al. 2010).
+          2. Low-T supergene — Au-Cl reduces to Au0 at the redox
+             interface, often coupled with chalcocite enrichment. The
+             Bisbee oxidation-cap mechanism (Graeme et al. 2019).
+
+        Unlike native_copper, gold tolerates BOTH oxidizing AND
+        reducing fluids because the two transport complexes (Au-Cl
+        oxidizing vs Au-HS reducing) cover both regimes — there's no
+        Eh window where gold can't deposit if Au activity is high.
+
+        Sulfur suppression is the main competing factor: above
+        ~100 ppm S, Au stays in Au-HS solution and/or partitions into
+        coexisting Au-Te species (when Te is also present) instead of
+        nucleating native gold.
+        """
+        if self.fluid.Au < 0.5:
+            return 0
+        # Au activity factor — even small Au is hugely supersaturated.
+        # Cap at 4× to keep extreme Au from blowing out the dispatcher.
+        au_f = min(self.fluid.Au / 1.0, 4.0)
+        # Sulfur suppression — high S keeps Au in Au(HS)2- complex.
+        # Above ~100 ppm S the suppression dominates.
+        s_f = max(0.2, 1.0 - self.fluid.S / 200.0)
+        sigma = au_f * s_f
+        # Wide T tolerance — gold deposits span 25-700°C (porphyry to
+        # placer to epithermal). Mild dropoff above 400°C and below
+        # 20°C.
+        T = self.temperature
+        if 20 <= T <= 400:
+            T_factor = 1.0
+        elif T < 20:
+            T_factor = 0.5
+        elif T <= 700:
+            T_factor = max(0.5, 1.0 - 0.001 * (T - 400))
+        else:
+            T_factor = 0.3
+        sigma *= T_factor
+        return max(sigma, 0)
+
     def supersaturation_native_copper(self) -> float:
         """Native copper (Cu) supersaturation. Very high Cu + strongly reducing.
 
@@ -2133,6 +2195,119 @@ class VugConditions:
             sigma *= 1.3  # sweet spot for porphyry Mo
         return max(sigma, 0)
 
+    def supersaturation_ferrimolybdite(self) -> float:
+        """Ferrimolybdite (Fe₂(MoO₄)₃·nH₂O) — the no-lead branch of Mo oxidation.
+
+        Canary-yellow acicular tufts, the fast-growing powdery fork that
+        takes MoO₄²⁻ when it oxidizes out of molybdenite and no Pb is
+        around to make wulfenite. In the sim, both fork products can
+        coexist — ferrimolybdite's lower σ threshold and higher growth
+        rate let it win the early oxidation window; wulfenite catches up
+        later if Pb is available.
+
+        Paragenesis: molybdenite → MoO₄²⁻ + Fe³⁺ → ferrimolybdite
+        Geology: Climax (Colorado), Kingman (Arizona), and porphyry
+        Cu-Mo oxidation zones worldwide. Geologically MORE common than
+        wulfenite but under-represented in collections (powdery yellow
+        fuzz, not display material — collectors walk past it to get to
+        the wulfenite plates).
+        """
+        if self.fluid.Mo < 2 or self.fluid.Fe < 3 or self.fluid.O2 < 0.5:
+            return 0
+        # Lower Mo threshold (2 vs wulfenite's 2; scaled /10 vs /15)
+        # reflects the faster, less picky growth.
+        sigma = (self.fluid.Mo / 10.0) * (self.fluid.Fe / 20.0) * (self.fluid.O2 / 1.0)
+        # Strongly low-temperature — supergene/weathering zone only.
+        # Cuts off above ~150°C via Arrhenius-shape decay.
+        if self.temperature > 50:
+            sigma *= math.exp(-0.02 * (self.temperature - 50))
+        # pH window — mild acidic to neutral. Acid rock drainage
+        # pH 3-6 is typical of sulfide-oxidation environments.
+        if self.fluid.pH > 7:
+            sigma *= max(0.2, 1.0 - 0.2 * (self.fluid.pH - 7))
+        elif self.fluid.pH < 3:
+            sigma *= max(0.3, 1.0 - 0.25 * (3 - self.fluid.pH))
+        return max(sigma, 0)
+
+    def supersaturation_scorodite(self) -> float:
+        """Scorodite (FeAsO₄·2H₂O) — the arsenic sequestration mineral.
+
+        Most common supergene arsenate; pseudo-octahedral pale blue-green
+        dipyramids (looks cubic but isn't — orthorhombic). Forms when
+        arsenopyrite (or any As-bearing primary sulfide) oxidizes in
+        acidic oxidizing conditions: Fe³⁺ + AsO₄³⁻ both required. The
+        acidic-end of the arsenate stability field; at pH > 5 scorodite
+        dissolves and releases AsO₄³⁻ — which then feeds the rest of
+        the arsenate suite (erythrite, annabergite, mimetite, adamite,
+        pharmacosiderite at higher pH).
+
+        Type locality Freiberg, Saxony, Germany. World-class deep
+        blue-green crystals at Tsumeb (Gröbner & Becker 1973).
+
+        Stability: pH 2-5 (acidic), T < 160°C (above dehydrates to
+        anhydrous FeAsO₄), O₂ ≥ 0.3 (Fe must be Fe³⁺).
+        """
+        if self.fluid.Fe < 5 or self.fluid.As < 3 or self.fluid.O2 < 0.3:
+            return 0
+        if self.fluid.pH > 6:
+            return 0  # dissolves at pH > 5; nucleation gate at 6 for hysteresis
+        sigma = (self.fluid.Fe / 30.0) * (self.fluid.As / 15.0) * (self.fluid.O2 / 1.0)
+        # Strongly low-temperature — supergene zone only
+        if self.temperature > 80:
+            sigma *= math.exp(-0.025 * (self.temperature - 80))
+        # pH peak around 3-4; fall off above 5
+        if self.fluid.pH > 5:
+            sigma *= max(0.3, 1.0 - 0.5 * (self.fluid.pH - 5))
+        elif self.fluid.pH < 2:
+            sigma *= max(0.4, 1.0 - 0.3 * (2 - self.fluid.pH))
+        return max(sigma, 0)
+
+    def supersaturation_arsenopyrite(self) -> float:
+        """Arsenopyrite (FeAsS) — the arsenic gateway mineral.
+
+        The most common arsenic-bearing mineral; a mesothermal primary
+        sulfide that co-precipitates with pyrite in orogenic gold
+        systems and arrives alongside chalcopyrite/molybdenite in the
+        later-stage porphyry evolution. Striated prismatic crystals
+        with diamond cross-section (pseudo-orthorhombic monoclinic),
+        metallic silver-white; tarnishes yellowish. Garlic odor when
+        struck — arsenic vapor, diagnostic.
+
+        Gold association: arsenopyrite is the #1 gold-trapping mineral.
+        Its crystal lattice accommodates Au atoms structurally as
+        "invisible gold" up to ~1500 ppm (Reich et al. 2005; Cook &
+        Chryssoulis 1990). In the sim, grow_arsenopyrite consumes some
+        fluid.Au and records it as trace_Au on the growth zone; when
+        the crystal later oxidizes (supergene regime), the trapped Au
+        is released back to fluid — the mechanism of supergene Au
+        enrichment in orogenic oxidation zones (Graeme et al. 2019).
+
+        Oxidation pathway: arsenopyrite + O₂ + H₂O →
+          Fe³⁺ + AsO₄³⁻ + H₂SO₄. The released Fe + As feed scorodite
+        nucleation; the H₂SO₄ drop in pH further keeps scorodite in
+        its stability window (pH < 5).
+        """
+        if self.fluid.Fe < 5 or self.fluid.As < 3 or self.fluid.S < 10:
+            return 0
+        if self.fluid.O2 > 0.8:
+            return 0  # sulfide — needs reducing
+        sigma = ((self.fluid.Fe / 30.0) * (self.fluid.As / 15.0) *
+                 (self.fluid.S / 50.0) * (1.5 - self.fluid.O2))
+        # Mesothermal sweet spot 300-500°C
+        T = self.temperature
+        if 300 <= T <= 500:
+            sigma *= 1.4
+        elif T < 200:
+            sigma *= math.exp(-0.01 * (200 - T))
+        elif T > 600:
+            sigma *= math.exp(-0.015 * (T - 600))
+        # pH window 3-6.5 (slightly broader than scorodite's 2-5)
+        if self.fluid.pH < 3:
+            sigma *= 0.5
+        elif self.fluid.pH > 6.5:
+            sigma *= max(0.2, 1.0 - 0.3 * (self.fluid.pH - 6.5))
+        return max(sigma, 0)
+
 
 # ============================================================
 # CRYSTAL MODELS
@@ -2150,6 +2325,11 @@ class GrowthZone:
     trace_Al: float = 0.0
     trace_Ti: float = 0.0
     trace_Pb: float = 0.0       # Pb — amazonite, galena inclusions
+    trace_Au: float = 0.0       # Au — invisible-gold trace (arsenopyrite
+                                # structurally traps up to 1500 ppm Au);
+                                # released to fluid on supergene oxidation,
+                                # feeding native_gold re-precipitation in
+                                # the oxidation zone.
     radiation_damage: float = 0.0  # cumulative α-dose (arbitrary units). Quartz
                                    # zones irradiated by nearby uraninite accrue
                                    # damage step-by-step; ≥0.3 averaged across
@@ -5176,6 +5356,72 @@ def grow_chrysocolla(crystal: Crystal, conditions: VugConditions, step: int) -> 
     )
 
 
+def grow_native_gold(crystal: Crystal, conditions: VugConditions, step: int) -> Optional[GrowthZone]:
+    """Native gold (Au) growth — the noble metal.
+
+    Gold doesn't dissolve in surface or hydrothermal conditions (it's
+    famously inert; the only natural dissolver is HCl + HNO3 + heat,
+    which doesn't occur in vugs). So no acid-dissolution branch — once
+    a gold crystal forms it persists indefinitely.
+
+    Habit selection follows the σ excess gradient and gets a color
+    note when alloying elements (Cu, Ag) are present in the parent
+    fluid. Future Au-Te or Au-Cu coupling could fork this into native
+    gold vs calaverite/sylvanite vs cuproauride, but that needs the
+    Te-mineral engines to land first.
+    """
+    sigma = conditions.supersaturation_native_gold()
+    if sigma < 1.0:
+        return None  # Au is essentially indestructible — no dissolution path
+
+    excess = sigma - 1.0
+    # Gold growth is intrinsically slow (low Au activity even when
+    # supersaturated). 1.5x base rate vs native_copper's 2.0x reflects
+    # gold's lower free-fluid concentration.
+    rate = 1.5 * excess * random.uniform(0.8, 1.2)
+    if rate < 0.05:
+        return None
+
+    # Habit by σ excess (parallels native_copper habit logic):
+    #   high σ → nugget / massive
+    #   moderate σ → dendritic / spongy
+    #   low σ → octahedral well-formed
+    if excess > 1.5:
+        crystal.habit = "nugget"
+        crystal.dominant_forms = ["rounded nugget", "massive native gold"]
+        habit_note = "nugget — rapid precipitation in pocket"
+    elif excess > 0.5:
+        crystal.habit = "dendritic"
+        crystal.dominant_forms = ["dendritic {111} branching", "spongy gold"]
+        habit_note = "dendritic / spongy native gold (the fishbone-and-leaf habit of supergene Au)"
+    else:
+        crystal.habit = "octahedral"
+        crystal.dominant_forms = ["{111} octahedron", "rare well-formed crystal"]
+        habit_note = "octahedral well-formed native gold (rare — slow growth)"
+
+    # Alloying elements present in parent fluid set color note.
+    # Real-world ranges: Au-Ag electrum < 80% Au is "electrum" proper;
+    # Au-Cu rose-gold and cuproauride are diagnostic of Cu-rich systems
+    # like Bisbee. The sim picks one note based on which alloying
+    # element is dominant; doesn't model both at once.
+    if conditions.fluid.Ag > conditions.fluid.Cu * 0.5 and conditions.fluid.Ag > 5:
+        habit_note += "; Ag-alloyed (electrum, pale yellow tint)"
+    elif conditions.fluid.Cu > 50:
+        habit_note += "; Cu-alloyed (rose-gold tint, cuproauride affinity)"
+
+    # Au consumption from the fluid — small because Au activity is low.
+    # 0.05 ratio is conservative; high-rate growth still drains the Au
+    # pool but slowly enough that Bingham/Bisbee Au=2-3 ppm can sustain
+    # multiple crystals.
+    conditions.fluid.Au = max(conditions.fluid.Au - rate * 0.05, 0)
+
+    return GrowthZone(
+        step=step, temperature=conditions.temperature,
+        thickness_um=rate, growth_rate=rate,
+        note=habit_note,
+    )
+
+
 def grow_native_copper(crystal: Crystal, conditions: VugConditions, step: int) -> Optional[GrowthZone]:
     """Native copper (Cu) growth — the elemental metal."""
     sigma = conditions.supersaturation_native_copper()
@@ -5940,6 +6186,244 @@ def grow_wulfenite(crystal: Crystal, conditions: VugConditions, step: int) -> Op
     )
 
 
+def grow_ferrimolybdite(crystal: Crystal, conditions: VugConditions, step: int) -> Optional[GrowthZone]:
+    """Ferrimolybdite (Fe₂(MoO₄)₃·nH₂O) growth. Canary-yellow acicular tufts.
+
+    The "no-lead branch" of Mo oxidation. Fast-growing, powdery to
+    fibrous; rarely forms display-grade crystals. Hardness ~2, very
+    soft. Coexists with wulfenite (both nucleate from oxidized MoO₄²⁻)
+    but wins the early window because ferrimolybdite's σ threshold and
+    growth rate are higher.
+
+    Dehydrates / dissolves at moderate T (>150°C) or very acidic
+    (pH<2) — Mo and Fe return to fluid, potentially feeding a late
+    wulfenite pulse if Pb is present.
+    """
+    sigma = conditions.supersaturation_ferrimolybdite()
+
+    if sigma < 1.0:
+        # Dehydration (T>150) or acid-loss (pH<2) releases Fe + MoO₄²⁻.
+        # Ferrimolybdite is metastable — it gives up its MoO₄²⁻ relatively
+        # easily compared to wulfenite's stable lead lock.
+        if crystal.total_growth_um > 2 and (conditions.fluid.pH < 2 or conditions.temperature > 150):
+            crystal.dissolved = True
+            dissolved_um = min(2.5, crystal.total_growth_um * 0.18)
+            conditions.fluid.Fe += dissolved_um * 0.5
+            conditions.fluid.Mo += dissolved_um * 0.4
+            return GrowthZone(
+                step=step, temperature=conditions.temperature,
+                thickness_um=-dissolved_um, growth_rate=-dissolved_um,
+                note="dehydration — ferrimolybdite crumbles, releasing Fe³⁺ + MoO₄²⁻"
+            )
+        return None
+
+    excess = sigma - 1.0
+    rate = 5.0 * excess * random.uniform(0.8, 1.2)  # fast growth — the defining trait
+    if rate < 0.1:
+        return None
+
+    # Habit by σ excess:
+    #   very high σ → powdery crust (mass accretion, no crystal form)
+    #   high σ → fibrous mat (felted yellow aggregate)
+    #   moderate σ → acicular tufts (classic radiating hair-like habit)
+    if excess > 2.0:
+        crystal.habit = "powdery crust"
+        crystal.dominant_forms = ["earthy yellow powder", "sulfur-yellow coating"]
+        habit_note = "canary-yellow powdery crust on molybdenite"
+    elif excess > 0.8:
+        crystal.habit = "fibrous mat"
+        crystal.dominant_forms = ["dense fibrous mats", "yellow felted aggregate"]
+        habit_note = "fibrous mat of yellow ferrimolybdite"
+    else:
+        crystal.habit = "acicular tuft"
+        crystal.dominant_forms = ["radiating acicular tufts", "hair-like fibers"]
+        habit_note = "acicular radiating tufts of canary-yellow ferrimolybdite"
+
+    conditions.fluid.Mo = max(conditions.fluid.Mo - rate * 0.003, 0)
+    conditions.fluid.Fe = max(conditions.fluid.Fe - rate * 0.004, 0)
+
+    return GrowthZone(
+        step=step, temperature=conditions.temperature,
+        thickness_um=rate, growth_rate=rate,
+        trace_Fe=conditions.fluid.Fe * 0.01,
+        note=habit_note
+    )
+
+
+def grow_scorodite(crystal: Crystal, conditions: VugConditions, step: int) -> Optional[GrowthZone]:
+    """Scorodite (FeAsO₄·2H₂O) growth — pale blue-green pseudo-octahedral dipyramids.
+
+    Forms from oxidized arsenopyrite (and any other As-bearing sulfide).
+    The arsenic sequestration mineral — locks AsO₄³⁻ in stable crystals
+    as long as pH stays below 5. Releases AsO₄³⁻ back to fluid above
+    pH 5 (feeds the higher-pH arsenate suite) or above 160°C
+    (dehydrates to anhydrous FeAsO₄).
+    """
+    sigma = conditions.supersaturation_scorodite()
+
+    if sigma < 1.0:
+        # Two dissolution paths: alkaline shift (pH > 5.5 with hysteresis)
+        # OR thermal dehydration (T > 160°C). Both release AsO₄³⁻ for
+        # downstream arsenates.
+        if crystal.total_growth_um > 2 and (conditions.fluid.pH > 5.5 or conditions.temperature > 160):
+            crystal.dissolved = True
+            dissolved_um = min(3.0, crystal.total_growth_um * 0.10)
+            conditions.fluid.Fe += dissolved_um * 0.5
+            conditions.fluid.As += dissolved_um * 0.5  # AsO₄³⁻ for downstream arsenates
+            cause = "pH>5" if conditions.fluid.pH > 5.5 else "T>160°C"
+            return GrowthZone(
+                step=step, temperature=conditions.temperature,
+                thickness_um=-dissolved_um, growth_rate=-dissolved_um,
+                note=f"dissolution ({cause}) — scorodite releases AsO₄³⁻ for downstream arsenates"
+            )
+        return None
+
+    excess = sigma - 1.0
+    rate = 3.0 * excess * random.uniform(0.8, 1.2)
+    if rate < 0.1:
+        return None
+
+    # Habit by σ excess:
+    #   high σ → earthy_crust (greenish-brown powder, supergene weathering)
+    #   moderate σ → dipyramidal (the diagnostic pseudo-octahedral habit)
+    #   low σ → well-formed dipyramids (display quality, deep blue-green)
+    if excess > 1.5:
+        crystal.habit = "earthy_crust"
+        crystal.dominant_forms = ["powdery greenish-brown crust"]
+        habit_note = "earthy greenish-brown scorodite crust on arsenopyrite"
+    elif excess > 0.5:
+        crystal.habit = "dipyramidal"
+        crystal.dominant_forms = ["pseudo-octahedral dipyramids"]
+        habit_note = "pseudo-octahedral pale blue-green scorodite dipyramids"
+    else:
+        crystal.habit = "dipyramidal"
+        crystal.dominant_forms = ["well-formed dipyramids", "deep blue-green"]
+        habit_note = "well-formed deep blue-green scorodite (Tsumeb-style)"
+
+    # Color tint by Fe content
+    if conditions.fluid.Fe > 30:
+        habit_note += " (deep blue, Fe-rich)"
+
+    conditions.fluid.Fe = max(conditions.fluid.Fe - rate * 0.005, 0)
+    conditions.fluid.As = max(conditions.fluid.As - rate * 0.005, 0)
+
+    return GrowthZone(
+        step=step, temperature=conditions.temperature,
+        thickness_um=rate, growth_rate=rate,
+        trace_Fe=conditions.fluid.Fe * 0.005,
+        note=habit_note
+    )
+
+
+def grow_arsenopyrite(crystal: Crystal, conditions: VugConditions, step: int) -> Optional[GrowthZone]:
+    """Arsenopyrite (FeAsS) growth — the arsenic gateway, the #1 Au-trapper.
+
+    Mesothermal primary sulfide; silver-white striated prisms with
+    diamond cross-section. Consumes Fe + As + S; simultaneously traps
+    fluid Au as "invisible-gold" trace — up to 1500 ppm structurally
+    bound in the lattice (Reich et al. 2005). This creates a natural
+    competition with grow_native_gold: at reducing high-T phases where
+    arsenopyrite is happy, it skims Au out of the broth before native
+    gold can nucleate freely. When the fluid later oxidizes, the
+    released Au comes back, enabling the classic supergene-Au-
+    enrichment signature of orogenic oxidation zones (Graeme et al.
+    2019 for Bisbee).
+
+    Oxidation-dissolution (O₂>0.5, thickness>3µm) releases Fe + As +
+    S back to fluid, acidifies via H₂SO₄, and returns trapped Au.
+    The released Fe + AsO₄³⁻ feed scorodite; the returned Au and
+    the acidified / oxidizing fluid feed a new generation of
+    native_gold nucleation.
+    """
+    sigma = conditions.supersaturation_arsenopyrite()
+
+    if sigma < 1.0:
+        # Oxidation-dissolution — the supergene conversion pathway.
+        # arsenopyrite + O₂ + H₂O → Fe³⁺ + AsO₄³⁻ + H₂SO₄
+        if crystal.total_growth_um > 3 and conditions.fluid.O2 > 0.5:
+            crystal.dissolved = True
+            dissolved_um = min(4.0, crystal.total_growth_um * 0.12)
+            conditions.fluid.Fe += dissolved_um * 0.5
+            conditions.fluid.As += dissolved_um * 0.4   # now AsO₄³⁻ pool
+            conditions.fluid.S += dissolved_um * 0.4    # becomes SO₄²⁻
+            # Acidification via H₂SO₄ — modest pH drop bounded at 2.0
+            conditions.fluid.pH = max(2.0, conditions.fluid.pH - dissolved_um * 0.02)
+            # Release trapped invisible-gold — 12% per dissolution step
+            # of the zone-averaged trapped Au. This is the supergene-Au
+            # enrichment mechanism.
+            total_trapped_au = sum(z.trace_Au for z in crystal.growth_zones)
+            released_au = total_trapped_au * 0.12
+            if released_au > 0:
+                conditions.fluid.Au += released_au
+            note_str = "oxidation — arsenopyrite → Fe³⁺ + AsO₄³⁻ + H₂SO₄"
+            if released_au > 0.005:
+                note_str += f" (releases {released_au:.3f} ppm trapped Au — supergene enrichment)"
+            return GrowthZone(
+                step=step, temperature=conditions.temperature,
+                thickness_um=-dissolved_um, growth_rate=-dissolved_um,
+                note=note_str
+            )
+        return None
+
+    excess = sigma - 1.0
+    rate = 3.5 * excess * random.uniform(0.8, 1.2)
+    if rate < 0.1:
+        return None
+
+    # Habit by σ excess:
+    #   very high σ → massive_granular (no crystal form)
+    #   high σ → acicular (thin needles)
+    #   moderate σ → rhombic_blade (flattened)
+    #   low σ → striated_prism (classic diamond-section — the display habit)
+    if excess > 2.0:
+        crystal.habit = "massive_granular"
+        crystal.dominant_forms = ["granular masses", "metallic silver-white"]
+        habit_note = "granular massive arsenopyrite"
+    elif excess > 1.2:
+        crystal.habit = "acicular"
+        crystal.dominant_forms = ["thin needles", "acicular aggregates"]
+        habit_note = "acicular arsenopyrite needles"
+    elif excess > 0.4:
+        crystal.habit = "rhombic_blade"
+        crystal.dominant_forms = ["flattened rhombic blades"]
+        habit_note = "rhombic-bladed arsenopyrite"
+    else:
+        crystal.habit = "striated_prism"
+        crystal.dominant_forms = ["{110} striated prisms", "diamond cross-section"]
+        habit_note = "striated prismatic arsenopyrite with diamond cross-section"
+
+    # Au-trapping — the #1 gold-trapping mineral mechanism.
+    # 5% of fluid Au per step gets captured as invisible-gold trace
+    # on the growth zone; 30% of the trap rate actually leaves the
+    # fluid (other 70% is "reversibly adsorbed" — sim approximation
+    # of the real Au-HS / Au-Cl partition dynamics). Cap the per-zone
+    # trapped fraction at 1.5 ppm so integrated across a ~15-zone
+    # crystal we're in the literature-reported ~1500 ppm ballpark.
+    au_trap_ppm = 0.0
+    if conditions.fluid.Au > 0.01:
+        au_trap_ppm = min(conditions.fluid.Au * 0.05, 1.5)
+        conditions.fluid.Au = max(conditions.fluid.Au - au_trap_ppm * 0.3, 0)
+        if au_trap_ppm > 0.02:
+            habit_note += f"; traps invisible-Au ({au_trap_ppm:.3f} ppm)"
+
+    # Cobaltian arsenopyrite — slight pinkish tint when Co substitutes
+    if conditions.fluid.Co > 2:
+        habit_note += " (Co-bearing, pinkish tinge)"
+
+    # Consume Fe + As + S
+    conditions.fluid.Fe = max(conditions.fluid.Fe - rate * 0.004, 0)
+    conditions.fluid.As = max(conditions.fluid.As - rate * 0.004, 0)
+    conditions.fluid.S = max(conditions.fluid.S - rate * 0.003, 0)
+
+    return GrowthZone(
+        step=step, temperature=conditions.temperature,
+        thickness_um=rate, growth_rate=rate,
+        trace_Fe=conditions.fluid.Fe * 0.003,
+        trace_Au=au_trap_ppm,
+        note=habit_note
+    )
+
+
 def grow_selenite(crystal: Crystal, conditions: VugConditions, step: int) -> Optional[GrowthZone]:
     """Selenite / Gypsum (CaSO₄·2H₂O) growth. Low-T evaporite, Naica's giant crystals."""
     sigma = conditions.supersaturation_selenite()
@@ -6030,6 +6514,9 @@ MINERAL_ENGINES = {
     "goethite": grow_goethite,
     "smithsonite": grow_smithsonite,
     "wulfenite": grow_wulfenite,
+    "ferrimolybdite": grow_ferrimolybdite,
+    "arsenopyrite": grow_arsenopyrite,
+    "scorodite": grow_scorodite,
     "selenite": grow_selenite,
     "topaz": grow_topaz,
     "tourmaline": grow_tourmaline,
@@ -6046,6 +6533,7 @@ MINERAL_ENGINES = {
     "azurite": grow_azurite,
     "chrysocolla": grow_chrysocolla,
     "native_copper": grow_native_copper,
+    "native_gold": grow_native_gold,
     "magnetite": grow_magnetite,
     "lepidocrocite": grow_lepidocrocite,
     "stibnite": grow_stibnite,
@@ -6095,6 +6583,9 @@ THERMAL_DECOMPOSITION = {
     "uraninite":   (2800, "UO₂ — one of the most refractory oxides",                      {"U": 0.5}),
     "goethite":    (300,  "FeO(OH) → Fe₂O₃ + H₂O (dehydrates to hematite)",              {"Fe": 0.5}),
     "molybdenite": (1185, "MoS₂ decomposition",                                         {"Mo": 0.4, "S": 0.4}),
+    "arsenopyrite": (720, "FeAsS → FeAs₂ (loellingite) + S (sulfur driven off; As vapor at higher T)", {"Fe": 0.4, "As": 0.3, "S": 0.3}),
+    "ferrimolybdite": (150, "Fe₂(MoO₄)₃·nH₂O → Fe₂(MoO₄)₃ + nH₂O (dehydration)",          {"Fe": 0.4, "Mo": 0.3}),
+    "scorodite":     (160, "FeAsO₄·2H₂O → FeAsO₄ + 2H₂O (dehydration to anhydrous arsenate)",  {"Fe": 0.4, "As": 0.4}),
 }
 
 
@@ -6546,19 +7037,15 @@ def scenario_porphyry() -> Tuple[VugConditions, List[Event], int]:
             # tellurides (calaverite, sylvanite) — fluid Te is low but
             # non-zero in the porphyry-distal apron.
             Te=2,
-            # ── Pre-researched, pending FluidChemistry schema ─────────
-            # When Au is added to the FluidChemistry dataclass, set:
-            #     Au=2,
-            # Justification: Landtwing et al. 2010 LA-ICP-MS reports ~1
-            # ppm Au in fluid inclusions across multiple porphyry Cu-Au
-            # systems including Bingham; the Au-Cu-rich center near the
-            # top of the orebody is the diagnostic vapor-plume target.
-            # Sim-scale Au=2 matches the Te=2 trace abstraction. No
-            # further research needed — just add the field to the
-            # schema, uncomment the line above, plus mirror to JS and
-            # web/docs. Same procedure for the bingham_canyon entry in
-            # data/locality_chemistry.json (pending_schema_additions
-            # block already populated with the value).
+            # Au=2: porphyry-Cu-Au signature. Landtwing et al. 2010
+            # LA-ICP-MS reports ~1 ppm Au in fluid inclusions across
+            # multiple porphyry Cu-Au systems including Bingham; the
+            # Au-Cu-rich center near the top of the orebody is the
+            # diagnostic vapor-plume target. Bingham has produced
+            # ~200 t Au cumulatively, making Au a defining metal
+            # alongside Cu and Mo. Activated when grow_native_gold
+            # landed (was previously in pending_schema_additions).
+            Au=2,
             # ──────────────────────────────────────────────────────────
             O2=0.2, pH=4.5, salinity=10.0
         ),
@@ -6867,6 +7354,13 @@ def scenario_supergene_oxidation() -> Tuple[VugConditions, List[Event], int]:
             # meteoric water is dilute (salinity stays at 2 wt%) but
             # carries some Na/K from soil-zone weathering.
             Na=30, K=10,
+            # Au=0.3: rare native gold IS documented at Tsumeb [Pinch
+            # & Wilson 1977] though it is not a primary commodity.
+            # Sub-threshold (grow_native_gold's Au < 0.5 ppm cutoff)
+            # so no nucleation expected — documents the trace chemistry
+            # without producing gold the locality doesn't actually
+            # produce in quantity.
+            Au=0.3,
             # ──────────────────────────────────────────────────────────
             O2=1.8, pH=6.8, salinity=2.0,
         ),
@@ -7446,19 +7940,14 @@ def scenario_bisbee() -> Tuple[VugConditions, List[Event], int]:
             # at Bisbee. Bi=2 is already set; mirroring with comparable
             # low Sb completes the Sb-As-Bi greisen-trace triplet.
             Sb=5,
-            # ── Pre-researched, pending FluidChemistry schema ─────────
-            # When Au is added to the FluidChemistry dataclass, set:
-            #     Au=3,
-            # Justification: Bisbee was a moderate Au producer (~3 Moz
-            # historically), classic Cu-Au porphyry. Lower than Bingham's
-            # Au=2 in some sense (Bingham is the type Cu-Au porphyry)
-            # but Bisbee's preserved Au is documented in the supergene
-            # zone as native gold + auriferous chalcocite. Sim-scale
-            # Au=3 slightly higher than Bingham reflecting Bisbee's
-            # preserved oxidation zone where Au accumulates.
-            # Source: Graeme et al. 2019 + USGS Bisbee bulletins.
-            # Procedure: same as bingham_canyon Au — add field, mirror,
-            # uncomment, re-run seed-42.
+            # Au=3: Bisbee was a moderate Au producer (~3 Moz
+            # historically), classic Cu-Au porphyry. Slightly higher
+            # than Bingham's Au=2 reflecting Bisbee's well-preserved
+            # supergene zone where Au accumulates as native gold +
+            # auriferous chalcocite [Graeme et al. 2019]. Activated
+            # when grow_native_gold landed (was previously in
+            # pending_schema_additions).
+            Au=3,
             # ──────────────────────────────────────────────────────────
             # Very reducing primary — chalcopyrite/bornite-stable.
             O2=0.05, pH=5.0, salinity=30.0
@@ -8798,6 +9287,75 @@ class VugSimulator:
                 self.log.append(f"  ✦ NUCLEATION: Wulfenite #{c.crystal_id} on {c.position} "
                               f"(T={self.conditions.temperature:.0f}°C, σ={sigma_wul:.2f})")
 
+        # Ferrimolybdite nucleation — the no-lead Mo-oxidation fork.
+        # Lower σ threshold (1.0 vs wulfenite's 1.3) + higher probability
+        # per check (0.18 vs 0.15) reflect its faster, less-picky growth.
+        # Substrate preference: dissolving molybdenite (direct oxidation
+        # product) > active molybdenite > free vug wall. Can coexist
+        # with wulfenite — both take MoO₄²⁻ from the same pool.
+        sigma_fmo = self.conditions.supersaturation_ferrimolybdite()
+        if sigma_fmo > 1.0 and not self._at_nucleation_cap("ferrimolybdite"):
+            if random.random() < 0.18:
+                pos = "vug wall"
+                dissolving_mol = [c for c in self.crystals if c.mineral == "molybdenite" and c.dissolved]
+                active_mol = [c for c in self.crystals if c.mineral == "molybdenite" and c.active]
+                if dissolving_mol and random.random() < 0.7:
+                    pos = f"on dissolving molybdenite #{dissolving_mol[0].crystal_id}"
+                elif active_mol and random.random() < 0.4:
+                    pos = f"on molybdenite #{active_mol[0].crystal_id}"
+                c = self.nucleate("ferrimolybdite", position=pos, sigma=sigma_fmo)
+                self.log.append(f"  ✦ NUCLEATION: Ferrimolybdite #{c.crystal_id} on {c.position} "
+                              f"(T={self.conditions.temperature:.0f}°C, σ={sigma_fmo:.2f}, "
+                              f"Mo={self.conditions.fluid.Mo:.0f}, Fe={self.conditions.fluid.Fe:.0f})")
+
+        # Arsenopyrite nucleation — mesothermal primary sulfide, reducing
+        # Fe+As+S. Substrate preference: pyrite (the classic orogenic-gold
+        # co-precipitation habit — arsenopyrite rhombs on pyrite cubes) >
+        # chalcopyrite (sulfide companion in porphyry evolution) > vug
+        # wall. σ threshold 1.2 reflects the mesothermal specificity —
+        # arsenopyrite is pickier than pyrite about T and Eh windows.
+        sigma_apy = self.conditions.supersaturation_arsenopyrite()
+        if sigma_apy > 1.2 and not self._at_nucleation_cap("arsenopyrite"):
+            if random.random() < 0.12:
+                pos = "vug wall"
+                active_py_apy = [c for c in self.crystals if c.mineral == "pyrite" and c.active]
+                active_cp_apy = [c for c in self.crystals if c.mineral == "chalcopyrite" and c.active]
+                if active_py_apy and random.random() < 0.5:
+                    pos = f"on pyrite #{active_py_apy[0].crystal_id}"
+                elif active_cp_apy and random.random() < 0.3:
+                    pos = f"on chalcopyrite #{active_cp_apy[0].crystal_id}"
+                c = self.nucleate("arsenopyrite", position=pos, sigma=sigma_apy)
+                self.log.append(f"  ✦ NUCLEATION: Arsenopyrite #{c.crystal_id} on {c.position} "
+                              f"(T={self.conditions.temperature:.0f}°C, σ={sigma_apy:.2f}, "
+                              f"Fe={self.conditions.fluid.Fe:.0f}, As={self.conditions.fluid.As:.0f}, "
+                              f"Au={self.conditions.fluid.Au:.2f} ppm)")
+
+        # Scorodite nucleation — the arsenate supergene gateway; the
+        # canonical "crystallized on dissolving arsenopyrite" habit. σ
+        # threshold 1.0 + per-check 0.20 reflect supergene speed (the
+        # arsenate suite forms quickly once acidic oxidizing conditions
+        # arrive). Substrate priority: dissolving arsenopyrite (direct
+        # parent) > active arsenopyrite > dissolving pyrite (often co-
+        # occurs in oxidation zones) > vug wall.
+        sigma_sco = self.conditions.supersaturation_scorodite()
+        if sigma_sco > 1.0 and not self._at_nucleation_cap("scorodite"):
+            if random.random() < 0.20:
+                pos = "vug wall"
+                diss_apy = [c for c in self.crystals if c.mineral == "arsenopyrite" and c.dissolved]
+                active_apy = [c for c in self.crystals if c.mineral == "arsenopyrite" and c.active]
+                diss_py_sco = [c for c in self.crystals if c.mineral == "pyrite" and c.dissolved]
+                if diss_apy and random.random() < 0.8:
+                    pos = f"on dissolving arsenopyrite #{diss_apy[0].crystal_id}"
+                elif active_apy and random.random() < 0.5:
+                    pos = f"on arsenopyrite #{active_apy[0].crystal_id}"
+                elif diss_py_sco and random.random() < 0.4:
+                    pos = f"on dissolving pyrite #{diss_py_sco[0].crystal_id}"
+                c = self.nucleate("scorodite", position=pos, sigma=sigma_sco)
+                self.log.append(f"  ✦ NUCLEATION: Scorodite #{c.crystal_id} on {c.position} "
+                              f"(T={self.conditions.temperature:.0f}°C, σ={sigma_sco:.2f}, "
+                              f"Fe={self.conditions.fluid.Fe:.0f}, As={self.conditions.fluid.As:.0f}, "
+                              f"pH={self.conditions.fluid.pH:.1f})")
+
         # Uraninite nucleation — strongly reducing, U-bearing. Emits radiation each step.
         sigma_ur = self.conditions.supersaturation_uraninite()
         if sigma_ur > 1.5 and not self._at_nucleation_cap("uraninite") and random.random() < 0.08:
@@ -9077,6 +9635,29 @@ class VugSimulator:
                 self.log.append(f"  ✦ NUCLEATION: Native copper #{c.crystal_id} on {c.position} "
                               f"(T={self.conditions.temperature:.0f}°C, σ={sigma_nc:.2f}, "
                               f"Cu={self.conditions.fluid.Cu:.0f}, O₂={self.conditions.fluid.O2:.2f})")
+
+        # Native gold nucleation — Au + tolerant of both Eh regimes.
+        # Substrate preference: chalcocite (Bisbee supergene Au often
+        # rides on the chalcocite enrichment blanket) > pyrite (orogenic
+        # gold-on-pyrite habit) > bornite > free vug wall.
+        sigma_au = self.conditions.supersaturation_native_gold()
+        existing_au = [c for c in self.crystals if c.mineral == "native_gold" and c.active]
+        if sigma_au > 1.0 and not self._at_nucleation_cap("native_gold"):
+            if not existing_au or (sigma_au > 1.5 and random.random() < 0.2):
+                pos = "vug wall"
+                active_chc_au = [c for c in self.crystals if c.mineral == "chalcocite" and c.active]
+                active_py_au = [c for c in self.crystals if c.mineral == "pyrite" and c.active]
+                active_brn_au = [c for c in self.crystals if c.mineral == "bornite" and c.active]
+                if active_chc_au and random.random() < 0.4:
+                    pos = f"on chalcocite #{active_chc_au[0].crystal_id}"
+                elif active_py_au and random.random() < 0.25:
+                    pos = f"on pyrite #{active_py_au[0].crystal_id}"
+                elif active_brn_au and random.random() < 0.2:
+                    pos = f"on bornite #{active_brn_au[0].crystal_id}"
+                c = self.nucleate("native_gold", position=pos, sigma=sigma_au)
+                self.log.append(f"  ✦ NUCLEATION: Native gold #{c.crystal_id} on {c.position} "
+                              f"(T={self.conditions.temperature:.0f}°C, σ={sigma_au:.2f}, "
+                              f"Au={self.conditions.fluid.Au:.2f} ppm)")
 
         # Bornite nucleation — Cu + Fe + S, Cu:Fe > 2:1 (competes with
         # chalcopyrite for the same elements).
