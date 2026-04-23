@@ -291,7 +291,7 @@
       "display_name": "Tri-State Pb-Zn-Ag district (Joplin / Picher / Galena, MO-KS-OK)",
       "host_formation": "Mississippian Boone Formation cherty limestone (and Reeds Spring / St. Joe formations locally)",
       "fluid_event_summary": "Late Pennsylvanian-Early Permian basinal brine expulsion; NaCl-CaCl2 brines, 18-24 wt% NaCl-eq, 90-150 C ore stage. Stoffell et al. 2008 LA-ICP-MS shows Tri-State and Northern Arkansas brines were chemically distinct from Viburnum Trend, with Tri-State having higher Pb-Zn-Ag and lower Ba relative to the Viburnum brines. Ore deposition by sulfide saturation when metal-bearing brine met sulfur-bearing groundwater.",
-      "audit_pass": "gap-fill (Apr 2026) — added Na, K, Cl (NaCl-CaCl2 brine baseline), Ag (argentiferous-galena), Ba (local barite gangue), Sr (basinal-brine tracer), Cu (trace chalcopyrite). Drift-fix: Pb=40 mirrored from JS init into Python init. Existing chemistry preserved (no retuning). | v3-expansion (Apr 2026) — added arsenopyrite + scorodite + ferrimolybdite engine activations. No fluid chemistry changed; per-locality mineral_realizations_v3_expansion block added documenting expected behavior given existing chemistry. One documented gap: tsumeb scorodite is geologically real but blocked by current pH=6.8 (would need early-acidic-phase event to unlock). | v4-sulfate-expansion (Apr 2026) — added barite + celestine + jarosite + alunite + brochantite + antlerite + anhydrite engines (Round 5). Per-locality mineral_realizations_v4_sulfate_expansion block added documenting expected behavior. SIM_VERSION 3→4 bump driven by Coorong sabkha celestine + anhydrite activation (textbook sabkha-evaporite assemblage now models). Two documented gap families: (1) Tri-State + Sweetwater O2=0.0 blocks barite + celestine despite Ba/Sr present — bumping to mildly-reducing O2=0.2 would unlock both; (2) Tsumeb pH=6.8 blocks jarosite alongside the existing scorodite pH gap — same fix (early event_supergene_acidification) would unlock all three plus alunite.",
+      "audit_pass": "gap-fill (Apr 2026) — added Na, K, Cl (NaCl-CaCl2 brine baseline), Ag (argentiferous-galena), Ba (local barite gangue), Sr (basinal-brine tracer), Cu (trace chalcopyrite). Drift-fix: Pb=40 mirrored from JS init into Python init. Existing chemistry preserved (no retuning). | v3-expansion (Apr 2026) — added arsenopyrite + scorodite + ferrimolybdite engine activations. No fluid chemistry changed; per-locality mineral_realizations_v3_expansion block added documenting expected behavior given existing chemistry. One documented gap: tsumeb scorodite is geologically real but blocked by current pH=6.8 (would need early-acidic-phase event to unlock). | v4-sulfate-expansion (Apr 2026) — added barite + celestine + jarosite + alunite + brochantite + antlerite + anhydrite engines (Round 5). Per-locality mineral_realizations_v4_sulfate_expansion block added documenting expected behavior. SIM_VERSION 3→4 bump driven by Coorong sabkha celestine + anhydrite activation (textbook sabkha-evaporite assemblage now models). Two documented gap families: (1) Tri-State + Sweetwater O2=0.0 blocks barite + celestine despite Ba/Sr present — bumping to mildly-reducing O2=0.2 would unlock both; (2) Tsumeb pH=6.8 blocks jarosite alongside the existing scorodite pH gap — same fix (early event_supergene_acidification) would unlock all three plus alunite. | v5-gap-fill (Apr 2026) — O2 bumped 0.0 → 0.25 to match real MVT mildly-reducing chemistry at the SO₄/H₂S boundary. Activates dormant Ba/Sr pools for barite + celestine. Plus supersat O2 saturation retuned to /0.4 (matches the SO₄/H₂S boundary).",
       "fluid": {
         "Na": {
           "value": 80,
@@ -320,6 +320,10 @@
         "Cu": {
           "value": 3,
           "note": "Trace chalcopyrite documented at Tri-State even though Cu is not a primary commodity."
+        },
+        "O2": {
+          "value": 0.25,
+          "note": "O2 bumped 0.0 → 0.25 (v5 gap-fill, Apr 2026): real MVT brine sits at the SO₄/H₂S Eh boundary where some sulfate persists alongside H₂S — barite + galena coexistence is the diagnostic MVT assemblage. Bumping from default 0.0 to 0.25 unlocks dormant barite + celestine without destabilizing existing sulfide assemblages (sulfide gates are O2 ≤ 0.8). Plus barite + celestine supersaturation O2 saturation tuned from O2/1.0 to O2/0.4 (saturates at the SO₄/H₂S boundary, geochemically correct). Source: Anderson & Macqueen 1982 (MVT review); Stoffell et al. 2008 (Tri-State LA-ICP-MS brine analyses)."
         }
       },
       "preserved_intentional_values": {
@@ -382,13 +386,14 @@
       },
       "mineral_realizations_v4_sulfate_expansion": {
         "barite": {
-          "status": "blocked_by_O2_gap",
-          "reason": "Ba=20 ✓ + S=120 (post event_fluid_mixing step 20) ✓, but O2=0.0 throughout. Real MVT brine sits at mildly-reducing Eh (~O2=0.2 in sim scale) where some SO4²⁻ persists alongside galena's H2S. Bumping Tri-State O2 to ~0.2 is a follow-up scenario tweak; barite would fire immediately strongly.",
-          "audit_action": "Documented gap. Future scenario refinement (O2 0→0.2) would unlock barite immediately. Tracked in BACKLOG.md."
+          "status": "active",
+          "reason": "Ba=20, S=120 (post event_fluid_mixing step 20), O2=0.25 (v5 bump). Verified seed-42: 6 active barite crystals, max 32 µm. The barite + galena MVT-diagnostic coexistence now reproduces in the sim.",
+          "audit_action": "Resolved by v5 commit. O2 bump + supersat O2/0.4 retune both required."
         },
         "celestine": {
-          "status": "blocked_by_O2_gap",
-          "reason": "Sr=15 ✓ + S=120 ✓, same O2=0.0 gap as barite. Would fire if O2 bumped."
+          "status": "active",
+          "reason": "Sr=15, S=120, O2=0.25. Verified seed-42: 10 celestine crystals, max 111 µm. Minor celestine in Tri-State carbonate gangue (Hanor 1994) now reproduces.",
+          "audit_action": "Resolved by v5 commit."
         },
         "jarosite": {
           "status": "not_applicable",
@@ -418,7 +423,7 @@
       "display_name": "Sweetwater Mine, Viburnum Trend, Reynolds County, Missouri",
       "host_formation": "Cambrian Bonneterre Formation dolomitic limestone",
       "fluid_event_summary": "Late Pennsylvanian-Early Permian basinal brine expulsion driven by Ouachita orogeny dewatering. NaCl-CaCl2 brine, 18-24 wt% NaCl-eq, 90-150 C ore stage. Viburnum is the high-Ba / lower-Ag MVT endmember (Stoffell et al. 2008 LA-ICP-MS contrast with Tri-State). The 'reactive wall' mechanic models repeated acid pulses dissolving the carbonate host and triggering pH-recovery growth bursts on existing crystals — the diagnostic Viburnum Pb-Zn paragenesis (sphalerite + galena + marcasite ± barite, with dolomite-calcite gangue).",
-      "audit_pass": "gap-fill (Apr 2026) — added Na, K, Cl (NaCl-CaCl2 brine baseline), Ag (Viburnum galena trace, lower than Tri-State), Sr (basinal-brine tracer). No drift between Python and JS (both runtimes already consistent). Existing chemistry preserved (no retuning). | v3-expansion (Apr 2026) — added arsenopyrite + scorodite + ferrimolybdite engine activations. No fluid chemistry changed; per-locality mineral_realizations_v3_expansion block added documenting expected behavior given existing chemistry. One documented gap: tsumeb scorodite is geologically real but blocked by current pH=6.8 (would need early-acidic-phase event to unlock). | v4-sulfate-expansion (Apr 2026) — added barite + celestine + jarosite + alunite + brochantite + antlerite + anhydrite engines (Round 5). Per-locality mineral_realizations_v4_sulfate_expansion block added documenting expected behavior. SIM_VERSION 3→4 bump driven by Coorong sabkha celestine + anhydrite activation (textbook sabkha-evaporite assemblage now models). Two documented gap families: (1) Tri-State + Sweetwater O2=0.0 blocks barite + celestine despite Ba/Sr present — bumping to mildly-reducing O2=0.2 would unlock both; (2) Tsumeb pH=6.8 blocks jarosite alongside the existing scorodite pH gap — same fix (early event_supergene_acidification) would unlock all three plus alunite.",
+      "audit_pass": "gap-fill (Apr 2026) — added Na, K, Cl (NaCl-CaCl2 brine baseline), Ag (Viburnum galena trace, lower than Tri-State), Sr (basinal-brine tracer). No drift between Python and JS (both runtimes already consistent). Existing chemistry preserved (no retuning). | v3-expansion (Apr 2026) — added arsenopyrite + scorodite + ferrimolybdite engine activations. No fluid chemistry changed; per-locality mineral_realizations_v3_expansion block added documenting expected behavior given existing chemistry. One documented gap: tsumeb scorodite is geologically real but blocked by current pH=6.8 (would need early-acidic-phase event to unlock). | v4-sulfate-expansion (Apr 2026) — added barite + celestine + jarosite + alunite + brochantite + antlerite + anhydrite engines (Round 5). Per-locality mineral_realizations_v4_sulfate_expansion block added documenting expected behavior. SIM_VERSION 3→4 bump driven by Coorong sabkha celestine + anhydrite activation (textbook sabkha-evaporite assemblage now models). Two documented gap families: (1) Tri-State + Sweetwater O2=0.0 blocks barite + celestine despite Ba/Sr present — bumping to mildly-reducing O2=0.2 would unlock both; (2) Tsumeb pH=6.8 blocks jarosite alongside the existing scorodite pH gap — same fix (early event_supergene_acidification) would unlock all three plus alunite. | v5-gap-fill (Apr 2026) — O2 bumped 0.0 → 0.25 to match real MVT mildly-reducing chemistry at the SO₄/H₂S boundary. Activates dormant Ba/Sr pools for barite + celestine. Plus supersat O2 saturation retuned to /0.4 (matches the SO₄/H₂S boundary).",
       "fluid": {
         "Na": {
           "value": 70,
@@ -439,6 +444,10 @@
         "Sr": {
           "value": 12,
           "note": "Basinal-brine tracer (Hanor 1994); minor celestine documented in Viburnum carbonate gangue."
+        },
+        "O2": {
+          "value": 0.25,
+          "note": "O2 bumped 0.0 → 0.25 (v5 gap-fill, Apr 2026): real MVT brine sits at the SO₄/H₂S Eh boundary where some sulfate persists alongside H₂S — barite + galena coexistence is the diagnostic MVT assemblage. Bumping from default 0.0 to 0.25 unlocks dormant barite + celestine without destabilizing existing sulfide assemblages (sulfide gates are O2 ≤ 0.8). Plus barite + celestine supersaturation O2 saturation tuned from O2/1.0 to O2/0.4 (saturates at the SO₄/H₂S boundary, geochemically correct). Source: Anderson & Macqueen 1982 (MVT review); Stoffell et al. 2008 (Tri-State LA-ICP-MS brine analyses)."
         }
       },
       "preserved_intentional_values": {
@@ -487,12 +496,14 @@
       },
       "mineral_realizations_v4_sulfate_expansion": {
         "barite": {
-          "status": "blocked_by_O2_gap",
-          "reason": "Ba=25 ✓ + S=60 ✓, same O2=0.0 issue as Tri-State. Bumping to mildly-reducing O2=0.2 would unlock."
+          "status": "active_strong",
+          "reason": "Ba=25, S=60+ (init + acid_pulse events deliver more), O2=0.25. Verified seed-42: 14 active barite crystals, max 63 µm. Viburnum is the high-Ba MVT endmember (Stoffell 2008) — the barite gangue assemblage now reproduces.",
+          "audit_action": "Resolved by v5 commit."
         },
         "celestine": {
-          "status": "blocked_by_O2_gap",
-          "reason": "Sr=12 ✓, same O2 gap."
+          "status": "active",
+          "reason": "Sr=12, S=60+, O2=0.25. Verified seed-42: 8 celestine crystals, max 56 µm.",
+          "audit_action": "Resolved by v5 commit."
         },
         "jarosite": {
           "status": "not_applicable",

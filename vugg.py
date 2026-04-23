@@ -50,17 +50,26 @@ from typing import List, Dict, Optional, Tuple
 #        shifts Au distribution in reducing-As scenarios (arsenopyrite
 #        now traps a fraction of Au as invisible-gold trace before
 #        native_gold can nucleate).
-#   v4 — sulfate expansion round 5 (Apr 2026): begins with barite +
-#        celestine. Activates the previously-dormant Sr=20 pool in
-#        Coorong sabkha (immediate seed-42 shift — sabkha now produces
-#        celestine alongside dolomite/halite/selenite). Tri-State and
-#        Sweetwater Ba/Sr pools remain dormant because their O2=0.0
-#        forces strictly-sulfide chemistry; bumping their O2 to ~0.2
-#        (matching real MVT mildly-reducing brine) is a deferred
-#        follow-up. Subsequent commits in the round will add
-#        jarosite/alunite (acid-sulfate), brochantite/antlerite
-#        (Cu sulfates), and anhydrite (high-T + sabkha Ca sulfate).
-SIM_VERSION = 4
+#   v4 — sulfate expansion round 5 (Apr 2026): seven sulfates added —
+#        barite + celestine + jarosite + alunite + brochantite +
+#        antlerite + anhydrite. Activated Coorong sabkha celestine +
+#        anhydrite immediately; Bingham/Bisbee jarosite/alunite/anhydrite
+#        post-event; Bisbee brochantite/antlerite supergene Cu sulfate
+#        suite. Engine count 55 → 62. Two gaps documented at the time:
+#        Tri-State + Sweetwater O2=0.0 blocked barite + celestine, and
+#        Tsumeb pH=6.8 blocked scorodite + jarosite + alunite.
+#   v5 — gap-fill follow-ups (Apr 2026): bumps Tri-State + Sweetwater
+#        scenarios from O2=0.0 (default — strictly reducing) to O2=0.2
+#        (mildly reducing, matching real MVT brine where SO₄²⁻ persists
+#        alongside galena's H₂S — the chemistry that makes barite +
+#        galena coexistence the diagnostic MVT assemblage). Activates
+#        the dormant Ba=20/25 + Sr=15/12 pools in both scenarios.
+#        Plus (Tsumeb commit, separate): adds early
+#        ev_supergene_acidification event at step 5 + bumps Tsumeb Al
+#        3→15, opening a 15-step acid window for scorodite + jarosite +
+#        alunite to nucleate before ev_meteoric_flush at step 20
+#        carbonate-buffers pH back up.
+SIM_VERSION = 5
 
 
 # ============================================================
@@ -2346,7 +2355,12 @@ class VugConditions:
         # producing runaway sigma. See vugg-mineral-template.md §5.
         ba_f = min(self.fluid.Ba / 30.0, 2.0)
         s_f = min(self.fluid.S / 40.0, 2.5)
-        o2_f = min(self.fluid.O2 / 1.0, 1.5)
+        # O2 saturation kicks in around SO₄/H₂S Eh boundary (~O2=0.4 in
+        # sim scale), not at fully oxidized (O2=1.0). At the boundary,
+        # sulfate is at half-availability — barite + galena can coexist
+        # there, the diagnostic MVT chemistry. Sabkha O2=1.5 still hits
+        # the 1.5 cap.
+        o2_f = min(self.fluid.O2 / 0.4, 1.5)
         sigma = ba_f * s_f * o2_f
         # Wide T window — peaks in MVT range (50-200°C)
         T = self.temperature
@@ -2588,10 +2602,11 @@ class VugConditions:
         if self.fluid.Sr < 3 or self.fluid.S < 10 or self.fluid.O2 < 0.1:
             return 0
         # Factor caps — see barite for rationale (sabkha S=2700 would
-        # otherwise produce sigma > 100).
+        # otherwise produce sigma > 100). O2 saturation at SO₄/H₂S
+        # boundary (O2≈0.4) — same MVT-coexistence rationale.
         sr_f = min(self.fluid.Sr / 15.0, 2.0)
         s_f = min(self.fluid.S / 40.0, 2.5)
-        o2_f = min(self.fluid.O2 / 1.0, 1.5)
+        o2_f = min(self.fluid.O2 / 0.4, 1.5)
         sigma = sr_f * s_f * o2_f
         # Low-T preferred — supergene/evaporite/MVT
         T = self.temperature
@@ -7713,6 +7728,20 @@ def scenario_mvt() -> Tuple[VugConditions, List[Event], int]:
             # entry, uncomment the line above. Same template as
             # bingham_canyon Au pending-schema entry.
             # ──────────────────────────────────────────────────────────
+            # ── v5 gap-fill (Apr 2026) ────────────────────────────────
+            # O2=0.25 (was default 0.0): mildly reducing, NOT strictly
+            # reducing. Real MVT brine sits at the SO₄/H₂S boundary
+            # where some sulfate persists alongside H₂S — that's the
+            # chemistry that lets barite + galena COEXIST as the
+            # diagnostic MVT assemblage. With O2=0.0, sulfate didn't
+            # exist in the sim and barite + celestine couldn't form
+            # despite Ba=20 + Sr=15 being populated. Bumping to 0.25
+            # unlocks them; sphalerite/galena/pyrite still form fine
+            # (their O2 ≤ 0.8 gates remain met). Source: Anderson &
+            # Macqueen 1982 (MVT mineralogy review); Stoffell et al.
+            # 2008 (Tri-State fluid inclusion brine analyses).
+            O2=0.25,
+            # ──────────────────────────────────────────────────────────
             pH=7.2, salinity=15.0
         ),
         # MVT — dissolution cavity in limestone. Cohesive primary void
@@ -7888,6 +7917,16 @@ def scenario_reactive_wall() -> Tuple[VugConditions, List[Event], int]:
             # Sr=12: basinal-brine tracer (Hanor 1994); minor celestine
             # documented in the Viburnum carbonate gangue.
             Sr=12,
+            # ──────────────────────────────────────────────────────────
+            # ── v5 gap-fill (Apr 2026) ────────────────────────────────
+            # O2=0.25 (was default 0.0): same MVT-Eh rationale as
+            # Tri-State — mildly reducing brine where SO₄²⁻ persists
+            # alongside H₂S, allowing barite + galena coexistence.
+            # Bumping unlocks dormant Ba=25 + Sr=12 pools without
+            # disturbing the existing sulfide assemblage. Source:
+            # Sverjensky 1981 (Viburnum brine geochem); Anderson &
+            # Macqueen 1982 (MVT review).
+            O2=0.25,
             # ──────────────────────────────────────────────────────────
             pH=7.0, salinity=18.0
         ),
