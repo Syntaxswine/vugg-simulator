@@ -2363,6 +2363,59 @@ class VugConditions:
             sigma *= max(0.4, 1.0 - 0.2 * (self.fluid.pH - 9))
         return max(sigma, 0)
 
+    def supersaturation_anhydrite(self) -> float:
+        """Anhydrite (CaSO₄) — the high-T or saline-low-T Ca sulfate sister of selenite.
+
+        Two distinct stability regimes:
+          1. High-T (>60°C): anhydrite stable; Bingham porphyry deep-brine
+             zones contain massive anhydrite + chalcopyrite (Roedder 1971).
+          2. Low-T (<60°C) with high salinity (>100‰ NaCl-eq): anhydrite
+             stable due to lowered water activity; the Persian Gulf /
+             Coorong sabkha and Salar de Atacama evaporite habitats.
+
+        Below 60°C in dilute fluid (salinity < 100‰), anhydrite is
+        metastable and rehydrates to gypsum (CaSO₄·2H₂O = selenite in
+        the sim). Naica's giant selenite crystals grew on top of an
+        older anhydrite floor that was the original evaporite layer.
+
+        Source: Hardie 1967 (Am. Mineral. 52 — the canonical phase
+        diagram); Newton & Manning 2005 (J. Petrol. 46 — high-T
+        hydrothermal anhydrite); Warren 2006 (Evaporites textbook).
+        """
+        if (self.fluid.Ca < 50 or self.fluid.S < 20
+                or self.fluid.O2 < 0.3):
+            return 0
+        ca_f = min(self.fluid.Ca / 200.0, 2.5)
+        s_f = min(self.fluid.S / 40.0, 2.5)
+        o2_f = min(self.fluid.O2 / 1.0, 1.5)
+        sigma = ca_f * s_f * o2_f
+        T = self.temperature
+        salinity = self.fluid.salinity
+        # Two-mode T — high-T branch OR low-T-saline branch
+        if T > 60:
+            if T < 200:
+                T_factor = 0.5 + 0.005 * (T - 60)  # ramp 0.5 → 1.2
+            elif T <= 700:
+                T_factor = 1.2
+            else:
+                T_factor = max(0.3, 1.2 - 0.002 * (T - 700))
+        else:
+            # Low-T branch needs high salinity to suppress gypsum
+            if salinity > 100:
+                T_factor = min(1.0, 0.4 + salinity / 200.0)
+            elif salinity > 50:
+                # Marginal — partial activation
+                T_factor = 0.3
+            else:
+                return 0  # dilute low-T → gypsum/selenite wins
+        sigma *= T_factor
+        # pH 5-9 stable
+        if self.fluid.pH < 5:
+            sigma *= max(0.4, 1.0 - 0.2 * (5 - self.fluid.pH))
+        elif self.fluid.pH > 9:
+            sigma *= max(0.4, 1.0 - 0.2 * (self.fluid.pH - 9))
+        return max(sigma, 0)
+
     def supersaturation_brochantite(self) -> float:
         """Brochantite (Cu₄(SO₄)(OH)₆) — the wet-supergene Cu sulfate.
 
@@ -6731,6 +6784,82 @@ def grow_barite(crystal: Crystal, conditions: VugConditions, step: int) -> Optio
     )
 
 
+def grow_anhydrite(crystal: Crystal, conditions: VugConditions, step: int) -> Optional[GrowthZone]:
+    """Anhydrite (CaSO₄) growth — high-T or saline-low-T Ca sulfate.
+
+    Tabular cleavage cubes (three perpendicular cleavages — diagnostic),
+    prismatic vein-fill, massive granular sabkha layers, fibrous "satin
+    spar." Pale lavender "angelite" variant is a Peruvian metaphysical-
+    stone fixture.
+
+    Rehydrates to gypsum/selenite when conditions shift to dilute low-T:
+    releases the Ca + S pool that selenite's nucleation block can pick up.
+    """
+    sigma = conditions.supersaturation_anhydrite()
+
+    if sigma < 1.0:
+        # Rehydration to gypsum: T < 60 AND salinity dropped below 100‰
+        # (e.g., post-evaporite freshening). Releases Ca + S to the fluid
+        # — selenite then re-precipitates from the same cation pool.
+        if (crystal.total_growth_um > 3
+                and conditions.temperature < 55
+                and conditions.fluid.salinity < 95):
+            crystal.dissolved = True
+            dissolved_um = min(3.0, crystal.total_growth_um * 0.10)
+            conditions.fluid.Ca += dissolved_um * 0.5
+            conditions.fluid.S += dissolved_um * 0.4
+            return GrowthZone(
+                step=step, temperature=conditions.temperature,
+                thickness_um=-dissolved_um, growth_rate=-dissolved_um,
+                note="rehydration to gypsum — anhydrite releases Ca²⁺ + SO₄²⁻ as fluid freshens (salinity < 100‰ at T < 60°C)"
+            )
+        return None
+
+    excess = sigma - 1.0
+    rate = 3.5 * excess * random.uniform(0.8, 1.2)
+    if rate < 0.1:
+        return None
+
+    # Habit by σ excess + T context
+    high_T = conditions.temperature > 200
+    if excess > 1.5:
+        crystal.habit = "massive_granular"
+        crystal.dominant_forms = ["granular massive layers"]
+        habit_note = (
+            "massive granular anhydrite — the sabkha + salt-mine evaporite habit"
+            if not high_T else
+            "massive granular anhydrite — Bingham porphyry deep-brine vein habit"
+        )
+    elif excess > 0.8:
+        crystal.habit = "prismatic"
+        crystal.dominant_forms = ["stubby prisms", "vein-fill"]
+        habit_note = "stubby prismatic anhydrite, vein-fill"
+    elif excess > 0.3 or conditions.temperature < 50:
+        crystal.habit = "fibrous"
+        crystal.dominant_forms = ["satin spar fibers", "parallel fibrous"]
+        habit_note = "fibrous satin-spar anhydrite — parallel fibers across vein"
+    else:
+        crystal.habit = "tabular"
+        crystal.dominant_forms = ["tabular crystals", "three perpendicular cleavages"]
+        habit_note = "tabular anhydrite with the diagnostic three perpendicular cleavages"
+
+    # Pale lavender "angelite" — anomalous color, attributed to
+    # organic inclusions or trace Mn²⁺
+    if conditions.fluid.Mn > 3 or (conditions.temperature < 60
+                                    and conditions.fluid.salinity > 150):
+        habit_note += "; pale lavender (angelite variant)"
+
+    conditions.fluid.Ca = max(conditions.fluid.Ca - rate * 0.005, 0)
+    conditions.fluid.S = max(conditions.fluid.S - rate * 0.003, 0)
+
+    return GrowthZone(
+        step=step, temperature=conditions.temperature,
+        thickness_um=rate, growth_rate=rate,
+        trace_Mn=conditions.fluid.Mn * 0.002,
+        note=habit_note
+    )
+
+
 def grow_brochantite(crystal: Crystal, conditions: VugConditions, step: int) -> Optional[GrowthZone]:
     """Brochantite (Cu₄(SO₄)(OH)₆) growth — emerald-green wet-supergene Cu sulfate.
 
@@ -7139,6 +7268,7 @@ MINERAL_ENGINES = {
     "alunite": grow_alunite,
     "brochantite": grow_brochantite,
     "antlerite": grow_antlerite,
+    "anhydrite": grow_anhydrite,
     "selenite": grow_selenite,
     "topaz": grow_topaz,
     "tourmaline": grow_tourmaline,
@@ -7214,6 +7344,7 @@ THERMAL_DECOMPOSITION = {
     "alunite":       (450, "KAl₃(SO₄)₂(OH)₆ → corundum + K-Al-sulfate (loses lattice OH; basis for the early-1900s K-fertilizer process)", {"K": 0.3, "Al": 0.4, "S": 0.3}),
     "brochantite":   (250, "Cu₄(SO₄)(OH)₆ → tenorite (CuO) + SO₃ + H₂O (dehydration)", {"Cu": 0.5, "S": 0.3}),
     "antlerite":     (200, "Cu₃(SO₄)(OH)₄ → tenorite + SO₃ + H₂O (dehydration)", {"Cu": 0.5, "S": 0.4}),
+    "anhydrite":     (1450, "CaSO₄ → CaO + SO₃ (decomposition; very high T — outside normal sim range)", {"Ca": 0.4, "S": 0.4}),
 }
 
 
@@ -10110,6 +10241,27 @@ class VugSimulator:
                               f"(T={self.conditions.temperature:.0f}°C, σ={sigma_ant:.2f}, "
                               f"Cu={self.conditions.fluid.Cu:.0f}, S={self.conditions.fluid.S:.0f}, "
                               f"pH={self.conditions.fluid.pH:.1f})")
+
+        # Anhydrite nucleation — high-T or saline-low-T Ca sulfate. σ
+        # threshold 1.0 + per-check 0.16 (slightly less than selenite's
+        # to avoid both flooding the same vug). Substrate-agnostic; can
+        # nucleate on bare wall in evaporite + porphyry deep-brine
+        # contexts. In sabkha the anhydrite-gypsum stratigraphy is
+        # interlayered; in Bingham anhydrite forms with chalcopyrite in
+        # the deep-zone vein paragenesis.
+        sigma_anh = self.conditions.supersaturation_anhydrite()
+        if sigma_anh > 1.0 and not self._at_nucleation_cap("anhydrite"):
+            if random.random() < 0.16:
+                pos = "vug wall"
+                # In deep-brine context, often co-precipitates with chalcopyrite
+                active_cp_anh = [c for c in self.crystals if c.mineral == "chalcopyrite" and c.active]
+                if active_cp_anh and self.conditions.temperature > 200 and random.random() < 0.3:
+                    pos = f"near chalcopyrite #{active_cp_anh[0].crystal_id} (porphyry deep-brine paragenesis)"
+                c = self.nucleate("anhydrite", position=pos, sigma=sigma_anh)
+                self.log.append(f"  ✦ NUCLEATION: Anhydrite #{c.crystal_id} on {c.position} "
+                              f"(T={self.conditions.temperature:.0f}°C, σ={sigma_anh:.2f}, "
+                              f"Ca={self.conditions.fluid.Ca:.0f}, S={self.conditions.fluid.S:.0f}, "
+                              f"salinity={self.conditions.fluid.salinity:.0f}‰)")
 
         # Uraninite nucleation — strongly reducing, U-bearing. Emits radiation each step.
         sigma_ur = self.conditions.supersaturation_uraninite()
@@ -13051,6 +13203,84 @@ class VugSimulator:
             "(Pollard et al. 1992) is the single most diagnostic chemistry "
             "in arid-supergene Cu mineralogy and the basis of the "
             "Chuquicamata-style ore-grade Cu sulfate deposits."
+        )
+        return " ".join(parts)
+
+    def _narrate_anhydrite(self, c: Crystal) -> str:
+        """Narrate an anhydrite crystal — the high-T or saline-low-T Ca sulfate."""
+        parts = [f"Anhydrite #{c.crystal_id} grew to {c.c_length_mm:.1f} mm."]
+        parts.append(
+            "CaSO₄ — anhydrous calcium sulfate, the dehydrated sister "
+            "of selenite/gypsum (CaSO₄·2H₂O). The anhydrite-gypsum "
+            "boundary is not a single line but an XY plot of T vs salinity "
+            "(Hardie 1967): in pure water anhydrite is stable above 60 °C, "
+            "but in saline brines (>100‰ NaCl-eq) anhydrite is stable down "
+            "to surface T due to lowered water activity. Two distinct "
+            "geological occurrences: (1) high-T hydrothermal — the porphyry-Cu "
+            "deep-brine zones at 200-700 °C, where massive anhydrite + "
+            "chalcopyrite assemblages preserve the magmatic-hydrothermal "
+            "S source (Roedder 1971 Bingham fluid-inclusion work); (2) "
+            "low-T evaporite — the Persian Gulf / Coorong sabkha + Salar "
+            "de Atacama brine pans, where evaporative concentration drives "
+            "salinity above the gypsum-anhydrite phase boundary."
+        )
+        if c.habit == "massive_granular":
+            parts.append(
+                "Massive granular layers — the textbook sabkha or salt-mine "
+                "habit, where anhydrite forms continuous strata interbedded "
+                "with halite and dolomite. The Persian Gulf sabkha + ancient "
+                "Zechstein basin (Germany) preserve exactly this pattern."
+                if c.c_length_mm < 100 else
+                "Massive granular vein-fill — the Bingham porphyry deep-zone "
+                "habit, where anhydrite veins thicker than the host crystals "
+                "preserve the magmatic-S budget. Decades after mining stopped "
+                "exposing fresh deep-zone material at Bingham, the anhydrite "
+                "rapidly hydrated to gypsum on contact with humid air."
+            )
+        elif c.habit == "prismatic":
+            parts.append(
+                "Stubby prismatic — the vein-fill habit, common in porphyry "
+                "deep-zone fractures and in some Atacama hydrothermal Cu "
+                "veins co-occurring with chalcopyrite."
+            )
+        elif c.habit == "fibrous":
+            parts.append(
+                "Satin-spar fibrous habit — parallel fiber bundles across "
+                "veins. The blue-fibered 'angelite' Peruvian variety belongs "
+                "to this habit; lavender color attributed to organic "
+                "inclusions or trace Mn²⁺."
+            )
+        else:
+            parts.append(
+                "Tabular habit with the diagnostic three perpendicular "
+                "cleavages — a hand-sample test that distinguishes anhydrite "
+                "from selenite (which has one perfect cleavage) and from "
+                "halite (cubic three-perp cleavages but salt taste)."
+            )
+        any_note = " ".join(z.note or "" for z in c.zones)
+        if "angelite" in any_note:
+            parts.append(
+                "Pale lavender 'angelite' variety — Peruvian metaphysical-stone "
+                "fixture. The lavender color is anomalous and not fully "
+                "understood; current consensus attributes it to organic "
+                "molecule inclusions rather than transition-metal traces."
+            )
+        if c.dissolved:
+            parts.append(
+                "Rehydrated to gypsum — fluid freshened (salinity dropped "
+                "below 100‰) at low T (<60 °C), bringing the system into "
+                "the gypsum stability field. Released Ca²⁺ + SO₄²⁻ now "
+                "feed selenite re-precipitation. The Naica Cave of "
+                "Crystals (Mexico) shows exactly this paragenesis: an "
+                "older anhydrite floor preserved from the deeper brine "
+                "phase, overgrown by giant selenite blades when the cave "
+                "dewatered + cooled."
+            )
+        parts.append(
+            "Industrial: anhydrite is the cement-setting accelerator that "
+            "controls early-strength gain in Portland cement; also a sulfur "
+            "source and (via heating) a calcium source. Plaster manufacture "
+            "depends on the anhydrite ↔ gypsum hydration cycle."
         )
         return " ".join(parts)
 

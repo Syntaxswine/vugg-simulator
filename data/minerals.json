@@ -2978,6 +2978,108 @@
       "audit_status": "phase-2: wired in vugg.py and web/index.html. Research source: proposals/MINERALS-RESEARCH-SULFATES.md. The dry-acid Cu sulfate; lower-pH end of brochantite ↔ antlerite fork. Activates in Bisbee post-ev_uplift_weathering if pH drops below 3.5 (acidification). The brochantite ↔ antlerite reversible conversion (substrate priority on dissolving brochantite at 80%) implements the Atacama / Chuquicamata pH-cycling paragenesis.",
       "class_color": "#eb137f"
     },
+    "anhydrite": {
+      "formula": "CaSO4",
+      "nucleation_sigma": 1.0,
+      "max_nucleation_count": 8,
+      "max_size_cm": 200,
+      "growth_rate_mult": 0.35,
+      "habit_variants": [
+        {
+          "name": "tabular",
+          "wall_spread": 0.5,
+          "void_reach": 0.3,
+          "vector": "tabular",
+          "trigger": "default — tabular crystals with the diagnostic three perpendicular cleavages"
+        },
+        {
+          "name": "prismatic",
+          "wall_spread": 0.3,
+          "void_reach": 0.6,
+          "vector": "projecting",
+          "trigger": "moderate σ — stubby vein-fill prisms (porphyry deep-zone habit)"
+        },
+        {
+          "name": "fibrous",
+          "wall_spread": 0.4,
+          "void_reach": 0.6,
+          "vector": "projecting",
+          "trigger": "low σ, low T — satin-spar fibrous habit (parallel fibers across vein); includes pale-lavender 'angelite' Peruvian variant"
+        },
+        {
+          "name": "massive_granular",
+          "wall_spread": 0.95,
+          "void_reach": 0.05,
+          "vector": "coating",
+          "trigger": "high σ — granular massive layers (sabkha evaporite + Bingham deep-brine vein habits)"
+        }
+      ],
+      "class": "sulfate",
+      "description": "CaSO₄, the anhydrous calcium sulfate; sister of selenite/gypsum (CaSO₄·2H₂O). The anhydrite-gypsum boundary is not a single line but an XY plot of T vs salinity (Hardie 1967): in pure water anhydrite stable above 60°C, but in saline brines (>100‰ NaCl-eq) anhydrite stable down to surface T due to lowered water activity. Two distinct geological occurrences: (1) high-T hydrothermal (porphyry-Cu deep-brine zones at 200-700°C — Bingham Roedder 1971); (2) low-T evaporite (Persian Gulf / Coorong sabkha + Salar de Atacama — anhydrite + halite + dolomite stratigraphy). Below 60°C in dilute fluid, anhydrite is metastable and rehydrates to gypsum/selenite. Naica's Cave of Crystals shows exactly this: an older anhydrite floor preserved from the deeper brine phase, overgrown by giant selenite blades when the cave dewatered + cooled. Industrial: cement-setting accelerator, sulfur source, plaster manufacture (anhydrite ↔ gypsum hydration cycle). Pale-lavender 'angelite' Peruvian variety is a metaphysical-stone fixture.",
+      "scenarios": [
+        "porphyry",
+        "sabkha_dolomitization",
+        "supergene_oxidation"
+      ],
+      "T_range_C": [
+        25,
+        700
+      ],
+      "T_optimum_C": [
+        80,
+        500
+      ],
+      "T_behavior": "two_mode_T_or_salinity",
+      "pH_dissolution_below": null,
+      "pH_dissolution_above": null,
+      "redox_requirement": "oxidizing",
+      "required_ingredients": {
+        "Ca": 50,
+        "S": 20,
+        "O2": 0.3
+      },
+      "trace_ingredients": {
+        "Mn": "pale-lavender angelite variant trace",
+        "Sr": "Sr-substitution toward celestine-anhydrite series"
+      },
+      "thermal_decomp_C": 1450,
+      "thermal_decomp_reaction": "CaSO4 -> CaO + SO3 (decomposition; very high T — outside normal sim range)",
+      "thermal_decomp_products": {
+        "Ca": 0.4,
+        "S": 0.4
+      },
+      "fluorescence": null,
+      "twin_laws": [],
+      "acid_dissolution": {
+        "pH_threshold": null,
+        "reaction": "rehydrates to gypsum (CaSO4·2H2O = selenite in sim) at T<60°C AND salinity<100‰; releases Ca²⁺ + SO₄²⁻ to feed selenite re-precipitation",
+        "products": {
+          "Ca": 0.5,
+          "S": 0.4
+        },
+        "status": "newly_added",
+        "note": "Not acid-dissolution — REHYDRATION to gypsum. The anhydrite ↔ gypsum cycle is the diagnostic Naica paragenesis. Hysteresis at salinity<95‰ to avoid oscillation."
+      },
+      "habit": "tabular",
+      "color_rules": {
+        "white_colorless": {
+          "default": true
+        },
+        "pale_lavender_angelite": {
+          "trigger": "Mn > 3 OR (T < 60 AND salinity > 150) — Peruvian metaphysical-stone variant"
+        },
+        "pale_blue": {
+          "trigger": "rare massive Salzburg specimens"
+        }
+      },
+      "narrate_function": "_narrate_anhydrite",
+      "runtimes_present": [
+        "vugg.py",
+        "web/index.html"
+      ],
+      "audit_status": "phase-2: wired in vugg.py and web/index.html. Research source: proposals/MINERALS-RESEARCH-SULFATES.md. Two-mode T behavior: high-T branch (>60°C) for Bingham porphyry deep brine, low-T saline branch (T<60 AND salinity>100‰) for Coorong sabkha evaporite. Sabkha activates immediately (T=25, salinity=120, S=2700, Ca=400 → sigma 7.5). Bingham init O2=0.2 below the 0.3 gate (anhydrite blocked at startup); fires after event_oxidation raises O2. Tsumeb dilute low-T (sal=2) correctly blocked. Closes the Bingham porphyry deep-brine + Coorong sabkha evaporite niches that selenite alone couldn't cover.",
+      "class_color": "#eb137f"
+    },
     "scorodite": {
       "formula": "FeAsO4·2H2O",
       "nucleation_sigma": 1.0,
