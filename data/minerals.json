@@ -2388,6 +2388,97 @@
       "audit_status": "phase-2: wired in vugg.py and web/index.html. Research source: proposals/MINERALS-RESEARCH-UNIMPLEMENTED.md. The #1 gold-trapping mineral — Au-trapping mechanic consumes fluid Au (30% of 5%/step) and records as trace_Au on GrowthZone; supergene oxidation releases 12%/step back to fluid (feeds scorodite + native_gold supergene enrichment). Competes with grow_native_gold for fluid Au in reducing high-T scenarios.",
       "class_color": "#c8c0b8"
     },
+    "scorodite": {
+      "formula": "FeAsO4·2H2O",
+      "nucleation_sigma": 1.0,
+      "max_nucleation_count": 5,
+      "max_size_cm": 8,
+      "growth_rate_mult": 0.25,
+      "habit_variants": [
+        {
+          "name": "dipyramidal",
+          "wall_spread": 0.4,
+          "void_reach": 0.55,
+          "vector": "equant",
+          "trigger": "default — pseudo-octahedral pale blue-green dipyramids (Tsumeb-style)"
+        },
+        {
+          "name": "earthy_crust",
+          "wall_spread": 0.85,
+          "void_reach": 0.1,
+          "vector": "coating",
+          "trigger": "high σ — powdery greenish-brown crust on weathered arsenopyrite"
+        },
+        {
+          "name": "crystallized_on_arsenopyrite",
+          "wall_spread": 0.4,
+          "void_reach": 0.5,
+          "vector": "perched",
+          "trigger": "substrate present — distinct crystals nucleating directly on parent mineral"
+        }
+      ],
+      "class": "arsenate",
+      "description": "FeAsO₄·2H₂O, the arsenic-sequestration mineral. Pseudo-octahedral pale blue-green dipyramids; the most common supergene oxidation product of arsenopyrite. Locks AsO₄³⁻ in stable crystals as long as pH stays below 5; above pH 5 it dissolves and releases AsO₄³⁻ for the higher-pH arsenate suite (erythrite, mimetite, adamite, pharmacosiderite). Type locality Freiberg, Saxony; world-class deep-blue crystals at Tsumeb (Gröbner & Becker 1973). Dehydrates to anhydrous FeAsO₄ above 160°C.",
+      "scenarios": [
+        "supergene_oxidation",
+        "bisbee",
+        "porphyry"
+      ],
+      "T_range_C": [
+        5,
+        200
+      ],
+      "T_optimum_C": [
+        15,
+        80
+      ],
+      "T_behavior": "window",
+      "pH_dissolution_above": 5.5,
+      "redox_requirement": "oxidizing",
+      "required_ingredients": {
+        "Fe": 5,
+        "As": 3,
+        "O2": 0.3
+      },
+      "trace_ingredients": {},
+      "thermal_decomp_C": 160,
+      "thermal_decomp_reaction": "FeAsO4·2H2O -> FeAsO4 + 2H2O (dehydration to anhydrous arsenate)",
+      "thermal_decomp_products": {
+        "Fe": 0.4,
+        "As": 0.4
+      },
+      "fluorescence": null,
+      "twin_laws": [],
+      "acid_dissolution": {
+        "pH_threshold": 5.5,
+        "reaction": "dissolves above pH 5 (alkaline-side dissolution, not acid), releasing Fe³⁺ + AsO₄³⁻",
+        "products": {
+          "Fe": 0.5,
+          "As": 0.5
+        },
+        "status": "newly_added",
+        "note": "scorodite is the acidic-end arsenate; pH > 5 destabilizes it. Inverse of typical acid_dissolution semantics."
+      },
+      "habit": "dipyramidal",
+      "color_rules": {
+        "pale_blue_green": {
+          "default": true
+        },
+        "deep_blue": {
+          "trigger": "Fe > 30"
+        },
+        "greenish_brown": {
+          "trigger": "earthy_crust habit (high σ powder)"
+        }
+      },
+      "narrate_function": null,
+      "runtimes_present": [
+        "vugg.py",
+        "web/index.html"
+      ],
+      "audit_status": "phase-2: wired in vugg.py and web/index.html. Research source: proposals/MINERALS-RESEARCH-UNIMPLEMENTED.md. The arsenic-sequestration mineral and the gateway to the rest of the supergene arsenate suite. Substrate preference for dissolving arsenopyrite drives the canonical paragenesis: arsenopyrite→scorodite cascade. pH>5.5 dissolution releases AsO₄³⁻ for downstream arsenates (erythrite/mimetite/adamite already implemented).",
+      "class_color": "#5a9a8a"
+    },
     "molybdenite": {
       "formula": "MoS2",
       "nucleation_sigma": 1.0,

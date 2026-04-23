@@ -2229,6 +2229,39 @@ class VugConditions:
             sigma *= max(0.3, 1.0 - 0.25 * (3 - self.fluid.pH))
         return max(sigma, 0)
 
+    def supersaturation_scorodite(self) -> float:
+        """Scorodite (FeAsO₄·2H₂O) — the arsenic sequestration mineral.
+
+        Most common supergene arsenate; pseudo-octahedral pale blue-green
+        dipyramids (looks cubic but isn't — orthorhombic). Forms when
+        arsenopyrite (or any As-bearing primary sulfide) oxidizes in
+        acidic oxidizing conditions: Fe³⁺ + AsO₄³⁻ both required. The
+        acidic-end of the arsenate stability field; at pH > 5 scorodite
+        dissolves and releases AsO₄³⁻ — which then feeds the rest of
+        the arsenate suite (erythrite, annabergite, mimetite, adamite,
+        pharmacosiderite at higher pH).
+
+        Type locality Freiberg, Saxony, Germany. World-class deep
+        blue-green crystals at Tsumeb (Gröbner & Becker 1973).
+
+        Stability: pH 2-5 (acidic), T < 160°C (above dehydrates to
+        anhydrous FeAsO₄), O₂ ≥ 0.3 (Fe must be Fe³⁺).
+        """
+        if self.fluid.Fe < 5 or self.fluid.As < 3 or self.fluid.O2 < 0.3:
+            return 0
+        if self.fluid.pH > 6:
+            return 0  # dissolves at pH > 5; nucleation gate at 6 for hysteresis
+        sigma = (self.fluid.Fe / 30.0) * (self.fluid.As / 15.0) * (self.fluid.O2 / 1.0)
+        # Strongly low-temperature — supergene zone only
+        if self.temperature > 80:
+            sigma *= math.exp(-0.025 * (self.temperature - 80))
+        # pH peak around 3-4; fall off above 5
+        if self.fluid.pH > 5:
+            sigma *= max(0.3, 1.0 - 0.5 * (self.fluid.pH - 5))
+        elif self.fluid.pH < 2:
+            sigma *= max(0.4, 1.0 - 0.3 * (2 - self.fluid.pH))
+        return max(sigma, 0)
+
     def supersaturation_arsenopyrite(self) -> float:
         """Arsenopyrite (FeAsS) — the arsenic gateway mineral.
 
@@ -6217,6 +6250,71 @@ def grow_ferrimolybdite(crystal: Crystal, conditions: VugConditions, step: int) 
     )
 
 
+def grow_scorodite(crystal: Crystal, conditions: VugConditions, step: int) -> Optional[GrowthZone]:
+    """Scorodite (FeAsO₄·2H₂O) growth — pale blue-green pseudo-octahedral dipyramids.
+
+    Forms from oxidized arsenopyrite (and any other As-bearing sulfide).
+    The arsenic sequestration mineral — locks AsO₄³⁻ in stable crystals
+    as long as pH stays below 5. Releases AsO₄³⁻ back to fluid above
+    pH 5 (feeds the higher-pH arsenate suite) or above 160°C
+    (dehydrates to anhydrous FeAsO₄).
+    """
+    sigma = conditions.supersaturation_scorodite()
+
+    if sigma < 1.0:
+        # Two dissolution paths: alkaline shift (pH > 5.5 with hysteresis)
+        # OR thermal dehydration (T > 160°C). Both release AsO₄³⁻ for
+        # downstream arsenates.
+        if crystal.total_growth_um > 2 and (conditions.fluid.pH > 5.5 or conditions.temperature > 160):
+            crystal.dissolved = True
+            dissolved_um = min(3.0, crystal.total_growth_um * 0.10)
+            conditions.fluid.Fe += dissolved_um * 0.5
+            conditions.fluid.As += dissolved_um * 0.5  # AsO₄³⁻ for downstream arsenates
+            cause = "pH>5" if conditions.fluid.pH > 5.5 else "T>160°C"
+            return GrowthZone(
+                step=step, temperature=conditions.temperature,
+                thickness_um=-dissolved_um, growth_rate=-dissolved_um,
+                note=f"dissolution ({cause}) — scorodite releases AsO₄³⁻ for downstream arsenates"
+            )
+        return None
+
+    excess = sigma - 1.0
+    rate = 3.0 * excess * random.uniform(0.8, 1.2)
+    if rate < 0.1:
+        return None
+
+    # Habit by σ excess:
+    #   high σ → earthy_crust (greenish-brown powder, supergene weathering)
+    #   moderate σ → dipyramidal (the diagnostic pseudo-octahedral habit)
+    #   low σ → well-formed dipyramids (display quality, deep blue-green)
+    if excess > 1.5:
+        crystal.habit = "earthy_crust"
+        crystal.dominant_forms = ["powdery greenish-brown crust"]
+        habit_note = "earthy greenish-brown scorodite crust on arsenopyrite"
+    elif excess > 0.5:
+        crystal.habit = "dipyramidal"
+        crystal.dominant_forms = ["pseudo-octahedral dipyramids"]
+        habit_note = "pseudo-octahedral pale blue-green scorodite dipyramids"
+    else:
+        crystal.habit = "dipyramidal"
+        crystal.dominant_forms = ["well-formed dipyramids", "deep blue-green"]
+        habit_note = "well-formed deep blue-green scorodite (Tsumeb-style)"
+
+    # Color tint by Fe content
+    if conditions.fluid.Fe > 30:
+        habit_note += " (deep blue, Fe-rich)"
+
+    conditions.fluid.Fe = max(conditions.fluid.Fe - rate * 0.005, 0)
+    conditions.fluid.As = max(conditions.fluid.As - rate * 0.005, 0)
+
+    return GrowthZone(
+        step=step, temperature=conditions.temperature,
+        thickness_um=rate, growth_rate=rate,
+        trace_Fe=conditions.fluid.Fe * 0.005,
+        note=habit_note
+    )
+
+
 def grow_arsenopyrite(crystal: Crystal, conditions: VugConditions, step: int) -> Optional[GrowthZone]:
     """Arsenopyrite (FeAsS) growth — the arsenic gateway, the #1 Au-trapper.
 
@@ -6418,6 +6516,7 @@ MINERAL_ENGINES = {
     "wulfenite": grow_wulfenite,
     "ferrimolybdite": grow_ferrimolybdite,
     "arsenopyrite": grow_arsenopyrite,
+    "scorodite": grow_scorodite,
     "selenite": grow_selenite,
     "topaz": grow_topaz,
     "tourmaline": grow_tourmaline,
@@ -6486,6 +6585,7 @@ THERMAL_DECOMPOSITION = {
     "molybdenite": (1185, "MoS₂ decomposition",                                         {"Mo": 0.4, "S": 0.4}),
     "arsenopyrite": (720, "FeAsS → FeAs₂ (loellingite) + S (sulfur driven off; As vapor at higher T)", {"Fe": 0.4, "As": 0.3, "S": 0.3}),
     "ferrimolybdite": (150, "Fe₂(MoO₄)₃·nH₂O → Fe₂(MoO₄)₃ + nH₂O (dehydration)",          {"Fe": 0.4, "Mo": 0.3}),
+    "scorodite":     (160, "FeAsO₄·2H₂O → FeAsO₄ + 2H₂O (dehydration to anhydrous arsenate)",  {"Fe": 0.4, "As": 0.4}),
 }
 
 
@@ -9229,6 +9329,32 @@ class VugSimulator:
                               f"(T={self.conditions.temperature:.0f}°C, σ={sigma_apy:.2f}, "
                               f"Fe={self.conditions.fluid.Fe:.0f}, As={self.conditions.fluid.As:.0f}, "
                               f"Au={self.conditions.fluid.Au:.2f} ppm)")
+
+        # Scorodite nucleation — the arsenate supergene gateway; the
+        # canonical "crystallized on dissolving arsenopyrite" habit. σ
+        # threshold 1.0 + per-check 0.20 reflect supergene speed (the
+        # arsenate suite forms quickly once acidic oxidizing conditions
+        # arrive). Substrate priority: dissolving arsenopyrite (direct
+        # parent) > active arsenopyrite > dissolving pyrite (often co-
+        # occurs in oxidation zones) > vug wall.
+        sigma_sco = self.conditions.supersaturation_scorodite()
+        if sigma_sco > 1.0 and not self._at_nucleation_cap("scorodite"):
+            if random.random() < 0.20:
+                pos = "vug wall"
+                diss_apy = [c for c in self.crystals if c.mineral == "arsenopyrite" and c.dissolved]
+                active_apy = [c for c in self.crystals if c.mineral == "arsenopyrite" and c.active]
+                diss_py_sco = [c for c in self.crystals if c.mineral == "pyrite" and c.dissolved]
+                if diss_apy and random.random() < 0.8:
+                    pos = f"on dissolving arsenopyrite #{diss_apy[0].crystal_id}"
+                elif active_apy and random.random() < 0.5:
+                    pos = f"on arsenopyrite #{active_apy[0].crystal_id}"
+                elif diss_py_sco and random.random() < 0.4:
+                    pos = f"on dissolving pyrite #{diss_py_sco[0].crystal_id}"
+                c = self.nucleate("scorodite", position=pos, sigma=sigma_sco)
+                self.log.append(f"  ✦ NUCLEATION: Scorodite #{c.crystal_id} on {c.position} "
+                              f"(T={self.conditions.temperature:.0f}°C, σ={sigma_sco:.2f}, "
+                              f"Fe={self.conditions.fluid.Fe:.0f}, As={self.conditions.fluid.As:.0f}, "
+                              f"pH={self.conditions.fluid.pH:.1f})")
 
         # Uraninite nucleation — strongly reducing, U-bearing. Emits radiation each step.
         sigma_ur = self.conditions.supersaturation_uraninite()
