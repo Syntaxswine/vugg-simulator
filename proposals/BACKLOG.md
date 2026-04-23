@@ -117,9 +117,40 @@ These aren't todos — they're conventions to follow when doing the work above:
 ---
 
 ## 🎯 SIM_VERSION
-Currently 2 (set in commit `77d999a` during the chemistry-audit kickoff). Bump to 3 when:
-- Au field shipped → still 2 (Au is additive on top of v2 chemistry — no scenario re-tune)
-- Cd field shipped → bump to 3 (would shift Tri-State seed-42 output)
-- Wall porosity slider shipped → bump to 3 (changes existing scenario dissolution behavior even at default settings if the existing reactivity=1.0 baseline shifts)
+Currently **3** (bumped in commit `1c9cd29` for the arsenopyrite/scorodite/ferrimolybdite engine series). Bump to 4 when:
+- Cd field shipped → bump to 4 (would shift Tri-State seed-42 output)
+- Wall porosity slider shipped → bump to 4 (changes existing scenario dissolution behavior even at default settings if the existing reactivity=1.0 baseline shifts)
+- Au-Te coupling lands → bump to 4 (would partition Bingham Au into telluride growth)
 
 Defer the version bump decision to whoever ships those changes.
+
+History:
+- v1: pre-audit defaults
+- v2: scenario-chemistry audit (Apr 2026; commit `77d999a`)
+- v3: arsenate/molybdate supergene cascade engines — arsenopyrite + scorodite + ferrimolybdite (Apr 2026; commits `1c9cd29` → `0cd182f`)
+
+---
+
+## 🧪 Scenario-tune follow-ups (deferred from v3 mineral expansion)
+
+### Tsumeb scorodite pH gap
+**Status:** identified during the v3 expansion audit (commit `0cd182f`); fix deferred.
+**Evidence:** Tsumeb is the world-class scorodite locality (Gröbner & Becker 1973 — deep blue-green dipyramids to 5+ cm). The current `scenario_supergene_oxidation` represents the late-stage carbonate-buffered phase (pH=6.8), which is **above** scorodite's pH<6 nucleation gate. Geologically, Tsumeb scorodite formed during the early acidic supergene phase BEFORE carbonate buffering raised pH.
+**Fix sketch:** add an `event_supergene_acidification` to `scenario_supergene_oxidation` at an early step (~10) that drops pH transiently to 4-5 for ~20 steps (mimicking the H₂SO₄ pulse from sulfide oxidation before host-rock carbonate buffers it). Scorodite would nucleate during the acidic window, then become stable as a passive crystal once pH rises above 5.5 (no acid-side dissolution since scorodite dissolves on alkaline shift, not acid).
+**Where the gap is documented:** `data/locality_chemistry.json:tsumeb.mineral_realizations_v3_expansion.scorodite.status = "geologically_documented_but_blocked"` with full citations and `audit_action`.
+
+### Bingham/Bisbee scorodite + ferrimolybdite end-to-end verification
+**Status:** engines are wired and chemistry should produce both, but no full-scenario seed-42 run was executed during the v3 expansion (porphyry/Bisbee runtimes are slow). When time permits, run seed-42 porphyry (120 steps) and bisbee (340 steps) and confirm the realization predictions in `mineral_realizations_v3_expansion`:
+- Bingham: arsenopyrite forms early, oxidizes after step 85, scorodite + ferrimolybdite nucleate post-oxidation
+- Bisbee: arsenopyrite forms strongly (Fe=200 → enormous σ), oxidizes after step 65 ev_uplift_weathering, scorodite nucleates from arsenopyrite oxidation products
+
+Failures would point to either (a) chemistry tuning needed (rare given the audit) or (b) σ thresholds need adjustment.
+
+---
+
+## 🔗 Canonical-only research / proposals (not yet folded into engine work)
+
+These exist on `canonical/main` (StonePhilosopher) but were not merged into Syntaxswine fork during the v3 expansion. Read and either implement, fold into BACKLOG, or merge:
+
+- `proposals/MINERALS-RESEARCH-UNIMPLEMENTED.md` (canonical commit `41183b9`) — **DONE**: arsenopyrite/scorodite/ferrimolybdite engines shipped (commits `1c9cd29`–`0cd182f`). Expanded paragenetic notes on molybdenite + wulfenite from this file are reference-only (no engine changes needed).
+- `proposals/Gibbs-Thompson dissolution cycling — crystal quality mechanic` (canonical commit `6577442`) — **NOT YET READ**. Crystal-quality mechanic proposal. Action: read the file and decide whether to implement, scope into BACKLOG, or punt.

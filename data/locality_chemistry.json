@@ -9,7 +9,11 @@
       "salinity_wt_pct_NaCleq": "weight percent NaCl equivalent",
       "depth_km": "kilometers of burial at time of fluid event"
     },
-    "audit_status_legend": ["pending", "anchored", "verified"]
+    "audit_status_legend": [
+      "pending",
+      "anchored",
+      "verified"
+    ]
   },
   "localities": {
     "herkimer_middleville": {
@@ -21,7 +25,10 @@
       "geological_setting": "Vugs in dolomitic host. Hydrocarbon-mediated silica liberation from pressure solution during Alleghenian burial to >3 km; silica-saturated basinal brine precipitated double-terminated quartz in isolated pockets. Classic clear-quartz-in-vug locality.",
       "temperature_C": {
         "initial": 180,
-        "range_published": [140, 200],
+        "range_published": [
+          140,
+          200
+        ],
         "source": "Alleghenian-age peak burial T from conodont alteration indices and vitrinite reflectance in the Appalachian basin carbonates at this depth; see Harris et al. 1978 (USGS Prof. Paper 1197) and Friedman & Sanders 1982 for Herkimer-specific discussion. Fluid-inclusion homogenization temperatures for authigenic quartz in the Appalachian Cambrian-Ordovician section fall in this range."
       },
       "pressure_kbar": {
@@ -30,19 +37,58 @@
       },
       "depth_km": 3.5,
       "fluid": {
-        "SiO2": {"value": 500, "note": "Elevated over quartz equilibrium (~220 ppm at 180 C per Rimstidt 1997) — hydrocarbon-cracking + pressure solution supply. Sim-scale abstraction, not raw ppm."},
-        "Ca": {"value": 80, "note": "Lower than a typical Appalachian basin brine (Hanor 1994 compendium: 5000-20000 ppm raw), because most Ca is sequestered in surrounding dolomite cement — the pocket is the silica-overpressured residue. Sim-scale abstraction."},
-        "CO3": {"value": 30, "note": "Most carbonate has migrated out as dolomite cement; pocket residual only."},
-        "Mg": {"value": 50, "note": "Dolomitic-aquifer signature, Mg/Ca ~0.6 — matches audit brief's 'hydrothermal' range (50-500 ppm). Brief-required non-zero Mg."},
-        "Na": {"value": 80, "note": "NaCl-CaCl2 brine type (Hanor 1994)."},
-        "K": {"value": 20, "note": "K/Na ~0.25, typical basinal brine."},
-        "Fe": {"value": 5, "note": "Trace from dolomite host (wall_Fe_ppm ~2000 in host rock, but solution-phase is low because reducing and mildly acid-buffered)."},
-        "Mn": {"value": 2, "note": "Trace from dolomite host."},
-        "Al": {"value": 4, "note": "Trace; no aluminous-phase precipitation expected."},
-        "Ti": {"value": 0.5, "note": "Controls TitaniQ thermometer signal in the precipitated quartz (Wark & Watson 2006)."},
-        "pH": {"value": 6.8, "note": "Near-neutral basinal brine, CO2-buffered (Hanor 1994)."},
-        "salinity_wt_pct_NaCleq": {"value": 18.0, "note": "Appalachian basin burial brines 15-25 wt% NaCl-eq (Hanor 1994); fluid inclusions in Herkimer quartz also commonly saline (petroleum + brine two-phase)."},
-        "O2": {"value": 0.1, "note": "Reducing — hydrocarbon coexists (solid anthraxolite + liquid petroleum inclusions are diagnostic of Herkimer)."}
+        "SiO2": {
+          "value": 500,
+          "note": "Elevated over quartz equilibrium (~220 ppm at 180 C per Rimstidt 1997) — hydrocarbon-cracking + pressure solution supply. Sim-scale abstraction, not raw ppm."
+        },
+        "Ca": {
+          "value": 80,
+          "note": "Lower than a typical Appalachian basin brine (Hanor 1994 compendium: 5000-20000 ppm raw), because most Ca is sequestered in surrounding dolomite cement — the pocket is the silica-overpressured residue. Sim-scale abstraction."
+        },
+        "CO3": {
+          "value": 30,
+          "note": "Most carbonate has migrated out as dolomite cement; pocket residual only."
+        },
+        "Mg": {
+          "value": 50,
+          "note": "Dolomitic-aquifer signature, Mg/Ca ~0.6 — matches audit brief's 'hydrothermal' range (50-500 ppm). Brief-required non-zero Mg."
+        },
+        "Na": {
+          "value": 80,
+          "note": "NaCl-CaCl2 brine type (Hanor 1994)."
+        },
+        "K": {
+          "value": 20,
+          "note": "K/Na ~0.25, typical basinal brine."
+        },
+        "Fe": {
+          "value": 5,
+          "note": "Trace from dolomite host (wall_Fe_ppm ~2000 in host rock, but solution-phase is low because reducing and mildly acid-buffered)."
+        },
+        "Mn": {
+          "value": 2,
+          "note": "Trace from dolomite host."
+        },
+        "Al": {
+          "value": 4,
+          "note": "Trace; no aluminous-phase precipitation expected."
+        },
+        "Ti": {
+          "value": 0.5,
+          "note": "Controls TitaniQ thermometer signal in the precipitated quartz (Wark & Watson 2006)."
+        },
+        "pH": {
+          "value": 6.8,
+          "note": "Near-neutral basinal brine, CO2-buffered (Hanor 1994)."
+        },
+        "salinity_wt_pct_NaCleq": {
+          "value": 18.0,
+          "note": "Appalachian basin burial brines 15-25 wt% NaCl-eq (Hanor 1994); fluid inclusions in Herkimer quartz also commonly saline (petroleum + brine two-phase)."
+        },
+        "O2": {
+          "value": 0.1,
+          "note": "Reducing — hydrocarbon coexists (solid anthraxolite + liquid petroleum inclusions are diagnostic of Herkimer)."
+        }
       },
       "wall": {
         "composition": "dolomite",
@@ -62,7 +108,22 @@
       ],
       "intentionally_zero": {
         "Au": "Burial-diagenetic quartz at 140-200 C in basinal brine; no Au geochemistry. The Mohawk Valley Cambrian-Ordovician section is unrelated to gold deposits. Au=0 is correct, not a gap."
-      }
+      },
+      "mineral_realizations_v3_expansion": {
+        "arsenopyrite": {
+          "status": "not_applicable",
+          "reason": "No As in fluid (cooling/silica scenario). Herkimer dolostone host has no documented arsenopyrite occurrence."
+        },
+        "scorodite": {
+          "status": "not_applicable",
+          "reason": "No As in fluid; reducing dolostone diagenesis (O2=0.1) is wrong Eh regime anyway."
+        },
+        "ferrimolybdite": {
+          "status": "not_applicable",
+          "reason": "No Mo in fluid; no porphyry-Mo signature in this clean Cambrian dolostone."
+        }
+      },
+      "audit_pass": " | v3-expansion (Apr 2026) — added arsenopyrite + scorodite + ferrimolybdite engine activations. No fluid chemistry changed; per-locality mineral_realizations_v3_expansion block added documenting expected behavior given existing chemistry. One documented gap: tsumeb scorodite is geologically real but blocked by current pH=6.8 (would need early-acidic-phase event to unlock)."
     },
     "bingham_canyon": {
       "scenario_id": "porphyry",
@@ -71,20 +132,48 @@
       "host_formation": "Late-Eocene (~38 Ma) quartz-monzonite-porphyry intruding Pennsylvanian-Permian sediments",
       "alteration_zoning": "potassic core, phyllic shell, propylitic rim",
       "fluid_event_summary": "Magmatic-hydrothermal evolution from deep-center brine (~7 wt% NaCl-eq, subequal Na/K/Fe/Cu) to upper-level brine endmember (~45 wt% NaCl-eq) coexisting with low-density vapor (~0.2 g/cm3). Discrete pulses: early Cu, late Mo (Seo et al. 2012), epithermal Au-Te-Ag cap. Vug-stage fluid is interpreted as the cooled, vapor-condensate-mixed residue of the brine plume.",
-      "audit_pass": "gap-fill (Apr 2026) — added Cl, Mg, Ag, Te to populate the brine-element baseline. Drift fixes between Python and JS scenario_porphyry: Pb=15 mirrored from Python to JS, Na/K/Al mirrored from JS to Python, event_molybdenum_pulse mirrored from Python to JS, event_copper_injection Pb increment mirrored from Python to JS. Au=2 added later when the Au field + grow_native_gold engine landed (previously held in pending_schema_additions). Existing chemistry preserved (no retuning).",
+      "audit_pass": "gap-fill (Apr 2026) — added Cl, Mg, Ag, Te to populate the brine-element baseline. Drift fixes between Python and JS scenario_porphyry: Pb=15 mirrored from Python to JS, Na/K/Al mirrored from JS to Python, event_molybdenum_pulse mirrored from Python to JS, event_copper_injection Pb increment mirrored from Python to JS. Au=2 added later when the Au field + grow_native_gold engine landed (previously held in pending_schema_additions). Existing chemistry preserved (no retuning). | v3-expansion (Apr 2026) — added arsenopyrite + scorodite + ferrimolybdite engine activations. No fluid chemistry changed; per-locality mineral_realizations_v3_expansion block added documenting expected behavior given existing chemistry. One documented gap: tsumeb scorodite is geologically real but blocked by current pH=6.8 (would need early-acidic-phase event to unlock).",
       "fluid": {
-        "Cl": {"value": 600, "note": "NaCl-KCl brine anion, paired with existing Na+K. salinity=10 wt% NaCl-eq remains the bulk indicator [Landtwing et al. 2010]."},
-        "Mg": {"value": 40, "note": "Wallrock interaction; Bingham brine fluid Mg 50-200 ppm raw [Landtwing et al. 2010]; sim-scale conservative. Brief-required non-zero Mg."},
-        "Ag": {"value": 8, "note": "Argentiferous-Cu signature; brine-stage fluid Ag 1-50 ppm raw in published porphyry-fluid LA-ICP-MS [Heinrich 2007]."},
-        "Te": {"value": 2, "note": "Epithermal-cap telluride trace (calaverite, sylvanite at Bingham upper levels)."},
-        "Au": {"value": 2, "note": "Porphyry-Cu-Au signature — Bingham produced ~200 t Au cumulatively. ~1 ppm Au in fluid inclusions per Landtwing et al. 2010 LA-ICP-MS; sim-scale 2 matches Te=2 trace abstraction. Activated when grow_native_gold engine landed."}
+        "Cl": {
+          "value": 600,
+          "note": "NaCl-KCl brine anion, paired with existing Na+K. salinity=10 wt% NaCl-eq remains the bulk indicator [Landtwing et al. 2010]."
+        },
+        "Mg": {
+          "value": 40,
+          "note": "Wallrock interaction; Bingham brine fluid Mg 50-200 ppm raw [Landtwing et al. 2010]; sim-scale conservative. Brief-required non-zero Mg."
+        },
+        "Ag": {
+          "value": 8,
+          "note": "Argentiferous-Cu signature; brine-stage fluid Ag 1-50 ppm raw in published porphyry-fluid LA-ICP-MS [Heinrich 2007]."
+        },
+        "Te": {
+          "value": 2,
+          "note": "Epithermal-cap telluride trace (calaverite, sylvanite at Bingham upper levels)."
+        },
+        "Au": {
+          "value": 2,
+          "note": "Porphyry-Cu-Au signature — Bingham produced ~200 t Au cumulatively. ~1 ppm Au in fluid inclusions per Landtwing et al. 2010 LA-ICP-MS; sim-scale 2 matches Te=2 trace abstraction. Activated when grow_native_gold engine landed."
+        }
       },
       "preserved_intentional_values": {
-        "SiO2": 700, "Ca": 80, "CO3": 50, "Fe": 30, "Mn": 2,
-        "Pb": 15, "K": 40, "Na": 25, "Al": 15,
-        "Sb": 25, "As": 15, "Bi": 30,
-        "S": 60, "F": 5, "Cu": 0,
-        "O2": 0.2, "pH": 4.5, "salinity": 10.0,
+        "SiO2": 700,
+        "Ca": 80,
+        "CO3": 50,
+        "Fe": 30,
+        "Mn": 2,
+        "Pb": 15,
+        "K": 40,
+        "Na": 25,
+        "Al": 15,
+        "Sb": 25,
+        "As": 15,
+        "Bi": 30,
+        "S": 60,
+        "F": 5,
+        "Cu": 0,
+        "O2": 0.2,
+        "pH": 4.5,
+        "salinity": 10.0,
         "Cu_note": "Cu=0 at init by design; delivered in pulses by event_copper_injection at steps 25 and 60.",
         "Mo_note": "Mo=0 at init by design; delivered by event_molybdenum_pulse at step 45 (Seo et al. 2012)."
       },
@@ -105,7 +194,31 @@
           "blockers": "Au+Te coexistence in Bingham init (Au=2, Te=2) would naturally produce Au-Te telluride species (calaverite AuTe2, sylvanite (Au,Ag)Te2) in real Bingham upper levels, but grow_calaverite / grow_sylvanite engines are not implemented yet. When they land, no fluid-chemistry change needed; the Au+Te+Ag chemistry is already present.",
           "rationale": "Bingham upper-level epithermal cap hosts these tellurides per Landtwing 2010. Currently the sim deposits all the Au as native_gold; adding Au-Te competition in grow_native_gold would partition some Au into telluride growth instead.",
           "source": "Landtwing et al. 2010 + Cook et al. 2009 (Au-Ag-Te systematics in porphyry caps).",
-          "minerals_unlocked": ["calaverite", "sylvanite", "krennerite"]
+          "minerals_unlocked": [
+            "calaverite",
+            "sylvanite",
+            "krennerite"
+          ]
+        }
+      },
+      "mineral_realizations_v3_expansion": {
+        "arsenopyrite": {
+          "status": "active_early",
+          "reason": "T=400 C, As=15, Fe=30, S=60, O2=0.2, pH=4.5 -> sigma=2.18 at init. Will nucleate in early reducing high-T phase before pyrite/chalcopyrite consume Fe+S. Will trap fluid Au (init Au=2 ppm) as invisible-gold trace_Au.",
+          "event_dependency": null,
+          "real_locality_evidence": "Bingham polymetallic porphyry mineralization includes arsenopyrite per Heinrich 2007 and Kouzmanov & Pokrovski 2012 (As activity in epithermal Cu systems). Tetrahedrite/tennantite fahlores (already implemented) are the As-bearing endpoints; arsenopyrite is the higher-T precursor."
+        },
+        "scorodite": {
+          "status": "active_post_event",
+          "reason": "Will nucleate after step 85 event_oxidation raises O2 above 0.5. pH=4.5 is in stability window. Substrate-prefers any dissolving arsenopyrite from the early phase — captures the supergene Fe + AsO4 release.",
+          "event_dependency": "event_oxidation (step 85)",
+          "real_locality_evidence": "Bingham oxidized cap contains scorodite associated with arsenopyrite oxidation per Lindgren 1924 + later Bingham mineral inventories."
+        },
+        "ferrimolybdite": {
+          "status": "active_post_oxidation_with_competition",
+          "reason": "Mo arrives via event_molybdenum_pulse (step 45). After event_oxidation (step 85), Mo + Fe + O2 all present. Competes with wulfenite for MoO4 (Bingham has Pb=15 too); ferrimolybdite nucleates faster (sigma threshold 1.0 vs wulfenite 1.2) so wins early window.",
+          "event_dependency": "event_molybdenum_pulse (step 45) + event_oxidation (step 85)",
+          "real_locality_evidence": "Ferrimolybdite documented at Bingham oxidation cap (Climax-Bingham comparable porphyry-Mo geology); under-represented in collection lists because powdery yellow fuzz vs collector-prized wulfenite."
         }
       }
     },
@@ -115,19 +228,48 @@
       "display_name": "Tri-State Pb-Zn-Ag district (Joplin / Picher / Galena, MO-KS-OK)",
       "host_formation": "Mississippian Boone Formation cherty limestone (and Reeds Spring / St. Joe formations locally)",
       "fluid_event_summary": "Late Pennsylvanian-Early Permian basinal brine expulsion; NaCl-CaCl2 brines, 18-24 wt% NaCl-eq, 90-150 C ore stage. Stoffell et al. 2008 LA-ICP-MS shows Tri-State and Northern Arkansas brines were chemically distinct from Viburnum Trend, with Tri-State having higher Pb-Zn-Ag and lower Ba relative to the Viburnum brines. Ore deposition by sulfide saturation when metal-bearing brine met sulfur-bearing groundwater.",
-      "audit_pass": "gap-fill (Apr 2026) — added Na, K, Cl (NaCl-CaCl2 brine baseline), Ag (argentiferous-galena), Ba (local barite gangue), Sr (basinal-brine tracer), Cu (trace chalcopyrite). Drift-fix: Pb=40 mirrored from JS init into Python init. Existing chemistry preserved (no retuning).",
+      "audit_pass": "gap-fill (Apr 2026) — added Na, K, Cl (NaCl-CaCl2 brine baseline), Ag (argentiferous-galena), Ba (local barite gangue), Sr (basinal-brine tracer), Cu (trace chalcopyrite). Drift-fix: Pb=40 mirrored from JS init into Python init. Existing chemistry preserved (no retuning). | v3-expansion (Apr 2026) — added arsenopyrite + scorodite + ferrimolybdite engine activations. No fluid chemistry changed; per-locality mineral_realizations_v3_expansion block added documenting expected behavior given existing chemistry. One documented gap: tsumeb scorodite is geologically real but blocked by current pH=6.8 (would need early-acidic-phase event to unlock).",
       "fluid": {
-        "Na": {"value": 80, "note": "NaCl-CaCl2 basinal brine; raw 50-80,000 ppm [Stoffell 2008]; sim-scale abstraction."},
-        "K": {"value": 15, "note": "K/Na ~0.2 typical basinal brine [Hanor 1994]."},
-        "Cl": {"value": 200, "note": "Brine anion paired with Na+K. Tri-State raw fluid 120-220,000 ppm Cl. salinity=15 wt% NaCl-eq remains bulk indicator; free Cl enables pyromorphite/chlorargyrite."},
-        "Ag": {"value": 5, "note": "Argentiferous-galena signature. Tri-State galena 50-300 ppm Ag in mineral; brine Ag much lower. Historical Joplin smelters recovered Ag as Pb byproduct."},
-        "Ba": {"value": 20, "note": "Local barite gangue at Tri-State (less than Viburnum Trend, which is the high-Ba MVT endmember per Stoffell 2008)."},
-        "Sr": {"value": 15, "note": "Basinal-brine tracer (Hanor 1994); minor celestine documented at Tri-State."},
-        "Cu": {"value": 3, "note": "Trace chalcopyrite documented at Tri-State even though Cu is not a primary commodity."}
+        "Na": {
+          "value": 80,
+          "note": "NaCl-CaCl2 basinal brine; raw 50-80,000 ppm [Stoffell 2008]; sim-scale abstraction."
+        },
+        "K": {
+          "value": 15,
+          "note": "K/Na ~0.2 typical basinal brine [Hanor 1994]."
+        },
+        "Cl": {
+          "value": 200,
+          "note": "Brine anion paired with Na+K. Tri-State raw fluid 120-220,000 ppm Cl. salinity=15 wt% NaCl-eq remains bulk indicator; free Cl enables pyromorphite/chlorargyrite."
+        },
+        "Ag": {
+          "value": 5,
+          "note": "Argentiferous-galena signature. Tri-State galena 50-300 ppm Ag in mineral; brine Ag much lower. Historical Joplin smelters recovered Ag as Pb byproduct."
+        },
+        "Ba": {
+          "value": 20,
+          "note": "Local barite gangue at Tri-State (less than Viburnum Trend, which is the high-Ba MVT endmember per Stoffell 2008)."
+        },
+        "Sr": {
+          "value": 15,
+          "note": "Basinal-brine tracer (Hanor 1994); minor celestine documented at Tri-State."
+        },
+        "Cu": {
+          "value": 3,
+          "note": "Trace chalcopyrite documented at Tri-State even though Cu is not a primary commodity."
+        }
       },
       "preserved_intentional_values": {
-        "SiO2": 100, "Ca": 300, "CO3": 250, "Fe": 15, "Mn": 25, "F": 5, "Mg": 30, "Pb": 40,
-        "pH": 7.2, "salinity": 15.0,
+        "SiO2": 100,
+        "Ca": 300,
+        "CO3": 250,
+        "Fe": 15,
+        "Mn": 25,
+        "F": 5,
+        "Mg": 30,
+        "Pb": 40,
+        "pH": 7.2,
+        "salinity": 15.0,
         "Zn_note": "Zn=0 at init by design; delivered by event_fluid_mixing at step 20 (Zn=150).",
         "S_note": "S=0 at init by design; delivered by event_fluid_mixing at step 20 (S=120). The low-S initial fluid is what makes MVT 'fluid mixing' the depositional mechanism (not single-fluid cooling)."
       },
@@ -154,7 +296,25 @@
           "rationale": "Tri-State sphalerite carries Cd substituting for Zn — typically 1000-5000 ppm Cd in the mineral, raw fluid Cd ~1-10 ppm. Greenockite (CdS) is the diagnostic yellow coating on Tri-State sphalerite. Adding Cd to the schema would unlock greenockite nucleation as a discrete late-stage phase, plus enable Cd-trace tracking in sphalerite growth zones (TitaniQ-analog Cd-in-sphalerite thermometer).",
           "source": "Schwartz, M.O. (2000). Cadmium in zinc deposits: economic geology of a polluting element. Internat. Geol. Rev. 42: 445-469. Plus general Tri-State greenockite occurrence in Hagni 1976.",
           "blockers": "FluidChemistry has no Cd field. Need: Cd field in dataclass + JS class, grow_greenockite (CdS) implementation, minerals.json entry, optionally Cd-in-sphalerite trace tracking in grow_sphalerite.",
-          "minerals_unlocked": ["greenockite", "hawleyite", "Cd-trace in sphalerite"]
+          "minerals_unlocked": [
+            "greenockite",
+            "hawleyite",
+            "Cd-trace in sphalerite"
+          ]
+        }
+      },
+      "mineral_realizations_v3_expansion": {
+        "arsenopyrite": {
+          "status": "not_applicable",
+          "reason": "MVT scenario is low-T (~100-150 C) — below arsenopyrite mesothermal window. As=0 in fluid (only Sb=10 trace). Tri-State is not As-rich."
+        },
+        "scorodite": {
+          "status": "not_applicable",
+          "reason": "No As in fluid; pH=7.2 is alkaline (above scorodite stability anyway)."
+        },
+        "ferrimolybdite": {
+          "status": "not_applicable",
+          "reason": "No Mo in MVT signature. Ozark MVT lacks porphyry-Mo affinity."
         }
       }
     },
@@ -164,18 +324,43 @@
       "display_name": "Sweetwater Mine, Viburnum Trend, Reynolds County, Missouri",
       "host_formation": "Cambrian Bonneterre Formation dolomitic limestone",
       "fluid_event_summary": "Late Pennsylvanian-Early Permian basinal brine expulsion driven by Ouachita orogeny dewatering. NaCl-CaCl2 brine, 18-24 wt% NaCl-eq, 90-150 C ore stage. Viburnum is the high-Ba / lower-Ag MVT endmember (Stoffell et al. 2008 LA-ICP-MS contrast with Tri-State). The 'reactive wall' mechanic models repeated acid pulses dissolving the carbonate host and triggering pH-recovery growth bursts on existing crystals — the diagnostic Viburnum Pb-Zn paragenesis (sphalerite + galena + marcasite ± barite, with dolomite-calcite gangue).",
-      "audit_pass": "gap-fill (Apr 2026) — added Na, K, Cl (NaCl-CaCl2 brine baseline), Ag (Viburnum galena trace, lower than Tri-State), Sr (basinal-brine tracer). No drift between Python and JS (both runtimes already consistent). Existing chemistry preserved (no retuning).",
+      "audit_pass": "gap-fill (Apr 2026) — added Na, K, Cl (NaCl-CaCl2 brine baseline), Ag (Viburnum galena trace, lower than Tri-State), Sr (basinal-brine tracer). No drift between Python and JS (both runtimes already consistent). Existing chemistry preserved (no retuning). | v3-expansion (Apr 2026) — added arsenopyrite + scorodite + ferrimolybdite engine activations. No fluid chemistry changed; per-locality mineral_realizations_v3_expansion block added documenting expected behavior given existing chemistry. One documented gap: tsumeb scorodite is geologically real but blocked by current pH=6.8 (would need early-acidic-phase event to unlock).",
       "fluid": {
-        "Na": {"value": 70, "note": "Slightly below Tri-State Na=80 reflecting Viburnum's somewhat lower Pb-Zn-Ag tenor and different basin source [Sverjensky 1981; Stoffell 2008]."},
-        "K": {"value": 12, "note": "K/Na ~0.2 typical basinal brine [Hanor 1994]."},
-        "Cl": {"value": 200, "note": "Brine anion paired with Na+K. salinity=18 wt% NaCl-eq remains bulk indicator; free Cl enables Pb-Cl chemistry."},
-        "Ag": {"value": 3, "note": "Viburnum galena carries Ag at lower abundance than Tri-State (Stoffell 2008 LA-ICP-MS contrast). Sweetwater historically not a major Ag producer."},
-        "Sr": {"value": 12, "note": "Basinal-brine tracer (Hanor 1994); minor celestine documented in Viburnum carbonate gangue."}
+        "Na": {
+          "value": 70,
+          "note": "Slightly below Tri-State Na=80 reflecting Viburnum's somewhat lower Pb-Zn-Ag tenor and different basin source [Sverjensky 1981; Stoffell 2008]."
+        },
+        "K": {
+          "value": 12,
+          "note": "K/Na ~0.2 typical basinal brine [Hanor 1994]."
+        },
+        "Cl": {
+          "value": 200,
+          "note": "Brine anion paired with Na+K. salinity=18 wt% NaCl-eq remains bulk indicator; free Cl enables Pb-Cl chemistry."
+        },
+        "Ag": {
+          "value": 3,
+          "note": "Viburnum galena carries Ag at lower abundance than Tri-State (Stoffell 2008 LA-ICP-MS contrast). Sweetwater historically not a major Ag producer."
+        },
+        "Sr": {
+          "value": 12,
+          "note": "Basinal-brine tracer (Hanor 1994); minor celestine documented in Viburnum carbonate gangue."
+        }
       },
       "preserved_intentional_values": {
-        "SiO2": 50, "Ca": 250, "CO3": 200, "Fe": 8, "Mn": 5,
-        "Zn": 80, "Pb": 30, "Ba": 25, "S": 60, "F": 8,
-        "Mg": 100, "pH": 7.0, "salinity": 18.0,
+        "SiO2": 50,
+        "Ca": 250,
+        "CO3": 200,
+        "Fe": 8,
+        "Mn": 5,
+        "Zn": 80,
+        "Pb": 30,
+        "Ba": 25,
+        "S": 60,
+        "F": 8,
+        "Mg": 100,
+        "pH": 7.0,
+        "salinity": 18.0,
         "Mg_note": "Mg=100 sets Mg/Ca ~0.4, above dolomite gate (0.3); calcite still wins by Mg-poisoning math. Aragonite stays absent (its threshold is ~1.5).",
         "Ba_note": "Ba=25 reflects Viburnum's high-Ba MVT endmember status; barite is a documented late gangue."
       },
@@ -191,6 +376,20 @@
       ],
       "intentionally_zero": {
         "Au": "Same MVT-brine context as Tri-State — basinal brines don't carry Au. Au=0 is correct, not a gap."
+      },
+      "mineral_realizations_v3_expansion": {
+        "arsenopyrite": {
+          "status": "not_applicable",
+          "reason": "Reactive_wall is low-T MVT-cousin (T~100 C) — below mesothermal arsenopyrite window. As=0 in fluid."
+        },
+        "scorodite": {
+          "status": "not_applicable",
+          "reason": "No As in fluid; pH=7.0 alkaline."
+        },
+        "ferrimolybdite": {
+          "status": "not_applicable",
+          "reason": "No Mo. Sweetwater is a Pb-Zn district, no Mo affinity."
+        }
       }
     },
     "warren_district": {
@@ -200,20 +399,48 @@
       "host_formation": "Laramide (Late Cretaceous - Early Tertiary, ~70-65 Ma) quartz-monzonite porphyry intruding Paleozoic Escabrosa Limestone + Abrigo Formation",
       "production_history": "~8 Mt Cu, ~25 Moz Ag, ~3 Moz Au historically (1880-1975). Type-locality for the supergene Cu paragenesis cascade (chalcopyrite -> chalcocite -> cuprite -> native Cu -> azurite -> malachite -> chrysocolla).",
       "fluid_event_summary": "Three-phase history: (1) primary Laramide magmatic-hydrothermal phase, hot reducing brine, chalcopyrite-bornite-pyrite-magnetite assemblage; (2) Mesozoic-Cenozoic uplift exposes ore to meteoric water, pyrite oxidation drops pH, Cu^2+ leaches and descends; (3) supergene cascade: chalcocite enrichment blanket -> cuprite -> native Cu -> azurite (high pCO2 monsoon) -> malachite (pCO2 drop) -> chrysocolla (silica seep). Each step corresponds to a documented Bisbee specimen type.",
-      "audit_pass": "gap-fill (Apr 2026) — added Ag (~25 Moz Ag historical production), Mg (Escabrosa Limestone host), P (enables pyromorphite given Pb+Cl already present), Sb (tetrahedrite-tennantite sulfosalt trace). No drift between Python and JS init (both already consistent). Existing chemistry preserved (no retuning); event sequence (9 events spanning 340 steps) preserved. Au=3 added later when the Au field + grow_native_gold engine landed (previously held in pending_schema_additions).",
+      "audit_pass": "gap-fill (Apr 2026) — added Ag (~25 Moz Ag historical production), Mg (Escabrosa Limestone host), P (enables pyromorphite given Pb+Cl already present), Sb (tetrahedrite-tennantite sulfosalt trace). No drift between Python and JS init (both already consistent). Existing chemistry preserved (no retuning); event sequence (9 events spanning 340 steps) preserved. Au=3 added later when the Au field + grow_native_gold engine landed (previously held in pending_schema_additions). | v3-expansion (Apr 2026) — added arsenopyrite + scorodite + ferrimolybdite engine activations. No fluid chemistry changed; per-locality mineral_realizations_v3_expansion block added documenting expected behavior given existing chemistry. One documented gap: tsumeb scorodite is geologically real but blocked by current pH=6.8 (would need early-acidic-phase event to unlock).",
       "fluid": {
-        "Ag": {"value": 40, "note": "Warren District produced ~25 Moz Ag historically — argentiferous galena + tetrahedrite + argentite + minor native Ag. Higher than the prior MVT scenarios (Tri-State Ag=5, Sweetwater Ag=3) reflecting Bisbee's Ag-rich character."},
-        "Mg": {"value": 50, "note": "Escabrosa Limestone host is dolomitic in places; brine Mg from carbonate dissolution. Conservative — Bisbee doesn't have prominent dolomitization."},
-        "P": {"value": 5, "note": "Enables pyromorphite (Pb-Cl-PO4) given existing Pb=15 + Cl=400 + supergene oxidation events. Pyromorphite is a documented minor Bisbee supergene Pb species alongside cerussite + anglesite."},
-        "Sb": {"value": 5, "note": "Tetrahedrite (Cu-Sb-S) is the documented sulfosalt at Bisbee. Mirrors the existing Bi=2 / As=8 greisen-trace triplet."},
-        "Au": {"value": 3, "note": "Bisbee ~3 Moz Au historically; supergene-preserved native Au + auriferous chalcocite throughout the oxidation zone [Graeme et al. 2019]. Slightly higher than Bingham's Au=2 reflecting Bisbee's well-preserved supergene zone where Au accumulates. Activated when grow_native_gold engine landed."}
+        "Ag": {
+          "value": 40,
+          "note": "Warren District produced ~25 Moz Ag historically — argentiferous galena + tetrahedrite + argentite + minor native Ag. Higher than the prior MVT scenarios (Tri-State Ag=5, Sweetwater Ag=3) reflecting Bisbee's Ag-rich character."
+        },
+        "Mg": {
+          "value": 50,
+          "note": "Escabrosa Limestone host is dolomitic in places; brine Mg from carbonate dissolution. Conservative — Bisbee doesn't have prominent dolomitization."
+        },
+        "P": {
+          "value": 5,
+          "note": "Enables pyromorphite (Pb-Cl-PO4) given existing Pb=15 + Cl=400 + supergene oxidation events. Pyromorphite is a documented minor Bisbee supergene Pb species alongside cerussite + anglesite."
+        },
+        "Sb": {
+          "value": 5,
+          "note": "Tetrahedrite (Cu-Sb-S) is the documented sulfosalt at Bisbee. Mirrors the existing Bi=2 / As=8 greisen-trace triplet."
+        },
+        "Au": {
+          "value": 3,
+          "note": "Bisbee ~3 Moz Au historically; supergene-preserved native Au + auriferous chalcocite throughout the oxidation zone [Graeme et al. 2019]. Slightly higher than Bingham's Au=2 reflecting Bisbee's well-preserved supergene zone where Au accumulates. Activated when grow_native_gold engine landed."
+        }
       },
       "preserved_intentional_values": {
-        "SiO2": 500, "Ca": 60, "CO3": 30, "Fe": 200, "Mn": 4,
-        "Cu": 400, "S": 150, "F": 6, "Cl": 400, "Pb": 15,
-        "K": 80, "Na": 120, "Al": 20,
-        "As": 8, "Bi": 2,
-        "O2": 0.05, "pH": 5.0, "salinity": 30.0,
+        "SiO2": 500,
+        "Ca": 60,
+        "CO3": 30,
+        "Fe": 200,
+        "Mn": 4,
+        "Cu": 400,
+        "S": 150,
+        "F": 6,
+        "Cl": 400,
+        "Pb": 15,
+        "K": 80,
+        "Na": 120,
+        "Al": 20,
+        "As": 8,
+        "Bi": 2,
+        "O2": 0.05,
+        "pH": 5.0,
+        "salinity": 30.0,
         "Cu_note": "Cu=400 is upper end of primary porphyry; the whole district budget concentrated in the sim relative to nature (we don't model the 10 km^3 of leached rock).",
         "Cl_note": "Cl=400 + salinity=30 wt% NaCl-eq reflects the hypersaline (35-55 wt%) primary brine per Graeme et al. 2019 fluid inclusion data.",
         "T_note": "T=400 is mid-range of Graeme et al. 2019 fluid-inclusion 320-450 C. Cooling events drop T through the supergene sequence."
@@ -235,7 +462,27 @@
           "blockers": "Bisbee's supergene Au literature (Graeme et al. 2019) emphasizes that much of the Au is hosted as a trace within chalcocite rather than as discrete native_gold crystals. Adding an Au-trace tracker on grow_chalcocite (parallel to how Mn/Fe traces are tracked in calcite) would let the sim record this dual mode. Currently all Au in Bisbee precipitates as discrete native_gold instead of partitioning into chalcocite.",
           "rationale": "Faithful Bisbee paragenesis would record both native gold pockets AND ppm-Au-bearing chalcocite zones, with the latter being the more economically significant mode.",
           "source": "Graeme et al. 2019.",
-          "minerals_unlocked": ["auriferous chalcocite trace recording"]
+          "minerals_unlocked": [
+            "auriferous chalcocite trace recording"
+          ]
+        }
+      },
+      "mineral_realizations_v3_expansion": {
+        "arsenopyrite": {
+          "status": "active_strong_early",
+          "reason": "T=400 C, Fe=200 (very high), As=8, S=150, O2=0.05, pH=5.0 -> sigma >12 raw at init. Massive nucleation will consume As quickly. Will trap fluid Au (init Au=3 ppm) extensively.",
+          "event_dependency": null,
+          "real_locality_evidence": "Warren District arsenic from arsenopyrite is the As source that supergene-oxidation later releases as scorodite. Bisbee documented arsenopyrite per Graeme et al. 2019 + earlier Bisbee mineral inventories."
+        },
+        "scorodite": {
+          "status": "active_post_event",
+          "reason": "After ev_uplift_weathering (step 65) drops pH and raises O2, scorodite forms from arsenopyrite oxidation products. ev_oxidation_zone (step 145) reinforces.",
+          "event_dependency": "ev_uplift_weathering (step 65) primary; ev_oxidation_zone (step 145) reinforcing",
+          "real_locality_evidence": "Bisbee oxidation zone scorodite is part of the supergene mineral assemblage per Graeme et al. 2019."
+        },
+        "ferrimolybdite": {
+          "status": "not_applicable",
+          "reason": "No Mo in Warren District fluid (init Mo=0; no Mo-delivering event). Bisbee is Cu-Pb-Zn-Au, not Cu-Mo. Mineral not expected at this locality."
         }
       }
     },
@@ -245,16 +492,34 @@
       "display_name": "Ouro Preto Imperial Topaz veins, Minas Gerais, Brazil",
       "host_formation": "Precambrian phyllite + quartzite (Brasília fold belt)",
       "fluid_event_summary": "Hydrothermal veins cutting Precambrian phyllite. Crystallization at ~360 C, 3.5 kbar from metamorphic brines derived from devolatilization of phyllite (Morteani et al. 2002 fluid-inclusion study). The diagnostic imperial color (golden-orange to pink) requires Cr from nearby ultramafic bodies; without Cr the topaz is colorless or pale blue. Single clean cooling curve 360 C -> 50 C; F-pulse mid-scenario gates topaz nucleation.",
-      "audit_pass": "gap-fill (Apr 2026) — added Na, K (phyllite-devolatilization signature: muscovite + biotite + albite breakdown releases alkali cations), Mg (phyllite chlorite/biotite breakdown). No drift between Python and JS init. Existing chemistry preserved (no retuning); 6-event cooling cascade preserved.",
+      "audit_pass": "gap-fill (Apr 2026) — added Na, K (phyllite-devolatilization signature: muscovite + biotite + albite breakdown releases alkali cations), Mg (phyllite chlorite/biotite breakdown). No drift between Python and JS init. Existing chemistry preserved (no retuning); 6-event cooling cascade preserved. | v3-expansion (Apr 2026) — added arsenopyrite + scorodite + ferrimolybdite engine activations. No fluid chemistry changed; per-locality mineral_realizations_v3_expansion block added documenting expected behavior given existing chemistry. One documented gap: tsumeb scorodite is geologically real but blocked by current pH=6.8 (would need early-acidic-phase event to unlock).",
       "fluid": {
-        "Na": {"value": 60, "note": "Phyllite albite + muscovite breakdown; metamorphic brine baseline [Morteani 2002]. Na > K typical of phyllite devolatilization."},
-        "K": {"value": 40, "note": "Muscovite + biotite breakdown; K/Na ~0.7 (higher than basinal-brine ~0.2 because phyllite micas are K-rich)."},
-        "Mg": {"value": 15, "note": "Phyllite chlorite + biotite breakdown. Conservative — host is quartzite + phyllite, not mafic. Brief-required non-zero Mg."}
+        "Na": {
+          "value": 60,
+          "note": "Phyllite albite + muscovite breakdown; metamorphic brine baseline [Morteani 2002]. Na > K typical of phyllite devolatilization."
+        },
+        "K": {
+          "value": 40,
+          "note": "Muscovite + biotite breakdown; K/Na ~0.7 (higher than basinal-brine ~0.2 because phyllite micas are K-rich)."
+        },
+        "Mg": {
+          "value": 15,
+          "note": "Phyllite chlorite + biotite breakdown. Conservative — host is quartzite + phyllite, not mafic. Brief-required non-zero Mg."
+        }
       },
       "preserved_intentional_values": {
-        "SiO2": 1200, "Ca": 40, "CO3": 20, "Fe": 6, "Mn": 2, "Al": 15,
-        "F": 12, "Cr": 0.5, "Ti": 0.6,
-        "O2": 0.3, "pH": 6.5, "salinity": 3.0,
+        "SiO2": 1200,
+        "Ca": 40,
+        "CO3": 20,
+        "Fe": 6,
+        "Mn": 2,
+        "Al": 15,
+        "F": 12,
+        "Cr": 0.5,
+        "Ti": 0.6,
+        "O2": 0.3,
+        "pH": 6.5,
+        "salinity": 3.0,
         "F_note": "F=12 is intentionally below topaz saturation threshold (~20 ppm). ev_f_pulse adds +30 from phyllite mica devolatilization to gate topaz nucleation.",
         "Cr_note": "Cr=0.5 is intentionally sub-threshold. ev_cr_leach adds +4 to push into the imperial-color window (3-8 ppm Cr3+ in topaz).",
         "salinity_note": "salinity=3 wt% NaCl-eq is the low-TDS metamorphic-brine signature; consistent with devolatilization-derived fluid (not basinal brine)."
@@ -270,6 +535,20 @@
       ],
       "intentionally_zero": {
         "Au": "The region is famously auriferous — 'Ouro Preto' literally means 'Black Gold', and the Iron Quadrangle was the center of the Brazilian gold rush. BUT this scenario simulates the Imperial Topaz veins (Capão / Boa Vista mines) specifically, which are a separate paragenesis from the regional gold-bearing veins (Mariana, Sabará, Nova Lima, Morro Velho). The topaz mines are not gold producers. Au=0 is correct for the topaz-vein-specific scenario, not a gap. A future scenario simulating an Iron Quadrangle gold vein would carry Au."
+      },
+      "mineral_realizations_v3_expansion": {
+        "arsenopyrite": {
+          "status": "not_applicable",
+          "reason": "Topaz-quartz pegmatite scenario; As=0 in fluid. Itacolomi formation lacks As affinity."
+        },
+        "scorodite": {
+          "status": "not_applicable",
+          "reason": "No As; pH=6.5 borderline anyway."
+        },
+        "ferrimolybdite": {
+          "status": "not_applicable",
+          "reason": "No Mo."
+        }
       }
     },
     "cruzeiro_doce_valley": {
@@ -279,17 +558,37 @@
       "host_formation": "Brasiliano-age (Neoproterozoic, 700-450 Ma) granite-pegmatite cutting Macaúbas Group meta-sediments, eastern São Francisco craton margin",
       "production_history": "Type-locality for fine schorl-elbaite tourmaline + smoky quartz + beryl pockets. Active since the early 20th century, still producing world-class specimens.",
       "fluid_event_summary": "Miarolitic gem cavity in the residual pocket of a complex zoned pegmatite. Crystallization 650 -> 300 C across 7 events: outer-shell wall zone, schorl arrival, albitization (K -> Na), Be saturation (beryl), Li phase (spodumene + elbaite), late hydrothermal (topaz), kaolinization (microcline -> kaolinite). Apatite is a documented Cruzeiro accessory mineral [Cassedanne 1991].",
-      "audit_pass": "gap-fill (Apr 2026) — added P (apatite-enabling, was the gate keeping a documented Cruzeiro accessory from nucleating), Mg (brief-required non-zero baseline, pegmatite-pocket-appropriate low value). No drift between Python and JS init. Existing chemistry (Be, B, Li, F, Cr, Cu, V, Ti, K, Na, Al, etc.) preserved; 7-event cooling cascade preserved.",
+      "audit_pass": "gap-fill (Apr 2026) — added P (apatite-enabling, was the gate keeping a documented Cruzeiro accessory from nucleating), Mg (brief-required non-zero baseline, pegmatite-pocket-appropriate low value). No drift between Python and JS init. Existing chemistry (Be, B, Li, F, Cr, Cu, V, Ti, K, Na, Al, etc.) preserved; 7-event cooling cascade preserved. | v3-expansion (Apr 2026) — added arsenopyrite + scorodite + ferrimolybdite engine activations. No fluid chemistry changed; per-locality mineral_realizations_v3_expansion block added documenting expected behavior given existing chemistry. One documented gap: tsumeb scorodite is geologically real but blocked by current pH=6.8 (would need early-acidic-phase event to unlock).",
       "fluid": {
-        "P": {"value": 8, "note": "Pegmatite residual pocket fluids are P-enriched. Apatite (Ca5(PO4)3F) is a documented Cruzeiro accessory; existing Ca=30 + F=25 already supported apatite chemistry — P=0 was the gate. Conservative value — apatite should nucleate as a minor accessory, not dominate the gem signature."},
-        "Mg": {"value": 5, "note": "Pegmatite pocket fluids are Mg-poor (Mg partitions strongly into outer-shell biotite/chlorite during pegmatite differentiation). Conservative; brief-required non-zero Mg."}
+        "P": {
+          "value": 8,
+          "note": "Pegmatite residual pocket fluids are P-enriched. Apatite (Ca5(PO4)3F) is a documented Cruzeiro accessory; existing Ca=30 + F=25 already supported apatite chemistry — P=0 was the gate. Conservative value — apatite should nucleate as a minor accessory, not dominate the gem signature."
+        },
+        "Mg": {
+          "value": 5,
+          "note": "Pegmatite pocket fluids are Mg-poor (Mg partitions strongly into outer-shell biotite/chlorite during pegmatite differentiation). Conservative; brief-required non-zero Mg."
+        }
       },
       "preserved_intentional_values": {
-        "SiO2": 8000, "Ca": 30, "CO3": 15, "Fe": 50, "Mn": 8, "Al": 150,
-        "K": 80, "Na": 40,
-        "Be": 25, "B": 35, "Li": 35, "F": 25,
-        "Cr": 2.5, "Cu": 0.3, "V": 2.0, "Ti": 0.8,
-        "O2": 0.1, "pH": 6.8, "salinity": 6.0,
+        "SiO2": 8000,
+        "Ca": 30,
+        "CO3": 15,
+        "Fe": 50,
+        "Mn": 8,
+        "Al": 150,
+        "K": 80,
+        "Na": 40,
+        "Be": 25,
+        "B": 35,
+        "Li": 35,
+        "F": 25,
+        "Cr": 2.5,
+        "Cu": 0.3,
+        "V": 2.0,
+        "Ti": 0.8,
+        "O2": 0.1,
+        "pH": 6.8,
+        "salinity": 6.0,
         "SiO2_note": "Pegmatite-level silica saturation — far above quartz equilibrium at any T, so quartz is supersaturated throughout.",
         "incompatible_elements_note": "Be, B, Li, F all start above their respective minerals' minimum required threshold but below the nucleation σ threshold; they build (unused early) and then the cascade fires as T drops.",
         "Cu_note": "Cu=0.3 is the Paraíba long-shot (1 in 20 scenarios lands the cuprian elbaite given seed variance)."
@@ -306,6 +605,20 @@
       ],
       "intentionally_zero": {
         "Au": "Pegmatite incompatible-element partitioning excludes Au — gold doesn't fit any pegmatite-mineral structure and stays in the residual melt or escapes via late hydrothermal phase. No Brazilian pegmatite is a gold producer, including Cruzeiro. Au=0 is correct, not a gap."
+      },
+      "mineral_realizations_v3_expansion": {
+        "arsenopyrite": {
+          "status": "not_applicable",
+          "reason": "Gem pegmatite scenario; As=0. Cruzeiro is tourmaline/beryl/spodumene, not As-bearing."
+        },
+        "scorodite": {
+          "status": "not_applicable",
+          "reason": "No As."
+        },
+        "ferrimolybdite": {
+          "status": "not_applicable",
+          "reason": "No Mo."
+        }
       }
     },
     "tsumeb": {
@@ -315,21 +628,53 @@
       "host_formation": "Pipe-shaped Pb-Zn-Cu sulfide body in Neoproterozoic dolomite (Otavi Group)",
       "production_history": "Active 1905-1996. Primary commodities Pb-Zn-Cu-Ag-Ge-Cd. ~280 species documented — among the most mineralogically diverse deposits ever discovered. Type locality for germanium (germanite, renierite, briartite).",
       "fluid_event_summary": "1st-stage gossan = uppermost of three Mesozoic-Cenozoic supergene oxidation zones, ~35 C, oxidizing meteoric brine in dolomitic carbonate cavity. Repeated soil-zone flushes deliver Pb+Mo, As+Co+Ni, P, V in sequential pulses, each unlocking a different mineral assemblage (wulfenite, mimetite/erythrite/annabergite, pyromorphite, vanadinite). Argentiferous throughout; Ge-bearing minerals are the Tsumeb signature.",
-      "audit_pass": "gap-fill (Apr 2026) — added Ag (Tsumeb's silver suite: native Ag, proustite, pyrargyrite), Ge (the type-locality element; FluidChemistry.Ge field has carried a 'Tsumeb speciality' comment since the schema was written, this audit finally populates it), Sb (proustite/pyrargyrite/tetrahedrite enabling), Na/K (minor groundwater cation traces). Existing chemistry preserved (Mg=5, V=1.5, P=0.5, etc.); 8-event sequence preserved; Co/Ni-via-event preserved.",
+      "audit_pass": "gap-fill (Apr 2026) — added Ag (Tsumeb's silver suite: native Ag, proustite, pyrargyrite), Ge (the type-locality element; FluidChemistry.Ge field has carried a 'Tsumeb speciality' comment since the schema was written, this audit finally populates it), Sb (proustite/pyrargyrite/tetrahedrite enabling), Na/K (minor groundwater cation traces). Existing chemistry preserved (Mg=5, V=1.5, P=0.5, etc.); 8-event sequence preserved; Co/Ni-via-event preserved. | v3-expansion (Apr 2026) — added arsenopyrite + scorodite + ferrimolybdite engine activations. No fluid chemistry changed; per-locality mineral_realizations_v3_expansion block added documenting expected behavior given existing chemistry. One documented gap: tsumeb scorodite is geologically real but blocked by current pH=6.8 (would need early-acidic-phase event to unlock).",
       "fluid": {
-        "Ag": {"value": 8, "note": "Tsumeb is one of the most argentiferous deposits ever — native silver, argentiferous galena, proustite, pyrargyrite, stephanite. Existing Cl=20 + new Ag=8 also supports chlorargyrite chemistry [Pinch & Wilson 1977]."},
-        "Ge": {"value": 5, "note": "Tsumeb is THE type locality for germanium. Germanite (Cu26Fe4Ge4S32), renierite, and briartite were all first described here. FluidChemistry's Ge field has carried a 'Tsumeb speciality' comment since the schema was written — this audit finally populates it [Melcher 2003 Tsumeb Ge geochemistry]."},
-        "Sb": {"value": 5, "note": "Enables proustite (Ag3SbS3) and pyrargyrite (Ag3SbS3) — the ruby silvers — plus tetrahedrite. Mirrors the Bisbee-style Sb-As-Bi greisen-trace abstraction at lower supergene-zone abundance."},
-        "Na": {"value": 30, "note": "Minor groundwater cation trace; supergene meteoric water is dilute (salinity stays at 2 wt%) but carries some Na from soil-zone weathering."},
-        "K": {"value": 10, "note": "K/Na ~0.3, meteoric-groundwater ratio."},
-        "Au": {"value": 0.3, "note": "Rare native gold IS documented at Tsumeb [Pinch & Wilson 1977] though it's not a primary commodity. Sub-0.5-ppm threshold (grow_native_gold's nucleation cutoff) means no gold crystals nucleate — the 0.3 value documents the reported trace chemistry without producing gold the locality doesn't actually produce in quantity. Added when the Au field landed (post grow_native_gold engine)."}
+        "Ag": {
+          "value": 8,
+          "note": "Tsumeb is one of the most argentiferous deposits ever — native silver, argentiferous galena, proustite, pyrargyrite, stephanite. Existing Cl=20 + new Ag=8 also supports chlorargyrite chemistry [Pinch & Wilson 1977]."
+        },
+        "Ge": {
+          "value": 5,
+          "note": "Tsumeb is THE type locality for germanium. Germanite (Cu26Fe4Ge4S32), renierite, and briartite were all first described here. FluidChemistry's Ge field has carried a 'Tsumeb speciality' comment since the schema was written — this audit finally populates it [Melcher 2003 Tsumeb Ge geochemistry]."
+        },
+        "Sb": {
+          "value": 5,
+          "note": "Enables proustite (Ag3SbS3) and pyrargyrite (Ag3SbS3) — the ruby silvers — plus tetrahedrite. Mirrors the Bisbee-style Sb-As-Bi greisen-trace abstraction at lower supergene-zone abundance."
+        },
+        "Na": {
+          "value": 30,
+          "note": "Minor groundwater cation trace; supergene meteoric water is dilute (salinity stays at 2 wt%) but carries some Na from soil-zone weathering."
+        },
+        "K": {
+          "value": 10,
+          "note": "K/Na ~0.3, meteoric-groundwater ratio."
+        },
+        "Au": {
+          "value": 0.3,
+          "note": "Rare native gold IS documented at Tsumeb [Pinch & Wilson 1977] though it's not a primary commodity. Sub-0.5-ppm threshold (grow_native_gold's nucleation cutoff) means no gold crystals nucleate — the 0.3 value documents the reported trace chemistry without producing gold the locality doesn't actually produce in quantity. Added when the Au field landed (post grow_native_gold engine)."
+        }
       },
       "preserved_intentional_values": {
-        "SiO2": 30, "Ca": 120, "CO3": 110, "Fe": 40, "Mn": 6, "Mg": 5,
-        "Zn": 90, "S": 50, "F": 3,
-        "Cu": 55, "Pb": 60, "Mo": 15,
-        "As": 12, "Cl": 20, "V": 1.5, "P": 0.5,
-        "O2": 1.8, "pH": 6.8, "salinity": 2.0,
+        "SiO2": 30,
+        "Ca": 120,
+        "CO3": 110,
+        "Fe": 40,
+        "Mn": 6,
+        "Mg": 5,
+        "Zn": 90,
+        "S": 50,
+        "F": 3,
+        "Cu": 55,
+        "Pb": 60,
+        "Mo": 15,
+        "As": 12,
+        "Cl": 20,
+        "V": 1.5,
+        "P": 0.5,
+        "O2": 1.8,
+        "pH": 6.8,
+        "salinity": 2.0,
         "Co_note": "Co=0 at init by design; delivered by event_as_rich_seep at step 95 (+20). Erythrite (Co arsenate) requires As + Co coincident.",
         "Ni_note": "Ni=0 at init by design; same delivery pattern as Co. Annabergite (Ni arsenate) requires As + Ni coincident.",
         "P_note": "P=0.5 is sub-pyromorphite-threshold by design; ev_phosphate_seep at step 115 adds +6 to gate pyromorphite nucleation.",
@@ -346,7 +691,28 @@
       "data_gaps": [
         "Ag, Ge, Sb values are Tsumeb-relevant orders-of-magnitude estimates derived from district mineralogy + general supergene-fluid Ag/Ge/Sb ranges; direct fluid-inclusion LA-ICP-MS for Tsumeb supergene fluids is not in the standard literature (most published Ge work is on solid-mineral Ge content, not paleo-fluid Ge content).",
         "The 'three oxidation zones' of Tsumeb (1st/2nd/3rd stage gossan) are collapsed to a single supergene scenario; sub-zone differentiation is out of scope."
-      ]
+      ],
+      "mineral_realizations_v3_expansion": {
+        "arsenopyrite": {
+          "status": "blocked_by_chemistry_correctly",
+          "reason": "Tsumeb scenario represents the supergene oxidation zone (O2=1.8). Arsenopyrite requires reducing conditions (O2<0.8) which never occur here. CORRECT — Tsumeb arsenopyrite is the primary parent that already oxidized; this scenario simulates the post-oxidation arsenate suite, not the primary phase.",
+          "event_dependency": null,
+          "real_locality_evidence": "Tsumeb primary arsenopyrite did exist (deeper in the orebody) but the Tsumeb-2 collection-zone the scenario simulates is the supergene-oxidation product zone."
+        },
+        "scorodite": {
+          "status": "geologically_documented_but_blocked",
+          "reason": "Tsumeb is the world-class scorodite locality (Groebner & Becker 1973 — deep blue-green dipyramids to 5+ cm) but the current scenario pH=6.8 is ABOVE scorodite stability gate (pH<6 nucleation). Geologically, Tsumeb scorodite formed during the early acidic supergene phase BEFORE carbonate buffering raised pH to 6.8 (the late-stage phase the scenario captures). Future scenario tune: add an early-phase event_supergene_acidification to drop pH transiently to 4-5 for ~20 steps, allowing scorodite to nucleate before carbonate buffer kicks in. Currently scorodite is correctly blocked by current pH.",
+          "event_dependency": "NEEDED: early-phase pH-drop event (not currently in scenario)",
+          "real_locality_evidence": "Tsumeb is the type-locality-quality scorodite source per Groebner & Becker 1973 + Bartelke 1976. Documented as part of secondary arsenate oxidation suite alongside mimetite/adamite (already implemented).",
+          "audit_action": "Document gap; do not retune. A future scenario_tsumeb refinement to add early-acidic-phase event would unlock scorodite. Tracked in BACKLOG.md as 'Tsumeb scorodite pH gap'."
+        },
+        "ferrimolybdite": {
+          "status": "active",
+          "reason": "Tsumeb has Mo=15, Fe=40, O2=1.8, pH=6.8, T=low -> sigma >5 if T low. Will nucleate readily. Substrate prefers existing molybdenite (none in scene) so wall-nucleation dominant.",
+          "event_dependency": null,
+          "real_locality_evidence": "Tsumeb molybdates documented; ferrimolybdite is the lower-display-value-but-common Mo-oxidation cousin to wulfenite (which IS reported at Tsumeb)."
+        }
+      }
     },
     "deccan_nashik": {
       "scenario_id": "deccan_zeolite",
@@ -354,14 +720,27 @@
       "display_name": "Deccan Traps zeolite vesicle, Nashik / Aurangabad area, Maharashtra, India",
       "host_formation": "Late-Cretaceous Deccan basalt flow vesicles (~66 Ma flood basalt province)",
       "fluid_event_summary": "Stage III apophyllite-bearing vesicles (~21-58 Ma post-eruption per Ottens et al. 2019). Alkaline K-Ca-Si-F groundwater percolating through cooled basalt vesicles, crystallizing pseudo-cubic apophyllite blocks, sometimes carrying hematite-needle phantom inclusions (the 'bloody apophyllite' of Nashik). 5-stage event sequence: silica veneer (Stage I) -> hematite seeds -> zeolites + calcite (Stage II) -> apophyllite (Stage III) -> late cooling.",
-      "audit_pass": "gap-fill (Apr 2026) — added Sr=2. Deccan zeolites (heulandite, stilbite, mesolite) carry Sr substituting for Ca, sometimes 100s of ppm in the mineral; documenting the parent-fluid source. Existing Mg=8 already meets brief-required non-zero Mg. Drift check: Python and JS init values identical, no fixes needed. Existing chemistry preserved.",
+      "audit_pass": "gap-fill (Apr 2026) — added Sr=2. Deccan zeolites (heulandite, stilbite, mesolite) carry Sr substituting for Ca, sometimes 100s of ppm in the mineral; documenting the parent-fluid source. Existing Mg=8 already meets brief-required non-zero Mg. Drift check: Python and JS init values identical, no fixes needed. Existing chemistry preserved. | v3-expansion (Apr 2026) — added arsenopyrite + scorodite + ferrimolybdite engine activations. No fluid chemistry changed; per-locality mineral_realizations_v3_expansion block added documenting expected behavior given existing chemistry. One documented gap: tsumeb scorodite is geologically real but blocked by current pH=6.8 (would need early-acidic-phase event to unlock).",
       "fluid": {
-        "Sr": {"value": 2, "note": "Deccan zeolites carry Sr substituting for Ca, particularly in heulandite-stilbite series. Sim-scale 2 ppm documents the parent-fluid Sr without nucleating distinct Sr minerals (which is geologically correct — strontianite is not a Deccan vesicle phase)."}
+        "Sr": {
+          "value": 2,
+          "note": "Deccan zeolites carry Sr substituting for Ca, particularly in heulandite-stilbite series. Sim-scale 2 ppm documents the parent-fluid Sr without nucleating distinct Sr minerals (which is geologically correct — strontianite is not a Deccan vesicle phase)."
+        }
       },
       "preserved_intentional_values": {
-        "SiO2": 900, "Ca": 180, "CO3": 80, "Fe": 180, "Mn": 4, "Mg": 8, "Al": 15,
-        "K": 2, "Na": 40, "F": 1,
-        "O2": 1.5, "pH": 8.2, "salinity": 2.0,
+        "SiO2": 900,
+        "Ca": 180,
+        "CO3": 80,
+        "Fe": 180,
+        "Mn": 4,
+        "Mg": 8,
+        "Al": 15,
+        "K": 2,
+        "Na": 40,
+        "F": 1,
+        "O2": 1.5,
+        "pH": 8.2,
+        "salinity": 2.0,
         "K_note": "K=2 is intentionally low at init; ev_zeolite_stage_ii (+10) and ev_apophyllite_stage_iii (+25) gate the K-bearing apophyllite/stilbite stage.",
         "F_note": "F=1 is intentionally sub-apophyllite-threshold; ev_apophyllite_stage_iii adds +4 to gate apophyllite nucleation."
       },
@@ -376,6 +755,20 @@
       ],
       "intentionally_zero": {
         "Au": "Deccan basalts are not Au-bearing. Surface-T alkaline groundwater percolating through cooled basalt vesicles doesn't transport Au — wrong T, wrong complex chemistry. Au=0 is correct, not a gap."
+      },
+      "mineral_realizations_v3_expansion": {
+        "arsenopyrite": {
+          "status": "not_applicable",
+          "reason": "Zeolite scenario in basalt vesicles; As=0. Deccan basalt vesicle minerals are zeolites + apophyllite, not As-bearing."
+        },
+        "scorodite": {
+          "status": "not_applicable",
+          "reason": "No As; pH=8.2 alkaline (way above scorodite stability)."
+        },
+        "ferrimolybdite": {
+          "status": "not_applicable",
+          "reason": "No Mo. Zeolite-stage fluid lacks porphyry-Mo affinity."
+        }
       }
     },
     "coorong_sabkha": {
@@ -384,11 +777,23 @@
       "display_name": "Coorong lagoon system, South Australia (and Persian Gulf sabkhas)",
       "host_formation": "Modern lagoonal carbonate sediment + evaporite host",
       "fluid_event_summary": "Surface-T evaporative brine cycling (~25 C, ~120 wt% NaCl-eq sabkha endmember), 12 flood/evap pulses over 240 steps drive Omega across the dolomite saturation boundary repeatedly. Per Kim, Sun et al. (2023, Science 382:915), this cyclic Omega modulation is what's needed to produce ORDERED dolomite at ambient T (the geological prize the paper made accessible). f_ord reaches >0.7 by mid-scenario.",
-      "audit_pass": "consistency check (Apr 2026) — no gap-fills needed. The scenario was already exceptionally well-tuned for its specific story. All major sabkha-brine elements present (Mg=1400, Ca=400, CO3=300, Na=10500, K=380, S=2700, Cl=18000, Sr=20, F=2). Drift check: Python and JS init values identical. No changes made.",
+      "audit_pass": "consistency check (Apr 2026) — no gap-fills needed. The scenario was already exceptionally well-tuned for its specific story. All major sabkha-brine elements present (Mg=1400, Ca=400, CO3=300, Na=10500, K=380, S=2700, Cl=18000, Sr=20, F=2). Drift check: Python and JS init values identical. No changes made. | v3-expansion (Apr 2026) — added arsenopyrite + scorodite + ferrimolybdite engine activations. No fluid chemistry changed; per-locality mineral_realizations_v3_expansion block added documenting expected behavior given existing chemistry. One documented gap: tsumeb scorodite is geologically real but blocked by current pH=6.8 (would need early-acidic-phase event to unlock).",
       "preserved_intentional_values": {
-        "SiO2": 20, "Ca": 400, "CO3": 300, "Fe": 5, "Mn": 2, "Mg": 1400,
-        "Na": 10500, "K": 380, "S": 2700, "F": 2, "Cl": 18000, "Sr": 20,
-        "O2": 1.5, "pH": 8.3, "salinity": 120.0,
+        "SiO2": 20,
+        "Ca": 400,
+        "CO3": 300,
+        "Fe": 5,
+        "Mn": 2,
+        "Mg": 1400,
+        "Na": 10500,
+        "K": 380,
+        "S": 2700,
+        "F": 2,
+        "Cl": 18000,
+        "Sr": 20,
+        "O2": 1.5,
+        "pH": 8.3,
+        "salinity": 120.0,
         "Mg_note": "Mg=1400 is intentionally high — sabkha endmember is ~3x seawater Mg. Mg/Ca = 3.5 is well above the dolomite-favoring threshold of 1.0.",
         "salinity_note": "salinity=120 wt% NaCl-eq is the sabkha endmember; 12 flood events reset to marine baseline (Mg=800, Ca=250) to drive the cycling.",
         "Sr_note": "Sr=20 is the marine-evaporite tracer; aragonite scavenges Sr during the scenario."
@@ -403,6 +808,20 @@
       ],
       "intentionally_zero": {
         "Au": "Surface evaporite from seawater concentration. No Au pathway — seawater Au is sub-ppb, evaporative concentration up to 100x still leaves Au at sub-ppm levels. Au=0 is correct, not a gap."
+      },
+      "mineral_realizations_v3_expansion": {
+        "arsenopyrite": {
+          "status": "not_applicable",
+          "reason": "Evaporite/dolomitization scenario, low-T (<50 C). As=0; no sulfide chemistry."
+        },
+        "scorodite": {
+          "status": "not_applicable",
+          "reason": "No As; pH=8.3 alkaline."
+        },
+        "ferrimolybdite": {
+          "status": "not_applicable",
+          "reason": "No Mo. Coorong sabkha is dolomite-gypsum-halite, no molybdate signature."
+        }
       }
     }
   }
