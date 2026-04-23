@@ -2290,6 +2290,104 @@
       "audit_status": "phase-2: wired in vugg.py and web/index.html. Research source: proposals/MINERALS-RESEARCH-UNIMPLEMENTED.md. The 'Pb-absent fork' of Mo oxidation — complements wulfenite which requires Pb. Ferrimolybdite nucleates earlier (σ>1.0) and grows faster; wulfenite needs σ>1.2 + Pb.",
       "class_color": "#f5dc14"
     },
+    "arsenopyrite": {
+      "formula": "FeAsS",
+      "nucleation_sigma": 1.2,
+      "max_nucleation_count": 4,
+      "max_size_cm": 15,
+      "growth_rate_mult": 0.3,
+      "habit_variants": [
+        {
+          "name": "striated_prism",
+          "wall_spread": 0.35,
+          "void_reach": 0.5,
+          "vector": "prismatic",
+          "trigger": "default — diamond-cross-section prisms with deep longitudinal striations"
+        },
+        {
+          "name": "rhombic_blade",
+          "wall_spread": 0.55,
+          "void_reach": 0.3,
+          "vector": "tabular",
+          "trigger": "moderate σ — flattened rhombic blades"
+        },
+        {
+          "name": "acicular",
+          "wall_spread": 0.4,
+          "void_reach": 0.65,
+          "vector": "needle",
+          "trigger": "fast growth, high σ — thin needle-like aggregates"
+        },
+        {
+          "name": "massive_granular",
+          "wall_spread": 0.9,
+          "void_reach": 0.1,
+          "vector": "coating",
+          "trigger": "very high σ — granular masses, no visible crystals"
+        }
+      ],
+      "class": "sulfide",
+      "description": "FeAsS, the arsenic gateway mineral and the #1 gold-trapping mineral. Mesothermal primary sulfide (300-500°C, reducing); silver-white metallic prisms with diamond cross-section, deep longitudinal striations. Emits garlic odor when struck (As vapor — diagnostic). Structurally traps Au up to ~1500 ppm as 'invisible gold' (Reich et al. 2005; Cook & Chryssoulis 1990) — released to fluid on supergene oxidation, producing the orogenic Au-enrichment signature (Graeme et al. 2019 for Bisbee). Oxidation pathway: FeAsS + O₂ + H₂O → Fe³⁺ + AsO₄³⁻ + H₂SO₄ → feeds scorodite + acidifies.",
+      "scenarios": [
+        "porphyry",
+        "bisbee"
+      ],
+      "T_range_C": [
+        150,
+        700
+      ],
+      "T_optimum_C": [
+        300,
+        500
+      ],
+      "T_behavior": "window",
+      "redox_requirement": "reducing",
+      "required_ingredients": {
+        "Fe": 5,
+        "As": 3,
+        "S": 10
+      },
+      "trace_ingredients": {
+        "Au": "invisible-gold up to 1500 ppm structurally bound",
+        "Co": "cobaltian substitution — slight pinkish tinge",
+        "Sb": "minor substitution",
+        "Ni": "substitutional"
+      },
+      "thermal_decomp_C": 720,
+      "thermal_decomp_reaction": "FeAsS -> FeAs2 (loellingite) + S; As vapor at higher T",
+      "thermal_decomp_products": {
+        "Fe": 0.4,
+        "As": 0.3,
+        "S": 0.3
+      },
+      "fluorescence": null,
+      "twin_laws": [
+        {
+          "name": "trillings_120",
+          "probability": 0.02
+        }
+      ],
+      "acid_dissolution": null,
+      "habit": "striated_prism",
+      "color_rules": {
+        "silver_white_metallic": {
+          "default": true
+        },
+        "yellow_tarnish": {
+          "trigger": "oxidation_surface"
+        },
+        "pinkish_tinge": {
+          "trigger": "Co > 2"
+        }
+      },
+      "narrate_function": null,
+      "runtimes_present": [
+        "vugg.py",
+        "web/index.html"
+      ],
+      "audit_status": "phase-2: wired in vugg.py and web/index.html. Research source: proposals/MINERALS-RESEARCH-UNIMPLEMENTED.md. The #1 gold-trapping mineral — Au-trapping mechanic consumes fluid Au (30% of 5%/step) and records as trace_Au on GrowthZone; supergene oxidation releases 12%/step back to fluid (feeds scorodite + native_gold supergene enrichment). Competes with grow_native_gold for fluid Au in reducing high-T scenarios.",
+      "class_color": "#c8c0b8"
+    },
     "molybdenite": {
       "formula": "MoS2",
       "nucleation_sigma": 1.0,

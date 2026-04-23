@@ -2229,6 +2229,52 @@ class VugConditions:
             sigma *= max(0.3, 1.0 - 0.25 * (3 - self.fluid.pH))
         return max(sigma, 0)
 
+    def supersaturation_arsenopyrite(self) -> float:
+        """Arsenopyrite (FeAsS) — the arsenic gateway mineral.
+
+        The most common arsenic-bearing mineral; a mesothermal primary
+        sulfide that co-precipitates with pyrite in orogenic gold
+        systems and arrives alongside chalcopyrite/molybdenite in the
+        later-stage porphyry evolution. Striated prismatic crystals
+        with diamond cross-section (pseudo-orthorhombic monoclinic),
+        metallic silver-white; tarnishes yellowish. Garlic odor when
+        struck — arsenic vapor, diagnostic.
+
+        Gold association: arsenopyrite is the #1 gold-trapping mineral.
+        Its crystal lattice accommodates Au atoms structurally as
+        "invisible gold" up to ~1500 ppm (Reich et al. 2005; Cook &
+        Chryssoulis 1990). In the sim, grow_arsenopyrite consumes some
+        fluid.Au and records it as trace_Au on the growth zone; when
+        the crystal later oxidizes (supergene regime), the trapped Au
+        is released back to fluid — the mechanism of supergene Au
+        enrichment in orogenic oxidation zones (Graeme et al. 2019).
+
+        Oxidation pathway: arsenopyrite + O₂ + H₂O →
+          Fe³⁺ + AsO₄³⁻ + H₂SO₄. The released Fe + As feed scorodite
+        nucleation; the H₂SO₄ drop in pH further keeps scorodite in
+        its stability window (pH < 5).
+        """
+        if self.fluid.Fe < 5 or self.fluid.As < 3 or self.fluid.S < 10:
+            return 0
+        if self.fluid.O2 > 0.8:
+            return 0  # sulfide — needs reducing
+        sigma = ((self.fluid.Fe / 30.0) * (self.fluid.As / 15.0) *
+                 (self.fluid.S / 50.0) * (1.5 - self.fluid.O2))
+        # Mesothermal sweet spot 300-500°C
+        T = self.temperature
+        if 300 <= T <= 500:
+            sigma *= 1.4
+        elif T < 200:
+            sigma *= math.exp(-0.01 * (200 - T))
+        elif T > 600:
+            sigma *= math.exp(-0.015 * (T - 600))
+        # pH window 3-6.5 (slightly broader than scorodite's 2-5)
+        if self.fluid.pH < 3:
+            sigma *= 0.5
+        elif self.fluid.pH > 6.5:
+            sigma *= max(0.2, 1.0 - 0.3 * (self.fluid.pH - 6.5))
+        return max(sigma, 0)
+
 
 # ============================================================
 # CRYSTAL MODELS
@@ -2246,6 +2292,11 @@ class GrowthZone:
     trace_Al: float = 0.0
     trace_Ti: float = 0.0
     trace_Pb: float = 0.0       # Pb — amazonite, galena inclusions
+    trace_Au: float = 0.0       # Au — invisible-gold trace (arsenopyrite
+                                # structurally traps up to 1500 ppm Au);
+                                # released to fluid on supergene oxidation,
+                                # feeding native_gold re-precipitation in
+                                # the oxidation zone.
     radiation_damage: float = 0.0  # cumulative α-dose (arbitrary units). Quartz
                                    # zones irradiated by nearby uraninite accrue
                                    # damage step-by-step; ≥0.3 averaged across
@@ -6166,6 +6217,115 @@ def grow_ferrimolybdite(crystal: Crystal, conditions: VugConditions, step: int) 
     )
 
 
+def grow_arsenopyrite(crystal: Crystal, conditions: VugConditions, step: int) -> Optional[GrowthZone]:
+    """Arsenopyrite (FeAsS) growth — the arsenic gateway, the #1 Au-trapper.
+
+    Mesothermal primary sulfide; silver-white striated prisms with
+    diamond cross-section. Consumes Fe + As + S; simultaneously traps
+    fluid Au as "invisible-gold" trace — up to 1500 ppm structurally
+    bound in the lattice (Reich et al. 2005). This creates a natural
+    competition with grow_native_gold: at reducing high-T phases where
+    arsenopyrite is happy, it skims Au out of the broth before native
+    gold can nucleate freely. When the fluid later oxidizes, the
+    released Au comes back, enabling the classic supergene-Au-
+    enrichment signature of orogenic oxidation zones (Graeme et al.
+    2019 for Bisbee).
+
+    Oxidation-dissolution (O₂>0.5, thickness>3µm) releases Fe + As +
+    S back to fluid, acidifies via H₂SO₄, and returns trapped Au.
+    The released Fe + AsO₄³⁻ feed scorodite; the returned Au and
+    the acidified / oxidizing fluid feed a new generation of
+    native_gold nucleation.
+    """
+    sigma = conditions.supersaturation_arsenopyrite()
+
+    if sigma < 1.0:
+        # Oxidation-dissolution — the supergene conversion pathway.
+        # arsenopyrite + O₂ + H₂O → Fe³⁺ + AsO₄³⁻ + H₂SO₄
+        if crystal.total_growth_um > 3 and conditions.fluid.O2 > 0.5:
+            crystal.dissolved = True
+            dissolved_um = min(4.0, crystal.total_growth_um * 0.12)
+            conditions.fluid.Fe += dissolved_um * 0.5
+            conditions.fluid.As += dissolved_um * 0.4   # now AsO₄³⁻ pool
+            conditions.fluid.S += dissolved_um * 0.4    # becomes SO₄²⁻
+            # Acidification via H₂SO₄ — modest pH drop bounded at 2.0
+            conditions.fluid.pH = max(2.0, conditions.fluid.pH - dissolved_um * 0.02)
+            # Release trapped invisible-gold — 12% per dissolution step
+            # of the zone-averaged trapped Au. This is the supergene-Au
+            # enrichment mechanism.
+            total_trapped_au = sum(z.trace_Au for z in crystal.growth_zones)
+            released_au = total_trapped_au * 0.12
+            if released_au > 0:
+                conditions.fluid.Au += released_au
+            note_str = "oxidation — arsenopyrite → Fe³⁺ + AsO₄³⁻ + H₂SO₄"
+            if released_au > 0.005:
+                note_str += f" (releases {released_au:.3f} ppm trapped Au — supergene enrichment)"
+            return GrowthZone(
+                step=step, temperature=conditions.temperature,
+                thickness_um=-dissolved_um, growth_rate=-dissolved_um,
+                note=note_str
+            )
+        return None
+
+    excess = sigma - 1.0
+    rate = 3.5 * excess * random.uniform(0.8, 1.2)
+    if rate < 0.1:
+        return None
+
+    # Habit by σ excess:
+    #   very high σ → massive_granular (no crystal form)
+    #   high σ → acicular (thin needles)
+    #   moderate σ → rhombic_blade (flattened)
+    #   low σ → striated_prism (classic diamond-section — the display habit)
+    if excess > 2.0:
+        crystal.habit = "massive_granular"
+        crystal.dominant_forms = ["granular masses", "metallic silver-white"]
+        habit_note = "granular massive arsenopyrite"
+    elif excess > 1.2:
+        crystal.habit = "acicular"
+        crystal.dominant_forms = ["thin needles", "acicular aggregates"]
+        habit_note = "acicular arsenopyrite needles"
+    elif excess > 0.4:
+        crystal.habit = "rhombic_blade"
+        crystal.dominant_forms = ["flattened rhombic blades"]
+        habit_note = "rhombic-bladed arsenopyrite"
+    else:
+        crystal.habit = "striated_prism"
+        crystal.dominant_forms = ["{110} striated prisms", "diamond cross-section"]
+        habit_note = "striated prismatic arsenopyrite with diamond cross-section"
+
+    # Au-trapping — the #1 gold-trapping mineral mechanism.
+    # 5% of fluid Au per step gets captured as invisible-gold trace
+    # on the growth zone; 30% of the trap rate actually leaves the
+    # fluid (other 70% is "reversibly adsorbed" — sim approximation
+    # of the real Au-HS / Au-Cl partition dynamics). Cap the per-zone
+    # trapped fraction at 1.5 ppm so integrated across a ~15-zone
+    # crystal we're in the literature-reported ~1500 ppm ballpark.
+    au_trap_ppm = 0.0
+    if conditions.fluid.Au > 0.01:
+        au_trap_ppm = min(conditions.fluid.Au * 0.05, 1.5)
+        conditions.fluid.Au = max(conditions.fluid.Au - au_trap_ppm * 0.3, 0)
+        if au_trap_ppm > 0.02:
+            habit_note += f"; traps invisible-Au ({au_trap_ppm:.3f} ppm)"
+
+    # Cobaltian arsenopyrite — slight pinkish tint when Co substitutes
+    if conditions.fluid.Co > 2:
+        habit_note += " (Co-bearing, pinkish tinge)"
+
+    # Consume Fe + As + S
+    conditions.fluid.Fe = max(conditions.fluid.Fe - rate * 0.004, 0)
+    conditions.fluid.As = max(conditions.fluid.As - rate * 0.004, 0)
+    conditions.fluid.S = max(conditions.fluid.S - rate * 0.003, 0)
+
+    return GrowthZone(
+        step=step, temperature=conditions.temperature,
+        thickness_um=rate, growth_rate=rate,
+        trace_Fe=conditions.fluid.Fe * 0.003,
+        trace_Au=au_trap_ppm,
+        note=habit_note
+    )
+
+
 def grow_selenite(crystal: Crystal, conditions: VugConditions, step: int) -> Optional[GrowthZone]:
     """Selenite / Gypsum (CaSO₄·2H₂O) growth. Low-T evaporite, Naica's giant crystals."""
     sigma = conditions.supersaturation_selenite()
@@ -6257,6 +6417,7 @@ MINERAL_ENGINES = {
     "smithsonite": grow_smithsonite,
     "wulfenite": grow_wulfenite,
     "ferrimolybdite": grow_ferrimolybdite,
+    "arsenopyrite": grow_arsenopyrite,
     "selenite": grow_selenite,
     "topaz": grow_topaz,
     "tourmaline": grow_tourmaline,
@@ -6323,6 +6484,8 @@ THERMAL_DECOMPOSITION = {
     "uraninite":   (2800, "UO₂ — one of the most refractory oxides",                      {"U": 0.5}),
     "goethite":    (300,  "FeO(OH) → Fe₂O₃ + H₂O (dehydrates to hematite)",              {"Fe": 0.5}),
     "molybdenite": (1185, "MoS₂ decomposition",                                         {"Mo": 0.4, "S": 0.4}),
+    "arsenopyrite": (720, "FeAsS → FeAs₂ (loellingite) + S (sulfur driven off; As vapor at higher T)", {"Fe": 0.4, "As": 0.3, "S": 0.3}),
+    "ferrimolybdite": (150, "Fe₂(MoO₄)₃·nH₂O → Fe₂(MoO₄)₃ + nH₂O (dehydration)",          {"Fe": 0.4, "Mo": 0.3}),
 }
 
 
@@ -9044,6 +9207,28 @@ class VugSimulator:
                 self.log.append(f"  ✦ NUCLEATION: Ferrimolybdite #{c.crystal_id} on {c.position} "
                               f"(T={self.conditions.temperature:.0f}°C, σ={sigma_fmo:.2f}, "
                               f"Mo={self.conditions.fluid.Mo:.0f}, Fe={self.conditions.fluid.Fe:.0f})")
+
+        # Arsenopyrite nucleation — mesothermal primary sulfide, reducing
+        # Fe+As+S. Substrate preference: pyrite (the classic orogenic-gold
+        # co-precipitation habit — arsenopyrite rhombs on pyrite cubes) >
+        # chalcopyrite (sulfide companion in porphyry evolution) > vug
+        # wall. σ threshold 1.2 reflects the mesothermal specificity —
+        # arsenopyrite is pickier than pyrite about T and Eh windows.
+        sigma_apy = self.conditions.supersaturation_arsenopyrite()
+        if sigma_apy > 1.2 and not self._at_nucleation_cap("arsenopyrite"):
+            if random.random() < 0.12:
+                pos = "vug wall"
+                active_py_apy = [c for c in self.crystals if c.mineral == "pyrite" and c.active]
+                active_cp_apy = [c for c in self.crystals if c.mineral == "chalcopyrite" and c.active]
+                if active_py_apy and random.random() < 0.5:
+                    pos = f"on pyrite #{active_py_apy[0].crystal_id}"
+                elif active_cp_apy and random.random() < 0.3:
+                    pos = f"on chalcopyrite #{active_cp_apy[0].crystal_id}"
+                c = self.nucleate("arsenopyrite", position=pos, sigma=sigma_apy)
+                self.log.append(f"  ✦ NUCLEATION: Arsenopyrite #{c.crystal_id} on {c.position} "
+                              f"(T={self.conditions.temperature:.0f}°C, σ={sigma_apy:.2f}, "
+                              f"Fe={self.conditions.fluid.Fe:.0f}, As={self.conditions.fluid.As:.0f}, "
+                              f"Au={self.conditions.fluid.Au:.2f} ppm)")
 
         # Uraninite nucleation — strongly reducing, U-bearing. Emits radiation each step.
         sigma_ur = self.conditions.supersaturation_uraninite()
