@@ -6632,7 +6632,7 @@ function grow_arsenopyrite(crystal, conditions, step) {
       conditions.fluid.S += dissolved_um * 0.4;
       conditions.fluid.pH = Math.max(2.0, conditions.fluid.pH - dissolved_um * 0.02);
       // Release 12% of zone-summed trapped invisible-gold per step.
-      const total_trapped_au = crystal.growth_zones.reduce((sum, z) => sum + (z.trace_Au || 0), 0);
+      const total_trapped_au = (crystal.zones || []).reduce((sum, z) => sum + (z.trace_Au || 0), 0);
       const released_au = total_trapped_au * 0.12;
       if (released_au > 0) {
         conditions.fluid.Au += released_au;

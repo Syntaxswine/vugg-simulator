@@ -6666,7 +6666,7 @@ def grow_arsenopyrite(crystal: Crystal, conditions: VugConditions, step: int) ->
             # Release trapped invisible-gold — 12% per dissolution step
             # of the zone-averaged trapped Au. This is the supergene-Au
             # enrichment mechanism.
-            total_trapped_au = sum(z.trace_Au for z in crystal.growth_zones)
+            total_trapped_au = sum(z.trace_Au for z in crystal.zones)
             released_au = total_trapped_au * 0.12
             if released_au > 0:
                 conditions.fluid.Au += released_au
