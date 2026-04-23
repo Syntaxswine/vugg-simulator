@@ -2388,6 +2388,204 @@
       "audit_status": "phase-2: wired in vugg.py and web/index.html. Research source: proposals/MINERALS-RESEARCH-UNIMPLEMENTED.md. The #1 gold-trapping mineral — Au-trapping mechanic consumes fluid Au (30% of 5%/step) and records as trace_Au on GrowthZone; supergene oxidation releases 12%/step back to fluid (feeds scorodite + native_gold supergene enrichment). Competes with grow_native_gold for fluid Au in reducing high-T scenarios.",
       "class_color": "#c8c0b8"
     },
+    "barite": {
+      "formula": "BaSO4",
+      "nucleation_sigma": 1.0,
+      "max_nucleation_count": 6,
+      "max_size_cm": 60,
+      "growth_rate_mult": 0.3,
+      "habit_variants": [
+        {
+          "name": "tabular",
+          "wall_spread": 0.5,
+          "void_reach": 0.3,
+          "vector": "tabular",
+          "trigger": "default — desert-rose tabular plates, the standard barite habit"
+        },
+        {
+          "name": "bladed",
+          "wall_spread": 0.3,
+          "void_reach": 0.7,
+          "vector": "projecting",
+          "trigger": "low σ — divergent blades, Cumberland-style fans"
+        },
+        {
+          "name": "cockscomb",
+          "wall_spread": 0.4,
+          "void_reach": 0.5,
+          "vector": "projecting",
+          "trigger": "moderate σ, twin-controlled — cyclic twins giving the diagnostic crested form"
+        },
+        {
+          "name": "prismatic",
+          "wall_spread": 0.3,
+          "void_reach": 0.6,
+          "vector": "projecting",
+          "trigger": "high σ, space-constrained — stubby vein-fill prisms"
+        }
+      ],
+      "class": "sulfate",
+      "description": "BaSO₄, the densest non-metallic mineral collectors will encounter at 4.5 g/cm³ (the name 'barytes' from Greek βαρύς, 'heavy'). Galena's primary gangue mineral in MVT districts (Tri-State, Cumberland, Pine Point) and abundant in hydrothermal vein systems (Cavnic, Wegscheid, Sterling Hill). Acid-resistant — even concentrated H₂SO₄ won't touch it, the basis for its industrial use as drilling-mud weighting agent. Forms a partial solid solution with celestine (BaSO₄ ↔ SrSO₄); intermediates 'celestobarite' and 'barytocelestine' are common when both Ba and Sr present in the parent fluid. Famous habits: tabular 'desert rose' (Oklahoma + Saudi Arabia), bladed Cumberland fans, cockscomb cyclic twins (Romania), honey-yellow Pb-bearing variants (Cumberland gold).",
+      "scenarios": [
+        "mvt",
+        "porphyry",
+        "reactive_wall",
+        "supergene_oxidation"
+      ],
+      "T_range_C": [
+        5,
+        500
+      ],
+      "T_optimum_C": [
+        50,
+        200
+      ],
+      "T_behavior": "wide",
+      "pH_dissolution_below": null,
+      "pH_dissolution_above": null,
+      "redox_requirement": "oxidizing",
+      "required_ingredients": {
+        "Ba": 5,
+        "S": 10,
+        "O2": 0.1
+      },
+      "trace_ingredients": {
+        "Sr": "celestobarite intermediate (Sr²⁺ substitutes for Ba²⁺)",
+        "Pb": "honey-yellow Cumberland-gold habit (submicroscopic galena inclusions)"
+      },
+      "thermal_decomp_C": 1149,
+      "thermal_decomp_reaction": "BaSO4 -> BaO + SO3 (decomposition; very high T — outside normal sim range)",
+      "thermal_decomp_products": {
+        "Ba": 0.5,
+        "S": 0.4
+      },
+      "fluorescence": {
+        "activator": "intrinsic",
+        "color": "creamy_white_SW (Sterling Hill only)",
+        "note": "Most barite non-fluorescent; the Sterling Hill / Franklin (NJ) zinc-mineral co-occurrence is the only common fluorescent locality."
+      },
+      "twin_laws": [
+        {
+          "name": "cyclic_cockscomb",
+          "miller_indices": "{110}",
+          "trigger": "growth",
+          "probability": 0.05
+        }
+      ],
+      "acid_dissolution": null,
+      "habit": "tabular",
+      "color_rules": {
+        "white_colorless": {
+          "default": true
+        },
+        "honey_yellow": {
+          "trigger": "Pb > 5 (Cumberland gold)"
+        },
+        "blue": {
+          "trigger": "Sterling Hill F-center radiation-damage variants (rare)"
+        }
+      },
+      "narrate_function": "_narrate_barite",
+      "runtimes_present": [
+        "vugg.py",
+        "web/index.html"
+      ],
+      "audit_status": "phase-2: wired in vugg.py and web/index.html. Research source: proposals/MINERALS-RESEARCH-SULFATES.md. The Ba sequestration mineral; activates the dormant fluid.Ba pool. Tri-State Ba=20 currently dormant due to scenario O2=0.0 (gap flagged in audit). Sabkha Ba=0 (correctly absent — sabkha is Sr-dominant). Real activation: porphyry post-oxidation; future MVT chemistry tweak (O2 0→0.2) would unlock Tri-State barite.",
+      "class_color": "#eb137f"
+    },
+    "celestine": {
+      "formula": "SrSO4",
+      "nucleation_sigma": 1.0,
+      "max_nucleation_count": 6,
+      "max_size_cm": 30,
+      "growth_rate_mult": 0.3,
+      "habit_variants": [
+        {
+          "name": "tabular",
+          "wall_spread": 0.5,
+          "void_reach": 0.3,
+          "vector": "tabular",
+          "trigger": "default — pale celestial blue tabular plates"
+        },
+        {
+          "name": "bladed",
+          "wall_spread": 0.3,
+          "void_reach": 0.7,
+          "vector": "projecting",
+          "trigger": "low σ — divergent blue blades, Lake Erie / Put-in-Bay habit"
+        },
+        {
+          "name": "fibrous",
+          "wall_spread": 0.3,
+          "void_reach": 0.6,
+          "vector": "projecting",
+          "trigger": "moderate σ, low T, sulfur-vug context — Sicilian Caltanissetta radiating fibers"
+        },
+        {
+          "name": "nodular",
+          "wall_spread": 0.85,
+          "void_reach": 0.2,
+          "vector": "coating",
+          "trigger": "high σ — nodular geode lining, Madagascar (Sakoany) habit"
+        }
+      ],
+      "class": "sulfate",
+      "description": "SrSO₄, the strontium sulfate; isostructural with barite (the two form a partial solid solution; intermediates 'celestobarite' and 'barytocelestine' common in mixed-cation fluids). The diagnostic pale celestial blue is an F-center defect color — radiation-damaged anion vacancies absorb yellow-orange light, leaving the calm sky blue that named the species. Famous occurrences: Madagascar Sakoany geodes (football-sized, 30 cm pale-blue tabular plates — world's largest), Sicilian Caltanissetta sulfur-vug fibrous habit (radiating fibers on yellow native sulfur), Lake Erie / Put-in-Bay (Crystal Cave on South Bass Island — world's largest known geode at 35 ft³). Industrial use: source of Sr for red firework colors; ⁸⁷Sr/⁸⁶Sr-isotope tracer for paleobrine geochronology (Schwartz et al. 2018).",
+      "scenarios": [
+        "mvt",
+        "supergene_oxidation",
+        "sabkha_dolomitization"
+      ],
+      "T_range_C": [
+        5,
+        300
+      ],
+      "T_optimum_C": [
+        15,
+        100
+      ],
+      "T_behavior": "wide",
+      "pH_dissolution_below": null,
+      "pH_dissolution_above": null,
+      "redox_requirement": "oxidizing",
+      "required_ingredients": {
+        "Sr": 3,
+        "S": 10,
+        "O2": 0.1
+      },
+      "trace_ingredients": {
+        "Ba": "barytocelestine intermediate (Ba²⁺ substitutes for Sr²⁺)",
+        "Mn": "rare reddish tint (Yates mine, Quebec)"
+      },
+      "thermal_decomp_C": 1100,
+      "thermal_decomp_reaction": "SrSO4 -> SrO + SO3 (decomposition; high T — outside normal sim range)",
+      "thermal_decomp_products": {
+        "Sr": 0.5,
+        "S": 0.4
+      },
+      "fluorescence": null,
+      "twin_laws": [],
+      "acid_dissolution": null,
+      "habit": "tabular",
+      "color_rules": {
+        "pale_celestial_blue": {
+          "default": true
+        },
+        "white_colorless": {
+          "trigger": "high-purity samples, no F-center defects"
+        },
+        "reddish": {
+          "trigger": "Mn > 5 (rare — Yates mine variant)"
+        }
+      },
+      "narrate_function": "_narrate_celestine",
+      "runtimes_present": [
+        "vugg.py",
+        "web/index.html"
+      ],
+      "audit_status": "phase-2: wired in vugg.py and web/index.html. Research source: proposals/MINERALS-RESEARCH-SULFATES.md. The Sr sequestration mineral; activates the dormant fluid.Sr pool. **Coorong sabkha (Sr=20, S=2700, O2=1.5) produces immediate strong celestine activation — the seed-42 shift driving the SIM_VERSION 3→4 bump.** Tri-State Sr=15 + Sweetwater Sr=12 currently dormant due to O2=0.0 (gap flagged in audit alongside barite).",
+      "class_color": "#eb137f"
+    },
     "scorodite": {
       "formula": "FeAsO4·2H2O",
       "nucleation_sigma": 1.0,

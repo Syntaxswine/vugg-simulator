@@ -50,7 +50,17 @@ from typing import List, Dict, Optional, Tuple
 #        shifts Au distribution in reducing-As scenarios (arsenopyrite
 #        now traps a fraction of Au as invisible-gold trace before
 #        native_gold can nucleate).
-SIM_VERSION = 3
+#   v4 — sulfate expansion round 5 (Apr 2026): begins with barite +
+#        celestine. Activates the previously-dormant Sr=20 pool in
+#        Coorong sabkha (immediate seed-42 shift — sabkha now produces
+#        celestine alongside dolomite/halite/selenite). Tri-State and
+#        Sweetwater Ba/Sr pools remain dormant because their O2=0.0
+#        forces strictly-sulfide chemistry; bumping their O2 to ~0.2
+#        (matching real MVT mildly-reducing brine) is a deferred
+#        follow-up. Subsequent commits in the round will add
+#        jarosite/alunite (acid-sulfate), brochantite/antlerite
+#        (Cu sulfates), and anhydrite (high-T + sabkha Ca sulfate).
+SIM_VERSION = 4
 
 
 # ============================================================
@@ -2306,6 +2316,90 @@ class VugConditions:
             sigma *= 0.5
         elif self.fluid.pH > 6.5:
             sigma *= max(0.2, 1.0 - 0.3 * (self.fluid.pH - 6.5))
+        return max(sigma, 0)
+
+    def supersaturation_barite(self) -> float:
+        """Barite (BaSO₄) — the Ba sequestration mineral.
+
+        The standard barium mineral and the densest non-metallic mineral
+        most collectors will encounter (4.5 g/cm³). Galena's primary
+        gangue mineral in MVT districts; also abundant in hydrothermal
+        vein systems. Wide T window (5-500°C) — MVT brine, hydrothermal
+        veins, and oilfield cold-seep barite all share the same engine.
+
+        Eh requirement: O₂ ≥ 0.1 — sulfate stable. Below O₂=0.1 (strictly
+        reducing), all S sits as sulfide and barite cannot form. Real MVT
+        brine sits at mildly-reducing Eh where some SO₄²⁻ persists alongside
+        H₂S, allowing barite + galena to coexist; current Tri-State scenario
+        O2=0.0 is too reducing (gap flagged in audit).
+
+        No acid dissolution — barite resists even concentrated H₂SO₄
+        (which is why it's the standard drilling-mud weighting agent).
+        Thermal decomposition only above 1149°C, well outside sim range.
+
+        Source: Hanor 2000 (Reviews in Mineralogy 40); Anderson & Macqueen
+        1982 (MVT mineralogy).
+        """
+        if self.fluid.Ba < 5 or self.fluid.S < 10 or self.fluid.O2 < 0.1:
+            return 0
+        # Factor caps to prevent evaporite-level S (thousands of ppm) from
+        # producing runaway sigma. See vugg-mineral-template.md §5.
+        ba_f = min(self.fluid.Ba / 30.0, 2.0)
+        s_f = min(self.fluid.S / 40.0, 2.5)
+        o2_f = min(self.fluid.O2 / 1.0, 1.5)
+        sigma = ba_f * s_f * o2_f
+        # Wide T window — peaks in MVT range (50-200°C)
+        T = self.temperature
+        if 50 <= T <= 200:
+            sigma *= 1.2
+        elif T < 5:
+            sigma *= 0.3
+        elif T > 500:
+            sigma *= max(0.2, 1.0 - 0.003 * (T - 500))
+        # pH window 4-9, gentle drop outside
+        if self.fluid.pH < 4:
+            sigma *= max(0.4, 1.0 - 0.2 * (4 - self.fluid.pH))
+        elif self.fluid.pH > 9:
+            sigma *= max(0.4, 1.0 - 0.2 * (self.fluid.pH - 9))
+        return max(sigma, 0)
+
+    def supersaturation_celestine(self) -> float:
+        """Celestine (SrSO₄) — the Sr sequestration mineral.
+
+        Strontium sulfate; isostructural with barite. Pale celestial blue
+        F-center color is the diagnostic. Forms primarily in low-T
+        evaporite settings (Coorong + Persian Gulf sabkha) and as fibrous
+        sulfur-vug overgrowths (Sicilian Caltanissetta). Also in MVT
+        veins as the Sr-end of the barite-celestine solid solution.
+
+        Eh requirement: O₂ ≥ 0.1 — sulfate stable. Same Eh constraint as
+        barite. No acid dissolution; thermal decomposition only above
+        1100°C.
+
+        Source: Hanor 2000 (Reviews in Mineralogy 40); Schwartz et al.
+        2018 (Sr-isotope geochronology of MVT-hosted celestine).
+        """
+        if self.fluid.Sr < 3 or self.fluid.S < 10 or self.fluid.O2 < 0.1:
+            return 0
+        # Factor caps — see barite for rationale (sabkha S=2700 would
+        # otherwise produce sigma > 100).
+        sr_f = min(self.fluid.Sr / 15.0, 2.0)
+        s_f = min(self.fluid.S / 40.0, 2.5)
+        o2_f = min(self.fluid.O2 / 1.0, 1.5)
+        sigma = sr_f * s_f * o2_f
+        # Low-T preferred — supergene/evaporite/MVT
+        T = self.temperature
+        if T < 100:
+            sigma *= 1.2
+        elif 100 <= T <= 200:
+            sigma *= 1.0
+        elif T > 200:
+            sigma *= max(0.3, 1.0 - 0.005 * (T - 200))
+        # pH 5-9 stable, narrower than barite
+        if self.fluid.pH < 5:
+            sigma *= max(0.4, 1.0 - 0.2 * (5 - self.fluid.pH))
+        elif self.fluid.pH > 9:
+            sigma *= max(0.4, 1.0 - 0.2 * (self.fluid.pH - 9))
         return max(sigma, 0)
 
 
@@ -6424,6 +6518,126 @@ def grow_arsenopyrite(crystal: Crystal, conditions: VugConditions, step: int) ->
     )
 
 
+def grow_barite(crystal: Crystal, conditions: VugConditions, step: int) -> Optional[GrowthZone]:
+    """Barite (BaSO₄) growth — the Ba sequestration mineral.
+
+    The standard Ba mineral; tabular plates ("desert rose"), bladed
+    fans (Cumberland), cockscomb cyclic twins. Wide-T habit — MVT
+    brine, hydrothermal vein, oilfield cold-seep all converge here.
+    Acid-resistant; the standard drilling-mud weighting agent
+    (4.5 g/cm³). No dissolution branch — barite is essentially
+    permanent at sim T (decomposes only above 1149°C).
+    """
+    sigma = conditions.supersaturation_barite()
+    if sigma < 1.0:
+        return None  # no acid path; permanent at sim T
+
+    excess = sigma - 1.0
+    rate = 3.0 * excess * random.uniform(0.8, 1.2)
+    if rate < 0.1:
+        return None
+
+    # Habit by σ excess + Sr substitution flag
+    if excess > 1.5:
+        crystal.habit = "prismatic"
+        crystal.dominant_forms = ["stubby prisms", "vein-fill habit"]
+        habit_note = "stubby prismatic barite, vein-fill"
+    elif excess > 0.8:
+        crystal.habit = "cockscomb"
+        crystal.dominant_forms = ["cyclic twin crests", "cockscomb"]
+        habit_note = "cockscomb barite — cyclic twins giving the diagnostic crested form"
+    elif excess > 0.3:
+        crystal.habit = "bladed"
+        crystal.dominant_forms = ["divergent blades", "Cumberland-style fans"]
+        habit_note = "bladed divergent barite, Cumberland-style"
+    else:
+        crystal.habit = "tabular"
+        crystal.dominant_forms = ["{001} tabular plates"]
+        habit_note = "tabular barite plates — the desert-rose habit"
+
+    # Sr-substitution flag → "celestobarite" intermediate when Sr > Ba/4
+    if conditions.fluid.Sr > 0 and conditions.fluid.Ba > 0:
+        sr_ratio = conditions.fluid.Sr / max(conditions.fluid.Ba, 0.1)
+        if sr_ratio > 0.25:
+            habit_note += "; Sr-substituted (celestobarite intermediate)"
+
+    # Color hints — F-center blue (Sterling Hill), honey-yellow Pb-bearing,
+    # green Chinese variants. Trace-element flags only.
+    if conditions.fluid.Pb > 5:
+        habit_note += "; honey-yellow (Pb-bearing — Cumberland gold habit)"
+
+    conditions.fluid.Ba = max(conditions.fluid.Ba - rate * 0.005, 0)
+    conditions.fluid.S = max(conditions.fluid.S - rate * 0.003, 0)
+
+    return GrowthZone(
+        step=step, temperature=conditions.temperature,
+        thickness_um=rate, growth_rate=rate,
+        trace_Fe=conditions.fluid.Fe * 0.002,
+        trace_Pb=conditions.fluid.Pb * 0.005,
+        note=habit_note
+    )
+
+
+def grow_celestine(crystal: Crystal, conditions: VugConditions, step: int) -> Optional[GrowthZone]:
+    """Celestine (SrSO₄) growth — pale celestial blue, the Sr sister of barite.
+
+    Same orthorhombic structure as barite (the two form a partial
+    solid solution — celestobarite intermediates are common). Pale
+    blue F-center color is the diagnostic. Madagascar geodes
+    (huge tabular blue blades), Sicilian sulfur-vug fibrous habit
+    (Caltanissetta — celestine fibers radiating in vugs on native
+    sulfur), Lake Erie geodes. No dissolution branch; thermal
+    decomposition only above 1100°C.
+    """
+    sigma = conditions.supersaturation_celestine()
+    if sigma < 1.0:
+        return None  # permanent at sim T
+
+    excess = sigma - 1.0
+    rate = 3.0 * excess * random.uniform(0.8, 1.2)
+    if rate < 0.1:
+        return None
+
+    # Habit by σ excess + sulfur context (fibrous habit when sulfur present)
+    sulfur_context = conditions.fluid.S > 200  # Sicilian sulfur-vug context
+    if excess > 1.5:
+        crystal.habit = "nodular"
+        crystal.dominant_forms = ["geodal lining", "concentric blue crust"]
+        habit_note = "nodular celestine — Madagascar geode lining"
+    elif sulfur_context and excess > 0.5:
+        crystal.habit = "fibrous"
+        crystal.dominant_forms = ["radiating acicular fibers"]
+        habit_note = "fibrous celestine — Sicilian sulfur-vug habit, radiating from substrate"
+    elif excess > 0.3:
+        crystal.habit = "bladed"
+        crystal.dominant_forms = ["divergent blue blades"]
+        habit_note = "bladed celestine — Lake Erie / Put-in-Bay habit"
+    else:
+        crystal.habit = "tabular"
+        crystal.dominant_forms = ["{001} tabular plates", "pale celestial blue"]
+        habit_note = "tabular pale-blue celestine plates"
+
+    # Color tint by Mn trace (rare reddish — Yates mine)
+    if conditions.fluid.Mn > 5:
+        habit_note += "; reddish tint (Mn²⁺ trace — rare habit)"
+
+    # Ba-substitution flag → "barytocelestine" intermediate
+    if conditions.fluid.Ba > 0 and conditions.fluid.Sr > 0:
+        ba_ratio = conditions.fluid.Ba / max(conditions.fluid.Sr, 0.1)
+        if ba_ratio > 0.25:
+            habit_note += "; Ba-substituted (barytocelestine intermediate)"
+
+    conditions.fluid.Sr = max(conditions.fluid.Sr - rate * 0.005, 0)
+    conditions.fluid.S = max(conditions.fluid.S - rate * 0.003, 0)
+
+    return GrowthZone(
+        step=step, temperature=conditions.temperature,
+        thickness_um=rate, growth_rate=rate,
+        trace_Fe=conditions.fluid.Fe * 0.001,
+        note=habit_note
+    )
+
+
 def grow_selenite(crystal: Crystal, conditions: VugConditions, step: int) -> Optional[GrowthZone]:
     """Selenite / Gypsum (CaSO₄·2H₂O) growth. Low-T evaporite, Naica's giant crystals."""
     sigma = conditions.supersaturation_selenite()
@@ -6517,6 +6731,8 @@ MINERAL_ENGINES = {
     "ferrimolybdite": grow_ferrimolybdite,
     "arsenopyrite": grow_arsenopyrite,
     "scorodite": grow_scorodite,
+    "barite": grow_barite,
+    "celestine": grow_celestine,
     "selenite": grow_selenite,
     "topaz": grow_topaz,
     "tourmaline": grow_tourmaline,
@@ -6586,6 +6802,8 @@ THERMAL_DECOMPOSITION = {
     "arsenopyrite": (720, "FeAsS → FeAs₂ (loellingite) + S (sulfur driven off; As vapor at higher T)", {"Fe": 0.4, "As": 0.3, "S": 0.3}),
     "ferrimolybdite": (150, "Fe₂(MoO₄)₃·nH₂O → Fe₂(MoO₄)₃ + nH₂O (dehydration)",          {"Fe": 0.4, "Mo": 0.3}),
     "scorodite":     (160, "FeAsO₄·2H₂O → FeAsO₄ + 2H₂O (dehydration to anhydrous arsenate)",  {"Fe": 0.4, "As": 0.4}),
+    "barite":        (1149, "BaSO₄ → BaO + SO₃ (decomposition; very high T — outside normal sim range)", {"Ba": 0.5, "S": 0.4}),
+    "celestine":     (1100, "SrSO₄ → SrO + SO₃ (decomposition; high T — outside normal sim range)", {"Sr": 0.5, "S": 0.4}),
 }
 
 
@@ -9356,6 +9574,50 @@ class VugSimulator:
                               f"Fe={self.conditions.fluid.Fe:.0f}, As={self.conditions.fluid.As:.0f}, "
                               f"pH={self.conditions.fluid.pH:.1f})")
 
+        # Barite nucleation — the Ba sequestration mineral. σ threshold
+        # 1.0 + per-check 0.15. Wide-T habit; substrate-agnostic (often
+        # nucleates directly on bare wall in MVT/hydrothermal vein
+        # contexts rather than overgrowing prior crystals). Sr-substitution
+        # to celestobarite when Sr also present in fluid.
+        sigma_brt = self.conditions.supersaturation_barite()
+        if sigma_brt > 1.0 and not self._at_nucleation_cap("barite"):
+            if random.random() < 0.15:
+                pos = "vug wall"
+                # MVT context: barite often perches on or near galena/
+                # sphalerite — co-precipitation paragenesis
+                active_gal_brt = [c for c in self.crystals if c.mineral == "galena" and c.active]
+                active_sph_brt = [c for c in self.crystals if c.mineral == "sphalerite" and c.active]
+                if active_gal_brt and random.random() < 0.3:
+                    pos = f"near galena #{active_gal_brt[0].crystal_id}"
+                elif active_sph_brt and random.random() < 0.2:
+                    pos = f"near sphalerite #{active_sph_brt[0].crystal_id}"
+                c = self.nucleate("barite", position=pos, sigma=sigma_brt)
+                self.log.append(f"  ✦ NUCLEATION: Barite #{c.crystal_id} on {c.position} "
+                              f"(T={self.conditions.temperature:.0f}°C, σ={sigma_brt:.2f}, "
+                              f"Ba={self.conditions.fluid.Ba:.0f}, S={self.conditions.fluid.S:.0f}, "
+                              f"O₂={self.conditions.fluid.O2:.2f})")
+
+        # Celestine nucleation — the Sr sequestration mineral; pale
+        # celestial blue dipyramids/blades. Substrate priority:
+        # dissolving native sulfur if present (Sicilian habit) > vug wall.
+        # In sabkha/evaporite contexts often nucleates as nodular geode
+        # lining; in MVT as the Sr-end of the barite-celestine pair.
+        sigma_cel = self.conditions.supersaturation_celestine()
+        if sigma_cel > 1.0 and not self._at_nucleation_cap("celestine"):
+            if random.random() < 0.15:
+                pos = "vug wall"
+                # Sicilian sulfur-vug habit: prefers native sulfur substrate
+                # (the sim doesn't model native sulfur yet — fall through to
+                # wall). Future scenario could add it.
+                active_brt_cel = [c for c in self.crystals if c.mineral == "barite" and c.active]
+                if active_brt_cel and random.random() < 0.25:
+                    pos = f"on barite #{active_brt_cel[0].crystal_id} (celestobarite-barytocelestine pair)"
+                c = self.nucleate("celestine", position=pos, sigma=sigma_cel)
+                self.log.append(f"  ✦ NUCLEATION: Celestine #{c.crystal_id} on {c.position} "
+                              f"(T={self.conditions.temperature:.0f}°C, σ={sigma_cel:.2f}, "
+                              f"Sr={self.conditions.fluid.Sr:.0f}, S={self.conditions.fluid.S:.0f}, "
+                              f"O₂={self.conditions.fluid.O2:.2f})")
+
         # Uraninite nucleation — strongly reducing, U-bearing. Emits radiation each step.
         sigma_ur = self.conditions.supersaturation_uraninite()
         if sigma_ur > 1.5 and not self._at_nucleation_cap("uraninite") and random.random() < 0.08:
@@ -11922,6 +12184,129 @@ class VugSimulator:
                 "is scarce or chemistry is right."
             )
 
+        return " ".join(parts)
+
+    def _narrate_barite(self, c: Crystal) -> str:
+        """Narrate a barite crystal — the heavy spar."""
+        parts = [f"Barite #{c.crystal_id} grew to {c.c_length_mm:.1f} mm."]
+        parts.append(
+            "BaSO₄ — the densest non-metallic mineral most collectors "
+            "will encounter at 4.5 g/cm³, hence the name 'barytes' from "
+            "the Greek βαρύς, 'heavy.' Galena's primary gangue mineral "
+            "in MVT districts (Tri-State, Cumberland, Pine Point); also "
+            "abundant in hydrothermal vein systems. Acid-resistant — even "
+            "concentrated H₂SO₄ won't touch it, which is why it's the "
+            "standard drilling-mud weighting agent worldwide."
+        )
+        if c.habit == "tabular":
+            parts.append(
+                "Tabular plates — the standard barite habit. When concentric "
+                "blade aggregates radiate from a center, you get the famous "
+                "'desert rose' rosette of Oklahoma + Saudi Arabia."
+            )
+        elif c.habit == "bladed":
+            parts.append(
+                "Bladed divergent fans — the Cumberland (UK) signature habit. "
+                "Cumberland gold barite from the Frizington vein is now mined "
+                "out; specimens are collector-only."
+            )
+        elif c.habit == "cockscomb":
+            parts.append(
+                "Cockscomb cyclic twins — the diagnostic crested form, where "
+                "twin individuals stack along {110} to give the fan-with-ridges "
+                "appearance. A Romanian + Cavnic specialty."
+            )
+        elif c.habit == "prismatic":
+            parts.append(
+                "Stubby prismatic — vein-fill barite where space constrained "
+                "the tabular habit. Common in Mexican silver districts."
+            )
+        any_note = " ".join(z.note or "" for z in c.zones)
+        if "celestobarite" in any_note:
+            parts.append(
+                "Sr-substituted (celestobarite) — Sr²⁺ partially replaces "
+                "Ba²⁺ in the lattice; the barite-celestine pair forms a "
+                "partial solid solution with a miscibility gap that closes "
+                "at high T."
+            )
+        if "honey-yellow" in any_note:
+            parts.append(
+                "Honey-yellow color from Pb traces — the Cumberland-gold "
+                "habit and the most prized barite color globally. Pb²⁺ "
+                "doesn't substitute structurally; it's hosted as "
+                "submicroscopic galena inclusions."
+            )
+        parts.append(
+            "Beyond drilling mud, barite is the Ba source for fireworks "
+            "(green color), barium sulfate medical contrast agents, and "
+            "the primary radiation-shielding mineral in concrete shields. "
+            "The Sterling Hill (NJ) blue barite — F-center radiation-damage "
+            "color — is the only common natural blue Ba mineral."
+        )
+        return " ".join(parts)
+
+    def _narrate_celestine(self, c: Crystal) -> str:
+        """Narrate a celestine crystal — the celestial-blue Sr sulfate."""
+        parts = [f"Celestine #{c.crystal_id} grew to {c.c_length_mm:.1f} mm."]
+        parts.append(
+            "SrSO₄ — strontium sulfate, isostructural with barite (the two "
+            "form a partial solid solution; intermediates are 'celestobarite' "
+            "and 'barytocelestine'). The diagnostic pale celestial blue is "
+            "an F-center defect color — radiation-damaged anion vacancies "
+            "absorb yellow-orange light, leaving the calm sky blue that "
+            "named the species."
+        )
+        if c.habit == "nodular":
+            parts.append(
+                "Nodular geode lining — the Madagascar (Sakoany) habit. "
+                "The Mahajanga geodes are football-sized concentric crusts "
+                "of pale-blue celestine blades up to 30 cm long, the "
+                "world's largest celestine crystals."
+            )
+        elif c.habit == "fibrous":
+            parts.append(
+                "Fibrous radiating tufts — the Sicilian Caltanissetta habit, "
+                "where celestine fibers radiate from yellow native sulfur "
+                "in vugs of the Permian sulfur-bearing limestones. The "
+                "single most distinctive celestine specimen type."
+            )
+        elif c.habit == "bladed":
+            parts.append(
+                "Divergent blue blades — the Lake Erie / Put-in-Bay (Ohio) "
+                "habit. The Crystal Cave on South Bass Island contains the "
+                "world's largest known geode (35 ft³, lined with celestine + "
+                "calcite); commercial mineral exhibits derive from this same "
+                "Devonian-age vug system."
+            )
+        else:
+            parts.append(
+                "Tabular pale-blue plates — the standard celestine collector "
+                "habit. Madagascar, Mexico, Texas Permian Basin all produce "
+                "this form."
+            )
+        any_note = " ".join(z.note or "" for z in c.zones)
+        if "barytocelestine" in any_note:
+            parts.append(
+                "Ba-substituted (barytocelestine) — Ba²⁺ partially replaces "
+                "Sr²⁺. The barite-celestine pair preserves the Sr/Ba ratio "
+                "of its parent fluid, which is why ⁸⁷Sr/⁸⁶Sr ratios in "
+                "celestine are used for paleobrine geochronology "
+                "(Schwartz et al. 2018)."
+            )
+        if "Sicilian" in any_note or "sulfur-vug" in any_note:
+            parts.append(
+                "The Sicilian sulfur-vug paragenesis: native sulfur "
+                "precipitates first from H₂S oxidation, then evaporative "
+                "concentration of meteoric water in the vug delivers Sr²⁺ + "
+                "SO₄²⁻ that nucleates fibrous celestine on the sulfur surface."
+            )
+        parts.append(
+            "Industrial celestine: the source of Sr for red firework colors "
+            "and (legacy) cathode-ray-tube glass. The Sr-isotope tracer is "
+            "the modern scientific use — celestine preserves the Sr-isotope "
+            "ratio of its parent fluid almost perfectly across geological "
+            "time, making it a paleobrine fingerprint."
+        )
         return " ".join(parts)
 
     def _narrate_adamite(self, c: Crystal) -> str:
