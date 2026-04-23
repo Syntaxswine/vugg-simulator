@@ -2217,14 +2217,14 @@
           "name": "acicular_tuft",
           "wall_spread": 0.5,
           "void_reach": 0.6,
-          "vector": "radiating",
+          "vector": "projecting",
           "trigger": "default — classic canary-yellow radiating hair-tufts"
         },
         {
           "name": "fibrous_mat",
           "wall_spread": 0.85,
           "void_reach": 0.2,
-          "vector": "felted",
+          "vector": "coating",
           "trigger": "high σ — dense mats on dissolving molybdenite"
         },
         {
@@ -2301,7 +2301,7 @@
           "name": "striated_prism",
           "wall_spread": 0.35,
           "void_reach": 0.5,
-          "vector": "prismatic",
+          "vector": "projecting",
           "trigger": "default — diamond-cross-section prisms with deep longitudinal striations"
         },
         {
@@ -2315,7 +2315,7 @@
           "name": "acicular",
           "wall_spread": 0.4,
           "void_reach": 0.65,
-          "vector": "needle",
+          "vector": "projecting",
           "trigger": "fast growth, high σ — thin needle-like aggregates"
         },
         {
@@ -3105,7 +3105,7 @@
           "name": "crystallized_on_arsenopyrite",
           "wall_spread": 0.4,
           "void_reach": 0.5,
-          "vector": "perched",
+          "vector": "projecting",
           "trigger": "substrate present — distinct crystals nucleating directly on parent mineral"
         }
       ],
