@@ -14344,15 +14344,25 @@ function libraryBuildCard(name, m) {
     ? m.twin_laws.map(t => t.name + (t.probability ? ` (${(t.probability*100).toFixed(1)}%)` : '')).join(', ')
     : '—';
   const acidText = (() => {
-    // Null-guard: `acid_dissolution` may be a dict whose pH_threshold is null
-    // for minerals that ARE acid-sensitive but only under special conditions
-    // (beryl/tourmaline/spodumene/anhydrite — HF-only or rehydration-only).
-    // Before this guard the Library showed the literal string "pH < null".
-    if (!m.acid_dissolution) return '—';
-    if (m.acid_dissolution.pH_threshold != null) {
-      return `pH &lt; ${m.acid_dissolution.pH_threshold}`;
-    }
-    return 'resistant';
+    // Collect pH thresholds from all three possible spec fields:
+    //   - acid_dissolution.pH_threshold: the legacy "dissolves below" field
+    //   - pH_dissolution_below: newer canonical name for below-threshold
+    //   - pH_dissolution_above: inverse — dissolves ABOVE a pH (scorodite,
+    //     jarosite, alunite, brochantite, antlerite, adamite, marcasite,
+    //     wulfenite — 8 minerals today). The pre-fix card silently showed
+    //     '—' for these, which read as "acid-resistant" and was wrong.
+    const below = (m.acid_dissolution && m.acid_dissolution.pH_threshold != null)
+      ? m.acid_dissolution.pH_threshold
+      : (m.pH_dissolution_below != null ? m.pH_dissolution_below : null);
+    const above = (m.pH_dissolution_above != null) ? m.pH_dissolution_above : null;
+    const parts = [];
+    if (below != null) parts.push(`pH &lt; ${below}`);
+    if (above != null) parts.push(`pH &gt; ${above}`);
+    if (parts.length) return parts.join(', ');
+    // acid_dissolution dict exists but no numeric thresholds → HF-only or
+    // rehydration-only (beryl/tourmaline/spodumene/anhydrite).
+    if (m.acid_dissolution) return 'resistant';
+    return '—';
   })();
   const decompText = m.thermal_decomp_C ? `${m.thermal_decomp_C}°C` : '—';
   const collectedCount = crystalsOfMineral(name).length;
