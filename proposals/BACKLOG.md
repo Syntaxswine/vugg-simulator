@@ -117,12 +117,11 @@ These aren't todos — they're conventions to follow when doing the work above:
 ---
 
 ## 🎯 SIM_VERSION
-Currently **4** (bumped in commit `ccb8ac6` for the Round 5 sulfate-expansion series — the first sulfate that landed, barite + celestine, activated dormant Coorong sabkha celestine production). Bump to 5 when:
-- Cd field shipped → bump to 5 (would shift Tri-State seed-42 output)
-- Wall porosity slider shipped → bump to 5 (changes existing scenario dissolution behavior even at default settings if the existing reactivity=1.0 baseline shifts)
-- Au-Te coupling lands → bump to 5 (would partition Bingham Au into telluride growth)
-- Tri-State / Sweetwater O2 bumped from 0.0 to ~0.2 → bump to 5 (unlocks dormant barite + celestine in MVT-style scenarios — see "Tri-State + Sweetwater O2=0.0 gap" below)
-- Halide-expansion round (atacamite, halite, chlorargyrite, etc.) → bump to 5
+Currently **5** (bumped in commit `c8056ef` for the MVT O2 gap-fill — Tri-State + Sweetwater O2 0.0→0.25 unlocked dormant barite + celestine; subsequent commit `8b9c831` added Tsumeb early-acid event + Al bump within v5). Bump to 6 when:
+- Cd field shipped → bump to 6 (would shift Tri-State seed-42 output)
+- Wall porosity slider shipped → bump to 6 (changes existing scenario dissolution behavior even at default settings if the existing reactivity=1.0 baseline shifts)
+- Au-Te coupling lands → bump to 6 (would partition Bingham Au into telluride growth)
+- Halide-expansion round (atacamite, halite, chlorargyrite, etc.) → bump to 6
 
 Defer the version bump decision to whoever ships those changes.
 
@@ -131,23 +130,25 @@ History:
 - v2: scenario-chemistry audit (Apr 2026; commit `77d999a`)
 - v3: arsenate/molybdate supergene cascade engines — arsenopyrite + scorodite + ferrimolybdite (Apr 2026; commits `1c9cd29` → `0cd182f`)
 - v4: Round 5 sulfate expansion — barite + celestine + jarosite + alunite + brochantite + antlerite + anhydrite (Apr 2026; commits `ccb8ac6` → `a044e81`). Engine count 55 → 62. Coorong sabkha now produces the textbook gypsum + anhydrite + celestine + dolomite + aragonite assemblage. Brings the sulfate class from 1 mineral (selenite) to 8.
+- v5: Round 5 gap-fill follow-ups (Apr 2026; commits `c8056ef` + `8b9c831`). Tri-State + Sweetwater O2 0.0→0.25 (mildly reducing MVT brine — barite + celestine activate); barite + celestine supersat O2 saturation retuned to /0.4 (saturates at SO₄/H₂S boundary). Tsumeb early ev_supergene_acidification 4-pulse event + Al 3→25 + jarosite/alunite per-check 0.45 — unlocks scorodite + jarosite + alunite + brochantite at Tsumeb. Engine count unchanged (62); chemistry tweaks only.
 
 ---
 
 ## 🧪 Scenario-tune follow-ups (deferred from v3 mineral expansion)
 
-### Tsumeb pH gap (now affects scorodite + jarosite + alunite)
-**Status:** identified during v3 expansion audit (commit `0cd182f`); broadened in v4 audit (commit forthcoming) — same fix unlocks four minerals at Tsumeb.
-**Evidence:** Tsumeb is the world-class locality for **scorodite** (Gröbner & Becker 1973 — deep blue-green dipyramids to 5+ cm) AND a textbook setting for jarosite + alunite. The current `scenario_supergene_oxidation` represents the late-stage carbonate-buffered phase (pH=6.8), which is **above** the acid-stability gate of all four sulfates/arsenates: scorodite (pH<6), jarosite (pH<5), alunite (pH<5), and antlerite (pH<4). Geologically, all of these formed during the early acidic supergene phase BEFORE carbonate buffering raised pH.
-**Fix sketch:** add an `event_supergene_acidification` to `scenario_supergene_oxidation` at an early step (~10) that drops pH transiently to 4-5 for ~20 steps (mimicking the H₂SO₄ pulse from sulfide oxidation before host-rock carbonate buffers it). Scorodite + jarosite would nucleate during the acidic window; alunite needs Al bumped from 3 to ~15 ppm in addition (separate gap).
-**Where the gap is documented:** `data/locality_chemistry.json:tsumeb.mineral_realizations_v3_expansion.scorodite` AND `tsumeb.mineral_realizations_v4_sulfate_expansion.jarosite` (both `status: "geologically_documented_but_blocked"`).
+### ~~Tsumeb pH gap (now affects scorodite + jarosite + alunite)~~ ✅ **RESOLVED (v5, commit `8b9c831`)**
+**Resolution:** Added `ev_supergene_acidification` event scheduled 4× (steps 5/8/12/16) in `scenario_supergene_oxidation` — drops pH to 4.0 + adds H₂SO₄ each pulse, holding the acid window against the limestone wall's carbonate buffering for ~15 steps before `ev_meteoric_flush` (step 20) neutralizes. Plus Tsumeb Al bumped 3→25 to clear alunite's Al/25 cap. Plus jarosite + alunite per-check probabilities bumped 0.18/0.15→0.45 to reflect their fast acid-sulfate kinetics in brief windows.
 
-### Tri-State + Sweetwater O2=0.0 gap
-**Status:** identified during the v4 expansion audit. Blocks barite + celestine activation.
-**Evidence:** Both MVT-style scenarios populate Ba and Sr (Tri-State Ba=20 + Sr=15; Sweetwater Ba=25 + Sr=12) but the scenario O2 is set to 0.0 (strictly reducing). Real MVT brine sits at mildly-reducing Eh where some SO₄²⁻ persists alongside galena's H₂S — that's the chemistry that makes barite + galena coexistence the diagnostic MVT assemblage. With O2=0.0, the sim's barite + celestine engines (which require O2 ≥ 0.1) are blocked.
-**Fix sketch:** bump Tri-State O2 from 0.0 to ~0.2; bump Sweetwater similarly. Both are gap-fills (O2 was set during chemistry audit before sulfate engines existed; the value reflects the sulfide-stable assumption, not the sulfate-stable reality of mildly-reducing brine). Once bumped, barite + celestine fire immediately at strong sigma (Ba=20 + S=120 + O2=0.2 → ~1.0 sigma).
-**Implementation impact:** SIM_VERSION 4→5 bump if shipped, since seed-42 output of Tri-State + Sweetwater would shift.
-**Where documented:** `data/locality_chemistry.json:{tri_state,sweetwater_viburnum}.mineral_realizations_v4_sulfate_expansion.{barite,celestine}.status = "blocked_by_O2_gap"`.
+Now active at Tsumeb: scorodite (95% seed hit rate), jarosite (95%), alunite (70%), brochantite (already worked, now coexists). Antlerite correctly stays absent — Tsumeb is brochantite-dominant per geology, not antlerite-dominant (antlerite is the Atacama/Chuquicamata signature). See `data/locality_chemistry.json:tsumeb.mineral_realizations_v3_expansion.scorodite` + `mineral_realizations_v4_sulfate_expansion.jarosite/alunite/antlerite` for full citation tags.
+
+### ~~Tri-State + Sweetwater O2=0.0 gap~~ ✅ **RESOLVED (v5, commit `c8056ef`)**
+**Resolution:** Bumped Tri-State + Sweetwater O2 from default 0.0 to 0.25 — mildly reducing brine matching real MVT chemistry at the SO₄/H₂S boundary. Plus barite + celestine supersaturation O2 factor retuned from O2/1.0 to O2/0.4 (saturates at the SO₄/H₂S boundary, geochemically correct).
+
+Verified seed-42:
+- Tri-State (was 0/0): 6 active barite (max 32 µm), 10 celestine (max 111 µm)
+- Sweetwater (was 0/0): 14 active barite (max 63 µm — Viburnum is the high-Ba MVT endmember per Stoffell 2008), 8 celestine (max 56 µm)
+
+Coorong sabkha behavior unchanged (O2=1.5 was already saturated; engine retune is a no-op above O2=0.6).
 
 ### Bingham/Bisbee scorodite + ferrimolybdite end-to-end verification
 **Status:** engines are wired and chemistry should produce both, but no full-scenario seed-42 run was executed during the v3 expansion (porphyry/Bisbee runtimes are slow). When time permits, run seed-42 porphyry (120 steps) and bisbee (340 steps) and confirm the realization predictions in `mineral_realizations_v3_expansion`:
