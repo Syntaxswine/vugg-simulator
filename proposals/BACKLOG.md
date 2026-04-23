@@ -181,3 +181,58 @@ Now that Round 5 sulfates are done, the next natural class expansion is **halide
 Plus possible follow-on Cu sulfates (chalcanthite — CuSO₄·5H₂O, the extreme-acid Cu sulfate that competes with antlerite below pH 1) and natrojarosite (Na variant of jarosite, common in salty AMD).
 
 A research doc following the `MINERALS-RESEARCH-SULFATES.md` shape would be the next logical artifact.
+
+---
+
+## 💎 Round 7+ — Gemstones, now in progress
+
+**In progress: beryl family + corundum family** (commits forthcoming). Per `proposals/MINERALS-PROPOSAL-GEMSTONES.md`, splitting both into first-class species:
+
+- **Beryl family** (5 species): goshenite (the existing generic `beryl` entry), emerald, aquamarine, morganite, heliodor — all fit `scenario_gem_pegmatite` (Cruzeiro) with minor Cr bump for emerald. No new FluidChemistry fields.
+- **Corundum family** (3 species): corundum, ruby, sapphire — needs new `scenario_marble_contact_metamorphism` (Mogok) because no existing scenario has the Si-undersaturated Al-rich Ca-rich chemistry required. The SiO₂ < 50 gate is the first "low-silica" mineral constraint in the sim.
+
+This is the round where the `tools/new-mineral.py` scaffolding tool gets its first real-world trial — each of these 7 new species should drop from ~30 min to ~5 min of authoring.
+
+---
+
+## 💎💎 Round ~end-of-list (positions ~185-200) — Diamond + mantle/high-P plumbing cluster
+
+**RESERVED SLOTS**: diamond is the last mineral on the target list of 200, and ~15-20 slots adjacent to it are reserved for minerals that share the same plumbing investment (the "D3 option" from `proposals/MINERALS-PROPOSAL-GEMSTONES.md`). Rationale: the infrastructure to model diamond (carbon field in FluidChemistry + pressure-as-chemistry-driver + mantle T+P regime) is heavy; single-use for diamond would be wasteful. Clustering lets the plumbing pay for itself ~15-20 times.
+
+**Reserved cluster (tentative order, all share the D3 plumbing):**
+
+### Class 1 — carbon-field additions (C added to FluidChemistry)
+- **graphite** (C) — metamorphic schists; a legitimate vug mineral (unlike diamond)
+- **moissanite** (SiC) — rare, mostly meteoritic; scientific novelty
+- **anthraxolite** (solid hydrocarbon) — already partially implemented via Herkimer narrative; could be a real inclusion mineral
+
+### Class 2 — pressure-gated polymorphs (making `VugConditions.pressure` a real supersaturation driver instead of cosmetic)
+- **kyanite** (Al₂SiO₅, high-P) — blue-blade gem
+- **andalusite** (Al₂SiO₅, low-P) — chiastolite cross-pattern gem
+- **sillimanite** (Al₂SiO₅, high-T) — completes the classic Al₂SiO₅ phase-diagram triangle
+- **coesite** (SiO₂ high-P polymorph) — meteor-crater + UHP subduction indicator
+- **stishovite** (SiO₂ extreme-P polymorph) — shock metamorphism
+- **jadeite** (NaAlSi₂O₆) — jade; low-T high-P subduction
+- **omphacite** (eclogite pyroxene) — deep subduction
+- **lawsonite** (CaAl₂Si₂O₇(OH)₂·H₂O) — blueschist facies indicator
+- **glaucophane** (Na₂(Mg,Fe)₃Al₂Si₈O₂₂(OH)₂) — the amphibole that names blueschist
+
+### Class 3 — mantle / kimberlite xenolith minerals (needs mantle T+P + the above plumbing)
+- **olivine / peridot** (Mg₂SiO₄) — the most abundant mineral on Earth by volume; its absence is the biggest gap in the current sim; gem variety is peridot
+- **enstatite** (MgSiO₃) — mantle orthopyroxene
+- **diopside / chrome diopside** (CaMgSi₂O₆) — mantle clinopyroxene; bright-green gem
+- **pyrope garnet** (Mg₃Al₂Si₃O₁₂) — blood-red gem; Bohemian garnet
+- **spinel** (MgAl₂O₄) — gem (Black Prince's "Ruby" in the Crown Jewels is actually a spinel); uses corundum's SiO₂-undersaturated gate
+- **phlogopite** (KMg₃AlSi₃O₁₀(F,OH)₂) — bronze-brown mica xenocryst
+- **ilmenite** (FeTiO₃) — kimberlite prospecting indicator
+- **chromite** (FeCr₂O₄) — source of the Cr that gives emerald its color; black octahedra
+- **perovskite** (CaTiO₃) — mantle; eponymous to the perovskite structure family
+- **diamond** (C) — the capstone
+
+### New scenarios enabled by Class 2 + 3 plumbing
+- `scenario_blueschist_subduction` — lawsonite, glaucophane, jadeite, omphacite
+- `scenario_impact_crater` — coesite, stishovite, shocked quartz, meteoritic moissanite
+- `scenario_kimberlite` — diamond + pyrope + chrome diopside + olivine + phlogopite + ilmenite + chromite xenocryst suite
+
+### Interim placeholder plan
+Until the D3 plumbing round arrives (late in the 200-mineral runway), diamond stays on hold. If the user wants a visible diamond before the plumbing round, Option D2 (xenocryst event in a lightweight kimberlite scenario) can ship as a bridge — 2-4 hours; `scenario_kimberlite` created as a shell, diamond teleports in as a pre-formed crystal, narrator explains the xenocryst origin honestly. When the D3 plumbing lands, diamond gets retrofitted to mantle-grown-in-sim and the shell scenario fills out with the rest of the cluster.
