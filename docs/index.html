@@ -75,7 +75,18 @@ h1 {
 
 /* ============== TOPO MAP ============== */
 #topo-panel {
-  max-width: 1200px;
+  /* body is `display:flex; flex-direction:column; align-items:center` —
+     direct children collapse to content width unless `width` is set
+     explicitly. Without `width: 100%` the panel shrinks to its sparse
+     header content (title + CLASSES expander), making the wall profile
+     render at ~1/6 the page width even after a vugg starts rendering.
+     Matches the pattern used by `.controls` (line 615) and
+     `#output-container` (line 699). */
+  width: 100%;
+  max-width: 900px;  /* Matches #output-container so the wall profile
+                        and the narrative log directly below it line up
+                        visually. Was 1200px which would have been wider
+                        than the output box even if width had been set. */
   margin: 0 auto 1rem auto;
   padding: 0.6rem 0.8rem;
   border: 1px solid #2a2518;
@@ -18041,16 +18052,67 @@ function _texture_sawtooth(ctx, fromX, fromY, toX, toY, thicknessMm, cellArcMm, 
   }
 }
 
+// Paint a centered placeholder hint into the topo canvas. Used when no
+// active sim or no ring data exists yet, so the panel reads as 'waiting'
+// rather than showing a 340px-tall void. Kept simple: one or two lines
+// of muted text, no decoration. Sized via _topoResize so the rendering
+// matches what topoRender uses for real content.
+function _topoPaintPlaceholder(canvas, text) {
+  const ctx = canvas.getContext('2d');
+  const { cssW, cssH, dpr } = _topoResize(canvas);
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.clearRect(0, 0, cssW, cssH);
+  // The visible window is cssW/STAGE × cssH/STAGE because the canvas is
+  // inside a 200%-sized stage; place the placeholder in the centre of
+  // that window so it appears centered regardless of the 2× canvas
+  // headroom that exists for 3D rotation.
+  const visW = cssW / TOPO_STAGE_SCALE;
+  const visH = cssH / TOPO_STAGE_SCALE;
+  const cx = cssW / 2;
+  const cy = cssH / 2;
+  ctx.font = '13px "Courier New", monospace';
+  ctx.fillStyle = '#5a4a30';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  // Wrap the text manually — split on the em-dash if too long for the
+  // visible window.
+  const maxLineW = visW * 0.85;
+  const measure = ctx.measureText(text);
+  if (measure.width > maxLineW && text.includes(' — ')) {
+    const [a, b] = text.split(' — ');
+    ctx.fillText(a, cx, cy - 9);
+    ctx.fillText('— ' + b, cx, cy + 9);
+  } else {
+    ctx.fillText(text, cx, cy);
+  }
+}
+
 function topoRender(optOverrideRing) {
   const canvas = document.getElementById('topo-canvas');
   const panel = document.getElementById('topo-panel');
   if (!canvas || !panel || panel.style.display === 'none') return;
 
   const sim = topoActiveSim();
-  if (!sim && !optOverrideRing) return;
   const wall = sim ? sim.wall_state : null;
   const ring0 = optOverrideRing || (wall && wall.rings[0]);
-  if (!ring0 || !ring0.length) return;
+
+  // Empty-state guard: no active sim or no ring data yet (fresh page,
+  // pre-first-Grow). Paint a centered placeholder so the panel reads as
+  // 'waiting for a vug' rather than a 340px-tall void. Without this the
+  // first impression of Current Game is a cavernous empty box, which
+  // looks like a render bug.
+  if (!sim && !optOverrideRing) {
+    _topoPaintPlaceholder(canvas, 'Press Grow to generate a vug — the wall profile will appear here');
+    const btn = document.getElementById('topo-replay-btn');
+    if (btn) btn.style.display = 'none';
+    const sizeLabel = document.getElementById('topo-vug-size');
+    if (sizeLabel) sizeLabel.textContent = '';
+    return;
+  }
+  if (!ring0 || !ring0.length) {
+    _topoPaintPlaceholder(canvas, 'Vug initialized — waiting for first growth step…');
+    return;
+  }
 
   // Only show the Replay button once there's history to play back.
   const btn = document.getElementById('topo-replay-btn');
