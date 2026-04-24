@@ -75,7 +75,18 @@ h1 {
 
 /* ============== TOPO MAP ============== */
 #topo-panel {
-  max-width: 1200px;
+  /* body is `display:flex; flex-direction:column; align-items:center` —
+     direct children collapse to content width unless `width` is set
+     explicitly. Without `width: 100%` the panel shrinks to its sparse
+     header content (title + CLASSES expander), making the wall profile
+     render at ~1/6 the page width even after a vugg starts rendering.
+     Matches the pattern used by `.controls` (line 615) and
+     `#output-container` (line 699). */
+  width: 100%;
+  max-width: 900px;  /* Matches #output-container so the wall profile
+                        and the narrative log directly below it line up
+                        visually. Was 1200px which would have been wider
+                        than the output box even if width had been set. */
   margin: 0 auto 1rem auto;
   padding: 0.6rem 0.8rem;
   border: 1px solid #2a2518;
