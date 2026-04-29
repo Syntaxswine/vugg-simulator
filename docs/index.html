@@ -3544,11 +3544,23 @@ let timeScale = 5.0;
 //        step 5 + Al 3→15 to unlock scorodite + jarosite + alunite
 //        in their early acid window.
 //   v8 — Round 8 mineral expansion (Apr 2026, in progress):
-//        8a-1 acanthite (Ag₂S, monoclinic, low-T) — first Ag mineral
-//        in the sim. Activates dormant Ag pool at MVT, Sweetwater,
-//        Tsumeb, Bisbee. Hard upper-T gate at 173°C (above that,
-//        argentite forms — 8a-2, pending). Engine count 69 → 70.
-//        Round 8 block expands as sub-rounds 8a-2/8a-3/8b/8c/8d/8e land.
+//        Silver suite (8a, complete):
+//        • acanthite (Ag₂S, monoclinic, T<173°C) — first Ag mineral.
+//          Activates dormant Ag at MVT, Sweetwater, Tsumeb, Bisbee.
+//          Hits seed-42 in mvt + reactive_wall + bisbee.
+//        • argentite (Ag₂S, cubic, T>173°C) + 173°C paramorph mechanic.
+//          First non-destructive polymorph: argentite crystals cooling
+//          past 173°C convert in-place to acanthite while preserving
+//          habit + dominant_forms + zones. PARAMORPH_TRANSITIONS dict
+//          + applyParamorphTransitions hook in run_step. Bisbee shows
+//          the trick: 5 argentite + 2 acanthite-after-argentite
+//          paramorphs at seed-42. Porphyry stays >173°C: 8 pure argentite.
+//        • native_silver (Ag, S-depletion gate) — first depletion-gate
+//          engine. Fires only when S<2 AND O2<0.3 (inverse of normal
+//          supersaturation). Wire / dendritic / massive / cubic_crystal
+//          habits. Currently absent_at_seed_42 in declared scenarios.
+//        Engine count 69 → 72.
+//        Round 8 block expands as sub-rounds 8b/8c/8d/8e land.
 const SIM_VERSION = 8;
 
 

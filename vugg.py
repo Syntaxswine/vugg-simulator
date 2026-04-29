@@ -70,12 +70,31 @@ from typing import List, Dict, Optional, Tuple
 #        alunite to nucleate before ev_meteoric_flush at step 20
 #        carbonate-buffers pH back up.
 #   v8 — Round 8 mineral expansion (Apr 2026, in progress):
-#        8a-1 acanthite (Ag₂S, monoclinic, low-T) — first Ag mineral in
-#        the sim. Activates dormant Ag pool at MVT (Tri-State Ag=5),
-#        Sweetwater Viburnum (Ag=3), Tsumeb (trace), and Bisbee (released
-#        by tetrahedrite oxidation). Hard upper-T gate at 173°C — above
-#        that, argentite forms (8a-2, pending). Engine count 69 → 70.
-#        [Round 8 block expands as sub-rounds 8a-2/8a-3/8b/8c/8d/8e land.]
+#        Silver suite (8a, complete):
+#          • acanthite (Ag₂S, monoclinic, T<173°C) — first Ag mineral.
+#            Activates dormant Ag at MVT (Tri-State Ag=5), Sweetwater
+#            Viburnum (Ag=3), Tsumeb (trace), Bisbee (tetrahedrite
+#            oxidation). Hits seed-42 in mvt + reactive_wall + bisbee.
+#          • argentite (Ag₂S, cubic, T>173°C) + 173°C paramorph mechanic.
+#            First non-destructive polymorph in the sim — argentite
+#            crystals cooling past 173°C convert in-place to acanthite
+#            while preserving habit + dominant_forms + zones (the
+#            external shape and growth history). Implemented via
+#            module-level PARAMORPH_TRANSITIONS dict + apply_paramorph_
+#            transitions hook in run_step. Hits seed-42 in bisbee
+#            (5 argentite + 2 acanthite-after-argentite paramorphs)
+#            and porphyry (8 pure argentite, never cools below 173).
+#          • native_silver (Ag, S-depletion gate) — first depletion-
+#            gate engine in the sim. Fires only when S<2 AND O2<0.3 —
+#            the inverse of normal supersaturation logic. Habit variants
+#            include the Kongsberg wire (max 30 cm, the collector's
+#            prize). Tarnish branch when S returns to fluid. Currently
+#            absent_at_seed_42 in declared scenarios (bisbee + supergene_
+#            oxidation both have S >= 2 ppm even after sulfide
+#            oxidation); future Kongsberg-type calcite-vein scenario
+#            will unlock it.
+#        Engine count 69 → 72.
+#        [Round 8 block expands as sub-rounds 8b/8c/8d/8e land.]
 SIM_VERSION = 8
 
 
