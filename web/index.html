@@ -3158,6 +3158,11 @@ const MINERAL_SPEC_FALLBACK = {
   nickeline: { formula: "NiAs", nucleation_sigma: 1.0, max_size_cm: 5.0, growth_rate_mult: 0.3, thermal_decomp_C: null, fluorescence: null, twin_laws: [], acid_dissolution: null },
   millerite: { formula: "NiS", nucleation_sigma: 1.0, max_size_cm: 5.0, growth_rate_mult: 0.4, thermal_decomp_C: null, fluorescence: null, twin_laws: [], acid_dissolution: null },
   cobaltite: { formula: "CoAsS", nucleation_sigma: 1.2, max_size_cm: 3.0, growth_rate_mult: 0.3, thermal_decomp_C: null, fluorescence: null, twin_laws: [], acid_dissolution: null },
+  descloizite: { formula: "PbZnVO4(OH)", nucleation_sigma: 1.0, max_size_cm: 3.0, growth_rate_mult: 0.3, thermal_decomp_C: null, fluorescence: null, twin_laws: [], acid_dissolution: null },
+  mottramite: { formula: "PbCu(VO4)(OH)", nucleation_sigma: 1.0, max_size_cm: 3.0, growth_rate_mult: 0.3, thermal_decomp_C: null, fluorescence: null, twin_laws: [], acid_dissolution: null },
+  raspite: { formula: "PbWO4", nucleation_sigma: 1.4, max_size_cm: 1.0, growth_rate_mult: 0.2, thermal_decomp_C: null, fluorescence: null, twin_laws: [], acid_dissolution: null },
+  stolzite: { formula: "PbWO4", nucleation_sigma: 1.0, max_size_cm: 2.0, growth_rate_mult: 0.3, thermal_decomp_C: null, fluorescence: null, twin_laws: [], acid_dissolution: null },
+  olivenite: { formula: "Cu2AsO4(OH)", nucleation_sigma: 1.0, max_size_cm: 5.0, growth_rate_mult: 0.3, thermal_decomp_C: null, fluorescence: null, twin_laws: [], acid_dissolution: null },
 };
 
 // Live spec — swapped in by the fetch below if data/minerals.json loads.
@@ -3302,7 +3307,9 @@ const MINERAL_GAME_COLORS = {
   corundum: '#c8c8c8', ruby: '#c03030', sapphire: '#304068',
   acanthite: '#404040', argentite: '#303030', native_silver: '#d4d4d4',
   native_arsenic: '#888888', native_sulfur: '#f5d030', native_tellurium: '#b8b8c8',
-  nickeline: '#d49080', millerite: '#c8b860', cobaltite: '#d8d4cc'
+  nickeline: '#d49080', millerite: '#c8b860', cobaltite: '#d8d4cc',
+  descloizite: '#8a3020', mottramite: '#8a9a40',
+  raspite: '#d4b840', stolzite: '#d49a30', olivenite: '#5a7030'
 };
 
 // Derive crystal color from its growth history and chemistry
@@ -4654,6 +4661,113 @@ class VugConditions {
     return Math.max(sigma, 0);
   }
 
+  // Descloizite (PbZnVO4(OH)) — the Zn end of the descloizite-mottramite series.
+  // Cu/Zn dispatch: Cu>Zn → mottramite. Source: research-descloizite.md.
+  supersaturation_descloizite() {
+    if (this.fluid.Pb < 40 || this.fluid.Zn < 50 || this.fluid.V < 10) return 0;
+    if (this.fluid.O2 < 0.5) return 0;
+    if (this.fluid.Cu > this.fluid.Zn) return 0;
+    const pb_f = Math.min(this.fluid.Pb / 80.0, 2.5);
+    const zn_f = Math.min(this.fluid.Zn / 80.0, 2.5);
+    const v_f  = Math.min(this.fluid.V  / 20.0, 2.5);
+    const ox_f = Math.min(this.fluid.O2 / 1.0, 2.0);
+    let sigma = pb_f * zn_f * v_f * ox_f;
+    const T = this.temperature;
+    let T_factor;
+    if (T >= 30 && T <= 50) T_factor = 1.2;
+    else if (T < 20) T_factor = 0.4;
+    else if (T < 30) T_factor = 0.4 + 0.08 * (T - 20);
+    else if (T <= 80) T_factor = Math.max(0.4, 1.2 - 0.020 * (T - 50));
+    else T_factor = 0.3;
+    sigma *= T_factor;
+    if (this.fluid.pH < 4 || this.fluid.pH > 8) sigma *= 0.6;
+    return Math.max(sigma, 0);
+  }
+
+  // Mottramite (PbCu(VO4)(OH)) — the Cu end of the descloizite-mottramite series.
+  supersaturation_mottramite() {
+    if (this.fluid.Pb < 40 || this.fluid.Cu < 50 || this.fluid.V < 10) return 0;
+    if (this.fluid.O2 < 0.5) return 0;
+    if (this.fluid.Zn >= this.fluid.Cu) return 0;
+    const pb_f = Math.min(this.fluid.Pb / 80.0, 2.5);
+    const cu_f = Math.min(this.fluid.Cu / 80.0, 2.5);
+    const v_f  = Math.min(this.fluid.V  / 20.0, 2.5);
+    const ox_f = Math.min(this.fluid.O2 / 1.0, 2.0);
+    let sigma = pb_f * cu_f * v_f * ox_f;
+    const T = this.temperature;
+    let T_factor;
+    if (T >= 30 && T <= 50) T_factor = 1.2;
+    else if (T < 20) T_factor = 0.4;
+    else if (T < 30) T_factor = 0.4 + 0.08 * (T - 20);
+    else if (T <= 80) T_factor = Math.max(0.4, 1.2 - 0.020 * (T - 50));
+    else T_factor = 0.3;
+    sigma *= T_factor;
+    if (this.fluid.pH < 4 || this.fluid.pH > 8) sigma *= 0.6;
+    return Math.max(sigma, 0);
+  }
+
+  // Raspite (PbWO4, monoclinic) — RARE polymorph.
+  supersaturation_raspite() {
+    if (this.fluid.Pb < 40 || this.fluid.W < 5) return 0;
+    if (this.fluid.O2 < 0.5) return 0;
+    const pb_f = Math.min(this.fluid.Pb / 80.0, 2.0);
+    const w_f  = Math.min(this.fluid.W  / 15.0, 2.5);
+    const ox_f = Math.min(this.fluid.O2 / 1.0, 2.0);
+    let sigma = pb_f * w_f * ox_f;
+    const T = this.temperature;
+    let T_factor;
+    if (T >= 20 && T <= 40) T_factor = 1.2;
+    else if (T < 10) T_factor = 0.4;
+    else if (T < 20) T_factor = 0.4 + 0.08 * (T - 10);
+    else if (T <= 50) T_factor = Math.max(0.4, 1.2 - 0.040 * (T - 40));
+    else T_factor = 0.3;
+    sigma *= T_factor;
+    if (this.fluid.pH < 4 || this.fluid.pH > 8) sigma *= 0.6;
+    return Math.max(sigma, 0);
+  }
+
+  // Stolzite (PbWO4, tetragonal) — common polymorph.
+  supersaturation_stolzite() {
+    if (this.fluid.Pb < 40 || this.fluid.W < 5) return 0;
+    if (this.fluid.O2 < 0.5) return 0;
+    const pb_f = Math.min(this.fluid.Pb / 80.0, 2.5);
+    const w_f  = Math.min(this.fluid.W  / 15.0, 2.5);
+    const ox_f = Math.min(this.fluid.O2 / 1.0, 2.0);
+    let sigma = pb_f * w_f * ox_f;
+    const T = this.temperature;
+    let T_factor;
+    if (T >= 20 && T <= 80) T_factor = 1.2;
+    else if (T < 10) T_factor = 0.4;
+    else if (T < 20) T_factor = 0.4 + 0.08 * (T - 10);
+    else if (T <= 100) T_factor = Math.max(0.4, 1.2 - 0.020 * (T - 80));
+    else T_factor = 0.3;
+    sigma *= T_factor;
+    if (this.fluid.pH < 4 || this.fluid.pH > 8) sigma *= 0.6;
+    return Math.max(sigma, 0);
+  }
+
+  // Olivenite (Cu2AsO4(OH)) — Cu end of olivenite-adamite series.
+  // Cu/Zn dispatch: Zn>Cu → adamite. Source: research-olivenite.md.
+  supersaturation_olivenite() {
+    if (this.fluid.Cu < 50 || this.fluid.As < 10) return 0;
+    if (this.fluid.O2 < 0.5) return 0;
+    if (this.fluid.Zn > this.fluid.Cu) return 0;
+    const cu_f = Math.min(this.fluid.Cu / 80.0, 2.5);
+    const as_f = Math.min(this.fluid.As / 20.0, 2.5);
+    const ox_f = Math.min(this.fluid.O2 / 1.0, 2.0);
+    let sigma = cu_f * as_f * ox_f;
+    const T = this.temperature;
+    let T_factor;
+    if (T >= 20 && T <= 40) T_factor = 1.2;
+    else if (T < 10) T_factor = 0.4;
+    else if (T < 20) T_factor = 0.4 + 0.08 * (T - 10);
+    else if (T <= 50) T_factor = Math.max(0.4, 1.2 - 0.040 * (T - 40));
+    else T_factor = 0.3;
+    sigma *= T_factor;
+    if (this.fluid.pH < 4 || this.fluid.pH > 8) sigma *= 0.6;
+    return Math.max(sigma, 0);
+  }
+
   // Nickeline (NiAs) — high-T pale-copper-red Ni arsenide.
   supersaturation_nickeline() {
     if (this.fluid.Ni < 40 || this.fluid.As < 40) return 0;
@@ -4988,6 +5102,8 @@ class VugConditions {
 
   supersaturation_adamite() {
     if (this.fluid.Zn < 10 || this.fluid.As < 5 || this.fluid.O2 < 0.3) return 0;
+    // Round 8d Cu/Zn dispatch — olivenite wins when Cu > Zn.
+    if (this.fluid.Cu > this.fluid.Zn) return 0;
     let sigma = (this.fluid.Zn / 80.0) * (this.fluid.As / 30.0) * (this.fluid.O2 / 1.0);
     if (this.temperature > 100) sigma *= Math.exp(-0.02 * (this.temperature - 100));
     if (this.fluid.pH < 4.0) sigma -= (4.0 - this.fluid.pH) * 0.4;
@@ -7326,6 +7442,135 @@ function grow_argentite(crystal, conditions, step) {
   });
 }
 
+// Descloizite — Pb(Zn,Cu)VO4(OH) (Zn end of descloizite-mottramite series)
+function grow_descloizite(crystal, conditions, step) {
+  const sigma = conditions.supersaturation_descloizite();
+  if (sigma < 1.0) return null;
+  const excess = sigma - 1.0;
+  const rate = 2.5 * excess * rng.uniform(0.8, 1.2);
+  if (rate < 0.1) return null;
+  let habit_note;
+  if (excess > 1.5) {
+    crystal.habit = 'botryoidal';
+    crystal.dominant_forms = ['mammillary cherry-red crust', 'concentric layers'];
+    habit_note = 'botryoidal descloizite — Mibladen / Berg-Aukas habit';
+  } else if (excess > 0.6) {
+    crystal.habit = 'prismatic';
+    crystal.dominant_forms = ['{010} pyramid', '{110} prism'];
+    habit_note = 'prismatic descloizite — Tsumeb display habit';
+  } else {
+    crystal.habit = 'tabular';
+    crystal.dominant_forms = ['{010} tabular', 'cherry-red plates'];
+    habit_note = 'tabular descloizite — late-stage low-σ growth';
+  }
+  if (conditions.fluid.Cu > 10) {
+    const cu_pct = Math.min(30, 100 * conditions.fluid.Cu / Math.max(conditions.fluid.Cu + conditions.fluid.Zn, 1));
+    if (cu_pct > 5) habit_note += `; Cu-bearing (${cu_pct.toFixed(0)}% Cu in Zn-site, mottramite-intermediate)`;
+  }
+  conditions.fluid.Pb = Math.max(conditions.fluid.Pb - rate * 0.005, 0);
+  conditions.fluid.Zn = Math.max(conditions.fluid.Zn - rate * 0.010, 0);
+  conditions.fluid.V  = Math.max(conditions.fluid.V  - rate * 0.005, 0);
+  return new GrowthZone({ step, temperature: conditions.temperature, thickness_um: rate, growth_rate: rate, note: habit_note });
+}
+
+// Mottramite — Pb(Cu,Zn)VO4(OH) (Cu end of descloizite-mottramite series)
+function grow_mottramite(crystal, conditions, step) {
+  const sigma = conditions.supersaturation_mottramite();
+  if (sigma < 1.0) return null;
+  const excess = sigma - 1.0;
+  const rate = 2.5 * excess * rng.uniform(0.8, 1.2);
+  if (rate < 0.1) return null;
+  let habit_note;
+  if (excess > 1.5) {
+    crystal.habit = 'botryoidal';
+    crystal.dominant_forms = ['mammillary olive-green crust', 'concentric layers'];
+    habit_note = 'botryoidal mottramite — Mottram St Andrew (Cheshire) type habit';
+  } else if (excess > 0.6) {
+    crystal.habit = 'prismatic';
+    crystal.dominant_forms = ['{010} pyramid', '{110} prism'];
+    habit_note = 'prismatic mottramite — Tsumeb olive-green crystals';
+  } else {
+    crystal.habit = 'tabular';
+    crystal.dominant_forms = ['{010} tabular', 'olive-green plates'];
+    habit_note = 'tabular mottramite — late-stage habit';
+  }
+  if (conditions.fluid.Zn > 10) {
+    const zn_pct = Math.min(30, 100 * conditions.fluid.Zn / Math.max(conditions.fluid.Cu + conditions.fluid.Zn, 1));
+    if (zn_pct > 5) habit_note += `; Zn-bearing (${zn_pct.toFixed(0)}% Zn in Cu-site, descloizite-intermediate)`;
+  }
+  conditions.fluid.Pb = Math.max(conditions.fluid.Pb - rate * 0.005, 0);
+  conditions.fluid.Cu = Math.max(conditions.fluid.Cu - rate * 0.010, 0);
+  conditions.fluid.V  = Math.max(conditions.fluid.V  - rate * 0.005, 0);
+  return new GrowthZone({ step, temperature: conditions.temperature, thickness_um: rate, growth_rate: rate, note: habit_note });
+}
+
+// Raspite — PbWO4 (RARE monoclinic polymorph)
+function grow_raspite(crystal, conditions, step) {
+  const sigma = conditions.supersaturation_raspite();
+  if (sigma < 1.0) return null;
+  const excess = sigma - 1.0;
+  const rate = 1.8 * excess * rng.uniform(0.8, 1.2);
+  if (rate < 0.1) return null;
+  crystal.habit = 'tabular_monoclinic';
+  crystal.dominant_forms = ['monoclinic tabular plate', 'honey-yellow'];
+  const habit_note = 'raspite — RARE monoclinic PbWO₄, Broken Hill habit';
+  conditions.fluid.Pb = Math.max(conditions.fluid.Pb - rate * 0.005, 0);
+  conditions.fluid.W  = Math.max(conditions.fluid.W  - rate * 0.020, 0);
+  return new GrowthZone({ step, temperature: conditions.temperature, thickness_um: rate, growth_rate: rate, note: habit_note });
+}
+
+// Stolzite — PbWO4 (common tetragonal polymorph)
+function grow_stolzite(crystal, conditions, step) {
+  const sigma = conditions.supersaturation_stolzite();
+  if (sigma < 1.0) return null;
+  const excess = sigma - 1.0;
+  const rate = 2.5 * excess * rng.uniform(0.8, 1.2);
+  if (rate < 0.1) return null;
+  let habit_note;
+  if (excess > 1.0) {
+    crystal.habit = 'dipyramidal';
+    crystal.dominant_forms = ['{101} dipyramid', 'tetragonal honey-yellow'];
+    habit_note = 'dipyramidal stolzite — Broken Hill / Tsumeb display habit';
+  } else {
+    crystal.habit = 'tabular_tetragonal';
+    crystal.dominant_forms = ['{001} tabular plate', 'tetragonal honey-yellow'];
+    habit_note = 'tabular stolzite — late-stage low-σ habit';
+  }
+  conditions.fluid.Pb = Math.max(conditions.fluid.Pb - rate * 0.005, 0);
+  conditions.fluid.W  = Math.max(conditions.fluid.W  - rate * 0.020, 0);
+  return new GrowthZone({ step, temperature: conditions.temperature, thickness_um: rate, growth_rate: rate, note: habit_note });
+}
+
+// Olivenite — Cu2AsO4(OH) (Cu end of olivenite-adamite series)
+function grow_olivenite(crystal, conditions, step) {
+  const sigma = conditions.supersaturation_olivenite();
+  if (sigma < 1.0) return null;
+  const excess = sigma - 1.0;
+  const rate = 2.5 * excess * rng.uniform(0.8, 1.2);
+  if (rate < 0.1) return null;
+  let habit_note;
+  if (excess > 1.5) {
+    crystal.habit = 'fibrous';
+    crystal.dominant_forms = ['radiating acicular fibers', 'olive-green silky'];
+    habit_note = 'fibrous olivenite — high-σ silky habit';
+  } else if (excess > 0.6) {
+    crystal.habit = 'prismatic';
+    crystal.dominant_forms = ['{110} prism', 'olive-green prisms'];
+    habit_note = 'prismatic olivenite — Cornwall display habit';
+  } else {
+    crystal.habit = 'globular';
+    crystal.dominant_forms = ['botryoidal globule', 'olive crust'];
+    habit_note = 'globular olivenite — Tsumeb / Bisbee secondary habit';
+  }
+  if (conditions.fluid.Zn > 10) {
+    const zn_pct = Math.min(50, 100 * conditions.fluid.Zn / Math.max(conditions.fluid.Cu + conditions.fluid.Zn, 1));
+    if (zn_pct > 10) habit_note += `; Zn-bearing (${zn_pct.toFixed(0)}% Zn — zincolivenite intermediate toward adamite)`;
+  }
+  conditions.fluid.Cu = Math.max(conditions.fluid.Cu - rate * 0.010, 0);
+  conditions.fluid.As = Math.max(conditions.fluid.As - rate * 0.005, 0);
+  return new GrowthZone({ step, temperature: conditions.temperature, thickness_um: rate, growth_rate: rate, note: habit_note });
+}
+
 // Nickeline — NiAs (high-T pale-copper-red Ni arsenide)
 function grow_nickeline(crystal, conditions, step) {
   const sigma = conditions.supersaturation_nickeline();
@@ -9624,6 +9869,11 @@ const MINERAL_ENGINES = {
   nickeline: grow_nickeline,
   millerite: grow_millerite,
   cobaltite: grow_cobaltite,
+  descloizite: grow_descloizite,
+  mottramite: grow_mottramite,
+  raspite: grow_raspite,
+  stolzite: grow_stolzite,
+  olivenite: grow_olivenite,
 };
 
 function grow_apophyllite(crystal, conditions, step) {
@@ -10383,6 +10633,7 @@ function scenario_supergene_oxidation() {
       // cap so alunite sigma can cross threshold during the brief
       // acid window. Source: Hemley 1969 + Stoffregen 2000.
       Al: 25,
+      W: 20,             // Round 8d-1 — Tsumeb deep oxidation zone hosts minor scheelite + lead-tungstate suite (raspite + stolzite, both PbWO4 polymorphs) [Strunz 1959]
       O2: 1.8, pH: 6.8, salinity: 2.0,
     }),
     // Supergene meteoric dissolution cavity — broad all-axis lumpiness.
@@ -11947,6 +12198,62 @@ class VugSimulator {
         if (active_galena_arg.length && rng.random() < 0.4) pos = `on galena #${active_galena_arg[0].crystal_id}`;
         const c = this.nucleate('argentite', pos, sigma_arg);
         this.log.push(`  ✦ NUCLEATION: Argentite #${c.crystal_id} on ${c.position} (T=${this.conditions.temperature.toFixed(0)}°C, σ=${sigma_arg.toFixed(2)}, Ag=${this.conditions.fluid.Ag.toFixed(2)}, S=${this.conditions.fluid.S.toFixed(0)})`);
+      }
+    }
+
+    // Descloizite nucleation — Pb + Zn + V + oxidizing.
+    const sigma_des = this.conditions.supersaturation_descloizite();
+    if (sigma_des > 1.0 && !this._atNucleationCap('descloizite')) {
+      if (rng.random() < 0.18) {
+        let pos = 'vug wall';
+        const active_van_des = this.crystals.filter(c => c.mineral === 'vanadinite' && c.active);
+        if (active_van_des.length && rng.random() < 0.4) pos = `on vanadinite #${active_van_des[0].crystal_id}`;
+        const c = this.nucleate('descloizite', pos, sigma_des);
+        this.log.push(`  ✦ NUCLEATION: Descloizite #${c.crystal_id} on ${c.position} (T=${this.conditions.temperature.toFixed(0)}°C, σ=${sigma_des.toFixed(2)}, Pb=${this.conditions.fluid.Pb.toFixed(0)}, Zn=${this.conditions.fluid.Zn.toFixed(0)}, V=${this.conditions.fluid.V.toFixed(1)})`);
+      }
+    }
+
+    // Mottramite nucleation — Pb + Cu + V + oxidizing.
+    const sigma_mot = this.conditions.supersaturation_mottramite();
+    if (sigma_mot > 1.0 && !this._atNucleationCap('mottramite')) {
+      if (rng.random() < 0.18) {
+        let pos = 'vug wall';
+        const active_van_mot = this.crystals.filter(c => c.mineral === 'vanadinite' && c.active);
+        if (active_van_mot.length && rng.random() < 0.4) pos = `on vanadinite #${active_van_mot[0].crystal_id}`;
+        const c = this.nucleate('mottramite', pos, sigma_mot);
+        this.log.push(`  ✦ NUCLEATION: Mottramite #${c.crystal_id} on ${c.position} (T=${this.conditions.temperature.toFixed(0)}°C, σ=${sigma_mot.toFixed(2)}, Pb=${this.conditions.fluid.Pb.toFixed(0)}, Cu=${this.conditions.fluid.Cu.toFixed(0)}, V=${this.conditions.fluid.V.toFixed(1)})`);
+      }
+    }
+
+    // Tungstate pair — raspite + stolzite both PbWO4, kinetic preference
+    // dispatcher gives stolzite ~90% of the time.
+    let sigma_rasp = this.conditions.supersaturation_raspite();
+    const sigma_stol = this.conditions.supersaturation_stolzite();
+    if (sigma_rasp > 1.4 && sigma_stol > 1.0 && rng.random() < 0.9) {
+      sigma_rasp = 0;
+    }
+    if (sigma_rasp > 1.4 && !this._atNucleationCap('raspite')) {
+      if (rng.random() < 0.16) {
+        const c = this.nucleate('raspite', 'vug wall', sigma_rasp);
+        this.log.push(`  ✦ NUCLEATION: Raspite #${c.crystal_id} on ${c.position} (T=${this.conditions.temperature.toFixed(0)}°C, σ=${sigma_rasp.toFixed(2)}, Pb=${this.conditions.fluid.Pb.toFixed(0)}, W=${this.conditions.fluid.W.toFixed(1)})`);
+      }
+    }
+    if (sigma_stol > 1.0 && !this._atNucleationCap('stolzite')) {
+      if (rng.random() < 0.18) {
+        const c = this.nucleate('stolzite', 'vug wall', sigma_stol);
+        this.log.push(`  ✦ NUCLEATION: Stolzite #${c.crystal_id} on ${c.position} (T=${this.conditions.temperature.toFixed(0)}°C, σ=${sigma_stol.toFixed(2)}, Pb=${this.conditions.fluid.Pb.toFixed(0)}, W=${this.conditions.fluid.W.toFixed(1)})`);
+      }
+    }
+
+    // Olivenite nucleation — Cu + As + oxidizing.
+    const sigma_oli = this.conditions.supersaturation_olivenite();
+    if (sigma_oli > 1.0 && !this._atNucleationCap('olivenite')) {
+      if (rng.random() < 0.18) {
+        let pos = 'vug wall';
+        const active_mal_oli = this.crystals.filter(c => c.mineral === 'malachite' && c.active);
+        if (active_mal_oli.length && rng.random() < 0.3) pos = `on malachite #${active_mal_oli[0].crystal_id}`;
+        const c = this.nucleate('olivenite', pos, sigma_oli);
+        this.log.push(`  ✦ NUCLEATION: Olivenite #${c.crystal_id} on ${c.position} (T=${this.conditions.temperature.toFixed(0)}°C, σ=${sigma_oli.toFixed(2)}, Cu=${this.conditions.fluid.Cu.toFixed(0)}, As=${this.conditions.fluid.As.toFixed(0)})`);
       }
     }
 
@@ -14007,6 +14314,47 @@ class VugSimulator {
     } else if (c.zones && c.zones.length > 15) {
       parts.push('Tarnish — surface oxidation has darkened the original lead-gray luster to deep iron-black. Even in a sealed vug, atmospheric S compounds eventually reach the surface.');
     }
+    return parts.join(' ');
+  }
+
+  _narrate_descloizite(c) {
+    const parts = [`Descloizite #${c.crystal_id} grew to ${c.c_length_mm.toFixed(1)} mm.`];
+    parts.push("Pb(Zn,Cu)VO₄(OH) — orthorhombic Pb-Zn vanadate, the Zn end of the descloizite-mottramite series. Cherry-red to brown-red, Mohs 3-3.5; the Tsumeb display standard. Forms in supergene oxidation zones where Pb-Zn sulfide ore (galena + sphalerite) has weathered AND V is delivered by groundwater. When Cu > Zn, mottramite (the olive-green Cu sibling) takes priority instead.");
+    if (c.habit === 'botryoidal') parts.push('Botryoidal mammillary crust — Mibladen / Berg-Aukas habit.');
+    else if (c.habit === 'prismatic') parts.push('Prismatic — the Tsumeb display habit.');
+    else parts.push('Tabular — late-stage low-σ habit.');
+    return parts.join(' ');
+  }
+
+  _narrate_mottramite(c) {
+    const parts = [`Mottramite #${c.crystal_id} grew to ${c.c_length_mm.toFixed(1)} mm.`];
+    parts.push("Pb(Cu,Zn)VO₄(OH) — orthorhombic Pb-Cu vanadate, the Cu end of the descloizite-mottramite series. Olive-green to yellowish-green from the Cu chromophore. Type locality: Mottram St. Andrew, Cheshire (England), 1876. Tsumeb produces the museum specimens. When Zn ≥ Cu, descloizite takes priority.");
+    if (c.habit === 'botryoidal') parts.push('Botryoidal — Mottram St Andrew habit.');
+    else if (c.habit === 'prismatic') parts.push("Prismatic — Tsumeb's olive-green crystals.");
+    else parts.push('Tabular — late-stage habit.');
+    return parts.join(' ');
+  }
+
+  _narrate_raspite(c) {
+    const parts = [`Raspite #${c.crystal_id} grew to ${c.c_length_mm.toFixed(1)} mm.`];
+    parts.push("PbWO₄ — monoclinic lead tungstate, RARE. Same composition as stolzite but a different crystal system; stolzite (tetragonal) is favored ~90% of the time. Honey-yellow tabular crystals with perfect {100} cleavage. Type locality: Broken Hill, NSW, Australia.");
+    return parts.join(' ');
+  }
+
+  _narrate_stolzite(c) {
+    const parts = [`Stolzite #${c.crystal_id} grew to ${c.c_length_mm.toFixed(1)} mm.`];
+    parts.push("PbWO₄ — tetragonal lead tungstate, the lead analog of scheelite. Honey-yellow to orange-yellow Mohs 2.5-3 tetragonal crystals; the dominant PbWO₄ polymorph (~90% over raspite). Type locality: Cínovec (Czech Republic). Broken Hill (Australia) and Tsumeb (Namibia) produce museum specimens.");
+    if (c.habit === 'dipyramidal') parts.push('Dipyramidal — {101} faces, Broken Hill / Tsumeb display habit.');
+    else parts.push('Tabular — {001} plates, late-stage habit.');
+    return parts.join(' ');
+  }
+
+  _narrate_olivenite(c) {
+    const parts = [`Olivenite #${c.crystal_id} grew to ${c.c_length_mm.toFixed(1)} mm.`];
+    parts.push("Cu₂AsO₄(OH) — orthorhombic Cu arsenate, the Cu end of the olivenite-adamite series. Olive-green to grayish-green (the Cu chromophore — olive in name and color), Mohs 3-4. Cornwall is the type locality; Tsumeb and Bisbee produce showcase modern specimens. When Zn > Cu, adamite takes priority.");
+    if (c.habit === 'fibrous') parts.push("Fibrous — radiating acicular bundles, the Cornish 'wood-copper' silky habit.");
+    else if (c.habit === 'prismatic') parts.push('Prismatic — the Cornwall display habit.');
+    else parts.push('Globular — Tsumeb / Bisbee secondary habit.');
     return parts.join(' ');
   }
 
@@ -18501,7 +18849,9 @@ const IDLE_MINERAL_COLORS = {
   corundum: '#c8c8c8', ruby: '#c03030', sapphire: '#304068',
   acanthite: '#404040', argentite: '#303030', native_silver: '#d4d4d4',
   native_arsenic: '#888888', native_sulfur: '#f5d030', native_tellurium: '#b8b8c8',
-  nickeline: '#d49080', millerite: '#c8b860', cobaltite: '#d8d4cc'
+  nickeline: '#d49080', millerite: '#c8b860', cobaltite: '#d8d4cc',
+  descloizite: '#8a3020', mottramite: '#8a9a40',
+  raspite: '#d4b840', stolzite: '#d49a30', olivenite: '#5a7030'
 };
 
 const IDLE_SPEED_MAP = [0.5, 1, 2, 5, 10]; // steps per second

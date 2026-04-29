@@ -1341,14 +1341,21 @@ class VugConditions:
 
     def supersaturation_adamite(self) -> float:
         """Adamite (Zn₂(AsO₄)(OH)) supersaturation. Needs Zn + As + oxidizing + low T.
-        
+
         Secondary mineral forming in oxidation zones of zinc-arsenic deposits.
         Bright green fluorescence under UV (activated by Cu²⁺ substitution).
         Non-fluorescent crystals coexist with fluorescent ones — the contradiction.
         Prismatic to tabular crystals, often on limonite.
         Forms at low temperature (<100°C) in near-surface oxidation zones.
+
+        Round 8d (Apr 2026): Cu/Zn ratio dispatch added — when Cu > Zn,
+        olivenite (Cu₂AsO₄(OH)) takes priority over adamite (the Cu and
+        Zn end-members of the same arsenate structure type).
         """
         if self.fluid.Zn < 10 or self.fluid.As < 5 or self.fluid.O2 < 0.3:
+            return 0
+        # Round 8d Cu/Zn dispatch — olivenite wins when Cu > Zn.
+        if self.fluid.Cu > self.fluid.Zn:
             return 0
         sigma = (self.fluid.Zn / 80.0) * (self.fluid.As / 30.0) * (self.fluid.O2 / 1.0)
         # Low temperature mineral — suppressed above 100°C
@@ -2973,6 +2980,197 @@ class VugConditions:
         # Tighter than acanthite because high-T fluids run hotter
         # base-metal loadings.
         if self.fluid.Cu > 30:
+            sigma *= 0.6
+        return max(sigma, 0)
+
+    def supersaturation_descloizite(self) -> float:
+        """Descloizite (Pb(Zn,Cu)VO₄(OH)) — the Zn end of the descloizite-
+        mottramite series.
+
+        Cu/Zn-ratio dispatch: when Cu > Zn, mottramite takes priority
+        (same lattice but Cu replaces Zn). When Zn ≥ Cu, descloizite
+        is the stable phase. Forms only in supergene oxidation zones
+        where Pb-Zn sulfide ore (galena + sphalerite) has weathered
+        and the V is delivered by groundwater (red-bed roll-front
+        signature).
+
+        Source: research/research-descloizite.md (boss commit f2939da);
+        Strunz 1959 (Tsumeb monograph).
+        """
+        if self.fluid.Pb < 40 or self.fluid.Zn < 50 or self.fluid.V < 10:
+            return 0
+        if self.fluid.O2 < 0.5:
+            return 0
+        # Cu/Zn dispatch — mottramite wins when Cu > Zn.
+        if self.fluid.Cu > self.fluid.Zn:
+            return 0
+        pb_f = min(self.fluid.Pb / 80.0, 2.5)
+        zn_f = min(self.fluid.Zn / 80.0, 2.5)
+        v_f  = min(self.fluid.V  / 20.0, 2.5)
+        ox_f = min(self.fluid.O2 / 1.0, 2.0)
+        sigma = pb_f * zn_f * v_f * ox_f
+        T = self.temperature
+        if 30 <= T <= 50:
+            T_factor = 1.2
+        elif T < 20:
+            T_factor = 0.4
+        elif T < 30:
+            T_factor = 0.4 + 0.08 * (T - 20)
+        elif T <= 80:
+            T_factor = max(0.4, 1.2 - 0.020 * (T - 50))
+        else:
+            T_factor = 0.3
+        sigma *= T_factor
+        if self.fluid.pH < 4 or self.fluid.pH > 8:
+            sigma *= 0.6
+        return max(sigma, 0)
+
+    def supersaturation_mottramite(self) -> float:
+        """Mottramite (Pb(Cu,Zn)VO₄(OH)) — the Cu end of the descloizite-
+        mottramite series.
+
+        Cu/Zn-ratio dispatch: when Zn ≥ Cu, descloizite takes priority.
+        When Cu > Zn, mottramite is the stable phase. Olive-green to
+        yellowish-green (the Cu chromophore distinguishing it from the
+        red-brown descloizite). Forms in the same supergene oxidation
+        zones; Tsumeb is the type for both species.
+
+        Source: research/research-mottramite.md (boss commit f2939da).
+        """
+        if self.fluid.Pb < 40 or self.fluid.Cu < 50 or self.fluid.V < 10:
+            return 0
+        if self.fluid.O2 < 0.5:
+            return 0
+        # Cu/Zn dispatch — descloizite wins when Zn ≥ Cu.
+        if self.fluid.Zn >= self.fluid.Cu:
+            return 0
+        pb_f = min(self.fluid.Pb / 80.0, 2.5)
+        cu_f = min(self.fluid.Cu / 80.0, 2.5)
+        v_f  = min(self.fluid.V  / 20.0, 2.5)
+        ox_f = min(self.fluid.O2 / 1.0, 2.0)
+        sigma = pb_f * cu_f * v_f * ox_f
+        T = self.temperature
+        if 30 <= T <= 50:
+            T_factor = 1.2
+        elif T < 20:
+            T_factor = 0.4
+        elif T < 30:
+            T_factor = 0.4 + 0.08 * (T - 20)
+        elif T <= 80:
+            T_factor = max(0.4, 1.2 - 0.020 * (T - 50))
+        else:
+            T_factor = 0.3
+        sigma *= T_factor
+        if self.fluid.pH < 4 or self.fluid.pH > 8:
+            sigma *= 0.6
+        return max(sigma, 0)
+
+    def supersaturation_raspite(self) -> float:
+        """Raspite (PbWO₄, monoclinic) — the rare PbWO₄ polymorph.
+
+        Same composition as stolzite (PbWO₄) but a different
+        crystal system. Stolzite is tetragonal (more common); raspite
+        is monoclinic (rare). The kinetic preference dispatcher in
+        check_nucleation favors stolzite ~90% of the time when both
+        gates clear — same composition, two minerals separated by
+        crystallographic preference.
+
+        Source: research/research-raspite.md (boss commit f2939da).
+        """
+        if self.fluid.Pb < 40 or self.fluid.W < 5:
+            return 0
+        if self.fluid.O2 < 0.5:
+            return 0
+        pb_f = min(self.fluid.Pb / 80.0, 2.0)
+        w_f  = min(self.fluid.W  / 15.0, 2.5)
+        ox_f = min(self.fluid.O2 / 1.0, 2.0)
+        sigma = pb_f * w_f * ox_f
+        T = self.temperature
+        if 20 <= T <= 40:
+            T_factor = 1.2
+        elif T < 10:
+            T_factor = 0.4
+        elif T < 20:
+            T_factor = 0.4 + 0.08 * (T - 10)
+        elif T <= 50:
+            T_factor = max(0.4, 1.2 - 0.040 * (T - 40))
+        else:
+            T_factor = 0.3
+        sigma *= T_factor
+        if self.fluid.pH < 4 or self.fluid.pH > 8:
+            sigma *= 0.6
+        return max(sigma, 0)
+
+    def supersaturation_stolzite(self) -> float:
+        """Stolzite (PbWO₄, tetragonal) — the common PbWO₄ polymorph.
+
+        Same composition as raspite (PbWO₄) but tetragonal — much more
+        common in nature than raspite. Honey-yellow to orange-yellow,
+        the lead analog of scheelite (CaWO₄). The kinetic preference
+        dispatcher in check_nucleation favors stolzite ~90% over
+        raspite when both gates clear.
+
+        Source: research/research-stolzite.md (boss commit f2939da).
+        """
+        if self.fluid.Pb < 40 or self.fluid.W < 5:
+            return 0
+        if self.fluid.O2 < 0.5:
+            return 0
+        pb_f = min(self.fluid.Pb / 80.0, 2.5)
+        w_f  = min(self.fluid.W  / 15.0, 2.5)
+        ox_f = min(self.fluid.O2 / 1.0, 2.0)
+        sigma = pb_f * w_f * ox_f
+        T = self.temperature
+        if 20 <= T <= 80:
+            T_factor = 1.2
+        elif T < 10:
+            T_factor = 0.4
+        elif T < 20:
+            T_factor = 0.4 + 0.08 * (T - 10)
+        elif T <= 100:
+            T_factor = max(0.4, 1.2 - 0.020 * (T - 80))
+        else:
+            T_factor = 0.3
+        sigma *= T_factor
+        if self.fluid.pH < 4 or self.fluid.pH > 8:
+            sigma *= 0.6
+        return max(sigma, 0)
+
+    def supersaturation_olivenite(self) -> float:
+        """Olivenite (Cu₂AsO₄(OH)) — the Cu arsenate.
+
+        Olive-green to grayish-green, the diagnostic Cu chromophore.
+        Cu/Zn-ratio dispatch with adamite (the existing Zn arsenate):
+        when Zn > Cu, adamite wins. When Cu ≥ Zn, olivenite. Forms in
+        Cu-rich supergene oxidation zones — the type at Cornwall,
+        Tsumeb, Bisbee.
+
+        Source: research/research-olivenite.md (boss commit f2939da).
+        """
+        if self.fluid.Cu < 50 or self.fluid.As < 10:
+            return 0
+        if self.fluid.O2 < 0.5:
+            return 0
+        # Cu/Zn dispatch — adamite wins when Zn > Cu.
+        if self.fluid.Zn > self.fluid.Cu:
+            return 0
+        cu_f = min(self.fluid.Cu / 80.0, 2.5)
+        as_f = min(self.fluid.As / 20.0, 2.5)
+        ox_f = min(self.fluid.O2 / 1.0, 2.0)
+        sigma = cu_f * as_f * ox_f
+        T = self.temperature
+        if 20 <= T <= 40:
+            T_factor = 1.2
+        elif T < 10:
+            T_factor = 0.4
+        elif T < 20:
+            T_factor = 0.4 + 0.08 * (T - 10)
+        elif T <= 50:
+            T_factor = max(0.4, 1.2 - 0.040 * (T - 40))
+        else:
+            T_factor = 0.3
+        sigma *= T_factor
+        if self.fluid.pH < 4 or self.fluid.pH > 8:
             sigma *= 0.6
         return max(sigma, 0)
 
@@ -8508,6 +8706,176 @@ def grow_argentite(crystal: Crystal, conditions: VugConditions, step: int) -> Op
     )
 
 
+def grow_descloizite(crystal: Crystal, conditions: VugConditions, step: int) -> Optional[GrowthZone]:
+    """Descloizite (PbZnVO₄(OH)) — the Zn end of the descloizite-mottramite series.
+
+    Cherry-red to brown-red orthorhombic prisms; the Tsumeb display
+    standard. Cu/Zn dispatch routes Cu-rich fluids to mottramite.
+    """
+    sigma = conditions.supersaturation_descloizite()
+    if sigma < 1.0:
+        return None
+    excess = sigma - 1.0
+    rate = 2.5 * excess * random.uniform(0.8, 1.2)
+    if rate < 0.1:
+        return None
+    if excess > 1.5:
+        crystal.habit = "botryoidal"
+        crystal.dominant_forms = ["mammillary cherry-red crust", "concentric layers"]
+        habit_note = "botryoidal descloizite — Mibladen / Berg-Aukas habit"
+    elif excess > 0.6:
+        crystal.habit = "prismatic"
+        crystal.dominant_forms = ["{010} pyramid", "{110} prism"]
+        habit_note = "prismatic descloizite — Tsumeb display habit"
+    else:
+        crystal.habit = "tabular"
+        crystal.dominant_forms = ["{010} tabular", "cherry-red plates"]
+        habit_note = "tabular descloizite — late-stage low-σ growth"
+    # Cu fraction in solid solution (research file: Cu can substitute up to ~30%)
+    if conditions.fluid.Cu > 10:
+        cu_pct = min(30, 100 * conditions.fluid.Cu / max(conditions.fluid.Cu + conditions.fluid.Zn, 1))
+        if cu_pct > 5:
+            habit_note += f"; Cu-bearing ({cu_pct:.0f}% Cu in Zn-site, mottramite-intermediate)"
+    conditions.fluid.Pb = max(conditions.fluid.Pb - rate * 0.005, 0)
+    conditions.fluid.Zn = max(conditions.fluid.Zn - rate * 0.010, 0)
+    conditions.fluid.V  = max(conditions.fluid.V  - rate * 0.005, 0)
+    return GrowthZone(
+        step=step, temperature=conditions.temperature,
+        thickness_um=rate, growth_rate=rate, note=habit_note,
+    )
+
+
+def grow_mottramite(crystal: Crystal, conditions: VugConditions, step: int) -> Optional[GrowthZone]:
+    """Mottramite (PbCu(VO₄)(OH)) — the Cu end of the descloizite-mottramite series.
+
+    Olive-green to yellowish-green orthorhombic prisms; the Cu chromophore
+    distinguishes from cherry-red descloizite.
+    """
+    sigma = conditions.supersaturation_mottramite()
+    if sigma < 1.0:
+        return None
+    excess = sigma - 1.0
+    rate = 2.5 * excess * random.uniform(0.8, 1.2)
+    if rate < 0.1:
+        return None
+    if excess > 1.5:
+        crystal.habit = "botryoidal"
+        crystal.dominant_forms = ["mammillary olive-green crust", "concentric layers"]
+        habit_note = "botryoidal mottramite — Mottram St Andrew (Cheshire) type habit"
+    elif excess > 0.6:
+        crystal.habit = "prismatic"
+        crystal.dominant_forms = ["{010} pyramid", "{110} prism"]
+        habit_note = "prismatic mottramite — Tsumeb olive-green crystals"
+    else:
+        crystal.habit = "tabular"
+        crystal.dominant_forms = ["{010} tabular", "olive-green plates"]
+        habit_note = "tabular mottramite — late-stage habit"
+    # Zn fraction in solid solution
+    if conditions.fluid.Zn > 10:
+        zn_pct = min(30, 100 * conditions.fluid.Zn / max(conditions.fluid.Cu + conditions.fluid.Zn, 1))
+        if zn_pct > 5:
+            habit_note += f"; Zn-bearing ({zn_pct:.0f}% Zn in Cu-site, descloizite-intermediate)"
+    conditions.fluid.Pb = max(conditions.fluid.Pb - rate * 0.005, 0)
+    conditions.fluid.Cu = max(conditions.fluid.Cu - rate * 0.010, 0)
+    conditions.fluid.V  = max(conditions.fluid.V  - rate * 0.005, 0)
+    return GrowthZone(
+        step=step, temperature=conditions.temperature,
+        thickness_um=rate, growth_rate=rate, note=habit_note,
+    )
+
+
+def grow_raspite(crystal: Crystal, conditions: VugConditions, step: int) -> Optional[GrowthZone]:
+    """Raspite (PbWO₄, monoclinic) — RARE PbWO₄ polymorph.
+
+    Honey-yellow to brownish-yellow tabular crystals. Distinguished
+    from stolzite (its tetragonal sibling) only by crystal system; the
+    color and locality association are identical.
+    """
+    sigma = conditions.supersaturation_raspite()
+    if sigma < 1.0:
+        return None
+    excess = sigma - 1.0
+    rate = 1.8 * excess * random.uniform(0.8, 1.2)
+    if rate < 0.1:
+        return None
+    crystal.habit = "tabular_monoclinic"
+    crystal.dominant_forms = ["monoclinic tabular plate", "honey-yellow"]
+    habit_note = "raspite — RARE monoclinic PbWO₄, Broken Hill habit"
+    conditions.fluid.Pb = max(conditions.fluid.Pb - rate * 0.005, 0)
+    conditions.fluid.W  = max(conditions.fluid.W  - rate * 0.020, 0)
+    return GrowthZone(
+        step=step, temperature=conditions.temperature,
+        thickness_um=rate, growth_rate=rate, note=habit_note,
+    )
+
+
+def grow_stolzite(crystal: Crystal, conditions: VugConditions, step: int) -> Optional[GrowthZone]:
+    """Stolzite (PbWO₄, tetragonal) — the common PbWO₄ polymorph.
+
+    Honey-yellow to orange-yellow tetragonal crystals. The tetragonal
+    polymorph favored ~90% of the time over its monoclinic sibling
+    raspite (kinetic preference dispatcher in check_nucleation).
+    """
+    sigma = conditions.supersaturation_stolzite()
+    if sigma < 1.0:
+        return None
+    excess = sigma - 1.0
+    rate = 2.5 * excess * random.uniform(0.8, 1.2)
+    if rate < 0.1:
+        return None
+    if excess > 1.0:
+        crystal.habit = "dipyramidal"
+        crystal.dominant_forms = ["{101} dipyramid", "tetragonal honey-yellow"]
+        habit_note = "dipyramidal stolzite — Broken Hill / Tsumeb display habit"
+    else:
+        crystal.habit = "tabular_tetragonal"
+        crystal.dominant_forms = ["{001} tabular plate", "tetragonal honey-yellow"]
+        habit_note = "tabular stolzite — late-stage low-σ habit"
+    conditions.fluid.Pb = max(conditions.fluid.Pb - rate * 0.005, 0)
+    conditions.fluid.W  = max(conditions.fluid.W  - rate * 0.020, 0)
+    return GrowthZone(
+        step=step, temperature=conditions.temperature,
+        thickness_um=rate, growth_rate=rate, note=habit_note,
+    )
+
+
+def grow_olivenite(crystal: Crystal, conditions: VugConditions, step: int) -> Optional[GrowthZone]:
+    """Olivenite (Cu₂AsO₄(OH)) — the Cu arsenate.
+
+    Olive-green to grayish-green orthorhombic prisms. Cu/Zn dispatch
+    with adamite (the Zn-end-member of the same structure).
+    """
+    sigma = conditions.supersaturation_olivenite()
+    if sigma < 1.0:
+        return None
+    excess = sigma - 1.0
+    rate = 2.5 * excess * random.uniform(0.8, 1.2)
+    if rate < 0.1:
+        return None
+    if excess > 1.5:
+        crystal.habit = "fibrous"
+        crystal.dominant_forms = ["radiating acicular fibers", "olive-green silky"]
+        habit_note = "fibrous olivenite — high-σ silky habit"
+    elif excess > 0.6:
+        crystal.habit = "prismatic"
+        crystal.dominant_forms = ["{110} prism", "olive-green prisms"]
+        habit_note = "prismatic olivenite — Cornwall display habit"
+    else:
+        crystal.habit = "globular"
+        crystal.dominant_forms = ["botryoidal globule", "olive crust"]
+        habit_note = "globular olivenite — Tsumeb / Bisbee secondary habit"
+    if conditions.fluid.Zn > 10:
+        zn_pct = min(50, 100 * conditions.fluid.Zn / max(conditions.fluid.Cu + conditions.fluid.Zn, 1))
+        if zn_pct > 10:
+            habit_note += f"; Zn-bearing ({zn_pct:.0f}% Zn — zincolivenite intermediate toward adamite)"
+    conditions.fluid.Cu = max(conditions.fluid.Cu - rate * 0.010, 0)
+    conditions.fluid.As = max(conditions.fluid.As - rate * 0.005, 0)
+    return GrowthZone(
+        step=step, temperature=conditions.temperature,
+        thickness_um=rate, growth_rate=rate, note=habit_note,
+    )
+
+
 def grow_nickeline(crystal: Crystal, conditions: VugConditions, step: int) -> Optional[GrowthZone]:
     """Nickeline (NiAs) — high-T Ni arsenide. Pale copper-red metallic.
 
@@ -9127,6 +9495,11 @@ MINERAL_ENGINES = {
     "nickeline": grow_nickeline,
     "millerite": grow_millerite,
     "cobaltite": grow_cobaltite,
+    "descloizite": grow_descloizite,
+    "mottramite": grow_mottramite,
+    "raspite": grow_raspite,
+    "stolzite": grow_stolzite,
+    "olivenite": grow_olivenite,
 }
 
 
@@ -10045,6 +10418,12 @@ def scenario_supergene_oxidation() -> Tuple[VugConditions, List[Event], int]:
             # solubility under acid-sulfate conditions); Stoffregen
             # et al. 2000 (alunite-jarosite paragenesis review).
             Al=25,
+            # W=20: Round 8d-1 (Apr 2026). Tsumeb's deep oxidation
+            # zone hosts minor scheelite + the lead-tungstate suite
+            # (raspite + stolzite — both PbWO₄ polymorphs) [Strunz
+            # 1959]. Activates dormant W pool for the new tungstate
+            # engines.
+            W=20,
             # ──────────────────────────────────────────────────────────
             O2=1.8, pH=6.8, salinity=2.0,
         ),
@@ -12631,6 +13010,71 @@ class VugSimulator:
                 self.log.append(f"  ✦ NUCLEATION: Argentite #{c.crystal_id} on {c.position} "
                               f"(T={self.conditions.temperature:.0f}°C, σ={sigma_arg:.2f}, "
                               f"Ag={self.conditions.fluid.Ag:.2f}, S={self.conditions.fluid.S:.0f})")
+
+        # Descloizite nucleation — Pb + Zn + V + oxidizing.
+        sigma_des = self.conditions.supersaturation_descloizite()
+        if sigma_des > 1.0 and not self._at_nucleation_cap("descloizite"):
+            if random.random() < 0.18:
+                pos = "vug wall"
+                active_van = [c for c in self.crystals if c.mineral == "vanadinite" and c.active]
+                if active_van and random.random() < 0.4:
+                    pos = f"on vanadinite #{active_van[0].crystal_id}"
+                c = self.nucleate("descloizite", position=pos, sigma=sigma_des)
+                self.log.append(f"  ✦ NUCLEATION: Descloizite #{c.crystal_id} on {c.position} "
+                              f"(T={self.conditions.temperature:.0f}°C, σ={sigma_des:.2f}, "
+                              f"Pb={self.conditions.fluid.Pb:.0f}, Zn={self.conditions.fluid.Zn:.0f}, "
+                              f"V={self.conditions.fluid.V:.1f})")
+
+        # Mottramite nucleation — Pb + Cu + V + oxidizing.
+        sigma_mot = self.conditions.supersaturation_mottramite()
+        if sigma_mot > 1.0 and not self._at_nucleation_cap("mottramite"):
+            if random.random() < 0.18:
+                pos = "vug wall"
+                active_van = [c for c in self.crystals if c.mineral == "vanadinite" and c.active]
+                if active_van and random.random() < 0.4:
+                    pos = f"on vanadinite #{active_van[0].crystal_id}"
+                c = self.nucleate("mottramite", position=pos, sigma=sigma_mot)
+                self.log.append(f"  ✦ NUCLEATION: Mottramite #{c.crystal_id} on {c.position} "
+                              f"(T={self.conditions.temperature:.0f}°C, σ={sigma_mot:.2f}, "
+                              f"Pb={self.conditions.fluid.Pb:.0f}, Cu={self.conditions.fluid.Cu:.0f}, "
+                              f"V={self.conditions.fluid.V:.1f})")
+
+        # Tungstate pair — raspite + stolzite both PbWO₄, kinetic
+        # preference dispatcher gives stolzite ~90% of the time.
+        sigma_rasp = self.conditions.supersaturation_raspite()
+        sigma_stol = self.conditions.supersaturation_stolzite()
+        if sigma_rasp > 1.4 and sigma_stol > 1.0 and random.random() < 0.9:
+            sigma_rasp = 0  # stolzite preferred kinetically
+
+        if sigma_rasp > 1.4 and not self._at_nucleation_cap("raspite"):
+            if random.random() < 0.16:
+                pos = "vug wall"
+                c = self.nucleate("raspite", position=pos, sigma=sigma_rasp)
+                self.log.append(f"  ✦ NUCLEATION: Raspite #{c.crystal_id} on {c.position} "
+                              f"(T={self.conditions.temperature:.0f}°C, σ={sigma_rasp:.2f}, "
+                              f"Pb={self.conditions.fluid.Pb:.0f}, W={self.conditions.fluid.W:.1f})")
+
+        if sigma_stol > 1.0 and not self._at_nucleation_cap("stolzite"):
+            if random.random() < 0.18:
+                pos = "vug wall"
+                c = self.nucleate("stolzite", position=pos, sigma=sigma_stol)
+                self.log.append(f"  ✦ NUCLEATION: Stolzite #{c.crystal_id} on {c.position} "
+                              f"(T={self.conditions.temperature:.0f}°C, σ={sigma_stol:.2f}, "
+                              f"Pb={self.conditions.fluid.Pb:.0f}, W={self.conditions.fluid.W:.1f})")
+
+        # Olivenite nucleation — Cu + As + oxidizing (Cu/Zn dispatch
+        # routes Zn-rich fluid to adamite).
+        sigma_oli = self.conditions.supersaturation_olivenite()
+        if sigma_oli > 1.0 and not self._at_nucleation_cap("olivenite"):
+            if random.random() < 0.18:
+                pos = "vug wall"
+                active_mal = [c for c in self.crystals if c.mineral == "malachite" and c.active]
+                if active_mal and random.random() < 0.3:
+                    pos = f"on malachite #{active_mal[0].crystal_id}"
+                c = self.nucleate("olivenite", position=pos, sigma=sigma_oli)
+                self.log.append(f"  ✦ NUCLEATION: Olivenite #{c.crystal_id} on {c.position} "
+                              f"(T={self.conditions.temperature:.0f}°C, σ={sigma_oli:.2f}, "
+                              f"Cu={self.conditions.fluid.Cu:.0f}, As={self.conditions.fluid.As:.0f})")
 
         # Nickeline nucleation — Ni + As + reducing + high T.
         sigma_nik = self.conditions.supersaturation_nickeline()
@@ -15671,6 +16115,23 @@ class VugSimulator:
                 "to the fluid, potentially feeding later mimetite or olivenite growth."
             )
 
+        # Round 8d addition: olivenite is the Cu-end-member sibling of
+        # adamite. They share the same orthorhombic structure with the
+        # metal site filled by Zn (adamite) or Cu (olivenite). Surface
+        # the dispatcher logic in the narration.
+        active_oli = [oc for oc in self.crystals if oc.mineral == "olivenite" and oc.active]
+        if active_oli:
+            parts.append(
+                f"Olivenite companion — there's an active olivenite "
+                f"(#{active_oli[0].crystal_id}) in this vug. Adamite and "
+                f"olivenite are end-members of the same arsenate "
+                f"structure: Zn₂AsO₄(OH) here, Cu₂AsO₄(OH) there. The "
+                f"Cu/Zn ratio in the supergene fluid decides which one "
+                f"crystallizes from any given pocket. Tsumeb shows both "
+                f"on the same matrix when the local Cu/Zn ratio fluctuates "
+                f"between fluid pulses."
+            )
+
         return " ".join(parts)
 
     def _narrate_mimetite(self, c: Crystal) -> str:
@@ -16861,6 +17322,31 @@ class VugSimulator:
             "ironstones) — an arid-climate signature. The rock-shop "
             "cliché 'vanadinite on goethite' is geologically accurate."
         )
+
+        # Round 8d addition: descloizite + mottramite are paragenetic
+        # vanadinite companions — same V source, different cation
+        # partner. Surface the trio when descloizite or mottramite is
+        # present in the same vug.
+        active_des = [dc for dc in self.crystals if dc.mineral == "descloizite" and dc.active]
+        active_mot = [mc for mc in self.crystals if mc.mineral == "mottramite" and mc.active]
+        if active_des or active_mot:
+            companions = []
+            if active_des:
+                companions.append(f"descloizite #{active_des[0].crystal_id}")
+            if active_mot:
+                companions.append(f"mottramite #{active_mot[0].crystal_id}")
+            parts.append(
+                f"Vanadate companions — {' and '.join(companions)} share "
+                f"this vug. Descloizite (PbZnVO₄(OH)) and mottramite "
+                f"(PbCu(VO₄)(OH)) are both Pb vanadates that draw their V "
+                f"from the same red-bed source as vanadinite, but partner "
+                f"with Zn and Cu respectively instead of binding to "
+                f"Cl⁻. Tsumeb is the type for the full vanadinite + "
+                f"descloizite + mottramite trio — three minerals "
+                f"recording three different cation availabilities in the "
+                f"same supergene cascade."
+            )
+
         return " ".join(parts)
 
     def _narrate_bornite(self, c: Crystal) -> str:
@@ -17668,6 +18154,132 @@ class VugSimulator:
                 "vug, atmospheric S compounds eventually reach the "
                 "surface. Display specimens are usually re-polished "
                 "before sale."
+            )
+        return " ".join(parts)
+
+    def _narrate_descloizite(self, c: Crystal) -> str:
+        """Narrate descloizite — the cherry-red Zn-end Pb vanadate."""
+        parts = [f"Descloizite #{c.crystal_id} grew to {c.c_length_mm:.1f} mm."]
+        parts.append(
+            "Pb(Zn,Cu)VO₄(OH) — orthorhombic Pb-Zn vanadate, the Zn end "
+            "of the descloizite-mottramite series. Cherry-red to brown-red, "
+            "Mohs 3-3.5, the Tsumeb display standard. Forms in supergene "
+            "oxidation zones where Pb-Zn sulfide ore (galena + sphalerite) "
+            "has weathered AND V is delivered by groundwater (red-bed "
+            "roll-front signature). When Cu > Zn in the fluid, mottramite "
+            "(the Cu-end olive-green sibling) takes priority instead."
+        )
+        if c.habit == "botryoidal":
+            parts.append(
+                "Botryoidal mammillary crust — Mibladen (Morocco) and "
+                "Berg-Aukas (Namibia) habit. Concentric cherry-red layers "
+                "deposited from oscillating supergene fluid."
+            )
+        elif c.habit == "prismatic":
+            parts.append(
+                "Prismatic — the Tsumeb display habit. {010} pyramid + "
+                "{110} prism, often complex with multiple modifiers."
+            )
+        else:
+            parts.append(
+                "Tabular — late-stage low-σ habit, thin cherry-red plates "
+                "on the wall."
+            )
+        return " ".join(parts)
+
+    def _narrate_mottramite(self, c: Crystal) -> str:
+        """Narrate mottramite — the olive-green Cu-end Pb vanadate."""
+        parts = [f"Mottramite #{c.crystal_id} grew to {c.c_length_mm:.1f} mm."]
+        parts.append(
+            "Pb(Cu,Zn)VO₄(OH) — orthorhombic Pb-Cu vanadate, the Cu end "
+            "of the descloizite-mottramite series. Olive-green to "
+            "yellowish-green from the Cu chromophore, distinguishing it "
+            "at a glance from cherry-red descloizite. Type locality: "
+            "Mottram St. Andrew, Cheshire (England), 1876. Tsumeb produces "
+            "the museum-grade specimens. When Zn ≥ Cu in the fluid, "
+            "descloizite takes priority instead."
+        )
+        if c.habit == "botryoidal":
+            parts.append(
+                "Botryoidal — concentric olive-green layers, the Mottram "
+                "St. Andrew type habit."
+            )
+        elif c.habit == "prismatic":
+            parts.append(
+                "Prismatic — Tsumeb's olive-green crystals; the world's "
+                "finest mottramite specimens."
+            )
+        else:
+            parts.append(
+                "Tabular — late-stage habit, olive plates on the wall."
+            )
+        return " ".join(parts)
+
+    def _narrate_raspite(self, c: Crystal) -> str:
+        """Narrate raspite — the rare monoclinic PbWO₄."""
+        parts = [f"Raspite #{c.crystal_id} grew to {c.c_length_mm:.1f} mm."]
+        parts.append(
+            "PbWO₄ — monoclinic lead tungstate, RARE. Same composition as "
+            "stolzite but a different crystal system; stolzite (tetragonal) "
+            "is favored ~90% of the time when both can form. Honey-yellow "
+            "to brownish-yellow tabular crystals with perfect cleavage on "
+            "{100}. Type locality: Broken Hill, NSW, Australia. The "
+            "kinetic preference dispatcher in this engine reflects natural "
+            "rarity — when you find a raspite specimen, it's the rare "
+            "polymorph that the diffusion-limited geometry happened to "
+            "favor in that particular vug."
+        )
+        return " ".join(parts)
+
+    def _narrate_stolzite(self, c: Crystal) -> str:
+        """Narrate stolzite — the common tetragonal PbWO₄."""
+        parts = [f"Stolzite #{c.crystal_id} grew to {c.c_length_mm:.1f} mm."]
+        parts.append(
+            "PbWO₄ — tetragonal lead tungstate, the lead analog of "
+            "scheelite (CaWO₄). Honey-yellow to orange-yellow Mohs 2.5-3 "
+            "tetragonal crystals; the tetragonal polymorph dominant "
+            "~90% of the time over its monoclinic sibling raspite. Type "
+            "locality: Cínovec (Czech Republic). Broken Hill (Australia) "
+            "and Tsumeb (Namibia) produce the museum specimens — sharp "
+            "honey-yellow dipyramids."
+        )
+        if c.habit == "dipyramidal":
+            parts.append(
+                "Dipyramidal — {101} faces, the Broken Hill / Tsumeb display "
+                "habit. Honey-yellow tetragonal symmetry visible at a glance."
+            )
+        else:
+            parts.append(
+                "Tabular — {001} plates, late-stage low-σ habit."
+            )
+        return " ".join(parts)
+
+    def _narrate_olivenite(self, c: Crystal) -> str:
+        """Narrate olivenite — the olive-green Cu arsenate."""
+        parts = [f"Olivenite #{c.crystal_id} grew to {c.c_length_mm:.1f} mm."]
+        parts.append(
+            "Cu₂AsO₄(OH) — orthorhombic Cu arsenate, the Cu end of the "
+            "olivenite-adamite series. Olive-green to grayish-green "
+            "(the Cu chromophore — olive in name and color), Mohs 3-4. "
+            "Forms in Cu-rich supergene oxidation zones; Cornwall is the "
+            "type locality, with Tsumeb and Bisbee producing showcase "
+            "modern specimens. When Zn > Cu in the fluid, adamite (the "
+            "Zn-end-member of the same arsenate structure) takes priority."
+        )
+        if c.habit == "fibrous":
+            parts.append(
+                "Fibrous — radiating acicular bundles, the high-σ silky "
+                "habit. The Cornish 'wood-copper' specimens are this form."
+            )
+        elif c.habit == "prismatic":
+            parts.append(
+                "Prismatic — the Cornwall display habit. {110} prisms with "
+                "olive-green tint."
+            )
+        else:
+            parts.append(
+                "Globular — botryoidal aggregates, the Tsumeb / Bisbee "
+                "secondary habit."
             )
         return " ".join(parts)
 

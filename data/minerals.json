@@ -7969,6 +7969,345 @@
       ],
       "audit_status": "Round 8c-4 (Apr 2026). Engine + supersaturation + nucleation + narrator complete in vugg.py + web/index.html; JSON entry mirrored to docs/. THREE-ELEMENT GATE engine: Co + As + S all required simultaneously at minimum thresholds (Co≥50, As≥100, S≥50). First three-element gate in the sim. Reducing (O₂<0.5) + T 300-600°C with peak 400-500. Substrate preference: arsenopyrite (the paragenetic predecessor). Habit variants: massive_granular (low σ, ore form), pyritohedral (mid σ, {210} striated faces — Cobalt Ontario diagnostic), reniform (high σ, botryoidal). Glaucodot series captured in narrator: Fe>100 in fluid yields '(Co,Fe)AsS' note — the iron-rich end of the cobaltite-glaucodot solid solution (Skutterud type). Engine includes oxidative-dissolution branch: when O₂>0.7, releases Co²⁺ + AsO₄³⁻ + SO₄²⁻ to fluid, feeding the existing erythrite engine downstream — this is THE primary source for the magenta-pink 'cobalt bloom' supergene cascade. Activates with Round 8c-1 Bisbee Co=80 + As=8 + S=150 chemistry; expected to fire in seed-42 Bisbee primary stage. Sources: Bayliss 1968 (cobaltite-arsenopyrite substitution), boss research file research/research-cobaltite.md.",
       "class_color": "#7feb13"
+    },
+    "descloizite": {
+      "formula": "PbZnVO4(OH)",
+      "nucleation_sigma": 1.0,
+      "max_nucleation_count": 4,
+      "max_size_cm": 3.0,
+      "growth_rate_mult": 0.3,
+      "habit_variants": [
+        {
+          "name": "botryoidal",
+          "wall_spread": 0.7,
+          "void_reach": 0.3,
+          "vector": "coating",
+          "trigger": "high σ — Mibladen / Berg-Aukas habit, mammillary cherry-red crusts with concentric layers"
+        },
+        {
+          "name": "prismatic",
+          "wall_spread": 0.4,
+          "void_reach": 0.6,
+          "vector": "projecting",
+          "trigger": "mid σ — {010} pyramid + {110} prism, the Tsumeb display habit"
+        },
+        {
+          "name": "tabular",
+          "wall_spread": 0.5,
+          "void_reach": 0.4,
+          "vector": "tabular",
+          "trigger": "low σ — late-stage thin cherry-red plates"
+        }
+      ],
+      "class": "phosphate",
+      "description": "Pb(Zn,Cu)VO₄(OH) — orthorhombic Pb-Zn vanadate, the Zn end of the descloizite-mottramite series. Cherry-red to brown-red, Mohs 3-3.5; the Tsumeb display standard. Forms in supergene oxidation zones where Pb-Zn sulfide ore (galena + sphalerite) has weathered AND V is delivered by groundwater (red-bed roll-front signature). Cu/Zn ratio dispatch: when Cu > Zn, mottramite (the olive-green Cu sibling) takes priority instead. Sources: research/research-descloizite.md (boss commit f2939da), Strunz 1959 (Tsumeb monograph).",
+      "scenarios": [
+        "supergene_oxidation"
+      ],
+      "T_range_C": [
+        20,
+        80
+      ],
+      "T_optimum_C": [
+        30,
+        50
+      ],
+      "T_behavior": "window",
+      "pH_dissolution_below": null,
+      "pH_dissolution_above": null,
+      "redox_requirement": "oxidizing",
+      "required_ingredients": {
+        "Pb": 40,
+        "Zn": 50,
+        "V": 10
+      },
+      "trace_ingredients": {},
+      "thermal_decomp_C": null,
+      "thermal_decomp_reaction": null,
+      "thermal_decomp_products": {},
+      "fluorescence": null,
+      "twin_laws": [],
+      "acid_dissolution": null,
+      "habit": "prismatic",
+      "color_rules": {
+        "default_color": {
+          "default": true
+        }
+      },
+      "narrate_function": "_narrate_descloizite",
+      "runtimes_present": [
+        "vugg.py",
+        "web/index.html"
+      ],
+      "audit_status": "Round 8d-1a (Apr 2026). Engine + supersaturation + nucleation + narrator complete in vugg.py + web/index.html. Cu/Zn ratio dispatch with mottramite (when Cu>Zn → mottramite, when Zn≥Cu → descloizite). Pb+Zn+V+oxidizing, T 20-80°C peak 30-50. Substrate preference: vanadinite (the same V source). Fires at seed-42 in supergene_oxidation when Tsumeb's Pb=60 + Zn=90 + V=1.5+events meet the gates. Source: Strunz 1959, boss research file.",
+      "class_color": "#13eb7f"
+    },
+    "mottramite": {
+      "formula": "PbCu(VO4)(OH)",
+      "nucleation_sigma": 1.0,
+      "max_nucleation_count": 4,
+      "max_size_cm": 3.0,
+      "growth_rate_mult": 0.3,
+      "habit_variants": [
+        {
+          "name": "botryoidal",
+          "wall_spread": 0.7,
+          "void_reach": 0.3,
+          "vector": "coating",
+          "trigger": "high σ — Mottram St Andrew (Cheshire) type habit, mammillary olive-green crusts"
+        },
+        {
+          "name": "prismatic",
+          "wall_spread": 0.4,
+          "void_reach": 0.6,
+          "vector": "projecting",
+          "trigger": "mid σ — {010} pyramid + {110} prism, the Tsumeb olive-green crystals"
+        },
+        {
+          "name": "tabular",
+          "wall_spread": 0.5,
+          "void_reach": 0.4,
+          "vector": "tabular",
+          "trigger": "low σ — late-stage olive-green plates"
+        }
+      ],
+      "class": "phosphate",
+      "description": "Pb(Cu,Zn)VO₄(OH) — orthorhombic Pb-Cu vanadate, the Cu end of the descloizite-mottramite series. Olive-green to yellowish-green from the Cu chromophore (distinguishing it at a glance from cherry-red descloizite), Mohs 3-3.5. Type locality: Mottram St. Andrew, Cheshire (England), 1876. Tsumeb produces the museum-grade specimens. Cu/Zn ratio dispatch: when Zn ≥ Cu, descloizite takes priority. Sources: research/research-mottramite.md (boss commit f2939da).",
+      "scenarios": [
+        "supergene_oxidation"
+      ],
+      "T_range_C": [
+        20,
+        80
+      ],
+      "T_optimum_C": [
+        30,
+        50
+      ],
+      "T_behavior": "window",
+      "pH_dissolution_below": null,
+      "pH_dissolution_above": null,
+      "redox_requirement": "oxidizing",
+      "required_ingredients": {
+        "Pb": 40,
+        "Cu": 50,
+        "V": 10
+      },
+      "trace_ingredients": {},
+      "thermal_decomp_C": null,
+      "thermal_decomp_reaction": null,
+      "thermal_decomp_products": {},
+      "fluorescence": null,
+      "twin_laws": [],
+      "acid_dissolution": null,
+      "habit": "prismatic",
+      "color_rules": {
+        "default_color": {
+          "default": true
+        }
+      },
+      "narrate_function": "_narrate_mottramite",
+      "runtimes_present": [
+        "vugg.py",
+        "web/index.html"
+      ],
+      "audit_status": "Round 8d-1b (Apr 2026). Engine + supersaturation + nucleation + narrator complete in vugg.py + web/index.html. Cu/Zn ratio dispatch with descloizite (when Cu>Zn → mottramite). Pb+Cu+V+oxidizing, T 20-80°C peak 30-50. Substrate preference: vanadinite. Source: boss research file research-mottramite.md.",
+      "class_color": "#13eb7f"
+    },
+    "raspite": {
+      "formula": "PbWO4",
+      "nucleation_sigma": 1.4,
+      "max_nucleation_count": 4,
+      "max_size_cm": 1.0,
+      "growth_rate_mult": 0.2,
+      "habit_variants": [
+        {
+          "name": "tabular_monoclinic",
+          "wall_spread": 0.5,
+          "void_reach": 0.4,
+          "vector": "tabular",
+          "trigger": "the only habit — RARE monoclinic PbWO₄ with perfect {100} cleavage; honey-yellow tabular plates"
+        }
+      ],
+      "class": "molybdate",
+      "description": "PbWO₄ — monoclinic lead tungstate, RARE. Same composition as stolzite but a different crystal system; stolzite (tetragonal) is favored ~90% of the time when both can form (kinetic-preference dispatcher in check_nucleation reflects natural rarity). Honey-yellow to brownish-yellow tabular crystals, Mohs 2.5-3, perfect {100} cleavage. Type locality: Broken Hill, NSW, Australia. Sources: research/research-raspite.md (boss commit f2939da).",
+      "scenarios": [
+        "supergene_oxidation",
+        "bisbee"
+      ],
+      "T_range_C": [
+        10,
+        50
+      ],
+      "T_optimum_C": [
+        20,
+        40
+      ],
+      "T_behavior": "window",
+      "pH_dissolution_below": null,
+      "pH_dissolution_above": null,
+      "redox_requirement": "oxidizing",
+      "required_ingredients": {
+        "Pb": 40,
+        "W": 5
+      },
+      "trace_ingredients": {},
+      "thermal_decomp_C": null,
+      "thermal_decomp_reaction": null,
+      "thermal_decomp_products": {},
+      "fluorescence": null,
+      "twin_laws": [],
+      "acid_dissolution": null,
+      "habit": "tabular_monoclinic",
+      "color_rules": {
+        "default_color": {
+          "default": true
+        }
+      },
+      "narrate_function": "_narrate_raspite",
+      "runtimes_present": [
+        "vugg.py",
+        "web/index.html"
+      ],
+      "audit_status": "Round 8d-2a (Apr 2026). Engine + supersaturation + nucleation + narrator complete in vugg.py + web/index.html. Same Pb+W+oxidizing chemistry as stolzite but narrower T window (10-50°C, peak 20-40); sigma threshold 1.4 (vs stolzite's 1.0) reflects rarity. Kinetic-preference dispatcher in check_nucleation: when both raspite + stolzite gates clear, stolzite wins ~90% of rolls (random.random() < 0.9 zeros raspite's sigma). Tsumeb scenario W=20 plumbing activates the engine. Source: boss research file.",
+      "class_color": "#eb13eb"
+    },
+    "stolzite": {
+      "formula": "PbWO4",
+      "nucleation_sigma": 1.0,
+      "max_nucleation_count": 4,
+      "max_size_cm": 2.0,
+      "growth_rate_mult": 0.3,
+      "habit_variants": [
+        {
+          "name": "dipyramidal",
+          "wall_spread": 0.4,
+          "void_reach": 0.6,
+          "vector": "equant",
+          "trigger": "high σ — {101} tetragonal dipyramid, the Broken Hill / Tsumeb display habit"
+        },
+        {
+          "name": "tabular_tetragonal",
+          "wall_spread": 0.5,
+          "void_reach": 0.4,
+          "vector": "tabular",
+          "trigger": "low σ — {001} tabular plates, late-stage habit"
+        }
+      ],
+      "class": "molybdate",
+      "description": "PbWO₄ — tetragonal lead tungstate, the lead analog of scheelite (CaWO₄). Honey-yellow to orange-yellow Mohs 2.5-3, the more common of the two PbWO₄ polymorphs (~90% of natural occurrences vs raspite's monoclinic ~10%). Type locality: Cínovec (Czech Republic). Broken Hill (Australia) and Tsumeb (Namibia) produce the museum specimens — sharp honey-yellow dipyramids. Sources: research/research-stolzite.md (boss commit f2939da).",
+      "scenarios": [
+        "supergene_oxidation",
+        "bisbee"
+      ],
+      "T_range_C": [
+        10,
+        100
+      ],
+      "T_optimum_C": [
+        20,
+        80
+      ],
+      "T_behavior": "window",
+      "pH_dissolution_below": null,
+      "pH_dissolution_above": null,
+      "redox_requirement": "oxidizing",
+      "required_ingredients": {
+        "Pb": 40,
+        "W": 5
+      },
+      "trace_ingredients": {},
+      "thermal_decomp_C": null,
+      "thermal_decomp_reaction": null,
+      "thermal_decomp_products": {},
+      "fluorescence": null,
+      "twin_laws": [],
+      "acid_dissolution": null,
+      "habit": "dipyramidal",
+      "color_rules": {
+        "default_color": {
+          "default": true
+        }
+      },
+      "narrate_function": "_narrate_stolzite",
+      "runtimes_present": [
+        "vugg.py",
+        "web/index.html"
+      ],
+      "audit_status": "Round 8d-2b (Apr 2026). Engine + supersaturation + nucleation + narrator complete in vugg.py + web/index.html. Same Pb+W+oxidizing chemistry as raspite, broader T window (10-100°C, peak 20-80) reflecting tetragonal stability range. Tsumeb scenario W=20 plumbing activates both raspite + stolzite gates; the kinetic dispatcher gives stolzite the win ~90% of the time. Source: boss research file.",
+      "class_color": "#eb13eb"
+    },
+    "olivenite": {
+      "formula": "Cu2AsO4(OH)",
+      "nucleation_sigma": 1.0,
+      "max_nucleation_count": 4,
+      "max_size_cm": 5.0,
+      "growth_rate_mult": 0.3,
+      "habit_variants": [
+        {
+          "name": "fibrous",
+          "wall_spread": 0.3,
+          "void_reach": 0.7,
+          "vector": "projecting",
+          "trigger": "high σ — radiating acicular bundles, the Cornish 'wood-copper' silky habit"
+        },
+        {
+          "name": "prismatic",
+          "wall_spread": 0.4,
+          "void_reach": 0.6,
+          "vector": "projecting",
+          "trigger": "mid σ — {110} prismatic olive-green crystals, the Cornwall display habit"
+        },
+        {
+          "name": "globular",
+          "wall_spread": 0.7,
+          "void_reach": 0.3,
+          "vector": "coating",
+          "trigger": "low σ — botryoidal aggregates, the Tsumeb / Bisbee secondary habit"
+        }
+      ],
+      "class": "arsenate",
+      "description": "Cu₂AsO₄(OH) — orthorhombic Cu arsenate, the Cu end of the olivenite-adamite series. Olive-green to grayish-green (the Cu chromophore — olive in name and color), Mohs 3-4. Forms in Cu-rich supergene oxidation zones; Cornwall is the type locality, with Tsumeb and Bisbee producing showcase modern specimens. Cu/Zn ratio dispatch: when Zn > Cu, adamite (the Zn-end-member of the same arsenate structure) takes priority. Sources: research/research-olivenite.md (boss commit f2939da).",
+      "scenarios": [
+        "supergene_oxidation",
+        "bisbee"
+      ],
+      "T_range_C": [
+        10,
+        50
+      ],
+      "T_optimum_C": [
+        20,
+        40
+      ],
+      "T_behavior": "window",
+      "pH_dissolution_below": null,
+      "pH_dissolution_above": null,
+      "redox_requirement": "oxidizing",
+      "required_ingredients": {
+        "Cu": 50,
+        "As": 10
+      },
+      "trace_ingredients": {},
+      "thermal_decomp_C": null,
+      "thermal_decomp_reaction": null,
+      "thermal_decomp_products": {},
+      "fluorescence": null,
+      "twin_laws": [],
+      "acid_dissolution": null,
+      "habit": "prismatic",
+      "color_rules": {
+        "default_color": {
+          "default": true
+        }
+      },
+      "narrate_function": "_narrate_olivenite",
+      "runtimes_present": [
+        "vugg.py",
+        "web/index.html"
+      ],
+      "audit_status": "Round 8d-3 (Apr 2026). Engine + supersaturation + nucleation + narrator complete in vugg.py + web/index.html. Cu/Zn ratio dispatch with adamite (when Zn>Cu → adamite, when Cu≥Zn → olivenite). Adamite engine also updated with the inverse dispatch (returns 0 when Cu>Zn). Cu+As+oxidizing, T 10-50°C peak 20-40. Substrate preference: malachite (the Cu-carbonate companion). Activates with existing Tsumeb supergene_oxidation Cu=55 + As=12 chemistry. Source: boss research file.",
+      "class_color": "#13eb13"
     }
   }
 }
