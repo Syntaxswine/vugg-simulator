@@ -2902,6 +2902,61 @@ class VugConditions:
             sigma *= 0.6
         return max(sigma, 0)
 
+    def supersaturation_argentite(self) -> float:
+        """Argentite (Ag₂S, cubic) — the high-T silver sulfide.
+
+        Same composition as acanthite, different polymorph: above 173°C
+        the body-centered cubic structure is stable; below 173°C the
+        lattice inverts to monoclinic acanthite. The conversion
+        preserves the external crystal form (paramorph) — handled
+        elsewhere in apply_paramorph_transitions. This σ method gates
+        only the high-T nucleation regime.
+
+        Hard lower-T gate at 173°C (acanthite handles below). Optimum
+        200-400°C — the epithermal/mesothermal hot zone of an Ag-bearing
+        hydrothermal system. Reducing only — sulfide chemistry. Note
+        that a primary argentite crystal in the sim is essentially
+        always destined for paramorphic conversion: there is no scenario
+        that ends above 173°C, so any argentite that nucleates here
+        will display as acanthite by the end of the run, retaining its
+        cubic habit. That's authentic — every "argentite" in every
+        museum drawer is the same trick.
+
+        Source: research/research-argentite.md (boss commit f2939da);
+        Petruk et al. 1974.
+        """
+        if self.fluid.Ag < 0.5 or self.fluid.S < 5:
+            return 0
+        # Hard lower-T gate — acanthite handles ≤173°C.
+        if self.temperature <= 173:
+            return 0
+        # Reducing requirement.
+        if self.fluid.O2 > 0.5:
+            return 0
+        ag_f = min(self.fluid.Ag / 2.5, 2.5)
+        s_f  = min(self.fluid.S  / 25.0, 2.5)
+        sigma = ag_f * s_f
+        # T window — peak 200-400°C, falls off above and at the cool edge.
+        T = self.temperature
+        if 200 <= T <= 400:
+            T_factor = 1.3
+        elif T <= 200:  # 173 < T < 200, narrow ramp-up
+            T_factor = max(0.5, (T - 173) / 27.0 + 0.5)
+        elif T <= 600:
+            T_factor = max(0.4, 1.0 - 0.005 * (T - 400))
+        else:
+            T_factor = 0.3
+        sigma *= T_factor
+        # pH preference — neutral to mildly acidic (5-7 sweet spot).
+        if self.fluid.pH < 4 or self.fluid.pH > 9:
+            sigma *= 0.5
+        # Inhibitor — high Cu pushes Ag into sulfosalts (polybasite).
+        # Tighter than acanthite because high-T fluids run hotter
+        # base-metal loadings.
+        if self.fluid.Cu > 30:
+            sigma *= 0.6
+        return max(sigma, 0)
+
 
 # ============================================================
 # CRYSTAL MODELS
@@ -2986,7 +3041,14 @@ class Crystal:
     # Phantom tracking — dissolution surfaces preserved as internal boundaries
     phantom_surfaces: List[int] = field(default_factory=list)  # zone indices where dissolution occurred
     phantom_count: int = 0         # number of phantom boundaries
-    
+
+    # Paramorph tracking — set by apply_paramorph_transitions when the crystal
+    # crosses a phase-transition T threshold (first instance: argentite → acanthite
+    # at 173°C, Round 8a-2). Stores the *original* (pre-transition) mineral name
+    # so library + narrator can flag the cubic-acanthite-after-argentite case.
+    paramorph_origin: Optional[str] = None
+    paramorph_step: Optional[int] = None      # step on which the paramorph fired
+
     def add_zone(self, zone: GrowthZone):
         # Detect phantom boundaries — dissolution followed by regrowth
         if zone.thickness_um < 0:
@@ -7994,6 +8056,61 @@ def grow_acanthite(crystal: Crystal, conditions: VugConditions, step: int) -> Op
     )
 
 
+def grow_argentite(crystal: Crystal, conditions: VugConditions, step: int) -> Optional[GrowthZone]:
+    """Argentite (Ag₂S, cubic) — the high-T silver sulfide.
+
+    Forms only above 173°C. On cooling past that threshold,
+    apply_paramorph_transitions converts the crystal in-place to
+    acanthite while preserving habit + dominant_forms — every "argentite"
+    in every museum drawer is a paramorph of acanthite-after-argentite.
+
+    Habit selection by σ excess (research file lists 3):
+      - high σ → arborescent (dendritic / wire-like aggregates)
+      - mid σ → octahedral (rarer, growth-rate-dependent on {111})
+      - low σ → cubic (the classic Comstock Lode habit, {100} cube)
+
+    Source: research/research-argentite.md (boss commit f2939da).
+    """
+    sigma = conditions.supersaturation_argentite()
+
+    if sigma < 1.0:
+        return None
+
+    excess = sigma - 1.0
+    rate = 3.5 * excess * random.uniform(0.8, 1.2)
+    if rate < 0.1:
+        return None
+
+    if excess > 1.5:
+        crystal.habit = "arborescent"
+        crystal.dominant_forms = ["dendritic Ag₂S branches", "wire-like aggregates"]
+        habit_note = "arborescent argentite — dendritic high-σ growth"
+    elif excess > 0.8:
+        crystal.habit = "octahedral"
+        crystal.dominant_forms = ["{111} octahedron", "modified by {100}"]
+        habit_note = "octahedral argentite — rarer high-T habit"
+    else:
+        crystal.habit = "cubic"
+        crystal.dominant_forms = ["{100} cube", "sharp isometric form"]
+        habit_note = "cubic argentite — Comstock Lode habit"
+
+    # Spinel-law penetration twinning on {111} (research file lists this).
+    if crystal.habit == "octahedral" and not crystal.twinned and random.random() < 0.04:
+        crystal.twinned = True
+        crystal.twin_law = "{111} penetration (spinel law)"
+        habit_note += "; spinel-law penetration twin"
+
+    # Deplete Ag + S
+    conditions.fluid.Ag = max(conditions.fluid.Ag - rate * 0.008, 0)
+    conditions.fluid.S  = max(conditions.fluid.S  - rate * 0.003, 0)
+
+    return GrowthZone(
+        step=step, temperature=conditions.temperature,
+        thickness_um=rate, growth_rate=rate,
+        note=habit_note,
+    )
+
+
 def grow_selenite(crystal: Crystal, conditions: VugConditions, step: int) -> Optional[GrowthZone]:
     """Selenite / Gypsum (CaSO₄·2H₂O) growth. Low-T evaporite, Naica's giant crystals."""
     sigma = conditions.supersaturation_selenite()
@@ -8125,6 +8242,7 @@ MINERAL_ENGINES = {
     "native_bismuth": grow_native_bismuth,
     "clinobisvanite": grow_clinobisvanite,
     "acanthite": grow_acanthite,
+    "argentite": grow_argentite,
 }
 
 
@@ -8179,6 +8297,58 @@ THERMAL_DECOMPOSITION = {
     "antlerite":     (200, "Cu₃(SO₄)(OH)₄ → tenorite + SO₃ + H₂O (dehydration)", {"Cu": 0.5, "S": 0.4}),
     "anhydrite":     (1450, "CaSO₄ → CaO + SO₃ (decomposition; very high T — outside normal sim range)", {"Ca": 0.4, "S": 0.4}),
 }
+
+
+# ============================================================
+# PARAMORPH TRANSITIONS
+# ============================================================
+# In-place polymorph conversions on cooling — distinct from
+# THERMAL_DECOMPOSITION (which destroys the crystal). A paramorph
+# preserves the external crystal form (habit + dominant_forms +
+# total_growth_um) while the internal lattice inverts to a different
+# structure.
+#
+# First entry, Round 8a (Apr 2026):
+#   argentite (cubic Ag₂S, >173°C)  →  acanthite (monoclinic Ag₂S, <173°C)
+#
+# Every "argentite" crystal in any museum drawer is actually a paramorph:
+# the high-T cubic form crystallized at depth, then the rising fluid
+# cooled past 173°C and the lattice inverted to monoclinic while the
+# cubic external geometry stayed frozen. This is the first non-destructive
+# polymorph mechanic in the sim — same composition, different structure,
+# same crystal you can pick up and hold.
+PARAMORPH_TRANSITIONS = {
+    # mineral_when_hot: (mineral_when_cool, T_threshold_C)
+    "argentite": ("acanthite", 173),
+}
+
+
+def apply_paramorph_transitions(crystal, T, step=None):
+    """Convert a crystal in-place when it crosses a paramorph T threshold.
+
+    Mutates `crystal.mineral` to the cool-side polymorph and stamps
+    `crystal.paramorph_origin` with the pre-transition mineral name.
+    Preserves crystal.habit + dominant_forms + zones (the external
+    shape and growth history) — those are what makes a paramorph
+    identifiable in a hand specimen.
+
+    Returns the (old, new) mineral pair if a transition fired (so the
+    caller can log it), None otherwise. No-op for crystals not in
+    PARAMORPH_TRANSITIONS or already past their transition.
+    """
+    if not crystal.active or crystal.dissolved:
+        return None
+    if crystal.mineral not in PARAMORPH_TRANSITIONS:
+        return None
+    cool_mineral, T_thresh = PARAMORPH_TRANSITIONS[crystal.mineral]
+    if T >= T_thresh:
+        return None
+    old_mineral = crystal.mineral
+    crystal.mineral = cool_mineral
+    crystal.paramorph_origin = old_mineral
+    if step is not None:
+        crystal.paramorph_step = step
+    return (old_mineral, cool_mineral)
 
 
 def check_thermal_decomposition(crystals: list, conditions, step: int) -> list:
@@ -11545,6 +11715,25 @@ class VugSimulator:
                               f"(T={self.conditions.temperature:.0f}°C, σ={sigma_nbi:.2f}, "
                               f"Bi={self.conditions.fluid.Bi:.0f}, S={self.conditions.fluid.S:.0f})")
 
+        # Argentite nucleation — Ag + S + reducing + T > 173°C.
+        # The high-T sibling of acanthite. Will paramorph on cooling
+        # (handled in run_step's apply_paramorph_transitions hook),
+        # so primary argentite in any cooling scenario is destined to
+        # display as acanthite-after-argentite by run end. Substrate
+        # preference: galena (the classic Ag-bearing parent) or bare
+        # wall when Ag has been delivered as a separate hot pulse.
+        sigma_arg = self.conditions.supersaturation_argentite()
+        if sigma_arg > 1.0 and not self._at_nucleation_cap("argentite"):
+            if random.random() < 0.18:
+                pos = "vug wall"
+                active_galena = [c for c in self.crystals if c.mineral == "galena" and c.active]
+                if active_galena and random.random() < 0.4:
+                    pos = f"on galena #{active_galena[0].crystal_id}"
+                c = self.nucleate("argentite", position=pos, sigma=sigma_arg)
+                self.log.append(f"  ✦ NUCLEATION: Argentite #{c.crystal_id} on {c.position} "
+                              f"(T={self.conditions.temperature:.0f}°C, σ={sigma_arg:.2f}, "
+                              f"Ag={self.conditions.fluid.Ag:.2f}, S={self.conditions.fluid.S:.0f})")
+
         # Acanthite nucleation — Ag + S + reducing + T < 173°C.
         # Substrate preference: galena (the classic Ag-bearing sulfide
         # parent), tetrahedrite (often the dissolving Ag source in
@@ -12205,7 +12394,23 @@ class VugSimulator:
                 elif abs(zone.thickness_um) > 0.5:
                     self.log.append(f"  ▲ {crystal.mineral.capitalize()} #{crystal.crystal_id}: "
                                   f"{crystal.describe_latest_zone()}")
-        
+
+        # Paramorph transitions — convert any crystal whose host fluid has
+        # cooled past its phase-transition T (Round 8a-2: argentite →
+        # acanthite at 173°C). Preserves habit + dominant_forms + zones;
+        # only crystal.mineral changes. First in-place mineral conversion
+        # mechanic in the sim — distinct from THERMAL_DECOMPOSITION which
+        # destroys the crystal.
+        for crystal in self.crystals:
+            transition = apply_paramorph_transitions(crystal, self.conditions.temperature, self.step)
+            if transition:
+                old_m, new_m = transition
+                self.log.append(
+                    f"  ↻ PARAMORPH: {old_m.capitalize()} #{crystal.crystal_id} "
+                    f"→ {new_m} (T dropped to {self.conditions.temperature:.0f}°C, "
+                    f"crossed {old_m}/{new_m} phase boundary; cubic external form preserved)"
+                )
+
         # Alpha-damage any quartz present while uraninite exists in the vug.
         # Each existing zone accumulates dose per step — damage is permanent,
         # persisting even after the uraninite later dissolves away.
@@ -16343,6 +16548,23 @@ class VugSimulator:
             "knife slices through cleanly."
         )
 
+        # Paramorph branch — this acanthite started life as argentite
+        # and inherited its cubic / octahedral / arborescent form.
+        if c.paramorph_origin == "argentite":
+            parts.append(
+                f"Paramorph after argentite — this crystal nucleated above "
+                f"173°C as cubic Ag₂S, then the rising fluid cooled past "
+                f"the polymorph boundary"
+                + (f" at step {c.paramorph_step}" if c.paramorph_step else "")
+                + ". The lattice inverted from body-centered cubic to "
+                "monoclinic in place. The external form — "
+                f"{c.habit.replace('_', ' ')} — is what the high-T parent "
+                "left behind. Every 'argentite' in every museum drawer is "
+                "this same trick: a caterpillar that became a butterfly "
+                "while keeping the caterpillar's shape."
+            )
+            return " ".join(parts)
+
         if c.habit == "thorn":
             parts.append(
                 "Thorn-habit — the species' diagnostic. The name comes "
@@ -16386,6 +16608,54 @@ class VugSimulator:
                 "vug, atmospheric S compounds eventually reach the "
                 "surface. Display specimens are usually re-polished "
                 "before sale."
+            )
+        return " ".join(parts)
+
+    def _narrate_argentite(self, c: Crystal) -> str:
+        """Narrate argentite — the high-T cubic Ag₂S, before any paramorph fires.
+
+        A primary argentite crystal in the sim only displays as argentite
+        if the simulation ended above 173°C without a cooling pass —
+        any cooling pulse converts the crystal in-place to acanthite via
+        apply_paramorph_transitions, at which point the acanthite
+        narrator's paramorph_origin branch takes over.
+        """
+        parts = [f"Argentite #{c.crystal_id} grew to {c.c_length_mm:.1f} mm."]
+        parts.append(
+            "Ag₂S — body-centered cubic silver sulfide, the high-T "
+            "polymorph stable only above 173°C. A ghost mineral: every "
+            "argentite specimen at room temperature is actually acanthite "
+            "(monoclinic) wearing argentite's cubic crystal habit like "
+            "a hand-me-down coat. This crystal is the rare case — caught "
+            "in the simulator above the transition before the fluid had "
+            "time to cool. Lead-gray to black, metallic, Mohs 2-2.5."
+        )
+        if c.habit == "cubic":
+            parts.append(
+                "Cubic — sharp {100} faces, the Comstock Lode habit. "
+                "Pachuca-Real del Monte (Mexico) and Freiberg (Saxony) "
+                "produced the historical references. Once T drops below "
+                "173°C, the lattice will invert to monoclinic but these "
+                "cubes will stay."
+            )
+        elif c.habit == "octahedral":
+            parts.append(
+                "Octahedral — {111} faces dominant, growth-rate-dependent. "
+                "Rarer than cubic. Spinel-law penetration twins on {111} "
+                "are diagnostic when present."
+            )
+        elif c.habit == "arborescent":
+            parts.append(
+                "Arborescent — dendritic / wire-like aggregates. The "
+                "epithermal-vein habit, formed at high σ where the "
+                "growth front outruns the diffusion supply and the "
+                "crystal branches."
+            )
+        if c.twinned and "spinel" in (c.twin_law or ""):
+            parts.append(
+                "Spinel-law penetration twin — two octahedra growing "
+                "interlocked, sharing a {111} composition plane. The "
+                "diagnostic argentite twin form."
             )
         return " ".join(parts)
 

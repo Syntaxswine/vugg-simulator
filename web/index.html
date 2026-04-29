@@ -3150,6 +3150,7 @@ const MINERAL_SPEC_FALLBACK = {
   native_bismuth: { formula: "Bi", nucleation_sigma: 1.4, max_size_cm: 5, growth_rate_mult: 0.4, thermal_decomp_C: 271, fluorescence: null, twin_laws: [], acid_dissolution: { pH_threshold: 3.0 } },
   clinobisvanite: { formula: "BiVO4", nucleation_sigma: 1.5, max_size_cm: 0.1, growth_rate_mult: 0.2, thermal_decomp_C: null, fluorescence: null, twin_laws: [], acid_dissolution: { pH_threshold: 2.5 } },
   acanthite: { formula: "Ag2S", nucleation_sigma: 1.0, max_size_cm: 5.0, growth_rate_mult: 0.3, thermal_decomp_C: null, fluorescence: null, twin_laws: [], acid_dissolution: null },
+  argentite: { formula: "Ag2S", nucleation_sigma: 1.0, max_size_cm: 3.0, growth_rate_mult: 0.4, thermal_decomp_C: null, fluorescence: null, twin_laws: [{ name: "spinel_111", description: "Penetration twin on {111} (spinel law)", habits: ["octahedral"] }], acid_dissolution: null },
 };
 
 // Live spec — swapped in by the fetch below if data/minerals.json loads.
@@ -3292,7 +3293,7 @@ const MINERAL_GAME_COLORS = {
   wulfenite: '#ff8833', ferrimolybdite: '#f5dc14', arsenopyrite: '#c8c0b8', scorodite: '#5a9a8a', selenite: '#e8e0d8', barite: '#eb137f', celestine: '#a4c8e0', jarosite: '#dcb43c', alunite: '#f0e0d8', brochantite: '#3a7c4f', antlerite: '#2a6038', anhydrite: '#d8d0c8', feldspar: '#f0d0b0',
   emerald: '#2e8b57', aquamarine: '#7fb8d4', morganite: '#eb6b9e', heliodor: '#eed858',
   corundum: '#c8c8c8', ruby: '#c03030', sapphire: '#304068',
-  acanthite: '#404040'
+  acanthite: '#404040', argentite: '#303030'
 };
 
 // Derive crystal color from its growth history and chemistry
@@ -4605,6 +4606,33 @@ class VugConditions {
     return Math.max(sigma, 0);
   }
 
+  // Argentite (Ag₂S, cubic) — the high-T silver sulfide. Hard lower-T gate
+  // at 173°C (acanthite handles below). Paramorph on cooling — handled in
+  // applyParamorphTransitions hook in run_step. Source: research-argentite.md.
+  supersaturation_argentite() {
+    if (this.fluid.Ag < 0.5 || this.fluid.S < 5) return 0;
+    if (this.temperature <= 173) return 0;
+    if (this.fluid.O2 > 0.5) return 0;
+    const ag_f = Math.min(this.fluid.Ag / 2.5, 2.5);
+    const s_f  = Math.min(this.fluid.S  / 25.0, 2.5);
+    let sigma = ag_f * s_f;
+    const T = this.temperature;
+    let T_factor;
+    if (T >= 200 && T <= 400) {
+      T_factor = 1.3;
+    } else if (T <= 200) {
+      T_factor = Math.max(0.5, (T - 173) / 27.0 + 0.5);
+    } else if (T <= 600) {
+      T_factor = Math.max(0.4, 1.0 - 0.005 * (T - 400));
+    } else {
+      T_factor = 0.3;
+    }
+    sigma *= T_factor;
+    if (this.fluid.pH < 4 || this.fluid.pH > 9) sigma *= 0.5;
+    if (this.fluid.Cu > 30) sigma *= 0.6;
+    return Math.max(sigma, 0);
+  }
+
   // Scorodite (FeAsO₄·2H₂O) — the arsenic sequestration mineral.
   // Pseudo-octahedral pale blue-green dipyramids; the most common
   // supergene arsenate. Forms from oxidized arsenopyrite (Fe³⁺ +
@@ -5333,6 +5361,12 @@ class Crystal {
     this.enclosed_crystals = [];
     this.enclosed_at_step = [];
     this.enclosed_by = null;
+    // Paramorph tracking — set by applyParamorphTransitions when the crystal
+    // crosses a phase-transition T (Round 8a-2: argentite → acanthite at 173°C).
+    // Stores the *original* (pre-transition) mineral name so library + narrator
+    // can flag the cubic-acanthite-after-argentite case.
+    this.paramorph_origin = opts.paramorph_origin ?? null;
+    this.paramorph_step = opts.paramorph_step ?? null;
   }
 
   add_zone(zone) {
@@ -7035,6 +7069,47 @@ function grow_acanthite(crystal, conditions, step) {
     habit_note += '; tarnished to iron-black';
   } else {
     habit_note += '; lead-gray metallic';
+  }
+
+  conditions.fluid.Ag = Math.max(conditions.fluid.Ag - rate * 0.008, 0);
+  conditions.fluid.S  = Math.max(conditions.fluid.S  - rate * 0.003, 0);
+
+  return new GrowthZone({
+    step, temperature: conditions.temperature,
+    thickness_um: rate, growth_rate: rate,
+    note: habit_note,
+  });
+}
+
+// Argentite — Ag2S (cubic, high-T). Paramorph to acanthite on cooling
+// past 173°C — handled in applyParamorphTransitions in run_step.
+function grow_argentite(crystal, conditions, step) {
+  const sigma = conditions.supersaturation_argentite();
+  if (sigma < 1.0) return null;
+
+  const excess = sigma - 1.0;
+  const rate = 3.5 * excess * rng.uniform(0.8, 1.2);
+  if (rate < 0.1) return null;
+
+  let habit_note;
+  if (excess > 1.5) {
+    crystal.habit = 'arborescent';
+    crystal.dominant_forms = ['dendritic Ag₂S branches', 'wire-like aggregates'];
+    habit_note = 'arborescent argentite — dendritic high-σ growth';
+  } else if (excess > 0.8) {
+    crystal.habit = 'octahedral';
+    crystal.dominant_forms = ['{111} octahedron', 'modified by {100}'];
+    habit_note = 'octahedral argentite — rarer high-T habit';
+  } else {
+    crystal.habit = 'cubic';
+    crystal.dominant_forms = ['{100} cube', 'sharp isometric form'];
+    habit_note = 'cubic argentite — Comstock Lode habit';
+  }
+
+  if (crystal.habit === 'octahedral' && !crystal.twinned && rng.random() < 0.04) {
+    crystal.twinned = true;
+    crystal.twin_law = '{111} penetration (spinel law)';
+    habit_note += '; spinel-law penetration twin';
   }
 
   conditions.fluid.Ag = Math.max(conditions.fluid.Ag - rate * 0.008, 0);
@@ -8982,6 +9057,7 @@ const MINERAL_ENGINES = {
   native_bismuth: grow_native_bismuth,
   clinobisvanite: grow_clinobisvanite,
   acanthite: grow_acanthite,
+  argentite: grow_argentite,
 };
 
 function grow_apophyllite(crystal, conditions, step) {
@@ -10258,6 +10334,38 @@ function scenario_marble_contact_metamorphism() {
 const SCENARIOS = { cooling: scenario_cooling, pulse: scenario_pulse, mvt: scenario_mvt, porphyry: scenario_porphyry, reactive_wall: scenario_reactive_wall, radioactive_pegmatite: scenario_radioactive_pegmatite, supergene_oxidation: scenario_supergene_oxidation, ouro_preto: scenario_ouro_preto, gem_pegmatite: scenario_gem_pegmatite, bisbee: scenario_bisbee, deccan_zeolite: scenario_deccan_zeolite, sabkha_dolomitization: scenario_sabkha_dolomitization, marble_contact_metamorphism: scenario_marble_contact_metamorphism };
 
 // ============================================================
+// PARAMORPH TRANSITIONS
+// ============================================================
+// In-place polymorph conversions on cooling — distinct from thermal
+// decomposition (which destroys the crystal). A paramorph preserves
+// habit + dominant_forms + zones (the external shape and growth
+// history) while the internal lattice inverts to a different structure.
+//
+// First entry, Round 8a (Apr 2026):
+//   argentite (cubic Ag2S, >173°C)  →  acanthite (monoclinic Ag2S, <173°C)
+//
+// Mirrors PARAMORPH_TRANSITIONS in vugg.py.
+const PARAMORPH_TRANSITIONS = {
+  // mineral_when_hot: [mineral_when_cool, T_threshold_C]
+  argentite: ['acanthite', 173],
+};
+
+function applyParamorphTransitions(crystal, T, step) {
+  // Convert a crystal in-place when it crosses a paramorph T threshold.
+  // Returns [old, new] pair if a transition fired, null otherwise.
+  if (!crystal.active || crystal.dissolved) return null;
+  const entry = PARAMORPH_TRANSITIONS[crystal.mineral];
+  if (!entry) return null;
+  const [coolMineral, Tthresh] = entry;
+  if (T >= Tthresh) return null;
+  const oldMineral = crystal.mineral;
+  crystal.mineral = coolMineral;
+  crystal.paramorph_origin = oldMineral;
+  if (step != null) crystal.paramorph_step = step;
+  return [oldMineral, coolMineral];
+}
+
+// ============================================================
 // SIMULATION ENGINE
 // ============================================================
 
@@ -11261,6 +11369,20 @@ class VugSimulator {
       }
     }
 
+    // Argentite nucleation — Ag + S + reducing + T > 173°C.
+    // High-T sibling of acanthite. Will paramorph on cooling
+    // (handled by applyParamorphTransitions in run_step).
+    const sigma_arg = this.conditions.supersaturation_argentite();
+    if (sigma_arg > 1.0 && !this._atNucleationCap('argentite')) {
+      if (rng.random() < 0.18) {
+        let pos = 'vug wall';
+        const active_galena_arg = this.crystals.filter(c => c.mineral === 'galena' && c.active);
+        if (active_galena_arg.length && rng.random() < 0.4) pos = `on galena #${active_galena_arg[0].crystal_id}`;
+        const c = this.nucleate('argentite', pos, sigma_arg);
+        this.log.push(`  ✦ NUCLEATION: Argentite #${c.crystal_id} on ${c.position} (T=${this.conditions.temperature.toFixed(0)}°C, σ=${sigma_arg.toFixed(2)}, Ag=${this.conditions.fluid.Ag.toFixed(2)}, S=${this.conditions.fluid.S.toFixed(0)})`);
+      }
+    }
+
     // Acanthite nucleation — Ag + S + reducing + T < 173°C.
     // Substrate preference: galena (the classic Ag-bearing parent),
     // dissolving tetrahedrite (often the supergene Ag source), or bare wall.
@@ -11812,6 +11934,23 @@ class VugSimulator {
         }
       }
     }
+
+    // Paramorph transitions — convert crystals whose host fluid has cooled
+    // past their phase-transition T (Round 8a-2: argentite → acanthite at
+    // 173°C). Preserves habit + dominant_forms + zones; only crystal.mineral
+    // changes. First non-destructive polymorph mechanic in the sim.
+    for (const crystal of this.crystals) {
+      const transition = applyParamorphTransitions(crystal, this.conditions.temperature, this.step);
+      if (transition) {
+        const [oldM, newM] = transition;
+        this.log.push(
+          `  ↻ PARAMORPH: ${capitalize(oldM)} #${crystal.crystal_id} → ${newM} ` +
+          `(T dropped to ${this.conditions.temperature.toFixed(0)}°C, crossed ${oldM}/${newM} ` +
+          `phase boundary; cubic external form preserved)`
+        );
+      }
+    }
+
     // Check for vug seal after growth loop (may cross 1.0 during crystal growth)
     if (currentFill >= 1.0 && !this._vug_sealed) {
       this._vug_sealed = true;
@@ -13187,6 +13326,11 @@ class VugSimulator {
   _narrate_acanthite(c) {
     const parts = [`Acanthite #${c.crystal_id} grew to ${c.c_length_mm.toFixed(1)} mm.`];
     parts.push('Ag₂S — monoclinic silver sulfide, the most important silver ore on Earth at 87% Ag by weight. The cold-storage form: above 173°C the same composition crystallizes as cubic argentite, and most acanthite in nature is paramorphic after cooled argentite, retaining the cubic external form while the lattice underneath inverts to monoclinic. Lead-gray to iron-black, metallic, Mohs 2-2.5, sectile (cuts like lead).');
+    if (c.paramorph_origin === 'argentite') {
+      const stepNote = c.paramorph_step ? ` at step ${c.paramorph_step}` : '';
+      parts.push(`Paramorph after argentite — this crystal nucleated above 173°C as cubic Ag₂S, then the rising fluid cooled past the polymorph boundary${stepNote}. The lattice inverted from body-centered cubic to monoclinic in place. The external form — ${c.habit.replace('_', ' ')} — is what the high-T parent left behind. Every 'argentite' in every museum drawer is this same trick: a caterpillar that became a butterfly while keeping the caterpillar's shape.`);
+      return parts.join(' ');
+    }
     if (c.habit === 'thorn') {
       parts.push("Thorn-habit — the species' diagnostic. The name comes from the Greek ακανθα (thorn): spiky prismatic projections aggregated into frost-like masses. Rare in well-formed crystals; Guanajuato (Mexico) produced the historical references.");
     } else if (c.habit === 'prismatic') {
@@ -13198,6 +13342,22 @@ class VugSimulator {
       parts.push("Oxidative dissolution — strong O₂ in the fluid is etching the surface. Ag is going back into solution as Ag⁺, and the released ions migrate down the redox gradient to re-precipitate as native silver in deeper reducing pockets. This is the supergene Ag-enrichment mechanism (Boyle 1968) — the same chemistry that made Tsumeb's secondary ore zone.");
     } else if (c.zones && c.zones.length > 15) {
       parts.push('Tarnish — surface oxidation has darkened the original lead-gray luster to deep iron-black. Even in a sealed vug, atmospheric S compounds eventually reach the surface.');
+    }
+    return parts.join(' ');
+  }
+
+  _narrate_argentite(c) {
+    const parts = [`Argentite #${c.crystal_id} grew to ${c.c_length_mm.toFixed(1)} mm.`];
+    parts.push("Ag₂S — body-centered cubic silver sulfide, the high-T polymorph stable only above 173°C. A ghost mineral: every argentite specimen at room temperature is actually acanthite (monoclinic) wearing argentite's cubic crystal habit. This crystal is the rare case — caught in the simulator above the transition before the fluid had time to cool. Lead-gray to black, metallic, Mohs 2-2.5.");
+    if (c.habit === 'cubic') {
+      parts.push('Cubic — sharp {100} faces, the Comstock Lode habit. Pachuca-Real del Monte (Mexico) and Freiberg (Saxony) produced the historical references. Once T drops below 173°C, the lattice will invert to monoclinic but these cubes will stay.');
+    } else if (c.habit === 'octahedral') {
+      parts.push('Octahedral — {111} faces dominant, growth-rate-dependent. Rarer than cubic. Spinel-law penetration twins on {111} are diagnostic when present.');
+    } else if (c.habit === 'arborescent') {
+      parts.push('Arborescent — dendritic / wire-like aggregates. The epithermal-vein habit, formed at high σ where the growth front outruns the diffusion supply.');
+    }
+    if (c.twinned && (c.twin_law || '').includes('spinel')) {
+      parts.push('Spinel-law penetration twin — two octahedra growing interlocked, sharing a {111} composition plane.');
     }
     return parts.join(' ');
   }
@@ -17537,7 +17697,7 @@ const IDLE_MINERAL_COLORS = {
   wulfenite: '#ff8833', ferrimolybdite: '#f5dc14', arsenopyrite: '#c8c0b8', scorodite: '#5a9a8a', selenite: '#e8e0d8', barite: '#eb137f', celestine: '#a4c8e0', jarosite: '#dcb43c', alunite: '#f0e0d8', brochantite: '#3a7c4f', antlerite: '#2a6038', anhydrite: '#d8d0c8', feldspar: '#f0d0b0',
   emerald: '#2e8b57', aquamarine: '#7fb8d4', morganite: '#eb6b9e', heliodor: '#eed858',
   corundum: '#c8c8c8', ruby: '#c03030', sapphire: '#304068',
-  acanthite: '#404040'
+  acanthite: '#404040', argentite: '#303030'
 };
 
 const IDLE_SPEED_MAP = [0.5, 1, 2, 5, 10]; // steps per second

@@ -7363,6 +7363,83 @@
       ],
       "audit_status": "Round 8a-1 (Apr 2026). Engine + supersaturation + nucleation + narrator complete in vugg.py + web/index.html; JSON entry mirrored to docs/. Habit variants: massive_granular (low σ, dominant economic form), prismatic (mid σ), thorn (high σ), pseudo_cubic (paramorph hook — set in 8a-2 when argentite cools through 173°C). Sources: Petruk et al. 1974 (Canadian Mineralogist 12: 365-369), Hayba & Bethke 1985 (Reviews in Economic Geology 2). Activates dormant Ag pool at MVT/Sweetwater/Tsumeb/Bisbee. First Ag mineral in the sim.",
       "class_color": "#7feb13"
+    },
+    "argentite": {
+      "formula": "Ag2S",
+      "nucleation_sigma": 1.0,
+      "max_nucleation_count": 4,
+      "max_size_cm": 3.0,
+      "growth_rate_mult": 0.4,
+      "habit_variants": [
+        {
+          "name": "cubic",
+          "wall_spread": 0.5,
+          "void_reach": 0.5,
+          "vector": "equant",
+          "trigger": "low-moderate σ — sharp {100} cubes, the Comstock Lode high-T habit"
+        },
+        {
+          "name": "octahedral",
+          "wall_spread": 0.4,
+          "void_reach": 0.6,
+          "vector": "equant",
+          "trigger": "moderate σ — {111} octahedra, growth-rate-dependent; spinel-law penetration twins"
+        },
+        {
+          "name": "arborescent",
+          "wall_spread": 0.3,
+          "void_reach": 0.7,
+          "vector": "dendritic",
+          "trigger": "high σ — dendritic / wire-like aggregates in epithermal vein settings"
+        }
+      ],
+      "class": "sulfide",
+      "description": "Ag₂S — body-centered cubic silver sulfide, the high-temperature polymorph stable only above 173°C. A ghost mineral: every argentite specimen at room temperature is actually acanthite (monoclinic) wearing argentite's cubic crystal habit, because below 173°C the lattice inverts in place while the external form stays frozen — handled by the apply_paramorph_transitions hook in vugg.py. Lead-gray to black metallic, Mohs 2-2.5, sectile. Forms in the high-T zones of epithermal and mesothermal Ag-bearing veins; classic localities include Comstock Lode (Nevada), Pachuca-Real del Monte (Mexico), and Freiberg (Saxony). Source: research/research-argentite.md (boss commit f2939da), Petruk et al. 1974.",
+      "scenarios": [
+        "radioactive_pegmatite"
+      ],
+      "T_range_C": [
+        173,
+        400
+      ],
+      "T_optimum_C": [
+        200,
+        400
+      ],
+      "T_behavior": "window",
+      "pH_dissolution_below": null,
+      "pH_dissolution_above": null,
+      "redox_requirement": "reducing",
+      "required_ingredients": {
+        "Ag": 0.5,
+        "S": 5
+      },
+      "trace_ingredients": {},
+      "thermal_decomp_C": null,
+      "thermal_decomp_reaction": null,
+      "thermal_decomp_products": {},
+      "fluorescence": null,
+      "twin_laws": [
+        {
+          "name": "spinel_111",
+          "description": "Penetration twin on {111} (spinel law)",
+          "habits": ["octahedral"]
+        }
+      ],
+      "acid_dissolution": null,
+      "habit": "cubic",
+      "color_rules": {
+        "default_color": {
+          "default": true
+        }
+      },
+      "narrate_function": "_narrate_argentite",
+      "runtimes_present": [
+        "vugg.py",
+        "web/index.html"
+      ],
+      "audit_status": "Round 8a-2 (Apr 2026). Engine + supersaturation + nucleation + narrator complete in vugg.py + web/index.html. Hard lower-T gate at 173°C; below that, apply_paramorph_transitions hook converts the crystal in-place to acanthite while preserving habit + dominant_forms — first non-destructive polymorph mechanic in the sim, distinct from THERMAL_DECOMPOSITION which destroys the crystal. Habit variants: cubic (low-moderate σ, Comstock Lode signature), octahedral (mid σ, with {111} spinel-law penetration twins), arborescent (high σ, dendritic/wire-like). Activates dormant Ag pool only in scenarios that reach >173°C — currently radioactive_pegmatite per declared scenarios. Sources: Petruk et al. 1974 (Canadian Mineralogist 12), boss research file research/research-argentite.md.",
+      "class_color": "#7feb13"
     }
   }
 }
