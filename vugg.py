@@ -15561,48 +15561,31 @@ class VugSimulator:
         return " ".join(p for p in parts if p)
 
     def _narrate_goethite(self, c: Crystal) -> str:
-        """Narrate a goethite crystal's story — the ghost mineral, now real."""
+        """Narrate a goethite crystal's story — the ghost mineral, now real.
+
+        Prose lives in narratives/goethite.md. Code dispatches 3-way
+        paragenesis (after_pyrite / after_chalcopyrite / on_hematite,
+        all elif) + 2-way habit (botryoidal_stalactitic / fibrous_acicular)
+        + acid_dissolution. No always-shown blurb.
+        """
         parts = [f"Goethite #{c.crystal_id} grew to {c.c_length_mm:.1f} mm."]
 
         if "pseudomorph after pyrite" in c.position:
-            parts.append(
-                "It replaced pyrite atom-for-atom — the classic boxwork pseudomorph. "
-                "What looks like a rusty pyrite cube is actually goethite that has "
-                "inherited the sulfide's habit while the Fe-S lattice was dissolved "
-                "and Fe-O-OH precipitated in its place. These are the Egyptian "
-                "Prophecy Stones' cousin — the rusty ghost of a crystal that was."
-            )
+            parts.append(narrative_variant("goethite", "pseudomorph_after_pyrite"))
         elif "pseudomorph after chalcopyrite" in c.position:
-            parts.append(
-                "Chalcopyrite oxidized and goethite took its place — a copper sulfide's "
-                "iron heir. The copper went to malachite; the iron stayed here."
-            )
+            parts.append(narrative_variant("goethite", "pseudomorph_after_chalcopyrite"))
         elif "hematite" in c.position:
-            parts.append(
-                "Nucleated on hematite — the hydrated/anhydrous iron oxide pair coexist "
-                "in oxidation zones, separated only by how much water the fluid carried."
-            )
+            parts.append(narrative_variant("goethite", "on_hematite"))
 
         if c.habit == "botryoidal/stalactitic":
-            parts.append(
-                "Built up into stalactitic, botryoidal masses — the velvety black "
-                "surfaces that collectors call 'black goethite.' Each layer a separate "
-                "pulse of Fe-saturated water, together the signature of persistent "
-                "slow oxidation."
-            )
+            parts.append(narrative_variant("goethite", "botryoidal_stalactitic"))
         elif c.habit == "fibrous_acicular":
-            parts.append(
-                "Radiating needle habit — the fibrous goethite that grows as "
-                "velvet crusts on cavity walls when Fe³⁺-rich fluid seeps slowly."
-            )
+            parts.append(narrative_variant("goethite", "fibrous_acicular"))
 
         if c.dissolved:
-            parts.append(
-                "Acid attack released Fe³⁺ back to the fluid. Goethite survives "
-                "oxidation but not strong acid — the rusty armor has a pH floor."
-            )
+            parts.append(narrative_variant("goethite", "acid_dissolution"))
 
-        return " ".join(parts)
+        return " ".join(p for p in parts if p)
 
     def _narrate_uraninite(self, c: Crystal) -> str:
         """Narrate a uraninite crystal's story — the radioactive heart of the vug."""
@@ -17664,73 +17647,41 @@ class VugSimulator:
         return " ".join(p for p in parts if p)
 
     def _narrate_magnetite(self, c: Crystal) -> str:
+        """Narrate a magnetite crystal — the lodestone spinel.
+
+        Prose lives in narratives/magnetite.md. Code dispatches blurb +
+        3-way habit (octahedral / rhombic_dodecahedral / granular_massive
+        default) + dissolved (martite pseudomorph).
+        """
         parts = [f"Magnetite #{c.crystal_id} grew to {c.c_length_mm:.1f} mm."]
-        parts.append(
-            "Fe₃O₄ — the mixed-valence Fe²⁺Fe³⁺₂O₄ spinel oxide. Black, "
-            "strongly magnetic (lodestone is natural permanent-magnet "
-            "magnetite — the first compass). Sits at the HM (hematite-"
-            "magnetite) redox buffer: cross that buffer and entire "
-            "mineral assemblages shift. Streak is black, not red like "
-            "hematite's — the field test."
-        )
+        parts.append(narrative_blurb("magnetite"))
         if c.habit == "octahedral":
-            parts.append(
-                "Octahedral {111} — the classic magnetite habit, still "
-                "sharp on matrix from Cerro Huanaquino (Bolivia) and "
-                "Binn Valley (Switzerland)."
-            )
+            parts.append(narrative_variant("magnetite", "octahedral"))
         elif c.habit == "rhombic_dodecahedral":
-            parts.append(
-                "Rhombic dodecahedral {110} — the high-T, mineralizer-"
-                "assisted habit. Cl-bearing fluids promote this form "
-                "over simple octahedra."
-            )
+            parts.append(narrative_variant("magnetite", "rhombic_dodecahedral"))
         else:
-            parts.append(
-                "Granular massive — rapid precipitation, aggregate of "
-                "tiny individual crystals."
-            )
+            parts.append(narrative_variant("magnetite", "granular_massive"))
         if c.dissolved:
-            parts.append(
-                "Dissolving to hematite (martite pseudomorph) as O₂ "
-                "climbed past the HM buffer — one of the clearest "
-                "paragenetic signals a collector can read."
-            )
-        return " ".join(parts)
+            parts.append(narrative_variant("magnetite", "martite_pseudomorph"))
+        return " ".join(p for p in parts if p)
 
     def _narrate_lepidocrocite(self, c: Crystal) -> str:
+        """Narrate a lepidocrocite crystal — the kinetically-favored FeOOH.
+
+        Prose lives in narratives/lepidocrocite.md. Code dispatches blurb +
+        3-way habit (platy_scales / plumose_rosette / fibrous_micaceous
+        default) + ALWAYS-emitted conversion-to-goethite tail.
+        """
         parts = [f"Lepidocrocite #{c.crystal_id} grew to {c.c_length_mm:.1f} mm."]
-        parts.append(
-            "γ-FeOOH — the ruby-red platy dimorph of goethite. Same "
-            "formula, different crystal structure: goethite is a 3D "
-            "framework (yellow-brown needles), lepidocrocite is "
-            "layered (ruby-red platy, peels like mica). Kinetically "
-            "favored when Fe²⁺ oxidizes FAST — e.g. pyrite weathering "
-            "in situ; slow oxidation produces goethite instead."
-        )
+        parts.append(narrative_blurb("lepidocrocite"))
         if c.habit == "platy_scales":
-            parts.append(
-                "Platy scales — the default habit. 'Lithium quartz' "
-                "sold in rock shops is quartz with nanoscale "
-                "lepidocrocite inclusions that scatter pink-mauve "
-                "through the clear host."
-            )
+            parts.append(narrative_variant("lepidocrocite", "platy_scales"))
         elif c.habit == "plumose_rosette":
-            parts.append(
-                "Plumose rosette — radiating platy blades. Best at "
-                "Cornwall and the Siegerland (Germany)."
-            )
+            parts.append(narrative_variant("lepidocrocite", "plumose_rosette"))
         else:
-            parts.append(
-                "Fibrous micaceous — very rapid growth, coarser particle "
-                "size, rust-brown color."
-            )
-        parts.append(
-            "Given geological time, lepidocrocite converts to goethite "
-            "(the thermodynamically stable dimorph). This crystal is "
-            "a freeze-frame of the moment oxidation caught Fe²⁺."
-        )
-        return " ".join(parts)
+            parts.append(narrative_variant("lepidocrocite", "fibrous_micaceous"))
+        parts.append(narrative_variant("lepidocrocite", "conversion_tail"))
+        return " ".join(p for p in parts if p)
 
     def _narrate_stibnite(self, c: Crystal) -> str:
         parts = [f"Stibnite #{c.crystal_id} grew to {c.c_length_mm:.1f} mm."]
