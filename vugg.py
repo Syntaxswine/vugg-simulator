@@ -15435,42 +15435,27 @@ class VugSimulator:
         return " ".join(parts)
     
     def _narrate_pyrite(self, c: Crystal) -> str:
-        """Narrate a pyrite crystal's story."""
-        parts = [f"Pyrite #{c.crystal_id} grew to {c.c_length_mm:.1f} mm."]
-        
-        if c.habit == "framboidal":
-            parts.append(
-                "The low temperature produced framboidal pyrite — microscopic "
-                "raspberry-shaped aggregates of tiny crystallites, a texture "
-                "common in sedimentary environments."
-            )
-        elif c.habit == "pyritohedral":
-            parts.append(
-                "The crystal developed the characteristic pyritohedral habit — "
-                "twelve pentagonal faces, a form unique to pyrite and one of "
-                "nature's few non-crystallographic symmetries."
-            )
-        elif "cubic" in c.habit:
-            parts.append(
-                "Clean cubic habit with bright metallic luster. The striations "
-                "on each cube face (perpendicular on adjacent faces) are the "
-                "fingerprint of pyrite's lower symmetry disguised as cubic."
-            )
-        
-        if c.twinned:
-            parts.append(
-                f"Twinned as an {c.twin_law} — two crystals interpenetrating at "
-                f"90°, one of the most recognizable twin forms in mineralogy."
-            )
-        
-        if c.dissolved:
-            parts.append(
-                "Late-stage oxidation attacked the pyrite — in nature this would "
-                "produce a limonite/goethite boxwork pseudomorph, the rusty ghost "
-                "of the original crystal."
-            )
+        """Narrate a pyrite crystal's story.
 
-        return " ".join(parts)
+        Prose lives in narratives/pyrite.md. Code dispatches habit (framboidal /
+        pyritohedral / cubic) + twinned + dissolved.
+        """
+        parts = [f"Pyrite #{c.crystal_id} grew to {c.c_length_mm:.1f} mm."]
+
+        if c.habit == "framboidal":
+            parts.append(narrative_variant("pyrite", "framboidal"))
+        elif c.habit == "pyritohedral":
+            parts.append(narrative_variant("pyrite", "pyritohedral"))
+        elif "cubic" in c.habit:
+            parts.append(narrative_variant("pyrite", "cubic"))
+
+        if c.twinned:
+            parts.append(narrative_variant("pyrite", "twinned", twin_law=c.twin_law))
+
+        if c.dissolved:
+            parts.append(narrative_variant("pyrite", "acid_oxidation"))
+
+        return " ".join(p for p in parts if p)
 
     def _narrate_marcasite(self, c: Crystal) -> str:
         """Narrate a marcasite crystal's story — the acid-loving iron sulfide."""
@@ -15691,36 +15676,26 @@ class VugSimulator:
         return " ".join(parts)
 
     def _narrate_galena(self, c: Crystal) -> str:
-        """Narrate a galena crystal's story — the heavy one."""
-        parts = [f"Galena #{c.crystal_id} grew to {c.c_length_mm:.1f} mm."]
+        """Narrate a galena crystal's story — the heavy one.
 
-        parts.append(
-            "PbS — the densest common sulfide (SG 7.6), perfect cubic cleavage, "
-            "bright lead-gray metallic luster. Pick up a piece and it's "
-            "surprisingly heavy; tap it and it cleaves into perfect little cubes."
-        )
+        Prose lives in narratives/galena.md. Code dispatches blurb +
+        twinned (with {twin_law}) + argentiferous (numeric trace_Ag OR
+        'Ag inclusions' note string) + dissolved.
+        """
+        parts = [f"Galena #{c.crystal_id} grew to {c.c_length_mm:.1f} mm."]
+        parts.append(narrative_blurb("galena"))
 
         if c.twinned:
-            parts.append(
-                f"Twinned on the {c.twin_law} — spinel-law twins create striking "
-                f"interpenetrating cubes in galena, rare but diagnostic."
-            )
+            parts.append(narrative_variant("galena", "spinel_twin", twin_law=c.twin_law))
 
         avg_Ag = sum(getattr(z, "trace_Ag", 0.0) for z in c.zones) / max(len(c.zones), 1)
         if avg_Ag > 0 or any("Ag inclusions" in z.note for z in c.zones):
-            parts.append(
-                "The fluid carried silver — argentiferous galena, the historic "
-                "source of most of the world's silver (Potosí, Leadville, Broken Hill)."
-            )
+            parts.append(narrative_variant("galena", "argentiferous"))
 
         if c.dissolved:
-            parts.append(
-                "Oxidation attacked the galena — Pb²⁺ went into solution and can "
-                "reprecipitate as cerussite (PbCO₃), anglesite (PbSO₄), or — if "
-                "Mo is present — wulfenite (PbMoO₄)."
-            )
+            parts.append(narrative_variant("galena", "oxidative_breakdown"))
 
-        return " ".join(parts)
+        return " ".join(p for p in parts if p)
 
     def _narrate_molybdenite(self, c: Crystal) -> str:
         """Narrate a molybdenite crystal's story — the wulfenite precursor."""
