@@ -15181,94 +15181,46 @@ class VugSimulator:
         return " ".join(parts)
 
     def _narrate_dolomite(self, c: Crystal) -> str:
-        """Narrate a dolomite crystal's story — the Ca-Mg ordered carbonate."""
+        """Narrate a dolomite crystal's story — the Ca-Mg ordered carbonate.
+
+        Prose lives in narratives/dolomite.md. Code keeps the
+        cycle-count → f_ord computation and the threshold dispatch
+        (Kim 2023 ordering tiers); markdown owns the words.
+        """
         parts = [f"Dolomite #{c.crystal_id} grew to {c.c_length_mm:.1f} mm."]
 
         # Compute final ordering fraction for narration — use fluid-level cycles
         cycle_count = self.conditions._dol_cycle_count
         f_ord = 1.0 - math.exp(-cycle_count / 7.0) if cycle_count > 0 else 0.0
 
-        parts.append(
-            "CaMg(CO₃)₂ — the ordered double carbonate, with Ca and Mg in "
-            "alternating cation layers (R3̄ space group, distinct from "
-            "calcite's R3̄c). The host rock of MVT deposits and a major "
-            "sedimentary carbonate. The 'dolomite problem' — that modern "
-            "surface oceans should but don't precipitate it — was partly "
-            "resolved by Kim, Sun et al. (2023, Science 382:915) who showed "
-            "that periodic dissolution-precipitation cycles strip disordered "
-            "Ca/Mg surface layers and ratchet ordering up over many cycles."
-        )
+        parts.append(narrative_blurb("dolomite"))
 
         if cycle_count > 0:
             if f_ord > 0.7:
-                parts.append(
-                    f"The vug fluid cycled across dolomite saturation "
-                    f"{cycle_count} times during this crystal's growth "
-                    f"(f_ord={f_ord:.2f}). Each cycle stripped the disordered "
-                    f"surface layer that steady precipitation would otherwise "
-                    f"lock in, leaving an ordered Ca/Mg template for the next "
-                    f"growth pulse. The result is true ordered dolomite, not "
-                    f"a Mg-calcite intermediate."
-                )
+                variant = "kim_ordered"
             elif f_ord > 0.3:
-                parts.append(
-                    f"The vug fluid cycled {cycle_count} times across "
-                    f"saturation (f_ord={f_ord:.2f}) — partially ordered. "
-                    f"Some growth zones are well-ordered dolomite, others "
-                    f"disordered HMC; X-ray diffraction would show a smeared "
-                    f"peak rather than the sharp dolomite signature."
-                )
+                variant = "kim_partial"
             else:
-                parts.append(
-                    f"Only {cycle_count} saturation cycle(s) (f_ord="
-                    f"{f_ord:.2f}) — most of this crystal is disordered "
-                    f"high-Mg calcite, not true ordered dolomite. With more "
-                    f"cycles it would have ratcheted up; the system sealed too "
-                    f"quickly."
-                )
+                variant = "kim_disordered"
+            parts.append(narrative_variant("dolomite", variant,
+                                           cycle_count=cycle_count,
+                                           f_ord=f"{f_ord:.2f}"))
         else:
-            parts.append(
-                "No saturation cycles occurred — this is steady-state growth, "
-                "which Kim 2023 predicts will be disordered Mg-calcite rather "
-                "than true ordered dolomite. In nature the ratio of true "
-                "dolomite to disordered HMC depends on how oscillatory the "
-                "fluid history was."
-            )
+            parts.append(narrative_variant("dolomite", "no_cycling"))
 
         if c.habit == "saddle_rhomb":
-            parts.append(
-                "Saddle-shaped curved rhombohedra — the most extreme example "
-                "of the calcite-group curved-face signature. Each {104} face "
-                "bows so sharply that the crystal looks twisted, which it "
-                "isn't — it's the lattice strain from cation ordering "
-                "expressed in surface geometry."
-            )
+            parts.append(narrative_variant("dolomite", "saddle_rhomb"))
         elif c.habit == "coarse_rhomb":
-            parts.append(
-                "Coarse textbook rhombohedra — the slow-growth high-T form. "
-                "Transparent to white, the crystal looks like calcite at "
-                "first glance until you check the cleavage and density."
-            )
+            parts.append(narrative_variant("dolomite", "coarse_rhomb"))
         else:
-            parts.append(
-                "Massive granular aggregate — the rock-forming form. White "
-                "to gray sugary texture, no individual crystal faces visible."
-            )
+            parts.append(narrative_variant("dolomite", "massive_granular"))
 
         if "calcite" in c.position:
-            parts.append(
-                f"Growing on calcite — classic dolomitization texture, the "
-                f"Mg-bearing fluid converting earlier calcite to dolomite "
-                f"as the system evolves."
-            )
+            parts.append(narrative_variant("dolomite", "on_calcite"))
 
         if c.dissolved:
-            parts.append(
-                "Acid attack dissolved the crystal — dolomite is somewhat "
-                "more acid-resistant than calcite (the Mg slows the reaction), "
-                "but pH < 6 still releases Ca²⁺ + Mg²⁺ + 2 CO₃²⁻."
-            )
-        return " ".join(parts)
+            parts.append(narrative_variant("dolomite", "dissolved"))
+        return " ".join(p for p in parts if p)
 
     def _narrate_siderite(self, c: Crystal) -> str:
         """Narrate a siderite crystal's story — the iron carbonate."""

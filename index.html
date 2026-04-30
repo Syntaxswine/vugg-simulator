@@ -3271,7 +3271,7 @@ const _NARRATIVE_CACHE = {};
 // Phase-1 manifest — extend as more species migrate. When all 89 are
 // extracted the manifest can become a generated index file fetched
 // once at startup.
-const _NARRATIVE_MANIFEST = ['chalcopyrite', 'sphalerite', 'aurichalcite'];
+const _NARRATIVE_MANIFEST = ['chalcopyrite', 'sphalerite', 'aurichalcite', 'dolomite'];
 
 function _parseNarrative(text) {
   // Strip frontmatter (--- block at top).
@@ -13945,31 +13945,37 @@ class VugSimulator {
   }
 
   _narrate_dolomite(c) {
+    // Prose lives in narratives/dolomite.md. Code keeps the
+    // cycle_count → f_ord computation and threshold dispatch (Kim 2023
+    // ordering tiers); markdown owns the words. Inline fallbacks for offline.
     const parts = [`Dolomite #${c.crystal_id} grew to ${c.c_length_mm.toFixed(1)} mm.`];
     const cycle_count = this.conditions._dol_cycle_count;
     const f_ord = cycle_count > 0 ? 1.0 - Math.exp(-cycle_count / 7.0) : 0.0;
-    parts.push("CaMg(CO₃)₂ — the ordered double carbonate, with Ca and Mg in alternating cation layers (R3̄ space group, distinct from calcite's R3̄c). The host rock of MVT deposits and a major sedimentary carbonate. The 'dolomite problem' — that modern surface oceans should but don't precipitate it — was partly resolved by Kim, Sun et al. (2023, Science 382:915) who showed that periodic dissolution-precipitation cycles strip disordered Ca/Mg surface layers and ratchet ordering up over many cycles.");
+    parts.push(narrative_blurb('dolomite') || "CaMg(CO₃)₂ — the ordered double carbonate, with Ca and Mg in alternating cation layers (R3̄ space group, distinct from calcite's R3̄c). The host rock of MVT deposits and a major sedimentary carbonate. The 'dolomite problem' — that modern surface oceans should but don't precipitate it — was partly resolved by Kim, Sun et al. (2023, Science 382:915) who showed that periodic dissolution-precipitation cycles strip disordered Ca/Mg surface layers and ratchet ordering up over many cycles.");
     if (cycle_count > 0) {
-      if (f_ord > 0.7) parts.push(`The vug fluid cycled across dolomite saturation ${cycle_count} times during this crystal's growth (f_ord=${f_ord.toFixed(2)}). Each cycle stripped the disordered surface layer that steady precipitation would otherwise lock in, leaving an ordered Ca/Mg template for the next growth pulse. The result is true ordered dolomite, not a Mg-calcite intermediate.`);
-      else if (f_ord > 0.3) parts.push(`The vug fluid cycled ${cycle_count} times across saturation (f_ord=${f_ord.toFixed(2)}) — partially ordered. Some growth zones are well-ordered dolomite, others disordered HMC; X-ray diffraction would show a smeared peak rather than the sharp dolomite signature.`);
-      else parts.push(`Only ${cycle_count} saturation cycle(s) (f_ord=${f_ord.toFixed(2)}) — most of this crystal is disordered high-Mg calcite, not true ordered dolomite. With more cycles it would have ratcheted up; the system sealed too quickly.`);
+      const ctx = { cycle_count, f_ord: f_ord.toFixed(2) };
+      let variant, fallback;
+      if (f_ord > 0.7) { variant = 'kim_ordered'; fallback = `The vug fluid cycled across dolomite saturation ${cycle_count} times during this crystal's growth (f_ord=${f_ord.toFixed(2)}). Each cycle stripped the disordered surface layer that steady precipitation would otherwise lock in, leaving an ordered Ca/Mg template for the next growth pulse. The result is true ordered dolomite, not a Mg-calcite intermediate.`; }
+      else if (f_ord > 0.3) { variant = 'kim_partial'; fallback = `The vug fluid cycled ${cycle_count} times across saturation (f_ord=${f_ord.toFixed(2)}) — partially ordered. Some growth zones are well-ordered dolomite, others disordered HMC; X-ray diffraction would show a smeared peak rather than the sharp dolomite signature.`; }
+      else { variant = 'kim_disordered'; fallback = `Only ${cycle_count} saturation cycle(s) (f_ord=${f_ord.toFixed(2)}) — most of this crystal is disordered high-Mg calcite, not true ordered dolomite. With more cycles it would have ratcheted up; the system sealed too quickly.`; }
+      parts.push(narrative_variant('dolomite', variant, ctx) || fallback);
     } else {
-      parts.push("No saturation cycles occurred — this is steady-state growth, which Kim 2023 predicts will be disordered Mg-calcite rather than true ordered dolomite. In nature the ratio of true dolomite to disordered HMC depends on how oscillatory the fluid history was.");
+      parts.push(narrative_variant('dolomite', 'no_cycling') || "No saturation cycles occurred — this is steady-state growth, which Kim 2023 predicts will be disordered Mg-calcite rather than true ordered dolomite. In nature the ratio of true dolomite to disordered HMC depends on how oscillatory the fluid history was.");
     }
     if (c.habit === 'saddle_rhomb') {
-      parts.push("Saddle-shaped curved rhombohedra — the most extreme example of the calcite-group curved-face signature. Each {104} face bows so sharply that the crystal looks twisted, which it isn't — it's the lattice strain from cation ordering expressed in surface geometry.");
+      parts.push(narrative_variant('dolomite', 'saddle_rhomb') || "Saddle-shaped curved rhombohedra — the most extreme example of the calcite-group curved-face signature. Each {104} face bows so sharply that the crystal looks twisted, which it isn't — it's the lattice strain from cation ordering expressed in surface geometry.");
     } else if (c.habit === 'coarse_rhomb') {
-      parts.push('Coarse textbook rhombohedra — the slow-growth high-T form. Transparent to white, the crystal looks like calcite at first glance until you check the cleavage and density.');
+      parts.push(narrative_variant('dolomite', 'coarse_rhomb') || 'Coarse textbook rhombohedra — the slow-growth high-T form. Transparent to white, the crystal looks like calcite at first glance until you check the cleavage and density.');
     } else {
-      parts.push('Massive granular aggregate — the rock-forming form. White to gray sugary texture, no individual crystal faces visible.');
+      parts.push(narrative_variant('dolomite', 'massive_granular') || 'Massive granular aggregate — the rock-forming form. White to gray sugary texture, no individual crystal faces visible.');
     }
     if (c.position && c.position.includes('calcite')) {
-      parts.push(`Growing on calcite — classic dolomitization texture, the Mg-bearing fluid converting earlier calcite to dolomite as the system evolves.`);
+      parts.push(narrative_variant('dolomite', 'on_calcite') || `Growing on calcite — classic dolomitization texture, the Mg-bearing fluid converting earlier calcite to dolomite as the system evolves.`);
     }
     if (c.dissolved) {
-      parts.push('Acid attack dissolved the crystal — dolomite is somewhat more acid-resistant than calcite (the Mg slows the reaction), but pH < 6 still releases Ca²⁺ + Mg²⁺ + 2 CO₃²⁻.');
+      parts.push(narrative_variant('dolomite', 'dissolved') || 'Acid attack dissolved the crystal — dolomite is somewhat more acid-resistant than calcite (the Mg slows the reaction), but pH < 6 still releases Ca²⁺ + Mg²⁺ + 2 CO₃²⁻.');
     }
-    return parts.join(' ');
+    return parts.filter(p => p).join(' ');
   }
 
   _narrate_siderite(c) {
