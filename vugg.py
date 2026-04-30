@@ -15076,109 +15076,65 @@ class VugSimulator:
         return " ".join(parts)
     
     def _narrate_calcite(self, c: Crystal) -> str:
-        """Narrate a calcite crystal's story."""
+        """Narrate a calcite crystal's story.
+
+        Prose lives in narratives/calcite.md. Code keeps the zone
+        analysis (Mn-vs-Fe segregation, fluorescence-quench detection)
+        and final-size descriptor; markdown owns the words.
+        """
         parts = []
         if c.zones:
-            # Check for fluorescence zoning
             mn_zones = [z for z in c.zones if z.trace_Mn > 1.0 and z.trace_Fe < 2.0]
             fe_zones = [z for z in c.zones if z.trace_Fe > 3.0]
-            
             if mn_zones and fe_zones:
                 mn_end = mn_zones[-1].step
                 fe_start = fe_zones[0].step
                 if fe_start > mn_end - 5:
-                    parts.append(
-                        f"Early growth zones are manganese-rich and would fluoresce "
-                        f"orange under UV light. After step {fe_start}, iron flooded "
-                        f"the system and quenched the fluorescence — later zones would "
-                        f"appear dark under cathodoluminescence. The boundary between "
-                        f"glowing and dark records the moment the fluid chemistry changed."
-                    )
+                    parts.append(narrative_variant("calcite", "mn_fe_quench",
+                                                   fe_start=fe_start))
             elif mn_zones:
-                parts.append(
-                    f"The crystal incorporated manganese throughout growth and would "
-                    f"fluoresce orange under shortwave UV — a classic Mn²⁺-activated "
-                    f"calcite."
-                )
-        
-        if c.twinned:
-            parts.append(
-                f"The crystal is twinned on {c.twin_law}, a common deformation twin "
-                f"in calcite that can form during growth or post-crystallization stress."
-            )
-        
-        size_desc = "microscopic" if c.c_length_mm < 0.5 else "small" if c.c_length_mm < 2 else "well-developed"
-        parts.append(f"Final size: {size_desc} ({c.c_length_mm:.1f} mm), {c.habit} habit.")
+                parts.append(narrative_variant("calcite", "mn_only"))
 
-        return " ".join(parts)
+        if c.twinned:
+            parts.append(narrative_variant("calcite", "twinned",
+                                           twin_law=c.twin_law))
+
+        size_desc = "microscopic" if c.c_length_mm < 0.5 else "small" if c.c_length_mm < 2 else "well-developed"
+        parts.append(narrative_variant("calcite", "final_size",
+                                       size_desc=size_desc,
+                                       mm=f"{c.c_length_mm:.1f}",
+                                       habit=c.habit))
+
+        return " ".join(p for p in parts if p)
 
     def _narrate_aragonite(self, c: Crystal) -> str:
-        """Narrate an aragonite crystal's story — the metastable polymorph."""
+        """Narrate an aragonite crystal's story — the metastable polymorph.
+
+        Prose lives in narratives/aragonite.md. Code dispatches habit
+        + dissolved-with-conversion-note signal.
+        """
         parts = [f"Aragonite #{c.crystal_id} grew to {c.c_length_mm:.1f} mm."]
-        parts.append(
-            "CaCO₃ — same composition as calcite, different crystal structure. "
-            "The orthorhombic polymorph that exists by kinetic favor, not thermodynamic "
-            "stability: at the temperature and pressure of this vug, calcite is the "
-            "ground-state phase, and given enough geologic time aragonite would convert. "
-            "Folk 1974 / Morse 1997 — Mg/Ca ratio is the dominant control on which "
-            "polymorph nucleates from a given fluid."
-        )
+        parts.append(narrative_blurb("aragonite"))
 
         if c.habit == "acicular_needle":
-            parts.append(
-                "Acicular needles — the high-supersaturation form. Long thin prisms "
-                "radiating from a common nucleation point, often forming sprays that "
-                "look like frozen explosions in cabinet specimens."
-            )
+            parts.append(narrative_variant("aragonite", "acicular_needle"))
         elif c.habit == "twinned_cyclic":
-            parts.append(
-                "Cyclic twin on {110} — three crystals interpenetrating at 120° to "
-                "produce a pseudo-hexagonal six-pointed prism. This is the diagnostic "
-                "aragonite habit, easily mistaken for a true hexagonal mineral until "
-                "the re-entrant angles between the twin lobes give it away."
-            )
+            parts.append(narrative_variant("aragonite", "twinned_cyclic"))
         elif c.habit == "flos_ferri":
-            parts.append(
-                "'Flos ferri' — the iron flower variety. Fe-rich aragonite forms "
-                "delicate dendritic / coral-like white branches, a habit named for "
-                "the famous Eisenerz, Austria specimens. Stalactitic and visually "
-                "stunning despite (or because of) its fragility."
-            )
+            parts.append(narrative_variant("aragonite", "flos_ferri"))
         else:
-            parts.append(
-                "Columnar prisms — the default low-σ habit. Transparent to white "
-                "blades that are easily confused with calcite at first glance, "
-                "until you read the chemistry: Mg/Ca ratio, trace Sr/Pb signatures, "
-                "or the lack of perfect rhombohedral cleavage."
-            )
+            parts.append(narrative_variant("aragonite", "columnar_prisms"))
 
-        # Polymorph context
-        # (Note: at narration time we don't have the original fluid state, but
-        #  we can comment on the narrative arc.)
         if c.dissolved:
             note = c.zones[-1].note if c.zones else ""
             if "polymorphic conversion" in note:
-                parts.append(
-                    "The crystal underwent polymorphic conversion to calcite — the "
-                    "thermodynamic sink. Aragonite metastability has limits: above "
-                    "100°C with water present, the structure inverts on geologic-short "
-                    "timescales (Bischoff & Fyfe 1968, half-life ~10³ yr at 80°C). "
-                    "What remains is a calcite pseudomorph after aragonite, preserving "
-                    "the original orthorhombic outline filled with trigonal cleavage."
-                )
+                parts.append(narrative_variant("aragonite", "polymorphic_conversion"))
             else:
-                parts.append(
-                    "Acid attack dissolved the crystal — aragonite shares calcite's "
-                    "vulnerability below pH 5.5. Ca²⁺ + CO₃²⁻ returned to the fluid."
-                )
+                parts.append(narrative_variant("aragonite", "acid_dissolution"))
         else:
-            parts.append(
-                "The crystal is preserved at vug-scale geologic moment. In nature, "
-                "aragonite from cold marine settings can survive millions of years; "
-                "from hot springs it converts to calcite in centuries to millennia."
-            )
+            parts.append(narrative_variant("aragonite", "preserved"))
 
-        return " ".join(parts)
+        return " ".join(p for p in parts if p)
 
     def _narrate_dolomite(self, c: Crystal) -> str:
         """Narrate a dolomite crystal's story — the Ca-Mg ordered carbonate.
@@ -15223,127 +15179,61 @@ class VugSimulator:
         return " ".join(p for p in parts if p)
 
     def _narrate_siderite(self, c: Crystal) -> str:
-        """Narrate a siderite crystal's story — the iron carbonate."""
+        """Narrate a siderite crystal's story — the iron carbonate.
+
+        Prose lives in narratives/siderite.md. Code dispatches habit
+        + dissolved-with-oxidative-note signal.
+        """
         parts = [f"Siderite #{c.crystal_id} grew to {c.c_length_mm:.1f} mm."]
-        parts.append(
-            "FeCO₃ — the iron carbonate, a calcite-group mineral (R3̄c) with "
-            "Fe²⁺ in the Ca site. Tan to deep brown, depending on Fe content "
-            "and trace substitution. Forms only in REDUCING conditions because "
-            "Fe²⁺ must stay reduced to be soluble; the moment O₂ rises above "
-            "~0.5, siderite begins converting to goethite/limonite."
-        )
+        parts.append(narrative_blurb("siderite"))
 
         if c.habit == "rhombohedral":
-            parts.append(
-                "Curved 'saddle' rhombohedra — the diagnostic siderite habit. "
-                "The {104} faces aren't flat; they bow outward into a saddle "
-                "shape, parallel to the curved-rhomb signature shared with "
-                "rhodochrosite and dolomite (the calcite-group tells include "
-                "this faceting tic)."
-            )
+            parts.append(narrative_variant("siderite", "rhombohedral"))
         elif c.habit == "scalenohedral":
-            parts.append(
-                "Sharp scalenohedral 'dog-tooth' crystals — the high-σ habit. "
-                "Less common than the rhombohedral form; sharp brown crystals "
-                "that resemble brown calcite at distance."
-            )
+            parts.append(narrative_variant("siderite", "scalenohedral"))
         elif c.habit == "botryoidal":
-            parts.append(
-                "Botryoidal mammillary crusts — the colloidal habit, formed "
-                "when supersaturation outruns ordered crystal growth. Tan-brown "
-                "rounded aggregates, often coating fracture walls."
-            )
+            parts.append(narrative_variant("siderite", "botryoidal"))
         else:
-            parts.append(
-                "Spherulitic concretions — sedimentary 'spherosiderite,' the "
-                "concretionary habit found in coal seams and Fe-rich shales. "
-                "Each sphere is a radial fibrous internal structure capped by "
-                "a thin smooth surface."
-            )
+            parts.append(narrative_variant("siderite", "spherulitic_concretion"))
 
         if c.dissolved:
             note = c.zones[-1].note if c.zones else ""
             if "oxidative breakdown" in note:
-                parts.append(
-                    "Oxidative breakdown destroyed the crystal — the textbook "
-                    "diagenetic story. Rising O₂ pushed Fe²⁺ → Fe³⁺, which is "
-                    "insoluble as carbonate; the lattice collapsed and Fe + CO₃ "
-                    "moved on to grow goethite/limonite elsewhere. In nature "
-                    "this is the mechanism behind the 'limonite cube after "
-                    "siderite' diagenetic pseudomorphs."
-                )
+                parts.append(narrative_variant("siderite", "oxidative_breakdown"))
             else:
-                parts.append(
-                    "Acid attack dissolved the crystal — like all calcite-group "
-                    "carbonates, siderite fizzes in HCl. Fe²⁺ + CO₃²⁻ released."
-                )
-        return " ".join(parts)
+                parts.append(narrative_variant("siderite", "acid_dissolution"))
+        return " ".join(p for p in parts if p)
 
     def _narrate_rhodochrosite(self, c: Crystal) -> str:
-        """Narrate a rhodochrosite crystal's story — the manganese carbonate."""
+        """Narrate a rhodochrosite crystal's story — the manganese carbonate.
+
+        Prose lives in narratives/rhodochrosite.md. Code dispatches
+        habit + on-sulfide position-string match + dissolved-with-
+        oxidative-note signal.
+        """
         parts = [f"Rhodochrosite #{c.crystal_id} grew to {c.c_length_mm:.1f} mm."]
-        parts.append(
-            "MnCO₃ — the rosy manganese carbonate, structurally identical to "
-            "calcite (R3̄c) but with Mn²⁺ replacing Ca²⁺. The pink-to-raspberry "
-            "color is intrinsic to the Mn²⁺ chromophore, not a trace activator. "
-            "Forms in epithermal Mn-bearing veins (Capillitas, Sweet Home), "
-            "metamorphosed Mn sediments (N'Chwaning), and low-T carbonate "
-            "replacement zones."
-        )
+        parts.append(narrative_blurb("rhodochrosite"))
 
         if c.habit == "rhombohedral":
-            parts.append(
-                "Curved 'button' rhombohedra — the diagnostic rhodochrosite habit. "
-                "The {104} faces aren't quite flat; they bow outward, giving each "
-                "crystal a domed, button-like profile that's hard to mistake for "
-                "anything else."
-            )
+            parts.append(narrative_variant("rhodochrosite", "rhombohedral"))
         elif c.habit == "scalenohedral":
-            parts.append(
-                "Sharp scalenohedral 'dog-tooth' crystals — the high-σ habit. "
-                "Deep-rose to raspberry-red where Mn is dominant. Visually similar "
-                "to scalenohedral calcite at distance, but the color settles the "
-                "identification."
-            )
+            parts.append(narrative_variant("rhodochrosite", "scalenohedral"))
         elif c.habit == "stalactitic":
-            parts.append(
-                "Stalactitic / mammillary aggregates — the famous Capillitas, "
-                "Argentina habit. Concentric rose-pink banding when sliced; "
-                "reflects rhythmic drip-water deposition over geologically short "
-                "intervals."
-            )
+            parts.append(narrative_variant("rhodochrosite", "stalactitic"))
         else:
-            parts.append(
-                "Rhythmic Mn/Ca banding — the agate-like layered cross-section. "
-                "Each band records a slight shift in the Mn:Ca ratio of the "
-                "incoming fluid, captured in the kutnohorite (CaMn carbonate) "
-                "solid-solution series between rhodochrosite and calcite."
-            )
+            parts.append(narrative_variant("rhodochrosite", "rhythmic_banding"))
 
-        # Sulfide inclusion paragenesis
         if "sphalerite" in c.position or "pyrite" in c.position or "galena" in c.position:
-            parts.append(
-                f"Growing on {c.position} — classic epithermal vein paragenesis: "
-                f"the carbonate fills space between earlier sulfides as the system "
-                f"cools, Mn-bearing fluids replacing or coating the sulfide phases."
-            )
+            parts.append(narrative_variant("rhodochrosite", "on_sulfide",
+                                           position=c.position))
 
         if c.dissolved:
             note = c.zones[-1].note if c.zones else ""
             if "oxidative breakdown" in note:
-                parts.append(
-                    "Oxidative breakdown destroyed the crystal — Mn²⁺ is unstable "
-                    "above O₂ ~1.0; it flips to Mn³⁺/Mn⁴⁺ and the surface converts "
-                    "to a black manganese-oxide rind (pyrolusite, psilomelane). "
-                    "The rosy crystal goes black from the outside in. This is why "
-                    "rhodochrosite specimens require careful storage."
-                )
+                parts.append(narrative_variant("rhodochrosite", "oxidative_breakdown"))
             else:
-                parts.append(
-                    "Acid attack dissolved the crystal — like calcite, "
-                    "rhodochrosite fizzes in HCl, releasing Mn²⁺ and CO₃²⁻."
-                )
-        return " ".join(parts)
+                parts.append(narrative_variant("rhodochrosite", "acid_dissolution"))
+        return " ".join(p for p in parts if p)
 
     def _narrate_quartz(self, c: Crystal) -> str:
         """Narrate a quartz crystal's story."""
@@ -15545,89 +15435,56 @@ class VugSimulator:
         return " ".join(parts)
     
     def _narrate_pyrite(self, c: Crystal) -> str:
-        """Narrate a pyrite crystal's story."""
-        parts = [f"Pyrite #{c.crystal_id} grew to {c.c_length_mm:.1f} mm."]
-        
-        if c.habit == "framboidal":
-            parts.append(
-                "The low temperature produced framboidal pyrite — microscopic "
-                "raspberry-shaped aggregates of tiny crystallites, a texture "
-                "common in sedimentary environments."
-            )
-        elif c.habit == "pyritohedral":
-            parts.append(
-                "The crystal developed the characteristic pyritohedral habit — "
-                "twelve pentagonal faces, a form unique to pyrite and one of "
-                "nature's few non-crystallographic symmetries."
-            )
-        elif "cubic" in c.habit:
-            parts.append(
-                "Clean cubic habit with bright metallic luster. The striations "
-                "on each cube face (perpendicular on adjacent faces) are the "
-                "fingerprint of pyrite's lower symmetry disguised as cubic."
-            )
-        
-        if c.twinned:
-            parts.append(
-                f"Twinned as an {c.twin_law} — two crystals interpenetrating at "
-                f"90°, one of the most recognizable twin forms in mineralogy."
-            )
-        
-        if c.dissolved:
-            parts.append(
-                "Late-stage oxidation attacked the pyrite — in nature this would "
-                "produce a limonite/goethite boxwork pseudomorph, the rusty ghost "
-                "of the original crystal."
-            )
+        """Narrate a pyrite crystal's story.
 
-        return " ".join(parts)
+        Prose lives in narratives/pyrite.md. Code dispatches habit (framboidal /
+        pyritohedral / cubic) + twinned + dissolved.
+        """
+        parts = [f"Pyrite #{c.crystal_id} grew to {c.c_length_mm:.1f} mm."]
+
+        if c.habit == "framboidal":
+            parts.append(narrative_variant("pyrite", "framboidal"))
+        elif c.habit == "pyritohedral":
+            parts.append(narrative_variant("pyrite", "pyritohedral"))
+        elif "cubic" in c.habit:
+            parts.append(narrative_variant("pyrite", "cubic"))
+
+        if c.twinned:
+            parts.append(narrative_variant("pyrite", "twinned", twin_law=c.twin_law))
+
+        if c.dissolved:
+            parts.append(narrative_variant("pyrite", "acid_oxidation"))
+
+        return " ".join(p for p in parts if p)
 
     def _narrate_marcasite(self, c: Crystal) -> str:
-        """Narrate a marcasite crystal's story — the acid-loving iron sulfide."""
+        """Narrate a marcasite crystal's story — the acid-loving iron sulfide.
+
+        Prose lives in narratives/marcasite.md. Code dispatches 4-way habit
+        (cockscomb / spearhead / radiating_blade / tabular_plates default) +
+        twinned (with {twin_law}) + dissolved-vs-kept_orthorhombic dimorph
+        commentary.
+        """
         parts = [f"Marcasite #{c.crystal_id} grew to {c.c_length_mm:.1f} mm."]
 
         if c.habit == "cockscomb":
-            parts.append(
-                "The crystal developed the classic cockscomb habit — aggregated tabular "
-                "plates on {010}, edges ridged like a rooster's comb. This shape is the "
-                "diagnostic fingerprint: pyrite never crests like this."
-            )
+            parts.append(narrative_variant("marcasite", "cockscomb"))
         elif c.habit == "spearhead":
-            parts.append(
-                "Spearhead twins — paired tabular crystals tapered to pyramidal tips. "
-                "The {101} twin law produces a swallowtail shape unique to marcasite."
-            )
+            parts.append(narrative_variant("marcasite", "spearhead"))
         elif c.habit == "radiating_blade":
-            parts.append(
-                "Radiating blades sprayed outward from a common center — low-temperature, "
-                "high-supersaturation growth in acid fluids, the same style that gives "
-                "sedimentary marcasite nodules their stellate fracture patterns."
-            )
+            parts.append(narrative_variant("marcasite", "radiating_blade"))
         else:
-            parts.append(
-                "Flat tabular {010} plates — the slow-growth marcasite form, pale brass "
-                "already starting to iridesce as surface sulfur oxidizes."
-            )
+            parts.append(narrative_variant("marcasite", "tabular_plates"))
 
         if c.twinned:
-            parts.append(
-                f"Shows the {c.twin_law} swallowtail twin, diagnostic of marcasite "
-                f"and absent from its cubic cousin pyrite."
-            )
+            parts.append(narrative_variant("marcasite", "twinned", twin_law=c.twin_law))
 
         if c.dissolved:
-            parts.append(
-                "Metastable inversion or oxidative breakdown destroyed the crystal — "
-                "marcasite is the unstable FeS₂ dimorph. Over geologic time it converts "
-                "to pyrite; on museum shelves it rots to sulfuric acid and iron sulfate."
-            )
+            parts.append(narrative_variant("marcasite", "dissolved_inversion"))
         else:
-            parts.append(
-                "The pH/T regime kept it in the orthorhombic field; given geologic time "
-                "or a temperature excursion above 240°C, this crystal would invert to pyrite."
-            )
+            parts.append(narrative_variant("marcasite", "kept_orthorhombic"))
 
-        return " ".join(parts)
+        return " ".join(p for p in parts if p)
 
     def _narrate_chalcopyrite(self, c: Crystal) -> str:
         """Narrate a chalcopyrite crystal's story.
@@ -15646,143 +15503,89 @@ class VugSimulator:
         return " ".join(p for p in parts if p)
     
     def _narrate_hematite(self, c: Crystal) -> str:
-        """Narrate a hematite crystal's story."""
+        """Narrate a hematite crystal's story.
+
+        Prose lives in narratives/hematite.md. Code dispatches 4-way habit
+        (specular / rhombohedral / botryoidal / earthy_massive) + an
+        iridescent sub-branch on specular when zone-note contains 'iridescent'
+        + twinned (with {twin_law}) + dissolved.
+        """
         parts = [f"Hematite #{c.crystal_id} grew to {c.c_length_mm:.1f} mm."]
-        
+
         if c.habit == "specular":
-            parts.append(
-                "The high temperature produced specular hematite — brilliant metallic "
-                "plates that flash like mirrors, the most sought-after habit. The thin "
-                "{001} basal plates grew parallel to each other, creating the characteristic "
-                "'iron rose' or 'specularite' texture."
-            )
-            # Check for iridescence
+            parts.append(narrative_variant("hematite", "specular"))
             if c.zones and any("iridescent" in z.note for z in c.zones):
-                parts.append(
-                    "Some plates are thin enough to show iridescent interference colors — "
-                    "rainbow hematite, a collector favorite."
-                )
+                parts.append(narrative_variant("hematite", "specular_iridescent"))
         elif c.habit == "rhombohedral":
-            parts.append(
-                "Moderate temperatures produced rhombohedral hematite — sharp-edged "
-                "crystals with {101} faces, dark metallic gray with a red streak."
-            )
+            parts.append(narrative_variant("hematite", "rhombohedral"))
         elif c.habit == "botryoidal":
-            parts.append(
-                "Low-temperature growth produced botryoidal hematite — kidney-ore "
-                "texture with smooth, rounded surfaces. Classic 'kidney iron ore' "
-                "that has been mined since antiquity."
-            )
+            parts.append(narrative_variant("hematite", "botryoidal"))
         elif c.habit == "earthy/massive":
-            parts.append(
-                "Low supersaturation produced earthy, massive hematite — red "
-                "microcrystalline aggregate. The red ochre pigment that humans have "
-                "used for 100,000 years."
-            )
-        
+            parts.append(narrative_variant("hematite", "earthy_massive"))
+
         if c.twinned:
-            parts.append(
-                f"Shows a rare {c.twin_law} — two crystals interpenetrating "
-                f"through the basal plane."
-            )
-        
+            parts.append(narrative_variant("hematite", "twinned", twin_law=c.twin_law))
+
         if c.dissolved:
-            parts.append(
-                "Late-stage acid attack dissolved some of the hematite, releasing "
-                "iron back to the fluid."
-            )
-        
-        return " ".join(parts)
+            parts.append(narrative_variant("hematite", "acid_dissolution"))
+
+        return " ".join(p for p in parts if p)
     
     def _narrate_malachite(self, c: Crystal) -> str:
-        """Narrate a malachite crystal's story."""
+        """Narrate a malachite crystal's story.
+
+        Prose lives in narratives/malachite.md. Code dispatches paragenesis
+        (on_chalcopyrite), 3-way habit (banded / botryoidal / fibrous_acicular),
+        dissolved, and final color summary (predict_color() result interpolates
+        into the {color} variant).
+        """
         parts = [f"Malachite #{c.crystal_id} grew to {c.c_length_mm:.1f} mm."]
-        
-        # Check paragenesis — did it grow on chalcopyrite?
-        if "chalcopyrite" in c.position:
-            parts.append(
-                "It nucleated directly on chalcopyrite — the classic oxidation "
-                "paragenesis. As oxygenated water attacked the copper sulfide, "
-                "Cu²⁺ was liberated and combined with carbonate to form malachite. "
-                "This is the green stain that led ancient prospectors to copper deposits."
-            )
-        
+
+        if "chalcopyrite" in (c.position or ""):
+            parts.append(narrative_variant("malachite", "on_chalcopyrite"))
+
         if c.habit == "banded":
-            parts.append(
-                "The crystal developed the famous banded texture — concentric layers "
-                "of alternating light and dark green, each band recording a pulse of "
-                "growth. This is the texture prized in decorative stonework since "
-                "the Bronze Age, from Russian palaces to Egyptian amulets."
-            )
+            parts.append(narrative_variant("malachite", "banded"))
         elif c.habit == "botryoidal":
-            parts.append(
-                "Botryoidal habit — smooth, rounded green masses that gleam like "
-                "polished jade. Cross-sections would reveal concentric banding."
-            )
+            parts.append(narrative_variant("malachite", "botryoidal"))
         elif c.habit == "fibrous/acicular":
-            parts.append(
-                "Rapid growth produced fibrous, acicular malachite — sprays of "
-                "needle-like green crystals radiating from nucleation points. "
-                "Delicate and sparkling, a different beauty from the massive variety."
-            )
-        
+            parts.append(narrative_variant("malachite", "fibrous_acicular"))
+
         if c.dissolved:
-            parts.append(
-                "Acid attack dissolved some malachite — it fizzes in acid like "
-                "calcite, releasing Cu²⁺ and CO₂. The green stain on the fingers "
-                "of anyone who handles it with acidic sweat."
-            )
-        
-        # Color summary
+            parts.append(narrative_variant("malachite", "acid_dissolution"))
+
         color = c.predict_color()
         if color:
-            parts.append(f"Color: {color}.")
+            parts.append(narrative_variant("malachite", "color", color=color))
 
-        return " ".join(parts)
+        return " ".join(p for p in parts if p)
 
     def _narrate_goethite(self, c: Crystal) -> str:
-        """Narrate a goethite crystal's story — the ghost mineral, now real."""
+        """Narrate a goethite crystal's story — the ghost mineral, now real.
+
+        Prose lives in narratives/goethite.md. Code dispatches 3-way
+        paragenesis (after_pyrite / after_chalcopyrite / on_hematite,
+        all elif) + 2-way habit (botryoidal_stalactitic / fibrous_acicular)
+        + acid_dissolution. No always-shown blurb.
+        """
         parts = [f"Goethite #{c.crystal_id} grew to {c.c_length_mm:.1f} mm."]
 
         if "pseudomorph after pyrite" in c.position:
-            parts.append(
-                "It replaced pyrite atom-for-atom — the classic boxwork pseudomorph. "
-                "What looks like a rusty pyrite cube is actually goethite that has "
-                "inherited the sulfide's habit while the Fe-S lattice was dissolved "
-                "and Fe-O-OH precipitated in its place. These are the Egyptian "
-                "Prophecy Stones' cousin — the rusty ghost of a crystal that was."
-            )
+            parts.append(narrative_variant("goethite", "pseudomorph_after_pyrite"))
         elif "pseudomorph after chalcopyrite" in c.position:
-            parts.append(
-                "Chalcopyrite oxidized and goethite took its place — a copper sulfide's "
-                "iron heir. The copper went to malachite; the iron stayed here."
-            )
+            parts.append(narrative_variant("goethite", "pseudomorph_after_chalcopyrite"))
         elif "hematite" in c.position:
-            parts.append(
-                "Nucleated on hematite — the hydrated/anhydrous iron oxide pair coexist "
-                "in oxidation zones, separated only by how much water the fluid carried."
-            )
+            parts.append(narrative_variant("goethite", "on_hematite"))
 
         if c.habit == "botryoidal/stalactitic":
-            parts.append(
-                "Built up into stalactitic, botryoidal masses — the velvety black "
-                "surfaces that collectors call 'black goethite.' Each layer a separate "
-                "pulse of Fe-saturated water, together the signature of persistent "
-                "slow oxidation."
-            )
+            parts.append(narrative_variant("goethite", "botryoidal_stalactitic"))
         elif c.habit == "fibrous_acicular":
-            parts.append(
-                "Radiating needle habit — the fibrous goethite that grows as "
-                "velvet crusts on cavity walls when Fe³⁺-rich fluid seeps slowly."
-            )
+            parts.append(narrative_variant("goethite", "fibrous_acicular"))
 
         if c.dissolved:
-            parts.append(
-                "Acid attack released Fe³⁺ back to the fluid. Goethite survives "
-                "oxidation but not strong acid — the rusty armor has a pH floor."
-            )
+            parts.append(narrative_variant("goethite", "acid_dissolution"))
 
-        return " ".join(parts)
+        return " ".join(p for p in parts if p)
 
     def _narrate_uraninite(self, c: Crystal) -> str:
         """Narrate a uraninite crystal's story — the radioactive heart of the vug."""
@@ -15818,94 +15621,81 @@ class VugSimulator:
         return " ".join(parts)
 
     def _narrate_galena(self, c: Crystal) -> str:
-        """Narrate a galena crystal's story — the heavy one."""
-        parts = [f"Galena #{c.crystal_id} grew to {c.c_length_mm:.1f} mm."]
+        """Narrate a galena crystal's story — the heavy one.
 
-        parts.append(
-            "PbS — the densest common sulfide (SG 7.6), perfect cubic cleavage, "
-            "bright lead-gray metallic luster. Pick up a piece and it's "
-            "surprisingly heavy; tap it and it cleaves into perfect little cubes."
-        )
+        Prose lives in narratives/galena.md. Code dispatches blurb +
+        twinned (with {twin_law}) + argentiferous (numeric trace_Ag OR
+        'Ag inclusions' note string) + dissolved.
+        """
+        parts = [f"Galena #{c.crystal_id} grew to {c.c_length_mm:.1f} mm."]
+        parts.append(narrative_blurb("galena"))
 
         if c.twinned:
-            parts.append(
-                f"Twinned on the {c.twin_law} — spinel-law twins create striking "
-                f"interpenetrating cubes in galena, rare but diagnostic."
-            )
+            parts.append(narrative_variant("galena", "spinel_twin", twin_law=c.twin_law))
 
         avg_Ag = sum(getattr(z, "trace_Ag", 0.0) for z in c.zones) / max(len(c.zones), 1)
         if avg_Ag > 0 or any("Ag inclusions" in z.note for z in c.zones):
-            parts.append(
-                "The fluid carried silver — argentiferous galena, the historic "
-                "source of most of the world's silver (Potosí, Leadville, Broken Hill)."
-            )
+            parts.append(narrative_variant("galena", "argentiferous"))
 
         if c.dissolved:
-            parts.append(
-                "Oxidation attacked the galena — Pb²⁺ went into solution and can "
-                "reprecipitate as cerussite (PbCO₃), anglesite (PbSO₄), or — if "
-                "Mo is present — wulfenite (PbMoO₄)."
-            )
+            parts.append(narrative_variant("galena", "oxidative_breakdown"))
 
-        return " ".join(parts)
+        return " ".join(p for p in parts if p)
 
     def _narrate_molybdenite(self, c: Crystal) -> str:
-        """Narrate a molybdenite crystal's story — the wulfenite precursor."""
-        parts = [f"Molybdenite #{c.crystal_id} grew to {c.c_length_mm:.1f} mm."]
+        """Narrate a molybdenite crystal's story — the wulfenite precursor.
 
-        parts.append(
-            "MoS₂ — soft hexagonal platy crystals, bluish-gray metallic, "
-            "greasy to the touch. Softest metallic mineral on Mohs (1–1.5); "
-            "leaves a mark on paper like graphite."
-        )
+        Prose lives in narratives/molybdenite.md. Code dispatches blurb +
+        porphyry sweet-spot temperature window + oxidative dissolution.
+        """
+        parts = [f"Molybdenite #{c.crystal_id} grew to {c.c_length_mm:.1f} mm."]
+        parts.append(narrative_blurb("molybdenite"))
 
         if 300 <= c.nucleation_temp <= 500:
-            parts.append(
-                "Nucleated in the porphyry sweet spot — Mo arrived in a separate "
-                "pulse from Cu (Seo et al. 2012, Bingham Canyon), a late magmatic "
-                "fluid delivering molybdenum on its own timeline."
-            )
+            parts.append(narrative_variant("molybdenite", "porphyry_sweet_spot"))
 
         if c.dissolved:
-            parts.append(
-                "Oxidation dissolved the molybdenite, releasing MoO₄²⁻ into solution. "
-                "If Pb is also present in the oxidation zone, the combination "
-                "becomes wulfenite — the sunset mineral."
-            )
+            parts.append(narrative_variant("molybdenite", "oxidative_dissolution"))
 
-        return " ".join(parts)
+        return " ".join(p for p in parts if p)
 
     def _narrate_smithsonite(self, c: Crystal) -> str:
-        """Narrate a smithsonite crystal's story — sphalerite's carbonate heir."""
+        """Narrate a smithsonite crystal's story — sphalerite's carbonate heir.
+
+        Prose lives in narratives/smithsonite.md. Code dispatches blurb +
+        sphalerite paragenesis (with oxidized sub-branch), habit (botryoidal /
+        rhombohedral), zone-note color tints, and dissolved. Drift consolidation:
+        Python dispatcher gains rhombohedral + zone-note color branches that
+        the JS side already had.
+        """
         parts = [f"Smithsonite #{c.crystal_id} grew to {c.c_length_mm:.1f} mm."]
+        parts.append(narrative_blurb("smithsonite"))
 
-        parts.append(
-            "ZnCO₃ — the supergene zinc carbonate, the oxidation product of "
-            "sphalerite. Named for James Smithson, who left his fortune to "
-            "found the Smithsonian."
-        )
+        if "sphalerite" in (c.position or ""):
+            if "oxidized" in c.position:
+                parts.append(narrative_variant("smithsonite", "on_sphalerite_oxidized"))
+            else:
+                parts.append(narrative_variant("smithsonite", "on_sphalerite_fresh"))
 
-        if "sphalerite" in c.position:
-            parts.append(
-                "It grew directly on dissolving sphalerite — the classic "
-                "oxidation-zone replacement. Zn²⁺ from the sulfide met CO₃²⁻ "
-                "from percolating carbonated water."
-            )
+        if "botryoidal" in (c.habit or ""):
+            parts.append(narrative_variant("smithsonite", "botryoidal"))
+        elif c.habit == "rhombohedral":
+            parts.append(narrative_variant("smithsonite", "rhombohedral"))
 
-        if "botryoidal" in c.habit:
-            parts.append(
-                "Built up in grape-like botryoidal masses — the habit that makes "
-                "smithsonite a collector's mineral. Turquoise-blue (Cu-bearing) "
-                "or apple-green varieties are the most prized."
-            )
+        last_zone = c.zones[-1] if c.zones else None
+        last_note = getattr(last_zone, "note", "") if last_zone else ""
+        if last_note:
+            if "apple-green" in last_note:
+                parts.append(narrative_variant("smithsonite", "color_apple_green"))
+            elif "pink" in last_note:
+                parts.append(narrative_variant("smithsonite", "color_pink"))
+            elif "blue-green" in last_note:
+                parts.append(narrative_variant("smithsonite", "color_blue_green"))
 
         if c.dissolved:
-            parts.append(
-                "Acid attack dissolved smithsonite — like calcite, it fizzes "
-                "as a carbonate and releases Zn²⁺ back to the fluid."
-            )
+            parts.append(narrative_variant("smithsonite", "acid_dissolution"))
 
-        return " ".join(parts)
+        return " ".join(p for p in parts if p)
 
     def _narrate_wulfenite(self, c: Crystal) -> str:
         """Narrate a wulfenite crystal's story — the sunset caught in stone."""
@@ -17554,40 +17344,20 @@ class VugSimulator:
         return " ".join(parts)
 
     def _narrate_cerussite(self, c: Crystal) -> str:
-        """Narrate a cerussite crystal — the star-twin lead carbonate."""
+        """Narrate a cerussite crystal — the star-twin lead carbonate.
+
+        Prose lives in narratives/cerussite.md. Code dispatches blurb +
+        flag conditionals (sixling twin, galena paragenesis, dissolved).
+        """
         parts = [f"Cerussite #{c.crystal_id} grew to {c.c_length_mm:.1f} mm."]
-        parts.append(
-            "PbCO₃ — orthorhombic lead carbonate. Water-clear with "
-            "adamantine luster and extreme birefringence — a thin "
-            "slice doubles every image behind it. Final stable product "
-            "of the lead oxidation sequence in carbonate-rich water. "
-            "The Latin name 'cerussa' means 'white lead', a pigment "
-            "used since antiquity (and poisonous — painters' death)."
-        )
+        parts.append(narrative_blurb("cerussite"))
         if c.twinned and "sixling" in (c.twin_law or ""):
-            parts.append(
-                "Six-ray stellate cyclic twin — three individuals "
-                "intergrown at 120° on {110}. Among mineralogy's most "
-                "iconic forms; a sharp cerussite star commands four-"
-                "figure prices at a show. This twin happened because "
-                "growth ran at moderate supersaturation for a sustained "
-                "window — fast enough to initiate the twin, slow enough "
-                "to let it develop cleanly."
-            )
+            parts.append(narrative_variant("cerussite", "sixling_twin"))
         if "galena" in (c.position or ""):
-            parts.append(
-                "Pseudomorphs after galena — the cube outline survives "
-                "as cerussite precipitates into it. Occasionally "
-                "galena relics persist inside, slowly oxidizing."
-            )
+            parts.append(narrative_variant("cerussite", "on_galena"))
         if c.dissolved:
-            parts.append(
-                "Acid dissolution — cerussite is a carbonate and fizzes "
-                "in acid just like calcite: PbCO₃ + 2H⁺ → Pb²⁺ + H₂O "
-                "+ CO₂. Any released Pb may find pyromorphite or "
-                "vanadinite if P or V is available."
-            )
-        return " ".join(parts)
+            parts.append(narrative_variant("cerussite", "acid_dissolution"))
+        return " ".join(p for p in parts if p)
 
     def _narrate_pyromorphite(self, c: Crystal) -> str:
         """Narrate a pyromorphite crystal — the phosphate lead apatite."""
@@ -17683,220 +17453,98 @@ class VugSimulator:
         return " ".join(parts)
 
     def _narrate_bornite(self, c: Crystal) -> str:
-        """Narrate a bornite crystal — the 228°C order-disorder mineral."""
+        """Narrate a bornite crystal — the 228°C order-disorder mineral.
+
+        Prose lives in narratives/bornite.md. Code dispatches blurb +
+        2-way habit (pseudo_cubic / peacock) + oxidative dissolution.
+        """
         parts = [f"Bornite #{c.crystal_id} grew to {c.c_length_mm:.1f} mm."]
-        parts.append(
-            "Cu₅FeS₄ — bronze-colored fresh, famous for the iridescent "
-            "'peacock ore' tarnish from thin-film interference on surface "
-            "oxidation products. The 228°C order-disorder transition is "
-            "one of mineralogy's cleanest structural changes: above, Cu "
-            "and Fe randomly occupy the cation sites (pseudo-cubic); "
-            "below, they order into the orthorhombic arrangement."
-        )
+        parts.append(narrative_blurb("bornite"))
         if "pseudo_cubic" in (c.habit or ""):
-            parts.append(
-                "Grew at T > 228°C — crystal has the disordered "
-                "pseudo-cubic structure preserved. If this specimen is "
-                "cooled slowly below 228°C without being reheated, the "
-                "Cu and Fe will gradually order into orthorhombic "
-                "domains, sometimes visible as texture under reflected "
-                "light."
-            )
+            parts.append(narrative_variant("bornite", "pseudo_cubic"))
         elif "peacock" in (c.habit or ""):
-            parts.append(
-                "Peacock iridescent — thin-film interference on an "
-                "oxidation crust. Fresh bornite bronze under the film. "
-                "Strike it with a steel hammer and the fresh surface "
-                "shows through; leave it in air for a week and the "
-                "rainbow comes back. This is why bornite tumbled in "
-                "rock-shop displays is often enhanced with heat or "
-                "acid."
-            )
+            parts.append(narrative_variant("bornite", "peacock"))
         if c.dissolved:
-            parts.append(
-                "Oxidative dissolution — Cu²⁺ and Fe³⁺ went back to "
-                "the fluid, probably to find malachite/azurite "
-                "(for Cu) or goethite (for Fe). The S²⁻ oxidized too "
-                "and may reappear as sulfate in anglesite or selenite."
-            )
-        return " ".join(parts)
+            parts.append(narrative_variant("bornite", "oxidative_dissolution"))
+        return " ".join(p for p in parts if p)
 
     def _narrate_chalcocite(self, c: Crystal) -> str:
-        """Narrate a chalcocite crystal — the pseudomorph thief."""
+        """Narrate a chalcocite crystal — the pseudomorph thief.
+
+        Prose lives in narratives/chalcocite.md. Code dispatches blurb +
+        sixling twin + INDEPENDENT pseudomorph and sooty branches (both
+        can fire for a 'pseudomorph_sooty' habit string).
+        """
         parts = [f"Chalcocite #{c.crystal_id} grew to {c.c_length_mm:.1f} mm."]
-        parts.append(
-            "Cu₂S — 79.8% Cu by weight, one of the richest copper ores "
-            "ever mined. Forms in the supergene enrichment blanket, "
-            "where descending Cu²⁺-rich meteoric fluids meet reducing "
-            "conditions at the water table. This is where mineable "
-            "copper ore gets made: weathering concentrates Cu into a "
-            "layer ten times richer than the primary sulfide above it."
-        )
+        parts.append(narrative_blurb("chalcocite"))
         if c.twinned and "sixling" in (c.twin_law or ""):
-            parts.append(
-                "Pseudo-hexagonal cyclic sixling twin — chalcocite's "
-                "collector habit. Three orthorhombic individuals "
-                "intergrown at ~60° approximate a hexagonal symmetry "
-                "the mineral doesn't actually have. Butte, Cornwall, "
-                "and Bristol Cliff produced sharp sixlings; most "
-                "specimens at rock shows came from one of those three."
-            )
+            parts.append(narrative_variant("chalcocite", "sixling_twin"))
         if "pseudomorph" in (c.habit or ""):
-            parts.append(
-                "Pseudomorph — this chalcocite replaced a primary sulfide "
-                "(chalcopyrite or bornite) atom-by-atom while preserving "
-                "the host's external form. Copper diffused in, iron and "
-                "excess sulfur diffused out, leaving a ghost outline "
-                "in dark gray Cu₂S. The cube is galena's; the disphenoid "
-                "is chalcopyrite's; here the identity has been overwritten."
-            )
+            parts.append(narrative_variant("chalcocite", "pseudomorph"))
         if "sooty" in (c.habit or ""):
-            parts.append(
-                "Sooty microcrystalline texture — rapid precipitation "
-                "at the oxidation/reduction interface. Individual "
-                "crystals too small to see; the aggregate looks like "
-                "black soot smeared on the host rock."
-            )
-        return " ".join(parts)
+            parts.append(narrative_variant("chalcocite", "sooty"))
+        return " ".join(p for p in parts if p)
 
     def _narrate_covellite(self, c: Crystal) -> str:
-        """Narrate a covellite crystal — the only common blue mineral."""
+        """Narrate a covellite crystal — the only common blue mineral.
+
+        Prose lives in narratives/covellite.md. Code dispatches blurb +
+        2-way habit (iridescent / rosette) + ALWAYS-emitted stoichiometry
+        tail + dissolved.
+        """
         parts = [f"Covellite #{c.crystal_id} grew to {c.c_length_mm:.1f} mm."]
-        parts.append(
-            "CuS — indigo-blue, the only common naturally blue mineral "
-            "(azurite aside). Named for Niccolo Covelli, who first "
-            "described the Vesuvius fumarole specimens in 1833. "
-            "Hexagonal, with perfect basal cleavage — the fresh plates "
-            "peel like mica, and the cleavage surfaces flash purple-"
-            "green iridescence from thin-film interference."
-        )
+        parts.append(narrative_blurb("covellite"))
         if "iridescent" in (c.habit or ""):
-            parts.append(
-                "Iridescent coating — this covellite grew at the "
-                "boundary between the oxidation and reduction zones. "
-                "The fluid oscillated across the Eh boundary just "
-                "enough to produce Cu²⁺ surface products on the "
-                "forming crystal. Summerville (Italy), Butte, and "
-                "the Sardinia localities show this habit best."
-            )
+            parts.append(narrative_variant("covellite", "iridescent"))
         elif "rosette" in (c.habit or ""):
-            parts.append(
-                "Radiating rosette — plates nucleating outward from a "
-                "common center. High supersaturation triggered multiple "
-                "nucleation sites on the substrate at once, and the "
-                "crystals grew into each other until the void was "
-                "paved blue."
-            )
-        parts.append(
-            "S:Cu ratio = 1:1, twice that of chalcocite. Covellite "
-            "forms where sulfur activity is high enough to push past "
-            "chalcocite's stoichiometry — typically the transition "
-            "layer between oxidized caprock and reduced primary "
-            "sulfides below."
-        )
+            parts.append(narrative_variant("covellite", "rosette"))
+        parts.append(narrative_variant("covellite", "stoichiometry"))
         if c.dissolved:
-            parts.append(
-                "Oxidative dissolution — the Cu²⁺ will find malachite "
-                "or azurite; the S oxidized to sulfate."
-            )
-        return " ".join(parts)
+            parts.append(narrative_variant("covellite", "oxidative_dissolution"))
+        return " ".join(p for p in parts if p)
 
     def _narrate_cuprite(self, c: Crystal) -> str:
-        """Narrate a cuprite crystal — the Eh-boundary oxide."""
+        """Narrate a cuprite crystal — the Eh-boundary oxide.
+
+        Prose lives in narratives/cuprite.md. Code dispatches blurb +
+        4-way habit (chalcotrichite / massive / spinel_twin (twinned
+        sub-condition) / octahedral_default) + Eh-shift dissolution.
+        """
         parts = [f"Cuprite #{c.crystal_id} grew to {c.c_length_mm:.1f} mm."]
-        parts.append(
-            "Cu₂O — 88.8% Cu by weight, dark red with ruby-red internal "
-            "reflections in thin slices. Forms at the Eh boundary between "
-            "more-reducing native copper and more-oxidizing malachite/"
-            "tenorite. The window is narrow, which is why cuprite tends to "
-            "appear as thin layers between native Cu and green malachite "
-            "coats — each zone captures a different depth in the Eh profile."
-        )
+        parts.append(narrative_blurb("cuprite"))
         if c.habit == "chalcotrichite":
-            parts.append(
-                "Chalcotrichite — hair-like plush texture. Rapid "
-                "directional growth in open fracture space produced "
-                "whisker crystals instead of octahedra. The Morenci "
-                "(Arizona) and Chessy (France) localities produced the "
-                "best specimens — bright red velvet on matrix."
-            )
+            parts.append(narrative_variant("cuprite", "chalcotrichite"))
         elif "massive" in (c.habit or ""):
-            parts.append(
-                "Massive 'tile ore' — dark red-brown rapidly-precipitated "
-                "cuprite filling tight pore space. Less photogenic than "
-                "octahedra, but this is how most cuprite actually occurs "
-                "in the field."
-            )
+            parts.append(narrative_variant("cuprite", "massive"))
         elif c.twinned and "spinel" in (c.twin_law or ""):
-            parts.append(
-                "Spinel-law penetration twin — two octahedra intergrown "
-                "with a {111} reentrant angle between them. Rare."
-            )
+            parts.append(narrative_variant("cuprite", "spinel_twin"))
         else:
-            parts.append(
-                "Classic octahedral habit, dark red with glassy-to-"
-                "adamantine luster. Tsumeb (Namibia) and the Mashamba "
-                "West mine (Congo) have produced gem-grade octahedra "
-                "to 15+ cm."
-            )
+            parts.append(narrative_variant("cuprite", "octahedral_default"))
         if c.dissolved:
-            parts.append(
-                "Crystal dissolved — the Eh window shifted out from "
-                "under it. If the fluid tilted reducing, Cu probably "
-                "went to native copper; if oxidizing and carbonated, to "
-                "malachite."
-            )
-        return " ".join(parts)
+            parts.append(narrative_variant("cuprite", "eh_dissolution"))
+        return " ".join(p for p in parts if p)
 
     def _narrate_azurite(self, c: Crystal) -> str:
-        """Narrate an azurite crystal — the deep-blue carbonate."""
+        """Narrate an azurite crystal — the deep-blue carbonate.
+
+        Prose lives in narratives/azurite.md. Code dispatches on habit
+        and on the paramorph-conversion zone-note signal; markdown owns
+        the words.
+        """
         parts = [f"Azurite #{c.crystal_id} grew to {c.c_length_mm:.1f} mm."]
-        parts.append(
-            "Cu₃(CO₃)₂(OH)₂ — the deepest blue in the common mineral "
-            "kingdom. Requires high pCO₂ groundwater — typically a "
-            "limestone-hosted supergene system where CO₂ stays elevated "
-            "under the impermeable carbonate cap. Chessy-les-Mines "
-            "(France) gave us 'chessylite', an old synonym; Tsumeb and "
-            "Bisbee (Arizona) produced the showpiece blue prisms."
-        )
+        parts.append(narrative_blurb("azurite"))
         if c.habit == "azurite_sun":
-            parts.append(
-                "Azurite-sun — radiating flat disc, grown in a narrow "
-                "fracture where crystallographic c-axis was forced "
-                "perpendicular to the fracture plane. The Malbunka "
-                "(Australia) azurite-suns in siltstone are the classic."
-            )
+            parts.append(narrative_variant("azurite", "azurite_sun"))
         elif c.habit == "rosette_bladed":
-            parts.append(
-                "Radiating rosette — multiple blades nucleating at a "
-                "common center. Each blade preserves its own growth "
-                "zoning, visible as color intensity gradients under "
-                "strong light."
-            )
+            parts.append(narrative_variant("azurite", "rosette_bladed"))
         else:
-            parts.append(
-                "Monoclinic prismatic — the flagship azurite habit. "
-                "Deep blue trending to midnight-blue in thick crystals; "
-                "transparent thin slices are a deep indigo."
-            )
+            parts.append(narrative_variant("azurite", "monoclinic_prismatic"))
         has_conversion = any("→ malachite" in (z.note or "") for z in c.zones)
         if has_conversion:
-            parts.append(
-                "Azurite → malachite conversion — CO₂ has been escaping "
-                "from the pocket fluid and the CO₃ inventory dropped "
-                "below azurite's stability. The crystal shape will "
-                "persist (pseudomorph after azurite) but fill with the "
-                "green lower-carbonate mineral. Most Chessy and Morenci "
-                "azurite sits frozen mid-conversion — half blue, half "
-                "green — the geochemist's equivalent of a butterfly "
-                "emerging."
-            )
+            parts.append(narrative_variant("azurite", "malachite_conversion"))
         if c.dissolved and not has_conversion:
-            parts.append(
-                "Acid dissolution — fizzes like calcite because it's a "
-                "carbonate. Cu²⁺ and CO₃²⁻ released to fluid."
-            )
-        return " ".join(parts)
+            parts.append(narrative_variant("azurite", "dissolved"))
+        return " ".join(p for p in parts if p)
 
     def _narrate_chrysocolla(self, c: Crystal) -> str:
         """Narrate a chrysocolla crystal — the cyan copper silicate."""
@@ -17955,199 +17603,85 @@ class VugSimulator:
         return " ".join(parts)
 
     def _narrate_native_copper(self, c: Crystal) -> str:
-        """Narrate a native copper crystal — the elemental metal."""
+        """Narrate a native copper crystal — the elemental metal.
+
+        Prose lives in narratives/native_copper.md. Code dispatches blurb +
+        4-way habit (massive_sheet / arborescent_dendritic / wire_copper /
+        cubic_dodecahedral default) + ALWAYS-emitted Statue-of-Liberty tail.
+        """
         parts = [f"Native copper #{c.crystal_id} grew to {c.c_length_mm:.1f} mm."]
-        parts.append(
-            "Cu — elemental copper. Only forms when the fluid is "
-            "strongly reducing AND low in sulfur (otherwise it would "
-            "precipitate as sulfide). The Michigan Keweenaw peninsula "
-            "basalt vesicles produced 500-ton masses — the Ontonagon "
-            "boulder, now at the Smithsonian, is 1.7 tons. Copper-red "
-            "fresh, tarnishes brown (cuprite surface film), eventually "
-            "green (malachite patina)."
-        )
+        parts.append(narrative_blurb("native_copper"))
         if c.habit == "massive_sheet":
-            parts.append(
-                "Massive sheet copper — the Lake Superior basin signature. "
-                "Rapid precipitation in open basalt vesicles produced "
-                "sheets tens of centimeters thick. This is where "
-                "industrial copper mining began in the Western hemisphere, "
-                "~5000 BC with Lake Superior Old Copper Culture tool-"
-                "making."
-            )
+            parts.append(narrative_variant("native_copper", "massive_sheet"))
         elif c.habit == "arborescent_dendritic":
-            parts.append(
-                "Arborescent dendritic — tree-like branching, the "
-                "collector's ideal. Each branch is a single crystal "
-                "oriented along {100}; the aggregate approximates "
-                "isotropic growth only macroscopically. Bisbee and "
-                "Chino (New Mexico) produced the best."
-            )
+            parts.append(narrative_variant("native_copper", "arborescent_dendritic"))
         elif c.habit == "wire_copper":
-            parts.append(
-                "Wire copper — filamentary growth in narrow channels. "
-                "The Ray mine (Arizona) and the Chino stockwork produced "
-                "the delicate wires that rock shops sell individually."
-            )
+            parts.append(narrative_variant("native_copper", "wire_copper"))
         else:
-            parts.append(
-                "Cubic/dodecahedral well-formed crystal — rare for "
-                "native copper, which usually grows as dendrites. "
-                "Tsumeb produced the best sharp cubes."
-            )
-        parts.append(
-            "The Statue of Liberty's iconic green patina is malachite "
-            "growing on native copper — the mineralogical fate of most "
-            "surface copper, given enough time and rain."
-        )
-        return " ".join(parts)
+            parts.append(narrative_variant("native_copper", "cubic_dodecahedral"))
+        parts.append(narrative_variant("native_copper", "statue_of_liberty_tail"))
+        return " ".join(p for p in parts if p)
 
     def _narrate_native_gold(self, c: Crystal) -> str:
-        """Narrate a native gold crystal — the noble metal."""
+        """Narrate a native gold crystal — the noble metal.
+
+        Prose lives in narratives/native_gold.md. Code dispatches blurb +
+        3-way habit (nugget / dendritic / octahedral_default) + 2-way
+        alloy on dominant_forms (electrum vs cuproauride) + ALWAYS-emitted
+        noble tail.
+        """
         parts = [f"Native gold #{c.crystal_id} grew to {c.c_length_mm:.1f} mm."]
-        parts.append(
-            "Au — elemental native gold, essentially indestructible "
-            "in surface conditions (the only natural dissolver is "
-            "aqua regia, which doesn't occur in vugs). Two precipitation "
-            "pathways converge here: high-T magmatic-hydrothermal "
-            "Au-Cl complex destabilization at boiling/decompression "
-            "(Bingham vapor-plume mechanism per Landtwing et al. 2010) "
-            "and low-T supergene Au-Cl reduction at the redox "
-            "interface (Bisbee oxidation-cap mechanism per Graeme "
-            "et al. 2019). Tolerates both oxidizing AND reducing "
-            "fluids because the two transport complexes (Au-Cl and "
-            "Au-HS) cover both Eh regimes — there's no Eh window "
-            "where gold can't deposit if Au activity is high."
-        )
+        parts.append(narrative_blurb("native_gold"))
         if c.habit == "nugget":
-            parts.append(
-                "Nugget habit — rounded massive native gold from "
-                "rapid precipitation in an open pocket. The "
-                "Welcome Stranger nugget (Victoria, Australia, 1869) "
-                "weighed 72 kg of pure gold; the Hand of Faith "
-                "(also Victoria, 1980) weighed 27 kg and is now in "
-                "the Golden Nugget Casino, Las Vegas. Most placer "
-                "gold reaches its rounded form not from precipitation "
-                "but from stream-tumbling of harder-edged primary gold."
-            )
+            parts.append(narrative_variant("native_gold", "nugget"))
         elif c.habit == "dendritic":
-            parts.append(
-                "Dendritic / spongy habit — the diagnostic supergene "
-                "fishbone-and-leaf gold. Each branch is a single "
-                "crystal oriented along {111}; the aggregate looks "
-                "isotropic only at the macro scale. Round Mountain "
-                "(Nevada) and Eagle's Nest (California) produced the "
-                "classic specimens. Forms when the redox interface "
-                "moves quickly through a pocket and Au reduces faster "
-                "than it can equilibrate into well-formed crystals."
-            )
+            parts.append(narrative_variant("native_gold", "dendritic"))
         else:
-            parts.append(
-                "Octahedral well-formed crystal — rare for native "
-                "gold, which usually grows as dendrites. The "
-                "{111} octahedron is the slow-growth equilibrium "
-                "habit. Eagle's Nest (Placer County, CA) and "
-                "Verespatak (Romania, the Roșia Montană site) "
-                "produced the world's best sharp Au octahedra."
-            )
-        # Alloy notes — set in grow_native_gold's habit_note based on
-        # parent fluid Ag/Cu. Re-derive here from the crystal's Crystal
-        # ancestry isn't available, so we read the most recent zone's
-        # note; alternatively, we surface based on what the broth
-        # carried at that moment via dominant_forms.
+            parts.append(narrative_variant("native_gold", "octahedral_default"))
+        # Alloy notes derived from broth's dominant_forms at nucleation.
         if c.dominant_forms and any("electrum" in f.lower() for f in c.dominant_forms):
-            parts.append(
-                "Ag-alloyed (electrum) — pale yellow tint from silver "
-                "substituting for gold at >10%. Electrum is the historic "
-                "term; Croesus's coinage (Lydia, 6th century BC) was "
-                "natural electrum from the Pactolus river."
-            )
+            parts.append(narrative_variant("native_gold", "alloy_electrum"))
         elif c.dominant_forms and any("cuproauride" in f.lower() or "rose-gold" in f.lower() for f in c.dominant_forms):
-            parts.append(
-                "Cu-alloyed (rose-gold cuproauride affinity) — pinkish-"
-                "red tint from copper substitution. Diagnostic of "
-                "Cu-rich systems like Bisbee, where supergene Au "
-                "co-precipitates with chalcocite."
-            )
-        parts.append(
-            "Au is unique among the metals in that it almost never "
-            "tarnishes — no oxide film, no sulfide film, no carbonate. "
-            "The 'noble' designation is literal: gold's electrons "
-            "won't share with anyone, so it stays elementally pure "
-            "for geological time. The grain you find in a stream "
-            "today crystallized in Precambrian magmatic vapor and "
-            "has not chemically changed since."
-        )
-        return " ".join(parts)
+            parts.append(narrative_variant("native_gold", "alloy_cuproauride"))
+        parts.append(narrative_variant("native_gold", "noble_tail"))
+        return " ".join(p for p in parts if p)
 
     def _narrate_magnetite(self, c: Crystal) -> str:
+        """Narrate a magnetite crystal — the lodestone spinel.
+
+        Prose lives in narratives/magnetite.md. Code dispatches blurb +
+        3-way habit (octahedral / rhombic_dodecahedral / granular_massive
+        default) + dissolved (martite pseudomorph).
+        """
         parts = [f"Magnetite #{c.crystal_id} grew to {c.c_length_mm:.1f} mm."]
-        parts.append(
-            "Fe₃O₄ — the mixed-valence Fe²⁺Fe³⁺₂O₄ spinel oxide. Black, "
-            "strongly magnetic (lodestone is natural permanent-magnet "
-            "magnetite — the first compass). Sits at the HM (hematite-"
-            "magnetite) redox buffer: cross that buffer and entire "
-            "mineral assemblages shift. Streak is black, not red like "
-            "hematite's — the field test."
-        )
+        parts.append(narrative_blurb("magnetite"))
         if c.habit == "octahedral":
-            parts.append(
-                "Octahedral {111} — the classic magnetite habit, still "
-                "sharp on matrix from Cerro Huanaquino (Bolivia) and "
-                "Binn Valley (Switzerland)."
-            )
+            parts.append(narrative_variant("magnetite", "octahedral"))
         elif c.habit == "rhombic_dodecahedral":
-            parts.append(
-                "Rhombic dodecahedral {110} — the high-T, mineralizer-"
-                "assisted habit. Cl-bearing fluids promote this form "
-                "over simple octahedra."
-            )
+            parts.append(narrative_variant("magnetite", "rhombic_dodecahedral"))
         else:
-            parts.append(
-                "Granular massive — rapid precipitation, aggregate of "
-                "tiny individual crystals."
-            )
+            parts.append(narrative_variant("magnetite", "granular_massive"))
         if c.dissolved:
-            parts.append(
-                "Dissolving to hematite (martite pseudomorph) as O₂ "
-                "climbed past the HM buffer — one of the clearest "
-                "paragenetic signals a collector can read."
-            )
-        return " ".join(parts)
+            parts.append(narrative_variant("magnetite", "martite_pseudomorph"))
+        return " ".join(p for p in parts if p)
 
     def _narrate_lepidocrocite(self, c: Crystal) -> str:
+        """Narrate a lepidocrocite crystal — the kinetically-favored FeOOH.
+
+        Prose lives in narratives/lepidocrocite.md. Code dispatches blurb +
+        3-way habit (platy_scales / plumose_rosette / fibrous_micaceous
+        default) + ALWAYS-emitted conversion-to-goethite tail.
+        """
         parts = [f"Lepidocrocite #{c.crystal_id} grew to {c.c_length_mm:.1f} mm."]
-        parts.append(
-            "γ-FeOOH — the ruby-red platy dimorph of goethite. Same "
-            "formula, different crystal structure: goethite is a 3D "
-            "framework (yellow-brown needles), lepidocrocite is "
-            "layered (ruby-red platy, peels like mica). Kinetically "
-            "favored when Fe²⁺ oxidizes FAST — e.g. pyrite weathering "
-            "in situ; slow oxidation produces goethite instead."
-        )
+        parts.append(narrative_blurb("lepidocrocite"))
         if c.habit == "platy_scales":
-            parts.append(
-                "Platy scales — the default habit. 'Lithium quartz' "
-                "sold in rock shops is quartz with nanoscale "
-                "lepidocrocite inclusions that scatter pink-mauve "
-                "through the clear host."
-            )
+            parts.append(narrative_variant("lepidocrocite", "platy_scales"))
         elif c.habit == "plumose_rosette":
-            parts.append(
-                "Plumose rosette — radiating platy blades. Best at "
-                "Cornwall and the Siegerland (Germany)."
-            )
+            parts.append(narrative_variant("lepidocrocite", "plumose_rosette"))
         else:
-            parts.append(
-                "Fibrous micaceous — very rapid growth, coarser particle "
-                "size, rust-brown color."
-            )
-        parts.append(
-            "Given geological time, lepidocrocite converts to goethite "
-            "(the thermodynamically stable dimorph). This crystal is "
-            "a freeze-frame of the moment oxidation caught Fe²⁺."
-        )
-        return " ".join(parts)
+            parts.append(narrative_variant("lepidocrocite", "fibrous_micaceous"))
+        parts.append(narrative_variant("lepidocrocite", "conversion_tail"))
+        return " ".join(p for p in parts if p)
 
     def _narrate_stibnite(self, c: Crystal) -> str:
         parts = [f"Stibnite #{c.crystal_id} grew to {c.c_length_mm:.1f} mm."]
@@ -19023,93 +18557,36 @@ class VugSimulator:
         return " ".join(parts)
 
     def _narrate_native_silver(self, c: Crystal) -> str:
-        """Narrate native silver — the Kongsberg wire mineral and the
-        S-depletion paragenetic outcome."""
+        """Narrate native silver — the Kongsberg wire mineral.
+
+        Prose lives in narratives/native_silver.md. Code dispatches blurb +
+        4-way habit (wire / dendritic / cubic_crystal / massive default) +
+        {111} penetration twin + dissolved-vs-late-zone tarnish paired
+        branches + acanthite paragenesis position note.
+        """
         parts = [f"Native silver #{c.crystal_id} grew to {c.c_length_mm:.1f} mm."]
-        parts.append(
-            "Ag — elemental silver, the only native element bright enough "
-            "to make you rich just by looking at it wrong. Cubic isometric "
-            "(Fm3̄m), Mohs 2.5-3, specific gravity 10.5 (one of the heaviest "
-            "native metals). The chemistry novelty: native silver only "
-            "forms where every sulfur atom is already claimed and the "
-            "fluid is strongly reducing — the inverse of normal "
-            "supersaturation logic. Every Kongsberg wire grew in a "
-            "calcite-vein basement pocket where no sulfide source was "
-            "anywhere nearby."
-        )
+        parts.append(narrative_blurb("native_silver"))
 
         if c.habit == "wire":
-            parts.append(
-                "Wire silver — the collector's prize. Epithermal, low-T, "
-                "open-vug habit; the thread of metal curls through the void "
-                "as the depletion-driven supersaturation is exhausted along "
-                "the growth front. Kongsberg's wires reach 30+ cm and are "
-                "considered the finest native-element specimens in the "
-                "world (Bjørlykke 1959). At a finer scale the wires show "
-                "the herringbone surface texture diagnostic of Ag⁰ "
-                "epitaxial growth."
-            )
+            parts.append(narrative_variant("native_silver", "wire"))
         elif c.habit == "dendritic":
-            parts.append(
-                "Dendritic silver — fern-like plates, the Cobalt-Ontario "
-                "habit. Branching pattern emerges when the diffusion-"
-                "limited growth front outruns the depletion zone, splits, "
-                "and self-replicates in two dimensions. The same mechanism "
-                "that produces ferns also produces silver dendrites — a "
-                "morphology the geometry doesn't care about the substrate."
-            )
+            parts.append(narrative_variant("native_silver", "dendritic"))
         elif c.habit == "cubic_crystal":
-            parts.append(
-                "Cubic crystal — RARE habit. Native silver almost never "
-                "grows as well-formed isometric crystals; the diffusion-"
-                "limited geometry of low-S reducing fluid favors wires and "
-                "dendrites. Cubes appear only under specific high-T "
-                "primary-hypogene conditions where the fluid stays "
-                "supersaturated long enough for the growth front to fill "
-                "the {100} faces."
-            )
-        else:  # massive
-            parts.append(
-                "Massive native silver — hackly metallic mass, the Keweenaw "
-                "Peninsula nugget habit. Forms when Ag concentration is "
-                "high enough that the depletion zone is locally exhausted "
-                "before delicate wire / dendrite morphologies can develop. "
-                "The historic mining district shipped it by the ton, often "
-                "alongside native copper in the basalt amygdules."
-            )
+            parts.append(narrative_variant("native_silver", "cubic_crystal"))
+        else:
+            parts.append(narrative_variant("native_silver", "massive"))
 
         if c.twinned and "{111}" in (c.twin_law or ""):
-            parts.append(
-                "{111} penetration twin — two cubes interlocked along a "
-                "{111} composition plane. Diagnostic when present, rare "
-                "in nature."
-            )
+            parts.append(narrative_variant("native_silver", "penetration_twin"))
 
         if c.dissolved:
-            parts.append(
-                "Tarnishing — S has returned to the fluid and is skinning "
-                "the surface with acanthite. Geologically inevitable: every "
-                "native-silver specimen eventually develops a dark "
-                "acanthite rind from atmospheric H₂S, even in a sealed "
-                "vug. Display specimens are usually re-polished."
-            )
+            parts.append(narrative_variant("native_silver", "tarnishing_full"))
         elif len(c.zones) > 20:
-            parts.append(
-                "The fresh-broken metallic luster has begun to dull — "
-                "atmospheric S is reaching the surface and the first "
-                "molecular layer of acanthite is forming."
-            )
+            parts.append(narrative_variant("native_silver", "tarnishing_early"))
 
         if "acanthite" in (c.position or ""):
-            parts.append(
-                "Note position — this crystal nucleated on a dissolving "
-                "acanthite. That's the supergene Ag-enrichment cycle: "
-                "primary acanthite oxidizes, releases Ag⁺, the Ag⁺ "
-                "migrates down the redox gradient and re-precipitates as "
-                "native silver in a deeper reducing pocket. Same Ag atoms, "
-                "different mineral, same vug."
-            )
-        return " ".join(parts)
+            parts.append(narrative_variant("native_silver", "on_acanthite"))
+        return " ".join(p for p in parts if p)
 
     def _narrate_argentite(self, c: Crystal) -> str:
         """Narrate argentite — the high-T cubic Ag₂S, before any paramorph fires.
@@ -19160,42 +18637,20 @@ class VugSimulator:
         return " ".join(parts)
 
     def _narrate_rosasite(self, c: Crystal) -> str:
-        """Narrate rosasite — Cu-dominant broth-ratio carbonate."""
+        """Narrate rosasite — Cu-dominant broth-ratio carbonate.
+
+        Prose lives in narratives/rosasite.md (mirror of aurichalcite).
+        Code dispatches on habit; markdown owns the words.
+        """
         parts = [f"Rosasite #{c.crystal_id} grew to {c.c_length_mm:.1f} mm."]
-        parts.append(
-            "(Cu,Zn)₂(CO₃)(OH)₂ — monoclinic supergene carbonate, the "
-            "Cu-dominant member of the rosasite-aurichalcite pair. "
-            "Velvety blue-green spheres on the weathered face of "
-            "Cu-Zn sulfide deposits. The crystal exists because "
-            "chalcopyrite and sphalerite weathered together upstream "
-            "and released their metals into the same carbonate-rich "
-            "groundwater — and at the moment of nucleation, the fluid "
-            "carried more Cu than Zn. A single ratio decides which "
-            "species forms; the same broth with reversed proportions "
-            "would have produced aurichalcite instead. Mohs 4, "
-            "blue-green streak."
-        )
+        parts.append(narrative_blurb("rosasite"))
         if c.habit == "acicular_radiating":
-            parts.append(
-                "Acicular radiating habit — the slow-grown, low-T form. "
-                "Needle-like aggregates fanning out from a common origin, "
-                "fibrous internal structure visible under magnification."
-            )
+            parts.append(narrative_variant("rosasite", "acicular_radiating"))
         elif c.habit == "botryoidal":
-            parts.append(
-                "Botryoidal habit — the diagnostic rosasite form. Velvety "
-                "spherical aggregates, mammillary crusts; the textbook "
-                "specimens from Mapimi (Mexico) are sky-blue spheres on "
-                "red limonite that look like planets in a rusted solar "
-                "system."
-            )
+            parts.append(narrative_variant("rosasite", "botryoidal"))
         else:
-            parts.append(
-                "Encrusting mammillary habit — thin crust at low "
-                "supersaturation. Less aesthetic than the diagnostic "
-                "spheres but more abundant in the field."
-            )
-        return " ".join(parts)
+            parts.append(narrative_variant("rosasite", "encrusting_mammillary"))
+        return " ".join(p for p in parts if p)
 
     def _narrate_torbernite(self, c: Crystal) -> str:
         """Narrate torbernite — P-branch uranyl phosphate (Round 9b)."""
