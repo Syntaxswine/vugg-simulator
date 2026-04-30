@@ -10943,6 +10943,60 @@ function event_ouro_preto_final_cooling(c) {
   return 'The vein cools to near-ambient. What remains is the assemblage: milky quartz lining the walls, imperial topaz prisms projecting inward, fluid inclusion planes across every crystal, iron-stained fractures. The exhalation has finished. The vug now waits for time.';
 }
 
+// --- gem_pegmatite (Cruzeiro mine, Doce Valley MG) ---
+function event_gem_pegmatite_outer_shell(c) {
+  c.temperature = 620;
+  c.flow_rate = 1.0;
+  return "The outer pegmatite shell is already cooling. Microcline and quartz dominate the wall zone, growing inward into the void. The pocket fluid inside is enriched in the elements nothing else wanted: beryllium, boron, lithium, fluorine. They haven't crossed any saturation thresholds yet — they are simply accumulating.";
+}
+
+function event_gem_pegmatite_first_schorl(c) {
+  c.temperature = 560;
+  c.flow_rate = 0.9;
+  return "The pocket has cooled enough that tourmaline can form. Boron has been accumulating in the fluid for thousands of years; with Fe²⁺ still abundant, the schorl variety nucleates. Deep black prisms begin projecting from the wall. Each new zone records a fluid pulse — the striations are the pocket's diary.";
+}
+
+function event_gem_pegmatite_albitization(c) {
+  c.fluid.K = Math.max(c.fluid.K - 30, 10);
+  c.fluid.Na += 40;
+  c.fluid.Al += 10;
+  c.fluid.pH += 0.2;
+  c.temperature = 500;
+  return "Albitization event. The pocket's K has depleted faster than its Na — microcline starts dissolving and albite begins precipitating in its place. K²⁺ returns to the fluid, enabling a second generation of mica-like phases. This replacement cascade is the most Minas Gerais thing about a Minas Gerais pegmatite: the pocket is rearranging itself.";
+}
+
+function event_gem_pegmatite_be_saturation(c) {
+  c.temperature = 450;
+  c.flow_rate = 0.8;
+  return "Beryllium has been accumulating for a dozen thousand years. Every earlier mineral refused it. Now σ crosses 1.8 and the first beryl crystal nucleates. Because Be had so long to build, the crystal has a lot of material waiting — this is how meter-long beryls form. What color depends on who else is in the fluid. Morganite if Mn won the lottery; aquamarine if Fe did; emerald if Cr leached in from an ultramafic contact somewhere.";
+}
+
+function event_gem_pegmatite_li_phase(c) {
+  c.temperature = 420;
+  c.fluid.Fe = Math.max(c.fluid.Fe - 20, 5);
+  return "Temperature drops into the 400s. Lithium, which has been accumulating since the beginning, is now abundant enough to nucleate Li-bearing minerals. Spodumene will take most of it — the Li pyroxene wants its own crystals. Any remaining Li goes into elbaite overgrowths on the schorl cores: the crystals become color-zoned as iron depletes and lithium takes its place.";
+}
+
+function event_gem_pegmatite_late_hydrothermal(c) {
+  c.temperature = 360;
+  c.fluid.pH = 5.5;
+  c.flow_rate = 0.5;
+  return "Late hydrothermal phase. Temperature drops into topaz's optimum window (340–400°C). Fluorine has been sitting unused — nothing else in this pocket consumed it — and enough Al remains in the residual pocket fluid after the main silicate crop has taken its share. Topaz nucleates, projecting from the quartz lining.";
+}
+
+function event_gem_pegmatite_clay_softening(c) {
+  c.temperature = 320;
+  c.fluid.pH = 3.5;
+  c.flow_rate = 0.3;
+  return "pH drops into the kaolinization window. Microcline in the pocket walls starts breaking down into kaolinite — the signature 'clay gloop' that coats every Minas Gerais gem pocket by the time garimpeiros crack it open. The reaction 2 KAlSi₃O₈ + 2 H⁺ + H₂O → kaolinite + 2 K⁺ + 4 SiO₂ releases potassium and silica to the fluid, but the aluminum stays locked in the new kaolinite. Albite is more acid-resistant and survives intact — a field observation preserved in the sim.";
+}
+
+function event_gem_pegmatite_final(c) {
+  c.temperature = 300;
+  c.flow_rate = 0.1;
+  return "The system cools to 300°C, below spodumene's window and approaching topaz's lower edge. Growth slows to near-zero. Deep time will do the rest: this pocket will wait half a billion years before human hands crack it open, and the garimpeiros will sort the crystals by color in the order the fluid deposited them.";
+}
+
 // ============================================================
 // EVENT REGISTRY + SCENARIO LOADER (data/scenarios.json5)
 // ============================================================
@@ -10990,6 +11044,15 @@ const EVENT_REGISTRY = {
   ouro_preto_late_hydrothermal: event_ouro_preto_late_hydrothermal,
   ouro_preto_oxidation_stain: event_ouro_preto_oxidation_stain,
   ouro_preto_final_cooling: event_ouro_preto_final_cooling,
+  // Phase 2 — gem_pegmatite
+  gem_pegmatite_outer_shell: event_gem_pegmatite_outer_shell,
+  gem_pegmatite_first_schorl: event_gem_pegmatite_first_schorl,
+  gem_pegmatite_albitization: event_gem_pegmatite_albitization,
+  gem_pegmatite_be_saturation: event_gem_pegmatite_be_saturation,
+  gem_pegmatite_li_phase: event_gem_pegmatite_li_phase,
+  gem_pegmatite_late_hydrothermal: event_gem_pegmatite_late_hydrothermal,
+  gem_pegmatite_clay_softening: event_gem_pegmatite_clay_softening,
+  gem_pegmatite_final: event_gem_pegmatite_final,
 };
 
 // Minimal JSONC parser — strips // line + /* */ block comments and
@@ -11154,116 +11217,6 @@ function scenario_supergene_oxidation() {
 // Ma) pegmatite cutting Macaúbas Group. Audit gap-fills (Apr 2026):
 // P=8 (apatite-enabling) + Mg=5 (brief baseline). See vugg.py docstring
 // + locality_chemistry.json#cruzeiro_doce_valley.
-function scenario_gem_pegmatite() {
-  const conditions = new VugConditions({
-    temperature: 650.0,
-    pressure: 3.0,
-    // Pegmatite country rock — silicate, not acid-reactive. When the
-    // pocket fluid turns mildly acidic in phase 3, pH actually stays
-    // low instead of being buffered by carbonate dissolution. That's
-    // what lets the grow_feldspar kaolinization branch fire.
-    wall: new VugWall({
-      composition: 'pegmatite',
-      thickness_mm: 500.0,
-      vug_diameter_mm: 50.0,
-      // Miarolitic gem pocket — 4 primary + 5 secondary, same shape
-      // family as the radioactive pegmatite.
-      primary_bubbles: 4,
-      secondary_bubbles: 5,
-      shape_seed: 8,
-    }),
-    fluid: new FluidChemistry({
-      SiO2: 8000,
-      // Al 150 — upper end of realistic pegmatite pocket fluid. Six
-      // competing silicate engines plus late topaz all need Al, so the
-      // starting budget has to be generous (London 2008).
-      Ca: 30, CO3: 15, Fe: 50, Mn: 8, Al: 150,
-      K: 80, Na: 40,
-      Be: 25, B: 35, Li: 35, F: 25,
-      Cr: 2.5, Cu: 0.3, V: 2.0, Ti: 0.8,
-      // ── Audit gap-fills (Apr 2026) ────────────────────────────────
-      P: 8,             // pegmatite residual P; enables Cruzeiro accessory apatite
-      Mg: 5,            // brief-required non-zero Mg (pegmatite pocket Mg-poor baseline)
-      O2: 0.1, pH: 6.8, salinity: 6.0,
-    }),
-  });
-  const events = [
-    { step: 5,   name: 'Outer Shell',      description: 'Wall-zone microcline + quartz',
-      apply_fn: (c) => {
-        c.temperature = 620;
-        c.flow_rate = 1.0;
-        return "The outer pegmatite shell is already cooling. Microcline and quartz dominate the wall zone, growing inward into the void. The pocket fluid inside is enriched in the elements nothing else wanted: beryllium, boron, lithium, fluorine. They haven't crossed any saturation thresholds yet — they are simply accumulating.";
-      } },
-    { step: 30,  name: 'Schorl Arrives',   description: 'B + Fe²⁺ supersaturation — first tourmaline',
-      apply_fn: (c) => {
-        c.temperature = 560;
-        c.flow_rate = 0.9;
-        return "The pocket has cooled enough that tourmaline can form. Boron has been accumulating in the fluid for thousands of years; with Fe²⁺ still abundant, the schorl variety nucleates. Deep black prisms begin projecting from the wall. Each new zone records a fluid pulse — the striations are the pocket's diary.";
-      } },
-    { step: 60,  name: 'Albitization',     description: 'K-feldspar → albite replacement cascade',
-      apply_fn: (c) => {
-        c.fluid.K = Math.max(c.fluid.K - 30, 10);
-        c.fluid.Na += 40;
-        c.fluid.Al += 10;
-        c.fluid.pH += 0.2;
-        c.temperature = 500;
-        return "Albitization event. The pocket's K has depleted faster than its Na — microcline starts dissolving and albite begins precipitating in its place. K²⁺ returns to the fluid, enabling a second generation of mica-like phases. This replacement cascade is the most Minas Gerais thing about a Minas Gerais pegmatite: the pocket is rearranging itself.";
-      } },
-    { step: 90,  name: 'Be Saturation',    description: 'Beryl finally nucleates — enormous crystals incoming',
-      apply_fn: (c) => {
-        c.temperature = 450;
-        c.flow_rate = 0.8;
-        return "Beryllium has been accumulating for a dozen thousand years. Every earlier mineral refused it. Now σ crosses 1.8 and the first beryl crystal nucleates. Because Be had so long to build, the crystal has a lot of material waiting — this is how meter-long beryls form. What color depends on who else is in the fluid. Morganite if Mn won the lottery; aquamarine if Fe did; emerald if Cr leached in from an ultramafic contact somewhere.";
-      } },
-    { step: 130, name: 'Li Phase',         description: 'Spodumene + elbaite territory',
-      apply_fn: (c) => {
-        c.temperature = 420;
-        c.fluid.Fe = Math.max(c.fluid.Fe - 20, 5);
-        return "Temperature drops into the 400s. Lithium, which has been accumulating since the beginning, is now abundant enough to nucleate Li-bearing minerals. Spodumene will take most of it — the Li pyroxene wants its own crystals. Any remaining Li goes into elbaite overgrowths on the schorl cores: the crystals become color-zoned as iron depletes and lithium takes its place.";
-      } },
-    { step: 160, name: 'Late Hydrothermal', description: 'Topaz window opens — residual Al + F meet',
-      apply_fn: (c) => {
-        c.temperature = 360;
-        c.fluid.pH = 5.5;
-        c.flow_rate = 0.5;
-        return "Late hydrothermal phase. Temperature drops into topaz's optimum window (340–400°C). Fluorine has been sitting unused — nothing else in this pocket consumed it — and enough Al remains in the residual pocket fluid after the main silicate crop has taken its share. Topaz nucleates, projecting from the quartz lining.";
-      } },
-    { step: 190, name: 'Kaolinization',    description: 'Microcline → kaolinite + K⁺ + SiO₂',
-      apply_fn: (c) => {
-        c.temperature = 320;
-        c.fluid.pH = 3.5;   // below microcline stability (pH < 4 threshold)
-        c.flow_rate = 0.3;
-        return "pH drops into the kaolinization window. Microcline in the pocket walls starts breaking down into kaolinite — the signature 'clay gloop' that coats every Minas Gerais gem pocket by the time garimpeiros crack it open. The reaction 2 KAlSi₃O₈ + 2 H⁺ + H₂O → kaolinite + 2 K⁺ + 4 SiO₂ releases potassium and silica to the fluid, but the aluminum stays locked in the new kaolinite. Albite is more acid-resistant (pH threshold 3) and survives intact — a field observation preserved in the sim.";
-      } },
-    { step: 215, name: 'Final Cooling',    description: 'System approaches 300°C floor',
-      apply_fn: (c) => {
-        c.temperature = 300;
-        c.flow_rate = 0.1;
-        return "The system cools to 300°C, below spodumene's window and approaching topaz's lower edge. Growth slows to near-zero. Deep time will do the rest: this pocket will wait half a billion years before human hands crack it open, and the garimpeiros will sort the crystals by color in the order the fluid deposited them.";
-      } },
-  ];
-  return { conditions, events, defaultSteps: 230 };
-}
-
-// Ouro Preto Imperial Topaz Veins — Minas Gerais, Brazil (Variant B).
-// Hydrothermal veins cutting Precambrian phyllite and quartzite at ~360°C,
-// 3.5 kbar (Morteani et al. 2002). Quartz first, then F-gated topaz once
-// phyllite dehydration pulses fluorine into the fluid. Imperial color
-// (Cr³⁺ from ultramafic country rock) lands the Ouro Preto signature.
-// Ouro Preto Imperial Topaz veins, Minas Gerais, Brazil. Hydrothermal
-// veins in Precambrian phyllite + quartzite. Metamorphic brine ex
-// devolatilizing phyllite per Morteani et al. 2002. Audit gap-fills
-// (Apr 2026): Na, K, Mg added — phyllite devolatilization releases
-// alkali cations from muscovite/biotite/albite breakdown. See vugg.py
-// scenario_ouro_preto + locality_chemistry.json#ouro_preto.
-// Bisbee, Arizona — Warren Mining District, Cochise County.
-// Classic Cu porphyry with world-class oxidation zone: primary
-// chalcopyrite+bornite → supergene chalcocite+covellite → cuprite +
-// native Cu → azurite (high pCO₂) → malachite (pCO₂ drop) →
-// chrysocolla (silica seep). Limestone-hosted with silicate
-// contribution from the Sacramento Hill quartz-monzonite porphyry —
-// represented as `limestone` wall + SiO₂ injected by ev_silica_seep.
-// Mirrors scenario_bisbee in vugg.py.
 // Bisbee, Arizona — Warren Mining District, Cochise County. Laramide
 // quartz-monzonite porphyry intruding Paleozoic Escabrosa Limestone +
 // Abrigo Formation. Major Cu-Ag-Au district (~8 Mt Cu, ~25 Moz Ag,
@@ -11445,10 +11398,9 @@ function scenario_sabkha_dolomitization() {
 // loader can mutate the object in place.
 let SCENARIOS = {
   supergene_oxidation: scenario_supergene_oxidation,
-  gem_pegmatite: scenario_gem_pegmatite,
   bisbee: scenario_bisbee,
   sabkha_dolomitization: scenario_sabkha_dolomitization,
-  // ouro_preto, deccan_zeolite, radioactive_pegmatite, reactive_wall, marble_contact_metamorphism — populated by _loadScenariosJSON5() from data/scenarios.json5 (Phase 2)
+  // gem_pegmatite, ouro_preto, deccan_zeolite, radioactive_pegmatite, reactive_wall, marble_contact_metamorphism — populated by _loadScenariosJSON5() from data/scenarios.json5 (Phase 2)
 };
 
 // Kick off the JSON5 fetch. Failure logs a warning (Phase 1 scenarios won't

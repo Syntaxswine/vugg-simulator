@@ -44,7 +44,7 @@
 // =============================================================
 {
   "$schema_version": "1.0.0",
-  "$last_updated": "2026-04-30 (Phase 2: marble + reactive_wall + radioactive_pegmatite + deccan_zeolite + ouro_preto migrated)",
+  "$last_updated": "2026-04-30 (Phase 2: marble + reactive_wall + radioactive_pegmatite + deccan_zeolite + ouro_preto + gem_pegmatite migrated)",
   "scenarios": {
 
     "cooling": {
@@ -499,6 +499,90 @@
         "Leach et al. 2010 — MVT genesis review",
         "Anderson & Macqueen 1982 — MVT mineralogy review",
         "Hanor 1994 — basinal-brine compendium (Sr/Ba tracers)"
+      ]
+    },
+
+    "gem_pegmatite": {
+      "anchor": "Cruzeiro mine, São José da Safira, Doce Valley, Minas Gerais (Variant A — Brasiliano-age miarolitic gem pegmatite, 700-450 Ma).",
+      "description": "Miarolitic cavity in a complex zoned pegmatite. The residual pocket where incompatible elements (Be, B, Li, F) accumulate beyond belief, then cross saturation in cascade — schorl → beryl → spodumene + elbaite → late topaz, with kaolinization of the microcline walls at the end.",
+      "duration_steps": 230,
+      "notes": [
+        "Cruzeiro is the type-locality for fine schorl-elbaite tourmaline + smoky quartz pockets, with documented beryl, spodumene, lepidolite, and accessory apatite. Brasiliano-age (Neoproterozoic) pegmatite field cutting Macaúbas Group meta-sediments. Morteani et al. 2002 covers fluid chemistry; Cassedanne (1991) and Proctor (1985) cover the Cruzeiro-specific paragenesis.",
+        "Thermal regime: 650 → 300°C over ~230 steps in three phases. Phase 1 (650-550°C): wall-zone crystallization (microcline, quartz, early schorl). Phase 2 (550-400°C): main pocket growth — beryl finally nucleates when Be crosses threshold; spodumene when Li crosses; schorl transitions to elbaite as Fe depletes and Li accumulates. Phase 3 (400-300°C): late hydrothermal — topaz if F survives, then kaolinization of microcline walls.",
+        "Saturation cascade mechanic: there is no explicit 'nucleate beryl now' command. Each mineral's supersaturation formula reads the current fluid, and the nucleation gates fire in order naturally as chemistry evolves — microcline first (K-feldspar = feldspar here), then the Be/Li/B gates cross as incompatible elements build up.",
+        "Audit gap-fills (Apr 2026): P=8 (pegmatite residual P; enables Cruzeiro accessory apatite per Cassedanne 1991). Mg=5 (brief-required non-zero baseline; pegmatite pocket fluids are Mg-poor since Mg partitions strongly into outer-shell biotite/chlorite during pegmatite differentiation)."
+      ],
+      "initial": {
+        "temperature_C": 650.0,
+        "pressure_kbar": 3.0,
+        "fluid": {
+          // Pegmatite-level silica saturation — far above quartz equilibrium
+          // at any T, so quartz is supersaturated throughout.
+          "SiO2": 8000,
+          "Ca": 30,
+          "CO3": 15,
+          "Fe": 50,
+          "Mn": 8,
+          // Al starts high enough that six competing silicate engines
+          // (feldspar, albite, quartz, tourmaline, beryl, spodumene) can all
+          // draw on it for the full scenario AND leave residual for topaz
+          // to nucleate in phase 3. 150 ppm is on the upper end of realistic
+          // pegmatite pocket fluid Al but within published ranges
+          // (London 2008, pegmatite fluid chemistry).
+          "Al": 150,
+          // Alkali feldspar chemistry — microcline first, then ev_albitization
+          // flips K -> Na.
+          "K": 80,
+          "Na": 40,
+          // Incompatible elements — these are the point of the scenario.
+          // All start above their respective minimum thresholds but below
+          // the nucleation σ threshold; they build (unused early) and then
+          // the cascade fires.
+          "Be": 25,    // beryl nucleation σ 1.8 — waits longest
+          "B": 35,     // tourmaline σ 1.3 — fires earliest once hot
+          "Li": 35,    // spodumene σ 1.5, also feeds elbaite
+          "F": 25,     // topaz σ 1.4 — fires late when T drops into window
+          // Color-element traces. Cr from hinted ultramafic contact;
+          // Mn for morganite/kunzite/rubellite; Cu for the Paraíba long-shot.
+          "Cr": 2.5,
+          "Cu": 0.3,
+          "V": 2.0,
+          "Ti": 0.8,
+          // Audit gap-fills (Apr 2026):
+          "P": 8,    // accessory apatite [Cassedanne 1991]
+          "Mg": 5,   // brief-required non-zero baseline
+          "O2": 0.1,
+          "pH": 6.8,
+          "salinity": 6.0
+        },
+        // Pegmatite country rock — silicate, not acid-reactive on sim
+        // timescales, so when pocket fluid turns mildly acidic in phase 3
+        // pH stays low (no carbonate buffering). That's what lets
+        // grow_feldspar's kaolinization branch fire on the microcline.
+        "wall": {
+          "composition": "pegmatite",
+          "thickness_mm": 500.0,
+          "vug_diameter_mm": 50.0,
+          "primary_bubbles": 4,
+          "secondary_bubbles": 5,
+          "shape_seed": 8
+        }
+      },
+      "events": [
+        { "step": 5,   "type": "gem_pegmatite_outer_shell",        "name": "Outer Shell",        "description": "Wall-zone microcline + quartz" },
+        { "step": 30,  "type": "gem_pegmatite_first_schorl",       "name": "Schorl Arrives",     "description": "B + Fe2+ supersaturation — first tourmaline" },
+        { "step": 60,  "type": "gem_pegmatite_albitization",       "name": "Albitization",       "description": "K-feldspar -> albite replacement cascade" },
+        { "step": 90,  "type": "gem_pegmatite_be_saturation",      "name": "Be Saturation",      "description": "Beryl finally nucleates — enormous crystals incoming" },
+        { "step": 130, "type": "gem_pegmatite_li_phase",           "name": "Li Phase",           "description": "Spodumene + elbaite territory" },
+        { "step": 160, "type": "gem_pegmatite_late_hydrothermal",  "name": "Late Hydrothermal",  "description": "Topaz window opens — F survivors fire" },
+        { "step": 190, "type": "gem_pegmatite_clay_softening",     "name": "Clay Softening",     "description": "Kaolinite replaces pocket walls" },
+        { "step": 215, "type": "gem_pegmatite_final",              "name": "Final Cooling",      "description": "System approaches 300C floor" }
+      ],
+      "sources": [
+        "Morteani et al. 2002 — fluid chemistry of Brazilian gem pegmatites",
+        "Cassedanne 1991 — Cruzeiro mine paragenesis",
+        "Proctor 1985 — Cruzeiro tourmaline + beryl mineralogy",
+        "London 2008 — pegmatite fluid Al partition (~150 ppm upper bound)"
       ]
     },
 
