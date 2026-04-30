@@ -15179,127 +15179,61 @@ class VugSimulator:
         return " ".join(p for p in parts if p)
 
     def _narrate_siderite(self, c: Crystal) -> str:
-        """Narrate a siderite crystal's story — the iron carbonate."""
+        """Narrate a siderite crystal's story — the iron carbonate.
+
+        Prose lives in narratives/siderite.md. Code dispatches habit
+        + dissolved-with-oxidative-note signal.
+        """
         parts = [f"Siderite #{c.crystal_id} grew to {c.c_length_mm:.1f} mm."]
-        parts.append(
-            "FeCO₃ — the iron carbonate, a calcite-group mineral (R3̄c) with "
-            "Fe²⁺ in the Ca site. Tan to deep brown, depending on Fe content "
-            "and trace substitution. Forms only in REDUCING conditions because "
-            "Fe²⁺ must stay reduced to be soluble; the moment O₂ rises above "
-            "~0.5, siderite begins converting to goethite/limonite."
-        )
+        parts.append(narrative_blurb("siderite"))
 
         if c.habit == "rhombohedral":
-            parts.append(
-                "Curved 'saddle' rhombohedra — the diagnostic siderite habit. "
-                "The {104} faces aren't flat; they bow outward into a saddle "
-                "shape, parallel to the curved-rhomb signature shared with "
-                "rhodochrosite and dolomite (the calcite-group tells include "
-                "this faceting tic)."
-            )
+            parts.append(narrative_variant("siderite", "rhombohedral"))
         elif c.habit == "scalenohedral":
-            parts.append(
-                "Sharp scalenohedral 'dog-tooth' crystals — the high-σ habit. "
-                "Less common than the rhombohedral form; sharp brown crystals "
-                "that resemble brown calcite at distance."
-            )
+            parts.append(narrative_variant("siderite", "scalenohedral"))
         elif c.habit == "botryoidal":
-            parts.append(
-                "Botryoidal mammillary crusts — the colloidal habit, formed "
-                "when supersaturation outruns ordered crystal growth. Tan-brown "
-                "rounded aggregates, often coating fracture walls."
-            )
+            parts.append(narrative_variant("siderite", "botryoidal"))
         else:
-            parts.append(
-                "Spherulitic concretions — sedimentary 'spherosiderite,' the "
-                "concretionary habit found in coal seams and Fe-rich shales. "
-                "Each sphere is a radial fibrous internal structure capped by "
-                "a thin smooth surface."
-            )
+            parts.append(narrative_variant("siderite", "spherulitic_concretion"))
 
         if c.dissolved:
             note = c.zones[-1].note if c.zones else ""
             if "oxidative breakdown" in note:
-                parts.append(
-                    "Oxidative breakdown destroyed the crystal — the textbook "
-                    "diagenetic story. Rising O₂ pushed Fe²⁺ → Fe³⁺, which is "
-                    "insoluble as carbonate; the lattice collapsed and Fe + CO₃ "
-                    "moved on to grow goethite/limonite elsewhere. In nature "
-                    "this is the mechanism behind the 'limonite cube after "
-                    "siderite' diagenetic pseudomorphs."
-                )
+                parts.append(narrative_variant("siderite", "oxidative_breakdown"))
             else:
-                parts.append(
-                    "Acid attack dissolved the crystal — like all calcite-group "
-                    "carbonates, siderite fizzes in HCl. Fe²⁺ + CO₃²⁻ released."
-                )
-        return " ".join(parts)
+                parts.append(narrative_variant("siderite", "acid_dissolution"))
+        return " ".join(p for p in parts if p)
 
     def _narrate_rhodochrosite(self, c: Crystal) -> str:
-        """Narrate a rhodochrosite crystal's story — the manganese carbonate."""
+        """Narrate a rhodochrosite crystal's story — the manganese carbonate.
+
+        Prose lives in narratives/rhodochrosite.md. Code dispatches
+        habit + on-sulfide position-string match + dissolved-with-
+        oxidative-note signal.
+        """
         parts = [f"Rhodochrosite #{c.crystal_id} grew to {c.c_length_mm:.1f} mm."]
-        parts.append(
-            "MnCO₃ — the rosy manganese carbonate, structurally identical to "
-            "calcite (R3̄c) but with Mn²⁺ replacing Ca²⁺. The pink-to-raspberry "
-            "color is intrinsic to the Mn²⁺ chromophore, not a trace activator. "
-            "Forms in epithermal Mn-bearing veins (Capillitas, Sweet Home), "
-            "metamorphosed Mn sediments (N'Chwaning), and low-T carbonate "
-            "replacement zones."
-        )
+        parts.append(narrative_blurb("rhodochrosite"))
 
         if c.habit == "rhombohedral":
-            parts.append(
-                "Curved 'button' rhombohedra — the diagnostic rhodochrosite habit. "
-                "The {104} faces aren't quite flat; they bow outward, giving each "
-                "crystal a domed, button-like profile that's hard to mistake for "
-                "anything else."
-            )
+            parts.append(narrative_variant("rhodochrosite", "rhombohedral"))
         elif c.habit == "scalenohedral":
-            parts.append(
-                "Sharp scalenohedral 'dog-tooth' crystals — the high-σ habit. "
-                "Deep-rose to raspberry-red where Mn is dominant. Visually similar "
-                "to scalenohedral calcite at distance, but the color settles the "
-                "identification."
-            )
+            parts.append(narrative_variant("rhodochrosite", "scalenohedral"))
         elif c.habit == "stalactitic":
-            parts.append(
-                "Stalactitic / mammillary aggregates — the famous Capillitas, "
-                "Argentina habit. Concentric rose-pink banding when sliced; "
-                "reflects rhythmic drip-water deposition over geologically short "
-                "intervals."
-            )
+            parts.append(narrative_variant("rhodochrosite", "stalactitic"))
         else:
-            parts.append(
-                "Rhythmic Mn/Ca banding — the agate-like layered cross-section. "
-                "Each band records a slight shift in the Mn:Ca ratio of the "
-                "incoming fluid, captured in the kutnohorite (CaMn carbonate) "
-                "solid-solution series between rhodochrosite and calcite."
-            )
+            parts.append(narrative_variant("rhodochrosite", "rhythmic_banding"))
 
-        # Sulfide inclusion paragenesis
         if "sphalerite" in c.position or "pyrite" in c.position or "galena" in c.position:
-            parts.append(
-                f"Growing on {c.position} — classic epithermal vein paragenesis: "
-                f"the carbonate fills space between earlier sulfides as the system "
-                f"cools, Mn-bearing fluids replacing or coating the sulfide phases."
-            )
+            parts.append(narrative_variant("rhodochrosite", "on_sulfide",
+                                           position=c.position))
 
         if c.dissolved:
             note = c.zones[-1].note if c.zones else ""
             if "oxidative breakdown" in note:
-                parts.append(
-                    "Oxidative breakdown destroyed the crystal — Mn²⁺ is unstable "
-                    "above O₂ ~1.0; it flips to Mn³⁺/Mn⁴⁺ and the surface converts "
-                    "to a black manganese-oxide rind (pyrolusite, psilomelane). "
-                    "The rosy crystal goes black from the outside in. This is why "
-                    "rhodochrosite specimens require careful storage."
-                )
+                parts.append(narrative_variant("rhodochrosite", "oxidative_breakdown"))
             else:
-                parts.append(
-                    "Acid attack dissolved the crystal — like calcite, "
-                    "rhodochrosite fizzes in HCl, releasing Mn²⁺ and CO₃²⁻."
-                )
-        return " ".join(parts)
+                parts.append(narrative_variant("rhodochrosite", "acid_dissolution"))
+        return " ".join(p for p in parts if p)
 
     def _narrate_quartz(self, c: Crystal) -> str:
         """Narrate a quartz crystal's story."""

@@ -3271,7 +3271,7 @@ const _NARRATIVE_CACHE = {};
 // Phase-1 manifest — extend as more species migrate. When all 89 are
 // extracted the manifest can become a generated index file fetched
 // once at startup.
-const _NARRATIVE_MANIFEST = ['chalcopyrite', 'sphalerite', 'aurichalcite', 'dolomite', 'rosasite', 'azurite', 'calcite', 'aragonite'];
+const _NARRATIVE_MANIFEST = ['chalcopyrite', 'sphalerite', 'aurichalcite', 'dolomite', 'rosasite', 'azurite', 'calcite', 'aragonite', 'siderite', 'rhodochrosite'];
 
 function _parseNarrative(text) {
   // Strip frontmatter (--- block at top).
@@ -13981,52 +13981,54 @@ class VugSimulator {
   }
 
   _narrate_siderite(c) {
+    // Prose lives in narratives/siderite.md.
     const parts = [`Siderite #${c.crystal_id} grew to ${c.c_length_mm.toFixed(1)} mm.`];
-    parts.push("FeCO₃ — the iron carbonate, a calcite-group mineral (R3̄c) with Fe²⁺ in the Ca site. Tan to deep brown, depending on Fe content and trace substitution. Forms only in REDUCING conditions because Fe²⁺ must stay reduced to be soluble; the moment O₂ rises above ~0.5, siderite begins converting to goethite/limonite.");
+    parts.push(narrative_blurb('siderite') || "FeCO₃ — the iron carbonate, a calcite-group mineral (R3̄c) with Fe²⁺ in the Ca site. Tan to deep brown, depending on Fe content and trace substitution. Forms only in REDUCING conditions because Fe²⁺ must stay reduced to be soluble; the moment O₂ rises above ~0.5, siderite begins converting to goethite/limonite.");
     if (c.habit === 'rhombohedral') {
-      parts.push("Curved 'saddle' rhombohedra — the diagnostic siderite habit. The {104} faces aren't flat; they bow outward into a saddle shape, parallel to the curved-rhomb signature shared with rhodochrosite and dolomite.");
+      parts.push(narrative_variant('siderite', 'rhombohedral') || "Curved 'saddle' rhombohedra — the diagnostic siderite habit. The {104} faces aren't flat; they bow outward into a saddle shape, parallel to the curved-rhomb signature shared with rhodochrosite and dolomite.");
     } else if (c.habit === 'scalenohedral') {
-      parts.push("Sharp scalenohedral 'dog-tooth' crystals — the high-σ habit. Less common than the rhombohedral form; sharp brown crystals that resemble brown calcite at distance.");
+      parts.push(narrative_variant('siderite', 'scalenohedral') || "Sharp scalenohedral 'dog-tooth' crystals — the high-σ habit. Less common than the rhombohedral form; sharp brown crystals that resemble brown calcite at distance.");
     } else if (c.habit === 'botryoidal') {
-      parts.push('Botryoidal mammillary crusts — the colloidal habit, formed when supersaturation outruns ordered crystal growth. Tan-brown rounded aggregates, often coating fracture walls.');
+      parts.push(narrative_variant('siderite', 'botryoidal') || 'Botryoidal mammillary crusts — the colloidal habit, formed when supersaturation outruns ordered crystal growth. Tan-brown rounded aggregates, often coating fracture walls.');
     } else {
-      parts.push("Spherulitic concretions — sedimentary 'spherosiderite,' the concretionary habit found in coal seams and Fe-rich shales. Each sphere is a radial fibrous internal structure capped by a thin smooth surface.");
+      parts.push(narrative_variant('siderite', 'spherulitic_concretion') || "Spherulitic concretions — sedimentary 'spherosiderite,' the concretionary habit found in coal seams and Fe-rich shales. Each sphere is a radial fibrous internal structure capped by a thin smooth surface.");
     }
     if (c.dissolved) {
       const note = c.zones.length ? c.zones[c.zones.length - 1].note : '';
       if (note && note.includes('oxidative breakdown')) {
-        parts.push("Oxidative breakdown destroyed the crystal — the textbook diagenetic story. Rising O₂ pushed Fe²⁺ → Fe³⁺, which is insoluble as carbonate; the lattice collapsed and Fe + CO₃ moved on to grow goethite/limonite elsewhere. In nature this is the mechanism behind the 'limonite cube after siderite' diagenetic pseudomorphs.");
+        parts.push(narrative_variant('siderite', 'oxidative_breakdown') || "Oxidative breakdown destroyed the crystal — the textbook diagenetic story. Rising O₂ pushed Fe²⁺ → Fe³⁺, which is insoluble as carbonate; the lattice collapsed and Fe + CO₃ moved on to grow goethite/limonite elsewhere. In nature this is the mechanism behind the 'limonite cube after siderite' diagenetic pseudomorphs.");
       } else {
-        parts.push('Acid attack dissolved the crystal — like all calcite-group carbonates, siderite fizzes in HCl. Fe²⁺ + CO₃²⁻ released.');
+        parts.push(narrative_variant('siderite', 'acid_dissolution') || 'Acid attack dissolved the crystal — like all calcite-group carbonates, siderite fizzes in HCl. Fe²⁺ + CO₃²⁻ released.');
       }
     }
-    return parts.join(' ');
+    return parts.filter(p => p).join(' ');
   }
 
   _narrate_rhodochrosite(c) {
+    // Prose lives in narratives/rhodochrosite.md.
     const parts = [`Rhodochrosite #${c.crystal_id} grew to ${c.c_length_mm.toFixed(1)} mm.`];
-    parts.push("MnCO₃ — the rosy manganese carbonate, structurally identical to calcite (R3̄c) but with Mn²⁺ replacing Ca²⁺. The pink-to-raspberry color is intrinsic to the Mn²⁺ chromophore, not a trace activator. Forms in epithermal Mn-bearing veins (Capillitas, Sweet Home), metamorphosed Mn sediments (N'Chwaning), and low-T carbonate replacement zones.");
+    parts.push(narrative_blurb('rhodochrosite') || "MnCO₃ — the rosy manganese carbonate, structurally identical to calcite (R3̄c) but with Mn²⁺ replacing Ca²⁺. The pink-to-raspberry color is intrinsic to the Mn²⁺ chromophore, not a trace activator. Forms in epithermal Mn-bearing veins (Capillitas, Sweet Home), metamorphosed Mn sediments (N'Chwaning), and low-T carbonate replacement zones.");
     if (c.habit === 'rhombohedral') {
-      parts.push("Curved 'button' rhombohedra — the diagnostic rhodochrosite habit. The {104} faces aren't quite flat; they bow outward, giving each crystal a domed, button-like profile that's hard to mistake for anything else.");
+      parts.push(narrative_variant('rhodochrosite', 'rhombohedral') || "Curved 'button' rhombohedra — the diagnostic rhodochrosite habit. The {104} faces aren't quite flat; they bow outward, giving each crystal a domed, button-like profile that's hard to mistake for anything else.");
     } else if (c.habit === 'scalenohedral') {
-      parts.push("Sharp scalenohedral 'dog-tooth' crystals — the high-σ habit. Deep-rose to raspberry-red where Mn is dominant. Visually similar to scalenohedral calcite at distance, but the color settles the identification.");
+      parts.push(narrative_variant('rhodochrosite', 'scalenohedral') || "Sharp scalenohedral 'dog-tooth' crystals — the high-σ habit. Deep-rose to raspberry-red where Mn is dominant. Visually similar to scalenohedral calcite at distance, but the color settles the identification.");
     } else if (c.habit === 'stalactitic') {
-      parts.push('Stalactitic / mammillary aggregates — the famous Capillitas, Argentina habit. Concentric rose-pink banding when sliced; reflects rhythmic drip-water deposition over geologically short intervals.');
+      parts.push(narrative_variant('rhodochrosite', 'stalactitic') || 'Stalactitic / mammillary aggregates — the famous Capillitas, Argentina habit. Concentric rose-pink banding when sliced; reflects rhythmic drip-water deposition over geologically short intervals.');
     } else {
-      parts.push('Rhythmic Mn/Ca banding — the agate-like layered cross-section. Each band records a slight shift in the Mn:Ca ratio of the incoming fluid, captured in the kutnohorite (CaMn carbonate) solid-solution series between rhodochrosite and calcite.');
+      parts.push(narrative_variant('rhodochrosite', 'rhythmic_banding') || 'Rhythmic Mn/Ca banding — the agate-like layered cross-section. Each band records a slight shift in the Mn:Ca ratio of the incoming fluid, captured in the kutnohorite (CaMn carbonate) solid-solution series between rhodochrosite and calcite.');
     }
     if (c.position && (c.position.includes('sphalerite') || c.position.includes('pyrite') || c.position.includes('galena'))) {
-      parts.push(`Growing on ${c.position} — classic epithermal vein paragenesis: the carbonate fills space between earlier sulfides as the system cools, Mn-bearing fluids replacing or coating the sulfide phases.`);
+      parts.push(narrative_variant('rhodochrosite', 'on_sulfide', { position: c.position }) || `Growing on ${c.position} — classic epithermal vein paragenesis: the carbonate fills space between earlier sulfides as the system cools, Mn-bearing fluids replacing or coating the sulfide phases.`);
     }
     if (c.dissolved) {
       const note = c.zones.length ? c.zones[c.zones.length - 1].note : '';
       if (note && note.includes('oxidative breakdown')) {
-        parts.push('Oxidative breakdown destroyed the crystal — Mn²⁺ is unstable above O₂ ~1.0; it flips to Mn³⁺/Mn⁴⁺ and the surface converts to a black manganese-oxide rind (pyrolusite, psilomelane). The rosy crystal goes black from the outside in. This is why rhodochrosite specimens require careful storage.');
+        parts.push(narrative_variant('rhodochrosite', 'oxidative_breakdown') || 'Oxidative breakdown destroyed the crystal — Mn²⁺ is unstable above O₂ ~1.0; it flips to Mn³⁺/Mn⁴⁺ and the surface converts to a black manganese-oxide rind (pyrolusite, psilomelane). The rosy crystal goes black from the outside in. This is why rhodochrosite specimens require careful storage.');
       } else {
-        parts.push('Acid attack dissolved the crystal — like calcite, rhodochrosite fizzes in HCl, releasing Mn²⁺ and CO₃²⁻.');
+        parts.push(narrative_variant('rhodochrosite', 'acid_dissolution') || 'Acid attack dissolved the crystal — like calcite, rhodochrosite fizzes in HCl, releasing Mn²⁺ and CO₃²⁻.');
       }
     }
-    return parts.join(' ');
+    return parts.filter(p => p).join(' ');
   }
 
   _narrate_quartz(c) {
