@@ -19378,42 +19378,22 @@ class VugSimulator:
         return " ".join(parts)
 
     def _narrate_aurichalcite(self, c: Crystal) -> str:
-        """Narrate aurichalcite — Zn-dominant broth-ratio carbonate."""
+        """Narrate aurichalcite — Zn-dominant broth-ratio carbonate.
+
+        Prose lives in narratives/aurichalcite.md. Code keeps the habit
+        dispatch; markdown owns the words. Habit names map directly to
+        variant names (tufted_spray, radiating_columnar); the else
+        branch picks the laminar_crust variant.
+        """
         parts = [f"Aurichalcite #{c.crystal_id} grew to {c.c_length_mm:.1f} mm."]
-        parts.append(
-            "(Zn,Cu)₅(CO₃)₂(OH)₆ — monoclinic supergene carbonate, the "
-            "Zn-dominant mirror of rosasite. Pale blue-green tufted "
-            "sprays so delicate that hardness 2 means a fingernail "
-            "scratches them. Named for orichalcum, the mythical "
-            "gold-alloy of Atlantis. The crystal formed because the "
-            "weathering fluid happened to carry more Zn than Cu at "
-            "the moment of nucleation; in a parallel run with the "
-            "ratio inverted, this same broth would have grown "
-            "rosasite instead. The two species are typically "
-            "intergrown wherever both elements are present, the "
-            "ratio drawing a chemical boundary through the mineral "
-            "assemblage."
-        )
+        parts.append(narrative_blurb("aurichalcite"))
         if c.habit == "tufted_spray":
-            parts.append(
-                "Tufted divergent sprays — the diagnostic aurichalcite "
-                "habit. Acicular crystals fanning out from a common "
-                "origin, looking like frozen fireworks or sea anemones; "
-                "the type material from Loktevskoye (1839) and the most "
-                "aesthetic specimens from Mapimi are this form."
-            )
+            parts.append(narrative_variant("aurichalcite", "tufted_spray"))
         elif c.habit == "radiating_columnar":
-            parts.append(
-                "Radiating spherical aggregates — denser than the "
-                "default sprays, formed at higher supersaturation."
-            )
+            parts.append(narrative_variant("aurichalcite", "radiating_columnar"))
         else:
-            parts.append(
-                "Thin laminar crust — low-σ encrusting habit, common on "
-                "mine walls where weathering supplied a steady but "
-                "modest flux of Zn + Cu + CO₃."
-            )
-        return " ".join(parts)
+            parts.append(narrative_variant("aurichalcite", "laminar_crust"))
+        return " ".join(p for p in parts if p)
 
     def _narrate_mixing_event(self, batch: List[Crystal], event: Event) -> str:
         """Narrate what happened after a fluid mixing event."""
