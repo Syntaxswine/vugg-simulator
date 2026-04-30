@@ -254,6 +254,92 @@ def spec_for(mineral: str) -> dict:
     return MINERAL_SPEC[mineral]
 
 
+# ============================================================
+# NARRATIVE TEMPLATES — narratives/<species>.md
+# ============================================================
+# Per-species prose lives in narratives/<species>.md as markdown files
+# with frontmatter + named variant sections. Code retains conditional
+# dispatch logic (which variants to render, in what order) and supplies
+# runtime values; markdown holds the prose itself. Edit narrative wording
+# without touching code.
+#
+# Format:
+#   ---
+#   species: <name>
+#   formula: <formula>
+#   description: <one-line tag>
+#   ---
+#
+#   ## blurb
+#   <reference-card description, always shown>
+#
+#   ## variant: <name>
+#   <conditional prose; {key} placeholders interpolated from context dict>
+#
+# Phase 1 (this commit, 2026-04-30): chalcopyrite proof-of-concept.
+# Phase 2 (deferred): the remaining 88 species, migrated as the design
+# proves out per
+# proposals/TASK-BRIEF-NARRATIVE-READABILITY.md (boss expansion).
+
+import re as _re_narratives
+
+_NARRATIVE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                              "narratives")
+_NARRATIVE_CACHE: Dict[str, Dict[str, str]] = {}
+
+
+def _load_narrative(species: str) -> Dict[str, str]:
+    """Parse narratives/<species>.md into {section_name: text}.
+
+    Sections: 'blurb' for the always-shown reference card, 'variant: <name>'
+    for conditional blocks. Frontmatter (the --- block at top) is ignored
+    by the runtime — it's metadata for human authors.
+    """
+    if species in _NARRATIVE_CACHE:
+        return _NARRATIVE_CACHE[species]
+    path = os.path.join(_NARRATIVE_DIR, f"{species}.md")
+    if not os.path.exists(path):
+        _NARRATIVE_CACHE[species] = {}
+        return _NARRATIVE_CACHE[species]
+    with open(path, encoding="utf-8") as f:
+        text = f.read()
+    if text.startswith("---"):
+        end_idx = text.find("\n---\n", 4)
+        if end_idx > 0:
+            text = text[end_idx + 5:]
+    sections: Dict[str, str] = {}
+    for chunk in _re_narratives.split(r"\n## ", "\n" + text):
+        chunk = chunk.strip()
+        if not chunk:
+            continue
+        first_line, _, body = chunk.partition("\n")
+        sections[first_line.strip()] = body.strip()
+    _NARRATIVE_CACHE[species] = sections
+    return sections
+
+
+def narrative_blurb(species: str) -> str:
+    """Return the always-shown reference-card prose for a species."""
+    return _load_narrative(species).get("blurb", "")
+
+
+def narrative_variant(species: str, variant: str, **ctx) -> str:
+    """Return a variant block with {key} placeholders interpolated.
+
+    Returns empty string if the variant is not declared (caller should
+    treat empty as 'skip this paragraph'). Missing context keys leave the
+    {key} placeholder in the output as a visible spec-bug signal.
+    """
+    template = _load_narrative(species).get(f"variant: {variant}")
+    if not template:
+        return ""
+    return _re_narratives.sub(
+        r"\{(\w+)\}",
+        lambda m: str(ctx.get(m.group(1), m.group(0))),
+        template,
+    )
+
+
 def max_size_cm(mineral: str) -> float:
     """Hard cap on crystal size (2x world record). The fix for the 321,248% bug."""
     return MINERAL_SPEC[mineral]["max_size_cm"]
@@ -15095,94 +15181,46 @@ class VugSimulator:
         return " ".join(parts)
 
     def _narrate_dolomite(self, c: Crystal) -> str:
-        """Narrate a dolomite crystal's story — the Ca-Mg ordered carbonate."""
+        """Narrate a dolomite crystal's story — the Ca-Mg ordered carbonate.
+
+        Prose lives in narratives/dolomite.md. Code keeps the
+        cycle-count → f_ord computation and the threshold dispatch
+        (Kim 2023 ordering tiers); markdown owns the words.
+        """
         parts = [f"Dolomite #{c.crystal_id} grew to {c.c_length_mm:.1f} mm."]
 
         # Compute final ordering fraction for narration — use fluid-level cycles
         cycle_count = self.conditions._dol_cycle_count
         f_ord = 1.0 - math.exp(-cycle_count / 7.0) if cycle_count > 0 else 0.0
 
-        parts.append(
-            "CaMg(CO₃)₂ — the ordered double carbonate, with Ca and Mg in "
-            "alternating cation layers (R3̄ space group, distinct from "
-            "calcite's R3̄c). The host rock of MVT deposits and a major "
-            "sedimentary carbonate. The 'dolomite problem' — that modern "
-            "surface oceans should but don't precipitate it — was partly "
-            "resolved by Kim, Sun et al. (2023, Science 382:915) who showed "
-            "that periodic dissolution-precipitation cycles strip disordered "
-            "Ca/Mg surface layers and ratchet ordering up over many cycles."
-        )
+        parts.append(narrative_blurb("dolomite"))
 
         if cycle_count > 0:
             if f_ord > 0.7:
-                parts.append(
-                    f"The vug fluid cycled across dolomite saturation "
-                    f"{cycle_count} times during this crystal's growth "
-                    f"(f_ord={f_ord:.2f}). Each cycle stripped the disordered "
-                    f"surface layer that steady precipitation would otherwise "
-                    f"lock in, leaving an ordered Ca/Mg template for the next "
-                    f"growth pulse. The result is true ordered dolomite, not "
-                    f"a Mg-calcite intermediate."
-                )
+                variant = "kim_ordered"
             elif f_ord > 0.3:
-                parts.append(
-                    f"The vug fluid cycled {cycle_count} times across "
-                    f"saturation (f_ord={f_ord:.2f}) — partially ordered. "
-                    f"Some growth zones are well-ordered dolomite, others "
-                    f"disordered HMC; X-ray diffraction would show a smeared "
-                    f"peak rather than the sharp dolomite signature."
-                )
+                variant = "kim_partial"
             else:
-                parts.append(
-                    f"Only {cycle_count} saturation cycle(s) (f_ord="
-                    f"{f_ord:.2f}) — most of this crystal is disordered "
-                    f"high-Mg calcite, not true ordered dolomite. With more "
-                    f"cycles it would have ratcheted up; the system sealed too "
-                    f"quickly."
-                )
+                variant = "kim_disordered"
+            parts.append(narrative_variant("dolomite", variant,
+                                           cycle_count=cycle_count,
+                                           f_ord=f"{f_ord:.2f}"))
         else:
-            parts.append(
-                "No saturation cycles occurred — this is steady-state growth, "
-                "which Kim 2023 predicts will be disordered Mg-calcite rather "
-                "than true ordered dolomite. In nature the ratio of true "
-                "dolomite to disordered HMC depends on how oscillatory the "
-                "fluid history was."
-            )
+            parts.append(narrative_variant("dolomite", "no_cycling"))
 
         if c.habit == "saddle_rhomb":
-            parts.append(
-                "Saddle-shaped curved rhombohedra — the most extreme example "
-                "of the calcite-group curved-face signature. Each {104} face "
-                "bows so sharply that the crystal looks twisted, which it "
-                "isn't — it's the lattice strain from cation ordering "
-                "expressed in surface geometry."
-            )
+            parts.append(narrative_variant("dolomite", "saddle_rhomb"))
         elif c.habit == "coarse_rhomb":
-            parts.append(
-                "Coarse textbook rhombohedra — the slow-growth high-T form. "
-                "Transparent to white, the crystal looks like calcite at "
-                "first glance until you check the cleavage and density."
-            )
+            parts.append(narrative_variant("dolomite", "coarse_rhomb"))
         else:
-            parts.append(
-                "Massive granular aggregate — the rock-forming form. White "
-                "to gray sugary texture, no individual crystal faces visible."
-            )
+            parts.append(narrative_variant("dolomite", "massive_granular"))
 
         if "calcite" in c.position:
-            parts.append(
-                f"Growing on calcite — classic dolomitization texture, the "
-                f"Mg-bearing fluid converting earlier calcite to dolomite "
-                f"as the system evolves."
-            )
+            parts.append(narrative_variant("dolomite", "on_calcite"))
 
         if c.dissolved:
-            parts.append(
-                "Acid attack dissolved the crystal — dolomite is somewhat "
-                "more acid-resistant than calcite (the Mg slows the reaction), "
-                "but pH < 6 still releases Ca²⁺ + Mg²⁺ + 2 CO₃²⁻."
-            )
-        return " ".join(parts)
+            parts.append(narrative_variant("dolomite", "dissolved"))
+        return " ".join(p for p in parts if p)
 
     def _narrate_siderite(self, c: Crystal) -> str:
         """Narrate a siderite crystal's story — the iron carbonate."""
@@ -15386,40 +15424,36 @@ class VugSimulator:
         return " ".join(parts)
 
     def _narrate_sphalerite(self, c: Crystal) -> str:
-        """Narrate a sphalerite crystal's story."""
+        """Narrate a sphalerite crystal's story.
+
+        Prose lives in narratives/sphalerite.md. Code keeps the
+        Fe-zoning analysis (early/late thirds, ratio threshold) and
+        picks which named variant — fe_zoning_increasing or
+        fe_zoning_decreasing — applies. Markdown owns the words.
+        """
         parts = [f"Sphalerite #{c.crystal_id} grew to {c.c_length_mm:.1f} mm."]
-        
+
         if c.zones:
             fe_vals = [z.trace_Fe for z in c.zones if z.trace_Fe > 0]
             if fe_vals:
                 max_fe = max(fe_vals)
                 min_fe = min(fe_vals)
                 if max_fe > min_fe * 1.5:
-                    # Find the color story
-                    early_fe = sum(z.trace_Fe for z in c.zones[:len(c.zones)//3]) / max(len(c.zones)//3, 1)
-                    late_fe = sum(z.trace_Fe for z in c.zones[-len(c.zones)//3:]) / max(len(c.zones)//3, 1)
-                    
-                    if early_fe < late_fe:
-                        parts.append(
-                            f"Iron content increased through growth — early zones are pale "
-                            f"(low Fe, cleiophane variety) grading to darker amber or brown "
-                            f"as the fluid became more iron-rich. This color zoning would be "
-                            f"visible in a polished cross-section."
-                        )
-                    else:
-                        parts.append(
-                            f"Iron content decreased through growth — the crystal darkened "
-                            f"early (higher Fe, approaching marmatite) then cleared as iron "
-                            f"was depleted from the fluid."
-                        )
-        
-        if c.twinned:
-            parts.append(
-                f"Twinned on the {c.twin_law} — a common growth twin in sphalerite "
-                f"that creates triangular re-entrant faces."
-            )
+                    # Compute early-vs-late Fe averages over the first and
+                    # last thirds of the growth zones; pick the matching
+                    # variant from the markdown.
+                    third = max(len(c.zones) // 3, 1)
+                    early_fe = sum(z.trace_Fe for z in c.zones[:third]) / third
+                    late_fe = sum(z.trace_Fe for z in c.zones[-third:]) / third
+                    variant = ("fe_zoning_increasing" if early_fe < late_fe
+                               else "fe_zoning_decreasing")
+                    parts.append(narrative_variant("sphalerite", variant))
 
-        return " ".join(parts)
+        if c.twinned:
+            parts.append(narrative_variant("sphalerite", "twinned",
+                                           twin_law=c.twin_law))
+
+        return " ".join(p for p in parts if p)
 
     def _narrate_wurtzite(self, c: Crystal) -> str:
         """Narrate a wurtzite crystal's story — the high-T hexagonal ZnS dimorph."""
@@ -15596,29 +15630,20 @@ class VugSimulator:
         return " ".join(parts)
 
     def _narrate_chalcopyrite(self, c: Crystal) -> str:
-        """Narrate a chalcopyrite crystal's story."""
+        """Narrate a chalcopyrite crystal's story.
+
+        Prose lives in narratives/chalcopyrite.md. Code keeps the
+        conditional-dispatch logic (which variants apply); markdown
+        owns the words. Edit prose without touching code.
+        """
         parts = [f"Chalcopyrite #{c.crystal_id} grew to {c.c_length_mm:.1f} mm."]
-        
-        parts.append(
-            "Brassy yellow with a greenish tint — distinguishable from pyrite by "
-            "its deeper color and softer hardness (3.5 vs 6). The disphenoidal "
-            "crystals often look tetrahedral, a common misidentification."
-        )
-        
+        parts.append(narrative_blurb("chalcopyrite"))
         if c.twinned:
-            parts.append(
-                f"Shows {c.twin_law} twinning — repeated twins create "
-                f"spinel-like star shapes."
-            )
-        
+            parts.append(narrative_variant("chalcopyrite", "twinned",
+                                           twin_law=c.twin_law))
         if c.dissolved:
-            parts.append(
-                "Oxidation began converting the chalcopyrite — at the surface, this "
-                "weathering produces malachite (green) and azurite (blue), the "
-                "colorful signal that led ancient prospectors to copper deposits."
-            )
-        
-        return " ".join(parts)
+            parts.append(narrative_variant("chalcopyrite", "dissolved"))
+        return " ".join(p for p in parts if p)
     
     def _narrate_hematite(self, c: Crystal) -> str:
         """Narrate a hematite crystal's story."""
@@ -19305,42 +19330,22 @@ class VugSimulator:
         return " ".join(parts)
 
     def _narrate_aurichalcite(self, c: Crystal) -> str:
-        """Narrate aurichalcite — Zn-dominant broth-ratio carbonate."""
+        """Narrate aurichalcite — Zn-dominant broth-ratio carbonate.
+
+        Prose lives in narratives/aurichalcite.md. Code keeps the habit
+        dispatch; markdown owns the words. Habit names map directly to
+        variant names (tufted_spray, radiating_columnar); the else
+        branch picks the laminar_crust variant.
+        """
         parts = [f"Aurichalcite #{c.crystal_id} grew to {c.c_length_mm:.1f} mm."]
-        parts.append(
-            "(Zn,Cu)₅(CO₃)₂(OH)₆ — monoclinic supergene carbonate, the "
-            "Zn-dominant mirror of rosasite. Pale blue-green tufted "
-            "sprays so delicate that hardness 2 means a fingernail "
-            "scratches them. Named for orichalcum, the mythical "
-            "gold-alloy of Atlantis. The crystal formed because the "
-            "weathering fluid happened to carry more Zn than Cu at "
-            "the moment of nucleation; in a parallel run with the "
-            "ratio inverted, this same broth would have grown "
-            "rosasite instead. The two species are typically "
-            "intergrown wherever both elements are present, the "
-            "ratio drawing a chemical boundary through the mineral "
-            "assemblage."
-        )
+        parts.append(narrative_blurb("aurichalcite"))
         if c.habit == "tufted_spray":
-            parts.append(
-                "Tufted divergent sprays — the diagnostic aurichalcite "
-                "habit. Acicular crystals fanning out from a common "
-                "origin, looking like frozen fireworks or sea anemones; "
-                "the type material from Loktevskoye (1839) and the most "
-                "aesthetic specimens from Mapimi are this form."
-            )
+            parts.append(narrative_variant("aurichalcite", "tufted_spray"))
         elif c.habit == "radiating_columnar":
-            parts.append(
-                "Radiating spherical aggregates — denser than the "
-                "default sprays, formed at higher supersaturation."
-            )
+            parts.append(narrative_variant("aurichalcite", "radiating_columnar"))
         else:
-            parts.append(
-                "Thin laminar crust — low-σ encrusting habit, common on "
-                "mine walls where weathering supplied a steady but "
-                "modest flux of Zn + Cu + CO₃."
-            )
-        return " ".join(parts)
+            parts.append(narrative_variant("aurichalcite", "laminar_crust"))
+        return " ".join(p for p in parts if p)
 
     def _narrate_mixing_event(self, batch: List[Crystal], event: Event) -> str:
         """Narrate what happened after a fluid mixing event."""

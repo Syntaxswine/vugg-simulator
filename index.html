@@ -3254,6 +3254,83 @@ function maxSizeCm(mineral) {
   return entry ? entry.max_size_cm : null;
 }
 
+// ============================================================
+// NARRATIVE TEMPLATES — narratives/<species>.md
+// ============================================================
+// Mirrors the Python-side narrative loader. Per-species prose lives
+// in narratives/<species>.md as markdown files with frontmatter +
+// named variant sections. JS pre-fetches the files at startup;
+// narrator methods read synchronously from the cache.
+//
+// Phase 1 (this commit, 2026-04-30): chalcopyrite proof-of-concept.
+// Phase 2 (deferred): the remaining 88 species, after the design
+// proves out per
+// proposals/TASK-BRIEF-NARRATIVE-READABILITY.md (boss expansion).
+
+const _NARRATIVE_CACHE = {};
+// Phase-1 manifest — extend as more species migrate. When all 89 are
+// extracted the manifest can become a generated index file fetched
+// once at startup.
+const _NARRATIVE_MANIFEST = ['chalcopyrite', 'sphalerite', 'aurichalcite', 'dolomite'];
+
+function _parseNarrative(text) {
+  // Strip frontmatter (--- block at top).
+  if (text.startsWith('---')) {
+    const endIdx = text.indexOf('\n---\n', 4);
+    if (endIdx > 0) text = text.slice(endIdx + 5);
+  }
+  const sections = {};
+  const parts = ('\n' + text).split(/\n## /);
+  for (const part of parts) {
+    const trimmed = part.trim();
+    if (!trimmed) continue;
+    const newlineIdx = trimmed.indexOf('\n');
+    const head = newlineIdx >= 0 ? trimmed.slice(0, newlineIdx).trim() : trimmed.trim();
+    const body = newlineIdx >= 0 ? trimmed.slice(newlineIdx + 1).trim() : '';
+    sections[head] = body;
+  }
+  return sections;
+}
+
+async function _loadNarrative(species) {
+  const paths = [
+    `./narratives/${species}.md`,
+    `../narratives/${species}.md`,
+    `/narratives/${species}.md`,
+  ];
+  for (const p of paths) {
+    try {
+      const r = await fetch(p, { cache: 'no-store' });
+      if (!r.ok) continue;
+      const text = await r.text();
+      _NARRATIVE_CACHE[species] = _parseNarrative(text);
+      return;
+    } catch (e) { /* try next */ }
+  }
+  console.warn(`[narratives] ${species}.md fetch failed — narrator will fall back to inline string`);
+  _NARRATIVE_CACHE[species] = {};
+}
+
+// Kick off all manifest fetches in parallel.
+Promise.all(_NARRATIVE_MANIFEST.map(_loadNarrative))
+  .then(() => console.info(`[narratives] loaded ${_NARRATIVE_MANIFEST.length} species`))
+  .catch(err => console.error(`[narratives] manifest load failed: ${err && err.message}`));
+
+function narrative_blurb(species) {
+  const sections = _NARRATIVE_CACHE[species];
+  return (sections && sections.blurb) || '';
+}
+
+function narrative_variant(species, variant, ctx) {
+  const sections = _NARRATIVE_CACHE[species];
+  if (!sections) return '';
+  const template = sections[`variant: ${variant}`];
+  if (!template) return '';
+  return template.replace(/\{(\w+)\}/g, (_, key) =>
+    (ctx && Object.prototype.hasOwnProperty.call(ctx, key)) ? String(ctx[key]) : `{${key}}`
+  );
+}
+
 // Pick a habit variant for a nucleating crystal based on current σ / T / space.
 // Mirrors select_habit_variant in vugg.py: triggers like "low σ" / "high σ" /
 // "moderate T" are matched against current conditions; vectors ("coating"
@@ -13868,31 +13945,37 @@ class VugSimulator {
   }
 
   _narrate_dolomite(c) {
+    // Prose lives in narratives/dolomite.md. Code keeps the
+    // cycle_count → f_ord computation and threshold dispatch (Kim 2023
+    // ordering tiers); markdown owns the words. Inline fallbacks for offline.
     const parts = [`Dolomite #${c.crystal_id} grew to ${c.c_length_mm.toFixed(1)} mm.`];
     const cycle_count = this.conditions._dol_cycle_count;
     const f_ord = cycle_count > 0 ? 1.0 - Math.exp(-cycle_count / 7.0) : 0.0;
-    parts.push("CaMg(CO₃)₂ — the ordered double carbonate, with Ca and Mg in alternating cation layers (R3̄ space group, distinct from calcite's R3̄c). The host rock of MVT deposits and a major sedimentary carbonate. The 'dolomite problem' — that modern surface oceans should but don't precipitate it — was partly resolved by Kim, Sun et al. (2023, Science 382:915) who showed that periodic dissolution-precipitation cycles strip disordered Ca/Mg surface layers and ratchet ordering up over many cycles.");
+    parts.push(narrative_blurb('dolomite') || "CaMg(CO₃)₂ — the ordered double carbonate, with Ca and Mg in alternating cation layers (R3̄ space group, distinct from calcite's R3̄c). The host rock of MVT deposits and a major sedimentary carbonate. The 'dolomite problem' — that modern surface oceans should but don't precipitate it — was partly resolved by Kim, Sun et al. (2023, Science 382:915) who showed that periodic dissolution-precipitation cycles strip disordered Ca/Mg surface layers and ratchet ordering up over many cycles.");
     if (cycle_count > 0) {
-      if (f_ord > 0.7) parts.push(`The vug fluid cycled across dolomite saturation ${cycle_count} times during this crystal's growth (f_ord=${f_ord.toFixed(2)}). Each cycle stripped the disordered surface layer that steady precipitation would otherwise lock in, leaving an ordered Ca/Mg template for the next growth pulse. The result is true ordered dolomite, not a Mg-calcite intermediate.`);
-      else if (f_ord > 0.3) parts.push(`The vug fluid cycled ${cycle_count} times across saturation (f_ord=${f_ord.toFixed(2)}) — partially ordered. Some growth zones are well-ordered dolomite, others disordered HMC; X-ray diffraction would show a smeared peak rather than the sharp dolomite signature.`);
-      else parts.push(`Only ${cycle_count} saturation cycle(s) (f_ord=${f_ord.toFixed(2)}) — most of this crystal is disordered high-Mg calcite, not true ordered dolomite. With more cycles it would have ratcheted up; the system sealed too quickly.`);
+      const ctx = { cycle_count, f_ord: f_ord.toFixed(2) };
+      let variant, fallback;
+      if (f_ord > 0.7) { variant = 'kim_ordered'; fallback = `The vug fluid cycled across dolomite saturation ${cycle_count} times during this crystal's growth (f_ord=${f_ord.toFixed(2)}). Each cycle stripped the disordered surface layer that steady precipitation would otherwise lock in, leaving an ordered Ca/Mg template for the next growth pulse. The result is true ordered dolomite, not a Mg-calcite intermediate.`; }
+      else if (f_ord > 0.3) { variant = 'kim_partial'; fallback = `The vug fluid cycled ${cycle_count} times across saturation (f_ord=${f_ord.toFixed(2)}) — partially ordered. Some growth zones are well-ordered dolomite, others disordered HMC; X-ray diffraction would show a smeared peak rather than the sharp dolomite signature.`; }
+      else { variant = 'kim_disordered'; fallback = `Only ${cycle_count} saturation cycle(s) (f_ord=${f_ord.toFixed(2)}) — most of this crystal is disordered high-Mg calcite, not true ordered dolomite. With more cycles it would have ratcheted up; the system sealed too quickly.`; }
+      parts.push(narrative_variant('dolomite', variant, ctx) || fallback);
     } else {
-      parts.push("No saturation cycles occurred — this is steady-state growth, which Kim 2023 predicts will be disordered Mg-calcite rather than true ordered dolomite. In nature the ratio of true dolomite to disordered HMC depends on how oscillatory the fluid history was.");
+      parts.push(narrative_variant('dolomite', 'no_cycling') || "No saturation cycles occurred — this is steady-state growth, which Kim 2023 predicts will be disordered Mg-calcite rather than true ordered dolomite. In nature the ratio of true dolomite to disordered HMC depends on how oscillatory the fluid history was.");
     }
     if (c.habit === 'saddle_rhomb') {
-      parts.push("Saddle-shaped curved rhombohedra — the most extreme example of the calcite-group curved-face signature. Each {104} face bows so sharply that the crystal looks twisted, which it isn't — it's the lattice strain from cation ordering expressed in surface geometry.");
+      parts.push(narrative_variant('dolomite', 'saddle_rhomb') || "Saddle-shaped curved rhombohedra — the most extreme example of the calcite-group curved-face signature. Each {104} face bows so sharply that the crystal looks twisted, which it isn't — it's the lattice strain from cation ordering expressed in surface geometry.");
     } else if (c.habit === 'coarse_rhomb') {
-      parts.push('Coarse textbook rhombohedra — the slow-growth high-T form. Transparent to white, the crystal looks like calcite at first glance until you check the cleavage and density.');
+      parts.push(narrative_variant('dolomite', 'coarse_rhomb') || 'Coarse textbook rhombohedra — the slow-growth high-T form. Transparent to white, the crystal looks like calcite at first glance until you check the cleavage and density.');
     } else {
-      parts.push('Massive granular aggregate — the rock-forming form. White to gray sugary texture, no individual crystal faces visible.');
+      parts.push(narrative_variant('dolomite', 'massive_granular') || 'Massive granular aggregate — the rock-forming form. White to gray sugary texture, no individual crystal faces visible.');
     }
     if (c.position && c.position.includes('calcite')) {
-      parts.push(`Growing on calcite — classic dolomitization texture, the Mg-bearing fluid converting earlier calcite to dolomite as the system evolves.`);
+      parts.push(narrative_variant('dolomite', 'on_calcite') || `Growing on calcite — classic dolomitization texture, the Mg-bearing fluid converting earlier calcite to dolomite as the system evolves.`);
     }
     if (c.dissolved) {
-      parts.push('Acid attack dissolved the crystal — dolomite is somewhat more acid-resistant than calcite (the Mg slows the reaction), but pH < 6 still releases Ca²⁺ + Mg²⁺ + 2 CO₃²⁻.');
+      parts.push(narrative_variant('dolomite', 'dissolved') || 'Acid attack dissolved the crystal — dolomite is somewhat more acid-resistant than calcite (the Mg slows the reaction), but pH < 6 still releases Ca²⁺ + Mg²⁺ + 2 CO₃²⁻.');
     }
-    return parts.join(' ');
+    return parts.filter(p => p).join(' ');
   }
 
   _narrate_siderite(c) {
@@ -13975,6 +14058,10 @@ class VugSimulator {
   }
 
   _narrate_sphalerite(c) {
+    // Prose lives in narratives/sphalerite.md. Code keeps the
+    // Fe-zoning analysis (early/late thirds, ratio threshold) and
+    // picks the matching named variant. Inline fallbacks preserve
+    // offline/file:// boot.
     const parts = [`Sphalerite #${c.crystal_id} grew to ${c.c_length_mm.toFixed(1)} mm.`];
     if (c.zones.length) {
       const fe_vals = c.zones.filter(z => z.trace_Fe > 0).map(z => z.trace_Fe);
@@ -13984,18 +14071,19 @@ class VugSimulator {
           const third = Math.max(Math.floor(c.zones.length / 3), 1);
           const early_fe = c.zones.slice(0, third).reduce((s, z) => s + z.trace_Fe, 0) / third;
           const late_fe = c.zones.slice(-third).reduce((s, z) => s + z.trace_Fe, 0) / third;
-          if (early_fe < late_fe) {
-            parts.push(`Iron content increased through growth — early zones are pale (low Fe, cleiophane variety) grading to darker amber or brown as the fluid became more iron-rich. This color zoning would be visible in a polished cross-section.`);
-          } else {
-            parts.push(`Iron content decreased through growth — the crystal darkened early (higher Fe, approaching marmatite) then cleared as iron was depleted from the fluid.`);
-          }
+          const variant = (early_fe < late_fe) ? 'fe_zoning_increasing' : 'fe_zoning_decreasing';
+          const fallback = (early_fe < late_fe)
+            ? `Iron content increased through growth — early zones are pale (low Fe, cleiophane variety) grading to darker amber or brown as the fluid became more iron-rich. This color zoning would be visible in a polished cross-section.`
+            : `Iron content decreased through growth — the crystal darkened early (higher Fe, approaching marmatite) then cleared as iron was depleted from the fluid.`;
+          parts.push(narrative_variant('sphalerite', variant) || fallback);
         }
       }
     }
     if (c.twinned) {
-      parts.push(`Twinned on the ${c.twin_law} — a common growth twin in sphalerite that creates triangular re-entrant faces.`);
+      const v = narrative_variant('sphalerite', 'twinned', { twin_law: c.twin_law });
+      parts.push(v || `Twinned on the ${c.twin_law} — a common growth twin in sphalerite that creates triangular re-entrant faces.`);
     }
-    return parts.join(' ');
+    return parts.filter(p => p).join(' ');
   }
 
   _narrate_wurtzite(c) {
@@ -14091,15 +14179,22 @@ class VugSimulator {
   }
 
   _narrate_chalcopyrite(c) {
+    // Prose lives in narratives/chalcopyrite.md — code keeps the
+    // conditional dispatch (which variants apply); markdown owns the
+    // words. Fallback strings preserve the inline content when the
+    // markdown fetch hasn't completed (rare; mostly file:// boot).
     const parts = [`Chalcopyrite #${c.crystal_id} grew to ${c.c_length_mm.toFixed(1)} mm.`];
-    parts.push('Brassy yellow with a greenish tint — distinguishable from pyrite by its deeper color and softer hardness (3.5 vs 6). The disphenoidal crystals often look tetrahedral, a common misidentification.');
+    const blurb = narrative_blurb('chalcopyrite');
+    parts.push(blurb || 'Brassy yellow with a greenish tint — distinguishable from pyrite by its deeper color and softer hardness (3.5 vs 6). The disphenoidal crystals often look tetrahedral, a common misidentification.');
     if (c.twinned) {
-      parts.push(`Shows ${c.twin_law} twinning — repeated twins create spinel-like star shapes.`);
+      const v = narrative_variant('chalcopyrite', 'twinned', { twin_law: c.twin_law });
+      parts.push(v || `Shows ${c.twin_law} twinning — repeated twins create spinel-like star shapes.`);
     }
     if (c.dissolved) {
-      parts.push('Oxidation began converting the chalcopyrite — at the surface, this weathering produces malachite (green) and azurite (blue), the colorful signal that led ancient prospectors to copper deposits.');
+      const v = narrative_variant('chalcopyrite', 'dissolved', {});
+      parts.push(v || 'Oxidation began converting the chalcopyrite — at the surface, this weathering produces malachite (green) and azurite (blue), the colorful signal that led ancient prospectors to copper deposits.');
     }
-    return parts.join(' ');
+    return parts.filter(p => p).join(' ');
   }
 
   _narrate_hematite(c) {
@@ -15279,16 +15374,18 @@ class VugSimulator {
   }
 
   _narrate_aurichalcite(c) {
+    // Prose lives in narratives/aurichalcite.md. Code dispatches on
+    // habit; markdown owns the words. Inline fallbacks for offline.
     const parts = [`Aurichalcite #${c.crystal_id} grew to ${c.c_length_mm.toFixed(1)} mm.`];
-    parts.push("(Zn,Cu)₅(CO₃)₂(OH)₆ — monoclinic supergene carbonate, the Zn-dominant mirror of rosasite. Pale blue-green tufted sprays so delicate that hardness 2 means a fingernail scratches them. Named for orichalcum, the mythical gold-alloy of Atlantis. The crystal formed because the weathering fluid happened to carry more Zn than Cu at the moment of nucleation; in a parallel run with the ratio inverted, this same broth would have grown rosasite instead. The two species are typically intergrown wherever both elements are present, the ratio drawing a chemical boundary through the mineral assemblage.");
+    parts.push(narrative_blurb('aurichalcite') || "(Zn,Cu)₅(CO₃)₂(OH)₆ — monoclinic supergene carbonate, the Zn-dominant mirror of rosasite. Pale blue-green tufted sprays so delicate that hardness 2 means a fingernail scratches them. Named for orichalcum, the mythical gold-alloy of Atlantis. The crystal formed because the weathering fluid happened to carry more Zn than Cu at the moment of nucleation; in a parallel run with the ratio inverted, this same broth would have grown rosasite instead. The two species are typically intergrown wherever both elements are present, the ratio drawing a chemical boundary through the mineral assemblage.");
     if (c.habit === 'tufted_spray') {
-      parts.push("Tufted divergent sprays — the diagnostic aurichalcite habit. Acicular crystals fanning out from a common origin, looking like frozen fireworks or sea anemones; the type material from Loktevskoye (1839) and the most aesthetic specimens from Mapimi are this form.");
+      parts.push(narrative_variant('aurichalcite', 'tufted_spray') || "Tufted divergent sprays — the diagnostic aurichalcite habit. Acicular crystals fanning out from a common origin, looking like frozen fireworks or sea anemones; the type material from Loktevskoye (1839) and the most aesthetic specimens from Mapimi are this form.");
     } else if (c.habit === 'radiating_columnar') {
-      parts.push("Radiating spherical aggregates — denser than the default sprays, formed at higher supersaturation.");
+      parts.push(narrative_variant('aurichalcite', 'radiating_columnar') || "Radiating spherical aggregates — denser than the default sprays, formed at higher supersaturation.");
     } else {
-      parts.push("Thin laminar crust — low-σ encrusting habit, common on mine walls where weathering supplied a steady but modest flux of Zn + Cu + CO₃.");
+      parts.push(narrative_variant('aurichalcite', 'laminar_crust') || "Thin laminar crust — low-σ encrusting habit, common on mine walls where weathering supplied a steady but modest flux of Zn + Cu + CO₃.");
     }
-    return parts.join(' ');
+    return parts.filter(p => p).join(' ');
   }
 
   _narrate_mixing_event(batch, event) {
