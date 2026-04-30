@@ -10997,6 +10997,81 @@ function event_gem_pegmatite_final(c) {
   return "The system cools to 300°C, below spodumene's window and approaching topaz's lower edge. Growth slows to near-zero. Deep time will do the rest: this pocket will wait half a billion years before human hands crack it open, and the garimpeiros will sort the crystals by color in the order the fluid deposited them.";
 }
 
+// --- supergene_oxidation (Tsumeb 1st-stage gossan) ---
+// Note: event_supergene_acidification is referenced 4× in the JSON5 spec
+// (steps 5/8/12/16) to hold pH near 4 against the limestone wall's
+// carbonate buffering. One handler, four event entries.
+function event_supergene_acidification(c) {
+  c.fluid.pH = 4.0;
+  c.fluid.O2 = 1.5;
+  c.fluid.S += 20;
+  return 'Early acidic supergene phase. Primary sulfides oxidize and release H₂SO₄ — pH drops to 4.0, opening the acid window for the arsenate + sulfate suite (scorodite, jarosite, alunite). Carbonate buffering will reverse this at the meteoric flush; the acid-stable phases form during this short ~15-step window.';
+}
+
+function event_supergene_meteoric_flush(c) {
+  c.fluid.O2 = 2.2;
+  c.fluid.CO3 += 30;
+  c.fluid.pH = 6.2;
+  c.flow_rate = 1.5;
+  return 'Rain infiltrates the soil zone and percolates down, picking up CO₂ and oxygen. Fresh supergene brine — cold, oxygen-rich, slightly acidic. Any remaining primary sulfides are on borrowed time.';
+}
+
+function event_supergene_pb_mo_pulse(c) {
+  c.fluid.Pb += 40;
+  c.fluid.Mo += 25;
+  c.fluid.O2 = 2.0;
+  c.flow_rate = 2.0;
+  return 'A weathering rind breaches: Pb²⁺ and MoO₄²⁻ released simultaneously from an oxidizing galena+molybdenite lens. The Seo et al. (2012) condition for wulfenite formation — both parents dying at once — is met.';
+}
+
+function event_supergene_cu_enrichment(c) {
+  c.fluid.Cu += 50.0;
+  c.fluid.S += 30.0;
+  c.fluid.Fe += 10.0;
+  c.fluid.O2 = 0.6;
+  return 'A primary chalcopyrite lens upslope finishes oxidizing. Cu²⁺ descends with the water table and hits the reducing layer below — the supergene enrichment blanket, where mineable copper ore gets made. Bornite precipitates on the upgradient edge, chalcocite in the core, covellite where S activity is highest. Real orebodies are often 5–10× richer here than in the primary sulfide below.';
+}
+
+function event_supergene_dry_spell(c) {
+  c.fluid.Ca += 40;
+  c.fluid.S += 30;
+  c.fluid.O2 = 1.5;
+  c.temperature = 50;
+  c.flow_rate = 0.3;
+  return "Dry season. Flow slows, evaporation concentrates the brine. Ca²⁺ and SO₄²⁻ climb toward selenite's window — the desert-rose chemistry, the Naica chemistry.";
+}
+
+function event_supergene_as_rich_seep(c) {
+  c.fluid.As += 8;
+  c.fluid.Cl += 10;
+  c.fluid.Zn += 20;
+  c.fluid.Co += 20;
+  c.fluid.Ni += 20;
+  c.fluid.pH = 6.0;
+  c.temperature = 25;
+  return 'An arsenic-bearing seep arrives from a weathering arsenopyrite body upslope, carrying trace cobalt and nickel from parallel oxidizing arsenides. Zn²⁺ saturates adamite; Pb²⁺ saturates mimetite; Co²⁺ and Ni²⁺ begin to bloom as crimson erythrite and apple-green annabergite.';
+}
+
+function event_supergene_phosphate_seep(c) {
+  c.fluid.P += 6.0;
+  c.fluid.Cl += 5.0;
+  c.fluid.pH = 6.4;
+  return "A phosphate-bearing groundwater seeps in from the soil zone — organic decay, weathered apatite bedrock, bat guano from above. P jumps past pyromorphite's saturation threshold, and any Pb still in solution has a new home.";
+}
+
+function event_supergene_v_bearing_seep(c) {
+  c.fluid.V += 6.0;
+  c.fluid.Cl += 8.0;
+  c.temperature = 45;
+  return "A vanadium-bearing seep arrives from a weathering red-bed ironstone upslope. V⁵⁺ leaches from oxidizing roll-front vanadates, and at Pb + V + Cl saturation the bright red-orange vanadinite nucleates — the classic 'vanadinite on goethite' habit of the Morocco / Arizona desert deposits.";
+}
+
+function event_supergene_fracture_seal(c) {
+  c.flow_rate = 0.05;
+  c.fluid.O2 = 1.0;
+  return 'The feeding fractures seal. The vug becomes a closed cold oxidizing system. Whatever is supersaturated will precipitate; whatever is undersaturated will quietly corrode.';
+}
+
 // ============================================================
 // EVENT REGISTRY + SCENARIO LOADER (data/scenarios.json5)
 // ============================================================
@@ -11053,6 +11128,16 @@ const EVENT_REGISTRY = {
   gem_pegmatite_late_hydrothermal: event_gem_pegmatite_late_hydrothermal,
   gem_pegmatite_clay_softening: event_gem_pegmatite_clay_softening,
   gem_pegmatite_final: event_gem_pegmatite_final,
+  // Phase 2 — supergene_oxidation. supergene_acidification fires 4× (steps 5/8/12/16).
+  supergene_acidification: event_supergene_acidification,
+  supergene_meteoric_flush: event_supergene_meteoric_flush,
+  supergene_pb_mo_pulse: event_supergene_pb_mo_pulse,
+  supergene_cu_enrichment: event_supergene_cu_enrichment,
+  supergene_dry_spell: event_supergene_dry_spell,
+  supergene_as_rich_seep: event_supergene_as_rich_seep,
+  supergene_phosphate_seep: event_supergene_phosphate_seep,
+  supergene_v_bearing_seep: event_supergene_v_bearing_seep,
+  supergene_fracture_seal: event_supergene_fracture_seal,
 };
 
 // Minimal JSONC parser — strips // line + /* */ block comments and
@@ -11143,80 +11228,6 @@ async function _loadScenariosJSON5() {
 // Audit gap-fills (Apr 2026): Ag, Ge, Sb (Tsumeb's silver + Ge suite),
 // Na/K (groundwater traces). See vugg.py + locality_chemistry.json
 // #tsumeb for full citations.
-function scenario_supergene_oxidation() {
-  const conditions = new VugConditions({
-    temperature: 35.0, pressure: 0.05,
-    fluid: new FluidChemistry({
-      // CO3 80 → 110 so azurite's high-pCO2 gate (≥120 after meteoric
-      // flush adds 30) can be reached in a limestone-hosted vug.
-      SiO2: 30, Ca: 120, CO3: 110, Fe: 40, Mn: 6, Mg: 5,
-      Zn: 90, S: 50, F: 3,
-      // Cu 25 → 55 so chalcocite/bornite can saturate at the enrichment
-      // zone. Pb 35 → 60 so anglesite/cerussite/pyromorphite can saturate.
-      Cu: 55, Pb: 60, Mo: 15,
-      As: 12, Cl: 20,
-      // V trace — roll-front / red-bed signature. Low start; ev_v_bearing_seep bumps past threshold.
-      V: 1.5,
-      // P trace — meteoric water typically carries <1 ppm P; pyromorphite waits for ev_phosphate_seep.
-      P: 0.5,
-      // ── Audit gap-fills (Apr 2026) ────────────────────────────────
-      Ag: 8,            // Tsumeb argentiferous galena + native Ag + ruby silvers [Pinch & Wilson 1977]
-      Ge: 5,            // Tsumeb is THE Ge type locality — germanite, renierite, briartite [Melcher 2003]
-      Sb: 5,            // proustite/pyrargyrite (ruby silvers) + tetrahedrite enabling
-      Na: 30, K: 10,    // minor groundwater cation traces
-      Au: 0.3,          // rare native gold documented [Pinch & Wilson 1977]; sub-0.5-ppm threshold so no nucleation, just chemistry trace
-      // ── v5 gap-fill (Apr 2026) ────────────────────────────────────
-      // Al: 25 (was default 3.0). Tsumeb supergene fluid carries
-      // significant Al³⁺ from feldspar weathering during the acid-
-      // sulfate phase; bumped above the alunite engine's al_f=Al/25
-      // cap so alunite sigma can cross threshold during the brief
-      // acid window. Source: Hemley 1969 + Stoffregen 2000.
-      Al: 25,
-      W: 20,             // Round 8d-1 — Tsumeb deep oxidation zone hosts minor scheelite + lead-tungstate suite (raspite + stolzite, both PbWO4 polymorphs) [Strunz 1959]
-      O2: 1.8, pH: 6.8, salinity: 2.0,
-    }),
-    // Supergene meteoric dissolution cavity — broad all-axis lumpiness.
-    wall: new VugWall({ primary_bubbles: 3, secondary_bubbles: 7, shape_seed: 7 }),
-  });
-  // v5 gap-fill (Apr 2026): early ev_supergene_acidification fires 4×
-  // (steps 5, 8, 12, 16) to hold pH near 4 against the limestone wall's
-  // carbonate buffering. Without it, scorodite + jarosite + alunite
-  // can't form at Tsumeb's late-stage carbonate-buffered pH=6.8 despite
-  // being world-class display species there.
-  const ev_supergene_acidification = (c) => {
-    c.fluid.pH = 4.0;
-    c.fluid.O2 = 1.5;
-    c.fluid.S += 20;
-    return 'Early acidic supergene phase. Primary sulfides oxidize and release H₂SO₄ — pH drops to 4.0, opening the acid window for the arsenate + sulfate suite (scorodite, jarosite, alunite). Carbonate buffering will reverse this at the meteoric flush.';
-  };
-  const events = [
-    { step: 5,   name: 'Acid Phase',        description: 'Early sulfide oxidation drops pH', apply_fn: ev_supergene_acidification },
-    { step: 8,   name: 'Acid Continues',    description: 'Sulfide-oxidation acid persists', apply_fn: ev_supergene_acidification },
-    { step: 12,  name: 'Acid Continues',    description: 'Carbonate buffer overrun', apply_fn: ev_supergene_acidification },
-    { step: 16,  name: 'Acid Final Pulse',  description: 'Last sulfide-oxidation pulse', apply_fn: ev_supergene_acidification },
-    { step: 20,  name: 'Meteoric Flush',   description: 'Oxygenated rainwater', apply_fn: (c) => { c.fluid.O2 = 2.2; c.fluid.CO3 += 30; c.fluid.pH = 6.2; c.flow_rate = 1.5; return 'Rain infiltrates the soil zone and percolates down, picking up CO₂ and oxygen. Fresh supergene brine — cold, oxygen-rich, slightly acidic.'; } },
-    { step: 40,  name: 'Pb+Mo Pulse',      description: 'Galena+molybdenite weathering', apply_fn: (c) => { c.fluid.Pb += 40; c.fluid.Mo += 25; c.fluid.O2 = 2.0; c.flow_rate = 2.0; return 'A weathering rind breaches: Pb²⁺ and MoO₄²⁻ released simultaneously — the Seo et al. (2012) condition for wulfenite formation is met.'; } },
-    { step: 55,  name: 'Cu Enrichment',    description: 'Primary chalcopyrite upslope weathers', apply_fn: (c) => { c.fluid.Cu += 50; c.fluid.S += 30; c.fluid.Fe += 10; c.fluid.O2 = 0.6; return 'A primary chalcopyrite lens upslope finishes oxidizing. Cu²⁺ descends with the water table and hits the reducing layer below — the supergene enrichment blanket, where mineable copper ore gets made. Bornite precipitates on the upgradient edge, chalcocite in the core, covellite where S activity is highest. Real orebodies are often 5–10× richer here than in the primary sulfide below.'; } },
-    { step: 70,  name: 'Dry Spell',        description: 'Evaporation concentrates sulfate', apply_fn: (c) => { c.fluid.Ca += 40; c.fluid.S += 30; c.fluid.O2 = 1.5; c.temperature = 50; c.flow_rate = 0.3; return 'Dry season. Flow slows, evaporation concentrates the brine. Ca²⁺ and SO₄²⁻ climb toward selenite\u2019s window.'; } },
-    { step: 95,  name: 'Arsenic Seep',     description: 'Zn/Pb arsenate saturation + Co/Ni bloom', apply_fn: (c) => { c.fluid.As += 8; c.fluid.Cl += 10; c.fluid.Zn += 20; c.fluid.Co += 20; c.fluid.Ni += 20; c.fluid.pH = 6.0; c.temperature = 25; return 'An arsenic-bearing seep arrives from a weathering arsenopyrite body upslope, carrying trace cobalt and nickel from parallel oxidizing arsenides. Adamite and mimetite saturate; Co²⁺ and Ni²⁺ begin to bloom as crimson erythrite and apple-green annabergite.'; } },
-    { step: 115, name: 'Phosphate Seep',   description: 'Soil-zone PO₄ enables pyromorphite', apply_fn: (c) => { c.fluid.P += 6.0; c.fluid.Cl += 5.0; c.fluid.pH = 6.4; return 'A phosphate-bearing groundwater seeps in from the soil zone — organic decay, weathered apatite bedrock, bat guano from above. P jumps past pyromorphite\u2019s saturation threshold, and any Pb still in solution has a new home.'; } },
-    { step: 130, name: 'V-bearing Seep',   description: 'Red-bed V leaches in, vanadinite fires', apply_fn: (c) => { c.fluid.V += 6.0; c.fluid.Cl += 8.0; c.temperature = 45; return "A vanadium-bearing seep arrives from a weathering red-bed ironstone upslope. V⁵⁺ leaches from oxidizing roll-front vanadates, and at Pb + V + Cl saturation the bright red-orange vanadinite nucleates — the classic 'vanadinite on goethite' habit of the Morocco / Arizona desert deposits."; } },
-    { step: 160, name: 'Fracture Seal',    description: 'System closes', apply_fn: (c) => { c.flow_rate = 0.05; c.fluid.O2 = 1.0; return 'The feeding fractures seal. The vug becomes a closed cold oxidizing system.'; } },
-  ];
-  return { conditions, events, defaultSteps: 200 };
-}
-
-// Minas Gerais Gem Pegmatite Pocket — Variant A.
-// A miarolitic cavity in a complex zoned pegmatite at the São Francisco
-// craton margin. The outer shell has already crystallized; this vug is
-// the residual pocket where Be/B/Li/F accumulate past saturation. Eight
-// events walk a 230-step cooling path through the pegmatite paragenesis.
-// Cruzeiro mine, São José da Safira, Doce Valley, Minas Gerais. Type-
-// locality for fine schorl-elbaite + smoky quartz pockets, with beryl,
-// spodumene, lepidolite, and accessory apatite. Brasiliano-age (700-450
-// Ma) pegmatite cutting Macaúbas Group. Audit gap-fills (Apr 2026):
-// P=8 (apatite-enabling) + Mg=5 (brief baseline). See vugg.py docstring
-// + locality_chemistry.json#cruzeiro_doce_valley.
 // Bisbee, Arizona — Warren Mining District, Cochise County. Laramide
 // quartz-monzonite porphyry intruding Paleozoic Escabrosa Limestone +
 // Abrigo Formation. Major Cu-Ag-Au district (~8 Mt Cu, ~25 Moz Ag,
@@ -11397,10 +11408,9 @@ function scenario_sabkha_dolomitization() {
 // _loadScenariosJSON5() once data/scenarios.json5 fetches. `let` so the
 // loader can mutate the object in place.
 let SCENARIOS = {
-  supergene_oxidation: scenario_supergene_oxidation,
   bisbee: scenario_bisbee,
   sabkha_dolomitization: scenario_sabkha_dolomitization,
-  // gem_pegmatite, ouro_preto, deccan_zeolite, radioactive_pegmatite, reactive_wall, marble_contact_metamorphism — populated by _loadScenariosJSON5() from data/scenarios.json5 (Phase 2)
+  // supergene_oxidation, gem_pegmatite, ouro_preto, deccan_zeolite, radioactive_pegmatite, reactive_wall, marble_contact_metamorphism — populated by _loadScenariosJSON5() from data/scenarios.json5 (Phase 2)
 };
 
 // Kick off the JSON5 fetch. Failure logs a warning (Phase 1 scenarios won't
