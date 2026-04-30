@@ -1065,7 +1065,7 @@ body.title-on > .subtitle {
   color: #a89040;
 }
 
-/* ---- Fortress Mode Styles ---- */
+/* ---- Creative Mode Styles (internal: fortress-* IDs/classes — pre-rename token, kept) ---- */
 #fortress-panel {
   max-width: 900px;
   width: 100%;
@@ -1661,7 +1661,7 @@ body.title-on > .subtitle {
   font-size: 1rem;
 }
 
-/* ---- The Groove (Idle Mode) ---- */
+/* ---- Zen Mode (Idle) ---- */
 #idle-panel {
   max-width: 960px;
   width: 100%;
@@ -2202,7 +2202,7 @@ footer a:hover {
         <p>Spiral visualization of a crystal's life journey. Like tree rings, the pattern reveals what shaped it.</p>
       </div>
       <div class="title-mode-card" onclick="switchMode('idle')">
-        <h3>🌀 The Groove</h3>
+        <h3>🌀 Zen Mode</h3>
         <p>An idle vug that runs forever. Temperature drifts, chemistry shifts, crystals come and go. Screensaver for geologists.</p>
       </div>
       <div class="title-mode-card" onclick="switchMode('random')">
@@ -2225,7 +2225,7 @@ footer a:hover {
     <button onclick="openScenariosPicker()">Scenarios.</button>
     <button onclick="menuGo('fortress')">Creative mode.</button>
     <button onclick="menuGo('legends')">Simulation.</button>
-    <button onclick="menuGo('idle')">The Groove.</button>
+    <button onclick="menuGo('idle')">Zen Mode.</button>
     <button class="menu-home" onclick="showTitleScreen()">Home.</button>
   </div>
 </div>
@@ -2371,7 +2371,7 @@ Scenarios:
   </div>
 </div>
 
-<!-- Fortress Mode Panel -->
+<!-- Creative Mode Panel (internal: fortress-* IDs/classes — pre-rename token, kept) -->
 <div id="fortress-panel">
 
   <!-- Setup Phase -->
@@ -2970,7 +2970,7 @@ Scenarios:
   </div>
 </div>
 
-<!-- The Groove (Idle Mode) -->
+<!-- Zen Mode (Idle) -->
 <div id="idle-panel">
   <div class="idle-container">
     <div class="idle-top-bar">
@@ -16081,7 +16081,7 @@ function fortressBeginFromScenario(scenarioName) {
 // Title screen button handlers.
 function titleNewGame() {
   // Opens the intermediate menu: Scenarios / Creative / Simulation /
-  // The Groove / Home.
+  // Zen Mode / Home.
   openNewGameMenu();
 }
 function titleQuickPlay() {
@@ -17980,12 +17980,12 @@ function grooveGetAvailableCrystals() {
   if (grooveCollectionCrystals && grooveCollectionCrystals.length) {
     return { crystals: grooveCollectionCrystals, source: 'Library' };
   }
-  // Otherwise prefer idle (The Groove), then fortress, then legends, then random.
+  // Otherwise prefer idle (Zen Mode), then fortress, then legends, then random.
   if (idleSim && idleSim.crystals && idleSim.crystals.length) {
-    return { sim: idleSim, crystals: idleSim.crystals, source: 'The Groove' };
+    return { sim: idleSim, crystals: idleSim.crystals, source: 'Zen' };
   }
   if (fortressSim && fortressSim.crystals && fortressSim.crystals.length) {
-    return { sim: fortressSim, crystals: fortressSim.crystals, source: 'Fortress' };
+    return { sim: fortressSim, crystals: fortressSim.crystals, source: 'Creative' };
   }
   if (legendsSim && legendsSim.crystals && legendsSim.crystals.length) {
     return { sim: legendsSim, crystals: legendsSim.crystals, source: 'Legends' };
@@ -21092,7 +21092,7 @@ function idleTogglePlay() {
     if (!idleSim) return;
     const logEl = document.getElementById('idle-log');
     logEl.innerHTML = '';
-    idleAppendLog(logEl, `🌀 The Groove — endless crystal growth begins`, 'log-step');
+    idleAppendLog(logEl, `🌀 Zen Mode — endless crystal growth begins`, 'log-step');
     idleAppendLog(logEl, `   Starting at ${idleSim.conditions.temperature.toFixed(0)}°C, pH ${idleSim.conditions.fluid.pH.toFixed(1)}`, '');
     idleAppendLog(logEl, `   ${idleSim.conditions.fluid.describe()}`, '');
     idleAppendLog(logEl, `${'═'.repeat(60)}`, '');
