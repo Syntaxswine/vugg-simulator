@@ -4787,17 +4787,24 @@ class VugConditions {
     return Math.max(sigma, 0);
   }
 
-  // Descloizite (PbZnVO4(OH)) — the Zn end of the descloizite-mottramite series.
-  // Cu/Zn dispatch: Cu>Zn → mottramite. Source: research-descloizite.md.
+  // Descloizite (PbZnVO4(OH)) — Zn end of complete solid solution series.
+  // Round 9c retrofit (Apr 2026): broth-ratio (50%-gate + sweet-spot)
+  // replaces the Round 8d strict-comparison dispatch. See
+  // research/research-broth-ratio-descloizite-mottramite.md.
   supersaturation_descloizite() {
     if (this.fluid.Pb < 40 || this.fluid.Zn < 50 || this.fluid.V < 10) return 0;
     if (this.fluid.O2 < 0.5) return 0;
-    if (this.fluid.Cu > this.fluid.Zn) return 0;
+    if (this.fluid.Cu < 0.5) return 0;
+    const cu_zn_total = this.fluid.Cu + this.fluid.Zn;
+    const zn_fraction = this.fluid.Zn / cu_zn_total;
+    if (zn_fraction < 0.5) return 0;
     const pb_f = Math.min(this.fluid.Pb / 80.0, 2.5);
     const zn_f = Math.min(this.fluid.Zn / 80.0, 2.5);
     const v_f  = Math.min(this.fluid.V  / 20.0, 2.5);
     const ox_f = Math.min(this.fluid.O2 / 1.0, 2.0);
     let sigma = pb_f * zn_f * v_f * ox_f;
+    if (zn_fraction >= 0.55 && zn_fraction <= 0.85) sigma *= 1.3;
+    else if (zn_fraction > 0.95) sigma *= 0.5;
     const T = this.temperature;
     let T_factor;
     if (T >= 30 && T <= 50) T_factor = 1.2;
@@ -4810,16 +4817,22 @@ class VugConditions {
     return Math.max(sigma, 0);
   }
 
-  // Mottramite (PbCu(VO4)(OH)) — the Cu end of the descloizite-mottramite series.
+  // Mottramite (PbCu(VO4)(OH)) — Cu end of complete solid solution series.
+  // Round 9c retrofit: same broth-ratio idiom as descloizite.
   supersaturation_mottramite() {
     if (this.fluid.Pb < 40 || this.fluid.Cu < 50 || this.fluid.V < 10) return 0;
     if (this.fluid.O2 < 0.5) return 0;
-    if (this.fluid.Zn >= this.fluid.Cu) return 0;
+    if (this.fluid.Zn < 0.5) return 0;
+    const cu_zn_total = this.fluid.Cu + this.fluid.Zn;
+    const cu_fraction = this.fluid.Cu / cu_zn_total;
+    if (cu_fraction < 0.5) return 0;
     const pb_f = Math.min(this.fluid.Pb / 80.0, 2.5);
     const cu_f = Math.min(this.fluid.Cu / 80.0, 2.5);
     const v_f  = Math.min(this.fluid.V  / 20.0, 2.5);
     const ox_f = Math.min(this.fluid.O2 / 1.0, 2.0);
     let sigma = pb_f * cu_f * v_f * ox_f;
+    if (cu_fraction >= 0.55 && cu_fraction <= 0.85) sigma *= 1.3;
+    else if (cu_fraction > 0.95) sigma *= 0.5;
     const T = this.temperature;
     let T_factor;
     if (T >= 30 && T <= 50) T_factor = 1.2;

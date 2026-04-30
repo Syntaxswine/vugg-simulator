@@ -8031,8 +8031,10 @@
       "required_ingredients": {
         "Pb": 40,
         "Zn": 50,
+        "Cu": 0.5,
         "V": 10
       },
+      "_ingredients_note": "Round 9c (Apr 2026): Cu=0.5 is required by the broth-ratio engine retrofit so the Cu:Zn ratio is meaningful. Real descloizite always has at least trace Cu (cuprian descloizite — common at Tsumeb and Berg Aukas).",
       "trace_ingredients": {},
       "thermal_decomp_C": null,
       "thermal_decomp_reaction": null,
@@ -8103,8 +8105,10 @@
       "required_ingredients": {
         "Pb": 40,
         "Cu": 50,
+        "Zn": 0.5,
         "V": 10
       },
+      "_ingredients_note": "Round 9c (Apr 2026): Zn=0.5 is required by the broth-ratio engine retrofit so the Cu:Zn ratio is meaningful. Real mottramite always has at least trace Zn (zincian mottramite).",
       "trace_ingredients": {},
       "thermal_decomp_C": null,
       "thermal_decomp_reaction": null,

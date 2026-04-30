@@ -3223,14 +3223,20 @@ class VugConditions:
 
     def supersaturation_descloizite(self) -> float:
         """Descloizite (Pb(Zn,Cu)VO₄(OH)) — the Zn end of the descloizite-
-        mottramite series.
+        mottramite complete solid solution series.
 
-        Cu/Zn-ratio dispatch: when Cu > Zn, mottramite takes priority
-        (same lattice but Cu replaces Zn). When Zn ≥ Cu, descloizite
-        is the stable phase. Forms only in supergene oxidation zones
-        where Pb-Zn sulfide ore (galena + sphalerite) has weathered
-        and the V is delivered by groundwater (red-bed roll-front
-        signature).
+        Forms only in supergene oxidation zones where Pb-Zn sulfide ore
+        (galena + sphalerite) has weathered and the V is delivered by
+        groundwater (red-bed roll-front signature). Red-brown to
+        orange-brown (no Cu chromophore — V⁵⁺ alone gives the color).
+
+        Round 9c retrofit (Apr 2026): Cu/Zn broth-ratio competition with
+        mottramite, upgrading the Round 8d strict-comparison dispatch to
+        the rosasite/aurichalcite 50%-gate + sweet-spot pattern. The
+        Schwartz 1942 + Oyman 2003 surveys established the complete solid
+        solution; intermediate "cuprian descloizite" is common at Tsumeb
+        and Berg Aukas. See research/research-broth-ratio-descloizite-
+        mottramite.md.
 
         Source: research/research-descloizite.md (boss commit f2939da);
         Strunz 1959 (Tsumeb monograph).
@@ -3239,14 +3245,28 @@ class VugConditions:
             return 0
         if self.fluid.O2 < 0.5:
             return 0
-        # Cu/Zn dispatch — mottramite wins when Cu > Zn.
-        if self.fluid.Cu > self.fluid.Zn:
+        # Recessive-side trace floor — real descloizite always has at
+        # least trace Cu (cuprian descloizite). Makes the Cu:Zn ratio
+        # meaningful instead of degenerate at Cu=0.
+        if self.fluid.Cu < 0.5:
+            return 0
+        # Broth-ratio gate — descloizite is Zn-dominant.
+        cu_zn_total = self.fluid.Cu + self.fluid.Zn
+        zn_fraction = self.fluid.Zn / cu_zn_total
+        if zn_fraction < 0.5:
             return 0
         pb_f = min(self.fluid.Pb / 80.0, 2.5)
         zn_f = min(self.fluid.Zn / 80.0, 2.5)
         v_f  = min(self.fluid.V  / 20.0, 2.5)
         ox_f = min(self.fluid.O2 / 1.0, 2.0)
         sigma = pb_f * zn_f * v_f * ox_f
+        # Sweet-spot bonus — Zn-dominant with Cu trace (cuprian descloizite)
+        # is the most-collected form. Pure-Zn damped because willemite
+        # and hemimorphite take that territory.
+        if 0.55 <= zn_fraction <= 0.85:
+            sigma *= 1.3
+        elif zn_fraction > 0.95:
+            sigma *= 0.5
         T = self.temperature
         if 30 <= T <= 50:
             T_factor = 1.2
@@ -3265,13 +3285,17 @@ class VugConditions:
 
     def supersaturation_mottramite(self) -> float:
         """Mottramite (Pb(Cu,Zn)VO₄(OH)) — the Cu end of the descloizite-
-        mottramite series.
+        mottramite complete solid solution series.
 
-        Cu/Zn-ratio dispatch: when Zn ≥ Cu, descloizite takes priority.
-        When Cu > Zn, mottramite is the stable phase. Olive-green to
-        yellowish-green (the Cu chromophore distinguishing it from the
-        red-brown descloizite). Forms in the same supergene oxidation
-        zones; Tsumeb is the type for both species.
+        Olive-green to yellowish-green to black (the Cu chromophore
+        distinguishing it from the red-brown descloizite). Forms in the
+        same supergene oxidation zones; Tsumeb produced the best
+        examples of both species.
+
+        Round 9c retrofit (Apr 2026): Cu/Zn broth-ratio competition with
+        descloizite, upgrading the Round 8d strict-comparison dispatch to
+        the rosasite/aurichalcite 50%-gate + sweet-spot pattern. See
+        research/research-broth-ratio-descloizite-mottramite.md.
 
         Source: research/research-mottramite.md (boss commit f2939da).
         """
@@ -3279,14 +3303,27 @@ class VugConditions:
             return 0
         if self.fluid.O2 < 0.5:
             return 0
-        # Cu/Zn dispatch — descloizite wins when Zn ≥ Cu.
-        if self.fluid.Zn >= self.fluid.Cu:
+        # Recessive-side trace floor — real mottramite always has at
+        # least trace Zn (zincian mottramite).
+        if self.fluid.Zn < 0.5:
+            return 0
+        # Broth-ratio gate — mottramite is Cu-dominant.
+        cu_zn_total = self.fluid.Cu + self.fluid.Zn
+        cu_fraction = self.fluid.Cu / cu_zn_total
+        if cu_fraction < 0.5:
             return 0
         pb_f = min(self.fluid.Pb / 80.0, 2.5)
         cu_f = min(self.fluid.Cu / 80.0, 2.5)
         v_f  = min(self.fluid.V  / 20.0, 2.5)
         ox_f = min(self.fluid.O2 / 1.0, 2.0)
         sigma = pb_f * cu_f * v_f * ox_f
+        # Sweet-spot bonus — Cu-dominant with Zn trace (zincian mottramite)
+        # is the most-collected form. Pure-Cu damped because vanadinite
+        # and malachite take that territory.
+        if 0.55 <= cu_fraction <= 0.85:
+            sigma *= 1.3
+        elif cu_fraction > 0.95:
+            sigma *= 0.5
         T = self.temperature
         if 30 <= T <= 50:
             T_factor = 1.2
