@@ -31,8 +31,16 @@ The groove tooltips (`#groove-tooltip`) have the same `position: absolute` + `cl
    - May or may not be affected (depends on container transforms)
    - User has not confirmed whether this mode has the bug
 
+## Key Clue
+The groove/Record Player tooltip works perfectly. It uses the simpler positioning:
+```javascript
+tooltip.style.left = (e.clientX + 12) + 'px';
+tooltip.style.top = (e.clientY - 10) + 'px';
+```
+The topo tooltip tries to be smarter by subtracting container offset via `getBoundingClientRect()` — and that's exactly what breaks under CSS transforms. The working code is simpler than the broken code.
+
 ## Fix
-**Recommended: Change both tooltip classes to `position: fixed`.**
+**Recommended: Change topo tooltip to `position: fixed` and use the same simple positioning as groove mode.**
 
 `position: fixed` positions relative to the viewport, which matches `clientX`/`clientY` regardless of ancestor transforms.
 
