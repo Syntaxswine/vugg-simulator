@@ -4349,15 +4349,28 @@ class VugConditions {
   }
 
   supersaturation_wurtzite() {
-    // Hexagonal (Zn,Fe)S — high-T dimorph of sphalerite. Hard gate at T<=95.
+    // Hexagonal (Zn,Fe)S dimorph of sphalerite. Round 9c retrofit
+    // (Apr 2026): two-branch model. Equilibrium high-T branch (>95°C)
+    // unchanged. Low-T metastable branch added per Murowchick & Barnes
+    // 1986: wurtzite forms below 95°C only when pH<4 AND sigma_base>=1
+    // AND Fe>=5 — the kinetic-trap conditions that produce Aachen-style
+    // schalenblende and AMD wurtzite. See
+    // research/research-broth-ratio-sphalerite-wurtzite.md.
     if (this.fluid.Zn < 10 || this.fluid.S < 10) return 0;
-    if (this.temperature <= 95) return 0;
+    const T = this.temperature;
     const product = (this.fluid.Zn / 100.0) * (this.fluid.S / 100.0);
-    let T_factor;
-    if (this.temperature < 150) T_factor = (this.temperature - 95) / 55.0;
-    else if (this.temperature <= 300) T_factor = 1.4;
-    else T_factor = 1.4 * Math.exp(-0.005 * (this.temperature - 300));
-    return product * T_factor;
+    if (T > 95) {
+      let T_factor;
+      if (T < 150) T_factor = (T - 95) / 55.0;
+      else if (T <= 300) T_factor = 1.4;
+      else T_factor = 1.4 * Math.exp(-0.005 * (T - 300));
+      return product * T_factor;
+    }
+    // Low-T metastable branch — all three conditions required.
+    if (this.fluid.pH >= 4.0) return 0;
+    if (product < 1.0) return 0;
+    if (this.fluid.Fe < 5) return 0;
+    return product * 0.4;
   }
 
   supersaturation_pyrite() {

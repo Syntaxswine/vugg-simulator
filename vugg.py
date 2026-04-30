@@ -1226,28 +1226,63 @@ class VugConditions:
         return product * T_factor
 
     def supersaturation_wurtzite(self) -> float:
-        """Wurtzite ((Zn,Fe)S) — hexagonal dimorph of sphalerite, high-T.
+        """Wurtzite ((Zn,Fe)S) — hexagonal dimorph of sphalerite.
 
-        Same (Zn,Fe)S composition as sphalerite, different crystal structure.
-        Above 95°C, (Zn,Fe)S favors the hexagonal wurtzite form; below 95°C,
-        cubic sphalerite is stable. On cooling, wurtzite can convert to
-        sphalerite but sphalerite rarely inverts back — asymmetric dimorphism.
+        Same (Zn,Fe)S composition as sphalerite, different crystal
+        structure. Cubic ABCABC stacking → sphalerite; hexagonal ABABAB
+        stacking → wurtzite. The two are end-members of a polytype series
+        (the famous Aachen schalenblende banding alternates layers of both).
 
-        Hard gate at T≤95 returns zero; between 100–300°C the σ rises.
+        Equilibrium phase boundary is 1020°C (Allen & Crenshaw 1912;
+        Scott & Barnes 1972) — well above any hydrothermal range. By
+        equilibrium thermodynamics alone, sphalerite always wins below
+        ~1000°C. But wurtzite forms METASTABLY at lower T under specific
+        conditions (Murowchick & Barnes 1986, *Am. Mineralogist*
+        71:1196-1208):
+
+        1. Acidic conditions (pH < 4) — H2S/HS- speciation favors
+           hexagonal stacking kinetically.
+        2. High Zn²⁺ activity — rapid precipitation under high σ
+           kinetically traps the hexagonal form.
+        3. Fe substitution (>1 mol%) — stabilizes wurtzite over
+           sphalerite at low T (Aachen-style 'wurtzite-Fe').
+
+        Round 9c retrofit (Apr 2026): two-branch model. Above 95°C the
+        existing equilibrium peak (150-300°C); below 95°C a new
+        metastable branch fires only when all three Murowchick & Barnes
+        conditions are met. See research/research-broth-ratio-sphalerite-
+        wurtzite.md.
         """
         if self.fluid.Zn < 10 or self.fluid.S < 10:
             return 0
-        if self.temperature <= 95:
-            return 0
+        T = self.temperature
         product = (self.fluid.Zn / 100.0) * (self.fluid.S / 100.0)
-        # Peak in the 150–250°C window; falls off either side
-        if self.temperature < 150:
-            T_factor = (self.temperature - 95) / 55.0  # 0 → 1 across 95-150
-        elif self.temperature <= 300:
-            T_factor = 1.4  # broad peak
-        else:
-            T_factor = 1.4 * math.exp(-0.005 * (self.temperature - 300))
-        return product * T_factor
+
+        if T > 95:
+            # Equilibrium high-T branch — peak 150-300°C, decay at extremes.
+            if T < 150:
+                T_factor = (T - 95) / 55.0  # 0 → 1 across 95-150
+            elif T <= 300:
+                T_factor = 1.4  # broad peak
+            else:
+                T_factor = 1.4 * math.exp(-0.005 * (T - 300))
+            return product * T_factor
+
+        # Low-T metastable branch (Murowchick & Barnes 1986).
+        # All three conditions required — any one alone won't trap the
+        # hexagonal form. pH<4 for the speciation; sigma_base>=1 for
+        # genuine supersaturation; Fe>=5 for the stabilization.
+        if self.fluid.pH >= 4.0:
+            return 0
+        if product < 1.0:
+            return 0
+        if self.fluid.Fe < 5:
+            return 0
+        # Damped relative to the high-T equilibrium peak — wurtzite is
+        # the thermodynamically wrong answer here and only forms because
+        # kinetics outrun equilibration. 0.4 keeps it less common than
+        # sphalerite under the same low-T acidic conditions.
+        return product * 0.4
     
     def supersaturation_pyrite(self) -> float:
         """Pyrite (FeS2) supersaturation. Needs Fe + S, reducing conditions.
