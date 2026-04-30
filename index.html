@@ -3671,7 +3671,7 @@ let timeScale = 5.0;
 //        as event-conditional logic. Cuprite spinel-twin habit branch
 //        was removed; spinel-twinned cuprite now carries octahedral
 //        habit + twinned flag. Verified by tools/twin_rate_check.py.
-const SIM_VERSION = 10;
+const SIM_VERSION = 11;
 
 
 // ============================================================
@@ -4349,15 +4349,28 @@ class VugConditions {
   }
 
   supersaturation_wurtzite() {
-    // Hexagonal (Zn,Fe)S — high-T dimorph of sphalerite. Hard gate at T<=95.
+    // Hexagonal (Zn,Fe)S dimorph of sphalerite. Round 9c retrofit
+    // (Apr 2026): two-branch model. Equilibrium high-T branch (>95°C)
+    // unchanged. Low-T metastable branch added per Murowchick & Barnes
+    // 1986: wurtzite forms below 95°C only when pH<4 AND sigma_base>=1
+    // AND Fe>=5 — the kinetic-trap conditions that produce Aachen-style
+    // schalenblende and AMD wurtzite. See
+    // research/research-broth-ratio-sphalerite-wurtzite.md.
     if (this.fluid.Zn < 10 || this.fluid.S < 10) return 0;
-    if (this.temperature <= 95) return 0;
+    const T = this.temperature;
     const product = (this.fluid.Zn / 100.0) * (this.fluid.S / 100.0);
-    let T_factor;
-    if (this.temperature < 150) T_factor = (this.temperature - 95) / 55.0;
-    else if (this.temperature <= 300) T_factor = 1.4;
-    else T_factor = 1.4 * Math.exp(-0.005 * (this.temperature - 300));
-    return product * T_factor;
+    if (T > 95) {
+      let T_factor;
+      if (T < 150) T_factor = (T - 95) / 55.0;
+      else if (T <= 300) T_factor = 1.4;
+      else T_factor = 1.4 * Math.exp(-0.005 * (T - 300));
+      return product * T_factor;
+    }
+    // Low-T metastable branch — all three conditions required.
+    if (this.fluid.pH >= 4.0) return 0;
+    if (product < 1.0) return 0;
+    if (this.fluid.Fe < 5) return 0;
+    return product * 0.4;
   }
 
   supersaturation_pyrite() {
@@ -4415,6 +4428,13 @@ class VugConditions {
     // Denominators reference realistic supergene weathering fluid (Cu ~25 ppm,
     // CO₃ ~100 ppm). The older 50/200 values were tuned for Cu-saturated
     // porphyry fluids and starved supergene vugs of their flagship Cu mineral.
+    // Malachite-vs-azurite competition is encoded by carbonate-activity
+    // thresholds (Vink 1986, Mineralogical Magazine 50:43-47): malachite
+    // CO3 ≥20, azurite CO3 ≥120 — the sim-scale encoding of Vink's
+    // log(pCO2) ≈ -3.5 univariant boundary at 25°C. Azurite drops back
+    // to malachite via the paramorph mechanic in grow_azurite when CO3
+    // falls during a run (Bisbee step 225 ev_co2_drop).
+    // See research/research-broth-ratio-malachite-azurite.md.
     let sigma = (this.fluid.Cu / 25.0) * (this.fluid.CO3 / 100.0) * (this.fluid.O2 / 1.0);
     if (this.temperature > 50) {
       sigma *= Math.exp(-0.005 * (this.temperature - 50));
@@ -4780,17 +4800,24 @@ class VugConditions {
     return Math.max(sigma, 0);
   }
 
-  // Descloizite (PbZnVO4(OH)) — the Zn end of the descloizite-mottramite series.
-  // Cu/Zn dispatch: Cu>Zn → mottramite. Source: research-descloizite.md.
+  // Descloizite (PbZnVO4(OH)) — Zn end of complete solid solution series.
+  // Round 9c retrofit (Apr 2026): broth-ratio (50%-gate + sweet-spot)
+  // replaces the Round 8d strict-comparison dispatch. See
+  // research/research-broth-ratio-descloizite-mottramite.md.
   supersaturation_descloizite() {
     if (this.fluid.Pb < 40 || this.fluid.Zn < 50 || this.fluid.V < 10) return 0;
     if (this.fluid.O2 < 0.5) return 0;
-    if (this.fluid.Cu > this.fluid.Zn) return 0;
+    if (this.fluid.Cu < 0.5) return 0;
+    const cu_zn_total = this.fluid.Cu + this.fluid.Zn;
+    const zn_fraction = this.fluid.Zn / cu_zn_total;
+    if (zn_fraction < 0.5) return 0;
     const pb_f = Math.min(this.fluid.Pb / 80.0, 2.5);
     const zn_f = Math.min(this.fluid.Zn / 80.0, 2.5);
     const v_f  = Math.min(this.fluid.V  / 20.0, 2.5);
     const ox_f = Math.min(this.fluid.O2 / 1.0, 2.0);
     let sigma = pb_f * zn_f * v_f * ox_f;
+    if (zn_fraction >= 0.55 && zn_fraction <= 0.85) sigma *= 1.3;
+    else if (zn_fraction > 0.95) sigma *= 0.5;
     const T = this.temperature;
     let T_factor;
     if (T >= 30 && T <= 50) T_factor = 1.2;
@@ -4803,16 +4830,22 @@ class VugConditions {
     return Math.max(sigma, 0);
   }
 
-  // Mottramite (PbCu(VO4)(OH)) — the Cu end of the descloizite-mottramite series.
+  // Mottramite (PbCu(VO4)(OH)) — Cu end of complete solid solution series.
+  // Round 9c retrofit: same broth-ratio idiom as descloizite.
   supersaturation_mottramite() {
     if (this.fluid.Pb < 40 || this.fluid.Cu < 50 || this.fluid.V < 10) return 0;
     if (this.fluid.O2 < 0.5) return 0;
-    if (this.fluid.Zn >= this.fluid.Cu) return 0;
+    if (this.fluid.Zn < 0.5) return 0;
+    const cu_zn_total = this.fluid.Cu + this.fluid.Zn;
+    const cu_fraction = this.fluid.Cu / cu_zn_total;
+    if (cu_fraction < 0.5) return 0;
     const pb_f = Math.min(this.fluid.Pb / 80.0, 2.5);
     const cu_f = Math.min(this.fluid.Cu / 80.0, 2.5);
     const v_f  = Math.min(this.fluid.V  / 20.0, 2.5);
     const ox_f = Math.min(this.fluid.O2 / 1.0, 2.0);
     let sigma = pb_f * cu_f * v_f * ox_f;
+    if (cu_fraction >= 0.55 && cu_fraction <= 0.85) sigma *= 1.3;
+    else if (cu_fraction > 0.95) sigma *= 0.5;
     const T = this.temperature;
     let T_factor;
     if (T >= 30 && T <= 50) T_factor = 1.2;
@@ -4866,15 +4899,29 @@ class VugConditions {
   }
 
   // Olivenite (Cu2AsO4(OH)) — Cu end of olivenite-adamite series.
-  // Cu/Zn dispatch: Zn>Cu → adamite. Source: research-olivenite.md.
+  // Round 9c retrofit (Apr 2026): broth-ratio (50%-gate + sweet-spot)
+  // replaces the Round 8d strict-comparison dispatch. See
+  // research/research-broth-ratio-adamite-olivenite.md and
+  // research/research-olivenite.md.
   supersaturation_olivenite() {
     if (this.fluid.Cu < 50 || this.fluid.As < 10) return 0;
     if (this.fluid.O2 < 0.5) return 0;
-    if (this.fluid.Zn > this.fluid.Cu) return 0;
+    // Recessive-side trace floor — real olivenite always has at least
+    // trace Zn (zincolivenite-leaning); makes the ratio meaningful.
+    if (this.fluid.Zn < 0.5) return 0;
+    // Broth-ratio gate — olivenite is Cu-dominant.
+    const cu_zn_total = this.fluid.Cu + this.fluid.Zn;
+    const cu_fraction = this.fluid.Cu / cu_zn_total;
+    if (cu_fraction < 0.5) return 0;
     const cu_f = Math.min(this.fluid.Cu / 80.0, 2.5);
     const as_f = Math.min(this.fluid.As / 20.0, 2.5);
     const ox_f = Math.min(this.fluid.O2 / 1.0, 2.0);
     let sigma = cu_f * as_f * ox_f;
+    // Sweet-spot bonus — Cu-dominant with Zn trace is zincolivenite-
+    // leaning, the most-collected form. Pure-Cu damped (malachite/
+    // brochantite take that territory).
+    if (cu_fraction >= 0.55 && cu_fraction <= 0.85) sigma *= 1.3;
+    else if (cu_fraction > 0.95) sigma *= 0.5;
     const T = this.temperature;
     let T_factor;
     if (T >= 20 && T <= 40) T_factor = 1.2;
@@ -5219,11 +5266,26 @@ class VugConditions {
     return product * T_factor;
   }
 
+  // Adamite (Zn2(AsO4)(OH)) — Zn end of olivenite-adamite series.
+  // Round 9c retrofit (Apr 2026): broth-ratio (50%-gate + sweet-spot)
+  // replaces the Round 8d strict-comparison dispatch. The famous green
+  // UV fluorescence requires trace Cu²⁺ activator — pure-Zn adamite is
+  // rare in nature. See research/research-broth-ratio-adamite-olivenite.md.
   supersaturation_adamite() {
     if (this.fluid.Zn < 10 || this.fluid.As < 5 || this.fluid.O2 < 0.3) return 0;
-    // Round 8d Cu/Zn dispatch — olivenite wins when Cu > Zn.
-    if (this.fluid.Cu > this.fluid.Zn) return 0;
+    // Trace Cu floor — Cu²⁺ activator gives the diagnostic green
+    // fluorescence; recessive-side floor makes the Cu:Zn ratio meaningful.
+    if (this.fluid.Cu < 0.5) return 0;
+    // Broth-ratio gate — adamite is Zn-dominant.
+    const cu_zn_total = this.fluid.Cu + this.fluid.Zn;
+    const zn_fraction = this.fluid.Zn / cu_zn_total;
+    if (zn_fraction < 0.5) return 0;
     let sigma = (this.fluid.Zn / 80.0) * (this.fluid.As / 30.0) * (this.fluid.O2 / 1.0);
+    // Sweet-spot bonus — Zn-dominant with Cu trace (the fluorescent
+    // variety) is the most aesthetic adamite. Pure-Zn damped because
+    // hemimorphite/smithsonite take that territory.
+    if (zn_fraction >= 0.55 && zn_fraction <= 0.85) sigma *= 1.3;
+    else if (zn_fraction > 0.95) sigma *= 0.5;
     if (this.temperature > 100) sigma *= Math.exp(-0.02 * (this.temperature - 100));
     if (this.fluid.pH < 4.0) sigma -= (4.0 - this.fluid.pH) * 0.4;
     else if (this.fluid.pH > 8.0) sigma *= 0.5;
@@ -5388,6 +5450,11 @@ class VugConditions {
   }
 
   // Azurite (Cu₃(CO₃)₂(OH)₂) — deep-blue Cu carbonate, high pCO₂.
+  // Cu carbonate competition is pCO₂-based, not Cu:Zn-style ratio (Vink
+  // 1986, Mineralogical Magazine 50:43-47). Azurite's higher CO3 floor
+  // (≥120 vs malachite ≥20) encodes Vink's log(pCO2) ≈ -3.5 univariant
+  // boundary at 25°C. Paramorph drop to malachite when CO3 falls is in
+  // grow_azurite. See research/research-broth-ratio-malachite-azurite.md.
   supersaturation_azurite() {
     if (this.fluid.Cu < 20 || this.fluid.CO3 < 120 || this.fluid.O2 < 1.0) return 0;
     const cu_f = Math.min(this.fluid.Cu / 40.0, 2.0);

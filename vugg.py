@@ -214,7 +214,24 @@ from typing import List, Dict, Optional, Tuple
 #        tools/twin_rate_check.py — all 25 spontaneously-twinned
 #        minerals match declared probabilities within ±2σ binomial
 #        tolerance at n=2000.
-SIM_VERSION = 10
+#   v11 — Broth-ratio retrofit (Apr 2026), shipped in pair-by-pair commits
+#        per proposals/TASK-BRIEF-RETROFIT-BROTH-RATIO.md:
+#        • Pair 1 (malachite/azurite): docstring refresh only — existing
+#          CO3-threshold split + paramorph already encode Vink 1986.
+#        • Pair 2 (adamite/olivenite): Round 8d strict-comparison Cu/Zn
+#          dispatch upgraded to the rosasite/aurichalcite 50%-gate +
+#          sweet-spot bonus (0.55-0.85) + pure-element damping (>0.95)
+#          + recessive-element trace floor (Cu>=0.5 / Zn>=0.5). Per
+#          Hawthorne 1976 + Burns 1995 + Chukanov 2008 (zincolivenite).
+#        • Pair 3 (descloizite/mottramite): same retrofit as pair 2.
+#          Per Schwartz 1942 + Oyman 2003 + Strunz 1959.
+#        • Pair 4 (sphalerite/wurtzite): polymorphism, not solid-solution.
+#          Keep T-based gates; add low-T metastable wurtzite branch under
+#          pH<4 + sigma>=1 + Fe>=5 per Murowchick & Barnes 1986.
+#        Each retrofit is its own commit; baselines regenerated per
+#        retrofit. Research artifacts at research/research-broth-ratio-
+#        <pair>.md.
+SIM_VERSION = 11
 
 
 # ============================================================
@@ -1209,28 +1226,63 @@ class VugConditions:
         return product * T_factor
 
     def supersaturation_wurtzite(self) -> float:
-        """Wurtzite ((Zn,Fe)S) — hexagonal dimorph of sphalerite, high-T.
+        """Wurtzite ((Zn,Fe)S) — hexagonal dimorph of sphalerite.
 
-        Same (Zn,Fe)S composition as sphalerite, different crystal structure.
-        Above 95°C, (Zn,Fe)S favors the hexagonal wurtzite form; below 95°C,
-        cubic sphalerite is stable. On cooling, wurtzite can convert to
-        sphalerite but sphalerite rarely inverts back — asymmetric dimorphism.
+        Same (Zn,Fe)S composition as sphalerite, different crystal
+        structure. Cubic ABCABC stacking → sphalerite; hexagonal ABABAB
+        stacking → wurtzite. The two are end-members of a polytype series
+        (the famous Aachen schalenblende banding alternates layers of both).
 
-        Hard gate at T≤95 returns zero; between 100–300°C the σ rises.
+        Equilibrium phase boundary is 1020°C (Allen & Crenshaw 1912;
+        Scott & Barnes 1972) — well above any hydrothermal range. By
+        equilibrium thermodynamics alone, sphalerite always wins below
+        ~1000°C. But wurtzite forms METASTABLY at lower T under specific
+        conditions (Murowchick & Barnes 1986, *Am. Mineralogist*
+        71:1196-1208):
+
+        1. Acidic conditions (pH < 4) — H2S/HS- speciation favors
+           hexagonal stacking kinetically.
+        2. High Zn²⁺ activity — rapid precipitation under high σ
+           kinetically traps the hexagonal form.
+        3. Fe substitution (>1 mol%) — stabilizes wurtzite over
+           sphalerite at low T (Aachen-style 'wurtzite-Fe').
+
+        Round 9c retrofit (Apr 2026): two-branch model. Above 95°C the
+        existing equilibrium peak (150-300°C); below 95°C a new
+        metastable branch fires only when all three Murowchick & Barnes
+        conditions are met. See research/research-broth-ratio-sphalerite-
+        wurtzite.md.
         """
         if self.fluid.Zn < 10 or self.fluid.S < 10:
             return 0
-        if self.temperature <= 95:
-            return 0
+        T = self.temperature
         product = (self.fluid.Zn / 100.0) * (self.fluid.S / 100.0)
-        # Peak in the 150–250°C window; falls off either side
-        if self.temperature < 150:
-            T_factor = (self.temperature - 95) / 55.0  # 0 → 1 across 95-150
-        elif self.temperature <= 300:
-            T_factor = 1.4  # broad peak
-        else:
-            T_factor = 1.4 * math.exp(-0.005 * (self.temperature - 300))
-        return product * T_factor
+
+        if T > 95:
+            # Equilibrium high-T branch — peak 150-300°C, decay at extremes.
+            if T < 150:
+                T_factor = (T - 95) / 55.0  # 0 → 1 across 95-150
+            elif T <= 300:
+                T_factor = 1.4  # broad peak
+            else:
+                T_factor = 1.4 * math.exp(-0.005 * (T - 300))
+            return product * T_factor
+
+        # Low-T metastable branch (Murowchick & Barnes 1986).
+        # All three conditions required — any one alone won't trap the
+        # hexagonal form. pH<4 for the speciation; sigma_base>=1 for
+        # genuine supersaturation; Fe>=5 for the stabilization.
+        if self.fluid.pH >= 4.0:
+            return 0
+        if product < 1.0:
+            return 0
+        if self.fluid.Fe < 5:
+            return 0
+        # Damped relative to the high-T equilibrium peak — wurtzite is
+        # the thermodynamically wrong answer here and only forms because
+        # kinetics outrun equilibration. 0.4 keeps it less common than
+        # sphalerite under the same low-T acidic conditions.
+        return product * 0.4
     
     def supersaturation_pyrite(self) -> float:
         """Pyrite (FeS2) supersaturation. Needs Fe + S, reducing conditions.
@@ -1322,6 +1374,16 @@ class VugConditions:
         (Cu ~25 ppm, CO₃ ~100 ppm from dissolved meteoric CO₂). The older
         50/200 values were tuned for Cu-saturated porphyry fluids and
         starved supergene vugs of their flagship copper mineral.
+
+        Malachite-vs-azurite competition is encoded by carbonate-activity
+        thresholds (Vink 1986, *Mineralogical Magazine* 50:43-47). Vink's
+        univariant boundary sits at log(pCO2) ≈ -3.5 at 25°C: above that,
+        azurite is stable; below, malachite wins. The sim's CO3 thresholds
+        (malachite ≥20, azurite ≥120) are the sim-scale encoding of that
+        boundary. Azurite drops back to malachite via a paramorph
+        replacement triggered in grow_azurite when CO3 falls during a run
+        (the Bisbee monsoon → drying transition, step 225 ev_co2_drop).
+        See research/research-broth-ratio-malachite-azurite.md.
         """
         if self.fluid.Cu < 5 or self.fluid.CO3 < 20 or self.fluid.O2 < 0.3:
             return 0
@@ -1467,16 +1529,36 @@ class VugConditions:
         Prismatic to tabular crystals, often on limonite.
         Forms at low temperature (<100°C) in near-surface oxidation zones.
 
-        Round 8d (Apr 2026): Cu/Zn ratio dispatch added — when Cu > Zn,
-        olivenite (Cu₂AsO₄(OH)) takes priority over adamite (the Cu and
-        Zn end-members of the same arsenate structure type).
+        Adamite-vs-olivenite is a Cu:Zn broth-ratio competition (Hawthorne
+        1976 + Burns 1995 + Chukanov 2008 — zincolivenite (Cu,Zn)(AsO4)(OH)
+        is the IMA-approved intermediate). Round 9c retrofit (Apr 2026)
+        upgrades the Round 8d strict-comparison dispatch to the
+        rosasite/aurichalcite 50%-gate + sweet-spot pattern. See
+        research/research-broth-ratio-adamite-olivenite.md.
         """
+        # Trace Cu floor — the Cu²⁺ activator gives the famous green
+        # fluorescence; pure-Zn adamite without any Cu is rare in nature.
+        # Recessive-side floor also makes the Cu:Zn ratio meaningful.
         if self.fluid.Zn < 10 or self.fluid.As < 5 or self.fluid.O2 < 0.3:
             return 0
-        # Round 8d Cu/Zn dispatch — olivenite wins when Cu > Zn.
-        if self.fluid.Cu > self.fluid.Zn:
+        if self.fluid.Cu < 0.5:
+            return 0
+        # Broth-ratio gate — adamite is Zn-dominant. Olivenite returns 0
+        # when Zn>Cu and adamite returns 0 when Cu>Zn — same parent fluid,
+        # opposite outcome.
+        cu_zn_total = self.fluid.Cu + self.fluid.Zn
+        zn_fraction = self.fluid.Zn / cu_zn_total  # safe — Zn≥10 above
+        if zn_fraction < 0.5:
             return 0
         sigma = (self.fluid.Zn / 80.0) * (self.fluid.As / 30.0) * (self.fluid.O2 / 1.0)
+        # Sweet-spot bonus — Zn-dominant but Cu-trace present (the
+        # fluorescent variety) is the most aesthetic adamite. Pure-Zn
+        # adamite (>0.95 Zn fraction) gets damped because hemimorphite
+        # and smithsonite take that territory.
+        if 0.55 <= zn_fraction <= 0.85:
+            sigma *= 1.3
+        elif zn_fraction > 0.95:
+            sigma *= 0.5
         # Low temperature mineral — suppressed above 100°C
         if self.temperature > 100:
             sigma *= math.exp(-0.02 * (self.temperature - 100))
@@ -2202,6 +2284,16 @@ class VugConditions:
         groundwater produces azurite in limestone-hosted copper vugs
         but malachite dominates otherwise. When CO₃ drops during the
         run, grow_azurite flags the crystal for malachite conversion.
+
+        The Cu carbonate competition is encoded by carbonate activity,
+        not by a Cu:Zn-style broth ratio (the rosasite/aurichalcite
+        Round 9 idiom doesn't fit this pair — they share Cu, not two
+        competing metals). Vink 1986 (*Mineralogical Magazine* 50:43-47)
+        fixes the azurite/malachite univariant boundary at
+        log(pCO2) ≈ -3.5 at 25°C. Above: azurite. Below: malachite.
+        Azurite's higher CO3 requirement (≥120 vs malachite ≥20) is
+        the sim-scale encoding. See
+        research/research-broth-ratio-malachite-azurite.md.
         """
         if (self.fluid.Cu < 20 or self.fluid.CO3 < 120 or
                 self.fluid.O2 < 1.0):
@@ -3166,14 +3258,20 @@ class VugConditions:
 
     def supersaturation_descloizite(self) -> float:
         """Descloizite (Pb(Zn,Cu)VO₄(OH)) — the Zn end of the descloizite-
-        mottramite series.
+        mottramite complete solid solution series.
 
-        Cu/Zn-ratio dispatch: when Cu > Zn, mottramite takes priority
-        (same lattice but Cu replaces Zn). When Zn ≥ Cu, descloizite
-        is the stable phase. Forms only in supergene oxidation zones
-        where Pb-Zn sulfide ore (galena + sphalerite) has weathered
-        and the V is delivered by groundwater (red-bed roll-front
-        signature).
+        Forms only in supergene oxidation zones where Pb-Zn sulfide ore
+        (galena + sphalerite) has weathered and the V is delivered by
+        groundwater (red-bed roll-front signature). Red-brown to
+        orange-brown (no Cu chromophore — V⁵⁺ alone gives the color).
+
+        Round 9c retrofit (Apr 2026): Cu/Zn broth-ratio competition with
+        mottramite, upgrading the Round 8d strict-comparison dispatch to
+        the rosasite/aurichalcite 50%-gate + sweet-spot pattern. The
+        Schwartz 1942 + Oyman 2003 surveys established the complete solid
+        solution; intermediate "cuprian descloizite" is common at Tsumeb
+        and Berg Aukas. See research/research-broth-ratio-descloizite-
+        mottramite.md.
 
         Source: research/research-descloizite.md (boss commit f2939da);
         Strunz 1959 (Tsumeb monograph).
@@ -3182,14 +3280,28 @@ class VugConditions:
             return 0
         if self.fluid.O2 < 0.5:
             return 0
-        # Cu/Zn dispatch — mottramite wins when Cu > Zn.
-        if self.fluid.Cu > self.fluid.Zn:
+        # Recessive-side trace floor — real descloizite always has at
+        # least trace Cu (cuprian descloizite). Makes the Cu:Zn ratio
+        # meaningful instead of degenerate at Cu=0.
+        if self.fluid.Cu < 0.5:
+            return 0
+        # Broth-ratio gate — descloizite is Zn-dominant.
+        cu_zn_total = self.fluid.Cu + self.fluid.Zn
+        zn_fraction = self.fluid.Zn / cu_zn_total
+        if zn_fraction < 0.5:
             return 0
         pb_f = min(self.fluid.Pb / 80.0, 2.5)
         zn_f = min(self.fluid.Zn / 80.0, 2.5)
         v_f  = min(self.fluid.V  / 20.0, 2.5)
         ox_f = min(self.fluid.O2 / 1.0, 2.0)
         sigma = pb_f * zn_f * v_f * ox_f
+        # Sweet-spot bonus — Zn-dominant with Cu trace (cuprian descloizite)
+        # is the most-collected form. Pure-Zn damped because willemite
+        # and hemimorphite take that territory.
+        if 0.55 <= zn_fraction <= 0.85:
+            sigma *= 1.3
+        elif zn_fraction > 0.95:
+            sigma *= 0.5
         T = self.temperature
         if 30 <= T <= 50:
             T_factor = 1.2
@@ -3208,13 +3320,17 @@ class VugConditions:
 
     def supersaturation_mottramite(self) -> float:
         """Mottramite (Pb(Cu,Zn)VO₄(OH)) — the Cu end of the descloizite-
-        mottramite series.
+        mottramite complete solid solution series.
 
-        Cu/Zn-ratio dispatch: when Zn ≥ Cu, descloizite takes priority.
-        When Cu > Zn, mottramite is the stable phase. Olive-green to
-        yellowish-green (the Cu chromophore distinguishing it from the
-        red-brown descloizite). Forms in the same supergene oxidation
-        zones; Tsumeb is the type for both species.
+        Olive-green to yellowish-green to black (the Cu chromophore
+        distinguishing it from the red-brown descloizite). Forms in the
+        same supergene oxidation zones; Tsumeb produced the best
+        examples of both species.
+
+        Round 9c retrofit (Apr 2026): Cu/Zn broth-ratio competition with
+        descloizite, upgrading the Round 8d strict-comparison dispatch to
+        the rosasite/aurichalcite 50%-gate + sweet-spot pattern. See
+        research/research-broth-ratio-descloizite-mottramite.md.
 
         Source: research/research-mottramite.md (boss commit f2939da).
         """
@@ -3222,14 +3338,27 @@ class VugConditions:
             return 0
         if self.fluid.O2 < 0.5:
             return 0
-        # Cu/Zn dispatch — descloizite wins when Zn ≥ Cu.
-        if self.fluid.Zn >= self.fluid.Cu:
+        # Recessive-side trace floor — real mottramite always has at
+        # least trace Zn (zincian mottramite).
+        if self.fluid.Zn < 0.5:
+            return 0
+        # Broth-ratio gate — mottramite is Cu-dominant.
+        cu_zn_total = self.fluid.Cu + self.fluid.Zn
+        cu_fraction = self.fluid.Cu / cu_zn_total
+        if cu_fraction < 0.5:
             return 0
         pb_f = min(self.fluid.Pb / 80.0, 2.5)
         cu_f = min(self.fluid.Cu / 80.0, 2.5)
         v_f  = min(self.fluid.V  / 20.0, 2.5)
         ox_f = min(self.fluid.O2 / 1.0, 2.0)
         sigma = pb_f * cu_f * v_f * ox_f
+        # Sweet-spot bonus — Cu-dominant with Zn trace (zincian mottramite)
+        # is the most-collected form. Pure-Cu damped because vanadinite
+        # and malachite take that territory.
+        if 0.55 <= cu_fraction <= 0.85:
+            sigma *= 1.3
+        elif cu_fraction > 0.95:
+            sigma *= 0.5
         T = self.temperature
         if 30 <= T <= 50:
             T_factor = 1.2
@@ -3321,10 +3450,13 @@ class VugConditions:
         """Olivenite (Cu₂AsO₄(OH)) — the Cu arsenate.
 
         Olive-green to grayish-green, the diagnostic Cu chromophore.
-        Cu/Zn-ratio dispatch with adamite (the existing Zn arsenate):
-        when Zn > Cu, adamite wins. When Cu ≥ Zn, olivenite. Forms in
-        Cu-rich supergene oxidation zones — the type at Cornwall,
+        Forms in Cu-rich supergene oxidation zones — the type at Cornwall,
         Tsumeb, Bisbee.
+
+        Adamite-vs-olivenite is a Cu:Zn broth-ratio competition (see
+        research/research-broth-ratio-adamite-olivenite.md). Round 9c
+        retrofit upgrades the Round 8d strict-comparison dispatch to the
+        rosasite/aurichalcite 50%-gate + sweet-spot pattern.
 
         Source: research/research-olivenite.md (boss commit f2939da).
         """
@@ -3332,13 +3464,28 @@ class VugConditions:
             return 0
         if self.fluid.O2 < 0.5:
             return 0
-        # Cu/Zn dispatch — adamite wins when Zn > Cu.
-        if self.fluid.Zn > self.fluid.Cu:
+        # Trace Zn floor on the recessive side — makes the Cu:Zn ratio
+        # meaningful. Real olivenite always has at least trace Zn
+        # (zincolivenite-leaning compositions).
+        if self.fluid.Zn < 0.5:
+            return 0
+        # Broth-ratio gate — olivenite is Cu-dominant.
+        cu_zn_total = self.fluid.Cu + self.fluid.Zn
+        cu_fraction = self.fluid.Cu / cu_zn_total
+        if cu_fraction < 0.5:
             return 0
         cu_f = min(self.fluid.Cu / 80.0, 2.5)
         as_f = min(self.fluid.As / 20.0, 2.5)
         ox_f = min(self.fluid.O2 / 1.0, 2.0)
         sigma = cu_f * as_f * ox_f
+        # Sweet-spot bonus — Cu-dominant with Zn trace is the
+        # zincolivenite-leaning olivenite, the most-collected form.
+        # Pure-Cu olivenite gets damped since malachite/brochantite
+        # take that territory.
+        if 0.55 <= cu_fraction <= 0.85:
+            sigma *= 1.3
+        elif cu_fraction > 0.95:
+            sigma *= 0.5
         T = self.temperature
         if 20 <= T <= 40:
             T_factor = 1.2
