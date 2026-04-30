@@ -254,6 +254,92 @@ def spec_for(mineral: str) -> dict:
     return MINERAL_SPEC[mineral]
 
 
+# ============================================================
+# NARRATIVE TEMPLATES — narratives/<species>.md
+# ============================================================
+# Per-species prose lives in narratives/<species>.md as markdown files
+# with frontmatter + named variant sections. Code retains conditional
+# dispatch logic (which variants to render, in what order) and supplies
+# runtime values; markdown holds the prose itself. Edit narrative wording
+# without touching code.
+#
+# Format:
+#   ---
+#   species: <name>
+#   formula: <formula>
+#   description: <one-line tag>
+#   ---
+#
+#   ## blurb
+#   <reference-card description, always shown>
+#
+#   ## variant: <name>
+#   <conditional prose; {key} placeholders interpolated from context dict>
+#
+# Phase 1 (this commit, 2026-04-30): chalcopyrite proof-of-concept.
+# Phase 2 (deferred): the remaining 88 species, migrated as the design
+# proves out per
+# proposals/TASK-BRIEF-NARRATIVE-READABILITY.md (boss expansion).
+
+import re as _re_narratives
+
+_NARRATIVE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                              "narratives")
+_NARRATIVE_CACHE: Dict[str, Dict[str, str]] = {}
+
+
+def _load_narrative(species: str) -> Dict[str, str]:
+    """Parse narratives/<species>.md into {section_name: text}.
+
+    Sections: 'blurb' for the always-shown reference card, 'variant: <name>'
+    for conditional blocks. Frontmatter (the --- block at top) is ignored
+    by the runtime — it's metadata for human authors.
+    """
+    if species in _NARRATIVE_CACHE:
+        return _NARRATIVE_CACHE[species]
+    path = os.path.join(_NARRATIVE_DIR, f"{species}.md")
+    if not os.path.exists(path):
+        _NARRATIVE_CACHE[species] = {}
+        return _NARRATIVE_CACHE[species]
+    with open(path, encoding="utf-8") as f:
+        text = f.read()
+    if text.startswith("---"):
+        end_idx = text.find("\n---\n", 4)
+        if end_idx > 0:
+            text = text[end_idx + 5:]
+    sections: Dict[str, str] = {}
+    for chunk in _re_narratives.split(r"\n## ", "\n" + text):
+        chunk = chunk.strip()
+        if not chunk:
+            continue
+        first_line, _, body = chunk.partition("\n")
+        sections[first_line.strip()] = body.strip()
+    _NARRATIVE_CACHE[species] = sections
+    return sections
+
+
+def narrative_blurb(species: str) -> str:
+    """Return the always-shown reference-card prose for a species."""
+    return _load_narrative(species).get("blurb", "")
+
+
+def narrative_variant(species: str, variant: str, **ctx) -> str:
+    """Return a variant block with {key} placeholders interpolated.
+
+    Returns empty string if the variant is not declared (caller should
+    treat empty as 'skip this paragraph'). Missing context keys leave the
+    {key} placeholder in the output as a visible spec-bug signal.
+    """
+    template = _load_narrative(species).get(f"variant: {variant}")
+    if not template:
+        return ""
+    return _re_narratives.sub(
+        r"\{(\w+)\}",
+        lambda m: str(ctx.get(m.group(1), m.group(0))),
+        template,
+    )
+
+
 def max_size_cm(mineral: str) -> float:
     """Hard cap on crystal size (2x world record). The fix for the 321,248% bug."""
     return MINERAL_SPEC[mineral]["max_size_cm"]
@@ -15596,29 +15682,20 @@ class VugSimulator:
         return " ".join(parts)
 
     def _narrate_chalcopyrite(self, c: Crystal) -> str:
-        """Narrate a chalcopyrite crystal's story."""
+        """Narrate a chalcopyrite crystal's story.
+
+        Prose lives in narratives/chalcopyrite.md. Code keeps the
+        conditional-dispatch logic (which variants apply); markdown
+        owns the words. Edit prose without touching code.
+        """
         parts = [f"Chalcopyrite #{c.crystal_id} grew to {c.c_length_mm:.1f} mm."]
-        
-        parts.append(
-            "Brassy yellow with a greenish tint — distinguishable from pyrite by "
-            "its deeper color and softer hardness (3.5 vs 6). The disphenoidal "
-            "crystals often look tetrahedral, a common misidentification."
-        )
-        
+        parts.append(narrative_blurb("chalcopyrite"))
         if c.twinned:
-            parts.append(
-                f"Shows {c.twin_law} twinning — repeated twins create "
-                f"spinel-like star shapes."
-            )
-        
+            parts.append(narrative_variant("chalcopyrite", "twinned",
+                                           twin_law=c.twin_law))
         if c.dissolved:
-            parts.append(
-                "Oxidation began converting the chalcopyrite — at the surface, this "
-                "weathering produces malachite (green) and azurite (blue), the "
-                "colorful signal that led ancient prospectors to copper deposits."
-            )
-        
-        return " ".join(parts)
+            parts.append(narrative_variant("chalcopyrite", "dissolved"))
+        return " ".join(p for p in parts if p)
     
     def _narrate_hematite(self, c: Crystal) -> str:
         """Narrate a hematite crystal's story."""

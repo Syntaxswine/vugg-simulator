@@ -3254,6 +3254,83 @@ function maxSizeCm(mineral) {
   return entry ? entry.max_size_cm : null;
 }
 
+// ============================================================
+// NARRATIVE TEMPLATES — narratives/<species>.md
+// ============================================================
+// Mirrors the Python-side narrative loader. Per-species prose lives
+// in narratives/<species>.md as markdown files with frontmatter +
+// named variant sections. JS pre-fetches the files at startup;
+// narrator methods read synchronously from the cache.
+//
+// Phase 1 (this commit, 2026-04-30): chalcopyrite proof-of-concept.
+// Phase 2 (deferred): the remaining 88 species, after the design
+// proves out per
+// proposals/TASK-BRIEF-NARRATIVE-READABILITY.md (boss expansion).
+
+const _NARRATIVE_CACHE = {};
+// Phase-1 manifest — extend as more species migrate. When all 89 are
+// extracted the manifest can become a generated index file fetched
+// once at startup.
+const _NARRATIVE_MANIFEST = ['chalcopyrite'];
+
+function _parseNarrative(text) {
+  // Strip frontmatter (--- block at top).
+  if (text.startsWith('---')) {
+    const endIdx = text.indexOf('\n---\n', 4);
+    if (endIdx > 0) text = text.slice(endIdx + 5);
+  }
+  const sections = {};
+  const parts = ('\n' + text).split(/\n## /);
+  for (const part of parts) {
+    const trimmed = part.trim();
+    if (!trimmed) continue;
+    const newlineIdx = trimmed.indexOf('\n');
+    const head = newlineIdx >= 0 ? trimmed.slice(0, newlineIdx).trim() : trimmed.trim();
+    const body = newlineIdx >= 0 ? trimmed.slice(newlineIdx + 1).trim() : '';
+    sections[head] = body;
+  }
+  return sections;
+}
+
+async function _loadNarrative(species) {
+  const paths = [
+    `./narratives/${species}.md`,
+    `../narratives/${species}.md`,
+    `/narratives/${species}.md`,
+  ];
+  for (const p of paths) {
+    try {
+      const r = await fetch(p, { cache: 'no-store' });
+      if (!r.ok) continue;
+      const text = await r.text();
+      _NARRATIVE_CACHE[species] = _parseNarrative(text);
+      return;
+    } catch (e) { /* try next */ }
+  }
+  console.warn(`[narratives] ${species}.md fetch failed — narrator will fall back to inline string`);
+  _NARRATIVE_CACHE[species] = {};
+}
+
+// Kick off all manifest fetches in parallel.
+Promise.all(_NARRATIVE_MANIFEST.map(_loadNarrative))
+  .then(() => console.info(`[narratives] loaded ${_NARRATIVE_MANIFEST.length} species`))
+  .catch(err => console.error(`[narratives] manifest load failed: ${err && err.message}`));
+
+function narrative_blurb(species) {
+  const sections = _NARRATIVE_CACHE[species];
+  return (sections && sections.blurb) || '';
+}
+
+function narrative_variant(species, variant, ctx) {
+  const sections = _NARRATIVE_CACHE[species];
+  if (!sections) return '';
+  const template = sections[`variant: ${variant}`];
+  if (!template) return '';
+  return template.replace(/\{(\w+)\}/g, (_, key) =>
+    (ctx && Object.prototype.hasOwnProperty.call(ctx, key)) ? String(ctx[key]) : `{${key}}`
+  );
+}
+
 // Pick a habit variant for a nucleating crystal based on current σ / T / space.
 // Mirrors select_habit_variant in vugg.py: triggers like "low σ" / "high σ" /
 // "moderate T" are matched against current conditions; vectors ("coating"
@@ -14091,15 +14168,22 @@ class VugSimulator {
   }
 
   _narrate_chalcopyrite(c) {
+    // Prose lives in narratives/chalcopyrite.md — code keeps the
+    // conditional dispatch (which variants apply); markdown owns the
+    // words. Fallback strings preserve the inline content when the
+    // markdown fetch hasn't completed (rare; mostly file:// boot).
     const parts = [`Chalcopyrite #${c.crystal_id} grew to ${c.c_length_mm.toFixed(1)} mm.`];
-    parts.push('Brassy yellow with a greenish tint — distinguishable from pyrite by its deeper color and softer hardness (3.5 vs 6). The disphenoidal crystals often look tetrahedral, a common misidentification.');
+    const blurb = narrative_blurb('chalcopyrite');
+    parts.push(blurb || 'Brassy yellow with a greenish tint — distinguishable from pyrite by its deeper color and softer hardness (3.5 vs 6). The disphenoidal crystals often look tetrahedral, a common misidentification.');
     if (c.twinned) {
-      parts.push(`Shows ${c.twin_law} twinning — repeated twins create spinel-like star shapes.`);
+      const v = narrative_variant('chalcopyrite', 'twinned', { twin_law: c.twin_law });
+      parts.push(v || `Shows ${c.twin_law} twinning — repeated twins create spinel-like star shapes.`);
     }
     if (c.dissolved) {
-      parts.push('Oxidation began converting the chalcopyrite — at the surface, this weathering produces malachite (green) and azurite (blue), the colorful signal that led ancient prospectors to copper deposits.');
+      const v = narrative_variant('chalcopyrite', 'dissolved', {});
+      parts.push(v || 'Oxidation began converting the chalcopyrite — at the surface, this weathering produces malachite (green) and azurite (blue), the colorful signal that led ancient prospectors to copper deposits.');
     }
-    return parts.join(' ');
+    return parts.filter(p => p).join(' ');
   }
 
   _narrate_hematite(c) {
