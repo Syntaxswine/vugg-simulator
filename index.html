@@ -4415,6 +4415,13 @@ class VugConditions {
     // Denominators reference realistic supergene weathering fluid (Cu ~25 ppm,
     // CO₃ ~100 ppm). The older 50/200 values were tuned for Cu-saturated
     // porphyry fluids and starved supergene vugs of their flagship Cu mineral.
+    // Malachite-vs-azurite competition is encoded by carbonate-activity
+    // thresholds (Vink 1986, Mineralogical Magazine 50:43-47): malachite
+    // CO3 ≥20, azurite CO3 ≥120 — the sim-scale encoding of Vink's
+    // log(pCO2) ≈ -3.5 univariant boundary at 25°C. Azurite drops back
+    // to malachite via the paramorph mechanic in grow_azurite when CO3
+    // falls during a run (Bisbee step 225 ev_co2_drop).
+    // See research/research-broth-ratio-malachite-azurite.md.
     let sigma = (this.fluid.Cu / 25.0) * (this.fluid.CO3 / 100.0) * (this.fluid.O2 / 1.0);
     if (this.temperature > 50) {
       sigma *= Math.exp(-0.005 * (this.temperature - 50));
@@ -5388,6 +5395,11 @@ class VugConditions {
   }
 
   // Azurite (Cu₃(CO₃)₂(OH)₂) — deep-blue Cu carbonate, high pCO₂.
+  // Cu carbonate competition is pCO₂-based, not Cu:Zn-style ratio (Vink
+  // 1986, Mineralogical Magazine 50:43-47). Azurite's higher CO3 floor
+  // (≥120 vs malachite ≥20) encodes Vink's log(pCO2) ≈ -3.5 univariant
+  // boundary at 25°C. Paramorph drop to malachite when CO3 falls is in
+  // grow_azurite. See research/research-broth-ratio-malachite-azurite.md.
   supersaturation_azurite() {
     if (this.fluid.Cu < 20 || this.fluid.CO3 < 120 || this.fluid.O2 < 1.0) return 0;
     const cu_f = Math.min(this.fluid.Cu / 40.0, 2.0);

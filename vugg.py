@@ -1322,6 +1322,16 @@ class VugConditions:
         (Cu ~25 ppm, CO₃ ~100 ppm from dissolved meteoric CO₂). The older
         50/200 values were tuned for Cu-saturated porphyry fluids and
         starved supergene vugs of their flagship copper mineral.
+
+        Malachite-vs-azurite competition is encoded by carbonate-activity
+        thresholds (Vink 1986, *Mineralogical Magazine* 50:43-47). Vink's
+        univariant boundary sits at log(pCO2) ≈ -3.5 at 25°C: above that,
+        azurite is stable; below, malachite wins. The sim's CO3 thresholds
+        (malachite ≥20, azurite ≥120) are the sim-scale encoding of that
+        boundary. Azurite drops back to malachite via a paramorph
+        replacement triggered in grow_azurite when CO3 falls during a run
+        (the Bisbee monsoon → drying transition, step 225 ev_co2_drop).
+        See research/research-broth-ratio-malachite-azurite.md.
         """
         if self.fluid.Cu < 5 or self.fluid.CO3 < 20 or self.fluid.O2 < 0.3:
             return 0
@@ -2202,6 +2212,16 @@ class VugConditions:
         groundwater produces azurite in limestone-hosted copper vugs
         but malachite dominates otherwise. When CO₃ drops during the
         run, grow_azurite flags the crystal for malachite conversion.
+
+        The Cu carbonate competition is encoded by carbonate activity,
+        not by a Cu:Zn-style broth ratio (the rosasite/aurichalcite
+        Round 9 idiom doesn't fit this pair — they share Cu, not two
+        competing metals). Vink 1986 (*Mineralogical Magazine* 50:43-47)
+        fixes the azurite/malachite univariant boundary at
+        log(pCO2) ≈ -3.5 at 25°C. Above: azurite. Below: malachite.
+        Azurite's higher CO3 requirement (≥120 vs malachite ≥20) is
+        the sim-scale encoding. See
+        research/research-broth-ratio-malachite-azurite.md.
         """
         if (self.fluid.Cu < 20 or self.fluid.CO3 < 120 or
                 self.fluid.O2 < 1.0):
