@@ -277,7 +277,14 @@ h1 {
   cursor: crosshair;
 }
 .topo-tooltip {
-  position: absolute;
+  /* Must be `fixed` (not `absolute`) — same reason as .groove-tooltip below.
+     The topo canvas lives inside a TOPO_STAGE_SCALE=2 oversized container
+     with CSS transforms for zoom (_topoZoom) and pan (_topoPanX/Y). With
+     `position: absolute`, each transform layer multiplies the offset
+     between the tooltip's `left`/`top` coordinate space and `clientX/Y`.
+     Fixed positioning aligns directly with viewport coordinates regardless
+     of ancestor transforms. See proposals/BUG-TOOLTIP-OFFSET.md. */
+  position: fixed;
   pointer-events: none;
   background: #0a0a08;
   color: #d4a843;
@@ -20521,11 +20528,11 @@ function _topoTooltipFromEvent(ev) {
       if (host) lines.push(`inside ${host.mineral} #${host.crystal_id}`);
       tip.innerHTML = lines.join('<br>');
       tip.style.display = 'block';
-      const wrapRect = canvas.parentElement.getBoundingClientRect();
-      const tipX = Math.min(wrapRect.width - tip.offsetWidth - 6, Math.max(6, ev.clientX - wrapRect.left + 12));
-      const tipY = Math.min(wrapRect.height - 40, Math.max(6, ev.clientY - wrapRect.top + 12));
-      tip.style.left = `${tipX}px`;
-      tip.style.top = `${tipY}px`;
+      // Viewport-relative positioning (CSS is now position:fixed). Don't
+      // subtract container offsets — under TOPO_STAGE_SCALE + _topoZoom +
+      // pan transforms, that mismatch is what produces the offset bug.
+      tip.style.left = `${Math.min(window.innerWidth - tip.offsetWidth - 6, ev.clientX + 12)}px`;
+      tip.style.top = `${Math.min(window.innerHeight - 40, ev.clientY - 10)}px`;
       return;
     }
   }
@@ -20591,11 +20598,11 @@ function _topoTooltipFromEvent(ev) {
   }
   tip.innerHTML = html;
   tip.style.display = 'block';
-  const wrapRect = canvas.parentElement.getBoundingClientRect();
-  const tipX = Math.min(wrapRect.width - tip.offsetWidth - 6, Math.max(6, ev.clientX - wrapRect.left + 12));
-  const tipY = Math.min(wrapRect.height - 40, Math.max(6, ev.clientY - wrapRect.top + 12));
-  tip.style.left = `${tipX}px`;
-  tip.style.top = `${tipY}px`;
+  // Viewport-relative positioning (CSS is now position:fixed). Don't
+  // subtract container offsets — under TOPO_STAGE_SCALE + _topoZoom + pan
+  // transforms, that mismatch is what produces the offset bug.
+  tip.style.left = `${Math.min(window.innerWidth - tip.offsetWidth - 6, ev.clientX + 12)}px`;
+  tip.style.top = `${Math.min(window.innerHeight - 40, ev.clientY - 10)}px`;
 }
 
 function _topoHideTooltip() {
