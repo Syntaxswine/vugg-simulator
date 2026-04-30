@@ -1,41 +1,59 @@
-# BUG: Tooltip offset scales with zoom — double-positioning from viewport/ancestor mismatch
+# BUG: Tooltip offset scales with zoom — position:absolute ancestor chain with CSS transforms
 
 ## Reproduction
-1. Open any vug simulation
-2. Hover over a crystal in the groove/record player
-3. Tooltip appears far from cursor — offset proportional to zoom/scale level
-4. At center-screen, tooltip corner touches opposite corner of viewport
+1. Open any simulation in Creative/Simulation mode (topo map view)
+2. Hover over a crystal on the topo map
+3. Tooltip appears far from cursor — offset proportional to zoom level
+4. At center-screen, tooltip is near the opposite corner
+5. Issue is proportional to zoom/scale — confirmed by user
 
 ## Root Cause
-The tooltip (`#groove-tooltip`) uses `position: absolute` but positions itself using `e.clientX` / `e.clientY`, which are viewport-relative coordinates. `position: absolute` interprets `left`/`top` relative to the nearest positioned ancestor (the modal/container), not the viewport. This causes double-offset: the coordinates assume viewport positioning but the browser positions relative to the container.
+The topo tooltip (`#topo-tooltip`) uses `position: absolute` and tries to account for container offset:
+```javascript
+const wrapRect = canvas.parentElement.getBoundingClientRect();
+const tipX = ev.clientX - wrapRect.left + 12;
+const tipY = ev.clientY - wrapRect.top + 12;
+```
 
-CSS transforms (canvas scaling) amplify the mismatch, which is why the offset grows proportionally with zoom.
+However, the canvas lives inside a `TOPO_STAGE_SCALE = 2` oversized container with CSS transforms for zoom (`_topoZoom`) and pan (`_topoPanX`, `_topoPanY`). These transforms create a mismatch between `getBoundingClientRect()` (which returns the transformed/visible rect) and the coordinate space that `position: absolute` uses for `left`/`top`.
+
+Each level of CSS transform (stage scale + user zoom + pan offset) multiplies the positioning error. This is why the offset is proportional to zoom level.
+
+The groove tooltips (`#groove-tooltip`) have the same `position: absolute` + `clientX/clientY` pattern but may or may not exhibit the bug depending on whether their containers are also transformed.
 
 ## Affected Locations
-All tooltip positioning in index.html uses the same pattern. Search for:
-```
-tooltip.style.left = (e.clientX + 12) + 'px';
-tooltip.style.top = (e.clientY - 10) + 'px';
-```
-Known instances (line numbers approximate):
-- Groove/Record Player crystal zone hover (~line 19524)
-- Chem-bar segment hover (~line 17758)
-- UV-bar segment hover (~line 17806)
-- Bar-graph zone hover (~line 17863)
-- Detail canvas zone hover (~line 19425)
+1. **Topo tooltip** (Simulation/Creative mode) — `.topo-tooltip` / `#topo-tooltip`
+   - Positioned at ~line 20806 and ~line 20741 in index.html
+   - Container has CSS transforms from TOPO_STAGE_SCALE + _topoZoom + pan offsets
+
+2. **Groove tooltips** (Record Player mode) — `.groove-tooltip` / `#groove-tooltip`
+   - Positioned at ~lines 17758, 17806, 17863, 19425, 19524
+   - May or may not be affected (depends on container transforms)
+   - User has not confirmed whether this mode has the bug
 
 ## Fix
-**Option A (recommended):** Change `.groove-tooltip` CSS from `position: absolute` to `position: fixed`. `fixed` positions relative to the viewport, which matches `clientX`/`clientY`. This is a one-line CSS change and fixes all instances at once.
+**Recommended: Change both tooltip classes to `position: fixed`.**
 
-**Option B:** Keep `position: absolute` but subtract the container offset:
+`position: fixed` positions relative to the viewport, which matches `clientX`/`clientY` regardless of ancestor transforms.
+
+For the topo tooltip, simplify the positioning to:
 ```javascript
-const containerRect = tooltip.offsetParent.getBoundingClientRect();
-tooltip.style.left = (e.clientX - containerRect.left + 12) + 'px';
-tooltip.style.top = (e.clientY - containerRect.top - 10) + 'px';
+tip.style.left = `${Math.min(window.innerWidth - tip.offsetWidth - 6, ev.clientX + 12)}px`;
+tip.style.top = `${Math.min(window.innerHeight - 40, ev.clientY - 10)}px`;
 ```
-This would need to be applied at every tooltip positioning call site.
 
-Option A is cleaner — one CSS change, zero JS changes, fixes every tooltip consistently.
+For the groove tooltips, same simplification applies.
+
+CSS changes needed:
+```css
+.topo-tooltip { position: fixed; }   /* was absolute */
+.groove-tooltip { position: fixed; }  /* was absolute */
+```
 
 ## Verification
-After fix: hover over crystals at various zoom levels and screen positions. Tooltip should appear ~12px right and ~10px above the cursor regardless of scale or where the canvas is on screen.
+- Hover over crystals in Simulation mode at default zoom → tooltip near cursor
+- Zoom in (multiple levels) → tooltip stays near cursor
+- Zoom out → tooltip stays near cursor
+- Pan the vug around → tooltip stays near cursor
+- Check Record Player mode → tooltip near cursor there too
+- Edge cases: tooltip near screen edges shouldn't clip off-screen
