@@ -44,7 +44,7 @@
 // =============================================================
 {
   "$schema_version": "1.0.0",
-  "$last_updated": "2026-04-30 (Phase 1: cooling/pulse/mvt/porphyry extracted from procedural code)",
+  "$last_updated": "2026-04-30 (Phase 2 complete: all 9 scenarios migrated)",
   "scenarios": {
 
     "cooling": {
@@ -348,6 +348,690 @@
         "Seo et al. 2012 — Mo pulse timing in porphyry systems",
         "Heinrich 2007 — porphyry fluid chemistry compendium",
         "Kouzmanov & Pokrovski 2012 — As activity in epithermal Cu systems"
+      ]
+    },
+
+    "marble_contact_metamorphism": {
+      "anchor": "Mogok Stone Tract, Mandalay Region, Burma — type locality for marble-hosted ruby + 2000+-year source of 'pigeon's blood' rubies",
+      "description": "Marble-hosted contact metamorphic vug — Al-rich, SiO2-undersaturated skarn fluid drives corundum-family (ruby/sapphire) paragenesis.",
+      "duration_steps": 180,
+      "notes": [
+        "Anchored to the Mogok Stone Tract: dolomitic marble of the Mogok Metamorphic Belt was regionally metamorphosed during the Himalayan orogeny (~30 Ma) to amphibolite-to-granulite grade, then intruded by leucogranite dykes at 17-22 Ma that drove contact metamorphic ruby/sapphire/spinel crystallization in skarn envelopes.",
+        "Chemistry signature: SiO2 undersaturation (the defining corundum-family constraint). Al and Ca are high, SiO2 is low — opposite of every other scenario in the sim. When SiO2 is scarce, Al3+ cannot form feldspar/mica/Al2SiO5 polymorphs and instead crystallizes as pure corundum; with Cr trace from adjacent ultramafic country rock, ruby forms; with Fe+Ti, blue sapphire; with Fe alone, yellow sapphire.",
+        "Thermal regime: 500 → 700 → 500 → 350°C over 180 steps. Phase 1 (initial warmup): contact metamorphic pulse approaches; marble starts to fluid-saturate. Phase 2 (700°C peak, step 20): corundum family nucleates; Cr partitions to ruby, Fe+Ti to blue sapphire. Phase 3 (retrograde cooling, step 60, 700→500°C): main growth window; fluid migrates along skarn bleaching front. Phase 4 (fracture seal, step 150): system closes.",
+        "Wall composition is 'limestone' as a proxy for dolomitic marble — sim currently models limestone + pegmatite + basalt; marble is the metamorphosed limestone end-member, closest fit available."
+      ],
+      "initial": {
+        // T=500°C: initial warmup phase before peak. Pressure 3.0 kbar
+        // = contact-metamorphic amphibolite-to-granulite grade.
+        "temperature_C": 500.0,
+        "pressure_kbar": 3.0,
+        "fluid": {
+          // Al=50, SiO2=20: corundum family gates on SiO2 < 50 (upper
+          // bound — novel in the sim) and Al >= 15. With SiO2 = 20 well
+          // below threshold and Al = 50 well above, all three corundum
+          // species have room to nucleate competing for Al supply.
+          "Al": 50,
+          "SiO2": 20,
+          // Ca high — dolomitic marble host dissolving into fluid.
+          // Calcite stable in solid form at 700°C (decomposes above 840°C),
+          // doesn't nucleate from fluid at this Eh.
+          "Ca": 800,
+          "CO3": 50,  // modest; most carbonate locked in marble wall
+          // Mg tracks dolomite host — solid in wall, minor in fluid.
+          "Mg": 120,
+          // Chromophore traces for ruby/sapphire dispatch:
+          "Cr": 3,    // ruby trigger (threshold 2 ppm)
+          "Fe": 8,    // sapphire-family Fe (Fe+Ti → blue; Fe alone ≥20 → yellow)
+          "Ti": 1,    // blue sapphire (Fe+Ti intervalence charge transfer)
+          "V": 0.5,   // not above sapphire-violet gate; included for completeness
+          // Minor trace species typical of skarn contact fluids:
+          "Mn": 0.5,  // pink sapphire at high enough concentration
+          "Na": 20,
+          "K": 8,
+          "B": 0,     // marble-hosted — no pegmatite boron contribution
+          "F": 3,     // trace F from phlogopite hydrolysis
+          // Alkaline pH from marble buffering.
+          "pH": 8.0,
+          "salinity": 2.0,  // low-salinity metamorphic fluid
+          "O2": 0.3   // moderate — amphibolite facies not strongly reducing
+        },
+        "wall": {
+          "composition": "limestone",
+          "thickness_mm": 1200.0,
+          "vug_diameter_mm": 40.0,
+          "wall_Fe_ppm": 200.0,  // marble is Fe-poor — strong ruby Cr fluorescence (no Fe to quench)
+          "wall_Mn_ppm": 50.0,
+          "wall_Mg_ppm": 15000.0,  // dolomite-grade Mg content
+          "primary_bubbles": 3,
+          "secondary_bubbles": 6,
+          "shape_seed": 11
+        }
+      },
+      "events": [
+        { "step": 20,  "type": "marble_peak_metamorphism", "name": "Peak Metamorphism", "description": "Leucogranite intrusion at contact" },
+        { "step": 60,  "type": "marble_retrograde_cooling", "name": "Retrograde Cooling", "description": "Slow cooling, main ruby growth window" },
+        { "step": 150, "type": "marble_fracture_seal", "name": "Fracture Seal", "description": "System closes" }
+      ],
+      "sources": [
+        "Garnier et al. 2008 (Ore Geology Reviews 34:169-191) — Marble-hosted ruby deposits from Central and Southeast Asia",
+        "Peretti et al. 2018 (Gems & Gemology special issue) — Update on corundum and its gem varieties",
+        "Searle et al. 2007 (Journal of Geology 115:1-23) — Tectonic evolution of the Mogok metamorphic belt, Burma (Myanmar)"
+      ]
+    },
+
+    "reactive_wall": {
+      "anchor": "Sweetwater Mine (Reynolds County, MO), Viburnum Trend Pb-Zn district. Host: Cambrian Bonneterre Formation dolomitic limestone.",
+      "description": "Acid-into-carbonate paragenesis — repeated acid pulses dissolve the limestone wall, then pH recovery drives supersaturation and growth bursts. Sphalerite-galena-marcasite ± barite, dolomite-calcite gangue.",
+      "duration_steps": 120,
+      "notes": [
+        "Anchor: Sweetwater Mine, Viburnum Trend MVT district (high-Ba endmember vs Tri-State, distinguished by Stoffell et al. 2008 LA-ICP-MS).",
+        "Mechanic: acid entering a carbonate vug doesn't just dissolve crystals — it dissolves the WALL. The wall neutralizes the acid AND releases Ca2+/CO3 2- back into solution. When pH recovers, that dissolved carbonate supersaturates and precipitates as rapid growth bands on existing crystals. The acid is both destroyer and creator. The vug enlarges as the crystals grow.",
+        "Repeated acid pulses (steps 15/40/70) model the Viburnum dissolution → supersaturation → growth burst cycle. Final fracture seal at step 90 closes the system.",
+        "Chemistry-audit gap-fill pass (Apr 2026): Na, K, Cl (NaCl-CaCl2 brine baseline), Ag (Viburnum galena, less argentiferous than Tri-State), Sr (basinal-brine tracer + minor celestine documented in Viburnum). v5 gap-fill: O2=0.25 to allow barite + galena coexistence per the MVT-Eh window."
+      ],
+      "initial": {
+        "temperature_C": 140.0,
+        "pressure_kbar": 0.2,
+        "fluid": {
+          "SiO2": 50,
+          "Ca": 250,
+          "CO3": 200,
+          "Fe": 8,
+          "Mn": 5,
+          // Polymetallic limestone brine — galena travels with sphalerite,
+          // and Ba is classic (barite a common late-stage phase). Viburnum
+          // is the high-Ba MVT endmember per Stoffell et al. 2008.
+          "Zn": 80,
+          "Pb": 30,
+          "Ba": 25,
+          "S": 60,
+          "F": 8,
+          // Mg=100 → Mg/Ca ~0.4, above dolomite gate (0.3); calcite still
+          // wins by Mg-poisoning math (poisoning at 0.4 ratio is mild).
+          // Aragonite stays absent (its threshold is ~1.5).
+          "Mg": 100,
+          // Audit gap-fills (Apr 2026):
+          // Na=70, K=12: NaCl-CaCl2 basinal brine baseline. Viburnum brines
+          // per Sverjensky 1981 + Stoffell 2008 are 50-80,000 ppm Na raw,
+          // K/Na ~0.2. Sim-scale (slightly below Tri-State Na=80 to reflect
+          // Viburnum's somewhat lower Pb-Zn-Ag tenor / different basin source).
+          "Na": 70,
+          "K": 12,
+          // Cl=200: brine anion paired with Na+K. Free Cl enables Pb-Cl
+          // (pyromorphite-laurionite) chemistry where Pb is present.
+          "Cl": 200,
+          // Ag=3: Viburnum galena Ag (lower than Tri-State Ag=5 per Stoffell 2008).
+          "Ag": 3,
+          // Sr=12: basinal-brine tracer (Hanor 1994); minor celestine in Viburnum gangue.
+          "Sr": 12,
+          // v5 gap-fill: O2=0.25 (was 0.0). Same MVT-Eh rationale as Tri-State —
+          // mildly reducing brine where SO4 2- persists alongside H2S
+          // (barite + galena coexistence). Unlocks dormant Ba=25 + Sr=12 pools
+          // without disturbing the existing sulfide assemblage.
+          // Source: Sverjensky 1981; Anderson & Macqueen 1982.
+          "O2": 0.25,
+          "pH": 7.0,
+          "salinity": 18.0
+        },
+        "wall": {
+          "composition": "limestone",
+          "thickness_mm": 500.0,
+          "vug_diameter_mm": 40.0,
+          "wall_Fe_ppm": 3000.0,   // iron-bearing limestone
+          "wall_Mn_ppm": 800.0,    // Mn in the host rock
+          // Aggressive acid dissolution — 3 primary + 10 secondary bubbles
+          // give the deeply lobed cavity of a reactive front.
+          "primary_bubbles": 3,
+          "secondary_bubbles": 10,
+          "shape_seed": 5
+        }
+      },
+      "events": [
+        { "step": 15, "type": "reactive_wall_acid_pulse_1", "name": "First Acid Pulse",  "description": "CO2-saturated brine" },
+        { "step": 40, "type": "reactive_wall_acid_pulse_2", "name": "Second Acid Pulse", "description": "Stronger metal-bearing brine" },
+        { "step": 70, "type": "reactive_wall_acid_pulse_3", "name": "Third Acid Pulse",  "description": "Weakening system" },
+        { "step": 90, "type": "reactive_wall_seal",         "name": "Fracture Seal",     "description": "Flow stops" }
+      ],
+      "sources": [
+        "Sverjensky 1981 (Econ. Geol. 76) — Viburnum Trend brine geochemistry",
+        "Stoffell et al. 2008 — LA-ICP-MS fluid-inclusion brine analyses (Tri-State vs Viburnum distinction)",
+        "Leach et al. 2010 — MVT genesis review",
+        "Anderson & Macqueen 1982 — MVT mineralogy review",
+        "Hanor 1994 — basinal-brine compendium (Sr/Ba tracers)"
+      ]
+    },
+
+    "sabkha_dolomitization": {
+      "anchor": "Coorong lagoon system (South Australia) and Persian Gulf sabkhas. The classic natural laboratory for direct-from-solution dolomite formation per Kim, Sun et al. 2023 (Science 382:915).",
+      "description": "Cycling-brine sabkha producing ORDERED dolomite at ambient T via the Kim 2023 mechanism. Twelve flood/evap pulses over 240 steps drive Ω across the dolomite saturation boundary repeatedly — the cyclic Ω modulation that's needed to produce ordered dolomite at surface T.",
+      "duration_steps": 260,
+      "notes": [
+        "Surface T (~25°C), high-Mg evaporative brine, seasonal flood-evaporate cycles. Per Kim, Sun et al. (2023, Science 382:915), exactly this kind of cyclic Ω modulation is what's needed to produce ordered dolomite at ambient T.",
+        "The acid-pulse-and-relax style of reactive_wall produces only DISORDERED HMC because the dissolution events are too aggressive (full dissolution rather than gentle surface etch). Sabkha tidal pumping is the right kind of cycling — gentle, frequent, repeated.",
+        "Twelve flood/evap pairs over 240 steps produce ~12 dissolution-precipitation cycles. With N0=10 in the f_ord formula, this reaches ORDERED (f_ord > 0.7) by mid-scenario. The result: true ordered dolomite, the geological prize the Kim 2023 paper made accessible.",
+        "Schema note: the original Python/JS implementations used factory functions `make_flood(idx)` and `make_evap(idx)` to bake the cycle index into each handler's narrator string. Per the Phase 2 migration, we use one flood handler and one evap handler reused across all 12 cycles (the supergene_acidification precedent — same handler, multiple Event entries pointing to it). Cycle number is preserved via the event `name` field ('Tidal Flood #1', 'Evaporation #1', etc.) instead of an in-handler f-string."
+      ],
+      "initial": {
+        // Coorong surface T — ambient. The Kim mechanism's whole point is
+        // that ordered dolomite at this T is achievable with cycling.
+        "temperature_C": 25.0,
+        "pressure_kbar": 0.05,    // near-surface lagoonal vug
+        "fluid": {
+          // Marine evaporative brine baseline (~3x seawater concentration):
+          // Mg high, Ca moderate, Mg/Ca ~3.5 (above 1, dolomite-favoring),
+          // CO3 modest, alkaline pH from photosynthetic mats. Na+Cl carry
+          // the salinity but don't drive minerals here.
+          "SiO2": 20,
+          "Ca": 400,
+          "CO3": 300,
+          "Fe": 5,
+          "Mn": 2,
+          "Mg": 1400,
+          "Na": 10500,
+          "K": 380,
+          "S": 2700,
+          "F": 2,
+          "Cl": 18000,
+          // Sr is the bonus tracer — marine brines carry ~8 ppm Sr,
+          // gets concentrated by evaporation. Aragonite scavenges it.
+          "Sr": 20,
+          "O2": 1.5,
+          "pH": 8.3,
+          "salinity": 120.0
+        },
+        "wall": {
+          "composition": "limestone",   // Coorong lagoon floor is bioclastic carbonate
+          "thickness_mm": 300.0,
+          "vug_diameter_mm": 30.0,
+          "wall_Fe_ppm": 200.0,
+          "wall_Mn_ppm": 50.0,
+          "primary_bubbles": 2,
+          "secondary_bubbles": 4,
+          "shape_seed": 24             // 24 hours = one tidal cycle
+        }
+      },
+      "events": [
+        // Twelve flood/evap pairs (one Kim cycle per pair) over 240 steps,
+        // followed by a final seal event at step 245. flood at steps
+        // 10/30/50/.../230, evap at 20/40/60/.../240. Single flood +
+        // single evap handler reused per cycle.
+        { "step":  10, "type": "sabkha_flood", "name": "Tidal Flood #1",  "description": "Seawater dilution" },
+        { "step":  20, "type": "sabkha_evap",  "name": "Evaporation #1",  "description": "Brine reconcentration" },
+        { "step":  30, "type": "sabkha_flood", "name": "Tidal Flood #2",  "description": "Seawater dilution" },
+        { "step":  40, "type": "sabkha_evap",  "name": "Evaporation #2",  "description": "Brine reconcentration" },
+        { "step":  50, "type": "sabkha_flood", "name": "Tidal Flood #3",  "description": "Seawater dilution" },
+        { "step":  60, "type": "sabkha_evap",  "name": "Evaporation #3",  "description": "Brine reconcentration" },
+        { "step":  70, "type": "sabkha_flood", "name": "Tidal Flood #4",  "description": "Seawater dilution" },
+        { "step":  80, "type": "sabkha_evap",  "name": "Evaporation #4",  "description": "Brine reconcentration" },
+        { "step":  90, "type": "sabkha_flood", "name": "Tidal Flood #5",  "description": "Seawater dilution" },
+        { "step": 100, "type": "sabkha_evap",  "name": "Evaporation #5",  "description": "Brine reconcentration" },
+        { "step": 110, "type": "sabkha_flood", "name": "Tidal Flood #6",  "description": "Seawater dilution" },
+        { "step": 120, "type": "sabkha_evap",  "name": "Evaporation #6",  "description": "Brine reconcentration" },
+        { "step": 130, "type": "sabkha_flood", "name": "Tidal Flood #7",  "description": "Seawater dilution" },
+        { "step": 140, "type": "sabkha_evap",  "name": "Evaporation #7",  "description": "Brine reconcentration" },
+        { "step": 150, "type": "sabkha_flood", "name": "Tidal Flood #8",  "description": "Seawater dilution" },
+        { "step": 160, "type": "sabkha_evap",  "name": "Evaporation #8",  "description": "Brine reconcentration" },
+        { "step": 170, "type": "sabkha_flood", "name": "Tidal Flood #9",  "description": "Seawater dilution" },
+        { "step": 180, "type": "sabkha_evap",  "name": "Evaporation #9",  "description": "Brine reconcentration" },
+        { "step": 190, "type": "sabkha_flood", "name": "Tidal Flood #10", "description": "Seawater dilution" },
+        { "step": 200, "type": "sabkha_evap",  "name": "Evaporation #10", "description": "Brine reconcentration" },
+        { "step": 210, "type": "sabkha_flood", "name": "Tidal Flood #11", "description": "Seawater dilution" },
+        { "step": 220, "type": "sabkha_evap",  "name": "Evaporation #11", "description": "Brine reconcentration" },
+        { "step": 230, "type": "sabkha_flood", "name": "Tidal Flood #12", "description": "Seawater dilution" },
+        { "step": 240, "type": "sabkha_evap",  "name": "Evaporation #12", "description": "Brine reconcentration" },
+        { "step": 245, "type": "sabkha_final_seal", "name": "Final Seal", "description": "Sabkha matures, fluids stop cycling" }
+      ],
+      "sources": [
+        "Kim, Sun et al. 2023 (Science 382:915) — cyclic Ω modulation produces ordered dolomite at ambient T",
+        "Coorong lagoon (South Australia) + Persian Gulf sabkhas — natural laboratory anchors"
+      ]
+    },
+
+    "bisbee": {
+      "anchor": "Bisbee, Arizona — Warren Mining District, Cochise County. Laramide quartz-monzonite porphyry intruding Paleozoic Escabrosa Limestone + Abrigo Formation. Major Cu-Ag-Au district (~8 Mt Cu, ~25 Moz Ag, ~3 Moz Au historically).",
+      "description": "Classic copper porphyry with world-class oxidation zone. Complete Cu paragenesis from primary sulfides through supergene enrichment to the cyan-blue chrysocolla finale. Centerpiece mechanic: azurite ↔ malachite ↔ chrysocolla cascade tracking pCO2 evolution.",
+      "duration_steps": 340,
+      "notes": [
+        "Anchor: Bisbee, Arizona — Warren Mining District, Cochise County. Host: combo Laramide quartz-monzonite porphyry intruded into Paleozoic Escabrosa Limestone + Abrigo Formation. In the sim this is represented as a limestone wall (the pH buffer, the CO3 source for azurite) with scenario events that inject dissolved SiO2 from the surrounding silicate matrix weathering — the supply path for late chrysocolla.",
+        "Centerpiece mechanic: the azurite → malachite → chrysocolla cascade. Azurite dominates at high pCO2 (event 6, CO3 >= 120 ppm). A pCO2-drop event (event 7) dissolves azurite and fires malachite. A silica-seep event (event 8) dissolves malachite-without-silica and fires chrysocolla pseudomorphs on the remaining azurite crystals. Three carbonate/silicate phases recording three different groundwater chemistries, each one freezing a different step of the Cochise County monsoon.",
+        "Chemistry-audit gap-fill pass (Apr 2026): Ag=40 (Bisbee was a major Ag producer ~25 Moz; argentiferous galena + tetrahedrite + argentite + minor native Ag per Graeme et al. 2019). Mg=50 (Escabrosa Limestone host dolomitic in places; brief-required non-zero baseline). P=5 (enables pyromorphite given Pb+Cl already populated). Sb=5 (tetrahedrite trace; completes the Sb-As-Bi greisen triplet). Au=3 (Bisbee ~3 Moz historically — Cu-Au porphyry; native gold + auriferous chalcocite per Graeme 2019).",
+        "Round 8c-1 additions (Apr 2026): Co=80, Ni=70 — Bisbee's deep primary sulfide assemblage includes minor Co/Ni-bearing sulfarsenide phases (cobaltite + nickeline + safflorite) per Graeme et al. 2019, citing Bryant 1968. Activates dormant Co/Ni pools for the new sulfarsenide engines and feeds the existing erythrite + annabergite supergene arsenates further down the cascade."
+      ],
+      "initial": {
+        // Primary porphyry stage — hot magmatic-hydrothermal brine.
+        // Graeme et al. 2019 fluid inclusion data: 320-450C, 0.5-1.5 kbar,
+        // hypersaline (35-55 wt% NaCl eq).
+        "temperature_C": 400.0,
+        "pressure_kbar": 1.0,
+        "fluid": {
+          // Cu 400 ppm — upper end of primary porphyry; the whole
+          // district budget. Concentrated in the sim relative to nature
+          // because we don't model the open-system leaching that strips
+          // Cu from 10 km^3 of rock into a small pocket.
+          "SiO2": 500,
+          "Ca": 60,
+          "CO3": 30,
+          "Fe": 200,
+          "Mn": 4,
+          "Cu": 400,
+          "S": 150,
+          "F": 6,
+          "Cl": 400,
+          "Pb": 15,
+          "K": 80,
+          "Na": 120,
+          "Al": 20,
+          // Trace — arsenic from arsenopyrite, bismuth greisen signature
+          // (Bisbee has documented bismuth enrichment).
+          "As": 8,
+          "Bi": 2,
+          // Audit gap-fills (Apr 2026):
+          "Ag": 40,    // Warren District ~25 Moz Ag [Graeme et al. 2019]
+          "Mg": 50,    // dolomitic Escabrosa baseline; brief-required non-zero
+          "P": 5,      // enables pyromorphite (Pb+Cl+P now all present)
+          "Sb": 5,     // tetrahedrite-tennantite sulfosalt trace
+          "Au": 3,     // ~3 Moz Au; supergene-preserved native gold + auriferous chalcocite
+          // Round 8c-1: minor Co/Ni-bearing sulfarsenides (cobaltite +
+          // nickeline + safflorite) documented at depth — activates
+          // cobaltite + nickeline + millerite engines and feeds erythrite +
+          // annabergite supergene cascade.
+          "Co": 80,
+          "Ni": 70,
+          // Very reducing primary — chalcopyrite/bornite-stable.
+          "O2": 0.05,
+          "pH": 5.0,
+          "salinity": 30.0
+        },
+        "wall": {
+          "composition": "limestone",
+          "thickness_mm": 500.0,
+          "vug_diameter_mm": 50.0,
+          "wall_Fe_ppm": 2500.0,
+          "wall_Mn_ppm": 400.0,
+          // Primary cavity dug by magmatic-hydrothermal replacement of
+          // limestone. Secondary alcoves from supergene overprint.
+          // 3+7 matches the supergene_oxidation profile.
+          "primary_bubbles": 3,
+          "secondary_bubbles": 7,
+          "shape_seed": 13
+        }
+      },
+      "events": [
+        { "step": 25,  "type": "bisbee_primary_cooling",     "name": "Primary Cooling",     "description": "Chalcopyrite + bornite lock in" },
+        { "step": 65,  "type": "bisbee_uplift_weathering",   "name": "Uplift + Weathering", "description": "Meteoric acid strips primary ore" },
+        { "step": 95,  "type": "bisbee_enrichment_blanket",  "name": "Enrichment Blanket",  "description": "Chalcocite replaces chalcopyrite" },
+        { "step": 120, "type": "bisbee_reducing_pulse",      "name": "Reducing Pulse",      "description": "Native copper fracture fillings" },
+        { "step": 145, "type": "bisbee_oxidation_zone",      "name": "Oxidation Zone",      "description": "Cuprite mantles native copper" },
+        { "step": 180, "type": "bisbee_azurite_peak",        "name": "Azurite Peak",        "description": "High-pCO2 monsoon — Bisbee Blue" },
+        { "step": 225, "type": "bisbee_co2_drop",            "name": "pCO2 Drop",           "description": "Azurite -> malachite conversion" },
+        { "step": 265, "type": "bisbee_silica_seep",         "name": "Silica Seep",         "description": "Chrysocolla crusts + pseudomorphs" },
+        { "step": 305, "type": "bisbee_final_drying",        "name": "Final Drying",        "description": "Fractures seal, system locks" }
+      ],
+      "sources": [
+        "Graeme, Graeme & Graeme 2019 — modern Bisbee monograph",
+        "Bryant 1968 — Warren District geology",
+        "Crane 1911 — early Bisbee geology",
+        "Vink 1986 — azurite ↔ malachite pCO2 thermodynamics",
+        "Mote et al. 2001 — supergene chrysocolla geochemistry"
+      ]
+    },
+
+    "supergene_oxidation": {
+      "anchor": "Tsumeb mine, Otavi Mountain Land, Namibia. 1st-stage gossan (uppermost supergene zone). One of the most mineralogically diverse deposits ever discovered (~280 species), type locality for germanium.",
+      "description": "Cold, oxygenated supergene weathering of a Pb-Zn-Cu sulfide pipe. Pb+Mo→wulfenite, Zn+CO3→smithsonite, Zn+As→adamite, Pb+As+Cl→mimetite, Fe→goethite, Ca+SO4→selenite, Cu+CO3→malachite. The 1st-stage gossan brings the high-Pb-As-Cl uppermost zone with mimetite, anglesite, cerussite, willemite, and Ge-bearing oxidation phases.",
+      "duration_steps": 200,
+      "notes": [
+        "Anchor: Tsumeb mine (Otavi Mountain Land, Namibia). Pipe-shaped Pb-Zn-Cu sulfide body in Neoproterozoic dolomite, with three distinct supergene oxidation zones developed during Mesozoic-Cenozoic uplift. Argentiferous (native Ag, proustite, pyrargyrite, argentiferous galena). References: Pinch & Wilson 1977 (canonical Tsumeb monograph), Lombaard et al. 1986 (geology), Melcher 2003 (Ge geochemistry).",
+        "Acid-window mechanic (steps 5-16): the supergene_acidification handler fires FOUR times (steps 5/8/12/16) to hold pH near 4 against the limestone wall's carbonate buffering. Without the repeated pulses, the buffer neutralizes pH back to 6+ within ~5 steps. The 15-step acid window is when scorodite + jarosite + alunite nucleate. ev_meteoric_flush at step 20 ends the acid phase.",
+        "Chemistry-audit gap-fill pass (Apr 2026): added Ag (Tsumeb's silver suite), Ge (the type-locality element), Sb (proustite-pyrargyrite + tetrahedrite enabling), Na/K (minor groundwater cation traces), Au=0.3 (sub-threshold trace, no nucleation). v5 gap-fills: Al=25 (alunite enabling per Hemley 1969 + Stoffregen 2000), W=20 (Round 8d-1, Tsumeb deep-zone scheelite + raspite + stolzite per Strunz 1959). Existing 8-event sequence preserved untouched."
+      ],
+      "initial": {
+        "temperature_C": 35.0,    // shallow water-table zone
+        "pressure_kbar": 0.05,    // near-surface
+        "fluid": {
+          // CO3 80 → 110 so azurite's high-pCO2 gate (CO3 >= 120 after
+          // meteoric flush adds 30) can be reached in a limestone-hosted
+          // supergene vug. Real azurite localities (Bisbee, Chessy, Tsumeb)
+          // all have limestone or dolomite wall rock.
+          "SiO2": 30,
+          "Ca": 120,
+          "CO3": 110,
+          "Fe": 40,
+          "Mn": 6,
+          "Mg": 5,
+          "Zn": 90,
+          "S": 50,
+          "F": 3,
+          // Cu 25 → 55: enough to feed chalcocite/bornite at supergene
+          // enrichment zones. Pb bumped 35 → 60 for anglesite/cerussite/
+          // pyromorphite saturation.
+          "Cu": 55,
+          "Pb": 60,
+          "Mo": 15,
+          "As": 12,
+          "Cl": 20,
+          // V trace — roll-front / red-bed signature. Low start; bumped by ev_v_bearing_seep.
+          "V": 1.5,
+          // P trace — meteoric water typically <1 ppm; pyromorphite waits for ev_phosphate_seep.
+          "P": 0.5,
+          // Audit gap-fills (Apr 2026):
+          "Ag": 8,    // argentiferous suite [Pinch & Wilson 1977]
+          "Ge": 5,    // type-locality element [Melcher 2003]
+          "Sb": 5,    // proustite/pyrargyrite/tetrahedrite enabling
+          "Na": 30,
+          "K": 10,
+          "Au": 0.3,  // sub-threshold trace; no native gold nucleation expected
+          // v5 gap-fills:
+          "Al": 25,   // alunite engine cap [Hemley 1969; Stoffregen 2000]
+          "W": 20,    // scheelite + lead-tungstate suite [Strunz 1959]
+          "O2": 1.8,
+          "pH": 6.8,
+          "salinity": 2.0
+        },
+        // Supergene oxidation front — 3 primary + 7 secondary bubbles model
+        // complex meteoric dissolution cavity formation.
+        "wall": {
+          "primary_bubbles": 3,
+          "secondary_bubbles": 7,
+          "shape_seed": 7
+        }
+      },
+      "events": [
+        // Acid phase fires the same handler 4x (steps 5/8/12/16) to maintain
+        // the acid window against the limestone wall's pH-buffering.
+        { "step": 5,   "type": "supergene_acidification",   "name": "Acid Phase",        "description": "Early sulfide oxidation drops pH" },
+        { "step": 8,   "type": "supergene_acidification",   "name": "Acid Continues",    "description": "Sulfide-oxidation acid persists" },
+        { "step": 12,  "type": "supergene_acidification",   "name": "Acid Continues",    "description": "Carbonate buffer overrun" },
+        { "step": 16,  "type": "supergene_acidification",   "name": "Acid Final Pulse",  "description": "Last sulfide-oxidation pulse" },
+        { "step": 20,  "type": "supergene_meteoric_flush",  "name": "Meteoric Flush",    "description": "Oxygenated rainwater recharges" },
+        { "step": 40,  "type": "supergene_pb_mo_pulse",     "name": "Pb+Mo Pulse",       "description": "Galena+molybdenite weathering" },
+        { "step": 55,  "type": "supergene_cu_enrichment",   "name": "Cu Enrichment",     "description": "Primary chalcopyrite upslope weathers" },
+        { "step": 70,  "type": "supergene_dry_spell",       "name": "Dry Spell",         "description": "Evaporation concentrates sulfate" },
+        { "step": 95,  "type": "supergene_as_rich_seep",    "name": "Arsenic Seep",      "description": "Zn/Pb arsenate saturation" },
+        { "step": 115, "type": "supergene_phosphate_seep",  "name": "Phosphate Seep",    "description": "Soil-zone PO4 enables pyromorphite" },
+        { "step": 130, "type": "supergene_v_bearing_seep",  "name": "V-bearing Seep",    "description": "Red-bed V leaches in, vanadinite fires" },
+        { "step": 160, "type": "supergene_fracture_seal",   "name": "Fracture Seal",     "description": "System closes" }
+      ],
+      "sources": [
+        "Pinch & Wilson 1977 — canonical Tsumeb monograph",
+        "Lombaard et al. 1986 — Tsumeb geology",
+        "Melcher 2003 — Tsumeb Ge geochemistry",
+        "Seo et al. 2012 — Pb+Mo simultaneous weathering for wulfenite formation",
+        "Hemley et al. 1969 — alunite stability + Al solubility under acid-sulfate conditions",
+        "Stoffregen et al. 2000 — alunite-jarosite paragenesis review",
+        "Strunz 1959 — Tsumeb deep oxidation zone scheelite + lead-tungstate suite (raspite + stolzite)"
+      ]
+    },
+
+    "gem_pegmatite": {
+      "anchor": "Cruzeiro mine, São José da Safira, Doce Valley, Minas Gerais (Variant A — Brasiliano-age miarolitic gem pegmatite, 700-450 Ma).",
+      "description": "Miarolitic cavity in a complex zoned pegmatite. The residual pocket where incompatible elements (Be, B, Li, F) accumulate beyond belief, then cross saturation in cascade — schorl → beryl → spodumene + elbaite → late topaz, with kaolinization of the microcline walls at the end.",
+      "duration_steps": 230,
+      "notes": [
+        "Cruzeiro is the type-locality for fine schorl-elbaite tourmaline + smoky quartz pockets, with documented beryl, spodumene, lepidolite, and accessory apatite. Brasiliano-age (Neoproterozoic) pegmatite field cutting Macaúbas Group meta-sediments. Morteani et al. 2002 covers fluid chemistry; Cassedanne (1991) and Proctor (1985) cover the Cruzeiro-specific paragenesis.",
+        "Thermal regime: 650 → 300°C over ~230 steps in three phases. Phase 1 (650-550°C): wall-zone crystallization (microcline, quartz, early schorl). Phase 2 (550-400°C): main pocket growth — beryl finally nucleates when Be crosses threshold; spodumene when Li crosses; schorl transitions to elbaite as Fe depletes and Li accumulates. Phase 3 (400-300°C): late hydrothermal — topaz if F survives, then kaolinization of microcline walls.",
+        "Saturation cascade mechanic: there is no explicit 'nucleate beryl now' command. Each mineral's supersaturation formula reads the current fluid, and the nucleation gates fire in order naturally as chemistry evolves — microcline first (K-feldspar = feldspar here), then the Be/Li/B gates cross as incompatible elements build up.",
+        "Audit gap-fills (Apr 2026): P=8 (pegmatite residual P; enables Cruzeiro accessory apatite per Cassedanne 1991). Mg=5 (brief-required non-zero baseline; pegmatite pocket fluids are Mg-poor since Mg partitions strongly into outer-shell biotite/chlorite during pegmatite differentiation)."
+      ],
+      "initial": {
+        "temperature_C": 650.0,
+        "pressure_kbar": 3.0,
+        "fluid": {
+          // Pegmatite-level silica saturation — far above quartz equilibrium
+          // at any T, so quartz is supersaturated throughout.
+          "SiO2": 8000,
+          "Ca": 30,
+          "CO3": 15,
+          "Fe": 50,
+          "Mn": 8,
+          // Al starts high enough that six competing silicate engines
+          // (feldspar, albite, quartz, tourmaline, beryl, spodumene) can all
+          // draw on it for the full scenario AND leave residual for topaz
+          // to nucleate in phase 3. 150 ppm is on the upper end of realistic
+          // pegmatite pocket fluid Al but within published ranges
+          // (London 2008, pegmatite fluid chemistry).
+          "Al": 150,
+          // Alkali feldspar chemistry — microcline first, then ev_albitization
+          // flips K -> Na.
+          "K": 80,
+          "Na": 40,
+          // Incompatible elements — these are the point of the scenario.
+          // All start above their respective minimum thresholds but below
+          // the nucleation σ threshold; they build (unused early) and then
+          // the cascade fires.
+          "Be": 25,    // beryl nucleation σ 1.8 — waits longest
+          "B": 35,     // tourmaline σ 1.3 — fires earliest once hot
+          "Li": 35,    // spodumene σ 1.5, also feeds elbaite
+          "F": 25,     // topaz σ 1.4 — fires late when T drops into window
+          // Color-element traces. Cr from hinted ultramafic contact;
+          // Mn for morganite/kunzite/rubellite; Cu for the Paraíba long-shot.
+          "Cr": 2.5,
+          "Cu": 0.3,
+          "V": 2.0,
+          "Ti": 0.8,
+          // Audit gap-fills (Apr 2026):
+          "P": 8,    // accessory apatite [Cassedanne 1991]
+          "Mg": 5,   // brief-required non-zero baseline
+          "O2": 0.1,
+          "pH": 6.8,
+          "salinity": 6.0
+        },
+        // Pegmatite country rock — silicate, not acid-reactive on sim
+        // timescales, so when pocket fluid turns mildly acidic in phase 3
+        // pH stays low (no carbonate buffering). That's what lets
+        // grow_feldspar's kaolinization branch fire on the microcline.
+        "wall": {
+          "composition": "pegmatite",
+          "thickness_mm": 500.0,
+          "vug_diameter_mm": 50.0,
+          "primary_bubbles": 4,
+          "secondary_bubbles": 5,
+          "shape_seed": 8
+        }
+      },
+      "events": [
+        { "step": 5,   "type": "gem_pegmatite_outer_shell",        "name": "Outer Shell",        "description": "Wall-zone microcline + quartz" },
+        { "step": 30,  "type": "gem_pegmatite_first_schorl",       "name": "Schorl Arrives",     "description": "B + Fe2+ supersaturation — first tourmaline" },
+        { "step": 60,  "type": "gem_pegmatite_albitization",       "name": "Albitization",       "description": "K-feldspar -> albite replacement cascade" },
+        { "step": 90,  "type": "gem_pegmatite_be_saturation",      "name": "Be Saturation",      "description": "Beryl finally nucleates — enormous crystals incoming" },
+        { "step": 130, "type": "gem_pegmatite_li_phase",           "name": "Li Phase",           "description": "Spodumene + elbaite territory" },
+        { "step": 160, "type": "gem_pegmatite_late_hydrothermal",  "name": "Late Hydrothermal",  "description": "Topaz window opens — F survivors fire" },
+        { "step": 190, "type": "gem_pegmatite_clay_softening",     "name": "Clay Softening",     "description": "Kaolinite replaces pocket walls" },
+        { "step": 215, "type": "gem_pegmatite_final",              "name": "Final Cooling",      "description": "System approaches 300C floor" }
+      ],
+      "sources": [
+        "Morteani et al. 2002 — fluid chemistry of Brazilian gem pegmatites",
+        "Cassedanne 1991 — Cruzeiro mine paragenesis",
+        "Proctor 1985 — Cruzeiro tourmaline + beryl mineralogy",
+        "London 2008 — pegmatite fluid Al partition (~150 ppm upper bound)"
+      ]
+    },
+
+    "ouro_preto": {
+      "anchor": "Ouro Preto Imperial Topaz veins, Minas Gerais, Brazil (Variant B per Morteani et al. 2002).",
+      "description": "Hydrothermal topaz vein in Precambrian phyllite + quartzite. Single clean cooling curve from 360°C to 50°C — the 'anti-flash-quench' of the gem-pegmatite scenarios. F-pulse gates topaz nucleation; Cr leach commits the imperial color.",
+      "duration_steps": 260,
+      "notes": [
+        "Hydrothermal veins cutting Precambrian phyllite and quartzite in the Ouro Preto district. Fluid inclusion data (Morteani et al. 2002) puts crystallization at ~360°C, 3.5 kbar from metamorphic brines derived from devolatilization of phyllite.",
+        "Single clean cooling curve — 360°C → 50°C — the anti-flash-quench of the gem-pegmatite scenarios. No thermal events, no pressure spikes. One exhalation from the granite cooling below.",
+        "The gate: topaz can't nucleate until fluorine accumulates past a saturation threshold. Early quartz grows alone. A mid-scenario metamorphic dehydration event (step 35) pumps F from the phyllite micas into the fluid, and the vein transitions to imperial topaz territory. The imperial color — golden-orange to pink — depends on Cr3+ dissolved out of nearby ultramafic bodies; without chromium the topaz is colorless or pale blue.",
+        "Audit gap-fills (Apr 2026): Na=60, K=40 (phyllite muscovite/albite breakdown per Morteani 2002). Mg=15 (phyllite chlorite/biotite, brief-required non-zero baseline; conservative since host is quartzite + phyllite, not mafic)."
+      ],
+      "initial": {
+        "temperature_C": 360.0,
+        "pressure_kbar": 3.5,
+        "fluid": {
+          // Quartz-saturated metamorphic brine from devolatilizing phyllite.
+          // SiO2 1200 ppm is enough to supersaturate quartz at 360C
+          // (silica_equilibrium at 360C ~1050 ppm) — quartz lines the vein
+          // walls first, as per real Ouro Preto paragenesis.
+          "SiO2": 1200,
+          "Ca": 40,
+          "CO3": 20,
+          "Fe": 6,
+          "Mn": 2,
+          "Al": 15,
+          // Starts below F-threshold (20 ppm) — topaz waits for the pulse.
+          "F": 12,
+          // Trace Cr from nearby ultramafic contact. Starts sub-threshold;
+          // ev_cr_leach bumps it into the imperial-color window (3-8 ppm).
+          // Random seeds can push it past 8 (pink imperial) if the Cr leach
+          // lands on an already-elevated baseline.
+          "Cr": 0.5,
+          "Ti": 0.6,
+          // Audit gap-fills:
+          "Na": 60,
+          "K": 40,
+          "Mg": 15,
+          "O2": 0.3,
+          "pH": 6.5,
+          "salinity": 3.0
+        },
+        // Ouro Preto topaz vein — 2 primary + 4 secondary bubbles;
+        // hydrothermal vein in quartzite reads as a small cohesive pocket.
+        "wall": {
+          "primary_bubbles": 2,
+          "secondary_bubbles": 4,
+          "shape_seed": 9
+        }
+      },
+      "events": [
+        { "step": 5,   "type": "ouro_preto_vein_opening",      "name": "Vein Opening",       "description": "Fracture propagates, fresh brine" },
+        { "step": 35,  "type": "ouro_preto_f_pulse",           "name": "F-Pulse",            "description": "Phyllite dehydration — F crosses saturation" },
+        { "step": 55,  "type": "ouro_preto_cr_leach",          "name": "Cr Leach",           "description": "Ultramafic dike contributes chromium" },
+        { "step": 90,  "type": "ouro_preto_steady_cooling",    "name": "Steady Cooling",     "description": "Main topaz growth phase" },
+        { "step": 150, "type": "ouro_preto_late_hydrothermal", "name": "Late Hydrothermal",  "description": "Kaolinite softening, F depleted" },
+        { "step": 200, "type": "ouro_preto_oxidation_stain",   "name": "Oxidation Stain",    "description": "Goethite staining, surface water" },
+        { "step": 240, "type": "ouro_preto_final_cooling",     "name": "Final Cooling",      "description": "System approaches ambient" }
+      ],
+      "sources": [
+        "Morteani et al. 2002 — fluid inclusion microthermometry of Ouro Preto Imperial Topaz veins"
+      ]
+    },
+
+    "deccan_zeolite": {
+      "anchor": "Deccan Traps zeolite vesicle (Stage III, ~21-58 Ma post-eruption). Nashik 'bloody apophyllite' is the type expression. Per Ottens et al. 2019.",
+      "description": "Patient zeolite-stage paragenesis in cooled basalt vesicles. Stage I silica veneer + Stage II zeolite blades + Stage III alkaline K-Ca-Si-F pulse builds pseudo-cubic apophyllite around hematite-needle phantoms.",
+      "duration_steps": 200,
+      "notes": [
+        "Per Ottens et al. 2019, the Deccan basalt vesicles fill in stages over tens of millions of years. Stage I (early): silica veneers, chalcedony coating. Stage II: zeolite blades (stilbite, scolecite, heulandite) and early calcite. Stage III: the apophyllite stage — alkaline K-Ca-Si-F fluid percolates through cooled basalt vesicles and crystallizes pseudo-cubic apophyllite blocks, sometimes carrying hematite-needle phantoms (the 'bloody apophyllite' of Nashik).",
+        "Compared to the metamorphic / hydrothermal scenarios, this is gentle: no acid pulses, no dramatic T excursions. The story is patient crystallization in alkaline groundwater over geologic time.",
+        "Audit gap-fill (Apr 2026): Sr=2 — Deccan zeolites (heulandite, stilbite, mesolite) carry Sr substituting for Ca, sometimes 100s of ppm in the mineral. Sim-scale 2 ppm in the parent fluid documents the source. Brief-required non-zero Mg already covered by Mg=8."
+      ],
+      "initial": {
+        "temperature_C": 250.0,    // hot Stage I post-eruption
+        "pressure_kbar": 0.05,     // vesicle in basalt — atmospheric-ish
+        "fluid": {
+          // Alkaline silica-rich groundwater leaching the basalt:
+          // high SiO2 from glass + plagioclase weathering, low K and F
+          // initially — those climb in Stage III when alkali-rich
+          // groundwater finally percolates through, gating apophyllite
+          // behind that explicit pulse so it doesn't preempt hematite.
+          // Iron is already abundant from basalt groundmass leaching;
+          // combined with high O2 it lets Stage I deposit hematite
+          // needles before Stage III brings apophyllite.
+          "SiO2": 900,
+          "Ca": 180,
+          "CO3": 80,
+          "Fe": 180,
+          "Mn": 4,
+          "Mg": 8,
+          "Al": 15,
+          "K": 2,
+          "Na": 40,
+          "F": 1,
+          // Audit gap-fill: zeolites carry Sr substituting for Ca.
+          "Sr": 2,
+          "O2": 1.5,
+          "pH": 8.2,
+          "salinity": 2.0
+        },
+        // Vesicle in basalt — single primary cavity with minor
+        // post-eruption coalescence. Smooth, sub-spherical.
+        "wall": {
+          "composition": "basalt",
+          "thickness_mm": 200.0,
+          "vug_diameter_mm": 50.0,
+          "wall_Fe_ppm": 8000.0,    // iron-rich basalt host
+          "wall_Mn_ppm": 400.0,
+          "primary_bubbles": 2,
+          "secondary_bubbles": 3,
+          "shape_seed": 21          // Deccan eruption ~66 Ma
+        }
+      },
+      "events": [
+        { "step": 20,  "type": "deccan_zeolite_silica_veneer",         "name": "Silica Veneer",          "description": "Stage I early chalcedony coating" },
+        { "step": 35,  "type": "deccan_zeolite_hematite_pulse",        "name": "Hematite Pulse",         "description": "Iron seeds the vesicle wall — pre-zeolite needle deposition" },
+        { "step": 70,  "type": "deccan_zeolite_stage_ii",              "name": "Zeolite Stage II",       "description": "Stilbite + heulandite + calcite blades" },
+        { "step": 110, "type": "deccan_zeolite_apophyllite_stage_iii", "name": "Apophyllite Stage III", "description": "Alkaline K-Ca-Si-F pulse — apophyllite grows around the hematite needles, producing the 'bloody apophyllite' phantom band" },
+        { "step": 160, "type": "deccan_zeolite_late_cooling",          "name": "Late Cooling",           "description": "System cools toward ambient" }
+      ],
+      "sources": [
+        "Ottens et al. 2019 — Deccan zeolite paragenesis + Stage III timing (21-58 Ma)",
+        "Pinch & Wilson 1977 — Nashik 'bloody apophyllite' phantom inclusions"
+      ]
+    },
+
+    "radioactive_pegmatite": {
+      "anchor": "(generic high-T alkali-granite pocket — not anchored to a specific locality)",
+      "description": "High-T pegmatitic fluid + U + Pb. Grows uraninite, smoky quartz (darkened by radiation), feldspar/albite, and late-stage galena from radiogenic Pb.",
+      "duration_steps": 120,
+      "notes": [
+        "Generic testing scenario — not anchored to a real locality (per the user's clarification on the audit brief). Pegmatitic fluids are silica-saturated melts with abundant K + Na + Al + U.",
+        "Mechanic: 4-event lifecycle. Crystallization pulse (step 20): main quartz + uraninite growth. Deep time (step 50): radiation slowly transmutes U → Pb, darkens nearby quartz. Oxidizing meteoric water (step 80): late-stage fracture flow brings O2; sulfides destabilize but uraninite endures. Final cooling (step 100): system approaches ambient, galena precipitates from the radiogenic Pb.",
+        "Audit gap-fill (Apr 2026): Mg=5 — brief-required non-zero Mg baseline. Pegmatite pocket fluids are Mg-poor (Mg partitions into outer-shell biotite/chlorite during pegmatite differentiation), matches the gem_pegmatite scenario's Mg=5 abstraction."
+      ],
+      "initial": {
+        // T=600C, P=2.0 kbar: pegmatite pocket conditions before
+        // residual-fluid differentiation pulse drops it to 450C.
+        "temperature_C": 600.0,
+        "pressure_kbar": 2.0,
+        "fluid": {
+          // Pegmatitic fluids are silica-saturated melts — SiO2 must
+          // be well above equilibrium (eq at 600C ~6000 ppm in our
+          // model). Real pegmatites have extreme silica activity.
+          "SiO2": 12000,
+          "Ca": 50,
+          "CO3": 20,
+          "Fe": 60,
+          "Mn": 8,
+          "S": 40,
+          "F": 25,
+          "U": 150,   // primary uraninite source
+          "Pb": 30,   // radiogenic Pb seed; grows over event timeline
+          "K": 80,
+          "Na": 50,
+          "Al": 30,
+          // Classic pegmatite-defining trace indicators — no current
+          // mineral consumes them, but the narrator reads them as
+          // beryl/spodumene/tourmaline/apatite country.
+          "Be": 20,
+          "Li": 40,
+          "B": 25,
+          "P": 8,
+          // Audit gap-fill: brief-required non-zero Mg (pegmatite-pocket low value).
+          "Mg": 5,
+          "O2": 0.0,
+          "pH": 6.5,
+          "salinity": 8.0
+        },
+        // Pegmatite pocket — fracture-controlled cavity, n=2 "slot" profile
+        // (4 primaries + 5 secondaries).
+        "wall": {
+          "primary_bubbles": 4,
+          "secondary_bubbles": 5,
+          "shape_seed": 6
+        }
+      },
+      "events": [
+        { "step": 20,  "type": "radioactive_pegmatite_crystallization", "name": "Pegmatite Crystallization", "description": "Main crystallization pulse" },
+        { "step": 50,  "type": "radioactive_pegmatite_deep_time",       "name": "Deep Time",                  "description": "Eons pass — radiation accumulates" },
+        { "step": 80,  "type": "radioactive_pegmatite_oxidizing",       "name": "Oxidizing Fluids",           "description": "Late-stage meteoric water" },
+        { "step": 100, "type": "radioactive_pegmatite_final_cooling",   "name": "Final Cooling",              "description": "System approaches ambient" }
+      ],
+      "sources": [
+        "(generic testing scenario — no published source)"
       ]
     }
 

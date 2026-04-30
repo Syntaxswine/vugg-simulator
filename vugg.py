@@ -10609,6 +10609,779 @@ def event_fluid_mixing(conditions: VugConditions) -> str:
 
 
 # ============================================================
+# PHASE 2 EVENT HANDLERS — promoted from inline closures
+# ============================================================
+# These were originally `def ev_X(cond):` closures inside the legacy
+# scenario_* functions. Phase 2 of the data-as-truth refactor promotes
+# them to module-level so the parent scenario's initial state can move
+# to data/scenarios.json5 and reference these handlers by string id.
+# Names are scenario-prefixed (event_<scenario>_<verb>) to keep them
+# unambiguous even when other scenarios use similar verbs.
+
+# --- marble_contact_metamorphism (Mogok ruby/sapphire skarn) ---
+
+def event_marble_peak_metamorphism(conditions: VugConditions) -> str:
+    """Peak metamorphic pulse: leucogranite dyke injects hot fluid into
+    the marble contact, driving peak T and skarn nucleation."""
+    conditions.temperature = 700.0
+    conditions.fluid.Al += 15
+    conditions.fluid.SiO2 += 8
+    conditions.fluid.Cr += 1.5
+    conditions.flow_rate = 2.5
+    return ("Contact metamorphic peak: a leucogranite dyke 50 m away "
+            "pumps 700°C fluid into the marble interface. Skarn "
+            "alteration zones expand outward; corundum family crystals "
+            "begin to nucleate in the most Si-undersaturated patches. "
+            "Pigeon's blood ruby paragenesis underway.")
+
+
+def event_marble_retrograde_cooling(conditions: VugConditions) -> str:
+    """Retrograde cooling: slow cooling with fluid migration along
+    bleaching front. Main growth window for corundum family."""
+    conditions.temperature = 500.0
+    conditions.fluid.Al = max(conditions.fluid.Al * 0.9, 30)
+    conditions.flow_rate = 1.2
+    return ("Retrograde cooling begins. The leucogranite intrusion "
+            "stalls; the fluid slowly retreats through the skarn "
+            "envelope, depositing corundum at every fracture it "
+            "finds. T drops from 700 to 500°C. This is the main "
+            "ruby/sapphire growth window.")
+
+
+def event_marble_fracture_seal(conditions: VugConditions) -> str:
+    """Fracture seal — fluid egress halts; system closes."""
+    conditions.temperature = 350.0
+    conditions.flow_rate = 0.1
+    conditions.fluid.pH = min(conditions.fluid.pH + 0.3, 9.0)
+    return ("The feeding fracture seals. The Mogok pocket is now a "
+            "closed system. Whatever corundum family crystals are "
+            "still undersaturated will continue to consume the remaining "
+            "Al pool until equilibrium. Everything else is frozen.")
+
+
+# --- reactive_wall (Sweetwater Mine, Viburnum Trend MVT) ---
+
+def event_reactive_wall_acid_pulse_1(conditions: VugConditions) -> str:
+    """First acid pulse — CO₂-rich brine from depth."""
+    conditions.fluid.pH = 3.5
+    conditions.fluid.S += 40.0
+    conditions.fluid.Zn += 60.0
+    conditions.fluid.Fe += 15.0
+    conditions.flow_rate = 4.0
+    return ("CO₂-saturated brine surges into the vug. pH crashes to 3.5. "
+            "The limestone walls begin to fizz — carbonate dissolving on contact.")
+
+
+def event_reactive_wall_acid_pulse_2(conditions: VugConditions) -> str:
+    """Second acid pulse — stronger, with metals."""
+    conditions.fluid.pH = 3.0
+    conditions.fluid.S += 50.0
+    conditions.fluid.Zn += 80.0
+    conditions.fluid.Fe += 25.0
+    conditions.fluid.Mn += 10.0
+    conditions.flow_rate = 5.0
+    return ("Second acid pulse — stronger than the first. pH drops to 3.0. "
+            "Metal-bearing brine floods the vug. The walls are being eaten alive, "
+            "but every Ca²⁺ released is a future growth band waiting to happen.")
+
+
+def event_reactive_wall_acid_pulse_3(conditions: VugConditions) -> str:
+    """Third, weaker pulse — system running out of steam."""
+    conditions.fluid.pH = 4.0
+    conditions.fluid.S += 20.0
+    conditions.fluid.Zn += 30.0
+    conditions.flow_rate = 3.0
+    return ("Third acid pulse — weaker now. pH only drops to 4.0. "
+            "The fluid system is exhausting. But the wall still has carbonate to give.")
+
+
+def event_reactive_wall_seal(conditions: VugConditions) -> str:
+    """Fracture seals — fluid stops flowing, final equilibration."""
+    conditions.flow_rate = 0.1
+    conditions.fluid.pH += 0.5
+    conditions.fluid.pH = min(conditions.fluid.pH, 8.0)
+    return ("The feeding fracture seals. Flow stops. The vug becomes a closed system. "
+            "Whatever's dissolved will precipitate until equilibrium.")
+
+
+# --- radioactive_pegmatite (generic high-T alkali-granite pocket) ---
+
+def event_radioactive_pegmatite_crystallization(conditions: VugConditions) -> str:
+    """Pegmatite melt differentiates — main crystallization pulse."""
+    conditions.temperature = 450
+    conditions.fluid.SiO2 += 3000  # late-stage silica release from melt
+    return ("The pegmatite melt differentiates. Volatile-rich residual "
+            "fluid floods the pocket. Quartz begins to grow in earnest — "
+            "large, clear crystals claiming space. Uraninite cubes "
+            "nucleate where uranium concentration is highest.")
+
+
+def event_radioactive_pegmatite_deep_time(conditions: VugConditions) -> str:
+    """Deep time — radiation accumulates, U → Pb decay quietly transmutes."""
+    conditions.temperature = 300
+    return ("Deep time passes. The uraninite sits in its cradle of "
+            "cooling rock, silently emitting alpha particles. Each decay "
+            "transmutes one atom of uranium into lead. The quartz "
+            "growing nearby doesn't know it yet, but it's darkening.")
+
+
+def event_radioactive_pegmatite_oxidizing(conditions: VugConditions) -> str:
+    """Late-stage oxidizing meteoric water enters fractures."""
+    conditions.fluid.O2 += 0.8
+    conditions.temperature = 120
+    conditions.flow_rate = 1.5
+    return ("Oxidizing meteoric fluids seep through fractures. "
+            "The reducing environment shifts. Sulfides become unstable. "
+            "The uraninite endures — it has been enduring for millions of years.")
+
+
+def event_radioactive_pegmatite_final_cooling(conditions: VugConditions) -> str:
+    """System cools to near-ambient. Note: shares the verb 'final_cooling'
+    with ouro_preto's closure — the scenario prefix prevents collision."""
+    conditions.temperature = 50
+    conditions.flow_rate = 0.1
+    return ("The system cools to near-ambient. What remains is a "
+            "pegmatite pocket: black uraninite cubes, smoky quartz "
+            "darkened by radiation, and galena crystallized from the "
+            "lead that uranium became. Time wrote this assemblage. "
+            "Chemistry just held the pen.")
+
+
+# --- deccan_zeolite (Stage III Deccan Traps zeolite vesicle, ~21-58 Ma post-eruption) ---
+
+def event_deccan_zeolite_silica_veneer(conditions: VugConditions) -> str:
+    """Stage I — hot early silica + hematite needle deposition."""
+    conditions.fluid.SiO2 += 400
+    conditions.fluid.Fe += 50
+    conditions.fluid.O2 = 0.9
+    conditions.temperature = 200
+    return ("Stage I — hot post-eruption hydrothermal fluid coats the "
+            "vesicle wall with chalcedony. Silica activity peaks; iron "
+            "stripped from the basalt groundmass deposits as hematite "
+            "needles on the chalcedony rind. These needles will become "
+            "the seeds for the 'bloody apophyllite' phantom inclusions "
+            "in Stage III.")
+
+
+def event_deccan_zeolite_hematite_pulse(conditions: VugConditions) -> str:
+    """Iron pulse — produces the bloody apophyllite phantom zone."""
+    conditions.fluid.Fe += 80
+    conditions.fluid.O2 = 1.0
+    conditions.temperature = 175
+    return ("An iron-bearing pulse threads through the vesicle. Hematite "
+            "needles seed the surfaces of any growing apophyllite. When "
+            "the apophyllite resumes crystallization, those needles get "
+            "trapped in the next growth zone — the Nashik 'bloody "
+            "apophyllite' phantom band.")
+
+
+def event_deccan_zeolite_stage_ii(conditions: VugConditions) -> str:
+    """Stage II — zeolite blades + calcite."""
+    conditions.fluid.Ca += 80
+    conditions.fluid.K += 10
+    conditions.fluid.SiO2 += 200
+    conditions.fluid.pH = 8.5
+    conditions.temperature = 130
+    return ("Stage II — zeolite blades begin to fill the vesicle. "
+            "Stilbite, scolecite, heulandite (modeled here as the "
+            "zeolite paragenesis pH/Si signature). Calcite forms "
+            "as a late-stage carbonate. The vug is filling slowly.")
+
+
+def event_deccan_zeolite_apophyllite_stage_iii(conditions: VugConditions) -> str:
+    """Stage III — apophyllite-saturating alkaline K-Ca-Si-F pulse."""
+    conditions.fluid.K += 25
+    conditions.fluid.Ca += 50
+    conditions.fluid.SiO2 += 300
+    conditions.fluid.F += 4
+    conditions.fluid.pH = 8.8
+    conditions.temperature = 150
+    return ("Stage III — the apophyllite-bearing pulse arrives, alkaline "
+            "K-Ca-Si-F groundwater. Per Ottens et al. 2019 this is the "
+            "long-lasting late stage, 21–58 Ma after the original eruption. "
+            "The pseudo-cubic apophyllite tablets begin to crystallize on "
+            "the wall, on the chalcedony, on the hematite needles already "
+            "present — wherever a nucleation site offers itself.")
+
+
+def event_deccan_zeolite_late_cooling(conditions: VugConditions) -> str:
+    """Stage IV — late cooling, growth slows."""
+    conditions.temperature = 80
+    conditions.fluid.pH = 8.0
+    conditions.flow_rate = 0.1
+    return ("Late cooling. The vesicle fluid drops back toward ambient. "
+            "Apophyllite growth slows but doesn't stop entirely; the "
+            "remaining K-Ca-Si-F supersaturation keeps adding micron-thin "
+            "growth zones on the existing crystals. Time, not chemistry, "
+            "becomes the limiting reagent.")
+
+
+# --- ouro_preto (Imperial Topaz veins, Minas Gerais BR — Variant B per Morteani 2002) ---
+
+def event_ouro_preto_vein_opening(conditions: VugConditions) -> str:
+    """First fracture propagation — fresh hot fluid floods a narrow slot."""
+    conditions.fluid.SiO2 += 150  # fresh silica supply
+    conditions.temperature = 380
+    conditions.flow_rate = 1.5
+    return ("The fracture opens. Fluid pressure exceeded lithostatic "
+            "pressure and the vein propagated upward — narrow, barely "
+            "wider than your hand. Fresh hot brine floods in at 380°C "
+            "and quartz starts lining the walls. The fluorine in the "
+            "fluid is still below saturation; topaz holds its breath.")
+
+
+def event_ouro_preto_f_pulse(conditions: VugConditions) -> str:
+    """Metamorphic dehydration of phyllite micas releases fluorine.
+    Gate-opener: F jumps past topaz saturation threshold."""
+    conditions.fluid.F += 30.0
+    conditions.fluid.Al += 8.0
+    conditions.temperature = 365
+    conditions.flow_rate = 1.2
+    return ("A deeper wall of phyllite reaches the dehydration point. "
+            "Fluorine-bearing micas break down and release F⁻ into the "
+            f"vein fluid — F jumps to {conditions.fluid.F:.0f} ppm, past the "
+            "topaz saturation threshold. The chemistry has just tipped. "
+            "Imperial topaz is now thermodynamically inevitable.")
+
+
+def event_ouro_preto_cr_leach(conditions: VugConditions) -> str:
+    """Fluid pathway crosses an ultramafic dike — Cr leaches in."""
+    conditions.fluid.Cr += 4.0
+    conditions.temperature = 340
+    return ("The vein system intersects an ultramafic dike on its way "
+            f"up. Chromium leaches into the fluid — Cr now {conditions.fluid.Cr:.1f} ppm, "
+            "above the imperial-color window. Any topaz growing from "
+            "this pulse forward will catch Cr³⁺ in its structure. "
+            "Golden-orange is committed to the crystal.")
+
+
+def event_ouro_preto_steady_cooling(conditions: VugConditions) -> str:
+    """Main growth phase — slow steady cooling through the topaz window."""
+    conditions.temperature = 320
+    conditions.flow_rate = 1.0
+    return ("The main topaz growth phase. The vein cools steadily — "
+            "320°C now — and topaz is happily projecting from the "
+            "quartz-lined walls. Slow, clean layer-by-layer growth. "
+            "The crystals are recording the thermal history in their "
+            "growth zones and fluid inclusions; a microprobe traverse "
+            "across one of these crystals would read like a barometer.")
+
+
+def event_ouro_preto_late_hydrothermal(conditions: VugConditions) -> str:
+    """Dilute late fluid — F drops, kaolinite begins to form from feldspar.
+    Note: shares verb 'late_hydrothermal' with gem_pegmatite — scenario
+    prefix prevents collision."""
+    conditions.temperature = 220
+    conditions.fluid.pH = 5.5
+    conditions.flow_rate = 0.6
+    return ("Late-stage dilute hydrothermal fluid — pH falling, F "
+            "depleted by topaz growth. Kaolinite begins replacing any "
+            "remaining feldspar in the wall rock; the vein walls soften. "
+            "Topaz's perfect basal cleavage means any shift in the "
+            "wall can snap a crystal off its base. Cleavage fragments "
+            "will accumulate on the pocket floor.")
+
+
+def event_ouro_preto_oxidation_stain(conditions: VugConditions) -> str:
+    """System opens to oxidizing surface water — goethite staining."""
+    conditions.temperature = 90
+    conditions.fluid.O2 = 1.6
+    conditions.fluid.Fe += 20
+    conditions.flow_rate = 0.3
+    return ("Surface water finds the vein. The system oxidizes — "
+            "meteoric O₂ reaches the pocket, iron precipitates as "
+            "goethite, and the final topaz generation sits in a "
+            "limonite-stained matrix. The assemblage that garimpeiros "
+            "will find in 400 Ma is now fully set.")
+
+
+def event_ouro_preto_final_cooling(conditions: VugConditions) -> str:
+    """System reaches near-ambient temperature — story ends.
+    Note: shares verb 'final_cooling' with radioactive_pegmatite — scenario
+    prefix prevents collision."""
+    conditions.temperature = 50
+    conditions.flow_rate = 0.05
+    return ("The vein cools to near-ambient. What remains is the "
+            "assemblage: milky quartz lining the walls, imperial topaz "
+            "prisms projecting inward, fluid inclusion planes across "
+            "every crystal, iron-stained fractures. The exhalation has "
+            "finished. The vug now waits for time.")
+
+
+# --- gem_pegmatite (Cruzeiro mine, Doce Valley MG — Variant A) ---
+
+def event_gem_pegmatite_outer_shell(conditions: VugConditions) -> str:
+    """Phase 1: outer shell continues crystallizing, wall zone fills in."""
+    conditions.temperature = 620
+    conditions.flow_rate = 1.0
+    return ("The outer pegmatite shell is already cooling. Microcline "
+            "and quartz dominate the wall zone, growing inward into "
+            "the void. The pocket fluid inside is enriched in the "
+            "elements nothing else wanted: beryllium, boron, lithium, "
+            "fluorine. They haven't crossed any saturation thresholds "
+            "yet — they are simply accumulating.")
+
+
+def event_gem_pegmatite_first_schorl(conditions: VugConditions) -> str:
+    """Phase 1->2: Fe + B supersaturation crosses, schorl begins."""
+    conditions.temperature = 560
+    conditions.flow_rate = 0.9
+    return ("The pocket has cooled enough that tourmaline can form. "
+            "Boron has been accumulating in the fluid for thousands of "
+            "years; with Fe²⁺ still abundant, the schorl variety "
+            "nucleates. Deep black prisms begin projecting from the "
+            "wall. Each new zone records a fluid pulse — the "
+            "striations are the pocket's diary.")
+
+
+def event_gem_pegmatite_albitization(conditions: VugConditions) -> str:
+    """Phase 2: albitization event. K-feldspar -> albite replacement cascade."""
+    conditions.fluid.K = max(conditions.fluid.K - 30, 10)
+    conditions.fluid.Na += 40
+    conditions.fluid.Al += 10
+    conditions.fluid.pH += 0.2
+    conditions.temperature = 500
+    return ("Albitization event. The pocket's K has depleted faster than "
+            "its Na — microcline starts dissolving and albite begins "
+            "precipitating in its place. K²⁺ returns to the fluid, "
+            "enabling a second generation of mica-like phases. This "
+            "replacement cascade is the most Minas Gerais thing about "
+            "a Minas Gerais pegmatite: the pocket is rearranging itself.")
+
+
+def event_gem_pegmatite_be_saturation(conditions: VugConditions) -> str:
+    """Phase 2: Be finally crosses beryl's nucleation threshold."""
+    conditions.temperature = 450
+    conditions.flow_rate = 0.8
+    return ("Beryllium has been accumulating for a dozen thousand "
+            "years. Every earlier mineral refused it. Now σ crosses "
+            "1.8 and the first beryl crystal nucleates. Because Be "
+            "had so long to build, the crystal has a lot of material "
+            "waiting — this is how meter-long beryls form. What "
+            "color depends on who else is in the fluid. Morganite if "
+            "Mn won the lottery; aquamarine if Fe did; emerald if "
+            "Cr leached in from an ultramafic contact somewhere.")
+
+
+def event_gem_pegmatite_li_phase(conditions: VugConditions) -> str:
+    """Phase 2->3: temperature drops into Li-bearing mineral sweet spot."""
+    conditions.temperature = 420
+    conditions.fluid.Fe = max(conditions.fluid.Fe - 20, 5)
+    return ("Temperature drops into the 400s. Lithium, which has been "
+            "accumulating since the beginning, is now abundant enough "
+            "to nucleate Li-bearing minerals. Spodumene will take "
+            "most of it — the Li pyroxene wants its own crystals. "
+            "Any remaining Li goes into elbaite overgrowths on the "
+            "schorl cores: the crystals become color-zoned as iron "
+            "depletes and lithium takes its place.")
+
+
+def event_gem_pegmatite_late_hydrothermal(conditions: VugConditions) -> str:
+    """Phase 3: below ~400C, topaz window opens. Note: shares verb
+    'late_hydrothermal' with ouro_preto — scenario prefix prevents collision."""
+    conditions.temperature = 360
+    conditions.fluid.pH = 5.5
+    conditions.flow_rate = 0.5
+    return ("Late hydrothermal phase. Temperature drops into topaz's "
+            "optimum window (340–400°C). Fluorine has been sitting "
+            "unused — nothing else in this pocket consumed it — and "
+            "enough Al remains in the residual pocket fluid after "
+            "the main silicate crop has taken its share. Topaz "
+            "nucleates, projecting from the quartz lining.")
+
+
+def event_gem_pegmatite_clay_softening(conditions: VugConditions) -> str:
+    """Phase 3: kaolinization event. pH drops past microcline stability;
+    feldspar engine dissolution branch fires."""
+    conditions.temperature = 320
+    conditions.fluid.pH = 3.5
+    conditions.flow_rate = 0.3
+    return ("pH drops into the kaolinization window. Microcline in "
+            "the pocket walls starts breaking down into kaolinite — "
+            "the signature 'clay gloop' that coats every Minas "
+            "Gerais gem pocket by the time garimpeiros crack it "
+            "open. The reaction 2 KAlSi₃O₈ + 2 H⁺ + H₂O → kaolinite "
+            "+ 2 K⁺ + 4 SiO₂ releases potassium and silica to the "
+            "fluid, but the aluminum stays locked in the new "
+            "kaolinite. Albite is more acid-resistant and survives "
+            "intact — a field observation preserved in the sim.")
+
+
+def event_gem_pegmatite_final(conditions: VugConditions) -> str:
+    """Phase 3 end: system cools to 300C and then ambient over deep time."""
+    conditions.temperature = 300
+    conditions.flow_rate = 0.1
+    return ("The system cools to 300°C, below spodumene's window and "
+            "approaching topaz's lower edge. Growth slows to near-"
+            "zero. Deep time will do the rest: this pocket will wait "
+            "half a billion years before human hands crack it open, "
+            "and the garimpeiros will sort the crystals by color in "
+            "the order the fluid deposited them.")
+
+
+# --- supergene_oxidation (Tsumeb 1st-stage gossan) ---
+
+def event_supergene_acidification(conditions: VugConditions) -> str:
+    """Early acidic phase: H2SO4 from sulfide oxidation drops pH.
+
+    Note: this single handler is referenced by FOUR event entries
+    (steps 5, 8, 12, 16) — it fires repeatedly to hold pH near 4
+    against the limestone wall's carbonate buffering. Without the
+    repeated pulses, the buffer neutralizes pH back to 6+ within
+    ~5 steps; with them, pH stays in the 3.5-5 range until
+    ev_meteoric_flush ends the acid window.
+
+    v5 gap-fill (Apr 2026): added to close the Tsumeb pH gap
+    documented in BACKLOG.md after Round 5. Without this event,
+    scorodite / jarosite / alunite couldn't form at Tsumeb despite
+    being world-class display species there.
+    """
+    conditions.fluid.pH = 4.0
+    conditions.fluid.O2 = 1.5  # already oxidizing, slight bump from O2=1.8 baseline
+    conditions.fluid.S += 20   # H₂SO₄ contributes SO₄²⁻ to fluid
+    return ("Early acidic supergene phase. Primary sulfides oxidize "
+            "and release H₂SO₄ — pH drops to 4.0, opening the acid "
+            "window for the arsenate + sulfate suite (scorodite, "
+            "jarosite, alunite). Carbonate buffering will reverse "
+            "this at the meteoric flush; the acid-stable phases "
+            "form during this short ~15-step window.")
+
+
+def event_supergene_meteoric_flush(conditions: VugConditions) -> str:
+    """Rain-fed oxygenated water recharges the aquifer."""
+    conditions.fluid.O2 = 2.2
+    conditions.fluid.CO3 += 30
+    conditions.fluid.pH = 6.2
+    conditions.flow_rate = 1.5
+    return ("Rain infiltrates the soil zone and percolates down, picking "
+            "up CO₂ and oxygen. Fresh supergene brine — cold, oxygen-rich, "
+            "slightly acidic. Any remaining primary sulfides are on borrowed time.")
+
+
+def event_supergene_pb_mo_pulse(conditions: VugConditions) -> str:
+    """A fracture opens to a primary galena/molybdenite source — Pb and Mo surge."""
+    conditions.fluid.Pb += 40
+    conditions.fluid.Mo += 25
+    conditions.fluid.O2 = 2.0
+    conditions.flow_rate = 2.0
+    return ("A weathering rind breaches: Pb²⁺ and MoO₄²⁻ released "
+            "simultaneously from an oxidizing galena+molybdenite lens. "
+            "The Seo et al. (2012) condition for wulfenite formation — "
+            "both parents dying at once — is met.")
+
+
+def event_supergene_cu_enrichment(conditions: VugConditions) -> str:
+    """Primary chalcopyrite weathers upslope — Cu2+ descends.
+    Drops fluid O2 to 0.6 for a window — the sim's 1D O2 can't directly
+    model the Eh gradient between oxidized cap and reduced substrate, so
+    we brute-force simulate 'Cu-rich fluid hit the reducing layer' by
+    briefly pulling fluid O2 down. Ambient cooling will re-oxidize within ~10 steps."""
+    conditions.fluid.Cu += 50.0
+    conditions.fluid.S += 30.0   # chalcopyrite is 35% S — significant release
+    conditions.fluid.Fe += 10.0
+    conditions.fluid.O2 = 0.6   # local reducing pulse at the enrichment zone
+    return ("A primary chalcopyrite lens upslope finishes oxidizing. "
+            "Cu²⁺ descends with the water table and hits the reducing "
+            "layer below — the supergene enrichment blanket, where "
+            "mineable copper ore gets made. Bornite precipitates on "
+            "the upgradient edge, chalcocite in the core, covellite "
+            "where S activity is highest. Real orebodies are often "
+            "5–10× richer here than in the primary sulfide below.")
+
+
+def event_supergene_dry_spell(conditions: VugConditions) -> str:
+    """Evaporation concentrates sulfate — selenite potential."""
+    conditions.fluid.Ca += 40
+    conditions.fluid.S += 30
+    conditions.fluid.O2 = 1.5
+    conditions.temperature = 50  # slight warming, still below 60°C anhydrite line
+    conditions.flow_rate = 0.3
+    return ("Dry season. Flow slows, evaporation concentrates the brine. "
+            "Ca²⁺ and SO₄²⁻ climb toward selenite's window — the desert-rose "
+            "chemistry, the Naica chemistry.")
+
+
+def event_supergene_as_rich_seep(conditions: VugConditions) -> str:
+    """Arsenic-bearing seep — feeds adamite + mimetite + erythrite + annabergite."""
+    conditions.fluid.As += 8
+    conditions.fluid.Cl += 10
+    conditions.fluid.Zn += 20
+    # Cobalt + nickel arsenide weathering delivers Co2+ and Ni2+ alongside
+    # the arsenate flood — erythrite/annabergite Co/Ni couple only saturates
+    # when this event fires.
+    conditions.fluid.Co += 20
+    conditions.fluid.Ni += 20
+    conditions.fluid.pH = 6.0
+    conditions.temperature = 25   # cool to erythrite/annabergite optimum window
+    return ("An arsenic-bearing seep arrives from a weathering "
+            "arsenopyrite body upslope, carrying trace cobalt and "
+            "nickel from parallel oxidizing arsenides. Zn²⁺ saturates "
+            "adamite; Pb²⁺ saturates mimetite; Co²⁺ and Ni²⁺ begin "
+            "to bloom as crimson erythrite and apple-green annabergite.")
+
+
+def event_supergene_phosphate_seep(conditions: VugConditions) -> str:
+    """Phosphate-bearing groundwater — enables pyromorphite."""
+    conditions.fluid.P += 6.0
+    conditions.fluid.Cl += 5.0
+    conditions.fluid.pH = 6.4
+    return ("A phosphate-bearing groundwater seeps in from the soil "
+            "zone — organic decay, weathered apatite bedrock, bat guano "
+            "from above. P jumps past pyromorphite's saturation "
+            "threshold, and any Pb still in solution has a new home.")
+
+
+def event_supergene_v_bearing_seep(conditions: VugConditions) -> str:
+    """V-bearing fluid from red-bed sediments — enables vanadinite."""
+    conditions.fluid.V += 6.0
+    conditions.fluid.Cl += 8.0
+    conditions.temperature = 45   # late dry phase, slight warming
+    return ("A vanadium-bearing seep arrives from a weathering red-bed "
+            "ironstone upslope. V⁵⁺ leaches from oxidizing roll-front "
+            "vanadates, and at Pb + V + Cl saturation the bright "
+            "red-orange vanadinite nucleates — the classic "
+            "'vanadinite on goethite' habit of the Morocco / Arizona "
+            "desert deposits.")
+
+
+def event_supergene_fracture_seal(conditions: VugConditions) -> str:
+    """System seals — final equilibration. Note: shares verb 'fracture_seal'
+    with marble_contact_metamorphism — scenario prefix prevents collision."""
+    conditions.flow_rate = 0.05
+    conditions.fluid.O2 = 1.0
+    return ("The feeding fractures seal. The vug becomes a closed cold "
+            "oxidizing system. Whatever is supersaturated will precipitate; "
+            "whatever is undersaturated will quietly corrode.")
+
+
+# --- bisbee (Warren Mining District, Cochise County, AZ — Cu porphyry + supergene) ---
+
+def event_bisbee_primary_cooling(conditions: VugConditions) -> str:
+    """First cooling step — chalcopyrite + bornite crystallize, pyrite +
+    magnetite pin down the Fe budget. Still reducing."""
+    conditions.temperature = 320
+    conditions.fluid.SiO2 += 100     # late-stage silica injection
+    conditions.fluid.Cu -= 50        # some Cu locked into early sulfides
+    conditions.fluid.O2 = 0.08
+    conditions.flow_rate = 1.2
+    return ("The Sacramento Hill porphyry finishes its main crystallization "
+            "pulse. Chalcopyrite and bornite precipitate in the vein selvages "
+            "of the Escabrosa mantos — Cu:Fe:S in the magmatic ratio. Pyrite "
+            "frames the assemblage, locked in at 300+ °C. The ore body is set. "
+            "For 180 million years, nothing will happen.")
+
+
+def event_bisbee_uplift_weathering(conditions: VugConditions) -> str:
+    """Uplift exposes the ore to meteoric water. Pyrite oxidizes,
+    releasing H+ and SO4. pH drops — supergene engine starts."""
+    conditions.temperature = 35
+    conditions.fluid.pH = 4.0         # acidic from pyrite oxidation
+    conditions.fluid.O2 = 0.8         # oxygenated meteoric water
+    conditions.fluid.S += 80          # sulfate released from pyrite
+    conditions.fluid.Cu += 100        # Cu²⁺ leached from primary chalcopyrite
+    conditions.fluid.Fe += 50
+    conditions.flow_rate = 1.8
+    return ("Mesozoic–Cenozoic uplift tips the Warren basin and strips the "
+            "Cretaceous cover. Meteoric water percolates down through "
+            "fractures, hitting pyrite; sulfuric acid is the first product. "
+            "The pH crashes to 4, and Cu²⁺ starts descending with the water "
+            "table. This is the enrichment pulse — primary ore above is "
+            "dissolving, concentrating its copper at the redox interface "
+            "below.")
+
+
+def event_bisbee_enrichment_blanket(conditions: VugConditions) -> str:
+    """Descending Cu2+ hits the reducing front beneath the water table.
+    Chalcocite and covellite mantle the remaining primary sulfides — the
+    high-grade supergene enrichment zone."""
+    conditions.temperature = 30
+    conditions.fluid.Cu += 80         # still descending from above
+    conditions.fluid.S += 40
+    conditions.fluid.O2 = 0.6         # right at the redox front
+    conditions.fluid.pH = 4.5
+    conditions.flow_rate = 1.3
+    return ("The descending Cu²⁺-bearing fluid reaches the reducing layer "
+            "just below the water table. Chalcocite replaces chalcopyrite "
+            "atom-for-atom — the Bisbee enrichment blanket, 5–10× the "
+            "primary grade. Covellite forms where S activity is highest. "
+            "This is the mineable ore. For two generations of miners, this "
+            "is what Bisbee MEANS.")
+
+
+def event_bisbee_reducing_pulse(conditions: VugConditions) -> str:
+    """Brief reducing pulse — barren deep fluid displaces the sulfate-rich
+    enrichment brine. Eh drops below cuprite stability and native copper
+    precipitates as arborescent sheets in fracture fillings."""
+    conditions.fluid.O2 = 0.05         # strongly reducing
+    conditions.fluid.S = 15             # sulfate almost entirely flushed
+    conditions.fluid.Cu += 150          # Cu²⁺ surges from above
+    conditions.fluid.pH = 6.0
+    conditions.temperature = 28
+    conditions.flow_rate = 1.1
+    return ("A barren reducing fluid pulses up from depth — lower than "
+            "any water table. For a few thousand years the pocket's Eh "
+            "is below cuprite stability. Native copper precipitates in "
+            "the fracture selvages as arborescent sheets and wire. The "
+            "Bisbee native-copper specimens — the Cornish-style copper "
+            "trees — are products of exactly these brief windows.")
+
+
+def event_bisbee_oxidation_zone(conditions: VugConditions) -> str:
+    """Water table drops further; system oxidizes. Cuprite mantles the
+    native copper sheets — the narrow Eh band between sulfide-stable and
+    fully-oxidized."""
+    conditions.temperature = 25
+    conditions.fluid.O2 = 1.0          # oxidizing but not fully
+    conditions.fluid.pH = 6.2          # limestone buffer kicks in
+    conditions.fluid.S = max(conditions.fluid.S - 60, 20)  # sulfate flushed
+    conditions.fluid.Cu += 40
+    conditions.fluid.Fe -= 30          # goethite locks up Fe
+    conditions.fluid.CO3 += 30         # limestone dissolution starts
+    conditions.flow_rate = 1.0
+    return ("The water table drops another 50 meters. The enrichment "
+            "blanket is now in the unsaturated zone — oxygen reaches it "
+            "directly. Cuprite forms where the Eh is still low; native "
+            "copper sheets grow in the fractures where reducing pockets "
+            "survive. The limestone walls are finally participating — "
+            "pH climbs toward neutral, and CO₃ rises with it.")
+
+
+def event_bisbee_azurite_peak(conditions: VugConditions) -> str:
+    """High pCO2 groundwater surges through — azurite forms in the
+    limestone-hosted chambers. The Bisbee blue."""
+    conditions.fluid.CO3 += 80          # pCO₂ peak, limestone actively dissolving
+    conditions.fluid.Cu += 30
+    conditions.fluid.O2 = 1.3
+    conditions.fluid.pH = 7.0
+    conditions.flow_rate = 0.9
+    return ("A monsoon season — the first in many. CO₂-charged rainwater "
+            "infiltrates fast, dissolves limestone aggressively, and hits "
+            "the copper pocket at pH 7 with CO₃ at 110+ ppm. Azurite — "
+            "deep midnight-blue monoclinic prisms and radiating rosettes "
+            "— nucleates from the supersaturated brine. This phase "
+            "produces the showpiece 'Bisbee Blue' specimens.")
+
+
+def event_bisbee_co2_drop(conditions: VugConditions) -> str:
+    """pCO2 drops as monsoon pattern shifts. Azurite becomes thermodynamically
+    unstable; existing crystals begin converting to malachite (pseudomorphs).
+    Fresh malachite nucleates from the released Cu + CO3."""
+    conditions.fluid.CO3 = max(conditions.fluid.CO3 - 120, 50)  # crash below azurite threshold
+    conditions.fluid.O2 = 1.4
+    conditions.fluid.pH = 6.8
+    conditions.flow_rate = 0.7
+    return ("The climate dries. Without CO₂-charged infiltration the "
+            "pocket's pCO₂ falls below azurite's stability — every "
+            "azurite crystal in the vug starts converting. The color "
+            "shift creeps crystal-by-crystal: deep blue → green rind → "
+            "green core. Vink (1986) put the crossover at log(pCO₂) ≈ "
+            "−3.5 at 25 °C, right where we are. Malachite pseudomorphs "
+            "after azurite are the diagnostic Bisbee specimen — frozen "
+            "mid-transition.")
+
+
+def event_bisbee_silica_seep(conditions: VugConditions) -> str:
+    """Percolating groundwater carries dissolved SiO2 leached from the
+    quartz-monzonite porphyry upslope. Chrysocolla starts forming wherever
+    Cu2+ meets SiO2."""
+    conditions.fluid.SiO2 += 90        # porphyry weathering delivers silica
+    conditions.fluid.Cu += 20
+    conditions.fluid.CO3 = max(conditions.fluid.CO3 - 30, 20)   # CO₂ still trending down
+    conditions.fluid.pH = 6.5
+    conditions.fluid.O2 = 1.3
+    conditions.flow_rate = 0.8
+    return ("A new seep arrives — from weathering of the Sacramento Hill "
+            "quartz-monzonite porphyry uphill, not the limestone. It "
+            "brings dissolved SiO₂ at 100+ ppm. Where this fluid meets "
+            "the Cu²⁺ still in solution the cyan enamel of chrysocolla "
+            "precipitates: thin films over cuprite, botryoidal crusts "
+            "on native copper, and — the Bisbee centerpiece — "
+            "pseudomorphs replacing the last azurite blues.")
+
+
+def event_bisbee_final_drying(conditions: VugConditions) -> str:
+    """Flow stops. System seals."""
+    conditions.temperature = 20
+    conditions.flow_rate = 0.1
+    conditions.fluid.O2 = 1.0
+    return ("The fractures seal with calcite cement. Groundwater stops. "
+            "The pocket is a closed system again, this time with the "
+            "full oxidation assemblage frozen in place: chalcopyrite "
+            "cores wrapped in chalcocite, those wrapped in cuprite, "
+            "those overgrown by native copper, those overgrown by "
+            "azurite, those converted to malachite, those pseudomorphed "
+            "by chrysocolla. A million years from now, when a mining "
+            "shaft intersects this pocket, an assayer will photograph "
+            "the specimen and write 'Bisbee, Cochise County' on the "
+            "label.")
+
+
+# --- sabkha_dolomitization (Coorong/Persian Gulf cycling brine, Kim 2023 mechanism) ---
+#
+# The original scenario used factory functions `make_flood(idx)` and
+# `make_evap(idx)` to generate 12 cycles of flood + evap closures, each
+# with the cycle number baked into a narrator f-string. We follow the
+# supergene_acidification precedent: one handler per phase, referenced
+# by 12 Event entries each. The cycle number is preserved via the event
+# `name` field ("Tidal Flood #1", "Evaporation #1", etc.) — the
+# redundant "#{idx}" inside the narrator string is dropped.
+
+def event_sabkha_flood(conditions: VugConditions) -> str:
+    """Tidal flood — incoming low-alkalinity seawater RESETS chemistry.
+
+    Each cycle resets to a defined low-σ state, modeling continuous
+    tidal pumping (otherwise progressive aragonite/gypsum precipitation
+    would drift the brine out of any defined regime within a few cycles).
+    Flood state: marine baseline with depressed CO3 (river input), mid
+    Mg/Ca, alkaline pH but kinetically below dolomite saturation.
+    """
+    conditions.fluid.Mg = 800     # marine baseline
+    conditions.fluid.Ca = 250     # marine + bivalve dissolution
+    conditions.fluid.CO3 = 50     # depressed by freshwater mixing
+    conditions.fluid.Sr = 12
+    conditions.fluid.pH = 8.0
+    conditions.flow_rate = 1.5
+    return ("Flood pulse: low-alkalinity tidal seawater enters "
+            "the lagoon. CO₃ crashes from sabkha brine levels back to "
+            "~50 ppm. Dolomite supersaturation drops below 1 — the "
+            "disordered Ca/Mg surface layer detaches preferentially "
+            "(Kim 2023 etch).")
+
+
+def event_sabkha_evap(conditions: VugConditions) -> str:
+    """Evaporation — sun concentrates the lagoon back to sabkha brine.
+
+    Set values are high enough that aragonite/selenite consumption
+    between events doesn't drag dolomite back below saturation —
+    the alkalinity reservoir from microbial mats is generous.
+    """
+    conditions.fluid.Mg = 2000    # >5x seawater Mg (modern Coorong+)
+    conditions.fluid.Ca = 600     # marine + microbial-mat dissolution
+    conditions.fluid.CO3 = 800    # microbial mat alkalinity (high)
+    conditions.fluid.Sr = 30
+    conditions.fluid.pH = 8.4
+    conditions.flow_rate = 0.1
+    conditions.temperature = 28
+    return ("Evaporation pulse: sun bakes the lagoon. Brine "
+            "reconcentrates to sabkha state — Mg=2000, Ca=600, CO₃=800. "
+            "Dolomite saturation climbs back well above 1; growth "
+            "resumes on the ordered template the previous etch left "
+            "behind. Cycle complete; ordering ratchets up.")
+
+
+def event_sabkha_final_seal(conditions: VugConditions) -> str:
+    """Lagoon dries up permanently — system seals."""
+    conditions.flow_rate = 0.05
+    conditions.temperature = 22
+    return ("Sabkha matures, then seals. The crust hardens and "
+            "groundwater stops cycling. What remains is the result of "
+            "twelve dissolution-precipitation cycles — ordered dolomite "
+            "where the cycling did its work, disordered HMC where it didn't. "
+            "The Coorong recipe for ambient-T ordered dolomite, the natural "
+            "laboratory that Kim 2023 finally explained at the atomic scale.")
+
+
+# ============================================================
 # EVENT REGISTRY
 # ============================================================
 # Maps the event-type string used in data/scenarios.json5 to the
@@ -10627,6 +11400,72 @@ EVENT_REGISTRY = {
     "alkalinize": event_alkalinize,
     "molybdenum_pulse": event_molybdenum_pulse,
     "fluid_mixing": event_fluid_mixing,
+    # Phase 2 — marble_contact_metamorphism
+    "marble_peak_metamorphism": event_marble_peak_metamorphism,
+    "marble_retrograde_cooling": event_marble_retrograde_cooling,
+    "marble_fracture_seal": event_marble_fracture_seal,
+    # Phase 2 — reactive_wall
+    "reactive_wall_acid_pulse_1": event_reactive_wall_acid_pulse_1,
+    "reactive_wall_acid_pulse_2": event_reactive_wall_acid_pulse_2,
+    "reactive_wall_acid_pulse_3": event_reactive_wall_acid_pulse_3,
+    "reactive_wall_seal": event_reactive_wall_seal,
+    # Phase 2 — radioactive_pegmatite
+    "radioactive_pegmatite_crystallization": event_radioactive_pegmatite_crystallization,
+    "radioactive_pegmatite_deep_time": event_radioactive_pegmatite_deep_time,
+    "radioactive_pegmatite_oxidizing": event_radioactive_pegmatite_oxidizing,
+    "radioactive_pegmatite_final_cooling": event_radioactive_pegmatite_final_cooling,
+    # Phase 2 — deccan_zeolite
+    "deccan_zeolite_silica_veneer": event_deccan_zeolite_silica_veneer,
+    "deccan_zeolite_hematite_pulse": event_deccan_zeolite_hematite_pulse,
+    "deccan_zeolite_stage_ii": event_deccan_zeolite_stage_ii,
+    "deccan_zeolite_apophyllite_stage_iii": event_deccan_zeolite_apophyllite_stage_iii,
+    "deccan_zeolite_late_cooling": event_deccan_zeolite_late_cooling,
+    # Phase 2 — ouro_preto
+    "ouro_preto_vein_opening": event_ouro_preto_vein_opening,
+    "ouro_preto_f_pulse": event_ouro_preto_f_pulse,
+    "ouro_preto_cr_leach": event_ouro_preto_cr_leach,
+    "ouro_preto_steady_cooling": event_ouro_preto_steady_cooling,
+    "ouro_preto_late_hydrothermal": event_ouro_preto_late_hydrothermal,
+    "ouro_preto_oxidation_stain": event_ouro_preto_oxidation_stain,
+    "ouro_preto_final_cooling": event_ouro_preto_final_cooling,
+    # Phase 2 — gem_pegmatite
+    "gem_pegmatite_outer_shell": event_gem_pegmatite_outer_shell,
+    "gem_pegmatite_first_schorl": event_gem_pegmatite_first_schorl,
+    "gem_pegmatite_albitization": event_gem_pegmatite_albitization,
+    "gem_pegmatite_be_saturation": event_gem_pegmatite_be_saturation,
+    "gem_pegmatite_li_phase": event_gem_pegmatite_li_phase,
+    "gem_pegmatite_late_hydrothermal": event_gem_pegmatite_late_hydrothermal,
+    "gem_pegmatite_clay_softening": event_gem_pegmatite_clay_softening,
+    "gem_pegmatite_final": event_gem_pegmatite_final,
+    # Phase 2 — supergene_oxidation. Note: 'supergene_acidification' is
+    # referenced 4× in the JSON5 spec (steps 5/8/12/16) — one handler,
+    # multiple Event entries pointing to it.
+    "supergene_acidification": event_supergene_acidification,
+    "supergene_meteoric_flush": event_supergene_meteoric_flush,
+    "supergene_pb_mo_pulse": event_supergene_pb_mo_pulse,
+    "supergene_cu_enrichment": event_supergene_cu_enrichment,
+    "supergene_dry_spell": event_supergene_dry_spell,
+    "supergene_as_rich_seep": event_supergene_as_rich_seep,
+    "supergene_phosphate_seep": event_supergene_phosphate_seep,
+    "supergene_v_bearing_seep": event_supergene_v_bearing_seep,
+    "supergene_fracture_seal": event_supergene_fracture_seal,
+    # Phase 2 — bisbee
+    "bisbee_primary_cooling": event_bisbee_primary_cooling,
+    "bisbee_uplift_weathering": event_bisbee_uplift_weathering,
+    "bisbee_enrichment_blanket": event_bisbee_enrichment_blanket,
+    "bisbee_reducing_pulse": event_bisbee_reducing_pulse,
+    "bisbee_oxidation_zone": event_bisbee_oxidation_zone,
+    "bisbee_azurite_peak": event_bisbee_azurite_peak,
+    "bisbee_co2_drop": event_bisbee_co2_drop,
+    "bisbee_silica_seep": event_bisbee_silica_seep,
+    "bisbee_final_drying": event_bisbee_final_drying,
+    # Phase 2 — sabkha_dolomitization. flood + evap fire 12× each
+    # (steps 10/30/50/.../230 + 20/40/60/.../240) for the Kim 2023
+    # ordered-dolomite cycling mechanism. Same handler-reuse precedent
+    # as supergene_acidification.
+    "sabkha_flood": event_sabkha_flood,
+    "sabkha_evap": event_sabkha_evap,
+    "sabkha_final_seal": event_sabkha_final_seal,
 }
 
 
@@ -10728,1552 +11567,14 @@ _JSON5_SCENARIOS = _load_scenarios_json5()
 # SCENARIOS
 # ============================================================
 
-# (Phase 1, 2026-04-30: scenario_cooling/pulse/mvt/porphyry migrated to
-#  data/scenarios.json5 — loaded at module init by _load_scenarios_json5()
-#  above. The nine remaining scenarios with inline event closures stay
-#  in-code below pending Phase 2 migration.)
+# All declarative scenarios live in data/scenarios.json5 (loaded at
+# module init by _load_scenarios_json5() above) and reference event
+# handlers from EVENT_REGISTRY by string identifier. Only scenario_random
+# stays in-code below — it's procedural / RNG-driven generative.
+# Phase 1 (commit 2feb338): cooling/pulse/mvt/porphyry.
+# Phase 2 (this commit chain): the remaining 9 scenarios, with their
+# inline event closures promoted to module-level handlers above.
 
-
-def scenario_reactive_wall() -> Tuple[VugConditions, List[Event], int]:
-    """Reactive wall scenario — anchored to the Sweetwater Mine, Viburnum
-    Trend, Missouri.
-
-    Anchor: Sweetwater Mine (Reynolds County, MO), part of the Viburnum
-    Trend Pb-Zn district. Host = Cambrian Bonneterre Formation
-    dolomitic limestone. Viburnum is a Ba-rich MVT endmember
-    (Stoffell et al. 2008 distinguishes it from the lower-Ba, higher-Ag
-    Tri-State district). Classic acid-into-carbonate paragenesis:
-    sphalerite-galena-marcasite ± barite, dolomite-calcite gangue.
-    Sverjensky 1981 (Econ. Geol. 76) and Leach et al. 2010 are the
-    primary geochemistry sources.
-
-    Mechanic: acid entering a carbonate vug doesn't just dissolve
-    crystals — it dissolves the WALL. The wall neutralizes the acid
-    AND releases Ca²⁺/CO₃²⁻ back into solution. When pH recovers,
-    that dissolved carbonate supersaturates and precipitates as rapid
-    growth bands on existing crystals. The acid is both destroyer and
-    creator. The vug enlarges as the crystals grow. Repeated acid
-    pulses model the Viburnum dissolution→supersaturation→growth
-    burst cycle.
-
-    Chemistry-audit gap-fill pass (Apr 2026): added Na, K, Cl
-    (NaCl-CaCl2 brine baseline that was missing), Ag (Viburnum
-    galena is less argentiferous than Tri-State but still carries
-    Ag), Sr (basinal-brine tracer + minor celestine documented in
-    Viburnum). Existing chemistry (SiO2, Ca, CO3, Fe, Mn, Zn, Pb,
-    Ba, S, F, Mg, pH, salinity) and the four-pulse event sequence
-    preserved untouched.
-    """
-    conditions = VugConditions(
-        temperature=140.0,
-        pressure=0.2,
-        fluid=FluidChemistry(
-            SiO2=50, Ca=250, CO3=200, Fe=8, Mn=5,
-            # Polymetallic limestone brine — real Zn-bearing carbonate-
-            # hosted vugs almost always carry Pb too (galena travels
-            # with sphalerite), and Ba is classic (barite is a common
-            # late-stage phase). Viburnum is the high-Ba MVT endmember
-            # per Stoffell et al. 2008.
-            Zn=80, Pb=30, Ba=25, S=60, F=8,
-            # Limestone-hosted brines (Sweetwater / Viburnum Trend per
-            # Sverjensky 1981) carry Mg ~50–150 ppm. Mg=100 sets Mg/Ca
-            # ~0.4, above dolomite's ratio gate so dolomitization can
-            # fire. Calcite still dominates (Mg-poisoning at 0.4 ratio
-            # is mild); aragonite stays absent (its threshold is ~1.5).
-            Mg=100,
-            # ── Audit gap-fills (Apr 2026) ────────────────────────────
-            # Na=70, K=12: NaCl-CaCl2 basinal brine baseline. Viburnum
-            # brines per Sverjensky 1981 + Stoffell 2008 are 50-80,000
-            # ppm Na raw, K/Na ~0.2. Sim-scale abstraction (slightly
-            # below Tri-State Na=80 to reflect Viburnum's somewhat lower
-            # Pb-Zn-Ag tenor / different basin source).
-            Na=70, K=12,
-            # Cl=200: brine anion paired with Na+K. salinity=18 wt%
-            # NaCl-eq remains bulk indicator; free Cl enables Pb-Cl
-            # (pyromorphite-laurionite) chemistry where Pb is present.
-            Cl=200,
-            # Ag=3: Viburnum galena carries Ag at lower abundance than
-            # Tri-State (Stoffell 2008 LA-ICP-MS shows Ag content
-            # broadly distinguishes the two MVT districts). Sim-scale
-            # below Tri-State's Ag=5.
-            Ag=3,
-            # Sr=12: basinal-brine tracer (Hanor 1994); minor celestine
-            # documented in the Viburnum carbonate gangue.
-            Sr=12,
-            # ──────────────────────────────────────────────────────────
-            # ── v5 gap-fill (Apr 2026) ────────────────────────────────
-            # O2=0.25 (was default 0.0): same MVT-Eh rationale as
-            # Tri-State — mildly reducing brine where SO₄²⁻ persists
-            # alongside H₂S, allowing barite + galena coexistence.
-            # Bumping unlocks dormant Ba=25 + Sr=12 pools without
-            # disturbing the existing sulfide assemblage. Source:
-            # Sverjensky 1981 (Viburnum brine geochem); Anderson &
-            # Macqueen 1982 (MVT review).
-            O2=0.25,
-            # ──────────────────────────────────────────────────────────
-            pH=7.0, salinity=18.0
-        ),
-        wall=VugWall(
-            composition="limestone",
-            thickness_mm=500.0,
-            vug_diameter_mm=40.0,
-            wall_Fe_ppm=3000.0,   # iron-bearing limestone
-            wall_Mn_ppm=800.0,    # Mn in the host rock
-            # Aggressive acid dissolution — 3 primary + 10 secondary
-            # bubbles give the deeply lobed cavity of a reactive front.
-            primary_bubbles=3,
-            secondary_bubbles=10,
-            shape_seed=5,
-        )
-    )
-    
-    def acid_pulse_1(cond):
-        """First acid pulse — CO₂-rich brine from depth."""
-        cond.fluid.pH = 3.5
-        cond.fluid.S += 40.0
-        cond.fluid.Zn += 60.0
-        cond.fluid.Fe += 15.0
-        cond.flow_rate = 4.0
-        return ("CO₂-saturated brine surges into the vug. pH crashes to 3.5. "
-                "The limestone walls begin to fizz — carbonate dissolving on contact.")
-    
-    def acid_pulse_2(cond):
-        """Second acid pulse — stronger, with metals."""
-        cond.fluid.pH = 3.0
-        cond.fluid.S += 50.0
-        cond.fluid.Zn += 80.0
-        cond.fluid.Fe += 25.0
-        cond.fluid.Mn += 10.0
-        cond.flow_rate = 5.0
-        return ("Second acid pulse — stronger than the first. pH drops to 3.0. "
-                "Metal-bearing brine floods the vug. The walls are being eaten alive, "
-                "but every Ca²⁺ released is a future growth band waiting to happen.")
-    
-    def acid_pulse_3(cond):
-        """Third, weaker pulse — system running out of steam."""
-        cond.fluid.pH = 4.0
-        cond.fluid.S += 20.0
-        cond.fluid.Zn += 30.0
-        cond.flow_rate = 3.0
-        return ("Third acid pulse — weaker now. pH only drops to 4.0. "
-                "The fluid system is exhausting. But the wall still has carbonate to give.")
-    
-    def seal_event(cond):
-        """Fracture seals — fluid stops flowing, final equilibration."""
-        cond.flow_rate = 0.1
-        cond.fluid.pH += 0.5
-        cond.fluid.pH = min(cond.fluid.pH, 8.0)
-        return ("The feeding fracture seals. Flow stops. The vug becomes a closed system. "
-                "Whatever's dissolved will precipitate until equilibrium.")
-    
-    events = [
-        Event(15, "First Acid Pulse", "CO₂-saturated brine", 
-              Event(0, "", "", acid_pulse_1).apply_fn if False else acid_pulse_1),
-        Event(40, "Second Acid Pulse", "Stronger metal-bearing brine", acid_pulse_2),
-        Event(70, "Third Acid Pulse", "Weakening system", acid_pulse_3),
-        Event(90, "Fracture Seal", "Flow stops", seal_event),
-    ]
-    
-    # Fix event wrapping
-    events = [
-        Event(15, "First Acid Pulse", "CO₂-saturated brine", acid_pulse_1),
-        Event(40, "Second Acid Pulse", "Stronger metal-bearing brine", acid_pulse_2),
-        Event(70, "Third Acid Pulse", "Weakening system", acid_pulse_3),
-        Event(90, "Fracture Seal", "Flow stops", seal_event),
-    ]
-    
-    return conditions, events, 120
-
-
-def scenario_radioactive_pegmatite() -> Tuple[VugConditions, List[Event], int]:
-    """Radioactive pegmatite — high-T alkali granite pocket.
-
-    Generic testing scenario — not anchored to a real locality (per the
-    user's clarification on the audit brief). Pegmatitic fluids are
-    silica-saturated melts with abundant K+Na+Al+U. Grows uraninite,
-    smoky quartz (from radiation), feldspar/albite, and late-stage
-    galena from radiogenic Pb. Already declared in web/; ported to
-    vugg.py so uraninite / feldspar / albite actually nucleate.
-
-    Audit gap-fill (Apr 2026): Mg=5 added — brief-required non-zero
-    Mg baseline. Pegmatite pocket fluids are Mg-poor (Mg partitions
-    into outer-shell biotite/chlorite during pegmatite differentiation),
-    matches the gem_pegmatite scenario's Mg=5 abstraction.
-    """
-    conditions = VugConditions(
-        temperature=600.0,
-        pressure=2.0,
-        fluid=FluidChemistry(
-            SiO2=12000, Ca=50, CO3=20, Fe=60, Mn=8,
-            S=40, F=25, U=150, Pb=30,
-            K=80, Na=50, Al=30,
-            # Classic pegmatite-defining trace indicators — no current
-            # mineral consumes them, but the narrator reads them as
-            # beryl/spodumene/tourmaline/apatite country.
-            Be=20, Li=40, B=25, P=8,
-            # Audit gap-fill (Apr 2026): brief-required non-zero Mg.
-            # Pegmatite-pocket appropriate low value matching
-            # gem_pegmatite's Mg=5.
-            Mg=5,
-            O2=0.0, pH=6.5, salinity=8.0,
-        ),
-        # Pegmatite pocket — 4 primaries form a fracture-controlled
-        # cavity, 5 secondaries add modest alcoves.
-        wall=VugWall(primary_bubbles=4, secondary_bubbles=5, shape_seed=6),
-    )
-
-    def ev_pegmatite_crystallization(cond):
-        cond.temperature = 450
-        cond.fluid.SiO2 += 3000
-        return ("The pegmatite melt differentiates. Volatile-rich residual "
-                "fluid floods the pocket. Quartz begins to grow in earnest. "
-                "Uraninite cubes nucleate where uranium is concentrated.")
-
-    def ev_deep_time(cond):
-        cond.temperature = 300
-        return ("Deep time passes. The uraninite sits in its cradle of "
-                "cooling rock, silently emitting alpha particles. Each decay "
-                "transmutes one atom of uranium into lead. The quartz "
-                "growing nearby doesn't know it yet, but it's darkening.")
-
-    def ev_oxidizing(cond):
-        cond.fluid.O2 += 0.8
-        cond.temperature = 120
-        cond.flow_rate = 1.5
-        return ("Oxidizing meteoric fluids seep through fractures. "
-                "The reducing environment shifts. Sulfides become unstable. "
-                "The uraninite endures — it has been enduring for millions of years.")
-
-    def ev_final_cooling(cond):
-        cond.temperature = 50
-        cond.flow_rate = 0.1
-        return ("The system cools to near-ambient. What remains is a "
-                "pegmatite pocket: black uraninite cubes, smoky quartz "
-                "darkened by radiation, galena crystallized from the lead "
-                "that uranium became. Time wrote this assemblage.")
-
-    events = [
-        Event(20, "Pegmatite Crystallization", "Main crystallization pulse", ev_pegmatite_crystallization),
-        Event(50, "Deep Time", "Eons pass — radiation accumulates", ev_deep_time),
-        Event(80, "Oxidizing Fluids", "Late-stage meteoric water", ev_oxidizing),
-        Event(100, "Final Cooling", "System approaches ambient", ev_final_cooling),
-    ]
-    return conditions, events, 120
-
-
-def scenario_supergene_oxidation() -> Tuple[VugConditions, List[Event], int]:
-    """Supergene oxidation — anchored to Tsumeb, Namibia (1st-stage gossan).
-
-    The cold, oxygenated domain where primary sulfides weather into secondary
-    minerals. Pb+Mo → wulfenite. Zn+CO₃ → smithsonite. Zn+As → adamite.
-    Pb+As+Cl → mimetite. Fe → goethite. Ca+SO₄ → selenite. Cu+CO₃ → malachite.
-    Fills the gap flagged in TASK-BRIEF-2: wulfenite etc. can't reach their
-    <80°C stability window in the hydrothermal scenarios.
-
-    Anchor: Tsumeb mine (Otavi Mountain Land, Namibia). One of the most
-    mineralogically diverse deposits ever discovered — ~280 species
-    documented, including the type locality for germanium (germanite,
-    renierite, briartite). Pipe-shaped Pb-Zn-Cu sulfide body in
-    Neoproterozoic dolomite, with three distinct supergene oxidation
-    zones developed during Mesozoic-Cenozoic uplift. The 1st-stage
-    gossan (this scenario) is the high-Pb-As-Cl uppermost zone where
-    mimetite, anglesite, cerussite, smithsonite, willemite,
-    arsenocrandallite, and the Ge-bearing oxidation phases occur.
-    Argentiferous (native Ag, proustite, pyrargyrite, argentiferous
-    galena). References: Pinch & Wilson 1977 (the canonical Tsumeb
-    monograph), Lombaard et al. 1986 (geology), Melcher 2003 (Ge
-    geochemistry).
-
-    Chemistry-audit gap-fill pass (Apr 2026): added Ag (Tsumeb's
-    silver suite), Ge (the type-locality element), Sb (proustite-
-    pyrargyrite + tetrahedrite enabling), Na/K (minor groundwater
-    cation traces). Existing 8-event sequence preserved; existing
-    Mg=5, Co/Ni-via-event preserved.
-    """
-    conditions = VugConditions(
-        temperature=35.0,          # shallow water-table zone
-        pressure=0.05,             # near-surface
-        fluid=FluidChemistry(
-            # CO3 80 → 110 so azurite's high-pCO2 gate (CO3 ≥ 120 after
-            # meteoric flush adds 30) can be reached in a limestone-
-            # hosted supergene vug. Real azurite localities (Bisbee,
-            # Chessy, Tsumeb) all have limestone or dolomite wall rock.
-            SiO2=30, Ca=120, CO3=110, Fe=40, Mn=6, Mg=5,
-            Zn=90, S=50, F=3,
-            # Cu 25 → 55: enough to feed chalcocite/bornite at supergene
-            # enrichment zones (real supergene fluids run 50–200 ppm Cu²⁺
-            # above the enrichment blanket). Pb bumped 35 → 60 for
-            # anglesite/cerussite/pyromorphite saturation.
-            Cu=55, Pb=60, Mo=15,
-            As=12, Cl=20,
-            # Vanadium trace — roll-front / red-bed signature. Low
-            # starting value; bumped later by ev_v_bearing_seep.
-            V=1.5,
-            # Phosphorus trace — meteoric water typically carries <1 ppm P;
-            # pyromorphite's gate is P>2, so it waits for a phosphate
-            # event later in the scenario.
-            P=0.5,
-            # ── Audit gap-fills (Apr 2026) ────────────────────────────
-            # Ag=8: Tsumeb is one of the most argentiferous deposits
-            # ever — native silver, argentiferous galena, proustite,
-            # pyrargyrite, stephanite. Existing Cl=20 + new Ag=8
-            # supports chlorargyrite chemistry too [Pinch & Wilson 1977].
-            Ag=8,
-            # Ge=5: Tsumeb is THE type locality for germanium.
-            # Germanite (Cu26Fe4Ge4S32), renierite (Cu,Zn)11(Ge,As)2Fe4S16,
-            # and briartite were all first described from Tsumeb.
-            # FluidChemistry's Ge field has carried a "Tsumeb speciality"
-            # comment since the schema was written — this audit finally
-            # populates it [Melcher 2003 — Tsumeb Ge geochemistry].
-            Ge=5,
-            # Sb=5: enables proustite (Ag3SbS3) and pyrargyrite (Ag3SbS3)
-            # — the ruby silvers — plus tetrahedrite. Mirrors the
-            # Bisbee-style Sb-As-Bi greisen-trace abstraction at lower
-            # supergene-zone abundance.
-            Sb=5,
-            # Na=30, K=10: minor groundwater cation traces. Supergene
-            # meteoric water is dilute (salinity stays at 2 wt%) but
-            # carries some Na/K from soil-zone weathering.
-            Na=30, K=10,
-            # Au=0.3: rare native gold IS documented at Tsumeb [Pinch
-            # & Wilson 1977] though it is not a primary commodity.
-            # Sub-threshold (grow_native_gold's Au < 0.5 ppm cutoff)
-            # so no nucleation expected — documents the trace chemistry
-            # without producing gold the locality doesn't actually
-            # produce in quantity.
-            Au=0.3,
-            # ── v5 gap-fill (Apr 2026) ────────────────────────────────
-            # Al=25 (was default 3.0): Tsumeb supergene fluid carries
-            # significant Al³⁺ from feldspar weathering during the
-            # acid-sulfate phase (alunite is the diagnostic alteration
-            # mineral of the lithocap). Bumped to 25 (above the
-            # alunite engine's al_f=Al/25 cap) so alunite sigma can
-            # cross threshold during the brief 15-step acid window.
-            # Source: Hemley et al. 1969 (alunite stability + Al
-            # solubility under acid-sulfate conditions); Stoffregen
-            # et al. 2000 (alunite-jarosite paragenesis review).
-            Al=25,
-            # W=20: Round 8d-1 (Apr 2026). Tsumeb's deep oxidation
-            # zone hosts minor scheelite + the lead-tungstate suite
-            # (raspite + stolzite — both PbWO₄ polymorphs) [Strunz
-            # 1959]. Activates dormant W pool for the new tungstate
-            # engines.
-            W=20,
-            # ──────────────────────────────────────────────────────────
-            O2=1.8, pH=6.8, salinity=2.0,
-        ),
-        # Supergene oxidation front — 3 primary + 7 secondary bubbles
-        # model complex meteoric dissolution cavity formation.
-        wall=VugWall(primary_bubbles=3, secondary_bubbles=7, shape_seed=7),
-    )
-
-    def ev_supergene_acidification(cond):
-        """Early acidic phase: H₂SO₄ from sulfide oxidation drops pH.
-
-        Geological reality: when primary sulfides (galena, sphalerite,
-        chalcopyrite) first oxidize at the supergene front, they
-        release H₂SO₄ that drops local pH well below the carbonate-
-        buffered late-stage equilibrium of pH 6.8. The acid window
-        is the formation environment for scorodite + jarosite +
-        alunite — all three need pH < 5 to nucleate. The carbonate
-        host then buffers pH back up over time (modeled by
-        ev_meteoric_flush at step 20 reseting pH to 6.2).
-
-        v5 gap-fill (Apr 2026): added to close the Tsumeb pH gap
-        documented in BACKLOG.md after Round 5. Without this event,
-        scorodite / jarosite / alunite couldn't form at Tsumeb
-        despite being world-class display species there.
-        """
-        cond.fluid.pH = 4.0
-        cond.fluid.O2 = 1.5  # already oxidizing, slight bump from O2=1.8 baseline
-        cond.fluid.S += 20   # H₂SO₄ contributes SO₄²⁻ to fluid
-        return ("Early acidic supergene phase. Primary sulfides oxidize "
-                "and release H₂SO₄ — pH drops to 4.0, opening the acid "
-                "window for the arsenate + sulfate suite (scorodite, "
-                "jarosite, alunite). Carbonate buffering will reverse "
-                "this at the meteoric flush; the acid-stable phases "
-                "form during this short ~15-step window.")
-
-    def ev_meteoric_flush(cond):
-        """Rain-fed oxygenated water recharges the aquifer."""
-        cond.fluid.O2 = 2.2
-        cond.fluid.CO3 += 30
-        cond.fluid.pH = 6.2
-        cond.flow_rate = 1.5
-        return ("Rain infiltrates the soil zone and percolates down, picking "
-                "up CO₂ and oxygen. Fresh supergene brine — cold, oxygen-rich, "
-                "slightly acidic. Any remaining primary sulfides are on borrowed time.")
-
-    def ev_pb_mo_pulse(cond):
-        """A fracture opens to a primary galena/molybdenite source — Pb and Mo surge."""
-        cond.fluid.Pb += 40
-        cond.fluid.Mo += 25
-        cond.fluid.O2 = 2.0
-        cond.flow_rate = 2.0
-        return ("A weathering rind breaches: Pb²⁺ and MoO₄²⁻ released "
-                "simultaneously from an oxidizing galena+molybdenite lens. "
-                "The Seo et al. (2012) condition for wulfenite formation — "
-                "both parents dying at once — is met.")
-
-    def ev_dry_spell(cond):
-        """Evaporation concentrates sulfate → selenite potential."""
-        cond.fluid.Ca += 40
-        cond.fluid.S += 30
-        cond.fluid.O2 = 1.5
-        cond.temperature = 50  # slight warming, still well below 60°C anhydrite line
-        cond.flow_rate = 0.3
-        return ("Dry season. Flow slows, evaporation concentrates the brine. "
-                "Ca²⁺ and SO₄²⁻ climb toward selenite's window — the desert-rose "
-                "chemistry, the Naica chemistry.")
-
-    def ev_as_rich_seep(cond):
-        """Arsenic-bearing seep — feeds adamite + mimetite + erythrite + annabergite."""
-        cond.fluid.As += 8
-        cond.fluid.Cl += 10
-        cond.fluid.Zn += 20
-        # Cobalt + nickel arsenide weathering delivers Co²⁺ and Ni²⁺ alongside
-        # the arsenate flood — the erythrite/annabergite cobalt-and-nickel bloom
-        # couple only saturate when this event fires.
-        cond.fluid.Co += 20
-        cond.fluid.Ni += 20
-        cond.fluid.pH = 6.0
-        cond.temperature = 25   # cool to the erythrite/annabergite optimum window
-        return ("An arsenic-bearing seep arrives from a weathering "
-                "arsenopyrite body upslope, carrying trace cobalt and "
-                "nickel from parallel oxidizing arsenides. Zn²⁺ saturates "
-                "adamite; Pb²⁺ saturates mimetite; Co²⁺ and Ni²⁺ begin "
-                "to bloom as crimson erythrite and apple-green annabergite.")
-
-    def ev_cu_enrichment(cond):
-        """Primary chalcopyrite weathers upslope — Cu²⁺ descends.
-        Representative of the supergene enrichment zone's feed: Cu
-        released from an oxidizing chalcopyrite lens travels with the
-        water table, accumulates above reducing substrates below, and
-        precipitates as bornite/chalcocite/covellite.
-
-        Drops fluid O2 to 0.6 for a window — the sim's 1D O2 can't
-        directly model the Eh gradient between the oxidized cap and
-        reduced substrate, so we brute-force simulate 'Cu-rich fluid
-        hit the reducing layer' by briefly pulling fluid O2 down.
-        Ambient cooling will re-oxidize it within ~10 steps."""
-        cond.fluid.Cu += 50.0
-        cond.fluid.S += 30.0   # chalcopyrite is 35% S — significant release
-        cond.fluid.Fe += 10.0
-        cond.fluid.O2 = 0.6   # local reducing pulse at the enrichment zone
-        return ("A primary chalcopyrite lens upslope finishes oxidizing. "
-                "Cu²⁺ descends with the water table and hits the reducing "
-                "layer below — the supergene enrichment blanket, where "
-                "mineable copper ore gets made. Bornite precipitates on "
-                "the upgradient edge, chalcocite in the core, covellite "
-                "where S activity is highest. Real orebodies are often "
-                "5–10× richer here than in the primary sulfide below.")
-
-    def ev_phosphate_seep(cond):
-        """Phosphate-bearing groundwater — enables pyromorphite."""
-        cond.fluid.P += 6.0
-        cond.fluid.Cl += 5.0
-        cond.fluid.pH = 6.4
-        return ("A phosphate-bearing groundwater seeps in from the soil "
-                "zone — organic decay, weathered apatite bedrock, bat guano "
-                "from above. P jumps past pyromorphite's saturation "
-                "threshold, and any Pb still in solution has a new home.")
-
-    def ev_v_bearing_seep(cond):
-        """V-bearing fluid from red-bed sediments — enables vanadinite."""
-        cond.fluid.V += 6.0
-        cond.fluid.Cl += 8.0
-        cond.temperature = 45   # late dry phase, slight warming
-        return ("A vanadium-bearing seep arrives from a weathering red-bed "
-                "ironstone upslope. V⁵⁺ leaches from oxidizing roll-front "
-                "vanadates, and at Pb + V + Cl saturation the bright "
-                "red-orange vanadinite nucleates — the classic "
-                "'vanadinite on goethite' habit of the Morocco / Arizona "
-                "desert deposits.")
-
-    def ev_fracture_seal(cond):
-        """System seals — final equilibration."""
-        cond.flow_rate = 0.05
-        cond.fluid.O2 = 1.0
-        return ("The feeding fractures seal. The vug becomes a closed cold "
-                "oxidizing system. Whatever is supersaturated will precipitate; "
-                "whatever is undersaturated will quietly corrode.")
-
-    events = [
-        # Acid phase — fires at 4 steps (5, 8, 12, 16) to maintain the acid
-        # window against the limestone wall's pH-buffering. Without the
-        # repeated pulses, the carbonate host neutralizes pH back to 6+
-        # within ~5 steps; with them, pH stays in the 3.5-5 range until
-        # ev_meteoric_flush (step 20) ends the phase. This 15-step window
-        # is when scorodite + jarosite + alunite nucleate.
-        Event(5,   "Acid Phase",        "Early sulfide oxidation drops pH",        ev_supergene_acidification),
-        Event(8,   "Acid Continues",    "Sulfide-oxidation acid persists",         ev_supergene_acidification),
-        Event(12,  "Acid Continues",    "Carbonate buffer overrun",                 ev_supergene_acidification),
-        Event(16,  "Acid Final Pulse",  "Last sulfide-oxidation pulse",            ev_supergene_acidification),
-        Event(20,  "Meteoric Flush",  "Oxygenated rainwater recharges",          ev_meteoric_flush),
-        Event(40,  "Pb+Mo Pulse",     "Galena+molybdenite weathering",           ev_pb_mo_pulse),
-        Event(55,  "Cu Enrichment",   "Primary chalcopyrite upslope weathers",   ev_cu_enrichment),
-        Event(70,  "Dry Spell",       "Evaporation concentrates sulfate",        ev_dry_spell),
-        Event(95,  "Arsenic Seep",    "Zn/Pb arsenate saturation",               ev_as_rich_seep),
-        Event(115, "Phosphate Seep",  "Soil-zone PO₄ enables pyromorphite",      ev_phosphate_seep),
-        Event(130, "V-bearing Seep",  "Red-bed V leaches in, vanadinite fires",  ev_v_bearing_seep),
-        Event(160, "Fracture Seal",   "System closes",                            ev_fracture_seal),
-    ]
-    return conditions, events, 200
-
-
-def scenario_gem_pegmatite() -> Tuple[VugConditions, List[Event], int]:
-    """Minas Gerais Gem Pegmatite Pocket — anchored to the Cruzeiro mine,
-    Doce Valley, Minas Gerais (Variant A).
-
-    A miarolitic cavity in a complex zoned pegmatite at the São Francisco
-    craton margin. Brasiliano orogeny, 700–450 Ma. The outer pegmatite
-    shell (microcline + quartz + muscovite + schorl) has already
-    crystallized; this vug is the residual pocket where incompatible
-    elements (Be, B, Li, F) accumulate beyond belief before crossing
-    saturation and nucleating their exotic species.
-
-    Anchor: Cruzeiro mine (São José da Safira, Doce Valley, MG) — the
-    type-locality for fine schorl-elbaite tourmaline + smoky quartz
-    pockets, with documented beryl, spodumene, lepidolite, and
-    accessory apatite. Brasiliano-age (Neoproterozoic) pegmatite field
-    cutting Macaúbas Group meta-sediments. Morteani et al. 2002 covers
-    fluid chemistry; Cassedanne (1991) and Proctor (1985) cover the
-    Cruzeiro-specific paragenesis.
-
-    Thermal regime: 650 → 300°C over ~220 steps in three phases.
-    Phase 1 (650–550°C): wall-zone crystallization (microcline, quartz,
-    early schorl).
-    Phase 2 (550–400°C): main pocket growth. Beryl finally nucleates
-    when Be crosses threshold; spodumene when Li crosses; schorl
-    transitions to elbaite as Fe depletes and Li accumulates.
-    Phase 3 (400–300°C): late hydrothermal — topaz if F survives,
-    goethite if any Fe-sulfides weathered.
-
-    Saturation cascade mechanic: there is no explicit "nucleate beryl
-    now" command. Each mineral's supersaturation formula reads the
-    current fluid, and the nucleation gates fire in order naturally
-    as chemistry evolves — microcline first (K-feldspar = feldspar here),
-    then the Be/Li/B gates cross as incompatible elements build up.
-    """
-    conditions = VugConditions(
-        temperature=650.0,
-        pressure=3.0,
-        # Pegmatite country rock — silicate host (the granite shell around
-        # the miarolitic cavity). Not acid-reactive on sim timescales, so
-        # when the pocket fluid turns mildly acidic in phase 3 the pH
-        # actually stays low instead of getting buffered by carbonate
-        # dissolution. That's what lets grow_feldspar's kaolinization
-        # branch fire on the microcline crystal.
-        wall=VugWall(
-            composition="pegmatite",
-            thickness_mm=500.0,
-            vug_diameter_mm=50.0,
-            # Miarolitic gem pocket — 4 primary + 5 secondary bubbles,
-            # same shape family as the radioactive pegmatite.
-            primary_bubbles=4,
-            secondary_bubbles=5,
-            shape_seed=8,
-        ),
-        fluid=FluidChemistry(
-            # Pegmatite-level silica saturation — far above the quartz
-            # equilibrium at any T, so quartz is supersaturated throughout.
-            SiO2=8000,
-            # Al starts high enough that six competing silicate engines
-            # (feldspar, albite, quartz, tourmaline, beryl, spodumene)
-            # can all draw on it for the full scenario AND leave enough
-            # residual for topaz to nucleate in phase 3. 150 ppm is on
-            # the upper end of realistic pegmatite pocket fluid Al but
-            # within published ranges (London 2008, pegmatite fluid
-            # chemistry).
-            Ca=30, CO3=15, Fe=50, Mn=8, Al=150,
-            # Alkali feldspar chemistry — microcline first, then
-            # ev_albitization flips K → Na.
-            K=80, Na=40,
-            # Incompatible elements — these are the point of the scenario.
-            # All start above their respective mineral's minimum required
-            # threshold but below the nucleation σ threshold; they build
-            # (unused early) and then the cascade fires.
-            Be=25,     # beryl nucleation σ 1.8 — waits longest
-            B=35,      # tourmaline σ 1.3 — fires earliest once hot
-            Li=35,     # spodumene σ 1.5, also feeds elbaite
-            F=25,      # topaz σ 1.4 — fires late when T drops into window
-            # Color-element traces. Cr from the hinted ultramafic contact;
-            # Mn for morganite/kunzite/rubellite; Cu for the Paraíba long-
-            # shot (1 in 20 scenarios lands it given seed variance).
-            Cr=2.5, Cu=0.3, V=2.0, Ti=0.8,
-            # ── Audit gap-fills (Apr 2026) ────────────────────────────
-            # P=8: pegmatite residual pocket fluids are P-enriched —
-            # apatite (Ca5(PO4)3F) is a documented Cruzeiro accessory
-            # alongside the gem species. Existing Ca=30 + F=25 already
-            # support apatite chemistry; P=0 was the gate. Conservative
-            # value — apatite should nucleate as a minor accessory, not
-            # dominate the gem signature [Cassedanne 1991].
-            P=8,
-            # Mg=5: pegmatite residual pocket fluids are Mg-poor (Mg
-            # partitions strongly into outer-shell biotite/chlorite
-            # during pegmatite differentiation). Conservative; brief-
-            # required non-zero Mg.
-            Mg=5,
-            # ──────────────────────────────────────────────────────────
-            O2=0.1, pH=6.8, salinity=6.0,
-        )
-    )
-
-    def ev_outer_shell(cond):
-        """Phase 1: outer shell continues crystallizing, wall zone fills in."""
-        cond.temperature = 620
-        cond.flow_rate = 1.0
-        return ("The outer pegmatite shell is already cooling. Microcline "
-                "and quartz dominate the wall zone, growing inward into "
-                "the void. The pocket fluid inside is enriched in the "
-                "elements nothing else wanted: beryllium, boron, lithium, "
-                "fluorine. They haven't crossed any saturation thresholds "
-                "yet — they are simply accumulating.")
-
-    def ev_first_schorl(cond):
-        """Phase 1→2: Fe + B supersaturation crosses, schorl begins.
-        Schorl takes B and Fe — the first incompatible-element mineral
-        to fire in the cascade."""
-        cond.temperature = 560
-        cond.flow_rate = 0.9
-        return ("The pocket has cooled enough that tourmaline can form. "
-                "Boron has been accumulating in the fluid for thousands of "
-                "years; with Fe²⁺ still abundant, the schorl variety "
-                "nucleates. Deep black prisms begin projecting from the "
-                "wall. Each new zone records a fluid pulse — the "
-                "striations are the pocket's diary.")
-
-    def ev_albitization(cond):
-        """Phase 2: the albitization event. As quartz + K-feldspar
-        crystallize, the residual fluid's K/Na ratio inverts. Na now
-        dominates, and albite begins replacing microcline. Microcline
-        dissolution releases K back to the fluid (a second muscovite-
-        style pulse is implied). Textbook pegmatite replacement."""
-        cond.fluid.K = max(cond.fluid.K - 30, 10)     # K is consumed by microcline
-        cond.fluid.Na += 40                            # Na surges
-        cond.fluid.Al += 10                            # from feldspar breakdown
-        cond.fluid.pH += 0.2
-        cond.temperature = 500
-        return ("Albitization event. The pocket's K has depleted faster than "
-                "its Na — microcline starts dissolving and albite begins "
-                "precipitating in its place. K²⁺ returns to the fluid, "
-                "enabling a second generation of mica-like phases. This "
-                "replacement cascade is the most Minas Gerais thing about "
-                "a Minas Gerais pegmatite: the pocket is rearranging itself.")
-
-    def ev_be_saturation(cond):
-        """Phase 2: Be finally crosses beryl's nucleation threshold.
-        The dramatic moment the scenario builds toward."""
-        cond.temperature = 450
-        cond.flow_rate = 0.8
-        return ("Beryllium has been accumulating for a dozen thousand "
-                "years. Every earlier mineral refused it. Now σ crosses "
-                "1.8 and the first beryl crystal nucleates. Because Be "
-                "had so long to build, the crystal has a lot of material "
-                "waiting — this is how meter-long beryls form. What "
-                "color depends on who else is in the fluid. Morganite if "
-                "Mn won the lottery; aquamarine if Fe did; emerald if "
-                "Cr leached in from an ultramafic contact somewhere.")
-
-    def ev_li_phase(cond):
-        """Phase 2→3: temperature drops into the Li-bearing mineral
-        sweet spot. Spodumene and elbaite tourmaline compete for Li."""
-        cond.temperature = 420
-        cond.fluid.Fe = max(cond.fluid.Fe - 20, 5)   # Fe depleting — elbaite territory
-        return ("Temperature drops into the 400s. Lithium, which has been "
-                "accumulating since the beginning, is now abundant enough "
-                "to nucleate Li-bearing minerals. Spodumene will take "
-                "most of it — the Li pyroxene wants its own crystals. "
-                "Any remaining Li goes into elbaite overgrowths on the "
-                "schorl cores: the crystals become color-zoned as iron "
-                "depletes and lithium takes its place.")
-
-    def ev_late_hydrothermal(cond):
-        """Phase 3: below ~400°C, topaz window opens. Enough residual Al
-        survives in the pocket fluid (scenario started at 150 ppm, a
-        pegmatite-realistic level) for topaz to cross its σ threshold
-        once T drops into the optimum window."""
-        cond.temperature = 360
-        cond.fluid.pH = 5.5
-        cond.flow_rate = 0.5
-        return ("Late hydrothermal phase. Temperature drops into topaz's "
-                "optimum window (340–400°C). Fluorine has been sitting "
-                "unused — nothing else in this pocket consumed it — and "
-                "enough Al remains in the residual pocket fluid after "
-                "the main silicate crop has taken its share. Topaz "
-                "nucleates, projecting from the quartz lining.")
-
-    def ev_clay_softening(cond):
-        """Phase 3: the kaolinization event. pH drops past microcline's
-        stability threshold (pH < 4); the grow_feldspar engine
-        dissolution branch fires, breaking the K-feldspar crystal down
-        into kaolinite + K⁺ + SiO₂. Al is conserved in the new
-        kaolinite phase (the sim doesn't track kaolinite as a distinct
-        mineral — it's an implicit Al sink), so this event liberates K
-        and SiO₂ back to the fluid but NOT Al. Albite is more
-        acid-resistant (pH threshold 3) and survives at pH 3.5,
-        matching the field observation.
-
-        The narrative consequence: the pocket walls soften mechanically
-        as microcline → kaolinite, but the fluid's Al inventory stays
-        roughly the same. Late topaz already got its Al earlier when
-        the residual pocket fluid carried it."""
-        cond.temperature = 320
-        cond.fluid.pH = 3.5   # crosses microcline kaolinization threshold
-                              # (feldspar engine dissolves at pH < 4.0)
-        cond.flow_rate = 0.3
-        return ("pH drops into the kaolinization window. Microcline in "
-                "the pocket walls starts breaking down into kaolinite — "
-                "the signature 'clay gloop' that coats every Minas "
-                "Gerais gem pocket by the time garimpeiros crack it "
-                "open. The reaction 2 KAlSi₃O₈ + 2 H⁺ + H₂O → kaolinite "
-                "+ 2 K⁺ + 4 SiO₂ releases potassium and silica to the "
-                "fluid, but the aluminum stays locked in the new "
-                "kaolinite. Albite is more acid-resistant and survives "
-                "intact — a field observation preserved in the sim.")
-
-    def ev_final(cond):
-        """Phase 3 end: system cools to 300°C and then ambient over
-        deep time. No more growth, no more events."""
-        cond.temperature = 300
-        cond.flow_rate = 0.1
-        return ("The system cools to 300°C, below spodumene's window and "
-                "approaching topaz's lower edge. Growth slows to near-"
-                "zero. Deep time will do the rest: this pocket will wait "
-                "half a billion years before human hands crack it open, "
-                "and the garimpeiros will sort the crystals by color in "
-                "the order the fluid deposited them.")
-
-    events = [
-        Event(5,   "Outer Shell",      "Wall-zone microcline + quartz",           ev_outer_shell),
-        Event(30,  "Schorl Arrives",   "B + Fe²⁺ supersaturation — first tourmaline", ev_first_schorl),
-        Event(60,  "Albitization",     "K-feldspar → albite replacement cascade", ev_albitization),
-        Event(90,  "Be Saturation",    "Beryl finally nucleates — enormous crystals incoming", ev_be_saturation),
-        Event(130, "Li Phase",         "Spodumene + elbaite territory",           ev_li_phase),
-        Event(160, "Late Hydrothermal", "Topaz window opens — F survivors fire",   ev_late_hydrothermal),
-        Event(190, "Clay Softening",   "Kaolinite replaces pocket walls",         ev_clay_softening),
-        Event(215, "Final Cooling",    "System approaches 300°C floor",           ev_final),
-    ]
-    return conditions, events, 230
-
-
-def scenario_ouro_preto() -> Tuple[VugConditions, List[Event], int]:
-    """Ouro Preto Imperial Topaz Veins — Minas Gerais, Brazil (Variant B).
-
-    Hydrothermal veins cutting Precambrian phyllite and quartzite in the
-    Ouro Preto district. Fluid inclusion data (Morteani et al. 2002) puts
-    crystallization at ~360°C, 3.5 kbar from metamorphic brines derived
-    from devolatilization of phyllite.
-
-    Single clean cooling curve — 360°C → 50°C — the "anti-flash-quench"
-    of the gem-pegmatite scenarios. No thermal events, no pressure spikes.
-    One exhalation from the granite cooling below.
-
-    The gate: topaz can't nucleate until fluorine accumulates past a
-    saturation threshold. Early quartz grows alone. A mid-scenario
-    metamorphic dehydration event pumps F from the phyllite micas into
-    the fluid, and the vein transitions to imperial topaz territory. The
-    imperial color — golden-orange to pink — depends on Cr³⁺ dissolved
-    out of nearby ultramafic bodies; without chromium the topaz is
-    colorless or pale blue.
-    """
-    conditions = VugConditions(
-        temperature=360.0,
-        pressure=3.5,
-        fluid=FluidChemistry(
-            # Quartz-saturated metamorphic brine from devolatilizing phyllite.
-            # SiO2 1200 ppm is enough to supersaturate quartz at 360°C
-            # (silica_equilibrium at 360°C ≈ 1050 ppm) — quartz lines the
-            # vein walls first, as per real Ouro Preto paragenesis.
-            SiO2=1200, Ca=40, CO3=20, Fe=6, Mn=2, Al=15,
-            # Starts below F-threshold (20 ppm) — topaz waits for the pulse.
-            F=12,
-            # Trace Cr from nearby ultramafic contact. Starts sub-threshold;
-            # ev_cr_leach bumps it into the imperial-color window (3–8 ppm).
-            # Random seeds can push it past 8 (pink imperial) if the Cr leach
-            # lands on an already-elevated baseline.
-            Cr=0.5,
-            Ti=0.6,
-            # ── Audit gap-fills (Apr 2026) ────────────────────────────
-            # Na=60, K=40: phyllite devolatilization releases Na and K
-            # from breakdown of muscovite (KAl2[AlSi3O10](OH)2), biotite,
-            # and albite. Morteani et al. 2002 fluid inclusion data for
-            # Ouro Preto reports moderate-salinity metamorphic brines
-            # with Na > K (typical phyllite-devolatilization signature).
-            # The very-low salinity=3 stays — these values are
-            # consistent with low-TDS metamorphic brines, just need the
-            # individual cation accounting.
-            Na=60, K=40,
-            # Mg=15: phyllite chlorite + biotite breakdown. Conservative
-            # — Ouro Preto fluid is not Mg-rich (the host is quartzite +
-            # phyllite, not mafic). Brief-required non-zero Mg.
-            Mg=15,
-            # ──────────────────────────────────────────────────────────
-            O2=0.3, pH=6.5, salinity=3.0,
-        ),
-        # Ouro Preto topaz vein — 2 primary + 4 secondary bubbles;
-        # hydrothermal vein in quartzite reads as a small cohesive pocket.
-        wall=VugWall(primary_bubbles=2, secondary_bubbles=4, shape_seed=9),
-    )
-
-    def ev_vein_opening(cond):
-        """First fracture propagation — fresh hot fluid floods a narrow slot."""
-        cond.fluid.SiO2 += 150   # fresh silica supply
-        cond.temperature = 380
-        cond.flow_rate = 1.5
-        return ("The fracture opens. Fluid pressure exceeded lithostatic "
-                "pressure and the vein propagated upward — narrow, barely "
-                "wider than your hand. Fresh hot brine floods in at 380°C "
-                "and quartz starts lining the walls. The fluorine in the "
-                "fluid is still below saturation; topaz holds its breath.")
-
-    def ev_f_pulse(cond):
-        """Metamorphic dehydration of phyllite micas releases fluorine.
-        This is the gate-opener: F jumps past the topaz saturation threshold."""
-        cond.fluid.F += 30.0
-        cond.fluid.Al += 8.0
-        cond.temperature = 365
-        cond.flow_rate = 1.2
-        return ("A deeper wall of phyllite reaches the dehydration point. "
-                "Fluorine-bearing micas break down and release F⁻ into the "
-                f"vein fluid — F jumps to {cond.fluid.F:.0f} ppm, past the "
-                "topaz saturation threshold. The chemistry has just tipped. "
-                "Imperial topaz is now thermodynamically inevitable.")
-
-    def ev_cr_leach(cond):
-        """Fluid pathway crosses an ultramafic dike — Cr leaches in."""
-        cond.fluid.Cr += 4.0
-        cond.temperature = 340
-        return ("The vein system intersects an ultramafic dike on its way "
-                f"up. Chromium leaches into the fluid — Cr now {cond.fluid.Cr:.1f} ppm, "
-                "above the imperial-color window. Any topaz growing from "
-                "this pulse forward will catch Cr³⁺ in its structure. "
-                "Golden-orange is committed to the crystal.")
-
-    def ev_steady_cooling(cond):
-        """Main growth phase — slow steady cooling through the topaz window."""
-        cond.temperature = 320
-        cond.flow_rate = 1.0
-        return ("The main topaz growth phase. The vein cools steadily — "
-                "320°C now — and topaz is happily projecting from the "
-                "quartz-lined walls. Slow, clean layer-by-layer growth. "
-                "The crystals are recording the thermal history in their "
-                "growth zones and fluid inclusions; a microprobe traverse "
-                "across one of these crystals would read like a barometer.")
-
-    def ev_late_hydrothermal(cond):
-        """Dilute late fluid — F drops, kaolinite begins to form from feldspar."""
-        cond.temperature = 220
-        cond.fluid.pH = 5.5
-        cond.flow_rate = 0.6
-        return ("Late-stage dilute hydrothermal fluid — pH falling, F "
-                "depleted by topaz growth. Kaolinite begins replacing any "
-                "remaining feldspar in the wall rock; the vein walls soften. "
-                "Topaz's perfect basal cleavage means any shift in the "
-                "wall can snap a crystal off its base. Cleavage fragments "
-                "will accumulate on the pocket floor.")
-
-    def ev_oxidation_stain(cond):
-        """System opens to oxidizing surface water — goethite staining."""
-        cond.temperature = 90
-        cond.fluid.O2 = 1.6
-        cond.fluid.Fe += 20
-        cond.flow_rate = 0.3
-        return ("Surface water finds the vein. The system oxidizes — "
-                "meteoric O₂ reaches the pocket, iron precipitates as "
-                "goethite, and the final topaz generation sits in a "
-                "limonite-stained matrix. The assemblage that garimpeiros "
-                "will find in 400 Ma is now fully set.")
-
-    def ev_final_cooling(cond):
-        """System reaches near-ambient temperature — story ends."""
-        cond.temperature = 50
-        cond.flow_rate = 0.05
-        return ("The vein cools to near-ambient. What remains is the "
-                "assemblage: milky quartz lining the walls, imperial topaz "
-                "prisms projecting inward, fluid inclusion planes across "
-                "every crystal, iron-stained fractures. The exhalation has "
-                "finished. The vug now waits for time.")
-
-    events = [
-        Event(5,   "Vein Opening",       "Fracture propagates, fresh brine", ev_vein_opening),
-        Event(35,  "F-Pulse",             "Phyllite dehydration — F crosses saturation", ev_f_pulse),
-        Event(55,  "Cr Leach",            "Ultramafic dike contributes chromium", ev_cr_leach),
-        Event(90,  "Steady Cooling",      "Main topaz growth phase", ev_steady_cooling),
-        Event(150, "Late Hydrothermal",   "Kaolinite softening, F depleted", ev_late_hydrothermal),
-        Event(200, "Oxidation Stain",     "Goethite staining, surface water", ev_oxidation_stain),
-        Event(240, "Final Cooling",       "System approaches ambient", ev_final_cooling),
-    ]
-    return conditions, events, 260
-
-
-def scenario_bisbee() -> Tuple[VugConditions, List[Event], int]:
-    """Bisbee, Arizona — Warren Mining District, Cochise County.
-
-    The classic copper porphyry with a world-class oxidation zone. The
-    complete Cu paragenesis from primary sulfides through supergene
-    enrichment to the cyan-blue chrysocolla of the oxidation finale.
-
-    Host rock: a combo — Laramide quartz-monzonite porphyry intruded
-    into Paleozoic Escabrosa Limestone + Abrigo Formation. In the sim
-    this is represented as a limestone wall (the pH buffer, the CO₃
-    source for azurite) with scenario events that inject dissolved
-    SiO₂ from the surrounding silicate matrix weathering — the supply
-    path for late chrysocolla.
-
-    Centerpiece mechanic: the azurite ↔ malachite ↔ chrysocolla
-    cascade. Azurite dominates at high pCO₂ (event 4, CO₃ ≥ 120 ppm).
-    A pCO₂-drop event (event 6) dissolves azurite and fires
-    malachite. A silica-seep event (event 7) dissolves malachite-
-    without-silica and fires chrysocolla pseudomorphs on the
-    remaining azurite crystals. Three carbonate/silicate phases
-    recording three different groundwater chemistries, each one
-    freezing a different step of the Cochise County monsoon.
-
-    References:
-      * Graeme, Graeme & Graeme (2019) — the modern Bisbee monograph
-      * Bryant (1968), Crane (1911) — district geology
-      * Vink (1986) — azurite ↔ malachite pCO₂ thermodynamics
-      * Mote et al. (2001) — supergene chrysocolla geochemistry
-    """
-    conditions = VugConditions(
-        # Primary porphyry stage — hot magmatic-hydrothermal brine.
-        # Graeme et al. 2019 fluid inclusion data: 320–450 °C,
-        # 0.5–1.5 kbar, hypersaline (35–55 wt% NaCl eq).
-        temperature=400.0,
-        pressure=1.0,
-        fluid=FluidChemistry(
-            # Cu 400 ppm — upper end of primary porphyry; the whole
-            # district budget. Concentrated in the sim relative to
-            # nature because we don't model the open-system leaching
-            # that strips Cu from 10 km³ of rock into a small pocket.
-            SiO2=500, Ca=60, CO3=30, Fe=200, Mn=4,
-            Cu=400, S=150, F=6, Cl=400, Pb=15,
-            K=80, Na=120, Al=20,
-            # Trace — arsenic from arsenopyrite, bismuth greisen
-            # signature (Bisbee has documented bismuth enrichment).
-            As=8, Bi=2,
-            # ── Audit gap-fills (Apr 2026) ────────────────────────────
-            # Ag=40: Bisbee / Warren District was a major Ag producer
-            # (~25 Moz historically) alongside Cu and Au. Argentiferous
-            # galena + tetrahedrite + argentite + minor native Ag are
-            # documented [Graeme et al. 2019]. Higher than the prior
-            # MVT scenarios (Tri-State Ag=5, Sweetwater Ag=3) reflecting
-            # Bisbee's Ag-rich character.
-            Ag=40,
-            # Mg=50: Escabrosa Limestone host is dolomitic in places;
-            # brine Mg from carbonate dissolution. Conservative —
-            # Bisbee doesn't have prominent dolomitization, but the
-            # brief requires every scenario have non-zero Mg.
-            Mg=50,
-            # P=5: enables pyromorphite (Pb-Cl-PO4) given existing
-            # Pb=15 + Cl=400 + supergene oxidation events. Bisbee has
-            # documented pyromorphite as a minor supergene Pb species
-            # alongside cerussite and anglesite [Graeme et al. 2019].
-            P=5,
-            # Sb=5: tetrahedrite (Cu-Sb-S) is the documented sulfosalt
-            # at Bisbee. Bi=2 is already set; mirroring with comparable
-            # low Sb completes the Sb-As-Bi greisen-trace triplet.
-            Sb=5,
-            # Au=3: Bisbee was a moderate Au producer (~3 Moz
-            # historically), classic Cu-Au porphyry. Slightly higher
-            # than Bingham's Au=2 reflecting Bisbee's well-preserved
-            # supergene zone where Au accumulates as native gold +
-            # auriferous chalcocite [Graeme et al. 2019]. Activated
-            # when grow_native_gold landed (was previously in
-            # pending_schema_additions).
-            Au=3,
-            # Co=80, Ni=70 — Round 8c-1 (Apr 2026). Bisbee's deep
-            # primary sulfide assemblage includes minor Co/Ni-bearing
-            # sulfarsenide phases (cobaltite + nickeline + safflorite)
-            # documented in the historical assays [Graeme et al. 2019,
-            # citing Bryant 1968]. Activates the dormant Co/Ni pools
-            # for the new sulfarsenide engines (cobaltite, nickeline,
-            # millerite) and feeds the existing erythrite + annabergite
-            # supergene arsenates further down the cascade. SIM_VERSION
-            # already at 8 from Round 8a; baseline shifts captured by
-            # the existing v8 baseline regen.
-            Co=80, Ni=70,
-            # ──────────────────────────────────────────────────────────
-            # Very reducing primary — chalcopyrite/bornite-stable.
-            O2=0.05, pH=5.0, salinity=30.0
-        ),
-        wall=VugWall(
-            composition="limestone",
-            thickness_mm=500.0,
-            vug_diameter_mm=50.0,
-            wall_Fe_ppm=2500.0,
-            wall_Mn_ppm=400.0,
-            # Primary cavity dug by magmatic-hydrothermal replacement
-            # of limestone. Secondary alcoves from the supergene
-            # overprint. 3+7 matches the supergene_oxidation profile.
-            primary_bubbles=3,
-            secondary_bubbles=7,
-            shape_seed=13,
-        )
-    )
-
-    def ev_primary_cooling(cond):
-        """First cooling step — chalcopyrite and bornite crystallize,
-        pyrite + magnetite pin down the Fe budget. Still reducing."""
-        cond.temperature = 320
-        cond.fluid.SiO2 += 100     # late-stage silica injection
-        cond.fluid.Cu -= 50        # some Cu locked into early sulfides
-        cond.fluid.O2 = 0.08
-        cond.flow_rate = 1.2
-        return ("The Sacramento Hill porphyry finishes its main crystallization "
-                "pulse. Chalcopyrite and bornite precipitate in the vein selvages "
-                "of the Escabrosa mantos — Cu:Fe:S in the magmatic ratio. Pyrite "
-                "frames the assemblage, locked in at 300+ °C. The ore body is set. "
-                "For 180 million years, nothing will happen.")
-
-    def ev_uplift_weathering(cond):
-        """Uplift exposes the ore to meteoric water. Pyrite oxidizes,
-        releasing H⁺ and SO₄. pH drops — the supergene engine starts."""
-        cond.temperature = 35
-        cond.fluid.pH = 4.0         # acidic from pyrite oxidation
-        cond.fluid.O2 = 0.8         # oxygenated meteoric water
-        cond.fluid.S += 80          # sulfate released from pyrite
-        cond.fluid.Cu += 100        # Cu²⁺ leached from primary chalcopyrite
-        cond.fluid.Fe += 50
-        cond.flow_rate = 1.8
-        return ("Mesozoic–Cenozoic uplift tips the Warren basin and strips the "
-                "Cretaceous cover. Meteoric water percolates down through "
-                "fractures, hitting pyrite; sulfuric acid is the first product. "
-                "The pH crashes to 4, and Cu²⁺ starts descending with the water "
-                "table. This is the enrichment pulse — primary ore above is "
-                "dissolving, concentrating its copper at the redox interface "
-                "below.")
-
-    def ev_enrichment_blanket(cond):
-        """Descending Cu²⁺ hits the reducing front beneath the water table.
-        Chalcocite and covellite mantle the remaining primary sulfides —
-        the high-grade supergene enrichment zone."""
-        cond.temperature = 30
-        cond.fluid.Cu += 80         # still descending from above
-        cond.fluid.S += 40
-        cond.fluid.O2 = 0.6         # right at the redox front
-        cond.fluid.pH = 4.5
-        cond.flow_rate = 1.3
-        return ("The descending Cu²⁺-bearing fluid reaches the reducing layer "
-                "just below the water table. Chalcocite replaces chalcopyrite "
-                "atom-for-atom — the Bisbee enrichment blanket, 5–10× the "
-                "primary grade. Covellite forms where S activity is highest. "
-                "This is the mineable ore. For two generations of miners, this "
-                "is what Bisbee MEANS.")
-
-    def ev_reducing_pulse(cond):
-        """Brief reducing pulse — a barren deep fluid displaces the
-        sulfate-rich enrichment brine. Eh drops below cuprite stability
-        for a short window and native copper precipitates as arborescent
-        sheets in fracture fillings. Accounts for the isolated native-Cu
-        pockets that occur throughout the Bisbee oxidation zone.
-
-        Needs strong chemistry: native-Cu's supersaturation floor
-        demands very low O₂ (the floor clause in red_f kicks in above
-        0.3), S below sulfide threshold, and Cu well above 80 ppm.
-        """
-        cond.fluid.O2 = 0.05         # strongly reducing
-        cond.fluid.S = 15             # sulfate almost entirely flushed
-        cond.fluid.Cu += 150          # Cu²⁺ surges from above
-        cond.fluid.pH = 6.0
-        cond.temperature = 28
-        cond.flow_rate = 1.1
-        return ("A barren reducing fluid pulses up from depth — lower than "
-                "any water table. For a few thousand years the pocket's Eh "
-                "is below cuprite stability. Native copper precipitates in "
-                "the fracture selvages as arborescent sheets and wire. The "
-                "Bisbee native-copper specimens — the Cornish-style copper "
-                "trees — are products of exactly these brief windows.")
-
-    def ev_oxidation_zone(cond):
-        """Water table drops further; the whole system oxidizes. Cuprite
-        mantles the native copper sheets — the narrow Eh band between
-        sulfide-stable and fully-oxidized."""
-        cond.temperature = 25
-        cond.fluid.O2 = 1.0          # oxidizing but not fully
-        cond.fluid.pH = 6.2          # limestone buffer kicks in
-        cond.fluid.S = max(cond.fluid.S - 60, 20)  # sulfate flushed
-        cond.fluid.Cu += 40
-        cond.fluid.Fe -= 30          # goethite locks up Fe
-        cond.fluid.CO3 += 30         # limestone dissolution starts
-        cond.flow_rate = 1.0
-        return ("The water table drops another 50 meters. The enrichment "
-                "blanket is now in the unsaturated zone — oxygen reaches it "
-                "directly. Cuprite forms where the Eh is still low; native "
-                "copper sheets grow in the fractures where reducing pockets "
-                "survive. The limestone walls are finally participating — "
-                "pH climbs toward neutral, and CO₃ rises with it.")
-
-    def ev_azurite_peak(cond):
-        """High pCO₂ groundwater surges through — azurite forms in the
-        limestone-hosted chambers. This is the Bisbee blue."""
-        cond.fluid.CO3 += 80          # pCO₂ peak, limestone actively dissolving
-        cond.fluid.Cu += 30
-        cond.fluid.O2 = 1.3
-        cond.fluid.pH = 7.0
-        cond.flow_rate = 0.9
-        return ("A monsoon season — the first in many. CO₂-charged rainwater "
-                "infiltrates fast, dissolves limestone aggressively, and hits "
-                "the copper pocket at pH 7 with CO₃ at 110+ ppm. Azurite — "
-                "deep midnight-blue monoclinic prisms and radiating rosettes "
-                "— nucleates from the supersaturated brine. This phase "
-                "produces the showpiece 'Bisbee Blue' specimens.")
-
-    def ev_co2_drop(cond):
-        """pCO₂ drops as the monsoon seasonal pattern shifts. Azurite
-        becomes thermodynamically unstable; existing crystals begin
-        converting to malachite (pseudomorphs). Fresh malachite nucleates
-        from the released Cu + CO₃."""
-        cond.fluid.CO3 = max(cond.fluid.CO3 - 120, 50)  # crash below azurite threshold
-        cond.fluid.O2 = 1.4
-        cond.fluid.pH = 6.8
-        cond.flow_rate = 0.7
-        return ("The climate dries. Without CO₂-charged infiltration the "
-                "pocket's pCO₂ falls below azurite's stability — every "
-                "azurite crystal in the vug starts converting. The color "
-                "shift creeps crystal-by-crystal: deep blue → green rind → "
-                "green core. Vink (1986) put the crossover at log(pCO₂) ≈ "
-                "−3.5 at 25 °C, right where we are. Malachite pseudomorphs "
-                "after azurite are the diagnostic Bisbee specimen — frozen "
-                "mid-transition.")
-
-    def ev_silica_seep(cond):
-        """Percolating groundwater now carries dissolved SiO₂ leached from
-        the quartz-monzonite porphyry upslope. Chrysocolla starts forming
-        wherever Cu²⁺ meets SiO₂ — crusts over cuprite/native copper,
-        pseudomorphs surviving azurite."""
-        cond.fluid.SiO2 += 90        # porphyry weathering delivers silica
-        cond.fluid.Cu += 20
-        cond.fluid.CO3 = max(cond.fluid.CO3 - 30, 20)   # CO₂ still trending down
-        cond.fluid.pH = 6.5
-        cond.fluid.O2 = 1.3
-        cond.flow_rate = 0.8
-        return ("A new seep arrives — from weathering of the Sacramento Hill "
-                "quartz-monzonite porphyry uphill, not the limestone. It "
-                "brings dissolved SiO₂ at 100+ ppm. Where this fluid meets "
-                "the Cu²⁺ still in solution the cyan enamel of chrysocolla "
-                "precipitates: thin films over cuprite, botryoidal crusts "
-                "on native copper, and — the Bisbee centerpiece — "
-                "pseudomorphs replacing the last azurite blues.")
-
-    def ev_final_drying(cond):
-        """Flow stops. The system seals. The assemblage the miners will
-        find a million years from now is committed."""
-        cond.temperature = 20
-        cond.flow_rate = 0.1
-        cond.fluid.O2 = 1.0
-        return ("The fractures seal with calcite cement. Groundwater stops. "
-                "The pocket is a closed system again, this time with the "
-                "full oxidation assemblage frozen in place: chalcopyrite "
-                "cores wrapped in chalcocite, those wrapped in cuprite, "
-                "those overgrown by native copper, those overgrown by "
-                "azurite, those converted to malachite, those pseudomorphed "
-                "by chrysocolla. A million years from now, when a mining "
-                "shaft intersects this pocket, an assayer will photograph "
-                "the specimen and write 'Bisbee, Cochise County' on the "
-                "label.")
-
-    events = [
-        Event(25,  "Primary Cooling",      "Chalcopyrite + bornite lock in",    ev_primary_cooling),
-        Event(65,  "Uplift + Weathering",  "Meteoric acid strips primary ore",  ev_uplift_weathering),
-        Event(95,  "Enrichment Blanket",   "Chalcocite replaces chalcopyrite",  ev_enrichment_blanket),
-        Event(120, "Reducing Pulse",       "Native copper fracture fillings",   ev_reducing_pulse),
-        Event(145, "Oxidation Zone",       "Cuprite mantles native copper",     ev_oxidation_zone),
-        Event(180, "Azurite Peak",         "High-pCO₂ monsoon — Bisbee Blue",   ev_azurite_peak),
-        Event(225, "pCO₂ Drop",            "Azurite → malachite conversion",    ev_co2_drop),
-        Event(265, "Silica Seep",          "Chrysocolla crusts + pseudomorphs", ev_silica_seep),
-        Event(305, "Final Drying",         "Fractures seal, system locks",      ev_final_drying),
-    ]
-    return conditions, events, 340
-
-
-def scenario_deccan_zeolite() -> Tuple[VugConditions, List[Event], int]:
-    """Deccan Traps zeolite vesicle — Stage III (~21–58 Ma post-eruption).
-
-    Per Ottens et al. 2019, the Deccan basalt vesicles fill in stages over
-    tens of millions of years. Stage I (early): silica veneers, chalcedony
-    coating. Stage II: zeolite blades (stilbite, scolecite, heulandite) and
-    early calcite. Stage III: the apophyllite stage — alkaline K-Ca-Si-F
-    fluid percolates through cooled basalt vesicles and crystallizes pseudo-
-    cubic apophyllite blocks, sometimes carrying hematite-needle phantoms
-    (the 'bloody apophyllite' of Nashik).
-
-    Compared to the metamorphic / hydrothermal scenarios, this is gentle:
-    no acid pulses, no dramatic T excursions. The story is patient
-    crystallization in alkaline groundwater over geologic time.
-    """
-    conditions = VugConditions(
-        temperature=250.0,        # hot Stage I post-eruption
-        pressure=0.05,            # vesicle in basalt — atmospheric-ish
-        fluid=FluidChemistry(
-            # Alkaline silica-rich groundwater leaching the basalt:
-            # high SiO2 from glass + plagioclase weathering, low K and F
-            # initially — those climb in Stage III when alkali-rich
-            # groundwater finally percolates through, gating apophyllite
-            # behind that explicit pulse so it doesn't preempt hematite.
-            # Iron is already abundant from basalt groundmass leaching;
-            # combined with high O2 it lets Stage I deposit hematite
-            # needles before Stage III brings apophyllite.
-            SiO2=900, Ca=180, CO3=80, Fe=180, Mn=4, Mg=8, Al=15,
-            K=2, Na=40, F=1,
-            # Audit gap-fill (Apr 2026): Sr=2 — Deccan zeolites
-            # (heulandite, stilbite, mesolite) carry Sr substituting
-            # for Ca, sometimes 100s of ppm in the mineral. Sim-scale
-            # 2 ppm in the parent fluid documents the source. Brief-
-            # required non-zero Mg already covered by Mg=8.
-            Sr=2,
-            O2=1.5, pH=8.2, salinity=2.0,
-        ),
-        # Vesicle in basalt — a single primary cavity with minor
-        # post-eruption coalescence. Smooth, sub-spherical.
-        wall=VugWall(
-            composition="basalt",
-            thickness_mm=200.0,
-            vug_diameter_mm=50.0,
-            wall_Fe_ppm=8000.0,    # iron-rich basalt host
-            wall_Mn_ppm=400.0,
-            primary_bubbles=2,
-            secondary_bubbles=3,
-            shape_seed=21,         # Deccan eruption ~66 Ma
-        ),
-    )
-
-    def ev_silica_veneer(cond):
-        """Stage I: hot early silica + hematite needle deposition."""
-        cond.fluid.SiO2 += 400
-        cond.fluid.Fe += 50
-        cond.fluid.O2 = 0.9
-        cond.temperature = 200
-        return ("Stage I — hot post-eruption hydrothermal fluid coats the "
-                "vesicle wall with chalcedony. Silica activity peaks; iron "
-                "stripped from the basalt groundmass deposits as hematite "
-                "needles on the chalcedony rind. These needles will become "
-                "the seeds for the 'bloody apophyllite' phantom inclusions "
-                "in Stage III.")
-
-    def ev_zeolite_stage_ii(cond):
-        """Stage II: zeolite blades + calcite."""
-        cond.fluid.Ca += 80
-        cond.fluid.K += 10
-        cond.fluid.SiO2 += 200
-        cond.fluid.pH = 8.5
-        cond.temperature = 130
-        return ("Stage II — zeolite blades begin to fill the vesicle. "
-                "Stilbite, scolecite, heulandite (modeled here as the "
-                "zeolite paragenesis pH/Si signature). Calcite forms "
-                "as a late-stage carbonate. The vug is filling slowly.")
-
-    def ev_apophyllite_stage_iii(cond):
-        """Stage III: apophyllite-saturating event."""
-        cond.fluid.K += 25
-        cond.fluid.Ca += 50
-        cond.fluid.SiO2 += 300
-        cond.fluid.F += 4
-        cond.fluid.pH = 8.8
-        cond.temperature = 150
-        return ("Stage III — the apophyllite-bearing pulse arrives, alkaline "
-                "K-Ca-Si-F groundwater. Per Ottens et al. 2019 this is the "
-                "long-lasting late stage, 21–58 Ma after the original eruption. "
-                "The pseudo-cubic apophyllite tablets begin to crystallize on "
-                "the wall, on the chalcedony, on the hematite needles already "
-                "present — wherever a nucleation site offers itself.")
-
-    def ev_hematite_pulse(cond):
-        """Iron pulse — produces the bloody apophyllite phantom zone."""
-        cond.fluid.Fe += 80
-        cond.fluid.O2 = 1.0
-        cond.temperature = 175
-        return ("An iron-bearing pulse threads through the vesicle. Hematite "
-                "needles seed the surfaces of any growing apophyllite. When "
-                "the apophyllite resumes crystallization, those needles get "
-                "trapped in the next growth zone — the Nashik 'bloody "
-                "apophyllite' phantom band.")
-
-    def ev_late_cooling(cond):
-        """Stage IV: late cooling, growth slows."""
-        cond.temperature = 80
-        cond.fluid.pH = 8.0
-        cond.flow_rate = 0.1
-        return ("Late cooling. The vesicle fluid drops back toward ambient. "
-                "Apophyllite growth slows but doesn't stop entirely; the "
-                "remaining K-Ca-Si-F supersaturation keeps adding micron-thin "
-                "growth zones on the existing crystals. Time, not chemistry, "
-                "becomes the limiting reagent.")
-
-    events = [
-        Event(20,  "Silica Veneer",       "Stage I early chalcedony coating",       ev_silica_veneer),
-        Event(35,  "Hematite Pulse",      "Iron seeds the vesicle wall — pre-zeolite needle deposition", ev_hematite_pulse),
-        Event(70,  "Zeolite Stage II",    "Stilbite + heulandite + calcite blades", ev_zeolite_stage_ii),
-        Event(110, "Apophyllite Stage III", "Alkaline K-Ca-Si-F pulse — apophyllite grows around the hematite needles, producing the 'bloody apophyllite' phantom band", ev_apophyllite_stage_iii),
-        Event(160, "Late Cooling",        "System cools toward ambient",            ev_late_cooling),
-    ]
-    return conditions, events, 200
-
-
-def scenario_sabkha_dolomitization() -> Tuple[VugConditions, List[Event], int]:
-    """Sabkha dolomitization — Coorong-style cycling brine.
-
-    Anchor: Coorong lagoon system (South Australia) and the Persian Gulf
-    sabkhas. The classic natural laboratory for direct-from-solution
-    dolomite formation. Surface T (~25°C), high-Mg evaporative brine,
-    seasonal flood-evaporate cycles that drive Ω across the dolomite
-    saturation boundary repeatedly.
-
-    Per Kim, Sun et al. (2023, Science 382:915), exactly this kind of
-    cyclic Ω modulation is what's needed to produce ordered dolomite at
-    ambient T. The acid-pulse-and-relax style of reactive_wall produces
-    only DISORDERED HMC because the dissolution events are too aggressive
-    (full dissolution rather than gentle surface etch). Sabkha tidal
-    pumping is the right kind of cycling — gentle, frequent, repeated.
-
-    Twelve flood/evap pulses over 240 steps produce ~12 dissolution-
-    precipitation cycles. With N₀=10 in the f_ord formula, this reaches
-    ORDERED (f_ord > 0.7) by mid-scenario. The result: true ordered
-    dolomite, the geological prize the Kim 2023 paper made accessible.
-    """
-    conditions = VugConditions(
-        # Coorong surface T — ambient. The Kim mechanism's whole point is
-        # that ordered dolomite at this T is achievable with cycling.
-        temperature=25.0,
-        pressure=0.05,            # near-surface lagoonal vug
-        fluid=FluidChemistry(
-            # Marine evaporative brine baseline (~3x seawater concentration):
-            # Mg high, Ca moderate, Mg/Ca ~3.5 (above 1, dolomite-favoring),
-            # CO3 modest, alkaline pH from photosynthetic mats. Na+Cl
-            # carry the salinity but don't drive minerals here.
-            SiO2=20, Ca=400, CO3=300, Fe=5, Mn=2, Mg=1400,
-            Na=10500, K=380, S=2700, F=2, Cl=18000,
-            # Sr is the bonus tracer — marine brines carry ~8 ppm Sr,
-            # gets concentrated by evaporation. Aragonite scavenges it.
-            Sr=20,
-            O2=1.5, pH=8.3, salinity=120.0,
-        ),
-        wall=VugWall(
-            composition="limestone",   # Coorong lagoon floor is bioclastic carbonate
-            thickness_mm=300.0,
-            vug_diameter_mm=30.0,
-            wall_Fe_ppm=200.0,
-            wall_Mn_ppm=50.0,
-            primary_bubbles=2,
-            secondary_bubbles=4,
-            shape_seed=24,             # 24 hours = one tidal cycle
-        ),
-    )
-
-    def make_flood(idx):
-        """Tidal flood — incoming low-alkalinity seawater RESETS chemistry.
-
-        Each cycle resets to a defined low-σ state, modeling continuous
-        tidal pumping (otherwise progressive aragonite/gypsum precipitation
-        would drift the brine out of any defined regime within a few cycles).
-        Flood state: marine baseline with depressed CO₃ (river input), mid
-        Mg/Ca, alkaline pH but kinetically below dolomite saturation.
-        """
-        def fn(cond):
-            cond.fluid.Mg = 800     # marine baseline
-            cond.fluid.Ca = 250     # marine + bivalve dissolution
-            cond.fluid.CO3 = 50     # depressed by freshwater mixing
-            cond.fluid.Sr = 12
-            cond.fluid.pH = 8.0
-            cond.flow_rate = 1.5
-            return (f"Flood pulse #{idx}: low-alkalinity tidal seawater enters "
-                    f"the lagoon. CO₃ crashes from sabkha brine levels back to "
-                    f"~50 ppm. Dolomite supersaturation drops below 1 — the "
-                    f"disordered Ca/Mg surface layer detaches preferentially "
-                    f"(Kim 2023 etch).")
-        return fn
-
-    def make_evap(idx):
-        """Evaporation — sun concentrates the lagoon back to sabkha brine.
-
-        Set values are high enough that aragonite/selenite consumption
-        between events doesn't drag dolomite back below saturation —
-        the alkalinity reservoir from microbial mats is generous.
-        """
-        def fn(cond):
-            cond.fluid.Mg = 2000    # >5× seawater Mg (modern Coorong+)
-            cond.fluid.Ca = 600     # marine + microbial-mat dissolution
-            cond.fluid.CO3 = 800    # microbial mat alkalinity (high)
-            cond.fluid.Sr = 30
-            cond.fluid.pH = 8.4
-            cond.flow_rate = 0.1
-            cond.temperature = 28
-            return (f"Evaporation pulse #{idx}: sun bakes the lagoon. Brine "
-                    f"reconcentrates to sabkha state — Mg=2000, Ca=600, CO₃=800. "
-                    f"Dolomite saturation climbs back well above 1; growth "
-                    f"resumes on the ordered template the previous etch left "
-                    f"behind. Cycle #{idx} complete; ordering ratchets up.")
-        return fn
-
-    # Twelve flood/evap pairs over 240 steps — each pair = one Kim cycle.
-    events = []
-    for i in range(1, 13):
-        flood_step = 10 + (i - 1) * 20
-        evap_step = flood_step + 10
-        events.append(Event(flood_step, f"Tidal Flood #{i}", "Seawater dilution", make_flood(i)))
-        events.append(Event(evap_step,  f"Evaporation #{i}",  "Brine reconcentration", make_evap(i)))
-
-    # Final seal — the lagoon dries up permanently.
-    def ev_final_seal(cond):
-        cond.flow_rate = 0.05
-        cond.temperature = 22
-        return ("Sabkha matures, then seals. The crust hardens and "
-                "groundwater stops cycling. What remains is the result of "
-                "twelve dissolution-precipitation cycles — ordered dolomite "
-                "where the cycling did its work, disordered HMC where it didn't. "
-                "The Coorong recipe for ambient-T ordered dolomite, the natural "
-                "laboratory that Kim 2023 finally explained at the atomic scale.")
-    events.append(Event(245, "Final Seal", "Sabkha matures, fluids stop cycling", ev_final_seal))
-
-    return conditions, events, 260
-
-
-def scenario_marble_contact_metamorphism() -> Tuple[VugConditions, List[Event], int]:
-    """Mogok Stone Tract — marble-hosted contact metamorphic vug.
-
-    Anchored to the Mogok Stone Tract, Mandalay Region, Burma — the
-    world's type locality for marble-hosted ruby and the 2000+-year
-    source of the finest "pigeon's blood" rubies. Dolomitic marble of
-    the Mogok Metamorphic Belt was regionally metamorphosed during the
-    Himalayan orogeny (~30 Ma) to amphibolite-to-granulite grade; then
-    intruded by leucogranite dykes at 17-22 Ma that drove contact
-    metamorphic ruby/sapphire/spinel crystallization in skarn envelopes.
-
-    Chemistry signature: **SiO₂ undersaturation** (the defining
-    corundum-family constraint). Al and Ca are high, SiO₂ is low — this
-    is the opposite of every other scenario in the sim. When SiO₂ is
-    scarce, Al³⁺ cannot form feldspar/mica/Al₂SiO₅ polymorphs and
-    instead crystallizes as pure corundum; with Cr trace from adjacent
-    ultramafic country rock, ruby forms; with Fe+Ti, blue sapphire;
-    with Fe alone, yellow sapphire.
-
-    Fluid parameters (Garnier et al. 2008, Peretti et al. 2018):
-    - T: 700°C peak (contact metamorphic aureole)
-    - Al: 50 ppm (high — skarn fluid concentration)
-    - SiO₂: 20 ppm (critically low — the defining upper gate)
-    - Ca: 800 ppm (dolomitic marble host dissolving into fluid)
-    - Cr: 3 ppm (trace from ultramafic country rock)
-    - Fe: 8, Ti: 1, V: 0.5 (blue/yellow sapphire variety traces)
-    - pH: 8 (alkaline marble-buffered fluid)
-
-    Anchor sources:
-    - Garnier, V. et al. 2008. "Marble-hosted ruby deposits from
-      Central and Southeast Asia." Ore Geology Reviews 34: 169-191.
-    - Peretti, A. et al. 2018. "Update on corundum and its gem
-      varieties." Gems & Gemology special issue.
-    - Searle, M.P. et al. 2007. "Tectonic evolution of the Mogok
-      metamorphic belt, Burma (Myanmar)." Journal of Geology 115: 1-23.
-
-    Thermal regime: 500 → 400 → 700 → 350°C over 180 steps.
-    - Phase 1 (initial warmup, 500→700°C): contact metamorphic pulse
-      approaches; marble starts to fluid-saturate.
-    - Phase 2 (700°C peak, step 20 onward): corundum family nucleates;
-      Cr partitions to ruby, Fe+Ti to blue sapphire.
-    - Phase 3 (retrograde cooling, step 60 onward, 700→400°C): main
-      growth window; fluid migrates along skarn bleaching front.
-    - Phase 4 (fracture seal, step 150): system closes.
-    """
-    conditions = VugConditions(
-        temperature=500.0,
-        pressure=3.0,  # contact-metamorphic amphibolite-to-granulite
-        wall=VugWall(
-            composition="limestone",  # proxy for dolomitic marble (sim
-                                      # currently models limestone +
-                                      # pegmatite + basalt; marble is the
-                                      # metamorphosed limestone end-member,
-                                      # closest fit available at this
-                                      # point)
-            thickness_mm=1200.0,  # thick contact envelope
-            vug_diameter_mm=40.0,  # typical Mogok "pigeon's blood" pocket
-            wall_Fe_ppm=200.0,    # marble is Fe-poor (that's why Ruby
-                                  # fluorescence is strong — no Fe to
-                                  # quench the Cr emission)
-            wall_Mn_ppm=50.0,
-            wall_Mg_ppm=15000.0,  # dolomite-grade Mg content
-            primary_bubbles=3,
-            secondary_bubbles=6,
-            shape_seed=11,
-        ),
-        fluid=FluidChemistry(
-            # Defining chemistry: Al-rich, SiO₂-poor. The corundum family
-            # gates on SiO2 < 50 (upper bound — novel in the sim) and Al
-            # >= 15. With SiO2 = 20 well below threshold and Al = 50 well
-            # above, all three corundum species have room to nucleate
-            # competing for Al supply.
-            Al=50,
-            SiO2=20,
-            # Ca high — dolomitic marble host dissolving into fluid.
-            # Doesn't drive a competing carbonate engine at 700°C
-            # (calcite decomposes above 840°C; at 700°C it's stable
-            # in solid form but doesn't nucleate from fluid at this
-            # Eh).
-            Ca=800,
-            CO3=50,  # modest; most carbonate is locked in marble wall
-            # Mg tracks the dolomite host (even higher than Ca in
-            # dolomitic marble; solid-state in the wall, minor in fluid).
-            Mg=120,
-            # Chromophore traces for ruby/sapphire/sapphire-variety
-            # dispatch:
-            Cr=3,     # ruby trigger (threshold 2 ppm)
-            Fe=8,     # sapphire-family Fe (Fe+Ti → blue; Fe alone ≥20 → yellow)
-            Ti=1,     # blue sapphire (Fe+Ti intervalence charge transfer)
-            V=0.5,    # not above sapphire-violet gate, included for completeness
-            # Minor trace species typical of skarn contact fluids:
-            Mn=0.5,   # pink sapphire at high enough concentration
-            Na=20, K=8,  # metamorphic fluid baseline
-            B=0,      # marble-hosted — no pegmatite boron contribution
-            F=3,      # trace F from phlogopite hydrolysis
-            # Alkaline pH from marble buffering.
-            pH=8.0,
-            salinity=2.0,  # low-salinity metamorphic fluid
-            O2=0.3,   # moderate — amphibolite facies not strongly reducing
-        ),
-    )
-
-    def ev_peak_metamorphism(cond):
-        """Peak metamorphic pulse: leucogranite dyke injects hot fluid
-        into the marble contact, driving peak T and skarn nucleation."""
-        cond.temperature = 700.0
-        cond.fluid.Al += 15     # fluid enrichment from leucogranite dissolution
-        cond.fluid.SiO2 += 8    # modest SiO2 bump — still well below corundum upper gate
-        cond.fluid.Cr += 1.5    # additional Cr from adjacent ultramafic serpentinite
-        cond.flow_rate = 2.5
-        return ("Contact metamorphic peak: a leucogranite dyke 50 m away "
-                "pumps 700°C fluid into the marble interface. Skarn "
-                "alteration zones expand outward; corundum family crystals "
-                "begin to nucleate in the most Si-undersaturated patches. "
-                "Pigeon's blood ruby paragenesis underway.")
-
-    def ev_retrograde_cooling(cond):
-        """Retrograde cooling: slow cooling with fluid migration along
-        bleaching front. Main growth window for corundum family."""
-        cond.temperature = 500.0
-        cond.fluid.Al = max(cond.fluid.Al * 0.9, 30)  # progressive depletion
-        cond.flow_rate = 1.2
-        return ("Retrograde cooling begins. The leucogranite intrusion "
-                "stalls; the fluid slowly retreats through the skarn "
-                "envelope, depositing corundum at every fracture it "
-                "finds. T drops from 700 to 500°C. This is the main "
-                "ruby/sapphire growth window.")
-
-    def ev_fracture_seal(cond):
-        """Fracture seal — fluid egress halts; system closes."""
-        cond.temperature = 350.0
-        cond.flow_rate = 0.1
-        cond.fluid.pH = min(cond.fluid.pH + 0.3, 9.0)
-        return ("The feeding fracture seals. The Mogok pocket is now a "
-                "closed system. Whatever corundum family crystals are "
-                "still undersaturated will continue to consume the remaining "
-                "Al pool until equilibrium. Everything else is frozen.")
-
-    events = [
-        Event(20, "Peak Metamorphism", "Leucogranite intrusion at contact", ev_peak_metamorphism),
-        Event(60, "Retrograde Cooling", "Slow cooling, main ruby growth window", ev_retrograde_cooling),
-        Event(150, "Fracture Seal", "System closes", ev_fracture_seal),
-    ]
-
-    return conditions, events, 180
 
 
 def scenario_random() -> Tuple[VugConditions, List[Event], int]:
@@ -12525,23 +11826,26 @@ def scenario_random() -> Tuple[VugConditions, List[Event], int]:
 
 
 SCENARIOS = {
-    # Phase 1 — loaded from data/scenarios.json5 by _load_scenarios_json5().
-    # Each value is a callable returning (VugConditions, [Event...], duration_steps).
+    # All declarative scenarios load from data/scenarios.json5 via
+    # _load_scenarios_json5(). Each value is a callable returning
+    # (VugConditions, [Event...], duration_steps).
+    # Phase 1 (commit 2feb338, 2026-04-30): cooling/pulse/mvt/porphyry.
+    # Phase 2 (this commit chain, 2026-04-30): the remaining 9 scenarios,
+    # with the inline event closures promoted to module-level handlers
+    # registered in EVENT_REGISTRY above.
     "cooling": _JSON5_SCENARIOS["cooling"],
     "pulse": _JSON5_SCENARIOS["pulse"],
     "mvt": _JSON5_SCENARIOS["mvt"],
     "porphyry": _JSON5_SCENARIOS["porphyry"],
-    # Legacy in-code scenarios (Phase 2 migration target — they have inline
-    # event closures that need promotion to module-level handlers first).
-    "reactive_wall": scenario_reactive_wall,
-    "radioactive_pegmatite": scenario_radioactive_pegmatite,
-    "supergene_oxidation": scenario_supergene_oxidation,
-    "ouro_preto": scenario_ouro_preto,
-    "gem_pegmatite": scenario_gem_pegmatite,
-    "bisbee": scenario_bisbee,
-    "deccan_zeolite": scenario_deccan_zeolite,
-    "sabkha_dolomitization": scenario_sabkha_dolomitization,
-    "marble_contact_metamorphism": scenario_marble_contact_metamorphism,
+    "reactive_wall": _JSON5_SCENARIOS["reactive_wall"],
+    "radioactive_pegmatite": _JSON5_SCENARIOS["radioactive_pegmatite"],
+    "supergene_oxidation": _JSON5_SCENARIOS["supergene_oxidation"],
+    "ouro_preto": _JSON5_SCENARIOS["ouro_preto"],
+    "gem_pegmatite": _JSON5_SCENARIOS["gem_pegmatite"],
+    "bisbee": _JSON5_SCENARIOS["bisbee"],
+    "deccan_zeolite": _JSON5_SCENARIOS["deccan_zeolite"],
+    "sabkha_dolomitization": _JSON5_SCENARIOS["sabkha_dolomitization"],
+    "marble_contact_metamorphism": _JSON5_SCENARIOS["marble_contact_metamorphism"],
     # scenario_random opts out — procedural / RNG-driven, stays as code.
     "random": scenario_random,
 }
