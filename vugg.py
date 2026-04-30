@@ -15660,30 +15660,21 @@ class VugSimulator:
         return " ".join(p for p in parts if p)
 
     def _narrate_molybdenite(self, c: Crystal) -> str:
-        """Narrate a molybdenite crystal's story — the wulfenite precursor."""
-        parts = [f"Molybdenite #{c.crystal_id} grew to {c.c_length_mm:.1f} mm."]
+        """Narrate a molybdenite crystal's story — the wulfenite precursor.
 
-        parts.append(
-            "MoS₂ — soft hexagonal platy crystals, bluish-gray metallic, "
-            "greasy to the touch. Softest metallic mineral on Mohs (1–1.5); "
-            "leaves a mark on paper like graphite."
-        )
+        Prose lives in narratives/molybdenite.md. Code dispatches blurb +
+        porphyry sweet-spot temperature window + oxidative dissolution.
+        """
+        parts = [f"Molybdenite #{c.crystal_id} grew to {c.c_length_mm:.1f} mm."]
+        parts.append(narrative_blurb("molybdenite"))
 
         if 300 <= c.nucleation_temp <= 500:
-            parts.append(
-                "Nucleated in the porphyry sweet spot — Mo arrived in a separate "
-                "pulse from Cu (Seo et al. 2012, Bingham Canyon), a late magmatic "
-                "fluid delivering molybdenum on its own timeline."
-            )
+            parts.append(narrative_variant("molybdenite", "porphyry_sweet_spot"))
 
         if c.dissolved:
-            parts.append(
-                "Oxidation dissolved the molybdenite, releasing MoO₄²⁻ into solution. "
-                "If Pb is also present in the oxidation zone, the combination "
-                "becomes wulfenite — the sunset mineral."
-            )
+            parts.append(narrative_variant("molybdenite", "oxidative_dissolution"))
 
-        return " ".join(parts)
+        return " ".join(p for p in parts if p)
 
     def _narrate_smithsonite(self, c: Crystal) -> str:
         """Narrate a smithsonite crystal's story — sphalerite's carbonate heir.
@@ -17479,43 +17470,20 @@ class VugSimulator:
         return " ".join(parts)
 
     def _narrate_bornite(self, c: Crystal) -> str:
-        """Narrate a bornite crystal — the 228°C order-disorder mineral."""
+        """Narrate a bornite crystal — the 228°C order-disorder mineral.
+
+        Prose lives in narratives/bornite.md. Code dispatches blurb +
+        2-way habit (pseudo_cubic / peacock) + oxidative dissolution.
+        """
         parts = [f"Bornite #{c.crystal_id} grew to {c.c_length_mm:.1f} mm."]
-        parts.append(
-            "Cu₅FeS₄ — bronze-colored fresh, famous for the iridescent "
-            "'peacock ore' tarnish from thin-film interference on surface "
-            "oxidation products. The 228°C order-disorder transition is "
-            "one of mineralogy's cleanest structural changes: above, Cu "
-            "and Fe randomly occupy the cation sites (pseudo-cubic); "
-            "below, they order into the orthorhombic arrangement."
-        )
+        parts.append(narrative_blurb("bornite"))
         if "pseudo_cubic" in (c.habit or ""):
-            parts.append(
-                "Grew at T > 228°C — crystal has the disordered "
-                "pseudo-cubic structure preserved. If this specimen is "
-                "cooled slowly below 228°C without being reheated, the "
-                "Cu and Fe will gradually order into orthorhombic "
-                "domains, sometimes visible as texture under reflected "
-                "light."
-            )
+            parts.append(narrative_variant("bornite", "pseudo_cubic"))
         elif "peacock" in (c.habit or ""):
-            parts.append(
-                "Peacock iridescent — thin-film interference on an "
-                "oxidation crust. Fresh bornite bronze under the film. "
-                "Strike it with a steel hammer and the fresh surface "
-                "shows through; leave it in air for a week and the "
-                "rainbow comes back. This is why bornite tumbled in "
-                "rock-shop displays is often enhanced with heat or "
-                "acid."
-            )
+            parts.append(narrative_variant("bornite", "peacock"))
         if c.dissolved:
-            parts.append(
-                "Oxidative dissolution — Cu²⁺ and Fe³⁺ went back to "
-                "the fluid, probably to find malachite/azurite "
-                "(for Cu) or goethite (for Fe). The S²⁻ oxidized too "
-                "and may reappear as sulfate in anglesite or selenite."
-            )
-        return " ".join(parts)
+            parts.append(narrative_variant("bornite", "oxidative_dissolution"))
+        return " ".join(p for p in parts if p)
 
     def _narrate_chalcocite(self, c: Crystal) -> str:
         """Narrate a chalcocite crystal — the pseudomorph thief."""
