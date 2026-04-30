@@ -10816,6 +10816,98 @@ def event_deccan_zeolite_late_cooling(conditions: VugConditions) -> str:
             "becomes the limiting reagent.")
 
 
+# --- ouro_preto (Imperial Topaz veins, Minas Gerais BR — Variant B per Morteani 2002) ---
+
+def event_ouro_preto_vein_opening(conditions: VugConditions) -> str:
+    """First fracture propagation — fresh hot fluid floods a narrow slot."""
+    conditions.fluid.SiO2 += 150  # fresh silica supply
+    conditions.temperature = 380
+    conditions.flow_rate = 1.5
+    return ("The fracture opens. Fluid pressure exceeded lithostatic "
+            "pressure and the vein propagated upward — narrow, barely "
+            "wider than your hand. Fresh hot brine floods in at 380°C "
+            "and quartz starts lining the walls. The fluorine in the "
+            "fluid is still below saturation; topaz holds its breath.")
+
+
+def event_ouro_preto_f_pulse(conditions: VugConditions) -> str:
+    """Metamorphic dehydration of phyllite micas releases fluorine.
+    Gate-opener: F jumps past topaz saturation threshold."""
+    conditions.fluid.F += 30.0
+    conditions.fluid.Al += 8.0
+    conditions.temperature = 365
+    conditions.flow_rate = 1.2
+    return ("A deeper wall of phyllite reaches the dehydration point. "
+            "Fluorine-bearing micas break down and release F⁻ into the "
+            f"vein fluid — F jumps to {conditions.fluid.F:.0f} ppm, past the "
+            "topaz saturation threshold. The chemistry has just tipped. "
+            "Imperial topaz is now thermodynamically inevitable.")
+
+
+def event_ouro_preto_cr_leach(conditions: VugConditions) -> str:
+    """Fluid pathway crosses an ultramafic dike — Cr leaches in."""
+    conditions.fluid.Cr += 4.0
+    conditions.temperature = 340
+    return ("The vein system intersects an ultramafic dike on its way "
+            f"up. Chromium leaches into the fluid — Cr now {conditions.fluid.Cr:.1f} ppm, "
+            "above the imperial-color window. Any topaz growing from "
+            "this pulse forward will catch Cr³⁺ in its structure. "
+            "Golden-orange is committed to the crystal.")
+
+
+def event_ouro_preto_steady_cooling(conditions: VugConditions) -> str:
+    """Main growth phase — slow steady cooling through the topaz window."""
+    conditions.temperature = 320
+    conditions.flow_rate = 1.0
+    return ("The main topaz growth phase. The vein cools steadily — "
+            "320°C now — and topaz is happily projecting from the "
+            "quartz-lined walls. Slow, clean layer-by-layer growth. "
+            "The crystals are recording the thermal history in their "
+            "growth zones and fluid inclusions; a microprobe traverse "
+            "across one of these crystals would read like a barometer.")
+
+
+def event_ouro_preto_late_hydrothermal(conditions: VugConditions) -> str:
+    """Dilute late fluid — F drops, kaolinite begins to form from feldspar.
+    Note: shares verb 'late_hydrothermal' with gem_pegmatite — scenario
+    prefix prevents collision."""
+    conditions.temperature = 220
+    conditions.fluid.pH = 5.5
+    conditions.flow_rate = 0.6
+    return ("Late-stage dilute hydrothermal fluid — pH falling, F "
+            "depleted by topaz growth. Kaolinite begins replacing any "
+            "remaining feldspar in the wall rock; the vein walls soften. "
+            "Topaz's perfect basal cleavage means any shift in the "
+            "wall can snap a crystal off its base. Cleavage fragments "
+            "will accumulate on the pocket floor.")
+
+
+def event_ouro_preto_oxidation_stain(conditions: VugConditions) -> str:
+    """System opens to oxidizing surface water — goethite staining."""
+    conditions.temperature = 90
+    conditions.fluid.O2 = 1.6
+    conditions.fluid.Fe += 20
+    conditions.flow_rate = 0.3
+    return ("Surface water finds the vein. The system oxidizes — "
+            "meteoric O₂ reaches the pocket, iron precipitates as "
+            "goethite, and the final topaz generation sits in a "
+            "limonite-stained matrix. The assemblage that garimpeiros "
+            "will find in 400 Ma is now fully set.")
+
+
+def event_ouro_preto_final_cooling(conditions: VugConditions) -> str:
+    """System reaches near-ambient temperature — story ends.
+    Note: shares verb 'final_cooling' with radioactive_pegmatite — scenario
+    prefix prevents collision."""
+    conditions.temperature = 50
+    conditions.flow_rate = 0.05
+    return ("The vein cools to near-ambient. What remains is the "
+            "assemblage: milky quartz lining the walls, imperial topaz "
+            "prisms projecting inward, fluid inclusion planes across "
+            "every crystal, iron-stained fractures. The exhalation has "
+            "finished. The vug now waits for time.")
+
+
 # ============================================================
 # EVENT REGISTRY
 # ============================================================
@@ -10855,6 +10947,14 @@ EVENT_REGISTRY = {
     "deccan_zeolite_stage_ii": event_deccan_zeolite_stage_ii,
     "deccan_zeolite_apophyllite_stage_iii": event_deccan_zeolite_apophyllite_stage_iii,
     "deccan_zeolite_late_cooling": event_deccan_zeolite_late_cooling,
+    # Phase 2 — ouro_preto
+    "ouro_preto_vein_opening": event_ouro_preto_vein_opening,
+    "ouro_preto_f_pulse": event_ouro_preto_f_pulse,
+    "ouro_preto_cr_leach": event_ouro_preto_cr_leach,
+    "ouro_preto_steady_cooling": event_ouro_preto_steady_cooling,
+    "ouro_preto_late_hydrothermal": event_ouro_preto_late_hydrothermal,
+    "ouro_preto_oxidation_stain": event_ouro_preto_oxidation_stain,
+    "ouro_preto_final_cooling": event_ouro_preto_final_cooling,
 }
 
 
@@ -11457,156 +11557,6 @@ def scenario_gem_pegmatite() -> Tuple[VugConditions, List[Event], int]:
         Event(215, "Final Cooling",    "System approaches 300°C floor",           ev_final),
     ]
     return conditions, events, 230
-
-
-def scenario_ouro_preto() -> Tuple[VugConditions, List[Event], int]:
-    """Ouro Preto Imperial Topaz Veins — Minas Gerais, Brazil (Variant B).
-
-    Hydrothermal veins cutting Precambrian phyllite and quartzite in the
-    Ouro Preto district. Fluid inclusion data (Morteani et al. 2002) puts
-    crystallization at ~360°C, 3.5 kbar from metamorphic brines derived
-    from devolatilization of phyllite.
-
-    Single clean cooling curve — 360°C → 50°C — the "anti-flash-quench"
-    of the gem-pegmatite scenarios. No thermal events, no pressure spikes.
-    One exhalation from the granite cooling below.
-
-    The gate: topaz can't nucleate until fluorine accumulates past a
-    saturation threshold. Early quartz grows alone. A mid-scenario
-    metamorphic dehydration event pumps F from the phyllite micas into
-    the fluid, and the vein transitions to imperial topaz territory. The
-    imperial color — golden-orange to pink — depends on Cr³⁺ dissolved
-    out of nearby ultramafic bodies; without chromium the topaz is
-    colorless or pale blue.
-    """
-    conditions = VugConditions(
-        temperature=360.0,
-        pressure=3.5,
-        fluid=FluidChemistry(
-            # Quartz-saturated metamorphic brine from devolatilizing phyllite.
-            # SiO2 1200 ppm is enough to supersaturate quartz at 360°C
-            # (silica_equilibrium at 360°C ≈ 1050 ppm) — quartz lines the
-            # vein walls first, as per real Ouro Preto paragenesis.
-            SiO2=1200, Ca=40, CO3=20, Fe=6, Mn=2, Al=15,
-            # Starts below F-threshold (20 ppm) — topaz waits for the pulse.
-            F=12,
-            # Trace Cr from nearby ultramafic contact. Starts sub-threshold;
-            # ev_cr_leach bumps it into the imperial-color window (3–8 ppm).
-            # Random seeds can push it past 8 (pink imperial) if the Cr leach
-            # lands on an already-elevated baseline.
-            Cr=0.5,
-            Ti=0.6,
-            # ── Audit gap-fills (Apr 2026) ────────────────────────────
-            # Na=60, K=40: phyllite devolatilization releases Na and K
-            # from breakdown of muscovite (KAl2[AlSi3O10](OH)2), biotite,
-            # and albite. Morteani et al. 2002 fluid inclusion data for
-            # Ouro Preto reports moderate-salinity metamorphic brines
-            # with Na > K (typical phyllite-devolatilization signature).
-            # The very-low salinity=3 stays — these values are
-            # consistent with low-TDS metamorphic brines, just need the
-            # individual cation accounting.
-            Na=60, K=40,
-            # Mg=15: phyllite chlorite + biotite breakdown. Conservative
-            # — Ouro Preto fluid is not Mg-rich (the host is quartzite +
-            # phyllite, not mafic). Brief-required non-zero Mg.
-            Mg=15,
-            # ──────────────────────────────────────────────────────────
-            O2=0.3, pH=6.5, salinity=3.0,
-        ),
-        # Ouro Preto topaz vein — 2 primary + 4 secondary bubbles;
-        # hydrothermal vein in quartzite reads as a small cohesive pocket.
-        wall=VugWall(primary_bubbles=2, secondary_bubbles=4, shape_seed=9),
-    )
-
-    def ev_vein_opening(cond):
-        """First fracture propagation — fresh hot fluid floods a narrow slot."""
-        cond.fluid.SiO2 += 150   # fresh silica supply
-        cond.temperature = 380
-        cond.flow_rate = 1.5
-        return ("The fracture opens. Fluid pressure exceeded lithostatic "
-                "pressure and the vein propagated upward — narrow, barely "
-                "wider than your hand. Fresh hot brine floods in at 380°C "
-                "and quartz starts lining the walls. The fluorine in the "
-                "fluid is still below saturation; topaz holds its breath.")
-
-    def ev_f_pulse(cond):
-        """Metamorphic dehydration of phyllite micas releases fluorine.
-        This is the gate-opener: F jumps past the topaz saturation threshold."""
-        cond.fluid.F += 30.0
-        cond.fluid.Al += 8.0
-        cond.temperature = 365
-        cond.flow_rate = 1.2
-        return ("A deeper wall of phyllite reaches the dehydration point. "
-                "Fluorine-bearing micas break down and release F⁻ into the "
-                f"vein fluid — F jumps to {cond.fluid.F:.0f} ppm, past the "
-                "topaz saturation threshold. The chemistry has just tipped. "
-                "Imperial topaz is now thermodynamically inevitable.")
-
-    def ev_cr_leach(cond):
-        """Fluid pathway crosses an ultramafic dike — Cr leaches in."""
-        cond.fluid.Cr += 4.0
-        cond.temperature = 340
-        return ("The vein system intersects an ultramafic dike on its way "
-                f"up. Chromium leaches into the fluid — Cr now {cond.fluid.Cr:.1f} ppm, "
-                "above the imperial-color window. Any topaz growing from "
-                "this pulse forward will catch Cr³⁺ in its structure. "
-                "Golden-orange is committed to the crystal.")
-
-    def ev_steady_cooling(cond):
-        """Main growth phase — slow steady cooling through the topaz window."""
-        cond.temperature = 320
-        cond.flow_rate = 1.0
-        return ("The main topaz growth phase. The vein cools steadily — "
-                "320°C now — and topaz is happily projecting from the "
-                "quartz-lined walls. Slow, clean layer-by-layer growth. "
-                "The crystals are recording the thermal history in their "
-                "growth zones and fluid inclusions; a microprobe traverse "
-                "across one of these crystals would read like a barometer.")
-
-    def ev_late_hydrothermal(cond):
-        """Dilute late fluid — F drops, kaolinite begins to form from feldspar."""
-        cond.temperature = 220
-        cond.fluid.pH = 5.5
-        cond.flow_rate = 0.6
-        return ("Late-stage dilute hydrothermal fluid — pH falling, F "
-                "depleted by topaz growth. Kaolinite begins replacing any "
-                "remaining feldspar in the wall rock; the vein walls soften. "
-                "Topaz's perfect basal cleavage means any shift in the "
-                "wall can snap a crystal off its base. Cleavage fragments "
-                "will accumulate on the pocket floor.")
-
-    def ev_oxidation_stain(cond):
-        """System opens to oxidizing surface water — goethite staining."""
-        cond.temperature = 90
-        cond.fluid.O2 = 1.6
-        cond.fluid.Fe += 20
-        cond.flow_rate = 0.3
-        return ("Surface water finds the vein. The system oxidizes — "
-                "meteoric O₂ reaches the pocket, iron precipitates as "
-                "goethite, and the final topaz generation sits in a "
-                "limonite-stained matrix. The assemblage that garimpeiros "
-                "will find in 400 Ma is now fully set.")
-
-    def ev_final_cooling(cond):
-        """System reaches near-ambient temperature — story ends."""
-        cond.temperature = 50
-        cond.flow_rate = 0.05
-        return ("The vein cools to near-ambient. What remains is the "
-                "assemblage: milky quartz lining the walls, imperial topaz "
-                "prisms projecting inward, fluid inclusion planes across "
-                "every crystal, iron-stained fractures. The exhalation has "
-                "finished. The vug now waits for time.")
-
-    events = [
-        Event(5,   "Vein Opening",       "Fracture propagates, fresh brine", ev_vein_opening),
-        Event(35,  "F-Pulse",             "Phyllite dehydration — F crosses saturation", ev_f_pulse),
-        Event(55,  "Cr Leach",            "Ultramafic dike contributes chromium", ev_cr_leach),
-        Event(90,  "Steady Cooling",      "Main topaz growth phase", ev_steady_cooling),
-        Event(150, "Late Hydrothermal",   "Kaolinite softening, F depleted", ev_late_hydrothermal),
-        Event(200, "Oxidation Stain",     "Goethite staining, surface water", ev_oxidation_stain),
-        Event(240, "Final Cooling",       "System approaches ambient", ev_final_cooling),
-    ]
-    return conditions, events, 260
 
 
 def scenario_bisbee() -> Tuple[VugConditions, List[Event], int]:
@@ -12268,7 +12218,7 @@ SCENARIOS = {
     "reactive_wall": _JSON5_SCENARIOS["reactive_wall"],
     "radioactive_pegmatite": _JSON5_SCENARIOS["radioactive_pegmatite"],
     "supergene_oxidation": scenario_supergene_oxidation,
-    "ouro_preto": scenario_ouro_preto,
+    "ouro_preto": _JSON5_SCENARIOS["ouro_preto"],
     "gem_pegmatite": scenario_gem_pegmatite,
     "bisbee": scenario_bisbee,
     "deccan_zeolite": _JSON5_SCENARIOS["deccan_zeolite"],

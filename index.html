@@ -10894,6 +10894,55 @@ function event_deccan_zeolite_late_cooling(c) {
   return 'Late cooling. The vesicle fluid drops back toward ambient. Apophyllite growth slows but doesn\'t stop entirely; the remaining K-Ca-Si-F supersaturation keeps adding micron-thin growth zones on the existing crystals. Time, not chemistry, becomes the limiting reagent.';
 }
 
+// --- ouro_preto (Imperial Topaz veins, Minas Gerais BR) ---
+function event_ouro_preto_vein_opening(c) {
+  c.fluid.SiO2 += 150;
+  c.temperature = 380;
+  c.flow_rate = 1.5;
+  return 'The fracture opens. Fluid pressure exceeded lithostatic pressure and the vein propagated upward — narrow, barely wider than your hand. Fresh hot brine floods in at 380°C and quartz starts lining the walls. The fluorine in the fluid is still below saturation; topaz holds its breath.';
+}
+
+function event_ouro_preto_f_pulse(c) {
+  c.fluid.F += 30.0;
+  c.fluid.Al += 8.0;
+  c.temperature = 365;
+  c.flow_rate = 1.2;
+  return `A deeper wall of phyllite reaches the dehydration point. Fluorine-bearing micas break down and release F⁻ into the vein fluid — F jumps to ${c.fluid.F.toFixed(0)} ppm, past the topaz saturation threshold. The chemistry has just tipped. Imperial topaz is now thermodynamically inevitable.`;
+}
+
+function event_ouro_preto_cr_leach(c) {
+  c.fluid.Cr += 4.0;
+  c.temperature = 340;
+  return `The vein system intersects an ultramafic dike on its way up. Chromium leaches into the fluid — Cr now ${c.fluid.Cr.toFixed(1)} ppm, above the imperial-color window. Any topaz growing from this pulse forward will catch Cr³⁺ in its structure. Golden-orange is committed to the crystal.`;
+}
+
+function event_ouro_preto_steady_cooling(c) {
+  c.temperature = 320;
+  c.flow_rate = 1.0;
+  return 'The main topaz growth phase. The vein cools steadily — 320°C now — and topaz is happily projecting from the quartz-lined walls. Slow, clean layer-by-layer growth. The crystals are recording the thermal history in their growth zones and fluid inclusions; a microprobe traverse across one of these crystals would read like a barometer.';
+}
+
+function event_ouro_preto_late_hydrothermal(c) {
+  c.temperature = 220;
+  c.fluid.pH = 5.5;
+  c.flow_rate = 0.6;
+  return "Late-stage dilute hydrothermal fluid — pH falling, F depleted by topaz growth. Kaolinite begins replacing any remaining feldspar in the wall rock; the vein walls soften. Topaz's perfect basal cleavage means any shift in the wall can snap a crystal off its base. Cleavage fragments will accumulate on the pocket floor.";
+}
+
+function event_ouro_preto_oxidation_stain(c) {
+  c.temperature = 90;
+  c.fluid.O2 = 1.6;
+  c.fluid.Fe += 20;
+  c.flow_rate = 0.3;
+  return 'Surface water finds the vein. The system oxidizes — meteoric O₂ reaches the pocket, iron precipitates as goethite, and the final topaz generation sits in a limonite-stained matrix. The assemblage that garimpeiros will find in 400 Ma is now fully set.';
+}
+
+function event_ouro_preto_final_cooling(c) {
+  c.temperature = 50;
+  c.flow_rate = 0.05;
+  return 'The vein cools to near-ambient. What remains is the assemblage: milky quartz lining the walls, imperial topaz prisms projecting inward, fluid inclusion planes across every crystal, iron-stained fractures. The exhalation has finished. The vug now waits for time.';
+}
+
 // ============================================================
 // EVENT REGISTRY + SCENARIO LOADER (data/scenarios.json5)
 // ============================================================
@@ -10933,6 +10982,14 @@ const EVENT_REGISTRY = {
   deccan_zeolite_stage_ii: event_deccan_zeolite_stage_ii,
   deccan_zeolite_apophyllite_stage_iii: event_deccan_zeolite_apophyllite_stage_iii,
   deccan_zeolite_late_cooling: event_deccan_zeolite_late_cooling,
+  // Phase 2 — ouro_preto
+  ouro_preto_vein_opening: event_ouro_preto_vein_opening,
+  ouro_preto_f_pulse: event_ouro_preto_f_pulse,
+  ouro_preto_cr_leach: event_ouro_preto_cr_leach,
+  ouro_preto_steady_cooling: event_ouro_preto_steady_cooling,
+  ouro_preto_late_hydrothermal: event_ouro_preto_late_hydrothermal,
+  ouro_preto_oxidation_stain: event_ouro_preto_oxidation_stain,
+  ouro_preto_final_cooling: event_ouro_preto_final_cooling,
 };
 
 // Minimal JSONC parser — strips // line + /* */ block comments and
@@ -11199,77 +11256,6 @@ function scenario_gem_pegmatite() {
 // (Apr 2026): Na, K, Mg added — phyllite devolatilization releases
 // alkali cations from muscovite/biotite/albite breakdown. See vugg.py
 // scenario_ouro_preto + locality_chemistry.json#ouro_preto.
-function scenario_ouro_preto() {
-  const conditions = new VugConditions({
-    temperature: 360.0,
-    pressure: 3.5,
-    fluid: new FluidChemistry({
-      SiO2: 1200, Ca: 40, CO3: 20, Fe: 6, Mn: 2, Al: 15,
-      F: 12,      // below topaz threshold — quartz lines vein walls first
-      Cr: 0.5,    // sub-threshold Cr; ev_cr_leach bumps into imperial window
-      Ti: 0.6,
-      // ── Audit gap-fills (Apr 2026) ────────────────────────────────
-      Na: 60, K: 40,    // phyllite muscovite/albite breakdown [Morteani 2002]
-      Mg: 15,           // phyllite chlorite/biotite, brief-required non-zero Mg
-      O2: 0.3, pH: 6.5, salinity: 3.0,
-    }),
-    // Ouro Preto topaz vein — few bubbles, tight size range; the
-    // hydrothermal vein in quartzite reads as a small cohesive pocket.
-    wall: new VugWall({ primary_bubbles: 2, secondary_bubbles: 4, shape_seed: 9 }),
-  });
-  const events = [
-    { step: 5,   name: 'Vein Opening',     description: 'Fracture propagates, fresh brine',
-      apply_fn: (c) => {
-        c.fluid.SiO2 += 150;
-        c.temperature = 380;
-        c.flow_rate = 1.5;
-        return 'The fracture opens. Fluid pressure exceeded lithostatic pressure and the vein propagated upward — narrow, barely wider than your hand. Fresh hot brine floods in at 380°C and quartz starts lining the walls. The fluorine in the fluid is still below saturation; topaz holds its breath.';
-      } },
-    { step: 35,  name: 'F-Pulse',          description: 'Phyllite dehydration — F crosses saturation',
-      apply_fn: (c) => {
-        c.fluid.F += 30.0;
-        c.fluid.Al += 8.0;
-        c.temperature = 365;
-        c.flow_rate = 1.2;
-        return `A deeper wall of phyllite reaches the dehydration point. Fluorine-bearing micas break down and release F⁻ into the vein fluid — F jumps to ${c.fluid.F.toFixed(0)} ppm, past the topaz saturation threshold. The chemistry has just tipped. Imperial topaz is now thermodynamically inevitable.`;
-      } },
-    { step: 55,  name: 'Cr Leach',         description: 'Ultramafic dike contributes chromium',
-      apply_fn: (c) => {
-        c.fluid.Cr += 4.0;
-        c.temperature = 340;
-        return `The vein system intersects an ultramafic dike on its way up. Chromium leaches into the fluid — Cr now ${c.fluid.Cr.toFixed(1)} ppm, above the imperial-color window. Any topaz growing from this pulse forward will catch Cr³⁺ in its structure. Golden-orange is committed to the crystal.`;
-      } },
-    { step: 90,  name: 'Steady Cooling',   description: 'Main topaz growth phase',
-      apply_fn: (c) => {
-        c.temperature = 320;
-        c.flow_rate = 1.0;
-        return 'The main topaz growth phase. The vein cools steadily — 320°C now — and topaz is happily projecting from the quartz-lined walls. Slow, clean layer-by-layer growth. The crystals are recording the thermal history in their growth zones and fluid inclusions; a microprobe traverse across one of these crystals would read like a barometer.';
-      } },
-    { step: 150, name: 'Late Hydrothermal', description: 'Kaolinite softening, F depleted',
-      apply_fn: (c) => {
-        c.temperature = 220;
-        c.fluid.pH = 5.5;
-        c.flow_rate = 0.6;
-        return "Late-stage dilute hydrothermal fluid — pH falling, F depleted by topaz growth. Kaolinite begins replacing any remaining feldspar in the wall rock; the vein walls soften. Topaz's perfect basal cleavage means any shift in the wall can snap a crystal off its base. Cleavage fragments will accumulate on the pocket floor.";
-      } },
-    { step: 200, name: 'Oxidation Stain',  description: 'Goethite staining, surface water',
-      apply_fn: (c) => {
-        c.temperature = 90;
-        c.fluid.O2 = 1.6;
-        c.fluid.Fe += 20;
-        c.flow_rate = 0.3;
-        return 'Surface water finds the vein. The system oxidizes — meteoric O₂ reaches the pocket, iron precipitates as goethite, and the final topaz generation sits in a limonite-stained matrix. The assemblage that garimpeiros will find in 400 Ma is now fully set.';
-      } },
-    { step: 240, name: 'Final Cooling',    description: 'System approaches ambient',
-      apply_fn: (c) => {
-        c.temperature = 50;
-        c.flow_rate = 0.05;
-        return 'The vein cools to near-ambient. What remains is the assemblage: milky quartz lining the walls, imperial topaz prisms projecting inward, fluid inclusion planes across every crystal, iron-stained fractures. The exhalation has finished. The vug now waits for time.';
-      } },
-  ];
-  return { conditions, events, defaultSteps: 260 };
-}
-
 // Bisbee, Arizona — Warren Mining District, Cochise County.
 // Classic Cu porphyry with world-class oxidation zone: primary
 // chalcopyrite+bornite → supergene chalcocite+covellite → cuprite +
@@ -11459,11 +11445,10 @@ function scenario_sabkha_dolomitization() {
 // loader can mutate the object in place.
 let SCENARIOS = {
   supergene_oxidation: scenario_supergene_oxidation,
-  ouro_preto: scenario_ouro_preto,
   gem_pegmatite: scenario_gem_pegmatite,
   bisbee: scenario_bisbee,
   sabkha_dolomitization: scenario_sabkha_dolomitization,
-  // deccan_zeolite, radioactive_pegmatite, reactive_wall, marble_contact_metamorphism — populated by _loadScenariosJSON5() from data/scenarios.json5 (Phase 2)
+  // ouro_preto, deccan_zeolite, radioactive_pegmatite, reactive_wall, marble_contact_metamorphism — populated by _loadScenariosJSON5() from data/scenarios.json5 (Phase 2)
 };
 
 // Kick off the JSON5 fetch. Failure logs a warning (Phase 1 scenarios won't

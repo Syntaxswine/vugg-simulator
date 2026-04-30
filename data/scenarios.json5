@@ -44,7 +44,7 @@
 // =============================================================
 {
   "$schema_version": "1.0.0",
-  "$last_updated": "2026-04-30 (Phase 2: marble + reactive_wall + radioactive_pegmatite + deccan_zeolite migrated)",
+  "$last_updated": "2026-04-30 (Phase 2: marble + reactive_wall + radioactive_pegmatite + deccan_zeolite + ouro_preto migrated)",
   "scenarios": {
 
     "cooling": {
@@ -499,6 +499,68 @@
         "Leach et al. 2010 — MVT genesis review",
         "Anderson & Macqueen 1982 — MVT mineralogy review",
         "Hanor 1994 — basinal-brine compendium (Sr/Ba tracers)"
+      ]
+    },
+
+    "ouro_preto": {
+      "anchor": "Ouro Preto Imperial Topaz veins, Minas Gerais, Brazil (Variant B per Morteani et al. 2002).",
+      "description": "Hydrothermal topaz vein in Precambrian phyllite + quartzite. Single clean cooling curve from 360°C to 50°C — the 'anti-flash-quench' of the gem-pegmatite scenarios. F-pulse gates topaz nucleation; Cr leach commits the imperial color.",
+      "duration_steps": 260,
+      "notes": [
+        "Hydrothermal veins cutting Precambrian phyllite and quartzite in the Ouro Preto district. Fluid inclusion data (Morteani et al. 2002) puts crystallization at ~360°C, 3.5 kbar from metamorphic brines derived from devolatilization of phyllite.",
+        "Single clean cooling curve — 360°C → 50°C — the anti-flash-quench of the gem-pegmatite scenarios. No thermal events, no pressure spikes. One exhalation from the granite cooling below.",
+        "The gate: topaz can't nucleate until fluorine accumulates past a saturation threshold. Early quartz grows alone. A mid-scenario metamorphic dehydration event (step 35) pumps F from the phyllite micas into the fluid, and the vein transitions to imperial topaz territory. The imperial color — golden-orange to pink — depends on Cr3+ dissolved out of nearby ultramafic bodies; without chromium the topaz is colorless or pale blue.",
+        "Audit gap-fills (Apr 2026): Na=60, K=40 (phyllite muscovite/albite breakdown per Morteani 2002). Mg=15 (phyllite chlorite/biotite, brief-required non-zero baseline; conservative since host is quartzite + phyllite, not mafic)."
+      ],
+      "initial": {
+        "temperature_C": 360.0,
+        "pressure_kbar": 3.5,
+        "fluid": {
+          // Quartz-saturated metamorphic brine from devolatilizing phyllite.
+          // SiO2 1200 ppm is enough to supersaturate quartz at 360C
+          // (silica_equilibrium at 360C ~1050 ppm) — quartz lines the vein
+          // walls first, as per real Ouro Preto paragenesis.
+          "SiO2": 1200,
+          "Ca": 40,
+          "CO3": 20,
+          "Fe": 6,
+          "Mn": 2,
+          "Al": 15,
+          // Starts below F-threshold (20 ppm) — topaz waits for the pulse.
+          "F": 12,
+          // Trace Cr from nearby ultramafic contact. Starts sub-threshold;
+          // ev_cr_leach bumps it into the imperial-color window (3-8 ppm).
+          // Random seeds can push it past 8 (pink imperial) if the Cr leach
+          // lands on an already-elevated baseline.
+          "Cr": 0.5,
+          "Ti": 0.6,
+          // Audit gap-fills:
+          "Na": 60,
+          "K": 40,
+          "Mg": 15,
+          "O2": 0.3,
+          "pH": 6.5,
+          "salinity": 3.0
+        },
+        // Ouro Preto topaz vein — 2 primary + 4 secondary bubbles;
+        // hydrothermal vein in quartzite reads as a small cohesive pocket.
+        "wall": {
+          "primary_bubbles": 2,
+          "secondary_bubbles": 4,
+          "shape_seed": 9
+        }
+      },
+      "events": [
+        { "step": 5,   "type": "ouro_preto_vein_opening",      "name": "Vein Opening",       "description": "Fracture propagates, fresh brine" },
+        { "step": 35,  "type": "ouro_preto_f_pulse",           "name": "F-Pulse",            "description": "Phyllite dehydration — F crosses saturation" },
+        { "step": 55,  "type": "ouro_preto_cr_leach",          "name": "Cr Leach",           "description": "Ultramafic dike contributes chromium" },
+        { "step": 90,  "type": "ouro_preto_steady_cooling",    "name": "Steady Cooling",     "description": "Main topaz growth phase" },
+        { "step": 150, "type": "ouro_preto_late_hydrothermal", "name": "Late Hydrothermal",  "description": "Kaolinite softening, F depleted" },
+        { "step": 200, "type": "ouro_preto_oxidation_stain",   "name": "Oxidation Stain",    "description": "Goethite staining, surface water" },
+        { "step": 240, "type": "ouro_preto_final_cooling",     "name": "Final Cooling",      "description": "System approaches ambient" }
+      ],
+      "sources": [
+        "Morteani et al. 2002 — fluid inclusion microthermometry of Ouro Preto Imperial Topaz veins"
       ]
     },
 
