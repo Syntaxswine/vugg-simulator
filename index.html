@@ -3271,7 +3271,7 @@ const _NARRATIVE_CACHE = {};
 // Phase-1 manifest — extend as more species migrate. When all 89 are
 // extracted the manifest can become a generated index file fetched
 // once at startup.
-const _NARRATIVE_MANIFEST = ['chalcopyrite', 'sphalerite', 'aurichalcite', 'dolomite'];
+const _NARRATIVE_MANIFEST = ['chalcopyrite', 'sphalerite', 'aurichalcite', 'dolomite', 'rosasite', 'azurite'];
 
 function _parseNarrative(text) {
   // Strip frontmatter (--- block at top).
@@ -14717,21 +14717,28 @@ class VugSimulator {
   }
 
   _narrate_azurite(c) {
+    // Prose lives in narratives/azurite.md. Code dispatches on habit
+    // + paramorph-conversion zone-note signal. Inline fallbacks are the
+    // existing (shorter) JS strings; markdown is canonical and matches
+    // Python's longer version, so live runtime now converges on the
+    // canonical text — fixes a small Python/JS drift in this narrator.
     const parts = [`Azurite #${c.crystal_id} grew to ${c.c_length_mm.toFixed(1)} mm.`];
-    parts.push("Cu₃(CO₃)₂(OH)₂ — the deepest blue in the common mineral kingdom. Requires high pCO₂ groundwater — typically a limestone-hosted supergene system. Chessy-les-Mines (France) gave us 'chessylite', an old synonym; Tsumeb and Bisbee (Arizona) produced the showpiece blue prisms.");
+    parts.push(narrative_blurb('azurite') || "Cu₃(CO₃)₂(OH)₂ — the deepest blue in the common mineral kingdom. Requires high pCO₂ groundwater — typically a limestone-hosted supergene system. Chessy-les-Mines (France) gave us 'chessylite', an old synonym; Tsumeb and Bisbee (Arizona) produced the showpiece blue prisms.");
     if (c.habit === 'azurite_sun') {
-      parts.push('Azurite-sun — radiating flat disc, grown in a narrow fracture where the c-axis was forced perpendicular to the fracture plane. The Malbunka (Australia) azurite-suns in siltstone are the classic.');
+      parts.push(narrative_variant('azurite', 'azurite_sun') || 'Azurite-sun — radiating flat disc, grown in a narrow fracture where the c-axis was forced perpendicular to the fracture plane. The Malbunka (Australia) azurite-suns in siltstone are the classic.');
     } else if (c.habit === 'rosette_bladed') {
-      parts.push('Radiating rosette — multiple blades nucleating at a common center.');
+      parts.push(narrative_variant('azurite', 'rosette_bladed') || 'Radiating rosette — multiple blades nucleating at a common center.');
     } else {
-      parts.push('Monoclinic prismatic — the flagship azurite habit. Deep blue trending to midnight-blue in thick crystals.');
+      parts.push(narrative_variant('azurite', 'monoclinic_prismatic') || 'Monoclinic prismatic — the flagship azurite habit. Deep blue trending to midnight-blue in thick crystals.');
     }
     const has_conversion = c.zones.some(z => (z.note || '').includes('→ malachite'));
     if (has_conversion) {
-      parts.push("Azurite → malachite conversion — CO₂ has been escaping from the pocket fluid and the CO₃ inventory dropped below azurite's stability. The crystal shape will persist (pseudomorph after azurite) but fill with the green lower-carbonate mineral. Most Chessy and Morenci azurite sits frozen mid-conversion — half blue, half green — the geochemist's equivalent of a butterfly emerging.");
+      parts.push(narrative_variant('azurite', 'malachite_conversion') || "Azurite → malachite conversion — CO₂ has been escaping from the pocket fluid and the CO₃ inventory dropped below azurite's stability. The crystal shape will persist (pseudomorph after azurite) but fill with the green lower-carbonate mineral. Most Chessy and Morenci azurite sits frozen mid-conversion — half blue, half green — the geochemist's equivalent of a butterfly emerging.");
     }
-    if (c.dissolved && !has_conversion) parts.push('Acid dissolution — fizzes like calcite. Cu²⁺ and CO₃²⁻ released.');
-    return parts.join(' ');
+    if (c.dissolved && !has_conversion) {
+      parts.push(narrative_variant('azurite', 'dissolved') || 'Acid dissolution — fizzes like calcite. Cu²⁺ and CO₃²⁻ released.');
+    }
+    return parts.filter(p => p).join(' ');
   }
 
   _narrate_native_copper(c) {
@@ -15316,16 +15323,17 @@ class VugSimulator {
   }
 
   _narrate_rosasite(c) {
+    // Prose lives in narratives/rosasite.md (mirror of aurichalcite).
     const parts = [`Rosasite #${c.crystal_id} grew to ${c.c_length_mm.toFixed(1)} mm.`];
-    parts.push("(Cu,Zn)₂(CO₃)(OH)₂ — monoclinic supergene carbonate, the Cu-dominant member of the rosasite-aurichalcite pair. Velvety blue-green spheres on the weathered face of Cu-Zn sulfide deposits. The crystal exists because chalcopyrite and sphalerite weathered together upstream and released their metals into the same carbonate-rich groundwater — and at the moment of nucleation, the fluid carried more Cu than Zn. A single ratio decides which species forms; the same broth with reversed proportions would have produced aurichalcite instead. Mohs 4, blue-green streak.");
+    parts.push(narrative_blurb('rosasite') || "(Cu,Zn)₂(CO₃)(OH)₂ — monoclinic supergene carbonate, the Cu-dominant member of the rosasite-aurichalcite pair. Velvety blue-green spheres on the weathered face of Cu-Zn sulfide deposits. The crystal exists because chalcopyrite and sphalerite weathered together upstream and released their metals into the same carbonate-rich groundwater — and at the moment of nucleation, the fluid carried more Cu than Zn. A single ratio decides which species forms; the same broth with reversed proportions would have produced aurichalcite instead. Mohs 4, blue-green streak.");
     if (c.habit === 'acicular_radiating') {
-      parts.push("Acicular radiating habit — the slow-grown, low-T form. Needle-like aggregates fanning out from a common origin, fibrous internal structure visible under magnification.");
+      parts.push(narrative_variant('rosasite', 'acicular_radiating') || "Acicular radiating habit — the slow-grown, low-T form. Needle-like aggregates fanning out from a common origin, fibrous internal structure visible under magnification.");
     } else if (c.habit === 'botryoidal') {
-      parts.push("Botryoidal habit — the diagnostic rosasite form. Velvety spherical aggregates, mammillary crusts; the textbook specimens from Mapimi (Mexico) are sky-blue spheres on red limonite that look like planets in a rusted solar system.");
+      parts.push(narrative_variant('rosasite', 'botryoidal') || "Botryoidal habit — the diagnostic rosasite form. Velvety spherical aggregates, mammillary crusts; the textbook specimens from Mapimi (Mexico) are sky-blue spheres on red limonite that look like planets in a rusted solar system.");
     } else {
-      parts.push("Encrusting mammillary habit — thin crust at low supersaturation. Less aesthetic than the diagnostic spheres but more abundant in the field.");
+      parts.push(narrative_variant('rosasite', 'encrusting_mammillary') || "Encrusting mammillary habit — thin crust at low supersaturation. Less aesthetic than the diagnostic spheres but more abundant in the field.");
     }
-    return parts.join(' ');
+    return parts.filter(p => p).join(' ');
   }
 
   _narrate_torbernite(c) {

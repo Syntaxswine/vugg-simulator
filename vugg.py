@@ -17849,54 +17849,26 @@ class VugSimulator:
         return " ".join(parts)
 
     def _narrate_azurite(self, c: Crystal) -> str:
-        """Narrate an azurite crystal — the deep-blue carbonate."""
+        """Narrate an azurite crystal — the deep-blue carbonate.
+
+        Prose lives in narratives/azurite.md. Code dispatches on habit
+        and on the paramorph-conversion zone-note signal; markdown owns
+        the words.
+        """
         parts = [f"Azurite #{c.crystal_id} grew to {c.c_length_mm:.1f} mm."]
-        parts.append(
-            "Cu₃(CO₃)₂(OH)₂ — the deepest blue in the common mineral "
-            "kingdom. Requires high pCO₂ groundwater — typically a "
-            "limestone-hosted supergene system where CO₂ stays elevated "
-            "under the impermeable carbonate cap. Chessy-les-Mines "
-            "(France) gave us 'chessylite', an old synonym; Tsumeb and "
-            "Bisbee (Arizona) produced the showpiece blue prisms."
-        )
+        parts.append(narrative_blurb("azurite"))
         if c.habit == "azurite_sun":
-            parts.append(
-                "Azurite-sun — radiating flat disc, grown in a narrow "
-                "fracture where crystallographic c-axis was forced "
-                "perpendicular to the fracture plane. The Malbunka "
-                "(Australia) azurite-suns in siltstone are the classic."
-            )
+            parts.append(narrative_variant("azurite", "azurite_sun"))
         elif c.habit == "rosette_bladed":
-            parts.append(
-                "Radiating rosette — multiple blades nucleating at a "
-                "common center. Each blade preserves its own growth "
-                "zoning, visible as color intensity gradients under "
-                "strong light."
-            )
+            parts.append(narrative_variant("azurite", "rosette_bladed"))
         else:
-            parts.append(
-                "Monoclinic prismatic — the flagship azurite habit. "
-                "Deep blue trending to midnight-blue in thick crystals; "
-                "transparent thin slices are a deep indigo."
-            )
+            parts.append(narrative_variant("azurite", "monoclinic_prismatic"))
         has_conversion = any("→ malachite" in (z.note or "") for z in c.zones)
         if has_conversion:
-            parts.append(
-                "Azurite → malachite conversion — CO₂ has been escaping "
-                "from the pocket fluid and the CO₃ inventory dropped "
-                "below azurite's stability. The crystal shape will "
-                "persist (pseudomorph after azurite) but fill with the "
-                "green lower-carbonate mineral. Most Chessy and Morenci "
-                "azurite sits frozen mid-conversion — half blue, half "
-                "green — the geochemist's equivalent of a butterfly "
-                "emerging."
-            )
+            parts.append(narrative_variant("azurite", "malachite_conversion"))
         if c.dissolved and not has_conversion:
-            parts.append(
-                "Acid dissolution — fizzes like calcite because it's a "
-                "carbonate. Cu²⁺ and CO₃²⁻ released to fluid."
-            )
-        return " ".join(parts)
+            parts.append(narrative_variant("azurite", "dissolved"))
+        return " ".join(p for p in parts if p)
 
     def _narrate_chrysocolla(self, c: Crystal) -> str:
         """Narrate a chrysocolla crystal — the cyan copper silicate."""
@@ -19160,42 +19132,20 @@ class VugSimulator:
         return " ".join(parts)
 
     def _narrate_rosasite(self, c: Crystal) -> str:
-        """Narrate rosasite — Cu-dominant broth-ratio carbonate."""
+        """Narrate rosasite — Cu-dominant broth-ratio carbonate.
+
+        Prose lives in narratives/rosasite.md (mirror of aurichalcite).
+        Code dispatches on habit; markdown owns the words.
+        """
         parts = [f"Rosasite #{c.crystal_id} grew to {c.c_length_mm:.1f} mm."]
-        parts.append(
-            "(Cu,Zn)₂(CO₃)(OH)₂ — monoclinic supergene carbonate, the "
-            "Cu-dominant member of the rosasite-aurichalcite pair. "
-            "Velvety blue-green spheres on the weathered face of "
-            "Cu-Zn sulfide deposits. The crystal exists because "
-            "chalcopyrite and sphalerite weathered together upstream "
-            "and released their metals into the same carbonate-rich "
-            "groundwater — and at the moment of nucleation, the fluid "
-            "carried more Cu than Zn. A single ratio decides which "
-            "species forms; the same broth with reversed proportions "
-            "would have produced aurichalcite instead. Mohs 4, "
-            "blue-green streak."
-        )
+        parts.append(narrative_blurb("rosasite"))
         if c.habit == "acicular_radiating":
-            parts.append(
-                "Acicular radiating habit — the slow-grown, low-T form. "
-                "Needle-like aggregates fanning out from a common origin, "
-                "fibrous internal structure visible under magnification."
-            )
+            parts.append(narrative_variant("rosasite", "acicular_radiating"))
         elif c.habit == "botryoidal":
-            parts.append(
-                "Botryoidal habit — the diagnostic rosasite form. Velvety "
-                "spherical aggregates, mammillary crusts; the textbook "
-                "specimens from Mapimi (Mexico) are sky-blue spheres on "
-                "red limonite that look like planets in a rusted solar "
-                "system."
-            )
+            parts.append(narrative_variant("rosasite", "botryoidal"))
         else:
-            parts.append(
-                "Encrusting mammillary habit — thin crust at low "
-                "supersaturation. Less aesthetic than the diagnostic "
-                "spheres but more abundant in the field."
-            )
-        return " ".join(parts)
+            parts.append(narrative_variant("rosasite", "encrusting_mammillary"))
+        return " ".join(p for p in parts if p)
 
     def _narrate_torbernite(self, c: Crystal) -> str:
         """Narrate torbernite — P-branch uranyl phosphate (Round 9b)."""
