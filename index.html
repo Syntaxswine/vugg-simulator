@@ -3271,7 +3271,7 @@ const _NARRATIVE_CACHE = {};
 // Phase-1 manifest — extend as more species migrate. When all 89 are
 // extracted the manifest can become a generated index file fetched
 // once at startup.
-const _NARRATIVE_MANIFEST = ['chalcopyrite', 'sphalerite', 'aurichalcite', 'dolomite', 'rosasite', 'azurite', 'calcite', 'aragonite', 'siderite', 'rhodochrosite', 'cerussite', 'smithsonite', 'malachite', 'pyrite', 'galena', 'marcasite', 'hematite', 'molybdenite', 'bornite', 'chalcocite', 'covellite', 'cuprite'];
+const _NARRATIVE_MANIFEST = ['chalcopyrite', 'sphalerite', 'aurichalcite', 'dolomite', 'rosasite', 'azurite', 'calcite', 'aragonite', 'siderite', 'rhodochrosite', 'cerussite', 'smithsonite', 'malachite', 'pyrite', 'galena', 'marcasite', 'hematite', 'molybdenite', 'bornite', 'chalcocite', 'covellite', 'cuprite', 'native_copper', 'native_gold', 'native_silver'];
 
 function _parseNarrative(text) {
   // Strip frontmatter (--- block at top).
@@ -14759,19 +14759,43 @@ class VugSimulator {
   }
 
   _narrate_native_copper(c) {
+    // Prose lives in narratives/native_copper.md.
     const parts = [`Native copper #${c.crystal_id} grew to ${c.c_length_mm.toFixed(1)} mm.`];
-    parts.push('Cu — elemental copper. Only forms when the fluid is strongly reducing AND low in sulfur. The Michigan Keweenaw peninsula basalt vesicles produced 500-ton masses — the Ontonagon boulder, now at the Smithsonian, is 1.7 tons. Copper-red fresh, tarnishes brown (cuprite surface film), eventually green (malachite patina).');
+    parts.push(narrative_blurb('native_copper') || 'Cu — elemental copper. Only forms when the fluid is strongly reducing AND low in sulfur. The Michigan Keweenaw peninsula basalt vesicles produced 500-ton masses — the Ontonagon boulder, now at the Smithsonian, is 1.7 tons. Copper-red fresh, tarnishes brown (cuprite surface film), eventually green (malachite patina).');
     if (c.habit === 'massive_sheet') {
-      parts.push('Massive sheet copper — the Lake Superior basin signature. Rapid precipitation in open basalt vesicles produced sheets tens of centimeters thick. This is where industrial copper mining began in the Western hemisphere, ~5000 BC with the Old Copper Culture.');
+      parts.push(narrative_variant('native_copper', 'massive_sheet') || 'Massive sheet copper — the Lake Superior basin signature. Rapid precipitation in open basalt vesicles produced sheets tens of centimeters thick. This is where industrial copper mining began in the Western hemisphere, ~5000 BC with the Old Copper Culture.');
     } else if (c.habit === 'arborescent_dendritic') {
-      parts.push("Arborescent dendritic — tree-like branching, the collector's ideal. Each branch is a single crystal oriented along {100}.");
+      parts.push(narrative_variant('native_copper', 'arborescent_dendritic') || "Arborescent dendritic — tree-like branching, the collector's ideal. Each branch is a single crystal oriented along {100}.");
     } else if (c.habit === 'wire_copper') {
-      parts.push('Wire copper — filamentary growth in narrow channels. Ray and Chino (Arizona) produced the delicate wires.');
+      parts.push(narrative_variant('native_copper', 'wire_copper') || 'Wire copper — filamentary growth in narrow channels. Ray and Chino (Arizona) produced the delicate wires.');
     } else {
-      parts.push('Cubic/dodecahedral well-formed crystal — rare for native copper, which usually grows as dendrites.');
+      parts.push(narrative_variant('native_copper', 'cubic_dodecahedral') || 'Cubic/dodecahedral well-formed crystal — rare for native copper, which usually grows as dendrites.');
     }
-    parts.push("The Statue of Liberty's iconic green patina is malachite growing on native copper — the mineralogical fate of most surface copper, given enough time and rain.");
-    return parts.join(' ');
+    parts.push(narrative_variant('native_copper', 'statue_of_liberty_tail') || "The Statue of Liberty's iconic green patina is malachite growing on native copper — the mineralogical fate of most surface copper, given enough time and rain.");
+    return parts.filter(p => p).join(' ');
+  }
+
+  _narrate_native_gold(c) {
+    // Prose lives in narratives/native_gold.md. JS narrator added in this
+    // commit to close the JS-side gap (Python had a narrator; JS dispatch
+    // would silently emit nothing for native gold). Mirrors Python's blurb +
+    // 3-way habit + 2-way alloy + noble_tail structure.
+    const parts = [`Native gold #${c.crystal_id} grew to ${c.c_length_mm.toFixed(1)} mm.`];
+    parts.push(narrative_blurb('native_gold'));
+    if (c.habit === 'nugget') {
+      parts.push(narrative_variant('native_gold', 'nugget'));
+    } else if (c.habit === 'dendritic') {
+      parts.push(narrative_variant('native_gold', 'dendritic'));
+    } else {
+      parts.push(narrative_variant('native_gold', 'octahedral_default'));
+    }
+    if (c.dominant_forms && c.dominant_forms.some(f => (f || '').toLowerCase().includes('electrum'))) {
+      parts.push(narrative_variant('native_gold', 'alloy_electrum'));
+    } else if (c.dominant_forms && c.dominant_forms.some(f => { const lo = (f || '').toLowerCase(); return lo.includes('cuproauride') || lo.includes('rose-gold'); })) {
+      parts.push(narrative_variant('native_gold', 'alloy_cuproauride'));
+    }
+    parts.push(narrative_variant('native_gold', 'noble_tail'));
+    return parts.filter(p => p).join(' ');
   }
 
   _narrate_magnetite(c) {
@@ -15073,29 +15097,30 @@ class VugSimulator {
   }
 
   _narrate_native_silver(c) {
+    // Prose lives in narratives/native_silver.md.
     const parts = [`Native silver #${c.crystal_id} grew to ${c.c_length_mm.toFixed(1)} mm.`];
-    parts.push("Ag — elemental silver, the only native element bright enough to make you rich just by looking at it wrong. Cubic isometric (Fm3̄m), Mohs 2.5-3, specific gravity 10.5 (one of the heaviest native metals). The chemistry novelty: native silver only forms where every sulfur atom is already claimed and the fluid is strongly reducing — the inverse of normal supersaturation logic. Every Kongsberg wire grew in a calcite-vein basement pocket where no sulfide source was anywhere nearby.");
+    parts.push(narrative_blurb('native_silver') || "Ag — elemental silver, the only native element bright enough to make you rich just by looking at it wrong. Cubic isometric (Fm3̄m), Mohs 2.5-3, specific gravity 10.5 (one of the heaviest native metals). The chemistry novelty: native silver only forms where every sulfur atom is already claimed and the fluid is strongly reducing — the inverse of normal supersaturation logic. Every Kongsberg wire grew in a calcite-vein basement pocket where no sulfide source was anywhere nearby.");
     if (c.habit === 'wire') {
-      parts.push("Wire silver — the collector's prize. Epithermal, low-T, open-vug habit; the thread of metal curls through the void as the depletion-driven supersaturation is exhausted along the growth front. Kongsberg's wires reach 30+ cm (Bjørlykke 1959).");
+      parts.push(narrative_variant('native_silver', 'wire') || "Wire silver — the collector's prize. Epithermal, low-T, open-vug habit; the thread of metal curls through the void as the depletion-driven supersaturation is exhausted along the growth front. Kongsberg's wires reach 30+ cm (Bjørlykke 1959).");
     } else if (c.habit === 'dendritic') {
-      parts.push('Dendritic silver — fern-like plates, the Cobalt-Ontario habit. Branching emerges when diffusion-limited growth outruns the depletion zone, splits, and self-replicates in two dimensions.');
+      parts.push(narrative_variant('native_silver', 'dendritic') || 'Dendritic silver — fern-like plates, the Cobalt-Ontario habit. Branching emerges when diffusion-limited growth outruns the depletion zone, splits, and self-replicates in two dimensions.');
     } else if (c.habit === 'cubic_crystal') {
-      parts.push("Cubic crystal — RARE habit. Native silver almost never grows as well-formed isometric crystals; the diffusion-limited geometry of low-S reducing fluid favors wires and dendrites.");
+      parts.push(narrative_variant('native_silver', 'cubic_crystal') || "Cubic crystal — RARE habit. Native silver almost never grows as well-formed isometric crystals; the diffusion-limited geometry of low-S reducing fluid favors wires and dendrites.");
     } else {
-      parts.push('Massive native silver — hackly metallic mass, the Keweenaw nugget habit. Forms when Ag concentration is high enough that the depletion zone is locally exhausted before delicate morphologies develop.');
+      parts.push(narrative_variant('native_silver', 'massive') || 'Massive native silver — hackly metallic mass, the Keweenaw nugget habit. Forms when Ag concentration is high enough that the depletion zone is locally exhausted before delicate morphologies develop.');
     }
     if (c.twinned && (c.twin_law || '').includes('{111}')) {
-      parts.push('{111} penetration twin — two cubes interlocked along a {111} composition plane. Diagnostic when present, rare in nature.');
+      parts.push(narrative_variant('native_silver', 'penetration_twin') || '{111} penetration twin — two cubes interlocked along a {111} composition plane. Diagnostic when present, rare in nature.');
     }
     if (c.dissolved) {
-      parts.push('Tarnishing — S has returned to the fluid and is skinning the surface with acanthite. Geologically inevitable.');
+      parts.push(narrative_variant('native_silver', 'tarnishing_full') || 'Tarnishing — S has returned to the fluid and is skinning the surface with acanthite. Geologically inevitable.');
     } else if (c.zones && c.zones.length > 20) {
-      parts.push('The fresh-broken metallic luster has begun to dull — atmospheric S is reaching the surface and the first molecular layer of acanthite is forming.');
+      parts.push(narrative_variant('native_silver', 'tarnishing_early') || 'The fresh-broken metallic luster has begun to dull — atmospheric S is reaching the surface and the first molecular layer of acanthite is forming.');
     }
     if ((c.position || '').includes('acanthite')) {
-      parts.push("Note position — this crystal nucleated on a dissolving acanthite. That's the supergene Ag-enrichment cycle: primary acanthite oxidizes, releases Ag⁺, the Ag⁺ migrates down the redox gradient and re-precipitates as native silver in a deeper reducing pocket. Same Ag atoms, different mineral, same vug.");
+      parts.push(narrative_variant('native_silver', 'on_acanthite') || "Note position — this crystal nucleated on a dissolving acanthite. That's the supergene Ag-enrichment cycle: primary acanthite oxidizes, releases Ag⁺, the Ag⁺ migrates down the redox gradient and re-precipitates as native silver in a deeper reducing pocket. Same Ag atoms, different mineral, same vug.");
     }
-    return parts.join(' ');
+    return parts.filter(p => p).join(' ');
   }
 
   _narrate_argentite(c) {

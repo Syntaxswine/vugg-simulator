@@ -17620,130 +17620,48 @@ class VugSimulator:
         return " ".join(parts)
 
     def _narrate_native_copper(self, c: Crystal) -> str:
-        """Narrate a native copper crystal — the elemental metal."""
+        """Narrate a native copper crystal — the elemental metal.
+
+        Prose lives in narratives/native_copper.md. Code dispatches blurb +
+        4-way habit (massive_sheet / arborescent_dendritic / wire_copper /
+        cubic_dodecahedral default) + ALWAYS-emitted Statue-of-Liberty tail.
+        """
         parts = [f"Native copper #{c.crystal_id} grew to {c.c_length_mm:.1f} mm."]
-        parts.append(
-            "Cu — elemental copper. Only forms when the fluid is "
-            "strongly reducing AND low in sulfur (otherwise it would "
-            "precipitate as sulfide). The Michigan Keweenaw peninsula "
-            "basalt vesicles produced 500-ton masses — the Ontonagon "
-            "boulder, now at the Smithsonian, is 1.7 tons. Copper-red "
-            "fresh, tarnishes brown (cuprite surface film), eventually "
-            "green (malachite patina)."
-        )
+        parts.append(narrative_blurb("native_copper"))
         if c.habit == "massive_sheet":
-            parts.append(
-                "Massive sheet copper — the Lake Superior basin signature. "
-                "Rapid precipitation in open basalt vesicles produced "
-                "sheets tens of centimeters thick. This is where "
-                "industrial copper mining began in the Western hemisphere, "
-                "~5000 BC with Lake Superior Old Copper Culture tool-"
-                "making."
-            )
+            parts.append(narrative_variant("native_copper", "massive_sheet"))
         elif c.habit == "arborescent_dendritic":
-            parts.append(
-                "Arborescent dendritic — tree-like branching, the "
-                "collector's ideal. Each branch is a single crystal "
-                "oriented along {100}; the aggregate approximates "
-                "isotropic growth only macroscopically. Bisbee and "
-                "Chino (New Mexico) produced the best."
-            )
+            parts.append(narrative_variant("native_copper", "arborescent_dendritic"))
         elif c.habit == "wire_copper":
-            parts.append(
-                "Wire copper — filamentary growth in narrow channels. "
-                "The Ray mine (Arizona) and the Chino stockwork produced "
-                "the delicate wires that rock shops sell individually."
-            )
+            parts.append(narrative_variant("native_copper", "wire_copper"))
         else:
-            parts.append(
-                "Cubic/dodecahedral well-formed crystal — rare for "
-                "native copper, which usually grows as dendrites. "
-                "Tsumeb produced the best sharp cubes."
-            )
-        parts.append(
-            "The Statue of Liberty's iconic green patina is malachite "
-            "growing on native copper — the mineralogical fate of most "
-            "surface copper, given enough time and rain."
-        )
-        return " ".join(parts)
+            parts.append(narrative_variant("native_copper", "cubic_dodecahedral"))
+        parts.append(narrative_variant("native_copper", "statue_of_liberty_tail"))
+        return " ".join(p for p in parts if p)
 
     def _narrate_native_gold(self, c: Crystal) -> str:
-        """Narrate a native gold crystal — the noble metal."""
+        """Narrate a native gold crystal — the noble metal.
+
+        Prose lives in narratives/native_gold.md. Code dispatches blurb +
+        3-way habit (nugget / dendritic / octahedral_default) + 2-way
+        alloy on dominant_forms (electrum vs cuproauride) + ALWAYS-emitted
+        noble tail.
+        """
         parts = [f"Native gold #{c.crystal_id} grew to {c.c_length_mm:.1f} mm."]
-        parts.append(
-            "Au — elemental native gold, essentially indestructible "
-            "in surface conditions (the only natural dissolver is "
-            "aqua regia, which doesn't occur in vugs). Two precipitation "
-            "pathways converge here: high-T magmatic-hydrothermal "
-            "Au-Cl complex destabilization at boiling/decompression "
-            "(Bingham vapor-plume mechanism per Landtwing et al. 2010) "
-            "and low-T supergene Au-Cl reduction at the redox "
-            "interface (Bisbee oxidation-cap mechanism per Graeme "
-            "et al. 2019). Tolerates both oxidizing AND reducing "
-            "fluids because the two transport complexes (Au-Cl and "
-            "Au-HS) cover both Eh regimes — there's no Eh window "
-            "where gold can't deposit if Au activity is high."
-        )
+        parts.append(narrative_blurb("native_gold"))
         if c.habit == "nugget":
-            parts.append(
-                "Nugget habit — rounded massive native gold from "
-                "rapid precipitation in an open pocket. The "
-                "Welcome Stranger nugget (Victoria, Australia, 1869) "
-                "weighed 72 kg of pure gold; the Hand of Faith "
-                "(also Victoria, 1980) weighed 27 kg and is now in "
-                "the Golden Nugget Casino, Las Vegas. Most placer "
-                "gold reaches its rounded form not from precipitation "
-                "but from stream-tumbling of harder-edged primary gold."
-            )
+            parts.append(narrative_variant("native_gold", "nugget"))
         elif c.habit == "dendritic":
-            parts.append(
-                "Dendritic / spongy habit — the diagnostic supergene "
-                "fishbone-and-leaf gold. Each branch is a single "
-                "crystal oriented along {111}; the aggregate looks "
-                "isotropic only at the macro scale. Round Mountain "
-                "(Nevada) and Eagle's Nest (California) produced the "
-                "classic specimens. Forms when the redox interface "
-                "moves quickly through a pocket and Au reduces faster "
-                "than it can equilibrate into well-formed crystals."
-            )
+            parts.append(narrative_variant("native_gold", "dendritic"))
         else:
-            parts.append(
-                "Octahedral well-formed crystal — rare for native "
-                "gold, which usually grows as dendrites. The "
-                "{111} octahedron is the slow-growth equilibrium "
-                "habit. Eagle's Nest (Placer County, CA) and "
-                "Verespatak (Romania, the Roșia Montană site) "
-                "produced the world's best sharp Au octahedra."
-            )
-        # Alloy notes — set in grow_native_gold's habit_note based on
-        # parent fluid Ag/Cu. Re-derive here from the crystal's Crystal
-        # ancestry isn't available, so we read the most recent zone's
-        # note; alternatively, we surface based on what the broth
-        # carried at that moment via dominant_forms.
+            parts.append(narrative_variant("native_gold", "octahedral_default"))
+        # Alloy notes derived from broth's dominant_forms at nucleation.
         if c.dominant_forms and any("electrum" in f.lower() for f in c.dominant_forms):
-            parts.append(
-                "Ag-alloyed (electrum) — pale yellow tint from silver "
-                "substituting for gold at >10%. Electrum is the historic "
-                "term; Croesus's coinage (Lydia, 6th century BC) was "
-                "natural electrum from the Pactolus river."
-            )
+            parts.append(narrative_variant("native_gold", "alloy_electrum"))
         elif c.dominant_forms and any("cuproauride" in f.lower() or "rose-gold" in f.lower() for f in c.dominant_forms):
-            parts.append(
-                "Cu-alloyed (rose-gold cuproauride affinity) — pinkish-"
-                "red tint from copper substitution. Diagnostic of "
-                "Cu-rich systems like Bisbee, where supergene Au "
-                "co-precipitates with chalcocite."
-            )
-        parts.append(
-            "Au is unique among the metals in that it almost never "
-            "tarnishes — no oxide film, no sulfide film, no carbonate. "
-            "The 'noble' designation is literal: gold's electrons "
-            "won't share with anyone, so it stays elementally pure "
-            "for geological time. The grain you find in a stream "
-            "today crystallized in Precambrian magmatic vapor and "
-            "has not chemically changed since."
-        )
-        return " ".join(parts)
+            parts.append(narrative_variant("native_gold", "alloy_cuproauride"))
+        parts.append(narrative_variant("native_gold", "noble_tail"))
+        return " ".join(p for p in parts if p)
 
     def _narrate_magnetite(self, c: Crystal) -> str:
         parts = [f"Magnetite #{c.crystal_id} grew to {c.c_length_mm:.1f} mm."]
@@ -18688,93 +18606,36 @@ class VugSimulator:
         return " ".join(parts)
 
     def _narrate_native_silver(self, c: Crystal) -> str:
-        """Narrate native silver — the Kongsberg wire mineral and the
-        S-depletion paragenetic outcome."""
+        """Narrate native silver — the Kongsberg wire mineral.
+
+        Prose lives in narratives/native_silver.md. Code dispatches blurb +
+        4-way habit (wire / dendritic / cubic_crystal / massive default) +
+        {111} penetration twin + dissolved-vs-late-zone tarnish paired
+        branches + acanthite paragenesis position note.
+        """
         parts = [f"Native silver #{c.crystal_id} grew to {c.c_length_mm:.1f} mm."]
-        parts.append(
-            "Ag — elemental silver, the only native element bright enough "
-            "to make you rich just by looking at it wrong. Cubic isometric "
-            "(Fm3̄m), Mohs 2.5-3, specific gravity 10.5 (one of the heaviest "
-            "native metals). The chemistry novelty: native silver only "
-            "forms where every sulfur atom is already claimed and the "
-            "fluid is strongly reducing — the inverse of normal "
-            "supersaturation logic. Every Kongsberg wire grew in a "
-            "calcite-vein basement pocket where no sulfide source was "
-            "anywhere nearby."
-        )
+        parts.append(narrative_blurb("native_silver"))
 
         if c.habit == "wire":
-            parts.append(
-                "Wire silver — the collector's prize. Epithermal, low-T, "
-                "open-vug habit; the thread of metal curls through the void "
-                "as the depletion-driven supersaturation is exhausted along "
-                "the growth front. Kongsberg's wires reach 30+ cm and are "
-                "considered the finest native-element specimens in the "
-                "world (Bjørlykke 1959). At a finer scale the wires show "
-                "the herringbone surface texture diagnostic of Ag⁰ "
-                "epitaxial growth."
-            )
+            parts.append(narrative_variant("native_silver", "wire"))
         elif c.habit == "dendritic":
-            parts.append(
-                "Dendritic silver — fern-like plates, the Cobalt-Ontario "
-                "habit. Branching pattern emerges when the diffusion-"
-                "limited growth front outruns the depletion zone, splits, "
-                "and self-replicates in two dimensions. The same mechanism "
-                "that produces ferns also produces silver dendrites — a "
-                "morphology the geometry doesn't care about the substrate."
-            )
+            parts.append(narrative_variant("native_silver", "dendritic"))
         elif c.habit == "cubic_crystal":
-            parts.append(
-                "Cubic crystal — RARE habit. Native silver almost never "
-                "grows as well-formed isometric crystals; the diffusion-"
-                "limited geometry of low-S reducing fluid favors wires and "
-                "dendrites. Cubes appear only under specific high-T "
-                "primary-hypogene conditions where the fluid stays "
-                "supersaturated long enough for the growth front to fill "
-                "the {100} faces."
-            )
-        else:  # massive
-            parts.append(
-                "Massive native silver — hackly metallic mass, the Keweenaw "
-                "Peninsula nugget habit. Forms when Ag concentration is "
-                "high enough that the depletion zone is locally exhausted "
-                "before delicate wire / dendrite morphologies can develop. "
-                "The historic mining district shipped it by the ton, often "
-                "alongside native copper in the basalt amygdules."
-            )
+            parts.append(narrative_variant("native_silver", "cubic_crystal"))
+        else:
+            parts.append(narrative_variant("native_silver", "massive"))
 
         if c.twinned and "{111}" in (c.twin_law or ""):
-            parts.append(
-                "{111} penetration twin — two cubes interlocked along a "
-                "{111} composition plane. Diagnostic when present, rare "
-                "in nature."
-            )
+            parts.append(narrative_variant("native_silver", "penetration_twin"))
 
         if c.dissolved:
-            parts.append(
-                "Tarnishing — S has returned to the fluid and is skinning "
-                "the surface with acanthite. Geologically inevitable: every "
-                "native-silver specimen eventually develops a dark "
-                "acanthite rind from atmospheric H₂S, even in a sealed "
-                "vug. Display specimens are usually re-polished."
-            )
+            parts.append(narrative_variant("native_silver", "tarnishing_full"))
         elif len(c.zones) > 20:
-            parts.append(
-                "The fresh-broken metallic luster has begun to dull — "
-                "atmospheric S is reaching the surface and the first "
-                "molecular layer of acanthite is forming."
-            )
+            parts.append(narrative_variant("native_silver", "tarnishing_early"))
 
         if "acanthite" in (c.position or ""):
-            parts.append(
-                "Note position — this crystal nucleated on a dissolving "
-                "acanthite. That's the supergene Ag-enrichment cycle: "
-                "primary acanthite oxidizes, releases Ag⁺, the Ag⁺ "
-                "migrates down the redox gradient and re-precipitates as "
-                "native silver in a deeper reducing pocket. Same Ag atoms, "
-                "different mineral, same vug."
-            )
-        return " ".join(parts)
+            parts.append(narrative_variant("native_silver", "on_acanthite"))
+        return " ".join(p for p in parts if p)
 
     def _narrate_argentite(self, c: Crystal) -> str:
         """Narrate argentite — the high-T cubic Ag₂S, before any paramorph fires.
