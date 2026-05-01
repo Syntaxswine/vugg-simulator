@@ -3271,7 +3271,7 @@ const _NARRATIVE_CACHE = {};
 // Phase-1 manifest — extend as more species migrate. When all 89 are
 // extracted the manifest can become a generated index file fetched
 // once at startup.
-const _NARRATIVE_MANIFEST = ['chalcopyrite', 'sphalerite', 'aurichalcite', 'dolomite', 'rosasite', 'azurite', 'calcite', 'aragonite', 'siderite', 'rhodochrosite', 'cerussite', 'smithsonite', 'malachite', 'pyrite', 'galena', 'marcasite', 'hematite', 'molybdenite', 'bornite', 'chalcocite', 'covellite', 'cuprite', 'native_copper', 'native_gold', 'native_silver', 'magnetite', 'lepidocrocite', 'goethite', 'barite', 'celestine', 'anhydrite', 'jarosite', 'alunite', 'brochantite', 'antlerite', 'chalcanthite', 'scorodite', 'ferrimolybdite', 'fluorite', 'pyromorphite', 'vanadinite', 'mimetite', 'descloizite', 'mottramite', 'selenite', 'adamite', 'olivenite', 'erythrite', 'annabergite', 'torbernite', 'zeunerite', 'carnotite', 'wulfenite', 'raspite', 'stolzite', 'beryl', 'emerald', 'aquamarine', 'morganite', 'heliodor', 'corundum', 'ruby', 'sapphire', 'albite', 'apophyllite', 'uraninite', 'anglesite', 'tetrahedrite', 'tennantite', 'nickeline', 'millerite', 'cobaltite', 'stibnite', 'arsenopyrite', 'bismuthinite', 'feldspar', 'native_bismuth', 'clinobisvanite', 'acanthite', 'argentite', 'native_tellurium', 'native_sulfur', 'native_arsenic'];
+const _NARRATIVE_MANIFEST = ['chalcopyrite', 'sphalerite', 'aurichalcite', 'dolomite', 'rosasite', 'azurite', 'calcite', 'aragonite', 'siderite', 'rhodochrosite', 'cerussite', 'smithsonite', 'malachite', 'pyrite', 'galena', 'marcasite', 'hematite', 'molybdenite', 'bornite', 'chalcocite', 'covellite', 'cuprite', 'native_copper', 'native_gold', 'native_silver', 'magnetite', 'lepidocrocite', 'goethite', 'barite', 'celestine', 'anhydrite', 'jarosite', 'alunite', 'brochantite', 'antlerite', 'chalcanthite', 'scorodite', 'ferrimolybdite', 'fluorite', 'pyromorphite', 'vanadinite', 'mimetite', 'descloizite', 'mottramite', 'selenite', 'adamite', 'olivenite', 'erythrite', 'annabergite', 'torbernite', 'zeunerite', 'carnotite', 'wulfenite', 'raspite', 'stolzite', 'beryl', 'emerald', 'aquamarine', 'morganite', 'heliodor', 'corundum', 'ruby', 'sapphire', 'albite', 'apophyllite', 'uraninite', 'anglesite', 'tetrahedrite', 'tennantite', 'nickeline', 'millerite', 'cobaltite', 'stibnite', 'arsenopyrite', 'bismuthinite', 'feldspar', 'native_bismuth', 'clinobisvanite', 'acanthite', 'argentite', 'native_tellurium', 'native_sulfur', 'native_arsenic', 'wurtzite', 'spodumene', 'chrysocolla'];
 
 function _parseNarrative(text) {
   // Strip frontmatter (--- block at top).
@@ -14106,34 +14106,25 @@ class VugSimulator {
   }
 
   _narrate_wurtzite(c) {
+    // Prose lives in narratives/wurtzite.md.
     const parts = [`Wurtzite #${c.crystal_id} grew to ${c.c_length_mm.toFixed(1)} mm.`];
-    if (c.habit === 'hemimorphic_crystal') {
-      parts.push('Hemimorphic hexagonal pyramid — one end pointed, the other flat. The P6₃mc space group has no inversion center, so the c-axis is polar and the two terminations are crystallographically distinct. This is the diagnostic wurtzite shape, absent from cubic sphalerite.');
-    } else if (c.habit === 'radiating_columnar') {
-      parts.push('Radiating hexagonal columns forming stellate clusters — a classic high-supersaturation wurtzite texture. Hot metal-rich fluids eating into an acid-etched fracture.');
-    } else if (c.habit === 'fibrous_coating') {
-      parts.push("Fibrous crust on the wall — fast growth along {0001} producing parallel columnar fibers. Wurtzite's polarity lets each fiber terminate differently at base vs. tip.");
-    } else {
-      parts.push('Tabular {0001} plates with a slight micaceous layering — slow-growth wurtzite aggregates that sometimes get mistaken for molybdenite until the color and chemistry rule it out.');
-    }
+    if (c.habit === 'hemimorphic_crystal') parts.push(narrative_variant('wurtzite', 'hemimorphic_crystal') || 'Hemimorphic hexagonal pyramid.');
+    else if (c.habit === 'radiating_columnar') parts.push(narrative_variant('wurtzite', 'radiating_columnar') || 'Radiating hexagonal columns.');
+    else if (c.habit === 'fibrous_coating') parts.push(narrative_variant('wurtzite', 'fibrous_coating') || "Fibrous crust on the wall.");
+    else parts.push(narrative_variant('wurtzite', 'tabular_default') || 'Tabular {0001} plates.');
     if (c.zones && c.zones.length) {
       const fe_vals = c.zones.filter(z => z.trace_Fe > 0).map(z => z.trace_Fe);
       if (fe_vals.length) {
         const max_fe_pct = Math.max(...fe_vals) / 10.0;
         if (max_fe_pct > 10) {
-          parts.push(`Fe content up to ${max_fe_pct.toFixed(0)} mol% — wurtzite happily hosts iron, like its cubic cousin, darkening toward black.`);
+          parts.push(narrative_variant('wurtzite', 'fe_content', { fe_pct: max_fe_pct.toFixed(0) }) || `Fe content up to ${max_fe_pct.toFixed(0)} mol%.`);
         }
       }
     }
-    if (c.twinned) {
-      parts.push(`Shows the ${c.twin_law} twin — less common than sphalerite's spinel twinning because the hexagonal space group forbids the {111} operation.`);
-    }
-    if (c.dissolved) {
-      parts.push('Polymorphic inversion destroyed the crystal — cooling below 95°C pushed (Zn,Fe)S into the cubic sphalerite field. Over geologic time wurtzite usually converts down to sphalerite; sphalerite rarely goes back.');
-    } else {
-      parts.push('As long as the fluid stays above 95°C, the crystal is stable in the wurtzite structure; cooling through that threshold would trigger conversion to sphalerite.');
-    }
-    return parts.join(' ');
+    if (c.twinned) parts.push(narrative_variant('wurtzite', 'twinned', { twin_law: c.twin_law }) || `Shows the ${c.twin_law} twin.`);
+    if (c.dissolved) parts.push(narrative_variant('wurtzite', 'polymorphic_inversion') || 'Polymorphic inversion destroyed the crystal.');
+    else parts.push(narrative_variant('wurtzite', 'kept_hexagonal') || 'Kept hexagonal as long as fluid stayed above 95°C.');
+    return parts.filter(p => p).join(' ');
   }
 
   _narrate_fluorite(c) {
@@ -14573,8 +14564,9 @@ class VugSimulator {
   }
 
   _narrate_spodumene(c) {
+    // Prose lives in narratives/spodumene.md.
     const parts = [`Spodumene #${c.crystal_id} grew to ${c.c_length_mm.toFixed(1)} mm.`];
-    parts.push("LiAlSi₂O₆ — monoclinic pyroxene. Two cleavage directions intersect at ~87°, and that's the diagnostic feature: when spodumene survives dissolution events, parting fragments from those cleavage planes litter the pocket floor. The 'book shape' flattened tabular habit is the signature. Can reach 14 meters in real pegmatites (Etta mine, South Dakota) — among the longest single crystals on Earth.");
+    parts.push(narrative_blurb('spodumene') || "LiAlSi₂O₆ — monoclinic pyroxene. Two cleavage directions intersect at ~87°, and that's the diagnostic feature: when spodumene survives dissolution events, parting fragments from those cleavage planes litter the pocket floor. The 'book shape' flattened tabular habit is the signature. Can reach 14 meters in real pegmatites (Etta mine, South Dakota) — among the longest single crystals on Earth.");
 
     const notes = c.zones.map(z => (z.note || '').toLowerCase());
     const varieties = new Set();
@@ -14585,15 +14577,15 @@ class VugSimulator {
     }
 
     if (varieties.has('kunzite')) {
-      parts.push("Kunzite — the pink-lilac Mn²⁺ variety, named for George Kunz, Tiffany & Co.'s mineralogist who bought Minas Gerais specimens by the crate in the early 1900s. Kunzite fluoresces strongly pink-orange under SW UV, a diagnostic test no other pink gem material passes. Color depth correlates with growth rate — faster growth traps more color-causing impurity.");
+      parts.push(narrative_variant('spodumene', 'kunzite') || "Kunzite — the pink-lilac Mn²⁺ variety, named for George Kunz, Tiffany & Co.'s mineralogist who bought Minas Gerais specimens by the crate in the early 1900s. Kunzite fluoresces strongly pink-orange under SW UV, a diagnostic test no other pink gem material passes. Color depth correlates with growth rate — faster growth traps more color-causing impurity.");
     } else if (varieties.has('hiddenite')) {
-      parts.push('Hiddenite — the green Cr³⁺ variety, named for William Earl Hidden, who discovered the North Carolina locality in 1879. Much rarer than kunzite because Cr³⁺ needs to diffuse from country rock into the pegmatite fluid at just the right moment. Minas Gerais produces the world\u2019s best hiddenite.');
+      parts.push(narrative_variant('spodumene', 'hiddenite') || 'Hiddenite — the green Cr³⁺ variety, named for William Earl Hidden, who discovered the North Carolina locality in 1879. Much rarer than kunzite because Cr³⁺ needs to diffuse from country rock into the pegmatite fluid at just the right moment. Minas Gerais produces the world\u2019s best hiddenite.');
     } else if (varieties.has('triphane')) {
-      parts.push("Triphane — pale yellow-green or colorless, the iron-trace end-member. The name means 'three-appearing' (Greek), for the dichroism that shifts the hue depending on viewing angle. The default spodumene species when no strong chromophore is present.");
+      parts.push(narrative_variant('spodumene', 'triphane') || "Triphane — pale yellow-green or colorless, the iron-trace end-member. The name means 'three-appearing' (Greek), for the dichroism that shifts the hue depending on viewing angle. The default spodumene species when no strong chromophore is present.");
     }
 
-    parts.push('A cross-section of this crystal perpendicular to the c-axis would show the pyroxene chain silicate structure: SiO₄ tetrahedra linked into single chains along c, with Li and Al occupying the M1 and M2 octahedral sites between them.');
-    return parts.join(' ');
+    parts.push(narrative_closing('spodumene') || 'A cross-section of this crystal perpendicular to the c-axis would show the pyroxene chain silicate structure: SiO₄ tetrahedra linked into single chains along c, with Li and Al occupying the M1 and M2 octahedral sites between them.');
+    return parts.filter(p => p).join(' ');
   }
 
   _narrate_anglesite(c) {
@@ -14748,6 +14740,20 @@ class VugSimulator {
     if (c.dissolved && !has_conversion) {
       parts.push(narrative_variant('azurite', 'dissolved') || 'Acid dissolution — fizzes like calcite. Cu²⁺ and CO₃²⁻ released.');
     }
+    return parts.filter(p => p).join(' ');
+  }
+
+  _narrate_chrysocolla(c) {
+    // Prose lives in narratives/chrysocolla.md. JS narrator added in this
+    // commit to close a JS-side gap.
+    const parts = [`Chrysocolla #${c.crystal_id} grew to ${c.c_length_mm.toFixed(1)} mm.`];
+    parts.push(narrative_blurb('chrysocolla'));
+    if (c.habit === 'pseudomorph_after_azurite') parts.push(narrative_variant('chrysocolla', 'pseudomorph_after_azurite'));
+    else if (c.habit === 'enamel_on_cuprite') parts.push(narrative_variant('chrysocolla', 'enamel_on_cuprite'));
+    else if (c.habit === 'botryoidal_crust') parts.push(narrative_variant('chrysocolla', 'botryoidal_crust'));
+    else if (c.habit === 'reniform_globules') parts.push(narrative_variant('chrysocolla', 'reniform_globules'));
+    else parts.push(narrative_variant('chrysocolla', 'silica_gel_default'));
+    if (c.dissolved) parts.push(narrative_variant('chrysocolla', 'dissolved'));
     return parts.filter(p => p).join(' ');
   }
 

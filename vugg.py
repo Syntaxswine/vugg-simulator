@@ -15374,65 +15374,42 @@ class VugSimulator:
         return " ".join(p for p in parts if p)
 
     def _narrate_wurtzite(self, c: Crystal) -> str:
-        """Narrate a wurtzite crystal's story — the high-T hexagonal ZnS dimorph."""
+        """Narrate a wurtzite crystal — the high-T hexagonal ZnS dimorph.
+
+        Prose lives in narratives/wurtzite.md. No-blurb pattern + 4-way
+        habit + Fe-content threshold variant (with {fe_pct} interp) +
+        twinned (with {twin_law}) + paired polymorphic_inversion-vs-
+        kept_hexagonal branches.
+        """
         parts = [f"Wurtzite #{c.crystal_id} grew to {c.c_length_mm:.1f} mm."]
 
         if c.habit == "hemimorphic_crystal":
-            parts.append(
-                "Hemimorphic hexagonal pyramid — one end pointed, the other flat. "
-                "The P6₃mc space group has no inversion center, so the c-axis is "
-                "polar and the two terminations are crystallographically distinct. "
-                "This is the diagnostic wurtzite shape, absent from cubic sphalerite."
-            )
+            parts.append(narrative_variant("wurtzite", "hemimorphic_crystal"))
         elif c.habit == "radiating_columnar":
-            parts.append(
-                "Radiating hexagonal columns forming stellate clusters — a classic "
-                "high-supersaturation wurtzite texture. Hot metal-rich fluids eating "
-                "into an acid-etched fracture."
-            )
+            parts.append(narrative_variant("wurtzite", "radiating_columnar"))
         elif c.habit == "fibrous_coating":
-            parts.append(
-                "Fibrous crust on the wall — fast growth along {0001} producing "
-                "parallel columnar fibers. Wurtzite's polarity lets each fiber "
-                "terminate differently at base vs. tip."
-            )
+            parts.append(narrative_variant("wurtzite", "fibrous_coating"))
         else:
-            parts.append(
-                "Tabular {0001} plates with a slight micaceous layering — slow-growth "
-                "wurtzite aggregates that sometimes get mistaken for molybdenite until "
-                "the color and chemistry rule it out."
-            )
+            parts.append(narrative_variant("wurtzite", "tabular_default"))
 
         if c.zones:
             fe_vals = [z.trace_Fe for z in c.zones if z.trace_Fe > 0]
             if fe_vals:
-                max_fe_pct = max(fe_vals) / 10.0  # reverse the *10 ppm scaling
+                max_fe_pct = max(fe_vals) / 10.0
                 if max_fe_pct > 10:
-                    parts.append(
-                        f"Fe content up to {max_fe_pct:.0f} mol% — wurtzite happily "
-                        f"hosts iron, like its cubic cousin, darkening toward black."
-                    )
+                    parts.append(narrative_variant("wurtzite", "fe_content",
+                                                   fe_pct=f"{max_fe_pct:.0f}"))
 
         if c.twinned:
-            parts.append(
-                f"Shows the {c.twin_law} twin — less common than sphalerite's spinel "
-                f"twinning because the hexagonal space group forbids the {{111}} operation."
-            )
+            parts.append(narrative_variant("wurtzite", "twinned",
+                                           twin_law=c.twin_law))
 
         if c.dissolved:
-            parts.append(
-                "Polymorphic inversion destroyed the crystal — cooling below 95°C "
-                "pushed (Zn,Fe)S into the cubic sphalerite field. Over geologic time "
-                "wurtzite usually converts down to sphalerite; sphalerite rarely goes back."
-            )
+            parts.append(narrative_variant("wurtzite", "polymorphic_inversion"))
         else:
-            parts.append(
-                "As long as the fluid stays above 95°C, the crystal is stable in "
-                "the wurtzite structure; cooling through that threshold would trigger "
-                "conversion to sphalerite."
-            )
+            parts.append(narrative_variant("wurtzite", "kept_hexagonal"))
 
-        return " ".join(parts)
+        return " ".join(p for p in parts if p)
 
     def _narrate_fluorite(self, c: Crystal) -> str:
         """Narrate a fluorite crystal's story.
@@ -16666,20 +16643,15 @@ class VugSimulator:
         return " ".join(p for p in parts if p)
 
     def _narrate_spodumene(self, c: Crystal) -> str:
-        """Narrate a spodumene crystal — the lithium pyroxene book."""
+        """Narrate spodumene — the lithium pyroxene book.
+
+        Prose lives in narratives/spodumene.md. Code dispatches blurb +
+        zone-note variety detection (kunzite / hiddenite / triphane elif
+        chain) + ALWAYS-emitted pyroxene-structure closing.
+        """
         parts = [f"Spodumene #{c.crystal_id} grew to {c.c_length_mm:.1f} mm."]
+        parts.append(narrative_blurb("spodumene"))
 
-        parts.append(
-            "LiAlSi₂O₆ — monoclinic pyroxene. Two cleavage directions "
-            "intersect at ~87°, and that's the diagnostic feature: when "
-            "spodumene survives dissolution events, parting fragments from "
-            "those cleavage planes litter the pocket floor. The 'book "
-            "shape' flattened tabular habit is the signature. Can reach 14 "
-            "meters in real pegmatites (Etta mine, South Dakota) — among "
-            "the longest single crystals on Earth."
-        )
-
-        # Variety detection
         zone_notes = [z.note or "" for z in c.zones]
         varieties = set()
         for n in zone_notes:
@@ -16688,40 +16660,14 @@ class VugSimulator:
             if "triphane" in n: varieties.add("triphane")
 
         if "kunzite" in varieties:
-            parts.append(
-                "Kunzite — the pink-lilac Mn²⁺ variety, named for George "
-                "Kunz, Tiffany & Co.'s mineralogist who bought Minas Gerais "
-                "specimens by the crate in the early 1900s. Kunzite "
-                "fluoresces strongly pink-orange under SW UV, a diagnostic "
-                "test no other pink gem material passes. Color depth "
-                "correlates with growth rate — faster growth traps more "
-                "color-causing impurity."
-            )
+            parts.append(narrative_variant("spodumene", "kunzite"))
         elif "hiddenite" in varieties:
-            parts.append(
-                "Hiddenite — the green Cr³⁺ variety, named for William Earl "
-                "Hidden, who discovered the North Carolina locality in 1879. "
-                "Much rarer than kunzite because Cr³⁺ needs to diffuse from "
-                "country rock into the pegmatite fluid at just the right "
-                "moment. Minas Gerais produces the world's best hiddenite."
-            )
+            parts.append(narrative_variant("spodumene", "hiddenite"))
         elif "triphane" in varieties:
-            parts.append(
-                "Triphane — pale yellow-green or colorless, the iron-trace "
-                "end-member. The name means 'three-appearing' (Greek), for "
-                "the dichroism that shifts the hue depending on viewing "
-                "angle. The default spodumene species when no strong "
-                "chromophore is present."
-            )
+            parts.append(narrative_variant("spodumene", "triphane"))
 
-        parts.append(
-            "A cross-section of this crystal perpendicular to the c-axis "
-            "would show the pyroxene chain silicate structure: SiO₄ "
-            "tetrahedra linked into single chains along c, with Li and Al "
-            "occupying the M1 and M2 octahedral sites between them."
-        )
-
-        return " ".join(parts)
+        parts.append(narrative_closing("spodumene"))
+        return " ".join(p for p in parts if p)
 
     def _narrate_anglesite(self, c: Crystal) -> str:
         """Narrate an anglesite crystal — the transient lead sulfate.
@@ -16897,60 +16843,28 @@ class VugSimulator:
         return " ".join(p for p in parts if p)
 
     def _narrate_chrysocolla(self, c: Crystal) -> str:
-        """Narrate a chrysocolla crystal — the cyan copper silicate."""
+        """Narrate chrysocolla — the cyan copper silicate.
+
+        Prose lives in narratives/chrysocolla.md. Code dispatches blurb +
+        5-way habit (pseudomorph_after_azurite / enamel_on_cuprite /
+        botryoidal_crust / reniform_globules / silica_gel_default) +
+        dissolved.
+        """
         parts = [f"Chrysocolla #{c.crystal_id} grew to {c.c_length_mm:.1f} mm."]
-        parts.append(
-            "Cu₂H₂Si₂O₅(OH)₄ — the cryptocrystalline copper silicate. "
-            "X-ray amorphous in most samples (a 'mineraloid' by strict "
-            "definition; sanctioned as a mineral since 1803). Forms "
-            "only at meteoric temperatures, where Cu²⁺ from weathering "
-            "sulfides meets dissolved SiO₂ from silicate wall rock in "
-            "a narrow pH window. At Bisbee the quartz-monzonite "
-            "porphyry supplies the silica and the Paleozoic limestones "
-            "buffer the pH — the union gives the district's signature "
-            "sky-blue enamel over cuprite and native copper."
-        )
+        parts.append(narrative_blurb("chrysocolla"))
         if c.habit == "pseudomorph_after_azurite":
-            parts.append(
-                "Pseudomorph after azurite — the pCO₂ in the pocket "
-                "fluid dropped below azurite's stability, and incoming "
-                "silica-bearing water replaced the monoclinic prisms "
-                "atom-by-atom. Outline preserved, interior converted. "
-                "These specimens are the Bisbee centerpiece."
-            )
+            parts.append(narrative_variant("chrysocolla", "pseudomorph_after_azurite"))
         elif c.habit == "enamel_on_cuprite":
-            parts.append(
-                "Enamel over cuprite — a thin conformal film coating "
-                "the earlier red Cu₂O. Where both are exposed on one "
-                "specimen the colors pop: cochineal red under sky-blue. "
-                "The textbook Bisbee pairing."
-            )
+            parts.append(narrative_variant("chrysocolla", "enamel_on_cuprite"))
         elif c.habit == "botryoidal_crust":
-            parts.append(
-                "Botryoidal crust — grape-cluster lobes, enamel-like "
-                "luster, conchoidal fracture. Hardness varies with "
-                "water content; the more hydrated the softer."
-            )
+            parts.append(narrative_variant("chrysocolla", "botryoidal_crust"))
         elif c.habit == "reniform_globules":
-            parts.append(
-                "Reniform globules — kidney-shaped lobes nucleating "
-                "on earlier crystals. The glassy fracture means the "
-                "material is closer to an amorphous silica gel than a "
-                "true mineral lattice."
-            )
+            parts.append(narrative_variant("chrysocolla", "reniform_globules"))
         else:
-            parts.append(
-                "Silica-gel hemisphere — low supersaturation regime, "
-                "rounded drop-like habit. Freshly precipitated "
-                "chrysocolla is genuinely gel-like before it sets."
-            )
+            parts.append(narrative_variant("chrysocolla", "silica_gel_default"))
         if c.dissolved:
-            parts.append(
-                "Dissolution — acid or high-T exposure has released "
-                "the Cu²⁺ and SiO₂ back to fluid. Above ~100 °C it "
-                "would dehydrate to plancheite or shattuckite instead."
-            )
-        return " ".join(parts)
+            parts.append(narrative_variant("chrysocolla", "dissolved"))
+        return " ".join(p for p in parts if p)
 
     def _narrate_native_copper(self, c: Crystal) -> str:
         """Narrate a native copper crystal — the elemental metal.
