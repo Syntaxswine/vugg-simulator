@@ -3271,7 +3271,7 @@ const _NARRATIVE_CACHE = {};
 // Phase-1 manifest — extend as more species migrate. When all 89 are
 // extracted the manifest can become a generated index file fetched
 // once at startup.
-const _NARRATIVE_MANIFEST = ['chalcopyrite', 'sphalerite', 'aurichalcite', 'dolomite', 'rosasite', 'azurite', 'calcite', 'aragonite', 'siderite', 'rhodochrosite', 'cerussite', 'smithsonite', 'malachite', 'pyrite', 'galena', 'marcasite', 'hematite', 'molybdenite', 'bornite', 'chalcocite', 'covellite', 'cuprite', 'native_copper', 'native_gold', 'native_silver', 'magnetite', 'lepidocrocite', 'goethite', 'barite', 'celestine', 'anhydrite', 'jarosite', 'alunite', 'brochantite', 'antlerite', 'chalcanthite', 'scorodite', 'ferrimolybdite', 'fluorite', 'pyromorphite', 'vanadinite', 'mimetite', 'descloizite', 'mottramite', 'selenite', 'adamite', 'olivenite', 'erythrite', 'annabergite', 'torbernite', 'zeunerite', 'carnotite', 'wulfenite', 'raspite', 'stolzite', 'beryl', 'emerald', 'aquamarine', 'morganite', 'heliodor'];
+const _NARRATIVE_MANIFEST = ['chalcopyrite', 'sphalerite', 'aurichalcite', 'dolomite', 'rosasite', 'azurite', 'calcite', 'aragonite', 'siderite', 'rhodochrosite', 'cerussite', 'smithsonite', 'malachite', 'pyrite', 'galena', 'marcasite', 'hematite', 'molybdenite', 'bornite', 'chalcocite', 'covellite', 'cuprite', 'native_copper', 'native_gold', 'native_silver', 'magnetite', 'lepidocrocite', 'goethite', 'barite', 'celestine', 'anhydrite', 'jarosite', 'alunite', 'brochantite', 'antlerite', 'chalcanthite', 'scorodite', 'ferrimolybdite', 'fluorite', 'pyromorphite', 'vanadinite', 'mimetite', 'descloizite', 'mottramite', 'selenite', 'adamite', 'olivenite', 'erythrite', 'annabergite', 'torbernite', 'zeunerite', 'carnotite', 'wulfenite', 'raspite', 'stolzite', 'beryl', 'emerald', 'aquamarine', 'morganite', 'heliodor', 'corundum', 'ruby', 'sapphire'];
 
 function _parseNarrative(text) {
   // Strip frontmatter (--- block at top).
@@ -14535,69 +14535,52 @@ class VugSimulator {
   }
 
   _narrate_corundum(c) {
+    // Prose lives in narratives/corundum.md.
     const parts = [`Corundum #${c.crystal_id} grew to ${c.c_length_mm.toFixed(1)} mm.`];
-    parts.push('Al₂O₃ — trigonal close-packed oxide, hardness 9 (the benchmark below diamond). This is the colorless/generic variety: no chromophore trace above the ruby (Cr ≥ 2 ppm) or sapphire (Fe ≥ 5) gates. The defining chemical constraint the crystal met: SiO₂ was undersaturated (< 50 ppm). With any more silica in the fluid, Al + SiO₂ would have driven toward feldspar or the Al₂SiO₅ polymorphs (kyanite, andalusite, sillimanite) instead, and no corundum could have nucleated.');
-    if (c.habit === 'tabular') {
-      parts.push('Flat tabular hexagonal plate — the Mogok marble-hosted contact-metamorphic habit. Basal pinacoid dominates over the prism.');
-    } else if (c.habit === 'barrel') {
-      parts.push('Steep dipyramidal "barrel" — the high-T (>700°C) habit diagnostic of basalt-hosted xenocrysts. Thailand and Mozambique corundum most often takes this form.');
-    }
+    parts.push(narrative_blurb('corundum') || 'Al₂O₃ — trigonal close-packed oxide, hardness 9 (the benchmark below diamond). This is the colorless/generic variety: no chromophore trace above the ruby (Cr ≥ 2 ppm) or sapphire (Fe ≥ 5) gates.');
+    if (c.habit === 'tabular') parts.push(narrative_variant('corundum', 'tabular') || 'Flat tabular hexagonal plate — the Mogok marble-hosted contact-metamorphic habit. Basal pinacoid dominates over the prism.');
+    else if (c.habit === 'barrel') parts.push(narrative_variant('corundum', 'barrel') || 'Steep dipyramidal "barrel" — the high-T (>700°C) habit diagnostic of basalt-hosted xenocrysts. Thailand and Mozambique corundum most often takes this form.');
     const avg_Ti = c.zones.reduce((s, z) => s + (z.trace_Ti || 0), 0) / Math.max(c.zones.length, 1);
     if (avg_Ti > 0.05) {
-      parts.push("Trace Ti in the zones — microscale rutile partitioning that did not reach the asterism-inclusion threshold. In bigger crystals this Ti would be visible as the 'silk' inside Kashmir sapphires; here, just a pale grey cast.");
+      parts.push(narrative_variant('corundum', 'trace_ti') || "Trace Ti in the zones — microscale rutile partitioning that did not reach the asterism-inclusion threshold.");
     }
     if (c.dissolved) {
-      parts.push('Unusual — corundum is essentially acid-inert in all sim conditions. Dissolution here would require a geological process outside the simulated range.');
+      parts.push(narrative_variant('corundum', 'dissolved') || 'Unusual — corundum is essentially acid-inert in all sim conditions.');
     }
-    return parts.join(' ');
+    return parts.filter(p => p).join(' ');
   }
 
   _narrate_ruby(c) {
+    // Prose lives in narratives/ruby.md.
     const parts = [`Ruby #${c.crystal_id} grew to ${c.c_length_mm.toFixed(1)} mm.`];
-    parts.push("Al₂O₃ + Cr³⁺ — the red chromium-bearing variety of corundum. Cr substitutes for Al in the octahedral site at 100-5000 ppm; the Cr d-d transitions absorb blue-green, transmit red, and fluoresce strongly red under UV. That fluorescence is the reason 'pigeon's blood' Mogok Burma rubies look lit-from-within: daylight contains enough UV to excite the emission in the Fe-poor Mogok marble paragenesis.");
+    parts.push(narrative_blurb('ruby') || "Al₂O₃ + Cr³⁺ — the red chromium-bearing variety of corundum.");
     const notes = c.zones.map(z => (z.note || ''));
-    if (notes.some(n => n.includes("pigeon"))) {
-      parts.push("Pigeon's blood — the Mogok color grade. Cr combined with trace Fe and strong fluorescence yields the medium-dark red with blue undertone that defines top-grade ruby in the gem trade. A 1-carat pigeon's blood ruby currently sells for $1-2 million at auction.");
-    } else if (notes.some(n => n.includes('cherry'))) {
-      parts.push("Cherry-red — deep Cr saturation, darker tone than Mogok 'pigeon's blood'. The Burma classical grade.");
-    } else if (notes.some(n => n.includes('pinkish'))) {
-      parts.push('Pinkish ruby — Cr just above the 2 ppm gate. In a different pocket this chemistry would have produced pink sapphire instead; this crystal is right at the industry-contentious boundary.');
-    }
-    if (c.habit === 'asterated') {
-      parts.push('6-rayed asterism — rutile (TiO₂) needle inclusions aligned along the basal plane from slow exsolution during retrograde cooling. Star ruby cut en cabochon shows a 6-ray asterism from this feature; very rare 12-rayed stars occur when two sets of rutile needles align at 60° to each other.');
-    } else if (c.habit === 'barrel') {
-      parts.push('Steep dipyramidal "barrel" — Mozambique/Madagascar basalt-hosted habit. The ruby crystallized in deep mafic rock, got entrained in erupting alkali basalt, and ended up in this pocket as a xenocryst — similar transport mechanism to diamond in kimberlite, but at crustal rather than mantle depths.');
-    } else if (c.habit === 'tabular') {
-      parts.push('Flat hexagonal plate — the Mogok marble-hosted signature. Forms in the contact-metamorphic aureole where leucogranite dykes drive skarn alteration in Cambro-Ordovician dolomitic marble.');
-    }
-    return parts.join(' ');
+    if (notes.some(n => n.includes("pigeon"))) parts.push(narrative_variant('ruby', 'pigeons_blood') || "Pigeon's blood — the Mogok color grade.");
+    else if (notes.some(n => n.includes('cherry'))) parts.push(narrative_variant('ruby', 'cherry') || "Cherry-red — deep Cr saturation, darker tone than Mogok 'pigeon's blood'. The Burma classical grade.");
+    else if (notes.some(n => n.includes('pinkish'))) parts.push(narrative_variant('ruby', 'pinkish') || 'Pinkish ruby — Cr just above the 2 ppm gate.');
+    if (c.habit === 'asterated') parts.push(narrative_variant('ruby', 'asterated') || '6-rayed asterism — rutile (TiO₂) needle inclusions aligned along the basal plane.');
+    else if (c.habit === 'barrel') parts.push(narrative_variant('ruby', 'barrel') || 'Steep dipyramidal "barrel" — Mozambique/Madagascar basalt-hosted habit.');
+    else if (c.habit === 'tabular') parts.push(narrative_variant('ruby', 'tabular') || 'Flat hexagonal plate — the Mogok marble-hosted signature.');
+    return parts.filter(p => p).join(' ');
   }
 
   _narrate_sapphire(c) {
+    // Prose lives in narratives/sapphire.md. JS gains the violet (V³⁺
+    // Tanzania) zone-note variant Python had — drift consolidation.
     const parts = [`Sapphire #${c.crystal_id} grew to ${c.c_length_mm.toFixed(1)} mm.`];
-    parts.push('Al₂O₃ with Fe/Ti trace — the non-red corundum varieties. Color comes from the specific chromophore or charge-transfer mechanism: blue from Fe²⁺-Ti⁴⁺ intervalence charge transfer (IVCT), yellow from Fe³⁺ alone, pink from sub-ruby Cr, padparadscha from Cr + trace Fe. Shares the SiO₂-undersaturated upper gate with corundum + ruby.');
+    parts.push(narrative_blurb('sapphire') || 'Al₂O₃ with Fe/Ti/V trace — the non-red corundum varieties.');
     const notes = c.zones.map(z => (z.note || ''));
-    if (notes.some(n => n.includes('cornflower'))) {
-      parts.push("Cornflower blue — the Kashmir type. Mined out 1880s-1930s; remaining specimens are heirloom auction pieces. The 'velvet' appearance comes from microscale silk inclusions scattering transmitted light.");
-    } else if (notes.some(n => n.includes('royal blue'))) {
-      parts.push('Royal blue — deeper Fe than Kashmir cornflower, more saturated. Burma and Ceylon classic.');
-    } else if (notes.some(n => n.includes('padparadscha'))) {
-      parts.push('Padparadscha — the pink-orange corundum named for the Sinhalese word for lotus blossom. Exquisite and rare; Sri Lanka is the historical source, Madagascar modern. The Cr + trace Fe chemistry is on a knife edge between pink sapphire and padparadscha.');
-    } else if (notes.some(n => n.includes('yellow'))) {
-      parts.push('Yellow sapphire — Fe³⁺ in the Al site, no Ti partner. Sri Lanka + Montana Yogo are the classic sources; Yogo yellow + blue co-occur in the same basaltic host.');
-    } else if (notes.some(n => n.includes('pink'))) {
-      parts.push('Pink sapphire — Cr just below the 2 ppm ruby gate. Industry boundary case; some trade houses call it ruby, others pink sapphire. The gem language is contentious.');
-    } else if (notes.some(n => n.includes('green'))) {
-      parts.push('Green sapphire — Fe alone, no Ti partner. Australia + Montana alluvial deposits are the sources. Less commercially prized than blue or yellow.');
-    }
-    if (c.habit === 'asterated') {
-      parts.push('6-rayed star sapphire — rutile needles aligned along basal plane. Sri Lanka star blue and Burma black star are the famous cabochon gems.');
-    } else if (c.habit === 'barrel') {
-      parts.push('Steep dipyramidal "barrel" — basalt-hosted xenocryst signature. Montana Yogo, Thailand/Cambodia, and Australia basalt-hosted sapphire mostly crystallize in this habit.');
-    } else if (c.habit === 'tabular') {
-      parts.push('Flat hexagonal plate — Mogok marble-hosted, the dominant habit in metamorphic contact sapphire.');
-    }
-    return parts.join(' ');
+    if (notes.some(n => n.includes('cornflower'))) parts.push(narrative_variant('sapphire', 'cornflower') || "Cornflower blue — the Kashmir type.");
+    else if (notes.some(n => n.includes('royal blue'))) parts.push(narrative_variant('sapphire', 'royal_blue') || 'Royal blue — deeper Fe than Kashmir cornflower.');
+    else if (notes.some(n => n.includes('padparadscha'))) parts.push(narrative_variant('sapphire', 'padparadscha') || 'Padparadscha — the pink-orange corundum named for the Sinhalese word for lotus blossom.');
+    else if (notes.some(n => n.includes('yellow'))) parts.push(narrative_variant('sapphire', 'yellow') || 'Yellow sapphire — Fe³⁺ in the Al site, no Ti partner.');
+    else if (notes.some(n => n.includes('violet'))) parts.push(narrative_variant('sapphire', 'violet'));
+    else if (notes.some(n => n.includes('pink'))) parts.push(narrative_variant('sapphire', 'pink') || 'Pink sapphire — Cr just below the 2 ppm ruby gate.');
+    else if (notes.some(n => n.includes('green'))) parts.push(narrative_variant('sapphire', 'green') || 'Green sapphire — Fe alone, no Ti partner.');
+    if (c.habit === 'asterated') parts.push(narrative_variant('sapphire', 'asterated') || '6-rayed star sapphire — rutile needles aligned along basal plane.');
+    else if (c.habit === 'barrel') parts.push(narrative_variant('sapphire', 'barrel') || 'Steep dipyramidal "barrel" — basalt-hosted xenocryst signature.');
+    else if (c.habit === 'tabular') parts.push(narrative_variant('sapphire', 'tabular') || 'Flat hexagonal plate — Mogok marble-hosted.');
+    return parts.filter(p => p).join(' ');
   }
 
   _narrate_spodumene(c) {

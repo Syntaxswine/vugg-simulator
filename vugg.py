@@ -16642,183 +16642,81 @@ class VugSimulator:
         return " ".join(p for p in parts if p)
 
     def _narrate_corundum(self, c: Crystal) -> str:
-        """Narrate a colorless corundum — the generic Al₂O₃ variety."""
+        """Narrate a colorless corundum — the generic Al₂O₃ variety.
+
+        Prose lives in narratives/corundum.md. Code dispatches blurb +
+        2-way habit (tabular / barrel; no default) + trace_ti when avg
+        Ti > 0.05 + dissolved.
+        """
         parts = [f"Corundum #{c.crystal_id} grew to {c.c_length_mm:.1f} mm."]
-        parts.append(
-            "Al₂O₃ — trigonal close-packed oxide, hardness 9 (the "
-            "benchmark below diamond). This is the colorless/generic "
-            "variety: no chromophore trace above the ruby (Cr ≥ 2 ppm) "
-            "or sapphire (Fe ≥ 5 + Ti ≥ 0.5, or Fe ≥ 20 alone, or V ≥ 2) "
-            "gates. The defining chemical constraint the crystal met: "
-            "SiO₂ was undersaturated (< 50 ppm). With any more silica in "
-            "the fluid, Al + SiO₂ would have driven toward feldspar or "
-            "the Al₂SiO₅ polymorphs (kyanite, andalusite, sillimanite) "
-            "instead, and no corundum could have nucleated."
-        )
+        parts.append(narrative_blurb("corundum"))
         if c.habit == "tabular":
-            parts.append(
-                "Flat tabular hexagonal plate — the Mogok marble-hosted "
-                "contact-metamorphic habit. Basal pinacoid dominates over "
-                "the prism."
-            )
+            parts.append(narrative_variant("corundum", "tabular"))
         elif c.habit == "barrel":
-            parts.append(
-                "Steep dipyramidal 'barrel' — the high-T (>700°C) habit "
-                "diagnostic of basalt-hosted xenocrysts. Thailand and "
-                "Mozambique corundum most often takes this form."
-            )
+            parts.append(narrative_variant("corundum", "barrel"))
         avg_Ti = sum(z.trace_Ti for z in c.zones) / max(len(c.zones), 1)
         if avg_Ti > 0.05:
-            parts.append(
-                "Trace Ti in the zones — microscale rutile partitioning "
-                "that did not reach the asterism-inclusion threshold. In "
-                "bigger crystals this Ti would be visible as the 'silk' "
-                "inside Kashmir sapphires; here, just a pale grey cast."
-            )
+            parts.append(narrative_variant("corundum", "trace_ti"))
         if c.dissolved:
-            parts.append(
-                "Unusual — corundum is essentially acid-inert in all "
-                "sim conditions. Dissolution here would require a "
-                "geological process outside the simulated range."
-            )
-        return " ".join(parts)
+            parts.append(narrative_variant("corundum", "dissolved"))
+        return " ".join(p for p in parts if p)
 
     def _narrate_ruby(self, c: Crystal) -> str:
-        """Narrate a ruby crystal — the chromium red variety."""
+        """Narrate a ruby crystal — the chromium red variety.
+
+        Prose lives in narratives/ruby.md. Code dispatches blurb +
+        zone-note color grade (pigeons_blood / cherry / pinkish, elif) +
+        3-way habit (asterated / barrel / tabular).
+        """
         parts = [f"Ruby #{c.crystal_id} grew to {c.c_length_mm:.1f} mm."]
-        parts.append(
-            "Al₂O₃ + Cr³⁺ — the red chromium-bearing variety of "
-            "corundum. Cr substitutes for Al in the octahedral site at "
-            "100-5000 ppm; the Cr d-d transitions absorb blue-green, "
-            "transmit red, and fluoresce strongly red under UV. That "
-            "fluorescence is the reason 'pigeon's blood' Mogok Burma "
-            "rubies look lit-from-within: daylight contains enough UV "
-            "to excite the emission in the Fe-poor Mogok marble paragenesis."
-        )
+        parts.append(narrative_blurb("ruby"))
         zone_notes = [z.note or "" for z in c.zones]
         if any("pigeon" in n for n in zone_notes):
-            parts.append(
-                "Pigeon's blood — the Mogok color grade. Cr combined "
-                "with trace Fe and strong fluorescence yields the "
-                "medium-dark red with blue undertone that defines "
-                "top-grade ruby in the gem trade. A 1-carat pigeon's "
-                "blood ruby currently sells for $1-2 million at auction."
-            )
+            parts.append(narrative_variant("ruby", "pigeons_blood"))
         elif any("cherry" in n for n in zone_notes):
-            parts.append(
-                "Cherry-red — deep Cr saturation, darker tone than "
-                "Mogok 'pigeon's blood'. The Burma classical grade."
-            )
+            parts.append(narrative_variant("ruby", "cherry"))
         elif any("pinkish" in n for n in zone_notes):
-            parts.append(
-                "Pinkish ruby — Cr just above the 2 ppm gate. In a "
-                "different pocket this chemistry would have produced "
-                "pink sapphire instead; this crystal is right at the "
-                "industry-contentious boundary."
-            )
+            parts.append(narrative_variant("ruby", "pinkish"))
         if c.habit == "asterated":
-            parts.append(
-                "6-rayed asterism — rutile (TiO₂) needle inclusions "
-                "aligned along the basal plane from slow exsolution "
-                "during retrograde cooling. Star ruby cut en cabochon "
-                "shows a 6-ray asterism from this feature; very rare "
-                "12-rayed stars occur when two sets of rutile needles "
-                "align at 60° to each other."
-            )
+            parts.append(narrative_variant("ruby", "asterated"))
         elif c.habit == "barrel":
-            parts.append(
-                "Steep dipyramidal 'barrel' — Mozambique/Madagascar "
-                "basalt-hosted habit. The ruby crystallized in deep "
-                "mafic rock, got entrained in erupting alkali basalt, "
-                "and ended up in this pocket as a xenocryst — similar "
-                "transport mechanism to diamond in kimberlite, but at "
-                "crustal rather than mantle depths."
-            )
+            parts.append(narrative_variant("ruby", "barrel"))
         elif c.habit == "tabular":
-            parts.append(
-                "Flat hexagonal plate — the Mogok marble-hosted "
-                "signature. Forms in the contact-metamorphic aureole "
-                "where leucogranite dykes drive skarn alteration in "
-                "Cambro-Ordovician dolomitic marble."
-            )
-        return " ".join(parts)
+            parts.append(narrative_variant("ruby", "tabular"))
+        return " ".join(p for p in parts if p)
 
     def _narrate_sapphire(self, c: Crystal) -> str:
-        """Narrate a sapphire — the multi-color non-red corundum family."""
+        """Narrate a sapphire — the multi-color non-red corundum family.
+
+        Prose lives in narratives/sapphire.md. Code dispatches blurb +
+        7-way zone-note color (cornflower / royal_blue / padparadscha /
+        yellow / violet / pink / green, elif chain) + 3-way habit
+        (asterated / barrel / tabular).
+        """
         parts = [f"Sapphire #{c.crystal_id} grew to {c.c_length_mm:.1f} mm."]
-        parts.append(
-            "Al₂O₃ with Fe/Ti/V trace — the non-red corundum varieties. "
-            "Color comes from the specific chromophore or charge-transfer "
-            "mechanism: blue from Fe²⁺-Ti⁴⁺ intervalence charge transfer "
-            "(IVCT), yellow from Fe³⁺ alone, violet from V³⁺, pink from "
-            "sub-ruby Cr, padparadscha from Cr + trace Fe. Shares the "
-            "SiO₂-undersaturated upper gate with corundum + ruby."
-        )
+        parts.append(narrative_blurb("sapphire"))
         zone_notes = [z.note or "" for z in c.zones]
         if any("cornflower" in n for n in zone_notes):
-            parts.append(
-                "Cornflower blue — the Kashmir type. Mined out 1880s-"
-                "1930s; remaining specimens are heirloom auction "
-                "pieces. The 'velvet' appearance comes from microscale "
-                "silk inclusions scattering transmitted light."
-            )
+            parts.append(narrative_variant("sapphire", "cornflower"))
         elif any("royal blue" in n for n in zone_notes):
-            parts.append(
-                "Royal blue — deeper Fe than Kashmir cornflower, more "
-                "saturated. Burma and Ceylon classic."
-            )
+            parts.append(narrative_variant("sapphire", "royal_blue"))
         elif any("padparadscha" in n for n in zone_notes):
-            parts.append(
-                "Padparadscha — the pink-orange corundum named for the "
-                "Sinhalese word for lotus blossom. Exquisite and rare; "
-                "Sri Lanka is the historical source, Madagascar modern. "
-                "The Cr + trace Fe chemistry is on a knife edge between "
-                "pink sapphire and padparadscha."
-            )
+            parts.append(narrative_variant("sapphire", "padparadscha"))
         elif any("yellow" in n for n in zone_notes):
-            parts.append(
-                "Yellow sapphire — Fe³⁺ in the Al site, no Ti partner. "
-                "Sri Lanka + Montana Yogo are the classic sources; "
-                "Yogo yellow + blue co-occur in the same basaltic host."
-            )
+            parts.append(narrative_variant("sapphire", "yellow"))
         elif any("violet" in n for n in zone_notes):
-            parts.append(
-                "Violet sapphire — V³⁺ chromophore, Tanzania signature. "
-                "Umba Valley is the color-change locality where Cr + V "
-                "combine in a crystal that shifts from blue (daylight) "
-                "to purple (incandescent)."
-            )
+            parts.append(narrative_variant("sapphire", "violet"))
         elif any("pink" in n for n in zone_notes):
-            parts.append(
-                "Pink sapphire — Cr just below the 2 ppm ruby gate. "
-                "Industry boundary case; some trade houses call it ruby, "
-                "others pink sapphire. The gem language is contentious."
-            )
+            parts.append(narrative_variant("sapphire", "pink"))
         elif any("green" in n for n in zone_notes):
-            parts.append(
-                "Green sapphire — Fe alone, no Ti partner. Australia + "
-                "Montana alluvial deposits are the sources. Less "
-                "commercially prized than blue or yellow."
-            )
+            parts.append(narrative_variant("sapphire", "green"))
         if c.habit == "asterated":
-            parts.append(
-                "6-rayed star sapphire — rutile needles aligned along "
-                "basal plane. Sri Lanka star blue and Burma black star "
-                "are the famous cabochon gems."
-            )
+            parts.append(narrative_variant("sapphire", "asterated"))
         elif c.habit == "barrel":
-            parts.append(
-                "Steep dipyramidal 'barrel' — basalt-hosted xenocryst "
-                "signature. Montana Yogo, Thailand/Cambodia, and "
-                "Australia basalt-hosted sapphire mostly crystallize "
-                "in this habit."
-            )
+            parts.append(narrative_variant("sapphire", "barrel"))
         elif c.habit == "tabular":
-            parts.append(
-                "Flat hexagonal plate — Mogok marble-hosted, the "
-                "dominant habit in metamorphic contact sapphire."
-            )
-        return " ".join(parts)
+            parts.append(narrative_variant("sapphire", "tabular"))
+        return " ".join(p for p in parts if p)
 
     def _narrate_spodumene(self, c: Crystal) -> str:
         """Narrate a spodumene crystal — the lithium pyroxene book."""
