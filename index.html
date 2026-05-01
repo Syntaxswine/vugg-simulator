@@ -3271,7 +3271,7 @@ const _NARRATIVE_CACHE = {};
 // Phase-1 manifest — extend as more species migrate. When all 89 are
 // extracted the manifest can become a generated index file fetched
 // once at startup.
-const _NARRATIVE_MANIFEST = ['chalcopyrite', 'sphalerite', 'aurichalcite', 'dolomite', 'rosasite', 'azurite', 'calcite', 'aragonite', 'siderite', 'rhodochrosite', 'cerussite', 'smithsonite', 'malachite', 'pyrite', 'galena', 'marcasite', 'hematite', 'molybdenite', 'bornite', 'chalcocite', 'covellite', 'cuprite', 'native_copper', 'native_gold', 'native_silver', 'magnetite', 'lepidocrocite', 'goethite', 'barite', 'celestine', 'anhydrite', 'jarosite', 'alunite', 'brochantite', 'antlerite', 'chalcanthite', 'scorodite', 'ferrimolybdite', 'fluorite', 'pyromorphite', 'vanadinite', 'mimetite', 'descloizite', 'mottramite', 'selenite', 'adamite', 'olivenite', 'erythrite', 'annabergite', 'torbernite', 'zeunerite', 'carnotite', 'wulfenite', 'raspite', 'stolzite', 'beryl', 'emerald', 'aquamarine', 'morganite', 'heliodor', 'corundum', 'ruby', 'sapphire', 'albite', 'apophyllite', 'uraninite', 'anglesite', 'tetrahedrite', 'tennantite', 'nickeline', 'millerite', 'cobaltite', 'stibnite', 'arsenopyrite', 'bismuthinite', 'feldspar', 'native_bismuth', 'clinobisvanite'];
+const _NARRATIVE_MANIFEST = ['chalcopyrite', 'sphalerite', 'aurichalcite', 'dolomite', 'rosasite', 'azurite', 'calcite', 'aragonite', 'siderite', 'rhodochrosite', 'cerussite', 'smithsonite', 'malachite', 'pyrite', 'galena', 'marcasite', 'hematite', 'molybdenite', 'bornite', 'chalcocite', 'covellite', 'cuprite', 'native_copper', 'native_gold', 'native_silver', 'magnetite', 'lepidocrocite', 'goethite', 'barite', 'celestine', 'anhydrite', 'jarosite', 'alunite', 'brochantite', 'antlerite', 'chalcanthite', 'scorodite', 'ferrimolybdite', 'fluorite', 'pyromorphite', 'vanadinite', 'mimetite', 'descloizite', 'mottramite', 'selenite', 'adamite', 'olivenite', 'erythrite', 'annabergite', 'torbernite', 'zeunerite', 'carnotite', 'wulfenite', 'raspite', 'stolzite', 'beryl', 'emerald', 'aquamarine', 'morganite', 'heliodor', 'corundum', 'ruby', 'sapphire', 'albite', 'apophyllite', 'uraninite', 'anglesite', 'tetrahedrite', 'tennantite', 'nickeline', 'millerite', 'cobaltite', 'stibnite', 'arsenopyrite', 'bismuthinite', 'feldspar', 'native_bismuth', 'clinobisvanite', 'acanthite', 'argentite'];
 
 function _parseNarrative(text) {
   // Strip frontmatter (--- block at top).
@@ -14898,26 +14898,21 @@ class VugSimulator {
   }
 
   _narrate_acanthite(c) {
+    // Prose lives in narratives/acanthite.md.
     const parts = [`Acanthite #${c.crystal_id} grew to ${c.c_length_mm.toFixed(1)} mm.`];
-    parts.push('Ag₂S — monoclinic silver sulfide, the most important silver ore on Earth at 87% Ag by weight. The cold-storage form: above 173°C the same composition crystallizes as cubic argentite, and most acanthite in nature is paramorphic after cooled argentite, retaining the cubic external form while the lattice underneath inverts to monoclinic. Lead-gray to iron-black, metallic, Mohs 2-2.5, sectile (cuts like lead).');
+    parts.push(narrative_blurb('acanthite') || 'Ag₂S — monoclinic silver sulfide, the most important silver ore on Earth.');
     if (c.paramorph_origin === 'argentite') {
-      const stepNote = c.paramorph_step ? ` at step ${c.paramorph_step}` : '';
-      parts.push(`Paramorph after argentite — this crystal nucleated above 173°C as cubic Ag₂S, then the rising fluid cooled past the polymorph boundary${stepNote}. The lattice inverted from body-centered cubic to monoclinic in place. The external form — ${c.habit.replace('_', ' ')} — is what the high-T parent left behind. Every 'argentite' in every museum drawer is this same trick: a caterpillar that became a butterfly while keeping the caterpillar's shape.`);
-      return parts.join(' ');
+      const stepPhrase = c.paramorph_step ? ` at step ${c.paramorph_step}` : '';
+      const habitPretty = (c.habit || '').replace('_', ' ');
+      parts.push(narrative_variant('acanthite', 'paramorph', { step_phrase: stepPhrase, habit_pretty: habitPretty }));
+      return parts.filter(p => p).join(' ');
     }
-    if (c.habit === 'thorn') {
-      parts.push("Thorn-habit — the species' diagnostic. The name comes from the Greek ακανθα (thorn): spiky prismatic projections aggregated into frost-like masses. Rare in well-formed crystals; Guanajuato (Mexico) produced the historical references.");
-    } else if (c.habit === 'prismatic') {
-      parts.push('Elongated prismatic — primary low-T growth, formed directly from a hydrothermal fluid that never crossed 173°C on the way down. Distinguishes from paramorphic pseudo-cubic acanthite (the same species but inheriting the cubic shape of an argentite parent).');
-    } else {
-      parts.push('Massive granular — the dominant economic form. Vein fillings, disseminations in gangue, the kind of acanthite that historic silver districts (Freiberg, Potosí, Comstock Lode) shipped by the ton.');
-    }
-    if (c.dissolved) {
-      parts.push("Oxidative dissolution — strong O₂ in the fluid is etching the surface. Ag is going back into solution as Ag⁺, and the released ions migrate down the redox gradient to re-precipitate as native silver in deeper reducing pockets. This is the supergene Ag-enrichment mechanism (Boyle 1968) — the same chemistry that made Tsumeb's secondary ore zone.");
-    } else if (c.zones && c.zones.length > 15) {
-      parts.push('Tarnish — surface oxidation has darkened the original lead-gray luster to deep iron-black. Even in a sealed vug, atmospheric S compounds eventually reach the surface.');
-    }
-    return parts.join(' ');
+    if (c.habit === 'thorn') parts.push(narrative_variant('acanthite', 'thorn') || "Thorn-habit.");
+    else if (c.habit === 'prismatic') parts.push(narrative_variant('acanthite', 'prismatic') || 'Elongated prismatic.');
+    else parts.push(narrative_variant('acanthite', 'massive_default') || 'Massive granular.');
+    if (c.dissolved) parts.push(narrative_variant('acanthite', 'oxidative_dissolution') || 'Oxidative dissolution.');
+    else if (c.zones && c.zones.length > 15) parts.push(narrative_variant('acanthite', 'tarnish') || 'Tarnish.');
+    return parts.filter(p => p).join(' ');
   }
 
   _narrate_chalcanthite(c) {
@@ -15168,19 +15163,16 @@ class VugSimulator {
   }
 
   _narrate_argentite(c) {
+    // Prose lives in narratives/argentite.md.
     const parts = [`Argentite #${c.crystal_id} grew to ${c.c_length_mm.toFixed(1)} mm.`];
-    parts.push("Ag₂S — body-centered cubic silver sulfide, the high-T polymorph stable only above 173°C. A ghost mineral: every argentite specimen at room temperature is actually acanthite (monoclinic) wearing argentite's cubic crystal habit. This crystal is the rare case — caught in the simulator above the transition before the fluid had time to cool. Lead-gray to black, metallic, Mohs 2-2.5.");
-    if (c.habit === 'cubic') {
-      parts.push('Cubic — sharp {100} faces, the Comstock Lode habit. Pachuca-Real del Monte (Mexico) and Freiberg (Saxony) produced the historical references. Once T drops below 173°C, the lattice will invert to monoclinic but these cubes will stay.');
-    } else if (c.habit === 'octahedral') {
-      parts.push('Octahedral — {111} faces dominant, growth-rate-dependent. Rarer than cubic. Spinel-law penetration twins on {111} are diagnostic when present.');
-    } else if (c.habit === 'arborescent') {
-      parts.push('Arborescent — dendritic / wire-like aggregates. The epithermal-vein habit, formed at high σ where the growth front outruns the diffusion supply.');
-    }
+    parts.push(narrative_blurb('argentite') || "Ag₂S — body-centered cubic silver sulfide, the high-T polymorph stable only above 173°C.");
+    if (c.habit === 'cubic') parts.push(narrative_variant('argentite', 'cubic') || 'Cubic — sharp {100} faces.');
+    else if (c.habit === 'octahedral') parts.push(narrative_variant('argentite', 'octahedral') || 'Octahedral — {111} faces dominant.');
+    else if (c.habit === 'arborescent') parts.push(narrative_variant('argentite', 'arborescent') || 'Arborescent — dendritic / wire-like aggregates.');
     if (c.twinned && (c.twin_law || '').includes('spinel')) {
-      parts.push('Spinel-law penetration twin — two octahedra growing interlocked, sharing a {111} composition plane.');
+      parts.push(narrative_variant('argentite', 'spinel_twin') || 'Spinel-law penetration twin.');
     }
-    return parts.join(' ');
+    return parts.filter(p => p).join(' ');
   }
 
   _narrate_jarosite(c) {

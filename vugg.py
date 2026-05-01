@@ -17163,82 +17163,38 @@ class VugSimulator:
         return " ".join(p for p in parts if p)
 
     def _narrate_acanthite(self, c: Crystal) -> str:
-        """Narrate acanthite — the cold-storage form of Ag₂S."""
-        parts = [f"Acanthite #{c.crystal_id} grew to {c.c_length_mm:.1f} mm."]
-        parts.append(
-            "Ag₂S — monoclinic silver sulfide, the most important silver "
-            "ore on Earth at 87% Ag by weight. The cold-storage form: "
-            "above 173°C the same composition crystallizes as cubic "
-            "argentite, and most acanthite in nature is paramorphic "
-            "after cooled argentite, retaining the cubic external form "
-            "while the lattice underneath quietly inverts to monoclinic. "
-            "Lead-gray to iron-black, metallic, Mohs 2-2.5. Cuts like "
-            "lead — a soft, dense, sectile mineral that the assayer's "
-            "knife slices through cleanly."
-        )
+        """Narrate acanthite — the cold-storage form of Ag₂S.
 
-        # Paramorph branch — this acanthite started life as argentite
-        # and inherited its cubic / octahedral / arborescent form.
+        Prose lives in narratives/acanthite.md. Code dispatches blurb +
+        either paramorph (with {step_phrase} + {habit_pretty} interp;
+        early-return — paramorphic crystals don't get the standard
+        habit/dissolved/tarnish branches) OR primary path: 3-way habit
+        (thorn / prismatic / massive_default) + paired oxidative_dissolution-
+        vs-tarnish branches.
+        """
+        parts = [f"Acanthite #{c.crystal_id} grew to {c.c_length_mm:.1f} mm."]
+        parts.append(narrative_blurb("acanthite"))
+
         if c.paramorph_origin == "argentite":
-            parts.append(
-                f"Paramorph after argentite — this crystal nucleated above "
-                f"173°C as cubic Ag₂S, then the rising fluid cooled past "
-                f"the polymorph boundary"
-                + (f" at step {c.paramorph_step}" if c.paramorph_step else "")
-                + ". The lattice inverted from body-centered cubic to "
-                "monoclinic in place. The external form — "
-                f"{c.habit.replace('_', ' ')} — is what the high-T parent "
-                "left behind. Every 'argentite' in every museum drawer is "
-                "this same trick: a caterpillar that became a butterfly "
-                "while keeping the caterpillar's shape."
-            )
-            return " ".join(parts)
+            step_phrase = f" at step {c.paramorph_step}" if c.paramorph_step else ""
+            habit_pretty = c.habit.replace("_", " ")
+            parts.append(narrative_variant("acanthite", "paramorph",
+                                           step_phrase=step_phrase,
+                                           habit_pretty=habit_pretty))
+            return " ".join(p for p in parts if p)
 
         if c.habit == "thorn":
-            parts.append(
-                "Thorn-habit — the species' diagnostic. The name comes "
-                "from the Greek ακανθα (thorn): spiky prismatic "
-                "projections aggregated into frost-like masses. Rare in "
-                "well-formed crystals; most thorn acanthite occurs as "
-                "interlocking sprays in a vug roof. Guanajuato (Mexico) "
-                "produced the historical references."
-            )
+            parts.append(narrative_variant("acanthite", "thorn"))
         elif c.habit == "prismatic":
-            parts.append(
-                "Elongated prismatic — primary low-T growth, formed "
-                "directly from a hydrothermal fluid that never crossed "
-                "173°C on the way down. Distinguishes from paramorphic "
-                "pseudo-cubic acanthite (the same species but inheriting "
-                "the cubic shape of an argentite parent)."
-            )
+            parts.append(narrative_variant("acanthite", "prismatic"))
         else:
-            parts.append(
-                "Massive granular — the dominant economic form. Vein "
-                "fillings, disseminations in gangue, the kind of "
-                "acanthite that historic silver districts (Freiberg, "
-                "Potosí, Comstock Lode) shipped by the ton. No crystal "
-                "faces, but every gram is a 1.7-gram silver assay."
-            )
+            parts.append(narrative_variant("acanthite", "massive_default"))
 
         if c.dissolved:
-            parts.append(
-                "Oxidative dissolution — strong O₂ in the fluid is "
-                "etching the surface. Ag is going back into solution as "
-                "Ag⁺, and the released ions migrate down the redox "
-                "gradient to re-precipitate as native silver in deeper "
-                "reducing pockets. This is the supergene Ag-enrichment "
-                "mechanism (Boyle 1968) — the same chemistry that made "
-                "Tsumeb's secondary ore zone."
-            )
+            parts.append(narrative_variant("acanthite", "oxidative_dissolution"))
         elif len(c.zones) > 15:
-            parts.append(
-                "Tarnish — surface oxidation has darkened the original "
-                "lead-gray luster to deep iron-black. Even in a sealed "
-                "vug, atmospheric S compounds eventually reach the "
-                "surface. Display specimens are usually re-polished "
-                "before sale."
-            )
-        return " ".join(parts)
+            parts.append(narrative_variant("acanthite", "tarnish"))
+        return " ".join(p for p in parts if p)
 
     def _narrate_chalcanthite(self, c: Crystal) -> str:
         """Narrate chalcanthite — the bright-blue water-soluble Cu sulfate.
@@ -17640,52 +17596,25 @@ class VugSimulator:
         return " ".join(p for p in parts if p)
 
     def _narrate_argentite(self, c: Crystal) -> str:
-        """Narrate argentite — the high-T cubic Ag₂S, before any paramorph fires.
+        """Narrate argentite — the high-T cubic Ag₂S.
 
-        A primary argentite crystal in the sim only displays as argentite
-        if the simulation ended above 173°C without a cooling pass —
-        any cooling pulse converts the crystal in-place to acanthite via
-        apply_paramorph_transitions, at which point the acanthite
-        narrator's paramorph_origin branch takes over.
+        Prose lives in narratives/argentite.md. A primary argentite crystal
+        in the sim only displays as argentite if the simulation ended above
+        173°C without a cooling pass — any cooling pulse converts the crystal
+        in-place to acanthite via apply_paramorph_transitions, at which point
+        the acanthite narrator's paramorph_origin branch takes over.
         """
         parts = [f"Argentite #{c.crystal_id} grew to {c.c_length_mm:.1f} mm."]
-        parts.append(
-            "Ag₂S — body-centered cubic silver sulfide, the high-T "
-            "polymorph stable only above 173°C. A ghost mineral: every "
-            "argentite specimen at room temperature is actually acanthite "
-            "(monoclinic) wearing argentite's cubic crystal habit like "
-            "a hand-me-down coat. This crystal is the rare case — caught "
-            "in the simulator above the transition before the fluid had "
-            "time to cool. Lead-gray to black, metallic, Mohs 2-2.5."
-        )
+        parts.append(narrative_blurb("argentite"))
         if c.habit == "cubic":
-            parts.append(
-                "Cubic — sharp {100} faces, the Comstock Lode habit. "
-                "Pachuca-Real del Monte (Mexico) and Freiberg (Saxony) "
-                "produced the historical references. Once T drops below "
-                "173°C, the lattice will invert to monoclinic but these "
-                "cubes will stay."
-            )
+            parts.append(narrative_variant("argentite", "cubic"))
         elif c.habit == "octahedral":
-            parts.append(
-                "Octahedral — {111} faces dominant, growth-rate-dependent. "
-                "Rarer than cubic. Spinel-law penetration twins on {111} "
-                "are diagnostic when present."
-            )
+            parts.append(narrative_variant("argentite", "octahedral"))
         elif c.habit == "arborescent":
-            parts.append(
-                "Arborescent — dendritic / wire-like aggregates. The "
-                "epithermal-vein habit, formed at high σ where the "
-                "growth front outruns the diffusion supply and the "
-                "crystal branches."
-            )
+            parts.append(narrative_variant("argentite", "arborescent"))
         if c.twinned and "spinel" in (c.twin_law or ""):
-            parts.append(
-                "Spinel-law penetration twin — two octahedra growing "
-                "interlocked, sharing a {111} composition plane. The "
-                "diagnostic argentite twin form."
-            )
-        return " ".join(parts)
+            parts.append(narrative_variant("argentite", "spinel_twin"))
+        return " ".join(p for p in parts if p)
 
     def _narrate_rosasite(self, c: Crystal) -> str:
         """Narrate rosasite — Cu-dominant broth-ratio carbonate.
