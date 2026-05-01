@@ -16177,129 +16177,73 @@ class VugSimulator:
         return " ".join(parts)
 
     def _narrate_erythrite(self, c: Crystal) -> str:
-        """Narrate an erythrite crystal's story — the cobalt bloom."""
+        """Narrate an erythrite crystal's story — the cobalt bloom.
+
+        Prose lives in narratives/erythrite.md. Code dispatches blurb +
+        4-way habit (radiating_fibrous / bladed_crystal / botryoidal_crust /
+        earthy_default) + on_substrate paragenesis (with {position} interp)
+        + paragenetic_source_cobaltite (with {cobaltite_id} interp) +
+        dehydration on dissolved.
+        """
         parts = [f"Erythrite #{c.crystal_id} grew to {c.c_length_mm:.1f} mm."]
-        parts.append(
-            "Co₃(AsO₄)₂·8H₂O — the crimson-pink cobalt arsenate, known to medieval "
-            "miners as 'cobalt bloom.' A supergene product: primary cobalt arsenides "
-            "(cobaltite, skutterudite) oxidized in surface waters, releasing Co²⁺ and "
-            "arsenate that recombined in damp fractures."
-        )
+        parts.append(narrative_blurb("erythrite"))
 
         if c.habit == "radiating_fibrous":
-            parts.append(
-                "Radiating fibrous sprays directly on a primary Co-arsenide substrate — "
-                "the classic Schneeberg and Bou Azzer habit: the outer shell of an "
-                "oxidizing cobaltite or skutterudite vein blooms pink."
-            )
+            parts.append(narrative_variant("erythrite", "radiating_fibrous"))
         elif c.habit == "bladed_crystal":
-            parts.append(
-                "Striated prismatic {010} blades, transparent crimson — the rare and "
-                "prized erythrite crystal form, sharp enough to be mistaken for a "
-                "kämmererite until the pink hue settles the identification."
-            )
+            parts.append(narrative_variant("erythrite", "bladed_crystal"))
         elif c.habit == "botryoidal_crust":
-            parts.append(
-                "Botryoidal rounded aggregates — high-supersaturation coating, mineral "
-                "grape clusters spreading across the fracture wall."
-            )
+            parts.append(narrative_variant("erythrite", "botryoidal_crust"))
         else:
-            parts.append(
-                "Earthy pink crust — the classic 'cobalt bloom' field appearance, the "
-                "first hint to a prospector that a cobalt arsenide is weathering nearby."
-            )
+            parts.append(narrative_variant("erythrite", "earthy_default"))
 
         if "cobaltite" in c.position or "arsenide" in c.position:
-            parts.append(
-                f"Growing on {c.position} — direct replacement texture, the cobalt is "
-                f"moving centimeters at a time from primary sulfide to secondary arsenate."
-            )
+            parts.append(narrative_variant("erythrite", "on_substrate", position=c.position))
 
-        # Round 8c addition: cobaltite is now plumbed as the primary
-        # source for erythrite. If a dissolving cobaltite exists in the
-        # vug, this erythrite is downstream from it.
         dissolving_cob = [cb for cb in self.crystals if cb.mineral == "cobaltite" and cb.dissolved]
         if dissolving_cob and "cobaltite" not in c.position:
-            parts.append(
-                f"Paragenetic source — there's a dissolving cobaltite (#{dissolving_cob[0].crystal_id}) "
-                f"in this vug. The reaction at the dissolution front is "
-                f"4CoAsS + 13O₂ + 6H₂O → 4Co²⁺ + 4H₃AsO₄ + 4SO₄²⁻; downstream, "
-                f"the Co²⁺ and AsO₄³⁻ recombined as the erythrite you're looking at. "
-                f"Same Co atoms, different mineral — the medieval miners' 'cobalt "
-                f"bloom' was always a memory of cobaltite at depth."
-            )
+            parts.append(narrative_variant("erythrite", "paragenetic_source_cobaltite",
+                                           cobaltite_id=dissolving_cob[0].crystal_id))
 
         if c.dissolved:
-            parts.append(
-                "Dehydration or acid dissolution broke down the crystal — erythrite "
-                "holds eight waters of crystallization in its structure, and they go "
-                "first: above 200°C or below pH 4.5, the lattice collapses."
-            )
+            parts.append(narrative_variant("erythrite", "dehydration"))
 
-        return " ".join(parts)
+        return " ".join(p for p in parts if p)
 
     def _narrate_annabergite(self, c: Crystal) -> str:
-        """Narrate an annabergite crystal's story — the nickel bloom."""
+        """Narrate an annabergite crystal's story — the nickel bloom.
+
+        Prose lives in narratives/annabergite.md. Code dispatches blurb +
+        4-way habit (cabrerite / co_bearing / capillary_crystal /
+        earthy_default) + paragenetic_source_nickeline OR _millerite (with
+        {nickeline_id}/{millerite_id} interpolation; mutually exclusive
+        elif) + dehydration.
+        """
         parts = [f"Annabergite #{c.crystal_id} grew to {c.c_length_mm:.1f} mm."]
-        parts.append(
-            "Ni₃(AsO₄)₂·8H₂O — 'nickel bloom,' the pale apple-green counterpart to "
-            "erythrite. Same vivianite-group structure, nickel substitutes for cobalt, "
-            "and the color shifts from crimson to green. Formed by oxidation of primary "
-            "Ni-arsenides like niccolite and gersdorffite."
-        )
+        parts.append(narrative_blurb("annabergite"))
 
         if c.habit == "cabrerite":
-            parts.append(
-                "Mg substituted for Ni — this is cabrerite, the pale-green to white "
-                "variety, named for the Sierra Cabrera in Spain. The Mg content bleaches "
-                "the color toward off-white."
-            )
+            parts.append(narrative_variant("annabergite", "cabrerite"))
         elif c.habit == "co_bearing":
-            parts.append(
-                "Co was also present in the fluid — the crystal shifted toward a "
-                "pinkish-green intermediate, physically tracking the Ni/Co ratio along "
-                "the erythrite-annabergite solid solution."
-            )
+            parts.append(narrative_variant("annabergite", "co_bearing"))
         elif c.habit == "capillary_crystal":
-            parts.append(
-                "Capillary hair-like fibers — the rare high-σ habit. Silky sprays of "
-                "apple-green filaments, a collector's prize when intact."
-            )
+            parts.append(narrative_variant("annabergite", "capillary_crystal"))
         else:
-            parts.append(
-                "Earthy apple-green crust — the field appearance, an unmistakable green "
-                "stain in the oxidation zone of any nickel-arsenide deposit."
-            )
+            parts.append(narrative_variant("annabergite", "earthy_default"))
 
-        # Round 8c addition: nickeline is now plumbed as a primary
-        # source for annabergite (alongside the older niccolite/
-        # gersdorffite mention above). Note also possible millerite
-        # contribution at lower-T systems.
         dissolving_nik = [nk for nk in self.crystals if nk.mineral == "nickeline" and nk.dissolved]
         dissolving_mil = [ml for ml in self.crystals if ml.mineral == "millerite" and ml.dissolved]
         if dissolving_nik:
-            parts.append(
-                f"Paragenetic source — a dissolving nickeline (#{dissolving_nik[0].crystal_id}) "
-                f"in this vug fed the Ni²⁺ + AsO₄³⁻ for this annabergite. The pale "
-                f"apple-green here is downstream of the pale copper-red there; the "
-                f"same Ni atoms have shifted from arsenide to arsenate over geological "
-                f"time."
-            )
+            parts.append(narrative_variant("annabergite", "paragenetic_source_nickeline",
+                                           nickeline_id=dissolving_nik[0].crystal_id))
         elif dissolving_mil:
-            parts.append(
-                f"Paragenetic source — a dissolving millerite (#{dissolving_mil[0].crystal_id}) "
-                f"contributed Ni²⁺ to this growth. The annabergite green is the "
-                f"oxidation memory of yesterday's brass-yellow capillary needles."
-            )
+            parts.append(narrative_variant("annabergite", "paragenetic_source_millerite",
+                                           millerite_id=dissolving_mil[0].crystal_id))
 
         if c.dissolved:
-            parts.append(
-                "Dehydration or acid dissolution consumed the crystal — like erythrite, "
-                "annabergite is a hydrated arsenate with eight lattice waters and little "
-                "stability outside a narrow T/pH window."
-            )
+            parts.append(narrative_variant("annabergite", "dehydration"))
 
-        return " ".join(parts)
+        return " ".join(p for p in parts if p)
 
     def _narrate_feldspar(self, c: Crystal) -> str:
         """Narrate a K-feldspar crystal's story — the polymorph clock."""
