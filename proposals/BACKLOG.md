@@ -103,6 +103,53 @@ The 89/89 narrative-as-data extraction landed in commit `e731f1f` (2026-04-30). 
 
 ---
 
+## 🔬 Supersat drift follow-ups (post-v13 audit)
+
+The v13 audit (`tools/supersat_drift_audit.py`, May 2026) found 11 mineral supersaturation formulas with structural drift between vugg.py and index.html. Two real physics bugs (galena + molybdenite missing O2 gates) and chalcopyrite's T-window were fixed in v13. The remaining 10 divergences are filed here — none are obvious bugs, but the drift means the browser sim and the Python sim give measurably different sigmas for the same fluid, which is its own problem.
+
+### `effectiveTemperature` feature gap (Python lacks Mo-flux T modifier)
+
+**Status:** structural drift, JS-only feature.
+**Why:** index.html + agent-api/vugg-agent.js define `effectiveTemperature` on VugConditions — a Mo-flux modifier that widens the T window for porphyry sulfides (chalcopyrite, galena, pyrite, molybdenite, quartz). Python's VugConditions has no such field; supersats use `self.temperature` directly. Net effect: a Mo-rich vug in JS shifts the chalcopyrite/galena/pyrite T sweet spots; in Python it doesn't.
+**What to build:** decide whether effectiveTemperature is a real geochemical concept worth porting (Seo et al. 2012 documents Mo-flux thermal effects) or a JS-side decoration that should be removed. If porting: add `effective_temperature` property to VugConditions in vugg.py + thread through the 4-5 sulfide supersats. If removing: replace `this.effectiveTemperature` with `this.temperature` in JS. Either way, one runtime should be canonical and the other should match.
+**Affected species:** chalcopyrite, galena, pyrite, molybdenite (already aligned in v13 except for eT), quartz.
+**Effort:** medium. ~4 hours of research + porting + test regen.
+
+### `silica_equilibrium` field — JS quartz uses, Python doesn't
+
+**Status:** structural drift.
+**Why:** the audit shows JS quartz supersat references `this.silica_equilibrium` (a precomputed field?) while Python's `supersaturation_quartz` inlines `50.0 * math.exp(0.008 * T)`. Same formula presumably, but the JS version reuses a cached value. Verify whether the cache is updated correctly when temperature changes.
+**Affected species:** quartz.
+**Effort:** small. Read the JS cache update path; either inline it (match Python) or add a cache to Python. ~1 hour.
+
+### Substantive formula divergence (5 species, design-choice review)
+
+**Status:** structural drift, design-choice review needed.
+**Why:** these 5 supersats have substantively different formulas between vugg.py and index.html — different hard gates, different scaling constants, different T windows, different pH logic. Each needs a focused read with the boss to decide which side is canonical.
+
+| Species | Python | JS | Decision needed |
+|---|---|---|---|
+| feldspar | K-only (K<10/Al<3/SiO2<200), exp T decay below 300, pH<4 acid attack | K OR Na (`hasK \|\| hasNa`), 150-800 hard T window, 5.5-9 pH window, 250-500 sweet spot | Python keeps K and Na separate (supersaturation_albite); JS forks them in feldspar. Pick one design. |
+| fluorite | 3-tier T (sweet 100-250 + ramp + decline), fluoro-complex penalty above F=80, pH<5 acid | 5-tier T (slow<50 + warming + sweet 100-250 + viable 250-350 + fade>350), pH<5 acid; NO fluoro-complex penalty | Each side has a feature the other lacks. Merge both? |
+| selenite | not yet read; likely simpler | Ca>20+S>10+O2>0.3+T<80+pH 5-8, T<40 sweet ×1.5 | Read Python; choose richer formulation. |
+| smithsonite | Zn<15+CO3<30+O2<0.3, T>100 decay (rate 0.02) | Zn<20+CO3<50+O2<0.2, T>200 hard fail, pH<5 hard fail, T>100 decay (rate 0.008), pH>7 ×1.2 | JS richer (pH window + alkaline boost + hard T cap). Port to Python. |
+| wulfenite | constants 0.025/0.3/0.4/0.5/15.0/3.5/40.0/80/9.0 | constants 0.006/0.2/10/150/250/30.0/4/60.0/7 | Need full read of both; significant divergence in scaling. |
+
+**Affected species:** feldspar, fluorite, selenite, smithsonite, wulfenite.
+**Effort:** medium-large. Per-species reconciliation + baseline regen + test parity.
+
+### `calcite` 500°C JS-inline thermal cap
+
+**Status:** known-acceptable architectural divergence (not really a bug, documented for completeness).
+**Why:** JS calcite has `if (this.temperature > 500) return 0;` inline. Python handles thermal decomposition via the top-level `THERMAL_DECOMPOSITION` table at line ~10639, which fires regardless of supersat returning >0. Same effective behavior, different mechanism. No action needed unless the dual mechanism causes confusion later.
+**Effort:** zero (already aligned in effect).
+
+### Sequencing
+
+The `effectiveTemperature` gap is the most consequential — it touches 5 species and any new sulfide that arrives. Resolve that first before tackling the per-species divergences, since a Mo-flux decision affects how each one is reconciled.
+
+---
+
 ## 🏷️ Internal token cleanup — finish the mode renames
 
 **Status:** deferred. User-visible labels were renamed in commit `467e8c4` (and earlier — Fortress→Creative, Legends→Simulation, The Groove→Zen Mode/Record Player). Internal tokens (`fortress*`, `legends*`, `idle*`, `groove*`) still use the pre-rename names because renaming hundreds of CSS classes / DOM IDs / function names for no UX gain wasn't worth the churn.

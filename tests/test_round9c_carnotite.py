@@ -128,12 +128,19 @@ def test_v_dominant_blocks_zeunerite():
 # ---- 3-way coexistence: each branch wins its dominant fluid, others block ----
 
 def test_three_way_competition_p_branch():
-    """P-dominant fluid: torbernite fires, zeunerite + carnotite block."""
+    """P-dominant fluid: torbernite fires, zeunerite + carnotite block.
+
+    Ca=5 set explicitly — Round 9d added a Cu/(Cu+Ca) > 0.5 cation gate
+    on torbernite, and FluidChemistry's default Ca is 200 ppm. With low
+    Ca (mining-district context), torbernite still fires the P-branch
+    as designed.
+    """
     cond = VugConditions(
         temperature=25,
         pressure=0.05,
-        # Cu+K both populated so the cation gates pass for whichever branch
-        fluid=FluidChemistry(Cu=40, K=30, U=2.5, P=8, As=2, V=2, O2=1.5, pH=6.0),
+        # Cu+K both populated so the cation gates pass for whichever branch.
+        # Ca=5 — low-Ca mining-district context (post-9d cation gate).
+        fluid=FluidChemistry(Cu=40, Ca=5, K=30, U=2.5, P=8, As=2, V=2, O2=1.5, pH=6.0),
         wall=VugWall(),
     )
     assert cond.supersaturation_torbernite() > 1.0, "P-dominant should fire torbernite"

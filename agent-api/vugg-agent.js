@@ -340,15 +340,14 @@ class VugConditions {
   }
 
   supersaturation_galena() {
-    if (this.fluid.Pb < 10 || this.fluid.S < 10) return 0;
-    let sigma = (this.fluid.Pb / 80.0) * (this.fluid.S / 100.0);
+    // v13: reconciled to Python — pre-v13 had no O2 gate. Now matches vugg.py.
+    if (this.fluid.Pb < 5 || this.fluid.S < 10) return 0;
+    if (this.fluid.O2 > 1.5) return 0;
+    let sigma = (this.fluid.Pb / 50.0) * (this.fluid.S / 80.0) * (1.5 - this.fluid.O2);
     const eT = this.effectiveTemperature;
-    if (eT >= 200 && eT <= 400) {
-      sigma *= 1.3;
-    } else if (eT > 500) {
-      sigma *= 0.5;
-    }
-    return sigma;
+    if (eT >= 200 && eT <= 400) sigma *= 1.3;
+    if (this.temperature > 450) sigma *= Math.exp(-0.008 * (this.temperature - 450));
+    return Math.max(sigma, 0);
   }
 
   supersaturation_smithsonite() {
