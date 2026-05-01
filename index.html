@@ -3773,7 +3773,16 @@ let timeScale = 5.0;
 //        Python (T-only formula, no O2 gate); now both runtimes identical.
 //        Factual fixes: fluorescence flipped to non-fluorescent; T_range
 //        tightened 200-800 → 150-600.
-const SIM_VERSION = 12;
+//   v13 — Supersat drift audit (May 2026, tools/supersat_drift_audit.py).
+//        Two real physics bugs fixed:
+//        • galena (this file + agent-api): added O2>1.5 gate + (1.5-O2)
+//          factor — pre-v13 PbS could form under oxidizing conditions.
+//        • molybdenite (this file): same class — added O2>1.2 gate
+//          (agent-api was already correct).
+//        Plus chalcopyrite Python ported to JS's 4-tier T window
+//        (Seo 2012 porphyry sweet spot 300-500°C, was flat 1.2/0.6).
+//        Remaining divergences filed in BACKLOG.md.
+const SIM_VERSION = 13;
 
 
 // ============================================================
@@ -4559,15 +4568,19 @@ class VugConditions {
   }
 
   supersaturation_galena() {
-    if (this.fluid.Pb < 10 || this.fluid.S < 10) return 0;
-    let sigma = (this.fluid.Pb / 80.0) * (this.fluid.S / 100.0);
-    const eT = this.effectiveTemperature; // Mo flux widens sweet spot
-    if (eT >= 200 && eT <= 400) {
-      sigma *= 1.3;
-    } else if (eT > 500) {
-      sigma *= 0.5;
-    }
-    return sigma;
+    // v13: reconciled to Python — pre-v13 had no O2 gate, allowing the
+    // sulfide to form under oxidizing conditions (a clear physics bug,
+    // surfaced by tools/supersat_drift_audit.py). Now matches vugg.py.
+    if (this.fluid.Pb < 5 || this.fluid.S < 10) return 0;
+    if (this.fluid.O2 > 1.5) return 0;  // sulfides can't survive oxidation
+    let sigma = (this.fluid.Pb / 50.0) * (this.fluid.S / 80.0) * (1.5 - this.fluid.O2);
+    // Moderate T preference (decay above 450°C). Mo-flux preserved as
+    // a separate decoration: when effectiveTemperature shifts the window,
+    // the 200-400 sweet spot still applies.
+    const eT = this.effectiveTemperature;
+    if (eT >= 200 && eT <= 400) sigma *= 1.3;
+    if (this.temperature > 450) sigma *= Math.exp(-0.008 * (this.temperature - 450));
+    return Math.max(sigma, 0);
   }
 
   supersaturation_smithsonite() {
@@ -4601,15 +4614,17 @@ class VugConditions {
   // High-temperature primary mineral (300-500°C). Mo arrives in separate later pulse from Cu.
   // Per Seo et al. 2012 (Bingham Canyon): MoS₂ is the primary Mo-bearing phase.
   supersaturation_molybdenite() {
-    if (this.fluid.Mo < 5 || this.fluid.S < 10) return 0;
-    let sigma = (this.fluid.Mo / 40.0) * (this.fluid.S / 80.0);
-    const eT = this.effectiveTemperature;
-    if (eT >= 300 && eT <= 500) {
-      sigma *= 1.4; // porphyry sweet spot
-    } else if (eT < 200 || eT > 600) {
-      sigma *= 0.3;
+    // v13: reconciled to Python (which agent-api already matched). Pre-v13
+    // had no O2 gate, allowing the sulfide to form under oxidizing conditions.
+    if (this.fluid.Mo < 3 || this.fluid.S < 10) return 0;
+    if (this.fluid.O2 > 1.2) return 0;  // sulfide, needs reducing
+    let sigma = (this.fluid.Mo / 15.0) * (this.fluid.S / 60.0) * (1.5 - this.fluid.O2);
+    if (this.temperature < 150) {
+      sigma *= Math.exp(-0.01 * (150 - this.temperature));
+    } else if (this.temperature > 300 && this.temperature < 500) {
+      sigma *= 1.3;  // porphyry Mo sweet spot
     }
-    return sigma;
+    return Math.max(sigma, 0);
   }
 
   // Ferrimolybdite (Fe₂(MoO₄)₃·nH₂O) — the no-lead branch of Mo oxidation.

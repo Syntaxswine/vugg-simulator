@@ -252,7 +252,23 @@ from typing import List, Dict, Optional, Tuple
 #          uraninite no longer "endures forever"; it begins to weather
 #          when meteoric water arrives (true to the new mechanic + the
 #          research's central framing).
-SIM_VERSION = 12
+#   v13 — Supersat drift audit + sulfide O2-gate fixes (May 2026, per
+#        tools/supersat_drift_audit.py). The audit found 11 mineral
+#        supersat formulas with structural drift between vugg.py and
+#        index.html — most cosmetic, but two are real physics bugs:
+#        • galena (JS): pre-v13 had no O2 gate, allowing PbS to form
+#          under oxidizing conditions. Now matches Python (O2>1.5
+#          returns 0; (1.5-O2) factor in formula).
+#        • molybdenite (index.html): same bug class — no O2 gate
+#          (agent-api/vugg-agent.js already had the correct version).
+#        • chalcopyrite (Python): T window was a flat 1.2/0.6 binary;
+#          ported the JS 4-tier formulation (Seo et al. 2012 porphyry
+#          window: rare<180, viable 180-300, peak 300-500, fades>500).
+#          Richer-canonical per the boss's 2026-04-30 rule.
+#        Remaining divergences (effectiveTemperature feature gap +
+#        feldspar/fluorite/selenite/smithsonite/wulfenite design
+#        divergences) filed in BACKLOG.md.
+SIM_VERSION = 13
 
 
 # ============================================================
@@ -1472,15 +1488,33 @@ class VugConditions:
     
     def supersaturation_chalcopyrite(self) -> float:
         """Chalcopyrite (CuFeS2) supersaturation. Needs Cu + Fe + S.
-        
+
         Main copper ore mineral. Competes with pyrite for Fe and S.
+
+        v13 (May 2026): T window upgraded to 4-tier per Seo et al. 2012
+        — main porphyry window 300-500°C, ~90% deposits before 400°C;
+        viable but not peak 200-300°C; rare below 180°C; fades above
+        500°C. Was previously a flat 1.2/0.6 binary at 150-350°C.
+        Brought into line with index.html + agent-api/vugg-agent.js
+        which already used this formulation. (Note: JS uses
+        effectiveTemperature for Mo-flux modulation; Python uses plain
+        temperature — effectiveTemperature is a JS-only feature, filed
+        in BACKLOG.)
         """
         if self.fluid.Cu < 10 or self.fluid.Fe < 5 or self.fluid.S < 15:
             return 0
         if self.fluid.O2 > 1.5:
             return 0
         product = (self.fluid.Cu / 80.0) * (self.fluid.Fe / 50.0) * (self.fluid.S / 80.0)
-        T_factor = 1.2 if 150 < self.temperature < 350 else 0.6
+        T = self.temperature
+        if T < 180:
+            T_factor = 0.2  # rare at low T
+        elif T < 300:
+            T_factor = 0.8  # viable, not peak
+        elif T <= 500:
+            T_factor = 1.3  # sweet spot — porphyry window
+        else:
+            T_factor = 0.5  # fades above 500°C
         return product * T_factor * (1.5 - self.fluid.O2)
     
     def supersaturation_hematite(self) -> float:
