@@ -16990,97 +16990,48 @@ class VugSimulator:
         return " ".join(p for p in parts if p)
 
     def _narrate_stibnite(self, c: Crystal) -> str:
+        """Narrate stibnite — the Ichinokawa sword-blade Sb sulfide.
+
+        Prose lives in narratives/stibnite.md.
+        """
         parts = [f"Stibnite #{c.crystal_id} grew to {c.c_length_mm:.1f} mm."]
-        parts.append(
-            "Sb₂S₃ — orthorhombic antimony sulfide, same structure as "
-            "bismuthinite. Lead-gray to steel-gray, brilliant metallic "
-            "luster on fresh cleavage. Ichinokawa (Japan) produced "
-            "swords over 60 cm long — perhaps the most visually striking "
-            "sulfide specimens ever collected. Low-melting (550°C), so "
-            "any metamorphism destroys it."
-        )
+        parts.append(narrative_blurb("stibnite"))
         if c.habit == "elongated_prism_blade":
-            parts.append(
-                "Elongated sword-blade — the signature habit that makes "
-                "stibnite museum-worthy. Slow growth at moderate "
-                "supersaturation lets the crystal extend along c-axis "
-                "without branching."
-            )
+            parts.append(narrative_variant("stibnite", "elongated_prism_blade"))
         elif c.habit == "radiating_spray":
-            parts.append(
-                "Radiating spray — multiple nucleation centers fanning "
-                "outward. Herja (Romania) and Sierra Mojada (Mexico) "
-                "produce the best sprays."
-            )
+            parts.append(narrative_variant("stibnite", "radiating_spray"))
         else:
-            parts.append(
-                "Massive granular — the bread-and-butter form. Most "
-                "mineable Sb ore."
-            )
-        return " ".join(parts)
+            parts.append(narrative_variant("stibnite", "massive_default"))
+        return " ".join(p for p in parts if p)
 
     def _narrate_arsenopyrite(self, c: Crystal) -> str:
-        """Narrate arsenopyrite — the arsenic gateway sulfide + invisible-gold trap."""
+        """Narrate arsenopyrite — the arsenic gateway + invisible-gold trap.
+
+        Prose lives in narratives/arsenopyrite.md. Code dispatches blurb +
+        invisible_gold (with {trapped_au} 3-decimal interp) when zones-summed
+        trace_Au > 0.01 ppm + 4-way habit (striated_prism / rhombic_blade /
+        acicular / massive_default) + oxidation_front when dissolved.
+        """
         parts = [f"Arsenopyrite #{c.crystal_id} grew to {c.c_length_mm:.1f} mm."]
-        parts.append(
-            "FeAsS — the most common arsenic mineral and a primary "
-            "mesothermal sulfide. Silver-white on fresh fracture, tarnishes "
-            "brassy in hours. Striated prisms with a diamond-shaped cross-"
-            "section are the diagnostic habit; Panasqueira (Portugal), "
-            "Kam Kotia (Ontario), and Llallagua (Bolivia) produced the "
-            "classical display specimens."
-        )
+        parts.append(narrative_blurb("arsenopyrite"))
 
         total_trapped_au = sum(z.trace_Au for z in c.zones)
         if total_trapped_au > 0.01:
-            parts.append(
-                f"Invisible gold — {total_trapped_au:.3f} ppm Au trapped "
-                "structurally in the arsenopyrite lattice across the crystal's "
-                "zones. Reich et al. 2005 showed arsenopyrite can hold up to "
-                "1500 ppm Au as solid-solution Au¹⁺ in the Fe/As sites. "
-                "Invisible to the eye but measurable by SEM-EDS or secondary-"
-                "ion mass spectrometry. At the Bisbee district, this is the "
-                "reason the deep hypogene sulfide ore assays higher than "
-                "visual inspection predicts."
-            )
+            parts.append(narrative_variant("arsenopyrite", "invisible_gold",
+                                           trapped_au=f"{total_trapped_au:.3f}"))
 
         if c.habit == "striated_prism":
-            parts.append(
-                "Striated prismatic — the display habit. The striations are "
-                "parallel to the c-axis and come from repeated oscillatory "
-                "face steps during slow growth. Flash a light across the "
-                "crystal and the striations sparkle like a diffraction grating."
-            )
+            parts.append(narrative_variant("arsenopyrite", "striated_prism"))
         elif c.habit == "rhombic_blade":
-            parts.append(
-                "Rhombic blade — flattened habit characteristic of slightly "
-                "higher supersaturation than the classical prisms. Less "
-                "ornamental but still forms well-defined faces."
-            )
+            parts.append(narrative_variant("arsenopyrite", "rhombic_blade"))
         elif c.habit == "acicular":
-            parts.append(
-                "Acicular — thin needles, fast-growth habit at high σ. "
-                "Radiating sprays resemble stibnite at a glance but are "
-                "harder (Mohs 6 vs 2) and lack stibnite's lead-gray streak."
-            )
+            parts.append(narrative_variant("arsenopyrite", "acicular"))
         else:
-            parts.append(
-                "Massive granular — bread-and-butter form. No crystal faces, "
-                "but still the dominant economic As source at most modern mines."
-            )
+            parts.append(narrative_variant("arsenopyrite", "massive_default"))
 
         if c.dissolved:
-            parts.append(
-                "Oxidation front — surface attack by O₂-bearing meteoric fluid. "
-                "arsenopyrite + O₂ + H₂O → Fe³⁺ + AsO₄³⁻ + H₂SO₄. The released "
-                "AsO₄³⁻ feeds scorodite downstream, and crucially the invisible "
-                "gold comes back out: dissolved arsenopyrite releases its "
-                "trapped Au into the supergene fluid, where it can re-nucleate "
-                "as native_gold at grain boundaries. This is the supergene-Au-"
-                "enrichment mechanism that built Bisbee's oxide cap (Graeme "
-                "et al. 2019)."
-            )
-        return " ".join(parts)
+            parts.append(narrative_variant("arsenopyrite", "oxidation_front"))
+        return " ".join(p for p in parts if p)
 
     def _narrate_scorodite(self, c: Crystal) -> str:
         """Narrate scorodite — the arsenic sequestration arsenate.
@@ -17127,32 +17078,19 @@ class VugSimulator:
         return " ".join(p for p in parts if p)
 
     def _narrate_bismuthinite(self, c: Crystal) -> str:
+        """Narrate bismuthinite — the Bi sulfide cousin of stibnite.
+
+        Prose lives in narratives/bismuthinite.md.
+        """
         parts = [f"Bismuthinite #{c.crystal_id} grew to {c.c_length_mm:.1f} mm."]
-        parts.append(
-            "Bi₂S₃ — orthorhombic bismuth sulfide, same structure as "
-            "stibnite (Sb and Bi are geochemical cousins). Lead-gray "
-            "to tin-white with yellowish/iridescent tarnish. Classic "
-            "companion of arsenopyrite, cassiterite, and wolframite "
-            "in tin-tungsten greisen deposits (Cornwall, Erzgebirge, "
-            "Bolivian tin belt)."
-        )
+        parts.append(narrative_blurb("bismuthinite"))
         if "stout" in (c.habit or ""):
-            parts.append(
-                "Stout prismatic — the high-T habit (T > 350°C). "
-                "Characteristic of primary greisen growth."
-            )
+            parts.append(narrative_variant("bismuthinite", "stout"))
         elif "radiating" in (c.habit or ""):
-            parts.append(
-                "Radiating cluster of needles — multiple nucleation, "
-                "moderate supersaturation burst."
-            )
+            parts.append(narrative_variant("bismuthinite", "radiating"))
         else:
-            parts.append(
-                "Acicular needles — the low-T habit. Long, thin, "
-                "easily mistaken for stibnite until the tin-white "
-                "color and higher density give it away."
-            )
-        return " ".join(parts)
+            parts.append(narrative_variant("bismuthinite", "acicular_default"))
+        return " ".join(p for p in parts if p)
 
     def _narrate_native_bismuth(self, c: Crystal) -> str:
         parts = [f"Native bismuth #{c.crystal_id} grew to {c.c_length_mm:.1f} mm."]
