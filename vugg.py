@@ -17137,56 +17137,30 @@ class VugSimulator:
         return " ".join(p for p in parts if p)
 
     def _narrate_native_bismuth(self, c: Crystal) -> str:
+        """Narrate native bismuth — the lowest-melting native metal.
+
+        Prose lives in narratives/native_bismuth.md.
+        """
         parts = [f"Native bismuth #{c.crystal_id} grew to {c.c_length_mm:.1f} mm."]
-        parts.append(
-            "Bi — elemental bismuth. Silver-white on fresh fracture, "
-            "iridescent rainbow tarnish within hours. Melts at an "
-            "unusually low 271.5°C — the lowest melting point of any "
-            "native metal. Only forms when sulfur runs out before "
-            "bismuth does (otherwise it makes bismuthinite). The "
-            "square hoppered rainbow Bi crystals sold in rock shops "
-            "are LAB-GROWN — natural native bismuth is typically "
-            "arborescent or massive."
-        )
+        parts.append(narrative_blurb("native_bismuth"))
         if c.habit == "arborescent_dendritic":
-            parts.append(
-                "Arborescent dendritic — tree-like branches filling a "
-                "fracture. Cobalt (Germany), the Kingsgate mine "
-                "(Australia), and Schneeberg (Saxony) produced the "
-                "best historically."
-            )
+            parts.append(narrative_variant("native_bismuth", "arborescent_dendritic"))
         elif c.habit == "rhombohedral_crystal":
-            parts.append(
-                "Rhombohedral crystal — RARE. Bismuth crystallizes in "
-                "trigonal symmetry with {0001} basal pinacoid; well-"
-                "formed natural crystals are among the rarest native-"
-                "element specimens collectors seek."
-            )
+            parts.append(narrative_variant("native_bismuth", "rhombohedral_crystal"))
         else:
-            parts.append(
-                "Massive granular — silver-white metallic blob, "
-                "iridescent within days of exposure to air."
-            )
-        return " ".join(parts)
+            parts.append(narrative_variant("native_bismuth", "massive_default"))
+        return " ".join(p for p in parts if p)
 
     def _narrate_clinobisvanite(self, c: Crystal) -> str:
+        """Narrate clinobisvanite — the end of the bismuth oxidation chain.
+
+        Prose lives in narratives/clinobisvanite.md. Blurb-only with a
+        '## closing' photocatalyst tail (boss-design schema).
+        """
         parts = [f"Clinobisvanite #{c.crystal_id} grew to {c.c_length_mm:.1f} mm."]
-        parts.append(
-            "BiVO₄ — bright yellow to orange-yellow monoclinic "
-            "Bi-vanadate. End of the bismuth oxidation sequence: "
-            "bismuthinite → native bismuth → bismite/bismutite → "
-            "clinobisvanite (if V is available). Microscopic — the "
-            "crystals are individually sub-millimeter, so "
-            "clinobisvanite appears as a powdery yellow coating on "
-            "matrix."
-        )
-        parts.append(
-            "And: BiVO₄ is a photocatalyst for solar-driven water "
-            "splitting. The same mineral that forms as a supergene "
-            "afterthought is being engineered to make hydrogen fuel "
-            "from sunlight. Nature had it first."
-        )
-        return " ".join(parts)
+        parts.append(narrative_blurb("clinobisvanite"))
+        parts.append(narrative_closing("clinobisvanite"))
+        return " ".join(p for p in parts if p)
 
     def _narrate_acanthite(self, c: Crystal) -> str:
         """Narrate acanthite — the cold-storage form of Ag₂S."""
