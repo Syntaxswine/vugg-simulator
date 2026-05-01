@@ -15727,38 +15727,46 @@ class VugSimulator:
         return " ".join(parts)
 
     def _narrate_selenite(self, c: Crystal) -> str:
-        """Narrate a selenite crystal's story — the cool-water cathedral blade."""
+        """Narrate a selenite crystal — the cool-water cathedral blade.
+
+        Prose lives in narratives/selenite.md. Substantively merged Python
+        + JS narrators per user direction (2026-04-30): JS prose was richer
+        and more poetic ('the crystal that grows when everything else is
+        ending', 'gypsum is the gravestone of pyrite', 'the epilogue
+        crystal'); JS canonical, Python branches added on top. Final shape:
+        epigraph (always) + 4-way habit (rosette / fibrous / cathedral_blade
+        / blades_default) + on_sulfide paragenesis + swallowtail_twin +
+        giant_naica when c_length_mm > 10 + dissolved + ALWAYS-emitted
+        epilogue tail.
+        """
         parts = [f"Selenite #{c.crystal_id} grew to {c.c_length_mm:.1f} mm."]
+        parts.append(narrative_variant("selenite", "epigraph"))
 
-        parts.append(
-            "CaSO₄·2H₂O — the dihydrate form of gypsum, water-clear, glassy. "
-            "Selenite grows only below ~60°C; above that, anhydrite wins. "
-            "This is the crystal of Naica, where 58°C brine held steady for "
-            "half a million years and produced the largest natural crystals "
-            "on Earth."
-        )
+        if c.habit == "rosette":
+            parts.append(narrative_variant("selenite", "rosette"))
+        elif c.habit and "fibrous" in c.habit:
+            parts.append(narrative_variant("selenite", "fibrous"))
+        elif c.habit == "cathedral_blade":
+            parts.append(narrative_variant("selenite", "cathedral_blade"))
+        else:
+            parts.append(narrative_variant("selenite", "blades_default",
+                                           mm=f"{c.c_length_mm:.1f}"))
 
-        if c.habit == "cathedral_blade":
-            parts.append(
-                "Built up into a cathedral blade — the Naica habit. Sustained "
-                "supersaturation at a metastable temperature just below the "
-                "anhydrite transition, uninterrupted for millennia."
-            )
+        if "pyrite" in (c.position or "") or "chalcopyrite" in (c.position or ""):
+            parts.append(narrative_variant("selenite", "on_sulfide"))
 
-        if c.twinned and "swallowtail" in c.twin_law:
-            parts.append(
-                "Swallowtail twin — the diagnostic growth twin of selenite, "
-                "two crystals joined at the base with tails flaring outward."
-            )
+        if c.twinned and "swallowtail" in (c.twin_law or ""):
+            parts.append(narrative_variant("selenite", "swallowtail_twin",
+                                           twin_law=c.twin_law))
+
+        if c.c_length_mm > 10:
+            parts.append(narrative_variant("selenite", "giant_naica"))
 
         if c.dissolved:
-            parts.append(
-                "Acid or warmer water attacked the selenite — gypsum is one of "
-                "the more soluble common minerals, surviving only where water "
-                "is scarce or chemistry is right."
-            )
+            parts.append(narrative_variant("selenite", "dissolved"))
 
-        return " ".join(parts)
+        parts.append(narrative_variant("selenite", "epilogue_tail"))
+        return " ".join(p for p in parts if p)
 
     def _narrate_barite(self, c: Crystal) -> str:
         """Narrate a barite crystal — the heavy spar.
