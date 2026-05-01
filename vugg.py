@@ -16044,102 +16044,58 @@ class VugSimulator:
         return " ".join(p for p in parts if p)
 
     def _narrate_tetrahedrite(self, c: Crystal) -> str:
-        """Narrate a tetrahedrite crystal's story — the Sb-endmember fahlore."""
+        """Narrate a tetrahedrite crystal — the Sb-endmember fahlore.
+
+        Prose lives in narratives/tetrahedrite.md. Code dispatches blurb +
+        4-way habit (tetrahedral / crustiform / druzy_coating /
+        massive_default) + on_chalcopyrite paragenesis +
+        oxidative_dissolution.
+        """
         parts = [f"Tetrahedrite #{c.crystal_id} grew to {c.c_length_mm:.1f} mm."]
-        parts.append(
-            "Cu₁₂Sb₄S₁₃ — steel-gray metallic, the Sb-endmember of the fahlore "
-            "solid-solution series. 'Fahlore' is German for 'dull ore,' the miner's "
-            "term for the gray copper sulfosalts that gave little back to the roaster "
-            "but carried silver as a quiet bonus."
-        )
+        parts.append(narrative_blurb("tetrahedrite"))
 
         if c.habit == "tetrahedral":
-            parts.append(
-                "Classic {111} tetrahedra — the namesake habit. Cubic symmetry, "
-                "but the tetrahedral space group I4̄3m gives only four-fold faces "
-                "per octant, visually distinctive from galena or pyrite cubes."
-            )
+            parts.append(narrative_variant("tetrahedrite", "tetrahedral"))
         elif c.habit == "crustiform":
-            parts.append(
-                "Crustiform banding on the fracture wall — deposition from a flowing "
-                "hydrothermal fluid, each band a slightly different Cu/Sb/Ag ratio "
-                "recording the evolution of the ore fluid."
-            )
+            parts.append(narrative_variant("tetrahedrite", "crustiform"))
         elif c.habit == "druzy_coating":
-            parts.append(
-                "Fine-grained drusy surface — a sparkling coating of microcrystals "
-                "from high-supersaturation growth. The sparkle is diagnostic of "
-                "unweathered, unoxidized tetrahedrite."
-            )
+            parts.append(narrative_variant("tetrahedrite", "druzy_coating"))
         else:
-            parts.append(
-                "Massive granular aggregates — the form most tetrahedrite ore takes, "
-                "filling vein fractures without developing free-standing crystals."
-            )
+            parts.append(narrative_variant("tetrahedrite", "massive_default"))
 
         if "chalcopyrite" in c.position:
-            parts.append(
-                "Growing on chalcopyrite — the classic porphyry-to-epithermal "
-                "transition assemblage: the Cu-Fe sulfide feeds into the Cu-Sb "
-                "sulfosalt as the fluid cools and antimony activity climbs."
-            )
+            parts.append(narrative_variant("tetrahedrite", "on_chalcopyrite"))
 
         if c.dissolved:
-            parts.append(
-                "Oxidative dissolution — Cu²⁺ and Sb³⁺ released to the fluid. In "
-                "nature this produces secondary Sb oxides (valentinite, kermesite) "
-                "and feeds the malachite/azurite copper-carbonate paragenesis downstream."
-            )
-        return " ".join(parts)
+            parts.append(narrative_variant("tetrahedrite", "oxidative_dissolution"))
+        return " ".join(p for p in parts if p)
 
     def _narrate_tennantite(self, c: Crystal) -> str:
-        """Narrate a tennantite crystal's story — the As-endmember fahlore."""
+        """Narrate a tennantite crystal — the As-endmember fahlore.
+
+        Prose lives in narratives/tennantite.md. Code dispatches blurb +
+        4-way habit (tetrahedral / crustiform / druzy_coating /
+        massive_default) + alongside_tetrahedrite paragenesis +
+        oxidative_dissolution.
+        """
         parts = [f"Tennantite #{c.crystal_id} grew to {c.c_length_mm:.1f} mm."]
-        parts.append(
-            "Cu₁₂As₄S₁₃ — the As counterpart to tetrahedrite, same structure, different "
-            "poison. Visually indistinguishable from tetrahedrite except in one diagnostic: "
-            "thin splinters of tennantite transmit cherry-red light when held to a bright "
-            "source. Tetrahedrite stays opaque. Ray Strickland wrote that's what you reach "
-            "for when the X-ray fluorescence lab is three time zones away."
-        )
+        parts.append(narrative_blurb("tennantite"))
 
         if c.habit == "tetrahedral":
-            parts.append(
-                "Classic {111} tetrahedra — the fahlore habit. Gray to nearly black, with "
-                "that cherry-red glow visible on thin edges under strong backlight."
-            )
+            parts.append(narrative_variant("tennantite", "tetrahedral"))
         elif c.habit == "crustiform":
-            parts.append(
-                "Crustiform banded crust on the fracture wall — arsenic-rich pulses "
-                "alternating with lower-σ growth periods, each band recording a step "
-                "in the ore fluid's evolution."
-            )
+            parts.append(narrative_variant("tennantite", "crustiform"))
         elif c.habit == "druzy_coating":
-            parts.append(
-                "Fine-grained drusy surface — high-σ coating. The sparkle here is "
-                "slightly duller than tetrahedrite's, an optical consequence of the "
-                "different filled-orbital chemistry of As vs Sb."
-            )
+            parts.append(narrative_variant("tennantite", "druzy_coating"))
         else:
-            parts.append(
-                "Massive granular — the bulk form, often carrying silver as invisible "
-                "substitution for copper."
-            )
+            parts.append(narrative_variant("tennantite", "massive_default"))
 
         if "tetrahedrite" in c.position:
-            parts.append(
-                f"Growing alongside tetrahedrite — physical evidence that the fluid "
-                f"straddled the As/Sb transition, a solid-solution record in an "
-                f"epithermal vein."
-            )
+            parts.append(narrative_variant("tennantite", "alongside_tetrahedrite"))
 
         if c.dissolved:
-            parts.append(
-                "Oxidative dissolution — Cu²⁺ and AsO₄³⁻ released to the fluid. The "
-                "arsenate then feeds downstream secondary minerals: adamite (Zn+AsO₄), "
-                "erythrite (Co+AsO₄), annabergite (Ni+AsO₄), mimetite (Pb+AsO₄+Cl)."
-            )
-        return " ".join(parts)
+            parts.append(narrative_variant("tennantite", "oxidative_dissolution"))
+        return " ".join(p for p in parts if p)
 
     def _narrate_erythrite(self, c: Crystal) -> str:
         """Narrate an erythrite crystal's story — the cobalt bloom.
