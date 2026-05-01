@@ -15809,121 +15809,50 @@ class VugSimulator:
         return " ".join(p for p in parts if p)
 
     def _narrate_jarosite(self, c: Crystal) -> str:
-        """Narrate a jarosite crystal — the AMD-yellow Fe sulfate."""
+        """Narrate a jarosite crystal — the AMD-yellow Fe sulfate.
+
+        Prose lives in narratives/jarosite.md. Code dispatches blurb +
+        3-way habit (earthy_crust / druzy / pseudocubic_default) +
+        alkaline_shift on dissolved + ALWAYS-emitted Mars connection tail.
+        """
         parts = [f"Jarosite #{c.crystal_id} grew to {c.c_length_mm:.1f} mm."]
-        parts.append(
-            "KFe³⁺₃(SO₄)₂(OH)₆ — the diagnostic acid-mine-drainage "
-            "mineral. Yellow-to-ocher pseudocubic rhombs and powdery "
-            "crusts; the supergene Fe-sulfate that takes over from "
-            "goethite when pH drops below 4. Every active sulfide-mine "
-            "tailings pond on Earth has this yellow stain. Rio Tinto in "
-            "Spain runs red-orange through volume of jarosite + Fe³⁺ "
-            "load — the Phoenicians named the river for the color "
-            "and the Romans + Spanish + UK Rio Tinto Co. mined it for "
-            "Cu, Ag, and S over 5000 years."
-        )
+        parts.append(narrative_blurb("jarosite"))
         if c.habit == "earthy_crust":
-            parts.append(
-                "Powdery yellow crust — the textbook AMD signature. "
-                "Microscopic crystals coat weathered pyrite surfaces "
-                "as fast oxidation outpaces crystal growth. Walk any "
-                "sulfide-mine tailings dump and this is what stains "
-                "your boots."
-            )
+            parts.append(narrative_variant("jarosite", "earthy_crust"))
         elif c.habit == "druzy":
-            parts.append(
-                "Druzy microcrystalline jarosite — yellow honeycomb "
-                "covering pyrite oxidation surfaces. Hand-lens reveals "
-                "tiny pseudocubic rhombs."
-            )
+            parts.append(narrative_variant("jarosite", "druzy"))
         else:
-            parts.append(
-                "Pseudocubic rhombs — the diagnostic display habit, "
-                "looks cubic but the crystal system is actually trigonal. "
-                "Red Mountain Pass (CO) and Mojave (CA) produce sharp "
-                "specimens to ~1 cm."
-            )
+            parts.append(narrative_variant("jarosite", "pseudocubic_default"))
         if c.dissolved:
-            parts.append(
-                "Alkaline shift attacked the jarosite — pH crossed "
-                "above 4 (carbonate buffering, fluid mixing, neutralization), "
-                "releasing K + Fe³⁺ + SO₄²⁻. The Fe³⁺ now sits in goethite "
-                "territory; expect rust-brown goethite to nucleate from "
-                "the released cation pool. Jarosite-to-goethite is the "
-                "diagnostic AMD weathering succession."
-            )
-        parts.append(
-            "Mars connection: NASA's Mars Exploration Rover Opportunity "
-            "found jarosite at Meridiani Planum (Klingelhöfer et al. 2004) "
-            "via Mössbauer spectrometer — direct evidence that liquid "
-            "water flowed on Mars, and that it was acidic. Without "
-            "liquid water in the right pH/Eh window, jarosite cannot "
-            "form. The discovery rewrote the Mars hydrology timeline."
-        )
-        return " ".join(parts)
+            parts.append(narrative_variant("jarosite", "alkaline_shift"))
+        parts.append(narrative_variant("jarosite", "mars_connection"))
+        return " ".join(p for p in parts if p)
 
     def _narrate_alunite(self, c: Crystal) -> str:
-        """Narrate an alunite crystal — the advanced argillic alteration index mineral."""
+        """Narrate an alunite crystal — the advanced argillic alteration index.
+
+        Prose lives in narratives/alunite.md. Code dispatches blurb +
+        4-way habit (earthy / fibrous / tabular / pseudocubic_default) +
+        pinkish_natroalunite zone-note flag + dissolved (alkaline OR
+        thermal) + ALWAYS-emitted Ar/Ar geochronology tail.
+        """
         parts = [f"Alunite #{c.crystal_id} grew to {c.c_length_mm:.1f} mm."]
-        parts.append(
-            "KAl₃(SO₄)₂(OH)₆ — the K-Al sister of jarosite (alunite "
-            "group, isostructural). The index mineral of 'advanced "
-            "argillic' alteration in porphyry-Cu lithocaps and high-"
-            "sulfidation epithermal Au deposits. When you read about "
-            "porphyry-Cu lithocap kilometers wide, alunite is a major "
-            "phase. Marysvale (Utah) is the type locality; alunite was "
-            "mined there as a K-fertilizer source 1915-1930s before "
-            "Carlsbad potash made K cheaper to mine elsewhere."
-        )
+        parts.append(narrative_blurb("alunite"))
         if c.habit == "earthy":
-            parts.append(
-                "Earthy chalky white masses — the Marysvale 'alunite-stone' "
-                "habit, where alunite has wholesale-replaced feldspathic "
-                "wall rock. The hills of US-89 in southern Utah are visible "
-                "as pinkish-white alunite outcrops."
-            )
+            parts.append(narrative_variant("alunite", "earthy"))
         elif c.habit == "fibrous":
-            parts.append(
-                "Fibrous radiating alunite — vein-fill habit, where "
-                "acid-sulfate fluid percolated through fractures. Common "
-                "at Goldfield (Nevada) high-sulfidation epithermal Au."
-            )
+            parts.append(narrative_variant("alunite", "fibrous"))
         elif c.habit == "tabular":
-            parts.append(
-                "Sharp tabular blades — the Goldfield + Summitville "
-                "epithermal habit, sometimes pseudohexagonal. Display "
-                "specimens are rare; alunite is usually massive."
-            )
+            parts.append(narrative_variant("alunite", "tabular"))
         else:
-            parts.append(
-                "Pseudocubic rhombs — same shape as jarosite, the alunite-"
-                "group structural family. Sharp display crystals are scarce."
-            )
+            parts.append(narrative_variant("alunite", "pseudocubic_default"))
         any_note = " ".join(z.note or "" for z in c.zones)
         if "pinkish" in any_note or "natroalunite" in any_note:
-            parts.append(
-                "Pinkish tint — Fe-substitution moves toward the "
-                "natroalunite-jarosite series; alunite-group minerals "
-                "form a continuous solid-solution loop across K↔Na "
-                "and Al↔Fe end members."
-            )
+            parts.append(narrative_variant("alunite", "pinkish_natroalunite"))
         if c.dissolved:
-            parts.append(
-                "Alkaline shift OR thermal attack dissolved the alunite "
-                "— releases K + Al + SO₄ to the fluid. Above 350 °C "
-                "alunite's lattice OH dehydrates to corundum + K-Al "
-                "sulfate (the basis for the early-1900s K-fertilizer "
-                "process: heat alunite, leach the K-sulfate)."
-            )
-        parts.append(
-            "⁴⁰Ar/³⁹Ar geochronology connection: alunite preserves the "
-            "K-Ar age of its parent acid-sulfate hydrothermal event with "
-            "high precision (Stoffregen et al. 2000). For porphyry-Cu "
-            "and epithermal-Au exploration, dating alunite tells you "
-            "when the lithocap formed — and by inference, when the "
-            "underlying intrusive event occurred."
-        )
-        return " ".join(parts)
+            parts.append(narrative_variant("alunite", "dissolved_alkaline_thermal"))
+        parts.append(narrative_variant("alunite", "ar_ar_geochronology"))
+        return " ".join(p for p in parts if p)
 
     def _narrate_brochantite(self, c: Crystal) -> str:
         """Narrate a brochantite crystal — the wet-supergene Cu sulfate."""

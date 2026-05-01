@@ -12,6 +12,15 @@ Order is rough priority — top of each section is most-actionable, but explicit
 **Status:** awaiting user's enumeration.
 **Context:** during the 3D viewer work earlier in the project, several specific bugs were noted but never logged with reproduction steps. User has the list; this todo is the placeholder until they share it.
 
+### Selenite narrator: substantial Python/JS prose divergence (deferred from narrative-extraction)
+**Status:** flagged for boss review — too big a creative-prose decision for a routine extraction.
+**Context:** Most narrators with Python/JS drift have JS-shorter-than-Python (azurite-pattern); markdown extraction makes Python canonical and live JS converges. Selenite is different: the two narrators have **substantively different prose, opening lines, dispatch logic, and tone**. Python is chemistry-focused (anhydrite-vs-selenite phase boundary, swallowtail-twin detail); JS is poetic ("the crystal that grows when everything else is ending", "gypsum is the gravestone of pyrite", "the epilogue crystal"). JS has dispatches Python lacks (rosette habit, on_sulfide paragenesis, size-based Naica reference). This is intentional creative work in JS, not drift.
+**Decision needed:** Pick one as canonical, merge into the markdown, or keep two distinct narrators per runtime. Boss prerogative — three options:
+1. Pick Python as canonical (matches prior pattern, but loses JS poetry)
+2. Pick JS as canonical (preserves polished prose, but Python loses chemistry detail)
+3. Merge best of both (most work, best result)
+**Where to find:** `vugg.py` `_narrate_selenite` ~line 15725; `index.html` `_narrate_selenite` ~line 15199.
+
 ---
 
 ## 🌀 Twin probability retune — measure prevalence by per-mineral lifetime
