@@ -16592,102 +16592,54 @@ class VugSimulator:
         return " ".join(p for p in parts if p)
 
     def _narrate_morganite(self, c: Crystal) -> str:
-        """Narrate a morganite — the Mn pink variety of beryl."""
-        parts = [f"Morganite #{c.crystal_id} grew to {c.c_length_mm:.1f} mm."]
-        parts.append(
-            "Be₃Al₂Si₆O₁₈ + Mn²⁺ — the pink-to-peach variety of beryl. Mn²⁺ "
-            "substitutes in the Al octahedral site; over geologic time, "
-            "natural alpha-particle irradiation from trace U/Th in the "
-            "surrounding pegmatite partially oxidizes Mn²⁺ to Mn³⁺, and the "
-            "Mn³⁺ d-d transitions are what produce the pink hue. Pure pre-"
-            "irradiation Mn²⁺ morganite is the peach-orange variety; heavily "
-            "irradiated specimens go hot-pink. Named by George F. Kunz of "
-            "Tiffany & Co (1911) after J.P. Morgan — Kunz named half the "
-            "gem-pegmatite varieties after the men who could afford them "
-            "(morganite, kunzite = spodumene for his own name)."
-        )
+        """Narrate a morganite — the Mn pink variety of beryl.
 
-        parts.append(
-            "Morganite is late in the pegmatite sequence. Mn accumulates in "
-            "residual fluid while earlier phases (feldspar, quartz, aquamarine) "
-            "crystallize — when the pocket is finally late enough for "
-            "Mn > 2 ppm, morganite fires. Pala District California, Madagascar, "
-            "and Minas Gerais Brazil are the top gem sources."
-        )
+        Prose lives in narratives/morganite.md. Code dispatches blurb +
+        ALWAYS-emitted late_stage_pegmatite (the Mn-accumulation story) +
+        tabular_hex habit + fluid_inclusions count (with {count} interp)
+        + hf_dissolution.
+        """
+        parts = [f"Morganite #{c.crystal_id} grew to {c.c_length_mm:.1f} mm."]
+        parts.append(narrative_blurb("morganite"))
+        parts.append(narrative_variant("morganite", "late_stage_pegmatite"))
 
         if c.habit == "tabular_hex":
-            parts.append(
-                "Tabular hexagonal habit — morganite's signature flat "
-                "pinacoid-dominated plate, unlike the prismatic habit of "
-                "aquamarine and emerald. The Urucum pocket (Minas Gerais, "
-                "1995) yielded the largest gem morganite crystal at 35+ kg "
-                "in this habit."
-            )
+            parts.append(narrative_variant("morganite", "tabular_hex"))
 
         inclusion_zones = [z for z in c.zones if z.fluid_inclusion]
         if inclusion_zones:
-            parts.append(
-                f"{len(inclusion_zones)} fluid inclusion horizons — morganite "
-                "is usually cleaner than aquamarine or emerald because it "
-                "grew so late in the pegmatite sequence; the pocket fluid "
-                "had already deposited its other load."
-            )
+            parts.append(narrative_variant("morganite", "fluid_inclusions",
+                                           count=len(inclusion_zones)))
 
         if c.dissolved:
-            parts.append(
-                "HF-assisted dissolution etched the surface. Unusual for "
-                "morganite — the pocket must have received a late fluorine-rich "
-                "acid pulse after the main morganite growth ceased."
-            )
-        return " ".join(parts)
+            parts.append(narrative_variant("morganite", "hf_dissolution"))
+        return " ".join(p for p in parts if p)
 
     def _narrate_heliodor(self, c: Crystal) -> str:
-        """Narrate a heliodor — the Fe³⁺ yellow variety of beryl."""
+        """Narrate a heliodor — the Fe³⁺ yellow variety of beryl.
+
+        Prose lives in narratives/heliodor.md. Code dispatches blurb +
+        namibian_deep_yellow zone-note flag + fluid_inclusions count
+        (with {count} interp) + ALWAYS-emitted color_stability tail +
+        hf_dissolution.
+        """
         parts = [f"Heliodor #{c.crystal_id} grew to {c.c_length_mm:.1f} mm."]
-        parts.append(
-            "Be₃Al₂Si₆O₁₈ + Fe³⁺ — the yellow variety of beryl. Same iron as "
-            "aquamarine but oxidized to the Fe³⁺ state; the aquamarine/"
-            "heliodor split is the cleanest redox record in the gem world. "
-            "A zoned crystal with aquamarine core and heliodor rim captures a "
-            "pocket fluid that went from reducing to oxidizing mid-growth — "
-            "the iron never left the fluid, but its oxidation state flipped, "
-            "and the color zoning is the recording. Volodarsk (Namibia) is "
-            "the type locality for deep-yellow 'Namibian heliodor'; Urals "
-            "(Russia) historically, Minas Gerais (Brazil) also."
-        )
+        parts.append(narrative_blurb("heliodor"))
 
         zone_notes = [z.note or "" for z in c.zones]
         if any("Namibian" in n for n in zone_notes):
-            parts.append(
-                "Namibian deep-yellow — high-Fe strongly-oxidizing pocket "
-                "signature. The Volodarsk pegmatite cross-cuts Fe-rich "
-                "country rock, delivering both the Fe source and the late "
-                "oxidizing pulse that converts Fe²⁺ to Fe³⁺."
-            )
+            parts.append(narrative_variant("heliodor", "namibian_deep_yellow"))
 
         inclusion_zones = [z for z in c.zones if z.fluid_inclusion]
         if inclusion_zones:
-            parts.append(
-                f"{len(inclusion_zones)} fluid inclusion horizons — the "
-                "oxidizing pocket often contains primary CO₂-rich 2-phase "
-                "inclusions, distinguishing heliodor from the more "
-                "aqueous-inclusion-rich aquamarine."
-            )
+            parts.append(narrative_variant("heliodor", "fluid_inclusions",
+                                           count=len(inclusion_zones)))
 
-        parts.append(
-            "Color stability note: natural heliodor is radiation-sensitive. "
-            "Deep-yellow specimens often lose color on heating above 400°C, "
-            "reverting to goshenite. The inverse also happens — irradiation "
-            "can deepen pale-yellow heliodor."
-        )
+        parts.append(narrative_variant("heliodor", "color_stability"))
 
         if c.dissolved:
-            parts.append(
-                "HF-assisted dissolution etched the surface — heliodor "
-                "shares beryl's acid resistance; dissolution means a late "
-                "fluorine-rich acid pulse."
-            )
-        return " ".join(parts)
+            parts.append(narrative_variant("heliodor", "hf_dissolution"))
+        return " ".join(p for p in parts if p)
 
     def _narrate_corundum(self, c: Crystal) -> str:
         """Narrate a colorless corundum — the generic Al₂O₃ variety."""
