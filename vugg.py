@@ -16027,66 +16027,37 @@ class VugSimulator:
         return " ".join(p for p in parts if p)
 
     def _narrate_apophyllite(self, c: Crystal) -> str:
-        """Narrate an apophyllite crystal's story — the Deccan Traps vesicle filling."""
+        """Narrate an apophyllite crystal — the Deccan Traps vesicle filling.
+
+        Prose lives in narratives/apophyllite.md. Code dispatches blurb +
+        4-way habit (prismatic_tabular / hopper_growth / druzy_crust /
+        chalcedony_pseudomorph default) + bloody_phantoms zone-note count
+        (with {count} interp for the Nashik 'bloody apophyllite') +
+        on_hematite paragenesis + dissolved.
+        """
         parts = [f"Apophyllite #{c.crystal_id} grew to {c.c_length_mm:.1f} mm."]
-        parts.append(
-            "KCa₄Si₈O₂₀(F,OH)·8H₂O — a tetragonal sheet silicate, technically a "
-            "phyllosilicate that's classed with the zeolites because of its hydrated, "
-            "vesicle-filling behavior. Stage III Deccan Traps mineral per Ottens et "
-            "al. 2019: forms tens of millions of years after the basalt eruption, "
-            "when groundwater finally percolates into the cooled vesicles."
-        )
+        parts.append(narrative_blurb("apophyllite"))
 
         if c.habit == "prismatic_tabular":
-            parts.append(
-                "Pseudo-cubic tabular habit — the hallmark apophyllite block: "
-                "{001} basal pinacoid combined with {110} prism faces, transparent "
-                "to pearly. The c-axis cleavage is famously perfect — split a "
-                "crystal along {001} and the surface is pure mirror."
-            )
+            parts.append(narrative_variant("apophyllite", "prismatic_tabular"))
         elif c.habit == "hopper_growth":
-            parts.append(
-                "Stepped/terraced faces — high-supersaturation hopper habit. The "
-                "crystal grew so fast that the corners outpaced the centers, "
-                "producing skeletal terraces visible on every face."
-            )
+            parts.append(narrative_variant("apophyllite", "hopper_growth"))
         elif c.habit == "druzy_crust":
-            parts.append(
-                "Fine-grained drusy coating — the very-high-σ form, microcrystals "
-                "carpeting the vesicle wall in a sparkling colorless crust."
-            )
+            parts.append(narrative_variant("apophyllite", "druzy_crust"))
         else:
-            parts.append(
-                "Chalcedony pseudomorph — at low σ the crystal grew over an earlier "
-                "zeolite blade (stilbite or scolecite typically) and replaced its "
-                "habit, producing massive milky chalcedony shapes that preserve the "
-                "predecessor's blade outlines."
-            )
+            parts.append(narrative_variant("apophyllite", "chalcedony_pseudomorph"))
 
-        # Hematite phantom inclusions in growth zones
         hematite_zones = [z for z in c.zones if z.note and "hematite needle phantom" in z.note]
         if hematite_zones:
-            parts.append(
-                f"{len(hematite_zones)} growth zones carry hematite needle phantoms — "
-                f"this is the 'bloody apophyllite' variety from Nashik. The needles "
-                f"trapped during growth give the otherwise colorless crystal a distinct "
-                f"reddish ghost zone visible by transmitted light."
-            )
+            parts.append(narrative_variant("apophyllite", "bloody_phantoms",
+                                           count=len(hematite_zones)))
 
         if "hematite" in c.position:
-            parts.append(
-                f"Nucleated directly on a pre-existing hematite — the iron oxide "
-                f"became the seed for vesicle filling, and the apophyllite grew "
-                f"around it as a colorless cap."
-            )
+            parts.append(narrative_variant("apophyllite", "on_hematite"))
 
         if c.dissolved:
-            parts.append(
-                "Acid attack dissolved the crystal — apophyllite is an alkaline-stable "
-                "phase, intolerant of pH below 5. K, Ca, SiO₂, and F all returned to "
-                "the fluid, available for downstream zeolite or carbonate growth."
-            )
-        return " ".join(parts)
+            parts.append(narrative_variant("apophyllite", "dissolved"))
+        return " ".join(p for p in parts if p)
 
     def _narrate_tetrahedrite(self, c: Crystal) -> str:
         """Narrate a tetrahedrite crystal's story — the Sb-endmember fahlore."""
@@ -16297,38 +16268,30 @@ class VugSimulator:
         return " ".join(parts)
 
     def _narrate_albite(self, c: Crystal) -> str:
-        """Narrate an albite crystal's story — the sodium end-member."""
-        parts = [f"Albite #{c.crystal_id} grew to {c.c_length_mm:.1f} mm."]
+        """Narrate an albite crystal's story — the sodium end-member.
 
-        parts.append(
-            "NaAlSi₃O₈ — the sodium plagioclase end-member. At T < 450°C, albite "
-            "orders to 'low-albite' (fully ordered Al/Si). Platy 'cleavelandite' "
-            "habit is the pegmatite signature."
-        )
+        Prose lives in narratives/albite.md. Code dispatches blurb +
+        peristerite zone-note flag + cleavelandite habit (drift
+        consolidation — gained from JS) + twinned (with {twin_law}) +
+        dissolved.
+        """
+        parts = [f"Albite #{c.crystal_id} grew to {c.c_length_mm:.1f} mm."]
+        parts.append(narrative_blurb("albite"))
 
         peristerite = any("peristerite" in z.note for z in c.zones)
         if peristerite:
-            parts.append(
-                "Ca²⁺ intergrowth produced peristerite — fine albite/oligoclase "
-                "exsolution lamellae that scatter light into blue-white "
-                "adularescence. The moonstone shimmer."
-            )
+            parts.append(narrative_variant("albite", "peristerite"))
+
+        if c.habit and "cleavelandite" in c.habit:
+            parts.append(narrative_variant("albite", "cleavelandite"))
 
         if c.twinned:
-            parts.append(
-                f"Twinned on the {c.twin_law} — polysynthetic albite twinning "
-                "creates the characteristic striped appearance of plagioclase "
-                "in thin section."
-            )
+            parts.append(narrative_variant("albite", "twinned", twin_law=c.twin_law))
 
         if c.dissolved:
-            parts.append(
-                "Acid released Na⁺, Al³⁺, and SiO₂ — albite is slightly more "
-                "resistant than K-feldspar but still weathers to kaolinite "
-                "under persistent acid attack."
-            )
+            parts.append(narrative_variant("albite", "dissolved"))
 
-        return " ".join(parts)
+        return " ".join(p for p in parts if p)
 
     def _narrate_topaz(self, c: Crystal) -> str:
         """Narrate a topaz crystal's story — the fluorine-bearing nesosilicate."""

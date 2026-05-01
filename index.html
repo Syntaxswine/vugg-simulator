@@ -3271,7 +3271,7 @@ const _NARRATIVE_CACHE = {};
 // Phase-1 manifest — extend as more species migrate. When all 89 are
 // extracted the manifest can become a generated index file fetched
 // once at startup.
-const _NARRATIVE_MANIFEST = ['chalcopyrite', 'sphalerite', 'aurichalcite', 'dolomite', 'rosasite', 'azurite', 'calcite', 'aragonite', 'siderite', 'rhodochrosite', 'cerussite', 'smithsonite', 'malachite', 'pyrite', 'galena', 'marcasite', 'hematite', 'molybdenite', 'bornite', 'chalcocite', 'covellite', 'cuprite', 'native_copper', 'native_gold', 'native_silver', 'magnetite', 'lepidocrocite', 'goethite', 'barite', 'celestine', 'anhydrite', 'jarosite', 'alunite', 'brochantite', 'antlerite', 'chalcanthite', 'scorodite', 'ferrimolybdite', 'fluorite', 'pyromorphite', 'vanadinite', 'mimetite', 'descloizite', 'mottramite', 'selenite', 'adamite', 'olivenite', 'erythrite', 'annabergite', 'torbernite', 'zeunerite', 'carnotite', 'wulfenite', 'raspite', 'stolzite', 'beryl', 'emerald', 'aquamarine', 'morganite', 'heliodor', 'corundum', 'ruby', 'sapphire'];
+const _NARRATIVE_MANIFEST = ['chalcopyrite', 'sphalerite', 'aurichalcite', 'dolomite', 'rosasite', 'azurite', 'calcite', 'aragonite', 'siderite', 'rhodochrosite', 'cerussite', 'smithsonite', 'malachite', 'pyrite', 'galena', 'marcasite', 'hematite', 'molybdenite', 'bornite', 'chalcocite', 'covellite', 'cuprite', 'native_copper', 'native_gold', 'native_silver', 'magnetite', 'lepidocrocite', 'goethite', 'barite', 'celestine', 'anhydrite', 'jarosite', 'alunite', 'brochantite', 'antlerite', 'chalcanthite', 'scorodite', 'ferrimolybdite', 'fluorite', 'pyromorphite', 'vanadinite', 'mimetite', 'descloizite', 'mottramite', 'selenite', 'adamite', 'olivenite', 'erythrite', 'annabergite', 'torbernite', 'zeunerite', 'carnotite', 'wulfenite', 'raspite', 'stolzite', 'beryl', 'emerald', 'aquamarine', 'morganite', 'heliodor', 'corundum', 'ruby', 'sapphire', 'albite', 'apophyllite'];
 
 function _parseNarrative(text) {
   // Strip frontmatter (--- block at top).
@@ -14342,22 +14342,15 @@ class VugSimulator {
   }
 
   _narrate_albite(c) {
+    // Prose lives in narratives/albite.md.
     const parts = [`Albite #${c.crystal_id} grew to ${c.c_length_mm.toFixed(1)} mm.`];
-    parts.push("NaAlSi₃O₈ — sodium end-member of the plagioclase series. At T < 450°C, albite orders to 'low-albite' (fully ordered Al/Si). Platy cleavelandite habit is the pegmatite signature.");
+    parts.push(narrative_blurb('albite') || "NaAlSi₃O₈ — sodium end-member of the plagioclase series. At T < 450°C, albite orders to 'low-albite' (fully ordered Al/Si). Platy cleavelandite habit is the pegmatite signature.");
     const peristerite = c.zones.some(z => (z.note || '').includes('peristerite'));
-    if (peristerite) {
-      parts.push('Ca²⁺ intergrowth produced peristerite — fine albite/oligoclase exsolution lamellae that scatter light into blue-white adularescence. The moonstone shimmer.');
-    }
-    if (c.habit && c.habit.includes('cleavelandite')) {
-      parts.push('Cleavelandite habit — platy, lamellar blades curved like book-pages, the low-T hydrothermal signature.');
-    }
-    if (c.twinned) {
-      parts.push(`Twinned on the ${c.twin_law} — polysynthetic albite twinning creates the characteristic striped appearance of plagioclase in thin section.`);
-    }
-    if (c.dissolved) {
-      parts.push('Acid released Na⁺, Al³⁺, and SiO₂ — albite is slightly more resistant than K-feldspar but still weathers to kaolinite under persistent acid attack.');
-    }
-    return parts.join(' ');
+    if (peristerite) parts.push(narrative_variant('albite', 'peristerite') || 'Ca²⁺ intergrowth produced peristerite — fine albite/oligoclase exsolution lamellae that scatter light into blue-white adularescence. The moonstone shimmer.');
+    if (c.habit && c.habit.includes('cleavelandite')) parts.push(narrative_variant('albite', 'cleavelandite') || 'Cleavelandite habit — platy, lamellar blades curved like book-pages, the low-T hydrothermal signature.');
+    if (c.twinned) parts.push(narrative_variant('albite', 'twinned', { twin_law: c.twin_law }) || `Twinned on the ${c.twin_law} — polysynthetic albite twinning creates the characteristic striped appearance of plagioclase in thin section.`);
+    if (c.dissolved) parts.push(narrative_variant('albite', 'dissolved') || 'Acid released Na⁺, Al³⁺, and SiO₂ — albite is slightly more resistant than K-feldspar but still weathers to kaolinite under persistent acid attack.');
+    return parts.filter(p => p).join(' ');
   }
 
   _narrate_topaz(c) {
@@ -15401,28 +15394,24 @@ class VugSimulator {
   }
 
   _narrate_apophyllite(c) {
+    // Prose lives in narratives/apophyllite.md.
     const parts = [`Apophyllite #${c.crystal_id} grew to ${c.c_length_mm.toFixed(1)} mm.`];
-    parts.push("KCa₄Si₈O₂₀(F,OH)·8H₂O — a tetragonal sheet silicate, technically a phyllosilicate that's classed with the zeolites because of its hydrated, vesicle-filling behavior. Stage III Deccan Traps mineral per Ottens et al. 2019: forms tens of millions of years after the basalt eruption, when groundwater finally percolates into the cooled vesicles.");
-    if (c.habit === 'prismatic_tabular') {
-      parts.push('Pseudo-cubic tabular habit — the hallmark apophyllite block: {001} basal pinacoid combined with {110} prism faces, transparent to pearly. The c-axis cleavage is famously perfect — split a crystal along {001} and the surface is pure mirror.');
-    } else if (c.habit === 'hopper_growth') {
-      parts.push('Stepped/terraced faces — high-supersaturation hopper habit. The crystal grew so fast that the corners outpaced the centers, producing skeletal terraces visible on every face.');
-    } else if (c.habit === 'druzy_crust') {
-      parts.push('Fine-grained drusy coating — the very-high-σ form, microcrystals carpeting the vesicle wall in a sparkling colorless crust.');
-    } else {
-      parts.push("Chalcedony pseudomorph — at low σ the crystal grew over an earlier zeolite blade (stilbite or scolecite typically) and replaced its habit, producing massive milky chalcedony shapes that preserve the predecessor's blade outlines.");
-    }
+    parts.push(narrative_blurb('apophyllite') || "KCa₄Si₈O₂₀(F,OH)·8H₂O — a tetragonal sheet silicate, technically a phyllosilicate that's classed with the zeolites because of its hydrated, vesicle-filling behavior. Stage III Deccan Traps mineral.");
+    if (c.habit === 'prismatic_tabular') parts.push(narrative_variant('apophyllite', 'prismatic_tabular') || 'Pseudo-cubic tabular habit — the hallmark apophyllite block.');
+    else if (c.habit === 'hopper_growth') parts.push(narrative_variant('apophyllite', 'hopper_growth') || 'Stepped/terraced faces — high-supersaturation hopper habit.');
+    else if (c.habit === 'druzy_crust') parts.push(narrative_variant('apophyllite', 'druzy_crust') || 'Fine-grained drusy coating — the very-high-σ form.');
+    else parts.push(narrative_variant('apophyllite', 'chalcedony_pseudomorph') || "Chalcedony pseudomorph — at low σ the crystal grew over an earlier zeolite blade.");
     const hematite_zones = c.zones.filter(z => z.note && z.note.includes('hematite needle phantom'));
     if (hematite_zones.length) {
-      parts.push(`${hematite_zones.length} growth zones carry hematite needle phantoms — this is the 'bloody apophyllite' variety from Nashik. The needles trapped during growth give the otherwise colorless crystal a distinct reddish ghost zone visible by transmitted light.`);
+      parts.push(narrative_variant('apophyllite', 'bloody_phantoms', { count: hematite_zones.length }) || `${hematite_zones.length} growth zones carry hematite needle phantoms — this is the 'bloody apophyllite' variety from Nashik.`);
     }
     if (c.position && c.position.includes('hematite')) {
-      parts.push('Nucleated directly on a pre-existing hematite — the iron oxide became the seed for vesicle filling, and the apophyllite grew around it as a colorless cap.');
+      parts.push(narrative_variant('apophyllite', 'on_hematite') || 'Nucleated directly on a pre-existing hematite — the iron oxide became the seed for vesicle filling.');
     }
     if (c.dissolved) {
-      parts.push('Acid attack dissolved the crystal — apophyllite is an alkaline-stable phase, intolerant of pH below 5. K, Ca, SiO₂, and F all returned to the fluid, available for downstream zeolite or carbonate growth.');
+      parts.push(narrative_variant('apophyllite', 'dissolved') || 'Acid attack dissolved the crystal — apophyllite is an alkaline-stable phase.');
     }
-    return parts.join(' ');
+    return parts.filter(p => p).join(' ');
   }
 
   _narrate_tetrahedrite(c) {
