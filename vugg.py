@@ -15592,37 +15592,21 @@ class VugSimulator:
         return " ".join(p for p in parts if p)
 
     def _narrate_uraninite(self, c: Crystal) -> str:
-        """Narrate a uraninite crystal's story — the radioactive heart of the vug."""
+        """Narrate a uraninite crystal — the radioactive heart of the vug.
+
+        Prose lives in narratives/uraninite.md. Code dispatches blurb +
+        T-threshold (pegmatite_high_t when >400, roll_front_low_t else)
+        + oxidative_dissolution.
+        """
         parts = [f"Uraninite #{c.crystal_id} grew to {c.c_length_mm:.1f} mm ☢️."]
-
-        parts.append(
-            "UO₂ — pitch-black, submetallic, one of Earth's densest oxides. It "
-            "formed under strongly reducing conditions: any oxygen would have "
-            "converted it to yellow secondary uranium minerals. While it grew, "
-            "it emitted alpha particles into the surrounding crystal lattice, "
-            "radiation-damaging any nearby quartz toward smoky coloration."
-        )
-
+        parts.append(narrative_blurb("uraninite"))
         if c.nucleation_temp > 400:
-            parts.append(
-                "Nucleated at high temperature — a pegmatite-scale uraninite, "
-                "possibly with Th substituting for U and radiogenic Pb already "
-                "accumulating in the crystal structure."
-            )
+            parts.append(narrative_variant("uraninite", "pegmatite_high_t"))
         else:
-            parts.append(
-                "Low-T uraninite — the sedimentary / roll-front style, precipitated "
-                "where reducing organic matter met U-bearing groundwater."
-            )
-
+            parts.append(narrative_variant("uraninite", "roll_front_low_t"))
         if c.dissolved:
-            parts.append(
-                "Partial dissolution as O₂ invaded the system — uranium went back "
-                "into solution as uranyl (UO₂²⁺) and may re-precipitate as autunite "
-                "or torbernite elsewhere."
-            )
-
-        return " ".join(parts)
+            parts.append(narrative_variant("uraninite", "oxidative_dissolution"))
+        return " ".join(p for p in parts if p)
 
     def _narrate_galena(self, c: Crystal) -> str:
         """Narrate a galena crystal's story — the heavy one.
@@ -16740,38 +16724,21 @@ class VugSimulator:
         return " ".join(parts)
 
     def _narrate_anglesite(self, c: Crystal) -> str:
-        """Narrate an anglesite crystal — the transient lead sulfate."""
+        """Narrate an anglesite crystal — the transient lead sulfate.
+
+        Prose lives in narratives/anglesite.md. Code dispatches blurb +
+        on_galena paragenesis + converting_to_cerussite zone-note flag +
+        dissolved.
+        """
         parts = [f"Anglesite #{c.crystal_id} grew to {c.c_length_mm:.1f} mm."]
-        parts.append(
-            "PbSO₄ — orthorhombic lead sulfate, brilliant adamantine luster. "
-            "Intermediate step in the galena → anglesite → cerussite "
-            "oxidation sequence. Named for Anglesey, the Welsh island "
-            "where the type specimens were found in the 1830s."
-        )
+        parts.append(narrative_blurb("anglesite"))
         if "galena" in (c.position or ""):
-            parts.append(
-                "This crystal grew directly on a dissolving galena — "
-                "the classic pseudomorphic relationship. The cubic outline "
-                "of galena is gradually replaced from the outside in as "
-                "Pb²⁺ and SO₄²⁻ recrystallize into the orthorhombic "
-                "anglesite structure."
-            )
+            parts.append(narrative_variant("anglesite", "on_galena"))
         if any("→ cerussite" in (z.note or "") for z in c.zones):
-            parts.append(
-                "Converting to cerussite. Carbonate-bearing groundwater "
-                "destabilizes anglesite in favor of the lead carbonate — "
-                "Pb²⁺ + CO₃²⁻ is more stable than Pb²⁺ + SO₄²⁻ at low T. "
-                "Anglesite is a 'letter written in passing' in the lead "
-                "oxidation story."
-            )
+            parts.append(narrative_variant("anglesite", "converting_to_cerussite"))
         if c.dissolved:
-            parts.append(
-                "The crystal has dissolved. If the pocket's chemistry "
-                "continues to evolve the released Pb²⁺ will find a new "
-                "home — cerussite if carbonate is present, pyromorphite "
-                "if phosphate arrives."
-            )
-        return " ".join(parts)
+            parts.append(narrative_variant("anglesite", "dissolved"))
+        return " ".join(p for p in parts if p)
 
     def _narrate_cerussite(self, c: Crystal) -> str:
         """Narrate a cerussite crystal — the star-twin lead carbonate.

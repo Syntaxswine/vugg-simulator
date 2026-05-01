@@ -3271,7 +3271,7 @@ const _NARRATIVE_CACHE = {};
 // Phase-1 manifest — extend as more species migrate. When all 89 are
 // extracted the manifest can become a generated index file fetched
 // once at startup.
-const _NARRATIVE_MANIFEST = ['chalcopyrite', 'sphalerite', 'aurichalcite', 'dolomite', 'rosasite', 'azurite', 'calcite', 'aragonite', 'siderite', 'rhodochrosite', 'cerussite', 'smithsonite', 'malachite', 'pyrite', 'galena', 'marcasite', 'hematite', 'molybdenite', 'bornite', 'chalcocite', 'covellite', 'cuprite', 'native_copper', 'native_gold', 'native_silver', 'magnetite', 'lepidocrocite', 'goethite', 'barite', 'celestine', 'anhydrite', 'jarosite', 'alunite', 'brochantite', 'antlerite', 'chalcanthite', 'scorodite', 'ferrimolybdite', 'fluorite', 'pyromorphite', 'vanadinite', 'mimetite', 'descloizite', 'mottramite', 'selenite', 'adamite', 'olivenite', 'erythrite', 'annabergite', 'torbernite', 'zeunerite', 'carnotite', 'wulfenite', 'raspite', 'stolzite', 'beryl', 'emerald', 'aquamarine', 'morganite', 'heliodor', 'corundum', 'ruby', 'sapphire', 'albite', 'apophyllite'];
+const _NARRATIVE_MANIFEST = ['chalcopyrite', 'sphalerite', 'aurichalcite', 'dolomite', 'rosasite', 'azurite', 'calcite', 'aragonite', 'siderite', 'rhodochrosite', 'cerussite', 'smithsonite', 'malachite', 'pyrite', 'galena', 'marcasite', 'hematite', 'molybdenite', 'bornite', 'chalcocite', 'covellite', 'cuprite', 'native_copper', 'native_gold', 'native_silver', 'magnetite', 'lepidocrocite', 'goethite', 'barite', 'celestine', 'anhydrite', 'jarosite', 'alunite', 'brochantite', 'antlerite', 'chalcanthite', 'scorodite', 'ferrimolybdite', 'fluorite', 'pyromorphite', 'vanadinite', 'mimetite', 'descloizite', 'mottramite', 'selenite', 'adamite', 'olivenite', 'erythrite', 'annabergite', 'torbernite', 'zeunerite', 'carnotite', 'wulfenite', 'raspite', 'stolzite', 'beryl', 'emerald', 'aquamarine', 'morganite', 'heliodor', 'corundum', 'ruby', 'sapphire', 'albite', 'apophyllite', 'uraninite', 'anglesite'];
 
 function _parseNarrative(text) {
   // Strip frontmatter (--- block at top).
@@ -14601,18 +14601,20 @@ class VugSimulator {
   }
 
   _narrate_anglesite(c) {
+    // Prose lives in narratives/anglesite.md.
     const parts = [`Anglesite #${c.crystal_id} grew to ${c.c_length_mm.toFixed(1)} mm.`];
-    parts.push('PbSO₄ — orthorhombic lead sulfate, brilliant adamantine luster. Intermediate step in the galena → anglesite → cerussite oxidation sequence. Named for Anglesey, the Welsh island where the type specimens were found in the 1830s.');
+    parts.push(narrative_blurb('anglesite') || 'PbSO₄ — orthorhombic lead sulfate, brilliant adamantine luster. Intermediate step in the galena → anglesite → cerussite oxidation sequence. Named for Anglesey, the Welsh island where the type specimens were found in the 1830s.');
     if ((c.position || '').includes('galena')) {
-      parts.push('This crystal grew directly on a dissolving galena — the classic pseudomorphic relationship. The cubic outline of galena is gradually replaced from the outside in as Pb²⁺ and SO₄²⁻ recrystallize into the orthorhombic anglesite structure.');
+      parts.push(narrative_variant('anglesite', 'on_galena') || 'This crystal grew directly on a dissolving galena — the classic pseudomorphic relationship.');
     }
     if (c.zones.some(z => (z.note || '').includes('→ cerussite'))) {
-      parts.push("Converting to cerussite. Carbonate-bearing groundwater destabilizes anglesite in favor of the lead carbonate — Pb²⁺ + CO₃²⁻ is more stable than Pb²⁺ + SO₄²⁻ at low T. Anglesite is a 'letter written in passing' in the lead oxidation story.");
+      parts.push(narrative_variant('anglesite', 'converting_to_cerussite') || "Converting to cerussite.");
     }
     if (c.dissolved) {
-      parts.push('The crystal has dissolved. If the pocket\u2019s chemistry continues to evolve the released Pb²⁺ will find a new home — cerussite if carbonate is present, pyromorphite if phosphate arrives.');
+      // dissolved-fallback shortened slightly to avoid ’ mismatch in fallback text
+      parts.push(narrative_variant('anglesite', 'dissolved') || 'The crystal has dissolved. If the pocket\u2019s chemistry continues to evolve the released Pb²⁺ will find a new home — cerussite if carbonate is present, pyromorphite if phosphate arrives.');
     }
-    return parts.join(' ');
+    return parts.filter(p => p).join(' ');
   }
 
   _narrate_cerussite(c) {
@@ -15532,17 +15534,13 @@ class VugSimulator {
   }
 
   _narrate_uraninite(c) {
+    // Prose lives in narratives/uraninite.md.
     const parts = [`Uraninite #${c.crystal_id} grew to ${c.c_length_mm.toFixed(1)} mm ☢️.`];
-    parts.push("UO₂ — pitch-black, submetallic, one of Earth's densest oxides. It formed under strongly reducing conditions: any oxygen would have converted it to yellow secondary uranium minerals. While it grew, it emitted alpha particles into surrounding crystal lattices, radiation-damaging any nearby quartz toward smoky coloration.");
-    if (c.nucleation_temp > 400) {
-      parts.push('Nucleated at high temperature — a pegmatite-scale uraninite, possibly with Th substituting for U and radiogenic Pb already accumulating in the crystal structure.');
-    } else {
-      parts.push('Low-T uraninite — the sedimentary / roll-front style, precipitated where reducing organic matter met U-bearing groundwater.');
-    }
-    if (c.dissolved) {
-      parts.push('Partial dissolution as O₂ invaded the system — uranium went back into solution as uranyl (UO₂²⁺) and may re-precipitate as autunite or torbernite elsewhere.');
-    }
-    return parts.join(' ');
+    parts.push(narrative_blurb('uraninite') || "UO₂ — pitch-black, submetallic, one of Earth's densest oxides.");
+    if (c.nucleation_temp > 400) parts.push(narrative_variant('uraninite', 'pegmatite_high_t') || 'Nucleated at high temperature — a pegmatite-scale uraninite.');
+    else parts.push(narrative_variant('uraninite', 'roll_front_low_t') || 'Low-T uraninite — the sedimentary / roll-front style.');
+    if (c.dissolved) parts.push(narrative_variant('uraninite', 'oxidative_dissolution') || 'Partial dissolution as O₂ invaded the system.');
+    return parts.filter(p => p).join(' ');
   }
 
   _narrate_galena(c) {
