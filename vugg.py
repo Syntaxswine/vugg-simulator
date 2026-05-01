@@ -268,7 +268,26 @@ from typing import List, Dict, Optional, Tuple
 #        Remaining divergences (effectiveTemperature feature gap +
 #        feldspar/fluorite/selenite/smithsonite/wulfenite design
 #        divergences) filed in BACKLOG.md.
-SIM_VERSION = 13
+#   v14 — Round 9d: autunite + cation fork on the P-branch (May 2026,
+#        per research/research-uraninite.md §164-178 paragenetic chain).
+#        New mineral: autunite Ca(UO₂)₂(PO₄)₂·11H₂O — Ca-cation analog
+#        of torbernite. Same parent fluid (U + P + supergene-T +
+#        oxidizing) but wins when Ca/(Cu+Ca) > 0.5 — the geological
+#        default everywhere except actively-mined Cu districts. The
+#        defining feature is fluorescence: Ca²⁺ doesn't quench uranyl
+#        emission like Cu²⁺ does, so autunite glows intense apple-green
+#        under LW UV while torbernite is dead.
+#        Mechanic: cation fork on the P-branch. supersaturation_torbernite
+#        gains a Cu/(Cu+Ca) > 0.5 gate (was Cu>=5 only); supersaturation_
+#        autunite mirrors with Ca/(Cu+Ca) > 0.5. Both also pass through
+#        the existing P/(P+As+V) > 0.5 anion fork. Result: torbernite
+#        is now properly geographically rare; autunite picks up the
+#        common-groundwater case.
+#        Engine count 89 → 90 (+1). Same content gap as 9b/9c (no shipped
+#        scenario currently routes U + P at supergene T to fire it,
+#        though radioactive_pegmatite + a future Schneeberg-style
+#        oxidation event could).
+SIM_VERSION = 14
 
 
 # ============================================================
@@ -4192,16 +4211,15 @@ class VugConditions:
         return max(sigma, 0)
 
     def supersaturation_torbernite(self) -> float:
-        """Torbernite (Cu(UO₂)₂(PO₄)₂·12H₂O) — P-branch of the autunite-group
-        anion-competition trio (Round 9b).
+        """Torbernite (Cu(UO₂)₂(PO₄)₂·12H₂O) — Cu-branch of the autunite-group
+        cation+anion fork (Round 9b shipped the anion fork P-vs-As;
+        Round 9c widened to P-vs-As-vs-V; Round 9d added the Cu-vs-Ca
+        cation fork that pairs torbernite against autunite).
 
-        First mineral with the **anion-competition** mechanic — the 3-branch
-        generalization of 9a's 2-branch broth-ratio gate. Three uranyl
-        minerals (torbernite, zeunerite, carnotite) compete for the same
-        U⁶⁺ cation, differentiated by which anion (PO₄³⁻ / AsO₄³⁻ / VO₄³⁻)
-        dominates the local fluid. Torbernite wins when P/(P+As) > 0.5
-        (since carnotite is the K+V branch shipped in 9c, this 9b cut
-        only handles P vs As; V will join the gate in 9c).
+        Two ratio gates now apply:
+        - Anion: P/(P+As+V) > 0.5 — torbernite is the P-branch
+        - Cation: Cu/(Cu+Ca) > 0.5 — torbernite is the Cu-branch
+                 (autunite is the Ca-branch on the same anion side).
 
         Forms emerald-green tabular plates flattened on {001} — looks like
         green mica. Strongly radioactive (U⁶⁺ in lattice); notably
@@ -4210,6 +4228,7 @@ class VugConditions:
         THERMAL_DECOMPOSITION).
 
         Source: research/research-torbernite.md (boss commit 3bfdf4a);
+        research/research-uraninite.md §164-178 (paragenetic chain);
         Schneeberg type locality (Saxony Ore Mountains).
         """
         # Required ingredients — all four
@@ -4223,15 +4242,25 @@ class VugConditions:
         # pH gate — slightly acidic to neutral (5-7 per research)
         if self.fluid.pH < 5.0 or self.fluid.pH > 7.5:
             return 0
-        # Anion competition — P must dominate over As + V (full 3-way
-        # gate as of 9c, when carnotite shipped). The denominator is now
-        # P+As+V so V-dominant fluid properly routes to carnotite instead
-        # of falling into torbernite by default.
+        # Anion competition — P must dominate over As + V (the 9b/9c
+        # anion fork). Denominator is P+As+V so V-rich fluid routes to
+        # carnotite, As-rich to zeunerite.
         anion_total = self.fluid.P + self.fluid.As + self.fluid.V
         if anion_total <= 0:
             return 0
         p_fraction = self.fluid.P / anion_total
         if p_fraction < 0.5:
+            return 0
+        # Cation competition — Cu must dominate over Ca (the 9d cation
+        # fork). Denominator is Cu+Ca so Ca-dominant groundwater routes
+        # to autunite. Pre-9d torbernite would have fired even in Ca-
+        # saturated fluids if Cu>=5, which is geologically wrong (real
+        # torbernite is rare; autunite is common).
+        cation_total = self.fluid.Cu + self.fluid.Ca
+        if cation_total <= 0:
+            return 0
+        cu_fraction = self.fluid.Cu / cation_total
+        if cu_fraction < 0.5:
             return 0
 
         # Activity factors — U is trace, Cu and P are moderate
@@ -4240,9 +4269,7 @@ class VugConditions:
         p_f = min(self.fluid.P / 10.0, 2.0)
         sigma = u_f * cu_f * p_f
 
-        # P-fraction sweet spot — pure-P (>0.95) is fine for torbernite
-        # (autunite would compete only if Ca dominates Cu, which is its
-        # own future fork). 0.55-0.85 sweet spot to mirror 9a's tuning.
+        # P-fraction sweet spot — 0.55-0.85 mirrors 9a's tuning.
         if 0.55 <= p_fraction <= 0.85:
             sigma *= 1.3
 
@@ -4254,6 +4281,84 @@ class VugConditions:
             T_factor = 0.6 + 0.04 * (T - 10)
         else:  # 40 < T <= 50
             T_factor = max(0.4, 1.2 - 0.08 * (T - 40))
+        sigma *= T_factor
+
+        return max(sigma, 0)
+
+    def supersaturation_autunite(self) -> float:
+        """Autunite (Ca(UO₂)₂(PO₄)₂·11H₂O) — Ca-branch of the autunite-group
+        cation+anion fork (Round 9d, May 2026).
+
+        The Ca-cation analog of torbernite. Same parent fluid (U + P +
+        supergene-T + oxidizing), same anion competition (P-branch), but
+        wins when Ca/(Cu+Ca) > 0.5 — which is the geological default,
+        because Ca >>> Cu in groundwater. Real autunite is far more common
+        than torbernite; mining-museum bias has it backwards.
+
+        The defining feature: where torbernite's Cu²⁺ quenches the uranyl
+        emission, autunite's Ca²⁺ does not. Under longwave UV (365nm),
+        autunite glows intense apple-green — one of the brightest
+        fluorescent species known. This is the cation fork's narrative
+        payoff: same uranyl, opposite glow.
+
+        Forms canary-yellow tabular plates flattened on {001}, mohs 2-2.5,
+        dehydrates irreversibly to meta-autunite (8H₂O) above ~80°C.
+        Type locality: Saint-Symphorien, Autun, France (Adrien Brongniart,
+        1852).
+
+        Source: research/research-uraninite.md §Variants for Game §4
+        (boss canonical 626bb22, May 2026).
+        """
+        # Required ingredients — Ca floor at 15 (typical groundwater
+        # baseline; for context Cu floor is 5 because Cu is naturally
+        # rarer, so a Cu>=5 fluid is already enriched, while Ca>=15 is
+        # only just above seawater background)
+        if (self.fluid.Ca < 15 or self.fluid.U < 0.3
+                or self.fluid.P < 1.0 or self.fluid.O2 < 0.8):
+            return 0
+        # T-gate — supergene zone, slightly wider than torbernite because
+        # autunite forms at colder spring/groundwater temps too
+        if self.temperature < 5 or self.temperature > 50:
+            return 0
+        # pH gate — broader than torbernite (Ca²⁺ doesn't form the same
+        # acid-side complexes Cu does)
+        if self.fluid.pH < 4.5 or self.fluid.pH > 8.0:
+            return 0
+        # Anion fork — same as torbernite/zeunerite/carnotite
+        anion_total = self.fluid.P + self.fluid.As + self.fluid.V
+        if anion_total <= 0:
+            return 0
+        p_fraction = self.fluid.P / anion_total
+        if p_fraction < 0.5:
+            return 0
+        # Cation fork — Ca must dominate over Cu (the 9d gate, mirror of
+        # torbernite's Cu>0.5)
+        cation_total = self.fluid.Cu + self.fluid.Ca
+        if cation_total <= 0:
+            return 0
+        ca_fraction = self.fluid.Ca / cation_total
+        if ca_fraction < 0.5:
+            return 0
+
+        # Activity factors — U is trace; Ca is abundant; P is moderate
+        u_f = min(self.fluid.U / 2.0, 2.0)
+        ca_f = min(self.fluid.Ca / 50.0, 2.0)
+        p_f = min(self.fluid.P / 10.0, 2.0)
+        sigma = u_f * ca_f * p_f
+
+        # P-fraction sweet spot — mirrors torbernite shape
+        if 0.55 <= p_fraction <= 0.85:
+            sigma *= 1.3
+
+        # T optimum — 10-35°C (slightly cooler than torbernite's 15-40,
+        # reflecting the more groundwater/spring-temp character)
+        T = self.temperature
+        if 10 <= T <= 35:
+            T_factor = 1.2
+        elif T < 10:
+            T_factor = 0.5 + 0.07 * (T - 5)  # 5→0.5, 10→1.2
+        else:  # 35 < T <= 50
+            T_factor = max(0.4, 1.2 - 0.08 * (T - 35))
         sigma *= T_factor
 
         return max(sigma, 0)
@@ -10415,6 +10520,71 @@ def grow_torbernite(crystal: Crystal, conditions: VugConditions, step: int) -> O
     )
 
 
+def grow_autunite(crystal: Crystal, conditions: VugConditions, step: int) -> Optional[GrowthZone]:
+    """Autunite (Ca(UO₂)₂(PO₄)₂·11H₂O) — Ca-branch of the uranyl
+    cation+anion fork (Round 9d, May 2026). Mirror of torbernite with
+    Ca substituted for Cu and intense fluorescence as the diagnostic.
+
+    Habit selection: same as torbernite (high σ + cool → micaceous_book;
+    moderate σ → tabular_plates; low σ → encrusting). Color is canary
+    yellow (no Cu²⁺ chromophore, just uranyl absorption); under LW UV
+    glows intense apple-green — Ca²⁺ doesn't quench uranyl emission
+    the way Cu²⁺ does in torbernite/zeunerite.
+
+    Source: research/research-uraninite.md §Variants for Game §4.
+    """
+    sigma = conditions.supersaturation_autunite()
+    if sigma < 1.0:
+        # Acid dissolution — uranyl phosphates dissolve readily below pH 4.5
+        if crystal.total_growth_um > 5 and conditions.fluid.pH < 4.5:
+            crystal.dissolved = True
+            dissolved_um = min(2.0, crystal.total_growth_um * 0.10)
+            conditions.fluid.Ca += dissolved_um * 0.2
+            conditions.fluid.U += dissolved_um * 0.4
+            conditions.fluid.P += dissolved_um * 0.3
+            return GrowthZone(
+                step=step, temperature=conditions.temperature,
+                thickness_um=-dissolved_um, growth_rate=-dissolved_um,
+                note=f"acid dissolution (pH={conditions.fluid.pH:.1f}) — Ca²⁺ + UO₂²⁺ + PO₄³⁻ released"
+            )
+        return None
+
+    excess = sigma - 1.0
+    rate = 1.5 * excess * random.uniform(0.8, 1.2)
+    if rate < 0.1:
+        return None
+
+    # Habit selection — same shape as torbernite
+    if excess > 1.0 and conditions.temperature < 25:
+        crystal.habit = "micaceous_book"
+        crystal.dominant_forms = ["stacked tabular plates", "subparallel books"]
+        habit_note = "stacked micaceous plates — high-σ Margnac/Spruce-Pine habit"
+    elif excess > 0.3:
+        crystal.habit = "tabular_plates"
+        crystal.dominant_forms = ["tabular {001}", "square plates"]
+        habit_note = "thin canary-yellow plates — the diagnostic Saint-Symphorien habit"
+    else:
+        crystal.habit = "encrusting"
+        crystal.dominant_forms = ["earthy crust", "yellow staining"]
+        habit_note = "earthy yellow crust — 'yellow uranium ore' staining the host rock"
+
+    # Color + fluorescence — the cation-fork narrative payoff
+    habit_note += "; canary-yellow (uranyl chromophore, no Cu²⁺ to muddy it)"
+    habit_note += "; intense apple-green LW UV fluorescence (Ca²⁺ doesn't quench like Cu²⁺ does)"
+    habit_note += "; ☢️ radioactive"
+
+    # Deplete — formula has 1 Ca + 2 U + 2 P per unit
+    conditions.fluid.Ca = max(conditions.fluid.Ca - rate * 0.025, 0)
+    conditions.fluid.U = max(conditions.fluid.U - rate * 0.04, 0)
+    conditions.fluid.P = max(conditions.fluid.P - rate * 0.05, 0)
+
+    return GrowthZone(
+        step=step, temperature=conditions.temperature,
+        thickness_um=rate, growth_rate=rate,
+        note=habit_note,
+    )
+
+
 def grow_zeunerite(crystal: Crystal, conditions: VugConditions, step: int) -> Optional[GrowthZone]:
     """Zeunerite (Cu(UO₂)₂(AsO₄)₂·xH₂O) — As-branch of the uranyl
     anion-competition trio (Round 9b). Isostructural with torbernite.
@@ -10692,9 +10862,10 @@ MINERAL_ENGINES = {
     "chalcanthite": grow_chalcanthite,
     "rosasite": grow_rosasite,           # Round 9a: Cu-dominant broth-ratio carbonate
     "aurichalcite": grow_aurichalcite,   # Round 9a: Zn-dominant broth-ratio carbonate
-    "torbernite": grow_torbernite,       # Round 9b: P-branch anion-competition uranyl phosphate
+    "torbernite": grow_torbernite,       # Round 9b: P-branch anion-competition uranyl phosphate (Cu-cation)
     "zeunerite": grow_zeunerite,         # Round 9b: As-branch anion-competition uranyl arsenate
     "carnotite": grow_carnotite,         # Round 9c: V-branch anion-competition uranyl vanadate (K-cation)
+    "autunite": grow_autunite,           # Round 9d: P-branch with Cu-vs-Ca cation fork — Ca-uranyl phosphate
 }
 
 
@@ -14037,6 +14208,28 @@ class VugSimulator:
                               f"K={self.conditions.fluid.K:.0f}, U={self.conditions.fluid.U:.2f}, "
                               f"V={self.conditions.fluid.V:.1f}, V-fraction={v_pct:.0f}%) — "
                               f"anion-competition branch: V-dominant")
+
+        # Autunite nucleation — Ca-branch of the uranyl cation+anion fork
+        # (Round 9d). Substrate preference: weathering uraninite (canonical
+        # paragenesis) or fluorapatite/carbonate matrix surfaces (Ca source
+        # context). The cation fork (Ca/(Cu+Ca)>0.5) means autunite typically
+        # nucleates in plain groundwater fluids while torbernite stays
+        # quarantined to Cu-rich mining-district settings.
+        sigma_aut = self.conditions.supersaturation_autunite()
+        if sigma_aut > 1.0 and not self._at_nucleation_cap("autunite"):
+            if random.random() < 0.20:
+                pos = "vug wall"
+                weathering_urn = [c for c in self.crystals if c.mineral == "uraninite" and c.dissolved]
+                if weathering_urn and random.random() < 0.5:
+                    pos = f"on weathering uraninite #{weathering_urn[0].crystal_id}"
+                c = self.nucleate("autunite", position=pos, sigma=sigma_aut)
+                cation_total = self.conditions.fluid.Cu + self.conditions.fluid.Ca
+                ca_pct = (self.conditions.fluid.Ca / cation_total * 100) if cation_total > 0 else 0
+                self.log.append(f"  ✦ NUCLEATION: Autunite #{c.crystal_id} on {c.position} "
+                              f"(T={self.conditions.temperature:.0f}°C, σ={sigma_aut:.2f}, "
+                              f"Ca={self.conditions.fluid.Ca:.0f}, U={self.conditions.fluid.U:.2f}, "
+                              f"P={self.conditions.fluid.P:.1f}, Ca-fraction={ca_pct:.0f}%) — "
+                              f"cation+anion fork: Ca-dominant on the P-branch")
 
     def apply_events(self):
         """Apply any events scheduled for this step."""
@@ -17460,6 +17653,28 @@ class VugSimulator:
             parts.append(narrative_variant("carnotite", "powdery_disseminated"))
         if c.nucleation_temp < 30:
             parts.append(narrative_variant("carnotite", "roll_front"))
+        return " ".join(p for p in parts if p)
+
+    def _narrate_autunite(self, c: Crystal) -> str:
+        """Narrate autunite — Ca-branch uranyl phosphate (Round 9d).
+
+        Prose lives in narratives/autunite.md. Code dispatches blurb +
+        habit (micaceous_book / tabular_plates / encrusting) + dissolved
+        + paragenetic on_uraninite when the position notes weathering
+        uraninite (the canonical chain).
+        """
+        parts = [f"Autunite #{c.crystal_id} grew to {c.c_length_mm:.1f} mm ☢️."]
+        parts.append(narrative_blurb("autunite"))
+        if c.habit == "micaceous_book":
+            parts.append(narrative_variant("autunite", "micaceous_book"))
+        elif c.habit == "tabular_plates":
+            parts.append(narrative_variant("autunite", "tabular_plates"))
+        else:
+            parts.append(narrative_variant("autunite", "encrusting"))
+        if "uraninite" in (c.position or ""):
+            parts.append(narrative_variant("autunite", "on_weathering_uraninite"))
+        if c.dissolved:
+            parts.append(narrative_variant("autunite", "acid_dissolution"))
         return " ".join(p for p in parts if p)
 
     def _narrate_aurichalcite(self, c: Crystal) -> str:

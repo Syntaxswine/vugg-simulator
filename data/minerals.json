@@ -8740,40 +8740,47 @@
         "vugg.py",
         "index.html"
       ],
-      "audit_status": "Round 9b (Apr 2026), updated 9c (Apr 2026): denominator widened from P+As to P+As+V so V-rich fluid now properly blocks torbernite (carnotite gets it instead). First mineral with the anion-competition mechanic — three-way fork over the U⁶⁺ cation between PO₄³⁻ (torbernite), AsO₄³⁻ (zeunerite, also 9b), and VO₄³⁻ (carnotite, 9c). supersaturation_torbernite returns 0 when P/(P+As+V) < 0.5. Habit variants: tabular_plates (default Schneeberg), micaceous_book (high σ stacks), encrusting (low σ powdery crust). Source: research/research-torbernite.md.",
+      "audit_status": "Round 9b (Apr 2026), updated 9c (Apr 2026), updated 9d (May 2026): denominator widened from P+As to P+As+V so V-rich fluid now properly blocks torbernite (carnotite gets it instead). 9d added a symmetric Cu/(Cu+Ca) > 0.5 cation gate to fork against autunite (Ca-cation analog). First mineral with the anion-competition mechanic — three-way fork over the U⁶⁺ cation between PO₄³⁻ (torbernite/autunite), AsO₄³⁻ (zeunerite), and VO₄³⁻ (carnotite). supersaturation_torbernite returns 0 when P/(P+As+V) < 0.5 OR when Cu/(Cu+Ca) < 0.5. Habit variants: tabular_plates (default Schneeberg), micaceous_book (high σ stacks), encrusting (low σ powdery crust). Source: research/research-torbernite.md + research/research-uraninite.md §164-178.",
       "class_color": "#13eb7f",
       "test_cases": [
         {
           "name": "p_dominant_fires",
-          "fluid": {"Cu": 40, "U": 2.5, "P": 8, "As": 2, "V": 0, "O2": 1.5, "pH": 6.0},
+          "fluid": {"Cu": 40, "Ca": 5, "U": 2.5, "P": 8, "As": 2, "V": 0, "O2": 1.5, "pH": 6.0},
           "T_C": 25,
           "expects": {"sigma": ">1.0"},
-          "rationale": "P/(P+As+V)=0.80 — anion gate passes for the P-branch."
+          "rationale": "P/(P+As+V)=0.80, Cu/(Cu+Ca)=0.89 — both anion and cation gates pass."
         },
         {
           "name": "as_dominant_blocks",
-          "fluid": {"Cu": 40, "U": 2.5, "P": 2, "As": 8, "V": 0, "O2": 1.5, "pH": 6.0},
+          "fluid": {"Cu": 40, "Ca": 5, "U": 2.5, "P": 2, "As": 8, "V": 0, "O2": 1.5, "pH": 6.0},
           "T_C": 25,
           "expects": {"sigma": "==0"},
-          "rationale": "As-dominant fluid — zeunerite wins, torbernite ratio-blocked."
+          "rationale": "As-dominant fluid — zeunerite wins, torbernite anion-blocked."
         },
         {
           "name": "v_dominant_blocks",
-          "fluid": {"Cu": 40, "U": 2.5, "P": 2, "As": 2, "V": 8, "O2": 1.5, "pH": 6.0},
+          "fluid": {"Cu": 40, "Ca": 5, "U": 2.5, "P": 2, "As": 2, "V": 8, "O2": 1.5, "pH": 6.0},
           "T_C": 25,
           "expects": {"sigma": "==0"},
-          "rationale": "V-dominant fluid — carnotite wins (assuming K available), torbernite ratio-blocked. The 9c update extending the denominator to P+As+V is what makes this case meaningful."
+          "rationale": "V-dominant fluid — carnotite wins, torbernite anion-blocked. The 9c update widened the denominator; 9d preserves this case unchanged."
+        },
+        {
+          "name": "ca_dominant_blocks_cu_fork",
+          "fluid": {"Cu": 5, "Ca": 80, "U": 2.5, "P": 8, "As": 2, "V": 0, "O2": 1.5, "pH": 6.0},
+          "T_C": 25,
+          "expects": {"sigma": "==0"},
+          "rationale": "Cu/(Cu+Ca)=0.06 — autunite wins the cation race, torbernite cation-blocked. The 9d Cu-vs-Ca fork is what makes this case meaningful — pre-9d, Cu>5 alone would have fired torbernite even in Ca-saturated groundwater."
         },
         {
           "name": "no_uranium_blocks",
-          "fluid": {"Cu": 40, "U": 0, "P": 8, "As": 2, "V": 0, "O2": 1.5, "pH": 6.0},
+          "fluid": {"Cu": 40, "Ca": 5, "U": 0, "P": 8, "As": 2, "V": 0, "O2": 1.5, "pH": 6.0},
           "T_C": 25,
           "expects": {"sigma": "==0"},
           "rationale": "U=0 fails U>=0.3 ingredient gate."
         },
         {
           "name": "acidic_blocks",
-          "fluid": {"Cu": 40, "U": 2.5, "P": 8, "As": 2, "V": 0, "O2": 1.5, "pH": 4.0},
+          "fluid": {"Cu": 40, "Ca": 5, "U": 2.5, "P": 8, "As": 2, "V": 0, "O2": 1.5, "pH": 4.0},
           "T_C": 25,
           "expects": {"sigma": "==0"},
           "rationale": "pH=4.0 below 5.0 stability gate — torbernite dissolves in acid."
@@ -9059,6 +9066,141 @@
           "T_C": 30,
           "expects": {"sigma": "==0"},
           "rationale": "pH=4.0 below the 5.0-7.5 stability window. Below pH 6, vanadate is no longer the dominant V species — VO₂⁺ takes over and carnotite chemistry breaks."
+        }
+      ]
+    },
+    "autunite": {
+      "formula": "Ca(UO2)2(PO4)2·11H2O",
+      "nucleation_sigma": 1.0,
+      "max_nucleation_count": 5,
+      "max_size_cm": 6,
+      "growth_rate_mult": 0.4,
+      "habit_variants": [
+        {
+          "name": "tabular_plates",
+          "wall_spread": 0.6,
+          "void_reach": 0.3,
+          "vector": "coating",
+          "trigger": "default — thin square canary-yellow plates flattened on {001}, the diagnostic Saint-Symphorien habit"
+        },
+        {
+          "name": "micaceous_book",
+          "wall_spread": 0.5,
+          "void_reach": 0.5,
+          "vector": "equant",
+          "trigger": "high σ — stacked subparallel plates, the Margnac/Spruce-Pine book habit"
+        },
+        {
+          "name": "encrusting",
+          "wall_spread": 0.85,
+          "void_reach": 0.15,
+          "vector": "coating",
+          "trigger": "low σ — earthy yellow crust ('yellow uranium ore' staining sandstone or pegmatite walls)"
+        }
+      ],
+      "class": "phosphate",
+      "description": "Ca(UO₂)₂(PO₄)₂·11H₂O — tetragonal uranyl phosphate, the Ca-cation analog of torbernite. Bright canary-yellow tabular plates on the same {001} habit, but where torbernite's Cu²⁺ quenches the uranyl emission, autunite's Ca²⁺ does not — under longwave UV (365nm) it glows intense apple-green, one of the brightest fluorescent species known. Round 9d cation-fork mechanic: same parent fluid as torbernite (U + P + supergene-T + oxidizing), differentiated by Cu/(Cu+Ca) ratio. Ca dominates groundwater everywhere except in actively-mined Cu districts, so autunite is far more common in nature than torbernite (which gets all the museum attention). Mohs 2-2.5; dehydrates irreversibly to meta-autunite (8 H₂O) above ~80°C. Type locality: Saint-Symphorien, Autun, France (Adrien Brongniart, 1852). Sources: Pinch & Wilson 1977; research/research-uraninite.md §164-178 (paragenetic chain).",
+      "scenarios": [
+        "supergene_oxidation"
+      ],
+      "T_range_C": [
+        5,
+        50
+      ],
+      "T_optimum_C": [
+        10,
+        35
+      ],
+      "T_behavior": "window",
+      "pH_dissolution_below": 4.5,
+      "pH_dissolution_above": null,
+      "redox_requirement": "oxidizing",
+      "required_ingredients": {
+        "Ca": 15,
+        "U": 0.3,
+        "P": 1.0,
+        "O2": 0.8
+      },
+      "trace_ingredients": {},
+      "thermal_decomp_C": 80,
+      "thermal_decomp_reaction": "Ca(UO₂)₂(PO₄)₂·11H₂O → Ca(UO₂)₂(PO₄)₂·8H₂O + 3H₂O (irreversible dehydration to meta-autunite)",
+      "thermal_decomp_products": {
+        "Ca": 0.0,
+        "U": 0.0,
+        "P": 0.0
+      },
+      "fluorescence": {
+        "activator": "U",
+        "threshold_ppm": 0,
+        "color": "intense_apple_green_LW",
+        "quencher": null,
+        "status": "the brightest uranyl fluorescer in the simulator — Ca²⁺ doesn't quench like Cu²⁺ does in torbernite/zeunerite. LW UV (365nm) drives the strongest emission; SW (254nm) gives a duller green-yellow."
+      },
+      "twin_laws": [],
+      "acid_dissolution": {
+        "pH_threshold": 4.5,
+        "reaction": "Ca(UO₂)₂(PO₄)₂·11H₂O + 6H⁺ → Ca²⁺ + 2(UO₂)²⁺ + 2H₃PO₄ + 11H₂O (uranyl phosphates dissolve readily in mineral acids)",
+        "products": {
+          "Ca": 0.2,
+          "U": 0.4,
+          "P": 0.3
+        }
+      },
+      "habit": "tabular_plates",
+      "color_rules": {
+        "yellow": {
+          "default": true
+        }
+      },
+      "narrate_function": "_narrate_autunite",
+      "runtimes_present": [
+        "vugg.py",
+        "index.html"
+      ],
+      "audit_status": "Round 9d (May 2026): Ca-cation analog of torbernite, completing the cation-fork generalization on the P-branch of the uranyl-anion-competition mechanic (9b/9c was the anion fork P-vs-As-vs-V; 9d is the cation fork Cu-vs-Ca on the P-branch alone). supersaturation_autunite returns 0 when Ca/(Cu+Ca) < 0.5 OR when P/(P+As+V) < 0.5. supersaturation_torbernite gains a symmetric Cu/(Cu+Ca) > 0.5 gate (was Cu>=5 only). Autunite is the geologically-default uranyl phosphate (Ca >>> Cu in groundwater); torbernite is the special case (Cu-dominant fluid in mining districts). Habit variants mirror torbernite (tabular_plates/micaceous_book/encrusting). Source: research/research-uraninite.md §Variants for Game §4 (boss canonical 626bb22, May 2026).",
+      "class_color": "#13eb7f",
+      "test_cases": [
+        {
+          "name": "ca_dominant_fires",
+          "fluid": {"Ca": 80, "Cu": 0, "U": 2.5, "P": 8, "As": 2, "V": 0, "O2": 1.5, "pH": 6.5},
+          "T_C": 20,
+          "expects": {"sigma": ">1.0"},
+          "rationale": "Ca/(Cu+Ca)=1.0, P/(P+As+V)=0.8 — both ratio gates pass for the autunite branch."
+        },
+        {
+          "name": "cu_dominant_blocks",
+          "fluid": {"Ca": 5, "Cu": 40, "U": 2.5, "P": 8, "As": 2, "V": 0, "O2": 1.5, "pH": 6.5},
+          "T_C": 20,
+          "expects": {"sigma": "==0"},
+          "rationale": "Cu/(Cu+Ca)=0.89 dominates — torbernite wins the cation race, autunite ratio-blocked. The 9d cation fork is what makes this case meaningful."
+        },
+        {
+          "name": "as_dominant_blocks_via_anion_fork",
+          "fluid": {"Ca": 80, "Cu": 0, "U": 2.5, "P": 2, "As": 8, "V": 0, "O2": 1.5, "pH": 6.5},
+          "T_C": 20,
+          "expects": {"sigma": "==0"},
+          "rationale": "Ca dominates (cation gate would pass) but As/(P+As+V)=0.8 — anion fork sends this to a hypothetical Ca-uranyl-arsenate (uranospinite, not in game), so autunite blocked."
+        },
+        {
+          "name": "no_uranium_blocks",
+          "fluid": {"Ca": 80, "Cu": 0, "U": 0, "P": 8, "As": 0, "V": 0, "O2": 1.5, "pH": 6.5},
+          "T_C": 20,
+          "expects": {"sigma": "==0"},
+          "rationale": "U=0 fails U>=0.3 ingredient gate."
+        },
+        {
+          "name": "reducing_blocks",
+          "fluid": {"Ca": 80, "Cu": 0, "U": 2.5, "P": 8, "As": 0, "V": 0, "O2": 0.3, "pH": 6.5},
+          "T_C": 20,
+          "expects": {"sigma": "==0"},
+          "rationale": "Reducing fluid keeps U as insoluble U⁴⁺ (uraninite). Autunite needs U⁶⁺ uranyl."
+        },
+        {
+          "name": "acidic_blocks",
+          "fluid": {"Ca": 80, "Cu": 0, "U": 2.5, "P": 8, "As": 0, "V": 0, "O2": 1.5, "pH": 4.0},
+          "T_C": 20,
+          "expects": {"sigma": "==0"},
+          "rationale": "pH=4.0 below 4.5 stability gate — autunite dissolves in acid (uranyl phosphates aren't acid-stable)."
         }
       ]
     }

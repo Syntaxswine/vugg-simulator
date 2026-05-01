@@ -23,7 +23,7 @@ import pytest
 from vugg import VugConditions, FluidChemistry, VugWall
 
 
-def _u_supergene_fluid(cu=40, u=2.5, p=0.0, as_=0.0, ph=6.0, o2=1.5, T=25.0):
+def _u_supergene_fluid(cu=40, ca=5, u=2.5, p=0.0, as_=0.0, ph=6.0, o2=1.5, T=25.0):
     """Construct a U-bearing supergene-T fluid with given P/As loading.
 
     Defaults pass every non-anion-fraction gate for both torbernite
@@ -32,11 +32,19 @@ def _u_supergene_fluid(cu=40, u=2.5, p=0.0, as_=0.0, ph=6.0, o2=1.5, T=25.0):
     fluids carry 50-100 ppm Cu; Schneeberg U-pegmatite supergene
     fluids carry 1-10 ppm U) — chosen to land sigma above the 1.0
     nucleation threshold without over-tuning.
+
+    Ca=5 default is the **9d cation-fork context** — these regression
+    tests focus on the anion fork (P vs As), so we need to keep
+    Cu/(Cu+Ca) > 0.5 to bypass the cation gate added in 9d. Default
+    FluidChemistry Ca is 200 ppm (groundwater background); explicitly
+    setting Ca=5 puts us in mining-district context where torbernite
+    is geologically plausible. Round 9d's own test file covers the
+    cation fork directly.
     """
     return VugConditions(
         temperature=T,
         pressure=0.05,
-        fluid=FluidChemistry(Cu=cu, U=u, P=p, As=as_, O2=o2, pH=ph),
+        fluid=FluidChemistry(Cu=cu, Ca=ca, U=u, P=p, As=as_, O2=o2, pH=ph),
         wall=VugWall(),
     )
 
