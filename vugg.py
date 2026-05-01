@@ -16517,149 +16517,79 @@ class VugSimulator:
     def _narrate_beryl(self, c: Crystal) -> str:
         """Narrate a beryl/goshenite crystal — post-Round-7 the colorless fallback.
 
+        Prose lives in narratives/beryl.md. Code dispatches blurb +
+        ALWAYS-emitted goshenite_clean (the chromophore-gate explanation) +
+        fluid_inclusions count (with {count} interp) + ALWAYS-emitted
+        c-axis thermal history tail + hf_dissolution.
+
         In the split architecture, `beryl` is specifically the goshenite /
         generic colorless engine — fires only when no chromophore trace is
-        above its variety gate. The green/blue/pink/yellow varieties are
+        above its variety gate. Green/blue/pink/yellow varieties are
         emerald/aquamarine/morganite/heliodor (their own narrators).
         """
         parts = [f"Goshenite (beryl) #{c.crystal_id} grew to {c.c_length_mm:.1f} mm."]
-        parts.append(
-            "Be₃Al₂Si₆O₁₈ — hexagonal cyclosilicate, colorless variety. "
-            "Beryllium is the most incompatible common element in magmatic "
-            "systems: no rock-forming mineral will take it, so Be accumulates "
-            "in residual pegmatite fluid until beryl finally nucleates at high "
-            "threshold. That's why beryl crystals can be enormous — by the "
-            "time the first crystal fires, there's a lot of beryllium waiting."
-        )
-        parts.append(
-            "Goshenite is the truly colorless beryl: no chromophore above the "
-            "variety-gate thresholds (Cr < 0.5 ppm, Mn < 2 ppm, Fe < 8 ppm, "
-            "V < 1 ppm). This pocket stayed clean of ultramafic Cr influx "
-            "(which would have made emerald), the Mn never accumulated "
-            "sufficiently (morganite), and Fe stayed below aquamarine gate. "
-            "Rarer in the collector market than its colored siblings because "
-            "trace elements are almost always present somewhere in a real "
-            "pegmatite; when the pocket did stay this clean, goshenite is "
-            "what grew."
-        )
+        parts.append(narrative_blurb("beryl"))
+        parts.append(narrative_variant("beryl", "goshenite_clean"))
 
         inclusion_zones = [z for z in c.zones if z.fluid_inclusion]
         if inclusion_zones:
-            parts.append(
-                f"{len(inclusion_zones)} fluid inclusion horizons preserved "
-                "at growth-zone boundaries — beryl is notorious for these, "
-                "including the stepped 'growth tubes' that make hexagonal "
-                "cat's-eye chatoyancy possible."
-            )
+            parts.append(narrative_variant("beryl", "fluid_inclusions",
+                                           count=len(inclusion_zones)))
 
-        parts.append(
-            "If you sliced this goshenite perpendicular to the c-axis, the "
-            "growth rings would map the pegmatite's thermal history. Wider "
-            "bands mark warmer, faster growth; tight bands mark slow cool "
-            "periods."
-        )
+        parts.append(narrative_variant("beryl", "c_axis_thermal_history"))
 
         if c.dissolved:
-            parts.append(
-                "HF-assisted dissolution etched the surface — beryl is very "
-                "resistant, but fluoride-rich acid fluids will eventually "
-                "eat it, releasing Be²⁺ and SiO₂ back to the pocket."
-            )
+            parts.append(narrative_variant("beryl", "hf_dissolution"))
 
-        return " ".join(parts)
+        return " ".join(p for p in parts if p)
 
     def _narrate_emerald(self, c: Crystal) -> str:
-        """Narrate an emerald — the Cr-paradox beryl variety."""
+        """Narrate an emerald — the Cr-paradox beryl variety.
+
+        Prose lives in narratives/emerald.md. Code dispatches blurb +
+        trapiche habit (zone-note OR habit string match) + jardin
+        fluid_inclusions count (with {count} interp) + hf_dissolution.
+        """
         parts = [f"Emerald #{c.crystal_id} grew to {c.c_length_mm:.1f} mm."]
-        parts.append(
-            "Be₃Al₂Si₆O₁₈ + Cr³⁺ (or V³⁺) — the chromium variety of beryl. "
-            "The 'emerald paradox': Cr is an ultramafic element (peridotite/"
-            "komatiite), Be is the most incompatible of common pegmatitic "
-            "elements. These two chemistries almost never coexist in the same "
-            "fluid. Emerald only forms where pegmatite hydrothermal fluid "
-            "meets ultramafic country rock — Colombia Muzo (black-shale-"
-            "hosted), Zambia Kagem (schist-hosted), Cruzeiro Brazil (pegmatite-"
-            "only with biotite-schist wall rock). Top Colombian gem emerald "
-            "is rarer than diamond as gem material, and the Cr/V distinction "
-            "is nearly invisible spectroscopically — both substitute into the "
-            "Al³⁺ octahedral site at 100–3000 ppm and produce indistinguishable "
-            "green."
-        )
+        parts.append(narrative_blurb("emerald"))
 
         zone_notes = [z.note or "" for z in c.zones]
         is_trapiche = any("trapiche" in n for n in zone_notes) or c.habit == "trapiche"
         if is_trapiche:
-            parts.append(
-                "Trapiche pattern — the 6-spoke wheel of dark inclusion rays "
-                "between six green sector-crystals. A Colombian Muzo specialty. "
-                "The pattern captures the moment Cr influx outpaced the "
-                "crystal's ability to keep pace, causing the growth front to "
-                "trap carbon-rich matrix as radial dendritic arms."
-            )
+            parts.append(narrative_variant("emerald", "trapiche"))
 
         inclusion_zones = [z for z in c.zones if z.fluid_inclusion]
         if inclusion_zones:
-            parts.append(
-                f"{len(inclusion_zones)} fluid inclusion horizons preserved — "
-                "emerald is famous for its 'jardin' (French for garden), the "
-                "dense field of primary 3-phase fluid inclusions that every "
-                "natural emerald carries. Gemologists use the jardin as a "
-                "natural-origin certificate; lab-grown emerald is cleaner."
-            )
+            parts.append(narrative_variant("emerald", "jardin",
+                                           count=len(inclusion_zones)))
 
         if c.dissolved:
-            parts.append(
-                "HF-assisted dissolution etched the surface — emerald shares "
-                "beryl's acid resistance and only dissolves under fluoride."
-            )
-        return " ".join(parts)
+            parts.append(narrative_variant("emerald", "hf_dissolution"))
+        return " ".join(p for p in parts if p)
 
     def _narrate_aquamarine(self, c: Crystal) -> str:
-        """Narrate an aquamarine — the Fe²⁺ blue variety of beryl."""
+        """Narrate an aquamarine — the Fe²⁺ blue variety of beryl.
+
+        Prose lives in narratives/aquamarine.md. Code dispatches blurb +
+        fluid_inclusions count (with {count} interp) + 2-way habit
+        (stubby_tabular / hex_prism_long; no default) + hf_dissolution.
+        """
         parts = [f"Aquamarine #{c.crystal_id} grew to {c.c_length_mm:.1f} mm."]
-        parts.append(
-            "Be₃Al₂Si₆O₁₈ + Fe²⁺ — the blue variety of beryl. Most abundant "
-            "gem beryl variety; every gem-producing pegmatite yields "
-            "aquamarine. Fe²⁺ substitutes in the channel sites and the Al "
-            "octahedral site. The pegmatite fluid stayed reducing (or at "
-            "least non-oxidizing) throughout growth, so iron held its Fe²⁺ "
-            "state rather than flipping to Fe³⁺ (which would have made "
-            "heliodor instead). Governador Valadares and Araçuaí (Minas "
-            "Gerais) alone have produced more aquamarine than the rest of "
-            "the world combined. The Santa Maria deep-blue variety comes "
-            "from Shigar Valley Pakistan — pegmatite cutting biotite-rich "
-            "granite, higher Fe but perfectly reducing."
-        )
+        parts.append(narrative_blurb("aquamarine"))
 
         inclusion_zones = [z for z in c.zones if z.fluid_inclusion]
         if inclusion_zones:
-            parts.append(
-                f"{len(inclusion_zones)} fluid inclusion horizons at zone "
-                "boundaries. Aquamarine's 'growth tubes' — stepped hexagonal "
-                "negative-crystal voids — are what make the cat's-eye "
-                "chatoyancy effect possible when the crystal is cut en cabochon."
-            )
+            parts.append(narrative_variant("aquamarine", "fluid_inclusions",
+                                           count=len(inclusion_zones)))
 
         if c.habit == "stubby_tabular":
-            parts.append(
-                "Stubby tabular habit — late-stage, T < 380°C. The flat "
-                "basal pinacoid dominates over the hexagonal prism, making "
-                "this crystal look more like a squat bar than the cigarette-"
-                "shape of hotter Cruzeiro aquamarines."
-            )
+            parts.append(narrative_variant("aquamarine", "stubby_tabular"))
         elif c.habit == "hex_prism_long":
-            parts.append(
-                "Long hexagonal-prism habit — the Cruzeiro 'cigarette' shape. "
-                "Classic higher-T (>400°C) pegmatite pocket signature, where "
-                "the c-axis growth outpaces the a-axis by a factor of several."
-            )
+            parts.append(narrative_variant("aquamarine", "hex_prism_long"))
 
         if c.dissolved:
-            parts.append(
-                "HF-assisted dissolution etched the surface — aquamarine "
-                "shares beryl's acid resistance."
-            )
-        return " ".join(parts)
+            parts.append(narrative_variant("aquamarine", "hf_dissolution"))
+        return " ".join(p for p in parts if p)
 
     def _narrate_morganite(self, c: Crystal) -> str:
         """Narrate a morganite — the Mn pink variety of beryl."""
