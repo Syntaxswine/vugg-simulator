@@ -1016,6 +1016,17 @@ body.title-on > .subtitle {
   box-shadow: 0 0 18px rgba(240, 192, 80, 0.55) !important;
 }
 
+/* When a tutorial is active, hide every Creative-mode action button
+   except those explicitly whitelisted with `.tutorial-allow`. The
+   broth-control panel is also hidden (too many distractions for v0).
+   The whitelist is set by startTutorial() and cleared by endTutorial(). */
+body.tutorial-active .action-btn:not(.tutorial-allow) { display: none; }
+body.tutorial-active .broth-panel { display: none; }
+/* Tutorials run in Creative Mode but don't need the mode-toggle bar
+   floating around — keep the player focused on the vug + advance + callout. */
+body.tutorial-active #mode-toggle { opacity: 0.4; }
+body.tutorial-active #mode-toggle:hover { opacity: 1; }
+
 .title-more {
   margin-top: 1rem;
   color: #6a5a30;
@@ -2279,8 +2290,8 @@ footer a:hover {
   <div class="menu-heading">Begin</div>
   <div class="menu-subheading">Tutorials — start here for a guided introduction.</div>
   <div class="menu-buttons">
-    <button onclick="startScenarioInCreative('tutorial_first_crystal')">🎓 Tutorial 1: First Crystal.</button>
-    <button onclick="startScenarioInCreative('tutorial_mn_calcite')">🎓 Tutorial 2: A Mn-Doped Calcite.</button>
+    <button onclick="startTutorial('tutorial_first_crystal')">🎓 Tutorial 1: First Crystal.</button>
+    <button onclick="startTutorial('tutorial_mn_calcite')">🎓 Tutorial 2: A Mn-Doped Calcite.</button>
   </div>
   <div class="menu-subheading">Or jump straight in.</div>
   <div class="menu-buttons">
@@ -2664,7 +2675,7 @@ Scenarios:
 
   <div class="action-panel" id="fortress-actions">
     <div class="action-grid">
-      <button class="action-btn act-wait" onclick="fortressStep('wait')" title="Advance one time step (~50,000 years) with current conditions" style="min-width:140px;font-weight:bold">⏳ Advance Step</button>
+      <button id="f-advance" class="action-btn act-wait" onclick="fortressStep('wait')" title="Advance one time step (~50,000 years) with current conditions" style="min-width:140px;font-weight:bold">⏳ Advance Step</button>
       <button class="action-btn act-heat" onclick="fortressStep('heat')" title="Temperature +25°C">🔥 Heat +25°C</button>
       <button class="action-btn act-cool" onclick="fortressStep('cool')" title="Temperature -25°C">❄️ Cool −25°C</button>
       <button class="action-btn act-chem" onclick="fortressStep('silica')" title="Boost SiO₂ significantly">🔮 Inject Silica</button>
@@ -11712,10 +11723,91 @@ function _positionCallout(anchorEl, tooltipEl, arrowEl, side) {
   arrowEl.className = 'tutorial-callout-arrow ' + arrowClass;
 }
 
-// Expose on window so the tutorial state-machine (slice 3) and
-// dev-console testing can call it.
+// Expose on window so the tutorial state-machine and dev-console
+// testing can call it.
 window.showCallout = showCallout;
 window.hideCallout = hideCallout;
+
+// ============================================================
+// Tutorial state machine (slice 3 of TUTORIAL-SYSTEM)
+// ============================================================
+// Walks the `tutorial.steps` array attached to a scenario spec in
+// data/scenarios.json5, firing the appropriate callout as the
+// fortress-mode sim step counter advances. Source of truth for
+// "current step" is fortressSim.step (only fortressStep('wait')
+// advances it; modifier actions like Heat/Cool don't).
+//
+// Schema (per step in tutorial.steps):
+//   step    — int. fortressSim.step value at which this callout fires
+//             (any step whose .step <= fortressSim.step that hasn't
+//             fired yet will fire on the next advance)
+//   anchor  — CSS selector OR HTMLElement. Where the callout points.
+//   text    — tooltip body
+//   side    — 'top' | 'bottom' | 'left' | 'right' | 'auto' (optional)
+//
+// Control-locking: when active, body has `.tutorial-active` class.
+// CSS hides all .action-btn except those marked `.tutorial-allow`
+// (currently just the Advance button) and the broth panel.
+
+let _tutorialState = null; // { steps: [...], stepIdx: 0 } | null
+
+function startTutorial(scenarioName) {
+  // Boot the underlying scenario in Creative Mode first.
+  if (typeof startScenarioInCreative !== 'function') {
+    console.error('startTutorial: startScenarioInCreative not available');
+    return;
+  }
+  startScenarioInCreative(scenarioName);
+
+  const make = (typeof SCENARIOS !== 'undefined') ? SCENARIOS[scenarioName] : null;
+  const spec = make && make._json5_spec;
+  const tut = spec && spec.tutorial;
+  if (!tut || !Array.isArray(tut.steps) || !tut.steps.length) {
+    console.warn('startTutorial: scenario has no tutorial.steps:', scenarioName);
+    return; // scenario still runs, just without overlay
+  }
+  _tutorialState = { steps: tut.steps.slice(), stepIdx: 0 };
+  document.body.classList.add('tutorial-active');
+
+  // Whitelist the Advance button so it survives the control-locking CSS.
+  const adv = document.getElementById('f-advance');
+  if (adv) adv.classList.add('tutorial-allow');
+
+  // Fire any steps whose trigger is already satisfied (typically step:0).
+  _maybeAdvanceTutorial();
+}
+
+function endTutorial() {
+  _tutorialState = null;
+  document.body.classList.remove('tutorial-active');
+  document.querySelectorAll('.tutorial-allow').forEach(el => el.classList.remove('tutorial-allow'));
+  hideCallout();
+}
+
+function _maybeAdvanceTutorial() {
+  if (!_tutorialState) return;
+  if (typeof fortressSim === 'undefined' || !fortressSim) return;
+  const s = _tutorialState;
+  const cur = fortressSim.step || 0;
+  // Walk forward, firing every step whose trigger is satisfied.
+  // showCallout replaces, so only the last one in the burst stays
+  // visible — authors should put one callout per sim-step trigger.
+  let lastFired = null;
+  while (s.stepIdx < s.steps.length && (s.steps[s.stepIdx].step || 0) <= cur) {
+    lastFired = s.steps[s.stepIdx];
+    s.stepIdx++;
+  }
+  if (lastFired) {
+    showCallout({
+      anchor: lastFired.anchor || '#f-advance',
+      text: lastFired.text || '',
+      side: lastFired.side || 'auto',
+    });
+  }
+}
+
+window.startTutorial = startTutorial;
+window.endTutorial = endTutorial;
 
 
 function event_tutorial_temperature_drop(c) {
@@ -16918,6 +17010,9 @@ function showTitleScreen() {
   if (titleScreen) titleScreen.style.display = 'block';
   idleStop(); // stop any running idle simulation
   if (typeof grooveStop === 'function' && groovePlaying) grooveStop();
+  // Going Home tears down any active tutorial overlay + restores
+  // hidden Creative-mode controls. No-op if no tutorial running.
+  if (typeof endTutorial === 'function') endTutorial();
   currentGameMode = null;
   refreshTitleLoadButton();
 }
@@ -17372,6 +17467,9 @@ function switchMode(mode) {
   if (mode !== 'groove' && groovePlaying && typeof grooveStop === 'function') {
     grooveStop();
   }
+  // Switching out of fortress while a tutorial is running tears down
+  // the overlay + restores controls. (Tutorials only live in fortress.)
+  if (mode !== 'fortress' && typeof endTutorial === 'function') endTutorial();
 
   // Hide title screen, show mode toggle
   document.body.classList.remove('title-on');
@@ -18409,6 +18507,9 @@ function fortressStep(action) {
   updateFortressStatus();
   syncBrothSliders();
   if (typeof topoRender === 'function') topoRender();
+  // Drive the tutorial state machine after each action. Reads
+  // fortressSim.step internally — no-op when no tutorial is active.
+  if (typeof _maybeAdvanceTutorial === 'function') _maybeAdvanceTutorial();
 }
 
 function appendFortressLine(container, line) {

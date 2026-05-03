@@ -1253,6 +1253,19 @@
       "events": [
         { "step": 8, "type": "tutorial_temperature_drop", "name": "Temperature Drops", "description": "Conditions drift out of quartz's growth window — the crystal stops growing" }
       ],
+      // Tutorial overlay script consumed by the JS tutorial state machine
+      // (window.startTutorial). Each step fires when fortressSim.step
+      // reaches its `step` value. Authors should put one callout per
+      // sim-step trigger (later steps replace earlier ones immediately).
+      "tutorial": {
+        "steps": [
+          { "step": 0,  "anchor": "#f-advance",       "side": "top",   "text": "Welcome. This is your vug — an empty pocket inside rock, waiting for a crystal to grow. The broth around it is silica-rich and warm enough for quartz. Press 'Advance Step' to move time forward by ~50,000 years." },
+          { "step": 4,  "anchor": "#fortress-status", "side": "right", "text": "Quartz is forming on the wall. Each press of Advance grows it a little more. Notice the temperature sitting around 180°C — that's right in quartz's comfort window." },
+          { "step": 9,  "anchor": "#fortress-status", "side": "right", "text": "The temperature just dropped sharply. Watch what happens to growth as you keep pressing Advance — the broth got colder, and cold silica wants to stay in solution rather than crystallize out." },
+          { "step": 16, "anchor": "#fortress-log",    "side": "left",  "text": "Notice the log: 'no growth this step' is starting to appear. Your crystal is still there, beautiful, but no new layers are forming. The broth doesn't want to give up its silica anymore." },
+          { "step": 25, "anchor": "#fortress-log",    "side": "left",  "text": "That's the lesson: conditions control whether a crystal grows. Same broth, same crystal, different temperature — different outcome. Everything else in the game is just elaborations on this idea. (Press Home when ready, or keep going.)" }
+        ]
+      },
       "sources": [
         "(tutorial scaffold — no published source)"
       ]
@@ -1300,6 +1313,18 @@
         { "step": 8,  "type": "tutorial_mn_pulse", "name": "Manganese Pulse",    "description": "Mn²⁺ injected — next calcite zones incorporate the activator" },
         { "step": 16, "type": "tutorial_fe_drop",  "name": "Iron-Poor Recharge", "description": "Fe²⁺ quencher cleared — Mn-doped zones fluoresce at full brightness" }
       ],
+      // Tutorial overlay script — see tutorial_first_crystal for schema notes.
+      "tutorial": {
+        "steps": [
+          { "step": 0,  "anchor": "#f-advance",       "side": "top",   "text": "This vug holds a carbonate broth — calcium and CO₃ ions floating around, waiting to crystallize. Calcite forms here. Press 'Advance Step' to begin." },
+          { "step": 4,  "anchor": "#fortress-status", "side": "right", "text": "Calcite is forming. The broth has a little manganese in it (Mn ≈ 8 ppm) — Mn²⁺ activates orange fluorescence in calcite under longwave UV. But the broth also has iron (Fe ≈ 10 ppm), and iron quenches that glow. So the early zones of your calcite are recording Mn but staying dim." },
+          { "step": 9,  "anchor": "#fortress-log",    "side": "left",  "text": "A pulse just brought a lot more manganese into the broth. The next zones of calcite will incorporate Mn²⁺ heavily — but iron is still quenching most of the activation. Keep advancing." },
+          { "step": 14, "anchor": "#fortress-status", "side": "right", "text": "The Mn is being recorded into every growth ring from here on. But you wouldn't see it glow yet — Fe is still suppressing the fluorescence. The broth is loaded with the right ingredient and the wrong inhibitor at the same time." },
+          { "step": 17, "anchor": "#fortress-log",    "side": "left",  "text": "Iron just crashed out of the broth. The Mn-doped zones that grow next will fluoresce at full brightness. There's a boundary forming inside your crystal: dim early stripes from the iron-quenched phase, bright late stripes from now on." },
+          { "step": 25, "anchor": "#fortress-log",    "side": "left",  "text": "The crystal you grew is now a stratigraphic record of everything you put in the broth. Same crystal, written in fluorescence by every change in chemistry. This is what real Franklin / Sterling Hill calcite specimens look like under UV — bands of glow and quench, recording the deep-time fluid history of the vein." },
+          { "step": 30, "anchor": "#fortress-log",    "side": "left",  "text": "That's the lesson: additives change a growing crystal's properties. The vug remembers what you put into it. Tutorial complete. (Press Home when ready, or keep going.)" }
+        ]
+      },
       "sources": [
         "(tutorial scaffold — no published source)",
         "Franklin / Sterling Hill (NJ) — type locality for Mn-activated calcite fluorescence"
