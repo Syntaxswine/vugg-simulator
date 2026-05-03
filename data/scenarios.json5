@@ -50,6 +50,7 @@
     "cooling": {
       "anchor": "Herkimer 'diamond' pocket — Middleville, NY (Little Falls Formation, Cambrian dolostone)",
       "description": "Doubly-terminated clear quartz from a Cambrian dolostone vug at peak Alleghenian burial. Slow-grown, low-σ ordered crystallization — the textbook 'cooling' archetype.",
+      "expects_species": ["quartz"],
       "duration_steps": 100,
       "notes": [
         "Herkimer-type double-terminated quartz crystals occur in isolated vugs of the Little Falls Formation, an Upper Cambrian dolostone in the Mohawk Valley.",
@@ -129,6 +130,7 @@
     "pulse": {
       "anchor": "(generic testing scaffold — no specific locality)",
       "description": "Cooling with a fluid pulse mid-growth + a cooling pulse later. Tests event-driven chemistry perturbation.",
+      "expects_species": ["quartz", "calcite"],
       "duration_steps": 100,
       "notes": [
         "Generic testing scenario — not anchored to a real locality. Acts as a slightly more interesting twin of `cooling`: a single fluid pulse plus a cooling pulse halfway through to test event-driven chemistry perturbation.",
@@ -168,6 +170,7 @@
     "mvt": {
       "anchor": "Tri-State district (Joplin / Picher / Galena MO-KS-OK) — Pb-Zn-Ag in Mississippian Boone Formation cherty limestone",
       "description": "Mississippi Valley-type Pb-Zn deposit. NaCl-CaCl2 basinal brine, sphalerite + galena + barite + fluorite paragenesis.",
+      "expects_species": ["sphalerite", "galena", "fluorite", "barite", "calcite"],
       "duration_steps": 120,
       "notes": [
         "Anchor: Tri-State Pb-Zn-Ag mining district. Brines per Roedder 1976, Ohle 1959, Hagni 1976, and the Stoffell et al. 2008 LA-ICP-MS fluid-inclusion study: NaCl-CaCl2 basinal brine, 18-24 wt% NaCl-eq total salinity, 150-200,000 ppm Cl raw, Mg/Ca ~0.05-0.1 (low-Mg → favors calcite over aragonite). Tri-State galena is documented argentiferous; Ag was historically a meaningful smelter byproduct alongside Pb-Zn.",
@@ -263,6 +266,7 @@
     "porphyry": {
       "anchor": "Bingham Canyon Cu-Mo-Au, Oquirrh Mountains, UT (late-Eocene quartz-monzonite porphyry, ~38 Ma)",
       "description": "Copper porphyry — high-T high-pressure brine with discrete Cu and Mo pulses. Quartz + chalcopyrite + bornite + molybdenite + pyrite + tetrahedrite/tennantite paragenesis.",
+      "expects_species": ["chalcopyrite", "pyrite", "molybdenite", "bornite"],
       "duration_steps": 120,
       "notes": [
         "Anchor: Bingham Canyon Cu-Mo-Au deposit, Oquirrh Mountains, UT. Late-Eocene (~38 Ma) quartz-monzonite-porphyry intrusion with classic potassic-core / phyllic-shell / propylitic-rim alteration zoning.",
@@ -354,6 +358,7 @@
     "marble_contact_metamorphism": {
       "anchor": "Mogok Stone Tract, Mandalay Region, Burma — type locality for marble-hosted ruby + 2000+-year source of 'pigeon's blood' rubies",
       "description": "Marble-hosted contact metamorphic vug — Al-rich, SiO2-undersaturated skarn fluid drives corundum-family (ruby/sapphire) paragenesis.",
+      "expects_species": ["calcite", "ruby"],
       "duration_steps": 180,
       "notes": [
         "Anchored to the Mogok Stone Tract: dolomitic marble of the Mogok Metamorphic Belt was regionally metamorphosed during the Himalayan orogeny (~30 Ma) to amphibolite-to-granulite grade, then intruded by leucogranite dykes at 17-22 Ma that drove contact metamorphic ruby/sapphire/spinel crystallization in skarn envelopes.",
@@ -423,6 +428,7 @@
     "reactive_wall": {
       "anchor": "Sweetwater Mine (Reynolds County, MO), Viburnum Trend Pb-Zn district. Host: Cambrian Bonneterre Formation dolomitic limestone.",
       "description": "Acid-into-carbonate paragenesis — repeated acid pulses dissolve the limestone wall, then pH recovery drives supersaturation and growth bursts. Sphalerite-galena-marcasite ± barite, dolomite-calcite gangue.",
+      "expects_species": ["sphalerite", "pyrite", "barite", "dolomite"],
       "duration_steps": 120,
       "notes": [
         "Anchor: Sweetwater Mine, Viburnum Trend MVT district (high-Ba endmember vs Tri-State, distinguished by Stoffell et al. 2008 LA-ICP-MS).",
@@ -505,6 +511,7 @@
     "sabkha_dolomitization": {
       "anchor": "Coorong lagoon system (South Australia) and Persian Gulf sabkhas. The classic natural laboratory for direct-from-solution dolomite formation per Kim, Sun et al. 2023 (Science 382:915).",
       "description": "Cycling-brine sabkha producing ORDERED dolomite at ambient T via the Kim 2023 mechanism. Twelve flood/evap pulses over 240 steps drive Ω across the dolomite saturation boundary repeatedly — the cyclic Ω modulation that's needed to produce ordered dolomite at surface T.",
+      "expects_species": ["dolomite", "anhydrite", "selenite"],
       "duration_steps": 260,
       "notes": [
         "Surface T (~25°C), high-Mg evaporative brine, seasonal flood-evaporate cycles. Per Kim, Sun et al. (2023, Science 382:915), exactly this kind of cyclic Ω modulation is what's needed to produce ordered dolomite at ambient T.",
@@ -591,6 +598,7 @@
     "bisbee": {
       "anchor": "Bisbee, Arizona — Warren Mining District, Cochise County. Laramide quartz-monzonite porphyry intruding Paleozoic Escabrosa Limestone + Abrigo Formation. Major Cu-Ag-Au district (~8 Mt Cu, ~25 Moz Ag, ~3 Moz Au historically).",
       "description": "Classic copper porphyry with world-class oxidation zone. Complete Cu paragenesis from primary sulfides through supergene enrichment to the cyan-blue chrysocolla finale. Centerpiece mechanic: azurite ↔ malachite ↔ chrysocolla cascade tracking pCO2 evolution.",
+      "expects_species": ["chalcopyrite", "malachite", "chrysocolla", "brochantite"],
       "duration_steps": 340,
       "notes": [
         "Anchor: Bisbee, Arizona — Warren Mining District, Cochise County. Host: combo Laramide quartz-monzonite porphyry intruded into Paleozoic Escabrosa Limestone + Abrigo Formation. In the sim this is represented as a limestone wall (the pH buffer, the CO3 source for azurite) with scenario events that inject dissolved SiO2 from the surrounding silicate matrix weathering — the supply path for late chrysocolla.",
@@ -680,6 +688,7 @@
     "supergene_oxidation": {
       "anchor": "Tsumeb mine, Otavi Mountain Land, Namibia. 1st-stage gossan (uppermost supergene zone). One of the most mineralogically diverse deposits ever discovered (~280 species), type locality for germanium.",
       "description": "Cold, oxygenated supergene weathering of a Pb-Zn-Cu sulfide pipe. Pb+Mo→wulfenite, Zn+CO3→smithsonite, Zn+As→adamite, Pb+As+Cl→mimetite, Fe→goethite, Ca+SO4→selenite, Cu+CO3→malachite. The 1st-stage gossan brings the high-Pb-As-Cl uppermost zone with mimetite, anglesite, cerussite, willemite, and Ge-bearing oxidation phases.",
+      "expects_species": ["wulfenite", "smithsonite", "adamite", "mimetite", "malachite", "vanadinite", "cerussite", "selenite"],
       "duration_steps": 200,
       "notes": [
         "Anchor: Tsumeb mine (Otavi Mountain Land, Namibia). Pipe-shaped Pb-Zn-Cu sulfide body in Neoproterozoic dolomite, with three distinct supergene oxidation zones developed during Mesozoic-Cenozoic uplift. Argentiferous (native Ag, proustite, pyrargyrite, argentiferous galena). References: Pinch & Wilson 1977 (canonical Tsumeb monograph), Lombaard et al. 1986 (geology), Melcher 2003 (Ge geochemistry).",
@@ -767,6 +776,7 @@
     "gem_pegmatite": {
       "anchor": "Cruzeiro mine, São José da Safira, Doce Valley, Minas Gerais (Variant A — Brasiliano-age miarolitic gem pegmatite, 700-450 Ma).",
       "description": "Miarolitic cavity in a complex zoned pegmatite. The residual pocket where incompatible elements (Be, B, Li, F) accumulate beyond belief, then cross saturation in cascade — schorl → beryl → spodumene + elbaite → late topaz, with kaolinization of the microcline walls at the end.",
+      "expects_species": ["tourmaline", "spodumene", "topaz", "feldspar", "albite"],
       "duration_steps": 230,
       "notes": [
         "Cruzeiro is the type-locality for fine schorl-elbaite tourmaline + smoky quartz pockets, with documented beryl, spodumene, lepidolite, and accessory apatite. Brasiliano-age (Neoproterozoic) pegmatite field cutting Macaúbas Group meta-sediments. Morteani et al. 2002 covers fluid chemistry; Cassedanne (1991) and Proctor (1985) cover the Cruzeiro-specific paragenesis.",
@@ -851,6 +861,7 @@
     "ouro_preto": {
       "anchor": "Ouro Preto Imperial Topaz veins, Minas Gerais, Brazil (Variant B per Morteani et al. 2002).",
       "description": "Hydrothermal topaz vein in Precambrian phyllite + quartzite. Single clean cooling curve from 360°C to 50°C — the 'anti-flash-quench' of the gem-pegmatite scenarios. F-pulse gates topaz nucleation; Cr leach commits the imperial color.",
+      "expects_species": ["topaz", "quartz"],
       "duration_steps": 260,
       "notes": [
         "Hydrothermal veins cutting Precambrian phyllite and quartzite in the Ouro Preto district. Fluid inclusion data (Morteani et al. 2002) puts crystallization at ~360°C, 3.5 kbar from metamorphic brines derived from devolatilization of phyllite.",
@@ -913,6 +924,7 @@
     "deccan_zeolite": {
       "anchor": "Deccan Traps zeolite vesicle (Stage III, ~21-58 Ma post-eruption). Nashik 'bloody apophyllite' is the type expression. Per Ottens et al. 2019.",
       "description": "Patient zeolite-stage paragenesis in cooled basalt vesicles. Stage I silica veneer + Stage II zeolite blades + Stage III alkaline K-Ca-Si-F pulse builds pseudo-cubic apophyllite around hematite-needle phantoms.",
+      "expects_species": ["hematite", "quartz", "magnetite"],
       "duration_steps": 200,
       "notes": [
         "Per Ottens et al. 2019, the Deccan basalt vesicles fill in stages over tens of millions of years. Stage I (early): silica veneers, chalcedony coating. Stage II: zeolite blades (stilbite, scolecite, heulandite) and early calcite. Stage III: the apophyllite stage — alkaline K-Ca-Si-F fluid percolates through cooled basalt vesicles and crystallizes pseudo-cubic apophyllite blocks, sometimes carrying hematite-needle phantoms (the 'bloody apophyllite' of Nashik).",
@@ -976,6 +988,7 @@
     "radioactive_pegmatite": {
       "anchor": "(generic high-T alkali-granite pocket — not anchored to a specific locality)",
       "description": "High-T pegmatitic fluid + U + Pb. Grows uraninite, smoky quartz (darkened by radiation), feldspar/albite, and late-stage galena from radiogenic Pb.",
+      "expects_species": ["uraninite", "autunite", "quartz", "feldspar"],
       "duration_steps": 120,
       "notes": [
         "Generic testing scenario — not anchored to a real locality (per the user's clarification on the audit brief). Pegmatitic fluids are silica-saturated melts with abundant K + Na + Al + U.",
@@ -1038,6 +1051,7 @@
     "schneeberg": {
       "anchor": "Schneeberg, Erzgebirgskreis (Saxony Ore Mountains), Germany — type locality for torbernite (1772), zeunerite (1872), uranospinite (1873), and ten more uranyl arsenate-phosphate species. Walpurgis Flacher vein, Weisser Hirsch Mine.",
       "description": "Schneeberg / Erzgebirge oxidized uranium-pegmatite vein system (Walpurgis Flacher vein, Weisser Hirsch Mine, Saxony — type locality for torbernite, zeunerite, and uranospinite). A U-bearing pegmatite + chalcopyrite + arsenopyrite primary assemblage weathers under meteoric oxidation; the resulting uranyl + Cu + As fluid plates the autunite-group secondaries in two cation phases — Cu-rich first (torbernite emerald greens then zeunerite as As-pulse arrives), then Ca-dominant after Cu is consumed (autunite + uranospinite, the bright LW-UV fluorescent yellows).",
+      "expects_species": ["uraninite", "torbernite", "zeunerite", "autunite", "uranospinite"],
       "duration_steps": 160,
       "notes": [
         "The mineralogically richest single ore district in Europe — the Erzgebirge had been mined for silver since the 1100s, then bismuth from the 1500s (the very name 'Bismutum' was coined here), then uranium from the 1800s onward. Most autunite-group species were first described from Schneeberg or its sister deposits (Jáchymov, Annaberg). Pinch & Wilson 1977 monographs are the canonical reference.",
@@ -1119,6 +1133,7 @@
     "colorado_plateau": {
       "anchor": "Uravan Mineral Belt, Colorado Plateau — sandstone-hosted roll-front uranium-vanadium deposits (Triassic-Jurassic Morrison Formation). Includes the Carnotite-Eldorado, Uravan, and Moab districts; the V+U bonanza that drove the early-twentieth-century uranium industry decades before the Manhattan Project.",
       "description": "Uravan Mineral Belt sandstone roll-front uranium-vanadium deposit (Roc Creek, Montrose County, CO — carnotite type locality, Friedel & Cumenge 1899). Oxidizing groundwater carries U + V + K + Ca through Triassic-Jurassic Morrison Formation sandstones until it meets a reducing barrier (petrified wood, carbonaceous shale), where the metals drop out as bright canary-yellow uranyl-vanadate crusts. Carnotite + tyuyamunite are the two diagnostic species — interconvertible by cation exchange, drawn apart by whichever of K/Ca dominates the local pore fluid.",
+      "expects_species": ["carnotite", "tyuyamunite"],
       "duration_steps": 180,
       "notes": [
         "Anchor: Colorado Plateau uranium districts (Uravan Mineral Belt). Mineralogy first described by Friedel & Cumenge (1899) at Roc Creek (Montrose County, CO); Hess (1924) characterized the V-U-Ca-K paragenesis. The Vanadium Corporation of America (VCA) operated the Uravan mill from 1915-1944 turning carnotite into V₂O₅ (steel alloy) before the Manhattan Project shifted demand to uranium.",
@@ -1183,6 +1198,136 @@
         "Hess 1924 — V-U-Ca-K paragenesis review",
         "Stern et al. 1956 — meta-tyuyamunite (American Mineralogist v.41)",
         "research/research-tyuyamunite.md (May 2026) — Colorado Plateau roll-front geology + simulator design"
+      ]
+    },
+
+    // ============================================================
+    // Tutorial scenarios (May 2026)
+    // ============================================================
+    // Surfaced in the New Game Menu under "Tutorials" — the recommended
+    // first stop for new players. Structurally identical to scenarios
+    // (scripted broth + scripted events) but scoped/paced for teaching.
+    // The callout-overlay UI layer is a follow-up; in this slice they
+    // run as plain scenarios you can drive manually in Creative Mode.
+    // See proposals/TUTORIAL-SYSTEM-BUILDER-REVIEW.md for design context.
+    // ============================================================
+
+    "tutorial_first_crystal": {
+      "anchor": "(tutorial scaffold — generic silica-rich broth)",
+      "description": "Tutorial 1: First Crystal. Grow a quartz, then watch what happens when conditions drift out of its growth window.",
+      "expects_species": ["quartz"],
+      "duration_steps": 30,
+      "notes": [
+        "Tutorial scenario. Designed for the guided first-time-player experience: simple silica-rich broth, quartz nucleates within a few steps at 180°C, then a scripted temperature drop at step 8 pulls T well out of quartz's growth window. The intended player learning is: (1) clicking Advance moves time, (2) crystals need conditions in the right range, (3) when the conditions drift, growth stops.",
+        "Surfaced in the New Game Menu under Tutorials. Not anchored to a real locality — it's a teaching scaffold. Sandbox-testable as a normal scenario without the callout overlay UI that ships in a follow-up.",
+        "Broth shape mirrors FLUID_PRESETS.silica (the existing 'Silica-rich' starter fluid) so the lesson generalizes to that picker entry."
+      ],
+      "initial": {
+        // T=180°C: quartz growth window center. Gives σ(Qz) ~1.2-1.5 at
+        // start so quartz nucleates within a few steps. Drops to ~100°C
+        // after the tutorial event, putting growth firmly outside the
+        // comfort window without going so cold the crystal disappears.
+        "temperature_C": 180.0,
+        "pressure_kbar": 1.0,
+        "fluid": {
+          // Silica-rich broth, mirrors FLUID_PRESETS.silica.
+          "SiO2": 600,
+          "Ca": 150,
+          "CO3": 100,
+          "Fe": 8,
+          "Mn": 3,
+          "Mg": 8,
+          "Ti": 0.8,
+          "Al": 4,
+          "F": 10,
+          "pH": 6.5,
+          "salinity": 5.0
+        },
+        "wall": {
+          "composition": "limestone",
+          "primary_bubbles": 3,
+          "secondary_bubbles": 5,
+          "shape_seed": 1
+        }
+      },
+      "events": [
+        { "step": 8, "type": "tutorial_temperature_drop", "name": "Temperature Drops", "description": "Conditions drift out of quartz's growth window — the crystal stops growing" }
+      ],
+      // Tutorial overlay script consumed by the JS tutorial state machine
+      // (window.startTutorial). Each step fires when fortressSim.step
+      // reaches its `step` value. Authors should put one callout per
+      // sim-step trigger (later steps replace earlier ones immediately).
+      "tutorial": {
+        "steps": [
+          { "step": 0,  "anchor": "#f-advance",       "side": "top",   "text": "Welcome. This is your vug — an empty pocket inside rock, waiting for a crystal to grow. The broth around it is silica-rich and warm enough for quartz. Press 'Advance Step' to move time forward by ~50,000 years." },
+          { "step": 4,  "anchor": "#fortress-status", "side": "right", "text": "Quartz is forming on the wall. Each press of Advance grows it a little more. Notice the temperature sitting around 180°C — that's right in quartz's comfort window." },
+          { "step": 9,  "anchor": "#fortress-status", "side": "right", "text": "The temperature just dropped sharply. Watch what happens to growth as you keep pressing Advance — the broth got colder, and cold silica wants to stay in solution rather than crystallize out." },
+          { "step": 16, "anchor": "#fortress-log",    "side": "left",  "text": "Notice the log: 'no growth this step' is starting to appear. Your crystal is still there, beautiful, but no new layers are forming. The broth doesn't want to give up its silica anymore." },
+          { "step": 25, "anchor": "#fortress-log",    "side": "left",  "text": "That's the lesson: conditions control whether a crystal grows. Same broth, same crystal, different temperature — different outcome. Everything else in the game is just elaborations on this idea. (Press Home when ready, or keep going.)" }
+        ]
+      },
+      "sources": [
+        "(tutorial scaffold — no published source)"
+      ]
+    },
+
+    "tutorial_mn_calcite": {
+      "anchor": "(tutorial scaffold — generic carbonate broth)",
+      "description": "Tutorial 2: A Mn-Doped Calcite. Grow a calcite, then mix in manganese and watch the next zones glow orange-red under UV. Iron quenches; the boundary records the broth-history.",
+      "expects_species": ["calcite"],
+      "duration_steps": 30,
+      "notes": [
+        "Tutorial scenario. Teaches how additives change a growing crystal's properties: Mn²⁺ activates orange fluorescence in calcite (threshold 2 ppm) and Fe²⁺ quenches it. The carbonate broth ships with Fe:10 already at the quencher range and Mn:8 just past the activator threshold — early calcite zones incorporate Mn but stay dim under UV. The Mn pulse at step 8 pushes Mn well past the activator threshold; the Fe drop at step 16 clears the quencher. The boundary between dim early zones and bright late zones records the moment the broth changed.",
+        "Surfaced in the New Game Menu under Tutorials. Not anchored to a real locality — it's a teaching scaffold. The Franklin/Sterling Hill (NJ) Mn-activated calcite glow is the real-world reference for the lesson.",
+        "Broth shape mirrors FLUID_PRESETS.carbonate so the lesson generalizes to that picker entry."
+      ],
+      "initial": {
+        // T=100°C: comfortable calcite growth window with retrograde
+        // solubility helping nucleation. Stays warm enough through the
+        // tutorial that calcite keeps growing (the lesson is about
+        // properties, not growth interruption like Tutorial 1).
+        "temperature_C": 100.0,
+        "pressure_kbar": 0.5,
+        "fluid": {
+          // Carbonate broth, mirrors FLUID_PRESETS.carbonate.
+          "SiO2": 80,
+          "Ca": 300,
+          "CO3": 250,
+          "Fe": 10,
+          "Mn": 8,
+          "Mg": 12,
+          "Ti": 0.2,
+          "Al": 1,
+          "F": 5,
+          "pH": 7.0,
+          "salinity": 8.0
+        },
+        "wall": {
+          "composition": "limestone",
+          "primary_bubbles": 3,
+          "secondary_bubbles": 5,
+          "shape_seed": 2
+        }
+      },
+      "events": [
+        { "step": 8,  "type": "tutorial_mn_pulse", "name": "Manganese Pulse",    "description": "Mn²⁺ injected — next calcite zones incorporate the activator" },
+        { "step": 16, "type": "tutorial_fe_drop",  "name": "Iron-Poor Recharge", "description": "Fe²⁺ quencher cleared — Mn-doped zones fluoresce at full brightness" }
+      ],
+      // Tutorial overlay script — see tutorial_first_crystal for schema notes.
+      "tutorial": {
+        "steps": [
+          { "step": 0,  "anchor": "#f-advance",       "side": "top",   "text": "This vug holds a carbonate broth — calcium and CO₃ ions floating around, waiting to crystallize. Calcite forms here. Press 'Advance Step' to begin." },
+          { "step": 4,  "anchor": "#fortress-status", "side": "right", "text": "Calcite is forming. The broth has a little manganese in it (Mn ≈ 8 ppm) — Mn²⁺ activates orange fluorescence in calcite under longwave UV. But the broth also has iron (Fe ≈ 10 ppm), and iron quenches that glow. So the early zones of your calcite are recording Mn but staying dim." },
+          { "step": 9,  "anchor": "#fortress-log",    "side": "left",  "text": "A pulse just brought a lot more manganese into the broth. The next zones of calcite will incorporate Mn²⁺ heavily — but iron is still quenching most of the activation. Keep advancing." },
+          { "step": 14, "anchor": "#fortress-status", "side": "right", "text": "The Mn is being recorded into every growth ring from here on. But you wouldn't see it glow yet — Fe is still suppressing the fluorescence. The broth is loaded with the right ingredient and the wrong inhibitor at the same time." },
+          { "step": 17, "anchor": "#fortress-log",    "side": "left",  "text": "Iron just crashed out of the broth. The Mn-doped zones that grow next will fluoresce at full brightness. There's a boundary forming inside your crystal: dim early stripes from the iron-quenched phase, bright late stripes from now on." },
+          { "step": 25, "anchor": "#fortress-log",    "side": "left",  "text": "The crystal you grew is now a stratigraphic record of everything you put in the broth. Same crystal, written in fluorescence by every change in chemistry. This is what real Franklin / Sterling Hill calcite specimens look like under UV — bands of glow and quench, recording the deep-time fluid history of the vein." },
+          { "step": 30, "anchor": "#fortress-log",    "side": "left",  "text": "That's the lesson: additives change a growing crystal's properties. The vug remembers what you put into it. Tutorial complete. (Press Home when ready, or keep going.)" }
+        ]
+      },
+      "sources": [
+        "(tutorial scaffold — no published source)",
+        "Franklin / Sterling Hill (NJ) — type locality for Mn-activated calcite fluorescence"
       ]
     }
 

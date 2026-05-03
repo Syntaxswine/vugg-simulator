@@ -959,6 +959,74 @@ body.title-on > .subtitle {
   .menu-buttons button { padding: 0.75rem 0.9rem; font-size: 0.9rem; }
 }
 
+/* ============================================================
+   Tutorial Callout Overlay (slice 2 of TUTORIAL-SYSTEM)
+   ============================================================
+   Generic anchored-tooltip primitive. The tutorial state machine
+   (slice 3) drives it; here it's a standalone primitive callable
+   from any code path: showCallout({anchor, text, side}) +
+   hideCallout(). Theme matches menu-panel palette.
+*/
+.tutorial-callout {
+  position: fixed;
+  z-index: 10000;
+  background: #1a1a14;
+  color: #f0c050;
+  border: 2px solid #8a7a40;
+  border-radius: 6px;
+  padding: 0.85rem 1.1rem;
+  max-width: 320px;
+  font-family: "Courier New", ui-monospace, Menlo, monospace;
+  font-size: 0.92rem;
+  line-height: 1.45;
+  letter-spacing: 0.02em;
+  box-shadow: 0 0 24px rgba(240, 192, 80, 0.25), 0 4px 12px rgba(0,0,0,0.5);
+  pointer-events: none;
+}
+.tutorial-callout-arrow {
+  position: fixed;
+  z-index: 10001;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+.tutorial-callout-arrow.from-bottom {
+  border-left: 9px solid transparent;
+  border-right: 9px solid transparent;
+  border-top: 11px solid #8a7a40;
+}
+.tutorial-callout-arrow.from-top {
+  border-left: 9px solid transparent;
+  border-right: 9px solid transparent;
+  border-bottom: 11px solid #8a7a40;
+}
+.tutorial-callout-arrow.from-right {
+  border-top: 9px solid transparent;
+  border-bottom: 9px solid transparent;
+  border-left: 11px solid #8a7a40;
+}
+.tutorial-callout-arrow.from-left {
+  border-top: 9px solid transparent;
+  border-bottom: 9px solid transparent;
+  border-right: 11px solid #8a7a40;
+}
+.tutorial-callout-anchor-highlight {
+  outline: 2px solid #f0c050 !important;
+  outline-offset: 3px;
+  box-shadow: 0 0 18px rgba(240, 192, 80, 0.55) !important;
+}
+
+/* When a tutorial is active, hide every Creative-mode action button
+   except those explicitly whitelisted with `.tutorial-allow`. The
+   broth-control panel is also hidden (too many distractions for v0).
+   The whitelist is set by startTutorial() and cleared by endTutorial(). */
+body.tutorial-active .action-btn:not(.tutorial-allow) { display: none; }
+body.tutorial-active .broth-panel { display: none; }
+/* Tutorials run in Creative Mode but don't need the mode-toggle bar
+   floating around — keep the player focused on the vug + advance + callout. */
+body.tutorial-active #mode-toggle { opacity: 0.4; }
+body.tutorial-active #mode-toggle:hover { opacity: 1; }
+
 .title-more {
   margin-top: 1rem;
   color: #6a5a30;
@@ -2220,7 +2288,12 @@ footer a:hover {
 <!-- New Game Menu (opened from title screen's "New Game" button) -->
 <div id="new-game-panel" class="menu-panel" style="display:none">
   <div class="menu-heading">Begin</div>
-  <div class="menu-subheading">Where do you want to start?</div>
+  <div class="menu-subheading">Tutorials — start here for a guided introduction.</div>
+  <div class="menu-buttons">
+    <button onclick="startTutorial('tutorial_first_crystal')">🎓 Tutorial 1: First Crystal.</button>
+    <button onclick="startTutorial('tutorial_mn_calcite')">🎓 Tutorial 2: A Mn-Doped Calcite.</button>
+  </div>
+  <div class="menu-subheading">Or jump straight in.</div>
   <div class="menu-buttons">
     <button onclick="openScenariosPicker()">Scenarios.</button>
     <button onclick="menuGo('fortress')">Creative mode.</button>
@@ -2602,7 +2675,7 @@ Scenarios:
 
   <div class="action-panel" id="fortress-actions">
     <div class="action-grid">
-      <button class="action-btn act-wait" onclick="fortressStep('wait')" title="Advance one time step (~50,000 years) with current conditions" style="min-width:140px;font-weight:bold">⏳ Advance Step</button>
+      <button id="f-advance" class="action-btn act-wait" onclick="fortressStep('wait')" title="Advance one time step (~50,000 years) with current conditions" style="min-width:140px;font-weight:bold">⏳ Advance Step</button>
       <button class="action-btn act-heat" onclick="fortressStep('heat')" title="Temperature +25°C">🔥 Heat +25°C</button>
       <button class="action-btn act-cool" onclick="fortressStep('cool')" title="Temperature -25°C">❄️ Cool −25°C</button>
       <button class="action-btn act-chem" onclick="fortressStep('silica')" title="Boost SiO₂ significantly">🔮 Inject Silica</button>
@@ -11523,6 +11596,244 @@ function event_colorado_plateau_arid_stabilization(c) {
   return 'The system reaches its steady state. Carnotite and tyuyamunite cover the pore walls in roughly equal parts. Both fluoresce dimly under longwave UV — the vanadate matrix dampens their emission below autunite-group brilliance, but Ca²⁺ keeps tyuyamunite\'s emission slightly lifted above carnotite\'s. Time wrote this assemblage. Geochemistry just held the pen.';
 }
 
+// --- Tutorials (May 2026) ---
+// See proposals/TUTORIAL-SYSTEM-BUILDER-REVIEW.md for design context.
+// Slice 1 (commit 31adc8a): the scenarios + events below run as plain
+// scenarios. Slice 2 (THIS commit): callout overlay primitive — generic
+// anchored tooltip API surface (window.showCallout / window.hideCallout).
+// Slice 3 (deferred): tutorial state machine that consumes a per-scenario
+// `tutorial.steps` array and drives callouts + control-locking.
+
+// Callout overlay primitive — generic, no tutorial state coupling.
+// Usage from console or future state-machine:
+//   showCallout({ anchor: '#btn-grow', text: 'Press to advance time.' });
+//   showCallout({ anchor: el, text: '...', side: 'right', highlight: false });
+//   hideCallout();
+// `anchor` accepts a CSS selector string OR an HTMLElement.
+// `side` is one of 'top' | 'bottom' | 'left' | 'right' | 'auto'
+//   (default 'auto' picks the side with most viewport room).
+// `highlight: true` (default) glows the anchor element while active.
+// Only one callout is active at a time — a new showCallout replaces
+// any previous. Resize is handled (callout repositions on window resize).
+let _calloutState = { tooltipEl: null, arrowEl: null, anchorEl: null, side: 'auto' };
+
+function showCallout(opts) {
+  hideCallout();
+  const { anchor, text, side, highlight } = Object.assign(
+    { side: 'auto', highlight: true }, opts || {}
+  );
+  const anchorEl = (typeof anchor === 'string') ? document.querySelector(anchor) : anchor;
+  if (!anchorEl) {
+    console.warn('showCallout: anchor not found:', anchor);
+    return;
+  }
+  const tooltipEl = document.createElement('div');
+  tooltipEl.className = 'tutorial-callout';
+  tooltipEl.textContent = text || '';
+  document.body.appendChild(tooltipEl);
+  const arrowEl = document.createElement('div');
+  arrowEl.className = 'tutorial-callout-arrow';
+  document.body.appendChild(arrowEl);
+  if (highlight) anchorEl.classList.add('tutorial-callout-anchor-highlight');
+  _calloutState = { tooltipEl, arrowEl, anchorEl: highlight ? anchorEl : null, side };
+  _positionCallout(anchorEl, tooltipEl, arrowEl, side);
+  window.addEventListener('resize', _onCalloutResize);
+  window.addEventListener('scroll', _onCalloutResize, true);
+}
+
+function hideCallout() {
+  if (_calloutState.tooltipEl) _calloutState.tooltipEl.remove();
+  if (_calloutState.arrowEl) _calloutState.arrowEl.remove();
+  if (_calloutState.anchorEl) {
+    _calloutState.anchorEl.classList.remove('tutorial-callout-anchor-highlight');
+  }
+  _calloutState = { tooltipEl: null, arrowEl: null, anchorEl: null, side: 'auto' };
+  window.removeEventListener('resize', _onCalloutResize);
+  window.removeEventListener('scroll', _onCalloutResize, true);
+}
+
+function _onCalloutResize() {
+  const s = _calloutState;
+  // Use the element that matters for positioning: anchorEl if highlighting,
+  // else look up via the tooltip's stored data (we only support resize on
+  // anchored callouts — no anchor means no reposition needed).
+  if (s.tooltipEl && s.anchorEl) {
+    _positionCallout(s.anchorEl, s.tooltipEl, s.arrowEl, s.side);
+  }
+}
+
+function _positionCallout(anchorEl, tooltipEl, arrowEl, side) {
+  const ar = anchorEl.getBoundingClientRect();
+  const cw = tooltipEl.offsetWidth;
+  const ch = tooltipEl.offsetHeight;
+  const vw = window.innerWidth;
+  const vh = window.innerHeight;
+  const gap = 14; // space between anchor and tooltip (room for arrow)
+
+  if (side === 'auto') {
+    const room = {
+      top: ar.top,
+      bottom: vh - ar.bottom,
+      left: ar.left,
+      right: vw - ar.right,
+    };
+    side = Object.entries(room).sort((a, b) => b[1] - a[1])[0][0];
+  }
+
+  let top, left, arrowTop, arrowLeft, arrowClass;
+  switch (side) {
+    case 'top':
+      top = ar.top - ch - gap;
+      left = ar.left + ar.width / 2 - cw / 2;
+      arrowTop = ar.top - 11 - 1;
+      arrowLeft = ar.left + ar.width / 2 - 9;
+      arrowClass = 'from-bottom'; // arrow on bottom of tooltip points down to anchor
+      break;
+    case 'bottom':
+      top = ar.bottom + gap;
+      left = ar.left + ar.width / 2 - cw / 2;
+      arrowTop = ar.bottom + 1;
+      arrowLeft = ar.left + ar.width / 2 - 9;
+      arrowClass = 'from-top';
+      break;
+    case 'left':
+      top = ar.top + ar.height / 2 - ch / 2;
+      left = ar.left - cw - gap;
+      arrowTop = ar.top + ar.height / 2 - 9;
+      arrowLeft = ar.left - 11 - 1;
+      arrowClass = 'from-right';
+      break;
+    case 'right':
+    default:
+      top = ar.top + ar.height / 2 - ch / 2;
+      left = ar.right + gap;
+      arrowTop = ar.top + ar.height / 2 - 9;
+      arrowLeft = ar.right + 1;
+      arrowClass = 'from-left';
+      break;
+  }
+  // Clamp tooltip to viewport (8px margin)
+  left = Math.max(8, Math.min(left, vw - cw - 8));
+  top = Math.max(8, Math.min(top, vh - ch - 8));
+
+  tooltipEl.style.top = top + 'px';
+  tooltipEl.style.left = left + 'px';
+  arrowEl.style.top = arrowTop + 'px';
+  arrowEl.style.left = arrowLeft + 'px';
+  arrowEl.className = 'tutorial-callout-arrow ' + arrowClass;
+}
+
+// Expose on window so the tutorial state-machine and dev-console
+// testing can call it.
+window.showCallout = showCallout;
+window.hideCallout = hideCallout;
+
+// ============================================================
+// Tutorial state machine (slice 3 of TUTORIAL-SYSTEM)
+// ============================================================
+// Walks the `tutorial.steps` array attached to a scenario spec in
+// data/scenarios.json5, firing the appropriate callout as the
+// fortress-mode sim step counter advances. Source of truth for
+// "current step" is fortressSim.step (only fortressStep('wait')
+// advances it; modifier actions like Heat/Cool don't).
+//
+// Schema (per step in tutorial.steps):
+//   step    — int. fortressSim.step value at which this callout fires
+//             (any step whose .step <= fortressSim.step that hasn't
+//             fired yet will fire on the next advance)
+//   anchor  — CSS selector OR HTMLElement. Where the callout points.
+//   text    — tooltip body
+//   side    — 'top' | 'bottom' | 'left' | 'right' | 'auto' (optional)
+//
+// Control-locking: when active, body has `.tutorial-active` class.
+// CSS hides all .action-btn except those marked `.tutorial-allow`
+// (currently just the Advance button) and the broth panel.
+
+let _tutorialState = null; // { steps: [...], stepIdx: 0 } | null
+
+function startTutorial(scenarioName) {
+  // Boot the underlying scenario in Creative Mode first.
+  if (typeof startScenarioInCreative !== 'function') {
+    console.error('startTutorial: startScenarioInCreative not available');
+    return;
+  }
+  startScenarioInCreative(scenarioName);
+
+  const make = (typeof SCENARIOS !== 'undefined') ? SCENARIOS[scenarioName] : null;
+  const spec = make && make._json5_spec;
+  const tut = spec && spec.tutorial;
+  if (!tut || !Array.isArray(tut.steps) || !tut.steps.length) {
+    console.warn('startTutorial: scenario has no tutorial.steps:', scenarioName);
+    return; // scenario still runs, just without overlay
+  }
+  _tutorialState = { steps: tut.steps.slice(), stepIdx: 0 };
+  document.body.classList.add('tutorial-active');
+
+  // Whitelist the Advance button so it survives the control-locking CSS.
+  const adv = document.getElementById('f-advance');
+  if (adv) adv.classList.add('tutorial-allow');
+
+  // Fire any steps whose trigger is already satisfied (typically step:0).
+  _maybeAdvanceTutorial();
+}
+
+function endTutorial() {
+  _tutorialState = null;
+  document.body.classList.remove('tutorial-active');
+  document.querySelectorAll('.tutorial-allow').forEach(el => el.classList.remove('tutorial-allow'));
+  hideCallout();
+}
+
+function _maybeAdvanceTutorial() {
+  if (!_tutorialState) return;
+  if (typeof fortressSim === 'undefined' || !fortressSim) return;
+  const s = _tutorialState;
+  const cur = fortressSim.step || 0;
+  // Walk forward, firing every step whose trigger is satisfied.
+  // showCallout replaces, so only the last one in the burst stays
+  // visible — authors should put one callout per sim-step trigger.
+  let lastFired = null;
+  while (s.stepIdx < s.steps.length && (s.steps[s.stepIdx].step || 0) <= cur) {
+    lastFired = s.steps[s.stepIdx];
+    s.stepIdx++;
+  }
+  if (lastFired) {
+    showCallout({
+      anchor: lastFired.anchor || '#f-advance',
+      text: lastFired.text || '',
+      side: lastFired.side || 'auto',
+    });
+  }
+}
+
+window.startTutorial = startTutorial;
+window.endTutorial = endTutorial;
+
+
+function event_tutorial_temperature_drop(c) {
+  // Knock T down by 80°C, never below ambient. From 180°C this lands
+  // ~100°C — outside quartz's comfort window for sustained growth, but
+  // not so cold the existing crystal immediately re-dissolves.
+  c.temperature = Math.max(25.0, c.temperature - 80.0);
+  return 'The vug cools quickly. Temperature drops out of quartz\'s growth window — the silica supply that was happily plating onto the crystal a moment ago no longer wants to leave the fluid. Growth slows, then stops. The crystal is still there, still beautiful, but nothing new is forming on its faces. Conditions matter; minerals only grow when the broth wants to give them up.';
+}
+
+function event_tutorial_mn_pulse(c) {
+  // Push Mn well past calcite's 2 ppm activator threshold. From a
+  // starting 8 ppm this lands at ~38 ppm — saturating Mn in the next
+  // calcite zones, but well below the rhodochrosite supersaturation
+  // requirement in this broth.
+  c.fluid.Mn += 30.0;
+  return 'A fresh fluid pulse brings extra manganese into the broth. The next zones of calcite to grow will incorporate Mn²⁺ as a trace dopant — the same activator that lights up the Franklin / Sterling Hill specimens under longwave UV. The iron in the broth still quenches most of it for now, but the chemistry is set: Mn²⁺ is being recorded into every growth ring from this moment forward.';
+}
+
+function event_tutorial_fe_drop(c) {
+  // Crash Fe to ~5% of its current value (10 → 0.5). The quenching
+  // threshold is in the low single digits; this lands clearly under it.
+  c.fluid.Fe = Math.max(0.0, c.fluid.Fe * 0.05);
+  return 'An iron-poor recharge flushes the system. Fe²⁺ — the quencher — falls below the suppression threshold. The Mn-doped zones that grow next will fluoresce at full brightness. The boundary between the dim early zones and the bright new ones records the exact moment the iron dropped out of the broth. The crystal is now a stratigraphic record of the chemistry you played with.';
+}
+
 // --- deccan_zeolite ---
 function event_deccan_zeolite_silica_veneer(c) {
   c.fluid.SiO2 += 400;
@@ -11952,6 +12263,12 @@ const EVENT_REGISTRY = {
   colorado_plateau_k_pulse: event_colorado_plateau_k_pulse,
   colorado_plateau_ca_recovery: event_colorado_plateau_ca_recovery,
   colorado_plateau_arid_stabilization: event_colorado_plateau_arid_stabilization,
+  // Tutorials (May 2026) — see proposals/TUTORIAL-SYSTEM-BUILDER-REVIEW.md.
+  // Surfaced in the New Game Menu under "Tutorials"; structurally these
+  // are scenarios with simple, pedagogically-paced events.
+  tutorial_temperature_drop: event_tutorial_temperature_drop,
+  tutorial_mn_pulse: event_tutorial_mn_pulse,
+  tutorial_fe_drop: event_tutorial_fe_drop,
 };
 
 // Minimal JSONC parser — strips // line + /* */ block comments and
@@ -16693,6 +17010,9 @@ function showTitleScreen() {
   if (titleScreen) titleScreen.style.display = 'block';
   idleStop(); // stop any running idle simulation
   if (typeof grooveStop === 'function' && groovePlaying) grooveStop();
+  // Going Home tears down any active tutorial overlay + restores
+  // hidden Creative-mode controls. No-op if no tutorial running.
+  if (typeof endTutorial === 'function') endTutorial();
   currentGameMode = null;
   refreshTitleLoadButton();
 }
@@ -17147,6 +17467,9 @@ function switchMode(mode) {
   if (mode !== 'groove' && groovePlaying && typeof grooveStop === 'function') {
     grooveStop();
   }
+  // Switching out of fortress while a tutorial is running tears down
+  // the overlay + restores controls. (Tutorials only live in fortress.)
+  if (mode !== 'fortress' && typeof endTutorial === 'function') endTutorial();
 
   // Hide title screen, show mode toggle
   document.body.classList.remove('title-on');
@@ -18184,6 +18507,9 @@ function fortressStep(action) {
   updateFortressStatus();
   syncBrothSliders();
   if (typeof topoRender === 'function') topoRender();
+  // Drive the tutorial state machine after each action. Reads
+  // fortressSim.step internally — no-op when no tutorial is active.
+  if (typeof _maybeAdvanceTutorial === 'function') _maybeAdvanceTutorial();
 }
 
 function appendFortressLine(container, line) {
