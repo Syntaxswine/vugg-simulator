@@ -359,7 +359,7 @@ from typing import List, Dict, Optional, Tuple
 #          thresholds (>=10/>=5, matches research's "rare two-parent
 #          mineral" framing). Pre-v17 JS T cap at 250°C was way too
 #          lenient.
-SIM_VERSION = 17
+SIM_VERSION = 18
 
 
 # ============================================================
@@ -815,10 +815,18 @@ class WallState:
     """Topographic map of the vug interior, rendered as an irregular
     circle viewed from above.
 
-    The data model is 2D: rings × cells. v1 only populates ring[0] (the
-    wall surface); the `ring_count` dimension stays for a future
-    depth-slice view. Each cell is a wedge of angular arc, with its own
-    `wall_depth` — how much acid has pushed that chunk of wall outward.
+    The data model is 2D: rings × cells. The wall surface is sliced
+    vertically into `ring_count` parallel rings stacked along the cavity
+    axis (Phase 1 of PROPOSAL-3D-SIMULATION). Each cell is a wedge of
+    angular arc, with its own `wall_depth` — how much acid has pushed
+    that chunk of wall outward.
+
+    Phase 1 (data shape only): all rings share the same
+    `base_radius_mm` profile, and engine writes (paint_crystal,
+    erode_cells) still target ring[0]. Rings 1..N-1 hold pristine
+    WallCell defaults at every step. Forward-simulation results are
+    therefore identical to single-ring runs; only the data shape is
+    new. Per-ring chemistry and orientation tags arrive in Phases 2-3.
 
     Dissolution is per-cell: cells covered by an acid-resistant crystal
     shield their wall slice, so dissolution pushes unblocked cells
@@ -835,7 +843,11 @@ class WallState:
     (visual-only change for Phase 1).
     """
     cells_per_ring: int = 120
-    ring_count: int = 1
+    # Phase 1 of PROPOSAL-3D-SIMULATION: 16 vertically-stacked rings as
+    # the new default. Engine still operates on ring[0] only — rings 1..15
+    # hold pristine WallCell defaults so forward-simulation byte-equality
+    # is preserved. Phase 2 (per-ring chemistry) is what makes them differ.
+    ring_count: int = 16
     vug_diameter_mm: float = 50.0
     initial_radius_mm: float = 25.0
     ring_spacing_mm: float = 1.0
@@ -1034,6 +1046,25 @@ class WallState:
         """Keep the nominal diameter in sync with the host sim's global
         measure. Per-cell `wall_depth` is the authoritative shape."""
         self.vug_diameter_mm = new_diameter_mm
+
+    def ring_index_for_height_mm(self, height_mm: float) -> int:
+        """Map a vertical position (mm above the floor) to a ring index.
+
+        Floor (height = 0) → ring 0; ceiling (height = ring_count *
+        ring_spacing_mm) → ring_count - 1. Out-of-range heights clamp
+        to the nearest valid ring. Used by Phase 2+ for per-ring
+        chemistry seeding and Phase 3 orientation tagging; safe to
+        call in Phase 1 (just returns 0 for any height when
+        ring_count == 1)."""
+        if self.ring_count <= 1:
+            return 0
+        spacing = self.ring_spacing_mm if self.ring_spacing_mm > 0 else 1.0
+        idx = int(height_mm / spacing)
+        if idx < 0:
+            return 0
+        if idx >= self.ring_count:
+            return self.ring_count - 1
+        return idx
 
     def erode_cells(self, rate_mm: float, blocked: set) -> int:
         """Distribute a radial dissolution amount across unblocked cells.

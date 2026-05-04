@@ -4145,7 +4145,11 @@ function _raycastUnion(bubbles, theta) {
 class WallState {
   constructor(opts = {}) {
     this.cells_per_ring = opts.cells_per_ring ?? 120;
-    this.ring_count = opts.ring_count ?? 1;
+    // Phase 1 of PROPOSAL-3D-SIMULATION: 16 vertically-stacked rings as
+    // the new default. Engine still operates on ring[0] only — rings 1..15
+    // hold pristine WallCell defaults so forward-simulation byte-equality
+    // is preserved. Phase 2 (per-ring chemistry) is what makes them differ.
+    this.ring_count = opts.ring_count ?? 16;
     this.vug_diameter_mm = opts.vug_diameter_mm ?? 50.0;
     this.initial_radius_mm = opts.initial_radius_mm ?? (this.vug_diameter_mm / 2);
     this.ring_spacing_mm = opts.ring_spacing_mm ?? 1.0;
@@ -4279,6 +4283,21 @@ class WallState {
   }
 
   updateDiameter(newDiameter) { this.vug_diameter_mm = newDiameter; }
+
+  // Map a vertical position (mm above the floor) to a ring index.
+  // Floor (height=0) → ring 0; ceiling (height = ring_count *
+  // ring_spacing_mm) → ring_count-1. Out-of-range heights clamp.
+  // Used by Phase 2+ for per-ring chemistry / orientation tagging;
+  // safe in Phase 1 (returns 0 for any height when ring_count <= 1).
+  // Mirrors WallState.ring_index_for_height_mm in vugg.py.
+  ringIndexForHeightMm(heightMm) {
+    if (this.ring_count <= 1) return 0;
+    const spacing = this.ring_spacing_mm > 0 ? this.ring_spacing_mm : 1.0;
+    let idx = Math.floor(heightMm / spacing);
+    if (idx < 0) return 0;
+    if (idx >= this.ring_count) return this.ring_count - 1;
+    return idx;
+  }
 
   // Distribute a radial dissolution amount across unblocked cells.
   // Blocked cells (Set of cell indices) contribute zero — the acid
@@ -12295,7 +12314,7 @@ function _buildScenarioFromSpec(scenarioId, spec) {
       throw new Error(`scenarios.json5 scenario '${scenarioId}' references unknown event type '${ev.type}' — register it in EVENT_REGISTRY (index.html) + the Python mirror (vugg.py).`);
     }
   }
-  return function scenarioCallable() {
+  const scenarioCallable = function scenarioCallable() {
     const conditions = new VugConditions({
       temperature, pressure,
       fluid: new FluidChemistry(fluidKwargs),
@@ -12312,6 +12331,12 @@ function _buildScenarioFromSpec(scenarioId, spec) {
     }));
     return { conditions, events, defaultSteps: duration };
   };
+  // Attach the raw spec so consumers (notably the tutorial state machine,
+  // which reads `tutorial.steps`) can recover it. Function objects can hold
+  // arbitrary properties; this mirrors how `_json5_spec` is read in
+  // startTutorial.
+  scenarioCallable._json5_spec = spec;
+  return scenarioCallable;
 }
 
 let _scenariosJson5Ready = false;
