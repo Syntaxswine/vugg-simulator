@@ -22223,6 +22223,18 @@ function _topoRenderRings3D(ctx, sim, wall, ring0, cellR, boundaryR,
     const rrf = ringRadiusFactor;
 
     // Crystal wedges — every ring renders its own crystals (Phase C v1).
+    // Phase D v1: inner edge sits at a smaller sphere radius, not just
+    // shrunken in the ring's local plane. The inner-vertex 3D position
+    // is the outer position scaled toward the sphere's center by an
+    // `inwardFactor` in [0, 1]. This automatically produces:
+    //   * Stalactites on ceiling rings — the inner edge is offset
+    //     downward (toward sphere center) from each ceiling cell.
+    //   * Stalagmites on floor rings — inner edge offset upward.
+    //   * Wall crystals — inner edge offset radially inward
+    //     (horizontal), the same look as before.
+    // No gravity tracking needed — the sphere's inward normal at any
+    // cell automatically points "down" on the ceiling and "up" on
+    // the floor.
     {
       for (let i = 0; i < N; i++) {
         const cell = ring[i];
@@ -22236,25 +22248,38 @@ function _topoRenderRings3D(ctx, sim, wall, ring0, cellR, boundaryR,
         const crystal = sim?.crystals?.find(c => c.crystal_id === cell.crystal_id);
         const voidReach = crystal ? Math.max(crystal.void_reach, 0.05) : 0.5;
         const inwardMm = (cell.thickness_um / 1000.0) * voidReach;
-        const inwardPx = Math.max(inwardMm * mmToPx, TOPO_WALL_STROKE_PX + 1) * rrf;
-        const rStartIn = Math.max(rStart - inwardPx, rStart * (1 - TOPO_CRYSTAL_CAP_FRAC));
-        const rMidIn = Math.max(rMid - inwardPx, rMid * (1 - TOPO_CRYSTAL_CAP_FRAC));
-        const rEndIn = Math.max(rEnd - inwardPx, rEnd * (1 - TOPO_CRYSTAL_CAP_FRAC));
-        // Compute world coords (canvas-plane), then project each.
+        const inwardPx = Math.max(inwardMm * mmToPx, TOPO_WALL_STROKE_PX + 1);
+        // Sphere-radial inwardFactor: outer vertex at full radius R,
+        // inner vertex at R*inwardFactor. Cap so the inner doesn't
+        // reach all the way to the origin (would invert geometry).
+        const inwardFactor = Math.max(1 - TOPO_CRYSTAL_CAP_FRAC,
+                                       1 - inwardPx / Math.max(sphereRadiusPx, 1));
+        // Outer vertices: canvas-plane at this ring's wz.
         const sxW = cx + rStart * Math.cos(a0), syW = cy + rStart * Math.sin(a0);
         const mxW = cx + rMid * Math.cos(aMid), myW = cy + rMid * Math.sin(aMid);
         const exW = cx + rEnd * Math.cos(a1),  eyW = cy + rEnd * Math.sin(a1);
-        const sxInW = cx + rStartIn * Math.cos(a0), syInW = cy + rStartIn * Math.sin(a0);
-        const mxInW = cx + rMidIn * Math.cos(aMid), myInW = cy + rMidIn * Math.sin(aMid);
-        const exInW = cx + rEndIn * Math.cos(a1),  eyInW = cy + rEndIn * Math.sin(a1);
+        // Inner vertices: outer scaled toward sphere center (cx,cy,0).
+        // The 3D scale moves them in BOTH the canvas plane AND in z.
+        const sxInW = cx + (sxW - cx) * inwardFactor;
+        const syInW = cy + (syW - cy) * inwardFactor;
+        const mxInW = cx + (mxW - cx) * inwardFactor;
+        const myInW = cy + (myW - cy) * inwardFactor;
+        const exInW = cx + (exW - cx) * inwardFactor;
+        const eyInW = cy + (eyW - cy) * inwardFactor;
+        const wzIn = wz * inwardFactor;
         const [psx, psy] = proj(sxW, syW);
         const [pmx, pmy] = proj(mxW, myW);
         const [pex, pey] = proj(exW, eyW);
-        const [psxIn, psyIn] = proj(sxInW, syInW);
-        const [pmxIn, pmyIn] = proj(mxInW, myInW);
-        const [pexIn, peyIn] = proj(exInW, eyInW);
-        // Bezier control points in screen space — same construction as
-        // 2D, just with projected endpoints/midpoints.
+        // Inner edge projects at wz*inwardFactor (different depth than
+        // outer), so use a per-vertex projection instead of `proj`.
+        const projInner = (wxRel, wyRel) => {
+          const [px, py] = _topoProject3D(wxRel, wyRel, wzIn,
+                                            _topoTiltX, _topoTiltY, F);
+          return [cx + px, cy + py];
+        };
+        const [psxIn, psyIn] = projInner(sxInW - cx, syInW - cy);
+        const [pmxIn, pmyIn] = projInner(mxInW - cx, myInW - cy);
+        const [pexIn, peyIn] = projInner(exInW - cx, eyInW - cy);
         const outerCpX = 2 * pmx - (psx + pex) / 2;
         const outerCpY = 2 * pmy - (psy + pey) / 2;
         const innerCpX = 2 * pmxIn - (psxIn + pexIn) / 2;
@@ -22265,7 +22290,6 @@ function _topoRenderRings3D(ctx, sim, wall, ring0, cellR, boundaryR,
         ctx.moveTo(psx, psy);
         ctx.quadraticCurveTo(outerCpX, outerCpY, pex, pey);
         ctx.lineTo(pexIn, peyIn);
-        // v0 collapses habit textures to smooth Bezier — see header.
         ctx.quadraticCurveTo(innerCpX, innerCpY, psxIn, psyIn);
         ctx.closePath();
         ctx.fill();
