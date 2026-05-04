@@ -893,6 +893,16 @@ class WallState:
     polar_amplitudes: List[float] = field(default_factory=list)
     polar_phases: List[float] = field(default_factory=list)
 
+    # Phase F: per-ring θ twist. Adjacent rings rotate slightly relative
+    # to each other, so the equatorial bubble-merge bumps spiral up the
+    # cavity wall instead of stacking in perfect vertical columns.
+    # Computed as a 3-harmonic Fourier series in φ (smooth along the
+    # polar axis), so adjacent rings have similar twist values — the
+    # cavity reads as a continuously-twisted geode rather than a stack
+    # of independently rotated discs.
+    twist_amplitudes: List[float] = field(default_factory=list)
+    twist_phases: List[float] = field(default_factory=list)
+
     def __post_init__(self):
         if self.initial_radius_mm <= 0:
             self.initial_radius_mm = self.vug_diameter_mm / 2.0
@@ -906,6 +916,7 @@ class WallState:
         # it can include the largest bulge.
         self._build_profile()
         self._build_polar_profile()
+        self._build_twist_profile()
         if self.max_seen_radius_mm <= 0:
             max_base = self.initial_radius_mm
             for ring in self.rings:
@@ -1075,6 +1086,40 @@ class WallState:
         for n, amp in enumerate(self.polar_amplitudes):
             factor += amp * math.cos((n + 1) * phi + self.polar_phases[n])
         return max(0.5, factor)
+
+    # --- Phase F: per-latitude twist profile ------------------------------
+    # Each ring gets a smoothly-varying θ rotation so the cavity reads
+    # as a twisted geode. Three harmonics in φ; amplitudes ~ ±0.4 rad
+    # peaks (the sum of three ±0.4 amplitudes peaks well past that, but
+    # the cosine sum rarely hits the worst case). Total twist range
+    # across the polar axis is roughly ±0.6 rad on average — visible
+    # but not chaotic.
+    _TWIST_HARMONICS = 3
+    _TWIST_AMP_RANGE = (-0.4, 0.4)
+
+    def _build_twist_profile(self) -> None:
+        """Seed twist amplitudes + phases from a derived RNG. Uses a
+        different XOR mask than the polar profile so the two profiles
+        are independent — a seed that happens to give a strongly
+        bulged polar profile won't also give a strongly twisted one."""
+        import random as _random
+        seed = int(self.shape_seed) ^ 0x_BEEF_FACE
+        rng = _random.Random(seed & 0xFFFFFFFF)
+        lo, hi = self._TWIST_AMP_RANGE
+        self.twist_amplitudes = [rng.uniform(lo, hi)
+                                  for _ in range(self._TWIST_HARMONICS)]
+        self.twist_phases = [rng.uniform(0.0, 2.0 * math.pi)
+                              for _ in range(self._TWIST_HARMONICS)]
+
+    def ring_twist_radians(self, phi: float) -> float:
+        """Per-latitude θ offset in radians. φ ∈ [0, π]. Renderer adds
+        this to the angle of every cell on the latitude band; the
+        equatorial bubble-merge bumps then appear to spiral up the
+        cavity wall rather than stack in vertical columns."""
+        twist = 0.0
+        for n, amp in enumerate(self.twist_amplitudes):
+            twist += amp * math.cos((n + 1) * phi + self.twist_phases[n])
+        return twist
 
     # ----------------------------------------------------------------------
 
