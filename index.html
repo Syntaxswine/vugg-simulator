@@ -21878,6 +21878,47 @@ function _topoProject3D(wx, wy, wz, tiltX, tiltY, F) {
   return [x2 * scale, y2 * scale, z2];
 }
 
+// Phase C v1 made crystals scatter across all rings, but the 2D topo
+// strip and the hit-test were still reading rings[0] only — which
+// after scatter is mostly empty. Result: 2D mode mostly hid crystals,
+// and hover-tooltip mostly returned "vugg wall" because the queried
+// ring 0 cell was empty. This helper builds a synthetic "aggregate
+// ring": for each cell index, the most-prominent crystal across any
+// ring is collapsed onto one slot. Geometry (base_radius_mm) is taken
+// from rings[0] since that's uniform across rings. Lossy — the 2D
+// view can't tell which ring a crystal was on — but it makes
+// everything visible and hover-clickable.
+function _topoAggregateRing(wall) {
+  if (!wall || !wall.rings || !wall.rings.length) return [];
+  const ring0 = wall.rings[0];
+  const N = ring0.length;
+  // Shallow-copy ring 0 so we can overlay other rings without mutating
+  // the simulation state.
+  const out = ring0.map(c => ({
+    wall_depth: c.wall_depth,
+    crystal_id: c.crystal_id,
+    mineral: c.mineral,
+    thickness_um: c.thickness_um,
+    base_radius_mm: c.base_radius_mm,
+  }));
+  // For each cell index, walk rings[1..] and take the thickest
+  // crystal seen. Ties go to the lowest ring index (deterministic).
+  for (let r = 1; r < wall.rings.length; r++) {
+    const ring = wall.rings[r];
+    if (!ring || !ring.length) continue;
+    for (let i = 0; i < N; i++) {
+      const cell = ring[i];
+      if (cell.crystal_id == null) continue;
+      if (cell.thickness_um > out[i].thickness_um) {
+        out[i].crystal_id = cell.crystal_id;
+        out[i].mineral = cell.mineral;
+        out[i].thickness_um = cell.thickness_um;
+      }
+    }
+  }
+  return out;
+}
+
 function topoRender(optOverrideRing) {
   const canvas = document.getElementById('topo-canvas');
   const panel = document.getElementById('topo-panel');
@@ -21885,7 +21926,11 @@ function topoRender(optOverrideRing) {
 
   const sim = topoActiveSim();
   const wall = sim ? sim.wall_state : null;
-  const ring0 = optOverrideRing || (wall && wall.rings[0]);
+  // Use the aggregate ring (crystals from any ring projected to one)
+  // so the 2D topo strip shows everything and hit-test can find any
+  // crystal. Replay snapshots are already a single ring shape, so
+  // optOverrideRing falls through unchanged.
+  const ring0 = optOverrideRing || (wall && _topoAggregateRing(wall));
 
   // Empty-state guard: no active sim or no ring data yet (fresh page,
   // pre-first-Grow). Paint a centered placeholder so the panel reads as
@@ -22448,7 +22493,12 @@ function _topoHitTest(ev) {
   const canvas = document.getElementById('topo-canvas');
   const sim = topoActiveSim();
   if (!canvas || !sim) return null;
-  const ring0 = sim.wall_state.rings[0];
+  // Phase C v1 fix: hit-test against the aggregate ring (crystals
+  // collapsed across all rings) so hovering a crystal that nucleated
+  // on, say, ring 7 still resolves to the right mineral. Without
+  // this the user sees "vugg wall" everywhere because rings[0] is
+  // mostly empty after scatter.
+  const ring0 = _topoAggregateRing(sim.wall_state);
   if (!ring0 || !ring0.length) return null;
   const rect = canvas.getBoundingClientRect();
   const mx = ev.clientX - rect.left;
@@ -22508,7 +22558,9 @@ function _topoTooltipFromEvent(ev) {
   const tip = document.getElementById('topo-tooltip');
   const sim = topoActiveSim();
   if (!canvas || !tip || !sim) return;
-  const ring0 = sim.wall_state.rings[0];
+  // Phase C v1 fix: aggregate ring so the tooltip resolves crystals
+  // across all rings, not just rings[0].
+  const ring0 = _topoAggregateRing(sim.wall_state);
   if (!ring0 || !ring0.length) { tip.style.display = 'none'; return; }
   const rect = canvas.getBoundingClientRect();
   const mx = ev.clientX - rect.left;
