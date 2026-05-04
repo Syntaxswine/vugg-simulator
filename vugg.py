@@ -54,7 +54,7 @@ import math
 import os
 import random
 import sys
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, fields, replace
 from typing import List, Dict, Optional, Tuple
 
 
@@ -359,7 +359,17 @@ from typing import List, Dict, Optional, Tuple
 #          thresholds (>=10/>=5, matches research's "rare two-parent
 #          mineral" framing). Pre-v17 JS T cap at 250°C was way too
 #          lenient.
-SIM_VERSION = 18
+SIM_VERSION = 21
+
+# Phase C of PROPOSAL-3D-SIMULATION (= proposal's "Phase 2"): per-ring
+# chemistry scaffolding. Each ring carries its own FluidChemistry +
+# temperature; inter-ring diffusion homogenizes them slowly. Rate is
+# the per-step fraction of the difference exchanged between adjacent
+# rings — small enough that a vertical gradient survives many steps,
+# large enough that uniform broth stays uniform under floating-point
+# rounding. Scenarios that don't seed a vertical gradient see all rings
+# identical at every step (forward-simulation byte-equality preserved).
+DEFAULT_INTER_RING_DIFFUSION_RATE = 0.05
 
 
 # ============================================================
@@ -1047,6 +1057,39 @@ class WallState:
         measure. Per-cell `wall_depth` is the authoritative shape."""
         self.vug_diameter_mm = new_diameter_mm
 
+    def ring_orientation(self, ring_idx: int) -> str:
+        """Phase D: which third of the sphere this ring belongs to.
+
+        Floor rings (bottom quarter by latitude) → 'floor'; ceiling
+        rings (top quarter) → 'ceiling'; everything in the middle
+        → 'wall'. Used by Phase D nucleation weighting (more crystals
+        on the wall — that's where most surface area lives) and Phase
+        D v1's habit-orientation logic. For ring_count == 1 every
+        ring is 'wall' (legacy single-ring sims have no vertical
+        structure)."""
+        n = self.ring_count
+        if n <= 1:
+            return 'wall'
+        if ring_idx < n // 4:
+            return 'floor'
+        if ring_idx >= 3 * n // 4:
+            return 'ceiling'
+        return 'wall'
+
+    def ring_area_weight(self, ring_idx: int) -> float:
+        """Phase D: per-ring nucleation weight proportional to the
+        ring's circumference on the sphere. A real geode's wall has
+        roughly 6× more area per latitude band at the equator than
+        at a polar cap, so the equator should host more crystal
+        nucleations. Returns sin(latitude) using the same half-step
+        offset the renderer uses (so visual area matches engine
+        weight)."""
+        n = self.ring_count
+        if n <= 1:
+            return 1.0
+        phi = math.pi * (ring_idx + 0.5) / n
+        return math.sin(phi)
+
     def ring_index_for_height_mm(self, height_mm: float) -> int:
         """Map a vertical position (mm above the floor) to a ring index.
 
@@ -1108,9 +1151,10 @@ class WallState:
 
     def paint_crystal(self, crystal: 'Crystal') -> None:
         """Mark the cells this crystal occupies with its id / mineral /
-        thickness. Called after growth each step. Only ring[0] is painted
-        in v1; when multi-ring rendering arrives, void_reach will extend
-        the paint deeper.
+        thickness. Called after growth each step. Phase C v1: paints
+        on the crystal's own ring (`crystal.wall_ring_index`) so
+        crystals scatter across the sphere wall. Legacy crystals
+        (None ring index) fall through to ring 0.
 
         Footprint math: wall_spread × total_growth gives the raw arc,
         but the spec's spread values (0.2–0.9) describe the fraction of
@@ -1122,17 +1166,20 @@ class WallState:
         """
         if crystal.wall_center_cell is None:
             return
+        ring_idx = crystal.wall_ring_index
+        if ring_idx is None or ring_idx < 0 or ring_idx >= self.ring_count:
+            ring_idx = 0
         FOOTPRINT_SCALE = 4.0
         arc_mm = ((crystal.total_growth_um / 1000.0)
                   * max(crystal.wall_spread, 0.05)
                   * FOOTPRINT_SCALE)
         half_cells = max(1, int(round(arc_mm / self.cell_arc_mm / 2.0)))
         thickness = max(crystal.total_growth_um, 1.0)  # nucleated = visible
-        ring0 = self.rings[0]
+        ring = self.rings[ring_idx]
         N = self.cells_per_ring
         for offset in range(-half_cells, half_cells + 1):
             idx = (crystal.wall_center_cell + offset) % N
-            cell = ring0[idx]
+            cell = ring[idx]
             if cell.thickness_um < thickness:
                 cell.crystal_id = crystal.crystal_id
                 cell.mineral = crystal.mineral
@@ -4906,11 +4953,17 @@ class Crystal:
     wall_spread: float = 0.5
     void_reach: float = 0.5
     vector: str = "equant"
-    # Anchor cell on the wall (ring 0) where this crystal nucleated.
-    # WallState.paint_crystal() grows outward from here by wall_spread ×
-    # total_growth. None for crystals that nucleated on another crystal
-    # rather than the wall — those follow their host's cell.
+    # Anchor cell on the wall where this crystal nucleated. Combined
+    # with `wall_ring_index` (below) it identifies the (ring, cell)
+    # the crystal sits on. WallState.paint_crystal() grows outward
+    # from here by wall_spread × total_growth.
     wall_center_cell: Optional[int] = None
+    # Phase C v1: which ring the crystal nucleated on (0 = south pole
+    # / floor, ring_count-1 = north pole / ceiling). None means legacy
+    # ring-0 placement (loaded from a pre-Phase-C-v1 save). New
+    # nucleations always set this. Growth reads the ring's fluid +
+    # temperature for chemistry; paint targets this ring's cells.
+    wall_ring_index: Optional[int] = None
     
     # Growth history
     zones: List[GrowthZone] = field(default_factory=list)
@@ -13204,7 +13257,109 @@ class VugSimulator:
             secondary_bubbles=conditions.wall.secondary_bubbles,
             shape_seed=conditions.wall.shape_seed,
         )
-    
+
+        # Phase C of PROPOSAL-3D-SIMULATION: per-ring fluid + temperature.
+        # Phase C v1 hooks up: each ring carries its own FluidChemistry,
+        # the growth loop swaps conditions.fluid to ring_fluids[k] for
+        # the duration of an engine call, and diffusion at end of step
+        # equilibrates them. The "equator" ring (index ring_count//2)
+        # is aliased to conditions.fluid so events that mutate
+        # conditions.fluid (apply_events, dissolve_wall, etc.) propagate
+        # naturally to the equator ring's slot in ring_fluids — and
+        # diffusion then spreads them outward to floor and ceiling
+        # rings over time.
+        n_rings = self.wall_state.ring_count
+        equator = n_rings // 2
+        self.ring_fluids: List[FluidChemistry] = [
+            replace(self.conditions.fluid) for _ in range(n_rings)
+        ]
+        # Make the equator ring share storage with conditions.fluid.
+        # Mutations to either propagate to the other.
+        self.ring_fluids[equator] = self.conditions.fluid
+        self.ring_temperatures: List[float] = [self.conditions.temperature] * n_rings
+        self.inter_ring_diffusion_rate: float = DEFAULT_INTER_RING_DIFFUSION_RATE
+        # Cache the FluidChemistry numeric fields once — used by the
+        # diffusion loop to walk every component without paying for the
+        # dataclasses.fields() call on each step.
+        self._fluid_field_names: Tuple[str, ...] = tuple(
+            f.name for f in fields(FluidChemistry)
+        )
+
+    def _snapshot_global(self) -> Tuple['FluidChemistry', float]:
+        """Phase C v1: capture conditions.fluid + temperature before a
+        block of code that mutates them globally (events, wall
+        dissolution, ambient cooling). Pair with
+        _propagate_global_delta to push the same change to all
+        non-equator rings — the equator ring is aliased to
+        conditions.fluid so it already reflects the new value."""
+        return (replace(self.conditions.fluid), self.conditions.temperature)
+
+    def _propagate_global_delta(self, snapshot) -> None:
+        """Apply the delta between current conditions and `snapshot` to
+        all non-equator ring_fluids and ring_temperatures. Used after
+        events / dissolve / cooling so a single global pulse reaches
+        every ring (otherwise per-ring growth would consume from rings
+        that never saw the event, and minerals dependent on the pulse
+        would stop nucleating)."""
+        pre_fluid, pre_temp = snapshot
+        equator = self.wall_state.ring_count // 2
+        equator_fluid = self.ring_fluids[equator]  # = conditions.fluid (aliased)
+        for fname in self._fluid_field_names:
+            delta = (getattr(self.conditions.fluid, fname)
+                     - getattr(pre_fluid, fname))
+            if delta == 0.0:
+                continue
+            for rf in self.ring_fluids:
+                if rf is equator_fluid:
+                    continue
+                setattr(rf, fname, getattr(rf, fname) + delta)
+        delta_t = self.conditions.temperature - pre_temp
+        if delta_t != 0.0:
+            for k in range(len(self.ring_temperatures)):
+                if k == equator:
+                    self.ring_temperatures[k] = self.conditions.temperature
+                else:
+                    self.ring_temperatures[k] += delta_t
+
+    def _diffuse_ring_state(self, rate: float = None) -> None:
+        """Phase C inter-ring homogenization. One discrete-Laplacian step
+        per fluid component and per temperature, with Neumann (no-flux)
+        boundary conditions at the floor and ceiling rings.
+
+        For uniform rings this is a no-op (Laplacian of a constant is
+        zero), which preserves byte-equality for default scenarios. For
+        non-uniform rings, the gradient relaxes by `rate * (neighbor
+        sum - 2*self)` per step.
+
+        Old values are read into a snapshot before any writes so each
+        ring's update sees the pre-step state of its neighbors — without
+        this, ring k+1's update would already see ring k's new value
+        and the diffusion would be asymmetric.
+        """
+        if rate is None:
+            rate = self.inter_ring_diffusion_rate
+        if rate <= 0:
+            return
+        n = len(self.ring_fluids)
+        if n <= 1:
+            return
+        # Diffuse each fluid component independently.
+        for fname in self._fluid_field_names:
+            old = [getattr(rf, fname) for rf in self.ring_fluids]
+            for k in range(n):
+                kp = k - 1 if k > 0 else 0       # Neumann: ring -1 reuses ring 0
+                kn = k + 1 if k < n - 1 else n - 1
+                new_val = old[k] + rate * (old[kp] + old[kn] - 2.0 * old[k])
+                setattr(self.ring_fluids[k], fname, new_val)
+        # Diffuse temperature with the same scheme.
+        old_t = list(self.ring_temperatures)
+        for k in range(n):
+            kp = k - 1 if k > 0 else 0
+            kn = k + 1 if k < n - 1 else n - 1
+            self.ring_temperatures[k] = old_t[k] + rate * (
+                old_t[kp] + old_t[kn] - 2.0 * old_t[k]
+            )
+
     def nucleate(self, mineral: str, position: str = "vug wall",
                  sigma: float = 1.0) -> Crystal:
         """Nucleate a new crystal. `sigma` (current supersaturation for this
@@ -13234,9 +13389,12 @@ class VugSimulator:
             crystal.vector = variant.get("vector", "equant")
 
         # Anchor on the wall. Crystals that nucleated on another crystal
-        # (position string like "on pyrite #3") inherit the host's cell so
-        # they paint over/next to it. Everything else gets a fresh random
-        # cell on ring 0.
+        # (position string like "on pyrite #3") inherit the host's cell
+        # AND ring so they paint over/next to it. Everything else gets a
+        # fresh random cell + a random ring (Phase C v1: scatter across
+        # the sphere wall). Phase D will weight ring choice by orientation
+        # so ceiling habits prefer the upper rings, floor habits the lower.
+        crystal.wall_ring_index = self._assign_wall_ring(position)
         crystal.wall_center_cell = self._assign_wall_cell(position)
 
         # Dominant-form strings are still per-mineral — they describe
@@ -13419,6 +13577,41 @@ class VugSimulator:
         ring0 = self.wall_state.rings[0]
         empty = [i for i, cell in enumerate(ring0) if cell.crystal_id is None]
         return random.choice(empty) if empty else random.randrange(N)
+
+    def _assign_wall_ring(self, position: str) -> int:
+        """Pick a ring for a nucleating crystal. Host-substrate
+        overgrowths inherit the host's ring so pseudomorphs land on
+        the same latitude band. Free-wall nucleations sample a ring
+        weighted by its area (Phase D: equator gets more crystals
+        than polar caps, matching real-geode surface-area distribution).
+
+        Always consumes exactly one RNG number for free-wall
+        nucleations (even when ring_count == 1) so simulation parity
+        holds across different ring counts — single-ring sims always
+        return 0 but still advance the RNG."""
+        host_id = None
+        if " #" in position:
+            try:
+                host_id = int(position.rsplit("#", 1)[1].split()[0])
+            except ValueError:
+                host_id = None
+        if host_id is not None:
+            host = next((c for c in self.crystals if c.crystal_id == host_id), None)
+            if host and host.wall_ring_index is not None:
+                return host.wall_ring_index
+        n = max(1, self.wall_state.ring_count)
+        # Area-weighted sample. Linear scan picks the first ring whose
+        # cumulative weight exceeds a uniform draw of [0, total).
+        # Identical algorithm in JS so both runtimes pick the same
+        # ring for the same RNG state.
+        weights = [self.wall_state.ring_area_weight(k) for k in range(n)]
+        total = sum(weights) or 1.0
+        r = random.random() * total
+        for k, w in enumerate(weights):
+            r -= w
+            if r <= 0.0:
+                return k
+        return n - 1
 
     def _repaint_wall_state(self) -> None:
         """Rebuild ring-0 occupancy from the current crystal list. Runs
@@ -15341,8 +15534,13 @@ class VugSimulator:
         self.log = []
         self.step += 1
 
-        # Apply events first
+        # Phase C v1: events apply to conditions (= equator ring fluid
+        # via aliasing). Snapshot before so the delta can be propagated
+        # to non-equator rings — otherwise a global event pulse never
+        # reaches the rings where crystals are actually growing.
+        snap = self._snapshot_global()
         self.apply_events()
+        self._propagate_global_delta(snap)
 
         # Track dolomite saturation crossings for the Kim 2023 cycle
         # mechanism — must run after events (which set chemistry) and
@@ -15350,8 +15548,11 @@ class VugSimulator:
         self.conditions.update_dol_cycles()
 
         # Wall dissolution BEFORE crystal growth — this is the feedback loop
-        # Acid attacks wall → releases Ca/CO3 → supersaturates → crystals grow fast
+        # Acid attacks wall → releases Ca/CO3 → supersaturates → crystals grow fast.
+        # Same propagate-to-rings treatment as events.
+        snap = self._snapshot_global()
         self.dissolve_wall()
+        self._propagate_global_delta(snap)
         
         # Check for new nucleation
         self.check_nucleation()
@@ -15377,7 +15578,34 @@ class VugSimulator:
                 )
                 continue
 
-            zone = engine(crystal, self.conditions, self.step)
+            # Phase C v1: swap conditions.fluid + temperature to the
+            # crystal's ring's values so the engine reads ring-local
+            # chemistry. The engine never sees ring_fluids directly —
+            # it just observes "the fluid" via conditions, the same
+            # interface as before. Mass-balance side effects (Ca/CO3
+            # consumption, byproduct release) hit ring_fluids[k]
+            # because that's the object swapped in. Restore globals
+            # afterward so subsequent code (events, narrators, log)
+            # sees the bulk-fluid view.
+            ring_idx = crystal.wall_ring_index
+            saved_fluid = None
+            saved_temp = None
+            if (ring_idx is not None
+                    and 0 <= ring_idx < len(self.ring_fluids)):
+                saved_fluid = self.conditions.fluid
+                saved_temp = self.conditions.temperature
+                self.conditions.fluid = self.ring_fluids[ring_idx]
+                self.conditions.temperature = self.ring_temperatures[ring_idx]
+            try:
+                zone = engine(crystal, self.conditions, self.step)
+            finally:
+                if saved_fluid is not None:
+                    self.conditions.fluid = saved_fluid
+                if saved_temp is not None:
+                    # Track any temperature change the engine made so it
+                    # mirrors back into the ring's temperature.
+                    self.ring_temperatures[ring_idx] = self.conditions.temperature
+                    self.conditions.temperature = saved_temp
             if zone:
                 crystal.add_zone(zone)
                 if zone.thickness_um < 0:
@@ -15461,9 +15689,19 @@ class VugSimulator:
         if decomp_logs:
             self.log.extend(decomp_logs)
         
-        # Ambient cooling
+        # Ambient cooling — propagate the temperature drop to all rings
+        # so non-equator rings cool too.
+        snap = self._snapshot_global()
         self.ambient_cooling()
-        
+        self._propagate_global_delta(snap)
+
+        # Phase C: inter-ring fluid/temperature diffusion runs at the
+        # very end of the step so chemistry exchanges happen against a
+        # stable post-events post-growth state. No-op when all rings
+        # carry identical values (Laplacian of a constant is zero) —
+        # this preserves byte-equality for default scenarios.
+        self._diffuse_ring_state()
+
         return self.log
     
     def format_header(self) -> str:

@@ -355,7 +355,14 @@ h1 {
 }
 .topo-canvas-wrap { flex: 1 1 auto; min-width: 0; }
 @media (max-width: 600px) {
-  #topo-canvas { height: 260px; }
+  /* On narrow viewports the legend stacks above the canvas (rather than
+     sitting next to it), and the legend gets denser to save vertical
+     space. The canvas height is NOT capped here — it inherits its
+     stage's 200% height (CSS rule for #topo-canvas in the main block)
+     so the rendered cavity scales with the wrap, not with viewport
+     width. Pre-2026-05 the cap was 260px, which left the cavity at
+     ~33px diameter on phones — Phase B's 3D ring-stack made that
+     unusable, so the cap came out. */
   .topo-body { flex-direction: column; gap: 0.4rem; }
   .topo-legend-drop { min-width: 0; align-self: stretch; }
   .topo-legend { font-size: 0.65rem; }
@@ -3908,6 +3915,23 @@ const SIM_VERSION = 17;
 // PHYSICAL CONSTANTS AND MODELS
 // ============================================================
 
+// Phase C of PROPOSAL-3D-SIMULATION: inter-ring diffusion rate. The
+// per-step fraction of the difference exchanged between adjacent rings
+// — small enough that a vertical gradient survives many steps, large
+// enough that uniform broth stays uniform under floating-point
+// rounding. Mirrors DEFAULT_INTER_RING_DIFFUSION_RATE in vugg.py.
+const DEFAULT_INTER_RING_DIFFUSION_RATE = 0.05;
+
+// Phase C: clone a FluidChemistry instance. Used to seed each ring's
+// fluid as an independent copy of the scenario's global fluid so
+// later mutation on one ring doesn't leak to others.
+function _cloneFluid(src) {
+  if (!src) return new FluidChemistry();
+  // Pass src as the opts object — every numeric field becomes the
+  // matching opts.X ?? default, picking up the source value.
+  return new FluidChemistry(src);
+}
+
 class FluidChemistry {
   constructor(opts = {}) {
     this.SiO2 = opts.SiO2 ?? 500.0;
@@ -4284,6 +4308,28 @@ class WallState {
 
   updateDiameter(newDiameter) { this.vug_diameter_mm = newDiameter; }
 
+  // Phase D: which third of the sphere this ring belongs to.
+  // Floor / wall / ceiling tags derived from ring index — bottom
+  // quarter is 'floor', top quarter is 'ceiling', middle 'wall'.
+  // Mirrors WallState.ring_orientation in vugg.py.
+  ringOrientation(ringIdx) {
+    const n = this.ring_count;
+    if (n <= 1) return 'wall';
+    if (ringIdx < Math.floor(n / 4)) return 'floor';
+    if (ringIdx >= Math.floor(3 * n / 4)) return 'ceiling';
+    return 'wall';
+  }
+
+  // Phase D: per-ring nucleation weight proportional to the ring's
+  // circumference on the sphere. sin(latitude) at the half-step
+  // offset the renderer uses, so visual area matches engine weight.
+  ringAreaWeight(ringIdx) {
+    const n = this.ring_count;
+    if (n <= 1) return 1.0;
+    const phi = Math.PI * (ringIdx + 0.5) / n;
+    return Math.sin(phi);
+  }
+
   // Map a vertical position (mm above the floor) to a ring index.
   // Floor (height=0) → ring 0; ceiling (height = ring_count *
   // ring_spacing_mm) → ring_count-1. Out-of-range heights clamp.
@@ -4348,17 +4394,24 @@ class WallState {
   // crystal appears to vanish on the topo map.
   paintCrystal(crystal) {
     if (crystal.wall_center_cell == null) return;
+    // Phase C v1: paint on the crystal's own ring so crystals scatter
+    // across the sphere wall. Legacy crystals (null ring) fall back
+    // to ring 0. Mirrors WallState.paint_crystal in vugg.py.
+    let ringIdx = crystal.wall_ring_index;
+    if (ringIdx == null || ringIdx < 0 || ringIdx >= this.ring_count) {
+      ringIdx = 0;
+    }
     const FOOTPRINT_SCALE = 4.0;
     const arcMm = (crystal.total_growth_um / 1000.0)
                   * Math.max(crystal.wall_spread, 0.05)
                   * FOOTPRINT_SCALE;
     const halfCells = Math.max(1, Math.round(arcMm / this.cell_arc_mm / 2));
     const thickness = Math.max(crystal.total_growth_um, 1);  // nucleated = visible
-    const ring0 = this.rings[0];
+    const ring = this.rings[ringIdx];
     const N = this.cells_per_ring;
     for (let offset = -halfCells; offset <= halfCells; offset++) {
       const idx = ((crystal.wall_center_cell + offset) % N + N) % N;
-      const cell = ring0[idx];
+      const cell = ring[idx];
       if (cell.thickness_um < thickness) {
         cell.crystal_id = crystal.crystal_id;
         cell.mineral = crystal.mineral;
@@ -6390,10 +6443,15 @@ class Crystal {
     this.wall_spread = opts.wall_spread ?? 0.5;
     this.void_reach = opts.void_reach ?? 0.5;
     this.vector = opts.vector ?? 'equant';
-    // Anchor cell on ring 0 where this crystal nucleated. WallState
-    // paints outward from here by wall_spread × total_growth. null for
-    // crystals that haven't been anchored yet.
+    // Anchor cell on the wall where this crystal nucleated.
+    // WallState paints outward from here by wall_spread ×
+    // total_growth. null for crystals that haven't been anchored yet.
     this.wall_center_cell = opts.wall_center_cell ?? null;
+    // Phase C v1: which ring the crystal nucleated on. null means
+    // legacy ring-0 placement (loaded from a pre-Phase-C-v1 save).
+    // New nucleations always set this. Mirrors crystal.wall_ring_index
+    // in vugg.py.
+    this.wall_ring_index = opts.wall_ring_index ?? null;
     this.zones = [];
     this.total_growth_um = 0;
     this.active = true;
@@ -12449,6 +12507,102 @@ class VugSimulator {
     // the end of each step; small (~120 cells × ~4 numbers × 100-200
     // steps), so the memory cost of a whole run is trivial.
     this.wall_state_history = [];
+
+    // Phase C of PROPOSAL-3D-SIMULATION: per-ring fluid + temperature.
+    // Phase C v1 hooks up: each ring has its own FluidChemistry, the
+    // growth loop swaps conditions.fluid to ring_fluids[k] for the
+    // engine call, and diffusion at end of step equilibrates them.
+    // The "equator" ring (index ring_count/2) is aliased to
+    // conditions.fluid so events that mutate conditions.fluid hit
+    // the equator's ring_fluids slot, and diffusion then spreads
+    // them outward to floor and ceiling rings.
+    const nRings = this.wall_state.ring_count;
+    const equator = Math.floor(nRings / 2);
+    this.ring_fluids = [];
+    for (let r = 0; r < nRings; r++) {
+      this.ring_fluids.push(_cloneFluid(this.conditions.fluid));
+    }
+    // Alias the equator ring to conditions.fluid so events propagate.
+    this.ring_fluids[equator] = this.conditions.fluid;
+    this.ring_temperatures = new Array(nRings).fill(this.conditions.temperature);
+    this.inter_ring_diffusion_rate = DEFAULT_INTER_RING_DIFFUSION_RATE;
+    // Cache the FluidChemistry numeric field names once for the
+    // diffusion loop. Pulled from a fresh instance so any future field
+    // additions to FluidChemistry pick up automatically — no separate
+    // list to keep in sync. Filtered to numeric fields (the only kind
+    // FluidChemistry currently has, but defensive).
+    this._fluidFieldNames = Object.keys(new FluidChemistry()).filter(
+      k => typeof (new FluidChemistry()[k]) === 'number'
+    );
+  }
+
+  // Phase C v1: snapshot conditions.fluid + temperature before a
+  // global-mutating block (events, wall dissolution, ambient cooling).
+  // Pair with _propagateGlobalDelta to apply the same delta to all
+  // non-equator rings. Mirrors VugSimulator._snapshot_global in vugg.py.
+  _snapshotGlobal() {
+    return [_cloneFluid(this.conditions.fluid), this.conditions.temperature];
+  }
+
+  // Phase C v1: apply the delta between current conditions and the
+  // pre-block snapshot to all non-equator ring_fluids and
+  // ring_temperatures. The equator ring is aliased to conditions.fluid
+  // so it already reflects the new value — skip it.
+  _propagateGlobalDelta(snap) {
+    const [preFluid, preTemp] = snap;
+    const equator = Math.floor(this.wall_state.ring_count / 2);
+    const equatorFluid = this.ring_fluids[equator];  // = conditions.fluid (aliased)
+    for (const fname of this._fluidFieldNames) {
+      const delta = this.conditions.fluid[fname] - preFluid[fname];
+      if (delta === 0) continue;
+      for (const rf of this.ring_fluids) {
+        if (rf === equatorFluid) continue;
+        rf[fname] = rf[fname] + delta;
+      }
+    }
+    const deltaT = this.conditions.temperature - preTemp;
+    if (deltaT !== 0) {
+      for (let k = 0; k < this.ring_temperatures.length; k++) {
+        if (k === equator) {
+          this.ring_temperatures[k] = this.conditions.temperature;
+        } else {
+          this.ring_temperatures[k] += deltaT;
+        }
+      }
+    }
+  }
+
+  // Phase C inter-ring homogenization. One discrete-Laplacian step per
+  // fluid component and per temperature, with Neumann (no-flux)
+  // boundary conditions at the floor and ceiling rings.
+  //
+  // Uniform rings → no-op (Laplacian of a constant is zero), which
+  // preserves byte-equality for default scenarios. Non-uniform rings
+  // relax the gradient by `rate * (neighbor sum - 2*self)` per step.
+  //
+  // Old values are read into a snapshot before any writes so each
+  // ring's update sees the pre-step state of its neighbors —
+  // otherwise ring k+1's update would already see ring k's new value
+  // and the diffusion would be asymmetric.
+  _diffuseRingState(rate) {
+    if (rate == null) rate = this.inter_ring_diffusion_rate;
+    if (!(rate > 0)) return;
+    const n = this.ring_fluids.length;
+    if (n <= 1) return;
+    for (const fname of this._fluidFieldNames) {
+      const old = this.ring_fluids.map(rf => rf[fname]);
+      for (let k = 0; k < n; k++) {
+        const kp = k > 0 ? k - 1 : 0;
+        const kn = k < n - 1 ? k + 1 : n - 1;
+        this.ring_fluids[k][fname] = old[k] + rate * (old[kp] + old[kn] - 2 * old[k]);
+      }
+    }
+    const oldT = this.ring_temperatures.slice();
+    for (let k = 0; k < n; k++) {
+      const kp = k > 0 ? k - 1 : 0;
+      const kn = k < n - 1 ? k + 1 : n - 1;
+      this.ring_temperatures[k] = oldT[k] + rate * (oldT[kp] + oldT[kn] - 2 * oldT[k]);
+    }
   }
 
   nucleate(mineral, position = 'vug wall', sigma = 1.0) {
@@ -12475,9 +12629,12 @@ class VugSimulator {
     }
 
     // Anchor on the wall. Crystals that nucleated on another crystal
-    // (position "on <mineral> #<id>") inherit the host's cell so
-    // pseudomorphs/overgrowths paint alongside it.
+    // (position "on <mineral> #<id>") inherit the host's cell + ring
+    // so pseudomorphs/overgrowths paint alongside it. Free-wall
+    // nucleations get a random ring (Phase C v1: scatter across the
+    // sphere wall; Phase D will weight by orientation).
     crystal.wall_center_cell = this._assignWallCell(position);
+    crystal.wall_ring_index = this._assignWallRing(position);
 
     // Dominant-form strings describe crystallographic faces and aren't
     // governed by the habit variant; keep per-mineral defaults.
@@ -12663,6 +12820,75 @@ class VugSimulator {
     }
     if (empty.length) return empty[Math.floor(rng.random() * empty.length)];
     return Math.floor(rng.random() * N);
+  }
+
+  // Phase C v1: run a mineral growth engine for a crystal, swapping
+  // conditions.fluid + temperature to the crystal's ring's values
+  // for the duration of the call. Engines never see ring_fluids
+  // directly — they observe "the fluid" via conditions, the same
+  // interface as before. Mass-balance side effects (consumption,
+  // byproduct release) hit ring_fluids[k] because that's the object
+  // swapped in. Restore globals afterward so subsequent code (events,
+  // narrators, log) sees the bulk-fluid view. Mirrors the equivalent
+  // try/finally block in VugSimulator.run_step (vugg.py).
+  _runEngineForCrystal(engine, crystal) {
+    const ringIdx = crystal.wall_ring_index;
+    let savedFluid = null;
+    let savedTemp = null;
+    if (ringIdx != null && ringIdx >= 0 && ringIdx < this.ring_fluids.length) {
+      savedFluid = this.conditions.fluid;
+      savedTemp = this.conditions.temperature;
+      this.conditions.fluid = this.ring_fluids[ringIdx];
+      this.conditions.temperature = this.ring_temperatures[ringIdx];
+    }
+    try {
+      return engine(crystal, this.conditions, this.step);
+    } finally {
+      if (savedFluid != null) {
+        this.conditions.fluid = savedFluid;
+      }
+      if (savedTemp != null) {
+        this.ring_temperatures[ringIdx] = this.conditions.temperature;
+        this.conditions.temperature = savedTemp;
+      }
+    }
+  }
+
+  // Phase C v1: pick a ring for a nucleating crystal. Host-substrate
+  // overgrowths inherit the host's ring (so pseudomorphs land on
+  // the same latitude); free-wall nucleations get a random ring.
+  // Mirrors VugSimulator._assign_wall_ring in vugg.py.
+  _assignWallRing(position) {
+    let hostId = null;
+    const hashIdx = position.indexOf(' #');
+    if (hashIdx >= 0) {
+      const num = parseInt(position.slice(hashIdx + 2), 10);
+      if (!Number.isNaN(num)) hostId = num;
+    }
+    if (hostId != null) {
+      const host = this.crystals.find(c => c.crystal_id === hostId);
+      if (host && host.wall_ring_index != null) return host.wall_ring_index;
+    }
+    // Phase D: area-weighted sample (equator gets more nucleations
+    // than polar caps). Always consumes one RNG number so parity
+    // holds across ring counts. Mirrors VugSimulator._assign_wall_ring
+    // in vugg.py — same algorithm so both runtimes pick the same
+    // ring for the same RNG state.
+    const n = Math.max(1, this.wall_state.ring_count);
+    const weights = [];
+    let total = 0;
+    for (let k = 0; k < n; k++) {
+      const w = this.wall_state.ringAreaWeight(k);
+      weights.push(w);
+      total += w;
+    }
+    if (total <= 0) total = 1;
+    let r = rng.random() * total;
+    for (let k = 0; k < n; k++) {
+      r -= weights[k];
+      if (r <= 0) return k;
+    }
+    return n - 1;
   }
 
   _repaintWallState() {
@@ -14285,10 +14511,19 @@ class VugSimulator {
   run_step() {
     this.log = [];
     this.step++;
+    // Phase C v1: events apply to conditions.fluid (= equator ring
+    // fluid via aliasing). Snapshot before and propagate the delta to
+    // non-equator rings — otherwise a global event pulse never reaches
+    // the rings where crystals are actually growing. Same wrap on
+    // dissolve_wall and ambient_cooling. Mirrors vugg.py.
+    let snap = this._snapshotGlobal();
     this.apply_events();
+    this._propagateGlobalDelta(snap);
     // Track dolomite saturation crossings for the Kim 2023 cycle mechanism.
     this.conditions.update_dol_cycles();
+    snap = this._snapshotGlobal();
     this.dissolve_wall();
+    this._propagateGlobalDelta(snap);
 
     // Calculate vug fill percentage — stop growth when full
     const vugFill = this.get_vug_fill();
@@ -14323,7 +14558,7 @@ class VugSimulator {
         // Still allow dissolution (negative zones)
         const engine = MINERAL_ENGINES[crystal.mineral];
         if (!engine) continue;
-        const zone = engine(crystal, this.conditions, this.step);
+        const zone = this._runEngineForCrystal(engine, crystal);
         if (zone && zone.thickness_um < 0) {
           crystal.add_zone(zone);
           currentFill = this.get_vug_fill(); // Update after dissolution
@@ -14341,7 +14576,7 @@ class VugSimulator {
       }
       const engine = MINERAL_ENGINES[crystal.mineral];
       if (!engine) continue;
-      const zone = engine(crystal, this.conditions, this.step);
+      const zone = this._runEngineForCrystal(engine, crystal);
       if (zone) {
         crystal.add_zone(zone);
         // Re-check fill after each crystal grows to prevent >100% overshoot
@@ -14467,7 +14702,21 @@ class VugSimulator {
     // Refresh the topo-map wall state from the current crystal list.
     this._repaintWallState();
 
-    this.ambient_cooling();
+    // Ambient cooling — propagate the temperature drop to all rings
+    // so non-equator rings cool too.
+    {
+      const coolSnap = this._snapshotGlobal();
+      this.ambient_cooling();
+      this._propagateGlobalDelta(coolSnap);
+    }
+
+    // Phase C: inter-ring fluid/temperature diffusion runs at the
+    // very end of the step so chemistry exchanges happen against a
+    // stable post-events post-growth state. No-op when all rings
+    // carry identical values (Laplacian of a constant is zero) —
+    // this preserves byte-equality for default scenarios.
+    this._diffuseRingState();
+
     return this.log;
   }
 
@@ -20964,6 +21213,13 @@ function idleRecordHistory() {
 // width proportional to crystal thickness. Hover → tooltip.
 
 const TOPO_WALL_COLOR = '#D2691E';   // warm amber — the wall's color. No mineral touches this hue.
+// Phase D: tint wall outlines by ring orientation in 3D mode. Floor
+// rings get a slightly cooler amber; ceiling rings a slightly warmer
+// reddish amber; wall rings stay TOPO_WALL_COLOR. Subtle enough not
+// to scream "different mineral", strong enough to read floor / wall /
+// ceiling at a glance once you know what you're looking at.
+const TOPO_WALL_COLOR_FLOOR = '#A85820';      // cooler amber
+const TOPO_WALL_COLOR_CEILING = '#E8782C';    // warmer amber
 const TOPO_CRYSTAL_CAP_FRAC = 0.85;   // crystals can fill at most this fraction of a cell's radius
 const TOPO_WALL_STROKE_PX = 2;        // bare wall stroke width
 const TOPO_WALL_STROKE_MAX_PX = 10;   // cell stroke width ceiling when a crystal sits on the wall
@@ -21508,6 +21764,39 @@ function _topoPaintPlaceholder(canvas, text) {
   }
 }
 
+// Phase B (Tier 1.5) — per-vertex 3D projection helper.
+// Maps a world-space point (relative to the scene origin) to a screen-
+// space point via Yaw → Pitch rotation + perspective. Replaces the
+// tier-1 CSS transform: projection done in canvas math instead of GPU
+// composite, so per-cell vertices land where the user actually sees
+// them (and depth-sorting / multi-ring stacking become possible).
+//
+//   wx, wy, wz : world-space coords in px (z+ toward camera at zero tilt)
+//   tiltX, tiltY : pitch and yaw in radians
+//   F : perspective focal length in px (1200 matches tier-1's CSS perspective())
+//
+// Returns [screenX, screenY, projectedZ] — screenX/Y are offsets from
+// the scene origin (caller adds cx/cy). projectedZ is post-rotation z,
+// useful for back-to-front depth sorting (smallest first = farthest).
+function _topoProject3D(wx, wy, wz, tiltX, tiltY, F) {
+  // Yaw around Y first, so x rotates with z.
+  const cy_ = Math.cos(tiltY), sy_ = Math.sin(tiltY);
+  const x1 = cy_ * wx + sy_ * wz;
+  const y1 = wy;
+  const z1 = -sy_ * wx + cy_ * wz;
+  // Pitch around X next, so y rotates with z.
+  const cx_ = Math.cos(tiltX), sx_ = Math.sin(tiltX);
+  const x2 = x1;
+  const y2 = cx_ * y1 - sx_ * z1;
+  const z2 = sx_ * y1 + cx_ * z1;
+  // Perspective divide. Clamp denominator so points at/behind the
+  // camera don't flip wildly — they'll be pushed off-screen but still
+  // produce finite numbers the canvas API accepts.
+  const denom = F - z2;
+  const scale = F / (denom < 1 ? 1 : denom);
+  return [x2 * scale, y2 * scale, z2];
+}
+
 function topoRender(optOverrideRing) {
   const canvas = document.getElementById('topo-canvas');
   const panel = document.getElementById('topo-panel');
@@ -21606,6 +21895,16 @@ function topoRender(optOverrideRing) {
   if (maxT <= 0) maxT = 1;
 
   const arcStep = 2 * Math.PI / N;
+
+  // Phase B branch — 3D mode renders all rings stacked along a vertical
+  // axis using per-vertex projection. Hands off to _topoRenderRings3D
+  // and short-circuits the rest of the 2D path. 2D mode falls through
+  // unchanged. See PROPOSAL-3D-TOPO-VUG.md ("Tier 1.5") for design.
+  if (_topoView3D && wall && wall.rings && wall.rings.length) {
+    _topoRenderRings3D(ctx, sim, wall, ring0, cellR, boundaryR, cx, cy,
+                       mmToPx, maxT, arcStep, N, viewW, viewH);
+    return;
+  }
 
   // Radial wedges: each occupied cell gets a Bezier-bounded wedge.
   // Outer edge arcs from boundary_start → cell_midpoint → boundary_end
@@ -21846,6 +22145,212 @@ function topoRender(optOverrideRing) {
   }
 }
 
+// Phase B (Tier 1.5) — 3D multi-ring renderer.
+// Called from topoRender when _topoView3D is true. Renders every ring
+// in wall.rings stacked along a vertical (Y) axis, using per-vertex
+// projection through _topoProject3D. Rings are sorted back-to-front by
+// projected Z so painter's algorithm gives correct occlusion.
+//
+// Phase A invariant: only ring[0] holds crystals; rings 1..N-1 hold
+// pristine WallCell defaults. So this function paints one set of
+// crystal wedges (on ring[0]) plus N wall-outline rings. Phase C
+// extends the wedge loop to render crystals on every ring.
+//
+// What's intentionally simplified for v0:
+//   * Habit textures (sawtooth/botryoidal/etc) collapse to smooth
+//     Bezier — drawHabitTexture's chord math doesn't compose with
+//     arbitrary projection without a rewrite.
+//   * Inclusion dots are skipped (they live on ring[0] only; tier-1
+//     hit-test was already broken in 3D mode, so dropping them now
+//     doesn't regress anything).
+//   * Scale bar is skipped — its physical-distance reading is
+//     ambiguous when the disc is tilted.
+function _topoRenderRings3D(ctx, sim, wall, ring0, cellR, boundaryR,
+                             cx, cy, mmToPx, maxT, arcStep, N, viewW, viewH) {
+  const F = 1200;  // perspective focal length, matches tier-1's CSS perspective(1200px)
+  const ringCount = wall.ring_count;
+  // Spherical cavity profile (renderer-only for now — the engine's
+  // ring data stays uniform until Phase D distributes crystals by
+  // orientation). Each ring k sits at a latitude φ_k around a sphere
+  // whose center is the canvas center; its radial-radius scales as
+  // sin(φ_k) and its vertical offset as -cos(φ_k)·R. Half-step offsets
+  // (k+0.5 instead of k) keep the polar rings small but non-zero so
+  // the engine math (cell_arc_mm, paint_crystal) — which still reads
+  // ring[0] — doesn't divide by zero. With 16 rings the smallest
+  // radius is sin(π/32) ≈ 0.098 (the south-pole "cap" ring) and the
+  // largest is sin(15.5π/32) ≈ 0.998 (the equator).
+  const cavityDiameterPx = wall.meanDiameterMm() * mmToPx;
+  const sphereRadiusPx = cavityDiameterPx / 2;
+
+  // Build (ringIdx, wz, ringRadiusFactor, projZ) tuples and sort by
+  // projZ ascending so far rings paint first.
+  const ringOrder = [];
+  for (let r = 0; r < ringCount; r++) {
+    // Ring 0 is the south pole (floor), ring N-1 is the north pole
+    // (ceiling). φ runs from π/(2N) at ring 0 to π(2N-1)/(2N) at
+    // ring N-1 — full latitude sweep with half-step offsets at each
+    // end so neither pole collapses to a point.
+    const phi = Math.PI * (r + 0.5) / ringCount;
+    const ringRadiusFactor = Math.sin(phi);
+    const wz = -Math.cos(phi) * sphereRadiusPx;  // south pole at -R, north at +R
+    const projZ = Math.cos(_topoTiltX) * wz;     // small-angle yaw leaves z fixed for axis points
+    ringOrder.push({ ringIdx: r, wz, ringRadiusFactor, projZ });
+  }
+  ringOrder.sort((a, b) => a.projZ - b.projZ);
+
+  // Project a (canvasX, canvasY) point at this ring's height to screen.
+  // canvasX/Y are absolute canvas coords (already include cx/cy), so we
+  // subtract before projecting and add cx/cy back afterward.
+  function projAt(wz) {
+    return (canvasX, canvasY) => {
+      const wx = canvasX - cx;
+      const wy = canvasY - cy;
+      const [px, py] = _topoProject3D(wx, wy, wz, _topoTiltX, _topoTiltY, F);
+      return [cx + px, cy + py];
+    };
+  }
+
+  for (const { ringIdx, wz, ringRadiusFactor } of ringOrder) {
+    const ring = wall.rings[ringIdx];
+    if (!ring || !ring.length) continue;
+    const proj = projAt(wz);
+    // Spherical-profile scaling: every cell radius (boundary, mid,
+    // inner) shrinks by the latitude-derived factor for this ring.
+    // Rings near the poles get tiny circles; the equator gets full
+    // radius. Phase C v1 distributes crystals across rings, so every
+    // ring can carry crystals — the per-cell `crystal_id != null`
+    // check inside the loop handles empty cells.
+    const rrf = ringRadiusFactor;
+
+    // Crystal wedges — every ring renders its own crystals (Phase C v1).
+    // Phase D v1: inner edge sits at a smaller sphere radius, not just
+    // shrunken in the ring's local plane. The inner-vertex 3D position
+    // is the outer position scaled toward the sphere's center by an
+    // `inwardFactor` in [0, 1]. This automatically produces:
+    //   * Stalactites on ceiling rings — the inner edge is offset
+    //     downward (toward sphere center) from each ceiling cell.
+    //   * Stalagmites on floor rings — inner edge offset upward.
+    //   * Wall crystals — inner edge offset radially inward
+    //     (horizontal), the same look as before.
+    // No gravity tracking needed — the sphere's inward normal at any
+    // cell automatically points "down" on the ceiling and "up" on
+    // the floor.
+    {
+      for (let i = 0; i < N; i++) {
+        const cell = ring[i];
+        if (cell.crystal_id == null) continue;
+        const a0 = _topoAngleFor(i, N) - arcStep / 2;
+        const aMid = _topoAngleFor(i, N);
+        const a1 = a0 + arcStep;
+        const rStart = boundaryR[i] * rrf;
+        const rMid = cellR[i] * rrf;
+        const rEnd = boundaryR[(i + 1) % N] * rrf;
+        const crystal = sim?.crystals?.find(c => c.crystal_id === cell.crystal_id);
+        const voidReach = crystal ? Math.max(crystal.void_reach, 0.05) : 0.5;
+        const inwardMm = (cell.thickness_um / 1000.0) * voidReach;
+        const inwardPx = Math.max(inwardMm * mmToPx, TOPO_WALL_STROKE_PX + 1);
+        // Sphere-radial inwardFactor: outer vertex at full radius R,
+        // inner vertex at R*inwardFactor. Cap so the inner doesn't
+        // reach all the way to the origin (would invert geometry).
+        const inwardFactor = Math.max(1 - TOPO_CRYSTAL_CAP_FRAC,
+                                       1 - inwardPx / Math.max(sphereRadiusPx, 1));
+        // Outer vertices: canvas-plane at this ring's wz.
+        const sxW = cx + rStart * Math.cos(a0), syW = cy + rStart * Math.sin(a0);
+        const mxW = cx + rMid * Math.cos(aMid), myW = cy + rMid * Math.sin(aMid);
+        const exW = cx + rEnd * Math.cos(a1),  eyW = cy + rEnd * Math.sin(a1);
+        // Inner vertices: outer scaled toward sphere center (cx,cy,0).
+        // The 3D scale moves them in BOTH the canvas plane AND in z.
+        const sxInW = cx + (sxW - cx) * inwardFactor;
+        const syInW = cy + (syW - cy) * inwardFactor;
+        const mxInW = cx + (mxW - cx) * inwardFactor;
+        const myInW = cy + (myW - cy) * inwardFactor;
+        const exInW = cx + (exW - cx) * inwardFactor;
+        const eyInW = cy + (eyW - cy) * inwardFactor;
+        const wzIn = wz * inwardFactor;
+        const [psx, psy] = proj(sxW, syW);
+        const [pmx, pmy] = proj(mxW, myW);
+        const [pex, pey] = proj(exW, eyW);
+        // Inner edge projects at wz*inwardFactor (different depth than
+        // outer), so use a per-vertex projection instead of `proj`.
+        const projInner = (wxRel, wyRel) => {
+          const [px, py] = _topoProject3D(wxRel, wyRel, wzIn,
+                                            _topoTiltX, _topoTiltY, F);
+          return [cx + px, cy + py];
+        };
+        const [psxIn, psyIn] = projInner(sxInW - cx, syInW - cy);
+        const [pmxIn, pmyIn] = projInner(mxInW - cx, myInW - cy);
+        const [pexIn, peyIn] = projInner(exInW - cx, eyInW - cy);
+        const outerCpX = 2 * pmx - (psx + pex) / 2;
+        const outerCpY = 2 * pmy - (psy + pey) / 2;
+        const innerCpX = 2 * pmxIn - (psxIn + pexIn) / 2;
+        const innerCpY = 2 * pmyIn - (psyIn + peyIn) / 2;
+        ctx.globalAlpha = topoAlphaFor(cell.mineral);
+        ctx.fillStyle = topoClassColor(cell.mineral);
+        ctx.beginPath();
+        ctx.moveTo(psx, psy);
+        ctx.quadraticCurveTo(outerCpX, outerCpY, pex, pey);
+        ctx.lineTo(pexIn, peyIn);
+        ctx.quadraticCurveTo(innerCpX, innerCpY, psxIn, psyIn);
+        ctx.closePath();
+        ctx.fill();
+      }
+      ctx.globalAlpha = 1;
+    }
+
+    // Wall outline for this ring. Phase D: bare-wall stroke color
+    // shifts subtly by orientation so the ring-stack reads as
+    // floor / wall / ceiling without needing extra UI chrome.
+    const orient = wall.ringOrientation(ringIdx);
+    let bareWallColor = TOPO_WALL_COLOR;
+    if (orient === 'floor') bareWallColor = TOPO_WALL_COLOR_FLOOR;
+    else if (orient === 'ceiling') bareWallColor = TOPO_WALL_COLOR_CEILING;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    for (let i = 0; i < N; i++) {
+      const a0 = _topoAngleFor(i, N) - arcStep / 2;
+      const aMid = _topoAngleFor(i, N);
+      const a1 = a0 + arcStep;
+      const rStart = boundaryR[i] * rrf;
+      const rMid = cellR[i] * rrf;
+      const rEnd = boundaryR[(i + 1) % N] * rrf;
+      const cell = ring[i];
+      let stroke, width, alpha;
+      if (cell.crystal_id == null) {
+        stroke = bareWallColor;
+        width = TOPO_WALL_STROKE_PX;
+        alpha = 1;
+      } else {
+        stroke = topoClassColor(cell.mineral);
+        const t = Math.min(cell.thickness_um / maxT, 1);
+        width = TOPO_WALL_STROKE_PX + t * (TOPO_WALL_STROKE_MAX_PX - TOPO_WALL_STROKE_PX);
+        alpha = topoAlphaFor(cell.mineral);
+      }
+      ctx.globalAlpha = alpha;
+      ctx.strokeStyle = stroke;
+      ctx.lineWidth = width;
+      const sxW = cx + rStart * Math.cos(a0), syW = cy + rStart * Math.sin(a0);
+      const mxW = cx + rMid * Math.cos(aMid), myW = cy + rMid * Math.sin(aMid);
+      const exW = cx + rEnd * Math.cos(a1),  eyW = cy + rEnd * Math.sin(a1);
+      const [psx, psy] = proj(sxW, syW);
+      const [pmx, pmy] = proj(mxW, myW);
+      const [pex, pey] = proj(exW, eyW);
+      const cpX = 2 * pmx - (psx + pex) / 2;
+      const cpY = 2 * pmy - (psy + pey) / 2;
+      ctx.beginPath();
+      ctx.moveTo(psx, psy);
+      ctx.quadraticCurveTo(cpX, cpY, pex, pey);
+      ctx.stroke();
+    }
+    ctx.globalAlpha = 1;
+  }
+
+  // Vug size readout — same HTML overlay as 2D mode.
+  const sizeLabel = document.getElementById('topo-vug-size');
+  if (sizeLabel) {
+    sizeLabel.textContent = `Vug ⌀ ${wall.meanDiameterMm().toFixed(1)} mm × ${ringCount} rings`;
+  }
+}
+
 // Hit-test: resolve (mouseX, mouseY) on the canvas into a mineral
 // under the cursor. Returns { mineral, isInclusion, cell } or null
 // if the cursor is not on a crystal. Called by both the tooltip and
@@ -22078,22 +22583,19 @@ function topoRecenter() {
   topoRender();
 }
 
-// Apply (or clear) the CSS 3D transform on the canvas element. Called
-// whenever _topoView3D / _topoTiltX / _topoTiltY change. 2D mode leaves
-// the canvas un-transformed; 3D mode tilts it via rotateX + rotateY.
-// perspective() sits in front so the tilt produces real foreshortening.
+// Phase B (Tier 1.5): tilt is now applied per-vertex inside topoRender's
+// 3D branch (_topoRenderRings3D), not via a CSS transform on the canvas
+// element. This function stays as a no-op + cleanup hook so existing
+// callers (topoSetDragMode, topoRecenter) don't need to change. It also
+// clears any leftover CSS transform from a tier-1 build whose state
+// somehow survived (e.g. cached page) — defensive.
 function _topoApplyTransform() {
   const canvas = document.getElementById('topo-canvas');
   if (!canvas) return;
-  if (!_topoView3D) {
+  if (canvas.style.transform) {
     canvas.style.transform = '';
     canvas.style.transformOrigin = '';
-    return;
   }
-  const rx = (_topoTiltX * 180 / Math.PI).toFixed(2);
-  const ry = (_topoTiltY * 180 / Math.PI).toFixed(2);
-  canvas.style.transformOrigin = 'center center';
-  canvas.style.transform = `perspective(1200px) rotateX(${rx}deg) rotateY(${ry}deg)`;
 }
 
 // Wire hover + zoom wheel + click-drag pan once — called from the
@@ -22165,10 +22667,12 @@ function _topoPanMouseMove(ev) {
   if (_topoDragMode === 'rotate') {
     // Vertical drag → rotateX (pitch); horizontal drag → rotateY (yaw).
     // Negative dy gives intuitive "pull up to tilt toward viewer" feel.
+    // Phase B (Tier 1.5): no tilt clamp — per-vertex projection has no
+    // geometric edge cases at vertical (the tier-1 ±86° clamp existed
+    // only because CSS transform got weird past edge-on).
     _topoTiltX = _topoDragOriginTiltX + (-dy) * TOPO_DRAG_ROTATE_RAD_PER_PX;
     _topoTiltY = _topoDragOriginTiltY + dx * TOPO_DRAG_ROTATE_RAD_PER_PX;
-    _topoTiltX = Math.max(-TOPO_TILT_X_MAX, Math.min(TOPO_TILT_X_MAX, _topoTiltX));
-    _topoApplyTransform();
+    topoRender();
   } else {
     // 'default' or 'pan' mode — both translate pan offsets.
     _topoPanX = _topoDragOriginPanX + dx;
