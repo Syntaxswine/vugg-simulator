@@ -275,6 +275,14 @@ h1 {
   height: 100%;    /* fills the stage (which is 200% of wrap) */
   background: transparent;
   cursor: crosshair;
+  /* `touch-action: none` lets the JS drag handler take over touch
+     gestures on the canvas — without it, mobile browsers default to
+     panning the page when the user swipes inside the canvas, and the
+     rotate / pan / hit-test handlers never see the move events. The
+     side effect is that vertical scrolling is blocked when the finger
+     starts on the canvas; users have to scroll using the page area
+     above or below it (same trade-off every map widget makes). */
+  touch-action: none;
 }
 .topo-tooltip {
   /* Must be `fixed` (not `absolute`) — same reason as .groove-tooltip below.
@@ -22695,10 +22703,15 @@ function topoEnsureWired() {
     ev.preventDefault();
     topoZoom(ev.deltaY < 0 ? +1 : -1);
   }, { passive: false });
-  // Click-drag pan. Only starts on mousedown over a NON-crystal area
-  // (void, bare wall, or outside vug) — clicks on crystals fall through
-  // to the existing tooltip / click handlers.
-  canvas.addEventListener('mousedown', _topoPanMouseDown);
+  // Click-drag pan / rotate. Pointer events handle BOTH mouse and
+  // touch from one code path (vs. the old mousedown/mousemove/mouseup
+  // which never fired during touch gestures — emulated mouse events
+  // only arrive after touchend, too late for drag tracking). Modern
+  // browsers (Safari iOS 13+, Chrome, Firefox, Edge) all support
+  // Pointer Events; the canvas's `touch-action: none` CSS lets the
+  // gesture reach this handler instead of being eaten by browser
+  // page-pan defaults.
+  canvas.addEventListener('pointerdown', _topoPanMouseDown);
   window.addEventListener('resize', () => topoRender());
   _topoWired = true;
 }
@@ -22713,7 +22726,15 @@ function topoEnsureWired() {
 let _topoDragOriginTiltX = 0;
 let _topoDragOriginTiltY = 0;
 function _topoPanMouseDown(ev) {
-  if (ev.button !== 0) return;  // left button only
+  // For pointer events, button=0 is the primary button (left mouse,
+  // first touch contact, primary stylus). Right-click / middle-click
+  // / secondary touches are skipped.
+  if (ev.button !== 0) return;
+  // preventDefault on the pointerdown suppresses the browser's
+  // emulated mouse events (which would fire after touchend and
+  // double-trigger handlers) and any default page-scroll gesture
+  // that might still come from a misconfigured touch-action setting.
+  ev.preventDefault();
   // In 'default' mode, clicks on a crystal go to tooltip/click, not drag.
   // In 'rotate' or 'pan' modes, drag starts from anywhere on the canvas.
   if (_topoDragMode === 'default') {
@@ -22727,8 +22748,12 @@ function _topoPanMouseDown(ev) {
   _topoDragOriginPanY = _topoPanY;
   _topoDragOriginTiltX = _topoTiltX;
   _topoDragOriginTiltY = _topoTiltY;
-  document.addEventListener('mousemove', _topoPanMouseMove);
-  document.addEventListener('mouseup', _topoPanMouseUp);
+  document.addEventListener('pointermove', _topoPanMouseMove);
+  document.addEventListener('pointerup', _topoPanMouseUp);
+  // `pointercancel` covers cases where the OS interrupts the gesture
+  // (e.g. iOS palm rejection, system-level edge swipe) — without
+  // handling it, the document-level listeners can leak.
+  document.addEventListener('pointercancel', _topoPanMouseUp);
 }
 
 // Document-level mousemove during a candidate drag. Only commits once
@@ -22762,12 +22787,15 @@ function _topoPanMouseMove(ev) {
   }
 }
 
-// Mouseup ends the drag and tears down the document-level listeners.
-// If the user never crossed the movement threshold, the click event
-// will still fire on the canvas (browser default behavior).
+// Pointerup / pointercancel ends the drag and tears down the
+// document-level listeners. If the user never crossed the movement
+// threshold, the click event will still fire on the canvas (browser
+// default behavior — pointerup on the same target as pointerdown
+// without enough motion triggers a synthetic click).
 function _topoPanMouseUp() {
-  document.removeEventListener('mousemove', _topoPanMouseMove);
-  document.removeEventListener('mouseup', _topoPanMouseUp);
+  document.removeEventListener('pointermove', _topoPanMouseMove);
+  document.removeEventListener('pointerup', _topoPanMouseUp);
+  document.removeEventListener('pointercancel', _topoPanMouseUp);
   if (_topoDragging) {
     _topoDragging = false;
     const canvas = document.getElementById('topo-canvas');
