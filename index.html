@@ -22002,25 +22002,32 @@ function _topoRenderRings3D(ctx, sim, wall, ring0, cellR, boundaryR,
                              cx, cy, mmToPx, maxT, arcStep, N, viewW, viewH) {
   const F = 1200;  // perspective focal length, matches tier-1's CSS perspective(1200px)
   const ringCount = wall.ring_count;
-  // Visual ring spacing: render the cavity as roughly cubic regardless
-  // of the data model's ring_spacing_mm (which is 1mm by default — too
-  // squat for a 50mm-wide cavity). Total visual height = cavity
-  // diameter, so the cavity reads as a sphere/cylinder, not a coin.
+  // Spherical cavity profile (renderer-only for now — the engine's
+  // ring data stays uniform until Phase D distributes crystals by
+  // orientation). Each ring k sits at a latitude φ_k around a sphere
+  // whose center is the canvas center; its radial-radius scales as
+  // sin(φ_k) and its vertical offset as -cos(φ_k)·R. Half-step offsets
+  // (k+0.5 instead of k) keep the polar rings small but non-zero so
+  // the engine math (cell_arc_mm, paint_crystal) — which still reads
+  // ring[0] — doesn't divide by zero. With 16 rings the smallest
+  // radius is sin(π/32) ≈ 0.098 (the south-pole "cap" ring) and the
+  // largest is sin(15.5π/32) ≈ 0.998 (the equator).
   const cavityDiameterPx = wall.meanDiameterMm() * mmToPx;
-  const ringSpacingPx = cavityDiameterPx / Math.max(ringCount - 1, 1);
-  const halfStack = (ringCount - 1) * ringSpacingPx / 2;
+  const sphereRadiusPx = cavityDiameterPx / 2;
 
-  // Build (ringIdx, wz, projZ) tuples and sort by projZ ascending so
-  // far rings paint first.
+  // Build (ringIdx, wz, ringRadiusFactor, projZ) tuples and sort by
+  // projZ ascending so far rings paint first.
   const ringOrder = [];
   for (let r = 0; r < ringCount; r++) {
-    // Ring 0 is the floor (wz negative, below the camera-facing center
-    // when viewing from above); ring N-1 is the ceiling (wz positive).
-    // Rotation around Y doesn't change wz when the ring's center sits
-    // on the rotation axis, so projected Z just depends on tiltX.
-    const wz = (r - (ringCount - 1) / 2) * ringSpacingPx;
-    const projZ = Math.cos(_topoTiltX) * wz;  // small-angle yaw doesn't move ring centers in z
-    ringOrder.push({ ringIdx: r, wz, projZ });
+    // Ring 0 is the south pole (floor), ring N-1 is the north pole
+    // (ceiling). φ runs from π/(2N) at ring 0 to π(2N-1)/(2N) at
+    // ring N-1 — full latitude sweep with half-step offsets at each
+    // end so neither pole collapses to a point.
+    const phi = Math.PI * (r + 0.5) / ringCount;
+    const ringRadiusFactor = Math.sin(phi);
+    const wz = -Math.cos(phi) * sphereRadiusPx;  // south pole at -R, north at +R
+    const projZ = Math.cos(_topoTiltX) * wz;     // small-angle yaw leaves z fixed for axis points
+    ringOrder.push({ ringIdx: r, wz, ringRadiusFactor, projZ });
   }
   ringOrder.sort((a, b) => a.projZ - b.projZ);
 
@@ -22036,11 +22043,18 @@ function _topoRenderRings3D(ctx, sim, wall, ring0, cellR, boundaryR,
     };
   }
 
-  for (const { ringIdx, wz } of ringOrder) {
+  for (const { ringIdx, wz, ringRadiusFactor } of ringOrder) {
     const ring = wall.rings[ringIdx];
     if (!ring || !ring.length) continue;
     const proj = projAt(wz);
     const isCrystalRing = (ringIdx === 0);  // Phase A: only ring[0] paints crystals
+    // Spherical-profile scaling: every cell radius (boundary, mid,
+    // inner) shrinks by the latitude-derived factor for this ring.
+    // Rings near the poles get tiny circles; the equator gets full
+    // radius. Phase D will distribute crystals across rings; for now
+    // the crystal ring (0) is the south pole and shows tiny wedges
+    // bunched at the bottom point.
+    const rrf = ringRadiusFactor;
 
     // Crystal wedges (Phase A: only ring[0]; Phase C: every ring with
     // its own per-ring chemistry will hit this branch).
@@ -22051,13 +22065,13 @@ function _topoRenderRings3D(ctx, sim, wall, ring0, cellR, boundaryR,
         const a0 = _topoAngleFor(i, N) - arcStep / 2;
         const aMid = _topoAngleFor(i, N);
         const a1 = a0 + arcStep;
-        const rStart = boundaryR[i];
-        const rMid = cellR[i];
-        const rEnd = boundaryR[(i + 1) % N];
+        const rStart = boundaryR[i] * rrf;
+        const rMid = cellR[i] * rrf;
+        const rEnd = boundaryR[(i + 1) % N] * rrf;
         const crystal = sim?.crystals?.find(c => c.crystal_id === cell.crystal_id);
         const voidReach = crystal ? Math.max(crystal.void_reach, 0.05) : 0.5;
         const inwardMm = (cell.thickness_um / 1000.0) * voidReach;
-        const inwardPx = Math.max(inwardMm * mmToPx, TOPO_WALL_STROKE_PX + 1);
+        const inwardPx = Math.max(inwardMm * mmToPx, TOPO_WALL_STROKE_PX + 1) * rrf;
         const rStartIn = Math.max(rStart - inwardPx, rStart * (1 - TOPO_CRYSTAL_CAP_FRAC));
         const rMidIn = Math.max(rMid - inwardPx, rMid * (1 - TOPO_CRYSTAL_CAP_FRAC));
         const rEndIn = Math.max(rEnd - inwardPx, rEnd * (1 - TOPO_CRYSTAL_CAP_FRAC));
@@ -22101,9 +22115,9 @@ function _topoRenderRings3D(ctx, sim, wall, ring0, cellR, boundaryR,
       const a0 = _topoAngleFor(i, N) - arcStep / 2;
       const aMid = _topoAngleFor(i, N);
       const a1 = a0 + arcStep;
-      const rStart = boundaryR[i];
-      const rMid = cellR[i];
-      const rEnd = boundaryR[(i + 1) % N];
+      const rStart = boundaryR[i] * rrf;
+      const rMid = cellR[i] * rrf;
+      const rEnd = boundaryR[(i + 1) % N] * rrf;
       const cell = ring[i];
       let stroke, width, alpha;
       if (cell.crystal_id == null) {
