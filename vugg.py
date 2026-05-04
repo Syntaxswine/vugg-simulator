@@ -359,7 +359,20 @@ from typing import List, Dict, Optional, Tuple
 #          thresholds (>=10/>=5, matches research's "rare two-parent
 #          mineral" framing). Pre-v17 JS T cap at 250°C was way too
 #          lenient.
-SIM_VERSION = 21
+# v22: Crystal.growth_environment field added. Per-crystal record of
+#      whether the cavity was fluid- or air-filled at the moment the
+#      crystal nucleated — drives the renderer's c-axis orientation
+#      branch (substrate-perpendicular under fluid, gravity-driven
+#      under air). Default 'fluid' applied retroactively to every
+#      crystal in old saves, so chemistry and growth are byte-identical
+#      to v21; the only change is a new optional field threaded through
+#      Crystal __init__. Renderer-visible only for any future scenario
+#      that sets 'air'; current scenarios all stay perpendicular-to-
+#      substrate. Companion: c-axis Gaussian scatter in the wireframe
+#      renderer (σ ≈ 12° per geometric-selection literature, σ ≈ 3°
+#      for epitaxial overgrowths). See PROPOSAL-WIREFRAME-CRYSTALS
+#      addendum + supporting research notes.
+SIM_VERSION = 22
 
 # Phase C of PROPOSAL-3D-SIMULATION (= proposal's "Phase 2"): per-ring
 # chemistry scaffolding. Each ring carries its own FluidChemistry +
@@ -5060,7 +5073,18 @@ class Crystal:
     # nucleations always set this. Growth reads the ring's fluid +
     # temperature for chemistry; paint targets this ring's cells.
     wall_ring_index: Optional[int] = None
-    
+    # Environment at nucleation time. 'fluid' (the dominant case — vug
+    # cavity is fluid-filled, geometric-selection orientation along the
+    # substrate normal) or 'air' (drained / cave-style cavity, gravity-
+    # driven orientation: stalactite c-axis points world-down regardless
+    # of substrate normal). Stored on the crystal because orientation is
+    # set at growth time and persists even if the cavity later re-floods
+    # — older air-grown crystals keep their gravity-aligned habit; later
+    # fluid-grown crystals on top of them are substrate-aligned. Default
+    # 'fluid' is correct for every existing scenario; 'air' is plumbed
+    # but won't trigger until a scenario explicitly drains the cavity.
+    growth_environment: str = "fluid"
+
     # Growth history
     zones: List[GrowthZone] = field(default_factory=list)
     total_growth_um: float = 0.0

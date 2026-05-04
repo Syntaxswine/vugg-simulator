@@ -6632,6 +6632,15 @@ class Crystal {
     // New nucleations always set this. Mirrors crystal.wall_ring_index
     // in vugg.py.
     this.wall_ring_index = opts.wall_ring_index ?? null;
+    // Environment at nucleation time. 'fluid' (the dominant case —
+    // vug fluid-filled, geometric-selection orientation along the
+    // substrate normal) or 'air' (drained / cave-style cavity,
+    // gravity-driven orientation: stalactite c-axis points world-
+    // down regardless of substrate normal). Default 'fluid' for
+    // legacy / unset; air-mode currently never triggers (no scenario
+    // sets it yet). Companion: σ=12° Gaussian c-axis scatter in
+    // _renderCrystalWireframe (geometric-selection literature).
+    this.growth_environment = opts.growth_environment ?? 'fluid';
     this.zones = [];
     this.total_growth_um = 0;
     this.active = true;
@@ -22784,39 +22793,59 @@ const PRIM_ACICULAR = {
 
 const PRIM_BOTRYOIDAL = {
   name: 'botryoidal',
-  // 5 overlapping "blobs" in a cluster. Each blob is approximated by
-  // 4 vertices (top, base, two equatorial) — cheap and gives a
-  // multi-bumped silhouette via the convex hull.
+  // Spherulite mechanism (Wertheim et al. 2021; Quartz Page chalcedony):
+  // each visible "grape" is a single nucleation point with hundreds-to-
+  // thousands of acicular fibers radiating over a hemisphere, fiber-to-
+  // fiber misorientation 0–22°. We approximate with ~20 representative
+  // fibers fanning over the upper hemisphere from a single anchor at
+  // the wall. The convex-hull silhouette is a smooth dome (not a multi-
+  // bump cluster — those happen when the engine spawns adjacent
+  // botryoidal crystals on neighbouring cells, which already happens
+  // naturally because the habit's wall_spread is wide).
   vertices: (() => {
     const vs = [];
-    // 5 blob centers: 3 base + 2 stacked above
-    const centers = [
-      [ 0.30, 0.15, 0.00],
-      [-0.30, 0.15, 0.10],
-      [ 0.05, 0.20,-0.30],
-      [ 0.10, 0.65, 0.00],
-      [-0.10, 0.85,-0.05],
-    ];
-    const blobR = 0.30;
-    for (const [bx, by, bz] of centers) {
-      vs.push([bx,        by + blobR, bz]);          // top
-      vs.push([bx,        by - blobR, bz]);          // bottom (some buried)
-      vs.push([bx + blobR, by,        bz]);          // east
-      vs.push([bx - blobR, by,        bz]);          // west
-      vs.push([bx,         by,        bz + blobR]);  // north
-      vs.push([bx,         by,        bz - blobR]);  // south
+    vs.push([0, -0.05, 0]);                   // 0 anchor (slightly buried)
+    // Hemisphere of fiber tips. 4 latitude bands × 6 longitudes,
+    // skewed so more tips cluster near the apex than near the rim
+    // (real spherulites have denser fibers near the perpendicular).
+    const NLAT = 4, NLON = 6;
+    for (let i = 0; i < NLAT; i++) {
+      // Latitude angle from substrate (φ=0 = horizon, φ=π/2 = apex).
+      // Bias toward the apex with i^0.7 so tips concentrate up-top.
+      const t = (i + 1) / NLAT;
+      const phi = (t * t * 0.7 + t * 0.3) * Math.PI / 2;
+      const r = 0.5 * Math.cos(phi);
+      const y = 1.0 * Math.sin(phi);
+      for (let j = 0; j < NLON; j++) {
+        // Stagger longitudes per band so adjacent latitude rings don't
+        // align radially (more spherulite-like).
+        const a = (j + 0.5 * (i % 2)) * 2 * Math.PI / NLON;
+        vs.push([r * Math.cos(a), y, r * Math.sin(a)]);
+      }
     }
+    // One apex tip dead-center at y=1.0 to fix the silhouette top.
+    vs.push([0, 1.0, 0]);
     return vs;
   })(),
-  // Each 6-vertex blob gets its own ring-shaped wireframe edges:
-  // top↔(e/w/n/s), bottom↔(e/w/n/s), e↔n↔w↔s ring.
   edges: (() => {
     const es = [];
-    for (let b = 0; b < 5; b++) {
-      const o = b * 6;  // top, bot, e, w, n, s
-      es.push([o+0,o+2],[o+0,o+3],[o+0,o+4],[o+0,o+5]);
-      es.push([o+1,o+2],[o+1,o+3],[o+1,o+4],[o+1,o+5]);
-      es.push([o+2,o+4],[o+4,o+3],[o+3,o+5],[o+5,o+2]);
+    const NLAT = 4, NLON = 6;
+    // Each fiber tip connects back to the anchor — that's the visible
+    // wireframe radial pattern.
+    for (let i = 0; i < NLAT; i++) {
+      for (let j = 0; j < NLON; j++) {
+        es.push([0, 1 + i * NLON + j]);
+      }
+    }
+    es.push([0, 1 + NLAT * NLON]);  // apex fiber
+    // Connect adjacent tips in each latitude band → suggests the
+    // hemispheric envelope without fully outlining it.
+    for (let i = 0; i < NLAT; i++) {
+      for (let j = 0; j < NLON; j++) {
+        const a = 1 + i * NLON + j;
+        const b = 1 + i * NLON + ((j + 1) % NLON);
+        es.push([a, b]);
+      }
     }
     return es;
   })(),
@@ -22931,6 +22960,21 @@ function _seededRand(seed) {
   return _mulberry32(seed | 0)();
 }
 
+// Box-Muller: deterministic standard-normal sample seeded from
+// (crystal_id, channel). Channel lets a single crystal pull multiple
+// independent normals — c-axis tilt-x, tilt-z, and rotation-around-c
+// each get their own channel so they don't co-vary. Output is N(0, 1);
+// callers multiply by the desired σ. Clamped to ±3σ so a once-in-
+// thousand outlier doesn't flip a crystal completely sideways.
+function _seededGaussian(seed, channel) {
+  const r = _mulberry32(((seed | 0) ^ (channel * 0x9E3779B1)) >>> 0);
+  // Standard Box-Muller; r() never returns 0 so log is safe.
+  const u1 = Math.max(r(), 1e-9);
+  const u2 = r();
+  const g = Math.sqrt(-2 * Math.log(u1)) * Math.cos(2 * Math.PI * u2);
+  return Math.max(-3, Math.min(3, g));
+}
+
 // Build a right-handed basis (perp1, perp2) perpendicular to `axis`,
 // rotated by `rotRad` around `axis`. Used to orient a primitive's
 // equatorial axes (x, z) in world space for a given anchor.
@@ -22981,21 +23025,80 @@ function _convexHull2D(points) {
 
 // Render one wireframe crystal: silhouette fill (mineral color, 40%
 // of the edge alpha) + edges (mineral color, full edge alpha). c-axis
-// = inward sphere normal at the anchor cell; rotation around c-axis
-// is seeded by crystal_id so identical crystals stay identical across
-// reloads. Sizes clamped to a 3-px floor so baby crystals (sub-mm at
-// typical zoom) read as "a thing exists here" not background noise.
+// orientation is environment-dependent:
+//
+//   * 'fluid' (default): perpendicular to substrate (= inward sphere
+//     normal at the anchor cell), with a small Gaussian scatter that
+//     reproduces the geometric-selection outcome in real druses
+//     (Mathematical Geosciences 1989; mature druse σ ≈ 10–15° around
+//     the substrate normal, capped at ±30° before extinction).
+//     Epitaxial overgrowths (`enclosed_by != null`) lock tighter at
+//     σ ≈ 3° because nucleation is templated by the host's lattice.
+//
+//   * 'air': gravity-aligned. Stalactite c-axis points world-down
+//     regardless of substrate orientation (true cave-style dripstone);
+//     stalagmite c-axis points world-up. Wall crystals in air are an
+//     edge case with no clean geological analog — fall back to the
+//     fluid-mode substrate-perpendicular logic.
+//
+// Within-crystal jitter (off-axis tilt + rotation around c) is seeded
+// from crystal_id with separate channels so reloads / replays stay
+// reproducible. Sizes clamped to a 3-px floor so baby crystals read
+// as "a thing exists here" not background noise.
 function _renderCrystalWireframe(ctx, crystal, cellWorld, sphereRadiusPx,
                                   mmToPx, cx, cy, F) {
   const prim = _lookupCrystalPrimitive(crystal);
   const cLengthPx = Math.max((crystal.c_length_mm || 0.5) * mmToPx, 3);
   const aWidthPx  = Math.max((crystal.a_width_mm  || 0.5) * mmToPx, 3);
-  // c-axis = inward sphere normal at the anchor cell. cellWorld is the
-  // anchor's (x, y, z) relative to the canvas center; the sphere's
-  // origin is (0,0,0) in this frame, so inward = -normalize(cellWorld).
+  // Substrate-perpendicular direction (= inward sphere normal at the
+  // anchor cell). cellWorld is the anchor's (x, y, z) relative to the
+  // canvas center; the sphere's origin is (0,0,0) in this frame, so
+  // inward = -normalize(cellWorld).
   const invR = 1 / (Math.hypot(cellWorld[0], cellWorld[1], cellWorld[2]) || 1);
-  const cAxis = [-cellWorld[0] * invR, -cellWorld[1] * invR, -cellWorld[2] * invR];
-  const rotRad = (_seededRand(crystal.crystal_id || 0) - 0.5) * 2 * Math.PI;
+  const subNormal = [-cellWorld[0] * invR, -cellWorld[1] * invR,
+                     -cellWorld[2] * invR];
+  const env = crystal.growth_environment || 'fluid';
+  // Air-mode default: world-down (-z is "up" in this canvas frame, see
+  // _topoRenderRings3D's wz convention — the south pole sits at -z, so
+  // gravity-down = +z direction). We want stalactites to point AT the
+  // floor, so c-axis = (0, 0, -1) for ceilings (subNormal[2] > 0) and
+  // (0, 0, +1) for floors. Wall cells in air fall back to substrate-
+  // perpendicular as there's no clean dripstone analog.
+  let cAxis;
+  if (env === 'air') {
+    if (subNormal[2] > 0.4) {
+      // Ceiling-anchored: subNormal points "down toward floor" = +z.
+      // Stalactite c-axis matches (always +z, regardless of cell).
+      cAxis = [0, 0, 1];
+    } else if (subNormal[2] < -0.4) {
+      // Floor-anchored: stalagmite points up = -z.
+      cAxis = [0, 0, -1];
+    } else {
+      cAxis = subNormal;  // wall: fallback
+    }
+  } else {
+    // Fluid mode: substrate normal + Gaussian scatter. Tighter for
+    // epitaxial overgrowths (enclosed_by ≠ null) — they're templated
+    // by the host's faces.
+    const epitaxial = crystal.enclosed_by != null;
+    const sigmaRad = (epitaxial ? 3 : 12) * Math.PI / 180;
+    const id = crystal.crystal_id | 0;
+    // Two independent normals = a 2D Gaussian in the tangent plane.
+    // Build perpendicular basis (any-rot) to subNormal, push subNormal
+    // by (gx * perp1 + gy * perp2), renormalize.
+    const [tA, tB] = _orthonormalBasis(subNormal, 0);
+    const gx = _seededGaussian(id, 1) * sigmaRad;
+    const gy = _seededGaussian(id, 2) * sigmaRad;
+    const tx = subNormal[0] + tA[0] * gx + tB[0] * gy;
+    const ty = subNormal[1] + tA[1] * gx + tB[1] * gy;
+    const tz = subNormal[2] + tA[2] * gx + tB[2] * gy;
+    const len = Math.hypot(tx, ty, tz) || 1;
+    cAxis = [tx / len, ty / len, tz / len];
+  }
+  // Rotation around the c-axis. Independent random channel so it
+  // doesn't co-vary with the off-axis tilt above.
+  const rotRad = (_seededRand((crystal.crystal_id | 0) ^ 0xC1B2A305) - 0.5)
+                  * 2 * Math.PI;
   const [perp1, perp2] = _orthonormalBasis(cAxis, rotRad);
   // Project every primitive vertex.
   const projected = [];
