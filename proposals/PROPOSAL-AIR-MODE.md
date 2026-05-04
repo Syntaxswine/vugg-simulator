@@ -3,13 +3,13 @@
 **Date drafted:** 2026-05-04
 **Author:** Stone Philosopher (drafted with Claude)
 **Status:** Future task — research complete, builder-ready
-**Companion to:** `PROPOSAL-WIREFRAME-CRYSTALS.md`, the Phase D v2 entry in `BACKLOG.md`
+**Companion to:** `PROPOSAL-WIREFRAME-CRYSTALS.md`. Builds on Phase D v2 (orientation preferences, shipped at SIM_VERSION 23 — see `BACKLOG.md`).
 
 ---
 
 ## Overview
 
-The renderer + engine already have `Crystal.growth_environment ∈ {'fluid', 'air'}` plumbed (commit `f7ce75f`, SIM_VERSION 22). The renderer's air-mode branch flips c-axis to gravity-down for ceilings (stalactite) and gravity-up for floors (stalagmite). But:
+The renderer + engine already have `Crystal.growth_environment ∈ {'fluid', 'air'}` plumbed (commit `f7ce75f`, added at SIM_VERSION 22 — current head is at SIM_VERSION 23 after Phase D v2). The renderer's air-mode branch flips c-axis to gravity-down for ceilings (stalactite) and gravity-up for floors (stalagmite). But:
 
 1. No scenario currently sets `'air'` on new crystals — the field is dormant.
 2. Air-mode crystals reuse their habit primitive oriented straight down. Real stalactites are tapered dripstone columns, not single quartz prisms.
@@ -96,7 +96,7 @@ Pick 3–5 of the air-cavity-only minerals from the list above and add them to `
 2. **Mirabilite** — same chemistry minus Mg, plus Na. Easier to wire if the existing fluid already tracks Na (check).
 3. **Helictite** (calcite habit variant, NOT a new mineral) — when `growth_environment == 'air'` AND mineral == 'calcite' AND habit roll is favorable, set habit = 'helictite'. Renderer maps to a new `PRIM_HELICTITE` (a thin curved spiral — creative geometry).
 
-Stage C bumps SIM_VERSION (22 → 23 if Phase D v2 already shipped, or 22 → 24 to reserve room).
+Stage C bumps SIM_VERSION 23 → 24 (or higher if intervening engine work has bumped it further).
 
 ### Stage D: New scenario — "Naica-style geothermal pool"
 
