@@ -12295,7 +12295,7 @@ function _buildScenarioFromSpec(scenarioId, spec) {
       throw new Error(`scenarios.json5 scenario '${scenarioId}' references unknown event type '${ev.type}' — register it in EVENT_REGISTRY (index.html) + the Python mirror (vugg.py).`);
     }
   }
-  return function scenarioCallable() {
+  const scenarioCallable = function scenarioCallable() {
     const conditions = new VugConditions({
       temperature, pressure,
       fluid: new FluidChemistry(fluidKwargs),
@@ -12312,6 +12312,12 @@ function _buildScenarioFromSpec(scenarioId, spec) {
     }));
     return { conditions, events, defaultSteps: duration };
   };
+  // Attach the raw spec so consumers (notably the tutorial state machine,
+  // which reads `tutorial.steps`) can recover it. Function objects can hold
+  // arbitrary properties; this mirrors how `_json5_spec` is read in
+  // startTutorial.
+  scenarioCallable._json5_spec = spec;
+  return scenarioCallable;
 }
 
 let _scenariosJson5Ready = false;
