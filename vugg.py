@@ -359,7 +359,7 @@ from typing import List, Dict, Optional, Tuple
 #          thresholds (>=10/>=5, matches research's "rare two-parent
 #          mineral" framing). Pre-v17 JS T cap at 250°C was way too
 #          lenient.
-SIM_VERSION = 20
+SIM_VERSION = 21
 
 # Phase C of PROPOSAL-3D-SIMULATION (= proposal's "Phase 2"): per-ring
 # chemistry scaffolding. Each ring carries its own FluidChemistry +
@@ -1056,6 +1056,39 @@ class WallState:
         """Keep the nominal diameter in sync with the host sim's global
         measure. Per-cell `wall_depth` is the authoritative shape."""
         self.vug_diameter_mm = new_diameter_mm
+
+    def ring_orientation(self, ring_idx: int) -> str:
+        """Phase D: which third of the sphere this ring belongs to.
+
+        Floor rings (bottom quarter by latitude) → 'floor'; ceiling
+        rings (top quarter) → 'ceiling'; everything in the middle
+        → 'wall'. Used by Phase D nucleation weighting (more crystals
+        on the wall — that's where most surface area lives) and Phase
+        D v1's habit-orientation logic. For ring_count == 1 every
+        ring is 'wall' (legacy single-ring sims have no vertical
+        structure)."""
+        n = self.ring_count
+        if n <= 1:
+            return 'wall'
+        if ring_idx < n // 4:
+            return 'floor'
+        if ring_idx >= 3 * n // 4:
+            return 'ceiling'
+        return 'wall'
+
+    def ring_area_weight(self, ring_idx: int) -> float:
+        """Phase D: per-ring nucleation weight proportional to the
+        ring's circumference on the sphere. A real geode's wall has
+        roughly 6× more area per latitude band at the equator than
+        at a polar cap, so the equator should host more crystal
+        nucleations. Returns sin(latitude) using the same half-step
+        offset the renderer uses (so visual area matches engine
+        weight)."""
+        n = self.ring_count
+        if n <= 1:
+            return 1.0
+        phi = math.pi * (ring_idx + 0.5) / n
+        return math.sin(phi)
 
     def ring_index_for_height_mm(self, height_mm: float) -> int:
         """Map a vertical position (mm above the floor) to a ring index.
@@ -13548,14 +13581,14 @@ class VugSimulator:
     def _assign_wall_ring(self, position: str) -> int:
         """Pick a ring for a nucleating crystal. Host-substrate
         overgrowths inherit the host's ring so pseudomorphs land on
-        the same latitude band. Free-wall nucleations get a random
-        ring (Phase C v1: uniform distribution; Phase D will weight
-        by orientation).
+        the same latitude band. Free-wall nucleations sample a ring
+        weighted by its area (Phase D: equator gets more crystals
+        than polar caps, matching real-geode surface-area distribution).
 
-        Always consumes one RNG number for free-wall nucleations
-        (even when ring_count == 1) so simulation parity holds across
-        different ring counts — randrange(1) just always returns 0
-        but advances the RNG identically to randrange(16)."""
+        Always consumes exactly one RNG number for free-wall
+        nucleations (even when ring_count == 1) so simulation parity
+        holds across different ring counts — single-ring sims always
+        return 0 but still advance the RNG."""
         host_id = None
         if " #" in position:
             try:
@@ -13567,7 +13600,18 @@ class VugSimulator:
             if host and host.wall_ring_index is not None:
                 return host.wall_ring_index
         n = max(1, self.wall_state.ring_count)
-        return random.randrange(n)
+        # Area-weighted sample. Linear scan picks the first ring whose
+        # cumulative weight exceeds a uniform draw of [0, total).
+        # Identical algorithm in JS so both runtimes pick the same
+        # ring for the same RNG state.
+        weights = [self.wall_state.ring_area_weight(k) for k in range(n)]
+        total = sum(weights) or 1.0
+        r = random.random() * total
+        for k, w in enumerate(weights):
+            r -= w
+            if r <= 0.0:
+                return k
+        return n - 1
 
     def _repaint_wall_state(self) -> None:
         """Rebuild ring-0 occupancy from the current crystal list. Runs

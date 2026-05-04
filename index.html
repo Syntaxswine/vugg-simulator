@@ -4308,6 +4308,28 @@ class WallState {
 
   updateDiameter(newDiameter) { this.vug_diameter_mm = newDiameter; }
 
+  // Phase D: which third of the sphere this ring belongs to.
+  // Floor / wall / ceiling tags derived from ring index — bottom
+  // quarter is 'floor', top quarter is 'ceiling', middle 'wall'.
+  // Mirrors WallState.ring_orientation in vugg.py.
+  ringOrientation(ringIdx) {
+    const n = this.ring_count;
+    if (n <= 1) return 'wall';
+    if (ringIdx < Math.floor(n / 4)) return 'floor';
+    if (ringIdx >= Math.floor(3 * n / 4)) return 'ceiling';
+    return 'wall';
+  }
+
+  // Phase D: per-ring nucleation weight proportional to the ring's
+  // circumference on the sphere. sin(latitude) at the half-step
+  // offset the renderer uses, so visual area matches engine weight.
+  ringAreaWeight(ringIdx) {
+    const n = this.ring_count;
+    if (n <= 1) return 1.0;
+    const phi = Math.PI * (ringIdx + 0.5) / n;
+    return Math.sin(phi);
+  }
+
   // Map a vertical position (mm above the floor) to a ring index.
   // Floor (height=0) → ring 0; ceiling (height = ring_count *
   // ring_spacing_mm) → ring_count-1. Out-of-range heights clamp.
@@ -12847,11 +12869,26 @@ class VugSimulator {
       const host = this.crystals.find(c => c.crystal_id === hostId);
       if (host && host.wall_ring_index != null) return host.wall_ring_index;
     }
-    // Always consume one RNG number even when ring_count <= 1, so
-    // simulation parity holds across ring counts. floor(r * 1) is
-    // always 0 but advances the RNG state.
+    // Phase D: area-weighted sample (equator gets more nucleations
+    // than polar caps). Always consumes one RNG number so parity
+    // holds across ring counts. Mirrors VugSimulator._assign_wall_ring
+    // in vugg.py — same algorithm so both runtimes pick the same
+    // ring for the same RNG state.
     const n = Math.max(1, this.wall_state.ring_count);
-    return Math.floor(rng.random() * n);
+    const weights = [];
+    let total = 0;
+    for (let k = 0; k < n; k++) {
+      const w = this.wall_state.ringAreaWeight(k);
+      weights.push(w);
+      total += w;
+    }
+    if (total <= 0) total = 1;
+    let r = rng.random() * total;
+    for (let k = 0; k < n; k++) {
+      r -= weights[k];
+      if (r <= 0) return k;
+    }
+    return n - 1;
   }
 
   _repaintWallState() {
@@ -21176,6 +21213,13 @@ function idleRecordHistory() {
 // width proportional to crystal thickness. Hover → tooltip.
 
 const TOPO_WALL_COLOR = '#D2691E';   // warm amber — the wall's color. No mineral touches this hue.
+// Phase D: tint wall outlines by ring orientation in 3D mode. Floor
+// rings get a slightly cooler amber; ceiling rings a slightly warmer
+// reddish amber; wall rings stay TOPO_WALL_COLOR. Subtle enough not
+// to scream "different mineral", strong enough to read floor / wall /
+// ceiling at a glance once you know what you're looking at.
+const TOPO_WALL_COLOR_FLOOR = '#A85820';      // cooler amber
+const TOPO_WALL_COLOR_CEILING = '#E8782C';    // warmer amber
 const TOPO_CRYSTAL_CAP_FRAC = 0.85;   // crystals can fill at most this fraction of a cell's radius
 const TOPO_WALL_STROKE_PX = 2;        // bare wall stroke width
 const TOPO_WALL_STROKE_MAX_PX = 10;   // cell stroke width ceiling when a crystal sits on the wall
@@ -22229,7 +22273,13 @@ function _topoRenderRings3D(ctx, sim, wall, ring0, cellR, boundaryR,
       ctx.globalAlpha = 1;
     }
 
-    // Wall outline for this ring.
+    // Wall outline for this ring. Phase D: bare-wall stroke color
+    // shifts subtly by orientation so the ring-stack reads as
+    // floor / wall / ceiling without needing extra UI chrome.
+    const orient = wall.ringOrientation(ringIdx);
+    let bareWallColor = TOPO_WALL_COLOR;
+    if (orient === 'floor') bareWallColor = TOPO_WALL_COLOR_FLOOR;
+    else if (orient === 'ceiling') bareWallColor = TOPO_WALL_COLOR_CEILING;
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
     for (let i = 0; i < N; i++) {
@@ -22242,9 +22292,7 @@ function _topoRenderRings3D(ctx, sim, wall, ring0, cellR, boundaryR,
       const cell = ring[i];
       let stroke, width, alpha;
       if (cell.crystal_id == null) {
-        // Bare wall — amber. Rings 1..N-1 in Phase A always take this
-        // path; ring 0 takes it for unpainted cells.
-        stroke = TOPO_WALL_COLOR;
+        stroke = bareWallColor;
         width = TOPO_WALL_STROKE_PX;
         alpha = 1;
       } else {
