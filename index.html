@@ -23392,23 +23392,127 @@ function _topoRenderRings3D(ctx, sim, wall, ring0, cellR, boundaryR,
 // under the cursor. Returns { mineral, isInclusion, cell } or null
 // if the cursor is not on a crystal. Called by both the tooltip and
 // the highlight hover/click handlers so their geometry stays in sync.
+// Reconstruct the (mmToPx, cx, cy) the renderer is using for the
+// current canvas + zoom + pan state. Used by both 2D and 3D hit-test
+// paths so cursor coords map to the same world the user sees.
+function _topoCanvasFrame(rect, wall, ring0) {
+  const cssW = rect.width, cssH = rect.height;
+  const initR = wall.initial_radius_mm;
+  let maxWallR = wall.max_seen_radius_mm || initR * 2;
+  for (const c of ring0) {
+    const baseR = c.base_radius_mm > 0 ? c.base_radius_mm : initR;
+    const r = baseR + c.wall_depth;
+    if (r > maxWallR) maxWallR = r;
+  }
+  const centerPad = 48;
+  const viewW = cssW / TOPO_STAGE_SCALE;
+  const viewH = cssH / TOPO_STAGE_SCALE;
+  const fit = Math.min(viewW, viewH - centerPad) * 0.82 / 2;
+  const mmToPx = (fit / maxWallR) * _topoZoom;
+  const cx = cssW / 2 + _topoPanX;
+  const cy = (cssH - centerPad) / 2 + 8 + _topoPanY;
+  return { cssW, cssH, mmToPx, cx, cy, initR, maxWallR };
+}
+
+// 3D hit-test. The cavity surface is NOT a true sphere — each ring
+// has its own latitude-dependent radius factor (sin(φ)·polar_profile)
+// and per-cell base_radius wobble, so it's a stretched-and-bumped
+// sphere. Ray-vs-sphere math gives wrong answers when polar pinches
+// pull cells far inside the mean sphere.
+//
+// Brute-force approach: forward-project every cell's anchor center
+// to screen, find the cell whose projection is nearest to the cursor.
+// This is naturally correct for the bumpy surface AND handles the
+// wireframe-occlusion case (both front and back hemispheres visible)
+// without explicit hemisphere math — the nearest-projection cell is
+// the one the user is hovering over.
+//
+// Cost: 1 projection + 1 distance² per cell × 16 rings × 120 cells =
+// ~2k operations per hit-test. Negligible at hover-event frequency.
+//
+// Returns { mineral, isInclusion, cell, ringIdx, cellIdx } or null
+// (cursor too far from any cell). Crystal-on-cell follows the same
+// engine semantic as 2D mode: a cell's crystal_id is the occupant;
+// null means bare wall.
+function _hitTest3D(ev, sim, rect) {
+  const wall = sim.wall_state;
+  if (!wall || !wall.rings || wall.rings.length < 2) return null;
+  const ringCount = wall.ring_count;
+  const ring0 = wall.rings[0];
+  const N = ring0.length;
+  const F = 1200;  // matches _topoRenderRings3D
+  const { mmToPx, cx, cy, initR } = _topoCanvasFrame(rect, wall, ring0);
+  const sphereRadiusPx = wall.meanDiameterMm() * mmToPx / 2;
+
+  // Cursor in canvas-relative coords (matches what _topoProject3D's
+  // output adds cx/cy back to).
+  const ux = (ev.clientX - rect.left) - cx;
+  const uy = (ev.clientY - rect.top) - cy;
+
+  // Walk every cell, project its anchor, track the nearest in screen
+  // space. Two candidates kept: the absolute nearest, AND the nearest
+  // crystal-bearing cell (so a wireframe crystal sitting near a bare
+  // cell's projected center wins on user-intent grounds — they almost
+  // certainly meant to hover the visible crystal, not its bare-wall
+  // neighbor).
+  let bestAny = null, bestAnyD2 = Infinity;
+  let bestCrystal = null, bestCrystalD2 = Infinity;
+  for (let r = 0; r < ringCount; r++) {
+    const phi = Math.PI * (r + 0.5) / ringCount;
+    const polar = wall.polarProfileFactor ? wall.polarProfileFactor(phi) : 1.0;
+    const rrf = Math.sin(phi) * polar;
+    const wz = -Math.cos(phi) * sphereRadiusPx;
+    const twist = wall.ringTwistRadians ? wall.ringTwistRadians(phi) : 0;
+    const ring = wall.rings[r];
+    if (!ring || !ring.length) continue;
+    for (let i = 0; i < N; i++) {
+      const c = ring[i];
+      const baseR = c.base_radius_mm > 0 ? c.base_radius_mm : initR;
+      const cellOuter = (baseR + c.wall_depth) * mmToPx;
+      const aMid = -Math.PI / 2 + (i / N) * 2 * Math.PI + twist;
+      const wx = cellOuter * rrf * Math.cos(aMid);
+      const wy = cellOuter * rrf * Math.sin(aMid);
+      const p = _topoProject3D(wx, wy, wz, _topoTiltX, _topoTiltY, F);
+      const dx = ux - p[0], dy = uy - p[1];
+      const d2 = dx * dx + dy * dy;
+      if (d2 < bestAnyD2) {
+        bestAnyD2 = d2; bestAny = { ringIdx: r, cellIdx: i, cell: c };
+      }
+      if (c.crystal_id != null && d2 < bestCrystalD2) {
+        bestCrystalD2 = d2; bestCrystal = { ringIdx: r, cellIdx: i, cell: c };
+      }
+    }
+  }
+  if (!bestAny) return null;
+
+  // User-intent rule: if a crystal-bearing cell is reasonably close to
+  // the cursor (within 14 px, ~2 cells worth of arc at typical scale),
+  // prefer it over an even-closer bare-wall cell. Otherwise the bare
+  // wall wins. The threshold is small enough that the user has to be
+  // visually on a crystal silhouette for this to fire.
+  const CRYSTAL_PREFERENCE_PX = 14;
+  if (bestCrystal && bestCrystalD2 <= CRYSTAL_PREFERENCE_PX * CRYSTAL_PREFERENCE_PX) {
+    const { ringIdx, cellIdx, cell } = bestCrystal;
+    return { mineral: cell.mineral, isInclusion: false, cell, ringIdx, cellIdx };
+  }
+  const { ringIdx, cellIdx, cell } = bestAny;
+  if (cell.crystal_id == null) {
+    return { mineral: null, isInclusion: false, cell, ringIdx, cellIdx };
+  }
+  return { mineral: cell.mineral, isInclusion: false, cell, ringIdx, cellIdx };
+}
+
 function _topoHitTest(ev) {
   const canvas = document.getElementById('topo-canvas');
   const sim = topoActiveSim();
   if (!canvas || !sim) return null;
-  // Hit-test reads whatever ring the renderer is currently showing.
-  // Aggregate (post-scatter default) → resolves any crystal on any
-  // ring at the cursor's angular position. Single-slice mode →
-  // resolves only crystals on that specific ring (so hovering a
-  // ceiling-only slice won't pick up floor crystals at the same
-  // angular position).
-  const ring0 = _topoActiveRingForRender(sim.wall_state);
-  if (!ring0 || !ring0.length) return null;
   const rect = canvas.getBoundingClientRect();
   const mx = ev.clientX - rect.left;
   const my = ev.clientY - rect.top;
 
   // Inclusion hit-test first — dots take priority over host wall cell.
+  // Inclusions are 2D-rendered only (see _topoInclusions populate path);
+  // in 3D mode the array stays empty, so the loop is a no-op.
   for (const inc of _topoInclusions) {
     const dx = mx - inc.x, dy = my - inc.y;
     if (dx * dx + dy * dy <= inc.r * inc.r) {
@@ -23418,27 +23522,21 @@ function _topoHitTest(ev) {
     }
   }
 
-  // Same scale reconstruction as topoRender / tooltip.
-  const cssW = rect.width, cssH = rect.height;
-  const N = ring0.length;
-  const initR = sim.wall_state.initial_radius_mm;
-  let maxWallR = sim.wall_state.max_seen_radius_mm || initR * 2;
-  for (const c of ring0) {
-    const baseR = c.base_radius_mm > 0 ? c.base_radius_mm : initR;
-    const r = baseR + c.wall_depth;
-    if (r > maxWallR) maxWallR = r;
+  // 3D mode: ray-cast against the cavity sphere instead of inverting
+  // the 2D polar transform (which ignores tilt + per-ring twist).
+  if (_topoView3D && sim.wall_state && sim.wall_state.rings &&
+      sim.wall_state.rings.length > 1) {
+    return _hitTest3D(ev, sim, rect);
   }
-  const centerPad = 48;
-  // Match topoRender: fit to VISIBLE window (cssW/STAGE, cssH/STAGE),
-  // not the full canvas buffer, so hit coords land on the same cells
-  // the user actually sees.
-  const viewW = cssW / TOPO_STAGE_SCALE;
-  const viewH = cssH / TOPO_STAGE_SCALE;
-  const fit = Math.min(viewW, viewH - centerPad) * 0.82 / 2;
-  const mmToPx = (fit / maxWallR) * _topoZoom;
-  const cx = cssW / 2 + _topoPanX;
-  const cy = (cssH - centerPad) / 2 + 8 + _topoPanY;
 
+  // 2D path: hit-test reads whatever ring the renderer is currently
+  // showing. Aggregate (post-scatter default) → resolves any crystal
+  // on any ring at the cursor's angular position. Single-slice mode →
+  // resolves only crystals on that specific ring.
+  const ring0 = _topoActiveRingForRender(sim.wall_state);
+  if (!ring0 || !ring0.length) return null;
+  const { mmToPx, cx, cy, initR } = _topoCanvasFrame(rect, sim.wall_state, ring0);
+  const N = ring0.length;
   const dx = mx - cx, dy = my - cy;
   const rMouse = Math.hypot(dx, dy);
   let a = Math.atan2(dy, dx) + Math.PI / 2;
@@ -23453,114 +23551,62 @@ function _topoHitTest(ev) {
   return { mineral: cell.mineral, isInclusion: false, cell };
 }
 
-// Hover: translate mouse position into a polar angle around the vug
-// and look up the corresponding wall cell. Inclusion dots take priority
-// — if the cursor is over one, show the enclosed crystal instead of
-// the host's wall info.
+// Hover: shared 2D + 3D path. _topoHitTest already resolves the cursor
+// to either an inclusion, a wall cell on the cavity sphere (3D), or a
+// wall cell via 2D polar inversion (2D). We just turn its result into
+// tooltip HTML — no duplicated geometry math here. Inclusion hits get
+// the "◆ inside host" framing; wall hits get the standard mineral /
+// habit / size readout.
 function _topoTooltipFromEvent(ev) {
   const canvas = document.getElementById('topo-canvas');
   const tip = document.getElementById('topo-tooltip');
   const sim = topoActiveSim();
   if (!canvas || !tip || !sim) return;
-  // Match whatever ring the renderer / hit-test is currently using.
-  // See _topoActiveRingForRender / topoCycleSlice.
-  const ring0 = _topoActiveRingForRender(sim.wall_state);
-  if (!ring0 || !ring0.length) { tip.style.display = 'none'; return; }
-  const rect = canvas.getBoundingClientRect();
-  const mx = ev.clientX - rect.left;
-  const my = ev.clientY - rect.top;
-
-  // Update highlight hover target from the same hit-test. Inclusion
-  // hovers resolve to the inclusion's mineral, wall cell hovers to the
-  // occupying crystal's mineral. Bare wall clears the hover.
   const hit = _topoHitTest(ev);
   topoSetHoverTarget(
     hit && hit.mineral ? { type: 'mineral', value: hit.mineral } : null
   );
+  if (!hit) { tip.style.display = 'none'; return; }
 
-  // Inclusion hit-test first.
-  for (const inc of _topoInclusions) {
-    const dx = mx - inc.x, dy = my - inc.y;
-    if (dx * dx + dy * dy <= inc.r * inc.r) {
-      const crystal = sim.crystals.find(c => c.crystal_id === inc.crystal_id);
-      if (!crystal) break;
-      const host = sim.crystals.find(c => c.crystal_id === crystal.enclosed_by);
-      const spec = MINERAL_SPEC[crystal.mineral] || {};
-      const color = spec.class_color || TOPO_WALL_COLOR;
-      const lines = [];
-      lines.push(`<b style="color:${color}">◆ ${crystal.mineral} #${crystal.crystal_id}</b>`);
-      lines.push(`${crystal.habit}${crystal.twinned ? ` (${crystal.twin_law} twin)` : ''}`);
-      lines.push(`${crystal.c_length_mm.toFixed(2)} mm — inclusion`);
-      if (host) lines.push(`inside ${host.mineral} #${host.crystal_id}`);
-      tip.innerHTML = lines.join('<br>');
-      tip.style.display = 'block';
-      // Viewport-relative positioning (CSS is now position:fixed). Don't
-      // subtract container offsets — under TOPO_STAGE_SCALE + _topoZoom +
-      // pan transforms, that mismatch is what produces the offset bug.
-      tip.style.left = `${Math.min(window.innerWidth - tip.offsetWidth - 6, ev.clientX + 12)}px`;
-      tip.style.top = `${Math.min(window.innerHeight - 40, ev.clientY - 10)}px`;
-      return;
-    }
-  }
-
-  // Reconstruct the render's center + scale (same logic as topoRender)
-  const cssW = rect.width, cssH = rect.height;
-  const N = ring0.length;
-  const initR = sim.wall_state.initial_radius_mm;
-  let maxWallR = sim.wall_state.max_seen_radius_mm || initR * 2;
-  for (const c of ring0) {
-    // Phase-1 per-cell base radius; fallback for legacy snapshots.
-    const baseR = c.base_radius_mm > 0 ? c.base_radius_mm : initR;
-    const r = baseR + c.wall_depth;
-    if (r > maxWallR) maxWallR = r;
-  }
-  const centerPad = 48;
-  // Match topoRender: fit to VISIBLE window (cssW/STAGE, cssH/STAGE),
-  // not the full canvas buffer, so hit coords land on the same cells
-  // the user actually sees.
-  const viewW = cssW / TOPO_STAGE_SCALE;
-  const viewH = cssH / TOPO_STAGE_SCALE;
-  const fit = Math.min(viewW, viewH - centerPad) * 0.82 / 2;
-  const mmToPx = (fit / maxWallR) * _topoZoom;
-  const cx = cssW / 2 + _topoPanX;
-  const cy = (cssH - centerPad) / 2 + 8 + _topoPanY;
-
-  const dx = mx - cx, dy = my - cy;
-  const rMouse = Math.hypot(dx, dy);
-  // Only show tooltip when the cursor is near the wall (inside outer
-  // boundary plus a little slop, and not deep in the center void).
-  const cellAngle = Math.atan2(dy, dx);
-  // Map angle back to cell index: angle 0 of cell i was -π/2 + i·Δ.
-  let a = cellAngle + Math.PI / 2;
-  while (a < 0) a += 2 * Math.PI;
-  while (a >= 2 * Math.PI) a -= 2 * Math.PI;
-  const idx = Math.min(N - 1, Math.max(0, Math.round((a / (2 * Math.PI)) * N) % N));
-  // Phase-1 per-cell base radius; fallback for legacy snapshots.
-  const hitBaseR = ring0[idx].base_radius_mm > 0 ? ring0[idx].base_radius_mm : initR;
-  const cellOuterPx = (hitBaseR + ring0[idx].wall_depth) * mmToPx;
-  if (rMouse > cellOuterPx + 10 || rMouse < cellOuterPx * 0.15) {
-    tip.style.display = 'none';
-    return;
-  }
-
-  const cell = ring0[idx];
-  const wallDepthMm = cell.wall_depth;
   let html;
-  if (cell.crystal_id == null) {
-    const depthNote = wallDepthMm > 0.1 ? ` · eroded +${wallDepthMm.toFixed(1)}mm` : '';
-    html = `<b style="color:${TOPO_WALL_COLOR}">${sim.conditions.wall.composition || 'wall'}</b><br>` +
-           `bare wall${depthNote}`;
-  } else {
-    const crystal = sim.crystals.find(c => c.crystal_id === cell.crystal_id);
-    const spec = MINERAL_SPEC[cell.mineral] || {};
+  if (hit.isInclusion) {
+    const crystal = sim.crystals.find(c => c.mineral === hit.mineral);
+    if (!crystal) { tip.style.display = 'none'; return; }
+    const host = sim.crystals.find(c => c.crystal_id === crystal.enclosed_by);
+    const spec = MINERAL_SPEC[crystal.mineral] || {};
     const color = spec.class_color || TOPO_WALL_COLOR;
     const lines = [];
-    lines.push(`<b style="color:${color}">${cell.mineral} #${cell.crystal_id}</b>`);
-    if (crystal) {
-      lines.push(`${crystal.habit}${crystal.twinned ? ` (${crystal.twin_law} twin)` : ''}`);
-      lines.push(`${crystal.c_length_mm.toFixed(2)} mm · vector: ${crystal.vector}`);
-    }
+    lines.push(`<b style="color:${color}">◆ ${crystal.mineral} #${crystal.crystal_id}</b>`);
+    lines.push(`${crystal.habit}${crystal.twinned ? ` (${crystal.twin_law} twin)` : ''}`);
+    lines.push(`${crystal.c_length_mm.toFixed(2)} mm — inclusion`);
+    if (host) lines.push(`inside ${host.mineral} #${host.crystal_id}`);
     html = lines.join('<br>');
+  } else {
+    const cell = hit.cell;
+    if (!cell) { tip.style.display = 'none'; return; }
+    if (cell.crystal_id == null) {
+      // 3D mode renders the cavity as a wireframe topo map — the user
+      // can SEE the bare wall directly, so the "wall · eroded +Xmm"
+      // tooltip just adds friction without information. Suppress it.
+      // 2D mode keeps the readout because the strip view doesn't make
+      // erosion depth obvious from geometry alone.
+      if (_topoView3D) { tip.style.display = 'none'; return; }
+      const wallDepthMm = cell.wall_depth || 0;
+      const depthNote = wallDepthMm > 0.1 ? ` · eroded +${wallDepthMm.toFixed(1)}mm` : '';
+      html = `<b style="color:${TOPO_WALL_COLOR}">${sim.conditions.wall.composition || 'wall'}</b><br>` +
+             `bare wall${depthNote}`;
+    } else {
+      const crystal = sim.crystals.find(c => c.crystal_id === cell.crystal_id);
+      const spec = MINERAL_SPEC[cell.mineral] || {};
+      const color = spec.class_color || TOPO_WALL_COLOR;
+      const lines = [];
+      lines.push(`<b style="color:${color}">${cell.mineral} #${cell.crystal_id}</b>`);
+      if (crystal) {
+        lines.push(`${crystal.habit}${crystal.twinned ? ` (${crystal.twin_law} twin)` : ''}`);
+        lines.push(`${crystal.c_length_mm.toFixed(2)} mm · vector: ${crystal.vector}`);
+      }
+      html = lines.join('<br>');
+    }
   }
   tip.innerHTML = html;
   tip.style.display = 'block';
