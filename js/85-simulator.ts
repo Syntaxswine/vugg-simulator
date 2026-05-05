@@ -183,7 +183,7 @@ class VugSimulator {
   // ring's update sees the pre-step state of its neighbors —
   // otherwise ring k+1's update would already see ring k's new value
   // and the diffusion would be asymmetric.
-  _diffuseRingState(rate) {
+  _diffuseRingState(rate?) {
     if (rate == null) rate = this.inter_ring_diffusion_rate;
     if (!(rate > 0)) return;
     const n = this.ring_fluids.length;

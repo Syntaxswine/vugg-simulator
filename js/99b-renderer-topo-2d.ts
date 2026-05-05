@@ -169,7 +169,7 @@ function _topoUpdateSliceLabel(wall) {
   lab.textContent = `${idx + 1}/${total} ${orient}`.trim();
 }
 
-function topoRender(optOverrideRing) {
+function topoRender(optOverrideRing?) {
   const canvas = document.getElementById('topo-canvas');
   const panel = document.getElementById('topo-panel');
   if (!canvas || !panel || panel.style.display === 'none') return;

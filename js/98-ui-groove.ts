@@ -462,7 +462,7 @@ function grooveReset() {
   grooveDraw();
 }
 
-function grooveAnimate(now) {
+function grooveAnimate(now?) {
   if (!groovePlaying) return;
   if (!now) now = performance.now();
   const dt = (now - grooveLastTime) / 1000;

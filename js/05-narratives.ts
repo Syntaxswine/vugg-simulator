@@ -75,7 +75,7 @@ function _narrative_interp(template, ctx) {
   );
 }
 
-function narrative_blurb(species, ctx) {
+function narrative_blurb(species, ctx?) {
   // Boss-design schema (2026-04-30): blurb may contain {key} placeholders.
   const sections = _NARRATIVE_CACHE[species];
   const template = sections && sections.blurb;
@@ -83,7 +83,7 @@ function narrative_blurb(species, ctx) {
   return _narrative_interp(template, ctx || {});
 }
 
-function narrative_closing(species, ctx) {
+function narrative_closing(species, ctx?) {
   // Boss-design schema (2026-04-30): `## closing` always emits at end.
   const sections = _NARRATIVE_CACHE[species];
   const template = sections && sections.closing;
@@ -91,7 +91,7 @@ function narrative_closing(species, ctx) {
   return _narrative_interp(template, ctx || {});
 }
 
-function narrative_variant(species, variant, ctx) {
+function narrative_variant(species, variant, ctx?) {
   const sections = _NARRATIVE_CACHE[species];
   if (!sections) return '';
   const template = sections[`variant: ${variant}`];
