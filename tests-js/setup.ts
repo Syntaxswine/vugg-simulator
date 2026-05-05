@@ -228,6 +228,9 @@ const EXPORTS = [
   'oxideRedoxAnoxicFactor',
   'oxideRedoxWindow',
   'oxideRedoxTent',
+  // Phase 4b arsenate-class helpers (20c-chemistry-redox.ts).
+  'arsenateRedoxAvailable',
+  'arsenateRedoxFactor',
 ];
 
 let _bundleLoaded = false;

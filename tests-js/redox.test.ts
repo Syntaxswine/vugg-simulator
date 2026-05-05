@@ -24,6 +24,8 @@ declare const oxideRedoxAnoxic: any;
 declare const oxideRedoxAnoxicFactor: any;
 declare const oxideRedoxWindow: any;
 declare const oxideRedoxTent: any;
+declare const arsenateRedoxAvailable: any;
+declare const arsenateRedoxFactor: any;
 
 describe('redox infrastructure (Phase 4a)', () => {
   it('flag is OFF in v26 — engines still gate on fluid.O2', () => {
@@ -259,6 +261,21 @@ describe('Phase 4b oxide redox helpers', () => {
       const cupLegacy = Math.max(0.3, 1.0 - Math.abs(O2 - 0.7) * 1.4);
       expect(oxideRedoxTent(f, 0.4, 1.5, 0.4)).toBeCloseTo(magLegacy, 6);
       expect(oxideRedoxTent(f, 0.7, 1.4, 0.3)).toBeCloseTo(cupLegacy, 6);
+    }
+  });
+});
+
+describe('Phase 4b arsenate redox helpers', () => {
+  it('arsenateRedoxAvailable / Factor parity with legacy form', () => {
+    expect(EH_DYNAMIC_ENABLED).toBe(false);
+    for (const O2 of [0.0, 0.2, 0.3, 0.5, 1.0, 2.0]) {
+      const f = new FluidChemistry({ O2 });
+      // gates at 0.3 (most arsenates) and 0.5 (olivenite)
+      expect(arsenateRedoxAvailable(f, 0.3)).toBe(O2 >= 0.3);
+      expect(arsenateRedoxAvailable(f, 0.5)).toBe(O2 >= 0.5);
+      // multipliers: /1.0 uncapped (most), /1.0 cap 2.0 (olivenite)
+      expect(arsenateRedoxFactor(f, 1.0)).toBeCloseTo(O2 / 1.0, 6);
+      expect(arsenateRedoxFactor(f, 1.0, 2.0)).toBeCloseTo(Math.min(O2 / 1.0, 2.0), 6);
     }
   });
 });

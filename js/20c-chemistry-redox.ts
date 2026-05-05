@@ -322,3 +322,32 @@ function oxideRedoxTent(fluid: any, peak: number, slope: number, floor: number):
   const o2eq = o2FromEh(Eh);
   return Math.max(floor, 1.0 - Math.abs(o2eq - peak) * slope);
 }
+
+// ============================================================
+// Phase 4b arsenate-class engine helpers
+// ============================================================
+// All six arsenates (adamite, annabergite, erythrite, mimetite,
+// olivenite, scorodite) gate on oxidized arsenic — As(V) as
+// AsO₄³⁻. Phase 4c will bind to an As couple
+// (HAsO₄²⁻/H₃AsO₃ at E° ≈ +560 mV at pH 7), to be added to
+// REDOX_COUPLES.
+// Same flag-OFF passthrough as sulfate / hydroxide.
+
+function arsenateRedoxAvailable(fluid: any, o2Threshold: number): boolean {
+  if (!EH_DYNAMIC_ENABLED) {
+    return (typeof fluid.O2 === 'number' ? fluid.O2 : 0) >= o2Threshold;
+  }
+  const EhEquivalent = ehFromO2(o2Threshold);
+  const Eh = typeof fluid.Eh === 'number' ? fluid.Eh : 200;
+  return Eh >= EhEquivalent;
+}
+
+function arsenateRedoxFactor(fluid: any, scaleAtFull: number, cap: number = Infinity): number {
+  if (!EH_DYNAMIC_ENABLED) {
+    const O2 = typeof fluid.O2 === 'number' ? fluid.O2 : 0;
+    return Math.min(O2 / scaleAtFull, cap);
+  }
+  const Eh = typeof fluid.Eh === 'number' ? fluid.Eh : 200;
+  const o2eq = o2FromEh(Eh);
+  return Math.min(o2eq / scaleAtFull, cap);
+}

@@ -402,5 +402,14 @@
 //          oxic nor anoxic.
 //        With EH_DYNAMIC_ENABLED still false, byte-identical to v31
 //        (verified via diff).
-const SIM_VERSION = 32;
+//   v33 — Phase 4b arsenate class COMPLETE (May 2026): adamite,
+//        annabergite, erythrite, mimetite, olivenite, scorodite.
+//        12 sites across 6 supersat methods, all standard
+//        oxidized-side via arsenateRedoxAvailable + arsenateRedoxFactor
+//        — same shape as sulfate/hydroxide. All six are arsenate As(V)
+//        minerals; Phase 4c will bind to a new As couple
+//        (HAsO₄²⁻/H₃AsO₃, E° ≈ +560 mV at pH 7) added to
+//        REDOX_COUPLES. With EH_DYNAMIC_ENABLED still false,
+//        byte-identical to v32 (verified via diff).
+const SIM_VERSION = 33;
 
