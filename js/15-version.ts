@@ -332,5 +332,16 @@
 //        No calibration shift expected at this version (flag-OFF
 //        infrastructure only); first sweep deltas land at v27 when
 //        4b starts migrating engines.
-const SIM_VERSION = 26;
+//   v27 — Phase 4b helpers landed (May 2026). Two new helpers in
+//        20c-chemistry-redox.ts: sulfateRedoxAvailable(fluid, X) and
+//        sulfateRedoxFactor(fluid, scale, cap=Infinity). With
+//        EH_DYNAMIC_ENABLED=false (still) they passthrough to the
+//        legacy fluid.O2 form, giving byte-identical seed-42 output
+//        — this version is the "infrastructure callable but unused"
+//        checkpoint. Subsequent v28+ commits walk the 22 sulfate
+//        engine sites in batches; the seed42_v27.json baseline
+//        therefore must equal seed42_v26.json content (only filename
+//        differs). If any scenario summary drifts at v27, the
+//        helpers don't actually preserve legacy behavior — back out.
+const SIM_VERSION = 27;
 

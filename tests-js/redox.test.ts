@@ -14,6 +14,8 @@ declare const ehFromO2: any;
 declare const o2FromEh: any;
 declare const EH_DYNAMIC_ENABLED: any;
 declare const FluidChemistry: any;
+declare const sulfateRedoxAvailable: any;
+declare const sulfateRedoxFactor: any;
 
 describe('redox infrastructure (Phase 4a)', () => {
   it('flag is OFF in v26 — engines still gate on fluid.O2', () => {
@@ -110,5 +112,61 @@ describe('redox infrastructure (Phase 4a)', () => {
   it('FluidChemistry({ Eh: -100 }) propagates the option', () => {
     const f = new FluidChemistry({ Eh: -100 });
     expect(f.Eh).toBe(-100);
+  });
+});
+
+describe('Phase 4b sulfate redox helpers', () => {
+  // Flag-OFF parity is the contract: with EH_DYNAMIC_ENABLED=false the
+  // helpers must produce values that, when slotted into the engine
+  // sites, give byte-identical seed-42 output. The legacy form is
+  // strict-less-than (`fluid.O2 < X`) used as an early-exit gate; the
+  // helper is `>=` queried with negation (`!sulfateRedoxAvailable(f, X)`),
+  // so the boundary case (O2 == X) maps the same way.
+
+  it('sulfateRedoxAvailable matches `fluid.O2 >= threshold` with flag off', () => {
+    expect(EH_DYNAMIC_ENABLED).toBe(false);
+    const cases = [
+      { O2: 0.05, X: 0.1, want: false },
+      { O2: 0.1,  X: 0.1, want: true },   // boundary: legacy `<` excludes; `>=` includes — same exit decision
+      { O2: 0.5,  X: 0.1, want: true },
+      { O2: 0.0,  X: 0.5, want: false },
+      { O2: 1.5,  X: 0.5, want: true },
+      { O2: 0.79, X: 0.8, want: false },
+    ];
+    for (const { O2, X, want } of cases) {
+      const f = new FluidChemistry({ O2 });
+      expect(sulfateRedoxAvailable(f, X)).toBe(want);
+      // Negation matches the engine site form `!sulfateRedoxAvailable`.
+      expect(!sulfateRedoxAvailable(f, X)).toBe(f.O2 < X);
+    }
+  });
+
+  it('sulfateRedoxFactor matches `Math.min(O2/scale, cap)` with flag off', () => {
+    expect(EH_DYNAMIC_ENABLED).toBe(false);
+    const cases = [
+      { O2: 0.4,  scale: 0.4,  cap: 1.5, want: 1.0 },     // barite at cap-eligible point
+      { O2: 1.0,  scale: 0.4,  cap: 1.5, want: 1.5 },     // capped
+      { O2: 0.0,  scale: 0.4,  cap: 1.5, want: 0.0 },
+      { O2: 1.0,  scale: 1.0,  cap: 1.5, want: 1.0 },     // anhydrite at full
+      { O2: 0.5,  scale: 1.5,  cap: 2.0, want: 1/3 },     // chalcanthite shape
+      { O2: 0.5,  scale: 0.5,  cap: Infinity, want: 1.0 }, // selenite (no cap)
+      { O2: 5.0,  scale: 0.5,  cap: Infinity, want: 10.0 }, // selenite high O2 grows unbounded
+    ];
+    for (const { O2, scale, cap, want } of cases) {
+      const f = new FluidChemistry({ O2 });
+      expect(sulfateRedoxFactor(f, scale, cap)).toBeCloseTo(want, 6);
+    }
+  });
+
+  it('sulfateRedoxFactor cap defaults to Infinity (selenite-style sites)', () => {
+    const f = new FluidChemistry({ O2: 2.0 });
+    // No cap argument: should be 2.0 / 0.5 = 4.0 (no clamping)
+    expect(sulfateRedoxFactor(f, 0.5)).toBeCloseTo(4.0, 6);
+  });
+
+  it('helpers tolerate fluid.O2 missing (returns 0 for `available`, 0 for factor)', () => {
+    const f = {} as any; // not a FluidChemistry — no O2 field
+    expect(sulfateRedoxAvailable(f, 0.1)).toBe(false);
+    expect(sulfateRedoxFactor(f, 0.5, 1.5)).toBe(0);
   });
 });

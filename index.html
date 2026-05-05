@@ -4325,7 +4325,18 @@ let timeScale = 5.0;
 //        No calibration shift expected at this version (flag-OFF
 //        infrastructure only); first sweep deltas land at v27 when
 //        4b starts migrating engines.
-const SIM_VERSION = 26;
+//   v27 — Phase 4b helpers landed (May 2026). Two new helpers in
+//        20c-chemistry-redox.ts: sulfateRedoxAvailable(fluid, X) and
+//        sulfateRedoxFactor(fluid, scale, cap=Infinity). With
+//        EH_DYNAMIC_ENABLED=false (still) they passthrough to the
+//        legacy fluid.O2 form, giving byte-identical seed-42 output
+//        — this version is the "infrastructure callable but unused"
+//        checkpoint. Subsequent v28+ commits walk the 22 sulfate
+//        engine sites in batches; the seed42_v27.json baseline
+//        therefore must equal seed42_v26.json content (only filename
+//        differs). If any scenario summary drifts at v27, the
+//        helpers don't actually preserve legacy behavior — back out.
+const SIM_VERSION = 27;
 
 // ── 18-constants.js ──
 
@@ -5293,6 +5304,54 @@ function o2FromEh(Eh_mV) {
     if (Eh_mV >= -150)
         return Math.pow(10, -1.30 + (Eh_mV - (-150)) / 250);
     return Math.pow(10, -1.30 + (Eh_mV - (-150)) / 100);
+}
+// ============================================================
+// Phase 4b sulfate-class engine helpers
+// ============================================================
+// Two helpers consumed by js/40-supersat-sulfate.ts for the long-tail
+// engine migration. With EH_DYNAMIC_ENABLED off, both passthrough to
+// the legacy fluid.O2 form so seed-42 output is byte-identical. With
+// the flag on (Phase 4c), they consult fluid.Eh via the ehFromO2 /
+// o2FromEh anchor mapping. The sulfate class is the proof-of-pattern;
+// arsenate / carbonate / hydroxide / oxide / sulfide get their own
+// helpers as the migration walks the remaining 5 classes.
+//
+// Why per-class helpers and not a single generic one: each class has
+// its own redox semantics (sulfate gates oxidized side, sulfide gates
+// reduced side, carbonate mixes Fe-state and S-state). One helper
+// per class keeps each migration commit self-contained and the
+// thresholds adjustable without touching unrelated engines.
+// Returns true if the sulfate redox state passes the legacy O2
+// threshold. Form: replaces `fluid.O2 < X` with
+// `!sulfateRedoxAvailable(fluid, X)` (note the negation — this helper
+// is "is it oxidized enough?", the legacy was "is it not oxidized
+// enough?"). With flag off, identical to `fluid.O2 >= X` — the strict
+// `<` legacy form combined with the negation gives the same boundary.
+function sulfateRedoxAvailable(fluid, o2Threshold) {
+    if (!EH_DYNAMIC_ENABLED) {
+        return (typeof fluid.O2 === 'number' ? fluid.O2 : 0) >= o2Threshold;
+    }
+    // Phase 4c calibration: gate on Eh equivalent to the legacy O2 cutoff.
+    const EhEquivalent = ehFromO2(o2Threshold);
+    const Eh = typeof fluid.Eh === 'number' ? fluid.Eh : 200;
+    return Eh >= EhEquivalent;
+}
+// Returns the multiplier form of the legacy O2 factor:
+// `Math.min(fluid.O2 / scaleAtFull, cap)`. cap defaults to Infinity
+// for sites that don't cap (e.g. selenite's `O2/0.5`). With flag off,
+// identical to the inline expression. With flag on, derives a
+// synthetic O2 from current Eh and applies the same ratio.
+function sulfateRedoxFactor(fluid, scaleAtFull, cap = Infinity) {
+    if (!EH_DYNAMIC_ENABLED) {
+        const O2 = typeof fluid.O2 === 'number' ? fluid.O2 : 0;
+        return Math.min(O2 / scaleAtFull, cap);
+    }
+    // Phase 4c: synthesize an O2 equivalent from current Eh, apply the
+    // legacy ratio. Per-site tuning of scaleAtFull/cap stays callable
+    // by individual engine sites if calibration calls for it.
+    const Eh = typeof fluid.Eh === 'number' ? fluid.Eh : 200;
+    const o2eq = o2FromEh(Eh);
+    return Math.min(o2eq / scaleAtFull, cap);
 }
 
 // ── 22-geometry-wall.js ──
