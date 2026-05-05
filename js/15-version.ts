@@ -173,5 +173,21 @@
 //        js/32-supersat-carbonate.ts; no other supersat formulas
 //        affected (the 90+ Math.min hits across other classes are
 //        saturation caps, not Liebig patterns).
-const SIM_VERSION = 18;
+//   v19 — Fluid mass balance flipped on (May 2026,
+//        PROPOSAL-GEOLOGICAL-ACCURACY Phase 1c). Every precipitation
+//        zone now debits the per-ring fluid by stoichiometric
+//        coefficient × MASS_BALANCE_SCALE; every dissolution zone
+//        credits it. The infrastructure landed flag-OFF in Phase 1a
+//        (commit 08140d1) and is calibrated here at scale=0.01
+//        (down from prototyped 0.05) to balance the wrapper's new
+//        universal credits against the engine-internal hand-coded
+//        credits in ~12 minerals. Sweep across 19 baselines at
+//        seed 42: RMS delta 11.2%, 11 of 19 scenarios within ±5%,
+//        16 within ±20%; max delta -23% (porphyry, finite Fe/S
+//        depleted by sulfide cascade — geologically correct).
+//        Outliers in absolute terms are small (≤11 crystals).
+//        Scenarios where dissolution recycles solute (naica, mvt,
+//        searles_lake) gain 2-4 crystals; depletion-prone scenarios
+//        (porphyry, schneeberg, pulse) lose 1-11 crystals.
+const SIM_VERSION = 19;
 

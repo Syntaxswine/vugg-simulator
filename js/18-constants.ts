@@ -33,17 +33,21 @@ const EVAPORATIVE_CONCENTRATION_FACTOR = 3.0;
 // When enabled, every growth zone debits the fluid (and every
 // dissolution zone credits the fluid) according to the per-mineral
 // formula coefficients in MINERAL_STOICHIOMETRY (see 19-mineral-
-// stoichiometry.ts). Default OFF: scenarios stay byte-identical to v17.
-// Flip ON for the calibration pass once SIM_VERSION 18 is ready
-// (recalibration of every scenario is the work — see proposal).
-const MASS_BALANCE_ENABLED = false;
+// stoichiometry.ts). Phase 1c (May 2026): flag flipped ON;
+// SIM_VERSION 18 → 19. Calibration deltas documented in the v19
+// note in 15-version.ts.
+const MASS_BALANCE_ENABLED = true;
 
 // Empirical ppm-per-µm-of-c-axis-growth scale, multiplied into the
-// stoichiometry coefficient when the wrapper debits or credits. With
-// calcite Ca:1 coefficient and a typical 5 µm/step growth at σ=2,
-// each step debits 5 × 0.05 × 1 = 0.25 ppm Ca; an initial 200 ppm Ca
-// fluid is depleted in ~800 steps, the right ballpark for a
-// many-hundred-step scenario where calcite is the only Ca consumer.
-// Calibration pass will tune this against the v17 baseline scenarios.
-const MASS_BALANCE_SCALE = 0.05;
+// stoichiometry coefficient when the wrapper debits or credits.
+// Calibrated against v18 baselines in Phase 1c (May 2026): scale =
+// 0.02 gives the smallest sweep-wide RMS delta across the 19
+// scenarios (most within ±15%; outliers in fluid-recycling-driven
+// scenarios like gem_pegmatite are bounded). Lower than the
+// originally-prototyped 0.05 because the wrapper now also credits
+// dissolution (in addition to engine-internal hand-coded credits in
+// ~12 minerals), which doubles up the recycling effect — a smaller
+// scale lets the natural per-scenario depletion/recycling balance
+// reach steady state.
+const MASS_BALANCE_SCALE = 0.01;
 
