@@ -403,7 +403,22 @@ from typing import List, Dict, Optional, Tuple
 #      stamped crystals in the upper rings — the bridge to PROPOSAL-
 #      AIR-MODE.md's stalactite renderer. See PROPOSAL-EVAPORITE-WATER-
 #      LEVELS.md.
-SIM_VERSION = 24
+# v25: Vadose-zone oxidation. When a ring transitions wet → vadose,
+#      its ring-fluid is forced to oxidizing chemistry (O2 → max(1.8,
+#      current); S × 0.3 to model sulfide-oxidation drawdown of solute
+#      sulfur). Submerged rings keep scenario chemistry, so the floor
+#      stays reducing while the air-exposed ceiling oxidizes — matches
+#      real supergene paragenesis (galena → cerussite, chalcopyrite →
+#      malachite/azurite, pyrite → limonite, all in the air zone).
+#      Existing oxidation-product engines fire naturally because they
+#      already read each crystal's ring fluid via Phase C v1 plumbing.
+#      `event_supergene_dry_spell` and `event_bisbee_final_drying` now
+#      actually drop fluid_surface_ring (to 8 and 0 respectively); they
+#      previously only bumped global O2. Engine drift: bisbee gains
+#      vadose-zone Cu-oxidation product growth in upper rings; supergene
+#      gains vadose-zone sulfate / arsenate growth. See PROPOSAL-AIR-
+#      MODE.md Stage B and PROPOSAL-EVAPORITE-WATER-LEVELS.md.
+SIM_VERSION = 25
 
 # Mineral-specific nucleation orientation preferences. Most species
 # are spatially neutral in fluid-filled vugs (gravity is weak at
@@ -1403,6 +1418,23 @@ class VugConditions:
                 self._dol_in_undersat = False
         self._dol_prev_sigma = sigma
 
+    @staticmethod
+    def _classify_water_state(surface, ring_idx: int, ring_count: int) -> str:
+        """Pure classifier used by ring_water_state and by transition-
+        detection logic that needs to compare against an arbitrary
+        previous surface value (not just the current one). Behaviour
+        matches ring_water_state — kept in one place so they can't
+        drift apart."""
+        if surface is None:
+            return 'submerged'
+        if ring_count <= 1:
+            return 'submerged' if surface >= 1.0 else 'vadose'
+        if ring_idx + 1 <= surface:
+            return 'submerged'
+        if ring_idx >= surface:
+            return 'vadose'
+        return 'meniscus'
+
     def ring_water_state(self, ring_idx: int, ring_count: int) -> str:
         """v24: classify a ring as 'submerged' / 'meniscus' / 'vadose'
         from the cavity's current `fluid_surface_ring`.
@@ -1416,16 +1448,7 @@ class VugConditions:
         Used by nucleation to stamp `Crystal.growth_environment` and by
         the renderer to draw the blue water line.
         """
-        s = self.fluid_surface_ring
-        if s is None:
-            return 'submerged'
-        if ring_count <= 1:
-            return 'submerged' if s >= 1.0 else 'vadose'
-        if ring_idx + 1 <= s:
-            return 'submerged'
-        if ring_idx >= s:
-            return 'vadose'
-        return 'meniscus'
+        return self._classify_water_state(self.fluid_surface_ring, ring_idx, ring_count)
 
     @property
     def effective_temperature(self) -> float:
@@ -12658,15 +12681,22 @@ def event_supergene_cu_enrichment(conditions: VugConditions) -> str:
 
 
 def event_supergene_dry_spell(conditions: VugConditions) -> str:
-    """Evaporation concentrates sulfate — selenite potential."""
+    """Evaporation concentrates sulfate — selenite potential. Water
+    table drops to mid-cavity; ceiling rings go vadose."""
     conditions.fluid.Ca += 40
     conditions.fluid.S += 30
     conditions.fluid.O2 = 1.5
     conditions.temperature = 50  # slight warming, still below 60°C anhydrite line
     conditions.flow_rate = 0.3
+    # v24: half-drain. Surface drops to ring 8 of 16 (the equator) so
+    # the upper hemisphere becomes vadose. The simulator's per-step
+    # transition check then forces those rings' O2 → 1.8 oxidizing.
+    conditions.fluid_surface_ring = 8.0
     return ("Dry season. Flow slows, evaporation concentrates the brine. "
-            "Ca²⁺ and SO₄²⁻ climb toward selenite's window — the desert-rose "
-            "chemistry, the Naica chemistry.")
+            "Water table drops to mid-cavity. Ca²⁺ and SO₄²⁻ climb toward "
+            "selenite's window — the desert-rose chemistry, the Naica "
+            "chemistry. Above the meniscus, the air-exposed walls start "
+            "to oxidize.")
 
 
 def event_supergene_as_rich_seep(conditions: VugConditions) -> str:
@@ -12868,10 +12898,18 @@ def event_bisbee_silica_seep(conditions: VugConditions) -> str:
 
 
 def event_bisbee_final_drying(conditions: VugConditions) -> str:
-    """Flow stops. System seals."""
+    """Flow stops. System seals. Cavity fully drains — every ring
+    becomes vadose."""
     conditions.temperature = 20
     conditions.flow_rate = 0.1
     conditions.fluid.O2 = 1.0
+    # v24: complete drain. fluid_surface_ring = 0 means the meniscus
+    # sits at (or below) the floor, so every ring classifies as vadose.
+    # The simulator's transition check forces all newly-vadose rings'
+    # O2 → 1.8 oxidizing — drives the canonical Bisbee oxidation suite
+    # (chalcocite → cuprite → native copper → azurite → malachite →
+    # chrysocolla) at every level of the cavity, not just the bulk fluid.
+    conditions.fluid_surface_ring = 0.0
     return ("The fractures seal with calcite cement. Groundwater stops. "
             "The pocket is a closed system again, this time with the "
             "full oxidation assemblage frozen in place: chalcopyrite "
@@ -13501,6 +13539,12 @@ class VugSimulator:
         self._fluid_field_names: Tuple[str, ...] = tuple(
             f.name for f in fields(FluidChemistry)
         )
+        # v24 vadose-zone oxidation: track previous fluid_surface_ring so
+        # we can detect rings that just transitioned wet → dry. None at
+        # construction means "no surface set yet"; first run_step
+        # compares against this and applies the override to whatever
+        # rings are currently vadose.
+        self._prev_fluid_surface_ring: Optional[float] = None
 
     def _snapshot_global(self) -> Tuple['FluidChemistry', float]:
         """Phase C v1: capture conditions.fluid + temperature before a
@@ -13537,6 +13581,55 @@ class VugSimulator:
                     self.ring_temperatures[k] = self.conditions.temperature
                 else:
                     self.ring_temperatures[k] += delta_t
+
+    def _apply_vadose_oxidation_override(self) -> List[int]:
+        """v24: detect rings that just transitioned wet → dry (submerged
+        or meniscus → vadose) and force their fluid to oxidizing
+        chemistry. Submerged rings keep the scenario's chemistry, so
+        the cavity floor stays reducing while the now-exposed ceiling
+        oxidizes — matching real-world supergene paragenesis where the
+        vadose zone is where pyrite becomes limonite, galena becomes
+        cerussite, chalcopyrite becomes malachite/azurite, etc.
+
+        Override applied to each newly-vadose ring's fluid:
+          * O2 → max(current, 1.8)  — explicitly oxidizing
+          * S  → S × 0.3            — sulfide oxidation depletes solute S
+
+        Equator ring is aliased to conditions.fluid; mutating its O2 /
+        S therefore propagates to the bulk view as well, which is the
+        physically correct outcome (if the equator is in air, the bulk
+        fluid sample IS the vadose-zone fluid). Submerged-side rings
+        are untouched.
+
+        Called once per step from run_step, after events have had a
+        chance to mutate conditions.fluid_surface_ring. Returns the
+        list of ring indices that just became vadose, useful for
+        narrators / tests.
+        """
+        n = self.wall_state.ring_count
+        new_surface = self.conditions.fluid_surface_ring
+        old_surface = self._prev_fluid_surface_ring
+        self._prev_fluid_surface_ring = new_surface
+        # No surface set OR no change → nothing to override.
+        if new_surface is None:
+            return []
+        # If no rings transitioned (surface didn't drop), early-exit
+        # without scanning. Catches the steady-state case where the
+        # scenario sets a surface once and leaves it alone.
+        if old_surface is not None and new_surface >= old_surface:
+            return []
+        became_vadose = []
+        classify = VugConditions._classify_water_state
+        for r in range(n):
+            was = classify(old_surface, r, n)
+            now = classify(new_surface, r, n)
+            if now == 'vadose' and was != 'vadose':
+                rf = self.ring_fluids[r]
+                if rf.O2 < 1.8:
+                    rf.O2 = 1.8
+                rf.S *= 0.3
+                became_vadose.append(r)
+        return became_vadose
 
     def _diffuse_ring_state(self, rate: float = None) -> None:
         """Phase C inter-ring homogenization. One discrete-Laplacian step
@@ -15783,6 +15876,18 @@ class VugSimulator:
         snap = self._snapshot_global()
         self.apply_events()
         self._propagate_global_delta(snap)
+
+        # v24: events may have dropped fluid_surface_ring. Detect rings
+        # that just transitioned wet → vadose and force their fluid to
+        # oxidizing chemistry. Lets the existing supergene-oxidation
+        # engines (limonite/cerussite/malachite/autunite/etc.) fire
+        # naturally in the air-exposed rings while the floor stays
+        # reducing.
+        newly_vadose = self._apply_vadose_oxidation_override()
+        if newly_vadose:
+            self.log.append(
+                f"  ☁ Vadose oxidation: rings {newly_vadose} now exposed to "
+                f"air — O₂ rises, sulfides become unstable")
 
         # Track dolomite saturation crossings for the Kim 2023 cycle
         # mechanism — must run after events (which set chemistry) and

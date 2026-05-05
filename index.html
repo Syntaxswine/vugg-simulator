@@ -4619,16 +4619,21 @@ class VugConditions {
     this._dol_in_undersat = false;
   }
 
+  // Pure classifier; used by ringWaterState and by transition-detection
+  // logic that needs to compare against an arbitrary previous surface.
+  static _classifyWaterState(surface, ringIdx, ringCount) {
+    if (surface === null || surface === undefined) return 'submerged';
+    if (ringCount <= 1) return surface >= 1.0 ? 'submerged' : 'vadose';
+    if (ringIdx + 1 <= surface) return 'submerged';
+    if (ringIdx >= surface) return 'vadose';
+    return 'meniscus';
+  }
+
   // v24: classify a ring as 'submerged' / 'meniscus' / 'vadose'
   // from the cavity's current fluid_surface_ring. Mirror of
   // VugConditions.ring_water_state in vugg.py.
   ringWaterState(ringIdx, ringCount) {
-    const s = this.fluid_surface_ring;
-    if (s === null || s === undefined) return 'submerged';
-    if (ringCount <= 1) return s >= 1.0 ? 'submerged' : 'vadose';
-    if (ringIdx + 1 <= s) return 'submerged';
-    if (ringIdx >= s) return 'vadose';
-    return 'meniscus';
+    return VugConditions._classifyWaterState(this.fluid_surface_ring, ringIdx, ringCount);
   }
 
   update_dol_cycles() {
@@ -12303,7 +12308,9 @@ function event_supergene_dry_spell(c) {
   c.fluid.O2 = 1.5;
   c.temperature = 50;
   c.flow_rate = 0.3;
-  return "Dry season. Flow slows, evaporation concentrates the brine. Ca²⁺ and SO₄²⁻ climb toward selenite's window — the desert-rose chemistry, the Naica chemistry.";
+  // v25: water table drops to mid-cavity → upper rings go vadose.
+  c.fluid_surface_ring = 8.0;
+  return "Dry season. Flow slows, evaporation concentrates the brine. Water table drops to mid-cavity. Ca²⁺ and SO₄²⁻ climb toward selenite's window — the desert-rose chemistry, the Naica chemistry. Above the meniscus, the air-exposed walls start to oxidize.";
 }
 
 function event_supergene_as_rich_seep(c) {
@@ -12421,6 +12428,8 @@ function event_bisbee_final_drying(c) {
   c.temperature = 20;
   c.flow_rate = 0.1;
   c.fluid.O2 = 1.0;
+  // v25: complete drain — every ring becomes vadose.
+  c.fluid_surface_ring = 0.0;
   return "The fractures seal with calcite cement. Groundwater stops. The pocket is a closed system again, this time with the full oxidation assemblage frozen in place: chalcopyrite cores wrapped in chalcocite, those wrapped in cuprite, those overgrown by native copper, those overgrown by azurite, those converted to malachite, those pseudomorphed by chrysocolla. A million years from now, when a mining shaft intersects this pocket, an assayer will photograph the specimen and write 'Bisbee, Cochise County' on the label.";
 }
 
@@ -12767,6 +12776,12 @@ class VugSimulator {
     this._fluidFieldNames = Object.keys(new FluidChemistry()).filter(
       k => typeof (new FluidChemistry()[k]) === 'number'
     );
+    // v25 vadose-zone oxidation: track previous fluid_surface_ring so
+    // we can detect rings that just transitioned wet → dry. Null at
+    // construction means "no surface set yet"; first run_step compares
+    // against this and applies the override to whatever rings are
+    // currently vadose.
+    this._prevFluidSurfaceRing = null;
   }
 
   // Phase C v1: snapshot conditions.fluid + temperature before a
@@ -12803,6 +12818,36 @@ class VugSimulator {
         }
       }
     }
+  }
+
+  // v25: detect rings that just transitioned wet → dry (submerged or
+  // meniscus → vadose) and force their fluid to oxidizing chemistry.
+  // Submerged rings keep the scenario's chemistry, so the cavity floor
+  // stays reducing while the now-exposed ceiling oxidizes — matches
+  // real-world supergene paragenesis (galena → cerussite, chalcopyrite
+  // → malachite/azurite, pyrite → limonite, all in the air zone).
+  // Mirror of VugSimulator._apply_vadose_oxidation_override in vugg.py.
+  _applyVadoseOxidationOverride() {
+    const n = this.wall_state.ring_count;
+    const newSurface = this.conditions.fluid_surface_ring;
+    const oldSurface = this._prevFluidSurfaceRing;
+    this._prevFluidSurfaceRing = newSurface;
+    if (newSurface === null || newSurface === undefined) return [];
+    if (oldSurface !== null && oldSurface !== undefined && newSurface >= oldSurface) {
+      return [];
+    }
+    const becameVadose = [];
+    for (let r = 0; r < n; r++) {
+      const was = VugConditions._classifyWaterState(oldSurface, r, n);
+      const now = VugConditions._classifyWaterState(newSurface, r, n);
+      if (now === 'vadose' && was !== 'vadose') {
+        const rf = this.ring_fluids[r];
+        if (rf.O2 < 1.8) rf.O2 = 1.8;
+        rf.S *= 0.3;
+        becameVadose.push(r);
+      }
+    }
+    return becameVadose;
   }
 
   // Phase C inter-ring homogenization. One discrete-Laplacian step per
@@ -14773,6 +14818,17 @@ class VugSimulator {
     let snap = this._snapshotGlobal();
     this.apply_events();
     this._propagateGlobalDelta(snap);
+    // v25: events may have dropped fluid_surface_ring. Detect rings
+    // that just transitioned wet → vadose and force their fluid to
+    // oxidizing chemistry. Lets the existing supergene-oxidation
+    // engines fire naturally in the air-exposed rings while the floor
+    // stays reducing.
+    const newlyVadose = this._applyVadoseOxidationOverride();
+    if (newlyVadose.length) {
+      this.log.push(
+        `  ☁ Vadose oxidation: rings ${newlyVadose.join(',')} now exposed `
+        + `to air — O₂ rises, sulfides become unstable`);
+    }
     // Track dolomite saturation crossings for the Kim 2023 cycle mechanism.
     this.conditions.update_dol_cycles();
     snap = this._snapshotGlobal();
