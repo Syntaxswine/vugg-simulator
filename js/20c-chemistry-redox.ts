@@ -351,3 +351,71 @@ function arsenateRedoxFactor(fluid: any, scaleAtFull: number, cap: number = Infi
   const o2eq = o2FromEh(Eh);
   return Math.min(o2eq / scaleAtFull, cap);
 }
+
+// ============================================================
+// Phase 4b carbonate-class engine helpers
+// ============================================================
+// Carbonates split between oxidized-side (Cu/Zn supergene carbonates:
+// malachite, smithsonite, azurite, rosasite, aurichalcite) and
+// reduced-side (siderite Fe(II), rhodochrosite Mn(II)). Calcite,
+// dolomite, aragonite, cerussite have no fluid.O2 reference — they
+// don't need migration.
+//
+// Phase 4c binding: oxidized-side carbonates will gate on Eh
+// (Cu²⁺ / Zn²⁺ are stable across most of the oxic range, so the
+// gate is mostly about ruling out anoxic conditions). Reduced-side
+// carbonates will bind to redoxFraction(fluid, 'Fe') for siderite
+// and (1 - redoxFraction(fluid, 'Mn')) shape for rhodochrosite.
+// Until then, all four helpers passthrough to fluid.O2.
+
+function carbonateRedoxAvailable(fluid: any, o2Threshold: number): boolean {
+  if (!EH_DYNAMIC_ENABLED) {
+    return (typeof fluid.O2 === 'number' ? fluid.O2 : 0) >= o2Threshold;
+  }
+  const EhEquivalent = ehFromO2(o2Threshold);
+  const Eh = typeof fluid.Eh === 'number' ? fluid.Eh : 200;
+  return Eh >= EhEquivalent;
+}
+
+function carbonateRedoxFactor(fluid: any, scaleAtFull: number, cap: number = Infinity): number {
+  if (!EH_DYNAMIC_ENABLED) {
+    const O2 = typeof fluid.O2 === 'number' ? fluid.O2 : 0;
+    return Math.min(O2 / scaleAtFull, cap);
+  }
+  const Eh = typeof fluid.Eh === 'number' ? fluid.Eh : 200;
+  const o2eq = o2FromEh(Eh);
+  return Math.min(o2eq / scaleAtFull, cap);
+}
+
+// Reduced-side gate (siderite, rhodochrosite hard cutoffs).
+function carbonateRedoxAnoxic(fluid: any, o2UpperBound: number): boolean {
+  if (!EH_DYNAMIC_ENABLED) {
+    return (typeof fluid.O2 === 'number' ? fluid.O2 : 0) <= o2UpperBound;
+  }
+  const EhEquivalent = ehFromO2(o2UpperBound);
+  const Eh = typeof fluid.Eh === 'number' ? fluid.Eh : 200;
+  return Eh <= EhEquivalent;
+}
+
+// Reduced-side soft penalty: returns 1.0 if O2 ≤ startO2 (no
+// penalty). Above startO2, returns max(floor, peakValueAtStart -
+// slope × (O2 - startO2)). Two patterns in carbonate:
+//   siderite:      startO2=0.3, peakValue=1.0, slope=1.5, floor=0.2
+//                  (legacy: 1.0 - (O2 - 0.3) × 1.5)
+//   rhodochrosite: startO2=0.8, peakValue=0.7, slope=1.0, floor=0.3
+//                  (legacy: 1.5 - O2 — note the implicit step
+//                  discontinuity at O2=0.8 from 1.0 to 0.7, preserved
+//                  via peakValue=0.7)
+function carbonateRedoxPenalty(
+  fluid: any, startO2: number, peakValueAtStart: number, slope: number, floor: number,
+): number {
+  if (!EH_DYNAMIC_ENABLED) {
+    const O2 = typeof fluid.O2 === 'number' ? fluid.O2 : 0;
+    if (O2 <= startO2) return 1.0;
+    return Math.max(floor, peakValueAtStart - slope * (O2 - startO2));
+  }
+  const Eh = typeof fluid.Eh === 'number' ? fluid.Eh : 200;
+  const o2eq = o2FromEh(Eh);
+  if (o2eq <= startO2) return 1.0;
+  return Math.max(floor, peakValueAtStart - slope * (o2eq - startO2));
+}

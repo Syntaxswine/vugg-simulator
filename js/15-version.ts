@@ -411,5 +411,22 @@
 //        (HAsO₄²⁻/H₃AsO₃, E° ≈ +560 mV at pH 7) added to
 //        REDOX_COUPLES. With EH_DYNAMIC_ENABLED still false,
 //        byte-identical to v32 (verified via diff).
-const SIM_VERSION = 33;
+//   v34 — Phase 4b carbonate class COMPLETE (May 2026): malachite,
+//        smithsonite, azurite, rosasite, aurichalcite (oxidized-side,
+//        8 sites) + siderite, rhodochrosite (reduced-side, 4 sites).
+//        Calcite, dolomite, aragonite, cerussite have no fluid.O2
+//        reference — no migration needed. New helpers:
+//        carbonateRedoxAvailable + carbonateRedoxFactor (oxidized,
+//        same shape as sulfate), carbonateRedoxAnoxic (reduced-side
+//        hard gate, same shape as oxide's anoxic), and
+//        carbonateRedoxPenalty (parametrized soft-penalty multiplier
+//        capturing siderite's smooth join at O2=0.3 and
+//        rhodochrosite's step discontinuity at O2=0.8).
+//        Phase 4c will bind oxidized-side carbonates to Eh; siderite
+//        binds to (1 - redoxFraction(fluid, 'Fe')) and rhodochrosite
+//        to (1 - redoxFraction(fluid, 'Mn')) — both Fe(II) and
+//        Mn(II) carbonates need their cation in the reduced state.
+//        With EH_DYNAMIC_ENABLED still false, byte-identical to v33
+//        (verified via diff).
+const SIM_VERSION = 34;
 

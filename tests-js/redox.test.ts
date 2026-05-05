@@ -26,6 +26,10 @@ declare const oxideRedoxWindow: any;
 declare const oxideRedoxTent: any;
 declare const arsenateRedoxAvailable: any;
 declare const arsenateRedoxFactor: any;
+declare const carbonateRedoxAvailable: any;
+declare const carbonateRedoxFactor: any;
+declare const carbonateRedoxAnoxic: any;
+declare const carbonateRedoxPenalty: any;
 
 describe('redox infrastructure (Phase 4a)', () => {
   it('flag is OFF in v26 — engines still gate on fluid.O2', () => {
@@ -276,6 +280,41 @@ describe('Phase 4b arsenate redox helpers', () => {
       // multipliers: /1.0 uncapped (most), /1.0 cap 2.0 (olivenite)
       expect(arsenateRedoxFactor(f, 1.0)).toBeCloseTo(O2 / 1.0, 6);
       expect(arsenateRedoxFactor(f, 1.0, 2.0)).toBeCloseTo(Math.min(O2 / 1.0, 2.0), 6);
+    }
+  });
+});
+
+describe('Phase 4b carbonate redox helpers', () => {
+  // Standard pair (oxidized side) parity is the same shape as
+  // sulfate's — covered in spirit. Focus tests on the new shapes:
+  // anoxic gate + soft penalty.
+
+  it('carbonateRedoxAnoxic matches siderite + rhodochrosite hard reverse gates', () => {
+    expect(EH_DYNAMIC_ENABLED).toBe(false);
+    for (const O2 of [0.0, 0.5, 0.8, 0.81, 1.5, 1.51]) {
+      const f = new FluidChemistry({ O2 });
+      expect(carbonateRedoxAnoxic(f, 0.8)).toBe(O2 <= 0.8);
+      expect(carbonateRedoxAnoxic(f, 1.5)).toBe(O2 <= 1.5);
+    }
+  });
+
+  it('carbonateRedoxPenalty matches siderite legacy (smooth join, peak=1.0)', () => {
+    // siderite legacy: if (O2 > 0.3) sigma *= max(0.2, 1.0 - (O2 - 0.3) * 1.5)
+    for (const O2 of [0.0, 0.3, 0.31, 0.5, 0.8, 1.0, 1.5]) {
+      const f = new FluidChemistry({ O2 });
+      const expected = O2 <= 0.3 ? 1.0 : Math.max(0.2, 1.0 - (O2 - 0.3) * 1.5);
+      expect(carbonateRedoxPenalty(f, 0.3, 1.0, 1.5, 0.2)).toBeCloseTo(expected, 6);
+    }
+  });
+
+  it('carbonateRedoxPenalty matches rhodochrosite legacy (step at 0.8, peak=0.7)', () => {
+    // rhodochrosite legacy: if (O2 > 0.8) sigma *= max(0.3, 1.5 - O2)
+    // The 1.5 - O2 form has peakValueAtStart = 0.7 (hence the step
+    // discontinuity from 1.0 below threshold to 0.7 just above).
+    for (const O2 of [0.0, 0.5, 0.8, 0.81, 1.0, 1.2, 1.5, 2.0]) {
+      const f = new FluidChemistry({ O2 });
+      const expected = O2 <= 0.8 ? 1.0 : Math.max(0.3, 1.5 - O2);
+      expect(carbonateRedoxPenalty(f, 0.8, 0.7, 1.0, 0.3)).toBeCloseTo(expected, 6);
     }
   });
 });

@@ -231,6 +231,11 @@ const EXPORTS = [
   // Phase 4b arsenate-class helpers (20c-chemistry-redox.ts).
   'arsenateRedoxAvailable',
   'arsenateRedoxFactor',
+  // Phase 4b carbonate-class helpers (20c-chemistry-redox.ts).
+  'carbonateRedoxAvailable',
+  'carbonateRedoxFactor',
+  'carbonateRedoxAnoxic',
+  'carbonateRedoxPenalty',
 ];
 
 let _bundleLoaded = false;
