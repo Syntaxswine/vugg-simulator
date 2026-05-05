@@ -3476,8 +3476,15 @@ function maxSizeCm(mineral) {
     return entry ? entry.max_size_cm : null;
 }
 
-// ── 99-legacy-bundle.js ──
+// ── 05-narratives.js ──
 
+// ============================================================
+// js/05-narratives.ts — Narrative-template loader
+// ============================================================
+// Frontmatter-aware Markdown loader for per-species narrators. Pre-fetches every entry of _NARRATIVE_MANIFEST in parallel; renderer code reads synchronously from _NARRATIVE_CACHE via narrative_blurb / narrative_closing / narrative_variant.
+//
+// Phase B3 of PROPOSAL-MODULAR-REFACTOR. SCRIPT-mode TS (no import/export);
+// every top-level declaration is a global available to later modules.
 // ============================================================
 // NARRATIVE TEMPLATES — narratives/<species>.md
 // ============================================================
@@ -3567,6 +3574,16 @@ function narrative_variant(species, variant, ctx) {
         return '';
     return _narrative_interp(template, ctx || {});
 }
+
+// ── 07-habit-variant.js ──
+
+// ============================================================
+// js/07-habit-variant.ts — Habit-variant picker
+// ============================================================
+// selectHabitVariant — scores each habit_variants[] entry of MINERAL_SPEC[mineral] by trigger keywords (low/moderate/high σ, T) and vector vs. space constraint, then weighted-randoms a pick. Mirrors select_habit_variant in vugg.py. Reads the global rng (declared later in 99-legacy-bundle.ts).
+//
+// Phase B3 of PROPOSAL-MODULAR-REFACTOR. SCRIPT-mode TS (no import/export);
+// every top-level declaration is a global available to later modules.
 // Pick a habit variant for a nucleating crystal based on current σ / T / space.
 // Mirrors select_habit_variant in vugg.py: triggers like "low σ" / "high σ" /
 // "moderate T" are matched against current conditions; vectors ("coating"
@@ -3626,6 +3643,16 @@ function selectHabitVariant(mineral, sigma, temperature, spaceConstrained) {
     }
     return variants[variants.length - 1];
 }
+
+// ── 10-seeded-random.js ──
+
+// ============================================================
+// js/10-seeded-random.ts — Mulberry32 deterministic PRNG
+// ============================================================
+// SeededRandom — 32-bit state PRNG, mirrors the seed-42 stream in Python. Used by the simulator for reproducible scenarios.
+//
+// Phase B3 of PROPOSAL-MODULAR-REFACTOR. SCRIPT-mode TS (no import/export);
+// every top-level declaration is a global available to later modules.
 // ============================================================
 // SEEDED PRNG (Mulberry32)
 // ============================================================
@@ -3646,6 +3673,16 @@ class SeededRandom {
         return this.next();
     }
 }
+
+// ── 12-mineral-art.js ──
+
+// ============================================================
+// js/12-mineral-art.ts — Mineral art tables
+// ============================================================
+// MINERAL_ASCII (per-species ASCII art from photos), MINERAL_THUMBS (base64 100×100 thumbnails), MINERAL_GAME_COLORS (per-species tint for game-mode tiles).
+//
+// Phase B3 of PROPOSAL-MODULAR-REFACTOR. SCRIPT-mode TS (no import/export);
+// every top-level declaration is a global available to later modules.
 // ASCII art from real specimen photos — one color per mineral
 const MINERAL_ASCII = {
     "calcite": ".-.\n                           .=#%@=\n                         -*%%%#%=\n               .....  .=#%%%##%%-\n        ............-+%%%######%- . ..\n    .............:=#%@%#######%%:........\n  .......::::.:-+%@@@@########%#-::::.......\n....:.:::::::=#%%%%%%#########%#------:::....\n..::::::::=*%%%%%%%###########%#--==----::...\n...::----*%@%%%%%%############%#-=====---:::.\n.:::--==+%%%%%%%%%%%%%%#######%*-======----::\n::--====+%%%%%%%%%%%%%%%%%%###%*==========--:\n:----===+%%%%@@@@%%%%%%%%%%#*#%+==========---\n:---==+++%%%%@@%%%%%%%%%#######==========----\n---====++*%%%@@@@@@@@%%%%%%@%%*======------::\n-==-====+=*######***++===----========-=---:::\n-=---======+=....            --========-----:\n===---=====++-   ..   .    .-=--------------:\n==--=--=======...         .-----------------:",
@@ -3903,6 +3940,9 @@ function mineralThumbHTML(mineral, size, crystal) {
     <div style="position:absolute;top:0;left:0;width:100%;height:100%;background:${color};mix-blend-mode:color;opacity:0.5;pointer-events:none"></div>
   </div>`;
 }
+
+// ── 99-legacy-bundle.js ──
+
 let rng = new SeededRandom(Date.now());
 // Time compression: each step represents more geological time at higher values.
 // 5× = ~50,000 years/step (Simulation/Creative), 1× = ~10,000 years/step (Groove).
