@@ -10229,6 +10229,163 @@
       ],
       "audit_status": "v28 — paramorph product; no engine",
       "class_color": "#e8e8e8"
+    },
+    "mirabilite": {
+      "formula": "Na2SO4·10H2O",
+      "nucleation_sigma": 1.0,
+      "max_nucleation_count": 8,
+      "max_size_cm": 30,
+      "growth_rate_mult": 1.4,
+      "habit_variants": [
+        {
+          "name": "prismatic",
+          "wall_spread": 0.3,
+          "void_reach": 0.7,
+          "vector": "projecting",
+          "trigger": "cold T (<25°C), slow evap — Glauber crystals"
+        },
+        {
+          "name": "fibrous_coating",
+          "wall_spread": 0.85,
+          "void_reach": 0.05,
+          "vector": "coating",
+          "trigger": "efflorescent crust on dry wall"
+        }
+      ],
+      "class": "sulfate",
+      "description": "Na₂SO₄·10H₂O — Glauber salt. The cold-evaporite of the sodium-sulfate system. Stable only below 32.4°C (the eutectic with thenardite); warm above that and the lattice loses 10 water molecules and inverts to thenardite. Forms in winter playas, Antarctic dry valleys, cold caves — anywhere a Na-rich brine cools without freezing. The transparent prismatic crystals are stable enough to handle in cold weather but lose their water in warm dry rooms. Most museum specimens are tincal-style: the mirabilite went away decades ago and the white powdery thing in the case is thenardite pseudomorph.",
+      "scenarios": [],
+      "T_range_C": [
+        -10,
+        32
+      ],
+      "T_optimum_C": [
+        0,
+        25
+      ],
+      "T_behavior": "Decahydrate stable below 32.4°C eutectic; → thenardite above",
+      "pH_dissolution_below": 5.0,
+      "pH_dissolution_above": null,
+      "redox_requirement": "oxidizing",
+      "required_ingredients": {
+        "Na": 100,
+        "S": 50
+      },
+      "trace_ingredients": {
+        "Mg": "astrakhanite (Mg-Na sulfate cousin)"
+      },
+      "thermal_decomp_C": null,
+      "thermal_decomp_reaction": "Mirabilite → thenardite + 10 H2O at 32.4°C",
+      "thermal_decomp_products": {},
+      "fluorescence": {
+        "SW": null,
+        "MW": null,
+        "LW": null
+      },
+      "twin_laws": [],
+      "acid_dissolution": {
+        "pH": 5.0,
+        "rate": "fast"
+      },
+      "habit": "prismatic",
+      "color_rules": {
+        "colorless": {
+          "default": true
+        }
+      },
+      "narrate_function": null,
+      "runtimes_present": [
+        "python",
+        "js"
+      ],
+      "audit_status": "v29 — sulfate-evaporite + dehydration triplet",
+      "class_color": "#dde7ff"
+    },
+    "thenardite": {
+      "formula": "Na2SO4",
+      "nucleation_sigma": 1.0,
+      "max_nucleation_count": 10,
+      "max_size_cm": 30,
+      "growth_rate_mult": 1.0,
+      "habit_variants": [
+        {
+          "name": "dipyramidal",
+          "wall_spread": 0.4,
+          "void_reach": 0.6,
+          "vector": "projecting",
+          "trigger": "orthorhombic dipyramids — Searles Lake / Bayan Khar"
+        },
+        {
+          "name": "tabular",
+          "wall_spread": 0.5,
+          "void_reach": 0.4,
+          "vector": "tabular",
+          "trigger": "pinacoid-dominant flat plates"
+        },
+        {
+          "name": "pseudomorph",
+          "wall_spread": 0.5,
+          "void_reach": 0.5,
+          "vector": "equant",
+          "trigger": "paramorph after mirabilite"
+        },
+        {
+          "name": "fibrous_coating",
+          "wall_spread": 0.85,
+          "void_reach": 0.05,
+          "vector": "coating",
+          "trigger": "efflorescent saline crust"
+        }
+      ],
+      "class": "sulfate",
+      "description": "Na₂SO₄ — anhydrous sodium sulfate. The warm-evaporite half of the mirabilite-thenardite pair: where Glauber salt dehydrates above 32°C, thenardite is what’s left, OR what crystallizes directly from warm playa brines that never cool through the eutectic. Orthorhombic dipyramids in well-formed crystals, tabular plates more often, white efflorescent crusts most commonly. Searles Lake CA, Bayan Khar Mongolia, Camp Verde AZ, the type locality at Espartinas Spain.",
+      "scenarios": [],
+      "T_range_C": [
+        25,
+        200
+      ],
+      "T_optimum_C": [
+        30,
+        80
+      ],
+      "T_behavior": "Stable above 32.4°C eutectic; melts at 884°C",
+      "pH_dissolution_below": 5.0,
+      "pH_dissolution_above": null,
+      "redox_requirement": "oxidizing",
+      "required_ingredients": {
+        "Na": 100,
+        "S": 50
+      },
+      "trace_ingredients": {},
+      "thermal_decomp_C": 884,
+      "thermal_decomp_reaction": "Thenardite melts at 884°C",
+      "thermal_decomp_products": {},
+      "fluorescence": {
+        "SW": null,
+        "MW": null,
+        "LW": null
+      },
+      "twin_laws": [],
+      "acid_dissolution": {
+        "pH": 5.0,
+        "rate": "fast"
+      },
+      "habit": "dipyramidal",
+      "color_rules": {
+        "colorless_to_white": {
+          "default": true
+        },
+        "pale_yellow": {
+          "trigger": "organic inclusions in playa setting"
+        }
+      },
+      "narrate_function": null,
+      "runtimes_present": [
+        "python",
+        "js"
+      ],
+      "audit_status": "v29 — sulfate-evaporite + dehydration triplet",
+      "class_color": "#f0e8c0"
     }
   }
 }

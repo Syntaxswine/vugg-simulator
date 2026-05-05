@@ -462,7 +462,23 @@ from typing import List, Dict, Optional, Tuple
 #      seeds boron, so borax stays dormant in the v27 baseline. The
 #      sabkha_dolomitization scenario could later opt into borax by
 #      seeding B in its initial fluid.
-SIM_VERSION = 28
+# v29: Mirabilite + thenardite — completes the Na-sulfate evaporite
+#      pair using the v28 dehydration framework. Mirabilite
+#      (Na₂SO₄·10H₂O, "Glauber salt") is the cold-side decahydrate
+#      stable below the 32.4°C eutectic; thenardite (Na₂SO₄, anhydrous)
+#      is the warm-side product. Both gate on Na + S + concentration ≥
+#      1.5 (active evaporation only). Mirabilite → thenardite added to
+#      DEHYDRATION_TRANSITIONS with T_max=32.4 — heat path fires the
+#      transition the moment a warming brine crosses the line. Slow
+#      vadose-exposure path also fires (cold dry caves still lose
+#      mirabilite over time). Three-mineral paramorph triplet: borax →
+#      tincalconite (humidity-only), mirabilite → thenardite (mostly
+#      heat, some humidity), and the existing argentite → acanthite
+#      (T-falling) covers the cool-side polymorph case. Engine drift:
+#      zero — no scenarios seed both Na + S + cool T + concentration
+#      boost simultaneously, so mirabilite/thenardite stay dormant in
+#      the v28 baseline.
+SIM_VERSION = 29
 
 # Mineral-specific nucleation orientation preferences. Most species
 # are spatially neutral in fluid-filled vugs (gravity is weak at
@@ -510,6 +526,9 @@ WATER_STATE_PREFERENCE = {
     'halite':        ('meniscus', 4.0),  # NaCl — strongest meniscus tie
     'selenite':      ('meniscus', 2.5),  # gypsum — sabkha bathtub ring
     'anhydrite':     ('meniscus', 2.0),
+    'borax':         ('meniscus', 3.0),  # alkaline-brine bathtub ring
+    'mirabilite':    ('meniscus', 3.0),
+    'thenardite':    ('meniscus', 3.0),
 }
 
 # Phase C of PROPOSAL-3D-SIMULATION (= proposal's "Phase 2"): per-ring
@@ -2395,6 +2414,62 @@ class VugConditions:
             sigma -= (3.5 - self.fluid.pH) * 0.4
         elif self.fluid.pH > 9.0:
             sigma -= (self.fluid.pH - 9.0) * 0.3
+        return max(sigma, 0)
+
+    def supersaturation_mirabilite(self) -> float:
+        """Mirabilite (Na₂SO₄·10H₂O) — Glauber salt. Cold-evaporite of
+        the Na-sulfate system; only stable below the 32.4°C eutectic
+        with thenardite. Above that the decahydrate dehydrates in
+        place to thenardite — handled by DEHYDRATION_TRANSITIONS, not
+        here. This method just guards the supersat gate so mirabilite
+        only nucleates in cold playa / cave conditions.
+        """
+        if self.fluid.Na < 50 or self.fluid.S < 50 or self.fluid.O2 < 0.2:
+            return 0
+        # Above 32.4°C the decahydrate isn't stable — thenardite wins.
+        if self.temperature > 32:
+            return 0
+        c = self.fluid.concentration
+        # Hard concentration gate — same logic as borax/halite. Submerged
+        # rings stay at c=1 and never fire mirabilite.
+        if c < 1.5:
+            return 0
+        sigma = (self.fluid.Na / 300.0) * (self.fluid.S / 200.0) * c * c
+        # Cold-T sweet spot — Antarctic dry-valley / winter-playa
+        # chemistry where thenardite stays out of the picture.
+        if self.temperature < 10:
+            sigma *= 1.3
+        # Acid penalty — sulfate stays in solution at pH > 5.
+        if self.fluid.pH < 5.0:
+            sigma *= 0.5
+        return max(sigma, 0)
+
+    def supersaturation_thenardite(self) -> float:
+        """Thenardite (Na₂SO₄) — anhydrous Na-sulfate. Warm-evaporite
+        half of the mirabilite-thenardite pair. Direct nucleation
+        above the 32.4°C eutectic OR via dehydration paramorph from
+        mirabilite (handled by DEHYDRATION_TRANSITIONS, not this
+        method). Either way the geometry tells the story: dipyramidal
+        thenardite primary, pseudomorphic thenardite from mirabilite
+        (inherits the parent's habit).
+        """
+        if self.fluid.Na < 50 or self.fluid.S < 50 or self.fluid.O2 < 0.2:
+            return 0
+        # Below 25°C mirabilite is the stable phase — thenardite gate
+        # closes. Between 25 and 32 there's a metastability window
+        # but we keep it simple.
+        if self.temperature < 25:
+            return 0
+        c = self.fluid.concentration
+        if c < 1.5:
+            return 0
+        sigma = (self.fluid.Na / 300.0) * (self.fluid.S / 200.0) * c * c
+        # Hot-T extra boost — playa-summer regime where thenardite
+        # crusts the surface.
+        if self.temperature > 50:
+            sigma *= 1.2
+        if self.fluid.pH < 5.0:
+            sigma *= 0.5
         return max(sigma, 0)
 
     def supersaturation_tincalconite(self) -> float:
@@ -11710,6 +11785,97 @@ def grow_tyuyamunite(crystal: Crystal, conditions: VugConditions, step: int) -> 
     )
 
 
+def grow_mirabilite(crystal: Crystal, conditions: VugConditions, step: int) -> Optional[GrowthZone]:
+    """Mirabilite (Na₂SO₄·10H₂O) — Glauber salt growth engine.
+    Habit selection follows the research notes: prismatic at slow
+    growth and cold T (well-formed Glauber crystals); fibrous_coating
+    when rate is high (efflorescent crust on a dry wall). The actual
+    decahydrate→thenardite paramorph is handled by apply_dehydration_
+    transitions on the heat path (T_max=32.4°C); this engine only
+    handles growth and meteoric-flush dissolution.
+    """
+    sigma = conditions.supersaturation_mirabilite()
+    if sigma < 1.0:
+        if crystal.total_growth_um > 5 and conditions.fluid.concentration < 1.5:
+            crystal.dissolved = True
+            dissolved_um = min(10.0, crystal.total_growth_um * 0.25)
+            conditions.fluid.Na += dissolved_um * 0.4
+            conditions.fluid.S += dissolved_um * 0.25
+            return GrowthZone(
+                step=step, temperature=conditions.temperature,
+                thickness_um=-dissolved_um, growth_rate=-dissolved_um,
+                note=f"meteoric flush — mirabilite redissolves "
+                     f"(concentration {conditions.fluid.concentration:.1f})"
+            )
+        return None
+    excess = sigma - 1.0
+    rate = 12.0 * excess * random.uniform(0.85, 1.15)
+    if rate < 0.1:
+        return None
+    if rate > 10:
+        crystal.habit = "fibrous_coating"
+        crystal.dominant_forms = ["thin efflorescent crust", "satin sheen"]
+    else:
+        crystal.habit = "prismatic"
+        crystal.dominant_forms = ["{010} pinacoid", "{110} prism", "monoclinic"]
+    conditions.fluid.Na = max(conditions.fluid.Na - rate * 0.06, 0)
+    conditions.fluid.S = max(conditions.fluid.S - rate * 0.04, 0)
+    conditions.fluid.concentration = max(
+        1.0, conditions.fluid.concentration - 0.018 * excess)
+    return GrowthZone(
+        step=step, temperature=conditions.temperature,
+        thickness_um=rate, growth_rate=rate,
+        note="colorless prismatic Glauber salt — vitreous, water-soluble",
+    )
+
+
+def grow_thenardite(crystal: Crystal, conditions: VugConditions, step: int) -> Optional[GrowthZone]:
+    """Thenardite (Na₂SO₄) — anhydrous warm-evaporite. Two paths:
+    primary nucleation above 32°C, or via mirabilite dehydration
+    (handled by paramorph framework — that path arrives here as an
+    existing crystal whose mineral string just changed; growth picks
+    up where mirabilite left off if conditions still favour it).
+    Habit: orthorhombic dipyramid at slow growth, tabular common,
+    fibrous_coating at fast efflorescent rates.
+    """
+    sigma = conditions.supersaturation_thenardite()
+    if sigma < 1.0:
+        if crystal.total_growth_um > 5 and conditions.fluid.concentration < 1.5:
+            crystal.dissolved = True
+            dissolved_um = min(8.0, crystal.total_growth_um * 0.20)
+            conditions.fluid.Na += dissolved_um * 0.4
+            conditions.fluid.S += dissolved_um * 0.25
+            return GrowthZone(
+                step=step, temperature=conditions.temperature,
+                thickness_um=-dissolved_um, growth_rate=-dissolved_um,
+                note=f"meteoric flush — thenardite redissolves "
+                     f"(concentration {conditions.fluid.concentration:.1f})"
+            )
+        return None
+    excess = sigma - 1.0
+    rate = 9.0 * excess * random.uniform(0.85, 1.15)
+    if rate < 0.1:
+        return None
+    if rate > 8:
+        crystal.habit = "fibrous_coating"
+        crystal.dominant_forms = ["white efflorescent crust"]
+    elif crystal.total_growth_um > 5000:
+        crystal.habit = "tabular"
+        crystal.dominant_forms = ["{010} pinacoid", "{110} prism"]
+    else:
+        crystal.habit = "dipyramidal"
+        crystal.dominant_forms = ["orthorhombic dipyramid", "{111} dominant"]
+    conditions.fluid.Na = max(conditions.fluid.Na - rate * 0.06, 0)
+    conditions.fluid.S = max(conditions.fluid.S - rate * 0.04, 0)
+    conditions.fluid.concentration = max(
+        1.0, conditions.fluid.concentration - 0.015 * excess)
+    return GrowthZone(
+        step=step, temperature=conditions.temperature,
+        thickness_um=rate, growth_rate=rate,
+        note="colorless to white thenardite — orthorhombic Na₂SO₄",
+    )
+
+
 def grow_tincalconite(crystal: Crystal, conditions: VugConditions, step: int) -> Optional[GrowthZone]:
     """Tincalconite has no growth pathway from solution — it appears
     only as a dehydration paramorph of borax. This stub satisfies the
@@ -11961,6 +12127,8 @@ MINERAL_ENGINES = {
     "halite": grow_halite,
     "borax": grow_borax,
     "tincalconite": grow_tincalconite,  # paramorph-only stub
+    "mirabilite": grow_mirabilite,
+    "thenardite": grow_thenardite,
     "topaz": grow_topaz,
     "tourmaline": grow_tourmaline,
     "beryl": grow_beryl,          # goshenite / generic colorless (post-R7)
@@ -12120,6 +12288,11 @@ PARAMORPH_TRANSITIONS = {
 #          high heat drives water off regardless of humidity)
 DEHYDRATION_TRANSITIONS = {
     "borax": ("tincalconite", 25, 1.5, 75.0),
+    # v29 mirabilite → thenardite at 32.4°C eutectic. Heat path is
+    # the primary trigger — Glauber salt dehydrates the moment a
+    # warming brine crosses the line. Slow-vadose-exposure path
+    # also fires (cold dry caves still lose mirabilite over time).
+    "mirabilite": ("thenardite", 30, 1.5, 32.4),
 }
 
 
@@ -14287,6 +14460,10 @@ class VugSimulator:
             crystal.dominant_forms = ["{100} pinacoid", "{110} monoclinic prism", "vitreous to resinous luster"]
         elif mineral == "tincalconite":
             crystal.dominant_forms = ["paramorph after borax", "white powdery crust"]
+        elif mineral == "mirabilite":
+            crystal.dominant_forms = ["{010} pinacoid", "{110} monoclinic prism", "Glauber salt"]
+        elif mineral == "thenardite":
+            crystal.dominant_forms = ["orthorhombic dipyramid", "{111} dominant", "{010} pinacoid"]
         elif mineral == "feldspar":
             crystal.dominant_forms = ["{001} cleavage", "{010} face", "Carlsbad twin"]
         elif mineral == "albite":
@@ -15208,6 +15385,25 @@ class VugSimulator:
             c = self.nucleate("halite", position="vug wall", sigma=sigma_hal)
             self.log.append(f"  ✦ NUCLEATION: Halite #{c.crystal_id} on {c.position} "
                           f"(T={self.conditions.temperature:.0f}°C, σ={sigma_hal:.2f}, "
+                          f"concentration={self.conditions.fluid.concentration:.1f})")
+
+        # Mirabilite nucleation — cold-side Na-sulfate evaporite. v29.
+        # Stable below 32.4°C only; above that thenardite wins.
+        sigma_mirab = self.conditions.supersaturation_mirabilite()
+        if sigma_mirab > 1.0 and not self._at_nucleation_cap("mirabilite") and random.random() < 0.13:
+            c = self.nucleate("mirabilite", position="vug wall", sigma=sigma_mirab)
+            self.log.append(f"  ✦ NUCLEATION: Mirabilite #{c.crystal_id} on {c.position} "
+                          f"(T={self.conditions.temperature:.0f}°C, σ={sigma_mirab:.2f}, "
+                          f"concentration={self.conditions.fluid.concentration:.1f})")
+
+        # Thenardite nucleation — warm-side Na-sulfate evaporite. v29.
+        # Direct nucleation above 25°C; also appears via mirabilite
+        # dehydration paramorph (handled separately).
+        sigma_then = self.conditions.supersaturation_thenardite()
+        if sigma_then > 1.0 and not self._at_nucleation_cap("thenardite") and random.random() < 0.13:
+            c = self.nucleate("thenardite", position="vug wall", sigma=sigma_then)
+            self.log.append(f"  ✦ NUCLEATION: Thenardite #{c.crystal_id} on {c.position} "
+                          f"(T={self.conditions.temperature:.0f}°C, σ={sigma_then:.2f}, "
                           f"concentration={self.conditions.fluid.concentration:.1f})")
 
         # Borax nucleation — alkaline-brine borate evaporite. v28.
