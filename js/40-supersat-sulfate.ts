@@ -11,13 +11,13 @@
 
 Object.assign(VugConditions.prototype, {
   supersaturation_barite() {
-  if (this.fluid.Ba < 5 || this.fluid.S < 10 || this.fluid.O2 < 0.1) return 0;
+  if (this.fluid.Ba < 5 || this.fluid.S < 10 || !sulfateRedoxAvailable(this.fluid, 0.1)) return 0;
   // Factor caps to prevent evaporite-level S from runaway sigma.
   const ba_f = Math.min(this.fluid.Ba / 30.0, 2.0);
   const s_f  = Math.min(this.fluid.S  / 40.0, 2.5);
   // O2 saturation at SO₄/H₂S Eh boundary (~O2=0.4), not at fully
   // oxidized. Allows barite + galena coexistence (MVT diagnostic).
-  const o2_f = Math.min(this.fluid.O2 / 0.4, 1.5);
+  const o2_f = sulfateRedoxFactor(this.fluid, 0.4, 1.5);
   let sigma = ba_f * s_f * o2_f;
   const T = this.temperature;
   if (T >= 50 && T <= 200) {
@@ -37,10 +37,10 @@ Object.assign(VugConditions.prototype, {
 },
 
   supersaturation_anhydrite() {
-  if (this.fluid.Ca < 50 || this.fluid.S < 20 || this.fluid.O2 < 0.3) return 0;
+  if (this.fluid.Ca < 50 || this.fluid.S < 20 || !sulfateRedoxAvailable(this.fluid, 0.3)) return 0;
   const ca_f = Math.min(this.fluid.Ca / 200.0, 2.5);
   const s_f  = Math.min(this.fluid.S  / 40.0, 2.5);
-  const o2_f = Math.min(this.fluid.O2 / 1.0, 1.5);
+  const o2_f = sulfateRedoxFactor(this.fluid, 1.0, 1.5);
   let sigma = ca_f * s_f * o2_f;
   const T = this.temperature;
   const salinity = this.fluid.salinity;
@@ -158,11 +158,11 @@ Object.assign(VugConditions.prototype, {
 },
 
   supersaturation_celestine() {
-  if (this.fluid.Sr < 3 || this.fluid.S < 10 || this.fluid.O2 < 0.1) return 0;
+  if (this.fluid.Sr < 3 || this.fluid.S < 10 || !sulfateRedoxAvailable(this.fluid, 0.1)) return 0;
   const sr_f = Math.min(this.fluid.Sr / 15.0, 2.0);
   const s_f  = Math.min(this.fluid.S  / 40.0, 2.5);
   // O2 saturation at SO₄/H₂S boundary — same MVT-coexistence rationale.
-  const o2_f = Math.min(this.fluid.O2 / 0.4, 1.5);
+  const o2_f = sulfateRedoxFactor(this.fluid, 0.4, 1.5);
   let sigma = sr_f * s_f * o2_f;
   const T = this.temperature;
   if (T < 100) {
@@ -235,8 +235,8 @@ Object.assign(VugConditions.prototype, {
   // converts to anhydrite well before 80°C. Now matches Python's
   // softer decay starting at 60°C, while keeping JS's T<40 bonus
   // (real per Pulpí Geode formation).
-  if (this.fluid.Ca < 20 || this.fluid.S < 15 || this.fluid.O2 < 0.2) return 0;
-  let sigma = (this.fluid.Ca / 60.0) * (this.fluid.S / 50.0) * (this.fluid.O2 / 0.5);
+  if (this.fluid.Ca < 20 || this.fluid.S < 15 || !sulfateRedoxAvailable(this.fluid, 0.2)) return 0;
+  let sigma = (this.fluid.Ca / 60.0) * (this.fluid.S / 50.0) * sulfateRedoxFactor(this.fluid, 0.5);
   if (this.temperature > 60) {
     sigma *= Math.exp(-0.06 * (this.temperature - 60));
   }

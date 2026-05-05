@@ -343,5 +343,13 @@
 //        therefore must equal seed42_v26.json content (only filename
 //        differs). If any scenario summary drifts at v27, the
 //        helpers don't actually preserve legacy behavior — back out.
-const SIM_VERSION = 27;
+//   v28 — Phase 4b sulfate sites batch 1 (May 2026): barite,
+//        celestine, anhydrite, selenite migrated to the helper form.
+//        4 engines × 2 sites each = 8 site migrations. With
+//        EH_DYNAMIC_ENABLED=false the helpers passthrough to the
+//        legacy fluid.O2 form, so seed-42 output is byte-identical
+//        to v27 (verified via baseline diff). Per-site rationale
+//        comments preserved unchanged. Calibration delta target:
+//        zero crystal shift across all 20 scenarios.
+const SIM_VERSION = 28;
 
