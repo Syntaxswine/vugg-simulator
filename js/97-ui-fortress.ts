@@ -144,7 +144,7 @@ function fortressBegin() {
   const fluid = new FluidChemistry(fluidParams);
 
   // Initialize wall based on preset
-  let wallOpts = { composition: 'limestone', thickness_mm: 500, vug_diameter_mm: 50, wall_Fe_ppm: 2000, wall_Mn_ppm: 500, wall_Mg_ppm: 1000 };
+  let wallOpts: any = { composition: 'limestone', thickness_mm: 500, vug_diameter_mm: 50, wall_Fe_ppm: 2000, wall_Mn_ppm: 500, wall_Mg_ppm: 1000 };
   if (selectedPreset === 'mvt') {
     wallOpts = { composition: 'limestone', thickness_mm: 500, vug_diameter_mm: 40, wall_Fe_ppm: 3000, wall_Mn_ppm: 800, wall_Mg_ppm: 1000 };
   } else if (selectedPreset === 'carbonate') {

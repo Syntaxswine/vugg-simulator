@@ -570,7 +570,7 @@ class VugSimulator {
     // (acid_dissolution == null, e.g. uraninite/molybdenite) or the
     // current pH is above its threshold.
     const ph = this.conditions.fluid.pH;
-    const byId = new Map(this.crystals.map(c => [c.crystal_id, c]));
+    const byId = new Map<number, any>(this.crystals.map(c => [c.crystal_id, c]));
     const blocked = new Set();
     const ring0 = this.wall_state.rings[0];
     for (let i = 0; i < ring0.length; i++) {
@@ -2221,7 +2221,7 @@ class VugSimulator {
     if (vugFill >= 1.0 && !this._vug_sealed) {
       this._vug_sealed = true;
       // Determine dominant mineral
-      const mineralVols = {};
+      const mineralVols: Record<string, number> = {};
       for (const c of this.crystals) {
         if (!c.active) continue;
         const a = c.c_length_mm / 2, b = c.a_width_mm / 2;
@@ -2359,7 +2359,7 @@ class VugSimulator {
     // Check for vug seal after growth loop (may cross 1.0 during crystal growth)
     if (currentFill >= 1.0 && !this._vug_sealed) {
       this._vug_sealed = true;
-      const mineralVols = {};
+      const mineralVols: Record<string, number> = {};
       for (const c of this.crystals) {
         if (!c.active) continue;
         const a = c.c_length_mm / 2, b = c.a_width_mm / 2;
@@ -2675,8 +2675,8 @@ class VugSimulator {
       // nucleations defer and get consolidated per-mineral so a mineral
       // that re-nucleates dozens of times in a stable brine reads as one
       // sentence instead of thirty repeating lines.
-      const nuc_steps = [...new Set(later_crystals.map(c => c.nucleation_step))].sort((a, b) => a - b);
-      const untriggeredByMineral = {};
+      const nuc_steps = [...new Set<number>(later_crystals.map(c => c.nucleation_step))].sort((a, b) => a - b);
+      const untriggeredByMineral: Record<string, any[]> = {};
       for (const ns of nuc_steps) {
         const batch = later_crystals.filter(c => c.nucleation_step === ns);
         const batch_names = batch.map(c => c.mineral);

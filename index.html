@@ -3419,6 +3419,10 @@ const MINERAL_SPEC_FALLBACK = {
     tyuyamunite: { formula: "Ca(UO2)2(VO4)2·5-8H2O", nucleation_sigma: 1.0, max_size_cm: 1, growth_rate_mult: 0.4, thermal_decomp_C: 100, fluorescence: { activator: "U", color: "yellow_green_LW_weak_to_moderate" }, twin_laws: [], acid_dissolution: { pH_threshold: 5.0 }, class: "phosphate" },
 };
 // Live spec — swapped in by the fetch below if data/minerals.json loads.
+// Typed as any because the live spec (post-fetch) has many more fields
+// than the inline fallback (class, scenarios, required_ingredients,
+// trace_ingredients, …); narrowing to the fallback shape would break
+// every Library/Random caller that reads them.
 let MINERAL_SPEC = MINERAL_SPEC_FALLBACK;
 let MINERAL_SPEC_READY = false;
 const _specListeners = [];
@@ -19956,7 +19960,7 @@ function renderCollectedForMineral(name) {
     }
     const rows = items
         .slice()
-        .sort((a, b) => new Date(b.collected_at) - new Date(a.collected_at))
+        .sort((a, b) => new Date(b.collected_at).getTime() - new Date(a.collected_at).getTime())
         .map(c => {
         const twin = c.twinned ? ` · ⟁ ${c.twin_law || ''}` : '';
         const src = c.source && (c.source.scenario || c.source.archetype || c.source.mode) || '';
@@ -21796,7 +21800,8 @@ function setBrothValue(key, sliderVal) {
 function syncBrothSliders() {
     if (!fortressSim)
         return;
-    for (const [key, m] of Object.entries(BROTH_MAP)) {
+    for (const [key, mEntry] of Object.entries(BROTH_MAP)) {
+        const m = mEntry;
         const val = m.get();
         const sliderVal = m.toSlider ? m.toSlider(val) : Math.round(val);
         const slider = document.getElementById('broth-' + key);
@@ -21944,7 +21949,7 @@ function groovePopulateCrystals() {
     for (let i = 0; i < data.crystals.length; i++) {
         const c = data.crystals[i];
         const opt = document.createElement('option');
-        opt.value = i;
+        opt.value = String(i);
         let label = `${capitalize(c.mineral)} #${c.crystal_id} — ${c.c_length_mm.toFixed(1)}mm, ${c.zones.length} zones`;
         if (c.twinned)
             label += ' ⟁';

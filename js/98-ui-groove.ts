@@ -98,7 +98,7 @@ function groovePopulateCrystals() {
   for (let i = 0; i < data.crystals.length; i++) {
     const c = data.crystals[i];
     const opt = document.createElement('option');
-    opt.value = i;
+    opt.value = String(i);
     let label = `${capitalize(c.mineral)} #${c.crystal_id} — ${c.c_length_mm.toFixed(1)}mm, ${c.zones.length} zones`;
     if (c.twinned) label += ' ⟁';
     opt.textContent = label;
@@ -670,7 +670,7 @@ function groupZonesByChemistry(zones, mineral, crystal) {
   return segs;
 }
 
-function renderChemistryBar(canvas, crystal, opts = {}) {
+function renderChemistryBar(canvas, crystal, opts: any = {}) {
   const zones = crystal && crystal.zones;
   if (!zones || !zones.length) return [];
   const { width = 600, height = 36 } = opts;
@@ -845,7 +845,7 @@ function groupZonesByFluorescence(zones, mineral, crystal) {
   return segs;
 }
 
-function renderUVBar(canvas, crystal, opts = {}) {
+function renderUVBar(canvas, crystal, opts: any = {}) {
   const zones = crystal && crystal.zones;
   if (!zones || !zones.length) return [];
   const { width = 600, height = 36 } = opts;
@@ -946,7 +946,7 @@ function getCrystalVector(crystal) {
   return current.vector || null;
 }
 
-function renderZoneShape_equant(canvas, crystal, opts = {}) {
+function renderZoneShape_equant(canvas, crystal, opts: any = {}) {
   // Nested hexagonal silhouette with internal Y to suggest corner-view
   // cube/rhomb faces. Each zone is a concentric ring; ring thickness is
   // proportional to the zone's |thickness_um| so a long dissolution
@@ -1087,7 +1087,7 @@ function renderZoneShape_equant(canvas, crystal, opts = {}) {
   }
 }
 
-function renderZoneShapeCanvas(canvas, crystal, opts = {}) {
+function renderZoneShapeCanvas(canvas, crystal, opts: any = {}) {
   // Dispatcher. Branches on canonical habit vector; falls back to the
   // Phase 1 bar graph for vectors that don't have a shape renderer yet.
   const zones = crystal.zones || [];
@@ -1104,7 +1104,7 @@ function renderZoneShapeCanvas(canvas, crystal, opts = {}) {
   }
 }
 
-function renderZoneBarCanvas(canvas, zones, opts = {}) {
+function renderZoneBarCanvas(canvas, zones, opts: any = {}) {
   if (!canvas || !zones || !zones.length) return;
   const {
     height = 120,
