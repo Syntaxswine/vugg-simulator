@@ -22856,6 +22856,81 @@ const PRIM_ACICULAR = {
   ],
 };
 
+const PRIM_DRIPSTONE = {
+  name: 'dripstone',
+  // Cave-mode tapered icicle. Hill & Forti 1997 (Cave Minerals of the
+  // World): mature stalactites taper from a wide ceiling-anchored base
+  // to a narrow drip tip, aspect ratio ~5-10:1, with vertical surface
+  // ridges from streaming water down the flanks. Hexagonal cross-section
+  // here is mostly a calcite-symmetry nod — natural dripstone is
+  // smooth-circular, but the renderer's 6-fold visible ridges read as
+  // the streaming-water grooves and align with calcite's underlying
+  // crystallographic symmetry.
+  //
+  // Anchor at the *base* (y = -0.1, slightly buried) so when air-mode
+  // c-axis flips put the crystal pointing world-down, the wide base
+  // sits at the substrate (ceiling) and the tip points at the floor.
+  // Stalagmite case (floor cell) reuses the same primitive flipped via
+  // the renderer's existing fluid/air orientation logic — same taper,
+  // opposite gravity vector.
+  //
+  // Geometry: 4 latitude rings × 6 longitudes + 1 apex. Radii taper
+  // 0.55 → 0.42 → 0.27 → 0.13 → 0 (apex). Vertical extent normalized
+  // to y=[-0.1, 1.0]; the renderer multiplies y by c_length_mm and
+  // x/z by a_width_mm, so the natural 5-10:1 aspect ratio falls out
+  // of the crystal's own dimensions when the air-mode habit kicks in.
+  vertices: (() => {
+    const vs = [];
+    const NLON = 6;
+    // Slim icicle profile. Crystal c_length_mm/a_width_mm already
+    // encodes a partial aspect ratio (prismatic crystals land at ~2-3:1
+    // in those dimensions); dropping the primitive's max radius from
+    // 0.55 to 0.30 multiplies that to a believable 5-10:1 final aspect
+    // for cave dripstone. Taper from base (0.30) → tip (0) over four
+    // rings, with non-linear shrinkage (more taper near the base, less
+    // near the tip) — matches photos of mature cave stalactites where
+    // the lower 60% is nearly cylindrical and the apex acts like a
+    // separate "drip nozzle".
+    const rings = [
+      { y: -0.10, r: 0.30 },   // base (ceiling-anchored)
+      { y:  0.30, r: 0.22 },   // upper shoulder
+      { y:  0.65, r: 0.13 },   // mid-shaft
+      { y:  0.90, r: 0.06 },   // sub-tip neck
+    ];
+    for (const ring of rings) {
+      for (let k = 0; k < NLON; k++) {
+        const a = (k * 2 * Math.PI) / NLON;
+        vs.push([ring.r * Math.cos(a), ring.y, ring.r * Math.sin(a)]);
+      }
+    }
+    vs.push([0, 1.0, 0]);   // 24: apex (drip tip)
+    return vs;
+  })(),
+  edges: (() => {
+    const es = [];
+    const NLON = 6;
+    const NRINGS = 4;
+    // Six longitudinal ridges — each spans ring 0..3 → apex (4 segments).
+    for (let k = 0; k < NLON; k++) {
+      for (let r = 0; r < NRINGS - 1; r++) {
+        es.push([r * NLON + k, (r + 1) * NLON + k]);
+      }
+      // Ring 3 → apex.
+      es.push([(NRINGS - 1) * NLON + k, NRINGS * NLON]);
+    }
+    // Base hex (anchors the silhouette at the substrate).
+    for (let k = 0; k < NLON; k++) {
+      es.push([k, (k + 1) % NLON]);
+    }
+    // Mid-shaft hex (ring 2) — mid-band detail so the silhouette
+    // doesn't read as a smooth fanned bundle of single ridges.
+    for (let k = 0; k < NLON; k++) {
+      es.push([2 * NLON + k, 2 * NLON + ((k + 1) % NLON)]);
+    }
+    return es;
+  })(),
+};
+
 const PRIM_BOTRYOIDAL = {
   name: 'botryoidal',
   // Spherulite mechanism (Wertheim et al. 2021; Quartz Page chalcedony):
@@ -22994,8 +23069,65 @@ const HABIT_TO_PRIMITIVE = {
   'default_habit':                  PRIM_RHOMBOHEDRON,
 };
 
+// Habits that swap to dripstone geometry under air-mode growth. Cave-
+// mineralogy literature (Hill & Forti 1997): elongated/branching habits
+// that produce dripstone forms when grown out of fluid. Cubic / octa-
+// hedral / tetrahedral / dipyramidal / pyritohedral / tabular habits do
+// NOT form dripstone (galena cubes, fluorite cubes, baryte tabular —
+// these grow as wall encrustations or floor druses, not icicles), so
+// they keep their normal primitive even in air mode.
+const _AIR_MODE_DRIPSTONE_HABITS = new Set([
+  'prismatic', 'short_prismatic', 'striated_prism', 'hex_prism',
+  'hex_prism_long', 'hexagonal_prism', 'hexagonal_prism_or_botryoidal_campylite',
+  'prismatic_hex', 'prismatic_or_blocky', 'prismatic_orthorhombic',
+  'prismatic_or_rosette', 'tabular_prism', 'columnar_or_cyclic_twinned',
+  'hemimorphic_hexagonal', 'deep_blue_prismatic',
+  'acicular', 'acicular_tuft', 'tufted_spray', 'elongated_blade',
+  'wire', 'capillary',
+  'rhombohedral', 'saddle_rhomb_or_massive', 'rhombohedral_or_botryoidal',
+  'rhombohedral_or_scalenohedral', 'rhombohedral_or_tabular_or_botryoidal',
+  'botryoidal_or_rhombohedral',
+  'scalenohedral', 'scalenohedral_or_rhombohedral',
+  'botryoidal', 'reniform', 'botryoidal_or_acicular',
+  'botryoidal_or_mammillary_or_fibrous', 'botryoidal_cryptocrystalline',
+  'cobalt_bloom_or_botryoidal', 'nickel_bloom_or_capillary',
+  'pitchblende_massive', 'massive_granular', 'earthy_crust',
+  'stalactitic',
+  'arborescent', 'dendritic',
+]);
+
 function _lookupCrystalPrimitive(crystal) {
   if (!crystal) return PRIM_RHOMBOHEDRON;
+  // v24 air-mode override — crystals nucleated in vadose rings get
+  // dripstone geometry instead of their canonical habit primitive,
+  // unless the habit is structurally incompatible (cubic / tabular /
+  // dipyramidal — those don't form dripstone). The renderer's existing
+  // c-axis flip handles ceiling-vs-floor orientation: ceiling cells
+  // get c-axis world-down (stalactite hanging), floor cells get c-axis
+  // world-up (stalagmite standing).
+  if (crystal.growth_environment === 'air') {
+    const habit = crystal.habit || '';
+    if (_AIR_MODE_DRIPSTONE_HABITS.has(habit)) return PRIM_DRIPSTONE;
+    const h = habit.toLowerCase();
+    // Fuzzy match for compound habit strings — same intent as the
+    // direct-set check, broader catch for "rhombohedral_or_…",
+    // "prismatic_…", "botryoidal_…" variants. Cubic/tabular/dipyramid
+    // explicitly excluded so cube-based habits stay cubic in air.
+    const isStructuralCube =
+      h.includes('cube') || h.includes('cubic') || h.includes('octahed')
+      || h.includes('tetrahed') || h.includes('pyritohed')
+      || h.includes('tabular') || h.includes('platy')
+      || h.includes('dipyramid') || h.includes('bipyramid');
+    if (!isStructuralCube && (
+        h.includes('prism') || h.includes('acicular') || h.includes('rhomb')
+        || h.includes('scalenohed') || h.includes('botryoidal')
+        || h.includes('reniform') || h.includes('mammillary')
+        || h.includes('stalactit') || h.includes('arborescent')
+        || h.includes('dendritic') || h.includes('needle')
+        || h.includes('wire') || h.includes('capillary'))) {
+      return PRIM_DRIPSTONE;
+    }
+  }
   const direct = HABIT_TO_PRIMITIVE[crystal.habit];
   if (direct) return direct;
   const h = (crystal.habit || '').toLowerCase();

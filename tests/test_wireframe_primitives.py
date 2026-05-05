@@ -102,8 +102,9 @@ def _resolves(habit: str) -> bool:
 
 
 def test_all_primitives_defined_in_index_html():
-    """The 12 primitive constants the proposal calls out must all exist
-    in the deployed index.html. Catches accidental deletion / rename."""
+    """The 13 primitive constants the proposal + air-mode addendum call
+    out must all exist in the deployed index.html. Catches accidental
+    deletion / rename."""
     text = _index_html_text()
     expected = [
         "PRIM_CUBE", "PRIM_OCTAHEDRON", "PRIM_TETRAHEDRON",
@@ -111,12 +112,42 @@ def test_all_primitives_defined_in_index_html():
         "PRIM_HEX_PRISM", "PRIM_HEX_PRISM_TERMINATED",
         "PRIM_DIPYRAMID", "PRIM_PYRITOHEDRON",
         "PRIM_TABULAR", "PRIM_ACICULAR", "PRIM_BOTRYOIDAL",
+        # v24 air-mode addition.
+        "PRIM_DRIPSTONE",
     ]
     for name in expected:
         assert re.search(rf"\bconst {name}\b", text), (
             f"Primitive {name} missing from index.html — wireframe "
             f"renderer will fall back to default for matching habits."
         )
+
+
+def test_dripstone_air_mode_override_present():
+    """v24: when crystal.growth_environment === 'air', dripstone-eligible
+    habits (prismatic, acicular, rhombohedral, scalenohedral, botryoidal,
+    plus their compound forms) must override to PRIM_DRIPSTONE. Cubic /
+    octahedral / tetrahedral / tabular / dipyramidal habits are
+    structurally incompatible with dripstone (galena cubes don't form
+    icicles) and must keep their canonical primitive even in air mode.
+
+    Regex-checks that the override mechanism + the eligibility set both
+    exist in `_lookupCrystalPrimitive`. If air-mode handling is silently
+    removed, every air-stamped crystal would render as its fluid-mode
+    primitive — visually missing the cave story the foundation set up."""
+    text = _index_html_text()
+    assert "_AIR_MODE_DRIPSTONE_HABITS" in text, (
+        "Air-mode dripstone habit set missing from index.html — "
+        "vadose-zone crystals will render as their fluid-mode primitive.")
+    assert "growth_environment === 'air'" in text, (
+        "Air-mode branch missing from `_lookupCrystalPrimitive` — "
+        "dripstone override never fires.")
+    assert "PRIM_DRIPSTONE" in text, "PRIM_DRIPSTONE referenced nowhere"
+    # Sanity-check the structural-cube exclusion: cubic must be
+    # mentioned in the exclusion fuzzy-match block, not in the
+    # eligibility set. Crude but catches a typo flipping the polarity.
+    assert "isStructuralCube" in text, (
+        "Structural-cube exclusion missing — cubic / tabular habits "
+        "would incorrectly become dripstones in air mode.")
 
 
 def test_lookup_helpers_present():
