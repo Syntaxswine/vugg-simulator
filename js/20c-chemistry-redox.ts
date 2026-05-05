@@ -484,3 +484,74 @@ function sulfideRedoxTent(
   const o2eq = o2FromEh(Eh);
   return Math.max(floor, peakValue - Math.abs(o2eq - peakO2) * slope);
 }
+
+// ============================================================
+// Phase 4b molybdate / phosphate / silicate-class engine helpers
+// ============================================================
+// All three classes are oxidized-side throughout — molybdate (MoO4²⁻),
+// phosphate (PO4³⁻ + secondary uranyl), silicate (chrysocolla Cu(II)).
+// Same flag-OFF passthrough as sulfate. Phase 4c will bind each to
+// an Eh threshold; no specific Nernst couple applies (these are
+// non-redox-active anions whose minerals need "oxic enough" fluid
+// for the cation to be in its mobile state).
+//
+// The textual repetition with sulfateRedox* / arsenateRedox* etc. is
+// deliberate — keeping per-class helper names makes Phase 4c's tuning
+// surface (one Eh threshold per class) explicit at the call site.
+
+function molybdateRedoxAvailable(fluid: any, o2Threshold: number): boolean {
+  if (!EH_DYNAMIC_ENABLED) {
+    return (typeof fluid.O2 === 'number' ? fluid.O2 : 0) >= o2Threshold;
+  }
+  const EhEquivalent = ehFromO2(o2Threshold);
+  const Eh = typeof fluid.Eh === 'number' ? fluid.Eh : 200;
+  return Eh >= EhEquivalent;
+}
+
+function molybdateRedoxFactor(fluid: any, scaleAtFull: number, cap: number = Infinity): number {
+  if (!EH_DYNAMIC_ENABLED) {
+    const O2 = typeof fluid.O2 === 'number' ? fluid.O2 : 0;
+    return Math.min(O2 / scaleAtFull, cap);
+  }
+  const Eh = typeof fluid.Eh === 'number' ? fluid.Eh : 200;
+  const o2eq = o2FromEh(Eh);
+  return Math.min(o2eq / scaleAtFull, cap);
+}
+
+function phosphateRedoxAvailable(fluid: any, o2Threshold: number): boolean {
+  if (!EH_DYNAMIC_ENABLED) {
+    return (typeof fluid.O2 === 'number' ? fluid.O2 : 0) >= o2Threshold;
+  }
+  const EhEquivalent = ehFromO2(o2Threshold);
+  const Eh = typeof fluid.Eh === 'number' ? fluid.Eh : 200;
+  return Eh >= EhEquivalent;
+}
+
+function phosphateRedoxFactor(fluid: any, scaleAtFull: number, cap: number = Infinity): number {
+  if (!EH_DYNAMIC_ENABLED) {
+    const O2 = typeof fluid.O2 === 'number' ? fluid.O2 : 0;
+    return Math.min(O2 / scaleAtFull, cap);
+  }
+  const Eh = typeof fluid.Eh === 'number' ? fluid.Eh : 200;
+  const o2eq = o2FromEh(Eh);
+  return Math.min(o2eq / scaleAtFull, cap);
+}
+
+function silicateRedoxAvailable(fluid: any, o2Threshold: number): boolean {
+  if (!EH_DYNAMIC_ENABLED) {
+    return (typeof fluid.O2 === 'number' ? fluid.O2 : 0) >= o2Threshold;
+  }
+  const EhEquivalent = ehFromO2(o2Threshold);
+  const Eh = typeof fluid.Eh === 'number' ? fluid.Eh : 200;
+  return Eh >= EhEquivalent;
+}
+
+function silicateRedoxFactor(fluid: any, scaleAtFull: number, cap: number = Infinity): number {
+  if (!EH_DYNAMIC_ENABLED) {
+    const O2 = typeof fluid.O2 === 'number' ? fluid.O2 : 0;
+    return Math.min(O2 / scaleAtFull, cap);
+  }
+  const Eh = typeof fluid.Eh === 'number' ? fluid.Eh : 200;
+  const o2eq = o2FromEh(Eh);
+  return Math.min(o2eq / scaleAtFull, cap);
+}

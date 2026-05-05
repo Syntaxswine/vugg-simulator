@@ -93,13 +93,13 @@ Object.assign(VugConditions.prototype, {
 },
 
   supersaturation_chrysocolla() {
-  if (this.fluid.Cu < 5 || this.fluid.SiO2 < 20 || this.fluid.O2 < 0.3) return 0;
+  if (this.fluid.Cu < 5 || this.fluid.SiO2 < 20 || !silicateRedoxAvailable(this.fluid, 0.3)) return 0;
   if (this.temperature < 5 || this.temperature > 80) return 0;
   if (this.fluid.pH < 5.0 || this.fluid.pH > 8.0) return 0;
   if (this.fluid.CO3 > this.fluid.SiO2) return 0;
   const cu_f = Math.min(this.fluid.Cu / 30.0, 3.0);
   const si_f = Math.min(this.fluid.SiO2 / 60.0, 2.5);
-  const o_f  = Math.min(this.fluid.O2 / 1.0, 1.5);
+  const o_f  = silicateRedoxFactor(this.fluid, 1.0, 1.5);
   const T = this.temperature;
   let t_f;
   if (T >= 15 && T <= 40) t_f = 1.0;

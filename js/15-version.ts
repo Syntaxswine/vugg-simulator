@@ -450,5 +450,17 @@
 //        the flag still false, all migrated classes passthrough to
 //        fluid.O2 — seed-42 output unchanged from v26 across all
 //        scenarios.
-const SIM_VERSION = 35;
+//   v36 — Phase 4b molybdate + phosphate + silicate classes COMPLETE
+//        (May 2026): 23 sites across 3 oxidized-side classes.
+//        molybdate: wulfenite, ferrimolybdite, raspite, stolzite (8
+//        sites). phosphate: descloizite, mottramite, clinobisvanite
+//        + 6 uranyl phosphates/arsenates/vanadates (13 sites).
+//        silicate: chrysocolla (2 sites — only Cu silicate; quartz,
+//        beryl, feldspar etc. have no fluid.O2 reference). New
+//        helpers molybdateRedox*, phosphateRedox*, silicateRedox* —
+//        textually identical bodies to the sulfate/arsenate
+//        oxidized-side helpers, named per-class for Phase 4c tuning
+//        independence (one Eh threshold per class).
+//        Flag still off; byte-identical to v35.
+const SIM_VERSION = 36;
 

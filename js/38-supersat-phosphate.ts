@@ -12,7 +12,7 @@
 Object.assign(VugConditions.prototype, {
   supersaturation_descloizite() {
   if (this.fluid.Pb < 40 || this.fluid.Zn < 50 || this.fluid.V < 10) return 0;
-  if (this.fluid.O2 < 0.5) return 0;
+  if (!phosphateRedoxAvailable(this.fluid, 0.5)) return 0;
   if (this.fluid.Cu < 0.5) return 0;
   const cu_zn_total = this.fluid.Cu + this.fluid.Zn;
   const zn_fraction = this.fluid.Zn / cu_zn_total;
@@ -20,7 +20,7 @@ Object.assign(VugConditions.prototype, {
   const pb_f = Math.min(this.fluid.Pb / 80.0, 2.5);
   const zn_f = Math.min(this.fluid.Zn / 80.0, 2.5);
   const v_f  = Math.min(this.fluid.V  / 20.0, 2.5);
-  const ox_f = Math.min(this.fluid.O2 / 1.0, 2.0);
+  const ox_f = phosphateRedoxFactor(this.fluid, 1.0, 2.0);
   let sigma = pb_f * zn_f * v_f * ox_f;
   if (zn_fraction >= 0.55 && zn_fraction <= 0.85) sigma *= 1.3;
   else if (zn_fraction > 0.95) sigma *= 0.5;
@@ -39,7 +39,7 @@ Object.assign(VugConditions.prototype, {
 
   supersaturation_mottramite() {
   if (this.fluid.Pb < 40 || this.fluid.Cu < 50 || this.fluid.V < 10) return 0;
-  if (this.fluid.O2 < 0.5) return 0;
+  if (!phosphateRedoxAvailable(this.fluid, 0.5)) return 0;
   if (this.fluid.Zn < 0.5) return 0;
   const cu_zn_total = this.fluid.Cu + this.fluid.Zn;
   const cu_fraction = this.fluid.Cu / cu_zn_total;
@@ -47,7 +47,7 @@ Object.assign(VugConditions.prototype, {
   const pb_f = Math.min(this.fluid.Pb / 80.0, 2.5);
   const cu_f = Math.min(this.fluid.Cu / 80.0, 2.5);
   const v_f  = Math.min(this.fluid.V  / 20.0, 2.5);
-  const ox_f = Math.min(this.fluid.O2 / 1.0, 2.0);
+  const ox_f = phosphateRedoxFactor(this.fluid, 1.0, 2.0);
   let sigma = pb_f * cu_f * v_f * ox_f;
   if (cu_fraction >= 0.55 && cu_fraction <= 0.85) sigma *= 1.3;
   else if (cu_fraction > 0.95) sigma *= 0.5;
@@ -65,10 +65,10 @@ Object.assign(VugConditions.prototype, {
 },
 
   supersaturation_clinobisvanite() {
-  if (this.fluid.Bi < 2 || this.fluid.V < 2 || this.fluid.O2 < 1.0) return 0;
+  if (this.fluid.Bi < 2 || this.fluid.V < 2 || !phosphateRedoxAvailable(this.fluid, 1.0)) return 0;
   const bi_f = Math.min(this.fluid.Bi / 5.0, 2.0);
   const v_f  = Math.min(this.fluid.V / 5.0, 2.0);
-  const o_f  = Math.min(this.fluid.O2 / 1.5, 1.3);
+  const o_f  = phosphateRedoxFactor(this.fluid, 1.5, 1.3);
   let sigma = bi_f * v_f * o_f;
   if (this.temperature > 40) sigma *= Math.exp(-0.04 * (this.temperature - 40));
   if (this.fluid.pH < 2.5) sigma -= (2.5 - this.fluid.pH) * 0.3;
@@ -101,7 +101,7 @@ Object.assign(VugConditions.prototype, {
 },
 
   supersaturation_torbernite() {
-  if (this.fluid.Cu < 5 || this.fluid.U < 0.3 || this.fluid.P < 1.0 || this.fluid.O2 < 0.8) return 0;
+  if (this.fluid.Cu < 5 || this.fluid.U < 0.3 || this.fluid.P < 1.0 || !phosphateRedoxAvailable(this.fluid, 0.8)) return 0;
   if (this.temperature < 10 || this.temperature > 50) return 0;
   if (this.fluid.pH < 5.0 || this.fluid.pH > 7.5) return 0;
   // Anion competition (3-way as of 9c): denominator includes V so
@@ -136,7 +136,7 @@ Object.assign(VugConditions.prototype, {
   // Round 9d (May 2026): Ca-cation analog of torbernite. Same parent
   // fluid (U + P + supergene-T + oxidizing), gates on Ca/(Cu+Ca) > 0.5.
   // Mirror of vugg.py supersaturation_autunite.
-  if (this.fluid.Ca < 15 || this.fluid.U < 0.3 || this.fluid.P < 1.0 || this.fluid.O2 < 0.8) return 0;
+  if (this.fluid.Ca < 15 || this.fluid.U < 0.3 || this.fluid.P < 1.0 || !phosphateRedoxAvailable(this.fluid, 0.8)) return 0;
   if (this.temperature < 5 || this.temperature > 50) return 0;
   if (this.fluid.pH < 4.5 || this.fluid.pH > 8.0) return 0;
   // Anion competition — same shape as torbernite/zeunerite/carnotite
@@ -165,7 +165,7 @@ Object.assign(VugConditions.prototype, {
 },
 
   supersaturation_zeunerite() {
-  if (this.fluid.Cu < 5 || this.fluid.U < 0.3 || this.fluid.As < 2.0 || this.fluid.O2 < 0.8) return 0;
+  if (this.fluid.Cu < 5 || this.fluid.U < 0.3 || this.fluid.As < 2.0 || !phosphateRedoxAvailable(this.fluid, 0.8)) return 0;
   if (this.temperature < 10 || this.temperature > 50) return 0;
   if (this.fluid.pH < 5.0 || this.fluid.pH > 7.5) return 0;
   // Anion competition (3-way as of 9c)
@@ -199,7 +199,7 @@ Object.assign(VugConditions.prototype, {
   // Round 9e (May 2026): Ca-cation analog of zeunerite. Mirror of
   // vugg.py supersaturation_uranospinite. Same parent fluid (U + As +
   // supergene-T + oxidizing), gates on Ca/(Cu+Ca) > 0.5.
-  if (this.fluid.Ca < 15 || this.fluid.U < 0.3 || this.fluid.As < 2.0 || this.fluid.O2 < 0.8) return 0;
+  if (this.fluid.Ca < 15 || this.fluid.U < 0.3 || this.fluid.As < 2.0 || !phosphateRedoxAvailable(this.fluid, 0.8)) return 0;
   if (this.temperature < 5 || this.temperature > 50) return 0;
   if (this.fluid.pH < 4.5 || this.fluid.pH > 8.0) return 0;
   const anion_total = this.fluid.P + this.fluid.As + this.fluid.V;
@@ -228,7 +228,7 @@ Object.assign(VugConditions.prototype, {
   supersaturation_carnotite() {
   // V-branch / K-cation of the uranyl cation+anion fork (Round 9c + 9e).
   // Mirror of vugg.py supersaturation_carnotite.
-  if (this.fluid.K < 5 || this.fluid.U < 0.3 || this.fluid.V < 1.0 || this.fluid.O2 < 0.8) return 0;
+  if (this.fluid.K < 5 || this.fluid.U < 0.3 || this.fluid.V < 1.0 || !phosphateRedoxAvailable(this.fluid, 0.8)) return 0;
   if (this.temperature < 10 || this.temperature > 50) return 0;
   if (this.fluid.pH < 5.0 || this.fluid.pH > 7.5) return 0;
   const anion_total = this.fluid.P + this.fluid.As + this.fluid.V;
@@ -261,7 +261,7 @@ Object.assign(VugConditions.prototype, {
   // Round 9e (May 2026): Ca-cation analog of carnotite. Mirror of
   // vugg.py supersaturation_tyuyamunite. Orthorhombic instead of
   // monoclinic crystal system but same chemistry stage.
-  if (this.fluid.Ca < 15 || this.fluid.U < 0.3 || this.fluid.V < 1.0 || this.fluid.O2 < 0.8) return 0;
+  if (this.fluid.Ca < 15 || this.fluid.U < 0.3 || this.fluid.V < 1.0 || !phosphateRedoxAvailable(this.fluid, 0.8)) return 0;
   if (this.temperature < 5 || this.temperature > 50) return 0;
   if (this.fluid.pH < 5.0 || this.fluid.pH > 8.0) return 0;
   const anion_total = this.fluid.P + this.fluid.As + this.fluid.V;
