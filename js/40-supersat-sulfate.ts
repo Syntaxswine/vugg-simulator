@@ -73,11 +73,11 @@ Object.assign(VugConditions.prototype, {
 },
 
   supersaturation_brochantite() {
-  if (this.fluid.Cu < 10 || this.fluid.S < 15 || this.fluid.O2 < 0.5) return 0;
+  if (this.fluid.Cu < 10 || this.fluid.S < 15 || !sulfateRedoxAvailable(this.fluid, 0.5)) return 0;
   if (this.fluid.pH < 3 || this.fluid.pH > 7.5) return 0;
   const cu_f = Math.min(this.fluid.Cu / 40.0, 2.5);
   const s_f  = Math.min(this.fluid.S  / 30.0, 2.5);
-  const o2_f = Math.min(this.fluid.O2 / 1.0, 1.5);
+  const o2_f = sulfateRedoxFactor(this.fluid, 1.0, 1.5);
   let sigma = cu_f * s_f * o2_f;
   if (this.temperature > 50) {
     sigma *= Math.exp(-0.05 * (this.temperature - 50));
@@ -92,11 +92,11 @@ Object.assign(VugConditions.prototype, {
 },
 
   supersaturation_antlerite() {
-  if (this.fluid.Cu < 15 || this.fluid.S < 20 || this.fluid.O2 < 0.5) return 0;
+  if (this.fluid.Cu < 15 || this.fluid.S < 20 || !sulfateRedoxAvailable(this.fluid, 0.5)) return 0;
   if (this.fluid.pH > 4 || this.fluid.pH < 0.5) return 0;
   const cu_f = Math.min(this.fluid.Cu / 40.0, 2.5);
   const s_f  = Math.min(this.fluid.S  / 30.0, 2.5);
-  const o2_f = Math.min(this.fluid.O2 / 1.0, 1.5);
+  const o2_f = sulfateRedoxFactor(this.fluid, 1.0, 1.5);
   let sigma = cu_f * s_f * o2_f;
   if (this.temperature > 50) {
     sigma *= Math.exp(-0.05 * (this.temperature - 50));
@@ -112,12 +112,12 @@ Object.assign(VugConditions.prototype, {
 
   supersaturation_jarosite() {
   if (this.fluid.K < 5 || this.fluid.Fe < 10 || this.fluid.S < 20
-      || this.fluid.O2 < 0.5) return 0;
+      || !sulfateRedoxAvailable(this.fluid, 0.5)) return 0;
   if (this.fluid.pH > 5) return 0;
   const k_f  = Math.min(this.fluid.K  / 15.0, 2.0);
   const fe_f = Math.min(this.fluid.Fe / 30.0, 2.5);
   const s_f  = Math.min(this.fluid.S  / 50.0, 2.5);
-  const o2_f = Math.min(this.fluid.O2 / 1.0, 1.5);
+  const o2_f = sulfateRedoxFactor(this.fluid, 1.0, 1.5);
   let sigma = k_f * fe_f * s_f * o2_f;
   if (this.temperature > 50) {
     sigma *= Math.exp(-0.04 * (this.temperature - 50));
@@ -133,12 +133,12 @@ Object.assign(VugConditions.prototype, {
 
   supersaturation_alunite() {
   if (this.fluid.K < 5 || this.fluid.Al < 10 || this.fluid.S < 20
-      || this.fluid.O2 < 0.5) return 0;
+      || !sulfateRedoxAvailable(this.fluid, 0.5)) return 0;
   if (this.fluid.pH > 5) return 0;
   const k_f  = Math.min(this.fluid.K  / 15.0, 2.0);
   const al_f = Math.min(this.fluid.Al / 25.0, 2.5);
   const s_f  = Math.min(this.fluid.S  / 50.0, 2.5);
-  const o2_f = Math.min(this.fluid.O2 / 1.0, 1.5);
+  const o2_f = sulfateRedoxFactor(this.fluid, 1.0, 1.5);
   let sigma = k_f * al_f * s_f * o2_f;
   const T = this.temperature;
   if (T >= 50 && T <= 200) {

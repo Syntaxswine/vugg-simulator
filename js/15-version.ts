@@ -351,5 +351,13 @@
 //        to v27 (verified via baseline diff). Per-site rationale
 //        comments preserved unchanged. Calibration delta target:
 //        zero crystal shift across all 20 scenarios.
-const SIM_VERSION = 28;
+//   v29 — Phase 4b sulfate sites batch 2 (May 2026): brochantite,
+//        antlerite, jarosite, alunite migrated to the helper form.
+//        4 engines × 2 sites each = 8 site migrations. The Cu/Fe/Al
+//        supergene-acid suite — all four gate on O2 ≥ 0.5 and use
+//        the standard /1.0 cap 1.5 factor. With EH_DYNAMIC_ENABLED
+//        still false, byte-identical to v28 (verified via diff).
+//        14 sites + 8 supersat methods → 6 sites + 4 supersat methods
+//        remaining in the sulfate class.
+const SIM_VERSION = 29;
 

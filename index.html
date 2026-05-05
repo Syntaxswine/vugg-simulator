@@ -4344,7 +4344,15 @@ let timeScale = 5.0;
 //        to v27 (verified via baseline diff). Per-site rationale
 //        comments preserved unchanged. Calibration delta target:
 //        zero crystal shift across all 20 scenarios.
-const SIM_VERSION = 28;
+//   v29 — Phase 4b sulfate sites batch 2 (May 2026): brochantite,
+//        antlerite, jarosite, alunite migrated to the helper form.
+//        4 engines × 2 sites each = 8 site migrations. The Cu/Fe/Al
+//        supergene-acid suite — all four gate on O2 ≥ 0.5 and use
+//        the standard /1.0 cap 1.5 factor. With EH_DYNAMIC_ENABLED
+//        still false, byte-identical to v28 (verified via diff).
+//        14 sites + 8 supersat methods → 6 sites + 4 supersat methods
+//        remaining in the sulfate class.
+const SIM_VERSION = 29;
 
 // ── 18-constants.js ──
 
@@ -8111,13 +8119,13 @@ Object.assign(VugConditions.prototype, {
         return Math.max(sigma, 0);
     },
     supersaturation_brochantite() {
-        if (this.fluid.Cu < 10 || this.fluid.S < 15 || this.fluid.O2 < 0.5)
+        if (this.fluid.Cu < 10 || this.fluid.S < 15 || !sulfateRedoxAvailable(this.fluid, 0.5))
             return 0;
         if (this.fluid.pH < 3 || this.fluid.pH > 7.5)
             return 0;
         const cu_f = Math.min(this.fluid.Cu / 40.0, 2.5);
         const s_f = Math.min(this.fluid.S / 30.0, 2.5);
-        const o2_f = Math.min(this.fluid.O2 / 1.0, 1.5);
+        const o2_f = sulfateRedoxFactor(this.fluid, 1.0, 1.5);
         let sigma = cu_f * s_f * o2_f;
         if (this.temperature > 50) {
             sigma *= Math.exp(-0.05 * (this.temperature - 50));
@@ -8133,13 +8141,13 @@ Object.assign(VugConditions.prototype, {
         return Math.max(sigma, 0);
     },
     supersaturation_antlerite() {
-        if (this.fluid.Cu < 15 || this.fluid.S < 20 || this.fluid.O2 < 0.5)
+        if (this.fluid.Cu < 15 || this.fluid.S < 20 || !sulfateRedoxAvailable(this.fluid, 0.5))
             return 0;
         if (this.fluid.pH > 4 || this.fluid.pH < 0.5)
             return 0;
         const cu_f = Math.min(this.fluid.Cu / 40.0, 2.5);
         const s_f = Math.min(this.fluid.S / 30.0, 2.5);
-        const o2_f = Math.min(this.fluid.O2 / 1.0, 1.5);
+        const o2_f = sulfateRedoxFactor(this.fluid, 1.0, 1.5);
         let sigma = cu_f * s_f * o2_f;
         if (this.temperature > 50) {
             sigma *= Math.exp(-0.05 * (this.temperature - 50));
@@ -8156,14 +8164,14 @@ Object.assign(VugConditions.prototype, {
     },
     supersaturation_jarosite() {
         if (this.fluid.K < 5 || this.fluid.Fe < 10 || this.fluid.S < 20
-            || this.fluid.O2 < 0.5)
+            || !sulfateRedoxAvailable(this.fluid, 0.5))
             return 0;
         if (this.fluid.pH > 5)
             return 0;
         const k_f = Math.min(this.fluid.K / 15.0, 2.0);
         const fe_f = Math.min(this.fluid.Fe / 30.0, 2.5);
         const s_f = Math.min(this.fluid.S / 50.0, 2.5);
-        const o2_f = Math.min(this.fluid.O2 / 1.0, 1.5);
+        const o2_f = sulfateRedoxFactor(this.fluid, 1.0, 1.5);
         let sigma = k_f * fe_f * s_f * o2_f;
         if (this.temperature > 50) {
             sigma *= Math.exp(-0.04 * (this.temperature - 50));
@@ -8180,14 +8188,14 @@ Object.assign(VugConditions.prototype, {
     },
     supersaturation_alunite() {
         if (this.fluid.K < 5 || this.fluid.Al < 10 || this.fluid.S < 20
-            || this.fluid.O2 < 0.5)
+            || !sulfateRedoxAvailable(this.fluid, 0.5))
             return 0;
         if (this.fluid.pH > 5)
             return 0;
         const k_f = Math.min(this.fluid.K / 15.0, 2.0);
         const al_f = Math.min(this.fluid.Al / 25.0, 2.5);
         const s_f = Math.min(this.fluid.S / 50.0, 2.5);
-        const o2_f = Math.min(this.fluid.O2 / 1.0, 1.5);
+        const o2_f = sulfateRedoxFactor(this.fluid, 1.0, 1.5);
         let sigma = k_f * al_f * s_f * o2_f;
         const T = this.temperature;
         if (T >= 50 && T <= 200) {
