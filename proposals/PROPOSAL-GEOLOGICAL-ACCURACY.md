@@ -138,9 +138,21 @@ emergent behaviors:
 - **Realistic vug-fill endpoints** — currently the only stop conditions
   are size-cap and geometric fill
 
-### Gap 2 — Saturation is `min(Ca, CO3)`, not `[Ca]·[CO3]`
+### Gap 2 — Saturation is `min(Ca, CO3)`, not `[Ca]·[CO3]` *(scope-corrected)*
 
-90+ supersat methods follow the pattern:
+> **Scope correction (2026-05-05):** the original proposal text claimed
+> "90+ supersat methods" used the Liebig pattern. That was a misread of
+> grep output — most of the 90+ `Math.min(this.fluid.…)` hits across
+> supersat files are **saturation caps** of the form
+> `Math.min(x / norm, ceiling)`, which are fine. The genuine
+> two-species-Liebig pattern was concentrated in **4 carbonate methods
+> + 1 dolomite mixed shape**, all of which are now fixed (commit
+> [568476f](../../../commit/568476f), SIM_VERSION 18). The remainder of
+> Gap 2 below — "Q is wrong without activity correction" — still
+> stands and is what Phase 2 infrastructure (commit
+> [pending](../../../commits/main)) targets.
+
+The 5 Liebig sites used:
 
 ```js
 const ca_co3 = Math.min(this.fluid.Ca, this.fluid.CO3);
