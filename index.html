@@ -21812,6 +21812,250 @@ const _SAT_DISPLAY_NAMES = {
 // in Bingham porphyry brines) but past 99 the user just needs to
 // know "very super-saturated".
 const _SAT_DISPLAY_MAX = 99.99;
+function fortressFinish() {
+    if (!fortressSim)
+        return;
+    const logEl = document.getElementById('fortress-log');
+    const summaryLines = fortressSim.format_summary();
+    fortressLogLines.push('');
+    const sep = document.createElement('div');
+    sep.innerHTML = '<br>';
+    logEl.appendChild(sep);
+    // Render summary with narrative box
+    let inNarrative = false;
+    let narrativeEl = null;
+    for (const line of summaryLines) {
+        fortressLogLines.push(line);
+        if (line === 'GEOLOGICAL HISTORY') {
+            const box = document.createElement('div');
+            box.className = 'narrative-box';
+            const title = document.createElement('div');
+            title.className = 'narrative-title';
+            title.textContent = 'GEOLOGICAL HISTORY';
+            box.appendChild(title);
+            narrativeEl = document.createElement('div');
+            box.appendChild(narrativeEl);
+            logEl.appendChild(box);
+            inNarrative = true;
+            continue;
+        }
+        if (inNarrative && line.startsWith('═'.repeat(10))) {
+            inNarrative = false;
+            appendFortressLine(logEl, line);
+            continue;
+        }
+        if (inNarrative && line.startsWith('─'.repeat(10)))
+            continue;
+        if (inNarrative) {
+            const span = document.createElement('div');
+            span.textContent = line;
+            span.style.marginBottom = line === '' ? '0.5em' : '0';
+            narrativeEl.appendChild(span);
+            continue;
+        }
+        appendFortressLine(logEl, line);
+    }
+    logEl.scrollTop = logEl.scrollHeight;
+    // Disable action buttons
+    fortressActive = false;
+    document.querySelectorAll('.action-grid .action-btn').forEach(btn => btn.disabled = true);
+}
+function fortressReset() {
+    fortressSim = null;
+    fortressActive = false;
+    fortressLogLines = [];
+    brothSnapshots = [];
+    // Reset broth panel
+    const brothToggle = document.getElementById('broth-toggle');
+    const brothBody = document.getElementById('broth-body');
+    if (brothToggle)
+        brothToggle.classList.remove('open');
+    if (brothBody)
+        brothBody.classList.remove('open');
+    // Clear snapshot buttons (keep the 📸 button)
+    const snapRow = document.getElementById('broth-snapshots');
+    if (snapRow) {
+        const firstBtn = snapRow.querySelector('.broth-snapshot-btn');
+        snapRow.innerHTML = '';
+        if (firstBtn)
+            snapRow.appendChild(firstBtn);
+    }
+    // Reset UI
+    document.getElementById('fortress-setup').style.display = 'block';
+    document.getElementById('fortress-status').style.display = 'none';
+    document.getElementById('fortress-actions').style.display = 'none';
+    document.getElementById('fortress-main').style.display = 'none';
+    document.getElementById('fortress-log').innerHTML = '';
+    document.getElementById('fortress-inventory').innerHTML = '<h4>💎 Crystal Inventory</h4><div class="inv-empty">No crystals yet. Begin and take actions to grow your vug.</div>';
+    // Re-enable action buttons
+    document.querySelectorAll('.action-grid .action-btn').forEach(btn => btn.disabled = false);
+    // Reset sliders
+    document.getElementById('f-temp').value = 300;
+    document.getElementById('f-temp-val').textContent = '300°C';
+    document.getElementById('f-pressure').value = 15;
+    document.getElementById('f-pressure-val').textContent = '1.5 kbar';
+    document.getElementById('f-ph').value = 65;
+    document.getElementById('f-ph-val').textContent = '6.5';
+    selectPreset('silica');
+}
+function copyFortressLog() {
+    const text = fortressLogLines.join('\n');
+    navigator.clipboard.writeText(text).then(() => {
+        const btns = document.querySelectorAll('.end-btns .btn-copy');
+        if (btns.length) {
+            const btn = btns[0];
+            const orig = btn.textContent;
+            btn.textContent = 'Copied!';
+            setTimeout(() => { btn.textContent = orig; }, 1500);
+        }
+    }).catch(() => {
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+    });
+}
+
+// ── 97a-ui-broth.js ──
+
+// ============================================================
+// js/97a-ui-broth.ts — UI — Broth control panel
+// ============================================================
+// Extracted verbatim from the legacy bundle. SCRIPT-mode TS — top-level
+// decls stay global so cross-file references resolve at runtime.
+//
+// Phase B11 of PROPOSAL-MODULAR-REFACTOR.
+// ============================================================
+// BROTH CONTROL PANEL
+// ============================================================
+let brothSnapshots = [];
+function toggleBrothPanel() {
+    const toggle = document.getElementById('broth-toggle');
+    const body = document.getElementById('broth-body');
+    toggle.classList.toggle('open');
+    body.classList.toggle('open');
+}
+// Map slider ids to sim state paths
+const BROTH_MAP = {
+    temp: { get: () => fortressSim.conditions.temperature, set: v => fortressSim.conditions.temperature = v, fmt: v => v.toFixed(0) + ' °C', parse: v => parseFloat(v) },
+    sio2: { get: () => fortressSim.conditions.fluid.SiO2, set: v => fortressSim.conditions.fluid.SiO2 = v, fmt: v => v.toFixed(0) + ' ppm', parse: v => parseFloat(v) },
+    ca: { get: () => fortressSim.conditions.fluid.Ca, set: v => fortressSim.conditions.fluid.Ca = v, fmt: v => v.toFixed(0) + ' ppm', parse: v => parseFloat(v) },
+    co3: { get: () => fortressSim.conditions.fluid.CO3, set: v => fortressSim.conditions.fluid.CO3 = v, fmt: v => v.toFixed(0) + ' ppm', parse: v => parseFloat(v) },
+    ph: { get: () => fortressSim.conditions.fluid.pH, set: v => fortressSim.conditions.fluid.pH = v, fmt: v => v.toFixed(1), parse: v => parseFloat(v) / 10, toSlider: v => Math.round(v * 10) },
+    fe: { get: () => fortressSim.conditions.fluid.Fe, set: v => fortressSim.conditions.fluid.Fe = v, fmt: v => v.toFixed(0) + ' ppm', parse: v => parseFloat(v) },
+    mn: { get: () => fortressSim.conditions.fluid.Mn, set: v => fortressSim.conditions.fluid.Mn = v, fmt: v => v.toFixed(0) + ' ppm', parse: v => parseFloat(v) },
+    cu: { get: () => fortressSim.conditions.fluid.Cu, set: v => fortressSim.conditions.fluid.Cu = v, fmt: v => v.toFixed(0) + ' ppm', parse: v => parseFloat(v) },
+    zn: { get: () => fortressSim.conditions.fluid.Zn, set: v => fortressSim.conditions.fluid.Zn = v, fmt: v => v.toFixed(0) + ' ppm', parse: v => parseFloat(v) },
+    s: { get: () => fortressSim.conditions.fluid.S, set: v => fortressSim.conditions.fluid.S = v, fmt: v => v.toFixed(0) + ' ppm', parse: v => parseFloat(v) },
+    f: { get: () => fortressSim.conditions.fluid.F, set: v => fortressSim.conditions.fluid.F = v, fmt: v => v.toFixed(0) + ' ppm', parse: v => parseFloat(v) },
+    o2: { get: () => fortressSim.conditions.fluid.O2, set: v => fortressSim.conditions.fluid.O2 = v, fmt: v => v.toFixed(1), parse: v => parseFloat(v) / 10, toSlider: v => Math.round(v * 10) },
+    flow: { get: () => fortressSim.conditions.flow_rate, set: v => fortressSim.conditions.flow_rate = v, fmt: v => v.toFixed(1), parse: v => parseFloat(v) / 10, toSlider: v => Math.round(v * 10) },
+    u: { get: () => fortressSim.conditions.fluid.U, set: v => fortressSim.conditions.fluid.U = v, fmt: v => v.toFixed(0) + ' ppm', parse: v => parseFloat(v) },
+    pb: { get: () => fortressSim.conditions.fluid.Pb, set: v => fortressSim.conditions.fluid.Pb = v, fmt: v => v.toFixed(0) + ' ppm', parse: v => parseFloat(v) },
+    mo: { get: () => fortressSim.conditions.fluid.Mo, set: v => fortressSim.conditions.fluid.Mo = v, fmt: v => v.toFixed(0) + ' ppm', parse: v => parseFloat(v) },
+    al: { get: () => fortressSim.conditions.fluid.Al, set: v => fortressSim.conditions.fluid.Al = v, fmt: v => v.toFixed(0) + ' ppm', parse: v => parseFloat(v) },
+    k: { get: () => fortressSim.conditions.fluid.K, set: v => fortressSim.conditions.fluid.K = v, fmt: v => v.toFixed(0) + ' ppm', parse: v => parseFloat(v) },
+    na: { get: () => fortressSim.conditions.fluid.Na, set: v => fortressSim.conditions.fluid.Na = v, fmt: v => v.toFixed(0) + ' ppm', parse: v => parseFloat(v) },
+    mg: { get: () => fortressSim.conditions.fluid.Mg, set: v => fortressSim.conditions.fluid.Mg = v, fmt: v => v.toFixed(0) + ' ppm', parse: v => parseFloat(v) },
+    ba: { get: () => fortressSim.conditions.fluid.Ba, set: v => fortressSim.conditions.fluid.Ba = v, fmt: v => v.toFixed(0) + ' ppm', parse: v => parseFloat(v) },
+    sr: { get: () => fortressSim.conditions.fluid.Sr, set: v => fortressSim.conditions.fluid.Sr = v, fmt: v => v.toFixed(0) + ' ppm', parse: v => parseFloat(v) },
+    cr: { get: () => fortressSim.conditions.fluid.Cr, set: v => fortressSim.conditions.fluid.Cr = v, fmt: v => v.toFixed(0) + ' ppm', parse: v => parseFloat(v) },
+    p: { get: () => fortressSim.conditions.fluid.P, set: v => fortressSim.conditions.fluid.P = v, fmt: v => v.toFixed(0) + ' ppm', parse: v => parseFloat(v) },
+    as: { get: () => fortressSim.conditions.fluid.As, set: v => fortressSim.conditions.fluid.As = v, fmt: v => v.toFixed(0) + ' ppm', parse: v => parseFloat(v) },
+    v: { get: () => fortressSim.conditions.fluid.V, set: v => fortressSim.conditions.fluid.V = v, fmt: v => v.toFixed(0) + ' ppm', parse: v => parseFloat(v) },
+    w: { get: () => fortressSim.conditions.fluid.W, set: v => fortressSim.conditions.fluid.W = v, fmt: v => v.toFixed(0) + ' ppm', parse: v => parseFloat(v) },
+    ag: { get: () => fortressSim.conditions.fluid.Ag, set: v => fortressSim.conditions.fluid.Ag = v, fmt: v => v.toFixed(0) + ' ppm', parse: v => parseFloat(v) },
+    bi: { get: () => fortressSim.conditions.fluid.Bi, set: v => fortressSim.conditions.fluid.Bi = v, fmt: v => v.toFixed(0) + ' ppm', parse: v => parseFloat(v) },
+    sb: { get: () => fortressSim.conditions.fluid.Sb, set: v => fortressSim.conditions.fluid.Sb = v, fmt: v => v.toFixed(0) + ' ppm', parse: v => parseFloat(v) },
+    ni: { get: () => fortressSim.conditions.fluid.Ni, set: v => fortressSim.conditions.fluid.Ni = v, fmt: v => v.toFixed(0) + ' ppm', parse: v => parseFloat(v) },
+    co: { get: () => fortressSim.conditions.fluid.Co, set: v => fortressSim.conditions.fluid.Co = v, fmt: v => v.toFixed(0) + ' ppm', parse: v => parseFloat(v) },
+    b: { get: () => fortressSim.conditions.fluid.B, set: v => fortressSim.conditions.fluid.B = v, fmt: v => v.toFixed(0) + ' ppm', parse: v => parseFloat(v) },
+    li: { get: () => fortressSim.conditions.fluid.Li, set: v => fortressSim.conditions.fluid.Li = v, fmt: v => v.toFixed(0) + ' ppm', parse: v => parseFloat(v) },
+    be: { get: () => fortressSim.conditions.fluid.Be, set: v => fortressSim.conditions.fluid.Be = v, fmt: v => v.toFixed(0) + ' ppm', parse: v => parseFloat(v) },
+    cl: { get: () => fortressSim.conditions.fluid.Cl, set: v => fortressSim.conditions.fluid.Cl = v, fmt: v => v.toFixed(0) + ' ppm', parse: v => parseFloat(v) },
+    te: { get: () => fortressSim.conditions.fluid.Te, set: v => fortressSim.conditions.fluid.Te = v, fmt: v => v.toFixed(0) + ' ppm', parse: v => parseFloat(v) },
+    se: { get: () => fortressSim.conditions.fluid.Se, set: v => fortressSim.conditions.fluid.Se = v, fmt: v => v.toFixed(0) + ' ppm', parse: v => parseFloat(v) },
+    ge: { get: () => fortressSim.conditions.fluid.Ge, set: v => fortressSim.conditions.fluid.Ge = v, fmt: v => v.toFixed(0) + ' ppm', parse: v => parseFloat(v) },
+};
+function setBrothValue(key, sliderVal) {
+    if (!fortressSim || !fortressActive)
+        return;
+    const m = BROTH_MAP[key];
+    const realVal = m.parse(sliderVal);
+    m.set(realVal);
+    document.getElementById('broth-' + key + '-val').textContent = m.fmt(realVal);
+    // Also update the status bar live
+    updateFortressStatus();
+}
+function syncBrothSliders() {
+    if (!fortressSim)
+        return;
+    for (const [key, mEntry] of Object.entries(BROTH_MAP)) {
+        const m = mEntry;
+        const val = m.get();
+        const sliderVal = m.toSlider ? m.toSlider(val) : Math.round(val);
+        const slider = document.getElementById('broth-' + key);
+        if (slider) {
+            // Clamp to slider range
+            const clamped = Math.max(parseFloat(slider.min), Math.min(parseFloat(slider.max), sliderVal));
+            slider.value = clamped;
+        }
+        const valEl = document.getElementById('broth-' + key + '-val');
+        if (valEl)
+            valEl.textContent = m.fmt(val);
+    }
+}
+function takeBrothSnapshot() {
+    if (!fortressSim)
+        return;
+    const name = prompt('Name this broth snapshot:', 'Step ' + fortressSim.step);
+    if (!name)
+        return;
+    const snapshot = { name };
+    for (const [key, m] of Object.entries(BROTH_MAP)) {
+        snapshot[key] = m.get();
+    }
+    brothSnapshots.push(snapshot);
+    // Add button to snapshot row
+    const row = document.getElementById('broth-snapshots');
+    const btn = document.createElement('button');
+    btn.className = 'broth-preset-btn';
+    btn.textContent = name;
+    btn.title = 'Restore: ' + name;
+    const idx = brothSnapshots.length - 1;
+    btn.onclick = () => restoreBrothSnapshot(idx);
+    row.appendChild(btn);
+}
+function restoreBrothSnapshot(idx) {
+    if (!fortressSim || !fortressActive)
+        return;
+    const snap = brothSnapshots[idx];
+    if (!snap)
+        return;
+    for (const [key, m] of Object.entries(BROTH_MAP)) {
+        if (snap[key] !== undefined)
+            m.set(snap[key]);
+    }
+    syncBrothSliders();
+    updateFortressStatus();
+}
+// Handle Escape key for zone modal
+document.addEventListener('keydown', e => {
+    if (e.key === 'Escape')
+        closeZoneModal();
+});
+
+// ── 97b-ui-sigma-panel.js ──
+
+// ============================================================
+// js/97b-ui-sigma-panel.ts — Saturation panel filters + per-class group renderer
+// ============================================================
+// _satShowNucleating / _satShowDormant filter state, _onSatFilterToggle, _renderFortressSigmaGroups, _wireFortressSigmaEvents — used by Creative-mode and any other mode that shows the σ-by-class pill panel.
+//
+// Phase B18 of PROPOSAL-MODULAR-REFACTOR. Lifted out of
+// 97-ui-fortress.ts.
 // Filter state — both default on. Filters drop pills below the
 // nucleation threshold (σ < 1) or above it (σ ≥ 1) from the panel.
 // A class group with no surviving pills hides entirely so the panel
@@ -21981,6 +22225,35 @@ function _wireFortressSigmaEvents(host) {
 // 150 zones × 1px-zone = 150px canvas); the <img> CSS stretches/squashes
 // it to the display size, which is the right trade-off — the color
 // pattern is the message, not pixel-precise zone boundaries.
+
+// ── 97c-ui-crystal-card.js ──
+
+// ============================================================
+// js/97c-ui-crystal-card.ts — Crystal thumbnail + inventory row rendering (shared across modes)
+// ============================================================
+// crystalThumbHTML, renderCrystalRow, updateLegendsInventory, updateFortressInventory, renderRandomInventory — used by Legends, Creative, and Random modes.
+//
+// Phase B18 of PROPOSAL-MODULAR-REFACTOR. Lifted out of
+// 97-ui-fortress.ts.
+// Zone-viz Phase 1c: bar-graph thumbnail for Crystal Inventory specimen
+// cards. Falls back to the generic mineral photo/placeholder thumb only
+// when the crystal has zero zones recorded (e.g. legacy serialized
+// records from before zone data was persisted). A single zone is still
+// real history — the moment of nucleation — and renderZoneBarCanvas
+// handles it correctly (single dim stripe, per its all-equal-values
+// branch). Pre-2026-04-30 this gated on >= 2, which left sub-resolution
+// crystals (1 zone, 0.0 mm) showing the generic 💎 placeholder while
+// every other species in the inventory had a real bar-graph thumb —
+// surfaced as a topaz #6 visual bug in seed-42 ouro_preto.
+//
+// Implementation note: renderCrystalRow builds its content as an HTML
+// string and commits it via el.innerHTML. A live canvas can't be painted
+// via innerHTML — it needs a post-insert JS paint. So we render off-
+// screen via renderZoneBarCanvas + toDataURL and embed as an <img>.
+// The underlying canvas width may exceed the thumbnail display box (e.g.
+// 150 zones × 1px-zone = 150px canvas); the <img> CSS stretches/squashes
+// it to the display size, which is the right trade-off — the color
+// pattern is the message, not pixel-precise zone boundaries.
 function crystalThumbHTML(crystal, size) {
     size = size || 56;
     const cColor = crystalColor(crystal);
@@ -22108,6 +22381,16 @@ function renderRandomInventory() {
     });
     panel.appendChild(grid);
 }
+
+// ── 97d-ui-zone-modal.js ──
+
+// ============================================================
+// js/97d-ui-zone-modal.ts — Zone-history modal (showZoneHistory + closeZoneModal)
+// ============================================================
+// The deep-dive modal for any single crystal, opened by clicking a crystal card. Shared across modes.
+//
+// Phase B18 of PROPOSAL-MODULAR-REFACTOR. Lifted out of
+// 97-ui-fortress.ts.
 function showZoneHistory(crystal) {
     const overlay = document.getElementById('zone-overlay');
     const title = document.getElementById('zone-modal-title');
@@ -22373,240 +22656,6 @@ function showZoneHistory(crystal) {
 function closeZoneModal() {
     document.getElementById('zone-overlay').classList.remove('visible');
 }
-function fortressFinish() {
-    if (!fortressSim)
-        return;
-    const logEl = document.getElementById('fortress-log');
-    const summaryLines = fortressSim.format_summary();
-    fortressLogLines.push('');
-    const sep = document.createElement('div');
-    sep.innerHTML = '<br>';
-    logEl.appendChild(sep);
-    // Render summary with narrative box
-    let inNarrative = false;
-    let narrativeEl = null;
-    for (const line of summaryLines) {
-        fortressLogLines.push(line);
-        if (line === 'GEOLOGICAL HISTORY') {
-            const box = document.createElement('div');
-            box.className = 'narrative-box';
-            const title = document.createElement('div');
-            title.className = 'narrative-title';
-            title.textContent = 'GEOLOGICAL HISTORY';
-            box.appendChild(title);
-            narrativeEl = document.createElement('div');
-            box.appendChild(narrativeEl);
-            logEl.appendChild(box);
-            inNarrative = true;
-            continue;
-        }
-        if (inNarrative && line.startsWith('═'.repeat(10))) {
-            inNarrative = false;
-            appendFortressLine(logEl, line);
-            continue;
-        }
-        if (inNarrative && line.startsWith('─'.repeat(10)))
-            continue;
-        if (inNarrative) {
-            const span = document.createElement('div');
-            span.textContent = line;
-            span.style.marginBottom = line === '' ? '0.5em' : '0';
-            narrativeEl.appendChild(span);
-            continue;
-        }
-        appendFortressLine(logEl, line);
-    }
-    logEl.scrollTop = logEl.scrollHeight;
-    // Disable action buttons
-    fortressActive = false;
-    document.querySelectorAll('.action-grid .action-btn').forEach(btn => btn.disabled = true);
-}
-function fortressReset() {
-    fortressSim = null;
-    fortressActive = false;
-    fortressLogLines = [];
-    brothSnapshots = [];
-    // Reset broth panel
-    const brothToggle = document.getElementById('broth-toggle');
-    const brothBody = document.getElementById('broth-body');
-    if (brothToggle)
-        brothToggle.classList.remove('open');
-    if (brothBody)
-        brothBody.classList.remove('open');
-    // Clear snapshot buttons (keep the 📸 button)
-    const snapRow = document.getElementById('broth-snapshots');
-    if (snapRow) {
-        const firstBtn = snapRow.querySelector('.broth-snapshot-btn');
-        snapRow.innerHTML = '';
-        if (firstBtn)
-            snapRow.appendChild(firstBtn);
-    }
-    // Reset UI
-    document.getElementById('fortress-setup').style.display = 'block';
-    document.getElementById('fortress-status').style.display = 'none';
-    document.getElementById('fortress-actions').style.display = 'none';
-    document.getElementById('fortress-main').style.display = 'none';
-    document.getElementById('fortress-log').innerHTML = '';
-    document.getElementById('fortress-inventory').innerHTML = '<h4>💎 Crystal Inventory</h4><div class="inv-empty">No crystals yet. Begin and take actions to grow your vug.</div>';
-    // Re-enable action buttons
-    document.querySelectorAll('.action-grid .action-btn').forEach(btn => btn.disabled = false);
-    // Reset sliders
-    document.getElementById('f-temp').value = 300;
-    document.getElementById('f-temp-val').textContent = '300°C';
-    document.getElementById('f-pressure').value = 15;
-    document.getElementById('f-pressure-val').textContent = '1.5 kbar';
-    document.getElementById('f-ph').value = 65;
-    document.getElementById('f-ph-val').textContent = '6.5';
-    selectPreset('silica');
-}
-function copyFortressLog() {
-    const text = fortressLogLines.join('\n');
-    navigator.clipboard.writeText(text).then(() => {
-        const btns = document.querySelectorAll('.end-btns .btn-copy');
-        if (btns.length) {
-            const btn = btns[0];
-            const orig = btn.textContent;
-            btn.textContent = 'Copied!';
-            setTimeout(() => { btn.textContent = orig; }, 1500);
-        }
-    }).catch(() => {
-        const ta = document.createElement('textarea');
-        ta.value = text;
-        document.body.appendChild(ta);
-        ta.select();
-        document.execCommand('copy');
-        document.body.removeChild(ta);
-    });
-}
-
-// ── 97a-ui-broth.js ──
-
-// ============================================================
-// js/97a-ui-broth.ts — UI — Broth control panel
-// ============================================================
-// Extracted verbatim from the legacy bundle. SCRIPT-mode TS — top-level
-// decls stay global so cross-file references resolve at runtime.
-//
-// Phase B11 of PROPOSAL-MODULAR-REFACTOR.
-// ============================================================
-// BROTH CONTROL PANEL
-// ============================================================
-let brothSnapshots = [];
-function toggleBrothPanel() {
-    const toggle = document.getElementById('broth-toggle');
-    const body = document.getElementById('broth-body');
-    toggle.classList.toggle('open');
-    body.classList.toggle('open');
-}
-// Map slider ids to sim state paths
-const BROTH_MAP = {
-    temp: { get: () => fortressSim.conditions.temperature, set: v => fortressSim.conditions.temperature = v, fmt: v => v.toFixed(0) + ' °C', parse: v => parseFloat(v) },
-    sio2: { get: () => fortressSim.conditions.fluid.SiO2, set: v => fortressSim.conditions.fluid.SiO2 = v, fmt: v => v.toFixed(0) + ' ppm', parse: v => parseFloat(v) },
-    ca: { get: () => fortressSim.conditions.fluid.Ca, set: v => fortressSim.conditions.fluid.Ca = v, fmt: v => v.toFixed(0) + ' ppm', parse: v => parseFloat(v) },
-    co3: { get: () => fortressSim.conditions.fluid.CO3, set: v => fortressSim.conditions.fluid.CO3 = v, fmt: v => v.toFixed(0) + ' ppm', parse: v => parseFloat(v) },
-    ph: { get: () => fortressSim.conditions.fluid.pH, set: v => fortressSim.conditions.fluid.pH = v, fmt: v => v.toFixed(1), parse: v => parseFloat(v) / 10, toSlider: v => Math.round(v * 10) },
-    fe: { get: () => fortressSim.conditions.fluid.Fe, set: v => fortressSim.conditions.fluid.Fe = v, fmt: v => v.toFixed(0) + ' ppm', parse: v => parseFloat(v) },
-    mn: { get: () => fortressSim.conditions.fluid.Mn, set: v => fortressSim.conditions.fluid.Mn = v, fmt: v => v.toFixed(0) + ' ppm', parse: v => parseFloat(v) },
-    cu: { get: () => fortressSim.conditions.fluid.Cu, set: v => fortressSim.conditions.fluid.Cu = v, fmt: v => v.toFixed(0) + ' ppm', parse: v => parseFloat(v) },
-    zn: { get: () => fortressSim.conditions.fluid.Zn, set: v => fortressSim.conditions.fluid.Zn = v, fmt: v => v.toFixed(0) + ' ppm', parse: v => parseFloat(v) },
-    s: { get: () => fortressSim.conditions.fluid.S, set: v => fortressSim.conditions.fluid.S = v, fmt: v => v.toFixed(0) + ' ppm', parse: v => parseFloat(v) },
-    f: { get: () => fortressSim.conditions.fluid.F, set: v => fortressSim.conditions.fluid.F = v, fmt: v => v.toFixed(0) + ' ppm', parse: v => parseFloat(v) },
-    o2: { get: () => fortressSim.conditions.fluid.O2, set: v => fortressSim.conditions.fluid.O2 = v, fmt: v => v.toFixed(1), parse: v => parseFloat(v) / 10, toSlider: v => Math.round(v * 10) },
-    flow: { get: () => fortressSim.conditions.flow_rate, set: v => fortressSim.conditions.flow_rate = v, fmt: v => v.toFixed(1), parse: v => parseFloat(v) / 10, toSlider: v => Math.round(v * 10) },
-    u: { get: () => fortressSim.conditions.fluid.U, set: v => fortressSim.conditions.fluid.U = v, fmt: v => v.toFixed(0) + ' ppm', parse: v => parseFloat(v) },
-    pb: { get: () => fortressSim.conditions.fluid.Pb, set: v => fortressSim.conditions.fluid.Pb = v, fmt: v => v.toFixed(0) + ' ppm', parse: v => parseFloat(v) },
-    mo: { get: () => fortressSim.conditions.fluid.Mo, set: v => fortressSim.conditions.fluid.Mo = v, fmt: v => v.toFixed(0) + ' ppm', parse: v => parseFloat(v) },
-    al: { get: () => fortressSim.conditions.fluid.Al, set: v => fortressSim.conditions.fluid.Al = v, fmt: v => v.toFixed(0) + ' ppm', parse: v => parseFloat(v) },
-    k: { get: () => fortressSim.conditions.fluid.K, set: v => fortressSim.conditions.fluid.K = v, fmt: v => v.toFixed(0) + ' ppm', parse: v => parseFloat(v) },
-    na: { get: () => fortressSim.conditions.fluid.Na, set: v => fortressSim.conditions.fluid.Na = v, fmt: v => v.toFixed(0) + ' ppm', parse: v => parseFloat(v) },
-    mg: { get: () => fortressSim.conditions.fluid.Mg, set: v => fortressSim.conditions.fluid.Mg = v, fmt: v => v.toFixed(0) + ' ppm', parse: v => parseFloat(v) },
-    ba: { get: () => fortressSim.conditions.fluid.Ba, set: v => fortressSim.conditions.fluid.Ba = v, fmt: v => v.toFixed(0) + ' ppm', parse: v => parseFloat(v) },
-    sr: { get: () => fortressSim.conditions.fluid.Sr, set: v => fortressSim.conditions.fluid.Sr = v, fmt: v => v.toFixed(0) + ' ppm', parse: v => parseFloat(v) },
-    cr: { get: () => fortressSim.conditions.fluid.Cr, set: v => fortressSim.conditions.fluid.Cr = v, fmt: v => v.toFixed(0) + ' ppm', parse: v => parseFloat(v) },
-    p: { get: () => fortressSim.conditions.fluid.P, set: v => fortressSim.conditions.fluid.P = v, fmt: v => v.toFixed(0) + ' ppm', parse: v => parseFloat(v) },
-    as: { get: () => fortressSim.conditions.fluid.As, set: v => fortressSim.conditions.fluid.As = v, fmt: v => v.toFixed(0) + ' ppm', parse: v => parseFloat(v) },
-    v: { get: () => fortressSim.conditions.fluid.V, set: v => fortressSim.conditions.fluid.V = v, fmt: v => v.toFixed(0) + ' ppm', parse: v => parseFloat(v) },
-    w: { get: () => fortressSim.conditions.fluid.W, set: v => fortressSim.conditions.fluid.W = v, fmt: v => v.toFixed(0) + ' ppm', parse: v => parseFloat(v) },
-    ag: { get: () => fortressSim.conditions.fluid.Ag, set: v => fortressSim.conditions.fluid.Ag = v, fmt: v => v.toFixed(0) + ' ppm', parse: v => parseFloat(v) },
-    bi: { get: () => fortressSim.conditions.fluid.Bi, set: v => fortressSim.conditions.fluid.Bi = v, fmt: v => v.toFixed(0) + ' ppm', parse: v => parseFloat(v) },
-    sb: { get: () => fortressSim.conditions.fluid.Sb, set: v => fortressSim.conditions.fluid.Sb = v, fmt: v => v.toFixed(0) + ' ppm', parse: v => parseFloat(v) },
-    ni: { get: () => fortressSim.conditions.fluid.Ni, set: v => fortressSim.conditions.fluid.Ni = v, fmt: v => v.toFixed(0) + ' ppm', parse: v => parseFloat(v) },
-    co: { get: () => fortressSim.conditions.fluid.Co, set: v => fortressSim.conditions.fluid.Co = v, fmt: v => v.toFixed(0) + ' ppm', parse: v => parseFloat(v) },
-    b: { get: () => fortressSim.conditions.fluid.B, set: v => fortressSim.conditions.fluid.B = v, fmt: v => v.toFixed(0) + ' ppm', parse: v => parseFloat(v) },
-    li: { get: () => fortressSim.conditions.fluid.Li, set: v => fortressSim.conditions.fluid.Li = v, fmt: v => v.toFixed(0) + ' ppm', parse: v => parseFloat(v) },
-    be: { get: () => fortressSim.conditions.fluid.Be, set: v => fortressSim.conditions.fluid.Be = v, fmt: v => v.toFixed(0) + ' ppm', parse: v => parseFloat(v) },
-    cl: { get: () => fortressSim.conditions.fluid.Cl, set: v => fortressSim.conditions.fluid.Cl = v, fmt: v => v.toFixed(0) + ' ppm', parse: v => parseFloat(v) },
-    te: { get: () => fortressSim.conditions.fluid.Te, set: v => fortressSim.conditions.fluid.Te = v, fmt: v => v.toFixed(0) + ' ppm', parse: v => parseFloat(v) },
-    se: { get: () => fortressSim.conditions.fluid.Se, set: v => fortressSim.conditions.fluid.Se = v, fmt: v => v.toFixed(0) + ' ppm', parse: v => parseFloat(v) },
-    ge: { get: () => fortressSim.conditions.fluid.Ge, set: v => fortressSim.conditions.fluid.Ge = v, fmt: v => v.toFixed(0) + ' ppm', parse: v => parseFloat(v) },
-};
-function setBrothValue(key, sliderVal) {
-    if (!fortressSim || !fortressActive)
-        return;
-    const m = BROTH_MAP[key];
-    const realVal = m.parse(sliderVal);
-    m.set(realVal);
-    document.getElementById('broth-' + key + '-val').textContent = m.fmt(realVal);
-    // Also update the status bar live
-    updateFortressStatus();
-}
-function syncBrothSliders() {
-    if (!fortressSim)
-        return;
-    for (const [key, mEntry] of Object.entries(BROTH_MAP)) {
-        const m = mEntry;
-        const val = m.get();
-        const sliderVal = m.toSlider ? m.toSlider(val) : Math.round(val);
-        const slider = document.getElementById('broth-' + key);
-        if (slider) {
-            // Clamp to slider range
-            const clamped = Math.max(parseFloat(slider.min), Math.min(parseFloat(slider.max), sliderVal));
-            slider.value = clamped;
-        }
-        const valEl = document.getElementById('broth-' + key + '-val');
-        if (valEl)
-            valEl.textContent = m.fmt(val);
-    }
-}
-function takeBrothSnapshot() {
-    if (!fortressSim)
-        return;
-    const name = prompt('Name this broth snapshot:', 'Step ' + fortressSim.step);
-    if (!name)
-        return;
-    const snapshot = { name };
-    for (const [key, m] of Object.entries(BROTH_MAP)) {
-        snapshot[key] = m.get();
-    }
-    brothSnapshots.push(snapshot);
-    // Add button to snapshot row
-    const row = document.getElementById('broth-snapshots');
-    const btn = document.createElement('button');
-    btn.className = 'broth-preset-btn';
-    btn.textContent = name;
-    btn.title = 'Restore: ' + name;
-    const idx = brothSnapshots.length - 1;
-    btn.onclick = () => restoreBrothSnapshot(idx);
-    row.appendChild(btn);
-}
-function restoreBrothSnapshot(idx) {
-    if (!fortressSim || !fortressActive)
-        return;
-    const snap = brothSnapshots[idx];
-    if (!snap)
-        return;
-    for (const [key, m] of Object.entries(BROTH_MAP)) {
-        if (snap[key] !== undefined)
-            m.set(snap[key]);
-    }
-    syncBrothSliders();
-    updateFortressStatus();
-}
-// Handle Escape key for zone modal
-document.addEventListener('keydown', e => {
-    if (e.key === 'Escape')
-        closeZoneModal();
-});
 
 // ── 98-ui-groove.js ──
 
