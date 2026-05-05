@@ -189,5 +189,23 @@
 //        Scenarios where dissolution recycles solute (naica, mvt,
 //        searles_lake) gain 2-4 crystals; depletion-prone scenarios
 //        (porphyry, schneeberg, pulse) lose 1-11 crystals.
-const SIM_VERSION = 19;
+//   v20 — Davies activity correction flipped on (May 2026,
+//        PROPOSAL-GEOLOGICAL-ACCURACY Phase 2c). Every supersat
+//        method now multiplies σ by activityCorrectionFactor —
+//        the geometric-mean Davies γ̄ for the mineral's stoichiometry.
+//        Infrastructure landed flag-OFF in Phase 2a (b63e426); 97/97
+//        minerals migrated in Phase 2b (eff8ec1). Calibrated here at
+//        ACTIVITY_DAMPING = 0.25 (a quarter of full Davies) — full
+//        correction (damping=1.0) shifted scenarios by RMS 33% and
+//        broke tutorials (-60% on tutorial_mn_calcite). The damping
+//        smoothly interpolates between full Davies (research mode)
+//        and identity (no correction). Calibration sweep at seed 42
+//        vs v19 baselines: RMS 19.1%, 5/19 within ±5%, 12/19 within
+//        ±20%; max delta -33% (mvt, geologically defensible — MVT
+//        brines are saline-enough that activity correction matters).
+//        Brine scenarios (bisbee, mvt, schneeberg) trend down per
+//        γ < 1 suppression; halite-saturated brines hit the I=1.7
+//        Davies clamp and are unaffected. Pulse scenarios with
+//        stochastic small-N counts show ±33% noise floor.
+const SIM_VERSION = 20;
 

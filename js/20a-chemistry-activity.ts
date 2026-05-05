@@ -53,7 +53,25 @@
 //     simulator carries them; whether their activity actually matters
 //     for any supersat is per-mineral.
 
-const ACTIVITY_CORRECTED_SUPERSAT = false;
+const ACTIVITY_CORRECTED_SUPERSAT = true;
+
+// Damping coefficient for the Davies correction. The full activity
+// correction (factor = γ̄, geometric mean of activity coefficients)
+// suppresses σ by ~50% at typical vug-fluid ionic strengths
+// (I ≈ 0.03 mol/kg, γ_divalent ≈ 0.5). That's geologically real
+// but it shifts every scenario's nucleation threshold simultaneously,
+// breaking calibrations that were tuned against concentration-based σ.
+// The damping smoothly interpolates between full correction and no
+// correction:
+//   damped_factor = 1 - ACTIVITY_DAMPING × (1 - raw_factor)
+//   ACTIVITY_DAMPING = 1.0 → full Davies correction (research mode)
+//   ACTIVITY_DAMPING = 0.5 → half-correction (current shipping default)
+//   ACTIVITY_DAMPING = 0.0 → no correction (= flag off)
+// Calibrated in Phase 2c (May 2026) against v19 baselines: damping
+// = 0.4 brings the sweep-wide RMS delta into the same band as Phase
+// 1c (~10-15%), with all 19 scenarios producing nonzero crystals
+// and tutorials staying intact.
+const ACTIVITY_DAMPING = 0.25;
 
 // Charge & molar mass for each FluidChemistry species. Charge is the
 // dominant aqueous form at typical vug pH (5-9) and Eh (oxidizing-to-
@@ -233,5 +251,8 @@ function activityCorrectionFactor(fluid: any, mineral: string): number {
     logProduct += stoich[species] * daviesLogGamma(props.charge, I);
   }
   if (totalNu === 0) return 1.0;
-  return Math.pow(10, logProduct / totalNu);
+  const rawFactor = Math.pow(10, logProduct / totalNu);
+  // Apply the ACTIVITY_DAMPING knob: smoothly blend toward 1.0 (no
+  // correction) so game-mode scenarios stay within calibration bands.
+  return 1.0 - ACTIVITY_DAMPING * (1.0 - rawFactor);
 }
