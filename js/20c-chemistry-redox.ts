@@ -419,3 +419,68 @@ function carbonateRedoxPenalty(
   if (o2eq <= startO2) return 1.0;
   return Math.max(floor, peakValueAtStart - slope * (o2eq - startO2));
 }
+
+// ============================================================
+// Phase 4b sulfide-class engine helpers
+// ============================================================
+// All 20 sulfide minerals gate on REDUCED conditions — sulfide minerals
+// can't survive in oxic fluid (they oxidize to native sulfur, sulfate,
+// or oxide minerals). The engine file has 34 fluid.O2 sites split
+// across 4 shapes:
+//
+//   GATES (18 sites): `if (fluid.O2 > X) return 0` — replaced with
+//     `if (!sulfideRedoxAnoxic(fluid, X)) return 0`.
+//
+//   LINEAR MULTIPLIERS (15 sites total, three patterns folded into
+//     sulfideRedoxLinearFactor(fluid, intercept, slope=1, floor=-∞)):
+//     • `(intercept - O2)` no-clamp (8 sites: pyrite, marcasite,
+//       chalcopyrite, galena, molybdenite, arsenopyrite, tetrahedrite,
+//       tennantite). Slope=1, floor=-∞.
+//     • `max(floor, intercept - O2)` (4 sites: stibnite, bismuthinite,
+//       bornite, chalcocite). Slope=1, floor finite.
+//     • `max(floor, 1.0 - O2*slope)` (3 sites: nickeline, millerite,
+//       cobaltite). Intercept=1, slope variable, floor finite.
+//
+//   TENT (1 site, covellite): `max(floor, peakValue - abs(O2 - peak) × slope)`.
+//
+// Phase 4c will bind the gate + linear helpers to `1 - redoxFraction(fluid, 'S')`
+// against an Eh threshold consistent with sulfide stability.
+
+function sulfideRedoxAnoxic(fluid: any, o2UpperBound: number): boolean {
+  if (!EH_DYNAMIC_ENABLED) {
+    return (typeof fluid.O2 === 'number' ? fluid.O2 : 0) <= o2UpperBound;
+  }
+  const EhEquivalent = ehFromO2(o2UpperBound);
+  const Eh = typeof fluid.Eh === 'number' ? fluid.Eh : 200;
+  return Eh <= EhEquivalent;
+}
+
+// Unified linear-multiplier helper. Three call patterns:
+//   sulfideRedoxLinearFactor(f, 1.5)                 // no-clamp `1.5 - O2`
+//   sulfideRedoxLinearFactor(f, 1.3, 1.0, 0.5)       // offset clamped at 0.5
+//   sulfideRedoxLinearFactor(f, 1.0, 1.5, 0.4)       // slope variant: max(0.4, 1 - 1.5×O2)
+function sulfideRedoxLinearFactor(
+  fluid: any, intercept: number, slope: number = 1.0, floor: number = -Infinity,
+): number {
+  if (!EH_DYNAMIC_ENABLED) {
+    const O2 = typeof fluid.O2 === 'number' ? fluid.O2 : 0;
+    return Math.max(floor, intercept - slope * O2);
+  }
+  const Eh = typeof fluid.Eh === 'number' ? fluid.Eh : 200;
+  const o2eq = o2FromEh(Eh);
+  return Math.max(floor, intercept - slope * o2eq);
+}
+
+// Tent multiplier (covellite-style):
+// max(floor, peakValue - abs(O2 - peakO2) × slope)
+function sulfideRedoxTent(
+  fluid: any, peakO2: number, peakValue: number, slope: number, floor: number,
+): number {
+  if (!EH_DYNAMIC_ENABLED) {
+    const O2 = typeof fluid.O2 === 'number' ? fluid.O2 : 0;
+    return Math.max(floor, peakValue - Math.abs(O2 - peakO2) * slope);
+  }
+  const Eh = typeof fluid.Eh === 'number' ? fluid.Eh : 200;
+  const o2eq = o2FromEh(Eh);
+  return Math.max(floor, peakValue - Math.abs(o2eq - peakO2) * slope);
+}

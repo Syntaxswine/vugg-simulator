@@ -428,5 +428,27 @@
 //        Mn(II) carbonates need their cation in the reduced state.
 //        With EH_DYNAMIC_ENABLED still false, byte-identical to v33
 //        (verified via diff).
-const SIM_VERSION = 34;
+//   v35 — Phase 4b sulfide class COMPLETE — Phase 4b in full (May 2026).
+//        20 minerals, 34 sites — the largest class, all reduced-side.
+//        Three new helpers in 20c-chemistry-redox.ts:
+//        • sulfideRedoxAnoxic — hard reverse-gate (18 sites). Legacy
+//          `if (O2 > X) return 0`.
+//        • sulfideRedoxLinearFactor(intercept, slope=1, floor=-∞) —
+//          unified multiplier covering three legacy shapes (15 sites):
+//          (1.5 - O2) no-clamp / (intercept - O2) clamped / (1.0 -
+//          slope·O2) clamped.
+//        • sulfideRedoxTent — for covellite's
+//          `max(0.3, 1.3 - abs(O2 - 0.8))` shape (1 site).
+//        All flag-OFF passthrough; byte-identical to v34.
+//
+//        Phase 4b RUNNING TOTAL: 92 fluid.O2 sites migrated across 6
+//        supersat classes (sulfate/hydroxide/oxide/arsenate/carbonate/
+//        sulfide). Discovered additional classes during the sulfide
+//        sweep that the handoff doc undercounted: molybdate (8),
+//        native (12), phosphate (13), silicate (2) — 35 sites
+//        remaining across 4 more classes. Phase 4b continues. With
+//        the flag still false, all migrated classes passthrough to
+//        fluid.O2 — seed-42 output unchanged from v26 across all
+//        scenarios.
+const SIM_VERSION = 35;
 

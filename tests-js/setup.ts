@@ -236,6 +236,10 @@ const EXPORTS = [
   'carbonateRedoxFactor',
   'carbonateRedoxAnoxic',
   'carbonateRedoxPenalty',
+  // Phase 4b sulfide-class helpers (20c-chemistry-redox.ts).
+  'sulfideRedoxAnoxic',
+  'sulfideRedoxLinearFactor',
+  'sulfideRedoxTent',
 ];
 
 let _bundleLoaded = false;

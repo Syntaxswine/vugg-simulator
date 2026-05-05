@@ -30,6 +30,9 @@ declare const carbonateRedoxAvailable: any;
 declare const carbonateRedoxFactor: any;
 declare const carbonateRedoxAnoxic: any;
 declare const carbonateRedoxPenalty: any;
+declare const sulfideRedoxAnoxic: any;
+declare const sulfideRedoxLinearFactor: any;
+declare const sulfideRedoxTent: any;
 
 describe('redox infrastructure (Phase 4a)', () => {
   it('flag is OFF in v26 — engines still gate on fluid.O2', () => {
@@ -315,6 +318,62 @@ describe('Phase 4b carbonate redox helpers', () => {
       const f = new FluidChemistry({ O2 });
       const expected = O2 <= 0.8 ? 1.0 : Math.max(0.3, 1.5 - O2);
       expect(carbonateRedoxPenalty(f, 0.8, 0.7, 1.0, 0.3)).toBeCloseTo(expected, 6);
+    }
+  });
+});
+
+describe('Phase 4b sulfide redox helpers', () => {
+  // Sulfide is the largest class — 34 sites, 4 shapes folded into
+  // 3 helpers. Test each call pattern against its legacy form.
+
+  it('sulfideRedoxAnoxic matches the 18 hard reverse gates', () => {
+    expect(EH_DYNAMIC_ENABLED).toBe(false);
+    // Sample of thresholds used: 0.5 (acanthite), 0.6 (nickeline),
+    // 0.8 (arsenopyrite), 1.0 (stibnite), 1.2 (molybdenite),
+    // 1.5 (most), 1.8 (bornite), 1.9 (chalcocite), 2.0 (covellite)
+    for (const X of [0.5, 0.8, 1.2, 1.5, 1.9]) {
+      for (const O2 of [0.0, X - 0.01, X, X + 0.01, 5.0]) {
+        const f = new FluidChemistry({ O2 });
+        expect(sulfideRedoxAnoxic(f, X)).toBe(O2 <= X);
+      }
+    }
+  });
+
+  it('sulfideRedoxLinearFactor: no-clamp linear (pyrite/galena/etc., 8 sites)', () => {
+    // Legacy: `(1.5 - O2)` raw. With slope=1, floor=-Infinity.
+    for (const O2 of [0.0, 0.5, 1.0, 1.4, 1.5, 1.6]) {
+      const f = new FluidChemistry({ O2 });
+      expect(sulfideRedoxLinearFactor(f, 1.5)).toBeCloseTo(1.5 - O2, 6);
+    }
+  });
+
+  it('sulfideRedoxLinearFactor: floored offset (stibnite/bornite/etc., 4 sites)', () => {
+    // stibnite: max(0.5, 1.3 - O2)
+    // bornite:  max(0.3, 1.5 - O2)
+    // chalcocite: max(0.3, 1.4 - O2)
+    for (const O2 of [0.0, 0.8, 1.0, 1.2, 1.5, 2.0]) {
+      const f = new FluidChemistry({ O2 });
+      expect(sulfideRedoxLinearFactor(f, 1.3, 1.0, 0.5)).toBeCloseTo(Math.max(0.5, 1.3 - O2), 6);
+      expect(sulfideRedoxLinearFactor(f, 1.5, 1.0, 0.3)).toBeCloseTo(Math.max(0.3, 1.5 - O2), 6);
+      expect(sulfideRedoxLinearFactor(f, 1.4, 1.0, 0.3)).toBeCloseTo(Math.max(0.3, 1.4 - O2), 6);
+    }
+  });
+
+  it('sulfideRedoxLinearFactor: slope variant (nickeline/millerite/cobaltite, 3 sites)', () => {
+    // Legacy: max(0.4, 1.0 - O2 × 1.5). Maps to intercept=1.0, slope=1.5, floor=0.4.
+    for (const O2 of [0.0, 0.2, 0.4, 0.5, 1.0, 2.0]) {
+      const f = new FluidChemistry({ O2 });
+      expect(sulfideRedoxLinearFactor(f, 1.0, 1.5, 0.4))
+        .toBeCloseTo(Math.max(0.4, 1.0 - O2 * 1.5), 6);
+    }
+  });
+
+  it('sulfideRedoxTent matches covellite legacy (peak 0.8, value 1.3, slope 1.0, floor 0.3)', () => {
+    // Legacy: max(0.3, 1.3 - Math.abs(O2 - 0.8))
+    for (const O2 of [0.0, 0.5, 0.8, 1.0, 1.5, 2.0]) {
+      const f = new FluidChemistry({ O2 });
+      const expected = Math.max(0.3, 1.3 - Math.abs(O2 - 0.8));
+      expect(sulfideRedoxTent(f, 0.8, 1.3, 1.0, 0.3)).toBeCloseTo(expected, 6);
     }
   });
 });
