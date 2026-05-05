@@ -189,6 +189,10 @@ HEURISTIC_SKIPS = {
                      "doesn't seed the per-ring concentration multiplier.",
     "tincalconite":  "paramorph-only product; never nucleates from solution "
                      "(supersaturation_tincalconite returns 0 by design).",
+    "mirabilite":    "v29 hard-gates on fluid.concentration ≥ 1.5; same "
+                     "heuristic limitation as borax.",
+    "thenardite":    "v29 hard-gates on fluid.concentration ≥ 1.5; same "
+                     "heuristic limitation as borax.",
 }
 
 

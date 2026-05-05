@@ -5756,6 +5756,30 @@ class VugConditions {
   // Selenite (gypsum, CaSO4·2H2O) — forms in evaporite/oxidation environments
   // Low temperature, needs Ca + S (as sulfate via oxidation) + O2
   // The crystal that grows when everything else is ending
+  supersaturation_mirabilite() {
+    // v29 cold-side Na-sulfate evaporite. Mirror of vugg.py.
+    if (this.fluid.Na < 50 || this.fluid.S < 50 || this.fluid.O2 < 0.2) return 0;
+    if (this.temperature > 32) return 0;
+    const c = this.fluid.concentration ?? 1.0;
+    if (c < 1.5) return 0;
+    let sigma = (this.fluid.Na / 300.0) * (this.fluid.S / 200.0) * c * c;
+    if (this.temperature < 10) sigma *= 1.3;
+    if (this.fluid.pH < 5.0) sigma *= 0.5;
+    return Math.max(sigma, 0);
+  }
+
+  supersaturation_thenardite() {
+    // v29 warm-side Na-sulfate evaporite. Mirror of vugg.py.
+    if (this.fluid.Na < 50 || this.fluid.S < 50 || this.fluid.O2 < 0.2) return 0;
+    if (this.temperature < 25) return 0;
+    const c = this.fluid.concentration ?? 1.0;
+    if (c < 1.5) return 0;
+    let sigma = (this.fluid.Na / 300.0) * (this.fluid.S / 200.0) * c * c;
+    if (this.temperature > 50) sigma *= 1.2;
+    if (this.fluid.pH < 5.0) sigma *= 0.5;
+    return Math.max(sigma, 0);
+  }
+
   supersaturation_tincalconite() {
     // v28 paramorph product of borax — never nucleates from solution.
     return 0;
@@ -9840,6 +9864,82 @@ function grow_tyuyamunite(crystal, conditions, step) {
 // applyDehydrationTransitions converting borax in place.
 function grow_tincalconite(_crystal, _conditions, _step) { return null; }
 
+// Mirabilite (Na2SO4·10H2O) — Glauber salt, cold-side Na-sulfate
+// evaporite. v29 mirror of vugg.py.
+function grow_mirabilite(crystal, conditions, step) {
+  const sigma = conditions.supersaturation_mirabilite();
+  if (sigma < 1.0) {
+    if (crystal.total_growth_um > 5 && conditions.fluid.concentration < 1.5) {
+      crystal.dissolved = true;
+      const dissolved_um = Math.min(10.0, crystal.total_growth_um * 0.25);
+      conditions.fluid.Na += dissolved_um * 0.4;
+      conditions.fluid.S += dissolved_um * 0.25;
+      return new GrowthZone({
+        step, temperature: conditions.temperature,
+        thickness_um: -dissolved_um, growth_rate: -dissolved_um,
+        note: `meteoric flush — mirabilite redissolves (concentration ${conditions.fluid.concentration.toFixed(1)})`,
+      });
+    }
+    return null;
+  }
+  const excess = sigma - 1.0;
+  const rate = 12.0 * excess * (0.85 + Math.random() * 0.30);
+  if (rate < 0.1) return null;
+  if (rate > 10) {
+    crystal.habit = 'fibrous_coating';
+    crystal.dominant_forms = ['thin efflorescent crust', 'satin sheen'];
+  } else {
+    crystal.habit = 'prismatic';
+    crystal.dominant_forms = ['{010} pinacoid', '{110} prism', 'monoclinic'];
+  }
+  conditions.fluid.Na = Math.max(conditions.fluid.Na - rate * 0.06, 0);
+  conditions.fluid.S = Math.max(conditions.fluid.S - rate * 0.04, 0);
+  return new GrowthZone({
+    step, temperature: conditions.temperature,
+    thickness_um: rate, growth_rate: rate,
+    note: 'colorless prismatic Glauber salt — vitreous, water-soluble',
+  });
+}
+
+// Thenardite (Na2SO4) — anhydrous warm-side Na-sulfate. v29 mirror.
+function grow_thenardite(crystal, conditions, step) {
+  const sigma = conditions.supersaturation_thenardite();
+  if (sigma < 1.0) {
+    if (crystal.total_growth_um > 5 && conditions.fluid.concentration < 1.5) {
+      crystal.dissolved = true;
+      const dissolved_um = Math.min(8.0, crystal.total_growth_um * 0.20);
+      conditions.fluid.Na += dissolved_um * 0.4;
+      conditions.fluid.S += dissolved_um * 0.25;
+      return new GrowthZone({
+        step, temperature: conditions.temperature,
+        thickness_um: -dissolved_um, growth_rate: -dissolved_um,
+        note: `meteoric flush — thenardite redissolves (concentration ${conditions.fluid.concentration.toFixed(1)})`,
+      });
+    }
+    return null;
+  }
+  const excess = sigma - 1.0;
+  const rate = 9.0 * excess * (0.85 + Math.random() * 0.30);
+  if (rate < 0.1) return null;
+  if (rate > 8) {
+    crystal.habit = 'fibrous_coating';
+    crystal.dominant_forms = ['white efflorescent crust'];
+  } else if (crystal.total_growth_um > 5000) {
+    crystal.habit = 'tabular';
+    crystal.dominant_forms = ['{010} pinacoid', '{110} prism'];
+  } else {
+    crystal.habit = 'dipyramidal';
+    crystal.dominant_forms = ['orthorhombic dipyramid', '{111} dominant'];
+  }
+  conditions.fluid.Na = Math.max(conditions.fluid.Na - rate * 0.06, 0);
+  conditions.fluid.S = Math.max(conditions.fluid.S - rate * 0.04, 0);
+  return new GrowthZone({
+    step, temperature: conditions.temperature,
+    thickness_um: rate, growth_rate: rate,
+    note: 'colorless to white thenardite — orthorhombic Na2SO4',
+  });
+}
+
 // Borax (Na2[B4O5(OH)4]·8H2O) — alkaline-brine borate evaporite.
 // v28. Fast-growing, dehydration-prone. Mirror of grow_borax in
 // vugg.py.
@@ -9874,8 +9974,6 @@ function grow_borax(crystal, conditions, step) {
   }
   conditions.fluid.Na = Math.max(conditions.fluid.Na - rate * 0.06, 0);
   conditions.fluid.B = Math.max(conditions.fluid.B - rate * 0.018, 0);
-  conditions.fluid.concentration = Math.max(
-    1.0, conditions.fluid.concentration - 0.015 * excess);
   let color_note;
   if (conditions.fluid.Cu > 5) color_note = 'pale blue-green borax (trace Cu)';
   else color_note = 'colorless prismatic borax — vitreous, sectile';
@@ -9918,8 +10016,6 @@ function grow_halite(crystal, conditions, step) {
   }
   conditions.fluid.Na = Math.max(conditions.fluid.Na - rate * 0.05, 0);
   conditions.fluid.Cl = Math.max(conditions.fluid.Cl - rate * 0.08, 0);
-  conditions.fluid.concentration = Math.max(
-    1.0, conditions.fluid.concentration - 0.02 * excess);
   let color_note;
   if (conditions.fluid.Fe > 30) color_note = 'rose-pink halite (Fe inclusions)';
   else if (conditions.fluid.K > 200) color_note = 'blue halite (K-induced color centers)';
@@ -11344,6 +11440,8 @@ const MINERAL_ENGINES = {
   halite: grow_halite,
   borax: grow_borax,
   tincalconite: grow_tincalconite,  // paramorph-only stub
+  mirabilite: grow_mirabilite,
+  thenardite: grow_thenardite,
   feldspar: grow_feldspar,
   adamite: grow_adamite,
   mimetite: grow_mimetite,
@@ -12637,6 +12735,61 @@ function event_sabkha_final_seal(c) {
   return "Sabkha matures, then seals. The crust hardens and groundwater stops cycling. What remains is the result of twelve dissolution-precipitation cycles — ordered dolomite where the cycling did its work, disordered HMC where it didn't. The Coorong recipe for ambient-T ordered dolomite, the natural laboratory that Kim 2023 finally explained at the atomic scale.";
 }
 
+// v29 evaporite-locality scenarios — Naica + Searles Lake events.
+// Mirror of event_naica_* + event_searles_* in vugg.py.
+
+function event_naica_slow_cooling(c) {
+  if (c.temperature > 51) c.temperature -= 0.7;
+  c.fluid.Ca = Math.max(c.fluid.Ca, 280);
+  c.fluid.S = Math.max(c.fluid.S, 380);
+  c.fluid.O2 = 1.5;
+  c.fluid.pH = 7.2;
+  c.flow_rate = 0.3;
+  return `Geothermal pulse: anhydrite at depth dissolves slightly, resupplying Ca + SO₄ to the rising hot brine. T drifts down to ${c.temperature.toFixed(1)}°C — still above the 54°C Naica equilibrium. Selenite cathedral blades grow another notch. Garcia-Ruiz: "hundredths of a degree per year" maintained for half a million years.`;
+}
+
+function event_naica_mining_drainage(c) {
+  c.fluid_surface_ring = 0.0;
+  c.flow_rate = 0.05;
+  c.temperature = 35;
+  return "1985 — mining at Naica deepens to 290m. Industrial pumps lower the water table below the Cueva de los Cristales. The 12-metre selenite blades stop growing the moment their bath drains; what's left in the cave is the freshest snapshot of the last half-million years of growth, frozen.";
+}
+
+function event_naica_mining_recharge(c) {
+  c.fluid_surface_ring = 1.0e6;
+  c.flow_rate = 0.5;
+  c.temperature = 30;
+  return "2017 — Naica's mining stops. The pumps shut down and the cave refloods over a few months. Decades-old vadose rinds dissolve in the fresh groundwater; selenite resumes slow growth in the cooler 30°C bath. The cave is no longer accessible — sealed away from researchers, safe from tourists, growing again.";
+}
+
+function event_searles_winter_freeze(c) {
+  c.temperature = 8;
+  c.fluid.Na = Math.max(c.fluid.Na, 1500);
+  c.fluid.S = Math.max(c.fluid.S, 250);
+  c.fluid.B = Math.max(c.fluid.B, 100);
+  c.fluid.Cl = Math.max(c.fluid.Cl, 1200);
+  c.fluid.pH = 9.5;
+  c.fluid.O2 = 1.6;
+  c.flow_rate = 0.2;
+  c.fluid_surface_ring = 4.0;
+  return `Searles Lake winter night. T=${c.temperature.toFixed(0)}°C; cold-air sublimation drops the playa surface to ring ${c.fluid_surface_ring.toFixed(0)}. The brine is below the 32°C mirabilite-thenardite eutectic. Glauber salt crystallizes in fibrous beds, halite hopper cubes form, and borax fires from the deep alkaline pH.`;
+}
+
+function event_searles_summer_bake(c) {
+  c.temperature = 55;
+  c.flow_rate = 0.1;
+  c.fluid.O2 = 1.8;
+  c.fluid_surface_ring = 0.0;
+  return `Searles Lake summer afternoon. T=${c.temperature.toFixed(0)}°C; playa surface drops to ring ${c.fluid_surface_ring.toFixed(0)}. Cold-evaporite minerals don't survive this heat — mirabilite loses its 10 water molecules and becomes thenardite where it stands; borax effloresces to tincalconite. By evening, what was a clear Glauber blade is a powdery pseudomorph.`;
+}
+
+function event_searles_fresh_pulse(c) {
+  c.fluid_surface_ring = 1.0e6;
+  c.flow_rate = 1.5;
+  c.temperature = 20;
+  return "Sierra snowmelt pulse — fresh meteoric water arrives at Searles Lake. The brine dilutes, salt crusts begin to redissolve, and the basin briefly resembles a real lake. Within weeks the heat returns and the cycle starts over.";
+}
+
 // ============================================================
 // EVENT REGISTRY + SCENARIO LOADER (data/scenarios.json5)
 // ============================================================
@@ -12719,6 +12872,13 @@ const EVENT_REGISTRY = {
   sabkha_flood: event_sabkha_flood,
   sabkha_evap: event_sabkha_evap,
   sabkha_final_seal: event_sabkha_final_seal,
+  // v29 evaporite-locality scenarios
+  naica_slow_cooling: event_naica_slow_cooling,
+  naica_mining_drainage: event_naica_mining_drainage,
+  naica_mining_recharge: event_naica_mining_recharge,
+  searles_winter_freeze: event_searles_winter_freeze,
+  searles_summer_bake: event_searles_summer_bake,
+  searles_fresh_pulse: event_searles_fresh_pulse,
   // Round 9e mechanic-coverage scenarios (May 2026):
   schneeberg_pegmatite_crystallization: event_schneeberg_pegmatite_crystallization,
   schneeberg_cooling: event_schneeberg_cooling,
@@ -12872,6 +13032,7 @@ function applyParamorphTransitions(crystal, T, step) {
 //                     concentration_min, T_max].
 const DEHYDRATION_TRANSITIONS = {
   borax: ['tincalconite', 25, 1.5, 75.0],
+  mirabilite: ['thenardite', 30, 1.5, 32.4],
 };
 
 function applyDehydrationTransitions(crystal, ringFluid, ringWaterState, T, step) {
@@ -12947,9 +13108,12 @@ const ORIENTATION_PREFERENCE = {
 // Bathtub-ring deposits cluster at the meniscus. Mirror of
 // WATER_STATE_PREFERENCE in vugg.py.
 const WATER_STATE_PREFERENCE = {
-  halite:    ['meniscus', 4.0],
-  selenite:  ['meniscus', 2.5],
-  anhydrite: ['meniscus', 2.0],
+  halite:     ['meniscus', 4.0],
+  selenite:   ['meniscus', 2.5],
+  anhydrite:  ['meniscus', 2.0],
+  borax:      ['meniscus', 3.0],
+  mirabilite: ['meniscus', 3.0],
+  thenardite: ['meniscus', 3.0],
 };
 
 class VugSimulator {
@@ -13225,6 +13389,10 @@ class VugSimulator {
       crystal.dominant_forms = ['{100} pinacoid', '{110} monoclinic prism', 'vitreous to resinous luster'];
     } else if (mineral === 'tincalconite') {
       crystal.dominant_forms = ['paramorph after borax', 'white powdery crust'];
+    } else if (mineral === 'mirabilite') {
+      crystal.dominant_forms = ['{010} pinacoid', '{110} monoclinic prism', 'Glauber salt'];
+    } else if (mineral === 'thenardite') {
+      crystal.dominant_forms = ['orthorhombic dipyramid', '{111} dominant', '{010} pinacoid'];
     } else if (mineral === 'feldspar') {
       crystal.dominant_forms = ['{010} pinacoid', '{110} prism'];
     } else if (mineral === 'topaz') {
@@ -14031,6 +14199,20 @@ class VugSimulator {
     if (sigma_hal > 1.0 && !this._atNucleationCap('halite') && rng.random() < 0.15) {
       const c = this.nucleate('halite', 'vug wall', sigma_hal);
       this.log.push(`  ✦ NUCLEATION: 🧂 Halite #${c.crystal_id} on ${c.position} (T=${this.conditions.temperature.toFixed(0)}°C, σ=${sigma_hal.toFixed(2)}, concentration=${this.conditions.fluid.concentration.toFixed(1)}) — bathtub-ring NaCl precipitating from the evaporating brine`);
+    }
+
+    // Mirabilite nucleation — cold-side Na-sulfate evaporite. v29.
+    const sigma_mirab = this.conditions.supersaturation_mirabilite();
+    if (sigma_mirab > 1.0 && !this._atNucleationCap('mirabilite') && rng.random() < 0.13) {
+      const c = this.nucleate('mirabilite', 'vug wall', sigma_mirab);
+      this.log.push(`  ✦ NUCLEATION: ❄️ Mirabilite #${c.crystal_id} on ${c.position} (T=${this.conditions.temperature.toFixed(0)}°C, σ=${sigma_mirab.toFixed(2)}, concentration=${this.conditions.fluid.concentration.toFixed(1)}) — Glauber salt from the cold playa brine`);
+    }
+
+    // Thenardite nucleation — warm-side Na-sulfate evaporite. v29.
+    const sigma_then = this.conditions.supersaturation_thenardite();
+    if (sigma_then > 1.0 && !this._atNucleationCap('thenardite') && rng.random() < 0.13) {
+      const c = this.nucleate('thenardite', 'vug wall', sigma_then);
+      this.log.push(`  ✦ NUCLEATION: 🌫️ Thenardite #${c.crystal_id} on ${c.position} (T=${this.conditions.temperature.toFixed(0)}°C, σ=${sigma_then.toFixed(2)}, concentration=${this.conditions.fluid.concentration.toFixed(1)}) — anhydrous Na₂SO₄ from the warm playa surface`);
     }
 
     // Borax nucleation — alkaline-brine borate evaporite, v28 mirror
