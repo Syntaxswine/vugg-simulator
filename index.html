@@ -4237,13 +4237,23 @@ class FluidChemistry {
     }
 }
 
-// ── 99-legacy-bundle.js ──
+// ── 22-geometry-wall.js ──
 
-let rng = new SeededRandom(Date.now());
-// Time compression: each step represents more geological time at higher values.
-// 5× = ~50,000 years/step (Simulation/Creative), 1× = ~10,000 years/step (Groove).
-// Physics are identical — the clock is different, not the chemistry.
-let timeScale = 5.0;
+// ============================================================
+// js/22-geometry-wall.ts — VugWall + WallCell + WallState + helpers
+// ============================================================
+// Mirror of vugg/geometry/wall.py. Three classes:
+//   * VugWall   — reactive carbonate wall (acid pulses, dissolution, refresh)
+//   * WallCell  — one cell of the ring/cell topo grid
+//   * WallState — full ring stack with paint_crystal + Fourier-profile init
+//
+// Plus the small support trio used by WallState's profile init:
+//   * _mulberry32(seed)            seeded PRNG factory
+//   * PRIMARY_SIZE_RANGE/etc.      bubble-merge sampling ranges
+//   * _raycastUnion(bubbles,theta) primary-bubble outline ray-trace
+//
+// Phase B5 of PROPOSAL-MODULAR-REFACTOR. SCRIPT-mode TS — top-level
+// decls stay global so call sites in 99-legacy-bundle.ts keep working.
 class VugWall {
     constructor(opts = {}) {
         this.composition = opts.composition ?? 'limestone';
@@ -4731,6 +4741,14 @@ class WallState {
         }
     }
 }
+
+// ── 99-legacy-bundle.js ──
+
+let rng = new SeededRandom(Date.now());
+// Time compression: each step represents more geological time at higher values.
+// 5× = ~50,000 years/step (Simulation/Creative), 1× = ~10,000 years/step (Groove).
+// Physics are identical — the clock is different, not the chemistry.
+let timeScale = 5.0;
 class VugConditions {
     constructor(opts = {}) {
         this.temperature = opts.temperature ?? 350.0;
