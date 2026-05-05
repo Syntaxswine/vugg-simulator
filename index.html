@@ -4029,6 +4029,12 @@ const SIM_VERSION = 17;
 // rounding. Mirrors DEFAULT_INTER_RING_DIFFUSION_RATE in vugg.py.
 const DEFAULT_INTER_RING_DIFFUSION_RATE = 0.05;
 
+// v26 water-level drainage rate. Surface drops by porosity × this
+// (rings/step). 0.05 means a perfectly-porous host (porosity=1.0)
+// drains 16 rings in 320 steps. Mirrors WATER_LEVEL_DRAIN_RATE in
+// vugg.py.
+const WATER_LEVEL_DRAIN_RATE = 0.05;
+
 // Phase C: clone a FluidChemistry instance. Used to seed each ring's
 // fluid as an independent copy of the scenario's global fluid so
 // later mutation on one ring doesn't leak to others.
@@ -4613,6 +4619,11 @@ class VugConditions {
     // (legacy default, every ring 'submerged'). Below = submerged,
     // surface band = meniscus, above = vadose/'air'.
     this.fluid_surface_ring = opts.fluid_surface_ring ?? null;
+    // v26 host-rock porosity. Sink-only term for water-level drift:
+    // each step the surface drops by porosity × WATER_LEVEL_DRAIN_RATE
+    // rings. 0.0 = sealed cavity (no drainage; legacy default). 1.0 =
+    // highly permeable host. Filling stays event-driven.
+    this.porosity = opts.porosity ?? 0.0;
     // Kim 2023 dolomite cycle tracking — fluid-level so all dolomites benefit
     this._dol_cycle_count = 0;
     this._dol_prev_sigma = 0.0;
@@ -11666,6 +11677,21 @@ function event_oxidation(conditions) {
   return `Oxidizing meteoric water infiltrates. Sulfides becoming unstable — S²⁻ oxidizing to SO₄²⁻. T drops to ${conditions.temperature.toFixed(0)}°C. Sulfate available for gypsum/selenite.`;
 }
 
+// v26: tectonic uplift breaches the cavity, fluid drains completely.
+function event_tectonic_uplift_drains(conditions) {
+  conditions.fluid_surface_ring = 0.0;
+  conditions.flow_rate = 0.05;
+  return "Tectonic uplift fractures the host rock. The cavity drains completely — fluid pours out through new joints into the rocks below. What was a sealed pocket is now an open cave. Walls dry. Sulfides start to oxidize.";
+}
+
+// v26: aquifer recharge / heavy meteoric pulse floods the cavity.
+// Sentinel 1e6 is clamped to ring_count by _applyWaterLevelDrift.
+function event_aquifer_recharge_floods(conditions) {
+  conditions.fluid_surface_ring = 1e6;
+  conditions.flow_rate = 2.0;
+  return "Heavy meteoric pulse. The cavity floods back to the ceiling. Fluid contact resumes on every wall — previously-oxidized rinds dissolve where they can; fresh sulfide growth starts wherever they can't.";
+}
+
 function event_acidify(conditions) {
   conditions.fluid.pH -= 2.0;
   conditions.fluid.pH = Math.max(conditions.fluid.pH, 2.0);
@@ -12478,6 +12504,8 @@ const EVENT_REGISTRY = {
   tectonic_shock: event_tectonic_shock,
   copper_injection: event_copper_injection,
   oxidation: event_oxidation,
+  tectonic_uplift_drains: event_tectonic_uplift_drains,
+  aquifer_recharge_floods: event_aquifer_recharge_floods,
   acidify: event_acidify,
   alkalinize: event_alkalinize,
   molybdenum_pulse: event_molybdenum_pulse,
@@ -12818,6 +12846,31 @@ class VugSimulator {
         }
       }
     }
+  }
+
+  // v26: drain `porosity × WATER_LEVEL_DRAIN_RATE` rings per step
+  // when the water-level mechanic is active. No-op when
+  // fluid_surface_ring is null, porosity is 0 (sealed default), or
+  // surface is already at 0. Asymmetric: porosity is a pure sink, not
+  // a balance term — refilling stays event-driven. Refill events that
+  // snap fluid_surface_ring above ring_count get clamped here on the
+  // next step (so events can write a sentinel like 1e6 to mean
+  // "fill to ceiling" without needing to know ring_count themselves).
+  // Mirror of VugSimulator._apply_water_level_drift in vugg.py.
+  _applyWaterLevelDrift() {
+    let s = this.conditions.fluid_surface_ring;
+    if (s === null || s === undefined) return 0;
+    const n = this.wall_state.ring_count;
+    if (s > n) {
+      this.conditions.fluid_surface_ring = n;
+      s = n;
+    }
+    const p = this.conditions.porosity;
+    if (p <= 0 || s <= 0) return 0;
+    const delta = -p * WATER_LEVEL_DRAIN_RATE;
+    const newS = Math.max(0, s + delta);
+    this.conditions.fluid_surface_ring = newS;
+    return newS - s;
   }
 
   // v25: detect rings that just transitioned wet → dry (submerged or
@@ -14818,6 +14871,10 @@ class VugSimulator {
     let snap = this._snapshotGlobal();
     this.apply_events();
     this._propagateGlobalDelta(snap);
+    // v26: continuous drainage from host-rock porosity. Runs before
+    // the vadose override so a porosity-driven drift-out gets caught
+    // as a transition on the same step it dries.
+    this._applyWaterLevelDrift();
     // v25: events may have dropped fluid_surface_ring. Detect rings
     // that just transitioned wet → vadose and force their fluid to
     // oxidizing chemistry. Lets the existing supergene-oxidation

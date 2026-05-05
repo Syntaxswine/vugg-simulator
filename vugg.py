@@ -403,6 +403,21 @@ from typing import List, Dict, Optional, Tuple
 #      stamped crystals in the upper rings — the bridge to PROPOSAL-
 #      AIR-MODE.md's stalactite renderer. See PROPOSAL-EVAPORITE-WATER-
 #      LEVELS.md.
+# v26: Host-rock porosity as a water-level drainage sink. New
+#      VugConditions.porosity field (default 0.0 = sealed cavity, no
+#      drainage) drives a continuous per-step drift:
+#      fluid_surface_ring -= porosity × WATER_LEVEL_DRAIN_RATE.
+#      Asymmetric — porosity can only drain; filling stays event-
+#      driven (tectonic uplift breaches, aquifer recharge, fresh
+#      infiltration). A scenario can now set up slow-drain dynamics:
+#      seed fluid_surface_ring at full + porosity > 0, the cavity
+#      drains over its step budget, vadose rings get the v25 oxidation
+#      override automatically as they transition. Two example events
+#      added — event_tectonic_uplift_drains (snaps to 0) and
+#      event_aquifer_recharge_floods (snaps back to ceiling) — for
+#      scenarios that want sudden filling/draining without porosity
+#      drift. Engine drift: zero — default porosity=0 means existing
+#      scenarios stay byte-identical.
 # v25: Vadose-zone oxidation. When a ring transitions wet → vadose,
 #      its ring-fluid is forced to oxidizing chemistry (O2 → max(1.8,
 #      current); S × 0.3 to model sulfide-oxidation drawdown of solute
@@ -418,7 +433,7 @@ from typing import List, Dict, Optional, Tuple
 #      vadose-zone Cu-oxidation product growth in upper rings; supergene
 #      gains vadose-zone sulfate / arsenate growth. See PROPOSAL-AIR-
 #      MODE.md Stage B and PROPOSAL-EVAPORITE-WATER-LEVELS.md.
-SIM_VERSION = 25
+SIM_VERSION = 26
 
 # Mineral-specific nucleation orientation preferences. Most species
 # are spatially neutral in fluid-filled vugs (gravity is weak at
@@ -462,6 +477,13 @@ ORIENTATION_PREFERENCE = {
 # rounding. Scenarios that don't seed a vertical gradient see all rings
 # identical at every step (forward-simulation byte-equality preserved).
 DEFAULT_INTER_RING_DIFFUSION_RATE = 0.05
+
+# v26 water-level drainage rate. Surface drops by porosity × this
+# (rings/step). 0.05 means a perfectly-porous host (porosity=1.0)
+# drains 16 rings in 320 steps — a typical scenario length, so
+# scenarios that want to actually empty a vug pick porosity ≥ 0.5
+# to see meaningful drift within their step budget.
+WATER_LEVEL_DRAIN_RATE = 0.05
 
 
 # ============================================================
@@ -1391,6 +1413,17 @@ class VugConditions:
     # byte-identical. A scenario that wants partial fill drops this to
     # e.g. 8.5; events can mutate it over time (drainage, refill).
     fluid_surface_ring: Optional[float] = None
+
+    # v26 host-rock porosity. Sink term for the water-level mechanic:
+    # each step the surface drifts down by `porosity *
+    # WATER_LEVEL_DRAIN_RATE` rings, modeling slow drainage through a
+    # porous host (sandstone, weathered limestone, vesicular basalt).
+    # 0.0 = sealed cavity (no drainage; legacy default — surface stays
+    # wherever scenarios / events put it). 1.0 = highly permeable host;
+    # the cavity drains in roughly ring_count / DRAIN_RATE steps under
+    # zero inflow. Filling stays event-driven (tectonic uplift,
+    # aquifer recharge); porosity is asymmetric — it can only drain.
+    porosity: float = 0.0
 
     # Fluid-level cycle tracking for the Kim 2023 dolomite mechanism.
     # Per-crystal tracking via phantom_count would work in principle but
@@ -11882,6 +11915,33 @@ def event_oxidation(conditions: VugConditions) -> str:
             f"T drops to {conditions.temperature:.0f}°C.")
 
 
+def event_tectonic_uplift_drains(conditions: VugConditions) -> str:
+    """v26 example: tectonic uplift breaches the cavity, fluid drains
+    out completely. Snaps fluid_surface_ring to 0 — every ring goes
+    vadose on the next step. Pair with porosity for scenarios that
+    want gradual drainage; use this event for the moment the host
+    rock fractures and the vug becomes a karst feature."""
+    conditions.fluid_surface_ring = 0.0
+    conditions.flow_rate = 0.05
+    return ("Tectonic uplift fractures the host rock. The cavity "
+            "drains completely — fluid pours out through new joints "
+            "into the rocks below. What was a sealed pocket is now "
+            "an open cave. Walls dry. Sulfides start to oxidize.")
+
+
+def event_aquifer_recharge_floods(conditions: VugConditions) -> str:
+    """v26 example: a heavy rain or aquifer breach floods the cavity
+    back to the ceiling. Snaps fluid_surface_ring to a large value;
+    the simulator clamps to ring_count so the vug is fully submerged
+    again. Useful as a "wet phase" of a wet/dry cycle."""
+    conditions.fluid_surface_ring = 1.0e6  # clamped to ring_count
+    conditions.flow_rate = 2.0
+    return ("Heavy meteoric pulse. The cavity floods back to the "
+            "ceiling. Fluid contact resumes on every wall — "
+            "previously-oxidized rinds dissolve where they can; "
+            "fresh sulfide growth starts wherever they can't.")
+
+
 def event_acidify(conditions: VugConditions) -> str:
     """Acidic fluid enters — carbonates become unstable."""
     conditions.fluid.pH -= 2.0
@@ -13002,6 +13062,8 @@ EVENT_REGISTRY = {
     "tectonic_shock": event_tectonic_shock,
     "copper_injection": event_copper_injection,
     "oxidation": event_oxidation,
+    "tectonic_uplift_drains": event_tectonic_uplift_drains,
+    "aquifer_recharge_floods": event_aquifer_recharge_floods,
     "acidify": event_acidify,
     "alkalinize": event_alkalinize,
     "molybdenum_pulse": event_molybdenum_pulse,
@@ -13581,6 +13643,49 @@ class VugSimulator:
                     self.ring_temperatures[k] = self.conditions.temperature
                 else:
                     self.ring_temperatures[k] += delta_t
+
+    def _apply_water_level_drift(self) -> float:
+        """v26: drain `porosity × WATER_LEVEL_DRAIN_RATE` rings per step
+        when the water-level mechanic is active. No-op when
+        fluid_surface_ring is None (legacy / sealed mode), porosity is
+        zero (sealed cavity, default), or the surface has already
+        bottomed out at zero. Asymmetric: porosity is a pure sink, not
+        a balance term — filling the cavity is event-driven (tectonic
+        uplift, aquifer breach, fresh infiltration), so a scenario can
+        set up a slow-drain → flood-back-up → drain-again cycle by
+        pairing porosity with periodic refill events.
+
+        Refill events that snap fluid_surface_ring above ring_count
+        get clamped here on the next step (so events can write a
+        sentinel like 1e6 to mean "fill to ceiling" without needing
+        to know ring_count themselves).
+
+        Called once per step from run_step, after events have applied
+        and before the vadose oxidation override (so a drift-driven
+        wet → dry transition correctly fires the oxidation cascade
+        on the same step it dries out).
+
+        Returns the change in surface position (negative, zero, or —
+        when an event-set sentinel is being clamped — negative even
+        though porosity didn't fire).
+        """
+        s = self.conditions.fluid_surface_ring
+        if s is None:
+            return 0.0
+        n = self.wall_state.ring_count
+        # Clamp event-set sentinels (e.g. 1e6 from event_aquifer_
+        # recharge_floods) before applying drainage. This is also a
+        # safety net if a scenario writes an out-of-range value.
+        if s > n:
+            self.conditions.fluid_surface_ring = float(n)
+            s = float(n)
+        p = self.conditions.porosity
+        if p <= 0.0 or s <= 0.0:
+            return 0.0
+        delta = -p * WATER_LEVEL_DRAIN_RATE
+        new_s = max(0.0, s + delta)
+        self.conditions.fluid_surface_ring = new_s
+        return new_s - s
 
     def _apply_vadose_oxidation_override(self) -> List[int]:
         """v24: detect rings that just transitioned wet → dry (submerged
@@ -15876,6 +15981,11 @@ class VugSimulator:
         snap = self._snapshot_global()
         self.apply_events()
         self._propagate_global_delta(snap)
+
+        # v26: continuous drainage from host-rock porosity. Runs before
+        # the vadose override so a porosity-driven drift-out gets
+        # caught as a transition on the same step it dries.
+        self._apply_water_level_drift()
 
         # v24: events may have dropped fluid_surface_ring. Detect rings
         # that just transitioned wet → vadose and force their fluid to
