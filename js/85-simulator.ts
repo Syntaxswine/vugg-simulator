@@ -3720,38 +3720,6 @@ class VugSimulator {
     return parts.filter(p => p).join(' ');
   }
 
-  _narrate_scorodite(c) {
-    const parts = [`Scorodite #${c.crystal_id} grew to ${c.c_length_mm.toFixed(1)} mm.`];
-    parts.push("FeAsO₄·2H₂O — the arsenic sequestration mineral. Forms when arsenopyrite oxidizes at the water table; liberated AsO₄³⁻ combines with Fe³⁺ in the hydrated arsenate lattice. Environmentally important — scorodite locks As in a stable crystalline form as long as pH stays below ~5, which is why modern AMD remediation deliberately induces scorodite precipitation.");
-    if (c.habit === 'dipyramidal') {
-      const nZ = c.zones ? c.zones.length : 1;
-      const avgFe = nZ ? c.zones.reduce((s, z) => s + (z.trace_Fe || 0), 0) / nZ : 0;
-      if (avgFe > 0.15) {
-        parts.push("Deep blue-green dipyramids — Fe-rich, the Tsumeb display signature. The Ojuela (Mexico) and Tsumeb (Namibia) specimens are the gem-quality pseudo-octahedra that collectors chase: transparent, vivid, perfectly formed.");
-      } else {
-        parts.push("Pale blue-green dipyramids — the classic pseudo-octahedral habit. Scorodite is orthorhombic but the dipyramid form projects as near-octahedral, fooling the eye.");
-      }
-    } else {
-      parts.push("Earthy greenish-brown crust — the high-σ rapid-precipitation habit, formed when acidic mine drainage deposits scorodite faster than it can organize crystal faces. This is how most environmental scorodite looks in the field.");
-    }
-    if (c.dissolved) {
-      parts.push("Dissolution — pH rose above 5 (or T above 160°C), and scorodite gave back its AsO₄³⁻ to the fluid. In nature, this is how arsenic re-mobilizes from acid-mine-drainage scorodite when the local chemistry buffers toward neutral, and the classical pathway by which downstream higher-pH arsenates (adamite, mimetite) can eventually form.");
-    }
-    return parts.join(' ');
-  }
-
-  _narrate_ferrimolybdite(c) {
-    const parts = [`Ferrimolybdite #${c.crystal_id} grew to ${c.c_length_mm.toFixed(1)} mm.`];
-    parts.push("Fe₂(MoO₄)₃·nH₂O — the \"no-lead branch\" of molybdenite oxidation. When molybdenite weathers in a system that doesn't carry Pb (porphyry-Cu oxidation zones, most Climax-type Mo deposits), the liberated MoO₄²⁻ meets Fe³⁺ instead of Pb²⁺, and ferrimolybdite forms instead of wulfenite. Mohs 1-2 — soft enough to crumble under a fingernail.");
-    if (c.habit === 'acicular tuft') parts.push('Acicular radiating tufts — the classic habit. Hair-like fibers fanning outward from a nucleation point on weathered molybdenite. Looks like a tiny sulfur-yellow starburst under the loupe.');
-    else if (c.habit === 'fibrous mat') parts.push('Fibrous mat — denser felted aggregate, moderate supersaturation. Coats the weathered Mo-bearing surface uniformly.');
-    else parts.push('Powdery earthy crust — the high-σ mass-accretion habit. No crystal form, just canary-yellow coloring on the substrate. This is how ferrimolybdite looks in most porphyry oxide caps.');
-    if (c.dissolved) {
-      parts.push("Dehydration — ferrimolybdite is metastable; a modest T rise above ~150°C or pH drop below 2 is enough to strip the structural water and release MoO₄²⁻ back to the fluid. If Pb arrives in that fluid, a second generation of wulfenite can nucleate — the classical paragenetic sequence at Chuquicamata and other porphyry supergene caps.");
-    }
-    return parts.join(' ');
-  }
-
   _narrate_stibnite(c) {
     // Prose lives in narratives/stibnite.md.
     const parts = [`Stibnite #${c.crystal_id} grew to ${c.c_length_mm.toFixed(1)} mm.`];
@@ -3806,25 +3774,6 @@ class VugSimulator {
     if (c.dissolved) parts.push(narrative_variant('acanthite', 'oxidative_dissolution') || 'Oxidative dissolution.');
     else if (c.zones && c.zones.length > 15) parts.push(narrative_variant('acanthite', 'tarnish') || 'Tarnish.');
     return parts.filter(p => p).join(' ');
-  }
-
-  _narrate_chalcanthite(c) {
-    const parts = [`Chalcanthite #${c.crystal_id} grew to ${c.c_length_mm.toFixed(1)} mm.`];
-    parts.push("CuSO₄·5H₂O — the bright sky-blue Cu sulfate, the [Cu(H₂O)₅]²⁺ chromophore one of the most intensely-colored minerals anywhere. Triclinic, Mohs 2.5, perfect {110} cleavage. The name is Greek for 'copper flower' — and like a flower, it doesn't last. The most water-soluble mineral in the sim (20.7 g per 100 mL at 20°C); every specimen is a temporary victory over entropy. Forms only in arid, strongly oxidizing, very acidic, salt-concentrated drainage: Chuquicamata mine walls, Rio Tinto AMD seeps, Atacama desert evaporite crusts.");
-    if (c.habit === 'stalactitic') {
-      parts.push('Stalactitic — the Chuquicamata mine-wall habit. Sky-blue drips and cones formed where acidic Cu-rich fluid trickles down a vug wall and evaporates faster than it can run off.');
-    } else if (c.habit === 'tabular') {
-      parts.push('Tabular prismatic — RARE. Most natural chalcanthite is stalactitic or efflorescent; well-formed prismatic crystals are collector-grade. Most "crystals" on the market are lab-grown.');
-    } else {
-      parts.push('Efflorescent crust — powdery blue surface bloom. Forms in arid mine atmospheres where evaporation is fast; will weep into solution again the moment humidity rises.');
-    }
-    if (c.twinned && (c.twin_law || '').includes('cruciform')) {
-      parts.push('Cruciform twin — RARE {110} cross-shaped twin. One of the more striking twin morphologies in mineralogy when a chalcanthite specimen survives long enough to display it.');
-    }
-    if (c.dissolved) {
-      parts.push('Re-dissolved — the host fluid became more dilute (or less acidic) and the crystal returned to solution. Cu²⁺ and SO₄²⁻ are back in the fluid; they may recombine as chalcanthite again the next time conditions return to arid + acidic + concentrated. This cyclic dissolution-regrowth is the chalcanthite signature: the only mineral in the vug that respects the seasons.');
-    }
-    return parts.join(' ');
   }
 
   _narrate_descloizite(c) {
