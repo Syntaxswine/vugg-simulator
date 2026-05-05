@@ -8507,30 +8507,62 @@
       "test_cases": [
         {
           "name": "cu_dominant_fires",
-          "fluid": {"Cu": 80, "Zn": 20, "CO3": 80, "O2": 1.5, "pH": 6.9},
+          "fluid": {
+            "Cu": 80,
+            "Zn": 20,
+            "CO3": 80,
+            "O2": 1.5,
+            "pH": 6.9
+          },
           "T_C": 25,
-          "expects": {"sigma": ">1.0"},
+          "expects": {
+            "sigma": ">1.0"
+          },
           "rationale": "Cu/(Cu+Zn)=0.80 — broth-ratio gate passes for the Cu-branch."
         },
         {
           "name": "zn_dominant_blocks",
-          "fluid": {"Cu": 20, "Zn": 80, "CO3": 80, "O2": 1.5, "pH": 6.9},
+          "fluid": {
+            "Cu": 20,
+            "Zn": 80,
+            "CO3": 80,
+            "O2": 1.5,
+            "pH": 6.9
+          },
           "T_C": 25,
-          "expects": {"sigma": "==0"},
+          "expects": {
+            "sigma": "==0"
+          },
           "rationale": "Zn-dominant fluid — aurichalcite wins, rosasite ratio-blocked."
         },
         {
           "name": "no_zinc_blocks",
-          "fluid": {"Cu": 80, "Zn": 0, "CO3": 80, "O2": 1.5, "pH": 6.9},
+          "fluid": {
+            "Cu": 80,
+            "Zn": 0,
+            "CO3": 80,
+            "O2": 1.5,
+            "pH": 6.9
+          },
           "T_C": 25,
-          "expects": {"sigma": "==0"},
+          "expects": {
+            "sigma": "==0"
+          },
           "rationale": "Zn=0 fails Zn>=3 ingredient gate. Pure-Cu carbonate fluid is malachite territory."
         },
         {
           "name": "too_hot_blocks",
-          "fluid": {"Cu": 80, "Zn": 20, "CO3": 80, "O2": 1.5, "pH": 6.9},
+          "fluid": {
+            "Cu": 80,
+            "Zn": 20,
+            "CO3": 80,
+            "O2": 1.5,
+            "pH": 6.9
+          },
           "T_C": 80,
-          "expects": {"sigma": "==0"},
+          "expects": {
+            "sigma": "==0"
+          },
           "rationale": "T=80°C above 40°C supergene window."
         }
       ]
@@ -8623,30 +8655,62 @@
       "test_cases": [
         {
           "name": "zn_dominant_fires",
-          "fluid": {"Cu": 20, "Zn": 80, "CO3": 80, "O2": 1.5, "pH": 6.5},
+          "fluid": {
+            "Cu": 20,
+            "Zn": 80,
+            "CO3": 80,
+            "O2": 1.5,
+            "pH": 6.5
+          },
           "T_C": 22,
-          "expects": {"sigma": ">1.0"},
+          "expects": {
+            "sigma": ">1.0"
+          },
           "rationale": "Zn/(Cu+Zn)=0.80 — broth-ratio gate passes for the Zn-branch."
         },
         {
           "name": "cu_dominant_blocks",
-          "fluid": {"Cu": 80, "Zn": 20, "CO3": 80, "O2": 1.5, "pH": 6.5},
+          "fluid": {
+            "Cu": 80,
+            "Zn": 20,
+            "CO3": 80,
+            "O2": 1.5,
+            "pH": 6.5
+          },
           "T_C": 22,
-          "expects": {"sigma": "==0"},
+          "expects": {
+            "sigma": "==0"
+          },
           "rationale": "Cu-dominant fluid — rosasite wins, aurichalcite ratio-blocked."
         },
         {
           "name": "no_copper_blocks",
-          "fluid": {"Cu": 0, "Zn": 80, "CO3": 80, "O2": 1.5, "pH": 6.5},
+          "fluid": {
+            "Cu": 0,
+            "Zn": 80,
+            "CO3": 80,
+            "O2": 1.5,
+            "pH": 6.5
+          },
           "T_C": 22,
-          "expects": {"sigma": "==0"},
+          "expects": {
+            "sigma": "==0"
+          },
           "rationale": "Cu=0 fails Cu>=3 ingredient gate. Pure-Zn carbonate fluid is smithsonite/hydrozincite territory."
         },
         {
           "name": "acidic_blocks",
-          "fluid": {"Cu": 20, "Zn": 80, "CO3": 80, "O2": 1.5, "pH": 5.5},
+          "fluid": {
+            "Cu": 20,
+            "Zn": 80,
+            "CO3": 80,
+            "O2": 1.5,
+            "pH": 5.5
+          },
           "T_C": 22,
-          "expects": {"sigma": "==0"},
+          "expects": {
+            "sigma": "==0"
+          },
           "rationale": "pH=5.5 below the 6.0 carbonate-stability gate. Aurichalcite dissolves in acid."
         }
       ]
@@ -8745,44 +8809,110 @@
       "test_cases": [
         {
           "name": "p_dominant_fires",
-          "fluid": {"Cu": 40, "Ca": 5, "U": 2.5, "P": 8, "As": 2, "V": 0, "O2": 1.5, "pH": 6.0},
+          "fluid": {
+            "Cu": 40,
+            "Ca": 5,
+            "U": 2.5,
+            "P": 8,
+            "As": 2,
+            "V": 0,
+            "O2": 1.5,
+            "pH": 6.0
+          },
           "T_C": 25,
-          "expects": {"sigma": ">1.0"},
+          "expects": {
+            "sigma": ">1.0"
+          },
           "rationale": "P/(P+As+V)=0.80, Cu/(Cu+Ca)=0.89 — both anion and cation gates pass."
         },
         {
           "name": "as_dominant_blocks",
-          "fluid": {"Cu": 40, "Ca": 5, "U": 2.5, "P": 2, "As": 8, "V": 0, "O2": 1.5, "pH": 6.0},
+          "fluid": {
+            "Cu": 40,
+            "Ca": 5,
+            "U": 2.5,
+            "P": 2,
+            "As": 8,
+            "V": 0,
+            "O2": 1.5,
+            "pH": 6.0
+          },
           "T_C": 25,
-          "expects": {"sigma": "==0"},
+          "expects": {
+            "sigma": "==0"
+          },
           "rationale": "As-dominant fluid — zeunerite wins, torbernite anion-blocked."
         },
         {
           "name": "v_dominant_blocks",
-          "fluid": {"Cu": 40, "Ca": 5, "U": 2.5, "P": 2, "As": 2, "V": 8, "O2": 1.5, "pH": 6.0},
+          "fluid": {
+            "Cu": 40,
+            "Ca": 5,
+            "U": 2.5,
+            "P": 2,
+            "As": 2,
+            "V": 8,
+            "O2": 1.5,
+            "pH": 6.0
+          },
           "T_C": 25,
-          "expects": {"sigma": "==0"},
+          "expects": {
+            "sigma": "==0"
+          },
           "rationale": "V-dominant fluid — carnotite wins, torbernite anion-blocked. The 9c update widened the denominator; 9d preserves this case unchanged."
         },
         {
           "name": "ca_dominant_blocks_cu_fork",
-          "fluid": {"Cu": 5, "Ca": 80, "U": 2.5, "P": 8, "As": 2, "V": 0, "O2": 1.5, "pH": 6.0},
+          "fluid": {
+            "Cu": 5,
+            "Ca": 80,
+            "U": 2.5,
+            "P": 8,
+            "As": 2,
+            "V": 0,
+            "O2": 1.5,
+            "pH": 6.0
+          },
           "T_C": 25,
-          "expects": {"sigma": "==0"},
+          "expects": {
+            "sigma": "==0"
+          },
           "rationale": "Cu/(Cu+Ca)=0.06 — autunite wins the cation race, torbernite cation-blocked. The 9d Cu-vs-Ca fork is what makes this case meaningful — pre-9d, Cu>5 alone would have fired torbernite even in Ca-saturated groundwater."
         },
         {
           "name": "no_uranium_blocks",
-          "fluid": {"Cu": 40, "Ca": 5, "U": 0, "P": 8, "As": 2, "V": 0, "O2": 1.5, "pH": 6.0},
+          "fluid": {
+            "Cu": 40,
+            "Ca": 5,
+            "U": 0,
+            "P": 8,
+            "As": 2,
+            "V": 0,
+            "O2": 1.5,
+            "pH": 6.0
+          },
           "T_C": 25,
-          "expects": {"sigma": "==0"},
+          "expects": {
+            "sigma": "==0"
+          },
           "rationale": "U=0 fails U>=0.3 ingredient gate."
         },
         {
           "name": "acidic_blocks",
-          "fluid": {"Cu": 40, "Ca": 5, "U": 2.5, "P": 8, "As": 2, "V": 0, "O2": 1.5, "pH": 4.0},
+          "fluid": {
+            "Cu": 40,
+            "Ca": 5,
+            "U": 2.5,
+            "P": 8,
+            "As": 2,
+            "V": 0,
+            "O2": 1.5,
+            "pH": 4.0
+          },
           "T_C": 25,
-          "expects": {"sigma": "==0"},
+          "expects": {
+            "sigma": "==0"
+          },
           "rationale": "pH=4.0 below 5.0 stability gate — torbernite dissolves in acid."
         }
       ]
@@ -8874,44 +9004,110 @@
       "test_cases": [
         {
           "name": "as_dominant_fires",
-          "fluid": {"Cu": 40, "Ca": 5, "U": 2.5, "P": 2, "As": 8, "V": 0, "O2": 1.5, "pH": 6.0},
+          "fluid": {
+            "Cu": 40,
+            "Ca": 5,
+            "U": 2.5,
+            "P": 2,
+            "As": 8,
+            "V": 0,
+            "O2": 1.5,
+            "pH": 6.0
+          },
           "T_C": 25,
-          "expects": {"sigma": ">1.0"},
+          "expects": {
+            "sigma": ">1.0"
+          },
           "rationale": "As/(P+As+V)=0.80, Cu/(Cu+Ca)=0.89 — both anion + cation gates pass for the Cu-As branch (zeunerite)."
         },
         {
           "name": "p_dominant_blocks",
-          "fluid": {"Cu": 40, "Ca": 5, "U": 2.5, "P": 8, "As": 2, "V": 0, "O2": 1.5, "pH": 6.0},
+          "fluid": {
+            "Cu": 40,
+            "Ca": 5,
+            "U": 2.5,
+            "P": 8,
+            "As": 2,
+            "V": 0,
+            "O2": 1.5,
+            "pH": 6.0
+          },
           "T_C": 25,
-          "expects": {"sigma": "==0"},
+          "expects": {
+            "sigma": "==0"
+          },
           "rationale": "P-dominant fluid — torbernite wins, zeunerite anion-blocked."
         },
         {
           "name": "v_dominant_blocks",
-          "fluid": {"Cu": 40, "Ca": 5, "U": 2.5, "P": 2, "As": 2, "V": 8, "O2": 1.5, "pH": 6.0},
+          "fluid": {
+            "Cu": 40,
+            "Ca": 5,
+            "U": 2.5,
+            "P": 2,
+            "As": 2,
+            "V": 8,
+            "O2": 1.5,
+            "pH": 6.0
+          },
           "T_C": 25,
-          "expects": {"sigma": "==0"},
+          "expects": {
+            "sigma": "==0"
+          },
           "rationale": "V-dominant fluid — carnotite wins, zeunerite anion-blocked. The 9c update widened the denominator to P+As+V."
         },
         {
           "name": "ca_dominant_blocks_cu_fork",
-          "fluid": {"Cu": 5, "Ca": 80, "U": 2.5, "P": 2, "As": 8, "V": 0, "O2": 1.5, "pH": 6.0},
+          "fluid": {
+            "Cu": 5,
+            "Ca": 80,
+            "U": 2.5,
+            "P": 2,
+            "As": 8,
+            "V": 0,
+            "O2": 1.5,
+            "pH": 6.0
+          },
           "T_C": 25,
-          "expects": {"sigma": "==0"},
+          "expects": {
+            "sigma": "==0"
+          },
           "rationale": "Cu/(Cu+Ca)=0.06 — uranospinite wins the cation race, zeunerite cation-blocked. The 9e Cu-vs-Ca fork is what makes this case meaningful — pre-9e, Cu>=5 alone would have fired zeunerite even in Ca-saturated groundwater."
         },
         {
           "name": "no_uranium_blocks",
-          "fluid": {"Cu": 40, "Ca": 5, "U": 0, "P": 2, "As": 8, "V": 0, "O2": 1.5, "pH": 6.0},
+          "fluid": {
+            "Cu": 40,
+            "Ca": 5,
+            "U": 0,
+            "P": 2,
+            "As": 8,
+            "V": 0,
+            "O2": 1.5,
+            "pH": 6.0
+          },
           "T_C": 25,
-          "expects": {"sigma": "==0"},
+          "expects": {
+            "sigma": "==0"
+          },
           "rationale": "U=0 fails U>=0.3 ingredient gate."
         },
         {
           "name": "too_hot_blocks",
-          "fluid": {"Cu": 40, "Ca": 5, "U": 2.5, "P": 2, "As": 8, "V": 0, "O2": 1.5, "pH": 6.0},
+          "fluid": {
+            "Cu": 40,
+            "Ca": 5,
+            "U": 2.5,
+            "P": 2,
+            "As": 8,
+            "V": 0,
+            "O2": 1.5,
+            "pH": 6.0
+          },
           "T_C": 80,
-          "expects": {"sigma": "==0"},
+          "expects": {
+            "sigma": "==0"
+          },
           "rationale": "T=80°C above the 50°C ceiling — would dehydrate to metazeunerite."
         }
       ]
@@ -9013,72 +9209,182 @@
       "test_cases": [
         {
           "name": "v_dominant_fires",
-          "fluid": {"K": 30, "Ca": 5, "U": 2.5, "V": 8, "P": 2, "As": 0, "O2": 1.5, "pH": 6.5},
+          "fluid": {
+            "K": 30,
+            "Ca": 5,
+            "U": 2.5,
+            "V": 8,
+            "P": 2,
+            "As": 0,
+            "O2": 1.5,
+            "pH": 6.5
+          },
           "T_C": 30,
-          "expects": {"sigma": ">1.0"},
+          "expects": {
+            "sigma": ">1.0"
+          },
           "rationale": "V/(P+As+V)=0.80, K/(K+Ca)=0.86 — both anion + cation gates pass for the K-V branch (carnotite). Ca=5 explicit (low-Ca evaporite/playa context) so the 9e cation fork passes."
         },
         {
           "name": "p_dominant_blocks",
-          "fluid": {"K": 30, "Ca": 5, "U": 2.5, "V": 2, "P": 8, "As": 0, "O2": 1.5, "pH": 6.5},
+          "fluid": {
+            "K": 30,
+            "Ca": 5,
+            "U": 2.5,
+            "V": 2,
+            "P": 8,
+            "As": 0,
+            "O2": 1.5,
+            "pH": 6.5
+          },
           "T_C": 30,
-          "expects": {"sigma": "==0"},
+          "expects": {
+            "sigma": "==0"
+          },
           "rationale": "P-dominant fluid — torbernite wins, carnotite anion-blocked."
         },
         {
           "name": "as_dominant_blocks",
-          "fluid": {"K": 30, "Ca": 5, "U": 2.5, "V": 2, "P": 0, "As": 8, "O2": 1.5, "pH": 6.5},
+          "fluid": {
+            "K": 30,
+            "Ca": 5,
+            "U": 2.5,
+            "V": 2,
+            "P": 0,
+            "As": 8,
+            "O2": 1.5,
+            "pH": 6.5
+          },
           "T_C": 30,
-          "expects": {"sigma": "==0"},
+          "expects": {
+            "sigma": "==0"
+          },
           "rationale": "As-dominant fluid — zeunerite wins, carnotite anion-blocked."
         },
         {
           "name": "ca_dominant_blocks_k_fork",
-          "fluid": {"K": 5, "Ca": 80, "U": 2.5, "V": 8, "P": 0, "As": 0, "O2": 1.5, "pH": 6.5},
+          "fluid": {
+            "K": 5,
+            "Ca": 80,
+            "U": 2.5,
+            "V": 8,
+            "P": 0,
+            "As": 0,
+            "O2": 1.5,
+            "pH": 6.5
+          },
           "T_C": 30,
-          "expects": {"sigma": "==0"},
+          "expects": {
+            "sigma": "==0"
+          },
           "rationale": "K/(K+Ca)=0.06 — tyuyamunite wins the cation race, carnotite cation-blocked. The 9e K-vs-Ca fork is what makes this case meaningful — pre-9e, K>=5 alone would have fired carnotite even in Ca-saturated groundwater."
         },
         {
           "name": "no_potassium_blocks",
-          "fluid": {"K": 0, "Ca": 5, "U": 2.5, "V": 8, "P": 0, "As": 0, "O2": 1.5, "pH": 6.5},
+          "fluid": {
+            "K": 0,
+            "Ca": 5,
+            "U": 2.5,
+            "V": 8,
+            "P": 0,
+            "As": 0,
+            "O2": 1.5,
+            "pH": 6.5
+          },
           "T_C": 30,
-          "expects": {"sigma": "==0"},
+          "expects": {
+            "sigma": "==0"
+          },
           "rationale": "K=0 fails K>=5 ingredient gate."
         },
         {
           "name": "no_uranium_blocks",
-          "fluid": {"K": 30, "Ca": 5, "U": 0, "V": 8, "P": 0, "As": 0, "O2": 1.5, "pH": 6.5},
+          "fluid": {
+            "K": 30,
+            "Ca": 5,
+            "U": 0,
+            "V": 8,
+            "P": 0,
+            "As": 0,
+            "O2": 1.5,
+            "pH": 6.5
+          },
           "T_C": 30,
-          "expects": {"sigma": "==0"},
+          "expects": {
+            "sigma": "==0"
+          },
           "rationale": "U=0 fails U>=0.3 ingredient gate."
         },
         {
           "name": "no_vanadium_blocks",
-          "fluid": {"K": 30, "Ca": 5, "U": 2.5, "V": 0, "P": 0, "As": 0, "O2": 1.5, "pH": 6.5},
+          "fluid": {
+            "K": 30,
+            "Ca": 5,
+            "U": 2.5,
+            "V": 0,
+            "P": 0,
+            "As": 0,
+            "O2": 1.5,
+            "pH": 6.5
+          },
           "T_C": 30,
-          "expects": {"sigma": "==0"},
+          "expects": {
+            "sigma": "==0"
+          },
           "rationale": "V=0 fails V>=1.0 ingredient gate."
         },
         {
           "name": "reducing_blocks",
-          "fluid": {"K": 30, "Ca": 5, "U": 2.5, "V": 8, "P": 0, "As": 0, "O2": 0.3, "pH": 6.5},
+          "fluid": {
+            "K": 30,
+            "Ca": 5,
+            "U": 2.5,
+            "V": 8,
+            "P": 0,
+            "As": 0,
+            "O2": 0.3,
+            "pH": 6.5
+          },
           "T_C": 30,
-          "expects": {"sigma": "==0"},
+          "expects": {
+            "sigma": "==0"
+          },
           "rationale": "Reducing fluid keeps U as insoluble U⁴⁺ (uraninite). Carnotite needs U⁶⁺."
         },
         {
           "name": "too_hot_blocks",
-          "fluid": {"K": 30, "Ca": 5, "U": 2.5, "V": 8, "P": 0, "As": 0, "O2": 1.5, "pH": 6.5},
+          "fluid": {
+            "K": 30,
+            "Ca": 5,
+            "U": 2.5,
+            "V": 8,
+            "P": 0,
+            "As": 0,
+            "O2": 1.5,
+            "pH": 6.5
+          },
           "T_C": 80,
-          "expects": {"sigma": "==0"},
+          "expects": {
+            "sigma": "==0"
+          },
           "rationale": "T=80°C above 50°C ceiling — carnotite dehydrates above ~100°C."
         },
         {
           "name": "acidic_blocks",
-          "fluid": {"K": 30, "Ca": 5, "U": 2.5, "V": 8, "P": 0, "As": 0, "O2": 1.5, "pH": 4.0},
+          "fluid": {
+            "K": 30,
+            "Ca": 5,
+            "U": 2.5,
+            "V": 8,
+            "P": 0,
+            "As": 0,
+            "O2": 1.5,
+            "pH": 4.0
+          },
           "T_C": 30,
-          "expects": {"sigma": "==0"},
+          "expects": {
+            "sigma": "==0"
+          },
           "rationale": "pH=4.0 below the 5.0-7.5 stability window — vanadate gives way to VO₂⁺."
         }
       ]
@@ -9176,44 +9482,110 @@
       "test_cases": [
         {
           "name": "ca_dominant_fires",
-          "fluid": {"Ca": 80, "Cu": 0, "U": 2.5, "P": 8, "As": 2, "V": 0, "O2": 1.5, "pH": 6.5},
+          "fluid": {
+            "Ca": 80,
+            "Cu": 0,
+            "U": 2.5,
+            "P": 8,
+            "As": 2,
+            "V": 0,
+            "O2": 1.5,
+            "pH": 6.5
+          },
           "T_C": 20,
-          "expects": {"sigma": ">1.0"},
+          "expects": {
+            "sigma": ">1.0"
+          },
           "rationale": "Ca/(Cu+Ca)=1.0, P/(P+As+V)=0.8 — both ratio gates pass for the autunite branch."
         },
         {
           "name": "cu_dominant_blocks",
-          "fluid": {"Ca": 5, "Cu": 40, "U": 2.5, "P": 8, "As": 2, "V": 0, "O2": 1.5, "pH": 6.5},
+          "fluid": {
+            "Ca": 5,
+            "Cu": 40,
+            "U": 2.5,
+            "P": 8,
+            "As": 2,
+            "V": 0,
+            "O2": 1.5,
+            "pH": 6.5
+          },
           "T_C": 20,
-          "expects": {"sigma": "==0"},
+          "expects": {
+            "sigma": "==0"
+          },
           "rationale": "Cu/(Cu+Ca)=0.89 dominates — torbernite wins the cation race, autunite ratio-blocked. The 9d cation fork is what makes this case meaningful."
         },
         {
           "name": "as_dominant_blocks_via_anion_fork",
-          "fluid": {"Ca": 80, "Cu": 0, "U": 2.5, "P": 2, "As": 8, "V": 0, "O2": 1.5, "pH": 6.5},
+          "fluid": {
+            "Ca": 80,
+            "Cu": 0,
+            "U": 2.5,
+            "P": 2,
+            "As": 8,
+            "V": 0,
+            "O2": 1.5,
+            "pH": 6.5
+          },
           "T_C": 20,
-          "expects": {"sigma": "==0"},
+          "expects": {
+            "sigma": "==0"
+          },
           "rationale": "Ca dominates (cation gate would pass) but As/(P+As+V)=0.8 — anion fork sends this to a hypothetical Ca-uranyl-arsenate (uranospinite, not in game), so autunite blocked."
         },
         {
           "name": "no_uranium_blocks",
-          "fluid": {"Ca": 80, "Cu": 0, "U": 0, "P": 8, "As": 0, "V": 0, "O2": 1.5, "pH": 6.5},
+          "fluid": {
+            "Ca": 80,
+            "Cu": 0,
+            "U": 0,
+            "P": 8,
+            "As": 0,
+            "V": 0,
+            "O2": 1.5,
+            "pH": 6.5
+          },
           "T_C": 20,
-          "expects": {"sigma": "==0"},
+          "expects": {
+            "sigma": "==0"
+          },
           "rationale": "U=0 fails U>=0.3 ingredient gate."
         },
         {
           "name": "reducing_blocks",
-          "fluid": {"Ca": 80, "Cu": 0, "U": 2.5, "P": 8, "As": 0, "V": 0, "O2": 0.3, "pH": 6.5},
+          "fluid": {
+            "Ca": 80,
+            "Cu": 0,
+            "U": 2.5,
+            "P": 8,
+            "As": 0,
+            "V": 0,
+            "O2": 0.3,
+            "pH": 6.5
+          },
           "T_C": 20,
-          "expects": {"sigma": "==0"},
+          "expects": {
+            "sigma": "==0"
+          },
           "rationale": "Reducing fluid keeps U as insoluble U⁴⁺ (uraninite). Autunite needs U⁶⁺ uranyl."
         },
         {
           "name": "acidic_blocks",
-          "fluid": {"Ca": 80, "Cu": 0, "U": 2.5, "P": 8, "As": 0, "V": 0, "O2": 1.5, "pH": 4.0},
+          "fluid": {
+            "Ca": 80,
+            "Cu": 0,
+            "U": 2.5,
+            "P": 8,
+            "As": 0,
+            "V": 0,
+            "O2": 1.5,
+            "pH": 4.0
+          },
           "T_C": 20,
-          "expects": {"sigma": "==0"},
+          "expects": {
+            "sigma": "==0"
+          },
           "rationale": "pH=4.0 below 4.5 stability gate — autunite dissolves in acid (uranyl phosphates aren't acid-stable)."
         }
       ]
@@ -9318,44 +9690,110 @@
       "test_cases": [
         {
           "name": "ca_dominant_v_branch_fires",
-          "fluid": {"Ca": 80, "K": 5, "U": 2.5, "V": 8, "P": 0, "As": 0, "O2": 1.5, "pH": 6.5},
+          "fluid": {
+            "Ca": 80,
+            "K": 5,
+            "U": 2.5,
+            "V": 8,
+            "P": 0,
+            "As": 0,
+            "O2": 1.5,
+            "pH": 6.5
+          },
           "T_C": 25,
-          "expects": {"sigma": ">1.0"},
+          "expects": {
+            "sigma": ">1.0"
+          },
           "rationale": "Ca/(K+Ca)=0.94 + V/(P+As+V)=1.0 — both forks pass for tyuyamunite."
         },
         {
           "name": "k_dominant_blocks_via_cation_fork",
-          "fluid": {"Ca": 5, "K": 30, "U": 2.5, "V": 8, "P": 0, "As": 0, "O2": 1.5, "pH": 6.5},
+          "fluid": {
+            "Ca": 5,
+            "K": 30,
+            "U": 2.5,
+            "V": 8,
+            "P": 0,
+            "As": 0,
+            "O2": 1.5,
+            "pH": 6.5
+          },
           "T_C": 25,
-          "expects": {"sigma": "==0"},
+          "expects": {
+            "sigma": "==0"
+          },
           "rationale": "K/(K+Ca)=0.86 — carnotite wins the cation race, tyuyamunite cation-blocked."
         },
         {
           "name": "p_dominant_blocks_via_anion_fork",
-          "fluid": {"Ca": 80, "K": 0, "U": 2.5, "V": 2, "P": 8, "As": 0, "O2": 1.5, "pH": 6.5},
+          "fluid": {
+            "Ca": 80,
+            "K": 0,
+            "U": 2.5,
+            "V": 2,
+            "P": 8,
+            "As": 0,
+            "O2": 1.5,
+            "pH": 6.5
+          },
           "T_C": 25,
-          "expects": {"sigma": "==0"},
+          "expects": {
+            "sigma": "==0"
+          },
           "rationale": "Ca dominant cation, but P/(P+As+V)=0.8 — anion fork sends this to autunite, tyuyamunite anion-blocked."
         },
         {
           "name": "no_uranium_blocks",
-          "fluid": {"Ca": 80, "K": 0, "U": 0, "V": 8, "P": 0, "As": 0, "O2": 1.5, "pH": 6.5},
+          "fluid": {
+            "Ca": 80,
+            "K": 0,
+            "U": 0,
+            "V": 8,
+            "P": 0,
+            "As": 0,
+            "O2": 1.5,
+            "pH": 6.5
+          },
           "T_C": 25,
-          "expects": {"sigma": "==0"},
+          "expects": {
+            "sigma": "==0"
+          },
           "rationale": "U=0 fails U>=0.3 ingredient gate."
         },
         {
           "name": "reducing_blocks",
-          "fluid": {"Ca": 80, "K": 0, "U": 2.5, "V": 8, "P": 0, "As": 0, "O2": 0.3, "pH": 6.5},
+          "fluid": {
+            "Ca": 80,
+            "K": 0,
+            "U": 2.5,
+            "V": 8,
+            "P": 0,
+            "As": 0,
+            "O2": 0.3,
+            "pH": 6.5
+          },
           "T_C": 25,
-          "expects": {"sigma": "==0"},
+          "expects": {
+            "sigma": "==0"
+          },
           "rationale": "Reducing fluid keeps U as U⁴⁺ + V as V³⁺/V⁴⁺. Tyuyamunite needs U⁶⁺ + V⁵⁺."
         },
         {
           "name": "acidic_blocks",
-          "fluid": {"Ca": 80, "K": 0, "U": 2.5, "V": 8, "P": 0, "As": 0, "O2": 1.5, "pH": 4.0},
+          "fluid": {
+            "Ca": 80,
+            "K": 0,
+            "U": 2.5,
+            "V": 8,
+            "P": 0,
+            "As": 0,
+            "O2": 1.5,
+            "pH": 4.0
+          },
           "T_C": 25,
-          "expects": {"sigma": "==0"},
+          "expects": {
+            "sigma": "==0"
+          },
           "rationale": "pH=4.0 below 5.0 stability gate — vanadate gives way to VO₂⁺ and structure breaks."
         }
       ]
@@ -9459,47 +9897,198 @@
       "test_cases": [
         {
           "name": "ca_dominant_as_branch_fires",
-          "fluid": {"Ca": 80, "Cu": 0, "U": 2.5, "P": 0, "As": 8, "V": 0, "O2": 1.5, "pH": 6.5},
+          "fluid": {
+            "Ca": 80,
+            "Cu": 0,
+            "U": 2.5,
+            "P": 0,
+            "As": 8,
+            "V": 0,
+            "O2": 1.5,
+            "pH": 6.5
+          },
           "T_C": 20,
-          "expects": {"sigma": ">1.0"},
+          "expects": {
+            "sigma": ">1.0"
+          },
           "rationale": "Ca/(Cu+Ca)=1.0 + As/(P+As+V)=1.0 — both forks pass for uranospinite."
         },
         {
           "name": "cu_dominant_blocks_via_cation_fork",
-          "fluid": {"Ca": 5, "Cu": 40, "U": 2.5, "P": 0, "As": 8, "V": 0, "O2": 1.5, "pH": 6.5},
+          "fluid": {
+            "Ca": 5,
+            "Cu": 40,
+            "U": 2.5,
+            "P": 0,
+            "As": 8,
+            "V": 0,
+            "O2": 1.5,
+            "pH": 6.5
+          },
           "T_C": 20,
-          "expects": {"sigma": "==0"},
+          "expects": {
+            "sigma": "==0"
+          },
           "rationale": "Cu/(Cu+Ca)=0.89 — zeunerite wins the cation race, uranospinite cation-blocked."
         },
         {
           "name": "p_dominant_blocks_via_anion_fork",
-          "fluid": {"Ca": 80, "Cu": 0, "U": 2.5, "P": 8, "As": 2, "V": 0, "O2": 1.5, "pH": 6.5},
+          "fluid": {
+            "Ca": 80,
+            "Cu": 0,
+            "U": 2.5,
+            "P": 8,
+            "As": 2,
+            "V": 0,
+            "O2": 1.5,
+            "pH": 6.5
+          },
           "T_C": 20,
-          "expects": {"sigma": "==0"},
+          "expects": {
+            "sigma": "==0"
+          },
           "rationale": "Ca dominant cation, but P/(P+As+V)=0.8 — anion fork sends this to autunite, uranospinite anion-blocked."
         },
         {
           "name": "no_uranium_blocks",
-          "fluid": {"Ca": 80, "Cu": 0, "U": 0, "P": 0, "As": 8, "V": 0, "O2": 1.5, "pH": 6.5},
+          "fluid": {
+            "Ca": 80,
+            "Cu": 0,
+            "U": 0,
+            "P": 0,
+            "As": 8,
+            "V": 0,
+            "O2": 1.5,
+            "pH": 6.5
+          },
           "T_C": 20,
-          "expects": {"sigma": "==0"},
+          "expects": {
+            "sigma": "==0"
+          },
           "rationale": "U=0 fails U>=0.3 ingredient gate."
         },
         {
           "name": "reducing_blocks",
-          "fluid": {"Ca": 80, "Cu": 0, "U": 2.5, "P": 0, "As": 8, "V": 0, "O2": 0.3, "pH": 6.5},
+          "fluid": {
+            "Ca": 80,
+            "Cu": 0,
+            "U": 2.5,
+            "P": 0,
+            "As": 8,
+            "V": 0,
+            "O2": 0.3,
+            "pH": 6.5
+          },
           "T_C": 20,
-          "expects": {"sigma": "==0"},
+          "expects": {
+            "sigma": "==0"
+          },
           "rationale": "Reducing fluid keeps U as U⁴⁺. Uranospinite needs U⁶⁺."
         },
         {
           "name": "acidic_blocks",
-          "fluid": {"Ca": 80, "Cu": 0, "U": 2.5, "P": 0, "As": 8, "V": 0, "O2": 1.5, "pH": 4.0},
+          "fluid": {
+            "Ca": 80,
+            "Cu": 0,
+            "U": 2.5,
+            "P": 0,
+            "As": 8,
+            "V": 0,
+            "O2": 1.5,
+            "pH": 4.0
+          },
           "T_C": 20,
-          "expects": {"sigma": "==0"},
+          "expects": {
+            "sigma": "==0"
+          },
           "rationale": "pH=4.0 below 4.5 stability gate — autunite-group dissolves in acid."
         }
       ]
+    },
+    "halite": {
+      "formula": "NaCl",
+      "nucleation_sigma": 1.0,
+      "max_nucleation_count": 12,
+      "max_size_cm": 50,
+      "growth_rate_mult": 1.0,
+      "habit_variants": [
+        {
+          "name": "cubic",
+          "wall_spread": 0.5,
+          "void_reach": 0.4,
+          "vector": "equant",
+          "trigger": "moderate σ, slow evaporation"
+        },
+        {
+          "name": "hopper_growth",
+          "wall_spread": 0.45,
+          "void_reach": 0.55,
+          "vector": "projecting",
+          "trigger": "high σ — rapid evaporation, skeletal cube"
+        },
+        {
+          "name": "fibrous_coating",
+          "wall_spread": 0.85,
+          "void_reach": 0.05,
+          "vector": "coating",
+          "trigger": "efflorescent crust on already-dry wall"
+        }
+      ],
+      "class": "halide",
+      "description": "NaCl, rock salt — the canonical chloride evaporite. Forms by evaporative concentration of Na-Cl-rich brines: closed-basin playas, sabkha, drained vugs in the supergene zone. Hopper-growth (skeletal cube with pyramidal hollows) is the signature high-supersaturation habit; clean cubes form when the brine concentrates slowly.",
+      "scenarios": [],
+      "T_range_C": [
+        0,
+        200
+      ],
+      "T_optimum_C": [
+        15,
+        50
+      ],
+      "T_behavior": "Stable across wide T range; evaporite habit prefers low T",
+      "pH_dissolution_below": 4.0,
+      "pH_dissolution_above": null,
+      "redox_requirement": "none",
+      "required_ingredients": {
+        "Na": 5,
+        "Cl": 50
+      },
+      "trace_ingredients": {
+        "K": "blue color centers (irradiation)",
+        "Fe": "rose-pink inclusions"
+      },
+      "thermal_decomp_C": 801,
+      "thermal_decomp_reaction": "NaCl(s) → NaCl(l) (melts at 801°C, no chemical decomposition)",
+      "thermal_decomp_products": {},
+      "fluorescence": {
+        "SW": null,
+        "MW": null,
+        "LW": "rare orange (organic inclusions)"
+      },
+      "twin_laws": [],
+      "acid_dissolution": {
+        "pH": 4.0,
+        "rate": "fast"
+      },
+      "habit": "cubic",
+      "color_rules": {
+        "colorless": {
+          "default": true
+        },
+        "blue_purple": {
+          "trigger": "K > 200 ppm — irradiation-induced color centers"
+        },
+        "rose_pink": {
+          "trigger": "Fe > 30 ppm — Searles Lake / Stassfurt habit"
+        }
+      },
+      "narrate_function": null,
+      "runtimes_present": [
+        "python",
+        "js"
+      ],
+      "audit_status": "v27 — evaporite chemistry pass",
+      "class_color": "#cccccc"
     }
   }
 }

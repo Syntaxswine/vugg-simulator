@@ -433,7 +433,23 @@ from typing import List, Dict, Optional, Tuple
 #      vadose-zone Cu-oxidation product growth in upper rings; supergene
 #      gains vadose-zone sulfate / arsenate growth. See PROPOSAL-AIR-
 #      MODE.md Stage B and PROPOSAL-EVAPORITE-WATER-LEVELS.md.
-SIM_VERSION = 26
+# v27: Evaporite chemistry plumbing — items 3-5 of PROPOSAL-EVAPORITE-
+#      WATER-LEVELS.md. New per-ring fluid concentration multiplier
+#      (FluidChemistry.concentration, default 1.0) boosted by 3× at
+#      every wet → vadose transition. Models the geological reality
+#      that water leaving a ring concentrates the remaining solutes —
+#      bathtub-ring deposit chemistry. New WATER_STATE_PREFERENCE
+#      table biases evaporite minerals (selenite, anhydrite, halite)
+#      toward the meniscus ring at nucleation, matching the field
+#      observation that bathtub-ring evaporites cluster at the water
+#      line. New halite mineral (NaCl) — cubic supergene/evaporite
+#      with the canonical hopper-growth habit when supersaturation is
+#      high. supersaturation_halite reads concentration so a
+#      partially-drained ring (concentration > 1) reaches halite
+#      stability with realistic Na + Cl values. Default
+#      concentration=1.0 keeps every existing scenario byte-identical
+#      to v26.
+SIM_VERSION = 27
 
 # Mineral-specific nucleation orientation preferences. Most species
 # are spatially neutral in fluid-filled vugs (gravity is weak at
@@ -468,6 +484,21 @@ ORIENTATION_PREFERENCE = {
     'bismuthinite':   ('wall', 1.5),
 }
 
+# v27 water-state nucleation preference for evaporite minerals.
+# Bathtub-ring deposits cluster at the meniscus — where water is
+# evaporating fastest and supersaturation peaks. Format mirrors
+# ORIENTATION_PREFERENCE: mineral_name → (state, strength_factor)
+# where state ∈ {'submerged', 'meniscus', 'vadose'} and strength
+# multiplies that ring's nucleation weight when its water_state
+# matches. No-op when fluid_surface_ring is None (every ring
+# 'submerged' under legacy default), so existing scenarios are
+# unaffected.
+WATER_STATE_PREFERENCE = {
+    'halite':        ('meniscus', 4.0),  # NaCl — strongest meniscus tie
+    'selenite':      ('meniscus', 2.5),  # gypsum — sabkha bathtub ring
+    'anhydrite':     ('meniscus', 2.0),
+}
+
 # Phase C of PROPOSAL-3D-SIMULATION (= proposal's "Phase 2"): per-ring
 # chemistry scaffolding. Each ring carries its own FluidChemistry +
 # temperature; inter-ring diffusion homogenizes them slowly. Rate is
@@ -484,6 +515,13 @@ DEFAULT_INTER_RING_DIFFUSION_RATE = 0.05
 # scenarios that want to actually empty a vug pick porosity ≥ 0.5
 # to see meaningful drift within their step budget.
 WATER_LEVEL_DRAIN_RATE = 0.05
+
+# v27 evaporative concentration boost on wet → vadose transition.
+# When a ring loses water, dissolved solutes (Ca, Na, Cl, Mg, …) are
+# left behind at higher effective concentration. 3.0× is a moderate
+# initial spike; further drying (porosity drift while still vadose)
+# can push it higher via subsequent boosts.
+EVAPORATIVE_CONCENTRATION_FACTOR = 3.0
 
 
 # ============================================================
@@ -748,6 +786,15 @@ class FluidChemistry:
     O2: float = 0.0            # relative oxygen fugacity (0=reducing, 1=neutral, 2=oxidizing)
     pH: float = 6.5
     salinity: float = 5.0      # wt% NaCl equivalent
+    # v27 evaporative concentration multiplier. 1.0 = unchanged
+    # scenario chemistry. > 1.0 = water has evaporated, leaving solutes
+    # behind at higher effective concentration. Per-ring (each
+    # ring_fluids[k] has its own value); boosted at wet → vadose
+    # transition (× EVAPORATIVE_CONCENTRATION_FACTOR) and also
+    # gradually as a porosity-draining ring stays vadose. Read by
+    # evaporite supersaturation methods (halite, selenite-evaporite
+    # mode) to determine when bathtub-ring deposits precipitate.
+    concentration: float = 1.0
 
     def describe(self) -> str:
         """Human-readable fluid description."""
@@ -2335,6 +2382,49 @@ class VugConditions:
             sigma -= (3.5 - self.fluid.pH) * 0.4
         elif self.fluid.pH > 9.0:
             sigma -= (self.fluid.pH - 9.0) * 0.3
+        return max(sigma, 0)
+
+    def supersaturation_halite(self) -> float:
+        """Halite (NaCl) — chloride evaporite. Real seawater needs ~10×
+        evaporative concentration to reach halite saturation (after
+        gypsum has already precipitated and depleted Ca / SO₄). Here
+        we model that as a quadratic dependence on the per-ring
+        evaporative concentration multiplier — halite stays dormant
+        while the cavity is fluid-filled, then fires sharply as a ring
+        transitions vadose and concentration jumps 3×.
+
+        Crystal-system: cubic. Hopper (skeletal) growth at high
+        supersaturation is the canonical "rapid evaporation" habit;
+        well-formed cubes form at slower growth.
+
+        Geological context: classic playa / sabkha / closed-basin
+        evaporite. NOT a hydrothermal or hypogene mineral. Most
+        existing scenarios won't fire halite — needs Na + Cl seeded
+        at modest levels and a drained cavity. The bisbee_final_drying
+        and supergene_dry_spell paths now produce vadose-ring
+        concentrations that bring halite into reach in scenarios with
+        adequate Na + Cl.
+        """
+        if self.fluid.Na < 5 or self.fluid.Cl < 50:
+            return 0
+        c = self.fluid.concentration
+        # Quadratic in concentration — both Na and Cl get the boost
+        # multiplicatively. Thresholds picked so a Na+Cl-rich scenario
+        # stays sub-saturated at concentration=1 (most hydrothermal
+        # broths shouldn't grow halite on their own) but fires sharply
+        # when a vadose-transition concentration spike (× 3) brings
+        # the product over unity.
+        sigma = (self.fluid.Na / 100.0) * (self.fluid.Cl / 500.0) * c * c
+        # Halite is highly soluble at any T but the evaporite-
+        # crystallization pathway prefers low-to-moderate T (playa,
+        # sabkha). Above 100°C halite still forms in salt-dome / brine
+        # contexts but here we damp it slightly.
+        if self.temperature > 100:
+            sigma *= 0.7
+        # Strong acid dissolves halite (forms H+ + NaCl ↔ HCl + Na+);
+        # not realistic at typical pH but model the stability window.
+        if self.fluid.pH < 4.0:
+            sigma *= 0.5
         return max(sigma, 0)
 
     def supersaturation_selenite(self) -> float:
@@ -11540,6 +11630,77 @@ def grow_tyuyamunite(crystal: Crystal, conditions: VugConditions, step: int) -> 
     )
 
 
+def grow_halite(crystal: Crystal, conditions: VugConditions, step: int) -> Optional[GrowthZone]:
+    """Halite (NaCl) — cubic chloride evaporite. Forms when an
+    evaporating ring's per-ring concentration multiplier × (Na, Cl)
+    crosses the saturation threshold. Hopper (skeletal cubic) growth
+    above σ ≥ 5; clean cubes below.
+
+    Mass-balance: every µm of growth consumes Na and Cl from the
+    ring's fluid. Halite is highly soluble (~360 g/L), so dissolution
+    is aggressive in fresh meteoric pulses (low concentration ring).
+    """
+    sigma = conditions.supersaturation_halite()
+
+    if sigma < 1.0:
+        # Re-flooding event with a fresh meteoric pulse drops the per-
+        # ring concentration; existing halite re-dissolves quickly.
+        if crystal.total_growth_um > 5 and conditions.fluid.concentration < 1.5:
+            crystal.dissolved = True
+            dissolved_um = min(8.0, crystal.total_growth_um * 0.20)
+            conditions.fluid.Na += dissolved_um * 0.4
+            conditions.fluid.Cl += dissolved_um * 6.0
+            return GrowthZone(
+                step=step, temperature=conditions.temperature,
+                thickness_um=-dissolved_um, growth_rate=-dissolved_um,
+                note=f"meteoric flush — halite redissolves "
+                     f"(concentration {conditions.fluid.concentration:.1f})"
+            )
+        return None
+
+    excess = sigma - 1.0
+    rate = 8.0 * excess * random.uniform(0.85, 1.15)
+    if rate < 0.1:
+        return None
+
+    # Habit selection. High supersaturation triggers hopper-growth —
+    # the rim of the cube grows faster than the face center, leaving
+    # pyramidal hollows. Slow growth produces clean cubes.
+    if sigma > 5.0:
+        crystal.habit = "hopper_growth"
+        crystal.dominant_forms = ["{100} cube with pyramidal hopper hollows"]
+    else:
+        crystal.habit = "cubic"
+        crystal.dominant_forms = ["{100} cube"]
+
+    # Mass-balance — Na is the limiting reagent (much rarer than Cl
+    # in typical scenarios). Cl is consumed in stoichiometric ratio.
+    conditions.fluid.Na = max(conditions.fluid.Na - rate * 0.05, 0)
+    conditions.fluid.Cl = max(conditions.fluid.Cl - rate * 0.08, 0)
+    # Each precipitation step also slowly relaxes the concentration
+    # multiplier — solutes coming out of solution effectively dilute
+    # what's left. Bounded at 1.0 so concentration never goes below
+    # baseline scenario chemistry.
+    conditions.fluid.concentration = max(
+        1.0, conditions.fluid.concentration - 0.02 * excess)
+
+    # Color note — most halite is colorless. Trace inclusions tint:
+    # K → blue/purple (rare, irradiation-induced color centers),
+    # Fe → pink (Searles Lake, Stassfurt). For now keep it simple.
+    if conditions.fluid.Fe > 30:
+        color_note = "rose-pink halite (Fe inclusions)"
+    elif conditions.fluid.K > 200:
+        color_note = "blue halite (K-induced color centers)"
+    else:
+        color_note = "colorless cubic halite"
+
+    return GrowthZone(
+        step=step, temperature=conditions.temperature,
+        thickness_um=rate, growth_rate=rate,
+        note=color_note,
+    )
+
+
 def grow_selenite(crystal: Crystal, conditions: VugConditions, step: int) -> Optional[GrowthZone]:
     """Selenite / Gypsum (CaSO₄·2H₂O) growth. Low-T evaporite, Naica's giant crystals."""
     sigma = conditions.supersaturation_selenite()
@@ -11639,6 +11800,7 @@ MINERAL_ENGINES = {
     "antlerite": grow_antlerite,
     "anhydrite": grow_anhydrite,
     "selenite": grow_selenite,
+    "halite": grow_halite,
     "topaz": grow_topaz,
     "tourmaline": grow_tourmaline,
     "beryl": grow_beryl,          # goshenite / generic colorless (post-R7)
@@ -13733,6 +13895,13 @@ class VugSimulator:
                 if rf.O2 < 1.8:
                     rf.O2 = 1.8
                 rf.S *= 0.3
+                # v27: evaporative concentration. The water that left
+                # this ring carried away the equivalent of itself —
+                # remaining solutes are concentrated. Compounds with
+                # the v25 oxidation override (which acts on O2 and S
+                # specifically); concentration is the symmetric ion
+                # boost for everything else.
+                rf.concentration *= EVAPORATIVE_CONCENTRATION_FACTOR
                 became_vadose.append(r)
         return became_vadose
 
@@ -13862,6 +14031,8 @@ class VugSimulator:
             crystal.dominant_forms = ["{001} thin square plates"]
         elif mineral == "selenite":
             crystal.dominant_forms = ["{010} plates", "swallow-tail twins"]
+        elif mineral == "halite":
+            crystal.dominant_forms = ["{100} cube", "hopper-growth pyramidal hollows"]
         elif mineral == "feldspar":
             crystal.dominant_forms = ["{001} cleavage", "{010} face", "Carlsbad twin"]
         elif mineral == "albite":
@@ -14035,6 +14206,13 @@ class VugSimulator:
         # Per-mineral orientation bias (v23). Spatially neutral
         # minerals get the legacy area-weighted distribution.
         pref = ORIENTATION_PREFERENCE.get(mineral) if mineral else None
+        # Per-mineral water-state bias (v27). Evaporite minerals
+        # cluster at the meniscus (bathtub-ring zone). Multiplies on
+        # top of the orientation weight when the ring's water_state
+        # matches. No-op when fluid_surface_ring is None — every ring
+        # then classifies as 'submerged' uniformly, so the weighting
+        # collapses to the orientation pass.
+        wpref = WATER_STATE_PREFERENCE.get(mineral) if mineral else None
         # Area-weighted sample. Linear scan picks the first ring whose
         # cumulative weight exceeds a uniform draw of [0, total).
         # Identical algorithm in JS so both runtimes pick the same
@@ -14044,6 +14222,11 @@ class VugSimulator:
             target_orient, strength = pref
             for k in range(n):
                 if self.wall_state.ring_orientation(k) == target_orient:
+                    weights[k] *= strength
+        if wpref is not None and n > 1:
+            target_state, strength = wpref
+            for k in range(n):
+                if self.conditions.ring_water_state(k, n) == target_state:
                     weights[k] *= strength
         total = sum(weights) or 1.0
         r = random.random() * total
@@ -14759,6 +14942,19 @@ class VugSimulator:
             c = self.nucleate("selenite", position="vug wall", sigma=sigma_sel)
             self.log.append(f"  ✦ NUCLEATION: Selenite #{c.crystal_id} on {c.position} "
                           f"(T={self.conditions.temperature:.0f}°C, σ={sigma_sel:.2f})")
+
+        # Halite nucleation — chloride evaporite. v27. Needs Na + Cl + an
+        # evaporative concentration boost to fire (typical hydrothermal
+        # scenarios run at concentration=1.0 and Na+Cl too low; the
+        # vadose-transition × 3 boost from drying drives sigma > 1).
+        # Roll rate kept moderate so a freshly-vadose ring drops a
+        # handful of cubes rather than carpeting itself instantly.
+        sigma_hal = self.conditions.supersaturation_halite()
+        if sigma_hal > 1.0 and not self._at_nucleation_cap("halite") and random.random() < 0.15:
+            c = self.nucleate("halite", position="vug wall", sigma=sigma_hal)
+            self.log.append(f"  ✦ NUCLEATION: Halite #{c.crystal_id} on {c.position} "
+                          f"(T={self.conditions.temperature:.0f}°C, σ={sigma_hal:.2f}, "
+                          f"concentration={self.conditions.fluid.concentration:.1f})")
 
         # Spodumene nucleation — Li + Al + SiO₂ (Li-gated).
         # Lithium is mildly incompatible — accumulates late in pegmatite

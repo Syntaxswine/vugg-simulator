@@ -4035,6 +4035,11 @@ const DEFAULT_INTER_RING_DIFFUSION_RATE = 0.05;
 // vugg.py.
 const WATER_LEVEL_DRAIN_RATE = 0.05;
 
+// v27 evaporative concentration boost on wet → vadose transition.
+// Multiplied into ring_fluids[k].concentration when the ring dries.
+// Mirrors EVAPORATIVE_CONCENTRATION_FACTOR in vugg.py.
+const EVAPORATIVE_CONCENTRATION_FACTOR = 3.0;
+
 // Phase C: clone a FluidChemistry instance. Used to seed each ring's
 // fluid as an independent copy of the scenario's global fluid so
 // later mutation on one ring doesn't leak to others.
@@ -4087,6 +4092,9 @@ class FluidChemistry {
     this.O2 = opts.O2 ?? 0.0;
     this.pH = opts.pH ?? 6.5;
     this.salinity = opts.salinity ?? 5.0;
+    // v27 evaporative concentration multiplier (mirror of
+    // FluidChemistry.concentration in vugg.py).
+    this.concentration = opts.concentration ?? 1.0;
   }
 
   describe() {
@@ -5748,6 +5756,19 @@ class VugConditions {
   // Selenite (gypsum, CaSO4·2H2O) — forms in evaporite/oxidation environments
   // Low temperature, needs Ca + S (as sulfate via oxidation) + O2
   // The crystal that grows when everything else is ending
+  supersaturation_halite() {
+    // v27 chloride evaporite. Quadratic in concentration so halite
+    // stays dormant at scenario baseline (concentration=1) and fires
+    // sharply when a vadose-transition concentration spike kicks in.
+    // Mirror of supersaturation_halite in vugg.py.
+    if (this.fluid.Na < 5 || this.fluid.Cl < 50) return 0;
+    const c = this.fluid.concentration ?? 1.0;
+    let sigma = (this.fluid.Na / 100.0) * (this.fluid.Cl / 500.0) * c * c;
+    if (this.temperature > 100) sigma *= 0.7;
+    if (this.fluid.pH < 4.0) sigma *= 0.5;
+    return Math.max(sigma, 0);
+  }
+
   supersaturation_selenite() {
     // v17 reconciliation (May 2026): Phase boundary is at ~55-60°C
     // (Naica 54.5°C, Pulpí 20°C, Van Driessche et al. 2016). Pre-v17
@@ -9786,6 +9807,51 @@ function grow_tyuyamunite(crystal, conditions, step) {
   });
 }
 
+// Halite (NaCl) — chloride evaporite. v27. Cubic / hopper habit.
+// Bathtub-ring deposit; fires when a vadose-transition concentration
+// boost pushes Na × Cl × concentration² into supersaturation. Mirror
+// of grow_halite in vugg.py.
+function grow_halite(crystal, conditions, step) {
+  const sigma = conditions.supersaturation_halite();
+  if (sigma < 1.0) {
+    if (crystal.total_growth_um > 5 && conditions.fluid.concentration < 1.5) {
+      crystal.dissolved = true;
+      const dissolved_um = Math.min(8.0, crystal.total_growth_um * 0.20);
+      conditions.fluid.Na += dissolved_um * 0.4;
+      conditions.fluid.Cl += dissolved_um * 6.0;
+      return new GrowthZone({
+        step, temperature: conditions.temperature,
+        thickness_um: -dissolved_um, growth_rate: -dissolved_um,
+        note: `meteoric flush — halite redissolves (concentration ${conditions.fluid.concentration.toFixed(1)})`,
+      });
+    }
+    return null;
+  }
+  const excess = sigma - 1.0;
+  const rate = 8.0 * excess * (0.85 + Math.random() * 0.30);
+  if (rate < 0.1) return null;
+  if (sigma > 5.0) {
+    crystal.habit = 'hopper_growth';
+    crystal.dominant_forms = ['{100} cube with pyramidal hopper hollows'];
+  } else {
+    crystal.habit = 'cubic';
+    crystal.dominant_forms = ['{100} cube'];
+  }
+  conditions.fluid.Na = Math.max(conditions.fluid.Na - rate * 0.05, 0);
+  conditions.fluid.Cl = Math.max(conditions.fluid.Cl - rate * 0.08, 0);
+  conditions.fluid.concentration = Math.max(
+    1.0, conditions.fluid.concentration - 0.02 * excess);
+  let color_note;
+  if (conditions.fluid.Fe > 30) color_note = 'rose-pink halite (Fe inclusions)';
+  else if (conditions.fluid.K > 200) color_note = 'blue halite (K-induced color centers)';
+  else color_note = 'colorless cubic halite';
+  return new GrowthZone({
+    step, temperature: conditions.temperature,
+    thickness_um: rate, growth_rate: rate,
+    note: color_note,
+  });
+}
+
 // Selenite (gypsum variety) — CaSO4·2H2O
 // Forms at low temperature in oxidizing, evaporative environments
 // The crystal that grows when everything else is ending
@@ -11196,6 +11262,7 @@ const MINERAL_ENGINES = {
   antlerite: grow_antlerite,
   anhydrite: grow_anhydrite,
   selenite: grow_selenite,
+  halite: grow_halite,
   feldspar: grow_feldspar,
   adamite: grow_adamite,
   mimetite: grow_mimetite,
@@ -12747,6 +12814,15 @@ const ORIENTATION_PREFERENCE = {
   bismuthinite:  ['wall', 1.5],
 };
 
+// v27 water-state nucleation preference for evaporite minerals.
+// Bathtub-ring deposits cluster at the meniscus. Mirror of
+// WATER_STATE_PREFERENCE in vugg.py.
+const WATER_STATE_PREFERENCE = {
+  halite:    ['meniscus', 4.0],
+  selenite:  ['meniscus', 2.5],
+  anhydrite: ['meniscus', 2.0],
+};
+
 class VugSimulator {
   constructor(conditions, events) {
     this.conditions = conditions;
@@ -12897,6 +12973,8 @@ class VugSimulator {
         const rf = this.ring_fluids[r];
         if (rf.O2 < 1.8) rf.O2 = 1.8;
         rf.S *= 0.3;
+        // v27 evaporative concentration boost (mirror of vugg.py).
+        rf.concentration *= EVAPORATIVE_CONCENTRATION_FACTOR;
         becameVadose.push(r);
       }
     }
@@ -13012,6 +13090,8 @@ class VugSimulator {
       crystal.dominant_forms = ['{100} cube', '{111} octahedron'];
     } else if (mineral === 'selenite') {
       crystal.dominant_forms = ['{010} blades', '{110} prism'];
+    } else if (mineral === 'halite') {
+      crystal.dominant_forms = ['{100} cube', 'hopper-growth pyramidal hollows'];
     } else if (mineral === 'feldspar') {
       crystal.dominant_forms = ['{010} pinacoid', '{110} prism'];
     } else if (mineral === 'topaz') {
@@ -13231,6 +13311,17 @@ class VugSimulator {
       total = 0;
       for (let k = 0; k < n; k++) {
         if (this.wall_state.ringOrientation(k) === target) weights[k] *= strength;
+        total += weights[k];
+      }
+    }
+    // v27: per-mineral water-state bias for evaporite minerals.
+    // Mirror of _assign_wall_ring in vugg.py.
+    const wpref = mineral ? WATER_STATE_PREFERENCE[mineral] : null;
+    if (wpref && n > 1) {
+      const [targetState, strength] = wpref;
+      total = 0;
+      for (let k = 0; k < n; k++) {
+        if (this.conditions.ringWaterState(k, n) === targetState) weights[k] *= strength;
         total += weights[k];
       }
     }
@@ -13798,6 +13889,15 @@ class VugSimulator {
         const c = this.nucleate('selenite', pos, sigma_sel);
         this.log.push(`  ✦ NUCLEATION: 💎 Selenite #${c.crystal_id} on ${c.position} (T=${this.conditions.temperature.toFixed(0)}°C, σ=${sigma_sel.toFixed(2)}) — gypsum blades forming in the cooling, oxidizing fluid`);
       }
+    }
+
+    // Halite nucleation — chloride evaporite, fires when a vadose-
+    // transition concentration boost pushes Na × Cl × concentration²
+    // into supersaturation. v27 mirror of vugg.py.
+    const sigma_hal = this.conditions.supersaturation_halite();
+    if (sigma_hal > 1.0 && !this._atNucleationCap('halite') && rng.random() < 0.15) {
+      const c = this.nucleate('halite', 'vug wall', sigma_hal);
+      this.log.push(`  ✦ NUCLEATION: 🧂 Halite #${c.crystal_id} on ${c.position} (T=${this.conditions.temperature.toFixed(0)}°C, σ=${sigma_hal.toFixed(2)}, concentration=${this.conditions.fluid.concentration.toFixed(1)}) — bathtub-ring NaCl precipitating from the evaporating brine`);
     }
 
     // Feldspar nucleation — needs sigma > 1.0, K or Na + Al + Si
