@@ -81,6 +81,7 @@ _DIRECT_KEYS = {
 }
 
 _FUZZY_SUBSTRINGS = (
+    # v23 originals
     "cube", "cubic", "pyritohed", "octahed", "tetrahed",
     "scalenohed", "dogtooth", "rhomb",
     "dipyramid", "bipyramid",
@@ -89,7 +90,43 @@ _FUZZY_SUBSTRINGS = (
     "acicular", "needle", "wire", "capillary",
     "botryoidal", "reniform", "mammillary", "massive",
     "earthy", "stalactit",
+    # v26 polish — runtime-habit coverage
+    "hopper", "barrel", "trapiche", "twinned_cyclic", "stellate",
+    "columnar", "hemimorphic", "scepter", "spearhead", "reticulated", "thorn",
+    "micaceous", "specular", "bladed", "blade",
+    "flos_ferri",
+    "opal", "chalcedony", "agate", "spherulit", "globular", "nodular",
+    "framboidal", "granular", "powdery", "crust",
+    "rosette", "plumose", "radiating", "iridescent", "sublimation",
+    "coating", "fibrous", "nugget", "silica_gel",
+    "arborescent", "dendritic",
 )
+
+# v26 polish — direct-key additions for runtime-set habits.
+_DIRECT_KEYS = _DIRECT_KEYS | {
+    "tridymite (thin hexagonal plates)", "β-quartz bipyramidal (paramorphic)",
+    "scepter overgrowth possible", "chalcedony (microcrystalline)",
+    "opal (amorphous silica)", "silica_gel_hemisphere",
+    "flos_ferri", "acicular_needle", "twinned_cyclic", "columnar",
+    "radiating_columnar", "coarse_rhomb", "massive", "saddle_rhomb",
+    "spherulitic", "banding_agate", "fibrous_coating",
+    "hemimorphic_crystal", "platy_massive", "micaceous_book",
+    "rosette_radiating", "rosette_bladed", "plumose_rosette",
+    "radiating_blade", "radiating_cluster", "radiating_fibrous",
+    "radiating_spray", "globular", "nodular", "framboidal",
+    "granular", "powdery crust", "powdery_aggregate",
+    "powdery_disseminated", "sublimation_crust", "iridescent_coating",
+    "peacock_iridescent", "specular", "thorn", "spearhead",
+    "reticulated", "trapiche", "nugget", "hopper_growth",
+    "pseudomorph", "pseudomorph_after_azurite", "pseudomorph_after_sulfide",
+    "olive_hex_barrel", "yellow_hex_barrel", "goshenite", "nickel_bloom",
+    "cobalt_bloom", "cabrerite", "co_bearing", "cockscomb",
+    "disphenoidal", "banded", "druzy", "arsenolamprite",
+    "chalcotrichite", "azurite_sun", "enamel_on_cuprite",
+    "endlichite_yellow", "asterated",
+    # v28 borax habits
+    "cottonball",
+}
 
 
 def _resolves(habit: str) -> bool:
@@ -101,9 +138,23 @@ def _resolves(habit: str) -> bool:
     return any(s in h for s in _FUZZY_SUBSTRINGS)
 
 
+def _runtime_habits():
+    """Extract every habit string assigned via `crystal.habit = '…'` in
+    index.html. These are runtime-mutated habits (silica polymorphs,
+    calcite/aragonite habit pickers, supergene-product engines) that
+    don't appear in data/minerals.json but DO drive the renderer at
+    play time. Pre-v26 polish, ~40 of these fell through to
+    PRIM_RHOMBOHEDRON; v26 expanded the dispatch to cover them."""
+    text = _index_html_text()
+    # Match both single and double quotes.
+    matches = re.findall(r"crystal\.habit\s*=\s*['\"]([^'\"]+)['\"]", text)
+    return sorted(set(matches))
+
+
 def test_all_primitives_defined_in_index_html():
-    """The 12 primitive constants the proposal calls out must all exist
-    in the deployed index.html. Catches accidental deletion / rename."""
+    """The 13 primitive constants the proposal + air-mode addendum call
+    out must all exist in the deployed index.html. Catches accidental
+    deletion / rename."""
     text = _index_html_text()
     expected = [
         "PRIM_CUBE", "PRIM_OCTAHEDRON", "PRIM_TETRAHEDRON",
@@ -111,12 +162,42 @@ def test_all_primitives_defined_in_index_html():
         "PRIM_HEX_PRISM", "PRIM_HEX_PRISM_TERMINATED",
         "PRIM_DIPYRAMID", "PRIM_PYRITOHEDRON",
         "PRIM_TABULAR", "PRIM_ACICULAR", "PRIM_BOTRYOIDAL",
+        # v24 air-mode addition.
+        "PRIM_DRIPSTONE",
     ]
     for name in expected:
         assert re.search(rf"\bconst {name}\b", text), (
             f"Primitive {name} missing from index.html — wireframe "
             f"renderer will fall back to default for matching habits."
         )
+
+
+def test_dripstone_air_mode_override_present():
+    """v24: when crystal.growth_environment === 'air', dripstone-eligible
+    habits (prismatic, acicular, rhombohedral, scalenohedral, botryoidal,
+    plus their compound forms) must override to PRIM_DRIPSTONE. Cubic /
+    octahedral / tetrahedral / tabular / dipyramidal habits are
+    structurally incompatible with dripstone (galena cubes don't form
+    icicles) and must keep their canonical primitive even in air mode.
+
+    Regex-checks that the override mechanism + the eligibility set both
+    exist in `_lookupCrystalPrimitive`. If air-mode handling is silently
+    removed, every air-stamped crystal would render as its fluid-mode
+    primitive — visually missing the cave story the foundation set up."""
+    text = _index_html_text()
+    assert "_isDripstoneEligibleCanonical" in text, (
+        "Air-mode dripstone eligibility helper missing from index.html "
+        "— vadose-zone crystals will render as their fluid-mode primitive.")
+    assert "growth_environment === 'air'" in text, (
+        "Air-mode branch missing from `_lookupCrystalPrimitive` — "
+        "dripstone override never fires.")
+    assert "PRIM_DRIPSTONE" in text, "PRIM_DRIPSTONE referenced nowhere"
+    # Eligible canonical primitives — these are the dripstone-friendly
+    # silhouettes. Tabular / dipyramid / cube must NOT be in this list
+    # (they keep their canonical form in air mode).
+    assert "PRIM_HEX_PRISM_TERMINATED" in text
+    assert "PRIM_BOTRYOIDAL" in text
+    assert "PRIM_ACICULAR" in text
 
 
 def test_lookup_helpers_present():
@@ -142,6 +223,22 @@ def test_every_habit_resolves_to_a_primitive(habit):
         f"the direct table nor via fuzzy substring. Add an entry to "
         f"HABIT_TO_PRIMITIVE in index.html (or a new substring)."
     )
+
+
+@pytest.mark.parametrize("habit", _runtime_habits())
+def test_every_runtime_habit_resolves_to_a_primitive(habit):
+    """v26 polish coverage gate: every runtime-set crystal.habit value
+    in index.html must hit either the direct lookup table or a fuzzy-
+    substring matcher. Pre-polish, ~40 of these fell through to
+    PRIM_RHOMBOHEDRON, so any prismatic / radiating / fibrous / opal /
+    spherulite habit silently rendered as a rhomb. This test catches
+    a future habit string that the dispatch can't parse."""
+    assert _resolves(habit), (
+        f"Runtime habit {habit!r} doesn't resolve — neither in the "
+        f"direct table nor via fuzzy substring. Either add a direct "
+        f"entry to HABIT_TO_PRIMITIVE in index.html, or add a substring "
+        f"to the fuzzy fallback. Without a match, the crystal renders "
+        f"as PRIM_RHOMBOHEDRON regardless of its actual morphology.")
 
 
 def test_painters_order_render_dispatch_present():

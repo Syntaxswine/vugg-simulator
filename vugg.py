@@ -403,7 +403,66 @@ from typing import List, Dict, Optional, Tuple
 #      stamped crystals in the upper rings — the bridge to PROPOSAL-
 #      AIR-MODE.md's stalactite renderer. See PROPOSAL-EVAPORITE-WATER-
 #      LEVELS.md.
-SIM_VERSION = 24
+# v26: Host-rock porosity as a water-level drainage sink. New
+#      VugConditions.porosity field (default 0.0 = sealed cavity, no
+#      drainage) drives a continuous per-step drift:
+#      fluid_surface_ring -= porosity × WATER_LEVEL_DRAIN_RATE.
+#      Asymmetric — porosity can only drain; filling stays event-
+#      driven (tectonic uplift breaches, aquifer recharge, fresh
+#      infiltration). A scenario can now set up slow-drain dynamics:
+#      seed fluid_surface_ring at full + porosity > 0, the cavity
+#      drains over its step budget, vadose rings get the v25 oxidation
+#      override automatically as they transition. Two example events
+#      added — event_tectonic_uplift_drains (snaps to 0) and
+#      event_aquifer_recharge_floods (snaps back to ceiling) — for
+#      scenarios that want sudden filling/draining without porosity
+#      drift. Engine drift: zero — default porosity=0 means existing
+#      scenarios stay byte-identical.
+# v25: Vadose-zone oxidation. When a ring transitions wet → vadose,
+#      its ring-fluid is forced to oxidizing chemistry (O2 → max(1.8,
+#      current); S × 0.3 to model sulfide-oxidation drawdown of solute
+#      sulfur). Submerged rings keep scenario chemistry, so the floor
+#      stays reducing while the air-exposed ceiling oxidizes — matches
+#      real supergene paragenesis (galena → cerussite, chalcopyrite →
+#      malachite/azurite, pyrite → limonite, all in the air zone).
+#      Existing oxidation-product engines fire naturally because they
+#      already read each crystal's ring fluid via Phase C v1 plumbing.
+#      `event_supergene_dry_spell` and `event_bisbee_final_drying` now
+#      actually drop fluid_surface_ring (to 8 and 0 respectively); they
+#      previously only bumped global O2. Engine drift: bisbee gains
+#      vadose-zone Cu-oxidation product growth in upper rings; supergene
+#      gains vadose-zone sulfate / arsenate growth. See PROPOSAL-AIR-
+#      MODE.md Stage B and PROPOSAL-EVAPORITE-WATER-LEVELS.md.
+# v27: Evaporite chemistry plumbing — items 3-5 of PROPOSAL-EVAPORITE-
+#      WATER-LEVELS.md. New per-ring fluid concentration multiplier
+#      (FluidChemistry.concentration, default 1.0) boosted by 3× at
+#      every wet → vadose transition. Models the geological reality
+#      that water leaving a ring concentrates the remaining solutes —
+#      bathtub-ring deposit chemistry. New WATER_STATE_PREFERENCE
+#      table biases evaporite minerals (selenite, anhydrite, halite)
+#      toward the meniscus ring at nucleation, matching the field
+#      observation that bathtub-ring evaporites cluster at the water
+#      line. New halite mineral (NaCl) — cubic supergene/evaporite
+#      with the canonical hopper-growth habit when supersaturation is
+#      high. supersaturation_halite reads concentration so a
+#      partially-drained ring (concentration > 1) reaches halite
+#      stability with realistic Na + Cl values. Default
+#      concentration=1.0 keeps every existing scenario byte-identical
+#      to v26.
+# v28: Borax + tincalconite + dehydration paramorph mechanic. Adds
+#      Na-B-alkaline borate evaporite (borax, Na₂[B₄O₅(OH)₄]·8H₂O)
+#      and its dehydration product (tincalconite, Na₂B₄O₇·5H₂O).
+#      New DEHYDRATION_TRANSITIONS framework — environment-triggered
+#      paramorph (counterpart to PARAMORPH_TRANSITIONS' temperature
+#      trigger). Borax in a vadose ring with concentration ≥ 1.5
+#      accumulates dry_exposure_steps; once ≥ 25 steps, the crystal
+#      pseudomorphs to tincalconite while preserving its external
+#      shape. High T (≥ 75°C) fires immediate dehydration regardless
+#      of dryness counter. Engine drift: zero — no existing scenario
+#      seeds boron, so borax stays dormant in the v27 baseline. The
+#      sabkha_dolomitization scenario could later opt into borax by
+#      seeding B in its initial fluid.
+SIM_VERSION = 28
 
 # Mineral-specific nucleation orientation preferences. Most species
 # are spatially neutral in fluid-filled vugs (gravity is weak at
@@ -438,6 +497,21 @@ ORIENTATION_PREFERENCE = {
     'bismuthinite':   ('wall', 1.5),
 }
 
+# v27 water-state nucleation preference for evaporite minerals.
+# Bathtub-ring deposits cluster at the meniscus — where water is
+# evaporating fastest and supersaturation peaks. Format mirrors
+# ORIENTATION_PREFERENCE: mineral_name → (state, strength_factor)
+# where state ∈ {'submerged', 'meniscus', 'vadose'} and strength
+# multiplies that ring's nucleation weight when its water_state
+# matches. No-op when fluid_surface_ring is None (every ring
+# 'submerged' under legacy default), so existing scenarios are
+# unaffected.
+WATER_STATE_PREFERENCE = {
+    'halite':        ('meniscus', 4.0),  # NaCl — strongest meniscus tie
+    'selenite':      ('meniscus', 2.5),  # gypsum — sabkha bathtub ring
+    'anhydrite':     ('meniscus', 2.0),
+}
+
 # Phase C of PROPOSAL-3D-SIMULATION (= proposal's "Phase 2"): per-ring
 # chemistry scaffolding. Each ring carries its own FluidChemistry +
 # temperature; inter-ring diffusion homogenizes them slowly. Rate is
@@ -447,6 +521,20 @@ ORIENTATION_PREFERENCE = {
 # rounding. Scenarios that don't seed a vertical gradient see all rings
 # identical at every step (forward-simulation byte-equality preserved).
 DEFAULT_INTER_RING_DIFFUSION_RATE = 0.05
+
+# v26 water-level drainage rate. Surface drops by porosity × this
+# (rings/step). 0.05 means a perfectly-porous host (porosity=1.0)
+# drains 16 rings in 320 steps — a typical scenario length, so
+# scenarios that want to actually empty a vug pick porosity ≥ 0.5
+# to see meaningful drift within their step budget.
+WATER_LEVEL_DRAIN_RATE = 0.05
+
+# v27 evaporative concentration boost on wet → vadose transition.
+# When a ring loses water, dissolved solutes (Ca, Na, Cl, Mg, …) are
+# left behind at higher effective concentration. 3.0× is a moderate
+# initial spike; further drying (porosity drift while still vadose)
+# can push it higher via subsequent boosts.
+EVAPORATIVE_CONCENTRATION_FACTOR = 3.0
 
 
 # ============================================================
@@ -711,6 +799,15 @@ class FluidChemistry:
     O2: float = 0.0            # relative oxygen fugacity (0=reducing, 1=neutral, 2=oxidizing)
     pH: float = 6.5
     salinity: float = 5.0      # wt% NaCl equivalent
+    # v27 evaporative concentration multiplier. 1.0 = unchanged
+    # scenario chemistry. > 1.0 = water has evaporated, leaving solutes
+    # behind at higher effective concentration. Per-ring (each
+    # ring_fluids[k] has its own value); boosted at wet → vadose
+    # transition (× EVAPORATIVE_CONCENTRATION_FACTOR) and also
+    # gradually as a porosity-draining ring stays vadose. Read by
+    # evaporite supersaturation methods (halite, selenite-evaporite
+    # mode) to determine when bathtub-ring deposits precipitate.
+    concentration: float = 1.0
 
     def describe(self) -> str:
         """Human-readable fluid description."""
@@ -1377,6 +1474,17 @@ class VugConditions:
     # e.g. 8.5; events can mutate it over time (drainage, refill).
     fluid_surface_ring: Optional[float] = None
 
+    # v26 host-rock porosity. Sink term for the water-level mechanic:
+    # each step the surface drifts down by `porosity *
+    # WATER_LEVEL_DRAIN_RATE` rings, modeling slow drainage through a
+    # porous host (sandstone, weathered limestone, vesicular basalt).
+    # 0.0 = sealed cavity (no drainage; legacy default — surface stays
+    # wherever scenarios / events put it). 1.0 = highly permeable host;
+    # the cavity drains in roughly ring_count / DRAIN_RATE steps under
+    # zero inflow. Filling stays event-driven (tectonic uplift,
+    # aquifer recharge); porosity is asymmetric — it can only drain.
+    porosity: float = 0.0
+
     # Fluid-level cycle tracking for the Kim 2023 dolomite mechanism.
     # Per-crystal tracking via phantom_count would work in principle but
     # dolomite seeds get enclosed by other carbonates faster than they
@@ -1403,6 +1511,23 @@ class VugConditions:
                 self._dol_in_undersat = False
         self._dol_prev_sigma = sigma
 
+    @staticmethod
+    def _classify_water_state(surface, ring_idx: int, ring_count: int) -> str:
+        """Pure classifier used by ring_water_state and by transition-
+        detection logic that needs to compare against an arbitrary
+        previous surface value (not just the current one). Behaviour
+        matches ring_water_state — kept in one place so they can't
+        drift apart."""
+        if surface is None:
+            return 'submerged'
+        if ring_count <= 1:
+            return 'submerged' if surface >= 1.0 else 'vadose'
+        if ring_idx + 1 <= surface:
+            return 'submerged'
+        if ring_idx >= surface:
+            return 'vadose'
+        return 'meniscus'
+
     def ring_water_state(self, ring_idx: int, ring_count: int) -> str:
         """v24: classify a ring as 'submerged' / 'meniscus' / 'vadose'
         from the cavity's current `fluid_surface_ring`.
@@ -1416,16 +1541,7 @@ class VugConditions:
         Used by nucleation to stamp `Crystal.growth_environment` and by
         the renderer to draw the blue water line.
         """
-        s = self.fluid_surface_ring
-        if s is None:
-            return 'submerged'
-        if ring_count <= 1:
-            return 'submerged' if s >= 1.0 else 'vadose'
-        if ring_idx + 1 <= s:
-            return 'submerged'
-        if ring_idx >= s:
-            return 'vadose'
-        return 'meniscus'
+        return self._classify_water_state(self.fluid_surface_ring, ring_idx, ring_count)
 
     @property
     def effective_temperature(self) -> float:
@@ -2279,6 +2395,110 @@ class VugConditions:
             sigma -= (3.5 - self.fluid.pH) * 0.4
         elif self.fluid.pH > 9.0:
             sigma -= (self.fluid.pH - 9.0) * 0.3
+        return max(sigma, 0)
+
+    def supersaturation_tincalconite(self) -> float:
+        """Tincalconite (Na₂B₄O₇·5H₂O) is the dehydration paramorph
+        product of borax — it appears in the simulator only via
+        apply_dehydration_transitions, never via nucleation from
+        solution. Returns 0 unconditionally so the engine framework
+        sees it as "always sub-saturated" and the nucleation gate
+        never fires for tincalconite directly."""
+        return 0
+
+    def supersaturation_borax(self) -> float:
+        """Borax (Na₂[B₄O₅(OH)₄]·8H₂O) — sodium-tetraborate decahydrate.
+        Closed-basin evaporite from alkaline brines (Hill & Forti
+        1997; Smith 1979 *Subsurface Stratigraphy of Searles Lake*).
+        Requires Na, B, alkaline pH, and evaporative concentration —
+        a mineral that explicitly doesn't belong in hot reducing
+        hydrothermal vugs. Like halite, σ scales quadratically with
+        the ring's evaporative concentration multiplier so borax stays
+        dormant at baseline and fires only after surface-drop drying
+        has spiked the local concentration.
+
+        Decomposes to anhydrous Na₂B₄O₇ above ~320°C; effloresces to
+        tincalconite (Na₂B₄O₇·5H₂O) at low humidity. The latter is the
+        v28 dehydration paramorph mechanic — separate from the
+        supersaturation gate; this method just decides whether new
+        borax can crystallize.
+        """
+        if self.fluid.Na < 50 or self.fluid.B < 5:
+            return 0
+        # Above 60°C borax dehydrates in place (handled by the
+        # dehydration paramorph) — and growth via supersaturation
+        # also stops since the decahydrate isn't stable here.
+        if self.temperature > 60:
+            return 0
+        # Borax wants alkaline brine. pH < 8 sharply attenuates.
+        if self.fluid.pH < 7.0:
+            return 0
+        c = self.fluid.concentration
+        # Hard concentration gate. Borax is strictly an active-
+        # evaporation mineral — it doesn't crystallize from a fluid
+        # that isn't currently concentrating. Submerged rings stay at
+        # concentration=1.0; only meniscus + vadose rings (post-
+        # transition boost ≥ 3.0, or scenario-set evaporative event)
+        # cross this threshold. Without this gate, an unusually high
+        # Na+B fluid would precipitate borax even in fully-flooded
+        # cavities — wrong for the playa-lake / sabkha-only mineral.
+        if c < 1.5:
+            return 0
+        sigma = (self.fluid.Na / 500.0) * (self.fluid.B / 100.0) * c * c
+        # Alkalinity bonus — sweet spot pH 8.5-10.5.
+        if 8.5 <= self.fluid.pH <= 10.5:
+            sigma *= 1.4
+        elif self.fluid.pH > 10.5:
+            sigma *= 1.1
+        # Ca²⁺ steals borate as colemanite/inyoite — large Ca sharply
+        # suppresses borax. (Research file: "Ca²⁺ sequesters borate as
+        # colemanite/inyoite — COMPETES for B".)
+        if self.fluid.Ca > 50:
+            ca_penalty = min(1.0, self.fluid.Ca / 150.0)
+            sigma *= (1.0 - 0.7 * ca_penalty)
+        return max(sigma, 0)
+
+    def supersaturation_halite(self) -> float:
+        """Halite (NaCl) — chloride evaporite. Real seawater needs ~10×
+        evaporative concentration to reach halite saturation (after
+        gypsum has already precipitated and depleted Ca / SO₄). Here
+        we model that as a quadratic dependence on the per-ring
+        evaporative concentration multiplier — halite stays dormant
+        while the cavity is fluid-filled, then fires sharply as a ring
+        transitions vadose and concentration jumps 3×.
+
+        Crystal-system: cubic. Hopper (skeletal) growth at high
+        supersaturation is the canonical "rapid evaporation" habit;
+        well-formed cubes form at slower growth.
+
+        Geological context: classic playa / sabkha / closed-basin
+        evaporite. NOT a hydrothermal or hypogene mineral. Most
+        existing scenarios won't fire halite — needs Na + Cl seeded
+        at modest levels and a drained cavity. The bisbee_final_drying
+        and supergene_dry_spell paths now produce vadose-ring
+        concentrations that bring halite into reach in scenarios with
+        adequate Na + Cl.
+        """
+        if self.fluid.Na < 5 or self.fluid.Cl < 50:
+            return 0
+        c = self.fluid.concentration
+        # Quadratic in concentration — both Na and Cl get the boost
+        # multiplicatively. Thresholds picked so a Na+Cl-rich scenario
+        # stays sub-saturated at concentration=1 (most hydrothermal
+        # broths shouldn't grow halite on their own) but fires sharply
+        # when a vadose-transition concentration spike (× 3) brings
+        # the product over unity.
+        sigma = (self.fluid.Na / 100.0) * (self.fluid.Cl / 500.0) * c * c
+        # Halite is highly soluble at any T but the evaporite-
+        # crystallization pathway prefers low-to-moderate T (playa,
+        # sabkha). Above 100°C halite still forms in salt-dome / brine
+        # contexts but here we damp it slightly.
+        if self.temperature > 100:
+            sigma *= 0.7
+        # Strong acid dissolves halite (forms H+ + NaCl ↔ HCl + Na+);
+        # not realistic at typical pH but model the stability window.
+        if self.fluid.pH < 4.0:
+            sigma *= 0.5
         return max(sigma, 0)
 
     def supersaturation_selenite(self) -> float:
@@ -5205,6 +5425,12 @@ class Crystal:
     # so library + narrator can flag the cubic-acanthite-after-argentite case.
     paramorph_origin: Optional[str] = None
     paramorph_step: Optional[int] = None      # step on which the paramorph fired
+    # v28 dehydration tracking — counts steps spent in a dry
+    # environment (vadose ring with elevated concentration). Read by
+    # apply_dehydration_transitions to decide when borax should
+    # pseudomorph to tincalconite. Only relevant for crystals listed
+    # in DEHYDRATION_TRANSITIONS; safely ignored otherwise.
+    dry_exposure_steps: int = 0
 
     def add_zone(self, zone: GrowthZone):
         # Detect phantom boundaries — dissolution followed by regrowth
@@ -11484,6 +11710,155 @@ def grow_tyuyamunite(crystal: Crystal, conditions: VugConditions, step: int) -> 
     )
 
 
+def grow_tincalconite(crystal: Crystal, conditions: VugConditions, step: int) -> Optional[GrowthZone]:
+    """Tincalconite has no growth pathway from solution — it appears
+    only as a dehydration paramorph of borax. This stub satisfies the
+    MINERAL_ENGINES coverage gate (every spec'd mineral has an engine)
+    while doing nothing on the rare path where the registry might be
+    invoked for it (e.g. if a future mineral spec referenced
+    tincalconite as a substrate). Always returns None — no growth, no
+    dissolution."""
+    return None
+
+
+def grow_borax(crystal: Crystal, conditions: VugConditions, step: int) -> Optional[GrowthZone]:
+    """Borax (Na₂[B₄O₅(OH)₄]·8H₂O) — fast-growing alkaline-evaporite.
+    Habit selection follows the research file's three modes:
+    prismatic at low T + slow growth (Boron CA museum specimens),
+    cottonball at higher T + rapid evaporation (Death Valley playa
+    surface), and massive at deep tincal-bed conditions. The actual
+    dehydration to tincalconite is handled by apply_dehydration_
+    transitions, NOT here — keeping growth and decay separate so the
+    same crystal can grow, then later pseudomorph if the cavity stays
+    dry too long."""
+    sigma = conditions.supersaturation_borax()
+
+    if sigma < 1.0:
+        # Re-flooding event drops concentration; borax dissolves
+        # quickly (highly soluble, 31.7 g/L at 25°C).
+        if crystal.total_growth_um > 5 and conditions.fluid.concentration < 1.5:
+            crystal.dissolved = True
+            dissolved_um = min(10.0, crystal.total_growth_um * 0.25)
+            conditions.fluid.Na += dissolved_um * 0.4
+            conditions.fluid.B += dissolved_um * 0.15
+            return GrowthZone(
+                step=step, temperature=conditions.temperature,
+                thickness_um=-dissolved_um, growth_rate=-dissolved_um,
+                note=f"meteoric flush — borax redissolves "
+                     f"(concentration {conditions.fluid.concentration:.1f})"
+            )
+        return None
+
+    excess = sigma - 1.0
+    # Rate ~15 (3× quartz baseline) per the research file. Random
+    # spread keeps adjacent borax crystals from looking identical.
+    rate = 15.0 * excess * random.uniform(0.8, 1.2)
+    if rate < 0.1:
+        return None
+
+    # Habit selection — three modes from the research file.
+    if rate > 12 and conditions.temperature >= 35:
+        crystal.habit = "cottonball"
+        crystal.dominant_forms = ["fibrous radial bundles", "white rounded clusters"]
+    elif crystal.total_growth_um > 8000:
+        crystal.habit = "massive"
+        crystal.dominant_forms = ["tincal nodule", "granular massive"]
+    else:
+        crystal.habit = "prismatic"
+        crystal.dominant_forms = ["{100} pinacoid", "{110} prism", "{010} dome"]
+
+    # Mass balance — Na is the rarer ingredient in most scenarios.
+    # Borate (B) consumed in 4:1 stoichiometric ratio to Na.
+    conditions.fluid.Na = max(conditions.fluid.Na - rate * 0.06, 0)
+    conditions.fluid.B = max(conditions.fluid.B - rate * 0.018, 0)
+    # Precipitation slowly relaxes the concentration multiplier
+    # (solutes leaving solution effectively dilute remaining brine).
+    conditions.fluid.concentration = max(
+        1.0, conditions.fluid.concentration - 0.015 * excess)
+
+    if conditions.fluid.Cu > 5:
+        color_note = "pale blue-green borax (trace Cu)"
+    else:
+        color_note = "colorless prismatic borax — vitreous, sectile"
+
+    return GrowthZone(
+        step=step, temperature=conditions.temperature,
+        thickness_um=rate, growth_rate=rate,
+        note=color_note,
+    )
+
+
+def grow_halite(crystal: Crystal, conditions: VugConditions, step: int) -> Optional[GrowthZone]:
+    """Halite (NaCl) — cubic chloride evaporite. Forms when an
+    evaporating ring's per-ring concentration multiplier × (Na, Cl)
+    crosses the saturation threshold. Hopper (skeletal cubic) growth
+    above σ ≥ 5; clean cubes below.
+
+    Mass-balance: every µm of growth consumes Na and Cl from the
+    ring's fluid. Halite is highly soluble (~360 g/L), so dissolution
+    is aggressive in fresh meteoric pulses (low concentration ring).
+    """
+    sigma = conditions.supersaturation_halite()
+
+    if sigma < 1.0:
+        # Re-flooding event with a fresh meteoric pulse drops the per-
+        # ring concentration; existing halite re-dissolves quickly.
+        if crystal.total_growth_um > 5 and conditions.fluid.concentration < 1.5:
+            crystal.dissolved = True
+            dissolved_um = min(8.0, crystal.total_growth_um * 0.20)
+            conditions.fluid.Na += dissolved_um * 0.4
+            conditions.fluid.Cl += dissolved_um * 6.0
+            return GrowthZone(
+                step=step, temperature=conditions.temperature,
+                thickness_um=-dissolved_um, growth_rate=-dissolved_um,
+                note=f"meteoric flush — halite redissolves "
+                     f"(concentration {conditions.fluid.concentration:.1f})"
+            )
+        return None
+
+    excess = sigma - 1.0
+    rate = 8.0 * excess * random.uniform(0.85, 1.15)
+    if rate < 0.1:
+        return None
+
+    # Habit selection. High supersaturation triggers hopper-growth —
+    # the rim of the cube grows faster than the face center, leaving
+    # pyramidal hollows. Slow growth produces clean cubes.
+    if sigma > 5.0:
+        crystal.habit = "hopper_growth"
+        crystal.dominant_forms = ["{100} cube with pyramidal hopper hollows"]
+    else:
+        crystal.habit = "cubic"
+        crystal.dominant_forms = ["{100} cube"]
+
+    # Mass-balance — Na is the limiting reagent (much rarer than Cl
+    # in typical scenarios). Cl is consumed in stoichiometric ratio.
+    conditions.fluid.Na = max(conditions.fluid.Na - rate * 0.05, 0)
+    conditions.fluid.Cl = max(conditions.fluid.Cl - rate * 0.08, 0)
+    # Each precipitation step also slowly relaxes the concentration
+    # multiplier — solutes coming out of solution effectively dilute
+    # what's left. Bounded at 1.0 so concentration never goes below
+    # baseline scenario chemistry.
+    conditions.fluid.concentration = max(
+        1.0, conditions.fluid.concentration - 0.02 * excess)
+
+    # Color note — most halite is colorless. Trace inclusions tint:
+    # K → blue/purple (rare, irradiation-induced color centers),
+    # Fe → pink (Searles Lake, Stassfurt). For now keep it simple.
+    if conditions.fluid.Fe > 30:
+        color_note = "rose-pink halite (Fe inclusions)"
+    elif conditions.fluid.K > 200:
+        color_note = "blue halite (K-induced color centers)"
+    else:
+        color_note = "colorless cubic halite"
+
+    return GrowthZone(
+        step=step, temperature=conditions.temperature,
+        thickness_um=rate, growth_rate=rate,
+        note=color_note,
+    )
+
+
 def grow_selenite(crystal: Crystal, conditions: VugConditions, step: int) -> Optional[GrowthZone]:
     """Selenite / Gypsum (CaSO₄·2H₂O) growth. Low-T evaporite, Naica's giant crystals."""
     sigma = conditions.supersaturation_selenite()
@@ -11583,6 +11958,9 @@ MINERAL_ENGINES = {
     "antlerite": grow_antlerite,
     "anhydrite": grow_anhydrite,
     "selenite": grow_selenite,
+    "halite": grow_halite,
+    "borax": grow_borax,
+    "tincalconite": grow_tincalconite,  # paramorph-only stub
     "topaz": grow_topaz,
     "tourmaline": grow_tourmaline,
     "beryl": grow_beryl,          # goshenite / generic colorless (post-R7)
@@ -11716,6 +12094,89 @@ PARAMORPH_TRANSITIONS = {
     # mineral_when_hot: (mineral_when_cool, T_threshold_C)
     "argentite": ("acanthite", 173),
 }
+
+# v28 Dehydration paramorph transitions — environment-triggered, in
+# contrast to PARAMORPH_TRANSITIONS which are temperature-triggered.
+# When a hydrated mineral is left in a dry environment (vadose ring
+# with elevated concentration / low effective humidity) for some
+# time, the structural water leaves and the mineral pseudomorphs to
+# its dehydrated form. The external crystal shape is preserved.
+#
+# First entry — borax → tincalconite:
+#   Na₂[B₄O₅(OH)₄]·8H₂O  →  Na₂B₄O₇·5H₂O + 5 H₂O ↑
+# The signature "borax effloresces in a collection drawer" mechanic.
+# Real borax loses 5 of 10 water molecules in dry air at room T;
+# specimens MUST be sealed to survive. Here we model that by counting
+# steps spent in a vadose ring with concentration > 2 (proxy for
+# "dry, evaporating environment") and converting once a threshold is
+# reached. Once converted, no reverse reaction — tincalconite doesn't
+# re-hydrate in normal conditions.
+#
+# Format: hydrated_mineral → (dehydrated_mineral, dryness_threshold_steps,
+#                              concentration_min, T_max)
+# - dryness_threshold_steps: total step count of dry exposure needed
+# - concentration_min: ring concentration must exceed this to count a step
+# - T_max: above this T, dehydration ALSO fires (no threshold needed —
+#          high heat drives water off regardless of humidity)
+DEHYDRATION_TRANSITIONS = {
+    "borax": ("tincalconite", 25, 1.5, 75.0),
+}
+
+
+def apply_dehydration_transitions(crystal, ring_fluid, ring_water_state, T, step=None):
+    """v28: convert a hydrated mineral in place when its host ring has
+    been dry for too long. Mutates crystal.mineral and stamps
+    paramorph_origin. The external shape (habit + dominant_forms +
+    zones) is preserved.
+
+    Counter logic: each step the crystal's host ring is in a "dry"
+    state (vadose AND concentration ≥ threshold), increment the
+    crystal's dry_exposure_steps. Once the count reaches the
+    configured threshold, fire the dehydration. Hot rings (T above
+    the configured T_max) skip the counter entirely — high heat
+    drives water off immediately.
+
+    Returns (old_mineral, new_mineral) if a transition fired, None
+    otherwise. No-op for crystals not in DEHYDRATION_TRANSITIONS.
+    """
+    if not crystal.active or crystal.dissolved:
+        return None
+    spec = DEHYDRATION_TRANSITIONS.get(crystal.mineral)
+    if spec is None:
+        return None
+    new_mineral, threshold_steps, conc_min, T_max = spec
+    is_hot = T >= T_max
+    # Vadose flag IS the dryness signal — a ring out of fluid is
+    # dry by definition, regardless of how much solute is left in
+    # any residual moisture. The conc_min threshold gates only the
+    # meniscus state (a wet ring is dry-feeling only when it's
+    # actively concentrating; submerged rings never count).
+    if ring_water_state == 'vadose':
+        is_dry = True
+    elif ring_water_state == 'meniscus':
+        is_dry = ring_fluid.concentration >= conc_min
+    else:
+        is_dry = False
+    if is_hot:
+        # Heat path — instantaneous (~80% probability per step above T_max).
+        if random.random() < 0.8:
+            old_mineral = crystal.mineral
+            crystal.mineral = new_mineral
+            crystal.paramorph_origin = old_mineral
+            if step is not None:
+                crystal.paramorph_step = step
+            return (old_mineral, new_mineral)
+        return None
+    if is_dry:
+        crystal.dry_exposure_steps += 1
+        if crystal.dry_exposure_steps >= threshold_steps:
+            old_mineral = crystal.mineral
+            crystal.mineral = new_mineral
+            crystal.paramorph_origin = old_mineral
+            if step is not None:
+                crystal.paramorph_step = step
+            return (old_mineral, new_mineral)
+    return None
 
 
 def apply_paramorph_transitions(crystal, T, step=None):
@@ -11857,6 +12318,33 @@ def event_oxidation(conditions: VugConditions) -> str:
     conditions.temperature -= 40
     return (f"Oxidizing meteoric water infiltrates. Sulfides becoming unstable. "
             f"T drops to {conditions.temperature:.0f}°C.")
+
+
+def event_tectonic_uplift_drains(conditions: VugConditions) -> str:
+    """v26 example: tectonic uplift breaches the cavity, fluid drains
+    out completely. Snaps fluid_surface_ring to 0 — every ring goes
+    vadose on the next step. Pair with porosity for scenarios that
+    want gradual drainage; use this event for the moment the host
+    rock fractures and the vug becomes a karst feature."""
+    conditions.fluid_surface_ring = 0.0
+    conditions.flow_rate = 0.05
+    return ("Tectonic uplift fractures the host rock. The cavity "
+            "drains completely — fluid pours out through new joints "
+            "into the rocks below. What was a sealed pocket is now "
+            "an open cave. Walls dry. Sulfides start to oxidize.")
+
+
+def event_aquifer_recharge_floods(conditions: VugConditions) -> str:
+    """v26 example: a heavy rain or aquifer breach floods the cavity
+    back to the ceiling. Snaps fluid_surface_ring to a large value;
+    the simulator clamps to ring_count so the vug is fully submerged
+    again. Useful as a "wet phase" of a wet/dry cycle."""
+    conditions.fluid_surface_ring = 1.0e6  # clamped to ring_count
+    conditions.flow_rate = 2.0
+    return ("Heavy meteoric pulse. The cavity floods back to the "
+            "ceiling. Fluid contact resumes on every wall — "
+            "previously-oxidized rinds dissolve where they can; "
+            "fresh sulfide growth starts wherever they can't.")
 
 
 def event_acidify(conditions: VugConditions) -> str:
@@ -12658,15 +13146,22 @@ def event_supergene_cu_enrichment(conditions: VugConditions) -> str:
 
 
 def event_supergene_dry_spell(conditions: VugConditions) -> str:
-    """Evaporation concentrates sulfate — selenite potential."""
+    """Evaporation concentrates sulfate — selenite potential. Water
+    table drops to mid-cavity; ceiling rings go vadose."""
     conditions.fluid.Ca += 40
     conditions.fluid.S += 30
     conditions.fluid.O2 = 1.5
     conditions.temperature = 50  # slight warming, still below 60°C anhydrite line
     conditions.flow_rate = 0.3
+    # v24: half-drain. Surface drops to ring 8 of 16 (the equator) so
+    # the upper hemisphere becomes vadose. The simulator's per-step
+    # transition check then forces those rings' O2 → 1.8 oxidizing.
+    conditions.fluid_surface_ring = 8.0
     return ("Dry season. Flow slows, evaporation concentrates the brine. "
-            "Ca²⁺ and SO₄²⁻ climb toward selenite's window — the desert-rose "
-            "chemistry, the Naica chemistry.")
+            "Water table drops to mid-cavity. Ca²⁺ and SO₄²⁻ climb toward "
+            "selenite's window — the desert-rose chemistry, the Naica "
+            "chemistry. Above the meniscus, the air-exposed walls start "
+            "to oxidize.")
 
 
 def event_supergene_as_rich_seep(conditions: VugConditions) -> str:
@@ -12868,10 +13363,18 @@ def event_bisbee_silica_seep(conditions: VugConditions) -> str:
 
 
 def event_bisbee_final_drying(conditions: VugConditions) -> str:
-    """Flow stops. System seals."""
+    """Flow stops. System seals. Cavity fully drains — every ring
+    becomes vadose."""
     conditions.temperature = 20
     conditions.flow_rate = 0.1
     conditions.fluid.O2 = 1.0
+    # v24: complete drain. fluid_surface_ring = 0 means the meniscus
+    # sits at (or below) the floor, so every ring classifies as vadose.
+    # The simulator's transition check forces all newly-vadose rings'
+    # O2 → 1.8 oxidizing — drives the canonical Bisbee oxidation suite
+    # (chalcocite → cuprite → native copper → azurite → malachite →
+    # chrysocolla) at every level of the cavity, not just the bulk fluid.
+    conditions.fluid_surface_ring = 0.0
     return ("The fractures seal with calcite cement. Groundwater stops. "
             "The pocket is a closed system again, this time with the "
             "full oxidation assemblage frozen in place: chalcopyrite "
@@ -12964,6 +13467,8 @@ EVENT_REGISTRY = {
     "tectonic_shock": event_tectonic_shock,
     "copper_injection": event_copper_injection,
     "oxidation": event_oxidation,
+    "tectonic_uplift_drains": event_tectonic_uplift_drains,
+    "aquifer_recharge_floods": event_aquifer_recharge_floods,
     "acidify": event_acidify,
     "alkalinize": event_alkalinize,
     "molybdenum_pulse": event_molybdenum_pulse,
@@ -13498,9 +14003,22 @@ class VugSimulator:
         # Cache the FluidChemistry numeric fields once — used by the
         # diffusion loop to walk every component without paying for the
         # dataclasses.fields() call on each step.
+        # v27: exclude `concentration` from per-step diffusion + global
+        # delta propagation. Unlike dissolved species, the evaporative
+        # concentration multiplier is a per-ring state of the water
+        # budget — diffusing it would smear the meniscus boost into
+        # adjacent submerged rings (a vadose ring's concentration=3
+        # would slowly elevate the floor's concentration above the
+        # hard gates we use for evaporite minerals).
         self._fluid_field_names: Tuple[str, ...] = tuple(
-            f.name for f in fields(FluidChemistry)
+            f.name for f in fields(FluidChemistry) if f.name != 'concentration'
         )
+        # v24 vadose-zone oxidation: track previous fluid_surface_ring so
+        # we can detect rings that just transitioned wet → dry. None at
+        # construction means "no surface set yet"; first run_step
+        # compares against this and applies the override to whatever
+        # rings are currently vadose.
+        self._prev_fluid_surface_ring: Optional[float] = None
 
     def _snapshot_global(self) -> Tuple['FluidChemistry', float]:
         """Phase C v1: capture conditions.fluid + temperature before a
@@ -13537,6 +14055,105 @@ class VugSimulator:
                     self.ring_temperatures[k] = self.conditions.temperature
                 else:
                     self.ring_temperatures[k] += delta_t
+
+    def _apply_water_level_drift(self) -> float:
+        """v26: drain `porosity × WATER_LEVEL_DRAIN_RATE` rings per step
+        when the water-level mechanic is active. No-op when
+        fluid_surface_ring is None (legacy / sealed mode), porosity is
+        zero (sealed cavity, default), or the surface has already
+        bottomed out at zero. Asymmetric: porosity is a pure sink, not
+        a balance term — filling the cavity is event-driven (tectonic
+        uplift, aquifer breach, fresh infiltration), so a scenario can
+        set up a slow-drain → flood-back-up → drain-again cycle by
+        pairing porosity with periodic refill events.
+
+        Refill events that snap fluid_surface_ring above ring_count
+        get clamped here on the next step (so events can write a
+        sentinel like 1e6 to mean "fill to ceiling" without needing
+        to know ring_count themselves).
+
+        Called once per step from run_step, after events have applied
+        and before the vadose oxidation override (so a drift-driven
+        wet → dry transition correctly fires the oxidation cascade
+        on the same step it dries out).
+
+        Returns the change in surface position (negative, zero, or —
+        when an event-set sentinel is being clamped — negative even
+        though porosity didn't fire).
+        """
+        s = self.conditions.fluid_surface_ring
+        if s is None:
+            return 0.0
+        n = self.wall_state.ring_count
+        # Clamp event-set sentinels (e.g. 1e6 from event_aquifer_
+        # recharge_floods) before applying drainage. This is also a
+        # safety net if a scenario writes an out-of-range value.
+        if s > n:
+            self.conditions.fluid_surface_ring = float(n)
+            s = float(n)
+        p = self.conditions.porosity
+        if p <= 0.0 or s <= 0.0:
+            return 0.0
+        delta = -p * WATER_LEVEL_DRAIN_RATE
+        new_s = max(0.0, s + delta)
+        self.conditions.fluid_surface_ring = new_s
+        return new_s - s
+
+    def _apply_vadose_oxidation_override(self) -> List[int]:
+        """v24: detect rings that just transitioned wet → dry (submerged
+        or meniscus → vadose) and force their fluid to oxidizing
+        chemistry. Submerged rings keep the scenario's chemistry, so
+        the cavity floor stays reducing while the now-exposed ceiling
+        oxidizes — matching real-world supergene paragenesis where the
+        vadose zone is where pyrite becomes limonite, galena becomes
+        cerussite, chalcopyrite becomes malachite/azurite, etc.
+
+        Override applied to each newly-vadose ring's fluid:
+          * O2 → max(current, 1.8)  — explicitly oxidizing
+          * S  → S × 0.3            — sulfide oxidation depletes solute S
+
+        Equator ring is aliased to conditions.fluid; mutating its O2 /
+        S therefore propagates to the bulk view as well, which is the
+        physically correct outcome (if the equator is in air, the bulk
+        fluid sample IS the vadose-zone fluid). Submerged-side rings
+        are untouched.
+
+        Called once per step from run_step, after events have had a
+        chance to mutate conditions.fluid_surface_ring. Returns the
+        list of ring indices that just became vadose, useful for
+        narrators / tests.
+        """
+        n = self.wall_state.ring_count
+        new_surface = self.conditions.fluid_surface_ring
+        old_surface = self._prev_fluid_surface_ring
+        self._prev_fluid_surface_ring = new_surface
+        # No surface set OR no change → nothing to override.
+        if new_surface is None:
+            return []
+        # If no rings transitioned (surface didn't drop), early-exit
+        # without scanning. Catches the steady-state case where the
+        # scenario sets a surface once and leaves it alone.
+        if old_surface is not None and new_surface >= old_surface:
+            return []
+        became_vadose = []
+        classify = VugConditions._classify_water_state
+        for r in range(n):
+            was = classify(old_surface, r, n)
+            now = classify(new_surface, r, n)
+            if now == 'vadose' and was != 'vadose':
+                rf = self.ring_fluids[r]
+                if rf.O2 < 1.8:
+                    rf.O2 = 1.8
+                rf.S *= 0.3
+                # v27: evaporative concentration. The water that left
+                # this ring carried away the equivalent of itself —
+                # remaining solutes are concentrated. Compounds with
+                # the v25 oxidation override (which acts on O2 and S
+                # specifically); concentration is the symmetric ion
+                # boost for everything else.
+                rf.concentration *= EVAPORATIVE_CONCENTRATION_FACTOR
+                became_vadose.append(r)
+        return became_vadose
 
     def _diffuse_ring_state(self, rate: float = None) -> None:
         """Phase C inter-ring homogenization. One discrete-Laplacian step
@@ -13664,6 +14281,12 @@ class VugSimulator:
             crystal.dominant_forms = ["{001} thin square plates"]
         elif mineral == "selenite":
             crystal.dominant_forms = ["{010} plates", "swallow-tail twins"]
+        elif mineral == "halite":
+            crystal.dominant_forms = ["{100} cube", "hopper-growth pyramidal hollows"]
+        elif mineral == "borax":
+            crystal.dominant_forms = ["{100} pinacoid", "{110} monoclinic prism", "vitreous to resinous luster"]
+        elif mineral == "tincalconite":
+            crystal.dominant_forms = ["paramorph after borax", "white powdery crust"]
         elif mineral == "feldspar":
             crystal.dominant_forms = ["{001} cleavage", "{010} face", "Carlsbad twin"]
         elif mineral == "albite":
@@ -13837,6 +14460,13 @@ class VugSimulator:
         # Per-mineral orientation bias (v23). Spatially neutral
         # minerals get the legacy area-weighted distribution.
         pref = ORIENTATION_PREFERENCE.get(mineral) if mineral else None
+        # Per-mineral water-state bias (v27). Evaporite minerals
+        # cluster at the meniscus (bathtub-ring zone). Multiplies on
+        # top of the orientation weight when the ring's water_state
+        # matches. No-op when fluid_surface_ring is None — every ring
+        # then classifies as 'submerged' uniformly, so the weighting
+        # collapses to the orientation pass.
+        wpref = WATER_STATE_PREFERENCE.get(mineral) if mineral else None
         # Area-weighted sample. Linear scan picks the first ring whose
         # cumulative weight exceeds a uniform draw of [0, total).
         # Identical algorithm in JS so both runtimes pick the same
@@ -13846,6 +14476,11 @@ class VugSimulator:
             target_orient, strength = pref
             for k in range(n):
                 if self.wall_state.ring_orientation(k) == target_orient:
+                    weights[k] *= strength
+        if wpref is not None and n > 1:
+            target_state, strength = wpref
+            for k in range(n):
+                if self.conditions.ring_water_state(k, n) == target_state:
                     weights[k] *= strength
         total = sum(weights) or 1.0
         r = random.random() * total
@@ -14561,6 +15196,32 @@ class VugSimulator:
             c = self.nucleate("selenite", position="vug wall", sigma=sigma_sel)
             self.log.append(f"  ✦ NUCLEATION: Selenite #{c.crystal_id} on {c.position} "
                           f"(T={self.conditions.temperature:.0f}°C, σ={sigma_sel:.2f})")
+
+        # Halite nucleation — chloride evaporite. v27. Needs Na + Cl + an
+        # evaporative concentration boost to fire (typical hydrothermal
+        # scenarios run at concentration=1.0 and Na+Cl too low; the
+        # vadose-transition × 3 boost from drying drives sigma > 1).
+        # Roll rate kept moderate so a freshly-vadose ring drops a
+        # handful of cubes rather than carpeting itself instantly.
+        sigma_hal = self.conditions.supersaturation_halite()
+        if sigma_hal > 1.0 and not self._at_nucleation_cap("halite") and random.random() < 0.15:
+            c = self.nucleate("halite", position="vug wall", sigma=sigma_hal)
+            self.log.append(f"  ✦ NUCLEATION: Halite #{c.crystal_id} on {c.position} "
+                          f"(T={self.conditions.temperature:.0f}°C, σ={sigma_hal:.2f}, "
+                          f"concentration={self.conditions.fluid.concentration:.1f})")
+
+        # Borax nucleation — alkaline-brine borate evaporite. v28.
+        # Needs Na + B + alkaline pH + low T. Like halite, supersat
+        # is gated by the per-ring concentration multiplier so borax
+        # only fires after a drainage event has spiked it. Borax also
+        # needs Ca to be low enough not to steal borate as colemanite.
+        sigma_brx = self.conditions.supersaturation_borax()
+        if sigma_brx > 1.0 and not self._at_nucleation_cap("borax") and random.random() < 0.12:
+            c = self.nucleate("borax", position="vug wall", sigma=sigma_brx)
+            self.log.append(f"  ✦ NUCLEATION: Borax #{c.crystal_id} on {c.position} "
+                          f"(T={self.conditions.temperature:.0f}°C, σ={sigma_brx:.2f}, "
+                          f"concentration={self.conditions.fluid.concentration:.1f}, "
+                          f"pH={self.conditions.fluid.pH:.1f})")
 
         # Spodumene nucleation — Li + Al + SiO₂ (Li-gated).
         # Lithium is mildly incompatible — accumulates late in pegmatite
@@ -15784,6 +16445,23 @@ class VugSimulator:
         self.apply_events()
         self._propagate_global_delta(snap)
 
+        # v26: continuous drainage from host-rock porosity. Runs before
+        # the vadose override so a porosity-driven drift-out gets
+        # caught as a transition on the same step it dries.
+        self._apply_water_level_drift()
+
+        # v24: events may have dropped fluid_surface_ring. Detect rings
+        # that just transitioned wet → vadose and force their fluid to
+        # oxidizing chemistry. Lets the existing supergene-oxidation
+        # engines (limonite/cerussite/malachite/autunite/etc.) fire
+        # naturally in the air-exposed rings while the floor stays
+        # reducing.
+        newly_vadose = self._apply_vadose_oxidation_override()
+        if newly_vadose:
+            self.log.append(
+                f"  ☁ Vadose oxidation: rings {newly_vadose} now exposed to "
+                f"air — O₂ rises, sulfides become unstable")
+
         # Track dolomite saturation crossings for the Kim 2023 cycle
         # mechanism — must run after events (which set chemistry) and
         # before crystal growth (which reads the cycle count).
@@ -15871,6 +16549,33 @@ class VugSimulator:
                     f"  ↻ PARAMORPH: {old_m.capitalize()} #{crystal.crystal_id} "
                     f"→ {new_m} (T dropped to {self.conditions.temperature:.0f}°C, "
                     f"crossed {old_m}/{new_m} phase boundary; cubic external form preserved)"
+                )
+
+        # v28: dehydration paramorphs. Environment-triggered counterpart
+        # to PARAMORPH_TRANSITIONS — borax in a dry vadose ring loses
+        # 5 of 10 water molecules over ~25 steps and pseudomorphs to
+        # tincalconite. Each crystal's dry_exposure_steps counter is
+        # incremented per step its host ring is dry; transition fires
+        # when the count reaches the threshold.
+        n_rings = self.wall_state.ring_count
+        for crystal in self.crystals:
+            if crystal.mineral not in DEHYDRATION_TRANSITIONS:
+                continue
+            ring_idx = crystal.wall_ring_index
+            if ring_idx is None or ring_idx < 0 or ring_idx >= n_rings:
+                continue
+            ring_fluid = self.ring_fluids[ring_idx]
+            ring_state = self.conditions.ring_water_state(ring_idx, n_rings)
+            T_local = self.ring_temperatures[ring_idx]
+            transition = apply_dehydration_transitions(
+                crystal, ring_fluid, ring_state, T_local, self.step)
+            if transition:
+                old_m, new_m = transition
+                self.log.append(
+                    f"  ☼ DEHYDRATION: {old_m.capitalize()} #{crystal.crystal_id} "
+                    f"→ {new_m} (vadose exposure {crystal.dry_exposure_steps} steps, "
+                    f"ring {ring_idx} concentration={ring_fluid.concentration:.1f}); "
+                    f"external crystal form preserved as a {new_m} pseudomorph"
                 )
 
         # Water-solubility metastability — Round 8e (Apr 2026). Chalcanthite

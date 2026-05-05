@@ -4029,6 +4029,17 @@ const SIM_VERSION = 17;
 // rounding. Mirrors DEFAULT_INTER_RING_DIFFUSION_RATE in vugg.py.
 const DEFAULT_INTER_RING_DIFFUSION_RATE = 0.05;
 
+// v26 water-level drainage rate. Surface drops by porosity × this
+// (rings/step). 0.05 means a perfectly-porous host (porosity=1.0)
+// drains 16 rings in 320 steps. Mirrors WATER_LEVEL_DRAIN_RATE in
+// vugg.py.
+const WATER_LEVEL_DRAIN_RATE = 0.05;
+
+// v27 evaporative concentration boost on wet → vadose transition.
+// Multiplied into ring_fluids[k].concentration when the ring dries.
+// Mirrors EVAPORATIVE_CONCENTRATION_FACTOR in vugg.py.
+const EVAPORATIVE_CONCENTRATION_FACTOR = 3.0;
+
 // Phase C: clone a FluidChemistry instance. Used to seed each ring's
 // fluid as an independent copy of the scenario's global fluid so
 // later mutation on one ring doesn't leak to others.
@@ -4081,6 +4092,9 @@ class FluidChemistry {
     this.O2 = opts.O2 ?? 0.0;
     this.pH = opts.pH ?? 6.5;
     this.salinity = opts.salinity ?? 5.0;
+    // v27 evaporative concentration multiplier (mirror of
+    // FluidChemistry.concentration in vugg.py).
+    this.concentration = opts.concentration ?? 1.0;
   }
 
   describe() {
@@ -4613,22 +4627,32 @@ class VugConditions {
     // (legacy default, every ring 'submerged'). Below = submerged,
     // surface band = meniscus, above = vadose/'air'.
     this.fluid_surface_ring = opts.fluid_surface_ring ?? null;
+    // v26 host-rock porosity. Sink-only term for water-level drift:
+    // each step the surface drops by porosity × WATER_LEVEL_DRAIN_RATE
+    // rings. 0.0 = sealed cavity (no drainage; legacy default). 1.0 =
+    // highly permeable host. Filling stays event-driven.
+    this.porosity = opts.porosity ?? 0.0;
     // Kim 2023 dolomite cycle tracking — fluid-level so all dolomites benefit
     this._dol_cycle_count = 0;
     this._dol_prev_sigma = 0.0;
     this._dol_in_undersat = false;
   }
 
+  // Pure classifier; used by ringWaterState and by transition-detection
+  // logic that needs to compare against an arbitrary previous surface.
+  static _classifyWaterState(surface, ringIdx, ringCount) {
+    if (surface === null || surface === undefined) return 'submerged';
+    if (ringCount <= 1) return surface >= 1.0 ? 'submerged' : 'vadose';
+    if (ringIdx + 1 <= surface) return 'submerged';
+    if (ringIdx >= surface) return 'vadose';
+    return 'meniscus';
+  }
+
   // v24: classify a ring as 'submerged' / 'meniscus' / 'vadose'
   // from the cavity's current fluid_surface_ring. Mirror of
   // VugConditions.ring_water_state in vugg.py.
   ringWaterState(ringIdx, ringCount) {
-    const s = this.fluid_surface_ring;
-    if (s === null || s === undefined) return 'submerged';
-    if (ringCount <= 1) return s >= 1.0 ? 'submerged' : 'vadose';
-    if (ringIdx + 1 <= s) return 'submerged';
-    if (ringIdx >= s) return 'vadose';
-    return 'meniscus';
+    return VugConditions._classifyWaterState(this.fluid_surface_ring, ringIdx, ringCount);
   }
 
   update_dol_cycles() {
@@ -5732,6 +5756,45 @@ class VugConditions {
   // Selenite (gypsum, CaSO4·2H2O) — forms in evaporite/oxidation environments
   // Low temperature, needs Ca + S (as sulfate via oxidation) + O2
   // The crystal that grows when everything else is ending
+  supersaturation_tincalconite() {
+    // v28 paramorph product of borax — never nucleates from solution.
+    return 0;
+  }
+
+  supersaturation_borax() {
+    // v28 alkaline-brine borate evaporite. Mirror of
+    // supersaturation_borax in vugg.py.
+    if (this.fluid.Na < 50 || this.fluid.B < 5) return 0;
+    if (this.temperature > 60) return 0;
+    if (this.fluid.pH < 7.0) return 0;
+    const c = this.fluid.concentration ?? 1.0;
+    // v28: hard concentration gate — borax is strictly an active-
+    // evaporation mineral. Submerged rings stay at c=1.0 and never
+    // fire borax; only meniscus + vadose rings cross this threshold.
+    if (c < 1.5) return 0;
+    let sigma = (this.fluid.Na / 500.0) * (this.fluid.B / 100.0) * c * c;
+    if (this.fluid.pH >= 8.5 && this.fluid.pH <= 10.5) sigma *= 1.4;
+    else if (this.fluid.pH > 10.5) sigma *= 1.1;
+    if (this.fluid.Ca > 50) {
+      const caPenalty = Math.min(1.0, this.fluid.Ca / 150.0);
+      sigma *= (1.0 - 0.7 * caPenalty);
+    }
+    return Math.max(sigma, 0);
+  }
+
+  supersaturation_halite() {
+    // v27 chloride evaporite. Quadratic in concentration so halite
+    // stays dormant at scenario baseline (concentration=1) and fires
+    // sharply when a vadose-transition concentration spike kicks in.
+    // Mirror of supersaturation_halite in vugg.py.
+    if (this.fluid.Na < 5 || this.fluid.Cl < 50) return 0;
+    const c = this.fluid.concentration ?? 1.0;
+    let sigma = (this.fluid.Na / 100.0) * (this.fluid.Cl / 500.0) * c * c;
+    if (this.temperature > 100) sigma *= 0.7;
+    if (this.fluid.pH < 4.0) sigma *= 0.5;
+    return Math.max(sigma, 0);
+  }
+
   supersaturation_selenite() {
     // v17 reconciliation (May 2026): Phase boundary is at ~55-60°C
     // (Naica 54.5°C, Pulpí 20°C, Van Driessche et al. 2016). Pre-v17
@@ -6676,6 +6739,9 @@ class Crystal {
     // can flag the cubic-acanthite-after-argentite case.
     this.paramorph_origin = opts.paramorph_origin ?? null;
     this.paramorph_step = opts.paramorph_step ?? null;
+    // v28 dehydration tracking — counts steps in a dry environment
+    // for crystals listed in DEHYDRATION_TRANSITIONS.
+    this.dry_exposure_steps = opts.dry_exposure_steps ?? 0;
   }
 
   add_zone(zone) {
@@ -9770,6 +9836,101 @@ function grow_tyuyamunite(crystal, conditions, step) {
   });
 }
 
+// Tincalconite paramorph stub — no growth pathway, only appears via
+// applyDehydrationTransitions converting borax in place.
+function grow_tincalconite(_crystal, _conditions, _step) { return null; }
+
+// Borax (Na2[B4O5(OH)4]·8H2O) — alkaline-brine borate evaporite.
+// v28. Fast-growing, dehydration-prone. Mirror of grow_borax in
+// vugg.py.
+function grow_borax(crystal, conditions, step) {
+  const sigma = conditions.supersaturation_borax();
+  if (sigma < 1.0) {
+    if (crystal.total_growth_um > 5 && conditions.fluid.concentration < 1.5) {
+      crystal.dissolved = true;
+      const dissolved_um = Math.min(10.0, crystal.total_growth_um * 0.25);
+      conditions.fluid.Na += dissolved_um * 0.4;
+      conditions.fluid.B += dissolved_um * 0.15;
+      return new GrowthZone({
+        step, temperature: conditions.temperature,
+        thickness_um: -dissolved_um, growth_rate: -dissolved_um,
+        note: `meteoric flush — borax redissolves (concentration ${conditions.fluid.concentration.toFixed(1)})`,
+      });
+    }
+    return null;
+  }
+  const excess = sigma - 1.0;
+  const rate = 15.0 * excess * (0.8 + Math.random() * 0.4);
+  if (rate < 0.1) return null;
+  if (rate > 12 && conditions.temperature >= 35) {
+    crystal.habit = 'cottonball';
+    crystal.dominant_forms = ['fibrous radial bundles', 'white rounded clusters'];
+  } else if (crystal.total_growth_um > 8000) {
+    crystal.habit = 'massive';
+    crystal.dominant_forms = ['tincal nodule', 'granular massive'];
+  } else {
+    crystal.habit = 'prismatic';
+    crystal.dominant_forms = ['{100} pinacoid', '{110} prism', '{010} dome'];
+  }
+  conditions.fluid.Na = Math.max(conditions.fluid.Na - rate * 0.06, 0);
+  conditions.fluid.B = Math.max(conditions.fluid.B - rate * 0.018, 0);
+  conditions.fluid.concentration = Math.max(
+    1.0, conditions.fluid.concentration - 0.015 * excess);
+  let color_note;
+  if (conditions.fluid.Cu > 5) color_note = 'pale blue-green borax (trace Cu)';
+  else color_note = 'colorless prismatic borax — vitreous, sectile';
+  return new GrowthZone({
+    step, temperature: conditions.temperature,
+    thickness_um: rate, growth_rate: rate,
+    note: color_note,
+  });
+}
+
+// Halite (NaCl) — chloride evaporite. v27. Cubic / hopper habit.
+// Bathtub-ring deposit; fires when a vadose-transition concentration
+// boost pushes Na × Cl × concentration² into supersaturation. Mirror
+// of grow_halite in vugg.py.
+function grow_halite(crystal, conditions, step) {
+  const sigma = conditions.supersaturation_halite();
+  if (sigma < 1.0) {
+    if (crystal.total_growth_um > 5 && conditions.fluid.concentration < 1.5) {
+      crystal.dissolved = true;
+      const dissolved_um = Math.min(8.0, crystal.total_growth_um * 0.20);
+      conditions.fluid.Na += dissolved_um * 0.4;
+      conditions.fluid.Cl += dissolved_um * 6.0;
+      return new GrowthZone({
+        step, temperature: conditions.temperature,
+        thickness_um: -dissolved_um, growth_rate: -dissolved_um,
+        note: `meteoric flush — halite redissolves (concentration ${conditions.fluid.concentration.toFixed(1)})`,
+      });
+    }
+    return null;
+  }
+  const excess = sigma - 1.0;
+  const rate = 8.0 * excess * (0.85 + Math.random() * 0.30);
+  if (rate < 0.1) return null;
+  if (sigma > 5.0) {
+    crystal.habit = 'hopper_growth';
+    crystal.dominant_forms = ['{100} cube with pyramidal hopper hollows'];
+  } else {
+    crystal.habit = 'cubic';
+    crystal.dominant_forms = ['{100} cube'];
+  }
+  conditions.fluid.Na = Math.max(conditions.fluid.Na - rate * 0.05, 0);
+  conditions.fluid.Cl = Math.max(conditions.fluid.Cl - rate * 0.08, 0);
+  conditions.fluid.concentration = Math.max(
+    1.0, conditions.fluid.concentration - 0.02 * excess);
+  let color_note;
+  if (conditions.fluid.Fe > 30) color_note = 'rose-pink halite (Fe inclusions)';
+  else if (conditions.fluid.K > 200) color_note = 'blue halite (K-induced color centers)';
+  else color_note = 'colorless cubic halite';
+  return new GrowthZone({
+    step, temperature: conditions.temperature,
+    thickness_um: rate, growth_rate: rate,
+    note: color_note,
+  });
+}
+
 // Selenite (gypsum variety) — CaSO4·2H2O
 // Forms at low temperature in oxidizing, evaporative environments
 // The crystal that grows when everything else is ending
@@ -11180,6 +11341,9 @@ const MINERAL_ENGINES = {
   antlerite: grow_antlerite,
   anhydrite: grow_anhydrite,
   selenite: grow_selenite,
+  halite: grow_halite,
+  borax: grow_borax,
+  tincalconite: grow_tincalconite,  // paramorph-only stub
   feldspar: grow_feldspar,
   adamite: grow_adamite,
   mimetite: grow_mimetite,
@@ -11659,6 +11823,21 @@ function event_oxidation(conditions) {
   conditions.fluid.S = conditions.fluid.S - sulfide_consumed + (sulfide_consumed * 0.7); // net: keep ~80% as sulfate
   conditions.temperature -= 40;
   return `Oxidizing meteoric water infiltrates. Sulfides becoming unstable — S²⁻ oxidizing to SO₄²⁻. T drops to ${conditions.temperature.toFixed(0)}°C. Sulfate available for gypsum/selenite.`;
+}
+
+// v26: tectonic uplift breaches the cavity, fluid drains completely.
+function event_tectonic_uplift_drains(conditions) {
+  conditions.fluid_surface_ring = 0.0;
+  conditions.flow_rate = 0.05;
+  return "Tectonic uplift fractures the host rock. The cavity drains completely — fluid pours out through new joints into the rocks below. What was a sealed pocket is now an open cave. Walls dry. Sulfides start to oxidize.";
+}
+
+// v26: aquifer recharge / heavy meteoric pulse floods the cavity.
+// Sentinel 1e6 is clamped to ring_count by _applyWaterLevelDrift.
+function event_aquifer_recharge_floods(conditions) {
+  conditions.fluid_surface_ring = 1e6;
+  conditions.flow_rate = 2.0;
+  return "Heavy meteoric pulse. The cavity floods back to the ceiling. Fluid contact resumes on every wall — previously-oxidized rinds dissolve where they can; fresh sulfide growth starts wherever they can't.";
 }
 
 function event_acidify(conditions) {
@@ -12303,7 +12482,9 @@ function event_supergene_dry_spell(c) {
   c.fluid.O2 = 1.5;
   c.temperature = 50;
   c.flow_rate = 0.3;
-  return "Dry season. Flow slows, evaporation concentrates the brine. Ca²⁺ and SO₄²⁻ climb toward selenite's window — the desert-rose chemistry, the Naica chemistry.";
+  // v25: water table drops to mid-cavity → upper rings go vadose.
+  c.fluid_surface_ring = 8.0;
+  return "Dry season. Flow slows, evaporation concentrates the brine. Water table drops to mid-cavity. Ca²⁺ and SO₄²⁻ climb toward selenite's window — the desert-rose chemistry, the Naica chemistry. Above the meniscus, the air-exposed walls start to oxidize.";
 }
 
 function event_supergene_as_rich_seep(c) {
@@ -12421,6 +12602,8 @@ function event_bisbee_final_drying(c) {
   c.temperature = 20;
   c.flow_rate = 0.1;
   c.fluid.O2 = 1.0;
+  // v25: complete drain — every ring becomes vadose.
+  c.fluid_surface_ring = 0.0;
   return "The fractures seal with calcite cement. Groundwater stops. The pocket is a closed system again, this time with the full oxidation assemblage frozen in place: chalcopyrite cores wrapped in chalcocite, those wrapped in cuprite, those overgrown by native copper, those overgrown by azurite, those converted to malachite, those pseudomorphed by chrysocolla. A million years from now, when a mining shaft intersects this pocket, an assayer will photograph the specimen and write 'Bisbee, Cochise County' on the label.";
 }
 
@@ -12469,6 +12652,8 @@ const EVENT_REGISTRY = {
   tectonic_shock: event_tectonic_shock,
   copper_injection: event_copper_injection,
   oxidation: event_oxidation,
+  tectonic_uplift_drains: event_tectonic_uplift_drains,
+  aquifer_recharge_floods: event_aquifer_recharge_floods,
   acidify: event_acidify,
   alkalinize: event_alkalinize,
   molybdenum_pulse: event_molybdenum_pulse,
@@ -12679,6 +12864,54 @@ function applyParamorphTransitions(crystal, T, step) {
   return [oldMineral, coolMineral];
 }
 
+// v28 dehydration paramorph transitions — environment-triggered
+// counterpart to PARAMORPH_TRANSITIONS. Borax left in a vadose ring
+// loses its structural water and pseudomorphs to tincalconite.
+// Mirrors DEHYDRATION_TRANSITIONS in vugg.py. Format:
+// hydrated_mineral → [dehydrated_mineral, threshold_steps,
+//                     concentration_min, T_max].
+const DEHYDRATION_TRANSITIONS = {
+  borax: ['tincalconite', 25, 1.5, 75.0],
+};
+
+function applyDehydrationTransitions(crystal, ringFluid, ringWaterState, T, step) {
+  // v28: convert a hydrated mineral in place when its host ring has
+  // been dry for too long. Increments crystal.dry_exposure_steps each
+  // step the ring is dry; transition fires once the count reaches
+  // threshold OR T exceeds T_max (heat path is instantaneous).
+  // Mirrors apply_dehydration_transitions in vugg.py.
+  if (!crystal.active || crystal.dissolved) return null;
+  const spec = DEHYDRATION_TRANSITIONS[crystal.mineral];
+  if (!spec) return null;
+  const [newMineral, thresholdSteps, concMin, Tmax] = spec;
+  const isHot = T >= Tmax;
+  let isDry;
+  if (ringWaterState === 'vadose') isDry = true;
+  else if (ringWaterState === 'meniscus') isDry = ringFluid.concentration >= concMin;
+  else isDry = false;
+  if (isHot) {
+    if (Math.random() < 0.8) {
+      const old = crystal.mineral;
+      crystal.mineral = newMineral;
+      crystal.paramorph_origin = old;
+      if (step != null) crystal.paramorph_step = step;
+      return [old, newMineral];
+    }
+    return null;
+  }
+  if (isDry) {
+    crystal.dry_exposure_steps = (crystal.dry_exposure_steps || 0) + 1;
+    if (crystal.dry_exposure_steps >= thresholdSteps) {
+      const old = crystal.mineral;
+      crystal.mineral = newMineral;
+      crystal.paramorph_origin = old;
+      if (step != null) crystal.paramorph_step = step;
+      return [old, newMineral];
+    }
+  }
+  return null;
+}
+
 // ============================================================
 // SIMULATION ENGINE
 // ============================================================
@@ -12708,6 +12941,15 @@ const ORIENTATION_PREFERENCE = {
   // Wall (weak) — acicular sprays grow perpendicular to lateral substrate.
   stibnite:      ['wall', 1.5],
   bismuthinite:  ['wall', 1.5],
+};
+
+// v27 water-state nucleation preference for evaporite minerals.
+// Bathtub-ring deposits cluster at the meniscus. Mirror of
+// WATER_STATE_PREFERENCE in vugg.py.
+const WATER_STATE_PREFERENCE = {
+  halite:    ['meniscus', 4.0],
+  selenite:  ['meniscus', 2.5],
+  anhydrite: ['meniscus', 2.0],
 };
 
 class VugSimulator {
@@ -12765,8 +13007,14 @@ class VugSimulator {
     // list to keep in sync. Filtered to numeric fields (the only kind
     // FluidChemistry currently has, but defensive).
     this._fluidFieldNames = Object.keys(new FluidChemistry()).filter(
-      k => typeof (new FluidChemistry()[k]) === 'number'
+      k => typeof (new FluidChemistry()[k]) === 'number' && k !== 'concentration'
     );
+    // v25 vadose-zone oxidation: track previous fluid_surface_ring so
+    // we can detect rings that just transitioned wet → dry. Null at
+    // construction means "no surface set yet"; first run_step compares
+    // against this and applies the override to whatever rings are
+    // currently vadose.
+    this._prevFluidSurfaceRing = null;
   }
 
   // Phase C v1: snapshot conditions.fluid + temperature before a
@@ -12803,6 +13051,63 @@ class VugSimulator {
         }
       }
     }
+  }
+
+  // v26: drain `porosity × WATER_LEVEL_DRAIN_RATE` rings per step
+  // when the water-level mechanic is active. No-op when
+  // fluid_surface_ring is null, porosity is 0 (sealed default), or
+  // surface is already at 0. Asymmetric: porosity is a pure sink, not
+  // a balance term — refilling stays event-driven. Refill events that
+  // snap fluid_surface_ring above ring_count get clamped here on the
+  // next step (so events can write a sentinel like 1e6 to mean
+  // "fill to ceiling" without needing to know ring_count themselves).
+  // Mirror of VugSimulator._apply_water_level_drift in vugg.py.
+  _applyWaterLevelDrift() {
+    let s = this.conditions.fluid_surface_ring;
+    if (s === null || s === undefined) return 0;
+    const n = this.wall_state.ring_count;
+    if (s > n) {
+      this.conditions.fluid_surface_ring = n;
+      s = n;
+    }
+    const p = this.conditions.porosity;
+    if (p <= 0 || s <= 0) return 0;
+    const delta = -p * WATER_LEVEL_DRAIN_RATE;
+    const newS = Math.max(0, s + delta);
+    this.conditions.fluid_surface_ring = newS;
+    return newS - s;
+  }
+
+  // v25: detect rings that just transitioned wet → dry (submerged or
+  // meniscus → vadose) and force their fluid to oxidizing chemistry.
+  // Submerged rings keep the scenario's chemistry, so the cavity floor
+  // stays reducing while the now-exposed ceiling oxidizes — matches
+  // real-world supergene paragenesis (galena → cerussite, chalcopyrite
+  // → malachite/azurite, pyrite → limonite, all in the air zone).
+  // Mirror of VugSimulator._apply_vadose_oxidation_override in vugg.py.
+  _applyVadoseOxidationOverride() {
+    const n = this.wall_state.ring_count;
+    const newSurface = this.conditions.fluid_surface_ring;
+    const oldSurface = this._prevFluidSurfaceRing;
+    this._prevFluidSurfaceRing = newSurface;
+    if (newSurface === null || newSurface === undefined) return [];
+    if (oldSurface !== null && oldSurface !== undefined && newSurface >= oldSurface) {
+      return [];
+    }
+    const becameVadose = [];
+    for (let r = 0; r < n; r++) {
+      const was = VugConditions._classifyWaterState(oldSurface, r, n);
+      const now = VugConditions._classifyWaterState(newSurface, r, n);
+      if (now === 'vadose' && was !== 'vadose') {
+        const rf = this.ring_fluids[r];
+        if (rf.O2 < 1.8) rf.O2 = 1.8;
+        rf.S *= 0.3;
+        // v27 evaporative concentration boost (mirror of vugg.py).
+        rf.concentration *= EVAPORATIVE_CONCENTRATION_FACTOR;
+        becameVadose.push(r);
+      }
+    }
+    return becameVadose;
   }
 
   // Phase C inter-ring homogenization. One discrete-Laplacian step per
@@ -12914,6 +13219,12 @@ class VugSimulator {
       crystal.dominant_forms = ['{100} cube', '{111} octahedron'];
     } else if (mineral === 'selenite') {
       crystal.dominant_forms = ['{010} blades', '{110} prism'];
+    } else if (mineral === 'halite') {
+      crystal.dominant_forms = ['{100} cube', 'hopper-growth pyramidal hollows'];
+    } else if (mineral === 'borax') {
+      crystal.dominant_forms = ['{100} pinacoid', '{110} monoclinic prism', 'vitreous to resinous luster'];
+    } else if (mineral === 'tincalconite') {
+      crystal.dominant_forms = ['paramorph after borax', 'white powdery crust'];
     } else if (mineral === 'feldspar') {
       crystal.dominant_forms = ['{010} pinacoid', '{110} prism'];
     } else if (mineral === 'topaz') {
@@ -13133,6 +13444,17 @@ class VugSimulator {
       total = 0;
       for (let k = 0; k < n; k++) {
         if (this.wall_state.ringOrientation(k) === target) weights[k] *= strength;
+        total += weights[k];
+      }
+    }
+    // v27: per-mineral water-state bias for evaporite minerals.
+    // Mirror of _assign_wall_ring in vugg.py.
+    const wpref = mineral ? WATER_STATE_PREFERENCE[mineral] : null;
+    if (wpref && n > 1) {
+      const [targetState, strength] = wpref;
+      total = 0;
+      for (let k = 0; k < n; k++) {
+        if (this.conditions.ringWaterState(k, n) === targetState) weights[k] *= strength;
         total += weights[k];
       }
     }
@@ -13700,6 +14022,24 @@ class VugSimulator {
         const c = this.nucleate('selenite', pos, sigma_sel);
         this.log.push(`  ✦ NUCLEATION: 💎 Selenite #${c.crystal_id} on ${c.position} (T=${this.conditions.temperature.toFixed(0)}°C, σ=${sigma_sel.toFixed(2)}) — gypsum blades forming in the cooling, oxidizing fluid`);
       }
+    }
+
+    // Halite nucleation — chloride evaporite, fires when a vadose-
+    // transition concentration boost pushes Na × Cl × concentration²
+    // into supersaturation. v27 mirror of vugg.py.
+    const sigma_hal = this.conditions.supersaturation_halite();
+    if (sigma_hal > 1.0 && !this._atNucleationCap('halite') && rng.random() < 0.15) {
+      const c = this.nucleate('halite', 'vug wall', sigma_hal);
+      this.log.push(`  ✦ NUCLEATION: 🧂 Halite #${c.crystal_id} on ${c.position} (T=${this.conditions.temperature.toFixed(0)}°C, σ=${sigma_hal.toFixed(2)}, concentration=${this.conditions.fluid.concentration.toFixed(1)}) — bathtub-ring NaCl precipitating from the evaporating brine`);
+    }
+
+    // Borax nucleation — alkaline-brine borate evaporite, v28 mirror
+    // of vugg.py. Needs Na + B + alkaline pH + low T + concentration
+    // boost. Stays dormant in scenarios that don't drain.
+    const sigma_brx = this.conditions.supersaturation_borax();
+    if (sigma_brx > 1.0 && !this._atNucleationCap('borax') && rng.random() < 0.12) {
+      const c = this.nucleate('borax', 'vug wall', sigma_brx);
+      this.log.push(`  ✦ NUCLEATION: 💎 Borax #${c.crystal_id} on ${c.position} (T=${this.conditions.temperature.toFixed(0)}°C, σ=${sigma_brx.toFixed(2)}, concentration=${this.conditions.fluid.concentration.toFixed(1)}, pH=${this.conditions.fluid.pH.toFixed(1)}) — alkaline-brine evaporite from the playa-lake chemistry of this drained vug`);
     }
 
     // Feldspar nucleation — needs sigma > 1.0, K or Na + Al + Si
@@ -14773,6 +15113,21 @@ class VugSimulator {
     let snap = this._snapshotGlobal();
     this.apply_events();
     this._propagateGlobalDelta(snap);
+    // v26: continuous drainage from host-rock porosity. Runs before
+    // the vadose override so a porosity-driven drift-out gets caught
+    // as a transition on the same step it dries.
+    this._applyWaterLevelDrift();
+    // v25: events may have dropped fluid_surface_ring. Detect rings
+    // that just transitioned wet → vadose and force their fluid to
+    // oxidizing chemistry. Lets the existing supergene-oxidation
+    // engines fire naturally in the air-exposed rings while the floor
+    // stays reducing.
+    const newlyVadose = this._applyVadoseOxidationOverride();
+    if (newlyVadose.length) {
+      this.log.push(
+        `  ☁ Vadose oxidation: rings ${newlyVadose.join(',')} now exposed `
+        + `to air — O₂ rises, sulfides become unstable`);
+    }
     // Track dolomite saturation crossings for the Kim 2023 cycle mechanism.
     this.conditions.update_dol_cycles();
     snap = this._snapshotGlobal();
@@ -14859,6 +15214,32 @@ class VugSimulator {
           `(T dropped to ${this.conditions.temperature.toFixed(0)}°C, crossed ${oldM}/${newM} ` +
           `phase boundary; cubic external form preserved)`
         );
+      }
+    }
+
+    // v28: dehydration paramorphs — environment-triggered counterpart
+    // to PARAMORPH_TRANSITIONS. Borax left in a vadose ring loses
+    // water and pseudomorphs to tincalconite. Mirror of vugg.py.
+    {
+      const nRings = this.wall_state.ring_count;
+      for (const crystal of this.crystals) {
+        if (!DEHYDRATION_TRANSITIONS[crystal.mineral]) continue;
+        const ringIdx = crystal.wall_ring_index;
+        if (ringIdx == null || ringIdx < 0 || ringIdx >= nRings) continue;
+        const ringFluid = this.ring_fluids[ringIdx];
+        const ringState = this.conditions.ringWaterState(ringIdx, nRings);
+        const Tlocal = this.ring_temperatures[ringIdx];
+        const transition = applyDehydrationTransitions(
+          crystal, ringFluid, ringState, Tlocal, this.step);
+        if (transition) {
+          const [oldM, newM] = transition;
+          this.log.push(
+            `  ☼ DEHYDRATION: ${capitalize(oldM)} #${crystal.crystal_id} → ${newM} ` +
+            `(vadose exposure ${crystal.dry_exposure_steps} steps, ring ${ringIdx} ` +
+            `concentration=${ringFluid.concentration.toFixed(1)}); external ` +
+            `crystal form preserved as a ${newM} pseudomorph`
+          );
+        }
       }
     }
 
@@ -22856,6 +23237,81 @@ const PRIM_ACICULAR = {
   ],
 };
 
+const PRIM_DRIPSTONE = {
+  name: 'dripstone',
+  // Cave-mode tapered icicle. Hill & Forti 1997 (Cave Minerals of the
+  // World): mature stalactites taper from a wide ceiling-anchored base
+  // to a narrow drip tip, aspect ratio ~5-10:1, with vertical surface
+  // ridges from streaming water down the flanks. Hexagonal cross-section
+  // here is mostly a calcite-symmetry nod — natural dripstone is
+  // smooth-circular, but the renderer's 6-fold visible ridges read as
+  // the streaming-water grooves and align with calcite's underlying
+  // crystallographic symmetry.
+  //
+  // Anchor at the *base* (y = -0.1, slightly buried) so when air-mode
+  // c-axis flips put the crystal pointing world-down, the wide base
+  // sits at the substrate (ceiling) and the tip points at the floor.
+  // Stalagmite case (floor cell) reuses the same primitive flipped via
+  // the renderer's existing fluid/air orientation logic — same taper,
+  // opposite gravity vector.
+  //
+  // Geometry: 4 latitude rings × 6 longitudes + 1 apex. Radii taper
+  // 0.55 → 0.42 → 0.27 → 0.13 → 0 (apex). Vertical extent normalized
+  // to y=[-0.1, 1.0]; the renderer multiplies y by c_length_mm and
+  // x/z by a_width_mm, so the natural 5-10:1 aspect ratio falls out
+  // of the crystal's own dimensions when the air-mode habit kicks in.
+  vertices: (() => {
+    const vs = [];
+    const NLON = 6;
+    // Slim icicle profile. Crystal c_length_mm/a_width_mm already
+    // encodes a partial aspect ratio (prismatic crystals land at ~2-3:1
+    // in those dimensions); dropping the primitive's max radius from
+    // 0.55 to 0.30 multiplies that to a believable 5-10:1 final aspect
+    // for cave dripstone. Taper from base (0.30) → tip (0) over four
+    // rings, with non-linear shrinkage (more taper near the base, less
+    // near the tip) — matches photos of mature cave stalactites where
+    // the lower 60% is nearly cylindrical and the apex acts like a
+    // separate "drip nozzle".
+    const rings = [
+      { y: -0.10, r: 0.30 },   // base (ceiling-anchored)
+      { y:  0.30, r: 0.22 },   // upper shoulder
+      { y:  0.65, r: 0.13 },   // mid-shaft
+      { y:  0.90, r: 0.06 },   // sub-tip neck
+    ];
+    for (const ring of rings) {
+      for (let k = 0; k < NLON; k++) {
+        const a = (k * 2 * Math.PI) / NLON;
+        vs.push([ring.r * Math.cos(a), ring.y, ring.r * Math.sin(a)]);
+      }
+    }
+    vs.push([0, 1.0, 0]);   // 24: apex (drip tip)
+    return vs;
+  })(),
+  edges: (() => {
+    const es = [];
+    const NLON = 6;
+    const NRINGS = 4;
+    // Six longitudinal ridges — each spans ring 0..3 → apex (4 segments).
+    for (let k = 0; k < NLON; k++) {
+      for (let r = 0; r < NRINGS - 1; r++) {
+        es.push([r * NLON + k, (r + 1) * NLON + k]);
+      }
+      // Ring 3 → apex.
+      es.push([(NRINGS - 1) * NLON + k, NRINGS * NLON]);
+    }
+    // Base hex (anchors the silhouette at the substrate).
+    for (let k = 0; k < NLON; k++) {
+      es.push([k, (k + 1) % NLON]);
+    }
+    // Mid-shaft hex (ring 2) — mid-band detail so the silhouette
+    // doesn't read as a smooth fanned bundle of single ridges.
+    for (let k = 0; k < NLON; k++) {
+      es.push([2 * NLON + k, 2 * NLON + ((k + 1) % NLON)]);
+    }
+    return es;
+  })(),
+};
+
 const PRIM_BOTRYOIDAL = {
   name: 'botryoidal',
   // Spherulite mechanism (Wertheim et al. 2021; Quartz Page chalcedony):
@@ -22991,30 +23447,162 @@ const HABIT_TO_PRIMITIVE = {
   'stalactitic':                    PRIM_BOTRYOIDAL,
   'arborescent':                    PRIM_ACICULAR,
   'dendritic':                      PRIM_ACICULAR,
+  // v26 polish: runtime-set habits from the engine (silica polymorphs,
+  // calcite/aragonite habit pickers, supergene-product engines, etc.)
+  // that previously fell through to PRIM_RHOMBOHEDRON. Audited against
+  // the full list of crystal.habit assignments in this file.
+  'tridymite (thin hexagonal plates)': PRIM_TABULAR,
+  'β-quartz bipyramidal (paramorphic)': PRIM_DIPYRAMID,
+  'scepter overgrowth possible':    PRIM_HEX_PRISM_TERMINATED,
+  'chalcedony (microcrystalline)':  PRIM_BOTRYOIDAL,
+  'opal (amorphous silica)':        PRIM_BOTRYOIDAL,
+  'silica_gel_hemisphere':          PRIM_BOTRYOIDAL,
+  'flos_ferri':                     PRIM_ACICULAR,   // aragonite "iron flowers"
+  'acicular_needle':                PRIM_ACICULAR,
+  'twinned_cyclic':                 PRIM_DIPYRAMID,  // cyclic-sextet twin → stellate
+  'columnar':                       PRIM_HEX_PRISM_TERMINATED,
+  'radiating_columnar':             PRIM_HEX_PRISM_TERMINATED,
+  'coarse_rhomb':                   PRIM_RHOMBOHEDRON,
+  'massive':                        PRIM_BOTRYOIDAL,
+  'saddle_rhomb':                   PRIM_RHOMBOHEDRON,
+  'spherulitic':                    PRIM_BOTRYOIDAL,
+  'banding_agate':                  PRIM_BOTRYOIDAL,
+  'fibrous_coating':                PRIM_BOTRYOIDAL,  // fibrous mat reads dome-like
+  'hemimorphic_crystal':            PRIM_HEX_PRISM_TERMINATED,
+  'platy_massive':                  PRIM_TABULAR,
+  'micaceous_book':                 PRIM_TABULAR,    // mica = stacked sheets
+  'rosette_radiating':              PRIM_BOTRYOIDAL,
+  'rosette_bladed':                 PRIM_TABULAR,    // bladed rosette = thin plates
+  'plumose_rosette':                PRIM_BOTRYOIDAL,
+  'radiating_blade':                PRIM_TABULAR,
+  'radiating_cluster':              PRIM_BOTRYOIDAL,
+  'radiating_fibrous':              PRIM_BOTRYOIDAL,
+  'radiating_spray':                PRIM_BOTRYOIDAL,
+  'globular':                       PRIM_BOTRYOIDAL,
+  'nodular':                        PRIM_BOTRYOIDAL,
+  'framboidal':                     PRIM_BOTRYOIDAL, // raspberry-like clusters
+  'granular':                       PRIM_BOTRYOIDAL,
+  'powdery crust':                  PRIM_BOTRYOIDAL,
+  'powdery_aggregate':              PRIM_BOTRYOIDAL,
+  'powdery_disseminated':           PRIM_BOTRYOIDAL,
+  'sublimation_crust':              PRIM_BOTRYOIDAL,
+  'iridescent_coating':             PRIM_BOTRYOIDAL,
+  'peacock_iridescent':             PRIM_BOTRYOIDAL,
+  'specular':                       PRIM_TABULAR,    // specular hematite = basal pinacoid
+  'thorn':                          PRIM_ACICULAR,
+  'spearhead':                      PRIM_HEX_PRISM_TERMINATED,
+  'reticulated':                    PRIM_HEX_PRISM_TERMINATED,
+  'trapiche':                       PRIM_DIPYRAMID,  // star-shaped emerald
+  'nugget':                         PRIM_BOTRYOIDAL,
+  'hopper_growth':                  PRIM_CUBE,       // cubic skeletal
+  'pseudomorph':                    PRIM_RHOMBOHEDRON, // shape inherits host; default
+  'pseudomorph_after_azurite':      PRIM_TABULAR,    // azurite was tabular
+  'pseudomorph_after_sulfide':      PRIM_RHOMBOHEDRON,
+  'olive_hex_barrel':               PRIM_HEX_PRISM,
+  'yellow_hex_barrel':              PRIM_HEX_PRISM,
+  'goshenite':                      PRIM_HEX_PRISM_TERMINATED, // colorless beryl
+  'nickel_bloom':                   PRIM_BOTRYOIDAL,
+  'cobalt_bloom':                   PRIM_BOTRYOIDAL,    // erythrite efflorescence
+  'cottonball':                     PRIM_BOTRYOIDAL,    // borax cottonball aggregate (Death Valley)
+
+  'cabrerite':                      PRIM_TABULAR,       // Mg-bearing annabergite, fibrous-bladed
+  'co_bearing':                     PRIM_BOTRYOIDAL,    // chemistry tag fallback (annabergite/erythrite are typically fibrous-massive)
+  'cockscomb':                      PRIM_DIPYRAMID,     // marcasite/pyrite cockscomb aggregate
+  'disphenoidal':                   PRIM_TETRAHEDRON,   // distorted tetrahedron (sphalerite/chalcopyrite)
+  'banded':                         PRIM_BOTRYOIDAL,    // chalcedony/agate-style banding
+  'druzy':                          PRIM_BOTRYOIDAL,    // sparkly carpet of micro-crystals
+  'arsenolamprite':                 PRIM_BOTRYOIDAL,    // metallic As polymorph, massive
+  'chalcotrichite':                 PRIM_ACICULAR,      // capillary cuprite "hair copper"
+  'azurite_sun':                    PRIM_BOTRYOIDAL,    // radiating disc rosette
+  'enamel_on_cuprite':              PRIM_BOTRYOIDAL,    // thin conformal film
+  'endlichite_yellow':              PRIM_HEX_PRISM_TERMINATED,  // hex apatite-group prism
+  'asterated':                      PRIM_DIPYRAMID,     // star-shaped (asterism)
   'default_habit':                  PRIM_RHOMBOHEDRON,
 };
 
+// Canonical primitives that map to PRIM_DRIPSTONE under air-mode growth.
+// Cube / octahedron / tetrahedron / pyritohedron / tabular / dipyramid
+// stay as their canonical form: galena cubes don't form icicles,
+// barite tabulars stay tabular, marcasite cockscombs (dipyramid) keep
+// their distinctive doubly-pointed silhouette. The air-mode override
+// is structural — it answers "could this primitive plausibly be a
+// hanging drip?" — not "is this habit string in some list".
+function _isDripstoneEligibleCanonical(prim) {
+  return prim === PRIM_HEX_PRISM_TERMINATED
+      || prim === PRIM_HEX_PRISM
+      || prim === PRIM_ACICULAR
+      || prim === PRIM_RHOMBOHEDRON
+      || prim === PRIM_SCALENOHEDRON
+      || prim === PRIM_BOTRYOIDAL;
+}
+
 function _lookupCrystalPrimitive(crystal) {
+  if (!crystal) return PRIM_RHOMBOHEDRON;
+  // v24 air-mode override — crystals nucleated in vadose rings get
+  // dripstone geometry instead of their canonical habit primitive,
+  // when the canonical primitive is structurally compatible with a
+  // hanging-drip silhouette. The renderer's existing c-axis flip
+  // handles orientation: ceiling cells get c-axis world-down
+  // (stalactite hanging), floor cells get c-axis world-up
+  // (stalagmite standing).
+  const canonical = _canonicalPrimitive(crystal);
+  if (crystal.growth_environment === 'air'
+      && _isDripstoneEligibleCanonical(canonical)) {
+    return PRIM_DRIPSTONE;
+  }
+  return canonical;
+}
+
+// Canonical (fluid-mode) primitive for a crystal, ignoring growth
+// environment. Direct table first, then the fuzzy-substring fallback
+// catches compound habit strings + runtime-set engine habits.
+function _canonicalPrimitive(crystal) {
   if (!crystal) return PRIM_RHOMBOHEDRON;
   const direct = HABIT_TO_PRIMITIVE[crystal.habit];
   if (direct) return direct;
   const h = (crystal.habit || '').toLowerCase();
+  // Order matters: hopper checked BEFORE 'cube' since "hopper_growth"
+  // doesn't contain "cube" but is cubic; 'opal' before 'plate' since
+  // some opal variants get described "platy"; tabular/plate checked
+  // before acicular since "tabular_or_prismatic_or_fibrous" should
+  // resolve tabular not fibrous.
+  if (h.includes('hopper'))                                 return PRIM_CUBE;
   if (h.includes('cube') || h.includes('cubic'))           return PRIM_CUBE;
   if (h.includes('pyritohed'))                              return PRIM_PYRITOHEDRON;
   if (h.includes('octahed'))                                return PRIM_OCTAHEDRON;
   if (h.includes('tetrahed'))                               return PRIM_TETRAHEDRON;
   if (h.includes('scalenohed') || h.includes('dogtooth'))   return PRIM_SCALENOHEDRON;
   if (h.includes('rhomb'))                                  return PRIM_RHOMBOHEDRON;
-  if (h.includes('dipyramid') || h.includes('bipyramid'))   return PRIM_DIPYRAMID;
+  if (h.includes('dipyramid') || h.includes('bipyramid')
+      || h.includes('trapiche') || h.includes('twinned_cyclic')
+      || h.includes('stellate'))                            return PRIM_DIPYRAMID;
+  if (h.includes('barrel'))                                 return PRIM_HEX_PRISM;
   if (h.includes('hex_prism') || h.includes('hexagonal'))   return PRIM_HEX_PRISM_TERMINATED;
-  if (h.includes('prism'))                                  return PRIM_HEX_PRISM_TERMINATED;
+  if (h.includes('prism') || h.includes('columnar')
+      || h.includes('hemimorphic') || h.includes('scepter')
+      || h.includes('spearhead') || h.includes('reticulated')
+      || h.includes('thorn'))                               return PRIM_HEX_PRISM_TERMINATED;
   if (h.includes('tabular') || h.includes('platy')
-      || h.includes('plate') || h.includes('plates'))       return PRIM_TABULAR;
+      || h.includes('plate') || h.includes('plates')
+      || h.includes('micaceous') || h.includes('specular')
+      || h.includes('bladed') || h.includes('blade'))       return PRIM_TABULAR;
   if (h.includes('acicular') || h.includes('needle')
-      || h.includes('wire') || h.includes('capillary'))     return PRIM_ACICULAR;
+      || h.includes('wire') || h.includes('capillary')
+      || h.includes('flos_ferri'))                          return PRIM_ACICULAR;
   if (h.includes('botryoidal') || h.includes('reniform')
       || h.includes('mammillary') || h.includes('massive')
-      || h.includes('earthy') || h.includes('stalactit'))   return PRIM_BOTRYOIDAL;
+      || h.includes('earthy') || h.includes('stalactit')
+      || h.includes('opal') || h.includes('chalcedony')
+      || h.includes('agate') || h.includes('spherulit')
+      || h.includes('globular') || h.includes('nodular')
+      || h.includes('framboidal') || h.includes('granular')
+      || h.includes('powdery') || h.includes('crust')
+      || h.includes('rosette') || h.includes('plumose')
+      || h.includes('radiating') || h.includes('iridescent')
+      || h.includes('sublimation') || h.includes('coating')
+      || h.includes('fibrous') || h.includes('nugget')
+      || h.includes('silica_gel'))                          return PRIM_BOTRYOIDAL;
+  if (h.includes('arborescent') || h.includes('dendritic')) return PRIM_ACICULAR;
   return PRIM_RHOMBOHEDRON;
 }
 
@@ -23439,6 +24027,17 @@ function _topoRenderRings3D(ctx, sim, wall, ring0, cellR, boundaryR,
     let bareWallColor = TOPO_WALL_COLOR;
     if (orient === 'floor') bareWallColor = TOPO_WALL_COLOR_FLOOR;
     else if (orient === 'ceiling') bareWallColor = TOPO_WALL_COLOR_CEILING;
+    // v24: ring is submerged below the meniscus → after stroking the
+    // canonical wall colour for each cell, re-stroke the same path with
+    // a thin translucent blue companion line. Reads at-a-glance as
+    // "this ring is underwater". Meniscus + vadose rings get no extra
+    // line; the meniscus disc itself communicates the surface and the
+    // dry rings keep their canonical orange.
+    const wstate = (sim && sim.conditions && sim.conditions.ringWaterState)
+      ? sim.conditions.ringWaterState(ringIdx, ringCount)
+      : 'submerged';
+    const isSubmerged = wstate === 'submerged'
+      && sim && sim.conditions && sim.conditions.fluid_surface_ring != null;
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
     for (let i = 0; i < N; i++) {
@@ -23475,6 +24074,21 @@ function _topoRenderRings3D(ctx, sim, wall, ring0, cellR, boundaryR,
       ctx.moveTo(psx, psy);
       ctx.quadraticCurveTo(cpX, cpY, pex, pey);
       ctx.stroke();
+      if (isSubmerged) {
+        // Re-stroke the same path with a thin blue companion line.
+        // Lower alpha + lineCap=butt so it reads as a tint along the
+        // wall colour, not a competing outline. Width capped at the
+        // base wall stroke so heavily-encrusted cells (very thick
+        // wall colour) don't drown out the underwater cue.
+        const prevCap = ctx.lineCap;
+        ctx.lineCap = 'butt';
+        ctx.globalAlpha = 0.7;
+        ctx.strokeStyle = 'rgba(110, 190, 245, 1.0)';
+        ctx.lineWidth = Math.min(width, TOPO_WALL_STROKE_PX) * 0.55;
+        ctx.stroke();
+        ctx.globalAlpha = alpha;
+        ctx.lineCap = prevCap;
+      }
     }
     ctx.globalAlpha = 1;
   }
