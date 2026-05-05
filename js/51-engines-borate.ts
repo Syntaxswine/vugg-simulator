@@ -49,3 +49,9 @@ function grow_borax(crystal, conditions, step) {
     note: color_note,
   });
 }
+
+// tincalconite is paramorph-only — no direct supersaturation path.
+// The DEHYDRATION_TRANSITIONS framework (75-transitions.ts) converts
+// borax into tincalconite when humidity drops; this stub keeps
+// MINERAL_ENGINES.tincalconite resolvable.
+function grow_tincalconite(_crystal, _conditions, _step) { return null; }
