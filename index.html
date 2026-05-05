@@ -16713,6 +16713,31 @@ class VugSimulator {
         paragraphs.push(this._narrate_collectors_view());
         return paragraphs.join('\n\n');
     }
+}
+// ============================================================
+// UTILITY
+// ============================================================
+function capitalize(s) {
+    return s.charAt(0).toUpperCase() + s.slice(1);
+}
+
+// ── 85a-simulator-narrators.js ──
+
+// ============================================================
+// js/85a-simulator-narrators.ts — VugSimulator._narrate_<mineral> methods
+// ============================================================
+// 95 per-mineral narrators (the prose-generating "what just happened"
+// methods) plus the 3 cross-cutting helpers (mixing_event, tectonic,
+// collectors_view). Attached to VugSimulator.prototype after the class
+// is defined in 85-simulator.ts, so:
+//   * `this._narrate_calcite(c)` direct calls keep working
+//   * `this[\`_narrate_${c.mineral}\`]` dynamic dispatch (in narrate())
+//     keeps working
+//
+// Sorts after 85-simulator.ts so the class exists when we attach.
+//
+// Phase B13 of PROPOSAL-MODULAR-REFACTOR.
+Object.assign(VugSimulator.prototype, {
     _narrate_calcite(c) {
         // Prose lives in narratives/calcite.md.
         const parts = [];
@@ -16736,7 +16761,7 @@ class VugSimulator {
         const size_desc = c.c_length_mm < 0.5 ? 'microscopic' : c.c_length_mm < 2 ? 'small' : 'well-developed';
         parts.push(narrative_variant('calcite', 'final_size', { size_desc, mm: c.c_length_mm.toFixed(1), habit: c.habit }) || `Final size: ${size_desc} (${c.c_length_mm.toFixed(1)} mm), ${c.habit} habit.`);
         return parts.filter(p => p).join(' ');
-    }
+    },
     _narrate_aragonite(c) {
         // Prose lives in narratives/aragonite.md.
         const parts = [`Aragonite #${c.crystal_id} grew to ${c.c_length_mm.toFixed(1)} mm.`];
@@ -16766,7 +16791,7 @@ class VugSimulator {
             parts.push(narrative_variant('aragonite', 'preserved') || 'The crystal is preserved at vug-scale geologic moment. In nature, aragonite from cold marine settings can survive millions of years; from hot springs it converts to calcite in centuries to millennia.');
         }
         return parts.filter(p => p).join(' ');
-    }
+    },
     _narrate_dolomite(c) {
         // Prose lives in narratives/dolomite.md. Code keeps the
         // cycle_count → f_ord computation and threshold dispatch (Kim 2023
@@ -16811,7 +16836,7 @@ class VugSimulator {
             parts.push(narrative_variant('dolomite', 'dissolved') || 'Acid attack dissolved the crystal — dolomite is somewhat more acid-resistant than calcite (the Mg slows the reaction), but pH < 6 still releases Ca²⁺ + Mg²⁺ + 2 CO₃²⁻.');
         }
         return parts.filter(p => p).join(' ');
-    }
+    },
     _narrate_siderite(c) {
         // Prose lives in narratives/siderite.md.
         const parts = [`Siderite #${c.crystal_id} grew to ${c.c_length_mm.toFixed(1)} mm.`];
@@ -16838,7 +16863,7 @@ class VugSimulator {
             }
         }
         return parts.filter(p => p).join(' ');
-    }
+    },
     _narrate_rhodochrosite(c) {
         // Prose lives in narratives/rhodochrosite.md.
         const parts = [`Rhodochrosite #${c.crystal_id} grew to ${c.c_length_mm.toFixed(1)} mm.`];
@@ -16868,7 +16893,7 @@ class VugSimulator {
             }
         }
         return parts.filter(p => p).join(' ');
-    }
+    },
     _narrate_quartz(c) {
         // Prose lives in narratives/quartz.md. JS dispatches a subset of the
         // Python branches — radiation_damage variants are Python-only because
@@ -16896,7 +16921,7 @@ class VugSimulator {
         const size_desc = c.c_length_mm < 0.5 ? 'microscopic' : c.c_length_mm < 5 ? 'thumbnail' : 'cabinet-sized';
         parts.push(narrative_variant('quartz', 'final_size', { size_desc, mm: c.c_length_mm.toFixed(1), a_width_mm: c.a_width_mm.toFixed(1) }) || `Final size: ${size_desc} (${c.c_length_mm.toFixed(1)} × ${c.a_width_mm.toFixed(1)} mm).`);
         return parts.filter(p => p).join(' ');
-    }
+    },
     _narrate_sphalerite(c) {
         // Prose lives in narratives/sphalerite.md. Code keeps the
         // Fe-zoning analysis (early/late thirds, ratio threshold) and
@@ -16924,7 +16949,7 @@ class VugSimulator {
             parts.push(v || `Twinned on the ${c.twin_law} — a common growth twin in sphalerite that creates triangular re-entrant faces.`);
         }
         return parts.filter(p => p).join(' ');
-    }
+    },
     _narrate_wurtzite(c) {
         // Prose lives in narratives/wurtzite.md.
         const parts = [`Wurtzite #${c.crystal_id} grew to ${c.c_length_mm.toFixed(1)} mm.`];
@@ -16952,7 +16977,7 @@ class VugSimulator {
         else
             parts.push(narrative_variant('wurtzite', 'kept_hexagonal') || 'Kept hexagonal as long as fluid stayed above 95°C.');
         return parts.filter(p => p).join(' ');
-    }
+    },
     _narrate_fluorite(c) {
         // Prose lives in narratives/fluorite.md.
         const parts = [`Fluorite #${c.crystal_id} grew as ${c.habit} crystals to ${c.c_length_mm.toFixed(1)} mm.`];
@@ -16976,7 +17001,7 @@ class VugSimulator {
         if (fl !== 'non-fluorescent')
             parts.push(narrative_variant('fluorite', 'fluorescence', { fl }) || `Would show ${fl} under UV excitation.`);
         return parts.filter(p => p).join(' ');
-    }
+    },
     _narrate_pyrite(c) {
         // Prose lives in narratives/pyrite.md.
         const parts = [`Pyrite #${c.crystal_id} grew to ${c.c_length_mm.toFixed(1)} mm.`];
@@ -16996,7 +17021,7 @@ class VugSimulator {
             parts.push(narrative_variant('pyrite', 'acid_oxidation') || 'Late-stage oxidation attacked the pyrite — in nature this would produce a limonite/goethite boxwork pseudomorph, the rusty ghost of the original crystal.');
         }
         return parts.filter(p => p).join(' ');
-    }
+    },
     _narrate_marcasite(c) {
         // Prose lives in narratives/marcasite.md.
         const parts = [`Marcasite #${c.crystal_id} grew to ${c.c_length_mm.toFixed(1)} mm.`];
@@ -17022,7 +17047,7 @@ class VugSimulator {
             parts.push(narrative_variant('marcasite', 'kept_orthorhombic') || 'The pH/T regime kept it in the orthorhombic field; given geologic time or a temperature excursion above 240°C, this crystal would invert to pyrite.');
         }
         return parts.filter(p => p).join(' ');
-    }
+    },
     _narrate_chalcopyrite(c) {
         // Prose lives in narratives/chalcopyrite.md — code keeps the
         // conditional dispatch (which variants apply); markdown owns the
@@ -17040,7 +17065,7 @@ class VugSimulator {
             parts.push(v || 'Oxidation began converting the chalcopyrite — at the surface, this weathering produces malachite (green) and azurite (blue), the colorful signal that led ancient prospectors to copper deposits.');
         }
         return parts.filter(p => p).join(' ');
-    }
+    },
     _narrate_hematite(c) {
         // Prose lives in narratives/hematite.md.
         const parts = [`Hematite #${c.crystal_id} grew to ${c.c_length_mm.toFixed(1)} mm.`];
@@ -17064,7 +17089,7 @@ class VugSimulator {
         if (c.dissolved)
             parts.push(narrative_variant('hematite', 'acid_dissolution') || 'Late-stage acid attack dissolved some of the hematite, releasing iron back to the fluid.');
         return parts.filter(p => p).join(' ');
-    }
+    },
     _narrate_malachite(c) {
         // Prose lives in narratives/malachite.md.
         const parts = [`Malachite #${c.crystal_id} grew to ${c.c_length_mm.toFixed(1)} mm.`];
@@ -17086,7 +17111,7 @@ class VugSimulator {
         if (color)
             parts.push(narrative_variant('malachite', 'color', { color }) || `Color: ${color}.`);
         return parts.filter(p => p).join(' ');
-    }
+    },
     _narrate_smithsonite(c) {
         // Prose lives in narratives/smithsonite.md.
         const parts = [`Smithsonite #${c.crystal_id} grew to ${c.c_length_mm.toFixed(1)} mm.`];
@@ -17118,7 +17143,7 @@ class VugSimulator {
         if (c.dissolved)
             parts.push(narrative_variant('smithsonite', 'acid_dissolution') || 'Acid attack dissolved some of the smithsonite — it fizzes in hydrochloric acid, a quick field test to distinguish it from prehnite or hemimorphite.');
         return parts.filter(p => p).join(' ');
-    }
+    },
     _narrate_wulfenite(c) {
         // Prose lives in narratives/wulfenite.md. JS canonical for poetic
         // framings; gains acid_dissolution dispatch (Python had it).
@@ -17148,7 +17173,7 @@ class VugSimulator {
         if (c.dissolved)
             parts.push(narrative_variant('wulfenite', 'acid_dissolution'));
         return parts.filter(p => p).join(' ');
-    }
+    },
     _narrate_feldspar(c) {
         // Prose lives in narratives/feldspar.md (boss-pushed 2026-04-30 commit
         // 34ed3e8). JS canonical, polymorph storytelling, per-twin-law prose.
@@ -17184,7 +17209,7 @@ class VugSimulator {
             parts.push(narrative_variant('feldspar', 'dissolved'));
         parts.push(narrative_closing('feldspar'));
         return parts.filter(p => p).join(' ');
-    }
+    },
     _narrate_albite(c) {
         // Prose lives in narratives/albite.md.
         const parts = [`Albite #${c.crystal_id} grew to ${c.c_length_mm.toFixed(1)} mm.`];
@@ -17199,7 +17224,7 @@ class VugSimulator {
         if (c.dissolved)
             parts.push(narrative_variant('albite', 'dissolved') || 'Acid released Na⁺, Al³⁺, and SiO₂ — albite is slightly more resistant than K-feldspar but still weathers to kaolinite under persistent acid attack.');
         return parts.filter(p => p).join(' ');
-    }
+    },
     _narrate_topaz(c) {
         // Prose lives in narratives/topaz.md.
         const parts = [`Topaz #${c.crystal_id} grew to ${c.c_length_mm.toFixed(1)} mm.`];
@@ -17246,7 +17271,7 @@ class VugSimulator {
             parts.push(narrative_variant('topaz', 'dissolved') || 'Strong acid attack etched the surface.');
         }
         return parts.filter(p => p).join(' ');
-    }
+    },
     _narrate_tourmaline(c) {
         // Prose lives in narratives/tourmaline.md.
         const parts = [`Tourmaline #${c.crystal_id} grew to ${c.c_length_mm.toFixed(1)} mm.`];
@@ -17291,7 +17316,7 @@ class VugSimulator {
         }
         parts.push(narrative_closing('tourmaline') || 'The cross-section reads like a tree-ring record.');
         return parts.filter(p => p).join(' ');
-    }
+    },
     _narrate_beryl(c) {
         // Prose lives in narratives/beryl.md. Goshenite / generic colorless
         // fallback; variety crystals are emerald/aquamarine/morganite/heliodor.
@@ -17307,7 +17332,7 @@ class VugSimulator {
             parts.push(narrative_variant('beryl', 'hf_dissolution') || 'HF-assisted dissolution etched the surface — beryl is very resistant, but fluoride-rich acid fluids will eventually eat it, releasing Be²⁺ and SiO₂ back to the pocket.');
         }
         return parts.filter(p => p).join(' ');
-    }
+    },
     _narrate_emerald(c) {
         // Prose lives in narratives/emerald.md.
         const parts = [`Emerald #${c.crystal_id} grew to ${c.c_length_mm.toFixed(1)} mm.`];
@@ -17324,7 +17349,7 @@ class VugSimulator {
             parts.push(narrative_variant('emerald', 'hf_dissolution') || 'HF-assisted dissolution etched the surface — emerald shares beryl\'s acid resistance and only dissolves under fluoride.');
         }
         return parts.filter(p => p).join(' ');
-    }
+    },
     _narrate_aquamarine(c) {
         // Prose lives in narratives/aquamarine.md.
         const parts = [`Aquamarine #${c.crystal_id} grew to ${c.c_length_mm.toFixed(1)} mm.`];
@@ -17343,7 +17368,7 @@ class VugSimulator {
             parts.push(narrative_variant('aquamarine', 'hf_dissolution') || 'HF-assisted dissolution etched the surface — aquamarine shares beryl\'s acid resistance.');
         }
         return parts.filter(p => p).join(' ');
-    }
+    },
     _narrate_morganite(c) {
         // Prose lives in narratives/morganite.md.
         const parts = [`Morganite #${c.crystal_id} grew to ${c.c_length_mm.toFixed(1)} mm.`];
@@ -17360,7 +17385,7 @@ class VugSimulator {
             parts.push(narrative_variant('morganite', 'hf_dissolution') || 'HF-assisted dissolution etched the surface. Unusual for morganite — the pocket must have received a late fluorine-rich acid pulse after the main morganite growth ceased.');
         }
         return parts.filter(p => p).join(' ');
-    }
+    },
     _narrate_heliodor(c) {
         // Prose lives in narratives/heliodor.md.
         const parts = [`Heliodor #${c.crystal_id} grew to ${c.c_length_mm.toFixed(1)} mm.`];
@@ -17377,7 +17402,7 @@ class VugSimulator {
             parts.push(narrative_variant('heliodor', 'hf_dissolution') || 'HF-assisted dissolution etched the surface — heliodor shares beryl\'s acid resistance; dissolution means a late fluorine-rich acid pulse.');
         }
         return parts.filter(p => p).join(' ');
-    }
+    },
     _narrate_corundum(c) {
         // Prose lives in narratives/corundum.md.
         const parts = [`Corundum #${c.crystal_id} grew to ${c.c_length_mm.toFixed(1)} mm.`];
@@ -17394,7 +17419,7 @@ class VugSimulator {
             parts.push(narrative_variant('corundum', 'dissolved') || 'Unusual — corundum is essentially acid-inert in all sim conditions.');
         }
         return parts.filter(p => p).join(' ');
-    }
+    },
     _narrate_ruby(c) {
         // Prose lives in narratives/ruby.md.
         const parts = [`Ruby #${c.crystal_id} grew to ${c.c_length_mm.toFixed(1)} mm.`];
@@ -17413,7 +17438,7 @@ class VugSimulator {
         else if (c.habit === 'tabular')
             parts.push(narrative_variant('ruby', 'tabular') || 'Flat hexagonal plate — the Mogok marble-hosted signature.');
         return parts.filter(p => p).join(' ');
-    }
+    },
     _narrate_sapphire(c) {
         // Prose lives in narratives/sapphire.md. JS gains the violet (V³⁺
         // Tanzania) zone-note variant Python had — drift consolidation.
@@ -17441,7 +17466,7 @@ class VugSimulator {
         else if (c.habit === 'tabular')
             parts.push(narrative_variant('sapphire', 'tabular') || 'Flat hexagonal plate — Mogok marble-hosted.');
         return parts.filter(p => p).join(' ');
-    }
+    },
     _narrate_spodumene(c) {
         // Prose lives in narratives/spodumene.md.
         const parts = [`Spodumene #${c.crystal_id} grew to ${c.c_length_mm.toFixed(1)} mm.`];
@@ -17467,7 +17492,7 @@ class VugSimulator {
         }
         parts.push(narrative_closing('spodumene') || 'A cross-section of this crystal perpendicular to the c-axis would show the pyroxene chain silicate structure: SiO₄ tetrahedra linked into single chains along c, with Li and Al occupying the M1 and M2 octahedral sites between them.');
         return parts.filter(p => p).join(' ');
-    }
+    },
     _narrate_anglesite(c) {
         // Prose lives in narratives/anglesite.md.
         const parts = [`Anglesite #${c.crystal_id} grew to ${c.c_length_mm.toFixed(1)} mm.`];
@@ -17483,7 +17508,7 @@ class VugSimulator {
             parts.push(narrative_variant('anglesite', 'dissolved') || 'The crystal has dissolved. If the pocket\u2019s chemistry continues to evolve the released Pb²⁺ will find a new home — cerussite if carbonate is present, pyromorphite if phosphate arrives.');
         }
         return parts.filter(p => p).join(' ');
-    }
+    },
     _narrate_cerussite(c) {
         // Prose lives in narratives/cerussite.md.
         const parts = [`Cerussite #${c.crystal_id} grew to ${c.c_length_mm.toFixed(1)} mm.`];
@@ -17498,7 +17523,7 @@ class VugSimulator {
             parts.push(narrative_variant('cerussite', 'acid_dissolution') || 'Acid dissolution — cerussite is a carbonate and fizzes in acid just like calcite: PbCO₃ + 2H⁺ → Pb²⁺ + H₂O + CO₂. Any released Pb may find pyromorphite or vanadinite if P or V is available.');
         }
         return parts.filter(p => p).join(' ');
-    }
+    },
     _narrate_pyromorphite(c) {
         // Prose lives in narratives/pyromorphite.md.
         const parts = [`Pyromorphite #${c.crystal_id} grew to ${c.c_length_mm.toFixed(1)} mm.`];
@@ -17511,7 +17536,7 @@ class VugSimulator {
         }
         parts.push(narrative_variant('pyromorphite', 'remediation_tail') || 'Pyromorphite is used in environmental remediation: dump phosphate fertilizer onto lead-contaminated soil and the toxic Pb precipitates as pyromorphite — stable, insoluble, and harmless. Mineralogy as a cleanup tool.');
         return parts.filter(p => p).join(' ');
-    }
+    },
     _narrate_vanadinite(c) {
         // Prose lives in narratives/vanadinite.md. JS gains the vanadate_companions
         // branch in this commit (drift consolidation — Python had it).
@@ -17535,7 +17560,7 @@ class VugSimulator {
             parts.push(narrative_variant('vanadinite', 'vanadate_companions', { companions: companions.join(' and ') }));
         }
         return parts.filter(p => p).join(' ');
-    }
+    },
     _narrate_bornite(c) {
         // Prose lives in narratives/bornite.md.
         const parts = [`Bornite #${c.crystal_id} grew to ${c.c_length_mm.toFixed(1)} mm.`];
@@ -17550,7 +17575,7 @@ class VugSimulator {
             parts.push(narrative_variant('bornite', 'oxidative_dissolution') || 'Oxidative dissolution — Cu²⁺ and Fe³⁺ went back to the fluid, probably to find malachite/azurite (for Cu) or goethite (for Fe).');
         }
         return parts.filter(p => p).join(' ');
-    }
+    },
     _narrate_chalcocite(c) {
         // Prose lives in narratives/chalcocite.md.
         const parts = [`Chalcocite #${c.crystal_id} grew to ${c.c_length_mm.toFixed(1)} mm.`];
@@ -17565,7 +17590,7 @@ class VugSimulator {
             parts.push(narrative_variant('chalcocite', 'sooty') || 'Sooty microcrystalline texture — rapid precipitation at the oxidation/reduction interface. The aggregate looks like black soot smeared on the host rock.');
         }
         return parts.filter(p => p).join(' ');
-    }
+    },
     _narrate_covellite(c) {
         // Prose lives in narratives/covellite.md.
         const parts = [`Covellite #${c.crystal_id} grew to ${c.c_length_mm.toFixed(1)} mm.`];
@@ -17580,7 +17605,7 @@ class VugSimulator {
         if (c.dissolved)
             parts.push(narrative_variant('covellite', 'oxidative_dissolution') || 'Oxidative dissolution — the Cu²⁺ will find malachite or azurite; the S oxidized to sulfate.');
         return parts.filter(p => p).join(' ');
-    }
+    },
     _narrate_cuprite(c) {
         // Prose lives in narratives/cuprite.md.
         const parts = [`Cuprite #${c.crystal_id} grew to ${c.c_length_mm.toFixed(1)} mm.`];
@@ -17600,7 +17625,7 @@ class VugSimulator {
         if (c.dissolved)
             parts.push(narrative_variant('cuprite', 'eh_dissolution') || 'Crystal dissolved — the Eh window shifted out from under it.');
         return parts.filter(p => p).join(' ');
-    }
+    },
     _narrate_azurite(c) {
         // Prose lives in narratives/azurite.md. Code dispatches on habit
         // + paramorph-conversion zone-note signal. Inline fallbacks are the
@@ -17626,7 +17651,7 @@ class VugSimulator {
             parts.push(narrative_variant('azurite', 'dissolved') || 'Acid dissolution — fizzes like calcite. Cu²⁺ and CO₃²⁻ released.');
         }
         return parts.filter(p => p).join(' ');
-    }
+    },
     _narrate_chrysocolla(c) {
         // Prose lives in narratives/chrysocolla.md. JS narrator added in this
         // commit to close a JS-side gap.
@@ -17645,7 +17670,7 @@ class VugSimulator {
         if (c.dissolved)
             parts.push(narrative_variant('chrysocolla', 'dissolved'));
         return parts.filter(p => p).join(' ');
-    }
+    },
     _narrate_native_copper(c) {
         // Prose lives in narratives/native_copper.md.
         const parts = [`Native copper #${c.crystal_id} grew to ${c.c_length_mm.toFixed(1)} mm.`];
@@ -17664,7 +17689,7 @@ class VugSimulator {
         }
         parts.push(narrative_variant('native_copper', 'statue_of_liberty_tail') || "The Statue of Liberty's iconic green patina is malachite growing on native copper — the mineralogical fate of most surface copper, given enough time and rain.");
         return parts.filter(p => p).join(' ');
-    }
+    },
     _narrate_native_gold(c) {
         // Prose lives in narratives/native_gold.md. JS narrator added in this
         // commit to close the JS-side gap (Python had a narrator; JS dispatch
@@ -17689,7 +17714,7 @@ class VugSimulator {
         }
         parts.push(narrative_variant('native_gold', 'noble_tail'));
         return parts.filter(p => p).join(' ');
-    }
+    },
     _narrate_magnetite(c) {
         // Prose lives in narratives/magnetite.md.
         const parts = [`Magnetite #${c.crystal_id} grew to ${c.c_length_mm.toFixed(1)} mm.`];
@@ -17703,7 +17728,7 @@ class VugSimulator {
         if (c.dissolved)
             parts.push(narrative_variant('magnetite', 'martite_pseudomorph') || 'Dissolving to hematite (martite pseudomorph) as O₂ climbed past the HM buffer.');
         return parts.filter(p => p).join(' ');
-    }
+    },
     _narrate_lepidocrocite(c) {
         // Prose lives in narratives/lepidocrocite.md.
         const parts = [`Lepidocrocite #${c.crystal_id} grew to ${c.c_length_mm.toFixed(1)} mm.`];
@@ -17716,7 +17741,7 @@ class VugSimulator {
             parts.push(narrative_variant('lepidocrocite', 'fibrous_micaceous') || 'Fibrous micaceous — very rapid growth, coarser particle size, rust-brown color.');
         parts.push(narrative_variant('lepidocrocite', 'conversion_tail') || 'Given geological time, lepidocrocite converts to goethite (the thermodynamically stable dimorph).');
         return parts.filter(p => p).join(' ');
-    }
+    },
     _narrate_arsenopyrite(c) {
         // Prose lives in narratives/arsenopyrite.md.
         const parts = [`Arsenopyrite #${c.crystal_id} grew to ${c.c_length_mm.toFixed(1)} mm.`];
@@ -17735,7 +17760,7 @@ class VugSimulator {
         if (c.dissolved)
             parts.push(narrative_variant('arsenopyrite', 'oxidation_front') || "Oxidation front — arsenopyrite + O₂ + H₂O → Fe³⁺ + AsO₄³⁻ + H₂SO₄.");
         return parts.filter(p => p).join(' ');
-    }
+    },
     _narrate_stibnite(c) {
         // Prose lives in narratives/stibnite.md.
         const parts = [`Stibnite #${c.crystal_id} grew to ${c.c_length_mm.toFixed(1)} mm.`];
@@ -17747,7 +17772,7 @@ class VugSimulator {
         else
             parts.push(narrative_variant('stibnite', 'massive_default') || 'Massive granular.');
         return parts.filter(p => p).join(' ');
-    }
+    },
     _narrate_bismuthinite(c) {
         // Prose lives in narratives/bismuthinite.md.
         const parts = [`Bismuthinite #${c.crystal_id} grew to ${c.c_length_mm.toFixed(1)} mm.`];
@@ -17759,7 +17784,7 @@ class VugSimulator {
         else
             parts.push(narrative_variant('bismuthinite', 'acicular_default') || 'Acicular needles.');
         return parts.filter(p => p).join(' ');
-    }
+    },
     _narrate_native_bismuth(c) {
         // Prose lives in narratives/native_bismuth.md.
         const parts = [`Native bismuth #${c.crystal_id} grew to ${c.c_length_mm.toFixed(1)} mm.`];
@@ -17771,14 +17796,14 @@ class VugSimulator {
         else
             parts.push(narrative_variant('native_bismuth', 'massive_default') || 'Massive granular.');
         return parts.filter(p => p).join(' ');
-    }
+    },
     _narrate_clinobisvanite(c) {
         // Prose lives in narratives/clinobisvanite.md.
         const parts = [`Clinobisvanite #${c.crystal_id} grew to ${c.c_length_mm.toFixed(1)} mm.`];
         parts.push(narrative_blurb('clinobisvanite') || 'BiVO₄ — bright yellow to orange-yellow monoclinic Bi-vanadate.');
         parts.push(narrative_closing('clinobisvanite') || 'BiVO₄ is a photocatalyst for solar-driven water splitting.');
         return parts.filter(p => p).join(' ');
-    }
+    },
     _narrate_acanthite(c) {
         // Prose lives in narratives/acanthite.md.
         const parts = [`Acanthite #${c.crystal_id} grew to ${c.c_length_mm.toFixed(1)} mm.`];
@@ -17800,7 +17825,7 @@ class VugSimulator {
         else if (c.zones && c.zones.length > 15)
             parts.push(narrative_variant('acanthite', 'tarnish') || 'Tarnish.');
         return parts.filter(p => p).join(' ');
-    }
+    },
     _narrate_descloizite(c) {
         // Prose lives in narratives/descloizite.md. Drift consolidation: JS
         // habit branches were shorter; live JS now matches the longer Python text.
@@ -17813,7 +17838,7 @@ class VugSimulator {
         else
             parts.push(narrative_variant('descloizite', 'tabular_default') || 'Tabular — late-stage low-σ habit.');
         return parts.filter(p => p).join(' ');
-    }
+    },
     _narrate_mottramite(c) {
         // Prose lives in narratives/mottramite.md.
         const parts = [`Mottramite #${c.crystal_id} grew to ${c.c_length_mm.toFixed(1)} mm.`];
@@ -17825,13 +17850,13 @@ class VugSimulator {
         else
             parts.push(narrative_variant('mottramite', 'tabular_default') || 'Tabular — late-stage habit.');
         return parts.filter(p => p).join(' ');
-    }
+    },
     _narrate_raspite(c) {
         // Prose lives in narratives/raspite.md.
         const parts = [`Raspite #${c.crystal_id} grew to ${c.c_length_mm.toFixed(1)} mm.`];
         parts.push(narrative_blurb('raspite') || "PbWO₄ — monoclinic lead tungstate, RARE. Same composition as stolzite but a different crystal system; stolzite (tetragonal) is favored ~90% of the time. Honey-yellow tabular crystals with perfect {100} cleavage. Type locality: Broken Hill, NSW, Australia.");
         return parts.filter(p => p).join(' ');
-    }
+    },
     _narrate_stolzite(c) {
         // Prose lives in narratives/stolzite.md.
         const parts = [`Stolzite #${c.crystal_id} grew to ${c.c_length_mm.toFixed(1)} mm.`];
@@ -17841,7 +17866,7 @@ class VugSimulator {
         else
             parts.push(narrative_variant('stolzite', 'tabular_default') || 'Tabular — {001} plates, late-stage habit.');
         return parts.filter(p => p).join(' ');
-    }
+    },
     _narrate_olivenite(c) {
         // Prose lives in narratives/olivenite.md.
         const parts = [`Olivenite #${c.crystal_id} grew to ${c.c_length_mm.toFixed(1)} mm.`];
@@ -17853,7 +17878,7 @@ class VugSimulator {
         else
             parts.push(narrative_variant('olivenite', 'globular_default') || 'Globular — Tsumeb / Bisbee secondary habit.');
         return parts.filter(p => p).join(' ');
-    }
+    },
     _narrate_nickeline(c) {
         // Prose lives in narratives/nickeline.md.
         const parts = [`Nickeline #${c.crystal_id} grew to ${c.c_length_mm.toFixed(1)} mm.`];
@@ -17869,7 +17894,7 @@ class VugSimulator {
         else if (c.zones && c.zones.length > 12)
             parts.push(narrative_variant('nickeline', 'tarnish') || 'Tarnish.');
         return parts.filter(p => p).join(' ');
-    }
+    },
     _narrate_millerite(c) {
         // Prose lives in narratives/millerite.md.
         const parts = [`Millerite #${c.crystal_id} grew to ${c.c_length_mm.toFixed(1)} mm.`];
@@ -17883,7 +17908,7 @@ class VugSimulator {
         if (c.dissolved)
             parts.push(narrative_variant('millerite', 'oxidative_dissolution') || 'Oxidative dissolution.');
         return parts.filter(p => p).join(' ');
-    }
+    },
     _narrate_cobaltite(c) {
         // Prose lives in narratives/cobaltite.md. JS gains glaucodot_series
         // dispatch (Python had it; trace_Fe avg threshold).
@@ -17901,7 +17926,7 @@ class VugSimulator {
         if (c.dissolved)
             parts.push(narrative_variant('cobaltite', 'oxidative_dissolution') || 'Oxidative dissolution.');
         return parts.filter(p => p).join(' ');
-    }
+    },
     _narrate_native_tellurium(c) {
         // Prose lives in narratives/native_tellurium.md.
         const parts = [`Native tellurium #${c.crystal_id} grew to ${c.c_length_mm.toFixed(1)} mm.`];
@@ -17919,7 +17944,7 @@ class VugSimulator {
         else if (c.zones && c.zones.length > 6)
             parts.push(narrative_variant('native_tellurium', 'tellurite_tarnish') || 'Tellurite tarnish.');
         return parts.filter(p => p).join(' ');
-    }
+    },
     _narrate_native_sulfur(c) {
         // Prose lives in narratives/native_sulfur.md.
         const parts = [`Native sulfur #${c.crystal_id} grew to ${c.c_length_mm.toFixed(1)} mm.`];
@@ -17937,7 +17962,7 @@ class VugSimulator {
         if (c.dissolved)
             parts.push(narrative_variant('native_sulfur', 'oxidative_dissolution') || 'Oxidative dissolution.');
         return parts.filter(p => p).join(' ');
-    }
+    },
     _narrate_native_arsenic(c) {
         // Prose lives in narratives/native_arsenic.md.
         const parts = [`Native arsenic #${c.crystal_id} grew to ${c.c_length_mm.toFixed(1)} mm.`];
@@ -17955,7 +17980,7 @@ class VugSimulator {
         else if (c.zones && c.zones.length > 8)
             parts.push(narrative_variant('native_arsenic', 'arsenolite_tarnish') || 'Arsenolite tarnish.');
         return parts.filter(p => p).join(' ');
-    }
+    },
     _narrate_native_silver(c) {
         // Prose lives in narratives/native_silver.md.
         const parts = [`Native silver #${c.crystal_id} grew to ${c.c_length_mm.toFixed(1)} mm.`];
@@ -17985,7 +18010,7 @@ class VugSimulator {
             parts.push(narrative_variant('native_silver', 'on_acanthite') || "Note position — this crystal nucleated on a dissolving acanthite. That's the supergene Ag-enrichment cycle: primary acanthite oxidizes, releases Ag⁺, the Ag⁺ migrates down the redox gradient and re-precipitates as native silver in a deeper reducing pocket. Same Ag atoms, different mineral, same vug.");
         }
         return parts.filter(p => p).join(' ');
-    }
+    },
     _narrate_barite(c) {
         // Prose lives in narratives/barite.md. JS narrator added in this
         // commit to close a JS-side gap (Python had a narrator; JS dispatch
@@ -18007,7 +18032,7 @@ class VugSimulator {
             parts.push(narrative_variant('barite', 'honey_yellow'));
         parts.push(narrative_variant('barite', 'industrial_tail'));
         return parts.filter(p => p).join(' ');
-    }
+    },
     _narrate_celestine(c) {
         // Prose lives in narratives/celestine.md. JS narrator added in this
         // commit to close a JS-side gap.
@@ -18028,7 +18053,7 @@ class VugSimulator {
             parts.push(narrative_variant('celestine', 'sicilian_paragenesis'));
         parts.push(narrative_variant('celestine', 'industrial_tail'));
         return parts.filter(p => p).join(' ');
-    }
+    },
     _narrate_anhydrite(c) {
         // Prose lives in narratives/anhydrite.md. JS narrator added in this
         // commit to close a JS-side gap. The massive_granular branch splits
@@ -18054,7 +18079,7 @@ class VugSimulator {
             parts.push(narrative_variant('anhydrite', 'rehydration_to_gypsum'));
         parts.push(narrative_variant('anhydrite', 'industrial_tail'));
         return parts.filter(p => p).join(' ');
-    }
+    },
     _narrate_argentite(c) {
         // Prose lives in narratives/argentite.md.
         const parts = [`Argentite #${c.crystal_id} grew to ${c.c_length_mm.toFixed(1)} mm.`];
@@ -18069,7 +18094,7 @@ class VugSimulator {
             parts.push(narrative_variant('argentite', 'spinel_twin') || 'Spinel-law penetration twin.');
         }
         return parts.filter(p => p).join(' ');
-    }
+    },
     _narrate_jarosite(c) {
         // Prose lives in narratives/jarosite.md. JS narrator added in this
         // commit to close a JS-side gap.
@@ -18085,7 +18110,7 @@ class VugSimulator {
             parts.push(narrative_variant('jarosite', 'alkaline_shift'));
         parts.push(narrative_variant('jarosite', 'mars_connection'));
         return parts.filter(p => p).join(' ');
-    }
+    },
     _narrate_alunite(c) {
         // Prose lives in narratives/alunite.md. JS narrator added in this
         // commit to close a JS-side gap.
@@ -18106,7 +18131,7 @@ class VugSimulator {
             parts.push(narrative_variant('alunite', 'dissolved_alkaline_thermal'));
         parts.push(narrative_variant('alunite', 'ar_ar_geochronology'));
         return parts.filter(p => p).join(' ');
-    }
+    },
     _narrate_brochantite(c) {
         // Prose lives in narratives/brochantite.md. JS narrator added in this
         // commit to close a JS-side gap. Note the dissolved branch interpolates
@@ -18132,7 +18157,7 @@ class VugSimulator {
         }
         parts.push(narrative_variant('brochantite', 'patina_tail'));
         return parts.filter(p => p).join(' ');
-    }
+    },
     _narrate_antlerite(c) {
         // Prose lives in narratives/antlerite.md. JS narrator added in this
         // commit to close a JS-side gap.
@@ -18154,7 +18179,7 @@ class VugSimulator {
             parts.push(narrative_variant('antlerite', 'on_dissolving_brochantite'));
         parts.push(narrative_variant('antlerite', 'pragmatic_tail'));
         return parts.filter(p => p).join(' ');
-    }
+    },
     _narrate_chalcanthite(c) {
         // Prose lives in narratives/chalcanthite.md. JS narrator added in this
         // commit to close a JS-side gap.
@@ -18171,7 +18196,7 @@ class VugSimulator {
         if (c.dissolved)
             parts.push(narrative_variant('chalcanthite', 'cyclic_dissolution'));
         return parts.filter(p => p).join(' ');
-    }
+    },
     _narrate_scorodite(c) {
         // Prose lives in narratives/scorodite.md. JS narrator added in this
         // commit. Dipyramidal habit splits at avg trace_Fe > 0.15 into Fe-rich
@@ -18188,7 +18213,7 @@ class VugSimulator {
         if (c.dissolved)
             parts.push(narrative_variant('scorodite', 'dissolved_arsenic_remobilization'));
         return parts.filter(p => p).join(' ');
-    }
+    },
     _narrate_ferrimolybdite(c) {
         // Prose lives in narratives/ferrimolybdite.md. JS narrator added in this
         // commit. Habit strings 'acicular tuft' and 'fibrous mat' have spaces —
@@ -18204,7 +18229,7 @@ class VugSimulator {
         if (c.dissolved)
             parts.push(narrative_variant('ferrimolybdite', 'dehydration'));
         return parts.filter(p => p).join(' ');
-    }
+    },
     _narrate_selenite(c) {
         // Prose lives in narratives/selenite.md. JS canonical with Python
         // branches added (cathedral_blade habit, swallowtail_twin variant,
@@ -18238,7 +18263,7 @@ class VugSimulator {
         }
         parts.push(narrative_variant('selenite', 'epilogue_tail') || "Selenite forms in the last stage of a vug's life — when the fluid cools, the sulfides oxidize, and the water begins to evaporate. It is the epilogue crystal.");
         return parts.filter(p => p).join(' ');
-    }
+    },
     _narrate_adamite(c) {
         // Prose lives in narratives/adamite.md (boss-pushed canonical 2026-04-30).
         // Boss direction: JS tone + Python facts blend. Use Python's avg_Cu
@@ -18265,7 +18290,7 @@ class VugSimulator {
             parts.push(narrative_variant('adamite', 'dissolved'));
         parts.push(narrative_closing('adamite'));
         return parts.filter(p => p).join(' ');
-    }
+    },
     _narrate_mimetite(c) {
         // Prose lives in narratives/mimetite.md. Drift consolidation: JS-side
         // dispatch (3-way habit + tail) was richer than Python's; Python now
@@ -18290,7 +18315,7 @@ class VugSimulator {
             parts.push(narrative_variant('mimetite', 'acid_dissolution'));
         parts.push(narrative_variant('mimetite', 'imitator_tail') || 'Mimetite\'s name means "imitator" — it was confused with pyromorphite for centuries because they\'re isostructural. Only chemistry tells them apart.');
         return parts.filter(p => p).join(' ');
-    }
+    },
     _narrate_apophyllite(c) {
         // Prose lives in narratives/apophyllite.md.
         const parts = [`Apophyllite #${c.crystal_id} grew to ${c.c_length_mm.toFixed(1)} mm.`];
@@ -18314,7 +18339,7 @@ class VugSimulator {
             parts.push(narrative_variant('apophyllite', 'dissolved') || 'Acid attack dissolved the crystal — apophyllite is an alkaline-stable phase.');
         }
         return parts.filter(p => p).join(' ');
-    }
+    },
     _narrate_tetrahedrite(c) {
         // Prose lives in narratives/tetrahedrite.md.
         const parts = [`Tetrahedrite #${c.crystal_id} grew to ${c.c_length_mm.toFixed(1)} mm.`];
@@ -18332,7 +18357,7 @@ class VugSimulator {
         if (c.dissolved)
             parts.push(narrative_variant('tetrahedrite', 'oxidative_dissolution') || 'Oxidative dissolution.');
         return parts.filter(p => p).join(' ');
-    }
+    },
     _narrate_tennantite(c) {
         // Prose lives in narratives/tennantite.md.
         const parts = [`Tennantite #${c.crystal_id} grew to ${c.c_length_mm.toFixed(1)} mm.`];
@@ -18350,7 +18375,7 @@ class VugSimulator {
         if (c.dissolved)
             parts.push(narrative_variant('tennantite', 'oxidative_dissolution') || 'Oxidative dissolution.');
         return parts.filter(p => p).join(' ');
-    }
+    },
     _narrate_erythrite(c) {
         // Prose lives in narratives/erythrite.md. JS gains paragenetic_source_cobaltite
         // dispatch (Python had it; sim crystal scan).
@@ -18379,7 +18404,7 @@ class VugSimulator {
             parts.push(narrative_variant('erythrite', 'dehydration') || 'Dehydration or acid dissolution broke down the crystal — erythrite holds eight waters of crystallization in its structure, and they go first: above 200°C or below pH 4.5, the lattice collapses.');
         }
         return parts.filter(p => p).join(' ');
-    }
+    },
     _narrate_annabergite(c) {
         // Prose lives in narratives/annabergite.md. JS gains paragenetic_source_*
         // dispatch (Python had it; sim crystal scan for nickeline + millerite).
@@ -18409,7 +18434,7 @@ class VugSimulator {
             parts.push(narrative_variant('annabergite', 'dehydration') || 'Dehydration or acid dissolution consumed the crystal — like erythrite, annabergite is a hydrated arsenate with eight lattice waters and little stability outside a narrow T/pH window.');
         }
         return parts.filter(p => p).join(' ');
-    }
+    },
     _narrate_goethite(c) {
         // Prose lives in narratives/goethite.md.
         const parts = [`Goethite #${c.crystal_id} grew to ${c.c_length_mm.toFixed(1)} mm.`];
@@ -18432,7 +18457,7 @@ class VugSimulator {
             parts.push(narrative_variant('goethite', 'acid_dissolution') || 'Acid attack released Fe³⁺ back to the fluid. Goethite survives oxidation but not strong acid — the rusty armor has a pH floor.');
         }
         return parts.filter(p => p).join(' ');
-    }
+    },
     _narrate_uraninite(c) {
         // Prose lives in narratives/uraninite.md.
         const parts = [`Uraninite #${c.crystal_id} grew to ${c.c_length_mm.toFixed(1)} mm ☢️.`];
@@ -18444,7 +18469,7 @@ class VugSimulator {
         if (c.dissolved)
             parts.push(narrative_variant('uraninite', 'oxidative_dissolution') || 'Partial dissolution as O₂ invaded the system.');
         return parts.filter(p => p).join(' ');
-    }
+    },
     _narrate_galena(c) {
         // Prose lives in narratives/galena.md.
         const parts = [`Galena #${c.crystal_id} grew to ${c.c_length_mm.toFixed(1)} mm.`];
@@ -18460,7 +18485,7 @@ class VugSimulator {
             parts.push(narrative_variant('galena', 'oxidative_breakdown') || 'Oxidation attacked the galena — Pb²⁺ went into solution and can reprecipitate as cerussite (PbCO₃), anglesite (PbSO₄), or — if Mo is present — wulfenite (PbMoO₄).');
         }
         return parts.filter(p => p).join(' ');
-    }
+    },
     _narrate_molybdenite(c) {
         // Prose lives in narratives/molybdenite.md.
         const parts = [`Molybdenite #${c.crystal_id} grew to ${c.c_length_mm.toFixed(1)} mm.`];
@@ -18472,7 +18497,7 @@ class VugSimulator {
             parts.push(narrative_variant('molybdenite', 'oxidative_dissolution') || 'Oxidation dissolved the molybdenite, releasing MoO₄²⁻ into solution. If Pb is also present in the oxidation zone, the combination becomes wulfenite — the sunset mineral.');
         }
         return parts.filter(p => p).join(' ');
-    }
+    },
     _narrate_rosasite(c) {
         // Prose lives in narratives/rosasite.md (mirror of aurichalcite).
         const parts = [`Rosasite #${c.crystal_id} grew to ${c.c_length_mm.toFixed(1)} mm.`];
@@ -18487,7 +18512,7 @@ class VugSimulator {
             parts.push(narrative_variant('rosasite', 'encrusting_mammillary') || "Encrusting mammillary habit — thin crust at low supersaturation. Less aesthetic than the diagnostic spheres but more abundant in the field.");
         }
         return parts.filter(p => p).join(' ');
-    }
+    },
     _narrate_torbernite(c) {
         // Prose lives in narratives/torbernite.md.
         const parts = [`Torbernite #${c.crystal_id} grew to ${c.c_length_mm.toFixed(1)} mm.`];
@@ -18502,7 +18527,7 @@ class VugSimulator {
             parts.push(narrative_variant('torbernite', 'metatorbernite_warning') || "Note: this crystal grew near the metatorbernite transition temperature (~75°C). Continued heat would drive irreversible dehydration to the 8-H₂O metatorbernite form — a one-way conversion.");
         }
         return parts.filter(p => p).join(' ');
-    }
+    },
     _narrate_zeunerite(c) {
         // Prose lives in narratives/zeunerite.md.
         const parts = [`Zeunerite #${c.crystal_id} grew to ${c.c_length_mm.toFixed(1)} mm.`];
@@ -18514,7 +18539,7 @@ class VugSimulator {
         else
             parts.push(narrative_variant('zeunerite', 'scaly_encrustation') || "Scaly encrustation — low-σ thin overlapping plates coating fracture surfaces.");
         return parts.filter(p => p).join(' ');
-    }
+    },
     _narrate_carnotite(c) {
         // Prose lives in narratives/carnotite.md.
         const parts = [`Carnotite #${c.crystal_id} grew to ${c.c_length_mm.toFixed(1)} mm.`];
@@ -18529,7 +18554,7 @@ class VugSimulator {
             parts.push(narrative_variant('carnotite', 'roll_front') || "Cool nucleation (~ambient surface temperatures) — consistent with the roll-front geological setting where oxidizing meteoric water encounters a reducing barrier and drops both U and V into the same yellow precipitate.");
         }
         return parts.filter(p => p).join(' ');
-    }
+    },
     _narrate_autunite(c) {
         // Prose lives in narratives/autunite.md. Round 9d (May 2026) Ca-cation
         // analog of torbernite — the cation fork's narrative payoff is the
@@ -18552,7 +18577,7 @@ class VugSimulator {
             parts.push(narrative_variant('autunite', 'acid_dissolution') || 'Acid attack — pH below 4.5 destabilizes uranyl phosphates. Ca²⁺ floats free, the uranyl ion goes back into solution, the phosphate joins the broth.');
         }
         return parts.filter(p => p).join(' ');
-    }
+    },
     _narrate_uranospinite(c) {
         // Prose lives in narratives/uranospinite.md. Round 9e (May 2026)
         // Ca-cation analog of zeunerite. The cation fork's narrative payoff
@@ -18581,7 +18606,7 @@ class VugSimulator {
             parts.push(narrative_variant('uranospinite', 'acid_dissolution') || 'Acid attack — pH below 4.5 destabilizes the autunite-group framework.');
         }
         return parts.filter(p => p).join(' ');
-    }
+    },
     _narrate_tyuyamunite(c) {
         // Prose lives in narratives/tyuyamunite.md. Round 9e (May 2026)
         // Ca-cation analog of carnotite — orthorhombic instead of monoclinic.
@@ -18609,7 +18634,7 @@ class VugSimulator {
             parts.push(narrative_variant('tyuyamunite', 'acid_dissolution') || 'Acid attack — pH below 5 destabilizes the uranyl-vanadate framework.');
         }
         return parts.filter(p => p).join(' ');
-    }
+    },
     _narrate_aurichalcite(c) {
         // Prose lives in narratives/aurichalcite.md. Code dispatches on
         // habit; markdown owns the words. Inline fallbacks for offline.
@@ -18625,7 +18650,7 @@ class VugSimulator {
             parts.push(narrative_variant('aurichalcite', 'laminar_crust') || "Thin laminar crust — low-σ encrusting habit, common on mine walls where weathering supplied a steady but modest flux of Zn + Cu + CO₃.");
         }
         return parts.filter(p => p).join(' ');
-    }
+    },
     _narrate_mixing_event(batch, event) {
         const mineral_names = new Set(batch.map(c => c.mineral));
         const parts = [];
@@ -18636,7 +18661,7 @@ class VugSimulator {
             parts.push("Sphalerite nucleated as zinc-bearing brine mixed with sulfur-rich groundwater. The two fluids were stable apart; together, ZnS became insoluble.");
         }
         return parts.join(' ');
-    }
+    },
     _narrate_tectonic(batch) {
         const twinned = this.crystals.filter(c => c.twinned);
         if (twinned.length) {
@@ -18644,7 +18669,7 @@ class VugSimulator {
             return ` The stress may have induced twinning in ${names.join(', ')}. Twin planes formed as the crystal lattice accommodated the sudden strain — a record of the event frozen in the structure.`;
         }
         return ' No visible twinning resulted, but the pressure change altered subsequent growth conditions.';
-    }
+    },
     _narrate_collectors_view() {
         const parts = ['A collector examining this specimen would find:'];
         for (const c of this.crystals) {
@@ -18995,14 +19020,8 @@ class VugSimulator {
         if (parts.length === 1)
             return "The vug produced only microscopic crystals — a thin crust on the cavity wall.";
         return parts.join('\n');
-    }
-}
-// ============================================================
-// UTILITY
-// ============================================================
-function capitalize(s) {
-    return s.charAt(0).toUpperCase() + s.slice(1);
-}
+    },
+});
 
 // ── 91-ui-legends.js ──
 
