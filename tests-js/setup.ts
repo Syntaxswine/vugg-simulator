@@ -240,6 +240,18 @@ const EXPORTS = [
   'sulfideRedoxAnoxic',
   'sulfideRedoxLinearFactor',
   'sulfideRedoxTent',
+  // Phase 4b molybdate / phosphate / silicate-class helpers.
+  'molybdateRedoxAvailable',
+  'molybdateRedoxFactor',
+  'phosphateRedoxAvailable',
+  'phosphateRedoxFactor',
+  'silicateRedoxAvailable',
+  'silicateRedoxFactor',
+  // Phase 4b native-class helpers.
+  'nativeRedoxAnoxic',
+  'nativeRedoxLinearFactor',
+  'nativeRedoxWindow',
+  'nativeRedoxTent',
 ];
 
 let _bundleLoaded = false;

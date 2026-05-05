@@ -21,8 +21,8 @@ Object.assign(VugConditions.prototype, {
   // Pb/Mo thresholds (>=10/>=5) preserved — JS canonical here, matches
   // the research's "rare two-parent" framing better than Python's
   // pre-v17 lower thresholds.
-  if (this.fluid.Pb < 10 || this.fluid.Mo < 5 || this.fluid.O2 < 0.5) return 0;
-  let sigma = (this.fluid.Pb / 40.0) * (this.fluid.Mo / 15.0) * (this.fluid.O2 / 1.0);
+  if (this.fluid.Pb < 10 || this.fluid.Mo < 5 || !molybdateRedoxAvailable(this.fluid, 0.5)) return 0;
+  let sigma = (this.fluid.Pb / 40.0) * (this.fluid.Mo / 15.0) * molybdateRedoxFactor(this.fluid, 1.0);
   // Decay above 80°C — supergene-only ceiling
   if (this.temperature > 80) {
     sigma *= Math.exp(-0.025 * (this.temperature - 80));
@@ -38,9 +38,9 @@ Object.assign(VugConditions.prototype, {
 },
 
   supersaturation_ferrimolybdite() {
-  if (this.fluid.Mo < 2 || this.fluid.Fe < 3 || this.fluid.O2 < 0.5) return 0;
+  if (this.fluid.Mo < 2 || this.fluid.Fe < 3 || !molybdateRedoxAvailable(this.fluid, 0.5)) return 0;
   // Lower Mo threshold + /10 scaling reflects faster, less-picky growth.
-  let sigma = (this.fluid.Mo / 10.0) * (this.fluid.Fe / 20.0) * (this.fluid.O2 / 1.0);
+  let sigma = (this.fluid.Mo / 10.0) * (this.fluid.Fe / 20.0) * molybdateRedoxFactor(this.fluid, 1.0);
   // Strongly low-temperature — supergene/weathering zone only.
   if (this.temperature > 50) {
     sigma *= Math.exp(-0.02 * (this.temperature - 50));
@@ -57,10 +57,10 @@ Object.assign(VugConditions.prototype, {
 
   supersaturation_raspite() {
   if (this.fluid.Pb < 40 || this.fluid.W < 5) return 0;
-  if (this.fluid.O2 < 0.5) return 0;
+  if (!molybdateRedoxAvailable(this.fluid, 0.5)) return 0;
   const pb_f = Math.min(this.fluid.Pb / 80.0, 2.0);
   const w_f  = Math.min(this.fluid.W  / 15.0, 2.5);
-  const ox_f = Math.min(this.fluid.O2 / 1.0, 2.0);
+  const ox_f = molybdateRedoxFactor(this.fluid, 1.0, 2.0);
   let sigma = pb_f * w_f * ox_f;
   const T = this.temperature;
   let T_factor;
@@ -77,10 +77,10 @@ Object.assign(VugConditions.prototype, {
 
   supersaturation_stolzite() {
   if (this.fluid.Pb < 40 || this.fluid.W < 5) return 0;
-  if (this.fluid.O2 < 0.5) return 0;
+  if (!molybdateRedoxAvailable(this.fluid, 0.5)) return 0;
   const pb_f = Math.min(this.fluid.Pb / 80.0, 2.5);
   const w_f  = Math.min(this.fluid.W  / 15.0, 2.5);
-  const ox_f = Math.min(this.fluid.O2 / 1.0, 2.0);
+  const ox_f = molybdateRedoxFactor(this.fluid, 1.0, 2.0);
   let sigma = pb_f * w_f * ox_f;
   const T = this.temperature;
   let T_factor;

@@ -484,3 +484,135 @@ function sulfideRedoxTent(
   const o2eq = o2FromEh(Eh);
   return Math.max(floor, peakValue - Math.abs(o2eq - peakO2) * slope);
 }
+
+// ============================================================
+// Phase 4b molybdate / phosphate / silicate-class engine helpers
+// ============================================================
+// All three classes are oxidized-side throughout — molybdate (MoO4²⁻),
+// phosphate (PO4³⁻ + secondary uranyl), silicate (chrysocolla Cu(II)).
+// Same flag-OFF passthrough as sulfate. Phase 4c will bind each to
+// an Eh threshold; no specific Nernst couple applies (these are
+// non-redox-active anions whose minerals need "oxic enough" fluid
+// for the cation to be in its mobile state).
+//
+// The textual repetition with sulfateRedox* / arsenateRedox* etc. is
+// deliberate — keeping per-class helper names makes Phase 4c's tuning
+// surface (one Eh threshold per class) explicit at the call site.
+
+function molybdateRedoxAvailable(fluid: any, o2Threshold: number): boolean {
+  if (!EH_DYNAMIC_ENABLED) {
+    return (typeof fluid.O2 === 'number' ? fluid.O2 : 0) >= o2Threshold;
+  }
+  const EhEquivalent = ehFromO2(o2Threshold);
+  const Eh = typeof fluid.Eh === 'number' ? fluid.Eh : 200;
+  return Eh >= EhEquivalent;
+}
+
+function molybdateRedoxFactor(fluid: any, scaleAtFull: number, cap: number = Infinity): number {
+  if (!EH_DYNAMIC_ENABLED) {
+    const O2 = typeof fluid.O2 === 'number' ? fluid.O2 : 0;
+    return Math.min(O2 / scaleAtFull, cap);
+  }
+  const Eh = typeof fluid.Eh === 'number' ? fluid.Eh : 200;
+  const o2eq = o2FromEh(Eh);
+  return Math.min(o2eq / scaleAtFull, cap);
+}
+
+function phosphateRedoxAvailable(fluid: any, o2Threshold: number): boolean {
+  if (!EH_DYNAMIC_ENABLED) {
+    return (typeof fluid.O2 === 'number' ? fluid.O2 : 0) >= o2Threshold;
+  }
+  const EhEquivalent = ehFromO2(o2Threshold);
+  const Eh = typeof fluid.Eh === 'number' ? fluid.Eh : 200;
+  return Eh >= EhEquivalent;
+}
+
+function phosphateRedoxFactor(fluid: any, scaleAtFull: number, cap: number = Infinity): number {
+  if (!EH_DYNAMIC_ENABLED) {
+    const O2 = typeof fluid.O2 === 'number' ? fluid.O2 : 0;
+    return Math.min(O2 / scaleAtFull, cap);
+  }
+  const Eh = typeof fluid.Eh === 'number' ? fluid.Eh : 200;
+  const o2eq = o2FromEh(Eh);
+  return Math.min(o2eq / scaleAtFull, cap);
+}
+
+function silicateRedoxAvailable(fluid: any, o2Threshold: number): boolean {
+  if (!EH_DYNAMIC_ENABLED) {
+    return (typeof fluid.O2 === 'number' ? fluid.O2 : 0) >= o2Threshold;
+  }
+  const EhEquivalent = ehFromO2(o2Threshold);
+  const Eh = typeof fluid.Eh === 'number' ? fluid.Eh : 200;
+  return Eh >= EhEquivalent;
+}
+
+function silicateRedoxFactor(fluid: any, scaleAtFull: number, cap: number = Infinity): number {
+  if (!EH_DYNAMIC_ENABLED) {
+    const O2 = typeof fluid.O2 === 'number' ? fluid.O2 : 0;
+    return Math.min(O2 / scaleAtFull, cap);
+  }
+  const Eh = typeof fluid.Eh === 'number' ? fluid.Eh : 200;
+  const o2eq = o2FromEh(Eh);
+  return Math.min(o2eq / scaleAtFull, cap);
+}
+
+// ============================================================
+// Phase 4b native-class engine helpers
+// ============================================================
+// Native elements (Te, S⁰, As, Ag, Bi, Cu) form under reducing
+// conditions — their cations get reduced all the way to elementary
+// state. native_sulfur is the exception: it forms in a narrow Eh
+// transition zone (synproportionation of H₂S + SO₄²⁻ ⇌ S⁰), needing
+// neither solidly oxic nor solidly anoxic. native_gold has no
+// fluid.O2 dependence (Au is nobilized by complexation, not Eh).
+//
+// Same shapes as sulfide + oxide; named per-class so Phase 4c can
+// tune independently.
+
+function nativeRedoxAnoxic(fluid: any, o2UpperBound: number): boolean {
+  if (!EH_DYNAMIC_ENABLED) {
+    return (typeof fluid.O2 === 'number' ? fluid.O2 : 0) <= o2UpperBound;
+  }
+  const EhEquivalent = ehFromO2(o2UpperBound);
+  const Eh = typeof fluid.Eh === 'number' ? fluid.Eh : 200;
+  return Eh <= EhEquivalent;
+}
+
+function nativeRedoxLinearFactor(
+  fluid: any, intercept: number, slope: number = 1.0, floor: number = -Infinity,
+): number {
+  if (!EH_DYNAMIC_ENABLED) {
+    const O2 = typeof fluid.O2 === 'number' ? fluid.O2 : 0;
+    return Math.max(floor, intercept - slope * O2);
+  }
+  const Eh = typeof fluid.Eh === 'number' ? fluid.Eh : 200;
+  const o2eq = o2FromEh(Eh);
+  return Math.max(floor, intercept - slope * o2eq);
+}
+
+// native_sulfur Eh window — neither solidly oxic nor solidly anoxic.
+function nativeRedoxWindow(fluid: any, o2Low: number, o2High: number): boolean {
+  if (!EH_DYNAMIC_ENABLED) {
+    const O2 = typeof fluid.O2 === 'number' ? fluid.O2 : 0;
+    return O2 >= o2Low && O2 <= o2High;
+  }
+  const EhLow = ehFromO2(o2Low);
+  const EhHigh = ehFromO2(o2High);
+  const Eh = typeof fluid.Eh === 'number' ? fluid.Eh : 200;
+  return Eh >= EhLow && Eh <= EhHigh;
+}
+
+// native_sulfur Eh-distance peak — peaks at peakO2, falls off
+// linearly. Identical shape to oxide's tent + sulfide's tent but
+// with peakValue=1.0 hardcoded (the legacy native_sulfur form).
+function nativeRedoxTent(
+  fluid: any, peakO2: number, slope: number, floor: number,
+): number {
+  if (!EH_DYNAMIC_ENABLED) {
+    const O2 = typeof fluid.O2 === 'number' ? fluid.O2 : 0;
+    return Math.max(floor, 1.0 - slope * Math.abs(O2 - peakO2));
+  }
+  const Eh = typeof fluid.Eh === 'number' ? fluid.Eh : 200;
+  const o2eq = o2FromEh(Eh);
+  return Math.max(floor, 1.0 - slope * Math.abs(o2eq - peakO2));
+}
