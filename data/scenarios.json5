@@ -1470,6 +1470,65 @@
         "(tutorial scaffold — no published source)",
         "Franklin / Sterling Hill (NJ) — type locality for Mn-activated calcite fluorescence"
       ]
+    },
+
+    "tutorial_travertine": {
+      "anchor": "Mammoth Hot Springs (Yellowstone) — travertine is the canonical CO₂-degas calcite",
+      "description": "Tutorial 3: How CO₂ Builds a Calcite Crust. CO₂-rich groundwater rises into a hot-spring pool, loses CO₂ as gas, and pH rises until calcite saturates and starts depositing on every available surface. The same mechanism that grows speleothems in caves and travertine terraces at hot springs.",
+      "expects_species": ["calcite"],
+      "duration_steps": 60,
+      "notes": [
+        "Tutorial scenario for PROPOSAL-GEOLOGICAL-ACCURACY Phase 3. Showcases the CO₂-degas → pH rise → calcite supersaturates cascade. Player presses Advance through three degassing pulses (steps 10, 25, 40) and watches calcite go from undersaturated to massive precipitation purely via pH change — no temperature drop, no mineral mixing, no fluid pulse adds Ca.",
+        "Initial fluid is high-DIC (CO3 = 500 ppm = ~10 mmol/kg DIC, typical of CO₂-charged hot-spring source water) at moderately acidic pH 6.5 (the pH at which most DIC sits as H₂CO₃* and HCO₃⁻; <0.1% is CO₃²⁻). Despite Ca = 200 ppm being well above seawater levels, calcite stays subsaturated — the carbonate ion isn't there.",
+        "Each `co2_degas` event removes 30% of the DIC (CO₂ leaves as gas) and raises pH by 0.5 units. The CO₃²⁻ fraction of DIC grows ~10× per pH unit (Bjerrum partition). After three degassing pulses, pH ~ 8 and calcite is wildly supersaturated; players see calcite nucleate and grow steadily through the back half of the run.",
+        "Geological reference: Mammoth Hot Springs (Yellowstone, USA), Pamukkale (Turkey), Pancake Hot Springs (CA). All build travertine via this exact cascade. Cave flowstone uses the same chemistry but with cooler fluid and lower flow."
+      ],
+      "initial": {
+        "temperature_C": 70.0,
+        "pressure_kbar": 0.05,
+        "fluid": {
+          // CO₂-charged hot-spring water — high DIC, moderate pH.
+          "Ca": 200,
+          "CO3": 500,
+          "Mg": 30,
+          "SiO2": 50,
+          "Na": 200,
+          "Cl": 300,
+          "S": 50,
+          "Fe": 5,
+          "Mn": 2,
+          "pH": 6.5,
+          "salinity": 6.0
+        },
+        "wall": {
+          "composition": "limestone",
+          "primary_bubbles": 3,
+          "secondary_bubbles": 4,
+          "shape_seed": 4
+        }
+      },
+      "events": [
+        { "step": 10, "type": "co2_degas_with_reheat", "name": "First Pulse", "description": "Fresh hot CO₂-rich fluid arrives — first pulse of CO₂ escapes as it reaches the pool" },
+        { "step": 25, "type": "co2_degas_with_reheat", "name": "Second Pulse", "description": "Continued CO₂ outgassing — pH continues to rise, CO₃²⁻ fraction grows" },
+        { "step": 40, "type": "co2_degas_with_reheat", "name": "Third Pulse", "description": "Final pulse — pH near 8, calcite massively supersaturated" }
+      ],
+      "tutorial": {
+        "steps": [
+          { "step": 0,  "anchor": "#f-advance",       "side": "top",   "text": "This vug holds high-DIC hot-spring water — lots of dissolved CO₂, calcium, and bicarbonate. The pH is 6.5, which sounds neutral, but at that pH almost none of the carbonate is in the CO₃²⁻ form needed for calcite. Press Advance to start." },
+          { "step": 4,  "anchor": "#fortress-status", "side": "right", "text": "Notice: calcite isn't growing yet. The Ca is there (200 ppm), the DIC is there (500 ppm), but pH 6.5 means CO₃²⁻ is essentially zero. The Bjerrum partition keeps almost all carbonate as H₂CO₃* and HCO₃⁻. Calcite needs the ionic form." },
+          { "step": 11, "anchor": "#fortress-log",    "side": "left",  "text": "First CO₂ degas event just fired. Read the log — 30% of the DIC just left as gas, and pH jumped from 6.5 to 7.0. The next steps will start to nucleate calcite as the CO₃²⁻ fraction climbs." },
+          { "step": 20, "anchor": "#fortress-status", "side": "right", "text": "Calcite is starting to grow. The same Ca²⁺ that's been sitting in solution the whole time is now precipitating because the carbonate ion finally exists in meaningful amounts. The fluid composition barely changed — only the pH did." },
+          { "step": 26, "anchor": "#fortress-log",    "side": "left",  "text": "Second degas pulse. pH rises again. Watch calcite growth accelerate." },
+          { "step": 41, "anchor": "#fortress-log",    "side": "left",  "text": "Third degas. pH near 8 now. Calcite is wildly supersaturated; every nucleation site available is depositing crystal." },
+          { "step": 55, "anchor": "#fortress-log",    "side": "left",  "text": "That's how travertine builds at Mammoth Hot Springs. Hot CO₂-charged water reaches the surface, CO₂ escapes as bubbles, pH rises, and calcite plates everything in white. The same fluid that ARRIVES too acidic to grow calcite ENDS UP loaded with it — only the dissolved gas changed." },
+          { "step": 60, "anchor": "#fortress-log",    "side": "left",  "text": "Tutorial complete. The lesson: pH controls carbonate-system chemistry as fundamentally as temperature. Cave flowstone, hot-spring travertine, ocean carbonate sediments — they all run on this same Bjerrum cascade. (Press Home when ready, or keep going.)" }
+        ]
+      },
+      "sources": [
+        "Mammoth Hot Springs, Yellowstone NP — type locality for actively-forming travertine",
+        "Pentecost A. (2005), Travertine — comprehensive review of CO₂-degas calcite",
+        "Stumm & Morgan, Aquatic Chemistry (3rd ed.), Bjerrum partition + Henry's-Law CO₂"
+      ]
     }
 
   }

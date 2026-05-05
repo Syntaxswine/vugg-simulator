@@ -246,5 +246,33 @@
 //        crystals), searles_lake -12% (Na-S evaporite finds new
 //        depletion-cycle equilibrium). 67 depletion ⛔ narratives
 //        across the sweep (mostly searles_lake + reactive_wall).
-const SIM_VERSION = 22;
+//   v23 — Phase 3b carbonate speciation infrastructure (May 2026).
+//        Three pieces:
+//        (a) Migrated all 11 carbonate supersat methods to use
+//            effectiveCO3(this.fluid, this.temperature) instead of
+//            this.fluid.CO3 directly. With CARBONATE_SPECIATION_ACTIVE
+//            flag OFF (default), behavior is identical (effectiveCO3
+//            returns fluid.CO3 = DIC). With flag ON (Phase 3c
+//            calibration target), it returns the Bjerrum-derived
+//            CO₃²⁻ activity at current pH and T.
+//        (b) Added co2_degas / co2_degas_with_reheat / co2_charge
+//            event handlers. Each manipulates fluid.CO3 + fluid.pH
+//            to keep the carbonate system roughly in Bjerrum
+//            equilibrium. The reheat variant resets temperature too,
+//            modeling continuous hot-fluid recharge at active hot
+//            springs.
+//        (c) Strengthened calcite alkaline-boost factor: old
+//            (1 + (pH - 7.5) × 0.15) → new 3^(pH - 7.5). Old factor
+//            was 7.5% per pH unit; real Bjerrum CO₃²⁻ activity grows
+//            ~10× per pH unit. New factor: 1.0 at pH 7.5, 1.73 at
+//            pH 8.0, 3.0 at pH 8.5. Lets CO₂-degas cascades work
+//            without the flag flip.
+//        New scenario: tutorial_travertine demonstrates the cascade
+//        — three CO₂-degas-with-reheat pulses raise pH 6.5 → 8.0;
+//        calcite nucleates at step 41 once σ crosses the 1.3 gate.
+//        Calibration sweep at seed 42 vs v22: RMS 9.73%, 17 of 19
+//        scenarios within ±20%, max -31% (deccan_zeolite — alkaline
+//        scenario where the stronger pH boost amplifies competing
+//        carbonates). 14 of 19 scenarios completely unchanged.
+const SIM_VERSION = 23;
 

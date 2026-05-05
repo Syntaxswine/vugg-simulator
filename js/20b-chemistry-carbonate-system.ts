@@ -103,6 +103,21 @@ function carbonateIonPpm(fluid: any, T_celsius: number): number {
   return fluid.CO3 * fractions.CO3;
 }
 
+// The carbonate quantity to use in supersaturation calculations.
+// Routes between DIC (legacy) and proper CO₃²⁻ (flag on) so the
+// migration in carbonate supersat methods is a pure substitution
+// of `this.fluid.CO3` → `effectiveCO3(this.fluid, this.temperature)`.
+//
+// Flag OFF (default): returns fluid.CO3 — byte-identical to v22.
+// Flag ON: returns the Bjerrum-derived CO₃²⁻ activity. At pH 7-8
+// this is 0.04-0.5% of DIC, so saturation drops dramatically — the
+// existing eq calibration constants assume DIC interpretation, so
+// per-mineral eq retuning is a Phase 3c calibration follow-up.
+function effectiveCO3(fluid: any, T_celsius: number): number {
+  if (!CARBONATE_SPECIATION_ACTIVE) return fluid.CO3;
+  return carbonateIonPpm(fluid, T_celsius);
+}
+
 // Compute the equilibrium pCO₂ (bar) consistent with the fluid's
 // current DIC and pH. This is the "aqueous-side answer" that
 // PROPOSAL-VOLATILE-GASES would set its `volatiles['CO2']` to,
