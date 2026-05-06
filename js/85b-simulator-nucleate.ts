@@ -11,11 +11,20 @@
 Object.assign(VugSimulator.prototype, {
   nucleate(mineral, position = 'vug wall', sigma = 1.0) {
   this.crystal_counter++;
+  // vug_diameter_mm is captured at nucleation so add_zone can cap
+  // dimensions against it (BUG-CRYSTALS-CLIP-VUG-WALL.md Tier-2 fix).
+  // Read live from the wall (it grows as dissolution erodes); each
+  // crystal stores the value at its own birth, which is a slight
+  // simplification — a crystal nucleated in a 30 mm cavity that later
+  // dissolves to 60 mm will still cap against 30. Acceptable for v1
+  // since the cap matters most for runaway growth in small cavities.
+  const vugDiameterAtBirth = this.conditions?.wall?.vug_diameter_mm ?? 0;
   const crystal = new Crystal({
     mineral, crystal_id: this.crystal_counter,
     nucleation_step: this.step,
     nucleation_temp: this.conditions.temperature,
-    position
+    position,
+    vug_diameter_mm: vugDiameterAtBirth,
   });
 
   // Pick a growth-vector variant from the spec. Its name sets the habit

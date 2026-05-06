@@ -4911,7 +4911,44 @@ let timeScale = 5.0;
 //        without primary sulfides, etc.) should drift little if at
 //        all since their barite either doesn't form or doesn't have
 //        the sulfide hosts.
-const SIM_VERSION = 58;
+//   v59 — Per-crystal cavity-bound cap (May 2026, BUG-CRYSTALS-CLIP-
+//        VUG-WALL.md Tier-2 fix). Closes the chemistry-side hole that
+//        let single crystals grow past the cavity walls (feldspar #7
+//        in pegmatite seed 1778042424470 at 91.2% of vug volume,
+//        selenite #6 in supergene seed 42 at 93% of vug diameter,
+//        the user's 100mm fluorite stress test in a 50mm vug).
+//
+//        Mechanism: Crystal stores `vug_diameter_mm` at nucleation
+//        (read from conditions.wall.vug_diameter_mm). add_zone caps
+//        the post-aspect-formula c_length / a_width:
+//          c_length <= vug_radius        (= vug_diameter / 2)
+//          a_width  <= vug_diameter      (i.e. half-width <= vug_radius)
+//        total_growth_um keeps incrementing — the cap is on the
+//        rendered/effective size, so future steps see a smaller
+//        effective surface area for mass deposition (chemistry self-
+//        throttles the right way; no fluid-balance discontinuity).
+//
+//        This is the spatial counterpart to the existing GLOBAL
+//        get_vug_fill check (which limits TOTAL volume across all
+//        crystals but doesn't prevent any single crystal from being
+//        oversized). The renderer-side cavity-clip + polar-aware
+//        per-ring radius (commits e6bb0a1, c53bb30, 1bf950a) was a
+//        band-aid that masked outside-hull fragments but couldn't
+//        cap a crystal whose body straddles the wall (cuts read as
+//        see-through, no closing face).
+//
+//        Calibration drift: scenarios where any crystal previously
+//        exceeded vug_radius along c-axis or vug_diameter laterally
+//        will redistribute fluid budget into other crystals (since
+//        the capped crystal's surface area plateaus, future mass
+//        deposition slows on it). Expect drift on:
+//          pegmatite (feldspar #7 case)
+//          supergene_oxidation (selenite rosette)
+//          bisbee (any large crystals)
+//          potentially any scenario with extended tabular growth
+//        Smaller scenarios with sub-millimeter crystals see no
+//        change (the cap simply never fires).
+const SIM_VERSION = 59;
 
 // ── 18-constants.js ──
 
@@ -7594,6 +7631,15 @@ class Crystal {
         // persist as a hollow cast when later dissolved.
         this.cdr_replaces_crystal_id = opts.cdr_replaces_crystal_id ?? null;
         this.perimorph_eligible = opts.perimorph_eligible ?? false;
+        // Cavity diameter at nucleation time, used by add_zone to cap
+        // c_length / a_width so individual crystals can't grow past the
+        // cavity walls. See BUG-CRYSTALS-CLIP-VUG-WALL.md (Tier 2 fix). The
+        // cap is the spatial counterpart to the existing global vug-fill
+        // check (which limits TOTAL volume across all crystals, but doesn't
+        // prevent any single crystal from being oversized). Set by
+        // sim.nucleate() at construction; 0 means "no cap" for crystals
+        // loaded from legacy saves or constructed in tests.
+        this.vug_diameter_mm = opts.vug_diameter_mm ?? 0;
     }
     add_zone(zone) {
         // Apply time compression — more geological time per step = thicker zones
@@ -7630,6 +7676,24 @@ class Crystal {
             this.a_width_mm = this.c_length_mm;
         else
             this.a_width_mm = this.c_length_mm * 0.5;
+        // Per-crystal spatial cap (BUG-CRYSTALS-CLIP-VUG-WALL.md Tier-2 fix).
+        // Without this, individual crystals can grow until the global vug-
+        // fill check stops nucleation — no per-crystal limit existed, so
+        // pegmatite feldspar #7 ended up at 91.2% of vug volume and
+        // supergene selenite #6 ended up 93% of vug diameter, both
+        // bursting the cavity. Cap c_length at vug_radius (crystal can
+        // grow at most halfway across the cavity along its c-axis) and
+        // a_width at vug_diameter (lateral half-width <= vug_radius).
+        // total_growth_um keeps incrementing — the cap is on rendered/
+        // effective size, so future steps see a smaller surface area for
+        // mass deposition (the chemistry self-throttles the right way).
+        if (this.vug_diameter_mm > 0) {
+            const vugRadius = this.vug_diameter_mm / 2;
+            if (this.c_length_mm > vugRadius)
+                this.c_length_mm = vugRadius;
+            if (this.a_width_mm > this.vug_diameter_mm)
+                this.a_width_mm = this.vug_diameter_mm;
+        }
     }
     describe_morphology() {
         const forms = this.dominant_forms.length ? this.dominant_forms.join(', ') : this.habit;
@@ -17509,9 +17573,15 @@ class VugSimulator {
                 continue;
             }
             // Universal max-size cap — 2× world record per MINERAL_SPEC.
-            // Closes the 321,248% runaway growth bug.
+            // Closes the 321,248% runaway growth bug. Uses total_growth_um
+            // (the chemistry-truthful uncapped size) rather than c_length_mm,
+            // because v59's per-crystal cavity cap (BUG-CRYSTALS-CLIP-VUG-WALL.md)
+            // pins c_length_mm at vug_radius for crystals at the cavity wall,
+            // which would prevent the world-record cap from ever firing on
+            // those crystals and let total_growth_um run unbounded.
             const capCm = maxSizeCm(crystal.mineral);
-            if (capCm != null && crystal.c_length_mm / 10.0 >= capCm) {
+            const cLengthForCap = crystal.total_growth_um / 1000.0;
+            if (capCm != null && cLengthForCap / 10.0 >= capCm) {
                 crystal.active = false;
                 this.log.push(`  ⛔ ${capitalize(crystal.mineral)} #${crystal.crystal_id}: reached size cap (${capCm} cm = 2× world record) — growth halts`);
                 continue;
@@ -17634,7 +17704,11 @@ class VugSimulator {
             if (!this._metamict_logged)
                 this._metamict_logged = false;
             for (const u_crystal of active_uraninite) {
-                const u_size = u_crystal.c_length_mm;
+                // Use total_growth_um (uncapped) rather than c_length_mm so v59's
+                // cavity cap doesn't reduce uraninite's effective Pb/radiation
+                // output. Source of small drift (~0.5%) on radioactive_pegmatite
+                // and schneeberg in the v58→v59 sweep before this fix.
+                const u_size = u_crystal.total_growth_um / 1000;
                 // Uraninite produces Pb into fluid via radioactive decay
                 this.conditions.fluid.Pb += 0.1 * u_size;
                 this.radiation_dose += 0.01 * u_size;
@@ -18242,11 +18316,20 @@ Object.assign(VugSimulator.prototype, {
 Object.assign(VugSimulator.prototype, {
     nucleate(mineral, position = 'vug wall', sigma = 1.0) {
         this.crystal_counter++;
+        // vug_diameter_mm is captured at nucleation so add_zone can cap
+        // dimensions against it (BUG-CRYSTALS-CLIP-VUG-WALL.md Tier-2 fix).
+        // Read live from the wall (it grows as dissolution erodes); each
+        // crystal stores the value at its own birth, which is a slight
+        // simplification — a crystal nucleated in a 30 mm cavity that later
+        // dissolves to 60 mm will still cap against 30. Acceptable for v1
+        // since the cap matters most for runaway growth in small cavities.
+        const vugDiameterAtBirth = this.conditions?.wall?.vug_diameter_mm ?? 0;
         const crystal = new Crystal({
             mineral, crystal_id: this.crystal_counter,
             nucleation_step: this.step,
             nucleation_temp: this.conditions.temperature,
-            position
+            position,
+            vug_diameter_mm: vugDiameterAtBirth,
         });
         // Pick a growth-vector variant from the spec. Its name sets the habit
         // and its wall_spread/void_reach/vector populate the topo-map
@@ -18908,8 +18991,33 @@ Object.assign(VugSimulator.prototype, {
         for (const c of this.crystals) {
             if (!c.active)
                 continue;
-            const a = c.c_length_mm / 2;
-            const b = c.a_width_mm / 2;
+            // Use total_growth_um (uncapped chemistry-tracked size) rather than
+            // c_length_mm directly. v59 capped c_length / a_width at vug_radius
+            // to prevent crystals bursting the wall (BUG-CRYSTALS-CLIP-VUG-WALL.md
+            // Tier-2). Without this fix, the cap would shrink each crystal's
+            // contribution to vug-fill, suppressing the vug-sealed event and
+            // letting the sim run past natural closure — observed as +50% to
+            // +100% total growth on scenarios with previously-oversized crystals
+            // (naica selenite, sabkha aragonite, searles halite, etc.). Reading
+            // total_growth_um keeps the seal behavior identical to v58.
+            const cMm = c.total_growth_um / 1000;
+            // Derive a_width from the habit ratio (mirrors the formula in
+            // 27-geometry-crystal.ts:add_zone, applied to the uncapped c).
+            let aMm;
+            if (c.habit === 'prismatic')
+                aMm = cMm * 0.4;
+            else if (c.habit === 'tabular')
+                aMm = cMm * 1.5;
+            else if (c.habit === 'acicular')
+                aMm = cMm * 0.15;
+            else if (c.habit === 'rhombohedral')
+                aMm = cMm * 0.8;
+            else if (c.habit === 'snowball')
+                aMm = cMm;
+            else
+                aMm = cMm * 0.5;
+            const a = cMm / 2;
+            const b = aMm / 2;
             crystalVol += (4 / 3) * Math.PI * a * b * b;
         }
         return crystalVol / vugVol;
@@ -18924,6 +19032,13 @@ Object.assign(VugSimulator.prototype, {
                 continue;
             if (grower.enclosed_by != null)
                 continue;
+            // Size-ratio uses the chemistry-truthful uncapped c_length
+            // (total_growth_um / 1000) rather than the rendered/capped value.
+            // v59's cavity cap pins c_length at vug_radius for big crystals,
+            // which would shrink their grower-vs-candidate size ratio and
+            // suppress enclosures that should fire — cause of gem_pegmatite
+            // baseline drift before this fix.
+            const growerSize = grower.total_growth_um / 1000;
             for (const candidate of this.crystals) {
                 if (candidate.crystal_id === grower.crystal_id)
                     continue;
@@ -18931,7 +19046,8 @@ Object.assign(VugSimulator.prototype, {
                     continue;
                 if (grower.enclosed_crystals.includes(candidate.crystal_id))
                     continue;
-                const sizeRatio = grower.c_length_mm / Math.max(candidate.c_length_mm, 0.001);
+                const candidateSize = candidate.total_growth_um / 1000;
+                const sizeRatio = growerSize / Math.max(candidateSize, 0.001);
                 const adjacent = (candidate.position === grower.position
                     || candidate.position.includes(`#${grower.crystal_id}`));
                 // Require the candidate to have actually lived a bit before it

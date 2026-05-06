@@ -194,8 +194,27 @@ _diffuseRingState(rate?) {
   let crystalVol = 0;
   for (const c of this.crystals) {
     if (!c.active) continue;
-    const a = c.c_length_mm / 2;
-    const b = c.a_width_mm / 2;
+    // Use total_growth_um (uncapped chemistry-tracked size) rather than
+    // c_length_mm directly. v59 capped c_length / a_width at vug_radius
+    // to prevent crystals bursting the wall (BUG-CRYSTALS-CLIP-VUG-WALL.md
+    // Tier-2). Without this fix, the cap would shrink each crystal's
+    // contribution to vug-fill, suppressing the vug-sealed event and
+    // letting the sim run past natural closure — observed as +50% to
+    // +100% total growth on scenarios with previously-oversized crystals
+    // (naica selenite, sabkha aragonite, searles halite, etc.). Reading
+    // total_growth_um keeps the seal behavior identical to v58.
+    const cMm = c.total_growth_um / 1000;
+    // Derive a_width from the habit ratio (mirrors the formula in
+    // 27-geometry-crystal.ts:add_zone, applied to the uncapped c).
+    let aMm;
+    if (c.habit === 'prismatic') aMm = cMm * 0.4;
+    else if (c.habit === 'tabular') aMm = cMm * 1.5;
+    else if (c.habit === 'acicular') aMm = cMm * 0.15;
+    else if (c.habit === 'rhombohedral') aMm = cMm * 0.8;
+    else if (c.habit === 'snowball') aMm = cMm;
+    else aMm = cMm * 0.5;
+    const a = cMm / 2;
+    const b = aMm / 2;
     crystalVol += (4 / 3) * Math.PI * a * b * b;
   }
   return crystalVol / vugVol;
@@ -209,12 +228,20 @@ _check_enclosure() {
   for (const grower of this.crystals) {
     if (!grower.active || grower.c_length_mm < 0.5) continue;
     if (grower.enclosed_by != null) continue;
+    // Size-ratio uses the chemistry-truthful uncapped c_length
+    // (total_growth_um / 1000) rather than the rendered/capped value.
+    // v59's cavity cap pins c_length at vug_radius for big crystals,
+    // which would shrink their grower-vs-candidate size ratio and
+    // suppress enclosures that should fire — cause of gem_pegmatite
+    // baseline drift before this fix.
+    const growerSize = grower.total_growth_um / 1000;
     for (const candidate of this.crystals) {
       if (candidate.crystal_id === grower.crystal_id) continue;
       if (candidate.enclosed_by != null) continue;
       if (grower.enclosed_crystals.includes(candidate.crystal_id)) continue;
 
-      const sizeRatio = grower.c_length_mm / Math.max(candidate.c_length_mm, 0.001);
+      const candidateSize = candidate.total_growth_um / 1000;
+      const sizeRatio = growerSize / Math.max(candidateSize, 0.001);
       const adjacent = (
         candidate.position === grower.position
         || candidate.position.includes(`#${grower.crystal_id}`)

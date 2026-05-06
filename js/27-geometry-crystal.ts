@@ -115,6 +115,15 @@ class Crystal {
     // persist as a hollow cast when later dissolved.
     this.cdr_replaces_crystal_id = opts.cdr_replaces_crystal_id ?? null;
     this.perimorph_eligible = opts.perimorph_eligible ?? false;
+    // Cavity diameter at nucleation time, used by add_zone to cap
+    // c_length / a_width so individual crystals can't grow past the
+    // cavity walls. See BUG-CRYSTALS-CLIP-VUG-WALL.md (Tier 2 fix). The
+    // cap is the spatial counterpart to the existing global vug-fill
+    // check (which limits TOTAL volume across all crystals, but doesn't
+    // prevent any single crystal from being oversized). Set by
+    // sim.nucleate() at construction; 0 means "no cap" for crystals
+    // loaded from legacy saves or constructed in tests.
+    this.vug_diameter_mm = opts.vug_diameter_mm ?? 0;
   }
 
   add_zone(zone) {
@@ -145,6 +154,22 @@ class Crystal {
     // v2 if vug-fill calibration shifts too far).
     else if (this.habit === 'snowball') this.a_width_mm = this.c_length_mm;
     else this.a_width_mm = this.c_length_mm * 0.5;
+    // Per-crystal spatial cap (BUG-CRYSTALS-CLIP-VUG-WALL.md Tier-2 fix).
+    // Without this, individual crystals can grow until the global vug-
+    // fill check stops nucleation — no per-crystal limit existed, so
+    // pegmatite feldspar #7 ended up at 91.2% of vug volume and
+    // supergene selenite #6 ended up 93% of vug diameter, both
+    // bursting the cavity. Cap c_length at vug_radius (crystal can
+    // grow at most halfway across the cavity along its c-axis) and
+    // a_width at vug_diameter (lateral half-width <= vug_radius).
+    // total_growth_um keeps incrementing — the cap is on rendered/
+    // effective size, so future steps see a smaller surface area for
+    // mass deposition (the chemistry self-throttles the right way).
+    if (this.vug_diameter_mm > 0) {
+      const vugRadius = this.vug_diameter_mm / 2;
+      if (this.c_length_mm > vugRadius) this.c_length_mm = vugRadius;
+      if (this.a_width_mm > this.vug_diameter_mm) this.a_width_mm = this.vug_diameter_mm;
+    }
   }
 
   describe_morphology() {

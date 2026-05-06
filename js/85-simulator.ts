@@ -154,9 +154,15 @@ class VugSimulator {
         continue;
       }
       // Universal max-size cap — 2× world record per MINERAL_SPEC.
-      // Closes the 321,248% runaway growth bug.
+      // Closes the 321,248% runaway growth bug. Uses total_growth_um
+      // (the chemistry-truthful uncapped size) rather than c_length_mm,
+      // because v59's per-crystal cavity cap (BUG-CRYSTALS-CLIP-VUG-WALL.md)
+      // pins c_length_mm at vug_radius for crystals at the cavity wall,
+      // which would prevent the world-record cap from ever firing on
+      // those crystals and let total_growth_um run unbounded.
       const capCm = maxSizeCm(crystal.mineral);
-      if (capCm != null && crystal.c_length_mm / 10.0 >= capCm) {
+      const cLengthForCap = crystal.total_growth_um / 1000.0;
+      if (capCm != null && cLengthForCap / 10.0 >= capCm) {
         crystal.active = false;
         this.log.push(`  ⛔ ${capitalize(crystal.mineral)} #${crystal.crystal_id}: reached size cap (${capCm} cm = 2× world record) — growth halts`);
         continue;
@@ -281,7 +287,11 @@ class VugSimulator {
       if (!this._metamict_logged) this._metamict_logged = false;
 
       for (const u_crystal of active_uraninite) {
-        const u_size = u_crystal.c_length_mm;
+        // Use total_growth_um (uncapped) rather than c_length_mm so v59's
+        // cavity cap doesn't reduce uraninite's effective Pb/radiation
+        // output. Source of small drift (~0.5%) on radioactive_pegmatite
+        // and schneeberg in the v58→v59 sweep before this fix.
+        const u_size = u_crystal.total_growth_um / 1000;
         // Uraninite produces Pb into fluid via radioactive decay
         this.conditions.fluid.Pb += 0.1 * u_size;
         this.radiation_dose += 0.01 * u_size;

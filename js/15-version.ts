@@ -856,5 +856,42 @@
 //        without primary sulfides, etc.) should drift little if at
 //        all since their barite either doesn't form or doesn't have
 //        the sulfide hosts.
-const SIM_VERSION = 58;
+//   v59 — Per-crystal cavity-bound cap (May 2026, BUG-CRYSTALS-CLIP-
+//        VUG-WALL.md Tier-2 fix). Closes the chemistry-side hole that
+//        let single crystals grow past the cavity walls (feldspar #7
+//        in pegmatite seed 1778042424470 at 91.2% of vug volume,
+//        selenite #6 in supergene seed 42 at 93% of vug diameter,
+//        the user's 100mm fluorite stress test in a 50mm vug).
+//
+//        Mechanism: Crystal stores `vug_diameter_mm` at nucleation
+//        (read from conditions.wall.vug_diameter_mm). add_zone caps
+//        the post-aspect-formula c_length / a_width:
+//          c_length <= vug_radius        (= vug_diameter / 2)
+//          a_width  <= vug_diameter      (i.e. half-width <= vug_radius)
+//        total_growth_um keeps incrementing — the cap is on the
+//        rendered/effective size, so future steps see a smaller
+//        effective surface area for mass deposition (chemistry self-
+//        throttles the right way; no fluid-balance discontinuity).
+//
+//        This is the spatial counterpart to the existing GLOBAL
+//        get_vug_fill check (which limits TOTAL volume across all
+//        crystals but doesn't prevent any single crystal from being
+//        oversized). The renderer-side cavity-clip + polar-aware
+//        per-ring radius (commits e6bb0a1, c53bb30, 1bf950a) was a
+//        band-aid that masked outside-hull fragments but couldn't
+//        cap a crystal whose body straddles the wall (cuts read as
+//        see-through, no closing face).
+//
+//        Calibration drift: scenarios where any crystal previously
+//        exceeded vug_radius along c-axis or vug_diameter laterally
+//        will redistribute fluid budget into other crystals (since
+//        the capped crystal's surface area plateaus, future mass
+//        deposition slows on it). Expect drift on:
+//          pegmatite (feldspar #7 case)
+//          supergene_oxidation (selenite rosette)
+//          bisbee (any large crystals)
+//          potentially any scenario with extended tabular growth
+//        Smaller scenarios with sub-millimeter crystals see no
+//        change (the cap simply never fires).
+const SIM_VERSION = 59;
 
