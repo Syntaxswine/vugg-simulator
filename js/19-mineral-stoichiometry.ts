@@ -218,6 +218,26 @@ const MINERAL_DISSOLUTION_RATES: Record<string, Record<string, number>> = {
   thenardite:   { Na: 0.4, S: 0.25 },                  // re-dissolution under low concentration
   selenite:     { Ca: 0.4, S: 0.3 },                   // acid dissolution / phase boundary
   anglesite:    { Pb: 0.3, S: 0.3 },                   // two engine triggers (acid + reductive), same rates
+
+  // ---- Arsenates (Phase 1e batch 4, v42 — single-mode subset) ----
+  // erythrite + annabergite have multi-mode dissolution (thermal +
+  // acid at different effective rates) and stay inline pending
+  // per-mode dispatch design.
+  scorodite:  { Fe: 0.5, As: 0.5 },                    // acid dissolution
+  adamite:    { Zn: 0.5, As: 0.3 },                    // acid attack
+  mimetite:   { Pb: 0.8, As: 0.3, Cl: 0.1 },           // acid dissolution
+
+  // ---- Phosphates / arsenates / vanadates (Phase 1e batch 4, v42) ----
+  // descloizite + mottramite have no inline dissolution credit.
+  torbernite:    { Cu: 0.2, U: 0.4, P: 0.3 },           // dehydration / pH
+  zeunerite:     { Cu: 0.2, U: 0.4, As: 0.3 },
+  carnotite:     { K: 0.2,  U: 0.4, V: 0.3 },
+  autunite:      { Ca: 0.2, U: 0.4, P: 0.3 },
+  uranospinite:  { Ca: 0.2, U: 0.4, As: 0.3 },
+  tyuyamunite:   { Ca: 0.2, U: 0.4, V: 0.3 },
+  clinobisvanite: { Bi: 0.4, V: 0.3 },
+  pyromorphite:  { Pb: 0.3, P: 0.2, Cl: 0.3 },
+  vanadinite:    { Pb: 0.3, V: 0.2, Cl: 0.3 },
 };
 
 // Apply mass balance for a single growth or dissolution zone. Called

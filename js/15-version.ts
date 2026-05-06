@@ -526,5 +526,15 @@
 //        per-µm rates, so a single table entry covers both. Verified
 //        byte-identical to v40 via per-scenario JSON comparison;
 //        43/~185 sites total now table-mediated.
-const SIM_VERSION = 41;
+//   v42 — Phase 1e migration batch 4: arsenate (single-mode subset)
+//        + phosphate class (May 2026). 33 inline credits removed
+//        across 12 minerals. Arsenate's erythrite + annabergite have
+//        multi-mode dissolution (thermal dehydration + acid attack
+//        at different effective rates) and stay inline pending
+//        per-mode dispatch. Phosphate is fully single-mode — every
+//        engine has exactly one dissolution event with rate-scaled
+//        credits. descloizite + mottramite have no inline
+//        dissolution credit at all and stay absent from the table.
+//        76/~185 sites total now table-mediated.
+const SIM_VERSION = 42;
 
