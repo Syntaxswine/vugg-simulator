@@ -193,16 +193,87 @@ function fortressBegin() {
   syncBrothSliders();
 }
 
-function fortressStep(action) {
+// Six verbs that touch the physics. Per proposals/PROPOSAL-BROTH-CONTROL.md
+// (May 2026). Each verb has a gentle and a large step. Old per-element
+// inject buttons collapsed into one species picker; mix_brine moved to
+// scenario setup; oxidize absorbed by drain (vadose-zone exposure follows
+// from lowering the water level).
+//
+// Backward-compat: legacy action ids ('silica', 'metals', 'brine',
+// 'fluorine', 'copper', 'oxidize', 'tectonic') still resolve to sensible
+// new behaviors so anything calling fortressStep('silica') keeps working.
+
+// Apply twinning to existing crystals — shared between 'shock' (catastrophic)
+// and 'tap' (light tremor; lower probability).
+function _applyShockTwinning(prob) {
+  if (!fortressSim) return;
+  for (const crystal of fortressSim.crystals) {
+    if (!crystal.twinned && crystal.zones.length > 2 && rng.random() < prob) {
+      crystal.twinned = true;
+      if (crystal.mineral === 'quartz') crystal.twin_law = 'Dauphiné';
+      else if (crystal.mineral === 'calcite') crystal.twin_law = 'c-twin {001}';
+      else if (crystal.mineral === 'sphalerite') crystal.twin_law = 'spinel-law {111}';
+      else if (crystal.mineral === 'fluorite') crystal.twin_law = 'penetration twin {111}';
+      else if (crystal.mineral === 'pyrite') crystal.twin_law = 'iron cross {110}';
+      else if (crystal.mineral === 'chalcopyrite') crystal.twin_law = 'penetration twin {112}';
+      else if (crystal.mineral === 'hematite') crystal.twin_law = 'penetration twin {001}';
+    }
+  }
+}
+
+// Lower fluid_surface_ring by `delta` rings (ratchet to 0). Returns the
+// applied delta. Vadose oxidation kicks in via _applyVadoseOxidationOverride
+// on the next run_step.
+function _lowerWaterLevel(delta) {
+  if (!fortressSim) return 0;
+  const c = fortressSim.conditions;
+  if (c.fluid_surface_ring === null || c.fluid_surface_ring === undefined) {
+    // Initialize from ring_count if not yet set (creative-mode default).
+    c.fluid_surface_ring = fortressSim.wall_state.ring_count;
+  }
+  const before = c.fluid_surface_ring;
+  c.fluid_surface_ring = Math.max(0, before - delta);
+  return before - c.fluid_surface_ring;
+}
+
+// Raise fluid_surface_ring by `delta` rings (clamp at ring_count).
+function _raiseWaterLevel(delta) {
+  if (!fortressSim) return 0;
+  const c = fortressSim.conditions;
+  const n = fortressSim.wall_state.ring_count;
+  if (c.fluid_surface_ring === null || c.fluid_surface_ring === undefined) {
+    c.fluid_surface_ring = n;
+    return 0;
+  }
+  const before = c.fluid_surface_ring;
+  c.fluid_surface_ring = Math.min(n, before + delta);
+  return c.fluid_surface_ring - before;
+}
+
+// One run_step + log, used by 'wait' (×1) and 'wait_10' (×10).
+function _advanceOneStep(logEl) {
+  const log = fortressSim.run_step();
+  const lines = [];
+  lines.push('');
+  lines.push(`── ⏳ Step ${fortressSim.step}`);
+  lines.push(fortressSim.format_header());
+  if (log.length) {
+    for (const l of log) lines.push(l);
+  } else {
+    lines.push('  (no growth or events this step)');
+  }
+  return lines;
+}
+
+function fortressStep(action, payload) {
   if (!fortressSim || !fortressActive) return;
 
   const c = fortressSim.conditions;
   let actionDesc = '';
 
-  // Apply action modifications BEFORE running the step
   // Apply current broth slider values to sim state before processing
-  // (sliders are live-bound, so this is already done via oninput,
-  //  but ensure any manual slider changes are captured)
+  // (sliders are live-bound via oninput; this is a belt-and-suspenders
+  // re-sync in case any manual slider changes haven't fired yet).
   if (fortressSim) {
     for (const [key, m] of Object.entries(BROTH_MAP)) {
       const slider = document.getElementById('broth-' + key);
@@ -210,20 +281,130 @@ function fortressStep(action) {
     }
   }
 
+  // Track whether this action advances time and how many ticks.
+  let advanceSteps = 0;
+
   switch (action) {
+
+    // ── 1. TIME ──
     case 'wait':
-      actionDesc = '⏳ Waiting — ambient cooling';
+      advanceSteps = 1;
+      actionDesc = '⏳ Advance 1';
+      break;
+    case 'wait_10':
+      advanceSteps = 10;
+      actionDesc = '⏩ Advance 10';
+      break;
+
+    // ── 2. TEMPERATURE — gentle/large pairs ──
+    case 'warm':
+      c.temperature = Math.min(c.temperature + 5, 600);
+      actionDesc = '🌤️ Warm +5°C → ' + c.temperature.toFixed(0) + '°C';
       break;
     case 'heat':
-      c.temperature += 25;
-      c.temperature = Math.min(c.temperature, 600);
+      c.temperature = Math.min(c.temperature + 25, 600);
       actionDesc = '🔥 Heat +25°C → ' + c.temperature.toFixed(0) + '°C';
       break;
     case 'cool':
-      c.temperature -= 25;
-      c.temperature = Math.max(c.temperature, 25);
-      actionDesc = '❄️ Cool −25°C → ' + c.temperature.toFixed(0) + '°C';
+      c.temperature = Math.max(c.temperature - 5, 25);
+      actionDesc = '🌬️ Cool −5°C → ' + c.temperature.toFixed(0) + '°C';
       break;
+    case 'quench':
+      c.temperature = Math.max(c.temperature - 25, 25);
+      actionDesc = '❄️ Quench −25°C → ' + c.temperature.toFixed(0) + '°C';
+      break;
+
+    // ── 3. WATER — seep/flood (in) and drain/evaporate (out) ──
+    case 'seep': {
+      // Gentle fresh-fluid trickle. Light dilution, modest carbonate refresh,
+      // small water-level rise.
+      const rise = _raiseWaterLevel(1);
+      c.flow_rate = Math.max(c.flow_rate, 1.5);
+      c.fluid.SiO2 *= 0.85;
+      c.fluid.Ca *= 1.10;
+      c.fluid.CO3 *= 1.08;
+      c.fluid.pH = Math.min(c.fluid.pH + 0.1, 10.0);
+      actionDesc = `💧 Seep — fresh fluid trickles in${rise ? `, water level +${rise.toFixed(1)}` : ''}`;
+      break;
+    }
+    case 'flood': {
+      // Deluge — old behavior + raise water level back to the ceiling.
+      const rise = _raiseWaterLevel(fortressSim.wall_state.ring_count);
+      c.flow_rate = 5.0;
+      c.fluid.SiO2 *= 0.6;
+      c.fluid.Ca *= 1.3;
+      c.fluid.CO3 *= 1.2;
+      c.fluid.pH = Math.min(c.fluid.pH + 0.3, 10.0);
+      actionDesc = `🌊 Flood — fresh fluid pulse, silica diluted, carbonates refreshed${rise ? `, water level +${rise.toFixed(1)}` : ''}`;
+      break;
+    }
+    case 'drain': {
+      // Lower the water level gradually. Vadose oxidation kicks in on the
+      // next run_step where exposed cells were below the meniscus before.
+      const drop = _lowerWaterLevel(2);
+      c.flow_rate = Math.max(c.flow_rate * 0.5, 0.2);
+      c.fluid.O2 = Math.max(c.fluid.O2, 0.6);
+      actionDesc = `🚰 Drain — water level −${drop.toFixed(1)}, exposed crystals oxidize (O₂ → ${c.fluid.O2.toFixed(1)})`;
+      break;
+    }
+    case 'evaporate': {
+      // Rapid water loss + concentrate residual fluid. Drives evaporite
+      // chemistry in scenarios that have it.
+      const drop = _lowerWaterLevel(6);
+      c.flow_rate = Math.max(c.flow_rate * 0.2, 0.05);
+      c.fluid.O2 = Math.max(c.fluid.O2, 1.5);
+      // Concentrate solubles (skip pH; that's set by speciation, not bulk).
+      const concSpecies = ['Ca', 'Mg', 'Na', 'K', 'Cl', 'SO4', 'CO3', 'B', 'F', 'Sr'];
+      for (const sp of concSpecies) {
+        if (typeof c.fluid[sp] === 'number') c.fluid[sp] *= 1.4;
+      }
+      c.temperature = Math.max(c.temperature - 10, 25);
+      actionDesc = `☀️ Evaporate — water level −${drop.toFixed(1)}, brine concentrates ×1.4, sulfides oxidize`;
+      break;
+    }
+
+    // ── 4. pH — tweak/shift pairs in both directions ──
+    case 'tweak_acidify':
+      c.fluid.pH = Math.max(c.fluid.pH - 0.3, 2.0);
+      actionDesc = `🧪 Tweak pH −0.3 → ${c.fluid.pH.toFixed(1)}`;
+      break;
+    case 'shift_acidify':
+    case 'acidify': // legacy alias — fortressStep('acidify') still works
+      actionDesc = '🧪 ' + event_acidify(c);
+      break;
+    case 'tweak_alkalinize':
+      c.fluid.pH = Math.min(c.fluid.pH + 0.3, 10.0);
+      actionDesc = `⚗️ Tweak pH +0.3 → ${c.fluid.pH.toFixed(1)}`;
+      break;
+    case 'shift_alkalinize':
+    case 'alkalinize': // legacy alias
+      actionDesc = '⚗️ ' + event_alkalinize(c);
+      break;
+
+    // ── 5. INJECT SPECIES — single picker collapses 4 legacy buttons ──
+    case 'inject_species': {
+      if (!payload || !payload.species) {
+        // No payload → open the picker. Modal calls back into
+        // fortressStep('inject_species', { species, ppm }) on confirm.
+        if (typeof openInjectSpeciesModal === 'function') {
+          openInjectSpeciesModal();
+        }
+        return; // don't log anything; modal will fire the real action
+      }
+      const sp = String(payload.species);
+      const amount = Number(payload.ppm) || 50;
+      if (typeof c.fluid[sp] !== 'number') {
+        actionDesc = `💉 Unknown species '${sp}' — no change`;
+      } else {
+        c.fluid[sp] = (c.fluid[sp] || 0) + amount;
+        actionDesc = `💉 Inject ${sp} +${amount} ppm → ${c.fluid[sp].toFixed(0)} ppm`;
+      }
+      break;
+    }
+
+    // Legacy injection aliases — keep callers (tutorials, dev console,
+    // saved keyboard macros) working. Each routes through inject_species
+    // semantics where possible.
     case 'silica':
       c.fluid.SiO2 += 400;
       c.fluid.Al += 2;
@@ -252,71 +433,45 @@ function fortressStep(action) {
       c.fluid.S += 80;
       c.fluid.SiO2 += 200;
       c.fluid.O2 = 0.3;
-      c.temperature += 30;
-      c.temperature = Math.min(c.temperature, 600);
+      c.temperature = Math.min(c.temperature + 30, 600);
       c.flow_rate = 4.0;
       actionDesc = `🟠 Copper injection — Cu ${c.fluid.Cu.toFixed(0)} ppm, Fe +40, S +80, reducing. T → ${c.temperature.toFixed(0)}°C`;
       break;
-    case 'oxidize':
+    case 'oxidize': // legacy alias — same intent as drain
       c.fluid.O2 = 1.8;
       c.fluid.S *= 0.3;
-      c.temperature -= 40;
-      c.temperature = Math.max(c.temperature, 25);
+      c.temperature = Math.max(c.temperature - 40, 25);
+      _lowerWaterLevel(2);
       actionDesc = `🟡 Oxidation — O₂ → ${c.fluid.O2.toFixed(1)}, sulfur depleted. T → ${c.temperature.toFixed(0)}°C. Sulfides unstable!`;
       break;
-    case 'tectonic':
+
+    // ── 6. SEISMIC — tap (gentle) / shock (catastrophic) ──
+    case 'tap':
+      c.pressure += 0.1;
+      _applyShockTwinning(0.04);
+      actionDesc = '👆 Tap — small tremor, P +0.1 kbar. Fresh fracture surfaces; minor twinning chance.';
+      break;
+    case 'shock':
+    case 'tectonic': // legacy alias
       c.pressure += 0.5;
       c.temperature += 15;
-      // Force twinning check on existing crystals
-      for (const crystal of fortressSim.crystals) {
-        if (!crystal.twinned && crystal.zones.length > 2 && rng.random() < 0.15) {
-          crystal.twinned = true;
-          if (crystal.mineral === 'quartz') crystal.twin_law = 'Dauphiné';
-          else if (crystal.mineral === 'calcite') crystal.twin_law = 'c-twin {001}';
-          else if (crystal.mineral === 'sphalerite') crystal.twin_law = 'spinel-law {111}';
-          else if (crystal.mineral === 'fluorite') crystal.twin_law = 'penetration twin {111}';
-          else if (crystal.mineral === 'pyrite') crystal.twin_law = 'iron cross {110}';
-          else if (crystal.mineral === 'chalcopyrite') crystal.twin_law = 'penetration twin {112}';
-          else if (crystal.mineral === 'hematite') crystal.twin_law = 'penetration twin {001}';
-          // malachite doesn't twin visibly
-        }
-      }
-      actionDesc = '🌋 Tectonic shock — P +0.5 kbar, T +15°C. Crystals stressed!';
-      break;
-    case 'flood':
-      c.flow_rate = 5.0;
-      c.fluid.SiO2 *= 0.6;
-      c.fluid.Ca *= 1.3;
-      c.fluid.CO3 *= 1.2;
-      c.fluid.pH += 0.3;
-      actionDesc = '🌊 Flood — fresh fluid pulse, silica diluted, carbonates refreshed';
-      break;
-    case 'acidify':
-      actionDesc = '🧪 ' + event_acidify(c);
-      break;
-    case 'alkalinize':
-      actionDesc = '⚗️ ' + event_alkalinize(c);
+      _applyShockTwinning(0.15);
+      actionDesc = '⚡ Shock — catastrophic fracture. P +0.5 kbar, T +15°C. Crystals stressed!';
       break;
   }
 
   const logEl = document.getElementById('fortress-log');
   const lines = [];
 
-  if (action === 'wait') {
-    // ONLY Wait advances time — all other buttons just modify conditions
-    const log = fortressSim.run_step();
-    lines.push('');
-    lines.push(`── ⏳ Step ${fortressSim.step}`);
-    lines.push(fortressSim.format_header());
-    if (log.length) {
-      for (const l of log) lines.push(l);
-    } else {
-      lines.push('  (no growth or events this step)');
+  if (advanceSteps > 0) {
+    for (let i = 0; i < advanceSteps; i++) {
+      const stepLines = _advanceOneStep(logEl);
+      for (const l of stepLines) lines.push(l);
     }
     updateFortressInventory();
   } else {
-    // Non-wait actions: modify conditions but DON'T advance time
-    // Log what changed so the player can stack multiple changes
+    // Non-time actions: modify conditions but DON'T advance time.
+    // Log what changed so the player can stack multiple changes.
     lines.push(`  ⚙️ ${actionDesc}`);
   }
 
@@ -595,5 +750,62 @@ function copyFortressLog() {
     document.execCommand('copy');
     document.body.removeChild(ta);
   });
+}
+
+// ============================================================
+// Inject Species modal — picker that replaces the four legacy
+// inject buttons (silica/metals/fluorine/copper). User picks any
+// tracked fluid species and how much to add (1–100 ppm). The
+// modal calls back into fortressStep('inject_species', { species, ppm }).
+// ============================================================
+
+// Groups roughly mirror the proposal's major/minor/trace tiers so the
+// picker is readable. Keep alphabetical inside each group.
+const INJECT_SPECIES_GROUPS = [
+  { label: 'Major', species: ['Al', 'Ca', 'Cl', 'CO3', 'Fe', 'K', 'Mg', 'Na', 'P', 'S', 'SiO2'] },
+  { label: 'Minor', species: ['B', 'Ba', 'Cu', 'F', 'Mn', 'Pb', 'Sr', 'Zn'] },
+  { label: 'Trace', species: ['Ag', 'As', 'Be', 'Bi', 'Co', 'Cr', 'Ge', 'Li', 'Mo', 'Nb', 'Ni', 'Sb', 'Se', 'Te', 'Ti', 'U', 'V', 'W'] },
+];
+
+function openInjectSpeciesModal() {
+  const modal = document.getElementById('inject-species-modal');
+  if (!modal) return;
+  // Populate the select on first open and refresh the live amount label.
+  const select = document.getElementById('inject-species-select');
+  if (select && !select.dataset.populated) {
+    let html = '';
+    for (const g of INJECT_SPECIES_GROUPS) {
+      html += `<optgroup label="${g.label}">`;
+      for (const sp of g.species) html += `<option value="${sp}">${sp}</option>`;
+      html += '</optgroup>';
+    }
+    select.innerHTML = html;
+    select.dataset.populated = '1';
+  }
+  // Show current ppm in the live readout.
+  const slider = document.getElementById('inject-species-ppm');
+  const val = document.getElementById('inject-species-ppm-val');
+  if (slider && val) val.textContent = slider.value + ' ppm';
+  modal.style.display = 'flex';
+}
+
+function closeInjectSpeciesModal() {
+  const modal = document.getElementById('inject-species-modal');
+  if (modal) modal.style.display = 'none';
+}
+
+function confirmInjectSpecies() {
+  const select = document.getElementById('inject-species-select') as any;
+  const slider = document.getElementById('inject-species-ppm') as any;
+  if (!select || !slider) return;
+  const species = select.value;
+  const ppm = parseFloat(slider.value);
+  closeInjectSpeciesModal();
+  fortressStep('inject_species', { species, ppm });
+}
+
+function onInjectSpeciesPpmChange(val) {
+  const el = document.getElementById('inject-species-ppm-val');
+  if (el) el.textContent = val + ' ppm';
 }
 
