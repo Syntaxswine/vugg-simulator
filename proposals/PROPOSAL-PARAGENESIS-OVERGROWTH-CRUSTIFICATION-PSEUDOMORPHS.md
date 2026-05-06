@@ -2,7 +2,19 @@
 
 **Author:** Claude (Opus 4.7), 2026-05-06
 **Boss request:** "the famous snowball barites and sphalerites/fluorites. fluorites and calcites stacked one on top of another. calcites and sphalerites together might be more common than the calcites alone. let the science guide the mechanics."
-**Status:** proposal — research in hand, mechanics sketched, awaits boss approval to phase into commits
+**Status:** APPROVED 2026-05-06. Boss merged + answered open questions:
+  - Snowball mechanism: radiating epitaxy is primary; cyclic-chemistry
+    shells are encrustation (Q3) — keep them mechanistically separate
+    so the player can tell them apart. Snowball is "epitaxy at the
+    population level" — multiple individuals nucleating on a shared
+    substrate with similar orientations, then competing outward.
+  - Snowball geometry simplification: a sphere primitive is acceptable
+    for v1 instead of a true radial spray — "the geometry of a sphere
+    is evocative enough of the final form." Q5 collapses to spawning
+    one crystal with `habit: snowball` rendered as a Three.js
+    SphereGeometry, not N satellite barite blades. The radial-spray
+    detail is a v2 polish.
+Phasing into commits awaits boss go-ahead.
 
 ---
 
@@ -356,30 +368,56 @@ crystals now produce textures — the documented Cave-in-Rock and Cornish
 quartz-after-fluorite type, plus emergent cases when the chemistry
 favors host-only dissolution.
 
-### Phase Q5 — Snowball / radiating overgrowth habit (≈ 2 commits)
+### Phase Q5 — Snowball habit (≈ 1-2 commits)
 
-**Goal:** the snowball barite specifically, plus general
-radiating-on-seed clusters.
+**Goal:** the snowball barite specifically. Radiating-epitaxy at the
+population level — multiple individuals nucleating on a shared
+substrate with similar orientations, then competing outward into a
+spherical envelope. Boss directive: render as a sphere primitive, not
+a true radial spray. The sphere geometry is evocative enough of the
+final form for v1; the spray detail is v2 polish.
 
-New habit token: `radiating_on_seed`. When a barite (or sphalerite, or
-fluorite — extensible) nucleates on a substrate AND the substrate is in
-the snowball-eligible list (`SNOWBALL_SEEDS = {'sphalerite', 'galena',
-'pyrite'}` for barite specifically), the engine spawns N additional
-barite crystals (N=6–12 from σ) radiating outward from the seed at
-even angular intervals around the substrate normal, each tilted away
-from radial by a small jitter. Implementation reuses Phase E5c's
-cluster pattern machinery — there's already a `rosette` pattern that
-does even-angle spread on a substrate normal; extend it with a
-`radiating_seed` variant that uses much higher σ-driven count.
+Mechanism (epitaxy at the population level):
+- When a host mineral in `SNOWBALL_HOSTS` (sphalerite, galena, pyrite)
+  has reached size threshold, AND the snowballing mineral (barite as
+  the canonical case; extensible) has σ above its nucleation threshold,
+  AND the host's surface area allows it, spawn ONE snowball-habit
+  crystal positioned at the host with `habit: snowball`.
+- The snowball crystal grows uniformly in all dimensions
+  (c_length_mm == a_width_mm), rather than 1.5× tabular or 0.4×
+  prismatic. The sim already has uniform-growth handling for cubic
+  habits — extend it to snowball.
 
-Renderer-side, this is mostly free given E5b/c cluster instancing.
-Sim-side, the engine commits N crystals at once on a single
-nucleation event.
+New habit token: `snowball`. Rendered as `THREE.SphereGeometry` with
+the snowballing mineral's color, scaled by `c_length_mm` uniformly.
+The host crystal is rendered underneath via the existing renderer
+path; its location is the sphere's center. Cavity-clip from the
+prior commit handles the case where the snowball outgrows the cavity.
 
-**Effect:** the diagnostic snowball texture appears in scenarios with
-sphalerite+barite (Sweetwater, Cave-in-Rock). Other "radiating from
-seed" textures (radiating malachite on cuprite, radiating erythrite on
-cobaltite) become first-class.
+This is *epitaxy at the population level* (boss's framing) — the
+mechanism is `SUBSTRATE_NUCLEATION_DISCOUNT[host][snowballing_mineral]`
+from Q1, just with a habit override that produces the spherical
+aggregate visual instead of a single-crystal blade. The chemistry
+runs as one nucleation; the visual shorthand reads as the
+characteristic snowball.
+
+Crystallographically separate from cyclic-chemistry shells:
+- Snowball (Q5) — *epitaxy*, single nucleation event, one crystal,
+  spherical shape derived from radiating-from-seed habit truncated to
+  a sphere primitive.
+- Cyclic-chemistry banded shells (Q3 encrustation) — *oscillation*,
+  multiple nucleation generations, layered concentric bands, distinct
+  composition zones from fluid-pulse history.
+
+Both produce roughly spherical aggregates but for different reasons,
+and the player should tell them apart by inspection (snowball has a
+visible sulfide core + matrix; banded has visible color zones in the
+sphere body itself).
+
+**Effect:** the diagnostic Sweetwater barite snowball appears as a
+sphere of barite around its sphalerite seed. Cave-in-Rock-style
+banded barite (when cyclic chemistry triggers) appears as concentric
+shells via Q3 — a different visual texture for a different mechanism.
 
 ---
 
@@ -430,48 +468,53 @@ SIM_VERSION changelog with the Phase 1e per-scenario table format.
 
 ---
 
-## 7. Open questions for the boss
+## 7. Open questions — all resolved 2026-05-06
 
-1. **Scope of snowball**: Q5 as proposed implements snowball as a
-   special habit. The literature is ambiguous about whether snowball
-   barite is (a) radiating epitaxy + geometric selection or (b) cyclic
-   chemistry + concentric shells. The proposal goes with (a) — pure
-   radiating habit. Do we want both as selectable mechanisms, or stay
-   with one until specimen-matching tells us which fits?
+1. **Scope of snowball**: radiating epitaxy is primary (Q5).
+   Cyclic-chemistry shells are encrustation (Q3). Mechanisms stay
+   separate; player tells the textures apart by sight.
+2. **Snowball geometry**: sphere primitive for v1.
+   Radial-spray detail is v2.
+3. **Strict-epitaxy flag**: orientation-independent for v1. EPITAXY_PAIRS
+   stays scaffolded but unused in rendering until the wireframe
+   primitives support parent-relative orientation. The substrate-
+   affinity discount alone is enough to get the chemistry right.
+4. **Pseudomorph porosity**: renderer roughness boost only — the sim
+   tracks `cdr_replaces_crystal_id` and that's sufficient. Real
+   pseudomorphs vary widely (some dense, some porous); a per-mineral
+   roughness multiplier on the replacement material is the right
+   level of fidelity.
+5. **Perimorph eligibility for replacement products**: yes — if
+   malachite replaced azurite (preserving the azurite cube outline)
+   and the malachite later dissolves, it leaves an azurite-shaped
+   cast. Schema anticipates this with a `perimorph_eligible` flag on
+   the pseudomorph-replacement record now; renderer wires it up in
+   Q4 (not Q3).
+6. **σ-discount calibration**: two tiers — **0.5× for low-misfit pairs**
+   (sphalerite-on-pyrite, sphalerite-on-galena, marcasite-on-pyrite),
+   **0.7× for moderate-misfit / facet-selective heterogeneous nucleation**
+   (calcite-on-fluorite, galena-on-pyrite, snowball seeds). Tune from
+   scenario results: if every mineral nucleates on every other mineral
+   the discounts are too generous; if nothing nucleates on anything
+   they're too strict.
+7. **MVT-specific perimorph cite**: accept the Cumbria/Cornwall
+   quartz-after-fluorite analog. Citation is flavor, not architecture
+   — the perimorph pattern is universal.
 
-2. **Strict-epitaxy flag**: I've proposed an `EPITAXY_PAIRS` set
-   alongside the soft-discount table. The flag would unlock
-   crystallographically aligned habit (e.g. sphalerite-on-pyrite
-   tetrahedra aligned to pyrite's cube faces). Worth the modeling
-   cost, or skip for v1 and treat all overgrowths as orientation-
-   independent?
+## 8. Future scenarios (informational)
 
-3. **Pseudomorph porosity**: Putnis 2009 emphasizes that CDR
-   pseudomorphs are *porous* in the product phase (volume mismatch
-   accommodation). I've proposed treating this as a renderer-only
-   roughness boost. Do we want a real `porosity` field on the
-   crystal, surfaced in the library / used by later water-soluble
-   re-dissolution mechanics?
+Boss flagged that two MVT scenarios are planned for later:
 
-4. **Perimorph eligibility**: as proposed, only encrustation-shells
-   become perimorphs. Should pseudomorph-replacement products be
-   eligible too if late chemistry dissolves them in turn? (i.e.
-   malachite-after-azurite later dissolves → empty cavity. Does the
-   azurite outline "ghost" persist?)
+- **Sweetwater Mine** (Viburnum Trend, MO) — barite-rich. Snowball
+  barite signature texture. Drives Q5 demand directly.
+- **Elmwood Mine** (TN) — fluorite-rich. Calcite-on-fluorite stacking
+  + occasional perimorph (calcite-after-fluorite cast). Drives Q3
+  encrustation + Q4 perimorph demand.
 
-5. **Calibration target**: Q1c (σ discount) is the biggest drift.
-   I'd like to commit it then iterate the discount values until the
-   per-scenario crystal counts fall back within ±10% of v53 baselines.
-   Worth it, or should the discount be smaller (more conservative —
-   epitaxial pairs at 0.7 instead of 0.5) to keep scenarios closer to
-   their existing tuning?
-
-6. **MVT-specific perimorph cite**: I want to ground Q4 in a
-   documented MVT specimen rather than just borrowing the Cumbria
-   quartz-after-fluorite case. Heyl 1968 (UMV district textures) and
-   Hagni's Tri-State petrography papers are the candidates — worth a
-   targeted literature dive, or accept the analog from Cumbria/
-   Cornwall as good enough?
+No work needed today. Once these scenarios land, paragenesis features
+should be tested against their type-specimen textures. Some
+mechanics (e.g. snowball density, encrustation banding rate) may
+become scenario-specific tunings rather than universal defaults.
 
 ---
 

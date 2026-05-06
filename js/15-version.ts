@@ -697,5 +697,82 @@
 //        traces (calcite Mn/Fe trace from zone history; arsenopyrite
 //        Au-trap from zone trace_Au sum) — these are zone-dependent
 //        not rate-scaled and stay inline forever as designed.
-const SIM_VERSION = 53;
+//   v54 — Paragenesis Q1a infrastructure (May 2026, per
+//        PROPOSAL-PARAGENESIS-OVERGROWTH-CRUSTIFICATION-PSEUDOMORPHS).
+//        Adds js/26-mineral-paragenesis.ts with table-type scaffolding:
+//          SUBSTRATE_NUCLEATION_DISCOUNT — host -> nucleating ->
+//             σ-discount factor [0..1] for heterogeneous nucleation
+//          EPITAXY_PAIRS — Set of strict-epitaxy 'nucleating>host'
+//             pairs (low lattice misfit, real orientation relationship)
+//          PSEUDOMORPH_ROUTES — list of {parent, child, trigger,
+//             shape_preserved} CDR routes (Putnis 2002, 2009)
+//        All three start empty in Q1a (no behavior change, byte-
+//        identical to v53). Plus VugSimulator._pickSubstrate(mineral)
+//        — a paragenesis-aware substrate-pick helper that returns
+//        {host, discount} for documented hosts or null when the table
+//        has no entry. Currently always returns null (table empty).
+//        Q1b populates the table from documented MVT/supergene pairs
+//        and migrates inline ad-hoc 'if (rng() < 0.7) pos = ...'
+//        rules to this helper. Q1c wires the σ discount into the
+//        nucleation threshold check (where the calibration drift
+//        will land). v54 byte-identical to v53 across all 20 seed-42
+//        scenarios.
+//   v55 — Paragenesis Q1b: substrate-affinity table populated (May 2026).
+//        ~50 documented pairs across 12 hosts span sulfides (pyrite/
+//        marcasite/sphalerite/galena/chalcopyrite + Co-Ni
+//        sulfarsenides), oxides/hydroxides (cuprite/hematite/magnetite/
+//        goethite), carbonates (fluorite/calcite/azurite/malachite),
+//        native elements (copper/silver), and silicates (quartz/
+//        topaz). Two tiers per boss directive 2026-05-06:
+//          0.5× — low-misfit lattice (sphalerite-on-pyrite ~0.2%,
+//             marcasite-on-pyrite shared S-S) OR strong CDR route
+//             (azurite -> malachite, sphalerite -> smithsonite,
+//             galena -> cerussite/anglesite, cuprite + CO3 ->
+//             malachite, native_silver -> acanthite tarnish, etc.)
+//          0.7× — moderate misfit / facet-selective (galena-on-pyrite
+//             ~9% misfit, calcite-on-fluorite Cave-in-Rock stack)
+//             or general substrate stickiness
+//        EPITAXY_PAIRS populated with 6 strict-epitaxy pairs (the
+//        sphalerite/marcasite/pyrite triangle) but unused in this
+//        commit — orientation-independent rendering for v1, per
+//        boss; renderer support is a Q3 follow-up. Citations:
+//        Ramdohr 1980 for sulfides, Putnis 2002/2009 for CDR,
+//        Sangster 1983/1990 for MVT, Heyl 1968 for UMV/Cave-in-Rock.
+//        Q1c wires SUBSTRATE_NUCLEATION_DISCOUNT into nucleation
+//        thresholds (where the calibration drift will land).
+//        v55 byte-identical to v54 across all 20 seed-42 scenarios —
+//        the table is data-only, no caller reads it yet.
+//   v56 — Paragenesis Q1c: wire σ-discount into 4 nucleation engines
+//        (smithsonite, malachite, azurite, chrysocolla) (May 2026).
+//
+//        Each engine now picks substrate FIRST (preserving narrative
+//        qualifiers like "(oxidized)", "weathering ...", "pseudomorph
+//        after ..."), then runs the σ-check with a discount factor
+//        from MINERAL_PARAGENESIS based on the chosen position. The
+//        discount factor is paragenesisDiscount(host_mineral,
+//        nucleating_mineral) → 0.5 for strong CDR/epitaxy, 0.7 for
+//        moderate, 1.0 for undocumented (= bare wall).
+//
+//        Effect: when the inline substrate-pick rules already chose
+//        a documented host (e.g. malachite -> chalcopyrite via
+//        Putnis-CDR oxidation), the σ-threshold for nucleation is
+//        lowered, so MORE such overgrowths fire when σ is in the
+//        (threshold * discount, threshold) window. Bare-wall
+//        nucleations are unaffected. The substrate-pick distribution
+//        itself is unchanged; only the σ-check threshold shifts.
+//
+//        Engines migrated this batch:
+//          smithsonite (sphalerite host, supergene_oxidation)
+//          malachite   (chalcopyrite + hematite hosts, bisbee)
+//          azurite     (cuprite + native_copper hosts, bisbee)
+//          chrysocolla (azurite + cuprite + native_copper hosts, bisbee)
+//        Other engines (~6) keep their inline rules; can be migrated
+//        in later commits if calibration shows opportunity.
+//
+//        Calibration drift expected on bisbee + supergene_oxidation
+//        (Cu cascade scenarios where the discount fires). MVT /
+//        pegmatite / cooling scenarios should drift less since their
+//        nucleation candidates are mostly outside this 4-engine set.
+//        Drift documented per-scenario in commit message.
+const SIM_VERSION = 56;
 
