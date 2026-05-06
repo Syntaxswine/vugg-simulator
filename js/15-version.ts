@@ -821,5 +821,40 @@
 //        Verification: v56 -> v57 byte-identical across all 20
 //        seed-42 scenarios (CDR tagging is metadata only — no
 //        chemistry change, no nucleation-gate change).
-const SIM_VERSION = 57;
+//   v58 — Paragenesis Q5: snowball barite habit (May 2026, per
+//        boss directive 2026-05-06 — sphere primitive evocative
+//        enough of the final form for v1; radial-spray detail is
+//        v2 polish).
+//
+//        Mechanism: when _nuc_barite finds a sulfide host
+//        (sphalerite / galena / pyrite) AND σ exceeds the Q1c
+//        substrate-affinity-discounted threshold, the new barite
+//        crystal is tagged `habit: 'snowball'`. The 0.7× discount
+//        on sphalerite/galena/pyrite hosts (Q1b table) means
+//        snowball seeds form much more readily than free-wall
+//        barite (which stays gated at the legacy 0.15 probability).
+//        Position string changes from "near X #N" to "on X #N" so
+//        the substrate-affinity discount, CDR detection, and host-
+//        cell inheritance all see the host as a real anchor.
+//
+//        grow_barite preserves habit:'snowball' across growth steps
+//        (rather than getting overwritten by the σ-driven habit
+//        dispatch). a_width_mm = c_length_mm for snowball habit
+//        (uniform — sphere); volume formula treats it as 0.5× the
+//        true sphere volume, but acceptable until vug-fill
+//        calibration drives a refinement.
+//
+//        Renderer: new 'snowball' habit token resolves to
+//        SphereGeometry(0.5, 16, 12) — unit-radius sphere stretched
+//        uniformly to c_length_mm. Cavity-clip from e6bb0a1 handles
+//        the case where a snowball outgrows the cavity (it gets
+//        sliced at the wall like any other crystal).
+//
+//        Calibration drift expected on mvt + bisbee + sweetwater-
+//        type scenarios where sphalerite/galena/pyrite + barite
+//        co-occur. Other scenarios (pegmatite, cooling, supergene
+//        without primary sulfides, etc.) should drift little if at
+//        all since their barite either doesn't form or doesn't have
+//        the sulfide hosts.
+const SIM_VERSION = 58;
 

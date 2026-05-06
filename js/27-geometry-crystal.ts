@@ -137,6 +137,13 @@ class Crystal {
     else if (this.habit === 'tabular') this.a_width_mm = this.c_length_mm * 1.5;
     else if (this.habit === 'acicular') this.a_width_mm = this.c_length_mm * 0.15;
     else if (this.habit === 'rhombohedral') this.a_width_mm = this.c_length_mm * 0.8;
+    // Q5 — snowball habit (Sweetwater-style barite radiating from a
+    // sulfide seed): rendered as a sphere primitive. a_width_mm =
+    // c_length_mm so the volume formula (4/3)π × c × a² produces an
+    // approximately spherical volume (off by 2× from a true sphere
+    // but consistent with how cubic habits are accounted; refine in
+    // v2 if vug-fill calibration shifts too far).
+    else if (this.habit === 'snowball') this.a_width_mm = this.c_length_mm;
     else this.a_width_mm = this.c_length_mm * 0.5;
   }
 

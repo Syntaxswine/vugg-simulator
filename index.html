@@ -4814,7 +4814,42 @@ let timeScale = 5.0;
 //        Verification: v56 -> v57 byte-identical across all 20
 //        seed-42 scenarios (CDR tagging is metadata only — no
 //        chemistry change, no nucleation-gate change).
-const SIM_VERSION = 57;
+//   v58 — Paragenesis Q5: snowball barite habit (May 2026, per
+//        boss directive 2026-05-06 — sphere primitive evocative
+//        enough of the final form for v1; radial-spray detail is
+//        v2 polish).
+//
+//        Mechanism: when _nuc_barite finds a sulfide host
+//        (sphalerite / galena / pyrite) AND σ exceeds the Q1c
+//        substrate-affinity-discounted threshold, the new barite
+//        crystal is tagged `habit: 'snowball'`. The 0.7× discount
+//        on sphalerite/galena/pyrite hosts (Q1b table) means
+//        snowball seeds form much more readily than free-wall
+//        barite (which stays gated at the legacy 0.15 probability).
+//        Position string changes from "near X #N" to "on X #N" so
+//        the substrate-affinity discount, CDR detection, and host-
+//        cell inheritance all see the host as a real anchor.
+//
+//        grow_barite preserves habit:'snowball' across growth steps
+//        (rather than getting overwritten by the σ-driven habit
+//        dispatch). a_width_mm = c_length_mm for snowball habit
+//        (uniform — sphere); volume formula treats it as 0.5× the
+//        true sphere volume, but acceptable until vug-fill
+//        calibration drives a refinement.
+//
+//        Renderer: new 'snowball' habit token resolves to
+//        SphereGeometry(0.5, 16, 12) — unit-radius sphere stretched
+//        uniformly to c_length_mm. Cavity-clip from e6bb0a1 handles
+//        the case where a snowball outgrows the cavity (it gets
+//        sliced at the wall like any other crystal).
+//
+//        Calibration drift expected on mvt + bisbee + sweetwater-
+//        type scenarios where sphalerite/galena/pyrite + barite
+//        co-occur. Other scenarios (pegmatite, cooling, supergene
+//        without primary sulfides, etc.) should drift little if at
+//        all since their barite either doesn't form or doesn't have
+//        the sulfide hosts.
+const SIM_VERSION = 58;
 
 // ── 18-constants.js ──
 
@@ -7523,6 +7558,14 @@ class Crystal {
             this.a_width_mm = this.c_length_mm * 0.15;
         else if (this.habit === 'rhombohedral')
             this.a_width_mm = this.c_length_mm * 0.8;
+        // Q5 — snowball habit (Sweetwater-style barite radiating from a
+        // sulfide seed): rendered as a sphere primitive. a_width_mm =
+        // c_length_mm so the volume formula (4/3)π × c × a² produces an
+        // approximately spherical volume (off by 2× from a true sphere
+        // but consistent with how cubic habits are accounted; refine in
+        // v2 if vug-fill calibration shifts too far).
+        else if (this.habit === 'snowball')
+            this.a_width_mm = this.c_length_mm;
         else
             this.a_width_mm = this.c_length_mm * 0.5;
     }
@@ -13747,7 +13790,15 @@ function grow_barite(crystal, conditions, step) {
     if (rate < 0.1)
         return null;
     let habit_note;
-    if (excess > 1.5) {
+    if (crystal.habit === 'snowball') {
+        // Q5 — snowball habit set at nucleation; preserved across growth
+        // steps so the population-level epitaxy aggregate keeps its
+        // spherical-envelope rendering rather than getting overwritten by
+        // the σ-driven prismatic/cockscomb/bladed/tabular dispatch below.
+        crystal.dominant_forms = ['radiating bladed sphere', 'on sulfide seed core'];
+        habit_note = 'snowball barite — population-level epitaxy on a sulfide seed (Sweetwater type)';
+    }
+    else if (excess > 1.5) {
         crystal.habit = 'prismatic';
         crystal.dominant_forms = ['stubby prisms', 'vein-fill habit'];
         habit_note = 'stubby prismatic barite, vein-fill';
@@ -19907,21 +19958,47 @@ function _nucleateClass_silicate(sim) {
 // Phase B15 of PROPOSAL-MODULAR-REFACTOR.
 function _nuc_barite(sim) {
     const sigma_brt = sim.conditions.supersaturation_barite();
-    if (sigma_brt > 1.0 && !sim._atNucleationCap('barite')) {
-        if (rng.random() < 0.15) {
-            let pos = 'vug wall';
-            const active_gal_brt = sim.crystals.filter(c => c.mineral === 'galena' && c.active);
-            const active_sph_brt = sim.crystals.filter(c => c.mineral === 'sphalerite' && c.active);
-            if (active_gal_brt.length && rng.random() < 0.3) {
-                pos = `near galena #${active_gal_brt[0].crystal_id}`;
-            }
-            else if (active_sph_brt.length && rng.random() < 0.2) {
-                pos = `near sphalerite #${active_sph_brt[0].crystal_id}`;
-            }
-            const c = sim.nucleate('barite', pos, sigma_brt);
-            sim.log.push(`  ✦ NUCLEATION: ⚪ Barite #${c.crystal_id} on ${c.position} (T=${sim.conditions.temperature.toFixed(0)}°C, σ=${sigma_brt.toFixed(2)}, Ba=${sim.conditions.fluid.Ba.toFixed(0)}, S=${sim.conditions.fluid.S.toFixed(0)}, O₂=${sim.conditions.fluid.O2.toFixed(2)}) — heavy spar, MVT gangue`);
-        }
+    if (sim._atNucleationCap('barite'))
+        return;
+    // Q5 — snowball substrate pick. When a sulfide host (sphalerite/
+    // galena/pyrite) is available, this barite is a snowball seed
+    // (Sweetwater-type radiating-epitaxy aggregate). Use 'on' not
+    // 'near' so the substrate-affinity discount + CDR detection +
+    // _assignWallCell host-inheritance all see the host. Bare-wall
+    // barite stays gated at the legacy 0.15 probability.
+    let pos = 'vug wall';
+    let snowball = false;
+    const active_sph_brt = sim.crystals.filter(c => c.mineral === 'sphalerite' && c.active);
+    const active_gal_brt = sim.crystals.filter(c => c.mineral === 'galena' && c.active);
+    const active_py_brt = sim.crystals.filter(c => c.mineral === 'pyrite' && c.active);
+    if (active_sph_brt.length && rng.random() < 0.4) {
+        pos = `on sphalerite #${active_sph_brt[0].crystal_id}`;
+        snowball = true;
     }
+    else if (active_gal_brt.length && rng.random() < 0.3) {
+        pos = `on galena #${active_gal_brt[0].crystal_id}`;
+        snowball = true;
+    }
+    else if (active_py_brt.length && rng.random() < 0.2) {
+        pos = `on pyrite #${active_py_brt[0].crystal_id}`;
+        snowball = true;
+    }
+    // σ-discount via Q1c paragenesis table (barite has 0.7× entries on
+    // sphalerite/galena/pyrite hosts).
+    const discount = sim._sigmaDiscountForPosition('barite', pos);
+    if (sigma_brt <= 1.0 * discount)
+        return;
+    // Free-wall barite stays gated at low probability (~one nucleation
+    // per ~7 steps when σ is already over threshold). Snowball seeds
+    // bypass this gate — when the substrate aligns, the aggregate
+    // forms.
+    if (!snowball && rng.random() >= 0.15)
+        return;
+    const c = sim.nucleate('barite', pos, sigma_brt);
+    if (snowball)
+        c.habit = 'snowball';
+    const tag = snowball ? ' (snowball seed)' : '';
+    sim.log.push(`  ✦ NUCLEATION: ⚪ Barite #${c.crystal_id} on ${c.position}${tag} (T=${sim.conditions.temperature.toFixed(0)}°C, σ=${sigma_brt.toFixed(2)}, Ba=${sim.conditions.fluid.Ba.toFixed(0)}, S=${sim.conditions.fluid.S.toFixed(0)}, O₂=${sim.conditions.fluid.O2.toFixed(2)}) — heavy spar, MVT gangue`);
     // Celestine nucleation — the Sr sequestration mineral; pale celestial
     // blue. Substrate priority: existing barite (celestobarite-barytocelestine
     // pair) > vug wall.
@@ -30751,6 +30828,12 @@ function _habitGeomToken(habit) {
         return 'rhombic_dodec';
     if (h === 'dodecahedral')
         return 'dodecahedron';
+    // Q5 — snowball habit (Sweetwater barite radiating from a sulfide
+    // seed). Rendered as a uniform sphere primitive per boss directive
+    // 2026-05-06 ("the geometry of a sphere is evocative enough of the
+    // final form" for v1; radial-spray detail is v2 polish).
+    if (h === 'snowball')
+        return 'snowball';
     if (h === 'botryoidal' || h === 'reniform' || h === 'mammillary' || h === 'globular')
         return 'botryoidal';
     if (h === 'dendritic' || h === 'arborescent')
@@ -31066,6 +31149,13 @@ function _buildHabitGeom(token) {
             return new THREE.BoxGeometry(0.8, 0.8, 0.8);
         case 'octahedron':
             return new THREE.OctahedronGeometry(0.55, 0);
+        case 'snowball':
+            // Q5 — population-level epitaxy aggregate (boss-approved sphere
+            // primitive). Radius 0.5 → diameter 1.0 → unit-scale sphere
+            // that the per-mesh isometric scale dispatch stretches to
+            // c_length_mm uniform. 16x12 segmentation gives a smooth-
+            // enough silhouette without the vertex cost of 32x16.
+            return new THREE.SphereGeometry(0.5, 16, 12);
         case 'rhombic_dodec':
             // Garnet-style 12 rhombic faces. Phase E5 batch 3.
             return _makeRhombicDodecahedron();
@@ -31279,7 +31369,7 @@ function _emitClusterSatellites(state, crystal, geom, mat, ax, ay, az, nx, ny, n
         sNz /= nLen;
         const sOffset = sCLen * 0.5;
         const satMesh = new THREE.Mesh(geom, mat);
-        if (geomToken === 'cube' || geomToken === 'octahedron' || geomToken === 'rhombic_dodec' || geomToken === 'dodecahedron') {
+        if (geomToken === 'cube' || geomToken === 'octahedron' || geomToken === 'rhombic_dodec' || geomToken === 'dodecahedron' || geomToken === 'snowball') {
             satMesh.scale.set(sCLen, sCLen, sCLen);
         }
         else {
@@ -31495,7 +31585,7 @@ function _topoSyncCrystalMeshes(state, sim, wall) {
         // crystals don't shrink below visible.
         const cLen = Math.max(2.0, crystal.c_length_mm);
         const aWid = Math.max(1.5, crystal.a_width_mm);
-        if (token === 'cube' || token === 'octahedron' || token === 'rhombic_dodec' || token === 'dodecahedron') {
+        if (token === 'cube' || token === 'octahedron' || token === 'rhombic_dodec' || token === 'dodecahedron' || token === 'snowball') {
             mesh.scale.set(cLen, cLen, cLen);
         }
         else {

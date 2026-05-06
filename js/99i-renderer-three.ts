@@ -442,6 +442,11 @@ function _habitGeomToken(habit: string): string {
   // produces — kept for any mineral that genuinely needs that.
   if (h === 'rhombic dodecahedral' || h === 'rhombic-dodecahedral' || h === 'garnet' || h === 'trapezohedral') return 'rhombic_dodec';
   if (h === 'dodecahedral') return 'dodecahedron';
+  // Q5 — snowball habit (Sweetwater barite radiating from a sulfide
+  // seed). Rendered as a uniform sphere primitive per boss directive
+  // 2026-05-06 ("the geometry of a sphere is evocative enough of the
+  // final form" for v1; radial-spray detail is v2 polish).
+  if (h === 'snowball') return 'snowball';
   if (h === 'botryoidal' || h === 'reniform' || h === 'mammillary' || h === 'globular') return 'botryoidal';
   if (h === 'dendritic' || h === 'arborescent') return 'spike';  // splay handled per-instance later
   if (h === 'fibrous') return 'spike';
@@ -762,6 +767,13 @@ function _buildHabitGeom(token: string): any {
       return new THREE.BoxGeometry(0.8, 0.8, 0.8);
     case 'octahedron':
       return new THREE.OctahedronGeometry(0.55, 0);
+    case 'snowball':
+      // Q5 — population-level epitaxy aggregate (boss-approved sphere
+      // primitive). Radius 0.5 → diameter 1.0 → unit-scale sphere
+      // that the per-mesh isometric scale dispatch stretches to
+      // c_length_mm uniform. 16x12 segmentation gives a smooth-
+      // enough silhouette without the vertex cost of 32x16.
+      return new THREE.SphereGeometry(0.5, 16, 12);
     case 'rhombic_dodec':
       // Garnet-style 12 rhombic faces. Phase E5 batch 3.
       return _makeRhombicDodecahedron();
@@ -1002,7 +1014,7 @@ function _emitClusterSatellites(
     sNx /= nLen; sNy /= nLen; sNz /= nLen;
     const sOffset = sCLen * 0.5;
     const satMesh = new THREE.Mesh(geom, mat);
-    if (geomToken === 'cube' || geomToken === 'octahedron' || geomToken === 'rhombic_dodec' || geomToken === 'dodecahedron') {
+    if (geomToken === 'cube' || geomToken === 'octahedron' || geomToken === 'rhombic_dodec' || geomToken === 'dodecahedron' || geomToken === 'snowball') {
       satMesh.scale.set(sCLen, sCLen, sCLen);
     } else {
       satMesh.scale.set(sAWid, sCLen, sAWid);
@@ -1220,7 +1232,7 @@ function _topoSyncCrystalMeshes(state: any, sim: any, wall: any) {
     // crystals don't shrink below visible.
     const cLen = Math.max(2.0, crystal.c_length_mm);
     const aWid = Math.max(1.5, crystal.a_width_mm);
-    if (token === 'cube' || token === 'octahedron' || token === 'rhombic_dodec' || token === 'dodecahedron') {
+    if (token === 'cube' || token === 'octahedron' || token === 'rhombic_dodec' || token === 'dodecahedron' || token === 'snowball') {
       mesh.scale.set(cLen, cLen, cLen);
     } else {
       mesh.scale.set(aWid, cLen, aWid);
