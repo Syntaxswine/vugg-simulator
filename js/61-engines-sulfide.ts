@@ -42,11 +42,11 @@ function grow_wurtzite(crystal, conditions, step) {
   // Polymorphic inversion on cooling below 95°C
   if (crystal.total_growth_um > 10 && conditions.temperature <= 95) {
     crystal.dissolved = true;
-    conditions.fluid.Zn += 1.5;
-    conditions.fluid.S += 1.2;
+    // Phase 1e: Zn + S constants via MINERAL_DISSOLUTION_RATES.wurtzite.inversion.
     return new GrowthZone({
       step, temperature: conditions.temperature,
       thickness_um: -1.5, growth_rate: -1.5,
+      dissolutionMode: 'inversion',
       note: 'polymorphic inversion — T dropped below 95°C, hexagonal (Zn,Fe)S converting to cubic sphalerite'
     });
   }
@@ -97,23 +97,22 @@ function grow_pyrite(crystal, conditions, step) {
     if (crystal.total_growth_um > 10 && conditions.fluid.O2 > 1.0) {
       crystal.dissolved = true;
       const dissolved_um = Math.min(3.0, crystal.total_growth_um * 0.1);
-      // RECYCLING: Fe and S return to fluid
-      conditions.fluid.Fe += dissolved_um * 1.0;
-      conditions.fluid.S += dissolved_um * 0.5;
+      // Phase 1e: Fe + S credits via MINERAL_DISSOLUTION_RATES.pyrite.oxidative.
       return new GrowthZone({
         step, temperature: conditions.temperature,
         thickness_um: -dissolved_um, growth_rate: -dissolved_um,
+        dissolutionMode: 'oxidative',
         note: 'oxidizing — pyrite weathering to goethite/limonite, Fe²⁺ released to fluid'
       });
     }
     // Also dissolves in strong acid
     if (crystal.total_growth_um > 10 && conditions.fluid.pH < 3.0) {
       crystal.dissolved = true;
-      conditions.fluid.Fe += 2.0;
-      conditions.fluid.S += 1.5;
+      // Phase 1e: Fe + S constants via MINERAL_DISSOLUTION_RATES.pyrite.acid.
       return new GrowthZone({
         step, temperature: conditions.temperature,
         thickness_um: -2.0, growth_rate: -2.0,
+        dissolutionMode: 'acid',
         note: `acid dissolution (pH ${conditions.fluid.pH.toFixed(1)}) — Fe + S released`
       });
     }
@@ -161,12 +160,12 @@ function grow_marcasite(crystal, conditions, step) {
   // Metastable inversion to pyrite if pH rises above 5 or T exceeds 240
   if (crystal.total_growth_um > 10 && (conditions.fluid.pH >= 5.0 || conditions.temperature > 240)) {
     crystal.dissolved = true;
-    conditions.fluid.Fe += 1.5;
-    conditions.fluid.S += 1.2;
+    // Phase 1e: Fe + S constants via MINERAL_DISSOLUTION_RATES.marcasite.inversion.
     const trigger = conditions.fluid.pH >= 5.0 ? 'pH rose above 5' : 'T exceeded 240°C';
     return new GrowthZone({
       step, temperature: conditions.temperature,
       thickness_um: -1.5, growth_rate: -1.5,
+      dissolutionMode: 'inversion',
       note: `metastable inversion — ${trigger}, orthorhombic FeS2 converting to pyrite`
     });
   }
@@ -178,21 +177,21 @@ function grow_marcasite(crystal, conditions, step) {
     if (crystal.total_growth_um > 10 && conditions.fluid.O2 > 0.8) {
       crystal.dissolved = true;
       const dissolved_um = Math.min(4.0, crystal.total_growth_um * 0.12);
-      conditions.fluid.Fe += dissolved_um * 1.0;
-      conditions.fluid.S += dissolved_um * 0.5;
+      // Phase 1e: Fe + S credits via MINERAL_DISSOLUTION_RATES.marcasite.oxidative.
       return new GrowthZone({
         step, temperature: conditions.temperature,
         thickness_um: -dissolved_um, growth_rate: -dissolved_um,
+        dissolutionMode: 'oxidative',
         note: 'oxidative breakdown — FeS2 + O2 + H2O → FeSO4 + H2SO4 (the museum rot)'
       });
     }
     if (crystal.total_growth_um > 10 && conditions.fluid.pH < 1.5) {
       crystal.dissolved = true;
-      conditions.fluid.Fe += 2.0;
-      conditions.fluid.S += 1.5;
+      // Phase 1e: Fe + S constants via MINERAL_DISSOLUTION_RATES.marcasite.acid.
       return new GrowthZone({
         step, temperature: conditions.temperature,
         thickness_um: -2.0, growth_rate: -2.0,
+        dissolutionMode: 'acid',
         note: `extreme-acid dissolution (pH ${conditions.fluid.pH.toFixed(1)})`
       });
     }
@@ -430,9 +429,7 @@ function grow_acanthite(crystal, conditions, step) {
     if (crystal.total_growth_um > 5 && conditions.fluid.O2 > 1.2) {
       crystal.dissolved = true;
       const dissolved_um = Math.min(3.0, crystal.total_growth_um * 0.10);
-      // Phase 1e: Ag credit via MINERAL_DISSOLUTION_RATES.acanthite.
-      // S consumption (negative) stays inline — table doesn't yet support negative rates.
-      conditions.fluid.S = Math.max(conditions.fluid.S - dissolved_um * 0.1, 0);
+      // Phase 1e: Ag credit + S consumption via MINERAL_DISSOLUTION_RATES.acanthite (rate S=-0.1, clamped).
       return new GrowthZone({
         step, temperature: conditions.temperature,
         thickness_um: -dissolved_um, growth_rate: -dissolved_um,
@@ -585,9 +582,7 @@ function grow_cobaltite(crystal, conditions, step) {
     if (crystal.total_growth_um > 5 && conditions.fluid.O2 > 0.7) {
       crystal.dissolved = true;
       const dissolved_um = Math.min(2.5, crystal.total_growth_um * 0.10);
-      // Phase 1e: Co + As credits via MINERAL_DISSOLUTION_RATES.cobaltite.
-      // S consumption (negative) stays inline — table doesn't yet support negative rates.
-      conditions.fluid.S = Math.max(conditions.fluid.S - dissolved_um * 0.1, 0);
+      // Phase 1e: Co + As credits + S consumption via MINERAL_DISSOLUTION_RATES.cobaltite (rate S=-0.1, clamped).
       return new GrowthZone({
         step, temperature: conditions.temperature,
         thickness_um: -dissolved_um, growth_rate: -dissolved_um,

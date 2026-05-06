@@ -577,5 +577,125 @@
 //        multi-mode (8), chrysocolla silicate multi-mode (4),
 //        arsenopyrite Au-trap + calcite trace (3 — never tablifiable
 //        as currently designed).
-const SIM_VERSION = 45;
+//   v46 — Phase 1e completion infrastructure (May 2026): table type
+//        extended to support multi-mode entries. Two entry shapes
+//        now allowed:
+//          (1) single-mode rates (legacy):    { Ca: 0.4, F: 0.6 }
+//          (2) multi-mode dispatch:           { __modes: {
+//                acid:      { rates: { Ca: 0.5, CO3: 0.3 } },
+//                polymorph: { constants: { Ca: 2.0, CO3: 1.5 } },
+//              }}
+//        Each multi-mode mode is either { rates } (multiplied by
+//        dissolved_um) or { constants } (added once, regardless of
+//        |thickness_um|). The constants flavor preserves byte-identicality
+//        for engines that emit fixed thicknesses like -1.2 where
+//        IEEE-754 won't round-trip `k * (1.2 * (k/1.2)) === k`. The
+//        wrapper also gains a per-species `Math.max(0, …)` clamp,
+//        applied only when the species' rate is negative. Positive
+//        rates take the legacy `fluid += delta` path verbatim, which
+//        preserves bit-for-bit accumulation with v45 — empirically a
+//        universal clamp drifted bisbee (the +=/clamp ordering changed
+//        downstream nucleation gates by ~ulp on a few crystals).
+//        Negative rates unlock the consumption pattern (acanthite/cobaltite
+//        S sinks, native_silver tarnish) in upcoming batches. No engine
+//        changes in this commit; no entries change shape; v46
+//        byte-identical to v45 across all 20 seed-42 scenarios.
+//   v47 — Phase 1e batch 8: pyrite + marcasite multi-mode (May 2026).
+//        12 inline credit lines removed across two engines via the
+//        new __modes dispatch (5 sites total — pyrite oxidative + acid;
+//        marcasite inversion + oxidative + acid).
+//          pyrite.oxidative   rates     {Fe:1.0, S:0.5}    O2>1.0, low-σ
+//          pyrite.acid        constants {Fe:2.0, S:1.5}    pH<3.0,  -2.0µm
+//          marcasite.inversion constants {Fe:1.5, S:1.2}   pH>=5 or T>240, -1.5µm
+//          marcasite.oxidative rates     {Fe:1.0, S:0.5}   O2>0.8, low-σ
+//          marcasite.acid     constants {Fe:2.0, S:1.5}    pH<1.5,  -2.0µm
+//        Engines now emit `dissolutionMode: 'oxidative' | 'acid' | 'inversion'`
+//        on the GrowthZone for the wrapper to dispatch on. The constants
+//        modes use the {constants} flavor to bypass the 1.5×0.8=1.2 IEEE
+//        round-trip trap (marcasite inversion stores {Fe:1.5, S:1.2}
+//        directly rather than {rates: {Fe:1.0, S:0.8}} × 1.5µm).
+//        156/~185 sites table-mediated.
+//   v48 — Phase 1e batch 9: aragonite multi-mode (May 2026).
+//        2 inline credit sites removed in grow_aragonite via __modes.
+//          aragonite.polymorph constants {Ca:2.0, CO3:1.5}  T>100 + sigma<0.8 -> calcite, dT=-2.0
+//          aragonite.acid      rates     {Ca:0.5, CO3:0.3}  pH<5.5
+//        158/~185 sites table-mediated.
+//   v49 — Phase 1e batch 10: rhodochrosite + azurite multi-mode (May 2026).
+//        8 inline credit lines removed in grow_rhodochrosite + grow_azurite
+//        across 4 dissolution sites:
+//          rhodochrosite.oxidative rates {Mn:0.4, CO3:0.4}  sigma<1, O2>1.0
+//          rhodochrosite.acid      rates {Mn:0.5, CO3:0.4}  sigma<1, pH<5.5
+//          azurite.acid            rates {Cu:0.5, CO3:0.4}  sigma<1, pH<5.0
+//          azurite.low_co3         rates {Cu:0.5, CO3:0.3}  sigma<1, CO3<80 (-> malachite pseudomorph)
+//        All four modes are rate-scaled, no constants needed. The
+//        diagnostic carbonate-suite paragenesis (rhodochrosite oxidative
+//        Mn-staining, azurite -> malachite pseudomorph) is now
+//        table-mediated instead of inline-duplicated.
+//
+//        Also bundles a GrowthZone constructor fix: the dataclass
+//        constructor only copied explicitly-named fields, so
+//        `dissolutionMode` was silently dropped — the wrapper always
+//        fell through to the FIRST declared mode. v47/v48 baselines
+//        were byte-identical only because the affected non-first modes
+//        (pyrite acid pH<3, marcasite acid pH<1.5, marcasite oxidative
+//        when first-mode-was-inversion, aragonite acid pH<5.5 with
+//        sigma<1) didn't fire in seed-42. Confirmed by regenerating v48
+//        under the fixed constructor — produces byte-identical baseline
+//        to the committed v48. Rhodochrosite acid mode DID fire in
+//        reactive_wall (Mn rate 0.4 vs 0.5 ppm/µm) and exposed the bug.
+//        162/~185 sites table-mediated.
+//   v50 — Phase 1e batch 11: erythrite + annabergite multi-mode (May 2026).
+//        8 inline credit lines removed across 4 dissolution sites:
+//          erythrite.thermal   constants {Co:0.4, As:0.3}  T>200, dT=-1.0
+//          erythrite.acid      constants {Co:0.6, As:0.4}  pH<4.5, dT=-1.2
+//          annabergite.thermal constants {Ni:0.4, As:0.3}  T>200, dT=-1.0
+//          annabergite.acid    constants {Ni:0.6, As:0.4}  pH<4.5, dT=-1.2
+//        All four modes use {constants} flavor — the acid mode at
+//        thickness=-1.2 hits the IEEE-754 round-trip trap (As=0.4/1.2
+//        is irrational in binary, 1.2 * (0.4/1.2) ≠ 0.4 exactly), so
+//        rate-equivalent storage would drift from the engine's hand-coded
+//        credit. Storing the literal credits via {constants} preserves
+//        byte-identicality across both modes.
+//        170/~185 sites table-mediated.
+//   v51 — Phase 1e batch 12: chrysocolla multi-mode (May 2026).
+//        4 inline credit lines removed in grow_chrysocolla via __modes:
+//          chrysocolla.acid        rates {Cu:0.4, SiO2:0.4}  sigma<1, pH<4.5
+//          chrysocolla.dehydration rates {Cu:0.3, SiO2:0.3}  sigma<1, T>120°C
+//        Both rate-scaled, no constants needed. The two paths reflect
+//        different mechanisms: acid attack releases free Cu²⁺ + silicic
+//        acid (higher rates); thermal dehydration is a strict-low-T-phase
+//        breakdown that releases less of each (the gel structure traps
+//        some — chrysocolla's signature soft fluffy texture).
+//        174/~185 sites table-mediated.
+//   v52 — Phase 1e batch 13: wurtzite single-mode constants (May 2026).
+//        2 inline credit lines removed in grow_wurtzite via __modes:
+//          wurtzite.inversion constants {Zn:1.5, S:1.2}  T<=95°C -> sphalerite, dT=-1.5
+//        Single-mode entry but uses the __modes wrapper for uniformity
+//        with the rest of the polymorph family (pyrite/marcasite/aragonite).
+//        The constants flavor stores literal credits {1.5, 1.2} rather
+//        than back-deriving rates 1.0/0.8 — defensive against future
+//        thickness changes drifting via IEEE-754.
+//        176/~185 sites table-mediated.
+//   v53 — Phase 1e batch 14 (closer): negative-rate consumption
+//        (May 2026). 6 inline `Math.max(fluid - x, 0)` consumption sites
+//        removed across 3 engines via the wrapper's per-species
+//        rate<0 -> Math.max(0, fluid+delta) clamp:
+//          acanthite     S=-0.1 (oxidative)
+//          cobaltite     S=-0.1 (oxidative)
+//          native_silver Ag=-0.3, S=-0.4 (tarnish to acanthite)
+//        For acanthite + cobaltite, the existing entries are extended with
+//        the negative S rate (alongside the positive cation rates already
+//        there since v45). For native_silver, this is its first entry —
+//        previously absent because both species were consumed (no positive
+//        credits to migrate at v40).
+//        Also fixes the native_silver narration: legacy code said
+//        "S returned to fluid" but the arithmetic SUBTRACTED S — Ag₂S
+//        tarnish pulls both Ag and S INTO the solid surface. Note now
+//        reads "Ag + S consumed", matching the chemistry. Narration text
+//        differs but baseline JSON (counts/max_um) byte-identical.
+//        182/~185 sites table-mediated. Remaining 3 sites are zone-data
+//        traces (calcite Mn/Fe trace from zone history; arsenopyrite
+//        Au-trap from zone trace_Au sum) — these are zone-dependent
+//        not rate-scaled and stay inline forever as designed.
+const SIM_VERSION = 53;
 

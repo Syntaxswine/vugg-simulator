@@ -32,6 +32,13 @@ class GrowthZone {
     this.ca_from_fluid = opts.ca_from_fluid ?? 0.0;
     this.is_phantom = opts.is_phantom ?? false;
     this.dissolution_depth_um = opts.dissolution_depth_um ?? 0.0;
+    // Phase 1e completion: which dissolution mode the engine chose
+    // (e.g. 'oxidative' | 'acid' | 'polymorph' | 'inversion' | 'low_co3' | 'thermal'
+    // | 'dehydration'). Read by applyMassBalance to dispatch the credit
+    // through MINERAL_DISSOLUTION_RATES[mineral].__modes[mode]. Optional —
+    // single-mode (legacy) entries don't need it; the wrapper falls
+    // through to the first declared mode when missing.
+    if (opts.dissolutionMode) this.dissolutionMode = opts.dissolutionMode;
   }
 }
 

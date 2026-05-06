@@ -169,13 +169,36 @@ const MINERAL_STOICHIOMETRY: Record<string, Record<string, number>> = {
 //     formula stoichiometry. Calcite's Ca:CO3 = 0.5:0.3 reflects
 //     CO₂ outgassing during acid attack — some carbonate exits the
 //     fluid as gas rather than aqueous bicarbonate.
-//   - Trace elements (Mn, Fe in calcite zones) and special-mode
-//     constants (aragonite polymorphic conversion) STAY inline —
-//     they're zone-dependent or mode-dependent, not table-able.
-//   - Migration progresses class-by-class. Minerals with multi-mode
-//     dissolution (different rates for acid vs oxidative) keep their
-//     inline credits until per-mode dispatch is added.
-const MINERAL_DISSOLUTION_RATES: Record<string, Record<string, number>> = {
+//   - Trace elements (Mn, Fe in calcite zones) STAY inline —
+//     they're zone-data-driven, not rate-scaled.
+//
+// Two entry shapes:
+//   1. Single-mode rate-scaled (legacy):
+//        fluorite: { Ca: 0.4, F: 0.6 }
+//      Values are numbers. Wrapper applies `fluid[k] += dissolved_um * rate`.
+//      Negative rates (consumption) are allowed; the wrapper clamps to ≥0.
+//
+//   2. Multi-mode dispatch (Phase 1e completion, v46):
+//        pyrite: { __modes: {
+//          oxidative: { rates: { Fe: 1.0, S: 0.5 } },         // rate-scaled
+//          acid:      { constants: { Fe: 2.0, S: 1.5 } },     // added once, regardless of |thickness_um|
+//        }}
+//      Each mode is { rates: {...} } (rate-scaled by dissolved_um) OR
+//      { constants: {...} } (literal credits, applied once). The 'constants'
+//      flavor preserves byte-identicality where the engine emits a fixed
+//      thickness like -1.2 — IEEE-754 doesn't generally let `1.2 * (k/1.2)`
+//      round-trip back to `k`, so for those modes we keep the literal credits
+//      rather than back-deriving a rate.
+//
+//      Engines emit `dissolutionMode: '<mode_name>'` as a GrowthZone field
+//      so the wrapper can dispatch. If the field is missing, the wrapper
+//      uses the first declared mode (so single-mode-with-constants entries
+//      like wurtzite need no engine change).
+type DissolutionRates = Record<string, number>;
+type DissolutionMode = { rates: DissolutionRates } | { constants: DissolutionRates };
+type DissolutionEntry = DissolutionRates | { __modes: Record<string, DissolutionMode> };
+
+const MINERAL_DISSOLUTION_RATES: Record<string, DissolutionEntry> = {
   // ---- Halides (Phase 1e batch 1, v39) ----
   fluorite: { Ca: 0.4, F: 0.6 },          // acid dissolution: CaF₂ + 2H⁺ → Ca²⁺ + 2HF
   halite:   { Na: 0.4, Cl: 6.0 },         // meteoric flush — Cl is dominant in NaCl re-dissolution
@@ -220,12 +243,28 @@ const MINERAL_DISSOLUTION_RATES: Record<string, Record<string, number>> = {
   anglesite:    { Pb: 0.3, S: 0.3 },                   // two engine triggers (acid + reductive), same rates
 
   // ---- Arsenates (Phase 1e batch 4, v42 — single-mode subset) ----
-  // erythrite + annabergite have multi-mode dissolution (thermal +
-  // acid at different effective rates) and stay inline pending
-  // per-mode dispatch design.
   scorodite:  { Fe: 0.5, As: 0.5 },                    // acid dissolution
   adamite:    { Zn: 0.5, As: 0.3 },                    // acid attack
   mimetite:   { Pb: 0.8, As: 0.3, Cl: 0.1 },           // acid dissolution
+
+  // ---- Arsenates (Phase 1e batch 11, v50 — erythrite + annabergite multi-mode) ----
+  // Both have two dissolution modes, both using {constants} flavor:
+  //   thermal: T>200°C dehydration, constants {Co/Ni:0.4, As:0.3} @ dT=-1.0µm
+  //   acid:    pH<4.5,             constants {Co/Ni:0.6, As:0.4} @ dT=-1.2µm
+  // The acid mode at thickness=-1.2 hits an IEEE-754 round-trip trap:
+  // the rate-equivalent is As=0.4/1.2=0.333…, and 1.2*(0.4/1.2) ≠ 0.4
+  // exactly. Storing the literal credits via {constants} preserves
+  // byte-identicality with the engine's hand-coded credit. (The thermal
+  // mode at thickness=-1.0 would multiply through cleanly as rates,
+  // but we keep both modes in the same flavor for symmetry.)
+  erythrite: { __modes: {
+    thermal: { constants: { Co: 0.4, As: 0.3 } },      // T>200°C dehydration, dT=-1.0
+    acid:    { constants: { Co: 0.6, As: 0.4 } },      // pH<4.5, dT=-1.2
+  }},
+  annabergite: { __modes: {
+    thermal: { constants: { Ni: 0.4, As: 0.3 } },      // T>200°C dehydration, dT=-1.0
+    acid:    { constants: { Ni: 0.6, As: 0.4 } },      // pH<4.5, dT=-1.2
+  }},
 
   // ---- Phosphates / arsenates / vanadates (Phase 1e batch 4, v42) ----
   // descloizite + mottramite have no inline dissolution credit.
@@ -240,9 +279,6 @@ const MINERAL_DISSOLUTION_RATES: Record<string, Record<string, number>> = {
   vanadinite:    { Pb: 0.3, V: 0.2, Cl: 0.3 },
 
   // ---- Silicates (Phase 1e batch 5, v43 — single-mode subset) ----
-  // chrysocolla has multi-mode dissolution (two pH-driven paths at
-  // different effective rates) and stays inline pending per-mode
-  // dispatch.
   quartz:       { SiO2: 0.8 },                         // OH⁻-assisted dissolution
   feldspar:     { K: 0.3, Al: 0.05, SiO2: 0.5 },       // most Al stays in kaolinite
   albite:       { Na: 0.3, Al: 0.05, SiO2: 0.3 },      // most Al stays in kaolinite
@@ -256,10 +292,19 @@ const MINERAL_DISSOLUTION_RATES: Record<string, Record<string, number>> = {
   morganite:    { Be: 0.2, Al: 0.2, SiO2: 0.4 },
   heliodor:     { Be: 0.2, Al: 0.2, SiO2: 0.4 },
 
+  // ---- Silicates (Phase 1e batch 12, v51 — chrysocolla multi-mode) ----
+  // chrysocolla has two dissolution modes, both rate-scaled:
+  //   acid:        pH<4.5, rates {Cu:0.4, SiO2:0.4}
+  //   dehydration: T>120°C, rates {Cu:0.3, SiO2:0.3}
+  // The two paths reflect different mechanisms — acid attack releases
+  // free Cu²⁺ + silicic acid; thermal dehydration is a strict-low-T-phase
+  // breakdown that releases less of each (the gel structure traps some).
+  chrysocolla: { __modes: {
+    acid:        { rates: { Cu: 0.4, SiO2: 0.4 } },    // sigma<1, pH<4.5
+    dehydration: { rates: { Cu: 0.3, SiO2: 0.3 } },    // sigma<1, T>120°C
+  }},
+
   // ---- Carbonates (Phase 1e batch 6, v44 — single-mode subset) ----
-  // Multi-mode skipped (different effective rates per dissolution
-  // event): aragonite (polymorph + acid), rhodochrosite (acid + O2),
-  // azurite (low-CO3 + acid).
   // Calcite has rate-scaled credits for Ca/CO3 (single-mode, table-able)
   // PLUS trace-element credits for Mn/Fe computed from zone history
   // (zone-dependent, stays inline).
@@ -272,11 +317,33 @@ const MINERAL_DISSOLUTION_RATES: Record<string, Record<string, number>> = {
   aurichalcite: { Zn: 0.4, Cu: 0.15, CO3: 0.3 },       // pH < 5.5
   cerussite:    { Pb: 0.5, CO3: 0.4 },                 // strong-acid pH < 4
 
+  // ---- Carbonates (Phase 1e batch 9, v48 — aragonite multi-mode) ----
+  // aragonite has two dissolution modes: polymorph (constants @
+  // thickness=-2.0, T>100 + sigma<0.8 -> calcite paramorph) and acid
+  // (rate-scaled, pH<5.5).
+  aragonite: { __modes: {
+    polymorph: { constants: { Ca: 2.0, CO3: 1.5 } },     // T>100, sigma<0.8 -> calcite, dT=-2.0
+    acid:      { rates:     { Ca: 0.5, CO3: 0.3 } },     // pH<5.5
+  }},
+
+  // ---- Carbonates (Phase 1e batch 10, v49 — rhodochrosite + azurite multi-mode) ----
+  // rhodochrosite has two dissolution modes, both rate-scaled but with
+  // different per-µm coefficients: oxidative (Mn²⁺ -> MnO₂ surface
+  // coating, releases less Mn) and acid (releases more Mn).
+  rhodochrosite: { __modes: {
+    oxidative: { rates: { Mn: 0.4, CO3: 0.4 } },         // sigma<1, O2>1.0
+    acid:      { rates: { Mn: 0.5, CO3: 0.4 } },         // sigma<1, pH<5.5
+  }},
+  // azurite has two dissolution modes, both rate-scaled. The acid path
+  // releases more CO3 (full carbonate dissolution); the low-CO3 path
+  // is the diagnostic azurite -> malachite pseudomorph (less CO3 lost
+  // to gas because the conversion is more efficient).
+  azurite: { __modes: {
+    acid:    { rates: { Cu: 0.5, CO3: 0.4 } },           // sigma<1, pH<5.0
+    low_co3: { rates: { Cu: 0.5, CO3: 0.3 } },           // sigma<1, CO3<80 (-> malachite)
+  }},
+
   // ---- Sulfides (Phase 1e batch 7, v45 — single-mode subset) ----
-  // pyrite + marcasite are multi-mode (oxidative rate-scaled vs acid
-  // constants at different effective rates) — stay inline.
-  // wurtzite has constant-rate "sublimation" credits — stays inline pending
-  // dispatch design (single-event but non-rate-scaled constants).
   // sphalerite + galena + argentite have no inline dissolution credit at all.
   // For acanthite + cobaltite, the table handles only the positive cation
   // credits (Ag / Co + As); the inline negative S consumption stays for now
@@ -284,6 +351,34 @@ const MINERAL_DISSOLUTION_RATES: Record<string, Record<string, number>> = {
   // For arsenopyrite, the table handles the standard Fe + As + S
   // rate-scaled credits; the Au-trap (zone-data-driven trace) and the pH
   // adjustment stay inline since neither is rate-scaled.
+
+  // ---- Sulfides (Phase 1e batch 8, v47 — multi-mode pyrite + marcasite) ----
+  // pyrite has two dissolution modes: oxidative (rate-scaled, low-σ +
+  // O₂>1.0) and acid (constants @ thickness=-2.0, low-σ + pH<3.0).
+  // marcasite has three: inversion (constants @ thickness=-1.5,
+  // pH≥5 OR T>240 -> pyrite paramorph), oxidative (rate-scaled), acid
+  // (constants @ thickness=-2.0). Constants modes use the {constants}
+  // flavor to preserve byte-identicality (the legacy engines added the
+  // raw constants directly, so storing them as "rate × thickness" risks
+  // IEEE-754 drift in marcasite inversion's 1.5×0.8 = 1.2 corner).
+  pyrite: { __modes: {
+    oxidative: { rates:     { Fe: 1.0, S: 0.5 } },
+    acid:      { constants: { Fe: 2.0, S: 1.5 } },
+  }},
+  marcasite: { __modes: {
+    inversion: { constants: { Fe: 1.5, S: 1.2 } },  // pH>=5 or T>240, -> pyrite
+    oxidative: { rates:     { Fe: 1.0, S: 0.5 } },
+    acid:      { constants: { Fe: 2.0, S: 1.5 } },
+  }},
+  // wurtzite has a single dissolution mode — polymorphic inversion to
+  // sphalerite when T drops below 95°C. Constants @ thickness=-1.5.
+  // Wrapped in __modes for uniformity with pyrite/marcasite even
+  // though there's only one mode (the wrapper defaults to first when
+  // dissolutionMode is undefined, so the engine doesn't strictly need
+  // to tag the zone — but it does for readability).
+  wurtzite: { __modes: {
+    inversion: { constants: { Zn: 1.5, S: 1.2 } },  // T<=95°C -> sphalerite, dT=-1.5
+  }},
   chalcopyrite: { Cu: 0.8, Fe: 0.5, S: 0.3 },          // acid attack
   molybdenite:  { Mo: 0.8, S: 0.2 },                   // oxidative — MoO₄²⁻ released
   nickeline:    { Ni: 0.4, As: 0.4 },                  // oxidative weathering
@@ -296,8 +391,16 @@ const MINERAL_DISSOLUTION_RATES: Record<string, Record<string, number>> = {
   tetrahedrite: { Cu: 0.6, Sb: 0.3, S: 0.4 },          // acid + oxidative
   tennantite:   { Cu: 0.6, As: 0.3, S: 0.4 },          // acid + oxidative
   arsenopyrite: { Fe: 0.5, As: 0.4, S: 0.4 },          // major species; Au-trap stays inline
-  acanthite:    { Ag: 0.4 },                           // S consumption stays inline
-  cobaltite:    { Co: 0.4, As: 0.4 },                  // S consumption stays inline
+  // Phase 1e batch 14, v53: extended with S consumption (negative rate).
+  // The wrapper applies Math.max(0, fluid + delta) when rate<0, matching
+  // the legacy inline `fluid.S = Math.max(fluid.S - dissolved_um*0.1, 0)`
+  // pattern. Now fully table-mediated — no inline credits remain.
+  acanthite:    { Ag: 0.4, S: -0.1 },                  // oxidative; S consumed
+  cobaltite:    { Co: 0.4, As: 0.4, S: -0.1 },         // oxidative; S consumed
+  // native_silver tarnish — both species are CONSUMED (negative rates).
+  // Engine had: fluid.Ag = Math.max(fluid.Ag - dissolved_um*0.3, 0);
+  //             fluid.S  = Math.max(fluid.S  - dissolved_um*0.4, 0);
+  native_silver: { Ag: -0.3, S: -0.4 },                // tarnish/skin to acanthite
 };
 
 // Apply mass balance for a single growth or dissolution zone. Called
@@ -332,13 +435,45 @@ function applyMassBalance(crystal: any, zone: any, conditions: any): string[] | 
   // entry; multi-mode (e.g. pyrite oxidative vs acid at different
   // rates) is left inline pending per-mode dispatch.
   if (zone.thickness_um < 0) {
-    const rates = MINERAL_DISSOLUTION_RATES[crystal.mineral];
-    if (!rates) return null;  // unmigrated mineral — engine still credits inline
+    const entry = MINERAL_DISSOLUTION_RATES[crystal.mineral];
+    if (!entry) return null;  // unmigrated mineral — engine still credits inline
     const dissolved_um = -zone.thickness_um;
     const fluid = conditions.fluid;
-    for (const species in rates) {
+    // Resolve credits + flavor (rate-scaled vs constants).
+    let credits: DissolutionRates;
+    let isConstant: boolean;
+    if ((entry as any).__modes) {
+      const modes = (entry as any).__modes as Record<string, DissolutionMode>;
+      const modeName: string | undefined = zone.dissolutionMode;
+      const mode = modeName ? modes[modeName] : modes[Object.keys(modes)[0]];
+      if (!mode) return null;  // unknown mode — caller must specify a declared one
+      if ((mode as any).constants) {
+        credits = (mode as any).constants;
+        isConstant = true;
+      } else {
+        credits = (mode as any).rates;
+        isConstant = false;
+      }
+    } else {
+      credits = entry as DissolutionRates;
+      isConstant = false;
+    }
+    // Apply credits. Positive-rate species use the legacy `fluid += delta`
+    // path verbatim — preserves byte-identicality with all v45-and-earlier
+    // baselines that depend on this exact accumulation order. Negative-rate
+    // species (consumption — acanthite/cobaltite S sinks, native_silver
+    // tarnish) get the legacy inline pattern `fluid = Math.max(fluid - x, 0)`,
+    // which here becomes `fluid = Math.max(0, fluid + delta)` since `delta`
+    // is already negative.
+    for (const species in credits) {
       if (typeof fluid[species] !== 'number') continue;
-      fluid[species] += dissolved_um * rates[species];
+      const rate = credits[species];
+      const delta = isConstant ? rate : dissolved_um * rate;
+      if (rate < 0) {
+        fluid[species] = Math.max(0, fluid[species] + delta);
+      } else {
+        fluid[species] += delta;
+      }
     }
     return null;  // depletion narration is precipitation-only
   }

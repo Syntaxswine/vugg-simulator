@@ -4570,7 +4570,127 @@ let timeScale = 5.0;
 //        multi-mode (8), chrysocolla silicate multi-mode (4),
 //        arsenopyrite Au-trap + calcite trace (3 — never tablifiable
 //        as currently designed).
-const SIM_VERSION = 45;
+//   v46 — Phase 1e completion infrastructure (May 2026): table type
+//        extended to support multi-mode entries. Two entry shapes
+//        now allowed:
+//          (1) single-mode rates (legacy):    { Ca: 0.4, F: 0.6 }
+//          (2) multi-mode dispatch:           { __modes: {
+//                acid:      { rates: { Ca: 0.5, CO3: 0.3 } },
+//                polymorph: { constants: { Ca: 2.0, CO3: 1.5 } },
+//              }}
+//        Each multi-mode mode is either { rates } (multiplied by
+//        dissolved_um) or { constants } (added once, regardless of
+//        |thickness_um|). The constants flavor preserves byte-identicality
+//        for engines that emit fixed thicknesses like -1.2 where
+//        IEEE-754 won't round-trip `k * (1.2 * (k/1.2)) === k`. The
+//        wrapper also gains a per-species `Math.max(0, …)` clamp,
+//        applied only when the species' rate is negative. Positive
+//        rates take the legacy `fluid += delta` path verbatim, which
+//        preserves bit-for-bit accumulation with v45 — empirically a
+//        universal clamp drifted bisbee (the +=/clamp ordering changed
+//        downstream nucleation gates by ~ulp on a few crystals).
+//        Negative rates unlock the consumption pattern (acanthite/cobaltite
+//        S sinks, native_silver tarnish) in upcoming batches. No engine
+//        changes in this commit; no entries change shape; v46
+//        byte-identical to v45 across all 20 seed-42 scenarios.
+//   v47 — Phase 1e batch 8: pyrite + marcasite multi-mode (May 2026).
+//        12 inline credit lines removed across two engines via the
+//        new __modes dispatch (5 sites total — pyrite oxidative + acid;
+//        marcasite inversion + oxidative + acid).
+//          pyrite.oxidative   rates     {Fe:1.0, S:0.5}    O2>1.0, low-σ
+//          pyrite.acid        constants {Fe:2.0, S:1.5}    pH<3.0,  -2.0µm
+//          marcasite.inversion constants {Fe:1.5, S:1.2}   pH>=5 or T>240, -1.5µm
+//          marcasite.oxidative rates     {Fe:1.0, S:0.5}   O2>0.8, low-σ
+//          marcasite.acid     constants {Fe:2.0, S:1.5}    pH<1.5,  -2.0µm
+//        Engines now emit `dissolutionMode: 'oxidative' | 'acid' | 'inversion'`
+//        on the GrowthZone for the wrapper to dispatch on. The constants
+//        modes use the {constants} flavor to bypass the 1.5×0.8=1.2 IEEE
+//        round-trip trap (marcasite inversion stores {Fe:1.5, S:1.2}
+//        directly rather than {rates: {Fe:1.0, S:0.8}} × 1.5µm).
+//        156/~185 sites table-mediated.
+//   v48 — Phase 1e batch 9: aragonite multi-mode (May 2026).
+//        2 inline credit sites removed in grow_aragonite via __modes.
+//          aragonite.polymorph constants {Ca:2.0, CO3:1.5}  T>100 + sigma<0.8 -> calcite, dT=-2.0
+//          aragonite.acid      rates     {Ca:0.5, CO3:0.3}  pH<5.5
+//        158/~185 sites table-mediated.
+//   v49 — Phase 1e batch 10: rhodochrosite + azurite multi-mode (May 2026).
+//        8 inline credit lines removed in grow_rhodochrosite + grow_azurite
+//        across 4 dissolution sites:
+//          rhodochrosite.oxidative rates {Mn:0.4, CO3:0.4}  sigma<1, O2>1.0
+//          rhodochrosite.acid      rates {Mn:0.5, CO3:0.4}  sigma<1, pH<5.5
+//          azurite.acid            rates {Cu:0.5, CO3:0.4}  sigma<1, pH<5.0
+//          azurite.low_co3         rates {Cu:0.5, CO3:0.3}  sigma<1, CO3<80 (-> malachite pseudomorph)
+//        All four modes are rate-scaled, no constants needed. The
+//        diagnostic carbonate-suite paragenesis (rhodochrosite oxidative
+//        Mn-staining, azurite -> malachite pseudomorph) is now
+//        table-mediated instead of inline-duplicated.
+//
+//        Also bundles a GrowthZone constructor fix: the dataclass
+//        constructor only copied explicitly-named fields, so
+//        `dissolutionMode` was silently dropped — the wrapper always
+//        fell through to the FIRST declared mode. v47/v48 baselines
+//        were byte-identical only because the affected non-first modes
+//        (pyrite acid pH<3, marcasite acid pH<1.5, marcasite oxidative
+//        when first-mode-was-inversion, aragonite acid pH<5.5 with
+//        sigma<1) didn't fire in seed-42. Confirmed by regenerating v48
+//        under the fixed constructor — produces byte-identical baseline
+//        to the committed v48. Rhodochrosite acid mode DID fire in
+//        reactive_wall (Mn rate 0.4 vs 0.5 ppm/µm) and exposed the bug.
+//        162/~185 sites table-mediated.
+//   v50 — Phase 1e batch 11: erythrite + annabergite multi-mode (May 2026).
+//        8 inline credit lines removed across 4 dissolution sites:
+//          erythrite.thermal   constants {Co:0.4, As:0.3}  T>200, dT=-1.0
+//          erythrite.acid      constants {Co:0.6, As:0.4}  pH<4.5, dT=-1.2
+//          annabergite.thermal constants {Ni:0.4, As:0.3}  T>200, dT=-1.0
+//          annabergite.acid    constants {Ni:0.6, As:0.4}  pH<4.5, dT=-1.2
+//        All four modes use {constants} flavor — the acid mode at
+//        thickness=-1.2 hits the IEEE-754 round-trip trap (As=0.4/1.2
+//        is irrational in binary, 1.2 * (0.4/1.2) ≠ 0.4 exactly), so
+//        rate-equivalent storage would drift from the engine's hand-coded
+//        credit. Storing the literal credits via {constants} preserves
+//        byte-identicality across both modes.
+//        170/~185 sites table-mediated.
+//   v51 — Phase 1e batch 12: chrysocolla multi-mode (May 2026).
+//        4 inline credit lines removed in grow_chrysocolla via __modes:
+//          chrysocolla.acid        rates {Cu:0.4, SiO2:0.4}  sigma<1, pH<4.5
+//          chrysocolla.dehydration rates {Cu:0.3, SiO2:0.3}  sigma<1, T>120°C
+//        Both rate-scaled, no constants needed. The two paths reflect
+//        different mechanisms: acid attack releases free Cu²⁺ + silicic
+//        acid (higher rates); thermal dehydration is a strict-low-T-phase
+//        breakdown that releases less of each (the gel structure traps
+//        some — chrysocolla's signature soft fluffy texture).
+//        174/~185 sites table-mediated.
+//   v52 — Phase 1e batch 13: wurtzite single-mode constants (May 2026).
+//        2 inline credit lines removed in grow_wurtzite via __modes:
+//          wurtzite.inversion constants {Zn:1.5, S:1.2}  T<=95°C -> sphalerite, dT=-1.5
+//        Single-mode entry but uses the __modes wrapper for uniformity
+//        with the rest of the polymorph family (pyrite/marcasite/aragonite).
+//        The constants flavor stores literal credits {1.5, 1.2} rather
+//        than back-deriving rates 1.0/0.8 — defensive against future
+//        thickness changes drifting via IEEE-754.
+//        176/~185 sites table-mediated.
+//   v53 — Phase 1e batch 14 (closer): negative-rate consumption
+//        (May 2026). 6 inline `Math.max(fluid - x, 0)` consumption sites
+//        removed across 3 engines via the wrapper's per-species
+//        rate<0 -> Math.max(0, fluid+delta) clamp:
+//          acanthite     S=-0.1 (oxidative)
+//          cobaltite     S=-0.1 (oxidative)
+//          native_silver Ag=-0.3, S=-0.4 (tarnish to acanthite)
+//        For acanthite + cobaltite, the existing entries are extended with
+//        the negative S rate (alongside the positive cation rates already
+//        there since v45). For native_silver, this is its first entry —
+//        previously absent because both species were consumed (no positive
+//        credits to migrate at v40).
+//        Also fixes the native_silver narration: legacy code said
+//        "S returned to fluid" but the arithmetic SUBTRACTED S — Ag₂S
+//        tarnish pulls both Ag and S INTO the solid surface. Note now
+//        reads "Ag + S consumed", matching the chemistry. Narration text
+//        differs but baseline JSON (counts/max_um) byte-identical.
+//        182/~185 sites table-mediated. Remaining 3 sites are zone-data
+//        traces (calcite Mn/Fe trace from zone history; arsenopyrite
+//        Au-trap from zone trace_Au sum) — these are zone-dependent
+//        not rate-scaled and stay inline forever as designed.
+const SIM_VERSION = 53;
 
 // ── 18-constants.js ──
 
@@ -4776,31 +4896,6 @@ const MINERAL_STOICHIOMETRY = {
     stolzite: { Pb: 1, W: 1 }, // PbWO4 (tetragonal)
     clinobisvanite: { Bi: 1, V: 1 }, // BiVO4
 };
-// PROPOSAL-GEOLOGICAL-ACCURACY Phase 1e (May 2026): per-mineral
-// dissolution rates. Engines used to hand-code their dissolution
-// credits inline as `fluid.X += dissolved_um * RATE` blocks across
-// 12 engine files (~185 lines pre-migration). Phase 1e moves the
-// rate-scaled credits into this table so the wrapper can credit
-// fluid uniformly the way it debits during precipitation.
-//
-// Conventions:
-//   - Each entry maps mineral → species → ppm-per-µm-dissolved rate.
-//   - Rates here are NOT scaled by MASS_BALANCE_SCALE — they are the
-//     exact per-µm coefficients the legacy inline credits used.
-//     Calcite Ca=0.5 means "1 µm of calcite dissolution releases 0.5
-//     ppm Ca²⁺ to the fluid in this ring."
-//   - Rates differ per mineral because they reflect kinetic
-//     stoichiometry (what fraction of each species actually
-//     redissolves under the dominant dissolution mechanism), not
-//     formula stoichiometry. Calcite's Ca:CO3 = 0.5:0.3 reflects
-//     CO₂ outgassing during acid attack — some carbonate exits the
-//     fluid as gas rather than aqueous bicarbonate.
-//   - Trace elements (Mn, Fe in calcite zones) and special-mode
-//     constants (aragonite polymorphic conversion) STAY inline —
-//     they're zone-dependent or mode-dependent, not table-able.
-//   - Migration progresses class-by-class. Minerals with multi-mode
-//     dissolution (different rates for acid vs oxidative) keep their
-//     inline credits until per-mode dispatch is added.
 const MINERAL_DISSOLUTION_RATES = {
     // ---- Halides (Phase 1e batch 1, v39) ----
     fluorite: { Ca: 0.4, F: 0.6 }, // acid dissolution: CaF₂ + 2H⁺ → Ca²⁺ + 2HF
@@ -4839,12 +4934,27 @@ const MINERAL_DISSOLUTION_RATES = {
     selenite: { Ca: 0.4, S: 0.3 }, // acid dissolution / phase boundary
     anglesite: { Pb: 0.3, S: 0.3 }, // two engine triggers (acid + reductive), same rates
     // ---- Arsenates (Phase 1e batch 4, v42 — single-mode subset) ----
-    // erythrite + annabergite have multi-mode dissolution (thermal +
-    // acid at different effective rates) and stay inline pending
-    // per-mode dispatch design.
     scorodite: { Fe: 0.5, As: 0.5 }, // acid dissolution
     adamite: { Zn: 0.5, As: 0.3 }, // acid attack
     mimetite: { Pb: 0.8, As: 0.3, Cl: 0.1 }, // acid dissolution
+    // ---- Arsenates (Phase 1e batch 11, v50 — erythrite + annabergite multi-mode) ----
+    // Both have two dissolution modes, both using {constants} flavor:
+    //   thermal: T>200°C dehydration, constants {Co/Ni:0.4, As:0.3} @ dT=-1.0µm
+    //   acid:    pH<4.5,             constants {Co/Ni:0.6, As:0.4} @ dT=-1.2µm
+    // The acid mode at thickness=-1.2 hits an IEEE-754 round-trip trap:
+    // the rate-equivalent is As=0.4/1.2=0.333…, and 1.2*(0.4/1.2) ≠ 0.4
+    // exactly. Storing the literal credits via {constants} preserves
+    // byte-identicality with the engine's hand-coded credit. (The thermal
+    // mode at thickness=-1.0 would multiply through cleanly as rates,
+    // but we keep both modes in the same flavor for symmetry.)
+    erythrite: { __modes: {
+            thermal: { constants: { Co: 0.4, As: 0.3 } }, // T>200°C dehydration, dT=-1.0
+            acid: { constants: { Co: 0.6, As: 0.4 } }, // pH<4.5, dT=-1.2
+        } },
+    annabergite: { __modes: {
+            thermal: { constants: { Ni: 0.4, As: 0.3 } }, // T>200°C dehydration, dT=-1.0
+            acid: { constants: { Ni: 0.6, As: 0.4 } }, // pH<4.5, dT=-1.2
+        } },
     // ---- Phosphates / arsenates / vanadates (Phase 1e batch 4, v42) ----
     // descloizite + mottramite have no inline dissolution credit.
     torbernite: { Cu: 0.2, U: 0.4, P: 0.3 }, // dehydration / pH
@@ -4857,9 +4967,6 @@ const MINERAL_DISSOLUTION_RATES = {
     pyromorphite: { Pb: 0.3, P: 0.2, Cl: 0.3 },
     vanadinite: { Pb: 0.3, V: 0.2, Cl: 0.3 },
     // ---- Silicates (Phase 1e batch 5, v43 — single-mode subset) ----
-    // chrysocolla has multi-mode dissolution (two pH-driven paths at
-    // different effective rates) and stays inline pending per-mode
-    // dispatch.
     quartz: { SiO2: 0.8 }, // OH⁻-assisted dissolution
     feldspar: { K: 0.3, Al: 0.05, SiO2: 0.5 }, // most Al stays in kaolinite
     albite: { Na: 0.3, Al: 0.05, SiO2: 0.3 }, // most Al stays in kaolinite
@@ -4872,10 +4979,18 @@ const MINERAL_DISSOLUTION_RATES = {
     aquamarine: { Be: 0.2, Al: 0.2, SiO2: 0.4 },
     morganite: { Be: 0.2, Al: 0.2, SiO2: 0.4 },
     heliodor: { Be: 0.2, Al: 0.2, SiO2: 0.4 },
+    // ---- Silicates (Phase 1e batch 12, v51 — chrysocolla multi-mode) ----
+    // chrysocolla has two dissolution modes, both rate-scaled:
+    //   acid:        pH<4.5, rates {Cu:0.4, SiO2:0.4}
+    //   dehydration: T>120°C, rates {Cu:0.3, SiO2:0.3}
+    // The two paths reflect different mechanisms — acid attack releases
+    // free Cu²⁺ + silicic acid; thermal dehydration is a strict-low-T-phase
+    // breakdown that releases less of each (the gel structure traps some).
+    chrysocolla: { __modes: {
+            acid: { rates: { Cu: 0.4, SiO2: 0.4 } }, // sigma<1, pH<4.5
+            dehydration: { rates: { Cu: 0.3, SiO2: 0.3 } }, // sigma<1, T>120°C
+        } },
     // ---- Carbonates (Phase 1e batch 6, v44 — single-mode subset) ----
-    // Multi-mode skipped (different effective rates per dissolution
-    // event): aragonite (polymorph + acid), rhodochrosite (acid + O2),
-    // azurite (low-CO3 + acid).
     // Calcite has rate-scaled credits for Ca/CO3 (single-mode, table-able)
     // PLUS trace-element credits for Mn/Fe computed from zone history
     // (zone-dependent, stays inline).
@@ -4887,11 +5002,31 @@ const MINERAL_DISSOLUTION_RATES = {
     rosasite: { Cu: 0.3, Zn: 0.2, CO3: 0.25 }, // pH < 5.5
     aurichalcite: { Zn: 0.4, Cu: 0.15, CO3: 0.3 }, // pH < 5.5
     cerussite: { Pb: 0.5, CO3: 0.4 }, // strong-acid pH < 4
+    // ---- Carbonates (Phase 1e batch 9, v48 — aragonite multi-mode) ----
+    // aragonite has two dissolution modes: polymorph (constants @
+    // thickness=-2.0, T>100 + sigma<0.8 -> calcite paramorph) and acid
+    // (rate-scaled, pH<5.5).
+    aragonite: { __modes: {
+            polymorph: { constants: { Ca: 2.0, CO3: 1.5 } }, // T>100, sigma<0.8 -> calcite, dT=-2.0
+            acid: { rates: { Ca: 0.5, CO3: 0.3 } }, // pH<5.5
+        } },
+    // ---- Carbonates (Phase 1e batch 10, v49 — rhodochrosite + azurite multi-mode) ----
+    // rhodochrosite has two dissolution modes, both rate-scaled but with
+    // different per-µm coefficients: oxidative (Mn²⁺ -> MnO₂ surface
+    // coating, releases less Mn) and acid (releases more Mn).
+    rhodochrosite: { __modes: {
+            oxidative: { rates: { Mn: 0.4, CO3: 0.4 } }, // sigma<1, O2>1.0
+            acid: { rates: { Mn: 0.5, CO3: 0.4 } }, // sigma<1, pH<5.5
+        } },
+    // azurite has two dissolution modes, both rate-scaled. The acid path
+    // releases more CO3 (full carbonate dissolution); the low-CO3 path
+    // is the diagnostic azurite -> malachite pseudomorph (less CO3 lost
+    // to gas because the conversion is more efficient).
+    azurite: { __modes: {
+            acid: { rates: { Cu: 0.5, CO3: 0.4 } }, // sigma<1, pH<5.0
+            low_co3: { rates: { Cu: 0.5, CO3: 0.3 } }, // sigma<1, CO3<80 (-> malachite)
+        } },
     // ---- Sulfides (Phase 1e batch 7, v45 — single-mode subset) ----
-    // pyrite + marcasite are multi-mode (oxidative rate-scaled vs acid
-    // constants at different effective rates) — stay inline.
-    // wurtzite has constant-rate "sublimation" credits — stays inline pending
-    // dispatch design (single-event but non-rate-scaled constants).
     // sphalerite + galena + argentite have no inline dissolution credit at all.
     // For acanthite + cobaltite, the table handles only the positive cation
     // credits (Ag / Co + As); the inline negative S consumption stays for now
@@ -4899,6 +5034,33 @@ const MINERAL_DISSOLUTION_RATES = {
     // For arsenopyrite, the table handles the standard Fe + As + S
     // rate-scaled credits; the Au-trap (zone-data-driven trace) and the pH
     // adjustment stay inline since neither is rate-scaled.
+    // ---- Sulfides (Phase 1e batch 8, v47 — multi-mode pyrite + marcasite) ----
+    // pyrite has two dissolution modes: oxidative (rate-scaled, low-σ +
+    // O₂>1.0) and acid (constants @ thickness=-2.0, low-σ + pH<3.0).
+    // marcasite has three: inversion (constants @ thickness=-1.5,
+    // pH≥5 OR T>240 -> pyrite paramorph), oxidative (rate-scaled), acid
+    // (constants @ thickness=-2.0). Constants modes use the {constants}
+    // flavor to preserve byte-identicality (the legacy engines added the
+    // raw constants directly, so storing them as "rate × thickness" risks
+    // IEEE-754 drift in marcasite inversion's 1.5×0.8 = 1.2 corner).
+    pyrite: { __modes: {
+            oxidative: { rates: { Fe: 1.0, S: 0.5 } },
+            acid: { constants: { Fe: 2.0, S: 1.5 } },
+        } },
+    marcasite: { __modes: {
+            inversion: { constants: { Fe: 1.5, S: 1.2 } }, // pH>=5 or T>240, -> pyrite
+            oxidative: { rates: { Fe: 1.0, S: 0.5 } },
+            acid: { constants: { Fe: 2.0, S: 1.5 } },
+        } },
+    // wurtzite has a single dissolution mode — polymorphic inversion to
+    // sphalerite when T drops below 95°C. Constants @ thickness=-1.5.
+    // Wrapped in __modes for uniformity with pyrite/marcasite even
+    // though there's only one mode (the wrapper defaults to first when
+    // dissolutionMode is undefined, so the engine doesn't strictly need
+    // to tag the zone — but it does for readability).
+    wurtzite: { __modes: {
+            inversion: { constants: { Zn: 1.5, S: 1.2 } }, // T<=95°C -> sphalerite, dT=-1.5
+        } },
     chalcopyrite: { Cu: 0.8, Fe: 0.5, S: 0.3 }, // acid attack
     molybdenite: { Mo: 0.8, S: 0.2 }, // oxidative — MoO₄²⁻ released
     nickeline: { Ni: 0.4, As: 0.4 }, // oxidative weathering
@@ -4911,8 +5073,16 @@ const MINERAL_DISSOLUTION_RATES = {
     tetrahedrite: { Cu: 0.6, Sb: 0.3, S: 0.4 }, // acid + oxidative
     tennantite: { Cu: 0.6, As: 0.3, S: 0.4 }, // acid + oxidative
     arsenopyrite: { Fe: 0.5, As: 0.4, S: 0.4 }, // major species; Au-trap stays inline
-    acanthite: { Ag: 0.4 }, // S consumption stays inline
-    cobaltite: { Co: 0.4, As: 0.4 }, // S consumption stays inline
+    // Phase 1e batch 14, v53: extended with S consumption (negative rate).
+    // The wrapper applies Math.max(0, fluid + delta) when rate<0, matching
+    // the legacy inline `fluid.S = Math.max(fluid.S - dissolved_um*0.1, 0)`
+    // pattern. Now fully table-mediated — no inline credits remain.
+    acanthite: { Ag: 0.4, S: -0.1 }, // oxidative; S consumed
+    cobaltite: { Co: 0.4, As: 0.4, S: -0.1 }, // oxidative; S consumed
+    // native_silver tarnish — both species are CONSUMED (negative rates).
+    // Engine had: fluid.Ag = Math.max(fluid.Ag - dissolved_um*0.3, 0);
+    //             fluid.S  = Math.max(fluid.S  - dissolved_um*0.4, 0);
+    native_silver: { Ag: -0.3, S: -0.4 }, // tarnish/skin to acanthite
 };
 // Apply mass balance for a single growth or dissolution zone. Called
 // from VugSimulator._runEngineForCrystal after the engine returns.
@@ -4947,15 +5117,51 @@ function applyMassBalance(crystal, zone, conditions) {
     // entry; multi-mode (e.g. pyrite oxidative vs acid at different
     // rates) is left inline pending per-mode dispatch.
     if (zone.thickness_um < 0) {
-        const rates = MINERAL_DISSOLUTION_RATES[crystal.mineral];
-        if (!rates)
+        const entry = MINERAL_DISSOLUTION_RATES[crystal.mineral];
+        if (!entry)
             return null; // unmigrated mineral — engine still credits inline
         const dissolved_um = -zone.thickness_um;
         const fluid = conditions.fluid;
-        for (const species in rates) {
+        // Resolve credits + flavor (rate-scaled vs constants).
+        let credits;
+        let isConstant;
+        if (entry.__modes) {
+            const modes = entry.__modes;
+            const modeName = zone.dissolutionMode;
+            const mode = modeName ? modes[modeName] : modes[Object.keys(modes)[0]];
+            if (!mode)
+                return null; // unknown mode — caller must specify a declared one
+            if (mode.constants) {
+                credits = mode.constants;
+                isConstant = true;
+            }
+            else {
+                credits = mode.rates;
+                isConstant = false;
+            }
+        }
+        else {
+            credits = entry;
+            isConstant = false;
+        }
+        // Apply credits. Positive-rate species use the legacy `fluid += delta`
+        // path verbatim — preserves byte-identicality with all v45-and-earlier
+        // baselines that depend on this exact accumulation order. Negative-rate
+        // species (consumption — acanthite/cobaltite S sinks, native_silver
+        // tarnish) get the legacy inline pattern `fluid = Math.max(fluid - x, 0)`,
+        // which here becomes `fluid = Math.max(0, fluid + delta)` since `delta`
+        // is already negative.
+        for (const species in credits) {
             if (typeof fluid[species] !== 'number')
                 continue;
-            fluid[species] += dissolved_um * rates[species];
+            const rate = credits[species];
+            const delta = isConstant ? rate : dissolved_um * rate;
+            if (rate < 0) {
+                fluid[species] = Math.max(0, fluid[species] + delta);
+            }
+            else {
+                fluid[species] += delta;
+            }
         }
         return null; // depletion narration is precipitation-only
     }
@@ -6774,6 +6980,14 @@ class GrowthZone {
         this.ca_from_fluid = opts.ca_from_fluid ?? 0.0;
         this.is_phantom = opts.is_phantom ?? false;
         this.dissolution_depth_um = opts.dissolution_depth_um ?? 0.0;
+        // Phase 1e completion: which dissolution mode the engine chose
+        // (e.g. 'oxidative' | 'acid' | 'polymorph' | 'inversion' | 'low_co3' | 'thermal'
+        // | 'dehydration'). Read by applyMassBalance to dispatch the credit
+        // through MINERAL_DISSOLUTION_RATES[mineral].__modes[mode]. Optional —
+        // single-mode (legacy) entries don't need it; the wrapper falls
+        // through to the first declared mode when missing.
+        if (opts.dissolutionMode)
+            this.dissolutionMode = opts.dissolutionMode;
     }
 }
 class Crystal {
@@ -9681,11 +9895,11 @@ function grow_erythrite(crystal, conditions, step) {
     // Thermal dehydration above 200°C
     if (crystal.total_growth_um > 5 && conditions.temperature > 200) {
         crystal.dissolved = true;
-        conditions.fluid.Co += 0.4;
-        conditions.fluid.As += 0.3;
+        // Phase 1e: Co + As constants via MINERAL_DISSOLUTION_RATES.erythrite.thermal.
         return new GrowthZone({
             step, temperature: conditions.temperature,
             thickness_um: -1.0, growth_rate: -1.0,
+            dissolutionMode: 'thermal',
             note: 'thermal dehydration — Co3(AsO4)2·8H2O loses water, breaks down above 200°C'
         });
     }
@@ -9693,11 +9907,11 @@ function grow_erythrite(crystal, conditions, step) {
     if (sigma < 1.0) {
         if (crystal.total_growth_um > 5 && conditions.fluid.pH < 4.5) {
             crystal.dissolved = true;
-            conditions.fluid.Co += 0.6;
-            conditions.fluid.As += 0.4;
+            // Phase 1e: Co + As constants via MINERAL_DISSOLUTION_RATES.erythrite.acid.
             return new GrowthZone({
                 step, temperature: conditions.temperature,
                 thickness_um: -1.2, growth_rate: -1.2,
+                dissolutionMode: 'acid',
                 note: `acid dissolution (pH ${conditions.fluid.pH.toFixed(1)}) — Co²⁺ + AsO₄³⁻ released`
             });
         }
@@ -9741,11 +9955,11 @@ function grow_erythrite(crystal, conditions, step) {
 function grow_annabergite(crystal, conditions, step) {
     if (crystal.total_growth_um > 5 && conditions.temperature > 200) {
         crystal.dissolved = true;
-        conditions.fluid.Ni += 0.4;
-        conditions.fluid.As += 0.3;
+        // Phase 1e: Ni + As constants via MINERAL_DISSOLUTION_RATES.annabergite.thermal.
         return new GrowthZone({
             step, temperature: conditions.temperature,
             thickness_um: -1.0, growth_rate: -1.0,
+            dissolutionMode: 'thermal',
             note: 'thermal dehydration — Ni3(AsO4)2·8H2O loses water, breaks down above 200°C'
         });
     }
@@ -9753,11 +9967,11 @@ function grow_annabergite(crystal, conditions, step) {
     if (sigma < 1.0) {
         if (crystal.total_growth_um > 5 && conditions.fluid.pH < 4.5) {
             crystal.dissolved = true;
-            conditions.fluid.Ni += 0.6;
-            conditions.fluid.As += 0.4;
+            // Phase 1e: Ni + As constants via MINERAL_DISSOLUTION_RATES.annabergite.acid.
             return new GrowthZone({
                 step, temperature: conditions.temperature,
                 thickness_um: -1.2, growth_rate: -1.2,
+                dissolutionMode: 'acid',
                 note: `acid dissolution (pH ${conditions.fluid.pH.toFixed(1)}) — Ni²⁺ + AsO₄³⁻ released`
             });
         }
@@ -10042,11 +10256,11 @@ function grow_aragonite(crystal, conditions, step) {
         && conditions.temperature > 100
         && sigma < 0.8) {
         crystal.dissolved = true;
-        conditions.fluid.Ca += 2.0;
-        conditions.fluid.CO3 += 1.5;
+        // Phase 1e: Ca + CO3 constants via MINERAL_DISSOLUTION_RATES.aragonite.polymorph.
         return new GrowthZone({
             step, temperature: conditions.temperature,
             thickness_um: -2.0, growth_rate: -2.0,
+            dissolutionMode: 'polymorph',
             note: `polymorphic conversion — orthorhombic CaCO₃ → trigonal calcite (T=${conditions.temperature.toFixed(0)}°C, sigma_arag=${sigma.toFixed(2)})`
         });
     }
@@ -10054,15 +10268,11 @@ function grow_aragonite(crystal, conditions, step) {
         if (crystal.total_growth_um > 5 && conditions.fluid.pH < 5.5) {
             crystal.dissolved = true;
             const dissolved_um = Math.min(8.0, crystal.total_growth_um * 0.15);
-            // Phase 1e (aragonite acid path): Ca + CO3 credits stay inline —
-            // aragonite has multi-mode dissolution (this acid path uses
-            // Ca=0.5 CO3=0.3, the polymorph path uses different effective
-            // rates), pending per-mode dispatch.
-            conditions.fluid.Ca += dissolved_um * 0.5;
-            conditions.fluid.CO3 += dissolved_um * 0.3;
+            // Phase 1e: Ca + CO3 credits via MINERAL_DISSOLUTION_RATES.aragonite.acid.
             return new GrowthZone({
                 step, temperature: conditions.temperature,
                 thickness_um: -dissolved_um, growth_rate: -dissolved_um,
+                dissolutionMode: 'acid',
                 note: `acid dissolution (pH ${conditions.fluid.pH.toFixed(1)}) — Ca²⁺ + CO₃²⁻ released`
             });
         }
@@ -10248,22 +10458,22 @@ function grow_rhodochrosite(crystal, conditions, step) {
         if (crystal.total_growth_um > 5 && conditions.fluid.O2 > 1.0) {
             crystal.dissolved = true;
             const dissolved_um = Math.min(5.0, crystal.total_growth_um * 0.12);
-            conditions.fluid.Mn += dissolved_um * 0.4;
-            conditions.fluid.CO3 += dissolved_um * 0.4;
+            // Phase 1e: Mn + CO3 credits via MINERAL_DISSOLUTION_RATES.rhodochrosite.oxidative.
             return new GrowthZone({
                 step, temperature: conditions.temperature,
                 thickness_um: -dissolved_um, growth_rate: -dissolved_um,
+                dissolutionMode: 'oxidative',
                 note: `oxidative breakdown — Mn²⁺ → Mn³⁺/Mn⁴⁺, surface converting to black manganese oxide (pyrolusite/psilomelane staining)`
             });
         }
         if (crystal.total_growth_um > 5 && conditions.fluid.pH < 5.5) {
             crystal.dissolved = true;
             const dissolved_um = Math.min(6.0, crystal.total_growth_um * 0.15);
-            conditions.fluid.Mn += dissolved_um * 0.5;
-            conditions.fluid.CO3 += dissolved_um * 0.4;
+            // Phase 1e: Mn + CO3 credits via MINERAL_DISSOLUTION_RATES.rhodochrosite.acid.
             return new GrowthZone({
                 step, temperature: conditions.temperature,
                 thickness_um: -dissolved_um, growth_rate: -dissolved_um,
+                dissolutionMode: 'acid',
                 note: `acid dissolution (pH ${conditions.fluid.pH.toFixed(1)}) — Mn²⁺ + CO₃²⁻ released`
             });
         }
@@ -10541,16 +10751,14 @@ function grow_azurite(crystal, conditions, step) {
         if (crystal.total_growth_um > 5 && conditions.fluid.pH < 5.0) {
             crystal.dissolved = true;
             const d = Math.min(3.0, crystal.total_growth_um * 0.10);
-            conditions.fluid.Cu += d * 0.5;
-            conditions.fluid.CO3 += d * 0.4;
-            return new GrowthZone({ step, temperature: conditions.temperature, thickness_um: -d, growth_rate: -d, note: `carbonate dissolution (pH ${conditions.fluid.pH.toFixed(1)}) — fizzes, Cu²⁺ + CO₃²⁻ released` });
+            // Phase 1e: Cu + CO3 credits via MINERAL_DISSOLUTION_RATES.azurite.acid.
+            return new GrowthZone({ step, temperature: conditions.temperature, thickness_um: -d, growth_rate: -d, dissolutionMode: 'acid', note: `carbonate dissolution (pH ${conditions.fluid.pH.toFixed(1)}) — fizzes, Cu²⁺ + CO₃²⁻ released` });
         }
         if (crystal.total_growth_um > 5 && conditions.fluid.CO3 < 80) {
             crystal.dissolved = true;
             const d = Math.min(2.5, crystal.total_growth_um * 0.08);
-            conditions.fluid.Cu += d * 0.5;
-            conditions.fluid.CO3 += d * 0.3;
-            return new GrowthZone({ step, temperature: conditions.temperature, thickness_um: -d, growth_rate: -d, note: `azurite → malachite conversion (CO₃ ${conditions.fluid.CO3.toFixed(0)} ppm drops below pseudomorph threshold)` });
+            // Phase 1e: Cu + CO3 credits via MINERAL_DISSOLUTION_RATES.azurite.low_co3.
+            return new GrowthZone({ step, temperature: conditions.temperature, thickness_um: -d, growth_rate: -d, dissolutionMode: 'low_co3', note: `azurite → malachite conversion (CO₃ ${conditions.fluid.CO3.toFixed(0)} ppm drops below pseudomorph threshold)` });
         }
         return null;
     }
@@ -11129,12 +11337,16 @@ function grow_native_silver(crystal, conditions, step) {
         if (crystal.total_growth_um > 5 && conditions.fluid.S > 5) {
             crystal.dissolved = true;
             const dissolved_um = Math.min(2.0, crystal.total_growth_um * 0.04);
-            conditions.fluid.Ag = Math.max(conditions.fluid.Ag - dissolved_um * 0.3, 0);
-            conditions.fluid.S = Math.max(conditions.fluid.S - dissolved_um * 0.4, 0);
+            const sBefore = conditions.fluid.S;
+            // Phase 1e: Ag + S consumption via MINERAL_DISSOLUTION_RATES.native_silver
+            // (rates Ag=-0.3, S=-0.4, both clamped at 0). Ag₂S formation pulls
+            // both species INTO the solid; the legacy note misread its own
+            // arithmetic ("S returned to fluid") — we capture pre-consumption
+            // S for the narration since the wrapper credit fires post-return.
             return new GrowthZone({
                 step, temperature: conditions.temperature,
                 thickness_um: -dissolved_um, growth_rate: -dissolved_um,
-                note: `tarnish — S returned to fluid (S=${conditions.fluid.S.toFixed(1)}); surface skinning to acanthite`,
+                note: `tarnish — Ag + S consumed (S=${sBefore.toFixed(1)} pre); surface skinning to acanthite`,
             });
         }
         return null;
@@ -12481,16 +12693,14 @@ function grow_chrysocolla(crystal, conditions, step) {
         if (crystal.total_growth_um > 5 && conditions.fluid.pH < 4.5) {
             crystal.dissolved = true;
             const d = Math.min(2.5, crystal.total_growth_um * 0.08);
-            conditions.fluid.Cu += d * 0.4;
-            conditions.fluid.SiO2 += d * 0.4;
-            return new GrowthZone({ step, temperature: conditions.temperature, thickness_um: -d, growth_rate: -d, note: `acid dissolution (pH ${conditions.fluid.pH.toFixed(1)}) — Cu²⁺ + silicic acid released` });
+            // Phase 1e: Cu + SiO2 credits via MINERAL_DISSOLUTION_RATES.chrysocolla.acid.
+            return new GrowthZone({ step, temperature: conditions.temperature, thickness_um: -d, growth_rate: -d, dissolutionMode: 'acid', note: `acid dissolution (pH ${conditions.fluid.pH.toFixed(1)}) — Cu²⁺ + silicic acid released` });
         }
         if (crystal.total_growth_um > 5 && conditions.temperature > 120) {
             crystal.dissolved = true;
             const d = Math.min(1.5, crystal.total_growth_um * 0.05);
-            conditions.fluid.Cu += d * 0.3;
-            conditions.fluid.SiO2 += d * 0.3;
-            return new GrowthZone({ step, temperature: conditions.temperature, thickness_um: -d, growth_rate: -d, note: `dehydration at ${conditions.temperature.toFixed(0)} °C — chrysocolla is a strict low-T phase` });
+            // Phase 1e: Cu + SiO2 credits via MINERAL_DISSOLUTION_RATES.chrysocolla.dehydration.
+            return new GrowthZone({ step, temperature: conditions.temperature, thickness_um: -d, growth_rate: -d, dissolutionMode: 'dehydration', note: `dehydration at ${conditions.temperature.toFixed(0)} °C — chrysocolla is a strict low-T phase` });
         }
         return null;
     }
@@ -13669,11 +13879,11 @@ function grow_wurtzite(crystal, conditions, step) {
     // Polymorphic inversion on cooling below 95°C
     if (crystal.total_growth_um > 10 && conditions.temperature <= 95) {
         crystal.dissolved = true;
-        conditions.fluid.Zn += 1.5;
-        conditions.fluid.S += 1.2;
+        // Phase 1e: Zn + S constants via MINERAL_DISSOLUTION_RATES.wurtzite.inversion.
         return new GrowthZone({
             step, temperature: conditions.temperature,
             thickness_um: -1.5, growth_rate: -1.5,
+            dissolutionMode: 'inversion',
             note: 'polymorphic inversion — T dropped below 95°C, hexagonal (Zn,Fe)S converting to cubic sphalerite'
         });
     }
@@ -13722,23 +13932,22 @@ function grow_pyrite(crystal, conditions, step) {
         if (crystal.total_growth_um > 10 && conditions.fluid.O2 > 1.0) {
             crystal.dissolved = true;
             const dissolved_um = Math.min(3.0, crystal.total_growth_um * 0.1);
-            // RECYCLING: Fe and S return to fluid
-            conditions.fluid.Fe += dissolved_um * 1.0;
-            conditions.fluid.S += dissolved_um * 0.5;
+            // Phase 1e: Fe + S credits via MINERAL_DISSOLUTION_RATES.pyrite.oxidative.
             return new GrowthZone({
                 step, temperature: conditions.temperature,
                 thickness_um: -dissolved_um, growth_rate: -dissolved_um,
+                dissolutionMode: 'oxidative',
                 note: 'oxidizing — pyrite weathering to goethite/limonite, Fe²⁺ released to fluid'
             });
         }
         // Also dissolves in strong acid
         if (crystal.total_growth_um > 10 && conditions.fluid.pH < 3.0) {
             crystal.dissolved = true;
-            conditions.fluid.Fe += 2.0;
-            conditions.fluid.S += 1.5;
+            // Phase 1e: Fe + S constants via MINERAL_DISSOLUTION_RATES.pyrite.acid.
             return new GrowthZone({
                 step, temperature: conditions.temperature,
                 thickness_um: -2.0, growth_rate: -2.0,
+                dissolutionMode: 'acid',
                 note: `acid dissolution (pH ${conditions.fluid.pH.toFixed(1)}) — Fe + S released`
             });
         }
@@ -13784,12 +13993,12 @@ function grow_marcasite(crystal, conditions, step) {
     // Metastable inversion to pyrite if pH rises above 5 or T exceeds 240
     if (crystal.total_growth_um > 10 && (conditions.fluid.pH >= 5.0 || conditions.temperature > 240)) {
         crystal.dissolved = true;
-        conditions.fluid.Fe += 1.5;
-        conditions.fluid.S += 1.2;
+        // Phase 1e: Fe + S constants via MINERAL_DISSOLUTION_RATES.marcasite.inversion.
         const trigger = conditions.fluid.pH >= 5.0 ? 'pH rose above 5' : 'T exceeded 240°C';
         return new GrowthZone({
             step, temperature: conditions.temperature,
             thickness_um: -1.5, growth_rate: -1.5,
+            dissolutionMode: 'inversion',
             note: `metastable inversion — ${trigger}, orthorhombic FeS2 converting to pyrite`
         });
     }
@@ -13799,21 +14008,21 @@ function grow_marcasite(crystal, conditions, step) {
         if (crystal.total_growth_um > 10 && conditions.fluid.O2 > 0.8) {
             crystal.dissolved = true;
             const dissolved_um = Math.min(4.0, crystal.total_growth_um * 0.12);
-            conditions.fluid.Fe += dissolved_um * 1.0;
-            conditions.fluid.S += dissolved_um * 0.5;
+            // Phase 1e: Fe + S credits via MINERAL_DISSOLUTION_RATES.marcasite.oxidative.
             return new GrowthZone({
                 step, temperature: conditions.temperature,
                 thickness_um: -dissolved_um, growth_rate: -dissolved_um,
+                dissolutionMode: 'oxidative',
                 note: 'oxidative breakdown — FeS2 + O2 + H2O → FeSO4 + H2SO4 (the museum rot)'
             });
         }
         if (crystal.total_growth_um > 10 && conditions.fluid.pH < 1.5) {
             crystal.dissolved = true;
-            conditions.fluid.Fe += 2.0;
-            conditions.fluid.S += 1.5;
+            // Phase 1e: Fe + S constants via MINERAL_DISSOLUTION_RATES.marcasite.acid.
             return new GrowthZone({
                 step, temperature: conditions.temperature,
                 thickness_um: -2.0, growth_rate: -2.0,
+                dissolutionMode: 'acid',
                 note: `extreme-acid dissolution (pH ${conditions.fluid.pH.toFixed(1)})`
             });
         }
@@ -14027,9 +14236,7 @@ function grow_acanthite(crystal, conditions, step) {
         if (crystal.total_growth_um > 5 && conditions.fluid.O2 > 1.2) {
             crystal.dissolved = true;
             const dissolved_um = Math.min(3.0, crystal.total_growth_um * 0.10);
-            // Phase 1e: Ag credit via MINERAL_DISSOLUTION_RATES.acanthite.
-            // S consumption (negative) stays inline — table doesn't yet support negative rates.
-            conditions.fluid.S = Math.max(conditions.fluid.S - dissolved_um * 0.1, 0);
+            // Phase 1e: Ag credit + S consumption via MINERAL_DISSOLUTION_RATES.acanthite (rate S=-0.1, clamped).
             return new GrowthZone({
                 step, temperature: conditions.temperature,
                 thickness_um: -dissolved_um, growth_rate: -dissolved_um,
@@ -14183,9 +14390,7 @@ function grow_cobaltite(crystal, conditions, step) {
         if (crystal.total_growth_um > 5 && conditions.fluid.O2 > 0.7) {
             crystal.dissolved = true;
             const dissolved_um = Math.min(2.5, crystal.total_growth_um * 0.10);
-            // Phase 1e: Co + As credits via MINERAL_DISSOLUTION_RATES.cobaltite.
-            // S consumption (negative) stays inline — table doesn't yet support negative rates.
-            conditions.fluid.S = Math.max(conditions.fluid.S - dissolved_um * 0.1, 0);
+            // Phase 1e: Co + As credits + S consumption via MINERAL_DISSOLUTION_RATES.cobaltite (rate S=-0.1, clamped).
             return new GrowthZone({
                 step, temperature: conditions.temperature,
                 thickness_um: -dissolved_um, growth_rate: -dissolved_um,
@@ -30484,7 +30689,12 @@ function _emitClusterSatellites(state, crystal, geom, mat, ax, ay, az, nx, ny, n
         sNz /= nLen;
         const sOffset = sCLen * 0.5;
         const satMesh = new THREE.Mesh(geom, mat);
-        satMesh.scale.set(sAWid, sCLen, sAWid);
+        if (geomToken === 'cube' || geomToken === 'octahedron' || geomToken === 'rhombic_dodec' || geomToken === 'dodecahedron') {
+            satMesh.scale.set(sCLen, sCLen, sCLen);
+        }
+        else {
+            satMesh.scale.set(sAWid, sCLen, sAWid);
+        }
         satMesh.position.set(ox + sNx * sOffset, oy + sNy * sOffset, oz + sNz * sOffset);
         targetVec.set(sNx, sNy, sNz);
         satMesh.quaternion.setFromUnitVectors(upVec, targetVec);
@@ -30619,9 +30829,24 @@ function _topoSyncCrystalMeshes(state, sim, wall) {
         // dotted with macro-crystals rather than dusted with invisible
         // ones. Aesthetic-over-accurate trade-off; E4 can revisit once
         // the camera supports zoom-into-cavity for true scale.
+        //
+        // Isometric tokens (cube, octahedron, rhombic_dodec) override to
+        // uniform scale: the crystal-side `a_width_mm = c × 0.5` fallback
+        // in 27-geometry-crystal.ts treats every habit not in its
+        // {prismatic, tabular, acicular, rhombohedral} set as 2:1 elongate,
+        // so a fluorite cube ends up rendered as a 2:1 rectangle. Geologically
+        // wrong (cubic-system crystals are 1:1:1 by definition); the dispatch
+        // is part of the v48 baseline so we override at the renderer rather
+        // than touching the sim. cLen is the larger floor so isometric
+        // crystals don't shrink below visible.
         const cLen = Math.max(2.0, crystal.c_length_mm);
         const aWid = Math.max(1.5, crystal.a_width_mm);
-        mesh.scale.set(aWid, cLen, aWid);
+        if (token === 'cube' || token === 'octahedron' || token === 'rhombic_dodec' || token === 'dodecahedron') {
+            mesh.scale.set(cLen, cLen, cLen);
+        }
+        else {
+            mesh.scale.set(aWid, cLen, aWid);
+        }
         mesh.renderOrder = 1;
         // Position the BASE of the primitive at the anchor (instead of
         // the centroid), so the crystal projects into the cavity rather
