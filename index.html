@@ -4660,7 +4660,16 @@ let timeScale = 5.0;
 //        breakdown that releases less of each (the gel structure traps
 //        some — chrysocolla's signature soft fluffy texture).
 //        174/~185 sites table-mediated.
-const SIM_VERSION = 51;
+//   v52 — Phase 1e batch 13: wurtzite single-mode constants (May 2026).
+//        2 inline credit lines removed in grow_wurtzite via __modes:
+//          wurtzite.inversion constants {Zn:1.5, S:1.2}  T<=95°C -> sphalerite, dT=-1.5
+//        Single-mode entry but uses the __modes wrapper for uniformity
+//        with the rest of the polymorph family (pyrite/marcasite/aragonite).
+//        The constants flavor stores literal credits {1.5, 1.2} rather
+//        than back-deriving rates 1.0/0.8 — defensive against future
+//        thickness changes drifting via IEEE-754.
+//        176/~185 sites table-mediated.
+const SIM_VERSION = 52;
 
 // ── 18-constants.js ──
 
@@ -5021,6 +5030,15 @@ const MINERAL_DISSOLUTION_RATES = {
             inversion: { constants: { Fe: 1.5, S: 1.2 } }, // pH>=5 or T>240, -> pyrite
             oxidative: { rates: { Fe: 1.0, S: 0.5 } },
             acid: { constants: { Fe: 2.0, S: 1.5 } },
+        } },
+    // wurtzite has a single dissolution mode — polymorphic inversion to
+    // sphalerite when T drops below 95°C. Constants @ thickness=-1.5.
+    // Wrapped in __modes for uniformity with pyrite/marcasite even
+    // though there's only one mode (the wrapper defaults to first when
+    // dissolutionMode is undefined, so the engine doesn't strictly need
+    // to tag the zone — but it does for readability).
+    wurtzite: { __modes: {
+            inversion: { constants: { Zn: 1.5, S: 1.2 } }, // T<=95°C -> sphalerite, dT=-1.5
         } },
     chalcopyrite: { Cu: 0.8, Fe: 0.5, S: 0.3 }, // acid attack
     molybdenite: { Mo: 0.8, S: 0.2 }, // oxidative — MoO₄²⁻ released
@@ -13828,11 +13846,11 @@ function grow_wurtzite(crystal, conditions, step) {
     // Polymorphic inversion on cooling below 95°C
     if (crystal.total_growth_um > 10 && conditions.temperature <= 95) {
         crystal.dissolved = true;
-        conditions.fluid.Zn += 1.5;
-        conditions.fluid.S += 1.2;
+        // Phase 1e: Zn + S constants via MINERAL_DISSOLUTION_RATES.wurtzite.inversion.
         return new GrowthZone({
             step, temperature: conditions.temperature,
             thickness_um: -1.5, growth_rate: -1.5,
+            dissolutionMode: 'inversion',
             note: 'polymorphic inversion — T dropped below 95°C, hexagonal (Zn,Fe)S converting to cubic sphalerite'
         });
     }

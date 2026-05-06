@@ -42,11 +42,11 @@ function grow_wurtzite(crystal, conditions, step) {
   // Polymorphic inversion on cooling below 95°C
   if (crystal.total_growth_um > 10 && conditions.temperature <= 95) {
     crystal.dissolved = true;
-    conditions.fluid.Zn += 1.5;
-    conditions.fluid.S += 1.2;
+    // Phase 1e: Zn + S constants via MINERAL_DISSOLUTION_RATES.wurtzite.inversion.
     return new GrowthZone({
       step, temperature: conditions.temperature,
       thickness_um: -1.5, growth_rate: -1.5,
+      dissolutionMode: 'inversion',
       note: 'polymorphic inversion — T dropped below 95°C, hexagonal (Zn,Fe)S converting to cubic sphalerite'
     });
   }

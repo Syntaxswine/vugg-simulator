@@ -370,6 +370,15 @@ const MINERAL_DISSOLUTION_RATES: Record<string, DissolutionEntry> = {
     oxidative: { rates:     { Fe: 1.0, S: 0.5 } },
     acid:      { constants: { Fe: 2.0, S: 1.5 } },
   }},
+  // wurtzite has a single dissolution mode — polymorphic inversion to
+  // sphalerite when T drops below 95°C. Constants @ thickness=-1.5.
+  // Wrapped in __modes for uniformity with pyrite/marcasite even
+  // though there's only one mode (the wrapper defaults to first when
+  // dissolutionMode is undefined, so the engine doesn't strictly need
+  // to tag the zone — but it does for readability).
+  wurtzite: { __modes: {
+    inversion: { constants: { Zn: 1.5, S: 1.2 } },  // T<=95°C -> sphalerite, dT=-1.5
+  }},
   chalcopyrite: { Cu: 0.8, Fe: 0.5, S: 0.3 },          // acid attack
   molybdenite:  { Mo: 0.8, S: 0.2 },                   // oxidative — MoO₄²⁻ released
   nickeline:    { Ni: 0.4, As: 0.4 },                  // oxidative weathering

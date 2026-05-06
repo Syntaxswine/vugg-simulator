@@ -667,5 +667,14 @@
 //        breakdown that releases less of each (the gel structure traps
 //        some — chrysocolla's signature soft fluffy texture).
 //        174/~185 sites table-mediated.
-const SIM_VERSION = 51;
+//   v52 — Phase 1e batch 13: wurtzite single-mode constants (May 2026).
+//        2 inline credit lines removed in grow_wurtzite via __modes:
+//          wurtzite.inversion constants {Zn:1.5, S:1.2}  T<=95°C -> sphalerite, dT=-1.5
+//        Single-mode entry but uses the __modes wrapper for uniformity
+//        with the rest of the polymorph family (pyrite/marcasite/aragonite).
+//        The constants flavor stores literal credits {1.5, 1.2} rather
+//        than back-deriving rates 1.0/0.8 — defensive against future
+//        thickness changes drifting via IEEE-754.
+//        176/~185 sites table-mediated.
+const SIM_VERSION = 52;
 
