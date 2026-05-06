@@ -75,9 +75,7 @@ function grow_torbernite(crystal, conditions, step) {
     if (crystal.total_growth_um > 5 && conditions.fluid.pH < 4.5) {
       crystal.dissolved = true;
       const dissolved_um = Math.min(2.0, crystal.total_growth_um * 0.10);
-      conditions.fluid.Cu += dissolved_um * 0.2;
-      conditions.fluid.U += dissolved_um * 0.4;
-      conditions.fluid.P += dissolved_um * 0.3;
+      // Phase 1e: Cu + U + P credits via MINERAL_DISSOLUTION_RATES.torbernite.
       return new GrowthZone({
         step, temperature: conditions.temperature,
         thickness_um: -dissolved_um, growth_rate: -dissolved_um,
@@ -121,9 +119,7 @@ function grow_zeunerite(crystal, conditions, step) {
     if (crystal.total_growth_um > 5 && conditions.fluid.pH < 4.5) {
       crystal.dissolved = true;
       const dissolved_um = Math.min(2.0, crystal.total_growth_um * 0.10);
-      conditions.fluid.Cu += dissolved_um * 0.2;
-      conditions.fluid.U += dissolved_um * 0.4;
-      conditions.fluid.As += dissolved_um * 0.3;
+      // Phase 1e: Cu + U + As credits via MINERAL_DISSOLUTION_RATES.zeunerite.
       return new GrowthZone({
         step, temperature: conditions.temperature,
         thickness_um: -dissolved_um, growth_rate: -dissolved_um,
@@ -170,9 +166,7 @@ function grow_carnotite(crystal, conditions, step) {
     if (crystal.total_growth_um > 5 && conditions.fluid.pH < 4.5) {
       crystal.dissolved = true;
       const dissolved_um = Math.min(2.0, crystal.total_growth_um * 0.10);
-      conditions.fluid.K += dissolved_um * 0.2;
-      conditions.fluid.U += dissolved_um * 0.4;
-      conditions.fluid.V += dissolved_um * 0.3;
+      // Phase 1e: K + U + V credits via MINERAL_DISSOLUTION_RATES.carnotite.
       return new GrowthZone({
         step, temperature: conditions.temperature,
         thickness_um: -dissolved_um, growth_rate: -dissolved_um,
@@ -223,9 +217,7 @@ function grow_autunite(crystal, conditions, step) {
     if (crystal.total_growth_um > 5 && conditions.fluid.pH < 4.5) {
       crystal.dissolved = true;
       const dissolved_um = Math.min(2.0, crystal.total_growth_um * 0.10);
-      conditions.fluid.Ca += dissolved_um * 0.2;
-      conditions.fluid.U += dissolved_um * 0.4;
-      conditions.fluid.P += dissolved_um * 0.3;
+      // Phase 1e: Ca + U + P credits via MINERAL_DISSOLUTION_RATES.autunite.
       return new GrowthZone({
         step, temperature: conditions.temperature,
         thickness_um: -dissolved_um, growth_rate: -dissolved_um,
@@ -274,9 +266,7 @@ function grow_uranospinite(crystal, conditions, step) {
     if (crystal.total_growth_um > 5 && conditions.fluid.pH < 4.5) {
       crystal.dissolved = true;
       const dissolved_um = Math.min(2.0, crystal.total_growth_um * 0.10);
-      conditions.fluid.Ca += dissolved_um * 0.2;
-      conditions.fluid.U += dissolved_um * 0.4;
-      conditions.fluid.As += dissolved_um * 0.3;
+      // Phase 1e: Ca + U + As credits via MINERAL_DISSOLUTION_RATES.uranospinite.
       return new GrowthZone({
         step, temperature: conditions.temperature,
         thickness_um: -dissolved_um, growth_rate: -dissolved_um,
@@ -325,9 +315,7 @@ function grow_tyuyamunite(crystal, conditions, step) {
     if (crystal.total_growth_um > 5 && conditions.fluid.pH < 5.0) {
       crystal.dissolved = true;
       const dissolved_um = Math.min(2.0, crystal.total_growth_um * 0.10);
-      conditions.fluid.Ca += dissolved_um * 0.2;
-      conditions.fluid.U += dissolved_um * 0.4;
-      conditions.fluid.V += dissolved_um * 0.3;
+      // Phase 1e: Ca + U + V credits via MINERAL_DISSOLUTION_RATES.tyuyamunite.
       return new GrowthZone({
         step, temperature: conditions.temperature,
         thickness_um: -dissolved_um, growth_rate: -dissolved_um,
@@ -374,8 +362,7 @@ function grow_clinobisvanite(crystal, conditions, step) {
     if (crystal.total_growth_um > 3 && conditions.fluid.pH < 2.5) {
       crystal.dissolved = true;
       const d = Math.min(0.5, crystal.total_growth_um * 0.05);
-      conditions.fluid.Bi += d * 0.4;
-      conditions.fluid.V += d * 0.3;
+      // Phase 1e: Bi + V credits via MINERAL_DISSOLUTION_RATES.clinobisvanite.
       return new GrowthZone({ step, temperature: conditions.temperature, thickness_um: -d, growth_rate: -d, note: `acid dissolution (pH ${conditions.fluid.pH.toFixed(1)})` });
     }
     return null;
@@ -398,9 +385,7 @@ function grow_pyromorphite(crystal, conditions, step) {
     if (crystal.total_growth_um > 5 && conditions.fluid.pH < 2.5) {
       crystal.dissolved = true;
       const d = Math.min(2.0, crystal.total_growth_um * 0.06);
-      conditions.fluid.Pb += d * 0.3;
-      conditions.fluid.P += d * 0.2;
-      conditions.fluid.Cl += d * 0.3;
+      // Phase 1e: Pb + P + Cl credits via MINERAL_DISSOLUTION_RATES.pyromorphite.
       return new GrowthZone({ step, temperature: conditions.temperature, thickness_um: -d, growth_rate: -d, note: `acid dissolution (pH ${conditions.fluid.pH.toFixed(1)})` });
     }
     return null;
@@ -433,9 +418,7 @@ function grow_vanadinite(crystal, conditions, step) {
     if (crystal.total_growth_um > 5 && conditions.fluid.pH < 2.5) {
       crystal.dissolved = true;
       const d = Math.min(2.0, crystal.total_growth_um * 0.06);
-      conditions.fluid.Pb += d * 0.3;
-      conditions.fluid.V += d * 0.2;
-      conditions.fluid.Cl += d * 0.3;
+      // Phase 1e: Pb + V + Cl credits via MINERAL_DISSOLUTION_RATES.vanadinite.
       return new GrowthZone({ step, temperature: conditions.temperature, thickness_um: -d, growth_rate: -d, note: `acid dissolution (pH ${conditions.fluid.pH.toFixed(1)})` });
     }
     return null;

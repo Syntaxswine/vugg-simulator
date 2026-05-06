@@ -4479,7 +4479,98 @@ let timeScale = 5.0;
 //        Phase 4c (next sub-phase) is now unblocked: flip the flag,
 //        regen baseline, tune per-class Eh thresholds where the
 //        Eh-equivalent mapping shifts crystal counts beyond ±5%.
-const SIM_VERSION = 37;
+//   v38 — Phase 1e infrastructure (May 2026). Adds MINERAL_DISSOLUTION_RATES
+//        table to 19-mineral-stoichiometry.ts and extends applyMassBalance
+//        to credit fluid for negative-thickness zones when the mineral has
+//        an entry in the table. Table is empty in this commit — every
+//        dissolution call short-circuits via the missing-entry check, so
+//        seed-42 stays byte-identical to v37. Phase 1d's growth-path-only
+//        wrapper guard is now lifted; the comment block in applyMassBalance
+//        explains the per-mineral migration pattern. Subsequent commits
+//        populate the table class-by-class and remove the matching inline
+//        `fluid.X += dissolved_um * RATE` blocks from engines, mirroring
+//        the precipitation-side cleanup that landed across Phase 1c/d.
+//   v39 — Phase 1e migration batch 1: halide + borate + hydroxide
+//        (May 2026). 8 inline `fluid.X += dissolved_um * RATE`
+//        credits removed across 5 minerals (fluorite, halite, borax,
+//        goethite, lepidocrocite); matching entries added to
+//        MINERAL_DISSOLUTION_RATES with the exact same per-µm rates.
+//        applyMassBalance now credits the fluid uniformly the way it
+//        debits during precipitation. Verified byte-identical to v38
+//        via per-scenario JSON comparison across all 20 scenarios
+//        (the file-level diff shows CRLF/LF churn from Windows git
+//        autocrlf — substance is bit-equal). 63/63 tests green.
+//   v40 — Phase 1e migration batch 2: molybdate + native + oxide
+//        (May 2026). 13 inline credits removed across 11 minerals
+//        (wulfenite, ferrimolybdite, hematite, uraninite, magnetite,
+//        cuprite, native_tellurium, native_sulfur, native_arsenic,
+//        native_bismuth, native_copper). All single-mode dissolution
+//        with consistent per-µm rates; native_silver and native_gold
+//        have no dissolution credit at all and stay absent from the
+//        table. Batch verified byte-identical to v39 via per-scenario
+//        JSON comparison; 21/127 sites total now table-mediated.
+//   v41 — Phase 1e migration batch 3: sulfate class (May 2026).
+//        22 inline credits removed across 9 minerals (anhydrite,
+//        brochantite, antlerite, jarosite, alunite, mirabilite,
+//        thenardite, selenite, anglesite). barite, celestine,
+//        chalcanthite have no inline dissolution credit at all and
+//        stay absent from the table. anglesite has two engine
+//        triggers (acid + carbonate-overwhelm) but identical
+//        per-µm rates, so a single table entry covers both. Verified
+//        byte-identical to v40 via per-scenario JSON comparison;
+//        43/~185 sites total now table-mediated.
+//   v42 — Phase 1e migration batch 4: arsenate (single-mode subset)
+//        + phosphate class (May 2026). 33 inline credits removed
+//        across 12 minerals. Arsenate's erythrite + annabergite have
+//        multi-mode dissolution (thermal dehydration + acid attack
+//        at different effective rates) and stay inline pending
+//        per-mode dispatch. Phosphate is fully single-mode — every
+//        engine has exactly one dissolution event with rate-scaled
+//        credits. descloizite + mottramite have no inline
+//        dissolution credit at all and stay absent from the table.
+//        76/~185 sites total now table-mediated.
+//   v43 — Phase 1e migration batch 5: silicate (single-mode subset)
+//        (May 2026). 17 inline credits removed across 10 minerals
+//        (quartz, feldspar, albite, topaz, apophyllite, beryl,
+//        emerald, aquamarine, morganite, heliodor). The five
+//        beryl-family variants share a `_beryl_family_dissolution`
+//        helper; each variant gets its own table entry with the same
+//        rates so the wrapper dispatches correctly via crystal.mineral.
+//        Apophyllite's legacy form used constants with thickness=-2.0;
+//        table rates = constant/2.0 produce identical credits.
+//        chrysocolla has multi-mode dissolution and stays inline.
+//        93/~185 sites total now table-mediated.
+//   v44 — Phase 1e migration batch 6: carbonate (single-mode subset)
+//        (May 2026). 19 credits removed across 8 minerals (calcite
+//        major species, dolomite, siderite, malachite, smithsonite,
+//        rosasite, aurichalcite, cerussite). Calcite's trace Mn + Fe
+//        credits stay inline — they're zone-data-driven (avg over
+//        last 3 zones), not rate-scaled. Siderite has two engine
+//        triggers (oxidative + acid) with identical rates so a single
+//        table entry covers both. aragonite (polymorph constants vs
+//        acid rate-scaled), rhodochrosite (acid vs O2 at different
+//        rates), azurite (low-CO3 vs acid at different CO3 rates) are
+//        multi-mode and stay inline pending per-mode dispatch.
+//        112/~185 sites table-mediated.
+//   v45 — Phase 1e migration batch 7: sulfide (single-mode subset)
+//        (May 2026). 32 credits removed across 14 sulfide minerals
+//        (chalcopyrite, molybdenite, nickeline, millerite, stibnite,
+//        bismuthinite, bornite, chalcocite, covellite, tetrahedrite,
+//        tennantite, arsenopyrite, acanthite, cobaltite). For
+//        arsenopyrite, the standard Fe+As+S rate-scaled credits move
+//        to the table; the Au-trap (zone-data-driven trace) and pH
+//        adjustment stay inline. For acanthite + cobaltite, the
+//        positive cation credits move to the table; the negative S
+//        consumption (Math.max-clamped subtraction) stays inline
+//        pending the table's negative-rate design extension.
+//        144/~185 sites table-mediated. Remaining ~41 sites are all
+//        multi-mode/special: pyrite + marcasite multi-mode (12),
+//        wurtzite constants (2), aragonite + rhodochrosite + azurite
+//        carbonate multi-mode (12), erythrite + annabergite arsenate
+//        multi-mode (8), chrysocolla silicate multi-mode (4),
+//        arsenopyrite Au-trap + calcite trace (3 — never tablifiable
+//        as currently designed).
+const SIM_VERSION = 45;
 
 // ── 18-constants.js ──
 
@@ -4685,12 +4776,150 @@ const MINERAL_STOICHIOMETRY = {
     stolzite: { Pb: 1, W: 1 }, // PbWO4 (tetragonal)
     clinobisvanite: { Bi: 1, V: 1 }, // BiVO4
 };
+// PROPOSAL-GEOLOGICAL-ACCURACY Phase 1e (May 2026): per-mineral
+// dissolution rates. Engines used to hand-code their dissolution
+// credits inline as `fluid.X += dissolved_um * RATE` blocks across
+// 12 engine files (~185 lines pre-migration). Phase 1e moves the
+// rate-scaled credits into this table so the wrapper can credit
+// fluid uniformly the way it debits during precipitation.
+//
+// Conventions:
+//   - Each entry maps mineral → species → ppm-per-µm-dissolved rate.
+//   - Rates here are NOT scaled by MASS_BALANCE_SCALE — they are the
+//     exact per-µm coefficients the legacy inline credits used.
+//     Calcite Ca=0.5 means "1 µm of calcite dissolution releases 0.5
+//     ppm Ca²⁺ to the fluid in this ring."
+//   - Rates differ per mineral because they reflect kinetic
+//     stoichiometry (what fraction of each species actually
+//     redissolves under the dominant dissolution mechanism), not
+//     formula stoichiometry. Calcite's Ca:CO3 = 0.5:0.3 reflects
+//     CO₂ outgassing during acid attack — some carbonate exits the
+//     fluid as gas rather than aqueous bicarbonate.
+//   - Trace elements (Mn, Fe in calcite zones) and special-mode
+//     constants (aragonite polymorphic conversion) STAY inline —
+//     they're zone-dependent or mode-dependent, not table-able.
+//   - Migration progresses class-by-class. Minerals with multi-mode
+//     dissolution (different rates for acid vs oxidative) keep their
+//     inline credits until per-mode dispatch is added.
+const MINERAL_DISSOLUTION_RATES = {
+    // ---- Halides (Phase 1e batch 1, v39) ----
+    fluorite: { Ca: 0.4, F: 0.6 }, // acid dissolution: CaF₂ + 2H⁺ → Ca²⁺ + 2HF
+    halite: { Na: 0.4, Cl: 6.0 }, // meteoric flush — Cl is dominant in NaCl re-dissolution
+    // ---- Borates (Phase 1e batch 1, v39) ----
+    borax: { Na: 0.4, B: 0.15 }, // generic borate re-dissolution
+    // ---- Hydroxides (Phase 1e batch 1, v39) ----
+    goethite: { Fe: 0.5 }, // FeO(OH) + 3H⁺ → Fe³⁺ + 2H₂O
+    lepidocrocite: { Fe: 0.4 }, // γ-FeO(OH) acid attack
+    // ---- Molybdates (Phase 1e batch 2, v40) ----
+    wulfenite: { Pb: 0.5, Mo: 0.3 }, // acid dissolution releases Pb²⁺ + MoO₄²⁻
+    ferrimolybdite: { Fe: 0.5, Mo: 0.4 }, // dehydration crumble — Fe³⁺ + MoO₄²⁻
+    // ---- Oxides (Phase 1e batch 2, v40) ----
+    hematite: { Fe: 1.5 }, // strong-acid pH<2 dissolution
+    uraninite: { U: 0.6 }, // oxidative dissolution → uranyl mobility
+    magnetite: { Fe: 0.5 }, // acid dissolution
+    cuprite: { Cu: 0.5 }, // acid attack
+    // ---- Native elements (Phase 1e batch 2, v40) ----
+    // native_silver and native_gold have no inline dissolution credit
+    // in the engines; they remain absent from the table.
+    native_tellurium: { Te: 0.5 }, // oxidative dissolution
+    native_sulfur: { S: 0.6 }, // sublimation / re-dissolution
+    native_arsenic: { As: 0.5 }, // oxidative weathering
+    native_bismuth: { Bi: 0.5 }, // acid dissolution
+    native_copper: { Cu: 0.5 }, // oxidative weathering to soluble Cu²⁺
+    // ---- Sulfates (Phase 1e batch 3, v41) ----
+    // barite/celestine/chalcanthite have no inline dissolution credits
+    // in engines — they simply persist when σ<1, no recycling pathway.
+    anhydrite: { Ca: 0.5, S: 0.4 }, // acid dissolution
+    brochantite: { Cu: 0.5, S: 0.3 }, // acid attack
+    antlerite: { Cu: 0.5, S: 0.4 }, // acid attack
+    jarosite: { K: 0.3, Fe: 0.5, S: 0.4 }, // alkaline-driven dissolution
+    alunite: { K: 0.3, Al: 0.4, S: 0.4 }, // alkaline-driven dissolution
+    mirabilite: { Na: 0.4, S: 0.25 }, // dehydration / re-dissolution
+    thenardite: { Na: 0.4, S: 0.25 }, // re-dissolution under low concentration
+    selenite: { Ca: 0.4, S: 0.3 }, // acid dissolution / phase boundary
+    anglesite: { Pb: 0.3, S: 0.3 }, // two engine triggers (acid + reductive), same rates
+    // ---- Arsenates (Phase 1e batch 4, v42 — single-mode subset) ----
+    // erythrite + annabergite have multi-mode dissolution (thermal +
+    // acid at different effective rates) and stay inline pending
+    // per-mode dispatch design.
+    scorodite: { Fe: 0.5, As: 0.5 }, // acid dissolution
+    adamite: { Zn: 0.5, As: 0.3 }, // acid attack
+    mimetite: { Pb: 0.8, As: 0.3, Cl: 0.1 }, // acid dissolution
+    // ---- Phosphates / arsenates / vanadates (Phase 1e batch 4, v42) ----
+    // descloizite + mottramite have no inline dissolution credit.
+    torbernite: { Cu: 0.2, U: 0.4, P: 0.3 }, // dehydration / pH
+    zeunerite: { Cu: 0.2, U: 0.4, As: 0.3 },
+    carnotite: { K: 0.2, U: 0.4, V: 0.3 },
+    autunite: { Ca: 0.2, U: 0.4, P: 0.3 },
+    uranospinite: { Ca: 0.2, U: 0.4, As: 0.3 },
+    tyuyamunite: { Ca: 0.2, U: 0.4, V: 0.3 },
+    clinobisvanite: { Bi: 0.4, V: 0.3 },
+    pyromorphite: { Pb: 0.3, P: 0.2, Cl: 0.3 },
+    vanadinite: { Pb: 0.3, V: 0.2, Cl: 0.3 },
+    // ---- Silicates (Phase 1e batch 5, v43 — single-mode subset) ----
+    // chrysocolla has multi-mode dissolution (two pH-driven paths at
+    // different effective rates) and stays inline pending per-mode
+    // dispatch.
+    quartz: { SiO2: 0.8 }, // OH⁻-assisted dissolution
+    feldspar: { K: 0.3, Al: 0.05, SiO2: 0.5 }, // most Al stays in kaolinite
+    albite: { Na: 0.3, Al: 0.05, SiO2: 0.3 }, // most Al stays in kaolinite
+    topaz: { Al: 0.3, SiO2: 0.2, F: 0.4 }, // HF-assisted etch
+    apophyllite: { K: 0.25, Ca: 1.0, SiO2: 4.0, F: 0.25 }, // constants/2.0µm: K += 0.5, Ca += 2.0, SiO2 += 8.0, F += 0.5
+    // beryl-family — all five variants share _beryl_family_dissolution helper
+    // (same rates regardless of chromophore), so identical per-mineral entries.
+    beryl: { Be: 0.2, Al: 0.2, SiO2: 0.4 }, // HF-assisted (pH<3, F>30)
+    emerald: { Be: 0.2, Al: 0.2, SiO2: 0.4 },
+    aquamarine: { Be: 0.2, Al: 0.2, SiO2: 0.4 },
+    morganite: { Be: 0.2, Al: 0.2, SiO2: 0.4 },
+    heliodor: { Be: 0.2, Al: 0.2, SiO2: 0.4 },
+    // ---- Carbonates (Phase 1e batch 6, v44 — single-mode subset) ----
+    // Multi-mode skipped (different effective rates per dissolution
+    // event): aragonite (polymorph + acid), rhodochrosite (acid + O2),
+    // azurite (low-CO3 + acid).
+    // Calcite has rate-scaled credits for Ca/CO3 (single-mode, table-able)
+    // PLUS trace-element credits for Mn/Fe computed from zone history
+    // (zone-dependent, stays inline).
+    calcite: { Ca: 0.5, CO3: 0.3 }, // major species only; trace Mn/Fe stay inline
+    dolomite: { Ca: 0.3, Mg: 0.3, CO3: 0.5 }, // acid dissolution
+    siderite: { Fe: 0.5, CO3: 0.4 }, // two engine triggers (oxidative + acid), same rates
+    malachite: { Cu: 0.8, CO3: 0.5 }, // acid dissolution
+    smithsonite: { Zn: 0.6, CO3: 0.4 }, // acid attack
+    rosasite: { Cu: 0.3, Zn: 0.2, CO3: 0.25 }, // pH < 5.5
+    aurichalcite: { Zn: 0.4, Cu: 0.15, CO3: 0.3 }, // pH < 5.5
+    cerussite: { Pb: 0.5, CO3: 0.4 }, // strong-acid pH < 4
+    // ---- Sulfides (Phase 1e batch 7, v45 — single-mode subset) ----
+    // pyrite + marcasite are multi-mode (oxidative rate-scaled vs acid
+    // constants at different effective rates) — stay inline.
+    // wurtzite has constant-rate "sublimation" credits — stays inline pending
+    // dispatch design (single-event but non-rate-scaled constants).
+    // sphalerite + galena + argentite have no inline dissolution credit at all.
+    // For acanthite + cobaltite, the table handles only the positive cation
+    // credits (Ag / Co + As); the inline negative S consumption stays for now
+    // pending negative-rate design extension.
+    // For arsenopyrite, the table handles the standard Fe + As + S
+    // rate-scaled credits; the Au-trap (zone-data-driven trace) and the pH
+    // adjustment stay inline since neither is rate-scaled.
+    chalcopyrite: { Cu: 0.8, Fe: 0.5, S: 0.3 }, // acid attack
+    molybdenite: { Mo: 0.8, S: 0.2 }, // oxidative — MoO₄²⁻ released
+    nickeline: { Ni: 0.4, As: 0.4 }, // oxidative weathering
+    millerite: { Ni: 0.4, S: 0.3 }, // acid attack
+    stibnite: { Sb: 0.3, S: 0.3 }, // oxidative
+    bismuthinite: { Bi: 0.3, S: 0.3 }, // oxidative
+    bornite: { Cu: 0.4, Fe: 0.2, S: 0.3 }, // supergene oxidation
+    chalcocite: { Cu: 0.5, S: 0.3 }, // strong oxidation
+    covellite: { Cu: 0.4, S: 0.4 }, // strong oxidation
+    tetrahedrite: { Cu: 0.6, Sb: 0.3, S: 0.4 }, // acid + oxidative
+    tennantite: { Cu: 0.6, As: 0.3, S: 0.4 }, // acid + oxidative
+    arsenopyrite: { Fe: 0.5, As: 0.4, S: 0.4 }, // major species; Au-trap stays inline
+    acanthite: { Ag: 0.4 }, // S consumption stays inline
+    cobaltite: { Co: 0.4, As: 0.4 }, // S consumption stays inline
+};
 // Apply mass balance for a single growth or dissolution zone. Called
 // from VugSimulator._runEngineForCrystal after the engine returns.
-// Positive thickness = precipitation (debit fluid); negative thickness
-// = dissolution (credit fluid). No-op when MASS_BALANCE_ENABLED is
-// false, so v17 baseline scenarios stay byte-identical until the
-// calibration pass flips the flag.
+// Positive thickness = precipitation (debit fluid via
+// MINERAL_STOICHIOMETRY × MASS_BALANCE_SCALE). Negative thickness =
+// dissolution (credit fluid via MINERAL_DISSOLUTION_RATES, when the
+// mineral has an entry).
 //
 // Two layers of safety while the flag is OFF:
 //   1. The early `if (!MASS_BALANCE_ENABLED) return;` short-circuit.
@@ -4708,18 +4937,28 @@ function applyMassBalance(crystal, zone, conditions) {
         return null;
     if (!zone || !zone.thickness_um)
         return null;
-    // Phase 1d (May 2026): precipitation-only. Engines hand-code their
-    // dissolution credits at per-mineral rates ~50× larger than the
-    // wrapper's MASS_BALANCE_SCALE — those rates were tuned to specific
-    // recycling stories per scenario (e.g. acid dissolution of calcite
-    // releases Ca at 0.5 ppm/µm, not 0.01). Until those manual credits
-    // are migrated into per-mineral dissolution rates (Phase 1e or
-    // later), the wrapper stays growth-only to avoid double-crediting.
-    // Net: the wrapper handles the gap that v17 left open (precipitation
-    // didn't debit the fluid), while existing dissolution credits keep
-    // their behavior.
-    if (zone.thickness_um < 0)
-        return null;
+    // Phase 1e (May 2026): the wrapper now handles dissolution too,
+    // for minerals that have an entry in MINERAL_DISSOLUTION_RATES.
+    // Engines whose dissolution credits have NOT yet been migrated
+    // keep their inline `fluid.X += dissolved_um * RATE` blocks; the
+    // wrapper's table-lookup short-circuits via the empty-entry check
+    // so behavior stays byte-identical until the engine's class is
+    // migrated. Single-mode dissolution maps cleanly to a per-mineral
+    // entry; multi-mode (e.g. pyrite oxidative vs acid at different
+    // rates) is left inline pending per-mode dispatch.
+    if (zone.thickness_um < 0) {
+        const rates = MINERAL_DISSOLUTION_RATES[crystal.mineral];
+        if (!rates)
+            return null; // unmigrated mineral — engine still credits inline
+        const dissolved_um = -zone.thickness_um;
+        const fluid = conditions.fluid;
+        for (const species in rates) {
+            if (typeof fluid[species] !== 'number')
+                continue;
+            fluid[species] += dissolved_um * rates[species];
+        }
+        return null; // depletion narration is precipitation-only
+    }
     const stoich = MINERAL_STOICHIOMETRY[crystal.mineral];
     if (!stoich) {
         if (!_massBalanceMissingWarned[crystal.mineral]) {
@@ -9363,8 +9602,7 @@ function grow_scorodite(crystal, conditions, step) {
         if (crystal.total_growth_um > 2 && (conditions.fluid.pH > 5.5 || conditions.temperature > 160)) {
             crystal.dissolved = true;
             const dissolved_um = Math.min(3.0, crystal.total_growth_um * 0.10);
-            conditions.fluid.Fe += dissolved_um * 0.5;
-            conditions.fluid.As += dissolved_um * 0.5; // AsO4³⁻ for downstream arsenates
+            // Phase 1e: Fe + As credits via MINERAL_DISSOLUTION_RATES.scorodite.
             const cause = conditions.fluid.pH > 5.5 ? 'pH>5' : 'T>160°C';
             return new GrowthZone({
                 step, temperature: conditions.temperature,
@@ -9562,8 +9800,7 @@ function grow_adamite(crystal, conditions, step) {
         if (crystal.total_growth_um > 3 && conditions.fluid.pH < 3.5) {
             crystal.dissolved = true;
             const d = Math.min(4.0, crystal.total_growth_um * 0.12);
-            conditions.fluid.Zn += d * 0.5;
-            conditions.fluid.As += d * 0.3;
+            // Phase 1e: Zn + As credits via MINERAL_DISSOLUTION_RATES.adamite.
             return new GrowthZone({ step, temperature: conditions.temperature, thickness_um: -d, growth_rate: -d, note: `acid dissolution (pH ${conditions.fluid.pH.toFixed(1)})` });
         }
         return null;
@@ -9604,9 +9841,7 @@ function grow_mimetite(crystal, conditions, step) {
         if (crystal.total_growth_um > 3 && conditions.fluid.pH < 3.0) {
             crystal.dissolved = true;
             const d = Math.min(5.0, crystal.total_growth_um * 0.10);
-            conditions.fluid.Pb += d * 0.8;
-            conditions.fluid.As += d * 0.3;
-            conditions.fluid.Cl += d * 0.1;
+            // Phase 1e: Pb + As + Cl credits via MINERAL_DISSOLUTION_RATES.mimetite.
             return new GrowthZone({ step, temperature: conditions.temperature, thickness_um: -d, growth_rate: -d, note: `acid dissolution (pH ${conditions.fluid.pH.toFixed(1)})` });
         }
         return null;
@@ -9665,8 +9900,7 @@ function grow_borax(crystal, conditions, step) {
         if (crystal.total_growth_um > 5 && conditions.fluid.concentration < 1.5) {
             crystal.dissolved = true;
             const dissolved_um = Math.min(10.0, crystal.total_growth_um * 0.25);
-            conditions.fluid.Na += dissolved_um * 0.4;
-            conditions.fluid.B += dissolved_um * 0.15;
+            // Phase 1e: Na + B credits handled by applyMassBalance via MINERAL_DISSOLUTION_RATES.borax.
             return new GrowthZone({
                 step, temperature: conditions.temperature,
                 thickness_um: -dissolved_um, growth_rate: -dissolved_um,
@@ -9730,9 +9964,8 @@ function grow_calcite(crystal, conditions, step) {
             crystal.dissolved = true;
             const dissolved_um = Math.min(8.0, crystal.total_growth_um * 0.15);
             // RECYCLING: Ca, CO3, and trace elements return to fluid
-            conditions.fluid.Ca += dissolved_um * 0.5;
-            conditions.fluid.CO3 += dissolved_um * 0.3;
-            // Mn and Fe that were in the crystal go back into solution
+            // Phase 1e: Ca + CO3 (major species) credits via MINERAL_DISSOLUTION_RATES.calcite.
+            // Mn and Fe trace credits stay inline below — they're zone-data-driven, not rate-scaled.
             if (crystal.zones.length) {
                 const recentZones = crystal.zones.slice(-3);
                 const avg_mn = recentZones.reduce((s, z) => s + z.trace_Mn, 0) / recentZones.length;
@@ -9821,6 +10054,10 @@ function grow_aragonite(crystal, conditions, step) {
         if (crystal.total_growth_um > 5 && conditions.fluid.pH < 5.5) {
             crystal.dissolved = true;
             const dissolved_um = Math.min(8.0, crystal.total_growth_um * 0.15);
+            // Phase 1e (aragonite acid path): Ca + CO3 credits stay inline —
+            // aragonite has multi-mode dissolution (this acid path uses
+            // Ca=0.5 CO3=0.3, the polymorph path uses different effective
+            // rates), pending per-mode dispatch.
             conditions.fluid.Ca += dissolved_um * 0.5;
             conditions.fluid.CO3 += dissolved_um * 0.3;
             return new GrowthZone({
@@ -9881,9 +10118,7 @@ function grow_dolomite(crystal, conditions, step) {
         if (crystal.total_growth_um > 5 && conditions.fluid.pH < 6.0) {
             crystal.dissolved = true;
             const dissolved_um = Math.min(5.0, crystal.total_growth_um * 0.12);
-            conditions.fluid.Ca += dissolved_um * 0.3;
-            conditions.fluid.Mg += dissolved_um * 0.3;
-            conditions.fluid.CO3 += dissolved_um * 0.5;
+            // Phase 1e: Ca + Mg + CO3 credits via MINERAL_DISSOLUTION_RATES.dolomite.
             return new GrowthZone({
                 step, temperature: conditions.temperature,
                 thickness_um: -dissolved_um, growth_rate: -dissolved_um,
@@ -9954,8 +10189,7 @@ function grow_siderite(crystal, conditions, step) {
         if (crystal.total_growth_um > 5 && conditions.fluid.O2 > 0.5) {
             crystal.dissolved = true;
             const dissolved_um = Math.min(5.0, crystal.total_growth_um * 0.13);
-            conditions.fluid.Fe += dissolved_um * 0.5;
-            conditions.fluid.CO3 += dissolved_um * 0.4;
+            // Phase 1e: Fe + CO3 credits via MINERAL_DISSOLUTION_RATES.siderite.
             return new GrowthZone({
                 step, temperature: conditions.temperature,
                 thickness_um: -dissolved_um, growth_rate: -dissolved_um,
@@ -9965,8 +10199,7 @@ function grow_siderite(crystal, conditions, step) {
         if (crystal.total_growth_um > 5 && conditions.fluid.pH < 5.5) {
             crystal.dissolved = true;
             const dissolved_um = Math.min(6.0, crystal.total_growth_um * 0.15);
-            conditions.fluid.Fe += dissolved_um * 0.5;
-            conditions.fluid.CO3 += dissolved_um * 0.4;
+            // Phase 1e: Fe + CO3 credits via MINERAL_DISSOLUTION_RATES.siderite.
             return new GrowthZone({
                 step, temperature: conditions.temperature,
                 thickness_um: -dissolved_um, growth_rate: -dissolved_um,
@@ -10081,8 +10314,7 @@ function grow_malachite(crystal, conditions, step) {
         if (crystal.total_growth_um > 5 && conditions.fluid.pH < 4.5) {
             crystal.dissolved = true;
             const dissolved_um = Math.min(6.0, crystal.total_growth_um * 0.15);
-            conditions.fluid.Cu += dissolved_um * 0.8;
-            conditions.fluid.CO3 += dissolved_um * 0.5;
+            // Phase 1e: Cu + CO3 credits via MINERAL_DISSOLUTION_RATES.malachite.
             return new GrowthZone({
                 step, temperature: conditions.temperature,
                 thickness_um: -dissolved_um, growth_rate: -dissolved_um,
@@ -10141,8 +10373,7 @@ function grow_smithsonite(crystal, conditions, step) {
         if (crystal.total_growth_um > 5 && conditions.fluid.pH < 4.5) {
             crystal.dissolved = true;
             const dissolved_um = Math.min(5.0, crystal.total_growth_um * 0.12);
-            conditions.fluid.Zn += dissolved_um * 0.6;
-            conditions.fluid.CO3 += dissolved_um * 0.4;
+            // Phase 1e: Zn + CO3 credits via MINERAL_DISSOLUTION_RATES.smithsonite.
             return new GrowthZone({
                 step, temperature: conditions.temperature,
                 thickness_um: -dissolved_um, growth_rate: -dissolved_um,
@@ -10200,9 +10431,7 @@ function grow_rosasite(crystal, conditions, step) {
         if (crystal.total_growth_um > 5 && conditions.fluid.pH < 5.0) {
             crystal.dissolved = true;
             const dissolved_um = Math.min(2.0, crystal.total_growth_um * 0.08);
-            conditions.fluid.Cu += dissolved_um * 0.3;
-            conditions.fluid.Zn += dissolved_um * 0.2;
-            conditions.fluid.CO3 += dissolved_um * 0.25;
+            // Phase 1e: Cu + Zn + CO3 credits via MINERAL_DISSOLUTION_RATES.rosasite.
             return new GrowthZone({
                 step, temperature: conditions.temperature,
                 thickness_um: -dissolved_um, growth_rate: -dissolved_um,
@@ -10260,9 +10489,7 @@ function grow_aurichalcite(crystal, conditions, step) {
         if (crystal.total_growth_um > 5 && conditions.fluid.pH < 5.0) {
             crystal.dissolved = true;
             const dissolved_um = Math.min(2.0, crystal.total_growth_um * 0.08);
-            conditions.fluid.Zn += dissolved_um * 0.4;
-            conditions.fluid.Cu += dissolved_um * 0.15;
-            conditions.fluid.CO3 += dissolved_um * 0.3;
+            // Phase 1e: Zn + Cu + CO3 credits via MINERAL_DISSOLUTION_RATES.aurichalcite.
             return new GrowthZone({
                 step, temperature: conditions.temperature,
                 thickness_um: -dissolved_um, growth_rate: -dissolved_um,
@@ -10357,8 +10584,7 @@ function grow_cerussite(crystal, conditions, step) {
         if (crystal.total_growth_um > 5 && conditions.fluid.pH < 4.0) {
             crystal.dissolved = true;
             const d = Math.min(3.0, crystal.total_growth_um * 0.1);
-            conditions.fluid.Pb += d * 0.5;
-            conditions.fluid.CO3 += d * 0.4;
+            // Phase 1e: Pb + CO3 credits via MINERAL_DISSOLUTION_RATES.cerussite.
             return new GrowthZone({ step, temperature: conditions.temperature, thickness_um: -d, growth_rate: -d, note: `carbonate dissolution (pH ${conditions.fluid.pH.toFixed(1)}) — fizzes` });
         }
         return null;
@@ -10409,8 +10635,7 @@ function grow_fluorite(crystal, conditions, step) {
         if (crystal.total_growth_um > 5 && conditions.fluid.pH < 4.0) {
             crystal.dissolved = true;
             const dissolved_um = Math.min(6.0, crystal.total_growth_um * 0.12);
-            conditions.fluid.Ca += dissolved_um * 0.4;
-            conditions.fluid.F += dissolved_um * 0.6;
+            // Phase 1e: Ca + F credits handled by applyMassBalance via MINERAL_DISSOLUTION_RATES.fluorite.
             return new GrowthZone({
                 step, temperature: conditions.temperature,
                 thickness_um: -dissolved_um, growth_rate: -dissolved_um,
@@ -10447,8 +10672,7 @@ function grow_halite(crystal, conditions, step) {
         if (crystal.total_growth_um > 5 && conditions.fluid.concentration < 1.5) {
             crystal.dissolved = true;
             const dissolved_um = Math.min(8.0, crystal.total_growth_um * 0.20);
-            conditions.fluid.Na += dissolved_um * 0.4;
-            conditions.fluid.Cl += dissolved_um * 6.0;
+            // Phase 1e: Na + Cl credits handled by applyMassBalance via MINERAL_DISSOLUTION_RATES.halite.
             return new GrowthZone({
                 step, temperature: conditions.temperature,
                 thickness_um: -dissolved_um, growth_rate: -dissolved_um,
@@ -10504,7 +10728,7 @@ function grow_goethite(crystal, conditions, step) {
         if (crystal.total_growth_um > 3 && conditions.fluid.pH < 3.0) {
             crystal.dissolved = true;
             const d = Math.min(4.0, crystal.total_growth_um * 0.12);
-            conditions.fluid.Fe += d * 0.5;
+            // Phase 1e: Fe credit handled by applyMassBalance via MINERAL_DISSOLUTION_RATES.goethite.
             return new GrowthZone({
                 step, temperature: conditions.temperature,
                 thickness_um: -d, growth_rate: -d,
@@ -10563,7 +10787,7 @@ function grow_lepidocrocite(crystal, conditions, step) {
         if (crystal.total_growth_um > 5 && conditions.fluid.pH < 3.0) {
             crystal.dissolved = true;
             const d = Math.min(1.5, crystal.total_growth_um * 0.06);
-            conditions.fluid.Fe += d * 0.4;
+            // Phase 1e: Fe credit handled by applyMassBalance via MINERAL_DISSOLUTION_RATES.lepidocrocite.
             return new GrowthZone({ step, temperature: conditions.temperature, thickness_um: -d, growth_rate: -d, note: `acid dissolution (pH ${conditions.fluid.pH.toFixed(1)})` });
         }
         return null;
@@ -10612,8 +10836,7 @@ function grow_wulfenite(crystal, conditions, step) {
         if (crystal.total_growth_um > 3 && conditions.fluid.pH < 3.5) {
             crystal.dissolved = true;
             const dissolved_um = Math.min(4.0, crystal.total_growth_um * 0.10);
-            conditions.fluid.Pb += dissolved_um * 0.5;
-            conditions.fluid.Mo += dissolved_um * 0.3;
+            // Phase 1e: Pb + Mo credits handled by applyMassBalance via MINERAL_DISSOLUTION_RATES.wulfenite.
             return new GrowthZone({
                 step, temperature: conditions.temperature,
                 thickness_um: -dissolved_um, growth_rate: -dissolved_um,
@@ -10655,8 +10878,7 @@ function grow_ferrimolybdite(crystal, conditions, step) {
         if (crystal.total_growth_um > 2 && (conditions.fluid.pH < 2 || conditions.temperature > 150)) {
             crystal.dissolved = true;
             const dissolved_um = Math.min(2.5, crystal.total_growth_um * 0.18);
-            conditions.fluid.Fe += dissolved_um * 0.5;
-            conditions.fluid.Mo += dissolved_um * 0.4;
+            // Phase 1e: Fe + Mo credits handled by applyMassBalance via MINERAL_DISSOLUTION_RATES.ferrimolybdite.
             return new GrowthZone({
                 step, temperature: conditions.temperature,
                 thickness_um: -dissolved_um, growth_rate: -dissolved_um,
@@ -10755,7 +10977,7 @@ function grow_native_tellurium(crystal, conditions, step) {
         if (crystal.total_growth_um > 5 && conditions.fluid.O2 > 0.7) {
             crystal.dissolved = true;
             const dissolved_um = Math.min(2.0, crystal.total_growth_um * 0.10);
-            conditions.fluid.Te += dissolved_um * 0.5;
+            // Phase 1e: Te credit handled by applyMassBalance via MINERAL_DISSOLUTION_RATES.native_tellurium.
             return new GrowthZone({
                 step, temperature: conditions.temperature,
                 thickness_um: -dissolved_um, growth_rate: -dissolved_um,
@@ -10804,7 +11026,7 @@ function grow_native_sulfur(crystal, conditions, step) {
         if (crystal.total_growth_um > 5 && conditions.fluid.O2 > 0.9) {
             crystal.dissolved = true;
             const dissolved_um = Math.min(3.0, crystal.total_growth_um * 0.10);
-            conditions.fluid.S += dissolved_um * 0.6;
+            // Phase 1e: S credit handled by applyMassBalance via MINERAL_DISSOLUTION_RATES.native_sulfur.
             return new GrowthZone({
                 step, temperature: conditions.temperature,
                 thickness_um: -dissolved_um, growth_rate: -dissolved_um,
@@ -10849,7 +11071,7 @@ function grow_native_arsenic(crystal, conditions, step) {
         if (crystal.total_growth_um > 5 && conditions.fluid.O2 > 0.7) {
             crystal.dissolved = true;
             const dissolved_um = Math.min(2.5, crystal.total_growth_um * 0.10);
-            conditions.fluid.As += dissolved_um * 0.5;
+            // Phase 1e: As credit handled by applyMassBalance via MINERAL_DISSOLUTION_RATES.native_arsenic.
             return new GrowthZone({
                 step, temperature: conditions.temperature,
                 thickness_um: -dissolved_um, growth_rate: -dissolved_um,
@@ -10965,7 +11187,7 @@ function grow_native_bismuth(crystal, conditions, step) {
         if (crystal.total_growth_um > 5 && conditions.fluid.O2 > 0.8) {
             crystal.dissolved = true;
             const d = Math.min(2.0, crystal.total_growth_um * 0.05);
-            conditions.fluid.Bi += d * 0.5;
+            // Phase 1e: Bi credit handled by applyMassBalance via MINERAL_DISSOLUTION_RATES.native_bismuth.
             return new GrowthZone({ step, temperature: conditions.temperature, thickness_um: -d, growth_rate: -d, note: `oxidation (O₂ ${conditions.fluid.O2.toFixed(1)}) — bismite/bismutite surface forms` });
         }
         return null;
@@ -11034,7 +11256,7 @@ function grow_native_copper(crystal, conditions, step) {
         if (crystal.total_growth_um > 5 && conditions.fluid.O2 > 0.7) {
             crystal.dissolved = true;
             const d = Math.min(2.0, crystal.total_growth_um * 0.05);
-            conditions.fluid.Cu += d * 0.5;
+            // Phase 1e: Cu credit handled by applyMassBalance via MINERAL_DISSOLUTION_RATES.native_copper.
             return new GrowthZone({ step, temperature: conditions.temperature, thickness_um: -d, growth_rate: -d, note: `oxidation (O₂ ${conditions.fluid.O2.toFixed(1)}) — forms cuprite film, then malachite if CO₃ is present` });
         }
         return null;
@@ -11086,7 +11308,7 @@ function grow_hematite(crystal, conditions, step) {
         if (crystal.total_growth_um > 5 && conditions.fluid.pH < 3.0) {
             crystal.dissolved = true;
             const dissolved_um = Math.min(4.0, crystal.total_growth_um * 0.1);
-            conditions.fluid.Fe += dissolved_um * 1.5;
+            // Phase 1e: Fe credit handled by applyMassBalance via MINERAL_DISSOLUTION_RATES.hematite.
             return new GrowthZone({
                 step, temperature: conditions.temperature,
                 thickness_um: -dissolved_um, growth_rate: -dissolved_um,
@@ -11152,7 +11374,7 @@ function grow_uraninite(crystal, conditions, step) {
         if (crystal.total_growth_um > 3 && conditions.fluid.O2 > 0.3) {
             crystal.dissolved = true;
             const dissolved_um = Math.min(4.0, crystal.total_growth_um * 0.12);
-            conditions.fluid.U += dissolved_um * 0.6; // uranyl back to fluid
+            // Phase 1e: U credit handled by applyMassBalance via MINERAL_DISSOLUTION_RATES.uraninite.
             return new GrowthZone({
                 step, temperature: conditions.temperature,
                 thickness_um: -dissolved_um, growth_rate: -dissolved_um,
@@ -11195,7 +11417,7 @@ function grow_magnetite(crystal, conditions, step) {
         if (crystal.total_growth_um > 5 && (conditions.fluid.pH < 2.5 || conditions.fluid.O2 > 1.4)) {
             crystal.dissolved = true;
             const d = Math.min(2.0, crystal.total_growth_um * 0.05);
-            conditions.fluid.Fe += d * 0.5;
+            // Phase 1e: Fe credit handled by applyMassBalance via MINERAL_DISSOLUTION_RATES.magnetite.
             return new GrowthZone({ step, temperature: conditions.temperature, thickness_um: -d, growth_rate: -d, note: `dissolution (pH ${conditions.fluid.pH.toFixed(1)}, O₂ ${conditions.fluid.O2.toFixed(1)}) — martite conversion if oxidizing` });
         }
         return null;
@@ -11231,7 +11453,7 @@ function grow_cuprite(crystal, conditions, step) {
         if (crystal.total_growth_um > 5 && (conditions.fluid.pH < 3.5 || conditions.fluid.O2 > 1.5)) {
             crystal.dissolved = true;
             const d = Math.min(2.0, crystal.total_growth_um * 0.07);
-            conditions.fluid.Cu += d * 0.5;
+            // Phase 1e: Cu credit handled by applyMassBalance via MINERAL_DISSOLUTION_RATES.cuprite.
             return new GrowthZone({ step, temperature: conditions.temperature, thickness_um: -d, growth_rate: -d, note: `dissolution — Eh window exceeded (pH ${conditions.fluid.pH.toFixed(1)}, O₂ ${conditions.fluid.O2.toFixed(1)})` });
         }
         return null;
@@ -11515,9 +11737,7 @@ function grow_torbernite(crystal, conditions, step) {
         if (crystal.total_growth_um > 5 && conditions.fluid.pH < 4.5) {
             crystal.dissolved = true;
             const dissolved_um = Math.min(2.0, crystal.total_growth_um * 0.10);
-            conditions.fluid.Cu += dissolved_um * 0.2;
-            conditions.fluid.U += dissolved_um * 0.4;
-            conditions.fluid.P += dissolved_um * 0.3;
+            // Phase 1e: Cu + U + P credits via MINERAL_DISSOLUTION_RATES.torbernite.
             return new GrowthZone({
                 step, temperature: conditions.temperature,
                 thickness_um: -dissolved_um, growth_rate: -dissolved_um,
@@ -11563,9 +11783,7 @@ function grow_zeunerite(crystal, conditions, step) {
         if (crystal.total_growth_um > 5 && conditions.fluid.pH < 4.5) {
             crystal.dissolved = true;
             const dissolved_um = Math.min(2.0, crystal.total_growth_um * 0.10);
-            conditions.fluid.Cu += dissolved_um * 0.2;
-            conditions.fluid.U += dissolved_um * 0.4;
-            conditions.fluid.As += dissolved_um * 0.3;
+            // Phase 1e: Cu + U + As credits via MINERAL_DISSOLUTION_RATES.zeunerite.
             return new GrowthZone({
                 step, temperature: conditions.temperature,
                 thickness_um: -dissolved_um, growth_rate: -dissolved_um,
@@ -11614,9 +11832,7 @@ function grow_carnotite(crystal, conditions, step) {
         if (crystal.total_growth_um > 5 && conditions.fluid.pH < 4.5) {
             crystal.dissolved = true;
             const dissolved_um = Math.min(2.0, crystal.total_growth_um * 0.10);
-            conditions.fluid.K += dissolved_um * 0.2;
-            conditions.fluid.U += dissolved_um * 0.4;
-            conditions.fluid.V += dissolved_um * 0.3;
+            // Phase 1e: K + U + V credits via MINERAL_DISSOLUTION_RATES.carnotite.
             return new GrowthZone({
                 step, temperature: conditions.temperature,
                 thickness_um: -dissolved_um, growth_rate: -dissolved_um,
@@ -11669,9 +11885,7 @@ function grow_autunite(crystal, conditions, step) {
         if (crystal.total_growth_um > 5 && conditions.fluid.pH < 4.5) {
             crystal.dissolved = true;
             const dissolved_um = Math.min(2.0, crystal.total_growth_um * 0.10);
-            conditions.fluid.Ca += dissolved_um * 0.2;
-            conditions.fluid.U += dissolved_um * 0.4;
-            conditions.fluid.P += dissolved_um * 0.3;
+            // Phase 1e: Ca + U + P credits via MINERAL_DISSOLUTION_RATES.autunite.
             return new GrowthZone({
                 step, temperature: conditions.temperature,
                 thickness_um: -dissolved_um, growth_rate: -dissolved_um,
@@ -11722,9 +11936,7 @@ function grow_uranospinite(crystal, conditions, step) {
         if (crystal.total_growth_um > 5 && conditions.fluid.pH < 4.5) {
             crystal.dissolved = true;
             const dissolved_um = Math.min(2.0, crystal.total_growth_um * 0.10);
-            conditions.fluid.Ca += dissolved_um * 0.2;
-            conditions.fluid.U += dissolved_um * 0.4;
-            conditions.fluid.As += dissolved_um * 0.3;
+            // Phase 1e: Ca + U + As credits via MINERAL_DISSOLUTION_RATES.uranospinite.
             return new GrowthZone({
                 step, temperature: conditions.temperature,
                 thickness_um: -dissolved_um, growth_rate: -dissolved_um,
@@ -11775,9 +11987,7 @@ function grow_tyuyamunite(crystal, conditions, step) {
         if (crystal.total_growth_um > 5 && conditions.fluid.pH < 5.0) {
             crystal.dissolved = true;
             const dissolved_um = Math.min(2.0, crystal.total_growth_um * 0.10);
-            conditions.fluid.Ca += dissolved_um * 0.2;
-            conditions.fluid.U += dissolved_um * 0.4;
-            conditions.fluid.V += dissolved_um * 0.3;
+            // Phase 1e: Ca + U + V credits via MINERAL_DISSOLUTION_RATES.tyuyamunite.
             return new GrowthZone({
                 step, temperature: conditions.temperature,
                 thickness_um: -dissolved_um, growth_rate: -dissolved_um,
@@ -11826,8 +12036,7 @@ function grow_clinobisvanite(crystal, conditions, step) {
         if (crystal.total_growth_um > 3 && conditions.fluid.pH < 2.5) {
             crystal.dissolved = true;
             const d = Math.min(0.5, crystal.total_growth_um * 0.05);
-            conditions.fluid.Bi += d * 0.4;
-            conditions.fluid.V += d * 0.3;
+            // Phase 1e: Bi + V credits via MINERAL_DISSOLUTION_RATES.clinobisvanite.
             return new GrowthZone({ step, temperature: conditions.temperature, thickness_um: -d, growth_rate: -d, note: `acid dissolution (pH ${conditions.fluid.pH.toFixed(1)})` });
         }
         return null;
@@ -11858,9 +12067,7 @@ function grow_pyromorphite(crystal, conditions, step) {
         if (crystal.total_growth_um > 5 && conditions.fluid.pH < 2.5) {
             crystal.dissolved = true;
             const d = Math.min(2.0, crystal.total_growth_um * 0.06);
-            conditions.fluid.Pb += d * 0.3;
-            conditions.fluid.P += d * 0.2;
-            conditions.fluid.Cl += d * 0.3;
+            // Phase 1e: Pb + P + Cl credits via MINERAL_DISSOLUTION_RATES.pyromorphite.
             return new GrowthZone({ step, temperature: conditions.temperature, thickness_um: -d, growth_rate: -d, note: `acid dissolution (pH ${conditions.fluid.pH.toFixed(1)})` });
         }
         return null;
@@ -11900,9 +12107,7 @@ function grow_vanadinite(crystal, conditions, step) {
         if (crystal.total_growth_um > 5 && conditions.fluid.pH < 2.5) {
             crystal.dissolved = true;
             const d = Math.min(2.0, crystal.total_growth_um * 0.06);
-            conditions.fluid.Pb += d * 0.3;
-            conditions.fluid.V += d * 0.2;
-            conditions.fluid.Cl += d * 0.3;
+            // Phase 1e: Pb + V + Cl credits via MINERAL_DISSOLUTION_RATES.vanadinite.
             return new GrowthZone({ step, temperature: conditions.temperature, thickness_um: -d, growth_rate: -d, note: `acid dissolution (pH ${conditions.fluid.pH.toFixed(1)})` });
         }
         return null;
@@ -11952,8 +12157,7 @@ function grow_quartz(crystal, conditions, step) {
         if (crystal.total_growth_um > 10) {
             crystal.dissolved = true;
             const dissolved_um = Math.min(5.0, crystal.total_growth_um * 0.1);
-            // RECYCLING: dissolved SiO2 returns to fluid
-            conditions.fluid.SiO2 += dissolved_um * 0.8;
+            // Phase 1e: SiO2 credit handled by applyMassBalance via MINERAL_DISSOLUTION_RATES.quartz.
             // Determine dissolution type
             let note;
             if (conditions.fluid.pH < 4.0 && conditions.fluid.F > 20) {
@@ -12111,9 +12315,8 @@ function grow_feldspar(crystal, conditions, step) {
         if (crystal.total_growth_um > 3 && conditions.fluid.pH < 4.5) {
             crystal.dissolved = true;
             const dissolved_um = Math.min(3.0, crystal.total_growth_um * 0.08);
-            conditions.fluid.K += dissolved_um * 0.3;
-            conditions.fluid.Al += dissolved_um * 0.05; // most Al stays in kaolinite
-            conditions.fluid.SiO2 += dissolved_um * 0.5;
+            // Phase 1e: K + Al + SiO2 credits via MINERAL_DISSOLUTION_RATES.feldspar.
+            // (Note: Al rate=0.05 reflects most Al staying in kaolinite, not redissolved.)
             return new GrowthZone({
                 step, temperature: conditions.temperature,
                 thickness_um: -dissolved_um, growth_rate: -dissolved_um,
@@ -12236,9 +12439,8 @@ function grow_albite(crystal, conditions, step) {
         if (crystal.total_growth_um > 10 && conditions.fluid.pH < 3.0) {
             crystal.dissolved = true;
             const d = Math.min(3.0, crystal.total_growth_um * 0.06);
-            conditions.fluid.Na += d * 0.3;
-            conditions.fluid.Al += d * 0.05; // most Al stays in kaolinite
-            conditions.fluid.SiO2 += d * 0.3;
+            // Phase 1e: Na + Al + SiO2 credits via MINERAL_DISSOLUTION_RATES.albite.
+            // (Note: Al rate=0.05 reflects most Al staying in kaolinite.)
             return new GrowthZone({ step, temperature: conditions.temperature, thickness_um: -d, growth_rate: -d, note: `albite kaolinization (pH ${conditions.fluid.pH.toFixed(1)}) — Na⁺ + SiO₂ released, Al conserved in kaolinite` });
         }
         return null;
@@ -12404,9 +12606,7 @@ function _beryl_family_dissolution(crystal, conditions, step) {
     if (crystal.total_growth_um > 20 && conditions.fluid.pH < 3.0 && conditions.fluid.F > 30) {
         crystal.dissolved = true;
         const d = Math.min(1.5, crystal.total_growth_um * 0.03);
-        conditions.fluid.Be += d * 0.2;
-        conditions.fluid.Al += d * 0.2;
-        conditions.fluid.SiO2 += d * 0.4;
+        // Phase 1e: Be + Al + SiO2 credits via MINERAL_DISSOLUTION_RATES (per beryl-family variant).
         return new GrowthZone({
             step, temperature: conditions.temperature,
             thickness_um: -d, growth_rate: -d,
@@ -12746,9 +12946,7 @@ function grow_topaz(crystal, conditions, step) {
         if (crystal.total_growth_um > 10 && conditions.fluid.pH < 2.0) {
             crystal.dissolved = true;
             const d = Math.min(2.0, crystal.total_growth_um * 0.04);
-            conditions.fluid.Al += d * 0.3;
-            conditions.fluid.SiO2 += d * 0.2;
-            conditions.fluid.F += d * 0.4;
+            // Phase 1e: Al + SiO2 + F credits via MINERAL_DISSOLUTION_RATES.topaz.
             return new GrowthZone({
                 step, temperature: conditions.temperature,
                 thickness_um: -d, growth_rate: -d,
@@ -12829,10 +13027,9 @@ function grow_apophyllite(crystal, conditions, step) {
     if (sigma < 1.0) {
         if (crystal.total_growth_um > 5 && conditions.fluid.pH < 5.0) {
             crystal.dissolved = true;
-            conditions.fluid.K += 0.5;
-            conditions.fluid.Ca += 2.0;
-            conditions.fluid.SiO2 += 8.0;
-            conditions.fluid.F += 0.5;
+            // Phase 1e: K + Ca + SiO2 + F credits via MINERAL_DISSOLUTION_RATES.apophyllite.
+            // (Legacy used constants with thickness_um=-2.0; table rates =
+            // constant/2.0 give identical credit amounts.)
             return new GrowthZone({
                 step, temperature: conditions.temperature,
                 thickness_um: -2.0, growth_rate: -2.0,
@@ -13011,8 +13208,7 @@ function grow_anhydrite(crystal, conditions, step) {
             && conditions.fluid.salinity < 95) {
             crystal.dissolved = true;
             const dissolved_um = Math.min(3.0, crystal.total_growth_um * 0.10);
-            conditions.fluid.Ca += dissolved_um * 0.5;
-            conditions.fluid.S += dissolved_um * 0.4;
+            // Phase 1e: Ca + S credits via MINERAL_DISSOLUTION_RATES.anhydrite.
             return new GrowthZone({
                 step, temperature: conditions.temperature,
                 thickness_um: -dissolved_um, growth_rate: -dissolved_um,
@@ -13066,8 +13262,7 @@ function grow_brochantite(crystal, conditions, step) {
         if (crystal.total_growth_um > 2 && (conditions.fluid.pH < 2.8 || conditions.fluid.pH > 7.5)) {
             crystal.dissolved = true;
             const dissolved_um = Math.min(2.5, crystal.total_growth_um * 0.12);
-            conditions.fluid.Cu += dissolved_um * 0.5;
-            conditions.fluid.S += dissolved_um * 0.3;
+            // Phase 1e: Cu + S credits via MINERAL_DISSOLUTION_RATES.brochantite.
             const cause = conditions.fluid.pH < 2.8
                 ? 'pH < 3 → antlerite stable'
                 : 'pH > 7 → tenorite/malachite stable';
@@ -13120,8 +13315,7 @@ function grow_antlerite(crystal, conditions, step) {
         if (crystal.total_growth_um > 2 && conditions.fluid.pH > 4.2) {
             crystal.dissolved = true;
             const dissolved_um = Math.min(2.5, crystal.total_growth_um * 0.15);
-            conditions.fluid.Cu += dissolved_um * 0.5;
-            conditions.fluid.S += dissolved_um * 0.4;
+            // Phase 1e: Cu + S credits via MINERAL_DISSOLUTION_RATES.antlerite.
             return new GrowthZone({
                 step, temperature: conditions.temperature,
                 thickness_um: -dissolved_um, growth_rate: -dissolved_um,
@@ -13168,9 +13362,7 @@ function grow_jarosite(crystal, conditions, step) {
         if (crystal.total_growth_um > 2 && conditions.fluid.pH > 4.5) {
             crystal.dissolved = true;
             const dissolved_um = Math.min(2.5, crystal.total_growth_um * 0.15);
-            conditions.fluid.K += dissolved_um * 0.3;
-            conditions.fluid.Fe += dissolved_um * 0.5;
-            conditions.fluid.S += dissolved_um * 0.4;
+            // Phase 1e: K + Fe + S credits via MINERAL_DISSOLUTION_RATES.jarosite.
             return new GrowthZone({
                 step, temperature: conditions.temperature,
                 thickness_um: -dissolved_um, growth_rate: -dissolved_um,
@@ -13213,9 +13405,7 @@ function grow_alunite(crystal, conditions, step) {
             || conditions.temperature > 350)) {
             crystal.dissolved = true;
             const dissolved_um = Math.min(2.5, crystal.total_growth_um * 0.12);
-            conditions.fluid.K += dissolved_um * 0.3;
-            conditions.fluid.Al += dissolved_um * 0.4;
-            conditions.fluid.S += dissolved_um * 0.4;
+            // Phase 1e: K + Al + S credits via MINERAL_DISSOLUTION_RATES.alunite.
             const cause = conditions.fluid.pH > 4.5 ? 'pH > 4' : 'T > 350°C';
             return new GrowthZone({
                 step, temperature: conditions.temperature,
@@ -13267,8 +13457,7 @@ function grow_mirabilite(crystal, conditions, step) {
         if (crystal.total_growth_um > 5 && conditions.fluid.concentration < 1.5) {
             crystal.dissolved = true;
             const dissolved_um = Math.min(10.0, crystal.total_growth_um * 0.25);
-            conditions.fluid.Na += dissolved_um * 0.4;
-            conditions.fluid.S += dissolved_um * 0.25;
+            // Phase 1e: Na + S credits via MINERAL_DISSOLUTION_RATES.mirabilite.
             return new GrowthZone({
                 step, temperature: conditions.temperature,
                 thickness_um: -dissolved_um, growth_rate: -dissolved_um,
@@ -13301,8 +13490,7 @@ function grow_thenardite(crystal, conditions, step) {
         if (crystal.total_growth_um > 5 && conditions.fluid.concentration < 1.5) {
             crystal.dissolved = true;
             const dissolved_um = Math.min(8.0, crystal.total_growth_um * 0.20);
-            conditions.fluid.Na += dissolved_um * 0.4;
-            conditions.fluid.S += dissolved_um * 0.25;
+            // Phase 1e: Na + S credits via MINERAL_DISSOLUTION_RATES.thenardite.
             return new GrowthZone({
                 step, temperature: conditions.temperature,
                 thickness_um: -dissolved_um, growth_rate: -dissolved_um,
@@ -13340,8 +13528,7 @@ function grow_selenite(crystal, conditions, step) {
         if (crystal.total_growth_um > 2 && (conditions.fluid.pH < 4 || conditions.temperature > 80)) {
             crystal.dissolved = true;
             const dissolved_um = Math.min(5.0, crystal.total_growth_um * 0.15);
-            conditions.fluid.Ca += dissolved_um * 0.4;
-            conditions.fluid.S += dissolved_um * 0.3;
+            // Phase 1e: Ca + S credits via MINERAL_DISSOLUTION_RATES.selenite.
             return new GrowthZone({
                 step, temperature: conditions.temperature,
                 thickness_um: -dissolved_um, growth_rate: -dissolved_um,
@@ -13408,15 +13595,13 @@ function grow_anglesite(crystal, conditions, step) {
         if (crystal.total_growth_um > 5 && conditions.fluid.pH < 2.0) {
             crystal.dissolved = true;
             const d = Math.min(2.0, crystal.total_growth_um * 0.05);
-            conditions.fluid.Pb += d * 0.3;
-            conditions.fluid.S += d * 0.3;
+            // Phase 1e: Pb + S credits via MINERAL_DISSOLUTION_RATES.anglesite.
             return new GrowthZone({ step, temperature: conditions.temperature, thickness_um: -d, growth_rate: -d, note: `acid dissolution (pH ${conditions.fluid.pH.toFixed(1)})` });
         }
         if (crystal.total_growth_um > 5 && conditions.fluid.CO3 > 150) {
             crystal.dissolved = true;
             const d = Math.min(1.5, crystal.total_growth_um * 0.04);
-            conditions.fluid.Pb += d * 0.3;
-            conditions.fluid.S += d * 0.3;
+            // Phase 1e: Pb + S credits via MINERAL_DISSOLUTION_RATES.anglesite.
             return new GrowthZone({ step, temperature: conditions.temperature, thickness_um: -d, growth_rate: -d, note: `anglesite → cerussite (CO₃ ${conditions.fluid.CO3.toFixed(0)} ppm overwhelms)` });
         }
         return null;
@@ -13671,9 +13856,7 @@ function grow_chalcopyrite(crystal, conditions, step) {
             crystal.dissolved = true;
             const dissolved_um = Math.min(4.0, crystal.total_growth_um * 0.1);
             // RECYCLING: Cu, Fe, S return to fluid
-            conditions.fluid.Cu += dissolved_um * 0.8;
-            conditions.fluid.Fe += dissolved_um * 0.5;
-            conditions.fluid.S += dissolved_um * 0.3;
+            // Phase 1e: Cu + Fe + S credits via MINERAL_DISSOLUTION_RATES.chalcopyrite.
             return new GrowthZone({
                 step, temperature: conditions.temperature,
                 thickness_um: -dissolved_um, growth_rate: -dissolved_um,
@@ -13709,8 +13892,7 @@ function grow_molybdenite(crystal, conditions, step) {
         if (crystal.total_growth_um > 3 && conditions.fluid.O2 > 0.3) {
             crystal.dissolved = true;
             const dissolved_um = Math.min(4.0, crystal.total_growth_um * 0.15);
-            conditions.fluid.Mo += dissolved_um * 0.8; // MoO₄²⁻ back to fluid
-            conditions.fluid.S += dissolved_um * 0.2; // some S returns as sulfate
+            // Phase 1e: Mo + S credits via MINERAL_DISSOLUTION_RATES.molybdenite.
             return new GrowthZone({
                 step, temperature: conditions.temperature,
                 thickness_um: -dissolved_um, growth_rate: -dissolved_um,
@@ -13769,9 +13951,8 @@ function grow_arsenopyrite(crystal, conditions, step) {
         if (crystal.total_growth_um > 3 && conditions.fluid.O2 > 0.5) {
             crystal.dissolved = true;
             const dissolved_um = Math.min(4.0, crystal.total_growth_um * 0.12);
-            conditions.fluid.Fe += dissolved_um * 0.5;
-            conditions.fluid.As += dissolved_um * 0.4;
-            conditions.fluid.S += dissolved_um * 0.4;
+            // Phase 1e: Fe + As + S credits via MINERAL_DISSOLUTION_RATES.arsenopyrite.
+            // pH stays inline — it's an activity adjustment, not a mass-balance credit.
             conditions.fluid.pH = Math.max(2.0, conditions.fluid.pH - dissolved_um * 0.02);
             // Release 12% of zone-summed trapped invisible-gold per step.
             const total_trapped_au = (crystal.zones || []).reduce((sum, z) => sum + (z.trace_Au || 0), 0);
@@ -13846,7 +14027,8 @@ function grow_acanthite(crystal, conditions, step) {
         if (crystal.total_growth_um > 5 && conditions.fluid.O2 > 1.2) {
             crystal.dissolved = true;
             const dissolved_um = Math.min(3.0, crystal.total_growth_um * 0.10);
-            conditions.fluid.Ag += dissolved_um * 0.4;
+            // Phase 1e: Ag credit via MINERAL_DISSOLUTION_RATES.acanthite.
+            // S consumption (negative) stays inline — table doesn't yet support negative rates.
             conditions.fluid.S = Math.max(conditions.fluid.S - dissolved_um * 0.1, 0);
             return new GrowthZone({
                 step, temperature: conditions.temperature,
@@ -13925,8 +14107,7 @@ function grow_nickeline(crystal, conditions, step) {
         if (crystal.total_growth_um > 5 && conditions.fluid.O2 > 0.8) {
             crystal.dissolved = true;
             const dissolved_um = Math.min(2.5, crystal.total_growth_um * 0.10);
-            conditions.fluid.Ni += dissolved_um * 0.4;
-            conditions.fluid.As += dissolved_um * 0.4;
+            // Phase 1e: Ni + As credits via MINERAL_DISSOLUTION_RATES.nickeline.
             return new GrowthZone({
                 step, temperature: conditions.temperature,
                 thickness_um: -dissolved_um, growth_rate: -dissolved_um,
@@ -13965,8 +14146,7 @@ function grow_millerite(crystal, conditions, step) {
         if (crystal.total_growth_um > 5 && conditions.fluid.O2 > 0.8) {
             crystal.dissolved = true;
             const dissolved_um = Math.min(2.0, crystal.total_growth_um * 0.10);
-            conditions.fluid.Ni += dissolved_um * 0.4;
-            conditions.fluid.S += dissolved_um * 0.3;
+            // Phase 1e: Ni + S credits via MINERAL_DISSOLUTION_RATES.millerite.
             return new GrowthZone({
                 step, temperature: conditions.temperature,
                 thickness_um: -dissolved_um, growth_rate: -dissolved_um,
@@ -14003,8 +14183,8 @@ function grow_cobaltite(crystal, conditions, step) {
         if (crystal.total_growth_um > 5 && conditions.fluid.O2 > 0.7) {
             crystal.dissolved = true;
             const dissolved_um = Math.min(2.5, crystal.total_growth_um * 0.10);
-            conditions.fluid.Co += dissolved_um * 0.4;
-            conditions.fluid.As += dissolved_um * 0.4;
+            // Phase 1e: Co + As credits via MINERAL_DISSOLUTION_RATES.cobaltite.
+            // S consumption (negative) stays inline — table doesn't yet support negative rates.
             conditions.fluid.S = Math.max(conditions.fluid.S - dissolved_um * 0.1, 0);
             return new GrowthZone({
                 step, temperature: conditions.temperature,
@@ -14046,8 +14226,7 @@ function grow_stibnite(crystal, conditions, step) {
         if (crystal.total_growth_um > 5 && conditions.fluid.pH < 2.0) {
             crystal.dissolved = true;
             const d = Math.min(2.0, crystal.total_growth_um * 0.06);
-            conditions.fluid.Sb += d * 0.3;
-            conditions.fluid.S += d * 0.3;
+            // Phase 1e: Sb + S credits via MINERAL_DISSOLUTION_RATES.stibnite.
             return new GrowthZone({ step, temperature: conditions.temperature, thickness_um: -d, growth_rate: -d, note: `acid dissolution (pH ${conditions.fluid.pH.toFixed(1)})` });
         }
         return null;
@@ -14083,8 +14262,7 @@ function grow_bismuthinite(crystal, conditions, step) {
         if (crystal.total_growth_um > 5 && conditions.fluid.pH < 2.0) {
             crystal.dissolved = true;
             const d = Math.min(2.0, crystal.total_growth_um * 0.06);
-            conditions.fluid.Bi += d * 0.3;
-            conditions.fluid.S += d * 0.3;
+            // Phase 1e: Bi + S credits via MINERAL_DISSOLUTION_RATES.bismuthinite.
             return new GrowthZone({ step, temperature: conditions.temperature, thickness_um: -d, growth_rate: -d, note: `acid dissolution (pH ${conditions.fluid.pH.toFixed(1)})` });
         }
         return null;
@@ -14121,9 +14299,7 @@ function grow_bornite(crystal, conditions, step) {
         if (crystal.total_growth_um > 5 && conditions.fluid.O2 > 1.3) {
             crystal.dissolved = true;
             const d = Math.min(3.0, crystal.total_growth_um * 0.08);
-            conditions.fluid.Cu += d * 0.4;
-            conditions.fluid.Fe += d * 0.2;
-            conditions.fluid.S += d * 0.3;
+            // Phase 1e: Cu + Fe + S credits via MINERAL_DISSOLUTION_RATES.bornite.
             return new GrowthZone({ step, temperature: conditions.temperature, thickness_um: -d, growth_rate: -d, note: `oxidative dissolution (O₂ ${conditions.fluid.O2.toFixed(1)})` });
         }
         return null;
@@ -14162,8 +14338,7 @@ function grow_chalcocite(crystal, conditions, step) {
         if (crystal.total_growth_um > 5 && conditions.fluid.O2 > 1.0) {
             crystal.dissolved = true;
             const d = Math.min(3.0, crystal.total_growth_um * 0.10);
-            conditions.fluid.Cu += d * 0.5;
-            conditions.fluid.S += d * 0.3;
+            // Phase 1e: Cu + S credits via MINERAL_DISSOLUTION_RATES.chalcocite.
             return new GrowthZone({ step, temperature: conditions.temperature, thickness_um: -d, growth_rate: -d, note: `oxidative dissolution (O₂ ${conditions.fluid.O2.toFixed(1)})` });
         }
         return null;
@@ -14205,8 +14380,7 @@ function grow_covellite(crystal, conditions, step) {
         if (crystal.total_growth_um > 5 && conditions.fluid.O2 > 1.2) {
             crystal.dissolved = true;
             const d = Math.min(3.0, crystal.total_growth_um * 0.10);
-            conditions.fluid.Cu += d * 0.4;
-            conditions.fluid.S += d * 0.4;
+            // Phase 1e: Cu + S credits via MINERAL_DISSOLUTION_RATES.covellite.
             return new GrowthZone({ step, temperature: conditions.temperature, thickness_um: -d, growth_rate: -d, note: `oxidative dissolution (O₂ ${conditions.fluid.O2.toFixed(1)})` });
         }
         return null;
@@ -14242,9 +14416,7 @@ function grow_tetrahedrite(crystal, conditions, step) {
         if (crystal.total_growth_um > 10 && conditions.fluid.O2 > 1.0) {
             crystal.dissolved = true;
             const dissolved_um = Math.min(3.0, crystal.total_growth_um * 0.1);
-            conditions.fluid.Cu += dissolved_um * 0.6;
-            conditions.fluid.Sb += dissolved_um * 0.3;
-            conditions.fluid.S += dissolved_um * 0.4;
+            // Phase 1e: Cu + Sb + S credits via MINERAL_DISSOLUTION_RATES.tetrahedrite.
             return new GrowthZone({
                 step, temperature: conditions.temperature,
                 thickness_um: -dissolved_um, growth_rate: -dissolved_um,
@@ -14290,9 +14462,7 @@ function grow_tennantite(crystal, conditions, step) {
         if (crystal.total_growth_um > 10 && conditions.fluid.O2 > 1.0) {
             crystal.dissolved = true;
             const dissolved_um = Math.min(3.0, crystal.total_growth_um * 0.1);
-            conditions.fluid.Cu += dissolved_um * 0.6;
-            conditions.fluid.As += dissolved_um * 0.3;
-            conditions.fluid.S += dissolved_um * 0.4;
+            // Phase 1e: Cu + As + S credits via MINERAL_DISSOLUTION_RATES.tennantite.
             return new GrowthZone({
                 step, temperature: conditions.temperature,
                 thickness_um: -dissolved_um, growth_rate: -dissolved_um,
@@ -29784,12 +29954,20 @@ function _habitGeomToken(habit) {
         return 'prism';
     if (h === 'tabular' || h === 'platy' || h === 'foliated')
         return 'tablet';
-    if (h === 'rhombohedral' || h === 'scalenohedral')
+    if (h === 'rhombohedral')
         return 'rhomb';
+    if (h === 'scalenohedral')
+        return 'scalene'; // E5 batch 2: distinct from rhomb (calcite dogtooth)
     if (h === 'cubic' || h === 'cuboid')
         return 'cube';
     if (h === 'octahedral')
         return 'octahedron';
+    // E5 batch 3: garnet-style rhombic dodecahedron (12 rhombic faces,
+    // 14 vertices) is the dominant garnet/almandine habit. The regular
+    // Platonic dodecahedron (12 pentagonal faces) is what 'dodecahedral'
+    // produces — kept for any mineral that genuinely needs that.
+    if (h === 'rhombic dodecahedral' || h === 'rhombic-dodecahedral' || h === 'garnet' || h === 'trapezohedral')
+        return 'rhombic_dodec';
     if (h === 'dodecahedral')
         return 'dodecahedron';
     if (h === 'botryoidal' || h === 'reniform' || h === 'mammillary' || h === 'globular')
@@ -29800,43 +29978,324 @@ function _habitGeomToken(habit) {
         return 'spike';
     return 'prism'; // sensible default — most cavity habits are vaguely prismatic
 }
-// Build a unit-sized primitive geometry for a given habit token,
-// oriented so its long axis (= c-axis) lies along +Y. The instance
-// transform later places the apex at the wall, base inside the
-// cavity, and scales by c_length / a_width.
+// ----- Phase E5 hand-rolled habit geometries -----
+//
+// Each helper returns a non-indexed BufferGeometry with one vertex
+// triple per face triangle, so flat-shading reads each crystal face
+// as its own facet (the visual signature of real crystals). Unit
+// size: ~1 along the c-axis (Y), ~1 across the a-axes (XZ). The
+// instance transform downstream scales by c_length / a_width.
+//
+// The hand-rolled geometries replace E3's Three.js primitives —
+// quartz / calcite / beryl now read as real hexagonal prisms with
+// pyramidal terminations instead of flat-topped cylinders, etc.
+// Push a triangle into a position list (flat-shaded, no shared verts).
+function _pushTri(out, ax, ay, az, bx, by, bz, cx, cy, cz) {
+    out.push(ax, ay, az, bx, by, bz, cx, cy, cz);
+}
+// Hexagonal prism with pyramidal cap — the quartz / calcite / beryl
+// workhorse. 6 prism side faces + 6 pyramid faces. Bottom is anchored
+// against the wall so we omit the base hex (saves 6 triangles).
+function _makeHexPrismWithPyramid() {
+    const r = 0.50; // prism / pyramid base radius (a-axis)
+    const yBase = -0.50; // anchored at the wall
+    const yShoulder = 0.20; // top of prism / start of pyramid (60% up)
+    const yApex = 0.50; // top of pyramid (free tip)
+    const positions = [];
+    for (let i = 0; i < 6; i++) {
+        const a0 = (i / 6) * Math.PI * 2;
+        const a1 = ((i + 1) / 6) * Math.PI * 2;
+        const x0 = Math.cos(a0) * r, z0 = Math.sin(a0) * r;
+        const x1 = Math.cos(a1) * r, z1 = Math.sin(a1) * r;
+        // Prism side face — two triangles
+        _pushTri(positions, x0, yBase, z0, x1, yBase, z1, x1, yShoulder, z1);
+        _pushTri(positions, x0, yBase, z0, x1, yShoulder, z1, x0, yShoulder, z0);
+        // Pyramid face — one triangle to the apex
+        _pushTri(positions, x0, yShoulder, z0, x1, yShoulder, z1, 0, yApex, 0);
+    }
+    const geom = new THREE.BufferGeometry();
+    geom.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+    geom.computeVertexNormals();
+    return geom;
+}
+// Calcite cleavage rhombohedron — 6 rhombic faces, 8 vertices, 3-fold
+// symmetric around the c-axis. Two apex vertices on the c-axis at
+// y=±h; 6 equatorial vertices in two staggered triangles at y=±t,
+// 60° rotated from each other. This produces the classic Iceland-spar
+// "stretched cube" silhouette.
+function _makeRhombohedron() {
+    const h = 0.50; // apex height
+    const t = 0.18; // equatorial height (closer to apex than to center → "stretched" look)
+    const r = 0.42; // equatorial radius
+    // Equatorial vertices: 3 upper (at y=+t) staggered 60° from 3 lower (at y=-t)
+    const upper = [0, 1, 2].map(i => {
+        const a = (i / 3) * Math.PI * 2 + Math.PI / 6; // offset 30° so a vertex faces +X
+        return [Math.cos(a) * r, t, Math.sin(a) * r];
+    });
+    const lower = [0, 1, 2].map(i => {
+        const a = (i / 3) * Math.PI * 2 + Math.PI / 6 + Math.PI / 3; // 60° rotated
+        return [Math.cos(a) * r, -t, Math.sin(a) * r];
+    });
+    const apexT = [0, h, 0];
+    const apexB = [0, -h, 0];
+    // 6 rhombic faces, each split into 2 triangles. Top 3 faces connect
+    // top apex + adjacent upper vertices + a lower vertex between them;
+    // bottom 3 mirror.
+    const positions = [];
+    for (let i = 0; i < 3; i++) {
+        const u0 = upper[i], u1 = upper[(i + 1) % 3];
+        const lBetween = lower[i]; // the lower vertex tucked between u0 and u1
+        // Top rhombus: apexT, u0, lBetween, u1 — split as (apexT, u0, lBetween) + (apexT, lBetween, u1)
+        _pushTri(positions, apexT[0], apexT[1], apexT[2], u0[0], u0[1], u0[2], lBetween[0], lBetween[1], lBetween[2]);
+        _pushTri(positions, apexT[0], apexT[1], apexT[2], lBetween[0], lBetween[1], lBetween[2], u1[0], u1[1], u1[2]);
+    }
+    for (let i = 0; i < 3; i++) {
+        const l0 = lower[i], l1 = lower[(i + 1) % 3];
+        const uBetween = upper[(i + 1) % 3]; // matched by 60° offset
+        // Bottom rhombus mirror
+        _pushTri(positions, apexB[0], apexB[1], apexB[2], l1[0], l1[1], l1[2], uBetween[0], uBetween[1], uBetween[2]);
+        _pushTri(positions, apexB[0], apexB[1], apexB[2], uBetween[0], uBetween[1], uBetween[2], l0[0], l0[1], l0[2]);
+    }
+    const geom = new THREE.BufferGeometry();
+    geom.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+    geom.computeVertexNormals();
+    return geom;
+}
+// Calcite scalenohedron ("dogtooth") — 12 scalene triangle faces, two
+// pointed apices on the c-axis. Geometrically a tall stretched
+// bipyramid where the equatorial belt is two staggered triangles
+// rather than a regular hexagon, so each face is a non-equilateral
+// (scalene) triangle. Sharper and more elongated than the cleavage
+// rhombohedron.
+function _makeScalenohedron() {
+    const h = 0.50; // apex height (full c-axis range ±0.5)
+    const tBelt = 0.05; // equatorial-belt half-height (small → narrow waist)
+    const r = 0.30; // equatorial radius (skinnier than rhomb at r=0.42)
+    // 6 equatorial vertices in two staggered triangles at slightly
+    // different heights — this asymmetry is what makes the faces scalene.
+    const upper = [0, 1, 2].map(i => {
+        const a = (i / 3) * Math.PI * 2 + Math.PI / 6;
+        return [Math.cos(a) * r, +tBelt, Math.sin(a) * r];
+    });
+    const lower = [0, 1, 2].map(i => {
+        const a = (i / 3) * Math.PI * 2 + Math.PI / 6 + Math.PI / 3;
+        return [Math.cos(a) * r, -tBelt, Math.sin(a) * r];
+    });
+    const apexT = [0, h, 0];
+    const apexB = [0, -h, 0];
+    const positions = [];
+    // 6 upper scalene triangles: top apex + adjacent (upper, lower) pair
+    for (let i = 0; i < 3; i++) {
+        const u = upper[i];
+        const lL = lower[(i + 2) % 3]; // lower vertex to the "left" of u
+        const lR = lower[i]; // lower vertex to the "right" of u
+        _pushTri(positions, apexT[0], apexT[1], apexT[2], lL[0], lL[1], lL[2], u[0], u[1], u[2]);
+        _pushTri(positions, apexT[0], apexT[1], apexT[2], u[0], u[1], u[2], lR[0], lR[1], lR[2]);
+    }
+    // 6 lower scalene triangles: bottom apex + adjacent pair (mirror)
+    for (let i = 0; i < 3; i++) {
+        const l = lower[i];
+        const uL = upper[i]; // upper vertex to the "left"
+        const uR = upper[(i + 1) % 3]; // upper vertex to the "right"
+        _pushTri(positions, apexB[0], apexB[1], apexB[2], l[0], l[1], l[2], uL[0], uL[1], uL[2]);
+        _pushTri(positions, apexB[0], apexB[1], apexB[2], uR[0], uR[1], uR[2], l[0], l[1], l[2]);
+    }
+    const geom = new THREE.BufferGeometry();
+    geom.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+    geom.computeVertexNormals();
+    return geom;
+}
+// Hexagonal pyramid — sharper, more crystal-like spike than
+// Three.js's ConeGeometry (which interpolates between segments and
+// reads as a smooth cone). 6 faceted triangle faces. For acicular,
+// dendritic, fibrous habits.
+function _makeHexPyramid() {
+    const r = 0.18; // narrow base — needles are thin
+    const yBase = -0.50;
+    const yApex = 0.50;
+    const positions = [];
+    for (let i = 0; i < 6; i++) {
+        const a0 = (i / 6) * Math.PI * 2;
+        const a1 = ((i + 1) / 6) * Math.PI * 2;
+        const x0 = Math.cos(a0) * r, z0 = Math.sin(a0) * r;
+        const x1 = Math.cos(a1) * r, z1 = Math.sin(a1) * r;
+        _pushTri(positions, x0, yBase, z0, x1, yBase, z1, 0, yApex, 0);
+    }
+    const geom = new THREE.BufferGeometry();
+    geom.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+    geom.computeVertexNormals();
+    return geom;
+}
+// Beveled tablet — flat plate with chamfered edges. Reads as the
+// "fish-tail" wulfenite or wedge-edged baryte tabular habit better
+// than a flat box. 8 vertices on the top face (octagon-shaped after
+// bevel), 8 on the bottom — 8 large square + 4 trapezoidal faces.
+function _makeBeveledTablet() {
+    const halfW = 0.50; // half-width along x and z
+    const bevel = 0.10; // bevel offset (chamfered corners)
+    const halfH = 0.20; // half-thickness (c-axis short)
+    // 8 top vertices: octagonal outline at y=+halfH
+    const yT = +halfH, yB = -halfH;
+    const top = [
+        [+halfW - bevel, yT, +halfW], // edge
+        [+halfW, yT, +halfW - bevel], // corner inset
+        [+halfW, yT, -halfW + bevel],
+        [+halfW - bevel, yT, -halfW],
+        [-halfW + bevel, yT, -halfW],
+        [-halfW, yT, -halfW + bevel],
+        [-halfW, yT, +halfW - bevel],
+        [-halfW + bevel, yT, +halfW],
+    ];
+    const bot = top.map(v => [v[0], yB, v[2]]);
+    const positions = [];
+    // Top face — fan from center (octagonal, 8 triangles)
+    for (let i = 0; i < 8; i++) {
+        const a = top[i], b = top[(i + 1) % 8];
+        _pushTri(positions, 0, yT, 0, a[0], a[1], a[2], b[0], b[1], b[2]);
+    }
+    // Bottom face — fan from center, reversed winding
+    for (let i = 0; i < 8; i++) {
+        const a = bot[i], b = bot[(i + 1) % 8];
+        _pushTri(positions, 0, yB, 0, b[0], b[1], b[2], a[0], a[1], a[2]);
+    }
+    // 8 side faces — rectangle quads as triangle pairs between corresponding top/bottom verts
+    for (let i = 0; i < 8; i++) {
+        const t0 = top[i], t1 = top[(i + 1) % 8];
+        const b0 = bot[i], b1 = bot[(i + 1) % 8];
+        _pushTri(positions, t0[0], t0[1], t0[2], b0[0], b0[1], b0[2], b1[0], b1[1], b1[2]);
+        _pushTri(positions, t0[0], t0[1], t0[2], b1[0], b1[1], b1[2], t1[0], t1[1], t1[2]);
+    }
+    const geom = new THREE.BufferGeometry();
+    geom.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+    geom.computeVertexNormals();
+    return geom;
+}
+// Garnet rhombic dodecahedron — 12 rhombic faces, 14 vertices
+// (6 axial + 8 cube-corner). The classic "garnet" silhouette,
+// distinct from the regular pentagonal Platonic dodecahedron that
+// Three.js's DodecahedronGeometry produces. Each rhombic face has
+// 4 coplanar vertices: 2 axial verts on adjacent coordinate axes +
+// 2 cube-corner verts diagonally between them.
+function _makeRhombicDodecahedron() {
+    const r = 0.50; // axial radius
+    const c = 0.25; // cube-corner half-coordinate (axial verts further from origin → r > c√3 keeps the rhombi planar; r=0.5 c=0.25 gives the regular form scaled to fit a unit-ish bounding box)
+    // 6 axial vertices
+    const A = {
+        px: [+r, 0, 0], nx: [-r, 0, 0],
+        py: [0, +r, 0], ny: [0, -r, 0],
+        pz: [0, 0, +r], nz: [0, 0, -r],
+    };
+    // 8 cube-corner vertices
+    const C = (sx, sy, sz) => [sx * c, sy * c, sz * c];
+    // 12 rhombic faces — each spans 2 axial verts on adjacent axes +
+    // 2 cube corners between them. Defined as quads (4 verts in cyclic
+    // order); each quad becomes 2 triangles in the position list.
+    const faces = [
+        // +x with +y, +y with -x, -x with -y, -y with +x   (top z half + bottom z half)
+        [A.px, C(+1, +1, +1), A.py, C(+1, +1, -1)], // +x +y
+        [A.py, C(-1, +1, +1), A.nx, C(-1, +1, -1)], // +y -x
+        [A.nx, C(-1, -1, +1), A.ny, C(-1, -1, -1)], // -x -y
+        [A.ny, C(+1, -1, +1), A.px, C(+1, -1, -1)], // -y +x
+        // ±x with ±z
+        [A.px, C(+1, +1, +1), A.pz, C(+1, -1, +1)], // +x +z
+        [A.pz, C(-1, +1, +1), A.nx, C(-1, -1, +1)], // +z -x
+        [A.nx, C(-1, +1, -1), A.nz, C(-1, -1, -1)], // -x -z
+        [A.nz, C(+1, +1, -1), A.px, C(+1, -1, -1)], // -z +x
+        // ±y with ±z
+        [A.py, C(+1, +1, +1), A.pz, C(-1, +1, +1)], // +y +z
+        [A.pz, C(+1, -1, +1), A.ny, C(-1, -1, +1)], // +z -y
+        [A.ny, C(+1, -1, -1), A.nz, C(-1, -1, -1)], // -y -z
+        [A.nz, C(+1, +1, -1), A.py, C(-1, +1, -1)], // -z +y
+    ];
+    const positions = [];
+    for (const f of faces) {
+        const [a, b, c2, d] = f;
+        _pushTri(positions, a[0], a[1], a[2], b[0], b[1], b[2], c2[0], c2[1], c2[2]);
+        _pushTri(positions, a[0], a[1], a[2], c2[0], c2[1], c2[2], d[0], d[1], d[2]);
+    }
+    const geom = new THREE.BufferGeometry();
+    geom.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+    geom.computeVertexNormals();
+    return geom;
+}
+// Botryoidal cluster — 4 hemispheres of varying size welded into a
+// bumpy mass. Reads as a malachite kidney / hematite blob far better
+// than a single sphere. Each "bubble" is just a low-poly sphere
+// translated; the geometries get merged at the end so the cluster
+// is one BufferGeometry per token.
+function _makeBotryoidalCluster() {
+    const bubbles = [
+        { r: 0.42, x: 0.00, y: 0.05, z: 0.00 }, // dominant central bump
+        { r: 0.26, x: 0.30, y: -0.10, z: 0.10 }, // small lobe
+        { r: 0.30, x: -0.18, y: 0.00, z: 0.22 }, // medium lobe
+        { r: 0.22, x: 0.12, y: -0.05, z: -0.30 }, // small lobe (back)
+    ];
+    // Build each sphere, translate, accumulate positions.
+    const positions = [];
+    for (const b of bubbles) {
+        const sph = new THREE.SphereGeometry(b.r, 10, 6);
+        sph.translate(b.x, b.y, b.z);
+        const arr = sph.attributes.position.array;
+        // SphereGeometry is indexed — need to expand to triangles per the index buffer.
+        const idx = sph.index ? sph.index.array : null;
+        if (idx) {
+            for (let i = 0; i < idx.length; i++) {
+                const v = idx[i] * 3;
+                positions.push(arr[v], arr[v + 1], arr[v + 2]);
+            }
+        }
+        else {
+            for (let i = 0; i < arr.length; i++)
+                positions.push(arr[i]);
+        }
+        sph.dispose();
+    }
+    const geom = new THREE.BufferGeometry();
+    geom.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+    geom.computeVertexNormals();
+    return geom;
+}
+// Build a unit-sized geometry for a given habit token, oriented so
+// its long axis (= c-axis) lies along +Y. The instance transform
+// later places the base at the wall and scales by c_length / a_width.
 function _buildHabitGeom(token) {
     switch (token) {
         case 'spike':
-            // Acicular — long thin needle. Pointy on both ends to read as
-            // an isolated needle rather than a stub stuck in the wall.
-            return new THREE.ConeGeometry(0.5, 1.0, 6, 1, false);
+            // Acicular — narrow hexagonal pyramid. Phase E5 batch 2:
+            // replaces ConeGeometry's smooth-shaded cone.
+            return _makeHexPyramid();
         case 'prism':
-            // Prismatic — hexagonal prism with a slight taper toward the
-            // free tip. Captures the dominant calcite / quartz / beryl shape.
-            return new THREE.CylinderGeometry(0.45, 0.55, 1.0, 6, 1, false);
+            // Prismatic — hexagonal prism with pyramidal termination.
+            // Phase E5 batch 1: replaces the flat-topped CylinderGeometry.
+            return _makeHexPrismWithPyramid();
         case 'tablet':
-            // Tabular — flattened rectangular plate, c-axis the short
-            // dimension. 1.5× wider than tall when scaled by a_width
-            // (the c_length × 1.5 factor comes from the Crystal class).
-            return new THREE.BoxGeometry(1.0, 0.4, 1.0);
+            // Tabular — flat plate with chamfered edges. Phase E5 batch 2
+            // replaces the rectangular BoxGeometry.
+            return _makeBeveledTablet();
         case 'rhomb':
-            // Rhombohedral — octahedron rotated by 45° around c-axis reads
-            // as a steeply-pointed "dogtooth" calcite scalenohedron. Six
-            // faces meeting at two pointed apices.
-            return new THREE.OctahedronGeometry(0.55, 0);
+            // Rhombohedral — Iceland-spar-style stretched cube with 6
+            // rhombic faces. Phase E5 batch 1.
+            return _makeRhombohedron();
+        case 'scalene':
+            // Scalenohedral — calcite "dogtooth", 12 scalene-triangle faces
+            // with sharp pointed apices. Phase E5 batch 2: was previously
+            // mapped to the rhombohedron token (geologically wrong).
+            return _makeScalenohedron();
         case 'cube':
             return new THREE.BoxGeometry(0.8, 0.8, 0.8);
         case 'octahedron':
             return new THREE.OctahedronGeometry(0.55, 0);
+        case 'rhombic_dodec':
+            // Garnet-style 12 rhombic faces. Phase E5 batch 3.
+            return _makeRhombicDodecahedron();
         case 'dodecahedron':
             return new THREE.DodecahedronGeometry(0.55, 0);
         case 'botryoidal':
-            // Botryoidal — bumpy half-sphere clinging to the wall. E4 may
-            // replace with multi-bubble geometry; for E3 a single sphere
-            // reads cleanly.
-            return new THREE.SphereGeometry(0.5, 12, 8);
+            // Botryoidal — multi-bubble cluster reads as malachite kidney
+            // or hematite blob. Phase E5 batch 1.
+            return _makeBotryoidalCluster();
         default:
-            return new THREE.CylinderGeometry(0.45, 0.55, 1.0, 6, 1, false);
+            return _makeHexPrismWithPyramid();
     }
 }
 // Convert a #RRGGBB or rgb(...) string to THREE.Color. Falls back to

@@ -486,5 +486,96 @@
 //        Phase 4c (next sub-phase) is now unblocked: flip the flag,
 //        regen baseline, tune per-class Eh thresholds where the
 //        Eh-equivalent mapping shifts crystal counts beyond ±5%.
-const SIM_VERSION = 37;
+//   v38 — Phase 1e infrastructure (May 2026). Adds MINERAL_DISSOLUTION_RATES
+//        table to 19-mineral-stoichiometry.ts and extends applyMassBalance
+//        to credit fluid for negative-thickness zones when the mineral has
+//        an entry in the table. Table is empty in this commit — every
+//        dissolution call short-circuits via the missing-entry check, so
+//        seed-42 stays byte-identical to v37. Phase 1d's growth-path-only
+//        wrapper guard is now lifted; the comment block in applyMassBalance
+//        explains the per-mineral migration pattern. Subsequent commits
+//        populate the table class-by-class and remove the matching inline
+//        `fluid.X += dissolved_um * RATE` blocks from engines, mirroring
+//        the precipitation-side cleanup that landed across Phase 1c/d.
+//   v39 — Phase 1e migration batch 1: halide + borate + hydroxide
+//        (May 2026). 8 inline `fluid.X += dissolved_um * RATE`
+//        credits removed across 5 minerals (fluorite, halite, borax,
+//        goethite, lepidocrocite); matching entries added to
+//        MINERAL_DISSOLUTION_RATES with the exact same per-µm rates.
+//        applyMassBalance now credits the fluid uniformly the way it
+//        debits during precipitation. Verified byte-identical to v38
+//        via per-scenario JSON comparison across all 20 scenarios
+//        (the file-level diff shows CRLF/LF churn from Windows git
+//        autocrlf — substance is bit-equal). 63/63 tests green.
+//   v40 — Phase 1e migration batch 2: molybdate + native + oxide
+//        (May 2026). 13 inline credits removed across 11 minerals
+//        (wulfenite, ferrimolybdite, hematite, uraninite, magnetite,
+//        cuprite, native_tellurium, native_sulfur, native_arsenic,
+//        native_bismuth, native_copper). All single-mode dissolution
+//        with consistent per-µm rates; native_silver and native_gold
+//        have no dissolution credit at all and stay absent from the
+//        table. Batch verified byte-identical to v39 via per-scenario
+//        JSON comparison; 21/127 sites total now table-mediated.
+//   v41 — Phase 1e migration batch 3: sulfate class (May 2026).
+//        22 inline credits removed across 9 minerals (anhydrite,
+//        brochantite, antlerite, jarosite, alunite, mirabilite,
+//        thenardite, selenite, anglesite). barite, celestine,
+//        chalcanthite have no inline dissolution credit at all and
+//        stay absent from the table. anglesite has two engine
+//        triggers (acid + carbonate-overwhelm) but identical
+//        per-µm rates, so a single table entry covers both. Verified
+//        byte-identical to v40 via per-scenario JSON comparison;
+//        43/~185 sites total now table-mediated.
+//   v42 — Phase 1e migration batch 4: arsenate (single-mode subset)
+//        + phosphate class (May 2026). 33 inline credits removed
+//        across 12 minerals. Arsenate's erythrite + annabergite have
+//        multi-mode dissolution (thermal dehydration + acid attack
+//        at different effective rates) and stay inline pending
+//        per-mode dispatch. Phosphate is fully single-mode — every
+//        engine has exactly one dissolution event with rate-scaled
+//        credits. descloizite + mottramite have no inline
+//        dissolution credit at all and stay absent from the table.
+//        76/~185 sites total now table-mediated.
+//   v43 — Phase 1e migration batch 5: silicate (single-mode subset)
+//        (May 2026). 17 inline credits removed across 10 minerals
+//        (quartz, feldspar, albite, topaz, apophyllite, beryl,
+//        emerald, aquamarine, morganite, heliodor). The five
+//        beryl-family variants share a `_beryl_family_dissolution`
+//        helper; each variant gets its own table entry with the same
+//        rates so the wrapper dispatches correctly via crystal.mineral.
+//        Apophyllite's legacy form used constants with thickness=-2.0;
+//        table rates = constant/2.0 produce identical credits.
+//        chrysocolla has multi-mode dissolution and stays inline.
+//        93/~185 sites total now table-mediated.
+//   v44 — Phase 1e migration batch 6: carbonate (single-mode subset)
+//        (May 2026). 19 credits removed across 8 minerals (calcite
+//        major species, dolomite, siderite, malachite, smithsonite,
+//        rosasite, aurichalcite, cerussite). Calcite's trace Mn + Fe
+//        credits stay inline — they're zone-data-driven (avg over
+//        last 3 zones), not rate-scaled. Siderite has two engine
+//        triggers (oxidative + acid) with identical rates so a single
+//        table entry covers both. aragonite (polymorph constants vs
+//        acid rate-scaled), rhodochrosite (acid vs O2 at different
+//        rates), azurite (low-CO3 vs acid at different CO3 rates) are
+//        multi-mode and stay inline pending per-mode dispatch.
+//        112/~185 sites table-mediated.
+//   v45 — Phase 1e migration batch 7: sulfide (single-mode subset)
+//        (May 2026). 32 credits removed across 14 sulfide minerals
+//        (chalcopyrite, molybdenite, nickeline, millerite, stibnite,
+//        bismuthinite, bornite, chalcocite, covellite, tetrahedrite,
+//        tennantite, arsenopyrite, acanthite, cobaltite). For
+//        arsenopyrite, the standard Fe+As+S rate-scaled credits move
+//        to the table; the Au-trap (zone-data-driven trace) and pH
+//        adjustment stay inline. For acanthite + cobaltite, the
+//        positive cation credits move to the table; the negative S
+//        consumption (Math.max-clamped subtraction) stays inline
+//        pending the table's negative-rate design extension.
+//        144/~185 sites table-mediated. Remaining ~41 sites are all
+//        multi-mode/special: pyrite + marcasite multi-mode (12),
+//        wurtzite constants (2), aragonite + rhodochrosite + azurite
+//        carbonate multi-mode (12), erythrite + annabergite arsenate
+//        multi-mode (8), chrysocolla silicate multi-mode (4),
+//        arsenopyrite Au-trap + calcite trace (3 — never tablifiable
+//        as currently designed).
+const SIM_VERSION = 45;
 

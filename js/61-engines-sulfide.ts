@@ -239,9 +239,7 @@ function grow_chalcopyrite(crystal, conditions, step) {
       crystal.dissolved = true;
       const dissolved_um = Math.min(4.0, crystal.total_growth_um * 0.1);
       // RECYCLING: Cu, Fe, S return to fluid
-      conditions.fluid.Cu += dissolved_um * 0.8;
-      conditions.fluid.Fe += dissolved_um * 0.5;
-      conditions.fluid.S += dissolved_um * 0.3;
+      // Phase 1e: Cu + Fe + S credits via MINERAL_DISSOLUTION_RATES.chalcopyrite.
       return new GrowthZone({
         step, temperature: conditions.temperature,
         thickness_um: -dissolved_um, growth_rate: -dissolved_um,
@@ -283,8 +281,7 @@ function grow_molybdenite(crystal, conditions, step) {
     if (crystal.total_growth_um > 3 && conditions.fluid.O2 > 0.3) {
       crystal.dissolved = true;
       const dissolved_um = Math.min(4.0, crystal.total_growth_um * 0.15);
-      conditions.fluid.Mo += dissolved_um * 0.8; // MoO₄²⁻ back to fluid
-      conditions.fluid.S += dissolved_um * 0.2;  // some S returns as sulfate
+      // Phase 1e: Mo + S credits via MINERAL_DISSOLUTION_RATES.molybdenite.
       return new GrowthZone({
         step, temperature: conditions.temperature,
         thickness_um: -dissolved_um, growth_rate: -dissolved_um,
@@ -353,9 +350,8 @@ function grow_arsenopyrite(crystal, conditions, step) {
     if (crystal.total_growth_um > 3 && conditions.fluid.O2 > 0.5) {
       crystal.dissolved = true;
       const dissolved_um = Math.min(4.0, crystal.total_growth_um * 0.12);
-      conditions.fluid.Fe += dissolved_um * 0.5;
-      conditions.fluid.As += dissolved_um * 0.4;
-      conditions.fluid.S += dissolved_um * 0.4;
+      // Phase 1e: Fe + As + S credits via MINERAL_DISSOLUTION_RATES.arsenopyrite.
+      // pH stays inline — it's an activity adjustment, not a mass-balance credit.
       conditions.fluid.pH = Math.max(2.0, conditions.fluid.pH - dissolved_um * 0.02);
       // Release 12% of zone-summed trapped invisible-gold per step.
       const total_trapped_au = (crystal.zones || []).reduce((sum, z) => sum + (z.trace_Au || 0), 0);
@@ -434,7 +430,8 @@ function grow_acanthite(crystal, conditions, step) {
     if (crystal.total_growth_um > 5 && conditions.fluid.O2 > 1.2) {
       crystal.dissolved = true;
       const dissolved_um = Math.min(3.0, crystal.total_growth_um * 0.10);
-      conditions.fluid.Ag += dissolved_um * 0.4;
+      // Phase 1e: Ag credit via MINERAL_DISSOLUTION_RATES.acanthite.
+      // S consumption (negative) stays inline — table doesn't yet support negative rates.
       conditions.fluid.S = Math.max(conditions.fluid.S - dissolved_um * 0.1, 0);
       return new GrowthZone({
         step, temperature: conditions.temperature,
@@ -517,8 +514,7 @@ function grow_nickeline(crystal, conditions, step) {
     if (crystal.total_growth_um > 5 && conditions.fluid.O2 > 0.8) {
       crystal.dissolved = true;
       const dissolved_um = Math.min(2.5, crystal.total_growth_um * 0.10);
-      conditions.fluid.Ni += dissolved_um * 0.4;
-      conditions.fluid.As += dissolved_um * 0.4;
+      // Phase 1e: Ni + As credits via MINERAL_DISSOLUTION_RATES.nickeline.
       return new GrowthZone({
         step, temperature: conditions.temperature,
         thickness_um: -dissolved_um, growth_rate: -dissolved_um,
@@ -554,8 +550,7 @@ function grow_millerite(crystal, conditions, step) {
     if (crystal.total_growth_um > 5 && conditions.fluid.O2 > 0.8) {
       crystal.dissolved = true;
       const dissolved_um = Math.min(2.0, crystal.total_growth_um * 0.10);
-      conditions.fluid.Ni += dissolved_um * 0.4;
-      conditions.fluid.S += dissolved_um * 0.3;
+      // Phase 1e: Ni + S credits via MINERAL_DISSOLUTION_RATES.millerite.
       return new GrowthZone({
         step, temperature: conditions.temperature,
         thickness_um: -dissolved_um, growth_rate: -dissolved_um,
@@ -590,8 +585,8 @@ function grow_cobaltite(crystal, conditions, step) {
     if (crystal.total_growth_um > 5 && conditions.fluid.O2 > 0.7) {
       crystal.dissolved = true;
       const dissolved_um = Math.min(2.5, crystal.total_growth_um * 0.10);
-      conditions.fluid.Co += dissolved_um * 0.4;
-      conditions.fluid.As += dissolved_um * 0.4;
+      // Phase 1e: Co + As credits via MINERAL_DISSOLUTION_RATES.cobaltite.
+      // S consumption (negative) stays inline — table doesn't yet support negative rates.
       conditions.fluid.S = Math.max(conditions.fluid.S - dissolved_um * 0.1, 0);
       return new GrowthZone({
         step, temperature: conditions.temperature,
@@ -629,8 +624,7 @@ function grow_stibnite(crystal, conditions, step) {
     if (crystal.total_growth_um > 5 && conditions.fluid.pH < 2.0) {
       crystal.dissolved = true;
       const d = Math.min(2.0, crystal.total_growth_um * 0.06);
-      conditions.fluid.Sb += d * 0.3;
-      conditions.fluid.S += d * 0.3;
+      // Phase 1e: Sb + S credits via MINERAL_DISSOLUTION_RATES.stibnite.
       return new GrowthZone({ step, temperature: conditions.temperature, thickness_um: -d, growth_rate: -d, note: `acid dissolution (pH ${conditions.fluid.pH.toFixed(1)})` });
     }
     return null;
@@ -654,8 +648,7 @@ function grow_bismuthinite(crystal, conditions, step) {
     if (crystal.total_growth_um > 5 && conditions.fluid.pH < 2.0) {
       crystal.dissolved = true;
       const d = Math.min(2.0, crystal.total_growth_um * 0.06);
-      conditions.fluid.Bi += d * 0.3;
-      conditions.fluid.S += d * 0.3;
+      // Phase 1e: Bi + S credits via MINERAL_DISSOLUTION_RATES.bismuthinite.
       return new GrowthZone({ step, temperature: conditions.temperature, thickness_um: -d, growth_rate: -d, note: `acid dissolution (pH ${conditions.fluid.pH.toFixed(1)})` });
     }
     return null;
@@ -680,9 +673,7 @@ function grow_bornite(crystal, conditions, step) {
     if (crystal.total_growth_um > 5 && conditions.fluid.O2 > 1.3) {
       crystal.dissolved = true;
       const d = Math.min(3.0, crystal.total_growth_um * 0.08);
-      conditions.fluid.Cu += d * 0.4;
-      conditions.fluid.Fe += d * 0.2;
-      conditions.fluid.S += d * 0.3;
+      // Phase 1e: Cu + Fe + S credits via MINERAL_DISSOLUTION_RATES.bornite.
       return new GrowthZone({ step, temperature: conditions.temperature, thickness_um: -d, growth_rate: -d, note: `oxidative dissolution (O₂ ${conditions.fluid.O2.toFixed(1)})` });
     }
     return null;
@@ -709,8 +700,7 @@ function grow_chalcocite(crystal, conditions, step) {
     if (crystal.total_growth_um > 5 && conditions.fluid.O2 > 1.0) {
       crystal.dissolved = true;
       const d = Math.min(3.0, crystal.total_growth_um * 0.10);
-      conditions.fluid.Cu += d * 0.5;
-      conditions.fluid.S += d * 0.3;
+      // Phase 1e: Cu + S credits via MINERAL_DISSOLUTION_RATES.chalcocite.
       return new GrowthZone({ step, temperature: conditions.temperature, thickness_um: -d, growth_rate: -d, note: `oxidative dissolution (O₂ ${conditions.fluid.O2.toFixed(1)})` });
     }
     return null;
@@ -749,8 +739,7 @@ function grow_covellite(crystal, conditions, step) {
     if (crystal.total_growth_um > 5 && conditions.fluid.O2 > 1.2) {
       crystal.dissolved = true;
       const d = Math.min(3.0, crystal.total_growth_um * 0.10);
-      conditions.fluid.Cu += d * 0.4;
-      conditions.fluid.S += d * 0.4;
+      // Phase 1e: Cu + S credits via MINERAL_DISSOLUTION_RATES.covellite.
       return new GrowthZone({ step, temperature: conditions.temperature, thickness_um: -d, growth_rate: -d, note: `oxidative dissolution (O₂ ${conditions.fluid.O2.toFixed(1)})` });
     }
     return null;
@@ -774,9 +763,7 @@ function grow_tetrahedrite(crystal, conditions, step) {
     if (crystal.total_growth_um > 10 && conditions.fluid.O2 > 1.0) {
       crystal.dissolved = true;
       const dissolved_um = Math.min(3.0, crystal.total_growth_um * 0.1);
-      conditions.fluid.Cu += dissolved_um * 0.6;
-      conditions.fluid.Sb += dissolved_um * 0.3;
-      conditions.fluid.S += dissolved_um * 0.4;
+      // Phase 1e: Cu + Sb + S credits via MINERAL_DISSOLUTION_RATES.tetrahedrite.
       return new GrowthZone({
         step, temperature: conditions.temperature,
         thickness_um: -dissolved_um, growth_rate: -dissolved_um,
@@ -823,9 +810,7 @@ function grow_tennantite(crystal, conditions, step) {
     if (crystal.total_growth_um > 10 && conditions.fluid.O2 > 1.0) {
       crystal.dissolved = true;
       const dissolved_um = Math.min(3.0, crystal.total_growth_um * 0.1);
-      conditions.fluid.Cu += dissolved_um * 0.6;
-      conditions.fluid.As += dissolved_um * 0.3;
-      conditions.fluid.S += dissolved_um * 0.4;
+      // Phase 1e: Cu + As + S credits via MINERAL_DISSOLUTION_RATES.tennantite.
       return new GrowthZone({
         step, temperature: conditions.temperature,
         thickness_um: -dissolved_um, growth_rate: -dissolved_um,

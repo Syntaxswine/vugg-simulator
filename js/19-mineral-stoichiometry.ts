@@ -150,12 +150,162 @@ const MINERAL_STOICHIOMETRY: Record<string, Record<string, number>> = {
   clinobisvanite: { Bi: 1, V: 1 },                   // BiVO4
 };
 
+// PROPOSAL-GEOLOGICAL-ACCURACY Phase 1e (May 2026): per-mineral
+// dissolution rates. Engines used to hand-code their dissolution
+// credits inline as `fluid.X += dissolved_um * RATE` blocks across
+// 12 engine files (~185 lines pre-migration). Phase 1e moves the
+// rate-scaled credits into this table so the wrapper can credit
+// fluid uniformly the way it debits during precipitation.
+//
+// Conventions:
+//   - Each entry maps mineral → species → ppm-per-µm-dissolved rate.
+//   - Rates here are NOT scaled by MASS_BALANCE_SCALE — they are the
+//     exact per-µm coefficients the legacy inline credits used.
+//     Calcite Ca=0.5 means "1 µm of calcite dissolution releases 0.5
+//     ppm Ca²⁺ to the fluid in this ring."
+//   - Rates differ per mineral because they reflect kinetic
+//     stoichiometry (what fraction of each species actually
+//     redissolves under the dominant dissolution mechanism), not
+//     formula stoichiometry. Calcite's Ca:CO3 = 0.5:0.3 reflects
+//     CO₂ outgassing during acid attack — some carbonate exits the
+//     fluid as gas rather than aqueous bicarbonate.
+//   - Trace elements (Mn, Fe in calcite zones) and special-mode
+//     constants (aragonite polymorphic conversion) STAY inline —
+//     they're zone-dependent or mode-dependent, not table-able.
+//   - Migration progresses class-by-class. Minerals with multi-mode
+//     dissolution (different rates for acid vs oxidative) keep their
+//     inline credits until per-mode dispatch is added.
+const MINERAL_DISSOLUTION_RATES: Record<string, Record<string, number>> = {
+  // ---- Halides (Phase 1e batch 1, v39) ----
+  fluorite: { Ca: 0.4, F: 0.6 },          // acid dissolution: CaF₂ + 2H⁺ → Ca²⁺ + 2HF
+  halite:   { Na: 0.4, Cl: 6.0 },         // meteoric flush — Cl is dominant in NaCl re-dissolution
+
+  // ---- Borates (Phase 1e batch 1, v39) ----
+  borax:    { Na: 0.4, B: 0.15 },         // generic borate re-dissolution
+
+  // ---- Hydroxides (Phase 1e batch 1, v39) ----
+  goethite:      { Fe: 0.5 },             // FeO(OH) + 3H⁺ → Fe³⁺ + 2H₂O
+  lepidocrocite: { Fe: 0.4 },             // γ-FeO(OH) acid attack
+
+  // ---- Molybdates (Phase 1e batch 2, v40) ----
+  wulfenite:      { Pb: 0.5, Mo: 0.3 },   // acid dissolution releases Pb²⁺ + MoO₄²⁻
+  ferrimolybdite: { Fe: 0.5, Mo: 0.4 },   // dehydration crumble — Fe³⁺ + MoO₄²⁻
+
+  // ---- Oxides (Phase 1e batch 2, v40) ----
+  hematite:  { Fe: 1.5 },                 // strong-acid pH<2 dissolution
+  uraninite: { U: 0.6 },                  // oxidative dissolution → uranyl mobility
+  magnetite: { Fe: 0.5 },                 // acid dissolution
+  cuprite:   { Cu: 0.5 },                 // acid attack
+
+  // ---- Native elements (Phase 1e batch 2, v40) ----
+  // native_silver and native_gold have no inline dissolution credit
+  // in the engines; they remain absent from the table.
+  native_tellurium: { Te: 0.5 },          // oxidative dissolution
+  native_sulfur:    { S: 0.6 },           // sublimation / re-dissolution
+  native_arsenic:   { As: 0.5 },          // oxidative weathering
+  native_bismuth:   { Bi: 0.5 },          // acid dissolution
+  native_copper:    { Cu: 0.5 },          // oxidative weathering to soluble Cu²⁺
+
+  // ---- Sulfates (Phase 1e batch 3, v41) ----
+  // barite/celestine/chalcanthite have no inline dissolution credits
+  // in engines — they simply persist when σ<1, no recycling pathway.
+  anhydrite:    { Ca: 0.5, S: 0.4 },                   // acid dissolution
+  brochantite:  { Cu: 0.5, S: 0.3 },                   // acid attack
+  antlerite:    { Cu: 0.5, S: 0.4 },                   // acid attack
+  jarosite:     { K: 0.3, Fe: 0.5, S: 0.4 },           // alkaline-driven dissolution
+  alunite:      { K: 0.3, Al: 0.4, S: 0.4 },           // alkaline-driven dissolution
+  mirabilite:   { Na: 0.4, S: 0.25 },                  // dehydration / re-dissolution
+  thenardite:   { Na: 0.4, S: 0.25 },                  // re-dissolution under low concentration
+  selenite:     { Ca: 0.4, S: 0.3 },                   // acid dissolution / phase boundary
+  anglesite:    { Pb: 0.3, S: 0.3 },                   // two engine triggers (acid + reductive), same rates
+
+  // ---- Arsenates (Phase 1e batch 4, v42 — single-mode subset) ----
+  // erythrite + annabergite have multi-mode dissolution (thermal +
+  // acid at different effective rates) and stay inline pending
+  // per-mode dispatch design.
+  scorodite:  { Fe: 0.5, As: 0.5 },                    // acid dissolution
+  adamite:    { Zn: 0.5, As: 0.3 },                    // acid attack
+  mimetite:   { Pb: 0.8, As: 0.3, Cl: 0.1 },           // acid dissolution
+
+  // ---- Phosphates / arsenates / vanadates (Phase 1e batch 4, v42) ----
+  // descloizite + mottramite have no inline dissolution credit.
+  torbernite:    { Cu: 0.2, U: 0.4, P: 0.3 },           // dehydration / pH
+  zeunerite:     { Cu: 0.2, U: 0.4, As: 0.3 },
+  carnotite:     { K: 0.2,  U: 0.4, V: 0.3 },
+  autunite:      { Ca: 0.2, U: 0.4, P: 0.3 },
+  uranospinite:  { Ca: 0.2, U: 0.4, As: 0.3 },
+  tyuyamunite:   { Ca: 0.2, U: 0.4, V: 0.3 },
+  clinobisvanite: { Bi: 0.4, V: 0.3 },
+  pyromorphite:  { Pb: 0.3, P: 0.2, Cl: 0.3 },
+  vanadinite:    { Pb: 0.3, V: 0.2, Cl: 0.3 },
+
+  // ---- Silicates (Phase 1e batch 5, v43 — single-mode subset) ----
+  // chrysocolla has multi-mode dissolution (two pH-driven paths at
+  // different effective rates) and stays inline pending per-mode
+  // dispatch.
+  quartz:       { SiO2: 0.8 },                         // OH⁻-assisted dissolution
+  feldspar:     { K: 0.3, Al: 0.05, SiO2: 0.5 },       // most Al stays in kaolinite
+  albite:       { Na: 0.3, Al: 0.05, SiO2: 0.3 },      // most Al stays in kaolinite
+  topaz:        { Al: 0.3, SiO2: 0.2, F: 0.4 },        // HF-assisted etch
+  apophyllite:  { K: 0.25, Ca: 1.0, SiO2: 4.0, F: 0.25 }, // constants/2.0µm: K += 0.5, Ca += 2.0, SiO2 += 8.0, F += 0.5
+  // beryl-family — all five variants share _beryl_family_dissolution helper
+  // (same rates regardless of chromophore), so identical per-mineral entries.
+  beryl:        { Be: 0.2, Al: 0.2, SiO2: 0.4 },       // HF-assisted (pH<3, F>30)
+  emerald:      { Be: 0.2, Al: 0.2, SiO2: 0.4 },
+  aquamarine:   { Be: 0.2, Al: 0.2, SiO2: 0.4 },
+  morganite:    { Be: 0.2, Al: 0.2, SiO2: 0.4 },
+  heliodor:     { Be: 0.2, Al: 0.2, SiO2: 0.4 },
+
+  // ---- Carbonates (Phase 1e batch 6, v44 — single-mode subset) ----
+  // Multi-mode skipped (different effective rates per dissolution
+  // event): aragonite (polymorph + acid), rhodochrosite (acid + O2),
+  // azurite (low-CO3 + acid).
+  // Calcite has rate-scaled credits for Ca/CO3 (single-mode, table-able)
+  // PLUS trace-element credits for Mn/Fe computed from zone history
+  // (zone-dependent, stays inline).
+  calcite:      { Ca: 0.5, CO3: 0.3 },                 // major species only; trace Mn/Fe stay inline
+  dolomite:     { Ca: 0.3, Mg: 0.3, CO3: 0.5 },        // acid dissolution
+  siderite:     { Fe: 0.5, CO3: 0.4 },                 // two engine triggers (oxidative + acid), same rates
+  malachite:    { Cu: 0.8, CO3: 0.5 },                 // acid dissolution
+  smithsonite:  { Zn: 0.6, CO3: 0.4 },                 // acid attack
+  rosasite:     { Cu: 0.3, Zn: 0.2, CO3: 0.25 },       // pH < 5.5
+  aurichalcite: { Zn: 0.4, Cu: 0.15, CO3: 0.3 },       // pH < 5.5
+  cerussite:    { Pb: 0.5, CO3: 0.4 },                 // strong-acid pH < 4
+
+  // ---- Sulfides (Phase 1e batch 7, v45 — single-mode subset) ----
+  // pyrite + marcasite are multi-mode (oxidative rate-scaled vs acid
+  // constants at different effective rates) — stay inline.
+  // wurtzite has constant-rate "sublimation" credits — stays inline pending
+  // dispatch design (single-event but non-rate-scaled constants).
+  // sphalerite + galena + argentite have no inline dissolution credit at all.
+  // For acanthite + cobaltite, the table handles only the positive cation
+  // credits (Ag / Co + As); the inline negative S consumption stays for now
+  // pending negative-rate design extension.
+  // For arsenopyrite, the table handles the standard Fe + As + S
+  // rate-scaled credits; the Au-trap (zone-data-driven trace) and the pH
+  // adjustment stay inline since neither is rate-scaled.
+  chalcopyrite: { Cu: 0.8, Fe: 0.5, S: 0.3 },          // acid attack
+  molybdenite:  { Mo: 0.8, S: 0.2 },                   // oxidative — MoO₄²⁻ released
+  nickeline:    { Ni: 0.4, As: 0.4 },                  // oxidative weathering
+  millerite:    { Ni: 0.4, S: 0.3 },                   // acid attack
+  stibnite:     { Sb: 0.3, S: 0.3 },                   // oxidative
+  bismuthinite: { Bi: 0.3, S: 0.3 },                   // oxidative
+  bornite:      { Cu: 0.4, Fe: 0.2, S: 0.3 },          // supergene oxidation
+  chalcocite:   { Cu: 0.5, S: 0.3 },                   // strong oxidation
+  covellite:    { Cu: 0.4, S: 0.4 },                   // strong oxidation
+  tetrahedrite: { Cu: 0.6, Sb: 0.3, S: 0.4 },          // acid + oxidative
+  tennantite:   { Cu: 0.6, As: 0.3, S: 0.4 },          // acid + oxidative
+  arsenopyrite: { Fe: 0.5, As: 0.4, S: 0.4 },          // major species; Au-trap stays inline
+  acanthite:    { Ag: 0.4 },                           // S consumption stays inline
+  cobaltite:    { Co: 0.4, As: 0.4 },                  // S consumption stays inline
+};
+
 // Apply mass balance for a single growth or dissolution zone. Called
 // from VugSimulator._runEngineForCrystal after the engine returns.
-// Positive thickness = precipitation (debit fluid); negative thickness
-// = dissolution (credit fluid). No-op when MASS_BALANCE_ENABLED is
-// false, so v17 baseline scenarios stay byte-identical until the
-// calibration pass flips the flag.
+// Positive thickness = precipitation (debit fluid via
+// MINERAL_STOICHIOMETRY × MASS_BALANCE_SCALE). Negative thickness =
+// dissolution (credit fluid via MINERAL_DISSOLUTION_RATES, when the
+// mineral has an entry).
 //
 // Two layers of safety while the flag is OFF:
 //   1. The early `if (!MASS_BALANCE_ENABLED) return;` short-circuit.
@@ -172,17 +322,26 @@ const _massBalanceMissingWarned: Record<string, boolean> = {};
 function applyMassBalance(crystal: any, zone: any, conditions: any): string[] | null {
   if (!MASS_BALANCE_ENABLED) return null;
   if (!zone || !zone.thickness_um) return null;
-  // Phase 1d (May 2026): precipitation-only. Engines hand-code their
-  // dissolution credits at per-mineral rates ~50× larger than the
-  // wrapper's MASS_BALANCE_SCALE — those rates were tuned to specific
-  // recycling stories per scenario (e.g. acid dissolution of calcite
-  // releases Ca at 0.5 ppm/µm, not 0.01). Until those manual credits
-  // are migrated into per-mineral dissolution rates (Phase 1e or
-  // later), the wrapper stays growth-only to avoid double-crediting.
-  // Net: the wrapper handles the gap that v17 left open (precipitation
-  // didn't debit the fluid), while existing dissolution credits keep
-  // their behavior.
-  if (zone.thickness_um < 0) return null;
+  // Phase 1e (May 2026): the wrapper now handles dissolution too,
+  // for minerals that have an entry in MINERAL_DISSOLUTION_RATES.
+  // Engines whose dissolution credits have NOT yet been migrated
+  // keep their inline `fluid.X += dissolved_um * RATE` blocks; the
+  // wrapper's table-lookup short-circuits via the empty-entry check
+  // so behavior stays byte-identical until the engine's class is
+  // migrated. Single-mode dissolution maps cleanly to a per-mineral
+  // entry; multi-mode (e.g. pyrite oxidative vs acid at different
+  // rates) is left inline pending per-mode dispatch.
+  if (zone.thickness_um < 0) {
+    const rates = MINERAL_DISSOLUTION_RATES[crystal.mineral];
+    if (!rates) return null;  // unmigrated mineral — engine still credits inline
+    const dissolved_um = -zone.thickness_um;
+    const fluid = conditions.fluid;
+    for (const species in rates) {
+      if (typeof fluid[species] !== 'number') continue;
+      fluid[species] += dissolved_um * rates[species];
+    }
+    return null;  // depletion narration is precipitation-only
+  }
   const stoich = MINERAL_STOICHIOMETRY[crystal.mineral];
   if (!stoich) {
     if (!_massBalanceMissingWarned[crystal.mineral]) {

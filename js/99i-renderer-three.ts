@@ -363,9 +363,15 @@ function _habitGeomToken(habit: string): string {
   if (h === 'acicular' || h === 'capillary') return 'spike';
   if (h === 'prismatic' || h === 'columnar' || h === 'bladed') return 'prism';
   if (h === 'tabular' || h === 'platy' || h === 'foliated') return 'tablet';
-  if (h === 'rhombohedral' || h === 'scalenohedral') return 'rhomb';
+  if (h === 'rhombohedral') return 'rhomb';
+  if (h === 'scalenohedral') return 'scalene';  // E5 batch 2: distinct from rhomb (calcite dogtooth)
   if (h === 'cubic' || h === 'cuboid') return 'cube';
   if (h === 'octahedral') return 'octahedron';
+  // E5 batch 3: garnet-style rhombic dodecahedron (12 rhombic faces,
+  // 14 vertices) is the dominant garnet/almandine habit. The regular
+  // Platonic dodecahedron (12 pentagonal faces) is what 'dodecahedral'
+  // produces — kept for any mineral that genuinely needs that.
+  if (h === 'rhombic dodecahedral' || h === 'rhombic-dodecahedral' || h === 'garnet' || h === 'trapezohedral') return 'rhombic_dodec';
   if (h === 'dodecahedral') return 'dodecahedron';
   if (h === 'botryoidal' || h === 'reniform' || h === 'mammillary' || h === 'globular') return 'botryoidal';
   if (h === 'dendritic' || h === 'arborescent') return 'spike';  // splay handled per-instance later
@@ -373,43 +379,331 @@ function _habitGeomToken(habit: string): string {
   return 'prism';  // sensible default — most cavity habits are vaguely prismatic
 }
 
-// Build a unit-sized primitive geometry for a given habit token,
-// oriented so its long axis (= c-axis) lies along +Y. The instance
-// transform later places the apex at the wall, base inside the
-// cavity, and scales by c_length / a_width.
+// ----- Phase E5 hand-rolled habit geometries -----
+//
+// Each helper returns a non-indexed BufferGeometry with one vertex
+// triple per face triangle, so flat-shading reads each crystal face
+// as its own facet (the visual signature of real crystals). Unit
+// size: ~1 along the c-axis (Y), ~1 across the a-axes (XZ). The
+// instance transform downstream scales by c_length / a_width.
+//
+// The hand-rolled geometries replace E3's Three.js primitives —
+// quartz / calcite / beryl now read as real hexagonal prisms with
+// pyramidal terminations instead of flat-topped cylinders, etc.
+
+// Push a triangle into a position list (flat-shaded, no shared verts).
+function _pushTri(out: number[], ax: number, ay: number, az: number, bx: number, by: number, bz: number, cx: number, cy: number, cz: number) {
+  out.push(ax, ay, az, bx, by, bz, cx, cy, cz);
+}
+
+// Hexagonal prism with pyramidal cap — the quartz / calcite / beryl
+// workhorse. 6 prism side faces + 6 pyramid faces. Bottom is anchored
+// against the wall so we omit the base hex (saves 6 triangles).
+function _makeHexPrismWithPyramid(): any {
+  const r = 0.50;             // prism / pyramid base radius (a-axis)
+  const yBase = -0.50;        // anchored at the wall
+  const yShoulder = 0.20;     // top of prism / start of pyramid (60% up)
+  const yApex = 0.50;         // top of pyramid (free tip)
+  const positions: number[] = [];
+  for (let i = 0; i < 6; i++) {
+    const a0 = (i / 6) * Math.PI * 2;
+    const a1 = ((i + 1) / 6) * Math.PI * 2;
+    const x0 = Math.cos(a0) * r, z0 = Math.sin(a0) * r;
+    const x1 = Math.cos(a1) * r, z1 = Math.sin(a1) * r;
+    // Prism side face — two triangles
+    _pushTri(positions, x0, yBase, z0, x1, yBase, z1, x1, yShoulder, z1);
+    _pushTri(positions, x0, yBase, z0, x1, yShoulder, z1, x0, yShoulder, z0);
+    // Pyramid face — one triangle to the apex
+    _pushTri(positions, x0, yShoulder, z0, x1, yShoulder, z1, 0, yApex, 0);
+  }
+  const geom = new THREE.BufferGeometry();
+  geom.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+  geom.computeVertexNormals();
+  return geom;
+}
+
+// Calcite cleavage rhombohedron — 6 rhombic faces, 8 vertices, 3-fold
+// symmetric around the c-axis. Two apex vertices on the c-axis at
+// y=±h; 6 equatorial vertices in two staggered triangles at y=±t,
+// 60° rotated from each other. This produces the classic Iceland-spar
+// "stretched cube" silhouette.
+function _makeRhombohedron(): any {
+  const h = 0.50;             // apex height
+  const t = 0.18;             // equatorial height (closer to apex than to center → "stretched" look)
+  const r = 0.42;             // equatorial radius
+  // Equatorial vertices: 3 upper (at y=+t) staggered 60° from 3 lower (at y=-t)
+  const upper = [0, 1, 2].map(i => {
+    const a = (i / 3) * Math.PI * 2 + Math.PI / 6;  // offset 30° so a vertex faces +X
+    return [Math.cos(a) * r, t, Math.sin(a) * r];
+  });
+  const lower = [0, 1, 2].map(i => {
+    const a = (i / 3) * Math.PI * 2 + Math.PI / 6 + Math.PI / 3;  // 60° rotated
+    return [Math.cos(a) * r, -t, Math.sin(a) * r];
+  });
+  const apexT = [0, h, 0];
+  const apexB = [0, -h, 0];
+  // 6 rhombic faces, each split into 2 triangles. Top 3 faces connect
+  // top apex + adjacent upper vertices + a lower vertex between them;
+  // bottom 3 mirror.
+  const positions: number[] = [];
+  for (let i = 0; i < 3; i++) {
+    const u0 = upper[i], u1 = upper[(i + 1) % 3];
+    const lBetween = lower[i];  // the lower vertex tucked between u0 and u1
+    // Top rhombus: apexT, u0, lBetween, u1 — split as (apexT, u0, lBetween) + (apexT, lBetween, u1)
+    _pushTri(positions, apexT[0], apexT[1], apexT[2], u0[0], u0[1], u0[2], lBetween[0], lBetween[1], lBetween[2]);
+    _pushTri(positions, apexT[0], apexT[1], apexT[2], lBetween[0], lBetween[1], lBetween[2], u1[0], u1[1], u1[2]);
+  }
+  for (let i = 0; i < 3; i++) {
+    const l0 = lower[i], l1 = lower[(i + 1) % 3];
+    const uBetween = upper[(i + 1) % 3];  // matched by 60° offset
+    // Bottom rhombus mirror
+    _pushTri(positions, apexB[0], apexB[1], apexB[2], l1[0], l1[1], l1[2], uBetween[0], uBetween[1], uBetween[2]);
+    _pushTri(positions, apexB[0], apexB[1], apexB[2], uBetween[0], uBetween[1], uBetween[2], l0[0], l0[1], l0[2]);
+  }
+  const geom = new THREE.BufferGeometry();
+  geom.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+  geom.computeVertexNormals();
+  return geom;
+}
+
+// Calcite scalenohedron ("dogtooth") — 12 scalene triangle faces, two
+// pointed apices on the c-axis. Geometrically a tall stretched
+// bipyramid where the equatorial belt is two staggered triangles
+// rather than a regular hexagon, so each face is a non-equilateral
+// (scalene) triangle. Sharper and more elongated than the cleavage
+// rhombohedron.
+function _makeScalenohedron(): any {
+  const h = 0.50;             // apex height (full c-axis range ±0.5)
+  const tBelt = 0.05;         // equatorial-belt half-height (small → narrow waist)
+  const r = 0.30;             // equatorial radius (skinnier than rhomb at r=0.42)
+  // 6 equatorial vertices in two staggered triangles at slightly
+  // different heights — this asymmetry is what makes the faces scalene.
+  const upper = [0, 1, 2].map(i => {
+    const a = (i / 3) * Math.PI * 2 + Math.PI / 6;
+    return [Math.cos(a) * r, +tBelt, Math.sin(a) * r];
+  });
+  const lower = [0, 1, 2].map(i => {
+    const a = (i / 3) * Math.PI * 2 + Math.PI / 6 + Math.PI / 3;
+    return [Math.cos(a) * r, -tBelt, Math.sin(a) * r];
+  });
+  const apexT = [0, h, 0];
+  const apexB = [0, -h, 0];
+  const positions: number[] = [];
+  // 6 upper scalene triangles: top apex + adjacent (upper, lower) pair
+  for (let i = 0; i < 3; i++) {
+    const u = upper[i];
+    const lL = lower[(i + 2) % 3];  // lower vertex to the "left" of u
+    const lR = lower[i];             // lower vertex to the "right" of u
+    _pushTri(positions, apexT[0], apexT[1], apexT[2], lL[0], lL[1], lL[2], u[0], u[1], u[2]);
+    _pushTri(positions, apexT[0], apexT[1], apexT[2], u[0], u[1], u[2], lR[0], lR[1], lR[2]);
+  }
+  // 6 lower scalene triangles: bottom apex + adjacent pair (mirror)
+  for (let i = 0; i < 3; i++) {
+    const l = lower[i];
+    const uL = upper[i];                  // upper vertex to the "left"
+    const uR = upper[(i + 1) % 3];        // upper vertex to the "right"
+    _pushTri(positions, apexB[0], apexB[1], apexB[2], l[0], l[1], l[2], uL[0], uL[1], uL[2]);
+    _pushTri(positions, apexB[0], apexB[1], apexB[2], uR[0], uR[1], uR[2], l[0], l[1], l[2]);
+  }
+  const geom = new THREE.BufferGeometry();
+  geom.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+  geom.computeVertexNormals();
+  return geom;
+}
+
+// Hexagonal pyramid — sharper, more crystal-like spike than
+// Three.js's ConeGeometry (which interpolates between segments and
+// reads as a smooth cone). 6 faceted triangle faces. For acicular,
+// dendritic, fibrous habits.
+function _makeHexPyramid(): any {
+  const r = 0.18;             // narrow base — needles are thin
+  const yBase = -0.50;
+  const yApex = 0.50;
+  const positions: number[] = [];
+  for (let i = 0; i < 6; i++) {
+    const a0 = (i / 6) * Math.PI * 2;
+    const a1 = ((i + 1) / 6) * Math.PI * 2;
+    const x0 = Math.cos(a0) * r, z0 = Math.sin(a0) * r;
+    const x1 = Math.cos(a1) * r, z1 = Math.sin(a1) * r;
+    _pushTri(positions, x0, yBase, z0, x1, yBase, z1, 0, yApex, 0);
+  }
+  const geom = new THREE.BufferGeometry();
+  geom.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+  geom.computeVertexNormals();
+  return geom;
+}
+
+// Beveled tablet — flat plate with chamfered edges. Reads as the
+// "fish-tail" wulfenite or wedge-edged baryte tabular habit better
+// than a flat box. 8 vertices on the top face (octagon-shaped after
+// bevel), 8 on the bottom — 8 large square + 4 trapezoidal faces.
+function _makeBeveledTablet(): any {
+  const halfW = 0.50;         // half-width along x and z
+  const bevel = 0.10;         // bevel offset (chamfered corners)
+  const halfH = 0.20;         // half-thickness (c-axis short)
+  // 8 top vertices: octagonal outline at y=+halfH
+  const yT = +halfH, yB = -halfH;
+  const top = [
+    [+halfW - bevel, yT, +halfW],         // edge
+    [+halfW, yT, +halfW - bevel],         // corner inset
+    [+halfW, yT, -halfW + bevel],
+    [+halfW - bevel, yT, -halfW],
+    [-halfW + bevel, yT, -halfW],
+    [-halfW, yT, -halfW + bevel],
+    [-halfW, yT, +halfW - bevel],
+    [-halfW + bevel, yT, +halfW],
+  ];
+  const bot = top.map(v => [v[0], yB, v[2]]);
+  const positions: number[] = [];
+  // Top face — fan from center (octagonal, 8 triangles)
+  for (let i = 0; i < 8; i++) {
+    const a = top[i], b = top[(i + 1) % 8];
+    _pushTri(positions, 0, yT, 0, a[0], a[1], a[2], b[0], b[1], b[2]);
+  }
+  // Bottom face — fan from center, reversed winding
+  for (let i = 0; i < 8; i++) {
+    const a = bot[i], b = bot[(i + 1) % 8];
+    _pushTri(positions, 0, yB, 0, b[0], b[1], b[2], a[0], a[1], a[2]);
+  }
+  // 8 side faces — rectangle quads as triangle pairs between corresponding top/bottom verts
+  for (let i = 0; i < 8; i++) {
+    const t0 = top[i], t1 = top[(i + 1) % 8];
+    const b0 = bot[i], b1 = bot[(i + 1) % 8];
+    _pushTri(positions, t0[0], t0[1], t0[2], b0[0], b0[1], b0[2], b1[0], b1[1], b1[2]);
+    _pushTri(positions, t0[0], t0[1], t0[2], b1[0], b1[1], b1[2], t1[0], t1[1], t1[2]);
+  }
+  const geom = new THREE.BufferGeometry();
+  geom.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+  geom.computeVertexNormals();
+  return geom;
+}
+
+// Garnet rhombic dodecahedron — 12 rhombic faces, 14 vertices
+// (6 axial + 8 cube-corner). The classic "garnet" silhouette,
+// distinct from the regular pentagonal Platonic dodecahedron that
+// Three.js's DodecahedronGeometry produces. Each rhombic face has
+// 4 coplanar vertices: 2 axial verts on adjacent coordinate axes +
+// 2 cube-corner verts diagonally between them.
+function _makeRhombicDodecahedron(): any {
+  const r = 0.50;             // axial radius
+  const c = 0.25;             // cube-corner half-coordinate (axial verts further from origin → r > c√3 keeps the rhombi planar; r=0.5 c=0.25 gives the regular form scaled to fit a unit-ish bounding box)
+  // 6 axial vertices
+  const A = {
+    px: [+r, 0, 0], nx: [-r, 0, 0],
+    py: [0, +r, 0], ny: [0, -r, 0],
+    pz: [0, 0, +r], nz: [0, 0, -r],
+  };
+  // 8 cube-corner vertices
+  const C = (sx: number, sy: number, sz: number) => [sx * c, sy * c, sz * c];
+  // 12 rhombic faces — each spans 2 axial verts on adjacent axes +
+  // 2 cube corners between them. Defined as quads (4 verts in cyclic
+  // order); each quad becomes 2 triangles in the position list.
+  const faces: number[][][] = [
+    // +x with +y, +y with -x, -x with -y, -y with +x   (top z half + bottom z half)
+    [A.px, C(+1,+1,+1), A.py, C(+1,+1,-1)],   // +x +y
+    [A.py, C(-1,+1,+1), A.nx, C(-1,+1,-1)],   // +y -x
+    [A.nx, C(-1,-1,+1), A.ny, C(-1,-1,-1)],   // -x -y
+    [A.ny, C(+1,-1,+1), A.px, C(+1,-1,-1)],   // -y +x
+    // ±x with ±z
+    [A.px, C(+1,+1,+1), A.pz, C(+1,-1,+1)],   // +x +z
+    [A.pz, C(-1,+1,+1), A.nx, C(-1,-1,+1)],   // +z -x
+    [A.nx, C(-1,+1,-1), A.nz, C(-1,-1,-1)],   // -x -z
+    [A.nz, C(+1,+1,-1), A.px, C(+1,-1,-1)],   // -z +x
+    // ±y with ±z
+    [A.py, C(+1,+1,+1), A.pz, C(-1,+1,+1)],   // +y +z
+    [A.pz, C(+1,-1,+1), A.ny, C(-1,-1,+1)],   // +z -y
+    [A.ny, C(+1,-1,-1), A.nz, C(-1,-1,-1)],   // -y -z
+    [A.nz, C(+1,+1,-1), A.py, C(-1,+1,-1)],   // -z +y
+  ];
+  const positions: number[] = [];
+  for (const f of faces) {
+    const [a, b, c2, d] = f;
+    _pushTri(positions, a[0], a[1], a[2], b[0], b[1], b[2], c2[0], c2[1], c2[2]);
+    _pushTri(positions, a[0], a[1], a[2], c2[0], c2[1], c2[2], d[0], d[1], d[2]);
+  }
+  const geom = new THREE.BufferGeometry();
+  geom.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+  geom.computeVertexNormals();
+  return geom;
+}
+
+// Botryoidal cluster — 4 hemispheres of varying size welded into a
+// bumpy mass. Reads as a malachite kidney / hematite blob far better
+// than a single sphere. Each "bubble" is just a low-poly sphere
+// translated; the geometries get merged at the end so the cluster
+// is one BufferGeometry per token.
+function _makeBotryoidalCluster(): any {
+  const bubbles = [
+    { r: 0.42, x: 0.00, y: 0.05, z: 0.00 },   // dominant central bump
+    { r: 0.26, x: 0.30, y: -0.10, z: 0.10 },  // small lobe
+    { r: 0.30, x: -0.18, y: 0.00, z: 0.22 },  // medium lobe
+    { r: 0.22, x: 0.12, y: -0.05, z: -0.30 }, // small lobe (back)
+  ];
+  // Build each sphere, translate, accumulate positions.
+  const positions: number[] = [];
+  for (const b of bubbles) {
+    const sph = new THREE.SphereGeometry(b.r, 10, 6);
+    sph.translate(b.x, b.y, b.z);
+    const arr = sph.attributes.position.array;
+    // SphereGeometry is indexed — need to expand to triangles per the index buffer.
+    const idx = sph.index ? sph.index.array : null;
+    if (idx) {
+      for (let i = 0; i < idx.length; i++) {
+        const v = idx[i] * 3;
+        positions.push(arr[v], arr[v + 1], arr[v + 2]);
+      }
+    } else {
+      for (let i = 0; i < arr.length; i++) positions.push(arr[i]);
+    }
+    sph.dispose();
+  }
+  const geom = new THREE.BufferGeometry();
+  geom.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+  geom.computeVertexNormals();
+  return geom;
+}
+
+// Build a unit-sized geometry for a given habit token, oriented so
+// its long axis (= c-axis) lies along +Y. The instance transform
+// later places the base at the wall and scales by c_length / a_width.
 function _buildHabitGeom(token: string): any {
   switch (token) {
     case 'spike':
-      // Acicular — long thin needle. Pointy on both ends to read as
-      // an isolated needle rather than a stub stuck in the wall.
-      return new THREE.ConeGeometry(0.5, 1.0, 6, 1, false);
+      // Acicular — narrow hexagonal pyramid. Phase E5 batch 2:
+      // replaces ConeGeometry's smooth-shaded cone.
+      return _makeHexPyramid();
     case 'prism':
-      // Prismatic — hexagonal prism with a slight taper toward the
-      // free tip. Captures the dominant calcite / quartz / beryl shape.
-      return new THREE.CylinderGeometry(0.45, 0.55, 1.0, 6, 1, false);
+      // Prismatic — hexagonal prism with pyramidal termination.
+      // Phase E5 batch 1: replaces the flat-topped CylinderGeometry.
+      return _makeHexPrismWithPyramid();
     case 'tablet':
-      // Tabular — flattened rectangular plate, c-axis the short
-      // dimension. 1.5× wider than tall when scaled by a_width
-      // (the c_length × 1.5 factor comes from the Crystal class).
-      return new THREE.BoxGeometry(1.0, 0.4, 1.0);
+      // Tabular — flat plate with chamfered edges. Phase E5 batch 2
+      // replaces the rectangular BoxGeometry.
+      return _makeBeveledTablet();
     case 'rhomb':
-      // Rhombohedral — octahedron rotated by 45° around c-axis reads
-      // as a steeply-pointed "dogtooth" calcite scalenohedron. Six
-      // faces meeting at two pointed apices.
-      return new THREE.OctahedronGeometry(0.55, 0);
+      // Rhombohedral — Iceland-spar-style stretched cube with 6
+      // rhombic faces. Phase E5 batch 1.
+      return _makeRhombohedron();
+    case 'scalene':
+      // Scalenohedral — calcite "dogtooth", 12 scalene-triangle faces
+      // with sharp pointed apices. Phase E5 batch 2: was previously
+      // mapped to the rhombohedron token (geologically wrong).
+      return _makeScalenohedron();
     case 'cube':
       return new THREE.BoxGeometry(0.8, 0.8, 0.8);
     case 'octahedron':
       return new THREE.OctahedronGeometry(0.55, 0);
+    case 'rhombic_dodec':
+      // Garnet-style 12 rhombic faces. Phase E5 batch 3.
+      return _makeRhombicDodecahedron();
     case 'dodecahedron':
       return new THREE.DodecahedronGeometry(0.55, 0);
     case 'botryoidal':
-      // Botryoidal — bumpy half-sphere clinging to the wall. E4 may
-      // replace with multi-bubble geometry; for E3 a single sphere
-      // reads cleanly.
-      return new THREE.SphereGeometry(0.5, 12, 8);
+      // Botryoidal — multi-bubble cluster reads as malachite kidney
+      // or hematite blob. Phase E5 batch 1.
+      return _makeBotryoidalCluster();
     default:
-      return new THREE.CylinderGeometry(0.45, 0.55, 1.0, 6, 1, false);
+      return _makeHexPrismWithPyramid();
   }
 }
 

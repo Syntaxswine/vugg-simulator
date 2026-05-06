@@ -16,8 +16,7 @@ function grow_scorodite(crystal, conditions, step) {
     if (crystal.total_growth_um > 2 && (conditions.fluid.pH > 5.5 || conditions.temperature > 160)) {
       crystal.dissolved = true;
       const dissolved_um = Math.min(3.0, crystal.total_growth_um * 0.10);
-      conditions.fluid.Fe += dissolved_um * 0.5;
-      conditions.fluid.As += dissolved_um * 0.5;  // AsO4³⁻ for downstream arsenates
+      // Phase 1e: Fe + As credits via MINERAL_DISSOLUTION_RATES.scorodite.
       const cause = conditions.fluid.pH > 5.5 ? 'pH>5' : 'T>160°C';
       return new GrowthZone({
         step, temperature: conditions.temperature,
@@ -217,8 +216,7 @@ function grow_adamite(crystal, conditions, step) {
     if (crystal.total_growth_um > 3 && conditions.fluid.pH < 3.5) {
       crystal.dissolved = true;
       const d = Math.min(4.0, crystal.total_growth_um * 0.12);
-      conditions.fluid.Zn += d * 0.5;
-      conditions.fluid.As += d * 0.3;
+      // Phase 1e: Zn + As credits via MINERAL_DISSOLUTION_RATES.adamite.
       return new GrowthZone({ step, temperature: conditions.temperature, thickness_um: -d, growth_rate: -d, note: `acid dissolution (pH ${conditions.fluid.pH.toFixed(1)})` });
     }
     return null;
@@ -257,9 +255,7 @@ function grow_mimetite(crystal, conditions, step) {
     if (crystal.total_growth_um > 3 && conditions.fluid.pH < 3.0) {
       crystal.dissolved = true;
       const d = Math.min(5.0, crystal.total_growth_um * 0.10);
-      conditions.fluid.Pb += d * 0.8;
-      conditions.fluid.As += d * 0.3;
-      conditions.fluid.Cl += d * 0.1;
+      // Phase 1e: Pb + As + Cl credits via MINERAL_DISSOLUTION_RATES.mimetite.
       return new GrowthZone({ step, temperature: conditions.temperature, thickness_um: -d, growth_rate: -d, note: `acid dissolution (pH ${conditions.fluid.pH.toFixed(1)})` });
     }
     return null;
