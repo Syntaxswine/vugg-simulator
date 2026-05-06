@@ -37,24 +37,28 @@ This proposal replaces the 12-button layout with 6 controls that target the actu
 
 ## Proposed Buttons
 
-### 1. Advance (standalone)
-Tick the clock. Pure time. No side effects.
+Every control has two scales: a gentle step (nudge) and a large step (shove). Players choose their tempo — careful microscope work or fast-forwarding to see what happens.
 
-### 2. Heat / Cool (paired)
-Temperature drives solubility, reaction rates, polymorph selection (aragonite vs calcite at high T, wurtzite vs sphalerite on quench), and evaporation rate. Still the single most important control variable.
+### 1. Advance 1 / Advance 10 (paired)
+Tick the clock. Pure time. No side effects. Advance 1 for careful observation, Advance 10 to fast-forward.
 
-### 3. Flood / Drain (paired, replaces old Flood + Oxidize)
-**Flood** introduces fresh fluid from outside the vug. The composition of the incoming fluid is determined by the host rock profile (see PROPOSAL-HOST-ROCK.md). High-permeability rocks (limestone) flood with carbonate-rich water. Low-permeability rocks (pegmatite) barely flood at all.
+### 2. Warm / Heat  ·  Cool / Quench (paired, two scales)
+Temperature drives solubility, reaction rates, polymorph selection (aragonite vs calcite at high T, wurtzite vs sphalerite on quench), and evaporation rate. Warm/Cool for gentle adjustments, Heat/Quench for dramatic shifts.
 
-**Drain** lowers the water level, exposing crystals above the meniscus to air. This IS oxidation — vadose zone chemistry activates. Crystals above the waterline experience:
+### 3. Seep / Flood  ·  Drain / Evaporate (paired, two scales)
+Replaces old Flood + Oxidize.
+
+**Seep/Flood** introduces fresh fluid from outside the vug. Seep adds a small amount, Flood is a deluge. The composition of the incoming fluid is determined by the host rock profile (see PROPOSAL-HOST-ROCK.md). High-permeability rocks (limestone) flood with carbonate-rich water. Low-permeability rocks (pegmatite) barely flood at all.
+
+**Drain/Evaporate** lowers the water level. Drain is gradual, Evaporate is rapid. Exposing crystals above the meniscus to air activates vadose zone chemistry:
 - Oxidative dissolution (pyrite → goethite, uraninite → secondary U minerals)
 - Dehydration (borax → tincalconite, mirabilite → thenardite)
 - Ceased growth (no fluid to grow from)
 
 This replaces the old "oxidize" button with the actual physical mechanism: take the water away and the air does the rest.
 
-### 4. Acidify / Alkalinize (paired)
-pH drives carbonate speciation (Bjerrum diagram — H₂CO₃ / HCO₃⁻ / CO₃²⁻ shift), controls which minerals dissolve vs precipitate, and sets the Eh-pH stability field. Now that carbonate speciation is implemented, this button has real cascade effects across the whole system.
+### 4. Tweak pH / Shift pH (paired, acidify and alkalinize as two scales)
+Tweak for small adjustments, Shift for dramatic ones. pH drives carbonate speciation (Bjerrum diagram — H₂CO₃ / HCO₃⁻ / CO₃²⁻ shift), controls which minerals dissolve vs precipitate, and sets the Eh-pH stability field. Each direction (acidify/alkalinize) has both a gentle and aggressive option.
 
 ### 5. Inject Species (single button, opens picker)
 Replaces inject silica / inject metals / add fluorine / inject copper. One button that opens a dropdown or modal where the player selects which species to add and how much.
@@ -66,8 +70,9 @@ Available species should include all tracked fluid species:
 
 Each injection adds the chosen amount (slider: 1-100 ppm) to the fluid. The mass balance system debits the fluid as crystals grow — so injecting copper doesn't just "enable chalcopyrite," it adds Cu to the pool that ALL copper-bearing minerals compete for.
 
-### 6. Tectonic Shock (standalone)
-Fractures the cavity. Creates new nucleation sites on fresh fracture surfaces. Can open new fluid pathways (increases effective permeability temporarily). The violent reset.
+### 6. Tap / Shock (paired, two scales)
+**Tap** — small seismic event, adds a few new nucleation sites. Gentle.
+**Shock** — catastrophic fracture of the cavity. Creates many new nucleation sites on fresh fracture surfaces. Opens new fluid pathways (increases effective permeability temporarily). The violent reset.
 
 ---
 
@@ -101,21 +106,22 @@ Events are scenario-appropriate. An evaporite basin shouldn't get magmatic intru
 
 ```
 ┌─────────────────────────────────────────┐
-│  [ Advance ]                            │
+│  [ Advance 1 ]  [ Advance 10 ]         │
 │                                         │
-│  [ ▲ Heat ]  /  [ ▼ Cool ]             │
-│  [ ▲ Flood ]  /  [ ▼ Drain ]           │
-│  [ ▲ Acidify ]  /  [ ▼ Alkalinize ]    │
+│  [ Warm ]  [ Heat ]  /  [ Cool ]  [ Quench ]
+│  [ Seep ]  [ Flood ] /  [ Drain ] [ Evaporate ]
+│  [ Tweak ↓pH ] [ Shift ↓pH ]           │
+│  [ Tweak ↑pH ] [ Shift ↑pH ]           │
 │                                         │
 │  [ 💧 Inject Species... ]               │
-│  [ ⚡ Tectonic Shock ]                  │
+│  [ 👆 Tap ]  [ ⚡ Shock ]              │
 │                                         │
 │  ── Random Events ──                    │
 │  (appear as they happen, dismissable)   │
 └─────────────────────────────────────────┘
 ```
 
-Paired buttons share a row. Each pair is one control axis. The player thinks in terms of "hotter/colder," "wetter/drier," "more acidic/more basic" — not "inject element #4."
+Paired buttons share a row. Each pair is one control axis with two scales — gentle and aggressive. The player thinks in terms of "hotter/colder," "wetter/drier," "more acidic/more basic" — not "inject element #4." Two scales let them choose their tempo without cluttering the interface.
 
 ---
 
@@ -136,4 +142,4 @@ Paired buttons share a row. Each pair is one control axis. The player thinks in 
 
 The player should never choose what grows. They choose the conditions and discover what emerges. The controls are verbs that act on the physics, not on the minerals. The minerals are the *result* — the player's reward for getting the conditions right, or their lesson for getting them wrong.
 
-Six buttons. Three control axes (temperature, water, pH) plus time, chemistry injection, and catastrophe. Everything else emerges.
+Six verbs. Three control axes (temperature, water, pH) plus time, chemistry injection, and catastrophe. Two scales each — gentle and aggressive. Everything else emerges.
