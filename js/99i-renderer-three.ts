@@ -707,6 +707,240 @@ function _buildHabitGeom(token: string): any {
   }
 }
 
+// ----- Phase E5b: cluster instancing -----
+//
+// Real crystal clusters are aggregates — drusy carpets, sprays,
+// rosettes. Phase E5 gave each crystal one solo facet-correct mesh;
+// E5b multiplies that into a small cluster of satellites around each
+// parent so the visible scene reads as crystal aggregates rather than
+// dotted singletons. Satellites share the parent's geometry +
+// material (cheap to instance) and inherit the parent's userData
+// (tagged with isSatellite=true) so the raycaster resolves a click
+// on a satellite back to the parent crystal.
+//
+// Determinism: the satellite shape is seeded by crystal_id, so
+// reloading the same scene always produces the same cluster.
+
+// Mulberry32 — 32-bit splittable PRNG. Tiny, fast, deterministic per
+// seed. Used per-crystal so each cluster's offsets/rotations/scales
+// are reproducible across reloads.
+function _clusterRand(seed: number) {
+  let t = seed | 0;
+  return () => {
+    t = (t + 0x6D2B79F5) | 0;
+    let r = Math.imul(t ^ (t >>> 15), 1 | t);
+    r = (r + Math.imul(r ^ (r >>> 7), 61 | r)) ^ r;
+    return ((r ^ (r >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+// Per-habit cluster pattern. Different habits aggregate differently
+// in real specimens: acicular crystals fan out as sprays, prismatic
+// crystals stand parallel as forests of needles, cubic crystals carpet
+// the wall in many small replicas, etc.
+//
+// Pattern fields:
+//   countScale:   multiplier on the size-driven baseline count
+//                 (1.0 = default drusy, 2.0 = denser carpet, etc.)
+//   spreadMul:    multiplier on the spread radius (1.0 default)
+//   tiltMax:      max satellite tilt off parent normal (radians)
+//   scaleMin/Max: satellite scale range
+//   evenAngles:   if true, satellites spaced equally around the
+//                 tangent circle (rosette-like)
+type ClusterPattern = {
+  countScale: number;
+  spreadMul: number;
+  tiltMax: number;
+  scaleMin: number;
+  scaleMax: number;
+  evenAngles: boolean;
+};
+
+const _CLUSTER_PATTERNS: Record<string, ClusterPattern> = {
+  // Acicular spray — needles fanning out from a single nucleation
+  // point. Tighter spread + much wider tilt = the stibnite spray look.
+  spike: {
+    countScale: 1.3,
+    spreadMul: 0.6,
+    tiltMax: 0.55,           // ±31°
+    scaleMin: 0.35,
+    scaleMax: 0.75,
+    evenAngles: false,
+  },
+  // Prismatic forest — quartz druse, beryl forest. Parallel alignment
+  // dominates; satellites stand close, tilted only slightly, mostly
+  // matching the parent's height.
+  prism: {
+    countScale: 1.5,
+    spreadMul: 1.1,
+    tiltMax: 0.12,           // ±7°
+    scaleMin: 0.55,
+    scaleMax: 0.95,
+    evenAngles: false,
+  },
+  // Cubic carpet — fluorite / halite / pyrite druse. Many small cubes
+  // packed against the wall, no tilt.
+  cube: {
+    countScale: 1.8,
+    spreadMul: 1.4,
+    tiltMax: 0.08,           // near-flat carpet
+    scaleMin: 0.25,
+    scaleMax: 0.55,
+    evenAngles: false,
+  },
+  // Octahedral / dodecahedral / rhombic-dodec — chunky isometric crystals.
+  // Slightly fewer satellites, modest tilt, larger relative scale.
+  octahedron: {
+    countScale: 0.8,
+    spreadMul: 1.0,
+    tiltMax: 0.20,
+    scaleMin: 0.40,
+    scaleMax: 0.75,
+    evenAngles: false,
+  },
+  rhombic_dodec: {
+    countScale: 0.8,
+    spreadMul: 1.0,
+    tiltMax: 0.20,
+    scaleMin: 0.40,
+    scaleMax: 0.75,
+    evenAngles: false,
+  },
+  // Tabular rosette — petals fanned with even angular spacing so
+  // satellites read as a flower-like arrangement (gypsum desert rose,
+  // hematite rose). Wider tilt to face the petals outward.
+  tablet: {
+    countScale: 1.2,
+    spreadMul: 1.3,
+    tiltMax: 0.40,           // ±23° — petals open outward
+    scaleMin: 0.50,
+    scaleMax: 0.85,
+    evenAngles: true,        // rosette signature
+  },
+  // Botryoidal — already a multi-bubble cluster geometry; adding
+  // satellites would just clutter. Skip with countScale=0.
+  botryoidal: {
+    countScale: 0,
+    spreadMul: 1,
+    tiltMax: 0,
+    scaleMin: 1, scaleMax: 1,
+    evenAngles: false,
+  },
+};
+
+const _CLUSTER_PATTERN_DEFAULT: ClusterPattern = {
+  countScale: 1.0,
+  spreadMul: 1.0,
+  tiltMax: 0.20,
+  scaleMin: 0.40,
+  scaleMax: 0.80,
+  evenAngles: false,
+};
+
+// Number of satellite meshes per crystal — scales inversely with
+// crystal size. Big gem crystals (>60 mm) read as solo specimens;
+// small ones build into drusy carpets. Multiplied by the per-habit
+// countScale.
+function _clusterSatelliteCount(crystal: any, pattern: ClusterPattern): number {
+  const cLen = crystal.c_length_mm;
+  let base;
+  if (cLen > 60) base = 0;
+  else if (cLen > 20) base = 2;
+  else if (cLen > 8) base = 4;
+  else base = 6;
+  return Math.round(base * pattern.countScale);
+}
+
+// Generate satellite meshes around a parent crystal. Each satellite
+// is the same geometry/material; positioned within ~1.5× the parent's
+// a-axis tangentially around the substrate normal, scaled to 0.4-0.8×
+// parent, tilted up to ±11° off the parent's c-axis. Satellites are
+// added to state.crystals alongside the parent.
+function _emitClusterSatellites(
+  state: any, crystal: any, geom: any, mat: any,
+  ax: number, ay: number, az: number,
+  nx: number, ny: number, nz: number,
+  parentCLen: number, parentAWid: number,
+  geomToken: string,
+) {
+  const pattern = _CLUSTER_PATTERNS[geomToken] || _CLUSTER_PATTERN_DEFAULT;
+  const n = _clusterSatelliteCount(crystal, pattern);
+  if (n === 0) return;
+  const rand = _clusterRand((crystal.crystal_id || 0) * 0x9E3779B9 + 0x12345);
+  // Build an orthonormal tangent frame perpendicular to the substrate
+  // normal so satellite offsets stay in the wall plane.
+  const refUp = Math.abs(ny) < 0.9 ? [0, 1, 0] : [1, 0, 0];
+  let t1x = refUp[1] * nz - refUp[2] * ny;
+  let t1y = refUp[2] * nx - refUp[0] * nz;
+  let t1z = refUp[0] * ny - refUp[1] * nx;
+  const t1len = Math.sqrt(t1x * t1x + t1y * t1y + t1z * t1z) || 1;
+  t1x /= t1len; t1y /= t1len; t1z /= t1len;
+  const t2x = ny * t1z - nz * t1y;
+  const t2y = nz * t1x - nx * t1z;
+  const t2z = nx * t1y - ny * t1x;
+  const spread = parentAWid * 1.5 * pattern.spreadMul;
+  const scaleSpan = pattern.scaleMax - pattern.scaleMin;
+  const tiltSpan = pattern.tiltMax * 2;  // span around 0 (i.e. ±tiltMax)
+  const upVec = new THREE.Vector3(0, 1, 0);
+  const targetVec = new THREE.Vector3();
+  for (let i = 0; i < n; i++) {
+    const r = (0.5 + 0.5 * rand()) * spread;
+    // Even angular spacing for rosette habits, random for everything else.
+    const angle = pattern.evenAngles
+      ? (i / n) * Math.PI * 2 + rand() * 0.3
+      : rand() * Math.PI * 2;
+    const ca = Math.cos(angle), sa = Math.sin(angle);
+    const ox = ax + r * (ca * t1x + sa * t2x);
+    const oy = ay + r * (ca * t1y + sa * t2y);
+    const oz = az + r * (ca * t1z + sa * t2z);
+    const sScale = pattern.scaleMin + scaleSpan * rand();
+    const sCLen = parentCLen * sScale;
+    const sAWid = parentAWid * sScale;
+    // Tilt off parent normal — magnitude per-habit. For rosettes the
+    // tilt direction is the OUTWARD radial (so petals open outward);
+    // for everything else the tilt axis is randomized so the spray
+    // looks irregular rather than synchronized.
+    const tiltAngle = (rand() - 0.5) * tiltSpan;
+    const tiltAxisAngle = pattern.evenAngles
+      ? angle + Math.PI / 2     // rosette: tilt axis perpendicular to radial direction
+      : rand() * Math.PI * 2;
+
+    const tax = Math.cos(tiltAxisAngle) * t1x + Math.sin(tiltAxisAngle) * t2x;
+    const tay = Math.cos(tiltAxisAngle) * t1y + Math.sin(tiltAxisAngle) * t2y;
+    const taz = Math.cos(tiltAxisAngle) * t1z + Math.sin(tiltAxisAngle) * t2z;
+    const cosT = Math.cos(tiltAngle), sinT = Math.sin(tiltAngle);
+    const kDotN = tax * nx + tay * ny + taz * nz;
+    // Rodrigues' rotation formula — rotate normal around tilt axis.
+    let sNx = nx * cosT + (tay * nz - taz * ny) * sinT + tax * kDotN * (1 - cosT);
+    let sNy = ny * cosT + (taz * nx - tax * nz) * sinT + tay * kDotN * (1 - cosT);
+    let sNz = nz * cosT + (tax * ny - tay * nx) * sinT + taz * kDotN * (1 - cosT);
+    const nLen = Math.sqrt(sNx * sNx + sNy * sNy + sNz * sNz) || 1;
+    sNx /= nLen; sNy /= nLen; sNz /= nLen;
+    const sOffset = sCLen * 0.5;
+    const satMesh = new THREE.Mesh(geom, mat);
+    satMesh.scale.set(sAWid, sCLen, sAWid);
+    satMesh.position.set(
+      ox + sNx * sOffset,
+      oy + sNy * sOffset,
+      oz + sNz * sOffset,
+    );
+    targetVec.set(sNx, sNy, sNz);
+    satMesh.quaternion.setFromUnitVectors(upVec, targetVec);
+    // Inherit parent userData so raycaster hit-test resolves a satellite
+    // hit back to the parent crystal — clicking a satellite tooltips
+    // the parent mineral, no per-satellite identity surfaced.
+    satMesh.userData = {
+      crystal_id: crystal.crystal_id,
+      mineral: crystal.mineral,
+      ringIdx: crystal.wall_ring_index,
+      cellIdx: crystal.wall_center_cell,
+      isSatellite: true,
+    };
+    satMesh.renderOrder = 1;
+    state.crystals.add(satMesh);
+  }
+}
+
 // Convert a #RRGGBB or rgb(...) string to THREE.Color. Falls back to
 // the bare-wall amber so unknown minerals don't render as black.
 function _topoParseColor(s: string): any {
@@ -860,6 +1094,13 @@ function _topoSyncCrystalMeshes(state: any, sim: any, wall: any) {
     };
 
     state.crystals.add(mesh);
+
+    // Phase E5b: emit cluster satellites around this parent. Same
+    // geometry + material; inherits parent userData so hit-tests
+    // resolve a satellite click back to the parent crystal. The
+    // geomToken selects a per-habit cluster pattern (acicular spray,
+    // tabular rosette, prismatic forest, cubic carpet, etc.).
+    _emitClusterSatellites(state, crystal, geom, mat, ax, ay, az, nx, ny, nz, cLen, aWid, token);
   }
 }
 
