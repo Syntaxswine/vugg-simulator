@@ -338,16 +338,14 @@ function grow_chrysocolla(crystal, conditions, step) {
     if (crystal.total_growth_um > 5 && conditions.fluid.pH < 4.5) {
       crystal.dissolved = true;
       const d = Math.min(2.5, crystal.total_growth_um * 0.08);
-      conditions.fluid.Cu += d * 0.4;
-      conditions.fluid.SiO2 += d * 0.4;
-      return new GrowthZone({ step, temperature: conditions.temperature, thickness_um: -d, growth_rate: -d, note: `acid dissolution (pH ${conditions.fluid.pH.toFixed(1)}) — Cu²⁺ + silicic acid released` });
+      // Phase 1e: Cu + SiO2 credits via MINERAL_DISSOLUTION_RATES.chrysocolla.acid.
+      return new GrowthZone({ step, temperature: conditions.temperature, thickness_um: -d, growth_rate: -d, dissolutionMode: 'acid', note: `acid dissolution (pH ${conditions.fluid.pH.toFixed(1)}) — Cu²⁺ + silicic acid released` });
     }
     if (crystal.total_growth_um > 5 && conditions.temperature > 120) {
       crystal.dissolved = true;
       const d = Math.min(1.5, crystal.total_growth_um * 0.05);
-      conditions.fluid.Cu += d * 0.3;
-      conditions.fluid.SiO2 += d * 0.3;
-      return new GrowthZone({ step, temperature: conditions.temperature, thickness_um: -d, growth_rate: -d, note: `dehydration at ${conditions.temperature.toFixed(0)} °C — chrysocolla is a strict low-T phase` });
+      // Phase 1e: Cu + SiO2 credits via MINERAL_DISSOLUTION_RATES.chrysocolla.dehydration.
+      return new GrowthZone({ step, temperature: conditions.temperature, thickness_um: -d, growth_rate: -d, dissolutionMode: 'dehydration', note: `dehydration at ${conditions.temperature.toFixed(0)} °C — chrysocolla is a strict low-T phase` });
     }
     return null;
   }

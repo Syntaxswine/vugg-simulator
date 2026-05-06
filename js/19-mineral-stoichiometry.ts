@@ -279,9 +279,6 @@ const MINERAL_DISSOLUTION_RATES: Record<string, DissolutionEntry> = {
   vanadinite:    { Pb: 0.3, V: 0.2, Cl: 0.3 },
 
   // ---- Silicates (Phase 1e batch 5, v43 — single-mode subset) ----
-  // chrysocolla has multi-mode dissolution (two pH-driven paths at
-  // different effective rates) and stays inline pending per-mode
-  // dispatch.
   quartz:       { SiO2: 0.8 },                         // OH⁻-assisted dissolution
   feldspar:     { K: 0.3, Al: 0.05, SiO2: 0.5 },       // most Al stays in kaolinite
   albite:       { Na: 0.3, Al: 0.05, SiO2: 0.3 },      // most Al stays in kaolinite
@@ -294,6 +291,18 @@ const MINERAL_DISSOLUTION_RATES: Record<string, DissolutionEntry> = {
   aquamarine:   { Be: 0.2, Al: 0.2, SiO2: 0.4 },
   morganite:    { Be: 0.2, Al: 0.2, SiO2: 0.4 },
   heliodor:     { Be: 0.2, Al: 0.2, SiO2: 0.4 },
+
+  // ---- Silicates (Phase 1e batch 12, v51 — chrysocolla multi-mode) ----
+  // chrysocolla has two dissolution modes, both rate-scaled:
+  //   acid:        pH<4.5, rates {Cu:0.4, SiO2:0.4}
+  //   dehydration: T>120°C, rates {Cu:0.3, SiO2:0.3}
+  // The two paths reflect different mechanisms — acid attack releases
+  // free Cu²⁺ + silicic acid; thermal dehydration is a strict-low-T-phase
+  // breakdown that releases less of each (the gel structure traps some).
+  chrysocolla: { __modes: {
+    acid:        { rates: { Cu: 0.4, SiO2: 0.4 } },    // sigma<1, pH<4.5
+    dehydration: { rates: { Cu: 0.3, SiO2: 0.3 } },    // sigma<1, T>120°C
+  }},
 
   // ---- Carbonates (Phase 1e batch 6, v44 — single-mode subset) ----
   // Calcite has rate-scaled credits for Ca/CO3 (single-mode, table-able)

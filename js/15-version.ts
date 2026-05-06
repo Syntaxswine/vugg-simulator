@@ -657,5 +657,15 @@
 //        credit. Storing the literal credits via {constants} preserves
 //        byte-identicality across both modes.
 //        170/~185 sites table-mediated.
-const SIM_VERSION = 50;
+//   v51 — Phase 1e batch 12: chrysocolla multi-mode (May 2026).
+//        4 inline credit lines removed in grow_chrysocolla via __modes:
+//          chrysocolla.acid        rates {Cu:0.4, SiO2:0.4}  sigma<1, pH<4.5
+//          chrysocolla.dehydration rates {Cu:0.3, SiO2:0.3}  sigma<1, T>120°C
+//        Both rate-scaled, no constants needed. The two paths reflect
+//        different mechanisms: acid attack releases free Cu²⁺ + silicic
+//        acid (higher rates); thermal dehydration is a strict-low-T-phase
+//        breakdown that releases less of each (the gel structure traps
+//        some — chrysocolla's signature soft fluffy texture).
+//        174/~185 sites table-mediated.
+const SIM_VERSION = 51;
 
