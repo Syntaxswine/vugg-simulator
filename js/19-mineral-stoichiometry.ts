@@ -301,6 +301,23 @@ const MINERAL_DISSOLUTION_RATES: Record<string, DissolutionEntry> = {
     acid:      { rates:     { Ca: 0.5, CO3: 0.3 } },     // pH<5.5
   }},
 
+  // ---- Carbonates (Phase 1e batch 10, v49 — rhodochrosite + azurite multi-mode) ----
+  // rhodochrosite has two dissolution modes, both rate-scaled but with
+  // different per-µm coefficients: oxidative (Mn²⁺ -> MnO₂ surface
+  // coating, releases less Mn) and acid (releases more Mn).
+  rhodochrosite: { __modes: {
+    oxidative: { rates: { Mn: 0.4, CO3: 0.4 } },         // sigma<1, O2>1.0
+    acid:      { rates: { Mn: 0.5, CO3: 0.4 } },         // sigma<1, pH<5.5
+  }},
+  // azurite has two dissolution modes, both rate-scaled. The acid path
+  // releases more CO3 (full carbonate dissolution); the low-CO3 path
+  // is the diagnostic azurite -> malachite pseudomorph (less CO3 lost
+  // to gas because the conversion is more efficient).
+  azurite: { __modes: {
+    acid:    { rates: { Cu: 0.5, CO3: 0.4 } },           // sigma<1, pH<5.0
+    low_co3: { rates: { Cu: 0.5, CO3: 0.3 } },           // sigma<1, CO3<80 (-> malachite)
+  }},
+
   // ---- Sulfides (Phase 1e batch 7, v45 — single-mode subset) ----
   // sphalerite + galena + argentite have no inline dissolution credit at all.
   // For acanthite + cobaltite, the table handles only the positive cation

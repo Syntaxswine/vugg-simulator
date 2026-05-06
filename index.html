@@ -4613,7 +4613,31 @@ let timeScale = 5.0;
 //          aragonite.polymorph constants {Ca:2.0, CO3:1.5}  T>100 + sigma<0.8 -> calcite, dT=-2.0
 //          aragonite.acid      rates     {Ca:0.5, CO3:0.3}  pH<5.5
 //        158/~185 sites table-mediated.
-const SIM_VERSION = 48;
+//   v49 — Phase 1e batch 10: rhodochrosite + azurite multi-mode (May 2026).
+//        8 inline credit lines removed in grow_rhodochrosite + grow_azurite
+//        across 4 dissolution sites:
+//          rhodochrosite.oxidative rates {Mn:0.4, CO3:0.4}  sigma<1, O2>1.0
+//          rhodochrosite.acid      rates {Mn:0.5, CO3:0.4}  sigma<1, pH<5.5
+//          azurite.acid            rates {Cu:0.5, CO3:0.4}  sigma<1, pH<5.0
+//          azurite.low_co3         rates {Cu:0.5, CO3:0.3}  sigma<1, CO3<80 (-> malachite pseudomorph)
+//        All four modes are rate-scaled, no constants needed. The
+//        diagnostic carbonate-suite paragenesis (rhodochrosite oxidative
+//        Mn-staining, azurite -> malachite pseudomorph) is now
+//        table-mediated instead of inline-duplicated.
+//
+//        Also bundles a GrowthZone constructor fix: the dataclass
+//        constructor only copied explicitly-named fields, so
+//        `dissolutionMode` was silently dropped — the wrapper always
+//        fell through to the FIRST declared mode. v47/v48 baselines
+//        were byte-identical only because the affected non-first modes
+//        (pyrite acid pH<3, marcasite acid pH<1.5, marcasite oxidative
+//        when first-mode-was-inversion, aragonite acid pH<5.5 with
+//        sigma<1) didn't fire in seed-42. Confirmed by regenerating v48
+//        under the fixed constructor — produces byte-identical baseline
+//        to the committed v48. Rhodochrosite acid mode DID fire in
+//        reactive_wall (Mn rate 0.4 vs 0.5 ppm/µm) and exposed the bug.
+//        162/~185 sites table-mediated.
+const SIM_VERSION = 49;
 
 // ── 18-constants.js ──
 
@@ -4909,6 +4933,22 @@ const MINERAL_DISSOLUTION_RATES = {
     aragonite: { __modes: {
             polymorph: { constants: { Ca: 2.0, CO3: 1.5 } }, // T>100, sigma<0.8 -> calcite, dT=-2.0
             acid: { rates: { Ca: 0.5, CO3: 0.3 } }, // pH<5.5
+        } },
+    // ---- Carbonates (Phase 1e batch 10, v49 — rhodochrosite + azurite multi-mode) ----
+    // rhodochrosite has two dissolution modes, both rate-scaled but with
+    // different per-µm coefficients: oxidative (Mn²⁺ -> MnO₂ surface
+    // coating, releases less Mn) and acid (releases more Mn).
+    rhodochrosite: { __modes: {
+            oxidative: { rates: { Mn: 0.4, CO3: 0.4 } }, // sigma<1, O2>1.0
+            acid: { rates: { Mn: 0.5, CO3: 0.4 } }, // sigma<1, pH<5.5
+        } },
+    // azurite has two dissolution modes, both rate-scaled. The acid path
+    // releases more CO3 (full carbonate dissolution); the low-CO3 path
+    // is the diagnostic azurite -> malachite pseudomorph (less CO3 lost
+    // to gas because the conversion is more efficient).
+    azurite: { __modes: {
+            acid: { rates: { Cu: 0.5, CO3: 0.4 } }, // sigma<1, pH<5.0
+            low_co3: { rates: { Cu: 0.5, CO3: 0.3 } }, // sigma<1, CO3<80 (-> malachite)
         } },
     // ---- Sulfides (Phase 1e batch 7, v45 — single-mode subset) ----
     // sphalerite + galena + argentite have no inline dissolution credit at all.
@@ -6847,6 +6887,14 @@ class GrowthZone {
         this.ca_from_fluid = opts.ca_from_fluid ?? 0.0;
         this.is_phantom = opts.is_phantom ?? false;
         this.dissolution_depth_um = opts.dissolution_depth_um ?? 0.0;
+        // Phase 1e completion: which dissolution mode the engine chose
+        // (e.g. 'oxidative' | 'acid' | 'polymorph' | 'inversion' | 'low_co3' | 'thermal'
+        // | 'dehydration'). Read by applyMassBalance to dispatch the credit
+        // through MINERAL_DISSOLUTION_RATES[mineral].__modes[mode]. Optional —
+        // single-mode (legacy) entries don't need it; the wrapper falls
+        // through to the first declared mode when missing.
+        if (opts.dissolutionMode)
+            this.dissolutionMode = opts.dissolutionMode;
     }
 }
 class Crystal {
@@ -10317,22 +10365,22 @@ function grow_rhodochrosite(crystal, conditions, step) {
         if (crystal.total_growth_um > 5 && conditions.fluid.O2 > 1.0) {
             crystal.dissolved = true;
             const dissolved_um = Math.min(5.0, crystal.total_growth_um * 0.12);
-            conditions.fluid.Mn += dissolved_um * 0.4;
-            conditions.fluid.CO3 += dissolved_um * 0.4;
+            // Phase 1e: Mn + CO3 credits via MINERAL_DISSOLUTION_RATES.rhodochrosite.oxidative.
             return new GrowthZone({
                 step, temperature: conditions.temperature,
                 thickness_um: -dissolved_um, growth_rate: -dissolved_um,
+                dissolutionMode: 'oxidative',
                 note: `oxidative breakdown — Mn²⁺ → Mn³⁺/Mn⁴⁺, surface converting to black manganese oxide (pyrolusite/psilomelane staining)`
             });
         }
         if (crystal.total_growth_um > 5 && conditions.fluid.pH < 5.5) {
             crystal.dissolved = true;
             const dissolved_um = Math.min(6.0, crystal.total_growth_um * 0.15);
-            conditions.fluid.Mn += dissolved_um * 0.5;
-            conditions.fluid.CO3 += dissolved_um * 0.4;
+            // Phase 1e: Mn + CO3 credits via MINERAL_DISSOLUTION_RATES.rhodochrosite.acid.
             return new GrowthZone({
                 step, temperature: conditions.temperature,
                 thickness_um: -dissolved_um, growth_rate: -dissolved_um,
+                dissolutionMode: 'acid',
                 note: `acid dissolution (pH ${conditions.fluid.pH.toFixed(1)}) — Mn²⁺ + CO₃²⁻ released`
             });
         }
@@ -10610,16 +10658,14 @@ function grow_azurite(crystal, conditions, step) {
         if (crystal.total_growth_um > 5 && conditions.fluid.pH < 5.0) {
             crystal.dissolved = true;
             const d = Math.min(3.0, crystal.total_growth_um * 0.10);
-            conditions.fluid.Cu += d * 0.5;
-            conditions.fluid.CO3 += d * 0.4;
-            return new GrowthZone({ step, temperature: conditions.temperature, thickness_um: -d, growth_rate: -d, note: `carbonate dissolution (pH ${conditions.fluid.pH.toFixed(1)}) — fizzes, Cu²⁺ + CO₃²⁻ released` });
+            // Phase 1e: Cu + CO3 credits via MINERAL_DISSOLUTION_RATES.azurite.acid.
+            return new GrowthZone({ step, temperature: conditions.temperature, thickness_um: -d, growth_rate: -d, dissolutionMode: 'acid', note: `carbonate dissolution (pH ${conditions.fluid.pH.toFixed(1)}) — fizzes, Cu²⁺ + CO₃²⁻ released` });
         }
         if (crystal.total_growth_um > 5 && conditions.fluid.CO3 < 80) {
             crystal.dissolved = true;
             const d = Math.min(2.5, crystal.total_growth_um * 0.08);
-            conditions.fluid.Cu += d * 0.5;
-            conditions.fluid.CO3 += d * 0.3;
-            return new GrowthZone({ step, temperature: conditions.temperature, thickness_um: -d, growth_rate: -d, note: `azurite → malachite conversion (CO₃ ${conditions.fluid.CO3.toFixed(0)} ppm drops below pseudomorph threshold)` });
+            // Phase 1e: Cu + CO3 credits via MINERAL_DISSOLUTION_RATES.azurite.low_co3.
+            return new GrowthZone({ step, temperature: conditions.temperature, thickness_um: -d, growth_rate: -d, dissolutionMode: 'low_co3', note: `azurite → malachite conversion (CO₃ ${conditions.fluid.CO3.toFixed(0)} ppm drops below pseudomorph threshold)` });
         }
         return null;
     }

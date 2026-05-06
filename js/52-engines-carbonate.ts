@@ -309,22 +309,22 @@ function grow_rhodochrosite(crystal, conditions, step) {
     if (crystal.total_growth_um > 5 && conditions.fluid.O2 > 1.0) {
       crystal.dissolved = true;
       const dissolved_um = Math.min(5.0, crystal.total_growth_um * 0.12);
-      conditions.fluid.Mn += dissolved_um * 0.4;
-      conditions.fluid.CO3 += dissolved_um * 0.4;
+      // Phase 1e: Mn + CO3 credits via MINERAL_DISSOLUTION_RATES.rhodochrosite.oxidative.
       return new GrowthZone({
         step, temperature: conditions.temperature,
         thickness_um: -dissolved_um, growth_rate: -dissolved_um,
+        dissolutionMode: 'oxidative',
         note: `oxidative breakdown — Mn²⁺ → Mn³⁺/Mn⁴⁺, surface converting to black manganese oxide (pyrolusite/psilomelane staining)`
       });
     }
     if (crystal.total_growth_um > 5 && conditions.fluid.pH < 5.5) {
       crystal.dissolved = true;
       const dissolved_um = Math.min(6.0, crystal.total_growth_um * 0.15);
-      conditions.fluid.Mn += dissolved_um * 0.5;
-      conditions.fluid.CO3 += dissolved_um * 0.4;
+      // Phase 1e: Mn + CO3 credits via MINERAL_DISSOLUTION_RATES.rhodochrosite.acid.
       return new GrowthZone({
         step, temperature: conditions.temperature,
         thickness_um: -dissolved_um, growth_rate: -dissolved_um,
+        dissolutionMode: 'acid',
         note: `acid dissolution (pH ${conditions.fluid.pH.toFixed(1)}) — Mn²⁺ + CO₃²⁻ released`
       });
     }
@@ -595,16 +595,14 @@ function grow_azurite(crystal, conditions, step) {
     if (crystal.total_growth_um > 5 && conditions.fluid.pH < 5.0) {
       crystal.dissolved = true;
       const d = Math.min(3.0, crystal.total_growth_um * 0.10);
-      conditions.fluid.Cu += d * 0.5;
-      conditions.fluid.CO3 += d * 0.4;
-      return new GrowthZone({ step, temperature: conditions.temperature, thickness_um: -d, growth_rate: -d, note: `carbonate dissolution (pH ${conditions.fluid.pH.toFixed(1)}) — fizzes, Cu²⁺ + CO₃²⁻ released` });
+      // Phase 1e: Cu + CO3 credits via MINERAL_DISSOLUTION_RATES.azurite.acid.
+      return new GrowthZone({ step, temperature: conditions.temperature, thickness_um: -d, growth_rate: -d, dissolutionMode: 'acid', note: `carbonate dissolution (pH ${conditions.fluid.pH.toFixed(1)}) — fizzes, Cu²⁺ + CO₃²⁻ released` });
     }
     if (crystal.total_growth_um > 5 && conditions.fluid.CO3 < 80) {
       crystal.dissolved = true;
       const d = Math.min(2.5, crystal.total_growth_um * 0.08);
-      conditions.fluid.Cu += d * 0.5;
-      conditions.fluid.CO3 += d * 0.3;
-      return new GrowthZone({ step, temperature: conditions.temperature, thickness_um: -d, growth_rate: -d, note: `azurite → malachite conversion (CO₃ ${conditions.fluid.CO3.toFixed(0)} ppm drops below pseudomorph threshold)` });
+      // Phase 1e: Cu + CO3 credits via MINERAL_DISSOLUTION_RATES.azurite.low_co3.
+      return new GrowthZone({ step, temperature: conditions.temperature, thickness_um: -d, growth_rate: -d, dissolutionMode: 'low_co3', note: `azurite → malachite conversion (CO₃ ${conditions.fluid.CO3.toFixed(0)} ppm drops below pseudomorph threshold)` });
     }
     return null;
   }

@@ -620,5 +620,29 @@
 //          aragonite.polymorph constants {Ca:2.0, CO3:1.5}  T>100 + sigma<0.8 -> calcite, dT=-2.0
 //          aragonite.acid      rates     {Ca:0.5, CO3:0.3}  pH<5.5
 //        158/~185 sites table-mediated.
-const SIM_VERSION = 48;
+//   v49 — Phase 1e batch 10: rhodochrosite + azurite multi-mode (May 2026).
+//        8 inline credit lines removed in grow_rhodochrosite + grow_azurite
+//        across 4 dissolution sites:
+//          rhodochrosite.oxidative rates {Mn:0.4, CO3:0.4}  sigma<1, O2>1.0
+//          rhodochrosite.acid      rates {Mn:0.5, CO3:0.4}  sigma<1, pH<5.5
+//          azurite.acid            rates {Cu:0.5, CO3:0.4}  sigma<1, pH<5.0
+//          azurite.low_co3         rates {Cu:0.5, CO3:0.3}  sigma<1, CO3<80 (-> malachite pseudomorph)
+//        All four modes are rate-scaled, no constants needed. The
+//        diagnostic carbonate-suite paragenesis (rhodochrosite oxidative
+//        Mn-staining, azurite -> malachite pseudomorph) is now
+//        table-mediated instead of inline-duplicated.
+//
+//        Also bundles a GrowthZone constructor fix: the dataclass
+//        constructor only copied explicitly-named fields, so
+//        `dissolutionMode` was silently dropped — the wrapper always
+//        fell through to the FIRST declared mode. v47/v48 baselines
+//        were byte-identical only because the affected non-first modes
+//        (pyrite acid pH<3, marcasite acid pH<1.5, marcasite oxidative
+//        when first-mode-was-inversion, aragonite acid pH<5.5 with
+//        sigma<1) didn't fire in seed-42. Confirmed by regenerating v48
+//        under the fixed constructor — produces byte-identical baseline
+//        to the committed v48. Rhodochrosite acid mode DID fire in
+//        reactive_wall (Mn rate 0.4 vs 0.5 ppm/µm) and exposed the bug.
+//        162/~185 sites table-mediated.
+const SIM_VERSION = 49;
 
