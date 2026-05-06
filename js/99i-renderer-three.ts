@@ -1118,8 +1118,29 @@ function _topoSyncCrystalMeshes(state: any, sim: any, wall: any) {
     const len = Math.sqrt(ax * ax + ay * ay + az * az) || 1;
     const nx = -ax / len, ny = -ay / len, nz = -az / len;
 
+    // Q3a — CDR pseudomorph outline inheritance. When a crystal was
+    // born via a coupled-dissolution-precipitation route (Q2a tagged
+    // it with cdr_replaces_crystal_id), inherit the parent's habit
+    // for the geometry primitive — malachite-after-azurite renders
+    // with the azurite cube silhouette filled in malachite's color;
+    // goethite-after-pyrite renders as a "limonite cube" not a free
+    // botryoidal blob. Material color stays the child's. Per Putnis
+    // 2002/2009: CDR preserves external form because the dissolution-
+    // precipitation interface is sharp on scales below the precipitate
+    // grain size. The sim already tags eligible crystals (Q2a); the
+    // renderer just consumes the pointer.
+    let habitForGeom = crystal.habit;
+    let isCdrPseudomorph = false;
+    if (crystal.cdr_replaces_crystal_id != null) {
+      const parent = sim.crystals.find((c: any) => c.crystal_id === crystal.cdr_replaces_crystal_id);
+      if (parent && parent.habit) {
+        habitForGeom = parent.habit;
+        isCdrPseudomorph = true;
+      }
+    }
+
     // Pick the habit primitive and cache it.
-    const token = _habitGeomToken(crystal.habit);
+    const token = _habitGeomToken(habitForGeom);
     let geom = state.geomCache.get(token);
     if (!geom) {
       geom = _buildHabitGeom(token);
@@ -1134,7 +1155,18 @@ function _topoSyncCrystalMeshes(state: any, sim: any, wall: any) {
     const colorStr = (spec && spec.class_color) || '#d2691e';
     const klass = spec && spec.class;
     const metalness = (klass === 'sulfide' || klass === 'native') ? 0.45 : 0.08;
-    const roughness = (klass === 'silicate' || klass === 'oxide') ? 0.42 : 0.62;
+    let roughness = (klass === 'silicate' || klass === 'oxide') ? 0.42 : 0.62;
+    // Q3a porosity boost for CDR pseudomorphs — Putnis 2009 emphasizes
+    // that CDR products are typically porous (volume mismatch
+    // accommodation between parent and child phases). Boss directive
+    // 2026-05-06 #4: renderer-roughness boost is the right level of
+    // fidelity rather than a separate sim field; real pseudomorphs
+    // vary widely between dense and porous, and the visual cue (less
+    // metallic luster, more matte surface) is what reads to the
+    // viewer.
+    if (isCdrPseudomorph) {
+      roughness = Math.min(1.0, roughness + 0.18);
+    }
     const mat = new THREE.MeshStandardMaterial({
       color: _topoParseColor(colorStr),
       roughness,
