@@ -363,7 +363,8 @@ function _habitGeomToken(habit: string): string {
   if (h === 'acicular' || h === 'capillary') return 'spike';
   if (h === 'prismatic' || h === 'columnar' || h === 'bladed') return 'prism';
   if (h === 'tabular' || h === 'platy' || h === 'foliated') return 'tablet';
-  if (h === 'rhombohedral' || h === 'scalenohedral') return 'rhomb';
+  if (h === 'rhombohedral') return 'rhomb';
+  if (h === 'scalenohedral') return 'scalene';  // E5 batch 2: distinct from rhomb (calcite dogtooth)
   if (h === 'cubic' || h === 'cuboid') return 'cube';
   if (h === 'octahedral') return 'octahedron';
   if (h === 'dodecahedral') return 'dodecahedron';
@@ -460,6 +461,118 @@ function _makeRhombohedron(): any {
   return geom;
 }
 
+// Calcite scalenohedron ("dogtooth") — 12 scalene triangle faces, two
+// pointed apices on the c-axis. Geometrically a tall stretched
+// bipyramid where the equatorial belt is two staggered triangles
+// rather than a regular hexagon, so each face is a non-equilateral
+// (scalene) triangle. Sharper and more elongated than the cleavage
+// rhombohedron.
+function _makeScalenohedron(): any {
+  const h = 0.50;             // apex height (full c-axis range ±0.5)
+  const tBelt = 0.05;         // equatorial-belt half-height (small → narrow waist)
+  const r = 0.30;             // equatorial radius (skinnier than rhomb at r=0.42)
+  // 6 equatorial vertices in two staggered triangles at slightly
+  // different heights — this asymmetry is what makes the faces scalene.
+  const upper = [0, 1, 2].map(i => {
+    const a = (i / 3) * Math.PI * 2 + Math.PI / 6;
+    return [Math.cos(a) * r, +tBelt, Math.sin(a) * r];
+  });
+  const lower = [0, 1, 2].map(i => {
+    const a = (i / 3) * Math.PI * 2 + Math.PI / 6 + Math.PI / 3;
+    return [Math.cos(a) * r, -tBelt, Math.sin(a) * r];
+  });
+  const apexT = [0, h, 0];
+  const apexB = [0, -h, 0];
+  const positions: number[] = [];
+  // 6 upper scalene triangles: top apex + adjacent (upper, lower) pair
+  for (let i = 0; i < 3; i++) {
+    const u = upper[i];
+    const lL = lower[(i + 2) % 3];  // lower vertex to the "left" of u
+    const lR = lower[i];             // lower vertex to the "right" of u
+    _pushTri(positions, apexT[0], apexT[1], apexT[2], lL[0], lL[1], lL[2], u[0], u[1], u[2]);
+    _pushTri(positions, apexT[0], apexT[1], apexT[2], u[0], u[1], u[2], lR[0], lR[1], lR[2]);
+  }
+  // 6 lower scalene triangles: bottom apex + adjacent pair (mirror)
+  for (let i = 0; i < 3; i++) {
+    const l = lower[i];
+    const uL = upper[i];                  // upper vertex to the "left"
+    const uR = upper[(i + 1) % 3];        // upper vertex to the "right"
+    _pushTri(positions, apexB[0], apexB[1], apexB[2], l[0], l[1], l[2], uL[0], uL[1], uL[2]);
+    _pushTri(positions, apexB[0], apexB[1], apexB[2], uR[0], uR[1], uR[2], l[0], l[1], l[2]);
+  }
+  const geom = new THREE.BufferGeometry();
+  geom.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+  geom.computeVertexNormals();
+  return geom;
+}
+
+// Hexagonal pyramid — sharper, more crystal-like spike than
+// Three.js's ConeGeometry (which interpolates between segments and
+// reads as a smooth cone). 6 faceted triangle faces. For acicular,
+// dendritic, fibrous habits.
+function _makeHexPyramid(): any {
+  const r = 0.18;             // narrow base — needles are thin
+  const yBase = -0.50;
+  const yApex = 0.50;
+  const positions: number[] = [];
+  for (let i = 0; i < 6; i++) {
+    const a0 = (i / 6) * Math.PI * 2;
+    const a1 = ((i + 1) / 6) * Math.PI * 2;
+    const x0 = Math.cos(a0) * r, z0 = Math.sin(a0) * r;
+    const x1 = Math.cos(a1) * r, z1 = Math.sin(a1) * r;
+    _pushTri(positions, x0, yBase, z0, x1, yBase, z1, 0, yApex, 0);
+  }
+  const geom = new THREE.BufferGeometry();
+  geom.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+  geom.computeVertexNormals();
+  return geom;
+}
+
+// Beveled tablet — flat plate with chamfered edges. Reads as the
+// "fish-tail" wulfenite or wedge-edged baryte tabular habit better
+// than a flat box. 8 vertices on the top face (octagon-shaped after
+// bevel), 8 on the bottom — 8 large square + 4 trapezoidal faces.
+function _makeBeveledTablet(): any {
+  const halfW = 0.50;         // half-width along x and z
+  const bevel = 0.10;         // bevel offset (chamfered corners)
+  const halfH = 0.20;         // half-thickness (c-axis short)
+  // 8 top vertices: octagonal outline at y=+halfH
+  const yT = +halfH, yB = -halfH;
+  const top = [
+    [+halfW - bevel, yT, +halfW],         // edge
+    [+halfW, yT, +halfW - bevel],         // corner inset
+    [+halfW, yT, -halfW + bevel],
+    [+halfW - bevel, yT, -halfW],
+    [-halfW + bevel, yT, -halfW],
+    [-halfW, yT, -halfW + bevel],
+    [-halfW, yT, +halfW - bevel],
+    [-halfW + bevel, yT, +halfW],
+  ];
+  const bot = top.map(v => [v[0], yB, v[2]]);
+  const positions: number[] = [];
+  // Top face — fan from center (octagonal, 8 triangles)
+  for (let i = 0; i < 8; i++) {
+    const a = top[i], b = top[(i + 1) % 8];
+    _pushTri(positions, 0, yT, 0, a[0], a[1], a[2], b[0], b[1], b[2]);
+  }
+  // Bottom face — fan from center, reversed winding
+  for (let i = 0; i < 8; i++) {
+    const a = bot[i], b = bot[(i + 1) % 8];
+    _pushTri(positions, 0, yB, 0, b[0], b[1], b[2], a[0], a[1], a[2]);
+  }
+  // 8 side faces — rectangle quads as triangle pairs between corresponding top/bottom verts
+  for (let i = 0; i < 8; i++) {
+    const t0 = top[i], t1 = top[(i + 1) % 8];
+    const b0 = bot[i], b1 = bot[(i + 1) % 8];
+    _pushTri(positions, t0[0], t0[1], t0[2], b0[0], b0[1], b0[2], b1[0], b1[1], b1[2]);
+    _pushTri(positions, t0[0], t0[1], t0[2], b1[0], b1[1], b1[2], t1[0], t1[1], t1[2]);
+  }
+  const geom = new THREE.BufferGeometry();
+  geom.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+  geom.computeVertexNormals();
+  return geom;
+}
+
 // Botryoidal cluster — 4 hemispheres of varying size welded into a
 // bumpy mass. Reads as a malachite kidney / hematite blob far better
 // than a single sphere. Each "bubble" is just a low-poly sphere
@@ -502,19 +615,26 @@ function _makeBotryoidalCluster(): any {
 function _buildHabitGeom(token: string): any {
   switch (token) {
     case 'spike':
-      // Acicular — long thin needle (hexagonal pyramid).
-      return new THREE.ConeGeometry(0.5, 1.0, 6, 1, false);
+      // Acicular — narrow hexagonal pyramid. Phase E5 batch 2:
+      // replaces ConeGeometry's smooth-shaded cone.
+      return _makeHexPyramid();
     case 'prism':
       // Prismatic — hexagonal prism with pyramidal termination.
-      // Phase E5: replaces the flat-topped CylinderGeometry primitive.
+      // Phase E5 batch 1: replaces the flat-topped CylinderGeometry.
       return _makeHexPrismWithPyramid();
     case 'tablet':
-      // Tabular — flattened rectangular plate, c-axis the short dimension.
-      return new THREE.BoxGeometry(1.0, 0.4, 1.0);
+      // Tabular — flat plate with chamfered edges. Phase E5 batch 2
+      // replaces the rectangular BoxGeometry.
+      return _makeBeveledTablet();
     case 'rhomb':
       // Rhombohedral — Iceland-spar-style stretched cube with 6
-      // rhombic faces. Phase E5: replaces the OctahedronGeometry stub.
+      // rhombic faces. Phase E5 batch 1.
       return _makeRhombohedron();
+    case 'scalene':
+      // Scalenohedral — calcite "dogtooth", 12 scalene-triangle faces
+      // with sharp pointed apices. Phase E5 batch 2: was previously
+      // mapped to the rhombohedron token (geologically wrong).
+      return _makeScalenohedron();
     case 'cube':
       return new THREE.BoxGeometry(0.8, 0.8, 0.8);
     case 'octahedron':
@@ -523,8 +643,7 @@ function _buildHabitGeom(token: string): any {
       return new THREE.DodecahedronGeometry(0.55, 0);
     case 'botryoidal':
       // Botryoidal — multi-bubble cluster reads as malachite kidney
-      // or hematite blob far better than a single sphere. Phase E5
-      // replaces the SphereGeometry primitive with a 4-bump cluster.
+      // or hematite blob. Phase E5 batch 1.
       return _makeBotryoidalCluster();
     default:
       return _makeHexPrismWithPyramid();
