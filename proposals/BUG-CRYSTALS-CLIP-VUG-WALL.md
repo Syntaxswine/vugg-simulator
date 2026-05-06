@@ -145,6 +145,43 @@ needs a SIM_VERSION bump (54+) and per-scenario calibration, since
 limiting crystals' max size will redistribute fluid budget into other
 crystals and shift baselines.
 
+---
+
+## Update — 2026-05-06: second canonical case
+
+The renderer-clip band-aid does not catch all cases. Visual verification
+of the paragenesis campaign (see HANDOFF-PARAGENESIS-VISUAL-VERIFICATION.md)
+turned up a second instance:
+
+| Parameter | Value |
+|---|---|
+| `SIM_VERSION` | 58 |
+| Scenario | `supergene_oxidation` |
+| Seed | `42` |
+| `vug_diameter_mm` | 61.10 |
+| `max_seen_radius_mm` | 63.80 |
+| `clipUniforms.uVugRadius` | 51.53 |
+
+| Crystal | habit | c×a (mm) | comment |
+|---|---|---|---|
+| selenite #6 | rosette | 56.7 × 28.3 | 93% of vug diameter; visibly extends past cavity wall |
+| selenite #20 | rosette | 51.0 × 25.5 | 84% of vug diameter; same visual artifact |
+
+Both are gypsum rosettes whose `_emitClusterSatellites` cluster pattern
+(rosette `spreadMul`, large `parentAWid`) places satellite meshes far
+laterally — and the parent-mesh body itself, scaled by `aWid=28.3`
+laterally, has a footprint exceeding the cavity radius even though
+`uVugRadius` (51.5) is correctly tracking the cavity hull. The fragments
+past `uVugRadius` *are* discarded by the shader, but the visible part
+of the parent rosette already extends past the cavity wall before the
+clip kicks in (the clip can only hide what's outside the cavity hull,
+not shrink the crystal back to fit).
+
+Net: the renderer-clip is and remains a band-aid. The sim-side per-crystal
+cap is the real fix. With two canonical cases (feldspar #7 in pegmatite
+seed 1778042424470, selenite #6 in supergene_oxidation seed 42), there
+are two regression tests for the eventual cap.
+
 ## Related files
 
 | File | Role |
