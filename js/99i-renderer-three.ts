@@ -1310,11 +1310,21 @@ function _topoSyncCrystalMeshes(state: any, sim: any, wall: any) {
       color: _topoParseColor(colorStr),
       roughness: isPerimorphCast ? Math.min(1.0, roughness + 0.25) : roughness,
       metalness: isPerimorphCast ? 0.0 : metalness,
+      // DoubleSide for every crystal — when the camera is INSIDE the
+      // cavity (zoomed in past the wall, orbiting from a vantage near
+      // the center) the front-side-only default culls the camera-
+      // facing back of each crystal mesh, leaving the user looking at
+      // the inside of the far wall and reading the crystal as a
+      // hollow outline. With DoubleSide both faces draw and the cube/
+      // prism termination stays solid from any view angle. Perimorph
+      // casts already needed this for the translucent-shell read; now
+      // every habit gets it. Per-fragment cost is small relative to
+      // the cavity-clip discard test that already runs anyway.
+      side: THREE.DoubleSide,
     };
     if (isPerimorphCast) {
       matOpts.transparent = true;
       matOpts.opacity = 0.42;
-      matOpts.side = THREE.DoubleSide;
     }
     const mat = new THREE.MeshStandardMaterial(matOpts);
     _applyCavityClip(mat, state.clipUniforms);
