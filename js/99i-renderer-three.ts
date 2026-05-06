@@ -514,29 +514,63 @@ function _topoSyncThreeSize(state: any, canvas: HTMLCanvasElement) {
 // match the canvas-vector wireframe primitives more closely.
 function _habitGeomToken(habit: string): string {
   const h = (habit || 'prismatic').toLowerCase();
-  if (h === 'acicular' || h === 'capillary') return 'spike';
-  if (h === 'prismatic' || h === 'columnar' || h === 'bladed') return 'prism';
-  if (h === 'tabular' || h === 'platy' || h === 'foliated') return 'tablet';
-  if (h === 'rhombohedral') return 'rhomb';
-  if (h === 'scalenohedral') return 'scalene';  // E5 batch 2: distinct from rhomb (calcite dogtooth)
-  if (h === 'cubic' || h === 'cuboid') return 'cube';
-  if (h === 'octahedral') return 'octahedron';
-  // E5 batch 3: garnet-style rhombic dodecahedron (12 rhombic faces,
-  // 14 vertices) is the dominant garnet/almandine habit. The regular
-  // Platonic dodecahedron (12 pentagonal faces) is what 'dodecahedral'
-  // produces — kept for any mineral that genuinely needs that.
-  if (h === 'rhombic dodecahedral' || h === 'rhombic-dodecahedral' || h === 'garnet' || h === 'trapezohedral') return 'rhombic_dodec';
-  if (h === 'dodecahedral') return 'dodecahedron';
-  // Q5 — snowball habit (Sweetwater barite radiating from a sulfide
-  // seed). Rendered as a uniform sphere primitive per boss directive
-  // 2026-05-06 ("the geometry of a sphere is evocative enough of the
-  // final form" for v1; radial-spray detail is v2 polish).
+  // Substring matching — sim-side habit strings are sometimes multi-word
+  // ("tabular blades", "fibrous (satin spar)", "chalcedony
+  // (microcrystalline)", "chalcedony_pseudomorph"). Exact-equality
+  // checks miss those; substring checks pick them up. Order matters:
+  // more specific tokens first (e.g. "rhombic dodec" before "dodec").
   if (h === 'snowball') return 'snowball';
-  if (h === 'botryoidal' || h === 'reniform' || h === 'mammillary' || h === 'globular') return 'botryoidal';
-  if (h === 'dendritic' || h === 'arborescent') return 'spike';  // splay handled per-instance later
-  if (h === 'fibrous') return 'spike';
+  if (h.includes('rhombic dodec') || h.includes('rhombic-dodec') || h === 'garnet' || h === 'trapezohedral') return 'rhombic_dodec';
+  if (h === 'dodecahedral' || h === 'dodecahedron') return 'dodecahedron';
+  if (h === 'cubic' || h === 'cuboid' || h === 'cube') return 'cube';
+  if (h === 'octahedral' || h === 'octahedron') return 'octahedron';
+  if (h.includes('rhombohedral')) return 'rhomb';
+  if (h.includes('scalenohedral')) return 'scalene';
+  // Wall-spreading crusts — chalcedony, malachite (banded), agate, smithsonite
+  // botryoidal, rosasite crusts. Chalcedony is the user-flagged case:
+  // microcrystalline silica spreads on the wall like malachite, NOT a quartz
+  // point. The habit string is "chalcedony (microcrystalline)" or
+  // "chalcedony_pseudomorph" — match on substring.
+  if (h.includes('chalcedony')) return 'botryoidal';
+  if (h.includes('botryoidal') || h.includes('reniform') || h.includes('mammillary') || h.includes('globular')) return 'botryoidal';
+  // Banded — malachite-style concentric bands. Renders flat on the wall.
+  if (h.includes('banded') || h === 'massive' || h.includes('massive')) return 'botryoidal';
+  // Tabular family — tablets, plates, blades, foliated sheets. "tabular
+  // blades" was falling through to default 'prism' before the substring
+  // match; tabular plate is the right primitive. NOTE: rosette is
+  // intentionally NOT in this list — selenite rosettes are sprays of
+  // BLADES, where the parent mesh is one blade (vertical-ish prism with
+  // c >> a per the sim's c_length=56.7, a_width=28.3 selenite values)
+  // and the rosette fan comes from _emitClusterSatellites's rosette
+  // pattern (evenAngles=true). Routing rosette → tablet collapsed the
+  // blade into a tall plate that doesn't read as the radial fan.
+  if (h.includes('tabular') || h === 'platy' || h === 'foliated' || h.includes('blade')) return 'tablet';
+  // Acicular / capillary / fibrous all share the spike geom; satin spar
+  // is fibrous selenite, gets the same treatment.
+  if (h.includes('acicular') || h.includes('capillary') || h.includes('fibrous') || h.includes('satin')) return 'spike';
+  if (h.includes('dendritic') || h.includes('arborescent')) return 'spike';
+  if (h === 'prismatic' || h === 'columnar' || h === 'bladed') return 'prism';
   return 'prism';  // sensible default — most cavity habits are vaguely prismatic
 }
+
+// Habit → expected (a-axis / c-axis) ratio. Mirrors the formulas in
+// 27-geometry-crystal.ts:_update_dimensions but indexed by HABIT TOKEN
+// (after _habitGeomToken collapsed sim-side variants), so the renderer
+// can re-derive a sensible aspect when the sim-side dimensions are
+// floored to visibility minimums and would otherwise produce a near-cube.
+const _GEOM_TOKEN_RATIO: Record<string, number> = {
+  spike: 0.15,        // acicular / fibrous / dendritic — long thin
+  prism: 0.4,         // prismatic — quartz-like
+  rhomb: 0.8,         // rhombohedral — calcite chunks
+  scalene: 0.6,       // scalenohedral — calcite dogtooth (taller than rhomb)
+  tablet: 1.5,        // tabular — flat plate, a > c
+  cube: 1.0,          // isometric
+  octahedron: 1.0,
+  rhombic_dodec: 1.0,
+  dodecahedron: 1.0,
+  snowball: 1.0,
+  botryoidal: 1.5,    // wall-crust — wider than tall
+};
 
 // ----- Phase E5 hand-rolled habit geometries -----
 //
@@ -1347,10 +1381,47 @@ function _topoSyncCrystalMeshes(state: any, sim: any, wall: any) {
     // is part of the v48 baseline so we override at the renderer rather
     // than touching the sim. cLen is the larger floor so isometric
     // crystals don't shrink below visible.
-    const cLen = Math.max(2.0, crystal.c_length_mm);
-    const aWid = Math.max(1.5, crystal.a_width_mm);
+    // Visibility floor — tiny crystals (sub-millimeter) need a minimum
+    // rendered size or they vanish in a 30+ mm vug. Independent floors
+    // on c and a (the previous approach) produce near-cube proportions
+    // when both are below their floors, which is wrong for tabular,
+    // botryoidal, acicular, etc. Boss-spotted: tiny barites + selenites
+    // looked like cubes instead of plates; chalcedony rendered as a
+    // quartz point instead of a wall crust.
+    //
+    // Fix: compute the rendered aspect from the habit's expected ratio
+    // when either dimension is at the floor. The geomToken-keyed ratio
+    // table mirrors 27-geometry-crystal.ts:_update_dimensions but indexed
+    // post-token-mapping so multi-word habit strings collapse to the
+    // right shape.
+    const C_FLOOR = 2.0;
+    const A_FLOOR = 1.5;
+    const targetRatio = _GEOM_TOKEN_RATIO[token] ?? 0.5;
+    let cLen = Math.max(C_FLOOR, crystal.c_length_mm);
+    let aWid = Math.max(A_FLOOR, crystal.a_width_mm);
+    const wasFloored = crystal.c_length_mm < C_FLOOR || crystal.a_width_mm < A_FLOOR;
+    if (wasFloored) {
+      // Re-derive aspect from habit so the floor doesn't squash everything
+      // toward 1:1. For tablet-like habits (ratio >= 1) widen aWid; for
+      // prism-like habits (ratio < 1) lengthen cLen.
+      if (targetRatio >= 1.0) {
+        aWid = Math.max(aWid, cLen * targetRatio);
+      } else {
+        cLen = Math.max(cLen, aWid / targetRatio);
+      }
+    }
     if (token === 'cube' || token === 'octahedron' || token === 'rhombic_dodec' || token === 'dodecahedron' || token === 'snowball') {
       mesh.scale.set(cLen, cLen, cLen);
+    } else if (token === 'botryoidal') {
+      // Botryoidal crusts spread laterally on the wall — the c-axis (along
+      // the substrate normal) should be SHORTER than the a-axis. Sim-side
+      // a_width is c × 0.5 by default for non-tabular habits, which gives
+      // wrong-direction proportions for crusts. Override here so chalcedony
+      // / banded malachite / smithsonite botryoidal crusts read as flat
+      // domes instead of vertical spikes.
+      const crustLat = Math.max(aWid, cLen * 1.5);
+      const crustH = Math.min(cLen, crustLat * 0.4);
+      mesh.scale.set(crustLat, crustH, crustLat);
     } else {
       mesh.scale.set(aWid, cLen, aWid);
     }
