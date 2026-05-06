@@ -559,5 +559,23 @@
 //        rates), azurite (low-CO3 vs acid at different CO3 rates) are
 //        multi-mode and stay inline pending per-mode dispatch.
 //        112/~185 sites table-mediated.
-const SIM_VERSION = 44;
+//   v45 — Phase 1e migration batch 7: sulfide (single-mode subset)
+//        (May 2026). 32 credits removed across 14 sulfide minerals
+//        (chalcopyrite, molybdenite, nickeline, millerite, stibnite,
+//        bismuthinite, bornite, chalcocite, covellite, tetrahedrite,
+//        tennantite, arsenopyrite, acanthite, cobaltite). For
+//        arsenopyrite, the standard Fe+As+S rate-scaled credits move
+//        to the table; the Au-trap (zone-data-driven trace) and pH
+//        adjustment stay inline. For acanthite + cobaltite, the
+//        positive cation credits move to the table; the negative S
+//        consumption (Math.max-clamped subtraction) stays inline
+//        pending the table's negative-rate design extension.
+//        144/~185 sites table-mediated. Remaining ~41 sites are all
+//        multi-mode/special: pyrite + marcasite multi-mode (12),
+//        wurtzite constants (2), aragonite + rhodochrosite + azurite
+//        carbonate multi-mode (12), erythrite + annabergite arsenate
+//        multi-mode (8), chrysocolla silicate multi-mode (4),
+//        arsenopyrite Au-trap + calcite trace (3 — never tablifiable
+//        as currently designed).
+const SIM_VERSION = 45;
 

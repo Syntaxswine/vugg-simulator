@@ -271,6 +271,33 @@ const MINERAL_DISSOLUTION_RATES: Record<string, Record<string, number>> = {
   rosasite:     { Cu: 0.3, Zn: 0.2, CO3: 0.25 },       // pH < 5.5
   aurichalcite: { Zn: 0.4, Cu: 0.15, CO3: 0.3 },       // pH < 5.5
   cerussite:    { Pb: 0.5, CO3: 0.4 },                 // strong-acid pH < 4
+
+  // ---- Sulfides (Phase 1e batch 7, v45 — single-mode subset) ----
+  // pyrite + marcasite are multi-mode (oxidative rate-scaled vs acid
+  // constants at different effective rates) — stay inline.
+  // wurtzite has constant-rate "sublimation" credits — stays inline pending
+  // dispatch design (single-event but non-rate-scaled constants).
+  // sphalerite + galena + argentite have no inline dissolution credit at all.
+  // For acanthite + cobaltite, the table handles only the positive cation
+  // credits (Ag / Co + As); the inline negative S consumption stays for now
+  // pending negative-rate design extension.
+  // For arsenopyrite, the table handles the standard Fe + As + S
+  // rate-scaled credits; the Au-trap (zone-data-driven trace) and the pH
+  // adjustment stay inline since neither is rate-scaled.
+  chalcopyrite: { Cu: 0.8, Fe: 0.5, S: 0.3 },          // acid attack
+  molybdenite:  { Mo: 0.8, S: 0.2 },                   // oxidative — MoO₄²⁻ released
+  nickeline:    { Ni: 0.4, As: 0.4 },                  // oxidative weathering
+  millerite:    { Ni: 0.4, S: 0.3 },                   // acid attack
+  stibnite:     { Sb: 0.3, S: 0.3 },                   // oxidative
+  bismuthinite: { Bi: 0.3, S: 0.3 },                   // oxidative
+  bornite:      { Cu: 0.4, Fe: 0.2, S: 0.3 },          // supergene oxidation
+  chalcocite:   { Cu: 0.5, S: 0.3 },                   // strong oxidation
+  covellite:    { Cu: 0.4, S: 0.4 },                   // strong oxidation
+  tetrahedrite: { Cu: 0.6, Sb: 0.3, S: 0.4 },          // acid + oxidative
+  tennantite:   { Cu: 0.6, As: 0.3, S: 0.4 },          // acid + oxidative
+  arsenopyrite: { Fe: 0.5, As: 0.4, S: 0.4 },          // major species; Au-trap stays inline
+  acanthite:    { Ag: 0.4 },                           // S consumption stays inline
+  cobaltite:    { Co: 0.4, As: 0.4 },                  // S consumption stays inline
 };
 
 // Apply mass balance for a single growth or dissolution zone. Called
