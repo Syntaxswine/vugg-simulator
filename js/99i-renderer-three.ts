@@ -974,7 +974,29 @@ function _emitClusterSatellites(
   const t2x = ny * t1z - nz * t1y;
   const t2y = nz * t1x - nx * t1z;
   const t2z = nx * t1y - ny * t1x;
-  const spread = parentAWid * 1.5 * pattern.spreadMul;
+  // Spread of cluster satellites around the parent anchor.
+  //
+  // The natural rule is `spread ∝ parent's a-axis × habit-spread-multiplier`
+  // — a 5 mm calcite cluster spans about 10 mm, a 30 mm rosette spans
+  // about 60 mm, etc. That holds geologically when parents are small
+  // relative to the cavity, but fails when the parent itself approaches
+  // cavity scale (selenite rosettes at aWid=28 mm in a 61 mm vug, the
+  // canonical case from supergene_oxidation seed 42 — see
+  // BUG-CRYSTALS-CLIP-VUG-WALL.md update). Without a cap, satellites
+  // get flung tangentially past the cavity hull and either get clipped
+  // away by the fragment shader or, worse, the cluster looks like it
+  // exploded outward.
+  //
+  // Cap: satellite tangential offset can't exceed ~40% of the cavity
+  // hull radius. The 0.4 factor was tuned visually — high enough that
+  // small/medium crystals retain proportional spread, low enough that
+  // large parents stop walking out of the vug. The clip shader still
+  // catches anything that slips past at the fragment level. This is
+  // a renderer-only Tier-1.5 patch; the proper fix is the sim-side
+  // per-crystal cap that prevents oversized parents in the first place.
+  const cavityRadius = state.clipUniforms?.uVugRadius?.value ?? Infinity;
+  const spreadCap = Number.isFinite(cavityRadius) ? cavityRadius * 0.4 : Infinity;
+  const spread = Math.min(parentAWid * 1.5 * pattern.spreadMul, spreadCap);
   const scaleSpan = pattern.scaleMax - pattern.scaleMin;
   const tiltSpan = pattern.tiltMax * 2;  // span around 0 (i.e. ±tiltMax)
   const upVec = new THREE.Vector3(0, 1, 0);
