@@ -128,8 +128,61 @@ function _topoInitThree(canvas: HTMLCanvasElement): any {
     // Cache geometries per habit shape — many crystals can share the
     // same primitive geometry, only the per-mesh transform differs.
     geomCache: new Map<string, any>(),
+    // Shared uniforms for the cavity-clip shader injection. Crystal
+    // materials reference these directly so updating the cavity hull
+    // radius (when the cavity rebuilds) immediately reflects in every
+    // crystal's clip plane. The default radius is huge so the first
+    // frame before the cavity has been built doesn't clip anything.
+    clipUniforms: {
+      uVugRadius: { value: 1e6 },
+      uVugCenter: { value: new THREE.Vector3(0, 0, 0) },
+    },
   };
   return _topoThreeState;
+}
+
+// Inject a sphere-distance discard into a MeshStandardMaterial via
+// onBeforeCompile, so fragments outside the cavity hull radius drop
+// out. The vug becomes a natural slice volume — crystals that grew
+// past the wall (the feldspar-#7 bug) get cleanly cut at the wall
+// instead of bursting visibly into the host rock. The cavity itself
+// is centered at world origin (vertices computed as radiusMm × dir
+// from origin in _topoBuildCavityGeometry), so distance from origin
+// is the right metric. clipUniforms is shared across all crystal
+// materials; updating uVugRadius on cavity rebuild updates every
+// crystal's clip in one assignment.
+//
+// Pegmatite cavities have base_radius_mm uniform across cells (no
+// dissolution erosion at nucleation), so a single sphere clip
+// matches the cavity geometry exactly. Eroded scenarios with
+// per-cell wall_depth produce an irregular cavity; v1 uses the
+// cavity's max hull radius, which means crystals can occasionally
+// extend slightly past the wall in directions where wall_depth is
+// below max. That's a refinement for v2 (per-direction radius via
+// a 2D sampler texture indexed by phi/theta).
+function _applyCavityClip(material: any, clipUniforms: any) {
+  material.onBeforeCompile = (shader: any) => {
+    shader.uniforms.uVugRadius = clipUniforms.uVugRadius;
+    shader.uniforms.uVugCenter = clipUniforms.uVugCenter;
+    shader.vertexShader = shader.vertexShader.replace(
+      '#include <common>',
+      '#include <common>\nvarying vec3 vCavityWorldPos;'
+    );
+    shader.vertexShader = shader.vertexShader.replace(
+      '#include <begin_vertex>',
+      '#include <begin_vertex>\nvCavityWorldPos = (modelMatrix * vec4(transformed, 1.0)).xyz;'
+    );
+    shader.fragmentShader = shader.fragmentShader.replace(
+      '#include <common>',
+      '#include <common>\nvarying vec3 vCavityWorldPos;\nuniform vec3 uVugCenter;\nuniform float uVugRadius;'
+    );
+    shader.fragmentShader = shader.fragmentShader.replace(
+      'void main() {',
+      'void main() {\n  if (length(vCavityWorldPos - uVugCenter) > uVugRadius) discard;'
+    );
+  };
+  // Force shader rebuild on next render.
+  material.needsUpdate = true;
 }
 
 // Compose a deterministic signature of the wall + sim conditions that
@@ -339,6 +392,22 @@ function _topoBuildCavityGeometry(state: any, wall: any, sim: any) {
   const prev = target.geometry;
   target.geometry = geom;
   if (prev && prev.dispose) prev.dispose();
+
+  // Update the cavity hull radius for the per-crystal clip shader.
+  // Use the actual max world-space distance from origin across the
+  // generated vertex positions (already accounts for polarProfileFactor,
+  // cell.wall_depth, and any other per-cell radius modifier the build
+  // step applied). Crystals get clipped at this radius — the vug
+  // becomes the slice surface.
+  let maxR2 = 0;
+  for (let i = 0; i < numVerts; i++) {
+    const x = positions[i * 3 + 0];
+    const y = positions[i * 3 + 1];
+    const z = positions[i * 3 + 2];
+    const r2 = x * x + y * y + z * z;
+    if (r2 > maxR2) maxR2 = r2;
+  }
+  state.clipUniforms.uVugRadius.value = Math.sqrt(maxR2);
 }
 
 // Sync the renderer's drawing-buffer size to the canvas's CSS size and
@@ -734,6 +803,21 @@ function _clusterRand(seed: number) {
   };
 }
 
+// Deterministic per-crystal yaw around the c-axis (the local +Y
+// post-orientation, which is aligned with the substrate normal).
+// Without this, every cube/octahedron/prism in a cluster faces the
+// camera with the same vertex on top — even though real crystals
+// nucleate with random crystallographic orientation around the c-axis.
+// Hex prisms get 6 visually-distinct rotations, cubes 4, etc., but the
+// continuous random angle reads more naturally than snapping to lattice
+// symmetry. Seed combines crystal_id with a different prime than
+// _emitClusterSatellites uses (0x9E3779B9 vs 0x85EBCA77) so the parent's
+// yaw isn't correlated with its satellites' offsets.
+function _crystalYaw(crystal_id: number): number {
+  const rand = _clusterRand(((crystal_id | 0) * 0x85EBCA77 + 0x67890) | 0);
+  return rand() * Math.PI * 2;
+}
+
 // Per-habit cluster pattern. Different habits aggregate differently
 // in real specimens: acicular crystals fan out as sprays, prismatic
 // crystals stand parallel as forests of needles, cubic crystals carpet
@@ -930,6 +1014,10 @@ function _emitClusterSatellites(
     );
     targetVec.set(sNx, sNy, sNz);
     satMesh.quaternion.setFromUnitVectors(upVec, targetVec);
+    // Per-satellite yaw around c-axis — drawn from the same cluster
+    // PRNG so each satellite gets a distinct rotation around its own
+    // local +Y (world-space substrate normal).
+    satMesh.rotateY(rand() * Math.PI * 2);
     // Inherit parent userData so raycaster hit-test resolves a satellite
     // hit back to the parent crystal — clicking a satellite tooltips
     // the parent mineral, no per-satellite identity surfaced.
@@ -1052,6 +1140,7 @@ function _topoSyncCrystalMeshes(state: any, sim: any, wall: any) {
       roughness,
       metalness,
     });
+    _applyCavityClip(mat, state.clipUniforms);
 
     const mesh = new THREE.Mesh(geom, mat);
 
@@ -1097,6 +1186,13 @@ function _topoSyncCrystalMeshes(state: any, sim: any, wall: any) {
     const up = new THREE.Vector3(0, 1, 0);
     const target = new THREE.Vector3(nx, ny, nz);
     mesh.quaternion.setFromUnitVectors(up, target);
+    // Per-crystal yaw around c-axis — real crystals nucleate with
+    // random crystallographic orientation around their growth axis;
+    // without this every cube/prism in a cluster shares the same
+    // face-toward-camera rotation. rotateY composes the local +Y
+    // rotation AFTER the substrate orientation, so the spin happens
+    // around the (now world-space) substrate normal.
+    mesh.rotateY(_crystalYaw(crystal.crystal_id || 0));
 
     // userData carries the original Crystal (and its id) so the
     // raycaster in _topoHitTestThree can resolve a hit back to a
