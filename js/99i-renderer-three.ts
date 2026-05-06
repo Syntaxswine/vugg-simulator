@@ -128,8 +128,61 @@ function _topoInitThree(canvas: HTMLCanvasElement): any {
     // Cache geometries per habit shape — many crystals can share the
     // same primitive geometry, only the per-mesh transform differs.
     geomCache: new Map<string, any>(),
+    // Shared uniforms for the cavity-clip shader injection. Crystal
+    // materials reference these directly so updating the cavity hull
+    // radius (when the cavity rebuilds) immediately reflects in every
+    // crystal's clip plane. The default radius is huge so the first
+    // frame before the cavity has been built doesn't clip anything.
+    clipUniforms: {
+      uVugRadius: { value: 1e6 },
+      uVugCenter: { value: new THREE.Vector3(0, 0, 0) },
+    },
   };
   return _topoThreeState;
+}
+
+// Inject a sphere-distance discard into a MeshStandardMaterial via
+// onBeforeCompile, so fragments outside the cavity hull radius drop
+// out. The vug becomes a natural slice volume — crystals that grew
+// past the wall (the feldspar-#7 bug) get cleanly cut at the wall
+// instead of bursting visibly into the host rock. The cavity itself
+// is centered at world origin (vertices computed as radiusMm × dir
+// from origin in _topoBuildCavityGeometry), so distance from origin
+// is the right metric. clipUniforms is shared across all crystal
+// materials; updating uVugRadius on cavity rebuild updates every
+// crystal's clip in one assignment.
+//
+// Pegmatite cavities have base_radius_mm uniform across cells (no
+// dissolution erosion at nucleation), so a single sphere clip
+// matches the cavity geometry exactly. Eroded scenarios with
+// per-cell wall_depth produce an irregular cavity; v1 uses the
+// cavity's max hull radius, which means crystals can occasionally
+// extend slightly past the wall in directions where wall_depth is
+// below max. That's a refinement for v2 (per-direction radius via
+// a 2D sampler texture indexed by phi/theta).
+function _applyCavityClip(material: any, clipUniforms: any) {
+  material.onBeforeCompile = (shader: any) => {
+    shader.uniforms.uVugRadius = clipUniforms.uVugRadius;
+    shader.uniforms.uVugCenter = clipUniforms.uVugCenter;
+    shader.vertexShader = shader.vertexShader.replace(
+      '#include <common>',
+      '#include <common>\nvarying vec3 vCavityWorldPos;'
+    );
+    shader.vertexShader = shader.vertexShader.replace(
+      '#include <begin_vertex>',
+      '#include <begin_vertex>\nvCavityWorldPos = (modelMatrix * vec4(transformed, 1.0)).xyz;'
+    );
+    shader.fragmentShader = shader.fragmentShader.replace(
+      '#include <common>',
+      '#include <common>\nvarying vec3 vCavityWorldPos;\nuniform vec3 uVugCenter;\nuniform float uVugRadius;'
+    );
+    shader.fragmentShader = shader.fragmentShader.replace(
+      'void main() {',
+      'void main() {\n  if (length(vCavityWorldPos - uVugCenter) > uVugRadius) discard;'
+    );
+  };
+  // Force shader rebuild on next render.
+  material.needsUpdate = true;
 }
 
 // Compose a deterministic signature of the wall + sim conditions that
@@ -339,6 +392,22 @@ function _topoBuildCavityGeometry(state: any, wall: any, sim: any) {
   const prev = target.geometry;
   target.geometry = geom;
   if (prev && prev.dispose) prev.dispose();
+
+  // Update the cavity hull radius for the per-crystal clip shader.
+  // Use the actual max world-space distance from origin across the
+  // generated vertex positions (already accounts for polarProfileFactor,
+  // cell.wall_depth, and any other per-cell radius modifier the build
+  // step applied). Crystals get clipped at this radius — the vug
+  // becomes the slice surface.
+  let maxR2 = 0;
+  for (let i = 0; i < numVerts; i++) {
+    const x = positions[i * 3 + 0];
+    const y = positions[i * 3 + 1];
+    const z = positions[i * 3 + 2];
+    const r2 = x * x + y * y + z * z;
+    if (r2 > maxR2) maxR2 = r2;
+  }
+  state.clipUniforms.uVugRadius.value = Math.sqrt(maxR2);
 }
 
 // Sync the renderer's drawing-buffer size to the canvas's CSS size and
@@ -1071,6 +1140,7 @@ function _topoSyncCrystalMeshes(state: any, sim: any, wall: any) {
       roughness,
       metalness,
     });
+    _applyCavityClip(mat, state.clipUniforms);
 
     const mesh = new THREE.Mesh(geom, mat);
 
