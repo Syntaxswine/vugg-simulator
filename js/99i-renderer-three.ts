@@ -734,6 +734,21 @@ function _clusterRand(seed: number) {
   };
 }
 
+// Deterministic per-crystal yaw around the c-axis (the local +Y
+// post-orientation, which is aligned with the substrate normal).
+// Without this, every cube/octahedron/prism in a cluster faces the
+// camera with the same vertex on top — even though real crystals
+// nucleate with random crystallographic orientation around the c-axis.
+// Hex prisms get 6 visually-distinct rotations, cubes 4, etc., but the
+// continuous random angle reads more naturally than snapping to lattice
+// symmetry. Seed combines crystal_id with a different prime than
+// _emitClusterSatellites uses (0x9E3779B9 vs 0x85EBCA77) so the parent's
+// yaw isn't correlated with its satellites' offsets.
+function _crystalYaw(crystal_id: number): number {
+  const rand = _clusterRand(((crystal_id | 0) * 0x85EBCA77 + 0x67890) | 0);
+  return rand() * Math.PI * 2;
+}
+
 // Per-habit cluster pattern. Different habits aggregate differently
 // in real specimens: acicular crystals fan out as sprays, prismatic
 // crystals stand parallel as forests of needles, cubic crystals carpet
@@ -930,6 +945,10 @@ function _emitClusterSatellites(
     );
     targetVec.set(sNx, sNy, sNz);
     satMesh.quaternion.setFromUnitVectors(upVec, targetVec);
+    // Per-satellite yaw around c-axis — drawn from the same cluster
+    // PRNG so each satellite gets a distinct rotation around its own
+    // local +Y (world-space substrate normal).
+    satMesh.rotateY(rand() * Math.PI * 2);
     // Inherit parent userData so raycaster hit-test resolves a satellite
     // hit back to the parent crystal — clicking a satellite tooltips
     // the parent mineral, no per-satellite identity surfaced.
@@ -1097,6 +1116,13 @@ function _topoSyncCrystalMeshes(state: any, sim: any, wall: any) {
     const up = new THREE.Vector3(0, 1, 0);
     const target = new THREE.Vector3(nx, ny, nz);
     mesh.quaternion.setFromUnitVectors(up, target);
+    // Per-crystal yaw around c-axis — real crystals nucleate with
+    // random crystallographic orientation around their growth axis;
+    // without this every cube/prism in a cluster shares the same
+    // face-toward-camera rotation. rotateY composes the local +Y
+    // rotation AFTER the substrate orientation, so the spin happens
+    // around the (now world-space) substrate normal.
+    mesh.rotateY(_crystalYaw(crystal.crystal_id || 0));
 
     // userData carries the original Crystal (and its id) so the
     // raycaster in _topoHitTestThree can resolve a hit back to a
