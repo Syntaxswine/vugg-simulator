@@ -182,6 +182,41 @@ cap is the real fix. With two canonical cases (feldspar #7 in pegmatite
 seed 1778042424470, selenite #6 in supergene_oxidation seed 42), there
 are two regression tests for the eventual cap.
 
+---
+
+## Update — 2026-05-06: stress-test reveals the clip's geometric assumption
+
+Forced fluorite #4 in mvt seed 42 to `c_length × a_width = 100 × 30 mm`
+in a 50 mm-diameter (36.35 mm-radius) cavity — a crystal twice as long
+as the vug. Visible result: a small purple "slice" of the cube remains
+visible inside the cavity, plus a faint leak past the wall at non-
+equatorial latitudes.
+
+Confirmed the clip shader IS active and firing — setting `uVugRadius = 5`
+correctly hides every crystal. So the discard runs. The leak is geometric:
+
+- The cavity hull is **non-spherical** (polar profile squishes top/bottom
+  via `wall.polarProfileFactor(phi)`).
+- The clip shader uses a single scalar `uVugRadius` = max vertex distance
+  on the cavity mesh — i.e. the equatorial bound.
+- At sub-equatorial latitudes, the actual hull surface is closer to the
+  origin than `uVugRadius`. Fragments past the real hull but inside the
+  spherical bound pass the discard test → visible leak.
+
+Two ways to upgrade the renderer-side (both deferred — sim-side cap is
+the right answer):
+
+  Option A: pre-bake a `uVugRadiusByRing[ringCount]` uniform array,
+    sample by phi in the fragment shader, compare against the latitude-
+    specific radius. Cheap; same shape as the cavity build.
+  Option B: replace spherical bound with a SDF lookup of the cavity
+    mesh. Heavier but accurate.
+
+Until then the clip captures most of the oversized-crystal mass —
+only the polar gap leaks. The current behavior is a documented limitation,
+not a regression. Cluster-satellite spread is now bounded by the same
+`uVugRadius × 0.4` cap (commit c53bb30).
+
 ## Related files
 
 | File | Role |

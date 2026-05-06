@@ -26,6 +26,12 @@
 
 let _topoUseThreeRenderer = false;
 
+// Maximum supported ring count for the polar-aware cavity clip. Sized
+// well above the simulator's default (16) and the practical upper bound
+// for 3D scenarios. Overflows fall back to the spherical bound. Must
+// match the GLSL array size in _applyCavityClip.
+const _MAX_CLIP_RINGS = 32;
+
 // Lazy-init handle. Holds { renderer, scene, camera, cavity, lights }.
 // Built on first call to _topoRenderThree once the canvas is mounted.
 let _topoThreeState: any = null;
@@ -133,9 +139,21 @@ function _topoInitThree(canvas: HTMLCanvasElement): any {
     // radius (when the cavity rebuilds) immediately reflects in every
     // crystal's clip plane. The default radius is huge so the first
     // frame before the cavity has been built doesn't clip anything.
+    // Shared uniforms for the cavity-clip shader injection. The clip is
+    // polar-aware: instead of a single spherical bound (which leaks at
+    // sub-equatorial latitudes when the cavity has polar squish),
+    // uVugRadiiByRing holds the cavity's max world-space radius at each
+    // ring index. The fragment shader computes the fragment's polar
+    // angle phi from the y-axis, picks the appropriate ring, and
+    // compares against the per-ring radius. Up to MAX_CLIP_RINGS rings
+    // are supported (overflows fall back to uVugRadius). Per-cell
+    // resolution within a ring is still spherical-conservative — that's
+    // a v2 refinement (2D sampler texture indexed by phi/theta).
     clipUniforms: {
       uVugRadius: { value: 1e6 },
       uVugCenter: { value: new THREE.Vector3(0, 0, 0) },
+      uVugRingCount: { value: 0 },
+      uVugRadiiByRing: { value: new Float32Array(_MAX_CLIP_RINGS) },
     },
   };
   return _topoThreeState;
@@ -164,6 +182,8 @@ function _applyCavityClip(material: any, clipUniforms: any) {
   material.onBeforeCompile = (shader: any) => {
     shader.uniforms.uVugRadius = clipUniforms.uVugRadius;
     shader.uniforms.uVugCenter = clipUniforms.uVugCenter;
+    shader.uniforms.uVugRingCount = clipUniforms.uVugRingCount;
+    shader.uniforms.uVugRadiiByRing = clipUniforms.uVugRadiiByRing;
     shader.vertexShader = shader.vertexShader.replace(
       '#include <common>',
       '#include <common>\nvarying vec3 vCavityWorldPos;'
@@ -174,11 +194,48 @@ function _applyCavityClip(material: any, clipUniforms: any) {
     );
     shader.fragmentShader = shader.fragmentShader.replace(
       '#include <common>',
-      '#include <common>\nvarying vec3 vCavityWorldPos;\nuniform vec3 uVugCenter;\nuniform float uVugRadius;'
+      `#include <common>
+varying vec3 vCavityWorldPos;
+uniform vec3 uVugCenter;
+uniform float uVugRadius;
+uniform int uVugRingCount;
+uniform float uVugRadiiByRing[${_MAX_CLIP_RINGS}];
+
+// Polar-aware cavity hull radius. The cavity geometry build (see
+// _topoBuildCavityGeometry) places ring r at world-y = -radius * cos(phi_cav)
+// where phi_cav = PI * (r + 0.5) / ringCount. So ring 0 sits at -y
+// (south pole), ring (ringCount-1) at +y (north pole). The shader's
+// natural polar angle phi_shader = acos(d.y/r) is measured from +y
+// (north), so phi_shader = PI - phi_cav. Inverting: cavity ring index
+// = ringCount - shader_phi*ringCount/PI - 0.5. Falls back to uVugRadius
+// when ring count is unset or exceeds the uniform array.
+float cavityHullRadiusAt(vec3 worldPos) {
+  if (uVugRingCount <= 0 || uVugRingCount > ${_MAX_CLIP_RINGS}) return uVugRadius;
+  vec3 d = worldPos - uVugCenter;
+  float r = length(d);
+  if (r < 1e-4) return uVugRadius;
+  float cosPhi = clamp(d.y / r, -1.0, 1.0);
+  float phi = acos(cosPhi);
+  // Flipped mapping: north (+y, phi=0) → ring (ringCount-1);
+  //                  south (-y, phi=PI) → ring 0.
+  float ringF = float(uVugRingCount) - 0.5 - phi * float(uVugRingCount) / 3.14159265;
+  float maxIdx = float(uVugRingCount - 1);
+  float idxClamped = clamp(ringF, 0.0, maxIdx);
+  int i0 = int(floor(idxClamped));
+  int i1 = int(min(float(i0) + 1.0, maxIdx));
+  float t = idxClamped - float(i0);
+  // Manual array indexing — GLSL ES 1.00 doesn't allow dynamic
+  // indexing of uniform arrays in some drivers, but ES 3.00 (WebGL2)
+  // and Three.js's WebGL1 fallback both accept this pattern with
+  // dynamic-uniform indexing.
+  return mix(uVugRadiiByRing[i0], uVugRadiiByRing[i1], t);
+}`
     );
     shader.fragmentShader = shader.fragmentShader.replace(
       'void main() {',
-      'void main() {\n  if (length(vCavityWorldPos - uVugCenter) > uVugRadius) discard;'
+      `void main() {
+  float _vugHullR = cavityHullRadiusAt(vCavityWorldPos);
+  if (length(vCavityWorldPos - uVugCenter) > _vugHullR) discard;`
     );
   };
   // Force shader rebuild on next render.
@@ -393,12 +450,18 @@ function _topoBuildCavityGeometry(state: any, wall: any, sim: any) {
   target.geometry = geom;
   if (prev && prev.dispose) prev.dispose();
 
-  // Update the cavity hull radius for the per-crystal clip shader.
-  // Use the actual max world-space distance from origin across the
-  // generated vertex positions (already accounts for polarProfileFactor,
-  // cell.wall_depth, and any other per-cell radius modifier the build
-  // step applied). Crystals get clipped at this radius — the vug
-  // becomes the slice surface.
+  // Update the cavity hull radius uniforms for the per-crystal clip
+  // shader. Two values get computed:
+  //   1. uVugRadius — global max vertex distance. Conservative spherical
+  //      bound; used as a fallback when ring count exceeds the uniform
+  //      array (and as a sanity floor).
+  //   2. uVugRadiiByRing[i] — per-ring max vertex distance. The clip
+  //      shader linear-interpolates between adjacent rings using the
+  //      fragment's polar angle phi, so a crystal at sub-equatorial
+  //      latitude gets clipped against the actual hull radius at that
+  //      latitude (not the equatorial max). This is what makes the
+  //      "wall acts as a slice" intent honest — the cavity geometry
+  //      drives the clip, not a bounding sphere.
   let maxR2 = 0;
   for (let i = 0; i < numVerts; i++) {
     const x = positions[i * 3 + 0];
@@ -407,7 +470,29 @@ function _topoBuildCavityGeometry(state: any, wall: any, sim: any) {
     const r2 = x * x + y * y + z * z;
     if (r2 > maxR2) maxR2 = r2;
   }
-  state.clipUniforms.uVugRadius.value = Math.sqrt(maxR2);
+  const globalMaxR = Math.sqrt(maxR2);
+  state.clipUniforms.uVugRadius.value = globalMaxR;
+
+  // Per-ring max radii. Iterate the interior ring×cell vertices the
+  // same way they were laid out above (ring r, cell c → index r*N+c).
+  const radiiByRing: Float32Array = state.clipUniforms.uVugRadiiByRing.value;
+  const supportedRings = Math.min(ringCount, _MAX_CLIP_RINGS);
+  for (let r = 0; r < supportedRings; r++) {
+    let ringMaxR2 = 0;
+    for (let c = 0; c < N; c++) {
+      const idx = r * N + c;
+      const x = positions[idx * 3 + 0];
+      const y = positions[idx * 3 + 1];
+      const z = positions[idx * 3 + 2];
+      const rr = x * x + y * y + z * z;
+      if (rr > ringMaxR2) ringMaxR2 = rr;
+    }
+    radiiByRing[r] = Math.sqrt(ringMaxR2);
+  }
+  // Zero-fill any unused slots so a stale value doesn't leak into the
+  // shader if a future rebuild has fewer rings.
+  for (let r = supportedRings; r < _MAX_CLIP_RINGS; r++) radiiByRing[r] = 0;
+  state.clipUniforms.uVugRingCount.value = supportedRings;
 }
 
 // Sync the renderer's drawing-buffer size to the canvas's CSS size and
