@@ -102,11 +102,11 @@ function grow_aragonite(crystal, conditions, step) {
       && conditions.temperature > 100
       && sigma < 0.8) {
     crystal.dissolved = true;
-    conditions.fluid.Ca += 2.0;
-    conditions.fluid.CO3 += 1.5;
+    // Phase 1e: Ca + CO3 constants via MINERAL_DISSOLUTION_RATES.aragonite.polymorph.
     return new GrowthZone({
       step, temperature: conditions.temperature,
       thickness_um: -2.0, growth_rate: -2.0,
+      dissolutionMode: 'polymorph',
       note: `polymorphic conversion — orthorhombic CaCO₃ → trigonal calcite (T=${conditions.temperature.toFixed(0)}°C, sigma_arag=${sigma.toFixed(2)})`
     });
   }
@@ -115,15 +115,11 @@ function grow_aragonite(crystal, conditions, step) {
     if (crystal.total_growth_um > 5 && conditions.fluid.pH < 5.5) {
       crystal.dissolved = true;
       const dissolved_um = Math.min(8.0, crystal.total_growth_um * 0.15);
-      // Phase 1e (aragonite acid path): Ca + CO3 credits stay inline —
-      // aragonite has multi-mode dissolution (this acid path uses
-      // Ca=0.5 CO3=0.3, the polymorph path uses different effective
-      // rates), pending per-mode dispatch.
-      conditions.fluid.Ca += dissolved_um * 0.5;
-      conditions.fluid.CO3 += dissolved_um * 0.3;
+      // Phase 1e: Ca + CO3 credits via MINERAL_DISSOLUTION_RATES.aragonite.acid.
       return new GrowthZone({
         step, temperature: conditions.temperature,
         thickness_um: -dissolved_um, growth_rate: -dissolved_um,
+        dissolutionMode: 'acid',
         note: `acid dissolution (pH ${conditions.fluid.pH.toFixed(1)}) — Ca²⁺ + CO₃²⁻ released`
       });
     }

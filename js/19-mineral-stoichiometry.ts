@@ -280,9 +280,6 @@ const MINERAL_DISSOLUTION_RATES: Record<string, DissolutionEntry> = {
   heliodor:     { Be: 0.2, Al: 0.2, SiO2: 0.4 },
 
   // ---- Carbonates (Phase 1e batch 6, v44 — single-mode subset) ----
-  // Multi-mode skipped (different effective rates per dissolution
-  // event): aragonite (polymorph + acid), rhodochrosite (acid + O2),
-  // azurite (low-CO3 + acid).
   // Calcite has rate-scaled credits for Ca/CO3 (single-mode, table-able)
   // PLUS trace-element credits for Mn/Fe computed from zone history
   // (zone-dependent, stays inline).
@@ -294,6 +291,15 @@ const MINERAL_DISSOLUTION_RATES: Record<string, DissolutionEntry> = {
   rosasite:     { Cu: 0.3, Zn: 0.2, CO3: 0.25 },       // pH < 5.5
   aurichalcite: { Zn: 0.4, Cu: 0.15, CO3: 0.3 },       // pH < 5.5
   cerussite:    { Pb: 0.5, CO3: 0.4 },                 // strong-acid pH < 4
+
+  // ---- Carbonates (Phase 1e batch 9, v48 — aragonite multi-mode) ----
+  // aragonite has two dissolution modes: polymorph (constants @
+  // thickness=-2.0, T>100 + sigma<0.8 -> calcite paramorph) and acid
+  // (rate-scaled, pH<5.5).
+  aragonite: { __modes: {
+    polymorph: { constants: { Ca: 2.0, CO3: 1.5 } },     // T>100, sigma<0.8 -> calcite, dT=-2.0
+    acid:      { rates:     { Ca: 0.5, CO3: 0.3 } },     // pH<5.5
+  }},
 
   // ---- Sulfides (Phase 1e batch 7, v45 — single-mode subset) ----
   // sphalerite + galena + argentite have no inline dissolution credit at all.

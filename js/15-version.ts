@@ -615,5 +615,10 @@
 //        round-trip trap (marcasite inversion stores {Fe:1.5, S:1.2}
 //        directly rather than {rates: {Fe:1.0, S:0.8}} × 1.5µm).
 //        156/~185 sites table-mediated.
-const SIM_VERSION = 47;
+//   v48 — Phase 1e batch 9: aragonite multi-mode (May 2026).
+//        2 inline credit sites removed in grow_aragonite via __modes.
+//          aragonite.polymorph constants {Ca:2.0, CO3:1.5}  T>100 + sigma<0.8 -> calcite, dT=-2.0
+//          aragonite.acid      rates     {Ca:0.5, CO3:0.3}  pH<5.5
+//        158/~185 sites table-mediated.
+const SIM_VERSION = 48;
 

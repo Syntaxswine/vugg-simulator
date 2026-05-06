@@ -4608,7 +4608,12 @@ let timeScale = 5.0;
 //        round-trip trap (marcasite inversion stores {Fe:1.5, S:1.2}
 //        directly rather than {rates: {Fe:1.0, S:0.8}} × 1.5µm).
 //        156/~185 sites table-mediated.
-const SIM_VERSION = 47;
+//   v48 — Phase 1e batch 9: aragonite multi-mode (May 2026).
+//        2 inline credit sites removed in grow_aragonite via __modes.
+//          aragonite.polymorph constants {Ca:2.0, CO3:1.5}  T>100 + sigma<0.8 -> calcite, dT=-2.0
+//          aragonite.acid      rates     {Ca:0.5, CO3:0.3}  pH<5.5
+//        158/~185 sites table-mediated.
+const SIM_VERSION = 48;
 
 // ── 18-constants.js ──
 
@@ -4886,9 +4891,6 @@ const MINERAL_DISSOLUTION_RATES = {
     morganite: { Be: 0.2, Al: 0.2, SiO2: 0.4 },
     heliodor: { Be: 0.2, Al: 0.2, SiO2: 0.4 },
     // ---- Carbonates (Phase 1e batch 6, v44 — single-mode subset) ----
-    // Multi-mode skipped (different effective rates per dissolution
-    // event): aragonite (polymorph + acid), rhodochrosite (acid + O2),
-    // azurite (low-CO3 + acid).
     // Calcite has rate-scaled credits for Ca/CO3 (single-mode, table-able)
     // PLUS trace-element credits for Mn/Fe computed from zone history
     // (zone-dependent, stays inline).
@@ -4900,6 +4902,14 @@ const MINERAL_DISSOLUTION_RATES = {
     rosasite: { Cu: 0.3, Zn: 0.2, CO3: 0.25 }, // pH < 5.5
     aurichalcite: { Zn: 0.4, Cu: 0.15, CO3: 0.3 }, // pH < 5.5
     cerussite: { Pb: 0.5, CO3: 0.4 }, // strong-acid pH < 4
+    // ---- Carbonates (Phase 1e batch 9, v48 — aragonite multi-mode) ----
+    // aragonite has two dissolution modes: polymorph (constants @
+    // thickness=-2.0, T>100 + sigma<0.8 -> calcite paramorph) and acid
+    // (rate-scaled, pH<5.5).
+    aragonite: { __modes: {
+            polymorph: { constants: { Ca: 2.0, CO3: 1.5 } }, // T>100, sigma<0.8 -> calcite, dT=-2.0
+            acid: { rates: { Ca: 0.5, CO3: 0.3 } }, // pH<5.5
+        } },
     // ---- Sulfides (Phase 1e batch 7, v45 — single-mode subset) ----
     // sphalerite + galena + argentite have no inline dissolution credit at all.
     // For acanthite + cobaltite, the table handles only the positive cation
@@ -10105,11 +10115,11 @@ function grow_aragonite(crystal, conditions, step) {
         && conditions.temperature > 100
         && sigma < 0.8) {
         crystal.dissolved = true;
-        conditions.fluid.Ca += 2.0;
-        conditions.fluid.CO3 += 1.5;
+        // Phase 1e: Ca + CO3 constants via MINERAL_DISSOLUTION_RATES.aragonite.polymorph.
         return new GrowthZone({
             step, temperature: conditions.temperature,
             thickness_um: -2.0, growth_rate: -2.0,
+            dissolutionMode: 'polymorph',
             note: `polymorphic conversion — orthorhombic CaCO₃ → trigonal calcite (T=${conditions.temperature.toFixed(0)}°C, sigma_arag=${sigma.toFixed(2)})`
         });
     }
@@ -10117,15 +10127,11 @@ function grow_aragonite(crystal, conditions, step) {
         if (crystal.total_growth_um > 5 && conditions.fluid.pH < 5.5) {
             crystal.dissolved = true;
             const dissolved_um = Math.min(8.0, crystal.total_growth_um * 0.15);
-            // Phase 1e (aragonite acid path): Ca + CO3 credits stay inline —
-            // aragonite has multi-mode dissolution (this acid path uses
-            // Ca=0.5 CO3=0.3, the polymorph path uses different effective
-            // rates), pending per-mode dispatch.
-            conditions.fluid.Ca += dissolved_um * 0.5;
-            conditions.fluid.CO3 += dissolved_um * 0.3;
+            // Phase 1e: Ca + CO3 credits via MINERAL_DISSOLUTION_RATES.aragonite.acid.
             return new GrowthZone({
                 step, temperature: conditions.temperature,
                 thickness_um: -dissolved_um, growth_rate: -dissolved_um,
+                dissolutionMode: 'acid',
                 note: `acid dissolution (pH ${conditions.fluid.pH.toFixed(1)}) — Ca²⁺ + CO₃²⁻ released`
             });
         }
