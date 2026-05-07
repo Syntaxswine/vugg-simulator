@@ -10398,6 +10398,306 @@
       ],
       "audit_status": "v29 — sulfate-evaporite + dehydration triplet",
       "class_color": "#f0e8c0"
+    },
+    "rutile": {
+      "formula": "TiO2",
+      "nucleation_sigma": 1.4,
+      "max_nucleation_count": 5,
+      "max_size_cm": 30,
+      "growth_rate_mult": 0.4,
+      "habit_variants": [
+        {
+          "name": "acicular_needle",
+          "wall_spread": 0.15,
+          "void_reach": 0.85,
+          "vector": "projecting",
+          "trigger": "default — slender vertically-striated prisms, low-T hydrothermal"
+        },
+        {
+          "name": "stout_prismatic",
+          "wall_spread": 0.3,
+          "void_reach": 0.7,
+          "vector": "projecting",
+          "trigger": "low σ, T > 500°C — coarse alpine-cleft prisms with dipyramid termination"
+        },
+        {
+          "name": "geniculate_twin",
+          "wall_spread": 0.25,
+          "void_reach": 0.75,
+          "vector": "projecting",
+          "trigger": "moderate σ, T 300–500°C — diagnostic ~115° elbow/knee twin on {011}"
+        },
+        {
+          "name": "sixling_star",
+          "wall_spread": 0.4,
+          "void_reach": 0.5,
+          "vector": "projecting",
+          "trigger": "low σ, moderate T — rare cyclic-sixling 'reticulated rutile' star"
+        },
+        {
+          "name": "included_in_quartz",
+          "wall_spread": 0.05,
+          "void_reach": 0.0,
+          "vector": "projecting",
+          "trigger": "host quartz growing simultaneously — needles enclosed inside quartz crystal (rutilated quartz / Venus hair)"
+        }
+      ],
+      "class": "oxide",
+      "description": "TiO2, the tetragonal titanium oxide. The canonical 'needle' mineral — slender red-brown to golden prisms with adamantine luster, often as inclusions in quartz (rutilated quartz / Venus hair / Cupid's darts). Forms in alpine-cleft fissures, eclogite-facies metamorphism, and pegmatites whenever titanium concentrates. Diagnostic geniculate (knee) twins on {011} and rare reticulated sixling stars. One of the most chemically resistant minerals known — survives weathering, transport, and burial unchanged.",
+      "scenarios": [
+        "gem_pegmatite",
+        "porphyry"
+      ],
+      "T_range_C": [200, 1000],
+      "T_optimum_C": [300, 700],
+      "T_behavior": "wide",
+      "pH_dissolution_below": null,
+      "pH_dissolution_above": null,
+      "redox_requirement": "any",
+      "required_ingredients": {
+        "Ti": 25
+      },
+      "trace_ingredients": {
+        "Fe": "red-brown default; Fe-rich → black nigrine",
+        "Cr": "rare red Cr-rutile",
+        "Nb": "black ilmenorutile/strüverite (Nb,Ta not currently tracked)"
+      },
+      "thermal_decomp_C": 1843,
+      "thermal_decomp_reaction": "TiO2 melts at 1843°C — refractory; no geologic decomposition",
+      "thermal_decomp_products": {},
+      "fluorescence": null,
+      "twin_laws": [
+        {
+          "name": "geniculate",
+          "miller_indices": "{011}",
+          "trigger": "moderate σ, T 300-500°C",
+          "probability": 0.25
+        },
+        {
+          "name": "sixling_cyclic",
+          "miller_indices": "{011}",
+          "trigger": "low σ, moderate T",
+          "probability": 0.05
+        }
+      ],
+      "acid_dissolution": null,
+      "habit": "acicular_needle",
+      "color_rules": {
+        "red_brown": {
+          "default": true
+        },
+        "golden_yellow": {
+          "trigger": "Fe < 2 ppm (low-Fe alpine cleft)"
+        },
+        "black_nigrine": {
+          "trigger": "Fe > 10 ppm"
+        },
+        "red_chrome": {
+          "trigger": "Cr > 5 ppm"
+        }
+      },
+      "narrate_function": null,
+      "runtimes_present": [
+        "python",
+        "js"
+      ],
+      "audit_status": "new (priority-three batch 2026-05-07). First Ti consumer in the sim. Reuses existing Ti broth field. Inclusion-in-quartz habit demonstrates the existing inclusion system. Specced in proposals/MINERALS-ROUNDS-3-6.md §5b. Scenarios gem_pegmatite + porphyry already carry Ti=0.5 ppm — broth needs Ti bump (≥30 ppm) before rutile actually nucleates. No engine yet.",
+      "class_color": "#eb1313"
+    },
+    "turquoise": {
+      "formula": "CuAl6(PO4)4(OH)8·4H2O",
+      "nucleation_sigma": 1.3,
+      "max_nucleation_count": 4,
+      "max_size_cm": 30,
+      "growth_rate_mult": 0.25,
+      "habit_variants": [
+        {
+          "name": "botryoidal_crust",
+          "wall_spread": 0.85,
+          "void_reach": 0.15,
+          "vector": "coating",
+          "trigger": "default — smooth blue mammillary aggregates on cavity walls"
+        },
+        {
+          "name": "nodular_massive",
+          "wall_spread": 0.7,
+          "void_reach": 0.3,
+          "vector": "equant",
+          "trigger": "rounded blue lumps in fractured matrix; moderate σ"
+        },
+        {
+          "name": "veinlet_fill",
+          "wall_spread": 0.95,
+          "void_reach": 0.05,
+          "vector": "coating",
+          "trigger": "thin blue stringers along host-rock fractures — dominant habit at most localities"
+        },
+        {
+          "name": "spider_web",
+          "wall_spread": 0.9,
+          "void_reach": 0.1,
+          "vector": "coating",
+          "trigger": "matrix-rich variety with host-rock fragments forming filigree network through blue (Hubei / Lone Mountain)"
+        },
+        {
+          "name": "triclinic_microcrystal",
+          "wall_spread": 0.4,
+          "void_reach": 0.5,
+          "vector": "tabular",
+          "trigger": "very low σ + slow growth — rare tabular pseudo-rhombic plates (Lynch Station VA, probability < 0.05)"
+        }
+      ],
+      "class": "phosphate",
+      "description": "CuAl6(PO4)4(OH)8·4H2O — hydrated copper-aluminum phosphate. The 'sky-blue' supergene mineral, mined since ~5000 BCE (Maghara/Sinai, Nishapur/Iran). Forms in arid Cu-porphyry oxidation zones when meteoric water leaches Cu²⁺ from sulfides and PO₄³⁻ from host apatite. Color from Cu²⁺ chromophore; Fe³⁺ substitution shifts toward green chalcosiderite. Crystallizes essentially only as cryptocrystalline aggregate (botryoidal, veinlet-fill, nodular); discrete triclinic crystals known only from Lynch Station, VA. Distinguishes the supergene Cu zone from chrysocolla (silica), malachite (carbonate), and atacamite (chloride) — the four-axis branching of the Cu oxidation zone keyed to fluid anion chemistry.",
+      "scenarios": [
+        "supergene_oxidation",
+        "bisbee"
+      ],
+      "T_range_C": [0, 80],
+      "T_optimum_C": [15, 50],
+      "T_behavior": "window",
+      "pH_dissolution_below": 5.0,
+      "pH_dissolution_above": null,
+      "redox_requirement": "oxidizing",
+      "required_ingredients": {
+        "Cu": 5,
+        "Al": 3,
+        "P": 1
+      },
+      "trace_ingredients": {
+        "Fe": "green chalcosiderite-leaning when Fe/(Fe+Al) > 0.5",
+        "Zn": "yellow-green faustite end-member (Zn for Cu, rare)"
+      },
+      "thermal_decomp_C": 250,
+      "thermal_decomp_reaction": "Loses zeolitic water above ~200°C; color shifts irreversibly from sky-blue to green to chalky white",
+      "thermal_decomp_products": {},
+      "fluorescence": null,
+      "twin_laws": [],
+      "acid_dissolution": {
+        "pH_threshold": 5.0,
+        "reaction": "CuAl6(PO4)4(OH)8·4H2O + 12H+ -> Cu2+ + 6Al3+ + 4H3PO4 + 8H2O",
+        "products": {
+          "Cu": 0.2,
+          "Al": 0.6,
+          "P": 0.4
+        }
+      },
+      "habit": "botryoidal_crust",
+      "color_rules": {
+        "sky_blue": {
+          "default": true
+        },
+        "robin_egg": {
+          "trigger": "Fe < 2 ppm (Sleeping Beauty / Persian)"
+        },
+        "green_chalcosiderite": {
+          "trigger": "Fe > 50 ppm (chalcosiderite-leaning)"
+        },
+        "yellow_green_faustite": {
+          "trigger": "Zn > 30 ppm (faustite end-member, rare)"
+        },
+        "spider_web_matrix": {
+          "trigger": "host_rock_inclusions present (Hubei / Lone Mountain aesthetic)"
+        },
+        "faded_green": {
+          "trigger": "T_history > 200°C (irreversible dehydration)"
+        }
+      },
+      "narrate_function": null,
+      "runtimes_present": [
+        "python",
+        "js"
+      ],
+      "audit_status": "new (priority-three batch 2026-05-07). First Cu-phosphate in the sim. Pairs with chrysocolla (silicate), malachite (carbonate), and atacamite (in brief, to be added) for 4-axis Cu-supergene branching keyed to fluid anion. supergene_oxidation broth has Cu=55, Al=25, P=0.5 — P needs bump to ≥1 ppm before turquoise actually nucleates. bisbee scenario also a fit. No engine yet.",
+      "class_color": "#13eb7f"
+    },
+    "chrysoprase": {
+      "formula": "SiO2 (Ni-bearing chalcedony)",
+      "nucleation_sigma": 1.2,
+      "max_nucleation_count": 3,
+      "max_size_cm": 30,
+      "growth_rate_mult": 0.2,
+      "habit_variants": [
+        {
+          "name": "chalcedony_vein",
+          "wall_spread": 0.95,
+          "void_reach": 0.05,
+          "vector": "coating",
+          "trigger": "default — fracture-fill in serpentinite host"
+        },
+        {
+          "name": "nodular_massive",
+          "wall_spread": 0.7,
+          "void_reach": 0.3,
+          "vector": "equant",
+          "trigger": "rounded apple-green nodules in saprolite matrix"
+        },
+        {
+          "name": "botryoidal_crust",
+          "wall_spread": 0.85,
+          "void_reach": 0.15,
+          "vector": "coating",
+          "trigger": "rare botryoidal exterior on a vein-fill, probability ~0.1"
+        },
+        {
+          "name": "banded_chalcedony",
+          "wall_spread": 0.9,
+          "void_reach": 0.1,
+          "vector": "coating",
+          "trigger": "faint internal banding from flow-deposition cycles"
+        }
+      ],
+      "class": "silicate",
+      "description": "SiO2 — Ni-bearing chalcedony (microcrystalline-fibrous quartz). The apple-green chalcedony variety, colored by nano-inclusions of Ni-phyllosilicate (pimelite/willemseite/kerolite) within the silica fabric — a composite color, not a lattice color. Forms in supergene weathering of ultramafic/serpentinite protolith where olivine breaks down and meteoric groundwater scavenges Ni and silica into fractures. Mined since the 14th century at Szklary (Poland); current world reference is Marlborough (Queensland). Heat above ~150°C and prolonged sun-exposure fade the color irreversibly. Establishes the chalcedony habit family in the sim — substrate for future agate/carnelian/onyx siblings.",
+      "scenarios": [
+        "supergene_oxidation"
+      ],
+      "T_range_C": [0, 80],
+      "T_optimum_C": [15, 50],
+      "T_behavior": "window",
+      "pH_dissolution_below": null,
+      "pH_dissolution_above": null,
+      "redox_requirement": "oxidizing",
+      "required_ingredients": {
+        "SiO2": 100,
+        "Ni": 50,
+        "Mg": 50
+      },
+      "trace_ingredients": {
+        "Cr": "shifts toward mtorolite/chrome-chalcedony (different mineral, alternate substrate)",
+        "Fe": "muddies green toward olive (oxide staining)"
+      },
+      "thermal_decomp_C": 150,
+      "thermal_decomp_reaction": "Ni-clay nano-inclusions destabilize above ~150°C — color fades irreversibly to white/yellow-brown; chalcedony lattice persists to 870°C α→β quartz transition",
+      "thermal_decomp_products": {},
+      "fluorescence": null,
+      "twin_laws": [],
+      "acid_dissolution": null,
+      "habit": "chalcedony_vein",
+      "color_rules": {
+        "apple_green": {
+          "default": true
+        },
+        "deep_emerald": {
+          "trigger": "Ni > 500 ppm (Szklary aesthetic)"
+        },
+        "pale_yellow_green": {
+          "trigger": "Ni < 100 ppm (lower-grade Tulare / Goiás)"
+        },
+        "olive_muddy": {
+          "trigger": "Fe > 30 ppm (oxide staining)"
+        },
+        "faded_white": {
+          "trigger": "T_history > 150°C (irreversible Ni-clay breakdown)"
+        }
+      },
+      "narrate_function": null,
+      "runtimes_present": [
+        "python",
+        "js"
+      ],
+      "audit_status": "new (priority-three batch 2026-05-07). First chalcedony habit in the sim — substrate for future agate / carnelian / onyx variants. Distinct from quartz entry by habit (microfibrous-cryptocrystalline vs. prismatic) and chemistry niche (ultramafic supergene Ni vs. broad hydrothermal SiO2). supergene_oxidation broth has no Ni — needs a future ultramafic_supergene scenario (Marlborough / Niquelândia / Szklary) for proper firing. No engine yet.",
+      "class_color": "#1313eb"
     }
   }
 }
