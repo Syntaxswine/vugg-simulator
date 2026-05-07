@@ -42,6 +42,10 @@ class VugWall {
     this.primary_bubbles = opts.primary_bubbles ?? 3;
     this.secondary_bubbles = opts.secondary_bubbles ?? 6;
     this.shape_seed = opts.shape_seed ?? 0;
+    // PROPOSAL-HOST-ROCK Mechanic 5: cavity architecture passed through
+    // to WallState at sim init. Scenarios opt in via wall.architecture
+    // in scenarios.json5; default 'pocket' = legacy behavior.
+    this.architecture = opts.architecture ?? null;
     // Player-tunable wall reactivity multiplier (Creative-mode slider).
     // 0=inert, 1=default limestone (current behavior), 2=fast-dissolving
     // fresh limestone with mild water-only dissolution. Only affects
@@ -159,6 +163,46 @@ const SECONDARY_SIZE_RANGE = [0.1, 0.3];
 // overlap each other cohesively.
 const PRIMARY_SPREAD = 0.3;
 
+// PROPOSAL-HOST-ROCK Mechanic 5: per-archetype cavity geometry.
+// Each archetype tunes the existing bubble-merge / Fourier knobs to
+// produce a recognisable shape, plus a nucleation_bias that the
+// nucleation engine consults to filter allowed rings (uniform =
+// any ring; floor_only / walls_only / ceiling_only = constrain to
+// orientation tag from WallState.ringOrientation).
+//
+// Slice A scope: spherical, irregular, pocket route through the
+// existing _buildProfile / Fourier path with different parameters.
+// tabular and basin are wired here but reuse pocket geometry pending
+// dedicated builders (Slice B). Default archetype is 'pocket' with
+// scales = 1.0 / bubbles = (3, 6) so legacy scenarios that don't set
+// architecture produce byte-identical output.
+type Archetype = 'spherical' | 'irregular' | 'tabular' | 'pocket' | 'basin';
+type NucleationBias = 'uniform' | 'walls_only' | 'floor_only' | 'ceiling_only';
+interface ArchetypeConfig {
+  primary_bubbles: number;
+  secondary_bubbles: number;
+  polar_amp_scale: number;     // multiplier on _buildPolarProfile's ±0.18 base
+  twist_amp_scale: number;     // multiplier on _buildTwistProfile's ±0.4 base
+  nucleation_bias: NucleationBias;
+}
+const ARCHETYPE_DEFAULTS: Record<Archetype, ArchetypeConfig> = {
+  // Basalt — degassed lava bubble. Smooth sphere, low irregularity.
+  spherical: { primary_bubbles: 1, secondary_bubbles: 0, polar_amp_scale: 0.20, twist_amp_scale: 0.10, nucleation_bias: 'uniform' },
+  // Limestone — karst dissolution cave. High bubble count + strong polar
+  // variance for the cathedral feel.
+  irregular: { primary_bubbles: 4, secondary_bubbles: 12, polar_amp_scale: 1.40, twist_amp_scale: 1.20, nucleation_bias: 'uniform' },
+  // Granite — fracture pocket. Slice B fills in anisotropic stretch.
+  // For Slice A: pocket-like geometry with walls_only nucleation bias
+  // so the gameplay difference shows up before the geometry does.
+  tabular:   { primary_bubbles: 2, secondary_bubbles: 4, polar_amp_scale: 1.00, twist_amp_scale: 1.00, nucleation_bias: 'walls_only' },
+  // Pegmatite — large crystallisation pocket. Identity transform on
+  // legacy defaults so byte-equality holds when scenarios don't opt in.
+  pocket:    { primary_bubbles: 3, secondary_bubbles: 6, polar_amp_scale: 1.00, twist_amp_scale: 1.00, nucleation_bias: 'uniform' },
+  // Evaporite playa — flat basin. Slice B collapses the top hemisphere;
+  // for Slice A floor_only nucleation already gives the playa-floor read.
+  basin:     { primary_bubbles: 1, secondary_bubbles: 0, polar_amp_scale: 0.10, twist_amp_scale: 0.05, nucleation_bias: 'floor_only' },
+};
+
 // Raycast the bubble union at angle theta, honouring origin
 // connectivity. Returns the outer wall distance from origin.
 function _raycastUnion(bubbles, theta) {
@@ -198,9 +242,19 @@ class WallState {
     this.vug_diameter_mm = opts.vug_diameter_mm ?? 50.0;
     this.initial_radius_mm = opts.initial_radius_mm ?? (this.vug_diameter_mm / 2);
     this.ring_spacing_mm = opts.ring_spacing_mm ?? 1.0;
-    // Phase-1 two-stage bubble-merge parameters (see VugWall).
-    this.primary_bubbles = opts.primary_bubbles ?? 3;
-    this.secondary_bubbles = opts.secondary_bubbles ?? 6;
+    // PROPOSAL-HOST-ROCK Mechanic 5: archetype controls bubble counts,
+    // polar/twist amplitude scaling, and nucleation_bias. Default
+    // 'pocket' uses (3, 6) bubbles + 1.0× scaling, so scenarios that
+    // don't set architecture get byte-identical legacy behavior.
+    this.architecture = (opts.architecture as Archetype) ?? 'pocket';
+    const arc = ARCHETYPE_DEFAULTS[this.architecture] ?? ARCHETYPE_DEFAULTS.pocket;
+    this.nucleation_bias = arc.nucleation_bias;
+    this.polar_amp_scale = arc.polar_amp_scale;
+    this.twist_amp_scale = arc.twist_amp_scale;
+    // Phase-1 two-stage bubble-merge parameters (see VugWall). Scenario
+    // overrides take precedence over archetype defaults.
+    this.primary_bubbles = opts.primary_bubbles ?? arc.primary_bubbles;
+    this.secondary_bubbles = opts.secondary_bubbles ?? arc.secondary_bubbles;
     this.shape_seed = opts.shape_seed ?? 0;
     // Populated by _buildProfile() — [[cx, cy, r], …] in mm after rescale.
     // Primaries come first, then secondaries.
@@ -324,10 +378,11 @@ class WallState {
     const rng = _mulberry32(seed);
     const HARMONICS = 3;
     const AMP_LO = -0.18, AMP_HI = 0.18;
+    const scale = (this.polar_amp_scale ?? 1.0);
     this.polar_amplitudes = [];
     this.polar_phases = [];
     for (let n = 0; n < HARMONICS; n++) {
-      this.polar_amplitudes.push(AMP_LO + (AMP_HI - AMP_LO) * rng());
+      this.polar_amplitudes.push((AMP_LO + (AMP_HI - AMP_LO) * rng()) * scale);
       this.polar_phases.push(rng() * 2 * Math.PI);
     }
   }
@@ -352,10 +407,11 @@ class WallState {
     const rng = _mulberry32(seed);
     const HARMONICS = 3;
     const AMP_LO = -0.4, AMP_HI = 0.4;
+    const scale = (this.twist_amp_scale ?? 1.0);
     this.twist_amplitudes = [];
     this.twist_phases = [];
     for (let n = 0; n < HARMONICS; n++) {
-      this.twist_amplitudes.push(AMP_LO + (AMP_HI - AMP_LO) * rng());
+      this.twist_amplitudes.push((AMP_LO + (AMP_HI - AMP_LO) * rng()) * scale);
       this.twist_phases.push(rng() * 2 * Math.PI);
     }
   }

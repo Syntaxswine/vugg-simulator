@@ -416,6 +416,26 @@ _assignWallRing(position, mineral) {
       total += weights[k];
     }
   }
+  // PROPOSAL-HOST-ROCK Mechanic 5: architecture-level nucleation bias.
+  // Hard filter — zeros out rings whose orientation doesn't match the
+  // archetype. Architecture wins over per-mineral preference so basin
+  // crystals stay on the floor even if the mineral prefers ceilings.
+  // 'uniform' (and missing/null) leaves weights untouched, preserving
+  // legacy behavior for scenarios that don't opt in.
+  const archBias = this.wall_state.nucleation_bias || 'uniform';
+  if (archBias !== 'uniform' && n > 1) {
+    total = 0;
+    for (let k = 0; k < n; k++) {
+      const orient = this.wall_state.ringOrientation(k);
+      const allowed =
+        archBias === 'walls_only'   ? (orient === 'wall') :
+        archBias === 'floor_only'   ? (orient === 'floor') :
+        archBias === 'ceiling_only' ? (orient === 'ceiling') :
+        true;
+      if (!allowed) weights[k] = 0;
+      total += weights[k];
+    }
+  }
   if (total <= 0) total = 1;
   let r = rng.random() * total;
   for (let k = 0; k < n; k++) {

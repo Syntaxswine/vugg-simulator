@@ -40,6 +40,10 @@ class VugSimulator {
       primary_bubbles: this.conditions.wall.primary_bubbles,
       secondary_bubbles: this.conditions.wall.secondary_bubbles,
       shape_seed: this.conditions.wall.shape_seed,
+      // PROPOSAL-HOST-ROCK Mechanic 5 — cavity archetype (spherical /
+      // irregular / tabular / pocket / basin). Drives bubble counts,
+      // polar/twist amplitude scaling, and nucleation_bias.
+      architecture: this.conditions.wall.architecture,
     });
     // Per-step snapshot of ring[0] for the Replay button. Captured at
     // the end of each step; small (~120 cells × ~4 numbers × 100-200
