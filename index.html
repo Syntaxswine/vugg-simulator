@@ -30893,21 +30893,25 @@ function _topoInitThree(canvas) {
         // radius (when the cavity rebuilds) immediately reflects in every
         // crystal's clip plane. The default radius is huge so the first
         // frame before the cavity has been built doesn't clip anything.
-        // Shared uniforms for the cavity-clip shader injection. The clip is
-        // polar-aware: instead of a single spherical bound (which leaks at
-        // sub-equatorial latitudes when the cavity has polar squish),
-        // uVugRadiiByRing holds the cavity's max world-space radius at each
-        // ring index. The fragment shader computes the fragment's polar
-        // angle phi from the y-axis, picks the appropriate ring, and
-        // compares against the per-ring radius. Up to MAX_CLIP_RINGS rings
-        // are supported (overflows fall back to uVugRadius). Per-cell
-        // resolution within a ring is still spherical-conservative — that's
-        // a v2 refinement (2D sampler texture indexed by phi/theta).
+        // Shared uniforms for the cavity-clip shader injection. Two tiers:
+        //   * uVugCellRadii — DataTexture (cellsPerRing × ringCount, R-float)
+        //     of every cell's wall radius. The fragment shader maps its
+        //     world-space (phi, theta) to a UV on this texture, samples,
+        //     and discards fragments past the LOCAL cell radius. This is
+        //     what stops crystal corners and tilted bodies from poking
+        //     into the host rock when the cavity is asymmetrically eroded.
+        //   * uVugRadiiByRing — fallback per-ring max array. Used when the
+        //     texture isn't yet built (first frame before cavity exists)
+        //     or when the float-texture path is unsupported on this driver.
+        //   * uVugRadius — global max distance, ultimate fallback.
         clipUniforms: {
             uVugRadius: { value: 1e6 },
             uVugCenter: { value: new THREE.Vector3(0, 0, 0) },
             uVugRingCount: { value: 0 },
             uVugRadiiByRing: { value: new Float32Array(_MAX_CLIP_RINGS) },
+            uVugCellRadii: { value: null }, // THREE.DataTexture
+            uVugCellTexW: { value: 0 }, // = N (cellsPerRing)
+            uVugCellTexH: { value: 0 }, // = ringCount
         },
     };
     return _topoThreeState;
@@ -30926,17 +30930,25 @@ function _topoInitThree(canvas) {
 // Pegmatite cavities have base_radius_mm uniform across cells (no
 // dissolution erosion at nucleation), so a single sphere clip
 // matches the cavity geometry exactly. Eroded scenarios with
-// per-cell wall_depth produce an irregular cavity; v1 uses the
-// cavity's max hull radius, which means crystals can occasionally
-// extend slightly past the wall in directions where wall_depth is
-// below max. That's a refinement for v2 (per-direction radius via
-// a 2D sampler texture indexed by phi/theta).
+// per-cell wall_depth produce an irregular cavity. Two clip tiers:
+//   1. Per-cell: uVugCellRadii is a (cellsPerRing × ringCount) R-float
+//      DataTexture — every cell's actual world radius. Sampling gives
+//      the LOCAL wall radius at the fragment's (phi, theta), so
+//      crystal corners and tilted bodies in narrow-wall directions
+//      get clipped at the actual wall instead of the per-ring max.
+//   2. Per-ring fallback (uVugRadiiByRing): the per-ring max hull,
+//      used until the texture is built (first frame). Generous in
+//      asymmetric cavities — leaks "brighter saturated" patches
+//      where corners stick past the local cell.
 function _applyCavityClip(material, clipUniforms) {
     material.onBeforeCompile = (shader) => {
         shader.uniforms.uVugRadius = clipUniforms.uVugRadius;
         shader.uniforms.uVugCenter = clipUniforms.uVugCenter;
         shader.uniforms.uVugRingCount = clipUniforms.uVugRingCount;
         shader.uniforms.uVugRadiiByRing = clipUniforms.uVugRadiiByRing;
+        shader.uniforms.uVugCellRadii = clipUniforms.uVugCellRadii;
+        shader.uniforms.uVugCellTexW = clipUniforms.uVugCellTexW;
+        shader.uniforms.uVugCellTexH = clipUniforms.uVugCellTexH;
         shader.vertexShader = shader.vertexShader.replace('#include <common>', '#include <common>\nvarying vec3 vCavityWorldPos;');
         shader.vertexShader = shader.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\nvCavityWorldPos = (modelMatrix * vec4(transformed, 1.0)).xyz;');
         shader.fragmentShader = shader.fragmentShader.replace('#include <common>', `#include <common>
@@ -30945,34 +30957,45 @@ uniform vec3 uVugCenter;
 uniform float uVugRadius;
 uniform int uVugRingCount;
 uniform float uVugRadiiByRing[${_MAX_CLIP_RINGS}];
+uniform sampler2D uVugCellRadii;
+uniform float uVugCellTexW;
+uniform float uVugCellTexH;
 
-// Polar-aware cavity hull radius. The cavity geometry build (see
+// Per-cell cavity hull lookup. The cavity build (see
 // _topoBuildCavityGeometry) places ring r at world-y = -radius * cos(phi_cav)
 // where phi_cav = PI * (r + 0.5) / ringCount. So ring 0 sits at -y
 // (south pole), ring (ringCount-1) at +y (north pole). The shader's
-// natural polar angle phi_shader = acos(d.y/r) is measured from +y
-// (north), so phi_shader = PI - phi_cav. Inverting: cavity ring index
-// = ringCount - shader_phi*ringCount/PI - 0.5. Falls back to uVugRadius
-// when ring count is unset or exceeds the uniform array.
+// natural phi_shader = acos(d.y/r) is measured from +y (north), so
+// phi_shader = PI - phi_cav. Texture v=1 → cavity ring (ringCount-1)
+// at +y. Texture u: theta_cav = 2*PI*c/N matches atan2(z, x); wraps
+// at 0/2π (the texture's S-wrap mode is RepeatWrapping so the seam
+// filters correctly). Twist (per-ring rotation) is ignored — most
+// scenarios keep twist=0; if a cavity ever sets it, the per-ring
+// fallback still works conservatively. Falls back to per-ring when
+// the texture is unset (first frame, or unsupported driver).
 float cavityHullRadiusAt(vec3 worldPos) {
-  if (uVugRingCount <= 0 || uVugRingCount > ${_MAX_CLIP_RINGS}) return uVugRadius;
   vec3 d = worldPos - uVugCenter;
   float r = length(d);
   if (r < 1e-4) return uVugRadius;
   float cosPhi = clamp(d.y / r, -1.0, 1.0);
   float phi = acos(cosPhi);
-  // Flipped mapping: north (+y, phi=0) → ring (ringCount-1);
-  //                  south (-y, phi=PI) → ring 0.
+  // Per-cell texture lookup (preferred when populated).
+  if (uVugCellTexW > 0.5 && uVugCellTexH > 0.5) {
+    float v = clamp((3.14159265 - phi) / 3.14159265, 0.0, 1.0);
+    float thetaShader = atan(d.z, d.x);  // [-PI, PI]
+    if (thetaShader < 0.0) thetaShader += 6.28318530;
+    float u = thetaShader / 6.28318530;  // [0, 1)
+    return texture2D(uVugCellRadii, vec2(u, v)).r;
+  }
+  // Per-ring fallback — generous (per-ring max), used only until the
+  // per-cell texture is populated.
+  if (uVugRingCount <= 0 || uVugRingCount > ${_MAX_CLIP_RINGS}) return uVugRadius;
   float ringF = float(uVugRingCount) - 0.5 - phi * float(uVugRingCount) / 3.14159265;
   float maxIdx = float(uVugRingCount - 1);
   float idxClamped = clamp(ringF, 0.0, maxIdx);
   int i0 = int(floor(idxClamped));
   int i1 = int(min(float(i0) + 1.0, maxIdx));
   float t = idxClamped - float(i0);
-  // Manual array indexing — GLSL ES 1.00 doesn't allow dynamic
-  // indexing of uniform arrays in some drivers, but ES 3.00 (WebGL2)
-  // and Three.js's WebGL1 fallback both accept this pattern with
-  // dynamic-uniform indexing.
   return mix(uVugRadiiByRing[i0], uVugRadiiByRing[i1], t);
 }`);
         shader.fragmentShader = shader.fragmentShader.replace('void main() {', `void main() {
@@ -31229,6 +31252,41 @@ function _topoBuildCavityGeometry(state, wall, sim) {
     for (let r = supportedRings; r < _MAX_CLIP_RINGS; r++)
         radiiByRing[r] = 0;
     state.clipUniforms.uVugRingCount.value = supportedRings;
+    //   3. uVugCellRadii[c, r] — per-cell wall radius DataTexture, sampled
+    //      by the fragment shader at the fragment's (phi, theta). Without
+    //      this, the per-ring max in #2 leaks: a cell at narrow-wall theta
+    //      in a ring whose max sits at wide-wall theta passes the clip
+    //      conservatively, and crystal corners / tilted bodies poke into
+    //      the host rock as "bright saturated" patches. Per-cell sampling
+    //      compares against the actual local cell radius, closing the gap.
+    const cellRadiiBuf = new Float32Array(ringCount * N);
+    for (let r = 0; r < ringCount; r++) {
+        for (let c = 0; c < N; c++) {
+            const idx = r * N + c;
+            const x = positions[idx * 3 + 0];
+            const y = positions[idx * 3 + 1];
+            const z = positions[idx * 3 + 2];
+            cellRadiiBuf[idx] = Math.sqrt(x * x + y * y + z * z);
+        }
+    }
+    const prevTex = state.clipUniforms.uVugCellRadii.value;
+    // Float texture with linear filtering — most modern WebGL2 drivers
+    // support OES_texture_float_linear. Three.js falls back to nearest
+    // when unavailable; the per-cell granularity is still a major
+    // improvement over per-ring max.
+    const cellTex = new THREE.DataTexture(cellRadiiBuf, N, ringCount, THREE.RedFormat, THREE.FloatType);
+    cellTex.minFilter = THREE.LinearFilter;
+    cellTex.magFilter = THREE.LinearFilter;
+    // Theta wraps at 2π — RepeatWrapping makes the seam (cell N-1 ↔ cell
+    // 0) filter without a bright artifact. Phi clamps at the poles.
+    cellTex.wrapS = THREE.RepeatWrapping;
+    cellTex.wrapT = THREE.ClampToEdgeWrapping;
+    cellTex.needsUpdate = true;
+    state.clipUniforms.uVugCellRadii.value = cellTex;
+    state.clipUniforms.uVugCellTexW.value = N;
+    state.clipUniforms.uVugCellTexH.value = ringCount;
+    if (prevTex && prevTex.dispose)
+        prevTex.dispose();
 }
 // Sync the renderer's drawing-buffer size to the canvas's CSS size and
 // keep the camera aspect in sync. Called every render — cheap when
