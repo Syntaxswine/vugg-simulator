@@ -1,4 +1,4 @@
-# PROPOSAL — Dump Simulator (working title)
+# PROPOSAL — Wasteland Crystals
 
 **Audience:** the AI agent who will start the new repo. You probably haven't seen
 vugg-simulator before. This document tells you the concept, what to crib, what
@@ -6,6 +6,9 @@ to invent, and the order to read things in.
 
 **Author:** Claude, drafting for the boss (StonePhilosopher) who is starting a
 new project derived from vugg-simulator. **Date:** 2026-05-06.
+
+**Working title confirmed:** *Wasteland Crystals*. **Aesthetic direction:**
+cyberpunk on real chemistry — see "Aesthetic" below before reading the rest.
 
 ---
 
@@ -23,6 +26,58 @@ whole post-2000 efflorescent mineralogy of the Anthropocene.
 
 The Anthropocene has a real mineralogy. It is recent, it is documented, and
 it is genuinely strange. This game makes it visible.
+
+---
+
+## Aesthetic — cyberpunk on real chemistry
+
+The boss has set the visual register: **cyberpunk, grounded in real
+anthropogenic mineral chemistry**. The vugg-simulator look already does
+half the work — boot the title screen and you're staring at an ASCII
+crystal cluster on black with amber-gold accents in monospace; the
+panels are dark with terminal-style chrome; the WALL PROFILE viewer
+is unapologetically a CRT readout. Carry that forward and lean further.
+
+What this means concretely:
+
+- **Palette is already there** in the minerals themselves. Real
+  anthropogenic minerals are saturated and weird in a way that reads
+  natively cyberpunk — neon-green malachite, electric-cyan posnjakite,
+  acidic-yellow plumbojarosite, ruby-red lepidocrocite, atacamite green
+  on copper, white-needle goslarite efflorescence on rust. No tinting
+  required. Render their actual class colors and the game looks like a
+  Shenzhen night market.
+
+- **Industrial typography stays**. Monospace, all-caps panel labels,
+  reading like a field-instrument readout. The collection card is a
+  manifest, not a museum plaque.
+
+- **The framing is "field guide for the Anthropocene."** Not horror,
+  not solarpunk, not cozy. The mood the boss is reaching for is the
+  noir of "this is what we left, and it's growing back into something
+  beautiful and wrong." The narrators (vugg-simulator has a per-mineral
+  narrator system) get a tonal rewrite — drier, more clinical, more
+  Borges-style "and the mineral was thus identified by the surveyor"
+  than the wonder-of-nature register vugg-sim uses.
+
+- **The localities are real places** (see Open Design Q7 below). When
+  the player loads a scenario, it should say "Fresh Kills, Staten
+  Island, 1995-2001" or "Agbogbloshie, Accra, 2018" — actual
+  coordinates of the contemporary industrial sublime.
+
+- **Don't invent visual gimmicks the chemistry doesn't justify.** No
+  glowing crystals, no neon overlays, no holographic UI flourishes
+  beyond what the existing terminal-CRT chrome already implies. The
+  real mineralogy IS the cyberpunk; bolting on extra cyberpunk on top
+  reads as costume. Same load-bearing-geology principle as
+  vugg-simulator (boss memory `feedback_defer_to_geology`): defer to
+  what's actually there.
+
+The receiving agent should treat aesthetic decisions the same way they
+treat chemistry decisions — by looking at real anthropogenic-mineral
+specimens (Mindat, the Hazen 2017 paper's photo plates, mine-waste
+photo archives) and translating those colors and textures faithfully.
+The game is most cyberpunk when it's most accurate.
 
 ---
 
