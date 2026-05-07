@@ -101,7 +101,7 @@ function _topoInitThree(canvas: HTMLCanvasElement): any {
                               // on the near interior wall stay visible.
     flatShading: false,
     transparent: true,
-    opacity: 0.55,            // translucent so crystals on the far
+    opacity: 0.40,            // translucent so crystals on the far
                               // interior wall stay readable through
                               // the near wall. E4 polish: switch to
                               // opaque + camera-inside flythrough mode.
@@ -1678,7 +1678,7 @@ function _topoApplyCameraFromTilt(state: any, wall: any) {
     state.insideMode = false;
     if (state.cavity && state.cavity.material) {
       state.cavity.material.side = THREE.BackSide;
-      state.cavity.material.opacity = 0.55;
+      state.cavity.material.opacity = 0.40;
       state.cavity.material.transparent = true;
       state.cavity.material.needsUpdate = true;
     }
