@@ -81,6 +81,111 @@ The game is most cyberpunk when it's most accurate.
 
 ---
 
+## Map view — cross-section schematic
+
+The boss has set the canonical map view: **a cross-section schematic**,
+like the textbook secure-landfill diagrams (final landfill surface →
+soil cap → sealing layer → intermediate layers → waste cell → impervious
+liner → leachate detection system → secondary liner → water table; with
+monitoring wells flanking each side, gas vents puncturing the cap, and
+leachate-collection pipes at the floor of the cell).
+
+This is a CLEAN translation of vugg-simulator's existing vertical-rings
+architecture, and arguably more geometrically natural than vugg's
+spherical-cavity view. A landfill is stratified by definition; rings
+are layers.
+
+```
+vugg-simulator                 Wasteland Crystals
+─────────────────              ─────────────────
+ring index r ∈ [0, 15]         depth layer (top = cap, bottom = liner)
+cells_per_ring × ring_count    horizontal cell width × depth layers
+ring orientation tag           horizontal-band tag:
+  floor / wall / ceiling         soil cap / intermediate / waste cell
+                                 / leachate-collection / liner
+ring 0 = south pole            bottom layer (oldest, anaerobic,
+                                 ~70°C from methanogenesis, leachate-
+                                 saturated)
+ring 15 = north pole           top layer (recent, aerobic, ambient,
+                                 surface vegetation)
+ringWaterState                 perched-leachate level inside the cell
+                                 (leachate collection pumps from the
+                                 bottom; level rises with rain events,
+                                 falls with pumping)
+basin archetype (top-half      THE archetype for landfill cells —
+  collapses, floor_only            a trapezoidal trough, wider at top
+  nucleation)                      than bottom, side-slope = angle of
+                                   repose (~30°). The Mechanic 5 basin
+                                   shape is already 80% of the way
+                                   there; just adjust to a flat-floor
+                                   trough rather than a sigmoid bowl.
+```
+
+### Renderer architecture (recommended)
+
+Two zoom levels, mirroring vugg-simulator's existing tier system:
+
+1. **Schematic 2D cross-section** as the default map view. Clean,
+   labeled, fast — looks like the engineering diagram the boss
+   referenced. Shows depth layers, substrate-type bands, leachate
+   level, gas vents, monitoring wells, and any visible mineral
+   crusts at the layer scale. Built on canvas-2D, similar in spirit
+   to vugg-simulator's `99b-renderer-topo-2d.ts` (which is a
+   ring-strip view) but with horizontal layers instead of a circle.
+
+2. **Three.js detail view** when the player zooms into a specific
+   layer or substrate object. Shows individual crystal habits at
+   millimeter scale — a goslarite efflorescence on a rusted hubcap,
+   a malachite crust on a copper wire — using the existing per-cell
+   cavity clip and habit-dispatch primitives. This is where the
+   vugg-simulator renderer (`99i-renderer-three.ts`) ports almost
+   verbatim — the cavity is now the local pocket around a specific
+   buried object, but the geometry math is the same.
+
+Side panels (gas vents, monitoring wells, leachate-collection pipes,
+runoff channels) are a renderer-only flourish; they don't affect
+chemistry but they make the schematic legible. Optional in v1, but
+they're the visual cue that says "this is a landfill, not a cave."
+
+### Why this works for cyberpunk
+
+The cross-section IS the cyberpunk image. A cutaway diagram of a
+sealed industrial container with metal liners, monitoring pipes, gas
+vents, and a chemistry-active interior reads as a Neuromancer-era
+schematic — the kind of thing you'd see on a corporation's quarterly
+report, except the report's about which post-natural minerals are
+growing in their hazardous-waste cells. Lean in. Use the engineering-
+diagram aesthetic for the map and let the player click through to
+the microscope view to see what the actual chemistry produced.
+
+### Implementation notes for the receiving agent
+
+- **Layer geometry generator** is a new module replacing
+  `22-geometry-wall.ts`'s bubble-merge profile. Trapezoidal cross-
+  section, configurable cap thickness / waste-cell depth / liner
+  thickness. Per-cell substrate type is the new per-cell field
+  (replacing `wall_depth` semantically — wall_depth was about
+  dissolution erosion, which doesn't apply; substrate type is the
+  meaningful per-voxel state).
+
+- **Side-view projection** replaces `99i-renderer-three.ts`'s
+  spherical projection. The cavity geometry build at line ~283
+  walks rings × cells and lays out vertices in spherical coords;
+  the Wasteland version walks layers × horizontal cells and lays
+  out vertices in trapezoidal coords. Same data structure, different
+  formula.
+
+- **Per-cell shader clip** ports verbatim — discard fragments past
+  the local cell boundary. This is what makes irregular waste
+  contents (a buried fridge, a tire pile) render with clean edges
+  without leaking past the substrate.
+
+- **Inside / outside view modes** ports verbatim — opaque from
+  outside, translucent from inside, with the existing
+  hysteresis-based switch.
+
+---
+
 ## The concept
 
 Modern landfills and scrapyards are reactors. Rainwater + soil CO₂ + organic
