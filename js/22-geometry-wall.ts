@@ -183,24 +183,35 @@ interface ArchetypeConfig {
   secondary_bubbles: number;
   polar_amp_scale: number;     // multiplier on _buildPolarProfile's ±0.18 base
   twist_amp_scale: number;     // multiplier on _buildTwistProfile's ±0.4 base
+  // Slice B: anisotropic equator stretch. 0 = circular cross-section,
+  // higher = more elongated along the +x axis. Per-cell radius is
+  // multiplied by (1 + elongation × cos(2θ)). Capped at 0.85 in the
+  // builder to avoid degenerate (zero-radius) directions.
+  elongation: number;
+  // Slice B: top-hemisphere collapse for basins. >0 enables the sigmoid
+  // polar-collapse override in polarProfileFactor — ring radii at +y
+  // (north) are pinched to ~5% of equator, the south half stays full.
+  // 0 keeps the legacy Fourier-only polar profile.
+  polar_collapse: number;
   nucleation_bias: NucleationBias;
 }
 const ARCHETYPE_DEFAULTS: Record<Archetype, ArchetypeConfig> = {
   // Basalt — degassed lava bubble. Smooth sphere, low irregularity.
-  spherical: { primary_bubbles: 1, secondary_bubbles: 0, polar_amp_scale: 0.20, twist_amp_scale: 0.10, nucleation_bias: 'uniform' },
+  spherical: { primary_bubbles: 1, secondary_bubbles: 0, polar_amp_scale: 0.20, twist_amp_scale: 0.10, elongation: 0.0, polar_collapse: 0.0, nucleation_bias: 'uniform' },
   // Limestone — karst dissolution cave. High bubble count + strong polar
   // variance for the cathedral feel.
-  irregular: { primary_bubbles: 4, secondary_bubbles: 12, polar_amp_scale: 1.40, twist_amp_scale: 1.20, nucleation_bias: 'uniform' },
-  // Granite — fracture pocket. Slice B fills in anisotropic stretch.
-  // For Slice A: pocket-like geometry with walls_only nucleation bias
-  // so the gameplay difference shows up before the geometry does.
-  tabular:   { primary_bubbles: 2, secondary_bubbles: 4, polar_amp_scale: 1.00, twist_amp_scale: 1.00, nucleation_bias: 'walls_only' },
+  irregular: { primary_bubbles: 4, secondary_bubbles: 12, polar_amp_scale: 1.40, twist_amp_scale: 1.20, elongation: 0.0, polar_collapse: 0.0, nucleation_bias: 'uniform' },
+  // Granite — fracture pocket. Anisotropic stretch (3:1 long axis to
+  // short axis) reads as a tabular fracture cross-section. walls_only
+  // nucleation keeps crystals on the long flat faces.
+  tabular:   { primary_bubbles: 2, secondary_bubbles: 4, polar_amp_scale: 0.80, twist_amp_scale: 0.50, elongation: 0.55, polar_collapse: 0.0, nucleation_bias: 'walls_only' },
   // Pegmatite — large crystallisation pocket. Identity transform on
   // legacy defaults so byte-equality holds when scenarios don't opt in.
-  pocket:    { primary_bubbles: 3, secondary_bubbles: 6, polar_amp_scale: 1.00, twist_amp_scale: 1.00, nucleation_bias: 'uniform' },
-  // Evaporite playa — flat basin. Slice B collapses the top hemisphere;
-  // for Slice A floor_only nucleation already gives the playa-floor read.
-  basin:     { primary_bubbles: 1, secondary_bubbles: 0, polar_amp_scale: 0.10, twist_amp_scale: 0.05, nucleation_bias: 'floor_only' },
+  pocket:    { primary_bubbles: 3, secondary_bubbles: 6, polar_amp_scale: 1.00, twist_amp_scale: 1.00, elongation: 0.0, polar_collapse: 0.0, nucleation_bias: 'uniform' },
+  // Evaporite playa — flat basin. Top hemisphere collapses to ~5% of
+  // equator radius via a sigmoid override on polarProfileFactor; floor_only
+  // nucleation puts crystals on the playa floor.
+  basin:     { primary_bubbles: 1, secondary_bubbles: 0, polar_amp_scale: 0.10, twist_amp_scale: 0.05, elongation: 0.0, polar_collapse: 1.0, nucleation_bias: 'floor_only' },
 };
 
 // Raycast the bubble union at angle theta, honouring origin
@@ -251,6 +262,8 @@ class WallState {
     this.nucleation_bias = arc.nucleation_bias;
     this.polar_amp_scale = arc.polar_amp_scale;
     this.twist_amp_scale = arc.twist_amp_scale;
+    this.elongation = arc.elongation;
+    this.polar_collapse = arc.polar_collapse;
     // Phase-1 two-stage bubble-merge parameters (see VugWall). Scenario
     // overrides take precedence over archetype defaults.
     this.primary_bubbles = opts.primary_bubbles ?? arc.primary_bubbles;
@@ -355,6 +368,19 @@ class WallState {
       rawRadii[i] = w > 0 ? w : R;
     }
 
+    // Slice B: anisotropic stretch for tabular archetypes. Per-cell
+    // radius gets multiplied by (1 + e × cos(2θ)) so theta=0,π expand
+    // and theta=π/2,3π/2 contract — the cavity reads as a flat fracture
+    // pocket viewed end-on. e capped at 0.85 to keep the short-axis
+    // direction visible (factor stays ≥ 0.15). 0 = no stretch (legacy).
+    const elong = Math.max(0, Math.min(0.85, this.elongation ?? 0));
+    if (elong > 0) {
+      for (let i = 0; i < N; i++) {
+        const theta = 2 * Math.PI * i / N;
+        rawRadii[i] *= (1 + elong * Math.cos(2 * theta));
+      }
+    }
+
     // ---- Rescale to nominal mean ----
     let meanRaw = 0;
     for (const v of rawRadii) meanRaw += v;
@@ -390,12 +416,35 @@ class WallState {
   // Per-latitude radial multiplier. φ ∈ [0, π], south pole at 0,
   // north at π. Floored at 0.5 so a strong pinch can't collapse a
   // ring to zero radius.
+  //
+  // Slice B: when polar_collapse > 0 (basin archetype), overlay a
+  // sigmoid that pinches the north hemisphere — south pole stays
+  // ~full radius, north pole drops to ~5%. The Fourier remains as
+  // small jitter so the floor isn't a perfect disc. Strength
+  // (polar_collapse ∈ [0, 1]) controls how aggressively the top
+  // collapses; 1 = full basin pinch, 0 = legacy Fourier-only.
   polarProfileFactor(phi) {
-    let factor = 1.0;
+    let fourier = 1.0;
     for (let n = 0; n < this.polar_amplitudes.length; n++) {
-      factor += this.polar_amplitudes[n] * Math.cos((n + 1) * phi + this.polar_phases[n]);
+      fourier += this.polar_amplitudes[n] * Math.cos((n + 1) * phi + this.polar_phases[n]);
     }
-    return Math.max(0.5, factor);
+    const collapse = this.polar_collapse ?? 0;
+    if (collapse > 0) {
+      // Sigmoid: 1.0 at south (phi=0), ~0.05 at north (phi=π),
+      // transitioning around equator (phi=π/2). Sigma=0.25 sets the
+      // transition width — softer than a step so basin walls don't
+      // create a sharp ring at the meniscus.
+      const FLOOR = 0.05;
+      const sigma = 0.25;
+      const s = 1.0 / (1.0 + Math.exp((phi - Math.PI / 2) / sigma));
+      const sigmoid = FLOOR + (1.0 - FLOOR) * s;
+      // Lerp Fourier toward sigmoid by collapse strength. Keep the
+      // Fourier jitter on the south half (where it stays ~full radius)
+      // so the floor has texture; the multiplication preserves that.
+      const blended = fourier * sigmoid * collapse + fourier * (1 - collapse);
+      return Math.max(FLOOR * 0.5, blended);
+    }
+    return Math.max(0.5, fourier);
   }
 
   // Phase F: per-latitude twist profile. Three harmonics with

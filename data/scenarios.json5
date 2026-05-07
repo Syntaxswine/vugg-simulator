@@ -242,6 +242,10 @@
         // MVT — dissolution cavity in limestone. Cohesive primary void plus heavy
         // secondary alcoves: the classic merged-cavity feel.
         "wall": {
+          // MVT — Mississippi Valley Type, limestone-hosted. Karst-style
+          // dissolution caves: irregular profile + strong Fourier polar
+          // variance for the cathedral feel.
+          "architecture": "irregular",
           "primary_bubbles": 3,
           "secondary_bubbles": 8,
           "shape_seed": 3
@@ -554,6 +558,10 @@
           "salinity": 120.0
         },
         "wall": {
+          // Sabkha — supratidal evaporite playa. Basin geometry: top
+          // hemisphere collapses, crystals nucleate floor-only on the
+          // playa surface.
+          "architecture": "basin",
           "composition": "limestone",   // Coorong lagoon floor is bioclastic carbonate
           "thickness_mm": 300.0,
           "vug_diameter_mm": 30.0,
@@ -790,6 +798,9 @@
           "salinity": 30.0
         },
         "wall": {
+          // Bisbee — limestone-replacement skarn cavities. Karst-style
+          // dissolution + supergene overprint = irregular profile.
+          "architecture": "irregular",
           "composition": "limestone",
           "thickness_mm": 500.0,
           "vug_diameter_mm": 50.0,
@@ -1103,6 +1114,9 @@
         // Vesicle in basalt — single primary cavity with minor
         // post-eruption coalescence. Smooth, sub-spherical.
         "wall": {
+          // Deccan Traps — degassed-lava amygdale. Spherical archetype:
+          // smooth, near-uniform cavity from a single gas bubble.
+          "architecture": "spherical",
           "composition": "basalt",
           "thickness_mm": 200.0,
           "vug_diameter_mm": 50.0,

@@ -893,5 +893,42 @@
 //          potentially any scenario with extended tabular growth
 //        Smaller scenarios with sub-millimeter crystals see no
 //        change (the cap simply never fires).
-const SIM_VERSION = 59;
+//   v60 — Host-rock Mechanic 5 Slice B: vug architecture geometry +
+//        scenario opt-ins (May 2026, PROPOSAL-HOST-ROCK).
+//
+//        Mechanism: WallState honors `architecture` field with five
+//        archetypes (spherical, irregular, tabular, pocket, basin),
+//        each tuning bubble counts, polar/twist amplitude scaling,
+//        equator elongation, polar-collapse strength, and
+//        nucleation_bias. Scenarios opt in via `wall.architecture`
+//        in scenarios.json5; the default 'pocket' is a no-op (legacy
+//        scales × 1.0, uniform bias).
+//
+//        Slice B added two new geometry transforms on top of the
+//        existing bubble-merge + Fourier path:
+//          - Anisotropic stretch in _buildProfile (tabular): per-cell
+//            radius × (1 + e × cos(2θ)) before mean-rescale, with e
+//            capped at 0.85 so the short axis stays ≥15% of mean.
+//          - Sigmoid polar collapse in polarProfileFactor (basin):
+//            blend Fourier with 0.05 + 0.95×sigmoid((π/2 − φ)/0.25)
+//            by polar_collapse strength, so the north hemisphere
+//            pinches to ~5% radius while the south stays full.
+//        Nucleation_bias filter (Slice A) is unchanged — basin's
+//        floor_only and tabular's walls_only carry forward.
+//
+//        Scenario opt-ins (this version): 4 scenarios, drift expected.
+//          - mvt        → 'irregular' — limestone-hosted MVT
+//          - sabkha_dolomitization → 'basin' — supratidal evaporite
+//          - bisbee     → 'irregular' — limestone-replacement skarn
+//          - deccan_zeolite → 'spherical' — basalt amygdale
+//        The other 16 scenarios stay 'pocket' (default) — byte-equal.
+//
+//        The drift is intentional: Fourier amplitudes scale per
+//        archetype, and basin's polar collapse changes ring radii
+//        materially, so any scenario that nucleates in mid-to-upper
+//        rings will pick a different ring with the new weights.
+//        Renderer-side per-cell cavity clip (commit 4fb128f) is the
+//        prerequisite — without it, irregular and tabular cavities
+//        would have crystal corners punching through narrow walls.
+const SIM_VERSION = 60;
 
