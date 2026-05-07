@@ -17,7 +17,7 @@ If a section below is wrong, update the canonical source — not this file.
 | Locality fluid chemistry       | `data/locality_chemistry.json`                       |
 | Scenarios (initial fluid + events) | `data/scenarios.json5` (loaded by both runtimes) |
 | Open work / backlog            | `proposals/BACKLOG.md`                               |
-| Current SIM_VERSION            | `vugg/version.py` (Python); `js/15-version.ts` (JS)  |
+| Current SIM_VERSION            | `js/15-version.ts`                                   |
 | Roadmap and decisions          | `proposals/BACKLOG.md` and individual `proposals/*.md` briefs |
 | Build pipeline                 | "Build pipeline" section below                       |
 | Module index (JS source)       | `js/README.md` — every prefix annotated, "find X by purpose" |
@@ -25,29 +25,32 @@ If a section below is wrong, update the canonical source — not this file.
 
 ---
 
-## Three runtimes, on purpose
+## Two runtimes, on purpose
 
-The simulation engine is implemented three times:
+The simulation engine ships in two places, both JavaScript:
 
-- **`vugg/`** — dev/test harness (Python package; was `vugg.py` before the
-  PROPOSAL-MODULAR-REFACTOR Phase A1–A5b split). The builder iterates
-  here first; `tests/` exercises this package (1,631 tests). Read
-  `vugg/__init__.py` top-of-file docstring for the keep-or-drop decision
-  and trigger conditions. Public surface unchanged: `from vugg import …`
-  still works.
 - **`index.html`** — the shipped product, **generated** by the build
   pipeline (see "Build pipeline" below). GitHub Pages serves repo root.
   Edit source files under `js/`, not `index.html` directly.
 - **`agent-api/vugg-agent.js`** — headless CLI for AI agents. Intentionally
   simpler. Read the top-of-file comment for what "intentionally simpler"
-  means and how its lag relative to the other two is policed.
+  means and how its lag relative to the in-browser bundle is policed.
 
-Cross-runtime drift is detected by **`tools/sync-spec.js`** (run with
-`node tools/sync-spec.js`). The "make these three converge" project is
-tracked in `proposals/TASK-BRIEF-DATA-AS-TRUTH.md` (declarative tables in
-`data/`) and the longer-term option-3 plan in the architecture review
-(2026-04-29 session): cross-engine baseline tests that diff seed-42 output
-between runtimes.
+The bundle is the source of truth for chemistry; the agent CLI mirrors
+selected engines for the headless-play surface.
+
+History: there was a third runtime — a Python `vugg/` package and
+`tests/` pytest suite that the builder iterated against first, with
+`tools/sync-spec.js` as the cross-runtime drift detector. The Python
+side was retired (2026-05-07) once the JS test surface (`tests-js/`,
+vitest) covered the same regressions; the cross-runtime drift checker
+retired with it. Older clones still carry the Python tree — see git
+history for `vugg/`, `tests/`, `pytest.ini`, `tools/sync-spec.js`,
+`tools/supersat_drift_audit.py`, `tools/twin_rate_check.py`,
+`tools/check-minerals-diff.py`, `tools/new-mineral.py`. Some legacy
+JS comments still cite "mirrors X in vugg.py" — these are fossil
+references and can be cleaned up incrementally; the JS itself is now
+the source of truth.
 
 ---
 
@@ -83,25 +86,21 @@ vugg-simulator/
 ├── tools/
 │   ├── build.mjs                # concatenator: dist/**/*.js → index.html
 │   ├── build-all.mjs            # tsc + build.mjs in one go
-│   ├── sync-spec.js             # cross-runtime drift detector
-│   ├── new-mineral.py           # scaffolding for new mineral entries
-│   ├── make-thumbnails.py       # photo pipeline
-│   └── ...
+│   ├── gen-js-baseline.mjs      # regenerate JS regression baselines
+│   ├── make-thumbnails.py       # photo pipeline (out-of-band)
+│   ├── gen-ascii-embeds.py      # photo pipeline (out-of-band)
+│   ├── photo-to-ascii.py        # photo pipeline (out-of-band)
+│   └── three.module.js          # vendored Three.js
 ├── package.json                 # npm scripts (build / typecheck / ci)
 ├── tsconfig.json                # script-mode TS config
-├── vugg/                        # dev/test harness (Python package)
-│   ├── __init__.py
-│   ├── version.py               # SIM_VERSION + history
-│   ├── chemistry/               # FluidChemistry, VugConditions, supersat/<class>
-│   ├── geometry/                # VugWall, WallCell, WallState, Crystal
-│   └── …                        # remaining engines + simulator inline (Phase A6+ pending)
+├── tests-js/                    # vitest regression suite + seed-42 baselines
 ├── data/
 │   ├── minerals.json            # canonical mineral spec
+│   ├── scenarios.json5          # scenario specs (initial fluid + events)
 │   └── locality_chemistry.json  # per-locality fluid + audit notes
 ├── photos/                      # mineral photos + thumbs (served at runtime)
 ├── agent-api/
-│   └── vugg-agent.js            # headless agent CLI
-├── tests/                       # pytest suite (exercises vugg/)
+│   └── vugg-agent.js            # headless agent CLI (the second runtime)
 ├── proposals/                   # design briefs + backlog
 └── research/                    # per-mineral research notes
 ```
@@ -158,7 +157,7 @@ after this change.
 
 - Pointers (you are reading them).
 - Cross-cutting decisions that don't fit anywhere else (e.g., the
-  three-runtimes-on-purpose framing above).
+  two-runtimes-on-purpose framing above).
 - Layout maps when something non-obvious moves.
 
 What does NOT go here:
