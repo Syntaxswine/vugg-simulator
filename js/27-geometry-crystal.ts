@@ -154,22 +154,18 @@ class Crystal {
     // v2 if vug-fill calibration shifts too far).
     else if (this.habit === 'snowball') this.a_width_mm = this.c_length_mm;
     else this.a_width_mm = this.c_length_mm * 0.5;
-    // Per-crystal spatial cap (BUG-CRYSTALS-CLIP-VUG-WALL.md Tier-2 fix).
-    // Without this, individual crystals can grow until the global vug-
-    // fill check stops nucleation — no per-crystal limit existed, so
-    // pegmatite feldspar #7 ended up at 91.2% of vug volume and
-    // supergene selenite #6 ended up 93% of vug diameter, both
-    // bursting the cavity. Cap c_length at vug_radius (crystal can
-    // grow at most halfway across the cavity along its c-axis) and
-    // a_width at vug_diameter (lateral half-width <= vug_radius).
-    // total_growth_um keeps incrementing — the cap is on rendered/
-    // effective size, so future steps see a smaller surface area for
-    // mass deposition (the chemistry self-throttles the right way).
-    if (this.vug_diameter_mm > 0) {
-      const vugRadius = this.vug_diameter_mm / 2;
-      if (this.c_length_mm > vugRadius) this.c_length_mm = vugRadius;
-      if (this.a_width_mm > this.vug_diameter_mm) this.a_width_mm = this.vug_diameter_mm;
-    }
+    // No size cap. Crystals grow to chemistry-true size (boss directive
+    // "defer to actual geology" 2026-05-06): in real cavities a crystal
+    // that outgrows its container either competes for space, deforms,
+    // or extends into surrounding rock — it doesn't get clamped at the
+    // wall. The renderer-side per-cell cavity clip (commit 4fb128f)
+    // handles the visual: fragments past the local wall radius are
+    // discarded per-fragment, so a 60 mm crystal in a 50 mm vug renders
+    // its inside-cavity portion and the wall slices the rest invisibly.
+    // The earlier v59 sim-side cap (`c_length <= vug_radius`,
+    // `a_width <= vug_diameter`) was over-cautious — it predates the
+    // per-cell clip and was carrying the load the shader now does.
+    // Removed in v61.
   }
 
   describe_morphology() {

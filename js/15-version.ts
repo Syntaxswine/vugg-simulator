@@ -930,5 +930,47 @@
 //        Renderer-side per-cell cavity clip (commit 4fb128f) is the
 //        prerequisite — without it, irregular and tabular cavities
 //        would have crystal corners punching through narrow walls.
-const SIM_VERSION = 60;
+//   v61 — Defer to actual geology: remove the v59 sim-side cap on
+//        c_length / a_width (May 2026, boss directive 2026-05-06
+//        "when in doubt, defer to the actual geology").
+//
+//        Mechanism: 27-geometry-crystal.ts:add_zone no longer clamps
+//        c_length to vug_radius or a_width to vug_diameter. Crystals
+//        grow to chemistry-true size (total_growth_um / 1000 along
+//        c, habit-ratio × c along a). Total_growth_um was already
+//        the chemistry-truthful field; v59's clamps were on the
+//        rendered effective size to prevent visual overflow before
+//        the per-cell shader clip existed. With per-cell clip
+//        (commit 4fb128f) discarding fragments past the local wall
+//        radius, the render handles the visual; the sim doesn't
+//        need to lie about the size.
+//
+//        Why this is geology-true: real crystals in narrow cavities
+//        either compete for space (smaller faces), deform (curved
+//        habits), or push into the host rock (rare but documented
+//        in soft sediments). They don't magically halt at the wall.
+//        The simulator now renders the chemistry-true size and the
+//        per-cell clip slices what's past the wall — same visual
+//        outcome, honest underlying state.
+//
+//        Calibration drift: ZERO. Verified v60 → v61 baselines
+//        byte-identical across all 20 seed-42 scenarios. The cap
+//        only ever affected c_length_mm and a_width_mm (rendered
+//        size), and mass balance uses zone.thickness_um (per-step
+//        deposition) rather than c × a (cumulative size). All other
+//        chemistry consumers (get_vug_fill, _check_enclosure,
+//        _check_liberation, max-size record, uraninite radiation)
+//        already used total_growth_um (uncapped) post-v59 cleanup,
+//        so the cap was a pure render filter. Removing it changes:
+//          - rendered mesh size (chemistry-true)
+//          - narrator output ("a 34mm feldspar" vs "a 25mm feldspar")
+//          - tooltip / collection card displays
+//        No baseline drift; SIM_VERSION bump is for save-format and
+//        observable-behavior versioning rather than calibration.
+//
+//        Verified at runtime: gem_pegmatite seed=42 step=200 has
+//        2 oversize feldspars (#2 at 34.0 mm, #12 at 30.9 mm in a
+//        50 mm vug, vug_radius = 25 mm). c_length_mm now equals
+//        total_growth_um/1000, capped only by chemistry.
+const SIM_VERSION = 61;
 
