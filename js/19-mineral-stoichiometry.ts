@@ -64,6 +64,16 @@ const MINERAL_STOICHIOMETRY: Record<string, Record<string, number>> = {
   nickeline:      { Ni: 1, As: 1 },                  // NiAs
   millerite:      { Ni: 1, S: 1 },                   // NiS
   cobaltite:      { Co: 1, As: 1, S: 1 },            // CoAsS
+  // v67 — Brief-19 sulfide back-fill (telluride / selenide / Cd-suite)
+  greenockite:    { Cd: 1, S: 1 },                   // CdS (hexagonal)
+  hawleyite:      { Cd: 1, S: 1 },                   // CdS (cubic)
+  // Tellurides: Te is a fluid-field anion in v62+ (mirrors S/As/Se).
+  calaverite:     { Au: 1, Te: 2 },                  // AuTe2
+  sylvanite:      { Au: 1, Ag: 1, Te: 4 },           // (Au,Ag)Te2 — mid-range Au:Ag = 1:1
+  hessite:        { Ag: 2, Te: 1 },                  // Ag2Te
+  // Selenides: Se is a fluid-field anion (added v62 for clausthalite).
+  naumannite:     { Ag: 2, Se: 1 },                  // Ag2Se
+  clausthalite:   { Pb: 1, Se: 1 },                  // PbSe
 
   // ---- Oxides ----
   quartz:         { SiO2: 1 },                       // SiO2
@@ -110,8 +120,14 @@ const MINERAL_STOICHIOMETRY: Record<string, Record<string, number>> = {
   // ---- Halides ----
   fluorite:       { Ca: 1, F: 2 },                   // CaF2
   halite:         { Na: 1, Cl: 1 },                  // NaCl
+  sylvite:        { K: 1, Cl: 1 },                   // KCl — v67 brief-19 back-fill
+  atacamite:      { Cu: 2, Cl: 1 },                  // Cu2Cl(OH)3 — OH from water, not solute
 
   // ---- Phosphates / arsenates / vanadates ----
+  // v67 brief-19 back-fill: turquoise + apatite. (apatite spec-class
+  // is phosphate; the v64 engine grows it in supergene_oxidation.)
+  apatite:        { Ca: 5, P: 3 },                   // Ca5(PO4)3(OH,F,Cl) — fluorapatite OH-end-member; F/Cl trace, not debited
+  turquoise:      { Cu: 1, Al: 6, P: 4 },            // CuAl6(PO4)4(OH)8·4H2O
   pyromorphite:   { Pb: 5, P: 3, Cl: 1 },            // Pb5(PO4)3Cl
   vanadinite:     { Pb: 5, V: 3, Cl: 1 },            // Pb5(VO4)3Cl
   mimetite:       { Pb: 5, As: 3, Cl: 1 },           // Pb5(AsO4)3Cl
@@ -148,6 +164,10 @@ const MINERAL_STOICHIOMETRY: Record<string, Record<string, number>> = {
   raspite:        { Pb: 1, W: 1 },                   // PbWO4 (monoclinic)
   stolzite:       { Pb: 1, W: 1 },                   // PbWO4 (tetragonal)
   clinobisvanite: { Bi: 1, V: 1 },                   // BiVO4
+  // v67 brief-19 back-fill: powellite + scheelite/wolframite hygiene.
+  powellite:      { Ca: 1, Mo: 1 },                  // CaMoO4
+  scheelite:      { Ca: 1, W: 1 },                   // CaWO4 — classed molybdate per existing convention
+  wolframite:     { Fe: 0.5, Mn: 0.5, W: 1 },        // (Fe,Mn)WO4 — solid-solution mid-range
 };
 
 // PROPOSAL-GEOLOGICAL-ACCURACY Phase 1e (May 2026): per-mineral

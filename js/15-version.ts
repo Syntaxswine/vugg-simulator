@@ -1131,5 +1131,28 @@
 //        Drift: zero. Snapshot extension is data the engine doesn't
 //        read; renderer changes are display-only. seed42_v66.json
 //        regenerated from gen-js-baseline.mjs is byte-identical to v65.
-const SIM_VERSION = 66;
+//
+//   v67 — Brief-19 mass-balance back-fill (May 2026, boss-flagged from
+//        the v66 σ-pill replay revealing already-broken chemistry).
+//        Six v64-era growth engines (atacamite, sylvite, greenockite,
+//        hawleyite, powellite, turquoise) had no entry in
+//        MINERAL_STOICHIOMETRY — `applyMassBalance` skipped them, so
+//        their growth did not debit fluid composition (warnings printed
+//        every baseline regen since v62-Cd, ignored until now). v67
+//        adds the entries; growth now debits Cu/Cl/K/Cd/S/Ca/Mo/Al/P
+//        on those six per the formulas in data/minerals.json.
+//
+//        Plus eight zero-drift hygiene entries for v64-era engines
+//        that don't currently fire in any baseline scenario but will
+//        when scenarios shift: apatite, calaverite, sylvanite, hessite,
+//        naumannite, clausthalite, scheelite, wolframite. Each is a
+//        per-formula-unit stoichiometry that mirrors data/minerals.json.
+//
+//        Drift expected: bisbee (atacamite), mvt + supergene_oxidation
+//        (greenockite/hawleyite/powellite/atacamite/turquoise), sabkha
+//        + searles_lake (sylvite). Cu / Cd / Ca / Mo / K / Al / P
+//        debits cascade into downstream growth — malachite/chrysocolla
+//        in supergene, feldspar in evaporites, etc. The mass-balance
+//        warnings stop firing on the baseline regen.
+const SIM_VERSION = 67;
 
