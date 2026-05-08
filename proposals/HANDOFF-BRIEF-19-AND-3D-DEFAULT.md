@@ -2,9 +2,25 @@
 
 **Session ended:** 2026-05-08
 **Author:** Claude (Opus 4.7, 1M context)
-**Status of campaign:** v62 → v64 + 3D-default shipped & pushed to Syntaxswine `main`. Catalog 97 → 116 minerals; 19 new minerals fire / grow / dissolve / narrate. Three.js renderer now default; replay button visibly responds in 3D — but the cavity it shows is a placeholder (vertical projection of ring[0]; live crystals).
+**Status of campaign:** v62 → v67 shipped & pushed to Syntaxswine `main`. Catalog 97 → 116 minerals; 19 new minerals fire / grow / dissolve / narrate. Three.js renderer is the default. Replay-in-3D is fully honest: cavity geometry, crystal sizes, T/pH/pressure/fluid/σ-pills, paramorph identity, and replay-step overlay all rewind in lockstep. History decimated so 1000-step runs stay ≤ ~14 MB in memory. Six brief-19 minerals had no `MINERAL_STOICHIOMETRY` entry (loud `[mass-balance]` warnings since v62-Cd) — closed in v67 + 8 hygiene back-fills.
 
-> **Boss directive 2026-05-08:** the replay fix is the priority for tonight's session. Section A below has the four-part plan. Read that first; everything else is follow-up.
+> **Brief Section A (replay-in-3D) is DONE** as of commits `c781893` (v65), `c8ae42b` (v66), `26b19cd` (decimation), `7b03623` (v67 mass-balance back-fill). See "Done since this brief was written" below for the closure log; the original Section A plan is preserved unchanged for archaeology. Sections B–H remain open as written.
+
+## Done since this brief was written
+
+| commit    | tag  | what                                                                                                                         |
+|-----------|------|------------------------------------------------------------------------------------------------------------------------------|
+| `c781893` | v65  | Multi-ring snapshots `{ step, rings: [...] }` + per-crystal historical-size lookup walking `zones[]`. Cavity + crystal sizes rewind honestly. |
+| `c8ae42b` | v66  | Conditions snapshot per step (T, pressure, pH, full fluid clone, vug diameter, radiation dose) + paramorph mineral-rewind in renderer + replay-step overlay ("▶ replay step 76 / 150 · 240°C · pH 6.4") + fortress-status panel reads snapshot during replay (σ-pills compute against snapshot fluid). |
+| `26b19cd` | —    | Replay-history decimation: stride 1 → 3 → 9 → 27 → 81 with step. 1000-step run = 92 snapshots (~14 MB) instead of 1000 (~150 MB). End-of-replay lag = (stride − 1) at the most recent tier; visually unnoticeable. |
+| `7b03623` | v67  | `MINERAL_STOICHIOMETRY` back-fill: 6 warned (atacamite/sylvite/greenockite/hawleyite/powellite/turquoise) + 8 hygiene (apatite + Au-Te trio + Ag-Se duo + scheelite/wolframite). Mass-balance warnings now silent. 6 of 22 scenarios drift; turquoise shrunk 1006→460μm in schneeberg, powellite 67→54μm in porphyry (their ingredients now debit honestly). |
+
+## Open follow-ups not in the original brief
+
+- **Replay scrub bar + pause UX** — boss-flagged 2026-05-08 as "remind me later." Spawn-task chip registered in this session: `Replay scrub bar + pause UX`. The v66 trajectory is honest enough to study, but you can only ▶/⏹ — no pause, no scrub, no frame-step. Picking up the chip in a fresh worktree would add a slider beside the bottom-center overlay + pause/resume on the existing button + scrub-jump that re-renders + re-ticks fortress-status from the dragged snapshot.
+- **`MINERAL_DISSOLUTION_RATES` back-fill** (Section C below — still applies). Growth-side debits are now correct; dissolution-side credits aren't.
+
+---
 
 ---
 
