@@ -222,11 +222,14 @@
           // Cu=3: trace chalcopyrite documented at Tri-State even though Cu is
           // not a primary commodity. Low init keeps the Pb-Zn signature dominant.
           "Cu": 3,
-          // Pre-researched, pending FluidChemistry schema:
-          // When Cd is added, set Cd=2 (Tri-State sphalerite carries Cd substituting
-          // for Zn — typically 1000-5000 ppm Cd in mineral, raw fluid Cd ~1-10 ppm).
-          // Yellow Cd-rich coatings on Tri-State sphalerite are greenockite (CdS).
+          // v62 plumbing (the schema-pending note below was the boss's pre-research):
+          // Cd=2 — Tri-State sphalerite carries Cd substituting for Zn, typically
+          // 1000-5000 ppm in the mineral, raw fluid Cd ~1-10 ppm. Yellow Cd-rich
+          // coatings on Tri-State sphalerite ARE greenockite (CdS). Cd field landed
+          // in FluidChemistry alongside the brief-16 minerals; this 2 ppm enables
+          // greenockite + hawleyite when their engines land.
           // Source: Schwartz 2000 (Econ. Geol. 95) on Cd in MVT sphalerite.
+          "Cd": 2,
           //
           // v5 gap-fill (Apr 2026):
           // O2=0.25 (was 0.0): mildly reducing, NOT strictly reducing. Real MVT
@@ -338,6 +341,13 @@
           // diagnostic vapor-plume target. Bingham has produced ~200 t Au
           // cumulatively, making Au a defining metal alongside Cu and Mo.
           "Au": 2,
+          // Ti=25: porphyry hydrothermal fluids deliver Ti to alpine-cleft / vein
+          // systems where rutile crystallizes. Trace Ti in porphyry brines is
+          // typically 5-50 ppm (Wark & Watson 2006 TitaniQ thermometry; Mavrogenes
+          // & O'Neill 1999 fluid-inclusion Ti). 25 ppm sim-scale enables rutile
+          // to nucleate in this scenario when the rutile engine lands. Plumbing-
+          // only as of v62 — no engine consumes Ti yet.
+          "Ti": 25,
           "O2": 0.2,
           "pH": 4.5,
           "salinity": 10.0
@@ -883,6 +893,12 @@
           // v5 gap-fills:
           "Al": 25,   // alunite engine cap [Hemley 1969; Stoffregen 2000]
           "W": 20,    // scheelite + lead-tungstate suite [Strunz 1959]
+          // v62 plumbing: Cd from sphalerite oxidation. Tsumeb sphalerite
+          // carries 0.1-1% Cd substituting for Zn (Lombaard 1986; Pinch &
+          // Wilson 1977 documents greenockite + hawleyite oxidation-zone
+          // assemblages on Tsumeb sphalerite). 0.5 ppm sim-scale enables
+          // greenockite + hawleyite when their engines land.
+          "Cd": 0.5,
           "O2": 1.8,
           "pH": 6.8,
           "salinity": 2.0
@@ -968,10 +984,27 @@
           "Cr": 2.5,
           "Cu": 0.3,
           "V": 2.0,
-          "Ti": 0.8,
+          // Ti=25: pegmatite residual liquor is enriched in incompatible
+          // high-field-strength elements including Ti. Cruzeiro and other
+          // miarolitic pegmatites carry trace rutile + accessory ilmenite +
+          // Ti in tourmaline/biotite. 25 sim-ppm enables rutile to nucleate
+          // when its engine lands — sometimes as inclusion in growing quartz
+          // (rutilated quartz / Cupid's darts is a Brazilian classic from
+          // similar pegmatite settings). v62 was 0.8.
+          "Ti": 25,
           // Audit gap-fills (Apr 2026):
           "P": 8,    // accessory apatite [Cassedanne 1991]
           "Mg": 5,   // brief-required non-zero baseline
+          // v62 plumbing: W for the new tungstate engines. 5 ppm enables
+          // scheelite + wolframite (Sn-W vein chemistry overlaps with Be-Li
+          // pegmatites; Cornish + Panasqueira-adjacent geology). Pb=0 in
+          // this broth keeps existing raspite/stolzite (which need Pb≥40)
+          // dormant, so this is a clean single-axis bump.
+          // Te is intentionally NOT added here — adding Te≥0.5 with Au=0
+          // would unblock native_tellurium nucleation and disturb the
+          // pegmatite paragenesis. The Au-Ag-Te trio gets its own
+          // epithermal_telluride scenario.
+          "W": 5,
           "O2": 0.1,
           "pH": 6.8,
           "salinity": 6.0
@@ -1257,6 +1290,15 @@
           // the uranium era. Bismuthinite + native_bismuth secondary phases
           // can form alongside the uranyls.
           "Bi": 10,
+          // v62 plumbing: Se for the new selenide engines. Schneeberg /
+          // Jáchymov / Příbram all carry the classic clausthalite +
+          // naumannite + tiemannite + berzelianite low-S selenide assemblage
+          // (Pinch & Wilson 1977 documents the Erzgebirge selenide veins).
+          // Ag=0 currently in this broth so naumannite stays inactive
+          // until silver is also delivered; Pb=5 is below clausthalite's
+          // Pb≥20 nucleation threshold so clausthalite also waits. 2 ppm
+          // Se is the seed for when the engines + Ag/Pb pulses arrive.
+          "Se": 2,
           // Strongly reducing initial — required for uraninite + sulfides.
           "O2": 0.0,
           "pH": 6.5,
@@ -1326,6 +1368,14 @@
           "Pb": 0,
           "As": 0,
           "P": 1,    // trace; not enough for autunite/torbernite
+          // v62 plumbing: Se for the new selenide engines. Colorado Plateau
+          // sandstone-hosted U deposits commonly carry trace Se — the same
+          // reducing front that drops uranium also drops Se as native Se +
+          // ferroselite + clausthalite (Granger & Warren 1969 USGS Bull
+          // 1064 documented Se assemblages at Slick Rock and Uravan).
+          // Pb=0 in this broth keeps clausthalite (Pb-Se) inactive until
+          // a future Pb pulse delivers Pb≥20.
+          "Se": 2,
           // Initial mildly oxidizing — surface groundwater with O2 picked
           // up at the recharge boundary.
           "O2": 1.2,
@@ -1548,6 +1598,173 @@
         "Mammoth Hot Springs, Yellowstone NP — type locality for actively-forming travertine",
         "Pentecost A. (2005), Travertine — comprehensive review of CO₂-degas calcite",
         "Stumm & Morgan, Aquatic Chemistry (3rd ed.), Bjerrum partition + Henry's-Law CO₂"
+      ]
+    },
+
+    "epithermal_telluride": {
+      "anchor": "Cripple Creek mining district, Teller County, Colorado — alkalic-volcanic-hosted low-sulfidation epithermal Au-Te. Cresson Mine pocket, Carlton tunnel level. Type district for the world's gold-telluride mineralogy (calaverite, sylvanite, krennerite, hessite, petzite, native tellurium).",
+      "description": "Low-sulfidation alkalic-volcanic epithermal vein at the gold-telluride sweet spot. Late-stage K-alkaline fluid carries Au + Ag + Te through fractured phonolite and crystallizes the calaverite + sylvanite + hessite trio along quartz + fluorite + adularia gangue. Cooling from 280°C through the 150-200°C epithermal window over geologic time — the temperature trajectory crosses both the cubic↔monoclinic hessite transition (155°C) and the calaverite-sylvanite Au:Ag fork.",
+      "expects_species": ["calaverite", "sylvanite", "hessite", "native_gold", "native_tellurium", "fluorite", "quartz"],
+      "duration_steps": 180,
+      "notes": [
+        "Anchor: Cripple Creek mining district — alkalic-igneous diatreme, late-Oligocene (~32-28 Ma), produces high-grade Au-Te ore from low-sulfidation epithermal veins through phonolite + lamprophyre dikes. The world's premier gold-telluride locality and the type area for calaverite (1861, type specimen from Calaveras County CA but the species grows everywhere here), sylvanite, krennerite, petzite, and nagyágite.",
+        "Mechanic: gold telluride paragenesis cascades on temperature + Au:Ag ratio. At T > 250°C calaverite (Au-rich end-member) wins; as Ag rises and T drops into 150-250°C, sylvanite (1:1 Au:Ag) takes over; below 150°C hessite (pure Ag) crystallizes from residual fluid. Native gold liberates wherever local Te is depleted by earlier telluride growth. Fluorite + quartz + adularia gangue fills the spaces between.",
+        "Why Au=0.4 and Te=3 here: Cripple Creek fluid inclusion data (Saunders et al. 2008) reports Au 1-10 ppm and Te 1-30 ppm in inclusions across the deposit, with peak Au-Te enrichment in the Cresson Vug bonanza (Au tens of ppm). Sim-scale 0.4 ppm Au keeps the broth above all telluride thresholds while staying below native_gold's 0.5 ppm gate at the start (native_gold fires later as Te depletes and Au accumulates locally). Ag=15 puts sylvanite in the cation-fork window (Ag/Au ~37 — sylvanite-favored)."
+      ],
+      "initial": {
+        "temperature_C": 280.0,
+        "pressure_kbar": 0.5,
+        "fluid": {
+          "SiO2": 600,
+          "Ca": 80,
+          "CO3": 30,
+          "Fe": 12,
+          "Mn": 3,
+          "Mg": 5,
+          "Al": 8,
+          // Au=0.4: Cripple Creek fluid inclusion average (Saunders 2008).
+          // Above all telluride thresholds (calaverite Au≥0.1, sylvanite Au≥0.1).
+          // Just below native_gold's Au≥0.5 gate so native_gold needs locally
+          // depleted Te before it can nucleate.
+          "Au": 0.4,
+          // Ag=15: sylvanite / hessite-favoring Ag dominance. Acanthite gates
+          // on Ag≥0.5 + S≥5 — the low-S epithermal broth here (S=8) keeps
+          // acanthite at low σ until cooling concentrates the brine.
+          "Ag": 15,
+          // Te=3: epithermal sweet spot. Above all telluride thresholds and
+          // above native_tellurium's Te≥0.5 + Au≤1 + Ag≤5 gate. With Au=0.4
+          // and Ag=15, the Au+Ag composite blocks native_tellurium until Ag
+          // drops via hessite consumption.
+          "Te": 3,
+          // S=8: low-sulfidation epithermal — sulfides stay subordinate to
+          // tellurides and native phases. Saunders 2008 fluid inclusion S
+          // is 5-25 ppm in Cripple Creek bonanzas vs. 100-1000 ppm in
+          // typical porphyry brines.
+          "S": 8,
+          // F=20: fluorite is the diagnostic gangue at Cripple Creek + most
+          // Te-rich epithermal districts. Above fluorite's F≥10 threshold.
+          "F": 20,
+          // K=200: K-alkaline alteration is the diagnostic wallrock fingerprint
+          // of alkalic-volcanic-hosted epithermal — adularia + sericite halo
+          // around Au-Te veins.
+          "K": 200,
+          "Na": 60,
+          "Cl": 300,
+          "Pb": 5,
+          "Cu": 4,
+          // O2=0.05: reducing — required for telluride growth (Te²⁻ stable).
+          "O2": 0.05,
+          "pH": 6.5,
+          "salinity": 5.0
+        },
+        "wall": {
+          // Cripple Creek vugs are fracture-controlled in phonolite — narrow
+          // slot-like cavities along fault planes. Tabular architecture.
+          "architecture": "tabular",
+          "composition": "phonolite",
+          "thickness_mm": 200.0,
+          "vug_diameter_mm": 35.0,
+          "wall_Fe_ppm": 4000.0,
+          "primary_bubbles": 2,
+          "secondary_bubbles": 4,
+          "shape_seed": 32
+        }
+      },
+      "events": [
+        { "step": 30,  "type": "fluid_pulse",   "name": "Telluride Recharge",  "description": "Late-magmatic K-alkaline fluid pulse — Au + Ag + Te replenish; SiO2 surges for quartz gangue" },
+        { "step": 70,  "type": "cooling_pulse", "name": "First Cooling",       "description": "Meteoric mixing drops T into the calaverite-sylvanite transition window" },
+        { "step": 110, "type": "fluid_pulse",   "name": "Second Pulse",        "description": "Renewed magmatic input refreshes the brine; Ag rises faster than Au, biasing toward sylvanite + hessite" },
+        { "step": 145, "type": "cooling_pulse", "name": "Final Cooling",       "description": "T drops below 200°C — hessite phase transition and late acanthite become possible" }
+      ],
+      "sources": [
+        "Saunders 1991, 2008 — Cripple Creek alkalic-igneous Au-Te paragenesis + fluid inclusion data",
+        "Kelley & Spry 2016 — alkalic gold-telluride deposits review (Econ. Geol.)",
+        "Pinch & Wilson 1977 — Cripple Creek + Sacarîmb (Romania) telluride mineralogy",
+        "Goldschmidt 1922 — calaverite morphology (92 forms catalogued; the 'incommensurate modulation' problem)"
+      ]
+    },
+
+    "ultramafic_supergene": {
+      "anchor": "Marlborough chrysoprase deposits, Queensland, Australia — Ni-laterite weathering of Late-Devonian Marlborough Block ophiolitic peridotite. Type aesthetic: apple-green chrysoprase nodules + magnesite veinlets in saprolite over serpentinized harzburgite.",
+      "description": "Tropical-to-temperate Ni-laterite weathering of ultramafic protolith. Olivine + pyroxene break down to serpentine, releasing Ni + Mg + SiO2 to slow alkaline groundwater that percolates through fractures and crystallizes chrysoprase (Ni-bearing chalcedony) as fracture-fill, with magnesite + calcite + chalcedony as the cogenetic gangue suite. The signature green color comes from nano-inclusions of Ni-phyllosilicate (pimelite/willemseite/kerolite) trapped within the chalcedony fabric — a composite color, not a lattice color.",
+      "expects_species": ["chrysoprase", "quartz", "calcite"],
+      "duration_steps": 200,
+      "notes": [
+        "Anchor: Marlborough chrysoprase deposits (Queensland) — modern world reference for gem-grade chrysoprase. Late Devonian (380-360 Ma) Marlborough Block serpentinite + dunite is the protolith; Cenozoic weathering produced the saprolite + Ni-laterite + chrysoprase chemistry (Sachanbiński et al. 2001 documents the nano-inclusion structure).",
+        "Mechanic: olivine weathering releases Ni²⁺ + Mg²⁺ + Si(OH)₄ to seasonal groundwater. As the wet season ends, evaporation concentrates the brine and silica deposits as fibrous chalcedony in fractures, with Ni nano-inclusions trapped during deposition. The classic Marlborough green chrysoprase hosts ~0.4-4 wt% NiO bulk; the actual Ni is in pimelite/willemseite/kerolite nano-clay particles inside the SiO2 fabric.",
+        "Why Ni=200, Mg=300: ultramafic regolith ground waters carry tens to hundreds of ppm Ni and hundreds of ppm Mg in active weathering profiles (Garnier et al. 2008 Goro Ni-laterite hydrology; Cluzel & Vigier 2008 New Caledonia). 200 / 300 sim-ppm puts both well above chrysoprase's Ni≥50 + Mg≥50 thresholds while staying realistic. SiO2=200 keeps it above chrysoprase's SiO2≥100 gate without forcing macroscopic quartz nucleation."
+      ],
+      "initial": {
+        "temperature_C": 30.0,
+        "pressure_kbar": 0.05,
+        "fluid": {
+          "SiO2": 200,
+          "Ca": 30,
+          "CO3": 80,
+          "Fe": 15,
+          "Mn": 4,
+          // Mg=300: serpentinite weathering brine — ultramafic protolith
+          // releases Mg readily as olivine and pyroxene break down. Garnier
+          // 2008 reports Mg 50-300 ppm in active Ni-laterite groundwaters.
+          // Above chrysoprase's Mg≥50 threshold; also feeds magnesite when
+          // CO3 rises.
+          "Mg": 300,
+          // Ni=200: the diagnostic enrichment of ultramafic supergene fluid.
+          // Olivine + pyroxene release Ni²⁺ during serpentinization +
+          // weathering; alkaline groundwater carries it laterally until
+          // silica precipitation traps it as nano-inclusion. 200 sim-ppm
+          // is mid-range for active Ni-laterite weathering profiles.
+          "Ni": 200,
+          // Cr=10: minor Cr release from chromite + Cr-rich pyroxene in the
+          // host harzburgite. Below chrysoprase's mtorolite-fork Cr≥30
+          // threshold so the chalcedony stays Ni-green (not Cr-green).
+          "Cr": 10,
+          // Na, K modest — meteoric groundwater chemistry, not evaporite.
+          "Na": 30,
+          "K": 8,
+          "Cl": 40,
+          "S": 5,
+          "Al": 4,
+          // Cu = trace from rare Cu-bearing serpentinite zones (the boss's
+          // "garnierite + chrysocolla" companion at some Ni-laterite sites
+          // can co-occur).
+          "Cu": 2,
+          "P": 0.5,
+          // Strongly alkaline — serpentinite groundwater pH 8.5-10 is typical
+          // (the active mineralogy makes Mg-OH systems naturally basic).
+          // Above chrysoprase's pH≥7.5 + below ≤9.5 window.
+          "pH": 8.5,
+          "O2": 1.5,
+          "salinity": 1.0
+        },
+        "wall": {
+          // Saprolite + serpentinite host — fractured, irregular cavity
+          // network rather than a single bubble. Irregular architecture +
+          // mafic composition (ultramafic chemistry; basalt is the closest
+          // existing wall composition).
+          "architecture": "irregular",
+          "composition": "basalt",
+          "thickness_mm": 300.0,
+          "vug_diameter_mm": 40.0,
+          "wall_Fe_ppm": 6000.0,
+          "wall_Mn_ppm": 200.0,
+          "primary_bubbles": 3,
+          "secondary_bubbles": 6,
+          "shape_seed": 47
+        }
+      },
+      "events": [
+        { "step": 40,  "type": "aquifer_recharge_floods", "name": "Wet Season",     "description": "Seasonal recharge floods the cavity; fresh meteoric water dilutes Ni + Mg but delivers silica" },
+        { "step": 80,  "type": "fluid_pulse",            "name": "Ni Pulse",        "description": "Late-stage olivine + pyroxene weathering release — Ni + Mg spike, silica climbs" },
+        { "step": 130, "type": "tectonic_uplift_drains", "name": "Dry Season",      "description": "Fluid level drops; remaining brine evaporates and concentrates — chrysoprase nucleation window" },
+        { "step": 175, "type": "alkalinize",             "name": "Alkaline Cap",    "description": "Late carbonate-rich pulse — magnesite + calcite finish the assemblage" }
+      ],
+      "sources": [
+        "Sachanbiński et al. 2001 — chrysoprase nano-inclusion structure (Ni-clay in chalcedony)",
+        "Witkowski 2007 — chrysoprase color-cause confirmation",
+        "Garnier et al. 2008 — Goro Ni-laterite hydrology + supergene Ni mobility",
+        "Cluzel & Vigier 2008 — New Caledonia ultramafic weathering geochemistry",
+        "Marlborough Mine Queensland production records — modern Ni-rich chrysoprase reference"
       ]
     }
 

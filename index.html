@@ -5051,7 +5051,32 @@ let timeScale = 5.0;
 //        New broth field: Cd (default 0, no engine consumes it
 //        until greenockite/hawleyite engines land in a future
 //        round).
-const SIM_VERSION = 62;
+//
+//   v63 — Brief-19 plumbing pass (May 2026, this commit): scenario
+//        broth bumps + two new scenarios to host the new chemistry
+//        niches. No engine changes.
+//        - Existing scenarios: porphyry +Ti=25; gem_pegmatite Ti
+//          0.8→25 + W=5; supergene_oxidation +Cd=0.5; mvt +Cd=2;
+//          schneeberg +Se=2; colorado_plateau +Se=2.
+//        - New scenarios:
+//          * epithermal_telluride (Cripple Creek anchor) — Au=0.4,
+//            Ag=15, Te=3, low-S K-alkaline epithermal at 280°C; hosts
+//            the calaverite-sylvanite-hessite trio + native_gold/
+//            native_tellurium/fluorite/quartz when their engines land.
+//          * ultramafic_supergene (Marlborough anchor) — Ni=200,
+//            Mg=300, SiO2=200, alkaline (pH 8.5) low-T supergene
+//            weathering of serpentinite; hosts chrysoprase + magnesite
+//            + calcite when chrysoprase engine lands.
+//        Drift: bumped Ti / Cd / Se in 6 scenarios is byte-equal for
+//        existing engines (none gate on those fields), but existing
+//        engines that DO key on the broth fields touched (W in
+//        gem_pegmatite — raspite/stolzite gate W≥5 + Pb≥40, Pb=0
+//        here so dormant; Cd in supergene_oxidation/mvt — no engine;
+//        Se anywhere — no engine; Ti anywhere — no engine) means net
+//        drift expected is from the FP-rounding side-effect of
+//        diffusion / mass-balance touching the bumped values, plus
+//        the 2 new scenarios introducing 2 new entries to the baseline.
+const SIM_VERSION = 63;
 
 // ── 18-constants.js ──
 
