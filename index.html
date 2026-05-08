@@ -299,6 +299,20 @@ body.topo-view-3d .topo-slice-ctrls { display: none; }
   left: 10px;
   bottom: 10px;
 }
+.topo-info-label.bottom-center {
+  /* v66 replay-step overlay. Sits along the bottom of the canvas
+     between the vug-size label (bottom-left) and the replay button
+     (bottom-right) so it doesn't collide with the top-row zoom + slice
+     + camera controls on narrow viewports. Visible only when topo
+     replay is running. The amber-on-dark coloring matches the playing
+     replay button so the user reads the two as a connected pair. */
+  left: 50%;
+  bottom: 10px;
+  transform: translateX(-50%);
+  color: #f0c050;
+  border: 1px solid #3a3520;
+  z-index: 6;
+}
 #topo-canvas {
   display: block;
   width: 100%;
@@ -2538,6 +2552,7 @@ footer a:hover {
       </div>
       <button id="topo-replay-btn" class="topo-replay" onclick="topoReplay()" title="Replay wall history">▶</button>
       <div id="topo-vug-size" class="topo-info-label bottom-left" title="Vug diameter"></div>
+      <div id="topo-replay-overlay" class="topo-info-label bottom-center" style="display:none" title="Replay step (T / pH at this point in history)"></div>
       <div id="topo-tooltip" class="topo-tooltip" style="display:none"></div>
     </div>
   </div>
@@ -5144,7 +5159,49 @@ let timeScale = 5.0;
 //        the migration shim called for in HANDOFF-BRIEF-19); no save
 //        path serializes wall_state_history so saved games are
 //        unaffected by the schema bump.
-const SIM_VERSION = 65;
+//
+//   v66 — Replay-in-3D, finishing the job (May 2026, boss directive
+//        "as real as you can make it"). Picks up the caveats v65
+//        deliberately deferred:
+//
+//        Snapshot extension. wall_state_history snapshots now also
+//        carry a `conditions` block: { temperature, pressure, pH,
+//        flow_rate, vug_diameter_mm, total_dissolved_mm,
+//        fluid_surface_ring, fluid: <full FluidChemistry clone> } plus
+//        radiation_dose. Storage adds ~1 KB per snapshot (~200 KB for
+//        a 200-step run) — small relative to the 384 KB the rings
+//        already carry.
+//
+//        Fortress-status replay-mode. updateFortressStatus reads from
+//        _topoReplayActiveSnap (set per replay frame in
+//        99g-renderer-replay.ts) when the topo replay timer is running.
+//        It builds a prototype-rooted shim over conditions + wall so
+//        the supersaturation_<mineral> methods inherited from
+//        VugConditions are still callable, but the σ pills are
+//        computed against the snapshot's fluid + temperature. Step,
+//        T, pressure, pH, vug diameter, radiation dose all rewind
+//        with the cavity geometry.
+//
+//        Paramorph mineral rewind in renderer. For crystals that flipped
+//        mineral mid-life (argentite → acanthite at 173 °C in
+//        Round-8a; borax → tincalconite + mirabilite → thenardite via
+//        dehydration), _topoSyncCrystalMeshes now treats the crystal
+//        as its paramorph_origin when replayStep < paramorph_step.
+//        This reaches the material lookup (class_color, klass-driven
+//        metalness/roughness), the crystal signature (so cache busts
+//        when crossing the transition step), and the hit-test
+//        userData (tooltip mineral name).
+//
+//        Replay-step overlay. New top-center label in the topo panel
+//        ("▶ replay step 76 / 150 · 240 °C · pH 6.4") gives the user
+//        a clock for the replay timeline. Visible only while the
+//        replay timer is running. Empty when conditions aren't in
+//        the snapshot (legacy / pre-v66 in-memory state).
+//
+//        Drift: zero. Snapshot extension is data the engine doesn't
+//        read; renderer changes are display-only. seed42_v66.json
+//        regenerated from gen-js-baseline.mjs is byte-identical to v65.
+const SIM_VERSION = 66;
 
 // ── 18-constants.js ──
 
@@ -20641,8 +20698,17 @@ Object.assign(VugSimulator.prototype, {
                 continue;
             this.wall_state.paintCrystal(crystal);
         }
-        // v65 multi-ring snapshot for the Replay button. Shape:
-        //   { step, rings: [ring0_cells, ring1_cells, ..., ringN_cells] }
+        // v66 multi-ring snapshot for the Replay button. Shape:
+        //   {
+        //     step,
+        //     rings: [ring0_cells, ring1_cells, ..., ringN_cells],
+        //     conditions: {
+        //       temperature, pressure, pH, flow_rate,
+        //       vug_diameter_mm, total_dissolved_mm, fluid_surface_ring,
+        //       fluid: {…full FluidChemistry clone…},
+        //     },
+        //     radiation_dose,
+        //   }
         // Each cell is a shallow clone of its render-relevant fields —
         // including base_radius_mm so the Phase-1 Fourier profile is
         // preserved across replay frames. The `step` field lets the renderer
@@ -20650,16 +20716,37 @@ Object.assign(VugSimulator.prototype, {
         // where zones[k].step <= step) so the replay shows growth order, not
         // the live final size on every frame.
         //
+        // The `conditions` block is what the fortress-status panel reads
+        // during replay so T / pH / pressure / fluid composition all rewind
+        // honestly — without this, the panel keeps flashing live values
+        // while the cavity geometry replays.
+        //
         // Storage cost: ring_count× the v60 schema (16× by default; ~24 KB
-        // → ~384 KB for a 200-step run). Acceptable for in-memory replay.
-        // Legacy flat snapshots (Array shape) are still tolerated by
-        // topoRender / _topoSnapshotWall on the consumer side — see the
+        // → ~384 KB for a 200-step run) + ~1 KB conditions per snapshot
+        // (~200 KB extra for a 200-step run). Acceptable for in-memory
+        // replay. Legacy flat snapshots (Array shape) are still tolerated
+        // by topoRender / _topoSnapshotWall on the consumer side — see the
         // shape detection in 99b-renderer-topo-2d.ts and
         // 99i-renderer-three.ts.
         const ringCount = this.wall_state.ring_count;
+        const cnd = this.conditions;
         const snap = {
             step: this.step,
             rings: new Array(ringCount),
+            conditions: {
+                temperature: cnd.temperature,
+                pressure: cnd.pressure,
+                pH: cnd.fluid.pH,
+                flow_rate: cnd.flow_rate,
+                vug_diameter_mm: cnd.wall.vug_diameter_mm,
+                total_dissolved_mm: cnd.wall.total_dissolved_mm,
+                fluid_surface_ring: cnd.fluid_surface_ring,
+                // Full fluid clone — fortress-status reads f.Cu / f.Fe / etc.
+                // for the per-mineral "needs" hints, and the brief explicitly
+                // calls out fluid-state trajectories as deferred-from-v65.
+                fluid: _cloneFluid(cnd.fluid),
+            },
+            radiation_dose: this.radiation_dose,
         };
         for (let r = 0; r < ringCount; r++) {
             const ring = this.wall_state.rings[r];
@@ -26967,8 +27054,45 @@ function appendFortressLine(container, line) {
 function updateFortressStatus() {
     if (!fortressSim)
         return;
-    const c = fortressSim.conditions;
-    document.getElementById('f-step-num').textContent = fortressSim.step;
+    // v66 replay-aware: when the topo replay timer is running, swap to
+    // the snapshot's conditions for the active frame so the fortress
+    // panel rewinds T / pH / pressure / fluid composition alongside the
+    // 3D cavity — including the supersaturation pills, which call
+    // `c.supersaturation_<mineral>()` methods inherited from the
+    // VugConditions prototype. We construct a prototype-rooted overlay
+    // so those methods stay callable but read snapshot fields.
+    // _topoReplayActiveSnap is set per frame by topoReplay (in
+    // 99g-renderer-replay.ts). The renderer is the source of truth for
+    // "what step is the user looking at" — fortress-status just reads
+    // from the same snapshot.
+    const replaySnap = (typeof _topoReplayActiveSnap !== 'undefined') ? _topoReplayActiveSnap : null;
+    const liveCnd = fortressSim.conditions;
+    let c = liveCnd;
+    if (replaySnap && replaySnap.conditions) {
+        const snapCnd = replaySnap.conditions;
+        // Wall shim — keeps Wall.* methods accessible via prototype while
+        // overriding the two render-relevant fields.
+        const wallShim = Object.assign(Object.create(Object.getPrototypeOf(liveCnd.wall) || null), liveCnd.wall, {
+            vug_diameter_mm: snapCnd.vug_diameter_mm,
+            total_dissolved_mm: snapCnd.total_dissolved_mm,
+        });
+        // Conditions shim — same trick for the parent. supersaturation_*
+        // methods come from the live prototype, so the σ-panel reads
+        // snapshot fluid + temperature.
+        c = Object.assign(Object.create(Object.getPrototypeOf(liveCnd) || null), liveCnd, {
+            temperature: snapCnd.temperature,
+            pressure: snapCnd.pressure,
+            flow_rate: snapCnd.flow_rate,
+            fluid: snapCnd.fluid || liveCnd.fluid,
+            fluid_surface_ring: snapCnd.fluid_surface_ring,
+            wall: wallShim,
+        });
+    }
+    const stepDisplay = (replaySnap && replaySnap.step != null) ? replaySnap.step : fortressSim.step;
+    const radDose = (replaySnap && replaySnap.radiation_dose != null)
+        ? replaySnap.radiation_dose
+        : fortressSim.radiation_dose;
+    document.getElementById('f-step-num').textContent = stepDisplay;
     document.getElementById('f-stat-temp').textContent = c.temperature.toFixed(1) + '°C';
     document.getElementById('f-stat-press').textContent = c.pressure.toFixed(2) + ' kbar';
     document.getElementById('f-stat-ph').textContent = c.fluid.pH.toFixed(1);
@@ -26984,9 +27108,9 @@ function updateFortressStatus() {
     }
     // Show radiation dose when uraninite present
     const radContainer = document.getElementById('f-stat-radiation-container');
-    if (fortressSim.radiation_dose > 0) {
+    if (radDose > 0) {
         radContainer.style.display = '';
-        document.getElementById('f-stat-radiation').textContent = `☢️ ${fortressSim.radiation_dose.toFixed(2)}`;
+        document.getElementById('f-stat-radiation').textContent = `☢️ ${radDose.toFixed(2)}`;
     }
     else {
         radContainer.style.display = 'none';
@@ -32421,23 +32545,36 @@ function _topoPanMouseUp() {
 // js/99g-renderer-replay.ts — Topo replay player (cycles wall-state history at fixed speed)
 // ============================================================
 // topoReplay + _topoPlaybackTimer module state. Uses sim.wall_state_history snapshots to step the visualization.
+// v66: also drives the fortress-status panel via _topoReplayActiveSnap so
+// T/pH/pressure/σ-pills rewind alongside the 3D cavity.
 //
 // Phase B12 of PROPOSAL-MODULAR-REFACTOR — split renderer.
 let _topoPlaybackTimer = null;
+// v66: the active snapshot for the current replay frame, or null when
+// replay isn't running. Read by updateFortressStatus (97-ui-fortress.ts)
+// so it can rewind T/pH/pressure/fluid composition + σ pills alongside
+// the 3D cavity. Written by topoReplay() per frame; cleared on stop.
+let _topoReplayActiveSnap = null;
 function topoReplay() {
     const btn = document.getElementById('topo-replay-btn');
     const sim = topoActiveSim();
     if (!sim || !sim.wall_state_history || !sim.wall_state_history.length)
         return;
+    const overlay = document.getElementById('topo-replay-overlay');
     // Toggle: already playing → stop and restore the live view.
     if (_topoPlaybackTimer) {
         clearInterval(_topoPlaybackTimer);
         _topoPlaybackTimer = null;
+        _topoReplayActiveSnap = null;
         if (btn) {
             btn.textContent = '▶';
             btn.classList.remove('playing');
         }
+        if (overlay)
+            overlay.style.display = 'none';
         topoRender();
+        if (typeof updateFortressStatus === 'function')
+            updateFortressStatus();
         return;
     }
     const history = sim.wall_state_history;
@@ -32451,19 +32588,46 @@ function topoReplay() {
         btn.textContent = '⏹';
         btn.classList.add('playing');
     }
+    if (overlay)
+        overlay.style.display = '';
     _topoPlaybackTimer = setInterval(() => {
         if (idx >= history.length) {
             clearInterval(_topoPlaybackTimer);
             _topoPlaybackTimer = null;
+            _topoReplayActiveSnap = null;
             if (btn) {
                 btn.textContent = '▶';
                 btn.classList.remove('playing');
             }
+            if (overlay)
+                overlay.style.display = 'none';
             // Snap back to live so any new growth lands immediately.
             topoRender();
+            if (typeof updateFortressStatus === 'function')
+                updateFortressStatus();
             return;
         }
-        topoRender(history[idx]);
+        const snap = history[idx];
+        _topoReplayActiveSnap = snap;
+        topoRender(snap);
+        if (typeof updateFortressStatus === 'function')
+            updateFortressStatus();
+        if (overlay) {
+            // Compact step badge with T / pH from the snapshot's conditions.
+            // Falls back to "step N" if conditions aren't recorded (legacy
+            // flat snapshots).
+            const cnd = snap && snap.conditions;
+            const stepN = (snap && snap.step != null) ? snap.step : (idx + 1);
+            let line = `▶ replay step ${stepN} / ${totalSteps}`;
+            if (cnd) {
+                const tStr = cnd.temperature != null ? `${cnd.temperature.toFixed(0)}°C` : '';
+                const phStr = (cnd.fluid && cnd.fluid.pH != null) ? `pH ${cnd.fluid.pH.toFixed(1)}` : '';
+                const tail = [tStr, phStr].filter(Boolean).join(' · ');
+                if (tail)
+                    line += `  ·  ${tail}`;
+            }
+            overlay.textContent = line;
+        }
         idx++;
     }, frameMs);
 }
@@ -34217,16 +34381,25 @@ function _topoCrystalsSignature(sim, replayStep) {
             // Use historical size in the signature so each frame's cache
             // key reflects the rendered size at that step.
             const hist = _topoHistoricalCrystalSize(c, replayStep);
+            // v66: rewind mineral to paramorph_origin if replayStep is
+            // before the paramorph transition (argentite at step < paramorph_step).
+            // Folding into the signature ensures the cache busts the moment
+            // the replay timeline crosses paramorph_step.
+            const effectiveMineral = (c.paramorph_step != null
+                && replayStep < c.paramorph_step
+                && c.paramorph_origin)
+                ? c.paramorph_origin
+                : c.mineral;
             if (!hist) {
                 // Perimorph casts persist at live size as hollow shells —
                 // keep them in the signature so the cache key still busts
                 // when one appears.
                 if (!(c.dissolved && c.perimorph_eligible))
                     continue;
-                parts.push(`${c.crystal_id}:${c.mineral}:${c.habit}:cast:${c.c_length_mm.toFixed(2)}:${c.wall_ring_index}:${c.wall_center_cell}`);
+                parts.push(`${c.crystal_id}:${effectiveMineral}:${c.habit}:cast:${c.c_length_mm.toFixed(2)}:${c.wall_ring_index}:${c.wall_center_cell}`);
                 continue;
             }
-            parts.push(`${c.crystal_id}:${c.mineral}:${c.habit}:${hist.c_length_mm.toFixed(2)}:${c.wall_ring_index}:${c.wall_center_cell}:r${replayStep}`);
+            parts.push(`${c.crystal_id}:${effectiveMineral}:${c.habit}:${hist.c_length_mm.toFixed(2)}:${c.wall_ring_index}:${c.wall_center_cell}:r${replayStep}`);
             continue;
         }
         parts.push(`${c.crystal_id}:${c.mineral}:${c.habit}:${c.c_length_mm.toFixed(2)}:${c.wall_ring_index}:${c.wall_center_cell}:${c.dissolved ? 'd' : 'a'}`);
@@ -34347,11 +34520,24 @@ function _topoSyncCrystalMeshes(state, sim, wall, replayStep) {
             geom = _buildHabitGeom(token);
             state.geomCache.set(token, geom);
         }
+        // v66 paramorph rewind — argentite → acanthite (and dehydration
+        // transitions like borax → tincalconite) flip a crystal's mineral
+        // mid-life at a recorded step. During replay before that step we
+        // want the ORIGINAL mineral's color/material (pre-cooled argentite
+        // looks different from acanthite), so swap to paramorph_origin
+        // when replayStep < paramorph_step.
+        let effectiveMineral = crystal.mineral;
+        if (replayStep != null
+            && crystal.paramorph_step != null
+            && replayStep < crystal.paramorph_step
+            && crystal.paramorph_origin) {
+            effectiveMineral = crystal.paramorph_origin;
+        }
         // Material — class_color from the mineral spec. Crystals lit by
         // the same scene lights as the cavity, with a touch more
         // metalness for sulfides / native elements (rough heuristic — E4
         // can read a per-mineral material spec if needed).
-        const spec = (typeof MINERAL_SPEC !== 'undefined' && MINERAL_SPEC) ? MINERAL_SPEC[crystal.mineral] : null;
+        const spec = (typeof MINERAL_SPEC !== 'undefined' && MINERAL_SPEC) ? MINERAL_SPEC[effectiveMineral] : null;
         const colorStr = (spec && spec.class_color) || '#d2691e';
         const klass = spec && spec.class;
         const metalness = (klass === 'sulfide' || klass === 'native') ? 0.45 : 0.08;
@@ -34489,7 +34675,9 @@ function _topoSyncCrystalMeshes(state, sim, wall, replayStep) {
         // findable by id via sim.crystals if a consumer needs more.
         mesh.userData = {
             crystal_id: crystal.crystal_id,
-            mineral: crystal.mineral,
+            // v66: report the effectiveMineral (paramorph-rewound during
+            // replay) so hit-test tooltips match what the user sees.
+            mineral: effectiveMineral,
             ringIdx,
             cellIdx,
         };

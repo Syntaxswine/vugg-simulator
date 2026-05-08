@@ -534,9 +534,55 @@ function appendFortressLine(container, line) {
 
 function updateFortressStatus() {
   if (!fortressSim) return;
-  const c = fortressSim.conditions;
 
-  document.getElementById('f-step-num').textContent = fortressSim.step;
+  // v66 replay-aware: when the topo replay timer is running, swap to
+  // the snapshot's conditions for the active frame so the fortress
+  // panel rewinds T / pH / pressure / fluid composition alongside the
+  // 3D cavity — including the supersaturation pills, which call
+  // `c.supersaturation_<mineral>()` methods inherited from the
+  // VugConditions prototype. We construct a prototype-rooted overlay
+  // so those methods stay callable but read snapshot fields.
+  // _topoReplayActiveSnap is set per frame by topoReplay (in
+  // 99g-renderer-replay.ts). The renderer is the source of truth for
+  // "what step is the user looking at" — fortress-status just reads
+  // from the same snapshot.
+  const replaySnap = (typeof _topoReplayActiveSnap !== 'undefined') ? _topoReplayActiveSnap : null;
+  const liveCnd = fortressSim.conditions;
+  let c = liveCnd;
+  if (replaySnap && replaySnap.conditions) {
+    const snapCnd = replaySnap.conditions;
+    // Wall shim — keeps Wall.* methods accessible via prototype while
+    // overriding the two render-relevant fields.
+    const wallShim = Object.assign(
+      Object.create(Object.getPrototypeOf(liveCnd.wall) || null),
+      liveCnd.wall,
+      {
+        vug_diameter_mm: snapCnd.vug_diameter_mm,
+        total_dissolved_mm: snapCnd.total_dissolved_mm,
+      }
+    );
+    // Conditions shim — same trick for the parent. supersaturation_*
+    // methods come from the live prototype, so the σ-panel reads
+    // snapshot fluid + temperature.
+    c = Object.assign(
+      Object.create(Object.getPrototypeOf(liveCnd) || null),
+      liveCnd,
+      {
+        temperature: snapCnd.temperature,
+        pressure: snapCnd.pressure,
+        flow_rate: snapCnd.flow_rate,
+        fluid: snapCnd.fluid || liveCnd.fluid,
+        fluid_surface_ring: snapCnd.fluid_surface_ring,
+        wall: wallShim,
+      }
+    );
+  }
+  const stepDisplay = (replaySnap && replaySnap.step != null) ? replaySnap.step : fortressSim.step;
+  const radDose = (replaySnap && replaySnap.radiation_dose != null)
+    ? replaySnap.radiation_dose
+    : fortressSim.radiation_dose;
+
+  document.getElementById('f-step-num').textContent = stepDisplay;
   document.getElementById('f-stat-temp').textContent = c.temperature.toFixed(1) + '°C';
   document.getElementById('f-stat-press').textContent = c.pressure.toFixed(2) + ' kbar';
   document.getElementById('f-stat-ph').textContent = c.fluid.pH.toFixed(1);
@@ -553,9 +599,9 @@ function updateFortressStatus() {
 
   // Show radiation dose when uraninite present
   const radContainer = document.getElementById('f-stat-radiation-container');
-  if (fortressSim.radiation_dose > 0) {
+  if (radDose > 0) {
     radContainer.style.display = '';
-    document.getElementById('f-stat-radiation').textContent = `☢️ ${fortressSim.radiation_dose.toFixed(2)}`;
+    document.getElementById('f-stat-radiation').textContent = `☢️ ${radDose.toFixed(2)}`;
   } else {
     radContainer.style.display = 'none';
   }

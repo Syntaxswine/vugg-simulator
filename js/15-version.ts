@@ -1089,5 +1089,47 @@
 //        the migration shim called for in HANDOFF-BRIEF-19); no save
 //        path serializes wall_state_history so saved games are
 //        unaffected by the schema bump.
-const SIM_VERSION = 65;
+//
+//   v66 — Replay-in-3D, finishing the job (May 2026, boss directive
+//        "as real as you can make it"). Picks up the caveats v65
+//        deliberately deferred:
+//
+//        Snapshot extension. wall_state_history snapshots now also
+//        carry a `conditions` block: { temperature, pressure, pH,
+//        flow_rate, vug_diameter_mm, total_dissolved_mm,
+//        fluid_surface_ring, fluid: <full FluidChemistry clone> } plus
+//        radiation_dose. Storage adds ~1 KB per snapshot (~200 KB for
+//        a 200-step run) — small relative to the 384 KB the rings
+//        already carry.
+//
+//        Fortress-status replay-mode. updateFortressStatus reads from
+//        _topoReplayActiveSnap (set per replay frame in
+//        99g-renderer-replay.ts) when the topo replay timer is running.
+//        It builds a prototype-rooted shim over conditions + wall so
+//        the supersaturation_<mineral> methods inherited from
+//        VugConditions are still callable, but the σ pills are
+//        computed against the snapshot's fluid + temperature. Step,
+//        T, pressure, pH, vug diameter, radiation dose all rewind
+//        with the cavity geometry.
+//
+//        Paramorph mineral rewind in renderer. For crystals that flipped
+//        mineral mid-life (argentite → acanthite at 173 °C in
+//        Round-8a; borax → tincalconite + mirabilite → thenardite via
+//        dehydration), _topoSyncCrystalMeshes now treats the crystal
+//        as its paramorph_origin when replayStep < paramorph_step.
+//        This reaches the material lookup (class_color, klass-driven
+//        metalness/roughness), the crystal signature (so cache busts
+//        when crossing the transition step), and the hit-test
+//        userData (tooltip mineral name).
+//
+//        Replay-step overlay. New top-center label in the topo panel
+//        ("▶ replay step 76 / 150 · 240 °C · pH 6.4") gives the user
+//        a clock for the replay timeline. Visible only while the
+//        replay timer is running. Empty when conditions aren't in
+//        the snapshot (legacy / pre-v66 in-memory state).
+//
+//        Drift: zero. Snapshot extension is data the engine doesn't
+//        read; renderer changes are display-only. seed42_v66.json
+//        regenerated from gen-js-baseline.mjs is byte-identical to v65.
+const SIM_VERSION = 66;
 

@@ -147,8 +147,17 @@ _diffuseRingState(rate?) {
     if (crystal.dissolved) continue;
     this.wall_state.paintCrystal(crystal);
   }
-  // v65 multi-ring snapshot for the Replay button. Shape:
-  //   { step, rings: [ring0_cells, ring1_cells, ..., ringN_cells] }
+  // v66 multi-ring snapshot for the Replay button. Shape:
+  //   {
+  //     step,
+  //     rings: [ring0_cells, ring1_cells, ..., ringN_cells],
+  //     conditions: {
+  //       temperature, pressure, pH, flow_rate,
+  //       vug_diameter_mm, total_dissolved_mm, fluid_surface_ring,
+  //       fluid: {…full FluidChemistry clone…},
+  //     },
+  //     radiation_dose,
+  //   }
   // Each cell is a shallow clone of its render-relevant fields —
   // including base_radius_mm so the Phase-1 Fourier profile is
   // preserved across replay frames. The `step` field lets the renderer
@@ -156,16 +165,37 @@ _diffuseRingState(rate?) {
   // where zones[k].step <= step) so the replay shows growth order, not
   // the live final size on every frame.
   //
+  // The `conditions` block is what the fortress-status panel reads
+  // during replay so T / pH / pressure / fluid composition all rewind
+  // honestly — without this, the panel keeps flashing live values
+  // while the cavity geometry replays.
+  //
   // Storage cost: ring_count× the v60 schema (16× by default; ~24 KB
-  // → ~384 KB for a 200-step run). Acceptable for in-memory replay.
-  // Legacy flat snapshots (Array shape) are still tolerated by
-  // topoRender / _topoSnapshotWall on the consumer side — see the
+  // → ~384 KB for a 200-step run) + ~1 KB conditions per snapshot
+  // (~200 KB extra for a 200-step run). Acceptable for in-memory
+  // replay. Legacy flat snapshots (Array shape) are still tolerated
+  // by topoRender / _topoSnapshotWall on the consumer side — see the
   // shape detection in 99b-renderer-topo-2d.ts and
   // 99i-renderer-three.ts.
   const ringCount = this.wall_state.ring_count;
+  const cnd = this.conditions;
   const snap: any = {
     step: this.step,
     rings: new Array(ringCount),
+    conditions: {
+      temperature: cnd.temperature,
+      pressure: cnd.pressure,
+      pH: cnd.fluid.pH,
+      flow_rate: cnd.flow_rate,
+      vug_diameter_mm: cnd.wall.vug_diameter_mm,
+      total_dissolved_mm: cnd.wall.total_dissolved_mm,
+      fluid_surface_ring: cnd.fluid_surface_ring,
+      // Full fluid clone — fortress-status reads f.Cu / f.Fe / etc.
+      // for the per-mineral "needs" hints, and the brief explicitly
+      // calls out fluid-state trajectories as deferred-from-v65.
+      fluid: _cloneFluid(cnd.fluid),
+    },
+    radiation_dose: this.radiation_dose,
   };
   for (let r = 0; r < ringCount; r++) {
     const ring = this.wall_state.rings[r];

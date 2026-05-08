@@ -1366,15 +1366,24 @@ function _topoCrystalsSignature(sim: any, replayStep?: number): string {
       // Use historical size in the signature so each frame's cache
       // key reflects the rendered size at that step.
       const hist = _topoHistoricalCrystalSize(c, replayStep);
+      // v66: rewind mineral to paramorph_origin if replayStep is
+      // before the paramorph transition (argentite at step < paramorph_step).
+      // Folding into the signature ensures the cache busts the moment
+      // the replay timeline crosses paramorph_step.
+      const effectiveMineral = (c.paramorph_step != null
+                                 && replayStep < c.paramorph_step
+                                 && c.paramorph_origin)
+        ? c.paramorph_origin
+        : c.mineral;
       if (!hist) {
         // Perimorph casts persist at live size as hollow shells —
         // keep them in the signature so the cache key still busts
         // when one appears.
         if (!(c.dissolved && c.perimorph_eligible)) continue;
-        parts.push(`${c.crystal_id}:${c.mineral}:${c.habit}:cast:${c.c_length_mm.toFixed(2)}:${c.wall_ring_index}:${c.wall_center_cell}`);
+        parts.push(`${c.crystal_id}:${effectiveMineral}:${c.habit}:cast:${c.c_length_mm.toFixed(2)}:${c.wall_ring_index}:${c.wall_center_cell}`);
         continue;
       }
-      parts.push(`${c.crystal_id}:${c.mineral}:${c.habit}:${hist.c_length_mm.toFixed(2)}:${c.wall_ring_index}:${c.wall_center_cell}:r${replayStep}`);
+      parts.push(`${c.crystal_id}:${effectiveMineral}:${c.habit}:${hist.c_length_mm.toFixed(2)}:${c.wall_ring_index}:${c.wall_center_cell}:r${replayStep}`);
       continue;
     }
     parts.push(`${c.crystal_id}:${c.mineral}:${c.habit}:${c.c_length_mm.toFixed(2)}:${c.wall_ring_index}:${c.wall_center_cell}:${c.dissolved ? 'd' : 'a'}`);
@@ -1496,11 +1505,25 @@ function _topoSyncCrystalMeshes(state: any, sim: any, wall: any, replayStep?: nu
       state.geomCache.set(token, geom);
     }
 
+    // v66 paramorph rewind — argentite → acanthite (and dehydration
+    // transitions like borax → tincalconite) flip a crystal's mineral
+    // mid-life at a recorded step. During replay before that step we
+    // want the ORIGINAL mineral's color/material (pre-cooled argentite
+    // looks different from acanthite), so swap to paramorph_origin
+    // when replayStep < paramorph_step.
+    let effectiveMineral = crystal.mineral;
+    if (replayStep != null
+        && crystal.paramorph_step != null
+        && replayStep < crystal.paramorph_step
+        && crystal.paramorph_origin) {
+      effectiveMineral = crystal.paramorph_origin;
+    }
+
     // Material — class_color from the mineral spec. Crystals lit by
     // the same scene lights as the cavity, with a touch more
     // metalness for sulfides / native elements (rough heuristic — E4
     // can read a per-mineral material spec if needed).
-    const spec = (typeof MINERAL_SPEC !== 'undefined' && MINERAL_SPEC) ? MINERAL_SPEC[crystal.mineral] : null;
+    const spec = (typeof MINERAL_SPEC !== 'undefined' && MINERAL_SPEC) ? MINERAL_SPEC[effectiveMineral] : null;
     const colorStr = (spec && spec.class_color) || '#d2691e';
     const klass = spec && spec.class;
     const metalness = (klass === 'sulfide' || klass === 'native') ? 0.45 : 0.08;
@@ -1644,7 +1667,9 @@ function _topoSyncCrystalMeshes(state: any, sim: any, wall: any, replayStep?: nu
     // findable by id via sim.crystals if a consumer needs more.
     mesh.userData = {
       crystal_id: crystal.crystal_id,
-      mineral: crystal.mineral,
+      // v66: report the effectiveMineral (paramorph-rewound during
+      // replay) so hit-test tooltips match what the user sees.
+      mineral: effectiveMineral,
       ringIdx,
       cellIdx,
     };
