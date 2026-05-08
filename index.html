@@ -30363,8 +30363,11 @@ function topoRender(optOverrideRing) {
     // and the canvas-vector path is skipped. Falls through silently if
     // _topoRenderThree returns false (CDN blocked, canvas missing) so
     // the user is never left staring at an empty panel.
+    // v65: optOverrideRing (replay snapshot) is forwarded so the
+    // Three.js path can rebuild cavity geometry from the historical
+    // ring instead of the live wall.
     if (_topoUseThreeRenderer && wall && wall.rings && wall.rings.length) {
-        if (_topoRenderThree(sim, wall)) {
+        if (_topoRenderThree(sim, wall, optOverrideRing)) {
             _topoSyncThreeCanvasVisibility();
             return;
         }
@@ -32806,7 +32809,18 @@ function idlePickScenario(val) {
 // Wired to the ⬚ button in .topo-camera-ctrls. Forces drag mode to
 // 'rotate' on enable so dragging actually orbits the scene; the
 // existing _topoTiltX/_topoTiltY/_topoZoom globals drive the camera.
-let _topoUseThreeRenderer = false;
+//
+// v65 (May 2026): Three.js mode is the DEFAULT now. The canvas-vector
+// 2D path is still reachable via the toggle button for users on
+// hardware that can't run WebGL or for the 'topo strip' aesthetic;
+// boot path expects _topoUseThreeRenderer=true and falls back to 2D
+// gracefully if Three.js is unavailable (CDN blocked, file://, etc.).
+let _topoUseThreeRenderer = true;
+// Has the default-on initialization run yet? On the FIRST topoRender
+// where Three.js is actually available, we force drag mode to 'rotate'
+// and color the toggle button. Done as one-shot so subsequent renders
+// don't keep clobbering user-driven mode changes.
+let _topoThreeDefaultApplied = false;
 // Maximum supported ring count for the polar-aware cavity clip. Sized
 // well above the simulator's default (16) and the practical upper bound
 // for 3D scenarios. Overflows fall back to the spherical bound. Must
@@ -34409,12 +34423,69 @@ function _topoApplyCameraFromTilt(state, wall) {
             state.directional.intensity = 0.9;
     }
 }
+// One-time default-on setup. Runs the first time _topoRenderThree
+// succeeds — colors the toggle button and forces drag mode to 'rotate'
+// so dragging the panel orbits the scene out-of-the-box.
+function _topoApplyThreeDefaultOnce() {
+    if (_topoThreeDefaultApplied)
+        return;
+    _topoThreeDefaultApplied = true;
+    const btn = document.getElementById('topo-three-btn');
+    if (btn)
+        btn.style.color = '#f0c050';
+    if (typeof topoSetDragMode === 'function' && _topoDragMode !== 'rotate') {
+        topoSetDragMode('rotate');
+    }
+}
+// Build a snapshot-cavity wall for replay. The wall_state_history
+// snapshot is a flat array of ring[0] cells (per the v60-era flat
+// snapshot schema). The 3D renderer needs a multi-ring wall, so we
+// project the snapshot ring across all rings — visually the cavity
+// becomes vertically uniform during replay (a column with the snapshot
+// profile). Lossy vs. true 3D history but visibly meaningful: the user
+// sees the cavity expand as wall_depth grows over the replay timeline.
+function _topoSnapshotWall(liveWall, snapshot) {
+    if (!liveWall || !liveWall.rings || !liveWall.rings.length)
+        return liveWall;
+    const ringCount = liveWall.ring_count;
+    const N = liveWall.cells_per_ring;
+    // Synthetic wall — reuse method shapes from liveWall via Object.assign
+    // so polarProfileFactor, ringTwistRadians, etc. still work.
+    const synth = Object.assign(Object.create(Object.getPrototypeOf(liveWall) || null), liveWall);
+    const rings = [];
+    for (let r = 0; r < ringCount; r++) {
+        const ring = new Array(N);
+        for (let i = 0; i < N; i++) {
+            const snap = snapshot[i] || {};
+            // Each ring gets the snapshot's per-cell wall_depth + base_radius
+            // so the cavity profile reflects history; crystal_id/mineral kept
+            // for completeness even though the 3D path reads them from
+            // sim.crystals.
+            ring[i] = {
+                wall_depth: snap.wall_depth || 0,
+                crystal_id: snap.crystal_id ?? null,
+                mineral: snap.mineral ?? null,
+                thickness_um: snap.thickness_um || 0,
+                base_radius_mm: snap.base_radius_mm || 0,
+            };
+        }
+        rings[r] = ring;
+    }
+    synth.rings = rings;
+    return synth;
+}
 // Public render entry. Called from topoRender's branch when
 // _topoUseThreeRenderer is true. Lazily inits on first call; renders
 // the scene every frame the wrapper invokes us. Returns true on
 // success so topoRender can short-circuit; false (=> fallback) when
 // Three.js is unavailable or the canvas hasn't mounted yet.
-function _topoRenderThree(sim, wall) {
+//
+// optOverrideRing — replay snapshot. When provided, the cavity is
+// rebuilt from the snapshot's per-cell wall_depth (projected to all
+// rings). Crystals stay live: replay shows historical wall, current
+// crystals — same caveat as the canvas-vector replay, which only
+// has ring[0] history available.
+function _topoRenderThree(sim, wall, optOverrideRing) {
     const canvas = document.getElementById('topo-canvas-three');
     if (!canvas)
         return false;
@@ -34425,10 +34496,19 @@ function _topoRenderThree(sim, wall) {
     const state = _topoInitThree(canvas);
     if (!state)
         return false;
+    _topoApplyThreeDefaultOnce();
     _topoSyncThreeSize(state, canvas);
-    _topoBuildCavityGeometry(state, wall, sim);
-    _topoSyncCrystalMeshes(state, sim, wall);
-    _topoApplyCameraFromTilt(state, wall);
+    // During replay, build cavity from snapshot ring (projected to all rings)
+    // so the wall profile reflects the historical step. Force a fresh
+    // cavity build each replay frame by invalidating the cached signatures.
+    const renderWall = optOverrideRing ? _topoSnapshotWall(wall, optOverrideRing) : wall;
+    if (optOverrideRing) {
+        state.cavitySig = null;
+        state.crystalsSig = null;
+    }
+    _topoBuildCavityGeometry(state, renderWall, sim);
+    _topoSyncCrystalMeshes(state, sim, renderWall);
+    _topoApplyCameraFromTilt(state, renderWall);
     state.renderer.render(state.scene, state.camera);
     return true;
 }

@@ -280,8 +280,11 @@ function topoRender(optOverrideRing?) {
   // and the canvas-vector path is skipped. Falls through silently if
   // _topoRenderThree returns false (CDN blocked, canvas missing) so
   // the user is never left staring at an empty panel.
+  // v65: optOverrideRing (replay snapshot) is forwarded so the
+  // Three.js path can rebuild cavity geometry from the historical
+  // ring instead of the live wall.
   if (_topoUseThreeRenderer && wall && wall.rings && wall.rings.length) {
-    if (_topoRenderThree(sim, wall)) {
+    if (_topoRenderThree(sim, wall, optOverrideRing)) {
       _topoSyncThreeCanvasVisibility();
       return;
     }
