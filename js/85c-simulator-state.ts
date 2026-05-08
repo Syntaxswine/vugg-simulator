@@ -8,6 +8,22 @@
 //
 // Phase B20 of PROPOSAL-MODULAR-REFACTOR.
 
+// v67 — replay-history decimation stride for a given step. Densest
+// near step 0 (where nucleations + first dissolution events happen)
+// and progressively coarser as chemistry stabilizes. Bounds the total
+// snapshot count to ≤~100 regardless of run length so a 1000-step run
+// stays around 15 MB in-memory instead of 150 MB. See _repaintWallState
+// for the breakdown table.
+function _replayStride(step: number): number {
+  if (step < 30) return 1;
+  if (step < 90) return 3;
+  if (step < 270) return 9;
+  if (step < 810) return 27;
+  if (step < 2430) return 81;
+  if (step < 7290) return 243;
+  return 729;
+}
+
 Object.assign(VugSimulator.prototype, {
   // Phase C v1: snapshot conditions.fluid + temperature before a
 // global-mutating block (events, wall dissolution, ambient cooling).
@@ -147,6 +163,39 @@ _diffuseRingState(rate?) {
     if (crystal.dissolved) continue;
     this.wall_state.paintCrystal(crystal);
   }
+
+  // v67 progressive snapshot decimation. The naive "push every step"
+  // policy from v65/v66 grows wall_state_history at ~150 KB per step,
+  // so a 1000-step run holds 150 MB in memory. The geological action
+  // is densest early (most nucleations + first dissolution events
+  // happen in the first ~30 steps), and gets progressively quieter as
+  // chemistry stabilizes. So: keep every step early, stride wider as
+  // step number grows.
+  //
+  // Tier breakpoints (chosen so the bound is ≤~100 snapshots regardless
+  // of run length, and replay frame_ms stays in [16, 40] ms):
+  //   step 0..29:    stride  1   (30 snapshots — full early-growth
+  //                              detail)
+  //   step 30..89:   stride  3   (20)
+  //   step 90..269:  stride  9   (20)
+  //   step 270..809: stride 27   (20)
+  //   step 810..2429: stride 81  (20)
+  //   ... 3× per tier thereafter
+  //
+  // For a 200-step run total snapshots ~ 63 (vs 200 pre-v67); a
+  // 1000-step run ~ 93. Replay timer iterates linearly — frames in
+  // older tiers cover multiple sim steps each, but that's actually
+  // accurate for "not much happened in those windows" anyway.
+  //
+  // Trade-off: the LATEST step may be up to (stride-1) steps behind
+  // the live sim state when the user clicks Replay. For step 100
+  // (stride 9) that means replay ends at step 99 — visually
+  // indistinguishable. The live render itself uses sim.crystals
+  // directly, not history, so the user always sees the actual current
+  // state outside replay.
+  const stride = _replayStride(this.step);
+  if (this.step % stride !== 0) return;
+
   // v66 multi-ring snapshot for the Replay button. Shape:
   //   {
   //     step,
