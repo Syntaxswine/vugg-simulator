@@ -10698,6 +10698,792 @@
       ],
       "audit_status": "new (priority-three batch 2026-05-07). First chalcedony habit in the sim — substrate for future agate / carnelian / onyx variants. Distinct from quartz entry by habit (microfibrous-cryptocrystalline vs. prismatic) and chemistry niche (ultramafic supergene Ni vs. broad hydrothermal SiO2). supergene_oxidation broth has no Ni — needs a future ultramafic_supergene scenario (Marlborough / Niquelândia / Szklary) for proper firing. No engine yet.",
       "class_color": "#1313eb"
+    },
+    "apatite": {
+      "formula": "Ca5(PO4)3(F,Cl,OH)",
+      "nucleation_sigma": 1.1,
+      "max_nucleation_count": 6,
+      "max_size_cm": 100,
+      "growth_rate_mult": 0.6,
+      "habit_variants": [
+        {"name": "prismatic_hexagonal", "wall_spread": 0.2, "void_reach": 0.85, "vector": "projecting", "trigger": "default — long c-axis hexagonal prism with pinacoid termination"},
+        {"name": "stubby_barrel", "wall_spread": 0.3, "void_reach": 0.7, "vector": "projecting", "trigger": "moderate σ — short barrel-shaped prism (Cerro de Mercado / Durango aesthetic)"},
+        {"name": "tabular", "wall_spread": 0.5, "void_reach": 0.5, "vector": "tabular", "trigger": "high σ — flat hex tablets when prism faces suppressed"},
+        {"name": "botryoidal_collophane", "wall_spread": 0.85, "void_reach": 0.15, "vector": "coating", "trigger": "low T sedimentary/diagenetic — cryptocrystalline phosphorite"},
+        {"name": "chatoyant_fibrous", "wall_spread": 0.4, "void_reach": 0.6, "vector": "projecting", "trigger": "rare fibrous habit producing cat's-eye chatoyancy (Sri Lanka / Brazil)"}
+      ],
+      "class": "phosphate",
+      "description": "Ca5(PO4)3(F,Cl,OH) — the structural archetype of the apatite supergroup (parent of pyromorphite, mimetite, vanadinite). Mohs hardness reference at 5. Forms in nearly every geological environment — magmatic accessory, pegmatite late-stage, hydrothermal vein, metamorphic skarn, sedimentary phosphorite, biological. Color span is the widest of any common mineral: green, blue, violet, yellow, brown depending on Mn²⁺, REE, Fe²⁺ activators. Fluorescent under UV in most varieties via Mn²⁺ + Eu²⁺ + Sm³⁺ + Ce³⁺ activator soup.",
+      "scenarios": ["gem_pegmatite", "supergene_oxidation", "porphyry"],
+      "T_range_C": [50, 900],
+      "T_optimum_C": [200, 500],
+      "T_behavior": "wide",
+      "pH_dissolution_below": 5.0,
+      "pH_dissolution_above": null,
+      "redox_requirement": "any",
+      "required_ingredients": {"Ca": 50, "P": 5},
+      "trace_ingredients": {
+        "F": "fluorapatite end-member (most common, most stable)",
+        "Cl": "chlorapatite end-member (metasomatic)",
+        "Mn": "blue-violet color (manganapatite)",
+        "Sr": "strontian apatite (Ca substitution)",
+        "REE": "yellow-green / pink color (Ce, Nd, Sm in Ca site)"
+      },
+      "thermal_decomp_C": 1500,
+      "thermal_decomp_reaction": "Apatite melts at ~1500°C — refractory; no low-T decomposition",
+      "thermal_decomp_products": {},
+      "fluorescence": {
+        "activator": "Mn²⁺ + REE (Eu²⁺ blue, Sm³⁺ pink, Ce³⁺ blue-violet)",
+        "threshold_ppm": 50,
+        "color": "yellow_LW_to_blue-violet_SW",
+        "quencher": "Fe²⁺"
+      },
+      "twin_laws": [
+        {"name": "contact_1121", "miller_indices": "{1121}", "trigger": "rare — moderate σ", "probability": 0.05}
+      ],
+      "acid_dissolution": {
+        "pH_threshold": 5.0,
+        "reaction": "Ca5(PO4)3F + 7H+ -> 5Ca2+ + 3H2PO4- + HF",
+        "products": {"Ca": 0.5, "P": 0.3, "F": 0.05}
+      },
+      "habit": "prismatic_hexagonal",
+      "color_rules": {
+        "yellow_green": {"default": true},
+        "blue": {"trigger": "Mn > 5 ppm OR radiation_damage > 0.2"},
+        "violet": {"trigger": "Mn > 20 ppm (manganapatite)"},
+        "pink": {"trigger": "REE present (Sm-activated)"},
+        "brown": {"trigger": "Fe > 10 ppm"}
+      },
+      "narrate_function": null,
+      "runtimes_present": ["js"],
+      "audit_status": "new (brief-16 batch 2026-05-07). First Ca-phosphate at apatite end-member; bridges to existing Pb-end-members pyromorphite/mimetite/vanadinite (apatite supergroup). gem_pegmatite + supergene_oxidation broths already carry Ca and P at trace level — needs P bump to ≥5 ppm. No engine yet.",
+      "class_color": "#13eb7f"
+    },
+    "atacamite": {
+      "formula": "Cu2Cl(OH)3",
+      "nucleation_sigma": 1.2,
+      "max_nucleation_count": 4,
+      "max_size_cm": 10,
+      "growth_rate_mult": 0.4,
+      "habit_variants": [
+        {"name": "prismatic_striated", "wall_spread": 0.25, "void_reach": 0.75, "vector": "projecting", "trigger": "default — slender striated prism elongated [001]"},
+        {"name": "fibrous_acicular", "wall_spread": 0.2, "void_reach": 0.8, "vector": "projecting", "trigger": "high σ — radiating acicular sprays"},
+        {"name": "botryoidal_crust", "wall_spread": 0.85, "void_reach": 0.15, "vector": "coating", "trigger": "high σ + space-constrained — emerald mammillary crust"},
+        {"name": "drusy_coating", "wall_spread": 0.95, "void_reach": 0.05, "vector": "coating", "trigger": "thin emerald druse on matrix"}
+      ],
+      "class": "halide",
+      "description": "Cu2Cl(OH)3 — the chloride end-member of the supergene Cu oxidation suite. Forms in arid Cu-porphyry zones where seawater or saline groundwater delivers Cl⁻ and the dry climate prevents the carbonate (malachite/azurite) and sulfate (brochantite/antlerite) phases from winning. Color is the most intense emerald-green of any common mineral — Cu²⁺ chromophore in distorted octahedral coordination. Atacama Desert is the type locality and the climate ideal: rain-shadow aridity + Cu sulfide oxidation + chloride-rich groundwater. Also forms on bronze artifacts in seawater (Antikythera mechanism, sunken Greek statues).",
+      "scenarios": ["bisbee", "supergene_oxidation"],
+      "T_range_C": [5, 100],
+      "T_optimum_C": [15, 40],
+      "T_behavior": "window",
+      "pH_dissolution_below": 5.0,
+      "pH_dissolution_above": null,
+      "redox_requirement": "oxidizing",
+      "required_ingredients": {"Cu": 10, "Cl": 30, "O2": 0.5},
+      "trace_ingredients": {
+        "Na": "saline groundwater amplifies Cl supply",
+        "S": "indicates Cu sulfide oxidation source"
+      },
+      "thermal_decomp_C": 200,
+      "thermal_decomp_reaction": "Cu2Cl(OH)3 -> Cu oxide + HCl + H2O above 200°C",
+      "thermal_decomp_products": {"Cu": 0.4, "Cl": 0.3},
+      "fluorescence": null,
+      "twin_laws": [
+        {"name": "contact_complex", "miller_indices": "{various}", "trigger": "moderate σ — penetration twins common", "probability": 0.15}
+      ],
+      "acid_dissolution": {
+        "pH_threshold": 5.0,
+        "reaction": "Cu2Cl(OH)3 + 3H+ -> 2Cu2+ + Cl- + 3H2O",
+        "products": {"Cu": 0.5, "Cl": 0.3}
+      },
+      "habit": "prismatic_striated",
+      "color_rules": {
+        "emerald_green": {"default": true},
+        "blackish_green": {"trigger": "Fe > 20 ppm (matrix staining)"},
+        "yellow_green_pleochroic": {"trigger": "thin section / certain orientations"}
+      },
+      "narrate_function": null,
+      "runtimes_present": ["js"],
+      "audit_status": "new (brief-16 batch 2026-05-07). Completes the four-axis supergene Cu branching: chrysocolla (silicate) / malachite (carbonate) / atacamite (chloride) / turquoise (phosphate). bisbee broth has Cu but Cl=0; needs Cl ≥30 ppm for atacamite to fire. supergene_oxidation also a fit. No engine yet.",
+      "class_color": "#7f13eb"
+    },
+    "calaverite": {
+      "formula": "AuTe2",
+      "nucleation_sigma": 1.5,
+      "max_nucleation_count": 2,
+      "max_size_cm": 1,
+      "growth_rate_mult": 0.3,
+      "habit_variants": [
+        {"name": "bladed_striated_prism", "wall_spread": 0.3, "void_reach": 0.7, "vector": "projecting", "trigger": "default — slender bladed prism elongated b-axis, longitudinally striated"},
+        {"name": "twinned_110", "wall_spread": 0.35, "void_reach": 0.65, "vector": "projecting", "trigger": "moderate σ — contact twin on {110}"},
+        {"name": "granular_massive", "wall_spread": 0.7, "void_reach": 0.3, "vector": "equant", "trigger": "low T (< 250°C) — massive granular aggregate"}
+      ],
+      "class": "sulfide",
+      "description": "AuTe2 — the gold-telluride that broke crystallography. Goldschmidt documented 92 distinct crystal forms before the structure was even understood; the lattice carries an incommensurate modulation wave through the tellurium positions, driven by Au fluctuating between Au⁺ and Au³⁺ states. This is the structure that defied Haüy's law of rational indices for a century. Beyond the pathology, calaverite is the world's premier gold-telluride ore mineral — Cripple Creek (Colorado) and Kalgoorlie (Western Australia) are its monuments. Brass-yellow metallic luster, ~3% Ag substitution typical, photochemically stable (unlike its cousin sylvanite). Decomposes above ~450°C to native gold + Te vapor.",
+      "scenarios": ["gem_pegmatite", "porphyry"],
+      "T_range_C": [150, 400],
+      "T_optimum_C": [200, 350],
+      "T_behavior": "window",
+      "pH_dissolution_below": null,
+      "pH_dissolution_above": null,
+      "redox_requirement": "reducing",
+      "required_ingredients": {"Au": 0.1, "Te": 1},
+      "trace_ingredients": {
+        "Ag": "Ag-bearing calaverite grades toward sylvanite; up to ~3% Ag for Au substitution",
+        "S": "minor S signals associated sulfide phases"
+      },
+      "thermal_decomp_C": 450,
+      "thermal_decomp_reaction": "AuTe2 -> Au0 + Te vapor at ~450°C",
+      "thermal_decomp_products": {"Au": 0.7, "Te": 0.5},
+      "fluorescence": null,
+      "twin_laws": [
+        {"name": "contact_110", "miller_indices": "{110}", "trigger": "moderate σ", "probability": 0.1}
+      ],
+      "acid_dissolution": null,
+      "habit": "bladed_striated_prism",
+      "color_rules": {
+        "brass_yellow": {"default": true},
+        "silver_white": {"trigger": "Ag > 1 ppm (Ag-rich variant)"}
+      },
+      "narrate_function": null,
+      "runtimes_present": ["js"],
+      "audit_status": "new (brief-16 batch 2026-05-07). First gold-telluride. Pairs with sylvanite (Au-Ag) and hessite (Ag) to form an epithermal-telluride trio gated by Au:Ag:Te ratios. No existing scenario carries Au + Te in the right window — gem_pegmatite + porphyry are placeholders until an epithermal_telluride scenario lands. No engine yet.",
+      "class_color": "#3e1d2e"
+    },
+    "chromite": {
+      "formula": "FeCr2O4",
+      "nucleation_sigma": 1.2,
+      "max_nucleation_count": 3,
+      "max_size_cm": 3,
+      "growth_rate_mult": 0.4,
+      "habit_variants": [
+        {"name": "octahedral", "wall_spread": 0.3, "void_reach": 0.7, "vector": "equant", "trigger": "default — black metallic octahedra (spinel habit)"},
+        {"name": "massive_granular", "wall_spread": 0.7, "void_reach": 0.3, "vector": "equant", "trigger": "high σ — chromitite seam fabric, mm-scale granular cumulate"},
+        {"name": "dodecahedral", "wall_spread": 0.4, "void_reach": 0.6, "vector": "equant", "trigger": "rare — moderate σ"}
+      ],
+      "class": "oxide",
+      "description": "FeCr2O4 — the iron-chromium spinel and the principal Cr ore. Crystallizes early from cooling mafic / ultramafic magma at 1200–1400°C, far outside the vug regime; this is fundamentally a magmatic cumulate mineral, not a hydrothermal vug phase. Listed in the spec for completeness and for placer / detrital provenance reasoning — chromite survives weathering and transport unchanged due to extreme spinel-structure stability. Bushveld (South Africa), Stillwater (Montana), Great Dyke (Zimbabwe) are the layered-intrusion type localities. Magnesiochromite (Mg → Fe substitution) and hercynite-leaning (Al → Cr substitution) are the two main solid-solution arms.",
+      "scenarios": ["gem_pegmatite"],
+      "T_range_C": [800, 1400],
+      "T_optimum_C": [1200, 1400],
+      "T_behavior": "wide",
+      "pH_dissolution_below": null,
+      "pH_dissolution_above": null,
+      "redox_requirement": "reducing",
+      "required_ingredients": {"Fe": 100, "Cr": 30},
+      "trace_ingredients": {
+        "Mg": "magnesiochromite series (Mg ↔ Fe²⁺)",
+        "Al": "hercynite-leaning (Al ↔ Cr³⁺)",
+        "Ti": "trace, accessory",
+        "Mn": "trace",
+        "Zn": "trace"
+      },
+      "thermal_decomp_C": null,
+      "thermal_decomp_reaction": "Refractory — survives metamorphism unchanged; xieite polymorph at 18-23 GPa (impact conditions)",
+      "thermal_decomp_products": {},
+      "fluorescence": null,
+      "twin_laws": [],
+      "acid_dissolution": null,
+      "habit": "octahedral",
+      "color_rules": {
+        "black": {"default": true},
+        "brown_translucent_thin_section": {"trigger": "thin-section view only"}
+      },
+      "narrate_function": null,
+      "runtimes_present": ["js"],
+      "audit_status": "new (brief-16 batch 2026-05-07). Magmatic spinel — atypical vug mineral. Listed for cataloging completeness; would only nucleate in a future layered-mafic-intrusion scenario at >1000°C, which doesn't exist. gem_pegmatite scenario is the closest existing high-T fit but pegmatites don't normally produce chromite. No engine yet.",
+      "class_color": "#eb1313"
+    },
+    "clausthalite": {
+      "formula": "PbSe",
+      "nucleation_sigma": 1.4,
+      "max_nucleation_count": 3,
+      "max_size_cm": 1,
+      "growth_rate_mult": 0.3,
+      "habit_variants": [
+        {"name": "cubic_galena_structure", "wall_spread": 0.25, "void_reach": 0.75, "vector": "equant", "trigger": "default — small lead-gray cubes (galena structure inherited)"},
+        {"name": "massive_granular", "wall_spread": 0.7, "void_reach": 0.3, "vector": "equant", "trigger": "low T — massive granular disseminated grain"},
+        {"name": "exsolution_lamellae_in_galena", "wall_spread": 0.4, "void_reach": 0.5, "vector": "tabular", "trigger": "cooling from PbS-PbSe solid solution below 300°C — lamellar exsolution within galena host"}
+      ],
+      "class": "sulfide",
+      "description": "PbSe — the selenide analog of galena. Forms in low-sulfur hydrothermal veins where Se is enriched relative to S, typically alongside other selenides (tiemannite HgSe, klockmannite Cu₂Se, naumannite Ag₂Se). Above 300°C it forms continuous solid solution with galena; below 300°C the miscibility gap opens and the two unmix into separate phases — high-T clausthalite/galena solid solutions exsolve on cooling, producing diagnostic lamellar textures. Type locality Clausthal-Zellerfeld (Harz Mountains, Germany, 1832). Important in some sandstone-type uranium deposits and in Cu-Au-U systems like Olympic Dam.",
+      "scenarios": ["schneeberg", "colorado_plateau"],
+      "T_range_C": [80, 350],
+      "T_optimum_C": [100, 250],
+      "T_behavior": "window",
+      "pH_dissolution_below": null,
+      "pH_dissolution_above": null,
+      "redox_requirement": "reducing",
+      "required_ingredients": {"Pb": 20, "Se": 1},
+      "trace_ingredients": {
+        "Ag": "naumannite co-precipitation",
+        "Cu": "klockmannite Cu2Se co-precipitation",
+        "S": "above 300°C → solid solution with galena; below 300°C → exsolution lamellae"
+      },
+      "thermal_decomp_C": 1065,
+      "thermal_decomp_reaction": "PbSe melts at 1065°C; solid-solution exsolution with galena below 300°C",
+      "thermal_decomp_products": {},
+      "fluorescence": null,
+      "twin_laws": [],
+      "acid_dissolution": {
+        "pH_threshold": 2.0,
+        "reaction": "PbSe + 4HNO3 -> Pb(NO3)2 + Se + 2NO2 + 2H2O",
+        "products": {"Pb": 0.4, "Se": 0.3}
+      },
+      "habit": "cubic_galena_structure",
+      "color_rules": {
+        "lead_gray": {"default": true},
+        "tarnish_iridescent": {"trigger": "surface oxidation moderate"}
+      },
+      "narrate_function": null,
+      "runtimes_present": ["js"],
+      "audit_status": "new (brief-16 batch 2026-05-07). First Pb-selenide. Pairs with naumannite (Ag-Se) and tiemannite (Hg-Se, not in spec) for selenide assemblages. schneeberg + colorado_plateau scenarios are uranium-bearing low-S settings where Se is enriched. Both broths need Se ≥1 ppm. No engine yet.",
+      "class_color": "#3e1d2e"
+    },
+    "greenockite": {
+      "formula": "CdS",
+      "nucleation_sigma": 1.0,
+      "max_nucleation_count": 5,
+      "max_size_cm": 3,
+      "growth_rate_mult": 0.6,
+      "habit_variants": [
+        {"name": "hexagonal_pyramidal", "wall_spread": 0.25, "void_reach": 0.75, "vector": "projecting", "trigger": "default — hemimorphic six-sided pyramid (different terminations top/bottom)"},
+        {"name": "powdery_coating", "wall_spread": 0.95, "void_reach": 0.05, "vector": "coating", "trigger": "high σ + low T — bright yellow earthy coating on sphalerite"},
+        {"name": "colloform_crust", "wall_spread": 0.85, "void_reach": 0.15, "vector": "coating", "trigger": "moderate σ — encrusting colloform aggregate"},
+        {"name": "radial_aggregate", "wall_spread": 0.4, "void_reach": 0.5, "vector": "projecting", "trigger": "low σ + slow growth — radial bundle of pyramidal crystals"}
+      ],
+      "class": "sulfide",
+      "description": "CdS — the hexagonal (wurtzite-structure) cadmium sulfide. The 'cadmium yellow' pigment, mineral form. Forms by supergene oxidation of Cd-bearing sphalerite: Cd substitutes for Zn in primary sphalerite up to ~1%, gets liberated when sphalerite oxidizes, and re-precipitates as CdS when Cd²⁺ encounters residual sulfide in the supergene zone. Ksp ~10⁻²⁸ — extreme insolubility means trace Cd precipitates readily. Hemimorphic crystals (different terminations at top vs. bottom) are diagnostic. Type locality Bishopton, Scotland (1840 railway tunnel cut). Tsumeb (Namibia) is the modern reference. Hexagonal greenockite is the high-T polymorph (>200°C); cubic hawleyite is the low-T form.",
+      "scenarios": ["supergene_oxidation", "mvt"],
+      "T_range_C": [25, 200],
+      "T_optimum_C": [50, 150],
+      "T_behavior": "window",
+      "pH_dissolution_below": 5.0,
+      "pH_dissolution_above": null,
+      "redox_requirement": "reducing",
+      "required_ingredients": {"Cd": 0.5, "S": 5},
+      "trace_ingredients": {
+        "Zn": "Zn substitution stabilizes hexagonal form; activates UV fluorescence",
+        "Pb": "common in same supergene assemblage"
+      },
+      "thermal_decomp_C": 980,
+      "thermal_decomp_reaction": "CdS oxidizes to CdO + SO2 above ~600°C in air; melts at 980°C",
+      "thermal_decomp_products": {"Cd": 0.4, "S": 0.3},
+      "fluorescence": {
+        "activator": "Zn substitution (CdS:Zn phosphor)",
+        "threshold_ppm": 50,
+        "color": "yellow_orange_to_red_LW",
+        "quencher": "Fe"
+      },
+      "twin_laws": [
+        {"name": "rare_1122", "miller_indices": "{1122}", "trigger": "trillings/fourlings — rare", "probability": 0.03}
+      ],
+      "acid_dissolution": {
+        "pH_threshold": 2.0,
+        "reaction": "CdS + 8HNO3 (hot) -> Cd(NO3)2 + H2SO4 + 6NO2 + 2H2O",
+        "products": {"Cd": 0.4, "S": 0.3}
+      },
+      "habit": "hexagonal_pyramidal",
+      "color_rules": {
+        "honey_yellow": {"default": true},
+        "citron_yellow": {"trigger": "low-T powdery"},
+        "orange_yellow": {"trigger": "moderate Cd"},
+        "brick_red": {"trigger": "Zn-substituted thin crystals"}
+      },
+      "narrate_function": null,
+      "runtimes_present": ["js"],
+      "audit_status": "new (brief-16 batch 2026-05-07). Adds new broth field Cd to FluidChemistry (commit pending). Pairs with hawleyite (cubic dimorph) — same chemistry, different polymorph gated by T. supergene_oxidation + mvt broths need Cd ≥0.5 ppm (currently 0). No engine yet.",
+      "class_color": "#3e1d2e"
+    },
+    "hawleyite": {
+      "formula": "CdS",
+      "nucleation_sigma": 1.0,
+      "max_nucleation_count": 4,
+      "max_size_cm": 0.5,
+      "growth_rate_mult": 0.5,
+      "habit_variants": [
+        {"name": "powdery_coating", "wall_spread": 0.97, "void_reach": 0.03, "vector": "coating", "trigger": "default — bright yellow earthy dust on sphalerite/siderite (the only known habit)"},
+        {"name": "earthy_crust", "wall_spread": 0.9, "void_reach": 0.1, "vector": "coating", "trigger": "moderate σ — slightly thicker yellow crust"}
+      ],
+      "class": "sulfide",
+      "description": "CdS — the cubic (sphalerite-structure) polymorph of greenockite. Identical chemistry, different lattice. Hawleyite is the kinetically favored form at low T (<100°C); it is thermodynamically metastable relative to hexagonal greenockite but persists indefinitely once formed. Always microcrystalline — no specimen anywhere has shown a discrete crystal. Bright cadmium yellow powdery coatings on sphalerite, siderite, galena in oxidation zones. Indistinguishable from greenockite by sight; XRD is the only test. Type locality Hector-Calumet mine, Yukon (1955). Most 'greenockite' in old collections is probably hawleyite.",
+      "scenarios": ["supergene_oxidation"],
+      "T_range_C": [5, 100],
+      "T_optimum_C": [10, 50],
+      "T_behavior": "window",
+      "pH_dissolution_below": 5.0,
+      "pH_dissolution_above": null,
+      "redox_requirement": "reducing",
+      "required_ingredients": {"Cd": 0.5, "S": 5},
+      "trace_ingredients": {
+        "Zn": "promotes sphalerite-structure nucleation"
+      },
+      "thermal_decomp_C": 980,
+      "thermal_decomp_reaction": "Same as greenockite — CdS oxidizes to CdO + SO2 above ~600°C",
+      "thermal_decomp_products": {"Cd": 0.4, "S": 0.3},
+      "fluorescence": {
+        "activator": "Zn substitution / intrinsic CdS bandgap",
+        "threshold_ppm": 30,
+        "color": "bright_yellow_LW",
+        "quencher": "Fe"
+      },
+      "twin_laws": [],
+      "acid_dissolution": {
+        "pH_threshold": 2.0,
+        "reaction": "CdS + 8HNO3 (hot) -> Cd(NO3)2 + H2SO4 + 6NO2 + 2H2O",
+        "products": {"Cd": 0.4, "S": 0.3}
+      },
+      "habit": "powdery_coating",
+      "color_rules": {
+        "cadmium_yellow": {"default": true},
+        "darkened_UV_exposure": {"trigger": "prolonged UV (semiconductor photodefect formation)"}
+      },
+      "narrate_function": null,
+      "runtimes_present": ["js"],
+      "audit_status": "new (brief-16 batch 2026-05-07). Cubic dimorph of greenockite — gated by T (< ~100°C). Habit is always powdery; no crystal habit logic needed. supergene_oxidation broth needs Cd ≥0.5 ppm. No engine yet.",
+      "class_color": "#3e1d2e"
+    },
+    "hessite": {
+      "formula": "Ag2Te",
+      "nucleation_sigma": 1.4,
+      "max_nucleation_count": 3,
+      "max_size_cm": 1.7,
+      "growth_rate_mult": 0.3,
+      "habit_variants": [
+        {"name": "cubic_high_T", "wall_spread": 0.3, "void_reach": 0.7, "vector": "equant", "trigger": "default at T > 155°C — small lead-gray cubes"},
+        {"name": "monoclinic_low_T_lamellae", "wall_spread": 0.35, "void_reach": 0.65, "vector": "tabular", "trigger": "T < 155°C — monoclinic phase with phase-transformation lamellae from cubic→monoclinic transition"},
+        {"name": "granular_massive", "wall_spread": 0.7, "void_reach": 0.3, "vector": "equant", "trigger": "high σ — granular disseminated aggregate"}
+      ],
+      "class": "sulfide",
+      "description": "Ag2Te — the silver-telluride end-member of the silver chalcogenide family. Forms in low-sulfidation epithermal veins where Te is enriched and S is suppressed; wins over acanthite (Ag2S) only when S²⁻ is locally depleted. Phase transition at 155°C (cubic ↔ monoclinic) leaves diagnostic lamellar textures in slow-cooled specimens — a game-readable thermometer. Cripple Creek (Colorado), Sacarîmb (Romania), Kalgoorlie (Western Australia) are the type telluride districts. Often a major silver carrier in epithermal Au-Ag deposits. Forms a continuous spectrum with naumannite (Ag2Se) where Se substitutes for Te.",
+      "scenarios": ["gem_pegmatite", "porphyry"],
+      "T_range_C": [100, 350],
+      "T_optimum_C": [150, 250],
+      "T_behavior": "window",
+      "pH_dissolution_below": null,
+      "pH_dissolution_above": null,
+      "redox_requirement": "reducing",
+      "required_ingredients": {"Ag": 5, "Te": 1},
+      "trace_ingredients": {
+        "Au": "epithermal Au-Ag-Te association",
+        "Pb": "altaite (PbTe) co-precipitation",
+        "Cu": "petzite (CuAg3Te2) substitution",
+        "Se": "Te ↔ Se → naumannite end-member"
+      },
+      "thermal_decomp_C": 960,
+      "thermal_decomp_reaction": "Cubic ↔ monoclinic at 155°C; melts at 960°C",
+      "thermal_decomp_products": {},
+      "fluorescence": null,
+      "twin_laws": [],
+      "acid_dissolution": {
+        "pH_threshold": 2.0,
+        "reaction": "Ag2Te + HNO3 -> Ag+ + TeO2 + NO + H2O",
+        "products": {"Ag": 0.5, "Te": 0.3}
+      },
+      "habit": "cubic_high_T",
+      "color_rules": {
+        "lead_gray": {"default": true},
+        "iridescent_tarnish": {"trigger": "surface oxidation"}
+      },
+      "narrate_function": null,
+      "runtimes_present": ["js"],
+      "audit_status": "new (brief-16 batch 2026-05-07). Pairs with calaverite (Au-Te), sylvanite (Au-Ag-Te), naumannite (Ag-Se). gem_pegmatite + porphyry are placeholders until an epithermal_telluride scenario lands. Both need Te ≥1 ppm. No engine yet.",
+      "class_color": "#3e1d2e"
+    },
+    "naumannite": {
+      "formula": "Ag2Se",
+      "nucleation_sigma": 1.4,
+      "max_nucleation_count": 2,
+      "max_size_cm": 1,
+      "growth_rate_mult": 0.3,
+      "habit_variants": [
+        {"name": "cubic_high_T", "wall_spread": 0.3, "void_reach": 0.7, "vector": "equant", "trigger": "default at T > 133°C — small iron-gray cubes (high ionic conductivity 2 S/cm)"},
+        {"name": "orthorhombic_low_T", "wall_spread": 0.35, "void_reach": 0.65, "vector": "equant", "trigger": "T < 133°C — orthorhombic phase"},
+        {"name": "granular_massive", "wall_spread": 0.7, "void_reach": 0.3, "vector": "equant", "trigger": "supergene — disseminated micrograins"}
+      ],
+      "class": "sulfide",
+      "description": "Ag2Se — the silver-selenide end-member, sister to hessite (Ag2Te). Forms in selenium-enriched epithermal veins where S is suppressed; wins over acanthite (Ag2S) when Se ≫ S, which is rare globally. Phase transition at 133°C (orthorhombic ↔ cubic) — the high-T cubic form has unusual ionic conductivity (2 S/cm). Type region: Harz Mountains (Germany), where the selenide-bearing low-S hydrothermal veins were first characterized in the 19th century. De Lamar Mine (Idaho) is the major US producer of selenide-type silver ore. Forms a continuous Te ↔ Se substitution series with hessite.",
+      "scenarios": ["schneeberg"],
+      "T_range_C": [80, 300],
+      "T_optimum_C": [100, 200],
+      "T_behavior": "window",
+      "pH_dissolution_below": null,
+      "pH_dissolution_above": null,
+      "redox_requirement": "reducing",
+      "required_ingredients": {"Ag": 5, "Se": 1},
+      "trace_ingredients": {
+        "Te": "Se ↔ Te → hessite end-member",
+        "Au": "epithermal gold association",
+        "Pb": "clausthalite (PbSe) co-precipitation"
+      },
+      "thermal_decomp_C": 897,
+      "thermal_decomp_reaction": "Orthorhombic ↔ cubic at 133°C; melts at 897°C",
+      "thermal_decomp_products": {},
+      "fluorescence": null,
+      "twin_laws": [],
+      "acid_dissolution": {
+        "pH_threshold": 2.0,
+        "reaction": "Ag2Se + 4HNO3 -> 2AgNO3 + H2SeO3 + 2NO + H2O",
+        "products": {"Ag": 0.5, "Se": 0.3}
+      },
+      "habit": "cubic_high_T",
+      "color_rules": {
+        "iron_gray": {"default": true},
+        "tarnish_dark": {"trigger": "surface oxidation"}
+      },
+      "narrate_function": null,
+      "runtimes_present": ["js"],
+      "audit_status": "new (brief-16 batch 2026-05-07). Selenide pair to hessite. schneeberg scenario already enriched in Se for clausthalite — needs Se ≥1 ppm. No engine yet.",
+      "class_color": "#3e1d2e"
+    },
+    "powellite": {
+      "formula": "CaMoO4",
+      "nucleation_sigma": 1.2,
+      "max_nucleation_count": 4,
+      "max_size_cm": 2,
+      "growth_rate_mult": 0.4,
+      "habit_variants": [
+        {"name": "tabular_thin_001", "wall_spread": 0.55, "void_reach": 0.45, "vector": "tabular", "trigger": "default — paper-thin {001} tablets"},
+        {"name": "pulverulent_crust", "wall_spread": 0.95, "void_reach": 0.05, "vector": "coating", "trigger": "high σ + low T — crusty/pulverulent supergene coating"},
+        {"name": "dipyramidal_rare", "wall_spread": 0.35, "void_reach": 0.65, "vector": "projecting", "trigger": "rare — equant dipyramid"}
+      ],
+      "class": "molybdate",
+      "description": "CaMoO4 — the supergene oxidation product of molybdenite. Forms when MoS2 weathers in the oxidation zone: S²⁻ is lost as sulfate, Mo⁶⁺ pairs with available Ca²⁺ from host carbonate, and powellite crystallizes as thin tabular plates with adamantine luster. Same crystal structure as scheelite (CaWO4); powellite-scheelite forms a continuous solid-solution series, and intermediate compositions (yellow with blue/black W-rich zones) are common. Diagnostic UV fluorescence: bright yellow under SW (vs. scheelite's blue) — the difference is W vs. Mo activator in the same lattice. Nasik (India) Deccan basalt cavities are the modern aesthetic reference; Bingham Canyon (Utah) is the canonical porphyry-Cu-Mo oxidation occurrence.",
+      "scenarios": ["supergene_oxidation", "deccan_zeolite"],
+      "T_range_C": [10, 200],
+      "T_optimum_C": [20, 100],
+      "T_behavior": "window",
+      "pH_dissolution_below": 5.0,
+      "pH_dissolution_above": null,
+      "redox_requirement": "oxidizing",
+      "required_ingredients": {"Ca": 50, "Mo": 1, "O2": 0.5},
+      "trace_ingredients": {
+        "W": "scheelite component in solid solution; blue/black zones in W-rich material"
+      },
+      "thermal_decomp_C": null,
+      "thermal_decomp_reaction": "Refractory; same lattice stability as scheelite",
+      "thermal_decomp_products": {},
+      "fluorescence": {
+        "activator": "self-activated CaMoO4 lattice (charge-transfer in MoO4 tetrahedra)",
+        "threshold_ppm": 0,
+        "color": "bright_yellow_SW",
+        "quencher": "Fe²⁺"
+      },
+      "twin_laws": [
+        {"name": "penetration_001", "miller_indices": "{001}", "trigger": "moderate σ", "probability": 0.05}
+      ],
+      "acid_dissolution": {
+        "pH_threshold": 5.0,
+        "reaction": "CaMoO4 + 2H+ -> Ca2+ + H2MoO4",
+        "products": {"Ca": 0.4, "Mo": 0.3}
+      },
+      "habit": "tabular_thin_001",
+      "color_rules": {
+        "straw_yellow": {"default": true},
+        "blue_green_zoned": {"trigger": "W > 5 ppm (powellite-scheelite SS)"},
+        "yellow_brown": {"trigger": "Fe > 10 ppm staining"}
+      },
+      "narrate_function": null,
+      "runtimes_present": ["js"],
+      "audit_status": "new (brief-16 batch 2026-05-07). Mo end-member of powellite-scheelite SS. supergene_oxidation broth needs Mo ≥1 ppm; deccan_zeolite supports basalt-cavity habit. Reuses same engine logic as scheelite with mo_fraction → 1.0. No engine yet.",
+      "class_color": "#aa66cc"
+    },
+    "scheelite": {
+      "formula": "CaWO4",
+      "nucleation_sigma": 1.2,
+      "max_nucleation_count": 4,
+      "max_size_cm": 30,
+      "growth_rate_mult": 0.4,
+      "habit_variants": [
+        {"name": "dipyramidal", "wall_spread": 0.3, "void_reach": 0.7, "vector": "projecting", "trigger": "default — pseudo-octahedral dipyramid"},
+        {"name": "tabular", "wall_spread": 0.5, "void_reach": 0.5, "vector": "tabular", "trigger": "moderate σ — flat tablets"},
+        {"name": "octahedral_pseudo", "wall_spread": 0.35, "void_reach": 0.65, "vector": "equant", "trigger": "low σ — pseudo-octahedral habit (looks cubic but is tetragonal)"},
+        {"name": "massive_granular", "wall_spread": 0.7, "void_reach": 0.3, "vector": "equant", "trigger": "high σ — massive granular skarn texture"}
+      ],
+      "class": "tungstate",
+      "description": "CaWO4 — the calcium tungstate, one of the principal W ores and a UV-fluorescence classic. Forms in granitic-intrusion-related W-Sn skarns and in mesothermal vein systems where W concentrates from late-stage granitic fluids and Ca comes from the wallrock. Brilliant blue-white SW UV fluorescence is diagnostic — used since the 19th century to prospect for tungsten in the field. Forms continuous solid-solution series with powellite (CaMoO4); intermediate compositions show duller / yellower fluorescence as Mo replaces W. Panasqueira (Portugal) and Pine Creek (California) are skarn type localities. Recent Chinese tungsten production (Hunan, Jiangxi) dominates global supply.",
+      "scenarios": ["gem_pegmatite", "porphyry"],
+      "T_range_C": [200, 600],
+      "T_optimum_C": [300, 500],
+      "T_behavior": "wide",
+      "pH_dissolution_below": null,
+      "pH_dissolution_above": null,
+      "redox_requirement": "any",
+      "required_ingredients": {"Ca": 50, "W": 1},
+      "trace_ingredients": {
+        "Mo": "powellite component in solid solution; shifts fluorescence from blue to yellow",
+        "REE": "substitute for Ca; some scheelite is REE-bearing"
+      },
+      "thermal_decomp_C": null,
+      "thermal_decomp_reaction": "Refractory; melts above 1500°C",
+      "thermal_decomp_products": {},
+      "fluorescence": {
+        "activator": "self-activated CaWO4 lattice (charge-transfer in WO4 tetrahedra)",
+        "threshold_ppm": 0,
+        "color": "bright_blue_white_SW",
+        "quencher": "Fe²⁺ + Mo (shifts toward yellow as W → Mo)"
+      },
+      "twin_laws": [
+        {"name": "penetration_001", "miller_indices": "{001}", "trigger": "moderate σ", "probability": 0.08}
+      ],
+      "acid_dissolution": null,
+      "habit": "dipyramidal",
+      "color_rules": {
+        "white_to_pale_yellow": {"default": true},
+        "brown_orange": {"trigger": "Mo > 5 ppm (powellite SS)"},
+        "honey_amber": {"trigger": "REE > 10 ppm (REE-bearing variant)"}
+      },
+      "narrate_function": null,
+      "runtimes_present": ["js"],
+      "audit_status": "new (brief-16 batch 2026-05-07). W end-member of powellite-scheelite SS. gem_pegmatite + porphyry broths need W ≥1 ppm (currently 0). Pairs with wolframite — Ca → scheelite, Fe/Mn → wolframite. No engine yet.",
+      "class_color": "#996644"
+    },
+    "strontianite": {
+      "formula": "SrCO3",
+      "nucleation_sigma": 1.2,
+      "max_nucleation_count": 4,
+      "max_size_cm": 8,
+      "growth_rate_mult": 0.5,
+      "habit_variants": [
+        {"name": "prismatic", "wall_spread": 0.3, "void_reach": 0.7, "vector": "projecting", "trigger": "default — slender orthorhombic prism"},
+        {"name": "acicular_fibrous", "wall_spread": 0.2, "void_reach": 0.8, "vector": "projecting", "trigger": "low T + high σ — fibrous needle"},
+        {"name": "radial_spray", "wall_spread": 0.3, "void_reach": 0.7, "vector": "projecting", "trigger": "moderate σ — radiating fan/spray"},
+        {"name": "stout_prismatic", "wall_spread": 0.4, "void_reach": 0.6, "vector": "projecting", "trigger": "higher T — short stocky prism"},
+        {"name": "twinned_pseudohexagonal", "wall_spread": 0.35, "void_reach": 0.65, "vector": "projecting", "trigger": "almost always — pseudohex via cyclic twinning (aragonite-group habit)"}
+      ],
+      "class": "carbonate",
+      "description": "SrCO3 — the strontium carbonate, type locality Strontian (Scotland, 1790) and the namesake of the element strontium itself. Aragonite-group orthorhombic carbonate; almost always twinned cyclically into pseudohexagonal forms. Forms in low-T hydrothermal veins where Sr-bearing fluids encounter alkaline carbonate conditions; loses to celestine (SrSO4) when sulfate is the dominant Sr-pairing anion, which is most of the time globally — celestine is far more common because oceans deliver SO4 more freely than CO3. Almost always UV-fluorescent yellow-white and persistently phosphorescent. Münsterland (Germany) acicular sprays and Meckley's Quarry (Pennsylvania) fluorescent specimens are the collectors' references.",
+      "scenarios": ["marble_contact_metamorphism", "deccan_zeolite"],
+      "T_range_C": [50, 200],
+      "T_optimum_C": [80, 150],
+      "T_behavior": "window",
+      "pH_dissolution_below": 5.0,
+      "pH_dissolution_above": null,
+      "redox_requirement": "any",
+      "required_ingredients": {"Sr": 30, "CO3": 50},
+      "trace_ingredients": {
+        "Ca": "Ca substitutes up to 27% of Sr",
+        "Ba": "Ba substitutes up to 3.3%",
+        "Pb": "trace substitution"
+      },
+      "thermal_decomp_C": 1094,
+      "thermal_decomp_reaction": "SrCO3 -> SrO + CO2 at 1094°C",
+      "thermal_decomp_products": {"Sr": 0.5, "CO3": 0.4},
+      "fluorescence": {
+        "activator": "intrinsic SrCO3 lattice / trace REE",
+        "threshold_ppm": 0,
+        "color": "yellowish_white_all_wavelengths",
+        "quencher": "Fe (suspected)"
+      },
+      "twin_laws": [
+        {"name": "pseudohex_cyclic_110", "miller_indices": "{110}", "trigger": "moderate σ — almost always cyclic twinned", "probability": 0.85}
+      ],
+      "acid_dissolution": {
+        "pH_threshold": 5.0,
+        "reaction": "SrCO3 + 2H+ -> Sr2+ + H2O + CO2",
+        "products": {"Sr": 0.5, "CO3": 0.4}
+      },
+      "habit": "twinned_pseudohexagonal",
+      "color_rules": {
+        "white": {"default": true},
+        "yellow_tunisia": {"trigger": "Pb trace + arid setting"},
+        "pale_green": {"trigger": "trace Cu (rare)"}
+      },
+      "narrate_function": null,
+      "runtimes_present": ["js"],
+      "audit_status": "new (brief-16 batch 2026-05-07). Carbonate end-member for Sr. Pairs with celestine (SrSO4) — sulfate vs. carbonate competition gates which forms. marble_contact_metamorphism + deccan_zeolite broths support carbonate chemistry; need Sr ≥30 ppm. No engine yet.",
+      "class_color": "#eb7f13"
+    },
+    "sylvanite": {
+      "formula": "(Au,Ag)Te2",
+      "nucleation_sigma": 1.5,
+      "max_nucleation_count": 2,
+      "max_size_cm": 1,
+      "growth_rate_mult": 0.3,
+      "habit_variants": [
+        {"name": "bladed_graphic", "wall_spread": 0.3, "void_reach": 0.7, "vector": "projecting", "trigger": "default — intergrown bladed crystals like cuneiform script ('graphic tellurium')"},
+        {"name": "tabular_striated", "wall_spread": 0.5, "void_reach": 0.5, "vector": "tabular", "trigger": "moderate σ — striated tabular plates"},
+        {"name": "granular_massive", "wall_spread": 0.7, "void_reach": 0.3, "vector": "equant", "trigger": "low T — granular aggregate"}
+      ],
+      "class": "sulfide",
+      "description": "(Au,Ag)Te2 with Au:Ag typically 1:1 to 3:1 — the gold-silver telluride that sits between calaverite (pure Au) and hessite (pure Ag) on the telluride spectrum. Photosensitive: prolonged light exposure produces a dark surface tarnish (the gold is still in the lattice but the surface oxidizes). Type locality Sacarîmb / Nagyág (Transylvania, Romania); also Cripple Creek (Colorado), Kalgoorlie (Western Australia), Emperor mine (Vatukoula, Fiji). Miners called it 'graphic tellurium' for the bladed-cuneiform intergrowth pattern. Note: sylvanite ≠ sylvite (KCl) — they share no chemistry, just a Latin root for the same Carpathian forest range.",
+      "scenarios": ["gem_pegmatite", "porphyry"],
+      "T_range_C": [100, 400],
+      "T_optimum_C": [150, 300],
+      "T_behavior": "window",
+      "pH_dissolution_below": null,
+      "pH_dissolution_above": null,
+      "redox_requirement": "reducing",
+      "required_ingredients": {"Au": 0.1, "Ag": 0.5, "Te": 1},
+      "trace_ingredients": {
+        "S": "associated sulfide phases"
+      },
+      "thermal_decomp_C": 400,
+      "thermal_decomp_reaction": "(Au,Ag)Te2 -> native Au + Ag-telluride species at 350-400°C",
+      "thermal_decomp_products": {"Au": 0.4, "Ag": 0.3, "Te": 0.4},
+      "fluorescence": null,
+      "twin_laws": [],
+      "acid_dissolution": null,
+      "habit": "bladed_graphic",
+      "color_rules": {
+        "silver_white": {"default": true},
+        "darkened_tarnish": {"trigger": "light_exposure_history > threshold (photosensitive — diagnostic)"},
+        "brass_yellow_Au_rich": {"trigger": "Au/Ag > 2"}
+      },
+      "narrate_function": null,
+      "runtimes_present": ["js"],
+      "audit_status": "new (brief-16 batch 2026-05-07). Au-Ag-Te bridge between calaverite (Au-Te) and hessite (Ag-Te). Photosensitive flag is a unique cosmetic-decay mechanic — could drive a 'specimen darkens with display history' feature. gem_pegmatite + porphyry placeholders. No engine yet.",
+      "class_color": "#3e1d2e"
+    },
+    "sylvite": {
+      "formula": "KCl",
+      "nucleation_sigma": 1.0,
+      "max_nucleation_count": 4,
+      "max_size_cm": 20,
+      "growth_rate_mult": 0.7,
+      "habit_variants": [
+        {"name": "cubic", "wall_spread": 0.25, "void_reach": 0.75, "vector": "equant", "trigger": "default — perfect cubic crystal (cubic cleavage at 90°)"},
+        {"name": "hopper_cube", "wall_spread": 0.3, "void_reach": 0.7, "vector": "equant", "trigger": "rapid evaporation — stepped/terraced 'hopper' faces"},
+        {"name": "granular_massive", "wall_spread": 0.85, "void_reach": 0.15, "vector": "equant", "trigger": "high σ — granular salt-pan fabric"}
+      ],
+      "class": "halide",
+      "description": "KCl — the potassium chloride evaporite. Forms in the late stage of evaporite sequences, after halite (NaCl) has already removed most of the sodium and chloride from the brine; sylvite is what crystallizes from the K-enriched residual liquor. More soluble than halite (344 g/L at 25°C vs. halite's 360 g/L is incorrect — sylvite is actually slightly LESS soluble than halite at 25°C, but sylvite's solubility increases sharply with T while halite's barely changes, so cooling brines favor sylvite precipitation late). Deliquescent in humid air. Type locality Stassfurt (Germany, Zechstein evaporites); Carlsbad (New Mexico, Permian basin) and Solikamsk (Russia, Upper Kama) are the major commercial sources. Note: sylvite ≠ sylvanite — different chemistry, similar Latin root.",
+      "scenarios": ["searles_lake", "sabkha_dolomitization"],
+      "T_range_C": [10, 100],
+      "T_optimum_C": [20, 50],
+      "T_behavior": "window",
+      "pH_dissolution_below": null,
+      "pH_dissolution_above": null,
+      "redox_requirement": "any",
+      "required_ingredients": {"K": 50, "Cl": 100},
+      "trace_ingredients": {
+        "Na": "halite co-precipitates first; sylvite forms from residual K-rich brine",
+        "Mg": "high Mg → carnallite (KMgCl3·6H2O) forms after sylvite",
+        "Br": "Br substitutes for Cl in some sylvite (used as paleo-environment indicator)"
+      },
+      "thermal_decomp_C": 770,
+      "thermal_decomp_reaction": "KCl melts at 770°C (lower than halite's 801°C)",
+      "thermal_decomp_products": {},
+      "fluorescence": {
+        "activator": "lattice defects + trace impurities",
+        "threshold_ppm": 0,
+        "color": "weak_red_orange_LW",
+        "quencher": null
+      },
+      "twin_laws": [],
+      "acid_dissolution": null,
+      "habit": "cubic",
+      "color_rules": {
+        "colorless_to_white": {"default": true},
+        "red_orange": {"trigger": "Fe staining (typical of commercial potash)"},
+        "blue": {"trigger": "radiation_damage > 0.2 (color-center defect like halite)"}
+      },
+      "narrate_function": null,
+      "runtimes_present": ["js"],
+      "audit_status": "new (brief-16 batch 2026-05-07). Late-stage evaporite K-Cl. Pairs with existing halite — Na precipitates first, K precipitates second from residual brine. searles_lake + sabkha_dolomitization broths need K bumped to ≥50 ppm. No engine yet.",
+      "class_color": "#7f13eb"
+    },
+    "witherite": {
+      "formula": "BaCO3",
+      "nucleation_sigma": 1.2,
+      "max_nucleation_count": 4,
+      "max_size_cm": 10,
+      "growth_rate_mult": 0.5,
+      "habit_variants": [
+        {"name": "pseudohexagonal_twinned", "wall_spread": 0.3, "void_reach": 0.7, "vector": "projecting", "trigger": "default — almost always cyclic-twinned into pseudohexagonal pyramid (Settlingstones aesthetic)"},
+        {"name": "prismatic", "wall_spread": 0.3, "void_reach": 0.7, "vector": "projecting", "trigger": "moderate σ — single orthorhombic prism (rare without twinning)"},
+        {"name": "botryoidal_white", "wall_spread": 0.85, "void_reach": 0.15, "vector": "coating", "trigger": "low T + high σ — white botryoidal balls (Settlingstones type specimens)"},
+        {"name": "columnar", "wall_spread": 0.35, "void_reach": 0.65, "vector": "projecting", "trigger": "moderate σ — columnar fibrous aggregate"}
+      ],
+      "class": "carbonate",
+      "description": "BaCO3 — the barium carbonate, sister to barite (BaSO4). Almost always cyclically twinned into pseudohexagonal pyramidal forms — a single un-twinned witherite crystal is unusual. Forms in low-T hydrothermal veins where Ba²⁺ encounters carbonate-rich fluids and sulfate is suppressed; loses to barite when SO4 is dominant, which is most environments. Type locality Alston Moor (Cumbria, England, 1784); William Withering (also discoverer of digitalis) named the species. Settlingstones Mine (Northumberland, England) is the world's reference for botryoidal white masses. Cave-in-Rock (Illinois) is the classic American MVT-fluorite-witherite-barite locality. Strongly UV-fluorescent (bluish-white) and persistently phosphorescent.",
+      "scenarios": ["mvt", "marble_contact_metamorphism"],
+      "T_range_C": [50, 200],
+      "T_optimum_C": [80, 150],
+      "T_behavior": "window",
+      "pH_dissolution_below": 5.0,
+      "pH_dissolution_above": null,
+      "redox_requirement": "any",
+      "required_ingredients": {"Ba": 30, "CO3": 50},
+      "trace_ingredients": {
+        "Sr": "solid solution toward strontianite (limited extent)",
+        "Pb": "trace substitution",
+        "Ca": "minor substitution"
+      },
+      "thermal_decomp_C": 811,
+      "thermal_decomp_reaction": "BaCO3 -> BaO + CO2 at 811°C",
+      "thermal_decomp_products": {"Ba": 0.5, "CO3": 0.4},
+      "fluorescence": {
+        "activator": "intrinsic BaCO3 lattice / trace REE",
+        "threshold_ppm": 0,
+        "color": "bluish_white_SW_persistent_phosphorescence",
+        "quencher": "Fe"
+      },
+      "twin_laws": [
+        {"name": "pseudohex_cyclic_110", "miller_indices": "{110}", "trigger": "almost always — cyclic triplets", "probability": 0.95}
+      ],
+      "acid_dissolution": {
+        "pH_threshold": 5.0,
+        "reaction": "BaCO3 + 2H+ -> Ba2+ + H2O + CO2",
+        "products": {"Ba": 0.5, "CO3": 0.4}
+      },
+      "habit": "pseudohexagonal_twinned",
+      "color_rules": {
+        "white": {"default": true},
+        "yellow_brown": {"trigger": "Fe > 5 ppm (matrix staining)"},
+        "pale_blue_translucent": {"trigger": "high purity + thin section"}
+      },
+      "narrate_function": null,
+      "runtimes_present": ["js"],
+      "audit_status": "new (brief-16 batch 2026-05-07). Carbonate end-member for Ba — Cave-in-Rock fluorite-barite-witherite assemblage. Pairs with existing barite (BaSO4). mvt scenario already supports the Ba+CO3+F+Pb+Zn assemblage; should fire alongside fluorite + barite + galena + sphalerite. No engine yet.",
+      "class_color": "#eb7f13"
+    },
+    "wolframite": {
+      "formula": "(Fe,Mn)WO4",
+      "nucleation_sigma": 1.3,
+      "max_nucleation_count": 4,
+      "max_size_cm": 20,
+      "growth_rate_mult": 0.4,
+      "habit_variants": [
+        {"name": "bladed_tabular", "wall_spread": 0.4, "void_reach": 0.6, "vector": "tabular", "trigger": "default — bladed flattened crystal (Panasqueira aesthetic)"},
+        {"name": "prismatic_striated", "wall_spread": 0.3, "void_reach": 0.7, "vector": "projecting", "trigger": "moderate σ — striated prism"},
+        {"name": "equant_high_T", "wall_spread": 0.4, "void_reach": 0.6, "vector": "equant", "trigger": "high T (> 400°C) — equant blocky crystal"},
+        {"name": "massive_granular", "wall_spread": 0.7, "void_reach": 0.3, "vector": "equant", "trigger": "high σ — granular vein aggregate"}
+      ],
+      "class": "oxide",
+      "description": "(Fe,Mn)WO4 — the Fe-Mn tungstate, intermediate member of the ferberite (FeWO4) ↔ hübnerite (MnWO4) solid-solution series. Specific gravity 7.0–7.5 — three times denser than quartz — is the field diagnostic. Forms in W-Sn vein systems associated with granitic intrusions, at 300–400°C in mildly acidic, reducing fluids carrying hundreds of ppm dissolved W. Loses to scheelite (CaWO4) when Ca is available, which means wolframite indicates Ca-poor conditions. Refractory: stable to very high T and chemically resistant. Does not fluoresce (diagnostic distinction from scheelite which glows blue-white under SW). Panasqueira (Portugal) is the world reference for bladed crystals on quartz; Yaogangxian (Hunan, China) supplies the modern collector market. Etymology: 'wolf's froth' — medieval miners noted that the ore consumed tin yields like a predator.",
+      "scenarios": ["gem_pegmatite", "porphyry"],
+      "T_range_C": [250, 450],
+      "T_optimum_C": [300, 400],
+      "T_behavior": "window",
+      "pH_dissolution_below": null,
+      "pH_dissolution_above": null,
+      "redox_requirement": "reducing",
+      "required_ingredients": {"W": 1, "Fe": 5, "Mn": 1},
+      "trace_ingredients": {
+        "Nb": "minor substitution",
+        "Ta": "minor substitution",
+        "Sn": "cassiterite paragenesis cogenetic"
+      },
+      "thermal_decomp_C": null,
+      "thermal_decomp_reaction": "Refractory; does not decompose at vug temperatures",
+      "thermal_decomp_products": {},
+      "fluorescence": null,
+      "twin_laws": [
+        {"name": "contact_100", "miller_indices": "{100}", "trigger": "moderate σ", "probability": 0.1}
+      ],
+      "acid_dissolution": null,
+      "habit": "bladed_tabular",
+      "color_rules": {
+        "black_ferberite": {"default": true, "_note": "Fe-rich end-member"},
+        "reddish_brown_hubnerite": {"trigger": "Mn/(Fe+Mn) > 0.5"},
+        "submetallic_dark_brown": {"trigger": "intermediate Fe/Mn"}
+      },
+      "narrate_function": null,
+      "runtimes_present": ["js"],
+      "audit_status": "new (brief-16 batch 2026-05-07). Pairs with scheelite — Ca → scheelite, Fe/Mn → wolframite. Fe/(Fe+Mn) ratio drives ferberite-hübnerite solid solution and color. gem_pegmatite + porphyry broths need W ≥1 ppm. Non-fluorescence is diagnostic vs. scheelite. No engine yet.",
+      "class_color": "#eb1313"
     }
   }
 }

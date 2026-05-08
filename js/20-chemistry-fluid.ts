@@ -59,6 +59,7 @@ class FluidChemistry {
     this.Se = opts.Se ?? 0.0;    // selenium — clausthalite
     this.Ge = opts.Ge ?? 0.0;    // germanium — Tsumeb sphalerite
     this.Au = opts.Au ?? 0.0;    // gold — native gold; Bingham/Bisbee porphyry-Cu-Au
+    this.Cd = opts.Cd ?? 0.0;    // cadmium — greenockite (hex CdS), hawleyite (cubic CdS); supergene from sphalerite oxidation
     this.O2 = opts.O2 ?? 0.0;
     // Phase 4a of PROPOSAL-GEOLOGICAL-ACCURACY: redox potential Eh (mV).
     // Default +200 mV — mildly oxidizing, matches "oxic groundwater" in
