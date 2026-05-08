@@ -85,4 +85,44 @@ Object.assign(VugConditions.prototype, {
   if (f.Ti >= 0.5) chrom_f *= Math.min(f.Ti / 1.5, 1.3);
   return base * chrom_f;
 },
+
+  // v63 brief-19: TiO2 — tetragonal Ti oxide. The 'needle' mineral. Trace
+  // Ti is the gating element; chemically inert otherwise (no acid attack,
+  // any redox). Inclusion-in-quartz is the iconic habit.
+  supersaturation_rutile() {
+    if (this.fluid.Ti < 25) return 0;
+    let sigma = (this.fluid.Ti / 60.0);
+    const T = this.temperature;
+    if (T < 200 || T > 1000) return 0;
+    let T_factor = 1.0;
+    if (T >= 300 && T <= 700) T_factor = 1.2;
+    else if (T < 300) T_factor = Math.max(0.5, 0.6 + 0.006 * (T - 200));
+    else T_factor = Math.max(0.6, 1.2 - 0.002 * (T - 700));
+    sigma *= T_factor;
+    // Titanite (CaTiSiO5) competes when Ca + SiO2 are both available
+    if (this.fluid.Ca > 50 && this.fluid.SiO2 > 200 && T < 700) {
+      sigma *= Math.max(0.5, 1.0 - 0.001 * (this.fluid.Ca - 50));
+    }
+    if (ACTIVITY_CORRECTED_SUPERSAT) sigma *= activityCorrectionFactor(this.fluid, 'rutile');
+    return Math.max(sigma, 0);
+  },
+
+  // v63 brief-19: FeCr2O4 — magmatic spinel. Atypical vug mineral; included
+  // for cataloging completeness. Requires very high T (>1000°C) which no
+  // existing scenario delivers — engine stays dormant until a layered-mafic-
+  // intrusion scenario lands.
+  supersaturation_chromite() {
+    if (this.fluid.Fe < 100 || this.fluid.Cr < 30) return 0;
+    if (this.fluid.O2 > 1.0) return 0;
+    let sigma = (this.fluid.Fe / 200.0) * (this.fluid.Cr / 80.0);
+    const T = this.temperature;
+    if (T < 800) return 0;
+    let T_factor = 1.0;
+    if (T >= 1200 && T <= 1400) T_factor = 1.3;
+    else if (T < 1200) T_factor = Math.max(0.4, 0.5 + 0.0015 * (T - 800));
+    else T_factor = Math.max(0.5, 1.3 - 0.002 * (T - 1400));
+    sigma *= T_factor;
+    if (ACTIVITY_CORRECTED_SUPERSAT) sigma *= activityCorrectionFactor(this.fluid, 'chromite');
+    return Math.max(sigma, 0);
+  },
 });

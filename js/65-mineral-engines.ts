@@ -104,4 +104,25 @@ const MINERAL_ENGINES = {
   autunite: grow_autunite,           // Round 9d: P-branch with Cu-vs-Ca cation fork — Ca-uranyl phosphate
   uranospinite: grow_uranospinite,   // Round 9e: As-branch / Ca-cation — autunite-group Ca-uranyl arsenate
   tyuyamunite: grow_tyuyamunite,     // Round 9e: V-branch / Ca-cation — orthorhombic Ca-uranyl vanadate
+  // v63 brief-19 engines (May 2026) — 19 minerals from canonical's a7b312e
+  // research drop + the priority three (rutile / turquoise / chrysoprase).
+  rutile: grow_rutile,
+  chromite: grow_chromite,
+  apatite: grow_apatite,
+  turquoise: grow_turquoise,
+  chrysoprase: grow_chrysoprase,
+  atacamite: grow_atacamite,
+  sylvite: grow_sylvite,
+  strontianite: grow_strontianite,
+  witherite: grow_witherite,
+  scheelite: grow_scheelite,
+  powellite: grow_powellite,
+  wolframite: grow_wolframite,
+  calaverite: grow_calaverite,
+  sylvanite: grow_sylvanite,
+  hessite: grow_hessite,
+  naumannite: grow_naumannite,
+  clausthalite: grow_clausthalite,
+  greenockite: grow_greenockite,
+  hawleyite: grow_hawleyite,
 };

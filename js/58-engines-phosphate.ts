@@ -442,3 +442,75 @@ function grow_vanadinite(crystal, conditions, step) {
   f.Cl = Math.max(f.Cl - rate * 0.005, 0);
   return new GrowthZone({ step, temperature: conditions.temperature, thickness_um: rate, growth_rate: rate, trace_Fe, trace_Pb, note: color_note });
 }
+
+// v63 brief-19: apatite Ca5(PO4)3(F,Cl,OH) — apatite supergroup parent.
+function grow_apatite(crystal, conditions, step) {
+  const sigma = conditions.supersaturation_apatite();
+  if (sigma < 1.0) {
+    if (crystal.total_growth_um > 5 && conditions.fluid.pH < 5.0) {
+      crystal.dissolved = true;
+      const dissolved_um = Math.min(5.0, crystal.total_growth_um * 0.12);
+      return new GrowthZone({
+        step, temperature: conditions.temperature,
+        thickness_um: -dissolved_um, growth_rate: -dissolved_um,
+        note: `acid dissolution (pH ${conditions.fluid.pH.toFixed(1)}) — apatite + H+ -> Ca2+ + H2PO4- + HF/Cl-/OH-`,
+      });
+    }
+    return null;
+  }
+  const excess = sigma - 1.0;
+  let rate = 5.0 * excess * rng.uniform(0.8, 1.2);
+  if (rate < 0.1) return null;
+  const T = conditions.temperature;
+  if (T > 400) { crystal.habit = 'prismatic_hexagonal'; crystal.dominant_forms = ['long c-axis prism with pinacoid termination']; crystal.a_width_mm = crystal.c_length_mm * 0.4; }
+  else if (T > 100) { crystal.habit = 'stubby_barrel'; crystal.dominant_forms = ['short hex barrel (Cerro de Mercado / Durango)']; crystal.a_width_mm = crystal.c_length_mm * 0.7; }
+  else { crystal.habit = 'botryoidal_collophane'; crystal.dominant_forms = ['cryptocrystalline phosphorite crust']; crystal.a_width_mm = crystal.c_length_mm * 1.2; }
+  let color_note;
+  if (conditions.fluid.Mn > 20) color_note = 'manganapatite — blue-violet (Mn²⁺ chromophore)';
+  else if (conditions.fluid.Mn > 5) color_note = 'blue (Mn²⁺ trace)';
+  else if (conditions.fluid.Fe > 50) color_note = 'brown apatite (Fe²⁺)';
+  else color_note = `green apatite (typical hydrothermal), Ca ${conditions.fluid.Ca.toFixed(0)} P ${conditions.fluid.P.toFixed(0)} ppm`;
+  return new GrowthZone({
+    step, temperature: conditions.temperature,
+    thickness_um: rate, growth_rate: rate,
+    trace_Mn: conditions.fluid.Mn * 0.005,
+    trace_Fe: conditions.fluid.Fe * 0.002,
+    note: color_note,
+  });
+}
+
+// v63 brief-19: turquoise CuAl6(PO4)4(OH)8·4H2O — sky-blue Cu-supergene phosphate.
+function grow_turquoise(crystal, conditions, step) {
+  const sigma = conditions.supersaturation_turquoise();
+  if (sigma < 1.0) {
+    if (crystal.total_growth_um > 3 && (conditions.fluid.pH < 5.0 || conditions.temperature > 200)) {
+      crystal.dissolved = true;
+      const dissolved_um = Math.min(3.5, crystal.total_growth_um * 0.10);
+      return new GrowthZone({
+        step, temperature: conditions.temperature,
+        thickness_um: -dissolved_um, growth_rate: -dissolved_um,
+        note: conditions.temperature > 200
+          ? 'dehydration above 200°C — turquoise greens irreversibly as zeolitic water leaves'
+          : `acid dissolution (pH ${conditions.fluid.pH.toFixed(1)}) — turquoise + H+ -> Cu2+ + Al3+ + H3PO4`,
+      });
+    }
+    return null;
+  }
+  const excess = sigma - 1.0;
+  let rate = 3.0 * excess * rng.uniform(0.8, 1.2);
+  if (rate < 0.1) return null;
+  if (sigma > 3.0) { crystal.habit = 'veinlet_fill'; crystal.dominant_forms = ['thin blue stringer in matrix fracture']; crystal.a_width_mm = crystal.c_length_mm * 5.0; }
+  else if (sigma > 1.8) { crystal.habit = 'nodular_massive'; crystal.dominant_forms = ['rounded blue lump in matrix']; crystal.a_width_mm = crystal.c_length_mm * 1.5; }
+  else { crystal.habit = 'botryoidal_crust'; crystal.dominant_forms = ['smooth blue mammillary crust']; crystal.a_width_mm = crystal.c_length_mm * 2.0; }
+  let color_note;
+  if (conditions.fluid.Fe > 50) color_note = 'green chalcosiderite-leaning (Fe³⁺ substitution)';
+  else if (conditions.fluid.Fe < 2) color_note = "robin's-egg sky-blue (Sleeping Beauty / Persian aesthetic)";
+  else color_note = 'sky-blue Cu²⁺ chromophore — turquoise s.s.';
+  return new GrowthZone({
+    step, temperature: conditions.temperature,
+    thickness_um: rate, growth_rate: rate,
+    trace_Cu: conditions.fluid.Cu * 0.01,
+    trace_Fe: conditions.fluid.Fe * 0.003,
+    note: color_note,
+  });
+}

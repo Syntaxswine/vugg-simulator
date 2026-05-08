@@ -53,4 +53,38 @@ Object.assign(VugConditions.prototype, {
   if (ACTIVITY_CORRECTED_SUPERSAT) sigma *= activityCorrectionFactor(this.fluid, 'halite');
   return Math.max(sigma, 0);
 },
+
+  // v63 brief-19: arid Cu-supergene chloride.
+  // Cu2Cl(OH)3 — wins over malachite/brochantite/chrysocolla when Cl is the
+  // dominant Cu-pairing anion (Atacama-style aridity). Strict supergene T
+  // and oxidizing-only redox.
+  supersaturation_atacamite() {
+    if (this.fluid.Cu < 10 || this.fluid.Cl < 30) return 0;
+    if (this.fluid.O2 < 0.5) return 0;
+    let sigma = (this.fluid.Cu / 80.0) * (this.fluid.Cl / 200.0);
+    const T = this.temperature;
+    if (T < 5 || T > 200) return 0;
+    if (T > 100) sigma *= Math.exp(-0.04 * (T - 100));
+    else if (T > 40) sigma *= 1.0 - 0.005 * (T - 40);
+    if (this.fluid.pH > 7.0) sigma *= Math.max(0.2, 1.0 - 0.25 * (this.fluid.pH - 7.0));
+    if (this.fluid.pH < 5.0) sigma *= Math.max(0.3, 1.0 - 0.3 * (5.0 - this.fluid.pH));
+    if (this.fluid.CO3 > 100) sigma *= Math.max(0.3, 1.0 - 0.005 * (this.fluid.CO3 - 100));
+    if (this.fluid.S > 100) sigma *= Math.max(0.4, 1.0 - 0.003 * (this.fluid.S - 100));
+    if (ACTIVITY_CORRECTED_SUPERSAT) sigma *= activityCorrectionFactor(this.fluid, 'atacamite');
+    return Math.max(sigma, 0);
+  },
+
+  // v63 brief-19: late-stage evaporite K-Cl. Quadratic in concentration
+  // (like halite) — stays dormant at scenario baseline, fires sharply
+  // when a vadose-transition concentration spike kicks in. Carnallite
+  // competes for K when Mg is high.
+  supersaturation_sylvite() {
+    if (this.fluid.K < 50 || this.fluid.Cl < 100) return 0;
+    const c = this.fluid.concentration ?? 1.0;
+    let sigma = (this.fluid.K / 200.0) * (this.fluid.Cl / 800.0) * c * c;
+    if (this.temperature > 100) sigma *= Math.exp(-0.02 * (this.temperature - 100));
+    if (this.fluid.Mg > 500) sigma *= Math.max(0.4, 1.0 - 0.001 * (this.fluid.Mg - 500));
+    if (ACTIVITY_CORRECTED_SUPERSAT) sigma *= activityCorrectionFactor(this.fluid, 'sylvite');
+    return Math.max(sigma, 0);
+  },
 });

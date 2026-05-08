@@ -142,3 +142,103 @@ function grow_stolzite(crystal, conditions, step) {
   conditions.fluid.W  = Math.max(conditions.fluid.W  - rate * 0.020, 0);
   return new GrowthZone({ step, temperature: conditions.temperature, thickness_um: rate, growth_rate: rate, note: habit_note });
 }
+
+// v63 brief-19: scheelite CaWO4 — Ca tungstate, scheelite-group lattice.
+// Bright blue-white SW UV is the diagnostic; non-fluorescent wolframite
+// is the field-test pair.
+function grow_scheelite(crystal, conditions, step) {
+  const sigma = conditions.supersaturation_scheelite();
+  if (sigma < 1.0) {
+    if (crystal.total_growth_um > 5 && conditions.fluid.pH < 4.0) {
+      crystal.dissolved = true;
+      const dissolved_um = Math.min(4.0, crystal.total_growth_um * 0.10);
+      return new GrowthZone({
+        step, temperature: conditions.temperature,
+        thickness_um: -dissolved_um, growth_rate: -dissolved_um,
+        note: `acid attack (pH ${conditions.fluid.pH.toFixed(1)}) — slow scheelite dissolution`,
+      });
+    }
+    return null;
+  }
+  const excess = sigma - 1.0;
+  let rate = 4.0 * excess * rng.uniform(0.85, 1.15);
+  if (rate < 0.1) return null;
+  if (conditions.temperature > 400) { crystal.habit = 'dipyramidal'; crystal.dominant_forms = ['pseudo-octahedral dipyramid']; crystal.a_width_mm = crystal.c_length_mm * 0.7; }
+  else if (sigma > 2.0) { crystal.habit = 'tabular'; crystal.dominant_forms = ['flat scheelite tablet']; crystal.a_width_mm = crystal.c_length_mm * 1.5; }
+  else { crystal.habit = 'octahedral_pseudo'; crystal.dominant_forms = ['pseudo-octahedron (looks cubic, is tetragonal)']; crystal.a_width_mm = crystal.c_length_mm * 0.85; }
+  let color_note = 'white-yellow scheelite — bright blue-white SW UV';
+  if (conditions.fluid.Mo > 5) color_note = 'brown-orange scheelite (Mo-bearing — fluorescence shifts toward yellow)';
+  return new GrowthZone({
+    step, temperature: conditions.temperature,
+    thickness_um: rate, growth_rate: rate,
+    trace_Mo: conditions.fluid.Mo * 0.005,
+    note: color_note,
+  });
+}
+
+// v63 brief-19: powellite CaMoO4 — Mo end-member of scheelite-powellite SS.
+// Bright yellow SW UV vs scheelite's blue. Forms in molybdenite oxidation.
+function grow_powellite(crystal, conditions, step) {
+  const sigma = conditions.supersaturation_powellite();
+  if (sigma < 1.0) {
+    if (crystal.total_growth_um > 3 && conditions.fluid.pH < 4.5) {
+      crystal.dissolved = true;
+      const dissolved_um = Math.min(3.0, crystal.total_growth_um * 0.10);
+      return new GrowthZone({
+        step, temperature: conditions.temperature,
+        thickness_um: -dissolved_um, growth_rate: -dissolved_um,
+        note: 'acid dissolution — powellite is more soluble than scheelite',
+      });
+    }
+    return null;
+  }
+  const excess = sigma - 1.0;
+  let rate = 3.5 * excess * rng.uniform(0.85, 1.15);
+  if (rate < 0.1) return null;
+  if (sigma > 2.0) { crystal.habit = 'pulverulent_crust'; crystal.dominant_forms = ['yellow crusty supergene coating']; crystal.a_width_mm = crystal.c_length_mm * 3.0; }
+  else { crystal.habit = 'tabular_thin_001'; crystal.dominant_forms = ['paper-thin {001} tablet']; crystal.a_width_mm = crystal.c_length_mm * 4.0; }
+  let color_note = 'straw-yellow powellite — bright yellow SW UV';
+  if (conditions.fluid.W > 1) color_note = 'blue-green zoned powellite-scheelite SS';
+  return new GrowthZone({
+    step, temperature: conditions.temperature,
+    thickness_um: rate, growth_rate: rate,
+    trace_W: conditions.fluid.W * 0.005,
+    note: color_note,
+  });
+}
+
+// v63 brief-19: wolframite (Fe,Mn)WO4 — Fe-Mn tungstate, monoclinic blade.
+// Non-fluorescent (diagnostic vs scheelite).
+function grow_wolframite(crystal, conditions, step) {
+  const sigma = conditions.supersaturation_wolframite();
+  if (sigma < 1.0) {
+    if (crystal.total_growth_um > 5 && conditions.fluid.O2 > 1.5) {
+      crystal.dissolved = true;
+      const dissolved_um = Math.min(3.0, crystal.total_growth_um * 0.05);
+      return new GrowthZone({
+        step, temperature: conditions.temperature,
+        thickness_um: -dissolved_um, growth_rate: -dissolved_um,
+        note: 'supergene oxidation — wolframite slowly altering toward tungstite (WO3·H2O)',
+      });
+    }
+    return null;
+  }
+  const excess = sigma - 1.0;
+  let rate = 3.5 * excess * rng.uniform(0.85, 1.15);
+  if (rate < 0.1) return null;
+  if (conditions.temperature > 400) { crystal.habit = 'equant_high_T'; crystal.dominant_forms = ['blocky equant crystal']; crystal.a_width_mm = crystal.c_length_mm * 0.85; }
+  else if (sigma > 2.0) { crystal.habit = 'bladed_tabular'; crystal.dominant_forms = ['bladed wolframite (Panasqueira aesthetic)']; crystal.a_width_mm = crystal.c_length_mm * 0.3; }
+  else { crystal.habit = 'prismatic_striated'; crystal.dominant_forms = ['striated prism']; crystal.a_width_mm = crystal.c_length_mm * 0.5; }
+  let color_note;
+  const mnf = conditions.fluid.Mn / Math.max(conditions.fluid.Fe + conditions.fluid.Mn, 1);
+  if (mnf > 0.7) color_note = 'reddish-brown hübnerite (Mn-rich end)';
+  else if (mnf < 0.3) color_note = 'black ferberite (Fe-rich end)';
+  else color_note = 'submetallic dark-brown wolframite (intermediate Fe/Mn)';
+  return new GrowthZone({
+    step, temperature: conditions.temperature,
+    thickness_um: rate, growth_rate: rate,
+    trace_Fe: conditions.fluid.Fe * 0.01,
+    trace_Mn: conditions.fluid.Mn * 0.01,
+    note: color_note,
+  });
+}

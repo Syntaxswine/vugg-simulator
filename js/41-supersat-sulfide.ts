@@ -369,4 +369,150 @@ Object.assign(VugConditions.prototype, {
   if (ACTIVITY_CORRECTED_SUPERSAT) sigma *= activityCorrectionFactor(this.fluid, 'covellite');
   return Math.max(sigma, 0);
 },
+
+  // v63 brief-19 — telluride / selenide / Cd-sulfide group.
+  // All are reducing-only (chalcophile chemistry); most are Au-Ag-Te or
+  // Pb-Ag-Se epithermal phases; greenockite/hawleyite are the Cd-sulfide
+  // pair from sphalerite oxidation.
+
+  // AuTe2 — incommensurately modulated monoclinic Au telluride.
+  // Fires when Au + Te both present, low S, mid-T epithermal.
+  supersaturation_calaverite() {
+    if (this.fluid.Au < 0.1 || this.fluid.Te < 1) return 0;
+    if (this.fluid.O2 > 0.3) return 0;
+    let sigma = (this.fluid.Au / 1.0) * (this.fluid.Te / 5.0);
+    const T = this.temperature;
+    if (T < 100 || T > 450) return 0;
+    let T_factor = 1.0;
+    if (T >= 200 && T <= 350) T_factor = 1.2;
+    else if (T < 200) T_factor = Math.max(0.4, 0.5 + 0.007 * (T - 100));
+    else T_factor = Math.max(0.4, 1.2 - 0.008 * (T - 350));
+    sigma *= T_factor;
+    // Sulfide competition — high S favors sulfides over tellurides
+    if (this.fluid.S > 50) sigma *= Math.max(0.4, 1.0 - 0.005 * (this.fluid.S - 50));
+    // Sylvanite competition — when Ag is comparable to Au, sylvanite wins
+    if (this.fluid.Ag > this.fluid.Au * 5) sigma *= 0.5;
+    if (ACTIVITY_CORRECTED_SUPERSAT) sigma *= activityCorrectionFactor(this.fluid, 'calaverite');
+    return Math.max(sigma, 0);
+  },
+
+  // (Au,Ag)Te2 — Au:Ag 1:1 to 3:1 monoclinic telluride. Photosensitive.
+  // Wins over calaverite when Ag is comparable to Au.
+  supersaturation_sylvanite() {
+    if (this.fluid.Au < 0.1 || this.fluid.Ag < 0.5 || this.fluid.Te < 1) return 0;
+    if (this.fluid.O2 > 0.3) return 0;
+    let sigma = (this.fluid.Au / 1.0) * (this.fluid.Ag / 5.0) * (this.fluid.Te / 5.0) * 0.7;
+    const T = this.temperature;
+    if (T < 80 || T > 400) return 0;
+    let T_factor = 1.0;
+    if (T >= 150 && T <= 300) T_factor = 1.2;
+    else if (T < 150) T_factor = Math.max(0.4, 0.5 + 0.007 * (T - 80));
+    else T_factor = Math.max(0.4, 1.2 - 0.008 * (T - 300));
+    sigma *= T_factor;
+    if (this.fluid.S > 50) sigma *= Math.max(0.4, 1.0 - 0.005 * (this.fluid.S - 50));
+    // Calaverite competition — when Au ≫ Ag, calaverite wins
+    if (this.fluid.Au > this.fluid.Ag * 0.5) sigma *= 0.7;
+    if (ACTIVITY_CORRECTED_SUPERSAT) sigma *= activityCorrectionFactor(this.fluid, 'sylvanite');
+    return Math.max(sigma, 0);
+  },
+
+  // Ag2Te — silver telluride. Phase transition at 155°C (cubic↔monoclinic).
+  // Wins over acanthite (Ag2S) only when Te > S.
+  supersaturation_hessite() {
+    if (this.fluid.Ag < 5 || this.fluid.Te < 1) return 0;
+    if (this.fluid.O2 > 0.3) return 0;
+    let sigma = (this.fluid.Ag / 30.0) * (this.fluid.Te / 5.0);
+    const T = this.temperature;
+    if (T < 50 || T > 400) return 0;
+    let T_factor = 1.0;
+    if (T >= 150 && T <= 250) T_factor = 1.2;
+    else if (T < 150) T_factor = Math.max(0.4, 0.5 + 0.007 * (T - 50));
+    else T_factor = Math.max(0.4, 1.2 - 0.006 * (T - 250));
+    sigma *= T_factor;
+    // Sulfide competition — acanthite (Ag2S) wins when S >> Te
+    if (this.fluid.S > 30) sigma *= Math.max(0.4, 1.0 - 0.01 * (this.fluid.S - 30));
+    if (ACTIVITY_CORRECTED_SUPERSAT) sigma *= activityCorrectionFactor(this.fluid, 'hessite');
+    return Math.max(sigma, 0);
+  },
+
+  // Ag2Se — silver selenide. Phase transition at 133°C (orthorhombic↔cubic).
+  // Wins over acanthite + hessite only when Se > S and Se > Te.
+  supersaturation_naumannite() {
+    if (this.fluid.Ag < 5 || this.fluid.Se < 1) return 0;
+    if (this.fluid.O2 > 0.3) return 0;
+    let sigma = (this.fluid.Ag / 30.0) * (this.fluid.Se / 5.0);
+    const T = this.temperature;
+    if (T < 50 || T > 350) return 0;
+    let T_factor = 1.0;
+    if (T >= 100 && T <= 200) T_factor = 1.2;
+    else if (T < 100) T_factor = Math.max(0.4, 0.5 + 0.01 * (T - 50));
+    else T_factor = Math.max(0.4, 1.2 - 0.005 * (T - 200));
+    sigma *= T_factor;
+    if (this.fluid.S > 30) sigma *= Math.max(0.4, 1.0 - 0.01 * (this.fluid.S - 30));
+    // Hessite competition — when Te > Se, hessite wins
+    if (this.fluid.Te > this.fluid.Se) sigma *= 0.6;
+    if (ACTIVITY_CORRECTED_SUPERSAT) sigma *= activityCorrectionFactor(this.fluid, 'naumannite');
+    return Math.max(sigma, 0);
+  },
+
+  // PbSe — lead selenide. Galena-structure. Above 300°C forms continuous
+  // SS with galena; below, miscibility gap opens (exsolution lamellae).
+  supersaturation_clausthalite() {
+    if (this.fluid.Pb < 20 || this.fluid.Se < 1) return 0;
+    if (this.fluid.O2 > 0.3) return 0;
+    let sigma = (this.fluid.Pb / 80.0) * (this.fluid.Se / 5.0);
+    const T = this.temperature;
+    if (T < 50 || T > 450) return 0;
+    let T_factor = 1.0;
+    if (T >= 100 && T <= 250) T_factor = 1.2;
+    else if (T < 100) T_factor = Math.max(0.4, 0.5 + 0.01 * (T - 50));
+    else T_factor = Math.max(0.4, 1.2 - 0.005 * (T - 250));
+    sigma *= T_factor;
+    // Galena competition — high S forms PbS instead
+    if (this.fluid.S > 30) sigma *= Math.max(0.3, 1.0 - 0.015 * (this.fluid.S - 30));
+    if (ACTIVITY_CORRECTED_SUPERSAT) sigma *= activityCorrectionFactor(this.fluid, 'clausthalite');
+    return Math.max(sigma, 0);
+  },
+
+  // CdS — hexagonal (wurtzite-structure) cadmium sulfide. High-T polymorph
+  // (>200°C). Fast nucleation due to extreme Ksp (~10⁻²⁸). Forms by
+  // sphalerite oxidation releasing Cd that re-precipitates against
+  // residual sulfide.
+  supersaturation_greenockite() {
+    if (this.fluid.Cd < 0.5 || this.fluid.S < 5) return 0;
+    if (this.fluid.O2 > 0.5) return 0;
+    let sigma = (this.fluid.Cd / 1.5) * (this.fluid.S / 30.0);
+    const T = this.temperature;
+    if (T < 25 || T > 250) return 0;
+    let T_factor = 1.0;
+    if (T >= 50 && T <= 150) T_factor = 1.2;
+    else if (T < 50) T_factor = Math.max(0.5, 0.6 + 0.012 * (T - 25));
+    else T_factor = Math.max(0.4, 1.2 - 0.008 * (T - 150));
+    sigma *= T_factor;
+    // pH window 5-7
+    if (this.fluid.pH < 4.0) sigma *= Math.max(0.3, 1.0 - 0.3 * (4.0 - this.fluid.pH));
+    if (this.fluid.pH > 8.0) sigma *= Math.max(0.4, 1.0 - 0.2 * (this.fluid.pH - 8.0));
+    if (ACTIVITY_CORRECTED_SUPERSAT) sigma *= activityCorrectionFactor(this.fluid, 'greenockite');
+    return Math.max(sigma, 0);
+  },
+
+  // CdS — cubic (sphalerite-structure) low-T polymorph. <100°C kinetically
+  // favored. Always powdery — no discrete crystals.
+  supersaturation_hawleyite() {
+    if (this.fluid.Cd < 0.5 || this.fluid.S < 5) return 0;
+    if (this.fluid.O2 > 0.5) return 0;
+    let sigma = (this.fluid.Cd / 1.5) * (this.fluid.S / 30.0);
+    const T = this.temperature;
+    if (T < 5 || T > 100) return 0;
+    let T_factor = 1.0;
+    if (T >= 10 && T <= 50) T_factor = 1.2;
+    else if (T < 10) T_factor = Math.max(0.4, 0.5 + 0.05 * T);
+    else T_factor = Math.max(0.4, 1.2 - 0.015 * (T - 50));
+    sigma *= T_factor;
+    // Above 100°C, greenockite (hexagonal) is favored
+    if (this.fluid.pH < 4.0) sigma *= Math.max(0.3, 1.0 - 0.3 * (4.0 - this.fluid.pH));
+    if (this.fluid.pH > 8.0) sigma *= Math.max(0.4, 1.0 - 0.2 * (this.fluid.pH - 8.0));
+    if (ACTIVITY_CORRECTED_SUPERSAT) sigma *= activityCorrectionFactor(this.fluid, 'hawleyite');
+    return Math.max(sigma, 0);
+  },
 });

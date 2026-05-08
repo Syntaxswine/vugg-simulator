@@ -11238,7 +11238,7 @@
       "narrate_function": null,
       "runtimes_present": ["js"],
       "audit_status": "new (brief-16 batch 2026-05-07). Mo end-member of powellite-scheelite SS. supergene_oxidation broth needs Mo ≥1 ppm; deccan_zeolite supports basalt-cavity habit. Reuses same engine logic as scheelite with mo_fraction → 1.0. No engine yet.",
-      "class_color": "#aa66cc"
+      "class_color": "#eb13eb"
     },
     "scheelite": {
       "formula": "CaWO4",
@@ -11252,7 +11252,7 @@
         {"name": "octahedral_pseudo", "wall_spread": 0.35, "void_reach": 0.65, "vector": "equant", "trigger": "low σ — pseudo-octahedral habit (looks cubic but is tetragonal)"},
         {"name": "massive_granular", "wall_spread": 0.7, "void_reach": 0.3, "vector": "equant", "trigger": "high σ — massive granular skarn texture"}
       ],
-      "class": "tungstate",
+      "class": "molybdate",
       "description": "CaWO4 — the calcium tungstate, one of the principal W ores and a UV-fluorescence classic. Forms in granitic-intrusion-related W-Sn skarns and in mesothermal vein systems where W concentrates from late-stage granitic fluids and Ca comes from the wallrock. Brilliant blue-white SW UV fluorescence is diagnostic — used since the 19th century to prospect for tungsten in the field. Forms continuous solid-solution series with powellite (CaMoO4); intermediate compositions show duller / yellower fluorescence as Mo replaces W. Panasqueira (Portugal) and Pine Creek (California) are skarn type localities. Recent Chinese tungsten production (Hunan, Jiangxi) dominates global supply.",
       "scenarios": ["gem_pegmatite", "porphyry"],
       "T_range_C": [200, 600],
@@ -11288,7 +11288,7 @@
       "narrate_function": null,
       "runtimes_present": ["js"],
       "audit_status": "new (brief-16 batch 2026-05-07). W end-member of powellite-scheelite SS. gem_pegmatite + porphyry broths need W ≥1 ppm (currently 0). Pairs with wolframite — Ca → scheelite, Fe/Mn → wolframite. No engine yet.",
-      "class_color": "#996644"
+      "class_color": "#eb13eb"
     },
     "strontianite": {
       "formula": "SrCO3",
@@ -11502,7 +11502,7 @@
         {"name": "equant_high_T", "wall_spread": 0.4, "void_reach": 0.6, "vector": "equant", "trigger": "high T (> 400°C) — equant blocky crystal"},
         {"name": "massive_granular", "wall_spread": 0.7, "void_reach": 0.3, "vector": "equant", "trigger": "high σ — granular vein aggregate"}
       ],
-      "class": "oxide",
+      "class": "molybdate",
       "description": "(Fe,Mn)WO4 — the Fe-Mn tungstate, intermediate member of the ferberite (FeWO4) ↔ hübnerite (MnWO4) solid-solution series. Specific gravity 7.0–7.5 — three times denser than quartz — is the field diagnostic. Forms in W-Sn vein systems associated with granitic intrusions, at 300–400°C in mildly acidic, reducing fluids carrying hundreds of ppm dissolved W. Loses to scheelite (CaWO4) when Ca is available, which means wolframite indicates Ca-poor conditions. Refractory: stable to very high T and chemically resistant. Does not fluoresce (diagnostic distinction from scheelite which glows blue-white under SW). Panasqueira (Portugal) is the world reference for bladed crystals on quartz; Yaogangxian (Hunan, China) supplies the modern collector market. Etymology: 'wolf's froth' — medieval miners noted that the ore consumed tin yields like a predator.",
       "scenarios": ["gem_pegmatite", "porphyry"],
       "T_range_C": [250, 450],
@@ -11534,7 +11534,7 @@
       "narrate_function": null,
       "runtimes_present": ["js"],
       "audit_status": "new (brief-16 batch 2026-05-07). Pairs with scheelite — Ca → scheelite, Fe/Mn → wolframite. Fe/(Fe+Mn) ratio drives ferberite-hübnerite solid solution and color. gem_pegmatite + porphyry broths need W ≥1 ppm. Non-fluorescence is diagnostic vs. scheelite. No engine yet.",
-      "class_color": "#eb1313"
+      "class_color": "#eb13eb"
     }
   }
 }

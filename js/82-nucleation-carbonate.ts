@@ -215,6 +215,25 @@ function _nuc_aurichalcite(sim) {
   // trio (Round 9b). Substrate preference: weathering uraninite or wall.
 }
 
+function _nuc_strontianite(sim) {
+  const sigma = sim.conditions.supersaturation_strontianite();
+  if (sigma > 1.2 && !sim._atNucleationCap('strontianite') && rng.random() < 0.15) {
+    const c = sim.nucleate('strontianite', 'vug wall', sigma);
+    sim.log.push(`  ✦ NUCLEATION: 🟠 Strontianite #${c.crystal_id} on ${c.position} (Sr ${sim.conditions.fluid.Sr.toFixed(0)} CO3 ${sim.conditions.fluid.CO3.toFixed(0)} ppm, σ=${sigma.toFixed(2)}) — pseudohex cyclic-twinned Sr carbonate`);
+  }
+}
+
+function _nuc_witherite(sim) {
+  const sigma = sim.conditions.supersaturation_witherite();
+  if (sigma > 1.2 && !sim._atNucleationCap('witherite') && rng.random() < 0.15) {
+    let pos = 'vug wall';
+    const flu = sim.crystals.filter(c => c.mineral === 'fluorite' && c.active);
+    if (flu.length && rng.random() < 0.35) pos = `on fluorite #${flu[0].crystal_id} (Cave-in-Rock association)`;
+    const c = sim.nucleate('witherite', pos, sigma);
+    sim.log.push(`  ✦ NUCLEATION: 🟠 Witherite #${c.crystal_id} on ${c.position} (Ba ${sim.conditions.fluid.Ba.toFixed(0)} CO3 ${sim.conditions.fluid.CO3.toFixed(0)} ppm, σ=${sigma.toFixed(2)}) — pseudohex Ba carbonate, fluoresces bluish-white SW`);
+  }
+}
+
 function _nucleateClass_carbonate(sim) {
   _nuc_calcite(sim);
   _nuc_aragonite(sim);
@@ -227,4 +246,6 @@ function _nucleateClass_carbonate(sim) {
   _nuc_cerussite(sim);
   _nuc_rosasite(sim);
   _nuc_aurichalcite(sim);
+  _nuc_strontianite(sim);
+  _nuc_witherite(sim);
 }

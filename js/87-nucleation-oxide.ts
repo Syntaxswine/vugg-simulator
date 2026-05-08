@@ -73,9 +73,31 @@ function _nuc_cuprite(sim) {
   // Azurite nucleation — Cu + high CO₃ + O₂ (limestone-hosted Cu deposit).
 }
 
+function _nuc_rutile(sim) {
+  const sigma = sim.conditions.supersaturation_rutile();
+  if (sigma > 1.3 && !sim._atNucleationCap('rutile') && rng.random() < 0.12) {
+    let pos = 'vug wall';
+    const qz = sim.crystals.filter(c => c.mineral === 'quartz' && c.active);
+    // Rutilated quartz — strong substrate preference for growing quartz
+    if (qz.length && rng.random() < 0.55) pos = `included in quartz #${qz[0].crystal_id} (rutilated quartz / Venus hair)`;
+    const c = sim.nucleate('rutile', pos, sigma);
+    sim.log.push(`  ✦ NUCLEATION: 🔴 Rutile #${c.crystal_id} on ${c.position} (Ti ${sim.conditions.fluid.Ti.toFixed(1)} ppm, T=${sim.conditions.temperature.toFixed(0)}°C, σ=${sigma.toFixed(2)})`);
+  }
+}
+
+function _nuc_chromite(sim) {
+  const sigma = sim.conditions.supersaturation_chromite();
+  if (sigma > 1.4 && !sim._atNucleationCap('chromite') && rng.random() < 0.10) {
+    const c = sim.nucleate('chromite', 'vug wall', sigma);
+    sim.log.push(`  ✦ NUCLEATION: ⚫ Chromite #${c.crystal_id} on ${c.position} (Cr ${sim.conditions.fluid.Cr.toFixed(0)} Fe ${sim.conditions.fluid.Fe.toFixed(0)} ppm at T=${sim.conditions.temperature.toFixed(0)}°C, σ=${sigma.toFixed(2)}) — magmatic spinel`);
+  }
+}
+
 function _nucleateClass_oxide(sim) {
   _nuc_hematite(sim);
   _nuc_uraninite(sim);
   _nuc_magnetite(sim);
   _nuc_cuprite(sim);
+  _nuc_rutile(sim);
+  _nuc_chromite(sim);
 }

@@ -241,6 +241,14 @@ function _nuc_topaz(sim) {
   // sphalerite (Zn co-source), or bare wall.
 }
 
+function _nuc_chrysoprase(sim) {
+  const sigma = sim.conditions.supersaturation_chrysoprase();
+  if (sigma > 1.2 && !sim._atNucleationCap('chrysoprase') && rng.random() < 0.12) {
+    const c = sim.nucleate('chrysoprase', 'vug wall', sigma);
+    sim.log.push(`  ✦ NUCLEATION: 🟢 Chrysoprase #${c.crystal_id} on ${c.position} (Ni ${sim.conditions.fluid.Ni.toFixed(0)} Mg ${sim.conditions.fluid.Mg.toFixed(0)} SiO2 ${sim.conditions.fluid.SiO2.toFixed(0)} ppm, σ=${sigma.toFixed(2)}) — apple-green Ni-bearing chalcedony, ultramafic supergene`);
+  }
+}
+
 function _nucleateClass_silicate(sim) {
   _nuc_quartz(sim);
   _nuc_apophyllite(sim);
@@ -250,4 +258,5 @@ function _nucleateClass_silicate(sim) {
   _nuc_spodumene(sim);
   _nuc_tourmaline(sim);
   _nuc_topaz(sim);
+  _nuc_chrysoprase(sim);
 }

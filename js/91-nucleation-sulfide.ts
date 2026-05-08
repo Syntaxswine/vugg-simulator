@@ -352,4 +352,92 @@ function _nucleateClass_sulfide(sim) {
   _nuc_bornite(sim);
   _nuc_chalcocite(sim);
   _nuc_covellite(sim);
+  _nuc_calaverite(sim);
+  _nuc_sylvanite(sim);
+  _nuc_hessite(sim);
+  _nuc_naumannite(sim);
+  _nuc_clausthalite(sim);
+  _nuc_greenockite(sim);
+  _nuc_hawleyite(sim);
+}
+
+// v63 brief-19: telluride / selenide / Cd-sulfide nucleation gates.
+
+function _nuc_calaverite(sim) {
+  const sigma = sim.conditions.supersaturation_calaverite();
+  if (sigma > 1.4 && !sim._atNucleationCap('calaverite') && rng.random() < 0.10) {
+    let pos = 'vug wall';
+    const qz = sim.crystals.filter(c => c.mineral === 'quartz' && c.active);
+    const flu = sim.crystals.filter(c => c.mineral === 'fluorite' && c.active);
+    if (qz.length && rng.random() < 0.40) pos = `on quartz #${qz[0].crystal_id} (epithermal vein)`;
+    else if (flu.length && rng.random() < 0.30) pos = `on fluorite #${flu[0].crystal_id}`;
+    const c = sim.nucleate('calaverite', pos, sigma);
+    sim.log.push(`  ✦ NUCLEATION: 🟡 Calaverite #${c.crystal_id} on ${c.position} (Au ${sim.conditions.fluid.Au.toFixed(2)} Te ${sim.conditions.fluid.Te.toFixed(1)} ppm, T=${sim.conditions.temperature.toFixed(0)}°C, σ=${sigma.toFixed(2)}) — gold telluride, the Cripple Creek bonanza ore`);
+  }
+}
+
+function _nuc_sylvanite(sim) {
+  const sigma = sim.conditions.supersaturation_sylvanite();
+  if (sigma > 1.4 && !sim._atNucleationCap('sylvanite') && rng.random() < 0.10) {
+    let pos = 'vug wall';
+    const cal = sim.crystals.filter(c => c.mineral === 'calaverite' && c.active);
+    if (cal.length && rng.random() < 0.40) pos = `intergrown with calaverite #${cal[0].crystal_id}`;
+    const c = sim.nucleate('sylvanite', pos, sigma);
+    sim.log.push(`  ✦ NUCLEATION: ⚪ Sylvanite #${c.crystal_id} on ${c.position} (Au ${sim.conditions.fluid.Au.toFixed(2)} Ag ${sim.conditions.fluid.Ag.toFixed(0)} Te ${sim.conditions.fluid.Te.toFixed(1)} ppm, σ=${sigma.toFixed(2)}) — silver-white photosensitive Au-Ag-Te intergrowth`);
+  }
+}
+
+function _nuc_hessite(sim) {
+  const sigma = sim.conditions.supersaturation_hessite();
+  if (sigma > 1.3 && !sim._atNucleationCap('hessite') && rng.random() < 0.12) {
+    let pos = 'vug wall';
+    const acan = sim.crystals.filter(c => (c.mineral === 'acanthite' || c.mineral === 'argentite') && c.active);
+    if (acan.length && rng.random() < 0.40) pos = `with ${acan[0].mineral} #${acan[0].crystal_id} (Ag-paragenesis)`;
+    const c = sim.nucleate('hessite', pos, sigma);
+    sim.log.push(`  ✦ NUCLEATION: ⚫ Hessite #${c.crystal_id} on ${c.position} (Ag ${sim.conditions.fluid.Ag.toFixed(0)} Te ${sim.conditions.fluid.Te.toFixed(1)} ppm, T=${sim.conditions.temperature.toFixed(0)}°C, σ=${sigma.toFixed(2)}) — silver telluride`);
+  }
+}
+
+function _nuc_naumannite(sim) {
+  const sigma = sim.conditions.supersaturation_naumannite();
+  if (sigma > 1.3 && !sim._atNucleationCap('naumannite') && rng.random() < 0.10) {
+    let pos = 'vug wall';
+    const claus = sim.crystals.filter(c => c.mineral === 'clausthalite' && c.active);
+    if (claus.length && rng.random() < 0.45) pos = `with clausthalite #${claus[0].crystal_id} (Erzgebirge selenide vein)`;
+    const c = sim.nucleate('naumannite', pos, sigma);
+    sim.log.push(`  ✦ NUCLEATION: ⚫ Naumannite #${c.crystal_id} on ${c.position} (Ag ${sim.conditions.fluid.Ag.toFixed(0)} Se ${sim.conditions.fluid.Se.toFixed(1)} ppm, σ=${sigma.toFixed(2)}) — silver selenide`);
+  }
+}
+
+function _nuc_clausthalite(sim) {
+  const sigma = sim.conditions.supersaturation_clausthalite();
+  if (sigma > 1.3 && !sim._atNucleationCap('clausthalite') && rng.random() < 0.12) {
+    let pos = 'vug wall';
+    const gal = sim.crystals.filter(c => c.mineral === 'galena' && c.active);
+    if (gal.length && rng.random() < 0.35) pos = `with galena #${gal[0].crystal_id} (high-T solid solution; lamellae on cooling)`;
+    const c = sim.nucleate('clausthalite', pos, sigma);
+    sim.log.push(`  ✦ NUCLEATION: ⚫ Clausthalite #${c.crystal_id} on ${c.position} (Pb ${sim.conditions.fluid.Pb.toFixed(0)} Se ${sim.conditions.fluid.Se.toFixed(1)} ppm, σ=${sigma.toFixed(2)}) — lead selenide`);
+  }
+}
+
+function _nuc_greenockite(sim) {
+  const sigma = sim.conditions.supersaturation_greenockite();
+  if (sigma > 1.0 && !sim._atNucleationCap('greenockite') && rng.random() < 0.18) {
+    let pos = 'vug wall';
+    const sph = sim.crystals.filter(c => c.mineral === 'sphalerite' && (c.dissolved || c.active));
+    if (sph.length && rng.random() < 0.65) pos = `${sph[0].dissolved ? 'on dissolved' : 'coating'} sphalerite #${sph[0].crystal_id} (Cd liberation source)`;
+    const c = sim.nucleate('greenockite', pos, sigma);
+    sim.log.push(`  ✦ NUCLEATION: 🟡 Greenockite #${c.crystal_id} on ${c.position} (Cd ${sim.conditions.fluid.Cd.toFixed(2)} S ${sim.conditions.fluid.S.toFixed(0)} ppm, T=${sim.conditions.temperature.toFixed(0)}°C, σ=${sigma.toFixed(2)}) — honey-yellow CdS, hexagonal hemimorphic pyramid`);
+  }
+}
+
+function _nuc_hawleyite(sim) {
+  const sigma = sim.conditions.supersaturation_hawleyite();
+  if (sigma > 1.0 && !sim._atNucleationCap('hawleyite') && rng.random() < 0.15) {
+    let pos = 'vug wall';
+    const sph = sim.crystals.filter(c => c.mineral === 'sphalerite' && (c.dissolved || c.active));
+    if (sph.length && rng.random() < 0.55) pos = `coating sphalerite #${sph[0].crystal_id}`;
+    const c = sim.nucleate('hawleyite', pos, sigma);
+    sim.log.push(`  ✦ NUCLEATION: 🟡 Hawleyite #${c.crystal_id} on ${c.position} (Cd ${sim.conditions.fluid.Cd.toFixed(2)} S ${sim.conditions.fluid.S.toFixed(0)} ppm, T=${sim.conditions.temperature.toFixed(0)}°C, σ=${sigma.toFixed(2)}) — cadmium-yellow cubic CdS dust`);
+  }
 }

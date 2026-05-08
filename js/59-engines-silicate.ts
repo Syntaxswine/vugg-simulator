@@ -888,3 +888,39 @@ function grow_apophyllite(crystal, conditions, step) {
     note: `${crystal.habit} K-Ca-Si zeolite${hematite_note}`
   });
 }
+
+// v63 brief-19: chrysoprase — Ni-bearing chalcedony (microfibrous SiO2 +
+// Ni-clay nano-inclusions). First chalcedony habit in the sim.
+function grow_chrysoprase(crystal, conditions, step) {
+  const sigma = conditions.supersaturation_chrysoprase();
+  if (sigma < 1.0) {
+    if (crystal.total_growth_um > 5 && conditions.temperature > 150) {
+      crystal.dissolved = true;
+      const dissolved_um = Math.min(2.0, crystal.total_growth_um * 0.04);
+      return new GrowthZone({
+        step, temperature: conditions.temperature,
+        thickness_um: -dissolved_um, growth_rate: -dissolved_um,
+        note: 'thermal fade above 150°C — Ni-clay nano-inclusions destabilize, color fades to white/yellow-brown',
+      });
+    }
+    return null;
+  }
+  const excess = sigma - 1.0;
+  let rate = 2.5 * excess * rng.uniform(0.85, 1.15);
+  if (rate < 0.1) return null;
+  if (sigma > 2.5) { crystal.habit = 'nodular_massive'; crystal.dominant_forms = ['rounded apple-green nodule in saprolite']; crystal.a_width_mm = crystal.c_length_mm * 1.4; }
+  else if (sigma > 1.6) { crystal.habit = 'banded_chalcedony'; crystal.dominant_forms = ['flow-banded chalcedony']; crystal.a_width_mm = crystal.c_length_mm * 2.5; }
+  else { crystal.habit = 'chalcedony_vein'; crystal.dominant_forms = ['fracture-fill chalcedony fabric']; crystal.a_width_mm = crystal.c_length_mm * 4.0; }
+  let color_note;
+  if (conditions.fluid.Ni > 500) color_note = 'deep emerald chrysoprase (Szklary aesthetic — Ni > 500 ppm)';
+  else if (conditions.fluid.Ni < 100) color_note = 'pale yellow-green chrysoprase (lower-Ni grade)';
+  else color_note = 'apple-green chrysoprase (Marlborough aesthetic) — Ni-clay nano-inclusions in chalcedony fabric';
+  if (conditions.fluid.Fe > 30) color_note += '; olive muddying (Fe staining)';
+  return new GrowthZone({
+    step, temperature: conditions.temperature,
+    thickness_um: rate, growth_rate: rate,
+    trace_Ni: conditions.fluid.Ni * 0.01,
+    trace_Mg: conditions.fluid.Mg * 0.005,
+    note: color_note,
+  });
+}

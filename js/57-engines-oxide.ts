@@ -329,3 +329,47 @@ function grow_sapphire(crystal, conditions, step) {
     note: parts.join(', '),
   });
 }
+
+// v63 brief-19: rutile TiO2 — tetragonal Ti oxide, the 'needle' mineral.
+// Refractory; chemically inert.
+function grow_rutile(crystal, conditions, step) {
+  const sigma = conditions.supersaturation_rutile();
+  if (sigma < 1.0) return null;
+  const excess = sigma - 1.0;
+  let rate = 2.0 * excess * rng.uniform(0.85, 1.15);
+  if (rate < 0.1) return null;
+  const T = conditions.temperature;
+  if (T > 500 && sigma < 1.5) { crystal.habit = 'stout_prismatic'; crystal.dominant_forms = ['coarse alpine-cleft prism with dipyramid termination']; crystal.a_width_mm = crystal.c_length_mm * 0.5; }
+  else if (sigma > 2.0 && T < 300) { crystal.habit = 'sixling_star'; crystal.dominant_forms = ['cyclic-sixling reticulated star (rare)']; crystal.a_width_mm = crystal.c_length_mm * 0.8; }
+  else { crystal.habit = 'acicular_needle'; crystal.dominant_forms = ['slender vertically-striated prism']; crystal.a_width_mm = crystal.c_length_mm * 0.1; }
+  let color_note;
+  if (conditions.fluid.Cr > 5) color_note = 'red Cr-rutile (rare)';
+  else if (conditions.fluid.Fe > 10) color_note = 'black nigrine (Fe-rich)';
+  else if (conditions.fluid.Fe < 2) color_note = 'golden yellow rutile (low-Fe alpine cleft)';
+  else color_note = 'red-brown adamantine rutile prism';
+  return new GrowthZone({
+    step, temperature: conditions.temperature,
+    thickness_um: rate, growth_rate: rate,
+    trace_Fe: conditions.fluid.Fe * 0.005,
+    trace_Cr: conditions.fluid.Cr * 0.01,
+    note: color_note,
+  });
+}
+
+// v63 brief-19: chromite FeCr2O4 — magmatic Fe-Cr spinel.
+function grow_chromite(crystal, conditions, step) {
+  const sigma = conditions.supersaturation_chromite();
+  if (sigma < 1.0) return null;
+  const excess = sigma - 1.0;
+  let rate = 4.0 * excess * rng.uniform(0.85, 1.15);
+  if (rate < 0.1) return null;
+  if (sigma > 2.5) { crystal.habit = 'massive_granular'; crystal.dominant_forms = ['cumulate granular fabric']; crystal.a_width_mm = crystal.c_length_mm * 1.2; }
+  else { crystal.habit = 'octahedral'; crystal.dominant_forms = ['black metallic octahedron']; crystal.a_width_mm = crystal.c_length_mm * 0.85; }
+  return new GrowthZone({
+    step, temperature: conditions.temperature,
+    thickness_um: rate, growth_rate: rate,
+    trace_Cr: conditions.fluid.Cr * 0.015,
+    trace_Fe: conditions.fluid.Fe * 0.01,
+    note: `black FeCr2O4 spinel — Cr ${conditions.fluid.Cr.toFixed(0)} Fe ${conditions.fluid.Fe.toFixed(0)} ppm at T=${conditions.temperature.toFixed(0)}°C`,
+  });
+}

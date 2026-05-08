@@ -235,6 +235,25 @@ function _nuc_tyuyamunite(sim) {
   }
 }
 
+function _nuc_apatite(sim) {
+  const sigma = sim.conditions.supersaturation_apatite();
+  if (sigma > 1.1 && !sim._atNucleationCap('apatite') && rng.random() < 0.15) {
+    const c = sim.nucleate('apatite', 'vug wall', sigma);
+    sim.log.push(`  ✦ NUCLEATION: 🟢 Apatite #${c.crystal_id} on ${c.position} (Ca ${sim.conditions.fluid.Ca.toFixed(0)} P ${sim.conditions.fluid.P.toFixed(0)} ppm, T=${sim.conditions.temperature.toFixed(0)}°C, σ=${sigma.toFixed(2)}) — apatite supergroup parent`);
+  }
+}
+
+function _nuc_turquoise(sim) {
+  const sigma = sim.conditions.supersaturation_turquoise();
+  if (sigma > 1.3 && !sim._atNucleationCap('turquoise') && rng.random() < 0.10) {
+    let pos = 'vug wall';
+    const dissolved_apa = sim.crystals.filter(c => c.mineral === 'apatite' && c.dissolved);
+    if (dissolved_apa.length && rng.random() < 0.4) pos = `on apatite #${dissolved_apa[0].crystal_id} (P-source)`;
+    const c = sim.nucleate('turquoise', pos, sigma);
+    sim.log.push(`  ✦ NUCLEATION: 🩵 Turquoise #${c.crystal_id} on ${c.position} (Cu ${sim.conditions.fluid.Cu.toFixed(0)} Al ${sim.conditions.fluid.Al.toFixed(0)} P ${sim.conditions.fluid.P.toFixed(1)} ppm, σ=${sigma.toFixed(2)}) — sky-blue supergene Cu-phosphate`);
+  }
+}
+
 function _nucleateClass_phosphate(sim) {
   _nuc_descloizite(sim);
   _nuc_mottramite(sim);
@@ -247,4 +266,6 @@ function _nucleateClass_phosphate(sim) {
   _nuc_autunite(sim);
   _nuc_uranospinite(sim);
   _nuc_tyuyamunite(sim);
+  _nuc_apatite(sim);
+  _nuc_turquoise(sim);
 }

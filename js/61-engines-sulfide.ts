@@ -842,3 +842,268 @@ function grow_tennantite(crystal, conditions, step) {
     note: `${crystal.habit} Cu12As4S13 — gray-black metallic, cherry-red transmission in thin fragments`
   });
 }
+
+
+// ============================================================
+// v63 brief-19: telluride / selenide / Cd-sulfide group (7 minerals)
+// ============================================================
+
+// AuTe2 — incommensurately modulated monoclinic gold telluride.
+function grow_calaverite(crystal, conditions, step) {
+  const sigma = conditions.supersaturation_calaverite();
+  if (sigma < 1.0) {
+    if (crystal.total_growth_um > 3 && conditions.temperature > 450) {
+      crystal.dissolved = true;
+      const dissolved_um = Math.min(3.0, crystal.total_growth_um * 0.15);
+      return new GrowthZone({
+        step, temperature: conditions.temperature,
+        thickness_um: -dissolved_um, growth_rate: -dissolved_um,
+        note: 'thermal decomposition >450C — AuTe2 -> Au0 + Te vapor (native gold liberates)',
+      });
+    }
+    return null;
+  }
+  const excess = sigma - 1.0;
+  let rate = 1.8 * excess * rng.uniform(0.8, 1.2);
+  if (rate < 0.1) return null;
+  if (conditions.temperature > 280) {
+    crystal.habit = 'bladed_striated_prism';
+    crystal.dominant_forms = ['slender bladed prism, longitudinally striated'];
+    crystal.a_width_mm = crystal.c_length_mm * 0.2;
+  } else {
+    crystal.habit = 'granular_massive';
+    crystal.dominant_forms = ['granular AuTe2 aggregate'];
+    crystal.a_width_mm = crystal.c_length_mm * 1.0;
+  }
+  let color_note = 'brass-yellow calaverite';
+  if (conditions.fluid.Ag > 1) color_note = 'silver-white calaverite (Ag-bearing — gradational toward sylvanite)';
+  return new GrowthZone({
+    step, temperature: conditions.temperature,
+    thickness_um: rate, growth_rate: rate,
+    trace_Au: conditions.fluid.Au * 0.05,
+    trace_Te: conditions.fluid.Te * 0.02,
+    note: color_note,
+  });
+}
+
+// (Au,Ag)Te2 — Au-Ag telluride. Photosensitive — cosmetic darkening with light exposure.
+function grow_sylvanite(crystal, conditions, step) {
+  const sigma = conditions.supersaturation_sylvanite();
+  if (sigma < 1.0) {
+    if (crystal.total_growth_um > 3 && conditions.temperature > 400) {
+      crystal.dissolved = true;
+      const dissolved_um = Math.min(3.0, crystal.total_growth_um * 0.15);
+      return new GrowthZone({
+        step, temperature: conditions.temperature,
+        thickness_um: -dissolved_um, growth_rate: -dissolved_um,
+        note: 'thermal decomposition >400C — sylvanite -> Au + Ag-telluride species',
+      });
+    }
+    return null;
+  }
+  const excess = sigma - 1.0;
+  let rate = 1.6 * excess * rng.uniform(0.8, 1.2);
+  if (rate < 0.1) return null;
+  if (sigma > 1.8) {
+    crystal.habit = 'bladed_graphic';
+    crystal.dominant_forms = ['intergrown bladed crystals (graphic-tellurium pattern)'];
+    crystal.a_width_mm = crystal.c_length_mm * 0.3;
+  } else {
+    crystal.habit = 'tabular_striated';
+    crystal.dominant_forms = ['striated tabular plate'];
+    crystal.a_width_mm = crystal.c_length_mm * 0.7;
+  }
+  let color_note = 'silver-white sylvanite (photosensitive — darkens with light exposure)';
+  if (conditions.fluid.Au / Math.max(conditions.fluid.Ag, 0.1) > 1.5) color_note = 'brass-yellow Au-rich sylvanite (gradational toward calaverite)';
+  return new GrowthZone({
+    step, temperature: conditions.temperature,
+    thickness_um: rate, growth_rate: rate,
+    trace_Au: conditions.fluid.Au * 0.03,
+    trace_Ag: conditions.fluid.Ag * 0.02,
+    trace_Te: conditions.fluid.Te * 0.02,
+    note: color_note,
+  });
+}
+
+// Ag2Te — silver telluride. Phase transition at 155C (cubic <-> monoclinic).
+function grow_hessite(crystal, conditions, step) {
+  const sigma = conditions.supersaturation_hessite();
+  if (sigma < 1.0) {
+    if (crystal.total_growth_um > 3 && conditions.fluid.O2 > 0.5) {
+      crystal.dissolved = true;
+      const dissolved_um = Math.min(3.0, crystal.total_growth_um * 0.10);
+      return new GrowthZone({
+        step, temperature: conditions.temperature,
+        thickness_um: -dissolved_um, growth_rate: -dissolved_um,
+        note: 'oxidative dissolution — Ag leaches, Te oxidizes to tellurite',
+      });
+    }
+    return null;
+  }
+  const excess = sigma - 1.0;
+  let rate = 2.0 * excess * rng.uniform(0.85, 1.15);
+  if (rate < 0.1) return null;
+  if (conditions.temperature > 155) {
+    crystal.habit = 'cubic_high_T';
+    crystal.dominant_forms = ['cubic Ag2Te (high-T phase)'];
+    crystal.a_width_mm = crystal.c_length_mm * 0.85;
+  } else {
+    crystal.habit = 'monoclinic_low_T_lamellae';
+    crystal.dominant_forms = ['monoclinic with phase-transformation lamellae from cubic-monoclinic transition'];
+    crystal.a_width_mm = crystal.c_length_mm * 0.9;
+  }
+  return new GrowthZone({
+    step, temperature: conditions.temperature,
+    thickness_um: rate, growth_rate: rate,
+    trace_Ag: conditions.fluid.Ag * 0.04,
+    trace_Te: conditions.fluid.Te * 0.02,
+    note: 'lead-gray hessite Ag2Te',
+  });
+}
+
+// Ag2Se — silver selenide. Phase transition at 133C (orthorhombic <-> cubic).
+function grow_naumannite(crystal, conditions, step) {
+  const sigma = conditions.supersaturation_naumannite();
+  if (sigma < 1.0) {
+    if (crystal.total_growth_um > 2 && conditions.fluid.O2 > 0.5) {
+      crystal.dissolved = true;
+      const dissolved_um = Math.min(2.5, crystal.total_growth_um * 0.10);
+      return new GrowthZone({
+        step, temperature: conditions.temperature,
+        thickness_um: -dissolved_um, growth_rate: -dissolved_um,
+        note: 'oxidative dissolution — Ag leaches, Se oxidizes to selenite',
+      });
+    }
+    return null;
+  }
+  const excess = sigma - 1.0;
+  let rate = 1.8 * excess * rng.uniform(0.85, 1.15);
+  if (rate < 0.1) return null;
+  if (conditions.temperature > 133) {
+    crystal.habit = 'cubic_high_T';
+    crystal.dominant_forms = ['cubic Ag2Se (high-T phase, ionic conductivity 2 S/cm)'];
+    crystal.a_width_mm = crystal.c_length_mm * 0.85;
+  } else {
+    crystal.habit = 'orthorhombic_low_T';
+    crystal.dominant_forms = ['orthorhombic Ag2Se (low-T phase)'];
+    crystal.a_width_mm = crystal.c_length_mm * 0.85;
+  }
+  return new GrowthZone({
+    step, temperature: conditions.temperature,
+    thickness_um: rate, growth_rate: rate,
+    trace_Ag: conditions.fluid.Ag * 0.04,
+    trace_Se: conditions.fluid.Se * 0.02,
+    note: 'iron-gray naumannite Ag2Se',
+  });
+}
+
+// PbSe — galena-structure lead selenide.
+function grow_clausthalite(crystal, conditions, step) {
+  const sigma = conditions.supersaturation_clausthalite();
+  if (sigma < 1.0) {
+    if (crystal.total_growth_um > 3 && conditions.fluid.O2 > 0.5) {
+      crystal.dissolved = true;
+      const dissolved_um = Math.min(3.0, crystal.total_growth_um * 0.10);
+      return new GrowthZone({
+        step, temperature: conditions.temperature,
+        thickness_um: -dissolved_um, growth_rate: -dissolved_um,
+        note: 'oxidative dissolution — Pb leaches, Se oxidizes',
+      });
+    }
+    return null;
+  }
+  const excess = sigma - 1.0;
+  let rate = 2.0 * excess * rng.uniform(0.85, 1.15);
+  if (rate < 0.1) return null;
+  if (conditions.temperature > 300 && conditions.fluid.S > 5) {
+    crystal.habit = 'exsolution_lamellae_in_galena';
+    crystal.dominant_forms = ['lamellar exsolution from PbS-PbSe SS (cooling below 300C)'];
+    crystal.a_width_mm = crystal.c_length_mm * 1.5;
+  } else if (sigma > 1.8) {
+    crystal.habit = 'cubic_galena_structure';
+    crystal.dominant_forms = ['small lead-gray cube'];
+    crystal.a_width_mm = crystal.c_length_mm * 0.9;
+  } else {
+    crystal.habit = 'massive_granular';
+    crystal.dominant_forms = ['disseminated grain'];
+    crystal.a_width_mm = crystal.c_length_mm * 1.1;
+  }
+  return new GrowthZone({
+    step, temperature: conditions.temperature,
+    thickness_um: rate, growth_rate: rate,
+    trace_Pb: conditions.fluid.Pb * 0.02,
+    trace_Se: conditions.fluid.Se * 0.02,
+    note: 'lead-gray clausthalite PbSe',
+  });
+}
+
+// CdS hexagonal — high-T polymorph (>200C kinetic favorability).
+function grow_greenockite(crystal, conditions, step) {
+  const sigma = conditions.supersaturation_greenockite();
+  if (sigma < 1.0) {
+    if (crystal.total_growth_um > 2 && conditions.fluid.O2 > 1.0) {
+      crystal.dissolved = true;
+      const dissolved_um = Math.min(2.5, crystal.total_growth_um * 0.12);
+      return new GrowthZone({
+        step, temperature: conditions.temperature,
+        thickness_um: -dissolved_um, growth_rate: -dissolved_um,
+        note: 'oxidation — CdS -> Cd2+ + SO4 2-, otavite (CdCO3) may follow',
+      });
+    }
+    return null;
+  }
+  const excess = sigma - 1.0;
+  let rate = 5.0 * excess * rng.uniform(0.85, 1.15);
+  if (rate < 0.1) return null;
+  if (sigma > 2.5) {
+    crystal.habit = 'powdery_coating';
+    crystal.dominant_forms = ['bright yellow earthy dust on sphalerite'];
+    crystal.a_width_mm = crystal.c_length_mm * 5.0;
+  } else if (sigma > 1.5) {
+    crystal.habit = 'colloform_crust';
+    crystal.dominant_forms = ['encrusting colloform aggregate'];
+    crystal.a_width_mm = crystal.c_length_mm * 2.5;
+  } else {
+    crystal.habit = 'hexagonal_pyramidal';
+    crystal.dominant_forms = ['hemimorphic six-sided pyramid'];
+    crystal.a_width_mm = crystal.c_length_mm * 0.8;
+  }
+  let color_note = 'honey-yellow to citron CdS — adamantine luster';
+  if (conditions.fluid.Zn > 100) color_note = 'paler yellow greenockite (Zn-substituted; fluoresces yellow under LW UV)';
+  return new GrowthZone({
+    step, temperature: conditions.temperature,
+    thickness_um: rate, growth_rate: rate,
+    trace_Cd: conditions.fluid.Cd * 0.05,
+    trace_Zn: conditions.fluid.Zn * 0.005,
+    note: color_note,
+  });
+}
+
+// CdS cubic — low-T polymorph. Always powdery (no discrete crystals known).
+function grow_hawleyite(crystal, conditions, step) {
+  const sigma = conditions.supersaturation_hawleyite();
+  if (sigma < 1.0) {
+    if (crystal.total_growth_um > 2 && conditions.fluid.O2 > 1.0) {
+      crystal.dissolved = true;
+      const dissolved_um = Math.min(2.0, crystal.total_growth_um * 0.12);
+      return new GrowthZone({
+        step, temperature: conditions.temperature,
+        thickness_um: -dissolved_um, growth_rate: -dissolved_um,
+        note: 'oxidation — CdS -> Cd2+ + SO4 2-',
+      });
+    }
+    return null;
+  }
+  const excess = sigma - 1.0;
+  let rate = 4.5 * excess * rng.uniform(0.85, 1.15);
+  if (rate < 0.1) return null;
+  crystal.habit = 'powdery_coating';
+  crystal.dominant_forms = ['cadmium-yellow earthy dust (no discrete crystals known)'];
+  crystal.a_width_mm = crystal.c_length_mm * 6.0;
+  return new GrowthZone({
+    step, temperature: conditions.temperature,
+    thickness_um: rate, growth_rate: rate,
+    trace_Cd: conditions.fluid.Cd * 0.05,
+    note: 'cadmium-yellow hawleyite (cubic CdS, low-T metastable polymorph)',
+  });
+}

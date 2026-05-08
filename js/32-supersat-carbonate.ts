@@ -264,4 +264,43 @@ Object.assign(VugConditions.prototype, {
   if (ACTIVITY_CORRECTED_SUPERSAT) sigma *= activityCorrectionFactor(this.fluid, 'aurichalcite');
   return Math.max(sigma, 0);
 },
+
+  // v63 brief-19: SrCO3 — Sr carbonate. Aragonite-group orthorhombic;
+  // pseudohexagonal cyclic twinning is the diagnostic habit. Loses to
+  // celestine when SO4 dominates.
+  supersaturation_strontianite() {
+    if (this.fluid.Sr < 30 || this.fluid.CO3 < 50) return 0;
+    let sigma = (this.fluid.Sr / 80.0) * (this.fluid.CO3 / 200.0);
+    const T = this.temperature;
+    if (T < 5 || T > 250) return 0;
+    let T_factor = 1.0;
+    if (T >= 80 && T <= 150) T_factor = 1.2;
+    else if (T < 80) T_factor = Math.max(0.4, 0.5 + 0.01 * (T - 5));
+    else T_factor = Math.max(0.4, 1.2 - 0.008 * (T - 150));
+    sigma *= T_factor;
+    if (this.fluid.pH < 6.0) sigma *= Math.max(0.2, 1.0 - 0.35 * (6.0 - this.fluid.pH));
+    if (this.fluid.S > 50) sigma *= Math.max(0.4, 1.0 - 0.005 * (this.fluid.S - 50));
+    if (ACTIVITY_CORRECTED_SUPERSAT) sigma *= activityCorrectionFactor(this.fluid, 'strontianite');
+    return Math.max(sigma, 0);
+  },
+
+  // v63 brief-19: BaCO3 — Ba carbonate. Almost always cyclic-twinned into
+  // pseudohexagonal pyramids. Loses to barite when SO4 dominates; Cave-in-Rock
+  // (Illinois) is the canonical witherite + barite + fluorite + galena
+  // assemblage.
+  supersaturation_witherite() {
+    if (this.fluid.Ba < 30 || this.fluid.CO3 < 50) return 0;
+    let sigma = (this.fluid.Ba / 80.0) * (this.fluid.CO3 / 200.0);
+    const T = this.temperature;
+    if (T < 5 || T > 250) return 0;
+    let T_factor = 1.0;
+    if (T >= 80 && T <= 150) T_factor = 1.2;
+    else if (T < 80) T_factor = Math.max(0.4, 0.5 + 0.01 * (T - 5));
+    else T_factor = Math.max(0.4, 1.2 - 0.008 * (T - 150));
+    sigma *= T_factor;
+    if (this.fluid.pH < 6.0) sigma *= Math.max(0.2, 1.0 - 0.35 * (6.0 - this.fluid.pH));
+    if (this.fluid.S > 50) sigma *= Math.max(0.4, 1.0 - 0.005 * (this.fluid.S - 50));
+    if (ACTIVITY_CORRECTED_SUPERSAT) sigma *= activityCorrectionFactor(this.fluid, 'witherite');
+    return Math.max(sigma, 0);
+  },
 });

@@ -88,8 +88,44 @@ function _nuc_stolzite(sim) {
   // Olivenite nucleation — Cu + As + oxidizing.
 }
 
+function _nuc_scheelite(sim) {
+  const sigma = sim.conditions.supersaturation_scheelite();
+  if (sigma > 1.2 && !sim._atNucleationCap('scheelite') && rng.random() < 0.15) {
+    let pos = 'vug wall';
+    const wolf = sim.crystals.filter(c => c.mineral === 'wolframite' && c.active);
+    if (wolf.length && rng.random() < 0.30) pos = `on wolframite #${wolf[0].crystal_id} (W-paragenesis)`;
+    const c = sim.nucleate('scheelite', pos, sigma);
+    sim.log.push(`  ✦ NUCLEATION: ⚪ Scheelite #${c.crystal_id} on ${c.position} (Ca ${sim.conditions.fluid.Ca.toFixed(0)} W ${sim.conditions.fluid.W.toFixed(1)} ppm, T=${sim.conditions.temperature.toFixed(0)}°C, σ=${sigma.toFixed(2)}) — fluoresces bright blue-white SW`);
+  }
+}
+
+function _nuc_powellite(sim) {
+  const sigma = sim.conditions.supersaturation_powellite();
+  if (sigma > 1.2 && !sim._atNucleationCap('powellite') && rng.random() < 0.13) {
+    let pos = 'vug wall';
+    const dissolved_moly = sim.crystals.filter(c => c.mineral === 'molybdenite' && c.dissolved);
+    if (dissolved_moly.length && rng.random() < 0.50) pos = `on molybdenite #${dissolved_moly[0].crystal_id} (oxidized)`;
+    const c = sim.nucleate('powellite', pos, sigma);
+    sim.log.push(`  ✦ NUCLEATION: 🟡 Powellite #${c.crystal_id} on ${c.position} (Ca ${sim.conditions.fluid.Ca.toFixed(0)} Mo ${sim.conditions.fluid.Mo.toFixed(1)} ppm, σ=${sigma.toFixed(2)}) — fluoresces bright yellow SW (vs scheelite blue)`);
+  }
+}
+
+function _nuc_wolframite(sim) {
+  const sigma = sim.conditions.supersaturation_wolframite();
+  if (sigma > 1.3 && !sim._atNucleationCap('wolframite') && rng.random() < 0.13) {
+    let pos = 'vug wall';
+    const qz = sim.crystals.filter(c => c.mineral === 'quartz' && c.active);
+    if (qz.length && rng.random() < 0.45) pos = `on quartz #${qz[0].crystal_id} (Panasqueira-style W-Sn vein)`;
+    const c = sim.nucleate('wolframite', pos, sigma);
+    sim.log.push(`  ✦ NUCLEATION: ⚫ Wolframite #${c.crystal_id} on ${c.position} (W ${sim.conditions.fluid.W.toFixed(1)} Fe ${sim.conditions.fluid.Fe.toFixed(0)} Mn ${sim.conditions.fluid.Mn.toFixed(0)} ppm, T=${sim.conditions.temperature.toFixed(0)}°C, σ=${sigma.toFixed(2)}) — non-fluorescent (diagnostic vs scheelite)`);
+  }
+}
+
 function _nucleateClass_molybdate(sim) {
   _nuc_wulfenite(sim);
   _nuc_ferrimolybdite(sim);
   _nuc_stolzite(sim);
+  _nuc_scheelite(sim);
+  _nuc_powellite(sim);
+  _nuc_wolframite(sim);
 }

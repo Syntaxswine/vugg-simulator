@@ -30,7 +30,28 @@ function _nuc_halite(sim) {
   // Mirabilite nucleation — cold-side Na-sulfate evaporite. v29.
 }
 
+function _nuc_atacamite(sim) {
+  const sigma = sim.conditions.supersaturation_atacamite();
+  if (sigma > 1.2 && !sim._atNucleationCap('atacamite') && rng.random() < 0.15) {
+    let pos = 'vug wall';
+    const dissolved_cu = sim.crystals.filter(c => (c.mineral === 'chalcopyrite' || c.mineral === 'bornite' || c.mineral === 'chalcocite') && c.dissolved);
+    if (dissolved_cu.length && rng.random() < 0.5) pos = `on ${dissolved_cu[0].mineral} #${dissolved_cu[0].crystal_id} (oxidized)`;
+    const c = sim.nucleate('atacamite', pos, sigma);
+    sim.log.push(`  ✦ NUCLEATION: 🟢 Atacamite #${c.crystal_id} on ${c.position} (Cu ${sim.conditions.fluid.Cu.toFixed(0)} Cl ${sim.conditions.fluid.Cl.toFixed(0)} ppm, σ=${sigma.toFixed(2)}) — emerald supergene chloride, the Atacama signature`);
+  }
+}
+
+function _nuc_sylvite(sim) {
+  const sigma = sim.conditions.supersaturation_sylvite();
+  if (sigma > 1.0 && !sim._atNucleationCap('sylvite') && rng.random() < 0.12) {
+    const c = sim.nucleate('sylvite', 'vug wall', sigma);
+    sim.log.push(`  ✦ NUCLEATION: 🧂 Sylvite #${c.crystal_id} on ${c.position} (K=${sim.conditions.fluid.K.toFixed(0)} Cl=${sim.conditions.fluid.Cl.toFixed(0)} ppm, concentration=${sim.conditions.fluid.concentration.toFixed(1)}) — late-stage potash from residual brine`);
+  }
+}
+
 function _nucleateClass_halide(sim) {
   _nuc_fluorite(sim);
   _nuc_halite(sim);
+  _nuc_atacamite(sim);
+  _nuc_sylvite(sim);
 }

@@ -1021,5 +1021,43 @@
 //        drift expected is from the FP-rounding side-effect of
 //        diffusion / mass-balance touching the bumped values, plus
 //        the 2 new scenarios introducing 2 new entries to the baseline.
-const SIM_VERSION = 63;
+//
+//   v64 — Brief-19 engine pass (May 2026, this commit): supersat +
+//        grow + nucleation gates wired for all 19 new minerals + the
+//        MINERAL_ENGINES registry updated. Engines added across
+//        7 class files:
+//          halide:    atacamite, sylvite (in 33/53/83)
+//          phosphate: apatite, turquoise (in 38/58/88)
+//          carbonate: strontianite, witherite (in 32/52/82)
+//          molybdate: scheelite, powellite, wolframite (in 35/55/85)
+//                     (scheelite + wolframite spec-class moved from
+//                      tungstate/oxide → molybdate to match existing
+//                      raspite/stolzite/wulfenite class grouping;
+//                      class_color aligned to canonical #eb13eb)
+//          oxide:     rutile, chromite (in 37/57/87)
+//          silicate:  chrysoprase (in 39/59/89)
+//          sulfide:   calaverite, sylvanite, hessite, naumannite,
+//                     clausthalite, greenockite, hawleyite (in 41/61/91)
+//
+//        Drift: 7 scenarios shift from v63 because their broth chemistry
+//        now activates the new engines:
+//          - bisbee → atacamite fires (Cu=400 + Cl=400, supergene)
+//          - mvt → greenockite fires (Cd=2 + S from event_fluid_mixing)
+//          - porphyry → rutile fires (Ti=25 broth bump)
+//          - sabkha_dolomitization → sylvite fires (K=380 brine)
+//          - schneeberg → clausthalite fires (Pb=5 below threshold but
+//                       events bump Pb; Se=2 above threshold)
+//          - searles_lake → sylvite fires
+//          - supergene_oxidation → multiple fire (apatite + powellite +
+//                                  greenockite/hawleyite + atacamite)
+//        New scenarios (epithermal_telluride / ultramafic_supergene)
+//        also activate calaverite + sylvanite + hessite (telluride trio)
+//        and chrysoprase respectively.
+//
+//        No engine tuning yet — these are MVP engines: gate ingredients
+//        + sigma threshold + simple T-window + dissolution branch.
+//        Boss can recalibrate against scenarios.json5 broths once the
+//        first runs surface counts that drift outside the expected
+//        paragenesis.
+const SIM_VERSION = 64;
 

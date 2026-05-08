@@ -286,4 +286,48 @@ Object.assign(VugConditions.prototype, {
   if (ACTIVITY_CORRECTED_SUPERSAT) sigma *= activityCorrectionFactor(this.fluid, 'tyuyamunite');
   return Math.max(sigma, 0);
 },
+
+  // v63 brief-19: apatite supergroup parent (Ca-end-member of pyromorphite/
+  // mimetite/vanadinite). Wide T window (50-900°C); pH dissolution below 5.
+  supersaturation_apatite() {
+    if (this.fluid.Ca < 50 || this.fluid.P < 5) return 0;
+    let sigma = (this.fluid.Ca / 200.0) * (this.fluid.P / 30.0);
+    const T = this.temperature;
+    if (T < 50 || T > 1000) return 0;
+    // Optimum 200-500°C — wide thermally
+    let T_factor = 1.0;
+    if (T < 200) T_factor = Math.max(0.4, 0.5 + (T - 50) / 300);
+    else if (T <= 500) T_factor = 1.2;
+    else T_factor = Math.max(0.5, 1.2 - 0.0015 * (T - 500));
+    sigma *= T_factor;
+    if (this.fluid.pH < 5.0) sigma *= Math.max(0.2, 1.0 - 0.4 * (5.0 - this.fluid.pH));
+    // Pb competition — pyromorphite/mimetite drain P at lower T if Pb is high
+    if (this.fluid.Pb > 30 && T < 100) sigma *= Math.max(0.5, 1.0 - 0.01 * (this.fluid.Pb - 30));
+    if (ACTIVITY_CORRECTED_SUPERSAT) sigma *= activityCorrectionFactor(this.fluid, 'apatite');
+    return Math.max(sigma, 0);
+  },
+
+  // v63 brief-19: arid Cu-supergene phosphate. Loses to chrysocolla (Si),
+  // malachite (CO3), atacamite (Cl) when those anions dominate.
+  supersaturation_turquoise() {
+    if (this.fluid.Cu < 5 || this.fluid.Al < 3 || this.fluid.P < 1) return 0;
+    if (this.fluid.O2 < 0.5) return 0;
+    let sigma = (this.fluid.Cu / 50.0) * (this.fluid.Al / 25.0) * (this.fluid.P / 5.0);
+    const T = this.temperature;
+    if (T > 80) return 0;
+    let T_factor = 1.0;
+    if (T >= 15 && T <= 50) T_factor = 1.2;
+    else if (T < 15) T_factor = 0.4 + 0.05 * T;
+    else T_factor = Math.max(0.4, 1.2 - 0.025 * (T - 50));
+    sigma *= T_factor;
+    // pH window 6-8.5
+    if (this.fluid.pH < 6.0) sigma *= Math.max(0.3, 1.0 - 0.3 * (6.0 - this.fluid.pH));
+    if (this.fluid.pH > 8.5) sigma *= Math.max(0.3, 1.0 - 0.3 * (this.fluid.pH - 8.5));
+    // Anion competition penalties
+    if (this.fluid.SiO2 > 200) sigma *= Math.max(0.4, 1.0 - 0.002 * (this.fluid.SiO2 - 200));
+    if (this.fluid.CO3 > 100) sigma *= Math.max(0.4, 1.0 - 0.005 * (this.fluid.CO3 - 100));
+    if (this.fluid.Cl > 100) sigma *= Math.max(0.5, 1.0 - 0.003 * (this.fluid.Cl - 100));
+    if (ACTIVITY_CORRECTED_SUPERSAT) sigma *= activityCorrectionFactor(this.fluid, 'turquoise');
+    return Math.max(sigma, 0);
+  },
 });

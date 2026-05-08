@@ -250,4 +250,29 @@ Object.assign(VugConditions.prototype, {
   if (ACTIVITY_CORRECTED_SUPERSAT) sigma *= activityCorrectionFactor(this.fluid, 'topaz');
   return Math.max(sigma, 0);
 },
+
+  // v63 brief-19: Ni-bearing chalcedony — microfibrous SiO2 + nano-inclusion
+  // Ni-clay (pimelite/willemseite/kerolite). First chalcedony habit in the
+  // sim; substrate for future agate/carnelian/onyx variants. Strict
+  // supergene T + alkaline ultramafic groundwater chemistry.
+  supersaturation_chrysoprase() {
+    if (this.fluid.SiO2 < 100 || this.fluid.Ni < 50 || this.fluid.Mg < 50) return 0;
+    if (this.fluid.O2 < 0.5) return 0;
+    let sigma = (this.fluid.SiO2 / 300.0) * (this.fluid.Ni / 200.0) * (this.fluid.Mg / 200.0);
+    const T = this.temperature;
+    if (T > 80) return 0;
+    let T_factor = 1.0;
+    if (T >= 15 && T <= 50) T_factor = 1.2;
+    else if (T < 15) T_factor = 0.4 + 0.05 * T;
+    else T_factor = Math.max(0.4, 1.2 - 0.025 * (T - 50));
+    sigma *= T_factor;
+    // pH window 7.5-9.5 (alkaline serpentinite groundwater)
+    if (this.fluid.pH < 7.5) sigma *= Math.max(0.2, 1.0 - 0.4 * (7.5 - this.fluid.pH));
+    if (this.fluid.pH > 9.5) sigma *= Math.max(0.2, 1.0 - 0.4 * (this.fluid.pH - 9.5));
+    // Quartz competition above 80°C is structural; chrysoprase loses
+    // when Si is high and chalcedony fabric can't lock the Ni
+    if (this.fluid.Cr > 30) sigma *= 0.5; // mtorolite (Cr-chalcedony) takes over
+    if (ACTIVITY_CORRECTED_SUPERSAT) sigma *= activityCorrectionFactor(this.fluid, 'chrysoprase');
+    return Math.max(sigma, 0);
+  },
 });

@@ -656,3 +656,79 @@ function grow_cerussite(crystal, conditions, step) {
   f.CO3 = Math.max(f.CO3 - rate * 0.015, 0);
   return new GrowthZone({ step, temperature: conditions.temperature, thickness_um: rate, growth_rate: rate, trace_Pb, note: color_note });
 }
+
+// v63 brief-19: strontianite SrCO3 — Sr carbonate, aragonite-group; almost
+// always cyclic-twinned into pseudohex.
+function grow_strontianite(crystal, conditions, step) {
+  const sigma = conditions.supersaturation_strontianite();
+  if (sigma < 1.0) {
+    if (crystal.total_growth_um > 5 && conditions.fluid.pH < 5.0) {
+      crystal.dissolved = true;
+      const dissolved_um = Math.min(5.0, crystal.total_growth_um * 0.13);
+      return new GrowthZone({
+        step, temperature: conditions.temperature,
+        thickness_um: -dissolved_um, growth_rate: -dissolved_um,
+        note: `acid dissolution (pH ${conditions.fluid.pH.toFixed(1)}) — SrCO3 + 2H+ -> Sr2+ + H2O + CO2`,
+      });
+    }
+    return null;
+  }
+  const excess = sigma - 1.0;
+  let rate = 4.5 * excess * rng.uniform(0.85, 1.15);
+  if (rate < 0.1) return null;
+  if (sigma > 1.8 && conditions.temperature < 100) {
+    crystal.habit = 'acicular_fibrous';
+    crystal.dominant_forms = ['radiating fibrous spray (Münsterland aesthetic)'];
+    crystal.a_width_mm = crystal.c_length_mm * 0.15;
+  } else {
+    crystal.habit = 'twinned_pseudohexagonal';
+    crystal.dominant_forms = ['pseudohex cyclic-twinned prism'];
+    crystal.a_width_mm = crystal.c_length_mm * 0.5;
+  }
+  let color_note = 'white Sr-carbonate prism';
+  if (conditions.fluid.Pb > 10) color_note = 'pale yellow strontianite (Pb trace)';
+  return new GrowthZone({
+    step, temperature: conditions.temperature,
+    thickness_um: rate, growth_rate: rate,
+    trace_Sr: conditions.fluid.Sr * 0.02,
+    note: color_note,
+  });
+}
+
+// v63 brief-19: witherite BaCO3 — Ba carbonate, almost always cyclic-twinned
+// pseudohex pyramid (Settlingstones aesthetic).
+function grow_witherite(crystal, conditions, step) {
+  const sigma = conditions.supersaturation_witherite();
+  if (sigma < 1.0) {
+    if (crystal.total_growth_um > 5 && conditions.fluid.pH < 5.0) {
+      crystal.dissolved = true;
+      const dissolved_um = Math.min(5.0, crystal.total_growth_um * 0.13);
+      return new GrowthZone({
+        step, temperature: conditions.temperature,
+        thickness_um: -dissolved_um, growth_rate: -dissolved_um,
+        note: `acid dissolution (pH ${conditions.fluid.pH.toFixed(1)}) — BaCO3 + 2H+ -> Ba2+ + H2O + CO2`,
+      });
+    }
+    return null;
+  }
+  const excess = sigma - 1.0;
+  let rate = 4.5 * excess * rng.uniform(0.85, 1.15);
+  if (rate < 0.1) return null;
+  if (sigma > 2.5) {
+    crystal.habit = 'botryoidal_white';
+    crystal.dominant_forms = ['white botryoidal balls (Settlingstones)'];
+    crystal.a_width_mm = crystal.c_length_mm * 1.5;
+  } else {
+    crystal.habit = 'pseudohexagonal_twinned';
+    crystal.dominant_forms = ['pseudohex pyramid via cyclic twin'];
+    crystal.a_width_mm = crystal.c_length_mm * 0.6;
+  }
+  let color_note = 'white BaCO3 — fluoresces bluish-white SW';
+  if (conditions.fluid.Fe > 5) color_note = 'yellow-brown witherite (Fe staining)';
+  return new GrowthZone({
+    step, temperature: conditions.temperature,
+    thickness_um: rate, growth_rate: rate,
+    trace_Ba: conditions.fluid.Ba * 0.02,
+    note: color_note,
+  });
+}

@@ -94,4 +94,66 @@ Object.assign(VugConditions.prototype, {
   if (ACTIVITY_CORRECTED_SUPERSAT) sigma *= activityCorrectionFactor(this.fluid, 'stolzite');
   return Math.max(sigma, 0);
 },
+
+  // v63 brief-19: CaWO4 — Ca-tungstate, scheelite-group lattice (same as
+  // raspite/stolzite/wulfenite). Bright blue-white SW UV fluorescence is
+  // the diagnostic. Loses to wolframite when Ca is depleted.
+  supersaturation_scheelite() {
+    if (this.fluid.Ca < 50 || this.fluid.W < 1) return 0;
+    if (!molybdateRedoxAvailable(this.fluid, 0.0)) return 0;
+    let sigma = (this.fluid.Ca / 200.0) * (this.fluid.W / 8.0);
+    const T = this.temperature;
+    if (T < 100 || T > 700) return 0;
+    let T_factor = 1.0;
+    if (T >= 300 && T <= 500) T_factor = 1.2;
+    else if (T < 300) T_factor = Math.max(0.5, 0.6 + 0.003 * (T - 100));
+    else T_factor = Math.max(0.5, 1.2 - 0.0035 * (T - 500));
+    sigma *= T_factor;
+    if (this.fluid.pH < 4.0) sigma *= Math.max(0.4, 1.0 - 0.2 * (4.0 - this.fluid.pH));
+    // Mo competition shifts toward powellite end-member but stays in same
+    // mineral; only large Mo pulls fluorescence toward yellow.
+    if (ACTIVITY_CORRECTED_SUPERSAT) sigma *= activityCorrectionFactor(this.fluid, 'scheelite');
+    return Math.max(sigma, 0);
+  },
+
+  // v63 brief-19: CaMoO4 — Mo-end-member of powellite-scheelite SS. Forms
+  // in supergene oxidation of molybdenite. Bright yellow SW UV (vs
+  // scheelite's blue) — same lattice, different activator.
+  supersaturation_powellite() {
+    if (this.fluid.Ca < 50 || this.fluid.Mo < 1) return 0;
+    if (this.fluid.O2 < 0.5) return 0;
+    let sigma = (this.fluid.Ca / 200.0) * (this.fluid.Mo / 8.0);
+    const T = this.temperature;
+    if (T < 5 || T > 250) return 0;
+    let T_factor = 1.0;
+    if (T >= 20 && T <= 100) T_factor = 1.2;
+    else if (T < 20) T_factor = Math.max(0.4, 0.5 + 0.04 * (T - 5));
+    else T_factor = Math.max(0.4, 1.2 - 0.005 * (T - 100));
+    sigma *= T_factor;
+    if (this.fluid.pH < 5.0) sigma *= Math.max(0.4, 1.0 - 0.25 * (5.0 - this.fluid.pH));
+    if (ACTIVITY_CORRECTED_SUPERSAT) sigma *= activityCorrectionFactor(this.fluid, 'powellite');
+    return Math.max(sigma, 0);
+  },
+
+  // v63 brief-19: (Fe,Mn)WO4 — Fe-Mn tungstate, monoclinic (NOT scheelite-
+  // group). Wins over scheelite when Ca is depleted and Fe+Mn dominate.
+  // Refractory; non-fluorescent (diagnostic vs scheelite).
+  supersaturation_wolframite() {
+    if (this.fluid.W < 1 || this.fluid.Fe < 5 || this.fluid.Mn < 1) return 0;
+    if (!molybdateRedoxAvailable(this.fluid, 0.5)) return 0;
+    let sigma = (this.fluid.W / 8.0) * (this.fluid.Fe / 30.0 + this.fluid.Mn / 15.0) * 0.5;
+    const T = this.temperature;
+    if (T < 200 || T > 600) return 0;
+    let T_factor = 1.0;
+    if (T >= 300 && T <= 400) T_factor = 1.2;
+    else if (T < 300) T_factor = Math.max(0.4, 0.5 + 0.007 * (T - 200));
+    else T_factor = Math.max(0.5, 1.2 - 0.003 * (T - 400));
+    sigma *= T_factor;
+    if (this.fluid.pH < 4.0) sigma *= Math.max(0.5, 1.0 - 0.2 * (4.0 - this.fluid.pH));
+    else if (this.fluid.pH > 6.0) sigma *= Math.max(0.5, 1.0 - 0.2 * (this.fluid.pH - 6.0));
+    // Ca competition — scheelite wins
+    if (this.fluid.Ca > 80) sigma *= Math.max(0.5, 1.0 - 0.005 * (this.fluid.Ca - 80));
+    if (ACTIVITY_CORRECTED_SUPERSAT) sigma *= activityCorrectionFactor(this.fluid, 'wolframite');
+    return Math.max(sigma, 0);
+  },
 });
