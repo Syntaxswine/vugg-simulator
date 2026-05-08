@@ -308,4 +308,13 @@ Object.assign(VugSimulator.prototype, {
   }
   return parts.filter(p => p).join(' ');
 },
+
+  // v64 brief-19 narrator.
+  _narrate_chrysoprase(c) {
+    const parts = [`Chrysoprase #${c.crystal_id} grew to ${c.c_length_mm.toFixed(1)} mm.`];
+    parts.push('Ni-bearing chalcedony — microfibrous SiO₂ with nano-inclusions of Ni-phyllosilicate (pimelite, willemseite, kerolite) trapped within the fabric. The apple-green color is a composite — no other gemstone is colored by nanoparticles of one mineral inside fibers of another. Heat fades it; sunlight slowly fades it. Mined since the 14th century at Szklary (Poland); modern world reference is Marlborough (Queensland).');
+    if (c.habit === 'banded_chalcedony') parts.push('Faint internal banding — flow-deposition cycles imprinted in the chalcedony fabric.');
+    if (c.dissolved) parts.push('Thermal fade — Ni-clay nano-inclusions destabilize above ~150°C, color shifts to white / yellow-brown irreversibly.');
+    return parts.join(' ');
+  },
 });

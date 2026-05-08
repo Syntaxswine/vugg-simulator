@@ -66,4 +66,41 @@ Object.assign(VugSimulator.prototype, {
   if (c.dissolved) parts.push(narrative_variant('ferrimolybdite', 'dehydration'));
   return parts.filter(p => p).join(' ');
 },
+
+  // v64 brief-19 narrators.
+  _narrate_scheelite(c) {
+    const parts = [`Scheelite #${c.crystal_id} grew to ${c.c_length_mm.toFixed(1)} mm.`];
+    parts.push('CaWO₄ — calcium tungstate, scheelite-group lattice. The brilliant blue-white SW UV fluorescence is diagnostic and has been used since the 19th century to prospect for tungsten by lamp at night. Forms in granitic-intrusion-related W-Sn skarns; loses to wolframite when Ca is depleted and Fe+Mn dominate.');
+    if (c.habit === 'tabular') parts.push('Tabular flat plates — moderate σ habit.');
+    else if (c.habit === 'octahedral_pseudo') parts.push('Pseudo-octahedron — looks cubic but is tetragonal. Low-σ habit.');
+    if (c.zones.length) {
+      const last = c.zones[c.zones.length - 1].note || '';
+      if (last.includes('Mo-bearing')) parts.push('Mo-bearing — fluorescence shifts toward yellow as the lattice trades W for Mo (gradational toward powellite).');
+    }
+    if (c.dissolved) parts.push('Slow acid dissolution — scheelite is mostly inert outside strong acid.');
+    return parts.join(' ');
+  },
+
+  _narrate_powellite(c) {
+    const parts = [`Powellite #${c.crystal_id} grew to ${c.c_length_mm.toFixed(1)} mm.`];
+    parts.push('CaMoO₄ — Mo end-member of the powellite-scheelite solid-solution series. Same lattice, different chromophore: bright yellow under SW UV vs scheelite\'s blue. Forms in supergene oxidation of molybdenite — MoS₂ + O₂ → MoO₄²⁻, Ca steps in, and powellite plates as thin yellow tablets.');
+    if (c.habit === 'pulverulent_crust') parts.push('Yellow crusty supergene coating — the typical Bingham Canyon habit.');
+    else if (c.habit === 'tabular_thin_001') parts.push('Paper-thin {001} tablet with adamantine luster.');
+    if (c.position && c.position.includes('molybdenite')) parts.push('Grew on weathered molybdenite — direct supergene successor.');
+    if (c.dissolved) parts.push('Acid dissolution — powellite is more soluble than scheelite.');
+    return parts.join(' ');
+  },
+
+  _narrate_wolframite(c) {
+    const parts = [`Wolframite #${c.crystal_id} grew to ${c.c_length_mm.toFixed(1)} mm.`];
+    parts.push('(Fe,Mn)WO₄ — Fe-Mn tungstate, monoclinic blade (NOT scheelite-group). Specific gravity 7.0–7.5 — three times denser than quartz, the field diagnostic. Refractory; chemically resistant. Non-fluorescent — diagnostic distinction from scheelite under SW UV.');
+    if (c.zones.length) {
+      const last = c.zones[c.zones.length - 1].note || '';
+      if (last.includes('hübnerite')) parts.push('Mn-rich end of the series (hübnerite) — reddish-brown, more transparent.');
+      else if (last.includes('ferberite')) parts.push('Fe-rich end (ferberite) — black, opaque.');
+    }
+    if (c.position && c.position.includes('quartz')) parts.push('Grew on quartz — Panasqueira-style W-Sn vein assemblage.');
+    if (c.dissolved) parts.push('Slow supergene oxidation — altering toward tungstite WO₃·H₂O.');
+    return parts.join(' ');
+  },
 });

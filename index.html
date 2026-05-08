@@ -23236,6 +23236,27 @@ Object.assign(VugSimulator.prototype, {
         }
         return parts.filter(p => p).join(' ');
     },
+    // v64 brief-19 narrators.
+    _narrate_strontianite(c) {
+        const parts = [`Strontianite #${c.crystal_id} grew to ${c.c_length_mm.toFixed(1)} mm.`];
+        parts.push('SrCO₃ — orthorhombic, aragonite-group; almost always cyclic-twinned into pseudohexagonal forms (every crystal a palindrome). Type locality Strontian, Scotland (1790) — the namesake of the element strontium itself. Loses to celestine when sulfate dominates, which is most of the time globally.');
+        if (c.habit === 'acicular_fibrous')
+            parts.push('Radiating fibrous spray — the Münsterland aesthetic from low-T high-σ growth.');
+        if (c.dissolved)
+            parts.push('Acid dissolution — SrCO₃ + 2H⁺ → Sr²⁺ + H₂O + CO₂.');
+        return parts.join(' ');
+    },
+    _narrate_witherite(c) {
+        const parts = [`Witherite #${c.crystal_id} grew to ${c.c_length_mm.toFixed(1)} mm.`];
+        parts.push('BaCO₃ — orthorhombic Ba carbonate; almost always cyclic-twinned into pseudohexagonal pyramids (the Settlingstones aesthetic). Loses to barite when sulfate dominates. Strongly UV-fluorescent bluish-white and persistently phosphorescent — keeps glowing after the lamp goes dark, as if the lattice does not quite trust the dark.');
+        if (c.habit === 'botryoidal_white')
+            parts.push('Botryoidal white balls — the Settlingstones type-specimen aesthetic.');
+        if (c.position && c.position.includes('fluorite'))
+            parts.push('Grew on fluorite — Cave-in-Rock-style witherite + fluorite + barite + galena assemblage.');
+        if (c.dissolved)
+            parts.push('Acid dissolution — BaCO₃ + 2H⁺ → Ba²⁺ + H₂O + CO₂.');
+        return parts.join(' ');
+    },
 });
 
 // ── 92c-narrators-halide.js ──
@@ -23275,6 +23296,27 @@ Object.assign(VugSimulator.prototype, {
         if (fl !== 'non-fluorescent')
             parts.push(narrative_variant('fluorite', 'fluorescence', { fl }) || `Would show ${fl} under UV excitation.`);
         return parts.filter(p => p).join(' ');
+    },
+    // v64 brief-19 narrator.
+    _narrate_atacamite(c) {
+        const parts = [`Atacamite #${c.crystal_id} grew to ${c.c_length_mm.toFixed(1)} mm.`];
+        parts.push('Cu₂Cl(OH)₃ — emerald-green Cu²⁺ chromophore on a chloride-hydroxyl backbone. Fired in the arid supergene window where chloride beat carbonate (malachite) and sulfate (brochantite) to the copper. Atacama Desert is the type aesthetic; bronze artifacts at the bottom of the sea make this same crystal because seawater is salty enough.');
+        if (c.habit === 'fibrous_acicular')
+            parts.push('Habit shifted to fibrous-acicular under high σ — radiating green needles.');
+        else if (c.habit === 'botryoidal_crust')
+            parts.push('Botryoidal mammillary crust — high σ + space-constrained.');
+        if (c.dissolved)
+            parts.push('Dissolved by a CO₂ pulse or pH drop — atacamite is the chloride end of a Cu-supergene fork that can revert when the anion balance shifts.');
+        return parts.join(' ');
+    },
+    _narrate_sylvite(c) {
+        const parts = [`Sylvite #${c.crystal_id} grew to ${c.c_length_mm.toFixed(1)} mm.`];
+        parts.push('KCl — the late-stage potash that crystallizes from residual brine after halite has consumed most of the sodium and chloride. Even more soluble than its sibling rock-salt; deliquescent in humid air.');
+        if (c.habit === 'hopper_cube')
+            parts.push('Hopper-cube habit — rapid evaporation produced stepped, terraced faces.');
+        if (c.dissolved)
+            parts.push('Meteoric dilution dissolved it — sylvite is the first phase to go when fresh water reaches the evaporite sequence.');
+        return parts.join(' ');
     },
 });
 
@@ -23405,6 +23447,52 @@ Object.assign(VugSimulator.prototype, {
         if (c.dissolved)
             parts.push(narrative_variant('ferrimolybdite', 'dehydration'));
         return parts.filter(p => p).join(' ');
+    },
+    // v64 brief-19 narrators.
+    _narrate_scheelite(c) {
+        const parts = [`Scheelite #${c.crystal_id} grew to ${c.c_length_mm.toFixed(1)} mm.`];
+        parts.push('CaWO₄ — calcium tungstate, scheelite-group lattice. The brilliant blue-white SW UV fluorescence is diagnostic and has been used since the 19th century to prospect for tungsten by lamp at night. Forms in granitic-intrusion-related W-Sn skarns; loses to wolframite when Ca is depleted and Fe+Mn dominate.');
+        if (c.habit === 'tabular')
+            parts.push('Tabular flat plates — moderate σ habit.');
+        else if (c.habit === 'octahedral_pseudo')
+            parts.push('Pseudo-octahedron — looks cubic but is tetragonal. Low-σ habit.');
+        if (c.zones.length) {
+            const last = c.zones[c.zones.length - 1].note || '';
+            if (last.includes('Mo-bearing'))
+                parts.push('Mo-bearing — fluorescence shifts toward yellow as the lattice trades W for Mo (gradational toward powellite).');
+        }
+        if (c.dissolved)
+            parts.push('Slow acid dissolution — scheelite is mostly inert outside strong acid.');
+        return parts.join(' ');
+    },
+    _narrate_powellite(c) {
+        const parts = [`Powellite #${c.crystal_id} grew to ${c.c_length_mm.toFixed(1)} mm.`];
+        parts.push('CaMoO₄ — Mo end-member of the powellite-scheelite solid-solution series. Same lattice, different chromophore: bright yellow under SW UV vs scheelite\'s blue. Forms in supergene oxidation of molybdenite — MoS₂ + O₂ → MoO₄²⁻, Ca steps in, and powellite plates as thin yellow tablets.');
+        if (c.habit === 'pulverulent_crust')
+            parts.push('Yellow crusty supergene coating — the typical Bingham Canyon habit.');
+        else if (c.habit === 'tabular_thin_001')
+            parts.push('Paper-thin {001} tablet with adamantine luster.');
+        if (c.position && c.position.includes('molybdenite'))
+            parts.push('Grew on weathered molybdenite — direct supergene successor.');
+        if (c.dissolved)
+            parts.push('Acid dissolution — powellite is more soluble than scheelite.');
+        return parts.join(' ');
+    },
+    _narrate_wolframite(c) {
+        const parts = [`Wolframite #${c.crystal_id} grew to ${c.c_length_mm.toFixed(1)} mm.`];
+        parts.push('(Fe,Mn)WO₄ — Fe-Mn tungstate, monoclinic blade (NOT scheelite-group). Specific gravity 7.0–7.5 — three times denser than quartz, the field diagnostic. Refractory; chemically resistant. Non-fluorescent — diagnostic distinction from scheelite under SW UV.');
+        if (c.zones.length) {
+            const last = c.zones[c.zones.length - 1].note || '';
+            if (last.includes('hübnerite'))
+                parts.push('Mn-rich end of the series (hübnerite) — reddish-brown, more transparent.');
+            else if (last.includes('ferberite'))
+                parts.push('Fe-rich end (ferberite) — black, opaque.');
+        }
+        if (c.position && c.position.includes('quartz'))
+            parts.push('Grew on quartz — Panasqueira-style W-Sn vein assemblage.');
+        if (c.dissolved)
+            parts.push('Slow supergene oxidation — altering toward tungstite WO₃·H₂O.');
+        return parts.join(' ');
     },
 });
 
@@ -23712,6 +23800,25 @@ Object.assign(VugSimulator.prototype, {
             parts.push(narrative_variant('uraninite', 'oxidative_dissolution') || 'Partial dissolution as O₂ invaded the system.');
         return parts.filter(p => p).join(' ');
     },
+    // v64 brief-19 narrators.
+    _narrate_rutile(c) {
+        const parts = [`Rutile #${c.crystal_id} grew to ${c.c_length_mm.toFixed(1)} mm.`];
+        parts.push('TiO₂ — tetragonal Ti oxide, the canonical "needle" mineral. Most of the world has seen rutile only as needles inside quartz (Venus hair, Cupid\'s darts). As a free-standing crystal, rare and stranger: blood-red prisms with adamantine luster, geniculate elbow twins, reticulated sixling stars. Refractory and chemically inert — survives weathering unchanged.');
+        if (c.position && c.position.includes('quartz'))
+            parts.push('Included in quartz — the rutilated-quartz pattern.');
+        if (c.habit === 'sixling_star')
+            parts.push('Cyclic sixling — the rare reticulated rutile star, the "Cabo cabo" Brazilian aesthetic.');
+        else if (c.habit === 'stout_prismatic')
+            parts.push('Coarse alpine-cleft prism with dipyramid termination — high-T habit.');
+        return parts.join(' ');
+    },
+    _narrate_chromite(c) {
+        const parts = [`Chromite #${c.crystal_id} grew to ${c.c_length_mm.toFixed(1)} mm.`];
+        parts.push('FeCr₂O₄ — magmatic Fe-Cr spinel, one of the first phases to crystallize from cooling mafic / ultramafic magma at 1200–1400°C. Atypical vug mineral — forms as black metallic octahedra in cumulus settings, then survives weathering unchanged due to extreme spinel-structure stability.');
+        if (c.habit === 'massive_granular')
+            parts.push('Granular cumulate fabric — the chromitite-seam aesthetic of layered mafic intrusions.');
+        return parts.join(' ');
+    },
 });
 
 // ── 92h-narrators-phosphate.js ──
@@ -23918,6 +24025,29 @@ Object.assign(VugSimulator.prototype, {
             parts.push(narrative_variant('tyuyamunite', 'acid_dissolution') || 'Acid attack — pH below 5 destabilizes the uranyl-vanadate framework.');
         }
         return parts.filter(p => p).join(' ');
+    },
+    // v64 brief-19 narrators.
+    _narrate_apatite(c) {
+        const parts = [`Apatite #${c.crystal_id} grew to ${c.c_length_mm.toFixed(1)} mm.`];
+        parts.push('Ca₅(PO₄)₃(F,Cl,OH) — the structural archetype of the apatite supergroup. The Pb-end-members already in the vug (pyromorphite, mimetite, vanadinite) are derivatives of this same hexagonal channel structure.');
+        if (c.habit === 'prismatic_hexagonal')
+            parts.push('Long c-axis hexagonal prism — the Cerro de Mercado / Panasqueira aesthetic.');
+        else if (c.habit === 'botryoidal_collophane')
+            parts.push('Cryptocrystalline botryoidal mass — low-T sedimentary phosphorite habit (collophane).');
+        if (c.dissolved)
+            parts.push('Acid attack dissolved it — apatite is the basis of phosphoric acid production from phosphate rock, and of tooth decay.');
+        return parts.join(' ');
+    },
+    _narrate_turquoise(c) {
+        const parts = [`Turquoise #${c.crystal_id} grew to ${c.c_length_mm.toFixed(1)} mm.`];
+        parts.push('CuAl₆(PO₄)₄(OH)₈·4H₂O — the sky-blue Cu-supergene phosphate. Mined since 5000 BCE at Maghara (Sinai); Persian Nishapur, American Sleeping Beauty, Bisbee Blue all crystallize from the same arid Cu-porphyry chemistry where chloride / carbonate / sulfate could not get to the copper first.');
+        if (c.habit === 'veinlet_fill')
+            parts.push('Veinlet-fill habit — thin blue stringer along host-rock fracture.');
+        else if (c.habit === 'spider_web')
+            parts.push('Spider-web matrix — host-rock fragments form filigree network through blue (Hubei / Lone Mountain aesthetic).');
+        if (c.dissolved)
+            parts.push('Dehydration above 200°C greened the crystal irreversibly — turquoise is a hydrated phase that loses zeolitic water on heating.');
+        return parts.join(' ');
     },
 });
 
@@ -24260,6 +24390,16 @@ Object.assign(VugSimulator.prototype, {
             parts.push(narrative_variant('apophyllite', 'dissolved') || 'Acid attack dissolved the crystal — apophyllite is an alkaline-stable phase.');
         }
         return parts.filter(p => p).join(' ');
+    },
+    // v64 brief-19 narrator.
+    _narrate_chrysoprase(c) {
+        const parts = [`Chrysoprase #${c.crystal_id} grew to ${c.c_length_mm.toFixed(1)} mm.`];
+        parts.push('Ni-bearing chalcedony — microfibrous SiO₂ with nano-inclusions of Ni-phyllosilicate (pimelite, willemseite, kerolite) trapped within the fabric. The apple-green color is a composite — no other gemstone is colored by nanoparticles of one mineral inside fibers of another. Heat fades it; sunlight slowly fades it. Mined since the 14th century at Szklary (Poland); modern world reference is Marlborough (Queensland).');
+        if (c.habit === 'banded_chalcedony')
+            parts.push('Faint internal banding — flow-deposition cycles imprinted in the chalcedony fabric.');
+        if (c.dissolved)
+            parts.push('Thermal fade — Ni-clay nano-inclusions destabilize above ~150°C, color shifts to white / yellow-brown irreversibly.');
+        return parts.join(' ');
     },
 });
 
@@ -24870,6 +25010,74 @@ Object.assign(VugSimulator.prototype, {
             parts.push(narrative_variant('molybdenite', 'oxidative_dissolution') || 'Oxidation dissolved the molybdenite, releasing MoO₄²⁻ into solution. If Pb is also present in the oxidation zone, the combination becomes wulfenite — the sunset mineral.');
         }
         return parts.filter(p => p).join(' ');
+    },
+    // v64 brief-19 narrators — telluride / selenide / Cd-sulfide group.
+    _narrate_calaverite(c) {
+        const parts = [`Calaverite #${c.crystal_id} grew to ${c.c_length_mm.toFixed(1)} mm.`];
+        parts.push('AuTe₂ — the gold telluride that broke crystallography. For decades its faces refused to index because of an incommensurate modulation wave through the tellurium positions, driven by gold fluctuating between Au⁺ and Au³⁺. The crystal is arguing with itself about what charge gold should be. Cripple Creek was built on this mineral.');
+        if (c.habit === 'bladed_striated_prism')
+            parts.push('Bladed striated prism — the diagnostic high-T habit, brass-yellow with adamantine luster.');
+        if (c.dissolved)
+            parts.push('Thermal decomposition — AuTe₂ → Au⁰ + Te vapor at ~450°C. Native gold liberates wherever calaverite breaks down.');
+        return parts.join(' ');
+    },
+    _narrate_sylvanite(c) {
+        const parts = [`Sylvanite #${c.crystal_id} grew to ${c.c_length_mm.toFixed(1)} mm.`];
+        parts.push('(Au,Ag)Te₂ — the most common gold telluride, and the one that cannot sit in the sun. Photosensitive: prolonged light exposure tarnishes the surface from silver-white to sullen black. Au:Ag varies 1:1 to 3:1 — it cannot decide if it is a gold mineral or a silver mineral. Type locality Sacarîmb / Nagyág (Transylvania); also Cripple Creek, Kalgoorlie.');
+        if (c.habit === 'bladed_graphic')
+            parts.push('Graphic-tellurium habit — intergrown bladed crystals like cuneiform scratched into the rock.');
+        if (c.dissolved)
+            parts.push('Thermal decomposition above 400°C — sylvanite → Au + Ag-telluride species.');
+        return parts.join(' ');
+    },
+    _narrate_hessite(c) {
+        const parts = [`Hessite #${c.crystal_id} grew to ${c.c_length_mm.toFixed(1)} mm.`];
+        parts.push('Ag₂Te — silver telluride. Wins over acanthite (Ag₂S) only when local Te exceeds S. Phase transition at 155°C (cubic ↔ monoclinic) — the cooling history is written into the lattice as transformation lamellae, a game-readable thermometer.');
+        if (c.habit === 'cubic_high_T')
+            parts.push('Cubic high-T phase — formed and stayed above 155°C.');
+        else if (c.habit === 'monoclinic_low_T_lamellae')
+            parts.push('Monoclinic low-T phase with phase-transformation lamellae from the cubic-to-monoclinic transition during cooling.');
+        if (c.dissolved)
+            parts.push('Oxidative dissolution — Ag leaches, Te oxidizes to tellurite.');
+        return parts.join(' ');
+    },
+    _narrate_naumannite(c) {
+        const parts = [`Naumannite #${c.crystal_id} grew to ${c.c_length_mm.toFixed(1)} mm.`];
+        parts.push('Ag₂Se — silver selenide, sister to hessite (Ag₂Te). Forms in selenium-enriched epithermal veins where S is suppressed; rare globally because S almost always wins. Phase transition at 133°C (orthorhombic ↔ cubic) — the high-T cubic form has unusual ionic conductivity (~2 S/cm).');
+        if (c.position && c.position.includes('clausthalite'))
+            parts.push('Co-precipitated with clausthalite — the diagnostic Erzgebirge low-S selenide assemblage.');
+        if (c.dissolved)
+            parts.push('Oxidative dissolution — Ag leaches, Se oxidizes to selenite.');
+        return parts.join(' ');
+    },
+    _narrate_clausthalite(c) {
+        const parts = [`Clausthalite #${c.crystal_id} grew to ${c.c_length_mm.toFixed(1)} mm.`];
+        parts.push('PbSe — selenide analog of galena. Type locality Clausthal-Zellerfeld in the Harz Mountains (1832). Above 300°C forms continuous solid solution with galena; below, the miscibility gap opens and the two phases unmix into lamellae on cooling — high-T solid solutions become diagnostic textures.');
+        if (c.habit === 'exsolution_lamellae_in_galena')
+            parts.push('Lamellar exsolution from PbS-PbSe solid solution — recorded the cooling event below 300°C.');
+        if (c.dissolved)
+            parts.push('Oxidative dissolution — Pb²⁺ leaches, Se oxidizes to selenite.');
+        return parts.join(' ');
+    },
+    _narrate_greenockite(c) {
+        const parts = [`Greenockite #${c.crystal_id} grew to ${c.c_length_mm.toFixed(1)} mm.`];
+        parts.push('CdS — hexagonal cadmium sulfide. The "cadmium yellow" pigment, mineral form. A whisper of cadmium hiding inside sphalerite gets liberated by oxidation, then slams shut against residual sulfide as CdS — Ksp ~10⁻²⁸, so even trace Cd precipitates readily. Found in a Scottish railway tunnel in 1840.');
+        if (c.position && c.position.includes('sphalerite'))
+            parts.push('Grew on sphalerite — direct supergene successor (sphalerite carries Cd substituting for Zn up to ~1%).');
+        if (c.habit === 'hexagonal_pyramidal')
+            parts.push('Hemimorphic hexagonal pyramid — different terminations top and bottom, as if the crystal could not decide which way was up.');
+        else if (c.habit === 'powdery_coating')
+            parts.push('Bright yellow earthy coating — the typical sub-mm habit.');
+        if (c.dissolved)
+            parts.push('Oxidation — CdS → Cd²⁺ + SO₄²⁻ (toxic). Otavite (CdCO₃) may follow if carbonate is available.');
+        return parts.join(' ');
+    },
+    _narrate_hawleyite(c) {
+        const parts = [`Hawleyite #${c.crystal_id} grew to ${c.c_length_mm.toFixed(1)} mm.`];
+        parts.push('CdS — cubic cadmium sulfide, greenockite\'s shadow. Same chemistry, different lattice. Hawleyite settles for powdery yellow anonymity at low T because the cubic structure is what cold meteoric water favors. You will never see a hawleyite crystal — nobody has. It exists as a bright yellow dust on sphalerite, named for a Queens University mineralogist in 1955.');
+        if (c.dissolved)
+            parts.push('Oxidation — CdS → Cd²⁺ + SO₄²⁻.');
+        return parts.join(' ');
     },
 });
 

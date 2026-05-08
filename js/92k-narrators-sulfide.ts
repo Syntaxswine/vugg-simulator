@@ -325,4 +325,64 @@ Object.assign(VugSimulator.prototype, {
   }
   return parts.filter(p => p).join(' ');
 },
+
+  // v64 brief-19 narrators — telluride / selenide / Cd-sulfide group.
+
+  _narrate_calaverite(c) {
+    const parts = [`Calaverite #${c.crystal_id} grew to ${c.c_length_mm.toFixed(1)} mm.`];
+    parts.push('AuTe₂ — the gold telluride that broke crystallography. For decades its faces refused to index because of an incommensurate modulation wave through the tellurium positions, driven by gold fluctuating between Au⁺ and Au³⁺. The crystal is arguing with itself about what charge gold should be. Cripple Creek was built on this mineral.');
+    if (c.habit === 'bladed_striated_prism') parts.push('Bladed striated prism — the diagnostic high-T habit, brass-yellow with adamantine luster.');
+    if (c.dissolved) parts.push('Thermal decomposition — AuTe₂ → Au⁰ + Te vapor at ~450°C. Native gold liberates wherever calaverite breaks down.');
+    return parts.join(' ');
+  },
+
+  _narrate_sylvanite(c) {
+    const parts = [`Sylvanite #${c.crystal_id} grew to ${c.c_length_mm.toFixed(1)} mm.`];
+    parts.push('(Au,Ag)Te₂ — the most common gold telluride, and the one that cannot sit in the sun. Photosensitive: prolonged light exposure tarnishes the surface from silver-white to sullen black. Au:Ag varies 1:1 to 3:1 — it cannot decide if it is a gold mineral or a silver mineral. Type locality Sacarîmb / Nagyág (Transylvania); also Cripple Creek, Kalgoorlie.');
+    if (c.habit === 'bladed_graphic') parts.push('Graphic-tellurium habit — intergrown bladed crystals like cuneiform scratched into the rock.');
+    if (c.dissolved) parts.push('Thermal decomposition above 400°C — sylvanite → Au + Ag-telluride species.');
+    return parts.join(' ');
+  },
+
+  _narrate_hessite(c) {
+    const parts = [`Hessite #${c.crystal_id} grew to ${c.c_length_mm.toFixed(1)} mm.`];
+    parts.push('Ag₂Te — silver telluride. Wins over acanthite (Ag₂S) only when local Te exceeds S. Phase transition at 155°C (cubic ↔ monoclinic) — the cooling history is written into the lattice as transformation lamellae, a game-readable thermometer.');
+    if (c.habit === 'cubic_high_T') parts.push('Cubic high-T phase — formed and stayed above 155°C.');
+    else if (c.habit === 'monoclinic_low_T_lamellae') parts.push('Monoclinic low-T phase with phase-transformation lamellae from the cubic-to-monoclinic transition during cooling.');
+    if (c.dissolved) parts.push('Oxidative dissolution — Ag leaches, Te oxidizes to tellurite.');
+    return parts.join(' ');
+  },
+
+  _narrate_naumannite(c) {
+    const parts = [`Naumannite #${c.crystal_id} grew to ${c.c_length_mm.toFixed(1)} mm.`];
+    parts.push('Ag₂Se — silver selenide, sister to hessite (Ag₂Te). Forms in selenium-enriched epithermal veins where S is suppressed; rare globally because S almost always wins. Phase transition at 133°C (orthorhombic ↔ cubic) — the high-T cubic form has unusual ionic conductivity (~2 S/cm).');
+    if (c.position && c.position.includes('clausthalite')) parts.push('Co-precipitated with clausthalite — the diagnostic Erzgebirge low-S selenide assemblage.');
+    if (c.dissolved) parts.push('Oxidative dissolution — Ag leaches, Se oxidizes to selenite.');
+    return parts.join(' ');
+  },
+
+  _narrate_clausthalite(c) {
+    const parts = [`Clausthalite #${c.crystal_id} grew to ${c.c_length_mm.toFixed(1)} mm.`];
+    parts.push('PbSe — selenide analog of galena. Type locality Clausthal-Zellerfeld in the Harz Mountains (1832). Above 300°C forms continuous solid solution with galena; below, the miscibility gap opens and the two phases unmix into lamellae on cooling — high-T solid solutions become diagnostic textures.');
+    if (c.habit === 'exsolution_lamellae_in_galena') parts.push('Lamellar exsolution from PbS-PbSe solid solution — recorded the cooling event below 300°C.');
+    if (c.dissolved) parts.push('Oxidative dissolution — Pb²⁺ leaches, Se oxidizes to selenite.');
+    return parts.join(' ');
+  },
+
+  _narrate_greenockite(c) {
+    const parts = [`Greenockite #${c.crystal_id} grew to ${c.c_length_mm.toFixed(1)} mm.`];
+    parts.push('CdS — hexagonal cadmium sulfide. The "cadmium yellow" pigment, mineral form. A whisper of cadmium hiding inside sphalerite gets liberated by oxidation, then slams shut against residual sulfide as CdS — Ksp ~10⁻²⁸, so even trace Cd precipitates readily. Found in a Scottish railway tunnel in 1840.');
+    if (c.position && c.position.includes('sphalerite')) parts.push('Grew on sphalerite — direct supergene successor (sphalerite carries Cd substituting for Zn up to ~1%).');
+    if (c.habit === 'hexagonal_pyramidal') parts.push('Hemimorphic hexagonal pyramid — different terminations top and bottom, as if the crystal could not decide which way was up.');
+    else if (c.habit === 'powdery_coating') parts.push('Bright yellow earthy coating — the typical sub-mm habit.');
+    if (c.dissolved) parts.push('Oxidation — CdS → Cd²⁺ + SO₄²⁻ (toxic). Otavite (CdCO₃) may follow if carbonate is available.');
+    return parts.join(' ');
+  },
+
+  _narrate_hawleyite(c) {
+    const parts = [`Hawleyite #${c.crystal_id} grew to ${c.c_length_mm.toFixed(1)} mm.`];
+    parts.push('CdS — cubic cadmium sulfide, greenockite\'s shadow. Same chemistry, different lattice. Hawleyite settles for powdery yellow anonymity at low T because the cubic structure is what cold meteoric water favors. You will never see a hawleyite crystal — nobody has. It exists as a bright yellow dust on sphalerite, named for a Queens University mineralogist in 1955.');
+    if (c.dissolved) parts.push('Oxidation — CdS → Cd²⁺ + SO₄²⁻.');
+    return parts.join(' ');
+  },
 });

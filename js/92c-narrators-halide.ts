@@ -32,4 +32,22 @@ Object.assign(VugSimulator.prototype, {
   if (fl !== 'non-fluorescent') parts.push(narrative_variant('fluorite', 'fluorescence', { fl }) || `Would show ${fl} under UV excitation.`);
   return parts.filter(p => p).join(' ');
 },
+
+  // v64 brief-19 narrator.
+  _narrate_atacamite(c) {
+    const parts = [`Atacamite #${c.crystal_id} grew to ${c.c_length_mm.toFixed(1)} mm.`];
+    parts.push('Cu₂Cl(OH)₃ — emerald-green Cu²⁺ chromophore on a chloride-hydroxyl backbone. Fired in the arid supergene window where chloride beat carbonate (malachite) and sulfate (brochantite) to the copper. Atacama Desert is the type aesthetic; bronze artifacts at the bottom of the sea make this same crystal because seawater is salty enough.');
+    if (c.habit === 'fibrous_acicular') parts.push('Habit shifted to fibrous-acicular under high σ — radiating green needles.');
+    else if (c.habit === 'botryoidal_crust') parts.push('Botryoidal mammillary crust — high σ + space-constrained.');
+    if (c.dissolved) parts.push('Dissolved by a CO₂ pulse or pH drop — atacamite is the chloride end of a Cu-supergene fork that can revert when the anion balance shifts.');
+    return parts.join(' ');
+  },
+
+  _narrate_sylvite(c) {
+    const parts = [`Sylvite #${c.crystal_id} grew to ${c.c_length_mm.toFixed(1)} mm.`];
+    parts.push('KCl — the late-stage potash that crystallizes from residual brine after halite has consumed most of the sodium and chloride. Even more soluble than its sibling rock-salt; deliquescent in humid air.');
+    if (c.habit === 'hopper_cube') parts.push('Hopper-cube habit — rapid evaporation produced stepped, terraced faces.');
+    if (c.dissolved) parts.push('Meteoric dilution dissolved it — sylvite is the first phase to go when fresh water reaches the evaporite sequence.');
+    return parts.join(' ');
+  },
 });

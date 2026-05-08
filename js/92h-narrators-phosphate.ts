@@ -183,4 +183,23 @@ Object.assign(VugSimulator.prototype, {
   }
   return parts.filter(p => p).join(' ');
 },
+
+  // v64 brief-19 narrators.
+  _narrate_apatite(c) {
+    const parts = [`Apatite #${c.crystal_id} grew to ${c.c_length_mm.toFixed(1)} mm.`];
+    parts.push('Ca₅(PO₄)₃(F,Cl,OH) — the structural archetype of the apatite supergroup. The Pb-end-members already in the vug (pyromorphite, mimetite, vanadinite) are derivatives of this same hexagonal channel structure.');
+    if (c.habit === 'prismatic_hexagonal') parts.push('Long c-axis hexagonal prism — the Cerro de Mercado / Panasqueira aesthetic.');
+    else if (c.habit === 'botryoidal_collophane') parts.push('Cryptocrystalline botryoidal mass — low-T sedimentary phosphorite habit (collophane).');
+    if (c.dissolved) parts.push('Acid attack dissolved it — apatite is the basis of phosphoric acid production from phosphate rock, and of tooth decay.');
+    return parts.join(' ');
+  },
+
+  _narrate_turquoise(c) {
+    const parts = [`Turquoise #${c.crystal_id} grew to ${c.c_length_mm.toFixed(1)} mm.`];
+    parts.push('CuAl₆(PO₄)₄(OH)₈·4H₂O — the sky-blue Cu-supergene phosphate. Mined since 5000 BCE at Maghara (Sinai); Persian Nishapur, American Sleeping Beauty, Bisbee Blue all crystallize from the same arid Cu-porphyry chemistry where chloride / carbonate / sulfate could not get to the copper first.');
+    if (c.habit === 'veinlet_fill') parts.push('Veinlet-fill habit — thin blue stringer along host-rock fracture.');
+    else if (c.habit === 'spider_web') parts.push('Spider-web matrix — host-rock fragments form filigree network through blue (Hubei / Lone Mountain aesthetic).');
+    if (c.dissolved) parts.push('Dehydration above 200°C greened the crystal irreversibly — turquoise is a hydrated phase that loses zeolitic water on heating.');
+    return parts.join(' ');
+  },
 });

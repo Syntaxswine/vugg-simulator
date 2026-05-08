@@ -117,4 +117,21 @@ Object.assign(VugSimulator.prototype, {
   if (c.dissolved) parts.push(narrative_variant('uraninite', 'oxidative_dissolution') || 'Partial dissolution as O₂ invaded the system.');
   return parts.filter(p => p).join(' ');
 },
+
+  // v64 brief-19 narrators.
+  _narrate_rutile(c) {
+    const parts = [`Rutile #${c.crystal_id} grew to ${c.c_length_mm.toFixed(1)} mm.`];
+    parts.push('TiO₂ — tetragonal Ti oxide, the canonical "needle" mineral. Most of the world has seen rutile only as needles inside quartz (Venus hair, Cupid\'s darts). As a free-standing crystal, rare and stranger: blood-red prisms with adamantine luster, geniculate elbow twins, reticulated sixling stars. Refractory and chemically inert — survives weathering unchanged.');
+    if (c.position && c.position.includes('quartz')) parts.push('Included in quartz — the rutilated-quartz pattern.');
+    if (c.habit === 'sixling_star') parts.push('Cyclic sixling — the rare reticulated rutile star, the "Cabo cabo" Brazilian aesthetic.');
+    else if (c.habit === 'stout_prismatic') parts.push('Coarse alpine-cleft prism with dipyramid termination — high-T habit.');
+    return parts.join(' ');
+  },
+
+  _narrate_chromite(c) {
+    const parts = [`Chromite #${c.crystal_id} grew to ${c.c_length_mm.toFixed(1)} mm.`];
+    parts.push('FeCr₂O₄ — magmatic Fe-Cr spinel, one of the first phases to crystallize from cooling mafic / ultramafic magma at 1200–1400°C. Atypical vug mineral — forms as black metallic octahedra in cumulus settings, then survives weathering unchanged due to extreme spinel-structure stability.');
+    if (c.habit === 'massive_granular') parts.push('Granular cumulate fabric — the chromitite-seam aesthetic of layered mafic intrusions.');
+    return parts.join(' ');
+  },
 });

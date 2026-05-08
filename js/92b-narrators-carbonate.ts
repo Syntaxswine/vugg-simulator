@@ -261,4 +261,22 @@ Object.assign(VugSimulator.prototype, {
   }
   return parts.filter(p => p).join(' ');
 },
+
+  // v64 brief-19 narrators.
+  _narrate_strontianite(c) {
+    const parts = [`Strontianite #${c.crystal_id} grew to ${c.c_length_mm.toFixed(1)} mm.`];
+    parts.push('SrCO₃ — orthorhombic, aragonite-group; almost always cyclic-twinned into pseudohexagonal forms (every crystal a palindrome). Type locality Strontian, Scotland (1790) — the namesake of the element strontium itself. Loses to celestine when sulfate dominates, which is most of the time globally.');
+    if (c.habit === 'acicular_fibrous') parts.push('Radiating fibrous spray — the Münsterland aesthetic from low-T high-σ growth.');
+    if (c.dissolved) parts.push('Acid dissolution — SrCO₃ + 2H⁺ → Sr²⁺ + H₂O + CO₂.');
+    return parts.join(' ');
+  },
+
+  _narrate_witherite(c) {
+    const parts = [`Witherite #${c.crystal_id} grew to ${c.c_length_mm.toFixed(1)} mm.`];
+    parts.push('BaCO₃ — orthorhombic Ba carbonate; almost always cyclic-twinned into pseudohexagonal pyramids (the Settlingstones aesthetic). Loses to barite when sulfate dominates. Strongly UV-fluorescent bluish-white and persistently phosphorescent — keeps glowing after the lamp goes dark, as if the lattice does not quite trust the dark.');
+    if (c.habit === 'botryoidal_white') parts.push('Botryoidal white balls — the Settlingstones type-specimen aesthetic.');
+    if (c.position && c.position.includes('fluorite')) parts.push('Grew on fluorite — Cave-in-Rock-style witherite + fluorite + barite + galena assemblage.');
+    if (c.dissolved) parts.push('Acid dissolution — BaCO₃ + 2H⁺ → Ba²⁺ + H₂O + CO₂.');
+    return parts.join(' ');
+  },
 });
