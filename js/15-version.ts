@@ -972,5 +972,29 @@
 //        2 oversize feldspars (#2 at 34.0 mm, #12 at 30.9 mm in a
 //        50 mm vug, vug_radius = 25 mm). c_length_mm now equals
 //        total_growth_um/1000, capped only by chemistry.
-const SIM_VERSION = 61;
+//
+//   v62 — Brief-19 mineral catalog expansion (May 2026, this commit):
+//        Three priority + sixteen brief minerals from canonical's
+//        a7b312e research drop, plus FluidChemistry.Cd field added
+//        to support the Cd-sulfide pair (greenockite + hawleyite).
+//        Spec entries only — no engines yet — so seed-42 output
+//        for any scenario where engines would have fired is byte-
+//        equal to v61. Drift IS expected for scenarios where the
+//        new Cd field changes Object.keys(fluid) iteration order:
+//        bisbee, searles_lake, tutorial_travertine — diffusion
+//        and mass-balance loops over _fluidFieldNames pick up the
+//        new key. Drift is small (sub-1% on the species counts;
+//        see calibration baselines diff for v61→v62) and is the
+//        cost of the Cd field opening the spec to greenockite/
+//        hawleyite. No semantic chemistry change for those 3
+//        scenarios — same engines, same broth, same seed; only
+//        the iteration ordering of an irrelevant zero-valued
+//        broth field shifts the FP rounding cumulant. Other 14
+//        scenarios in the calibration sweep are unaffected.
+//
+//        Catalog: 100 → 116 minerals.
+//        New broth field: Cd (default 0, no engine consumes it
+//        until greenockite/hawleyite engines land in a future
+//        round).
+const SIM_VERSION = 62;
 

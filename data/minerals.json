@@ -1108,10 +1108,17 @@
           "void_reach": 0.25,
           "vector": "tabular",
           "trigger": "low σ — tabular {0001} plates, micaceous aggregates"
+        },
+        {
+          "name": "colloform_banded",
+          "wall_spread": 0.85,
+          "void_reach": 0.15,
+          "vector": "coating",
+          "trigger": "low T sedimentary — botryoidal crust alternating with sphalerite layers (colloform banding, the Llallagua / Příbram aesthetic)"
         }
       ],
       "class": "sulfide",
-      "description": "(Zn,Fe)S, the hexagonal high-temperature dimorph of sphalerite — same composition, different crystal structure. Above 95°C, cubic sphalerite gives way to hexagonal wurtzite with the distinctive hemimorphic habit (one end pointed, one end flat, due to the non-centrosymmetric P6₃mc space group). On cooling below 95°C, wurtzite converts to sphalerite — but sphalerite rarely goes back. The asymmetric dimorphism means finding wurtzite is diagnostic of rapid cooling from the hexagonal field.",
+      "description": "(Zn,Fe)S, the hexagonal high-temperature dimorph of sphalerite — same composition, different crystal structure. Above 95°C, cubic sphalerite gives way to hexagonal wurtzite with the distinctive hemimorphic habit (one end pointed, one end flat, due to the non-centrosymmetric P6₃mc space group). On cooling below 95°C, wurtzite converts to sphalerite — but sphalerite rarely goes back. The asymmetric dimorphism means finding wurtzite is diagnostic of rapid cooling from the hexagonal field. Type locality San José Mine (Oruro, Bolivia, tin-silver veins); Llallagua produces the best-formed crystals, Mont Saint-Hilaire alkalic pegmatites give the rare hexagonal prisms.",
       "scenarios": [
         "mvt"
       ],
@@ -1172,16 +1179,21 @@
         "yellowish_brown": {
           "default": true
         },
+        "reddish_brown": {
+          "trigger": "Fe 5–15 mol% (intermediate Fe)"
+        },
+        "orange_brown": {
+          "trigger": "moderate Fe + trace Cd"
+        },
         "black_metallic": {
           "trigger": "Fe > 15 mol%"
         }
       },
       "narrate_function": "_narrate_wurtzite",
       "runtimes_present": [
-        "vugg.py",
-        "index.html"
+        "js"
       ],
-      "audit_status": "ok (round-2 add: T>95 sphalerite dimorph, hexagonal P6₃mc, hemimorphic habit, polymorphic inversion handled).",
+      "audit_status": "round-2 add: T>95 sphalerite dimorph, hexagonal P6₃mc, hemimorphic habit, polymorphic inversion handled. 2026-05-07 backfill from research-wurtzite.md: added colloform_banded habit (Llallagua aesthetic), reddish_brown + orange_brown intermediate colors, type-locality + Mont Saint-Hilaire detail in description. Boss's research notes wurtzite generally NON-fluorescent — current Mn-activator entry retained because some sphalerite-group material does fluoresce (rare Mn²⁺ activation at threshold 5 ppm); orange_or_blue color is conditional, not default.",
       "class_color": "#7feb13"
     },
     "fluorite": {
@@ -9441,9 +9453,11 @@
         "P": 1.0,
         "O2": 0.8
       },
-      "trace_ingredients": {},
+      "trace_ingredients": {
+        "Cu": "trace Cu (below the cation-fork threshold) shifts color toward greenish-yellow; transitional toward torbernite"
+      },
       "thermal_decomp_C": 80,
-      "thermal_decomp_reaction": "Ca(UO₂)₂(PO₄)₂·11H₂O → Ca(UO₂)₂(PO₄)₂·8H₂O + 3H₂O (irreversible dehydration to meta-autunite)",
+      "thermal_decomp_reaction": "Ca(UO₂)₂(PO₄)₂·11H₂O → Ca(UO₂)₂(PO₄)₂·8H₂O + 3H₂O (irreversible dehydration to meta-autunite); further heat → meta-autunite II (rare)",
       "thermal_decomp_products": {
         "Ca": 0.0,
         "U": 0.0,
@@ -9453,7 +9467,7 @@
         "activator": "U",
         "threshold_ppm": 0,
         "color": "intense_apple_green_LW",
-        "quencher": null,
+        "quencher": "Fe (Fe²⁺ + Fe³⁺ both suppress uranyl emission); dehydration to meta-autunite weakens but does not eliminate fluorescence",
         "status": "the brightest uranyl fluorescer in the simulator — Ca²⁺ doesn't quench like Cu²⁺ does in torbernite/zeunerite. LW UV (365nm) drives the strongest emission; SW (254nm) gives a duller green-yellow."
       },
       "twin_laws": [],
@@ -9468,16 +9482,27 @@
       },
       "habit": "tabular_plates",
       "color_rules": {
-        "yellow": {
+        "lemon_yellow": {
           "default": true
+        },
+        "greenish_yellow": {
+          "trigger": "Cu > 1 ppm but Ca/(Cu+Ca) > 0.5 — Cu-contaminated but still autunite-side of the cation fork"
+        },
+        "pale_green": {
+          "trigger": "near the autunite/torbernite cation-fork boundary (Cu/(Cu+Ca) approaching 0.5)"
+        },
+        "sulfur_yellow": {
+          "trigger": "high σ + thick crystal — saturated yellow"
+        },
+        "dull_meta": {
+          "trigger": "T_history > 80°C (irreversible dehydration to meta-autunite — color dulls, fluorescence weakens)"
         }
       },
       "narrate_function": "_narrate_autunite",
       "runtimes_present": [
-        "vugg.py",
-        "index.html"
+        "js"
       ],
-      "audit_status": "Round 9d (May 2026): Ca-cation analog of torbernite, completing the cation-fork generalization on the P-branch of the uranyl-anion-competition mechanic (9b/9c was the anion fork P-vs-As-vs-V; 9d is the cation fork Cu-vs-Ca on the P-branch alone). supersaturation_autunite returns 0 when Ca/(Cu+Ca) < 0.5 OR when P/(P+As+V) < 0.5. supersaturation_torbernite gains a symmetric Cu/(Cu+Ca) > 0.5 gate (was Cu>=5 only). Autunite is the geologically-default uranyl phosphate (Ca >>> Cu in groundwater); torbernite is the special case (Cu-dominant fluid in mining districts). Habit variants mirror torbernite (tabular_plates/micaceous_book/encrusting). Source: research/research-uraninite.md §Variants for Game §4 (boss canonical 626bb22, May 2026).",
+      "audit_status": "Round 9d (May 2026): Ca-cation analog of torbernite, completing the cation-fork generalization on the P-branch of the uranyl-anion-competition mechanic (9b/9c was the anion fork P-vs-As-vs-V; 9d is the cation fork Cu-vs-Ca on the P-branch alone). supersaturation_autunite returns 0 when Ca/(Cu+Ca) < 0.5 OR when P/(P+As+V) < 0.5. supersaturation_torbernite gains a symmetric Cu/(Cu+Ca) > 0.5 gate (was Cu>=5 only). Autunite is the geologically-default uranyl phosphate (Ca >>> Cu in groundwater); torbernite is the special case (Cu-dominant fluid in mining districts). Habit variants mirror torbernite (tabular_plates/micaceous_book/encrusting). Source: research/research-uraninite.md §Variants for Game §4 (boss canonical 626bb22, May 2026). 2026-05-07 backfill from research-autunite.md: added 5 color rules (lemon_yellow default, greenish_yellow Cu trace, pale_green near fork, sulfur_yellow thick crystal, dull_meta dehydration), Cu trace ingredient, Fe fluorescence quencher, meta-autunite II reaction note.",
       "class_color": "#13eb7f",
       "test_cases": [
         {
@@ -10032,10 +10057,17 @@
           "void_reach": 0.05,
           "vector": "coating",
           "trigger": "efflorescent crust on already-dry wall"
+        },
+        {
+          "name": "stalactitic_speleothem",
+          "wall_spread": 0.4,
+          "void_reach": 0.6,
+          "vector": "projecting",
+          "trigger": "drip-deposition in dry cave / underground salt void — fibrous columnar 'salt speleothem'"
         }
       ],
       "class": "halide",
-      "description": "NaCl, rock salt — the canonical chloride evaporite. Forms by evaporative concentration of Na-Cl-rich brines: closed-basin playas, sabkha, drained vugs in the supergene zone. Hopper-growth (skeletal cube with pyramidal hollows) is the signature high-supersaturation habit; clean cubes form when the brine concentrates slowly.",
+      "description": "NaCl, rock salt — the canonical chloride evaporite. Forms by evaporative concentration of Na-Cl-rich brines: closed-basin playas, sabkha, drained vugs in the supergene zone. Hopper-growth (skeletal cube with pyramidal hollows) is the signature high-supersaturation habit; clean cubes form when the brine concentrates slowly. Type localities: Wieliczka Salt Mine (Poland — meter-scale cubes, the cathedral carved in salt); Stassfurt (Germany — brilliant blue irradiated halite); Searles Lake (California — pink hoppered crystals from evaporation ponds with halobacterial carotenoids).",
       "scenarios": [
         "searles_lake",
         "bisbee",
@@ -10059,17 +10091,28 @@
       },
       "trace_ingredients": {
         "K": "blue color centers (irradiation)",
-        "Fe": "rose-pink inclusions"
+        "Fe": "rose-pink inclusions; yellow as Fe-impurity",
+        "organic": "halobacterial carotenoids → bacterial-pink (Searles Lake aesthetic, biological-flag — not a real broth field)",
+        "hematite": "red from hematite microinclusions (rare — tracked as Fe trace at high level)"
       },
       "thermal_decomp_C": 801,
       "thermal_decomp_reaction": "NaCl(s) → NaCl(l) (melts at 801°C, no chemical decomposition)",
       "thermal_decomp_products": {},
       "fluorescence": {
-        "SW": null,
-        "MW": null,
-        "LW": "rare orange (organic inclusions)"
+        "activator": "Mn²⁺ + organic inclusions + lattice defects (variable — only a fraction of specimens fluoresce)",
+        "threshold_ppm": 50,
+        "color": "weak_white_to_yellow_to_orange_red_LW",
+        "quencher": "Fe (suspected; not well documented)",
+        "status": "rare; Stassfurt / Wieliczka specimens show LW response; commercial salt typically doesn't"
       },
-      "twin_laws": [],
+      "twin_laws": [
+        {
+          "name": "spinel_law_rare",
+          "miller_indices": "{111}",
+          "trigger": "rare — recorded but uncommon",
+          "probability": 0.005
+        }
+      ],
       "acid_dissolution": {
         "pH": 4.0,
         "rate": "fast"
@@ -10080,18 +10123,26 @@
           "default": true
         },
         "blue_purple": {
-          "trigger": "K > 200 ppm — irradiation-induced color centers"
+          "trigger": "K > 200 ppm — irradiation-induced color centers (Stassfurt aesthetic)"
         },
         "rose_pink": {
           "trigger": "Fe > 30 ppm — Searles Lake / Stassfurt habit"
+        },
+        "bacterial_pink": {
+          "trigger": "biological / organic inclusion (halobacterial carotenoid in evaporation pond)"
+        },
+        "yellow": {
+          "trigger": "Fe 5–20 ppm impurity"
+        },
+        "red_hematite_inclusion": {
+          "trigger": "Fe > 100 ppm with hematite microinclusion"
         }
       },
       "narrate_function": null,
       "runtimes_present": [
-        "python",
         "js"
       ],
-      "audit_status": "v27 — evaporite chemistry pass",
+      "audit_status": "v27 — evaporite chemistry pass. 2026-05-07 backfill from research-halite.md: added stalactitic_speleothem habit, restructured fluorescence (Mn²⁺ activator, weak white/yellow/orange-red LW), added spinel_law_rare twin (probability 0.005), added bacterial_pink (halobacterial carotenoid) + yellow (Fe impurity) + red_hematite_inclusion color rules, type-locality detail in description (Wieliczka / Stassfurt / Searles).",
       "class_color": "#cccccc"
     },
     "borax": {
