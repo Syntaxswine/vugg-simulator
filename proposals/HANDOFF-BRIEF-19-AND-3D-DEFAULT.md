@@ -2,7 +2,9 @@
 
 **Session ended:** 2026-05-08
 **Author:** Claude (Opus 4.7, 1M context)
-**Status of campaign:** v62 → v64 + 3D-default shipped & pushed to Syntaxswine `main`. Catalog 97 → 116 minerals; 19 new minerals fire / grow / dissolve / narrate. Three.js renderer now default; replay button works in 3D.
+**Status of campaign:** v62 → v64 + 3D-default shipped & pushed to Syntaxswine `main`. Catalog 97 → 116 minerals; 19 new minerals fire / grow / dissolve / narrate. Three.js renderer now default; replay button visibly responds in 3D — but the cavity it shows is a placeholder (vertical projection of ring[0]; live crystals).
+
+> **Boss directive 2026-05-08:** the replay fix is the priority for tonight's session. Section A below has the four-part plan. Read that first; everything else is follow-up.
 
 ---
 
@@ -36,11 +38,76 @@ Plus two new scenarios — `epithermal_telluride` (Cripple Creek anchor) and `ul
 
 ## Open scope — by priority
 
-### A. Engine calibration sweep (highest priority, estimated 2–4 hours)
+### A. Replay-in-3D — make it real (TOP PRIORITY tonight — boss-flagged 2026-05-08)
 
-The 19 new engines are MVP — chemistry-faithful but uncalibrated. Each entry's `audit_status` field documents the broth gap that should let it fire; the v63 plumbing pass closed those gaps; v64 wired the engines. But nobody has eyeballed whether the per-scenario counts match the documented mineralogy.
+**The replay button visibly does something now (commit `12c329e`), but the cavity it shows is a vertically-uniform projection of ring[0] and the crystals stay LIVE during playback. That's the placeholder. The honest fix is multi-ring history + per-step crystal sizes — described in detail below as the four-part change. Read this section first.**
 
-Do this for each of the 7 scenarios that bumped:
+The data path today:
+- `wall_state_history` snapshots are flat ring[0] arrays per the v60-era schema. Writer at `js/85c-simulator-state.ts:153-164` only stores ring[0].
+- `topoReplay()` in `js/99g-renderer-replay.ts:9` cycles `history[idx]` via `topoRender(history[idx])`.
+- `topoRender(optOverrideRing)` in `js/99b-renderer-topo-2d.ts:172` forwards the snapshot to `_topoRenderThree(sim, wall, optOverrideRing)`.
+- `_topoRenderThree()` in `js/99i-renderer-three.ts:1773` calls `_topoSnapshotWall()` (line 1740) which projects ring[0] across all 16 rings → uniform column. Crystals come from `sim.crystals` LIVE — `_topoSyncCrystalMeshes()` at `js/99i-renderer-three.ts:1312` reads `crystal.c_length_mm` etc. unconditionally.
+
+The four-part fix (do all four; partial fixes leave the replay still mostly-fake):
+
+1. **Multi-ring snapshot writer.** `_snapshotWallState()` (or `_snapshotWall()` — search for the `wall_state_history.push(...)` in `js/85c-simulator-state.ts:164`) needs to iterate all rings, not just `rings[0]`. Replacement shape:
+   ```ts
+   const snap = {
+     step: this.step_number,
+     rings: new Array(this.wall_state.ring_count),
+   };
+   for (let r = 0; r < this.wall_state.ring_count; r++) {
+     const ring = this.wall_state.rings[r];
+     snap.rings[r] = new Array(ring.length);
+     for (let i = 0; i < ring.length; i++) {
+       const c = ring[i];
+       snap.rings[r][i] = {
+         wall_depth: c.wall_depth, crystal_id: c.crystal_id,
+         mineral: c.mineral, thickness_um: c.thickness_um,
+         base_radius_mm: c.base_radius_mm,
+       };
+     }
+   }
+   this.wall_state_history.push(snap);
+   ```
+   Storage cost: 16× current. A 200-step run grows from ~24 KB → ~384 KB; acceptable. The `step` field is the missing piece for part 3.
+
+2. **Historical crystal-size lookup.** Each Crystal already has `zones[]` where each zone has `step` and `thickness_um`. `_topoSyncCrystalMeshes()` needs to accept an optional `replayStep` parameter:
+   - **Skip** crystals where no `zones[k].step <= replayStep` (the crystal hadn't nucleated yet at that step).
+   - **Compute historical c_length_mm** = sum of `zones[k].thickness_um / 1000` for `k` where `zones[k].step <= replayStep`. Cap at the live `c_length_mm` so dissolution events later in life don't accidentally inflate the replay size.
+   - **Resurrect dissolved crystals** that were active at `replayStep`. `crystal.dissolved && crystal.dissolved_at_step > replayStep` → render as if active. (If you don't have `dissolved_at_step`, the simplest proxy is the last positive-thickness zone's `step` — adjust the writer in `js/27-geometry-crystal.ts` to record this when `crystal.dissolved` flips.)
+   - For perimorph-eligible crystals, the existing live path renders them as hollow shells when dissolved — preserve that behavior in replay too.
+
+3. **Replay timer plumbing.** `topoReplay()` already tracks `idx`. Three changes:
+   - Pass `idx` through: `topoRender(history[idx], idx)` (or pass the whole snapshot which now carries `.step`).
+   - Update `topoRender` signature: `function topoRender(optOverrideSnap?: any, optReplayStep?: number)`. The 2D path is in `js/99b-renderer-topo-2d.ts:172`.
+   - Forward to Three: `_topoRenderThree(sim, wall, optOverrideSnap, optReplayStep)`. Inside `_topoRenderThree` pass `replayStep` to `_topoSyncCrystalMeshes`.
+   - Update `_topoSnapshotWall()` to consume the new schema shape (`snap.rings[r][i]`) instead of the flat array.
+
+4. **SIM_VERSION bump + baseline regen.** Schema change is baseline-busting (snapshot serialization differs). Bump `SIM_VERSION` 64 → 65 in `js/15-version.ts` with a paragraph in the changelog explaining the multi-ring history schema. Regenerate `tests-js/baselines/seed42_v65.json` via `node tools/gen-js-baseline.mjs`. Old saved games carry the flat schema; add a migration shim in `loadGame()` (search for it; lives in `js/93-ui-collection.ts` or `js/97-ui-fortress.ts`) that wraps a flat snapshot:
+   ```ts
+   if (Array.isArray(snap)) {
+     // legacy flat snapshot → wrap as single-ring multi-ring
+     const wrapped = { step: -1, rings: new Array(ringCount).fill(null).map(() => snap) };
+     return wrapped;
+   }
+   ```
+   The `-1` step signals "unknown" so historical crystal-size lookup falls back to live size for legacy saves. Acceptable degradation.
+
+**Verification path:**
+- `npm run build && npm test` — typecheck + the calibration sweep should still pass after baseline regen.
+- Browser preview: spin up `porphyry` for ~150 steps so dissolution + multiple nucleations happen, click replay. Visually verify: cavity expands during playback (ring[1..15] should also evolve, not just ring[0]); crystals appear in growth order (small → larger); dissolved crystals (if any) reappear before their dissolution step.
+- The screenshot test: snapshot[0] cavity should be smooth & undeformed; snapshot[last] cavity should show whatever local dissolution happened. Different shape, not just different scale.
+
+**Caveats deliberately left for follow-up (don't try to fix tonight unless the four parts above land cleanly):**
+- Fluid-state history (pH/T/etc. trajectories) isn't in the snapshot. The fortress-status panel will keep showing live values during replay. Separate scope.
+- Twin events / dissolution events that fire mid-life don't have step-stamps in `zones[]` necessarily — replay's crystal-size accumulation may overshoot real history slightly for twinned crystals. Acceptable approximation; flag if it visibly hurts.
+
+### B. Engine calibration sweep (high priority, estimated 2–4 hours)
+
+The 19 new engines from v64 are MVP — chemistry-faithful but uncalibrated. Each entry's `audit_status` field documents the broth gap that should let it fire; the v63 plumbing pass closed those gaps; v64 wired the engines. But nobody has eyeballed whether the per-scenario counts match the documented mineralogy.
+
+Do this for each of the 9 scenarios that have new firings:
 
 | scenario                | expected new minerals firing                                    | check for                                                 |
 |-------------------------|-----------------------------------------------------------------|-----------------------------------------------------------|
@@ -63,25 +130,6 @@ If sigma thresholds need tweaking, the supersat methods are at:
 - `js/3x-supersat-<class>.ts` (each is in its class file, named `supersaturation_<mineral>`)
 - The pattern is `if (sigma < 1.0) return 0;` then T-window decay + pH penalties + competition penalties
 - Lower the per-class divisor (e.g., `Cu / 80.0` → `Cu / 60.0`) to make sigma climb faster ↔ more nucleation
-
-### B. Multi-ring history schema (medium priority, estimated 4–6 hours)
-
-**The replay-in-3D fix shipped, but the underlying data is still flat.**
-
-`wall_state_history` snapshots are flat ring[0] arrays per the v60-era schema (see `js/85c-simulator-state.ts:153-164`). The 3D replay path projects the snapshot's ring[0] cells across all 16 rings, producing a vertically-uniform cavity column — the wall-depth profile is historically accurate but the per-ring variance is lost. Crystals stay LIVE during replay because snapshots don't carry historical crystal sizes either.
-
-Both caveats are inherent to the snapshot schema. The honest fix is:
-
-1. **Multi-ring snapshot writer** — `_snapshotWallState()` in `85c-simulator-state.ts` should iterate all rings, not just `rings[0]`. Storage cost: 16× current. Two hundred-step run goes from ~24 KB → ~384 KB per scenario; acceptable.
-
-2. **Historical crystal-size lookup** — each Crystal already has `zones[]` with per-step thickness. `_topoSyncCrystalMeshes()` in `99i-renderer-three.ts:1312` should accept an optional `replayStep` parameter and:
-   - Skip crystals where no `zone.step <= replayStep` (didn't exist yet)
-   - Mark dissolved crystals that re-existed in history (replay should show them alive)
-   - Sum `zones[k].thickness_um` for `k` where `zones[k].step <= replayStep` to get historical `c_length_mm`
-
-3. **Replay timer plumbing** — `topoReplay()` in `99g-renderer-replay.ts:9` already tracks `idx` (the step). Pass it to `topoRender(history[idx], idx)` and let `topoRender` forward to `_topoRenderThree(sim, wall, snapshot, replayStep)`.
-
-4. **SIM_VERSION bump** — schema change is a baseline-busting shift. Bump to v65, regenerate `seed42_v65.json`. Old saved games carry the flat schema; add a migration shim in `loadGame()` that wraps a flat snapshot in a single-ring multi-ring shape.
 
 ### C. MINERAL_DISSOLUTION_RATES backfill (low priority, estimated 30 min)
 
@@ -145,17 +193,15 @@ Pattern to add (see `tests-js/redox.test.ts` for the shape): per-mineral asserti
 
 These are documented explicitly so a future agent doesn't try to "fix" them without checking with the boss:
 
-1. **The 3D replay's vertically-uniform cavity** is the snapshot-schema limitation, see B above. Boss is aware (commit `12c329e` message).
+1. **Chromite is in the catalog but won't fire in any current scenario.** It's a magmatic >1000°C mineral — no scenario delivers that T. Logged in its `audit_status`. Listed for cataloging completeness; would need a `layered_mafic_intrusion` scenario to actually crystallize.
 
-2. **Crystals stay live during replay.** Same root cause as 1. Same fix path.
+2. **The Au-Ag-Te trio is currently parked in `gem_pegmatite` + `porphyry` as scenario placeholders.** Both broths now carry Te + Au, but the chemistry niche is properly epithermal — see the new `epithermal_telluride` scenario. The placeholder scenarios will fire calaverite / sylvanite / hessite at low rates; that's geologically plausible (porphyries do carry trace tellurides at the upper levels) but feels off in `gem_pegmatite`. Leave the scenarios listing in the spec unless you want to remove pegmatite from those three minerals' `scenarios` array.
 
-3. **Chromite is in the catalog but won't fire in any current scenario.** It's a magmatic >1000°C mineral — no scenario delivers that T. Logged in its `audit_status`. Listed for cataloging completeness; would need a `layered_mafic_intrusion` scenario to actually crystallize.
+3. **`scheelite` and `wolframite` are classed `molybdate` despite being tungstates.** This matches the existing convention (raspite + stolzite + wulfenite are all classed molybdate). The class enum is misleadingly named but the file structure is consistent. Don't reclass without checking with the boss — class is what drives `js/3x-supersat-<class>.ts` file location.
 
-4. **The Au-Ag-Te trio is currently parked in `gem_pegmatite` + `porphyry` as scenario placeholders.** Both broths now carry Te + Au, but the chemistry niche is properly epithermal — see the new `epithermal_telluride` scenario. The placeholder scenarios will fire calaverite / sylvanite / hessite at low rates; that's geologically plausible (porphyries do carry trace tellurides at the upper levels) but feels off in `gem_pegmatite`. Leave the scenarios listing in the spec unless you want to remove pegmatite from those three minerals' `scenarios` array.
+4. **Three.js renderer Phase E1 only ships cavity wireframe + crystal meshes.** Phase E2 is forward-looking: better lighting (specular highlights on crystal faces), texture-painted habits (botryoidal / saddle-rhomb etc. via shaders), water-line / fluid-surface visualization as a translucent disc, fluorescence under simulated UV (post-process bloom on emissive materials). Not in scope of this campaign; flagged so an agent doesn't redo Phase E1.
 
-5. **`scheelite` and `wolframite` are classed `molybdate` despite being tungstates.** This matches the existing convention (raspite + stolzite + wulfenite are all classed molybdate). The class enum is misleadingly named but the file structure is consistent. Don't reclass without checking with the boss — class is what drives `js/3x-supersat-<class>.ts` file location.
-
-6. **Three.js renderer Phase E1 only ships cavity wireframe + crystal meshes.** Phase E2 is forward-looking: better lighting (specular highlights on crystal faces), texture-painted habits (botryoidal / saddle-rhomb etc. via shaders), water-line / fluid-surface visualization as a translucent disc, fluorescence under simulated UV (post-process bloom on emissive materials). Not in scope of this campaign; flagged so an agent doesn't redo Phase E1.
+> Note: the previous version of this section listed "vertically-uniform cavity during replay" and "crystals stay live during replay" as caveats. Those are NOT caveats — they are the placeholder state shipped in `12c329e`, scheduled for the four-part fix in section A. Promoted out of "intentional" because the boss explicitly wants them addressed (2026-05-08).
 
 ---
 
@@ -204,15 +250,33 @@ git pull --ff-only origin main
 # Verify build is clean
 npm run typecheck && npm run build && npm test
 
-# Pick a priority from the open-scope list above
-
-# After any chemistry tuning:
-node tools/gen-js-baseline.mjs
-git diff tests-js/baselines/seed42_v64.json | head -100   # eyeball the drift
+# Section A is tonight's target. Files to open first:
+#   js/85c-simulator-state.ts:153-164  (snapshot writer — 1)
+#   js/27-geometry-crystal.ts          (Crystal zones[] schema; maybe add dissolved_at_step — 2)
+#   js/99i-renderer-three.ts:1312      (_topoSyncCrystalMeshes — 2)
+#   js/99i-renderer-three.ts:1740      (_topoSnapshotWall — needs new schema — 3)
+#   js/99i-renderer-three.ts:1773      (_topoRenderThree — accept replayStep — 3)
+#   js/99b-renderer-topo-2d.ts:172     (topoRender — accept replayStep — 3)
+#   js/99g-renderer-replay.ts:9        (topoReplay — pass step through — 3)
+#   js/15-version.ts                   (SIM_VERSION 64 → 65 — 4)
+#   tests-js/baselines/seed42_v64.json (regen as v65 — 4)
 
 # After any source change:
 npm run build
 npm test                                                  # 65/65 should still pass
+
+# After the schema change (section A part 4):
+node tools/gen-js-baseline.mjs    # writes seed42_v65.json
+git diff tests-js/baselines/seed42_v64.json tests-js/baselines/seed42_v65.json | head
+# Drift expected: zero (snapshot serialization changes, but seed-42
+# crystal-counts shouldn't shift because no engine reads history).
+# If drift IS nonzero, something accidentally tied live state to history.
+
+# Visual verification once parts 1-4 land:
+python -m http.server 8000  # or open index.html via your usual preview path
+# Spin up porphyry, advance ~150 steps, click replay.
+# Check: cavity expands during playback; crystals appear in growth
+# order; replay completes and snaps back to live cleanly.
 ```
 
 The boss promotes from Syntaxswine → StonePhilosopher (canonical) — never push to canonical directly. `v-python-final` tag is on both remotes as the recovery point for the Python engine retirement (commit `2492eb5`).
