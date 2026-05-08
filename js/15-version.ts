@@ -1059,5 +1059,35 @@
 //        Boss can recalibrate against scenarios.json5 broths once the
 //        first runs surface counts that drift outside the expected
 //        paragenesis.
-const SIM_VERSION = 64;
+//
+//   v65 — Replay-in-3D honest history (May 2026): wall_state_history
+//        snapshot schema changes from a flat ring[0]-only array to a
+//        multi-ring object { step, rings: [ring0_cells, ..., ringN-1] }.
+//        The 3D replay path (Three.js renderer, default since v64) now
+//        rebuilds the cavity mesh from all 16 rings of the snapshot,
+//        not a vertical projection of ring[0], and sizes each crystal
+//        from its zones[] history up to the snapshot's step — so
+//        replay finally shows growth order (small → larger), pre-
+//        nucleation skips, and dissolution backwalks honestly.
+//
+//        Files touched:
+//          - js/85c-simulator-state.ts:_repaintWallState — writer.
+//          - js/99i-renderer-three.ts — _topoSnapshotWall consumes the
+//            new shape; _topoSyncCrystalMeshes accepts replayStep and
+//            uses _topoHistoricalCrystalSize for per-frame size lookup.
+//            _clusterSatelliteCount also takes the historical cLen so
+//            replay frames don't pile satellites at live counts.
+//          - js/99b-renderer-topo-2d.ts — topoRender detects shape,
+//            extracts replayStep, aggregates snapshot rings for the
+//            2D canvas-vector path.
+//
+//        Drift: zero expected. No engine reads wall_state_history;
+//        only the renderer consumes it. Storage cost: 16× the v64
+//        schema (~24 KB → ~384 KB for a 200-step run). Legacy flat-
+//        array snapshots remain tolerated by the consumers (the
+//        defensive shape guard in _topoSnapshotWall + topoRender is
+//        the migration shim called for in HANDOFF-BRIEF-19); no save
+//        path serializes wall_state_history so saved games are
+//        unaffected by the schema bump.
+const SIM_VERSION = 65;
 

@@ -5114,7 +5114,37 @@ let timeScale = 5.0;
 //        Boss can recalibrate against scenarios.json5 broths once the
 //        first runs surface counts that drift outside the expected
 //        paragenesis.
-const SIM_VERSION = 64;
+//
+//   v65 — Replay-in-3D honest history (May 2026): wall_state_history
+//        snapshot schema changes from a flat ring[0]-only array to a
+//        multi-ring object { step, rings: [ring0_cells, ..., ringN-1] }.
+//        The 3D replay path (Three.js renderer, default since v64) now
+//        rebuilds the cavity mesh from all 16 rings of the snapshot,
+//        not a vertical projection of ring[0], and sizes each crystal
+//        from its zones[] history up to the snapshot's step — so
+//        replay finally shows growth order (small → larger), pre-
+//        nucleation skips, and dissolution backwalks honestly.
+//
+//        Files touched:
+//          - js/85c-simulator-state.ts:_repaintWallState — writer.
+//          - js/99i-renderer-three.ts — _topoSnapshotWall consumes the
+//            new shape; _topoSyncCrystalMeshes accepts replayStep and
+//            uses _topoHistoricalCrystalSize for per-frame size lookup.
+//            _clusterSatelliteCount also takes the historical cLen so
+//            replay frames don't pile satellites at live counts.
+//          - js/99b-renderer-topo-2d.ts — topoRender detects shape,
+//            extracts replayStep, aggregates snapshot rings for the
+//            2D canvas-vector path.
+//
+//        Drift: zero expected. No engine reads wall_state_history;
+//        only the renderer consumes it. Storage cost: 16× the v64
+//        schema (~24 KB → ~384 KB for a 200-step run). Legacy flat-
+//        array snapshots remain tolerated by the consumers (the
+//        defensive shape guard in _topoSnapshotWall + topoRender is
+//        the migration shim called for in HANDOFF-BRIEF-19); no save
+//        path serializes wall_state_history so saved games are
+//        unaffected by the schema bump.
+const SIM_VERSION = 65;
 
 // ── 18-constants.js ──
 
@@ -20611,19 +20641,41 @@ Object.assign(VugSimulator.prototype, {
                 continue;
             this.wall_state.paintCrystal(crystal);
         }
-        // Snapshot ring[0] for the Replay button. Shallow clone of each
-        // cell's render-relevant fields — including base_radius_mm so the
-        // Phase-1 Fourier profile is preserved across replay frames.
-        const snap = new Array(this.wall_state.rings[0].length);
-        for (let i = 0; i < snap.length; i++) {
-            const c = this.wall_state.rings[0][i];
-            snap[i] = {
-                wall_depth: c.wall_depth,
-                crystal_id: c.crystal_id,
-                mineral: c.mineral,
-                thickness_um: c.thickness_um,
-                base_radius_mm: c.base_radius_mm,
-            };
+        // v65 multi-ring snapshot for the Replay button. Shape:
+        //   { step, rings: [ring0_cells, ring1_cells, ..., ringN_cells] }
+        // Each cell is a shallow clone of its render-relevant fields —
+        // including base_radius_mm so the Phase-1 Fourier profile is
+        // preserved across replay frames. The `step` field lets the renderer
+        // look up historical c_length per crystal (sum zones[k].thickness_um
+        // where zones[k].step <= step) so the replay shows growth order, not
+        // the live final size on every frame.
+        //
+        // Storage cost: ring_count× the v60 schema (16× by default; ~24 KB
+        // → ~384 KB for a 200-step run). Acceptable for in-memory replay.
+        // Legacy flat snapshots (Array shape) are still tolerated by
+        // topoRender / _topoSnapshotWall on the consumer side — see the
+        // shape detection in 99b-renderer-topo-2d.ts and
+        // 99i-renderer-three.ts.
+        const ringCount = this.wall_state.ring_count;
+        const snap = {
+            step: this.step,
+            rings: new Array(ringCount),
+        };
+        for (let r = 0; r < ringCount; r++) {
+            const ring = this.wall_state.rings[r];
+            const N = ring.length;
+            const ringSnap = new Array(N);
+            for (let i = 0; i < N; i++) {
+                const c = ring[i];
+                ringSnap[i] = {
+                    wall_depth: c.wall_depth,
+                    crystal_id: c.crystal_id,
+                    mineral: c.mineral,
+                    thickness_um: c.thickness_um,
+                    base_radius_mm: c.base_radius_mm,
+                };
+            }
+            snap.rings[r] = ringSnap;
         }
         this.wall_state_history.push(snap);
     },
@@ -30194,6 +30246,42 @@ function _topoAggregateRing(wall) {
     }
     return out;
 }
+// v65: aggregator over a multi-ring SNAPSHOT (not a live wall) — same
+// thickest-crystal-wins logic as _topoAggregateRing but operates on
+// the snapshot.rings shape that wall_state_history pushes since v65.
+// The 2D canvas-vector path renders a single ring; this lets replay
+// frames feed it the same way live frames do.
+function _topoAggregateSnapshotRings(snap) {
+    if (!snap || !snap.rings || !snap.rings.length)
+        return [];
+    const ring0 = snap.rings[0];
+    if (!ring0 || !ring0.length)
+        return [];
+    const N = ring0.length;
+    const out = ring0.map(c => ({
+        wall_depth: c.wall_depth,
+        crystal_id: c.crystal_id,
+        mineral: c.mineral,
+        thickness_um: c.thickness_um,
+        base_radius_mm: c.base_radius_mm,
+    }));
+    for (let r = 1; r < snap.rings.length; r++) {
+        const ring = snap.rings[r];
+        if (!ring || !ring.length)
+            continue;
+        for (let i = 0; i < N; i++) {
+            const cell = ring[i];
+            if (cell.crystal_id == null)
+                continue;
+            if (cell.thickness_um > out[i].thickness_um) {
+                out[i].crystal_id = cell.crystal_id;
+                out[i].mineral = cell.mineral;
+                out[i].thickness_um = cell.thickness_um;
+            }
+        }
+    }
+    return out;
+}
 // Slice resolver: returns the ring data the 2D path should display
 // based on `_topoActiveSlice`. 'aggregate' → aggregate ring (post-
 // scatter default); int N → wall.rings[N] directly. Out-of-range
@@ -30254,17 +30342,34 @@ function _topoUpdateSliceLabel(wall) {
     // separate UI element.
     lab.textContent = `${idx + 1}/${total} ${orient}`.trim();
 }
-function topoRender(optOverrideRing) {
+function topoRender(optOverrideSnap) {
     const canvas = document.getElementById('topo-canvas');
     const panel = document.getElementById('topo-panel');
     if (!canvas || !panel || panel.style.display === 'none')
         return;
     const sim = topoActiveSim();
     const wall = sim ? sim.wall_state : null;
-    // Slice stepper resolves to either the aggregate (default) or a
-    // specific ring index. Replay snapshots are already a single ring
-    // shape, so optOverrideRing falls through unchanged.
-    const ring0 = optOverrideRing || (wall && _topoActiveRingForRender(wall));
+    // v65: snapshots are { step, rings: [...] }. Detect the shape and
+    // pull a single ring for the 2D path (which only renders one slice
+    // at a time) plus a `replayStep` so the Three.js path can size each
+    // crystal from history. Legacy flat-array snapshots (v60..v64) are
+    // tolerated — treated as a ring-0 slice with no step.
+    let optReplayStep = undefined;
+    let ring0 = null;
+    if (optOverrideSnap) {
+        if (Array.isArray(optOverrideSnap)) {
+            // Legacy flat snapshot.
+            ring0 = optOverrideSnap;
+        }
+        else if (optOverrideSnap.rings) {
+            // Multi-ring v65 snapshot.
+            optReplayStep = optOverrideSnap.step;
+            ring0 = _topoAggregateSnapshotRings(optOverrideSnap);
+        }
+    }
+    else if (wall) {
+        ring0 = _topoActiveRingForRender(wall);
+    }
     // Keep the stepper label in sync — cheap, runs every render.
     if (wall)
         _topoUpdateSliceLabel(wall);
@@ -30273,7 +30378,7 @@ function topoRender(optOverrideRing) {
     // 'waiting for a vug' rather than a 340px-tall void. Without this the
     // first impression of Current Game is a cavernous empty box, which
     // looks like a render bug.
-    if (!sim && !optOverrideRing) {
+    if (!sim && !optOverrideSnap) {
         _topoPaintPlaceholder(canvas, 'Press Grow to generate a vug — the wall profile will appear here');
         const btn = document.getElementById('topo-replay-btn');
         if (btn)
@@ -30363,11 +30468,12 @@ function topoRender(optOverrideRing) {
     // and the canvas-vector path is skipped. Falls through silently if
     // _topoRenderThree returns false (CDN blocked, canvas missing) so
     // the user is never left staring at an empty panel.
-    // v65: optOverrideRing (replay snapshot) is forwarded so the
-    // Three.js path can rebuild cavity geometry from the historical
-    // ring instead of the live wall.
+    // v65: optOverrideSnap (replay snapshot) and the extracted
+    // optReplayStep are forwarded so the Three.js path can rebuild
+    // cavity geometry from the historical rings AND size each crystal
+    // from its zones[] history up to that step.
     if (_topoUseThreeRenderer && wall && wall.rings && wall.rings.length) {
-        if (_topoRenderThree(sim, wall, optOverrideRing)) {
+        if (_topoRenderThree(sim, wall, optOverrideSnap, optReplayStep)) {
             _topoSyncThreeCanvasVisibility();
             return;
         }
@@ -33857,8 +33963,12 @@ const _CLUSTER_PATTERN_DEFAULT = {
 // crystal size. Big gem crystals (>60 mm) read as solo specimens;
 // small ones build into drusy carpets. Multiplied by the per-habit
 // countScale.
-function _clusterSatelliteCount(crystal, pattern) {
-    const cLen = crystal.c_length_mm;
+function _clusterSatelliteCount(crystal, pattern, cLenOverride) {
+    // v65: cLenOverride lets the replay path size the cluster count from
+    // the historical c_length, not the live one. Without this, a replay
+    // frame of a tiny crystal would still spawn its full live-size
+    // cluster of satellites and pile them all on top of each other.
+    const cLen = cLenOverride != null ? cLenOverride : crystal.c_length_mm;
     let base;
     if (cLen > 60)
         base = 0;
@@ -33877,7 +33987,7 @@ function _clusterSatelliteCount(crystal, pattern) {
 // added to state.crystals alongside the parent.
 function _emitClusterSatellites(state, crystal, geom, mat, ax, ay, az, nx, ny, nz, parentCLen, parentAWid, geomToken, wall, ringCount, N, initR) {
     const pattern = _CLUSTER_PATTERNS[geomToken] || _CLUSTER_PATTERN_DEFAULT;
-    const n = _clusterSatelliteCount(crystal, pattern);
+    const n = _clusterSatelliteCount(crystal, pattern, parentCLen);
     if (n === 0)
         return;
     const rand = _clusterRand((crystal.crystal_id || 0) * 0x9E3779B9 + 0x12345);
@@ -34025,12 +34135,69 @@ function _topoParseColor(s) {
         return new THREE.Color(0xd2691e);
     }
 }
+// v65: historical crystal size for replay. Walks zones[] up to
+// `replayStep` and returns the accumulated c_length_mm / a_width_mm at
+// that historical point — or null if the crystal hadn't nucleated yet
+// or had no positive size by replayStep (in which case the caller skips
+// rendering it entirely so replay shows growth order).
+//
+// Caps the historical total at the live total_growth_um so a
+// dissolution event later in life can't accidentally inflate replay
+// size for steps past dissolution. Negative-thickness phantom zones
+// (dissolution) already net into the running sum, so the same
+// accumulator handles both growth and dissolution paths.
+//
+// Habit ratio mirrors Crystal.add_zone in 27-geometry-crystal.ts; if
+// either file shifts the habit:a_ratio table, both sites need to move
+// together.
+function _topoHistoricalCrystalSize(crystal, replayStep) {
+    if (!crystal)
+        return null;
+    if (crystal.nucleation_step != null && crystal.nucleation_step > replayStep)
+        return null;
+    if (!crystal.zones || !crystal.zones.length)
+        return null;
+    let totalUm = 0;
+    let zoneCount = 0;
+    for (const z of crystal.zones) {
+        if (z.step != null && z.step > replayStep)
+            break;
+        totalUm += z.thickness_um;
+        zoneCount++;
+    }
+    if (zoneCount === 0)
+        return null;
+    if (crystal.total_growth_um != null && totalUm > crystal.total_growth_um) {
+        totalUm = crystal.total_growth_um;
+    }
+    if (totalUm <= 0)
+        return null;
+    const c = totalUm / 1000.0;
+    let a;
+    if (crystal.habit === 'prismatic')
+        a = c * 0.4;
+    else if (crystal.habit === 'tabular')
+        a = c * 1.5;
+    else if (crystal.habit === 'acicular')
+        a = c * 0.15;
+    else if (crystal.habit === 'rhombohedral')
+        a = c * 0.8;
+    else if (crystal.habit === 'snowball')
+        a = c;
+    else
+        a = c * 0.5;
+    return { c_length_mm: c, a_width_mm: a };
+}
 // Compose a deterministic signature of the crystals that affects
 // their meshes — id, mineral, habit, c_length_mm, ring/cell anchor.
 // Excludes growth_environment because all current crystals use
 // 'fluid' (geometric-selection orientation along the substrate
 // normal); E4 will fold in 'air' as it activates.
-function _topoCrystalsSignature(sim) {
+//
+// v65: replayStep folded in so replay frames bust the cache and pull
+// the historical c_length per crystal. When undefined (live render),
+// the signature reduces to the v64 form so live caching is unchanged.
+function _topoCrystalsSignature(sim, replayStep) {
     if (!sim || !sim.crystals || !sim.crystals.length)
         return '';
     const parts = [];
@@ -34044,6 +34211,24 @@ function _topoCrystalsSignature(sim) {
         // appears (and so its mesh gets built in _topoSyncCrystalMeshes).
         if (c.dissolved && !c.perimorph_eligible)
             continue;
+        if (replayStep != null) {
+            // Replay path: skip pre-nucleation crystals so they don't
+            // contribute their final-size key during early replay frames.
+            // Use historical size in the signature so each frame's cache
+            // key reflects the rendered size at that step.
+            const hist = _topoHistoricalCrystalSize(c, replayStep);
+            if (!hist) {
+                // Perimorph casts persist at live size as hollow shells —
+                // keep them in the signature so the cache key still busts
+                // when one appears.
+                if (!(c.dissolved && c.perimorph_eligible))
+                    continue;
+                parts.push(`${c.crystal_id}:${c.mineral}:${c.habit}:cast:${c.c_length_mm.toFixed(2)}:${c.wall_ring_index}:${c.wall_center_cell}`);
+                continue;
+            }
+            parts.push(`${c.crystal_id}:${c.mineral}:${c.habit}:${hist.c_length_mm.toFixed(2)}:${c.wall_ring_index}:${c.wall_center_cell}:r${replayStep}`);
+            continue;
+        }
         parts.push(`${c.crystal_id}:${c.mineral}:${c.habit}:${c.c_length_mm.toFixed(2)}:${c.wall_ring_index}:${c.wall_center_cell}:${c.dissolved ? 'd' : 'a'}`);
     }
     return parts.join('|');
@@ -34053,10 +34238,10 @@ function _topoCrystalsSignature(sim) {
 // oriented so the c-axis points outward from the cavity center, scaled
 // by c_length_mm / a_width_mm. Material color comes from
 // MINERAL_SPEC[mineral].class_color.
-function _topoSyncCrystalMeshes(state, sim, wall) {
+function _topoSyncCrystalMeshes(state, sim, wall, replayStep) {
     if (!sim || !wall || !wall.rings || !wall.rings.length)
         return;
-    const sig = _topoCrystalsSignature(sim);
+    const sig = _topoCrystalsSignature(sim, replayStep);
     if (sig === state.crystalsSig)
         return;
     state.crystalsSig = sig;
@@ -34084,6 +34269,25 @@ function _topoSyncCrystalMeshes(state, sim, wall) {
         // double-sided so the user reads the void inside the shell.
         if (crystal.dissolved && !crystal.perimorph_eligible)
             continue;
+        // v65 replay: rendered c_length / a_width come from history when a
+        // replayStep is active. Skips crystals that hadn't nucleated yet
+        // (or whose net size at replayStep is non-positive) so replay
+        // shows growth order. Perimorph casts persist at live size as
+        // hollow shells regardless — that's their whole point geologically.
+        let renderC = crystal.c_length_mm;
+        let renderA = crystal.a_width_mm;
+        if (replayStep != null) {
+            const hist = _topoHistoricalCrystalSize(crystal, replayStep);
+            if (hist) {
+                renderC = hist.c_length_mm;
+                renderA = hist.a_width_mm;
+            }
+            else if (!(crystal.dissolved && crystal.perimorph_eligible)) {
+                // Not yet nucleated / no positive size at this step → skip.
+                continue;
+            }
+            // else: perimorph cast — fall through with live (= dissolution-time) size.
+        }
         let ringIdx = crystal.wall_ring_index;
         if (ringIdx == null || ringIdx < 0 || ringIdx >= ringCount)
             ringIdx = 0;
@@ -34226,9 +34430,9 @@ function _topoSyncCrystalMeshes(state, sim, wall) {
         const C_FLOOR = 2.0;
         const A_FLOOR = 1.5;
         const targetRatio = _GEOM_TOKEN_RATIO[token] ?? 0.5;
-        let cLen = Math.max(C_FLOOR, crystal.c_length_mm);
-        let aWid = Math.max(A_FLOOR, crystal.a_width_mm);
-        const wasFloored = crystal.c_length_mm < C_FLOOR || crystal.a_width_mm < A_FLOOR;
+        let cLen = Math.max(C_FLOOR, renderC);
+        let aWid = Math.max(A_FLOOR, renderA);
+        const wasFloored = renderC < C_FLOOR || renderA < A_FLOOR;
         if (wasFloored) {
             // Re-derive aspect from habit so the floor doesn't squash everything
             // toward 1:1. For tablet-like habits (ratio >= 1) widen aWid; for
@@ -34437,13 +34641,18 @@ function _topoApplyThreeDefaultOnce() {
         topoSetDragMode('rotate');
     }
 }
-// Build a snapshot-cavity wall for replay. The wall_state_history
-// snapshot is a flat array of ring[0] cells (per the v60-era flat
-// snapshot schema). The 3D renderer needs a multi-ring wall, so we
-// project the snapshot ring across all rings — visually the cavity
-// becomes vertically uniform during replay (a column with the snapshot
-// profile). Lossy vs. true 3D history but visibly meaningful: the user
-// sees the cavity expand as wall_depth grows over the replay timeline.
+// Build a snapshot-cavity wall for replay.
+//
+// v65 (May 2026): consumes the multi-ring snapshot
+//   { step, rings: [ring0_cells, ring1_cells, ...] }
+// written by _repaintWallState in 85c-simulator-state.ts. Each ring's
+// cells go directly into synth.rings[r] so the cavity profile reflects
+// honest 3D history — ring[0]..ring[15] each evolve independently in
+// replay, not the v60 vertically-uniform projection of ring[0].
+//
+// Legacy flat-array snapshot (the v60 schema) is still tolerated for
+// any in-memory state that predates v65: the flat ring is projected
+// across all rings, matching the previous placeholder behavior.
 function _topoSnapshotWall(liveWall, snapshot) {
     if (!liveWall || !liveWall.rings || !liveWall.rings.length)
         return liveWall;
@@ -34452,15 +34661,29 @@ function _topoSnapshotWall(liveWall, snapshot) {
     // Synthetic wall — reuse method shapes from liveWall via Object.assign
     // so polarProfileFactor, ringTwistRadians, etc. still work.
     const synth = Object.assign(Object.create(Object.getPrototypeOf(liveWall) || null), liveWall);
+    // Detect snapshot shape:
+    //   * Multi-ring (v65+): { step, rings: [...] } — use directly.
+    //   * Legacy flat array (v60..v64): project across all rings.
+    let snapRings;
+    if (Array.isArray(snapshot)) {
+        snapRings = new Array(ringCount);
+        for (let r = 0; r < ringCount; r++)
+            snapRings[r] = snapshot;
+    }
+    else if (snapshot && Array.isArray(snapshot.rings)) {
+        snapRings = snapshot.rings;
+    }
+    else {
+        return liveWall;
+    }
     const rings = [];
     for (let r = 0; r < ringCount; r++) {
+        // Fall through to ring 0 if the snapshot is short on rings — keeps
+        // mid-life ring_count migrations from crashing.
+        const sourceRing = snapRings[r] || snapRings[0] || [];
         const ring = new Array(N);
         for (let i = 0; i < N; i++) {
-            const snap = snapshot[i] || {};
-            // Each ring gets the snapshot's per-cell wall_depth + base_radius
-            // so the cavity profile reflects history; crystal_id/mineral kept
-            // for completeness even though the 3D path reads them from
-            // sim.crystals.
+            const snap = sourceRing[i] || {};
             ring[i] = {
                 wall_depth: snap.wall_depth || 0,
                 crystal_id: snap.crystal_id ?? null,
@@ -34480,12 +34703,20 @@ function _topoSnapshotWall(liveWall, snapshot) {
 // success so topoRender can short-circuit; false (=> fallback) when
 // Three.js is unavailable or the canvas hasn't mounted yet.
 //
-// optOverrideRing — replay snapshot. When provided, the cavity is
-// rebuilt from the snapshot's per-cell wall_depth (projected to all
-// rings). Crystals stay live: replay shows historical wall, current
-// crystals — same caveat as the canvas-vector replay, which only
-// has ring[0] history available.
-function _topoRenderThree(sim, wall, optOverrideRing) {
+// optOverrideSnap — replay snapshot. When provided, the cavity is
+// rebuilt from the snapshot's per-ring per-cell wall_depth and the
+// crystals are sized from their zones[] history up to optReplayStep.
+// v65 schema: snapshot is { step, rings: [...] } with one ring per
+// wall_state.ring_count. Legacy flat-array snapshots (v60..v64) are
+// still accepted by _topoSnapshotWall — they project across all
+// rings, matching the v64 placeholder behavior.
+//
+// optReplayStep is the step number associated with the snapshot;
+// _topoSyncCrystalMeshes uses it to skip crystals that hadn't
+// nucleated yet and to sum zone thicknesses up to that step. When
+// undefined, the Three.js path renders LIVE crystal sizes (regular
+// frame).
+function _topoRenderThree(sim, wall, optOverrideSnap, optReplayStep) {
     const canvas = document.getElementById('topo-canvas-three');
     if (!canvas)
         return false;
@@ -34498,16 +34729,16 @@ function _topoRenderThree(sim, wall, optOverrideRing) {
         return false;
     _topoApplyThreeDefaultOnce();
     _topoSyncThreeSize(state, canvas);
-    // During replay, build cavity from snapshot ring (projected to all rings)
-    // so the wall profile reflects the historical step. Force a fresh
-    // cavity build each replay frame by invalidating the cached signatures.
-    const renderWall = optOverrideRing ? _topoSnapshotWall(wall, optOverrideRing) : wall;
-    if (optOverrideRing) {
+    // During replay, build cavity from the snapshot rings so the wall
+    // profile reflects the historical step. Force a fresh build each
+    // replay frame by invalidating the cached signatures.
+    const renderWall = optOverrideSnap ? _topoSnapshotWall(wall, optOverrideSnap) : wall;
+    if (optOverrideSnap) {
         state.cavitySig = null;
         state.crystalsSig = null;
     }
     _topoBuildCavityGeometry(state, renderWall, sim);
-    _topoSyncCrystalMeshes(state, sim, renderWall);
+    _topoSyncCrystalMeshes(state, sim, renderWall, optReplayStep);
     _topoApplyCameraFromTilt(state, renderWall);
     state.renderer.render(state.scene, state.camera);
     return true;

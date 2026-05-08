@@ -109,6 +109,39 @@ function _topoAggregateRing(wall) {
   return out;
 }
 
+// v65: aggregator over a multi-ring SNAPSHOT (not a live wall) — same
+// thickest-crystal-wins logic as _topoAggregateRing but operates on
+// the snapshot.rings shape that wall_state_history pushes since v65.
+// The 2D canvas-vector path renders a single ring; this lets replay
+// frames feed it the same way live frames do.
+function _topoAggregateSnapshotRings(snap): any[] {
+  if (!snap || !snap.rings || !snap.rings.length) return [];
+  const ring0 = snap.rings[0];
+  if (!ring0 || !ring0.length) return [];
+  const N = ring0.length;
+  const out = ring0.map(c => ({
+    wall_depth: c.wall_depth,
+    crystal_id: c.crystal_id,
+    mineral: c.mineral,
+    thickness_um: c.thickness_um,
+    base_radius_mm: c.base_radius_mm,
+  }));
+  for (let r = 1; r < snap.rings.length; r++) {
+    const ring = snap.rings[r];
+    if (!ring || !ring.length) continue;
+    for (let i = 0; i < N; i++) {
+      const cell = ring[i];
+      if (cell.crystal_id == null) continue;
+      if (cell.thickness_um > out[i].thickness_um) {
+        out[i].crystal_id = cell.crystal_id;
+        out[i].mineral = cell.mineral;
+        out[i].thickness_um = cell.thickness_um;
+      }
+    }
+  }
+  return out;
+}
+
 // Slice resolver: returns the ring data the 2D path should display
 // based on `_topoActiveSlice`. 'aggregate' → aggregate ring (post-
 // scatter default); int N → wall.rings[N] directly. Out-of-range
@@ -169,17 +202,33 @@ function _topoUpdateSliceLabel(wall) {
   lab.textContent = `${idx + 1}/${total} ${orient}`.trim();
 }
 
-function topoRender(optOverrideRing?) {
+function topoRender(optOverrideSnap?) {
   const canvas = document.getElementById('topo-canvas');
   const panel = document.getElementById('topo-panel');
   if (!canvas || !panel || panel.style.display === 'none') return;
 
   const sim = topoActiveSim();
   const wall = sim ? sim.wall_state : null;
-  // Slice stepper resolves to either the aggregate (default) or a
-  // specific ring index. Replay snapshots are already a single ring
-  // shape, so optOverrideRing falls through unchanged.
-  const ring0 = optOverrideRing || (wall && _topoActiveRingForRender(wall));
+
+  // v65: snapshots are { step, rings: [...] }. Detect the shape and
+  // pull a single ring for the 2D path (which only renders one slice
+  // at a time) plus a `replayStep` so the Three.js path can size each
+  // crystal from history. Legacy flat-array snapshots (v60..v64) are
+  // tolerated — treated as a ring-0 slice with no step.
+  let optReplayStep: number | undefined = undefined;
+  let ring0: any = null;
+  if (optOverrideSnap) {
+    if (Array.isArray(optOverrideSnap)) {
+      // Legacy flat snapshot.
+      ring0 = optOverrideSnap;
+    } else if (optOverrideSnap.rings) {
+      // Multi-ring v65 snapshot.
+      optReplayStep = optOverrideSnap.step;
+      ring0 = _topoAggregateSnapshotRings(optOverrideSnap);
+    }
+  } else if (wall) {
+    ring0 = _topoActiveRingForRender(wall);
+  }
   // Keep the stepper label in sync — cheap, runs every render.
   if (wall) _topoUpdateSliceLabel(wall);
 
@@ -188,7 +237,7 @@ function topoRender(optOverrideRing?) {
   // 'waiting for a vug' rather than a 340px-tall void. Without this the
   // first impression of Current Game is a cavernous empty box, which
   // looks like a render bug.
-  if (!sim && !optOverrideRing) {
+  if (!sim && !optOverrideSnap) {
     _topoPaintPlaceholder(canvas, 'Press Grow to generate a vug — the wall profile will appear here');
     const btn = document.getElementById('topo-replay-btn');
     if (btn) btn.style.display = 'none';
@@ -280,11 +329,12 @@ function topoRender(optOverrideRing?) {
   // and the canvas-vector path is skipped. Falls through silently if
   // _topoRenderThree returns false (CDN blocked, canvas missing) so
   // the user is never left staring at an empty panel.
-  // v65: optOverrideRing (replay snapshot) is forwarded so the
-  // Three.js path can rebuild cavity geometry from the historical
-  // ring instead of the live wall.
+  // v65: optOverrideSnap (replay snapshot) and the extracted
+  // optReplayStep are forwarded so the Three.js path can rebuild
+  // cavity geometry from the historical rings AND size each crystal
+  // from its zones[] history up to that step.
   if (_topoUseThreeRenderer && wall && wall.rings && wall.rings.length) {
-    if (_topoRenderThree(sim, wall, optOverrideRing)) {
+    if (_topoRenderThree(sim, wall, optOverrideSnap, optReplayStep)) {
       _topoSyncThreeCanvasVisibility();
       return;
     }

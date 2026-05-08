@@ -147,19 +147,41 @@ _diffuseRingState(rate?) {
     if (crystal.dissolved) continue;
     this.wall_state.paintCrystal(crystal);
   }
-  // Snapshot ring[0] for the Replay button. Shallow clone of each
-  // cell's render-relevant fields — including base_radius_mm so the
-  // Phase-1 Fourier profile is preserved across replay frames.
-  const snap = new Array(this.wall_state.rings[0].length);
-  for (let i = 0; i < snap.length; i++) {
-    const c = this.wall_state.rings[0][i];
-    snap[i] = {
-      wall_depth: c.wall_depth,
-      crystal_id: c.crystal_id,
-      mineral: c.mineral,
-      thickness_um: c.thickness_um,
-      base_radius_mm: c.base_radius_mm,
-    };
+  // v65 multi-ring snapshot for the Replay button. Shape:
+  //   { step, rings: [ring0_cells, ring1_cells, ..., ringN_cells] }
+  // Each cell is a shallow clone of its render-relevant fields —
+  // including base_radius_mm so the Phase-1 Fourier profile is
+  // preserved across replay frames. The `step` field lets the renderer
+  // look up historical c_length per crystal (sum zones[k].thickness_um
+  // where zones[k].step <= step) so the replay shows growth order, not
+  // the live final size on every frame.
+  //
+  // Storage cost: ring_count× the v60 schema (16× by default; ~24 KB
+  // → ~384 KB for a 200-step run). Acceptable for in-memory replay.
+  // Legacy flat snapshots (Array shape) are still tolerated by
+  // topoRender / _topoSnapshotWall on the consumer side — see the
+  // shape detection in 99b-renderer-topo-2d.ts and
+  // 99i-renderer-three.ts.
+  const ringCount = this.wall_state.ring_count;
+  const snap: any = {
+    step: this.step,
+    rings: new Array(ringCount),
+  };
+  for (let r = 0; r < ringCount; r++) {
+    const ring = this.wall_state.rings[r];
+    const N = ring.length;
+    const ringSnap = new Array(N);
+    for (let i = 0; i < N; i++) {
+      const c = ring[i];
+      ringSnap[i] = {
+        wall_depth: c.wall_depth,
+        crystal_id: c.crystal_id,
+        mineral: c.mineral,
+        thickness_um: c.thickness_um,
+        base_radius_mm: c.base_radius_mm,
+      };
+    }
+    snap.rings[r] = ringSnap;
   }
   this.wall_state_history.push(snap);
 },
