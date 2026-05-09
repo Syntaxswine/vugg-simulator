@@ -300,18 +300,90 @@ body.topo-view-3d .topo-slice-ctrls { display: none; }
   bottom: 10px;
 }
 .topo-info-label.bottom-center {
-  /* v66 replay-step overlay. Sits along the bottom of the canvas
-     between the vug-size label (bottom-left) and the replay button
-     (bottom-right) so it doesn't collide with the top-row zoom + slice
-     + camera controls on narrow viewports. Visible only when topo
-     replay is running. The amber-on-dark coloring matches the playing
-     replay button so the user reads the two as a connected pair. */
+  /* v66 replay-step overlay. Stacked above the v67-scrub control bar
+     so the user reads "what frame" right above the controls that move
+     between frames. The amber-on-dark coloring matches the active
+     replay state (play/pause button glow) so the two read as a
+     connected pair. */
   left: 50%;
-  bottom: 10px;
+  bottom: 50px;
   transform: translateX(-50%);
   color: #f0c050;
   border: 1px solid #3a3520;
   z-index: 6;
+}
+
+/* v67-scrub: replay control bar — shown when replay is active
+   (playing, paused, or scrub-frozen). Contains step ‹›, play/pause,
+   scrub slider, speed buttons, and stop ✕. Sits at bottom-center of
+   the canvas; the step-overlay sits just above it. */
+.topo-replay-bar {
+  position: absolute;
+  left: 50%;
+  bottom: 10px;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(20, 20, 14, 0.9);
+  border: 1px solid #3a3520;
+  border-radius: 16px;
+  padding: 3px 8px;
+  z-index: 7;
+  backdrop-filter: blur(2px);
+  font-family: "Courier New", monospace;
+  font-size: 11px;
+  color: #d4a843;
+  user-select: none;
+}
+.topo-replay-bar button {
+  background: transparent;
+  border: 0;
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+  padding: 2px 5px;
+  border-radius: 3px;
+  min-width: 22px;
+  height: 22px;
+  line-height: 1;
+  transition: color 0.12s, background 0.12s;
+}
+.topo-replay-bar button:hover {
+  background: rgba(240, 192, 80, 0.18);
+  color: #f0c050;
+}
+.topo-replay-bar .speed-btn {
+  font-size: 10px;
+  padding: 2px 4px;
+  min-width: 26px;
+  color: #8a7a40;
+}
+.topo-replay-bar .speed-btn.active {
+  color: #f0c050;
+  background: rgba(240, 192, 80, 0.12);
+}
+.topo-replay-bar .topo-replay-divider {
+  width: 1px;
+  height: 16px;
+  background: #3a3520;
+  margin: 0 2px;
+}
+.topo-replay-bar input[type="range"] {
+  width: 110px;
+  height: 18px;
+  accent-color: #f0c050;
+  margin: 0 2px;
+  cursor: pointer;
+  background: transparent;
+}
+@media (max-width: 480px) {
+  /* Narrow viewports — drop the speed cluster, narrow the slider. The
+     scrub bar must fit between vug-size (left) and the entry-point
+     replay button area (right). */
+  .topo-replay-bar input[type="range"] { width: 80px; }
+  .topo-replay-bar .speed-btn { display: none; }
+  .topo-replay-bar .speed-divider { display: none; }
 }
 #topo-canvas {
   display: block;
@@ -2553,6 +2625,26 @@ footer a:hover {
       <button id="topo-replay-btn" class="topo-replay" onclick="topoReplay()" title="Replay wall history">▶</button>
       <div id="topo-vug-size" class="topo-info-label bottom-left" title="Vug diameter"></div>
       <div id="topo-replay-overlay" class="topo-info-label bottom-center" style="display:none" title="Replay step (T / pH at this point in history)"></div>
+      <!-- v67-scrub: replay control bar. Hidden by default; shown when
+           topoReplay() activates. Click play/pause to toggle, ‹/› for
+           single-step, drag the slider to jump to any frame, speed
+           buttons adjust frame rate, ✕ stops and restores live view. -->
+      <div id="topo-replay-bar" class="topo-replay-bar" style="display:none">
+        <button onclick="topoReplayStep(-1)" title="Previous frame (←)">‹</button>
+        <button id="topo-replay-playpause" onclick="topoReplayPlayPause()" title="Pause">⏸</button>
+        <button onclick="topoReplayStep(1)" title="Next frame (→)">›</button>
+        <input type="range" id="topo-replay-scrub" min="0" max="0" value="0"
+               oninput="topoReplayScrubInput(event)"
+               onchange="topoReplayScrubChange(event)"
+               title="Scrub through replay timeline">
+        <span class="topo-replay-divider speed-divider"></span>
+        <button class="speed-btn" data-speed="0.5" onclick="topoReplaySpeed(0.5)" title="½× speed">½×</button>
+        <button class="speed-btn" data-speed="1" onclick="topoReplaySpeed(1)" title="1× speed">1×</button>
+        <button class="speed-btn" data-speed="2" onclick="topoReplaySpeed(2)" title="2× speed">2×</button>
+        <button class="speed-btn" data-speed="4" onclick="topoReplaySpeed(4)" title="4× speed">4×</button>
+        <span class="topo-replay-divider"></span>
+        <button onclick="topoReplayStop()" title="Stop and return to live">✕</button>
+      </div>
       <div id="topo-tooltip" class="topo-tooltip" style="display:none"></div>
     </div>
   </div>
@@ -25614,7 +25706,13 @@ function hideAllMenuAndModePanels() {
     if (modeToggle)
         modeToggle.style.display = 'none';
     // Stop any replay timer — the canvas is about to be hidden.
-    if (typeof _topoPlaybackTimer !== 'undefined' && _topoPlaybackTimer) {
+    // v67-scrub: route through topoReplayStop so the bar + overlay also
+    // hide cleanly. Falls back to the legacy clearInterval path if the
+    // function isn't yet defined (stub-bundle test environments).
+    if (typeof topoReplayStop === 'function') {
+        topoReplayStop();
+    }
+    else if (typeof _topoPlaybackTimer !== 'undefined' && _topoPlaybackTimer) {
         clearInterval(_topoPlaybackTimer);
         _topoPlaybackTimer = null;
         const btn = document.getElementById('topo-replay-btn');
@@ -25827,7 +25925,12 @@ function switchMode(mode) {
     if (topoPanel)
         topoPanel.style.display = 'none';
     // Stop any topo replay in flight — the canvas is about to be hidden.
-    if (_topoPlaybackTimer) {
+    // v67-scrub: same routing change as the other call site above —
+    // topoReplayStop tears down the bar + overlay too.
+    if (typeof topoReplayStop === 'function') {
+        topoReplayStop();
+    }
+    else if (_topoPlaybackTimer) {
         clearInterval(_topoPlaybackTimer);
         _topoPlaybackTimer = null;
         const replayBtn = document.getElementById('topo-replay-btn');
@@ -32638,94 +32741,326 @@ function _topoPanMouseUp() {
 // ── 99g-renderer-replay.js ──
 
 // ============================================================
-// js/99g-renderer-replay.ts — Topo replay player (cycles wall-state history at fixed speed)
+// js/99g-renderer-replay.ts — Topo replay player (state machine + scrub bar)
 // ============================================================
-// topoReplay + _topoPlaybackTimer module state. Uses sim.wall_state_history snapshots to step the visualization.
-// v66: also drives the fortress-status panel via _topoReplayActiveSnap so
-// T/pH/pressure/σ-pills rewind alongside the 3D cavity.
+// State machine: idle → playing ↔ paused → idle. Plus scrub mode that
+// can interrupt any of the above and restore the prior play/pause
+// state on release. Speed control multiplies the effective frame rate.
+//
+// v66 added per-frame _topoReplayActiveSnap so the fortress-status panel
+// rewinds T/pH/pressure/σ-pills alongside the cavity. v67-scrub (this
+// file's pickup of the boss-spawned chip) keeps that hook wired through
+// every transition — pause keeps the snap alive (panel stays frozen on
+// the paused frame), scrub jumps the snap, stop clears it.
+//
+// State globals (module-level, read by other modules):
+//   _topoPlaybackTimer       — setInterval handle when playing, else null
+//   _topoReplayActiveSnap    — snap ref or null. Read by 97-ui-fortress.
+//   _topoPlaybackIdx         — current frame index (0..history.length-1)
+//   _topoPlaybackSpeed       — 0.5 | 1 | 2 | 4 (frame_ms divisor)
+//   _topoScrubResumeAfter    — boolean: was playing when drag started?
+//
+// Public functions (wired from index.html / 94-ui-menu.ts):
+//   topoReplay()             — entry point on the corner ▶ button.
+//                              Starts from idx=0 if idle; toggles
+//                              pause/resume otherwise. (Backwards
+//                              compatible with v66 single-button UX.)
+//   topoReplayPlayPause()    — pause/resume (used by the bar's ⏸/▶ btn)
+//   topoReplayStop()         — full stop, restore live, hide bar.
+//                              Also called from 94-ui-menu on nav-away.
+//   topoReplayStep(dir)      — ‹ (dir=-1) or › (dir=+1); pauses if
+//                              playing, jumps idx by 1, renders.
+//   topoReplayScrubInput(e)  — range input drag. Pauses; sets idx;
+//                              renders. Remembers wasPlaying.
+//   topoReplayScrubChange(e) — range input release. Resumes if was playing.
+//   topoReplaySpeed(s)       — sets _topoPlaybackSpeed; restarts timer
+//                              with new frame_ms if currently playing.
 //
 // Phase B12 of PROPOSAL-MODULAR-REFACTOR — split renderer.
 let _topoPlaybackTimer = null;
 // v66: the active snapshot for the current replay frame, or null when
-// replay isn't running. Read by updateFortressStatus (97-ui-fortress.ts)
-// so it can rewind T/pH/pressure/fluid composition + σ pills alongside
-// the 3D cavity. Written by topoReplay() per frame; cleared on stop.
+// not playing AND not paused/scrubbing. Read by updateFortressStatus
+// (97-ui-fortress.ts) so it can rewind T/pH/pressure/fluid composition
+// + σ pills alongside the 3D cavity.
 let _topoReplayActiveSnap = null;
-function topoReplay() {
-    const btn = document.getElementById('topo-replay-btn');
+// v67-scrub: persistent state across pause/scrub/resume cycles.
+let _topoPlaybackIdx = 0;
+let _topoPlaybackSpeed = 1;
+let _topoScrubResumeAfter = false;
+// History reference is fetched fresh from topoActiveSim() each tick so
+// the user can keep growing crystals after pausing — fresh snapshots
+// just extend the array, idx is unchanged. (The decimation policy in
+// 85c-simulator-state.ts means the array grows slowly even on long
+// runs, so caching the ref isn't worth the staleness risk.)
+// Compute frame_ms for the current playback. Targets ~4 s total walk
+// at 1× speed; clamped to [16, 40] ms so a 20-step run isn't a strobe
+// and a 200-step run still feels paced. Speed multiplier divides the
+// frame_ms (0.5× = 80 ms cap, 4× = 4 ms — clamped back to 16 ms floor).
+function _topoReplayFrameMs(historyLen) {
+    const baseMs = Math.max(16, Math.min(40, Math.round(4000 / Math.max(1, historyLen))));
+    const adjusted = baseMs / Math.max(0.0001, _topoPlaybackSpeed);
+    // Floor at 8 ms — even at 4×, frames slower than 8 ms strobe and
+    // load the renderer's per-frame work too tightly.
+    return Math.max(8, adjusted);
+}
+// Render frame `idx` and update fortress + overlay + scrub thumb. Sets
+// _topoReplayActiveSnap so updateFortressStatus picks up the snapshot's
+// conditions for the σ-pills + T/pH/pressure swap.
+function _topoReplayRenderFrame(idx) {
     const sim = topoActiveSim();
     if (!sim || !sim.wall_state_history || !sim.wall_state_history.length)
         return;
+    const history = sim.wall_state_history;
+    if (idx < 0)
+        idx = 0;
+    if (idx >= history.length)
+        idx = history.length - 1;
+    _topoPlaybackIdx = idx;
+    const snap = history[idx];
+    _topoReplayActiveSnap = snap;
+    topoRender(snap);
+    if (typeof updateFortressStatus === 'function')
+        updateFortressStatus();
+    _topoReplayUpdateOverlay(snap, idx, history.length);
+    _topoReplayUpdateScrub(idx, history.length);
+}
+// Repaint the bottom-center step overlay text from the active snap.
+function _topoReplayUpdateOverlay(snap, idx, total) {
     const overlay = document.getElementById('topo-replay-overlay');
-    // Toggle: already playing → stop and restore the live view.
+    if (!overlay)
+        return;
+    const cnd = snap && snap.conditions;
+    const stepN = (snap && snap.step != null) ? snap.step : (idx + 1);
+    let line = `▶ replay step ${stepN} / ${total}`;
+    if (cnd) {
+        const tStr = cnd.temperature != null ? `${cnd.temperature.toFixed(0)}°C` : '';
+        const phStr = (cnd.fluid && cnd.fluid.pH != null) ? `pH ${cnd.fluid.pH.toFixed(1)}` : '';
+        const tail = [tStr, phStr].filter(Boolean).join(' · ');
+        if (tail)
+            line += `  ·  ${tail}`;
+    }
+    overlay.textContent = line;
+}
+// Sync scrub bar thumb to the current idx without firing input events
+// (the scrub events would otherwise re-pause and create feedback).
+function _topoReplayUpdateScrub(idx, total) {
+    const scrub = document.getElementById('topo-replay-scrub');
+    if (!scrub)
+        return;
+    if (parseInt(scrub.max, 10) !== total - 1)
+        scrub.max = String(total - 1);
+    // Only assign if different — avoids redundant DOM thrash on every tick.
+    if (scrub.value !== String(idx))
+        scrub.value = String(idx);
+}
+// Show the replay control bar + step overlay (visible only while
+// idx-is-valid — i.e. playing, paused, or scrub-frozen). Also flips
+// the corner ▶ button into "active" mode.
+function _topoReplayShowBar() {
+    const overlay = document.getElementById('topo-replay-overlay');
+    const bar = document.getElementById('topo-replay-bar');
+    const btn = document.getElementById('topo-replay-btn');
+    if (overlay)
+        overlay.style.display = '';
+    if (bar)
+        bar.style.display = '';
+    if (btn) {
+        // Hide the corner entry-button while the bar is active — the bar
+        // owns the play/pause toggle now.
+        btn.style.visibility = 'hidden';
+    }
+}
+// Hide the replay UI; restore the corner entry-button.
+function _topoReplayHideBar() {
+    const overlay = document.getElementById('topo-replay-overlay');
+    const bar = document.getElementById('topo-replay-bar');
+    const btn = document.getElementById('topo-replay-btn');
+    if (overlay)
+        overlay.style.display = 'none';
+    if (bar)
+        bar.style.display = 'none';
+    if (btn) {
+        btn.textContent = '▶';
+        btn.classList.remove('playing');
+        btn.style.visibility = '';
+    }
+}
+// Repaint the play/pause button icon based on whether the timer is
+// currently running.
+function _topoReplaySyncPlayPauseIcon() {
+    const playPause = document.getElementById('topo-replay-playpause');
+    if (!playPause)
+        return;
+    playPause.textContent = _topoPlaybackTimer ? '⏸' : '▶';
+    playPause.title = _topoPlaybackTimer ? 'Pause' : 'Resume';
+}
+// Highlight the active speed button.
+function _topoReplaySyncSpeedButtons() {
+    const buttons = document.querySelectorAll('#topo-replay-bar .speed-btn');
+    buttons.forEach((b) => {
+        const v = parseFloat(b.dataset.speed);
+        if (v === _topoPlaybackSpeed)
+            b.classList.add('active');
+        else
+            b.classList.remove('active');
+    });
+}
+// Internal: kick the timer from a given idx with the current speed.
+function _topoReplayStartTimer(fromIdx) {
+    const sim = topoActiveSim();
+    if (!sim || !sim.wall_state_history || !sim.wall_state_history.length)
+        return;
+    const history = sim.wall_state_history;
+    if (_topoPlaybackTimer)
+        clearInterval(_topoPlaybackTimer);
+    _topoPlaybackIdx = Math.max(0, Math.min(fromIdx, history.length - 1));
+    const frameMs = _topoReplayFrameMs(history.length);
+    // Render the starting frame immediately so the user doesn't see a
+    // delay before the first paint.
+    _topoReplayRenderFrame(_topoPlaybackIdx);
+    _topoPlaybackTimer = setInterval(() => {
+        const sim2 = topoActiveSim();
+        if (!sim2 || !sim2.wall_state_history) {
+            topoReplayStop();
+            return;
+        }
+        const h = sim2.wall_state_history;
+        _topoPlaybackIdx++;
+        if (_topoPlaybackIdx >= h.length) {
+            // Played to the end — auto-stop and restore live view.
+            topoReplayStop();
+            return;
+        }
+        _topoReplayRenderFrame(_topoPlaybackIdx);
+    }, frameMs);
+    _topoReplaySyncPlayPauseIcon();
+}
+// Public — entry point on the corner ▶ button. Starts from idx=0 when
+// idle. When already active (playing or paused), defers to the bar's
+// play/pause behavior — so old call sites that still hit this function
+// keep working.
+function topoReplay() {
+    const sim = topoActiveSim();
+    if (!sim || !sim.wall_state_history || !sim.wall_state_history.length)
+        return;
+    // If active in any state (playing, paused, scrub-frozen), treat the
+    // entry-button click as play/pause toggle.
+    if (_topoReplayActiveSnap != null) {
+        topoReplayPlayPause();
+        return;
+    }
+    // Cold start.
+    _topoPlaybackIdx = 0;
+    _topoPlaybackSpeed = 1;
+    _topoReplayShowBar();
+    _topoReplaySyncSpeedButtons();
+    _topoReplayStartTimer(0);
+}
+// Toggle play/pause from the bar.
+function topoReplayPlayPause() {
+    if (_topoPlaybackTimer) {
+        // Pause: keep idx, keep _topoReplayActiveSnap so fortress panel
+        // stays frozen on the paused frame.
+        clearInterval(_topoPlaybackTimer);
+        _topoPlaybackTimer = null;
+        _topoReplaySyncPlayPauseIcon();
+        return;
+    }
+    // Resume from current idx. If at the end, restart from 0.
+    const sim = topoActiveSim();
+    if (!sim || !sim.wall_state_history || !sim.wall_state_history.length)
+        return;
+    let resumeIdx = _topoPlaybackIdx;
+    if (resumeIdx >= sim.wall_state_history.length - 1)
+        resumeIdx = 0;
+    _topoReplayShowBar();
+    _topoReplayStartTimer(resumeIdx);
+}
+// Full stop — clears all replay state, restores the live view, hides
+// the bar. Also called from 94-ui-menu.ts when navigating away.
+function topoReplayStop() {
     if (_topoPlaybackTimer) {
         clearInterval(_topoPlaybackTimer);
         _topoPlaybackTimer = null;
-        _topoReplayActiveSnap = null;
-        if (btn) {
-            btn.textContent = '▶';
-            btn.classList.remove('playing');
-        }
-        if (overlay)
-            overlay.style.display = 'none';
-        topoRender();
-        if (typeof updateFortressStatus === 'function')
-            updateFortressStatus();
+    }
+    _topoReplayActiveSnap = null;
+    _topoPlaybackIdx = 0;
+    _topoScrubResumeAfter = false;
+    _topoReplayHideBar();
+    topoRender();
+    if (typeof updateFortressStatus === 'function')
+        updateFortressStatus();
+}
+// Single-frame step. dir = -1 or +1. Pauses if playing.
+function topoReplayStep(dir) {
+    const sim = topoActiveSim();
+    if (!sim || !sim.wall_state_history || !sim.wall_state_history.length)
+        return;
+    // If we're not in any active replay state yet, start from idx=0
+    // first so the user can step from the beginning.
+    if (_topoReplayActiveSnap == null) {
+        _topoPlaybackSpeed = 1;
+        _topoReplayShowBar();
+        _topoReplaySyncSpeedButtons();
+        _topoReplayRenderFrame(0);
         return;
     }
-    const history = sim.wall_state_history;
-    const totalSteps = history.length;
-    // Target ~4s total for long runs, but never slower than 40ms/frame and
-    // never faster than 16ms/frame. Scales gracefully from 20-step to
-    // 200-step runs without feeling laggy or strobing.
-    const frameMs = Math.max(16, Math.min(40, Math.round(4000 / totalSteps)));
-    let idx = 0;
-    if (btn) {
-        btn.textContent = '⏹';
-        btn.classList.add('playing');
+    // Pause the timer if it's running — frame-step is a deliberate
+    // single-step action, the user wants to study one frame.
+    if (_topoPlaybackTimer) {
+        clearInterval(_topoPlaybackTimer);
+        _topoPlaybackTimer = null;
+        _topoReplaySyncPlayPauseIcon();
     }
-    if (overlay)
-        overlay.style.display = '';
-    _topoPlaybackTimer = setInterval(() => {
-        if (idx >= history.length) {
-            clearInterval(_topoPlaybackTimer);
-            _topoPlaybackTimer = null;
-            _topoReplayActiveSnap = null;
-            if (btn) {
-                btn.textContent = '▶';
-                btn.classList.remove('playing');
-            }
-            if (overlay)
-                overlay.style.display = 'none';
-            // Snap back to live so any new growth lands immediately.
-            topoRender();
-            if (typeof updateFortressStatus === 'function')
-                updateFortressStatus();
-            return;
-        }
-        const snap = history[idx];
-        _topoReplayActiveSnap = snap;
-        topoRender(snap);
-        if (typeof updateFortressStatus === 'function')
-            updateFortressStatus();
-        if (overlay) {
-            // Compact step badge with T / pH from the snapshot's conditions.
-            // Falls back to "step N" if conditions aren't recorded (legacy
-            // flat snapshots).
-            const cnd = snap && snap.conditions;
-            const stepN = (snap && snap.step != null) ? snap.step : (idx + 1);
-            let line = `▶ replay step ${stepN} / ${totalSteps}`;
-            if (cnd) {
-                const tStr = cnd.temperature != null ? `${cnd.temperature.toFixed(0)}°C` : '';
-                const phStr = (cnd.fluid && cnd.fluid.pH != null) ? `pH ${cnd.fluid.pH.toFixed(1)}` : '';
-                const tail = [tStr, phStr].filter(Boolean).join(' · ');
-                if (tail)
-                    line += `  ·  ${tail}`;
-            }
-            overlay.textContent = line;
-        }
-        idx++;
-    }, frameMs);
+    const history = sim.wall_state_history;
+    const nextIdx = Math.max(0, Math.min(_topoPlaybackIdx + dir, history.length - 1));
+    _topoReplayRenderFrame(nextIdx);
+}
+// Scrub bar `input` event — fires on every drag move. Pauses the
+// timer if running (remembers wasPlaying for the release-resume), then
+// jumps to the dragged frame.
+function topoReplayScrubInput(ev) {
+    const target = ev && ev.target;
+    if (!target)
+        return;
+    const idx = parseInt(target.value, 10);
+    if (!Number.isFinite(idx))
+        return;
+    // First drag move pauses + remembers state.
+    if (_topoPlaybackTimer) {
+        _topoScrubResumeAfter = true;
+        clearInterval(_topoPlaybackTimer);
+        _topoPlaybackTimer = null;
+        _topoReplaySyncPlayPauseIcon();
+    }
+    // Make sure the bar is visible — scrubbing from idle counts as
+    // entering replay mode.
+    if (_topoReplayActiveSnap == null) {
+        _topoPlaybackSpeed = 1;
+        _topoReplayShowBar();
+        _topoReplaySyncSpeedButtons();
+    }
+    _topoReplayRenderFrame(idx);
+}
+// Scrub bar `change` event — fires on release. Resumes if we were
+// playing when the drag began.
+function topoReplayScrubChange(_ev) {
+    if (_topoScrubResumeAfter) {
+        _topoScrubResumeAfter = false;
+        _topoReplayStartTimer(_topoPlaybackIdx);
+    }
+}
+// Speed selector. Restarts the timer with new frame_ms if currently
+// playing. Pause/idle just records the new speed for the next play.
+function topoReplaySpeed(speed) {
+    if (!Number.isFinite(speed) || speed <= 0)
+        return;
+    _topoPlaybackSpeed = speed;
+    _topoReplaySyncSpeedButtons();
+    if (_topoPlaybackTimer) {
+        // Restart with new frame_ms.
+        _topoReplayStartTimer(_topoPlaybackIdx);
+    }
 }
 
 // ── 99h-renderer-idle-chart.js ──

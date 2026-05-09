@@ -24,7 +24,12 @@ function hideAllMenuAndModePanels() {
   const modeToggle = document.getElementById('mode-toggle');
   if (modeToggle) modeToggle.style.display = 'none';
   // Stop any replay timer — the canvas is about to be hidden.
-  if (typeof _topoPlaybackTimer !== 'undefined' && _topoPlaybackTimer) {
+  // v67-scrub: route through topoReplayStop so the bar + overlay also
+  // hide cleanly. Falls back to the legacy clearInterval path if the
+  // function isn't yet defined (stub-bundle test environments).
+  if (typeof topoReplayStop === 'function') {
+    topoReplayStop();
+  } else if (typeof _topoPlaybackTimer !== 'undefined' && _topoPlaybackTimer) {
     clearInterval(_topoPlaybackTimer);
     _topoPlaybackTimer = null;
     const btn = document.getElementById('topo-replay-btn');
@@ -233,7 +238,11 @@ function switchMode(mode) {
   const topoPanel = document.getElementById('topo-panel');
   if (topoPanel) topoPanel.style.display = 'none';
   // Stop any topo replay in flight — the canvas is about to be hidden.
-  if (_topoPlaybackTimer) {
+  // v67-scrub: same routing change as the other call site above —
+  // topoReplayStop tears down the bar + overlay too.
+  if (typeof topoReplayStop === 'function') {
+    topoReplayStop();
+  } else if (_topoPlaybackTimer) {
     clearInterval(_topoPlaybackTimer);
     _topoPlaybackTimer = null;
     const replayBtn = document.getElementById('topo-replay-btn');
