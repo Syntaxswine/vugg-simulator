@@ -140,12 +140,13 @@ function _topoReplayHideBar() {
 }
 
 // Repaint the play/pause button icon based on whether the timer is
-// currently running.
+// currently running. Title hint matches the keydown handler at the
+// bottom of this file (Space toggles).
 function _topoReplaySyncPlayPauseIcon() {
   const playPause = document.getElementById('topo-replay-playpause');
   if (!playPause) return;
   playPause.textContent = _topoPlaybackTimer ? '⏸' : '▶';
-  playPause.title = _topoPlaybackTimer ? 'Pause' : 'Resume';
+  playPause.title = _topoPlaybackTimer ? 'Pause (Space)' : 'Resume (Space)';
 }
 
 // Highlight the active speed button.
@@ -315,4 +316,53 @@ function topoReplaySpeed(speed: number) {
     // Restart with new frame_ms.
     _topoReplayStartTimer(_topoPlaybackIdx);
   }
+}
+
+// v67-scrub keyboard shortcuts. Wire once at module load (the bundle
+// is concatenated into a single script-mode IIFE, so this attaches at
+// page parse time). Only intercepts when:
+//   1. user isn't typing into an input/textarea/select/contenteditable,
+//   2. replay is currently active (_topoReplayActiveSnap != null), and
+//   3. the topo panel is visible.
+// The bar's title attributes ("Previous frame (←)", "Next frame (→)",
+// "Pause (Space)", "Stop and return to live (Esc)") document the
+// keymap; this handler delivers on those promises.
+if (typeof document !== 'undefined' && typeof document.addEventListener === 'function') {
+  document.addEventListener('keydown', (ev: any) => {
+    // Skip when user is typing — don't hijack inputs.
+    const tgt: HTMLElement | null = ev && ev.target as HTMLElement;
+    if (tgt) {
+      const tag = (tgt.tagName || '').toLowerCase();
+      if (tag === 'input' || tag === 'textarea' || tag === 'select') return;
+      if ((tgt as any).isContentEditable) return;
+    }
+    // Modifier-pressed combos belong to the browser / OS.
+    if (ev.ctrlKey || ev.altKey || ev.metaKey) return;
+    // Replay must be active for these keys to mean anything.
+    if (typeof _topoReplayActiveSnap === 'undefined' || _topoReplayActiveSnap == null) return;
+    // Topo panel must be visible.
+    const topoPanel = document.getElementById('topo-panel');
+    if (!topoPanel || topoPanel.style.display === 'none') return;
+
+    switch (ev.key) {
+      case 'ArrowLeft':
+        ev.preventDefault();
+        topoReplayStep(-1);
+        break;
+      case 'ArrowRight':
+        ev.preventDefault();
+        topoReplayStep(1);
+        break;
+      case ' ':
+      case 'Spacebar':  // older Edge / Firefox
+        ev.preventDefault();
+        topoReplayPlayPause();
+        break;
+      case 'Escape':
+      case 'Esc':       // older Edge
+        ev.preventDefault();
+        topoReplayStop();
+        break;
+    }
+  });
 }
