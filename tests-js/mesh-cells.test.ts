@@ -117,3 +117,130 @@ describe('cavity-mesh Phase 4 Tranche 1 — mesh.cells[] container', () => {
     expect(sim.crystals.length).toBeGreaterThan(0);
   });
 });
+
+// ============================================================
+// Tranche 2 — Per-vertex Laplacian + propagate-global-delta
+// ============================================================
+
+describe('cavity-mesh Phase 4 Tranche 2 — mesh-edge Laplacian', () => {
+  it('adjacency builds 4 neighbors for interior vertices, 3 for pole-ring vertices', () => {
+    const sim = new VugSimulator(makeConditions(), []);
+    const mesh = sim.wall_state.meshFor(sim);
+    const ringCount = 16, N = 120;
+    const adj = mesh._buildAdjacency(ringCount, N);
+    expect(adj.length).toBe(mesh.numInterior);
+    // Interior ring (say ring 5, cell 30): 2 same-ring + 2 adjacent-ring.
+    expect(adj[5 * N + 30].length).toBe(4);
+    // Top ring (ring 0, cell 0): the up-clamp deduplicates, so 3 neighbors.
+    expect(adj[0 * N + 0].length).toBe(3);
+    // Bottom ring (ring 15, cell 0): the down-clamp deduplicates, so 3 neighbors.
+    expect(adj[15 * N + 0].length).toBe(3);
+  });
+
+  it('adjacency wraps theta correctly (same-ring left/right neighbors)', () => {
+    const sim = new VugSimulator(makeConditions(), []);
+    const mesh = sim.wall_state.meshFor(sim);
+    const ringCount = 16, N = 120;
+    const adj = mesh._buildAdjacency(ringCount, N);
+    // Ring 5, cell 0: same-ring neighbors are cell N-1 (left wraps) and cell 1.
+    const r5c0Neighbors = new Set(adj[5 * N + 0]);
+    expect(r5c0Neighbors.has(5 * N + (N - 1))).toBe(true);  // wrap-left
+    expect(r5c0Neighbors.has(5 * N + 1)).toBe(true);         // right
+    // Ring 5, cell N-1: same-ring neighbors are N-2 and cell 0 (right wraps).
+    const r5cLastNeighbors = new Set(adj[5 * N + (N - 1)]);
+    expect(r5cLastNeighbors.has(5 * N + (N - 2))).toBe(true);
+    expect(r5cLastNeighbors.has(5 * N + 0)).toBe(true);     // wrap-right
+  });
+
+  it('mesh.diffuse on uniform aliased chemistry is a no-op (Laplacian of constant = 0)', () => {
+    // Default scenario: every ring starts with identical chemistry.
+    // After aliasing (Tranche 1) every cell shares one fluid per ring;
+    // those fluids all have the SAME field values (cloned from one
+    // initial fluid). Laplacian of a constant = 0, so no field should
+    // change after diffuse fires.
+    const sim = new VugSimulator(makeConditions(), []);
+    const mesh = sim.wall_state.meshFor(sim);
+    const ca_before = sim.ring_fluids.map((f: any) => f.Ca);
+    mesh.diffuse(0.05, ['Ca'], sim.ring_temperatures);
+    const ca_after = sim.ring_fluids.map((f: any) => f.Ca);
+    expect(ca_after).toEqual(ca_before);
+  });
+
+  it('mesh.diffuse with zoned aliased chemistry matches ring-Laplacian', () => {
+    // Inject a per-ring gradient: ring 0 has Ca=300, ring 15 has
+    // Ca=500, everything else interpolates. Then run mesh.diffuse
+    // and confirm the result matches the legacy ring-Laplacian
+    // formula, applied once (dedup-by-fluid-identity).
+    const sim = new VugSimulator(makeConditions(), []);
+    const mesh = sim.wall_state.meshFor(sim);
+    const n = sim.wall_state.ring_count;
+    for (let r = 0; r < n; r++) {
+      sim.ring_fluids[r].Ca = 300 + (200 * r) / (n - 1);
+    }
+    const before = sim.ring_fluids.map((f: any) => f.Ca);
+    const rate = 0.05;
+    // Compute the expected ring-Laplacian by hand.
+    const expected = [];
+    for (let k = 0; k < n; k++) {
+      const kp = k > 0 ? k - 1 : 0;
+      const kn = k < n - 1 ? k + 1 : n - 1;
+      expected.push(before[k] + rate * (before[kp] + before[kn] - 2 * before[k]));
+    }
+    mesh.diffuse(rate, ['Ca'], sim.ring_temperatures);
+    const actual = sim.ring_fluids.map((f: any) => f.Ca);
+    for (let r = 0; r < n; r++) {
+      expect(actual[r]).toBeCloseTo(expected[r], 10);
+    }
+  });
+
+  it('mesh.propagateDelta hits every non-equator fluid exactly once', () => {
+    // Inject a delta: set conditions.fluid.Ca to a new value (the
+    // equator-aliased slot already reflects this), then call
+    // propagateDelta with the pre-snap fluid. All non-equator rings
+    // should receive the delta exactly once (dedup-by-identity).
+    const sim = new VugSimulator(makeConditions(), []);
+    const mesh = sim.wall_state.meshFor(sim);
+    const n = sim.wall_state.ring_count;
+    const equator = Math.floor(n / 2);
+    const before = sim.ring_fluids.map((f: any) => f.Ca);
+    // Snapshot the pre-event state, then mutate the equator-aliased
+    // slot (= conditions.fluid).
+    const preSnap = new FluidChemistry({ ...sim.conditions.fluid });
+    sim.conditions.fluid.Ca += 100;
+    mesh.propagateDelta(preSnap, ['Ca'], sim.ring_fluids[equator]);
+    // Every non-equator ring should have gained 100 ppm Ca.
+    for (let r = 0; r < n; r++) {
+      if (r === equator) {
+        // Equator is the conditions.fluid alias; already mutated.
+        expect(sim.ring_fluids[r].Ca).toBe(before[r] + 100);
+      } else {
+        expect(sim.ring_fluids[r].Ca).toBe(before[r] + 100);
+      }
+    }
+  });
+
+  it('_diffuseRingState delegates to mesh.diffuse byte-identically', () => {
+    // The wrapper in 85c-simulator-state.ts now calls mesh.diffuse
+    // instead of running its own ring-Laplacian. Inject a gradient
+    // and confirm the wrapper produces the same numbers the raw
+    // ring-Laplacian would.
+    const sim = new VugSimulator(makeConditions(), []);
+    const n = sim.wall_state.ring_count;
+    for (let r = 0; r < n; r++) {
+      sim.ring_fluids[r].Ca = 100 + 20 * r;
+    }
+    const rate = sim.inter_ring_diffusion_rate;
+    const before = sim.ring_fluids.map((f: any) => f.Ca);
+    const expected = [];
+    for (let k = 0; k < n; k++) {
+      const kp = k > 0 ? k - 1 : 0;
+      const kn = k < n - 1 ? k + 1 : n - 1;
+      expected.push(before[k] + rate * (before[kp] + before[kn] - 2 * before[k]));
+    }
+    sim._diffuseRingState();
+    const actual = sim.ring_fluids.map((f: any) => f.Ca);
+    for (let r = 0; r < n; r++) {
+      expect(actual[r]).toBeCloseTo(expected[r], 10);
+    }
+  });
+});

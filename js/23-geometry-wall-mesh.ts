@@ -200,6 +200,160 @@ class WallMesh {
     }
   }
 
+  // PROPOSAL-CAVITY-MESH Phase 4 Tranche 2 — build the adjacency
+  // map for the current tessellation (default: lat-long grid of
+  // ring_count × cells_per_ring). For each interior vertex, returns
+  // the list of neighbor vertex indices: 4 for typical interior
+  // vertices (two same-ring left/right with theta-wrap, two
+  // adjacent-ring up/down with pole-clamp); 3 for vertices on the
+  // top/bottom ring (one of up/down clamps to itself, deduplicated).
+  //
+  // Computed lazily on first call; cached on the instance. If a
+  // future Phase 2.5 swaps the default tessellation for an icosphere
+  // or geodesic, replace this body with an index-buffer scan that
+  // derives adjacency from the triangulation directly. The
+  // signature is stable.
+  _buildAdjacency(ringCount, cellsPerRing) {
+    if (this._adjacency && this._adjacencyKey === `${ringCount}|${cellsPerRing}`) {
+      return this._adjacency;
+    }
+    const adj = new Array(this.numInterior);
+    for (let r = 0; r < ringCount; r++) {
+      for (let c = 0; c < cellsPerRing; c++) {
+        const i = r * cellsPerRing + c;
+        const neighbors: number[] = [];
+        // Same-ring left / right with theta-wrap.
+        neighbors.push(r * cellsPerRing + ((c - 1 + cellsPerRing) % cellsPerRing));
+        neighbors.push(r * cellsPerRing + ((c + 1) % cellsPerRing));
+        // Adjacent-ring up / down with pole-clamp (Neumann boundary —
+        // top ring's "up" is itself, bottom ring's "down" is itself).
+        const rUp = (r > 0) ? r - 1 : 0;
+        const rDn = (r < ringCount - 1) ? r + 1 : ringCount - 1;
+        if (rUp !== r) neighbors.push(rUp * cellsPerRing + c);
+        if (rDn !== r) neighbors.push(rDn * cellsPerRing + c);
+        adj[i] = neighbors;
+      }
+    }
+    this._adjacency = adj;
+    this._adjacencyKey = `${ringCount}|${cellsPerRing}`;
+    return adj;
+  }
+
+  // PROPOSAL-CAVITY-MESH Phase 4 Tranche 2 — per-vertex Laplacian
+  // diffusion over the mesh. For each unique fluid object referenced
+  // by the cells[] array, computes one Laplacian update and applies
+  // it. Tranche 1's aliasing means cells in the same ring share one
+  // FluidChemistry instance — same-ring neighbors contribute zero
+  // (self - self = 0), and the update reduces mathematically to the
+  // legacy ring-Laplacian.
+  //
+  // Deduplication via fluid-object identity ensures each storage
+  // location is updated exactly once per Laplacian step, regardless
+  // of how many cells share it. When Tranche 4 un-aliases cells (one
+  // fluid per vertex), the dedup becomes a no-op and the Laplacian
+  // operates truly per-vertex.
+  diffuse(rate, fieldNames, ringTemps) {
+    if (!(rate > 0)) return;
+    if (!this.cells || !this.cells.length) return;
+    if (!fieldNames || !fieldNames.length) return;
+    const ringCount = this.maxRadiusByRing
+      ? this.maxRadiusByRing.length
+      : 1;
+    const cellsPerRing = ringCount > 0
+      ? this.numInterior / ringCount
+      : 0;
+    if (cellsPerRing <= 0) return;
+    const adj = this._buildAdjacency(ringCount, cellsPerRing);
+    // Group cells by their fluid-object identity. Each group represents
+    // one unique storage location; we'll compute one update per group
+    // using a representative cell.
+    const representatives = new Map();  // fluid_obj → vertex_idx
+    for (let i = 0; i < this.numInterior; i++) {
+      const fluid = this.cells[i].fluid;
+      if (!fluid) continue;
+      if (!representatives.has(fluid)) representatives.set(fluid, i);
+    }
+    // Snapshot pre-update field values so each unique fluid's update
+    // reads the pre-step state of its neighbors (otherwise the loop
+    // would be asymmetric — later iterations would see earlier writes).
+    const snapshot = new Map();  // fluid_obj → { fname: value, ... }
+    for (const fluid of representatives.keys()) {
+      const snap: any = {};
+      for (const f of fieldNames) snap[f] = fluid[f];
+      snapshot.set(fluid, snap);
+    }
+    // Compute and apply each unique fluid's Laplacian update.
+    for (const [fluid, i] of representatives) {
+      const neighbors = adj[i];
+      const selfSnap = snapshot.get(fluid);
+      for (const f of fieldNames) {
+        let neighborSum = 0;
+        let degree = 0;
+        for (const j of neighbors) {
+          const nfluid = this.cells[j].fluid;
+          if (!nfluid) continue;
+          const nsnap = snapshot.get(nfluid);
+          neighborSum += nsnap ? nsnap[f] : nfluid[f];
+          degree++;
+        }
+        if (degree === 0) continue;
+        // Standard Laplacian: rate * (sum_neighbors - degree * self).
+        // Reduces to 1D ring-Laplacian when same-ring neighbors are
+        // aliased to self (same-ring contributions cancel in the sum).
+        fluid[f] = selfSnap[f] + rate * (neighborSum - degree * selfSnap[f]);
+      }
+    }
+    // Temperature diffusion — same dedup pattern, separate field.
+    if (ringTemps && ringTemps.length > 0) {
+      const tempReps = new Map();  // ringIdx → first vertex idx
+      for (let i = 0; i < this.numInterior; i++) {
+        const r = this.cells[i].temperature_ring;
+        if (r == null || r < 0) continue;
+        if (!tempReps.has(r)) tempReps.set(r, i);
+      }
+      const tempSnap = ringTemps.slice();
+      for (const [r, i] of tempReps) {
+        const neighbors = adj[i];
+        let neighborSum = 0;
+        let degree = 0;
+        for (const j of neighbors) {
+          const rj = this.cells[j].temperature_ring;
+          if (rj == null) continue;
+          neighborSum += tempSnap[rj];
+          degree++;
+        }
+        if (degree === 0) continue;
+        ringTemps[r] = tempSnap[r] + rate * (neighborSum - degree * tempSnap[r]);
+      }
+    }
+  }
+
+  // PROPOSAL-CAVITY-MESH Phase 4 Tranche 2 — propagate a global
+  // chemistry delta (from an event that mutated conditions.fluid)
+  // to all non-equator cells. The equator vertex is aliased to
+  // conditions.fluid via ring_fluids[equator], so it already
+  // reflects the new value — skip it to avoid double-applying.
+  //
+  // Same dedup-by-fluid-identity pattern as diffuse(). Reduces to
+  // ring-level propagation while cells are aliased.
+  propagateDelta(preFluid, fieldNames, equatorFluid) {
+    if (!this.cells || !this.cells.length) return;
+    if (!preFluid || !fieldNames || !fieldNames.length) return;
+    const seen = new Set();
+    for (let i = 0; i < this.numInterior; i++) {
+      const fluid = this.cells[i].fluid;
+      if (!fluid) continue;
+      if (fluid === equatorFluid) continue;  // aliased to conditions.fluid
+      if (seen.has(fluid)) continue;
+      seen.add(fluid);
+      for (const f of fieldNames) {
+        const delta = (equatorFluid ? equatorFluid[f] : 0) - preFluid[f];
+        if (delta === 0) continue;
+        fluid[f] = fluid[f] + delta;
+      }
+    }
+  }
+
   // PROPOSAL-CAVITY-MESH Phase 4 Tranche 1 — resolve a crystal's
   // anchor to its mesh cell. Returns the cell object directly so
   // callers can read .fluid / .temperature_ring. Returns null for

@@ -41,12 +41,27 @@ _propagateGlobalDelta(snap) {
   const [preFluid, preTemp] = snap;
   const equator = Math.floor(this.wall_state.ring_count / 2);
   const equatorFluid = this.ring_fluids[equator];  // = conditions.fluid (aliased)
-  for (const fname of this._fluidFieldNames) {
-    const delta = this.conditions.fluid[fname] - preFluid[fname];
-    if (delta === 0) continue;
-    for (const rf of this.ring_fluids) {
-      if (rf === equatorFluid) continue;
-      rf[fname] = rf[fname] + delta;
+  // PROPOSAL-CAVITY-MESH Phase 4 Tranche 2 — delegate fluid-delta
+  // propagation to the mesh. Dedup-by-fluid-identity in the mesh
+  // method ensures each shared FluidChemistry instance gets the delta
+  // exactly once; byte-identical to the legacy ring-level propagation
+  // because cells in the same ring share one fluid object (Tranche 1
+  // aliasing). When Tranche 4 un-aliases, each cell's fluid gets the
+  // delta independently — natural per-vertex behavior.
+  const mesh = this.wall_state.meshFor
+    ? this.wall_state.meshFor(this)
+    : null;
+  if (mesh && mesh.propagateDelta) {
+    mesh.propagateDelta(preFluid, this._fluidFieldNames, equatorFluid);
+  } else {
+    // Defensive fallback if the mesh isn't built (headless tests).
+    for (const fname of this._fluidFieldNames) {
+      const delta = this.conditions.fluid[fname] - preFluid[fname];
+      if (delta === 0) continue;
+      for (const rf of this.ring_fluids) {
+        if (rf === equatorFluid) continue;
+        rf[fname] = rf[fname] + delta;
+      }
     }
   }
   const deltaT = this.conditions.temperature - preTemp;
@@ -133,6 +148,26 @@ _applyVadoseOxidationOverride() {
 _diffuseRingState(rate?) {
   if (rate == null) rate = this.inter_ring_diffusion_rate;
   if (!(rate > 0)) return;
+  // PROPOSAL-CAVITY-MESH Phase 4 Tranche 2 — delegate to mesh-edge
+  // Laplacian. Math equivalence: with Tranche 1's aliased cells,
+  // same-ring neighbors share the parent fluid object so the per-
+  // vertex Laplacian's same-ring contributions cancel out; only
+  // adjacent-ring (= 1D height-stack) contributions matter. The
+  // dedup-by-fluid-identity in mesh.diffuse() applies the update
+  // once per unique fluid, recovering the legacy 1D Laplacian
+  // behavior byte-identically.
+  //
+  // When Tranche 4 un-aliases cells, each cell's fluid evolves
+  // independently and the mesh-Laplacian becomes truly 2D over the
+  // cavity surface — the per-vertex chemistry Path C is built for.
+  const mesh = this.wall_state.meshFor
+    ? this.wall_state.meshFor(this)
+    : null;
+  if (mesh && mesh.diffuse) {
+    mesh.diffuse(rate, this._fluidFieldNames, this.ring_temperatures);
+    return;
+  }
+  // Defensive fallback (headless tests where mesh isn't built).
   const n = this.ring_fluids.length;
   if (n <= 1) return;
   for (const fname of this._fluidFieldNames) {
