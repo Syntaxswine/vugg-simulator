@@ -33042,6 +33042,13 @@ function topoReplayStop() {
     _topoPlaybackIdx = 0;
     _topoScrubResumeAfter = false;
     _topoReplayHideBar();
+    // Defensive: clear the overlay text content so a stale "(end)"
+    // string from this run can't surface if some other code path
+    // (tutorial overlay, etc.) shows the overlay element again
+    // without going through _topoReplayRenderFrame first.
+    const overlay = document.getElementById('topo-replay-overlay');
+    if (overlay)
+        overlay.textContent = '';
     topoRender();
     if (typeof updateFortressStatus === 'function')
         updateFortressStatus();
