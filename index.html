@@ -32928,8 +32928,16 @@ function _topoReplayStartTimer(fromIdx) {
         const h = sim2.wall_state_history;
         _topoPlaybackIdx++;
         if (_topoPlaybackIdx >= h.length) {
-            // Played to the end — auto-stop and restore live view.
-            topoReplayStop();
+            // Played to the end — auto-PAUSE on the last frame instead of
+            // stopping. The bar stays visible so the user can scrub backward
+            // to study, or press Space / ▶ to restart from the beginning
+            // (topoReplayPlayPause's "if at end, restart from 0" branch
+            // handles that). The previous tick already rendered idx =
+            // h.length - 1, so we just clamp and freeze the timer.
+            _topoPlaybackIdx = h.length - 1;
+            clearInterval(_topoPlaybackTimer);
+            _topoPlaybackTimer = null;
+            _topoReplaySyncPlayPauseIcon();
             return;
         }
         _topoReplayRenderFrame(_topoPlaybackIdx);
