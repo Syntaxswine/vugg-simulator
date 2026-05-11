@@ -1,6 +1,6 @@
 # PROPOSAL: Cavity-Mesh Architecture (retiring the ring model)
 
-> **Status:** Active. Phases 1, 2, 3 landed 2026-05-11.
+> **Status:** Active. Phases 1, 2, 3 landed 2026-05-11. Phase 4 (Path C — per-vertex chemistry) in progress as of 2026-05-11 evening; Tranche 1 of 7 landed.
 > **Authored:** 2026-05-09 by Claude (Sonnet 4.5, vugg session continuation), at boss's direction after the v66 replay-in-3D landing made the redundancy of the ring grid visible.
 > **Living doc:** Future agents — **append your observations to §11**, your decisions to §12. Update the phase tracker in §1 when you ship. Don't delete prior content; even wrong predictions are useful broth.
 
@@ -14,7 +14,7 @@
 | 1     | Crystal anchor decouples from ring index   | landed 2026-05-11 | (this branch HEAD; previous = 6c73201) | Pure refactor; calibration baseline byte-identical. 70/70 tests green incl. 5 new `anchor.test.ts`. SIM_VERSION held at 67. |
 | 2     | Cavity mesh becomes optional               | landed 2026-05-11 | (this branch HEAD; previous = bada9a4) | `WallMesh` lives in `js/23-geometry-wall-mesh.ts`; Three.js renderer reads from `wall.meshFor(sim)` instead of computing vertices inline. Calibration baseline byte-identical. 79/79 tests green (5 Phase-1 + 9 new Phase-2 in `mesh.test.ts`). |
 | 3     | Chemistry zones replace per-ring fluids    | landed 2026-05-11 (conservative variant) | (this branch HEAD; previous = 3d32e09) | Conservative shape: scenario `wall.zone_chemistry: { floor, wall, ceiling }` overrides per-orientation initial fluid; `wall.inter_ring_diffusion_rate` controls homogenization. Default = byte-identical legacy (no opt-in declared). Aggressive variant (collapse ring_fluids[] to a single global / drop ring_fluids[] + diffusion / SIM_VERSION bump) deferred to a future Phase 3.5 if appetite warrants. |
-| 4     | Ring grid retires                          | unstarted   | —               | `WallState.rings` becomes a view (or disappears); 2D canvas-vector strip retires or becomes a fallback. Schedule the legacy `wall_ring_index` / `wall_center_cell` drop here. |
+| 4     | Ring grid retires — Path C (per-vertex chemistry) | in progress 2026-05-11; T1 of 7 landed | (HEAD; previous = 69191d7) | Boss decision: chose Path C (per-vertex chemistry) over Path A (rename) and Path B (3 zones). Decomposed into 7 tranches. See §13 below for the tranche tracker. |
 
 Each phase ships independently. No phase blocks the previous from being used in production. If the campaign stalls at Phase 2, Phases 0+1+2 still bought a cleaner anchor model.
 
@@ -344,4 +344,28 @@ Decided: Phase 3 keeps `ring_fluids[]` and `_diffuseRingState` and adds a thin o
 
 Decided: Phase 3 ships the API but no shipping scenario uses it. Reason: a stalactite/stalagmite tutorial is a CONTENT task that depends on habit-bias work (PROPOSAL-3D-SIMULATION Phase D, also never shipped). Pairing the two ships better than a half-finished tutorial that uses zones but has nowhere visible for them to land. The Phase 3 API is the prerequisite; the tutorial waits for habit-bias to follow.
 
+### 2026-05-11 — Boss + Sonnet 4.5 — Phase 4 takes Path C (per-vertex chemistry), broken into 7 tranches
+
+Decided: Phase 4 retires the ring grid AND migrates chemistry to per-vertex resolution. Boss explicitly chose Path C ("foundation based on the science") over Path A (rename ring_fluids) and Path B (collapse to 3 named zones). Per-vertex chemistry is the most geologically honest model — real cavity walls have continuous chemistry that varies with local fluid flow, drip points, and proximity to source vents. Path A and B kept the option open in writing but Path C closes it: this is where the science lives.
+
+Tranching: the work decomposes into 7 commits (see §13). Each tranche is independently revertable. Tranches 1-2 are byte-identical to the legacy ring path (aliasing tricks); Tranche 5 ships the SIM_VERSION bump and accepts a baseline regeneration. The decomposition is the boss's mandate: "break it up into smaller parts if you have to, but you have the context and permission to make it happen."
+
 ### (next agent) — append here
+
+---
+
+## 13. Phase 4 tranche tracker — Path C (per-vertex chemistry)
+
+| tranche | slices | name | status | shipped commits | byte-identical? | risk | notes |
+|---------|--------|------|--------|-----------------|-----------------|------|-------|
+| 1 | 4A + 4B | mesh.cells[] container + growth swap | landed 2026-05-11 | (HEAD; previous = 69191d7) | yes (aliasing) | low | cells[i].fluid === ring_fluids[r] by reference; _runEngineForCrystal reads cell.fluid via mesh.cellOf(crystal). 113 / 113 tests green. |
+| 2 | 4C + 4D | Per-vertex Laplacian + propagate-global-delta | unstarted | — | yes default, behavior shift on zone scenarios (none ship yet) | medium | Replace `_diffuseRingState` 1D height stack with mesh-edge Laplacian; mutate cells[i].fluid directly when events fire on conditions.fluid. |
+| 3 | 4G | `fluid_surface_ring` → `fluid_surface_height_mm` | unstarted | — | yes | low | Water-level mechanic migrates to mm-height. Back-compat shim recognizes the legacy name in scenario events (Naica, Searles, sabkha). |
+| 4 | 4F + 4I | `wall.rings` becomes a view + Crystal legacy field drop | unstarted | — | yes | medium | wall.rings[r][c] either deletes or computes from mesh.cells[i]; Crystal's wall_ring_index / wall_center_cell finally drop (Phase 1's deprecation completes). |
+| 5 | 4J | SIM_VERSION 67→68 + snapshot schema | unstarted | — | NO — baseline regenerates | medium | Snapshot rings: [r][c] → cells: [i]. Replay migration shim for v67 saves. |
+| 6 | 4E | Per-vertex nucleation engines (Phase 3.5) | unstarted | — | yes when no zone scenarios; shifts behavior for zone scenarios | medium | The original Phase-3-Slice-5 gap. Engines weight ring/cell picking by per-vertex supersaturation so zone_chemistry actually drives WHERE crystals nucleate, not just where they grow once placed. |
+| 7 | 4H | 2D-strip renderer disposition | unstarted | — | yes | low | Decide: retire 99b-renderer-topo-2d.ts (delete ~555 lines) OR keep as height-band fallback. Boss-tier visual call. |
+
+Tranches 1-4 are pure refactor on stable content; Tranche 5 is the schema bump; Tranches 6-7 are policy decisions that follow.
+
+

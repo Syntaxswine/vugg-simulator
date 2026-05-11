@@ -48,6 +48,25 @@ class WallMesh {
     this.numInterior = 0;
     this.southIdx = 0;
     this.northIdx = 0;
+    // PROPOSAL-CAVITY-MESH Phase 4 / Path C — per-vertex state.
+    // One entry per interior vertex (pole vertices have no cell;
+    // they're just for triangulation closure).
+    //
+    // Tranche 1 (Slice 4A): cells carry `fluid` (object reference,
+    // alias to ring_fluids[ringIdxOf(i)]) — same storage, new
+    // accessor surface. `temperature_ring` is the index into the
+    // sim's ring_temperatures[] array for lazy temperature lookup
+    // (numbers can't be aliased like objects can).
+    //
+    // Future tranches add: wall_depth, crystal_id, mineral,
+    // thickness_um (Tranche 4 migrates the painter); per-vertex
+    // fluid clones (later, when zone+Laplacian land).
+    //
+    // Shape: { fluid: FluidChemistry | null, temperature_ring: number }.
+    // Initialized by bindRingChemistry() after VugSimulator constructs
+    // ring_fluids[] — fromWallState() can't populate them because
+    // chemistry lives on the sim, not the wall.
+    this.cells = [];
     // Triangle indices: south-cap fan + inter-ring quads + north-cap
     // fan. Plain number[] so the renderer can decide between Uint16
     // and Uint32 BufferAttribute based on vertex count.
@@ -144,7 +163,63 @@ class WallMesh {
     mesh.normals = new Float32Array(numVerts * 3);
     mesh.maxRadiusByRing = new Float32Array(ringCount);
     mesh.recompute(wall, sim);
+    // PROPOSAL-CAVITY-MESH Phase 4 Tranche 1 — allocate cells[] slots
+    // for interior vertices. Chemistry binding happens later via
+    // bindRingChemistry() once the VugSimulator has populated
+    // ring_fluids[].
+    mesh.cells = new Array(mesh.numInterior);
+    for (let i = 0; i < mesh.numInterior; i++) {
+      mesh.cells[i] = { fluid: null, temperature_ring: mesh.vertices[i].ringIdx };
+    }
     return mesh;
+  }
+
+  // PROPOSAL-CAVITY-MESH Phase 4 Tranche 1 — alias per-vertex
+  // chemistry to the simulator's ring_fluids[] array. Called by
+  // VugSimulator constructor right after ring_fluids is built.
+  //
+  // Aliasing (not cloning): `cells[i].fluid = ringFluids[r]` keeps the
+  // object reference shared, so mutations via cells[i].fluid hit the
+  // same FluidChemistry instance as direct ring_fluids[r] reads. This
+  // is the byte-identical invariant for Tranche 1 — the chemistry
+  // engine sees the same storage whether it reads through the mesh
+  // or through the legacy ring_fluids[] array.
+  //
+  // Future tranches (4C / 4D when Laplacian + propagate-delta migrate)
+  // will move to per-vertex cloned fluids and retire ring_fluids[],
+  // but Tranche 1 keeps both routes coherent.
+  bindRingChemistry(ringFluids, _ringTemps) {
+    if (!ringFluids || !this.cells.length) return;
+    for (let i = 0; i < this.numInterior; i++) {
+      const vertex = this.vertices[i];
+      const r = vertex ? vertex.ringIdx : 0;
+      if (r >= 0 && r < ringFluids.length) {
+        this.cells[i].fluid = ringFluids[r];
+        this.cells[i].temperature_ring = r;
+      }
+    }
+  }
+
+  // PROPOSAL-CAVITY-MESH Phase 4 Tranche 1 — resolve a crystal's
+  // anchor to its mesh cell. Returns the cell object directly so
+  // callers can read .fluid / .temperature_ring. Returns null for
+  // unanchored crystals or out-of-range anchors.
+  //
+  // Vertex layout invariant: cells[r * cellsPerRing + c] is the cell
+  // for ring r, cell c (the lat-long row-major order from
+  // fromWallState). Phase 4 Tranche 4+ swaps this to a kd-tree over
+  // (phi, theta) but the call signature is stable.
+  cellOf(crystal, wall) {
+    if (!crystal || !this.cells || !this.cells.length) return null;
+    const anchor = (wall && wall._resolveAnchor)
+      ? wall._resolveAnchor(crystal)
+      : null;
+    if (!anchor || anchor.ringIdx == null || anchor.cellIdx == null) return null;
+    const cellsPerRing = wall.cells_per_ring || 0;
+    if (cellsPerRing <= 0) return null;
+    const idx = anchor.ringIdx * cellsPerRing + anchor.cellIdx;
+    if (idx < 0 || idx >= this.cells.length) return null;
+    return this.cells[idx];
   }
 
   // Index-buffer build. Pulled out so subclasses with alternate

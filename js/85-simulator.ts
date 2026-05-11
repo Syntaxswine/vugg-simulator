@@ -100,6 +100,16 @@ class VugSimulator {
       (this.conditions.wall?.inter_ring_diffusion_rate != null)
         ? this.conditions.wall.inter_ring_diffusion_rate
         : DEFAULT_INTER_RING_DIFFUSION_RATE;
+    // PROPOSAL-CAVITY-MESH Phase 4 Tranche 1 — bind per-vertex
+    // chemistry slots on the mesh to the ring_fluids[] backing
+    // store. After this call, mesh.cells[i].fluid === ring_fluids[r]
+    // for vertex i in ring r — same object, two accessor paths.
+    // Tranche 2+ moves to per-vertex cloned fluids; Tranche 1 keeps
+    // the byte-identical invariant by aliasing.
+    const _initialMesh = this.wall_state.meshFor(this);
+    if (_initialMesh && _initialMesh.bindRingChemistry) {
+      _initialMesh.bindRingChemistry(this.ring_fluids, this.ring_temperatures);
+    }
     // Cache the FluidChemistry numeric field names once for the
     // diffusion loop. Pulled from a fresh instance so any future field
     // additions to FluidChemistry pick up automatically — no separate
