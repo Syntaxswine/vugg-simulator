@@ -58,6 +58,10 @@ function runSimulation() {
   // activity instead of "text scrolls while cavity sits frozen at the
   // final state". See proposals/PROPOSAL-NARRATIVE-TEMPO.md.
   const lineToStep: Record<number, number> = {};
+  // Per-step line counts. boss 2026-05-11: each step takes a fixed
+  // duration regardless of how many lines it has; line delays are
+  // computed as stepDuration / lineCount inside displayLines.
+  const stepLineCounts: Record<number, number> = {};
   // Click-to-continue gates: the prologue (title / fluid / events
   // list) shouldn't fire by under the user before they've registered
   // the setup; the epilogue (summary / narrative box) deserves the
@@ -88,7 +92,12 @@ function runSimulation() {
       if (prologueEndIdx === -1) prologueEndIdx = allLines.length;
       lineToStep[allLines.length] = s + 1;
       allLines.push(sim.format_header());
-      for (const line of log) allLines.push(line);
+      let stepLines = 1;  // the header line counts toward the step's budget
+      for (const line of log) {
+        allLines.push(line);
+        stepLines++;
+      }
+      stepLineCounts[s + 1] = stepLines;
     }
   }
 
@@ -98,7 +107,7 @@ function runSimulation() {
   if (summaryLines.length) epilogueStartIdx = allLines.length;
   allLines.push(...summaryLines);
 
-  displayLines(allLines, lineToStep, sim, prologueEndIdx, epilogueStartIdx);
+  displayLines(allLines, lineToStep, sim, prologueEndIdx, epilogueStartIdx, undefined, undefined, stepLineCounts);
 
   // Populate Legends Mode inventory panel
   updateLegendsInventory(sim);
@@ -167,42 +176,46 @@ function _insertContinuePrompt(output: any, position: 'prologue' | 'epilogue', o
   document.addEventListener('keydown', onKey, true);
 }
 
-// Narrative-tempo speed cluster — surfaces the same ½× / 1× / 2× / 4×
-// buttons used by the replay bar during live narrative play, so the
-// user can change scroll rate mid-stream. The replay bar's full
-// controls (play/pause/scrub/stop) DON'T apply during live play (the
-// sim already finished; we're paced-revealing). Mounting just the
-// speed buttons in a small floating cluster keeps the UI honest about
-// what's actionable.
+// Narrative-tempo speed cluster — three discrete settings the boss
+// specified 2026-05-11: "each step should take 2 seconds for the
+// default speed, and a fast speed of 1 seconds, and one setting
+// that is .2 of a second."
 //
-// The buttons mutate the shared `_topoPlaybackSpeed` global via
-// topoReplaySpeed(), which is also what the replay bar's buttons
-// call. One source of truth.
+// The time unit is PER STEP, not per line. A step's lines are
+// distributed uniformly across the step's allotted duration:
+//   speed 1.0  →  step takes 2000 ms  →  default reading pace
+//   speed 2.0  →  step takes 1000 ms  →  "fast"
+//   speed 10.0 →  step takes  200 ms  →  "quick" / power-user skim
+//
+// Lives in the shared `_topoPlaybackSpeed` global so the replay bar's
+// own speed buttons (still 0.5× / 1× / 2× / 4×) also move text rate,
+// per the same boss directive.
 function _showNarrativeSpeedCluster() {
   let cluster = document.getElementById('narrative-speed-cluster');
   if (!cluster) {
     cluster = document.createElement('div');
     cluster.id = 'narrative-speed-cluster';
     cluster.className = 'narrative-speed-cluster';
-    const speeds = [0.5, 1, 2, 4];
-    const labels = ['½×', '1×', '2×', '4×'];
-    for (let k = 0; k < speeds.length; k++) {
+    // Three speeds, each labelled by per-step duration. Speed value
+    // is the multiplier consumed by both narrative tempo (step
+    // duration = 2000 / speed) and replay (frameMs / speed).
+    const presets = [
+      { speed: 1.0,  label: '2s',   title: 'Default — each step takes 2 seconds (reading pace)' },
+      { speed: 2.0,  label: '1s',   title: 'Fast — each step takes 1 second (watching pace)' },
+      { speed: 10.0, label: '0.2s', title: 'Quick — each step takes 0.2 seconds (skim pace)' },
+    ];
+    for (const p of presets) {
       const btn = document.createElement('button');
       btn.className = 'speed-btn';
-      btn.dataset.speed = String(speeds[k]);
-      btn.textContent = labels[k];
-      btn.title = `${labels[k]} speed`;
+      btn.dataset.speed = String(p.speed);
+      btn.textContent = p.label;
+      btn.title = p.title;
       btn.addEventListener('click', () => {
-        if (typeof topoReplaySpeed === 'function') topoReplaySpeed(speeds[k]);
-        // Sync this cluster's active highlight (the replay bar's own
-        // sync function handles its set; ours mirrors here for users
-        // who never opened the replay bar this session).
+        if (typeof topoReplaySpeed === 'function') topoReplaySpeed(p.speed);
         _syncNarrativeSpeedCluster();
       });
       cluster.appendChild(btn);
     }
-    // Position outside the topo panel; let CSS dock it near the
-    // output container so it's visually associated with the scroll.
     document.body.appendChild(cluster);
   }
   cluster.style.display = 'flex';
@@ -227,6 +240,11 @@ function _syncNarrativeSpeedCluster() {
 // other modes (Quick Play / Phase 2; eventually Fortress / Phase 3)
 // can drive the same scrolling rhythm into their own output panels.
 // Defaults preserve the original Simulation-mode behaviour exactly.
+//
+// stepLineCounts: Record<simStep, lineCount> distributes a step's
+// total lines uniformly across the step's allotted duration (the
+// per-step model the boss specified 2026-05-11). Without it, we
+// fall back to per-line fixed pacing.
 function displayLines(
   lines,
   lineToStep?: Record<number, number>,
@@ -235,6 +253,7 @@ function displayLines(
   epilogueStartIdx: number = -1,
   outputEl?: HTMLElement | null,
   onDone?: () => void,
+  stepLineCounts?: Record<number, number>,
 ) {
   running = true;
   document.getElementById('btn-grow').disabled = true;
@@ -296,10 +315,37 @@ function displayLines(
   // unchanged.
   output.classList.add('narrative-flow-reverse');
 
-  // Per-line scroll delay derived from _topoPlaybackSpeed so the speed
-  // buttons on the replay bar also control text rate. Default speed is
-  // 1.0 → 18 ms/line, matching the v66 cadence. At 4× speed → 4.5 ms,
-  // at 0.5× → 36 ms. Floored at 4ms to avoid event-loop starvation.
+  // Per-step pacing (boss 2026-05-11). When the current line belongs
+  // to a sim step (we track this via currentSimStep below + the
+  // stepLineCounts map), per-line delay is the step's allotted time
+  // divided by the number of lines in that step — so a step with 4
+  // lines and a 2s budget gets 500 ms/line; a step with 12 lines and
+  // the same budget gets ~167 ms/line. Step ALWAYS takes its full
+  // duration regardless of line density.
+  //
+  // For framing lines (prologue, epilogue, separators between
+  // steps) we fall back to baseMs / speed — same as v66 cadence,
+  // but only for the framing.
+  let currentSimStep: number | null = null;
+  const stepDurationMs = () => {
+    const speed = (typeof _topoPlaybackSpeed === 'number' && _topoPlaybackSpeed > 0)
+      ? _topoPlaybackSpeed : 1.0;
+    return 2000 / speed;
+  };
+  const perLineDelay = () => {
+    if (currentSimStep != null && stepLineCounts && stepLineCounts[currentSimStep]) {
+      return Math.max(4, Math.round(stepDurationMs() / stepLineCounts[currentSimStep]));
+    }
+    const speed = (typeof _topoPlaybackSpeed === 'number' && _topoPlaybackSpeed > 0)
+      ? _topoPlaybackSpeed : 1.0;
+    // Framing lines pace at 60 ms / speed — fast enough to feel
+    // snappy through prologue/epilogue, slow enough that the user
+    // sees them flow rather than blink.
+    return Math.max(4, Math.round(60 / speed));
+  };
+  // Legacy helper kept for the narrative-box (inside-prose) handlers
+  // below; those scroll at a fixed pace because they're block-level
+  // prose, not per-step events.
   const baseSetTimeoutFor = (baseMs: number) => {
     const speed = (typeof _topoPlaybackSpeed === 'number' && _topoPlaybackSpeed > 0)
       ? _topoPlaybackSpeed : 1.0;
@@ -360,10 +406,13 @@ function displayLines(
     const line = lines[i];
 
     // Tempo sync: when the current line is a step header, advance the
-    // cavity to that step's snapshot. The header scrolls in alongside
-    // the cavity update — reading "═══ Step 30 ═══" and watching the
-    // wall expand to its step-30 form happen simultaneously.
+    // cavity to that step's snapshot AND switch `currentSimStep` so
+    // subsequent per-line delays are computed against this step's
+    // line budget. The header scrolls in alongside the cavity update —
+    // reading "═══ Step 30 ═══" and watching the wall expand to its
+    // step-30 form happen simultaneously.
     if (lineToStep && lineToStep[i] != null) {
+      currentSimStep = lineToStep[i];
       const snap = snapForStep(lineToStep[i]);
       if (snap) {
         if (typeof _topoReplayActiveSnap !== 'undefined') _topoReplayActiveSnap = snap;
@@ -432,7 +481,7 @@ function displayLines(
     // column-reverse on the parent puts the latest appendChild at the
     // top, so scrollTop=0 keeps the newest line visible.
     output.scrollTop = 0;
-    setTimeout(addLine, baseSetTimeoutFor(18));
+    setTimeout(addLine, perLineDelay());
   }
 
   // Mount the speed cluster so the user can change the scroll rate

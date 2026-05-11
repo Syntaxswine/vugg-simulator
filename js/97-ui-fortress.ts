@@ -294,7 +294,7 @@ function _advanceOneStep(logEl) {
 //   - onDone updates fortress-status + inventory; those panels need
 //     the final state, not snapshots, so they fire after the scroll
 //     completes.
-function _fortressPaceLines(lines: string[], lineToStep: Record<number, number>, onDone?: () => void) {
+function _fortressPaceLines(lines: string[], lineToStep: Record<number, number>, stepLineCounts: Record<number, number>, onDone?: () => void) {
   if (typeof running !== 'undefined' && running) { onDone?.(); return; }
   const logEl = document.getElementById('fortress-log');
   if (!logEl) { onDone?.(); return; }
@@ -335,6 +335,20 @@ function _fortressPaceLines(lines: string[], lineToStep: Record<number, number>,
 
   if (typeof _showNarrativeSpeedCluster === 'function') _showNarrativeSpeedCluster();
 
+  // Per-step pacing (boss 2026-05-11): each step takes `stepDuration`
+  // total, with that budget divided evenly across the step's line
+  // count. Default speed (1.0) → 2000ms/step; "fast" (2.0) → 1000;
+  // "quick" (10.0) → 200. See proposals/PROPOSAL-NARRATIVE-TEMPO.md.
+  let currentSimStep: number | null = null;
+  const perLineDelay = () => {
+    const speed = (typeof _topoPlaybackSpeed === 'number' && _topoPlaybackSpeed > 0) ? _topoPlaybackSpeed : 1.0;
+    if (currentSimStep != null && stepLineCounts[currentSimStep]) {
+      const stepMs = 2000 / speed;
+      return Math.max(4, Math.round(stepMs / stepLineCounts[currentSimStep]));
+    }
+    return Math.max(4, Math.round(60 / speed));
+  };
+
   let i = 0;
   function tick() {
     if (i >= lines.length) {
@@ -347,8 +361,10 @@ function _fortressPaceLines(lines: string[], lineToStep: Record<number, number>,
       return;
     }
 
-    // Cavity sync on step-header lines.
+    // Cavity sync on step-header lines + switch currentSimStep so the
+    // perLineDelay below uses this step's line count.
     if (lineToStep[i] != null) {
+      currentSimStep = lineToStep[i];
       const snap = snapForStep(lineToStep[i]);
       if (snap) {
         if (typeof _topoReplayActiveSnap !== 'undefined') _topoReplayActiveSnap = snap;
@@ -363,8 +379,7 @@ function _fortressPaceLines(lines: string[], lineToStep: Record<number, number>,
     // the top of the panel.
     logEl.scrollTop = 0;
     i++;
-    const speed = (typeof _topoPlaybackSpeed === 'number' && _topoPlaybackSpeed > 0) ? _topoPlaybackSpeed : 1;
-    setTimeout(tick, Math.max(4, Math.round(18 / speed)));
+    setTimeout(tick, perLineDelay());
   }
   tick();
 }
@@ -591,23 +606,27 @@ function fortressStep(action, payload) {
 
   if (advanceSteps > 0) {
     // Narrative-tempo Phase 3: action results play out at narrative
-    // tempo (default ~18ms/line, scaled by the speed cluster). Run
-    // the sim steps synchronously up front to populate
-    // wall_state_history, then hand the collected lines to the
-    // tempo player which scrolls them in + syncs the cavity per
-    // step-header.
+    // tempo. Boss directive 2026-05-11 — each step takes 2 seconds
+    // at default speed (1×), 1 second at fast (2×), 0.2 seconds at
+    // quick (10×). Run the sim steps synchronously up front to
+    // populate wall_state_history, then hand the collected lines to
+    // the tempo player which paces them per-step and syncs the
+    // cavity to each step-header.
     const lines: string[] = [];
     const lineToStep: Record<number, number> = {};
+    const stepLineCounts: Record<number, number> = {};
     for (let i = 0; i < advanceSteps; i++) {
       const { lines: stepLines, stepHeaderIdx, simStep } = _advanceOneStep(logEl);
       // The header line's index within the FINAL `lines` array is
       // its offset within stepLines plus the count of lines already
       // pushed. Mark it so the tempo player advances the cavity to
-      // simStep when that line scrolls in.
+      // simStep when that line scrolls in AND so it knows which
+      // step's line-count budget governs the per-line delay.
       lineToStep[lines.length + stepHeaderIdx] = simStep;
+      stepLineCounts[simStep] = stepLines.length;
       for (const l of stepLines) lines.push(l);
     }
-    _fortressPaceLines(lines, lineToStep, () => {
+    _fortressPaceLines(lines, lineToStep, stepLineCounts, () => {
       updateFortressInventory();
       updateFortressStatus();
       syncBrothSliders();

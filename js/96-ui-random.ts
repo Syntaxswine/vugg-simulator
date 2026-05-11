@@ -358,6 +358,7 @@ function runRandomVugg() {
   // pattern in js/91-ui-legends.ts.
   const allLines: string[] = [];
   const lineToStep: Record<number, number> = {};
+  const stepLineCounts: Record<number, number> = {};
   let prologueEndIdx = -1;
   let epilogueStartIdx = -1;
   const rule = '─'.repeat(70);
@@ -386,7 +387,9 @@ function runRandomVugg() {
       if (prologueEndIdx === -1) prologueEndIdx = allLines.length;
       lineToStep[allLines.length] = s + 1;
       allLines.push(sim.format_header());
-      for (const line of log) allLines.push(line);
+      let stepLines = 1;
+      for (const line of log) { allLines.push(line); stepLines++; }
+      stepLineCounts[s + 1] = stepLines;
     }
   }
   randomSim = sim;
@@ -443,6 +446,6 @@ function runRandomVugg() {
   // first look at the final cavity.
   displayLines(allLines, lineToStep, sim, prologueEndIdx, epilogueStartIdx, out, () => {
     renderRandomInventory();
-  });
+  }, stepLineCounts);
 }
 
