@@ -1,6 +1,6 @@
 # PROPOSAL: Cavity-Mesh Architecture (retiring the ring model)
 
-> **Status:** Active. Phase 2 landed 2026-05-11 (same day as Phase 1).
+> **Status:** Active. Phases 1, 2, 3 landed 2026-05-11.
 > **Authored:** 2026-05-09 by Claude (Sonnet 4.5, vugg session continuation), at boss's direction after the v66 replay-in-3D landing made the redundancy of the ring grid visible.
 > **Living doc:** Future agents — **append your observations to §11**, your decisions to §12. Update the phase tracker in §1 when you ship. Don't delete prior content; even wrong predictions are useful broth.
 
@@ -13,7 +13,7 @@
 | 0     | This proposal (read-only)                  | landed      | (this commit)   | The plan itself. |
 | 1     | Crystal anchor decouples from ring index   | landed 2026-05-11 | (this branch HEAD; previous = 6c73201) | Pure refactor; calibration baseline byte-identical. 70/70 tests green incl. 5 new `anchor.test.ts`. SIM_VERSION held at 67. |
 | 2     | Cavity mesh becomes optional               | landed 2026-05-11 | (this branch HEAD; previous = bada9a4) | `WallMesh` lives in `js/23-geometry-wall-mesh.ts`; Three.js renderer reads from `wall.meshFor(sim)` instead of computing vertices inline. Calibration baseline byte-identical. 79/79 tests green (5 Phase-1 + 9 new Phase-2 in `mesh.test.ts`). |
-| 3     | Chemistry zones replace per-ring fluids    | unstarted   | —               | Default = global fluid; explicit opt-in for floor/wall/ceiling zoning. |
+| 3     | Chemistry zones replace per-ring fluids    | landed 2026-05-11 (conservative variant) | (this branch HEAD; previous = 3d32e09) | Conservative shape: scenario `wall.zone_chemistry: { floor, wall, ceiling }` overrides per-orientation initial fluid; `wall.inter_ring_diffusion_rate` controls homogenization. Default = byte-identical legacy (no opt-in declared). Aggressive variant (collapse ring_fluids[] to a single global / drop ring_fluids[] + diffusion / SIM_VERSION bump) deferred to a future Phase 3.5 if appetite warrants. |
 | 4     | Ring grid retires                          | unstarted   | —               | `WallState.rings` becomes a view (or disappears); 2D canvas-vector strip retires or becomes a fallback. Schedule the legacy `wall_ring_index` / `wall_center_cell` drop here. |
 
 Each phase ships independently. No phase blocks the previous from being used in production. If the campaign stalls at Phase 2, Phases 0+1+2 still bought a cleaner anchor model.
@@ -292,6 +292,22 @@ Phase 2 shipped a few hours after Phase 1. Notes:
 
 - **Phase 3 wants `WallMesh.cells[]` indexed by vertex.** The mesh already has the `vertices[]` array with `{phi, theta, ringIdx, cellIdx, orientation}` — Phase 3 just adds a parallel `cells[]` slot for per-vertex chemistry state. Painter migrates from `wall.rings[r][c]` to `mesh.cells[i]` where `i = mesh.vertices.findIndex(v => v.ringIdx == r && v.cellIdx == c)` (or a precomputed `vertexIdxFromRingCell(r,c)` helper). Most painters already go through `_resolveAnchor`, so a tiny shim over the mesh would update them all.
 
+### 2026-05-11 — Sonnet 4.5 (Phase 3 implementer) — Phase 3 landed as conservative variant
+
+Phase 3 shipped the same day as Phases 1 & 2. The proposal §7 offered two routes — collapse `ring_fluids[]` to a single global fluid (aggressive), or keep it but layer a named-zone API on top (conservative). I shipped the conservative variant. Notes:
+
+- **The aggressive variant deletes ~200 lines** (`_diffuseRingState`, `_propagateGlobalDelta`, `ring_fluids[]`, `ring_temperatures[]`, per-ring fluid-swap). The conservative variant deletes zero lines but adds a thin opt-in layer. Reason I chose conservative: stalactite/stalagmite paragenesis (the original motivation in PROPOSAL-3D-SIMULATION Phase 3) NEEDS zones. Deleting the plumbing only to reintroduce it under another name is the worst of both sequences.
+
+- **What ships:** `wall.zone_chemistry: { floor: {...overrides}, wall: {...overrides}, ceiling: {...overrides} }` and `wall.inter_ring_diffusion_rate`. Each zone block field-by-field overrides the per-ring initial fluid (Ca, SiO2, pH, whatever) for rings whose `ringOrientation` matches the zone key. Diffusion-rate opt-in lets a scenario pin zones in place (rate=0) or pick a slower equilibration (e.g. 0.01 for ~100-step homogenization vs the default 20-step). Helper: `wall.zoneOf(crystal)` returns the zone tag a narrator can branch on.
+
+- **`SIM_VERSION` held at 67.** Default scenarios (no zone_chemistry declared) produce byte-identical output to v66/Phase-2 — the calibration baseline confirmed this. Snapshot format also unchanged: scenarios that opt in to zones see their zone-tinted broth in the replay's `conditions.fluid` field naturally, but the snapshot schema is the same.
+
+- **The equator-alias issue:** `ring_fluids[equator]` is aliased to `conditions.fluid`. If `wall.zone_chemistry.wall` overrides Ca, the wall-zone update lands on conditions.fluid too (via the alias). This is the right behavior — events that mutate conditions.fluid still propagate to non-equator rings via `_propagateGlobalDelta`, and the equator's Ca starts at the wall-zone value. Tested explicitly in `tests-js/zones.test.ts`.
+
+- **Field-name discoverability:** scenarios pass `zone_chemistry` opaquely, so a typo (`Si: 200` when the real field is `SiO2`) silently writes a `Si` property onto the fluid object without affecting any engine. My initial test made exactly this mistake and burned 30 seconds. Worth a future helper that validates zone overrides against the canonical FluidChemistry field list at scenario-load time (defensive — surfaces typos at boot instead of after a 200-step run).
+
+- **No scenario opts in yet.** Phase 3 ships the API; no shipping scenario uses it. The first natural fit is a stalactite/stalagmite tutorial scenario that demonstrates floor vs ceiling chemistry — but that's a content task best paired with the habit-bias work from the 3D Vugg vision plan (Phase D), not bolted on here. The API exists, ready when content lands.
+
 ### (next agent) — append here
 
 ---
@@ -319,5 +335,13 @@ Decided: when moving vertex math from `_topoBuildCavityGeometry` into `WallMesh.
 ### 2026-05-11 — Sonnet 4.5 — `WallMesh` is the cavity surface; per-cell state migration deferred to Phase 3
 
 Decided: Phase 2 puts vertex GEOMETRY (positions, colors, normals, triangulation) on the mesh, but leaves per-cell STATE (`wall_depth`, `crystal_id`, `mineral`, `thickness_um`) on the legacy `wall.rings[r][c]` cells. Reason: keeping these split lets Phase 2 be a pure rendering-side refactor with byte-identical output, while Phase 3 can independently migrate writes (which is the riskier change — the painter touches every dissolution event). The mesh has a placeholder `vertices[]` array carrying the per-vertex *metadata* (phi/theta/ringIdx/cellIdx/orientation); a parallel `cells[]` slot is the natural Phase-3 extension.
+
+### 2026-05-11 — Sonnet 4.5 — Phase 3 ships the conservative variant (zone API on top); aggressive variant deferred
+
+Decided: Phase 3 keeps `ring_fluids[]` and `_diffuseRingState` and adds a thin opt-in named-zone API (`wall.zone_chemistry`, `wall.inter_ring_diffusion_rate`) rather than collapsing per-ring chemistry to a single global fluid. Reason: the original motivation for per-ring chemistry was stalactite/stalagmite paragenesis (PROPOSAL-3D-SIMULATION Phase 3, never shipped). Deleting that infrastructure now only to re-add it later is poor sequencing — keep the plumbing, give it a usable name. Aggressive variant (delete ~200 lines, bump SIM_VERSION) remains the right move IF stalactite paragenesis never ships; revisit in 2027 if zones still have zero adopters.
+
+### 2026-05-11 — Sonnet 4.5 — Phase 3 doesn't ship a scenario opt-in
+
+Decided: Phase 3 ships the API but no shipping scenario uses it. Reason: a stalactite/stalagmite tutorial is a CONTENT task that depends on habit-bias work (PROPOSAL-3D-SIMULATION Phase D, also never shipped). Pairing the two ships better than a half-finished tutorial that uses zones but has nowhere visible for them to land. The Phase 3 API is the prerequisite; the tutorial waits for habit-bias to follow.
 
 ### (next agent) — append here

@@ -67,7 +67,39 @@ class VugSimulator {
     // Alias the equator ring to conditions.fluid so events propagate.
     this.ring_fluids[equator] = this.conditions.fluid;
     this.ring_temperatures = new Array(nRings).fill(this.conditions.temperature);
-    this.inter_ring_diffusion_rate = DEFAULT_INTER_RING_DIFFUSION_RATE;
+    // PHASE-3-CAVITY-MESH (PROPOSAL-CAVITY-MESH §7): apply scenario
+    // zone-chemistry overrides on top of the uniform-clone broth.
+    // Default-null wall.zone_chemistry → no-op (byte-identical to
+    // legacy). When present, each ring's fluid gets its
+    // wall.zone_chemistry[orientation] field overrides; the equator
+    // ring is aliased to conditions.fluid so those overrides also
+    // appear on the global handle that events and engines see.
+    //
+    // Why field-by-field overrides (vs. wholesale fluid replacement):
+    // scenarios usually want to tilt one or two species per zone
+    // (e.g. Ca-rich floor, Si-rich ceiling) without re-specifying every
+    // field. Anything left out of the zone block falls through to the
+    // scenario's initial.fluid for that field.
+    const zoneChem = this.conditions.wall?.zone_chemistry || null;
+    if (zoneChem) {
+      for (let r = 0; r < nRings; r++) {
+        const orient = this.wall_state.ringOrientation(r);
+        const overrides = zoneChem[orient];
+        if (!overrides) continue;
+        const fluid = this.ring_fluids[r];
+        for (const k of Object.keys(overrides)) {
+          fluid[k] = overrides[k];
+        }
+      }
+    }
+    // PHASE-3-CAVITY-MESH: scenario-controlled diffusion rate.
+    // wall.inter_ring_diffusion_rate (in conditions.wall) overrides
+    // the global default. null = legacy 0.05; 0 = persistent zones
+    // (no homogenization).
+    this.inter_ring_diffusion_rate =
+      (this.conditions.wall?.inter_ring_diffusion_rate != null)
+        ? this.conditions.wall.inter_ring_diffusion_rate
+        : DEFAULT_INTER_RING_DIFFUSION_RATE;
     // Cache the FluidChemistry numeric field names once for the
     // diffusion loop. Pulled from a fresh instance so any future field
     // additions to FluidChemistry pick up automatically — no separate

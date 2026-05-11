@@ -52,6 +52,30 @@ class VugWall {
     // carbonate walls; silicate composition stays inert regardless.
     // See vugg.py VugWall docstring for the full table.
     this.reactivity = opts.reactivity ?? 1.0;
+    // PHASE-3-CAVITY-MESH (PROPOSAL-CAVITY-MESH §7): zone chemistry
+    // overrides. When set, the simulator's ring_fluids init applies
+    // these field-by-field overrides to every ring whose orientation
+    // matches the zone key. Shape:
+    //   { floor: { Ca: 500, pH: 6.8, ... }, wall: {...}, ceiling: {...} }
+    // Any subset of zones / fields is honored; unspecified entries
+    // fall through to the scenario's global initial.fluid. Default
+    // null = byte-identical legacy behavior (every ring starts with a
+    // clone of conditions.fluid).
+    //
+    // This is the foothold for stalactite/stalagmite paragenesis
+    // (PROPOSAL-3D-SIMULATION Phase 3 hinted at this; cavity-mesh
+    // Phase 3 ships the API). A scenario that wants persistent zones
+    // pairs zone_chemistry with inter_ring_diffusion_rate: 0 below
+    // so homogenization doesn't average the differences away.
+    this.zone_chemistry = opts.zone_chemistry ?? null;
+    // PHASE-3-CAVITY-MESH: scenario-tunable inter-ring diffusion rate.
+    // Default null → VugSimulator falls through to
+    // DEFAULT_INTER_RING_DIFFUSION_RATE (0.05). Zone scenarios that
+    // want persistent floor/ceiling chemistry differences pass 0 to
+    // disable homogenization. Slow-equilibrium scenarios can pass
+    // values < 0.05 (e.g. 0.01 for a "weeping" cavity that diffuses
+    // over ~100 steps instead of ~20).
+    this.inter_ring_diffusion_rate = opts.inter_ring_diffusion_rate ?? null;
   }
 
   dissolve(acid_strength, fluid) {
@@ -605,6 +629,19 @@ class WallState {
     if (ringIdx < Math.floor(n / 4)) return 'floor';
     if (ringIdx >= Math.floor(3 * n / 4)) return 'ceiling';
     return 'wall';
+  }
+
+  // PHASE-3-CAVITY-MESH (PROPOSAL-CAVITY-MESH §7): which named zone
+  // a crystal grew in. Reads the crystal's resolved anchor (Phase 1
+  // helper) and asks ringOrientation for the orientation tag. Returns
+  // 'floor' | 'wall' | 'ceiling' | null. Narrators can branch on this
+  // without re-implementing the orientation math; future stalactite
+  // habit code (PROPOSAL-3D-SIMULATION Phase D) reads the same source.
+  zoneOf(crystal) {
+    if (!crystal) return null;
+    const anchor = this._resolveAnchor(crystal);
+    if (!anchor) return null;
+    return this.ringOrientation(anchor.ringIdx);
   }
 
   // Phase D: per-ring nucleation weight proportional to the ring's
