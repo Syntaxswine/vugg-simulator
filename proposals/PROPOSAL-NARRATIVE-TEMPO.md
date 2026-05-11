@@ -10,11 +10,12 @@
 
 | phase | name                                       | status      | shipped commits | notes |
 |-------|--------------------------------------------|-------------|-----------------|-------|
-| 0     | This proposal                              | landed      | (this commit)   | Plan + design vocabulary. |
-| 1     | Legends/Simulation mode: cavity tracks log | in progress | —               | Smallest cut — retrofit `displayLines` to fire `topoRender(historySnap)` on step-header lines. |
-| 2     | Quick Play (random) mode                   | unstarted   | —               | Same pattern; trivial port once Phase 1 is shaped. |
-| 3     | Fortress (Creative): paced action results  | unstarted   | —               | `wait_10` and other multi-step actions tick out at narrative tempo instead of all-at-once. Larger UX change. |
-| 4     | Idle / Zen mode tempo unification          | unstarted   | —               | Idle already ticks on a timer; fold its rhythm into the unified pacing module. |
+| 0     | This proposal                              | landed      | `e3d2127`-era    | Plan + design vocabulary. |
+| 1     | Legends/Simulation mode: cavity tracks log | landed      | `fad78f2`        | `runSimulation` builds `lineToStep` map, `displayLines` calls `topoRender(snap)` on each step-header line. |
+| 1.5   | Click-to-continue at prologue + epilogue   | landed      | `19e5064`        | Pulsing pill at story boundaries. Click / Enter / Space all advance. Capture-phase keydown so it doesn't fight the replay shortcuts. |
+| 2     | Quick Play (random) mode                   | landed      | `a5a0e41`        | `displayLines` parameterised on outputEl + onDone; random mode now uses the same pattern. PREAMBLE→main→CRYSTALS/DISCOVERY/narrative scroll with both pills. |
+| 3     | Fortress (Creative): paced action results  | unstarted   | —               | `wait_10` and other multi-step actions tick out at narrative tempo instead of all-at-once. Larger UX change — needs the "queue next action while current one plays out" design call. |
+| 4     | Tempo module unification                   | unstarted   | —               | Replay timer (99g) and live-play timer (91 displayLines) share most of their logic. Phase 4 extracts a `_topoTempoTimer` module that drives both. Brings replay's scrub bar / speed control to initial play too. |
 
 Each phase ships independently. Phase 1's value (a single mode reading honestly) doesn't depend on Phase 2-4 ever landing.
 
@@ -153,6 +154,14 @@ After v67 `_replayStride`, the cavity can only update at the granularity of avai
 ### 2026-05-09 — Sonnet 4.5 — Phase 1 doesn't need `_topoReplayActiveSnap`-equivalent for the fortress panel
 
 Fortress mode isn't in Legends/Simulation, so the fortress-status panel isn't visible during Phase 1. We don't have to thread snapshot-aware conditions through the σ-pill renderer here. That coupling matters in Phase 3 (Fortress live play); skip for Phase 1.
+
+### 2026-05-11 — Sonnet 4.5 — Phase 2 wasn't a trivial port
+
+The proposal called Phase 2 a "trivial port once Phase 1 is shaped." That was wrong. Quick Play (random) mode previously did `out.textContent = bigString` — no scroll mechanic at all. The actual work in Phase 2 was (a) generalising `displayLines` to accept an output element + onDone callback, (b) restructuring `runRandomVugg` to mirror Simulation's per-step-log-capture pattern, and (c) deciding which beats become prologue/epilogue. The retrofit is ~150 lines, not "trivial." Future phase planners: don't trust adjacency. Read the call site first.
+
+### 2026-05-11 — Sonnet 4.5 — `running` is the shared cross-mode lock
+
+`let running = false` in 91-ui-legends.ts is now a shared lock across narrative-tempo modes. Phase 2 reuses it as the re-entry guard for `runRandomVugg`. Future agents adding tempo to other modes (Phase 3 Fortress, Phase 4 unification) should consult `running` rather than introducing per-mode flags — the value of one shared lock is that the replay-shortcut listener in 99g can also gate on it (the bail-when-narrative-tempo-active behaviour shipped in `1c08f08` extended in `19e5064`).
 
 ### (next agent) — append here
 
