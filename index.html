@@ -8384,11 +8384,28 @@ class VugConditions {
         this.fluid = opts.fluid || new FluidChemistry();
         this.flow_rate = opts.flow_rate ?? 1.0;
         this.wall = opts.wall || new VugWall();
-        // v24 water-level mechanic. Float in [0, ring_count] giving the
-        // meniscus position; null = "no water level set" → fully submerged
-        // (legacy default, every ring 'submerged'). Below = submerged,
-        // surface band = meniscus, above = vadose/'air'.
-        this.fluid_surface_ring = opts.fluid_surface_ring ?? null;
+        // PROPOSAL-CAVITY-MESH Phase 4 Tranche 3 — water-level mechanic
+        // migrates to mm-height as the canonical representation.
+        //
+        // Old name `fluid_surface_ring` and new name `fluid_surface_height_mm`
+        // are aliased via getters/setters below — they refer to the same
+        // private slot. Numerically identical while `ring_spacing_mm = 1.0`
+        // (the project-wide default across every shipping scenario). When
+        // a future scenario overrides ring spacing, the legacy ring-index
+        // name will need a spacing-aware conversion; flagged in the
+        // proposal's tranche notes.
+        //
+        // Why migrate the name: when wall.rings retires (Tranche 4), the
+        // "ring index" concept stops being meaningful. Height-in-mm is
+        // the science-grounded representation (real cavity water tables
+        // sit at a specific elevation above the floor, not at "ring 4").
+        //
+        // null = "no water level set" → fully submerged (legacy default,
+        // every cell 'submerged'). Below = submerged, surface band =
+        // meniscus, above = vadose/'air'.
+        this._fluidSurfaceMm = (opts.fluid_surface_height_mm != null)
+            ? opts.fluid_surface_height_mm
+            : (opts.fluid_surface_ring != null ? opts.fluid_surface_ring : null);
         // v26 host-rock porosity. Sink-only term for water-level drift:
         // each step the surface drops by porosity × WATER_LEVEL_DRAIN_RATE
         // rings. 0.0 = sealed cavity (no drainage; legacy default). 1.0 =
@@ -8399,8 +8416,24 @@ class VugConditions {
         this._dol_prev_sigma = 0.0;
         this._dol_in_undersat = false;
     }
+    // PROPOSAL-CAVITY-MESH Phase 4 Tranche 3 — water-level accessors.
+    // Both names hit the same private slot (this._fluidSurfaceMm).
+    // Numerically identical while ring_spacing_mm = 1.0 (today's
+    // default everywhere); spacing-aware conversion can land later.
+    get fluid_surface_height_mm() { return this._fluidSurfaceMm; }
+    set fluid_surface_height_mm(v) { this._fluidSurfaceMm = v; }
+    get fluid_surface_ring() { return this._fluidSurfaceMm; }
+    set fluid_surface_ring(v) { this._fluidSurfaceMm = v; }
     // Pure classifier; used by ringWaterState and by transition-detection
     // logic that needs to compare against an arbitrary previous surface.
+    //
+    // PROPOSAL-CAVITY-MESH Phase 4 Tranche 3 — `surface` is the
+    // fluid surface position. With ring_spacing_mm=1.0 (default), this
+    // is numerically equivalent to a ring index AND to a height in mm
+    // — the arithmetic below uses ring units throughout, so callers
+    // passing either name see consistent results. Spacing-aware
+    // generalization can land when a scenario actually overrides
+    // ring_spacing_mm.
     static _classifyWaterState(surface, ringIdx, ringCount) {
         if (surface === null || surface === undefined)
             return 'submerged';

@@ -219,6 +219,59 @@ describe('cavity-mesh Phase 4 Tranche 2 — mesh-edge Laplacian', () => {
     }
   });
 
+  it('fluid_surface_height_mm and fluid_surface_ring alias the same storage', () => {
+    // Tranche 3 — water-level mechanic migrates to mm-height as
+    // canonical; legacy name keeps reading/writing the same slot
+    // (numerically identical while ring_spacing_mm = 1.0). Tests pin
+    // that both accessors stay in lockstep.
+    const c = new VugConditions({
+      fluid: new FluidChemistry(), wall: new VugWall(),
+    });
+    // Default: null on both.
+    expect(c.fluid_surface_height_mm).toBeNull();
+    expect(c.fluid_surface_ring).toBeNull();
+    // Write via legacy name, read via canonical name.
+    c.fluid_surface_ring = 4.5;
+    expect(c.fluid_surface_height_mm).toBe(4.5);
+    // Write via canonical, read via legacy.
+    c.fluid_surface_height_mm = 12;
+    expect(c.fluid_surface_ring).toBe(12);
+    // Sentinel "above ceiling" survives the round trip.
+    c.fluid_surface_ring = 1e6;
+    expect(c.fluid_surface_height_mm).toBe(1e6);
+  });
+
+  it('fluid_surface_height_mm constructor opt overrides legacy name', () => {
+    // If both names are provided at construction, the canonical one
+    // wins. (This case won't happen in shipping scenarios — they only
+    // pass fluid_surface_ring — but it's the right migration semantic
+    // for scenarios written after Tranche 3 lands.)
+    const c = new VugConditions({
+      fluid: new FluidChemistry(), wall: new VugWall(),
+      fluid_surface_ring: 4,
+      fluid_surface_height_mm: 7,
+    });
+    expect(c.fluid_surface_height_mm).toBe(7);
+    expect(c.fluid_surface_ring).toBe(7);
+  });
+
+  it('legacy event handlers still see fluid_surface_ring as the live value', () => {
+    // Naica / Searles / sabkha event handlers write
+    // conditions.fluid_surface_ring directly. After Tranche 3 the
+    // write goes through the setter and lands in _fluidSurfaceMm.
+    // Internal classifiers read whichever — must stay coherent.
+    const c = new VugConditions({
+      fluid: new FluidChemistry(), wall: new VugWall(),
+    });
+    c.fluid_surface_ring = 0;  // "drain to floor" event
+    expect(c.fluid_surface_height_mm).toBe(0);
+    // ringWaterState in a 16-ring cavity at surface=0: every ring is
+    // vadose (above the floor surface).
+    for (let r = 0; r < 16; r++) {
+      expect(c.ringWaterState(r, 16)).toBe('vadose');
+    }
+  });
+
   it('_diffuseRingState delegates to mesh.diffuse byte-identically', () => {
     // The wrapper in 85c-simulator-state.ts now calls mesh.diffuse
     // instead of running its own ring-Laplacian. Inject a gradient
