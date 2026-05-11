@@ -51,6 +51,13 @@ function runSimulation() {
   const totalSteps = (parsedSteps && parsedSteps > 0) ? parsedSteps : defaultSteps;
 
   const allLines = [];
+  // Narrative-tempo Phase 1: track which line indices are step-header
+  // sync points + their sim step number. displayLines() reads this map
+  // and advances the topo cavity to the historical snapshot for that
+  // step as the line scrolls in — reading and watching become the same
+  // activity instead of "text scrolls while cavity sits frozen at the
+  // final state". See proposals/PROPOSAL-NARRATIVE-TEMPO.md.
+  const lineToStep: Record<number, number> = {};
 
   allLines.push(`🪨 Vugg Simulator — ${scenarioName} scenario (seed: ${seed})`);
   allLines.push(`   ${totalSteps} time steps, starting at ${conditions.temperature.toFixed(0)}°C, ${conditions.pressure.toFixed(1)} kbar`);
@@ -66,6 +73,10 @@ function runSimulation() {
     const log = sim.run_step();
     const show = (s % 5 === 0) || log.some(l => l.includes('EVENT') || l.includes('NUCLEATION') || l.includes('🧱'));
     if (show && log.length) {
+      // The line index ABOUT TO BE PUSHED is the header for sim step (s+1).
+      // run_step() advances this.step from s to s+1 internally, so the
+      // header naturally reads "═══ Step N ═══" where N = s+1.
+      lineToStep[allLines.length] = s + 1;
       allLines.push(sim.format_header());
       for (const line of log) allLines.push(line);
     }
@@ -74,13 +85,14 @@ function runSimulation() {
   const summaryLines = sim.format_summary();
   allLines.push(...summaryLines);
 
-  displayLines(allLines);
+  displayLines(allLines, lineToStep, sim);
 
   // Populate Legends Mode inventory panel
   updateLegendsInventory(sim);
 
-  // Topo map — final wall state after the whole run.
-  if (typeof topoRender === 'function') topoRender();
+  // No topoRender(final) here — displayLines now drives the cavity
+  // step-by-step as the narrator scrolls, ending at the live state
+  // via the cleanup path inside displayLines.
 }
 
 function runRandom() {
@@ -94,12 +106,49 @@ function runRandom() {
   runSimulation();
 }
 
-function displayLines(lines) {
+function displayLines(lines, lineToStep?: Record<number, number>, sim?: any) {
   running = true;
   document.getElementById('btn-grow').disabled = true;
   document.getElementById('btn-random').disabled = true;
   const output = document.getElementById('output');
   output.innerHTML = '';
+
+  // Narrative-tempo Phase 1: walk the sim's wall_state_history once
+  // to build a step→snapshot index, so addLine() can look up the
+  // cavity state for any step in O(1) without re-scanning each tick.
+  // History is decimated (v67 _replayStride), so not every step has
+  // its own snapshot; the lookup returns the nearest-not-greater snap.
+  const snapByStep: Map<number, any> = new Map();
+  let stepOrder: number[] = [];
+  if (sim && sim.wall_state_history) {
+    for (const s of sim.wall_state_history) {
+      if (s && s.step != null) {
+        snapByStep.set(s.step, s);
+        stepOrder.push(s.step);
+      }
+    }
+    stepOrder.sort((a, b) => a - b);
+  }
+  function snapForStep(target: number): any {
+    if (snapByStep.has(target)) return snapByStep.get(target);
+    // Decimation gap — find the latest snapshot whose step <= target.
+    // stepOrder is short (<100), linear scan from end is faster than
+    // bsearch overhead for these sizes.
+    for (let k = stepOrder.length - 1; k >= 0; k--) {
+      if (stepOrder[k] <= target) return snapByStep.get(stepOrder[k]);
+    }
+    return null;
+  }
+
+  // Render the first snapshot up front so the user sees the initial
+  // cavity while the header lines (title / fluid / events list) scroll
+  // in, instead of an empty panel. Falls through to live render if
+  // history is empty.
+  if (sim && stepOrder.length && typeof topoRender === 'function') {
+    const firstSnap = snapByStep.get(stepOrder[0]);
+    if (typeof _topoReplayActiveSnap !== 'undefined') _topoReplayActiveSnap = firstSnap;
+    topoRender(firstSnap);
+  }
 
   let i = 0;
   let inNarrative = false;
@@ -110,10 +159,29 @@ function displayLines(lines) {
       running = false;
       document.getElementById('btn-grow').disabled = false;
       document.getElementById('btn-random').disabled = false;
+      // Tempo cleanup: clear the replay-active snap so subsequent
+      // renders read live sim state again, then paint the final
+      // (live) topo. The user has finished reading; cavity sits on
+      // the actual final state, ready for replay or further actions.
+      if (typeof _topoReplayActiveSnap !== 'undefined') _topoReplayActiveSnap = null;
+      if (typeof topoRender === 'function') topoRender();
       return;
     }
 
     const line = lines[i];
+
+    // Tempo sync: when the current line is a step header, advance the
+    // cavity to that step's snapshot. The header scrolls in alongside
+    // the cavity update — reading "═══ Step 30 ═══" and watching the
+    // wall expand to its step-30 form happen simultaneously.
+    if (lineToStep && lineToStep[i] != null) {
+      const snap = snapForStep(lineToStep[i]);
+      if (snap) {
+        if (typeof _topoReplayActiveSnap !== 'undefined') _topoReplayActiveSnap = snap;
+        if (typeof topoRender === 'function') topoRender(snap);
+      }
+    }
+
     i++;
 
     if (line === 'GEOLOGICAL HISTORY') {
