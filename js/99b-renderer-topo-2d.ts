@@ -489,10 +489,11 @@ function topoRender(optOverrideSnap?) {
   if (sim && sim.crystals) {
     for (const host of sim.crystals) {
       if (!host.enclosed_crystals || !host.enclosed_crystals.length) continue;
-      // PHASE-1-CAVITY-MESH: resolve host anchor through the helper so
-      // this site survives the Phase 4 legacy-field drop.
+      // PHASE-4-CAVITY-MESH Tranche 4b — wall_anchor is the sole
+      // positional field; legacy fallback retired.
       const _hostAnchor = wall._resolveAnchor ? wall._resolveAnchor(host) : null;
-      const _hostCenterCell = _hostAnchor ? _hostAnchor.cellIdx : host.wall_center_cell;
+      if (!_hostAnchor) continue;
+      const _hostCenterCell = _hostAnchor.cellIdx;
       if (host.dissolved || _hostCenterCell == null) continue;
 
       // Build the host's painted-cell set. Fall back to its center cell

@@ -46,15 +46,20 @@ Object.assign(VugSimulator.prototype, {
   // so pseudomorphs/overgrowths paint alongside it. Free-wall
   // nucleations get a random ring (Phase C v1: scatter across the
   // sphere wall; Phase D will weight by orientation).
-  crystal.wall_center_cell = this._assignWallCell(position);
-  crystal.wall_ring_index = this._assignWallRing(position, mineral);
-  // PHASE-1-CAVITY-MESH: populate the spherical-coordinate anchor in
-  // step with the legacy fields. Consumers prefer wall_anchor via
-  // WallState._resolveAnchor; legacy fields stay for any
-  // un-migrated reader and for Phase 4's eventual drop.
-  crystal.wall_anchor = this.wall_state._anchorFromRingCell(
-    crystal.wall_ring_index, crystal.wall_center_cell,
-  );
+  // PHASE-4-CAVITY-MESH (PROPOSAL-CAVITY-MESH §13 Tranche 4b) —
+  // assign the spherical-coordinate anchor directly; legacy
+  // wall_ring_index / wall_center_cell fields retired in this
+  // tranche. Anchor pickers still return (ringIdx, cellIdx) under
+  // the hood (Phase 2's lat-long tessellation) — _anchorFromRingCell
+  // wraps them into the canonical anchor record.
+  //
+  // ORDER MATTERS: _assignWallCell runs before _assignWallRing,
+  // matching the pre-Tranche-4b sequence. Both consume from the
+  // shared RNG; swapping them shifts every downstream nucleation
+  // anchor and rebakes every calibration baseline. Keep this order.
+  const _cellIdx = this._assignWallCell(position);
+  const _ringIdx = this._assignWallRing(position, mineral);
+  crystal.wall_anchor = this.wall_state._anchorFromRingCell(_ringIdx, _cellIdx);
 
   // v24 water-level: stamp growth_environment from the ring's
   // water state. Submerged or meniscus = wet = 'fluid'; vadose
@@ -67,7 +72,7 @@ Object.assign(VugSimulator.prototype, {
   // the flag as the modeler's intent.
   {
     const wstate = this.conditions.ringWaterState(
-      crystal.wall_ring_index, this.wall_state.ring_count);
+      _ringIdx, this.wall_state.ring_count);
     if (this.conditions.wall?.air_mode_default) {
       crystal.growth_environment = 'air';
     } else {

@@ -607,27 +607,22 @@ class WallState {
     };
   }
 
-  // PHASE-1-CAVITY-MESH: resolve a crystal's anchor back to a
-  // (ringIdx, cellIdx) pair for legacy ring-grid consumers (renderers,
-  // paint routines, per-ring fluid lookup). Reads wall_anchor when
-  // present, falls back to the legacy fields otherwise. Returns null
-  // when neither is set so the caller can short-circuit.
+  // PHASE-4-CAVITY-MESH (PROPOSAL-CAVITY-MESH §13 Tranche 4b) —
+  // resolve a crystal's anchor to a (ringIdx, cellIdx) pair. Phase 1
+  // had legacy fallback to crystal.wall_ring_index / .wall_center_cell;
+  // those fields retired in Tranche 4b, so wall_anchor is the sole
+  // source of truth. Returns null when the crystal is unanchored
+  // (rare — only mid-construction in tests).
   //
-  // Phase 2 will swap the body to a kd-tree lookup over the mesh, but
-  // the call signature stays the same — consumers stay decoupled.
+  // Phase 2.5 (irregular tessellations) will swap the body to a
+  // kd-tree lookup over (phi, theta); ringIdx/cellIdx in wall_anchor
+  // are caches refreshed on tessellation change. Call signature
+  // stays the same.
   _resolveAnchor(crystal) {
     if (!crystal) return null;
     const a = crystal.wall_anchor;
     if (a && a.ringIdx != null && a.cellIdx != null) {
       return { ringIdx: a.ringIdx, cellIdx: a.cellIdx };
-    }
-    if (crystal.wall_ring_index != null && crystal.wall_center_cell != null) {
-      return { ringIdx: crystal.wall_ring_index, cellIdx: crystal.wall_center_cell };
-    }
-    if (crystal.wall_center_cell != null) {
-      // Pre-Phase-C-v1 save: only the legacy cell was stored; default
-      // to ring 0 (the v17 single-ring grid).
-      return { ringIdx: 0, cellIdx: crystal.wall_center_cell };
     }
     return null;
   }

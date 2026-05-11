@@ -165,10 +165,9 @@ describe('cavity-mesh Phase 3 — zone chemistry opt-in', () => {
     // Nucleate a crystal directly into a known floor ring (r=0) and
     // ceiling ring (r=15) via the legacy fields; anchor populates
     // automatically through Phase 1 helpers.
-    const floorCrystal: any = { wall_ring_index: 0, wall_center_cell: 0 };
-    floorCrystal.wall_anchor = sim.wall_state._anchorFromRingCell(0, 0);
-    const ceilCrystal: any = { wall_ring_index: 15, wall_center_cell: 0 };
-    ceilCrystal.wall_anchor = sim.wall_state._anchorFromRingCell(15, 0);
+    // Post-Tranche-4b wall_anchor is the sole positional field.
+    const floorCrystal: any = { wall_anchor: sim.wall_state._anchorFromRingCell(0, 0) };
+    const ceilCrystal: any = { wall_anchor: sim.wall_state._anchorFromRingCell(15, 0) };
     expect(sim.wall_state.zoneOf(floorCrystal)).toBe('floor');
     expect(sim.wall_state.zoneOf(ceilCrystal)).toBe('ceiling');
   });

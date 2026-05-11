@@ -56,8 +56,10 @@ describe('determinism — seed produces stable output', () => {
     // give a robust probabilistic differ, fewer scenario gates than
     // cooling (where deterministic chemistry can pick the same
     // mineral set across seeds).
-    const anchorsA = sim42.crystals.map((c: any) => `${c.wall_ring_index},${c.wall_center_cell}`).join(';');
-    const anchorsB = sim999.crystals.map((c: any) => `${c.wall_ring_index},${c.wall_center_cell}`).join(';');
+    // Phase 4 Tranche 4b — read from wall_anchor (the sole positional
+    // field on Crystal post-Tranche-4b). Legacy fields retired.
+    const anchorsA = sim42.crystals.map((c: any) => `${c.wall_anchor?.ringIdx},${c.wall_anchor?.cellIdx}`).join(';');
+    const anchorsB = sim999.crystals.map((c: any) => `${c.wall_anchor?.ringIdx},${c.wall_anchor?.cellIdx}`).join(';');
     expect(anchorsA === anchorsB).toBe(false);
   });
 });

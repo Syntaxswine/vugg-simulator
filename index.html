@@ -7649,28 +7649,23 @@ class WallState {
             cellIdx: c,
         };
     }
-    // PHASE-1-CAVITY-MESH: resolve a crystal's anchor back to a
-    // (ringIdx, cellIdx) pair for legacy ring-grid consumers (renderers,
-    // paint routines, per-ring fluid lookup). Reads wall_anchor when
-    // present, falls back to the legacy fields otherwise. Returns null
-    // when neither is set so the caller can short-circuit.
+    // PHASE-4-CAVITY-MESH (PROPOSAL-CAVITY-MESH §13 Tranche 4b) —
+    // resolve a crystal's anchor to a (ringIdx, cellIdx) pair. Phase 1
+    // had legacy fallback to crystal.wall_ring_index / .wall_center_cell;
+    // those fields retired in Tranche 4b, so wall_anchor is the sole
+    // source of truth. Returns null when the crystal is unanchored
+    // (rare — only mid-construction in tests).
     //
-    // Phase 2 will swap the body to a kd-tree lookup over the mesh, but
-    // the call signature stays the same — consumers stay decoupled.
+    // Phase 2.5 (irregular tessellations) will swap the body to a
+    // kd-tree lookup over (phi, theta); ringIdx/cellIdx in wall_anchor
+    // are caches refreshed on tessellation change. Call signature
+    // stays the same.
     _resolveAnchor(crystal) {
         if (!crystal)
             return null;
         const a = crystal.wall_anchor;
         if (a && a.ringIdx != null && a.cellIdx != null) {
             return { ringIdx: a.ringIdx, cellIdx: a.cellIdx };
-        }
-        if (crystal.wall_ring_index != null && crystal.wall_center_cell != null) {
-            return { ringIdx: crystal.wall_ring_index, cellIdx: crystal.wall_center_cell };
-        }
-        if (crystal.wall_center_cell != null) {
-            // Pre-Phase-C-v1 save: only the legacy cell was stored; default
-            // to ring 0 (the v17 single-ring grid).
-            return { ringIdx: 0, cellIdx: crystal.wall_center_cell };
         }
         return null;
     }
@@ -8921,27 +8916,22 @@ class Crystal {
         this.wall_spread = opts.wall_spread ?? 0.5;
         this.void_reach = opts.void_reach ?? 0.5;
         this.vector = opts.vector ?? 'equant';
-        // Anchor cell on the wall where this crystal nucleated.
-        // WallState paints outward from here by wall_spread ×
-        // total_growth. null for crystals that haven't been anchored yet.
+        // PHASE-4-CAVITY-MESH (PROPOSAL-CAVITY-MESH §13 Tranche 4b) — the
+        // legacy `wall_ring_index` / `wall_center_cell` fields are gone.
+        // `wall_anchor` is the only positional field on Crystal from this
+        // commit forward. Phase 1's deprecation completes; renderers and
+        // engine code all go through wall_anchor (or the WallState helper
+        // _resolveAnchor) directly.
         //
-        // PHASE-1-CAVITY-MESH (PROPOSAL-CAVITY-MESH §5): wall_center_cell
-        // and wall_ring_index are now LEGACY fields kept in sync with
-        // wall_anchor.{cellIdx,ringIdx}. New code should call
-        // WallState._resolveAnchor(crystal) → {ringIdx, cellIdx} instead
-        // of reading them directly. Slated for removal in Phase 4 once
-        // every touchpoint has migrated. During Phase 1 both routes return
-        // byte-identical values (no SIM_VERSION bump).
-        this.wall_center_cell = opts.wall_center_cell ?? null;
-        this.wall_ring_index = opts.wall_ring_index ?? null;
-        // PHASE-1-CAVITY-MESH: spherical-coordinate anchor on the cavity
-        // wall. Truth-bearing field for the crystal's position; legacy
-        // (wall_ring_index, wall_center_cell) are derived caches. Shape:
+        // wall_anchor shape:
         //   { phi: number, theta: number, ringIdx: number, cellIdx: number }
-        // where phi ∈ [0,π] (south pole 0, north pole π) and theta ∈ [0,2π).
-        // null = pre-Phase-1 saves or tests; consumers fall back to legacy
-        // fields in that case. See WallState._anchorFromRingCell /
-        // WallState._resolveAnchor.
+        // phi ∈ [0, π] (south pole 0, north pole π); theta ∈ [0, 2π).
+        // ringIdx/cellIdx are derived caches for fast lat-long lookups
+        // (Phase 2's lat-long tessellation); phi/theta is the truth that
+        // survives a future re-tessellation (Phase 2.5).
+        //
+        // null = unanchored crystal (rare — only mid-construction in
+        // tests). Renderers that encounter a null anchor skip the crystal.
         this.wall_anchor = opts.wall_anchor ?? null;
         // Environment at nucleation time. 'fluid' (the dominant case —
         // vug fluid-filled, geometric-selection orientation along the
@@ -21178,13 +21168,20 @@ Object.assign(VugSimulator.prototype, {
         // so pseudomorphs/overgrowths paint alongside it. Free-wall
         // nucleations get a random ring (Phase C v1: scatter across the
         // sphere wall; Phase D will weight by orientation).
-        crystal.wall_center_cell = this._assignWallCell(position);
-        crystal.wall_ring_index = this._assignWallRing(position, mineral);
-        // PHASE-1-CAVITY-MESH: populate the spherical-coordinate anchor in
-        // step with the legacy fields. Consumers prefer wall_anchor via
-        // WallState._resolveAnchor; legacy fields stay for any
-        // un-migrated reader and for Phase 4's eventual drop.
-        crystal.wall_anchor = this.wall_state._anchorFromRingCell(crystal.wall_ring_index, crystal.wall_center_cell);
+        // PHASE-4-CAVITY-MESH (PROPOSAL-CAVITY-MESH §13 Tranche 4b) —
+        // assign the spherical-coordinate anchor directly; legacy
+        // wall_ring_index / wall_center_cell fields retired in this
+        // tranche. Anchor pickers still return (ringIdx, cellIdx) under
+        // the hood (Phase 2's lat-long tessellation) — _anchorFromRingCell
+        // wraps them into the canonical anchor record.
+        //
+        // ORDER MATTERS: _assignWallCell runs before _assignWallRing,
+        // matching the pre-Tranche-4b sequence. Both consume from the
+        // shared RNG; swapping them shifts every downstream nucleation
+        // anchor and rebakes every calibration baseline. Keep this order.
+        const _cellIdx = this._assignWallCell(position);
+        const _ringIdx = this._assignWallRing(position, mineral);
+        crystal.wall_anchor = this.wall_state._anchorFromRingCell(_ringIdx, _cellIdx);
         // v24 water-level: stamp growth_environment from the ring's
         // water state. Submerged or meniscus = wet = 'fluid'; vadose
         // (above the meniscus) = 'air'. Mirrors vugg.py.
@@ -21195,7 +21192,7 @@ Object.assign(VugSimulator.prototype, {
         // that's also flagged as having fluid is a contradiction; treat
         // the flag as the modeler's intent.
         {
-            const wstate = this.conditions.ringWaterState(crystal.wall_ring_index, this.wall_state.ring_count);
+            const wstate = this.conditions.ringWaterState(_ringIdx, this.wall_state.ring_count);
             if (this.conditions.wall?.air_mode_default) {
                 crystal.growth_environment = 'air';
             }
@@ -32573,10 +32570,12 @@ function topoRender(optOverrideSnap) {
         for (const host of sim.crystals) {
             if (!host.enclosed_crystals || !host.enclosed_crystals.length)
                 continue;
-            // PHASE-1-CAVITY-MESH: resolve host anchor through the helper so
-            // this site survives the Phase 4 legacy-field drop.
+            // PHASE-4-CAVITY-MESH Tranche 4b — wall_anchor is the sole
+            // positional field; legacy fallback retired.
             const _hostAnchor = wall._resolveAnchor ? wall._resolveAnchor(host) : null;
-            const _hostCenterCell = _hostAnchor ? _hostAnchor.cellIdx : host.wall_center_cell;
+            if (!_hostAnchor)
+                continue;
+            const _hostCenterCell = _hostAnchor.cellIdx;
             if (host.dissolved || _hostCenterCell == null)
                 continue;
             // Build the host's painted-cell set. Fall back to its center cell
@@ -33718,11 +33717,13 @@ function _topoRenderRings3D(ctx, sim, wall, ring0, cellR, boundaryR, cx, cy, mmT
         for (const crystal of sim.crystals) {
             if (crystal.dissolved)
                 continue;
-            // PHASE-1-CAVITY-MESH: resolve via WallState helper so the
-            // canvas-vector fallback stops reading legacy fields directly.
+            // PHASE-4-CAVITY-MESH Tranche 4b — wall_anchor is the sole
+            // positional field; _resolveAnchor reads only from it.
             const _anchor = wall._resolveAnchor ? wall._resolveAnchor(crystal) : null;
-            const ringIdx = _anchor ? _anchor.ringIdx : crystal.wall_ring_index;
-            const cellIdx = _anchor ? _anchor.cellIdx : crystal.wall_center_cell;
+            if (!_anchor)
+                continue;
+            const ringIdx = _anchor.ringIdx;
+            const cellIdx = _anchor.cellIdx;
             if (ringIdx == null || cellIdx == null)
                 continue;
             const meta = ringMeta[ringIdx];
@@ -36452,15 +36453,14 @@ function _emitClusterSatellites(state, crystal, geom, mat, ax, ay, az, nx, ny, n
         // Inherit parent userData so raycaster hit-test resolves a satellite
         // hit back to the parent crystal — clicking a satellite tooltips
         // the parent mineral, no per-satellite identity surfaced.
-        // PHASE-1-CAVITY-MESH: prefer the new wall_anchor (cached
-        // ringIdx/cellIdx) and fall back to legacy fields for any
-        // pre-Phase-1 save replayed from snapshot.
-        const _anchor = crystal.wall_anchor;
+        // PHASE-4-CAVITY-MESH Tranche 4b — wall_anchor is the only
+        // positional field on Crystal; legacy fields retired.
+        const _anchor = crystal.wall_anchor || { ringIdx: 0, cellIdx: 0 };
         satMesh.userData = {
             crystal_id: crystal.crystal_id,
             mineral: crystal.mineral,
-            ringIdx: _anchor ? _anchor.ringIdx : crystal.wall_ring_index,
-            cellIdx: _anchor ? _anchor.cellIdx : crystal.wall_center_cell,
+            ringIdx: _anchor.ringIdx,
+            cellIdx: _anchor.cellIdx,
             isSatellite: true,
         };
         satMesh.renderOrder = 1;
@@ -36594,13 +36594,10 @@ function _topoCrystalsSignature(sim, replayStep) {
         // appears (and so its mesh gets built in _topoSyncCrystalMeshes).
         if (c.dissolved && !c.perimorph_eligible)
             continue;
-        // PHASE-1-CAVITY-MESH: pull the anchor pair from wall_anchor (the
-        // new truth) and fall back to legacy fields for replays of
-        // pre-Phase-1 snapshots. Signature stays string-identical for
-        // current saves because both routes return the same values.
+        // PHASE-4-CAVITY-MESH Tranche 4b — wall_anchor is the truth.
         const _a = c.wall_anchor;
-        const _ringKey = _a ? _a.ringIdx : c.wall_ring_index;
-        const _cellKey = _a ? _a.cellIdx : c.wall_center_cell;
+        const _ringKey = _a ? _a.ringIdx : 0;
+        const _cellKey = _a ? _a.cellIdx : 0;
         // PHASE-D-HABIT-BIAS: encode growth_environment into the signature
         // so the cache busts when an air-mode crystal's orientation
         // (radial → gravity) flips. 'a' = air, 'f' = fluid (default).
@@ -36691,14 +36688,15 @@ function _topoSyncCrystalMeshes(state, sim, wall, replayStep) {
             }
             // else: perimorph cast — fall through with live (= dissolution-time) size.
         }
-        // PHASE-1-CAVITY-MESH: resolve the anchor through WallState so the
-        // renderer stops reading legacy fields directly. Identical result
-        // while wall_anchor and legacy fields are kept in sync.
+        // PHASE-4-CAVITY-MESH Tranche 4b — wall_anchor is the sole
+        // positional field; _resolveAnchor reads only from it.
         const _anchor = wall._resolveAnchor ? wall._resolveAnchor(crystal) : null;
-        let ringIdx = _anchor ? _anchor.ringIdx : crystal.wall_ring_index;
+        if (!_anchor)
+            continue;
+        let ringIdx = _anchor.ringIdx;
         if (ringIdx == null || ringIdx < 0 || ringIdx >= ringCount)
             ringIdx = 0;
-        const cellIdx = _anchor ? _anchor.cellIdx : crystal.wall_center_cell;
+        const cellIdx = _anchor.cellIdx;
         if (cellIdx == null)
             continue;
         const ring = wall.rings[ringIdx];

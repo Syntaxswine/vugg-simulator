@@ -95,9 +95,9 @@ describe('cavity-mesh Phase 4 Tranche 1 — mesh.cells[] container', () => {
     const sim = new VugSimulator(makeConditions(), []);
     const mesh = sim.wall_state.meshFor(sim);
     // Build a crystal anchored at a known (ring, cell) pair via the
-    // Phase 1 anchor helper.
-    const c: any = { wall_ring_index: 3, wall_center_cell: 7 };
-    c.wall_anchor = sim.wall_state._anchorFromRingCell(3, 7);
+    // Phase 1 anchor helper. Post-Tranche-4b wall_anchor is the sole
+    // positional field.
+    const c: any = { wall_anchor: sim.wall_state._anchorFromRingCell(3, 7) };
     const cell = mesh.cellOf(c, sim.wall_state);
     expect(cell).toBeTruthy();
     // Post-Tranche-4a: cells own independent FluidChemistry clones, so

@@ -56,30 +56,30 @@ describe('cavity-mesh Phase 1 — anchor helpers', () => {
     for (const c of sim.crystals) {
       const a = wall._resolveAnchor(c);
       expect(a).not.toBeNull();
-      // Anchor must agree with both the cached wall_anchor and the
-      // legacy fields — the central invariant Phase 1 preserves.
+      // Anchor must agree with the cached wall_anchor — the central
+      // Phase-4-Tranche-4b invariant (wall_anchor is the sole
+      // positional field; legacy mirror fields retired).
       expect(a.ringIdx).toBe(c.wall_anchor.ringIdx);
       expect(a.cellIdx).toBe(c.wall_anchor.cellIdx);
-      expect(a.ringIdx).toBe(c.wall_ring_index);
-      expect(a.cellIdx).toBe(c.wall_center_cell);
     }
   });
 
-  it('_resolveAnchor falls back to legacy fields when wall_anchor is null', () => {
-    // Simulates a pre-Phase-1 save being loaded for replay: the
-    // crystal has wall_ring_index / wall_center_cell but no
-    // wall_anchor. _resolveAnchor must still return the legacy pair.
+  it('_resolveAnchor returns null when wall_anchor is missing (Phase-4-Tranche-4b)', () => {
+    // Phase 1's legacy fallback (read wall_ring_index / wall_center_cell
+    // when wall_anchor is null) retired in Tranche 4b. A crystal without
+    // wall_anchor is unanchored — _resolveAnchor returns null and the
+    // caller short-circuits. Pre-Phase-1 saves that have only the
+    // legacy fields are not currently produced by any code path; if a
+    // future loader needs to import them, the migration shim should
+    // populate wall_anchor at load time.
     const wall = new WallState({ cells_per_ring: 120, ring_count: 16 });
-    const legacy = new Crystal({
+    const noAnchor = new Crystal({
       mineral: 'calcite',
       crystal_id: 1,
-      wall_ring_index: 7,
-      wall_center_cell: 42,
       // wall_anchor intentionally omitted → defaults to null
     });
-    expect(legacy.wall_anchor).toBeNull();
-    const a = wall._resolveAnchor(legacy);
-    expect(a).toEqual({ ringIdx: 7, cellIdx: 42 });
+    expect(noAnchor.wall_anchor).toBeNull();
+    expect(wall._resolveAnchor(noAnchor)).toBeNull();
   });
 
   it('_resolveAnchor returns null for an unanchored crystal', () => {

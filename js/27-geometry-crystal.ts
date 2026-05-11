@@ -64,27 +64,22 @@ class Crystal {
     this.wall_spread = opts.wall_spread ?? 0.5;
     this.void_reach = opts.void_reach ?? 0.5;
     this.vector = opts.vector ?? 'equant';
-    // Anchor cell on the wall where this crystal nucleated.
-    // WallState paints outward from here by wall_spread ×
-    // total_growth. null for crystals that haven't been anchored yet.
+    // PHASE-4-CAVITY-MESH (PROPOSAL-CAVITY-MESH §13 Tranche 4b) — the
+    // legacy `wall_ring_index` / `wall_center_cell` fields are gone.
+    // `wall_anchor` is the only positional field on Crystal from this
+    // commit forward. Phase 1's deprecation completes; renderers and
+    // engine code all go through wall_anchor (or the WallState helper
+    // _resolveAnchor) directly.
     //
-    // PHASE-1-CAVITY-MESH (PROPOSAL-CAVITY-MESH §5): wall_center_cell
-    // and wall_ring_index are now LEGACY fields kept in sync with
-    // wall_anchor.{cellIdx,ringIdx}. New code should call
-    // WallState._resolveAnchor(crystal) → {ringIdx, cellIdx} instead
-    // of reading them directly. Slated for removal in Phase 4 once
-    // every touchpoint has migrated. During Phase 1 both routes return
-    // byte-identical values (no SIM_VERSION bump).
-    this.wall_center_cell = opts.wall_center_cell ?? null;
-    this.wall_ring_index = opts.wall_ring_index ?? null;
-    // PHASE-1-CAVITY-MESH: spherical-coordinate anchor on the cavity
-    // wall. Truth-bearing field for the crystal's position; legacy
-    // (wall_ring_index, wall_center_cell) are derived caches. Shape:
+    // wall_anchor shape:
     //   { phi: number, theta: number, ringIdx: number, cellIdx: number }
-    // where phi ∈ [0,π] (south pole 0, north pole π) and theta ∈ [0,2π).
-    // null = pre-Phase-1 saves or tests; consumers fall back to legacy
-    // fields in that case. See WallState._anchorFromRingCell /
-    // WallState._resolveAnchor.
+    // phi ∈ [0, π] (south pole 0, north pole π); theta ∈ [0, 2π).
+    // ringIdx/cellIdx are derived caches for fast lat-long lookups
+    // (Phase 2's lat-long tessellation); phi/theta is the truth that
+    // survives a future re-tessellation (Phase 2.5).
+    //
+    // null = unanchored crystal (rare — only mid-construction in
+    // tests). Renderers that encounter a null anchor skip the crystal.
     this.wall_anchor = opts.wall_anchor ?? null;
     // Environment at nucleation time. 'fluid' (the dominant case —
     // vug fluid-filled, geometric-selection orientation along the

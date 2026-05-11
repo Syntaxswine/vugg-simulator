@@ -1265,15 +1265,14 @@ function _emitClusterSatellites(
     // Inherit parent userData so raycaster hit-test resolves a satellite
     // hit back to the parent crystal — clicking a satellite tooltips
     // the parent mineral, no per-satellite identity surfaced.
-    // PHASE-1-CAVITY-MESH: prefer the new wall_anchor (cached
-    // ringIdx/cellIdx) and fall back to legacy fields for any
-    // pre-Phase-1 save replayed from snapshot.
-    const _anchor = crystal.wall_anchor;
+    // PHASE-4-CAVITY-MESH Tranche 4b — wall_anchor is the only
+    // positional field on Crystal; legacy fields retired.
+    const _anchor = crystal.wall_anchor || { ringIdx: 0, cellIdx: 0 };
     satMesh.userData = {
       crystal_id: crystal.crystal_id,
       mineral: crystal.mineral,
-      ringIdx: _anchor ? _anchor.ringIdx : crystal.wall_ring_index,
-      cellIdx: _anchor ? _anchor.cellIdx : crystal.wall_center_cell,
+      ringIdx: _anchor.ringIdx,
+      cellIdx: _anchor.cellIdx,
       isSatellite: true,
     };
     satMesh.renderOrder = 1;
@@ -1394,13 +1393,10 @@ function _topoCrystalsSignature(sim: any, replayStep?: number): string {
     // such casts in the signature so the cache busts when one
     // appears (and so its mesh gets built in _topoSyncCrystalMeshes).
     if (c.dissolved && !c.perimorph_eligible) continue;
-    // PHASE-1-CAVITY-MESH: pull the anchor pair from wall_anchor (the
-    // new truth) and fall back to legacy fields for replays of
-    // pre-Phase-1 snapshots. Signature stays string-identical for
-    // current saves because both routes return the same values.
+    // PHASE-4-CAVITY-MESH Tranche 4b — wall_anchor is the truth.
     const _a = c.wall_anchor;
-    const _ringKey = _a ? _a.ringIdx : c.wall_ring_index;
-    const _cellKey = _a ? _a.cellIdx : c.wall_center_cell;
+    const _ringKey = _a ? _a.ringIdx : 0;
+    const _cellKey = _a ? _a.cellIdx : 0;
     // PHASE-D-HABIT-BIAS: encode growth_environment into the signature
     // so the cache busts when an air-mode crystal's orientation
     // (radial → gravity) flips. 'a' = air, 'f' = fluid (default).
@@ -1489,13 +1485,13 @@ function _topoSyncCrystalMeshes(state: any, sim: any, wall: any, replayStep?: nu
       // else: perimorph cast — fall through with live (= dissolution-time) size.
     }
 
-    // PHASE-1-CAVITY-MESH: resolve the anchor through WallState so the
-    // renderer stops reading legacy fields directly. Identical result
-    // while wall_anchor and legacy fields are kept in sync.
+    // PHASE-4-CAVITY-MESH Tranche 4b — wall_anchor is the sole
+    // positional field; _resolveAnchor reads only from it.
     const _anchor = wall._resolveAnchor ? wall._resolveAnchor(crystal) : null;
-    let ringIdx = _anchor ? _anchor.ringIdx : crystal.wall_ring_index;
+    if (!_anchor) continue;
+    let ringIdx = _anchor.ringIdx;
     if (ringIdx == null || ringIdx < 0 || ringIdx >= ringCount) ringIdx = 0;
-    const cellIdx = _anchor ? _anchor.cellIdx : crystal.wall_center_cell;
+    const cellIdx = _anchor.cellIdx;
     if (cellIdx == null) continue;
 
     const ring = wall.rings[ringIdx];
