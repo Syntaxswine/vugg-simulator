@@ -58,6 +58,15 @@ function runSimulation() {
   // activity instead of "text scrolls while cavity sits frozen at the
   // final state". See proposals/PROPOSAL-NARRATIVE-TEMPO.md.
   const lineToStep: Record<number, number> = {};
+  // Click-to-continue gates: the prologue (title / fluid / events
+  // list) shouldn't fire by under the user before they've registered
+  // the setup; the epilogue (summary / narrative box) deserves the
+  // same deliberate pacing as a payoff. We record the line index of
+  // the first step-header (prologue ends just before it) and the line
+  // index where the summary begins (epilogue starts there). Both are
+  // -1 if not applicable (e.g. zero-step run or no summary lines).
+  let prologueEndIdx = -1;
+  let epilogueStartIdx = -1;
 
   allLines.push(`🪨 Vugg Simulator — ${scenarioName} scenario (seed: ${seed})`);
   allLines.push(`   ${totalSteps} time steps, starting at ${conditions.temperature.toFixed(0)}°C, ${conditions.pressure.toFixed(1)} kbar`);
@@ -76,16 +85,20 @@ function runSimulation() {
       // The line index ABOUT TO BE PUSHED is the header for sim step (s+1).
       // run_step() advances this.step from s to s+1 internally, so the
       // header naturally reads "═══ Step N ═══" where N = s+1.
+      if (prologueEndIdx === -1) prologueEndIdx = allLines.length;
       lineToStep[allLines.length] = s + 1;
       allLines.push(sim.format_header());
       for (const line of log) allLines.push(line);
     }
   }
 
+  // Where the epilogue begins. Skipped (left at -1) when format_summary
+  // returns no lines, which can happen for zero-crystal scenarios.
   const summaryLines = sim.format_summary();
+  if (summaryLines.length) epilogueStartIdx = allLines.length;
   allLines.push(...summaryLines);
 
-  displayLines(allLines, lineToStep, sim);
+  displayLines(allLines, lineToStep, sim, prologueEndIdx, epilogueStartIdx);
 
   // Populate Legends Mode inventory panel
   updateLegendsInventory(sim);
@@ -106,7 +119,55 @@ function runRandom() {
   runSimulation();
 }
 
-function displayLines(lines, lineToStep?: Record<number, number>, sim?: any) {
+// Narrative-tempo: insert a "click to continue" pill at a story
+// boundary (prologue→main or main→epilogue). The pill responds to
+// click, Enter, or Space and removes itself before calling onResume.
+// The keyboard listener is one-shot — installed when the pill mounts,
+// removed when the user advances OR when the pill is replaced.
+function _insertContinuePrompt(output: any, position: 'prologue' | 'epilogue', onResume: () => void) {
+  const pill = document.createElement('div');
+  pill.className = 'narrative-continue-pill';
+  pill.dataset.position = position;
+  pill.textContent = position === 'prologue'
+    ? '▸ click to begin'
+    : '▸ click to read the summary';
+  pill.setAttribute('role', 'button');
+  pill.setAttribute('tabindex', '0');
+  output.appendChild(pill);
+  // Focus the pill so screen readers announce it AND keyboard users
+  // can press Enter / Space without an extra click.
+  try { pill.focus(); } catch (_) {}
+
+  let consumed = false;
+  const resume = () => {
+    if (consumed) return;
+    consumed = true;
+    document.removeEventListener('keydown', onKey, true);
+    if (pill.parentNode) pill.parentNode.removeChild(pill);
+    onResume();
+  };
+  const onKey = (ev: any) => {
+    // Don't hijack typing in inputs.
+    const tgt = ev.target as HTMLElement | null;
+    if (tgt) {
+      const tag = (tgt.tagName || '').toLowerCase();
+      if (tag === 'input' || tag === 'textarea' || tag === 'select') return;
+      if ((tgt as any).isContentEditable) return;
+    }
+    if (ev.key === 'Enter' || ev.key === ' ' || ev.key === 'Spacebar') {
+      ev.preventDefault();
+      ev.stopPropagation();
+      resume();
+    }
+  };
+  pill.addEventListener('click', resume);
+  // capture: true so the keydown listener fires before the replay-
+  // shortcut listener in 99g-renderer-replay.ts, preventing Space
+  // from triggering replay play/pause during the narrative pause.
+  document.addEventListener('keydown', onKey, true);
+}
+
+function displayLines(lines, lineToStep?: Record<number, number>, sim?: any, prologueEndIdx: number = -1, epilogueStartIdx: number = -1) {
   running = true;
   document.getElementById('btn-grow').disabled = true;
   document.getElementById('btn-random').disabled = true;
@@ -165,6 +226,32 @@ function displayLines(lines, lineToStep?: Record<number, number>, sim?: any) {
       // the actual final state, ready for replay or further actions.
       if (typeof _topoReplayActiveSnap !== 'undefined') _topoReplayActiveSnap = null;
       if (typeof topoRender === 'function') topoRender();
+      return;
+    }
+
+    // Click-to-continue gates at the prologue→main and main→epilogue
+    // boundaries. The user clicks the in-line prompt (or presses Space
+    // / Enter) to advance. Without the gate, the title / fluid / event
+    // list scrolls past too fast to register, and the summary blends
+    // into the main scroll instead of landing as a payoff.
+    //
+    // Each gate fires exactly once. We disarm by setting the index to
+    // -1 BEFORE inserting the pill, so when the pill's resume callback
+    // re-enters addLine() with the same `i`, the gate check is false
+    // and the line actually renders. Without this disarm, addLine
+    // would re-insert the same pill on resume and lock in an infinite
+    // pause loop.
+    if (i === prologueEndIdx || i === epilogueStartIdx) {
+      const isPrologue = (i === prologueEndIdx);
+      if (isPrologue) prologueEndIdx = -1;
+      else epilogueStartIdx = -1;
+      _insertContinuePrompt(output, isPrologue ? 'prologue' : 'epilogue', () => {
+        // Defer one tick so the click event finishes propagating before
+        // the next addLine renders — prevents a double-advance if the
+        // click also lands on a subsequently-rendered line.
+        setTimeout(addLine, 0);
+      });
+      output.scrollTop = output.scrollHeight;
       return;
     }
 

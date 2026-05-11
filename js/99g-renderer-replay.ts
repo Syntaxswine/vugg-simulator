@@ -400,6 +400,13 @@ if (typeof document !== 'undefined' && typeof document.addEventListener === 'fun
     // Topo panel must be visible.
     const topoPanel = document.getElementById('topo-panel');
     if (!topoPanel || topoPanel.style.display === 'none') return;
+    // Narrative-tempo Phase 1 sets _topoReplayActiveSnap during live
+    // play (Simulation mode's narrator-paced cavity). The Space /
+    // Esc shortcuts mean replay play-pause / stop, NOT advance the
+    // narrative. Bail when narrative-tempo is in flight so the
+    // legends-side keydown handler (in _insertContinuePrompt) owns
+    // the keyboard until the live play finishes.
+    if (typeof running !== 'undefined' && running) return;
 
     switch (ev.key) {
       case 'ArrowLeft':
