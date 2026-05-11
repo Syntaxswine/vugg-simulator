@@ -245,6 +245,30 @@ function _syncNarrativeSpeedCluster() {
 // total lines uniformly across the step's allotted duration (the
 // per-step model the boss specified 2026-05-11). Without it, we
 // fall back to per-line fixed pacing.
+// Phase 4 (2026-05-11): `displayLines` is now the SHARED narrative-
+// tempo engine — used by Simulation, Quick Play, AND Fortress (which
+// delegates via _fortressPaceLines). Mode-specific concerns become
+// option params + callbacks:
+//
+//   clearOutput   - default true (Simulation/QuickPlay clear the
+//                   panel); false makes Fortress's accumulating log
+//                   work without wiping prior content.
+//   appendLine    - per-mode line render. Default emits a generic
+//                   span with class-based styling; Fortress passes
+//                   appendFortressLine so its log keeps its tagged
+//                   styling.
+//   onStart/onDone- per-mode setup + teardown. Default Simulation
+//                   behaviour (disable btn-grow + btn-random) runs
+//                   when neither is supplied. Callers that need
+//                   extra setup (e.g. Fortress's action-grid lock)
+//                   provide their own and inherit the running-lock
+//                   semantics from this engine.
+//
+// Pre-Phase 4 the Fortress version was ~150 duplicated lines in
+// _fortressPaceLines. Now it's ~30. The replay timer in 99g stays
+// separate (it iterates snapshots, not lines, and has its own scrub-
+// bar UI). Replay unification is deferred to a future phase if
+// the appetite for it materialises.
 function displayLines(
   lines,
   lineToStep?: Record<number, number>,
@@ -254,12 +278,21 @@ function displayLines(
   outputEl?: HTMLElement | null,
   onDone?: () => void,
   stepLineCounts?: Record<number, number>,
+  clearOutput: boolean = true,
+  appendLine?: (out: HTMLElement, line: string) => void,
+  onStart?: () => void,
 ) {
   running = true;
-  document.getElementById('btn-grow').disabled = true;
-  document.getElementById('btn-random').disabled = true;
+  if (typeof onStart === 'function') {
+    onStart();
+  } else {
+    const grow = document.getElementById('btn-grow') as HTMLButtonElement | null;
+    const random = document.getElementById('btn-random') as HTMLButtonElement | null;
+    if (grow) grow.disabled = true;
+    if (random) random.disabled = true;
+  }
   const output = outputEl || document.getElementById('output');
-  output.innerHTML = '';
+  if (clearOutput !== false) output.innerHTML = '';
 
   // Narrative-tempo Phase 1: walk the sim's wall_state_history once
   // to build a step→snapshot index, so addLine() can look up the
@@ -292,7 +325,12 @@ function displayLines(
   // cavity while the header lines (title / fluid / events list) scroll
   // in, instead of an empty panel. Falls through to live render if
   // history is empty.
-  if (sim && stepOrder.length && typeof topoRender === 'function') {
+  //
+  // Skipped when clearOutput=false (Fortress) — that mode appends to
+  // an accumulating log and the cavity is already showing the prior
+  // step's state; rolling it back to the start of THIS action's range
+  // would be jarring.
+  if (clearOutput !== false && sim && stepOrder.length && typeof topoRender === 'function') {
     const firstSnap = snapByStep.get(stepOrder[0]);
     if (typeof _topoReplayActiveSnap !== 'undefined') _topoReplayActiveSnap = firstSnap;
     topoRender(firstSnap);
@@ -359,17 +397,21 @@ function displayLines(
   function addLine() {
     if (i >= lines.length) {
       running = false;
-      document.getElementById('btn-grow').disabled = false;
-      document.getElementById('btn-random').disabled = false;
+      // Default cleanup re-enables the Simulation buttons. Callers
+      // that supplied an onStart get to do their own teardown via
+      // onDone — Fortress uses this to re-enable its action grid.
+      if (typeof onStart !== 'function') {
+        const grow = document.getElementById('btn-grow') as HTMLButtonElement | null;
+        const random = document.getElementById('btn-random') as HTMLButtonElement | null;
+        if (grow) grow.disabled = false;
+        if (random) random.disabled = false;
+      }
       // Tempo cleanup: clear the replay-active snap so subsequent
       // renders read live sim state again, then paint the final
       // (live) topo. The user has finished reading; cavity sits on
       // the actual final state, ready for replay or further actions.
       if (typeof _topoReplayActiveSnap !== 'undefined') _topoReplayActiveSnap = null;
       if (typeof topoRender === 'function') topoRender();
-      // Show the speed cluster control for any subsequent replay; hide
-      // any in-flight narrative-tempo surface. Defensive — no-op if
-      // it's not currently mounted.
       _hideNarrativeSpeedCluster();
       if (typeof onDone === 'function') onDone();
       return;
@@ -468,16 +510,23 @@ function displayLines(
       return;
     }
 
-    const span = document.createElement('div');
-    span.textContent = line;
-
-    if (line.includes('🧱')) span.className = 'line-wall';
-    else if (line.includes('⚡')) span.className = 'line-event';
-    else if (line.includes('✦')) span.className = 'line-nucleation';
-    else if (line.includes('═══ Step') || line.startsWith('═')) span.className = 'line-header';
-    else if (line.includes('⬇') || line.includes('DISSOLUTION')) span.className = 'line-dissolution';
-
-    output.appendChild(span);
+    // Append the line using the caller's renderer if provided,
+    // otherwise the default span+class styling. Fortress passes
+    // appendFortressLine so its log keeps its line-event / line-
+    // dissolution / etc. classes plus its fortressLogLines.push side
+    // effect.
+    if (appendLine) {
+      appendLine(output, line);
+    } else {
+      const span = document.createElement('div');
+      span.textContent = line;
+      if (line.includes('🧱')) span.className = 'line-wall';
+      else if (line.includes('⚡')) span.className = 'line-event';
+      else if (line.includes('✦')) span.className = 'line-nucleation';
+      else if (line.includes('═══ Step') || line.startsWith('═')) span.className = 'line-header';
+      else if (line.includes('⬇') || line.includes('DISSOLUTION')) span.className = 'line-dissolution';
+      output.appendChild(span);
+    }
     // column-reverse on the parent puts the latest appendChild at the
     // top, so scrollTop=0 keeps the newest line visible.
     output.scrollTop = 0;

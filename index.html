@@ -23234,12 +23234,46 @@ function _syncNarrativeSpeedCluster() {
 // total lines uniformly across the step's allotted duration (the
 // per-step model the boss specified 2026-05-11). Without it, we
 // fall back to per-line fixed pacing.
-function displayLines(lines, lineToStep, sim, prologueEndIdx = -1, epilogueStartIdx = -1, outputEl, onDone, stepLineCounts) {
+// Phase 4 (2026-05-11): `displayLines` is now the SHARED narrative-
+// tempo engine — used by Simulation, Quick Play, AND Fortress (which
+// delegates via _fortressPaceLines). Mode-specific concerns become
+// option params + callbacks:
+//
+//   clearOutput   - default true (Simulation/QuickPlay clear the
+//                   panel); false makes Fortress's accumulating log
+//                   work without wiping prior content.
+//   appendLine    - per-mode line render. Default emits a generic
+//                   span with class-based styling; Fortress passes
+//                   appendFortressLine so its log keeps its tagged
+//                   styling.
+//   onStart/onDone- per-mode setup + teardown. Default Simulation
+//                   behaviour (disable btn-grow + btn-random) runs
+//                   when neither is supplied. Callers that need
+//                   extra setup (e.g. Fortress's action-grid lock)
+//                   provide their own and inherit the running-lock
+//                   semantics from this engine.
+//
+// Pre-Phase 4 the Fortress version was ~150 duplicated lines in
+// _fortressPaceLines. Now it's ~30. The replay timer in 99g stays
+// separate (it iterates snapshots, not lines, and has its own scrub-
+// bar UI). Replay unification is deferred to a future phase if
+// the appetite for it materialises.
+function displayLines(lines, lineToStep, sim, prologueEndIdx = -1, epilogueStartIdx = -1, outputEl, onDone, stepLineCounts, clearOutput = true, appendLine, onStart) {
     running = true;
-    document.getElementById('btn-grow').disabled = true;
-    document.getElementById('btn-random').disabled = true;
+    if (typeof onStart === 'function') {
+        onStart();
+    }
+    else {
+        const grow = document.getElementById('btn-grow');
+        const random = document.getElementById('btn-random');
+        if (grow)
+            grow.disabled = true;
+        if (random)
+            random.disabled = true;
+    }
     const output = outputEl || document.getElementById('output');
-    output.innerHTML = '';
+    if (clearOutput !== false)
+        output.innerHTML = '';
     // Narrative-tempo Phase 1: walk the sim's wall_state_history once
     // to build a step→snapshot index, so addLine() can look up the
     // cavity state for any step in O(1) without re-scanning each tick.
@@ -23272,7 +23306,12 @@ function displayLines(lines, lineToStep, sim, prologueEndIdx = -1, epilogueStart
     // cavity while the header lines (title / fluid / events list) scroll
     // in, instead of an empty panel. Falls through to live render if
     // history is empty.
-    if (sim && stepOrder.length && typeof topoRender === 'function') {
+    //
+    // Skipped when clearOutput=false (Fortress) — that mode appends to
+    // an accumulating log and the cavity is already showing the prior
+    // step's state; rolling it back to the start of THIS action's range
+    // would be jarring.
+    if (clearOutput !== false && sim && stepOrder.length && typeof topoRender === 'function') {
         const firstSnap = snapByStep.get(stepOrder[0]);
         if (typeof _topoReplayActiveSnap !== 'undefined')
             _topoReplayActiveSnap = firstSnap;
@@ -23336,8 +23375,17 @@ function displayLines(lines, lineToStep, sim, prologueEndIdx = -1, epilogueStart
     function addLine() {
         if (i >= lines.length) {
             running = false;
-            document.getElementById('btn-grow').disabled = false;
-            document.getElementById('btn-random').disabled = false;
+            // Default cleanup re-enables the Simulation buttons. Callers
+            // that supplied an onStart get to do their own teardown via
+            // onDone — Fortress uses this to re-enable its action grid.
+            if (typeof onStart !== 'function') {
+                const grow = document.getElementById('btn-grow');
+                const random = document.getElementById('btn-random');
+                if (grow)
+                    grow.disabled = false;
+                if (random)
+                    random.disabled = false;
+            }
             // Tempo cleanup: clear the replay-active snap so subsequent
             // renders read live sim state again, then paint the final
             // (live) topo. The user has finished reading; cavity sits on
@@ -23346,9 +23394,6 @@ function displayLines(lines, lineToStep, sim, prologueEndIdx = -1, epilogueStart
                 _topoReplayActiveSnap = null;
             if (typeof topoRender === 'function')
                 topoRender();
-            // Show the speed cluster control for any subsequent replay; hide
-            // any in-flight narrative-tempo surface. Defensive — no-op if
-            // it's not currently mounted.
             _hideNarrativeSpeedCluster();
             if (typeof onDone === 'function')
                 onDone();
@@ -23443,19 +23488,29 @@ function displayLines(lines, lineToStep, sim, prologueEndIdx = -1, epilogueStart
             setTimeout(addLine, baseSetTimeoutFor(20));
             return;
         }
-        const span = document.createElement('div');
-        span.textContent = line;
-        if (line.includes('🧱'))
-            span.className = 'line-wall';
-        else if (line.includes('⚡'))
-            span.className = 'line-event';
-        else if (line.includes('✦'))
-            span.className = 'line-nucleation';
-        else if (line.includes('═══ Step') || line.startsWith('═'))
-            span.className = 'line-header';
-        else if (line.includes('⬇') || line.includes('DISSOLUTION'))
-            span.className = 'line-dissolution';
-        output.appendChild(span);
+        // Append the line using the caller's renderer if provided,
+        // otherwise the default span+class styling. Fortress passes
+        // appendFortressLine so its log keeps its line-event / line-
+        // dissolution / etc. classes plus its fortressLogLines.push side
+        // effect.
+        if (appendLine) {
+            appendLine(output, line);
+        }
+        else {
+            const span = document.createElement('div');
+            span.textContent = line;
+            if (line.includes('🧱'))
+                span.className = 'line-wall';
+            else if (line.includes('⚡'))
+                span.className = 'line-event';
+            else if (line.includes('✦'))
+                span.className = 'line-nucleation';
+            else if (line.includes('═══ Step') || line.startsWith('═'))
+                span.className = 'line-header';
+            else if (line.includes('⬇') || line.includes('DISSOLUTION'))
+                span.className = 'line-dissolution';
+            output.appendChild(span);
+        }
         // column-reverse on the parent puts the latest appendChild at the
         // top, so scrollTop=0 keeps the newest line visible.
         output.scrollTop = 0;
@@ -27511,6 +27566,18 @@ function _advanceOneStep(logEl) {
 //   - onDone updates fortress-status + inventory; those panels need
 //     the final state, not snapshots, so they fire after the scroll
 //     completes.
+// Phase 4 (2026-05-11): delegate to the shared `displayLines` engine
+// in 91-ui-legends.ts. Fortress-specific concerns become a small
+// options block:
+//   - clearOutput: false              accumulating log, not one-shot reveal
+//   - appendLine: custom              tags lines with fortress styling +
+//                                     pushes to fortressLogLines for clipboard
+//   - onStart: action-grid disable    locks input during playback
+//   - onDone: action-grid re-enable   + caller's post-action housekeeping
+//
+// The whole per-step pacing / cavity sync / speed cluster machinery
+// now lives ONCE in displayLines. This wrapper is ~30 lines instead
+// of the ~90 it was pre-Phase 4 (commit before this one).
 function _fortressPaceLines(lines, lineToStep, stepLineCounts, onDone) {
     if (typeof running !== 'undefined' && running) {
         onDone?.();
@@ -27521,92 +27588,27 @@ function _fortressPaceLines(lines, lineToStep, stepLineCounts, onDone) {
         onDone?.();
         return;
     }
-    running = true;
-    // Lock the action grid while results play out — the user has to
-    // wait (or hit 4× via the speed cluster) before issuing the next
-    // action. Prevents action-burst races where multiple playbacks
-    // would interleave each other's lines.
-    document.querySelectorAll('.action-grid .action-btn').forEach((btn) => btn.disabled = true);
-    // Always-on reverse-flow for the fortress log — newest entry at
-    // top, older entries push down. Matches the directive from
-    // 2026-05-11. Class only needs to be added once; subsequent
-    // playbacks are idempotent.
-    logEl.classList.add('narrative-flow-reverse');
-    // Build the snapshot-by-step index. fortressSim.wall_state_history
-    // accumulates over the whole session; snapForStep finds the right
-    // snapshot for any step within this action's playback range.
-    const snapByStep = new Map();
-    const stepOrder = [];
-    if (fortressSim && fortressSim.wall_state_history) {
-        for (const s of fortressSim.wall_state_history) {
-            if (s && s.step != null) {
-                snapByStep.set(s.step, s);
-                stepOrder.push(s.step);
-            }
-        }
-        stepOrder.sort((a, b) => a - b);
-    }
-    function snapForStep(target) {
-        if (snapByStep.has(target))
-            return snapByStep.get(target);
-        for (let k = stepOrder.length - 1; k >= 0; k--) {
-            if (stepOrder[k] <= target)
-                return snapByStep.get(stepOrder[k]);
-        }
-        return null;
-    }
-    if (typeof _showNarrativeSpeedCluster === 'function')
-        _showNarrativeSpeedCluster();
-    // Per-step pacing (boss 2026-05-11): each step takes `stepDuration`
-    // total, with that budget divided evenly across the step's line
-    // count. Default speed (1.0) → 2000ms/step; "fast" (2.0) → 1000;
-    // "quick" (10.0) → 200. See proposals/PROPOSAL-NARRATIVE-TEMPO.md.
-    let currentSimStep = null;
-    const perLineDelay = () => {
-        const speed = (typeof _topoPlaybackSpeed === 'number' && _topoPlaybackSpeed > 0) ? _topoPlaybackSpeed : 1.0;
-        if (currentSimStep != null && stepLineCounts[currentSimStep]) {
-            const stepMs = 2000 / speed;
-            return Math.max(4, Math.round(stepMs / stepLineCounts[currentSimStep]));
-        }
-        return Math.max(4, Math.round(60 / speed));
-    };
-    let i = 0;
-    function tick() {
-        if (i >= lines.length) {
-            running = false;
-            document.querySelectorAll('.action-grid .action-btn').forEach((btn) => btn.disabled = false);
-            if (typeof _topoReplayActiveSnap !== 'undefined')
-                _topoReplayActiveSnap = null;
-            if (typeof topoRender === 'function')
-                topoRender();
-            if (typeof _hideNarrativeSpeedCluster === 'function')
-                _hideNarrativeSpeedCluster();
-            if (onDone)
-                onDone();
-            return;
-        }
-        // Cavity sync on step-header lines + switch currentSimStep so the
-        // perLineDelay below uses this step's line count.
-        if (lineToStep[i] != null) {
-            currentSimStep = lineToStep[i];
-            const snap = snapForStep(lineToStep[i]);
-            if (snap) {
-                if (typeof _topoReplayActiveSnap !== 'undefined')
-                    _topoReplayActiveSnap = snap;
-                if (typeof topoRender === 'function')
-                    topoRender(snap);
-            }
-        }
-        const line = lines[i];
+    displayLines(lines, lineToStep, fortressSim, -1, // no prologue gate
+    -1, // no epilogue gate
+    logEl, () => {
+        // Re-enable action grid + run caller's onDone (which fires the
+        // post-action housekeeping: updateFortressInventory, etc.).
+        document.querySelectorAll('.action-grid .action-btn').forEach((btn) => btn.disabled = false);
+        if (onDone)
+            onDone();
+    }, stepLineCounts, false, // clearOutput: false — Fortress's log accumulates
+    (out, line) => {
+        // Custom appendLine: keep fortressLogLines in sync for the
+        // clipboard-copy path, then apply Fortress's class-based line
+        // styling. appendFortressLine is the existing helper above.
         fortressLogLines.push(line);
-        appendFortressLine(logEl, line);
-        // With reverse-flow, scrollTop=0 keeps the newest line in view at
-        // the top of the panel.
-        logEl.scrollTop = 0;
-        i++;
-        setTimeout(tick, perLineDelay());
-    }
-    tick();
+        appendFortressLine(out, line);
+    }, () => {
+        // onStart: lock the action grid. The user can hit 4× / 0.2s via
+        // the speed cluster (mounted by displayLines) to skim quickly
+        // without losing the cavity-tracks-text grammar.
+        document.querySelectorAll('.action-grid .action-btn').forEach((btn) => btn.disabled = true);
+    });
 }
 function fortressStep(action, payload) {
     if (!fortressSim || !fortressActive)
