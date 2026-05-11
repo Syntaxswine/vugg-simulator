@@ -420,9 +420,16 @@ function runRandomVugg() {
   for (const line of discovery.split('\n')) allLines.push(line);
   allLines.push('');
   allLines.push(rule);
+  // Wrap the full narrative in the existing GEOLOGICAL HISTORY
+  // narrative-box treatment. Inside the box, paragraphs flow
+  // top-to-bottom (natural reading order) even though the outer
+  // #random-output is column-reverse for the live-event ticker. The
+  // box is one outer flex child; its internal paragraphs scroll in
+  // normally.
   if (full) {
-    allLines.push('');
+    allLines.push('GEOLOGICAL HISTORY');
     for (const line of full.split('\n')) allLines.push(line);
+    allLines.push('═'.repeat(70));
   }
 
   // Defensive: if no step ever fired the prologueEnd marker (e.g.

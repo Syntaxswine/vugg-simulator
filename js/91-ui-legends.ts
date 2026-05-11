@@ -167,6 +167,62 @@ function _insertContinuePrompt(output: any, position: 'prologue' | 'epilogue', o
   document.addEventListener('keydown', onKey, true);
 }
 
+// Narrative-tempo speed cluster — surfaces the same ½× / 1× / 2× / 4×
+// buttons used by the replay bar during live narrative play, so the
+// user can change scroll rate mid-stream. The replay bar's full
+// controls (play/pause/scrub/stop) DON'T apply during live play (the
+// sim already finished; we're paced-revealing). Mounting just the
+// speed buttons in a small floating cluster keeps the UI honest about
+// what's actionable.
+//
+// The buttons mutate the shared `_topoPlaybackSpeed` global via
+// topoReplaySpeed(), which is also what the replay bar's buttons
+// call. One source of truth.
+function _showNarrativeSpeedCluster() {
+  let cluster = document.getElementById('narrative-speed-cluster');
+  if (!cluster) {
+    cluster = document.createElement('div');
+    cluster.id = 'narrative-speed-cluster';
+    cluster.className = 'narrative-speed-cluster';
+    const speeds = [0.5, 1, 2, 4];
+    const labels = ['½×', '1×', '2×', '4×'];
+    for (let k = 0; k < speeds.length; k++) {
+      const btn = document.createElement('button');
+      btn.className = 'speed-btn';
+      btn.dataset.speed = String(speeds[k]);
+      btn.textContent = labels[k];
+      btn.title = `${labels[k]} speed`;
+      btn.addEventListener('click', () => {
+        if (typeof topoReplaySpeed === 'function') topoReplaySpeed(speeds[k]);
+        // Sync this cluster's active highlight (the replay bar's own
+        // sync function handles its set; ours mirrors here for users
+        // who never opened the replay bar this session).
+        _syncNarrativeSpeedCluster();
+      });
+      cluster.appendChild(btn);
+    }
+    // Position outside the topo panel; let CSS dock it near the
+    // output container so it's visually associated with the scroll.
+    document.body.appendChild(cluster);
+  }
+  cluster.style.display = 'flex';
+  _syncNarrativeSpeedCluster();
+}
+function _hideNarrativeSpeedCluster() {
+  const cluster = document.getElementById('narrative-speed-cluster');
+  if (cluster) cluster.style.display = 'none';
+}
+function _syncNarrativeSpeedCluster() {
+  const cluster = document.getElementById('narrative-speed-cluster');
+  if (!cluster) return;
+  const speed = (typeof _topoPlaybackSpeed === 'number') ? _topoPlaybackSpeed : 1.0;
+  for (const btn of Array.from(cluster.querySelectorAll('.speed-btn'))) {
+    const v = parseFloat((btn as HTMLElement).dataset.speed || '1');
+    if (v === speed) (btn as HTMLElement).classList.add('active');
+    else (btn as HTMLElement).classList.remove('active');
+  }
+}
+
 // outputEl + onDone parameterise the tempo-aware narrative renderer so
 // other modes (Quick Play / Phase 2; eventually Fortress / Phase 3)
 // can drive the same scrolling rhythm into their own output panels.
@@ -223,6 +279,33 @@ function displayLines(
     topoRender(firstSnap);
   }
 
+  // Reverse-flow layout: new events go to the TOP, older content pushes
+  // down. Boss directive 2026-05-11 — "thats the key to getting the
+  // tempo to match." With flex column-reverse, the latest-prepended
+  // line is read at the top, where the user's eye is already focused
+  // on the cavity above. Old content drifts visibly downward as time
+  // advances. The narrative-box's INTERNAL prose still reads
+  // top-to-bottom (the box itself is one positioned child of #output,
+  // its paragraphs flow normally inside it).
+  //
+  // Implementation: tag the output element + reuse CSS that sets
+  // flex-direction:column-reverse. appendChild still appends to the
+  // model order; CSS flips the visual order. This keeps the narrative-
+  // box treatment (which would be awkward to prepend-line-by-line
+  // because internal prose has logical top-to-bottom order) working
+  // unchanged.
+  output.classList.add('narrative-flow-reverse');
+
+  // Per-line scroll delay derived from _topoPlaybackSpeed so the speed
+  // buttons on the replay bar also control text rate. Default speed is
+  // 1.0 → 18 ms/line, matching the v66 cadence. At 4× speed → 4.5 ms,
+  // at 0.5× → 36 ms. Floored at 4ms to avoid event-loop starvation.
+  const baseSetTimeoutFor = (baseMs: number) => {
+    const speed = (typeof _topoPlaybackSpeed === 'number' && _topoPlaybackSpeed > 0)
+      ? _topoPlaybackSpeed : 1.0;
+    return Math.max(4, Math.round(baseMs / speed));
+  };
+
   let i = 0;
   let inNarrative = false;
   let narrativeEl = null;
@@ -238,6 +321,10 @@ function displayLines(
       // the actual final state, ready for replay or further actions.
       if (typeof _topoReplayActiveSnap !== 'undefined') _topoReplayActiveSnap = null;
       if (typeof topoRender === 'function') topoRender();
+      // Show the speed cluster control for any subsequent replay; hide
+      // any in-flight narrative-tempo surface. Defensive — no-op if
+      // it's not currently mounted.
+      _hideNarrativeSpeedCluster();
       if (typeof onDone === 'function') onDone();
       return;
     }
@@ -264,7 +351,9 @@ function displayLines(
         // click also lands on a subsequently-rendered line.
         setTimeout(addLine, 0);
       });
-      output.scrollTop = output.scrollHeight;
+      // With column-reverse layout, the newest child (the pill) is at
+      // the top — scroll to top so it's visible.
+      output.scrollTop = 0;
       return;
     }
 
@@ -295,8 +384,8 @@ function displayLines(
       box.appendChild(narrativeEl);
       output.appendChild(box);
       inNarrative = true;
-      output.scrollTop = output.scrollHeight;
-      setTimeout(addLine, 20);
+      output.scrollTop = 0;
+      setTimeout(addLine, baseSetTimeoutFor(20));
       return;
     }
 
@@ -306,23 +395,27 @@ function displayLines(
       span.textContent = line;
       span.className = 'line-header';
       output.appendChild(span);
-      output.scrollTop = output.scrollHeight;
-      setTimeout(addLine, 20);
+      output.scrollTop = 0;
+      setTimeout(addLine, baseSetTimeoutFor(20));
       return;
     }
 
     if (inNarrative && line.startsWith('─'.repeat(10))) {
-      setTimeout(addLine, 5);
+      setTimeout(addLine, baseSetTimeoutFor(5));
       return;
     }
 
     if (inNarrative) {
+      // Within a narrative-box, paragraphs flow top-to-bottom inside
+      // the box (normal reading order). Use appendChild so the box's
+      // internal layout stays natural, even though the outer #output
+      // is column-reverse.
       const span = document.createElement('div');
       span.textContent = line;
       span.style.marginBottom = line === '' ? '0.5em' : '0';
       narrativeEl.appendChild(span);
-      output.scrollTop = output.scrollHeight;
-      setTimeout(addLine, 20);
+      output.scrollTop = 0;
+      setTimeout(addLine, baseSetTimeoutFor(20));
       return;
     }
 
@@ -336,9 +429,18 @@ function displayLines(
     else if (line.includes('⬇') || line.includes('DISSOLUTION')) span.className = 'line-dissolution';
 
     output.appendChild(span);
-    output.scrollTop = output.scrollHeight;
-    setTimeout(addLine, 18);
+    // column-reverse on the parent puts the latest appendChild at the
+    // top, so scrollTop=0 keeps the newest line visible.
+    output.scrollTop = 0;
+    setTimeout(addLine, baseSetTimeoutFor(18));
   }
+
+  // Mount the speed cluster so the user can change the scroll rate
+  // mid-stream. The buttons live on the replay bar; we surface only
+  // the speed cluster (not play/pause/scrub which don't apply during
+  // live narrative play). Hidden again in onDone or on resume after a
+  // click-to-continue pill if the next phase needs it suppressed.
+  _showNarrativeSpeedCluster();
 
   addLine();
 }
