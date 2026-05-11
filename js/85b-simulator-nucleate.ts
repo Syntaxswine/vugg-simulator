@@ -360,21 +360,16 @@ _runEngineForCrystal(engine, crystal) {
   if (ringIdx != null && ringIdx >= 0 && ringIdx < this.ring_fluids.length) {
     savedFluid = this.conditions.fluid;
     savedTemp = this.conditions.temperature;
-    // PROPOSAL-CAVITY-MESH Phase 4 Tranche 1 — prefer the per-vertex
-    // cell.fluid when available (mesh-resident chemistry path). In
-    // Tranche 1, cell.fluid === ring_fluids[ringIdx] by reference
-    // (bindRingChemistry aliased them), so this is byte-identical to
-    // the legacy lookup. Tranche 2+ moves to per-vertex cloned
-    // fluids; this code path stays the same.
-    const mesh = this.wall_state.meshFor
-      ? this.wall_state.meshFor(this)
-      : null;
-    const cell = (mesh && mesh.cellOf)
-      ? mesh.cellOf(crystal, this.wall_state)
-      : null;
+    // PROPOSAL-CAVITY-MESH Phase 4 Tranche 4c — mesh is always built
+    // by the time _runEngineForCrystal fires (VugSimulator constructor
+    // calls wall_state.meshFor(this)); the cell.fluid read is the
+    // canonical per-vertex chemistry handle. Defensive fallback
+    // dropped now that the mesh-build is a constructor-invariant.
+    const mesh = this.wall_state.meshFor(this);
+    const cell = mesh.cellOf(crystal, this.wall_state);
     this.conditions.fluid = (cell && cell.fluid)
       ? cell.fluid
-      : this.ring_fluids[ringIdx];
+      : this.ring_fluids[ringIdx];  // last-resort sentinel; should never hit
     this.conditions.temperature = this.ring_temperatures[ringIdx];
   }
   try {

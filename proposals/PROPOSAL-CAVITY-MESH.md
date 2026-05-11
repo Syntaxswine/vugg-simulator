@@ -1,6 +1,6 @@
 # PROPOSAL: Cavity-Mesh Architecture (retiring the ring model)
 
-> **Status:** Active. Phases 1, 2, 3 landed 2026-05-11. Phase 4 (Path C — per-vertex chemistry) in progress as of 2026-05-11 evening; Tranche 1 of 7 landed.
+> **Status:** Active. Phases 1, 2, 3 + Phase 4 Tranches 1-4c landed 2026-05-11. Per-vertex chemistry (Path C) shipped at SIM_VERSION 68. Tranches 5, 6, 7 deferred as polish-and-feature work per §13's rationale.
 > **Authored:** 2026-05-09 by Claude (Sonnet 4.5, vugg session continuation), at boss's direction after the v66 replay-in-3D landing made the redundancy of the ring grid visible.
 > **Living doc:** Future agents — **append your observations to §11**, your decisions to §12. Update the phase tracker in §1 when you ship. Don't delete prior content; even wrong predictions are useful broth.
 
@@ -363,11 +363,45 @@ Tranching: the work decomposes into 7 commits (see §13). Each tranche is indepe
 | 3 | 4G | `fluid_surface_ring` → `fluid_surface_height_mm` | landed 2026-05-11 | (HEAD; previous = 8ef6a40) | yes (alias) | low | New `fluid_surface_height_mm` field added as canonical; legacy `fluid_surface_ring` is a getter/setter facade over the same private slot (numerically identical while `ring_spacing_mm = 1.0`, the project-wide default). Event handlers and scenarios still write `fluid_surface_ring`; reads through either name see the same live value. Spacing-aware divergence flagged for future work if a scenario ever overrides ring_spacing_mm. 122 / 122 tests green. |
 | 4a | 4C un-alias | Un-alias cells (per-vertex chemistry) + dehydration / vadose migrate to cells | landed 2026-05-11 | (HEAD; previous = 7a5bb75) | NO — SIM_VERSION 67→68; calibration baseline regenerated | high | mesh.bindRingChemistry now clones each cell.fluid independently; mesh.diffuse + mesh.propagateDelta drop the dedup; dehydration loop reads cells[crystal_anchor].fluid; vadose oxidation iterates all cells in transitioning rings. 14 of 23 scenarios shifted crystal counts (5 fewer, 5 more, 13 unchanged — direction varies by scenario), confirming the chemistry-model shift. 122 / 122 tests green at v68. |
 | 4b | 4I | Crystal legacy field drop (wall_ring_index, wall_center_cell) | landed 2026-05-11 | (HEAD; previous = 3987a92) | yes | low | Phase 1's deprecation completes: Crystal carries only wall_anchor. _resolveAnchor's legacy fallback retired. Renderer fallback ternaries simplified. RNG sequence preserved (_assignWallCell before _assignWallRing — caught a near-miss order swap during impl). 122 / 122 tests green at v68. |
-| 4c | 4F | `wall.rings` becomes a view (cells absorb wall_depth, crystal_id, mineral, thickness_um) | unstarted | — | yes | medium | wall.rings[r][c] either deletes or computes from mesh.cells[i]. Cell shape extends to carry per-vertex geometry/occupancy state. paintCrystal + erodeCells migrate. Last storage retirement before snapshot bump. |
-| 5 | 4J | Snapshot schema (`rings: [r][c]` → `cells: [i]`) | unstarted | — | NO — SIM_VERSION bumps again, replay migration shim for v68 saves | medium | Future SIM_VERSION 69. Snapshot writer migrates; replay shim recognizes the legacy ring shape. |
-| 6 | 4E | Per-vertex nucleation engines (Phase 3.5) | unstarted | — | yes when no zone scenarios; shifts behavior for zone scenarios | medium | The original Phase-3-Slice-5 gap. Engines weight ring/cell picking by per-vertex supersaturation so zone_chemistry actually drives WHERE crystals nucleate, not just where they grow once placed. |
-| 7 | 4H | 2D-strip renderer disposition | unstarted | — | yes | low | Decide: retire 99b-renderer-topo-2d.ts (delete ~555 lines) OR keep as height-band fallback. Boss-tier visual call. |
+| 4c | 4F | `wall.rings` and `mesh.cells` unify as shared references (single source of truth) | landed 2026-05-11 | (HEAD; previous = a30d032) | yes | medium | WallCell gains `fluid` + `temperature_ring` fields; mesh.cells[i] is now a direct reference to wall.rings[r][c] (no separate cells array). bindRingChemistry writes through the WallCell. Both access patterns hit the same storage. Cleanup pass dropped the dead "if mesh isn't built" fallback paths in `_runEngineForCrystal`, `_diffuseRingState`, `_propagateGlobalDelta` — the mesh is a constructor invariant. 122 / 122 tests green at v68 byte-identical. |
+| 5 | 4J | Snapshot schema (`rings: [r][c]` → `cells: [i]`) | **deferred** — see §14 below | — | — | — | Snapshot writer still iterates wall.rings[r][c]; after Tranche 4c those ARE the cells, so the legacy shape is faithful. The schema bump would just rename the field; the content is the same. Defer until either (a) a tessellation other than lat-long actually ships (Phase 2.5), or (b) cell schema gains fields the legacy serializer doesn't capture (e.g. per-cell fluid persistence in saves). |
+| 6 | 4E | Per-vertex nucleation engines (Phase 3.5) | **deferred** — see §14 below | — | — | — | The original Phase-3-Slice-5 gap. Engines weight ring/cell picking by per-vertex supersaturation so zone_chemistry actually drives WHERE crystals nucleate. Defer because (a) no shipping scenario uses zone_chemistry at present, so the gap has no consumer, and (b) the implementation touches ~50 nucleation engines + RNG-ordering invariants. Pick up as a focused future proposal when a zone scenario actually wants it. |
+| 7 | 4H | 2D-strip renderer disposition | **deferred** — see §14 below | — | — | — | The 99b renderer (~555 lines) is the 2D-strip fallback when 3D is disabled. It reads wall.rings[0] which still works post-Tranche-4c (shared storage with mesh.cells). No code change required for it to keep functioning; the disposition is a policy decision (retire or keep as fallback). Boss preference + low-power-device support inform the call. |
 
-Tranches 1-4 are pure refactor on stable content; Tranche 5 is the schema bump; Tranches 6-7 are policy decisions that follow.
+Tranches 1-3 were byte-identical preparation. Tranche 4a was the science-shift commit (SIM_VERSION 67→68, per-vertex chemistry live). Tranche 4b closed Phase 1's deprecation (Crystal legacy fields dropped). Tranche 4c unified the storage model.
+
+---
+
+## 14. Tranches 5-7 disposition (deferred 2026-05-11)
+
+The remaining three tranches are deferred per the rationale below. Path C's load-bearing science change (per-vertex chemistry) shipped in Tranches 1-4c; the deferred tranches are either polish (5, 7) or features needing a consumer (6).
+
+### Tranche 5 — Snapshot schema (`rings: [r][c]` → `cells: [i]`)
+
+The snapshot writer in `_repaintWallState` (js/85c-simulator-state.ts) emits `{ step, rings: [r][c], conditions, radiation_dose }`. Post-Tranche-4c, the `rings[r][c]` it iterates ARE the cells — they share storage with mesh.cells[i] via WallCell references. The serialized shape (per-cell wall_depth, crystal_id, mineral, thickness_um, base_radius_mm) captures all the geometry/occupancy state any consumer needs.
+
+Renaming the shape to `cells: [i]` would be a cosmetic flattening — same content, different name. The replay code in `99g-renderer-replay.ts` reads `snap.rings[r][c]`; flattening would require a touchpoint sweep with no functional gain.
+
+**When to land:** if Phase 2.5 ships a non-lat-long tessellation (icosphere, geodesic), the (r, c) index pair stops being meaningful. At that point the snapshot must flatten to per-vertex indices, and Tranche 5 becomes mandatory. Until then, deferred.
+
+### Tranche 6 — Per-vertex nucleation engines (Phase 3.5)
+
+Nucleation engines (the ~50 per-mineral routines in `js/30-engines-*.ts` / similar) consult `conditions.fluid` (= ring_fluids[equator] alias) when computing supersaturation σ. The first crystal of a mineral nucleates wherever `_assignWallRing` + `_assignWallCell` picks (area-weighted + orientation-biased), not where σ is highest.
+
+For zone_chemistry scenarios, this means engines only fire when the equator's σ exceeds threshold — even if floor or ceiling rings have higher σ. Stalactite_demo opted out of zone_chemistry partly because of this gap.
+
+**Implementation cost:** moderate. The minimum-viable version adds an opt-in `wall.per_vertex_nucleation: true` flag; when set, `_assignWallCell` weights candidate cells by per-cell σ for the firing mineral (one supersaturation call per cell per nucleation event — bounded cost). Engines themselves don't need to change.
+
+**When to land:** when a scenario actually wants zone_chemistry to bias nucleation placement (not just per-crystal growth). Likely paired with a future stalactite-with-zoned-chemistry tutorial or a Searles-Lake-style salinity-stratified evaporite scenario.
+
+### Tranche 7 — 2D-strip renderer disposition
+
+`js/99b-renderer-topo-2d.ts` (~555 lines) renders the original 2D top-down view as a fallback when the Three.js renderer is disabled or unavailable. Post-Tranche-4c it reads `wall.rings[0]` which still works because wall.rings[r][c] IS the cells (shared storage).
+
+**Options:**
+- **Keep as fallback** (default disposition). Low-power devices + the explicit "🪨 topo strip" toggle in the UI continue to work. ~0 lines of code change.
+- **Retire** (delete 99b entirely + remove the toggle). ~555 lines saved. Three.js becomes the only renderer.
+
+**When to land:** the choice depends on whether the 2D-strip toggle has any active users. Boss-tier decision; no engineering blocker either way. Default to "keep" until removal is explicitly requested.
 
 

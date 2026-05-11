@@ -163,13 +163,31 @@ class WallMesh {
     mesh.normals = new Float32Array(numVerts * 3);
     mesh.maxRadiusByRing = new Float32Array(ringCount);
     mesh.recompute(wall, sim);
-    // PROPOSAL-CAVITY-MESH Phase 4 Tranche 1 — allocate cells[] slots
-    // for interior vertices. Chemistry binding happens later via
-    // bindRingChemistry() once the VugSimulator has populated
-    // ring_fluids[].
+    // PROPOSAL-CAVITY-MESH Phase 4 Tranche 4c — cells[i] is now a
+    // direct REFERENCE to wall.rings[r][c] (the WallCell object).
+    // Same storage, two access patterns: wall.rings[r][c].fluid and
+    // mesh.cells[r * N + c].fluid hit the same WallCell. This
+    // unifies the per-vertex chemistry storage (Tranche 1-4a was
+    // on a separate `cells` array of {fluid, temperature_ring}) with
+    // the legacy per-cell geometry/occupancy storage that's lived on
+    // WallCell since v17.
+    //
+    // The "retirement" of wall.rings the proposal originally called
+    // for is realized as data-model unification rather than deletion:
+    // 99b's 2D-strip renderer + the snapshot writer still iterate
+    // wall.rings[r][c]; the mesh-edge Laplacian + per-crystal growth
+    // swap iterate mesh.cells. Both see the same cells. Deletion of
+    // wall.rings as a top-level field can land as a polish pass once
+    // every reader is comfortable with the mesh-flat shape.
     mesh.cells = new Array(mesh.numInterior);
-    for (let i = 0; i < mesh.numInterior; i++) {
-      mesh.cells[i] = { fluid: null, temperature_ring: mesh.vertices[i].ringIdx };
+    for (let r = 0; r < ringCount; r++) {
+      const ring = wall.rings ? wall.rings[r] : null;
+      for (let c = 0; c < N; c++) {
+        const cellRef = ring ? ring[c] : null;
+        mesh.cells[r * N + c] = cellRef
+          ? cellRef                                  // shared reference
+          : { fluid: null, temperature_ring: r };    // headless-test fallback
+      }
     }
     return mesh;
   }
@@ -195,13 +213,16 @@ class WallMesh {
   // shift Tranche 4a's commit documents.
   bindRingChemistry(ringFluids, _ringTemps) {
     if (!ringFluids || !this.cells.length) return;
+    // PROPOSAL-CAVITY-MESH Phase 4 Tranche 4c — cells[i] is now the
+    // SAME object as wall.rings[r][c] (a WallCell). Writing
+    // cells[i].fluid sets the field on the WallCell directly, so
+    // legacy code that reads wall.rings[r][c].fluid sees the same
+    // value. Each cell still gets an INDEPENDENT clone (Tranche 4a
+    // un-aliasing invariant) — per-vertex chemistry intact.
     for (let i = 0; i < this.numInterior; i++) {
       const vertex = this.vertices[i];
       const r = vertex ? vertex.ringIdx : 0;
       if (r >= 0 && r < ringFluids.length) {
-        // Independent clone — typeof _cloneFluid is global from
-        // js/20-chemistry-fluid.ts. Each cell gets its own
-        // FluidChemistry instance that evolves independently.
         const src = ringFluids[r];
         const Cloner: any = (typeof _cloneFluid !== 'undefined')
           ? _cloneFluid

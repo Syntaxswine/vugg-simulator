@@ -162,6 +162,22 @@ class WallCell {
     // radius is base_radius_mm + wall_depth. Default 0 means the
     // parent WallState's initial_radius_mm is used (backward-compat).
     this.base_radius_mm = 0;
+    // PROPOSAL-CAVITY-MESH Phase 4 Tranche 4c — chemistry lives on
+    // the WallCell directly now. wall.rings[r][c] and mesh.cells[i]
+    // reference the SAME WallCell object after fromWallState builds
+    // the mesh (mesh.cells[i] is just a flat view of wall.rings).
+    // Either accessor reads and writes the same storage; the dual
+    // naming exists to support both the legacy ring-grid style and
+    // the mesh-flat style without forcing every consumer to migrate
+    // at once.
+    //
+    // fluid: independent FluidChemistry clone per cell (un-aliased
+    // in Tranche 4a). null until bindRingChemistry runs.
+    // temperature_ring: cached ring index for temperature lookups
+    // (numbers can't be aliased like objects can, so temperature
+    // stays per-ring for now; a future tranche can migrate it).
+    this.fluid = null;
+    this.temperature_ring = -1;
   }
 }
 
