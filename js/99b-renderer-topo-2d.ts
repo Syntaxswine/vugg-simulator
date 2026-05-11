@@ -489,7 +489,11 @@ function topoRender(optOverrideSnap?) {
   if (sim && sim.crystals) {
     for (const host of sim.crystals) {
       if (!host.enclosed_crystals || !host.enclosed_crystals.length) continue;
-      if (host.dissolved || host.wall_center_cell == null) continue;
+      // PHASE-1-CAVITY-MESH: resolve host anchor through the helper so
+      // this site survives the Phase 4 legacy-field drop.
+      const _hostAnchor = wall._resolveAnchor ? wall._resolveAnchor(host) : null;
+      const _hostCenterCell = _hostAnchor ? _hostAnchor.cellIdx : host.wall_center_cell;
+      if (host.dissolved || _hostCenterCell == null) continue;
 
       // Build the host's painted-cell set. Fall back to its center cell
       // if nothing paints (a smaller overlapping crystal may have
@@ -498,7 +502,7 @@ function topoRender(optOverrideSnap?) {
       for (let i = 0; i < N; i++) {
         if (ring0[i].crystal_id === host.crystal_id) hostPaintedCells.push(i);
       }
-      if (!hostPaintedCells.length) hostPaintedCells.push(host.wall_center_cell);
+      if (!hostPaintedCells.length) hostPaintedCells.push(_hostCenterCell);
       const mCells = hostPaintedCells.length;
 
       const voidReach = Math.max(host.void_reach, 0.05);

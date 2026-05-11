@@ -1275,11 +1275,15 @@ function _emitClusterSatellites(
     // Inherit parent userData so raycaster hit-test resolves a satellite
     // hit back to the parent crystal — clicking a satellite tooltips
     // the parent mineral, no per-satellite identity surfaced.
+    // PHASE-1-CAVITY-MESH: prefer the new wall_anchor (cached
+    // ringIdx/cellIdx) and fall back to legacy fields for any
+    // pre-Phase-1 save replayed from snapshot.
+    const _anchor = crystal.wall_anchor;
     satMesh.userData = {
       crystal_id: crystal.crystal_id,
       mineral: crystal.mineral,
-      ringIdx: crystal.wall_ring_index,
-      cellIdx: crystal.wall_center_cell,
+      ringIdx: _anchor ? _anchor.ringIdx : crystal.wall_ring_index,
+      cellIdx: _anchor ? _anchor.cellIdx : crystal.wall_center_cell,
       isSatellite: true,
     };
     satMesh.renderOrder = 1;
@@ -1360,6 +1364,13 @@ function _topoCrystalsSignature(sim: any, replayStep?: number): string {
     // such casts in the signature so the cache busts when one
     // appears (and so its mesh gets built in _topoSyncCrystalMeshes).
     if (c.dissolved && !c.perimorph_eligible) continue;
+    // PHASE-1-CAVITY-MESH: pull the anchor pair from wall_anchor (the
+    // new truth) and fall back to legacy fields for replays of
+    // pre-Phase-1 snapshots. Signature stays string-identical for
+    // current saves because both routes return the same values.
+    const _a = c.wall_anchor;
+    const _ringKey = _a ? _a.ringIdx : c.wall_ring_index;
+    const _cellKey = _a ? _a.cellIdx : c.wall_center_cell;
     if (replayStep != null) {
       // Replay path: skip pre-nucleation crystals so they don't
       // contribute their final-size key during early replay frames.
@@ -1380,13 +1391,13 @@ function _topoCrystalsSignature(sim: any, replayStep?: number): string {
         // keep them in the signature so the cache key still busts
         // when one appears.
         if (!(c.dissolved && c.perimorph_eligible)) continue;
-        parts.push(`${c.crystal_id}:${effectiveMineral}:${c.habit}:cast:${c.c_length_mm.toFixed(2)}:${c.wall_ring_index}:${c.wall_center_cell}`);
+        parts.push(`${c.crystal_id}:${effectiveMineral}:${c.habit}:cast:${c.c_length_mm.toFixed(2)}:${_ringKey}:${_cellKey}`);
         continue;
       }
-      parts.push(`${c.crystal_id}:${effectiveMineral}:${c.habit}:${hist.c_length_mm.toFixed(2)}:${c.wall_ring_index}:${c.wall_center_cell}:r${replayStep}`);
+      parts.push(`${c.crystal_id}:${effectiveMineral}:${c.habit}:${hist.c_length_mm.toFixed(2)}:${_ringKey}:${_cellKey}:r${replayStep}`);
       continue;
     }
-    parts.push(`${c.crystal_id}:${c.mineral}:${c.habit}:${c.c_length_mm.toFixed(2)}:${c.wall_ring_index}:${c.wall_center_cell}:${c.dissolved ? 'd' : 'a'}`);
+    parts.push(`${c.crystal_id}:${c.mineral}:${c.habit}:${c.c_length_mm.toFixed(2)}:${_ringKey}:${_cellKey}:${c.dissolved ? 'd' : 'a'}`);
   }
   return parts.join('|');
 }
@@ -1444,9 +1455,13 @@ function _topoSyncCrystalMeshes(state: any, sim: any, wall: any, replayStep?: nu
       // else: perimorph cast — fall through with live (= dissolution-time) size.
     }
 
-    let ringIdx = crystal.wall_ring_index;
+    // PHASE-1-CAVITY-MESH: resolve the anchor through WallState so the
+    // renderer stops reading legacy fields directly. Identical result
+    // while wall_anchor and legacy fields are kept in sync.
+    const _anchor = wall._resolveAnchor ? wall._resolveAnchor(crystal) : null;
+    let ringIdx = _anchor ? _anchor.ringIdx : crystal.wall_ring_index;
     if (ringIdx == null || ringIdx < 0 || ringIdx >= ringCount) ringIdx = 0;
-    const cellIdx = crystal.wall_center_cell;
+    const cellIdx = _anchor ? _anchor.cellIdx : crystal.wall_center_cell;
     if (cellIdx == null) continue;
 
     const ring = wall.rings[ringIdx];

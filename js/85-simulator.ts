@@ -212,7 +212,10 @@ class VugSimulator {
       const nRings = this.wall_state.ring_count;
       for (const crystal of this.crystals) {
         if (!DEHYDRATION_TRANSITIONS[crystal.mineral]) continue;
-        const ringIdx = crystal.wall_ring_index;
+        // PHASE-1-CAVITY-MESH: read ringIdx via _resolveAnchor so this
+        // dehydration loop no longer reads wall_ring_index directly.
+        const anchor = this.wall_state._resolveAnchor(crystal);
+        const ringIdx = anchor ? anchor.ringIdx : null;
         if (ringIdx == null || ringIdx < 0 || ringIdx >= nRings) continue;
         const ringFluid = this.ring_fluids[ringIdx];
         const ringState = this.conditions.ringWaterState(ringIdx, nRings);

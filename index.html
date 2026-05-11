@@ -7517,6 +7517,56 @@ class WallState {
         return 2 * sum / ring0.length;
     }
     updateDiameter(newDiameter) { this.vug_diameter_mm = newDiameter; }
+    // PHASE-1-CAVITY-MESH (PROPOSAL-CAVITY-MESH §5): compute the
+    // spherical-coordinate anchor for a (ringIdx, cellIdx) pair on the
+    // current ring grid. phi ∈ [0, π] (south pole 0, north pole π),
+    // matching the renderer's _topoBuildCavityGeometry and
+    // _topoSyncCrystalMeshes math; theta ∈ [0, 2π) wraps around the
+    // cavity equator. ringIdx and cellIdx are cached so consumers don't
+    // re-derive them. cellIdx is wrapped into [0, cells_per_ring).
+    //
+    // Called by VugSimulator.nucleate immediately after the legacy
+    // (wall_ring_index, wall_center_cell) assignment so wall_anchor and
+    // the legacy fields are populated together. When the cavity mesh
+    // retessellates (Phase 2), this function gets a sibling that takes
+    // (phi, theta) → vertex index.
+    _anchorFromRingCell(ringIdx, cellIdx) {
+        const n = Math.max(1, this.ring_count);
+        const N = Math.max(1, this.cells_per_ring);
+        const r = ((ringIdx | 0) + n) % n;
+        const c = ((cellIdx | 0) % N + N) % N;
+        return {
+            phi: Math.PI * (r + 0.5) / n,
+            theta: 2 * Math.PI * c / N,
+            ringIdx: r,
+            cellIdx: c,
+        };
+    }
+    // PHASE-1-CAVITY-MESH: resolve a crystal's anchor back to a
+    // (ringIdx, cellIdx) pair for legacy ring-grid consumers (renderers,
+    // paint routines, per-ring fluid lookup). Reads wall_anchor when
+    // present, falls back to the legacy fields otherwise. Returns null
+    // when neither is set so the caller can short-circuit.
+    //
+    // Phase 2 will swap the body to a kd-tree lookup over the mesh, but
+    // the call signature stays the same — consumers stay decoupled.
+    _resolveAnchor(crystal) {
+        if (!crystal)
+            return null;
+        const a = crystal.wall_anchor;
+        if (a && a.ringIdx != null && a.cellIdx != null) {
+            return { ringIdx: a.ringIdx, cellIdx: a.cellIdx };
+        }
+        if (crystal.wall_ring_index != null && crystal.wall_center_cell != null) {
+            return { ringIdx: crystal.wall_ring_index, cellIdx: crystal.wall_center_cell };
+        }
+        if (crystal.wall_center_cell != null) {
+            // Pre-Phase-C-v1 save: only the legacy cell was stored; default
+            // to ring 0 (the v17 single-ring grid).
+            return { ringIdx: 0, cellIdx: crystal.wall_center_cell };
+        }
+        return null;
+    }
     // Phase D: which third of the sphere this ring belongs to.
     // Floor / wall / ceiling tags derived from ring index — bottom
     // quarter is 'floor', top quarter is 'ceiling', middle 'wall'.
@@ -7610,15 +7660,18 @@ class WallState {
     // its slice of wall unshielded, the acid burns through, and the
     // crystal appears to vanish on the topo map.
     paintCrystal(crystal) {
-        if (crystal.wall_center_cell == null)
+        // PHASE-1-CAVITY-MESH: read anchor through _resolveAnchor so the
+        // renderer stops reading wall_ring_index / wall_center_cell
+        // directly. Behavior is unchanged when wall_anchor is set in step
+        // with the legacy fields (current default at nucleation).
+        const anchor = this._resolveAnchor(crystal);
+        if (!anchor)
             return;
-        // Phase C v1: paint on the crystal's own ring so crystals scatter
-        // across the sphere wall. Legacy crystals (null ring) fall back
-        // to ring 0. Mirrors WallState.paint_crystal in vugg.py.
-        let ringIdx = crystal.wall_ring_index;
+        let ringIdx = anchor.ringIdx;
         if (ringIdx == null || ringIdx < 0 || ringIdx >= this.ring_count) {
             ringIdx = 0;
         }
+        const centerCell = anchor.cellIdx;
         const FOOTPRINT_SCALE = 4.0;
         const arcMm = (crystal.total_growth_um / 1000.0)
             * Math.max(crystal.wall_spread, 0.05)
@@ -7628,7 +7681,7 @@ class WallState {
         const ring = this.rings[ringIdx];
         const N = this.cells_per_ring;
         for (let offset = -halfCells; offset <= halfCells; offset++) {
-            const idx = ((crystal.wall_center_cell + offset) % N + N) % N;
+            const idx = ((centerCell + offset) % N + N) % N;
             const cell = ring[idx];
             if (cell.thickness_um < thickness) {
                 cell.crystal_id = crystal.crystal_id;
@@ -8131,12 +8184,25 @@ class Crystal {
         // Anchor cell on the wall where this crystal nucleated.
         // WallState paints outward from here by wall_spread ×
         // total_growth. null for crystals that haven't been anchored yet.
+        //
+        // PHASE-1-CAVITY-MESH (PROPOSAL-CAVITY-MESH §5): wall_center_cell
+        // and wall_ring_index are now LEGACY fields kept in sync with
+        // wall_anchor.{cellIdx,ringIdx}. New code should call
+        // WallState._resolveAnchor(crystal) → {ringIdx, cellIdx} instead
+        // of reading them directly. Slated for removal in Phase 4 once
+        // every touchpoint has migrated. During Phase 1 both routes return
+        // byte-identical values (no SIM_VERSION bump).
         this.wall_center_cell = opts.wall_center_cell ?? null;
-        // Phase C v1: which ring the crystal nucleated on. null means
-        // legacy ring-0 placement (loaded from a pre-Phase-C-v1 save).
-        // New nucleations always set this. Mirrors crystal.wall_ring_index
-        // in vugg.py.
         this.wall_ring_index = opts.wall_ring_index ?? null;
+        // PHASE-1-CAVITY-MESH: spherical-coordinate anchor on the cavity
+        // wall. Truth-bearing field for the crystal's position; legacy
+        // (wall_ring_index, wall_center_cell) are derived caches. Shape:
+        //   { phi: number, theta: number, ringIdx: number, cellIdx: number }
+        // where phi ∈ [0,π] (south pole 0, north pole π) and theta ∈ [0,2π).
+        // null = pre-Phase-1 saves or tests; consumers fall back to legacy
+        // fields in that case. See WallState._anchorFromRingCell /
+        // WallState._resolveAnchor.
+        this.wall_anchor = opts.wall_anchor ?? null;
         // Environment at nucleation time. 'fluid' (the dominant case —
         // vug fluid-filled, geometric-selection orientation along the
         // substrate normal) or 'air' (drained / cave-style cavity,
@@ -19589,7 +19655,10 @@ class VugSimulator {
             for (const crystal of this.crystals) {
                 if (!DEHYDRATION_TRANSITIONS[crystal.mineral])
                     continue;
-                const ringIdx = crystal.wall_ring_index;
+                // PHASE-1-CAVITY-MESH: read ringIdx via _resolveAnchor so this
+                // dehydration loop no longer reads wall_ring_index directly.
+                const anchor = this.wall_state._resolveAnchor(crystal);
+                const ringIdx = anchor ? anchor.ringIdx : null;
                 if (ringIdx == null || ringIdx < 0 || ringIdx >= nRings)
                     continue;
                 const ringFluid = this.ring_fluids[ringIdx];
@@ -20312,6 +20381,11 @@ Object.assign(VugSimulator.prototype, {
         // sphere wall; Phase D will weight by orientation).
         crystal.wall_center_cell = this._assignWallCell(position);
         crystal.wall_ring_index = this._assignWallRing(position, mineral);
+        // PHASE-1-CAVITY-MESH: populate the spherical-coordinate anchor in
+        // step with the legacy fields. Consumers prefer wall_anchor via
+        // WallState._resolveAnchor; legacy fields stay for any
+        // un-migrated reader and for Phase 4's eventual drop.
+        crystal.wall_anchor = this.wall_state._anchorFromRingCell(crystal.wall_ring_index, crystal.wall_center_cell);
         // v24 water-level: stamp growth_environment from the ring's
         // water state. Submerged or meniscus = wet = 'fluid'; vadose
         // (above the meniscus) = 'air'. Mirrors vugg.py.
@@ -20614,8 +20688,13 @@ Object.assign(VugSimulator.prototype, {
         }
         if (hostId != null) {
             const host = this.crystals.find(c => c.crystal_id === hostId);
-            if (host && host.wall_center_cell != null)
-                return host.wall_center_cell;
+            // PHASE-1-CAVITY-MESH: read host's cell via _resolveAnchor so this
+            // site keeps working when the legacy fields retire in Phase 4.
+            if (host) {
+                const a = this.wall_state._resolveAnchor(host);
+                if (a)
+                    return a.cellIdx;
+            }
         }
         const N = this.wall_state.cells_per_ring;
         const ring0 = this.wall_state.rings[0];
@@ -20638,7 +20717,11 @@ Object.assign(VugSimulator.prototype, {
     // narrators, log) sees the bulk-fluid view. Mirrors the equivalent
     // try/finally block in VugSimulator.run_step (vugg.py).
     _runEngineForCrystal(engine, crystal) {
-        const ringIdx = crystal.wall_ring_index;
+        // PHASE-1-CAVITY-MESH: read ringIdx through the anchor helper so
+        // this site stops touching wall_ring_index directly. Identity
+        // result while wall_anchor and legacy fields are kept in sync.
+        const anchor = this.wall_state._resolveAnchor(crystal);
+        const ringIdx = anchor ? anchor.ringIdx : null;
         let savedFluid = null;
         let savedTemp = null;
         if (ringIdx != null && ringIdx >= 0 && ringIdx < this.ring_fluids.length) {
@@ -20694,8 +20777,13 @@ Object.assign(VugSimulator.prototype, {
         }
         if (hostId != null) {
             const host = this.crystals.find(c => c.crystal_id === hostId);
-            if (host && host.wall_ring_index != null)
-                return host.wall_ring_index;
+            // PHASE-1-CAVITY-MESH: read host's ring via _resolveAnchor so this
+            // site survives the Phase 4 legacy-field drop.
+            if (host) {
+                const a = this.wall_state._resolveAnchor(host);
+                if (a)
+                    return a.ringIdx;
+            }
         }
         // Phase D: area-weighted sample (equator gets more nucleations
         // than polar caps). Always consumes one RNG number so parity
@@ -31600,7 +31688,11 @@ function topoRender(optOverrideSnap) {
         for (const host of sim.crystals) {
             if (!host.enclosed_crystals || !host.enclosed_crystals.length)
                 continue;
-            if (host.dissolved || host.wall_center_cell == null)
+            // PHASE-1-CAVITY-MESH: resolve host anchor through the helper so
+            // this site survives the Phase 4 legacy-field drop.
+            const _hostAnchor = wall._resolveAnchor ? wall._resolveAnchor(host) : null;
+            const _hostCenterCell = _hostAnchor ? _hostAnchor.cellIdx : host.wall_center_cell;
+            if (host.dissolved || _hostCenterCell == null)
                 continue;
             // Build the host's painted-cell set. Fall back to its center cell
             // if nothing paints (a smaller overlapping crystal may have
@@ -31611,7 +31703,7 @@ function topoRender(optOverrideSnap) {
                     hostPaintedCells.push(i);
             }
             if (!hostPaintedCells.length)
-                hostPaintedCells.push(host.wall_center_cell);
+                hostPaintedCells.push(_hostCenterCell);
             const mCells = hostPaintedCells.length;
             const voidReach = Math.max(host.void_reach, 0.05);
             const allIds = host.enclosed_crystals;
@@ -32741,8 +32833,11 @@ function _topoRenderRings3D(ctx, sim, wall, ring0, cellR, boundaryR, cx, cy, mmT
         for (const crystal of sim.crystals) {
             if (crystal.dissolved)
                 continue;
-            const ringIdx = crystal.wall_ring_index;
-            const cellIdx = crystal.wall_center_cell;
+            // PHASE-1-CAVITY-MESH: resolve via WallState helper so the
+            // canvas-vector fallback stops reading legacy fields directly.
+            const _anchor = wall._resolveAnchor ? wall._resolveAnchor(crystal) : null;
+            const ringIdx = _anchor ? _anchor.ringIdx : crystal.wall_ring_index;
+            const cellIdx = _anchor ? _anchor.cellIdx : crystal.wall_center_cell;
             if (ringIdx == null || cellIdx == null)
                 continue;
             const meta = ringMeta[ringIdx];
@@ -35479,11 +35574,15 @@ function _emitClusterSatellites(state, crystal, geom, mat, ax, ay, az, nx, ny, n
         // Inherit parent userData so raycaster hit-test resolves a satellite
         // hit back to the parent crystal — clicking a satellite tooltips
         // the parent mineral, no per-satellite identity surfaced.
+        // PHASE-1-CAVITY-MESH: prefer the new wall_anchor (cached
+        // ringIdx/cellIdx) and fall back to legacy fields for any
+        // pre-Phase-1 save replayed from snapshot.
+        const _anchor = crystal.wall_anchor;
         satMesh.userData = {
             crystal_id: crystal.crystal_id,
             mineral: crystal.mineral,
-            ringIdx: crystal.wall_ring_index,
-            cellIdx: crystal.wall_center_cell,
+            ringIdx: _anchor ? _anchor.ringIdx : crystal.wall_ring_index,
+            cellIdx: _anchor ? _anchor.cellIdx : crystal.wall_center_cell,
             isSatellite: true,
         };
         satMesh.renderOrder = 1;
@@ -35578,6 +35677,13 @@ function _topoCrystalsSignature(sim, replayStep) {
         // appears (and so its mesh gets built in _topoSyncCrystalMeshes).
         if (c.dissolved && !c.perimorph_eligible)
             continue;
+        // PHASE-1-CAVITY-MESH: pull the anchor pair from wall_anchor (the
+        // new truth) and fall back to legacy fields for replays of
+        // pre-Phase-1 snapshots. Signature stays string-identical for
+        // current saves because both routes return the same values.
+        const _a = c.wall_anchor;
+        const _ringKey = _a ? _a.ringIdx : c.wall_ring_index;
+        const _cellKey = _a ? _a.cellIdx : c.wall_center_cell;
         if (replayStep != null) {
             // Replay path: skip pre-nucleation crystals so they don't
             // contribute their final-size key during early replay frames.
@@ -35599,13 +35705,13 @@ function _topoCrystalsSignature(sim, replayStep) {
                 // when one appears.
                 if (!(c.dissolved && c.perimorph_eligible))
                     continue;
-                parts.push(`${c.crystal_id}:${effectiveMineral}:${c.habit}:cast:${c.c_length_mm.toFixed(2)}:${c.wall_ring_index}:${c.wall_center_cell}`);
+                parts.push(`${c.crystal_id}:${effectiveMineral}:${c.habit}:cast:${c.c_length_mm.toFixed(2)}:${_ringKey}:${_cellKey}`);
                 continue;
             }
-            parts.push(`${c.crystal_id}:${effectiveMineral}:${c.habit}:${hist.c_length_mm.toFixed(2)}:${c.wall_ring_index}:${c.wall_center_cell}:r${replayStep}`);
+            parts.push(`${c.crystal_id}:${effectiveMineral}:${c.habit}:${hist.c_length_mm.toFixed(2)}:${_ringKey}:${_cellKey}:r${replayStep}`);
             continue;
         }
-        parts.push(`${c.crystal_id}:${c.mineral}:${c.habit}:${c.c_length_mm.toFixed(2)}:${c.wall_ring_index}:${c.wall_center_cell}:${c.dissolved ? 'd' : 'a'}`);
+        parts.push(`${c.crystal_id}:${c.mineral}:${c.habit}:${c.c_length_mm.toFixed(2)}:${_ringKey}:${_cellKey}:${c.dissolved ? 'd' : 'a'}`);
     }
     return parts.join('|');
 }
@@ -35664,10 +35770,14 @@ function _topoSyncCrystalMeshes(state, sim, wall, replayStep) {
             }
             // else: perimorph cast — fall through with live (= dissolution-time) size.
         }
-        let ringIdx = crystal.wall_ring_index;
+        // PHASE-1-CAVITY-MESH: resolve the anchor through WallState so the
+        // renderer stops reading legacy fields directly. Identical result
+        // while wall_anchor and legacy fields are kept in sync.
+        const _anchor = wall._resolveAnchor ? wall._resolveAnchor(crystal) : null;
+        let ringIdx = _anchor ? _anchor.ringIdx : crystal.wall_ring_index;
         if (ringIdx == null || ringIdx < 0 || ringIdx >= ringCount)
             ringIdx = 0;
-        const cellIdx = crystal.wall_center_cell;
+        const cellIdx = _anchor ? _anchor.cellIdx : crystal.wall_center_cell;
         if (cellIdx == null)
             continue;
         const ring = wall.rings[ringIdx];

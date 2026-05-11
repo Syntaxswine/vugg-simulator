@@ -507,6 +507,57 @@ class WallState {
 
   updateDiameter(newDiameter) { this.vug_diameter_mm = newDiameter; }
 
+  // PHASE-1-CAVITY-MESH (PROPOSAL-CAVITY-MESH §5): compute the
+  // spherical-coordinate anchor for a (ringIdx, cellIdx) pair on the
+  // current ring grid. phi ∈ [0, π] (south pole 0, north pole π),
+  // matching the renderer's _topoBuildCavityGeometry and
+  // _topoSyncCrystalMeshes math; theta ∈ [0, 2π) wraps around the
+  // cavity equator. ringIdx and cellIdx are cached so consumers don't
+  // re-derive them. cellIdx is wrapped into [0, cells_per_ring).
+  //
+  // Called by VugSimulator.nucleate immediately after the legacy
+  // (wall_ring_index, wall_center_cell) assignment so wall_anchor and
+  // the legacy fields are populated together. When the cavity mesh
+  // retessellates (Phase 2), this function gets a sibling that takes
+  // (phi, theta) → vertex index.
+  _anchorFromRingCell(ringIdx, cellIdx) {
+    const n = Math.max(1, this.ring_count);
+    const N = Math.max(1, this.cells_per_ring);
+    const r = ((ringIdx | 0) + n) % n;
+    const c = ((cellIdx | 0) % N + N) % N;
+    return {
+      phi: Math.PI * (r + 0.5) / n,
+      theta: 2 * Math.PI * c / N,
+      ringIdx: r,
+      cellIdx: c,
+    };
+  }
+
+  // PHASE-1-CAVITY-MESH: resolve a crystal's anchor back to a
+  // (ringIdx, cellIdx) pair for legacy ring-grid consumers (renderers,
+  // paint routines, per-ring fluid lookup). Reads wall_anchor when
+  // present, falls back to the legacy fields otherwise. Returns null
+  // when neither is set so the caller can short-circuit.
+  //
+  // Phase 2 will swap the body to a kd-tree lookup over the mesh, but
+  // the call signature stays the same — consumers stay decoupled.
+  _resolveAnchor(crystal) {
+    if (!crystal) return null;
+    const a = crystal.wall_anchor;
+    if (a && a.ringIdx != null && a.cellIdx != null) {
+      return { ringIdx: a.ringIdx, cellIdx: a.cellIdx };
+    }
+    if (crystal.wall_ring_index != null && crystal.wall_center_cell != null) {
+      return { ringIdx: crystal.wall_ring_index, cellIdx: crystal.wall_center_cell };
+    }
+    if (crystal.wall_center_cell != null) {
+      // Pre-Phase-C-v1 save: only the legacy cell was stored; default
+      // to ring 0 (the v17 single-ring grid).
+      return { ringIdx: 0, cellIdx: crystal.wall_center_cell };
+    }
+    return null;
+  }
+
   // Phase D: which third of the sphere this ring belongs to.
   // Floor / wall / ceiling tags derived from ring index — bottom
   // quarter is 'floor', top quarter is 'ceiling', middle 'wall'.
@@ -592,14 +643,17 @@ class WallState {
   // its slice of wall unshielded, the acid burns through, and the
   // crystal appears to vanish on the topo map.
   paintCrystal(crystal) {
-    if (crystal.wall_center_cell == null) return;
-    // Phase C v1: paint on the crystal's own ring so crystals scatter
-    // across the sphere wall. Legacy crystals (null ring) fall back
-    // to ring 0. Mirrors WallState.paint_crystal in vugg.py.
-    let ringIdx = crystal.wall_ring_index;
+    // PHASE-1-CAVITY-MESH: read anchor through _resolveAnchor so the
+    // renderer stops reading wall_ring_index / wall_center_cell
+    // directly. Behavior is unchanged when wall_anchor is set in step
+    // with the legacy fields (current default at nucleation).
+    const anchor = this._resolveAnchor(crystal);
+    if (!anchor) return;
+    let ringIdx = anchor.ringIdx;
     if (ringIdx == null || ringIdx < 0 || ringIdx >= this.ring_count) {
       ringIdx = 0;
     }
+    const centerCell = anchor.cellIdx;
     const FOOTPRINT_SCALE = 4.0;
     const arcMm = (crystal.total_growth_um / 1000.0)
                   * Math.max(crystal.wall_spread, 0.05)
@@ -609,7 +663,7 @@ class WallState {
     const ring = this.rings[ringIdx];
     const N = this.cells_per_ring;
     for (let offset = -halfCells; offset <= halfCells; offset++) {
-      const idx = ((crystal.wall_center_cell + offset) % N + N) % N;
+      const idx = ((centerCell + offset) % N + N) % N;
       const cell = ring[idx];
       if (cell.thickness_um < thickness) {
         cell.crystal_id = crystal.crystal_id;

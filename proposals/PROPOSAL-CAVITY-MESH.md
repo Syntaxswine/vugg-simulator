@@ -1,6 +1,6 @@
 # PROPOSAL: Cavity-Mesh Architecture (retiring the ring model)
 
-> **Status:** Active. Phase 1 unstarted as of 2026-05-09.
+> **Status:** Active. Phase 1 landed 2026-05-11.
 > **Authored:** 2026-05-09 by Claude (Sonnet 4.5, vugg session continuation), at boss's direction after the v66 replay-in-3D landing made the redundancy of the ring grid visible.
 > **Living doc:** Future agents — **append your observations to §11**, your decisions to §12. Update the phase tracker in §1 when you ship. Don't delete prior content; even wrong predictions are useful broth.
 
@@ -11,10 +11,10 @@
 | phase | name                                       | status      | shipped commits | notes |
 |-------|--------------------------------------------|-------------|-----------------|-------|
 | 0     | This proposal (read-only)                  | landed      | (this commit)   | The plan itself. |
-| 1     | Crystal anchor decouples from ring index   | unstarted   | —               | Pure refactor; zero functional change. The easy first cut. |
+| 1     | Crystal anchor decouples from ring index   | landed 2026-05-11 | (this branch HEAD; previous = 6c73201) | Pure refactor; calibration baseline byte-identical. 70/70 tests green incl. 5 new `anchor.test.ts`. SIM_VERSION held at 67. |
 | 2     | Cavity mesh becomes optional               | unstarted   | —               | `WallMesh` data structure alongside `WallState`; Three.js opts in per-scenario. |
 | 3     | Chemistry zones replace per-ring fluids    | unstarted   | —               | Default = global fluid; explicit opt-in for floor/wall/ceiling zoning. |
-| 4     | Ring grid retires                          | unstarted   | —               | `WallState.rings` becomes a view (or disappears); 2D canvas-vector strip retires or becomes a fallback. |
+| 4     | Ring grid retires                          | unstarted   | —               | `WallState.rings` becomes a view (or disappears); 2D canvas-vector strip retires or becomes a fallback. Schedule the legacy `wall_ring_index` / `wall_center_cell` drop here. |
 
 Each phase ships independently. No phase blocks the previous from being used in production. If the campaign stalls at Phase 2, Phases 0+1+2 still bought a cleaner anchor model.
 
@@ -258,6 +258,24 @@ Format:
 
 - The slice stepper label format `"5/16 floor"` (ring 5 of 16, orientation 'floor') uses ring index. If Phase 4 collapses the ring count, this label needs to update — maybe `"floor 32°"` for the φ value or just `"floor"` as a single-zone indicator.
 
+### 2026-05-11 — Sonnet 4.5 (Phase 1 implementer) — Phase 1 landed, byte-identical baseline confirmed
+
+Phase 1 shipped today. Notes from the implementation pass that future phases should carry forward:
+
+- **Touchpoints matched the §3.3 inventory exactly — 7 files, no surprises.** Crystal field, two helpers, paintCrystal, nucleation, _runEngineForCrystal, dehydration loop in 85-simulator.ts, three renderers (99i Three.js sig + mesh placement + satellite userData, 99e canvas-vector fallback, 99b 2D hit-test inclusion-host lookup), and two host-inheritance sites in `_assignWallCell` / `_assignWallRing`. Estimated ~100 lines touched; actual ~120 (the extra came from defensive null guards in `_resolveAnchor` for pre-Phase-1 saves).
+
+- **Calibration baseline passed byte-identical.** `seed42_v67.json` regression suite (`tests-js/calibration.test.ts`) reproduced exactly with the migration in place. The proposal's "byte-identical" claim held: identical RNG sequence, identical mineral counts, identical max_um. SIM_VERSION held at 67 (no schema bump needed — `wall_anchor` is additive on Crystal).
+
+- **Determinism test (`determinism.test.ts`) still reads `wall_ring_index` / `wall_center_cell` directly for its anti-degeneracy anchor comparison.** Left as-is — the legacy fields are kept synced through Phase 4, and the test's purpose is "different seeds give different anchors," which the legacy strings still capture. Worth migrating to `c.wall_anchor.cellIdx` when the legacy fields retire (Phase 4).
+
+- **`_resolveAnchor` has three branches:** (a) `wall_anchor` present → preferred; (b) both legacy fields present → fallback; (c) only `wall_center_cell` (very old pre-Phase-C-v1 save) → ring 0. The third branch is dead in current code but kept defensive; if any pre-2026-05 save ever turns up in replay, it won't crash. Drop in Phase 4 with the legacy fields.
+
+- **Three.js renderer signature builder (`_topoCrystalsSignature`) now keys on the wall_anchor pair.** This means cache busts the moment wall_anchor changes, which it never does today but will in Phase 2 if a mesh re-tessellation moves cellIdx caches. The cache layer is therefore Phase-2-ready already.
+
+- **Satellite `userData.ringIdx` / `userData.cellIdx` aren't actually read anywhere else in the JS tree** (grepped for `userData.ringIdx` and `userData.cellIdx` — zero hits). They're defensive writes for future picking-precision work. Migrated to prefer wall_anchor anyway; the cost is one boolean check per satellite.
+
+- **Phase 2 hot tip:** the kd-tree the proposal mentions for `_resolveAnchor` lookup is overkill while the mesh is a 16×120 lat-long grid. A direct `(phi, theta) → (ringIdx, cellIdx)` reverse map costs O(1): `ringIdx = round(phi/π × ring_count − 0.5)`, `cellIdx = round(theta/2π × cells_per_ring) mod cells_per_ring`. Only when Phase 2.5 introduces an irregular triangulation does the kd-tree become necessary.
+
 ### (next agent) — append here
 
 ---
@@ -273,5 +291,9 @@ Decided: phases 1-4 ship independently. Each phase is independently revertable. 
 ### 2026-05-09 — Sonnet 4.5 — Crystal anchor is `(phi, theta)`, not vertex index
 
 Decided: `wall_anchor` carries `phi` and `theta` directly. Vertex index is a derived cache. Reason: crystals should survive a mesh re-tessellation (e.g. if Phase 2 ships a Phase 2.5 with denser meshes, existing saves shouldn't break). Vertex indices change between tessellations; spherical coordinates don't.
+
+### 2026-05-11 — Sonnet 4.5 — `wall_anchor` shape is `{ phi, theta, ringIdx, cellIdx }` (legacy caches included)
+
+Decided: the new field carries BOTH spherical coordinates AND the cached `(ringIdx, cellIdx)` pair, not just `(phi, theta)`. Reason: every consumer in Phase 1 ultimately wants a ring/cell pair (renderers, painter, per-ring fluid swap), and re-deriving via `floor(phi × ring_count / π)` at every read site costs the migration nothing visible but adds rounding-error risk at ring boundaries. Storing the cache means `_resolveAnchor()` returns the same integers the legacy fields did — bit-for-bit equality on the calibration baseline. Phase 2 replaces the body of `_resolveAnchor` (kd-tree over a mesh), but `_anchorFromRingCell` stays as the constructor used during the ring-grid years.
 
 ### (next agent) — append here

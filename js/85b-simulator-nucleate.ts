@@ -48,6 +48,13 @@ Object.assign(VugSimulator.prototype, {
   // sphere wall; Phase D will weight by orientation).
   crystal.wall_center_cell = this._assignWallCell(position);
   crystal.wall_ring_index = this._assignWallRing(position, mineral);
+  // PHASE-1-CAVITY-MESH: populate the spherical-coordinate anchor in
+  // step with the legacy fields. Consumers prefer wall_anchor via
+  // WallState._resolveAnchor; legacy fields stay for any
+  // un-migrated reader and for Phase 4's eventual drop.
+  crystal.wall_anchor = this.wall_state._anchorFromRingCell(
+    crystal.wall_ring_index, crystal.wall_center_cell,
+  );
 
   // v24 water-level: stamp growth_environment from the ring's
   // water state. Submerged or meniscus = wet = 'fluid'; vadose
@@ -301,7 +308,12 @@ Object.assign(VugSimulator.prototype, {
   }
   if (hostId != null) {
     const host = this.crystals.find(c => c.crystal_id === hostId);
-    if (host && host.wall_center_cell != null) return host.wall_center_cell;
+    // PHASE-1-CAVITY-MESH: read host's cell via _resolveAnchor so this
+    // site keeps working when the legacy fields retire in Phase 4.
+    if (host) {
+      const a = this.wall_state._resolveAnchor(host);
+      if (a) return a.cellIdx;
+    }
   }
   const N = this.wall_state.cells_per_ring;
   const ring0 = this.wall_state.rings[0];
@@ -323,7 +335,11 @@ Object.assign(VugSimulator.prototype, {
 // narrators, log) sees the bulk-fluid view. Mirrors the equivalent
 // try/finally block in VugSimulator.run_step (vugg.py).
 _runEngineForCrystal(engine, crystal) {
-  const ringIdx = crystal.wall_ring_index;
+  // PHASE-1-CAVITY-MESH: read ringIdx through the anchor helper so
+  // this site stops touching wall_ring_index directly. Identity
+  // result while wall_anchor and legacy fields are kept in sync.
+  const anchor = this.wall_state._resolveAnchor(crystal);
+  const ringIdx = anchor ? anchor.ringIdx : null;
   let savedFluid = null;
   let savedTemp = null;
   if (ringIdx != null && ringIdx >= 0 && ringIdx < this.ring_fluids.length) {
@@ -380,7 +396,12 @@ _assignWallRing(position, mineral) {
   }
   if (hostId != null) {
     const host = this.crystals.find(c => c.crystal_id === hostId);
-    if (host && host.wall_ring_index != null) return host.wall_ring_index;
+    // PHASE-1-CAVITY-MESH: read host's ring via _resolveAnchor so this
+    // site survives the Phase 4 legacy-field drop.
+    if (host) {
+      const a = this.wall_state._resolveAnchor(host);
+      if (a) return a.ringIdx;
+    }
   }
   // Phase D: area-weighted sample (equator gets more nucleations
   // than polar caps). Always consumes one RNG number so parity

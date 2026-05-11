@@ -100,8 +100,11 @@ function _topoRenderRings3D(ctx, sim, wall, ring0, cellR, boundaryR,
   if (sim && sim.crystals) {
     for (const crystal of sim.crystals) {
       if (crystal.dissolved) continue;
-      const ringIdx = crystal.wall_ring_index;
-      const cellIdx = crystal.wall_center_cell;
+      // PHASE-1-CAVITY-MESH: resolve via WallState helper so the
+      // canvas-vector fallback stops reading legacy fields directly.
+      const _anchor = wall._resolveAnchor ? wall._resolveAnchor(crystal) : null;
+      const ringIdx = _anchor ? _anchor.ringIdx : crystal.wall_ring_index;
+      const cellIdx = _anchor ? _anchor.cellIdx : crystal.wall_center_cell;
       if (ringIdx == null || cellIdx == null) continue;
       const meta = ringMeta[ringIdx];
       if (!meta) continue;
