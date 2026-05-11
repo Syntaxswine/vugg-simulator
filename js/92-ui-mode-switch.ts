@@ -21,6 +21,12 @@ function showTitleScreen() {
   // hidden Creative-mode controls. No-op if no tutorial running.
   if (typeof endTutorial === 'function') endTutorial();
   currentGameMode = null;
+  // Home resets the map: with currentGameMode null, topoActiveSim()
+  // returns null even if a fortressSim or randomSim is still alive in
+  // memory, so a subsequent topoRender paints the placeholder rather
+  // than a stale crystal layout. Belt-and-suspenders for the
+  // topoActiveSim fix in 99-renderer-state.ts.
+  if (typeof topoRender === 'function') topoRender();
   refreshTitleLoadButton();
 }
 

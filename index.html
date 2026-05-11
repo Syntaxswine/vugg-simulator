@@ -23108,6 +23108,13 @@ function showTitleScreen() {
     if (typeof endTutorial === 'function')
         endTutorial();
     currentGameMode = null;
+    // Home resets the map: with currentGameMode null, topoActiveSim()
+    // returns null even if a fortressSim or randomSim is still alive in
+    // memory, so a subsequent topoRender paints the placeholder rather
+    // than a stale crystal layout. Belt-and-suspenders for the
+    // topoActiveSim fix in 99-renderer-state.ts.
+    if (typeof topoRender === 'function')
+        topoRender();
     refreshTitleLoadButton();
 }
 
@@ -30086,10 +30093,22 @@ const TOPO_CLASS_ORDER = [
     'hydroxide', 'molybdate', 'silicate', 'halide', 'native', 'sulfate',
 ];
 function topoActiveSim() {
-    // Prefer the simulator whose mode is currently on-screen. Without this
-    // a stale sim from a previous mode (e.g. randomSim from a Quick Play
-    // before switching to Simulation) wins and the topo shows stale data.
+    // Return the simulator whose mode is currently on-screen. When the
+    // user is at the title screen (`currentGameMode === null`) OR has
+    // just entered a mode whose sim hasn't been built yet (e.g. Quick
+    // Play before clicking Generate), return null — the topo will show
+    // its placeholder.
+    //
+    // Earlier versions of this function had a "fall back to any sim at
+    // all" tail after the mode-specific branches, intended as defensive
+    // back-up. In practice it leaked state across modes: Home → Quick
+    // Play would return the previous Fortress sim because randomSim was
+    // null, painting stale fortress crystals on the Quick Play panel.
+    // The mode-gating comment above describes the intent; the fallback
+    // contradicted it. Removed in commit-after-58b31b4.
     const mode = (typeof currentGameMode === 'string') ? currentGameMode : null;
+    if (mode == null)
+        return null;
     if (mode === 'fortress' && typeof fortressSim !== 'undefined' && fortressSim)
         return fortressSim;
     if (mode === 'idle' && typeof idleSim !== 'undefined' && idleSim)
@@ -30097,15 +30116,6 @@ function topoActiveSim() {
     if (mode === 'random' && typeof randomSim !== 'undefined' && randomSim)
         return randomSim;
     if (mode === 'legends' && typeof legendsSim !== 'undefined' && legendsSim)
-        return legendsSim;
-    // Fallback: any sim at all.
-    if (typeof fortressSim !== 'undefined' && fortressSim)
-        return fortressSim;
-    if (typeof idleSim !== 'undefined' && idleSim)
-        return idleSim;
-    if (typeof randomSim !== 'undefined' && randomSim)
-        return randomSim;
-    if (typeof legendsSim !== 'undefined' && legendsSim)
         return legendsSim;
     return null;
 }
