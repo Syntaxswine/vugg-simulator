@@ -202,6 +202,7 @@ const EXPORTS = [
   'VugWall',
   'WallState',
   'WallCell',
+  'WallMesh',
   'Crystal',
   'GrowthZone',
   'rng',

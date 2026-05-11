@@ -507,6 +507,43 @@ class WallState {
 
   updateDiameter(newDiameter) { this.vug_diameter_mm = newDiameter; }
 
+  // PHASE-2-CAVITY-MESH (PROPOSAL-CAVITY-MESH §6): lazy accessor that
+  // returns a WallMesh built from this WallState. First access pays the
+  // factory cost (~ringCount × cells_per_ring vertex allocations);
+  // subsequent accesses return the same instance after a cheap
+  // signature check that re-bakes positions/colors when the cavity
+  // shifts (dissolution, fluid-level change). Renderers prefer this
+  // path; the legacy ring loop still works as a fallback for any
+  // consumer that hasn't migrated yet.
+  //
+  // Why a getter (vs. a plain field): WallMesh.fromWallState() requires
+  // the WallState to be fully built (rings, polar profile, twist
+  // profile all populated), so we can't construct it in the WallState
+  // constructor without ordering hazards. Lazy + cached side-steps the
+  // bootstrap problem and matches the "pay only if a 3D renderer is
+  // actually attached" cost model on headless tests.
+  //
+  // Signature optionally folds in the sim (for water-state coloring).
+  // Callers that don't have a sim pass undefined; the colors fall
+  // through to the dry palette and the cache still busts on
+  // dissolution alone.
+  meshFor(sim?) {
+    // WallMesh lives in js/23-geometry-wall-mesh.ts; the bundle's
+    // SCRIPT-mode concatenation in tools/build.mjs guarantees it's
+    // declared by the time meshFor() is called at render time. The
+    // lazy build keeps the cost off the WallState constructor for
+    // headless test paths that never touch the renderer.
+    if (!this._mesh) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const WM: any = (typeof WallMesh !== 'undefined') ? WallMesh : null;
+      if (!WM) return null;
+      this._mesh = WM.fromWallState(this, sim);
+    } else {
+      this._mesh.recomputeIfStale(this, sim);
+    }
+    return this._mesh;
+  }
+
   // PHASE-1-CAVITY-MESH (PROPOSAL-CAVITY-MESH §5): compute the
   // spherical-coordinate anchor for a (ringIdx, cellIdx) pair on the
   // current ring grid. phi ∈ [0, π] (south pole 0, north pole π),

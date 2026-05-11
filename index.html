@@ -7517,6 +7517,44 @@ class WallState {
         return 2 * sum / ring0.length;
     }
     updateDiameter(newDiameter) { this.vug_diameter_mm = newDiameter; }
+    // PHASE-2-CAVITY-MESH (PROPOSAL-CAVITY-MESH §6): lazy accessor that
+    // returns a WallMesh built from this WallState. First access pays the
+    // factory cost (~ringCount × cells_per_ring vertex allocations);
+    // subsequent accesses return the same instance after a cheap
+    // signature check that re-bakes positions/colors when the cavity
+    // shifts (dissolution, fluid-level change). Renderers prefer this
+    // path; the legacy ring loop still works as a fallback for any
+    // consumer that hasn't migrated yet.
+    //
+    // Why a getter (vs. a plain field): WallMesh.fromWallState() requires
+    // the WallState to be fully built (rings, polar profile, twist
+    // profile all populated), so we can't construct it in the WallState
+    // constructor without ordering hazards. Lazy + cached side-steps the
+    // bootstrap problem and matches the "pay only if a 3D renderer is
+    // actually attached" cost model on headless tests.
+    //
+    // Signature optionally folds in the sim (for water-state coloring).
+    // Callers that don't have a sim pass undefined; the colors fall
+    // through to the dry palette and the cache still busts on
+    // dissolution alone.
+    meshFor(sim) {
+        // WallMesh lives in js/23-geometry-wall-mesh.ts; the bundle's
+        // SCRIPT-mode concatenation in tools/build.mjs guarantees it's
+        // declared by the time meshFor() is called at render time. The
+        // lazy build keeps the cost off the WallState constructor for
+        // headless test paths that never touch the renderer.
+        if (!this._mesh) {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const WM = (typeof WallMesh !== 'undefined') ? WallMesh : null;
+            if (!WM)
+                return null;
+            this._mesh = WM.fromWallState(this, sim);
+        }
+        else {
+            this._mesh.recomputeIfStale(this, sim);
+        }
+        return this._mesh;
+    }
     // PHASE-1-CAVITY-MESH (PROPOSAL-CAVITY-MESH §5): compute the
     // spherical-coordinate anchor for a (ringIdx, cellIdx) pair on the
     // current ring grid. phi ∈ [0, π] (south pole 0, north pole π),
@@ -7689,6 +7727,340 @@ class WallState {
                 cell.thickness_um = thickness;
             }
         }
+    }
+}
+
+// ── 23-geometry-wall-mesh.js ──
+
+// ============================================================
+// js/23-geometry-wall-mesh.ts — WallMesh (cavity surface mesh)
+// ============================================================
+// Phase 2 of PROPOSAL-CAVITY-MESH.
+//
+// What this is: an engine-side, renderer-agnostic representation of the
+// cavity surface as a triangulated mesh. One vertex per surface anchor,
+// plus two pole caps; positions, vertex colors, and outward normals are
+// recomputed from the underlying WallState whenever the cavity changes
+// (dissolution, fluid-level shift, scenario reload).
+//
+// Why now: the Three.js renderer used to compute these vertices inline
+// from `wall.rings[r][c]`. That coupled the renderer to the ring-grid
+// model, which Phase 4 of the proposal will retire. Moving the math
+// here means Phase 2.5+ can swap in icosphere / geodesic / irregular
+// tessellations without touching the renderer at all.
+//
+// Phase 2 (this file) keeps the default tessellation byte-identical to
+// the legacy ring grid: `numInterior = ring_count × cells_per_ring`
+// vertices laid out in lat-long order, plus south/north pole caps.
+// Per-vertex coloring matches `_topoBuildCavityGeometry`'s palette
+// (floor / wall / ceiling × submerged tint). Phase 2.5 will subclass
+// the factory to emit different tessellations under archetype control.
+//
+// Phase 3 will move per-vertex state (wall_depth, crystal_id,
+// mineral, thickness_um) off `WallCell` and onto `WallMesh.cells[]`
+// indexed by vertex. For Phase 2 the mesh is READ-ONLY: it pulls from
+// rings[r][c] each rebuild. The engine still writes to ring cells.
+class WallMesh {
+    constructor() {
+        // ---- Structure (immutable after construction for a given mesh) ----
+        // One entry per non-pole vertex, in row-major (ringIdx, cellIdx)
+        // order so the legacy index formula `r * cells_per_ring + c`
+        // resolves to the same vertex the renderer used to compute inline.
+        // phi/theta are spherical coordinates: phi ∈ [0, π] (south pole
+        // 0, north pole π), theta ∈ [0, 2π). orientation is one of
+        // 'floor' | 'wall' | 'ceiling' from WallState.ringOrientation —
+        // baked into the vertex so future tessellations that don't have a
+        // ring concept can still resolve orientation per-vertex.
+        this.vertices = [];
+        // Total interior vertex count (numInterior); pole vertices live at
+        // indices numInterior (south) and numInterior+1 (north).
+        this.numInterior = 0;
+        this.southIdx = 0;
+        this.northIdx = 0;
+        // Triangle indices: south-cap fan + inter-ring quads + north-cap
+        // fan. Plain number[] so the renderer can decide between Uint16
+        // and Uint32 BufferAttribute based on vertex count.
+        this.indices = [];
+        // ---- Dynamic geometry (recomputed when wall + sim change) ----
+        // Flat Float32Arrays — same buffer shape the renderer hands to
+        // THREE.BufferAttribute, so the wire-up is a one-shot reference
+        // pass with no intermediate copy.
+        this.positions = null; // Float32Array(numVerts * 3)
+        this.colors = null; // Float32Array(numVerts * 3)
+        this.normals = null; // Float32Array(numVerts * 3)  (radial fallback;
+        // renderer calls computeVertexNormals to override)
+        // Cavity-state fingerprint. The renderer keys its cache off this,
+        // matching the legacy _topoCavitySignature() so cache-hit semantics
+        // don't shift.
+        this.sig = '';
+        // Conservative monotonic radius reference — populated during
+        // recompute, mirrors WallState.max_seen_radius_mm so the renderer's
+        // clip uniforms have a single source of truth as we migrate.
+        this.max_radius_mm = 0;
+        // Per-ring max vertex radius — drives the per-fragment clip-radius
+        // interpolation in the Three.js shader (so a crystal at a polar
+        // latitude is clipped against the hull at THAT latitude, not the
+        // equatorial max). One slot per ring; the renderer reads ringCount
+        // slots into its uVugRadiiByRing uniform array.
+        this.maxRadiusByRing = null;
+    }
+    // ---- Factory ----
+    //
+    // Build a WallMesh from the current WallState. Default tessellation
+    // is the legacy lat-long grid: ring_count × cells_per_ring interior
+    // vertices + south/north pole caps. The vertex *positions* depend
+    // on the wall's current dissolution + the sim's water state (for
+    // submerged-tint coloring), which is why this factory takes both.
+    //
+    // Sim is optional — engine-only consumers (tests, snapshot writers)
+    // can pass undefined and get default-dry colors.
+    static fromWallState(wall, sim) {
+        const mesh = new WallMesh();
+        if (!wall || !wall.rings || !wall.rings.length)
+            return mesh;
+        const ringCount = wall.ring_count;
+        const ring0 = wall.rings[0];
+        const N = ring0 ? ring0.length : 0;
+        if (!N || ringCount < 1)
+            return mesh;
+        // Build the vertex structure once. phi / theta / ringIdx / cellIdx
+        // / orientation are immutable for this tessellation; only the
+        // dynamic (x,y,z, color) values recompute later.
+        mesh.numInterior = ringCount * N;
+        mesh.southIdx = mesh.numInterior;
+        mesh.northIdx = mesh.numInterior + 1;
+        const numVerts = mesh.numInterior + 2;
+        mesh.vertices = new Array(numVerts);
+        for (let r = 0; r < ringCount; r++) {
+            const phi = Math.PI * (r + 0.5) / ringCount;
+            const orient = wall.ringOrientation ? wall.ringOrientation(r) : 'wall';
+            for (let c = 0; c < N; c++) {
+                const idx = r * N + c;
+                mesh.vertices[idx] = {
+                    phi,
+                    theta: 2 * Math.PI * c / N,
+                    ringIdx: r,
+                    cellIdx: c,
+                    orientation: orient,
+                    isPole: false,
+                };
+            }
+        }
+        mesh.vertices[mesh.southIdx] = {
+            phi: 0, theta: 0,
+            ringIdx: -1, cellIdx: -1,
+            orientation: wall.ringOrientation ? wall.ringOrientation(0) : 'floor',
+            isPole: true,
+        };
+        mesh.vertices[mesh.northIdx] = {
+            phi: Math.PI, theta: 0,
+            ringIdx: -1, cellIdx: -1,
+            orientation: wall.ringOrientation ? wall.ringOrientation(ringCount - 1) : 'ceiling',
+            isPole: true,
+        };
+        // Build the index buffer — south cap fan + inter-ring quads +
+        // north cap fan. Same winding the legacy renderer used so
+        // outward-facing normals stay outward after migration.
+        mesh._buildIndices(ringCount, N);
+        // Allocate dynamic buffers + run the first geometry pass.
+        mesh.positions = new Float32Array(numVerts * 3);
+        mesh.colors = new Float32Array(numVerts * 3);
+        mesh.normals = new Float32Array(numVerts * 3);
+        mesh.maxRadiusByRing = new Float32Array(ringCount);
+        mesh.recompute(wall, sim);
+        return mesh;
+    }
+    // Index-buffer build. Pulled out so subclasses with alternate
+    // tessellations can override _buildIndices in isolation while
+    // reusing the rest of the structure pass.
+    _buildIndices(ringCount, N) {
+        const indices = [];
+        // South cap: fan from south pole to ring 0.
+        for (let c = 0; c < N; c++) {
+            const cNext = (c + 1) % N;
+            indices.push(this.southIdx, cNext, c); // wind outward
+        }
+        // Inter-ring quads.
+        for (let k = 0; k < ringCount - 1; k++) {
+            for (let c = 0; c < N; c++) {
+                const cNext = (c + 1) % N;
+                const a = k * N + c;
+                const b = k * N + cNext;
+                const c2 = (k + 1) * N + c;
+                const d = (k + 1) * N + cNext;
+                indices.push(a, b, c2);
+                indices.push(b, d, c2);
+            }
+        }
+        // North cap: fan from ring N-1 to north pole.
+        for (let c = 0; c < N; c++) {
+            const cNext = (c + 1) % N;
+            indices.push(this.northIdx, (ringCount - 1) * N + c, (ringCount - 1) * N + cNext);
+        }
+        this.indices = indices;
+    }
+    // ---- Cache fingerprint ----
+    //
+    // Match the legacy _topoCavitySignature in 99i so the renderer's
+    // cache-hit/miss timing doesn't change. The signature folds in
+    // ring count, cells per ring, a sampled wall_depth checksum (8
+    // cells per ring), and the current fluid-surface ring. Cheap to
+    // compute; busts whenever a dissolution event or fluid-level
+    // change shifts the cavity.
+    static _signature(wall, sim) {
+        if (!wall || !wall.rings || !wall.rings.length)
+            return '';
+        const ring0 = wall.rings[0];
+        const N = ring0 ? ring0.length : 0;
+        let depthSum = 0;
+        for (let r = 0; r < wall.rings.length; r++) {
+            const ring = wall.rings[r];
+            if (!ring)
+                continue;
+            const stride = Math.max(1, Math.floor(N / 8));
+            for (let c = 0; c < N; c += stride) {
+                const cell = ring[c];
+                if (!cell)
+                    continue;
+                depthSum += (cell.base_radius_mm + cell.wall_depth) * (r * 31 + c);
+            }
+        }
+        const surf = sim && sim.conditions ? sim.conditions.fluid_surface_ring : null;
+        return `${wall.ring_count}|${N}|${depthSum.toFixed(2)}|${surf}`;
+    }
+    // ---- Recompute (cheap when stale, no-op when fresh) ----
+    recomputeIfStale(wall, sim) {
+        const sig = WallMesh._signature(wall, sim);
+        if (sig === this.sig)
+            return false;
+        this.recompute(wall, sim);
+        return true;
+    }
+    // Per-vertex (x, y, z) + per-vertex color, computed from the wall's
+    // current state. Math mirrors _topoBuildCavityGeometry from
+    // 99i-renderer-three.ts verbatim so the byte-identical claim is
+    // line-for-line auditable.
+    recompute(wall, sim) {
+        if (!wall || !wall.rings || !wall.rings.length)
+            return;
+        const ringCount = wall.ring_count;
+        const ring0 = wall.rings[0];
+        const N = ring0 ? ring0.length : 0;
+        if (!N || ringCount < 1)
+            return;
+        const initR = wall.initial_radius_mm || 25;
+        // Color palette — must match the renderer's palette exactly.
+        const hexToRgb = (hex) => [
+            ((hex >> 16) & 0xff) / 255,
+            ((hex >> 8) & 0xff) / 255,
+            (hex & 0xff) / 255,
+        ];
+        const wallColors = {
+            floor: hexToRgb(0xA85820),
+            wall: hexToRgb(0xD2691E),
+            ceiling: hexToRgb(0xE8782C),
+        };
+        const submergedTint = [0.43, 0.74, 0.96];
+        const mix = (a, b, t) => [
+            a[0] * (1 - t) + b[0] * t,
+            a[1] * (1 - t) + b[1] * t,
+            a[2] * (1 - t) + b[2] * t,
+        ];
+        const positions = this.positions;
+        const colors = this.colors;
+        const normals = this.normals;
+        let maxR2 = 0;
+        if (this.maxRadiusByRing && this.maxRadiusByRing.length !== ringCount) {
+            this.maxRadiusByRing = new Float32Array(ringCount);
+        }
+        else if (this.maxRadiusByRing) {
+            this.maxRadiusByRing.fill(0);
+        }
+        // Place interior ring × cell vertices.
+        for (let r = 0; r < ringCount; r++) {
+            const phi = Math.PI * (r + 0.5) / ringCount;
+            const sinPhi = Math.sin(phi);
+            const cosPhi = Math.cos(phi);
+            const polar = wall.polarProfileFactor ? wall.polarProfileFactor(phi) : 1.0;
+            const twist = wall.ringTwistRadians ? wall.ringTwistRadians(phi) : 0.0;
+            const ring = wall.rings[r];
+            const orient = wall.ringOrientation ? wall.ringOrientation(r) : 'wall';
+            const baseColor = wallColors[orient] || wallColors.wall;
+            const wstate = (sim && sim.conditions && sim.conditions.ringWaterState)
+                ? sim.conditions.ringWaterState(r, ringCount)
+                : 'submerged';
+            const isSubmerged = wstate === 'submerged'
+                && sim && sim.conditions && sim.conditions.fluid_surface_ring != null;
+            const tinted = isSubmerged ? mix(baseColor, submergedTint, 0.35) : baseColor;
+            let ringMaxR2 = 0;
+            for (let c = 0; c < N; c++) {
+                const cell = ring && ring[c];
+                const baseR = cell && cell.base_radius_mm > 0 ? cell.base_radius_mm : initR;
+                const depth = cell ? cell.wall_depth : 0;
+                const radiusMm = (baseR + depth) * polar;
+                const theta = (2 * Math.PI * c) / N + twist;
+                const x = radiusMm * sinPhi * Math.cos(theta);
+                const y = -radiusMm * cosPhi; // south at -y, north at +y
+                const z = radiusMm * sinPhi * Math.sin(theta);
+                const idx = r * N + c;
+                positions[idx * 3 + 0] = x;
+                positions[idx * 3 + 1] = y;
+                positions[idx * 3 + 2] = z;
+                colors[idx * 3 + 0] = tinted[0];
+                colors[idx * 3 + 1] = tinted[1];
+                colors[idx * 3 + 2] = tinted[2];
+                const len = Math.sqrt(x * x + y * y + z * z) || 1;
+                normals[idx * 3 + 0] = x / len;
+                normals[idx * 3 + 1] = y / len;
+                normals[idx * 3 + 2] = z / len;
+                const r2 = x * x + y * y + z * z;
+                if (r2 > maxR2)
+                    maxR2 = r2;
+                if (r2 > ringMaxR2)
+                    ringMaxR2 = r2;
+            }
+            if (this.maxRadiusByRing)
+                this.maxRadiusByRing[r] = Math.sqrt(ringMaxR2);
+        }
+        // Pole caps — average ring radius at nearest ring, projected to
+        // the pole axis. Color borrows the nearest ring's orientation
+        // tint directly (close enough at the cap; cheaper than averaging
+        // the per-cell colors).
+        const meanRingRadius = (rIdx) => {
+            const ring = wall.rings[rIdx];
+            if (!ring)
+                return initR;
+            let sum = 0;
+            for (let c = 0; c < N; c++) {
+                const cell = ring[c];
+                sum += (cell && cell.base_radius_mm > 0 ? cell.base_radius_mm : initR)
+                    + (cell ? cell.wall_depth : 0);
+            }
+            return sum / N;
+        };
+        const southR = meanRingRadius(0) * Math.cos(Math.PI / (2 * ringCount));
+        const northR = meanRingRadius(ringCount - 1) * Math.cos(Math.PI / (2 * ringCount));
+        positions[this.southIdx * 3 + 0] = 0;
+        positions[this.southIdx * 3 + 1] = -southR;
+        positions[this.southIdx * 3 + 2] = 0;
+        positions[this.northIdx * 3 + 0] = 0;
+        positions[this.northIdx * 3 + 1] = +northR;
+        positions[this.northIdx * 3 + 2] = 0;
+        const southOrient = wall.ringOrientation ? wall.ringOrientation(0) : 'floor';
+        const northOrient = wall.ringOrientation ? wall.ringOrientation(ringCount - 1) : 'ceiling';
+        const southCol = wallColors[southOrient] || wallColors.floor;
+        const northCol = wallColors[northOrient] || wallColors.ceiling;
+        colors.set(southCol, this.southIdx * 3);
+        colors.set(northCol, this.northIdx * 3);
+        normals.set([0, -1, 0], this.southIdx * 3);
+        normals.set([0, +1, 0], this.northIdx * 3);
+        const southR2 = southR * southR, northR2 = northR * northR;
+        if (southR2 > maxR2)
+            maxR2 = southR2;
+        if (northR2 > maxR2)
+            maxR2 = northR2;
+        this.max_radius_mm = Math.sqrt(maxR2);
+        this.sig = WallMesh._signature(wall, sim);
     }
 }
 
@@ -34605,25 +34977,27 @@ float cavityHullRadiusAt(vec3 worldPos) {
     // Force shader rebuild on next render.
     material.needsUpdate = true;
 }
-// Compose a deterministic signature of the wall + sim conditions that
-// affect cavity geometry. If unchanged across renders, skip the
-// rebuild. Wall mutates rarely — every dissolution event, every
-// fluid-level change — but topoRender fires every step.
+// PHASE-2-CAVITY-MESH: signature delegates to WallMesh._signature so
+// the renderer and the mesh agree on staleness. Kept as a thin
+// indirection so the renderer's call sites don't change shape.
 function _topoCavitySignature(wall, sim) {
-    if (!wall || !wall.rings || !wall.rings.length)
+    if (!wall)
+        return '';
+    if (typeof WallMesh !== 'undefined' && WallMesh._signature) {
+        return WallMesh._signature(wall, sim);
+    }
+    // Fallback (shouldn't hit in production — the bundle always loads 23
+    // before this code runs — but keep the legacy formula handy for any
+    // headless harness that skips the mesh module).
+    if (!wall.rings || !wall.rings.length)
         return '';
     const ring0 = wall.rings[0];
     const N = ring0 ? ring0.length : 0;
-    // Cheap fingerprint: ring_count, max_seen_radius, fluid_surface, plus
-    // a sampled wall_depth checksum so dissolution events bust the cache.
     let depthSum = 0;
     for (let r = 0; r < wall.rings.length; r++) {
         const ring = wall.rings[r];
         if (!ring)
             continue;
-        // Sample 8 cells per ring (every N/8 steps) for a ~16 × 8 = 128-call
-        // checksum. Enough fidelity to catch erosion fronts; still O(1) per
-        // render on typical 16×120 cavities.
         const stride = Math.max(1, Math.floor(N / 8));
         for (let c = 0; c < N; c += stride) {
             const cell = ring[c];
@@ -34635,170 +35009,42 @@ function _topoCavitySignature(wall, sim) {
     const surf = sim && sim.conditions ? sim.conditions.fluid_surface_ring : null;
     return `${wall.ring_count}|${N}|${depthSum.toFixed(2)}|${surf}`;
 }
-// Build (or rebuild) the cavity mesh from wall.rings. Vertex layout:
-//   * One vertex per (ring, cell) pair → ringCount × cellsPerRing
-//   * One pole vertex at south pole (φ=0)
-//   * One pole vertex at north pole (φ=π)
-// Triangulation: south cap fan + inter-ring quads + north cap fan.
-// Vertex colors: ring orientation tint (floor/wall/ceiling), submerged
-// rings shifted toward blue per the canvas-vector water-line cue.
-//
-// Mirror of the math in 99e-renderer-topo-3d.ts so the two renderers
-// produce visually congruent cavities at zero tilt.
+// PHASE-2-CAVITY-MESH: cavity geometry now sources from WallMesh
+// (js/23-geometry-wall-mesh.ts). The renderer's job here is reduced
+// to: ask the wall for its mesh, copy the mesh's buffers into a
+// THREE.BufferGeometry, push it onto state.cavity, and update clip
+// uniforms. The vertex math (positions, colors, normals,
+// triangulation) lives in WallMesh.recompute — same formulas as
+// before, just centralized so future tessellations (icosphere,
+// geodesic, irregular) can swap in without touching this file.
 function _topoBuildCavityGeometry(state, wall, sim) {
     if (!wall || !wall.rings || !wall.rings.length)
         return;
-    const sig = _topoCavitySignature(wall, sim);
-    if (sig === state.cavitySig)
+    const mesh = wall.meshFor ? wall.meshFor(sim) : null;
+    if (!mesh)
         return;
-    state.cavitySig = sig;
+    if (mesh.sig === state.cavitySig)
+        return;
+    state.cavitySig = mesh.sig;
     const ringCount = wall.ring_count;
     const ring0 = wall.rings[0];
     const N = ring0 ? ring0.length : 0;
     if (!N || ringCount < 1)
         return;
-    const initR = wall.initial_radius_mm || 25;
-    // 1 mm = 1 world-unit; the camera scales out from there so framing
-    // matches the canvas-vector renderer's `mmToPx`-fitted view.
-    const numInterior = ringCount * N;
-    const numVerts = numInterior + 2; // +2 for south/north pole vertices
-    const positions = new Float32Array(numVerts * 3);
-    const colors = new Float32Array(numVerts * 3);
-    const normals = new Float32Array(numVerts * 3);
-    // Convert hex color to (r, g, b) ∈ [0, 1].
-    const hexToRgb = (hex) => [
-        ((hex >> 16) & 0xff) / 255,
-        ((hex >> 8) & 0xff) / 255,
-        (hex & 0xff) / 255,
-    ];
-    // Color palette — same triplet the canvas-vector renderer uses, plus
-    // a submerged-blue tint for rings under the meniscus.
-    const wallColors = {
-        floor: hexToRgb(0xA85820),
-        wall: hexToRgb(0xD2691E),
-        ceiling: hexToRgb(0xE8782C),
-    };
-    const submergedTint = [0.43, 0.74, 0.96]; // rgba(110, 190, 245, 1)
-    // Mix two RGB triplets: returns a*(1-t) + b*t.
-    const mix = (a, b, t) => [
-        a[0] * (1 - t) + b[0] * t,
-        a[1] * (1 - t) + b[1] * t,
-        a[2] * (1 - t) + b[2] * t,
-    ];
-    // Place the interior ring × cell vertices.
-    for (let r = 0; r < ringCount; r++) {
-        const phi = Math.PI * (r + 0.5) / ringCount;
-        const sinPhi = Math.sin(phi);
-        const cosPhi = Math.cos(phi);
-        const polar = wall.polarProfileFactor ? wall.polarProfileFactor(phi) : 1.0;
-        const twist = wall.ringTwistRadians ? wall.ringTwistRadians(phi) : 0.0;
-        const ring = wall.rings[r];
-        // Determine ring orientation + water state once per ring.
-        const orient = wall.ringOrientation ? wall.ringOrientation(r) : 'wall';
-        const baseColor = wallColors[orient] || wallColors.wall;
-        const wstate = (sim && sim.conditions && sim.conditions.ringWaterState)
-            ? sim.conditions.ringWaterState(r, ringCount)
-            : 'submerged';
-        const isSubmerged = wstate === 'submerged'
-            && sim && sim.conditions && sim.conditions.fluid_surface_ring != null;
-        const tinted = isSubmerged ? mix(baseColor, submergedTint, 0.35) : baseColor;
-        for (let c = 0; c < N; c++) {
-            const cell = ring && ring[c];
-            const baseR = cell && cell.base_radius_mm > 0 ? cell.base_radius_mm : initR;
-            const depth = cell ? cell.wall_depth : 0;
-            const radiusMm = (baseR + depth) * polar;
-            const theta = (2 * Math.PI * c) / N + twist;
-            const x = radiusMm * sinPhi * Math.cos(theta);
-            const y = -radiusMm * cosPhi; // south pole at -y, north at +y
-            const z = radiusMm * sinPhi * Math.sin(theta);
-            const idx = r * N + c;
-            positions[idx * 3 + 0] = x;
-            positions[idx * 3 + 1] = y;
-            positions[idx * 3 + 2] = z;
-            colors[idx * 3 + 0] = tinted[0];
-            colors[idx * 3 + 1] = tinted[1];
-            colors[idx * 3 + 2] = tinted[2];
-            // Outward normal — radial from origin. computeVertexNormals would
-            // overwrite this but we set sensible defaults so the first frame
-            // before normals are recomputed isn't black.
-            const len = Math.sqrt(x * x + y * y + z * z) || 1;
-            normals[idx * 3 + 0] = x / len;
-            normals[idx * 3 + 1] = y / len;
-            normals[idx * 3 + 2] = z / len;
-        }
-    }
-    // Pole vertices — average ring radii at the closest ring, projected
-    // onto the pole axis. Inherit the closest ring's color so the cap
-    // matches the floor/ceiling tint.
-    const southIdx = numInterior;
-    const northIdx = numInterior + 1;
-    const meanRingRadius = (rIdx) => {
-        const ring = wall.rings[rIdx];
-        if (!ring)
-            return initR;
-        let sum = 0;
-        for (let c = 0; c < N; c++) {
-            const cell = ring[c];
-            sum += (cell && cell.base_radius_mm > 0 ? cell.base_radius_mm : initR)
-                + (cell ? cell.wall_depth : 0);
-        }
-        return sum / N;
-    };
-    const southR = meanRingRadius(0) * Math.cos(Math.PI / (2 * ringCount));
-    const northR = meanRingRadius(ringCount - 1) * Math.cos(Math.PI / (2 * ringCount));
-    positions[southIdx * 3 + 0] = 0;
-    positions[southIdx * 3 + 1] = -southR;
-    positions[southIdx * 3 + 2] = 0;
-    positions[northIdx * 3 + 0] = 0;
-    positions[northIdx * 3 + 1] = +northR;
-    positions[northIdx * 3 + 2] = 0;
-    // Pole colors borrow ring 0 / ring N-1 average — small enough effect
-    // to approximate as the orientation color directly.
-    const southOrient = wall.ringOrientation ? wall.ringOrientation(0) : 'floor';
-    const northOrient = wall.ringOrientation ? wall.ringOrientation(ringCount - 1) : 'ceiling';
-    const southCol = wallColors[southOrient] || wallColors.floor;
-    const northCol = wallColors[northOrient] || wallColors.ceiling;
-    colors.set(southCol, southIdx * 3);
-    colors.set(northCol, northIdx * 3);
-    normals.set([0, -1, 0], southIdx * 3);
-    normals.set([0, +1, 0], northIdx * 3);
-    // Triangulate. Index buffer is small enough to stay 16-bit (the
-    // 16×120 default produces 3,840 triangles → 11,520 indices, well
-    // under 65,535).
-    const indices = [];
-    // South cap: fan from south pole to ring 0.
-    for (let c = 0; c < N; c++) {
-        const a = southIdx;
-        const b = 0 * N + c;
-        const cNext = 0 * N + ((c + 1) % N);
-        indices.push(a, cNext, b); // wind so outward-normal faces away from origin
-    }
-    // Inter-ring quads: each (k, c) → (k, c+1) → (k+1, c) → (k+1, c+1).
-    for (let k = 0; k < ringCount - 1; k++) {
-        for (let c = 0; c < N; c++) {
-            const cNext = (c + 1) % N;
-            const a = k * N + c;
-            const b = k * N + cNext;
-            const c2 = (k + 1) * N + c;
-            const d = (k + 1) * N + cNext;
-            indices.push(a, b, c2);
-            indices.push(b, d, c2);
-        }
-    }
-    // North cap: fan from ring N-1 to north pole.
-    for (let c = 0; c < N; c++) {
-        const a = northIdx;
-        const b = (ringCount - 1) * N + c;
-        const cNext = (ringCount - 1) * N + ((c + 1) % N);
-        indices.push(a, b, cNext);
-    }
+    const numVerts = mesh.numInterior + 2;
     const geom = new THREE.BufferGeometry();
-    geom.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-    geom.setAttribute('color', new THREE.BufferAttribute(colors, 3));
-    geom.setAttribute('normal', new THREE.BufferAttribute(normals, 3));
+    // mesh.positions / mesh.colors / mesh.normals are Float32Arrays the
+    // mesh owns and rebuilds in-place; copy-on-write into the
+    // BufferAttribute so a future mesh recompute doesn't mutate this
+    // geometry's data behind Three.js's back. The slice() costs
+    // ~75 KB per cavity rebuild at the default 16×120 resolution
+    // (≈ once per dissolution event), which is well under the budget.
+    geom.setAttribute('position', new THREE.BufferAttribute(mesh.positions.slice(), 3));
+    geom.setAttribute('color', new THREE.BufferAttribute(mesh.colors.slice(), 3));
+    geom.setAttribute('normal', new THREE.BufferAttribute(mesh.normals.slice(), 3));
     const indexAttr = numVerts > 65535
-        ? new THREE.Uint32BufferAttribute(indices, 1)
-        : new THREE.Uint16BufferAttribute(indices, 1);
+        ? new THREE.Uint32BufferAttribute(mesh.indices, 1)
+        : new THREE.Uint16BufferAttribute(mesh.indices, 1);
     geom.setIndex(indexAttr);
     geom.computeVertexNormals(); // overwrite the placeholder normals with
     // mesh-aware ones for proper shading
@@ -34819,33 +35065,16 @@ function _topoBuildCavityGeometry(state, wall, sim) {
     //      latitude (not the equatorial max). This is what makes the
     //      "wall acts as a slice" intent honest — the cavity geometry
     //      drives the clip, not a bounding sphere.
-    let maxR2 = 0;
-    for (let i = 0; i < numVerts; i++) {
-        const x = positions[i * 3 + 0];
-        const y = positions[i * 3 + 1];
-        const z = positions[i * 3 + 2];
-        const r2 = x * x + y * y + z * z;
-        if (r2 > maxR2)
-            maxR2 = r2;
-    }
-    const globalMaxR = Math.sqrt(maxR2);
-    state.clipUniforms.uVugRadius.value = globalMaxR;
-    // Per-ring max radii. Iterate the interior ring×cell vertices the
-    // same way they were laid out above (ring r, cell c → index r*N+c).
+    // PHASE-2-CAVITY-MESH: globalMax + per-ring max come from the
+    // WallMesh directly (recompute already iterated the vertices).
+    state.clipUniforms.uVugRadius.value = mesh.max_radius_mm;
+    // Per-ring max radii — copy from mesh.maxRadiusByRing into the
+    // fixed-length uVugRadiiByRing uniform slot (capped at
+    // _MAX_CLIP_RINGS).
     const radiiByRing = state.clipUniforms.uVugRadiiByRing.value;
     const supportedRings = Math.min(ringCount, _MAX_CLIP_RINGS);
     for (let r = 0; r < supportedRings; r++) {
-        let ringMaxR2 = 0;
-        for (let c = 0; c < N; c++) {
-            const idx = r * N + c;
-            const x = positions[idx * 3 + 0];
-            const y = positions[idx * 3 + 1];
-            const z = positions[idx * 3 + 2];
-            const rr = x * x + y * y + z * z;
-            if (rr > ringMaxR2)
-                ringMaxR2 = rr;
-        }
-        radiiByRing[r] = Math.sqrt(ringMaxR2);
+        radiiByRing[r] = mesh.maxRadiusByRing ? mesh.maxRadiusByRing[r] : 0;
     }
     // Zero-fill any unused slots so a stale value doesn't leak into the
     // shader if a future rebuild has fewer rings.
@@ -34859,13 +35088,17 @@ function _topoBuildCavityGeometry(state, wall, sim) {
     //      conservatively, and crystal corners / tilted bodies poke into
     //      the host rock as "bright saturated" patches. Per-cell sampling
     //      compares against the actual local cell radius, closing the gap.
+    // PHASE-2-CAVITY-MESH: read straight from mesh.positions — same
+    // vertex layout (row-major (r, c)) as before, just lives on the
+    // mesh now.
+    const meshPositions = mesh.positions;
     const cellRadiiBuf = new Float32Array(ringCount * N);
     for (let r = 0; r < ringCount; r++) {
         for (let c = 0; c < N; c++) {
             const idx = r * N + c;
-            const x = positions[idx * 3 + 0];
-            const y = positions[idx * 3 + 1];
-            const z = positions[idx * 3 + 2];
+            const x = meshPositions[idx * 3 + 0];
+            const y = meshPositions[idx * 3 + 1];
+            const z = meshPositions[idx * 3 + 2];
             cellRadiiBuf[idx] = Math.sqrt(x * x + y * y + z * z);
         }
     }

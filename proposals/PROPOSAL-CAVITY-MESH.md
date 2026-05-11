@@ -1,6 +1,6 @@
 # PROPOSAL: Cavity-Mesh Architecture (retiring the ring model)
 
-> **Status:** Active. Phase 1 landed 2026-05-11.
+> **Status:** Active. Phase 2 landed 2026-05-11 (same day as Phase 1).
 > **Authored:** 2026-05-09 by Claude (Sonnet 4.5, vugg session continuation), at boss's direction after the v66 replay-in-3D landing made the redundancy of the ring grid visible.
 > **Living doc:** Future agents — **append your observations to §11**, your decisions to §12. Update the phase tracker in §1 when you ship. Don't delete prior content; even wrong predictions are useful broth.
 
@@ -12,7 +12,7 @@
 |-------|--------------------------------------------|-------------|-----------------|-------|
 | 0     | This proposal (read-only)                  | landed      | (this commit)   | The plan itself. |
 | 1     | Crystal anchor decouples from ring index   | landed 2026-05-11 | (this branch HEAD; previous = 6c73201) | Pure refactor; calibration baseline byte-identical. 70/70 tests green incl. 5 new `anchor.test.ts`. SIM_VERSION held at 67. |
-| 2     | Cavity mesh becomes optional               | unstarted   | —               | `WallMesh` data structure alongside `WallState`; Three.js opts in per-scenario. |
+| 2     | Cavity mesh becomes optional               | landed 2026-05-11 | (this branch HEAD; previous = bada9a4) | `WallMesh` lives in `js/23-geometry-wall-mesh.ts`; Three.js renderer reads from `wall.meshFor(sim)` instead of computing vertices inline. Calibration baseline byte-identical. 79/79 tests green (5 Phase-1 + 9 new Phase-2 in `mesh.test.ts`). |
 | 3     | Chemistry zones replace per-ring fluids    | unstarted   | —               | Default = global fluid; explicit opt-in for floor/wall/ceiling zoning. |
 | 4     | Ring grid retires                          | unstarted   | —               | `WallState.rings` becomes a view (or disappears); 2D canvas-vector strip retires or becomes a fallback. Schedule the legacy `wall_ring_index` / `wall_center_cell` drop here. |
 
@@ -276,6 +276,22 @@ Phase 1 shipped today. Notes from the implementation pass that future phases sho
 
 - **Phase 2 hot tip:** the kd-tree the proposal mentions for `_resolveAnchor` lookup is overkill while the mesh is a 16×120 lat-long grid. A direct `(phi, theta) → (ringIdx, cellIdx)` reverse map costs O(1): `ringIdx = round(phi/π × ring_count − 0.5)`, `cellIdx = round(theta/2π × cells_per_ring) mod cells_per_ring`. Only when Phase 2.5 introduces an irregular triangulation does the kd-tree become necessary.
 
+### 2026-05-11 — Sonnet 4.5 (Phase 2 implementer) — Phase 2 landed same session
+
+Phase 2 shipped a few hours after Phase 1. Notes:
+
+- **Cavity-geometry math moved verbatim, no formula edits.** The vertex math in `_topoBuildCavityGeometry` (positions, vertex colors, triangulation, pole caps, polar-profile + twist) was lifted line-for-line into `WallMesh.recompute()`. The renderer's responsibility shrank to "ask the wall for its mesh, copy the buffers into a `THREE.BufferGeometry`, update clip uniforms." 79/79 tests pass, calibration baseline byte-identical — proved the lift was clean.
+
+- **`WallMesh._signature` replaces `_topoCavitySignature` (renderer-side).** Renderer keeps a thin wrapper at the original call site so the abstraction lives entirely on the mesh; cache-hit semantics unchanged. Saves the renderer from having to re-derive a fingerprint when the mesh already knows when it's stale.
+
+- **`maxRadiusByRing` is now baked into the mesh.** The renderer used to re-iterate positions to compute per-ring max for the clip-uniform array; now it reads `mesh.maxRadiusByRing[r]` directly. One less O(ring × cell) loop per cavity rebuild.
+
+- **Signature-checksum fragility surfaced by mesh tests:** the cheap fingerprint formula `(base + depth) × (r * 31 + c)` gives weight 0 to cell (0, 0). A dissolution localized to that single cell would be invisible to the cache key. Not a production bug today (real erosion distributes across many cells via `erodeCells`), but Phase 3+ may want a real hash if per-cell dissolution becomes localized. Cost: changing the formula to `(base + depth) × (r * 31 + c + 1)` would fix it for free (no cache miss on existing scenarios since the formula evaluates to a different number across the board anyway, but the signature is local to each session so absolute values don't matter).
+
+- **Renderer buffer copy: `mesh.positions.slice()` per cavity rebuild.** The renderer takes ownership of the buffer it passes to Three.js so subsequent `mesh.recompute()` doesn't mutate the geometry behind the GPU's back. At 16×120 the cost is ~75 KB per rebuild, fired once per dissolution event — within the budget. If Phase 2.5 lifts vertex counts an order of magnitude (e.g., 10× geodesic subdivision), evaluate buffer reuse via `geometry.attributes.position.needsUpdate = true` instead of geometry-swap.
+
+- **Phase 3 wants `WallMesh.cells[]` indexed by vertex.** The mesh already has the `vertices[]` array with `{phi, theta, ringIdx, cellIdx, orientation}` — Phase 3 just adds a parallel `cells[]` slot for per-vertex chemistry state. Painter migrates from `wall.rings[r][c]` to `mesh.cells[i]` where `i = mesh.vertices.findIndex(v => v.ringIdx == r && v.cellIdx == c)` (or a precomputed `vertexIdxFromRingCell(r,c)` helper). Most painters already go through `_resolveAnchor`, so a tiny shim over the mesh would update them all.
+
 ### (next agent) — append here
 
 ---
@@ -295,5 +311,13 @@ Decided: `wall_anchor` carries `phi` and `theta` directly. Vertex index is a der
 ### 2026-05-11 — Sonnet 4.5 — `wall_anchor` shape is `{ phi, theta, ringIdx, cellIdx }` (legacy caches included)
 
 Decided: the new field carries BOTH spherical coordinates AND the cached `(ringIdx, cellIdx)` pair, not just `(phi, theta)`. Reason: every consumer in Phase 1 ultimately wants a ring/cell pair (renderers, painter, per-ring fluid swap), and re-deriving via `floor(phi × ring_count / π)` at every read site costs the migration nothing visible but adds rounding-error risk at ring boundaries. Storing the cache means `_resolveAnchor()` returns the same integers the legacy fields did — bit-for-bit equality on the calibration baseline. Phase 2 replaces the body of `_resolveAnchor` (kd-tree over a mesh), but `_anchorFromRingCell` stays as the constructor used during the ring-grid years.
+
+### 2026-05-11 — Sonnet 4.5 — Phase 2 lifts the math verbatim; no formula edits during the move
+
+Decided: when moving vertex math from `_topoBuildCavityGeometry` into `WallMesh.recompute`, copy-paste the formulas exactly — do not "improve" them mid-lift. Reason: the proposal promises byte-identical default behavior, and the only way to honor that under code review is to make the diff trivially auditable. Anything that LOOKS like a refactor opportunity (e.g., the cheap-signature cell (0,0) weighting that the mesh tests surfaced) gets logged in §11 for a follow-up rather than mixed into the migration commit. Test suite proved this approach worked: 79/79 green including the seed-42 calibration sweep.
+
+### 2026-05-11 — Sonnet 4.5 — `WallMesh` is the cavity surface; per-cell state migration deferred to Phase 3
+
+Decided: Phase 2 puts vertex GEOMETRY (positions, colors, normals, triangulation) on the mesh, but leaves per-cell STATE (`wall_depth`, `crystal_id`, `mineral`, `thickness_um`) on the legacy `wall.rings[r][c]` cells. Reason: keeping these split lets Phase 2 be a pure rendering-side refactor with byte-identical output, while Phase 3 can independently migrate writes (which is the riskier change — the painter touches every dissolution event). The mesh has a placeholder `vertices[]` array carrying the per-vertex *metadata* (phi/theta/ringIdx/cellIdx/orientation); a parallel `cells[]` slot is the natural Phase-3 extension.
 
 ### (next agent) — append here
