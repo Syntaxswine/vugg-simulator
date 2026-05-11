@@ -27423,12 +27423,18 @@ function _raiseWaterLevel(delta) {
     c.fluid_surface_ring = Math.min(n, before + delta);
     return c.fluid_surface_ring - before;
 }
-// One run_step + log, used by 'wait' (×1) and 'wait_10' (×10).
+// One run_step + log, used by 'wait' (×1) and 'wait_10' (×10). Returns
+// the step's lines AND the index within those lines that should be
+// the cavity-sync point (the format_header line — the engine's
+// "═══ Step N ═══" marker). The caller threads that index into the
+// global lineToStep map so the tempo player advances the cavity in
+// lockstep with the header scrolling in.
 function _advanceOneStep(logEl) {
     const log = fortressSim.run_step();
     const lines = [];
     lines.push('');
     lines.push(`── ⏳ Step ${fortressSim.step}`);
+    const stepHeaderIdx = lines.length; // next push is the format_header
     lines.push(fortressSim.format_header());
     if (log.length) {
         for (const l of log)
@@ -27437,7 +27443,104 @@ function _advanceOneStep(logEl) {
     else {
         lines.push('  (no growth or events this step)');
     }
-    return lines;
+    return { lines, stepHeaderIdx, simStep: fortressSim.step };
+}
+// Narrative-tempo Phase 3: scroll a batch of action-result lines into
+// the fortress log at narrative tempo, syncing the cavity to each
+// step-header line as it scrolls in. Action buttons disabled during
+// playback; speed cluster surfaces so the user can crank to 4× for
+// a snappier feel.
+//
+// Differs from Simulation/Quick Play's displayLines:
+//   - APPENDS to the existing fortress-log (doesn't clear it). The
+//     log is a running session ledger, not a one-shot reveal.
+//   - No prologue/epilogue gates — the user already "clicked to
+//     begin" by pressing the action button.
+//   - onDone updates fortress-status + inventory; those panels need
+//     the final state, not snapshots, so they fire after the scroll
+//     completes.
+function _fortressPaceLines(lines, lineToStep, onDone) {
+    if (typeof running !== 'undefined' && running) {
+        onDone?.();
+        return;
+    }
+    const logEl = document.getElementById('fortress-log');
+    if (!logEl) {
+        onDone?.();
+        return;
+    }
+    running = true;
+    // Lock the action grid while results play out — the user has to
+    // wait (or hit 4× via the speed cluster) before issuing the next
+    // action. Prevents action-burst races where multiple playbacks
+    // would interleave each other's lines.
+    document.querySelectorAll('.action-grid .action-btn').forEach((btn) => btn.disabled = true);
+    // Always-on reverse-flow for the fortress log — newest entry at
+    // top, older entries push down. Matches the directive from
+    // 2026-05-11. Class only needs to be added once; subsequent
+    // playbacks are idempotent.
+    logEl.classList.add('narrative-flow-reverse');
+    // Build the snapshot-by-step index. fortressSim.wall_state_history
+    // accumulates over the whole session; snapForStep finds the right
+    // snapshot for any step within this action's playback range.
+    const snapByStep = new Map();
+    const stepOrder = [];
+    if (fortressSim && fortressSim.wall_state_history) {
+        for (const s of fortressSim.wall_state_history) {
+            if (s && s.step != null) {
+                snapByStep.set(s.step, s);
+                stepOrder.push(s.step);
+            }
+        }
+        stepOrder.sort((a, b) => a - b);
+    }
+    function snapForStep(target) {
+        if (snapByStep.has(target))
+            return snapByStep.get(target);
+        for (let k = stepOrder.length - 1; k >= 0; k--) {
+            if (stepOrder[k] <= target)
+                return snapByStep.get(stepOrder[k]);
+        }
+        return null;
+    }
+    if (typeof _showNarrativeSpeedCluster === 'function')
+        _showNarrativeSpeedCluster();
+    let i = 0;
+    function tick() {
+        if (i >= lines.length) {
+            running = false;
+            document.querySelectorAll('.action-grid .action-btn').forEach((btn) => btn.disabled = false);
+            if (typeof _topoReplayActiveSnap !== 'undefined')
+                _topoReplayActiveSnap = null;
+            if (typeof topoRender === 'function')
+                topoRender();
+            if (typeof _hideNarrativeSpeedCluster === 'function')
+                _hideNarrativeSpeedCluster();
+            if (onDone)
+                onDone();
+            return;
+        }
+        // Cavity sync on step-header lines.
+        if (lineToStep[i] != null) {
+            const snap = snapForStep(lineToStep[i]);
+            if (snap) {
+                if (typeof _topoReplayActiveSnap !== 'undefined')
+                    _topoReplayActiveSnap = snap;
+                if (typeof topoRender === 'function')
+                    topoRender(snap);
+            }
+        }
+        const line = lines[i];
+        fortressLogLines.push(line);
+        appendFortressLine(logEl, line);
+        // With reverse-flow, scrollTop=0 keeps the newest line in view at
+        // the top of the panel.
+        logEl.scrollTop = 0;
+        i++;
+        const speed = (typeof _topoPlaybackSpeed === 'number' && _topoPlaybackSpeed > 0) ? _topoPlaybackSpeed : 1;
+        setTimeout(tick, Math.max(4, Math.round(18 / speed)));
+    }
+    tick();
 }
 function fortressStep(action, payload) {
     if (!fortressSim || !fortressActive)
@@ -27649,25 +27752,46 @@ function fortressStep(action, payload) {
             break;
     }
     const logEl = document.getElementById('fortress-log');
-    const lines = [];
     if (advanceSteps > 0) {
+        // Narrative-tempo Phase 3: action results play out at narrative
+        // tempo (default ~18ms/line, scaled by the speed cluster). Run
+        // the sim steps synchronously up front to populate
+        // wall_state_history, then hand the collected lines to the
+        // tempo player which scrolls them in + syncs the cavity per
+        // step-header.
+        const lines = [];
+        const lineToStep = {};
         for (let i = 0; i < advanceSteps; i++) {
-            const stepLines = _advanceOneStep(logEl);
+            const { lines: stepLines, stepHeaderIdx, simStep } = _advanceOneStep(logEl);
+            // The header line's index within the FINAL `lines` array is
+            // its offset within stepLines plus the count of lines already
+            // pushed. Mark it so the tempo player advances the cavity to
+            // simStep when that line scrolls in.
+            lineToStep[lines.length + stepHeaderIdx] = simStep;
             for (const l of stepLines)
                 lines.push(l);
         }
-        updateFortressInventory();
+        _fortressPaceLines(lines, lineToStep, () => {
+            updateFortressInventory();
+            updateFortressStatus();
+            syncBrothSliders();
+            if (typeof _maybeAdvanceTutorial === 'function')
+                _maybeAdvanceTutorial();
+        });
+        return;
     }
-    else {
-        // Non-time actions: modify conditions but DON'T advance time.
-        // Log what changed so the player can stack multiple changes.
-        lines.push(`  ⚙️ ${actionDesc}`);
-    }
-    lines.forEach(line => {
-        fortressLogLines.push(line);
-        appendFortressLine(logEl, line);
-    });
-    logEl.scrollTop = logEl.scrollHeight;
+    // Non-time actions: modify conditions but DON'T advance time.
+    // Log what changed so the player can stack multiple changes. No
+    // tempo needed — the user already saw the result; just emit one
+    // line.
+    const inlineLine = `  ⚙️ ${actionDesc}`;
+    fortressLogLines.push(inlineLine);
+    appendFortressLine(logEl, inlineLine);
+    // Reverse-flow class: add once so non-time actions also push to
+    // the top of the visual stack, consistent with the time-action
+    // playback. Idempotent.
+    logEl.classList.add('narrative-flow-reverse');
+    logEl.scrollTop = 0;
     updateFortressStatus();
     syncBrothSliders();
     if (typeof topoRender === 'function')
