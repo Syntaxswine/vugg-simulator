@@ -8,14 +8,15 @@
 
 ## 1. Phase tracker
 
-| phase | name                                       | status      | shipped commits | notes |
-|-------|--------------------------------------------|-------------|-----------------|-------|
-| 0     | This proposal                              | landed      | `e3d2127`-era    | Plan + design vocabulary. |
-| 1     | Legends/Simulation mode: cavity tracks log | landed      | `fad78f2`        | `runSimulation` builds `lineToStep` map, `displayLines` calls `topoRender(snap)` on each step-header line. |
-| 1.5   | Click-to-continue at prologue + epilogue   | landed      | `19e5064`        | Pulsing pill at story boundaries. Click / Enter / Space all advance. Capture-phase keydown so it doesn't fight the replay shortcuts. |
-| 2     | Quick Play (random) mode                   | landed      | `a5a0e41`        | `displayLines` parameterised on outputEl + onDone; random mode now uses the same pattern. PREAMBLE→main→CRYSTALS/DISCOVERY/narrative scroll with both pills. |
-| 3     | Fortress (Creative): paced action results  | unstarted   | —               | `wait_10` and other multi-step actions tick out at narrative tempo instead of all-at-once. Larger UX change — needs the "queue next action while current one plays out" design call. |
-| 4     | Tempo module unification                   | unstarted   | —               | Replay timer (99g) and live-play timer (91 displayLines) share most of their logic. Phase 4 extracts a `_topoTempoTimer` module that drives both. Brings replay's scrub bar / speed control to initial play too. |
+| phase | name                                       | status      | shipped commits      | notes |
+|-------|--------------------------------------------|-------------|----------------------|-------|
+| 0     | This proposal                              | landed      | `e3d2127`-era         | Plan + design vocabulary. |
+| 1     | Legends/Simulation mode: cavity tracks log | landed      | `fad78f2`             | `runSimulation` builds `lineToStep` map, `displayLines` calls `topoRender(snap)` on each step-header line. |
+| 1.5   | Click-to-continue at prologue + epilogue   | landed      | `19e5064`             | Pulsing pill at story boundaries. Click / Enter / Space all advance. Capture-phase keydown so it doesn't fight the replay shortcuts. |
+| 2     | Quick Play (random) mode                   | landed      | `a5a0e41`             | `displayLines` parameterised on outputEl + onDone; random mode now uses the same pattern. PREAMBLE→main→CRYSTALS/DISCOVERY/narrative scroll with both pills. |
+| 2.5   | Reverse-flow layout + replay-speed couples | landed      | `414a3e8`             | `.narrative-flow-reverse` CSS (flex column-reverse). `_topoPlaybackSpeed` drives setTimeout delays. Floating speed cluster surfaces during play. Random's full-narrative wrapped in GEOLOGICAL HISTORY box so internal prose flows top-down. Boss directive 2026-05-11: "thats the key to getting the tempo to match." |
+| 3     | Fortress (Creative): paced action results  | landed      | `6398bdd`             | `_fortressPaceLines()` mirror of `displayLines` adapted for accumulating log + action-lock semantics. `wait`/`wait_10` actions now tick out at tempo; non-time actions stay synchronous. Action grid disabled during playback; speed cluster mounted. 4× = effectively the old "all at once" feel without losing the grammar. |
+| 4     | Tempo module unification                   | unstarted   | —                    | Replay timer (99g) and the three live-play tempo timers (Simulation in 91, Quick Play in 96, Fortress in 97 — all share the same setTimeout shape now) extract into a `_topoTempoTimer` module that drives all four. Brings replay's scrub bar to initial play too. Lots of duplication to dedupe; ripe for a careful refactor. |
 
 Each phase ships independently. Phase 1's value (a single mode reading honestly) doesn't depend on Phase 2-4 ever landing.
 
@@ -158,6 +159,14 @@ Fortress mode isn't in Legends/Simulation, so the fortress-status panel isn't vi
 ### 2026-05-11 — Sonnet 4.5 — Phase 2 wasn't a trivial port
 
 The proposal called Phase 2 a "trivial port once Phase 1 is shaped." That was wrong. Quick Play (random) mode previously did `out.textContent = bigString` — no scroll mechanic at all. The actual work in Phase 2 was (a) generalising `displayLines` to accept an output element + onDone callback, (b) restructuring `runRandomVugg` to mirror Simulation's per-step-log-capture pattern, and (c) deciding which beats become prologue/epilogue. The retrofit is ~150 lines, not "trivial." Future phase planners: don't trust adjacency. Read the call site first.
+
+### 2026-05-11 — Sonnet 4.5 — Reverse-flow via flex column-reverse, not insertBefore
+
+Considered prepending lines with `insertBefore(el, output.firstChild)` instead of CSS flex column-reverse. Picked CSS for two reasons: (a) the narrative-box's INTERNAL multi-paragraph prose still wants top-to-bottom reading order — with column-reverse on #output, the box itself is one flex child but its internal paragraphs flow normally; with insertBefore on every line, we'd have to special-case narrative-box internal prepends, awkwardly. (b) `copyFortressLog` (and the analog Simulation copy) read the DOM in chronological order. CSS reversal preserves that — DOM order is appendChild order, which is chronological. Visual reversal is purely paint-time.
+
+### 2026-05-11 — Sonnet 4.5 — Speed cluster lives at body-document level, not inside topo panel
+
+`.narrative-speed-cluster` mounts at `document.body` and uses `position: fixed; top: 1rem; right: 1rem`. Considered placing it inside the topo panel or as part of the replay bar, but the cluster needs to be visible across all three modes (Simulation, Quick Play, Fortress) and the topo panel isn't always visible in every mode (e.g. when only an inline output is showing during the transition). Body-fixed top-right is unobtrusive and always reachable. The replay bar's own speed cluster stays scoped to the bar; the floating cluster mirrors its state via `topoReplaySpeed(s)` calls.
 
 ### 2026-05-11 — Sonnet 4.5 — `running` is the shared cross-mode lock
 
