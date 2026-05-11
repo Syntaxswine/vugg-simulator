@@ -334,6 +334,10 @@ let randomSimArchetype = null;
 let randomSimSeed = null;
 
 function runRandomVugg() {
+  // Narrative-tempo Phase 2: bail if a narrative is currently playing
+  // so the Generate button is a no-op during an in-flight reveal. The
+  // `running` flag lives in 91-ui-legends.ts and is the shared lock.
+  if (typeof running !== 'undefined' && running) return;
   const out = document.getElementById('random-output');
   if (!out) return;
   const seedRaw = document.getElementById('random-seed').value.trim();
@@ -346,36 +350,92 @@ function runRandomVugg() {
   // Capture the pre-growth preamble BEFORE the simulation mutates the fluid.
   const preamble = narratePreamble(scen.conditions, scen.archetype);
 
+  // Narrative-tempo Phase 2: build the line array + step-sync map the
+  // same way runSimulation does, so displayLines can paint the cavity
+  // alongside each step header. Random previously ran the sim silently
+  // (loop discards run_step's return value) — we now capture each
+  // step's log lines and weave them into the scroll. Mirrors Phase 1
+  // pattern in js/91-ui-legends.ts.
+  const allLines: string[] = [];
+  const lineToStep: Record<number, number> = {};
+  let prologueEndIdx = -1;
+  let epilogueStartIdx = -1;
+  const rule = '─'.repeat(70);
+
+  // PROLOGUE — header + preamble. The pill appears at the end of this
+  // block (technically at the first step-header line, marked below).
+  allLines.push(`═══ 🎲 Random Vugg — archetype: ${scen.archetype} — seed: ${seed} ═══`);
+  allLines.push(`ran ${scen.defaultSteps} steps · events: ${scen.events.length}`);
+  allLines.push('');
+  allLines.push(rule);
+  allLines.push('┈┈┈┈┈ PREAMBLE ┈┈┈┈┈');
+  allLines.push('');
+  for (const line of preamble.split('\n')) allLines.push(line);
+  allLines.push('');
+  allLines.push(rule);
+
+  // MAIN — per-step capture, same heuristic as Simulation's
+  // `show = (s % 5 === 0) || EVENT/NUCLEATION/wall lines`. Skipping
+  // quiet steps keeps the scroll watchable without sacrificing the
+  // signal lines.
   const sim = new VugSimulator(scen.conditions, scen.events);
-  for (let i = 0; i < scen.defaultSteps; i++) sim.run_step();
+  for (let s = 0; s < scen.defaultSteps; s++) {
+    const log = sim.run_step();
+    const show = (s % 5 === 0) || log.some(l => l.includes('EVENT') || l.includes('NUCLEATION') || l.includes('🧱'));
+    if (show && log.length) {
+      if (prologueEndIdx === -1) prologueEndIdx = allLines.length;
+      lineToStep[allLines.length] = s + 1;
+      allLines.push(sim.format_header());
+      for (const line of log) allLines.push(line);
+    }
+  }
   randomSim = sim;
   randomSimArchetype = scen.archetype;
   randomSimSeed = seed;
 
+  // EPILOGUE — crystal inventory, discovery prose, full narrative.
+  // The pill appears at epilogueStartIdx (= start of this block).
+  epilogueStartIdx = allLines.length;
+
   const discovery = narrateDiscovery(sim, scen.archetype);
   const full = sim.narrate ? sim.narrate() : '';
-
   const crystalList = sim.crystals
     .filter(c => c.total_growth_um > 0)
     .sort((a, b) => b.c_length_mm - a.c_length_mm)
     .map(c => `  • ${c.mineral} #${c.crystal_id} — ${c.c_length_mm.toFixed(2)} mm, ${c.habit}${c.twinned ? ', twinned (' + c.twin_law + ')' : ''}`)
     .join('\n');
 
-  const header = `═══ 🎲 Random Vugg — archetype: ${scen.archetype} — seed: ${seed} ═══\n` +
-                 `ran ${scen.defaultSteps} steps · events: ${scen.events.length}\n`;
-  const rule   = '─'.repeat(70);
-  const preambleBlock = `\n┈┈┈┈┈ PREAMBLE ┈┈┈┈┈\n\n${preamble}\n\n${rule}\n`;
-  const inventory = crystalList ? `\nCRYSTALS\n${crystalList}\n\n${rule}\n` : `\nCRYSTALS\n  (nothing nucleated)\n\n${rule}\n`;
-  const discoveryBlock = `\n${discovery}\n\n${rule}\n`;
-  const fullBlock = full ? `\n${full}\n` : '';
+  allLines.push(rule);
+  allLines.push('💎 CRYSTALS');
+  allLines.push('');
+  if (crystalList) {
+    for (const line of crystalList.split('\n')) allLines.push(line);
+  } else {
+    allLines.push('  (nothing nucleated)');
+  }
+  allLines.push('');
+  allLines.push(rule);
+  allLines.push('🔍 DISCOVERY');
+  allLines.push('');
+  for (const line of discovery.split('\n')) allLines.push(line);
+  allLines.push('');
+  allLines.push(rule);
+  if (full) {
+    allLines.push('');
+    for (const line of full.split('\n')) allLines.push(line);
+  }
 
-  out.textContent = header + preambleBlock + inventory + discoveryBlock + fullBlock;
-  out.scrollTop = 0;
+  // Defensive: if no step ever fired the prologueEnd marker (e.g.
+  // zero-step or all-quiet run), gate the epilogue only. The pill
+  // would otherwise never appear.
+  if (prologueEndIdx === -1) prologueEndIdx = epilogueStartIdx;
 
-  // Build interactive inventory below the text output (per-crystal Collect).
-  renderRandomInventory();
-
-  // Final wall state for the topo map.
-  if (typeof topoRender === 'function') topoRender();
+  // Hand off to the shared tempo renderer. onDone re-renders the
+  // per-crystal Collect inventory under the text once scrolling
+  // completes — appearing at the right moment, alongside the user's
+  // first look at the final cavity.
+  displayLines(allLines, lineToStep, sim, prologueEndIdx, epilogueStartIdx, out, () => {
+    renderRandomInventory();
+  });
 }
 

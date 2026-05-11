@@ -167,11 +167,23 @@ function _insertContinuePrompt(output: any, position: 'prologue' | 'epilogue', o
   document.addEventListener('keydown', onKey, true);
 }
 
-function displayLines(lines, lineToStep?: Record<number, number>, sim?: any, prologueEndIdx: number = -1, epilogueStartIdx: number = -1) {
+// outputEl + onDone parameterise the tempo-aware narrative renderer so
+// other modes (Quick Play / Phase 2; eventually Fortress / Phase 3)
+// can drive the same scrolling rhythm into their own output panels.
+// Defaults preserve the original Simulation-mode behaviour exactly.
+function displayLines(
+  lines,
+  lineToStep?: Record<number, number>,
+  sim?: any,
+  prologueEndIdx: number = -1,
+  epilogueStartIdx: number = -1,
+  outputEl?: HTMLElement | null,
+  onDone?: () => void,
+) {
   running = true;
   document.getElementById('btn-grow').disabled = true;
   document.getElementById('btn-random').disabled = true;
-  const output = document.getElementById('output');
+  const output = outputEl || document.getElementById('output');
   output.innerHTML = '';
 
   // Narrative-tempo Phase 1: walk the sim's wall_state_history once
@@ -226,6 +238,7 @@ function displayLines(lines, lineToStep?: Record<number, number>, sim?: any, pro
       // the actual final state, ready for replay or further actions.
       if (typeof _topoReplayActiveSnap !== 'undefined') _topoReplayActiveSnap = null;
       if (typeof topoRender === 'function') topoRender();
+      if (typeof onDone === 'function') onDone();
       return;
     }
 
