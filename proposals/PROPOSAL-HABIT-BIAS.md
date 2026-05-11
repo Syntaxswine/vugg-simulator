@@ -1,6 +1,6 @@
 # PROPOSAL: Habit-Bias — gravity-aware crystal orientation (stalactites, stalagmites)
 
-> **Status:** Active. Slices 1, 2, 4, 5 landed 2026-05-11. Only Slice 3 remaining.
+> **Status:** Closed (all 5 slices landed 2026-05-11). Living doc — append observations / decisions for follow-up work that builds on this foundation.
 > **Origin:** 3D-Vugg Vision plan Phase D (`~/.claude/plans/i-have-a-much-soft-stonebraker.md`) + PROPOSAL-3D-SIMULATION Phase 3 (stalactite paragenesis, never shipped). Cavity-mesh Phases 1–3 (commit `1f9bf99`, 2026-05-11) cleared the runway by abstracting crystal anchors and adding `wall.zoneOf(crystal)` for per-orientation chemistry.
 > **Living doc:** Future agents — append observations to §11, decisions to §12. Update the slice tracker in §1 when you ship. Don't delete prior content.
 
@@ -13,11 +13,13 @@
 | 0     | This proposal | landed | (this commit) | The plan itself. |
 | 1     | Three.js c-axis bias for air crystals | landed 2026-05-11 | 27b44af | `_topoCAxisForCrystal(crystal, nx, ny, nz)` pure helper; ceiling cells → world-down, floor cells → world-up, walls fall back to substrate-normal. 93/93 tests pass; calibration byte-identical. |
 | 2     | Scenario opt-in `wall.air_mode_default` | landed 2026-05-11 | (this branch HEAD; previous = 27b44af) | `wall.air_mode_default: true` forces `growth_environment = 'air'` at every nucleation, regardless of water-state. Precedence: flag wins over water-state. Default false. |
-| 3     | Cluster-satellite air-mode propagation | unstarted | — | Children of an air-mode parent inherit gravity bias. Visible payoff: druzy stalactite clusters with each child also hanging. |
+| 3     | Cluster-satellite air-mode propagation | landed 2026-05-11 | (this branch HEAD; previous = 4ba023b) | `_emitClusterSatellites`'s Rodrigues rotation now consults `_topoCAxisForCrystal` using each satellite's OWN re-projected substrate normal. Air-mode parents produce gravity-aligned clusters; cluster children spilling onto wall-band cells stay radial (the |ny| < 0.4 threshold applies per-satellite, not just per-parent). |
 | 4     | Air-mode mass-distribution bias (PRIM_DRIPSTONE port) | landed 2026-05-11 | (this branch HEAD; previous = 97dddf9) | `_makeDripstoneIcicle` Three.js builder (4 rings × 6 longitudes + apex = 25 verts, 46 tris). `_resolveCrystalGeomToken(crystal, habit)` dispatches air-mode crystals on prism/spike/rhomb/scalene/botryoidal canonicals to the dripstone primitive (mirrors `_isDripstoneEligibleCanonical` in 99d). Tablets + isometrics keep their canonical shape even in air mode. 106/106 tests green. |
 | 5     | Stalactite demo scenario | landed 2026-05-11 (same commit as Slice 2) | (this branch HEAD; previous = 27b44af) | `stalactite_demo` scenario in `data/scenarios.json5`. Cave-style limestone cavity, `air_mode_default: true`, calcite-saturated chemistry. Currently produces 4 crystals over 100 steps at seed 42 (`calcite`, `aragonite`, `fluorite`, `quartz`); every one carries `growth_environment === 'air'` and renders gravity-biased per Slice 1. Zone chemistry intentionally NOT used — see notes in scenario for the nucleation-engine plumbing constraint. |
 
 Each slice ships independently. Slice 1 alone is invisible without a scenario that nucleates air crystals — but the foundation is in place for Slice 5 to deliver the visible payoff.
+
+**Campaign closed 2026-05-11.** All five slices shipped in a single evening (commits `27b44af`, `97dddf9`, `4ba023b`, [this commit]). The stalactite_demo scenario now produces a cave-style cavity where ceiling crystals hang as tapered stalactite icicles, floor crystals stand as stalagmites, and wall crystals project radially — the original promise of §2 fulfilled end-to-end. Follow-up work that builds on this foundation belongs in new proposals (e.g., soda-straw morphology, helictites, curved drip from airflow — each its own paragenetic story).
 
 ---
 
@@ -189,6 +191,20 @@ Slice 4 landed within an hour of Slices 2+5. The dripstone primitive is what tur
 
 - **Botryoidal-on-air-ceiling becomes dripstone, NOT a hanging botryoidal cluster.** The wireframe makes the same choice via `_isDripstoneEligibleCanonical`. Geologically defensible: chalcedony / smithsonite botryoidal that forms in air ON THE CEILING tends to drip/stalk rather than mound — the same precipitation process that builds a "soda straw" stalactite. If a future scenario wants hanging mammillary botryoidal masses without dripstone morphology, add a flag (`crystal.no_dripstone_override` or similar) and gate the resolver.
 
+### 2026-05-11 — Sonnet 4.5 (Slice 3 implementer) — Slice 3 closes the campaign
+
+Slice 3 was the smallest and cleanest of the five slices: 15 lines of code change inside `_emitClusterSatellites` to consult `_topoCAxisForCrystal` for each satellite's c-axis instead of using the raw substrate normal. Notes:
+
+- **Per-satellite resolution, not parent inheritance.** I considered: should the satellite inherit the parent's c-axis (cluster faces gravity uniformly), or should each satellite resolve its own (cluster faces gravity per-position)? Chose per-position. Reason: a cluster spread across a ceiling-band parent may have some children landing on the ceiling apex (`ny < -0.4`, gravity-down c-axis) and others spilling onto the upper-wall band (`|ny| < 0.4`, stay radial). The 0.4 threshold should apply per-satellite, not propagate the parent's verdict. Visual result: a stalactite cluster has a hanging center crystal with satellites that fan slightly outward as they near the wall transition — geologically authentic.
+
+- **The Rodrigues tilt applies to the gravity-resolved c-axis, not the substrate normal.** Before Slice 3, the per-habit tilt rotated the substrate normal (= the c-axis in fluid mode). After Slice 3, it rotates the gravity-resolved c-axis. For fluid-mode crystals this is identity-collapsed (helper returns substrate normal); for air-mode the tilt becomes "small perturbation off gravity-down/up." Visually, a stalactite cluster has each child hanging slightly tilted off vertical — same way fluid clusters tilt off the substrate normal. Good behavior.
+
+- **Position offset is also air-mode-aware (free).** `satMesh.position = satA + sN * sOffset`. With `sN` now gravity-resolved, the satellite center sits BELOW its anchor for ceiling satellites, matching how the parent stalactite hangs below its anchor. No separate code change needed — the position math automatically follows the c-axis.
+
+- **No new Three.js unit test for the cluster propagation specifically.** The Three.js renderer's mocking surface is too thin for a meaningful satellite test; instead I added one documentary test that pins what we CAN test — the shared `_topoCAxisForCrystal` contract that both parent and satellite consume. Any agent re-tightening the helper will see (in the test) that two callers depend on it.
+
+- **What this completes:** all five slices of the habit-bias proposal. From Slice 1 (parent c-axis bias) → Slice 2 (`air_mode_default` opt-in flag) → Slice 5 (`stalactite_demo` scenario) → Slice 4 (PRIM_DRIPSTONE Three.js port) → Slice 3 (cluster propagation), the stalactite payoff is fully end-to-end. The cave-style cavity in stalactite_demo renders with hanging stalactites that have hanging druzy children, standing stalagmites that have standing druzy children, and wall crystals that project radially with their satellites also radial.
+
 ### (next agent) — append here
 
 ---
@@ -226,5 +242,9 @@ Decided: rather than teaching `_habitGeomToken(habit)` about air-mode (it'd need
 ### 2026-05-11 — Sonnet 4.5 — Tabular + isometric habits stay canonical even in air-mode
 
 Decided: dripstone-eligible canonicals are { prism, spike, rhomb, scalene, botryoidal }. Tabular (tablets, blades, foliated) + isometric (cubes, octahedra, rhombic dodecahedra, dodecahedra, snowball) do NOT morph to dripstone, even when air-mode would otherwise apply. Reason: a fluorite cube growing on a ceiling does NOT taper into a stalactite — it stays a cube oriented downward via Slice-1's c-axis flip. Geologically: dripstone morphology requires axial growth, and isometric habits don't have a growth axis. Tabular habits in air-mode have no clean geological analog, so they fall through to canonical (same call as the wireframe makes via `_isDripstoneEligibleCanonical`).
+
+### 2026-05-11 — Sonnet 4.5 — Slice 3 resolves c-axis PER-SATELLITE, not by parent inheritance
+
+Decided: cluster satellites of an air-mode parent each call `_topoCAxisForCrystal` with their OWN re-projected substrate normal, not with the parent's substrate normal or parent's resolved c-axis. Reason: a cluster spread across a ceiling-band parent may have satellites spilling onto upper-wall cells where the |ny| ≤ 0.4 threshold says "stay radial." Per-satellite resolution honors that transition; per-parent inheritance would force every cluster child to gravity-down regardless of where it landed. Visual result: a stalactite cluster has a hanging center crystal with satellites that fan slightly outward as they approach the wall transition — geologically authentic. The wireframe renderer makes the same choice (each satellite's c-axis is computed from its own re-projected substrate normal in 99d), so the renderers agree.
 
 ### (next agent) — append here

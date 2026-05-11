@@ -1219,12 +1219,29 @@ function _emitClusterSatellites(
     const tay = Math.cos(tiltAxisAngle) * t1y + Math.sin(tiltAxisAngle) * t2y;
     const taz = Math.cos(tiltAxisAngle) * t1z + Math.sin(tiltAxisAngle) * t2z;
     const cosT = Math.cos(tiltAngle), sinT = Math.sin(tiltAngle);
-    const kDotN = tax * satNx + tay * satNy + taz * satNz;
-    // Rodrigues' rotation formula — rotate the satellite's local normal
-    // around the tilt axis.
-    let sNx = satNx * cosT + (tay * satNz - taz * satNy) * sinT + tax * kDotN * (1 - cosT);
-    let sNy = satNy * cosT + (taz * satNx - tax * satNz) * sinT + tay * kDotN * (1 - cosT);
-    let sNz = satNz * cosT + (tax * satNy - tay * satNx) * sinT + taz * kDotN * (1 - cosT);
+    // PROPOSAL-HABIT-BIAS Slice 3: gravity-bias propagates to cluster
+    // satellites. Resolve each satellite's intended c-axis through
+    // _topoCAxisForCrystal using its OWN re-projected substrate
+    // normal — for an air-mode parent, ceiling-band satellites get
+    // (0, -1, 0) and floor-band satellites get (0, 1, 0); wall-band
+    // and fluid-mode satellites keep their substrate normal. Per-
+    // satellite resolution (not parent inheritance) is what handles
+    // the "spread across a curved ceiling" case correctly: a cluster
+    // with a parent at the apex may have satellites spilling onto
+    // upper-wall cells where ny ∈ (-0.4, 0), and those should stay
+    // radial rather than snapping to gravity-down.
+    const [baseNx, baseNy, baseNz] = _topoCAxisForCrystal(crystal, satNx, satNy, satNz);
+    const kDotN = tax * baseNx + tay * baseNy + taz * baseNz;
+    // Rodrigues' rotation formula — rotate the satellite's gravity-
+    // resolved c-axis around the tilt axis. For air-mode crystals
+    // this means a stalactite cluster has each child hanging slightly
+    // tilted off vertical (the same way fluid-mode children tilt off
+    // the substrate normal); for fluid-mode crystals this collapses
+    // to the legacy behavior since _topoCAxisForCrystal is the
+    // identity on (satNx, satNy, satNz).
+    let sNx = baseNx * cosT + (tay * baseNz - taz * baseNy) * sinT + tax * kDotN * (1 - cosT);
+    let sNy = baseNy * cosT + (taz * baseNx - tax * baseNz) * sinT + tay * kDotN * (1 - cosT);
+    let sNz = baseNz * cosT + (tax * baseNy - tay * baseNx) * sinT + taz * kDotN * (1 - cosT);
     const nLen = Math.sqrt(sNx * sNx + sNy * sNy + sNz * sNz) || 1;
     sNx /= nLen; sNy /= nLen; sNz /= nLen;
     const sOffset = sCLen * 0.5;

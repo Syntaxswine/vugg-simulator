@@ -291,6 +291,28 @@ describe('habit-bias Slice 4 — _resolveCrystalGeomToken air-mode override', ()
     expect(_resolveCrystalGeomToken({}, 'acicular')).toBe('spike');
   });
 
+  it('cluster satellites of air-mode parents share the parent\'s gravity-bias helper', () => {
+    // PROPOSAL-HABIT-BIAS Slice 3 — _emitClusterSatellites's
+    // Rodrigues rotation now consults _topoCAxisForCrystal using the
+    // SATELLITE's own re-projected substrate normal (not the parent's).
+    // The satellite-position math itself is locked inside the
+    // Three.js renderer so unit-testing the cluster code requires
+    // mocking Three; instead, this test pins the SHARED CONTRACT.
+    // The helper is the source of truth for both parent and satellite
+    // c-axes; if a future agent re-tightens it, this test docs that
+    // both code paths take the hit.
+    const airParent = { growth_environment: 'air' };
+    // Satellite that landed near the apex (substrate normal points
+    // straight down): gravity-biased to world-down.
+    expect(_topoCAxisForCrystal(airParent, 0.2, -0.8, 0.1)).toEqual([0, -1, 0]);
+    // Satellite that spilled off the apex onto the upper-wall band
+    // (substrate normal angles outward, |ny| < 0.4): stays radial,
+    // so the cluster doesn't snap rigidly to gravity.
+    expect(_topoCAxisForCrystal(airParent, 0.85, -0.35, 0.4)).toEqual([0.85, -0.35, 0.4]);
+    // Floor-zone satellite (stalagmite cluster) — c-axis world-up.
+    expect(_topoCAxisForCrystal(airParent, 0.1, 0.9, 0)).toEqual([0, 1, 0]);
+  });
+
   it('stalactite_demo crystals route eligible habits through dripstone', () => {
     // End-to-end: every air-mode crystal in stalactite_demo whose
     // canonical habit is dripstone-eligible MUST resolve to the
