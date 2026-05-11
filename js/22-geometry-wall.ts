@@ -76,6 +76,19 @@ class VugWall {
     // values < 0.05 (e.g. 0.01 for a "weeping" cavity that diffuses
     // over ~100 steps instead of ~20).
     this.inter_ring_diffusion_rate = opts.inter_ring_diffusion_rate ?? null;
+    // PROPOSAL-HABIT-BIAS Slice 2: when true, every crystal nucleates
+    // in air-mode regardless of ring water-state. Default false
+    // preserves legacy "stamp from water-state at nucleation" behavior
+    // (vadose ring → 'air', otherwise 'fluid').
+    //
+    // Use case: cave-style scenarios that should be air-mode from
+    // step 0 without faking a drainage event. A Carlsbad-style
+    // limestone cave shipped with this flag produces stalactites
+    // (ceiling cells) + stalagmites (floor cells) + wall-radial
+    // crystals out of the gate. Naica-style scenarios that drain
+    // mid-run keep the flag false and rely on the water-state
+    // mechanism.
+    this.air_mode_default = !!opts.air_mode_default;
   }
 
   dissolve(acid_strength, fluid) {

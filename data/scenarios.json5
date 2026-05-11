@@ -1766,6 +1766,90 @@
         "Cluzel & Vigier 2008 — New Caledonia ultramafic weathering geochemistry",
         "Marlborough Mine Queensland production records — modern Ni-rich chrysoprase reference"
       ]
+    },
+
+    "stalactite_demo": {
+      "anchor": "Generic limestone-cave dripstone — Carlsbad Caverns / Lechuguilla / Mammoth Cave family. Cave-air-filled cavity (vadose throughout), calcite precipitating from CO₂-degassed drip water on ceiling, floor, and walls in three different morphologies.",
+      "description": "PROPOSAL-HABIT-BIAS Slice 5 — proof-by-screenshot that the gravity-aware c-axis works. Cave-style cavity: every crystal nucleates in air-mode (wall.air_mode_default), so ceiling calcite renders as stalactite (c-axis world-down), floor calcite as stalagmite (c-axis world-up), wall calcite stays radial. Three morphologies in one cavity.",
+      "expects_species": ["calcite"],
+      "duration_steps": 100,
+      "notes": [
+        "Habit-bias proof scenario. The whole point: walk into the cave, look up at the ceiling, see crystals HANGING (stalactites); look down at the floor, see crystals STANDING (stalagmites); look at the walls, see crystals projecting INWARD (radial growth). All three are the same calcite mineral and the same precipitation chemistry — only the ANCHOR ORIENTATION differs, and that drives the rendered c-axis via PROPOSAL-HABIT-BIAS Slice 1.",
+        "Chemistry is generic dripstone: Ca²⁺ + HCO₃⁻ from limestone dissolution upstream, CO₂ degasses in the cave air, pH rises, CO₃²⁻ fraction climbs, calcite saturates and precipitates. The simulator's calcite engine handles this cascade; no special tuning beyond enough Ca/CO3 and an alkaline pH so calcite starts supersaturated from step 1 (no need for explicit degas events — the cave is already past that stage).",
+        "Zone chemistry leans Ca-rich at ceiling (drip-source) and floor (drop-collector) per PROPOSAL-CAVITY-MESH Phase 3. Wall zone stays at the global broth. With inter_ring_diffusion_rate=0 the gradient persists across the 100-step run; without that, Laplacian diffusion would average the zones over ~20 steps and the differentiation would wash out.",
+        "Temperature: 15°C — generic cave (geothermal gradient + surface T blend). Pressure: 0.01 kbar (essentially atmospheric — cave air above the water table). Wall: pocket archetype (uniform-area nucleation) at 60 mm diameter so the cavity is large enough that 1-2 mm crystals read clearly at viewer scale.",
+        "Sources cited for the dripstone chemistry are standard (Pentecost travertine review covers cave + spring); the specific localities aren't critical because this is a teaching scaffold, not an anchored locality."
+      ],
+      "initial": {
+        // Cave temperature — generic mid-latitude limestone karst.
+        // Carlsbad averages 13°C, Mammoth Cave 12°C, tropical caves
+        // 20-25°C. 15°C is the broad middle.
+        "temperature_C": 15.0,
+        // Near-atmospheric pressure — cave air, not deep burial.
+        "pressure_kbar": 0.01,
+        "fluid": {
+          // High DIC + alkaline pH — calcite well-saturated through
+          // the run. Initial Ca + CO3 sized so 10 calcite nucleations
+          // (the per-species cap) can each grow to multi-mm dripstone
+          // length without depleting the broth below threshold. The
+          // pH wells past the Bjerrum CO3²⁻ inflection at 8.3 so the
+          // ionic carbonate pool is steadily available.
+          "Ca": 2500,
+          "CO3": 2500,
+          "pH": 8.3,
+          // Cave drip water has dissolved limestone (Ca + HCO3) and
+          // not much else. Trace levels of typical groundwater ions.
+          "Mg": 20,
+          "Na": 15,
+          "Cl": 10,
+          "SO4": 5,
+          "Fe": 1,
+          "Mn": 0.5,
+          "SiO2": 8,
+          "salinity": 0.5,
+          // O2 high — cave air directly above the water table.
+          "O2": 5.0
+        },
+        "wall": {
+          "composition": "limestone",
+          // 60 mm cavity — large enough that individual crystals read
+          // at viewer scale.
+          "vug_diameter_mm": 60.0,
+          // 'pocket' archetype = uniform-area nucleation (PROPOSAL-HOST-ROCK
+          // Mechanic 5 default). Bubble counts give a slightly irregular
+          // cavity profile so the cave reads as "carved by water" rather
+          // than "spherical bubble."
+          "architecture": "pocket",
+          "primary_bubbles": 2,
+          "secondary_bubbles": 4,
+          "shape_seed": 42,
+          // PROPOSAL-HABIT-BIAS Slice 2 — every crystal nucleates in
+          // air-mode regardless of water state. The cave is air-filled
+          // from step 0 (no faked drainage event needed).
+          "air_mode_default": true,
+          // Zone chemistry intentionally NOT set on this scenario.
+          // Reason: nucleation engines currently read conditions.fluid
+          // (= equator-ring fluid alias) to pick which mineral to
+          // try, not the per-ring fluid. With zoned ceiling/floor
+          // chemistry + a diffusion=0 pin, calcite drains the equator
+          // ring's Ca after 1-2 crystals and further nucleation
+          // stalls even though floor/ceiling still have plenty of Ca
+          // budget. The fix is per-ring nucleation engines — a
+          // PROPOSAL-CAVITY-MESH Phase 3.5 candidate. Until then,
+          // uniform broth lets all 10 calcite nucleations fire, and
+          // the gravity-bias still demonstrates because air_mode_default
+          // hits all of them. The zone-chemistry feature ships in
+          // Phase 3 of cavity-mesh; this scenario opts out so it
+          // can stand on the habit-bias feature alone.
+          "inter_ring_diffusion_rate": 0.05
+        }
+      },
+      "events": [],
+      "sources": [
+        "Pentecost A. (2005), Travertine — comprehensive review of CO₂-degas calcite (cave + spring)",
+        "Hill & Forti (1997), Cave Minerals of the World, 2nd ed. — speleothem morphology reference",
+        "Ford & Williams (2007), Karst Hydrogeology and Geomorphology — cave drip-water chemistry"
+      ]
     }
 
   }

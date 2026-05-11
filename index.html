@@ -7140,6 +7140,19 @@ class VugWall {
         // values < 0.05 (e.g. 0.01 for a "weeping" cavity that diffuses
         // over ~100 steps instead of ~20).
         this.inter_ring_diffusion_rate = opts.inter_ring_diffusion_rate ?? null;
+        // PROPOSAL-HABIT-BIAS Slice 2: when true, every crystal nucleates
+        // in air-mode regardless of ring water-state. Default false
+        // preserves legacy "stamp from water-state at nucleation" behavior
+        // (vadose ring → 'air', otherwise 'fluid').
+        //
+        // Use case: cave-style scenarios that should be air-mode from
+        // step 0 without faking a drainage event. A Carlsbad-style
+        // limestone cave shipped with this flag produces stalactites
+        // (ceiling cells) + stalagmites (floor cells) + wall-radial
+        // crystals out of the gate. Naica-style scenarios that drain
+        // mid-run keep the flag false and rely on the water-state
+        // mechanism.
+        this.air_mode_default = !!opts.air_mode_default;
     }
     dissolve(acid_strength, fluid) {
         // Gate by composition first — silicate walls are inert regardless
@@ -20832,9 +20845,20 @@ Object.assign(VugSimulator.prototype, {
         // v24 water-level: stamp growth_environment from the ring's
         // water state. Submerged or meniscus = wet = 'fluid'; vadose
         // (above the meniscus) = 'air'. Mirrors vugg.py.
+        //
+        // PROPOSAL-HABIT-BIAS Slice 2: scenarios with wall.air_mode_default
+        // (cave-style cavities — air-filled from step 0) override to 'air'
+        // unconditionally. The flag wins over water-state because a cave
+        // that's also flagged as having fluid is a contradiction; treat
+        // the flag as the modeler's intent.
         {
             const wstate = this.conditions.ringWaterState(crystal.wall_ring_index, this.wall_state.ring_count);
-            crystal.growth_environment = (wstate === 'vadose') ? 'air' : 'fluid';
+            if (this.conditions.wall?.air_mode_default) {
+                crystal.growth_environment = 'air';
+            }
+            else {
+                crystal.growth_environment = (wstate === 'vadose') ? 'air' : 'fluid';
+            }
         }
         // Dominant-form strings describe crystallographic faces and aren't
         // governed by the habit variant; keep per-mineral defaults.

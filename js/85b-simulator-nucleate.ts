@@ -59,10 +59,20 @@ Object.assign(VugSimulator.prototype, {
   // v24 water-level: stamp growth_environment from the ring's
   // water state. Submerged or meniscus = wet = 'fluid'; vadose
   // (above the meniscus) = 'air'. Mirrors vugg.py.
+  //
+  // PROPOSAL-HABIT-BIAS Slice 2: scenarios with wall.air_mode_default
+  // (cave-style cavities — air-filled from step 0) override to 'air'
+  // unconditionally. The flag wins over water-state because a cave
+  // that's also flagged as having fluid is a contradiction; treat
+  // the flag as the modeler's intent.
   {
     const wstate = this.conditions.ringWaterState(
       crystal.wall_ring_index, this.wall_state.ring_count);
-    crystal.growth_environment = (wstate === 'vadose') ? 'air' : 'fluid';
+    if (this.conditions.wall?.air_mode_default) {
+      crystal.growth_environment = 'air';
+    } else {
+      crystal.growth_environment = (wstate === 'vadose') ? 'air' : 'fluid';
+    }
   }
 
   // Dominant-form strings describe crystallographic faces and aren't
