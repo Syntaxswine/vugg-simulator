@@ -1197,11 +1197,51 @@ function _topoHistoricalCrystalSize(crystal: any, replayStep: number): { c_lengt
   return { c_length_mm: c, a_width_mm: a };
 }
 
+// PHASE-D-HABIT-BIAS — 3D-VISION plan Phase D / PROPOSAL-3D-SIMULATION
+// Phase 3 (stalactite paragenesis). Pure function: given a crystal
+// and its substrate normal (nx, ny, nz), return the c-axis direction
+// the mesh should align to.
+//
+// For `growth_environment === 'fluid'` (the legacy default), c-axis
+// = substrate normal (radial inward from the cavity wall — this is
+// what the renderer did before Phase D).
+//
+// For `growth_environment === 'air'` (vadose / drained-cavity), c-axis
+// becomes gravity-aligned:
+//   * ceiling cells (substrate normal ny < -0.4): c-axis world-down
+//     → stalactite hangs from the apex regardless of wall slope.
+//   * floor cells   (substrate normal ny > +0.4): c-axis world-up
+//     → stalagmite stands vertical regardless of wall slope.
+//   * wall cells (|ny| ≤ 0.4): keep substrate normal — wall crystals
+//     in air-mode have no clean geological analog (no real cave
+//     dripstone forms on a horizontal wall), fall back to
+//     perpendicular. Matches the wireframe renderer's 99d logic.
+//
+// Three.js coord system: south pole at -y (floor), north at +y
+// (ceiling). World-down = -y for stalactites, world-up = +y for
+// stalagmites. (The wireframe renderer 99d uses +z for gravity-down
+// because its canvas coords differ from Three.js's.)
+//
+// Returns a length-3 tuple [cx, cy, cz] — the helper is shared with
+// tests so they can assert the math without spinning up Three.js.
+function _topoCAxisForCrystal(
+  crystal: any, nx: number, ny: number, nz: number,
+): [number, number, number] {
+  if (crystal && crystal.growth_environment === 'air') {
+    if (ny < -0.4) return [0, -1, 0];   // ceiling → stalactite
+    if (ny > 0.4)  return [0, 1, 0];    // floor → stalagmite
+  }
+  return [nx, ny, nz];
+}
+
 // Compose a deterministic signature of the crystals that affects
 // their meshes — id, mineral, habit, c_length_mm, ring/cell anchor.
-// Excludes growth_environment because all current crystals use
-// 'fluid' (geometric-selection orientation along the substrate
-// normal); E4 will fold in 'air' as it activates.
+// PHASE-D-HABIT-BIAS: now also folds in growth_environment so the
+// cache busts when a crystal transitions fluid → air (currently set
+// at nucleation, but if a future scenario adds drainage-mid-life
+// retagging this stays honest). The `a` / `f` / `d` suffix encodes
+// air, fluid, and dissolved — one character so the signature stays
+// compact.
 //
 // v65: replayStep folded in so replay frames bust the cache and pull
 // the historical c_length per crystal. When undefined (live render),
@@ -1224,6 +1264,10 @@ function _topoCrystalsSignature(sim: any, replayStep?: number): string {
     const _a = c.wall_anchor;
     const _ringKey = _a ? _a.ringIdx : c.wall_ring_index;
     const _cellKey = _a ? _a.cellIdx : c.wall_center_cell;
+    // PHASE-D-HABIT-BIAS: encode growth_environment into the signature
+    // so the cache busts when an air-mode crystal's orientation
+    // (radial → gravity) flips. 'a' = air, 'f' = fluid (default).
+    const _envKey = c.growth_environment === 'air' ? 'a' : 'f';
     if (replayStep != null) {
       // Replay path: skip pre-nucleation crystals so they don't
       // contribute their final-size key during early replay frames.
@@ -1244,13 +1288,13 @@ function _topoCrystalsSignature(sim: any, replayStep?: number): string {
         // keep them in the signature so the cache key still busts
         // when one appears.
         if (!(c.dissolved && c.perimorph_eligible)) continue;
-        parts.push(`${c.crystal_id}:${effectiveMineral}:${c.habit}:cast:${c.c_length_mm.toFixed(2)}:${_ringKey}:${_cellKey}`);
+        parts.push(`${c.crystal_id}:${effectiveMineral}:${c.habit}:cast:${c.c_length_mm.toFixed(2)}:${_ringKey}:${_cellKey}:${_envKey}`);
         continue;
       }
-      parts.push(`${c.crystal_id}:${effectiveMineral}:${c.habit}:${hist.c_length_mm.toFixed(2)}:${_ringKey}:${_cellKey}:r${replayStep}`);
+      parts.push(`${c.crystal_id}:${effectiveMineral}:${c.habit}:${hist.c_length_mm.toFixed(2)}:${_ringKey}:${_cellKey}:${_envKey}:r${replayStep}`);
       continue;
     }
-    parts.push(`${c.crystal_id}:${c.mineral}:${c.habit}:${c.c_length_mm.toFixed(2)}:${_ringKey}:${_cellKey}:${c.dissolved ? 'd' : 'a'}`);
+    parts.push(`${c.crystal_id}:${c.mineral}:${c.habit}:${c.c_length_mm.toFixed(2)}:${_ringKey}:${_cellKey}:${_envKey}:${c.dissolved ? 'd' : 'a'}`);
   }
   return parts.join('|');
 }
@@ -1343,6 +1387,10 @@ function _topoSyncCrystalMeshes(state: any, sim: any, wall: any, replayStep?: nu
     // points from anchor toward origin.
     const len = Math.sqrt(ax * ax + ay * ay + az * az) || 1;
     const nx = -ax / len, ny = -ay / len, nz = -az / len;
+    // PHASE-D-HABIT-BIAS — pure helper centralizes the gravity bias.
+    // See _topoCAxisForCrystal definition below for the full
+    // contract; tests live in tests-js/habit-bias.test.ts.
+    const [cAxisX, cAxisY, cAxisZ] = _topoCAxisForCrystal(crystal, nx, ny, nz);
 
     // Q3a — CDR pseudomorph outline inheritance. When a crystal was
     // born via a coupled-dissolution-precipitation route (Q2a tagged
@@ -1504,20 +1552,22 @@ function _topoSyncCrystalMeshes(state: any, sim: any, wall: any, replayStep?: nu
 
     // Position the BASE of the primitive at the anchor (instead of
     // the centroid), so the crystal projects into the cavity rather
-    // than half-buried in the wall. Translate along the substrate
-    // normal by half the c-length.
+    // than half-buried in the wall. Translate along the c-axis
+    // direction by half the c-length — for fluid crystals this is
+    // substrate-normal; for air-mode crystals it's gravity-aligned
+    // (so stalactites drop straight down from the ceiling anchor).
     const offsetMm = cLen * 0.5;
     mesh.position.set(
-      ax + nx * offsetMm,
-      ay + ny * offsetMm,
-      az + nz * offsetMm,
+      ax + cAxisX * offsetMm,
+      ay + cAxisY * offsetMm,
+      az + cAxisZ * offsetMm,
     );
 
-    // Orient so the local +Y axis aligns with the substrate normal.
+    // Orient so the local +Y axis aligns with the c-axis direction.
     // Three.js Object3D.lookAt orients local -Z toward the target;
     // we want local +Y. quaternion.setFromUnitVectors handles it.
     const up = new THREE.Vector3(0, 1, 0);
-    const target = new THREE.Vector3(nx, ny, nz);
+    const target = new THREE.Vector3(cAxisX, cAxisY, cAxisZ);
     mesh.quaternion.setFromUnitVectors(up, target);
     // Per-crystal yaw around c-axis — real crystals nucleate with
     // random crystallographic orientation around their growth axis;
