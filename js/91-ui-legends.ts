@@ -282,6 +282,15 @@ function displayLines(
   appendLine?: (out: HTMLElement, line: string) => void,
   onStart?: () => void,
 ) {
+  // Resolve the target panel first — if it's missing we can't render
+  // anything. Bail before setting running=true so the lock isn't left
+  // stuck on an early exit. Callers that supplied an onDone get fired
+  // so their post-render housekeeping still runs.
+  const output = outputEl || document.getElementById('output');
+  if (!output) {
+    if (typeof onDone === 'function') onDone();
+    return;
+  }
   running = true;
   if (typeof onStart === 'function') {
     onStart();
@@ -291,7 +300,6 @@ function displayLines(
     if (grow) grow.disabled = true;
     if (random) random.disabled = true;
   }
-  const output = outputEl || document.getElementById('output');
   if (clearOutput !== false) output.innerHTML = '';
 
   // Narrative-tempo Phase 1: walk the sim's wall_state_history once
