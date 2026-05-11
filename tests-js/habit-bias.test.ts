@@ -20,6 +20,8 @@ import { describe, expect, it } from 'vitest';
 import { runScenario } from './helpers';
 
 declare const _topoCAxisForCrystal: any;
+declare const _resolveCrystalGeomToken: any;
+declare const _habitGeomToken: any;
 declare const VugSimulator: any;
 declare const VugConditions: any;
 declare const VugWall: any;
@@ -220,5 +222,94 @@ describe('habit-bias Slice 5 — stalactite_demo scenario produces air-mode crys
     // Default diffusion rate (DEFAULT_INTER_RING_DIFFUSION_RATE = 0.05)
     // means the rings stay approximately uniform.
     expect(sim.inter_ring_diffusion_rate).toBeGreaterThan(0);
+  });
+});
+
+// ============================================================
+// Slice 4 — dripstone geometry token resolver
+// ============================================================
+
+describe('habit-bias Slice 4 — _resolveCrystalGeomToken air-mode override', () => {
+  it('fluid-mode crystals always return the canonical habit token', () => {
+    // For every habit the wireframe + Three.js handle, fluid mode
+    // must produce the same token _habitGeomToken would directly.
+    const habits = [
+      'prismatic', 'acicular', 'rhombohedral', 'scalenohedral',
+      'tabular', 'cubic', 'octahedral', 'botryoidal', 'snowball',
+    ];
+    for (const habit of habits) {
+      const fluid = { habit, growth_environment: 'fluid' };
+      const canonical = _habitGeomToken(habit);
+      expect(_resolveCrystalGeomToken(fluid, habit)).toBe(canonical);
+    }
+  });
+
+  it('air-mode crystals on dripstone-eligible canonicals resolve to "dripstone"', () => {
+    // The eligible set matches js/99d-renderer-wireframe.ts's
+    // _isDripstoneEligibleCanonical: prism, spike (acicular), rhomb,
+    // scalene, botryoidal.
+    const eligible = [
+      ['prismatic',     'prism'],
+      ['acicular',      'spike'],
+      ['rhombohedral',  'rhomb'],
+      ['scalenohedral', 'scalene'],
+      ['botryoidal',    'botryoidal'],
+    ];
+    for (const [habit, canonicalToken] of eligible) {
+      // Sanity: the canonical lookup matches the expected wireframe map.
+      expect(_habitGeomToken(habit)).toBe(canonicalToken);
+      // Air mode replaces it with dripstone.
+      const air = { habit, growth_environment: 'air' };
+      expect(_resolveCrystalGeomToken(air, habit)).toBe('dripstone');
+    }
+  });
+
+  it('air-mode crystals on NON-eligible canonicals stay on canonical', () => {
+    // Isometric (cubes, octahedra, rhombic dodecahedra, dodecahedra,
+    // snowball spheres) and tablets don't morph into dripstones.
+    // They keep their canonical shape even in air mode — geologically
+    // a fluorite cube on the ceiling doesn't drip; it stays a cube.
+    const nonEligible = [
+      ['cubic',        'cube'],
+      ['octahedral',   'octahedron'],
+      ['tabular',      'tablet'],
+      ['snowball',     'snowball'],
+      ['dodecahedral', 'dodecahedron'],
+    ];
+    for (const [habit, canonicalToken] of nonEligible) {
+      expect(_habitGeomToken(habit)).toBe(canonicalToken);
+      const air = { habit, growth_environment: 'air' };
+      expect(_resolveCrystalGeomToken(air, habit)).toBe(canonicalToken);
+    }
+  });
+
+  it('crystal with no growth_environment defaults to fluid (canonical token)', () => {
+    // Pre-Phase-D save or null crystal: must not crash, must NOT
+    // resolve to dripstone.
+    expect(_resolveCrystalGeomToken({}, 'prismatic')).toBe('prism');
+    expect(_resolveCrystalGeomToken(null, 'prismatic')).toBe('prism');
+    expect(_resolveCrystalGeomToken({}, 'acicular')).toBe('spike');
+  });
+
+  it('stalactite_demo crystals route eligible habits through dripstone', () => {
+    // End-to-end: every air-mode crystal in stalactite_demo whose
+    // canonical habit is dripstone-eligible MUST resolve to the
+    // dripstone primitive. The scenario produces a mix of habits
+    // (calcite: scalenohedral_dogtooth → 'scalene'; quartz: prismatic
+    // → 'prism'; etc.) so this is a real cross-section.
+    const sim = runScenario('stalactite_demo', { seed: 42 });
+    let eligibleAirHits = 0;
+    for (const c of sim.crystals) {
+      const canonical = _habitGeomToken(c.habit);
+      const resolved = _resolveCrystalGeomToken(c, c.habit);
+      if (c.growth_environment === 'air'
+          && ['prism','spike','rhomb','scalene','botryoidal'].includes(canonical)) {
+        expect(resolved).toBe('dripstone');
+        eligibleAirHits++;
+      }
+    }
+    // At least one crystal in the scenario should hit the dripstone
+    // path — otherwise the scenario isn't proving the feature.
+    expect(eligibleAirHits).toBeGreaterThan(0);
   });
 });

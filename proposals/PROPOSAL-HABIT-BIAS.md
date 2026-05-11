@@ -1,6 +1,6 @@
 # PROPOSAL: Habit-Bias — gravity-aware crystal orientation (stalactites, stalagmites)
 
-> **Status:** Active. Slices 1, 2, 5 landed 2026-05-11.
+> **Status:** Active. Slices 1, 2, 4, 5 landed 2026-05-11. Only Slice 3 remaining.
 > **Origin:** 3D-Vugg Vision plan Phase D (`~/.claude/plans/i-have-a-much-soft-stonebraker.md`) + PROPOSAL-3D-SIMULATION Phase 3 (stalactite paragenesis, never shipped). Cavity-mesh Phases 1–3 (commit `1f9bf99`, 2026-05-11) cleared the runway by abstracting crystal anchors and adding `wall.zoneOf(crystal)` for per-orientation chemistry.
 > **Living doc:** Future agents — append observations to §11, decisions to §12. Update the slice tracker in §1 when you ship. Don't delete prior content.
 
@@ -14,7 +14,7 @@
 | 1     | Three.js c-axis bias for air crystals | landed 2026-05-11 | 27b44af | `_topoCAxisForCrystal(crystal, nx, ny, nz)` pure helper; ceiling cells → world-down, floor cells → world-up, walls fall back to substrate-normal. 93/93 tests pass; calibration byte-identical. |
 | 2     | Scenario opt-in `wall.air_mode_default` | landed 2026-05-11 | (this branch HEAD; previous = 27b44af) | `wall.air_mode_default: true` forces `growth_environment = 'air'` at every nucleation, regardless of water-state. Precedence: flag wins over water-state. Default false. |
 | 3     | Cluster-satellite air-mode propagation | unstarted | — | Children of an air-mode parent inherit gravity bias. Visible payoff: druzy stalactite clusters with each child also hanging. |
-| 4     | Air-mode mass-distribution bias | unstarted | — | Real stalactites have a teardrop profile (wider toward the apex, narrower toward the tip from accreted drips) — the renderer's primitive doesn't capture this. Hand-rolled PRIM_DRIPSTONE in 99d already handles it for the wireframe; port to Three.js. |
+| 4     | Air-mode mass-distribution bias (PRIM_DRIPSTONE port) | landed 2026-05-11 | (this branch HEAD; previous = 97dddf9) | `_makeDripstoneIcicle` Three.js builder (4 rings × 6 longitudes + apex = 25 verts, 46 tris). `_resolveCrystalGeomToken(crystal, habit)` dispatches air-mode crystals on prism/spike/rhomb/scalene/botryoidal canonicals to the dripstone primitive (mirrors `_isDripstoneEligibleCanonical` in 99d). Tablets + isometrics keep their canonical shape even in air mode. 106/106 tests green. |
 | 5     | Stalactite demo scenario | landed 2026-05-11 (same commit as Slice 2) | (this branch HEAD; previous = 27b44af) | `stalactite_demo` scenario in `data/scenarios.json5`. Cave-style limestone cavity, `air_mode_default: true`, calcite-saturated chemistry. Currently produces 4 crystals over 100 steps at seed 42 (`calcite`, `aragonite`, `fluorite`, `quartz`); every one carries `growth_environment === 'air'` and renders gravity-biased per Slice 1. Zone chemistry intentionally NOT used — see notes in scenario for the nucleation-engine plumbing constraint. |
 
 Each slice ships independently. Slice 1 alone is invisible without a scenario that nucleates air crystals — but the foundation is in place for Slice 5 to deliver the visible payoff.
@@ -175,6 +175,20 @@ Slices 2 and 5 landed in the same commit (same session as Slice 1). Notes from t
 
 - **Test relaxation on the proof-by-screenshot:** the initial test asserted ≥1 crystal in each of {floor, wall, ceiling}. With only 4 crystals and area-weighted nucleation (16/68/16 % expected split), seed 42 didn't land in all three bands. Relaxed to "at least one vertical-zone crystal (floor or ceiling) AND at least one wall crystal" — enough to teach the difference. Re-tighten if a future seed-locking effort wants exact distribution control.
 
+### 2026-05-11 — Sonnet 4.5 (Slice 4 implementer) — PRIM_DRIPSTONE port notes
+
+Slice 4 landed within an hour of Slices 2+5. The dripstone primitive is what turns "a hanging hex prism" into "an actual stalactite shape." Notes:
+
+- **The wireframe primitive transferred verbatim — only the topology changed.** Wireframe uses (vertices, edges) for a line-art look; Three.js needs (vertices, faces) for shaded triangles. Same 4 rings × 6 longitudes + apex vertex layout, same taper profile (0.30 → 0.22 → 0.13 → 0.06 → 0 radii, non-linear so the lower 60% is cylindrical and the apex is a separate "drip nozzle"). Wireframe's y range [-0.10, 1.0] remapped to the Three.js standard [-0.5, +0.5] half-unit convention. Once both renderers agree on geometry, future morphology refinements (Slice 4 polish: curved drip, surface ridges, soda-straw hollow) update one builder per renderer.
+
+- **The base hex cap is the only "closed mesh" feature added beyond wireframe.** Wireframe is line-art, doesn't care about back-face culling. Three.js with `THREE.DoubleSide` materials AND the per-fragment cavity-clip shader CAN reveal mesh interior if the back face is exposed by a clip near the substrate. The base hex cap (4 fan triangles) closes the mesh; mostly hidden by the anchor offset but ensures no see-through artifacts.
+
+- **`_resolveCrystalGeomToken` is the migration foothold.** Slice 4 introduced this helper as a separate function (vs inlining the override into `_habitGeomToken`). Reason: Slice 5's stalactite_demo crystals enter this resolver and route through dripstone for ~3 of 4 crystals (calcite + aragonite + quartz are eligible; fluorite is cubic → stays cube). The test `'stalactite_demo crystals route eligible habits through dripstone'` pins the end-to-end behavior; future habit additions can register eligible canonicals in `_DRIPSTONE_ELIGIBLE_TOKENS` without re-wiring the call site.
+
+- **Aspect ratio: dripstone targetRatio 0.25.** Other slim habits use 0.15 (spike) or 0.4 (prism). Dripstone at 0.25 is between — slimmer than a quartz prism, fatter than an acicular needle. With sim-side prismatic's c/a = 2.5 and the primitive's slim 0.30 max radius, the final rendered aspect lands around 5:1 (real stalactites are 5-10:1). Re-tune if a future scene reads stalactites as too fat.
+
+- **Botryoidal-on-air-ceiling becomes dripstone, NOT a hanging botryoidal cluster.** The wireframe makes the same choice via `_isDripstoneEligibleCanonical`. Geologically defensible: chalcedony / smithsonite botryoidal that forms in air ON THE CEILING tends to drip/stalk rather than mound — the same precipitation process that builds a "soda straw" stalactite. If a future scenario wants hanging mammillary botryoidal masses without dripstone morphology, add a flag (`crystal.no_dripstone_override` or similar) and gate the resolver.
+
 ### (next agent) — append here
 
 ---
@@ -204,5 +218,13 @@ Decided: the `stalactite_demo` scenario does NOT use `wall.zone_chemistry` even 
 ### 2026-05-11 — Sonnet 4.5 — Calibration baseline regenerated, not invalidated
 
 Decided: when adding `stalactite_demo`, run `tools/gen-js-baseline.mjs` to extend the existing baseline. Alternative was to bump SIM_VERSION and create a fresh baseline file — overkill for adding one new scenario whose results are isolated from existing ones. The baseline-set check in `tests-js/calibration.test.ts` catches accidental scenario removal or rename; intentional additions just extend the set.
+
+### 2026-05-11 — Sonnet 4.5 — Slice 4 dispatches via a SEPARATE resolver, not by extending `_habitGeomToken`
+
+Decided: rather than teaching `_habitGeomToken(habit)` about air-mode (it'd need the whole crystal, not just a habit string), Slice 4 added a thin `_resolveCrystalGeomToken(crystal, habit)` resolver that consults `_habitGeomToken` for the canonical and overrides to 'dripstone' on eligible canonicals + air growth_environment. Reason: `_habitGeomToken` is called in several places (signature builder, mesh placement) and stays a pure string→string function; the override lives where it can read the crystal's state without polluting the canonical map.
+
+### 2026-05-11 — Sonnet 4.5 — Tabular + isometric habits stay canonical even in air-mode
+
+Decided: dripstone-eligible canonicals are { prism, spike, rhomb, scalene, botryoidal }. Tabular (tablets, blades, foliated) + isometric (cubes, octahedra, rhombic dodecahedra, dodecahedra, snowball) do NOT morph to dripstone, even when air-mode would otherwise apply. Reason: a fluorite cube growing on a ceiling does NOT taper into a stalactite — it stays a cube oriented downward via Slice-1's c-axis flip. Geologically: dripstone morphology requires axial growth, and isometric habits don't have a growth axis. Tabular habits in air-mode have no clean geological analog, so they fall through to canonical (same call as the wireframe makes via `_isDripstoneEligibleCanonical`).
 
 ### (next agent) — append here

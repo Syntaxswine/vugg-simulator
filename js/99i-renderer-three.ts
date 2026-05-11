@@ -492,7 +492,34 @@ const _GEOM_TOKEN_RATIO: Record<string, number> = {
   dodecahedron: 1.0,
   snowball: 1.0,
   botryoidal: 1.5,    // wall-crust — wider than tall
+  dripstone: 0.25,    // PROPOSAL-HABIT-BIAS Slice 4 — slim icicle, c >> a
 };
+
+// PROPOSAL-HABIT-BIAS Slice 4 — which canonical habit tokens can
+// morph into the dripstone primitive when growth_environment === 'air'.
+// Mirrors _isDripstoneEligibleCanonical in js/99d-renderer-wireframe.ts
+// so the two renderers agree on which crystals taper into stalactites.
+// Isometric tokens (cube/octahedron/rhombic_dodec/dodecahedron/snowball)
+// are NOT eligible: those crystal shapes don't drip in real caves.
+// Tabular is also NOT eligible: tablets in air-mode have no clean
+// geological analog, fall through to the canonical primitive.
+const _DRIPSTONE_ELIGIBLE_TOKENS = new Set([
+  'prism', 'spike', 'rhomb', 'scalene', 'botryoidal',
+]);
+
+// PROPOSAL-HABIT-BIAS Slice 4 — choose the geometry token for a
+// crystal, honoring air-mode dripstone override. Centralizes the
+// "fluid → canonical primitive, air → dripstone (when eligible)"
+// decision so the call site stays a one-liner. Mirrors
+// _lookupCrystalPrimitive in js/99d-renderer-wireframe.ts.
+function _resolveCrystalGeomToken(crystal: any, habitForGeom: string): string {
+  const canonical = _habitGeomToken(habitForGeom);
+  if (crystal && crystal.growth_environment === 'air'
+      && _DRIPSTONE_ELIGIBLE_TOKENS.has(canonical)) {
+    return 'dripstone';
+  }
+  return canonical;
+}
 
 // ----- Phase E5 hand-rolled habit geometries -----
 //
@@ -619,6 +646,93 @@ function _makeScalenohedron(): any {
     const uR = upper[(i + 1) % 3];        // upper vertex to the "right"
     _pushTri(positions, apexB[0], apexB[1], apexB[2], l[0], l[1], l[2], uL[0], uL[1], uL[2]);
     _pushTri(positions, apexB[0], apexB[1], apexB[2], uR[0], uR[1], uR[2], l[0], l[1], l[2]);
+  }
+  const geom = new THREE.BufferGeometry();
+  geom.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+  geom.computeVertexNormals();
+  return geom;
+}
+
+// PROPOSAL-HABIT-BIAS Slice 4 — cave dripstone primitive. Tapered
+// hexagonal icicle for air-mode crystals (stalactites + stalagmites)
+// on dripstone-eligible canonicals (prism / spike / rhomb / scalene /
+// botryoidal). Mirrors PRIM_DRIPSTONE in js/99c-renderer-primitives.ts
+// so the Three.js and wireframe renderers produce a congruent silhouette
+// — Hill & Forti 1997 (Cave Minerals of the World): mature stalactites
+// taper from a wide ceiling-anchored base to a narrow drip tip, 5-10:1
+// aspect ratio with vertical surface ridges from streaming water down
+// the flanks.
+//
+// Local +Y is the c-axis. y ∈ [-0.5, +0.5] (unit-scale matching the
+// other primitives). Base ring at y=-0.5 hugs the substrate (ceiling
+// for stalactite, floor for stalagmite); apex at y=+0.5 is the drip
+// tip. The instance transform (Three.js `mesh.scale.set(aWid, cLen,
+// aWid)`) stretches y by c_length_mm and x/z by a_width_mm; combined
+// with the primitive's slim 0.30 max radius and prismatic crystals'
+// natural 2.5:1 c/a ratio, the final aspect lands in the 5-10:1
+// realistic-stalactite band.
+//
+// Geometry: 4 latitude rings × 6 longitudes + 1 apex = 25 unique
+// vertices; 36 side triangles (3 ring-to-ring bands × 12) + 6 apex
+// fan triangles + 4 base hex-cap triangles = 46 triangles total.
+// Vertices are duplicated where needed for flat-shaded faceted look
+// (matches the wireframe's ridge silhouette).
+function _makeDripstoneIcicle(): any {
+  // y-axis tapering profile — matches PRIM_DRIPSTONE's relative radii
+  // and y positions, remapped from the wireframe's [-0.1, 1.0] range
+  // to the standard [-0.5, +0.5] Three.js half-unit. Base at -0.5,
+  // apex at +0.5. Radii taper non-linearly: more shrinkage near the
+  // base, less near the tip, so the lower 60% is nearly cylindrical
+  // and the apex acts like a separate "drip nozzle."
+  const rings = [
+    { y: -0.50, r: 0.30 },   // base (substrate-anchored)
+    { y: -0.14, r: 0.22 },   // upper shoulder
+    { y:  0.18, r: 0.13 },   // mid-shaft
+    { y:  0.41, r: 0.06 },   // sub-tip neck
+  ];
+  const apexY = 0.50;
+  const NLON = 6;
+  const positions: number[] = [];
+  // Pre-compute ring vertex coordinates.
+  const ringPts: number[][][] = rings.map(({ y, r }) => {
+    const pts: number[][] = [];
+    for (let k = 0; k < NLON; k++) {
+      const a = (k / NLON) * Math.PI * 2;
+      pts.push([Math.cos(a) * r, y, Math.sin(a) * r]);
+    }
+    return pts;
+  });
+  // 3 ring-to-ring bands: each quad split into 2 triangles. Vertices
+  // are pushed per-triangle (faceted look) so adjacent faces don't
+  // smooth-shade across the ridges.
+  for (let band = 0; band < rings.length - 1; band++) {
+    const ringA = ringPts[band];
+    const ringB = ringPts[band + 1];
+    for (let k = 0; k < NLON; k++) {
+      const kNext = (k + 1) % NLON;
+      const a0 = ringA[k], a1 = ringA[kNext];
+      const b0 = ringB[k], b1 = ringB[kNext];
+      _pushTri(positions, a0[0], a0[1], a0[2], a1[0], a1[1], a1[2], b0[0], b0[1], b0[2]);
+      _pushTri(positions, a1[0], a1[1], a1[2], b1[0], b1[1], b1[2], b0[0], b0[1], b0[2]);
+    }
+  }
+  // Apex fan: 6 triangles from the topmost ring (ringPts[3]) up to
+  // the drip-tip apex.
+  const topRing = ringPts[rings.length - 1];
+  for (let k = 0; k < NLON; k++) {
+    const kNext = (k + 1) % NLON;
+    const v0 = topRing[k], v1 = topRing[kNext];
+    _pushTri(positions, v0[0], v0[1], v0[2], v1[0], v1[1], v1[2], 0, apexY, 0);
+  }
+  // Base hex cap: 4 triangles fanning from base vertex 0 across the
+  // hex. This faces the substrate and is mostly hidden inside the
+  // wall by the mesh anchor offset, but closes the mesh so any
+  // partial-clip render doesn't show through to the inside.
+  const base = ringPts[0];
+  for (let k = 1; k < NLON - 1; k++) {
+    _pushTri(positions, base[0][0], base[0][1], base[0][2],
+                        base[k + 1][0], base[k + 1][1], base[k + 1][2],
+                        base[k][0], base[k][1], base[k][2]);
   }
   const geom = new THREE.BufferGeometry();
   geom.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
@@ -824,6 +938,12 @@ function _buildHabitGeom(token: string): any {
       // Botryoidal — multi-bubble cluster reads as malachite kidney
       // or hematite blob. Phase E5 batch 1.
       return _makeBotryoidalCluster();
+    case 'dripstone':
+      // PROPOSAL-HABIT-BIAS Slice 4 — cave stalactite/stalagmite
+      // tapered icicle. Used when growth_environment === 'air' and
+      // canonical token is dripstone-eligible (see
+      // _resolveCrystalGeomToken).
+      return _makeDripstoneIcicle();
     default:
       return _makeHexPrismWithPyramid();
   }
@@ -1413,8 +1533,11 @@ function _topoSyncCrystalMeshes(state: any, sim: any, wall: any, replayStep?: nu
       }
     }
 
-    // Pick the habit primitive and cache it.
-    const token = _habitGeomToken(habitForGeom);
+    // Pick the habit primitive and cache it. PROPOSAL-HABIT-BIAS
+    // Slice 4: _resolveCrystalGeomToken adds the air-mode override
+    // (canonical → 'dripstone' for ceiling/floor crystals on a
+    // prism/spike/rhomb/scalene/botryoidal habit).
+    const token = _resolveCrystalGeomToken(crystal, habitForGeom);
     let geom = state.geomCache.get(token);
     if (!geom) {
       geom = _buildHabitGeom(token);

@@ -211,6 +211,9 @@ const EXPORTS = [
   'WATER_STATE_PREFERENCE',
   // Phase D habit-bias helper (99i-renderer-three.ts).
   '_topoCAxisForCrystal',
+  // Slice 4 dripstone token resolver (99i-renderer-three.ts).
+  '_resolveCrystalGeomToken',
+  '_habitGeomToken',
   // Phase 4a redox infrastructure (20c-chemistry-redox.ts).
   'EH_DYNAMIC_ENABLED',
   'REDOX_COUPLES',
