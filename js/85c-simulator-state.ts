@@ -117,16 +117,38 @@ _applyVadoseOxidationOverride() {
   if (oldSurface !== null && oldSurface !== undefined && newSurface >= oldSurface) {
     return [];
   }
+  // PROPOSAL-CAVITY-MESH Phase 4 Tranche 4a — apply the vadose override
+  // to EVERY cell in a transitioning ring, not just the ring-level
+  // pool. Post-un-aliasing each cell has its own fluid; the
+  // oxidation-+-evaporation-boost has to hit all of them or only
+  // the first vertex of each ring would oxidize while the rest stay
+  // reducing — clearly wrong.
+  const mesh = this.wall_state.meshFor
+    ? this.wall_state.meshFor(this)
+    : null;
+  const cellsPerRing = this.wall_state.cells_per_ring || 0;
   const becameVadose = [];
   for (let r = 0; r < n; r++) {
     const was = VugConditions._classifyWaterState(oldSurface, r, n);
     const now = VugConditions._classifyWaterState(newSurface, r, n);
     if (now === 'vadose' && was !== 'vadose') {
-      const rf = this.ring_fluids[r];
-      if (rf.O2 < 1.8) rf.O2 = 1.8;
-      rf.S *= 0.3;
-      // v27 evaporative concentration boost (mirror of vugg.py).
-      rf.concentration *= EVAPORATIVE_CONCENTRATION_FACTOR;
+      // Apply oxidation override to every cell in this ring.
+      if (mesh && mesh.cells && cellsPerRing > 0) {
+        for (let c = 0; c < cellsPerRing; c++) {
+          const cell = mesh.cells[r * cellsPerRing + c];
+          if (!cell || !cell.fluid) continue;
+          if (cell.fluid.O2 < 1.8) cell.fluid.O2 = 1.8;
+          cell.fluid.S *= 0.3;
+          // v27 evaporative concentration boost (mirror of vugg.py).
+          cell.fluid.concentration *= EVAPORATIVE_CONCENTRATION_FACTOR;
+        }
+      } else {
+        // Fallback (headless tests without a mesh built).
+        const rf = this.ring_fluids[r];
+        if (rf.O2 < 1.8) rf.O2 = 1.8;
+        rf.S *= 0.3;
+        rf.concentration *= EVAPORATIVE_CONCENTRATION_FACTOR;
+      }
       becameVadose.push(r);
     }
   }

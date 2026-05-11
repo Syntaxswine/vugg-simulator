@@ -252,6 +252,15 @@ class VugSimulator {
     // water and pseudomorphs to tincalconite. Mirror of vugg.py.
     {
       const nRings = this.wall_state.ring_count;
+      // PROPOSAL-CAVITY-MESH Phase 4 Tranche 4a — read the crystal's
+      // OWN cell.fluid (per-vertex chemistry) for the dehydration check,
+      // not a shared ring-level pool. Each crystal sees its local
+      // chemistry — if one borax dehydrates at a meniscus cell with
+      // low concentration but its neighbor stays wet, only the dry
+      // one transitions.
+      const _mesh = this.wall_state.meshFor
+        ? this.wall_state.meshFor(this)
+        : null;
       for (const crystal of this.crystals) {
         if (!DEHYDRATION_TRANSITIONS[crystal.mineral]) continue;
         // PHASE-1-CAVITY-MESH: read ringIdx via _resolveAnchor so this
@@ -259,7 +268,14 @@ class VugSimulator {
         const anchor = this.wall_state._resolveAnchor(crystal);
         const ringIdx = anchor ? anchor.ringIdx : null;
         if (ringIdx == null || ringIdx < 0 || ringIdx >= nRings) continue;
-        const ringFluid = this.ring_fluids[ringIdx];
+        // Prefer the crystal's own cell.fluid (per-vertex chemistry).
+        // Fall back to the ring-level pool only if the mesh isn't built.
+        const cell = (_mesh && _mesh.cellOf)
+          ? _mesh.cellOf(crystal, this.wall_state)
+          : null;
+        const ringFluid = (cell && cell.fluid)
+          ? cell.fluid
+          : this.ring_fluids[ringIdx];
         const ringState = this.conditions.ringWaterState(ringIdx, nRings);
         const Tlocal = this.ring_temperatures[ringIdx];
         const transition = applyDehydrationTransitions(

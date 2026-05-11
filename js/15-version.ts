@@ -1154,5 +1154,37 @@
 //        debits cascade into downstream growth — malachite/chrysocolla
 //        in supergene, feldspar in evaporites, etc. The mass-balance
 //        warnings stop firing on the baseline regen.
-const SIM_VERSION = 67;
+//
+//   v68 — Cavity-mesh Path C Tranche 4a (PROPOSAL-CAVITY-MESH §13).
+//        Per-vertex chemistry replaces per-ring chemistry. Each cell on
+//        the cavity mesh now carries an independent FluidChemistry
+//        instance (post-un-aliasing in mesh.bindRingChemistry) and
+//        evolves locally under crystal growth, mesh-edge Laplacian
+//        diffusion, propagated event deltas, and vadose oxidation.
+//
+//        Why now: PROPOSAL-CAVITY-MESH §13 documents the boss directive
+//        to pursue Path C ("foundation based on the science") over Path A
+//        (rename) or Path B (3 named zones). Real cavity walls have
+//        continuous chemistry varying with local fluid flow, drip
+//        points, vent proximity; per-ring storage forced co-ring
+//        crystals to share one pool.
+//
+//        Drift: every scenario. Behavior shifts because crystals no
+//        longer share local Ca/SiO2/etc pools with co-ring siblings.
+//        seed42_v68.json regenerated from gen-js-baseline.mjs; the
+//        per-mineral counts and max-size values shifted from v67
+//        across all 23 scenarios. Direction of shift varies — some
+//        scenarios produce slightly more crystals (each ring is less
+//        depleted locally), others fewer (per-vertex saturation
+//        windows are narrower).
+//
+//        Cross-tranche context: Tranches 1-3 of Phase 4 (commits
+//        93fcc2d, 8ef6a40, 7a5bb75) were byte-identical refactors
+//        that built the cells[] container, the mesh-edge Laplacian,
+//        and the fluid_surface_height_mm canonical name without
+//        changing engine behavior. Tranche 4a is the first behavior-
+//        shifting commit in the Path C sequence; SIM_VERSION bumps
+//        here rather than waiting for the snapshot schema bump in
+//        Tranche 5 (which will become v69 when it lands).
+const SIM_VERSION = 68;
 

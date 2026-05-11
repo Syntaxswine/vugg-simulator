@@ -51,38 +51,44 @@ describe('cavity-mesh Phase 4 Tranche 1 — mesh.cells[] container', () => {
     expect(mesh.cells.length).toBe(mesh.numInterior);
   });
 
-  it('cells[i].fluid IS the same object as ring_fluids[ringIdxOf(i)]', () => {
-    // The load-bearing invariant for Tranche 1: aliasing, not cloning.
-    // bindRingChemistry must hand out the same FluidChemistry instance
-    // through cells[i].fluid as the legacy ring_fluids[r] reads.
+  it('cells[i].fluid is initialized from ring_fluids[ringIdxOf(i)] (independent clone post-Tranche-4a)', () => {
+    // Tranche 1's aliasing invariant gave way to Tranche 4a's
+    // un-aliasing: each cell now has its OWN FluidChemistry clone,
+    // initialized from the ring representative at bind time. Values
+    // match at construction; mutations from then on are independent.
     const sim = new VugSimulator(makeConditions(), []);
     const mesh = sim.wall_state.meshFor(sim);
     const N = sim.wall_state.cells_per_ring;
-    // Check every ring's worth of vertices.
+    // Check every cell's initial values match the source ring's fluid.
     for (let i = 0; i < mesh.numInterior; i++) {
       const v = mesh.vertices[i];
-      expect(mesh.cells[i].fluid).toBe(sim.ring_fluids[v.ringIdx]);
+      const ringFluid = sim.ring_fluids[v.ringIdx];
+      // Same VALUES at bind time...
+      expect(mesh.cells[i].fluid.Ca).toBe(ringFluid.Ca);
+      expect(mesh.cells[i].fluid.SiO2).toBe(ringFluid.SiO2);
       expect(mesh.cells[i].temperature_ring).toBe(v.ringIdx);
+      // ...but different OBJECTS for non-equator rings. The equator
+      // ring still has ring_fluids[equator] === conditions.fluid via
+      // the legacy alias (Tranche 1 preserved this); cells in that
+      // ring are clones, so they don't share identity.
+      expect(mesh.cells[i].fluid).not.toBe(ringFluid);
     }
-    // Spot-check at known indices to make the layout legible if this
-    // test ever fails.
-    expect(mesh.cells[0].fluid).toBe(sim.ring_fluids[0]);                    // ring 0, cell 0
-    expect(mesh.cells[N].fluid).toBe(sim.ring_fluids[1]);                    // ring 1, cell 0
-    expect(mesh.cells[mesh.numInterior - 1].fluid).toBe(sim.ring_fluids[15]); // ring 15, last cell
   });
 
-  it('mutating cells[i].fluid is visible through ring_fluids[r]', () => {
-    // The point of aliasing: mutations through either accessor hit the
-    // same FluidChemistry object. Confirm in both directions.
+  it('mutating cells[i].fluid does NOT affect ring_fluids[r] (un-aliased per-vertex)', () => {
+    // Post-Tranche-4a: cells have independent storage. Mutating one
+    // cell's chemistry doesn't ripple into the legacy ring_fluids[r]
+    // array or into other cells in the same ring.
     const sim = new VugSimulator(makeConditions(), []);
     const mesh = sim.wall_state.meshFor(sim);
-    // Forward: mutate via cells[i].fluid, read back via ring_fluids[r].
-    mesh.cells[0].fluid.Ca = 999;
-    expect(sim.ring_fluids[0].Ca).toBe(999);
-    // Reverse: mutate via ring_fluids[r], read back via cells[i].fluid.
-    sim.ring_fluids[5].SiO2 = 777;
     const N = sim.wall_state.cells_per_ring;
-    expect(mesh.cells[5 * N].fluid.SiO2).toBe(777);
+    const ring0Initial = sim.ring_fluids[0].Ca;
+    mesh.cells[0].fluid.Ca = 999;
+    // ring_fluids[0] (the legacy backing store) unchanged — un-aliased.
+    expect(sim.ring_fluids[0].Ca).toBe(ring0Initial);
+    // Neighbor cells in the same ring also unchanged — per-vertex.
+    expect(mesh.cells[1].fluid.Ca).toBe(ring0Initial);
+    expect(mesh.cells[N - 1].fluid.Ca).toBe(ring0Initial);
   });
 
   it('mesh.cellOf(crystal) resolves an anchored crystal to its cell', () => {
@@ -94,7 +100,10 @@ describe('cavity-mesh Phase 4 Tranche 1 — mesh.cells[] container', () => {
     c.wall_anchor = sim.wall_state._anchorFromRingCell(3, 7);
     const cell = mesh.cellOf(c, sim.wall_state);
     expect(cell).toBeTruthy();
-    expect(cell.fluid).toBe(sim.ring_fluids[3]);
+    // Post-Tranche-4a: cells own independent FluidChemistry clones, so
+    // identity differs from ring_fluids[r] — values match at init.
+    expect(cell.fluid.Ca).toBe(sim.ring_fluids[3].Ca);
+    expect(cell.fluid.SiO2).toBe(sim.ring_fluids[3].SiO2);
     expect(cell.temperature_ring).toBe(3);
   });
 
@@ -152,70 +161,71 @@ describe('cavity-mesh Phase 4 Tranche 2 — mesh-edge Laplacian', () => {
     expect(r5cLastNeighbors.has(5 * N + 0)).toBe(true);     // wrap-right
   });
 
-  it('mesh.diffuse on uniform aliased chemistry is a no-op (Laplacian of constant = 0)', () => {
-    // Default scenario: every ring starts with identical chemistry.
-    // After aliasing (Tranche 1) every cell shares one fluid per ring;
-    // those fluids all have the SAME field values (cloned from one
-    // initial fluid). Laplacian of a constant = 0, so no field should
-    // change after diffuse fires.
+  it('mesh.diffuse on uniform chemistry is a no-op (Laplacian of constant = 0)', () => {
+    // Default scenario: every cell starts with identical chemistry
+    // (clones of one initial fluid). Laplacian of a constant = 0, so
+    // no field should change after diffuse fires. This invariant
+    // holds across aliased (Tranche 1-3) AND un-aliased (Tranche 4a+)
+    // models — the math doesn't care.
     const sim = new VugSimulator(makeConditions(), []);
     const mesh = sim.wall_state.meshFor(sim);
-    const ca_before = sim.ring_fluids.map((f: any) => f.Ca);
+    const ca_before = mesh.cells.map((c: any) => c.fluid.Ca);
     mesh.diffuse(0.05, ['Ca'], sim.ring_temperatures);
-    const ca_after = sim.ring_fluids.map((f: any) => f.Ca);
+    const ca_after = mesh.cells.map((c: any) => c.fluid.Ca);
     expect(ca_after).toEqual(ca_before);
   });
 
-  it('mesh.diffuse with zoned aliased chemistry matches ring-Laplacian', () => {
-    // Inject a per-ring gradient: ring 0 has Ca=300, ring 15 has
-    // Ca=500, everything else interpolates. Then run mesh.diffuse
-    // and confirm the result matches the legacy ring-Laplacian
-    // formula, applied once (dedup-by-fluid-identity).
+  it('mesh.diffuse with zoned chemistry diffuses per-vertex over the cavity surface', () => {
+    // Tranche 4a behavior: inject a per-ring gradient at cells-level
+    // and confirm the Laplacian relaxes each vertex toward its mesh
+    // neighbors. Floor cells (high Ca) shed toward equator cells,
+    // ceiling cells (low Ca) gain from equator cells.
     const sim = new VugSimulator(makeConditions(), []);
     const mesh = sim.wall_state.meshFor(sim);
     const n = sim.wall_state.ring_count;
+    const N = sim.wall_state.cells_per_ring;
+    // Set every cell in ring 0 to Ca=500, every cell in ring 15 to
+    // Ca=100, everything else interpolates.
     for (let r = 0; r < n; r++) {
-      sim.ring_fluids[r].Ca = 300 + (200 * r) / (n - 1);
+      const Ca = 500 - (400 * r) / (n - 1);
+      for (let c = 0; c < N; c++) mesh.cells[r * N + c].fluid.Ca = Ca;
     }
-    const before = sim.ring_fluids.map((f: any) => f.Ca);
-    const rate = 0.05;
-    // Compute the expected ring-Laplacian by hand.
-    const expected = [];
-    for (let k = 0; k < n; k++) {
-      const kp = k > 0 ? k - 1 : 0;
-      const kn = k < n - 1 ? k + 1 : n - 1;
-      expected.push(before[k] + rate * (before[kp] + before[kn] - 2 * before[k]));
-    }
-    mesh.diffuse(rate, ['Ca'], sim.ring_temperatures);
-    const actual = sim.ring_fluids.map((f: any) => f.Ca);
-    for (let r = 0; r < n; r++) {
-      expect(actual[r]).toBeCloseTo(expected[r], 10);
-    }
+    const before = [];
+    for (let r = 0; r < n; r++) before.push(mesh.cells[r * N].fluid.Ca);
+    mesh.diffuse(0.05, ['Ca'], sim.ring_temperatures);
+    // After one Laplacian step, ring 0 (boundary, only ring 1 contributes
+    // via the "up-clamp" neighbor → self) should drift toward ring 1.
+    // Same for the interior. Don't pin specific values — confirm the
+    // gradient narrowed.
+    const after = [];
+    for (let r = 0; r < n; r++) after.push(mesh.cells[r * N].fluid.Ca);
+    const gradBefore = before[0] - before[n - 1];
+    const gradAfter = after[0] - after[n - 1];
+    expect(gradAfter).toBeLessThan(gradBefore);
   });
 
-  it('mesh.propagateDelta hits every non-equator fluid exactly once', () => {
-    // Inject a delta: set conditions.fluid.Ca to a new value (the
-    // equator-aliased slot already reflects this), then call
-    // propagateDelta with the pre-snap fluid. All non-equator rings
-    // should receive the delta exactly once (dedup-by-identity).
+  it('mesh.propagateDelta applies the delta to every cell (per-vertex)', () => {
+    // Tranche 4a: cells are un-aliased, so propagateDelta no longer
+    // dedups by fluid identity — every cell receives the delta from
+    // its own independent storage. The equator cells get it too
+    // (the legacy "skip equator" came from aliased cells sharing
+    // conditions.fluid; now they're clones).
     const sim = new VugSimulator(makeConditions(), []);
     const mesh = sim.wall_state.meshFor(sim);
     const n = sim.wall_state.ring_count;
+    const N = sim.wall_state.cells_per_ring;
     const equator = Math.floor(n / 2);
-    const before = sim.ring_fluids.map((f: any) => f.Ca);
-    // Snapshot the pre-event state, then mutate the equator-aliased
-    // slot (= conditions.fluid).
+    // Snapshot pre-event cell values across all rings.
+    const cellsBefore = [];
+    for (let i = 0; i < mesh.numInterior; i++) cellsBefore.push(mesh.cells[i].fluid.Ca);
+    // Mutate conditions.fluid (the legacy alias to ring_fluids[equator]
+    // still works, but cells have their own storage).
     const preSnap = new FluidChemistry({ ...sim.conditions.fluid });
     sim.conditions.fluid.Ca += 100;
     mesh.propagateDelta(preSnap, ['Ca'], sim.ring_fluids[equator]);
-    // Every non-equator ring should have gained 100 ppm Ca.
-    for (let r = 0; r < n; r++) {
-      if (r === equator) {
-        // Equator is the conditions.fluid alias; already mutated.
-        expect(sim.ring_fluids[r].Ca).toBe(before[r] + 100);
-      } else {
-        expect(sim.ring_fluids[r].Ca).toBe(before[r] + 100);
-      }
+    // Every cell — including equator cells — should have gained 100.
+    for (let i = 0; i < mesh.numInterior; i++) {
+      expect(mesh.cells[i].fluid.Ca).toBe(cellsBefore[i] + 100);
     }
   });
 
@@ -272,28 +282,22 @@ describe('cavity-mesh Phase 4 Tranche 2 — mesh-edge Laplacian', () => {
     }
   });
 
-  it('_diffuseRingState delegates to mesh.diffuse byte-identically', () => {
-    // The wrapper in 85c-simulator-state.ts now calls mesh.diffuse
-    // instead of running its own ring-Laplacian. Inject a gradient
-    // and confirm the wrapper produces the same numbers the raw
-    // ring-Laplacian would.
+  it('_diffuseRingState delegates to mesh.diffuse (per-vertex Laplacian)', () => {
+    // Post-Tranche-4a: _diffuseRingState routes to mesh.diffuse which
+    // operates per-vertex. ring_fluids[] is no longer the mutation
+    // target — cells are. Test that running diffusion on an injected
+    // gradient narrows the gradient as expected.
     const sim = new VugSimulator(makeConditions(), []);
+    const mesh = sim.wall_state.meshFor(sim);
     const n = sim.wall_state.ring_count;
+    const N = sim.wall_state.cells_per_ring;
     for (let r = 0; r < n; r++) {
-      sim.ring_fluids[r].Ca = 100 + 20 * r;
+      const Ca = 100 + 20 * r;
+      for (let c = 0; c < N; c++) mesh.cells[r * N + c].fluid.Ca = Ca;
     }
-    const rate = sim.inter_ring_diffusion_rate;
-    const before = sim.ring_fluids.map((f: any) => f.Ca);
-    const expected = [];
-    for (let k = 0; k < n; k++) {
-      const kp = k > 0 ? k - 1 : 0;
-      const kn = k < n - 1 ? k + 1 : n - 1;
-      expected.push(before[k] + rate * (before[kp] + before[kn] - 2 * before[k]));
-    }
+    const gradBefore = mesh.cells[(n - 1) * N].fluid.Ca - mesh.cells[0].fluid.Ca;
     sim._diffuseRingState();
-    const actual = sim.ring_fluids.map((f: any) => f.Ca);
-    for (let r = 0; r < n; r++) {
-      expect(actual[r]).toBeCloseTo(expected[r], 10);
-    }
+    const gradAfter = mesh.cells[(n - 1) * N].fluid.Ca - mesh.cells[0].fluid.Ca;
+    expect(Math.abs(gradAfter)).toBeLessThan(Math.abs(gradBefore));
   });
 });

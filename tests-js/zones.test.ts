@@ -122,39 +122,40 @@ describe('cavity-mesh Phase 3 — zone chemistry opt-in', () => {
       },
       inter_ring_diffusion_rate: 0,
     }), []);
+    // Post-Tranche-4a: read per-vertex cell.fluid, not ring_fluids[].
+    const mesh = sim.wall_state.meshFor(sim);
+    const N = sim.wall_state.cells_per_ring;
     // Run diffusion 50 times — at rate=0 it must be a strict no-op.
     for (let i = 0; i < 50; i++) sim._diffuseRingState();
-    // Floor and ceiling Ca should be unchanged after 50 diffusion steps.
-    const floorRings: number[] = [];
-    const ceilingRings: number[] = [];
+    // Floor and ceiling cells should be unchanged.
     for (let r = 0; r < sim.wall_state.ring_count; r++) {
       const o = sim.wall_state.ringOrientation(r);
-      if (o === 'floor') floorRings.push(r);
-      if (o === 'ceiling') ceilingRings.push(r);
+      if (o === 'floor') expect(mesh.cells[r * N].fluid.Ca).toBe(500);
+      if (o === 'ceiling') expect(mesh.cells[r * N].fluid.Ca).toBe(10);
     }
-    for (const r of floorRings) expect(sim.ring_fluids[r].Ca).toBe(500);
-    for (const r of ceilingRings) expect(sim.ring_fluids[r].Ca).toBe(10);
   });
 
   it('default diffusion rate homogenizes zone differences over many steps', () => {
     // With diffusion enabled, the floor:ceiling Ca gradient should
-    // shrink toward the average (255) as Laplacian steps fire.
+    // shrink as the mesh Laplacian fires. Post-Tranche-4a this
+    // operates per-vertex; the floor and ceiling cells (independent
+    // FluidChemistry instances) relax toward their mesh neighbors.
     const sim = new VugSimulator(makeConditions({
       zone_chemistry: {
         floor: { Ca: 500 },
         ceiling: { Ca: 10 },
       },
-      // diffusion_rate intentionally not declared → falls through to
-      // default 0.05.
     }), []);
-    // Sanity: starting gradient is 490 mg/L.
-    const floor0 = sim.ring_fluids[0];   // ring 0 is in floor band
-    const ceil0 = sim.ring_fluids[15];   // ring 15 is in ceiling band
-    expect(floor0.Ca - ceil0.Ca).toBe(490);
-    // 200 diffusion steps under rate 0.05 — far from converged, but
-    // the gradient should have noticeably narrowed.
+    const mesh = sim.wall_state.meshFor(sim);
+    const N = sim.wall_state.cells_per_ring;
+    // Sanity: starting gradient is 490 mg/L between floor (ring 0)
+    // and ceiling (ring 15) cells.
+    const floorCellInitial = mesh.cells[0].fluid.Ca;
+    const ceilCellInitial = mesh.cells[15 * N].fluid.Ca;
+    expect(floorCellInitial - ceilCellInitial).toBe(490);
+    // 200 diffusion steps under rate 0.05.
     for (let i = 0; i < 200; i++) sim._diffuseRingState();
-    const gradAfter = floor0.Ca - ceil0.Ca;
+    const gradAfter = mesh.cells[0].fluid.Ca - mesh.cells[15 * N].fluid.Ca;
     expect(gradAfter).toBeLessThan(490);
     expect(gradAfter).toBeGreaterThan(0);  // not converged to flat either
   });

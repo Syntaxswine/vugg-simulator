@@ -174,27 +174,39 @@ class WallMesh {
     return mesh;
   }
 
-  // PROPOSAL-CAVITY-MESH Phase 4 Tranche 1 — alias per-vertex
-  // chemistry to the simulator's ring_fluids[] array. Called by
-  // VugSimulator constructor right after ring_fluids is built.
+  // PROPOSAL-CAVITY-MESH Phase 4 Tranche 4a — per-vertex chemistry
+  // becomes the canonical storage. cells[i].fluid is now an
+  // INDEPENDENT clone of ring_fluids[ringIdxOf(i)] at bind time, not
+  // an alias. Each vertex evolves its own chemistry under engine
+  // growth, mesh diffusion, propagated event deltas, and vadose
+  // oxidation.
   //
-  // Aliasing (not cloning): `cells[i].fluid = ringFluids[r]` keeps the
-  // object reference shared, so mutations via cells[i].fluid hit the
-  // same FluidChemistry instance as direct ring_fluids[r] reads. This
-  // is the byte-identical invariant for Tranche 1 — the chemistry
-  // engine sees the same storage whether it reads through the mesh
-  // or through the legacy ring_fluids[] array.
+  // Why un-alias: Path C ("foundation based on the science"). Real
+  // cavity walls have continuous chemistry that varies with local
+  // fluid flow, drip points, vent proximity. Per-ring storage forced
+  // every crystal in the same ring to share one pool — geologically
+  // wrong at the grain of the simulator's resolution. Un-aliasing
+  // gives the simulator the same per-position freedom real cavities
+  // have.
   //
-  // Future tranches (4C / 4D when Laplacian + propagate-delta migrate)
-  // will move to per-vertex cloned fluids and retire ring_fluids[],
-  // but Tranche 1 keeps both routes coherent.
+  // Calibration baseline regenerates: the same seed produces slightly
+  // different output because crystals no longer share local Ca/Si
+  // pools with co-ring siblings. This is the deliberate behavior
+  // shift Tranche 4a's commit documents.
   bindRingChemistry(ringFluids, _ringTemps) {
     if (!ringFluids || !this.cells.length) return;
     for (let i = 0; i < this.numInterior; i++) {
       const vertex = this.vertices[i];
       const r = vertex ? vertex.ringIdx : 0;
       if (r >= 0 && r < ringFluids.length) {
-        this.cells[i].fluid = ringFluids[r];
+        // Independent clone — typeof _cloneFluid is global from
+        // js/20-chemistry-fluid.ts. Each cell gets its own
+        // FluidChemistry instance that evolves independently.
+        const src = ringFluids[r];
+        const Cloner: any = (typeof _cloneFluid !== 'undefined')
+          ? _cloneFluid
+          : null;
+        this.cells[i].fluid = Cloner ? Cloner(src) : src;
         this.cells[i].temperature_ring = r;
       }
     }
@@ -239,19 +251,22 @@ class WallMesh {
     return adj;
   }
 
-  // PROPOSAL-CAVITY-MESH Phase 4 Tranche 2 — per-vertex Laplacian
-  // diffusion over the mesh. For each unique fluid object referenced
-  // by the cells[] array, computes one Laplacian update and applies
-  // it. Tranche 1's aliasing means cells in the same ring share one
-  // FluidChemistry instance — same-ring neighbors contribute zero
-  // (self - self = 0), and the update reduces mathematically to the
-  // legacy ring-Laplacian.
+  // PROPOSAL-CAVITY-MESH Phase 4 Tranche 4a — true per-vertex
+  // Laplacian diffusion over the mesh. Each vertex has its own fluid
+  // (un-aliased in bindRingChemistry); the Laplacian relaxes each
+  // cell toward its mesh neighbors independently.
   //
-  // Deduplication via fluid-object identity ensures each storage
-  // location is updated exactly once per Laplacian step, regardless
-  // of how many cells share it. When Tranche 4 un-aliases cells (one
-  // fluid per vertex), the dedup becomes a no-op and the Laplacian
-  // operates truly per-vertex.
+  // Tranches 1-2 had dedup-by-fluid-identity because aliased cells
+  // shared a fluid object per ring; the dedup recovered legacy ring-
+  // Laplacian behavior. Tranche 4a removes the alias, so every cell
+  // gets its own update — the Laplacian now operates as a true 2D
+  // mesh diffusion over the cavity surface. Same-ring vertices
+  // relax toward each other (and toward adjacent rings), instead of
+  // being locked to a single ring-averaged pool.
+  //
+  // Math: for vertex i with neighbors {j₁, j₂, …}, the update is
+  //   cells[i].fluid[f] += rate * (Σⱼ cells[j].fluid[f] - degree·cells[i].fluid[f]).
+  // Snapshot first so each vertex reads pre-step neighbor values.
   diffuse(rate, fieldNames, ringTemps) {
     if (!(rate > 0)) return;
     if (!this.cells || !this.cells.length) return;
@@ -264,92 +279,86 @@ class WallMesh {
       : 0;
     if (cellsPerRing <= 0) return;
     const adj = this._buildAdjacency(ringCount, cellsPerRing);
-    // Group cells by their fluid-object identity. Each group represents
-    // one unique storage location; we'll compute one update per group
-    // using a representative cell.
-    const representatives = new Map();  // fluid_obj → vertex_idx
+    // Snapshot every cell's pre-step field values so neighbors read
+    // pre-update state. Use a flat Float64Array indexed by
+    // (cellIdx * fieldCount + fieldOffset) for tight inner-loop reads.
+    const F = fieldNames.length;
+    const snap = new Float64Array(this.numInterior * F);
     for (let i = 0; i < this.numInterior; i++) {
       const fluid = this.cells[i].fluid;
       if (!fluid) continue;
-      if (!representatives.has(fluid)) representatives.set(fluid, i);
+      const base = i * F;
+      for (let k = 0; k < F; k++) snap[base + k] = fluid[fieldNames[k]];
     }
-    // Snapshot pre-update field values so each unique fluid's update
-    // reads the pre-step state of its neighbors (otherwise the loop
-    // would be asymmetric — later iterations would see earlier writes).
-    const snapshot = new Map();  // fluid_obj → { fname: value, ... }
-    for (const fluid of representatives.keys()) {
-      const snap: any = {};
-      for (const f of fieldNames) snap[f] = fluid[f];
-      snapshot.set(fluid, snap);
-    }
-    // Compute and apply each unique fluid's Laplacian update.
-    for (const [fluid, i] of representatives) {
+    // Apply Laplacian per-vertex.
+    for (let i = 0; i < this.numInterior; i++) {
+      const fluid = this.cells[i].fluid;
+      if (!fluid) continue;
       const neighbors = adj[i];
-      const selfSnap = snapshot.get(fluid);
-      for (const f of fieldNames) {
+      const degree = neighbors.length;
+      if (degree === 0) continue;
+      const selfBase = i * F;
+      for (let k = 0; k < F; k++) {
         let neighborSum = 0;
-        let degree = 0;
-        for (const j of neighbors) {
-          const nfluid = this.cells[j].fluid;
-          if (!nfluid) continue;
-          const nsnap = snapshot.get(nfluid);
-          neighborSum += nsnap ? nsnap[f] : nfluid[f];
-          degree++;
+        for (let nIdx = 0; nIdx < degree; nIdx++) {
+          neighborSum += snap[neighbors[nIdx] * F + k];
         }
-        if (degree === 0) continue;
-        // Standard Laplacian: rate * (sum_neighbors - degree * self).
-        // Reduces to 1D ring-Laplacian when same-ring neighbors are
-        // aliased to self (same-ring contributions cancel in the sum).
-        fluid[f] = selfSnap[f] + rate * (neighborSum - degree * selfSnap[f]);
+        fluid[fieldNames[k]] = snap[selfBase + k]
+          + rate * (neighborSum - degree * snap[selfBase + k]);
       }
     }
-    // Temperature diffusion — same dedup pattern, separate field.
+    // Temperature stays per-ring for Tranche 4a (each cell carries a
+    // temperature_ring index that points into the sim's
+    // ring_temperatures[] array). Tranche 4b can migrate temperature
+    // to per-vertex storage if a future scenario needs it; the
+    // chemistry side is the load-bearing change for Path C.
     if (ringTemps && ringTemps.length > 0) {
-      const tempReps = new Map();  // ringIdx → first vertex idx
-      for (let i = 0; i < this.numInterior; i++) {
-        const r = this.cells[i].temperature_ring;
-        if (r == null || r < 0) continue;
-        if (!tempReps.has(r)) tempReps.set(r, i);
-      }
-      const tempSnap = ringTemps.slice();
-      for (const [r, i] of tempReps) {
-        const neighbors = adj[i];
-        let neighborSum = 0;
-        let degree = 0;
-        for (const j of neighbors) {
-          const rj = this.cells[j].temperature_ring;
-          if (rj == null) continue;
-          neighborSum += tempSnap[rj];
-          degree++;
-        }
-        if (degree === 0) continue;
-        ringTemps[r] = tempSnap[r] + rate * (neighborSum - degree * tempSnap[r]);
+      const oldT = ringTemps.slice();
+      const n = ringTemps.length;
+      for (let k = 0; k < n; k++) {
+        const kp = k > 0 ? k - 1 : 0;
+        const kn = k < n - 1 ? k + 1 : n - 1;
+        ringTemps[k] = oldT[k] + rate * (oldT[kp] + oldT[kn] - 2 * oldT[k]);
       }
     }
   }
 
-  // PROPOSAL-CAVITY-MESH Phase 4 Tranche 2 — propagate a global
+  // PROPOSAL-CAVITY-MESH Phase 4 Tranche 4a — propagate a global
   // chemistry delta (from an event that mutated conditions.fluid)
-  // to all non-equator cells. The equator vertex is aliased to
-  // conditions.fluid via ring_fluids[equator], so it already
-  // reflects the new value — skip it to avoid double-applying.
+  // to every cell. Post-un-aliasing each cell has its own fluid
+  // object; events that affect "the global broth" need to apply to
+  // every cell (the per-vertex equivalent of "all rings see the
+  // delta"). The equatorFluid skip from Tranche 2 is dropped — no
+  // cell is aliased to conditions.fluid anymore, so all cells take
+  // the delta.
   //
-  // Same dedup-by-fluid-identity pattern as diffuse(). Reduces to
-  // ring-level propagation while cells are aliased.
-  propagateDelta(preFluid, fieldNames, equatorFluid) {
+  // Events still mutate conditions.fluid via the legacy
+  // ring_fluids[equator] === conditions.fluid alias, so conditions.fluid
+  // and ring_fluids[equator] reflect the new value. propagateDelta
+  // then applies the same delta to every cell's independent storage.
+  propagateDelta(preFluid, fieldNames, _equatorFluid) {
     if (!this.cells || !this.cells.length) return;
     if (!preFluid || !fieldNames || !fieldNames.length) return;
-    const seen = new Set();
+    // Pre-compute the per-field delta once; ignore unchanged fields.
+    const deltas: number[] = [];
+    const dirty: number[] = [];
+    for (let k = 0; k < fieldNames.length; k++) {
+      // _equatorFluid is the post-event value (aliased to
+      // conditions.fluid); subtract preFluid to get the delta.
+      const delta = (_equatorFluid ? _equatorFluid[fieldNames[k]] : 0)
+                  - (preFluid ? preFluid[fieldNames[k]] : 0);
+      if (delta !== 0) {
+        deltas.push(delta);
+        dirty.push(k);
+      }
+    }
+    if (!dirty.length) return;
     for (let i = 0; i < this.numInterior; i++) {
       const fluid = this.cells[i].fluid;
       if (!fluid) continue;
-      if (fluid === equatorFluid) continue;  // aliased to conditions.fluid
-      if (seen.has(fluid)) continue;
-      seen.add(fluid);
-      for (const f of fieldNames) {
-        const delta = (equatorFluid ? equatorFluid[f] : 0) - preFluid[f];
-        if (delta === 0) continue;
-        fluid[f] = fluid[f] + delta;
+      for (let d = 0; d < dirty.length; d++) {
+        const fname = fieldNames[dirty[d]];
+        fluid[fname] = fluid[fname] + deltas[d];
       }
     }
   }

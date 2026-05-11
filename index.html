@@ -5404,7 +5404,39 @@ let timeScale = 5.0;
 //        debits cascade into downstream growth — malachite/chrysocolla
 //        in supergene, feldspar in evaporites, etc. The mass-balance
 //        warnings stop firing on the baseline regen.
-const SIM_VERSION = 67;
+//
+//   v68 — Cavity-mesh Path C Tranche 4a (PROPOSAL-CAVITY-MESH §13).
+//        Per-vertex chemistry replaces per-ring chemistry. Each cell on
+//        the cavity mesh now carries an independent FluidChemistry
+//        instance (post-un-aliasing in mesh.bindRingChemistry) and
+//        evolves locally under crystal growth, mesh-edge Laplacian
+//        diffusion, propagated event deltas, and vadose oxidation.
+//
+//        Why now: PROPOSAL-CAVITY-MESH §13 documents the boss directive
+//        to pursue Path C ("foundation based on the science") over Path A
+//        (rename) or Path B (3 named zones). Real cavity walls have
+//        continuous chemistry varying with local fluid flow, drip
+//        points, vent proximity; per-ring storage forced co-ring
+//        crystals to share one pool.
+//
+//        Drift: every scenario. Behavior shifts because crystals no
+//        longer share local Ca/SiO2/etc pools with co-ring siblings.
+//        seed42_v68.json regenerated from gen-js-baseline.mjs; the
+//        per-mineral counts and max-size values shifted from v67
+//        across all 23 scenarios. Direction of shift varies — some
+//        scenarios produce slightly more crystals (each ring is less
+//        depleted locally), others fewer (per-vertex saturation
+//        windows are narrower).
+//
+//        Cross-tranche context: Tranches 1-3 of Phase 4 (commits
+//        93fcc2d, 8ef6a40, 7a5bb75) were byte-identical refactors
+//        that built the cells[] container, the mesh-edge Laplacian,
+//        and the fluid_surface_height_mm canonical name without
+//        changing engine behavior. Tranche 4a is the first behavior-
+//        shifting commit in the Path C sequence; SIM_VERSION bumps
+//        here rather than waiting for the snapshot schema bump in
+//        Tranche 5 (which will become v69 when it lands).
+const SIM_VERSION = 68;
 
 // ── 18-constants.js ──
 
@@ -7948,20 +7980,25 @@ class WallMesh {
         }
         return mesh;
     }
-    // PROPOSAL-CAVITY-MESH Phase 4 Tranche 1 — alias per-vertex
-    // chemistry to the simulator's ring_fluids[] array. Called by
-    // VugSimulator constructor right after ring_fluids is built.
+    // PROPOSAL-CAVITY-MESH Phase 4 Tranche 4a — per-vertex chemistry
+    // becomes the canonical storage. cells[i].fluid is now an
+    // INDEPENDENT clone of ring_fluids[ringIdxOf(i)] at bind time, not
+    // an alias. Each vertex evolves its own chemistry under engine
+    // growth, mesh diffusion, propagated event deltas, and vadose
+    // oxidation.
     //
-    // Aliasing (not cloning): `cells[i].fluid = ringFluids[r]` keeps the
-    // object reference shared, so mutations via cells[i].fluid hit the
-    // same FluidChemistry instance as direct ring_fluids[r] reads. This
-    // is the byte-identical invariant for Tranche 1 — the chemistry
-    // engine sees the same storage whether it reads through the mesh
-    // or through the legacy ring_fluids[] array.
+    // Why un-alias: Path C ("foundation based on the science"). Real
+    // cavity walls have continuous chemistry that varies with local
+    // fluid flow, drip points, vent proximity. Per-ring storage forced
+    // every crystal in the same ring to share one pool — geologically
+    // wrong at the grain of the simulator's resolution. Un-aliasing
+    // gives the simulator the same per-position freedom real cavities
+    // have.
     //
-    // Future tranches (4C / 4D when Laplacian + propagate-delta migrate)
-    // will move to per-vertex cloned fluids and retire ring_fluids[],
-    // but Tranche 1 keeps both routes coherent.
+    // Calibration baseline regenerates: the same seed produces slightly
+    // different output because crystals no longer share local Ca/Si
+    // pools with co-ring siblings. This is the deliberate behavior
+    // shift Tranche 4a's commit documents.
     bindRingChemistry(ringFluids, _ringTemps) {
         if (!ringFluids || !this.cells.length)
             return;
@@ -7969,7 +8006,14 @@ class WallMesh {
             const vertex = this.vertices[i];
             const r = vertex ? vertex.ringIdx : 0;
             if (r >= 0 && r < ringFluids.length) {
-                this.cells[i].fluid = ringFluids[r];
+                // Independent clone — typeof _cloneFluid is global from
+                // js/20-chemistry-fluid.ts. Each cell gets its own
+                // FluidChemistry instance that evolves independently.
+                const src = ringFluids[r];
+                const Cloner = (typeof _cloneFluid !== 'undefined')
+                    ? _cloneFluid
+                    : null;
+                this.cells[i].fluid = Cloner ? Cloner(src) : src;
                 this.cells[i].temperature_ring = r;
             }
         }
@@ -8014,19 +8058,22 @@ class WallMesh {
         this._adjacencyKey = `${ringCount}|${cellsPerRing}`;
         return adj;
     }
-    // PROPOSAL-CAVITY-MESH Phase 4 Tranche 2 — per-vertex Laplacian
-    // diffusion over the mesh. For each unique fluid object referenced
-    // by the cells[] array, computes one Laplacian update and applies
-    // it. Tranche 1's aliasing means cells in the same ring share one
-    // FluidChemistry instance — same-ring neighbors contribute zero
-    // (self - self = 0), and the update reduces mathematically to the
-    // legacy ring-Laplacian.
+    // PROPOSAL-CAVITY-MESH Phase 4 Tranche 4a — true per-vertex
+    // Laplacian diffusion over the mesh. Each vertex has its own fluid
+    // (un-aliased in bindRingChemistry); the Laplacian relaxes each
+    // cell toward its mesh neighbors independently.
     //
-    // Deduplication via fluid-object identity ensures each storage
-    // location is updated exactly once per Laplacian step, regardless
-    // of how many cells share it. When Tranche 4 un-aliases cells (one
-    // fluid per vertex), the dedup becomes a no-op and the Laplacian
-    // operates truly per-vertex.
+    // Tranches 1-2 had dedup-by-fluid-identity because aliased cells
+    // shared a fluid object per ring; the dedup recovered legacy ring-
+    // Laplacian behavior. Tranche 4a removes the alias, so every cell
+    // gets its own update — the Laplacian now operates as a true 2D
+    // mesh diffusion over the cavity surface. Same-ring vertices
+    // relax toward each other (and toward adjacent rings), instead of
+    // being locked to a single ring-averaged pool.
+    //
+    // Math: for vertex i with neighbors {j₁, j₂, …}, the update is
+    //   cells[i].fluid[f] += rate * (Σⱼ cells[j].fluid[f] - degree·cells[i].fluid[f]).
+    // Snapshot first so each vertex reads pre-step neighbor values.
     diffuse(rate, fieldNames, ringTemps) {
         if (!(rate > 0))
             return;
@@ -8043,106 +8090,93 @@ class WallMesh {
         if (cellsPerRing <= 0)
             return;
         const adj = this._buildAdjacency(ringCount, cellsPerRing);
-        // Group cells by their fluid-object identity. Each group represents
-        // one unique storage location; we'll compute one update per group
-        // using a representative cell.
-        const representatives = new Map(); // fluid_obj → vertex_idx
+        // Snapshot every cell's pre-step field values so neighbors read
+        // pre-update state. Use a flat Float64Array indexed by
+        // (cellIdx * fieldCount + fieldOffset) for tight inner-loop reads.
+        const F = fieldNames.length;
+        const snap = new Float64Array(this.numInterior * F);
         for (let i = 0; i < this.numInterior; i++) {
             const fluid = this.cells[i].fluid;
             if (!fluid)
                 continue;
-            if (!representatives.has(fluid))
-                representatives.set(fluid, i);
+            const base = i * F;
+            for (let k = 0; k < F; k++)
+                snap[base + k] = fluid[fieldNames[k]];
         }
-        // Snapshot pre-update field values so each unique fluid's update
-        // reads the pre-step state of its neighbors (otherwise the loop
-        // would be asymmetric — later iterations would see earlier writes).
-        const snapshot = new Map(); // fluid_obj → { fname: value, ... }
-        for (const fluid of representatives.keys()) {
-            const snap = {};
-            for (const f of fieldNames)
-                snap[f] = fluid[f];
-            snapshot.set(fluid, snap);
-        }
-        // Compute and apply each unique fluid's Laplacian update.
-        for (const [fluid, i] of representatives) {
+        // Apply Laplacian per-vertex.
+        for (let i = 0; i < this.numInterior; i++) {
+            const fluid = this.cells[i].fluid;
+            if (!fluid)
+                continue;
             const neighbors = adj[i];
-            const selfSnap = snapshot.get(fluid);
-            for (const f of fieldNames) {
+            const degree = neighbors.length;
+            if (degree === 0)
+                continue;
+            const selfBase = i * F;
+            for (let k = 0; k < F; k++) {
                 let neighborSum = 0;
-                let degree = 0;
-                for (const j of neighbors) {
-                    const nfluid = this.cells[j].fluid;
-                    if (!nfluid)
-                        continue;
-                    const nsnap = snapshot.get(nfluid);
-                    neighborSum += nsnap ? nsnap[f] : nfluid[f];
-                    degree++;
+                for (let nIdx = 0; nIdx < degree; nIdx++) {
+                    neighborSum += snap[neighbors[nIdx] * F + k];
                 }
-                if (degree === 0)
-                    continue;
-                // Standard Laplacian: rate * (sum_neighbors - degree * self).
-                // Reduces to 1D ring-Laplacian when same-ring neighbors are
-                // aliased to self (same-ring contributions cancel in the sum).
-                fluid[f] = selfSnap[f] + rate * (neighborSum - degree * selfSnap[f]);
+                fluid[fieldNames[k]] = snap[selfBase + k]
+                    + rate * (neighborSum - degree * snap[selfBase + k]);
             }
         }
-        // Temperature diffusion — same dedup pattern, separate field.
+        // Temperature stays per-ring for Tranche 4a (each cell carries a
+        // temperature_ring index that points into the sim's
+        // ring_temperatures[] array). Tranche 4b can migrate temperature
+        // to per-vertex storage if a future scenario needs it; the
+        // chemistry side is the load-bearing change for Path C.
         if (ringTemps && ringTemps.length > 0) {
-            const tempReps = new Map(); // ringIdx → first vertex idx
-            for (let i = 0; i < this.numInterior; i++) {
-                const r = this.cells[i].temperature_ring;
-                if (r == null || r < 0)
-                    continue;
-                if (!tempReps.has(r))
-                    tempReps.set(r, i);
-            }
-            const tempSnap = ringTemps.slice();
-            for (const [r, i] of tempReps) {
-                const neighbors = adj[i];
-                let neighborSum = 0;
-                let degree = 0;
-                for (const j of neighbors) {
-                    const rj = this.cells[j].temperature_ring;
-                    if (rj == null)
-                        continue;
-                    neighborSum += tempSnap[rj];
-                    degree++;
-                }
-                if (degree === 0)
-                    continue;
-                ringTemps[r] = tempSnap[r] + rate * (neighborSum - degree * tempSnap[r]);
+            const oldT = ringTemps.slice();
+            const n = ringTemps.length;
+            for (let k = 0; k < n; k++) {
+                const kp = k > 0 ? k - 1 : 0;
+                const kn = k < n - 1 ? k + 1 : n - 1;
+                ringTemps[k] = oldT[k] + rate * (oldT[kp] + oldT[kn] - 2 * oldT[k]);
             }
         }
     }
-    // PROPOSAL-CAVITY-MESH Phase 4 Tranche 2 — propagate a global
+    // PROPOSAL-CAVITY-MESH Phase 4 Tranche 4a — propagate a global
     // chemistry delta (from an event that mutated conditions.fluid)
-    // to all non-equator cells. The equator vertex is aliased to
-    // conditions.fluid via ring_fluids[equator], so it already
-    // reflects the new value — skip it to avoid double-applying.
+    // to every cell. Post-un-aliasing each cell has its own fluid
+    // object; events that affect "the global broth" need to apply to
+    // every cell (the per-vertex equivalent of "all rings see the
+    // delta"). The equatorFluid skip from Tranche 2 is dropped — no
+    // cell is aliased to conditions.fluid anymore, so all cells take
+    // the delta.
     //
-    // Same dedup-by-fluid-identity pattern as diffuse(). Reduces to
-    // ring-level propagation while cells are aliased.
-    propagateDelta(preFluid, fieldNames, equatorFluid) {
+    // Events still mutate conditions.fluid via the legacy
+    // ring_fluids[equator] === conditions.fluid alias, so conditions.fluid
+    // and ring_fluids[equator] reflect the new value. propagateDelta
+    // then applies the same delta to every cell's independent storage.
+    propagateDelta(preFluid, fieldNames, _equatorFluid) {
         if (!this.cells || !this.cells.length)
             return;
         if (!preFluid || !fieldNames || !fieldNames.length)
             return;
-        const seen = new Set();
+        // Pre-compute the per-field delta once; ignore unchanged fields.
+        const deltas = [];
+        const dirty = [];
+        for (let k = 0; k < fieldNames.length; k++) {
+            // _equatorFluid is the post-event value (aliased to
+            // conditions.fluid); subtract preFluid to get the delta.
+            const delta = (_equatorFluid ? _equatorFluid[fieldNames[k]] : 0)
+                - (preFluid ? preFluid[fieldNames[k]] : 0);
+            if (delta !== 0) {
+                deltas.push(delta);
+                dirty.push(k);
+            }
+        }
+        if (!dirty.length)
+            return;
         for (let i = 0; i < this.numInterior; i++) {
             const fluid = this.cells[i].fluid;
             if (!fluid)
                 continue;
-            if (fluid === equatorFluid)
-                continue; // aliased to conditions.fluid
-            if (seen.has(fluid))
-                continue;
-            seen.add(fluid);
-            for (const f of fieldNames) {
-                const delta = (equatorFluid ? equatorFluid[f] : 0) - preFluid[f];
-                if (delta === 0)
-                    continue;
-                fluid[f] = fluid[f] + delta;
+            for (let d = 0; d < dirty.length; d++) {
+                const fname = fieldNames[dirty[d]];
+                fluid[fname] = fluid[fname] + deltas[d];
             }
         }
     }
@@ -20401,6 +20435,15 @@ class VugSimulator {
         // water and pseudomorphs to tincalconite. Mirror of vugg.py.
         {
             const nRings = this.wall_state.ring_count;
+            // PROPOSAL-CAVITY-MESH Phase 4 Tranche 4a — read the crystal's
+            // OWN cell.fluid (per-vertex chemistry) for the dehydration check,
+            // not a shared ring-level pool. Each crystal sees its local
+            // chemistry — if one borax dehydrates at a meniscus cell with
+            // low concentration but its neighbor stays wet, only the dry
+            // one transitions.
+            const _mesh = this.wall_state.meshFor
+                ? this.wall_state.meshFor(this)
+                : null;
             for (const crystal of this.crystals) {
                 if (!DEHYDRATION_TRANSITIONS[crystal.mineral])
                     continue;
@@ -20410,7 +20453,14 @@ class VugSimulator {
                 const ringIdx = anchor ? anchor.ringIdx : null;
                 if (ringIdx == null || ringIdx < 0 || ringIdx >= nRings)
                     continue;
-                const ringFluid = this.ring_fluids[ringIdx];
+                // Prefer the crystal's own cell.fluid (per-vertex chemistry).
+                // Fall back to the ring-level pool only if the mesh isn't built.
+                const cell = (_mesh && _mesh.cellOf)
+                    ? _mesh.cellOf(crystal, this.wall_state)
+                    : null;
+                const ringFluid = (cell && cell.fluid)
+                    ? cell.fluid
+                    : this.ring_fluids[ringIdx];
                 const ringState = this.conditions.ringWaterState(ringIdx, nRings);
                 const Tlocal = this.ring_temperatures[ringIdx];
                 const transition = applyDehydrationTransitions(crystal, ringFluid, ringState, Tlocal, this.step);
@@ -21756,17 +21806,42 @@ Object.assign(VugSimulator.prototype, {
         if (oldSurface !== null && oldSurface !== undefined && newSurface >= oldSurface) {
             return [];
         }
+        // PROPOSAL-CAVITY-MESH Phase 4 Tranche 4a — apply the vadose override
+        // to EVERY cell in a transitioning ring, not just the ring-level
+        // pool. Post-un-aliasing each cell has its own fluid; the
+        // oxidation-+-evaporation-boost has to hit all of them or only
+        // the first vertex of each ring would oxidize while the rest stay
+        // reducing — clearly wrong.
+        const mesh = this.wall_state.meshFor
+            ? this.wall_state.meshFor(this)
+            : null;
+        const cellsPerRing = this.wall_state.cells_per_ring || 0;
         const becameVadose = [];
         for (let r = 0; r < n; r++) {
             const was = VugConditions._classifyWaterState(oldSurface, r, n);
             const now = VugConditions._classifyWaterState(newSurface, r, n);
             if (now === 'vadose' && was !== 'vadose') {
-                const rf = this.ring_fluids[r];
-                if (rf.O2 < 1.8)
-                    rf.O2 = 1.8;
-                rf.S *= 0.3;
-                // v27 evaporative concentration boost (mirror of vugg.py).
-                rf.concentration *= EVAPORATIVE_CONCENTRATION_FACTOR;
+                // Apply oxidation override to every cell in this ring.
+                if (mesh && mesh.cells && cellsPerRing > 0) {
+                    for (let c = 0; c < cellsPerRing; c++) {
+                        const cell = mesh.cells[r * cellsPerRing + c];
+                        if (!cell || !cell.fluid)
+                            continue;
+                        if (cell.fluid.O2 < 1.8)
+                            cell.fluid.O2 = 1.8;
+                        cell.fluid.S *= 0.3;
+                        // v27 evaporative concentration boost (mirror of vugg.py).
+                        cell.fluid.concentration *= EVAPORATIVE_CONCENTRATION_FACTOR;
+                    }
+                }
+                else {
+                    // Fallback (headless tests without a mesh built).
+                    const rf = this.ring_fluids[r];
+                    if (rf.O2 < 1.8)
+                        rf.O2 = 1.8;
+                    rf.S *= 0.3;
+                    rf.concentration *= EVAPORATIVE_CONCENTRATION_FACTOR;
+                }
                 becameVadose.push(r);
             }
         }
