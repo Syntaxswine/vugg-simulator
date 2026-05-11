@@ -84,12 +84,47 @@ function _topoReplayRenderFrame(idx: number) {
 }
 
 // Repaint the bottom-center step overlay text from the active snap.
+// State-aware glyph + suffix so the user can tell at a glance whether
+// the replay is playing, paused mid-history, or has hit the end:
+//   playing       →  ▶ step N / total · ...
+//   paused mid    →  ⏸ step N / total · ...
+//   paused at end →  ⏹ step N / total (end) · ...
+// The end state is the post-auto-pause case from `e9f755a` — without
+// the "(end)" suffix, the overlay reads identical to mid-replay-paused
+// and the user can't tell if they're at the terminal frame.
+//
+// The denominator is the LAST snapshot's sim step, not the history
+// array length. After v67 snapshot decimation (`26b19cd`) those two
+// numbers diverge: a 200-step run keeps ~63 snapshots, so
+// "step 198 / 63" would have read as nonsense ("198 of 63"). Using
+// the last snap's step keeps "N / total-steps-run" as the user's
+// mental model.
 function _topoReplayUpdateOverlay(snap: any, idx: number, total: number) {
   const overlay = document.getElementById('topo-replay-overlay');
   if (!overlay) return;
   const cnd = snap && snap.conditions;
   const stepN = (snap && snap.step != null) ? snap.step : (idx + 1);
-  let line = `▶ replay step ${stepN} / ${total}`;
+  // Resolve the total-steps denominator from the last snapshot of the
+  // current sim's history. Falls back to array length if the history
+  // is unavailable for any reason (defensive — should be rare).
+  let totalSteps = total;
+  const sim = (typeof topoActiveSim === 'function') ? topoActiveSim() : null;
+  const hist = sim && sim.wall_state_history;
+  if (hist && hist.length) {
+    const lastSnap = hist[hist.length - 1];
+    if (lastSnap && lastSnap.step != null) totalSteps = lastSnap.step;
+  }
+  let glyph;
+  let suffix = '';
+  if (_topoPlaybackTimer) {
+    glyph = '▶';
+  } else if (idx >= total - 1) {
+    glyph = '⏹';
+    suffix = ' (end)';
+  } else {
+    glyph = '⏸';
+  }
+  let line = `${glyph} step ${stepN} / ${totalSteps}${suffix}`;
   if (cnd) {
     const tStr = cnd.temperature != null ? `${cnd.temperature.toFixed(0)}°C` : '';
     const phStr = (cnd.fluid && cnd.fluid.pH != null) ? `pH ${cnd.fluid.pH.toFixed(1)}` : '';
@@ -191,6 +226,9 @@ function _topoReplayStartTimer(fromIdx: number) {
       clearInterval(_topoPlaybackTimer);
       _topoPlaybackTimer = null;
       _topoReplaySyncPlayPauseIcon();
+      // Re-run the overlay text now that we're in the "ended" state so
+      // the glyph + (end) suffix appear without a fresh render.
+      _topoReplayUpdateOverlay(_topoReplayActiveSnap, _topoPlaybackIdx, h.length);
       return;
     }
     _topoReplayRenderFrame(_topoPlaybackIdx);
@@ -229,6 +267,11 @@ function topoReplayPlayPause() {
     clearInterval(_topoPlaybackTimer);
     _topoPlaybackTimer = null;
     _topoReplaySyncPlayPauseIcon();
+    // Re-run the overlay so the glyph flips ▶ → ⏸ for the paused state.
+    const sim = topoActiveSim();
+    if (sim && sim.wall_state_history) {
+      _topoReplayUpdateOverlay(_topoReplayActiveSnap, _topoPlaybackIdx, sim.wall_state_history.length);
+    }
     return;
   }
   // Resume from current idx. If at the end, restart from 0.
