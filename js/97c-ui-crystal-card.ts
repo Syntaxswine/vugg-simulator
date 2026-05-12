@@ -6,6 +6,54 @@
 // Phase B18 of PROPOSAL-MODULAR-REFACTOR. Lifted out of
 // 97-ui-fortress.ts.
 
+// Narrative-tempo Phase 5 (2026-05-11): historical-state inventory.
+// When displayLines is walking the simulation lines, callers pass
+// replayStep ≥ 0 to get the inventory frozen at that sim step:
+//   - crystals not yet nucleated are filtered out by the caller;
+//   - zones[] is sliced to entries with step <= replayStep;
+//   - c_length_mm + a_width_mm are derived from the partial growth
+//     (sum of zone thickness_um up to step) using the same habit:a
+//     ratio table renderer uses in _topoHistoricalCrystalSize.
+// When replayStep is undefined, returns the live crystal unchanged.
+// The two callers that want live state (post-render cleanup, Collect
+// button update) just omit the second arg.
+function _inventoryHistoricalView(crystal, replayStep) {
+  if (replayStep == null) return crystal;
+  if (!crystal) return crystal;
+  if (crystal.nucleation_step != null && crystal.nucleation_step > replayStep) return null;
+  const zones = crystal.zones || [];
+  let totalUm = 0;
+  let lastIncluded = -1;
+  for (let k = 0; k < zones.length; k++) {
+    const z = zones[k];
+    if (z && z.step != null && z.step > replayStep) break;
+    if (z) totalUm += z.thickness_um || 0;
+    lastIncluded = k;
+  }
+  if (lastIncluded < 0) return null;
+  // Mirror the habit:a_width ratios in _topoHistoricalCrystalSize
+  // (99i-renderer-three.ts:1326-1332). When habit/a_width drift,
+  // both sites need to move together.
+  const c = totalUm / 1000.0;
+  let a;
+  if (crystal.habit === 'prismatic') a = c * 0.4;
+  else if (crystal.habit === 'tabular') a = c * 1.5;
+  else if (crystal.habit === 'acicular') a = c * 0.15;
+  else if (crystal.habit === 'rhombohedral') a = c * 0.8;
+  else if (crystal.habit === 'snowball') a = c;
+  else a = c * 0.5;
+  // Return a SHALLOW VIEW — same prototype identity, partial growth
+  // numbers, sliced zone list. Crystal-level metadata (mineral, habit,
+  // twin, color, collected status) stays the live value, since none of
+  // those change after nucleation in normal simulator flow.
+  return Object.assign(Object.create(crystal), {
+    c_length_mm: c,
+    a_width_mm: a,
+    total_growth_um: totalUm,
+    zones: zones.slice(0, lastIncluded + 1),
+  });
+}
+
 // Zone-viz Phase 1c: bar-graph thumbnail for Crystal Inventory specimen
 // cards. Falls back to the generic mineral photo/placeholder thumb only
 // when the crystal has zero zones recorded (e.g. legacy serialized
@@ -63,60 +111,101 @@ function crystalThumbHTML(crystal, size) {
 // Shared renderer — builds the crystal row HTML + wires click-for-zones
 // + per-crystal Collect button. `onCollect` takes (index, event) so
 // the caller can route to the right mode's collect helper.
-function renderCrystalRow(crystal, idx, onCollect) {
+//
+// Narrative-tempo Phase 5: optional replayStep freezes the row to the
+// crystal's state at that sim step (partial c_length / a_width / zone
+// count + zone-bar drawn from the sliced zone list). Caller is
+// responsible for filtering out crystals that hadn't nucleated yet
+// (this function won't render anything for those — _inventoryHistoricalView
+// returns null and we bail early).
+function renderCrystalRow(crystal, idx, onCollect, replayStep?: number) {
+  const view = (replayStep != null) ? _inventoryHistoricalView(crystal, replayStep) : crystal;
+  if (!view) return null;
+
   const el = document.createElement('div');
   el.className = 'inv-crystal';
+  // Click-for-zones always reads the LIVE crystal — the user is inspecting
+  // the full history regardless of where the narrative tempo is paused.
   el.onclick = () => showZoneHistory(crystal);
 
   const displayName = crystalDisplayName(crystal);
   const cColor = crystalColor(crystal);
 
   let html = `<div style="display:flex;gap:0.6rem;align-items:flex-start">`;
-  html += crystalThumbHTML(crystal, 56);
+  html += crystalThumbHTML(view, 56);
   html += `<div style="flex:1;min-width:0">`;
   html += `<div class="inv-mineral" style="color:${cColor}">${displayName} #${crystal.crystal_id}</div>`;
-  html += `<div class="inv-size">${crystal.c_length_mm.toFixed(1)} × ${crystal.a_width_mm.toFixed(1)} mm</div>`;
+  html += `<div class="inv-size">${view.c_length_mm.toFixed(1)} × ${view.a_width_mm.toFixed(1)} mm</div>`;
   html += `<div class="inv-habit">${crystal.habit}`;
   if (crystal.dominant_forms.length) html += ` [${crystal.dominant_forms[0]}]`;
   html += `</div>`;
   if (crystal.twinned) html += `<div class="inv-twin">⟁ ${crystal.twin_law}</div>`;
   if (crystal.radiation_damage > 0) html += `<div style="color:#50ff50;font-size:0.65rem">☢️ radiation damage: ${crystal.radiation_damage.toFixed(2)}</div>`;
-  html += `<div style="color:#5a4a30;font-size:0.65rem;margin-top:0.2rem">${crystal.zones.length} zones · tap for history</div>`;
+  html += `<div style="color:#5a4a30;font-size:0.65rem;margin-top:0.2rem">${view.zones.length} zones · tap for history</div>`;
   html += `</div></div>`;
 
-  // Collect button — disabled if already collected this session, or if nothing grew.
+  // Collect button — disabled if already collected this session, or if
+  // nothing grew. During narrative playback (replayStep != null) the
+  // crystal hasn't reached its full size yet, so we suppress the button
+  // until the playback finishes; otherwise a user could "collect" a
+  // 0.1-mm partial specimen and the collection records would be a snapshot
+  // of mid-growth rather than the final mineral.
   const already = !!crystal._collectedRecordId;
   const canCollect = (crystal.total_growth_um || 0) > 0.1 || (crystal.zones || []).length > 0;
-  const btnLabel = already ? '✓ Collected' : '💎 Collect';
-  const btnAttrs = already || !canCollect ? 'disabled' : '';
+  const replayActive = (replayStep != null);
+  const btnLabel = already ? '✓ Collected' : (replayActive ? '… growing' : '💎 Collect');
+  const btnAttrs = (already || !canCollect || replayActive) ? 'disabled' : '';
   const btnTitle = already
     ? 'Already in your collection'
-    : (canCollect ? 'Add to your collection' : 'No growth yet');
+    : (replayActive
+       ? 'Wait until growth finishes to collect'
+       : (canCollect ? 'Add to your collection' : 'No growth yet'));
   html += `<div class="inv-collect-row"><button class="inv-collect-btn" ${btnAttrs} title="${btnTitle}" onclick="${onCollect}(${idx}, event)">${btnLabel}</button></div>`;
   // The Collect button is in .inv-collect-row — we need to swap in handler
   el.innerHTML = html;
   return el;
 }
 
-function updateLegendsInventory(sim) {
+function updateLegendsInventory(sim, replayStep?: number) {
   const col = document.getElementById('legends-inventory-col');
   const panel = document.getElementById('legends-inventory');
   if (!col || !panel || !sim) return;
 
   panel.innerHTML = '<h4>💎 Crystal Inventory</h4>';
 
-  if (!sim.crystals.length) {
+  // Narrative-tempo Phase 5: when displayLines is mid-scroll, filter
+  // out crystals that hadn't nucleated yet at replayStep. Renderer
+  // returns null for not-yet-nucleated crystals, but pre-filtering
+  // saves the per-row work AND lets the "no crystals yet" empty-state
+  // message render correctly while the early steps play.
+  let visible = sim.crystals;
+  if (replayStep != null) {
+    visible = sim.crystals.filter((c: any) =>
+      c && (c.nucleation_step == null || c.nucleation_step <= replayStep)
+    );
+  }
+
+  if (!visible.length) {
     const empty = document.createElement('div');
     empty.className = 'inv-empty';
-    empty.textContent = 'No crystals grew in this simulation.';
+    empty.textContent = (replayStep != null)
+      ? 'No crystals nucleated yet — waiting for first nucleation event.'
+      : 'No crystals grew in this simulation.';
     panel.appendChild(empty);
-    col.style.display = 'none';
+    // Keep the column visible during playback even on zero crystals so
+    // the panel doesn't pop in at the first nucleation — that'd be jarring
+    // visual jump. Hide only when the FINAL state is empty.
+    col.style.display = (replayStep != null) ? '' : 'none';
     return;
   }
 
   col.style.display = '';
-  sim.crystals.forEach((crystal, idx) => {
-    panel.appendChild(renderCrystalRow(crystal, idx, 'collectFromLegends'));
+  visible.forEach((crystal: any) => {
+    // Find the live-array index for the Collect button's onclick. Slicing
+    // visible[] preserves identity, so a lookup is O(visible.length).
+    const liveIdx = sim.crystals.indexOf(crystal);
+    const row = renderCrystalRow(crystal, liveIdx, 'collectFromLegends', replayStep);
+    if (row) panel.appendChild(row);
   });
 }
 

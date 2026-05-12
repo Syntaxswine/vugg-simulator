@@ -1653,12 +1653,24 @@ function _topoSyncCrystalMeshes(state: any, sim: any, wall: any, replayStep?: nu
     // table mirrors 27-geometry-crystal.ts:_update_dimensions but indexed
     // post-token-mapping so multi-word habit strings collapse to the
     // right shape.
-    const C_FLOOR = 2.0;
-    const A_FLOOR = 1.5;
+    //
+    // Narrative-tempo Phase 5 (2026-05-11 boss bug report): during
+    // narrative playback (replayStep != null) the floor was making
+    // crystals look fully grown at step 1 because their 0.01-0.1 mm
+    // historical sizes were floored UP to 2.0 mm — defeating the whole
+    // point of the step-paced replay. During replay we skip the floor,
+    // so crystals genuinely appear small at first and grow naturally as
+    // the step advances. They may still be sub-pixel for the first few
+    // steps; that's the right look (a real cavity looks empty at the
+    // moment of first nucleation too). Live render keeps the floor for
+    // aesthetic readability of tiny mature crystals.
+    const inReplay = (replayStep != null);
+    const C_FLOOR = inReplay ? 0.0 : 2.0;
+    const A_FLOOR = inReplay ? 0.0 : 1.5;
     const targetRatio = _GEOM_TOKEN_RATIO[token] ?? 0.5;
     let cLen = Math.max(C_FLOOR, renderC);
     let aWid = Math.max(A_FLOOR, renderA);
-    const wasFloored = renderC < C_FLOOR || renderA < A_FLOOR;
+    const wasFloored = !inReplay && (renderC < C_FLOOR || renderA < A_FLOOR);
     if (wasFloored) {
       // Re-derive aspect from habit so the floor doesn't squash everything
       // toward 1:1. For tablet-like habits (ratio >= 1) widen aWid; for

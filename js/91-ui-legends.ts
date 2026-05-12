@@ -107,14 +107,15 @@ function runSimulation() {
   if (summaryLines.length) epilogueStartIdx = allLines.length;
   allLines.push(...summaryLines);
 
+
   displayLines(allLines, lineToStep, sim, prologueEndIdx, epilogueStartIdx, undefined, undefined, stepLineCounts);
 
-  // Populate Legends Mode inventory panel
-  updateLegendsInventory(sim);
-
-  // No topoRender(final) here — displayLines now drives the cavity
-  // step-by-step as the narrator scrolls, ending at the live state
-  // via the cleanup path inside displayLines.
+  // No updateLegendsInventory(sim) here — displayLines now seeds the
+  // inventory at the first snapshot's step (so it starts empty / sparsely
+  // populated) and walks it forward at each step-header line. The final
+  // (live) re-paint happens in the displayLines cleanup tail when the
+  // narrative finishes scrolling. Same for topoRender(final): the
+  // cleanup-tail path inside displayLines handles it.
 }
 
 function runRandom() {
@@ -144,8 +145,13 @@ function _insertContinuePrompt(output: any, position: 'prologue' | 'epilogue', o
   pill.setAttribute('tabindex', '0');
   output.appendChild(pill);
   // Focus the pill so screen readers announce it AND keyboard users
-  // can press Enter / Space without an extra click.
-  try { pill.focus(); } catch (_) {}
+  // can press Enter / Space without an extra click. preventScroll:true
+  // stops the browser from auto-scrolling the page to bring the pill
+  // into view — when the output panel sits below the fold, focus()
+  // without that flag yanks the page down ~250 px, which the user
+  // reads as "the page automatically scrolls to the bottom"
+  // (2026-05-11 boss bug report).
+  try { pill.focus({ preventScroll: true } as any); } catch (_) {}
 
   let consumed = false;
   const resume = () => {
@@ -342,6 +348,18 @@ function displayLines(
     const firstSnap = snapByStep.get(stepOrder[0]);
     if (typeof _topoReplayActiveSnap !== 'undefined') _topoReplayActiveSnap = firstSnap;
     topoRender(firstSnap);
+    // Narrative-tempo Phase 5 (2026-05-11 follow-up to boss bug report):
+    // the Crystal Inventory panel was painting all crystals at their
+    // FINAL grown sizes the moment runSimulation finished, even though
+    // the narrative text was still scrolling Step 1. Sync the inventory
+    // to the same step as the cavity so reading + watching land
+    // together. updateLegendsInventory is also called at every step-
+    // header line below + at the cleanup tail. (clearOutput truthiness
+    // is already guaranteed by the outer if at line 341.)
+    if (typeof updateLegendsInventory === 'function'
+        && firstSnap && firstSnap.step != null) {
+      updateLegendsInventory(sim, firstSnap.step);
+    }
   }
 
   // Reverse-flow layout: new events go to the TOP, older content pushes
@@ -420,6 +438,13 @@ function displayLines(
       // the actual final state, ready for replay or further actions.
       if (typeof _topoReplayActiveSnap !== 'undefined') _topoReplayActiveSnap = null;
       if (typeof topoRender === 'function') topoRender();
+      // Narrative-tempo Phase 5: re-paint the inventory at live state
+      // so the Collect buttons re-enable and the final sizes appear.
+      // Only for the Simulation engine (clearOutput=true); Fortress
+      // tracks its own inventory outside this engine.
+      if (clearOutput !== false && sim && typeof updateLegendsInventory === 'function') {
+        updateLegendsInventory(sim);
+      }
       _hideNarrativeSpeedCluster();
       if (typeof onDone === 'function') onDone();
       return;
@@ -467,6 +492,15 @@ function displayLines(
       if (snap) {
         if (typeof _topoReplayActiveSnap !== 'undefined') _topoReplayActiveSnap = snap;
         if (typeof topoRender === 'function') topoRender(snap);
+      }
+      // Narrative-tempo Phase 5: sync the Crystal Inventory to the same
+      // step. clearOutput=false (Fortress) keeps its own accumulating
+      // inventory updated outside this engine, so we gate on that
+      // condition. The inventory updater uses the current step (not the
+      // snapshot's nearest-not-greater step) so it stays in sync with
+      // the line scroll even between decimated snapshots.
+      if (clearOutput !== false && typeof updateLegendsInventory === 'function') {
+        updateLegendsInventory(sim, currentSimStep);
       }
     }
 
