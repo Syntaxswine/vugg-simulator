@@ -100,14 +100,20 @@ class VugConditions {
     this._dol_prev_sigma = sigma;
   }
 
-  // Mo flux effect: when Mo > 20 ppm, high-temperature minerals nucleate
-  // as if temperature were 15% higher. MoO₃ is a classic flux for growing
-  // corundum at lower temperatures — here it broadens what can grow.
+  // effectiveTemperature is now an identity pass-through. The historical
+  // Mo-flux boost (when Mo > 20 ppm: 15% effective-T increase to "flux"
+  // the sulfide T windows) was a SIMULATION ARTIFACT with no geological
+  // basis. Mo does NOT thermodynamically lower the nucleation barrier
+  // for pyrite, chalcopyrite, or galena in natural hydrothermal systems
+  // — the original code's "MoO₃ as a flux for corundum growth" citation
+  // refers to LABORATORY synthetic-crystal-growth technique (Knipovich
+  // / Czochralski flux melt at 1100°C), not natural petrology. In real
+  // porphyry deposits (Climax, Bingham, El Teniente) Mo + Cu + Pb
+  // sulfides coexist because each nucleates in its own T window
+  // independently. Removed in v68 (canonical 5ecbb42). Getter is
+  // preserved as an identity pass-through so call sites that still
+  // read `effectiveTemperature` keep working.
   get effectiveTemperature() {
-    if (this.fluid.Mo > 20) {
-      const boost = 1.0 + 0.15 * Math.min((this.fluid.Mo - 20) / 40, 1.0);
-      return this.temperature * boost;
-    }
     return this.temperature;
   }
 

@@ -35,7 +35,7 @@ function event_deccan_zeolite_stage_ii(c) {
 function event_deccan_zeolite_apophyllite_stage_iii(c) {
   c.fluid.K += 25;
   c.fluid.Ca += 50;
-  c.fluid.SiO2 += 300;
+  c.fluid.SiO2 += 600;  // bumped from 300 to 600 (canonical 5740371) — apophyllite gate needs SiO2 >= 800, and background quartz depletes SiO2 aggressively (v17 silica_equilibrium fix). 600 gives headroom above the gate.
   c.fluid.F += 4;
   c.fluid.pH = 8.8;
   c.temperature = 150;

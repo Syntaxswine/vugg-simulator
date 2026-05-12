@@ -1186,5 +1186,38 @@
 //        shifting commit in the Path C sequence; SIM_VERSION bumps
 //        here rather than waiting for the snapshot schema bump in
 //        Tranche 5 (which will become v69 when it lands).
+//
+//        v68 also carries TWO independent merges from canonical/main
+//        (StonePhilosopher branch, commits 5ecbb42 + 5740371):
+//
+//        (a) Mo-flux removal. The historical 15% effectiveTemperature
+//            boost when Mo > 20 ppm was a simulation artifact — Mo
+//            does NOT thermodynamically lower sulfide nucleation
+//            barriers in natural hydrothermal systems. The cited
+//            "MoO₃ flux for corundum growth" precedent is a LAB
+//            crystal-growth technique (Knipovich / Czochralski flux
+//            melt at 1100°C), not natural petrology. In real porphyry
+//            deposits (Climax, Bingham, El Teniente) Mo + Cu + Pb
+//            sulfides coexist because each nucleates in its own T
+//            window independently. effectiveTemperature() now returns
+//            this.temperature directly. Stale "Mo flux widens T window"
+//            comments at the four call sites in 41-supersat-sulfide.ts
+//            are cleaned up. Drift expected on porphyry / Mo-rich
+//            scenarios (mvt, supergene, ouro_preto).
+//
+//        (b) Deccan Stage III SiO₂ pulse +300 → +600. The apophyllite
+//            supersaturation gate is SiO2 >= 800 (39-supersat-silicate
+//            .ts:51); after the v17 silica_equilibrium fix, background
+//            quartz draws SiO2 down toward the per-T equilibrium
+//            (~100 ppm at 130°C), so the old +300 pulse couldn't clear
+//            the gate. +600 gives headroom. Per Ottens et al. 2019
+//            this is the canonical Stage III chemistry of Nashik-style
+//            "bloody apophyllite" Deccan vesicles. expects_species for
+//            deccan_zeolite now declares apophyllite alongside hematite
+//            + quartz.
+//
+//        See tests-js/boss-edits-audit.test.ts for the regression
+//        contracts that pin both (a) and (b) — Mo-independence of
+//        sulfide T windows + apophyllite gate clearance.
 const SIM_VERSION = 68;
 

@@ -49,7 +49,10 @@ Object.assign(VugConditions.prototype, {
   if (this.fluid.Fe < 5 || this.fluid.S < 10) return 0;
   if (!sulfideRedoxAnoxic(this.fluid, 1.5)) return 0;
   const product = (this.fluid.Fe / 50.0) * (this.fluid.S / 80.0);
-  const eT = this.effectiveTemperature; // Mo flux widens T window
+  // v68: effectiveTemperature is now an identity pass-through after the
+  // Mo-flux artifact was removed (canonical 5ecbb42). Kept for forward
+  // compat with the Python mirror.
+  const eT = this.effectiveTemperature;
   const T_factor = (100 < eT && eT < 400) ? 1.0 : 0.5;
   // pH rolloff below 5 — marcasite (orthorhombic FeS2) wins in acid
   let pH_factor = 1.0;
@@ -75,7 +78,8 @@ Object.assign(VugConditions.prototype, {
   if (this.fluid.Cu < 10 || this.fluid.Fe < 5 || this.fluid.S < 15) return 0;
   if (!sulfideRedoxAnoxic(this.fluid, 1.5)) return 0;
   const product = (this.fluid.Cu / 80.0) * (this.fluid.Fe / 50.0) * (this.fluid.S / 80.0);
-  const eT = this.effectiveTemperature; // Mo flux widens T window
+  // v68: effectiveTemperature is identity after Mo-flux removal (5ecbb42).
+  const eT = this.effectiveTemperature;
   // Chalcopyrite: main porphyry window 300-500°C, ~90% deposits before 400°C (Seo et al. 2012)
   // Can form at lower T (200-300°C) but less efficiently. Rare below 180°C.
   let T_factor;
@@ -93,7 +97,9 @@ Object.assign(VugConditions.prototype, {
   if (this.fluid.Pb < 5 || this.fluid.S < 10) return 0;
   if (!sulfideRedoxAnoxic(this.fluid, 1.5)) return 0;  // sulfides can't survive oxidation
   let sigma = (this.fluid.Pb / 50.0) * (this.fluid.S / 80.0) * sulfideRedoxLinearFactor(this.fluid, 1.5);
-  // v17: Mo-flux applied throughout via effectiveTemperature (matches Python).
+  // v68: effectiveTemperature is identity after Mo-flux removal (5ecbb42).
+  // Pre-v68 the Mo-flux widened the galena T window; that was a
+  // simulation artifact with no geological basis.
   const eT = this.effectiveTemperature;
   if (eT >= 200 && eT <= 400) sigma *= 1.3;
   if (eT > 450) sigma *= Math.exp(-0.008 * (eT - 450));
@@ -112,7 +118,7 @@ Object.assign(VugConditions.prototype, {
   if (this.fluid.Mo < 3 || this.fluid.S < 10) return 0;
   if (!sulfideRedoxAnoxic(this.fluid, 1.2)) return 0;  // sulfide, needs reducing
   let sigma = (this.fluid.Mo / 15.0) * (this.fluid.S / 60.0) * sulfideRedoxLinearFactor(this.fluid, 1.5);
-  // v17: use effectiveTemperature throughout for Mo-flux widening (matches Python).
+  // v68: effectiveTemperature is identity after Mo-flux removal (5ecbb42).
   const eT = this.effectiveTemperature;
   if (eT < 150) {
     sigma *= Math.exp(-0.01 * (150 - eT));

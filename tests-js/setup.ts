@@ -205,6 +205,7 @@ const EXPORTS = [
   'WallMesh',
   'Crystal',
   'GrowthZone',
+  'EVENT_REGISTRY',
   'rng',
   'setSeed',
   'ORIENTATION_PREFERENCE',
