@@ -1219,5 +1219,39 @@
 //        See tests-js/boss-edits-audit.test.ts for the regression
 //        contracts that pin both (a) and (b) — Mo-independence of
 //        sulfide T windows + apophyllite gate clearance.
-const SIM_VERSION = 68;
+//
+//   v69 — True 3D sphere-union cavity geometry (2026-05-11 boss spec).
+//        WallState._buildProfile3D replaces _buildProfile as the
+//        active cavity builder. Stage 1 = one primary sphere at
+//        origin (radius R). Stage 2 = primary_bubbles secondaries
+//        placed at random 3D points on the primary's surface, radius
+//        [R/3, 2R/3]. Stage 3 = secondary_bubbles tertiaries on any
+//        existing sphere's surface (host weighted by surface area),
+//        radius [0.08R, 0.12R]. Each (ring, cell) raycasts its own
+//        spherical direction into the sphere union for a unique
+//        per-vertex base_radius_mm.
+//
+//        Why: pre-v69 _buildProfile generated 2D circles in the
+//        equatorial plane, sampled the union at N theta angles, and
+//        duplicated the same rawRadii[c] across every ring. Looking
+//        down the pole-axis, all the lobes converged at the same
+//        angular positions, producing the "laundry-bag silhouette
+//        with everything meeting at one central point" the boss
+//        flagged. 3D sphere-union math lets secondary bumps live at
+//        arbitrary 3D directions, eliminating the vertical-column
+//        artifact.
+//
+//        Polar Fourier + ring twist amplitudes are zeroed out in
+//        v69 because the 3D base geometry already encodes per-cell
+//        irregularity. polar_collapse (basin archetype sigmoid)
+//        still applies on top.
+//
+//        Drift: cavity profile in every scenario shifts (different
+//        wall radii per cell). Crystal nucleation positions and
+//        habit-bias evaluation depend on cavity geometry, so
+//        per-mineral counts and max sizes shift across the
+//        seed42_v69.json calibration baseline. shape_seed still
+//        controls reproducibility — same (scenario, seed) → same
+//        sphere placements forever.
+const SIM_VERSION = 69;
 

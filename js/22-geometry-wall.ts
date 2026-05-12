@@ -269,6 +269,10 @@ const ARCHETYPE_DEFAULTS: Record<Archetype, ArchetypeConfig> = {
 
 // Raycast the bubble union at angle theta, honouring origin
 // connectivity. Returns the outer wall distance from origin.
+// LEGACY 2D — retained for the equatorial-only renderer code paths
+// (99e canvas-vector 3D, 99b 2D-strip) that still want a single per-
+// theta sample. Active cavity builder (_buildProfile3D) raycasts the
+// 3D sphere union per (ring, cell).
 function _raycastUnion(bubbles, theta) {
   const cosT = Math.cos(theta), sinT = Math.sin(theta);
   const intervals = [];
@@ -276,6 +280,41 @@ function _raycastUnion(bubbles, theta) {
     const b = cx * cosT + cy * sinT;
     const c = cx * cx + cy * cy - r * r;
     const disc = b * b - c;
+    if (disc < 0) continue;
+    const rt = Math.sqrt(disc);
+    const tExit = b + rt;
+    if (tExit <= 0) continue;
+    intervals.push([Math.max(0, b - rt), tExit]);
+  }
+  if (!intervals.length) return 0;
+  intervals.sort((a, b) => a[0] - b[0]);
+  let wall = intervals[0][1];
+  for (let j = 1; j < intervals.length; j++) {
+    const [s, e] = intervals[j];
+    if (s <= wall) { if (e > wall) wall = e; }
+    else break;
+  }
+  return wall;
+}
+
+// 3D analogue of _raycastUnion — ray from origin along the unit vector
+// (dx, dy, dz) hits the union of input spheres. Each sphere is
+// [cx, cy, cz, r]. Returns the outer-wall distance from origin via the
+// same "merge contiguous intervals from t=0" algorithm the 2D version
+// uses; spheres disconnected from origin are skipped so a cavity stays
+// one connected void rather than scattered chambers.
+//
+// Math: for a sphere with center C and radius r, the ray O + t·d hits
+// the sphere at t = (d·C) ± sqrt((d·C)² − (|C|² − r²)). The − root is
+// the entry, + root is the exit. (We assume |d| = 1 by construction —
+// see _buildProfile3D where the direction is built from spherical
+// coords.)
+function _raycastUnion3D(spheres, dx, dy, dz) {
+  const intervals = [];
+  for (const [cx, cy, cz, r] of spheres) {
+    const b = dx * cx + dy * cy + dz * cz;
+    const cdotc = cx * cx + cy * cy + cz * cz;
+    const disc = b * b - (cdotc - r * r);
     if (disc < 0) continue;
     const rt = Math.sqrt(disc);
     const tExit = b + rt;
@@ -346,12 +385,30 @@ class WallState {
       for (let c = 0; c < this.cells_per_ring; c++) ring.push(new WallCell());
       this.rings.push(ring);
     }
-    // Bake per-cell base_radius_mm from the bubble-merge profile. Must
-    // happen before max_seen_radius_mm is seeded so promontories
-    // contribute.
-    this._buildProfile();
+    // Bake per-cell base_radius_mm from the 3D sphere-union profile.
+    // Must happen before max_seen_radius_mm is seeded so promontories
+    // contribute. _buildProfile3D writes a UNIQUE radius per (ring,
+    // cell) because each cell raycasts a different 3D direction
+    // through the union; the legacy 2D _buildProfile (still defined
+    // below) duplicated one rawRadii[c] across every ring and viewed
+    // from the pole-axis produced "all the expanded areas meet in one
+    // central point" — the laundry-bag silhouette the boss spotted
+    // 2026-05-11. _buildProfile3D fixes that by sampling per (ring,
+    // cell), so secondary bumps live at random 3D points rather than
+    // extruded vertical columns.
+    this._buildProfile3D();
     this._buildPolarProfile();
     this._buildTwistProfile();
+    // 3D builder already encodes the full per-cell variation in
+    // base_radius_mm; the Fourier polar amplitudes + ring twist were
+    // the workaround for the 2D-extruded geometry. Zero them out so
+    // the renderer's polarProfileFactor(phi) returns 1.0 (no
+    // modulation) and ringTwistRadians(phi) returns 0.0 (no spiral).
+    // polar_collapse stays untouched — basin archetype's sigmoid top-
+    // hemisphere pinch is a separate mechanic that still applies on
+    // top of the 3D base profile.
+    for (let n = 0; n < this.polar_amplitudes.length; n++) this.polar_amplitudes[n] = 0;
+    for (let n = 0; n < this.twist_amplitudes.length; n++) this.twist_amplitudes[n] = 0;
 
     // Monotonic scale reference for the renderer. Starts generously
     // (2× the largest base radius — or 2× initial_radius_mm for a
@@ -364,16 +421,185 @@ class WallState {
     this.max_seen_radius_mm = maxBase * 2;
   }
 
-  // Phase 1: compute per-cell base_radius_mm via two-stage bubble
-  // merging. Stage 1 places a few large bubbles near origin forming
-  // the main cavity; stage 2 places smaller bubbles on the primary
-  // union's outer edge (satellite alcoves eaten from the wall by
-  // percolating fluids). Sample the full union at each cell angle,
-  // then rescale mean to nominal.
+  // 2026-05-11 — true 3D sphere-union cavity geometry. Replaces the
+  // legacy 2D bubble-merge (_buildProfile) for the production cavity
+  // path. The 2D version is retained below for any renderer or test
+  // that still wants per-theta-only samples.
   //
-  // Mirrors WallState._build_profile in vugg.py. Backward compatible:
-  // primary_bubbles=1, secondary_bubbles=0 rescales to a perfect
-  // circle.
+  // Geometry per boss spec (2026-05-11):
+  //
+  //   Stage 1 — Primary: one large central sphere at origin with
+  //             radius = initial_radius_mm. Establishes the main cavity
+  //             and guarantees origin coverage.
+  //
+  //   Stage 2 — Secondaries: `primary_bubbles` smaller spheres, each
+  //             centered at a random point on the primary's outer
+  //             surface (i.e., a random unit-vector direction × R).
+  //             Radius uniform in [R/3, 2R/3] per the boss's "2/3 to
+  //             1/3 the diameter of the original sphere" sizing. Each
+  //             secondary's interior overlaps the primary (the half-
+  //             sphere reaching INTO the primary harmlessly merges
+  //             via the union; the half reaching OUT becomes a bump
+  //             on the cavity wall).
+  //
+  //   Stage 3 — Tertiaries: `secondary_bubbles` very small spheres,
+  //             each centered on the surface of a randomly-picked
+  //             host (primary or any secondary, weighted by surface
+  //             area). Radius uniform in [0.08R, 0.12R] — the
+  //             "~1/10 the original sphere size" the boss specified.
+  //             Adds the fine-grained dimpling on top of the
+  //             coarse bumps.
+  //
+  // For each (ring, cell), raycast from origin along the spherical
+  // direction (sin φ cos θ, −cos φ, sin φ sin θ) — matching WallMesh's
+  // convention with south at −y, north at +y — into the sphere union.
+  // The 3D version gives a TRULY per-vertex cavity profile; the 2D
+  // version duplicated rawRadii[c] across every ring, so seen from the
+  // pole-axis the lobes converged at the same theta on every latitude
+  // (the "laundry bag" silhouette).
+  //
+  // Reproducibility: the entire sphere set is generated from
+  // shape_seed via _mulberry32, so a given (scenario, shape_seed)
+  // produces byte-identical sphere placements forever — the boss's
+  // "all these random variations should be repeatable as unique
+  // seeds" contract.
+  _buildProfile3D() {
+    const rng = _mulberry32(this.shape_seed | 0);
+    const R = this.initial_radius_mm;
+    const N = this.cells_per_ring;
+    const M = this.ring_count;
+
+    // ---- Helpers ----
+    // Uniform random direction on the unit sphere. The (u, theta)
+    // trick: u uniform in [-1, 1] gives uniform cos-latitude, theta
+    // uniform in [0, 2π] gives uniform longitude → uniform on S².
+    const randDir = () => {
+      const u = 2 * rng() - 1;
+      const t = 2 * Math.PI * rng();
+      const s = Math.sqrt(Math.max(0, 1 - u * u));
+      return [s * Math.cos(t), u, s * Math.sin(t)];
+    };
+
+    // ---- Stage 1: primary sphere at origin ----
+    const spheres: number[][] = [[0, 0, 0, R]];
+
+    // ---- Stage 2: secondaries on primary surface ----
+    // Each secondary is placed at a random surface point of the
+    // primary (origin + randDir × R) and gets radius R × [1/3, 2/3].
+    const secCount = Math.max(0, this.primary_bubbles | 0);
+    for (let k = 0; k < secCount; k++) {
+      const [dx, dy, dz] = randDir();
+      const cx = dx * R;
+      const cy = dy * R;
+      const cz = dz * R;
+      const r = R * (1.0 / 3.0 + (1.0 / 3.0) * rng());
+      spheres.push([cx, cy, cz, r]);
+    }
+
+    // ---- Stage 3: tertiaries on any existing sphere's surface ----
+    // Pick a host weighted by surface area (∝ r²) so larger bumps
+    // attract more dimples — geologically motivated (more surface =
+    // more nucleation sites for late-stage dissolution).
+    const pickHost = (): number[] => {
+      let total = 0;
+      for (const sp of spheres) total += sp[3] * sp[3];
+      let pick = rng() * total;
+      for (const sp of spheres) {
+        pick -= sp[3] * sp[3];
+        if (pick <= 0) return sp;
+      }
+      return spheres[spheres.length - 1];
+    };
+    const tertCount = Math.max(0, this.secondary_bubbles | 0);
+    for (let k = 0; k < tertCount; k++) {
+      const host = pickHost();
+      const [dx, dy, dz] = randDir();
+      const cx = host[0] + dx * host[3];
+      const cy = host[1] + dy * host[3];
+      const cz = host[2] + dz * host[3];
+      // Uniform in [0.08, 0.12] × R for the small-dimple band.
+      const r = R * (0.08 + 0.04 * rng());
+      spheres.push([cx, cy, cz, r]);
+    }
+
+    // ---- Per (ring, cell) raycast ----
+    // The raw radius at each cell is the union-wall distance from
+    // origin in the cell's spherical direction. Cells that miss the
+    // union (shouldn't happen given the primary always covers origin)
+    // fall back to R.
+    const rawRadii = new Float32Array(M * N);
+    let sumRaw = 0;
+    for (let r = 0; r < M; r++) {
+      const phi = Math.PI * (r + 0.5) / M;
+      const sinPhi = Math.sin(phi);
+      const cosPhi = Math.cos(phi);
+      for (let c = 0; c < N; c++) {
+        const theta = 2 * Math.PI * c / N;
+        const dx = sinPhi * Math.cos(theta);
+        const dy = -cosPhi;
+        const dz = sinPhi * Math.sin(theta);
+        const w = _raycastUnion3D(spheres, dx, dy, dz);
+        const radius = w > 0 ? w : R;
+        rawRadii[r * N + c] = radius;
+        sumRaw += radius;
+      }
+    }
+
+    // ---- Anisotropic stretch (elongation, tabular archetype) ----
+    // Same per-cell stretch the 2D builder applied, but here it acts
+    // on the equatorial plane only (theta direction). Floor sphere
+    // is still untouched in y — that's the right behavior for a
+    // "tabular fracture pocket viewed end-on."
+    const elong = Math.max(0, Math.min(0.85, this.elongation ?? 0));
+    if (elong > 0) {
+      sumRaw = 0;
+      for (let r = 0; r < M; r++) {
+        for (let c = 0; c < N; c++) {
+          const theta = 2 * Math.PI * c / N;
+          const stretched = rawRadii[r * N + c] * (1 + elong * Math.cos(2 * theta));
+          rawRadii[r * N + c] = stretched;
+          sumRaw += stretched;
+        }
+      }
+    }
+
+    // ---- Rescale to nominal mean radius == initial_radius_mm ----
+    // The sphere union typically has mean radius > R (bumps stick
+    // out), so we shrink uniformly so the user-specified vug_diameter
+    // still describes the average cavity size. Same trick the 2D
+    // builder uses.
+    const totalCells = M * N;
+    const meanRaw = totalCells > 0 ? sumRaw / totalCells : R;
+    const scale = meanRaw > 1e-6 ? R / meanRaw : 1.0;
+
+    // Store the rescaled sphere set so debugging / future renderer
+    // modes (sharp-edge wireframe, sphere overlay) can inspect it.
+    this.bubbles = spheres.map(([cx, cy, cz, r]) => [cx * scale, cy * scale, cz * scale, r * scale]);
+
+    // Write the per-cell base_radius. With the 3D builder these are
+    // GENUINELY DIFFERENT per (r, c) — that's the fix.
+    for (let r = 0; r < M; r++) {
+      const ring = this.rings[r];
+      for (let c = 0; c < N; c++) {
+        ring[c].base_radius_mm = rawRadii[r * N + c] * scale;
+      }
+    }
+  }
+
+  // Legacy 2D bubble-merge profile builder. Retained for reference and
+  // for any future code path that wants a single per-theta sample
+  // (e.g., the 2D-strip renderer 99b never needed per-(r,c) detail).
+  // The active constructor calls _buildProfile3D — see above.
+  //
+  // Pre-2026-05-11 _buildProfile was the production cavity builder:
+  // it generates 2D circles in the equatorial plane, samples the
+  // union at each cell theta, and duplicates the same N-length
+  // rawRadii[] across every ring. That extrusion-from-2D is the
+  // "laundry bag" artifact: lobes at theta_k stack VERTICALLY because
+  // every ring has rawRadii[k] at the same theta_k. Looking down the
+  // pole axis (top-down view), all the bumps converge at the same
+  // angular positions — pinching into a single central point at the
+  // pole.
   _buildProfile() {
     const rng = _mulberry32(this.shape_seed | 0);
     const R = this.initial_radius_mm;
