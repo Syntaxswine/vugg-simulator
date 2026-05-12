@@ -300,11 +300,22 @@ function _buildScenarioFromSpec(scenarioId, spec) {
       throw new Error(`scenarios.json5 scenario '${scenarioId}' references unknown event type '${ev.type}' — register it in EVENT_REGISTRY (index.html) + the Python mirror (vugg.py).`);
     }
   }
-  const scenarioCallable = function scenarioCallable() {
+  const scenarioCallable = function scenarioCallable(overrides: any = {}) {
+    // Per-run overrides let the UI inject a user-supplied shape_seed
+    // (cavity-geometry RNG) without touching the scenario's authored
+    // chemistry / events. Boss directive 2026-05-11: cavity shape and
+    // crystal growth are independently seeded — locking one and
+    // varying the other is part of the play loop. overrides.wall is
+    // shallow-merged on top of the scenario's authored wallKwargs so
+    // an explicit shape_seed wins, but every other wall field
+    // (architecture, primary_bubbles, etc.) stays as the scenario
+    // declared it.
+    const wallOverride = overrides && overrides.wall ? overrides.wall : null;
+    const mergedWall = wallOverride ? { ...wallKwargs, ...wallOverride } : wallKwargs;
     const conditions = new VugConditions({
       temperature, pressure,
       fluid: new FluidChemistry(fluidKwargs),
-      wall: new VugWall(wallKwargs),
+      wall: new VugWall(mergedWall),
     });
     // JS events are plain objects (no Event class on the JS side; the
     // global DOM Event would shadow it). Match the {step,name,description,

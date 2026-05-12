@@ -42,11 +42,27 @@ function runSimulation() {
   const scenarioName = document.getElementById('scenario').value;
   const seedInput = document.getElementById('seed').value;
   const stepsInput = document.getElementById('steps').value;
+  // Boss directive 2026-05-11: cavity shape and crystal growth are
+  // independently seeded so the player can lock one and vary the
+  // other. The 'shape-seed' input (optional, separate UI field)
+  // overrides the scenario's authored shape_seed when set; left
+  // blank, the scenario's own shape_seed wins (so authored
+  // localities — e.g. shape_seed=58 for Naica = 58°C — keep their
+  // canonical cavities).
+  const shapeSeedEl = document.getElementById('shape-seed') as HTMLInputElement | null;
+  const shapeSeedInput = shapeSeedEl ? shapeSeedEl.value : '';
 
   const seed = seedInput ? parseInt(seedInput, 10) : Math.floor(Math.random() * 2147483647);
   rng = new SeededRandom(seed);
 
-  const { conditions, events, defaultSteps } = SCENARIOS[scenarioName]();
+  const scenarioOverrides: any = {};
+  if (shapeSeedInput) {
+    const parsedShape = parseInt(shapeSeedInput, 10);
+    if (Number.isFinite(parsedShape)) {
+      scenarioOverrides.wall = { shape_seed: parsedShape };
+    }
+  }
+  const { conditions, events, defaultSteps } = SCENARIOS[scenarioName](scenarioOverrides);
   const parsedSteps = stepsInput ? parseInt(stepsInput, 10) : NaN;
   const totalSteps = (parsedSteps && parsedSteps > 0) ? parsedSteps : defaultSteps;
 
@@ -123,8 +139,15 @@ function runRandom() {
   const pick = scenarios[Math.floor(Math.random() * scenarios.length)];
   document.getElementById('scenario').value = pick;
   const seed = Math.floor(Math.random() * 2147483647);
-  document.getElementById('seed').value = seed;
-  document.getElementById('steps').value = '';
+  (document.getElementById('seed') as HTMLInputElement).value = String(seed);
+  // Boss directive 2026-05-11: cavity-shape seed is independent.
+  // Random run randomizes BOTH seeds — same scenario, fresh cavity
+  // shape AND fresh crystal growth. Locking one and re-rolling the
+  // other is what the per-input typed values are for.
+  const shapeSeed = Math.floor(Math.random() * 2147483647);
+  const shapeSeedEl = document.getElementById('shape-seed') as HTMLInputElement | null;
+  if (shapeSeedEl) shapeSeedEl.value = String(shapeSeed);
+  (document.getElementById('steps') as HTMLInputElement).value = '';
   document.getElementById('steps').setAttribute('value', '');
   runSimulation();
 }

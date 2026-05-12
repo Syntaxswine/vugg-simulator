@@ -2760,8 +2760,12 @@ footer a:hover {
     </select>
   </div>
   <div class="control-group">
-    <label for="seed">Seed (optional)</label>
-    <input type="number" id="seed" placeholder="random" style="width:140px">
+    <label for="seed">Growth Seed (optional)</label>
+    <input type="number" id="seed" placeholder="random" style="width:140px" title="Seeds crystal nucleation positions, growth randomness, and per-step RNG. Independent of the Shape Seed.">
+  </div>
+  <div class="control-group">
+    <label for="shape-seed">Shape Seed (optional)</label>
+    <input type="number" id="shape-seed" placeholder="scenario default" style="width:140px" title="Seeds the cavity's 3D sphere-union geometry (primary + secondaries + tertiaries). Independent of Growth Seed — lock one and vary the other to compare crystal growth in different shapes, or the same shape with different chemistry.">
   </div>
   <div class="control-group">
     <label for="steps">Time Steps (optional)</label>
@@ -18742,11 +18746,22 @@ function _buildScenarioFromSpec(scenarioId, spec) {
             throw new Error(`scenarios.json5 scenario '${scenarioId}' references unknown event type '${ev.type}' — register it in EVENT_REGISTRY (index.html) + the Python mirror (vugg.py).`);
         }
     }
-    const scenarioCallable = function scenarioCallable() {
+    const scenarioCallable = function scenarioCallable(overrides = {}) {
+        // Per-run overrides let the UI inject a user-supplied shape_seed
+        // (cavity-geometry RNG) without touching the scenario's authored
+        // chemistry / events. Boss directive 2026-05-11: cavity shape and
+        // crystal growth are independently seeded — locking one and
+        // varying the other is part of the play loop. overrides.wall is
+        // shallow-merged on top of the scenario's authored wallKwargs so
+        // an explicit shape_seed wins, but every other wall field
+        // (architecture, primary_bubbles, etc.) stays as the scenario
+        // declared it.
+        const wallOverride = overrides && overrides.wall ? overrides.wall : null;
+        const mergedWall = wallOverride ? { ...wallKwargs, ...wallOverride } : wallKwargs;
         const conditions = new VugConditions({
             temperature, pressure,
             fluid: new FluidChemistry(fluidKwargs),
-            wall: new VugWall(wallKwargs),
+            wall: new VugWall(mergedWall),
         });
         // JS events are plain objects (no Event class on the JS side; the
         // global DOM Event would shadow it). Match the {step,name,description,
@@ -24289,9 +24304,25 @@ function runSimulation() {
     const scenarioName = document.getElementById('scenario').value;
     const seedInput = document.getElementById('seed').value;
     const stepsInput = document.getElementById('steps').value;
+    // Boss directive 2026-05-11: cavity shape and crystal growth are
+    // independently seeded so the player can lock one and vary the
+    // other. The 'shape-seed' input (optional, separate UI field)
+    // overrides the scenario's authored shape_seed when set; left
+    // blank, the scenario's own shape_seed wins (so authored
+    // localities — e.g. shape_seed=58 for Naica = 58°C — keep their
+    // canonical cavities).
+    const shapeSeedEl = document.getElementById('shape-seed');
+    const shapeSeedInput = shapeSeedEl ? shapeSeedEl.value : '';
     const seed = seedInput ? parseInt(seedInput, 10) : Math.floor(Math.random() * 2147483647);
     rng = new SeededRandom(seed);
-    const { conditions, events, defaultSteps } = SCENARIOS[scenarioName]();
+    const scenarioOverrides = {};
+    if (shapeSeedInput) {
+        const parsedShape = parseInt(shapeSeedInput, 10);
+        if (Number.isFinite(parsedShape)) {
+            scenarioOverrides.wall = { shape_seed: parsedShape };
+        }
+    }
+    const { conditions, events, defaultSteps } = SCENARIOS[scenarioName](scenarioOverrides);
     const parsedSteps = stepsInput ? parseInt(stepsInput, 10) : NaN;
     const totalSteps = (parsedSteps && parsedSteps > 0) ? parsedSteps : defaultSteps;
     const allLines = [];
@@ -24362,7 +24393,15 @@ function runRandom() {
     const pick = scenarios[Math.floor(Math.random() * scenarios.length)];
     document.getElementById('scenario').value = pick;
     const seed = Math.floor(Math.random() * 2147483647);
-    document.getElementById('seed').value = seed;
+    document.getElementById('seed').value = String(seed);
+    // Boss directive 2026-05-11: cavity-shape seed is independent.
+    // Random run randomizes BOTH seeds — same scenario, fresh cavity
+    // shape AND fresh crystal growth. Locking one and re-rolling the
+    // other is what the per-input typed values are for.
+    const shapeSeed = Math.floor(Math.random() * 2147483647);
+    const shapeSeedEl = document.getElementById('shape-seed');
+    if (shapeSeedEl)
+        shapeSeedEl.value = String(shapeSeed);
     document.getElementById('steps').value = '';
     document.getElementById('steps').setAttribute('value', '');
     runSimulation();
