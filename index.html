@@ -24822,27 +24822,43 @@ function displayLines(lines, lineToStep, sim, prologueEndIdx = -1, epilogueStart
             ? _topoPlaybackSpeed : 1.0;
         return Math.max(4, Math.round(baseMs / speed));
     };
-    // Sticky autoscroll (2026-05-12 boss bug report): pre-fix, every
-    // addLine() unconditionally did `output.scrollTop = 0` after the
-    // appendChild. In a column-reverse panel that means "snap to newest
-    // visible at top." The intent was to keep the live ticker in view,
-    // but it made scrolling UP to re-read history impossible — any
-    // attempt to scroll away got yanked back by the next line append.
+    // Sticky autoscroll (2026-05-12 boss bug report v2): originally I
+    // assumed scrollTop=0 was the "newest visible at top" position in
+    // a column-reverse panel. EMPIRICALLY WRONG in Chromium:
     //
-    // The pattern: capture wasAtLive BEFORE the appendChild (so we see
-    // the user's intent in the pre-mutation scrollTop), then only snap
-    // back to 0 if they were already there. Tolerance of 24 px allows
-    // the natural pixel jitter at the top edge without considering it
-    // "user has scrolled away." When the user is at the live edge
-    // (wasAtLive=true) the snap fires and they keep seeing newest;
-    // when they've scrolled down to read history (wasAtLive=false),
-    // browser scroll-anchoring keeps their position stable as content
-    // appends at the visual top, and we leave them there.
+    //   scrollTop = 0
+    //     → viewport at the BOTTOM of the layout
+    //     → in column-reverse that's where the FIRST DOM child sits,
+    //       i.e. the OLDEST line (welcome / title)
+    //
+    //   scrollTop = -(scrollHeight - clientHeight)
+    //     → viewport at the TOP of the layout
+    //     → where the LAST DOM child sits, i.e. the NEWEST line
+    //
+    // Boss reported "the text box should follow the new text so its
+    // always visible" — because the previous sticky-autoscroll logic
+    // snapped to scrollTop=0 on each append, which actually pinned the
+    // panel to OLDEST content. New lines kept appending above the
+    // visible region. The welcome message stayed glued to the panel
+    // bottom while everything interesting played off-screen.
+    //
+    // Correct contract:
+    //   live position  = -(scrollHeight - clientHeight)  (newest at panel top)
+    //   wasAtLive(x)   = x is within STICK_TOLERANCE_PX of live
+    //   snapIfLive     = set scrollTop to live (= -(scrollHeight - clientHeight))
+    //
+    // The tolerance still handles pixel jitter. User scrolling UP from
+    // live (toward scrollTop=0) brings older content into view; the
+    // wasAtLive check returns false once they've moved past the
+    // tolerance, and the auto-snap suspends so they can read in peace.
+    // Once they scroll back toward the most-negative scrollTop, snap
+    // resumes — same UX as before, just with the sign convention right.
     const STICK_TOLERANCE_PX = 24;
-    const wasAtLive = () => Math.abs(output.scrollTop) <= STICK_TOLERANCE_PX;
+    const liveScrollTop = () => -(output.scrollHeight - output.clientHeight);
+    const wasAtLive = () => Math.abs(output.scrollTop - liveScrollTop()) <= STICK_TOLERANCE_PX;
     const snapIfLive = (wasLive) => {
         if (wasLive)
-            output.scrollTop = 0;
+            output.scrollTop = liveScrollTop();
     };
     let i = 0;
     let inNarrative = false;
