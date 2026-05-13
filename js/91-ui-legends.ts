@@ -123,6 +123,25 @@ function runSimulation() {
   if (summaryLines.length) epilogueStartIdx = allLines.length;
   allLines.push(...summaryLines);
 
+  // Boss directive 2026-05-12 (Phase 6 tempo polish):
+  //  (1) Force scrollTo(0,0) so the user starts at the top of the page
+  //      where the WALL PROFILE lives. The Begin-menu→Simulation path
+  //      could leave the page scrolled down.
+  //  (2) Hide the scenario controls panel while playback runs — that
+  //      frees ~160 px of vertical space so cavity + output text fit
+  //      in the viewport together. Both styling routes are handled:
+  //      the body class enables the CSS rule for the topo-canvas-wrap
+  //      max-height, AND we set legendsControls.style.display = 'none'
+  //      directly because switchMode('legends') wrote an inline
+  //      style='display:flex' that would otherwise trump the CSS rule
+  //      by specificity. Restored to '' (clear inline override → CSS
+  //      class .controls rule applies) in displayLines's cleanup tail.
+  if (typeof window !== 'undefined' && typeof window.scrollTo === 'function') {
+    window.scrollTo(0, 0);
+  }
+  document.body.classList.add('legends-playing');
+  const legendsControlsEl = document.getElementById('legends-controls');
+  if (legendsControlsEl) legendsControlsEl.style.display = 'none';
 
   displayLines(allLines, lineToStep, sim, prologueEndIdx, epilogueStartIdx, undefined, undefined, stepLineCounts);
 
@@ -358,6 +377,73 @@ function displayLines(
     return null;
   }
 
+  // Narrative-tempo Phase 6 (2026-05-12 boss report): per-line cavity
+  // sync. Pre-fix, the cavity only re-rendered at lineToStep entries —
+  // i.e., shown step-header lines, which fire every 5 sim steps or on
+  // event/nucleation steps. Between two shown headers (step A → step B,
+  // commonly 5 steps apart), the cavity sat frozen at step A while text
+  // read through step A's detail lines, then JUMPED instantly to step B
+  // at the next header. Boss wanted "the vugg crystal growth at the
+  // same time and speed as its happening in the text."
+  //
+  // The fix is to advance the cavity through ALL intermediate snapshots
+  // during a text block. We precompute, for every line index, the
+  // cavity step that should be active when that line renders: start at
+  // the current shown step at the header line, linearly interpolate
+  // through hidden snapshots, end at the NEXT shown step on the final
+  // line of the block. By the time the next shown step's header
+  // arrives, the cavity is already there — no jump.
+  //
+  // Result: while the user reads "Step 1: Cu Pulse arrives" + several
+  // detail lines, the cavity smoothly progresses through steps 1→2→
+  // 3→4→5, showing the crystals actually growing during the moments
+  // the text describes. Text describes the geological events at step
+  // A; cavity shows the geological progression FROM step A toward step
+  // B. They land aligned at every shown-step header.
+  const headerLineIndices: number[] = [];
+  if (lineToStep) {
+    for (const key of Object.keys(lineToStep)) {
+      headerLineIndices.push(+key);
+    }
+    headerLineIndices.sort((a, b) => a - b);
+  }
+  const lineToCavityStep: number[] = new Array(lines.length);
+  for (let i = 0; i < lines.length; i++) {
+    // Find bracketing shown-step headers: current (most recent at or
+    // before i) and next (first one strictly after i). Both may be -1
+    // if i is in the prologue or epilogue tail.
+    let curIdx = -1, curStep = 0;
+    let nextIdx = -1, nextStep = 0;
+    for (const h of headerLineIndices) {
+      if (h <= i) { curIdx = h; curStep = lineToStep![h]; }
+      else { nextIdx = h; nextStep = lineToStep![h]; break; }
+    }
+    if (curIdx < 0 && nextIdx < 0) {
+      // No headers at all — zero-event scenario. Hold at first
+      // available snapshot.
+      lineToCavityStep[i] = stepOrder.length ? stepOrder[0] : 1;
+    } else if (curIdx < 0) {
+      // Prologue lines before the first shown header. Hold the cavity
+      // at the first shown step's pre-event state; the firstSnap
+      // render in the block above already showed this state.
+      lineToCavityStep[i] = nextStep;
+    } else if (nextIdx < 0) {
+      // Epilogue lines after the final shown header. Hold at the
+      // simulation's last shown step.
+      lineToCavityStep[i] = curStep;
+    } else {
+      // Within a block [curIdx, nextIdx). Linearly interpolate the
+      // target step across the block's lines, landing on nextStep at
+      // the line just before nextIdx. The header line itself (i ===
+      // curIdx) gets curStep; the line immediately before the next
+      // header gets ≈ nextStep.
+      const blockLen = nextIdx - curIdx;
+      const positionInBlock = i - curIdx;
+      const t = blockLen > 0 ? positionInBlock / blockLen : 0;
+      lineToCavityStep[i] = Math.round(curStep + t * (nextStep - curStep));
+    }
+  }
+
   // Render the first snapshot up front so the user sees the initial
   // cavity while the header lines (title / fluid / events list) scroll
   // in, instead of an empty panel. Falls through to live render if
@@ -414,6 +500,11 @@ function displayLines(
   // steps) we fall back to baseMs / speed — same as v66 cadence,
   // but only for the framing.
   let currentSimStep: number | null = null;
+  // Last cavity step we issued topoRender() for. Tracked independently
+  // of currentSimStep so per-line interpolation can advance the cavity
+  // through hidden snapshots within a shown-step block; see Phase 6
+  // comment block below.
+  let lastCavityStep: number | null = null;
   const stepDurationMs = () => {
     const speed = (typeof _topoPlaybackSpeed === 'number' && _topoPlaybackSpeed > 0)
       ? _topoPlaybackSpeed : 1.0;
@@ -490,6 +581,17 @@ function displayLines(
       if (clearOutput !== false && sim && typeof updateLegendsInventory === 'function') {
         updateLegendsInventory(sim);
       }
+      // Phase 6 layout: narrative is done playing — restore the
+      // scenario controls panel so the user can pick a new scenario,
+      // tweak seeds, etc. without first re-clicking Grow. The empty
+      // inline display lets the CSS .controls rule's display:flex
+      // take effect, matching the original switchMode('legends')
+      // state.
+      if (clearOutput !== false) {
+        document.body.classList.remove('legends-playing');
+        const lcEl = document.getElementById('legends-controls');
+        if (lcEl) lcEl.style.display = 'flex';
+      }
       _hideNarrativeSpeedCluster();
       if (typeof onDone === 'function') onDone();
       return;
@@ -530,27 +632,37 @@ function displayLines(
 
     const line = lines[i];
 
-    // Tempo sync: when the current line is a step header, advance the
-    // cavity to that step's snapshot AND switch `currentSimStep` so
-    // subsequent per-line delays are computed against this step's
-    // line budget. The header scrolls in alongside the cavity update —
-    // reading "═══ Step 30 ═══" and watching the wall expand to its
-    // step-30 form happen simultaneously.
+    // Per-line cavity sync (Phase 6, boss 2026-05-12). Two distinct
+    // step trackers must update here:
+    //
+    //   currentSimStep — the SHOWN step. Updates only at shown-step
+    //     header lines (where lineToStep[i] is defined). Drives
+    //     perLineDelay()'s line-budget lookup against stepLineCounts,
+    //     which is keyed by shown step. Must stay equal to the header
+    //     step throughout the block or pacing falls back to the
+    //     framing rate.
+    //
+    //   lastCavityStep — the INTERPOLATED step the cavity should be
+    //     rendering. Updates every line from the precomputed
+    //     lineToCavityStep[] map. Drives topoRender + inventory sync.
+    //     Advances through hidden snapshots within a block so crystals
+    //     visibly grow during the text that describes them.
     if (lineToStep && lineToStep[i] != null) {
       currentSimStep = lineToStep[i];
-      const snap = snapForStep(lineToStep[i]);
+    }
+    const targetCavityStep = lineToCavityStep[i];
+    if (targetCavityStep != null && targetCavityStep !== lastCavityStep) {
+      lastCavityStep = targetCavityStep;
+      const snap = snapForStep(targetCavityStep);
       if (snap) {
         if (typeof _topoReplayActiveSnap !== 'undefined') _topoReplayActiveSnap = snap;
         if (typeof topoRender === 'function') topoRender(snap);
       }
-      // Narrative-tempo Phase 5: sync the Crystal Inventory to the same
-      // step. clearOutput=false (Fortress) keeps its own accumulating
-      // inventory updated outside this engine, so we gate on that
-      // condition. The inventory updater uses the current step (not the
-      // snapshot's nearest-not-greater step) so it stays in sync with
-      // the line scroll even between decimated snapshots.
+      // Sync Crystal Inventory at the same target step. clearOutput=false
+      // (Fortress) keeps its own accumulating inventory outside this
+      // engine, so we gate on that condition.
       if (clearOutput !== false && typeof updateLegendsInventory === 'function') {
-        updateLegendsInventory(sim, currentSimStep);
+        updateLegendsInventory(sim, targetCavityStep);
       }
     }
 
