@@ -24693,6 +24693,28 @@ function displayLines(lines, lineToStep, sim, prologueEndIdx = -1, epilogueStart
             ? _topoPlaybackSpeed : 1.0;
         return Math.max(4, Math.round(baseMs / speed));
     };
+    // Sticky autoscroll (2026-05-12 boss bug report): pre-fix, every
+    // addLine() unconditionally did `output.scrollTop = 0` after the
+    // appendChild. In a column-reverse panel that means "snap to newest
+    // visible at top." The intent was to keep the live ticker in view,
+    // but it made scrolling UP to re-read history impossible — any
+    // attempt to scroll away got yanked back by the next line append.
+    //
+    // The pattern: capture wasAtLive BEFORE the appendChild (so we see
+    // the user's intent in the pre-mutation scrollTop), then only snap
+    // back to 0 if they were already there. Tolerance of 24 px allows
+    // the natural pixel jitter at the top edge without considering it
+    // "user has scrolled away." When the user is at the live edge
+    // (wasAtLive=true) the snap fires and they keep seeing newest;
+    // when they've scrolled down to read history (wasAtLive=false),
+    // browser scroll-anchoring keeps their position stable as content
+    // appends at the visual top, and we leave them there.
+    const STICK_TOLERANCE_PX = 24;
+    const wasAtLive = () => Math.abs(output.scrollTop) <= STICK_TOLERANCE_PX;
+    const snapIfLive = (wasLive) => {
+        if (wasLive)
+            output.scrollTop = 0;
+    };
     let i = 0;
     let inNarrative = false;
     let narrativeEl = null;
@@ -24748,15 +24770,20 @@ function displayLines(lines, lineToStep, sim, prologueEndIdx = -1, epilogueStart
                 prologueEndIdx = -1;
             else
                 epilogueStartIdx = -1;
+            // Capture scroll-state BEFORE _insertContinuePrompt's appendChild
+            // so the sticky-autoscroll decision reflects the user's intent.
+            const live = wasAtLive();
             _insertContinuePrompt(output, isPrologue ? 'prologue' : 'epilogue', () => {
                 // Defer one tick so the click event finishes propagating before
                 // the next addLine renders — prevents a double-advance if the
                 // click also lands on a subsequently-rendered line.
                 setTimeout(addLine, 0);
             });
-            // With column-reverse layout, the newest child (the pill) is at
-            // the top — scroll to top so it's visible.
-            output.scrollTop = 0;
+            // Sticky snap — only force-scroll to the pill if the user was at
+            // the live edge. Scrolled-away users keep their reading position.
+            // (Pill is also focused via preventScroll:true so focus() doesn't
+            // independently yank the page — see _insertContinuePrompt.)
+            snapIfLive(live);
             return;
         }
         const line = lines[i];
@@ -24787,6 +24814,7 @@ function displayLines(lines, lineToStep, sim, prologueEndIdx = -1, epilogueStart
         }
         i++;
         if (line === 'GEOLOGICAL HISTORY') {
+            const live = wasAtLive();
             const box = document.createElement('div');
             box.className = 'narrative-box';
             const title = document.createElement('div');
@@ -24797,17 +24825,18 @@ function displayLines(lines, lineToStep, sim, prologueEndIdx = -1, epilogueStart
             box.appendChild(narrativeEl);
             output.appendChild(box);
             inNarrative = true;
-            output.scrollTop = 0;
+            snapIfLive(live);
             setTimeout(addLine, baseSetTimeoutFor(20));
             return;
         }
         if (inNarrative && line.startsWith('═'.repeat(10))) {
+            const live = wasAtLive();
             inNarrative = false;
             const span = document.createElement('div');
             span.textContent = line;
             span.className = 'line-header';
             output.appendChild(span);
-            output.scrollTop = 0;
+            snapIfLive(live);
             setTimeout(addLine, baseSetTimeoutFor(20));
             return;
         }
@@ -24816,6 +24845,7 @@ function displayLines(lines, lineToStep, sim, prologueEndIdx = -1, epilogueStart
             return;
         }
         if (inNarrative) {
+            const live = wasAtLive();
             // Within a narrative-box, paragraphs flow top-to-bottom inside
             // the box (normal reading order). Use appendChild so the box's
             // internal layout stays natural, even though the outer #output
@@ -24824,7 +24854,7 @@ function displayLines(lines, lineToStep, sim, prologueEndIdx = -1, epilogueStart
             span.textContent = line;
             span.style.marginBottom = line === '' ? '0.5em' : '0';
             narrativeEl.appendChild(span);
-            output.scrollTop = 0;
+            snapIfLive(live);
             setTimeout(addLine, baseSetTimeoutFor(20));
             return;
         }
@@ -24833,6 +24863,7 @@ function displayLines(lines, lineToStep, sim, prologueEndIdx = -1, epilogueStart
         // appendFortressLine so its log keeps its line-event / line-
         // dissolution / etc. classes plus its fortressLogLines.push side
         // effect.
+        const live = wasAtLive();
         if (appendLine) {
             appendLine(output, line);
         }
@@ -24851,9 +24882,13 @@ function displayLines(lines, lineToStep, sim, prologueEndIdx = -1, epilogueStart
                 span.className = 'line-dissolution';
             output.appendChild(span);
         }
-        // column-reverse on the parent puts the latest appendChild at the
-        // top, so scrollTop=0 keeps the newest line visible.
-        output.scrollTop = 0;
+        // Sticky autoscroll: column-reverse puts the latest appendChild at
+        // the visual top, so scrollTop=0 keeps the newest line in view —
+        // but only if the user hasn't scrolled away to read history.
+        // Scrolled-away users keep their position so they can finish
+        // reading; once they scroll back to within STICK_TOLERANCE_PX of
+        // the live edge, auto-snap resumes.
+        snapIfLive(live);
         setTimeout(addLine, perLineDelay());
     }
     // Mount the speed cluster so the user can change the scroll rate
