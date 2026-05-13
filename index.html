@@ -2696,6 +2696,52 @@ footer a:hover {
   <button id="mode-home" class="mode-home-btn" onclick="showTitleScreen()">🏠 Home</button>
 </div>
 
+<!-- Legends Mode Controls (positioned above WALL PROFILE; boss
+     directive 2026-05-12). Scenario picker / Growth Seed / Shape
+     Seed / Time Steps / Grow / Random / Copy live at the top of the
+     page where the user naturally interacts BEFORE starting a sim.
+     During playback, body.legends-playing hides this panel (see
+     runSimulation in 91-ui-legends.ts) so the cavity moves up to
+     the top of the viewport without this row in the way. -->
+<div class="controls" id="legends-controls">
+  <div class="control-group">
+    <label for="scenario">Scenario</label>
+    <select id="scenario">
+      <option value="cooling">cooling</option>
+      <option value="pulse">pulse</option>
+      <option value="mvt">mvt</option>
+      <option value="porphyry">porphyry</option>
+      <option value="reactive_wall">reactive_wall</option>
+      <option value="radioactive_pegmatite">radioactive_pegmatite</option>
+      <option value="supergene_oxidation">supergene_oxidation</option>
+      <option value="ouro_preto">ouro_preto</option>
+      <option value="gem_pegmatite">gem_pegmatite</option>
+      <option value="bisbee">bisbee</option>
+      <option value="deccan_zeolite">deccan_zeolite</option>
+      <option value="sabkha_dolomitization">sabkha_dolomitization</option>
+      <option value="schneeberg">schneeberg</option>
+      <option value="colorado_plateau">colorado_plateau</option>
+    </select>
+  </div>
+  <div class="control-group">
+    <label for="seed">Growth Seed (optional)</label>
+    <input type="number" id="seed" placeholder="random" style="width:140px" title="Seeds crystal nucleation positions, growth randomness, and per-step RNG. Independent of the Shape Seed.">
+  </div>
+  <div class="control-group">
+    <label for="shape-seed">Shape Seed (optional)</label>
+    <input type="number" id="shape-seed" placeholder="scenario default" style="width:140px" title="Seeds the cavity's 3D sphere-union geometry (primary + secondaries + tertiaries). Independent of Growth Seed — lock one and vary the other to compare crystal growth in different shapes, or the same shape with different chemistry.">
+  </div>
+  <div class="control-group">
+    <label for="steps">Time Steps (optional)</label>
+    <input type="number" id="steps" placeholder="default" style="width:100px" min="1" step="1" title="Each step ≈ 50,000 years of geological time. 200 steps ≈ 10 million years of fluid activity. More steps = longer cooling history. Default: 100-120 depending on scenario." oninput="if(this.value<1&&this.value!=='')this.value=1">
+  </div>
+  <div style="display:flex;gap:0.5rem;align-items:flex-end;padding-top:0.8rem">
+    <button class="btn-grow" id="btn-grow" onclick="runSimulation()">Grow</button>
+    <button class="btn-random" id="btn-random" onclick="runRandom()">Random</button>
+    <button class="btn-copy" id="btn-copy" onclick="copyOutput()">Copy to clipboard</button>
+  </div>
+</div>
+
 <!-- Topographic Map — shared panel shown on all game modes. Renders the
      unwrapped wall state as a single line (amber=bare, class_color=crystal),
      with a class legend and an mm scale bar. Replay button appears after
@@ -2757,46 +2803,6 @@ footer a:hover {
       </div>
       <div id="topo-tooltip" class="topo-tooltip" style="display:none"></div>
     </div>
-  </div>
-</div>
-
-<!-- Legends Mode Controls (existing) -->
-<div class="controls" id="legends-controls">
-  <div class="control-group">
-    <label for="scenario">Scenario</label>
-    <select id="scenario">
-      <option value="cooling">cooling</option>
-      <option value="pulse">pulse</option>
-      <option value="mvt">mvt</option>
-      <option value="porphyry">porphyry</option>
-      <option value="reactive_wall">reactive_wall</option>
-      <option value="radioactive_pegmatite">radioactive_pegmatite</option>
-      <option value="supergene_oxidation">supergene_oxidation</option>
-      <option value="ouro_preto">ouro_preto</option>
-      <option value="gem_pegmatite">gem_pegmatite</option>
-      <option value="bisbee">bisbee</option>
-      <option value="deccan_zeolite">deccan_zeolite</option>
-      <option value="sabkha_dolomitization">sabkha_dolomitization</option>
-      <option value="schneeberg">schneeberg</option>
-      <option value="colorado_plateau">colorado_plateau</option>
-    </select>
-  </div>
-  <div class="control-group">
-    <label for="seed">Growth Seed (optional)</label>
-    <input type="number" id="seed" placeholder="random" style="width:140px" title="Seeds crystal nucleation positions, growth randomness, and per-step RNG. Independent of the Shape Seed.">
-  </div>
-  <div class="control-group">
-    <label for="shape-seed">Shape Seed (optional)</label>
-    <input type="number" id="shape-seed" placeholder="scenario default" style="width:140px" title="Seeds the cavity's 3D sphere-union geometry (primary + secondaries + tertiaries). Independent of Growth Seed — lock one and vary the other to compare crystal growth in different shapes, or the same shape with different chemistry.">
-  </div>
-  <div class="control-group">
-    <label for="steps">Time Steps (optional)</label>
-    <input type="number" id="steps" placeholder="default" style="width:100px" min="1" step="1" title="Each step ≈ 50,000 years of geological time. 200 steps ≈ 10 million years of fluid activity. More steps = longer cooling history. Default: 100-120 depending on scenario." oninput="if(this.value<1&&this.value!=='')this.value=1">
-  </div>
-  <div style="display:flex;gap:0.5rem;align-items:flex-end;padding-top:0.8rem">
-    <button class="btn-grow" id="btn-grow" onclick="runSimulation()">Grow</button>
-    <button class="btn-random" id="btn-random" onclick="runRandom()">Random</button>
-    <button class="btn-copy" id="btn-copy" onclick="copyOutput()">Copy to clipboard</button>
   </div>
 </div>
 
