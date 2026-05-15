@@ -40,6 +40,37 @@ let grooveModalCrystal = null;
 function runSimulation() {
   if (running) return;
   const scenarioName = document.getElementById('scenario').value;
+  // Tier 1 B: scenario data lives in data/scenarios.json5 and is
+  // fetched asynchronously by _loadScenariosJSON5() at boot. If the
+  // user clicks Grow before that completes (cold load, slow
+  // connection, file:// protocol, fetch failure for any reason),
+  // SCENARIOS[scenarioName] is undefined and the destructuring on
+  // line ~65 below throws "Cannot read properties of undefined". This
+  // guard catches that race: emit a friendly status into the output
+  // panel + bail. The user can retry once the fetch finishes (it's
+  // typically <100ms on warm cache, so the message is rarely seen).
+  //
+  // The guard checks the per-scenario callable rather than the global
+  // _scenariosJson5Ready flag — covers the same race AND degrades
+  // gracefully if a single scenario was malformed (the others still
+  // load and the dropdown still works for those).
+  if (!SCENARIOS || !SCENARIOS[scenarioName]) {
+    const outputEl = document.getElementById('output');
+    if (outputEl) {
+      const msg = _scenariosJson5Ready
+        ? `Scenario "${scenarioName}" is not registered. Reload the page to retry, or pick a different scenario.`
+        : 'Scenarios are still loading from data/scenarios.json5 — try again in a moment.';
+      // Append a line rather than wiping the panel; the output panel
+      // is column-reverse + sticky-autoscroll, so the new line lands
+      // at the visible top (see 711cc0e for the scrollTop sign-
+      // convention lesson). Wrap in a <div> so it gets its own row.
+      const line = document.createElement('div');
+      line.textContent = `⚠ ${msg}`;
+      line.style.color = '#c47';
+      outputEl.appendChild(line);
+    }
+    return;
+  }
   const seedInput = document.getElementById('seed').value;
   const stepsInput = document.getElementById('steps').value;
   // Boss directive 2026-05-11: cavity shape and crystal growth are
