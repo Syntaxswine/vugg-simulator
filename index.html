@@ -25665,7 +25665,8 @@ Object.assign(VugSimulator.prototype, {
 // Object.assign so direct calls (this._narrate_calcite(c)) and dynamic
 // dispatch (this[`_narrate_${c.mineral}`]) keep working unchanged.
 //
-// Minerals (1): fluorite.
+// Minerals (3): fluorite, atacamite (v64), sylvite (evaporite),
+//               halite (Tier 1 A port).
 //
 // Phase B16 of PROPOSAL-MODULAR-REFACTOR.
 Object.assign(VugSimulator.prototype, {
@@ -25713,6 +25714,57 @@ Object.assign(VugSimulator.prototype, {
         if (c.dissolved)
             parts.push('Meteoric dilution dissolved it — sylvite is the first phase to go when fresh water reaches the evaporite sequence.');
         return parts.join(' ');
+    },
+    // Tier 1 A port (post-v69): halite was on the BACKLOG.md L34 list of
+    // 5 unported narrators after the Python tree deletion 2026-05-07.
+    // Authored fresh from the data/minerals.json description block —
+    // canonical pin (per stored memory feedback_narrative_canonical_richer:
+    // when JS and Python diverged the richer narrator wins, which here
+    // means the JS author gets to set the canon since Python is gone).
+    _narrate_halite(c) {
+        const parts = [`Halite #${c.crystal_id} grew to ${c.c_length_mm.toFixed(1)} mm.`];
+        parts.push('NaCl — rock salt, the canonical chloride evaporite. Crystallizes from concentrating brine in closed-basin playas, sabkhas, and drained vugs in the supergene zone. The mineral that built the salt mines of Wieliczka and Khewra and carved cathedrals out of itself underground.');
+        if (c.habit === 'hopper_growth' || c.habit === 'hopper_cube') {
+            parts.push('Hopper-growth habit — high supersaturation produced a skeletal cube with stepped pyramidal hollows on each face. Edge-growth outraced face-growth and left the centers concave, the signature of a brine driven hard enough to nucleate faster than it could fill in. Searles Lake evaporation ponds make these in summer.');
+        }
+        else if (c.habit === 'cubic') {
+            parts.push('Clean cubic habit — slow evaporation, low supersaturation. The brine concentrated patiently enough for the (100) faces to fill in flat. This is the Wieliczka habit, the cathedral-cube halite that meter-scale specimens come from.');
+        }
+        else if (c.habit === 'fibrous_coating') {
+            parts.push('Fibrous efflorescent crust — the brine reached the wall already at saturation, so halite nucleated as a fine fibrous coating instead of discrete crystals. Standard on dry-lake margins and concrete walls in coastal cellars.');
+        }
+        else if (c.habit === 'stalactitic_speleothem') {
+            parts.push('Stalactitic salt speleothem — drip-deposition in a dry underground salt void. As brine dripped from the ceiling and the carrier water flashed off, halite deposited layer by layer into a fibrous columnar "saltcicle." The Sicilian and Iranian salt-glacier caves grow these meters long.');
+        }
+        // Color zones — pull from c.zones notes (the same plumbing every
+        // narrator uses). Halite's diagnostic colors come from radiation
+        // damage (Stassfurt blue), halobacteria (Searles pink), and Fe /
+        // hematite inclusions (yellow / red).
+        const colors = new Set();
+        for (const z of (c.zones || [])) {
+            if (z.note && z.note.includes('color zone:')) {
+                colors.add(z.note.split('color zone:')[1].trim());
+            }
+        }
+        if (colors.has('blue_purple')) {
+            parts.push('Blue-to-purple color — Na⁰ F-centers (radiation-trapped electrons in chloride vacancies). The Stassfurt habit. Forms only where the salt bed has been exposed to gamma radiation from nearby potash horizons over geologic time; bleaches in sunlight, which is how museum collectors know to keep these in the dark.');
+        }
+        if (colors.has('rose_pink') || colors.has('bacterial_pink')) {
+            parts.push('Pink color — at Searles Lake and Lake Magadi the halobacterial carotenoids pigment the brine, and the carotenoid layer gets entombed in the precipitating cube. The pink is biological, not crystallographic.');
+        }
+        if (colors.has('yellow')) {
+            parts.push('Yellow tint — trace Fe³⁺ in the lattice, the same chromophore that makes citrine yellow. Common in halite from oxidized red-bed evaporite sequences.');
+        }
+        if (colors.has('red_hematite_inclusion')) {
+            parts.push('Red coloration from hematite inclusions — micron-scale Fe-oxide platelets entrained as the halite grew through an oxidized brine. The "red salt" of the Khewra and Punjab mines.');
+        }
+        if (c.twinned && (c.twin_law || '').includes('spinel')) {
+            parts.push(`Spinel-law twin (${c.twin_law}) — extremely rare for halite. The two cubes interpenetrate on a (111) plane, a habit much more familiar from fluorite and magnetite. A field-grade halite specimen with a verified spinel-law twin is a museum piece.`);
+        }
+        if (c.dissolved) {
+            parts.push('Dissolved. Halite needs almost nothing — a single drop of fresh water at the wall, a humidity excursion, a meteoric pulse — and the crystal goes back into solution. The most soluble common evaporite, and the first phase to disappear when fresh water reaches an exposed salt bed.');
+        }
+        return parts.filter(p => p).join(' ');
     },
 });
 
@@ -27034,6 +27086,51 @@ Object.assign(VugSimulator.prototype, {
         parts.push(narrative_variant('selenite', 'epilogue_tail') || "Selenite forms in the last stage of a vug's life — when the fluid cools, the sulfides oxidize, and the water begins to evaporate. It is the epilogue crystal.");
         return parts.filter(p => p).join(' ');
     },
+    // Tier 1 A port (post-v69): mirabilite + thenardite were on the
+    // BACKLOG.md L34 list of 5 unported narrators after the Python tree
+    // deletion 2026-05-07. Authored fresh from data/minerals.json
+    // descriptions. The pair share a chemistry (Na₂SO₄) and a phase
+    // boundary at 32.4°C — narrators reference each other where the
+    // paramorph relationship matters.
+    _narrate_mirabilite(c) {
+        const parts = [`Mirabilite #${c.crystal_id} grew to ${c.c_length_mm.toFixed(1)} mm.`];
+        parts.push('Na₂SO₄·10H₂O — Glauber salt. The cold-evaporite half of the sodium-sulfate system. Decahydrate, stable only below 32.4°C — the eutectic with anhydrous thenardite. Forms in winter playas, Antarctic dry valleys, cold caves, and any Na-rich brine that cools without freezing.');
+        if (c.habit === 'prismatic') {
+            parts.push('Prismatic Glauber crystals — slow cooling, slow evaporation, transparent prisms with the elongation along [001]. Stable enough to handle in cold air; they tarnish over an hour at room temperature.');
+        }
+        else if (c.habit === 'fibrous_coating') {
+            parts.push('Fibrous efflorescent crust — the brine reached the cave wall already at saturation and the crystals nucleated as a fine fibrous coating. The "lake-margin frost" habit, typical of the Aral Sea playa and the Antarctic dry-valley lakes.');
+        }
+        if (c.dissolved) {
+            parts.push('Dissolved — the same meteoric pulse that takes halite takes mirabilite first. Among the most soluble of common minerals; the crystals reach equilibrium with their own brine and any fresh-water input shifts that equilibrium fast.');
+        }
+        else {
+            // Existence warning — the crystal lattice is metastable above
+            // 32.4°C, so any thermal pulse the scenario contains is a clock.
+            parts.push("Living on borrowed time. Mirabilite's lattice loses all 10 water molecules to thenardite at the eutectic; most museum specimens are paramorphs now — the original transparent prisms are gone and the white powder in the case is thenardite preserving the external form. Every mirabilite specimen is a race against a warm dry day.");
+        }
+        return parts.filter(p => p).join(' ');
+    },
+    _narrate_thenardite(c) {
+        const parts = [`Thenardite #${c.crystal_id} grew to ${c.c_length_mm.toFixed(1)} mm.`];
+        parts.push('Na₂SO₄ — anhydrous sodium sulfate, the warm-evaporite half of the mirabilite-thenardite pair. Crystallizes either by direct precipitation from a warm playa brine above 32.4°C, or by dehydration of mirabilite when the eutectic crosses upward. Searles Lake, Bayan Khar, Camp Verde, and the type locality at Espartinas Spain.');
+        if (c.habit === 'dipyramidal') {
+            parts.push('Orthorhombic dipyramidal habit — clean bipyramids when the crystal grew slowly from a stable supersaturated brine. The Searles Lake habit; well-formed Bayan Khar specimens look like ground glass dipyramids in matrix.');
+        }
+        else if (c.habit === 'tabular') {
+            parts.push('Tabular habit — pinacoid-dominant flat plates, more common than the dipyramids in nature. The bookshelf-stack habit of Espartinas museum specimens.');
+        }
+        else if (c.habit === 'pseudomorph') {
+            parts.push(`Paramorph after mirabilite — this crystal didn't grow as thenardite. It grew as mirabilite (Na₂SO₄·10H₂O, transparent prism, decahydrate), and a warm dry pulse pulled all 10 water molecules out of the lattice at the 32.4°C eutectic. The external prismatic form is mirabilite's; the internal arrangement and the chalky white surface are thenardite's. Every "old" thenardite specimen in a Smithsonian drawer started its life this way.`);
+        }
+        else if (c.habit === 'fibrous_coating') {
+            parts.push('Fibrous saline crust — the efflorescent habit of arid-region soil thenardite. Forms wherever Na-sulfate-bearing groundwater wicks to a dry surface and the water flashes off, leaving a powdery white rind on stones and walls.');
+        }
+        if (c.dissolved) {
+            parts.push('Dissolved — anhydrous thenardite is slightly less soluble than its decahydrate sibling, but in geological terms still a sponge. Goes with the first meteoric pulse.');
+        }
+        return parts.filter(p => p).join(' ');
+    },
 });
 
 // ── 92k-narrators-sulfide.js ──
@@ -27474,6 +27571,68 @@ Object.assign(VugSimulator.prototype, {
         if (c.dissolved)
             parts.push('Oxidation — CdS → Cd²⁺ + SO₄²⁻.');
         return parts.join(' ');
+    },
+});
+
+// ── 92l-narrators-borate.js ──
+
+// ============================================================
+// js/92l-narrators-borate.ts — VugSimulator._narrate_<mineral> (borate)
+// ============================================================
+// Per-mineral narrators for borate-class minerals. Mirror of the other
+// 92x narrator files. Methods attach to VugSimulator.prototype via
+// Object.assign so direct calls (this._narrate_borax(c)) and dynamic
+// dispatch (this[`_narrate_${c.mineral}`]) keep working unchanged.
+//
+// Minerals (2): borax, tincalconite.
+//
+// Tier 1 A port (post-v69) — these were on the BACKLOG.md L34 list of
+// 5 unported narrators after the Python tree deletion 2026-05-07.
+// Authored fresh from the data/minerals.json description blocks
+// (canonical pin per stored memory feedback_narrative_canonical_richer
+// — when JS and Python diverged the richer narrator wins, and here JS
+// is the only runtime so the JS author sets the canon).
+//
+// The two minerals share an unusual property: borax self-destructs in
+// dry air over weeks, losing 5 of its 10 water molecules and becoming
+// tincalconite. Every tincalconite crystal in nature is a former
+// borax crystal whose lattice has collapsed but whose external form
+// has been preserved. The narrators below reference each other where
+// the paramorph relationship matters.
+Object.assign(VugSimulator.prototype, {
+    _narrate_borax(c) {
+        const parts = [`Borax #${c.crystal_id} grew to ${c.c_length_mm.toFixed(1)} mm.`];
+        parts.push('Na₂[B₄O₅(OH)₄]·8H₂O — sodium tetraborate decahydrate (the formula counts crystal water differently depending on whether you trust the structural-OH or the bulk-H₂O bookkeeping). The mineral that doesn\'t belong in a typical hydrothermal vug: a playa-lake evaporite that crystallizes only from alkaline (pH > 8.5) brines rich in Na and B at low T. Searles Lake, Boron CA, the Atacama, and the Anatolian Beypazarı district produce essentially all of the world\'s mined borax.');
+        if (c.habit === 'prismatic') {
+            parts.push("Prismatic habit — slow low-T evaporation from a deep stable brine produces clean elongated prisms. The Boron CA museum-grade habit. Transparent and colorless when fresh; the surface goes powdery within months in any normal indoor humidity.");
+        }
+        else if (c.habit === 'cottonball') {
+            parts.push('Cottonball habit — rapid surface evaporation on a hot playa floor produces matted fibrous masses that look like dirty cotton. The Death Valley playa name for it ("cottonball borax") is also the historical commercial-grade name for the unrefined product the 20-mule teams hauled out in the 1880s.');
+        }
+        else if (c.habit === 'massive') {
+            parts.push('Massive habit — tincal nodules from buried ancient-lake beds. The commercial ore form; the brine deposited at depth where humidity was buffered enough for the decahydrate to stay intact over geologic time.');
+        }
+        if (c.dissolved) {
+            parts.push('Dissolved — borax is soluble enough that the next meteoric pulse, or the next rise in playa-floor water table, will take it back into solution. Like all the highly-soluble evaporites: lifespan is measured in dry seasons.');
+        }
+        else {
+            parts.push("Living on a dehydration clock. Leave fresh borax in dry indoor air and within weeks the surface effloresces white-powdery as 5 of the 10 water molecules leave the lattice. The result is tincalconite (Na₂B₄O₇·5H₂O), preserving the external prism shape but with a collapsed interior structure. Every museum borax specimen has its tincalconite afterlife waiting. The only common mineral that self-destructs in normal collection conditions.");
+        }
+        return parts.filter(p => p).join(' ');
+    },
+    _narrate_tincalconite(c) {
+        const parts = [`Tincalconite #${c.crystal_id} grew to ${c.c_length_mm.toFixed(1)} mm.`];
+        parts.push("Na₂B₄O₇·5H₂O — borax with five water molecules gone. Tincalconite appears in the simulator only as a paramorph product of borax: the external crystal shape is preserved (the cubic outline, the prismatic terminations, all the field marks of the parent) but the lattice has collapsed and the surface has bloomed into white powder. A tincalconite specimen IS a former borax crystal frozen mid-decay.");
+        if (c.habit === 'pseudomorph') {
+            parts.push('Pseudomorph after borax — the diagnostic habit. Cleavage planes from the parent borax structure show as chalky discontinuities in the powdery overcoat. Under a hand lens you can sometimes still read the original prism striations through the surface bloom.');
+        }
+        if (c.dissolved) {
+            parts.push("Dissolved — tincalconite is still water-soluble (less than borax, since it has fewer water molecules to give up to the solvent), so a wet pulse takes it. Whatever Na and B the brine reabsorbs may re-crystallize as borax if the local humidity comes up and the equilibrium swings back, but the original crystal won't reassemble — the historical specimen is gone.");
+        }
+        else {
+            parts.push("Stable in any humidity from here on out — once dehydrated, tincalconite doesn't re-hydrate back to borax in normal conditions. The pentahydrate sits at a local minimum on the Na₂B₄O₇–H₂O phase surface that takes either deep burial or geological time to escape from. Museum drawer specimens are forever as long as they stay dry.");
+        }
+        return parts.filter(p => p).join(' ');
     },
 });
 

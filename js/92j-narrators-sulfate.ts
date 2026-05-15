@@ -195,4 +195,52 @@ Object.assign(VugSimulator.prototype, {
   parts.push(narrative_variant('selenite', 'epilogue_tail') || "Selenite forms in the last stage of a vug's life — when the fluid cools, the sulfides oxidize, and the water begins to evaporate. It is the epilogue crystal.");
   return parts.filter(p => p).join(' ');
 },
+
+  // Tier 1 A port (post-v69): mirabilite + thenardite were on the
+  // BACKLOG.md L34 list of 5 unported narrators after the Python tree
+  // deletion 2026-05-07. Authored fresh from data/minerals.json
+  // descriptions. The pair share a chemistry (Na₂SO₄) and a phase
+  // boundary at 32.4°C — narrators reference each other where the
+  // paramorph relationship matters.
+  _narrate_mirabilite(c) {
+    const parts = [`Mirabilite #${c.crystal_id} grew to ${c.c_length_mm.toFixed(1)} mm.`];
+    parts.push('Na₂SO₄·10H₂O — Glauber salt. The cold-evaporite half of the sodium-sulfate system. Decahydrate, stable only below 32.4°C — the eutectic with anhydrous thenardite. Forms in winter playas, Antarctic dry valleys, cold caves, and any Na-rich brine that cools without freezing.');
+
+    if (c.habit === 'prismatic') {
+      parts.push('Prismatic Glauber crystals — slow cooling, slow evaporation, transparent prisms with the elongation along [001]. Stable enough to handle in cold air; they tarnish over an hour at room temperature.');
+    } else if (c.habit === 'fibrous_coating') {
+      parts.push('Fibrous efflorescent crust — the brine reached the cave wall already at saturation and the crystals nucleated as a fine fibrous coating. The "lake-margin frost" habit, typical of the Aral Sea playa and the Antarctic dry-valley lakes.');
+    }
+
+    if (c.dissolved) {
+      parts.push('Dissolved — the same meteoric pulse that takes halite takes mirabilite first. Among the most soluble of common minerals; the crystals reach equilibrium with their own brine and any fresh-water input shifts that equilibrium fast.');
+    } else {
+      // Existence warning — the crystal lattice is metastable above
+      // 32.4°C, so any thermal pulse the scenario contains is a clock.
+      parts.push("Living on borrowed time. Mirabilite's lattice loses all 10 water molecules to thenardite at the eutectic; most museum specimens are paramorphs now — the original transparent prisms are gone and the white powder in the case is thenardite preserving the external form. Every mirabilite specimen is a race against a warm dry day.");
+    }
+
+    return parts.filter(p => p).join(' ');
+  },
+
+  _narrate_thenardite(c) {
+    const parts = [`Thenardite #${c.crystal_id} grew to ${c.c_length_mm.toFixed(1)} mm.`];
+    parts.push('Na₂SO₄ — anhydrous sodium sulfate, the warm-evaporite half of the mirabilite-thenardite pair. Crystallizes either by direct precipitation from a warm playa brine above 32.4°C, or by dehydration of mirabilite when the eutectic crosses upward. Searles Lake, Bayan Khar, Camp Verde, and the type locality at Espartinas Spain.');
+
+    if (c.habit === 'dipyramidal') {
+      parts.push('Orthorhombic dipyramidal habit — clean bipyramids when the crystal grew slowly from a stable supersaturated brine. The Searles Lake habit; well-formed Bayan Khar specimens look like ground glass dipyramids in matrix.');
+    } else if (c.habit === 'tabular') {
+      parts.push('Tabular habit — pinacoid-dominant flat plates, more common than the dipyramids in nature. The bookshelf-stack habit of Espartinas museum specimens.');
+    } else if (c.habit === 'pseudomorph') {
+      parts.push(`Paramorph after mirabilite — this crystal didn't grow as thenardite. It grew as mirabilite (Na₂SO₄·10H₂O, transparent prism, decahydrate), and a warm dry pulse pulled all 10 water molecules out of the lattice at the 32.4°C eutectic. The external prismatic form is mirabilite's; the internal arrangement and the chalky white surface are thenardite's. Every "old" thenardite specimen in a Smithsonian drawer started its life this way.`);
+    } else if (c.habit === 'fibrous_coating') {
+      parts.push('Fibrous saline crust — the efflorescent habit of arid-region soil thenardite. Forms wherever Na-sulfate-bearing groundwater wicks to a dry surface and the water flashes off, leaving a powdery white rind on stones and walls.');
+    }
+
+    if (c.dissolved) {
+      parts.push('Dissolved — anhydrous thenardite is slightly less soluble than its decahydrate sibling, but in geological terms still a sponge. Goes with the first meteoric pulse.');
+    }
+
+    return parts.filter(p => p).join(' ');
+  },
 });
