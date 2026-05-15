@@ -48,6 +48,12 @@ class VugSimulator {
       // Three.js renderer reads wall_state.cavity_render. Default
       // 'smooth' preserves pre-toggle look for every existing scenario.
       cavity_render: this.conditions.wall.cavity_render,
+      // Tranche 6 of PROPOSAL-CAVITY-MESH §14: per-vertex nucleation
+      // opt-in. _assignWallCell reads wall_state.per_vertex_nucleation
+      // to switch into the σ-weighted joint sample. Default false
+      // preserves legacy byte-identical RNG path for every existing
+      // scenario.
+      per_vertex_nucleation: this.conditions.wall.per_vertex_nucleation,
     });
     // Per-step snapshot of ring[0] for the Replay button. Captured at
     // the end of each step; small (~120 cells × ~4 numbers × 100-200

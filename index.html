@@ -7299,6 +7299,30 @@ class VugWall {
         // Default 'smooth' preserves the pre-toggle visual appearance for
         // every existing scenario. Scenarios opt into 'sharp' explicitly.
         this.cavity_render = opts.cavity_render ?? 'smooth';
+        // Tranche 6 of PROPOSAL-CAVITY-MESH §14 (post-v69): per-vertex
+        // nucleation. Default OFF — nucleation engines fire based on
+        // conditions.fluid (= ring_fluids[equator] alias), and the crystal
+        // gets anchored to a cell picked by area+orientation+architecture
+        // weights only. That works fine for unzoned scenarios because every
+        // cell sees identical chemistry, but in zone_chemistry scenarios
+        // (Tranche 3+) it means a stalactite-cave's ceiling-supersaturated
+        // calcite has to wait for the equator's σ to cross threshold AND
+        // happens to be placed wherever the area-weighted RNG drops it —
+        // the spatial pattern doesn't track the chemistry pattern.
+        //
+        // When ON: _assignWallCell weights candidate (ring, cell) pairs by
+        // per-cell σ for the firing mineral, so crystals nucleate where σ
+        // is highest. The mesh.cells[i].fluid per-vertex storage shipped
+        // in Tranche 4a is the substrate; this trance closes the loop.
+        //
+        // Cost: ~ring_count × cells_per_ring σ-evaluations per nucleation
+        // event (e.g. 16 × 120 = 1920 at default resolution). Each σ call
+        // is ~10-30 ops — total ≪ 100 μs even at 1920 cells, negligible
+        // against the actual engine work in a step.
+        //
+        // Opt-in only — scenarios that don't declare this flag stay on the
+        // legacy code path and produce byte-identical output.
+        this.per_vertex_nucleation = !!opts.per_vertex_nucleation;
     }
     dissolve(acid_strength, fluid) {
         // Gate by composition first — silicate walls are inert regardless
@@ -7541,6 +7565,11 @@ class WallState {
         // MeshStandardMaterial.flatShading on the cavity hull. Default
         // 'smooth' preserves pre-toggle appearance.
         this.cavity_render = opts.cavity_render ?? 'smooth';
+        // Tranche 6 of PROPOSAL-CAVITY-MESH §14: per-vertex nucleation
+        // opt-in. See VugWall constructor for the full rationale. Mirrored
+        // onto WallState so _assignWallCell / _assignWallRing can read it
+        // without reaching back to conditions.wall.
+        this.per_vertex_nucleation = !!opts.per_vertex_nucleation;
         // Populated by _buildProfile() — [[cx, cy, r], …] in mm after rescale.
         // Primaries come first, then secondaries.
         this.bubbles = [];
@@ -20632,6 +20661,12 @@ class VugSimulator {
             // Three.js renderer reads wall_state.cavity_render. Default
             // 'smooth' preserves pre-toggle look for every existing scenario.
             cavity_render: this.conditions.wall.cavity_render,
+            // Tranche 6 of PROPOSAL-CAVITY-MESH §14: per-vertex nucleation
+            // opt-in. _assignWallCell reads wall_state.per_vertex_nucleation
+            // to switch into the σ-weighted joint sample. Default false
+            // preserves legacy byte-identical RNG path for every existing
+            // scenario.
+            per_vertex_nucleation: this.conditions.wall.per_vertex_nucleation,
         });
         // Per-step snapshot of ring[0] for the Replay button. Captured at
         // the end of each step; small (~120 cells × ~4 numbers × 100-200
@@ -21589,7 +21624,17 @@ Object.assign(VugSimulator.prototype, {
         // matching the pre-Tranche-4b sequence. Both consume from the
         // shared RNG; swapping them shifts every downstream nucleation
         // anchor and rebakes every calibration baseline. Keep this order.
-        const _cellIdx = this._assignWallCell(position);
+        //
+        // Tranche 6 of PROPOSAL-CAVITY-MESH §14: when
+        // wall_state.per_vertex_nucleation is on AND we're not inheriting
+        // a host's cell, _assignWallCell does the joint σ-weighted sample
+        // over all (ring, cell) pairs for `mineral` and stashes the picked
+        // ring on `this._lastNucVertexRing`. _assignWallRing reads that
+        // stash instead of running its own area-weighted draw, so the
+        // ring + cell come from the same joint sample. Default-off scenarios
+        // keep the legacy two-step path.
+        this._lastNucVertexRing = null;
+        const _cellIdx = this._assignWallCell(position, mineral);
         const _ringIdx = this._assignWallRing(position, mineral);
         crystal.wall_anchor = this.wall_state._anchorFromRingCell(_ringIdx, _cellIdx);
         // v24 water-level: stamp growth_environment from the ring's
@@ -21892,7 +21937,7 @@ Object.assign(VugSimulator.prototype, {
             return 1.0;
         return paragenesisDiscount(parsed.hostMineral, mineral);
     },
-    _assignWallCell(position) {
+    _assignWallCell(position, mineral) {
         // Host-substrate overgrowths inherit the host's cell; free-wall
         // nucleations claim a random empty cell (or a random cell at all
         // if the wall is full — overlaps paint the larger crystal on top).
@@ -21913,6 +21958,36 @@ Object.assign(VugSimulator.prototype, {
                     return a.cellIdx;
             }
         }
+        // Tranche 6 of PROPOSAL-CAVITY-MESH §14: per-vertex nucleation. When
+        // wall.per_vertex_nucleation is on AND we have a mineral name (a
+        // free-wall nucleation, not a host inheritance), draw a joint sample
+        // over all (ring, cell) pairs weighted by per-cell σ for `mineral`.
+        // Stash the picked ring on this._lastNucVertexRing for the
+        // immediately-following _assignWallRing call to read.
+        //
+        // Falls through to legacy random cell when:
+        //   * wall.per_vertex_nucleation is false (default)
+        //   * mineral is not a string (older internal callers without arg)
+        //   * the mineral has no supersaturation_<mineral> method
+        //   * the mesh has no cells (sim is mid-init or test harness skipped
+        //     bindRingChemistry)
+        //   * every candidate cell evaluates to σ ≤ 0 (no supersaturated
+        //     locations — gate engines should have caught this upstream, but
+        //     defensive fall-through means we still pick A cell instead of
+        //     crashing or returning -1)
+        if (mineral &&
+            typeof mineral === 'string' &&
+            this.wall_state &&
+            this.wall_state.per_vertex_nucleation) {
+            const picked = this._perVertexNucleationSample(mineral);
+            if (picked) {
+                this._lastNucVertexRing = picked.ringIdx;
+                return picked.cellIdx;
+            }
+            // picked === null → fell through; legacy path consumes the RNG
+            // number below. _lastNucVertexRing stays null so _assignWallRing
+            // also uses its legacy path.
+        }
         const N = this.wall_state.cells_per_ring;
         const ring0 = this.wall_state.rings[0];
         const empty = [];
@@ -21923,6 +21998,116 @@ Object.assign(VugSimulator.prototype, {
         if (empty.length)
             return empty[Math.floor(rng.random() * empty.length)];
         return Math.floor(rng.random() * N);
+    },
+    // Tranche 6 of PROPOSAL-CAVITY-MESH §14 — joint σ-weighted sample over
+    // every (ring, cell) pair. Returns { ringIdx, cellIdx } or null if no
+    // cell evaluates to a positive supersaturation weight (in which case
+    // the caller falls through to the legacy random sampler).
+    //
+    // Weight(r, c) = max(0, σ_at_cell(r, c) − 1.0)²:
+    //   * σ < 1 (undersaturated or acid-dissolved) → weight 0
+    //   * σ slightly > 1 (saturation cusp)         → very small weight
+    //   * σ ≫ 1 (deeply supersaturated)            → strong weight
+    //
+    // Quadratic, not linear, so the sampler genuinely prefers high-σ
+    // locations rather than spreading nucleations roughly evenly across
+    // all supersaturated cells.
+    //
+    // Cost: O(ring_count × cells_per_ring) σ-evaluations per call.
+    // supersaturation_<mineral>() is ~10-30 ops typically; ~50k ops total
+    // at default 16×120 resolution. Bounded.
+    //
+    // One subtle invariant: the σ helpers read this.conditions.fluid and
+    // this.conditions.temperature, so we swap those to the per-cell values
+    // inside the inner loop and restore at the end. The pattern mirrors
+    // _runEngineForCrystal — same swap/restore, different consumer.
+    _perVertexNucleationSample(mineral) {
+        const wall = this.wall_state;
+        if (!wall || !wall.rings || !wall.rings.length)
+            return null;
+        const ringCount = wall.ring_count | 0;
+        const N = wall.cells_per_ring | 0;
+        if (ringCount < 1 || N < 1)
+            return null;
+        // Locate the supersaturation method up-front. If it doesn't exist
+        // for this mineral, fall through immediately — caller uses legacy
+        // path. This is the same name dispatch nucleation engines and the
+        // sigma-panel UI use.
+        const sigmaFn = this.conditions[`supersaturation_${mineral}`];
+        if (typeof sigmaFn !== 'function')
+            return null;
+        // Per-vertex chemistry lives on the WallMesh. The mesh is built
+        // in the simulator constructor and re-baked on dissolution events
+        // (see WallMesh.recompute), so meshFor() returns the live mesh.
+        // Each cell's .fluid is an independent clone of its ring's broth
+        // (Tranche 4a un-aliasing), evolving under engines + diffusion.
+        const mesh = wall.meshFor ? wall.meshFor(this) : null;
+        if (!mesh || !mesh.cells || mesh.cells.length < ringCount * N)
+            return null;
+        // Pull the per-ring temperature array. ring_temperatures is
+        // allocated in the simulator constructor with one slot per ring;
+        // engines + events mutate it during cooling/thermal pulses.
+        const ringTemps = this.ring_temperatures || [];
+        // Save conditions.fluid + .temperature once; swap inside the loop.
+        const savedFluid = this.conditions.fluid;
+        const savedTemp = this.conditions.temperature;
+        const weights = new Float64Array(ringCount * N);
+        let total = 0;
+        try {
+            for (let r = 0; r < ringCount; r++) {
+                const tempR = (r < ringTemps.length) ? ringTemps[r] : savedTemp;
+                this.conditions.temperature = tempR;
+                for (let c = 0; c < N; c++) {
+                    const idx = r * N + c;
+                    const cell = mesh.cells[idx];
+                    const cellFluid = cell ? cell.fluid : null;
+                    if (!cellFluid)
+                        continue;
+                    this.conditions.fluid = cellFluid;
+                    let sigma = 0;
+                    try {
+                        sigma = sigmaFn.call(this.conditions);
+                    }
+                    catch (_e) {
+                        // A supersat function that throws (typically a guard
+                        // returning early on missing fields) → treat as σ=0.
+                        sigma = 0;
+                    }
+                    if (!Number.isFinite(sigma) || sigma <= 1)
+                        continue;
+                    const w = (sigma - 1) * (sigma - 1);
+                    weights[idx] = w;
+                    total += w;
+                }
+            }
+        }
+        finally {
+            this.conditions.fluid = savedFluid;
+            this.conditions.temperature = savedTemp;
+        }
+        // No supersaturated cells anywhere. Caller's legacy fall-through
+        // will pick a random cell + a random ring — the same behavior as
+        // an unflagged scenario, which is the right thing when the engine
+        // gate has fired but every cell is technically at σ ≤ 1 (a
+        // numerical edge case at the threshold).
+        if (total <= 0)
+            return null;
+        // Joint sample. One RNG draw.
+        let r = rng.random() * total;
+        for (let i = 0; i < weights.length; i++) {
+            r -= weights[i];
+            if (r <= 0) {
+                return { ringIdx: Math.floor(i / N) | 0, cellIdx: (i % N) | 0 };
+            }
+        }
+        // Float round-off can land just past the last positive-weight slot;
+        // walk backwards to the last positive entry as a safe fallback.
+        for (let i = weights.length - 1; i >= 0; i--) {
+            if (weights[i] > 0) {
+                return { ringIdx: Math.floor(i / N) | 0, cellIdx: (i % N) | 0 };
+            }
+        }
+        return null;
     },
     // Phase C v1: run a mineral growth engine for a crystal, swapping
     // conditions.fluid + temperature to the crystal's ring's values
@@ -21994,6 +22179,15 @@ Object.assign(VugSimulator.prototype, {
     // module-level table). Spatially neutral minerals stay area-weighted.
     // Mirrors VugSimulator._assign_wall_ring in vugg.py.
     _assignWallRing(position, mineral) {
+        // Tranche 6: when _assignWallCell ran the joint σ-weighted sample,
+        // it stashed the picked ring on this._lastNucVertexRing. Honor that
+        // — both indices come from the same joint draw, so the cell and
+        // ring are guaranteed to refer to the same vertex.
+        if (this._lastNucVertexRing != null) {
+            const r = this._lastNucVertexRing;
+            this._lastNucVertexRing = null; // single-use, reset for next nucleation
+            return r;
+        }
         let hostId = null;
         const hashIdx = position.indexOf(' #');
         if (hashIdx >= 0) {

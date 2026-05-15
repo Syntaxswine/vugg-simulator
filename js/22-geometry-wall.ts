@@ -104,6 +104,30 @@ class VugWall {
     // Default 'smooth' preserves the pre-toggle visual appearance for
     // every existing scenario. Scenarios opt into 'sharp' explicitly.
     this.cavity_render = opts.cavity_render ?? 'smooth';
+    // Tranche 6 of PROPOSAL-CAVITY-MESH §14 (post-v69): per-vertex
+    // nucleation. Default OFF — nucleation engines fire based on
+    // conditions.fluid (= ring_fluids[equator] alias), and the crystal
+    // gets anchored to a cell picked by area+orientation+architecture
+    // weights only. That works fine for unzoned scenarios because every
+    // cell sees identical chemistry, but in zone_chemistry scenarios
+    // (Tranche 3+) it means a stalactite-cave's ceiling-supersaturated
+    // calcite has to wait for the equator's σ to cross threshold AND
+    // happens to be placed wherever the area-weighted RNG drops it —
+    // the spatial pattern doesn't track the chemistry pattern.
+    //
+    // When ON: _assignWallCell weights candidate (ring, cell) pairs by
+    // per-cell σ for the firing mineral, so crystals nucleate where σ
+    // is highest. The mesh.cells[i].fluid per-vertex storage shipped
+    // in Tranche 4a is the substrate; this trance closes the loop.
+    //
+    // Cost: ~ring_count × cells_per_ring σ-evaluations per nucleation
+    // event (e.g. 16 × 120 = 1920 at default resolution). Each σ call
+    // is ~10-30 ops — total ≪ 100 μs even at 1920 cells, negligible
+    // against the actual engine work in a step.
+    //
+    // Opt-in only — scenarios that don't declare this flag stay on the
+    // legacy code path and produce byte-identical output.
+    this.per_vertex_nucleation = !!opts.per_vertex_nucleation;
   }
 
   dissolve(acid_strength, fluid) {
@@ -382,6 +406,11 @@ class WallState {
     // MeshStandardMaterial.flatShading on the cavity hull. Default
     // 'smooth' preserves pre-toggle appearance.
     this.cavity_render = opts.cavity_render ?? 'smooth';
+    // Tranche 6 of PROPOSAL-CAVITY-MESH §14: per-vertex nucleation
+    // opt-in. See VugWall constructor for the full rationale. Mirrored
+    // onto WallState so _assignWallCell / _assignWallRing can read it
+    // without reaching back to conditions.wall.
+    this.per_vertex_nucleation = !!opts.per_vertex_nucleation;
     // Populated by _buildProfile() — [[cx, cy, r], …] in mm after rescale.
     // Primaries come first, then secondaries.
     this.bubbles = [];
