@@ -348,6 +348,27 @@ function _topoBuildCavityGeometry(state: any, wall: any, sim: any) {
   target.geometry = geom;
   if (prev && prev.dispose) prev.dispose();
 
+  // Tier 1 C (post-v69): toggle cavity material between smooth Phong-
+  // like shading (default) and flat-faceted sphere-union polyhedron
+  // shading. `wall.cavity_render === 'sharp'` surfaces the underlying
+  // dihedral creases between primary/secondary/tertiary bubbles —
+  // geologically right for brittle silicate hosts (pegmatite miarolitic
+  // cavities, chalcedony-lined agate vugs) where the original dissolution
+  // boundary is preserved. Smooth is right for carbonate caves and
+  // basalt vesicles where calcite/zeolite linings round the corners.
+  //
+  // flatShading uses fragment-shader derivatives (dFdx/dFdy of view
+  // position) to compute face normals, so the `normal` attribute is
+  // ignored when true and `computeVertexNormals` above becomes vestigial
+  // for sharp mode but harmless. material.needsUpdate forces shader
+  // recompile so the FLAT_SHADED define is honored.
+  const renderMode = (wall && wall.cavity_render === 'sharp') ? 'sharp' : 'smooth';
+  const wantFlat = (renderMode === 'sharp');
+  if (target.material && target.material.flatShading !== wantFlat) {
+    target.material.flatShading = wantFlat;
+    target.material.needsUpdate = true;
+  }
+
   // Update the cavity hull radius uniforms for the per-crystal clip
   // shader. Two values get computed:
   //   1. uVugRadius — global max vertex distance. Conservative spherical

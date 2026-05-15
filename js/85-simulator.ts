@@ -44,6 +44,10 @@ class VugSimulator {
       // irregular / tabular / pocket / basin). Drives bubble counts,
       // polar/twist amplitude scaling, and nucleation_bias.
       architecture: this.conditions.wall.architecture,
+      // Tier 1 C (post-v69): cavity material rendering style. The
+      // Three.js renderer reads wall_state.cavity_render. Default
+      // 'smooth' preserves pre-toggle look for every existing scenario.
+      cavity_render: this.conditions.wall.cavity_render,
     });
     // Per-step snapshot of ring[0] for the Replay button. Captured at
     // the end of each step; small (~120 cells × ~4 numbers × 100-200

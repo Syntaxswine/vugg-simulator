@@ -89,6 +89,21 @@ class VugWall {
     // mid-run keep the flag false and rely on the water-state
     // mechanism.
     this.air_mode_default = !!opts.air_mode_default;
+    // Tier 1 C (post-v69): cavity material rendering style. The
+    // 3D sphere-union geometry produces sharp dihedral creases where
+    // primary, secondary, and tertiary bubbles intersect — geologically
+    // realistic for brittle silicate hosts (chalcedony-lined agate vugs,
+    // pegmatite miarolitic cavities) where the original dissolution
+    // boundary is preserved without subsequent rounding. Other hosts
+    // (limestone caves, basalt vesicles refilled with smooth secondary
+    // calcite, weathered geodes) wear those edges into smooth curves.
+    //   'smooth'  → MeshStandardMaterial.flatShading = false; vertex
+    //               normals interpolated across faces (Phong-like).
+    //   'sharp'   → flatShading = true; each face gets its own normal,
+    //               surfacing the underlying sphere-union polyhedron.
+    // Default 'smooth' preserves the pre-toggle visual appearance for
+    // every existing scenario. Scenarios opt into 'sharp' explicitly.
+    this.cavity_render = opts.cavity_render ?? 'smooth';
   }
 
   dissolve(acid_strength, fluid) {
@@ -361,6 +376,12 @@ class WallState {
     this.primary_bubbles = opts.primary_bubbles ?? arc.primary_bubbles;
     this.secondary_bubbles = opts.secondary_bubbles ?? arc.secondary_bubbles;
     this.shape_seed = opts.shape_seed ?? 0;
+    // Tier 1 C (post-v69): cavity material rendering style. Sourced
+    // from VugWall.cavity_render at simulator construction; the
+    // Three.js renderer reads wall.cavity_render to set
+    // MeshStandardMaterial.flatShading on the cavity hull. Default
+    // 'smooth' preserves pre-toggle appearance.
+    this.cavity_render = opts.cavity_render ?? 'smooth';
     // Populated by _buildProfile() — [[cx, cy, r], …] in mm after rescale.
     // Primaries come first, then secondaries.
     this.bubbles = [];

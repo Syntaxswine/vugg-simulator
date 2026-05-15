@@ -1019,7 +1019,16 @@
           "vug_diameter_mm": 50.0,
           "primary_bubbles": 4,
           "secondary_bubbles": 5,
-          "shape_seed": 8
+          "shape_seed": 8,
+          // Tier 1 C (post-v69): pegmatite miarolitic cavities have
+          // crisp euhedral cavity walls — the host is a brittle,
+          // unweathered silicate matrix that preserves the original
+          // sphere-union dissolution boundary without subsequent
+          // rounding. London 2008 photographs of Brazilian + Maine
+          // miarolitic cavities show sharp dihedral creases between
+          // primary and satellite voids. 'sharp' surfaces those
+          // creases on the cavity mesh.
+          "cavity_render": "sharp"
         }
       },
       "events": [
@@ -1667,7 +1676,14 @@
           "wall_Fe_ppm": 4000.0,
           "primary_bubbles": 2,
           "secondary_bubbles": 4,
-          "shape_seed": 32
+          "shape_seed": 32,
+          // Tier 1 C (post-v69): fracture-controlled phonolite vein
+          // cavities preserve sharp dihedral creases. The host is
+          // brittle alkaline volcanic glass + microlite phenocrysts,
+          // unweathered at depth — the original fracture-and-vug
+          // geometry survives without subsequent rounding. 'sharp'
+          // surfaces the sphere-union creases on the cavity mesh.
+          "cavity_render": "sharp"
         }
       },
       "events": [
