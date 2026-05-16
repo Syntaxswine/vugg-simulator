@@ -922,29 +922,17 @@
     }
   },
   "stalactite_demo": {
-    "aragonite": {
-      "active": 1,
-      "dissolved": 0,
-      "total": 1,
-      "max_um": 1644.7
-    },
     "calcite": {
-      "active": 1,
+      "active": 4,
       "dissolved": 0,
-      "total": 1,
-      "max_um": 35131.3
-    },
-    "fluorite": {
-      "active": 1,
-      "dissolved": 0,
-      "total": 1,
-      "max_um": 4130.5
+      "total": 4,
+      "max_um": 51307.8
     },
     "quartz": {
       "active": 1,
       "dissolved": 0,
       "total": 1,
-      "max_um": 729.9
+      "max_um": 493.6
     }
   },
   "supergene_oxidation": {
@@ -1193,28 +1181,28 @@
   },
   "zoned_dripstone_cave": {
     "aragonite": {
-      "active": 1,
+      "active": 4,
       "dissolved": 0,
-      "total": 1,
-      "max_um": 31212.7
+      "total": 4,
+      "max_um": 27145.4
     },
     "calcite": {
-      "active": 1,
+      "active": 7,
       "dissolved": 0,
-      "total": 1,
-      "max_um": 62371.8
+      "total": 7,
+      "max_um": 44773.6
     },
     "dolomite": {
       "active": 1,
       "dissolved": 0,
       "total": 1,
-      "max_um": 16492.9
+      "max_um": 16512.9
     },
     "fluorite": {
       "active": 1,
       "dissolved": 0,
       "total": 1,
-      "max_um": 648.2
+      "max_um": 660.3
     }
   }
 }

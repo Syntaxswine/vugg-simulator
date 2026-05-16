@@ -1786,15 +1786,16 @@
 
     "stalactite_demo": {
       "anchor": "Generic limestone-cave dripstone — Carlsbad Caverns / Lechuguilla / Mammoth Cave family. Cave-air-filled cavity (vadose throughout), calcite precipitating from CO₂-degassed drip water on ceiling, floor, and walls in three different morphologies.",
-      "description": "PROPOSAL-HABIT-BIAS Slice 5 — proof-by-screenshot that the gravity-aware c-axis works. Cave-style cavity: every crystal nucleates in air-mode (wall.air_mode_default), so ceiling calcite renders as stalactite (c-axis world-down), floor calcite as stalagmite (c-axis world-up), wall calcite stays radial. Three morphologies in one cavity.",
+      "description": "PROPOSAL-HABIT-BIAS Slice 5 — proof-by-screenshot that the gravity-aware c-axis works. Cave-style cavity: every crystal nucleates in air-mode (wall.air_mode_default), so ceiling calcite renders as stalactite (c-axis world-down) and floor calcite as stalagmite (c-axis world-up). Multiple speleothems grow concurrently (cave-mode nucleation probability fires every step σ > threshold). Per-vertex sampling + zone chemistry route each nucleation to the calcite-favoring floor/ceiling cells.",
       "expects_species": ["calcite"],
       "duration_steps": 100,
       "notes": [
-        "Habit-bias proof scenario. The whole point: walk into the cave, look up at the ceiling, see crystals HANGING (stalactites); look down at the floor, see crystals STANDING (stalagmites); look at the walls, see crystals projecting INWARD (radial growth). All three are the same calcite mineral and the same precipitation chemistry — only the ANCHOR ORIENTATION differs, and that drives the rendered c-axis via PROPOSAL-HABIT-BIAS Slice 1.",
-        "Chemistry is generic dripstone: Ca²⁺ + HCO₃⁻ from limestone dissolution upstream, CO₂ degasses in the cave air, pH rises, CO₃²⁻ fraction climbs, calcite saturates and precipitates. The simulator's calcite engine handles this cascade; no special tuning beyond enough Ca/CO3 and an alkaline pH so calcite starts supersaturated from step 1 (no need for explicit degas events — the cave is already past that stage).",
-        "Zone chemistry leans Ca-rich at ceiling (drip-source) and floor (drop-collector) per PROPOSAL-CAVITY-MESH Phase 3. Wall zone stays at the global broth. With inter_ring_diffusion_rate=0 the gradient persists across the 100-step run; without that, Laplacian diffusion would average the zones over ~20 steps and the differentiation would wash out.",
-        "Temperature: 15°C — generic cave (geothermal gradient + surface T blend). Pressure: 0.01 kbar (essentially atmospheric — cave air above the water table). Wall: pocket archetype (uniform-area nucleation) at 60 mm diameter so the cavity is large enough that 1-2 mm crystals read clearly at viewer scale.",
-        "Sources cited for the dripstone chemistry are standard (Pentecost travertine review covers cave + spring); the specific localities aren't critical because this is a teaching scaffold, not an anchored locality."
+        "Habit-bias proof scenario. The whole point: walk into the cave, look up at the ceiling, see crystals HANGING (stalactites); look down at the floor, see crystals STANDING (stalagmites). All are the same calcite mineral and the same precipitation chemistry — only the ANCHOR ORIENTATION differs, and that drives the rendered c-axis via PROPOSAL-HABIT-BIAS Slice 1.",
+        "Chemistry is generic dripstone: Ca²⁺ + HCO₃⁻ from limestone dissolution upstream, CO₂ degasses in the cave air, pH rises, CO₃²⁻ fraction climbs, calcite saturates and precipitates. The simulator's calcite engine handles this cascade.",
+        "Zone chemistry (PROPOSAL-CAVITY-MESH Phase 3): ceiling + floor are Ca-rich (drip-source ceiling, drop-collector floor), wall is calcite-cuspy. With inter_ring_diffusion_rate=0 the gradient persists across the 100-step run; without that, Laplacian diffusion would average the zones over ~20 steps and the differentiation would wash out.",
+        "Per-vertex nucleation (PROPOSAL-CAVITY-MESH Tranche 6, 2026-05): the calcite engine still gates on the equator's σ, but cell assignment uses the joint σ-weighted sample so each calcite anchors at a cell where its local σ is highest. With the sharp wall-cuspy zoning, this routes every nucleation to the floor or ceiling — no wall calcite. Without this flag, area-weighted random placement would put most calcites on wall cells (wall has ~2× more cells than floor or ceiling combined) and the speleothem morphologies would be invisible.",
+        "Air-mode nucleation probability (2026-05): cave-mode scenarios use a Bernoulli per-step roll (_AIR_MODE_NUCLEATION_PROB = 0.06) instead of the strict serial !existing_calcite gate. Real caves grow multiple stalactites + stalagmites concurrently; the serial gate produced exactly 1 calcite per run and was the reason this scenario shipped with only 1 visible speleothem at v69. Calibrated to give ~4-7 nucleations over 100 steps, bounded by max_nucleation_count.",
+        "Temperature: 15°C — generic cave. Pressure: 0.01 kbar (atmospheric — cave air above the water table). Wall: pocket archetype at 60 mm diameter."
       ],
       "initial": {
         // Cave temperature — generic mid-latitude limestone karst.
@@ -1842,22 +1843,37 @@
           // PROPOSAL-HABIT-BIAS Slice 2 — every crystal nucleates in
           // air-mode regardless of water state. The cave is air-filled
           // from step 0 (no faked drainage event needed).
+          //
+          // Air-mode also activates the relaxed nucleation gate in
+          // _nuc_calcite (post-Tranche-6 / 2026-05): instead of
+          // the serial "no active calcite exists" gate, every step
+          // rolls a 6% probability while σ > 1.3 and the per-mineral
+          // cap (10) isn't hit. Multiple speleothems grow concurrently.
           "air_mode_default": true,
-          // Zone chemistry intentionally NOT set on this scenario.
-          // Reason: nucleation engines currently read conditions.fluid
-          // (= equator-ring fluid alias) to pick which mineral to
-          // try, not the per-ring fluid. With zoned ceiling/floor
-          // chemistry + a diffusion=0 pin, calcite drains the equator
-          // ring's Ca after 1-2 crystals and further nucleation
-          // stalls even though floor/ceiling still have plenty of Ca
-          // budget. The fix is per-ring nucleation engines — a
-          // PROPOSAL-CAVITY-MESH Phase 3.5 candidate. Until then,
-          // uniform broth lets all 10 calcite nucleations fire, and
-          // the gravity-bias still demonstrates because air_mode_default
-          // hits all of them. The zone-chemistry feature ships in
-          // Phase 3 of cavity-mesh; this scenario opts out so it
-          // can stand on the habit-bias feature alone.
-          "inter_ring_diffusion_rate": 0.05
+          // PROPOSAL-CAVITY-MESH Tranche 6 (post-v69): per-vertex
+          // nucleation. Combined with the sharp zone_chemistry below,
+          // every nucleation lands at a high-σ cell on the floor or
+          // ceiling — no calcite-on-wall. The c-axis world-down/up
+          // gravity bias from PROPOSAL-HABIT-BIAS Slice 1 then sells
+          // the stalactite vs stalagmite morphology distinction.
+          "per_vertex_nucleation": true,
+          // PROPOSAL-CAVITY-MESH Phase 3 zone chemistry: floor + ceiling
+          // are calcite-favoring (Ca = 4000, CO3 = 4000 — well above
+          // threshold). Wall is calcite-cuspy (Ca = 600, CO3 = 600 — σ
+          // still above 1.3 but per-vertex weight ((σ-1)²) much lower
+          // than floor/ceiling cells, so the joint sampler routes
+          // every nucleation to floor or ceiling. This is what makes
+          // the scenario VISUALLY a speleothem cave instead of a
+          // limestone bubble with random calcite crystals.
+          "zone_chemistry": {
+            "ceiling": { "Ca": 4000, "CO3": 4000 },
+            "floor":   { "Ca": 4000, "CO3": 4000 },
+            "wall":    { "Ca":  600, "CO3":  600 }
+          },
+          // Pin the gradient: 0 = no inter-ring Laplacian diffusion.
+          // The floor/ceiling/wall σ contrast persists across the
+          // 100-step run instead of homogenizing within ~20 steps.
+          "inter_ring_diffusion_rate": 0
         }
       },
       "events": [],

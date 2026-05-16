@@ -10,10 +10,35 @@
 //
 // Phase B15 of PROPOSAL-MODULAR-REFACTOR.
 
+// Post-Tranche-6 (2026-05): air-mode nucleation probability per step.
+// Cave-style scenarios (wall.air_mode_default = true) replace the
+// strict serial gate `!existing_<mineral>.length` with a Bernoulli
+// roll, bounded by the per-mineral max_nucleation_count. The result
+// is multiple speleothems growing concurrently — Carlsbad caves have
+// dozens of stalactites and stalagmites in the same chamber at once,
+// not a strict one-at-a-time queue.
+//
+// 0.06 (6% per step) is calibrated so a 100-step run with σ always
+// above threshold gives ~6 nucleations on average — comfortably below
+// the per-mineral cap of 10 (calcite) or 4 (aragonite), with the cap
+// providing the upper bound when σ is high for long stretches. Tuned
+// empirically against stalactite_demo (target: 5-10 concurrent
+// crystals so the c-axis world-down/up gravity bias is legibly
+// demonstrated visually).
+const _AIR_MODE_NUCLEATION_PROB = 0.06;
+
 function _nuc_calcite(sim) {
   const sigma_c = sim.conditions.supersaturation_calcite();
   const existing_calcite = sim.crystals.filter(c => c.mineral === 'calcite' && c.active);
-  if (sigma_c > 1.3 && !existing_calcite.length && !sim._atNucleationCap('calcite')) {
+  const air_mode = !!(sim.conditions.wall && sim.conditions.wall.air_mode_default);
+  // Air-mode (cave): drop the serial !existing_calcite gate, add a
+  // probabilistic roll, still respect the per-mineral cap.
+  // Water-mode (default): legacy serial gate — one active calcite at
+  // a time per scenario, matching every scenario's existing baseline.
+  const gateClear = air_mode
+    ? (rng.random() < _AIR_MODE_NUCLEATION_PROB)
+    : !existing_calcite.length;
+  if (sigma_c > 1.3 && gateClear && !sim._atNucleationCap('calcite')) {
     const c = sim.nucleate('calcite', 'vug wall', sigma_c);
     sim.log.push(`  ✦ NUCLEATION: Calcite #${c.crystal_id} on ${c.position} (T=${sim.conditions.temperature.toFixed(0)}°C, σ=${sigma_c.toFixed(2)})`);
   }
@@ -23,7 +48,13 @@ function _nuc_calcite(sim) {
 function _nuc_aragonite(sim) {
   const sigma_arag = sim.conditions.supersaturation_aragonite();
   const existing_arag = sim.crystals.filter(c => c.mineral === 'aragonite' && c.active);
-  if (sigma_arag > 1.0 && !existing_arag.length && !sim._atNucleationCap('aragonite')) {
+  const air_mode = !!(sim.conditions.wall && sim.conditions.wall.air_mode_default);
+  // Air-mode path matches calcite above. See _AIR_MODE_NUCLEATION_PROB
+  // for tuning rationale.
+  const gateClear = air_mode
+    ? (rng.random() < _AIR_MODE_NUCLEATION_PROB)
+    : !existing_arag.length;
+  if (sigma_arag > 1.0 && gateClear && !sim._atNucleationCap('aragonite')) {
     let pos = 'vug wall';
     const existing_goe_a = sim.crystals.filter(c => c.mineral === 'goethite' && c.active);
     const existing_hem_a = sim.crystals.filter(c => c.mineral === 'hematite' && c.active);

@@ -179,18 +179,18 @@ describe('habit-bias Slice 5 — stalactite_demo scenario produces air-mode crys
     }
   });
 
-  it('produces crystals spread across orientations (proof-by-screenshot)', () => {
-    // The full screenshot promise wants AT LEAST ONE crystal in each
-    // of {floor, wall, ceiling} so the rendered scene shows all
-    // three morphologies. In practice, a 16-ring cavity has
-    // area-weighted nucleation: floor + ceiling each get ~16% of
-    // expected nucleations, wall gets ~68%. With seed 42 and
-    // calcite-only chemistry, some seeds may sample 0 from one
-    // band. Relaxed contract: the scene must show stalactites OR
-    // stalagmites (at least one ceiling or floor air-mode crystal)
-    // alongside wall crystals — that's enough to teach the
-    // difference. Re-tighten if a future seed-locking effort wants
-    // exact distribution control.
+  it('produces crystals concentrated on speleothem zones (floor + ceiling) — Tranche 6 routing', () => {
+    // Post-Tranche-6 (2026-05): stalactite_demo opts into zone_chemistry
+    // (sharp Ca contrast: floor/ceiling 4000, wall 600) + per_vertex_nucleation.
+    // Every nucleation lands at a high-σ cell in either the floor or
+    // ceiling band — the wall zone has σ still above threshold but a
+    // much smaller (σ-1)² weight, so the joint sampler routes
+    // essentially every crystal to floor or ceiling.
+    //
+    // The visual contract: the rendered scene shows stalactites
+    // (ceiling air-mode crystals, c-axis world-down) and stalagmites
+    // (floor air-mode crystals, c-axis world-up). Wall-popcorn calcite
+    // is the rare exception, not the rule.
     const sim = runScenario('stalactite_demo', { seed: 42 });
     const zoneCounts: any = { floor: 0, wall: 0, ceiling: 0 };
     for (const c of sim.crystals) {
@@ -198,30 +198,41 @@ describe('habit-bias Slice 5 — stalactite_demo scenario produces air-mode crys
       if (z) zoneCounts[z]++;
     }
     const verticalZoneTotal = zoneCounts.floor + zoneCounts.ceiling;
+    // Speleothem zones dominate (floor + ceiling > wall). The whole
+    // point of opting into per_vertex_nucleation + sharp zoning was to
+    // shift the area-weighted random placement (which favored wall
+    // ~68% by cell count) into a σ-weighted placement that favors
+    // speleothem zones.
+    expect(verticalZoneTotal).toBeGreaterThan(zoneCounts.wall);
+    // At least one of each: stalactite or stalagmite must exist
+    // (the visible morphologies the scenario was authored to show).
     expect(verticalZoneTotal).toBeGreaterThan(0);
-    expect(zoneCounts.wall).toBeGreaterThan(0);
     // Sanity: total should match the air-mode-only crystals from the
     // previous assertion (every crystal is air-mode in this scenario).
     expect(zoneCounts.floor + zoneCounts.wall + zoneCounts.ceiling).toBe(sim.crystals.length);
   });
 
-  it('scenario uses default diffusion (uniform broth, no zone chemistry)', () => {
-    // The scenario opts OUT of zone_chemistry deliberately (see the
-    // scenario comment in data/scenarios.json5). Reason logged there:
-    // nucleation engines currently read conditions.fluid (= equator-
-    // ring fluid via alias), not ring_fluids[r], so zoned ceiling /
-    // floor chemistry stalls nucleation after the equator ring drains.
-    // Per-ring nucleation engines are a candidate Phase 3.5 of
-    // cavity-mesh. This test pins the OPT-OUT so future agents don't
-    // re-add zone_chemistry to this scenario without first solving
-    // the nucleation-engine plumbing.
+  it('scenario uses zone_chemistry + per_vertex_nucleation + diffusion=0 (Tranche 6 visual unlock)', () => {
+    // Post-Tranche-6 (2026-05): the scenario now opts INTO zone_chemistry,
+    // per_vertex_nucleation, and inter_ring_diffusion_rate=0.
+    //
+    // This test pins all three flags so a future scenario edit that
+    // drops one (without intent) fails loudly. The previous v69
+    // version of this test pinned the OPT-OUT — the reasoning has
+    // inverted now that Tranche 6 closed the gap.
     expect(SCENARIOS.stalactite_demo).toBeTruthy();
     const sim = runScenario('stalactite_demo', { seed: 42 });
-    // No zone_chemistry → every ring's Ca starts at conditions.fluid.Ca
-    // and they only differ post-run via per-ring growth consumption.
-    // Default diffusion rate (DEFAULT_INTER_RING_DIFFUSION_RATE = 0.05)
-    // means the rings stay approximately uniform.
-    expect(sim.inter_ring_diffusion_rate).toBeGreaterThan(0);
+    expect(sim.wall_state.per_vertex_nucleation).toBe(true);
+    // Sharp wall-cuspy zone chemistry is the design lever. If a future
+    // edit smooths the zone gradient, the per-vertex routing weakens
+    // and the speleothem visual degrades — flag that.
+    const zc = sim.conditions.wall?.zone_chemistry;
+    expect(zc).toBeDefined();
+    expect(zc.ceiling?.Ca).toBeGreaterThanOrEqual(3000);
+    expect(zc.floor?.Ca).toBeGreaterThanOrEqual(3000);
+    expect(zc.wall?.Ca).toBeLessThanOrEqual(1000);
+    // Diffusion pin: 0 = the gradient persists across the 100-step run.
+    expect(sim.inter_ring_diffusion_rate).toBe(0);
   });
 });
 
