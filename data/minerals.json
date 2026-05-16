@@ -783,7 +783,8 @@
           "name": "polysynthetic",
           "miller_indices": "{012}",
           "trigger": "growth or stress",
-          "probability": 0.02
+          "probability": 0.05,
+          "_retune_note": "Tier 2 F (2026-05): bumped 0.02→0.05. Polysynthetic lamellar twinning is essentially universal in carbonate-rhombohedral minerals at thin-section scale, common at hand-specimen scale. The prior 2% was tuned for the pre-Apr-2026 per-step roll model; under the post-fix per-nucleation roll, observed siderite twin rate was zero across 59 nucleations in a 10-seed × 24-scenario sweep. 5% gives the visible-but-not-dominant rate the description implies, without disturbing the sibling carbonates (dolomite, rhodochrosite) which already show twins at their current 2% authored value."
         }
       ],
       "acid_dissolution": {
@@ -1041,7 +1042,8 @@
           "name": "spinel_law",
           "miller_indices": "{111}",
           "trigger": "growth",
-          "probability": 0.015
+          "probability": 0.08,
+          "_retune_note": "Tier 2 F (2026-05): bumped 0.015→0.08. The per-roll single-Bernoulli model (Round 9 fix, Apr 2026) made the prior 1.5% authored value give observed-zero in calibration sweeps despite spinel-law {111} penetration twins being textbook in well-developed sphalerite — Mindat photographs of crystallized Tri-State (MVT) and Iberian Picos specimens consistently show interpenetration twin pairs. 8% per nucleation gives the visible-but-not-dominant rate the description language implies."
         }
       ],
       "acid_dissolution": {
@@ -1163,7 +1165,8 @@
           "name": "basal_contact",
           "miller_indices": "{0001}",
           "trigger": "growth in hemimorphic habit",
-          "probability": 0.008
+          "probability": 0.05,
+          "_retune_note": "Tier 2 F (2026-05): bumped 0.008→0.05. Wurtzite is the hexagonal-close-pack polymorph of (Zn,Fe)S; the inherent stacking-fault tendency at {0001} produces basal-contact twins in a meaningful fraction of well-developed crystals. Calibration sweep showed observed-zero across 27 nucleations vs 0.8% authored — well below noise floor but also below what hand-specimen photographs of Joplin and Příbram wurtzite suggest. 5% gives the visible-occasional rate without making it universal."
         }
       ],
       "acid_dissolution": {
@@ -4350,8 +4353,9 @@
           "name": "swallowtail",
           "miller_indices": "{100}",
           "trigger": "growth",
-          "probability": 0.08,
-          "status": "newly_added"
+          "probability": 0.18,
+          "status": "newly_added",
+          "_retune_note": "Tier 2 F (2026-05): bumped 0.08→0.18. The swallowtail (or 'fishtail') twin is the iconic gypsum/selenite morphology — meter-scale Naica beams and centimeter-scale Bohemian blade clusters both show it as a regular feature, not a rare event. Calibration sweep showed observed 4.5% across 156 nucleations vs 8% authored, so the model was already under-shooting; raising to 18% per-roll brings the in-game frequency closer to the 30-50% typical of fine specimens in collection-quality matrix."
         }
       ],
       "acid_dissolution": {
