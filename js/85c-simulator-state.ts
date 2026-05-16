@@ -126,9 +126,26 @@ _applyVadoseOxidationOverride() {
           // v27 evaporative concentration boost (mirror of vugg.py).
           cell.fluid.concentration *= EVAPORATIVE_CONCENTRATION_FACTOR;
         }
-      } else {
-        // Fallback (headless tests without a mesh built).
-        const rf = this.ring_fluids[r];
+      }
+      // ALSO update ring_fluids[r] so nucleation gates see the vadose
+      // transition. Tranche 6 (2026-05) discovery via
+      // tools/mineral_coverage_check.mjs: the mesh-only path above
+      // boosted per-cell fluids but left ring_fluids[r] alone, so the
+      // engine's nucleation gate (which reads conditions.fluid =
+      // ring_fluids[equator] via alias) never saw concentration cross
+      // the 1.5 threshold. Borax / mirabilite / thenardite stayed
+      // stale across the entire searles_lake run despite mesh.cells
+      // for vadose rings carrying concentration=3.0+.
+      //
+      // The cleanest fix: mirror the vadose override to ring_fluids[r]
+      // as well so BOTH the engine-level gate (ring-fluid view) and
+      // the per-vertex assignment (cell-fluid view) agree about the
+      // vadose state. ring_fluids[equator] is conditions.fluid by
+      // alias, so updating ring_fluids[equator] also updates
+      // conditions.fluid — the engine sees the boost without further
+      // plumbing.
+      const rf = this.ring_fluids[r];
+      if (rf) {
         if (rf.O2 < 1.8) rf.O2 = 1.8;
         rf.S *= 0.3;
         rf.concentration *= EVAPORATIVE_CONCENTRATION_FACTOR;
