@@ -12517,7 +12517,16 @@ Object.assign(VugConditions.prototype, {
             return 0;
         if (this.fluid.O2 > 0.3)
             return 0;
-        let sigma = (this.fluid.Au / 1.0) * (this.fluid.Te / 5.0);
+        // Tier 2 F follow-up (2026-05): reference values dropped from
+        // (Au/1.0, Te/5.0) → (Au/0.2, Te/2.0). Cripple Creek fluid
+        // inclusion data (Saunders 2008) puts typical telluride-precipitating
+        // fluids at Au 0.4-2 ppm and Te 1-30 ppm. The prior references
+        // anchored "well-saturated" at Au=1 ppm and Te=5 ppm, so the
+        // scenario's natural-range Au=0.4 / Te=3 gave σ=0.24 — well below
+        // the >1.0 nucleation threshold. epithermal_telluride's
+        // calaverite stale across 10 seeds × 100 steps confirmed the
+        // miss via tools/mineral_coverage_check.mjs.
+        let sigma = (this.fluid.Au / 0.2) * (this.fluid.Te / 2.0);
         const T = this.temperature;
         if (T < 100 || T > 450)
             return 0;
@@ -12546,7 +12555,14 @@ Object.assign(VugConditions.prototype, {
             return 0;
         if (this.fluid.O2 > 0.3)
             return 0;
-        let sigma = (this.fluid.Au / 1.0) * (this.fluid.Ag / 5.0) * (this.fluid.Te / 5.0) * 0.7;
+        // Tier 2 F follow-up (2026-05): reference values dropped from
+        // (Au/1.0, Ag/5.0, Te/5.0) → (Au/0.2, Ag/5.0, Te/2.0). Same
+        // rescaling rationale as calaverite — Cripple Creek Au + Te
+        // averages were sub-saturating against the prior anchors. Ag/5.0
+        // kept because Ag=15 in the scenario already produces a 3× factor
+        // and the cation-fork dynamic (sylvanite favored when Ag dominates
+        // Au) needs preservation, not amplification.
+        let sigma = (this.fluid.Au / 0.2) * (this.fluid.Ag / 5.0) * (this.fluid.Te / 2.0) * 0.7;
         const T = this.temperature;
         if (T < 80 || T > 400)
             return 0;
@@ -12574,7 +12590,16 @@ Object.assign(VugConditions.prototype, {
             return 0;
         if (this.fluid.O2 > 0.3)
             return 0;
-        let sigma = (this.fluid.Ag / 30.0) * (this.fluid.Te / 5.0);
+        // Tier 2 F follow-up (2026-05): reference values dropped from
+        // (Ag/30.0, Te/5.0) → (Ag/10.0, Te/2.0). Hessite is the Ag-
+        // dominant end of the Au-Te paragenesis; at Cripple Creek's
+        // Ag=15 ppm + Te=3 ppm the prior anchors gave σ=0.3, no
+        // nucleation across the 10-seed sweep. The new anchors put
+        // hessite in supersaturated territory at the scenario's
+        // chemistry, unlocking the Ag→native_tellurium consumption
+        // cascade (hessite debits Ag from the broth; when Ag drops
+        // below the native_tellurium gate of 5 ppm, that engine fires).
+        let sigma = (this.fluid.Ag / 10.0) * (this.fluid.Te / 2.0);
         const T = this.temperature;
         if (T < 50 || T > 400)
             return 0;
