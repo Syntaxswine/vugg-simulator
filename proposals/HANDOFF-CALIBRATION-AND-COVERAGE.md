@@ -175,3 +175,61 @@ The Arc 2 thread — coverage tool → telluride retune → vadose bug fix — i
 The lesson worth carrying: when you find one bug in a calibration system, run the broader tool to find the others. Calibration bugs cluster — they share infrastructure, and infrastructure bugs propagate to everything downstream. The Tranche 4a un-aliasing left this single ELSE branch that broke the bulk-fluid view in every scenario; it took until tonight for the right tool to surface it.
 
 Good seat to compact from.
+
+---
+
+## 10. Principles to carry forward (notes from the session-ending reflection)
+
+Four things worth preserving past compaction, written in the voice they were noticed in:
+
+### Tools-are-fast is a load-bearing property
+
+The Arc 2 cascade was possible because the tool chain runs in 10-30 seconds per invocation:
+
+| tool | runtime |
+|------|---------|
+| `tools/mineral_coverage_check.mjs` | ~10s |
+| `tools/twin_rate_check.mjs` | ~15s |
+| `tools/gen-js-baseline.mjs` | ~30s |
+
+If any of those took 5 minutes, I would have used them less, found fewer things, shipped less. The cascade — F retune → coverage tool → telluride retune → vadose bug — was four commits in roughly an hour, each made possible by the previous tool's output. **Protect this property** when adding new sweeps: keep the harness shared (jsdom + bundle eval + fetch mock); keep the per-tool work scoped to "run, aggregate, report"; avoid pulling in dependencies that would slow boot.
+
+### The `_retune_note` audit-trail pattern
+
+Every probability bump introduced this session in `data/minerals.json` carries a date-stamped rationale field:
+
+```json
+{
+  "name": "spinel_law",
+  "probability": 0.08,
+  "_retune_note": "Tier 2 F (2026-05): bumped 0.015→0.08. ..."
+}
+```
+
+The note records (a) what changed, (b) when, (c) the calibration evidence (observed-rate, sample size), (d) the geological justification with at least one citation or specimen reference. The note is metadata, not consumed by the runtime — Python loaders that don't care about it skip it cleanly. Future calibration work should keep the pattern. It's the only way to know later whether a number was tuned-with-evidence or guessed-and-forgotten.
+
+### The stale-comment trap
+
+The instinct that nearly cost time this session: when authored data looks like a missing entry, your reflex is to "fix" it by adding the missing data. Galena's `twin_laws: []` matched the fallback's `spinel_law p=0.008` — looked like a missing entry. It's not. It's a decision. Galena nucleates without per-roll twins, intentionally. The fix would have been new content, not a retune.
+
+**The trap:** in calibration work, the values you find look like errors when they're decisions, and look like decisions when they're errors. Same surface, opposite interpretations.
+
+**The discipline:** when in doubt, surface the gap in the commit body or handoff doc and let someone with more context resolve it. Don't silently fix what might be intentional. Mention it explicitly — boss's "narrative canonical: pick richer" stored-memory principle applies here in reverse: an empty array might be the canonical decision, not a placeholder.
+
+### vugFill cap (backlog K) is the highest-leverage remaining unlock
+
+Of the six items on the post-tonight backlog, K is the one most directly enabled by the night's investigation. The coverage tool surfaced it; the vadose-fix cleared the lower-hanging fruit; what's left is the architectural decision about whether interstitial/efflorescent minerals should respect the global fill cap.
+
+Specifically: `check_nucleation`'s `vugFill < 0.95` guard cuts off ALL engines when the cavity is 95% full by crystal volume. Real caves continue to grow late-evaporite crusts (borax, mirabilite, sylvite, efflorescent halite) on top of existing crystal cover — they don't displace, they coat. The fix is per-mineral classification (e.g., `MINERAL_SPEC[m].fill_exempt: true`) + a one-line guard adjustment in `check_nucleation`.
+
+Estimated effort: ~2 hours. Unlocks searles_lake's full evaporite cascade (the 2 remaining stale entries: borax, mirabilite). Probably ripples to bisbee + supergene_oxidation + ultramafic_supergene, since efflorescent crusts appear there too. Calibration baseline drift expected and acceptable.
+
+**Why I didn't do it tonight:** the per-mineral classification is a calibration question that wants explicit scoping rather than slipping in. Worth a focused commit with the classification table reviewed before merge.
+
+---
+
+## 11. What this session was
+
+Eleven commits without a single test regression. Baseline drift only in directions the geological literature predicted (supergene minerals appearing in supergene scenarios; telluride paragenesis populating in the Cripple Creek anchor; speleothems appearing where speleothems grow). That's not normal for a session this long — usually you get more flailing.
+
+The reason: the underlying chemistry plumbing is tight enough that surgical changes don't ripple. Path C (per-vertex chemistry), Tranche 4a (un-aliased fluids), the mass-balance infrastructure — those are all load-bearing. When the calibration is wrong, it's wrong in one identifiable place, not smeared across the codebase. That's a property the boss earned over many prior sessions; tonight's work just rode on it.
