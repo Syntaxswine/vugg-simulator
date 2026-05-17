@@ -107,36 +107,47 @@ describe('Backlog K — fill-cap exemption', () => {
     });
   });
 
-  describe('_atNucleationCap honors the fill cap state', () => {
-    it('blocks non-exempt minerals when _fillCapped is true', () => {
+  describe('_atNucleationCap honors the fill dampener state', () => {
+    // Proposal A (2026-05) replaced the binary _fillCapped flag with a
+    // continuous _fillDampener (sigmoid 1.0 → 0 across vugFill 0.7–1.0).
+    // Tests below pin the new probabilistic API: when dampener < 1.0,
+    // _atNucleationCap rolls one RNG number per call; fill_exempt
+    // minerals bypass the roll entirely.
+
+    it('a dampener of 1.0 (or absent) never blocks on fill grounds', () => {
       setSeed(42);
       const sim = new VugSimulator(makeBareConditions(), []);
-      // Calcite has no fill_exempt flag — it should be blocked.
-      sim._fillCapped = false;
+      // No dampener stashed → no fill-based blocking.
       expect(sim._atNucleationCap('calcite')).toBe(false);
-      sim._fillCapped = true;
+      sim._fillDampener = 1.0;
+      expect(sim._atNucleationCap('calcite')).toBe(false);
+    });
+
+    it('a dampener of 0.0 always blocks non-exempt minerals (and consumes one RNG)', () => {
+      setSeed(42);
+      const sim = new VugSimulator(makeBareConditions(), []);
+      sim._fillDampener = 0.0;
+      // rng.random() >= 0.0 is always true → blocked.
       expect(sim._atNucleationCap('calcite')).toBe(true);
-      // Quartz, halite — also non-exempt. (Halite is the bulk evaporite,
-      // not a late crust; it intentionally doesn't get fill_exempt.)
-      sim._fillCapped = true;
       expect(sim._atNucleationCap('quartz')).toBe(true);
       expect(sim._atNucleationCap('halite')).toBe(true);
     });
 
-    it('allows fill_exempt minerals through the cap', () => {
+    it('fill_exempt minerals bypass the dampener entirely', () => {
       setSeed(42);
       const sim = new VugSimulator(makeBareConditions(), []);
-      sim._fillCapped = true;
-      // The four authored fill-exempt minerals — none should be capped.
+      sim._fillDampener = 0.0;
+      // The four authored fill-exempt minerals — none should be capped
+      // even at dampener=0 (they only respect max_nucleation_count).
       for (const m of AUTHORED_FILL_EXEMPT) {
-        expect(sim._atNucleationCap(m), `${m} should NOT be capped under fill cap`).toBe(false);
+        expect(sim._atNucleationCap(m), `${m} should NOT be capped under fill dampener`).toBe(false);
       }
     });
 
     it('still respects the per-mineral max_nucleation_count even when fill-exempt', () => {
       setSeed(42);
       const sim = new VugSimulator(makeBareConditions(), []);
-      sim._fillCapped = true;
+      sim._fillDampener = 0.0;
       // borax has max_nucleation_count: 8. Stuff 8 exposed borax crystals
       // into sim.crystals and the cap should now fire.
       for (let i = 0; i < 8; i++) {
@@ -145,40 +156,81 @@ describe('Backlog K — fill-cap exemption', () => {
       expect(sim._atNucleationCap('borax')).toBe(true);
     });
 
-    it('a missing/unknown mineral name returns true under fill cap (defensive)', () => {
+    it('a missing/unknown mineral name returns true when dampener is 0', () => {
       setSeed(42);
       const sim = new VugSimulator(makeBareConditions(), []);
-      sim._fillCapped = true;
-      // No spec entry → spec is falsy → fill_exempt branch returns true
-      // (blocks). This is the right default for unknown engines that
-      // somehow reach this helper.
+      sim._fillDampener = 0.0;
+      // No spec entry → not fill_exempt → dampener gate blocks.
       expect(sim._atNucleationCap('nonexistent_mineral_xyz')).toBe(true);
+    });
+
+    it('partial dampener gates probabilistically — over many rolls, blocked ≈ 1-dampener', () => {
+      setSeed(42);
+      const sim = new VugSimulator(makeBareConditions(), []);
+      sim._fillDampener = 0.5;
+      // With dampener=0.5, blocked ≈ 50%. Over 1000 rolls expect 400-600
+      // blocks (very loose CI to avoid flakes on RNG fluctuation).
+      let blocked = 0;
+      for (let i = 0; i < 1000; i++) {
+        if (sim._atNucleationCap('calcite')) blocked++;
+      }
+      expect(blocked).toBeGreaterThan(400);
+      expect(blocked).toBeLessThan(600);
     });
   });
 
-  describe('check_nucleation state cache', () => {
-    it('clears _fillCapped when vugFill is below the cap', () => {
+  describe('check_nucleation sets _fillDampener', () => {
+    it('dampener = 1.0 below vugFill 0.7', () => {
       setSeed(42);
       const sim = new VugSimulator(makeBareConditions(), []);
-      sim._fillCapped = true; // poison
       sim.check_nucleation(0.5);
-      expect(sim._fillCapped).toBe(false);
+      expect(sim._fillDampener).toBe(1.0);
+      sim.check_nucleation(0.7);
+      expect(sim._fillDampener).toBe(1.0);
     });
 
-    it('sets _fillCapped when vugFill >= 0.95', () => {
+    it('dampener ≈ 0.5 at vugFill 0.85 (the sigmoid midpoint)', () => {
       setSeed(42);
       const sim = new VugSimulator(makeBareConditions(), []);
-      sim._fillCapped = false;
-      sim.check_nucleation(0.97);
-      expect(sim._fillCapped).toBe(true);
+      sim.check_nucleation(0.85);
+      expect(sim._fillDampener).toBeCloseTo(0.5, 2);
     });
 
-    it('undefined vugFill means uncapped (legacy single-arg callers)', () => {
+    it('dampener ≈ 0.12 at vugFill 0.95 (matches the proposal anchor)', () => {
       setSeed(42);
       const sim = new VugSimulator(makeBareConditions(), []);
-      sim._fillCapped = true;
+      sim.check_nucleation(0.95);
+      expect(sim._fillDampener).toBeGreaterThan(0.08);
+      expect(sim._fillDampener).toBeLessThan(0.15);
+    });
+
+    it('dampener = 0.0 at vugFill >= 1.0 (hard floor)', () => {
+      setSeed(42);
+      const sim = new VugSimulator(makeBareConditions(), []);
+      sim.check_nucleation(1.0);
+      expect(sim._fillDampener).toBe(0.0);
+      sim.check_nucleation(1.5);
+      expect(sim._fillDampener).toBe(0.0);
+    });
+
+    it('undefined vugFill means dampener = 1.0 (legacy single-arg callers)', () => {
+      setSeed(42);
+      const sim = new VugSimulator(makeBareConditions(), []);
+      sim._fillDampener = 0.5; // poison
       sim.check_nucleation(undefined);
-      expect(sim._fillCapped).toBe(false);
+      expect(sim._fillDampener).toBe(1.0);
+    });
+
+    it('dampener is monotonically non-increasing in vugFill', () => {
+      setSeed(42);
+      const sim = new VugSimulator(makeBareConditions(), []);
+      const samples = [0.0, 0.3, 0.5, 0.7, 0.75, 0.80, 0.85, 0.90, 0.95, 0.99, 1.0, 1.5];
+      let prev = Infinity;
+      for (const f of samples) {
+        sim.check_nucleation(f);
+        expect(sim._fillDampener, `dampener at ${f} should be ≤ previous`).toBeLessThanOrEqual(prev);
+        prev = sim._fillDampener;
+      }
     });
   });
 

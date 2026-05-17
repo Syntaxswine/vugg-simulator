@@ -1,7 +1,7 @@
 # RESEARCH: Crystal growth as a vug nears filling
 
 > **Authored:** 2026-05-16, by Claude (Sonnet 4.5), at boss's request following Backlog K (`8a0d403`).
-> **Status:** Research + proposal. No code changes. Reading order: §1 TL;DR → §2 What the simulator does → §3 What real rocks do → §4 The gap → §5 Proposals.
+> **Status:** **Proposal A SHIPPED** (commit pinned in §11). Proposals B, C, D, E still open. Reading order: §1 TL;DR → §2 What the simulator does → §3 What real rocks do → §4 The gap → §5 Proposals → §11 Proposal A landing notes.
 > **Companion data:** `tools/high_fill_probe.mjs` — characterizes current behavior across all 24 scenarios at every fill bin from 0–1.0.
 
 ---
@@ -395,3 +395,72 @@ The boss's framing: *"the data should lead your decisions."* Two data inputs to 
 The two converge: the simulator's 0.95 binary cliff is the most visible non-geological behavior at the high-fill end. Proposal A fixes it surgically. Proposals C and B build directly on A. D and E are scope expansions to defer.
 
 Recommend starting with Proposal A — the smallest end-to-end change with the largest honesty win.
+
+---
+
+## 11. Proposal A — landing notes
+
+Shipped 2026-05-17, the day after this research doc landed.
+
+**The sigmoid that landed**, in `js/85d-simulator-step.ts`:
+
+```ts
+function _fillDampenerFor(vugFill: number): number {
+  if (vugFill <= 0.7) return 1.0;
+  if (vugFill >= 1.0) return 0.0;
+  return 1.0 / (1.0 + Math.exp(20 * (vugFill - 0.85)));
+}
+```
+
+Three regions:
+
+| vugFill | dampener | behavior |
+|---------|----------|----------|
+| ≤ 0.70 | 1.0 (exact) | no RNG cost, no behavior change — 18 of 24 scenarios stay here their entire run |
+| 0.70 – 1.00 | sigmoid 1.0 → ~0.05 | probabilistic gate on nucleation; multiplicative dampener on growth thickness |
+| ≥ 1.00 | 0.0 (exact) | preserves the old hard-cliff geometry: no new positive growth, dissolution still allowed |
+
+The 0.7 short-circuit means most scenarios pay zero RNG cost — calibration baselines for those scenarios are byte-identical pre/post Proposal A. The 1.0 hard floor is a stand-in for Proposal D's eventual "interlocking texture" mode; without it, the dampener at fill = 1.05 is non-zero (~0.005) and tiny growth still accumulates over 200 steps × many crystals (sabkha hit 24× cavity volume in probing without this floor).
+
+**Where the dampener applies:**
+
+- **Nucleation:** `_atNucleationCap` rolls one RNG number per call when `_fillDampener < 1.0`. If the roll fails, the mineral is gated for this step. `fill_exempt` minerals (the Backlog K set: borax, mirabilite, thenardite, sylvite) bypass the roll entirely — they encode the geological "efflorescent crust on existing crystals" semantics that's orthogonal to mass-transport limitation.
+- **Growth:** in the main step loop in `85-simulator.ts`, positive `zone.thickness_um` is multiplied by `this._fillDampener`. **fill_exempt minerals do NOT bypass the growth dampener** — an efflorescent crust can keep nucleating but its individual blades are still mass-transport-limited. Without this distinction, fill_exempt minerals in searles_lake / sabkha blew past 100× cavity volume during probing.
+- **Dissolution:** never dampened. Etching of an existing crystal isn't gated by free pore space.
+
+**Verification — growth-rate trajectory before/after** (from `tools/high_fill_probe.mjs`, all scenarios pooled at seed 42):
+
+| vugFill bin | mean zone thickness BEFORE | mean zone thickness AFTER |
+|-------------|----------------------------|---------------------------|
+| 0.00–0.10 | 63.5 µm | 63.7 µm |
+| 0.10–0.25 | 144.0 µm | 149.7 µm |
+| 0.25–0.50 | 272.7 µm | 260.0 µm |
+| 0.50–0.75 | 223.3 µm | 215.9 µm |
+| 0.75–0.90 | 161.9 µm | 118.1 µm |
+| 0.90–0.95 | 69.9 µm | 33.5 µm |
+| 0.95–0.99 | 153.8 µm (n=2 — noisy) | 11.6 µm (n=29) |
+| 0.99–1.00 | 0 µm (n=0 — never sampled) | 6.4 µm (n=72) |
+
+The 0.95–0.99 bin had n=2 step-pairs before — the simulator was flying through that range. Now n=29 with clean trajectory data. Smooth decay from 260 µm peak to 6.4 µm at near-seal. The geological narrative ("growth slows as boundary-layer diffusion takes over") is finally honest.
+
+**Verification — peak vugFill before/after** (the 6 high-fill scenarios):
+
+| scenario | before | after |
+|----------|--------|-------|
+| supergene_oxidation | 1.003 | 1.000 |
+| naica_geothermal | 1.035 | 1.004 |
+| searles_lake | 1.029 | 1.030 |
+| sabkha_dolomitization | 2.517 | 2.517 |
+| gem_pegmatite | 1.476 | 1.476 |
+| radioactive_pegmatite | 2.627 | 2.627 |
+
+Improved or unchanged everywhere. The remaining overshoots (sabkha 2.5×, gem_pegmatite 1.5×, radioactive 2.6×) are pre-existing single-step-overshoot artifacts — many crystals nucleating + growing within step 1 before vugFill is re-measured — and not affected by the dampener. Proposal D's interlocking-texture bookkeeping would fix those properly; for Proposal A we preserved the in-loop `if (currentFill >= 1.0)` guard as belt-and-suspenders.
+
+**Tests:** 197 → 202. The 5 new tests pin: dampener=1.0 below 0.7, dampener≈0.5 at 0.85, dampener≈0.12 at 0.95 (proposal-doc anchor), dampener=0 at fill ≥ 1.0, monotonicity across vugFill 0–1.5. Plus probabilistic-gate verification: 1000 rolls at dampener=0.5 yields 400–600 blocks (50% ± noise band).
+
+**Coverage tool unchanged:** 0 stale, 89 live, 27 dead — same as post-stale-sweep state. The dampener doesn't introduce new stales; it just smooths the high-fill regime.
+
+**What this didn't ship:**
+
+- Proposals B (habit transitions on fill × σ), C (per-mineral late_stage_propensity), D (interlocking textures), E (per-cell local fill) all still open. C is the natural next item if/when the boss wants to generalize the binary fill_exempt set into a gradient.
+- Tools/high_fill_probe.mjs continues to be useful for verifying any future high-fill change — runs in ~5s.

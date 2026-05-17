@@ -8,30 +8,52 @@
 //
 // Phase B20 of PROPOSAL-MODULAR-REFACTOR.
 
-// Backlog K (2026-05): cached lookup over MINERAL_SPEC for fill_exempt:true
-// entries. Returns true if ANY mineral is fill_exempt, false otherwise.
+// Proposal A (2026-05, research/RESEARCH-GROWTH-AT-HIGH-FILL.md):
+// Continuous sigmoid dampener for nucleation + growth as the vug fills.
 //
-// The cache key is the MINERAL_SPEC object reference itself — when the async
-// _loadSpec() in 00-mineral-spec.ts replaces MINERAL_SPEC with the live JSON
-// (the FALLBACK→full transition), the cached result auto-invalidates and we
-// re-scan once. Without this, a check_nucleation call that races ahead of
-// _loadSpec would memoize `false` from the bare FALLBACK and never see the
-// fill_exempt entries the JSON adds.
+// Replaces TWO binary cliffs the simulator used to carry:
 //
-// Used by check_nucleation to preserve the legacy short-circuit when no
-// fill-exempt minerals exist (e.g. test harnesses with synthetic specs).
-let _fillExemptCachedFor: any = null;
-let _fillExemptCachedResult = false;
-function _anyFillExemptInSpec(): boolean {
-  if (typeof MINERAL_SPEC !== 'object' || !MINERAL_SPEC) return false;
-  if (_fillExemptCachedFor === MINERAL_SPEC) return _fillExemptCachedResult;
-  let any = false;
-  for (const k in MINERAL_SPEC) {
-    if (MINERAL_SPEC[k] && MINERAL_SPEC[k].fill_exempt === true) { any = true; break; }
-  }
-  _fillExemptCachedFor = MINERAL_SPEC;
-  _fillExemptCachedResult = any;
-  return any;
+//   * vugFill >= 0.95 → nucleation cap (Backlog K — only fill_exempt
+//     minerals could pass)
+//   * vugFill >= 1.0  → growth fully stopped, dissolution only
+//
+// Both cliffs were calibration shortcuts, not geology. The sigmoid
+// matches Tenthorey & Cox 1998 (JGR experimental observation: permeability
+// falls 10x while porosity stays nearly constant; meaningful flow
+// restriction at 80-85% fill, not 95%). At vugFill=0.85 the dampener
+// hits 0.5; the 5-95% transition spans vugFill 0.70-1.00.
+//
+//   vugFill    dampener
+//   0.50       0.999
+//   0.70       0.953
+//   0.80       0.731
+//   0.85       0.500
+//   0.90       0.269
+//   0.95       0.119
+//   1.00       0.047
+//   1.10       0.007
+//   1.20       0.001
+//
+// Reference dampener curve: 1 / (1 + exp(20 * (vugFill - 0.85))).
+// Returns 1.0 (no dampening) below vugFill ~0.7 — most scenarios stay
+// here for their entire run, so no RNG-sequence drift for them. Returns
+// 0.0 at vugFill ≥ 1.0 — preserves the geometric reality that the
+// cavity can't hold more crystal volume than its own bounding sphere.
+// Proposal D (later) will replace this floor with an "interlocking
+// texture" mode where chemistry continues but produces granular
+// densification rather than new outward growth; for Proposal A we
+// match the old hard-cliff behavior at the 1.0 boundary while smoothing
+// the approach.
+//
+// fill_exempt minerals (the Backlog K set: borax, mirabilite, thenardite,
+// sylvite) bypass the dampener at the NUCLEATION step (via
+// _atNucleationCap) but not at the growth step — geologically, an
+// efflorescent crust can keep nucleating on existing crystal cover but
+// its individual blades are still mass-transport-limited.
+function _fillDampenerFor(vugFill: number): number {
+  if (vugFill <= 0.7) return 1.0;
+  if (vugFill >= 1.0) return 0.0;
+  return 1.0 / (1.0 + Math.exp(20 * (vugFill - 0.85)));
 }
 
 Object.assign(VugSimulator.prototype, {
@@ -149,25 +171,18 @@ Object.assign(VugSimulator.prototype, {
 },
 
   check_nucleation(vugFill) {
-  // Backlog K (2026-05): the global vugFill >= 0.95 cutoff used to
-  // short-circuit ALL nucleation engines once the cavity hit 95%
-  // fill — including paragenetically-late efflorescent crusts
-  // (borax, mirabilite, thenardite, sylvite) that geologically
-  // grow ON existing crystal cover, not in competition with it.
-  // Stack the fill-cap state instead and let _atNucleationCap
-  // do the per-mineral check (consulting MINERAL_SPEC[m].fill_exempt).
+  // Proposal A (2026-05): compute the continuous fill dampener and
+  // stash it on the simulator for _atNucleationCap and the growth loop
+  // to read this step. Replaces the previous binary _fillCapped flag
+  // (Backlog K, which itself replaced a hard short-circuit). The
+  // dampener helper short-circuits to 1.0 below vugFill=0.7 so most
+  // scenarios pay zero cost for this — no RNG-sequence drift in the
+  // 18 of 24 scenarios that never approach high fill.
   //
-  // Engines that already gate on _atNucleationCap (~all of them) get
-  // the new behavior for free with no call-site changes; fill-exempt
-  // minerals pass through, non-exempt minerals are blocked at the
-  // cap helper exactly as if they'd hit max_nucleation_count.
-  //
-  // Fast path: if no mineral in the spec is fill_exempt AND we're
-  // capped, the legacy short-circuit still applies (saves running 12
-  // class dispatchers when nothing useful can come of it).
-  const capped = (vugFill !== undefined && vugFill >= 0.95);
-  this._fillCapped = capped;
-  if (capped && !_anyFillExemptInSpec()) return;
+  // Above vugFill ~0.7 the dampener gates nucleation probabilistically
+  // inside _atNucleationCap; the 6 high-fill scenarios see the
+  // calibration drift documented in the regen baseline.
+  this._fillDampener = (vugFill !== undefined) ? _fillDampenerFor(vugFill) : 1.0;
 
   _nucleateClass_arsenate(this);
   _nucleateClass_borate(this);

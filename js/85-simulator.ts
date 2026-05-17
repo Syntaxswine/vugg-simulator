@@ -196,15 +196,32 @@ class VugSimulator {
     let currentFill = vugFill; // Track fill dynamically during growth loop
     for (const crystal of this.crystals) {
       if (!crystal.active) continue;
-      // If vug is full, no more growth (dissolution still allowed)
+      // Proposal A (2026-05): the previous binary `if (currentFill >= 1.0)
+      // → growth halts, dissolution only` cliff is replaced by the
+      // continuous sigmoid dampener applied to positive zone thickness
+      // below. Geological motivation: real growth doesn't snap to zero
+      // at a geometric fill threshold; it slows continuously as
+      // boundary-layer diffusion takes over (Tenthorey & Cox 1998 JGR;
+      // see proposals/RESEARCH-GROWTH-AT-HIGH-FILL.md). Dissolution
+      // (negative zones) is NEVER dampened — etching of an existing
+      // crystal isn't gated by free pore space.
+      //
+      // We keep the in-loop currentFill ≥ 1.0 dissolution-only path
+      // (below) as belt-and-suspenders against single-step overshoot:
+      // when many crystals all nucleate and grow within step 1 (sabkha,
+      // gem_pegmatite, radioactive_pegmatite), the step-start dampener
+      // is computed at vugFill=0 and lets every crystal grow at full
+      // speed. Without the in-loop guard, step 1 alone can push
+      // vugFill to 24× cavity volume. Proposal D (interlocking
+      // textures) will replace this guard with chemistry-into-density
+      // bookkeeping; for Proposal A we preserve the overshoot floor.
       if (currentFill >= 1.0) {
-        // Still allow dissolution (negative zones)
         const engine = MINERAL_ENGINES[crystal.mineral];
         if (!engine) continue;
         const zone = this._runEngineForCrystal(engine, crystal);
         if (zone && zone.thickness_um < 0) {
           crystal.add_zone(zone);
-          currentFill = this.get_vug_fill(); // Update after dissolution
+          currentFill = this.get_vug_fill();
           this.log.push(`  ⬇ ${capitalize(crystal.mineral)} #${crystal.crystal_id}: DISSOLUTION ${zone.note}`);
         }
         continue;
@@ -227,6 +244,30 @@ class VugSimulator {
       if (!engine) continue;
       const zone = this._runEngineForCrystal(engine, crystal);
       if (zone) {
+        // Proposal A — apply fill dampener to positive zone thickness
+        // (growth). check_nucleation stashed this._fillDampener for the
+        // current step; it equals 1.0 below vugFill ~0.7 and tapers
+        // toward zero past 1.0.
+        //
+        // Note: fill_exempt minerals bypass the dampener for NUCLEATION
+        // (in _atNucleationCap) but NOT for growth. Geologically,
+        // efflorescent crusts can keep nucleating on top of existing
+        // crystals (because they don't need fresh wall space), but their
+        // growth rate is still mass-transport-limited at high fill — a
+        // mirabilite blade growing on a halite floor doesn't get
+        // unlimited Na+S delivery. Without this distinction, fill_exempt
+        // minerals would blow vugFill past 100x cavity volume in
+        // efflorescent-heavy scenarios (searles_lake, sabkha).
+        //
+        // Dissolution (zone.thickness_um < 0) is left untouched —
+        // dissolving an existing crystal isn't a function of free
+        // pore space.
+        if (zone.thickness_um > 0) {
+          const dampener = this._fillDampener;
+          if (typeof dampener === 'number' && dampener < 1.0) {
+            zone.thickness_um *= dampener;
+          }
+        }
         crystal.add_zone(zone);
         // Re-check fill after each crystal grows to prevent >100% overshoot
         if (zone.thickness_um > 0) {
