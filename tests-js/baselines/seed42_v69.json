@@ -999,57 +999,57 @@
   },
   "searles_lake": {
     "borax": {
-      "active": 2,
+      "active": 8,
       "dissolved": 0,
-      "total": 2,
+      "total": 8,
       "max_um": 0
     },
     "celestine": {
-      "active": 4,
-      "dissolved": 0,
-      "total": 4,
-      "max_um": 57.6
-    },
-    "halite": {
-      "active": 4,
-      "dissolved": 0,
-      "total": 4,
-      "max_um": 62072.3
-    },
-    "mirabilite": {
       "active": 5,
       "dissolved": 0,
       "total": 5,
+      "max_um": 83.4
+    },
+    "halite": {
+      "active": 7,
+      "dissolved": 0,
+      "total": 7,
+      "max_um": 55525
+    },
+    "mirabilite": {
+      "active": 8,
+      "dissolved": 0,
+      "total": 8,
       "max_um": 0
     },
     "quartz": {
-      "active": 0,
-      "dissolved": 3,
-      "total": 3,
-      "max_um": 339.9
+      "active": 4,
+      "dissolved": 0,
+      "total": 4,
+      "max_um": 455.1
     },
     "selenite": {
       "active": 2,
       "dissolved": 0,
       "total": 2,
-      "max_um": 7169.7
+      "max_um": 9609.3
     },
     "sylvite": {
       "active": 4,
       "dissolved": 0,
       "total": 4,
-      "max_um": 2968.2
+      "max_um": 1727.1
     },
     "thenardite": {
-      "active": 30,
-      "dissolved": 0,
-      "total": 30,
-      "max_um": 0
-    },
-    "tincalconite": {
       "active": 28,
       "dissolved": 0,
       "total": 28,
+      "max_um": 0
+    },
+    "tincalconite": {
+      "active": 11,
+      "dissolved": 0,
+      "total": 11,
       "max_um": 0
     }
   },

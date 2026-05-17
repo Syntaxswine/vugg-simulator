@@ -718,6 +718,16 @@
           "salinity": 180.0
         },
         "wall": {
+          // Evaporite playa — flat closed-basin shape. The basin
+          // archetype collapses the top hemisphere (no ceiling — a
+          // playa doesn't have one) and biases nucleation to the
+          // floor where halite + borax + mirabilite + thenardite
+          // crystallize on the dried lake-bed. Matches the sabkha
+          // sister scenario's choice. Mojave-anchored geology: dry
+          // pan with brine pools, not a closed cavity (Smith 1979
+          // USGS PP 1043 documents the actual subsurface stratigraphy
+          // and basin geometry).
+          "architecture": "basin",
           "composition": "limestone", // playa floor is mixed carbonate + evaporite mud
           "thickness_mm": 500.0,
           "vug_diameter_mm": 50.0,
