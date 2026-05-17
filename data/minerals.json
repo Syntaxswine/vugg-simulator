@@ -37,7 +37,8 @@
     "runtimes_present": "Files where growth engine currently exists.",
     "audit_status": "ok | notes on current gaps.",
     "class_color": "Hex color for topographic map visualization. Derived from mineral class — all classes of the same type share one hue on a 12-color wheel (30° spacing). Wall/matrix = #D2691E (amber).",
-    "test_cases": "Optional array of self-validating test cases for the supersaturation gate. Each case: {name, fluid (partial FluidChemistry), T_C, [pressure_kbar], expects: {sigma: '>1.0' | '==0' | '>=0.5' | '<0.3'}, rationale}. Empty array = no declared cases (legacy minerals). New minerals should declare 2-3 cases minimum: positive gate hit, missing-ingredient block, and (if applicable) a mechanic-specific block. The generic test runner that exercises these cases is item 6 of proposals/TASK-BRIEF-DATA-AS-TRUTH.md (not yet shipped). See proposals/vugg-mineral-template.md §15 for the schema and tools/new-mineral.py for the scaffold seed."
+    "test_cases": "Optional array of self-validating test cases for the supersaturation gate. Each case: {name, fluid (partial FluidChemistry), T_C, [pressure_kbar], expects: {sigma: '>1.0' | '==0' | '>=0.5' | '<0.3'}, rationale}. Empty array = no declared cases (legacy minerals). New minerals should declare 2-3 cases minimum: positive gate hit, missing-ingredient block, and (if applicable) a mechanic-specific block. The generic test runner that exercises these cases is item 6 of proposals/TASK-BRIEF-DATA-AS-TRUTH.md (not yet shipped). See proposals/vugg-mineral-template.md §15 for the schema and tools/new-mineral.py for the scaffold seed.",
+    "fill_exempt": "Backlog K (2026-05). When true, this mineral can still nucleate after the global vugFill ≥ 0.95 cap has fired. Reserved for paragenetically-late efflorescent / interstitial crusts (borax, mirabilite, thenardite, sylvite) that grow ON existing crystal cover rather than competing for fresh wall. Default false (missing field = false). per_mineral max_nucleation_count still applies — fill_exempt does NOT remove the count cap, only the geometric cap."
   },
   "_audit_summary": {
     "total_minerals": 51,
@@ -10230,7 +10231,9 @@
         "js"
       ],
       "audit_status": "v28 — dehydration paramorph pass",
-      "class_color": "#a4cfff"
+      "class_color": "#a4cfff",
+      "fill_exempt": true,
+      "_retune_note_fill_exempt": "Backlog K (2026-05): added fill_exempt:true. Borax is a paragenetically-late playa-evaporite crust — it grows ON existing halite/clay efflorescent surfaces in real playa basins (Searles Lake CA, Boron CA), it doesn't compete with halite for nucleation sites. With the global check_nucleation gate at vugFill < 0.95, halite's bulk fill locks borax out of searles_lake within ~48 steps. fill_exempt:true lets it nucleate past the 0.95 cap; per-mineral max_nucleation_count:8 still bounds total crystal count."
     },
     "tincalconite": {
       "formula": "Na2B4O7·5H2O",
@@ -10364,7 +10367,9 @@
         "js"
       ],
       "audit_status": "v29 — sulfate-evaporite + dehydration triplet",
-      "class_color": "#dde7ff"
+      "class_color": "#dde7ff",
+      "fill_exempt": true,
+      "_retune_note_fill_exempt": "Backlog K (2026-05): added fill_exempt:true. Mirabilite is the cold-side Na-sulfate evaporite (T<32.4°C eutectic). In Searles Lake's actual paragenesis (Smith 1979), mirabilite blades grow on top of halite floors during winter brine pools and on cave walls as efflorescent crust — it's a late-stage decorator, not a bulk filler. The previous vugFill < 0.95 global gate locked it out of searles_lake once halite hit ~95% fill (~48 steps). max_nucleation_count:8 still bounds total count."
     },
     "thenardite": {
       "formula": "Na2SO4",
@@ -10452,7 +10457,9 @@
         "js"
       ],
       "audit_status": "v29 — sulfate-evaporite + dehydration triplet",
-      "class_color": "#f0e8c0"
+      "class_color": "#f0e8c0",
+      "fill_exempt": true,
+      "_retune_note_fill_exempt": "Backlog K (2026-05): added fill_exempt:true. Thenardite is the warm-side anhydrous Na-sulfate (T>32.4°C eutectic), either direct-precipitated from warm playa brines OR a dehydration paramorph after mirabilite. In the searles_lake event sequence it's intentionally a fibrous_coating habit variant on top of the existing crystal pile (Searles Lake, Bayan Khar — both classic localities for thenardite efflorescent crusts). Same fill-cap unlock reasoning as mirabilite + borax."
     },
     "rutile": {
       "formula": "TiO2",
@@ -11437,7 +11444,9 @@
       "narrate_function": null,
       "runtimes_present": ["js"],
       "audit_status": "new (brief-16 batch 2026-05-07). Late-stage evaporite K-Cl. Pairs with existing halite — Na precipitates first, K precipitates second from residual brine. searles_lake + sabkha_dolomitization broths need K bumped to ≥50 ppm. No engine yet.",
-      "class_color": "#7f13eb"
+      "class_color": "#7f13eb",
+      "fill_exempt": true,
+      "_retune_note_fill_exempt": "Backlog K (2026-05): added fill_exempt:true. Sylvite is the textbook late-stage evaporite — its description literally says 'Forms in the late stage of evaporite sequences, after halite has already removed most of the sodium and chloride from the brine.' Sylvite-after-halite is the canonical Stassfurt / Carlsbad / Solikamsk paragenesis. The global vugFill cap was structurally preventing the late half of that sequence from running. max_nucleation_count:4 keeps total count modest."
     },
     "witherite": {
       "formula": "BaCO3",

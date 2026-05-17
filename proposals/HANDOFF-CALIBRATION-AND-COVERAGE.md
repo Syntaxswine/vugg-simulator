@@ -1,7 +1,7 @@
-# HANDOFF: Tier 1 sweep + Tranche 6 + Tier 2 F + coverage investigation
+# HANDOFF: Tier 1 sweep + Tranche 6 + Tier 2 F + coverage investigation + Backlog K
 
 > **Authored:** 2026-05-16, by Claude (Sonnet 4.5)
-> **State:** HEAD = `74aa311` on `origin/main` (Syntaxswine). SIM_VERSION still 69. 177/177 tests green.
+> **State:** SIM_VERSION still 69. 188/188 tests green (177 + 11 new fill-exempt). Backlog K (vugFill cap exemption) shipped — searles_lake now nucleates its full borax+mirabilite+thenardite+tincalconite cascade. 6 stale → 4 stale; coverage tool confirms borax + mirabilite cleared.
 > **Audience:** next agent (post-compact or fresh session) AND the boss skimming options.
 
 Successor to `HANDOFF-SIMULATION-UX-AND-BACKLOG.md` (commit `5a52476`). That doc enumerated 10 backlog items A-J. Items A, B, C, F, G are done; D still needs a foreground browser; E, H, I, J are still open.
@@ -73,40 +73,56 @@ Bisbee now produces halite/hematite/mimetite/scorodite/sylvite (supergene oxidat
 
 ---
 
-## 4. The remaining stale list (post-74aa311)
+## 4. The remaining stale list (post-Backlog K)
 
 | mineral | scenario | likely root cause |
 |---------|----------|-------------------|
 | adamite | supergene_oxidation | Cu-Zn arsenate; chemistry gates might want Zn > X or pH band tightened |
-| borax | searles_lake | halite fills cavity > 95% before borax's rare-event 12% gate fires (see §5) |
 | chrysoprase | ultramafic_supergene | likely Ni-Mg-Si chemistry interaction; needs probe |
-| mirabilite | searles_lake | same as borax — late-stage low-T evaporite locked out by halite fill |
 | native_tellurium | epithermal_telluride | cascade-dependent: needs hessite consumption to drop Ag<5 within run duration |
 | ruby | marble_contact_metamorphism | likely Al-Cr gate; needs probe |
 
-Two clusters:
-- **searles_lake (borax, mirabilite)** — needs per-vertex gating in nucleation engines (Tranche 7+) OR a vugFill threshold raise. See §5.
-- **everything else** — each needs its own scenario+engine probe to diagnose.
+**Borax + mirabilite cleared by Backlog K.** Each remaining stale entry needs its own scenario+engine probe to diagnose — see §6 (M).
 
 ---
 
-## 5. The vugFill cap discovery (Tranche 7 candidate)
+## 5. The vugFill cap fix (Backlog K — shipped)
 
-The deepest finding the coverage tool surfaced, not yet acted on:
+This was the deepest finding from the previous session's coverage investigation; the fix landed as commit `[K-COMMIT]`.
 
-`check_nucleation` is globally gated on `vugFill < 0.95`. When the cavity is 95% full by crystal volume, ALL engines stop firing — including late-evaporite engines that should nucleate in interstices or as efflorescent crusts on top of existing halite.
+**What was broken:** `check_nucleation` was globally gated on `vugFill < 0.95`. When the cavity hit 95% fill, ALL engines stopped firing — including late-evaporite engines that geologically grow as efflorescent crusts on top of existing halite.
 
-For searles_lake: halite grows to 6cm hopper cubes within ~48 steps, putting vugFill > 0.95. After that, `check_nucleation` short-circuits. Borax/mirabilite have only ~18 step-windows where their gate is active.
+For searles_lake specifically: halite grew to 6cm hopper cubes within ~48 steps, putting vugFill > 0.95. After that, `check_nucleation` short-circuited and borax/mirabilite/thenardite/tincalconite never had a chance to fire even at high σ.
 
-The geologically right fix: **interstitial / efflorescent minerals should be able to nucleate even at high fill**, because they don't displace existing crystals — they grow in pore space or as coatings. Real caves have late borax / mirabilite / sylvite growing on top of halite crusts that have been there for centuries.
+**What shipped:**
 
-Two possible architectures:
-- **Per-mineral fill-exemption flag** in MINERAL_SPEC (`fill_exempt: true` for efflorescent crusts). `check_nucleation` skips the global gate for these minerals.
-- **Per-mineral fill-threshold** (`fill_threshold: 0.99` for evaporite crusts vs 0.95 default).
+1. Added `fill_exempt: true` field to 4 minerals in `data/minerals.json`: **borax, mirabilite, thenardite, sylvite**. Each carries a date-stamped `_retune_note_fill_exempt` audit-trail field. Schema documents the field in the `_schema` block.
+2. Replaced the global `vugFill >= 0.95 → return` short-circuit in `check_nucleation` with a state cache: `sim._fillCapped = capped`. The legacy short-circuit is preserved when *no* mineral in the spec is fill_exempt (perf parity for synthetic test fixtures).
+3. Extended `_atNucleationCap(mineral)` to return `true` when `_fillCapped && !spec.fill_exempt`. Every engine already gates on `_atNucleationCap` before its `rng.random()` roll, so the new gate flows through with zero call-site changes (123 nucleate sites × 0 = 0).
+4. Reference-keyed cache on `_anyFillExemptInSpec()` invalidates when the async `_loadSpec()` swaps `MINERAL_SPEC` (the FALLBACK→full JSON transition).
 
-Either solution unlocks searles_lake's full evaporite cascade. Both are scoped sweeps — small data edit, single-line code change in `check_nucleation`.
+**Verification:**
 
-**Why I didn't do it tonight:** the fix changes nucleation semantics for every mineral that doesn't get the exemption — that's a calibration question I'd want to scope deliberately rather than slip in. Worth a focused commit with explicit per-mineral classification.
+| signal | before | after |
+|--------|--------|-------|
+| stale minerals | 6 | 4 |
+| live minerals | 81 | 85 |
+| searles_lake species | 4 | 9 (+borax, +mirabilite, +thenardite, +tincalconite, +sylvite jumps from 1 to 4) |
+| thenardite nucleations across sweep | <50 | 377 (paramorph cycling) |
+| tincalconite nucleations | 0 | 281 (paramorph after borax) |
+| naica_geothermal | unchanged | +9 thenardite (late efflorescent crust) |
+| sabkha_dolomitization | unchanged | +4 sylvite (K-Cl late evaporite) |
+| supergene_oxidation | unchanged | small max_um drift only (RNG-state shift) |
+| tests | 177/177 | 188/188 (+11 new fill-exempt) |
+
+**Baseline regen:** `tests-js/baselines/seed42_v69.json` regenerated. Drift was only the geologically intentional changes above — no scenario lost minerals it had before.
+
+**Per-mineral max_nucleation_count still applies** — fill_exempt only removes the geometric cap, not the count cap. searles_lake's thenardite count of 31 doesn't violate `max_nucleation_count: 10` because the 31 is *cumulative across the run*; at any moment ≤10 thenardite are exposed (paramorph dehydration converts mirabilite → thenardite in place, freeing cap slots).
+
+**What's not exempted (intentional):**
+- **halite** — it IS the bulk evaporite, not a crust. Marking halite fill_exempt would invert the meaning.
+- **calcite, gypsum, quartz** — common bulk minerals; their σ-gates are too forgiving.
+- **chalcanthite, epsomite, erythrite, annabergite** — also efflorescent but their σ-gates aren't currently firing in problem scenarios. Easy to add later if the coverage tool surfaces a use case.
 
 ---
 
@@ -127,10 +143,10 @@ Either solution unlocks searles_lake's full evaporite cascade. Both are scoped s
 ### Tier 3 J — Brief-19 calibration sweep (still open)
 - Per-mineral engine threshold + nucleation σ verification against literature. ~1 day research. The twin retune + telluride retune from tonight prove this kind of work yields concrete fixes.
 
-### New backlog from tonight's investigation
+### New backlog from previous investigation
 
-#### K. vugFill cap exemption for efflorescent minerals
-**Effort:** ~2 hours. Unblocks searles_lake's borax + mirabilite cascade. See §5.
+#### K. vugFill cap exemption for efflorescent minerals — **DONE (2026-05-16)**
+Shipped. See §5 for the resolution. 4 minerals classified as fill_exempt (borax, mirabilite, thenardite, sylvite); coverage tool confirms borax + mirabilite cleared from stale list. 188/188 tests green.
 
 #### L. Cascade-dependent stale: native_tellurium needs Ag<5 to fire
 **Effort:** ~30 min. Either bump hessite's mass-balance Ag consumption (engine-level), extend epithermal_telluride's `duration_steps` 180→250, OR loosen native_tellurium's Ag gate from 5 to e.g. 8. Geologically: Cripple Creek native_tellurium IS rare; the current cascade gate isn't unreasonable, just hard to clear in 180 steps.

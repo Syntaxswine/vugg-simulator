@@ -495,6 +495,12 @@
       "dissolved": 0,
       "total": 2,
       "max_um": 66296
+    },
+    "thenardite": {
+      "active": 9,
+      "dissolved": 0,
+      "total": 9,
+      "max_um": 0
     }
   },
   "ouro_preto": {
@@ -849,6 +855,12 @@
       "dissolved": 0,
       "total": 1,
       "max_um": 64779.8
+    },
+    "sylvite": {
+      "active": 4,
+      "dissolved": 0,
+      "total": 4,
+      "max_um": 0
     }
   },
   "schneeberg": {
@@ -968,6 +980,12 @@
     }
   },
   "searles_lake": {
+    "borax": {
+      "active": 2,
+      "dissolved": 0,
+      "total": 2,
+      "max_um": 0
+    },
     "celestine": {
       "active": 4,
       "dissolved": 0,
@@ -979,6 +997,12 @@
       "dissolved": 0,
       "total": 4,
       "max_um": 61588.6
+    },
+    "mirabilite": {
+      "active": 3,
+      "dissolved": 0,
+      "total": 3,
+      "max_um": 0
     },
     "quartz": {
       "active": 0,
@@ -993,10 +1017,22 @@
       "max_um": 7299
     },
     "sylvite": {
-      "active": 1,
+      "active": 4,
       "dissolved": 0,
-      "total": 1,
+      "total": 4,
       "max_um": 3071.9
+    },
+    "thenardite": {
+      "active": 31,
+      "dissolved": 0,
+      "total": 31,
+      "max_um": 0
+    },
+    "tincalconite": {
+      "active": 25,
+      "dissolved": 0,
+      "total": 25,
+      "max_um": 0
     }
   },
   "stalactite_demo": {
@@ -1021,8 +1057,8 @@
       "max_um": 2.8
     },
     "anglesite": {
-      "active": 2,
-      "dissolved": 6,
+      "active": 3,
+      "dissolved": 5,
       "total": 8,
       "max_um": 1701.5
     },
@@ -1048,13 +1084,13 @@
       "active": 5,
       "dissolved": 0,
       "total": 5,
-      "max_um": 6620.8
+      "max_um": 6614.9
     },
     "cerussite": {
       "active": 5,
       "dissolved": 0,
       "total": 5,
-      "max_um": 1800.5
+      "max_um": 1799.5
     },
     "chalcocite": {
       "active": 0,
@@ -1063,10 +1099,10 @@
       "max_um": 234.7
     },
     "covellite": {
-      "active": 2,
-      "dissolved": 2,
+      "active": 3,
+      "dissolved": 1,
       "total": 4,
-      "max_um": 750
+      "max_um": 870
     },
     "cuprite": {
       "active": 0,
@@ -1108,7 +1144,7 @@
       "active": 1,
       "dissolved": 0,
       "total": 1,
-      "max_um": 11386.4
+      "max_um": 11389.3
     },
     "mimetite": {
       "active": 1,
@@ -1156,7 +1192,7 @@
       "active": 2,
       "dissolved": 0,
       "total": 2,
-      "max_um": 82213
+      "max_um": 82160.8
     },
     "smithsonite": {
       "active": 3,
@@ -1168,7 +1204,7 @@
       "active": 1,
       "dissolved": 0,
       "total": 1,
-      "max_um": 1172.7
+      "max_um": 1170.8
     },
     "stolzite": {
       "active": 4,
@@ -1180,7 +1216,7 @@
       "active": 1,
       "dissolved": 0,
       "total": 1,
-      "max_um": 8877.7
+      "max_um": 8917.5
     }
   },
   "tutorial_first_crystal": {

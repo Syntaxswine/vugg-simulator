@@ -261,17 +261,38 @@ Object.assign(VugSimulator.prototype, {
 },
 
   _atNucleationCap(mineral) {
-  // True if the mineral has hit its spec max_nucleation_count for
-  // crystals *still exposed on the wall* — enclosed and dissolved
-  // crystals don't count toward the cap because the surface they
-  // held is effectively gone (buried by the host, or etched away).
+  // True if the mineral cannot nucleate right now. Two reasons:
   //
-  // This is what lets a classic MVT calcite accumulate dense
-  // chalcopyrite inclusion trails: the sulfide nucleates, grows a
-  // little, gets enveloped, and fresh bare wall from the host's
-  // advancing front becomes available for another sulfide to
-  // nucleate. Real specimens can carry hundreds of inclusions.
-  const cap = MINERAL_SPEC[mineral]?.max_nucleation_count;
+  // (A) Backlog K (2026-05): geometric fill cap. When the cavity is
+  //     >=95% full and this mineral is not marked fill_exempt in
+  //     MINERAL_SPEC, block here. The fill_exempt flag is reserved
+  //     for paragenetically-late efflorescent / interstitial crusts
+  //     (borax, mirabilite, thenardite, sylvite) that grow ON
+  //     existing crystal cover rather than competing for fresh wall.
+  //     This replaces the previous hard short-circuit in
+  //     check_nucleation, which blocked all minerals indiscriminately
+  //     once vugFill >= 0.95 — preventing the late half of every
+  //     evaporite paragenesis from running (searles_lake's
+  //     borax+mirabilite sequence was the trigger for the fix).
+  //
+  //     The _fillCapped state is set by check_nucleation each step
+  //     before dispatching the class helpers, so engines see a
+  //     stable view for the duration of one nucleation pass.
+  //
+  // (B) Per-mineral count cap. The mineral has hit its spec
+  //     max_nucleation_count for crystals *still exposed on the
+  //     wall* — enclosed and dissolved crystals don't count toward
+  //     the cap because the surface they held is effectively gone
+  //     (buried by the host, or etched away).
+  //
+  //     This is what lets a classic MVT calcite accumulate dense
+  //     chalcopyrite inclusion trails: the sulfide nucleates, grows
+  //     a little, gets enveloped, and fresh bare wall from the
+  //     host's advancing front becomes available for another sulfide
+  //     to nucleate. Real specimens can carry hundreds of inclusions.
+  const spec = MINERAL_SPEC[mineral];
+  if (this._fillCapped && !(spec && spec.fill_exempt)) return true;
+  const cap = spec?.max_nucleation_count;
   if (cap == null) return false;
   let n = 0;
   for (const c of this.crystals) {

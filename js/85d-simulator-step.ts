@@ -8,6 +8,32 @@
 //
 // Phase B20 of PROPOSAL-MODULAR-REFACTOR.
 
+// Backlog K (2026-05): cached lookup over MINERAL_SPEC for fill_exempt:true
+// entries. Returns true if ANY mineral is fill_exempt, false otherwise.
+//
+// The cache key is the MINERAL_SPEC object reference itself — when the async
+// _loadSpec() in 00-mineral-spec.ts replaces MINERAL_SPEC with the live JSON
+// (the FALLBACK→full transition), the cached result auto-invalidates and we
+// re-scan once. Without this, a check_nucleation call that races ahead of
+// _loadSpec would memoize `false` from the bare FALLBACK and never see the
+// fill_exempt entries the JSON adds.
+//
+// Used by check_nucleation to preserve the legacy short-circuit when no
+// fill-exempt minerals exist (e.g. test harnesses with synthetic specs).
+let _fillExemptCachedFor: any = null;
+let _fillExemptCachedResult = false;
+function _anyFillExemptInSpec(): boolean {
+  if (typeof MINERAL_SPEC !== 'object' || !MINERAL_SPEC) return false;
+  if (_fillExemptCachedFor === MINERAL_SPEC) return _fillExemptCachedResult;
+  let any = false;
+  for (const k in MINERAL_SPEC) {
+    if (MINERAL_SPEC[k] && MINERAL_SPEC[k].fill_exempt === true) { any = true; break; }
+  }
+  _fillExemptCachedFor = MINERAL_SPEC;
+  _fillExemptCachedResult = any;
+  return any;
+}
+
 Object.assign(VugSimulator.prototype, {
   apply_events() {
   for (const event of this.events) {
@@ -123,8 +149,25 @@ Object.assign(VugSimulator.prototype, {
 },
 
   check_nucleation(vugFill) {
-  // No new crystals if vug is full
-  if (vugFill !== undefined && vugFill >= 0.95) return;
+  // Backlog K (2026-05): the global vugFill >= 0.95 cutoff used to
+  // short-circuit ALL nucleation engines once the cavity hit 95%
+  // fill — including paragenetically-late efflorescent crusts
+  // (borax, mirabilite, thenardite, sylvite) that geologically
+  // grow ON existing crystal cover, not in competition with it.
+  // Stack the fill-cap state instead and let _atNucleationCap
+  // do the per-mineral check (consulting MINERAL_SPEC[m].fill_exempt).
+  //
+  // Engines that already gate on _atNucleationCap (~all of them) get
+  // the new behavior for free with no call-site changes; fill-exempt
+  // minerals pass through, non-exempt minerals are blocked at the
+  // cap helper exactly as if they'd hit max_nucleation_count.
+  //
+  // Fast path: if no mineral in the spec is fill_exempt AND we're
+  // capped, the legacy short-circuit still applies (saves running 12
+  // class dispatchers when nothing useful can come of it).
+  const capped = (vugFill !== undefined && vugFill >= 0.95);
+  this._fillCapped = capped;
+  if (capped && !_anyFillExemptInSpec()) return;
 
   _nucleateClass_arsenate(this);
   _nucleateClass_borate(this);
