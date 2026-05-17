@@ -88,7 +88,7 @@ Bisbee now produces halite/hematite/mimetite/scorodite/sylvite (supergene oxidat
 
 ## 5. The vugFill cap fix (Backlog K — shipped)
 
-This was the deepest finding from the previous session's coverage investigation; the fix landed as commit `[K-COMMIT]`.
+This was the deepest finding from the previous session's coverage investigation; the fix landed as commit `8a0d403`.
 
 **What was broken:** `check_nucleation` was globally gated on `vugFill < 0.95`. When the cavity hit 95% fill, ALL engines stopped firing — including late-evaporite engines that geologically grow as efflorescent crusts on top of existing halite.
 
