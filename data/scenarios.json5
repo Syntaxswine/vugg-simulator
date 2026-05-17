@@ -877,7 +877,15 @@
           "Cu": 55,
           "Pb": 60,
           "Mo": 15,
-          "As": 12,
+          // As 12 → 25 (stale-mineral retune 2026-05): Tsumeb fluid
+          // inclusion data shows As 50-500 ppm in oxidation-zone brines
+          // (Pinch & Wilson 1977); 12 ppm was undershooting the Tsumeb
+          // anchor. tools/stale_mineral_probe.mjs found adamite σ
+          // peaking at 0.68 vs gate of 1.0 — formula's (Zn/80)×(As/30)
+          // term needed more As headroom. Bump also benefits the
+          // already-live mimetite + erythrite + annabergite engines
+          // (small calibration drift expected; geological direction).
+          "As": 25,
           "Cl": 20,
           // V trace — roll-front / red-bed signature. Low start; bumped by ev_v_bearing_seep.
           "V": 1.5,
@@ -1714,7 +1722,17 @@
         "temperature_C": 30.0,
         "pressure_kbar": 0.05,
         "fluid": {
-          "SiO2": 200,
+          // SiO2 200 → 300 (stale-mineral retune 2026-05): with SiO2=200,
+          // chrysoprase σ peaks at 1.05 (just above the engine's 1.0
+          // threshold) for only 2 / 600 (seed × step) pairs — borderline
+          // reliable firing under the 12% rng gate. Active Ni-laterite
+          // groundwaters carry SiO2 100-400 ppm during dry-season
+          // concentration (Garnier et al. 2008 Goro hydrology;
+          // Sachanbiński et al. 2001 Marlborough) so 300 is well within
+          // the geological window. Quartz already fires in this scenario
+          // (expects_species lists it); bump is small enough not to
+          // shift quartz behavior meaningfully.
+          "SiO2": 300,
           "Ca": 30,
           "CO3": 80,
           "Fe": 15,

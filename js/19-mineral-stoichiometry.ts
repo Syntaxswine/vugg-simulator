@@ -92,6 +92,14 @@ const MINERAL_STOICHIOMETRY: Record<string, Record<string, number>> = {
   // ---- Silicates ----
   feldspar:       { K: 1, Al: 1, SiO2: 3 },          // KAlSi3O8 (sanidine/orthoclase/microcline)
   albite:         { Na: 1, Al: 1, SiO2: 3 },         // NaAlSi3O8
+  // chrysoprase: Ni-bearing chalcedony (SiO2 with nano-inclusions of
+  // Ni-phyllosilicate). Mass balance debits SiO2 primarily; the Ni in
+  // the colored nano-inclusions is a trace (Marlborough bulk Ni ~0.4-4
+  // wt% NiO ≈ 0.05-0.5 Ni per SiO2 unit). Conservative 0.1 Ni captures
+  // the trapping mechanism without over-debiting Ni at high growth rates.
+  // Added 2026-05 — applyMassBalance warning surfaced during stale-mineral
+  // retune. Without this entry, chrysoprase growth was a free-energy gift.
+  chrysoprase:    { SiO2: 1, Ni: 0.1 },              // SiO2 + Ni nano-inclusion trap
   chrysocolla:    { Cu: 2, SiO2: 2 },                // (Cu,Al)2H2Si2O5(OH)4·nH2O
   apophyllite:    { K: 1, Ca: 4, SiO2: 8, F: 0.5 },  // KCa4Si8O20(F,OH)·8H2O
   topaz:          { Al: 2, SiO2: 1, F: 1.5 },        // Al2SiO4(F,OH)2

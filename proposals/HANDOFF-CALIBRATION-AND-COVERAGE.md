@@ -1,7 +1,7 @@
-# HANDOFF: Tier 1 sweep + Tranche 6 + Tier 2 F + coverage investigation + Backlog K
+# HANDOFF: Tier 1 sweep + Tranche 6 + Tier 2 F + coverage investigation + Backlog K + stale-mineral sweep
 
 > **Authored:** 2026-05-16, by Claude (Sonnet 4.5)
-> **State:** SIM_VERSION still 69. 188/188 tests green (177 + 11 new fill-exempt). Backlog K (vugFill cap exemption) shipped — searles_lake now nucleates its full borax+mirabilite+thenardite+tincalconite cascade. 6 stale → 4 stale; coverage tool confirms borax + mirabilite cleared.
+> **State:** SIM_VERSION still 69. **197/197 tests green** (177 + 11 fill-exempt + 9 stale-retune). Backlog K (vugFill cap exemption) shipped (commit `8a0d403`). **Stale-mineral sweep shipped** — all 4 remaining stales (adamite, chrysoprase, native_tellurium, ruby) cleared via tools/stale_mineral_probe.mjs-driven targeted retunes. **Live count: 81 → 89 minerals.** Stale count: 6 → **0**.
 > **Audience:** next agent (post-compact or fresh session) AND the boss skimming options.
 
 Successor to `HANDOFF-SIMULATION-UX-AND-BACKLOG.md` (commit `5a52476`). That doc enumerated 10 backlog items A-J. Items A, B, C, F, G are done; D still needs a foreground browser; E, H, I, J are still open.
@@ -73,16 +73,16 @@ Bisbee now produces halite/hematite/mimetite/scorodite/sylvite (supergene oxidat
 
 ---
 
-## 4. The remaining stale list (post-Backlog K)
+## 4. The stale list — fully resolved (post-stale-sweep, 2026-05-16)
 
-| mineral | scenario | likely root cause |
-|---------|----------|-------------------|
-| adamite | supergene_oxidation | Cu-Zn arsenate; chemistry gates might want Zn > X or pH band tightened |
-| chrysoprase | ultramafic_supergene | likely Ni-Mg-Si chemistry interaction; needs probe |
-| native_tellurium | epithermal_telluride | cascade-dependent: needs hessite consumption to drop Ag<5 within run duration |
-| ruby | marble_contact_metamorphism | likely Al-Cr gate; needs probe |
+| mineral | scenario | resolution |
+|---------|----------|------------|
+| adamite | supergene_oxidation | Scenario broth `As` bumped 12 → 25 (Tsumeb anchor, Pinch & Wilson 1977). Engine σ peaks at 1.40 in 125/600 (seed × step) pairs. |
+| chrysoprase | ultramafic_supergene | Engine + spec threshold 1.2 → 1.0; scenario `SiO2` bumped 200 → 300 (Marlborough saprolite, Garnier 2008). Also added chrysoprase entry to MINERAL_STOICHIOMETRY (was a free-energy gift — warning resolved). |
+| native_tellurium | epithermal_telluride | Hard `Ag > 5` gate replaced with soft `ag_suppr = max(0, 1 - Ag/75)` matching engine's Pb/Bi pattern (Spry & Thieben 1996; Saunders 2008 Cresson Vug coexistence). Path C un-aliasing made hessite's local Ag consumption invisible at the bulk view; soft suppressor encodes the geological reality. |
+| ruby | marble_contact_metamorphism | Engine + spec threshold 1.5 → 1.3 (the corundum-family priority array in 89-nucleation-silicate.ts). Spec ceiling was unreachable: formula `base × min(Cr/5, 2)` peaks at ~1.42 at typical marble-fluid Cr levels. |
 
-**Borax + mirabilite cleared by Backlog K.** Each remaining stale entry needs its own scenario+engine probe to diagnose — see §6 (M).
+**Stale list is empty.** Live count 81 → **89** (across coverage sweep). Coverage tool surfaces zero stale entries; every mineral in any scenario's `expects_species` now nucleates in ≥1 of 10 seeds.
 
 ---
 
@@ -148,11 +148,11 @@ For searles_lake specifically: halite grew to 6cm hopper cubes within ~48 steps,
 #### K. vugFill cap exemption for efflorescent minerals — **DONE (2026-05-16)**
 Shipped. See §5 for the resolution. 4 minerals classified as fill_exempt (borax, mirabilite, thenardite, sylvite); coverage tool confirms borax + mirabilite cleared from stale list. 188/188 tests green.
 
-#### L. Cascade-dependent stale: native_tellurium needs Ag<5 to fire
-**Effort:** ~30 min. Either bump hessite's mass-balance Ag consumption (engine-level), extend epithermal_telluride's `duration_steps` 180→250, OR loosen native_tellurium's Ag gate from 5 to e.g. 8. Geologically: Cripple Creek native_tellurium IS rare; the current cascade gate isn't unreasonable, just hard to clear in 180 steps.
+#### L. Cascade-dependent stale: native_tellurium — **DONE (2026-05-16)**
+Resolved. Soft `ag_suppr` replaces the hard gate; see §4 + §10.
 
-#### M. Singleton stales — chrysoprase, ruby, adamite
-**Effort:** ~3 hours total. Each needs a sigma probe + chemistry trace + targeted retune. Same shape as the telluride retune.
+#### M. Singleton stales — chrysoprase, ruby, adamite — **DONE (2026-05-16)**
+Resolved via tools/stale_mineral_probe.mjs-driven targeted retunes (engine thresholds + scenario broth bumps). See §4 + §10. Also resolved a discovered free-energy bug: chrysoprase had no MINERAL_STOICHIOMETRY entry, so its growth wasn't debiting Si/Ni from the fluid.
 
 #### N. Carbonate-rhombohedral generalization of polysynthetic twin retune
 **Effort:** ~30 min + baseline regen. The Tier 2 F retune bumped siderite polysynthetic 0.02→0.05 but left dolomite + rhodochrosite at 0.02 (siblings with same twin law, same physics). They produce observed twins at the current authored value already, so the retune was surgical. But the geological argument for 5% applies equally; bumping for consistency is defensible.
@@ -249,3 +249,79 @@ Estimated effort: ~2 hours. Unlocks searles_lake's full evaporite cascade (the 2
 Eleven commits without a single test regression. Baseline drift only in directions the geological literature predicted (supergene minerals appearing in supergene scenarios; telluride paragenesis populating in the Cripple Creek anchor; speleothems appearing where speleothems grow). That's not normal for a session this long — usually you get more flailing.
 
 The reason: the underlying chemistry plumbing is tight enough that surgical changes don't ripple. Path C (per-vertex chemistry), Tranche 4a (un-aliased fluids), the mass-balance infrastructure — those are all load-bearing. When the calibration is wrong, it's wrong in one identifiable place, not smeared across the codebase. That's a property the boss earned over many prior sessions; tonight's work just rode on it.
+
+---
+
+## 12. Stale-mineral sweep (2026-05-16, second-half-of-session)
+
+After Backlog K shipped (commit `8a0d403`), the coverage tool surfaced 4 remaining stale entries: adamite, chrysoprase, native_tellurium, ruby. This section documents the diagnostic methodology + the four targeted retunes.
+
+### The probe tool
+
+`tools/stale_mineral_probe.mjs` — joins the trio of `gen-js-baseline.mjs` + `twin_rate_check.mjs` + `mineral_coverage_check.mjs`. For each (mineral, scenario) input pair, runs the scenario across 3 seeds × default-steps and reports:
+
+- σ peak across all (seed, step) pairs + the chemistry snapshot at that step
+- σ > 1 occurrence count
+- whether nucleation actually happened
+- min observed value of each "extras" field across the sweep (the cascade-gate diagnostic — surfaces when a hard-gated ingredient never drops below its threshold)
+
+Each entry on the stale list became a one-line probe invocation. The probe pinned the failing-gate kind in seconds:
+
+| mineral | best σ | σ > 1 count | failure mode |
+|---------|--------|-------------|--------------|
+| adamite | 0.68 | 0/600 | σ ceiling too low — `(Zn/80) × (As/30)` formula needed more As headroom; broth had As=12, formula tuned for Ojuela-style As=50+ |
+| chrysoprase | 1.001 | 1/600 | σ ceiling just at threshold — engine threshold 1.2 above the formula's actual ceiling under ultramafic_supergene's Ni-saprolite broth |
+| native_tellurium | 0.0 | 0/540 | hard gate `Ag > 5` structurally unreachable — Path C means hessite consumes Ag locally but bulk view (which the engine reads) stays at scenario init |
+| ruby | 1.42 | 120/540 | σ ceiling at 1.42 but engine threshold at 1.5 — formula `base × min(Cr/5, 2)` can't reach 1.5 at typical marble Cr<10 ppm |
+
+### The four targeted retunes
+
+Each was a single surgical change — no engine restructures, no scenario rewrites. Pattern reflects the §10 stale-comment-trap principle: only fix what's been probe-verified as broken, never decisions-disguised-as-bugs.
+
+**ruby:**
+- `js/89-nucleation-silicate.ts`: corundum_family_candidates threshold 1.5 → 1.3
+- `data/minerals.json`: `ruby.nucleation_sigma` 1.5 → 1.3 + `_retune_note_nucleation_sigma`
+- Justification: spec ceiling was unreachable. Corundum-family priority ruby > sapphire > corundum preserved by array order in the loop, not by threshold spacing.
+
+**chrysoprase:**
+- `js/89-nucleation-silicate.ts`: `_nuc_chrysoprase` threshold 1.2 → 1.0
+- `data/minerals.json`: `chrysoprase.nucleation_sigma` 1.2 → 1.0 + `_retune_note_nucleation_sigma`
+- `data/scenarios.json5`: ultramafic_supergene `SiO2` 200 → 300 (Marlborough saprolite anchor, Garnier 2008)
+- `js/19-mineral-stoichiometry.ts`: added `chrysoprase: { SiO2: 1, Ni: 0.1 }` (was a free-energy gift — applyMassBalance warning was firing on every growth)
+
+**adamite:**
+- `data/scenarios.json5`: supergene_oxidation `As` 12 → 25 (Tsumeb anchor, Pinch & Wilson 1977)
+- No engine or spec changes — Tsumeb fluid inclusion data documents As 50-500 ppm in oxidation-zone brines; 12 was undershooting
+
+**native_tellurium:**
+- `js/36-supersat-native.ts`: hard `if (this.fluid.Ag > 5.0) return 0` replaced with soft `ag_suppr = max(0, 1 - Ag/75)` matching the engine's existing Pb/Bi suppressor pattern
+- Justification combines structural + geological: Path C makes the bulk-view gate unreachable (hessite consumes Ag locally; bulk Ag stays at initial 15 forever), AND Cripple Creek's Cresson Vug bonanza pockets show hessite + native_Te coexistence (Saunders 1991; Spry & Thieben 1996 Mineralium Deposita 31). The strict gate encoded a simplified end-of-cascade story; reality has continuous coexistence as Ag locally drops.
+- Denominator 75 tuned to Saunders 2008 fluid inclusion range (Ag 5-50 ppm in bonanza pockets).
+
+### Verification
+
+- 4-way probe: each mineral now ever_nucleated=YES (was all `no`)
+- Coverage tool: 4 stale → **0 stale**. Live count 85 → **89**.
+- Twin-rate tool: no new regressions (only pre-existing cuprite candidate).
+- Calibration baseline regen for 4 drifted scenarios (supergene_oxidation, ultramafic_supergene, marble_contact_metamorphism, epithermal_telluride). All other scenarios byte-identical.
+- New regression test: `tests-js/stale-mineral-retunes.test.ts` — 9 cases pinning each retune (authored value + engine-source-code pattern + end-to-end nucleation). 197/197 tests green.
+
+### Discoveries along the way
+
+**The Path C bulk-view problem for cascade gates.** This is a broader architectural finding worth flagging for future stale work. When an engine reads `this.fluid.X` and that X is consumed by another mineral elsewhere, Path C un-aliasing means the consuming mineral only debits its LOCAL cell — never the bulk view that gates the dependent engine. Any cascade-dependent hard gate (`if fluid.X > Y return 0`) becomes structurally unreachable in long-running scenarios.
+
+The fix pattern is the one we used for native_tellurium: replace the hard gate with a soft suppressor factor. This preserves "geologically X-suppresses-Y" semantics while staying numerically reachable. Native_tellurium's `ag_suppr = max(0, 1 - Ag/75)` matches the engine's existing Pb/Bi pattern and the geological coexistence range.
+
+Other potentially-affected engines (worth a future probe): native_gold (`fluid.Te < X` gate likely structurally affected by telluride consumption), native_silver (likely affected by hessite consumption), any engine that gates on a depleting cation. **Search pattern:** `if \(this\.fluid\.\w+ [><]= [\d.]+\) return 0` in supersat-*.ts files — every match is a hard gate that may have the Path C reachability issue.
+
+**Free-energy bug discovered.** chrysoprase had no MINERAL_STOICHIOMETRY entry — its growth wasn't debiting Si/Ni from the fluid. The applyMassBalance() helper was printing a warning ("no stoichiometry for chrysoprase") on every growth step. Now fixed. Worth a sweep: are there other minerals with engines but no stoichiometry?
+
+### What this didn't do
+
+The stale-mineral sweep cleared the symptoms but didn't address the deeper Path C-vs-cascade-gates structural issue. If/when more minerals get hard-gated cascade dependencies (a future engine writes `if (fluid.Au > X) return 0`), they'll inherit the same reachability problem. The right structural fix is one of:
+
+- **(A) Soft-suppressor convention**: code-style enforcement that engines never use hard cation gates, only soft suppressors. Easy lint rule; might be too restrictive for genuinely-need-this-threshold cases.
+- **(B) Per-vertex σ check at engine level**: rewrite engines to iterate cells and pick max σ instead of bulk σ. Big refactor; ~10 lines per engine × 100+ engines.
+- **(C) Inter-ring diffusion auto-on for cascading scenarios**: scenarios with depletion cascades opt in. Slowly homogenizes Ag/Te/etc across rings so bulk view tracks local depletion.
+
+(C) is cleanest. Worth a focused tranche if a future engine adds another structurally-blocked cascade gate. Until then, the soft-suppressor pattern is the established fix template.

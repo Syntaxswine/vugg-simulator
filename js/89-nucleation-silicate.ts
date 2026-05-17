@@ -163,8 +163,19 @@ function _nuc_spodumene(sim) {
 
   // Corundum family nucleation — Al₂O₃ with SiO₂-undersaturation upper gate.
   // Priority: ruby > sapphire > corundum. One per step (shared Al pool).
+  //
+  // Stale-mineral retune (2026-05, post-Backlog K): ruby threshold dropped
+  // from 1.5 → 1.3 to match the actual σ ceiling the supersaturation_ruby()
+  // formula produces in marble_contact_metamorphism (peak σ ≈ 1.42 at
+  // T=700°C, Cr=4.5 ppm, Al=65 ppm in tools/stale_mineral_probe.mjs).
+  // The 1.5 was the spec's nucleation_sigma anchor; the formula's
+  // `base * min(Cr/5, 2)` ceiling never reaches it at typical
+  // marble-fluid Cr concentrations (Mogok-type fluids carry ~5-10 ppm Cr).
+  // Sapphire stays at 1.4 (Fe+Ti substitution is harder than Cr), corundum
+  // at 1.3 (no chromophore selectivity advantage). Priority by array order:
+  // ruby first, so the tie with corundum at 1.3 still hands ruby the slot.
   const corundum_family_candidates = [
-    ['ruby', sim.conditions.supersaturation_ruby(), 1.5],
+    ['ruby', sim.conditions.supersaturation_ruby(), 1.3],
     ['sapphire', sim.conditions.supersaturation_sapphire(), 1.4],
     ['corundum', sim.conditions.supersaturation_corundum(), 1.3],
   ];
@@ -242,8 +253,20 @@ function _nuc_topaz(sim) {
 }
 
 function _nuc_chrysoprase(sim) {
+  // Stale-mineral retune (2026-05): threshold dropped 1.2 → 1.0. The
+  // supersaturation_chrysoprase() formula (SiO2/300 × Ni/200 × Mg/200 ×
+  // T_factor × pH_window × Cr_competition) peaks at σ ≈ 1.0 under
+  // ultramafic_supergene's broth (SiO2≤170, Ni=200, Mg=300 at T=28°C
+  // pH=8.5). tools/stale_mineral_probe.mjs found σ > 1.0 in only 1/600
+  // (seed × step) pairs — chrysoprase IS hard to form geologically (slow
+  // chalcedony deposition needs sustained Ni-Si saturation, hence the
+  // weeks-to-years timescale at Marlborough QLD), so the formula
+  // ceiling is calibrated correctly. The 1.2 threshold was just above
+  // the formula's ceiling — restructuring it as 1.0 lets chrysoprase
+  // pass when σ just barely clears unity, matching the geological "rare
+  // but possible" semantics.
   const sigma = sim.conditions.supersaturation_chrysoprase();
-  if (sigma > 1.2 && !sim._atNucleationCap('chrysoprase') && rng.random() < 0.12) {
+  if (sigma > 1.0 && !sim._atNucleationCap('chrysoprase') && rng.random() < 0.12) {
     const c = sim.nucleate('chrysoprase', 'vug wall', sigma);
     sim.log.push(`  ✦ NUCLEATION: 🟢 Chrysoprase #${c.crystal_id} on ${c.position} (Ni ${sim.conditions.fluid.Ni.toFixed(0)} Mg ${sim.conditions.fluid.Mg.toFixed(0)} SiO2 ${sim.conditions.fluid.SiO2.toFixed(0)} ppm, σ=${sigma.toFixed(2)}) — apple-green Ni-bearing chalcedony, ultramafic supergene`);
   }

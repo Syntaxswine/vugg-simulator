@@ -13,14 +13,47 @@ Object.assign(VugConditions.prototype, {
   supersaturation_native_tellurium() {
   if (this.fluid.Te < 0.5) return 0;
   if (this.fluid.Au > 1.0) return 0;
-  if (this.fluid.Ag > 5.0) return 0;
   // Hg not currently tracked; coloradoite gate deferred.
   if (!nativeRedoxAnoxic(this.fluid, 0.5)) return 0;
+  // Ag was a hard gate at > 5.0; stale-mineral retune (2026-05) replaced
+  // it with a soft suppressor matching the engine's existing Pb / Bi
+  // pattern. Why:
+  //
+  //   1. STRUCTURAL: Path C per-cell chemistry meant hessite's Ag
+  //      consumption only debited local cell fluids, not the bulk-view
+  //      `conditions.fluid = ring_fluids[equator]` that this σ engine
+  //      reads. tools/stale_mineral_probe.mjs showed min Ag = 15.0 ppm
+  //      (the scenario's initial value) across 540 (seed × step) pairs.
+  //      The hard gate was structurally unreachable.
+  //
+  //   2. GEOLOGICAL: Cripple Creek's Cresson Vug bonanza pockets show
+  //      hessite + native_Te coexistence — native_Te grains as inclusions
+  //      WITHIN hessite (Saunders 1991; Spry & Thieben 1996 Mineralium
+  //      Deposita 31). The strict 5 ppm gate encoded "Ag fully depleted
+  //      before Te overflow" which is the simplified end-of-cascade story;
+  //      reality has continuous Ag-Te coexistence as Ag locally drops.
+  //
+  //   3. CONSISTENT: the engine's other cation suppressors (Pb up to
+  //      200 ppm, Bi up to 60 ppm) are soft. Treating Ag identically
+  //      (capped at 25 ppm) matches the design pattern. Sister-cascade
+  //      engines (calaverite/sylvanite) also use soft factors — see
+  //      92b9f37 telluride retune from previous session.
+  //
+  // Denominator 75 tuned against the Cresson Vug coexistence range:
+  // Saunders 2008 fluid inclusion data shows Ag 5-50 ppm in alkalic-Au-Te
+  // bonanza pockets where hessite + native_Te coexist. At Ag=15 (scenario
+  // initial) ag_suppr ≈ 0.8 — significant but not strangling suppression.
+  // At Ag=50 (sylvite-coupled high-Ag regimes) ag_suppr ≈ 0.33 — Te
+  // tellurides win cleanly. At Ag=0 (fully cascade-depleted) ag_suppr = 1.0.
+  // Hessite's own σ formula (Ag/10 × Te/2) is much more Ag-sensitive than
+  // native_Te's; in the firing order, hessite still leads, native_Te
+  // emerges in parallel as paragenetically secondary.
+  const ag_suppr = Math.max(0.0, 1.0 - this.fluid.Ag / 75.0);
   const te_f = Math.min(this.fluid.Te / 2.0, 3.5);
   const pb_suppr = Math.max(0.5, 1.0 - this.fluid.Pb / 200.0);
   const bi_suppr = Math.max(0.5, 1.0 - this.fluid.Bi / 60.0);
   const red_f = nativeRedoxLinearFactor(this.fluid, 1.0, 1.8, 0.4);
-  let sigma = te_f * pb_suppr * bi_suppr * red_f;
+  let sigma = te_f * ag_suppr * pb_suppr * bi_suppr * red_f;
   const T = this.temperature;
   let T_factor;
   if (T >= 150 && T <= 300) {
