@@ -1486,5 +1486,75 @@
 //        in: "follow nature" — high-fill texture transitions are the
 //        observable downstream of the boundary-layer-diffusion regime
 //        that Proposal A's sigmoid dampener encoded in the σ formula.
-const SIM_VERSION = 74;
+//   v75 — Proposal D: interlocking textures + single-zone volume clamp
+//        (2026-05-18). Closes the high-fill physics arc; only Proposal E
+//        (per-cell local fill) remains from the original A/B/C/D/E set.
+//
+//        Two fixes in the growth loop (js/85-simulator.ts):
+//
+//        Part 1 — per-iteration dampener recomputation. Pre-D the growth
+//        loop used this._fillDampener (stashed once per step by
+//        check_nucleation at step-start vugFill). That worked for
+//        nucleation (single decision per step) but let the growth loop's
+//        crystals each use a stale dampener: step-start vugFill=0 →
+//        dampener=1.0 → all crystals grow at full rate within the step
+//        even as currentFill rose toward seal. Replaced with
+//        _fillDampenerFor(currentFill) computed per-iteration. Drops
+//        gem_pegmatite multi-step peak ~5% (the rest of its overshoot
+//        is a pre-existing habit-oscillation bug, see below).
+//
+//        Part 2 — single-zone volume clamp. Even with per-iteration
+//        dampening, a single crystal entering the loop at currentFill=0
+//        sees dampener=1.0 and can grow enough in one zone to push the
+//        cavity past seal. Sabkha step 1 was this case: 14 crystals
+//        nucleated, first crystal grew unbounded, step-end vugFill =
+//        2.5×. The clamp computes the projected ellipsoid volume delta
+//        before add_zone and limits zone.thickness_um so the delta can't
+//        exceed (1.0 - currentFill) × cavity_volume. Tagging:
+//        crystal.late_interlocking = true when the clamp engages.
+//
+//        Bookkeeping note: clamping zone.thickness_um reduces BOTH the
+//        geometric extension AND the fluid-ion debit. This matches the
+//        post-seal geological reality where fluid flux stops anyway
+//        (pressure builds, host rock fractures, or cavity goes
+//        impermeable). Pure "ions consumed but no geometry" — the
+//        original Proposal D phrasing — would require splitting
+//        total_growth_um into chemistry-counter + geometry-counter
+//        fields. The single-field clamp captures 90% of the geological
+//        story; future Proposal E (per-cell local fill) can revisit if
+//        the texture-vs-chemistry decoupling matters for downstream
+//        analysis.
+//
+//        Late-interlocking tag is also set when currentFill ≥ 0.85 AND
+//        dampener < 1.0 (the boundary-layer-diffusion regime that
+//        Proposal A's sigmoid encoded). Three.js renderer can use this
+//        flag to apply granular / massive texture for Tsumeb late-stage
+//        patina or Naica selenite cluster-surface effects.
+//
+//        Verification — high_fill_probe peak vugFill before/after:
+//          scenario              pre-D     post-D
+//          sabkha_dolomitization 2.517 →   1.000 ✓ (single-zone fix)
+//          naica_geothermal      1.004 →   1.000 ✓
+//          searles_lake          1.008 →   1.001 ✓
+//          supergene_oxidation   1.000 →   1.000 (already clean)
+//          gem_pegmatite         7.462 →   5.751 (residual = habit-
+//                                                  oscillation bug)
+//          radioactive_pegmatite 4.117 →   4.066 (residual = same bug)
+//
+//        Residual finding (pre-existing, NOT Proposal D scope):
+//        get_vug_fill computes ellipsoid volume from crystal.habit's
+//        aspect ratio. Growth engines (e.g. js/50-engines-arsenate.ts)
+//        override crystal.habit each step based on σ. A single crystal
+//        oscillating between habit='tabular' (aRatio=1.5, vol coeff
+//        1.178) and habit='prismatic' (aRatio=0.4, vol coeff 0.0838)
+//        swings get_vug_fill by 14× for that crystal. Same total_growth
+//        _um, different volume interpretation. Documented as future
+//        work for a habit-stability proposal.
+//
+//        Calibration baseline drift: 7 of 24 scenarios shift (sabkha,
+//        naica, searles, supergene, gem_pegmatite, radioactive_pegmatite,
+//        stalactite_demo — the ones that approach seal). Direction:
+//        crystals get smaller at the seal threshold (correct — the
+//        clamp prevents geometrically-impossible oversizing).
+const SIM_VERSION = 75;
 

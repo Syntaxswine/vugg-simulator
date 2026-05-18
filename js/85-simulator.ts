@@ -268,9 +268,90 @@ class VugSimulator {
         // dissolving an existing crystal isn't a function of free
         // pore space.
         if (zone.thickness_um > 0) {
-          const dampener = this._fillDampener;
-          if (typeof dampener === 'number' && dampener < 1.0) {
+          // Proposal D (2026-05-18) part 1: per-iteration dampener
+          // recomputation. Pre-D this used this._fillDampener — the step-
+          // start value stashed by check_nucleation. That single-stash is
+          // correct for nucleation (one decision per step) but wrong for
+          // the growth loop, where currentFill rises with each crystal's
+          // zone. Now: recompute the dampener from the just-updated
+          // currentFill so each crystal sees a dampener consistent with
+          // the cavity state at the moment of ITS growth. At fill=0.95
+          // single-crystal growth gets 12% of nominal rate; at fill=0.99,
+          // 6%. Per-iteration recomputation alone drops gem_pegmatite
+          // from 7.46 to 5.76 (multi-step overshoot reduction).
+          const dampener = _fillDampenerFor(currentFill);
+          if (dampener < 1.0) {
             zone.thickness_um *= dampener;
+          }
+
+          // Proposal D part 2: volume-aware single-zone clamp. Even with
+          // per-iteration dampening, a single crystal growing at
+          // currentFill=0 (sabkha step 1's first crystal) sees dampener=1.0
+          // → unbounded growth → cavity blows up in one zone. The
+          // geological reality: a single zone's volume contribution can't
+          // exceed the cavity's remaining capacity. Cap zone.thickness_um
+          // so that the resulting projected ellipsoid volume delta stays
+          // ≤ (1.0 - currentFill) × cavity_volume.
+          //
+          // Bookkeeping note: clamping zone.thickness_um reduces BOTH the
+          // geometric extension AND the fluid-ion debit. This matches the
+          // post-seal geological reality where fluid flux stops anyway
+          // (pressure builds up, fractures host rock, or the cavity
+          // becomes impermeable). Pure "ions consumed but no geometry"
+          // would require a parallel field on Crystal; the simpler
+          // single-field clamp captures 90% of the geological story.
+          // Future Proposal E (per-cell local fill) can revisit.
+          if (zone.thickness_um > 0 && currentFill < 1.0) {
+            const vugR = this.conditions.wall.vug_diameter_mm / 2;
+            const cavityVol = (4 / 3) * Math.PI * Math.pow(vugR, 3);
+            const remainingVol = Math.max(0, (1.0 - currentFill) * cavityVol);
+            // Compute habit width ratio (mirrors get_vug_fill in 85c).
+            const habit = crystal.habit;
+            let aRatio;
+            if (habit === 'prismatic') aRatio = 0.4;
+            else if (habit === 'tabular') aRatio = 1.5;
+            else if (habit === 'acicular') aRatio = 0.15;
+            else if (habit === 'rhombohedral') aRatio = 0.8;
+            else if (habit === 'snowball') aRatio = 1.0;
+            else aRatio = 0.5;
+            // Volume coefficient: V = (4/3)π(c/2)(a/2)² = (4/3)π × (1/2)(aRatio/2)² × c³
+            // = (π/6) × aRatio² × c³ (with c in mm, V in mm³)
+            const kVol = (Math.PI / 6) * aRatio * aRatio;
+            const cMm_now = crystal.total_growth_um / 1000;
+            const V_now = kVol * Math.pow(cMm_now, 3);
+            // Projected growth from this zone: zone.thickness_um is in µm,
+            // applied via add_zone() which multiplies by timeScale.
+            // Mirror that here so the cap reflects what will actually land.
+            const projDelta_mm = (zone.thickness_um * timeScale) / 1000;
+            const cMm_proj = cMm_now + projDelta_mm;
+            const V_proj = kVol * Math.pow(cMm_proj, 3);
+            const deltaV = V_proj - V_now;
+            if (deltaV > remainingVol) {
+              // Clamp: solve V(c_max) - V(c_now) = remainingVol for c_max
+              //        c_max = (c_now³ + remainingVol/kVol)^(1/3)
+              const cMm_max = Math.pow(
+                Math.pow(cMm_now, 3) + remainingVol / kVol,
+                1 / 3,
+              );
+              const cappedDelta_um = (cMm_max - cMm_now) * 1000 / timeScale;
+              zone.thickness_um = Math.max(0, Math.min(zone.thickness_um, cappedDelta_um));
+              // Late-interlocking tag: this zone hit the cavity ceiling —
+              // additional chemistry that would have happened gets attributed
+              // to in-place densification rather than free extension.
+              crystal.late_interlocking = true;
+              if (zone.note) zone.note = `${zone.note} [interlocking — cavity ceiling reached]`;
+              else zone.note = 'interlocking growth at cavity ceiling';
+            }
+          }
+
+          // Late-interlocking tag (independent of clamp): once we're in
+          // the high-fill boundary-layer regime (currentFill ≥ 0.85) AND
+          // growth is dampened by Proposal A's sigmoid, this crystal is
+          // texturally in the interlocking domain (Tsumeb late-stage
+          // interlocking patinas, Naica selenite cluster surfaces).
+          // Renderer reads this flag for granular / massive textures.
+          if (currentFill >= 0.85 && dampener < 1.0) {
+            crystal.late_interlocking = true;
           }
         }
         crystal.add_zone(zone);
