@@ -34,6 +34,20 @@
 //     pressure_kbar
 //     fluid:        — partial FluidChemistry (missing fields default to 0)
 //     wall:         — partial VugWall opts (composition / bubbles / shape_seed)
+//                     Optional `size_class: 'vug' | 'pocket' | 'cave'` (2026-05) —
+//                     a literature-anchored size tier. When set without an
+//                     explicit `vug_diameter_mm`, the resolver picks the
+//                     range midpoint:
+//                       vug:    5–25 mm  (specimen-cabinet thumbnail)
+//                       pocket: 25–300 mm (pegmatite + alpine pocket)
+//                       cave:   300–3000 mm (karst chamber, Naica scale)
+//                     Explicit `vug_diameter_mm` always wins. See
+//                     js/22-geometry-wall.ts SIZE_CLASS_RANGES.
+//                     Optional `architecture: 'spherical' | 'irregular' |
+//                     'tabular' | 'pocket' | 'basin'` — cavity shape
+//                     archetype (PROPOSAL-HOST-ROCK Mechanic 5). Orthogonal
+//                     to size_class; a cave-sized basin or a vug-sized
+//                     tabular fracture pocket are both expressible.
 //   events:         — array of {step, type, name, description}
 //                     where `type` is the event-handler string identifier
 //   sources         — array of citation strings

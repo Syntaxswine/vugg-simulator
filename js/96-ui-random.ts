@@ -33,10 +33,27 @@ function _sprinkle(fluid, pool) {
   }
 }
 
-function buildRandomScenario(forcedArchetype) {
+// Size-class cascade — see 22-geometry-wall.ts SIZE_CLASS_RANGES for
+// the literature anchors and per-tier vug_diameter_mm ranges. The
+// random builder draws uniformly within the tier when the player picks
+// one; 'any' picks a random tier (weighted toward pocket for the
+// classic specimen-cabinet aesthetic) then draws within it.
+const RANDOM_SIZE_CLASSES = ['vug', 'pocket', 'pocket', 'cave'] as const;
+
+function buildRandomScenario(forcedArchetype: string | null, forcedSizeClass?: string | null) {
   const archetype = (forcedArchetype && forcedArchetype !== 'any')
     ? forcedArchetype
     : RANDOM_ARCHETYPES[Math.floor(rng.uniform(0, RANDOM_ARCHETYPES.length))];
+
+  // Size-class resolution. Player can force 'vug' / 'pocket' / 'cave'
+  // or leave 'any' (random draw, biased 50/50 toward pocket because
+  // most museum specimens come from pocket-scale cavities). The
+  // chosen tier maps to a vug_diameter_mm range; we draw uniformly
+  // within it. Pocket is duplicated in RANDOM_SIZE_CLASSES so the
+  // weighting comes out to 25% vug / 50% pocket / 25% cave.
+  const sizeClass = (forcedSizeClass && forcedSizeClass !== 'any')
+    ? forcedSizeClass
+    : RANDOM_SIZE_CLASSES[Math.floor(rng.uniform(0, RANDOM_SIZE_CLASSES.length))];
 
   let T, fluid, events = [], steps;
   if (archetype === 'hydrothermal') {
@@ -127,9 +144,20 @@ function buildRandomScenario(forcedArchetype) {
     steps = Math.floor(_rU(160, 220));
   }
 
-  const conditions = new VugConditions({ temperature: T, pressure: _rU(0.3, 2.0), fluid });
+  // Size-class cascade: build a VugWall with the chosen tier. VugWall's
+  // _resolveVugDiameter() reads opts.size_class + opts._size_rng to
+  // draw a vug_diameter_mm uniformly within the literature range.
+  // Passing rng.random.bind(rng) keeps the draw deterministic for the
+  // seeded RNG. Archetype is resolved separately by the player's
+  // chemistry/setting choice in the existing forcedArchetype path.
+  const wall = new VugWall({
+    size_class: sizeClass,
+    _size_rng: () => rng.uniform(0, 1),
+  });
+  const conditions = new VugConditions({ temperature: T, pressure: _rU(0.3, 2.0), fluid, wall });
   conditions._random_archetype = archetype;
-  return { conditions, events, defaultSteps: steps, archetype };
+  conditions._random_size_class = sizeClass;
+  return { conditions, events, defaultSteps: steps, archetype, sizeClass };
 }
 
 // Render the pre-growth fluid as a markdown-style stats block.
@@ -344,8 +372,13 @@ function runRandomVugg() {
   const seed = seedRaw && !isNaN(parseInt(seedRaw, 10)) ? parseInt(seedRaw, 10) : Date.now();
   rng = new SeededRandom(seed);
   const forced = document.getElementById('random-archetype').value;
+  // Size-class cascade picker (2026-05). Element added in index.html
+  // alongside #random-archetype. Optional — when missing, defaults to
+  // 'any' so the random builder picks a tier internally.
+  const sizeClassEl = document.getElementById('random-size-class') as HTMLSelectElement | null;
+  const forcedSize = sizeClassEl ? sizeClassEl.value : 'any';
 
-  const scen = buildRandomScenario(forced);
+  const scen = buildRandomScenario(forced, forcedSize);
 
   // Capture the pre-growth preamble BEFORE the simulation mutates the fluid.
   const preamble = narratePreamble(scen.conditions, scen.archetype);
@@ -365,7 +398,10 @@ function runRandomVugg() {
 
   // PROLOGUE — header + preamble. The pill appears at the end of this
   // block (technically at the first step-header line, marked below).
-  allLines.push(`═══ 🎲 Random Vugg — archetype: ${scen.archetype} — seed: ${seed} ═══`);
+  const sizeTag = scen.sizeClass
+    ? ` — ${scen.sizeClass} (${scen.conditions.wall.vug_diameter_mm.toFixed(0)}mm)`
+    : '';
+  allLines.push(`═══ 🎲 Random Vugg — archetype: ${scen.archetype}${sizeTag} — seed: ${seed} ═══`);
   allLines.push(`ran ${scen.defaultSteps} steps · events: ${scen.events.length}`);
   allLines.push('');
   allLines.push(rule);

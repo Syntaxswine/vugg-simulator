@@ -14,13 +14,87 @@
 // Phase B5 of PROPOSAL-MODULAR-REFACTOR. SCRIPT-mode TS — top-level
 // decls stay global so call sites in 99-legacy-bundle.ts keep working.
 
+// Size-class cascade (2026-05, boss vision). Three tiers anchored to
+// standard mineralogy / speleology literature, ordered by physical
+// scale. Each tier maps to a default vug_diameter_mm range; if a
+// scenario / caller declares size_class but NOT vug_diameter_mm, the
+// constructor picks a deterministic value in the range (midpoint by
+// default, or uniformly random when the caller passes _size_rng).
+//
+// Player-facing meaning:
+//   "vug"    — small specimen-scale cavity. Most "thumbnails", MVT vug
+//              fillings, supergene oxidation pockets, hydrothermal
+//              cavity linings.
+//   "pocket" — medium crystal-bearing cavity. Pegmatite pockets (Pala,
+//              Himalaya, Tanco), alpine fissure pockets, large
+//              speleothem-dropping cavities, Tsumeb-grade specimens.
+//   "cave"   — large passable cavity. Karst chambers (Carlsbad,
+//              Mammoth), Naica giant gypsum cavern, large evaporite
+//              playas. Above this scale the per-vertex chemistry grid
+//              starts losing per-cell resolution; 5m is the practical
+//              cap before each cell spans more than a coarse crystal.
+//
+// Literature + imperial-anchor reconciliation:
+//   * Vug:    "anything smaller than an inch"   →  5 – 25 mm
+//             Specimen-grade mineralogy: thumbnail (<2cm) + small
+//             miniature (2-2.5cm). Textbook vug definition spans
+//             1mm-10cm; tightening to <25mm captures the
+//             specimen-cabinet "vug" most collectors mean.
+//   * Pocket: "inches to feet"                  →  25 – 300 mm
+//             Foord 1981 on Pala pegmatites + Webber & Simmons 2007
+//             on Tanco describe the typical pegmatite-pocket as
+//             "10-50 cm" with bonanzas to >1m. Alpine fissure
+//             pockets cluster in the same range. 25-300mm is the
+//             bulk of the pocket literature.
+//   * Cave:   "feet to meters"                  →  300 – 3000 mm
+//             Speleology defines a cave by human passability
+//             (typically >50cm in some dimension). The Naica giant
+//             gypsum chamber is ~10m; the practical cap for the
+//             simulator is 3m where the per-vertex grid still has
+//             meaningful per-cell resolution. Above 3m a single
+//             cell spans >2.5cm and a typical pocket-scale crystal
+//             becomes sub-cell — Proposal E's per-cell local fill
+//             would need a finer grid before pushing past 3m.
+type SizeClass = 'vug' | 'pocket' | 'cave';
+const SIZE_CLASS_RANGES: Record<SizeClass, [number, number]> = {
+  vug:    [5,   25],     // ≤ 1 inch
+  pocket: [25,  300],    // 1 inch  to 1 foot
+  cave:   [300, 3000],   // 1 foot to multi-meter
+};
+function _resolveVugDiameter(opts: any): number {
+  // Explicit override wins, preserves all current scenarios' behavior
+  // and keeps byte-identical baselines.
+  if (typeof opts.vug_diameter_mm === 'number') return opts.vug_diameter_mm;
+  // size_class declared without an explicit diameter — draw from the
+  // literature range. Default to midpoint for determinism; callers
+  // that want random draws inside the range can pass _size_rng()
+  // (used by Random Mode in 96-ui-random.ts).
+  if (typeof opts.size_class === 'string' && opts.size_class in SIZE_CLASS_RANGES) {
+    const [lo, hi] = SIZE_CLASS_RANGES[opts.size_class as SizeClass];
+    if (typeof opts._size_rng === 'function') {
+      return lo + opts._size_rng() * (hi - lo);
+    }
+    return (lo + hi) / 2;
+  }
+  // Legacy default — 50mm sits at the vug/pocket boundary, preserving
+  // every current scenario's geometry.
+  return 50.0;
+}
+
 class VugWall {
   // Dynamic dataclass-style fields — runtime untouched.
   [key: string]: any;
   constructor(opts: any = {}) {
     this.composition = opts.composition ?? 'limestone';
     this.thickness_mm = opts.thickness_mm ?? 500.0;
-    this.vug_diameter_mm = opts.vug_diameter_mm ?? 50.0;
+    // Size-class cascade: vug < pocket < cave. Each tier maps to a
+    // literature-anchored vug_diameter_mm range. Explicit override
+    // wins (every shipped scenario sets vug_diameter_mm directly, so
+    // adding size_class to a scenario is informational metadata — the
+    // resolved diameter doesn't change). For random / procedural
+    // generation, size_class alone is the natural interface.
+    this.size_class = (opts.size_class as SizeClass) ?? null;
+    this.vug_diameter_mm = _resolveVugDiameter(opts);
     this.total_dissolved_mm = opts.total_dissolved_mm ?? 0.0;
     this.wall_Fe_ppm = opts.wall_Fe_ppm ?? 2000.0;
     this.wall_Mn_ppm = opts.wall_Mn_ppm ?? 500.0;
@@ -411,6 +485,9 @@ class WallState {
     // onto WallState so _assignWallCell / _assignWallRing can read it
     // without reaching back to conditions.wall.
     this.per_vertex_nucleation = !!opts.per_vertex_nucleation;
+    // Size-class cascade (2026-05): vug | pocket | cave, mirrored from
+    // VugWall for UI consumers that read sim.wall_state directly.
+    this.size_class = (opts.size_class as SizeClass) ?? null;
     // Populated by _buildProfile() — [[cx, cy, r], …] in mm after rescale.
     // Primaries come first, then secondaries.
     this.bubbles = [];

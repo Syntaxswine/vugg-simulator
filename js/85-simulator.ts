@@ -54,6 +54,11 @@ class VugSimulator {
       // preserves legacy byte-identical RNG path for every existing
       // scenario.
       per_vertex_nucleation: this.conditions.wall.per_vertex_nucleation,
+      // Size-class cascade (2026-05): vug < pocket < cave. Informational
+      // tag mirrored from VugWall so the UI (Library Mode panels, the
+      // Three.js scale bar) can display the size tier without reaching
+      // back to conditions.wall.
+      size_class: this.conditions.wall.size_class,
     });
     // Per-step snapshot of ring[0] for the Replay button. Captured at
     // the end of each step; small (~120 cells × ~4 numbers × 100-200
