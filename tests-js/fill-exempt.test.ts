@@ -168,11 +168,16 @@ describe('Backlog K — fill-cap exemption', () => {
       setSeed(42);
       const sim = new VugSimulator(makeBareConditions(), []);
       sim._fillDampener = 0.5;
-      // With dampener=0.5, blocked ≈ 50%. Over 1000 rolls expect 400-600
-      // blocks (very loose CI to avoid flakes on RNG fluctuation).
+      // With dampener=0.5 and propensity=0, blocked ≈ 50%. Over 1000
+      // rolls expect 400-600 blocks (very loose CI to avoid flakes on
+      // RNG fluctuation). Use 'galena' as the vanilla-bulk anchor —
+      // Proposal C (2026-05) gave calcite/quartz/many minerals non-zero
+      // late_stage_propensity, so they no longer behave as "vanilla"
+      // dampener subjects. Galena is the canonical bulk MVT sulfide
+      // with no propensity (defaults to 0).
       let blocked = 0;
       for (let i = 0; i < 1000; i++) {
-        if (sim._atNucleationCap('calcite')) blocked++;
+        if (sim._atNucleationCap('galena')) blocked++;
       }
       expect(blocked).toBeGreaterThan(400);
       expect(blocked).toBeLessThan(600);

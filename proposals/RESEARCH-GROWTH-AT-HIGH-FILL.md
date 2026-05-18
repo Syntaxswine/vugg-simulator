@@ -1,7 +1,7 @@
 # RESEARCH: Crystal growth as a vug nears filling
 
 > **Authored:** 2026-05-16, by Claude (Sonnet 4.5), at boss's request following Backlog K (`8a0d403`).
-> **Status:** **Proposal A SHIPPED** (commit pinned in §11). Proposals B, C, D, E still open. Reading order: §1 TL;DR → §2 What the simulator does → §3 What real rocks do → §4 The gap → §5 Proposals → §11 Proposal A landing notes.
+> **Status:** **Proposals A + C SHIPPED** (commits pinned in §11 + §12). Proposals B, D, E still open. Reading order: §1 TL;DR → §2 What the simulator does → §3 What real rocks do → §4 The gap → §5 Proposals → §11 Proposal A landing notes → §12 Proposal C landing notes.
 > **Companion data:** `tools/high_fill_probe.mjs` — characterizes current behavior across all 24 scenarios at every fill bin from 0–1.0.
 
 ---
@@ -464,3 +464,73 @@ Improved or unchanged everywhere. The remaining overshoots (sabkha 2.5×, gem_pe
 
 - Proposals B (habit transitions on fill × σ), C (per-mineral late_stage_propensity), D (interlocking textures), E (per-cell local fill) all still open. C is the natural next item if/when the boss wants to generalize the binary fill_exempt set into a gradient.
 - Tools/high_fill_probe.mjs continues to be useful for verifying any future high-fill change — runs in ~5s.
+
+---
+
+## 12. Proposal C — landing notes
+
+Shipped 2026-05-17 (same day as Proposal A's landing notes).
+
+**The graduated formula**, in `js/85b-simulator-nucleate.ts`:
+
+```ts
+let propensity = 0.0;
+if (spec) {
+  if (typeof spec.late_stage_propensity === 'number') {
+    propensity = Math.max(0, Math.min(1, spec.late_stage_propensity));
+  } else if (spec.fill_exempt) {
+    propensity = 1.0;  // backward compat: fill_exempt:true ≡ propensity:1.0
+  }
+}
+const effective = dampener + propensity * (1.0 - dampener);
+if (effective < 1.0 && rng.random() >= effective) return true;
+```
+
+The formula `D' = D + p(1-D)` is the linear interpolation between the bulk dampener (p=0 → D' = D) and full bypass (p=1 → D' = 1.0). It composes cleanly with Proposal A's sigmoid:
+
+| vugFill | D    | calcite (p=0.4) D' | lepidocrocite (p=0.9) D' | borax (p=1.0) D' |
+|---------|------|---------------------|--------------------------|-------------------|
+| 0.85    | 0.50 | 0.70                | 0.95                     | 1.00              |
+| 0.95    | 0.12 | 0.47                | 0.91                     | 1.00              |
+| 0.99    | 0.05 | 0.43                | 0.91                     | 1.00              |
+
+A late-stage mineral with propensity 0.9 stays at >90% pass-through rate across the entire high-fill regime; bulk minerals (propensity 0) suffer the full sigmoid drop. The shape matches the geological intuition: at vugFill=0.95, you'd expect a lepidocrocite patina to be forming at near-normal rate while calcite forms at ~half its peak rate and bulk galena is essentially blocked.
+
+**20 minerals scored** with literature anchors. The scoring lives in `data/minerals.json` as `late_stage_propensity` + `_late_stage_note` per entry. Bulk-mineral default (no field set) = 0.0. Summary by tier:
+
+| tier | propensity | minerals |
+|------|-----------|----------|
+| 1 — terminal / paramorph     | 1.0 | borax, mirabilite, thenardite, sylvite, tincalconite |
+| 2 — terminal patina          | 0.9 | lepidocrocite |
+| 2 — efflorescent crust       | 0.7–0.8 | chalcanthite, erythrite, annabergite |
+| 3 — supergene crust          | 0.6 | goethite, chrysocolla, aurichalcite |
+| 4 — sometimes late           | 0.3–0.4 | calcite, native_tellurium, malachite, aragonite, azurite |
+| 5 — drusy / MVT-gangue tail  | 0.2 | quartz, fluorite, barite |
+| 0 — bulk (default)           | 0.0 | every other mineral (~96 of 116) |
+
+**Backward compatibility:**
+
+- `fill_exempt: true` (Backlog K) still works — without a `late_stage_propensity` field, the engine falls back to `propensity = 1.0`. Existing fill_exempt:true minerals additionally got `late_stage_propensity: 1.0` set explicitly for clarity. The fill_exempt field is now schema-documented as DEPRECATED but still honored.
+
+**Verification — probe trajectory (post-Proposal-C vs post-Proposal-A):**
+
+| vugFill bin | nuc/step BEFORE Proposal C | nuc/step AFTER Proposal C |
+|-------------|----------------------------|----------------------------|
+| 0.75–0.90 | 0.114 | 0.118 |
+| 0.90–0.95 | 0.037 | 0.038 |
+| 0.95–0.99 | 0.172 | **0.333** |
+| 0.99–1.00 | 0.028 | **0.062** |
+
+Doubled nucleation rate in the 0.95+ regime — late-stage minerals (calcite/quartz/malachite/etc.) now fire in the high-fill regime where they previously couldn't. Geologically: druzy crusts can form on top of bulk-mineral surfaces.
+
+**Calibration baseline drift:** 4 of 24 scenarios — naica_geothermal, radioactive_pegmatite, searles_lake, supergene_oxidation. All in expected direction (more late-stage minerals at high fill). Other 20 byte-identical (didn't reach the dampener-active regime).
+
+**Tests:** 9 new in `tests-js/late-stage-propensity.test.ts` — pin the 20-mineral scoring, the resolver math at 3 anchor points, backward-compat source presence, and the relative-ordering invariant (high-propensity minerals pass more often than bulk at the same dampener).
+
+**Coverage:** unchanged — 0 stale / 89 live / 27 dead.
+
+**Future open items still pending from this research doc:**
+
+- **B** (habit transitions on fill × σ): the existing habit_variants infrastructure is ready; the trigger needs updating from "rapid evaporation" to "high local σ + low local fill." ~3 hours.
+- **D** (interlocking textures past 1.0): would fix the sabkha 2.5× / gem_pegmatite 1.5× single-step overshoots. ~1 day including renderer.
+- **E** (per-cell local fill): biggest scope, lets corners stay open while edges fill. Defer until A+C land and we see if heterogeneous fill is needed.

@@ -301,8 +301,31 @@ Object.assign(VugSimulator.prototype, {
   const spec = MINERAL_SPEC[mineral];
   const dampener = this._fillDampener;
   if (typeof dampener === 'number' && dampener < 1.0) {
-    const isExempt = spec && spec.fill_exempt;
-    if (!isExempt && rng.random() >= dampener) return true;
+    // Proposal C (2026-05): graduated late-stage propensity. The
+    // binary fill_exempt:true gets backward-compat-folded into
+    // propensity:1.0. Effective dampener D' = D + p × (1 - D)
+    // interpolates between vanilla (p=0) and full-bypass (p=1).
+    //
+    //   D = 0.12 (vugFill ≈ 0.95), p = 0.0 → D' = 0.12 (bulk mineral)
+    //   D = 0.12,                  p = 0.4 → D' = 0.47 (calcite-as-druzy regime)
+    //   D = 0.12,                  p = 0.9 → D' = 0.91 (terminal-patina regime)
+    //   D = 0.12,                  p = 1.0 → D' = 1.00 (legacy fill_exempt)
+    //
+    // The cascade-gate-via-bulk-view caveat from sec 12 of HANDOFF-
+    // CALIBRATION-AND-COVERAGE.md still applies: a mineral whose
+    // sigma engine has a hard cation gate (like native_tellurium's
+    // ag_suppr) won't benefit from propensity until that gate is
+    // also softened. The two mechanisms compose.
+    let propensity = 0.0;
+    if (spec) {
+      if (typeof spec.late_stage_propensity === 'number') {
+        propensity = Math.max(0, Math.min(1, spec.late_stage_propensity));
+      } else if (spec.fill_exempt) {
+        propensity = 1.0;  // backward compat — fill_exempt:true ≡ propensity:1.0
+      }
+    }
+    const effective = dampener + propensity * (1.0 - dampener);
+    if (effective < 1.0 && rng.random() >= effective) return true;
   }
   const cap = spec?.max_nucleation_count;
   if (cap == null) return false;

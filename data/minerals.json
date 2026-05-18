@@ -38,7 +38,8 @@
     "audit_status": "ok | notes on current gaps.",
     "class_color": "Hex color for topographic map visualization. Derived from mineral class — all classes of the same type share one hue on a 12-color wheel (30° spacing). Wall/matrix = #D2691E (amber).",
     "test_cases": "Optional array of self-validating test cases for the supersaturation gate. Each case: {name, fluid (partial FluidChemistry), T_C, [pressure_kbar], expects: {sigma: '>1.0' | '==0' | '>=0.5' | '<0.3'}, rationale}. Empty array = no declared cases (legacy minerals). New minerals should declare 2-3 cases minimum: positive gate hit, missing-ingredient block, and (if applicable) a mechanic-specific block. The generic test runner that exercises these cases is item 6 of proposals/TASK-BRIEF-DATA-AS-TRUTH.md (not yet shipped). See proposals/vugg-mineral-template.md §15 for the schema and tools/new-mineral.py for the scaffold seed.",
-    "fill_exempt": "Backlog K (2026-05). When true, this mineral can still nucleate after the global vugFill ≥ 0.95 cap has fired. Reserved for paragenetically-late efflorescent / interstitial crusts (borax, mirabilite, thenardite, sylvite) that grow ON existing crystal cover rather than competing for fresh wall. Default false (missing field = false). per_mineral max_nucleation_count still applies — fill_exempt does NOT remove the count cap, only the geometric cap."
+    "fill_exempt": "Backlog K (2026-05). DEPRECATED in favor of late_stage_propensity (Proposal C, 2026-05). When true, this mineral can still nucleate after the global vugFill ≥ 0.95 cap has fired. Now treated as a backward-compat alias for late_stage_propensity:1.0. New entries should set late_stage_propensity directly.",
+    "late_stage_propensity": "Proposal C (2026-05, proposals/RESEARCH-GROWTH-AT-HIGH-FILL.md). Continuous 0-1 gradient generalizing the binary fill_exempt flag. Determines how much a mineral resists Proposal A's high-fill sigmoid dampener — 0.0 = vanilla (full dampening, default for bulk minerals), 1.0 = no dampening (the old fill_exempt). Effective dampener applied to a nucleation roll is D' = D + p × (1 - D), where D is the global sigmoid at the current vugFill. Literature-anchored scoring: borax/mirabilite/thenardite/sylvite/tincalconite at 1.0 (playa efflorescent set + paramorph); lepidocrocite at 0.9 (Brazilian amethyst skunk-calcite terminal patina, Proust & Fontan 2007); chalcanthite/erythrite/annabergite at 0.7-0.8 (Cu/Co/Ni bloom efflorescent crusts); goethite/chrysocolla/aurichalcite at 0.6 (supergene weathering crusts); calcite at 0.4 (Brazilian amethyst late euhedral); native_tellurium at 0.4 (Cresson Vug residual-overflow per Spry & Thieben 1996); malachite/aragonite/azurite at 0.3 (sometimes late, often bulk); quartz/fluorite/barite at 0.2 (drusy / MVT-gangue tails). Missing field = 0.0."
   },
   "_audit_summary": {
     "total_minerals": 51,
@@ -336,6 +337,8 @@
         "agent-api/vugg-agent.js"
       ],
       "audit_status": "ok",
+      "late_stage_propensity": 0.2,
+      "_late_stage_note": "Proposal C (2026-05): propensity:0.2. Drusy chalcedony / amethyst-pocket interior is well-documented as a late-stage layer in agate geodes; otherwise mostly bulk.",
       "class_color": "#1313eb"
     },
     "calcite": {
@@ -460,6 +463,8 @@
         "agent-api/vugg-agent.js"
       ],
       "audit_status": "ok — most complete implementation, use as template (round-3 update: Mg-poisoning factor added so calcite yields to aragonite when Mg/Ca > ~2)",
+      "late_stage_propensity": 0.4,
+      "_late_stage_note": "Proposal C (2026-05): propensity:0.4. Brazilian amethyst geodes (Proust & Fontan 2007): \"forming throughout but most commonly as very late euhedral crystals\" in the central cavity.",
       "class_color": "#eb7f13"
     },
     "aragonite": {
@@ -586,6 +591,8 @@
         "index.html"
       ],
       "audit_status": "ok (round-3 add: orthorhombic CaCO3 polymorph, Mg/Ca dominant control per Folk 1974/Morse 1997, polymorphic conversion to calcite at T>100°C, four habits including iconic cyclic twin and flos ferri). Scenarios array empty until SCENARIO-CHEMISTRY-AUDIT brief runs — none of the existing scenarios have realistic enough Mg/Ca (>1.5) to nucleate aragonite at seed 42; existing scenarios use realistic low-Mg brines that correctly favor calcite. Aragonite gate is verified working with manually elevated Mg.",
+      "late_stage_propensity": 0.3,
+      "_late_stage_note": "Proposal C (2026-05): propensity:0.3. Flos ferri / botryoidal coating habit; sometimes the final ceiling-drip phase in cave systems.",
       "class_color": "#eb7f13"
     },
     "dolomite": {
@@ -1312,6 +1319,8 @@
         "agent-api/vugg-agent.js"
       ],
       "audit_status": "ok",
+      "late_stage_propensity": 0.2,
+      "_late_stage_note": "Proposal C (2026-05): propensity:0.2. Late MVT phases documented at Cave-in-Rock IL; otherwise mostly bulk.",
       "class_color": "#7f13eb"
     },
     "pyrite": {
@@ -1829,6 +1838,8 @@
         "agent-api/vugg-agent.js"
       ],
       "audit_status": "max_size is for single-crystal; botryoidal aggregates can exceed this",
+      "late_stage_propensity": 0.3,
+      "_late_stage_note": "Proposal C (2026-05): propensity:0.3. Botryoidal coating; late Cu carbonate that often forms after primary Cu sulfides have oxidized.",
       "class_color": "#eb7f13"
     },
     "uraninite": {
@@ -2511,6 +2522,8 @@
         "index.html"
       ],
       "audit_status": "phase-2: wired in vugg.py and web/index.html. Research source: proposals/MINERALS-RESEARCH-SULFATES.md. The Ba sequestration mineral; activates the dormant fluid.Ba pool. Tri-State Ba=20 currently dormant due to scenario O2=0.0 (gap flagged in audit). Sabkha Ba=0 (correctly absent — sabkha is Sr-dominant). Real activation: porphyry post-oxidation; future MVT chemistry tweak (O2 0→0.2) would unlock Tri-State barite.",
+      "late_stage_propensity": 0.2,
+      "_late_stage_note": "Proposal C (2026-05): propensity:0.2. Sometimes late MVT gangue (Sweetwater snowball habit); otherwise mostly bulk.",
       "class_color": "#eb137f"
     },
     "celestine": {
@@ -3582,6 +3595,8 @@
         "index.html"
       ],
       "audit_status": "ok (round-2 add: paired with annabergite, low-T oxidizing arsenate, solid-solution color modeling).",
+      "late_stage_propensity": 0.7,
+      "_late_stage_note": "Proposal C (2026-05): propensity:0.7. Cobalt \"bloom\" — efflorescent crimson crust on weathered Co arsenides (Schneeberg, Bou Azzer).",
       "class_color": "#ebeb13"
     },
     "annabergite": {
@@ -3690,6 +3705,8 @@
         "index.html"
       ],
       "audit_status": "ok (round-2 add: paired with erythrite, same vivianite-group structure, low-T oxidizing arsenate).",
+      "late_stage_propensity": 0.7,
+      "_late_stage_note": "Proposal C (2026-05): propensity:0.7. Nickel \"bloom\" — apple-green efflorescent crust, sister to erythrite (Annaberg, Lavrion).",
       "class_color": "#ebeb13"
     },
     "tetrahedrite": {
@@ -4506,6 +4523,8 @@
         "agent-api/vugg-agent.js"
       ],
       "audit_status": "ok (phase-1: ghost fix complete — grow_goethite + _narrate_goethite + pseudomorph-after-sulfide nucleation in all 3 runtimes).",
+      "late_stage_propensity": 0.6,
+      "_late_stage_note": "Proposal C (2026-05): propensity:0.6. Supergene Fe oxyhydroxide; the typical weathering rind / botryoidal final coat on oxidized sulfides.",
       "class_color": "#13ebeb"
     },
     "topaz": {
@@ -5750,6 +5769,8 @@
         "index.html"
       ],
       "audit_status": "new — Bisbee scenario centrepiece, azurite-pseudomorph pCO₂-drop mechanic",
+      "late_stage_propensity": 0.6,
+      "_late_stage_note": "Proposal C (2026-05): propensity:0.6. Botryoidal cyan crust on copper minerals; late supergene final cover at Bisbee, Tsumeb, Chuquicamata.",
       "class_color": "#1313eb"
     },
     "cuprite": {
@@ -5951,6 +5972,8 @@
         "index.html"
       ],
       "audit_status": "new (supergene round 3). Azurite→malachite conversion mechanic implemented via CO3 depletion check in grow_azurite. Not in agent-api/vugg-agent.js.",
+      "late_stage_propensity": 0.3,
+      "_late_stage_note": "Proposal C (2026-05): propensity:0.3. Late Cu carbonate; partners with malachite but often crystallizes after primary Cu phases.",
       "class_color": "#eb7f13"
     },
     "native_copper": {
@@ -6350,6 +6373,8 @@
         "index.html"
       ],
       "audit_status": "new (round 4). γ-FeOOH dimorph of goethite, kinetically favored in rapid oxidation. Not in agent-api/vugg-agent.js.",
+      "late_stage_propensity": 0.9,
+      "_late_stage_note": "Proposal C (2026-05): propensity:0.9. Brazilian amethyst skunk-calcite sequence: lepidocrocite is \"depositing as patina on all exposed surfaces of calcite and goethite\" — the literal final layer.",
       "class_color": "#13ebeb"
     },
     "stibnite": {
@@ -7782,6 +7807,8 @@
         "index.html"
       ],
       "audit_status": "Round 8b-3 (Apr 2026). Engine + supersaturation + nucleation + narrator complete in vugg.py + web/index.html; JSON entry mirrored to docs/. The metal-telluride-overflow engine: hard gates at Au>1 (overflows to calaverite/sylvanite), Ag>5 (overflows to hessite), O₂>0.5 (overflows to tellurite/tellurate). Soft suppressors for Pb (altaite) and Bi (tetradymite). Hg not currently tracked in FluidChemistry; coloradoite (HgTe) gate deferred to a future Hg-plumbing round. Habit variants: prismatic_hex (high-T striated prisms, the Kalgoorlie museum habit), granular (Cripple Creek ore form), reticulated (low-T filiform). Engine includes oxidative-dissolution branch. THERMAL_DECOMPOSITION at 449°C melting point. Currently absent_at_seed_42: porphyry has Au=2 (above gate of >1) and Ag=8 (above gate of >5), so Te stays in solution destined for calaverite/sylvanite/hessite — those engines don't exist yet. The Au-Te coupling round (calaverite + sylvanite + hessite + altaite + tetradymite + coloradoite) is now unblocked — telluride engines are the natural Round 9 lift; once Au is locked in calaverite, residual Te will be free to fire as native. Sources: Spry & Thieben 1996 (Mineralium Deposita 31), boss research file research/research-native-tellurium.md.",
+      "late_stage_propensity": 0.4,
+      "_late_stage_note": "Proposal C (2026-05): propensity:0.4. Cripple Creek Cresson Vug bonanza pockets (Spry & Thieben 1996): native_Te grains as inclusions WITHIN hessite — residual-overflow paragenesis at the tail end of the cascade.",
       "class_color": "#eb13eb"
     },
     "nickeline": {
@@ -8426,6 +8453,8 @@
         "index.html"
       ],
       "audit_status": "Round 8e (Apr 2026). Engine + supersaturation + nucleation + narrator complete in vugg.py + web/index.html; JSON entry mirrored to docs/. The water-solubility metastability mechanic: per-step hook in VugSimulator.run_step re-dissolves chalcanthite crystals when fluid.salinity < 4 OR fluid.pH > 5. Distinct from THERMAL_DECOMPOSITION (high-T destruction) and PARAMORPH_TRANSITIONS (in-place mineral change) — this is just chemistry, the geological truth that every chalcanthite is a temporary victory over entropy. Habit variants: stalactitic (high σ, the Chuquicamata mine-wall drip habit), tabular (RARE prismatic crystals), efflorescent_crust (low σ powdery bloom). Salinity gate: salinity < 6 → 0 (needs concentrated drainage to overcome ~20 g/100mL solubility). pH gate: pH > 4 → 0 (the most acid-loving Cu sulfate). Source: boss research file research-chalcanthite.md.",
+      "late_stage_propensity": 0.8,
+      "_late_stage_note": "Proposal C (2026-05): propensity:0.8. Cu sulfate efflorescent crust; classic late-stage bloom on weathered chalcopyrite/bornite (Bisbee, Chuquicamata).",
       "class_color": "#eb137f"
     },
     "rosasite": {
@@ -8669,6 +8698,8 @@
         "index.html"
       ],
       "audit_status": "Round 9a (Apr 2026). Mirror of rosasite in the broth-ratio branching pair. Engine + supersaturation + nucleation + narrator complete in vugg.py + index.html. supersaturation_aurichalcite returns 0 when Zn/(Cu+Zn) < 0.5 — same parent fluid as rosasite, opposite outcome based on ratio. Habit variants: tufted_spray (default, the diagnostic delicate Mapimi habit), radiating_columnar (high σ spheres), encrusting (low σ laminar crust). Source: research/research-aurichalcite.md (boss commit 3bfdf4a); Loktevskoye type locality 1839.",
+      "late_stage_propensity": 0.6,
+      "_late_stage_note": "Proposal C (2026-05): propensity:0.6. Cu-Zn carbonate, typical late-stage acicular crust in oxidation zones (Ojuela, Mapimi).",
       "class_color": "#eb7f13",
       "test_cases": [
         {
@@ -10232,6 +10263,8 @@
         "js"
       ],
       "audit_status": "v28 — dehydration paramorph pass",
+      "late_stage_propensity": 1,
+      "_late_stage_note": "Proposal C (2026-05): propensity:1. Playa efflorescent crust; same as fill_exempt set (Backlog K).",
       "class_color": "#a4cfff",
       "fill_exempt": true,
       "_retune_note_fill_exempt": "Backlog K (2026-05): added fill_exempt:true. Borax is a paragenetically-late playa-evaporite crust — it grows ON existing halite/clay efflorescent surfaces in real playa basins (Searles Lake CA, Boron CA), it doesn't compete with halite for nucleation sites. With the global check_nucleation gate at vugFill < 0.95, halite's bulk fill locks borax out of searles_lake within ~48 steps. fill_exempt:true lets it nucleate past the 0.95 cap; per-mineral max_nucleation_count:8 still bounds total crystal count."
@@ -10295,6 +10328,8 @@
         "js"
       ],
       "audit_status": "v28 — paramorph product; no engine",
+      "late_stage_propensity": 1,
+      "_late_stage_note": "Proposal C (2026-05): propensity:1. Paramorph after borax — only ever late by definition (dehydration product).",
       "class_color": "#e8e8e8"
     },
     "mirabilite": {
@@ -10368,6 +10403,8 @@
         "js"
       ],
       "audit_status": "v29 — sulfate-evaporite + dehydration triplet",
+      "late_stage_propensity": 1,
+      "_late_stage_note": "Proposal C (2026-05): propensity:1. Cold-side Na-sulfate efflorescent; same as fill_exempt set.",
       "class_color": "#dde7ff",
       "fill_exempt": true,
       "_retune_note_fill_exempt": "Backlog K (2026-05): added fill_exempt:true. Mirabilite is the cold-side Na-sulfate evaporite (T<32.4°C eutectic). In Searles Lake's actual paragenesis (Smith 1979), mirabilite blades grow on top of halite floors during winter brine pools and on cave walls as efflorescent crust — it's a late-stage decorator, not a bulk filler. The previous vugFill < 0.95 global gate locked it out of searles_lake once halite hit ~95% fill (~48 steps). max_nucleation_count:8 still bounds total count."
@@ -10458,6 +10495,8 @@
         "js"
       ],
       "audit_status": "v29 — sulfate-evaporite + dehydration triplet",
+      "late_stage_propensity": 1,
+      "_late_stage_note": "Proposal C (2026-05): propensity:1. Warm-side Na-sulfate efflorescent; same as fill_exempt set.",
       "class_color": "#f0e8c0",
       "fill_exempt": true,
       "_retune_note_fill_exempt": "Backlog K (2026-05): added fill_exempt:true. Thenardite is the warm-side anhydrous Na-sulfate (T>32.4°C eutectic), either direct-precipitated from warm playa brines OR a dehydration paramorph after mirabilite. In the searles_lake event sequence it's intentionally a fibrous_coating habit variant on top of the existing crystal pile (Searles Lake, Bayan Khar — both classic localities for thenardite efflorescent crusts). Same fill-cap unlock reasoning as mirabilite + borax."
@@ -11446,6 +11485,8 @@
       "narrate_function": null,
       "runtimes_present": ["js"],
       "audit_status": "new (brief-16 batch 2026-05-07). Late-stage evaporite K-Cl. Pairs with existing halite — Na precipitates first, K precipitates second from residual brine. searles_lake + sabkha_dolomitization broths need K bumped to ≥50 ppm. No engine yet.",
+      "late_stage_propensity": 1,
+      "_late_stage_note": "Proposal C (2026-05): propensity:1. Late-stage K evaporite (Stassfurt / Carlsbad / Solikamsk); same as fill_exempt set.",
       "class_color": "#7f13eb",
       "fill_exempt": true,
       "_retune_note_fill_exempt": "Backlog K (2026-05): added fill_exempt:true. Sylvite is the textbook late-stage evaporite — its description literally says 'Forms in the late stage of evaporite sequences, after halite has already removed most of the sodium and chloride from the brine.' Sylvite-after-halite is the canonical Stassfurt / Carlsbad / Solikamsk paragenesis. The global vugFill cap was structurally preventing the late half of that sequence from running. max_nucleation_count:4 keeps total count modest."
