@@ -13,7 +13,14 @@
 function _nuc_native_bismuth(sim) {
   const sigma_nbi = sim.conditions.supersaturation_native_bismuth();
   const existing_nbi = sim.crystals.filter(c => c.mineral === 'native_bismuth' && c.active);
-  if (sigma_nbi > 1.4 && !sim._atNucleationCap('native_bismuth')) {
+  // 2026-05 cascade-gate audit Arc 2: nuc threshold 1.4 → 1.0 (sibling
+  // mineral). The 1.4 was an outlier — every other native_X uses 1.0
+  // (native_arsenic, native_sulfur, native_tellurium) or 1.2
+  // (native_silver). The strict 1.4 made native_bismuth nearly impossible
+  // to fire even in its canonical scenario (Schneeberg) once the
+  // structural S>12 gate softening let σ become non-zero. Secondary-
+  // nucleation tier (>2.0) preserved as-is.
+  if (sigma_nbi > 1.0 && !sim._atNucleationCap('native_bismuth')) {
     if (!existing_nbi.length || (sigma_nbi > 2.0 && rng.random() < 0.15)) {
       let pos = 'vug wall';
       const dissolving_bmt = sim.crystals.filter(c => c.mineral === 'bismuthinite' && c.dissolved);

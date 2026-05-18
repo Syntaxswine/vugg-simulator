@@ -1285,5 +1285,52 @@
 //        threshold but no longer mathematically pinned down). Bulk drift
 //        on calibration baseline expected on Pb-Zn-Cu-S sulfide scenarios.
 //        Proposal A's vugFill≥1.0 hard floor caps any overshoot.
-const SIM_VERSION = 70;
+//
+//   v71 — Path C cascade-gate audit, Arc 2 (2026-05-18).
+//        Native_arsenic + native_bismuth soft-cation-suppressor retune.
+//        Both engines were structurally unreachable under bulk-view fluid
+//        chemistry: `if (S > 10) return 0` for native_arsenic and
+//        `if (S > 12) return 0` for native_bismuth, even though the canonical
+//        five-element-vein scenario (schneeberg, S=30) expects both. 480
+//        probe samples saw σ = 0.0 across all (seed × step) pairs.
+//
+//        Fix (Proposal-C/Backlog-K style — same pattern the native_tellurium
+//        retune established):
+//          - Drop hard upper S gate, replace with continuous suppressor
+//              s_suppr = max(0, 1 - S / Sdenom)
+//            (Sdenom: native_arsenic=60, native_bismuth=80 — calibrated so
+//             schneeberg's S=30 yields meaningful suppression without going
+//             to zero, while porphyry's S=60 stays gated out as expected).
+//          - native_arsenic also drops hard `Fe > 50` upper gate, replaces
+//            with fe_suppr = max(0, 1 - Fe / 200).
+//          - native_bismuth lowers the `Bi < 15` lower gate to `Bi < 5`
+//            (matches bismuthinite's lower gate — native_bismuth is
+//            bismuthinite's paragenetic step-down).
+//          - Tightened as_f / bi_f scaling denominators (15 ppm "saturation
+//            unit" for residual-overflow phases vs. the previous 25-30 ppm
+//            typical-hydrothermal scaling).
+//          - Bumped native_bismuth nuc threshold from 1.4 → 1.0 (the 1.4
+//            was an arbitrary outlier — every other native_X uses 1.0 or
+//            1.2). Secondary-nucleation tier at >2.0 unchanged.
+//
+//        Scenario seeds bumped to literature-anchored ranges:
+//          schneeberg.As: 15 → 60  (Förster 1992 Schneeberg fluid-inclusion
+//                                   data: As 100-1000 ppm in arsenide-rich
+//                                   phases. 60 is the conservative anchor.)
+//          schneeberg.Bi: 10 → 40  (same paper: Bi 50-500 ppm. 40 is the
+//                                   conservative anchor for the historic
+//                                   Schneeberg ore type, which was MINED
+//                                   for bismuth before its uranium era.)
+//
+//        Verification: probe shows native_arsenic σ_max 0.0 → 1.56 + ever-
+//        nucleated YES; native_bismuth 0.0 → 1.35 + ever-nucleated YES.
+//        Coverage moves 89 → 91 live, 27 → 25 dead minerals — the two
+//        retuned natives both transitioning to live status.
+//
+//        Path C cascade-gate audit completes here for the dead-list
+//        natives. Remaining structurally-suspect engines (stibnite —
+//        marginal lift in Arc 1; native_silver / native_copper / native_sulfur
+//        — flaky / scenario-dependent; corundum SiO2>50 gate; chromite
+//        T>1000 gate) documented as known calibration work, not structural.
+const SIM_VERSION = 71;
 

@@ -102,14 +102,52 @@ Object.assign(VugConditions.prototype, {
 },
 
   supersaturation_native_arsenic() {
+  // 2026-05 cascade-gate audit (Arc 2): both `S > 10` and `Fe > 50` hard
+  // gates were structurally unreachable under bulk-view chemistry. Even
+  // in schneeberg — the canonical five-element As-Co-Ni-Bi-U vein where
+  // native_arsenic is supposed to fire — S stays at 30 ppm (the seeded
+  // value, since the σ engine reads the equator ring fluid rather than
+  // any local cell where arsenopyrite has consumed S). 480 (3 seeds ×
+  // 160 steps) probe samples never saw S drop below 30. Same in porphyry
+  // (S=60). Same as the native_tellurium Ag-gate problem documented in
+  // HANDOFF-CALIBRATION-AND-COVERAGE.md §12.
+  //
+  // Fix: keep the lower-bound As gate, drop both hard upper gates, and
+  // replace them with continuous suppressor factors (the soft-suppressor
+  // pattern established by the native_tellurium retune, 2026-05). At
+  // schneeberg (S=30, Fe=40):
+  //   s_suppr = max(0, 1 - 30/60) = 0.5
+  //   fe_suppr = max(0, 1 - 40/200) = 0.8
+  // Combined ≈ 0.4× — significant but not strangling. At porphyry (S=60,
+  // Fe=30):
+  //   s_suppr = max(0, 1 - 60/60) = 0 → σ goes to zero regardless
+  // which preserves the geological direction (porphyry brines too S-rich
+  // for native arsenic; arsenopyrite + tetrahedrite consume As-S budget).
+  //
+  // Geological anchor: Cobalt district arsenide veins (Petruk 1971) and
+  // Schneeberg five-element veins (Förster & Tischendorf 1989) document
+  // native_arsenic — native_bismuth coexistence in the same paragenetic
+  // band as arsenopyrite, in bulk fluids where S is present but
+  // partitioned to arsenides locally.
   if (this.fluid.As < 5) return 0;
-  if (this.fluid.S > 10.0) return 0;
-  if (this.fluid.Fe > 50.0) return 0;
   if (!nativeRedoxAnoxic(this.fluid, 0.5)) return 0;
-  const as_f = Math.min(this.fluid.As / 30.0, 3.0);
+  // Tightened from (/30, cap 3.0) to (/15, cap 4.0) (2026-05): native_arsenic
+  // is a residual-overflow mineral formed when As dominates the local broth,
+  // so the "saturation unit" should sit at the geologically-realistic 15 ppm
+  // for arsenide-rich veins (Cobalt district + Schneeberg fluid-inclusion
+  // baseline) rather than at the diluted 30 ppm typical-hydrothermal level.
+  // Cap bumped 3.0 → 4.0 so schneeberg's As=60 ppm can drive as_f to 4.0
+  // and clear σ > 1.0 against the new soft S+Fe suppressors + ~0.8 activity
+  // correction (calibration math worked out post-Arc-2 gate softening).
+  const as_f = Math.min(this.fluid.As / 15.0, 4.0);
   const red_f = nativeRedoxLinearFactor(this.fluid, 1.0, 1.8, 0.4);
-  const s_suppr = Math.max(0.4, 1.0 - this.fluid.S / 12.0);
-  let sigma = as_f * red_f * s_suppr;
+  // Denominators tuned to schneeberg (S=30 → s_suppr=0.5, Fe=40 →
+  // fe_suppr=0.8). Lower floor 0.0 (not 0.4 as the pre-audit code had —
+  // a 0.4 floor would re-create the structural problem the gate softening
+  // was designed to fix).
+  const s_suppr = Math.max(0.0, 1.0 - this.fluid.S / 60.0);
+  const fe_suppr = Math.max(0.0, 1.0 - this.fluid.Fe / 200.0);
+  let sigma = as_f * red_f * s_suppr * fe_suppr;
   const T = this.temperature;
   let T_factor;
   if (T >= 150 && T <= 300) {
@@ -157,9 +195,36 @@ Object.assign(VugConditions.prototype, {
 },
 
   supersaturation_native_bismuth() {
-  if (this.fluid.Bi < 15 || this.fluid.S > 12 || !nativeRedoxAnoxic(this.fluid, 0.6)) return 0;
-  const bi_f = Math.min(this.fluid.Bi / 25.0, 2.0);
-  const s_mask = Math.max(0.4, 1.0 - this.fluid.S / 20.0);
+  // 2026-05 cascade-gate audit (Arc 2): twin treatment to native_arsenic.
+  // The `S > 12` hard gate was structurally unreachable in schneeberg
+  // (S=30 — the canonical Bi-rich five-element-vein scenario explicitly
+  // calls out "native_bismuth secondary phases" in its scenario notes)
+  // and porphyry (S=60). 480 probe samples saw σ pinned at 0.0 in
+  // schneeberg. Additionally, the `Bi < 15` lower gate didn't match
+  // bismuthinite's `Bi < 5` lower gate even though native_bismuth is
+  // bismuthinite's paragenetic step-down: a Bi-rich fluid that crosses
+  // bismuthinite's threshold should also cross native_bismuth's after
+  // local S depletion. Schneeberg seeds Bi=10 — historically a Bi-mining
+  // district pre-uranium-era — and was unable to clear either gate.
+  //
+  // Fix: lower `Bi < 15` to `Bi < 5` (matches bismuthinite — bi_f scaling
+  // naturally suppresses low-Bi fluids), drop `S > 12` hard gate, replace
+  // the s_mask floor (0.4) with a true 0.0 floor so the soft suppressor
+  // can actually go to zero in high-S brines.
+  if (this.fluid.Bi < 5 || !nativeRedoxAnoxic(this.fluid, 0.6)) return 0;
+  // Tightened from /25 to /15 (2026-05) for the same reason as
+  // native_arsenic — native_bismuth is paragenetically a residual phase
+  // and the saturation unit should reflect arsenide/bismuth-vein
+  // realities (Schneeberg + Cobalt district fluid inclusions). Cap
+  // bumped 2.0 → 3.0 to let Bi-rich Schneeberg-style fluids reach σ > 1
+  // without forcing artificially high seeds.
+  const bi_f = Math.min(this.fluid.Bi / 15.0, 3.0);
+  // Denominator 80 (was /50 in initial Arc 2 commit, widened during
+  // calibration): at schneeberg S=30 → s_mask=0.625 (moderate suppression
+  // matching the "S present but partitioned to arsenide phases locally"
+  // geology). At porphyry S=60 → s_mask=0.25 → mostly gated out. At
+  // ultra-low-S environments (S<5) → s_mask≈0.94 (essentially passthrough).
+  const s_mask = Math.max(0.0, 1.0 - this.fluid.S / 80.0);
   const red_f = nativeRedoxLinearFactor(this.fluid, 1.0, 1.5, 0.4);
   let sigma = bi_f * s_mask * red_f;
   const T = this.temperature;

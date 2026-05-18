@@ -1309,9 +1309,19 @@
           "Cu": 80,
           "Fe": 40,
           "S": 30,
-          // As=15: enough for arsenopyrite primary + post-weathering As
-          // pulse for zeunerite/uranospinite. Bumped further by events.
-          "As": 15,
+          // As=60: enough for arsenopyrite primary + post-weathering As
+          // pulse for zeunerite/uranospinite + native_arsenic paragenetic
+          // step-down. Bumped further by events. (Was 15 pre-2026-05;
+          // bumped during the Path C cascade-gate audit Arc 2 — the
+          // soft-suppressor gate fix made σ non-zero but the prior
+          // seed of 15 ppm kept as_f below the realistic threshold for a
+          // residual-overflow phase. Förster 1992 fluid-inclusion data
+          // for Schneeberg reports As 100-1000 ppm in arsenide-rich
+          // phases; 60 ppm is the conservative anchor that lets the
+          // canonical native_arsenic + native_bismuth coexistence — the
+          // historically-defining feature of the Schneeberg ore type —
+          // actually fire under bulk-view chemistry.)
+          "As": 60,
           // P=12: phosphate for torbernite/autunite. Replenishment events
           // swing the P/As ratio across the run.
           "P": 12,
@@ -1329,8 +1339,15 @@
           "B": 12,
           // Bismuth — Schneeberg was named for its bismuth mining before
           // the uranium era. Bismuthinite + native_bismuth secondary phases
-          // can form alongside the uranyls.
-          "Bi": 10,
+          // can form alongside the uranyls. (Was 10 pre-2026-05; bumped to
+          // 40 during the Path C cascade-gate audit Arc 2 — the gate-
+          // softening + bi_f scaling tightening still wasn't enough at
+          // Bi=10. Förster 1992 Schneeberg fluid-inclusion data puts Bi at
+          // 50-500 ppm in native-bismuth-bearing phases; 40 ppm is the
+          // conservative anchor that lets the historic Schneeberg ore-type
+          // assemblage — including the type-defining native bismuth — fire
+          // in a bulk-view chemistry simulation.)
+          "Bi": 40,
           // v62 plumbing: Se for the new selenide engines. Schneeberg /
           // Jáchymov / Příbram all carry the classic clausthalite +
           // naumannite + tiemannite + berzelianite low-S selenide assemblage
