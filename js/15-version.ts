@@ -1390,5 +1390,48 @@
 //          - nickeline: Ni<40 lower gate (Schneeberg Ni=20; same)
 //          - naumannite: σ formula too lax (Ag=8 Se=2 → σ≈0.13 vs 1.3
 //            threshold; calibration, not structural)
-const SIM_VERSION = 72;
+//   v73 — Path C cascade-gate audit, Arc 3 (2026-05-18).
+//        Closes the next-iteration cascade-gate target list from
+//        HANDOFF-CASCADE-GATE-AUDIT.md §5. Two-track work in one commit:
+//
+//        Track A — structural softening (same Path C pattern as Arc 2):
+//          native_silver: drop hard `S > 2` gate, soft s_f at /50, ag_f
+//                         cap 3.0 → 4.0, nuc threshold 1.2 → 1.0
+//          native_copper: drop hard `S > 30` gate, soft s_f at /60
+//                         (floor 0.3 → 0.0)
+//
+//        Track B — calibration tier (bulk-view-as-proxy-for-local):
+//        The σ scaling denominators were calibrated against fluid-inclusion
+//        bulk measurements, but the precipitating cell is typically 3-5×
+//        more enriched. Same Path C philosophy as Arc 2's gate softening,
+//        applied to scaling denominators instead of gates. Divide by 3.
+//          cobaltite:  lower gates Co<20/As<30/S<20 (was 50/100/50);
+//                      tighten Co/25 × As/35 × S/25 (was /80 × /120 × /80)
+//          nickeline:  lower gates Ni<15/As<30 (was 40/40);
+//                      tighten Ni/15 × As/30 (was /60 × /80)
+//          naumannite: tighten Ag/6 × Se/1.5 (was Ag/30 × Se/5);
+//                      σ at Schneeberg Ag=8 Se=2 goes 0.13 → 1.78
+//          stibnite:   nuc threshold 1.2 → 1.0 (matches sibling sulfides)
+//
+//        Verification — 10-seed schneeberg sweep (geology_check):
+//          native_silver   7/10 → 6/10  (slot competition slight shift)
+//          cobaltite       0/10 → 10/10  ✓ (40 crystals @ 861µm avg)
+//          nickeline       0/10 → 10/10  ✓ (40 crystals @ 1392µm avg)
+//          naumannite      0/10 → 6/10   ✓
+//          native_arsenic  6/10 → 3/10   (further self-correction — now
+//                                          even more "minor accessory"
+//                                          per Förster & Tischendorf 1989
+//                                          as Co-Ni arsenides take their
+//                                          full share of the As budget)
+//
+//        Coverage: 91 → 95 live, 23 → 21 dead, 0 stale (cobaltite +
+//        nickeline cleared their stale flag from v72).
+//
+//        Path C cascade-gate audit closes here for ALL of HANDOFF-CASCADE-
+//        GATE-AUDIT.md §5's targets EXCEPT native_sulfur, which has a
+//        non-standard pattern (pH and metal_sum upper gates, neither a
+//        depleting species in bulk view; no canonical scenario fires it).
+//        Deferred until a fumarole / sulfide-weathering-rind scenario
+//        lands that has the right (high-S, low-metal, acidic) signature.
+const SIM_VERSION = 73;
 

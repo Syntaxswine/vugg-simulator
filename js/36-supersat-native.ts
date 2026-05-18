@@ -168,12 +168,34 @@ Object.assign(VugConditions.prototype, {
 },
 
   supersaturation_native_silver() {
+  // 2026-05 cascade-gate audit Arc 3: same Path C softening pattern as
+  // native_arsenic + native_bismuth + native_tellurium. The hard `S > 2.0`
+  // upper gate was structurally unreachable in every Ag-bearing scenario —
+  // schneeberg (S=30), epithermal_telluride (S=8), bisbee (S=50 — fires
+  // only later in the run after sulfides consume S to 0). The pre-existing
+  // soft `s_f = max(0.2, 1 - S/4)` had its floor at 0.2 but the hard gate
+  // at S>2 meant it never engaged on the S>2 side.
+  //
+  // Geology: native silver in five-element veins coexists with acanthite
+  // (Ag2S) and bismuthinite. Bulk-fluid S=30 ppm with native silver
+  // present is the local-vs-bulk Path C story — acanthite consumes S
+  // locally near its own crystal cells; native silver forms in the
+  // micro-domains where bismuthinite (Bi2S3) scavenged S to become Bi-S
+  // and left an S-depleted shell. Bulk-view σ engine reads the equator
+  // ring fluid which doesn't see this partitioning. The soft suppressor
+  // encodes the probabilistic local-domain availability.
+  //
+  // Fix: drop hard S>2 gate, soft s_f with denom 50 (calibrated so
+  // schneeberg S=30 → s_f=0.4, epithermal_telluride S=8 → s_f=0.84,
+  // porphyry S=60 → s_f=0 still gated out). Bump ag_f cap 3.0 → 4.0
+  // for the same reason native_arsenic + native_bismuth needed cap bumps —
+  // realistic five-element-vein Ag concentrations of 8-15 ppm should drive
+  // ag_f past the old cap to clear nuc threshold.
   if (this.fluid.Ag < 1.0) return 0;
-  if (this.fluid.S > 2.0) return 0;
   if (!nativeRedoxAnoxic(this.fluid, 0.3)) return 0;
-  const ag_f = Math.min(this.fluid.Ag / 2.0, 3.0);
+  const ag_f = Math.min(this.fluid.Ag / 2.0, 4.0);
   const red_f = nativeRedoxLinearFactor(this.fluid, 1.0, 2.5, 0.3);
-  const s_f = Math.max(0.2, 1.0 - this.fluid.S / 4.0);
+  const s_f = Math.max(0.0, 1.0 - this.fluid.S / 50.0);
   let sigma = ag_f * red_f * s_f;
   const T = this.temperature;
   let T_factor;
@@ -256,10 +278,33 @@ Object.assign(VugConditions.prototype, {
 },
 
   supersaturation_native_copper() {
-  if (this.fluid.Cu < 50 || !nativeRedoxAnoxic(this.fluid, 0.4) || this.fluid.S > 30) return 0;
+  // 2026-05 cascade-gate audit Arc 3: same softening pattern as
+  // native_silver. Hard `S > 30` upper gate was structurally unreachable
+  // in any S-rich Cu scenario — schneeberg (S=30 borderline), porphyry
+  // (S=60), supergene_oxidation (S=50). bisbee was the only scenario
+  // where it fired, and only after sulfide consumption dropped bulk S
+  // below the gate (~step 130). Soft s_f at /40 with floor 0.3 already
+  // existed but the hard gate at S>30 prevented its high-S branch from
+  // ever engaging.
+  //
+  // Geology: native copper forms in basalt amygdules (Keweenaw, Lake
+  // Superior — the classic locality) and Cu-supergene oxidation zones
+  // (Bisbee, Tsumeb). Both are S-poor relative to Cu — Keweenaw basalt
+  // pore fluid carries no significant S because volcanic Cu was reduced
+  // by Fe(II) silicates without sulfide intermediates. Bulk S>30 ppm
+  // brines DO inhibit native_copper precipitation (chalcopyrite/bornite/
+  // chalcocite preferred), so the gate isn't wrong in spirit — just
+  // needs softening for the local-vs-bulk Path C case.
+  //
+  // Fix: drop hard S>30 gate, soft s_f at /60 (calibrated so bisbee
+  // S=50 → s_f=0.17 — still significant suppression but no longer hard
+  // zero; schneeberg S=30 → s_f=0.5; porphyry S=60 → s_f=0 still gated).
+  // Lower floor 0.3 → 0.0 so the soft factor can actually go to zero
+  // in S-saturated brines.
+  if (this.fluid.Cu < 50 || !nativeRedoxAnoxic(this.fluid, 0.4)) return 0;
   const cu_f = Math.min(this.fluid.Cu / 80.0, 2.5);
   const red_f = nativeRedoxLinearFactor(this.fluid, 1.0, 2.0, 0.4);
-  const s_f = Math.max(0.3, 1.0 - this.fluid.S / 40.0);
+  const s_f = Math.max(0.0, 1.0 - this.fluid.S / 60.0);
   let sigma = cu_f * red_f * s_f;
   const T = this.temperature;
   let T_factor;

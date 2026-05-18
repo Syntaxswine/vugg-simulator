@@ -87,7 +87,11 @@ function _nuc_native_arsenic(sim) {
 }
 function _nuc_native_silver(sim) {
   const sigma_nag = sim.conditions.supersaturation_native_silver();
-  if (sigma_nag > 1.2 && !sim._atNucleationCap('native_silver')) {
+  // 2026-05 cascade-gate audit Arc 3: threshold 1.2 → 1.0 matches sibling
+  // natives (native_tellurium, native_sulfur, native_arsenic, native_bismuth
+  // all use 1.0). The 1.2 was an outlier — same pattern as native_bismuth's
+  // 1.4 outlier dropped in Arc 2.
+  if (sigma_nag > 1.0 && !sim._atNucleationCap('native_silver')) {
     if (rng.random() < 0.16) {
       let pos = 'vug wall';
       const dissolving_aca_nag = sim.crystals.filter(c => c.mineral === 'acanthite' && c.dissolved);

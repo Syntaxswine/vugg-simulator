@@ -187,10 +187,23 @@ Object.assign(VugConditions.prototype, {
 },
 
   supersaturation_nickeline() {
-  if (this.fluid.Ni < 40 || this.fluid.As < 40) return 0;
+  // 2026-05 cascade-gate audit Arc 3 calibration tier: Path C bulk-view
+  // means the σ engine reads equator-ring fluid where Ni stays at the
+  // seeded value (~20 ppm Schneeberg per Burkhardt 2001) rather than the
+  // locally-enriched precipitating cell (typically 3-5× higher in real
+  // arsenide veins). Same philosophy as Arc 2's hard-gate softening, just
+  // applied to scaling denominators: divide by 3 so realistic bulk
+  // concentrations produce σ ~1.
+  //
+  // Lower gate Ni<40 → Ni<15 (just clears Schneeberg Ni=20). As<40 → As<30.
+  // Scaling Ni/60 → Ni/15, As/80 → As/30 (caps lifted to 3.0). Net effect:
+  // Schneeberg Ni=20 + As=60 yields ni_f=1.33 × as_f=2.0 = 2.66 base,
+  // clears nuc threshold 1.0 at peak T (300-450°C window during the
+  // pegmatite-crystallization phase of schneeberg's 160-step trajectory).
+  if (this.fluid.Ni < 15 || this.fluid.As < 30) return 0;
   if (!sulfideRedoxAnoxic(this.fluid, 0.6)) return 0;
-  const ni_f = Math.min(this.fluid.Ni / 60.0, 2.5);
-  const as_f = Math.min(this.fluid.As / 80.0, 2.5);
+  const ni_f = Math.min(this.fluid.Ni / 15.0, 3.0);
+  const as_f = Math.min(this.fluid.As / 30.0, 3.0);
   const red_f = sulfideRedoxLinearFactor(this.fluid, 1.0, 1.5, 0.4);
   let sigma = ni_f * as_f * red_f;
   const T = this.temperature;
@@ -228,11 +241,25 @@ Object.assign(VugConditions.prototype, {
 },
 
   supersaturation_cobaltite() {
-  if (this.fluid.Co < 50 || this.fluid.As < 100 || this.fluid.S < 50) return 0;
+  // 2026-05 cascade-gate audit Arc 3 calibration tier: twin treatment to
+  // nickeline. Pre-fix: gates Co<50, As<100, S<50 all hard-blocked at
+  // Schneeberg's seeded Co=30, As=60, S=30 — yet cobaltite is the
+  // SECOND-most-diagnostic mineral of the historic Schneeberg ore type
+  // (the cobalt arsenide that gave us the "kobold"/cobalt etymology when
+  // smelters discovered the kobolds released arsenic fumes). 10-seed
+  // sweep showed 0/10 firings.
+  //
+  // Lower gates to Co<20, As<30, S<20 (Schneeberg's bulk-view chemistry
+  // clears all three). Tighten scaling denominators by 3x (Co/25, As/35,
+  // S/25, cap 3.0) to reflect bulk-view-as-proxy-for-local. At Schneeberg
+  // Co=30, As=60, S=30: co_f=1.2, as_f=1.71, s_f=1.2 → product 2.46. At
+  // peak T (400-500°C, early pegmatite phase), σ ≈ 2.46 × 1.3 = 3.2
+  // before activity correction — well above the 1.2 nuc threshold.
+  if (this.fluid.Co < 20 || this.fluid.As < 30 || this.fluid.S < 20) return 0;
   if (!sulfideRedoxAnoxic(this.fluid, 0.5)) return 0;
-  const co_f = Math.min(this.fluid.Co / 80.0, 2.5);
-  const as_f = Math.min(this.fluid.As / 120.0, 2.5);
-  const s_f  = Math.min(this.fluid.S  / 80.0, 2.5);
+  const co_f = Math.min(this.fluid.Co / 25.0, 3.0);
+  const as_f = Math.min(this.fluid.As / 35.0, 3.0);
+  const s_f  = Math.min(this.fluid.S  / 25.0, 3.0);
   const red_f = sulfideRedoxLinearFactor(this.fluid, 1.0, 1.5, 0.4);
   let sigma = co_f * as_f * s_f * red_f;
   const T = this.temperature;
@@ -481,9 +508,21 @@ Object.assign(VugConditions.prototype, {
   // Ag2Se — silver selenide. Phase transition at 133°C (orthorhombic↔cubic).
   // Wins over acanthite + hessite only when Se > S and Se > Te.
   supersaturation_naumannite() {
+    // 2026-05 cascade-gate audit Arc 3 calibration tier: same bulk-view-
+    // proxy philosophy as cobaltite + nickeline. Pre-fix: scaling
+    // Ag/30 × Se/5 yielded σ_base = 0.107 at Schneeberg's seeded Ag=8 +
+    // Se=2 — 12× below the σ>1.3 nuc threshold. Naumannite (Ag2Se) is
+    // the diagnostic Erzgebirge selenide-vein mineral (Pinch & Wilson
+    // 1977); the σ formula was calibrated against fluid-inclusion bulk
+    // measurements rather than the locally-enriched precipitating cell.
+    //
+    // Tighten Ag/30 → Ag/6 and Se/5 → Se/1.5. At Schneeberg Ag=8, Se=2:
+    // σ_base = 1.33 × 1.33 = 1.78. At peak T (100-200°C, naumannite's
+    // sweet spot), σ ≈ 2.1 — clears the 1.3 nuc threshold cleanly. The
+    // Ag<5 / Se<1 lower gates stay (geological floor).
     if (this.fluid.Ag < 5 || this.fluid.Se < 1) return 0;
     if (this.fluid.O2 > 0.3) return 0;
-    let sigma = (this.fluid.Ag / 30.0) * (this.fluid.Se / 5.0);
+    let sigma = (this.fluid.Ag / 6.0) * (this.fluid.Se / 1.5);
     const T = this.temperature;
     if (T < 50 || T > 350) return 0;
     let T_factor = 1.0;

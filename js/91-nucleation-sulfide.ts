@@ -174,7 +174,13 @@ function _nuc_molybdenite(sim) {
 function _nuc_stibnite(sim) {
   const sigma_stb = sim.conditions.supersaturation_stibnite();
   const existing_stb = sim.crystals.filter(c => c.mineral === 'stibnite' && c.active);
-  if (sigma_stb > 1.2 && !sim._atNucleationCap('stibnite')) {
+  // 2026-05 cascade-gate audit Arc 3 calibration tier: threshold 1.2 → 1.0.
+  // After the Arc 1 activity-correction copy-paste fix (e9248c5) lifted
+  // stibnite's σ in porphyry from 0.87 to 1.16, σ was just under the 1.2
+  // outlier threshold. Sibling sulfides (pyrite, marcasite, chalcopyrite,
+  // galena, etc.) use σ>1.0 as the canonical lower-tier nucleation gate.
+  // Dropping stibnite to match completes the audit's stibnite arc.
+  if (sigma_stb > 1.0 && !sim._atNucleationCap('stibnite')) {
     if (!existing_stb.length || (sigma_stb > 1.8 && rng.random() < 0.2)) {
       let pos = 'vug wall';
       const active_qtz_stb = sim.crystals.filter(c => c.mineral === 'quartz' && c.active);

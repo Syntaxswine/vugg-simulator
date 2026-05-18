@@ -5700,7 +5700,50 @@ let timeScale = 5.0;
 //          - nickeline: Ni<40 lower gate (Schneeberg Ni=20; same)
 //          - naumannite: σ formula too lax (Ag=8 Se=2 → σ≈0.13 vs 1.3
 //            threshold; calibration, not structural)
-const SIM_VERSION = 72;
+//   v73 — Path C cascade-gate audit, Arc 3 (2026-05-18).
+//        Closes the next-iteration cascade-gate target list from
+//        HANDOFF-CASCADE-GATE-AUDIT.md §5. Two-track work in one commit:
+//
+//        Track A — structural softening (same Path C pattern as Arc 2):
+//          native_silver: drop hard `S > 2` gate, soft s_f at /50, ag_f
+//                         cap 3.0 → 4.0, nuc threshold 1.2 → 1.0
+//          native_copper: drop hard `S > 30` gate, soft s_f at /60
+//                         (floor 0.3 → 0.0)
+//
+//        Track B — calibration tier (bulk-view-as-proxy-for-local):
+//        The σ scaling denominators were calibrated against fluid-inclusion
+//        bulk measurements, but the precipitating cell is typically 3-5×
+//        more enriched. Same Path C philosophy as Arc 2's gate softening,
+//        applied to scaling denominators instead of gates. Divide by 3.
+//          cobaltite:  lower gates Co<20/As<30/S<20 (was 50/100/50);
+//                      tighten Co/25 × As/35 × S/25 (was /80 × /120 × /80)
+//          nickeline:  lower gates Ni<15/As<30 (was 40/40);
+//                      tighten Ni/15 × As/30 (was /60 × /80)
+//          naumannite: tighten Ag/6 × Se/1.5 (was Ag/30 × Se/5);
+//                      σ at Schneeberg Ag=8 Se=2 goes 0.13 → 1.78
+//          stibnite:   nuc threshold 1.2 → 1.0 (matches sibling sulfides)
+//
+//        Verification — 10-seed schneeberg sweep (geology_check):
+//          native_silver   7/10 → 6/10  (slot competition slight shift)
+//          cobaltite       0/10 → 10/10  ✓ (40 crystals @ 861µm avg)
+//          nickeline       0/10 → 10/10  ✓ (40 crystals @ 1392µm avg)
+//          naumannite      0/10 → 6/10   ✓
+//          native_arsenic  6/10 → 3/10   (further self-correction — now
+//                                          even more "minor accessory"
+//                                          per Förster & Tischendorf 1989
+//                                          as Co-Ni arsenides take their
+//                                          full share of the As budget)
+//
+//        Coverage: 91 → 95 live, 23 → 21 dead, 0 stale (cobaltite +
+//        nickeline cleared their stale flag from v72).
+//
+//        Path C cascade-gate audit closes here for ALL of HANDOFF-CASCADE-
+//        GATE-AUDIT.md §5's targets EXCEPT native_sulfur, which has a
+//        non-standard pattern (pH and metal_sum upper gates, neither a
+//        depleting species in bulk view; no canonical scenario fires it).
+//        Deferred until a fumarole / sulfide-weathering-rind scenario
+//        lands that has the right (high-S, low-metal, acidic) signature.
+const SIM_VERSION = 73;
 
 // ── 18-constants.js ──
 
@@ -10924,15 +10967,36 @@ Object.assign(VugConditions.prototype, {
         return Math.max(sigma, 0);
     },
     supersaturation_native_silver() {
+        // 2026-05 cascade-gate audit Arc 3: same Path C softening pattern as
+        // native_arsenic + native_bismuth + native_tellurium. The hard `S > 2.0`
+        // upper gate was structurally unreachable in every Ag-bearing scenario —
+        // schneeberg (S=30), epithermal_telluride (S=8), bisbee (S=50 — fires
+        // only later in the run after sulfides consume S to 0). The pre-existing
+        // soft `s_f = max(0.2, 1 - S/4)` had its floor at 0.2 but the hard gate
+        // at S>2 meant it never engaged on the S>2 side.
+        //
+        // Geology: native silver in five-element veins coexists with acanthite
+        // (Ag2S) and bismuthinite. Bulk-fluid S=30 ppm with native silver
+        // present is the local-vs-bulk Path C story — acanthite consumes S
+        // locally near its own crystal cells; native silver forms in the
+        // micro-domains where bismuthinite (Bi2S3) scavenged S to become Bi-S
+        // and left an S-depleted shell. Bulk-view σ engine reads the equator
+        // ring fluid which doesn't see this partitioning. The soft suppressor
+        // encodes the probabilistic local-domain availability.
+        //
+        // Fix: drop hard S>2 gate, soft s_f with denom 50 (calibrated so
+        // schneeberg S=30 → s_f=0.4, epithermal_telluride S=8 → s_f=0.84,
+        // porphyry S=60 → s_f=0 still gated out). Bump ag_f cap 3.0 → 4.0
+        // for the same reason native_arsenic + native_bismuth needed cap bumps —
+        // realistic five-element-vein Ag concentrations of 8-15 ppm should drive
+        // ag_f past the old cap to clear nuc threshold.
         if (this.fluid.Ag < 1.0)
-            return 0;
-        if (this.fluid.S > 2.0)
             return 0;
         if (!nativeRedoxAnoxic(this.fluid, 0.3))
             return 0;
-        const ag_f = Math.min(this.fluid.Ag / 2.0, 3.0);
+        const ag_f = Math.min(this.fluid.Ag / 2.0, 4.0);
         const red_f = nativeRedoxLinearFactor(this.fluid, 1.0, 2.5, 0.3);
-        const s_f = Math.max(0.2, 1.0 - this.fluid.S / 4.0);
+        const s_f = Math.max(0.0, 1.0 - this.fluid.S / 50.0);
         let sigma = ag_f * red_f * s_f;
         const T = this.temperature;
         let T_factor;
@@ -11031,11 +11095,34 @@ Object.assign(VugConditions.prototype, {
         return Math.max(sigma, 0);
     },
     supersaturation_native_copper() {
-        if (this.fluid.Cu < 50 || !nativeRedoxAnoxic(this.fluid, 0.4) || this.fluid.S > 30)
+        // 2026-05 cascade-gate audit Arc 3: same softening pattern as
+        // native_silver. Hard `S > 30` upper gate was structurally unreachable
+        // in any S-rich Cu scenario — schneeberg (S=30 borderline), porphyry
+        // (S=60), supergene_oxidation (S=50). bisbee was the only scenario
+        // where it fired, and only after sulfide consumption dropped bulk S
+        // below the gate (~step 130). Soft s_f at /40 with floor 0.3 already
+        // existed but the hard gate at S>30 prevented its high-S branch from
+        // ever engaging.
+        //
+        // Geology: native copper forms in basalt amygdules (Keweenaw, Lake
+        // Superior — the classic locality) and Cu-supergene oxidation zones
+        // (Bisbee, Tsumeb). Both are S-poor relative to Cu — Keweenaw basalt
+        // pore fluid carries no significant S because volcanic Cu was reduced
+        // by Fe(II) silicates without sulfide intermediates. Bulk S>30 ppm
+        // brines DO inhibit native_copper precipitation (chalcopyrite/bornite/
+        // chalcocite preferred), so the gate isn't wrong in spirit — just
+        // needs softening for the local-vs-bulk Path C case.
+        //
+        // Fix: drop hard S>30 gate, soft s_f at /60 (calibrated so bisbee
+        // S=50 → s_f=0.17 — still significant suppression but no longer hard
+        // zero; schneeberg S=30 → s_f=0.5; porphyry S=60 → s_f=0 still gated).
+        // Lower floor 0.3 → 0.0 so the soft factor can actually go to zero
+        // in S-saturated brines.
+        if (this.fluid.Cu < 50 || !nativeRedoxAnoxic(this.fluid, 0.4))
             return 0;
         const cu_f = Math.min(this.fluid.Cu / 80.0, 2.5);
         const red_f = nativeRedoxLinearFactor(this.fluid, 1.0, 2.0, 0.4);
-        const s_f = Math.max(0.3, 1.0 - this.fluid.S / 40.0);
+        const s_f = Math.max(0.0, 1.0 - this.fluid.S / 60.0);
         let sigma = cu_f * red_f * s_f;
         const T = this.temperature;
         let T_factor;
@@ -12568,12 +12655,25 @@ Object.assign(VugConditions.prototype, {
         return Math.max(sigma, 0);
     },
     supersaturation_nickeline() {
-        if (this.fluid.Ni < 40 || this.fluid.As < 40)
+        // 2026-05 cascade-gate audit Arc 3 calibration tier: Path C bulk-view
+        // means the σ engine reads equator-ring fluid where Ni stays at the
+        // seeded value (~20 ppm Schneeberg per Burkhardt 2001) rather than the
+        // locally-enriched precipitating cell (typically 3-5× higher in real
+        // arsenide veins). Same philosophy as Arc 2's hard-gate softening, just
+        // applied to scaling denominators: divide by 3 so realistic bulk
+        // concentrations produce σ ~1.
+        //
+        // Lower gate Ni<40 → Ni<15 (just clears Schneeberg Ni=20). As<40 → As<30.
+        // Scaling Ni/60 → Ni/15, As/80 → As/30 (caps lifted to 3.0). Net effect:
+        // Schneeberg Ni=20 + As=60 yields ni_f=1.33 × as_f=2.0 = 2.66 base,
+        // clears nuc threshold 1.0 at peak T (300-450°C window during the
+        // pegmatite-crystallization phase of schneeberg's 160-step trajectory).
+        if (this.fluid.Ni < 15 || this.fluid.As < 30)
             return 0;
         if (!sulfideRedoxAnoxic(this.fluid, 0.6))
             return 0;
-        const ni_f = Math.min(this.fluid.Ni / 60.0, 2.5);
-        const as_f = Math.min(this.fluid.As / 80.0, 2.5);
+        const ni_f = Math.min(this.fluid.Ni / 15.0, 3.0);
+        const as_f = Math.min(this.fluid.As / 30.0, 3.0);
         const red_f = sulfideRedoxLinearFactor(this.fluid, 1.0, 1.5, 0.4);
         let sigma = ni_f * as_f * red_f;
         const T = this.temperature;
@@ -12626,13 +12726,27 @@ Object.assign(VugConditions.prototype, {
         return Math.max(sigma, 0);
     },
     supersaturation_cobaltite() {
-        if (this.fluid.Co < 50 || this.fluid.As < 100 || this.fluid.S < 50)
+        // 2026-05 cascade-gate audit Arc 3 calibration tier: twin treatment to
+        // nickeline. Pre-fix: gates Co<50, As<100, S<50 all hard-blocked at
+        // Schneeberg's seeded Co=30, As=60, S=30 — yet cobaltite is the
+        // SECOND-most-diagnostic mineral of the historic Schneeberg ore type
+        // (the cobalt arsenide that gave us the "kobold"/cobalt etymology when
+        // smelters discovered the kobolds released arsenic fumes). 10-seed
+        // sweep showed 0/10 firings.
+        //
+        // Lower gates to Co<20, As<30, S<20 (Schneeberg's bulk-view chemistry
+        // clears all three). Tighten scaling denominators by 3x (Co/25, As/35,
+        // S/25, cap 3.0) to reflect bulk-view-as-proxy-for-local. At Schneeberg
+        // Co=30, As=60, S=30: co_f=1.2, as_f=1.71, s_f=1.2 → product 2.46. At
+        // peak T (400-500°C, early pegmatite phase), σ ≈ 2.46 × 1.3 = 3.2
+        // before activity correction — well above the 1.2 nuc threshold.
+        if (this.fluid.Co < 20 || this.fluid.As < 30 || this.fluid.S < 20)
             return 0;
         if (!sulfideRedoxAnoxic(this.fluid, 0.5))
             return 0;
-        const co_f = Math.min(this.fluid.Co / 80.0, 2.5);
-        const as_f = Math.min(this.fluid.As / 120.0, 2.5);
-        const s_f = Math.min(this.fluid.S / 80.0, 2.5);
+        const co_f = Math.min(this.fluid.Co / 25.0, 3.0);
+        const as_f = Math.min(this.fluid.As / 35.0, 3.0);
+        const s_f = Math.min(this.fluid.S / 25.0, 3.0);
         const red_f = sulfideRedoxLinearFactor(this.fluid, 1.0, 1.5, 0.4);
         let sigma = co_f * as_f * s_f * red_f;
         const T = this.temperature;
@@ -12951,11 +13065,23 @@ Object.assign(VugConditions.prototype, {
     // Ag2Se — silver selenide. Phase transition at 133°C (orthorhombic↔cubic).
     // Wins over acanthite + hessite only when Se > S and Se > Te.
     supersaturation_naumannite() {
+        // 2026-05 cascade-gate audit Arc 3 calibration tier: same bulk-view-
+        // proxy philosophy as cobaltite + nickeline. Pre-fix: scaling
+        // Ag/30 × Se/5 yielded σ_base = 0.107 at Schneeberg's seeded Ag=8 +
+        // Se=2 — 12× below the σ>1.3 nuc threshold. Naumannite (Ag2Se) is
+        // the diagnostic Erzgebirge selenide-vein mineral (Pinch & Wilson
+        // 1977); the σ formula was calibrated against fluid-inclusion bulk
+        // measurements rather than the locally-enriched precipitating cell.
+        //
+        // Tighten Ag/30 → Ag/6 and Se/5 → Se/1.5. At Schneeberg Ag=8, Se=2:
+        // σ_base = 1.33 × 1.33 = 1.78. At peak T (100-200°C, naumannite's
+        // sweet spot), σ ≈ 2.1 — clears the 1.3 nuc threshold cleanly. The
+        // Ag<5 / Se<1 lower gates stay (geological floor).
         if (this.fluid.Ag < 5 || this.fluid.Se < 1)
             return 0;
         if (this.fluid.O2 > 0.3)
             return 0;
-        let sigma = (this.fluid.Ag / 30.0) * (this.fluid.Se / 5.0);
+        let sigma = (this.fluid.Ag / 6.0) * (this.fluid.Se / 1.5);
         const T = this.temperature;
         if (T < 50 || T > 350)
             return 0;
@@ -23615,7 +23741,11 @@ function _nuc_native_arsenic(sim) {
 }
 function _nuc_native_silver(sim) {
     const sigma_nag = sim.conditions.supersaturation_native_silver();
-    if (sigma_nag > 1.2 && !sim._atNucleationCap('native_silver')) {
+    // 2026-05 cascade-gate audit Arc 3: threshold 1.2 → 1.0 matches sibling
+    // natives (native_tellurium, native_sulfur, native_arsenic, native_bismuth
+    // all use 1.0). The 1.2 was an outlier — same pattern as native_bismuth's
+    // 1.4 outlier dropped in Arc 2.
+    if (sigma_nag > 1.0 && !sim._atNucleationCap('native_silver')) {
         if (rng.random() < 0.16) {
             let pos = 'vug wall';
             const dissolving_aca_nag = sim.crystals.filter(c => c.mineral === 'acanthite' && c.dissolved);
@@ -24826,7 +24956,13 @@ function _nuc_molybdenite(sim) {
 function _nuc_stibnite(sim) {
     const sigma_stb = sim.conditions.supersaturation_stibnite();
     const existing_stb = sim.crystals.filter(c => c.mineral === 'stibnite' && c.active);
-    if (sigma_stb > 1.2 && !sim._atNucleationCap('stibnite')) {
+    // 2026-05 cascade-gate audit Arc 3 calibration tier: threshold 1.2 → 1.0.
+    // After the Arc 1 activity-correction copy-paste fix (e9248c5) lifted
+    // stibnite's σ in porphyry from 0.87 to 1.16, σ was just under the 1.2
+    // outlier threshold. Sibling sulfides (pyrite, marcasite, chalcopyrite,
+    // galena, etc.) use σ>1.0 as the canonical lower-tier nucleation gate.
+    // Dropping stibnite to match completes the audit's stibnite arc.
+    if (sigma_stb > 1.0 && !sim._atNucleationCap('stibnite')) {
         if (!existing_stb.length || (sigma_stb > 1.8 && rng.random() < 0.2)) {
             let pos = 'vug wall';
             const active_qtz_stb = sim.crystals.filter(c => c.mineral === 'quartz' && c.active);
