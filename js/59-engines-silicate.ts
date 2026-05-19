@@ -368,6 +368,74 @@ function grow_chrysocolla(crystal, conditions, step) {
   return new GrowthZone({ step, temperature: conditions.temperature, thickness_um: rate, growth_rate: rate, note: color_note });
 }
 
+function grow_coffinite(crystal, conditions, step) {
+  // USiO4·nH2O — micro-crystalline U(IV) silicate, dark black/tarry
+  // texture. Replaces uraninite along fractures + grain boundaries.
+  // Highly radioactive (~70% U by mass). NOT fluorescent (U(IV)).
+  const sigma = conditions.supersaturation_coffinite();
+  if (sigma < 1.0) {
+    if (crystal.total_growth_um > 5 && conditions.fluid.O2 > 0.5) {
+      crystal.dissolved = true;
+      const d = Math.min(2.0, crystal.total_growth_um * 0.10);
+      return new GrowthZone({ step, temperature: conditions.temperature, thickness_um: -d, growth_rate: -d, dissolutionMode: 'oxidative', note: `oxidative dissolution — U(IV) → U(VI), releases uranyl (UO2)²⁺ to feed uranophane/autunite supergene` });
+    }
+    return null;
+  }
+  const excess = sigma - 1.0;
+  const rate = 1.5 * excess * rng.uniform(0.7, 1.3);  // slow growth — refractory
+  if (rate < 0.1) return null;
+  const pos = crystal.position || '';
+  if (pos.includes('uraninite') || pos.includes('pitchblende')) {
+    crystal.habit = 'fracture_replacement_after_uraninite';
+    crystal.dominant_forms = ['microcrystalline coating along uraninite fractures'];
+  } else if (excess > 1.0) {
+    crystal.habit = 'colloform_band';
+    crystal.dominant_forms = ['colloform banded sub-micron texture', 'intergrown with pitchblende'];
+  } else {
+    crystal.habit = 'sooty_coating';
+    crystal.dominant_forms = ['fine-grained black-tarry coating', 'sub-micron crystallinity'];
+  }
+  conditions.fluid.U = Math.max(conditions.fluid.U - rate * 0.025, 0);
+  conditions.fluid.SiO2 = Math.max(conditions.fluid.SiO2 - rate * 0.015, 0);
+  return new GrowthZone({ step, temperature: conditions.temperature, thickness_um: rate, growth_rate: rate, note: `coffinite ${crystal.habit}, black/tarry U(IV) silicate; highly radioactive; NOT UV-fluorescent (lacks uranyl chromophore)` });
+}
+
+function grow_uranophane(crystal, conditions, step) {
+  // Ca(UO2)2(SiO3)2(OH)2·5H2O — fibrous lemon-yellow acicular sprays;
+  // BRIGHT yellow-green SW+LW UV fluorescence (the diagnostic uranyl
+  // luminescence). Replaces uraninite/coffinite supergene weathering.
+  const sigma = conditions.supersaturation_uranophane();
+  if (sigma < 1.0) {
+    if (crystal.total_growth_um > 3 && conditions.fluid.pH < 4.5) {
+      crystal.dissolved = true;
+      const d = Math.min(2.0, crystal.total_growth_um * 0.10);
+      return new GrowthZone({ step, temperature: conditions.temperature, thickness_um: -d, growth_rate: -d, note: `acid dissolution (pH ${conditions.fluid.pH.toFixed(1)}) — uranyl + Ca + Si released` });
+    }
+    return null;
+  }
+  const excess = sigma - 1.0;
+  const rate = 3.0 * excess * rng.uniform(0.8, 1.2);
+  if (rate < 0.1) return null;
+  const pos = crystal.position || '';
+  if (pos.includes('uraninite') || pos.includes('coffinite') || pos.includes('pitchblende')) {
+    crystal.habit = 'oxidation_front_replacement';
+    crystal.dominant_forms = ['acicular sprays at oxidation front', 'replacing U(IV) primary'];
+  } else if (excess > 1.2) {
+    crystal.habit = 'acicular_starburst';
+    crystal.dominant_forms = ['radiating needles 0.1-5 mm', 'star-shaped clusters in vugs'];
+  } else if (excess > 0.4) {
+    crystal.habit = 'radiating_fibrous_puffs';
+    crystal.dominant_forms = ['silky sub-mm needles', 'hemispherical "puff" aggregates'];
+  } else {
+    crystal.habit = 'powdery_yellow_coating';
+    crystal.dominant_forms = ['earthy yellow coating', 'sub-mm crystallinity'];
+  }
+  conditions.fluid.U = Math.max(conditions.fluid.U - rate * 0.030, 0);
+  conditions.fluid.Ca = Math.max(conditions.fluid.Ca - rate * 0.010, 0);
+  conditions.fluid.SiO2 = Math.max(conditions.fluid.SiO2 - rate * 0.015, 0);
+  return new GrowthZone({ step, temperature: conditions.temperature, thickness_um: rate, growth_rate: rate, note: `uranophane ${crystal.habit}, brilliant lemon-yellow; UV-FLUORESCENT bright yellow-green (SW + LW) 💛 — uranyl (UO₂)²⁺ vibronic emission` });
+}
+
 function grow_hemimorphite(crystal, conditions, step) {
   // Zn4Si2O7(OH)2·H2O — hemimorphic crystals (different terminations
   // top vs. bottom), the textbook polar crystal class. Fan-shaped

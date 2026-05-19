@@ -217,4 +217,11 @@ const MINERAL_ENGINES = {
   hemimorphite: grow_hemimorphite,
   willemite: grow_willemite,
   hydrozincite: grow_hydrozincite,
+  // v99 (2026-05-19): Uranyl silicates — coffinite (U(IV) primary,
+  // reducing, hot, replaces uraninite) + uranophane (U(VI) supergene,
+  // oxidizing, cool, brilliant UV-fluorescent yellow). Opposite redox
+  // sides. Per Finch & Murakami 1999 RIMG 38:91-179; Burns 2005
+  // Can. Mineral. 43:1839.
+  coffinite: grow_coffinite,
+  uranophane: grow_uranophane,
 };

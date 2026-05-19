@@ -297,6 +297,58 @@ Object.assign(VugConditions.prototype, {
   // Evans & Mrose 1977 Am. Min. 62:491 (Cu-silicate family), Schaller 1915
   // (shattuckite type description, Shattuck mine Bisbee), Keller 1977
   // MinRec 8 (Tsumeb paragenesis).
+  // v99 (2026-05-19): Uranyl silicates — coffinite (U(IV), primary,
+  // reducing) + uranophane (U(VI), supergene, oxidizing). Opposite
+  // sides of the U redox boundary. Both consume U + SiO2 + (Ca for
+  // uranophane); discriminator is the Eh/O2 + T regime.
+  // Refs: Finch & Murakami 1999 RIMG 38:91-179 (canonical uranyl
+  // paragenesis); Burns 2005 Can. Mineral. 43:1839 (uranyl chemistry);
+  // Stieff et al. 1955 Science 121:608 (coffinite); Ginderow 1988
+  // Acta Cryst. C44:421 (uranophane structure).
+
+  supersaturation_coffinite() {
+    // USiO4·nH2O — tetragonal I41/amd (zircon-isostructural). PRIMARY
+    // U(IV) silicate; replaces uraninite where pore-water SiO2 rises.
+    // Reducing (HS⁻ buffer), 100-300°C, ΣCO2 must be LOW (high
+    // carbonate mobilizes U(VI) and dissolves coffinite/uraninite).
+    if (this.fluid.U < 1 || this.fluid.SiO2 < 60) return 0;
+    if (this.fluid.O2 > 0.3) return 0;  // REDUCING
+    if (this.temperature < 100 || this.temperature > 350) return 0;
+    if (this.fluid.pH < 5.0 || this.fluid.pH > 8.0) return 0;
+    if (this.fluid.CO3 > 60) return 0;  // high CO3 = uranyl-carbonate, U mobile
+    if (this.fluid.P > 1) return 0;     // phosphate → ningyoite U(IV) phosphate
+    const u_f = Math.min(this.fluid.U / 5.0, 2.5);
+    const si_f = Math.min(this.fluid.SiO2 / 100.0, 2.0);
+    let sigma = u_f * si_f;
+    const T = this.temperature;
+    if (T >= 150 && T <= 250) sigma *= 1.3;
+    else sigma *= Math.max(0.5, 1.0 - Math.abs(T - 200) / 100);
+    if (ACTIVITY_CORRECTED_SUPERSAT) sigma *= activityCorrectionFactor(this.fluid, 'coffinite');
+    return Math.max(sigma, 0);
+  },
+
+  supersaturation_uranophane() {
+    // Ca(UO2)2(SiO3)2(OH)2·5H2O — monoclinic P21, BRIGHT yellow-green
+    // SW+LW UV fluorescent (uranyl). Forms supergene from oxidation
+    // of uraninite/coffinite when Ca + SiO2 + low CO3 available.
+    if (this.fluid.U < 0.5 || this.fluid.Ca < 20 || this.fluid.SiO2 < 30) return 0;
+    if (this.fluid.O2 < 0.5) return 0;  // OXIDIZING (uranyl UO2^2+)
+    if (this.temperature < 5 || this.temperature > 60) return 0;
+    if (this.fluid.pH < 5.0 || this.fluid.pH > 8.0) return 0;
+    if (this.fluid.CO3 > 60) return 0;  // high CO3 → liebigie/andersonite
+    if (this.fluid.S > 1000) return 0;  // high SO4 → johannite/zippeite
+    if (this.fluid.P > 5) return 0;     // P → autunite/torbernite
+    const u_f  = Math.min(this.fluid.U / 3.0, 2.5);
+    const ca_f = Math.min(this.fluid.Ca / 40.0, 2.0);
+    const si_f = Math.min(this.fluid.SiO2 / 60.0, 2.0);
+    let sigma = u_f * ca_f * si_f;
+    const pH = this.fluid.pH;
+    if (pH >= 6.0 && pH <= 7.5) sigma *= 1.3;
+    else sigma *= Math.max(0.5, 1.0 - Math.abs(pH - 6.75) * 0.5);
+    if (ACTIVITY_CORRECTED_SUPERSAT) sigma *= activityCorrectionFactor(this.fluid, 'uranophane');
+    return Math.max(sigma, 0);
+  },
+
   // v98 (2026-05-19): Zn supergene silicates — hemimorphite + willemite.
   // The two Zn silicates of supergene "nonsulfide" Zn deposits
   // (Tsumeb, Skorpion Namibia, Franklin/Sterling NJ). Discriminator:

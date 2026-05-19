@@ -325,6 +325,44 @@ function _nuc_chrysoprase(sim) {
 //     "pseudomorph after malachite" texture) and nucleates on chrysocolla.
 // Per research dossier 2026-05 (Evans & Mrose 1977, Keller 1977, Schaller
 // 1915 type locality Shattuck mine).
+// v99 (2026-05-19): Uranyl silicates — coffinite (U(IV) primary) +
+// uranophane (U(VI) supergene). Opposite redox sides. Substrate
+// priority encodes Finch & Murakami 1999 paragenesis: coffinite
+// replaces uraninite along fractures; uranophane replaces uraninite/
+// coffinite at the oxidation front.
+
+function _nuc_coffinite(sim) {
+  const sigma = sim.conditions.supersaturation_coffinite();
+  if (sigma < 1.0) return;
+  if (sim._atNucleationCap('coffinite')) return;
+  const existing = sim.crystals.filter(c => c.mineral === 'coffinite' && c.active);
+  if (existing.length >= 2) return;
+  let pos = 'vug wall';
+  const urn = sim.crystals.filter(c => c.mineral === 'uraninite' && c.active);
+  const py = sim.crystals.filter(c => c.mineral === 'pyrite' && c.active);
+  if (urn.length && rng.random() < 0.65) pos = `fracture replacement on uraninite #${urn[0].crystal_id}`;
+  else if (py.length && rng.random() < 0.25) pos = `with pyrite + organic matter #${py[0].crystal_id}`;
+  const c = sim.nucleate('coffinite', pos, sigma);
+  sim.log.push(`  ✦ NUCLEATION: ⬛ Coffinite #${c.crystal_id} on ${c.position} (T=${sim.conditions.temperature.toFixed(0)}°C, σ=${sigma.toFixed(2)}, U=${sim.conditions.fluid.U.toFixed(1)}, SiO₂=${sim.conditions.fluid.SiO2.toFixed(0)}) — U(IV) silicate, primary reducing; not fluorescent`);
+}
+
+function _nuc_uranophane(sim) {
+  const sigma = sim.conditions.supersaturation_uranophane();
+  if (sigma < 1.0) return;
+  if (sim._atNucleationCap('uranophane')) return;
+  const existing = sim.crystals.filter(c => c.mineral === 'uranophane' && c.active);
+  if (existing.length >= 3) return;
+  let pos = 'vug wall';
+  const urn_diss = sim.crystals.filter(c => c.mineral === 'uraninite' && c.dissolved);
+  const urn = sim.crystals.filter(c => c.mineral === 'uraninite' && c.active);
+  const cof = sim.crystals.filter(c => c.mineral === 'coffinite' && c.dissolved);
+  if (urn_diss.length && rng.random() < 0.55) pos = `oxidation front after uraninite #${urn_diss[0].crystal_id}`;
+  else if (cof.length && rng.random() < 0.50) pos = `oxidation front after coffinite #${cof[0].crystal_id}`;
+  else if (urn.length && rng.random() < 0.35) pos = `weathering crust on uraninite #${urn[0].crystal_id}`;
+  const c = sim.nucleate('uranophane', pos, sigma);
+  sim.log.push(`  ✦ NUCLEATION: 💛 Uranophane #${c.crystal_id} on ${c.position} (T=${sim.conditions.temperature.toFixed(0)}°C, σ=${sigma.toFixed(2)}, U=${sim.conditions.fluid.U.toFixed(1)}, Ca=${sim.conditions.fluid.Ca.toFixed(0)}, SiO₂=${sim.conditions.fluid.SiO2.toFixed(0)}) — supergene U(VI) silicate, UV-fluorescent yellow-green`);
+}
+
 // v98 (2026-05-19): Zn supergene silicates — hemimorphite + willemite.
 // Substrate priority encodes Hitzman 2003 + Boni & Mondillo 2015
 // nonsulfide-Zn paragenesis. RNG-cascade guard via sigma < 1.0 early-out.
@@ -430,4 +468,6 @@ function _nucleateClass_silicate(sim) {
   _nuc_shattuckite(sim);
   _nuc_hemimorphite(sim);
   _nuc_willemite(sim);
+  _nuc_coffinite(sim);
+  _nuc_uranophane(sim);
 }

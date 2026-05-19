@@ -3409,5 +3409,67 @@
 //
 //         Coverage 117 live → 120 live (+3 minerals); 25 paramorph-only.
 //         Calibration drift: TBD per baseline regen.
-const SIM_VERSION = 98;
+//   v99 — Uranyl silicates: coffinite + uranophane (2026-05-19). The
+//         U(IV) and U(VI) silicate endmembers — opposite sides of the
+//         U redox boundary.
+//           coffinite USiO4·nH2O  PRIMARY U(IV), tetragonal I41/amd
+//                                  (zircon-isostructural). 100-300°C,
+//                                  REDUCING (logfO2 < –40), pH 5-8,
+//                                  CO3 < 60 (high CO3 mobilizes U).
+//                                  Replaces uraninite along fractures.
+//                                  NOT fluorescent (U(IV) lacks the
+//                                  (UO2)^2+ chromophore).
+//           uranophane Ca(UO2)2(SiO3)2(OH)2·5H2O — SUPERGENE U(VI),
+//                                  monoclinic P21. <50°C, OXIDIZING
+//                                  (logfO2 > –20), pH 5-8 (CO3 < 60,
+//                                  S < 1000, P < 5 forks). DIAGNOSTIC
+//                                  bright yellow-green SW+LW UV
+//                                  fluorescence (uranyl chromophore).
+//                                  Replaces uraninite + coffinite at
+//                                  oxidation front.
+//
+//         The opposite-redox discriminator is geologically the cleanest
+//         pairing: same chemistry parents (U + SiO2 ± Ca), opposite
+//         oxidation states, opposite T regimes. Coffinite is the
+//         primary phase that uranophane oxidizes from when the system
+//         goes oxic. Both consume U + SiO2; uranophane additionally
+//         needs Ca.
+//
+//         Substrate priority encodes Finch & Murakami 1999 paragenesis:
+//           coffinite: uraninite (replacement) > pyrite+organic
+//                      (sandstone roll-front) > vug wall
+//           uranophane: uraninite (oxidation front) > coffinite >
+//                       weathering crust on U primaries
+//
+//         All four nucleation functions use sigma < 1.0 early-out
+//         RNG-cascade guard.
+//
+//         References (research dossier 2026-05-19):
+//           * Stieff L.R., Stern T.W., Sherwood A.M. (1955) "Coffinite,
+//             a uranous silicate with hydroxyl substitution." Science
+//             121:608. Coffinite type description (Cane Springs Canyon
+//             UT).
+//           * Finch R. & Murakami T. (1999) "Systematics and paragenesis
+//             of uranium minerals." Rev. Mineral. Geochem. 38:91-179.
+//             The canonical U paragenesis chart (fig. 12) + supergene
+//             stability windows (pp. 130-135).
+//           * Burns P.C. (2005) "U(VI) minerals and inorganic
+//             compounds: insights into an expanded structural
+//             hierarchy of crystal structures." Can. Mineral. 43:1839.
+//             Uranyl chemistry framework.
+//           * Ginderow D. (1988) "Structure de l'uranophane alpha,
+//             Ca(UO2)2(SiO3OH)2·5H2O." Acta Cryst. C44:421.
+//           * Janeczek J. & Ewing R.C. (1992) "Coffinitization — a
+//             mechanism for the alteration of UO2 under reducing
+//             conditions." J. Nucl. Mater. 190:157.
+//           * Pointer C.M. et al. (1988) Mineralog. Mag. 52:553 —
+//             secondary coffinite from uraninite alteration.
+//           * Stohl F.V. & Smith D.K. (1981) Am. Mineral. 66:610 —
+//             uranyl-silicate family.
+//           * Dana 7th ed. v.IV; Handbook of Mineralogy 8th ed. v.II;
+//             MinRec Schneeberg issue v.19 (1988).
+//
+//         Coverage 120 live → 122 live (+2 minerals); 25 paramorph-only.
+//         Calibration drift: TBD per baseline regen.
+const SIM_VERSION = 99;
 
