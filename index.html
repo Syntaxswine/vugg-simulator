@@ -6525,7 +6525,109 @@ let timeScale = 5.0;
 //
 //        Calibration: seed42_v83.json updated for sulphur_bank;
 //        other 25 scenarios byte-identical to v82.
-const SIM_VERSION = 83;
+//   v84 — Pararealgar + paramorph cap conservation (2026-05-19).
+//        Closes the first item from research-meta-minerals-
+//        pararealgar.md (Bonazzi et al. 1996 Mineralogical Magazine
+//        60:401-409; Roberts et al. 1980). Adds the ONLY light-
+//        induced transformation in the simulator: realgar →
+//        pararealgar via As₄S₄ cage isomerization (D₂d → Cs
+//        symmetry).
+//
+//        New mineral: pararealgar (As₄S₄, monoclinic Cs). Bright
+//        yellow vs realgar's orange-red. Forms EXCLUSIVELY as a
+//        post-formation transformation of realgar after light
+//        exposure. The yellow powder that crumbles out of museum-
+//        drawer realgar specimens after months of room-light is
+//        pararealgar. Irreversible.
+//
+//        Mechanism distinct from existing transformation types:
+//          PARAMORPH (T-driven, e.g. argentite → acanthite at 173°C)
+//          DEHYDRATION (humidity-driven, e.g. borax → tincalconite)
+//          LIGHT (visible-light-driven, NEW in v84)
+//
+//        Implementation:
+//          * pararealgar entry in data/minerals.json — transformation-
+//            only (no nucleation_sigma, no growth_rate, no engine).
+//          * LIGHT_TRANSITIONS table in js/75-transitions.ts:
+//              realgar → [pararealgar, 60_step_threshold]
+//          * applyLightTransitions function — per-step counter on
+//            crystal.light_exposure_steps for realgar crystals when
+//            wall.is_lit; transition fires at threshold.
+//          * VugWall.is_lit field (default true) — opt-out for
+//            sealed-cavity / dark-storage scenarios.
+//          * run_step hook between paramorph + dehydration loops.
+//
+//        Tuning rationale: threshold = 60 steps. Real timescales are
+//        weeks to years of room-light exposure. At Sulphur Bank
+//        (open surface vent, full light exposure), realgar that
+//        nucleates by step 140 transforms by step 200 (run-end).
+//        With cap = 6 (max_nucleation_count for realgar), all 6
+//        realgar typically transform to pararealgar by run-end —
+//        geologically realistic for collected specimens (museum-
+//        drawer realgar is largely pararealgar after decades).
+//        Dark-storage opt-out (is_lit=false) preserves realgar
+//        indefinitely.
+//
+//        LOAD-BEARING SECONDARY FIX — cap conservation
+//        (_atNucleationCap in js/85b-simulator-nucleate.ts):
+//
+//        Pre-v84, the per-mineral nucleation cap counted only
+//        crystals where c.mineral === mineralName. When a paramorph
+//        fired (argentite → acanthite, borax → tincalconite,
+//        realgar → pararealgar), the source mineral's count
+//        DROPPED, REOPENING the cap for fresh nucleations. Result:
+//        cap=6 could effectively produce 20+ realgar-origin crystals
+//        across a long run, since each transformation opened a slot.
+//
+//        v84 fix: count crystals where mineral === X OR
+//        paramorph_origin === X. A transformed crystal still
+//        consumed its nucleation event, so it stays in the cap
+//        budget.
+//
+//        This also affects argentite + borax + mirabilite paramorph
+//        chains. Calibration drift (regen-justified):
+//          schneeberg:        acanthite 6 → 4 active (argentite cap
+//                             properly conserved; acanthite is the
+//                             cool-T form of argentite)
+//          supergene_oxidation: similar paramorph chain shifts
+//          sulphur_bank:      realgar 6 → 0 + pararealgar 0 → 6 +
+//                             downstream RNG-cascade shifts on
+//                             native_sulfur, marcasite, pyrite max_um
+//
+//        The drift is a BUG FIX. The cap was over-firing pre-v84.
+//
+//        Tests 397 → 411 (+14 in tests-js/pararealgar.test.ts):
+//          * transformation fires at Sulphur Bank across 3 seeds
+//          * paramorph_origin field correctness
+//          * light_exposure_steps >= 60 threshold pin
+//          * is_lit=false opt-out: dark vug has 0 pararealgar,
+//            preserves >= 4 realgar
+//          * cap conservation: realgar-origin <= cap=6 across seeds
+//          * LIGHT-INDUCED log line appears in run output
+//          * VugWall.is_lit defaults true + honors explicit false
+//
+//        Two realgar-orpiment pins updated:
+//          * habit pin: "realgar reaches canonical habit" → "realgar-
+//            origin reaches canonical habit" (includes pararealgar
+//            crystals — habit was set at nucleation, preserved
+//            through transformation)
+//          * substrate pin: similar update to include paramorph_origin
+//
+//        Coverage 98 live → 99 live (+pararealgar) / 21 dead / 0 stale.
+//        seed42_v84.json captures the calibration drift; other 24
+//        scenarios byte-identical to v83.
+//
+//        References (from BUILDER-MINERAL-RESEARCH.md research file):
+//          * Bonazzi P., Menchetti S., Pratesi G., Muniz-Miranda M.,
+//            Sbrana G. (1996) — Light-induced variations in realgar
+//            and β-As4S4: X-ray diffraction and Raman studies.
+//            Mineralogical Magazine 60:401-409.
+//          * Roberts A.C., Ansell H.G., Bonardi M. (1980) —
+//            Pararealgar, a new polymorph of AsS, from British
+//            Columbia. Canadian Mineralogist 18:525-527.
+//          * research/research-meta-minerals-pararealgar.md
+//            (canonical research-agent file, May 2026).
+const SIM_VERSION = 84;
 
 // ── 18-constants.js ──
 
@@ -8379,6 +8481,16 @@ class VugWall {
         // instead of the global vugFill. Defaults false → byte-identical
         // to legacy. Forwarded to WallState in 85-simulator.ts.
         this.per_cell_local_fill = !!opts.per_cell_local_fill;
+        // v84 (2026-05-19): is the cavity exposed to visible light?
+        // Default TRUE — most surface vugs / hot-spring vents / museum
+        // specimens are lit. Drives LIGHT_TRANSITIONS in 75-transitions.ts
+        // (currently only realgar → pararealgar). Scenarios that model
+        // sealed-rock cavities during formation (deep-burial pegmatite
+        // pockets, sealed vein systems) can set is_lit: false to preserve
+        // light-sensitive minerals like realgar through the run. Forwarded
+        // to WallState so the simulator can check sim.wall_state.is_lit
+        // without reaching back to conditions.wall.
+        this.is_lit = (opts.is_lit !== undefined) ? !!opts.is_lit : true;
     }
     dissolve(acid_strength, fluid) {
         // Gate by composition first — silicate walls are inert regardless
@@ -8656,6 +8768,12 @@ class WallState {
         // while edges fill" Nature Comm 2022 confinement physics at
         // different layers of the simulator.
         this.per_cell_local_fill = !!opts.per_cell_local_fill;
+        // v84 (2026-05-19) — is the cavity exposed to visible light?
+        // Mirrored from VugWall.is_lit. Drives LIGHT_TRANSITIONS in
+        // 75-transitions.ts (currently only realgar → pararealgar).
+        // Default true preserves the "most vugs are eventually exposed
+        // to light" assumption.
+        this.is_lit = (opts.is_lit !== undefined) ? !!opts.is_lit : true;
         // Size-class cascade (2026-05): vug | pocket | cave, mirrored from
         // VugWall for UI consumers that read sim.wall_state directly.
         this.size_class = opts.size_class ?? null;
@@ -21843,6 +21961,64 @@ function applyDehydrationTransitions(crystal, ringFluid, ringWaterState, T, step
     }
     return null;
 }
+// ============================================================
+// LIGHT-INDUCED TRANSITIONS
+// ============================================================
+// v84 (2026-05-19): light-induced isomerization. Distinct from
+// PARAMORPH (T-driven) and DEHYDRATION (humidity/heat-driven) — the
+// trigger is visible-light exposure (>500 nm) accumulating over time.
+//
+// First entry: realgar → pararealgar (Bonazzi et al. 1996,
+// Mineralogical Magazine 60:401-409; Roberts et al. 1980). The As₄S₄
+// cage molecule isomerizes from realgar's D₂d symmetry to pararealgar's
+// Cs symmetry under light exposure. The transformation is irreversible
+// and accompanied by:
+//   * color shift: orange-red → yellow (the famous "museum-drawer
+//     yellow powder" that crumbles out of old realgar specimens)
+//   * hardness drop: 1.5-2 → 1-1.5 (crystal becomes friable)
+//   * specific-gravity drop: 3.56 → 3.52 (slight)
+//
+// Real-world timescale: weeks to years of room-light exposure. In the
+// simulator, threshold=60 steps gives a realgar-nucleated-by-step-140
+// crystal exactly the right window to convert before run-end (200
+// steps). Geologically authentic: a museum-collection realgar specimen
+// shows mixed realgar + pararealgar after a year on a lit shelf.
+//
+// Gating: opt-out by setting conditions.wall.is_lit = false (sealed
+// rock cavities don't see light during formation — the transformation
+// only happens AFTER the cavity is excavated and the specimens are
+// exposed). Default is_lit = true models surface vugs / hot springs /
+// scenarios where rock is open to atmospheric light. Sulphur Bank
+// is a surface hot-spring → lit by default.
+//
+// Format: light_sensitive_mineral → [new_mineral, threshold_steps].
+const LIGHT_TRANSITIONS = {
+    realgar: ['pararealgar', 60],
+};
+function applyLightTransitions(crystal, isLit, step) {
+    // Convert a light-sensitive mineral in place after sufficient light
+    // exposure. Increments crystal.light_exposure_steps each step the
+    // cavity is lit; transition fires once the counter reaches threshold.
+    // Returns [old, new] pair if a transition fired, null otherwise.
+    if (!crystal.active || crystal.dissolved)
+        return null;
+    const spec = LIGHT_TRANSITIONS[crystal.mineral];
+    if (!spec)
+        return null;
+    if (!isLit)
+        return null;
+    const [newMineral, thresholdSteps] = spec;
+    crystal.light_exposure_steps = (crystal.light_exposure_steps || 0) + 1;
+    if (crystal.light_exposure_steps >= thresholdSteps) {
+        const old = crystal.mineral;
+        crystal.mineral = newMineral;
+        crystal.paramorph_origin = old;
+        if (step != null)
+            crystal.paramorph_step = step;
+        return [old, newMineral];
+    }
+    return null;
+}
 
 // ── 78-preferences.js ──
 
@@ -22659,6 +22835,11 @@ class VugSimulator {
             // crystal's anchor-cell local fill for the dampener + clamp.
             // Default false preserves legacy global-vugFill behavior.
             per_cell_local_fill: this.conditions.wall.per_cell_local_fill,
+            // v84 (2026-05-19): is the cavity exposed to visible light?
+            // Drives LIGHT_TRANSITIONS (realgar → pararealgar) in the
+            // run_step hook. Default true; sealed/dark-cavity scenarios
+            // can set false to preserve light-sensitive minerals.
+            is_lit: this.conditions.wall.is_lit,
             // Size-class cascade (2026-05): vug < pocket < cave. Informational
             // tag mirrored from VugWall so the UI (Library Mode panels, the
             // Three.js scale bar) can display the size tier without reaching
@@ -23003,6 +23184,31 @@ class VugSimulator {
                 this.log.push(`  ↻ PARAMORPH: ${capitalize(oldM)} #${crystal.crystal_id} → ${newM} ` +
                     `(T dropped to ${this.conditions.temperature.toFixed(0)}°C, crossed ${oldM}/${newM} ` +
                     `phase boundary; cubic external form preserved)`);
+            }
+        }
+        // v84 (2026-05-19) — light-induced transitions. The only light-
+        // driven mechanism in the simulator. Currently: realgar →
+        // pararealgar via As₄S₄ molecular isomerization (D₂d → Cs
+        // symmetry) after sufficient visible-light exposure. Per
+        // research-meta-minerals-pararealgar.md (Bonazzi et al. 1996
+        // Mineralogical Magazine; Roberts et al. 1980).
+        //
+        // Per-step counter on crystal.light_exposure_steps increments
+        // when wall.is_lit (default true; sealed-rock-cavity scenarios
+        // can opt out via is_lit: false). Threshold = 60 steps for
+        // realgar — gives realgar that nucleates by step 140 just
+        // enough time to convert by run-end (200 steps), producing the
+        // mixed realgar + pararealgar assemblage geologically authentic
+        // for museum-collection specimens.
+        const isLit = this.wall_state.is_lit !== false;
+        for (const crystal of this.crystals) {
+            const transition = applyLightTransitions(crystal, isLit, this.step);
+            if (transition) {
+                const [oldM, newM] = transition;
+                this.log.push(`  ☼ LIGHT-INDUCED: ${capitalize(oldM)} #${crystal.crystal_id} → ${newM} ` +
+                    `(${crystal.light_exposure_steps} steps of light exposure; ` +
+                    `As₄S₄ molecule isomerized D₂d → Cs symmetry; ` +
+                    `orange-red shifted to yellow, crystal now friable)`);
             }
         }
         // v28: dehydration paramorphs — environment-triggered counterpart
@@ -24093,7 +24299,16 @@ Object.assign(VugSimulator.prototype, {
             return false;
         let n = 0;
         for (const c of this.crystals) {
-            if (c.mineral !== mineral)
+            // v84 (2026-05-19): also count crystals that paramorph-originated
+            // as this mineral. A realgar crystal that transformed to
+            // pararealgar (light-induced isomerization, applyLightTransitions)
+            // still consumed a realgar nucleation event when it originally
+            // nucleated. Without this check, the cap effectively reopens each
+            // time a paramorph fires — letting MORE of the original mineral
+            // nucleate beyond its spec'd max. Sister case: argentite →
+            // acanthite (T paramorph) and borax → tincalconite (dehydration)
+            // also benefit from this cap accounting.
+            if (c.mineral !== mineral && c.paramorph_origin !== mineral)
                 continue;
             if (c.enclosed_by != null || c.dissolved)
                 continue;

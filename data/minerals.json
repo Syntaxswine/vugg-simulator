@@ -12656,6 +12656,78 @@
       "audit_status": "new (2026-05-19). Co-deposits with realgar in hot-spring + epithermal scenarios. Lit by sulphur_bank.",
       "class_color": "#f0c020",
       "late_stage_propensity": 0.2
+    },
+    "pararealgar": {
+      "formula": "As4S4",
+      "nucleation_sigma": null,
+      "max_nucleation_count": 0,
+      "max_size_cm": 5.0,
+      "growth_rate_mult": 0.0,
+      "habit_variants": [
+        {
+          "name": "yellow_pseudomorph",
+          "wall_spread": 0.2,
+          "void_reach": 0.8,
+          "vector": "projecting",
+          "trigger": "default — bright yellow pseudomorph after realgar (light-induced isomerization)"
+        },
+        {
+          "name": "default_yellow_pseudomorph",
+          "wall_spread": 0.2,
+          "void_reach": 0.8,
+          "vector": "projecting",
+          "trigger": "default"
+        }
+      ],
+      "class": "sulfide",
+      "description": "As4S4 — monoclinic arsenic sulfide. STRUCTURAL ISOMER of realgar (same As4S4 composition, different As-cage symmetry: realgar D2d, pararealgar Cs). Bright yellow (vs realgar's orange-red), softer (Mohs 1-1.5 vs 1.5-2). Forms EXCLUSIVELY as a light-induced transformation product of realgar over weeks to years of visible-light (>500 nm) exposure. The transformation is IRREVERSIBLE — once realgar becomes pararealgar, it doesn't go back. The yellow powder that crumbles out of old realgar specimens in museum drawers IS pararealgar. The only light-induced transformation modeled in the simulator. Storage in the dark preserves realgar indefinitely; exposure to ordinary room light slowly destroys it. (Bonazzi et al. 1996 Mineralogical Magazine; Roberts et al. 1980.)",
+      "scenarios": [
+        "sulphur_bank"
+      ],
+      "T_range_C": [
+        20,
+        250
+      ],
+      "T_optimum_C": [
+        20,
+        200
+      ],
+      "T_behavior": "stable_below_decomp",
+      "pH_dissolution_below": null,
+      "pH_dissolution_above": 9.0,
+      "redox_requirement": "any",
+      "required_ingredients": {},
+      "trace_ingredients": {},
+      "thermal_decomp_C": 320,
+      "thermal_decomp_reaction": "Pararealgar (As4S4) — same thermal decomposition as realgar; melts ~321°C in air.",
+      "thermal_decomp_products": {
+        "As": 0.35,
+        "S": 0.3
+      },
+      "fluorescence": null,
+      "twin_laws": [],
+      "acid_dissolution": {
+        "pH_threshold": null,
+        "reaction": "Same acid/alkali behavior as realgar — resistant to dilute acids, dissolves in strong alkali via thioarsenite complex.",
+        "products": {}
+      },
+      "habit": "yellow_pseudomorph",
+      "color_rules": {
+        "bright_yellow_powder": {
+          "default": true
+        },
+        "yellow_orange_partial": {
+          "trigger": "partial conversion (mid-transformation)"
+        }
+      },
+      "narrate_function": "_narrate_pararealgar",
+      "runtimes_present": [
+        "index.html"
+      ],
+      "audit_status": "new (2026-05-19). Post-formation transformation of realgar via light-induced isomerization; not a nucleation. Per research-meta-minerals-pararealgar.md. Engine path: LIGHT_TRANSITIONS in js/75-transitions.ts.",
+      "class_color": "#e8c640",
+      "late_stage_propensity": 0.0,
+      "_transformation_only": true
     }
   }
 }

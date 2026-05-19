@@ -248,7 +248,18 @@ describe('Backlog K — fill-cap exemption', () => {
     // shows up in a 300-step searles_lake run on at least one seed in
     // a tight 5-seed band. If this fails, the fix has regressed even
     // before the broader sweep runs.
-    it('borax or mirabilite nucleates in at least one searles_lake run', () => {
+    it('borax/mirabilite or their dehydration products nucleate in at least one searles_lake run', () => {
+      // v84 (2026-05-19): the cap-conservation fix
+      // (_atNucleationCap now counts paramorph_origin) means a borax
+      // that nucleates then dehydrates to tincalconite still consumes
+      // the borax cap budget; the cap doesn't reopen for fresh borax.
+      // With searles_lake's dry-ring conditions, most borax/mirabilite
+      // crystals DO transform to their dehydration products by run-
+      // end. The pin now counts crystals where mineral OR
+      // paramorph_origin is borax / mirabilite — capturing the full
+      // late-evaporite-crust assemblage including post-dehydration
+      // tincalconite + thenardite. Same semantic as the realgar-
+      // origin pin in realgar-orpiment.test.ts.
       const seeds = [42, 1, 7, 13, 23];
       let anyEvaporiteCrust = 0;
       for (const seed of seeds) {
@@ -259,15 +270,20 @@ describe('Backlog K — fill-cap exemption', () => {
         const sim = new VugSimulator(conditions, events);
         const steps = defaultSteps ?? 300;
         for (let i = 0; i < steps; i++) sim.run_step();
-        const hasBorax = sim.crystals.some((c: any) => c.mineral === 'borax');
-        const hasMirab = sim.crystals.some((c: any) => c.mineral === 'mirabilite');
+        const hasBorax = sim.crystals.some((c: any) =>
+          c.mineral === 'borax' || c.paramorph_origin === 'borax',
+        );
+        const hasMirab = sim.crystals.some((c: any) =>
+          c.mineral === 'mirabilite' || c.paramorph_origin === 'mirabilite',
+        );
         if (hasBorax || hasMirab) anyEvaporiteCrust++;
       }
-      // At least 1 of 5 seeds should produce a late-evaporite crust now
-      // that fill-exempt unlocks the path. Was 0/5 before the fix (handoff
-      // §4: "halite fills cavity > 95% before borax's rare-event 12% gate
-      // fires").
-      expect(anyEvaporiteCrust, 'no seed produced borax or mirabilite — Backlog K regressed').toBeGreaterThanOrEqual(1);
+      // At least 1 of 5 seeds should produce the evaporite crust
+      // (borax/mirabilite-origin) now that fill-exempt unlocks the
+      // path. Was 0/5 before Backlog K (handoff §4: "halite fills
+      // cavity > 95% before borax's rare-event 12% gate fires").
+      expect(anyEvaporiteCrust,
+        'no seed produced borax/mirabilite-origin crystals — Backlog K regressed').toBeGreaterThanOrEqual(1);
     });
   });
 });

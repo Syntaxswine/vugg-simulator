@@ -220,6 +220,16 @@ class VugWall {
     // instead of the global vugFill. Defaults false → byte-identical
     // to legacy. Forwarded to WallState in 85-simulator.ts.
     this.per_cell_local_fill = !!opts.per_cell_local_fill;
+    // v84 (2026-05-19): is the cavity exposed to visible light?
+    // Default TRUE — most surface vugs / hot-spring vents / museum
+    // specimens are lit. Drives LIGHT_TRANSITIONS in 75-transitions.ts
+    // (currently only realgar → pararealgar). Scenarios that model
+    // sealed-rock cavities during formation (deep-burial pegmatite
+    // pockets, sealed vein systems) can set is_lit: false to preserve
+    // light-sensitive minerals like realgar through the run. Forwarded
+    // to WallState so the simulator can check sim.wall_state.is_lit
+    // without reaching back to conditions.wall.
+    this.is_lit = (opts.is_lit !== undefined) ? !!opts.is_lit : true;
   }
 
   dissolve(acid_strength, fluid) {
@@ -533,6 +543,12 @@ class WallState {
     // while edges fill" Nature Comm 2022 confinement physics at
     // different layers of the simulator.
     this.per_cell_local_fill = !!opts.per_cell_local_fill;
+    // v84 (2026-05-19) — is the cavity exposed to visible light?
+    // Mirrored from VugWall.is_lit. Drives LIGHT_TRANSITIONS in
+    // 75-transitions.ts (currently only realgar → pararealgar).
+    // Default true preserves the "most vugs are eventually exposed
+    // to light" assumption.
+    this.is_lit = (opts.is_lit !== undefined) ? !!opts.is_lit : true;
     // Size-class cascade (2026-05): vug | pocket | cave, mirrored from
     // VugWall for UI consumers that read sim.wall_state directly.
     this.size_class = (opts.size_class as SizeClass) ?? null;

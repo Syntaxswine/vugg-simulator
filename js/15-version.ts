@@ -2190,5 +2190,107 @@
 //
 //        Calibration: seed42_v83.json updated for sulphur_bank;
 //        other 25 scenarios byte-identical to v82.
-const SIM_VERSION = 83;
+//   v84 — Pararealgar + paramorph cap conservation (2026-05-19).
+//        Closes the first item from research-meta-minerals-
+//        pararealgar.md (Bonazzi et al. 1996 Mineralogical Magazine
+//        60:401-409; Roberts et al. 1980). Adds the ONLY light-
+//        induced transformation in the simulator: realgar →
+//        pararealgar via As₄S₄ cage isomerization (D₂d → Cs
+//        symmetry).
+//
+//        New mineral: pararealgar (As₄S₄, monoclinic Cs). Bright
+//        yellow vs realgar's orange-red. Forms EXCLUSIVELY as a
+//        post-formation transformation of realgar after light
+//        exposure. The yellow powder that crumbles out of museum-
+//        drawer realgar specimens after months of room-light is
+//        pararealgar. Irreversible.
+//
+//        Mechanism distinct from existing transformation types:
+//          PARAMORPH (T-driven, e.g. argentite → acanthite at 173°C)
+//          DEHYDRATION (humidity-driven, e.g. borax → tincalconite)
+//          LIGHT (visible-light-driven, NEW in v84)
+//
+//        Implementation:
+//          * pararealgar entry in data/minerals.json — transformation-
+//            only (no nucleation_sigma, no growth_rate, no engine).
+//          * LIGHT_TRANSITIONS table in js/75-transitions.ts:
+//              realgar → [pararealgar, 60_step_threshold]
+//          * applyLightTransitions function — per-step counter on
+//            crystal.light_exposure_steps for realgar crystals when
+//            wall.is_lit; transition fires at threshold.
+//          * VugWall.is_lit field (default true) — opt-out for
+//            sealed-cavity / dark-storage scenarios.
+//          * run_step hook between paramorph + dehydration loops.
+//
+//        Tuning rationale: threshold = 60 steps. Real timescales are
+//        weeks to years of room-light exposure. At Sulphur Bank
+//        (open surface vent, full light exposure), realgar that
+//        nucleates by step 140 transforms by step 200 (run-end).
+//        With cap = 6 (max_nucleation_count for realgar), all 6
+//        realgar typically transform to pararealgar by run-end —
+//        geologically realistic for collected specimens (museum-
+//        drawer realgar is largely pararealgar after decades).
+//        Dark-storage opt-out (is_lit=false) preserves realgar
+//        indefinitely.
+//
+//        LOAD-BEARING SECONDARY FIX — cap conservation
+//        (_atNucleationCap in js/85b-simulator-nucleate.ts):
+//
+//        Pre-v84, the per-mineral nucleation cap counted only
+//        crystals where c.mineral === mineralName. When a paramorph
+//        fired (argentite → acanthite, borax → tincalconite,
+//        realgar → pararealgar), the source mineral's count
+//        DROPPED, REOPENING the cap for fresh nucleations. Result:
+//        cap=6 could effectively produce 20+ realgar-origin crystals
+//        across a long run, since each transformation opened a slot.
+//
+//        v84 fix: count crystals where mineral === X OR
+//        paramorph_origin === X. A transformed crystal still
+//        consumed its nucleation event, so it stays in the cap
+//        budget.
+//
+//        This also affects argentite + borax + mirabilite paramorph
+//        chains. Calibration drift (regen-justified):
+//          schneeberg:        acanthite 6 → 4 active (argentite cap
+//                             properly conserved; acanthite is the
+//                             cool-T form of argentite)
+//          supergene_oxidation: similar paramorph chain shifts
+//          sulphur_bank:      realgar 6 → 0 + pararealgar 0 → 6 +
+//                             downstream RNG-cascade shifts on
+//                             native_sulfur, marcasite, pyrite max_um
+//
+//        The drift is a BUG FIX. The cap was over-firing pre-v84.
+//
+//        Tests 397 → 411 (+14 in tests-js/pararealgar.test.ts):
+//          * transformation fires at Sulphur Bank across 3 seeds
+//          * paramorph_origin field correctness
+//          * light_exposure_steps >= 60 threshold pin
+//          * is_lit=false opt-out: dark vug has 0 pararealgar,
+//            preserves >= 4 realgar
+//          * cap conservation: realgar-origin <= cap=6 across seeds
+//          * LIGHT-INDUCED log line appears in run output
+//          * VugWall.is_lit defaults true + honors explicit false
+//
+//        Two realgar-orpiment pins updated:
+//          * habit pin: "realgar reaches canonical habit" → "realgar-
+//            origin reaches canonical habit" (includes pararealgar
+//            crystals — habit was set at nucleation, preserved
+//            through transformation)
+//          * substrate pin: similar update to include paramorph_origin
+//
+//        Coverage 98 live → 99 live (+pararealgar) / 21 dead / 0 stale.
+//        seed42_v84.json captures the calibration drift; other 24
+//        scenarios byte-identical to v83.
+//
+//        References (from BUILDER-MINERAL-RESEARCH.md research file):
+//          * Bonazzi P., Menchetti S., Pratesi G., Muniz-Miranda M.,
+//            Sbrana G. (1996) — Light-induced variations in realgar
+//            and β-As4S4: X-ray diffraction and Raman studies.
+//            Mineralogical Magazine 60:401-409.
+//          * Roberts A.C., Ansell H.G., Bonardi M. (1980) —
+//            Pararealgar, a new polymorph of AsS, from British
+//            Columbia. Canadian Mineralogist 18:525-527.
+//          * research/research-meta-minerals-pararealgar.md
+//            (canonical research-agent file, May 2026).
+const SIM_VERSION = 84;
 

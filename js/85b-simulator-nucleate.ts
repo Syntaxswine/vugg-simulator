@@ -336,7 +336,16 @@ Object.assign(VugSimulator.prototype, {
   if (cap == null) return false;
   let n = 0;
   for (const c of this.crystals) {
-    if (c.mineral !== mineral) continue;
+    // v84 (2026-05-19): also count crystals that paramorph-originated
+    // as this mineral. A realgar crystal that transformed to
+    // pararealgar (light-induced isomerization, applyLightTransitions)
+    // still consumed a realgar nucleation event when it originally
+    // nucleated. Without this check, the cap effectively reopens each
+    // time a paramorph fires — letting MORE of the original mineral
+    // nucleate beyond its spec'd max. Sister case: argentite →
+    // acanthite (T paramorph) and borax → tincalconite (dehydration)
+    // also benefit from this cap accounting.
+    if (c.mineral !== mineral && c.paramorph_origin !== mineral) continue;
     if (c.enclosed_by != null || c.dissolved) continue;
     n++;
     if (n >= cap) return true;

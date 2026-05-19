@@ -115,12 +115,22 @@ describe('Realgar (AsS) + Orpiment (As₂S₃) — v82 mineral additions', () =>
         .toBeGreaterThan(3.0);
     });
 
-    it.each([42, 1, 7])('seed %d: at least 4 active realgar crystals', (seed) => {
+    it.each([42, 1, 7])('seed %d: at least 4 realgar-origin crystals (realgar + pararealgar)', (seed) => {
+      // v84 (2026-05-19): realgar transforms to pararealgar via
+      // light-induced isomerization (applyLightTransitions in
+      // 75-transitions.ts). At Sulphur Bank (surface hot-spring vent
+      // exposed to light), ALL realgar typically transforms by
+      // end-of-run — geologically realistic for collected specimens
+      // (museum-drawer realgar is largely pararealgar after decades
+      // of room-light exposure). The pin counts the combined
+      // realgar-origin assemblage rather than just un-transformed
+      // realgar.
       const { sim } = runSulphurBank(seed);
-      const active = sim.crystals.filter((c: any) =>
-        c.mineral === 'realgar' && c.active,
+      const realgarOrigin = sim.crystals.filter((c: any) =>
+        (c.mineral === 'realgar' || c.paramorph_origin === 'realgar') && c.active,
       );
-      expect(active.length, `seed ${seed}: only ${active.length} active realgar`)
+      expect(realgarOrigin.length,
+        `seed ${seed}: only ${realgarOrigin.length} realgar-origin crystals (realgar + pararealgar)`)
         .toBeGreaterThanOrEqual(4);
     });
 
@@ -133,14 +143,19 @@ describe('Realgar (AsS) + Orpiment (As₂S₃) — v82 mineral additions', () =>
         .toBeGreaterThanOrEqual(4);
     });
 
-    it.each([42, 1, 7])('seed %d: realgar reaches a canonical habit', (seed) => {
+    it.each([42, 1, 7])('seed %d: realgar-origin reaches a canonical habit', (seed) => {
+      // v84: includes pararealgar (light-induced paramorph of realgar).
+      // habit was set at growth time before transformation, so a
+      // pararealgar crystal still has its original realgar habit.
       const { sim } = runSulphurBank(seed);
-      const r = sim.crystals.filter((c: any) => c.mineral === 'realgar');
+      const r = sim.crystals.filter((c: any) =>
+        c.mineral === 'realgar' || c.paramorph_origin === 'realgar',
+      );
       expect(r.length).toBeGreaterThan(0);
       const canonical = ['prismatic_red', 'granular_orange', 'sublimation_crust_red'];
       const matched = r.filter((c: any) => canonical.includes(c.habit));
       expect(matched.length,
-        `seed ${seed}: no realgar in canonical habits (got: ${[...new Set(r.map((c: any) => c.habit))].join(', ')})`)
+        `seed ${seed}: no realgar-origin crystal in canonical habits (got: ${[...new Set(r.map((c: any) => c.habit))].join(', ')})`)
         .toBeGreaterThan(0);
     });
 
@@ -157,11 +172,16 @@ describe('Realgar (AsS) + Orpiment (As₂S₃) — v82 mineral additions', () =>
   });
 
   describe('substrate preference (co-deposition with native_sulfur, realgar)', () => {
-    it('realgar nucleates on native_sulfur or other As-bearing substrate across 3 seeds', () => {
+    it('realgar-origin nucleates on native_sulfur or other As-bearing substrate across 3 seeds', () => {
+      // v84: include pararealgar crystals (paramorph_origin='realgar')
+      // — their position was set at nucleation time before any
+      // transformation, so the substrate pin still applies.
       let onSubstrate = 0;
       for (const seed of [42, 1, 7]) {
         const { sim } = runSulphurBank(seed);
-        const rlg = sim.crystals.filter((c: any) => c.mineral === 'realgar');
+        const rlg = sim.crystals.filter((c: any) =>
+          c.mineral === 'realgar' || c.paramorph_origin === 'realgar',
+        );
         for (const c of rlg) {
           const pos = (c.position || '');
           if (pos.includes('native_sulfur') || pos.includes('arsenopyrite') || pos.includes('quartz')) {
@@ -170,7 +190,7 @@ describe('Realgar (AsS) + Orpiment (As₂S₃) — v82 mineral additions', () =>
         }
       }
       expect(onSubstrate,
-        `expected realgar nucleating on a substrate across 3 seeds; got ${onSubstrate}`)
+        `expected realgar-origin nucleating on a substrate across 3 seeds; got ${onSubstrate}`)
         .toBeGreaterThan(0);
     });
 

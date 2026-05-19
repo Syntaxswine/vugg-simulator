@@ -86,3 +86,59 @@ function applyDehydrationTransitions(crystal, ringFluid, ringWaterState, T, step
   }
   return null;
 }
+
+// ============================================================
+// LIGHT-INDUCED TRANSITIONS
+// ============================================================
+// v84 (2026-05-19): light-induced isomerization. Distinct from
+// PARAMORPH (T-driven) and DEHYDRATION (humidity/heat-driven) — the
+// trigger is visible-light exposure (>500 nm) accumulating over time.
+//
+// First entry: realgar → pararealgar (Bonazzi et al. 1996,
+// Mineralogical Magazine 60:401-409; Roberts et al. 1980). The As₄S₄
+// cage molecule isomerizes from realgar's D₂d symmetry to pararealgar's
+// Cs symmetry under light exposure. The transformation is irreversible
+// and accompanied by:
+//   * color shift: orange-red → yellow (the famous "museum-drawer
+//     yellow powder" that crumbles out of old realgar specimens)
+//   * hardness drop: 1.5-2 → 1-1.5 (crystal becomes friable)
+//   * specific-gravity drop: 3.56 → 3.52 (slight)
+//
+// Real-world timescale: weeks to years of room-light exposure. In the
+// simulator, threshold=60 steps gives a realgar-nucleated-by-step-140
+// crystal exactly the right window to convert before run-end (200
+// steps). Geologically authentic: a museum-collection realgar specimen
+// shows mixed realgar + pararealgar after a year on a lit shelf.
+//
+// Gating: opt-out by setting conditions.wall.is_lit = false (sealed
+// rock cavities don't see light during formation — the transformation
+// only happens AFTER the cavity is excavated and the specimens are
+// exposed). Default is_lit = true models surface vugs / hot springs /
+// scenarios where rock is open to atmospheric light. Sulphur Bank
+// is a surface hot-spring → lit by default.
+//
+// Format: light_sensitive_mineral → [new_mineral, threshold_steps].
+const LIGHT_TRANSITIONS = {
+  realgar: ['pararealgar', 60],
+};
+
+function applyLightTransitions(crystal, isLit, step) {
+  // Convert a light-sensitive mineral in place after sufficient light
+  // exposure. Increments crystal.light_exposure_steps each step the
+  // cavity is lit; transition fires once the counter reaches threshold.
+  // Returns [old, new] pair if a transition fired, null otherwise.
+  if (!crystal.active || crystal.dissolved) return null;
+  const spec = LIGHT_TRANSITIONS[crystal.mineral];
+  if (!spec) return null;
+  if (!isLit) return null;
+  const [newMineral, thresholdSteps] = spec;
+  crystal.light_exposure_steps = (crystal.light_exposure_steps || 0) + 1;
+  if (crystal.light_exposure_steps >= thresholdSteps) {
+    const old = crystal.mineral;
+    crystal.mineral = newMineral;
+    crystal.paramorph_origin = old;
+    if (step != null) crystal.paramorph_step = step;
+    return [old, newMineral];
+  }
+  return null;
+}

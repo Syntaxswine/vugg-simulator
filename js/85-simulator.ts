@@ -60,6 +60,11 @@ class VugSimulator {
       // crystal's anchor-cell local fill for the dampener + clamp.
       // Default false preserves legacy global-vugFill behavior.
       per_cell_local_fill: this.conditions.wall.per_cell_local_fill,
+      // v84 (2026-05-19): is the cavity exposed to visible light?
+      // Drives LIGHT_TRANSITIONS (realgar → pararealgar) in the
+      // run_step hook. Default true; sealed/dark-cavity scenarios
+      // can set false to preserve light-sensitive minerals.
+      is_lit: this.conditions.wall.is_lit,
       // Size-class cascade (2026-05): vug < pocket < cave. Informational
       // tag mirrored from VugWall so the UI (Library Mode panels, the
       // Three.js scale bar) can display the size tier without reaching
@@ -409,6 +414,34 @@ class VugSimulator {
           `  ↻ PARAMORPH: ${capitalize(oldM)} #${crystal.crystal_id} → ${newM} ` +
           `(T dropped to ${this.conditions.temperature.toFixed(0)}°C, crossed ${oldM}/${newM} ` +
           `phase boundary; cubic external form preserved)`
+        );
+      }
+    }
+
+    // v84 (2026-05-19) — light-induced transitions. The only light-
+    // driven mechanism in the simulator. Currently: realgar →
+    // pararealgar via As₄S₄ molecular isomerization (D₂d → Cs
+    // symmetry) after sufficient visible-light exposure. Per
+    // research-meta-minerals-pararealgar.md (Bonazzi et al. 1996
+    // Mineralogical Magazine; Roberts et al. 1980).
+    //
+    // Per-step counter on crystal.light_exposure_steps increments
+    // when wall.is_lit (default true; sealed-rock-cavity scenarios
+    // can opt out via is_lit: false). Threshold = 60 steps for
+    // realgar — gives realgar that nucleates by step 140 just
+    // enough time to convert by run-end (200 steps), producing the
+    // mixed realgar + pararealgar assemblage geologically authentic
+    // for museum-collection specimens.
+    const isLit = this.wall_state.is_lit !== false;
+    for (const crystal of this.crystals) {
+      const transition = applyLightTransitions(crystal, isLit, this.step);
+      if (transition) {
+        const [oldM, newM] = transition;
+        this.log.push(
+          `  ☼ LIGHT-INDUCED: ${capitalize(oldM)} #${crystal.crystal_id} → ${newM} ` +
+          `(${crystal.light_exposure_steps} steps of light exposure; ` +
+          `As₄S₄ molecule isomerized D₂d → Cs symmetry; ` +
+          `orange-red shifted to yellow, crystal now friable)`
         );
       }
     }
