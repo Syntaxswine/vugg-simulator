@@ -188,7 +188,7 @@ Each zone's contribution is locked in at deposition time. `_volume_mm3` is a sin
 - **Cave-size resize** of naica/dripstones — wait for Proposal E if pursued (cave-scale runs benefit more from local-fill modeling than the global cap)
 - ~~**Architecture audit follow-ups** from `1541f70`~~ ✓ `c2c12ca` (2026-05-18, v78). All 6 scenarios reassigned to their geologically-correct archetype. Schneeberg gains zeunerite (the literal type locality mineral); porphyry shifts crystal anchors via walls_only bias. Coverage unchanged.
 - **`native_sulfur` cascade-gate** — only remaining structural-pattern dead mineral from the audit, deferred per HANDOFF-CASCADE-GATE-AUDIT §5. Needs a fumarole / Sulphur Bank Mine / Whakaari-type scenario to land first (its `pH > 5` + `metal_sum > 100` gates aren't depleting-species gates like the others; the engine may be correct and the gap is "no canonical scenario fires it").
-- **Engine cleanup**: ~17 sites that explicitly set `crystal.a_width_mm = c_length_mm × N` are now redundant — add_zone derives a_width_mm from `_volume_mm3`. Mechanical refactor; would remove the now-dead assignments. Low priority.
+- ~~**Engine cleanup**: ~17 sites that explicitly set `crystal.a_width_mm = c_length_mm × N` are now redundant~~ ✓ `6aaf29c` (2026-05-18). Actual count was **56** dead assignments, not 17 — the audit under-counted. Three patterns swept: whole-line (31), inline-if (2), braced one-liner (23) across 9 engine files. Baseline byte-identical pre/post. Closes the engine-cleanup item.
 
 ---
 
