@@ -325,6 +325,51 @@ Object.assign(VugConditions.prototype, {
   return product * T_factor * sulfideRedoxLinearFactor(this.fluid, 1.5);
 },
 
+  // Cinnabar (HgS) — mercury sulfide, the principal ore of mercury.
+  // Hot-spring deposits (Sulphur Bank Mine + Almadén + Idria + New
+  // Almaden) and sedimentary Hg in Sicilian sulfur. Mixed-redox
+  // tolerant: cinnabar is one of the most chemically stable sulfides,
+  // surviving from fully reducing (formation conditions) to mildly
+  // oxidizing (it's why the red cinnabar accumulates intact in
+  // oxidation zones while other Hg minerals weather to mercury vapor
+  // + chloride salts).
+  //
+  // Engine gates (2026-05-18, v81):
+  //   Hg >= 1.0     — even very low Hg loads (hot springs carry 0.5-50
+  //                    ppm Hg from magmatic-volcanic source)
+  //   S >= 50       — modest sulfide load
+  //   O2 <= 1.0     — destroyed at fully oxic (sublimes as Hg° + SO4)
+  //   pH <= 9       — broad pH tolerance (cinnabar stable acid → mildly alkaline)
+  // T optimum 50-200°C (hot-spring window); decay outside.
+  //
+  // Hg-burdened fluids span both Sulphur Bank (pH 2, T 75) and Sicily
+  // (pH 6, T 30) — the broad pH/T tolerance is what makes cinnabar
+  // a co-product in both canonical native_sulfur deposit types.
+  supersaturation_cinnabar() {
+  if (this.fluid.Hg < 1.0) return 0;
+  if (this.fluid.S < 50) return 0;
+  if (this.fluid.O2 > 1.0) return 0;
+  if (this.fluid.pH > 9) return 0;
+  const hg_f = Math.min(this.fluid.Hg / 5.0, 4.0);
+  const s_f = Math.min(this.fluid.S / 100.0, 3.0);
+  // Eh window: mildly reducing optimal, fully oxic shuts the engine.
+  // Sulfide redox helper hits 1.0 at the engine's preferred Eh and
+  // tapers as conditions become more oxic. Cinnabar is the most
+  // O2-tolerant of the common sulfides (the engine's O2 cap is 1.0
+  // vs the stricter 0.4-0.7 cuts on pyrite/galena/etc.).
+  const eh_f = sulfideRedoxLinearFactor(this.fluid, 1.0);
+  let sigma = hg_f * s_f * eh_f;
+  const T = this.temperature;
+  let T_factor;
+  if (T >= 50 && T <= 200) T_factor = 1.2;
+  else if (T < 50) T_factor = Math.max(0.5, 0.6 + (T - 20) / 100);
+  else if (T <= 350) T_factor = Math.max(0.4, 1.2 - 0.005 * (T - 200));
+  else T_factor = 0.0;
+  sigma *= T_factor;
+  if (ACTIVITY_CORRECTED_SUPERSAT) sigma *= activityCorrectionFactor(this.fluid, 'cinnabar');
+  return Math.max(sigma, 0);
+},
+
   supersaturation_stibnite() {
   if (this.fluid.Sb < 10 || this.fluid.S < 15 || !sulfideRedoxAnoxic(this.fluid, 1.0)) return 0;
   const sb_f = Math.min(this.fluid.Sb / 20.0, 2.0);

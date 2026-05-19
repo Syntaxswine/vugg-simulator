@@ -2113,8 +2113,8 @@
 
     "sulphur_bank": {
       "anchor": "Sulphur Bank Mine, south shore of Clear Lake, Lake County, California — Pleistocene hot-spring mercury-sulfur deposit. Active hot-spring system since ~150,000 years ago; mined for mercury 1865-1957 (one of California's largest Hg producers). Now EPA Superfund site CAD980893275. The textbook hot-spring quicksilver-sulfur deposit per White & Roberson 1962 (USGS PP 432-A).",
-      "description": "Hot-spring native-sulfur deposit at the surface mixing zone where rising H₂S-rich fluid meets atmospheric O₂. The synproportionation reaction 2 H₂S + O₂ → 2 S° + 2 H₂O deposits native sulfur on the vent walls; the byproduct H₂SO₄ keeps the fluid pH at 2-4. Native sulfur grows in the iconic α-bipyramidal habit (cool surface flow) and as sublimation crusts (hottest vent fumaroles). Supporting cast: pyrite + marcasite from the Fe trace, arsenopyrite from trace As, quartz from silica-rich hot water.",
-      "expects_species": ["native_sulfur", "pyrite", "marcasite", "arsenopyrite"],
+      "description": "Hot-spring mercury-sulfur deposit at the surface mixing zone where rising H₂S-rich fluid meets atmospheric O₂. Two headline minerals: native sulfur (from synproportionation 2 H₂S + O₂ → 2 S° + 2 H₂O) and cinnabar (HgS, the deposit's mining commodity — Sulphur Bank yielded ~450 tons of mercury 1865-1957). The H₂SO₄ byproduct keeps fluid pH at 2-4. Native sulfur grows in the iconic α-bipyramidal habit; cinnabar in deep cochineal-red rhombohedra alongside or on top of the native_sulfur. Supporting cast: pyrite + marcasite from the Fe trace, arsenopyrite from trace As, quartz from silica-rich hot water.",
+      "expects_species": ["native_sulfur", "cinnabar", "pyrite", "marcasite", "arsenopyrite"],
       "duration_steps": 200,
       "notes": [
         "Anchor: Sulphur Bank Mine, the canonical hot-spring native-sulfur deposit. White & Roberson 1962 (USGS PP 432-A) is the foundational monograph; White 1981 placed it in the broader active-geothermal-ore-deposit framework. The deposit was the type case for the 'hot-spring mercury-sulfur' class. Active hot springs still vent today (60-90°C; the EPA Superfund record documents continuous monitoring 1990s-present).",
@@ -2161,6 +2161,15 @@
           // is in the published range for the deposit's hot-spring
           // fluid.
           "As": 8,
+          // Mercury: the deposit's namesake commodity. The Sulphur
+          // Bank Mine produced ~13,000 flasks of Hg (~450 tons)
+          // before closure in 1957. Hg arrives in the hot-spring
+          // fluid as a mix of HgCl₂ complexes and gaseous Hg⁰
+          // (White & Roberson 1962). 15 ppm is in the published
+          // measured-vent range (0.5-50 ppm); enough for the
+          // cinnabar engine's Hg ≥ 1 gate with headroom for the
+          // hg_f factor (Hg/5, capped at 4.0) to hit 3.0.
+          "Hg": 15,
           // pH: acid from H₂S + ½O₂ → S° + H₂SO₄ at the vents.
           // White & Roberson 1962 measured pH 1.8-4.0 at active
           // vents (some assays reaching 1.5 in the most active

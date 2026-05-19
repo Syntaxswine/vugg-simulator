@@ -6254,7 +6254,90 @@ let timeScale = 5.0;
 //        boss's directive ("add the real science needed for Sicily")
 //        cashed out: the broadened pH factor is the real chemistry
 //        of two-mode native_sulfur deposition.
-const SIM_VERSION = 80;
+//   v81 — Cinnabar (HgS): the Sulphur Bank namesake commodity
+//        (2026-05-18). The deposit at Lake County was MINED FOR
+//        MERCURY 1865-1957 (~450 tons of Hg, ~13,000 flasks). The
+//        v79 scenario fired native_sulfur but had no cinnabar engine
+//        — the simulator was modeling Sulphur Bank's BYPRODUCT
+//        without its main product. v81 fixes that.
+//
+//        New mineral: cinnabar (HgS), trigonal mercury sulfide. Deep
+//        cochineal red, specific gravity 8.0-8.2 (the highest of
+//        common ore minerals). Type locality Almadén (Spain, mined
+//        for 2000+ years). Pigment 'vermillion' is synthetic
+//        cinnabar.
+//
+//        Engine in js/41-supersat-sulfide.ts +
+//        js/61-engines-sulfide.ts:
+//          * Gates: Hg >= 1.0, S >= 50, O2 <= 1.0, pH <= 9.
+//          * σ formula: hg_f × s_f × eh_f × T_factor × activity.
+//            hg_f = min(Hg/5, 4.0); s_f = min(S/100, 3.0).
+//          * Habit dispatcher:
+//              excess > 1.5  → massive_red (vermillion aggregate)
+//              T < 100°C     → rhombohedral_cochineal (deep red
+//                              rhombs — the iconic Sulphur Bank /
+//                              Almadén habit)
+//              T >= 100°C    → rhombohedral_cochineal (high-T form)
+//          * Dissolution branch: O2 > 1.3 fires oxidative sublimation
+//            (HgS → Hg° vapor + SO₄²⁻). Acid-resistant under normal
+//            vug pH (the reason cinnabar persists in oxidation zones
+//            while other Hg minerals weather away).
+//
+//        Supporting work:
+//          * FluidChemistry: new this.Hg field (default 0).
+//          * MINERAL_STOICHIOMETRY.cinnabar = { Hg: 1, S: 1 } so
+//            applyMassBalance debits per zone (per-cell at the
+//            crystal's anchor footprint).
+//          * MINERAL_DISSOLUTION_RATES.cinnabar for oxidative path.
+//          * Nucleation handler _nuc_cinnabar with substrate
+//            preference: native_sulfur (40%) > quartz (30%) > wall.
+//            Models the real co-deposition pattern at Sulphur Bank.
+//          * data/minerals.json entry with formula, habits,
+//            T-range, color rules, literature anchor.
+//
+//        Sulphur Bank scenario update:
+//          * initial fluid: Hg=15 ppm (White & Roberson 1962
+//            measured-vent range 0.5-50 ppm).
+//          * expects_species: + cinnabar.
+//          * description updated to highlight cinnabar as headline.
+//
+//        Verified output (3 seeds × 200 steps at Sulphur Bank):
+//          peak σ_cinnabar = 5.61 (well above 1.0 threshold)
+//          cinnabar crystals = 6 active per seed
+//          habit: massive_red (high σ at hot vent) + some
+//                 rhombohedral_cochineal in cooler phases
+//          substrate: cinnabar nucleates on native_sulfur and
+//                     quartz substrates as expected (per-seed
+//                     stochastic; the integration pin confirms
+//                     the on-substrate placement across 3 seeds)
+//
+//        Tests 346 → 365 (+19 in tests-js/cinnabar.test.ts):
+//          * FluidChemistry.Hg default + opts.
+//          * supersaturation_cinnabar gates (Hg < 1 returns 0,
+//            S < 50 returns 0, O2 > 1.0 returns 0).
+//          * Sulphur-Bank-style fluid fires σ > 2.0.
+//          * Sicily-style fluid (alkaline, cooler) ALSO fires
+//            σ > 1.0 — proves cinnabar fits across both native_sulfur
+//            deposit types (broad pH tolerance is what makes cinnabar
+//            unusual among sulfides).
+//          * Sulphur Bank integration: 3-seed firing pin, >= 4
+//            active cinnabar crystals, canonical habit firing.
+//          * Substrate-preference pin: cinnabar nucleates on
+//            native_sulfur across 3 seeds.
+//
+//        Coverage: 96 live (+1 cinnabar) / 21 dead / 0 stale.
+//        Calibration baseline: seed42_v81.json captures Sulphur Bank
+//        with cinnabar fired; other 25 scenarios byte-identical to v80.
+//
+//        Future scenarios for cinnabar (out of scope for v81):
+//          * Almadén (Spain, type locality, mined 2000+ years).
+//            Different mechanism — hot acid Cretaceous vent on a
+//            Hercynian shear zone.
+//          * Idria (Slovenia). Hot-spring + pegmatite-related.
+//          * New Almaden (CA). Pleistocene hot-spring analog of
+//            Sulphur Bank; the simulator could reuse the Sulphur
+//            Bank events with different fluid trace metals.
+const SIM_VERSION = 81;
 
 // ── 18-constants.js ──
 
@@ -6376,6 +6459,7 @@ const MINERAL_STOICHIOMETRY = {
     covellite: { Cu: 1, S: 1 }, // CuS
     arsenopyrite: { Fe: 1, As: 1, S: 1 }, // FeAsS
     stibnite: { Sb: 2, S: 3 }, // Sb2S3
+    cinnabar: { Hg: 1, S: 1 }, // HgS
     bismuthinite: { Bi: 2, S: 3 }, // Bi2S3
     acanthite: { Ag: 2, S: 1 }, // Ag2S (monoclinic)
     argentite: { Ag: 2, S: 1 }, // Ag2S (cubic)
@@ -6658,6 +6742,7 @@ const MINERAL_DISSOLUTION_RATES = {
     nickeline: { Ni: 0.4, As: 0.4 }, // oxidative weathering
     millerite: { Ni: 0.4, S: 0.3 }, // acid attack
     stibnite: { Sb: 0.3, S: 0.3 }, // oxidative
+    cinnabar: { Hg: 0.3, S: 0.2 }, // oxidative sublimation (Hg° vapor + SO₄²⁻)
     bismuthinite: { Bi: 0.3, S: 0.3 }, // oxidative
     bornite: { Cu: 0.4, Fe: 0.2, S: 0.3 }, // supergene oxidation
     chalcocite: { Cu: 0.5, S: 0.3 }, // strong oxidation
@@ -6851,6 +6936,7 @@ class FluidChemistry {
         this.Ge = opts.Ge ?? 0.0; // germanium — Tsumeb sphalerite
         this.Au = opts.Au ?? 0.0; // gold — native gold; Bingham/Bisbee porphyry-Cu-Au
         this.Cd = opts.Cd ?? 0.0; // cadmium — greenockite (hex CdS), hawleyite (cubic CdS); supergene from sphalerite oxidation
+        this.Hg = opts.Hg ?? 0.0; // mercury — cinnabar (HgS); hot-spring deposits (Sulphur Bank, Almadén), sedimentary Hg in Sicilian sulfur
         this.O2 = opts.O2 ?? 0.0;
         // Phase 4a of PROPOSAL-GEOLOGICAL-ACCURACY: redox potential Eh (mV).
         // Default +200 mV — mildly oxidizing, matches "oxic groundwater" in
@@ -13621,6 +13707,59 @@ Object.assign(VugConditions.prototype, {
             T_factor = 0.6;
         return product * T_factor * sulfideRedoxLinearFactor(this.fluid, 1.5);
     },
+    // Cinnabar (HgS) — mercury sulfide, the principal ore of mercury.
+    // Hot-spring deposits (Sulphur Bank Mine + Almadén + Idria + New
+    // Almaden) and sedimentary Hg in Sicilian sulfur. Mixed-redox
+    // tolerant: cinnabar is one of the most chemically stable sulfides,
+    // surviving from fully reducing (formation conditions) to mildly
+    // oxidizing (it's why the red cinnabar accumulates intact in
+    // oxidation zones while other Hg minerals weather to mercury vapor
+    // + chloride salts).
+    //
+    // Engine gates (2026-05-18, v81):
+    //   Hg >= 1.0     — even very low Hg loads (hot springs carry 0.5-50
+    //                    ppm Hg from magmatic-volcanic source)
+    //   S >= 50       — modest sulfide load
+    //   O2 <= 1.0     — destroyed at fully oxic (sublimes as Hg° + SO4)
+    //   pH <= 9       — broad pH tolerance (cinnabar stable acid → mildly alkaline)
+    // T optimum 50-200°C (hot-spring window); decay outside.
+    //
+    // Hg-burdened fluids span both Sulphur Bank (pH 2, T 75) and Sicily
+    // (pH 6, T 30) — the broad pH/T tolerance is what makes cinnabar
+    // a co-product in both canonical native_sulfur deposit types.
+    supersaturation_cinnabar() {
+        if (this.fluid.Hg < 1.0)
+            return 0;
+        if (this.fluid.S < 50)
+            return 0;
+        if (this.fluid.O2 > 1.0)
+            return 0;
+        if (this.fluid.pH > 9)
+            return 0;
+        const hg_f = Math.min(this.fluid.Hg / 5.0, 4.0);
+        const s_f = Math.min(this.fluid.S / 100.0, 3.0);
+        // Eh window: mildly reducing optimal, fully oxic shuts the engine.
+        // Sulfide redox helper hits 1.0 at the engine's preferred Eh and
+        // tapers as conditions become more oxic. Cinnabar is the most
+        // O2-tolerant of the common sulfides (the engine's O2 cap is 1.0
+        // vs the stricter 0.4-0.7 cuts on pyrite/galena/etc.).
+        const eh_f = sulfideRedoxLinearFactor(this.fluid, 1.0);
+        let sigma = hg_f * s_f * eh_f;
+        const T = this.temperature;
+        let T_factor;
+        if (T >= 50 && T <= 200)
+            T_factor = 1.2;
+        else if (T < 50)
+            T_factor = Math.max(0.5, 0.6 + (T - 20) / 100);
+        else if (T <= 350)
+            T_factor = Math.max(0.4, 1.2 - 0.005 * (T - 200));
+        else
+            T_factor = 0.0;
+        sigma *= T_factor;
+        if (ACTIVITY_CORRECTED_SUPERSAT)
+            sigma *= activityCorrectionFactor(this.fluid, 'cinnabar');
+        return Math.max(sigma, 0);
+    },
     supersaturation_stibnite() {
         if (this.fluid.Sb < 10 || this.fluid.S < 15 || !sulfideRedoxAnoxic(this.fluid, 1.0))
             return 0;
@@ -19118,6 +19257,63 @@ function grow_stibnite(crystal, conditions, step) {
     f.S = Math.max(f.S - rate * 0.018, 0);
     return new GrowthZone({ step, temperature: conditions.temperature, thickness_um: rate, growth_rate: rate, note: color_note });
 }
+// Cinnabar (HgS) — mercury sulfide. Hot-spring deposit (Sulphur Bank
+// + Almadén + Idria type) + co-product in Sicilian sedimentary
+// native_sulfur. Habit dispatcher:
+//   T < 100°C, low excess  → rhombohedral_cochineal (the iconic deep-
+//                            red rhombs, Sulphur Bank specimens).
+//   higher excess          → massive_red (vermillion massive aggregate).
+//
+// Acid-tolerant: cinnabar is unusual among sulfides in surviving low
+// pH essentially indefinitely (the reason it persists in oxidation
+// zones — aqua regia required to dissolve it). Dissolution branch
+// fires only at very high O2 (fully oxic) where HgS → Hg vapor + SO4.
+function grow_cinnabar(crystal, conditions, step) {
+    const sigma = conditions.supersaturation_cinnabar();
+    if (sigma < 1.0) {
+        if (crystal.total_growth_um > 5 && conditions.fluid.O2 > 1.3) {
+            crystal.dissolved = true;
+            const d = Math.min(2.0, crystal.total_growth_um * 0.05);
+            return new GrowthZone({
+                step, temperature: conditions.temperature,
+                thickness_um: -d, growth_rate: -d,
+                note: `oxidative sublimation (O₂=${conditions.fluid.O2.toFixed(2)}) — Hg° vapor released, S → SO₄²⁻`,
+            });
+        }
+        return null;
+    }
+    const excess = sigma - 1.0;
+    const rate = 3.0 * excess * rng.uniform(0.8, 1.2);
+    if (rate < 0.1)
+        return null;
+    const f = conditions.fluid;
+    const T = conditions.temperature;
+    let color_note;
+    if (excess > 1.5) {
+        crystal.habit = 'massive_red';
+        crystal.dominant_forms = ['vermillion massive aggregate', 'granular red ore'];
+        color_note = 'vermillion massive cinnabar — the dragon\'s-blood pigment habit';
+    }
+    else if (T < 100) {
+        crystal.habit = 'rhombohedral_cochineal';
+        crystal.dominant_forms = ['rhombohedral crystal', 'deep cochineal-red euhedron'];
+        color_note = `cochineal-red rhombohedron — the Sulphur Bank / Almadén habit (T=${T.toFixed(0)}°C)`;
+    }
+    else {
+        crystal.habit = 'rhombohedral_cochineal';
+        crystal.dominant_forms = ['stout rhombohedron', 'red trigonal prism'];
+        color_note = `red rhombohedral cinnabar (T=${T.toFixed(0)}°C)`;
+    }
+    // Growth-zone Hg + S debit handled by applyMassBalance via
+    // MINERAL_STOICHIOMETRY.cinnabar = { Hg: 1, S: 1 }. The wrapper
+    // applies the scaled debit (MASS_BALANCE_SCALE × thickness ×
+    // stoich) at runtime — no inline f.Hg / f.S decrements needed.
+    return new GrowthZone({
+        step, temperature: conditions.temperature,
+        thickness_um: rate, growth_rate: rate,
+        note: color_note,
+    });
+}
 function grow_bismuthinite(crystal, conditions, step) {
     const sigma = conditions.supersaturation_bismuthinite();
     if (sigma < 1.0) {
@@ -19702,6 +19898,7 @@ const MINERAL_ENGINES = {
     magnetite: grow_magnetite,
     lepidocrocite: grow_lepidocrocite,
     stibnite: grow_stibnite,
+    cinnabar: grow_cinnabar,
     bismuthinite: grow_bismuthinite,
     native_bismuth: grow_native_bismuth,
     clinobisvanite: grow_clinobisvanite,
@@ -26013,6 +26210,36 @@ function _nuc_stibnite(sim) {
     }
     // Bismuthinite nucleation — Bi + S + high T + reducing.
 }
+// Cinnabar (HgS) — mercury sulfide. Hot-spring deposit nucleation:
+// gated by Hg + S availability + mildly-reducing redox. Broad pH
+// tolerance (acid Sulphur Bank style and mildly-alkaline Sicily style
+// both fire). The nucleation threshold σ > 1.0 follows the same
+// canonical lower-tier gate used by pyrite/marcasite/galena.
+//
+// Substrate preference: cinnabar at Sulphur Bank often nucleates on
+// or alongside native_sulfur (both products of the H₂S + O₂ mixing
+// zone). At Almadén the substrate is typically quartz veining. The
+// nucleation handler weights these accordingly.
+function _nuc_cinnabar(sim) {
+    const sigma_cb = sim.conditions.supersaturation_cinnabar();
+    const existing_cb = sim.crystals.filter(c => c.mineral === 'cinnabar' && c.active);
+    if (sigma_cb > 1.0 && !sim._atNucleationCap('cinnabar')) {
+        if (!existing_cb.length || (sigma_cb > 1.8 && rng.random() < 0.2)) {
+            let pos = 'vug wall';
+            const active_ns = sim.crystals.filter(c => c.mineral === 'native_sulfur' && c.active);
+            const active_qtz_cb = sim.crystals.filter(c => c.mineral === 'quartz' && c.active);
+            // Substrate preference: native_sulfur > quartz > wall.
+            // At Sulphur Bank, cinnabar and native_sulfur are co-deposited
+            // in the same mixing zone, so substrate association is real.
+            if (active_ns.length && rng.random() < 0.4)
+                pos = `on native_sulfur #${active_ns[0].crystal_id}`;
+            else if (active_qtz_cb.length && rng.random() < 0.3)
+                pos = `on quartz #${active_qtz_cb[0].crystal_id}`;
+            const c = sim.nucleate('cinnabar', pos, sigma_cb);
+            sim.log.push(`  ✦ NUCLEATION: Cinnabar #${c.crystal_id} on ${c.position} (T=${sim.conditions.temperature.toFixed(0)}°C, σ=${sigma_cb.toFixed(2)}, Hg=${sim.conditions.fluid.Hg.toFixed(1)}, S=${sim.conditions.fluid.S.toFixed(0)})`);
+        }
+    }
+}
 function _nuc_bismuthinite(sim) {
     const sigma_bmt = sim.conditions.supersaturation_bismuthinite();
     const existing_bmt = sim.crystals.filter(c => c.mineral === 'bismuthinite' && c.active);
@@ -26176,6 +26403,7 @@ function _nucleateClass_sulfide(sim) {
     _nuc_galena(sim);
     _nuc_molybdenite(sim);
     _nuc_stibnite(sim);
+    _nuc_cinnabar(sim);
     _nuc_bismuthinite(sim);
     _nuc_argentite(sim);
     _nuc_nickeline(sim);

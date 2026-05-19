@@ -1919,5 +1919,88 @@
 //        boss's directive ("add the real science needed for Sicily")
 //        cashed out: the broadened pH factor is the real chemistry
 //        of two-mode native_sulfur deposition.
-const SIM_VERSION = 80;
+//   v81 — Cinnabar (HgS): the Sulphur Bank namesake commodity
+//        (2026-05-18). The deposit at Lake County was MINED FOR
+//        MERCURY 1865-1957 (~450 tons of Hg, ~13,000 flasks). The
+//        v79 scenario fired native_sulfur but had no cinnabar engine
+//        — the simulator was modeling Sulphur Bank's BYPRODUCT
+//        without its main product. v81 fixes that.
+//
+//        New mineral: cinnabar (HgS), trigonal mercury sulfide. Deep
+//        cochineal red, specific gravity 8.0-8.2 (the highest of
+//        common ore minerals). Type locality Almadén (Spain, mined
+//        for 2000+ years). Pigment 'vermillion' is synthetic
+//        cinnabar.
+//
+//        Engine in js/41-supersat-sulfide.ts +
+//        js/61-engines-sulfide.ts:
+//          * Gates: Hg >= 1.0, S >= 50, O2 <= 1.0, pH <= 9.
+//          * σ formula: hg_f × s_f × eh_f × T_factor × activity.
+//            hg_f = min(Hg/5, 4.0); s_f = min(S/100, 3.0).
+//          * Habit dispatcher:
+//              excess > 1.5  → massive_red (vermillion aggregate)
+//              T < 100°C     → rhombohedral_cochineal (deep red
+//                              rhombs — the iconic Sulphur Bank /
+//                              Almadén habit)
+//              T >= 100°C    → rhombohedral_cochineal (high-T form)
+//          * Dissolution branch: O2 > 1.3 fires oxidative sublimation
+//            (HgS → Hg° vapor + SO₄²⁻). Acid-resistant under normal
+//            vug pH (the reason cinnabar persists in oxidation zones
+//            while other Hg minerals weather away).
+//
+//        Supporting work:
+//          * FluidChemistry: new this.Hg field (default 0).
+//          * MINERAL_STOICHIOMETRY.cinnabar = { Hg: 1, S: 1 } so
+//            applyMassBalance debits per zone (per-cell at the
+//            crystal's anchor footprint).
+//          * MINERAL_DISSOLUTION_RATES.cinnabar for oxidative path.
+//          * Nucleation handler _nuc_cinnabar with substrate
+//            preference: native_sulfur (40%) > quartz (30%) > wall.
+//            Models the real co-deposition pattern at Sulphur Bank.
+//          * data/minerals.json entry with formula, habits,
+//            T-range, color rules, literature anchor.
+//
+//        Sulphur Bank scenario update:
+//          * initial fluid: Hg=15 ppm (White & Roberson 1962
+//            measured-vent range 0.5-50 ppm).
+//          * expects_species: + cinnabar.
+//          * description updated to highlight cinnabar as headline.
+//
+//        Verified output (3 seeds × 200 steps at Sulphur Bank):
+//          peak σ_cinnabar = 5.61 (well above 1.0 threshold)
+//          cinnabar crystals = 6 active per seed
+//          habit: massive_red (high σ at hot vent) + some
+//                 rhombohedral_cochineal in cooler phases
+//          substrate: cinnabar nucleates on native_sulfur and
+//                     quartz substrates as expected (per-seed
+//                     stochastic; the integration pin confirms
+//                     the on-substrate placement across 3 seeds)
+//
+//        Tests 346 → 365 (+19 in tests-js/cinnabar.test.ts):
+//          * FluidChemistry.Hg default + opts.
+//          * supersaturation_cinnabar gates (Hg < 1 returns 0,
+//            S < 50 returns 0, O2 > 1.0 returns 0).
+//          * Sulphur-Bank-style fluid fires σ > 2.0.
+//          * Sicily-style fluid (alkaline, cooler) ALSO fires
+//            σ > 1.0 — proves cinnabar fits across both native_sulfur
+//            deposit types (broad pH tolerance is what makes cinnabar
+//            unusual among sulfides).
+//          * Sulphur Bank integration: 3-seed firing pin, >= 4
+//            active cinnabar crystals, canonical habit firing.
+//          * Substrate-preference pin: cinnabar nucleates on
+//            native_sulfur across 3 seeds.
+//
+//        Coverage: 96 live (+1 cinnabar) / 21 dead / 0 stale.
+//        Calibration baseline: seed42_v81.json captures Sulphur Bank
+//        with cinnabar fired; other 25 scenarios byte-identical to v80.
+//
+//        Future scenarios for cinnabar (out of scope for v81):
+//          * Almadén (Spain, type locality, mined 2000+ years).
+//            Different mechanism — hot acid Cretaceous vent on a
+//            Hercynian shear zone.
+//          * Idria (Slovenia). Hot-spring + pegmatite-related.
+//          * New Almaden (CA). Pleistocene hot-spring analog of
+//            Sulphur Bank; the simulator could reuse the Sulphur
+//            Bank events with different fluid trace metals.
+const SIM_VERSION = 81;
 

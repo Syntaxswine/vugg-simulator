@@ -192,6 +192,35 @@ function _nuc_stibnite(sim) {
 
   // Bismuthinite nucleation — Bi + S + high T + reducing.
 }
+// Cinnabar (HgS) — mercury sulfide. Hot-spring deposit nucleation:
+// gated by Hg + S availability + mildly-reducing redox. Broad pH
+// tolerance (acid Sulphur Bank style and mildly-alkaline Sicily style
+// both fire). The nucleation threshold σ > 1.0 follows the same
+// canonical lower-tier gate used by pyrite/marcasite/galena.
+//
+// Substrate preference: cinnabar at Sulphur Bank often nucleates on
+// or alongside native_sulfur (both products of the H₂S + O₂ mixing
+// zone). At Almadén the substrate is typically quartz veining. The
+// nucleation handler weights these accordingly.
+function _nuc_cinnabar(sim) {
+  const sigma_cb = sim.conditions.supersaturation_cinnabar();
+  const existing_cb = sim.crystals.filter(c => c.mineral === 'cinnabar' && c.active);
+  if (sigma_cb > 1.0 && !sim._atNucleationCap('cinnabar')) {
+    if (!existing_cb.length || (sigma_cb > 1.8 && rng.random() < 0.2)) {
+      let pos = 'vug wall';
+      const active_ns = sim.crystals.filter(c => c.mineral === 'native_sulfur' && c.active);
+      const active_qtz_cb = sim.crystals.filter(c => c.mineral === 'quartz' && c.active);
+      // Substrate preference: native_sulfur > quartz > wall.
+      // At Sulphur Bank, cinnabar and native_sulfur are co-deposited
+      // in the same mixing zone, so substrate association is real.
+      if (active_ns.length && rng.random() < 0.4) pos = `on native_sulfur #${active_ns[0].crystal_id}`;
+      else if (active_qtz_cb.length && rng.random() < 0.3) pos = `on quartz #${active_qtz_cb[0].crystal_id}`;
+      const c = sim.nucleate('cinnabar', pos, sigma_cb);
+      sim.log.push(`  ✦ NUCLEATION: Cinnabar #${c.crystal_id} on ${c.position} (T=${sim.conditions.temperature.toFixed(0)}°C, σ=${sigma_cb.toFixed(2)}, Hg=${sim.conditions.fluid.Hg.toFixed(1)}, S=${sim.conditions.fluid.S.toFixed(0)})`);
+    }
+  }
+}
+
 function _nuc_bismuthinite(sim) {
   const sigma_bmt = sim.conditions.supersaturation_bismuthinite();
   const existing_bmt = sim.crystals.filter(c => c.mineral === 'bismuthinite' && c.active);
@@ -349,6 +378,7 @@ function _nucleateClass_sulfide(sim) {
   _nuc_galena(sim);
   _nuc_molybdenite(sim);
   _nuc_stibnite(sim);
+  _nuc_cinnabar(sim);
   _nuc_bismuthinite(sim);
   _nuc_argentite(sim);
   _nuc_nickeline(sim);

@@ -637,6 +637,61 @@ function grow_stibnite(crystal, conditions, step) {
   return new GrowthZone({ step, temperature: conditions.temperature, thickness_um: rate, growth_rate: rate, note: color_note });
 }
 
+// Cinnabar (HgS) — mercury sulfide. Hot-spring deposit (Sulphur Bank
+// + Almadén + Idria type) + co-product in Sicilian sedimentary
+// native_sulfur. Habit dispatcher:
+//   T < 100°C, low excess  → rhombohedral_cochineal (the iconic deep-
+//                            red rhombs, Sulphur Bank specimens).
+//   higher excess          → massive_red (vermillion massive aggregate).
+//
+// Acid-tolerant: cinnabar is unusual among sulfides in surviving low
+// pH essentially indefinitely (the reason it persists in oxidation
+// zones — aqua regia required to dissolve it). Dissolution branch
+// fires only at very high O2 (fully oxic) where HgS → Hg vapor + SO4.
+function grow_cinnabar(crystal, conditions, step) {
+  const sigma = conditions.supersaturation_cinnabar();
+  if (sigma < 1.0) {
+    if (crystal.total_growth_um > 5 && conditions.fluid.O2 > 1.3) {
+      crystal.dissolved = true;
+      const d = Math.min(2.0, crystal.total_growth_um * 0.05);
+      return new GrowthZone({
+        step, temperature: conditions.temperature,
+        thickness_um: -d, growth_rate: -d,
+        note: `oxidative sublimation (O₂=${conditions.fluid.O2.toFixed(2)}) — Hg° vapor released, S → SO₄²⁻`,
+      });
+    }
+    return null;
+  }
+  const excess = sigma - 1.0;
+  const rate = 3.0 * excess * rng.uniform(0.8, 1.2);
+  if (rate < 0.1) return null;
+  const f = conditions.fluid;
+  const T = conditions.temperature;
+  let color_note;
+  if (excess > 1.5) {
+    crystal.habit = 'massive_red';
+    crystal.dominant_forms = ['vermillion massive aggregate', 'granular red ore'];
+    color_note = 'vermillion massive cinnabar — the dragon\'s-blood pigment habit';
+  } else if (T < 100) {
+    crystal.habit = 'rhombohedral_cochineal';
+    crystal.dominant_forms = ['rhombohedral crystal', 'deep cochineal-red euhedron'];
+    color_note = `cochineal-red rhombohedron — the Sulphur Bank / Almadén habit (T=${T.toFixed(0)}°C)`;
+  } else {
+    crystal.habit = 'rhombohedral_cochineal';
+    crystal.dominant_forms = ['stout rhombohedron', 'red trigonal prism'];
+    color_note = `red rhombohedral cinnabar (T=${T.toFixed(0)}°C)`;
+  }
+  // Growth-zone Hg + S debit handled by applyMassBalance via
+  // MINERAL_STOICHIOMETRY.cinnabar = { Hg: 1, S: 1 }. The wrapper
+  // applies the scaled debit (MASS_BALANCE_SCALE × thickness ×
+  // stoich) at runtime — no inline f.Hg / f.S decrements needed.
+  return new GrowthZone({
+    step, temperature: conditions.temperature,
+    thickness_um: rate, growth_rate: rate,
+    note: color_note,
+  });
+}
+
 function grow_bismuthinite(crystal, conditions, step) {
   const sigma = conditions.supersaturation_bismuthinite();
   if (sigma < 1.0) {
