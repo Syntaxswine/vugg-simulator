@@ -1783,5 +1783,69 @@
 //        the renderer (tabular cavity geometry visible in the 3D
 //        view), the engine (walls_only nucleation), and the player's
 //        mental model.
-const SIM_VERSION = 78;
+//   v79 — Sulphur Bank Mine scenario (2026-05-18). The first scenario
+//        that fires the native_sulfur engine to completion. The
+//        engine has existed since v8 (Round 8b, "Native element
+//        trio" — native_arsenic, native_sulfur, native_tellurium)
+//        but native_sulfur had no canonical scenario — the gates
+//        (S ≥ 100, O₂ ∈ [0.1, 0.7], pH ≤ 5, metal_sum ≤ 100, T 20-95°C)
+//        match acid-sulfate hot-spring deposits, which the simulator
+//        hadn't yet anchored. Sulphur Bank fixes that.
+//
+//        Anchor: Sulphur Bank Mine, Lake County, CA. Pleistocene
+//        hot-spring mercury-sulfur deposit; mined 1865-1957; EPA
+//        Superfund site CAD980893275. The canonical "hot-spring
+//        quicksilver-sulfur" deposit per White & Roberson 1962
+//        (USGS PP 432-A). Active hot springs still vent today.
+//
+//        Mechanism: 2 H₂S + O₂ → 2 S° + 2 H₂O (synproportionation)
+//        in the acid mixing zone where rising H₂S-rich fluid meets
+//        atmospheric O₂. Byproduct H₂SO₄ keeps pH at 1.8-4.0.
+//
+//        Engine fit:
+//          initial: S=500, pH=1.8, O₂=0.40 (peak of nativeRedoxTent),
+//                   T=75°C (mid-window), metal_sum=35 (well below cap).
+//          wall:    composition='basalt' (silicate inert under acid —
+//                   if this were limestone, dissolve() would buffer
+//                   pH up and shut off the engine), architecture=
+//                   'irregular' (acid-dissolution cavity in altered
+//                   sediments).
+//
+//        13 events over 200 steps: alternating H₂S recharge (acidifies,
+//        replenishes S) and surface_oxidation (locks O₂ at 0.40 peak,
+//        further acidifies), bracketed by two cooling events that
+//        push T below 60°C so the engine switches to the iconic
+//        α-bipyramidal habit. The event frequency is calibrated so
+//        the ambient_cooling pH-recovery clause (+0.01-0.03 pH/step
+//        at low flow_rate) doesn't drift pH above the engine's gate
+//        during the run.
+//
+//        Verified output (3 seeds × 200 steps):
+//          peak σ_native_sulfur = 2.49-2.79
+//          native_sulfur crystals = 4 active per run (all bipyramidal_alpha)
+//          paragenesis: native_sulfur + pyrite + marcasite +
+//                       arsenopyrite + quartz + selenite (the SO₄ from
+//                       synproportionation reacts with trace Ca to
+//                       form selenite — geologically defensible).
+//
+//        3 new event handlers in js/70m-sulphur-bank.ts:
+//          event_sulphur_bank_h2s_recharge      — hot fluid pulse,
+//                                                 S+150, pH-1.0, T+8.
+//          event_sulphur_bank_surface_oxidation — O₂ pins to 0.40,
+//                                                 pH-0.5.
+//          event_sulphur_bank_cooling           — T-20, flow_rate=0.1.
+//
+//        Coverage: 95 live + native_sulfur (newly lit). The 95-live
+//        count technically stays the same (native_sulfur was already
+//        "live" via the mineral_coverage_check tool's broader
+//        definition); it's just that THIS commit is the first to
+//        actually nucleate it in a canonical scenario.
+//
+//        Followup: Sicily (Cianciana, Caltanissetta) is the OTHER
+//        canonical native-sulfur deposit type — sedimentary BSR
+//        sulfur from gypsum reduction in alkaline (pH 7-8) Messinian
+//        evaporite brines. The engine's pH ≤ 5 gate blocks Sicily;
+//        a future commit will broaden the engine to admit alkaline-
+//        BSR sulfur as a second valid mode.
+const SIM_VERSION = 79;
 

@@ -2109,6 +2109,138 @@
         "Railsback L.B., Brook G.A., Liang F. et al. (1994) — Speleothem fabric record of aragonite-calcite transitions. Carbonates and Evaporites 9: 217-230.",
         "Spötl C., Mangini A. (2007) — Speleothems and paleoclimates: aragonite vs calcite as climate archives. Quaternary Science Reviews 26: 1488-1499."
       ]
+    },
+
+    "sulphur_bank": {
+      "anchor": "Sulphur Bank Mine, south shore of Clear Lake, Lake County, California — Pleistocene hot-spring mercury-sulfur deposit. Active hot-spring system since ~150,000 years ago; mined for mercury 1865-1957 (one of California's largest Hg producers). Now EPA Superfund site CAD980893275. The textbook hot-spring quicksilver-sulfur deposit per White & Roberson 1962 (USGS PP 432-A).",
+      "description": "Hot-spring native-sulfur deposit at the surface mixing zone where rising H₂S-rich fluid meets atmospheric O₂. The synproportionation reaction 2 H₂S + O₂ → 2 S° + 2 H₂O deposits native sulfur on the vent walls; the byproduct H₂SO₄ keeps the fluid pH at 2-4. Native sulfur grows in the iconic α-bipyramidal habit (cool surface flow) and as sublimation crusts (hottest vent fumaroles). Supporting cast: pyrite + marcasite from the Fe trace, arsenopyrite from trace As, quartz from silica-rich hot water.",
+      "expects_species": ["native_sulfur", "pyrite", "marcasite", "arsenopyrite"],
+      "duration_steps": 200,
+      "notes": [
+        "Anchor: Sulphur Bank Mine, the canonical hot-spring native-sulfur deposit. White & Roberson 1962 (USGS PP 432-A) is the foundational monograph; White 1981 placed it in the broader active-geothermal-ore-deposit framework. The deposit was the type case for the 'hot-spring mercury-sulfur' class. Active hot springs still vent today (60-90°C; the EPA Superfund record documents continuous monitoring 1990s-present).",
+        "Engine fit (native_sulfur in js/36-supersat-native.ts): the supersaturation gates are S ≥ 100 ppm, O₂ ∈ [0.1, 0.7] (the synproportionation window), pH ≤ 5, metal_sum (Fe+Cu+Pb+Zn) ≤ 100, T 20-95°C optimal. Sulphur Bank fluid sits dead-center in all five gates. This is the simpler of the two native_sulfur deposit types — the acid-sulfate hot-spring mode the existing engine was implicitly designed for. The Sicily-style sedimentary BSR mode (pH 7-8, calcite-buffered) is a future scenario after engine broadening.",
+        "Habit dispatcher: the engine's three habits are sublimation_crust (T > 60 + excess > 1.5; fumarole vent zone), prismatic_beta (T ≥ 95; rare high-T monoclinic), and bipyramidal_alpha (the iconic Sicilian {111} dipyramid habit, < 60°C). The scenario starts at 75°C — sublimation_crust at high σ, bipyramidal_alpha after cooling pulses. Both habits real for Sulphur Bank.",
+        "Mercury: the namesake commodity (cinnabar, HgS) isn't in MINERAL_SPEC yet — a follow-up commit can add it for the full Sulphur Bank assemblage. For now the scenario carries trace Fe + As to fire pyrite + marcasite + arsenopyrite alongside the headline native_sulfur."
+      ],
+      "initial": {
+        "temperature_C": 75.0,
+        "pressure_kbar": 0.05,
+        "fluid": {
+          // Hot-spring waters per White & Roberson 1962 fluid-inclusion
+          // + active-spring sampling. Acid-sulfate facies; H₂S-rich;
+          // low metal load (Hg arrives as gaseous Hg⁰ vapor, not as
+          // a bisulfide complex carrying base metals — that's WHY
+          // mercury hot springs have famously LOW Fe/Cu/Pb/Zn).
+          "SiO2": 200,    // hot-spring SiO₂ is high; opal/chalcedony deposits form
+          "Ca": 80,       // low — acid fluid, no carbonate buffering
+          "CO3": 5,
+          "Fe": 25,       // modest — supports pyrite/marcasite
+          "Mn": 1,
+          "Mg": 30,
+          "Na": 200,
+          "K": 25,
+          // Sulfur: the headline. 500 ppm sits in the published
+          // White & Roberson 1962 range for active Sulphur Bank
+          // vents (total H₂S + HS⁻ + SO₄ measured 100-400+ mg/L
+          // at the venting fissures; up to 800+ in fluid-inclusion
+          // assays). Above the engine's 100 ppm threshold; the s_f
+          // factor (S/200, capped at 4.0) hits 2.5, giving headroom
+          // above 1.0 after activity-correction (~0.8x) and the
+          // pH recovery that drifts ph_f down over the run.
+          "S": 500,
+          "Cl": 80,       // low-moderate salinity for hot spring
+          // Trace metals — low. metal_sum = Fe(25)+Cu(3)+Pb(2)+Zn(5)
+          // = 35 < 100 (the engine cap; mercury hot springs are
+          // famously LOW in base metals because Hg arrives as
+          // vapor, not as a sulfide-complex carrier).
+          "Cu": 3,
+          "Pb": 2,
+          "Zn": 5,
+          // Trace As — supports arsenopyrite. Sulphur Bank has minor
+          // realgar/orpiment historically (not yet in spec); 8 ppm
+          // is in the published range for the deposit's hot-spring
+          // fluid.
+          "As": 8,
+          // pH: acid from H₂S + ½O₂ → S° + H₂SO₄ at the vents.
+          // White & Roberson 1962 measured pH 1.8-4.0 at active
+          // vents (some assays reaching 1.5 in the most active
+          // mixing zones). 1.8 is in the low end of that range —
+          // the engine's ph_f factor (= 1.0 - 0.15×pH) hits 0.73.
+          // Necessary because ambient_cooling's pH-recovery clause
+          // pushes pH up at +0.12/step when flow_rate > 0; starting
+          // low gives us a working window before the recovery
+          // overruns the engine's pH ≤ 5 gate (~25 steps at the
+          // event-tuned flow_rate of 0.4-1.2).
+          "pH": 1.8,
+          // O₂: the synproportionation window peak. 0.40 is dead-
+          // center on the engine's nativeRedoxTent(peakO2=0.4) so
+          // eh_f hits 1.0 (maximum). The vent zone is exactly where
+          // rising H₂S meets atmospheric O₂; this is what the
+          // synproportionation reaction needs.
+          "O2": 0.40,
+          "salinity": 4.0
+        },
+        "wall": {
+          // Sulphur Bank's host is Pliocene lake sediments + altered
+          // Mesozoic Franciscan complex. The host is NOT carbonate;
+          // it's clastic + silicate, which is the geological reason
+          // the acid hot-spring fluid stays acidic. If we used
+          // limestone here, the wall would dissolve and buffer pH
+          // up out of the native_sulfur engine's window — the
+          // canonical hot-spring sulfur deposit needs an inert
+          // silicate host. 'basalt' is the closest proxy in this
+          // codebase (silicate, dissolve() returns no-op so the
+          // fluid stays acid, just like Sulphur Bank IRL).
+          "composition": "basalt",
+          "reactivity": 0.0,
+          // Modest hot-spring vent cavity. Real Sulphur Bank vents
+          // open into cm-to-meter-scale cavities; 40 mm is in the
+          // mid-range and matches the simulator's vug class for
+          // specimen-scale paragenesis.
+          "vug_diameter_mm": 40.0,
+          // Irregular archetype: acid-dissolution cavity in altered
+          // sediments. The cavity geometry is anything but smooth —
+          // pore-throat coalescence + secondary dissolution carves
+          // an irregular profile.
+          "architecture": "irregular",
+          "primary_bubbles": 3,
+          "secondary_bubbles": 7,
+          // 1865 — the year mining started at Sulphur Bank
+          "shape_seed": 1865
+        }
+      },
+      "events": [
+        // Active hot-spring hydrology — Sulphur Bank vents are not
+        // pulsed events but continuous flow with seasonal modulation
+        // (White & Roberson 1962 documented vent activity year-round
+        // with summer/winter T swings). The scenario encodes "continuous"
+        // as frequent recharge events every 10-15 steps: each H₂S
+        // recharge pushes pH down 1.0 and refills S; the ambient_cooling
+        // pH-recovery clause pushes pH up between events (at low
+        // flow_rate the recovery is 0.01-0.03/step). The net is a
+        // sawtooth-acidic regime that stays inside the synproportionation
+        // window for the full duration. Two cooling events bracket
+        // the run for the α-sulfur bipyramidal habit transition.
+        { "step":  10, "type": "sulphur_bank_h2s_recharge",      "name": "H₂S Recharge #1",      "description": "Hot fluid rises with fresh H₂S" },
+        { "step":  20, "type": "sulphur_bank_surface_oxidation", "name": "Surface O₂ Mixing #1", "description": "Atmospheric O₂ drives synproportionation" },
+        { "step":  35, "type": "sulphur_bank_h2s_recharge",      "name": "H₂S Recharge #2",      "description": "Renewed thermal pulse — H₂S replenished" },
+        { "step":  45, "type": "sulphur_bank_surface_oxidation", "name": "Surface O₂ Mixing #2", "description": "Continued S° precipitation at vent" },
+        { "step":  60, "type": "sulphur_bank_h2s_recharge",      "name": "H₂S Recharge #3",      "description": "Thermal pulse" },
+        { "step":  70, "type": "sulphur_bank_surface_oxidation", "name": "Surface O₂ Mixing #3", "description": "Synproportionation event" },
+        { "step":  90, "type": "sulphur_bank_cooling",           "name": "Seasonal Cooling",     "description": "Vent flow slows; α-sulfur bipyramidal habit favored" },
+        { "step": 105, "type": "sulphur_bank_h2s_recharge",      "name": "H₂S Recharge #4",      "description": "Hot pulse rebounds T after cooling" },
+        { "step": 115, "type": "sulphur_bank_surface_oxidation", "name": "Surface O₂ Mixing #4", "description": "Late synproportionation event" },
+        { "step": 130, "type": "sulphur_bank_h2s_recharge",      "name": "H₂S Recharge #5",      "description": "Sustained vent activity" },
+        { "step": 140, "type": "sulphur_bank_surface_oxidation", "name": "Surface O₂ Mixing #5", "description": "Continued synproportionation" },
+        { "step": 160, "type": "sulphur_bank_cooling",           "name": "Final Cooling",        "description": "Late vent cools; last bipyramidal habit window" },
+        { "step": 175, "type": "sulphur_bank_h2s_recharge",      "name": "H₂S Recharge #6",      "description": "Final H₂S pulse before run-end" }
+      ],
+      "sources": [
+        "White D.E. and Roberson C.E. (1962) — Sulphur Bank, California, a major hot-spring quicksilver deposit. USGS Professional Paper 432-A.",
+        "White D.E. (1981) — Active geothermal systems and hydrothermal ore deposits. Economic Geology 75th Anniversary Volume.",
+        "Donnelly-Nolan J.M., Burns M.G., Goff F.E., Peters E.K., Thompson J.M. (1993) — The Geysers - Clear Lake area, California: thermal waters, mineralization, volcanism, and geothermal potential. Economic Geology 88: 301-316.",
+        "EPA Superfund site CAD980893275 — Sulphur Bank Mercury Mine. Site monitoring records 1990-present document continuous hot-spring activity at the vent zone."
+      ]
     }
 
   }

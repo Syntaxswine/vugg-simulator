@@ -274,6 +274,13 @@ const EVENT_REGISTRY = {
   co2_degas: event_co2_degas,
   co2_degas_with_reheat: event_co2_degas_with_reheat,
   co2_charge: event_co2_charge,
+  // 2026-05-18 — Sulphur Bank Mine (Lake County, CA). Pleistocene
+  // hot-spring sulfur deposit; the canonical native_sulfur locality
+  // that matches the engine's acid-sulfate gates. See
+  // js/70m-sulphur-bank.ts for the three handlers.
+  sulphur_bank_h2s_recharge: event_sulphur_bank_h2s_recharge,
+  sulphur_bank_surface_oxidation: event_sulphur_bank_surface_oxidation,
+  sulphur_bank_cooling: event_sulphur_bank_cooling,
 };
 
 // Minimal JSONC parser — strips // line + /* */ block comments and
