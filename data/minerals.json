@@ -8769,6 +8769,106 @@
       "_late_stage_note": "Proposal C (2026-05): propensity:0.6. Late-supergene Ca-As arsenate; forms in the closing phase of the oxidation zone after the primary Co/Ni arsenides have weathered and Ca-rich groundwater has flushed through. Between conichalcite (0.5) and chalcanthite (0.7) on the late-stage scale.",
       "class_color": "#e8e8d4"
     },
+    "haidingerite": {
+      "formula": "CaHAsO4·H2O",
+      "nucleation_sigma": 99.0,
+      "max_nucleation_count": 0,
+      "max_size_cm": 0.1,
+      "growth_rate_mult": 0.0,
+      "habit_variants": [
+        {
+          "name": "prismatic_pseudomorph",
+          "wall_spread": 0.35,
+          "void_reach": 0.55,
+          "vector": "projecting",
+          "trigger": "inherited from parent pharmacolite crystal (radiating_stellate or acicular)"
+        },
+        {
+          "name": "botryoidal_crust",
+          "wall_spread": 0.85,
+          "void_reach": 0.1,
+          "vector": "coating",
+          "trigger": "inherited from parent pharmacolite crustose form (efflorescent_crust path)"
+        }
+      ],
+      "class": "arsenate",
+      "description": "CaHAsO₄·H₂O — orthorhombic hydrated calcium arsenate, the half-dehydrated cousin of pharmacolite. Forms EXCLUSIVELY as a transformation product of pharmacolite (CaHAsO₄·2H₂O) — heat above ~80°C OR sustained dry-air exposure drives off 1 of the 2 H₂O molecules, collapsing the lattice from monoclinic pharmacolite to orthorhombic haidingerite. The transformation is irreversible (re-humidifying does not restore the pharmacolite hydrate). External crystal shape is preserved through the in-situ transformation: a haidingerite specimen IS a former pharmacolite crystal, frozen mid-decay. Specific gravity rises from pharmacolite's 2.64-2.73 to haidingerite's 2.85-2.96 — the diagnostic water-loss densification signature. Colorless to white, vitreous luster with pearly cleavage faces on {010}. Mohs 2-2.5 (same as pharmacolite). Sectile tenacity: thin laminae are slightly flexible (unlike pharmacolite which is brittle); a useful field discriminator. Sub-millimeter crystals (Handbook of Mineralogy notes 'to 1 mm'); typically encountered as botryoidal or fibrous coatings on weathered arsenide vein assemblages. Type locality Jáchymov (Joachimsthal), Czech Republic. Named for Wilhelm Karl von Haidinger (1795-1871), Austrian mineralogist. Type pseudomorph occurrence: Getchell mine, Nevada (Handbook of Mineralogy: 'Formed by dehydration of pharmacolite (Getchell mine, Nevada, USA)'). Sources: Palache, Berman, Frondel 1951 (Dana's System of Mineralogy 7th ed v.II 708-709); Ferraris, Jones, Yerkess 1972 (Acta Cryst. 28:209-214, neutron + X-ray structure refinement); Cassien, Herpin, Permingeat 1966 (Bull. Minéral. 89:18-22, crystal structure paper).",
+      "scenarios": [
+        "schneeberg",
+        "supergene_oxidation"
+      ],
+      "T_range_C": [
+        5,
+        150
+      ],
+      "T_optimum_C": [
+        20,
+        80
+      ],
+      "T_behavior": "stable_post_dehydration",
+      "pH_dissolution_below": 4.5,
+      "pH_dissolution_above": null,
+      "redox_requirement": "oxidizing",
+      "required_ingredients": {},
+      "trace_ingredients": {},
+      "thermal_decomp_C": 150,
+      "thermal_decomp_reaction": "Further heating drives off the remaining H₂O → anhydrous CaHAsO₄ at ~150°C; not yet in catalog. v90 sim: haidingerite is the v85-style transformation-only terminal pseudomorph for pharmacolite, no further decomposition modeled.",
+      "thermal_decomp_products": {
+        "Ca": 0.0,
+        "As": 0.0
+      },
+      "fluorescence": {
+        "activator": null,
+        "threshold_ppm": 0,
+        "color": null,
+        "quencher": null,
+        "status": "non-fluorescent — same as parent pharmacolite (no chromophore or fluorescer in formula)"
+      },
+      "twin_laws": [
+        {
+          "name": "haidingerite_110",
+          "composition_plane": "{110}",
+          "twin_axis": "[001]",
+          "probability": 0.02,
+          "trigger": "rare per Handbook of Mineralogy: 'Twinning: Rare on {110}'"
+        }
+      ],
+      "acid_dissolution": {
+        "pH_threshold": 4.5,
+        "reaction": "CaHAsO₄·H₂O + 3H⁺ → Ca²⁺ + H₃AsO₄ + H₂O (inherits pharmacolite's acid sensitivity; both are uranyl-group-style soft hydrated arsenates that dissolve readily in dilute mineral acids)",
+        "products": {
+          "Ca": 0.25,
+          "As": 0.30
+        }
+      },
+      "habit": "prismatic_pseudomorph",
+      "color_rules": {
+        "white": {
+          "default": true,
+          "trigger": "colorless to white — same as parent pharmacolite (no chromophore)"
+        },
+        "colorless": {
+          "trigger": "transparent specimens with no trace impurities"
+        },
+        "pale_gray": {
+          "trigger": "field specimen with adherent matrix grains"
+        }
+      },
+      "_tenacity": "sectile (thin laminae slightly flexible) — unlike brittle pharmacolite; a useful field discriminator per Handbook of Mineralogy",
+      "_specific_gravity": "2.85-2.96 measured (2.96-2.97 calculated) — densified relative to pharmacolite's 2.64-2.73 due to water loss",
+      "_cleavage": "perfect on {010}, pearly luster on cleavage faces",
+      "_cell_data": "orthorhombic Pcnb; a=6.904-6.935 b=16.150-16.161 c=7.935-7.940 Å; Z=8 (per Ferraris/Jones/Yerkess 1972)",
+      "_optical": "biaxial (+); α=1.590 β=1.602 γ=1.638; 2V_meas=58°; weak r>v dispersion",
+      "narrate_function": null,
+      "runtimes_present": [
+        "js"
+      ],
+      "audit_status": "new v90 (2026-05-19). Transformation-only paramorph product of pharmacolite via DEHYDRATION_TRANSITIONS (js/75-transitions.ts: pharmacolite → haidingerite, threshold 30 vadose-steps, T_max 80°C heat path). The v88 inline 'thermal destruction at T>80' branch in grow_pharmacolite has been REMOVED — v88 was a stub when haidingerite wasn't in the catalog yet; v90 adds the proper paramorph product so the crystal's external habit + position are preserved through the transformation (radiating stellate pharmacolite → radiating stellate haidingerite-pseudomorph-after-pharmacolite). Research-grade spec from Handbook of Mineralogy (Palache/Berman/Frondel 1951 reissue 2001-2005) + Ferraris/Jones/Yerkess 1972 crystal structure refinement + Cassien/Herpin/Permingeat 1966 structure paper. Type locality Jáchymov; type pseudomorph occurrence Getchell mine Nevada.",
+      "late_stage_propensity": 1.0,
+      "_late_stage_note": "Paramorph after pharmacolite — only ever late by definition (dehydration product); mirrors tincalconite/thenardite/meta-autunite/metatorbernite/metazeunerite/pararealgar pattern. Propensity 1.0.",
+      "_transformation_only": true,
+      "class_color": "#e8e8d8"
+    },
     "chalcanthite": {
       "formula": "CuSO4·5H2O",
       "nucleation_sigma": 1.0,

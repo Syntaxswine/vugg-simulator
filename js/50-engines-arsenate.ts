@@ -69,21 +69,19 @@ function grow_pharmacolite(crystal, conditions, step) {
   // that habit when σ is high and falls back to powdery efflorescent
   // crusts at low σ.
   //
-  // Two destruction paths: thermal dehydration at >80°C converts
-  // pharmacolite to haidingerite (CaHAsO₄·H₂O) — modeled here as
-  // mineral dissolution since haidingerite isn't in the catalog yet
-  // (research file for haidingerite doesn't exist in canonical repo);
-  // and acid dissolution below pH 4.5.
-  if (crystal.total_growth_um > 5 && conditions.temperature > 80) {
-    crystal.dissolved = true;
-    return new GrowthZone({
-      step, temperature: conditions.temperature,
-      thickness_um: -1.0, growth_rate: -1.0,
-      dissolutionMode: 'thermal',
-      note: `thermal dehydration above 80°C — pharmacolite (CaHAsO₄·2H₂O) loses water to haidingerite (CaHAsO₄·H₂O); structural water released back to fluid`
-    });
-  }
-
+  // Thermal dehydration to haidingerite (CaHAsO₄·H₂O) at >80°C is
+  // now handled by DEHYDRATION_TRANSITIONS (js/75-transitions.ts,
+  // v90 entry: pharmacolite → haidingerite, threshold 30 steps,
+  // T_max 80°C). The v88 inline "thermal destruction" branch that
+  // set crystal.dissolved = true at T > 80 has been REMOVED — that
+  // was a v88 stub when haidingerite wasn't yet in the catalog; v90
+  // adds haidingerite as a transformation-only mineral, and the
+  // standard paramorph mechanic preserves the crystal's external
+  // habit + position through the transformation (so a "radiating
+  // stellate pharmacolite" becomes a "radiating stellate haidingerite
+  // pseudomorph after pharmacolite", instead of vanishing). Acid
+  // dissolution below pH 4.5 is still the only in-engine destruction
+  // path.
   const sigma = conditions.supersaturation_pharmacolite();
   if (sigma < 1.0) {
     if (crystal.total_growth_um > 5 && conditions.fluid.pH < 4.5) {

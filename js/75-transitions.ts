@@ -58,12 +58,27 @@ function applyParamorphTransitions(crystal, T, step) {
 // preserved. The transitions become observable only in scenarios where
 // uranyl-bearing rings later evaporate (none currently shipped — covered by
 // test pins that force vadose or T>80°C).
+// v90 (2026-05-19): pharmacolite → haidingerite. Per Palache, Berman,
+// Frondel (1951) Dana's System of Mineralogy v.II 708-709; Ferraris,
+// Jones, Yerkess (1972) Acta Cryst. 28:209-214 (neutron + X-ray
+// refinement of CaHAsO₄·H₂O structure); Cassien, Herpin, Permingeat
+// (1966) Bull. Minéral. 89:18-22 (crystal structure paper). Haidingerite
+// is the pharmacolite-dehydration product — loses 1 H₂O of 2,
+// transforming from monoclinic CaHAsO₄·2H₂O to orthorhombic CaHAsO₄·H₂O.
+// Specific gravity rises from 2.64-2.73 (pharmacolite) to 2.85-2.96
+// (haidingerite) — the water-loss densification signature. Type
+// locality Jáchymov, type pseudomorph occurrence Getchell mine Nevada
+// per the Handbook of Mineralogy "Formed by dehydration of pharmacolite"
+// citation. Threshold 30 steps matches pharmacolite's efflorescent
+// reputation (between borax's 25 and the autunite-group's 40). T_max
+// 80°C is the documented onset of dehydration (research-pharmacolite.md).
 const DEHYDRATION_TRANSITIONS = {
   borax: ['tincalconite', 25, 1.5, 75.0],
   mirabilite: ['thenardite', 30, 1.5, 32.4],
   autunite: ['meta-autunite', 40, 1.0, 80.0],
   torbernite: ['metatorbernite', 40, 1.0, 75.0],
   zeunerite: ['metazeunerite', 40, 1.0, 75.0],
+  pharmacolite: ['haidingerite', 30, 1.0, 80.0],
 };
 
 function applyDehydrationTransitions(crystal, ringFluid, ringWaterState, T, step) {

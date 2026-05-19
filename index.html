@@ -7122,7 +7122,110 @@ let timeScale = 5.0;
 //          * research/research-cassiterite.md (canonical research-agent
 //            file, May 2026 — boss research drop fetched after v85
 //            surfaced the gap).
-const SIM_VERSION = 89;
+//   v90 — Haidingerite + pharmacolite dehydration cleanup (2026-05-19).
+//        Closes the haidingerite gap surfaced by v88's pharmacolite
+//        commit message ("haidingerite isn't yet in the catalog... the
+//        research file for haidingerite doesn't exist in canonical
+//        repo"). Boss authorized me to research it directly since no
+//        canonical research-haidingerite.md exists yet at
+//        StonePhilosopher/vugg-simulator/research/.
+//
+//        Research-grade spec pulled from Handbook of Mineralogy 2001-
+//        2005 reissue + primary literature:
+//          * Palache C., Berman H., Frondel C. (1951) Dana's System of
+//            Mineralogy 7th ed v.II, 708-709.
+//          * Cassien H., Herpin P., Permingeat F. (1966) "Structure
+//            cristalline de la haidingérite." Bull. Minéral. 89:18-22.
+//          * Ferraris G., Jones D.W., Yerkess J. (1972) "A neutron and
+//            X-ray refinement of the crystal structure of CaHAsO₄·H₂O
+//            (haidingerite)." Acta Cryst. 28:209-214.
+//
+//        Haidingerite CaHAsO₄·H₂O — orthorhombic (Pcnb; a=6.904-6.935
+//        b=16.150-16.161 c=7.935-7.940 Å; Z=8) hydrated calcium arsenate.
+//        Forms EXCLUSIVELY as a dehydration product of pharmacolite
+//        (CaHAsO₄·2H₂O) at >80°C heat OR sustained dry-air exposure;
+//        loses 1 H₂O of 2, transforming from monoclinic pharmacolite to
+//        orthorhombic haidingerite. Specific gravity rises from
+//        pharmacolite's 2.64-2.73 to haidingerite's 2.85-2.96 — the
+//        water-loss densification signature. Mohs 2-2.5 (same as
+//        pharmacolite). Sectile tenacity (thin laminae slightly
+//        flexible) is a useful field discriminator from brittle
+//        pharmacolite. Cleavage perfect on {010}. Colorless to white,
+//        vitreous luster with pearly cleavage faces. Type locality
+//        Jáchymov (Joachimsthal), Czech Republic. Named for Wilhelm
+//        Karl von Haidinger (1795-1871), Austrian mineralogist.
+//
+//        Type pseudomorph occurrence per Handbook of Mineralogy:
+//        "Formed by dehydration of pharmacolite (Getchell mine,
+//        Nevada, USA)" — the documented field occurrence of in-situ
+//        pseudomorphic transformation.
+//
+//        Implementation:
+//          * DEHYDRATION_TRANSITIONS entry in js/75-transitions.ts:
+//              pharmacolite → ['haidingerite', 30, 1.0, 80.0]
+//            Step-threshold 30 between borax's 25 and the autunite-
+//            group's 40 — pharmacolite is well-known to be efflorescent
+//            in dry air; the 30-step threshold matches its reputation.
+//            T_max 80°C matches the Handbook of Mineralogy / research-
+//            pharmacolite.md documented dehydration onset.
+//          * Haidingerite entry in data/minerals.json — transformation-
+//            only (nucleation_sigma=99, max_count=0, growth_rate=0, no
+//            engine path). Two habit_variants (prismatic_pseudomorph
+//            inheriting from radiating_stellate/acicular parent;
+//            botryoidal_crust inheriting from efflorescent_crust). Full
+//            sectile-tenacity flag + {010} cleavage + Pcnb cell data +
+//            optical properties (biaxial+ 2V=58°) preserved as sidecar
+//            metadata for future render-hook use.
+//          * Cleanup: REMOVED the v88 inline "thermal destruction at
+//            T > 80°C" branch in grow_pharmacolite (which set
+//            crystal.dissolved = true). That branch was a v88 stub
+//            because haidingerite wasn't yet in the catalog; v90 makes
+//            it obsolete. The standard paramorph mechanic now
+//            preserves the crystal's external habit + position through
+//            the transformation, so a "radiating stellate pharmacolite"
+//            becomes a "radiating stellate haidingerite-pseudomorph-
+//            after-pharmacolite" instead of vanishing. Geologically
+//            correct: the Getchell mine field occurrence shows haidingerite
+//            with the inherited pharmacolite outline.
+//
+//        Calibration drift: schneeberg fires haidingerite at seed 42 +
+//        likely the other seeds. Initial v90 expectation was that
+//        schneeberg's cooled bulk T (~25°C) would keep both dehydration
+//        paths dormant. Calibration revealed otherwise — the same
+//        per-ring-T mechanic that drives the v85 meta-autunite trio
+//        (pegmatite-residual heat at parents' anchor rings even after
+//        bulk cooling) fires for pharmacolite too. Pharmacolite that
+//        nucleates in a still-warm ring transforms to haidingerite
+//        mid-run.
+//
+//        This is geologically accurate: Jáchymov (the type locality)
+//        DOES carry haidingerite alongside pharmacolite as paragenetic
+//        kin per the Handbook of Mineralogy distribution data. The
+//        in-situ pseudomorphic transformation at the type locality
+//        (and at the Getchell mine secondary-occurrence locality) is
+//        exactly the mechanism the v90 engine reproduces.
+//
+//        Coverage 103 → 103 live (parent pharmacolite already counted)
+//        / 25 dead (+haidingerite — mirrors tincalconite/thenardite/
+//        meta-autunite-trio/pararealgar) / 0 stale. seed42_v90.json
+//        captures the v88 → v90 grow_pharmacolite cleanup (removing
+//        the thermal destruction branch may shift seed-42 output in
+//        scenarios where pharmacolite happened to encounter T>80
+//        — empirically: none).
+//
+//        v88 commit message had two pieces of residual debt this commit
+//        partially closes:
+//          1. "haidingerite isn't in the catalog" — CLOSED here.
+//          2. "modeled as crystal-destruction" — CLOSED (paramorph
+//             now properly preserves the crystal).
+//        Open debt remaining from v88 (NOT addressed in v90):
+//          * As³⁺ vs As⁵⁺ split. The simulator's single fluid.As pool
+//            still can't represent oxidation state distinctly. The
+//            sulfide-suppression proxy gate in supersaturation_
+//            pharmacolite is a band-aid; the principled fix is a
+//            Phase-4-redox-style refactor splitting As³⁺ + As⁵⁺ into
+//            separate fields. Out of scope for v90.
+const SIM_VERSION = 90;
 
 // ── 18-constants.js ──
 
@@ -15337,20 +15440,19 @@ function grow_pharmacolite(crystal, conditions, step) {
     // that habit when σ is high and falls back to powdery efflorescent
     // crusts at low σ.
     //
-    // Two destruction paths: thermal dehydration at >80°C converts
-    // pharmacolite to haidingerite (CaHAsO₄·H₂O) — modeled here as
-    // mineral dissolution since haidingerite isn't in the catalog yet
-    // (research file for haidingerite doesn't exist in canonical repo);
-    // and acid dissolution below pH 4.5.
-    if (crystal.total_growth_um > 5 && conditions.temperature > 80) {
-        crystal.dissolved = true;
-        return new GrowthZone({
-            step, temperature: conditions.temperature,
-            thickness_um: -1.0, growth_rate: -1.0,
-            dissolutionMode: 'thermal',
-            note: `thermal dehydration above 80°C — pharmacolite (CaHAsO₄·2H₂O) loses water to haidingerite (CaHAsO₄·H₂O); structural water released back to fluid`
-        });
-    }
+    // Thermal dehydration to haidingerite (CaHAsO₄·H₂O) at >80°C is
+    // now handled by DEHYDRATION_TRANSITIONS (js/75-transitions.ts,
+    // v90 entry: pharmacolite → haidingerite, threshold 30 steps,
+    // T_max 80°C). The v88 inline "thermal destruction" branch that
+    // set crystal.dissolved = true at T > 80 has been REMOVED — that
+    // was a v88 stub when haidingerite wasn't yet in the catalog; v90
+    // adds haidingerite as a transformation-only mineral, and the
+    // standard paramorph mechanic preserves the crystal's external
+    // habit + position through the transformation (so a "radiating
+    // stellate pharmacolite" becomes a "radiating stellate haidingerite
+    // pseudomorph after pharmacolite", instead of vanishing). Acid
+    // dissolution below pH 4.5 is still the only in-engine destruction
+    // path.
     const sigma = conditions.supersaturation_pharmacolite();
     if (sigma < 1.0) {
         if (crystal.total_growth_um > 5 && conditions.fluid.pH < 4.5) {
@@ -23046,12 +23148,27 @@ function applyParamorphTransitions(crystal, T, step) {
 // preserved. The transitions become observable only in scenarios where
 // uranyl-bearing rings later evaporate (none currently shipped — covered by
 // test pins that force vadose or T>80°C).
+// v90 (2026-05-19): pharmacolite → haidingerite. Per Palache, Berman,
+// Frondel (1951) Dana's System of Mineralogy v.II 708-709; Ferraris,
+// Jones, Yerkess (1972) Acta Cryst. 28:209-214 (neutron + X-ray
+// refinement of CaHAsO₄·H₂O structure); Cassien, Herpin, Permingeat
+// (1966) Bull. Minéral. 89:18-22 (crystal structure paper). Haidingerite
+// is the pharmacolite-dehydration product — loses 1 H₂O of 2,
+// transforming from monoclinic CaHAsO₄·2H₂O to orthorhombic CaHAsO₄·H₂O.
+// Specific gravity rises from 2.64-2.73 (pharmacolite) to 2.85-2.96
+// (haidingerite) — the water-loss densification signature. Type
+// locality Jáchymov, type pseudomorph occurrence Getchell mine Nevada
+// per the Handbook of Mineralogy "Formed by dehydration of pharmacolite"
+// citation. Threshold 30 steps matches pharmacolite's efflorescent
+// reputation (between borax's 25 and the autunite-group's 40). T_max
+// 80°C is the documented onset of dehydration (research-pharmacolite.md).
 const DEHYDRATION_TRANSITIONS = {
     borax: ['tincalconite', 25, 1.5, 75.0],
     mirabilite: ['thenardite', 30, 1.5, 32.4],
     autunite: ['meta-autunite', 40, 1.0, 80.0],
     torbernite: ['metatorbernite', 40, 1.0, 75.0],
     zeunerite: ['metazeunerite', 40, 1.0, 75.0],
+    pharmacolite: ['haidingerite', 30, 1.0, 80.0],
 };
 function applyDehydrationTransitions(crystal, ringFluid, ringWaterState, T, step) {
     // v28: convert a hydrated mineral in place when its host ring has
