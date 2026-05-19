@@ -128,6 +128,42 @@ function _nuc_olivenite(sim) {
   // Nickeline nucleation — Ni + As + reducing + high T.
 }
 
+function _nuc_conichalcite(sim) {
+  // CaCu(AsO₄)(OH) — supergene Ca-Cu arsenate. The Ca-cation analog of
+  // olivenite; fires when Ca/(Ca+Cu) > 0.4 in the local fluid (the
+  // supersaturation gate enforces this). Substrate priority per
+  // research-conichalcite.md §Paragenetic Position: scorodite (As-
+  // source weathering product) > olivenite (Cu-As coexistence per
+  // research's "May coexist in same vug as two green shades") > native
+  // copper > malachite > chrysocolla > bare wall.
+  const sigma_con = sim.conditions.supersaturation_conichalcite();
+  if (sigma_con > 1.0 && !sim._atNucleationCap('conichalcite')) {
+    if (rng.random() < 0.20) {
+      let pos = 'vug wall';
+      const active_scor_con = sim.crystals.filter(c => c.mineral === 'scorodite' && c.active);
+      const active_oli_con  = sim.crystals.filter(c => c.mineral === 'olivenite' && c.active);
+      const active_nc_con   = sim.crystals.filter(c => c.mineral === 'native_copper' && c.active);
+      const active_mal_con  = sim.crystals.filter(c => c.mineral === 'malachite' && c.active);
+      const active_chry_con = sim.crystals.filter(c => c.mineral === 'chrysocolla' && c.active);
+      if (active_scor_con.length && rng.random() < 0.35) {
+        pos = `on scorodite #${active_scor_con[0].crystal_id}`;
+      } else if (active_oli_con.length && rng.random() < 0.30) {
+        pos = `on olivenite #${active_oli_con[0].crystal_id}`;
+      } else if (active_nc_con.length && rng.random() < 0.25) {
+        pos = `on native_copper #${active_nc_con[0].crystal_id}`;
+      } else if (active_mal_con.length && rng.random() < 0.25) {
+        pos = `on malachite #${active_mal_con[0].crystal_id}`;
+      } else if (active_chry_con.length && rng.random() < 0.25) {
+        pos = `on chrysocolla #${active_chry_con[0].crystal_id}`;
+      }
+      const c = sim.nucleate('conichalcite', pos, sigma_con);
+      const f = sim.conditions.fluid;
+      const ca_fr = f.Ca / (f.Ca + f.Cu);
+      sim.log.push(`  ✦ NUCLEATION: Conichalcite #${c.crystal_id} on ${c.position} (T=${sim.conditions.temperature.toFixed(0)}°C, σ=${sigma_con.toFixed(2)}, Ca=${f.Ca.toFixed(0)}, Cu=${f.Cu.toFixed(0)}, As=${f.As.toFixed(0)}, Ca/(Ca+Cu)=${ca_fr.toFixed(2)})`);
+    }
+  }
+}
+
 function _nucleateClass_arsenate(sim) {
   _nuc_scorodite(sim);
   _nuc_adamite(sim);
@@ -135,4 +171,5 @@ function _nucleateClass_arsenate(sim) {
   _nuc_erythrite(sim);
   _nuc_annabergite(sim);
   _nuc_olivenite(sim);
+  _nuc_conichalcite(sim);
 }

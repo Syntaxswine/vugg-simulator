@@ -107,6 +107,57 @@ Object.assign(VugConditions.prototype, {
   return Math.max(sigma, 0);
 },
 
+  supersaturation_conichalcite() {
+  // CaCu(AsO₄)(OH) — orthorhombic Ca-Cu arsenate. Vivid emerald to
+  // apple green (Cu²⁺ chromophore). Per research-conichalcite.md (boss
+  // canonical 2026-05): supergene Cu-As oxidation zone, Ca-cation
+  // analog of olivenite (Cu only). The two coexist but are
+  // differentiated by Ca/(Ca+Cu) ratio — conichalcite when Ca dominates
+  // ("contains calcium, which makes it harder Mohs 4.5 vs 3 for
+  // olivenite, and typically brighter in color").
+  //
+  // Cation-fork mechanic (mirrors autunite-vs-torbernite, Round 9d):
+  // Ca/(Ca+Cu) > 0.4 → conichalcite path; Cu-dominant → olivenite.
+  // The threshold is at 0.4 rather than 0.5 because conichalcite is
+  // structurally permissive — even a Cu-dominant fluid can produce
+  // conichalcite if enough Ca is around to occupy the cation site;
+  // supergene Cu-As fluids in carbonate-buffered systems (Tsumeb,
+  // Bisbee at depth) usually carry both.
+  //
+  // pH window 5.0-7.5 (research: "mildly acidic to neutral").
+  // T window 10-100°C, optimum 15-40°C.
+  // Eh > 0.2 V — As must be As⁵⁺ (oxidizing supergene fluid).
+  if (this.fluid.Ca < 15 || this.fluid.Cu < 10 || this.fluid.As < 5) return 0;
+  if (!arsenateRedoxAvailable(this.fluid, 0.3)) return 0;
+  if (this.fluid.pH < 5.0 || this.fluid.pH > 7.5) return 0;
+  if (this.temperature < 5 || this.temperature > 100) return 0;
+  const ca_cu_total = this.fluid.Ca + this.fluid.Cu;
+  const ca_fraction = this.fluid.Ca / ca_cu_total;
+  if (ca_fraction < 0.4) return 0;  // Cu-dominant routes to olivenite
+  const ca_f = Math.min(this.fluid.Ca / 150, 2.0);
+  const cu_f = Math.min(this.fluid.Cu / 30, 2.0);
+  const as_f = Math.min(this.fluid.As / 15, 2.5);
+  const ox_f = arsenateRedoxFactor(this.fluid, 1.0, 2.0);
+  let sigma = ca_f * cu_f * as_f * ox_f;
+  const T = this.temperature;
+  let T_factor;
+  if (T >= 15 && T <= 40) T_factor = 1.2;
+  else if (T < 15) T_factor = Math.max(0.3, 0.4 + 0.05 * (T - 5));
+  else if (T <= 60) T_factor = Math.max(0.5, 1.2 - 0.025 * (T - 40));
+  else T_factor = 0.3;
+  sigma *= T_factor;
+  // Sweet-spot bonus — Ca-dominant with Cu trace is the Ca-Cu sweet
+  // spot (Tsumeb / Bisbee deep gossan). Pure-Ca (Cu < trace) is
+  // structurally impossible (Cu is in the formula).
+  if (ca_fraction >= 0.55 && ca_fraction <= 0.90) sigma *= 1.2;
+  // Pb suppression — research-conichalcite.md: "high Pb favors
+  // mimetite/pyromorphite" via Pb²⁺ competing with Ca²⁺ for the
+  // arsenate anion.
+  if (this.fluid.Pb > 50) sigma *= Math.max(0.4, 1.0 - (this.fluid.Pb - 50) / 200);
+  if (ACTIVITY_CORRECTED_SUPERSAT) sigma *= activityCorrectionFactor(this.fluid, 'conichalcite');
+  return Math.max(sigma, 0);
+},
+
   supersaturation_mimetite() {
   if (this.fluid.Pb < 5 || this.fluid.As < 3 || this.fluid.Cl < 2 || !arsenateRedoxAvailable(this.fluid, 0.3)) return 0;
   let sigma = (this.fluid.Pb / 60.0) * (this.fluid.As / 25.0) * (this.fluid.Cl / 30.0) * arsenateRedoxFactor(this.fluid, 1.0);

@@ -133,4 +133,9 @@ const MINERAL_ENGINES = {
   // Thermoluminescence property carried on the spec (not a runtime
   // mechanic — flagged for future render hook).
   lepidolite: grow_lepidolite,
+  // v87 (2026-05-19): Ca-Cu arsenate, cation analog of olivenite.
+  // Vivid emerald-green from Cu²⁺ chromophore + Ca-Cu cation-fork
+  // mechanic (Ca/(Ca+Cu) > 0.4 routes to conichalcite; Cu-dominant
+  // stays with olivenite). Tsumeb / Bisbee supergene oxidation zone.
+  conichalcite: grow_conichalcite,
 };

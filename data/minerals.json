@@ -8530,6 +8530,125 @@
       "audit_status": "Round 8d-3 (Apr 2026). Engine + supersaturation + nucleation + narrator complete in vugg.py + web/index.html. Cu/Zn ratio dispatch with adamite (when Zn>Cu → adamite, when Cu≥Zn → olivenite). Adamite engine also updated with the inverse dispatch (returns 0 when Cu>Zn). Cu+As+oxidizing, T 10-50°C peak 20-40. Substrate preference: malachite (the Cu-carbonate companion). Activates with existing Tsumeb supergene_oxidation Cu=55 + As=12 chemistry. Source: boss research file.",
       "class_color": "#13eb13"
     },
+    "conichalcite": {
+      "formula": "CaCu(AsO4)(OH)",
+      "nucleation_sigma": 1.0,
+      "max_nucleation_count": 4,
+      "max_size_cm": 0.5,
+      "growth_rate_mult": 0.35,
+      "habit_variants": [
+        {
+          "name": "acicular",
+          "wall_spread": 0.3,
+          "void_reach": 0.7,
+          "vector": "projecting",
+          "trigger": "high σ (>1.5) — radiating acicular needle clusters, the Tsumeb display habit"
+        },
+        {
+          "name": "botryoidal",
+          "wall_spread": 0.55,
+          "void_reach": 0.45,
+          "vector": "coating",
+          "trigger": "moderate σ (0.5-1.5) — reniform/botryoidal mass with radiating fibrous interior, the field-common form"
+        },
+        {
+          "name": "drusy_coating",
+          "wall_spread": 0.85,
+          "void_reach": 0.15,
+          "vector": "coating",
+          "trigger": "low σ (<0.5) — thin drusy emerald-green crust on substrate"
+        }
+      ],
+      "class": "arsenate",
+      "description": "CaCu(AsO₄)(OH) — orthorhombic Ca-Cu arsenate (pseudo-monoclinic via {110} twinning). Vivid emerald to apple-green from Cu²⁺ chromophore in octahedral coordination. Harder (Mohs 4.5) and brighter than its Ca-free cation analog olivenite (Mohs 3, olive-drab) — the Ca-Cu substitution stiffens the structure and shifts the absorption spectrum. Supergene mineral: forms in oxidized Cu-As vein deposits and porphyry copper oxidation zones, particularly where carbonate-buffered groundwater supplies Ca alongside the Cu and As from weathering primary sulfides/arsenides. Cation fork against olivenite — conichalcite when Ca/(Ca+Cu) > 0.4 in the local fluid; Cu-dominant routes to olivenite. The two may coexist in the same vug as a 'two-shade green' assemblage. Mn substitution possible (yellow-greenish cast). Type locality: Hinojosa de Córdoba, Spain (Breithaupt 1849). Famous from Tsumeb, Bisbee, Lavrion, Cap Garonne. Sources: research/research-conichalcite.md (boss canonical 2026-05); Anthony et al. Handbook of Mineralogy Vol. IV.",
+      "scenarios": [
+        "supergene_oxidation",
+        "bisbee",
+        "schneeberg"
+      ],
+      "T_range_C": [
+        5,
+        100
+      ],
+      "T_optimum_C": [
+        15,
+        40
+      ],
+      "T_behavior": "window",
+      "pH_dissolution_below": 4.5,
+      "pH_dissolution_above": null,
+      "redox_requirement": "oxidizing",
+      "required_ingredients": {
+        "Ca": 15,
+        "Cu": 10,
+        "As": 5
+      },
+      "_ingredients_note": "v87 (2026-05-19): Ca threshold 15 ppm (loose enough to fire at supergene_oxidation Ca=120 + Tsumeb-style supergene; falls below in pure-Cu porphyry like bisbee at Ca=60 — but the Ca/(Ca+Cu) > 0.4 cation gate is the real selectivity). Cu and As thresholds mirror olivenite's olivenite-relaxed sim-ppm gates (50→10, 10→5) since conichalcite shares the same supergene Cu-As fluid budget but Ca-cation share dilutes the per-element concentrations.",
+      "trace_ingredients": {
+        "Fe": "Fe substitutes for Cu, shifts color yellowish-green (transitional toward austinite Ca-Zn-As); >30 ppm flagged in growth note",
+        "Zn": "Zn substitutes for Cu — austinite-end (Ca-Zn-arsenate); minor at low %, but conichalcite stays the dominant species when Cu > Zn",
+        "P": "phosphate may substitute for arsenate (research §Elemental Requirements); transitional toward Ca-Cu-phosphate variant",
+        "Pb": "Pb > 50 ppm suppresses conichalcite by routing the fluid to mimetite/pyromorphite (Pb-arsenate-chloride takes priority)",
+        "Co": "high Co favors erythrite over conichalcite",
+        "Ni": "high Ni favors annabergite over conichalcite"
+      },
+      "thermal_decomp_C": 400,
+      "thermal_decomp_reaction": "Dehydroxylation begins ~300-400°C; decomposition >500°C to CuO + Ca arsenate + H₂O",
+      "thermal_decomp_products": {
+        "Ca": 0.0,
+        "Cu": 0.0,
+        "As": 0.0
+      },
+      "fluorescence": {
+        "activator": null,
+        "threshold_ppm": 0,
+        "color": null,
+        "quencher": "Cu²⁺ — same chromophore-as-quencher pattern that suppresses fluorescence in torbernite/zeunerite/olivenite",
+        "status": "non-fluorescent under any standard UV wavelength (Cu²⁺ powerful internal quencher)"
+      },
+      "twin_laws": [
+        {
+          "name": "conichalcite_110",
+          "composition_plane": "{110}",
+          "twin_axis": "[001]",
+          "probability": 0.30,
+          "trigger": "common {110} twinning produces pseudo-monoclinic optical character (research §Crystal System)"
+        }
+      ],
+      "acid_dissolution": {
+        "pH_threshold": 4.5,
+        "reaction": "CaCu(AsO₄)(OH) + 4H⁺ → Ca²⁺ + Cu²⁺ + H₃AsO₄ + H₂O (readily dissolves in HCl/HNO₃; soluble in dilute mineral acids)",
+        "products": {
+          "Ca": 0.2,
+          "Cu": 0.3,
+          "As": 0.3
+        }
+      },
+      "habit": "botryoidal",
+      "color_rules": {
+        "emerald_green": {
+          "default": true,
+          "trigger": "Cu²⁺ chromophore in octahedral coordination — the species signature"
+        },
+        "apple_green": {
+          "trigger": "moderate σ — slightly paler emerald, the field-common color"
+        },
+        "yellow_green": {
+          "trigger": "Fe > 30 ppm — Fe substitution shifts toward austinite color spectrum"
+        },
+        "pale_green": {
+          "trigger": "Zn > 20 ppm — austinite-end (Ca-Zn-arsenate); transitional toward pale yellow"
+        }
+      },
+      "narrate_function": null,
+      "runtimes_present": [
+        "js"
+      ],
+      "audit_status": "new v87 (2026-05-19). Per research-conichalcite.md (boss canonical 2026-05). Ca-cation analog of olivenite, completing the Ca-Cu supergene arsenate fork. Cation gate Ca/(Ca+Cu) > 0.4 in supersaturation_conichalcite (mirrors autunite-vs-torbernite Round 9d cation fork). Substrate preference: scorodite > olivenite > native_copper > malachite > chrysocolla > wall, per research §Paragenetic Position. Slots into supergene_oxidation (primary target; Tsumeb-style Ca=120 + Cu=55 + As=25 cleanly clears the cation gate) + bisbee (deep gossan after Cu depletion brings the ratio above 0.4) + schneeberg (late Cu-depletion phase when Ca rises). Sources: research-conichalcite.md; Anthony et al. Handbook of Mineralogy Vol. IV; Breithaupt 1849 (type-locality Hinojosa).",
+      "late_stage_propensity": 0.5,
+      "_late_stage_note": "Proposal C (2026-05): propensity:0.5. Supergene Ca-Cu arsenate forms in the late oxidation zone alongside malachite/chrysocolla/azurite. Not as late as efflorescent crusts (chalcanthite 0.7-0.8) but later than primary Cu-As phases.",
+      "class_color": "#1eb86c"
+    },
     "chalcanthite": {
       "formula": "CuSO4·5H2O",
       "nucleation_sigma": 1.0,

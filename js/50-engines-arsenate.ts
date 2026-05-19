@@ -61,6 +61,83 @@ function grow_scorodite(crystal, conditions, step) {
   });
 }
 
+function grow_conichalcite(crystal, conditions, step) {
+  // CaCu(AsO₄)(OH) — orthorhombic Ca-Cu arsenate. Vivid emerald-green
+  // chromophore (Cu²⁺ in octahedral coordination), Mohs 4.5 (harder
+  // than olivenite at 3 — the Ca-Cu substitution stiffens the
+  // structure). Per research-conichalcite.md (boss canonical 2026-05).
+  //
+  // Habit dispatch:
+  //   high σ (>1.5)        → acicular/prismatic (Tsumeb display)
+  //   moderate σ (0.5-1.5) → botryoidal/reniform with radiating fibrous
+  //                          interior (the field-common form)
+  //   low σ (<0.5)         → drusy_coating (crust on substrate)
+  const sigma = conditions.supersaturation_conichalcite();
+  if (sigma < 1.0) {
+    // Acid dissolution: pH < 4.5 destroys conichalcite (research:
+    // "readily dissolves in HCl/HNO₃")
+    if (crystal.total_growth_um > 5 && conditions.fluid.pH < 4.5) {
+      crystal.dissolved = true;
+      return new GrowthZone({
+        step, temperature: conditions.temperature,
+        thickness_um: -1.0, growth_rate: -1.0,
+        dissolutionMode: 'acid',
+        note: `acid dissolution (pH ${conditions.fluid.pH.toFixed(1)}) — Ca²⁺ + Cu²⁺ + AsO₄³⁻ released`
+      });
+    }
+    return null;
+  }
+  const excess = sigma - 1.0;
+  const rate = 2.3 * excess * rng.uniform(0.8, 1.2);
+  if (rate < 0.1) return null;
+
+  let habit_note;
+  if (excess > 1.5) {
+    crystal.habit = 'acicular';
+    crystal.dominant_forms = ['radiating acicular needles', 'prismatic {110} clusters', 'emerald-green'];
+    habit_note = 'acicular conichalcite — Tsumeb display habit (high-σ)';
+  } else if (excess > 0.5) {
+    crystal.habit = 'botryoidal';
+    crystal.dominant_forms = ['botryoidal/reniform mass', 'radiating fibrous interior', 'emerald-to-apple green'];
+    habit_note = 'botryoidal conichalcite — field-common habit (mod σ)';
+  } else {
+    crystal.habit = 'drusy_coating';
+    crystal.dominant_forms = ['drusy green coating', 'thin emerald film'];
+    habit_note = 'drusy conichalcite — low-σ surface crust';
+  }
+
+  // Color modulation by trace Fe (research: "Fe trace-10% shifts color
+  // yellowish-green")
+  if (conditions.fluid.Fe > 30) {
+    const fe_pct = Math.min(20, 100 * conditions.fluid.Fe / (conditions.fluid.Cu + conditions.fluid.Fe + 1));
+    if (fe_pct > 5) habit_note += `; Fe-bearing (${fe_pct.toFixed(0)}% Fe — yellowish-green cast, transitional toward austinite)`;
+  }
+  // Substrate annotation
+  const pos = crystal.position || '';
+  if (typeof pos === 'string') {
+    if (pos.includes('olivenite')) habit_note += ' — coexisting with olivenite (two-shade green vug)';
+    else if (pos.includes('scorodite')) habit_note += ' — overgrowing scorodite';
+    else if (pos.includes('malachite')) habit_note += ' — alongside malachite (Cu+CO3 vs Cu+As branches)';
+    else if (pos.includes('chrysocolla')) habit_note += ' — on chrysocolla matrix';
+    else if (pos.includes('native_copper')) habit_note += ' — alongside native copper';
+  }
+
+  // Mass balance: Ca, Cu, As all consumed; OH from H2O/pH buffer.
+  conditions.fluid.Ca = Math.max(conditions.fluid.Ca - rate * 0.020, 0);
+  conditions.fluid.Cu = Math.max(conditions.fluid.Cu - rate * 0.015, 0);
+  conditions.fluid.As = Math.max(conditions.fluid.As - rate * 0.010, 0);
+
+  const trace_Fe = conditions.fluid.Fe * 0.010;
+  const trace_Zn = conditions.fluid.Zn * 0.008;  // Zn may substitute for Cu (austinite-end)
+
+  return new GrowthZone({
+    step, temperature: conditions.temperature,
+    thickness_um: rate, growth_rate: rate,
+    trace_Fe, trace_Zn,
+    note: habit_note,
+  });
+}
+
 function grow_olivenite(crystal, conditions, step) {
   const sigma = conditions.supersaturation_olivenite();
   if (sigma < 1.0) return null;

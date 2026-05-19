@@ -2506,5 +2506,66 @@
 //            micas." Mineralogy and Petrology 55: 203-215.
 //          * research/research-lepidolite.md (canonical research-agent
 //            file, May 2026 — boss research drop).
-const SIM_VERSION = 86;
+//   v87 — Conichalcite (2026-05-19). Orthorhombic Ca-Cu arsenate
+//        CaCu(AsO₄)(OH) — vivid emerald-green from Cu²⁺ chromophore.
+//        Per research-conichalcite.md (boss canonical 2026-05).
+//        Ca-cation analog of olivenite (Mohs 4.5 vs olivenite's 3 —
+//        the Ca-Cu substitution stiffens the lattice). Slots into
+//        supergene_oxidation (primary: Ca=120 + Cu=55 + As=25 cleanly
+//        clears the Ca/(Ca+Cu) > 0.4 cation fork), bisbee (deep gossan
+//        after Cu depletion), and schneeberg (late Cu-depletion phase).
+//
+//        Cation-fork mechanic: mirrors the Round 9d autunite-vs-
+//        torbernite Cu/Ca fork on the P-anion branch. Here:
+//          Ca/(Ca+Cu) > 0.4  → conichalcite (this commit)
+//          Ca/(Ca+Cu) <= 0.4 → olivenite (existing v8 engine)
+//        Threshold at 0.4 (not 0.5) because conichalcite is structurally
+//        permissive — even a Cu-rich fluid can produce conichalcite
+//        when Ca is around. Supergene Cu-As fluids in carbonate-
+//        buffered systems (Tsumeb, Bisbee at depth) usually carry both.
+//
+//        Implementation:
+//          * supersaturation_conichalcite (30-supersat-arsenate.ts):
+//            gates Ca>=15, Cu>=10, As>=5, oxidizing (As must be As⁵⁺
+//            for arsenate stability); pH 5.0-7.5; T 5-100°C, optimum
+//            15-40°C; cation gate Ca/(Ca+Cu) > 0.4; Pb-suppression
+//            above 50 ppm routes to mimetite.
+//          * grow_conichalcite (50-engines-arsenate.ts): rate=2.3*excess.
+//            Habit dispatch: acicular at high σ (Tsumeb display) →
+//            botryoidal at moderate σ (field-common) → drusy_coating
+//            at low σ. Acid dissolution below pH 4.5.
+//          * _nuc_conichalcite (80-nucleation-arsenate.ts): substrate
+//            priority scorodite > olivenite > native_copper > malachite
+//            > chrysocolla > wall (per research §Paragenetic Position).
+//          * MINERAL_ENGINES.conichalcite wired in 65-mineral-engines.ts.
+//          * data/minerals.json entry with 4 color rules (emerald/apple/
+//            yellow-green Fe-modified/pale-green Zn-substituted), the
+//            common {110} twin law, and explicit Cu²⁺ fluorescence
+//            quenching note.
+//
+//        Calibration drift: supergene_oxidation only (seed 42). Bisbee
+//        initial Cu=400 is so high that even after the weathering
+//        events strip Cu, the Ca/(Ca+Cu) ratio never crosses 0.4 at
+//        seed 42 — conichalcite stays dormant; olivenite is the
+//        Cu-As champion there. Schneeberg's Cu-depletion phase brings
+//        Cu down but As also drops (consumed by arsenide weathering
+//        + native_arsenic precipitation), so the As>=5 gate is at
+//        the borderline; no conichalcite at seed 42 in the v87 baseline.
+//        These scenarios may produce conichalcite at other seeds or
+//        with future event tunings, but the v87 baseline locks
+//        supergene_oxidation as the single calibrated firing slot
+//        (Tsumeb-style Ca-rich supergene = primary conichalcite home).
+//
+//        Coverage 100 → 101 live (+conichalcite) / 24 dead / 0 stale.
+//        seed42_v87.json captures the supergene_oxidation drift;
+//        other 25 scenarios byte-identical to v86.
+//
+//        References (from research-conichalcite.md):
+//          * Breithaupt A. (1849) — type-locality description, Hinojosa
+//            de Córdoba, Spain.
+//          * Anthony J. et al. — Handbook of Mineralogy Vol. IV
+//            (arsenates, phosphates, vanadates).
+//          * research/research-conichalcite.md (canonical research-agent
+//            file, May 2026 — boss research drop).
+const SIM_VERSION = 87;
 

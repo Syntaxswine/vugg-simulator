@@ -6841,7 +6841,60 @@ let timeScale = 5.0;
 //            micas." Mineralogy and Petrology 55: 203-215.
 //          * research/research-lepidolite.md (canonical research-agent
 //            file, May 2026 — boss research drop).
-const SIM_VERSION = 86;
+//   v87 — Conichalcite (2026-05-19). Orthorhombic Ca-Cu arsenate
+//        CaCu(AsO₄)(OH) — vivid emerald-green from Cu²⁺ chromophore.
+//        Per research-conichalcite.md (boss canonical 2026-05).
+//        Ca-cation analog of olivenite (Mohs 4.5 vs olivenite's 3 —
+//        the Ca-Cu substitution stiffens the lattice). Slots into
+//        supergene_oxidation (primary: Ca=120 + Cu=55 + As=25 cleanly
+//        clears the Ca/(Ca+Cu) > 0.4 cation fork), bisbee (deep gossan
+//        after Cu depletion), and schneeberg (late Cu-depletion phase).
+//
+//        Cation-fork mechanic: mirrors the Round 9d autunite-vs-
+//        torbernite Cu/Ca fork on the P-anion branch. Here:
+//          Ca/(Ca+Cu) > 0.4  → conichalcite (this commit)
+//          Ca/(Ca+Cu) <= 0.4 → olivenite (existing v8 engine)
+//        Threshold at 0.4 (not 0.5) because conichalcite is structurally
+//        permissive — even a Cu-rich fluid can produce conichalcite
+//        when Ca is around. Supergene Cu-As fluids in carbonate-
+//        buffered systems (Tsumeb, Bisbee at depth) usually carry both.
+//
+//        Implementation:
+//          * supersaturation_conichalcite (30-supersat-arsenate.ts):
+//            gates Ca>=15, Cu>=10, As>=5, oxidizing (As must be As⁵⁺
+//            for arsenate stability); pH 5.0-7.5; T 5-100°C, optimum
+//            15-40°C; cation gate Ca/(Ca+Cu) > 0.4; Pb-suppression
+//            above 50 ppm routes to mimetite.
+//          * grow_conichalcite (50-engines-arsenate.ts): rate=2.3*excess.
+//            Habit dispatch: acicular at high σ (Tsumeb display) →
+//            botryoidal at moderate σ (field-common) → drusy_coating
+//            at low σ. Acid dissolution below pH 4.5.
+//          * _nuc_conichalcite (80-nucleation-arsenate.ts): substrate
+//            priority scorodite > olivenite > native_copper > malachite
+//            > chrysocolla > wall (per research §Paragenetic Position).
+//          * MINERAL_ENGINES.conichalcite wired in 65-mineral-engines.ts.
+//          * data/minerals.json entry with 4 color rules (emerald/apple/
+//            yellow-green Fe-modified/pale-green Zn-substituted), the
+//            common {110} twin law, and explicit Cu²⁺ fluorescence
+//            quenching note.
+//
+//        Calibration drift expected on: supergene_oxidation (primary
+//        target, conichalcite + RNG cascade); bisbee (late gossan
+//        adds conichalcite when Cu has depleted enough); schneeberg
+//        (Cu-depletion phase fires conichalcite alongside the Ca-uranyls).
+//
+//        Coverage 100 → 101 live (+conichalcite) / 24 dead / 0 stale.
+//        seed42_v87.json captures the drift; other scenarios byte-
+//        identical to v86.
+//
+//        References (from research-conichalcite.md):
+//          * Breithaupt A. (1849) — type-locality description, Hinojosa
+//            de Córdoba, Spain.
+//          * Anthony J. et al. — Handbook of Mineralogy Vol. IV
+//            (arsenates, phosphates, vanadates).
+//          * research/research-conichalcite.md (canonical research-agent
+//            file, May 2026 — boss research drop).
+const SIM_VERSION = 87;
 
 // ── 18-constants.js ──
 
@@ -11316,6 +11369,68 @@ Object.assign(VugConditions.prototype, {
         // and stibnite the same day.
         return Math.max(sigma, 0);
     },
+    supersaturation_conichalcite() {
+        // CaCu(AsO₄)(OH) — orthorhombic Ca-Cu arsenate. Vivid emerald to
+        // apple green (Cu²⁺ chromophore). Per research-conichalcite.md (boss
+        // canonical 2026-05): supergene Cu-As oxidation zone, Ca-cation
+        // analog of olivenite (Cu only). The two coexist but are
+        // differentiated by Ca/(Ca+Cu) ratio — conichalcite when Ca dominates
+        // ("contains calcium, which makes it harder Mohs 4.5 vs 3 for
+        // olivenite, and typically brighter in color").
+        //
+        // Cation-fork mechanic (mirrors autunite-vs-torbernite, Round 9d):
+        // Ca/(Ca+Cu) > 0.4 → conichalcite path; Cu-dominant → olivenite.
+        // The threshold is at 0.4 rather than 0.5 because conichalcite is
+        // structurally permissive — even a Cu-dominant fluid can produce
+        // conichalcite if enough Ca is around to occupy the cation site;
+        // supergene Cu-As fluids in carbonate-buffered systems (Tsumeb,
+        // Bisbee at depth) usually carry both.
+        //
+        // pH window 5.0-7.5 (research: "mildly acidic to neutral").
+        // T window 10-100°C, optimum 15-40°C.
+        // Eh > 0.2 V — As must be As⁵⁺ (oxidizing supergene fluid).
+        if (this.fluid.Ca < 15 || this.fluid.Cu < 10 || this.fluid.As < 5)
+            return 0;
+        if (!arsenateRedoxAvailable(this.fluid, 0.3))
+            return 0;
+        if (this.fluid.pH < 5.0 || this.fluid.pH > 7.5)
+            return 0;
+        if (this.temperature < 5 || this.temperature > 100)
+            return 0;
+        const ca_cu_total = this.fluid.Ca + this.fluid.Cu;
+        const ca_fraction = this.fluid.Ca / ca_cu_total;
+        if (ca_fraction < 0.4)
+            return 0; // Cu-dominant routes to olivenite
+        const ca_f = Math.min(this.fluid.Ca / 150, 2.0);
+        const cu_f = Math.min(this.fluid.Cu / 30, 2.0);
+        const as_f = Math.min(this.fluid.As / 15, 2.5);
+        const ox_f = arsenateRedoxFactor(this.fluid, 1.0, 2.0);
+        let sigma = ca_f * cu_f * as_f * ox_f;
+        const T = this.temperature;
+        let T_factor;
+        if (T >= 15 && T <= 40)
+            T_factor = 1.2;
+        else if (T < 15)
+            T_factor = Math.max(0.3, 0.4 + 0.05 * (T - 5));
+        else if (T <= 60)
+            T_factor = Math.max(0.5, 1.2 - 0.025 * (T - 40));
+        else
+            T_factor = 0.3;
+        sigma *= T_factor;
+        // Sweet-spot bonus — Ca-dominant with Cu trace is the Ca-Cu sweet
+        // spot (Tsumeb / Bisbee deep gossan). Pure-Ca (Cu < trace) is
+        // structurally impossible (Cu is in the formula).
+        if (ca_fraction >= 0.55 && ca_fraction <= 0.90)
+            sigma *= 1.2;
+        // Pb suppression — research-conichalcite.md: "high Pb favors
+        // mimetite/pyromorphite" via Pb²⁺ competing with Ca²⁺ for the
+        // arsenate anion.
+        if (this.fluid.Pb > 50)
+            sigma *= Math.max(0.4, 1.0 - (this.fluid.Pb - 50) / 200);
+        if (ACTIVITY_CORRECTED_SUPERSAT)
+            sigma *= activityCorrectionFactor(this.fluid, 'conichalcite');
+        return Math.max(sigma, 0);
+    },
     supersaturation_mimetite() {
         if (this.fluid.Pb < 5 || this.fluid.As < 3 || this.fluid.Cl < 2 || !arsenateRedoxAvailable(this.fluid, 0.3))
             return 0;
@@ -14821,6 +14936,86 @@ function grow_scorodite(crystal, conditions, step) {
         thickness_um: rate, growth_rate: rate,
         trace_Fe: conditions.fluid.Fe * 0.005,
         note: habit_note
+    });
+}
+function grow_conichalcite(crystal, conditions, step) {
+    // CaCu(AsO₄)(OH) — orthorhombic Ca-Cu arsenate. Vivid emerald-green
+    // chromophore (Cu²⁺ in octahedral coordination), Mohs 4.5 (harder
+    // than olivenite at 3 — the Ca-Cu substitution stiffens the
+    // structure). Per research-conichalcite.md (boss canonical 2026-05).
+    //
+    // Habit dispatch:
+    //   high σ (>1.5)        → acicular/prismatic (Tsumeb display)
+    //   moderate σ (0.5-1.5) → botryoidal/reniform with radiating fibrous
+    //                          interior (the field-common form)
+    //   low σ (<0.5)         → drusy_coating (crust on substrate)
+    const sigma = conditions.supersaturation_conichalcite();
+    if (sigma < 1.0) {
+        // Acid dissolution: pH < 4.5 destroys conichalcite (research:
+        // "readily dissolves in HCl/HNO₃")
+        if (crystal.total_growth_um > 5 && conditions.fluid.pH < 4.5) {
+            crystal.dissolved = true;
+            return new GrowthZone({
+                step, temperature: conditions.temperature,
+                thickness_um: -1.0, growth_rate: -1.0,
+                dissolutionMode: 'acid',
+                note: `acid dissolution (pH ${conditions.fluid.pH.toFixed(1)}) — Ca²⁺ + Cu²⁺ + AsO₄³⁻ released`
+            });
+        }
+        return null;
+    }
+    const excess = sigma - 1.0;
+    const rate = 2.3 * excess * rng.uniform(0.8, 1.2);
+    if (rate < 0.1)
+        return null;
+    let habit_note;
+    if (excess > 1.5) {
+        crystal.habit = 'acicular';
+        crystal.dominant_forms = ['radiating acicular needles', 'prismatic {110} clusters', 'emerald-green'];
+        habit_note = 'acicular conichalcite — Tsumeb display habit (high-σ)';
+    }
+    else if (excess > 0.5) {
+        crystal.habit = 'botryoidal';
+        crystal.dominant_forms = ['botryoidal/reniform mass', 'radiating fibrous interior', 'emerald-to-apple green'];
+        habit_note = 'botryoidal conichalcite — field-common habit (mod σ)';
+    }
+    else {
+        crystal.habit = 'drusy_coating';
+        crystal.dominant_forms = ['drusy green coating', 'thin emerald film'];
+        habit_note = 'drusy conichalcite — low-σ surface crust';
+    }
+    // Color modulation by trace Fe (research: "Fe trace-10% shifts color
+    // yellowish-green")
+    if (conditions.fluid.Fe > 30) {
+        const fe_pct = Math.min(20, 100 * conditions.fluid.Fe / (conditions.fluid.Cu + conditions.fluid.Fe + 1));
+        if (fe_pct > 5)
+            habit_note += `; Fe-bearing (${fe_pct.toFixed(0)}% Fe — yellowish-green cast, transitional toward austinite)`;
+    }
+    // Substrate annotation
+    const pos = crystal.position || '';
+    if (typeof pos === 'string') {
+        if (pos.includes('olivenite'))
+            habit_note += ' — coexisting with olivenite (two-shade green vug)';
+        else if (pos.includes('scorodite'))
+            habit_note += ' — overgrowing scorodite';
+        else if (pos.includes('malachite'))
+            habit_note += ' — alongside malachite (Cu+CO3 vs Cu+As branches)';
+        else if (pos.includes('chrysocolla'))
+            habit_note += ' — on chrysocolla matrix';
+        else if (pos.includes('native_copper'))
+            habit_note += ' — alongside native copper';
+    }
+    // Mass balance: Ca, Cu, As all consumed; OH from H2O/pH buffer.
+    conditions.fluid.Ca = Math.max(conditions.fluid.Ca - rate * 0.020, 0);
+    conditions.fluid.Cu = Math.max(conditions.fluid.Cu - rate * 0.015, 0);
+    conditions.fluid.As = Math.max(conditions.fluid.As - rate * 0.010, 0);
+    const trace_Fe = conditions.fluid.Fe * 0.010;
+    const trace_Zn = conditions.fluid.Zn * 0.008; // Zn may substitute for Cu (austinite-end)
+    return new GrowthZone({
+        step, temperature: conditions.temperature,
+        thickness_um: rate, growth_rate: rate,
+        trace_Fe, trace_Zn,
+        note: habit_note,
     });
 }
 function grow_olivenite(crystal, conditions, step) {
@@ -20780,6 +20975,11 @@ const MINERAL_ENGINES = {
     // Thermoluminescence property carried on the spec (not a runtime
     // mechanic — flagged for future render hook).
     lepidolite: grow_lepidolite,
+    // v87 (2026-05-19): Ca-Cu arsenate, cation analog of olivenite.
+    // Vivid emerald-green from Cu²⁺ chromophore + Ca-Cu cation-fork
+    // mechanic (Ca/(Ca+Cu) > 0.4 routes to conichalcite; Cu-dominant
+    // stays with olivenite). Tsumeb / Bisbee supergene oxidation zone.
+    conichalcite: grow_conichalcite,
 };
 
 // ── 70-events.js ──
@@ -22558,6 +22758,45 @@ function _nuc_olivenite(sim) {
     }
     // Nickeline nucleation — Ni + As + reducing + high T.
 }
+function _nuc_conichalcite(sim) {
+    // CaCu(AsO₄)(OH) — supergene Ca-Cu arsenate. The Ca-cation analog of
+    // olivenite; fires when Ca/(Ca+Cu) > 0.4 in the local fluid (the
+    // supersaturation gate enforces this). Substrate priority per
+    // research-conichalcite.md §Paragenetic Position: scorodite (As-
+    // source weathering product) > olivenite (Cu-As coexistence per
+    // research's "May coexist in same vug as two green shades") > native
+    // copper > malachite > chrysocolla > bare wall.
+    const sigma_con = sim.conditions.supersaturation_conichalcite();
+    if (sigma_con > 1.0 && !sim._atNucleationCap('conichalcite')) {
+        if (rng.random() < 0.20) {
+            let pos = 'vug wall';
+            const active_scor_con = sim.crystals.filter(c => c.mineral === 'scorodite' && c.active);
+            const active_oli_con = sim.crystals.filter(c => c.mineral === 'olivenite' && c.active);
+            const active_nc_con = sim.crystals.filter(c => c.mineral === 'native_copper' && c.active);
+            const active_mal_con = sim.crystals.filter(c => c.mineral === 'malachite' && c.active);
+            const active_chry_con = sim.crystals.filter(c => c.mineral === 'chrysocolla' && c.active);
+            if (active_scor_con.length && rng.random() < 0.35) {
+                pos = `on scorodite #${active_scor_con[0].crystal_id}`;
+            }
+            else if (active_oli_con.length && rng.random() < 0.30) {
+                pos = `on olivenite #${active_oli_con[0].crystal_id}`;
+            }
+            else if (active_nc_con.length && rng.random() < 0.25) {
+                pos = `on native_copper #${active_nc_con[0].crystal_id}`;
+            }
+            else if (active_mal_con.length && rng.random() < 0.25) {
+                pos = `on malachite #${active_mal_con[0].crystal_id}`;
+            }
+            else if (active_chry_con.length && rng.random() < 0.25) {
+                pos = `on chrysocolla #${active_chry_con[0].crystal_id}`;
+            }
+            const c = sim.nucleate('conichalcite', pos, sigma_con);
+            const f = sim.conditions.fluid;
+            const ca_fr = f.Ca / (f.Ca + f.Cu);
+            sim.log.push(`  ✦ NUCLEATION: Conichalcite #${c.crystal_id} on ${c.position} (T=${sim.conditions.temperature.toFixed(0)}°C, σ=${sigma_con.toFixed(2)}, Ca=${f.Ca.toFixed(0)}, Cu=${f.Cu.toFixed(0)}, As=${f.As.toFixed(0)}, Ca/(Ca+Cu)=${ca_fr.toFixed(2)})`);
+        }
+    }
+}
 function _nucleateClass_arsenate(sim) {
     _nuc_scorodite(sim);
     _nuc_adamite(sim);
@@ -22565,6 +22804,7 @@ function _nucleateClass_arsenate(sim) {
     _nuc_erythrite(sim);
     _nuc_annabergite(sim);
     _nuc_olivenite(sim);
+    _nuc_conichalcite(sim);
 }
 
 // ── 81-nucleation-borate.js ──
