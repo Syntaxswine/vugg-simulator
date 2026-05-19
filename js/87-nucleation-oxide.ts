@@ -93,6 +93,44 @@ function _nuc_chromite(sim) {
   }
 }
 
+function _nuc_cassiterite(sim) {
+  // SnO₂ — primary tin ore, late-pegmatite to greisen to hydrothermal
+  // vein. Per research-cassiterite.md (boss canonical 2026-05).
+  // Substrate priority encodes the documented paragenetic ordering
+  // (research §Paragenetic Sequence): forms AFTER granite fractionation
+  // (Sn concentrates in late melts), BEFORE late sulfides. Typical
+  // associations: wolframite, fluorite, topaz, tourmaline, arsenopyrite,
+  // quartz. Cassiterite-on-wolframite is the classic Erzgebirge /
+  // Cornwall greisen association.
+  const sigma_sn = sim.conditions.supersaturation_cassiterite();
+  if (sigma_sn > 1.2 && !sim._atNucleationCap('cassiterite')) {
+    if (rng.random() < 0.18) {
+      let pos = 'vug wall';
+      const active_wf_sn   = sim.crystals.filter(c => c.mineral === 'wolframite' && c.active);
+      const active_tpz_sn  = sim.crystals.filter(c => c.mineral === 'topaz' && c.active);
+      const active_tml_sn  = sim.crystals.filter(c => c.mineral === 'tourmaline' && c.active);
+      const active_qtz_sn  = sim.crystals.filter(c => c.mineral === 'quartz' && c.active);
+      const active_feld_sn = sim.crystals.filter(c => c.mineral === 'feldspar' && c.active);
+      if (active_wf_sn.length && rng.random() < 0.40) {
+        pos = `on wolframite #${active_wf_sn[0].crystal_id} (classic Cornish Sn-W greisen pair)`;
+      } else if (active_tpz_sn.length && rng.random() < 0.30) {
+        pos = `on topaz #${active_tpz_sn[0].crystal_id}`;
+      } else if (active_tml_sn.length && rng.random() < 0.25) {
+        pos = `on tourmaline #${active_tml_sn[0].crystal_id}`;
+      } else if (active_qtz_sn.length && rng.random() < 0.30) {
+        pos = `on quartz #${active_qtz_sn[0].crystal_id}`;
+      } else if (active_feld_sn.length && rng.random() < 0.20) {
+        pos = `on feldspar #${active_feld_sn[0].crystal_id}`;
+      }
+      const c = sim.nucleate('cassiterite', pos, sigma_sn);
+      const f = sim.conditions.fluid;
+      const T = sim.conditions.temperature;
+      const habit_preview = T > 500 ? 'prismatic dipyramid' : (T >= 300 ? 'equant blocky' : 'wood-tin botryoidal');
+      sim.log.push(`  ✦ NUCLEATION: Cassiterite #${c.crystal_id} (${habit_preview}) on ${c.position} (T=${T.toFixed(0)}°C, σ=${sigma_sn.toFixed(2)}, Sn=${f.Sn.toFixed(0)} ppm, Fe=${f.Fe.toFixed(0)})`);
+    }
+  }
+}
+
 function _nucleateClass_oxide(sim) {
   _nuc_hematite(sim);
   _nuc_uraninite(sim);
@@ -100,4 +138,5 @@ function _nucleateClass_oxide(sim) {
   _nuc_cuprite(sim);
   _nuc_rutile(sim);
   _nuc_chromite(sim);
+  _nuc_cassiterite(sim);
 }

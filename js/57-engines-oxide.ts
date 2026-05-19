@@ -354,6 +354,86 @@ function grow_rutile(crystal, conditions, step) {
   });
 }
 
+// v89 (2026-05-19): cassiterite SnO2 — primary tin ore, tetragonal
+// dipyramidal. Three formation environments differentiated by T at
+// nucleation (per research-cassiterite.md §Habit correlation):
+//   T > 500°C  → prismatic_dipyramid (Erzgebirge pegmatite + Bolivia
+//                hydrothermal vein, the iconic display habit)
+//   300-500°C  → equant_octahedral (greisen-stage Cornwall, blocky)
+//   T < 300°C  → botryoidal_woodtin (low-T "wood tin", concentric
+//                colloidal banding, the placer-source habit)
+// Inert: no acid dissolution, no thermal decomposition path under
+// any geological conditions (research §Decomposition & Stability:
+// "Cassiterite is inert. Does not dissolve, decompose, or oxidize").
+function grow_cassiterite(crystal, conditions, step) {
+  const sigma = conditions.supersaturation_cassiterite();
+  if (sigma < 1.0) return null;
+  const excess = sigma - 1.0;
+  // Growth rate: slow oxide deposition, comparable to rutile/chromite
+  // base rate. Sn is incorporated 1:1 with the formula unit; trace
+  // Fe/Nb/Ta sequestered per growth zone.
+  const rate = 2.0 * excess * rng.uniform(0.85, 1.15);
+  if (rate < 0.1) return null;
+
+  const T = conditions.temperature;
+  const f = conditions.fluid;
+
+  // Habit dispatch by formation T at nucleation (research §Habit
+  // correlation). Each habit name maps to a renderer geometry token
+  // declared in the minerals.json habit_variants.
+  let habit_note;
+  if (T > 500) {
+    crystal.habit = 'prismatic_dipyramid';
+    crystal.dominant_forms = ['{110} tetragonal prism', '{111} pyramidal termination', 'elbow_twin {011} ~60° bend (diagnostic)'];
+    habit_note = 'prismatic dipyramid — Erzgebirge / Bolivia pegmatite habit (T > 500°C)';
+  } else if (T >= 300) {
+    crystal.habit = 'equant_octahedral';
+    crystal.dominant_forms = ['{110} prism', '{100} pinacoid', 'equant blocky'];
+    habit_note = 'equant blocky cassiterite — Cornwall greisen habit (T 300-500°C)';
+  } else {
+    crystal.habit = 'botryoidal_woodtin';
+    crystal.dominant_forms = ['botryoidal globule', 'concentric colloidal banding', '"wood tin" texture'];
+    habit_note = 'botryoidal wood tin — concentric banded colloidal habit (T < 300°C)';
+  }
+
+  // Color modulation by trace Fe (research: "Fe 10-1000 ppm darkens").
+  // Pure cassiterite is honey-yellow to amber; Fe-rich is black "tin
+  // pitch" (the historical Cornish miners' tinstone color).
+  let color_note;
+  if (f.Fe > 100) color_note = 'black tin-pitch (Fe-darkened, the Cornish "black jack" of the tinstone tradition)';
+  else if (f.Fe > 30) color_note = 'red-brown cassiterite (moderate Fe)';
+  else if (f.Fe > 5) color_note = 'amber to chocolate-brown cassiterite (trace Fe)';
+  else color_note = 'honey-yellow cassiterite (low-Fe, the gem-quality "tin gem" form)';
+  habit_note += `; ${color_note}`;
+
+  // Twin annotation — elbow/knee twins on {011} are diagnostic for
+  // cassiterite (research §Crystal Habits & Morphology: "Twin signature:
+  // Elbow/knee twins on {011} bent ~60°; diagnostic feature").
+  if (excess > 0.6 && rng.random() < 0.30) {
+    crystal.twinned = true;
+    crystal.twin_law = 'cassiterite_011_elbow';
+    habit_note += ' — {011} elbow twin (the diagnostic ~60° knee bend)';
+  }
+
+  // Nb/Ta coupled substitution annotation (research: "Nb/Ta trace-1%,
+  // coupled substitution")
+  if (f.Bi > 5 || f.W > 10) {
+    habit_note += `; trace Nb/Ta indicators (Bi ${f.Bi.toFixed(1)}, W ${f.W.toFixed(1)} ppm) — coupled-substitution evidence`;
+  }
+
+  // Mass balance: Sn consumed (the primary deposition); trace Fe + W
+  // sequestered as growth-zone metadata.
+  f.Sn = Math.max(f.Sn - rate * 0.025, 0);
+
+  return new GrowthZone({
+    step, temperature: conditions.temperature,
+    thickness_um: rate, growth_rate: rate,
+    trace_Fe: f.Fe * 0.008,
+    trace_W: f.W * 0.005,
+    note: habit_note,
+  });
+}
+
 // v63 brief-19: chromite FeCr2O4 — magmatic Fe-Cr spinel.
 function grow_chromite(crystal, conditions, step) {
   const sigma = conditions.supersaturation_chromite();

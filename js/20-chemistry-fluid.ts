@@ -61,6 +61,7 @@ class FluidChemistry {
     this.Au = opts.Au ?? 0.0;    // gold — native gold; Bingham/Bisbee porphyry-Cu-Au
     this.Cd = opts.Cd ?? 0.0;    // cadmium — greenockite (hex CdS), hawleyite (cubic CdS); supergene from sphalerite oxidation
     this.Hg = opts.Hg ?? 0.0;    // mercury — cinnabar (HgS); hot-spring deposits (Sulphur Bank, Almadén), sedimentary Hg in Sicilian sulfur
+    this.Sn = opts.Sn ?? 0.0;    // tin — cassiterite (SnO2); primary tin ore, late-pegmatite + greisen + hydrothermal vein; Erzgebirge/Cornwall/Bolivia/Malaysia tin belts. v89 plumbing field for the cassiterite engine; engines that consumed Sn before v89 silently skipped over it because no field existed.
     this.O2 = opts.O2 ?? 0.0;
     // Phase 4a of PROPOSAL-GEOLOGICAL-ACCURACY: redox potential Eh (mV).
     // Default +200 mV — mildly oxidizing, matches "oxic groundwater" in

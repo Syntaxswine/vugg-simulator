@@ -1056,6 +1056,15 @@
           // pegmatite paragenesis. The Au-Ag-Te trio gets its own
           // epithermal_telluride scenario.
           "W": 5,
+          // v89 plumbing: Sn for the new cassiterite engine. 80 ppm
+          // above the cassiterite engine's Sn>=20 nucleation gate.
+          // Sn is a classic LCT-pegmatite incompatible (Cassedanne
+          // 1991 documents minor cassiterite in Cruzeiro alongside
+          // wolframite; the Sn-W pair is the standard greisen-stage
+          // signature). Pre-v89 Sn was implicit at 0 (the field
+          // didn't exist); adding the explicit 80 ppm activates
+          // cassiterite alongside the existing W=5 wolframite.
+          "Sn": 80,
           "O2": 0.1,
           "pH": 6.8,
           "salinity": 6.0
@@ -1273,6 +1282,15 @@
           "P": 8,
           // Audit gap-fill: brief-required non-zero Mg (pegmatite-pocket low value).
           "Mg": 5,
+          // v89 plumbing: Sn for cassiterite. Radioactive pegmatites
+          // (Cornwall, Bohemia, Rössing) are typically Sn-bearing —
+          // the U enrichment correlates with the same LCT-pegmatite
+          // late-stage incompatible-element accumulation that drives
+          // Sn into the residual fluid. 60 ppm matches Cornwall fluid-
+          // inclusion data for the Sn-bearing greisen-stage horizons
+          // (Williamson et al. 2010); cassiterite fires alongside the
+          // existing topaz + wolframite W=5 inventory.
+          "Sn": 60,
           "O2": 0.0,
           "pH": 6.5,
           "salinity": 8.0
@@ -1403,6 +1421,19 @@
           // naumannite once Ag is also present (now seeded at 8 ppm above —
           // 2026-05 gap-fill).
           "Se": 2,
+          // v89 plumbing: Sn for cassiterite. Erzgebirge was named
+          // for the Saxon tin trade (Annaberg/Schneeberg silver and
+          // bismuth came LATER, the pre-1500s mining was for Sn —
+          // hence "Erzgebirge" / "Ore Mountains" itself meant tin
+          // mountains before it meant silver). The Walpurgis Flacher
+          // and adjacent veins host minor cassiterite in greisen
+          // zones (Förster 1992 fluid inclusions document Sn 50-300
+          // ppm in late-pegmatite Erzgebirge fluids). 60 ppm is the
+          // conservative anchor that lets cassiterite fire alongside
+          // the wolframite/topaz pegmatite phase. v85 already added
+          // W via the wolframite engine; cassiterite's Sn-W greisen
+          // pair completes the historic Erzgebirge tin signature.
+          "Sn": 60,
           // Strongly reducing initial — required for uraninite + sulfides.
           "O2": 0.0,
           "pH": 6.5,

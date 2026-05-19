@@ -144,4 +144,11 @@ const MINERAL_ENGINES = {
   // conversion to haidingerite (modeled as dissolution since
   // haidingerite isn't in the catalog).
   pharmacolite: grow_pharmacolite,
+  // v89 (2026-05-19): primary tin ore SnO2. New Sn fluid field added
+  // alongside (the first new chemistry field since v62's Cd/Hg). Three
+  // habit dispatch paths by T at nucleation: prismatic dipyramid
+  // (>500°C pegmatite), equant blocky (300-500°C greisen), botryoidal
+  // wood tin (<300°C low-T). Cassiterite is inert -- no acid
+  // dissolution, no thermal decomposition, no oxidation.
+  cassiterite: grow_cassiterite,
 };

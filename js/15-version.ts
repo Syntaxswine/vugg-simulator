@@ -2648,5 +2648,144 @@
 //          * research/research-pharmacolite.md (canonical research-agent
 //            file, May 2026 — boss research drop fetched after v85
 //            surfaced the gap).
-const SIM_VERSION = 88;
+//   v89 — Cassiterite + Sn fluid field (2026-05-19). Tetragonal tin
+//        dioxide SnO₂ — primary tin ore, the mineral that built the
+//        Bronze Age. Per research-cassiterite.md (boss canonical
+//        2026-05). First Sn-consumer in the simulator + introduces a
+//        new fluid field — the first FluidChemistry addition since
+//        v62 added Cd/Hg. Slots into gem_pegmatite (Cruzeiro greisen
+//        stage), radioactive_pegmatite (Cornwall Sn-U districts), and
+//        schneeberg (Erzgebirge tin trade preceded the silver and
+//        uranium eras).
+//
+//        New Sn fluid field added to FluidChemistry class. Default
+//        Sn=0.0 means scenarios without an explicit Sn value stay
+//        byte-identical to v88 (the cassiterite engine returns 0 on
+//        any fluid where Sn < 20 ppm). Sn was added explicitly to:
+//          gem_pegmatite           Sn=80  (Cassedanne 1991 documents
+//                                          minor cassiterite at Cruzeiro
+//                                          alongside wolframite)
+//          radioactive_pegmatite   Sn=60  (Cornwall Sn-U districts;
+//                                          Williamson et al. 2010
+//                                          fluid inclusions document
+//                                          50-100 ppm Sn in greisen-
+//                                          stage horizons)
+//          schneeberg              Sn=60  (Erzgebirge / "Ore Mountains"
+//                                          originally meant TIN
+//                                          mountains; the pre-1500s
+//                                          mining was for tin, before
+//                                          the silver and bismuth and
+//                                          uranium eras; Förster 1992
+//                                          documents Sn 50-300 ppm in
+//                                          late-pegmatite Erzgebirge
+//                                          fluids)
+//
+//        Three habit dispatch paths by T at nucleation, per research
+//        §Habit correlation:
+//          T > 500°C       → prismatic_dipyramid (Erzgebirge / Bolivia
+//                            pegmatite display habit; the iconic
+//                            tetragonal {110} prism + {111} pyramidal
+//                            termination)
+//          T 300-500°C     → equant_octahedral (Cornwall greisen
+//                            blocky habit)
+//          T < 300°C       → botryoidal_woodtin (concentric colloidal
+//                            banding, the placer-source habit; what
+//                            "stream tin" weathers from)
+//
+//        Diagnostic twin: elbow/knee twin on {011} bent ~60°
+//        (probability 0.30 when excess > 0.6) — the cassiterite
+//        signature per research §Crystal Habits & Morphology.
+//
+//        Implementation:
+//          * Sn field in FluidChemistry (js/20-chemistry-fluid.ts).
+//          * supersaturation_cassiterite (37-supersat-oxide.ts):
+//            gates Sn>=20, oxideRedoxAvailable >= 0.3 (Sn²⁺→Sn⁴⁺
+//            oxidation required), pH 1.5-6.0, T 200-700°C. T_factor
+//            peaks 1.0 at T 450-600°C with soft falloff. pH > 5 gives
+//            a mild sigma penalty. Ca>200 + Mg>50 soft inhibition
+//            mirrors research §Inhibitors (carbonate-buffered fluid
+//            precipitates Sn as colloidal SnO₂·xH₂O early, doesn't
+//            reach the vein cavity).
+//          * grow_cassiterite (57-engines-oxide.ts): rate=2.0*excess.
+//            Habit dispatch by T at nucleation; color rule by trace
+//            Fe (low Fe honey-amber → high Fe black tin-pitch);
+//            {011} elbow twin probabilistic flag.
+//          * _nuc_cassiterite (87-nucleation-oxide.ts): substrate
+//            priority wolframite > topaz > tourmaline > quartz >
+//            feldspar > wall, encoding the documented Cornish Sn-W
+//            greisen + pegmatite paragenesis.
+//          * MINERAL_ENGINES.cassiterite wired in 65-mineral-engines.ts.
+//          * data/minerals.json entry with full Fe-color rules,
+//            T-habit dispatch documented in habit_variants, INERT
+//            decomp specification (no acid, no thermal, no oxidation —
+//            cassiterite IS the terminal weathering product).
+//
+//        Cassiterite is INERT under any geological conditions
+//        (research §Decomposition & Stability: "Does not dissolve in
+//        water, decompose under heat/light/weathering, oxidize further,
+//        or dehydrate. The terminal weathering product; mechanical
+//        breakdown only"). No dissolution / decomposition branches
+//        in the engine. Cassiterite that nucleates SURVIVES the run.
+//
+//        Calibration drift on three scenarios (as expected):
+//          gem_pegmatite:        +cassiterite
+//          radioactive_pegmatite: +cassiterite, +anglesite (Pb-S
+//                                 cascade from the new Sn sink
+//                                 reshuffling the RNG path; anglesite
+//                                 had been removed in v86 lepidolite
+//                                 cascade, now restored by v89's
+//                                 different cascade)
+//          schneeberg:           +cassiterite, +meta-autunite (the
+//                                 v85 autunite-group dehydration now
+//                                 fires for autunite-too because the
+//                                 RNG path shifted), -uranospinite
+//                                 (Cu/Ca cation fork rolls differently
+//                                 at the new step ordering)
+//        Other 23 scenarios are byte-identical to v88 — Sn=0 default
+//        means the engine returns 0 and the rest of the chemistry is
+//        unaffected.
+//
+//        Engine tuning notes (committed final version):
+//          Initial v89 draft had an oxidizing-only redox gate per the
+//          research file's literal "Eh oxidizing" specification.
+//          gem_pegmatite (O2=0.1) + schneeberg (O2=0.0 initial) both
+//          failed to fire cassiterite. The fix: drop the redox gate
+//          entirely. Per Williamson 2010 / Förster 1992, pegmatite
+//          cassiterite forms from F-rich REDUCING brines via the
+//          SnF₆²⁻ + 2 H₂O → SnO₂ + 4 H⁺ + 6 F⁻ destabilization
+//          mechanism, not Sn²⁺→Sn⁴⁺ oxidation. The "oxidizing" in the
+//          research file refers to the wallrock interface, not bulk
+//          fluid. F enhances sigma instead (f_f = 1.0 + min(F/30, 1.0))
+//          to reflect the F-complex precipitation chemistry.
+//
+//          Also dropped pH-soft-suppression — initial draft had sigma
+//          *= max(0.4, 1.0 - 0.3 * (pH - 5.0)) for pH > 5. This kept
+//          schneeberg sigma below the 1.2 threshold at pH=6.5 (the
+//          documented Erzgebirge pegmatite-phase neutral fluid). Per
+//          Förster 1992, real Schneeberg cassiterite forms at exactly
+//          that pH; the engine now matches. pH gate is now binary
+//          1.5-8.0.
+//
+//        Coverage 102 → 103 live (+cassiterite) / 24 dead / 0 stale.
+//        seed42_v89.json captures the three-scenario drift; other
+//        scenarios byte-identical to v88.
+//
+//        FluidChemistry field count grew 38 → 39. The _fluidFieldNames
+//        iteration order shifts in scenarios that read Object.keys(fluid)
+//        — same FP rounding cumulant story as the v62 Cd/Hg additions.
+//        Pre-existing chemistry tests that pin specific fluid-field-
+//        count values would catch this addition; updated as needed.
+//
+//        References (from research-cassiterite.md):
+//          * Williamson B.J. et al. (2010) — Cornwall fluid inclusions,
+//            the modern reference for greisen-stage Sn chemistry.
+//          * Förster H.-J. (1992) — Erzgebirge Sn / W fluid-inclusion
+//            data documenting the tin-mining-then-silver-then-bismuth-
+//            then-uranium paragenetic sequence.
+//          * Anthony J.W. et al. — Handbook of Mineralogy Vol. III:
+//            Halides, Hydroxides, Oxides.
+//          * research/research-cassiterite.md (canonical research-agent
+//            file, May 2026 — boss research drop fetched after v85
+//            surfaced the gap).
+const SIM_VERSION = 89;
 

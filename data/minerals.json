@@ -11612,6 +11612,118 @@
       "audit_status": "new (brief-16 batch 2026-05-07). Magmatic spinel — atypical vug mineral. Listed for cataloging completeness; would only nucleate in a future layered-mafic-intrusion scenario at >1000°C, which doesn't exist. gem_pegmatite scenario is the closest existing high-T fit but pegmatites don't normally produce chromite. No engine yet.",
       "class_color": "#eb1313"
     },
+    "cassiterite": {
+      "formula": "SnO2",
+      "nucleation_sigma": 1.2,
+      "max_nucleation_count": 4,
+      "max_size_cm": 10,
+      "growth_rate_mult": 0.45,
+      "habit_variants": [
+        {
+          "name": "prismatic_dipyramid",
+          "wall_spread": 0.3,
+          "void_reach": 0.7,
+          "vector": "projecting",
+          "trigger": "T > 500°C — tetragonal {110} prism + {111} pyramidal termination, the Erzgebirge / Bolivia pegmatite display habit"
+        },
+        {
+          "name": "equant_octahedral",
+          "wall_spread": 0.45,
+          "void_reach": 0.55,
+          "vector": "equant",
+          "trigger": "T 300-500°C — blocky equant cassiterite, the Cornwall greisen habit"
+        },
+        {
+          "name": "botryoidal_woodtin",
+          "wall_spread": 0.75,
+          "void_reach": 0.25,
+          "vector": "coating",
+          "trigger": "T < 300°C — concentric colloidal banded 'wood tin', the low-T placer-source habit"
+        },
+        {
+          "name": "elbow_twin",
+          "wall_spread": 0.35,
+          "void_reach": 0.6,
+          "vector": "projecting",
+          "trigger": "{011} ~60° knee bend — the diagnostic cassiterite twin, fires probabilistically at moderate-to-high σ"
+        }
+      ],
+      "class": "oxide",
+      "description": "SnO₂ — tetragonal tin dioxide, the primary tin ore that built the Bronze Age. Sn⁴⁺ only; fully oxidized; inert under any geological conditions (melts at 1630°C, doesn't dissolve in water or acid, doesn't decompose, doesn't oxidize further — it IS the terminal weathering product). The honey-yellow to amber to chocolate-brown to black 'tinstone' that the Cornish miners called 'black jack' and the Bohemian / Saxon miners called 'Zinnstein'. Three formation environments: pegmatitic at 400-700°C (Erzgebirge, Cornwall, San Diego County) yielding prismatic dipyramids with the diagnostic ~60° elbow/knee twin on {011}; hydrothermal at 300-500°C (Bolivia tin belt, Cornish greisen veins) yielding equant blocky crystals; low-T colloidal at < 300°C yielding 'wood tin', concentric-banded botryoidal masses that survive in placer deposits. Fe (10-1000 ppm) progressively darkens; Nb/Ta couple-substitute as accessory traces. The Erzgebirge tin trade preceded the silver/bismuth/uranium eras — 'Ore Mountains' originally meant tin mountains. Sources: research/research-cassiterite.md (boss canonical 2026-05); Williamson et al. 2010 (Cornwall fluid inclusions); Förster 1992 (Erzgebirge tin geology); Anthony et al. Handbook of Mineralogy Vol. III.",
+      "scenarios": [
+        "gem_pegmatite",
+        "radioactive_pegmatite",
+        "schneeberg"
+      ],
+      "T_range_C": [
+        200,
+        700
+      ],
+      "T_optimum_C": [
+        450,
+        600
+      ],
+      "T_behavior": "wide",
+      "pH_dissolution_below": null,
+      "pH_dissolution_above": null,
+      "redox_requirement": "any",
+      "required_ingredients": {
+        "Sn": 20
+      },
+      "_ingredients_note": "v89 (2026-05-19): Sn-only is the gate per research-cassiterite.md (Sn ≥ 50 ppm nucleation, ≥ 10 ppm growth per research; sim gate at 20 lets cassiterite respond to scenarios with moderate Sn enrichment without requiring the high end of the literature range). Sn is the new FluidChemistry field added in v89 alongside this engine — see js/20-chemistry-fluid.ts. Redox: 'any' rather than 'oxidizing' per Williamson 2010 / Förster 1992 — pegmatite cassiterite forms from F-rich REDUCING brines via the SnF₆²⁻ + 2 H₂O → SnO₂ + 4 H⁺ + 6 F⁻ destabilization mechanism, not Sn²⁺→Sn⁴⁺ oxidation. Research file's literal 'oxidizing' applies to the wallrock interface, not bulk fluid. F-enhancement in the engine reflects the F-complex precipitation chemistry.",
+      "trace_ingredients": {
+        "Fe": "10-1000 ppm progressively darkens cassiterite from honey-yellow → amber → red-brown → black tin-pitch; the Cornish 'black jack' tinstone is Fe-rich",
+        "Nb": "trace-1% coupled substitution with Ta and Sn — typical late-pegmatite accessory",
+        "Ta": "trace-1% coupled substitution; Nb/Ta ratio is a provenance fingerprint",
+        "Ti": "trace-2% substitution; produces minor cathodoluminescence under SEM",
+        "W": "Sn-W greisen pair partner — high W signals greisen-stage co-deposition with wolframite",
+        "Bi": "trace from pegmatite-residual association (Schneeberg / Erzgebirge specifically)"
+      },
+      "thermal_decomp_C": null,
+      "thermal_decomp_reaction": "INERT — cassiterite does not decompose under any geological conditions. Melts at 1630°C (above any geological setting in the simulator). No dissolution path. No oxidation path (Sn⁴⁺ is already fully oxidized). The terminal weathering product; mechanical breakdown to placer 'stream tin' only.",
+      "thermal_decomp_products": {},
+      "fluorescence": {
+        "activator": null,
+        "threshold_ppm": 0,
+        "color": null,
+        "quencher": null,
+        "status": "Non-fluorescent under standard SW/MW/LW UV. Trace weak cathodoluminescence possible in Fe/Nb/Ta-rich varieties under SEM (per research §Fluorescence) — not observable with field equipment, flagged here for completeness."
+      },
+      "twin_laws": [
+        {
+          "name": "cassiterite_011_elbow",
+          "composition_plane": "{011}",
+          "twin_axis": "[100]",
+          "probability": 0.30,
+          "trigger": "DIAGNOSTIC — elbow/knee twin bent ~60° on {011} is the cassiterite signature (research §Crystal Habits & Morphology: 'Twin signature: Elbow/knee twins on {011} bent ~60°; diagnostic feature'). Fires probabilistically when excess > 0.6"
+        }
+      ],
+      "acid_dissolution": null,
+      "habit": "prismatic_dipyramid",
+      "color_rules": {
+        "honey_amber": {
+          "default": true,
+          "trigger": "low Fe (<5 ppm) — gem-quality 'tin gem' form, transparent honey-yellow to amber"
+        },
+        "honey_brown": {
+          "trigger": "Fe 5-30 ppm — amber to chocolate-brown cassiterite (the field-common color)"
+        },
+        "red_brown": {
+          "trigger": "Fe 30-100 ppm — red-brown cassiterite, the Cornish weathered-tinstone color"
+        },
+        "black_metallic": {
+          "trigger": "Fe > 100 ppm — black 'tin pitch' / 'black jack' (the historical Cornish miner's tinstone)"
+        }
+      },
+      "narrate_function": null,
+      "runtimes_present": [
+        "js"
+      ],
+      "audit_status": "new v89 (2026-05-19). First Sn-consumer mineral; Sn fluid field added to FluidChemistry alongside this engine (first new chemistry field since v62 Cd/Hg). Three habit dispatch paths by T-at-nucleation (prismatic dipyramid > 500°C / equant blocky 300-500°C / wood-tin botryoidal < 300°C) cover the documented Erzgebirge/Cornwall/Bolivia pegmatite-greisen-low-T-colloidal spread. Cassiterite is INERT — no dissolution, no thermal decomp, no oxidation — the terminal weathering product; mechanical breakdown to placer 'stream tin' only. Substrate priority: wolframite (Cornish Sn-W greisen pair) > topaz > tourmaline > quartz > feldspar > wall. Sn added at 80 ppm to gem_pegmatite + radioactive_pegmatite, 60 ppm to schneeberg (the Erzgebirge tin-mining heritage that preceded the silver and uranium eras). Per research-cassiterite.md (boss canonical 2026-05).",
+      "late_stage_propensity": 0.3,
+      "_late_stage_note": "Proposal C (2026-05): propensity:0.3. Cassiterite is a mid-to-late pegmatite mineral — forms in the greisen/late-pegmatite phase after early micas + feldspars + tourmaline but before the lithium minerals (lepidolite, spodumene). The 0.3 propensity matches its position in the LCT pegmatite sequence (wall zone → intermediate zone → core).",
+      "class_color": "#8b6f47"
+    },
     "clausthalite": {
       "formula": "PbSe",
       "nucleation_sigma": 1.4,
