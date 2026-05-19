@@ -281,6 +281,15 @@ const EVENT_REGISTRY = {
   sulphur_bank_h2s_recharge: event_sulphur_bank_h2s_recharge,
   sulphur_bank_surface_oxidation: event_sulphur_bank_surface_oxidation,
   sulphur_bank_cooling: event_sulphur_bank_cooling,
+  // 2026-05-18 — Sicilian Solfifera Series (Cianciana / Caltanissetta,
+  // Sicily). Messinian sedimentary BSR-near-surface native-sulfur
+  // deposit; the OTHER canonical native_sulfur locality (the
+  // alkaline-buffered mode the v80 engine broadening admits). See
+  // js/70n-sicily.ts for the four handlers.
+  sicily_gypsum_dissolution: event_sicily_gypsum_dissolution,
+  sicily_meteoric_o2_pulse: event_sicily_meteoric_o2_pulse,
+  sicily_carbonate_buffer: event_sicily_carbonate_buffer,
+  sicily_late_synproportionation: event_sicily_late_synproportionation,
 };
 
 // Minimal JSONC parser — strips // line + /* */ block comments and

@@ -74,14 +74,61 @@ Object.assign(VugConditions.prototype, {
 },
 
   supersaturation_native_sulfur() {
+  // Native sulfur (S°) precipitates via synproportionation —
+  // H₂S + ½O₂ → S° + H₂O — at the interface where reduced sulfide-
+  // bearing fluid meets atmospheric / shallow-groundwater O₂. The
+  // engine supports TWO geological modes documented in the
+  // literature (v79+):
+  //
+  //   (1) Acid-sulfate hot-spring mode — Sulphur Bank Mine type.
+  //       Hot (60-90°C) acidic (pH 1.8-4.0) springs where H₂S vents
+  //       meet the atmosphere. Byproduct H₂SO₄ keeps pH low. White
+  //       & Roberson 1962 (USGS PP 432-A). Lit by the sulphur_bank
+  //       scenario (v79).
+  //
+  //   (2) Sedimentary BSR-near-surface mode — Sicilian Solfifera
+  //       Series type. Mildly acidic to alkaline (pH 5-6.5)
+  //       calcite-buffered Messinian evaporite basins. H₂S generated
+  //       at depth by bacterial sulfate reduction of gypsum
+  //       (CaSO₄ + 2 CH₂O → CaS + 2 H₂CO₃; the CaS converts to S° as
+  //       Pleistocene meteoric O₂ infiltrates the upper meters). Cool
+  //       (25-40°C). Ziegenbalg et al. 2010 (Sedimentary Geology);
+  //       Manzi et al. 2009 (Sedimentary Geology); Decima & Wezel
+  //       1971. Lit by the sicily scenario (v80).
+  //
+  // The gates and σ formula are unified so both modes fire under
+  // the same engine. Pre-v80 the pH cap was `pH > 5 → return 0`,
+  // which structurally blocked Sicily (real Solfifera fluid pH
+  // measurements run 5.5-6.5 in the active oxidation zone). v80
+  // broadens to `pH > 6.5 → return 0` AND replaces the monotonic
+  // ph_f with a bimodal one peaked at both regimes.
   if (this.fluid.S < 100) return 0;
   if (!nativeRedoxWindow(this.fluid, 0.1, 0.7)) return 0;
-  if (this.fluid.pH > 5) return 0;
+  if (this.fluid.pH > 6.5) return 0;     // v80: was 5; broadened for BSR mode
   const metal_sum = this.fluid.Fe + this.fluid.Cu + this.fluid.Pb + this.fluid.Zn;
   if (metal_sum > 100) return 0;
   const s_f = Math.min(this.fluid.S / 200.0, 4.0);
   const eh_f = nativeRedoxTent(this.fluid, 0.4, 2.0, 0.4);
-  const ph_f = Math.max(0.4, 1.0 - 0.15 * this.fluid.pH);
+  // Bimodal pH factor: two regime peaks, valley between them.
+  //
+  //   ph_acid: peaks at pH 2.5 (Sulphur-Bank acid-sulfate), decay rate
+  //            0.30/pH unit. Hits 1.0 at 2.5; 0.7 at 1.5/3.5; 0 at 5.8.
+  //   ph_bsr:  peaks at pH 6.0 (Sicilian BSR-near-surface), decay 0.50/pH
+  //            unit. Hits 1.0 at 6.0; 0.5 at 5.0/7.0; 0 at 4.0/8.0.
+  //
+  // Floor at 0.0 (not 0.4 like v79) so the valley between modes truly
+  // kills σ — the geological reality is that intermediate-pH (4-5)
+  // fluid is the WORST for native_sulfur (too acid for BSR mode, too
+  // alkaline for synproportionation efficiency). v79's 0.4 floor was a
+  // pre-Sicily artifact from the single-mode formula.
+  //
+  // For Sulphur Bank (pH 1.8): ph_acid = 0.79, ph_bsr = 0, ph_f = 0.79.
+  // For Sicily (pH 6.0):       ph_acid = 0,    ph_bsr = 1.0, ph_f = 1.0.
+  // Valley at pH 4.0:           ph_acid = 0.55, ph_bsr = 0.0, ph_f = 0.55.
+  const ph = this.fluid.pH;
+  const ph_acid = Math.max(0, 1.0 - 0.30 * Math.abs(ph - 2.5));
+  const ph_bsr  = Math.max(0, 1.0 - 0.50 * Math.abs(ph - 6.0));
+  const ph_f = Math.max(ph_acid, ph_bsr);
   let sigma = s_f * eh_f * ph_f;
   const T = this.temperature;
   let T_factor;

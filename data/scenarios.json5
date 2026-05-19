@@ -2241,6 +2241,126 @@
         "Donnelly-Nolan J.M., Burns M.G., Goff F.E., Peters E.K., Thompson J.M. (1993) — The Geysers - Clear Lake area, California: thermal waters, mineralization, volcanism, and geothermal potential. Economic Geology 88: 301-316.",
         "EPA Superfund site CAD980893275 — Sulphur Bank Mercury Mine. Site monitoring records 1990-present document continuous hot-spring activity at the vent zone."
       ]
+    },
+
+    "sicily_solfifera": {
+      "anchor": "Cianciana / Caltanissetta district, Agrigento province, Sicily — Solfifera Series (Messinian, 6-5.3 Ma). The canonical sedimentary BSR native-sulfur deposit. World's primary sulfur production center 1860s-1950s, when the Sicilian fields supplied ~80% of global elemental sulfur. Type for 'bacterial-mediated sedimentary sulfur' per Ziegenbalg et al. 2010.",
+      "description": "Sedimentary native sulfur from bacterial sulfate reduction of Messinian gypsum + Pleistocene meteoric O₂ infiltration. The OTHER half of the native_sulfur story (Sulphur Bank = acid-sulfate hot-spring; Sicily = alkaline-buffered BSR-near-surface). Mineable S° crystallizes in the upper few meters of the Solfifera Series, the gypsum-marl-sulfur sequence deposited during the Mediterranean salinity crisis. Co-products: calcite cement from the BSR-generated H₂CO₃, residual selenite (Messinian gypsum), celestine from gypsum-derived Sr trace, sometimes aragonite.",
+      "expects_species": ["native_sulfur", "calcite", "selenite", "celestine"],
+      "duration_steps": 200,
+      "notes": [
+        "Anchor: Sicilian Solfifera Series, Cianciana / Caltanissetta. The Messinian salinity crisis (6-5.3 Ma) precipitated a thick gypsum + halite + marl sequence in the central Sicilian basin (Decima & Wezel 1971; Manzi et al. 2009). Bacterial sulfate reduction at depth, fueled by organic-C burial, converted gypsum sulfate to H₂S + CaCO₃ over millions of years (Ziegenbalg et al. 2010 — sedimentary geology evidence; Aharon 2000 — isotope record). Pleistocene meteoric water infiltrated the upper meters, bringing dissolved O₂. The H₂S met O₂ in the upper oxidation zone and precipitated as native S° via synproportionation. Cianciana alone produced ~2 Mt of sulfur 1840-1950.",
+        "Engine mode: this scenario fires the BSR-near-surface peak of the v80 bimodal pH factor (peaks at 2.5 Sulphur-Bank-style and 6.0 Sicily-style). The pH = 6.0 initial condition is dead-center on the BSR peak. The engine's metal_sum ≤ 100 gate fits Sicilian fluid — Messinian marls are clean (metal_sum ≈ 25, dominated by trace Fe).",
+        "Co-products: the simulator's calcite + selenite + celestine + aragonite engines fire under the same broth: calcite from the 600 ppm Ca + 80 ppm CO₃ supersat; selenite (gypsum) from the same Ca + 400 ppm S (sulfate fraction); celestine from the trace Sr; aragonite as the calcite polymorph at low T + appropriate Mg/Ca. This is the geologically-real Sicilian assemblage — the same minerals you'd identify in a hand specimen from Cianciana.",
+        "Wall composition: 'limestone' — Sicily IS literally hosted in calcite/gypsum matrix. The Solfifera Series sits on the Trubi Formation (Pliocene pelagic chalk) and is interbedded with limestone marls. The wall's dissolve() releases Ca + CO₃ which models the actual gypsum/calcite matrix dissolution. reactivity = 0.5 keeps the buffer gentle so pH stays in the BSR window."
+      ],
+      "initial": {
+        // Sedimentary basin T — ambient. The Messinian-Pleistocene
+        // section never reached hydrothermal T; BSR happens cool.
+        "temperature_C": 30.0,
+        "pressure_kbar": 0.5,            // ~5m depth (top of Solfifera oxidation zone)
+        "fluid": {
+          // Calcite-buffered Messinian porewater, mid-oxidation zone.
+          // Composition reconstructed from Garcia-Veigas et al. 1995
+          // (Mineralogy and isotope geochemistry of the Solfifera Series)
+          // + Manzi et al. 2009 (fluid-inclusion data on Messinian gypsum).
+          "SiO2": 30,
+          // Ca high — gypsum + calcite dissolution at every interface.
+          "Ca": 600,
+          // CO3 moderate — BSR generates H₂CO₃ that buffers the porewater.
+          "CO3": 80,
+          // Sulfur: the BSR-produced sulfide pool. 400 ppm is in the
+          // measured Solfifera porewater range. Above the engine's
+          // 100 ppm threshold; s_f saturates at 2.0.
+          "S": 400,
+          // Trace metals — LOW. Messinian marls are clean evaporite-
+          // derived sediments. metal_sum = Fe(5)+Cu(0)+Pb(0)+Zn(0) = 5
+          // well below the engine's 100 cap.
+          "Fe": 5,
+          "Cu": 0,
+          "Pb": 0,
+          "Zn": 0,
+          // Sr trace — the famous Sicilian celestine signature. Gypsum
+          // carries 0.5-3% Sr (substituting for Ca); when meteoric
+          // water dissolves the gypsum the Sr ends up partitioned
+          // into late celestine.
+          "Sr": 30,
+          // Mg low — Messinian fluids were Mg-depleted after halite
+          // precipitation but before sylvite/carnallite.
+          "Mg": 50,
+          // Na + Cl: residual brine salinity from the evaporite source.
+          "Na": 400,
+          "Cl": 600,
+          // pH: calcite-buffered, peak of the BSR-mode ph_f factor.
+          // Real Solfifera porewater measurements (Aharon 2000) cluster
+          // at 5.8-6.3. 6.0 is dead-center.
+          "pH": 6.0,
+          // O₂: mixed-oxic Pleistocene meteoric infiltration. 0.40 is
+          // the peak of the engine's nativeRedoxTent — the
+          // synproportionation sweet spot.
+          "O2": 0.40,
+          "salinity": 5.0
+        },
+        "wall": {
+          // Solfifera Series is HOSTED IN CALCITE/GYPSUM MATRIX.
+          // Unlike Sulphur Bank (silicate-hosted to keep pH acid),
+          // Sicily WANTS the carbonate buffer — that's exactly what
+          // keeps pH at 6.0 in the BSR-mode window. The limestone
+          // composition's dissolve() releases Ca + CO₃, modeling the
+          // actual gypsum/calcite matrix dissolution.
+          "composition": "limestone",
+          // reactivity 0.5 = gentle dissolution. Higher and the wall
+          // would over-buffer pH up to ~7.5 (out of the BSR window's
+          // ph_f peak); lower and there'd be no carbonate cement
+          // formation. 0.5 holds pH around 6.0 across the run.
+          "reactivity": 0.5,
+          // Modest sedimentary pocket — gypsum-marl porosity is
+          // small-scale, mm to cm.
+          "vug_diameter_mm": 30.0,
+          // Architecture: irregular sedimentary pore-space, gypsum-
+          // marl pore-throat coalescence. Same archetype as the
+          // Tsumeb-style gossan (supergene_oxidation) — geologically
+          // similar in that both are weathering-driven irregular
+          // cavities.
+          "architecture": "irregular",
+          "primary_bubbles": 2,
+          "secondary_bubbles": 5,
+          // 1860 — the year industrial Sicilian sulfur mining took off
+          "shape_seed": 1860,
+          // Wall trace chemistry — Messinian marls carry minor Fe + Mn
+          // (mostly from organic-matter-bound clay phases). Released
+          // into fluid via the limestone wall's dissolution mechanic.
+          "wall_Fe_ppm": 80,
+          "wall_Mn_ppm": 30
+        }
+      },
+      "events": [
+        // 10 events over 200 steps modeling the Pleistocene infiltration
+        // and BSR-cycle hydrology. The geological story: each event is
+        // a recharge pulse where meteoric water dissolves more
+        // upgradient gypsum (replenishing S substrate) and brings O₂
+        // (driving synproportionation in the oxidation zone). Slow
+        // cycle — sedimentary BSR operates on 10,000-year timescales
+        // IRL but compressed to 200 steps here.
+        { "step":  15, "type": "sicily_gypsum_dissolution",        "name": "Gypsum Pulse #1",          "description": "Meteoric water dissolves Messinian gypsum" },
+        { "step":  25, "type": "sicily_meteoric_o2_pulse",         "name": "Meteoric O₂ Pulse #1",     "description": "O₂-rich water reaches the oxidation zone" },
+        { "step":  50, "type": "sicily_gypsum_dissolution",        "name": "Gypsum Pulse #2",          "description": "Renewed gypsum dissolution upgradient" },
+        { "step":  60, "type": "sicily_meteoric_o2_pulse",         "name": "Meteoric O₂ Pulse #2",     "description": "Synproportionation continues" },
+        { "step":  85, "type": "sicily_carbonate_buffer",          "name": "Carbonate Buffer Lock",    "description": "BSR-generated H₂CO₃ pins pH at 6.0" },
+        { "step": 105, "type": "sicily_gypsum_dissolution",        "name": "Gypsum Pulse #3",          "description": "Continued upgradient gypsum dissolution" },
+        { "step": 115, "type": "sicily_late_synproportionation",   "name": "Late Synproportionation",  "description": "Fresh O₂ + replenished S pool" },
+        { "step": 140, "type": "sicily_carbonate_buffer",          "name": "Mid-Run Buffer Refresh",   "description": "Carbonate buffer maintains pH 6.0" },
+        { "step": 160, "type": "sicily_late_synproportionation",   "name": "Late Synproportionation",  "description": "Continued S° growth in oxidation zone" },
+        { "step": 180, "type": "sicily_late_synproportionation",   "name": "Final Synproportionation", "description": "Last meteoric pulse before run-end" }
+      ],
+      "sources": [
+        "Ziegenbalg S.B., Brunner B., Birgel D., Voigt M., Strauss H., Peckmann J. (2010) — Formation of secondary carbonates and native sulphur in sulphate-rich Messinian strata, Sicily. Sedimentary Geology 227: 37-50.",
+        "Manzi V., Lugli S., Roveri M., Schreiber B.C. (2009) — A new facies model for the Upper Gypsum of Sicily (Italy): chronological and palaeoenvironmental constraints. Sedimentology 56: 1937-1960.",
+        "Garcia-Veigas J., Ortí F., Rosell L., Ayora C., Rouchy J.M., Lugli S. (1995) — The Messinian salt of the Mediterranean: geochemical study of the salt from the central Sicily basin. Bulletin Société Géologique de France 166: 699-710.",
+        "Decima A., Wezel F.C. (1971) — Osservazioni sulle evaporiti messiniane della Sicilia centro-meridionale. Rivista Mineraria Siciliana 22 (130-132): 172-187.",
+        "Aharon P. (2000) — Microbial processes and products fueled by hydrocarbons at submarine seeps. Microbial Sediments (Springer): 270-281. (Sulfur-isotope evidence for BSR in Sicilian Solfifera Series.)",
+        "Wikipedia — Sicilian sulfur mining (history + production figures 1860-1950)."
+      ]
     }
 
   }

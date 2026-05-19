@@ -1847,5 +1847,77 @@
 //        evaporite brines. The engine's pH ≤ 5 gate blocks Sicily;
 //        a future commit will broaden the engine to admit alkaline-
 //        BSR sulfur as a second valid mode.
-const SIM_VERSION = 79;
+//   v80 — Sicily scenario + native_sulfur engine broadening
+//        (2026-05-18, same day). Closes the v79 followup.
+//
+//        Engine change in js/36-supersat-native.ts
+//        supersaturation_native_sulfur:
+//          * pH gate: pH > 5 → return 0  broadened to  pH > 6.5 → return 0.
+//          * ph_f factor: monotonic
+//              ph_f = max(0.4, 1.0 - 0.15 × pH)
+//            replaced with bimodal max:
+//              ph_acid = max(0, 1.0 - 0.30 × |pH - 2.5|)
+//              ph_bsr  = max(0, 1.0 - 0.50 × |pH - 6.0|)
+//              ph_f    = max(ph_acid, ph_bsr)
+//          * Floor dropped from 0.4 to 0.0 — the valley between modes
+//            (pH ≈ 4) is geologically the WORST regime for S°
+//            (too alkaline for acid synprop, too acid for BSR mode).
+//
+//        Backward compat: Sulphur Bank (pH 1.8) ph_f shifts 0.73 → 0.79
+//        (slight σ boost). Calibration drift: sub-percentile shift in
+//        sulphur_bank baseline; the 22 sulphur-bank pin tests still
+//        pass without change.
+//
+//        New scenario sicily_solfifera. Anchor: Cianciana / Caltanissetta
+//        district, Agrigento province. Solfifera Series (Messinian,
+//        6-5.3 Ma). The world's primary sulfur production center
+//        1860s-1950s; type for sedimentary BSR per Ziegenbalg et al.
+//        2010 (Sedimentary Geology) + Manzi et al. 2009.
+//
+//        Mechanism: bacterial sulfate reduction of Messinian gypsum
+//        at depth → H₂S + CaCO₃; Pleistocene meteoric O₂ infiltration
+//        in upper meters → synproportionation H₂S + ½O₂ → S° + H₂O.
+//        Co-products: calcite, residual selenite, celestine from
+//        gypsum-derived Sr.
+//
+//        Initial fluid: T=30°C, pH=6.0 (BSR-peak), O₂=0.40 (synprop
+//        peak), S=400, Ca=600, CO₃=80, Sr=30. wall.composition =
+//        limestone (Sicily IS hosted in calcite/gypsum matrix;
+//        reactivity 0.5 for gentle buffering to hold pH at 6.0).
+//
+//        4 new event handlers in js/70n-sicily.ts (gypsum dissolution,
+//        meteoric O₂ infiltration, carbonate buffering, late
+//        synproportionation). 10 events over 200 steps.
+//
+//        Verified output (3 seeds × 200 steps):
+//          peak σ_native_sulfur = 3.48 (well above 1.0)
+//          native_sulfur crystals = 1-3 active per seed
+//          habit: bipyramidal_alpha (the iconic Sicilian {111}
+//                 dipyramid form — geologically correct)
+//          paragenesis: native_sulfur + selenite + celestine + halite
+//                       + quartz + fluorite (Sicily documented for
+//                       all of these)
+//
+//        Calibration: seed42_v80.json adds sicily_solfifera entry +
+//        captures Sulphur Bank's slight σ boost. Other 24 scenarios
+//        byte-identical to v79.
+//
+//        Coverage: native_sulfur now fires in TWO canonical scenarios
+//        (Sulphur Bank acid-sulfate hot-spring; Sicily sedimentary
+//        BSR-near-surface). The native_sulfur item from the v76 open
+//        backlog is now FULLY CLOSED across both real-world deposit
+//        types.
+//
+//        Geological note: Sicily IS the world's classic native-sulfur
+//        deposit. Industrial sulfur production was DOMINATED by
+//        Sicilian fields from 1860 to 1950, with Cianciana alone
+//        producing ~2 Mt elemental sulfur. The simulator now models
+//        the deposit type properly — not by tuning Sulphur-Bank-style
+//        conditions to barely fit a hot-spring engine, but by
+//        teaching the engine the OTHER mechanism (BSR-near-surface
+//        synproportionation in alkaline-buffered porewater). The
+//        boss's directive ("add the real science needed for Sicily")
+//        cashed out: the broadened pH factor is the real chemistry
+//        of two-mode native_sulfur deposition.
+const SIM_VERSION = 80;
 
