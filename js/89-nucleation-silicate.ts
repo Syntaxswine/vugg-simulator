@@ -252,6 +252,52 @@ function _nuc_topaz(sim) {
   // sphalerite (Zn co-source), or bare wall.
 }
 
+function _nuc_lepidolite(sim) {
+  // Lepidolite K(Li,Al)₃(Al,Si)₄O₁₀(F,OH)₂ — Li-mica, late-pegmatite
+  // (research-lepidolite.md). Nucleates after the quartz/feldspar
+  // outer shell + tourmaline/spodumene Li-suite are established;
+  // commonly replaces existing spodumene during late hydrothermal
+  // phase (research-lepidolite.md §Paragenesis: "Often replaces:
+  // Spodumene during late hydrothermal alteration"). Substrate
+  // preferences mirror that paragenetic ordering: spodumene > tourmaline
+  // > feldspar > quartz > bare wall.
+  //
+  // Cap 3-4 per vug per the research's §Nucleation Pseudocode
+  // ("existing_lepidolite_count < 3-4 per vug"). Threshold 1.2 leaves
+  // room for the engine's high-σ ceiling to differentiate the variety
+  // chromophore branches in grow_lepidolite.
+  const sigma_lep = sim.conditions.supersaturation_lepidolite();
+  const existing_lep = sim.crystals.filter(c => c.mineral === 'lepidolite' && c.active);
+  if (sigma_lep > 1.2 && existing_lep.length < 3 && !sim._atNucleationCap('lepidolite')) {
+    if (!existing_lep.length || (sigma_lep > 2.0 && rng.random() < 0.25)) {
+      let pos = 'vug wall';
+      // Substrate priority — spodumene first (most paragenetically
+      // meaningful, the documented replacement target), then other
+      // pegmatite minerals.
+      const existing_spd_lep  = sim.crystals.filter(c => c.mineral === 'spodumene'  && c.active);
+      const existing_tml_lep  = sim.crystals.filter(c => c.mineral === 'tourmaline' && c.active);
+      const existing_feld_lep = sim.crystals.filter(c => c.mineral === 'feldspar'   && c.active);
+      const existing_qtz_lep  = sim.crystals.filter(c => c.mineral === 'quartz'     && c.active);
+      if (existing_spd_lep.length && rng.random() < 0.4) {
+        pos = `on spodumene #${existing_spd_lep[0].crystal_id}`;
+      } else if (existing_tml_lep.length && rng.random() < 0.3) {
+        pos = `on tourmaline #${existing_tml_lep[0].crystal_id}`;
+      } else if (existing_feld_lep.length && rng.random() < 0.3) {
+        pos = `on feldspar #${existing_feld_lep[0].crystal_id}`;
+      } else if (existing_qtz_lep.length && rng.random() < 0.3) {
+        pos = `on quartz #${existing_qtz_lep[0].crystal_id}`;
+      }
+      const c = sim.nucleate('lepidolite', pos, sigma_lep);
+      const f = sim.conditions.fluid;
+      let tag;
+      if (f.Mn >= 2.0) tag = 'purple-book';
+      else if (f.Fe >= 50 && f.Fe < 500) tag = 'gray-book';
+      else tag = 'pale-book';
+      sim.log.push(`  ✦ NUCLEATION: Lepidolite #${c.crystal_id} (${tag}) on ${c.position} (T=${sim.conditions.temperature.toFixed(0)}°C, σ=${sigma_lep.toFixed(2)}, Li=${f.Li.toFixed(0)} ppm, F=${f.F.toFixed(0)}, K=${f.K.toFixed(0)}, Mn=${f.Mn.toFixed(1)})`);
+    }
+  }
+}
+
 function _nuc_chrysoprase(sim) {
   // Stale-mineral retune (2026-05): threshold dropped 1.2 → 1.0. The
   // supersaturation_chrysoprase() formula (SiO2/300 × Ni/200 × Mg/200 ×
@@ -282,4 +328,5 @@ function _nucleateClass_silicate(sim) {
   _nuc_tourmaline(sim);
   _nuc_topaz(sim);
   _nuc_chrysoprase(sim);
+  _nuc_lepidolite(sim);
 }

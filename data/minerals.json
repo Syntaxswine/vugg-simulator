@@ -4973,6 +4973,143 @@
       "audit_status": "new (Minas Gerais Variant A, spodumene). First Li consumer — Li has been tracked as pegmatite trace since phase-2 but had no sink until now. Not yet in agent-api/vugg-agent.js.",
       "class_color": "#1313eb"
     },
+    "lepidolite": {
+      "formula": "K(Li,Al)3(Al,Si)4O10(F,OH)2",
+      "nucleation_sigma": 1.2,
+      "max_nucleation_count": 3,
+      "max_size_cm": 20,
+      "growth_rate_mult": 0.3,
+      "habit_variants": [
+        {
+          "name": "purple_book",
+          "wall_spread": 0.4,
+          "void_reach": 0.5,
+          "vector": "tabular",
+          "trigger": "Mn>=2 ppm, σ>1.5, T>=400°C — hexagonal Mn-purple book (Cruzeiro/Himalaya/Pala classic)"
+        },
+        {
+          "name": "gray_book",
+          "wall_spread": 0.4,
+          "void_reach": 0.5,
+          "vector": "tabular",
+          "trigger": "Fe>=50 ppm — gray-greenish book, transitional toward zinnwaldite"
+        },
+        {
+          "name": "pale_book",
+          "wall_spread": 0.4,
+          "void_reach": 0.5,
+          "vector": "tabular",
+          "trigger": "low Mn + low Fe — pale yellow to colorless clean lepidolite"
+        },
+        {
+          "name": "scaly_aggregate",
+          "wall_spread": 0.85,
+          "void_reach": 0.1,
+          "vector": "coating",
+          "trigger": "low σ OR T<400°C — scaly/foliated aggregate (the etymology habit, from Greek lepidos 'scale')"
+        }
+      ],
+      "class": "silicate",
+      "description": "K(Li,Al)₃(Al,Si)₄O₁₀(F,OH)₂ — monoclinic trioctahedral lithium mica, the polylithionite-trilithionite solid-solution series. Perfect {001} cleavage produces paper-thin flexible sheets (inelastic, unlike muscovite). The diagnostic pink-to-purple color comes from Mn²⁺ in the octahedral sites — Evans & Raftery 1982 settled this; trace lithium does not produce the color, despite folk-mineralogy claims. Late-pegmatite mineral: forms when residual fluid is enriched in Li + F + K simultaneously, AFTER spodumene + early micas have nucleated. Often replaces spodumene during late hydrothermal alteration (the documented Brazil/Maine paragenesis). Maximum size 20 cm books (Himalaya Mine, San Diego County); typical 1-10 mm scaly aggregates in vugs. THERMOLUMINESCENT — 50-200°C heating releases visible light from trapped defect charge carriers (no activator ion required). The Rožná pegmatite was where Bunsen & Kirchhoff extracted 150 kg of lepidolite in 1861 to isolate rubidium. Source: research/research-lepidolite.md (boss canonical 2026-05).",
+      "scenarios": [
+        "gem_pegmatite"
+      ],
+      "T_range_C": [
+        350,
+        600
+      ],
+      "T_optimum_C": [
+        400,
+        500
+      ],
+      "T_behavior": "window",
+      "pH_dissolution_below": 3.0,
+      "pH_dissolution_above": null,
+      "redox_requirement": "any",
+      "required_ingredients": {
+        "K": 10,
+        "Li": 15,
+        "Al": 10,
+        "SiO2": 200,
+        "F": 5
+      },
+      "trace_ingredients": {
+        "Mn": "Mn²⁺ produces the diagnostic pink-to-purple chromophore (50-500 ppm) — the species signature",
+        "Fe": "Fe²⁺/Fe³⁺ >500 ppm suppresses purple, shifts toward gray/greenish; >100 ppm chemically destabilizes lepidolite toward zinnwaldite",
+        "Rb": "very late-stage K depletion concentrates Rb; produces rare rose-red Rb-rich variety (10% spawn rate)",
+        "Cs": "trace substitution for K — pollucite paragenesis",
+        "Na": "minor K substitution"
+      },
+      "thermal_decomp_C": 800,
+      "thermal_decomp_reaction": "Dehydroxylation begins >600°C; complete structural collapse >800°C → K-feldspar + corundum + Li-silicate melt + H₂O + HF",
+      "thermal_decomp_products": {
+        "K": 0.0,
+        "Al": 0.0,
+        "Li": 0.0
+      },
+      "fluorescence": {
+        "activator": null,
+        "threshold_ppm": 0,
+        "color": null,
+        "quencher": null,
+        "status": "generally non-fluorescent under standard SW/MW/LW UV. NOTE: lepidolite IS thermoluminescent — heating to 50-200°C releases visible light from trapped charge carriers. Distinct mechanism from photo-fluorescence; flagged here for future render-hook (heat-stage thermal probe) — not a runtime mechanic in v86."
+      },
+      "thermoluminescence": {
+        "activation_T_C": [50, 200],
+        "mechanism": "trapped defect charge carriers released by thermal energy; no activator ion required",
+        "intrinsic": true,
+        "note": "research/research-lepidolite.md §Fluorescence & Luminescence: \"Some specimens show thermoluminescence — they emit visible light when heated to 50-200°C\""
+      },
+      "twin_laws": [
+        {
+          "name": "lepidolite_001_310",
+          "composition_plane": "{001}",
+          "twin_axis": "[310]",
+          "probability": 0.05,
+          "trigger": "rare twin (per research-lepidolite.md §Twin Laws); pseudohexagonal composite from monoclinic basis"
+        }
+      ],
+      "acid_dissolution": {
+        "pH_threshold": 3.0,
+        "reaction": "Slowly attacked by strong mineral acids; HF degrades silicate structure (uncommon condition). Otherwise highly resistant.",
+        "products": {
+          "K": 0.1,
+          "Li": 0.2,
+          "Al": 0.1,
+          "F": 0.15
+        }
+      },
+      "habit": "scaly_aggregate",
+      "color_rules": {
+        "purple": {
+          "default": true,
+          "trigger": "Mn >= 2 ppm (any pegmatite background trace) — the diagnostic chromophore"
+        },
+        "pink_mauve": {
+          "trigger": "Mn 50-200 ppm — pale-to-medium purple intensity"
+        },
+        "purplish_pink": {
+          "trigger": "Mn 200-500 ppm — deeper purple, classic Cruzeiro book"
+        },
+        "rose_pink": {
+          "trigger": "very late-stage Rb-rich variety (rare); K depletion + Rb concentration"
+        },
+        "gray_black": {
+          "trigger": "Fe > 50 ppm — Fe²⁺/Fe³⁺ suppresses Mn chromophore, gray-greenish cast"
+        },
+        "pale_yellow": {
+          "trigger": "low Mn (<2 ppm) + low Fe (<50 ppm) — clean lepidolite, near-colorless to pale yellow"
+        }
+      },
+      "narrate_function": null,
+      "runtimes_present": [
+        "js"
+      ],
+      "audit_status": "new v86 (2026-05-19). Second Li-silicate (after spodumene); first F-mica species. Slot: gem_pegmatite Li phase (step 130+); the Cruzeiro paragenesis explicitly documents lepidolite per Cassedanne 1991. The thermoluminescence property is unique among shipped minerals and flagged for future render hook (heat-stage thermal probe activates emission). Mn-purple variety dispatch + spodumene-replacement substrate preference both per research-lepidolite.md (boss canonical 2026-05).",
+      "late_stage_propensity": 0.7,
+      "_late_stage_note": "Proposal C (2026-05): propensity:0.7. Lepidolite is a late-pegmatite mineral — forms in residual fluid AFTER early micas, feldspars, and tourmaline crystallize. The 0.7 propensity matches its position in the LCT pegmatite sequence (core/core-margin → late hydrothermal), comparable to chalcanthite/erythrite efflorescent crusts.",
+      "class_color": "#b07ad1"
+    },
     "anglesite": {
       "formula": "PbSO4",
       "nucleation_sigma": 1.1,

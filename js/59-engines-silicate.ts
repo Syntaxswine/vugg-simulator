@@ -368,6 +368,81 @@ function grow_chrysocolla(crystal, conditions, step) {
   return new GrowthZone({ step, temperature: conditions.temperature, thickness_um: rate, growth_rate: rate, note: color_note });
 }
 
+function grow_lepidolite(crystal, conditions, step) {
+  // Lepidolite K(Li,Al)₃(Al,Si)₄O₁₀(F,OH)₂ — trioctahedral lithium
+  // mica. Perfect {001} cleavage producing micaceous sheets ("books");
+  // pink-to-purple from Mn²⁺ substitution in octahedral sites
+  // (Evans & Raftery 1982). The thermoluminescence property (50-200°C
+  // heat releases visible light) is flagged on the spec entry but not
+  // a runtime mechanic in v86. Per research-lepidolite.md.
+  const sigma = conditions.supersaturation_lepidolite();
+  if (sigma < 1.0) return null;
+  const excess = sigma - 1.0;
+  // Mica growth is layer-by-layer TOT sheet addition — slow relative
+  // to quartz baseline. Research-lepidolite.md §Growth Kinetics:
+  // "Slow relative to quartz baseline (layer-by-layer TOT sheet
+  // addition)". 1.8× base * excess is roughly half of spodumene's
+  // pyroxene-chain growth rate.
+  const rate = 1.8 * excess * rng.uniform(0.8, 1.2);
+  if (rate < 0.1) return null;
+
+  const f = conditions.fluid;
+  // Color/variety dispatch — Mn-purple is the diagnostic species
+  // signature. Rb concentrates very late (K-depletion phase) and
+  // produces a rose-red variety; Fe-suppressed variants are gray.
+  let variety, color_note;
+  if (f.Mn >= 2.0) {
+    variety = 'purple_book';
+    color_note = `Mn²⁺ purple-lilac (Mn ${f.Mn.toFixed(1)} ppm — octahedral substitution chromophore)`;
+  } else if (f.Fe >= 50 && f.Fe < 500) {
+    variety = 'gray_book';
+    color_note = `gray-greenish (Fe ${f.Fe.toFixed(0)} ppm dampens Mn chromophore; transitional toward zinnwaldite)`;
+  } else {
+    variety = 'pale_book';
+    color_note = 'pale yellow to colorless (low Mn, low Fe — clean lepidolite)';
+  }
+
+  // Habit dispatch: hexagonal "books" at high σ + warm T, scaly
+  // aggregates otherwise (research-lepidolite.md §Habit Selection).
+  const T = conditions.temperature;
+  if (excess > 0.5 && T >= 400) {
+    crystal.habit = variety;
+    crystal.dominant_forms = ['c{001} basal pinacoid (perfect cleavage)', 'm{110} pseudohexagonal prism', 'flexible TOT sheets', 'book-shaped'];
+  } else {
+    crystal.habit = 'scaly_aggregate';
+    crystal.dominant_forms = ['c{001} basal cleavage', 'scaly aggregate', 'shimmering subparallel sheets'];
+  }
+
+  // Trace flagging — Mn-purple chromophore + Rb late-stage substitution.
+  const trace_Mn = f.Mn * 0.020;
+  const trace_Fe = f.Fe * 0.005;
+  const trace_Al = f.Al * 0.010;
+
+  // Mass balance: Li + K + Al + SiO2 + F all consumed; Mn modestly
+  // sequestered in octahedral sites for the purple variety.
+  f.Li = Math.max(f.Li - rate * 0.030, 0);
+  f.K  = Math.max(f.K  - rate * 0.012, 0);
+  f.Al = Math.max(f.Al - rate * 0.015, 0);
+  f.SiO2 = Math.max(f.SiO2 - rate * 0.025, 0);
+  f.F  = Math.max(f.F  - rate * 0.008, 0);
+  if (variety === 'purple_book') f.Mn = Math.max(f.Mn - rate * 0.005, 0);
+
+  const parts = [color_note];
+  if (excess > 1.0) parts.push('rapid growth — wider sheets, scaly aggregate texture');
+  else if (excess < 0.2) parts.push('near-equilibrium — clean hexagonal book');
+  // Thermoluminescence flag (research-lepidolite.md §Fluorescence &
+  // Luminescence): not visible during formation, but the crystal
+  // carries the property forward for any post-formation heat probe.
+  parts.push('thermoluminescent (50-200°C heat releases visible light)');
+
+  return new GrowthZone({
+    step, temperature: conditions.temperature,
+    thickness_um: rate, growth_rate: rate,
+    trace_Mn, trace_Fe, trace_Al,
+    note: parts.join(', '),
+  });
+}
+
 function grow_spodumene(crystal, conditions, step) {
   // Spodumene (LiAlSi₂O₆) — monoclinic pyroxene, "book shape" flattened
   // tabular habit, two ~87° cleavages. No practical acid dissolution.

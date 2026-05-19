@@ -128,4 +128,9 @@ const MINERAL_ENGINES = {
   clausthalite: grow_clausthalite,
   greenockite: grow_greenockite,
   hawleyite: grow_hawleyite,
+  // v86 (2026-05-19): Li-mica from late-pegmatite F-rich residual fluid.
+  // Mn-purple chromophore + spodumene-replacement paragenesis.
+  // Thermoluminescence property carried on the spec (not a runtime
+  // mechanic — flagged for future render hook).
+  lepidolite: grow_lepidolite,
 };

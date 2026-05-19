@@ -74,6 +74,43 @@ Object.assign(VugConditions.prototype, {
   return Math.max(sigma, 0);
 },
 
+  supersaturation_lepidolite() {
+  // K(Li,Al)₃(Al,Si)₄O₁₀(F,OH)₂ — trioctahedral lithium mica, the
+  // polylithionite–trilithionite solid-solution series. Late-stage
+  // pegmatite mineral: forms when residual fluid is enriched in Li
+  // + F + K simultaneously, typically AFTER spodumene/early micas
+  // have nucleated. Mn²⁺ substitution produces the diagnostic
+  // pink-to-purple coloration (Evans & Raftery 1982); the engine
+  // does not require Mn but the variety dispatch in grow_lepidolite
+  // reads f.Mn / f.Fe for color routing.
+  //
+  // Gates: K, Li, Al, SiO2, F all required. pH 6.5-8.5 (mildly
+  // alkaline pegmatite fluid signature). T optimum 400-500°C
+  // (late-magmatic to early-hydrothermal). Per research-lepidolite.md.
+  if (this.fluid.K < 10 || this.fluid.Li < 15 || this.fluid.Al < 10
+      || this.fluid.SiO2 < 200 || this.fluid.F < 5) return 0;
+  if (this.fluid.pH < 6.0 || this.fluid.pH > 9.0) return 0;
+  const k_f  = Math.min(this.fluid.K   / 40.0, 1.5);
+  const li_f = Math.min(this.fluid.Li  / 25.0, 1.8);
+  const al_f = Math.min(this.fluid.Al  / 30.0, 1.5);
+  const si_f = Math.min(this.fluid.SiO2 / 500.0, 1.5);
+  const f_f  = Math.min(this.fluid.F   / 15.0, 1.5);
+  let sigma = k_f * li_f * al_f * si_f * f_f;
+  const T = this.temperature;
+  let T_factor;
+  if (T >= 400 && T <= 500) T_factor = 1.0;
+  else if (T >= 350 && T < 400) T_factor = 0.5 + 0.01 * (T - 350);
+  else if (T > 500 && T <= 600) T_factor = Math.max(0.3, 1.0 - 0.007 * (T - 500));
+  else if (T > 600) T_factor = 0.2;
+  else T_factor = Math.max(0.1, 0.5 - 0.008 * (350 - T));
+  sigma *= T_factor;
+  // Fe-suppression: high Fe pushes the chemistry toward zinnwaldite
+  // (Fe-Li mica), out of the lepidolite stability field.
+  if (this.fluid.Fe > 100) sigma *= Math.max(0.3, 1.0 - (this.fluid.Fe - 100) / 500.0);
+  if (ACTIVITY_CORRECTED_SUPERSAT) sigma *= activityCorrectionFactor(this.fluid, 'lepidolite');
+  return Math.max(sigma, 0);
+},
+
   supersaturation_spodumene() {
   if (this.fluid.Li < 8 || this.fluid.Al < 5 || this.fluid.SiO2 < 40) return 0;
   const li_f = Math.min(this.fluid.Li / 20.0, 2.0);

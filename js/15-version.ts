@@ -2427,5 +2427,84 @@
 //        science" rule means those four are deferred until the
 //        research agent produces their files; this commit ships only
 //        the science-backed work.
-const SIM_VERSION = 85;
+//   v86 — Lepidolite (2026-05-19). Trioctahedral Li-mica, the
+//        polylithionite-trilithionite solid-solution series with the
+//        diagnostic Mn²⁺-purple chromophore (Evans & Raftery 1982).
+//        Per the canonical research-lepidolite.md (boss research drop
+//        2026-05, fetched after v85 surfaced the gap): late-pegmatite
+//        mineral that nucleates AFTER early spodumene + tourmaline +
+//        feldspar establish the LCT-class sequence, and commonly
+//        REPLACES spodumene during the late hydrothermal phase. Slots
+//        into the existing gem_pegmatite scenario (Cruzeiro, Minas
+//        Gerais — Cassedanne 1991 explicitly documents lepidolite in
+//        that paragenesis). No new fluid field needed (Li, K, Al,
+//        SiO2, F, Mn all already in FluidChemistry).
+//
+//        Implementation:
+//          * supersaturation_lepidolite (39-supersat-silicate.ts):
+//            gates K>=10, Li>=15, Al>=10, SiO2>=200, F>=5; pH 6.0-9.0;
+//            T optimum 400-500°C; Fe-suppression above 100 ppm pushes
+//            chemistry toward zinnwaldite.
+//          * grow_lepidolite (59-engines-silicate.ts): rate=1.8*excess
+//            (slow per research §Growth Kinetics "Slow relative to
+//            quartz baseline"). Color/variety dispatch: Mn>=2 ppm →
+//            purple_book; Fe 50-500 → gray_book; else pale_book.
+//            Habit: hexagonal "book" at high σ + T>=400°C, scaly
+//            aggregate otherwise.
+//          * _nuc_lepidolite (89-nucleation-silicate.ts): substrate
+//            priority spodumene > tourmaline > feldspar > quartz > wall
+//            (the documented LCT-pegmatite paragenetic ordering, with
+//            spodumene replacement explicit per research §Paragenesis).
+//          * MINERAL_ENGINES.lepidolite wired in 65-mineral-engines.ts.
+//          * data/minerals.json entry with full Mn-purple chromophore
+//            color rules, thermoluminescence sidecar (50-200°C heat
+//            releases visible light — research-lepidolite.md flag, not
+//            a runtime mechanic in v86 but the spec carries the
+//            property for a future heat-stage render hook), and the
+//            rare {001}-[310] twin law.
+//
+//        Tuning rationale: the chosen σ-gate denominators (K/40, Li/25,
+//        Al/30, SiO2/500, F/15) put gem_pegmatite's Li-phase chemistry
+//        (K=80, Li=35, Al=150, SiO2=8000, F=25, Mn=8) above the
+//        nucleation threshold (sigma~7 at T=400-500°C, well above the
+//        1.2 gate). Cap=3 means at most 3 lepidolite per gem_pegmatite
+//        run; the spodumene-replacement substrate preference encodes
+//        the documented Brazil/Maine paragenetic ordering.
+//
+//        Calibration drift: gem_pegmatite AND radioactive_pegmatite
+//        both gain lepidolite (initial claim that only gem_pegmatite
+//        would fire was wrong — radioactive_pegmatite has K=80, Li=40,
+//        F=25, Mn=8, which also clears the engine gates). This is
+//        geologically accurate: most LCT-class U pegmatites are
+//        Li-bearing and produce lepidolite in their late hydrothermal
+//        phase. Downstream RNG-cascade shifts on both:
+//          gem_pegmatite: lepidolite +1, max_um shifts on albite,
+//            emerald, feldspar, quartz, spodumene, tourmaline; feldspar
+//            +1 active, tourmaline -1 (RNG cascade from new Li sink).
+//          radioactive_pegmatite: lepidolite added, anglesite removed,
+//            morganite 4→8 (cap effect), topaz +1, goethite +2,
+//            spodumene max_um 905→2400 (more Li available since
+//            other engines fire differently), uraninite max_um shift.
+//        Other 24 scenarios stay byte-identical to v85 — the K+Li+F+Al
+//        coincidence is pegmatite-specific.
+//
+//        Coverage 99 live → 100 live (+lepidolite) / 24 dead / 0
+//        stale. seed42_v86.json captures the gem_pegmatite drift;
+//        other 25 scenarios byte-identical to v85.
+//
+//        References (from research-lepidolite.md):
+//          * Evans & Raftery (1982) — Mn²⁺ chromophore in lithian
+//            muscovite and lepidolite. The foundational color-mechanism
+//            paper that killed the "lithium causes the color" folk claim.
+//          * London (2017) — "Reading Pegmatites: Part 3 — What Lithium
+//            Minerals Say." Rocks & Minerals 92(2): 144-157.
+//          * Rieder et al. (1999) — "Nomenclature of the micas."
+//            Mineralogical Magazine 63(2): 267-279.
+//          * Cassedanne (1991) — Cruzeiro pegmatite paragenesis (the
+//            gem_pegmatite anchor; documents lepidolite in the Li phase).
+//          * Wise (1995) — "Trace element chemistry of lithium-rich
+//            micas." Mineralogy and Petrology 55: 203-215.
+//          * research/research-lepidolite.md (canonical research-agent
+//            file, May 2026 — boss research drop).
+const SIM_VERSION = 86;
 

@@ -6705,7 +6705,10 @@ let timeScale = 5.0;
 //        schneeberg heat path during normal play, (2) explicit
 //        vadose ring state or T>threshold in test fixtures.
 //
-//        Tests 419 → 433 (+14 in tests-js/meta-autunite-trio.test.ts):
+//        Tests 419 → 450 (+31 in tests-js/meta-autunite-trio.test.ts;
+//        the table + heat/vadose/aqueous/irreversibility direct-engine
+//        pins + schneeberg integration pins across 3 seeds combine to
+//        more than the original +14 estimate):
 //          * DEHYDRATION_TRANSITIONS table: all 5 entries (legacy
 //            borax + mirabilite plus the new trio)
 //          * heat-path probabilistic firing across 50 trials per
@@ -6759,7 +6762,86 @@ let timeScale = 5.0;
 //        science" rule means those four are deferred until the
 //        research agent produces their files; this commit ships only
 //        the science-backed work.
-const SIM_VERSION = 85;
+//   v86 — Lepidolite (2026-05-19). Trioctahedral Li-mica, the
+//        polylithionite-trilithionite solid-solution series with the
+//        diagnostic Mn²⁺-purple chromophore (Evans & Raftery 1982).
+//        Per the canonical research-lepidolite.md (boss research drop
+//        2026-05, fetched after v85 surfaced the gap): late-pegmatite
+//        mineral that nucleates AFTER early spodumene + tourmaline +
+//        feldspar establish the LCT-class sequence, and commonly
+//        REPLACES spodumene during the late hydrothermal phase. Slots
+//        into the existing gem_pegmatite scenario (Cruzeiro, Minas
+//        Gerais — Cassedanne 1991 explicitly documents lepidolite in
+//        that paragenesis). No new fluid field needed (Li, K, Al,
+//        SiO2, F, Mn all already in FluidChemistry).
+//
+//        Implementation:
+//          * supersaturation_lepidolite (39-supersat-silicate.ts):
+//            gates K>=10, Li>=15, Al>=10, SiO2>=200, F>=5; pH 6.0-9.0;
+//            T optimum 400-500°C; Fe-suppression above 100 ppm pushes
+//            chemistry toward zinnwaldite.
+//          * grow_lepidolite (59-engines-silicate.ts): rate=1.8*excess
+//            (slow per research §Growth Kinetics "Slow relative to
+//            quartz baseline"). Color/variety dispatch: Mn>=2 ppm →
+//            purple_book; Fe 50-500 → gray_book; else pale_book.
+//            Habit: hexagonal "book" at high σ + T>=400°C, scaly
+//            aggregate otherwise.
+//          * _nuc_lepidolite (89-nucleation-silicate.ts): substrate
+//            priority spodumene > tourmaline > feldspar > quartz > wall
+//            (the documented LCT-pegmatite paragenetic ordering, with
+//            spodumene replacement explicit per research §Paragenesis).
+//          * MINERAL_ENGINES.lepidolite wired in 65-mineral-engines.ts.
+//          * data/minerals.json entry with full Mn-purple chromophore
+//            color rules, thermoluminescence sidecar (50-200°C heat
+//            releases visible light — research-lepidolite.md flag, not
+//            a runtime mechanic in v86 but the spec carries the
+//            property for a future heat-stage render hook), and the
+//            rare {001}-[310] twin law.
+//
+//        Tuning rationale: the chosen σ-gate denominators (K/40, Li/25,
+//        Al/30, SiO2/500, F/15) put gem_pegmatite's Li-phase chemistry
+//        (K=80, Li=35, Al=150, SiO2=8000, F=25, Mn=8) above the
+//        nucleation threshold (sigma~7 at T=400-500°C, well above the
+//        1.2 gate). Cap=3 means at most 3 lepidolite per gem_pegmatite
+//        run; the spodumene-replacement substrate preference encodes
+//        the documented Brazil/Maine paragenetic ordering.
+//
+//        Calibration drift: gem_pegmatite AND radioactive_pegmatite
+//        both gain lepidolite (initial claim that only gem_pegmatite
+//        would fire was wrong — radioactive_pegmatite has K=80, Li=40,
+//        F=25, Mn=8, which also clears the engine gates). This is
+//        geologically accurate: most LCT-class U pegmatites are
+//        Li-bearing and produce lepidolite in their late hydrothermal
+//        phase. Downstream RNG-cascade shifts on both:
+//          gem_pegmatite: lepidolite +1, max_um shifts on albite,
+//            emerald, feldspar, quartz, spodumene, tourmaline; feldspar
+//            +1 active, tourmaline -1 (RNG cascade from new Li sink).
+//          radioactive_pegmatite: lepidolite added, anglesite removed,
+//            morganite 4→8 (cap effect), topaz +1, goethite +2,
+//            spodumene max_um 905→2400 (more Li available since
+//            other engines fire differently), uraninite max_um shift.
+//        Other 24 scenarios stay byte-identical to v85 — the K+Li+F+Al
+//        coincidence is pegmatite-specific.
+//
+//        Coverage 99 live → 100 live (+lepidolite) / 24 dead / 0
+//        stale. seed42_v86.json captures the gem_pegmatite drift;
+//        other 25 scenarios byte-identical to v85.
+//
+//        References (from research-lepidolite.md):
+//          * Evans & Raftery (1982) — Mn²⁺ chromophore in lithian
+//            muscovite and lepidolite. The foundational color-mechanism
+//            paper that killed the "lithium causes the color" folk claim.
+//          * London (2017) — "Reading Pegmatites: Part 3 — What Lithium
+//            Minerals Say." Rocks & Minerals 92(2): 144-157.
+//          * Rieder et al. (1999) — "Nomenclature of the micas."
+//            Mineralogical Magazine 63(2): 267-279.
+//          * Cassedanne (1991) — Cruzeiro pegmatite paragenesis (the
+//            gem_pegmatite anchor; documents lepidolite in the Li phase).
+//          * Wise (1995) — "Trace element chemistry of lithium-rich
+//            micas." Mineralogy and Petrology 55: 203-215.
+//          * research/research-lepidolite.md (canonical research-agent
+//            file, May 2026 — boss research drop).
+const SIM_VERSION = 86;
 
 // ── 18-constants.js ──
 
@@ -13159,6 +13241,51 @@ Object.assign(VugConditions.prototype, {
             sigma *= activityCorrectionFactor(this.fluid, 'albite');
         return Math.max(sigma, 0);
     },
+    supersaturation_lepidolite() {
+        // K(Li,Al)₃(Al,Si)₄O₁₀(F,OH)₂ — trioctahedral lithium mica, the
+        // polylithionite–trilithionite solid-solution series. Late-stage
+        // pegmatite mineral: forms when residual fluid is enriched in Li
+        // + F + K simultaneously, typically AFTER spodumene/early micas
+        // have nucleated. Mn²⁺ substitution produces the diagnostic
+        // pink-to-purple coloration (Evans & Raftery 1982); the engine
+        // does not require Mn but the variety dispatch in grow_lepidolite
+        // reads f.Mn / f.Fe for color routing.
+        //
+        // Gates: K, Li, Al, SiO2, F all required. pH 6.5-8.5 (mildly
+        // alkaline pegmatite fluid signature). T optimum 400-500°C
+        // (late-magmatic to early-hydrothermal). Per research-lepidolite.md.
+        if (this.fluid.K < 10 || this.fluid.Li < 15 || this.fluid.Al < 10
+            || this.fluid.SiO2 < 200 || this.fluid.F < 5)
+            return 0;
+        if (this.fluid.pH < 6.0 || this.fluid.pH > 9.0)
+            return 0;
+        const k_f = Math.min(this.fluid.K / 40.0, 1.5);
+        const li_f = Math.min(this.fluid.Li / 25.0, 1.8);
+        const al_f = Math.min(this.fluid.Al / 30.0, 1.5);
+        const si_f = Math.min(this.fluid.SiO2 / 500.0, 1.5);
+        const f_f = Math.min(this.fluid.F / 15.0, 1.5);
+        let sigma = k_f * li_f * al_f * si_f * f_f;
+        const T = this.temperature;
+        let T_factor;
+        if (T >= 400 && T <= 500)
+            T_factor = 1.0;
+        else if (T >= 350 && T < 400)
+            T_factor = 0.5 + 0.01 * (T - 350);
+        else if (T > 500 && T <= 600)
+            T_factor = Math.max(0.3, 1.0 - 0.007 * (T - 500));
+        else if (T > 600)
+            T_factor = 0.2;
+        else
+            T_factor = Math.max(0.1, 0.5 - 0.008 * (350 - T));
+        sigma *= T_factor;
+        // Fe-suppression: high Fe pushes the chemistry toward zinnwaldite
+        // (Fe-Li mica), out of the lepidolite stability field.
+        if (this.fluid.Fe > 100)
+            sigma *= Math.max(0.3, 1.0 - (this.fluid.Fe - 100) / 500.0);
+        if (ACTIVITY_CORRECTED_SUPERSAT)
+            sigma *= activityCorrectionFactor(this.fluid, 'lepidolite');
+        return Math.max(sigma, 0);
+    },
     supersaturation_spodumene() {
         if (this.fluid.Li < 8 || this.fluid.Al < 5 || this.fluid.SiO2 < 40)
             return 0;
@@ -18010,6 +18137,82 @@ function grow_chrysocolla(crystal, conditions, step) {
     conditions.fluid.SiO2 = Math.max(conditions.fluid.SiO2 - rate * 0.035, 0);
     return new GrowthZone({ step, temperature: conditions.temperature, thickness_um: rate, growth_rate: rate, note: color_note });
 }
+function grow_lepidolite(crystal, conditions, step) {
+    // Lepidolite K(Li,Al)₃(Al,Si)₄O₁₀(F,OH)₂ — trioctahedral lithium
+    // mica. Perfect {001} cleavage producing micaceous sheets ("books");
+    // pink-to-purple from Mn²⁺ substitution in octahedral sites
+    // (Evans & Raftery 1982). The thermoluminescence property (50-200°C
+    // heat releases visible light) is flagged on the spec entry but not
+    // a runtime mechanic in v86. Per research-lepidolite.md.
+    const sigma = conditions.supersaturation_lepidolite();
+    if (sigma < 1.0)
+        return null;
+    const excess = sigma - 1.0;
+    // Mica growth is layer-by-layer TOT sheet addition — slow relative
+    // to quartz baseline. Research-lepidolite.md §Growth Kinetics:
+    // "Slow relative to quartz baseline (layer-by-layer TOT sheet
+    // addition)". 1.8× base * excess is roughly half of spodumene's
+    // pyroxene-chain growth rate.
+    const rate = 1.8 * excess * rng.uniform(0.8, 1.2);
+    if (rate < 0.1)
+        return null;
+    const f = conditions.fluid;
+    // Color/variety dispatch — Mn-purple is the diagnostic species
+    // signature. Rb concentrates very late (K-depletion phase) and
+    // produces a rose-red variety; Fe-suppressed variants are gray.
+    let variety, color_note;
+    if (f.Mn >= 2.0) {
+        variety = 'purple_book';
+        color_note = `Mn²⁺ purple-lilac (Mn ${f.Mn.toFixed(1)} ppm — octahedral substitution chromophore)`;
+    }
+    else if (f.Fe >= 50 && f.Fe < 500) {
+        variety = 'gray_book';
+        color_note = `gray-greenish (Fe ${f.Fe.toFixed(0)} ppm dampens Mn chromophore; transitional toward zinnwaldite)`;
+    }
+    else {
+        variety = 'pale_book';
+        color_note = 'pale yellow to colorless (low Mn, low Fe — clean lepidolite)';
+    }
+    // Habit dispatch: hexagonal "books" at high σ + warm T, scaly
+    // aggregates otherwise (research-lepidolite.md §Habit Selection).
+    const T = conditions.temperature;
+    if (excess > 0.5 && T >= 400) {
+        crystal.habit = variety;
+        crystal.dominant_forms = ['c{001} basal pinacoid (perfect cleavage)', 'm{110} pseudohexagonal prism', 'flexible TOT sheets', 'book-shaped'];
+    }
+    else {
+        crystal.habit = 'scaly_aggregate';
+        crystal.dominant_forms = ['c{001} basal cleavage', 'scaly aggregate', 'shimmering subparallel sheets'];
+    }
+    // Trace flagging — Mn-purple chromophore + Rb late-stage substitution.
+    const trace_Mn = f.Mn * 0.020;
+    const trace_Fe = f.Fe * 0.005;
+    const trace_Al = f.Al * 0.010;
+    // Mass balance: Li + K + Al + SiO2 + F all consumed; Mn modestly
+    // sequestered in octahedral sites for the purple variety.
+    f.Li = Math.max(f.Li - rate * 0.030, 0);
+    f.K = Math.max(f.K - rate * 0.012, 0);
+    f.Al = Math.max(f.Al - rate * 0.015, 0);
+    f.SiO2 = Math.max(f.SiO2 - rate * 0.025, 0);
+    f.F = Math.max(f.F - rate * 0.008, 0);
+    if (variety === 'purple_book')
+        f.Mn = Math.max(f.Mn - rate * 0.005, 0);
+    const parts = [color_note];
+    if (excess > 1.0)
+        parts.push('rapid growth — wider sheets, scaly aggregate texture');
+    else if (excess < 0.2)
+        parts.push('near-equilibrium — clean hexagonal book');
+    // Thermoluminescence flag (research-lepidolite.md §Fluorescence &
+    // Luminescence): not visible during formation, but the crystal
+    // carries the property forward for any post-formation heat probe.
+    parts.push('thermoluminescent (50-200°C heat releases visible light)');
+    return new GrowthZone({
+        step, temperature: conditions.temperature,
+        thickness_um: rate, growth_rate: rate,
+        trace_Mn, trace_Fe, trace_Al,
+        note: parts.join(', '),
+    });
+}
 function grow_spodumene(crystal, conditions, step) {
     // Spodumene (LiAlSi₂O₆) — monoclinic pyroxene, "book shape" flattened
     // tabular habit, two ~87° cleavages. No practical acid dissolution.
@@ -20572,6 +20775,11 @@ const MINERAL_ENGINES = {
     clausthalite: grow_clausthalite,
     greenockite: grow_greenockite,
     hawleyite: grow_hawleyite,
+    // v86 (2026-05-19): Li-mica from late-pegmatite F-rich residual fluid.
+    // Mn-purple chromophore + spodumene-replacement paragenesis.
+    // Thermoluminescence property carried on the spec (not a runtime
+    // mechanic — flagged for future render hook).
+    lepidolite: grow_lepidolite,
 };
 
 // ── 70-events.js ──
@@ -26446,6 +26654,57 @@ function _nuc_topaz(sim) {
     // preference: weathering chalcopyrite (Cu source) or weathering
     // sphalerite (Zn co-source), or bare wall.
 }
+function _nuc_lepidolite(sim) {
+    // Lepidolite K(Li,Al)₃(Al,Si)₄O₁₀(F,OH)₂ — Li-mica, late-pegmatite
+    // (research-lepidolite.md). Nucleates after the quartz/feldspar
+    // outer shell + tourmaline/spodumene Li-suite are established;
+    // commonly replaces existing spodumene during late hydrothermal
+    // phase (research-lepidolite.md §Paragenesis: "Often replaces:
+    // Spodumene during late hydrothermal alteration"). Substrate
+    // preferences mirror that paragenetic ordering: spodumene > tourmaline
+    // > feldspar > quartz > bare wall.
+    //
+    // Cap 3-4 per vug per the research's §Nucleation Pseudocode
+    // ("existing_lepidolite_count < 3-4 per vug"). Threshold 1.2 leaves
+    // room for the engine's high-σ ceiling to differentiate the variety
+    // chromophore branches in grow_lepidolite.
+    const sigma_lep = sim.conditions.supersaturation_lepidolite();
+    const existing_lep = sim.crystals.filter(c => c.mineral === 'lepidolite' && c.active);
+    if (sigma_lep > 1.2 && existing_lep.length < 3 && !sim._atNucleationCap('lepidolite')) {
+        if (!existing_lep.length || (sigma_lep > 2.0 && rng.random() < 0.25)) {
+            let pos = 'vug wall';
+            // Substrate priority — spodumene first (most paragenetically
+            // meaningful, the documented replacement target), then other
+            // pegmatite minerals.
+            const existing_spd_lep = sim.crystals.filter(c => c.mineral === 'spodumene' && c.active);
+            const existing_tml_lep = sim.crystals.filter(c => c.mineral === 'tourmaline' && c.active);
+            const existing_feld_lep = sim.crystals.filter(c => c.mineral === 'feldspar' && c.active);
+            const existing_qtz_lep = sim.crystals.filter(c => c.mineral === 'quartz' && c.active);
+            if (existing_spd_lep.length && rng.random() < 0.4) {
+                pos = `on spodumene #${existing_spd_lep[0].crystal_id}`;
+            }
+            else if (existing_tml_lep.length && rng.random() < 0.3) {
+                pos = `on tourmaline #${existing_tml_lep[0].crystal_id}`;
+            }
+            else if (existing_feld_lep.length && rng.random() < 0.3) {
+                pos = `on feldspar #${existing_feld_lep[0].crystal_id}`;
+            }
+            else if (existing_qtz_lep.length && rng.random() < 0.3) {
+                pos = `on quartz #${existing_qtz_lep[0].crystal_id}`;
+            }
+            const c = sim.nucleate('lepidolite', pos, sigma_lep);
+            const f = sim.conditions.fluid;
+            let tag;
+            if (f.Mn >= 2.0)
+                tag = 'purple-book';
+            else if (f.Fe >= 50 && f.Fe < 500)
+                tag = 'gray-book';
+            else
+                tag = 'pale-book';
+            sim.log.push(`  ✦ NUCLEATION: Lepidolite #${c.crystal_id} (${tag}) on ${c.position} (T=${sim.conditions.temperature.toFixed(0)}°C, σ=${sigma_lep.toFixed(2)}, Li=${f.Li.toFixed(0)} ppm, F=${f.F.toFixed(0)}, K=${f.K.toFixed(0)}, Mn=${f.Mn.toFixed(1)})`);
+        }
+    }
+}
 function _nuc_chrysoprase(sim) {
     // Stale-mineral retune (2026-05): threshold dropped 1.2 → 1.0. The
     // supersaturation_chrysoprase() formula (SiO2/300 × Ni/200 × Mg/200 ×
@@ -26475,6 +26734,7 @@ function _nucleateClass_silicate(sim) {
     _nuc_tourmaline(sim);
     _nuc_topaz(sim);
     _nuc_chrysoprase(sim);
+    _nuc_lepidolite(sim);
 }
 
 // ── 90-nucleation-sulfate.js ──
