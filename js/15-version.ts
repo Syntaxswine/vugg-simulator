@@ -2567,5 +2567,86 @@
 //            (arsenates, phosphates, vanadates).
 //          * research/research-conichalcite.md (canonical research-agent
 //            file, May 2026 — boss research drop).
-const SIM_VERSION = 87;
+//   v88 — Pharmacolite (2026-05-19). Monoclinic Ca-only hydrated
+//        arsenate CaHAsO₄·2H₂O — the Ca-without-Cu sibling of
+//        conichalcite, closing the supergene Ca-arsenate cation
+//        triangle (olivenite Cu-only / conichalcite Ca-Cu /
+//        pharmacolite Ca-only). The classic Jáchymov / Schneeberg /
+//        Cobalt-Ontario five-element-vein bloom; radiating "starburst
+//        of white needles" habit is the diagnostic field marker.
+//        Per research-pharmacolite.md (boss canonical 2026-05).
+//
+//        Cation-share gate (anti-competitor logic):
+//          Ca/(Ca+Cu+Pb+Zn+Co+Ni) > 0.3 enforces "pharmacolite gets
+//          the share of the arsenate budget proportional to its
+//          cation share". High Cu routes to conichalcite, high Pb
+//          to mimetite, high Co to erythrite, high Ni to annabergite,
+//          high Zn to adamite. Pharmacolite tolerates trace impurities
+//          but is competed-out when the alternative-cation pool
+//          dominates.
+//
+//        Plus a soft Cu-suppression branch: even with the cation gate
+//        passing, Cu > 5 ppm scales sigma down to mimic the gradual
+//        "Cu steals the arsenate" handoff to conichalcite.
+//
+//        Implementation:
+//          * supersaturation_pharmacolite (30-supersat-arsenate.ts):
+//            gates Ca>=15, As>=5, oxidizing, pH 5.5-7.5, T 5-50 C
+//            optimum 15-35; cation-share gate at 0.3.
+//          * grow_pharmacolite (50-engines-arsenate.ts): rate=2.5*excess.
+//            Habit: radiating_stellate (high σ, Jáchymov display) →
+//            acicular (moderate σ) → efflorescent_crust (low σ).
+//            Two destruction paths: thermal dehydration at T>80 C
+//            (modeled as crystal-destruction since haidingerite isn't
+//            yet in the catalog — the research file for haidingerite
+//            doesn't exist in canonical repo) and acid dissolution
+//            below pH 4.5.
+//          * _nuc_pharmacolite (80-nucleation-arsenate.ts): substrate
+//            priority cobaltite > arsenopyrite > native_arsenic >
+//            nickeline > erythrite > annabergite > calcite > wall,
+//            encoding the five-element-vein paragenetic ordering from
+//            research §Paragenetic Position.
+//          * MINERAL_ENGINES.pharmacolite wired in 65-mineral-engines.ts.
+//          * data/minerals.json entry with 5 color rules (white default
+//            + Fe-yellow, Mn-pink, Cu-pale-green, gray field-specimen),
+//            thermal-decomp specification documenting the haidingerite
+//            transformation (preserved as written-only spec for a
+//            future haidingerite addition).
+//
+//        Calibration drift: pharmacolite fires in BOTH schneeberg AND
+//        supergene_oxidation at seed 42. Schneeberg picks it up during
+//        the Cu-depletion phase (the research-documented type-locality
+//        signature — Jáchymov/Schneeberg are explicitly named in
+//        research §Classic Localities). supergene_oxidation also fires
+//        pharmacolite alongside conichalcite — the Ca-As-rich Tsumeb
+//        chemistry produces both: conichalcite gets the Cu-bearing
+//        share, pharmacolite gets the Cu-free share. Initial v88
+//        history note predicted only schneeberg; the supergene
+//        coexistence emerged on calibration.
+//
+//        v88 sulfide-suppression gate (added during calibration):
+//        early test runs surfaced pharmacolite incorrectly firing in
+//        sulphur_bank when post-cooling pH happened to recover into
+//        the 5.5-7.5 window. Real Sulphur Bank fluid keeps As as
+//        As(III) sulfide complexes throughout (S=400 ppm sustained),
+//        not As(V) arsenate; the simulator's single fluid.As pool
+//        can't distinguish the two states, so a hard sulfide-block
+//        (S > 50 ppm → return 0) was added. This is the same kind of
+//        proxy gate that arsenate engines use generally (proxy via
+//        oxidation state), just extended one rung further toward the
+//        actual chemistry the simulator can't otherwise represent.
+//
+//        Coverage 101 → 102 live (+pharmacolite) / 24 dead / 0 stale.
+//        seed42_v88.json captures the schneeberg + supergene_oxidation
+//        drift; other 24 scenarios byte-identical to v87.
+//
+//        References (from research-pharmacolite.md):
+//          * Stromeyer F. (1819) — Riegelsdorf type-locality description
+//            (the original pharmacolite name from Greek "pharmakon"
+//            for the As-poisoning property).
+//          * Anthony J.W. et al. — Handbook of Mineralogy Vol. IV.
+//          * research/research-pharmacolite.md (canonical research-agent
+//            file, May 2026 — boss research drop fetched after v85
+//            surfaced the gap).
+const SIM_VERSION = 88;
 

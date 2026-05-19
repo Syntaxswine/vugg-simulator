@@ -107,6 +107,73 @@ Object.assign(VugConditions.prototype, {
   return Math.max(sigma, 0);
 },
 
+  supersaturation_pharmacolite() {
+  // CaHAsO₄·2H₂O — monoclinic hydrated calcium hydrogen arsenate, the
+  // Ca-only (no Cu) supergene arsenate. Distinctive radiating/stellate
+  // acicular aggregates ("starbursts of white needles"). The classic
+  // Jáchymov/Schneeberg/Cobalt-Ontario silver-cobalt-arsenic-district
+  // weathering bloom; forms when arsenic-rich primary phases (cobaltite,
+  // nickeline, native_arsenic, arsenopyrite) oxidize in carbonate-
+  // buffered groundwater that supplies Ca. Per research-pharmacolite.md
+  // (boss canonical 2026-05).
+  //
+  // Cation anti-gates (research §Inhibiting elements): high Cu routes
+  // to conichalcite, high Pb to mimetite, high Zn to adamite, high Co
+  // to erythrite, high Ni to annabergite. The pharmacolite engine
+  // SUPPRESSES (not blocks) when those competing cations exceed
+  // pharmacolite's own — fluid splits its arsenate budget across
+  // competitor species; pharmacolite gets the residual when Ca
+  // dominates the cation pool overall.
+  if (this.fluid.Ca < 15 || this.fluid.As < 5) return 0;
+  if (!arsenateRedoxAvailable(this.fluid, 0.3)) return 0;
+  if (this.fluid.pH < 5.5 || this.fluid.pH > 7.5) return 0;
+  if (this.temperature < 5 || this.temperature > 50) return 0;
+  // Sulfide-suppression: pharmacolite requires As to be present as
+  // As⁵⁺ (arsenate), but a sulfide-rich fluid (S > 50 ppm) keeps As
+  // chemically bound in As³⁺ realgar/orpiment complexes regardless
+  // of the engine's coarse arsenateRedoxAvailable proxy. The
+  // simulator's single fluid.As pool doesn't distinguish As(III)
+  // from As(V); this gate proxies the real chemistry that's
+  // implicit in "supergene oxidation = sulfide-depleted environment".
+  // Sulphur Bank's S=400 → blocked even when pH/T windows happen to
+  // align during cooling pulses. Schneeberg-late's S < 30 (post-
+  // sulfide-weathering) → allowed.
+  if (this.fluid.S > 50) return 0;
+  // Cation-share gate: Ca must dominate the cation pool. The
+  // denominator includes the major competing cations from the
+  // arsenate-fork minerals. Pharmacolite gets the share of the
+  // arsenate budget proportional to its cation share.
+  const competing = this.fluid.Cu + this.fluid.Pb + this.fluid.Zn
+                  + this.fluid.Co + this.fluid.Ni;
+  const total_cations = this.fluid.Ca + competing;
+  const ca_fraction = this.fluid.Ca / total_cations;
+  if (ca_fraction < 0.3) return 0;  // strongly competed-out
+  // Note: the cation-share check above is a binary gate (block when
+  // Ca-share < 0.3). We do NOT multiply sigma by ca_fraction in
+  // addition — that double-dampened the engine in early calibration
+  // (typical schneeberg-late chemistry gave sigma ~ 0.24, below the
+  // 1.0 nucleation threshold). Now sigma scales on the absolute Ca/As
+  // concentrations with a sweet-spot bonus when Ca strongly dominates.
+  const ca_f = Math.min(this.fluid.Ca / 50, 2.5);
+  const as_f = Math.min(this.fluid.As / 15, 2.5);
+  const ox_f = arsenateRedoxFactor(this.fluid, 1.0, 2.0);
+  let sigma = ca_f * as_f * ox_f;
+  if (ca_fraction >= 0.6) sigma *= 1.3;  // strong Ca-dominance bonus
+  const T = this.temperature;
+  let T_factor;
+  if (T >= 15 && T <= 35) T_factor = 1.2;
+  else if (T < 15) T_factor = Math.max(0.3, 0.4 + 0.05 * (T - 5));
+  else if (T <= 50) T_factor = Math.max(0.4, 1.2 - 0.040 * (T - 35));
+  else T_factor = 0.2;
+  sigma *= T_factor;
+  // Cu-suppression (research: "high copper favors olivenite/conichalcite").
+  // Soft scaling rather than hard block — pharmacolite tolerates trace Cu
+  // but loses ground rapidly as Cu approaches Ca.
+  if (this.fluid.Cu > 5) sigma *= Math.max(0.3, 1.0 - (this.fluid.Cu - 5) / 100);
+  if (ACTIVITY_CORRECTED_SUPERSAT) sigma *= activityCorrectionFactor(this.fluid, 'pharmacolite');
+  return Math.max(sigma, 0);
+},
+
   supersaturation_conichalcite() {
   // CaCu(AsO₄)(OH) — orthorhombic Ca-Cu arsenate. Vivid emerald to
   // apple green (Cu²⁺ chromophore). Per research-conichalcite.md (boss

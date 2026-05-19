@@ -8649,6 +8649,126 @@
       "_late_stage_note": "Proposal C (2026-05): propensity:0.5. Supergene Ca-Cu arsenate forms in the late oxidation zone alongside malachite/chrysocolla/azurite. Not as late as efflorescent crusts (chalcanthite 0.7-0.8) but later than primary Cu-As phases.",
       "class_color": "#1eb86c"
     },
+    "pharmacolite": {
+      "formula": "CaHAsO4·2H2O",
+      "nucleation_sigma": 1.0,
+      "max_nucleation_count": 5,
+      "max_size_cm": 2,
+      "growth_rate_mult": 0.4,
+      "habit_variants": [
+        {
+          "name": "radiating_stellate",
+          "wall_spread": 0.35,
+          "void_reach": 0.65,
+          "vector": "projecting",
+          "trigger": "high σ (>1.0) — dense radiating starburst of white needles, the classic Jáchymov/Schneeberg display habit"
+        },
+        {
+          "name": "acicular",
+          "wall_spread": 0.4,
+          "void_reach": 0.55,
+          "vector": "projecting",
+          "trigger": "moderate σ (0.3-1.0) — radiating acicular needle bundles, field-common form"
+        },
+        {
+          "name": "efflorescent_crust",
+          "wall_spread": 0.85,
+          "void_reach": 0.1,
+          "vector": "coating",
+          "trigger": "low σ (<0.3) — earthy powdery white crust, the degraded 'drying out' state"
+        }
+      ],
+      "class": "arsenate",
+      "description": "CaHAsO₄·2H₂O — monoclinic hydrated calcium hydrogen arsenate. Forms colorless to white delicate radiating/stellate aggregates resembling starbursts of needles — the diagnostic field marker. Vitreous to pearly luster, soft (Mohs 2-2.5). The classic supergene bloom of the Jáchymov (Joachimsthal, Czech) + Schneeberg + Cobalt-Ontario silver-cobalt-arsenic mining districts, where the weathering of cobaltite/nickeline/arsenopyrite primaries releases As⁵⁺ into Ca-rich groundwater. Trace Fe gives yellowish tint, Mn pinkish, Cu greenish — useful provenance fingerprints. Efflorescent: loses water in dry air, converting to haidingerite (CaHAsO₄·H₂O) at ~80-100°C and to anhydrous Ca arsenate at ~150°C, both effectively irreversible. Most field specimens are already partially dehydrated by the time they reach a collection. Highly soluble in dilute HCl/HNO₃; releases toxic arsenic + calcium on dissolution. Type locality: Riegelsdorf, Hesse, Germany (Stromeyer 1819) — but the Jáchymov + Schneeberg displays are the iconic specimens. Sources: research/research-pharmacolite.md (boss canonical 2026-05); Anthony et al. Handbook of Mineralogy Vol. IV; Stromeyer 1819 (type-locality description).",
+      "scenarios": [
+        "schneeberg",
+        "supergene_oxidation"
+      ],
+      "T_range_C": [
+        5,
+        80
+      ],
+      "T_optimum_C": [
+        15,
+        35
+      ],
+      "T_behavior": "window_with_dehydration_decay",
+      "pH_dissolution_below": 4.5,
+      "pH_dissolution_above": null,
+      "redox_requirement": "oxidizing",
+      "required_ingredients": {
+        "Ca": 15,
+        "As": 5
+      },
+      "_ingredients_note": "v88 (2026-05-19): Ca + As only (the formula is Ca-only, no Cu/Co/Ni/Zn). Cation-share gate Ca/(Ca+Cu+Pb+Zn+Co+Ni) > 0.3 enforces the anti-competitor logic per research §Inhibiting elements — high Cu routes to conichalcite, high Co to erythrite, etc.",
+      "trace_ingredients": {
+        "Fe": "Fe substitutes minorly, yields yellowish tint",
+        "Mn": "Mn substitutes minorly, pinkish hue",
+        "Cu": "trace Cu gives greenish cast (>5 ppm rapidly suppresses pharmacolite via fork to conichalcite)",
+        "P": "phosphate may substitute for arsenate, transitional toward Ca-phosphate",
+        "Co": "high Co competes with Ca for arsenate, routes fluid to erythrite",
+        "Ni": "high Ni routes to annabergite",
+        "Zn": "high Zn routes to adamite",
+        "Pb": "high Pb routes to mimetite (Pb arsenate-chloride preference)"
+      },
+      "thermal_decomp_C": 80,
+      "thermal_decomp_reaction": "Pharmacolite (CaHAsO₄·2H₂O) → haidingerite (CaHAsO₄·H₂O) at 80-100°C, loses 1 H₂O; further heating → anhydrous Ca arsenate + H₂O at ~150°C. Both irreversible. In the v88 sim, modeled as crystal-destruction (mineral dissolution releasing structural water) since haidingerite isn't yet in the catalog.",
+      "thermal_decomp_products": {
+        "Ca": 0.0,
+        "As": 0.0
+      },
+      "fluorescence": {
+        "activator": null,
+        "threshold_ppm": 0,
+        "color": null,
+        "quencher": null,
+        "status": "generally non-fluorescent under standard UV (SW/MW/LW). Very weak creamy-white response from trace impurities is possible but not from pharmacolite itself. Distinct from autunite-group uranyl arsenates (which fluoresce strongly via U); pharmacolite has no chromophore and no fluorescer in its formula."
+      },
+      "twin_laws": [
+        {
+          "name": "pharmacolite_100",
+          "composition_plane": "{100}",
+          "twin_axis": "[001]",
+          "probability": 0.05,
+          "trigger": "rare contact twin per research §Crystal Habit Patterns"
+        }
+      ],
+      "acid_dissolution": {
+        "pH_threshold": 4.5,
+        "reaction": "CaHAsO₄·2H₂O + 3H⁺ → Ca²⁺ + H₃AsO₄ + 2H₂O (readily dissolves in dilute mineral acids; HCl/HNO₃ specifically called out in research)",
+        "products": {
+          "Ca": 0.25,
+          "As": 0.30
+        }
+      },
+      "habit": "acicular",
+      "color_rules": {
+        "white": {
+          "default": true,
+          "trigger": "colorless to white — the pharmacolite signature; no chromophore in formula"
+        },
+        "pale_gray": {
+          "trigger": "field specimen with adherent matrix grains"
+        },
+        "pale_yellow": {
+          "trigger": "Fe > 10 ppm trace — yellowish tint"
+        },
+        "pinkish": {
+          "trigger": "Mn > 2 ppm trace — pink hue from Mn substitution"
+        },
+        "pale_green_to_white": {
+          "trigger": "Cu trace below the conichalcite fork threshold — slight greenish cast"
+        }
+      },
+      "narrate_function": null,
+      "runtimes_present": [
+        "js"
+      ],
+      "audit_status": "new v88 (2026-05-19). Per research-pharmacolite.md (boss canonical 2026-05). Ca-only hydrated arsenate; closes the supergene-arsenate Ca-without-Cu slot (paired with conichalcite v87 Ca+Cu and olivenite v8 Cu-only on the same supergene Cu-As fluid). Cation anti-gates suppress (not block) when competitors dominate. Substrate priority: cobaltite > arsenopyrite > native_arsenic > nickeline > erythrite > annabergite > calcite > wall (encodes the five-element-vein paragenetic ordering from research §Paragenetic Position). Slots into schneeberg (primary target — research's Jáchymov/Schneeberg type-display locality; Cu depletes by step 125, Ca rises from carbonate dissolution, As stays elevated from arsenide weathering) + supergene_oxidation (Tsumeb-style Ca-rich oxidation, fires when conichalcite stops scavenging the Cu-bearing window). Thermal dehydration to haidingerite at >80°C modeled as crystal-destruction since haidingerite isn't yet in the catalog. Sources: research-pharmacolite.md; Anthony et al. Handbook of Mineralogy Vol. IV; Stromeyer 1819 (Riegelsdorf type locality).",
+      "late_stage_propensity": 0.6,
+      "_late_stage_note": "Proposal C (2026-05): propensity:0.6. Late-supergene Ca-As arsenate; forms in the closing phase of the oxidation zone after the primary Co/Ni arsenides have weathered and Ca-rich groundwater has flushed through. Between conichalcite (0.5) and chalcanthite (0.7) on the late-stage scale.",
+      "class_color": "#e8e8d4"
+    },
     "chalcanthite": {
       "formula": "CuSO4·5H2O",
       "nucleation_sigma": 1.0,

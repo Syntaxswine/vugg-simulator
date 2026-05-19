@@ -128,6 +128,50 @@ function _nuc_olivenite(sim) {
   // Nickeline nucleation — Ni + As + reducing + high T.
 }
 
+function _nuc_pharmacolite(sim) {
+  // CaHAsO₄·2H₂O — Ca-only hydrated arsenate. The Jáchymov/Schneeberg/
+  // Cobalt-Ontario five-element-vein supergene bloom. Per
+  // research-pharmacolite.md §Paragenetic Position: "Forms after
+  // primary arsenides oxidize, releasing arsenic into supergene
+  // fluids. Forms before more stable arsenates including conichalcite,
+  // erythrite, annabergite". Substrate priority encodes that ordering:
+  // cobaltite + arsenopyrite + native_arsenic + nickeline (As sources)
+  // > erythrite + annabergite (paragenetic kin) > calcite (Ca source)
+  // > bare wall.
+  const sigma_ph = sim.conditions.supersaturation_pharmacolite();
+  if (sigma_ph > 1.0 && !sim._atNucleationCap('pharmacolite')) {
+    if (rng.random() < 0.22) {
+      let pos = 'vug wall';
+      const active_cob_ph  = sim.crystals.filter(c => c.mineral === 'cobaltite' && c.active);
+      const active_arsp_ph = sim.crystals.filter(c => c.mineral === 'arsenopyrite' && c.active);
+      const active_nar_ph  = sim.crystals.filter(c => c.mineral === 'native_arsenic' && c.active);
+      const active_nic_ph  = sim.crystals.filter(c => c.mineral === 'nickeline' && c.active);
+      const active_ery_ph  = sim.crystals.filter(c => c.mineral === 'erythrite' && c.active);
+      const active_ann_ph  = sim.crystals.filter(c => c.mineral === 'annabergite' && c.active);
+      const active_cal_ph  = sim.crystals.filter(c => c.mineral === 'calcite' && c.active);
+      // As sources first (the documented paragenetic ordering)
+      if (active_cob_ph.length && rng.random() < 0.35) {
+        pos = `on weathering cobaltite #${active_cob_ph[0].crystal_id}`;
+      } else if (active_arsp_ph.length && rng.random() < 0.30) {
+        pos = `on weathering arsenopyrite #${active_arsp_ph[0].crystal_id}`;
+      } else if (active_nar_ph.length && rng.random() < 0.30) {
+        pos = `on weathering native_arsenic #${active_nar_ph[0].crystal_id}`;
+      } else if (active_nic_ph.length && rng.random() < 0.25) {
+        pos = `on weathering nickeline #${active_nic_ph[0].crystal_id}`;
+      } else if (active_ery_ph.length && rng.random() < 0.25) {
+        pos = `alongside erythrite #${active_ery_ph[0].crystal_id}`;
+      } else if (active_ann_ph.length && rng.random() < 0.25) {
+        pos = `alongside annabergite #${active_ann_ph[0].crystal_id}`;
+      } else if (active_cal_ph.length && rng.random() < 0.20) {
+        pos = `on calcite #${active_cal_ph[0].crystal_id}`;
+      }
+      const c = sim.nucleate('pharmacolite', pos, sigma_ph);
+      const f = sim.conditions.fluid;
+      sim.log.push(`  ✦ NUCLEATION: Pharmacolite #${c.crystal_id} on ${c.position} (T=${sim.conditions.temperature.toFixed(0)}°C, σ=${sigma_ph.toFixed(2)}, Ca=${f.Ca.toFixed(0)}, As=${f.As.toFixed(0)}, Cu=${f.Cu.toFixed(0)} ppm) — radiating white needle starburst`);
+    }
+  }
+}
+
 function _nuc_conichalcite(sim) {
   // CaCu(AsO₄)(OH) — supergene Ca-Cu arsenate. The Ca-cation analog of
   // olivenite; fires when Ca/(Ca+Cu) > 0.4 in the local fluid (the
@@ -172,4 +216,5 @@ function _nucleateClass_arsenate(sim) {
   _nuc_annabergite(sim);
   _nuc_olivenite(sim);
   _nuc_conichalcite(sim);
+  _nuc_pharmacolite(sim);
 }

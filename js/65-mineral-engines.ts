@@ -138,4 +138,10 @@ const MINERAL_ENGINES = {
   // mechanic (Ca/(Ca+Cu) > 0.4 routes to conichalcite; Cu-dominant
   // stays with olivenite). Tsumeb / Bisbee supergene oxidation zone.
   conichalcite: grow_conichalcite,
+  // v88 (2026-05-19): hydrated Ca-only arsenate, the Jáchymov /
+  // Schneeberg / Cobalt-Ontario five-element-vein bloom. Radiating
+  // acicular "starburst" habit; thermal dehydration at >80°C drives
+  // conversion to haidingerite (modeled as dissolution since
+  // haidingerite isn't in the catalog).
+  pharmacolite: grow_pharmacolite,
 };

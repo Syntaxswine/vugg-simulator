@@ -61,6 +61,97 @@ function grow_scorodite(crystal, conditions, step) {
   });
 }
 
+function grow_pharmacolite(crystal, conditions, step) {
+  // CaHAsO₄·2H₂O — monoclinic Ca-only hydrated arsenate. Per
+  // research-pharmacolite.md (boss canonical 2026-05). The
+  // diagnostic radiating/stellate acicular habit ("starbursts of
+  // white needles") is the field marker; this engine builds toward
+  // that habit when σ is high and falls back to powdery efflorescent
+  // crusts at low σ.
+  //
+  // Two destruction paths: thermal dehydration at >80°C converts
+  // pharmacolite to haidingerite (CaHAsO₄·H₂O) — modeled here as
+  // mineral dissolution since haidingerite isn't in the catalog yet
+  // (research file for haidingerite doesn't exist in canonical repo);
+  // and acid dissolution below pH 4.5.
+  if (crystal.total_growth_um > 5 && conditions.temperature > 80) {
+    crystal.dissolved = true;
+    return new GrowthZone({
+      step, temperature: conditions.temperature,
+      thickness_um: -1.0, growth_rate: -1.0,
+      dissolutionMode: 'thermal',
+      note: `thermal dehydration above 80°C — pharmacolite (CaHAsO₄·2H₂O) loses water to haidingerite (CaHAsO₄·H₂O); structural water released back to fluid`
+    });
+  }
+
+  const sigma = conditions.supersaturation_pharmacolite();
+  if (sigma < 1.0) {
+    if (crystal.total_growth_um > 5 && conditions.fluid.pH < 4.5) {
+      crystal.dissolved = true;
+      return new GrowthZone({
+        step, temperature: conditions.temperature,
+        thickness_um: -1.2, growth_rate: -1.2,
+        dissolutionMode: 'acid',
+        note: `acid dissolution (pH ${conditions.fluid.pH.toFixed(1)}) — Ca²⁺ + HAsO₄²⁻ + H₂O released`
+      });
+    }
+    return null;
+  }
+  const excess = sigma - 1.0;
+  const rate = 2.5 * excess * rng.uniform(0.8, 1.2);
+  if (rate < 0.1) return null;
+
+  // Habit dispatch per research §Habit Selection Logic:
+  // "High humidity + slow growth: Acicular/radiating (classic
+  // pharmacolite form)" — at moderate σ this is the dominant habit.
+  // Higher σ produces denser radiating bundles ("stellate aggregates").
+  // Low σ produces powdery/earthy efflorescent crust ("Variant 2
+  // Efflorescent Crust: degraded state").
+  let habit_note;
+  if (excess > 1.0) {
+    crystal.habit = 'radiating_stellate';
+    crystal.dominant_forms = ['radiating acicular needles', 'stellate aggregate', 'starburst of white needles'];
+    habit_note = 'radiating stellate aggregate — the classic Jáchymov/Schneeberg habit';
+  } else if (excess > 0.3) {
+    crystal.habit = 'acicular';
+    crystal.dominant_forms = ['acicular needles', 'prismatic {010} blades', 'fibrous white'];
+    habit_note = 'acicular pharmacolite — radiating bundles, field-common form';
+  } else {
+    crystal.habit = 'efflorescent_crust';
+    crystal.dominant_forms = ['earthy powdery crust', 'thin white coating'];
+    habit_note = 'efflorescent crust — low-σ degraded state, the "drying out" form';
+  }
+
+  // Color modulation by trace impurities (research §Color &
+  // Visual Characteristics)
+  const f = conditions.fluid;
+  if (f.Fe > 10) habit_note += `; trace Fe (${f.Fe.toFixed(0)} ppm — yellowish tint)`;
+  if (f.Mn > 2)  habit_note += `; trace Mn (${f.Mn.toFixed(1)} ppm — pinkish hue)`;
+  if (f.Cu > 1)  habit_note += `; trace Cu (${f.Cu.toFixed(1)} ppm — greenish cast)`;
+
+  // Substrate annotation — pharmacolite-classic associations
+  const pos = crystal.position || '';
+  if (typeof pos === 'string') {
+    if (pos.includes('cobaltite')) habit_note += ' — replacing weathered cobaltite (five-element vein paragenesis)';
+    else if (pos.includes('arsenopyrite')) habit_note += ' — on weathering arsenopyrite, the As source';
+    else if (pos.includes('native_arsenic')) habit_note += ' — on weathering native_arsenic, Ca scavenges As⁵⁺ as oxidation completes';
+    else if (pos.includes('erythrite')) habit_note += ' — alongside erythrite (Co-Ca arsenate pair)';
+    else if (pos.includes('nickeline')) habit_note += ' — alongside nickeline weathering products';
+  }
+
+  // Mass balance: Ca + As consumed
+  conditions.fluid.Ca = Math.max(conditions.fluid.Ca - rate * 0.020, 0);
+  conditions.fluid.As = Math.max(conditions.fluid.As - rate * 0.012, 0);
+
+  return new GrowthZone({
+    step, temperature: conditions.temperature,
+    thickness_um: rate, growth_rate: rate,
+    trace_Fe: f.Fe * 0.005,
+    trace_Mn: f.Mn * 0.010,
+    note: habit_note,
+  });
+}
+
 function grow_conichalcite(crystal, conditions, step) {
   // CaCu(AsO₄)(OH) — orthorhombic Ca-Cu arsenate. Vivid emerald-green
   // chromophore (Cu²⁺ in octahedral coordination), Mohs 4.5 (harder
