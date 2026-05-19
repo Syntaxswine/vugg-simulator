@@ -265,6 +265,26 @@ function _nuc_witherite(sim) {
   }
 }
 
+// v98 (2026-05-19): Hydrozincite — latest+coolest Zn supergene
+// carbonate-hydroxide. Substrate priority encodes smithsonite-alteration
+// + cave-floor paragenesis (Iglesiente Sardinia + Mežica Slovenia).
+function _nuc_hydrozincite(sim) {
+  const sigma = sim.conditions.supersaturation_hydrozincite();
+  if (sigma < 1.0) return;
+  if (sim._atNucleationCap('hydrozincite')) return;
+  const existing = sim.crystals.filter(c => c.mineral === 'hydrozincite' && c.active);
+  if (existing.length >= 3) return;
+  let pos = 'vug wall';
+  const smith = sim.crystals.filter(c => c.mineral === 'smithsonite' && c.active);
+  const aur = sim.crystals.filter(c => c.mineral === 'aurichalcite' && c.active);
+  const cal = sim.crystals.filter(c => c.mineral === 'calcite' && c.active);
+  if (smith.length && rng.random() < 0.60) pos = `alteration after smithsonite #${smith[0].crystal_id}`;
+  else if (aur.length && rng.random() < 0.40) pos = `with aurichalcite #${aur[0].crystal_id}`;
+  else if (cal.length && rng.random() < 0.30) pos = `cave-floor coating on calcite #${cal[0].crystal_id}`;
+  const c = sim.nucleate('hydrozincite', pos, sigma);
+  sim.log.push(`  ✦ NUCLEATION: ⚪ Hydrozincite #${c.crystal_id} on ${c.position} (T=${sim.conditions.temperature.toFixed(0)}°C, σ=${sigma.toFixed(2)}, Zn=${sim.conditions.fluid.Zn.toFixed(0)}, CO₃=${sim.conditions.fluid.CO3.toFixed(0)}, pH=${sim.conditions.fluid.pH.toFixed(1)}) — chalk-white Zn-carbonate-hydroxide, pale-blue SW-UV fluorescent`);
+}
+
 function _nucleateClass_carbonate(sim) {
   _nuc_calcite(sim);
   _nuc_aragonite(sim);
@@ -279,4 +299,5 @@ function _nucleateClass_carbonate(sim) {
   _nuc_aurichalcite(sim);
   _nuc_strontianite(sim);
   _nuc_witherite(sim);
+  _nuc_hydrozincite(sim);
 }

@@ -303,4 +303,32 @@ Object.assign(VugConditions.prototype, {
     if (ACTIVITY_CORRECTED_SUPERSAT) sigma *= activityCorrectionFactor(this.fluid, 'witherite');
     return Math.max(sigma, 0);
   },
+
+  // v98 (2026-05-19): Hydrozincite Zn5(CO3)2(OH)6 — monoclinic C2/m,
+  // the latest+coolest Zn supergene mineral. Forms <30°C, alkaline
+  // (pH 7-9), carbonate-rich, Si-poor (otherwise hemimorphite wins).
+  // Spherulitic chalky crusts + cave-floor coatings. Type locality
+  // Iglesiente, Sardinia; bioremediator at Naracauli (Preisig et al.
+  // 2014). Per Hitzman et al. 2003 Econ. Geol. 98:685-714 (nonsulfide
+  // Zn synthesis) + Boni & Mondillo 2015 Ore Geol. Rev. 67:208-233.
+  supersaturation_hydrozincite() {
+    if (this.fluid.Zn < 5 || this.fluid.CO3 < 100) return 0;
+    if (this.fluid.O2 < 0.5) return 0;
+    if (this.temperature < 5 || this.temperature > 30) return 0;
+    if (this.fluid.pH < 7.0 || this.fluid.pH > 9.5) return 0;
+    if (this.fluid.SiO2 > 50) return 0;  // hemimorphite wins above
+    // High sulfate → gypsum + Zn-sulfates win
+    if (this.fluid.S > 100 && this.fluid.O2 > 0.5) return 0;
+    // Cu suppresses → aurichalcite (Zn-Cu carbonate-hydroxide) wins
+    const cu_frac = this.fluid.Cu / Math.max(this.fluid.Cu + this.fluid.Zn, 0.001);
+    if (cu_frac > 0.15) return 0;
+    const zn_f = Math.min(this.fluid.Zn / 20.0, 2.5);
+    const co3_f = Math.min(this.fluid.CO3 / 200.0, 2.0);
+    let sigma = zn_f * co3_f;
+    const pH = this.fluid.pH;
+    if (pH >= 7.5 && pH <= 8.5) sigma *= 1.3;
+    else sigma *= Math.max(0.5, 1.0 - Math.abs(pH - 8.0) * 0.5);
+    if (ACTIVITY_CORRECTED_SUPERSAT) sigma *= activityCorrectionFactor(this.fluid, 'hydrozincite');
+    return Math.max(sigma, 0);
+  },
 });

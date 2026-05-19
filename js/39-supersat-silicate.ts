@@ -297,6 +297,64 @@ Object.assign(VugConditions.prototype, {
   // Evans & Mrose 1977 Am. Min. 62:491 (Cu-silicate family), Schaller 1915
   // (shattuckite type description, Shattuck mine Bisbee), Keller 1977
   // MinRec 8 (Tsumeb paragenesis).
+  // v98 (2026-05-19): Zn supergene silicates — hemimorphite + willemite.
+  // The two Zn silicates of supergene "nonsulfide" Zn deposits
+  // (Tsumeb, Skorpion Namibia, Franklin/Sterling NJ). Discriminator:
+  //   hemimorphite Zn4Si2O7(OH)2·H2O   <50°C  hydrated  SiO2-rich
+  //   willemite    Zn2SiO4              50-200°C anhydrous wider pH
+  // Per Hitzman et al. 2003 Econ. Geol. 98:685-714 (nonsulfide Zn
+  // synthesis) + Boni & Mondillo 2015 Ore Geol. Rev. 67:208-233.
+
+  supersaturation_hemimorphite() {
+    // Zn4Si2O7(OH)2·H2O — orthorhombic Imm2 polar (hemimorphic). Forms
+    // strictly low-T (<50°C) in Zn-supergene zones with SiO2 ≥ 200 ppm.
+    // The CO3:SiO2 ratio is the discriminator from smithsonite —
+    // smithsonite wins above; hemimorphite below.
+    if (this.fluid.Zn < 10 || this.fluid.SiO2 < 200) return 0;
+    if (this.fluid.O2 < 0.5) return 0;
+    if (this.temperature < 5 || this.temperature > 50) return 0;
+    if (this.fluid.pH < 5.5 || this.fluid.pH > 8.0) return 0;
+    // CO3 > SiO2 → smithsonite wins
+    if (this.fluid.CO3 > this.fluid.SiO2) return 0;
+    const zn_f = Math.min(this.fluid.Zn / 30.0, 2.5);
+    const si_f = Math.min(this.fluid.SiO2 / 300.0, 2.0);
+    let sigma = zn_f * si_f;
+    const pH = this.fluid.pH;
+    if (pH >= 6.0 && pH <= 7.5) sigma *= 1.3;
+    else sigma *= Math.max(0.5, 1.0 - Math.abs(pH - 6.75) * 0.5);
+    const T = this.temperature;
+    if (T < 15) sigma *= Math.max(0.5, T / 15.0);
+    else if (T > 40) sigma *= Math.max(0.4, 1.0 - (T - 40) / 20.0);
+    if (ACTIVITY_CORRECTED_SUPERSAT) sigma *= activityCorrectionFactor(this.fluid, 'hemimorphite');
+    return Math.max(sigma, 0);
+  },
+
+  supersaturation_willemite() {
+    // Zn2SiO4 — trigonal R-3 phenakite-group. Two formation modes:
+    //   PRIMARY/metamorphic 500-600°C (Franklin/Sterling NJ)
+    //   SUPERGENE "nonsulfide" 50-200°C (Skorpion Namibia)
+    // Engine fires across both regimes; T sweet spot bifurcates.
+    if (this.fluid.Zn < 50 || this.fluid.SiO2 < 100) return 0;
+    if (this.fluid.O2 < 0.3) return 0;  // less strict than hemimorphite
+    // Wide T window covering both modes
+    if (this.temperature < 50 || this.temperature > 700) return 0;
+    if (this.fluid.pH < 6.0 || this.fluid.pH > 9.0) return 0;
+    const zn_f = Math.min(this.fluid.Zn / 80.0, 2.5);
+    const si_f = Math.min(this.fluid.SiO2 / 200.0, 2.0);
+    let sigma = zn_f * si_f;
+    const T = this.temperature;
+    // Bimodal T sweet spots:
+    //   80-150 supergene (Skorpion); 500-600 primary/metamorphic
+    if ((T >= 80 && T <= 150) || (T >= 500 && T <= 600)) sigma *= 1.3;
+    else if (T < 80) sigma *= Math.max(0.5, 1.0 - (80 - T) / 40);
+    else if (T < 500) sigma *= 0.6;  // intermediate-T gap (rarer)
+    else sigma *= Math.max(0.4, 1.0 - (T - 600) / 100);
+    // Mn²⁺ activator — willemite famously fluoresces bright green
+    // under SW UV. Tracked here for narrative; not gating.
+    if (ACTIVITY_CORRECTED_SUPERSAT) sigma *= activityCorrectionFactor(this.fluid, 'willemite');
+    return Math.max(sigma, 0);
+  },
+
   supersaturation_dioptase() {
     // CuSiO₃·H₂O — emerald-green cyclosilicate, Tsumeb world reference
     // (type loc. Altyn-Tyube, Kazakhstan; Hauy 1797).

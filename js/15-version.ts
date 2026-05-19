@@ -3350,5 +3350,64 @@
 //
 //         Coverage 112 live → 117 live (+5 minerals); 25 paramorph-only.
 //         Calibration drift: TBD per baseline regen.
-const SIM_VERSION = 97;
+//   v98 — Zn supergene triad: hemimorphite + willemite + hydrozincite
+//         (2026-05-19). The Zn-silicate + Zn-carbonate-hydroxide
+//         minerals of nonsulfide Zn deposits — Tsumeb, Skorpion Namibia,
+//         Franklin-Sterling NJ, Iglesiente Sardinia. Closes the
+//         Zn-silicate supergene gap (Tsumeb fan sheaves world reference)
+//         + the cave-floor hydrozincite gap + the bimodal willemite
+//         (primary Franklin OR supergene Skorpion).
+//
+//         Discriminators (Hitzman et al. 2003 + Boni & Mondillo 2015):
+//           hemimorphite  <50°C   hydrated   pH 5.5-8  SiO2 > CO3
+//           willemite     50-200° supergene OR 500-600° metamorphic
+//           hydrozincite  <30°C   alkaline   pH 7-9   SiO2 < 50 + low Cu
+//
+//         The CO3:SiO2 ratio is the silicate-vs-carbonate fork:
+//         hemimorphite needs SiO2 > CO3 (Hitzman fig. 9); hydrozincite
+//         needs CO3 >> SiO2 (< 50 SiO2). Smithsonite occupies the
+//         intermediate window. Willemite is bimodal — at supergene T,
+//         it can fire above smithsonite's CO3 window because the
+//         anhydrous structure tolerates broader carbonate (Skorpion
+//         atypical CO3-rich willemite per Hitzman fig. 10).
+//
+//         Substrate priorities encode the nonsulfide Zn paragenesis
+//         (Boni & Mondillo 2015 fig. 4):
+//           hemimorphite: smithsonite > sphalerite (replacement) > gossan
+//           willemite:    sphalerite > smithsonite > vug wall
+//           hydrozincite: smithsonite (alteration) > aurichalcite >
+//                         calcite (cave-floor)
+//
+//         Color/fluorescence flags:
+//           hemimorphite: colorless/white default; Cu-trace → Mapimi blue
+//           willemite:    Mn²⁺ activator → DIAGNOSTIC bright green SW-UV
+//                         fluorescence (Franklin "fluorescent rocks");
+//                         high-Mn variety = troostite (reddish)
+//           hydrozincite: pale-blue SW-UV (defect, not Mn²⁺); chalk-
+//                         white default
+//
+//         All three nucleation functions use sigma < 1.0 early-out
+//         RNG-cascade guard.
+//
+//         References (research dossier 2026-05-19):
+//           * Hitzman M.W., Reynolds N.A., Sangster D.F., Allen C.R.,
+//             Carman C.E. (2003) "Classification, genesis, and
+//             exploration guides for nonsulfide zinc deposits."
+//             Econ. Geol. 98:685-714. THE modern reference; fig. 9
+//             (silica-carbonate stability) + fig. 10 (Skorpion
+//             elevated-T CO3 tolerance) + fig. 4 (paragenesis).
+//           * Boni M. & Mondillo N. (2015) "The 'Calamines' and the
+//             'others': The great family of supergene nonsulfide zinc
+//             ores." Ore Geol. Rev. 67:208-233. Iglesiente +
+//             Naracauli biofilm hydrozincite.
+//           * Brugger J. et al. (2003) — Skorpion thermometry.
+//           * Frondel C. (1972) — Franklin troostite.
+//           * Takahashi T. (1960) Econ. Geol. 55:1084.
+//           * Preisig G. et al. (2014) — biofilm hydrozincite at
+//             Naracauli.
+//           * Anthony et al. Handbook of Mineralogy.
+//
+//         Coverage 117 live → 120 live (+3 minerals); 25 paramorph-only.
+//         Calibration drift: TBD per baseline regen.
+const SIM_VERSION = 98;
 

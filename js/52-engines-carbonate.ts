@@ -725,3 +725,39 @@ function grow_witherite(crystal, conditions, step) {
     note: color_note,
   });
 }
+
+// v98 (2026-05-19): Hydrozincite Zn5(CO3)2(OH)6 — latest+coolest
+// Zn supergene mineral. Chalky-spherulitic crusts + cave-floor
+// coatings. Pale-blue SW-UV fluorescence (defect-related, NOT Mn-
+// activator like willemite). Iglesiente Sardinia type.
+function grow_hydrozincite(crystal, conditions, step) {
+  const sigma = conditions.supersaturation_hydrozincite();
+  if (sigma < 1.0) {
+    if (crystal.total_growth_um > 5 && conditions.fluid.pH < 6.0) {
+      crystal.dissolved = true;
+      const d = Math.min(2.0, crystal.total_growth_um * 0.10);
+      return new GrowthZone({ step, temperature: conditions.temperature, thickness_um: -d, growth_rate: -d, note: `acid dissolution (pH ${conditions.fluid.pH.toFixed(1)}) — reverts toward smithsonite + Zn²⁺` });
+    }
+    return null;
+  }
+  const excess = sigma - 1.0;
+  const rate = 3.5 * excess * rng.uniform(0.8, 1.2);  // grows fast — efflorescent
+  if (rate < 0.1) return null;
+  const pos = crystal.position || '';
+  if (pos.includes('smithsonite')) {
+    crystal.habit = 'alteration_after_smithsonite';
+    crystal.dominant_forms = ['chalky crust on smithsonite (in-situ alteration product)'];
+  } else if (excess > 1.5) {
+    crystal.habit = 'cave_floor_chalky_coating';
+    crystal.dominant_forms = ['centimeter-thick chalky white coatings (Iglesiente cave-floor style)'];
+  } else if (excess > 0.5) {
+    crystal.habit = 'spherulitic_crust';
+    crystal.dominant_forms = ['spherulitic crusts ~0.5-5 mm spherules', 'radiating fibrous internal structure'];
+  } else {
+    crystal.habit = 'botryoidal_film';
+    crystal.dominant_forms = ['thin botryoidal film on weathered Zn ore'];
+  }
+  conditions.fluid.Zn = Math.max(conditions.fluid.Zn - rate * 0.030, 0);
+  conditions.fluid.CO3 = Math.max(conditions.fluid.CO3 - rate * 0.020, 0);
+  return new GrowthZone({ step, temperature: conditions.temperature, thickness_um: rate, growth_rate: rate, note: `hydrozincite ${crystal.habit}, chalk-white (fluoresces pale-blue under SW UV)` });
+}

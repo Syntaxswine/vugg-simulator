@@ -325,6 +325,43 @@ function _nuc_chrysoprase(sim) {
 //     "pseudomorph after malachite" texture) and nucleates on chrysocolla.
 // Per research dossier 2026-05 (Evans & Mrose 1977, Keller 1977, Schaller
 // 1915 type locality Shattuck mine).
+// v98 (2026-05-19): Zn supergene silicates — hemimorphite + willemite.
+// Substrate priority encodes Hitzman 2003 + Boni & Mondillo 2015
+// nonsulfide-Zn paragenesis. RNG-cascade guard via sigma < 1.0 early-out.
+
+function _nuc_hemimorphite(sim) {
+  const sigma = sim.conditions.supersaturation_hemimorphite();
+  if (sigma < 1.0) return;
+  if (sim._atNucleationCap('hemimorphite')) return;
+  const existing = sim.crystals.filter(c => c.mineral === 'hemimorphite' && c.active);
+  if (existing.length >= 3) return;
+  let pos = 'vug wall';
+  const smith = sim.crystals.filter(c => c.mineral === 'smithsonite' && c.active);
+  const sph = sim.crystals.filter(c => c.mineral === 'sphalerite' && c.dissolved);
+  const goe = sim.crystals.filter(c => c.mineral === 'goethite' && c.active);
+  if (smith.length && rng.random() < 0.55) pos = `sheaves on smithsonite #${smith[0].crystal_id}`;
+  else if (sph.length && rng.random() < 0.40) pos = `replacing sphalerite #${sph[0].crystal_id}`;
+  else if (goe.length && rng.random() < 0.30) pos = `on goethite/limonite gossan #${goe[0].crystal_id}`;
+  const c = sim.nucleate('hemimorphite', pos, sigma);
+  sim.log.push(`  ✦ NUCLEATION: 🔷 Hemimorphite #${c.crystal_id} on ${c.position} (T=${sim.conditions.temperature.toFixed(0)}°C, σ=${sigma.toFixed(2)}, Zn=${sim.conditions.fluid.Zn.toFixed(0)}, SiO₂=${sim.conditions.fluid.SiO2.toFixed(0)}, CO₃=${sim.conditions.fluid.CO3.toFixed(0)}) — Zn-silicate sheaves, hemimorphic polar crystals`);
+}
+
+function _nuc_willemite(sim) {
+  const sigma = sim.conditions.supersaturation_willemite();
+  if (sigma < 1.0) return;
+  if (sim._atNucleationCap('willemite')) return;
+  const existing = sim.crystals.filter(c => c.mineral === 'willemite' && c.active);
+  if (existing.length >= 3) return;
+  let pos = 'vug wall';
+  const sph = sim.crystals.filter(c => c.mineral === 'sphalerite' && c.active);
+  const smith = sim.crystals.filter(c => c.mineral === 'smithsonite' && c.active);
+  if (sph.length && rng.random() < 0.55) pos = `replacing sphalerite #${sph[0].crystal_id}`;
+  else if (smith.length && rng.random() < 0.35) pos = `epitactic on smithsonite #${smith[0].crystal_id}`;
+  const c = sim.nucleate('willemite', pos, sigma);
+  const mode = sim.conditions.temperature >= 500 ? 'PRIMARY/metamorphic (Franklin)' : 'SUPERGENE nonsulfide (Skorpion)';
+  sim.log.push(`  ✦ NUCLEATION: 💚 Willemite #${c.crystal_id} on ${c.position} (T=${sim.conditions.temperature.toFixed(0)}°C, σ=${sigma.toFixed(2)}, Zn=${sim.conditions.fluid.Zn.toFixed(0)}, SiO₂=${sim.conditions.fluid.SiO2.toFixed(0)}, Mn=${sim.conditions.fluid.Mn.toFixed(2)}) — ${mode}, UV-fluorescent green`);
+}
+
 function _nuc_dioptase(sim) {
   const sigma = sim.conditions.supersaturation_dioptase();
   // CRITICAL: early-out before any rng.random() to keep RNG cascade
@@ -391,4 +428,6 @@ function _nucleateClass_silicate(sim) {
   _nuc_lepidolite(sim);
   _nuc_dioptase(sim);
   _nuc_shattuckite(sim);
+  _nuc_hemimorphite(sim);
+  _nuc_willemite(sim);
 }

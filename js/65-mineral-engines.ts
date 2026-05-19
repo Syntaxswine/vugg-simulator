@@ -205,4 +205,16 @@ const MINERAL_ENGINES = {
   koettigite: grow_koettigite,
   duftite: grow_duftite,
   bayldonite: grow_bayldonite,
+  // v98 (2026-05-19): Zn supergene suite — hemimorphite + willemite +
+  // hydrozincite. The Zn-silicate + Zn-carbonate-hydroxide triad of
+  // nonsulfide Zn deposits (Tsumeb, Skorpion, Franklin, Iglesiente).
+  // hemimorphite & willemite go in silicate engine file; hydrozincite
+  // in carbonate engine file. Discriminators per Hitzman 2003 + Boni
+  // & Mondillo 2015:
+  //   hemimorphite  <50°C  pH 5.5-8  SiO2 >> CO3
+  //   willemite     50-200°C primary OR 500-600°C metamorphic
+  //   hydrozincite  <30°C  pH 7-9 alkaline  CO3 >> SiO2
+  hemimorphite: grow_hemimorphite,
+  willemite: grow_willemite,
+  hydrozincite: grow_hydrozincite,
 };

@@ -368,6 +368,84 @@ function grow_chrysocolla(crystal, conditions, step) {
   return new GrowthZone({ step, temperature: conditions.temperature, thickness_um: rate, growth_rate: rate, note: color_note });
 }
 
+function grow_hemimorphite(crystal, conditions, step) {
+  // Zn4Si2O7(OH)2·H2O — hemimorphic crystals (different terminations
+  // top vs. bottom), the textbook polar crystal class. Fan-shaped
+  // sprays / botryoidal crusts / drusy on smithsonite.
+  const sigma = conditions.supersaturation_hemimorphite();
+  if (sigma < 1.0) {
+    if (crystal.total_growth_um > 5 && conditions.fluid.pH < 5.0) {
+      crystal.dissolved = true;
+      const d = Math.min(2.0, crystal.total_growth_um * 0.08);
+      return new GrowthZone({ step, temperature: conditions.temperature, thickness_um: -d, growth_rate: -d, note: `acid dissolution (pH ${conditions.fluid.pH.toFixed(1)})` });
+    }
+    if (crystal.total_growth_um > 5 && conditions.temperature > 250) {
+      crystal.dissolved = true;
+      const d = Math.min(1.5, crystal.total_growth_um * 0.06);
+      return new GrowthZone({ step, temperature: conditions.temperature, thickness_um: -d, growth_rate: -d, dissolutionMode: 'dehydration', note: `dehydration > 250°C — hemimorphite loses structural H2O, converts to willemite + quartz` });
+    }
+    return null;
+  }
+  const excess = sigma - 1.0;
+  const rate = 2.8 * excess * rng.uniform(0.8, 1.2);
+  if (rate < 0.1) return null;
+  const pos = crystal.position || '';
+  if (pos.includes('smithsonite')) {
+    crystal.habit = 'fan_sheaves_on_smithsonite';
+    crystal.dominant_forms = ['fan-shaped sprays radiating from smithsonite substrate', 'Tsumeb bowtie habit'];
+  } else if (excess > 1.2) {
+    crystal.habit = 'botryoidal_blue';
+    crystal.dominant_forms = ['botryoidal-stalactitic crusts', 'fibrous radial internal structure', 'Mapimi blue (trace Cu) signature'];
+  } else if (excess > 0.5) {
+    crystal.habit = 'fan_sheaves';
+    crystal.dominant_forms = ['radiating fan-shaped sprays', 'bladed acicular crystals elongate on c'];
+  } else {
+    crystal.habit = 'drusy_lining';
+    crystal.dominant_forms = ['drusy linings of vugs', 'colorless to pale blue-green'];
+  }
+  conditions.fluid.Zn = Math.max(conditions.fluid.Zn - rate * 0.025, 0);
+  conditions.fluid.SiO2 = Math.max(conditions.fluid.SiO2 - rate * 0.015, 0);
+  const cu_blue = conditions.fluid.Cu > 5 ? 'Mapimi-style blue (Cu²⁺ trace)' : 'colorless to white';
+  return new GrowthZone({ step, temperature: conditions.temperature, thickness_um: rate, growth_rate: rate, note: `hemimorphite ${crystal.habit}, ${cu_blue}; hemimorphic polar crystals (different top/bottom terminations) diagnostic when visible` });
+}
+
+function grow_willemite(crystal, conditions, step) {
+  // Zn2SiO4 — trigonal R-3 phenakite-group. Famously fluoresces
+  // BRIGHT GREEN under SW UV (Mn²⁺ activator in Zn²⁺ site). Bimodal
+  // formation: primary metamorphic 500-600°C (Franklin/Sterling NJ)
+  // or supergene "nonsulfide" 50-200°C (Skorpion Namibia).
+  const sigma = conditions.supersaturation_willemite();
+  if (sigma < 1.0) return null;
+  const excess = sigma - 1.0;
+  const rate = 2.5 * excess * rng.uniform(0.8, 1.2);
+  if (rate < 0.1) return null;
+  const T = conditions.temperature;
+  const pos = crystal.position || '';
+  const on_sphalerite = pos.includes('sphalerite');
+  if (T >= 500) {
+    crystal.habit = 'hexagonal_prism_franklin';
+    crystal.dominant_forms = ['hexagonal prisms terminated by rhombohedra', 'Franklin troostite reddish (Mn²⁺ rich)', 'with franklinite + zincite'];
+  } else if (on_sphalerite) {
+    crystal.habit = 'pseudomorph_after_sphalerite_skorpion';
+    crystal.dominant_forms = ['replacement pseudomorph after sphalerite', 'fibrous radiating Skorpion-style'];
+  } else if (excess > 1.0) {
+    crystal.habit = 'fibrous_radiating_skorpion';
+    crystal.dominant_forms = ['fibrous-radiating supergene replacement', 'green-yellow Mn-bearing'];
+  } else {
+    crystal.habit = 'massive_granular';
+    crystal.dominant_forms = ['massive granular intergrown', 'green-yellow Mn-bearing'];
+  }
+  conditions.fluid.Zn = Math.max(conditions.fluid.Zn - rate * 0.030, 0);
+  conditions.fluid.SiO2 = Math.max(conditions.fluid.SiO2 - rate * 0.010, 0);
+  // Color from trace Mn (chromophore + fluorescence activator)
+  const mn_trace = conditions.fluid.Mn * 0.005;
+  let color;
+  if (mn_trace > 0.05) color = 'troostite red-brown (Mn-rich Franklin variety) — UV-FLUORESCENT bright green';
+  else if (mn_trace > 0.005) color = 'green-yellow (trace Mn) — UV-FLUORESCENT bright green 💚';
+  else color = 'colorless to pale green — weakly fluorescent';
+  return new GrowthZone({ step, temperature: conditions.temperature, thickness_um: rate, growth_rate: rate, trace_Mn: mn_trace, note: `willemite ${crystal.habit}, ${color}` });
+}
+
 function grow_dioptase(crystal, conditions, step) {
   // CuSiO₃·H₂O — emerald-green trigonal cyclosilicate of the Tsumeb
   // 2nd oxidation zone. Habit: short prismatic hexagonal {1010} + rhombohedron
