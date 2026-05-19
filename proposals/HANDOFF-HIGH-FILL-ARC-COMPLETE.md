@@ -181,7 +181,7 @@ Each zone's contribution is locked in at deposition time. `_volume_mm3` is a sin
 - ~~Proposal C (late_stage_propensity)~~ ✓ `4b20645`
 - ~~Proposal D (interlocking textures)~~ ✓ `f9456bb`
 - ~~Habit-stability fix~~ ✓ `b3cc095`
-- **Proposal E (per-cell local fill)** — DEFERRED. ~3 days including snapshot/replay format update. Per RESEARCH-GROWTH-AT-HIGH-FILL.md §5: "the marginal final 20% — A+B+C+D cover ~95% of the geological story." Worth pursuing if the boss wants the "corners stay open while edges fill" Nature Comm 2022 effect modeled, OR if a future scenario depends on local-fill heterogeneity.
+- ~~Proposal E (per-cell local fill)~~ ✓ `2e88355` (2026-05-18, v77). Scaffolding + opt-in flag `conditions.wall.per_cell_local_fill`. Default off → byte-identical to v76. When on: growth-loop dampener reads the crystal's anchor-cell local fill instead of global vugFill (`Crystal._volume_mm3` distributed across footprint cells by `WallState._paintCrystalVolume`). No scenarios opt in at landing; A/B on 6 high-fill scenarios shows per-cell tends to produce many smaller crystals at corners OR fewer bigger crystals at sealed edges. Per-scenario opt-in is a future calibration call. **The high-fill physics arc from RESEARCH-GROWTH-AT-HIGH-FILL.md is now STRUCTURALLY COMPLETE.**
 
 ### Other open items (from prior handoffs, unchanged)
 
