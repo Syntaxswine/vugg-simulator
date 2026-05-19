@@ -15,6 +15,10 @@
  *   * step at which vugFill first crossed 0.50, 0.75, 0.90, 0.95, 0.99
  *   * growth-rate trajectory across those bins (mean zone thickness)
  *   * "vug sealed" event occurrence
+ *   * (v77+) per-cell local-fill spread when wall.per_cell_local_fill
+ *     is opted in for the scenario: max cell fill, mean cell fill,
+ *     fraction of cells > 0.7 (the dampener-active regime). When the
+ *     flag is off, these read as "--".
  *
  * Aggregate report:
  *   * which scenarios actually exercise the high-fill regime
@@ -94,14 +98,44 @@ for (const name of scenarioNames) {
   }
 
   const peak = Math.max(...trajectory.map(t => t.vugFill));
-  summary.push({ name, peak, crossings, sealStep: sealStep.step, trajectory, nucAfter95 });
+  // Proposal E (v77+): per-cell local-fill spread, when the scenario
+  // opted in via conditions.wall.per_cell_local_fill. With the flag off
+  // (default), all cells carry _localCrystalVol_mm3 = 0 → all metrics
+  // read 0 and we print "--" instead.
+  let localStats = null;
+  if (sim.wall_state && sim.wall_state.per_cell_local_fill) {
+    const nR = sim.wall_state.ring_count;
+    const nC = sim.wall_state.cells_per_ring;
+    let maxFill = 0, sumFill = 0, n = 0, gt7 = 0;
+    for (let r = 0; r < nR; r++) {
+      for (let c = 0; c < nC; c++) {
+        const f = sim.wall_state.getCellLocalFill(r, c);
+        if (f > 0) {
+          n++;
+          sumFill += f;
+          if (f > maxFill) maxFill = f;
+          if (f > 0.7) gt7++;
+        }
+      }
+    }
+    localStats = {
+      max: maxFill,
+      mean: n > 0 ? sumFill / n : 0,
+      gt7Frac: (nR * nC) > 0 ? gt7 / (nR * nC) : 0,
+      occupiedFrac: (nR * nC) > 0 ? n / (nR * nC) : 0,
+    };
+  }
+  summary.push({ name, peak, crossings, sealStep: sealStep.step, trajectory, nucAfter95, localStats });
 
   // Print top line
   const c2s = (v) => v === null ? '--' : String(v).padStart(3);
+  const localStr = localStats
+    ? `localMax=${localStats.max.toFixed(2).padStart(5)} mean=${localStats.mean.toFixed(2).padStart(4)} >0.7=${(localStats.gt7Frac * 100).toFixed(0).padStart(3)}%`
+    : 'local=--';
   console.log(
     `  ${name.padEnd(36)} peak ${peak.toFixed(3)}  ` +
     `cross ${c2s(crossings[0.50])}/${c2s(crossings[0.75])}/${c2s(crossings[0.90])}/${c2s(crossings[0.95])}/${c2s(crossings[0.99])}  ` +
-    `sealed=${sealStep.step ?? '--'}  nuc>.95=${nucAfter95}`
+    `sealed=${sealStep.step ?? '--'}  nuc>.95=${nucAfter95}  ${localStr}`
   );
 }
 

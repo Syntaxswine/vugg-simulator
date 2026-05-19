@@ -214,6 +214,12 @@ class VugWall {
     // Opt-in only — scenarios that don't declare this flag stay on the
     // legacy code path and produce byte-identical output.
     this.per_vertex_nucleation = !!opts.per_vertex_nucleation;
+    // Proposal E (2026-05-18) — per-cell local fill opt-in. When true,
+    // the growth-loop dampener + volume clamp read the crystal's
+    // anchor-cell local fill (volume painted by _paintCrystalVolume)
+    // instead of the global vugFill. Defaults false → byte-identical
+    // to legacy. Forwarded to WallState in 85-simulator.ts.
+    this.per_cell_local_fill = !!opts.per_cell_local_fill;
   }
 
   dissolve(acid_strength, fluid) {
@@ -303,6 +309,26 @@ class WallCell {
     // stays per-ring for now; a future tranche can migrate it).
     this.fluid = null;
     this.temperature_ring = -1;
+    // Proposal E (2026-05-18) — per-cell local fill bookkeeping.
+    // Accumulates the volume contribution (in mm³) of every crystal
+    // whose footprint covers this cell, painted each step by
+    // WallState._paintCrystalVolume during _repaintWallState. The
+    // local fill at this cell is _localCrystalVol_mm3 /
+    // _cellCavityVolMm3(ringIdx). Reset to 0 by WallState.clear()
+    // at the top of every _repaintWallState so the painter rebuilds
+    // it from scratch.
+    //
+    // Behavior is gated by wall_state.per_cell_local_fill — when
+    // false (default), this field stays at 0 throughout the run and
+    // getCellLocalFill returns 0 (and callers fall back to global
+    // vugFill). When true, the growth-loop dampener at the crystal's
+    // anchor cell reads from here.
+    //
+    // Why opt-in: turning local-fill on changes every dampener input
+    // for any scenario with vugFill > 0.7 (where the sigmoid kicks in),
+    // so calibration baselines drift. Opt-in lets new scenarios use
+    // local fill without disturbing existing baseline pins.
+    this._localCrystalVol_mm3 = 0;
   }
 }
 
@@ -497,6 +523,16 @@ class WallState {
     // onto WallState so _assignWallCell / _assignWallRing can read it
     // without reaching back to conditions.wall.
     this.per_vertex_nucleation = !!opts.per_vertex_nucleation;
+    // Proposal E (2026-05-18) — per-cell local fill opt-in.
+    // Default false → byte-identical behavior to global-fill mode.
+    // When true: _repaintWallState calls _paintCrystalVolume on top
+    // of paintCrystal, and the growth loop in 85-simulator.ts reads
+    // the crystal's anchor-cell local fill instead of global vugFill
+    // for the dampener and volume-clamp inputs. Sister flag to
+    // per_vertex_nucleation — both encode the "corners stay open
+    // while edges fill" Nature Comm 2022 confinement physics at
+    // different layers of the simulator.
+    this.per_cell_local_fill = !!opts.per_cell_local_fill;
     // Size-class cascade (2026-05): vug | pocket | cave, mirrored from
     // VugWall for UI consumers that read sim.wall_state directly.
     this.size_class = (opts.size_class as SizeClass) ?? null;
@@ -1083,13 +1119,133 @@ class WallState {
 
   clear() {
     // Reset per-step occupancy but preserve wall_depth (cumulative).
+    // Proposal E (2026-05-18): also reset per-cell local-fill volume
+    // accumulator so _paintCrystalVolume rebuilds it from scratch each
+    // step. wall_depth is the only field that stays cumulative — every
+    // other per-step painted value is reset here.
     for (const ring of this.rings) {
       for (const cell of ring) {
         cell.crystal_id = null;
         cell.mineral = null;
         cell.thickness_um = 0;
+        cell._localCrystalVol_mm3 = 0;
       }
     }
+  }
+
+  // Proposal E (2026-05-18) — per-cell cavity volume budget.
+  //
+  // Each cell represents a (ringIdx, cellIdx) slot of the cavity mesh.
+  // Its share of the cavity volume is approximately:
+  //   cellVol(r) = cavityVol × sin(phi_r) / (Σ_k sin(phi_k)) / cellsPerRing
+  //
+  // The polar-bias factor sin(phi) is the same `ringAreaWeight` the
+  // engine already uses for nucleation weighting (the renderer's lat-
+  // long tessellation has thinner rings at the poles, which would over-
+  // count fill there without this correction). Sums to the spherical
+  // cavity volume across all (r, c) pairs.
+  //
+  // Cached on the WallState since vug_diameter_mm and ring_count don't
+  // change after construction (dissolution adjusts wall_depth not
+  // diameter for cell-budget purposes — the cap-at-1.0 dampener handles
+  // expansion via wall_depth elsewhere).
+  _cellCavityVolMm3(ringIdx) {
+    const n = this.ring_count;
+    const N = this.cells_per_ring;
+    if (n <= 0 || N <= 0) return 0;
+    const R = (this.vug_diameter_mm || 50) / 2;
+    if (!(R > 0)) return 0;
+    // Cache ring-weight sum; invalidate if ring_count ever changes.
+    if (this._cachedRingWeightSum == null || this._cachedRingWeightSum_n !== n) {
+      let s = 0;
+      for (let r = 0; r < n; r++) s += this.ringAreaWeight(r);
+      // Fallback to n when weights are all zero (degenerate single ring).
+      this._cachedRingWeightSum = s > 0 ? s : n;
+      this._cachedRingWeightSum_n = n;
+    }
+    const cavityVol = (4 / 3) * Math.PI * R * R * R;
+    const w = this.ringAreaWeight(ringIdx) / this._cachedRingWeightSum;
+    return (cavityVol * w) / N;
+  }
+
+  // Proposal E (2026-05-18) — paint a crystal's _volume_mm3 contribution
+  // across the cells covered by its footprint.
+  //
+  // Footprint geometry mirrors paintCrystal: span = 2 × halfCells + 1
+  // cells along the ring, with halfCells derived from
+  //   arcMm = total_growth_um/1000 × wall_spread × FOOTPRINT_SCALE
+  //
+  // Each covered cell accumulates crystal._volume_mm3 / span — the
+  // crystal's volume contribution is divided uniformly over its
+  // footprint. This is a deliberate simplification (a real crystal
+  // doesn't have perfectly uniform vertical density across its
+  // wall-touching face), but it captures the geological essential:
+  // a wider footprint loads more cells, each at a fraction of the
+  // crystal's total volume; a narrow prismatic stub concentrates its
+  // volume into a few cells.
+  //
+  // _volume_mm3 is the zone-integrated volume from
+  // Crystal.add_zone (post-2026-05-18 habit-stability fix) — the same
+  // single source of truth that get_vug_fill sums for global fill.
+  // So local + global fills are bookkeeping-consistent: sum of
+  // (cell._localCrystalVol_mm3 across all cells with that crystal)
+  // equals crystal._volume_mm3 exactly (up to the footprint cell
+  // count rounding).
+  //
+  // No-op when per_cell_local_fill is off (caller already gates).
+  _paintCrystalVolume(crystal) {
+    if (!crystal) return;
+    if (typeof crystal._volume_mm3 !== 'number' || !(crystal._volume_mm3 > 0)) return;
+    const anchor = this._resolveAnchor(crystal);
+    if (!anchor) return;
+    let ringIdx = anchor.ringIdx;
+    if (ringIdx == null || ringIdx < 0 || ringIdx >= this.ring_count) return;
+    const centerCell = anchor.cellIdx;
+    if (centerCell == null) return;
+    const FOOTPRINT_SCALE = 4.0;
+    const arcMm = (crystal.total_growth_um / 1000.0)
+                  * Math.max(crystal.wall_spread, 0.05)
+                  * FOOTPRINT_SCALE;
+    const halfCells = Math.max(1, Math.round(arcMm / this.cell_arc_mm / 2));
+    const span = 2 * halfCells + 1;
+    const volPerCell = crystal._volume_mm3 / span;
+    const ring = this.rings[ringIdx];
+    if (!ring) return;
+    const N = this.cells_per_ring;
+    for (let offset = -halfCells; offset <= halfCells; offset++) {
+      const idx = ((centerCell + offset) % N + N) % N;
+      const cell = ring[idx];
+      if (!cell) continue;
+      cell._localCrystalVol_mm3 = (cell._localCrystalVol_mm3 || 0) + volPerCell;
+    }
+  }
+
+  // Proposal E (2026-05-18) — read the local fill at one cell.
+  // Returns 0 when the cell has no crystal volume or per_cell_local_fill
+  // is off (the painter never ran). Can exceed 1.0 in interlocking-
+  // texture cases — the dampener's vugFill ≥ 1.0 → 0.0 branch caps
+  // growth past full cell volume, mirroring the global-fill behavior.
+  getCellLocalFill(ringIdx, cellIdx) {
+    const ring = this.rings[ringIdx];
+    if (!ring) return 0;
+    const cell = ring[cellIdx];
+    if (!cell) return 0;
+    const v = cell._localCrystalVol_mm3 || 0;
+    if (!(v > 0)) return 0;
+    const cellVol = this._cellCavityVolMm3(ringIdx);
+    if (!(cellVol > 0)) return 0;
+    return v / cellVol;
+  }
+
+  // Proposal E (2026-05-18) — resolve a crystal's anchor cell and
+  // return its local fill. Convenience wrapper for the growth loop in
+  // 85-simulator.ts (which has a crystal, not a (ring, cell) pair).
+  // Returns 0 for unanchored crystals — the growth loop falls back to
+  // global vugFill in that case.
+  getCellLocalFillForCrystal(crystal) {
+    const anchor = this._resolveAnchor(crystal);
+    if (!anchor) return 0;
+    return this.getCellLocalFill(anchor.ringIdx, anchor.cellIdx);
   }
 
   // Mark the cells this crystal occupies with its id / mineral / thickness.

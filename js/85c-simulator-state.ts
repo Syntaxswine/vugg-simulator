@@ -188,9 +188,18 @@ _diffuseRingState(rate?) {
   // Paint smallest-first so biggest crystals win overlaps — that's
   // what a viewer would see from outside the vug.
   const sorted = [...this.crystals].sort((a, b) => a.total_growth_um - b.total_growth_um);
+  // Proposal E (2026-05-18): per-cell local-fill painter runs alongside
+  // the occupancy painter when wall_state.per_cell_local_fill is on.
+  // Order doesn't matter (the two painters write disjoint fields:
+  // crystal_id/mineral/thickness_um vs _localCrystalVol_mm3) but
+  // looping once is cheaper than twice.
+  const paintLocalFill = this.wall_state.per_cell_local_fill;
   for (const crystal of sorted) {
     if (crystal.dissolved) continue;
     this.wall_state.paintCrystal(crystal);
+    if (paintLocalFill) {
+      this.wall_state._paintCrystalVolume(crystal);
+    }
   }
 
   // v67 progressive snapshot decimation. The naive "push every step"

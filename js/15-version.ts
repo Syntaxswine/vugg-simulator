@@ -1628,5 +1628,93 @@
 //        radioactive_pegmatite, searles_lake, supergene_oxidation).
 //        The other 20 scenarios are byte-identical because their fill
 //        stays well below the regime where habit oscillation mattered.
-const SIM_VERSION = 76;
+//   v77 — Proposal E: per-cell local fill (2026-05-18). Closes the
+//        high-fill physics arc completely (Proposals A + B + C + D
+//        landed v74-v76; E is the deferred Tranche 7 from
+//        RESEARCH-GROWTH-AT-HIGH-FILL.md §5 — "the marginal final 20%
+//        that handles corners stay open while edges fill").
+//
+//        Geological motivation: Nature Communications 2022
+//        ("Crystal growth in confinement") showed that confined-
+//        geometry crystal growth has concentration gradients between
+//        edges and centers — corners stay open while edges fill. The
+//        pre-v77 simulator averaged over this heterogeneity via a
+//        single get_vug_fill() reading; v77 restores per-cell locality
+//        for the boundary-layer-diffusion dampener.
+//
+//        Mechanism — three pieces:
+//
+//          1. WallCell._localCrystalVol_mm3 — accumulates the volume
+//             contribution (mm³) of every crystal whose footprint
+//             covers this cell. Reset to 0 by WallState.clear() each
+//             step, repainted by WallState._paintCrystalVolume.
+//
+//          2. WallState._cellCavityVolMm3(r) — polar-bias-weighted
+//             per-cell cavity-volume budget. Sums to (4/3)πR³ across
+//             all (r,c) pairs. sin(phi_r) weighting from the existing
+//             ringAreaWeight matches the engine's nucleation weighting.
+//
+//          3. WallState.getCellLocalFillForCrystal(c) — resolves the
+//             crystal's anchor cell and returns _localCrystalVol_mm3
+//             / cellCavityVol at that cell. Used by the growth-loop
+//             dampener in 85-simulator.ts when wall.per_cell_local_fill
+//             is true (opt-in; default false → byte-identical to v76).
+//
+//        Opt-in design: scenarios opt in via
+//        conditions.wall.per_cell_local_fill = true. When off:
+//          * _paintCrystalVolume is never called → cells stay at
+//            _localCrystalVol_mm3 = 0.
+//          * Growth-loop dampener reads currentFill (global) as before.
+//          * Every existing scenario produces byte-identical output.
+//
+//        When on:
+//          * _paintCrystalVolume runs alongside paintCrystal in
+//            _repaintWallState — same footprint geometry, distributes
+//            crystal._volume_mm3 / span across (2 × halfCells + 1)
+//            cells.
+//          * Growth-loop dampener reads the crystal's anchor-cell
+//            local fill. Falls back to currentFill when localFill = 0
+//            (fresh nucleation, painter hasn't run yet) — the Proposal D
+//            volume clamp is the safety net for that single-step
+//            window.
+//
+//        A/B results (manual flag injection on 6 high-fill scenarios,
+//        seed 42; throwaway probe deleted post-analysis):
+//
+//          scenario               A.global  B.local  B.crystals/A
+//          ---------------------------------------------------------
+//          sabkha                 1.000     1.000    same (10)
+//          naica_geothermal       1.000     0.018    +21 → 43 (2×)
+//          searles_lake           1.000     0.904    69 → 10 (~7×)
+//          supergene_oxidation    1.000     0.049    60 → 77 (+28%)
+//          gem_pegmatite          1.000     0.119    16 → 29 (+81%)
+//          radioactive_pegmatite  1.000     0.071    32 → 36 (+12%)
+//
+//        Pattern: B (per-cell) tends to produce MORE, SMALLER crystals
+//        at low global fill (corners stay open → more nucleation
+//        seats), or FEWER, BIGGER crystals when the dampener's local
+//        cap throttles the leading edge so chemistry concentrates on
+//        the few crystals that already exist. Both directions are
+//        geologically valid; the choice depends on the scenario.
+//
+//        Calibration baseline drift: NONE — no scenarios are opted in
+//        at v77. The flag is dormant scaffolding; future commits opt
+//        in specific scenarios with their own SIM_VERSION bump.
+//
+//        Tests: 263 → 284 (+21 new pins in tests-js/per-cell-local-fill
+//        .test.ts):
+//          * Opt-in flag defaults to false; WallCell._localCrystalVol_mm3
+//            starts at 0; clear() resets it.
+//          * _cellCavityVolMm3 sums to cavity volume across (r,c);
+//            equator > pole; scales with diameter³.
+//          * _paintCrystalVolume: mass conservation (sum of painted
+//            volume = crystal._volume_mm3), peak at anchor cell, wider
+//            footprint spreads thinner.
+//          * getCellLocalFill: returns 0 for empty cells, out-of-range
+//            indices return 0 without throw, anchor resolution.
+//          * End-to-end: flag off preserves byte-identical sabkha seal
+//            behavior; flag on completes without throw; painter is
+//            actually called when on; "corners stay open" property
+//            (cell-fill heterogeneity > 1.5× spread).
+const SIM_VERSION = 77;
 

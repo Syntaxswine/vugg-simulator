@@ -54,6 +54,12 @@ class VugSimulator {
       // preserves legacy byte-identical RNG path for every existing
       // scenario.
       per_vertex_nucleation: this.conditions.wall.per_vertex_nucleation,
+      // Proposal E (2026-05-18): per-cell local fill opt-in. When
+      // true, _repaintWallState paints crystal _volume_mm3 into
+      // anchor-footprint cells and the growth loop reads each
+      // crystal's anchor-cell local fill for the dampener + clamp.
+      // Default false preserves legacy global-vugFill behavior.
+      per_cell_local_fill: this.conditions.wall.per_cell_local_fill,
       // Size-class cascade (2026-05): vug < pocket < cave. Informational
       // tag mirrored from VugWall so the UI (Library Mode panels, the
       // Three.js scale bar) can display the size tier without reaching
@@ -279,7 +285,35 @@ class VugSimulator {
           // single-crystal growth gets 12% of nominal rate; at fill=0.99,
           // 6%. Per-iteration recomputation alone drops gem_pegmatite
           // from 7.46 to 5.76 (multi-step overshoot reduction).
-          const dampener = _fillDampenerFor(currentFill);
+          //
+          // Proposal E (2026-05-18): when per_cell_local_fill is on,
+          // read the crystal's anchor-cell local fill instead of the
+          // global currentFill. Geological motivation: the Nature
+          // Communications 2022 confinement study showed corners stay
+          // open while edges fill — a single crystal sees the LOCAL
+          // boundary-layer diffusion limit, not the cavity-averaged
+          // one. A crystal at a corner cell where local fill is 0.3
+          // continues growing at near-full rate while a crystal at an
+          // edge cell at local fill 0.95 dampens to ~12%.
+          //
+          // Falls back to global currentFill when:
+          //   * wall.per_cell_local_fill is off (default — byte-
+          //     identical to pre-Proposal-E behavior)
+          //   * crystal has no resolvable anchor (rare; mid-construction
+          //     in tests)
+          //   * local fill is 0 (no other crystal has painted into this
+          //     cell yet — fresh nucleation, first step)
+          // The global-fill fallback for "local=0" is deliberate: a
+          // brand-new crystal with no footprint history should see the
+          // cavity-scale dampener so it doesn't grow unboundedly during
+          // the step the painter hasn't run for yet (the Proposal D
+          // volume clamp is the additional safety net for that case).
+          let dampenerFill = currentFill;
+          if (this.wall_state.per_cell_local_fill) {
+            const localFill = this.wall_state.getCellLocalFillForCrystal(crystal);
+            if (localFill > 0) dampenerFill = localFill;
+          }
+          const dampener = _fillDampenerFor(dampenerFill);
           if (dampener < 1.0) {
             zone.thickness_um *= dampener;
           }
