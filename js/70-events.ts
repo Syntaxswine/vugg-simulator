@@ -300,6 +300,16 @@ const EVENT_REGISTRY = {
   sunnyside_stage_v_mn_carbonate: event_sunnyside_stage_v_mn_carbonate,
   sunnyside_stage_vi_fluoride_pulse: event_sunnyside_stage_vi_fluoride_pulse,
   sunnyside_stage_vi_manganocalcite_cap: event_sunnyside_stage_vi_manganocalcite_cap,
+  // 2026-05-20 — Roughten Gill Mine (Caldbeck Fells, Cumbria, England).
+  // Polymetallic Pb-Cu vein in Borrowdale Volcanic Group; type locality
+  // for plumbogummite. The Pb-Cu sulfate trio (linarite + caledonite +
+  // leadhillite, v100) fires in their type district. See
+  // js/70q-roughten-gill.ts for the five stage-transition handlers.
+  roughten_gill_primary_lockup: event_roughten_gill_primary_lockup,
+  roughten_gill_pyrite_oxidation: event_roughten_gill_pyrite_oxidation,
+  roughten_gill_linarite_stage: event_roughten_gill_linarite_stage,
+  roughten_gill_caledonite_transition: event_roughten_gill_caledonite_transition,
+  roughten_gill_leadhillite_cap: event_roughten_gill_leadhillite_cap,
 };
 
 // Minimal JSONC parser — strips // line + /* */ block comments and

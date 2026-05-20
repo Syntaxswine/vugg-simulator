@@ -4145,5 +4145,136 @@
 //              1985-1991 (post-disaster Echo Bay reactivation).
 //
 //          v105 → v106 (documentation-only).
-const SIM_VERSION = 106;
+//   v107 — Roughten Gill Mine scenario (Caldbeck Fells, Cumbria,
+//          England) — 2026-05-20. Second scenario commit; dogfood
+//          test of the vugg-add-scenario skill on the linear single-
+//          commit path (no infra-arc required — all minerals already
+//          wired across v85-v100). Polymetallic Pb-Cu vein in
+//          Eycott Volcanic Group + Carrock Fell Intrusive Complex volcanics. THE canonical UK
+//          locality for the v100 Pb-Cu sulfate trio (linarite +
+//          caledonite + leadhillite) — fires those three in their
+//          published type-district. TYPE LOCALITY for plumbogummite
+//          (Hartley 1882; Russell 1925); plumbogummite NOT yet
+//          wired in the catalog, flagged for future add-mineral
+//          commit, but the scenario's type-locality status is
+//          documented now.
+//
+//          DEPOSIT GEOLOGY (Cooper & Stanley 1990 monograph):
+//          Caldbeck Fells district sits at the northern margin of
+//          the Skiddaw inlier. Ordovician Eycott Volcanic Group + Carrock Fell Intrusive Complex
+//          (andesitic-rhyolitic ignimbrites) hosts polymetallic veins
+//          along faults + joint sets cutting through the volcanic
+//          pile + adjacent Skiddaw Group slates. Worked 1700s-1880s
+//          for lead + minor copper; abandoned and now a classic
+//          collector locality. The Cooper & Stanley 1990 monograph
+//          (Natural History Museum, London) provides per-mine
+//          paragenetic detail at a level matching Casadevall & Ohmoto
+//          1977 for Sunnyside — that documentation depth is what
+//          made this the boss's pick for the next scenario.
+//
+//          PARAGENESIS — 5 STAGES (Cooper & Stanley + Symes & Young
+//          2008 BGS):
+//          Stage 1 (steps 1-25):   PRIMARY ORE. T 130°C, pH 5
+//                                  sulfide-buffered, O2 < 0.1 reducing.
+//                                  Galena + sphalerite + chalcopyrite
+//                                  + pyrite + tetrahedrite + tennantite
+//                                  + Ag-rich galena. Quartz gangue.
+//          Stage 2 (step 25):      PRIMARY LOCKUP. T crashes 130 → 45.
+//                                  S budget consumed; Fe sequestered;
+//                                  pH neutralizes 5 → 5.5. Caldbeck
+//                                  supergene window opens.
+//          Stage 3 (step 70):      PYRITE OXIDATION AMD PULSE.
+//                                  Residual FeS2 → SO4 + H+; pH crashes
+//                                  to 4; Cu + Pb mobilized into oxidizing
+//                                  fluid. Cerussite + anglesite + mimetite
+//                                  begin nucleating on residual galena.
+//          Stage 4 (step 110):     LINARITE WINDOW. T 28°C, pH 5.8, CO3
+//                                  still low (< 30), CO3:SO4 << 0.3.
+//                                  Linarite PbCu(SO4)(OH)2 deep azure-
+//                                  blue — THE Roughten Gill specimen
+//                                  aesthetic.
+//          Stage 5 (step 145):     CALEDONITE + BROCHANTITE. CO3 rises
+//                                  to 60 from atmospheric/meteoric input;
+//                                  CO3:SO4 enters caledonite sweet spot
+//                                  (0.3-1.0); Cu consumed by linarite/
+//                                  brochantite. Caledonite epitactic on
+//                                  linarite. Brochantite as Cu sulfate
+//                                  end-member.
+//          Stage 6 (step 175):     LEADHILLITE CAP. T 22, pH 7. Cu drops
+//                                  below leadhillite's < 50 gate; CO3:SO4
+//                                  > 1.5. Leadhillite Pb4(SO4)(CO3)2(OH)2
+//                                  + pyromorphite + cerussite cap the
+//                                  paragenesis.
+//
+//          WALLROCK NOTE: Eycott Volcanic Group + Carrock Fell Intrusive Complex is SILICATE not
+//          carbonate. Wall composition 'basalt' as silicate proxy;
+//          reactivity 0.0 (inert). Unlike Tsumeb's limestone-buffered
+//          supergene chemistry, Caldbeck CO3 comes from atmospheric
+//          CO2 in meteoric water during the supergene window —
+//          modeled via the event sequence's stage-by-stage CO3 rise.
+//          This is the geological reason linarite is so common at
+//          Roughten Gill (early-stage low-CO3 conditions persist)
+//          and leadhillite is rarer (only fires once meteoric CO3
+//          builds up). Same trio engine, different broth trajectory
+//          than Tsumeb.
+//
+//          PLUMBOGUMMITE FUTURE: PbAl3(PO4)2(OH)5·H2O cubic-isometric
+//          Pb-Al-PO4 supergene mineral. Type locality literally
+//          Roughten Gill (Hartley 1882 MinMag 5:21). The scenario
+//          carries Al=8 + P=4 in the broth + describes plumbogummite
+//          in the notes, but plumbogummite is not yet a mineral
+//          engine in the catalog. Future add-mineral commit will
+//          wire it; this scenario will auto-pick it up. Following
+//          the boss's preference for "specific scenarios where mines
+//          have left a detailed geological record" — Roughten Gill's
+//          type-locality status is the kind of record-loop-closure
+//          the simulator's commit history is accreting.
+//
+//          DOGFOOD TEST: this is the first prospective dogfood of
+//          vugg-add-scenario (the retrospective walkthrough against
+//          v105 Sunnyside passed at the skill-writing time). Used
+//          the skill's linear single-commit path:
+//            §0.5 preflight — no existing Caldbeck/Roughten coverage
+//            §1 decision tree — single-commit (all minerals wired)
+//            §2 specimen translation — skipped (pure-literature, no
+//                specimens shown yet; boss preferred Cooper & Stanley
+//                documentation as the anchor)
+//            §3 research dispatch — agent fired in background
+//            §4 reverse-from-engines broth — gates checked for the
+//                v100 trio + supporting Pb/Cu supergene minerals
+//            §5-6 wall — basalt (Borrowdale silicate proxy) + tabular
+//                (vein-controlled) + size_class vug (Caldbeck
+//                thumbnail aesthetic) + shape_seed 1882 (Hartley
+//                plumbogummite type description year)
+//            §7 events — 5 stage transitions
+//            §8-9 handlers — js/70q-roughten-gill.ts + registered
+//            §10 scenarios.json5 — no URLs (JSON5 gotcha avoided!)
+//            §11 SIM_VERSION bump (this block)
+//            §12 gen-baseline + INSPECT — see firing summary below
+//            §13 tests — sunnyside-american-tunnel.test.ts as template
+//            §14 commit + push
+//
+//          CASCADE DRIFT IN EXISTING 27 SCENARIOS: zero expected
+//          (additive new scenario; v107 baseline diff should show
+//          only the new roughten_gill block, ~80-90 lines added,
+//          all other scenarios byte-identical).
+//
+//          REFERENCES:
+//            * Cooper M.P. & Stanley C.J. (1990) Minerals of the
+//              English Lake District: Caldbeck Fells. NHM London.
+//            * Symes R.F. & Young B.R. (2008) Minerals of Northern
+//              England. BGS / National Museums Scotland.
+//            * Russell A. (1925) MinMag 20:257 — Roughten Gill
+//              plumbogummite revisited.
+//            * Russell A. (1986) MinMag 50:587 — English Lake
+//              District mineralization review.
+//            * Hartley J. (1882) MinMag 5:21 — original plumbogummite
+//              type description.
+//            * Goldring D. (1991) — Cumbria's Underground Heritage.
+//            * Stanley C.J., Symes R.F. & Jones G.C. (1991) MinMag
+//              55:121 — Caldbeck mottramite chemistry.
+//
+//          Scenarios 27 → 28 (+1: roughten_gill).
+//          Coverage 128 live minerals unchanged (pure scenario commit).
+const SIM_VERSION = 107;
 
