@@ -313,4 +313,26 @@ const MINERAL_ENGINES = {
   // 1967 Min.Mag. 36:572 (hessonite color); Bernardini 1981 MR 12(5):277.
   grossular: grow_grossular,
   diopside: grow_diopside,
+  // v113 (2026-05-20): Late-stage Ca-silicate trio for the Jeffrey
+  // Mine rodingite arc + (collateral) Lake Superior amygdale +
+  // skarn classics. Triple commit per shared family + chemistry
+  // (Ca + Si + alkaline + low-T).
+  //   pectolite NaCa2Si3O8(OH) — triclinic Na-Ca inosilicate;
+  //     iconic radiating-spray habit; Cu trace gives Larimar tint
+  //     (Filipos & Frantz 1979). Jeffrey spray-on-grossular is the
+  //     cabinet signature per Bernardini 1981.
+  //   wollastonite CaSiO3 — triclinic Ca-Si inosilicate; skarn
+  //     workhorse (Crestmore CA, Willsboro NY, Helan Mountains CN);
+  //     simplest stoichiometry of the suite.
+  //   prehnite Ca2Al2Si3O10(OH)2 — orthorhombic Ca-Al phyllosilicate;
+  //     Lake Superior + Alpine + Italian basalt-amygdale pale-green
+  //     botryoidal classic; substrate for datolite + epidote +
+  //     zeolites.
+  // Refs: Anthony Handbook v.IIA + v.IIB; Deer Howie Zussman v.1B + 2A;
+  // Liou 1971 Am.Min. 56:507 (prehnite stability); Trommsdorff &
+  // Connolly 1996 Schweiz.Min.Petr.Mitt. 76:135 (wollastonite); Filipos
+  // & Frantz 1979 (larimar/blue pectolite); Bernardini 1981 MR 12(5):277.
+  pectolite: grow_pectolite,
+  wollastonite: grow_wollastonite,
+  prehnite: grow_prehnite,
 };

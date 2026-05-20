@@ -476,6 +476,84 @@ function _nuc_shattuckite(sim) {
   }
 }
 
+// v113 (2026-05-20): Ca-silicate trio (pectolite + wollastonite +
+// prehnite) — late-stage rodingite + skarn + basalt-amygdale
+// minerals. All RNG-cascade-guarded.
+function _nuc_pectolite(sim) {
+  const sigma = sim.conditions.supersaturation_pectolite();
+  if (sigma < 1.0) return;
+  if (sim._atNucleationCap('pectolite')) return;
+  const existing = sim.crystals.filter(c => c.mineral === 'pectolite' && c.active);
+  if (existing.length >= 4) return;
+  let pos = 'vug wall';
+  // Jeffrey Mine spray-on-grossular is the signature substrate
+  const active_gross = sim.crystals.filter(c => c.mineral === 'grossular' && c.active);
+  const active_diop = sim.crystals.filter(c => c.mineral === 'diopside' && c.active);
+  const active_vesu = sim.crystals.filter(c => c.mineral === 'vesuvianite' && c.active);
+  const active_cal = sim.crystals.filter(c => c.mineral === 'calcite' && c.active);
+  if (active_gross.length && rng.random() < 0.55) pos = `radiating spray on grossular #${active_gross[0].crystal_id}`;
+  else if (active_diop.length && rng.random() < 0.45) pos = `with diopside #${active_diop[0].crystal_id}`;
+  else if (active_vesu.length && rng.random() < 0.40) pos = `with vesuvianite #${active_vesu[0].crystal_id}`;
+  else if (active_cal.length && rng.random() < 0.30) pos = `on calcite #${active_cal[0].crystal_id}`;
+  const discount = sim._sigmaDiscountForPosition('pectolite', pos);
+  if (sigma > 1.2 * discount) {
+    if (!existing.length || (sigma > 2.0 && rng.random() < 0.22)) {
+      const c = sim.nucleate('pectolite', pos, sigma);
+      const cu = sim.conditions.fluid.Cu;
+      const variety = cu > 0.5 ? 'BLUE LARIMAR-TINTED' : 'white spray';
+      sim.log.push(`  ✦ NUCLEATION: 🤍 Pectolite #${c.crystal_id} on ${c.position} (T=${sim.conditions.temperature.toFixed(0)}°C, σ=${sigma.toFixed(2)}, Na=${sim.conditions.fluid.Na.toFixed(0)}, Ca=${sim.conditions.fluid.Ca.toFixed(0)}, Cu=${cu.toFixed(2)}, pH=${sim.conditions.fluid.pH.toFixed(1)}) — ${variety}, Na-Ca inosilicate spray`);
+    }
+  }
+}
+
+function _nuc_wollastonite(sim) {
+  const sigma = sim.conditions.supersaturation_wollastonite();
+  if (sigma < 1.0) return;
+  if (sim._atNucleationCap('wollastonite')) return;
+  const existing = sim.crystals.filter(c => c.mineral === 'wollastonite' && c.active);
+  if (existing.length >= 4) return;
+  let pos = 'vug wall';
+  const active_gross = sim.crystals.filter(c => c.mineral === 'grossular' && c.active);
+  const active_diop = sim.crystals.filter(c => c.mineral === 'diopside' && c.active);
+  const active_cal = sim.crystals.filter(c => c.mineral === 'calcite' && c.active);
+  if (active_gross.length && rng.random() < 0.45) pos = `with grossular #${active_gross[0].crystal_id}`;
+  else if (active_diop.length && rng.random() < 0.40) pos = `with diopside #${active_diop[0].crystal_id}`;
+  else if (active_cal.length && rng.random() < 0.35) pos = `on calcite #${active_cal[0].crystal_id}`;
+  const discount = sim._sigmaDiscountForPosition('wollastonite', pos);
+  if (sigma > 1.2 * discount) {
+    if (!existing.length || (sigma > 2.0 && rng.random() < 0.20)) {
+      const c = sim.nucleate('wollastonite', pos, sigma);
+      sim.log.push(`  ✦ NUCLEATION: 🤍 Wollastonite #${c.crystal_id} on ${c.position} (T=${sim.conditions.temperature.toFixed(0)}°C, σ=${sigma.toFixed(2)}, Ca=${sim.conditions.fluid.Ca.toFixed(0)}, SiO₂=${sim.conditions.fluid.SiO2.toFixed(0)}, pH=${sim.conditions.fluid.pH.toFixed(1)}) — acicular white skarn Ca-silicate`);
+    }
+  }
+}
+
+function _nuc_prehnite(sim) {
+  const sigma = sim.conditions.supersaturation_prehnite();
+  if (sigma < 1.0) return;
+  if (sim._atNucleationCap('prehnite')) return;
+  const existing = sim.crystals.filter(c => c.mineral === 'prehnite' && c.active);
+  if (existing.length >= 4) return;
+  let pos = 'vug wall';
+  // Lake Superior amygdale: native_copper substrate. Rodingite: grossular/
+  // diopside. Both produce the same green botryoidal habit.
+  const active_nc = sim.crystals.filter(c => c.mineral === 'native_copper' && c.active);
+  const active_gross = sim.crystals.filter(c => c.mineral === 'grossular' && c.active);
+  const active_diop = sim.crystals.filter(c => c.mineral === 'diopside' && c.active);
+  const active_cal = sim.crystals.filter(c => c.mineral === 'calcite' && c.active);
+  if (active_nc.length && rng.random() < 0.55) pos = `with native_copper #${active_nc[0].crystal_id}`;
+  else if (active_gross.length && rng.random() < 0.45) pos = `with grossular #${active_gross[0].crystal_id}`;
+  else if (active_diop.length && rng.random() < 0.40) pos = `with diopside #${active_diop[0].crystal_id}`;
+  else if (active_cal.length && rng.random() < 0.30) pos = `on calcite #${active_cal[0].crystal_id}`;
+  const discount = sim._sigmaDiscountForPosition('prehnite', pos);
+  if (sigma > 1.2 * discount) {
+    if (!existing.length || (sigma > 2.0 && rng.random() < 0.20)) {
+      const c = sim.nucleate('prehnite', pos, sigma);
+      sim.log.push(`  ✦ NUCLEATION: 💚 Prehnite #${c.crystal_id} on ${c.position} (T=${sim.conditions.temperature.toFixed(0)}°C, σ=${sigma.toFixed(2)}, Ca=${sim.conditions.fluid.Ca.toFixed(0)}, Al=${sim.conditions.fluid.Al.toFixed(0)}, Fe=${sim.conditions.fluid.Fe.toFixed(1)}, pH=${sim.conditions.fluid.pH.toFixed(1)}) — pale-green Ca-Al phyllosilicate, basalt-amygdale + rodingite classic`);
+    }
+  }
+}
+
 // v112 (2026-05-20): Paired Ca-Al-Mg calc-silicates for the Jeffrey
 // Mine rodingite arc. Both early-stage rodingite + skarn (T ~300-450°C,
 // alkaline). Grossular substrate priority: diopside > wollastonite >
@@ -630,4 +708,7 @@ function _nucleateClass_silicate(sim) {
   _nuc_vesuvianite(sim);
   _nuc_grossular(sim);
   _nuc_diopside(sim);
+  _nuc_pectolite(sim);
+  _nuc_wollastonite(sim);
+  _nuc_prehnite(sim);
 }

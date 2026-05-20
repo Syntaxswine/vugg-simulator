@@ -15350,6 +15350,310 @@
       "late_stage_propensity": 0.35,
       "_late_stage_note": "Early-to-mid stage in the rodingite + skarn prograde sequence. Diopside forms early alongside grossular as the Ca-Mg-Si chemistry crystallizes from the metasomatic fluid; both precede vesuvianite + pectolite + wollastonite + prehnite. Propensity 0.35 = early-mid.",
       "class_color": "#80a890"
+    },
+    "pectolite": {
+      "formula": "NaCa2Si3O8(OH)",
+      "nucleation_sigma": 1.2,
+      "max_nucleation_count": 4,
+      "max_size_cm": 8,
+      "growth_rate_mult": 0.28,
+      "habit_variants": [
+        {
+          "name": "spray_radiating",
+          "wall_spread": 0.4,
+          "void_reach": 0.7,
+          "vector": "projecting",
+          "trigger": "high supersaturation (excess > 0.8) — radiating spray aggregate, acicular crystals from common center. The Jeffrey Mine cabbage-petal cabinet aesthetic; spray-on-grossular is the iconic substrate."
+        },
+        {
+          "name": "acicular_white",
+          "wall_spread": 0.45,
+          "void_reach": 0.6,
+          "vector": "projecting",
+          "trigger": "moderate excess (0.3-0.8) — parallel acicular needles, white silky luster."
+        },
+        {
+          "name": "massive_fibrous",
+          "wall_spread": 0.75,
+          "void_reach": 0.2,
+          "vector": "coating",
+          "trigger": "low excess (< 0.3) — compact fibrous aggregate, Larimar-similar massive form (without the Cu coloration)."
+        }
+      ],
+      "class": "silicate",
+      "description": "NaCa₂Si₃O₈(OH) — triclinic Na-Ca single-chain inosilicate. H 4.5-5, density 2.84-2.90, silky to vitreous luster, perfect {100} + {001} cleavage, conchoidal fracture. The CABBAGE-PETAL / RADIATING-SPRAY habit is the species signature — acicular crystals fanning from a common center. Three settings: (1) Rodingite metasomatism (Jeffrey Mine Quebec — Bernardini 1981 MR 12(5):277 documents the iconic spray-on-grossular habit; Italian Alps; Outokumpu FI; New Idria CA), (2) Late-stage basalt-amygdale fillings (Bay of Fundy NS; New Jersey diabase; Iceland; with native copper at Lake Superior), (3) LARIMAR (Cu-bearing blue gem variety) — Filipos & Frantz 1979 Bahoruco Range Dominican Republic; the Cu²⁺-O charge transfer at trace levels gives the diagnostic sky-blue. Larimar fires through this same engine but with Cu > 0.5 ppm dispatch. Discriminator from analogous fibrous Ca-silicates: wollastonite has no Na, no OH; pectolite has both. Refs: Anthony JW et al. Handbook of Mineralogy v.IIB Single-Chain Silicates; Deer WA, Howie RA, Zussman J Rock-Forming Minerals v.2A; Filipos PJ & Frantz JD (1979) Larimar — A blue pectolite from Hispaniola. Geological Magazine 116:323; Bernardini GP (1981) MR 12(5):277.",
+      "scenarios": [
+        "jeffrey_mine"
+      ],
+      "T_range_C": [
+        100,
+        350
+      ],
+      "T_optimum_C": [
+        150,
+        280
+      ],
+      "T_behavior": "narrow",
+      "pH_dissolution_below": 6.0,
+      "pH_dissolution_above": null,
+      "redox_requirement": "any",
+      "required_ingredients": {
+        "Na": 30,
+        "Ca": 80,
+        "SiO2": 100
+      },
+      "_ingredients_note": "Na ≥ 30 (the diagnostic — pectolite is the Na-Ca silicate of the trio; differs from wollastonite which has no Na) + Ca ≥ 80 + SiO2 ≥ 100. T 100-350°C; sweet spot 150-280°C (late-stage rodingite + amygdale window). pH 8.5-12 strict alkaline. Activity correction applied.",
+      "trace_ingredients": {
+        "Cu": "0.5+ ppm trace gives blue larimar-tinted pectolite (Cu²⁺-O charge transfer; Dominican Republic gem variety per Filipos & Frantz 1979)",
+        "Mn": "rare trace produces pinkish tint at very high Mn"
+      },
+      "thermal_decomp_C": 500,
+      "thermal_decomp_reaction": "Above ~500°C: pectolite breaks down to wollastonite + diopside + Na-bearing aqueous phase. Geologically sets the upper-T ceiling for pectolite stability.",
+      "thermal_decomp_products": {
+        "Na": 0.06,
+        "Ca": 0.36,
+        "SiO2": 0.50
+      },
+      "fluorescence": {
+        "activator": null,
+        "threshold_ppm": 0,
+        "color": null,
+        "quencher": null,
+        "status": "Some pectolite from New Jersey shows weak orange-pink SW UV fluorescence (Mn²⁺ activator at higher Mn levels). Larimar from Dominican is non-fluorescent. Ignored in the engine; not diagnostic."
+      },
+      "twin_laws": [],
+      "acid_dissolution": {
+        "pH_threshold": 6.0,
+        "reaction": "NaCa2Si3O8(OH) + 7H⁺ → Na⁺ + 2Ca²⁺ + 3H4SiO4 — releases Na + Ca + Si to fluid below pH 6. Pectolite is more acid-sensitive than wollastonite/prehnite (Na presence).",
+        "products": {
+          "Na": 0.06,
+          "Ca": 0.36,
+          "SiO2": 0.50
+        }
+      },
+      "habit": "spray_radiating",
+      "color_rules": {
+        "white_spray": {
+          "default": true,
+          "trigger": "no significant chromophore — the default Jeffrey + basalt-amygdale aesthetic"
+        },
+        "blue_larimar": {
+          "trigger": "Cu > 0.5 ppm — Dominican Republic gem variety (Cu²⁺-O charge transfer)"
+        }
+      },
+      "narrate_function": null,
+      "runtimes_present": [
+        "js"
+      ],
+      "audit_status": "new v113 (2026-05-20). Triclinic Na-Ca inosilicate, fourth mineral of the Jeffrey Mine rodingite arc; iconic radiating-spray habit. Substrate priority: grossular (the Jeffrey signature) > diopside > vesuvianite > calcite > wall. Cu trace dispatch gives larimar tint (separate cluster from the Jeffrey aesthetic but same engine). CALIBRATION expectation: pectolite may fire in late-stage skarn/amygdale scenarios where Na is high; first firing expected at jeffrey_mine v115. Per Anthony Handbook v.IIB; Filipos & Frantz 1979; Bernardini 1981.",
+      "late_stage_propensity": 0.7,
+      "_late_stage_note": "Late-stage in the rodingite paragenesis — pectolite forms AFTER grossular + diopside + vesuvianite, contemporaneous with wollastonite, before terminal datolite. In basalt amygdales, pectolite is one of the LAST minerals to fire in the alteration sequence. Propensity 0.7 = late.",
+      "class_color": "#e8e0d0"
+    },
+    "wollastonite": {
+      "formula": "CaSiO3",
+      "nucleation_sigma": 1.2,
+      "max_nucleation_count": 4,
+      "max_size_cm": 10,
+      "growth_rate_mult": 0.25,
+      "habit_variants": [
+        {
+          "name": "acicular_white",
+          "wall_spread": 0.5,
+          "void_reach": 0.55,
+          "vector": "projecting",
+          "trigger": "default — acicular needles in parallel bundles. The standard skarn + rodingite morphology."
+        },
+        {
+          "name": "fibrous_sprays",
+          "wall_spread": 0.45,
+          "void_reach": 0.6,
+          "vector": "projecting",
+          "trigger": "high supersaturation (excess > 1.0) — radiating acicular fibrous sprays, silky luster. The high-grade skarn cabinet form."
+        },
+        {
+          "name": "massive_granular",
+          "wall_spread": 0.8,
+          "void_reach": 0.15,
+          "vector": "coating",
+          "trigger": "low supersaturation (excess < 0.4) — massive granular aggregate, the workhorse skarn texture (industrially mined as ceramic filler)."
+        }
+      ],
+      "class": "silicate",
+      "description": "CaSiO₃ — triclinic single-chain Ca-silicate (inosilicate). The simplest Ca-Si stoichiometry of the calc-silicate suite. H 4.5-5, density 2.86-3.09, vitreous to silky luster, perfect {100} + {001} cleavage. Forms in three settings: (1) SKARN contact-metamorphism of impure limestone (the dominant occurrence — Crestmore CA, Willsboro NY, Helan Mountains China, Pakistan, Mexico Sierra de Cruces; INDUSTRIALLY mined globally as a ceramic filler + asbestos replacement at ~700,000 tonnes/year world production), (2) Rodingite metasomatism (Jeffrey Mine — acicular sprays + radiating aggregates per Bernardini 1981 MR 12(5):277; usually as the late-stage Ca-Si endmember after grossular + diopside), (3) Carbonatite alteration (rare). Pseudohexagonal twinning common. Discriminator from analogous Ca-silicates: pectolite has Na + OH (wollastonite has neither); diopside has Mg + chain doubling; grossular is the orthosilicate garnet (different structural class). Refs: Anthony Handbook v.IIB; Deer Howie Zussman 2A; Trommsdorff V & Connolly JAD (1996) The ultramafic contact aureole about the Bregaglia (Bergell) tonalite. Schweiz. Mineral. Petrogr. Mitt. 76:135 (wollastonite-isograd phase relations).",
+      "scenarios": [
+        "jeffrey_mine"
+      ],
+      "T_range_C": [
+        180,
+        600
+      ],
+      "T_optimum_C": [
+        220,
+        400
+      ],
+      "T_behavior": "wide",
+      "pH_dissolution_below": 5.0,
+      "pH_dissolution_above": null,
+      "redox_requirement": "any",
+      "required_ingredients": {
+        "Ca": 80,
+        "SiO2": 200
+      },
+      "_ingredients_note": "Ca ≥ 80 + SiO2 ≥ 200 — simplest gates of the calc-silicate suite. T 180-600°C wide window; sweet spot 220-400°C. pH 7.5-12 broad alkaline tolerance. Mg > 100 marginally suppresses (Mg-rich systems favor diopside); Al > 50 marginally suppresses (Al-rich systems favor grossular). Activity correction applied.",
+      "trace_ingredients": {
+        "Fe": "rare trace gives pale-pink tint (parawollastonite or pseudowollastonite forms; not modeled separately here)",
+        "Mn": "rare trace gives bustamite-similar pink (separate species, not wollastonite proper)"
+      },
+      "thermal_decomp_C": 1125,
+      "thermal_decomp_reaction": "Above ~1125°C: wollastonite (α-CaSiO3) inverts to pseudowollastonite (β-CaSiO3) — the high-T polymorph; geologically irrelevant for vug-formation regime.",
+      "thermal_decomp_products": {
+        "Ca": 0.34,
+        "SiO2": 0.52
+      },
+      "fluorescence": {
+        "activator": null,
+        "threshold_ppm": 0,
+        "color": null,
+        "quencher": null,
+        "status": "Most wollastonite is non-fluorescent. Mn-bearing material may show weak red-orange SW UV (Mn²⁺ activator) but rare and not diagnostic. Ignored in the engine."
+      },
+      "twin_laws": [
+        {
+          "name": "100",
+          "composition_plane": "{100}",
+          "twin_axis": "[100]",
+          "probability": 0.1,
+          "trigger": "common pseudohexagonal twinning in skarn + rodingite wollastonite"
+        }
+      ],
+      "acid_dissolution": {
+        "pH_threshold": 5.0,
+        "reaction": "CaSiO3 + 2H⁺ + H2O → Ca²⁺ + H4SiO4 — releases Ca + Si to fluid below pH 5. Moderate kinetics; wollastonite is one of the more reactive calc-silicates.",
+        "products": {
+          "Ca": 0.34,
+          "SiO2": 0.52
+        }
+      },
+      "habit": "acicular_white",
+      "color_rules": {
+        "white": {
+          "default": true,
+          "trigger": "no significant chromophore — pure Ca-Si endmember"
+        }
+      },
+      "narrate_function": null,
+      "runtimes_present": [
+        "js"
+      ],
+      "audit_status": "new v113 (2026-05-20). Triclinic Ca-Si inosilicate, fifth mineral of the Jeffrey Mine rodingite arc; the simplest Ca-Si endmember. Substrate priority: grossular > diopside > calcite > wall. CALIBRATION expectation: wollastonite may fire in skarn scenarios (marble_contact_metamorphism is a candidate) since the gates are simpler than the rodingite-specific Mg/Al-rich requirements. First firing expected in v115 jeffrey_mine; possibly also marble_contact_metamorphism cascade. Per Anthony Handbook v.IIB; Trommsdorff & Connolly 1996.",
+      "late_stage_propensity": 0.55,
+      "_late_stage_note": "Mid-to-late stage in the prograde sequence. Forms after grossular + diopside as Ca-Si chemistry concentrates; contemporaneous with pectolite + prehnite in rodingite. In skarn, wollastonite is the workhorse late-stage Ca-Si phase.",
+      "class_color": "#e0e0d8"
+    },
+    "prehnite": {
+      "formula": "Ca2Al2Si3O10(OH)2",
+      "nucleation_sigma": 1.2,
+      "max_nucleation_count": 4,
+      "max_size_cm": 8,
+      "growth_rate_mult": 0.28,
+      "habit_variants": [
+        {
+          "name": "botryoidal_pale_green",
+          "wall_spread": 0.7,
+          "void_reach": 0.35,
+          "vector": "coating",
+          "trigger": "default — botryoidal grape-cluster pale-green aggregate, subradial fibrous internal structure. The Lake Superior amygdale + Alpine + Italian classic."
+        },
+        {
+          "name": "tabular_crystallized",
+          "wall_spread": 0.45,
+          "void_reach": 0.6,
+          "vector": "projecting",
+          "trigger": "high supersaturation (excess > 1.4) — tabular flat {001} tablets, orthorhombic crystallized cabinet form. Often partial radial bundles."
+        },
+        {
+          "name": "reniform",
+          "wall_spread": 0.8,
+          "void_reach": 0.2,
+          "vector": "coating",
+          "trigger": "low supersaturation (excess < 0.3) — reniform pale-green crust, low-relief surface coating."
+        }
+      ],
+      "class": "silicate",
+      "description": "Ca₂Al₂Si₃O₁₀(OH)₂ — orthorhombic Ca-Al phyllosilicate (sheet silicate). H 6-6.5, density 2.80-2.95, vitreous luster, pale-green characteristic color from Fe³⁺ trace. The CLASSIC pale-green botryoidal habit is one of the most-recognized cabinet aesthetics — Lake Superior basalt amygdales (Keweenaw + Isle Royale; Bornhorst 2017 GSA Memoir 213), Iceland amygdales, Alpine fissures (Switzerland Tauern + French Alps), Italian Val di Fassa, rodingite at Jeffrey Mine Quebec + Outokumpu Finland. Important substrate for: datolite + epidote + zeolite-group minerals (heulandite + stilbite + analcime). Discriminator from analogous Ca-Al silicates: zoisite/epidote have +Fe in the Y site; vesuvianite has +Mg; lawsonite is the higher-P endmember (subduction); grossular is the orthosilicate garnet. The pale-green color is dominantly from Fe³⁺ trace (5-50 ppm) — pure Ca-Al prehnite is white-colorless but is rare in collected specimens. Refs: Anthony Handbook v.IIA Phyllosilicates; Deer Howie Zussman v.1B; Liou JG (1971) Synthesis and stability relations of prehnite, Ca2Al2Si3O10(OH)2. American Mineralogist 56:507-531 (definitive stability + zeolite-facies parageneses); Bornhorst TJ 2017 GSA Memoir 213.",
+      "scenarios": [
+        "jeffrey_mine"
+      ],
+      "T_range_C": [
+        100,
+        350
+      ],
+      "T_optimum_C": [
+        150,
+        280
+      ],
+      "T_behavior": "narrow",
+      "pH_dissolution_below": 6.0,
+      "pH_dissolution_above": null,
+      "redox_requirement": "any",
+      "required_ingredients": {
+        "Ca": 60,
+        "Al": 8,
+        "SiO2": 100
+      },
+      "_ingredients_note": "Ca ≥ 60 + Al ≥ 8 + SiO2 ≥ 100 — moderate-threshold Ca-Al-Si silicate. T 100-350°C; sweet spot 150-280°C (zeolite-facies + low-grade greenschist). pH 7.5-11.5 alkaline. Activity correction applied.",
+      "trace_ingredients": {
+        "Fe": "5-50 ppm trace gives pale-green (default field aesthetic — Fe³⁺ d-d transitions; the diagnostic Lake Superior + Alpine color)",
+        "Cu": "2+ ppm gives apple-green with blue tint (rare; sometimes called 'copper-bearing prehnite')",
+        "Mn": "rare trace gives faint pink",
+        "Ti": "trace can produce yellow-brown drift"
+      },
+      "thermal_decomp_C": 400,
+      "thermal_decomp_reaction": "Above ~400°C: prehnite decomposes via dehydration to anorthite + wollastonite + H2O. Marks the upper-T boundary of the zeolite-facies regime per Liou 1971.",
+      "thermal_decomp_products": {
+        "Ca": 0.27,
+        "Al": 0.18,
+        "SiO2": 0.42
+      },
+      "fluorescence": {
+        "activator": null,
+        "threshold_ppm": 0,
+        "color": null,
+        "quencher": null,
+        "status": "Generally non-fluorescent. Fe-rich varieties may show weak fluorescence; not diagnostic."
+      },
+      "twin_laws": [],
+      "acid_dissolution": {
+        "pH_threshold": 6.0,
+        "reaction": "Ca2Al2Si3O10(OH)2 + 10H⁺ → 2Ca²⁺ + 2Al³⁺ + 3H4SiO4 — releases Ca + Al + Si to fluid below pH 6. Moderate kinetics; prehnite is reactive in acidic groundwater.",
+        "products": {
+          "Ca": 0.27,
+          "Al": 0.18,
+          "SiO2": 0.42
+        }
+      },
+      "habit": "botryoidal_pale_green",
+      "color_rules": {
+        "pale_green": {
+          "default": true,
+          "trigger": "Fe trace > 5 ppm — Lake Superior + Alpine + Italian default aesthetic; Fe³⁺ d-d transitions"
+        },
+        "colorless_white": {
+          "trigger": "Fe < 5 ppm — pure Ca-Al endmember; rare in collected material"
+        },
+        "apple_green_blue_tint": {
+          "trigger": "Cu > 2 ppm — rare copper-bearing prehnite"
+        }
+      },
+      "narrate_function": null,
+      "runtimes_present": [
+        "js"
+      ],
+      "audit_status": "new v113 (2026-05-20). Orthorhombic Ca-Al phyllosilicate, sixth mineral of the Jeffrey Mine rodingite arc + Lake Superior basalt-amygdale classic. Substrate priority: native_copper (Lake Superior signature) > grossular > diopside > calcite > wall. Will activate the forward-prepared substrate slot for v110 datolite (prehnite > wollastonite > vesuvianite > calcite > ...). CALIBRATION expectation: prehnite may fire in zeolite-facies + low-grade-metamorphic existing scenarios (zoned_dripstone_cave, marble_contact_metamorphism candidates); first deliberate firing expected at v115 jeffrey_mine. Per Anthony Handbook v.IIA; Liou 1971 Am. Min. 56:507; Bornhorst 2017 GSA Memoir 213.",
+      "late_stage_propensity": 0.65,
+      "_late_stage_note": "Mid-to-late stage in the rodingite paragenesis. Prehnite forms after grossular + diopside + vesuvianite but before terminal datolite + zeolites. In Lake Superior amygdales, prehnite is one of the EARLY-to-mid amygdale fillings (with calcite + analcime + native_copper); the rodingite paragenesis pushes it later.",
+      "class_color": "#a8e0a0"
     }
   }
 }

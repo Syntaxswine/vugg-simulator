@@ -4911,5 +4911,103 @@
 //          Scenarios 28 unchanged (jeffrey_mine ships v115).
 //          v113 next: pectolite + wollastonite + prehnite trio
 //          (late-stage Ca-silicates).
-const SIM_VERSION = 112;
+//   v113 — Late-stage Ca-silicate trio: pectolite + wollastonite +
+//          prehnite (2026-05-20). Fourth commit of the Jeffrey Mine
+//          rodingite arc; triple commit per vugg-add-mineral skill
+//          grouped-commit rule — all three share Ca + alkaline pH
+//          + low-T window + late-stage paragenesis.
+//
+//          PECTOLITE NaCa2Si3O8(OH) — triclinic Na-Ca inosilicate
+//          (single-chain). Iconic RADIATING-SPRAY habit; Jeffrey
+//          Mine cabbage-petal cabinet aesthetic per Bernardini 1981.
+//            Gates: Na>=30, Ca>=80, SiO2>=100, T 100-350, pH 8.5-12
+//            Habits: spray_radiating (default), acicular_white,
+//                    massive_fibrous (Larimar-like)
+//            Color: Cu>0.5 -> blue larimar (Dominican gem per
+//              Filipos & Frantz 1979); pure -> white
+//
+//          WOLLASTONITE CaSiO3 — triclinic Ca-silicate. The simplest
+//          stoichiometry of the calc-silicate suite + skarn
+//          workhorse (industrially mined ~700kt/yr globally as
+//          ceramic filler).
+//            Gates: Ca>=80, SiO2>=200, T 180-600, pH 7.5-12
+//            (Mg>100 + Al>50 marginally suppress — Mg/Al-rich
+//             systems favor diopside/grossular)
+//            Habits: acicular_white (default), fibrous_sprays
+//                    (high σ), massive_granular (low σ)
+//
+//          PREHNITE Ca2Al2Si3O10(OH)2 — orthorhombic Ca-Al
+//          phyllosilicate. THE classic pale-green botryoidal
+//          basalt-amygdale + Alpine-fissure habit; substrate for
+//          datolite + epidote + zeolite-group minerals.
+//            Gates: Ca>=60, Al>=8, SiO2>=100, T 100-350, pH 7.5-11.5
+//            Habits: botryoidal_pale_green (default — Lake Superior
+//              + Alpine classic), tabular_crystallized (high σ),
+//              reniform (low σ)
+//            Color: Fe>5 -> pale-green (Fe³⁺ d-d; default field
+//              aesthetic); Cu>2 -> apple-green-blue tint (rare);
+//              pure -> colorless/white
+//
+//          ACTIVATING FORWARD-PREPARED SUBSTRATES: v110 datolite
+//          had `prehnite (when wired v113)` as substrate priority
+//          slot p=0.55; v111 vesuvianite had `wollastonite (v113)`
+//          p=0.40; v112 grossular had `wollastonite (v113)` p=0.40.
+//          As of v113, all three substrate filters NOW return real
+//          candidates and the paragenetic pseudomorph/co-substrate
+//          relationships will fire when those minerals show up
+//          simultaneously in jeffrey_mine v115.
+//
+//          CALIBRATION DRIFT — single-scenario, GEOLOGICALLY
+//          DEFENSIBLE:
+//            deccan_zeolite scenario gains:
+//              prehnite     1 active / max_um  7.5
+//              wollastonite 1 active / max_um 72.8
+//            Cascade max_um shifts on existing minerals in the
+//            same scenario (Ca + Al + SiO2 redistribution; quartz
+//            and analcime visible shifts).
+//          Prehnite is one of the canonical Deccan Traps amygdale
+//          minerals (Sukheswala RN, Avasia RK, Gangopadhyay M 1974
+//          MinMag 39:658; also Pe-Piper 2014 Lithos 200:79 for the
+//          Indian zeolite-facies framework). Wollastonite less
+//          typical in Deccan but the simpler Ca-Si gates match the
+//          scenario broth. Both firings expose that the existing
+//          deccan_zeolite scenario was previously missing two
+//          canonical zeolite-facies calc-silicate companions.
+//
+//          Pectolite did NOT fire in any existing scenario — Na
+//          gate (>= 30 ppm) at alkaline pH is rare in current
+//          broth designs. Stays wired-but-not-yet-firing; first
+//          firing expected at v115 jeffrey_mine.
+//
+//          marble_contact_metamorphism (the skarn scenario) did
+//          NOT pick up wollastonite or prehnite this round. The
+//          broth doesn't carry enough alkaline pH OR enough Al
+//          for prehnite; for wollastonite, the Mg/Al competition
+//          + pH window may need a tune. Flagged for post-arc.
+//
+//          REFERENCES:
+//            * Anthony JW et al. Handbook of Mineralogy v.IIA
+//              (Phyllosilicates) + v.IIB (Single-Chain Silicates).
+//            * Deer WA, Howie RA, Zussman J Rock-Forming Minerals
+//              v.1B (Disilicates + Ring Silicates) + v.2A.
+//            * Liou JG (1971) Synthesis and stability relations of
+//              prehnite, Ca2Al2Si3O10(OH)2. Am. Min. 56:507-531.
+//              DEFINITIVE prehnite stability.
+//            * Trommsdorff V & Connolly JAD (1996) The ultramafic
+//              contact aureole about the Bregaglia (Bergell) tonalite.
+//              Schweiz. Mineral. Petrogr. Mitt. 76:135 (wollastonite-
+//              isograd phase relations).
+//            * Filipos PJ & Frantz JD (1979) Larimar — A blue
+//              pectolite from Hispaniola. Geological Magazine 116:323.
+//            * Bernardini GP (1981) The Jeffrey Mine, Asbestos,
+//              Quebec. MR 12(5):277-291.
+//            * Bornhorst TJ (2017) Native copper mineralization in
+//              the Keweenaw Peninsula, Michigan. GSA Memoir 213.
+//
+//          Coverage 133 → 136 live minerals (+3: pectolite +
+//          wollastonite + prehnite).
+//          Scenarios 28 unchanged (jeffrey_mine ships v115).
+//          v114 next: chrysotile + brucite + awaruite (Mg-matrix
+//          gangue family — completing the Jeffrey assemblage).
+const SIM_VERSION = 113;
 

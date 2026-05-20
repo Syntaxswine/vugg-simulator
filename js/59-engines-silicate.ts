@@ -1315,6 +1315,210 @@ function grow_chrysoprase(crystal, conditions, step) {
   });
 }
 
+// v113 (2026-05-20): Pectolite NaCa2Si3O8(OH) — triclinic Na-Ca
+// inosilicate with iconic radiating-spray habit. Jeffrey Mine
+// signature — sprays on grossular/diopside. Cu trace produces the
+// blue larimar-like Dominican variety (separate set but same engine).
+// Habits:
+//   spray_radiating (default) — the Jeffrey cabbage-petal aesthetic
+//   acicular_white (low σ) — simpler acicular sprays
+//   massive_fibrous (very low σ) — Larimar-like compact fibrous form
+// Color: Cu > 0.5 ppm → blue larimar tint (rare); pure → white
+function grow_pectolite(crystal, conditions, step) {
+  const sigma = conditions.supersaturation_pectolite();
+  if (sigma < 1.0) {
+    if (crystal.total_growth_um > 5 && conditions.fluid.pH < 6.0) {
+      crystal.dissolved = true;
+      const d = Math.min(2.0, crystal.total_growth_um * 0.07);
+      return new GrowthZone({
+        step, temperature: conditions.temperature,
+        thickness_um: -d, growth_rate: -d, dissolutionMode: 'acid',
+        note: `acid dissolution (pH ${conditions.fluid.pH.toFixed(1)}) — pectolite releases Na + Ca + Si to fluid`,
+      });
+    }
+    return null;
+  }
+  const excess = sigma - 1.0;
+  const rate = 2.2 * excess * rng.uniform(0.8, 1.2);
+  if (rate < 0.1) return null;
+
+  // Habit dispatch
+  if (excess > 0.8) {
+    crystal.habit = 'spray_radiating';
+    crystal.dominant_forms = ['radiating spray aggregate', 'acicular crystals from common center', 'the Jeffrey Mine cabbage-petal aesthetic'];
+  } else if (excess > 0.3) {
+    crystal.habit = 'acicular_white';
+    crystal.dominant_forms = ['parallel acicular needles', 'white silky luster'];
+  } else {
+    crystal.habit = 'massive_fibrous';
+    crystal.dominant_forms = ['compact fibrous aggregate', 'Larimar-similar massive form'];
+  }
+
+  // Color dispatch — Cu trace gives blue larimar tint
+  let color_note;
+  if (conditions.fluid.Cu > 0.5) {
+    color_note = 'blue larimar-tinted pectolite (Cu trace > 0.5 ppm; Cu²⁺-O charge transfer; Dominican gem variety aesthetic per Filipos & Frantz 1979)';
+  } else {
+    color_note = 'white pectolite (the default Jeffrey + basalt-amygdale spray aesthetic)';
+  }
+
+  // Substrate flavor
+  const pos = crystal.position || '';
+  let substrate_flavor = '';
+  if (pos.includes('grossular')) substrate_flavor = ' on grossular — Jeffrey signature spray-on-garnet';
+  else if (pos.includes('diopside')) substrate_flavor = ' on diopside — rodingite Ca-Mg-Na trio';
+  else if (pos.includes('vesuvianite')) substrate_flavor = ' with vesuvianite — late rodingite assemblage';
+  else if (pos.includes('calcite')) substrate_flavor = ' on calcite — late skarn/amygdale';
+
+  // Mass-balance debits — Na Ca2 Si3
+  conditions.fluid.Na = Math.max(conditions.fluid.Na - rate * 0.012, 0);
+  conditions.fluid.Ca = Math.max(conditions.fluid.Ca - rate * 0.020, 0);
+  conditions.fluid.SiO2 = Math.max(conditions.fluid.SiO2 - rate * 0.045, 0);
+  if (conditions.fluid.Cu > 0.5) {
+    conditions.fluid.Cu = Math.max(conditions.fluid.Cu - rate * 0.002, 0);
+  }
+
+  return new GrowthZone({
+    step, temperature: conditions.temperature,
+    thickness_um: rate, growth_rate: rate,
+    trace_Cu: conditions.fluid.Cu > 0.3 ? conditions.fluid.Cu * 0.005 : 0,
+    note: `pectolite ${crystal.habit}, ${color_note}${substrate_flavor}; triclinic Na-Ca inosilicate, H 4.5-5, silky to vitreous, perfect {100} + {001} cleavage`,
+  });
+}
+
+// v113 (2026-05-20): Wollastonite CaSiO3 — triclinic Ca-silicate
+// (single-chain inosilicate). Simplest Ca-Si stoichiometry of the
+// calc-silicate suite. Skarn contact-metamorphism workhorse +
+// rodingite late-stage. Habits:
+//   acicular_white (default) — needle-like white crystals
+//   fibrous_sprays (high σ) — radiating acicular sprays
+//   massive_granular (low σ) — workhorse skarn texture
+function grow_wollastonite(crystal, conditions, step) {
+  const sigma = conditions.supersaturation_wollastonite();
+  if (sigma < 1.0) {
+    if (crystal.total_growth_um > 5 && conditions.fluid.pH < 5.0) {
+      crystal.dissolved = true;
+      const d = Math.min(2.0, crystal.total_growth_um * 0.06);
+      return new GrowthZone({
+        step, temperature: conditions.temperature,
+        thickness_um: -d, growth_rate: -d, dissolutionMode: 'acid',
+        note: `acid dissolution (pH ${conditions.fluid.pH.toFixed(1)}) — wollastonite releases Ca + Si to fluid`,
+      });
+    }
+    return null;
+  }
+  const excess = sigma - 1.0;
+  const rate = 2.0 * excess * rng.uniform(0.8, 1.2);
+  if (rate < 0.1) return null;
+
+  // Habit dispatch
+  if (excess > 1.0) {
+    crystal.habit = 'fibrous_sprays';
+    crystal.dominant_forms = ['radiating acicular fibrous sprays', 'silky luster', 'the high-grade skarn cabinet form'];
+  } else if (excess < 0.4) {
+    crystal.habit = 'massive_granular';
+    crystal.dominant_forms = ['massive granular aggregate', 'skarn-workhorse texture (industrial wollastonite)'];
+  } else {
+    crystal.habit = 'acicular_white';
+    crystal.dominant_forms = ['acicular needles', 'parallel-bundle white crystals'];
+  }
+
+  // Substrate flavor
+  const pos = crystal.position || '';
+  let substrate_flavor = '';
+  if (pos.includes('grossular')) substrate_flavor = ' with grossular — late skarn assemblage';
+  else if (pos.includes('diopside')) substrate_flavor = ' with diopside — rodingite Ca-Mg-Si trio';
+  else if (pos.includes('calcite')) substrate_flavor = ' on calcite — skarn limestone contact';
+
+  // Mass-balance debits — Ca Si (simplest stoichiometry)
+  conditions.fluid.Ca = Math.max(conditions.fluid.Ca - rate * 0.030, 0);
+  conditions.fluid.SiO2 = Math.max(conditions.fluid.SiO2 - rate * 0.050, 0);
+
+  return new GrowthZone({
+    step, temperature: conditions.temperature,
+    thickness_um: rate, growth_rate: rate,
+    note: `wollastonite ${crystal.habit}, white${substrate_flavor}; triclinic Ca-silicate, H 4.5-5, vitreous-silky, perfect {100} + {001} cleavage`,
+  });
+}
+
+// v113 (2026-05-20): Prehnite Ca2Al2Si3O10(OH)2 — orthorhombic Ca-Al
+// phyllosilicate. Basalt-amygdale + alpine-fissure + rodingite-contact
+// pale-green botryoidal classic. Common substrate for datolite +
+// epidote + zeolites. Habits:
+//   botryoidal_pale_green (default) — the iconic Lake Superior amygdale
+//     + Alpine prehnite aesthetic
+//   tabular_crystallized (high σ) — flat {001} tablets, the cabinet
+//     specimen form
+//   reniform (low σ) — reniform pale-green crust
+// Color dispatch:
+//   Fe trace > 5 ppm → pale-green (most common — the default field
+//     aesthetic; Fe³⁺ d-d transitions)
+//   Cu trace > 2 ppm → apple-green to slightly blue-tinged (rare)
+//   pure → colorless to white (rare)
+function grow_prehnite(crystal, conditions, step) {
+  const sigma = conditions.supersaturation_prehnite();
+  if (sigma < 1.0) {
+    if (crystal.total_growth_um > 5 && conditions.fluid.pH < 6.0) {
+      crystal.dissolved = true;
+      const d = Math.min(2.0, crystal.total_growth_um * 0.06);
+      return new GrowthZone({
+        step, temperature: conditions.temperature,
+        thickness_um: -d, growth_rate: -d, dissolutionMode: 'acid',
+        note: `acid dissolution (pH ${conditions.fluid.pH.toFixed(1)}) — prehnite releases Ca + Al + Si to fluid`,
+      });
+    }
+    return null;
+  }
+  const excess = sigma - 1.0;
+  const rate = 2.2 * excess * rng.uniform(0.8, 1.2);
+  if (rate < 0.1) return null;
+
+  // Habit dispatch
+  if (excess > 1.4) {
+    crystal.habit = 'tabular_crystallized';
+    crystal.dominant_forms = ['tabular {001} flat tablets', 'orthorhombic crystallized cabinet form', 'partial radial bundles'];
+  } else if (excess < 0.3) {
+    crystal.habit = 'reniform';
+    crystal.dominant_forms = ['reniform pale-green crust', 'low-relief surface'];
+  } else {
+    crystal.habit = 'botryoidal_pale_green';
+    crystal.dominant_forms = ['botryoidal grape-cluster aggregate', 'the Lake Superior + Alpine + Italian classic', 'subradial fibrous internal structure'];
+  }
+
+  // Color dispatch
+  let color_note;
+  const has_cu = conditions.fluid.Cu > 2.0;
+  const has_fe = conditions.fluid.Fe > 5.0;
+  if (has_cu) {
+    color_note = 'apple-green prehnite with blue tint (Cu trace > 2 ppm — rare; sometimes called "copper-bearing prehnite")';
+  } else if (has_fe) {
+    color_note = 'pale-green prehnite (Fe³⁺ trace — Lake Superior amygdale + Alpine + Italian default aesthetic)';
+  } else {
+    color_note = 'colorless to white prehnite (pure Ca-Al-Si — rare)';
+  }
+
+  // Substrate flavor
+  const pos = crystal.position || '';
+  let substrate_flavor = '';
+  if (pos.includes('native_copper')) substrate_flavor = ' with native_copper — Lake Superior amygdale signature';
+  else if (pos.includes('calcite')) substrate_flavor = ' on calcite — basalt-amygdale or rodingite contact';
+  else if (pos.includes('grossular')) substrate_flavor = ' with grossular — rodingite Ca-Al silicate suite';
+  else if (pos.includes('diopside')) substrate_flavor = ' with diopside — rodingite contact';
+
+  // Mass-balance debits — Ca2 Al2 Si3
+  conditions.fluid.Ca = Math.max(conditions.fluid.Ca - rate * 0.025, 0);
+  conditions.fluid.Al = Math.max(conditions.fluid.Al - rate * 0.018, 0);
+  conditions.fluid.SiO2 = Math.max(conditions.fluid.SiO2 - rate * 0.040, 0);
+
+  return new GrowthZone({
+    step, temperature: conditions.temperature,
+    thickness_um: rate, growth_rate: rate,
+    trace_Fe: conditions.fluid.Fe > 3 ? conditions.fluid.Fe * 0.005 : 0,
+    trace_Cu: conditions.fluid.Cu > 1 ? conditions.fluid.Cu * 0.003 : 0,
+    note: `prehnite ${crystal.habit}, ${color_note}${substrate_flavor}; orthorhombic Ca-Al phyllosilicate, H 6-6.5, vitreous`,
+  });
+}
+
 // v112 (2026-05-20): Grossular garnet Ca3Al2(SiO4)3 — cubic Ia-3d
 // Ca-Al endmember of the garnet group. Three settings:
 //   - Rodingite metasomatism (Jeffrey + Italian Alps + Asbestos Hill NL).

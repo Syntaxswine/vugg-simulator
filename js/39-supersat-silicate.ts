@@ -524,6 +524,106 @@ Object.assign(VugConditions.prototype, {
     return Math.max(sigma, 0);
   },
 
+  // v113 (2026-05-20): Pectolite NaCa2Si3O8(OH) — triclinic
+  // single-chain inosilicate; Na-Ca silicate with the iconic radiating-
+  // spray habit. The CABBAGE-PETAL JEFFREY MINE specimen is one of the
+  // signature aesthetics; spray aggregates of acicular crystals on
+  // grossular/diopside matrix. Three settings: (1) Rodingite metasomatism
+  // (Jeffrey + Italian Alps + New Idria; Bernardini 1981 MR 12(5):277
+  // documents the spray habit), (2) Late-stage basalt-amygdale fillings
+  // (Bay of Fundy NS for blue larimar-similar specimens though larimar
+  // proper is Dominican), (3) Larimar Dominican Republic Cu-pectolite
+  // gem variety (Filipos & Frantz 1979 — separate mineralogical character
+  // from Jeffrey pectolite but same engine). Gates: Na + Ca + Si + low-T
+  // alkaline.
+  supersaturation_pectolite() {
+    if (this.fluid.Na < 30 || this.fluid.Ca < 80 || this.fluid.SiO2 < 100) return 0;
+    if (this.temperature < 100 || this.temperature > 350) return 0;
+    if (this.fluid.pH < 8.5 || this.fluid.pH > 12.0) return 0;
+    const na_f = Math.min(this.fluid.Na / 80.0, 2.0);
+    const ca_f = Math.min(this.fluid.Ca / 200.0, 2.0);
+    const si_f = Math.min(this.fluid.SiO2 / 300.0, 1.5);
+    let sigma = na_f * ca_f * si_f;
+    // T sweet spot 150-280°C (post-vesuvianite Ca-silicate stage)
+    const T = this.temperature;
+    if (T >= 150 && T <= 280) sigma *= 1.3;
+    else if (T < 150) sigma *= Math.max(0.4, (T - 100) / 50 + 0.4);
+    else sigma *= Math.max(0.4, 1.0 - (T - 280) / 70);
+    // pH sweet spot 9.5-11 (alkaline rodingite/skarn)
+    const pH = this.fluid.pH;
+    if (pH >= 9.5 && pH <= 11.0) sigma *= 1.2;
+    else sigma *= Math.max(0.5, 1.0 - Math.abs(pH - 10.25) * 0.3);
+    if (ACTIVITY_CORRECTED_SUPERSAT) sigma *= activityCorrectionFactor(this.fluid, 'pectolite');
+    return Math.max(sigma, 0);
+  },
+
+  // v113 (2026-05-20): Wollastonite CaSiO3 — triclinic Ca-silicate
+  // (single-chain inosilicate); the simplest Ca-Si stoichiometry of
+  // the calc-silicates. Forms in: (1) Skarn contact metamorphism
+  // (most common — Crestmore CA, Willsboro NY, Helan Mountains China,
+  // industrially mined as a ceramic filler), (2) Rodingite metasomatism
+  // (Jeffrey, Bernardini 1981; usually as acicular sprays + radiating
+  // aggregates), (3) Carbonatite alteration (rare). Acicular-white
+  // habit dominant; can fire at lower T than grossular (180+ vs 250+).
+  // Refs: Anthony Handbook v.IIB; Deer Howie Zussman 2A; Trommsdorff
+  // & Connolly 1996 Schweiz.Min.Petr.Mitt. 76:135 (wollastonite-
+  // metamorphism phase relations).
+  supersaturation_wollastonite() {
+    if (this.fluid.Ca < 80 || this.fluid.SiO2 < 200) return 0;
+    if (this.temperature < 180 || this.temperature > 600) return 0;
+    if (this.fluid.pH < 7.5 || this.fluid.pH > 12.0) return 0;
+    const ca_f = Math.min(this.fluid.Ca / 250.0, 2.0);
+    const si_f = Math.min(this.fluid.SiO2 / 400.0, 1.5);
+    let sigma = ca_f * si_f;
+    // T sweet spot 220-400°C
+    const T = this.temperature;
+    if (T >= 220 && T <= 400) sigma *= 1.3;
+    else if (T < 220) sigma *= Math.max(0.4, (T - 180) / 40 + 0.4);
+    else sigma *= Math.max(0.4, 1.0 - (T - 400) / 200);
+    // pH sweet spot 8.5-11
+    const pH = this.fluid.pH;
+    if (pH >= 8.5 && pH <= 11.0) sigma *= 1.2;
+    else sigma *= Math.max(0.5, 1.0 - Math.abs(pH - 9.75) * 0.3);
+    // Mg or Al > 100 marginally suppresses — Mg-Al-rich systems favor
+    // grossular/diopside over pure wollastonite
+    if (this.fluid.Mg > 100) sigma *= Math.max(0.6, 1.0 - (this.fluid.Mg - 100) / 200);
+    if (this.fluid.Al > 50) sigma *= Math.max(0.7, 1.0 - (this.fluid.Al - 50) / 100);
+    if (ACTIVITY_CORRECTED_SUPERSAT) sigma *= activityCorrectionFactor(this.fluid, 'wollastonite');
+    return Math.max(sigma, 0);
+  },
+
+  // v113 (2026-05-20): Prehnite Ca2Al2Si3O10(OH)2 — orthorhombic
+  // Ca-Al phyllosilicate (sheet silicate). The classic LAKE SUPERIOR
+  // basalt-amygdale + ICELAND amygdale + ALPINE FISSURE pale-green
+  // botryoidal habit. Also major in rodingite (Jeffrey + Italian Alps
+  // + Outokumpu). Common substrate for datolite + epidote + zeolite-
+  // group minerals. The signature green color is from Fe³⁺ trace at
+  // ~5-50 ppm (pure prehnite is colorless-to-white but is rare in
+  // practice; Fe-bearing pale-green is the default field aesthetic).
+  // Gates: Ca + Al + Si + alkaline-low-T window. Refs: Anthony Handbook
+  // v.IIA; Deer Howie Zussman v.1B; Liou JG (1971) Am. Min. 56:507
+  // (prehnite stability + zeolite-facies parageneses).
+  supersaturation_prehnite() {
+    if (this.fluid.Ca < 60 || this.fluid.Al < 8 || this.fluid.SiO2 < 100) return 0;
+    if (this.temperature < 100 || this.temperature > 350) return 0;
+    if (this.fluid.pH < 7.5 || this.fluid.pH > 11.5) return 0;
+    const ca_f = Math.min(this.fluid.Ca / 200.0, 2.0);
+    const al_f = Math.min(this.fluid.Al / 25.0, 2.0);
+    const si_f = Math.min(this.fluid.SiO2 / 300.0, 1.5);
+    let sigma = ca_f * al_f * si_f;
+    // T sweet spot 150-280°C (basalt amygdale + rodingite contact)
+    const T = this.temperature;
+    if (T >= 150 && T <= 280) sigma *= 1.3;
+    else if (T < 150) sigma *= Math.max(0.4, (T - 100) / 50 + 0.4);
+    else sigma *= Math.max(0.4, 1.0 - (T - 280) / 70);
+    // pH sweet spot 9-11
+    const pH = this.fluid.pH;
+    if (pH >= 9.0 && pH <= 11.0) sigma *= 1.2;
+    else sigma *= Math.max(0.5, 1.0 - Math.abs(pH - 10.0) * 0.3);
+    if (ACTIVITY_CORRECTED_SUPERSAT) sigma *= activityCorrectionFactor(this.fluid, 'prehnite');
+    return Math.max(sigma, 0);
+  },
+
   // v112 (2026-05-20): Grossular garnet Ca3Al2(SiO4)3 — Ca-Al endmember
   // of the garnet group (orthosilicate). Cubic Ia-3d. The classic rodingite
   // garnet (Jeffrey Mine + Asbestos Hill NL + Italian Alps Val d'Ala
