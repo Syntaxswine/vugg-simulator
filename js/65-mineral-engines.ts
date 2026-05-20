@@ -257,4 +257,14 @@ const MINERAL_ENGINES = {
   // First dogfood test of the vugg-add-mineral skill (~/.claude/skills/
   // vugg-add-mineral/SKILL.md).
   pyrolusite: grow_pyrolusite,
+  // v108 (2026-05-20): plumbogummite PbAl3(PO4)2(OH)5·H2O —
+  // trigonal alunite-supergroup Pb-Al-PO4 supergene endmember.
+  // Type locality Roughten Gill, Caldbeck Fells (Hartley 1882
+  // MinMag 5:21; Förtsch 1967 MinMag 36:530 type-material correction
+  // to plumbogummite-hinsdalite-hidalgoite mix-crystal). The terminal
+  // Pb-Al-PO4 phase of the supergene paragenesis; pseudomorphs
+  // pyromorphite as the iconic cobalt-blue Roughten Gill cabinet
+  // aesthetic. Completes the type-locality story for v107
+  // roughten_gill scenario.
+  plumbogummite: grow_plumbogummite,
 };

@@ -4276,5 +4276,106 @@
 //
 //          Scenarios 27 → 28 (+1: roughten_gill).
 //          Coverage 128 live minerals unchanged (pure scenario commit).
-const SIM_VERSION = 107;
+//   v108 — Plumbogummite PbAl3(PO4)2(OH)5·H2O (2026-05-20). The type-
+//          locality mineral for the v107 Roughten Gill scenario, now
+//          wired. Completes the headline cabinet aesthetic — cobalt-
+//          blue/sky-blue/lavender/turquoise botryoidal crusts
+//          pseudomorphing pyromorphite hexagonal prisms.
+//
+//          THE MINERAL:
+//          PbAl3(PO4)2(OH)5·H2O trigonal Pb-Al-PO4 alunite supergroup
+//          (beudantite group). Type locality Roughten Gill, Caldbeck
+//          Fells (Hartley J. 1882 MinMag 5:21). Förtsch E.B. (1967)
+//          MinMag 36:530 re-examined the type material by X-ray + IR
+//          + optical methods and showed it to be a plumbogummite-
+//          hinsdalite-hidalgoite mix-crystal (alunite-supergroup
+//          endmember nomenclature): a 7.018 Å, c 16.784 Å trigonal;
+//          ω 1.680, ε 1.698. Hinsdalite + hidalgoite + beudantite +
+//          corkite (Fe analog) are flagged as future alunite-
+//          supergroup family additions; plumbogummite ships first as
+//          the dominant nominal endmember.
+//
+//          GATES — supergene Pb-rich + aluminous wallrock weathering:
+//            Pb ≥ 30  Al ≥ 3  P ≥ 2  (the three required cations)
+//            T 5-50°C  pH 4-7.5  O2 > 0.5 oxidizing
+//            Cl > 30 mildly suppresses (favors pyromorphite stability)
+//
+//          DISCRIMINATOR vs pyromorphite Pb5(PO4)3Cl:
+//          pyromorphite needs Cl ≥ 5; plumbogummite needs Al ≥ 3.
+//          The two coexist as the late-replacement sequence at
+//          Roughten Gill — pyromorphite forms first when Cl is
+//          present; plumbogummite forms LATER as Al accumulates from
+//          continued silicate wallrock weathering, then PSEUDOMORPHS
+//          the pyromorphite. The Cl > 30 → ×0.6 suppressor models
+//          this stability-window transition.
+//
+//          HABITS (4 variants):
+//            pseudomorph_after_pyromorphite — the iconic Roughten Gill
+//              cabinet aesthetic; cobalt-blue crust on hexagonal-prism
+//              outline preserves the pyromorphite morphology
+//            pseudomorph_after_mimetite — less common but documented
+//              Roughten Gill substrate; same hex-prism preservation
+//            botryoidal_mammillary — default crust on vug wall /
+//              cerussite / anglesite / galena substrate
+//            crystallized_rhombohedral — rare crystallized habit at
+//              very low excess; sub-millimeter rhombohedra
+//
+//          SUBSTRATE PRIORITY (the headline pseudomorph paragenesis):
+//            pyromorphite (epitactic — p=0.65, the iconic substrate)
+//            mimetite (p=0.45)
+//            cerussite (p=0.35, Pb supergene matrix)
+//            anglesite (p=0.25)
+//            galena_dissolving (p=0.20, oxidized cores)
+//            wall (fallback)
+//
+//          COLOR DISPATCH:
+//            Cu trace 1-15 ppm → cobalt-blue / sky-blue
+//              (the diagnostic Roughten Gill color)
+//            Cu < 1 ppm → lavender-to-white (pure Pb-Al-PO4 — rare)
+//            Fe > 5 ppm → pale yellow-tan (drift toward beudantite)
+//
+//          CALIBRATION: should fire in roughten_gill v107 scenario
+//          (which carries Al=8, P=4, Pb=70, Cu=30 + meteoric
+//          oxidation pulse) at the terminal supergene stage. Expected
+//          to produce 1-3 crystals at seed 42; will pseudomorph the
+//          single pyromorphite that fires there. Other scenarios:
+//          plumbogummite gates are tight enough that the existing
+//          supergene_oxidation (Tsumeb) + bisbee + other Pb-supergene
+//          scenarios may or may not fire it depending on their Al
+//          content (most have Al low; bisbee Al=25 may marginally
+//          fire it). Calibration drift expected to be small.
+//
+//          DOGFOOD TEST FOR vugg-add-mineral: this is the second
+//          dogfood (v102 pyrolusite was the first). Used the skill's
+//          linear path; chemistry-class file map directed to
+//          js/38/58/88 phosphate (alunite-supergroup is technically a
+//          PO4 mineral despite the SO4-bearing endmembers). RNG-
+//          cascade guard correctly placed BEFORE substrate-pick
+//          rng.random() calls. Iterator wiring added to
+//          _nucleateClass_phosphate. No engine extensions or fluid
+//          fields needed (Al already exists since v5 alunite addition).
+//
+//          REFERENCES:
+//            * Hartley J. (1882) MinMag 5:21 — original type
+//              description from Roughten Gill
+//            * Förtsch E.B. (1967) MinMag 36:530-538. DOI 10.1180/
+//              minmag.1967.036.280.07 — type-material X-ray + IR
+//              correction (plumbogummite-hinsdalite-hidalgoite
+//              mix-crystal)
+//            * Russell A. (1925) MinMag 20:257 — plumbogummite
+//              revisited
+//            * Bridges T.F. et al. (2011) Journal of the Russell
+//              Society 14:3 — Roughton Gill Mine Part 3, modern
+//              definitive paper
+//            * Cooper M.P. & Stanley C.J. (1990) Minerals of the
+//              English Lake District: Caldbeck Fells. NHM London.
+//              ISBN 0-565-01102-2
+//            * Mindat 3247 — locality + chemistry compendium
+//
+//          Coverage 128 → 129 live minerals (+1: plumbogummite).
+//          Scenarios 28 unchanged.
+//          v109 next: calibration tune of roughten_gill via vugg-
+//          tune-scenario (fire v100 trio + cerussite + mimetite +
+//          mottramite + brochantite; suppress dioptase + vanadinite).
+const SIM_VERSION = 108;
 

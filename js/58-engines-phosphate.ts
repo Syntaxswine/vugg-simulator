@@ -9,6 +9,110 @@
 //
 // Phase B8 of PROPOSAL-MODULAR-REFACTOR.
 
+// v108 (2026-05-20): plumbogummite PbAl3(PO4)2(OH)5·H2O — trigonal
+// Pb-Al-PO4 alunite-supergroup supergene endmember. Type locality
+// Roughten Gill, Caldbeck Fells (Hartley 1882; Förtsch 1967 type-
+// material correction). Headline cabinet aesthetic: cobalt-blue /
+// sky-blue / lavender / turquoise botryoidal crusts pseudomorphing
+// pyromorphite (the cobalt-blue mass draping green hexagonal
+// pyromorphite prisms — world-standard Roughten Gill specimen).
+//
+// Habit dispatch:
+//   pseudomorph_after_pyromorphite — on pyromorphite substrate
+//     (the iconic Roughten Gill specimen; cobalt-blue botryoidal
+//     crust preserves the hexagonal-prism outline of underlying
+//     pyromorphite, often with residual green pyromorphite tips
+//     visible through the blue crust)
+//   pseudomorph_after_mimetite — on mimetite substrate (less common
+//     but documented; same mechanism)
+//   botryoidal_mammillary — default crust on vug wall / cerussite /
+//     anglesite / galena substrate; concentric layers
+//   crystallized_rhombohedral — very rare crystallized habit at low
+//     supersaturation; small {001}/{012} rhombohedra
+//
+// Color dispatch:
+//   cobalt-blue / sky-blue — default, trace Cu (1-10 ppm) gives
+//     the characteristic deep blue
+//   lavender / turquoise — pure or near-pure plumbogummite
+//   pale yellow — high Fe substitution (drift toward beudantite)
+//   white / colorless — pure Pb-Al-PO4 with no chromophores
+function grow_plumbogummite(crystal, conditions, step) {
+  const sigma = conditions.supersaturation_plumbogummite();
+  if (sigma < 1.0) return null;
+  const excess = sigma - 1.0;
+  const rate = 2.0 * excess * rng.uniform(0.7, 1.3);
+  if (rate < 0.1) return null;
+
+  const T = conditions.temperature;
+  const f = conditions.fluid;
+  const pos = crystal.position || '';
+  const on_pyromorphite = pos.includes('pyromorphite');
+  const on_mimetite = pos.includes('mimetite');
+  const on_pb_supergene = pos.includes('cerussite') || pos.includes('anglesite');
+  const on_galena = pos.includes('galena');
+
+  let habit_note;
+  if (on_pyromorphite) {
+    crystal.habit = 'pseudomorph_after_pyromorphite';
+    crystal.dominant_forms = [
+      'cobalt-blue botryoidal crust on hexagonal-prism outlines',
+      'preserves pyromorphite host morphology',
+      'residual green pyromorphite tips may project through',
+    ];
+    crystal._variety = 'pseudomorph_pyromorphite';
+    habit_note = 'pseudomorph after pyromorphite — the iconic Roughten Gill cabinet aesthetic';
+  } else if (on_mimetite) {
+    crystal.habit = 'pseudomorph_after_mimetite';
+    crystal.dominant_forms = [
+      'cobalt-blue crust on mimetite hexagonal-prism outlines',
+      'less common but documented Roughten Gill substrate',
+    ];
+    crystal._variety = 'pseudomorph_mimetite';
+    habit_note = 'pseudomorph after mimetite — Roughten Gill secondary habit';
+  } else if (excess < 0.3) {
+    crystal.habit = 'crystallized_rhombohedral';
+    crystal.dominant_forms = [
+      'rare {001} basal + {012} rhombohedron',
+      'sub-millimeter crystallized habit',
+    ];
+    habit_note = 'rare crystallized rhombohedral — low-σ slow-growth habit';
+  } else {
+    crystal.habit = 'botryoidal_mammillary';
+    crystal.dominant_forms = [
+      'cobalt-blue botryoidal crust',
+      'mammillary surface',
+      'concentric layered interior',
+    ];
+    habit_note = 'botryoidal mammillary — default crust habit';
+  }
+
+  // Color dispatch — Cu trace gives the characteristic deep blue;
+  // pure Pb-Al-PO4 is more lavender-to-white; Fe shifts toward yellow
+  let color_note;
+  if (f.Cu > 1.0 && f.Cu < 15.0) {
+    color_note = `cobalt-blue (Cu trace ${f.Cu.toFixed(1)} ppm — diagnostic Roughten Gill color)`;
+  } else if (f.Cu >= 15.0) {
+    color_note = `deep sky-blue (Cu-rich, possible drift toward Cu-bearing alunite-group end-member)`;
+  } else if (f.Fe > 5.0) {
+    color_note = `pale yellow-tan (Fe trace ${f.Fe.toFixed(1)} ppm — beudantite-end drift)`;
+  } else {
+    color_note = `lavender-to-white (pure Pb-Al-PO4 — rare among Roughten Gill specimens)`;
+  }
+
+  // Mass balance: Pb + Al + P are the primary debits
+  f.Pb = Math.max(f.Pb - rate * 0.025, 0);
+  f.Al = Math.max(f.Al - rate * 0.015, 0);
+  f.P  = Math.max(f.P  - rate * 0.008, 0);
+
+  return new GrowthZone({
+    step, temperature: conditions.temperature,
+    thickness_um: rate, growth_rate: rate,
+    trace_Cu: f.Cu * 0.003,
+    trace_Fe: f.Fe * 0.005,
+    note: `${habit_note} — ${color_note}, σ=${sigma.toFixed(2)}, T=${T.toFixed(0)}°C, pH=${f.pH.toFixed(1)}`,
+  });
+}
+
 function grow_descloizite(crystal, conditions, step) {
   const sigma = conditions.supersaturation_descloizite();
   if (sigma < 1.0) return null;

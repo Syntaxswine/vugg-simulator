@@ -10,6 +10,60 @@
 // Phase B7 of PROPOSAL-MODULAR-REFACTOR.
 
 Object.assign(VugConditions.prototype, {
+  // v108 (2026-05-20): plumbogummite PbAl3(PO4)2(OH)5·H2O — trigonal
+  // Pb-Al-PO4 supergene phase, alunite supergroup (beudantite group).
+  // Type locality Roughten Gill, Caldbeck Fells (Hartley 1882 MinMag
+  // 5:21); Förtsch 1967 MinMag 36:530 re-examined the type material
+  // and showed it to be a plumbogummite-hinsdalite-hidalgoite mix-
+  // crystal. The terminal Pb-Al-PO4 phase of the supergene
+  // paragenesis — forms LATE, after pyromorphite + Pb-Cu sulfates +
+  // Pb-CO3 have had time to develop. The headline cabinet aesthetic
+  // is cobalt-blue/sky-blue/lavender/turquoise botryoidal crusts
+  // pseudomorphing pyromorphite (cobalt-blue mass draping green
+  // hexagonal pyromorphite prisms — world-standard Roughten Gill
+  // specimen).
+  //
+  // GATES — supergene Pb-rich + aluminous wallrock weathering:
+  //   Pb ≥ 30  Al ≥ 3  P ≥ 2  (the three required cations)
+  //   T 5-50°C  pH 4-7.5  oxidizing (O2 > 0.5)
+  //
+  // DISCRIMINATOR vs pyromorphite (Pb5(PO4)3Cl) — pyromorphite needs
+  // Cl ≥ 5; plumbogummite needs Al ≥ 3. Cl > 30 mildly suppresses
+  // plumbogummite (favors pyromorphite stability), modeling the
+  // documented late-replacement sequence at Roughten Gill where
+  // plumbogummite overprints pyromorphite as Al accumulates from
+  // continued wallrock weathering.
+  //
+  // Refs: Hartley 1882 MinMag 5:21 (type description); Förtsch
+  // 1967 MinMag 36:530 (type-material X-ray + IR correction);
+  // Russell 1925 MinMag 20:257; Bridges et al. 2011 JRS 14:3
+  // (modern Roughten Gill paper); Cooper & Stanley 1990 Minerals
+  // of the English Lake District: Caldbeck Fells.
+  supersaturation_plumbogummite() {
+    if (this.fluid.Pb < 30 || this.fluid.Al < 3 || this.fluid.P < 2) return 0;
+    if (!phosphateRedoxAvailable(this.fluid, 0.5)) return 0;
+    if (this.temperature < 5 || this.temperature > 50) return 0;
+    if (this.fluid.pH < 4.0 || this.fluid.pH > 7.5) return 0;
+    const pb_f = Math.min(this.fluid.Pb / 60.0, 2.0);
+    const al_f = Math.min(this.fluid.Al / 8.0, 2.0);
+    const p_f  = Math.min(this.fluid.P / 5.0, 2.0);
+    let sigma = pb_f * al_f * p_f;
+    // T sweet spot — 15-40°C supergene-mature window
+    const T = this.temperature;
+    if (T >= 15 && T <= 40) sigma *= 1.2;
+    else sigma *= Math.max(0.5, 1.0 - Math.abs(T - 25) * 0.03);
+    // pH sweet spot — 5-6.5 mildly acidic supergene
+    if (this.fluid.pH >= 5.0 && this.fluid.pH <= 6.5) sigma *= 1.15;
+    // Cl > 30 favors pyromorphite stability — plumbogummite slightly
+    // suppressed at high Cl (the late-replacement geological signature)
+    if (this.fluid.Cl > 30) {
+      sigma *= Math.max(0.6, 1.0 - (this.fluid.Cl - 30) / 100);
+    }
+    sigma *= phosphateRedoxFactor(this.fluid, 1.0, 1.5);
+    if (ACTIVITY_CORRECTED_SUPERSAT) sigma *= activityCorrectionFactor(this.fluid, 'plumbogummite');
+    return Math.max(sigma, 0);
+  },
+
   supersaturation_descloizite() {
   if (this.fluid.Pb < 40 || this.fluid.Zn < 50 || this.fluid.V < 10) return 0;
   if (!phosphateRedoxAvailable(this.fluid, 0.5)) return 0;

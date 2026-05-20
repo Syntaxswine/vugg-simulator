@@ -254,6 +254,55 @@ function _nuc_turquoise(sim) {
   }
 }
 
+// v108 (2026-05-20): plumbogummite PbAl3(PO4)2(OH)5·H2O — Pb-Al-PO4
+// supergene endmember, type Roughten Gill (Hartley 1882). Substrate
+// priority encodes the documented pseudomorph paragenesis: pyromorphite
+// (the iconic substrate, cobalt-blue crust on hexagonal-prism outlines)
+// > mimetite (less common; same hex-prism mechanism) > cerussite /
+// anglesite (Pb supergene matrix) > galena_dissolving (oxidized
+// cores) > wall (fallback). Fires LATE in the supergene sequence —
+// must wait for pyromorphite to nucleate first.
+//
+// RNG-CASCADE GUARD: sigma < 1.0 early-out BEFORE substrate-pick
+// rng.random() calls (critical — see v93 lesson). Adding plumbogummite
+// must not perturb scenarios where Al + P + Pb don't coincide.
+function _nuc_plumbogummite(sim) {
+  const sigma = sim.conditions.supersaturation_plumbogummite();
+  if (sigma < 1.0) return;                       // RNG-cascade guard — DO NOT MOVE
+  if (sim._atNucleationCap('plumbogummite')) return;
+  const existing = sim.crystals.filter(c => c.mineral === 'plumbogummite' && c.active);
+  const total = sim.crystals.filter(c => c.mineral === 'plumbogummite').length;
+  if (existing.length >= 3 || total >= 5) return;
+  let pos = 'vug wall';
+  const parent_pyromorphite = sim.crystals.filter(c => c.mineral === 'pyromorphite' && c.active);
+  const parent_mimetite = sim.crystals.filter(c => c.mineral === 'mimetite' && c.active);
+  const parent_cerussite = sim.crystals.filter(c => c.mineral === 'cerussite' && c.active);
+  const parent_anglesite = sim.crystals.filter(c => c.mineral === 'anglesite' && c.active);
+  const parent_galena = sim.crystals.filter(c => c.mineral === 'galena' && c.dissolved);
+  if (parent_pyromorphite.length && rng.random() < 0.65) {
+    pos = `pseudomorph after pyromorphite #${parent_pyromorphite[0].crystal_id} (cobalt-blue crust on hexagonal-prism outline — Roughten Gill cabinet aesthetic)`;
+  } else if (parent_mimetite.length && rng.random() < 0.45) {
+    pos = `pseudomorph after mimetite #${parent_mimetite[0].crystal_id} (less common Roughten Gill substrate)`;
+  } else if (parent_cerussite.length && rng.random() < 0.35) {
+    pos = `on cerussite #${parent_cerussite[0].crystal_id} (Pb supergene matrix)`;
+  } else if (parent_anglesite.length && rng.random() < 0.25) {
+    pos = `on anglesite #${parent_anglesite[0].crystal_id} (Pb-SO4 substrate)`;
+  } else if (parent_galena.length && rng.random() < 0.20) {
+    pos = `on dissolving galena #${parent_galena[0].crystal_id} (oxidized core)`;
+  }
+  const discount = sim._sigmaDiscountForPosition('plumbogummite', pos);
+  if (sigma > 1.2 * discount) {
+    if (!existing.length || (sigma > 1.8 && rng.random() < 0.18)) {
+      const c = sim.nucleate('plumbogummite', pos, sigma);
+      const f = sim.conditions.fluid;
+      const habit_preview = pos.includes('pyromorphite') || pos.includes('mimetite')
+        ? 'pseudomorph (cobalt-blue crust)'
+        : 'botryoidal mammillary';
+      sim.log.push(`  ✦ NUCLEATION: 💙 Plumbogummite #${c.crystal_id} (${habit_preview}) on ${c.position} (T=${sim.conditions.temperature.toFixed(0)}°C, σ=${sigma.toFixed(2)}, Pb=${f.Pb.toFixed(0)} Al=${f.Al.toFixed(1)} P=${f.P.toFixed(1)} ppm — Roughten Gill type locality mineral)`);
+    }
+  }
+}
+
 function _nucleateClass_phosphate(sim) {
   _nuc_descloizite(sim);
   _nuc_mottramite(sim);
@@ -267,5 +316,6 @@ function _nucleateClass_phosphate(sim) {
   _nuc_uranospinite(sim);
   _nuc_tyuyamunite(sim);
   _nuc_apatite(sim);
+  _nuc_plumbogummite(sim);
   _nuc_turquoise(sim);
 }
