@@ -2517,15 +2517,25 @@
         "temperature_C": 130.0,
         "pressure_kbar": 0.5,
         "fluid": {
-          "SiO2": 200,
+          // v109 tune (2026-05-20): SiO2 200 -> 50 to suppress
+          // dioptase (Cu-silicate wrong for Caldbeck); V 12 -> 6 to
+          // route to mottramite over vanadinite (vanadinite wrong
+          // for Caldbeck); Al 8 -> 15 + P 4 -> 8 for plumbogummite
+          // headroom; CO3 5 -> 25 for cerussite + caledonite +
+          // leadhillite gates; Cu 30 -> 40 for brochantite +
+          // mottramite. Per Bridges 2011 + Cooper & Stanley 1990
+          // chemistry (Caldbeck Pb-Cu vein is carbonate-deficient
+          // but not carbonate-zero; broth 25 ppm CO3 still well below
+          // Tsumeb's 110 ppm).
+          "SiO2": 50,
           "Ca": 60,
-          "CO3": 5,
+          "CO3": 25,
           "Fe": 25,
           "Mn": 2,
           "Mg": 8,
           "Na": 80,
           "K": 25,
-          "Cu": 30,
+          "Cu": 40,
           "Pb": 70,
           "Zn": 60,
           "S": 200,
@@ -2533,9 +2543,9 @@
           "Ag": 12,
           "As": 12,
           "Sb": 5,
-          "V": 12,
-          "Al": 8,
-          "P": 4,
+          "V": 6,
+          "Al": 15,
+          "P": 8,
           "pH": 5.0,
           "O2": 0.05,
           "salinity": 8.0

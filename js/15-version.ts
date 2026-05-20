@@ -4377,5 +4377,180 @@
 //          v109 next: calibration tune of roughten_gill via vugg-
 //          tune-scenario (fire v100 trio + cerussite + mimetite +
 //          mottramite + brochantite; suppress dioptase + vanadinite).
-const SIM_VERSION = 108;
+//   v109 — Roughten Gill calibration tune (2026-05-20). First dogfood
+//          of vugg-tune-scenario. The v107 + v108 firings left
+//          ~half of expects_species aspirational. v109 ran the skill's
+//          probe-diagnose-adjust-verify loop across 3 iterations
+//          (the soft-cap limit per the skill) and shipped what worked.
+//
+//          DIAGNOSIS — four diagnosis shapes per the skill:
+//            Shape A (gate not cleared):     cerussite, caledonite,
+//                                            leadhillite, brochantite,
+//                                            mimetite, mottramite,
+//                                            plumbogummite, calcite
+//            Shape B (RNG-cascade displaces): linarite, leadhillite,
+//                                            mimetite, mottramite
+//                                            (the per-step nucleation
+//                                            iterator + class ordering
+//                                            displaces these despite
+//                                            gates clearing in sigma
+//                                            calc)
+//            Shape C (substrate routing):    chalcopyrite (Cu routed
+//                                            to Ag-sulfosalts;
+//                                            geologically correct
+//                                            that chalcopyrite is
+//                                            minor at Caldbeck)
+//            Wrong cascade extras:           dioptase + vanadinite +
+//                                            willemite (Cu-silicate +
+//                                            Pb-V + Zn-silicate
+//                                            geologically wrong for
+//                                            Caldbeck)
+//
+//          ADJUSTMENTS (final state shipped):
+//
+//          Broth changes:
+//            SiO2 200 → 50    suppress dioptase (Cu+SiO2 routing)
+//            V    12 → 6      partial vanadinite suppression
+//            Al    8 → 15     plumbogummite headroom
+//            P     4 → 8      plumbogummite + pyromorphite headroom
+//            Cu   30 → 40     brochantite + mottramite gates
+//            CO3   5 → 25     cerussite + caledonite + leadhillite
+//                              gate baselines
+//
+//          Event changes:
+//            pyrite_oxidation:   SO4 surge less aggressive (220→200
+//                                cap); Cu bump bigger (60→75 cap); pH
+//                                drop gentler (4.0→4.2 floor); CO3
+//                                surge bigger (15→40 cap)
+//            caledonite_transition: CO3 surge bigger (60→110 cap); Cu
+//                                consumption less aggressive (-30→-20);
+//                                SO4 consumption less aggressive
+//                                (-50→-40)
+//            linarite_stage: reverted to v107-shape (pH bump + O2 ease)
+//                            after iteration 2 state-pinning made things
+//                            worse (anti-pattern observed; documented)
+//
+//          ITERATION-2 ANTIPATTERN: iteration 2 tried explicitly state-
+//          pinning S=180, Cu=60, Pb=70, CO3≤30 in linarite_stage to
+//          guarantee linarite sigma calculation cleared. Result: ALL
+//          Pb-Cu sulfates dropped to 0 due to RNG-cascade displacement.
+//          The aggressive state mutation shifted the seed-42 cascade
+//          such that pyromorphite + Ag-sulfosalts ate everything.
+//          Reverted in iteration 3. Skill update: vugg-tune-scenario
+//          should warn against over-tuning antipattern.
+//
+//          V=0 SIDE-EFFECT: iteration 2 also dropped V to 0 (suppress
+//          vanadinite completely). Result: lost caledonite, brochantite,
+//          plumbogummite — the V change rippled through RNG cascade in
+//          unexpected ways. Reverted to V=6. Skill update: vugg-tune-
+//          scenario §4 VERIFY should note that even single-axis broth
+//          changes can cause cascade drift.
+//
+//          SEED 42 FIRINGS — 22 species, 65 crystals at roughten_gill
+//          (was 17 species, 47 crystals at v107):
+//
+//          GAINED:
+//            cerussite        1   (Pb-CO3 — v109 tune SUCCESS)
+//            caledonite       2   (v100 trio — v109 tune SUCCESS,
+//                                  1 of 3 trio members)
+//            brochantite      3   (Cu-SO4 — v109 tune SUCCESS)
+//            plumbogummite    3   (v108 type-locality mineral; v109
+//                                  tune brought it home — SUCCESS)
+//            chalcocite       1   (Cu sulfide — defensible cascade
+//                                  extra)
+//            selenite         3   (Ca-SO4 gypsum — defensible)
+//            willemite        3   (Zn-silicate — GEOLOGICALLY WRONG,
+//                                  future tune target)
+//
+//          SUPPRESSED:
+//            dioptase  was 1, now 0 — v109 tune SUCCESS (SiO2 drop)
+//
+//          STILL FIRING (should suppress):
+//            vanadinite       6   — V=6 didn't drop below the V≥2
+//                                  vanadinite gate; tighter Cl
+//                                  suppression would also block
+//                                  pyromorphite/mimetite (too
+//                                  aggressive); future structural fix
+//                                  needed (iterator order or specific
+//                                  Caldbeck V-blocker)
+//
+//          STILL MISSING (priority targets):
+//            linarite          (Shape B — gates clear in sigma but
+//                              RNG-cascade displacement to pyromorphite
+//                              + Ag-sulfosalts; structural issue per
+//                              skill — "usually not fixable at tuning
+//                              layer")
+//            leadhillite       (Shape B)
+//            mimetite          (Shape B — As routed to orpiment +
+//                              pararealgar + proustite)
+//            mottramite        (V=6 < V≥10 mottramite gate; would need
+//                              V≥10 to fire but that also fires
+//                              vanadinite)
+//
+//          LOST:
+//            native_silver  was 3, now 0 (collateral cascade damage;
+//                                          acanthite still fires
+//                                          representing the Ag suite,
+//                                          which is geologically
+//                                          defensible — acanthite IS
+//                                          the post-collection tarnish
+//                                          of native silver per
+//                                          Bridges 2011)
+//
+//          NET: 4 of 8 priority targets hit (caledonite, brochantite,
+//          cerussite, plumbogummite); 1 of 2 wrong extras suppressed
+//          (dioptase). 50% tune success on a Shape A + Shape B mixed
+//          target set. The remaining misses are Shape B (structural)
+//          per the skill's "step back" guidance at the 3-iteration
+//          soft cap.
+//
+//          CASCADE DRIFT IN OTHER SCENARIOS: minimal expected. Broth
+//          + event changes are scoped to roughten_gill only. No
+//          changes to mineral engines, no SIM_VERSION-wide fluid
+//          field changes. Other scenarios should be byte-identical
+//          to v108.
+//
+//          DOGFOOD RESULT FOR vugg-tune-scenario:
+//            Skill §0.5 (identify target) — worked; produced the
+//              priority-1/2/3 + suppress target list
+//            Skill §1 (PROBE) — partial; I diagnosed from supersat
+//              gates + cascade analysis rather than running the actual
+//              stale_mineral_probe.mjs tool. Skill could note when
+//              direct probing is necessary vs when gate-inspection
+//              suffices.
+//            Skill §2 (DIAGNOSE) — the four shapes (A/B/C/D) were
+//              real and useful. Shape B turned out to be the
+//              dominant unfixable category.
+//            Skill §3 (ADJUST) — multi-axis was justified per skill's
+//              "multi-target tunes like v107 Sunnyside" precedent.
+//              Iteration 2 over-tuning antipattern surfaced — skill
+//              update needed.
+//            Skill §4 (VERIFY) — single-axis V=0 had cascade ripples
+//              that broke 3 minerals. Skill update needed re cascade
+//              awareness.
+//            Skill §5 (COMMIT) — tuning-style message format works
+//              well for this dense per-target diagnosis.
+//
+//          SKILL UPDATES POST-COMMIT:
+//            vugg-tune-scenario §3: add over-tuning antipattern note
+//              ("when state-pinning broth values in events to clear
+//              specific gates, the aggressive mutation can shift RNG-
+//              cascade so other minerals stop firing; revert and try
+//              a gentler approach")
+//            vugg-tune-scenario §4: add cascade-awareness note
+//              ("even single-axis broth changes can ripple through
+//              RNG cascade; verify across all expected minerals, not
+//              just the target")
+//            vugg-tune-scenario §3-bis: Shape B "structural" cases
+//              need more concrete guidance on what "flag structural"
+//              actually means (engine iterator order change?
+//              nucleation cap relaxation? both require deeper code
+//              changes beyond tuning)
+//
+//          Coverage 129 live minerals unchanged.
+//          Scenarios 28 unchanged.
+//          Test pin updates: +5 new firings asserted (cerussite,
+//          brochantite, caledonite, plumbogummite, dioptase
+//          suppression).
+const SIM_VERSION = 109;
 

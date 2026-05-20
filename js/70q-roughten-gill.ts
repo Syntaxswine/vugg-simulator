@@ -76,49 +76,70 @@ function event_roughten_gill_primary_lockup(c) {
 }
 
 function event_roughten_gill_pyrite_oxidation(c) {
+  // v109 tune: bump Cu/Pb mobilization to clear linarite/caledonite/
+  // brochantite gates (Cu > 50 needed for mottramite + brochantite
+  // sweet spot); bump CO3 enough for cerussite gate but keep CO3:SO4
+  // << 0.3 so linarite still wins the early window. As suppressed
+  // somewhat to give pyromorphite + mimetite headroom over the
+  // As-sulfide routing.
+  //
   // Acid mine drainage pulse: residual pyrite oxidizes to SO4 + H+,
-  // pH crashes briefly to ~4, Cu mobilized from chalcopyrite +
-  // tetrahedrite breakdown. This is when cerussite + anglesite +
-  // mimetite + pyromorphite start nucleating on residual galena.
+  // pH crashes briefly to 4.2, Cu mobilized from chalcopyrite +
+  // tetrahedrite breakdown. Cerussite + anglesite + mimetite +
+  // pyromorphite begin nucleating on residual galena. Plumbogummite
+  // gates also clear here (Pb 90 + Al 15 + P 8 + pH 4.2 + T 35).
   c.temperature = Math.max(30, c.temperature - 10);
-  c.fluid.S = Math.min(200, c.fluid.S + 120);           // SO4 surge from pyrite breakdown
-  c.fluid.Cu = Math.min(60, c.fluid.Cu + 30);           // Cu mobilized from chalcopyrite + tetrahedrite
-  c.fluid.Pb = Math.min(80, c.fluid.Pb + 15);           // Pb mobilized from galena
-  c.fluid.As = Math.min(20, c.fluid.As + 8);            // As(V) from tetrahedrite-tennantite
+  c.fluid.S = Math.min(220, c.fluid.S + 80);            // SO4 surge from pyrite breakdown (less aggressive, helps caledonite later)
+  c.fluid.Cu = Math.min(75, c.fluid.Cu + 35);           // bump to mottramite + brochantite sweet spot
+  c.fluid.Pb = Math.min(95, c.fluid.Pb + 20);           // Pb mobilized from galena
+  c.fluid.As = Math.min(18, c.fluid.As + 5);            // As(V) mobilized but less than v107 (give pyromorphite the win)
   c.fluid.O2 = Math.min(1.4, c.fluid.O2 + 1.0);         // full atmospheric oxidation
-  c.fluid.pH = Math.max(4.0, c.fluid.pH - 1.5);         // acid pulse
-  c.fluid.CO3 = Math.min(15, c.fluid.CO3 + 8);          // meteoric CO2 starts
+  c.fluid.pH = Math.max(4.2, c.fluid.pH - 1.3);         // acid pulse (gentler than v107 to keep linarite pH window in range)
+  c.fluid.CO3 = Math.min(40, c.fluid.CO3 + 15);         // CO3 builds — bigger early input helps cerussite + caledonite
   c.flow_rate = 0.4;
-  return `Pyrite oxidation pulse — AMD-style acid window. T ${c.temperature.toFixed(0)}°C, pH crashes to ${c.fluid.pH.toFixed(1)}, SO4 surges to ${c.fluid.S.toFixed(0)} ppm. Cu (${c.fluid.Cu.toFixed(0)}) + Pb (${c.fluid.Pb.toFixed(0)}) + As (${c.fluid.As.toFixed(0)}) mobilized. Cerussite + anglesite + mimetite begin precipitation.`;
+  return `Pyrite oxidation pulse — AMD-style acid window. T ${c.temperature.toFixed(0)}°C, pH crashes to ${c.fluid.pH.toFixed(1)}, SO4 surges to ${c.fluid.S.toFixed(0)} ppm. Cu (${c.fluid.Cu.toFixed(0)}) + Pb (${c.fluid.Pb.toFixed(0)}) + As (${c.fluid.As.toFixed(0)}) mobilized. CO3 builds to ${c.fluid.CO3.toFixed(0)} (cerussite gate clears). Plumbogummite gates clear (Pb=${c.fluid.Pb.toFixed(0)}, Al=${c.fluid.Al.toFixed(0)}, P=${c.fluid.P.toFixed(0)}).`;
 }
 
 function event_roughten_gill_linarite_stage(c) {
+  // v109 iteration 1 (final): conservative pH bump + O2 ease;
+  // observed Shape-B RNG-cascade displacement when overly aggressive
+  // state-pinning was tried in iteration 2 (it actually displaced
+  // ALL Pb-Cu sulfates). Linarite's gates clear in sigma calculation
+  // (sigma ~6.5 per inspection) but per-step nucleation iterator
+  // displaces it to pyromorphite + Ag-sulfosalts that fire first.
+  // Documented as a structural issue (Shape B per vugg-tune-scenario
+  // skill — usually not fixable at tuning layer; the per-scenario
+  // nucleation cap or class-iterator ordering is the limiter).
+  //
   // Linarite window: pH recovers to 5.5-6 (acid neutralized by minor
   // wallrock dissolution + meteoric mixing), CO3 still low. The
-  // Pb-Cu-SO4 chemistry hits the linarite gate (CO3:SO4 < 0.3 +
-  // pH 4-7 + Pb ≥ 30 + Cu ≥ 10 + S ≥ 50). The defining Roughten
-  // Gill specimen aesthetic — deep azure-blue linarite crystals on
-  // residual galena. The simulator's v100 linarite engine fires here.
+  // Pb-Cu-SO4 chemistry hits the linarite gate but loses the
+  // nucleation roll-off.
   c.temperature = Math.max(28, c.temperature - 2);
   c.fluid.pH = Math.min(5.8, c.fluid.pH + 1.5);
   c.fluid.O2 = Math.max(0.8, c.fluid.O2 - 0.3);
   c.flow_rate = 0.2;
-  return `Linarite window: T ${c.temperature.toFixed(0)}°C, pH ${c.fluid.pH.toFixed(1)}, CO3:SO4 = ${(c.fluid.CO3 / Math.max(c.fluid.S, 1)).toFixed(2)} (sulfate-dominant). PbCu(SO4)(OH)2 nucleates on galena + anglesite — the Roughten Gill azure-blue cabinet aesthetic.`;
+  return `Linarite window: T ${c.temperature.toFixed(0)}°C, pH ${c.fluid.pH.toFixed(1)}, CO3:SO4 = ${(c.fluid.CO3 / Math.max(c.fluid.S, 1)).toFixed(2)} (sulfate-dominant). PbCu(SO4)(OH)2 gates clear but RNG-cascade displaces nucleation to pyromorphite + Ag-sulfosalts.`;
 }
 
 function event_roughten_gill_caledonite_transition(c) {
+  // v109 tune: bigger CO3 surge (60 -> 100) so CO3:SO4 lands in
+  // caledonite sweet spot 0.3-1.0 even with S consumed by linarite.
+  // Cu only partially consumed (40 -> 30, vs v107 -30) so brochantite
+  // still has Cu budget.
+  //
   // Caledonite + brochantite window: CO3 rises (continued atmospheric
-  // CO2 + minor calcite from background limestone/lime-stained jointing),
+  // CO2 + minor calcite from background lime-stained jointing),
   // pH rises to 6.2, CO3:SO4 enters the 0.3-1.0 caledonite sweet spot.
   // Caledonite epitactic on linarite; brochantite as the Cu sulfate
   // end-member firing alongside.
   c.temperature = Math.max(25, c.temperature - 3);
-  c.fluid.CO3 = Math.min(60, c.fluid.CO3 + 35);
-  c.fluid.Cu = Math.max(25, c.fluid.Cu - 30);          // Cu consumed by linarite + brochantite
+  c.fluid.CO3 = Math.min(110, c.fluid.CO3 + 55);       // bigger CO3 surge for caledonite sweet spot
+  c.fluid.Cu = Math.max(30, c.fluid.Cu - 20);          // partial Cu consumption (brochantite needs it)
   c.fluid.pH = Math.min(6.3, c.fluid.pH + 0.4);
-  c.fluid.S = Math.max(60, c.fluid.S - 50);            // SO4 consumed
+  c.fluid.S = Math.max(80, c.fluid.S - 40);            // SO4 consumed (less than v107; keep caledonite ratio in band)
   c.flow_rate = 0.15;
-  return `Caledonite + brochantite window: T ${c.temperature.toFixed(0)}°C, pH ${c.fluid.pH.toFixed(1)}, CO3 rises to ${c.fluid.CO3.toFixed(0)} ppm (CO3:SO4 = ${(c.fluid.CO3 / Math.max(c.fluid.S, 1)).toFixed(2)}). Caledonite epitactic on linarite + brochantite Cu sulfate end-member.`;
+  return `Caledonite + brochantite window: T ${c.temperature.toFixed(0)}°C, pH ${c.fluid.pH.toFixed(1)}, CO3 rises to ${c.fluid.CO3.toFixed(0)} ppm (CO3:SO4 = ${(c.fluid.CO3 / Math.max(c.fluid.S, 1)).toFixed(2)} — caledonite sweet spot). Caledonite epitactic on linarite + brochantite Cu sulfate end-member.`;
 }
 
 function event_roughten_gill_leadhillite_cap(c) {

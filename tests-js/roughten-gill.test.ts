@@ -97,6 +97,34 @@ describe('Roughten Gill Mine scenario (v107)', () => {
       expect(species.has('anglesite')).toBe(true);
     });
 
+    it('fires cerussite (Pb-CO3 — v109 tune gain)', () => {
+      ensureSim();
+      expect(species.has('cerussite')).toBe(true);
+    });
+
+    it('fires brochantite (Cu-SO4 supergene — v109 tune gain)', () => {
+      ensureSim();
+      expect(species.has('brochantite')).toBe(true);
+    });
+
+    it('fires caledonite (Pb-Cu sulfate-carbonate — v109 tune gain, 1 of v100 trio)', () => {
+      ensureSim();
+      expect(species.has('caledonite')).toBe(true);
+    });
+
+    it('fires plumbogummite (Pb-Al-PO4 — v108 type-locality mineral, v109 tune gain)', () => {
+      ensureSim();
+      expect(species.has('plumbogummite')).toBe(true);
+    });
+
+    it('SUPPRESSES dioptase (geologically wrong for Caldbeck — v109 tune)', () => {
+      ensureSim();
+      // dioptase was an extra firing in v107 (Cu-silicate from Cu+SiO2
+      // co-occurrence at supergene). v109 dropped SiO2 to suppress.
+      // Cu-silicate at Caldbeck is not documented per Cooper & Stanley.
+      expect(species.has('dioptase')).toBe(false);
+    });
+
     it('fires As-sulfides (orpiment / pararealgar / arsenopyrite from primary As-rich fluid)', () => {
       ensureSim();
       // The As-rich primary fluid (As=12, from tetrahedrite-tennantite source)
