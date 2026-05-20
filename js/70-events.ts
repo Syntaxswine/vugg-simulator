@@ -310,6 +310,18 @@ const EVENT_REGISTRY = {
   roughten_gill_linarite_stage: event_roughten_gill_linarite_stage,
   roughten_gill_caledonite_transition: event_roughten_gill_caledonite_transition,
   roughten_gill_leadhillite_cap: event_roughten_gill_leadhillite_cap,
+  // v115 (2026-05-20): Jeffrey Mine (Val-des-Sources, Quebec) — the
+  // rodingite metasomatic assemblage. Five stage-transition handlers
+  // walk the broth through serpentinization onset → mafic dike
+  // alteration → mid-rodingite (vesuvianite-cyprine) → late Ca-
+  // silicates (pectolite + wollastonite + prehnite) → terminal
+  // datolite. See js/70r-jeffrey-mine.ts for the per-handler logic +
+  // Bernardini 1981 references.
+  jeffrey_mine_serpentinization_onset: event_jeffrey_mine_serpentinization_onset,
+  jeffrey_mine_dike_alteration: event_jeffrey_mine_dike_alteration,
+  jeffrey_mine_mid_rodingite: event_jeffrey_mine_mid_rodingite,
+  jeffrey_mine_late_ca_silicates: event_jeffrey_mine_late_ca_silicates,
+  jeffrey_mine_terminal_datolite: event_jeffrey_mine_terminal_datolite,
 };
 
 // Minimal JSONC parser — strips // line + /* */ block comments and

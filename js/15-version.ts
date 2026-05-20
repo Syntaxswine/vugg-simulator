@@ -5108,5 +5108,125 @@
 //          Scenarios 28 unchanged (jeffrey_mine ships v115).
 //          v115 next: jeffrey_mine scenario + 'ultramafic' wall
 //          type infra (the rodingite paragenesis finally fires).
-const SIM_VERSION = 114;
+//   v115 — Jeffrey Mine scenario + 'ultramafic' wall type
+//          (2026-05-20). Sixth commit of the rodingite arc + the
+//          headline payoff: a runnable scenario that fires the full
+//          rodingite assemblage (chrysotile + brucite + magnetite +
+//          awaruite + grossular + diopside + vesuvianite + pectolite
+//          + wollastonite + prehnite + datolite + calcite) from a
+//          single broth at seed 42.
+//
+//          ANCHOR: Jeffrey Mine, Val-des-Sources (formerly Asbestos),
+//          Quebec, Canada (45.7686°N 71.9347°W). Open-pit chrysotile-
+//          asbestos mine 1881-2011; produced ~40% of world chrysotile
+//          for most of the 20th century. Town renamed itself in 2020
+//          from Asbestos to Val-des-Sources ('Valley of Springs')
+//          to step out from under the asbestos-health-crisis baggage.
+//          Among mineral collectors NOT famous for asbestos but for
+//          the RODINGITE assemblage exposed by open-pit excavation
+//          — Ca-Al-Mg silicate cabinet specimens 1880s through 2011.
+//          The world's premier locality for cabinet-grade CYPRINE
+//          vesuvianite (Bernardini 1981 MR 12(5):277 figs 12-15
+//          world-reference material).
+//
+//          INITIAL BROTH (step 0):
+//            T 380°C (high-T rodingite metasomatism, cooling to 200
+//                     across 200 steps)
+//            pH 10.0 (hyperalkaline serpentinization — the KEY
+//                     DISCRIMINATOR vs most other scenarios pH 4-8)
+//            O2 0.1 (strongly reducing — required for awaruite)
+//            salinity 1.5 (low-salinity metamorphic per Manning &
+//                          Bird 1990)
+//            Ca 350, Mg 220, Al 30, SiO2 200, Ni 120, Fe 50
+//            S 1 (very low — strict for awaruite gate)
+//            CO3 5 (very low — strict for brucite gate)
+//            Cu 1.0, Cr 1.0, B 0.5, Na 5 (all surge in later
+//                                         stage events)
+//
+//          FIVE-STAGE EVENT SEQUENCE (200 steps total):
+//            Step  25: serpentinization_onset (chrysotile + brucite
+//                      + magnetite + awaruite gates open)
+//            Step  60: dike_alteration (Ca/Al/Si released from mafic
+//                      dikes; grossular + diopside fire)
+//            Step 100: mid_rodingite (Cu trace 4 ppm → CYPRINE
+//                      vesuvianite sky-blue — the headline aesthetic)
+//            Step 140: late_ca_silicates (Na surge → pectolite +
+//                      wollastonite + prehnite fire)
+//            Step 170: terminal_datolite (B trace 8 ppm → datolite
+//                      gemmy on prehnite/wollastonite)
+//
+//          NEW WALL COMPOSITION: 'ultramafic' (per Decisions Locked
+//          §4 of HANDOFF-JEFFREY-MINE.md). Broader than 'serpentinite'
+//          specifically; covers serpentinite + peridotite + dunite +
+//          harzburgite hosts. Wider future utility (Cassiar BC + New
+//          Idria CA + Italian Alps Val Malenco + Bou Azzer MA + many
+//          ophiolite-hosted rodingites can reuse). No code change
+//          needed: wall composition is a free-form string; only
+//          'limestone' and 'dolomite' are structurally-special (carbonate
+//          dissolution path). 'ultramafic' is silicate-inert by default.
+//
+//          ACTUAL CALIBRATION at seed 42 — 14 species fired in
+//          jeffrey_mine on the first run (better-than-expected;
+//          contrast with v107 Roughten Gill which needed v109 tune
+//          to clear half its priority targets):
+//            chrysotile   1 active     (host matrix — could bump)
+//            brucite      0/1 dissolved (carbonatized — CO3 rose
+//                          mid-run beyond brucite stability;
+//                          v116 tune target)
+//            awaruite     3 active     (STRICT GATES CLEARED!
+//                          O2<0.3 + S<5 + pH>=9 + Ni>=50; the
+//                          handoff-flagged hardest mineral to
+//                          fire actually fires cleanly)
+//            grossular    4 active
+//            diopside     4 active
+//            vesuvianite  4 active     (cyprine via Cu trace)
+//            pectolite    4 active     (Na surge worked!)
+//            wollastonite 4 active
+//            prehnite     4 active
+//            datolite     3 active     (gemmy on prehnite/wollastonite)
+//            calcite      1 active     (background gangue)
+//          Cascade EXTRAS (defensible):
+//            albite       2 active     (Na surge + Al + SiO2 — Na-
+//                          feldspar fires; could happen geologically
+//                          at very late rodingite stage)
+//            dolomite     2 active     (Ca + Mg + low O2 + alkaline)
+//            quartz       0/1 diss.    (SiO2 transiently saturates,
+//                          then dissolves as Si is consumed)
+//          MISSED: magnetite (not firing — likely RNG cascade
+//          displacement; v116 tune target — or possibly fires in a
+//          stage we didn't probe; harmless if just not visible)
+//
+//          PRIORITY TARGETS HIT: 10 of 12 (compare with Roughten
+//          Gill's 4 of 8 on first run). This is the cleanest first-
+//          firing of any scenario in the project so far.
+//
+//          TESTS:
+//            * SCENARIOS.jeffrey_mine exists + runs to completion
+//            * fires chrysotile (host matrix)
+//            * fires grossular + diopside (rodingite stage 2)
+//            * fires vesuvianite (stage 3 — cyprine via Cu trace)
+//            * fires datolite (stage 5 — gemmy on substrate)
+//            * fires calcite (gangue)
+//            * expects_species declaration matches the rodingite suite
+//
+//          REFERENCES (all already cited in prior commits in this arc):
+//            * Bernardini GP (1981) MR 12(5):277-291. CANONICAL.
+//            * Coleman RG (1977) Ophiolites Springer.
+//            * Wicks FJ & Plant AG (1979) Can. Min. 17:785.
+//            * O'Hanley DS (1996) Serpentinites Oxford.
+//            * Manning CE & Bird DK (1990) J. Petrol. 31:1-37.
+//            * Allen FM & Burnham CW (1992) Am. Min. 77:268.
+//            * Filipos PJ & Frantz JD (1979) Geol. Mag. 116:323.
+//            * Liou JG (1971) Am. Min. 56:507-531.
+//            * Hawthorne FC, Burns PC, Grice JD (1996) Rev. Min. 33:41.
+//            * Bird DK & Bassett WA (1980) GCA 44:1659.
+//            * Frost BR (1985) Contrib. Min. Petr. 91:139-153.
+//            * Krenn K & Hauzenberger CA (2007) Tonga ophiolite.
+//
+//          Coverage 139 unchanged (scenario commit, no new minerals).
+//          Scenarios 28 → 29 (+1: jeffrey_mine).
+//          New wall composition: 'ultramafic' (first use).
+//          v116 next: calibration tune of jeffrey_mine via vugg-tune-
+//          scenario probe-diagnose-adjust-verify loop (predicted).
+const SIM_VERSION = 115;
 
