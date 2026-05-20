@@ -476,6 +476,40 @@ function _nuc_shattuckite(sim) {
   }
 }
 
+// v111 (2026-05-20): Vesuvianite Ca10(Mg,Fe)2Al4(SiO4)5(Si2O7)2(OH)4
+// — Jeffrey Mine cyprine variety is the headline aesthetic. Substrate
+// priority: grossular > diopside > wollastonite > magnetite > calcite >
+// wall. All future-prepared (grossular + diopside ship v112; wollastonite
+// v113; harmless filter-empty until then). RNG-cascade guard via
+// sigma < 1.0 early-out.
+function _nuc_vesuvianite(sim) {
+  const sigma = sim.conditions.supersaturation_vesuvianite();
+  if (sigma < 1.0) return;  // RNG-cascade guard
+  if (sim._atNucleationCap('vesuvianite')) return;
+  const existing = sim.crystals.filter(c => c.mineral === 'vesuvianite' && c.active);
+  if (existing.length >= 4) return;
+  let pos = 'vug wall';
+  const active_gross = sim.crystals.filter(c => c.mineral === 'grossular' && c.active);
+  const active_diop = sim.crystals.filter(c => c.mineral === 'diopside' && c.active);
+  const active_woll = sim.crystals.filter(c => c.mineral === 'wollastonite' && c.active);
+  const active_mag = sim.crystals.filter(c => c.mineral === 'magnetite' && c.active);
+  const active_cal = sim.crystals.filter(c => c.mineral === 'calcite' && c.active);
+  if (active_gross.length && rng.random() < 0.60) pos = `epitactic on grossular #${active_gross[0].crystal_id}`;
+  else if (active_diop.length && rng.random() < 0.50) pos = `on diopside #${active_diop[0].crystal_id}`;
+  else if (active_woll.length && rng.random() < 0.40) pos = `with wollastonite #${active_woll[0].crystal_id}`;
+  else if (active_mag.length && rng.random() < 0.30) pos = `on magnetite #${active_mag[0].crystal_id}`;
+  else if (active_cal.length && rng.random() < 0.25) pos = `on calcite #${active_cal[0].crystal_id}`;
+  const discount = sim._sigmaDiscountForPosition('vesuvianite', pos);
+  if (sigma > 1.2 * discount) {
+    if (!existing.length || (sigma > 2.0 && rng.random() < 0.18)) {
+      const c = sim.nucleate('vesuvianite', pos, sigma);
+      const cu = sim.conditions.fluid.Cu;
+      const variety = (cu >= 0.5 && cu <= 5.0) ? 'sky-blue CYPRINE' : (cu > 5.0 ? 'deep-azure CYPRINE' : 'idocrase');
+      sim.log.push(`  ✦ NUCLEATION: 💙 Vesuvianite #${c.crystal_id} on ${c.position} (T=${sim.conditions.temperature.toFixed(0)}°C, σ=${sigma.toFixed(2)}, Ca=${sim.conditions.fluid.Ca.toFixed(0)}, Mg=${sim.conditions.fluid.Mg.toFixed(0)}, Al=${sim.conditions.fluid.Al.toFixed(0)}, Cu=${cu.toFixed(2)}, pH=${sim.conditions.fluid.pH.toFixed(1)}) — ${variety}, rodingite Ca-Mg-Al sorosilicate`);
+    }
+  }
+}
+
 // v110 (2026-05-20): Datolite CaB(SiO4)(OH) — Jeffrey Mine rodingite
 // arc first mineral. Lake Superior basalt-amygdale OR rodingite-
 // contact paragenesis. Substrate priority encodes both routes:
@@ -534,4 +568,5 @@ function _nucleateClass_silicate(sim) {
   _nuc_uranophane(sim);
   _nuc_opal(sim);
   _nuc_datolite(sim);
+  _nuc_vesuvianite(sim);
 }

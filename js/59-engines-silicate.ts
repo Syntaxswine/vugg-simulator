@@ -1315,6 +1315,112 @@ function grow_chrysoprase(crystal, conditions, step) {
   });
 }
 
+// v111 (2026-05-20): Vesuvianite Ca10(Mg,Fe)2Al4(SiO4)5(Si2O7)2(OH)4
+// (also called idocrase). Tetragonal P4/nnc Ca-Mg-Al sorosilicate.
+// Three settings: rodingite metasomatism (Jeffrey Mine; world's best
+// cyprine variety per Bernardini 1981 MR 12(5):277), contact-metamorphic
+// skarns (Vesuvius type locality), carbonatite-syenite alteration. The
+// cyprine variety is the load-bearing Jeffrey aesthetic — Cu²⁺-O charge
+// transfer at 0.5-5 ppm Cu gives sky-blue; > 5 ppm deepens to azure.
+// Habit dispatch:
+//   prismatic_tetragonal (default) — square cross-section idocrase
+//   blocky_dipyramidal (high σ) — chunky cabinet specimens
+//   cyprine_botryoidal (low σ + Cu trace) — rare botryoidal cyprine
+//   gemmy_crystallized (rare, high excess + low T) — gem material
+// Color dispatch:
+//   Cu 0.5-5 ppm → cyprine sky-blue (Jeffrey diagnostic)
+//   Cu > 5 ppm → deep azure cyprine (best Jeffrey cabinet)
+//   Cr trace > 1 → green vesuvianite (Crestmore aesthetic)
+//   Fe trace > 30 → yellow-brown (Vesuvius classic + Magnet Cove)
+//   Mn > 5 → pinkish vesuvianite (rare; Wessels SA, manganvesuvianite)
+//   pure → brown-yellow default (idocrase default)
+// Substrate priority: grossular > diopside > wollastonite > magnetite >
+// calcite > wall. All future-prepared (grossular + diopside v112,
+// wollastonite v113); harmless until those ship.
+function grow_vesuvianite(crystal, conditions, step) {
+  const sigma = conditions.supersaturation_vesuvianite();
+  if (sigma < 1.0) {
+    if (crystal.total_growth_um > 5 && conditions.fluid.pH < 6.0) {
+      crystal.dissolved = true;
+      const d = Math.min(2.0, crystal.total_growth_um * 0.06);
+      return new GrowthZone({
+        step, temperature: conditions.temperature,
+        thickness_um: -d, growth_rate: -d, dissolutionMode: 'acid',
+        note: `acid dissolution (pH ${conditions.fluid.pH.toFixed(1)}) — vesuvianite releases Ca + Mg + Al + Si to fluid`,
+      });
+    }
+    return null;
+  }
+  const excess = sigma - 1.0;
+  const rate = 2.0 * excess * rng.uniform(0.75, 1.25);
+  if (rate < 0.1) return null;
+
+  // Cyprine threshold — Cu trace dispatch
+  const cu = conditions.fluid.Cu;
+  const has_cu_trace = cu >= 0.5 && cu <= 5.0;
+  const has_cu_deep = cu > 5.0 && cu <= 30.0;
+
+  // Habit dispatch — Cu-cyprine route + σ-driven default
+  if (has_cu_trace && excess < 0.6) {
+    crystal.habit = 'cyprine_botryoidal';
+    crystal.dominant_forms = ['rare botryoidal aggregate', 'concentric sky-blue banding', 'sub-mm crystallinity'];
+  } else if (excess > 1.4) {
+    crystal.habit = 'blocky_dipyramidal';
+    crystal.dominant_forms = ['blocky tetragonal {100} + {111}', 'cabinet idocrase morphology', 'chunky cross-section'];
+  } else if (excess > 0.4 && conditions.temperature < 280) {
+    crystal.habit = 'gemmy_crystallized';
+    crystal.dominant_forms = ['gemmy tetragonal {100} + terminated {001}', 'fine acicular to short prismatic'];
+  } else {
+    crystal.habit = 'prismatic_tetragonal';
+    crystal.dominant_forms = ['tetragonal prismatic {100}', 'square cross-section', 'idocrase classic morphology'];
+  }
+
+  // Color dispatch — trace cation chromophores
+  let color_note;
+  if (has_cu_deep) {
+    color_note = 'deep azure cyprine (Cu > 5 ppm — best Jeffrey cabinet material per Bernardini 1981)';
+  } else if (has_cu_trace) {
+    color_note = 'sky-blue cyprine (Cu 0.5-5 ppm — Cu²⁺-O charge transfer; diagnostic Jeffrey Mine aesthetic)';
+  } else if (conditions.fluid.Cr > 1.0) {
+    color_note = 'chromian green vesuvianite (Cr trace — Crestmore CA aesthetic; Cr³⁺ d-d transitions)';
+  } else if (conditions.fluid.Fe > 30.0) {
+    color_note = 'yellow-brown vesuvianite (Fe trace — Vesuvius classic + Magnet Cove)';
+  } else if (conditions.fluid.Mn > 5.0) {
+    color_note = 'pinkish manganvesuvianite (Mn trace — rare; Wessels Mine SA)';
+  } else {
+    color_note = 'brown-yellow idocrase (pure Ca-Mg-Al-Si — default cabinet aesthetic)';
+  }
+
+  // Substrate flavor for the growth-zone note
+  const pos = crystal.position || '';
+  let substrate_flavor = '';
+  if (pos.includes('grossular')) substrate_flavor = ' on grossular — Jeffrey rodingite epitactic association';
+  else if (pos.includes('diopside')) substrate_flavor = ' on diopside — rodingite Ca-Mg silicate suite';
+  else if (pos.includes('wollastonite')) substrate_flavor = ' on wollastonite — late rodingite Ca-silicate';
+  else if (pos.includes('calcite')) substrate_flavor = ' on calcite — skarn / rodingite contact';
+  else if (pos.includes('magnetite')) substrate_flavor = ' on magnetite — rodingite Fe-Mg oxide substrate';
+
+  // Mass-balance debits — formula Ca10(Mg,Fe)2Al4(SiO4)5(Si2O7)2(OH)4
+  // ~ Ca10 Mg2 Al4 Si9 — debit proportionally
+  conditions.fluid.Ca = Math.max(conditions.fluid.Ca - rate * 0.040, 0);
+  conditions.fluid.Mg = Math.max(conditions.fluid.Mg - rate * 0.012, 0);
+  conditions.fluid.Al = Math.max(conditions.fluid.Al - rate * 0.018, 0);
+  conditions.fluid.SiO2 = Math.max(conditions.fluid.SiO2 - rate * 0.045, 0);
+  // Cu trace incorporation — drains the fluid Cu modestly
+  if (has_cu_trace || has_cu_deep) {
+    conditions.fluid.Cu = Math.max(conditions.fluid.Cu - rate * 0.003, 0);
+  }
+
+  return new GrowthZone({
+    step, temperature: conditions.temperature,
+    thickness_um: rate, growth_rate: rate,
+    trace_Cu: (has_cu_trace || has_cu_deep) ? conditions.fluid.Cu * 0.008 : 0,
+    trace_Cr: conditions.fluid.Cr > 0.5 ? conditions.fluid.Cr * 0.005 : 0,
+    trace_Fe: conditions.fluid.Fe > 10 ? conditions.fluid.Fe * 0.004 : 0,
+    note: `vesuvianite ${crystal.habit}, ${color_note}${substrate_flavor}; tetragonal P4/nnc Ca-Mg-Al sorosilicate, H 6.5, vitreous luster`,
+  });
+}
+
 // v110 (2026-05-20): Datolite CaB(SiO4)(OH) — first mineral of the
 // Jeffrey Mine rodingite arc. Calcium boronosilicate (sorosilicate
 // with B in one tetrahedral site). Lake Superior basalt-amygdale OR

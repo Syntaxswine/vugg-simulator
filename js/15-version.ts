@@ -4687,5 +4687,116 @@
 //          Scenarios 28 unchanged (jeffrey_mine ships v115).
 //          v111 next: vesuvianite + cyprine variety (Cu trace
 //          dispatch; analogous to v62-era Cr→ruby + v103 Y→fluorite).
-const SIM_VERSION = 110;
+//   v111 — Vesuvianite Ca10(Mg,Fe)2Al4(SiO4)5(Si2O7)2(OH)4 (2026-05-20).
+//          Second mineral of the Jeffrey Mine rodingite arc; the
+//          CABINET HEADLINE AESTHETIC via the cyprine variety. Also
+//          called IDOCRASE (Werner 1795 original Vesuvius type name).
+//          Tetragonal P4/nnc Ca-Mg-Al sorosilicate. Three settings:
+//            1. Rodingite metasomatism (Jeffrey Mine — world's best
+//               cyprine per Bernardini 1981 MR 12(5):277; Italian
+//               Alps Val di Fassa + Val Malenco; New Idria CA;
+//               Cassiar BC).
+//            2. Contact metamorphism of impure limestone (Vesuvius
+//               type 1795; Crestmore CA chromian green; Tellemark
+//               NO; Wessels SA pink mangan).
+//            3. Carbonatite-syenite alteration (Kovdor RU + Magnet
+//               Cove AR, rare).
+//
+//          GATES — high-Ca + Mg + Al + Si alkaline:
+//            Ca ≥ 100  (rodingite Ca OR skarn limestone Ca)
+//            Mg ≥ 30   (serpentinite OR Mg-dolomite skarn)
+//            Al ≥ 10   (mafic-dike OR pelitic-impurity)
+//            SiO2 ≥ 200 (silicate framework)
+//            T 180-500°C (sweet spot 250-400)
+//            pH 8.5-12 (strict alkaline — rodingite/skarn outlier)
+//
+//          CYPRINE (Cu²⁺-O CHARGE TRANSFER — the load-bearing
+//          aesthetic):
+//            Cu 0.5-5 ppm → sky-blue cyprine (diagnostic Jeffrey)
+//            Cu > 5 ppm   → deep azure cyprine (best cabinet)
+//          Structurally analogous to v103 Y→fluorite + v62-era
+//          Cr→ruby trace-cation dispatch — Cu field already exists
+//          in FluidChemistry (used by malachite, azurite, dioptase,
+//          chrysocolla, ...); the cyprine route just reads it as
+//          a habit/color discriminator, not a gate.
+//
+//          OTHER COLOR DISPATCH:
+//            Cr > 1 ppm  → chromian green (Crestmore aesthetic)
+//            Fe > 30 ppm → yellow-brown (Vesuvius classic)
+//            Mn > 5 ppm  → pinkish manganvesuvianite (Wessels SA)
+//            (no chromophore) → brown-yellow idocrase default
+//
+//          HABITS (4 variants — substrate + σ + cyprine-Cu route):
+//            prismatic_tetragonal  default — square cross-section
+//            blocky_dipyramidal    high σ — chunky cabinet
+//            cyprine_botryoidal    low σ + Cu trace — rare aggregate
+//            gemmy_crystallized    moderate σ + T < 280 — gem grade
+//
+//          SUBSTRATE PRIORITY:
+//            grossular (epitactic — v112 — p=0.60)
+//            diopside (v112 — p=0.50)
+//            wollastonite (v113 — p=0.40)
+//            magnetite (p=0.30)
+//            calcite (p=0.25)
+//            wall (fallback)
+//
+//          CALIBRATION DRIFT — zero expected. No existing scenario
+//          carries Ca≥100 + Mg≥30 + Al≥10 + SiO2≥200 at pH 8.5-12
+//          with T 180-500°C. Rodingite hyperalkaline + high-Ca-Mg-Al
+//          chemistry is novel — first firing expected in v115
+//          jeffrey_mine scenario. Wired but not yet firing per
+//          v110 datolite pattern.
+//
+//          TESTS:
+//            * canonical Jeffrey rodingite broth (Ca=300, Mg=80,
+//              Al=30, SiO2=300, pH=10.5, T=300) fires
+//            * canonical skarn broth (Ca=200, Mg=50, Al=20, SiO2=400,
+//              pH=9.0, T=400) fires
+//            * Mg=0 blocks (rodingite needs Mg)
+//            * Al=0 blocks (rodingite/skarn needs Al)
+//            * pH=7 blocks (neutral acidic — vesuvianite is alkaline
+//              only)
+//            * T=600 blocks (above 500 ceiling — vesuvianite breaks
+//              down to grossular + diopside + wollastonite)
+//            * cyprine dispatch: Cu=2 ppm fires sky-blue cyprine
+//              (verified via grow function note text)
+//            * MINERAL_ENGINES.vesuvianite is wired
+//
+//          DOGFOOD: fourth use of vugg-add-mineral skill. Two new
+//          observations:
+//            1. The "trace cation dispatch" pattern (Cu/Cr/Fe/Mn
+//               read as color discriminators off existing fields)
+//               is well-trodden — vugg-add-mineral skill could
+//               benefit from a §5b "trace-cation color/habit
+//               dispatch" subsection summarizing the v62-era Cr +
+//               v103 Y + v111 Cu pattern. FLAGGED for skill update
+//               at end of arc.
+//            2. The "wired but not yet firing" pattern is now the
+//               third instance (v94 enargite, v95 löllingite, v110
+//               datolite, v111 vesuvianite). The skill's §10
+//               scenario-anchor check works correctly. Path (1)
+//               selected: ship vesuvianite now, plan vugg-tune-
+//               scenario in v116 when jeffrey_mine ships.
+//
+//          REFERENCES:
+//            * Werner AG (1795) original Vesuvius type description.
+//            * Allen FM, Burnham CW (1992) A comprehensive structure-
+//              model for vesuvianite: symmetry variations and crystal
+//              growth. American Mineralogist 77:268-285.
+//            * Groat LA, Hawthorne FC, Ercit TS (1992) The chemistry
+//              of vesuvianite. Canadian Mineralogist 30:19-48.
+//            * Bernardini GP (1981) The Jeffrey Mine, Asbestos,
+//              Quebec. Mineralogical Record 12(5):277-291. CYPRINE
+//              canonical.
+//            * Anthony JW et al. Handbook of Mineralogy v.II
+//              (Silica + Silicates).
+//            * Deer WA, Howie RA, Zussman J. Rock-Forming Minerals
+//              v.1A (Orthosilicates).
+//
+//          Coverage 130 → 131 live minerals (+1: vesuvianite).
+//          Scenarios 28 unchanged (jeffrey_mine ships v115).
+//          v112 next: grossular + diopside (paired Ca-Al-Mg calc-
+//          silicates — both Ca + Si + alkaline gates, paired commit
+//          per vugg-add-mineral skill grouped-commit rule).
+const SIM_VERSION = 111;
 

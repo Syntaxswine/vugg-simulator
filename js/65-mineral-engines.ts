@@ -283,4 +283,17 @@ const MINERAL_ENGINES = {
   // collapsed the arc from 8 to 6 commits; documented in the new
   // vugg-add-broth skill's "pre-existing speculative fields" gotcha.
   datolite: grow_datolite,
+  // v111 (2026-05-20): vesuvianite Ca10(Mg,Fe)2Al4(SiO4)5(Si2O7)2(OH)4
+  // — tetragonal Ca-Mg-Al sorosilicate, also called idocrase. Three
+  // settings: rodingite metasomatism (Jeffrey Mine — world's best
+  // cyprine variety per Bernardini 1981 MR 12(5):277), contact-
+  // metamorphic skarns (Vesuvius type locality 1795), carbonatite-
+  // syenite alteration zones. CYPRINE = Cu-bearing sky-blue variety;
+  // Cu²⁺-O charge transfer at 0.5-5 ppm gives sky-blue, > 5 ppm
+  // deep azure (the Jeffrey best material). Structurally analogous
+  // to v103 Y→fluorite + v62-era Cr→ruby trace-cation dispatch:
+  // pure cation field exists (Cu, already there for many engines);
+  // the dispatch logic reads it as a habit/color discriminator,
+  // not a gate.
+  vesuvianite: grow_vesuvianite,
 };

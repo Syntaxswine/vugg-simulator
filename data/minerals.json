@@ -14997,6 +14997,130 @@
       "late_stage_propensity": 0.6,
       "_late_stage_note": "Mid-to-late stage in both routes. Lake Superior basalt amygdales: datolite forms after prehnite + early calcite, contemporaneous with native_copper + analcime, before terminal calcite. Jeffrey rodingite: datolite is one of the LATER Ca-silicates after vesuvianite + grossular + diopside + prehnite, contemporaneous with pectolite. Propensity 0.6 = mid-to-late but not terminal.",
       "class_color": "#d8c8e8"
+    },
+    "vesuvianite": {
+      "formula": "Ca10(Mg,Fe)2Al4(SiO4)5(Si2O7)2(OH)4",
+      "nucleation_sigma": 1.2,
+      "max_nucleation_count": 4,
+      "max_size_cm": 12,
+      "growth_rate_mult": 0.25,
+      "habit_variants": [
+        {
+          "name": "prismatic_tetragonal",
+          "wall_spread": 0.45,
+          "void_reach": 0.6,
+          "vector": "projecting",
+          "trigger": "default — tetragonal prismatic {100} crystals with square cross-section. The classic idocrase morphology. Vesuvius type material + most rodingite + skarn occurrences."
+        },
+        {
+          "name": "blocky_dipyramidal",
+          "wall_spread": 0.5,
+          "void_reach": 0.55,
+          "vector": "projecting",
+          "trigger": "high supersaturation (excess > 1.4) — chunky blocky {100} + {111} dipyramidal crystals. The cabinet idocrase aesthetic at Jeffrey + Crestmore."
+        },
+        {
+          "name": "cyprine_botryoidal",
+          "wall_spread": 0.65,
+          "void_reach": 0.4,
+          "vector": "coating",
+          "trigger": "rare; low supersaturation (excess < 0.6) + Cu trace 0.5-5 ppm. Botryoidal aggregate with concentric sky-blue banding. The most-collected Jeffrey cyprine specimens."
+        },
+        {
+          "name": "gemmy_crystallized",
+          "wall_spread": 0.4,
+          "void_reach": 0.6,
+          "vector": "projecting",
+          "trigger": "moderate excess (0.4-1.4) + cooler T (< 280°C) — gemmy tetragonal {100} with terminated {001}, fine acicular to short prismatic. Best of the gem-grade Jeffrey specimens."
+        }
+      ],
+      "class": "silicate",
+      "description": "Ca₁₀(Mg,Fe)₂Al₄(SiO₄)₅(Si₂O₇)₂(OH)₄ — tetragonal P4/nnc Ca-Mg-Al sorosilicate, also widely called IDOCRASE (the older mineralogical name, still used in jewelry trade; vesuvianite was the original Werner 1795 name from Vesuvius type locality). H 6.5, density 3.32-3.43, vitreous luster, tetragonal {100} prismatic habit with square cross-section as default. Forms in three settings, all sharing high-Ca + Mg-or-Al + Si chemistry under alkaline conditions: (1) Rodingite metasomatism — Ca-Al-rich fluid from serpentinization-driven dehydration alters cross-cutting mafic dikes in ultramafic host (Jeffrey Mine Val-des-Sources Quebec — Bernardini GP 1981 MR 12(5):277 is the canonical anchor; Italian Alps Val di Fassa + Val Malenco; New Idria CA; Cassiar BC). Jeffrey's CYPRINE variety — sky-to-deep-blue Cu-bearing vesuvianite — is the cabinet-collector standard for the species; Cu²⁺-O charge transfer at 0.5-5 ppm Cu gives sky-blue, > 5 ppm deepens to azure (Bernardini 1981 figs 12-15; the world reference cyprine material). (2) Contact metamorphism of impure limestone (skarns) — Vesuvius Italy type locality 1795 (the brown-yellow Werner material); Crestmore CA (chromian green); Tellemark Norway; Wessels Mine South Africa (pink manganvesuvianite). (3) Carbonatite-syenite alteration zones — Kovdor Russia + Magnet Cove AR (rare, yellow-brown varieties). Cyprine + green chromian + yellow-brown + pink manganvesuvianite are the four primary color varieties, all driven by trace-cation dispatch (Cu / Cr / Fe / Mn read off existing FluidChemistry fields in the engine — structurally analogous to v103 Y→fluorite + v62-era Cr→ruby pattern). References: Werner AG (1795) original type description; Allen FM & Burnham CW (1992) Am. Min. 77:268; Groat LA, Hawthorne FC, Ercit TS (1992) Can. Min. 30:19 vesuvianite crystal chemistry; Bernardini GP (1981) MR 12(5):277 Jeffrey canonical; Anthony et al. Handbook v.II; Deer Howie Zussman Rock-Forming Minerals v.1A.",
+      "scenarios": [
+        "jeffrey_mine"
+      ],
+      "T_range_C": [
+        180,
+        500
+      ],
+      "T_optimum_C": [
+        250,
+        400
+      ],
+      "T_behavior": "wide",
+      "pH_dissolution_below": 6.0,
+      "pH_dissolution_above": null,
+      "redox_requirement": "any",
+      "required_ingredients": {
+        "Ca": 100,
+        "Mg": 30,
+        "Al": 10,
+        "SiO2": 200
+      },
+      "_ingredients_note": "Ca ≥ 100 (rodingite Ca-rich metasomatic OR skarn limestone-derived Ca) + Mg ≥ 30 (serpentinite-derived Mg for rodingite, or Mg-dolomite skarn) + Al ≥ 10 (mafic-dike Al for rodingite, or pelitic-impurity Al for skarn) + SiO2 ≥ 200 (host silicate framework). T 180-500°C; sweet spot 250-400°C. pH 8.5-12 strict alkaline window — distinguishes rodingite/skarn vesuvianite from any neutral-pH analog. Activity-correction factor applied.",
+      "trace_ingredients": {
+        "Cu": "0.5-5 ppm trace gives sky-blue CYPRINE variety (the diagnostic Jeffrey Mine aesthetic — Cu²⁺-O charge transfer); > 5 ppm gives deep azure cyprine (the best Jeffrey cabinet material per Bernardini 1981)",
+        "Cr": "1+ ppm trace gives chromian green vesuvianite (Crestmore CA aesthetic — Cr³⁺ d-d electronic transitions)",
+        "Fe": "30+ ppm shifts color toward yellow-brown (Vesuvius classic + Magnet Cove)",
+        "Mn": "5+ ppm gives pinkish manganvesuvianite (rare; Wessels Mine SA + N'Chwaning II are the type localities)",
+        "Ti": "trace substitution at Al site; produces deeper brown coloration (some Italian Alps + Russian Kola material)"
+      },
+      "thermal_decomp_C": 600,
+      "thermal_decomp_reaction": "Above ~600°C: vesuvianite breaks down to grossular + diopside + wollastonite + H2O. The decomposition products are the higher-T equilibrium Ca-Mg-Al-Si silicate triplet — vesuvianite is thermodynamically stable as the hydrated low-T endmember of this assemblage.",
+      "thermal_decomp_products": {
+        "Ca": 0.4,
+        "Mg": 0.12,
+        "Al": 0.18,
+        "SiO2": 0.45
+      },
+      "fluorescence": {
+        "activator": null,
+        "threshold_ppm": 0,
+        "color": null,
+        "quencher": null,
+        "status": "Generally non-fluorescent. Some Cr-bearing chromian vesuvianite (Crestmore) shows weak red SW UV fluorescence from Cr³⁺ emission; cyprine and Fe-yellow varieties are non-fluorescent. Not diagnostic; ignored in the engine."
+      },
+      "twin_laws": [],
+      "acid_dissolution": {
+        "pH_threshold": 6.0,
+        "reaction": "Ca10Mg2Al4(SiO4)5(Si2O7)2(OH)4 + acid → Ca²⁺ + Mg²⁺ + Al³⁺ + H4SiO4 — releases all cations to fluid below pH 6. Slow kinetics; vesuvianite is geologically stable in most weathering environments and only breaks down under strong-acid attack (e.g., supergene acid-mine drainage).",
+        "products": {
+          "Ca": 0.4,
+          "Mg": 0.12,
+          "Al": 0.18,
+          "SiO2": 0.45
+        }
+      },
+      "habit": "prismatic_tetragonal",
+      "color_rules": {
+        "brown_yellow_idocrase": {
+          "default": true,
+          "trigger": "no significant chromophore — pure Ca-Mg-Al-Si — default Vesuvius classic"
+        },
+        "sky_blue_cyprine": {
+          "trigger": "Cu 0.5-5 ppm — the diagnostic Jeffrey Mine aesthetic (Cu²⁺-O charge transfer)"
+        },
+        "deep_azure_cyprine": {
+          "trigger": "Cu > 5 ppm — best Jeffrey cabinet material per Bernardini 1981"
+        },
+        "chromian_green": {
+          "trigger": "Cr > 1 ppm — Crestmore CA aesthetic (Cr³⁺ d-d transitions)"
+        },
+        "yellow_brown_iron": {
+          "trigger": "Fe > 30 ppm — Magnet Cove + Vesuvius classic"
+        },
+        "pink_mangan_vesuvianite": {
+          "trigger": "Mn > 5 ppm — rare; Wessels Mine SA type-locality"
+        }
+      },
+      "narrate_function": null,
+      "runtimes_present": [
+        "js"
+      ],
+      "audit_status": "new v111 (2026-05-20). Tetragonal Ca-Mg-Al sorosilicate, Jeffrey Mine cabinet headline aesthetic via CYPRINE variety (Cu trace dispatch). Substrate priority: grossular (epitactic — when wired v112) > diopside (v112) > wollastonite (v113) > magnetite > calcite > wall. Color dispatch via existing FluidChemistry fields (Cu/Cr/Fe/Mn) — no new field needed; analogous to v103 Y→fluorite + v62-era Cr→ruby trace-cation pattern. CALIBRATION expectation: vesuvianite does not currently fire in any existing scenario (no scenario carries Ca≥100 + Mg≥30 + Al≥10 + SiO2≥200 at pH 8.5-12 with T 180-500°C — rodingite chemistry is novel); first firing expected when jeffrey_mine ships in v115. Per Bernardini 1981 MR 12(5):277 (Jeffrey canonical); Allen & Burnham 1992 Am. Min. 77:268; Groat et al. 1992 Can. Min. 30:19; Anthony Handbook v.II; Werner 1795 type description.",
+      "late_stage_propensity": 0.5,
+      "_late_stage_note": "Mid-stage in rodingite paragenesis — vesuvianite forms after early grossular + diopside but before the Ca-silicate late-stage trio (pectolite + wollastonite + prehnite). In skarns, vesuvianite is contemporaneous with grossular + diopside in the prograde sequence. Propensity 0.5 = mid; not strongly biased to early or late.",
+      "class_color": "#5fa8c8"
     }
   }
 }

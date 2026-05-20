@@ -524,6 +524,48 @@ Object.assign(VugConditions.prototype, {
     return Math.max(sigma, 0);
   },
 
+  // v111 (2026-05-20): Vesuvianite Ca10(Mg,Fe)2Al4(SiO4)5(Si2O7)2(OH)4
+  // (also called idocrase). Tetragonal P4/nnc Ca-Mg-Al sorosilicate
+  // (Allen FM & Burnham CW 1992 Am. Min. 77:268; Groat LA, Hawthorne FC,
+  // Ercit TS 1992 Can. Min. 30:19 vesuvianite crystal chemistry).
+  // Forms in three settings, all sharing high-Ca + Mg-or-Al + Si chemistry
+  // + alkaline conditions:
+  //   1. Rodingite metasomatism (Jeffrey Mine Quebec, Italian Alps Val
+  //      di Fassa, New Idria CA, Cassiar BC) — Bernardini 1981 MR
+  //      12(5):277. The Jeffrey aesthetic — cyprine variety (Cu-bearing
+  //      sky-to-deep-blue) is the world reference material.
+  //   2. Contact metamorphism of impure limestone (skarns —
+  //      Vesuvius Italy type locality 1795; Crestmore CA; Tellemark
+  //      Norway). Brown-to-green-to-yellow varieties.
+  //   3. Carbonatite-syenite alteration zones (Kovdor Russia,
+  //      Magnet Cove AR). Rare; brown-yellow varieties.
+  // Cyprine = Cu-bearing sky-blue vesuvianite. Cu²⁺-O charge transfer
+  // analogous to dioptase + turquoise blue mechanism. Cu trace 0.5-5 ppm
+  // gives the diagnostic Jeffrey color; > 5 ppm drives deeper blue end-
+  // member (the most-prized cabinet material — Bernardini 1981 figs
+  // 12-15).
+  supersaturation_vesuvianite() {
+    if (this.fluid.Ca < 100 || this.fluid.Mg < 30 || this.fluid.Al < 10 || this.fluid.SiO2 < 200) return 0;
+    if (this.temperature < 180 || this.temperature > 500) return 0;
+    if (this.fluid.pH < 8.5 || this.fluid.pH > 12.0) return 0;
+    const ca_f = Math.min(this.fluid.Ca / 300.0, 2.0);
+    const mg_f = Math.min(this.fluid.Mg / 80.0, 2.0);
+    const al_f = Math.min(this.fluid.Al / 30.0, 2.0);
+    const si_f = Math.min(this.fluid.SiO2 / 400.0, 1.5);
+    let sigma = ca_f * mg_f * al_f * si_f;
+    // T sweet spot 250-400°C (rodingite + skarn both)
+    const T = this.temperature;
+    if (T >= 250 && T <= 400) sigma *= 1.3;
+    else if (T < 250) sigma *= Math.max(0.4, (T - 180) / 70 + 0.4);
+    else sigma *= Math.max(0.4, 1.0 - (T - 400) / 100);
+    // pH sweet spot 9.5-11.5 (rodingite hyperalkaline)
+    const pH = this.fluid.pH;
+    if (pH >= 9.5 && pH <= 11.5) sigma *= 1.2;
+    else sigma *= Math.max(0.5, 1.0 - Math.abs(pH - 10.5) * 0.3);
+    if (ACTIVITY_CORRECTED_SUPERSAT) sigma *= activityCorrectionFactor(this.fluid, 'vesuvianite');
+    return Math.max(sigma, 0);
+  },
+
   // v110 (2026-05-20): Datolite CaB(SiO4)(OH) — calcium boronosilicate
   // (sorosilicate with B replacing Si in one tetrahedral site;
   // Hawthorne FC, Burns PC, Grice JD 1996 Can. Min. 34:1255). Low-T
