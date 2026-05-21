@@ -4226,6 +4226,16 @@ function crystalColor(crystal) {
             // Darker with more Cu
             return '#2e8b57';
         case 'sphalerite':
+            // 2026-05-21 (v121) — manganoan sphalerite ("manganblende") pink
+            // hue at high Mn / low Fe. Mn²⁺ substitutes Zn²⁺ up to ~3 mol%;
+            // Cook & Ciobanu 2007 Joplin specimens shift from honey-amber to
+            // salmon-pink as Mn climbs. Threshold matches the v119 trace_Mn
+            // partition (0.05): zone Mn fluid ~30+ ppm → trace_Mn 1.5+ →
+            // salmon-pink branch.
+            if (avgMn > 1.5 && avgFe < 3)
+                return '#d8a888'; // salmon-pink manganoan sphalerite
+            if (avgMn > 0.8 && avgFe < 5)
+                return '#d4998a'; // pink-tinted honey
             // Iron-rich (marmatite): dark
             if (avgFe > 10)
                 return '#553322';
@@ -4233,10 +4243,48 @@ function crystalColor(crystal) {
             if (avgFe < 3)
                 return '#ddaa44';
             return '#cc8844';
+        case 'wurtzite':
+            // v121 — same Mn-substitution family as sphalerite; hexagonal
+            // dimorph shows comparable pink tones at Mn-substituted variants.
+            if (avgMn > 1.5 && avgFe < 4)
+                return '#cc998a';
+            if (avgFe > 10)
+                return '#4a2818';
+            return '#a07050'; // default warm brown (hex ZnS)
+        case 'barite':
+            // v121 — per-zone Mn²⁺ banding (Putnis & Perthuisot 2001). Barite is
+            // THE textbook Mn-banded sulfate; TN457 Cumbria specimen pink color
+            // is Mn²⁺ activation. v118 fix wired trace_Mn capture on growth
+            // zones; this branch reads it for the zone-bar visualizer + 3D
+            // averaged tint. Partition is 0.0015 (matches calcite); fluid Mn
+            // 30+ ppm → trace_Mn 0.045 → pink branch.
+            if (avgMn > 0.08)
+                return '#e85a8c'; // saturated bonbon pink (high Mn pulse)
+            if (avgMn > 0.04)
+                return '#ec7ba0'; // mid pink (TN457 typical)
+            if (avgMn > 0.02)
+                return '#f0a0bb'; // pale pink
+            if (avgFe > 3)
+                return '#e8a85c'; // honey-yellow (Cumberland Pb/Fe variant)
+            if (radDmg > 0.3)
+                return '#a08abb'; // smoky/blue-shifted (rare radiation-affected)
+            return '#f5d6e3'; // white-cream default
         case 'goethite':
             return '#8b6914';
         case 'smithsonite':
-            // Blue-green (Cu): 
+            // v121 — Tsumeb "bonbon pink" Mn²⁺ branch. Gebhard & Schubnel 1999
+            // documents the Mn-bearing variety as one of three diagnostic Tsumeb
+            // smithsonite aesthetics (alongside apple-green Cu + sky-blue default).
+            // v119 wired trace_Mn capture; partition 0.05 → zone fluid Mn 20+ ppm
+            // → trace_Mn 1+ → pink branch.
+            if (avgMn > 1.0)
+                return '#e89aaa'; // bonbon pink (Tsumeb cabinet)
+            if (avgMn > 0.5)
+                return '#dcaab6'; // pale pink
+            // Apple-green (Cu trace) — fluid Cu chromophore for the Tsumeb green variety
+            if (crystal.zones.some(z => z.trace_Cu > 1))
+                return '#88cc88';
+            // Blue-green (Cu):
             if (crystal.zones.some(z => z.trace_Fe > 2))
                 return '#88aa88';
             return '#88bbcc';
@@ -10006,7 +10054,78 @@ let timeScale = 5.0;
 //          per Professor's framing.
 //
 //          Coverage 145 minerals (unchanged). Scenarios 30 (unchanged).
-const SIM_VERSION = 120;
+//   v121 — per-zone color: avgMn dispatch for barite + sphalerite +
+//          wurtzite + smithsonite (2026-05-21). Closes the v118/v119
+//          chemistry-side capture vs. color-side dispatch loop.
+//
+//          THE GAP THIS CLOSES: v118 wired barite trace_Mn capture
+//          on growth zones (Putnis & Perthuisot 2001 follow-the-
+//          science fix). v119 extended it to sphalerite + wurtzite +
+//          smithsonite (Frondel 1941 manganblende + Tsumeb bonbon
+//          pink). The bytes were in the zones but the COLOR FUNCTION
+//          in js/12-mineral-art.ts:crystalColor never consumed Mn for
+//          these four — they fell through to MINERAL_GAME_COLORS
+//          defaults regardless of trace_Mn value. So a TN457 50-pulse
+//          barite rendered as one flat magenta tab, no banding
+//          visible despite the chemistry being recorded correctly.
+//
+//          v121 adds avgMn-based color branches per mineral. The
+//          existing per-zone visualization path (zoneColor in
+//          js/98c-ui-zone-bars.ts, used by the zone-history modal +
+//          record-player detail strip) calls crystalColor with a
+//          fake single-zone crystal, so adding the branches makes
+//          per-zone pink banding visible immediately on those
+//          surfaces — no renderer changes needed.
+//
+//          ENGINE CHANGES (one file)
+//            js/12-mineral-art.ts crystalColor() switch:
+//              + new 'barite' case: 4 Mn thresholds + Fe + radDmg branches
+//              + new 'wurtzite' case: Mn + Fe branches
+//              + extended 'sphalerite' case: 2 new Mn branches before Fe
+//              + extended 'smithsonite' case: 2 new Mn branches before
+//                                              the existing Cu/Fe branches
+//
+//          PARTITION SCALING
+//            Barite trace_Mn partition is 0.0015 (v118), so fluid Mn
+//            30 ppm → trace_Mn 0.045 → mid-pink. Thresholds: 0.08
+//            saturated, 0.04 mid, 0.02 pale.
+//            Sphalerite/wurtzite partition 0.05, fluid Mn 30 ppm →
+//            trace_Mn 1.5 → salmon-pink. Threshold 1.5.
+//            Smithsonite partition 0.05; fluid Mn 20 ppm → trace_Mn
+//            1.0 → bonbon-pink threshold.
+//          Approximations; refinable once the renderer-side path
+//          uses these consistently and visual feedback hones the
+//          numbers.
+//
+//          BACKWARD COMPAT: new branches are ADDITIVE — no Mn
+//          dispatch means same color as v120. Sphalerite + smithsonite
+//          retain their pre-existing Fe/Cu branches as fallbacks
+//          after the new Mn checks. Barite + wurtzite gain explicit
+//          cases (previously fell through to MINERAL_GAME_COLORS
+//          default); the no-Mn / no-Fe branch returns the same
+//          MINERAL_GAME_COLORS hex.
+//
+//          TESTS (tests-js/per-zone-color-mn.test.ts, 19 pins):
+//            * Per-mineral high-Mn branch produces expected color
+//            * Per-mineral low/no-Mn back-compat (Fe / radDmg / clean)
+//            * Zone-bar narrative: TN457 long-lived barite shows
+//              >=2 distinct color buckets across its 50-pulse zones
+//              (THE visible-banding pin — proves chemistry now paints)
+//            * Averaging convention (avgMn, not last-zone Mn)
+//            * Empty-zones fallback to MINERAL_GAME_COLORS
+//
+//          BASELINE: seed42_v121.json regenerated. Zero drift —
+//          color is a render-side concern, baseline only tracks
+//          crystal counts + max_um per mineral. Verified by byte-diff.
+//
+//          NEXT: optional follow-on — extend the avgMn dispatch to
+//          the remaining 5 Mn-banded carbonates (calcite already
+//          done, but aragonite/dolomite/siderite/rhodochrosite all
+//          capture trace_Mn and could benefit from cleaner per-zone
+//          color rules). Deferred until needed.
+//
+//          Coverage 145 minerals (unchanged). Scenarios 30 (unchanged).
+const SIM_VERSION = 121;
 
 // ── 18-constants.js ──
 

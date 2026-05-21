@@ -5616,5 +5616,76 @@
 //          per Professor's framing.
 //
 //          Coverage 145 minerals (unchanged). Scenarios 30 (unchanged).
-const SIM_VERSION = 120;
+//   v121 — per-zone color: avgMn dispatch for barite + sphalerite +
+//          wurtzite + smithsonite (2026-05-21). Closes the v118/v119
+//          chemistry-side capture vs. color-side dispatch loop.
+//
+//          THE GAP THIS CLOSES: v118 wired barite trace_Mn capture
+//          on growth zones (Putnis & Perthuisot 2001 follow-the-
+//          science fix). v119 extended it to sphalerite + wurtzite +
+//          smithsonite (Frondel 1941 manganblende + Tsumeb bonbon
+//          pink). The bytes were in the zones but the COLOR FUNCTION
+//          in js/12-mineral-art.ts:crystalColor never consumed Mn for
+//          these four — they fell through to MINERAL_GAME_COLORS
+//          defaults regardless of trace_Mn value. So a TN457 50-pulse
+//          barite rendered as one flat magenta tab, no banding
+//          visible despite the chemistry being recorded correctly.
+//
+//          v121 adds avgMn-based color branches per mineral. The
+//          existing per-zone visualization path (zoneColor in
+//          js/98c-ui-zone-bars.ts, used by the zone-history modal +
+//          record-player detail strip) calls crystalColor with a
+//          fake single-zone crystal, so adding the branches makes
+//          per-zone pink banding visible immediately on those
+//          surfaces — no renderer changes needed.
+//
+//          ENGINE CHANGES (one file)
+//            js/12-mineral-art.ts crystalColor() switch:
+//              + new 'barite' case: 4 Mn thresholds + Fe + radDmg branches
+//              + new 'wurtzite' case: Mn + Fe branches
+//              + extended 'sphalerite' case: 2 new Mn branches before Fe
+//              + extended 'smithsonite' case: 2 new Mn branches before
+//                                              the existing Cu/Fe branches
+//
+//          PARTITION SCALING
+//            Barite trace_Mn partition is 0.0015 (v118), so fluid Mn
+//            30 ppm → trace_Mn 0.045 → mid-pink. Thresholds: 0.08
+//            saturated, 0.04 mid, 0.02 pale.
+//            Sphalerite/wurtzite partition 0.05, fluid Mn 30 ppm →
+//            trace_Mn 1.5 → salmon-pink. Threshold 1.5.
+//            Smithsonite partition 0.05; fluid Mn 20 ppm → trace_Mn
+//            1.0 → bonbon-pink threshold.
+//          Approximations; refinable once the renderer-side path
+//          uses these consistently and visual feedback hones the
+//          numbers.
+//
+//          BACKWARD COMPAT: new branches are ADDITIVE — no Mn
+//          dispatch means same color as v120. Sphalerite + smithsonite
+//          retain their pre-existing Fe/Cu branches as fallbacks
+//          after the new Mn checks. Barite + wurtzite gain explicit
+//          cases (previously fell through to MINERAL_GAME_COLORS
+//          default); the no-Mn / no-Fe branch returns the same
+//          MINERAL_GAME_COLORS hex.
+//
+//          TESTS (tests-js/per-zone-color-mn.test.ts, 19 pins):
+//            * Per-mineral high-Mn branch produces expected color
+//            * Per-mineral low/no-Mn back-compat (Fe / radDmg / clean)
+//            * Zone-bar narrative: TN457 long-lived barite shows
+//              >=2 distinct color buckets across its 50-pulse zones
+//              (THE visible-banding pin — proves chemistry now paints)
+//            * Averaging convention (avgMn, not last-zone Mn)
+//            * Empty-zones fallback to MINERAL_GAME_COLORS
+//
+//          BASELINE: seed42_v121.json regenerated. Zero drift —
+//          color is a render-side concern, baseline only tracks
+//          crystal counts + max_um per mineral. Verified by byte-diff.
+//
+//          NEXT: optional follow-on — extend the avgMn dispatch to
+//          the remaining 5 Mn-banded carbonates (calcite already
+//          done, but aragonite/dolomite/siderite/rhodochrosite all
+//          capture trace_Mn and could benefit from cleaner per-zone
+//          color rules). Deferred until needed.
+//
+//          Coverage 145 minerals (unchanged). Scenarios 30 (unchanged).
+const SIM_VERSION = 121;
 
