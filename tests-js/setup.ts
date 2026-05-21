@@ -207,6 +207,15 @@ const EXPORTS = [
   'rankInitiative',
   'getInitiativeTrace',
   'clearInitiativeTrace',
+  // v128 graduated-competition allocation (js/44).
+  'GRADUATED_COMPETITION_ENABLED',
+  'GRADUATED_GAP_THRESHOLD',
+  'GRADUATED_POWER_LAW_K',
+  'GRADUATED_WINNER_TAKES_FRAC',
+  'computeGraduatedAllocations',
+  'buildCrystalDryRun',
+  // MASS_BALANCE_SCALE is referenced by buildCrystalDryRun lookup.
+  'MASS_BALANCE_SCALE',
   'MINERAL_STOICHIOMETRY',
   'MINERAL_GAME_COLORS',
   'crystalColor',
