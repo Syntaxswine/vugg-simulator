@@ -5550,5 +5550,71 @@
 //          Rock Bot's TN457 visual-diff completion.
 //
 //          NO MINERAL OR SCENARIO CHANGES. Coverage 145, scenarios 30.
-const SIM_VERSION = 119;
+//   v120 — MINERAL_STOICHIOMETRY backfill: inactive-firing subset
+//          (2026-05-21). Option 1 of the boss-approved disciplined-
+//          increment plan after the abandoned v120 big-bang attempt
+//          (rolled back same day; surfaced the cascade-ripple risk
+//          the boss's v109 antipattern memory rule explicitly warns
+//          about).
+//
+//          WHY THIS COMMIT IS SAFE: every entry added here is for a
+//          mineral that's registered in MINERAL_ENGINES (engine code
+//          shipped) but does NOT fire in any current baseline
+//          scenario. The supersaturation gates either never clear or
+//          the cation-budget routing always picks a competitor. So
+//          adding stoichiometry doesn't debit any fluid in any
+//          baseline run, doesn't shift any rng-cascade output,
+//          doesn't drift any baseline. Verified by byte-diff:
+//            v119 (real, from git) -> v120: 0 drifted scenarios.
+//
+//          WHAT'S DEFERRED: 28 mineral engines that DO fire in
+//          current baselines but lack stoichiometry (gen-baseline
+//          flags them every run). Adding their entries would
+//          immediately start debiting fluid -> cascade ripples
+//          through 16 scenarios. Each needs per-scenario tune
+//          calibration. Captured in
+//          proposals/HANDOFF-MINERAL-STOICHIOMETRY-BACKFILL.md
+//          with mineral -> scenario mapping + tune-priority notes.
+//
+//          ENTRIES ADDED (22 minerals):
+//            Carbonates (4):    strontianite, witherite, hydrozincite,
+//                               leadhillite
+//            Sulfides (6):      loellingite, rammelsbergite, safflorite,
+//                               skutterudite, pyrargyrite, enargite
+//            Oxides (3):        chromite, rutile, coffinite
+//            Silicates (5):     hemimorphite, shattuckite, amosite,
+//                               anthophyllite, crocidolite
+//            Arsenates/         austinite, bayldonite, legrandite,
+//            Pb-Cu sulfate (4): linarite
+//
+//          FILE-CONVENTION COMPLIANT: all entries follow the
+//          js/19-mineral-stoichiometry.ts header (no O, no H, no
+//          pH, hydration waters excluded, solid solutions use
+//          mid-range coefficients).
+//
+//          TESTS (tests-js/mineral-stoichiometry-coverage.test.ts):
+//            * MINERAL_STOICHIOMETRY exposed via setup.ts EXPORTS
+//            * INVARIANT: every MINERAL_ENGINES key has an entry OR
+//              is on the explicit DEFERRED_TUNE_REQUIRED list
+//            * The DEFERRED list is documented + numbered + has
+//              tune-priority sub-categorization
+//            * Spot-checks across the 22 new entries
+//            * Convention guard: no O / H / pH in any entry
+//
+//          The guard test enforces: any FUTURE engine that ships
+//          without stoichiometry breaks the build loudly. New
+//          engines must either get an entry OR be added to
+//          DEFERRED_TUNE_REQUIRED with a justification.
+//
+//          BASELINE: seed42_v120.json regenerated. Zero drift on
+//          all 30 scenarios.
+//
+//          NEXT (Rock Bot's visual-diff sub-arc): per-zone color
+//          rendering. The v118+v119 trace_Mn chemistry captures are
+//          in place across 9 minerals; the renderer still averages.
+//          Tackling that is the higher-narrative-value next move
+//          per Professor's framing.
+//
+//          Coverage 145 minerals (unchanged). Scenarios 30 (unchanged).
+const SIM_VERSION = 120;
 

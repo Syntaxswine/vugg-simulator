@@ -195,6 +195,7 @@ const EXPORTS = [
   'SIM_VERSION',
   'MINERAL_SPEC',
   'MINERAL_ENGINES',
+  'MINERAL_STOICHIOMETRY',
   'SCENARIOS',
   'VugSimulator',
   'VugConditions',
