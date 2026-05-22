@@ -287,6 +287,36 @@ const MINERAL_STOICHIOMETRY: Record<string, Record<string, number>> = {
   scheelite:      { Ca: 1, W: 1 },                   // CaWO4 — classed molybdate per existing convention
   wolframite:     { Fe: 0.5, Mn: 0.5, W: 1 },        // (Fe,Mn)WO4 — solid-solution mid-range
 
+  // ---- v128d cascade-stuck stoichiometry add (2026-05-21) ----
+  // The 5 minerals targeted by the proposal §4.1 calibration assertions.
+  // Adding stoichiometry for these under fixed-order growth (v126 and
+  // earlier) caused Shape-B RNG-cascade displacement — empirically
+  // confirmed by the v125 + v126 probe arc. Under v128 graduated
+  // competition (proposals/PROPOSAL-INITIATIVE-VARIABLE.md §3.1 rev 2),
+  // per-cation rationing should let these fire as small shares of the
+  // cation budget rather than displacing the existing paragenesis.
+  //
+  // The 5 calibration assertions (v128d test) check the qualitative
+  // outcome: each mineral fires under graduated competition without
+  // killing its scenario's prior paragenesis. Coefficients per the
+  // formula (mid-range for solid-solution minerals).
+  //
+  // dioptase    CuSiO3·H2O    — Tsumeb Cu-silicate (P3)
+  // koettigite  Zn3(AsO4)2·8H2O — Tsumeb Zn-arsenate, vivianite-group (P3)
+  // lepidolite  K(Li,Al)3(Al,Si)4O10(F,OH)2 — LCT pegmatite Li mica (P5)
+  // cassiterite SnO2          — pegmatite / greisen / hydrothermal Sn (P5)
+  // uranophane  Ca(UO2)2(SiO3)2(OH)2·5H2O — Colorado Plateau / Schneeberg U-silicate (P4)
+  dioptase:       { Cu: 1, SiO2: 1 },                // CuSiO3·H2O — emerald-green Cu silicate
+  koettigite:     { Zn: 3, As: 2 },                  // Zn3(AsO4)2·8H2O — vivianite-group, Tsumeb supergene
+  // lepidolite solid solution: (Li,Al)3(Al,Si)4 — Al appears in two
+  // sites with variable occupancy. Mid-range: Li 1.5 + Al 1.5 in the
+  // first site; Al 1 + Si 3 in the second site → total Al ≈ 2.5,
+  // SiO2 ≈ 3, F ≈ 1.5 (F/OH 1.5/0.5 typical pegmatite). Per Černý &
+  // Burt 1984 RIMG 13 + Foord et al. 1986 Min.Mag. 50:529.
+  lepidolite:     { K: 1, Li: 1.5, Al: 2.5, SiO2: 3, F: 1.5 },  // K(Li,Al)3(Al,Si)4O10(F,OH)2
+  cassiterite:    { Sn: 1 },                         // SnO2 — Cornwall / Erzgebirge / Bolivia tin
+  uranophane:     { Ca: 1, U: 2, SiO2: 2 },          // Ca(UO2)2(SiO3)2(OH)2·5H2O — yellow uranyl silicate
+
   // ---- v126 P1-holdout backfill (pectolite, no-fire pure-infra add) ----
   // pectolite is the one P1 Jeffrey-arc mineral that v123 deferred
   // because it doesn't reliably fire in any current baseline scenario

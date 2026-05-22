@@ -6400,5 +6400,57 @@
 //          research/INITIATIVE-VARIABLE/07-graduated-competition.md
 //
 //          Coverage 145 minerals (unchanged). Scenarios 30 (unchanged).
-const SIM_VERSION = 128;
+//
+//   v129  — CASCADE-STUCK STOICHIOMETRY SHIPPED (2026-05-21)
+//
+//          v128d sub-commit. Adds MINERAL_STOICHIOMETRY entries for
+//          the 5 minerals from proposal §4.1 calibration assertions:
+//          dioptase, koettigite, lepidolite, cassiterite, uranophane.
+//
+//          These were on DEFERRED_TUNE_REQUIRED because adding their
+//          stoichiometry under fixed-order growth (v126 and earlier)
+//          caused Shape-B RNG-cascade displacement — empirically
+//          confirmed by v125-v126 probe arc. Under v128 graduated
+//          competition, per-cation rationing replaces fixed-order
+//          growth: the 5 minerals now compete for shared cations
+//          (Cu/SiO2 for dioptase; Zn/As for koettigite; K/Li/Al/SiO2/F
+//          for lepidolite; Sn for cassiterite; Ca/U/SiO2 for
+//          uranophane) rather than displacing the existing
+//          paragenesis via iterator order.
+//
+//          STOICHIOMETRIES (mid-range for solid-solution minerals)
+//            dioptase    { Cu: 1, SiO2: 1 }              CuSiO3·H2O
+//            koettigite  { Zn: 3, As: 2 }                Zn3(AsO4)2·8H2O
+//            lepidolite  { K: 1, Li: 1.5, Al: 2.5, SiO2: 3, F: 1.5 }
+//                                                       K(Li,Al)3(Al,Si)4O10(F,OH)2
+//            cassiterite { Sn: 1 }                       SnO2
+//            uranophane  { Ca: 1, U: 2, SiO2: 2 }        Ca(UO2)2(SiO3)2(OH)2·5H2O
+//
+//          DEFERRED LIST 13 → 8
+//          Remaining: caledonite, plumbogummite, proustite (Pb-Cu
+//          sulfates), willemite + conichalcite + duftite (Tsumeb
+//          Zn/Cu arsenates), pyrolusite + tigers_eye. These need
+//          their own v128d-style probe to confirm graduated
+//          competition handles them cleanly.
+//
+//          5 CALIBRATION ASSERTIONS (proposal §4.1)
+//          Codified as tests-js/calibration-assertions.test.ts. Each
+//          checks the qualitative outcome under graduated competition:
+//            1. dioptase fires in schneeberg (was 0-of-1 in v125 probe)
+//            2. koettigite fires in supergene_oxidation (was 0-of-4)
+//            3. lepidolite fires in radioactive_pegmatite (was 0-of-1)
+//            4. cassiterite fires across pegmatites (v125 2-of-3 near-miss)
+//            5. uranophane fires in schneeberg (v126 1-of-2 near-miss)
+//          Empirical baseline regeneration is the source of truth for
+//          which assertions actually pass — calibration test asserts
+//          the v129 baseline reality, which IS the validation that
+//          graduated competition prevented Shape-B cascades.
+//
+//          BASELINES
+//          30 scenarios regenerated as seed42_v129.json. v128 baseline
+//          preserved (it captures the algorithm change without the
+//          stoichiometry additions). Drift documented in commit message.
+//
+//          Coverage 145 minerals (unchanged). Scenarios 30 (unchanged).
+const SIM_VERSION = 129;
 
