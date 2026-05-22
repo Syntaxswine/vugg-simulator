@@ -255,6 +255,13 @@ const EXPORTS = [
   // Per-habit cluster pattern dispatch; mirrors 99i's _CLUSTER_PATTERNS.
   '_druzyClusterSpec',
   '_druzyClusterCount',  // legacy alias — count-only API for back-compat
+  // 2026-05-22 hopper/skeletal texture (v134, 99a-renderer-textures.ts).
+  // _resolveTexture maps (mineral, habit) → texture token; the 'hopper'
+  // token routes to _texture_hopper which paints stepped right-angle
+  // notches per Tanaka et al. 2018.
+  '_resolveTexture',
+  'HABIT_TO_TEXTURE',
+  'TEXTURE_PARAMS',
   // Phase 4a redox infrastructure (20c-chemistry-redox.ts).
   'EH_DYNAMIC_ENABLED',
   'REDOX_COUPLES',
