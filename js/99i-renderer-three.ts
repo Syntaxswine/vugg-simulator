@@ -521,6 +521,7 @@ const _GEOM_TOKEN_RATIO: Record<string, number> = {
   scalene: 0.6,       // scalenohedral — calcite dogtooth (taller than rhomb)
   tablet: 1.5,        // tabular — flat plate, a > c
   cube: 1.0,          // isometric
+  fluorite_penetration_twin: 1.0,  // two cubes interpenetrating — same envelope
   octahedron: 1.0,
   rhombic_dodec: 1.0,
   dodecahedron: 1.0,
@@ -546,7 +547,22 @@ const _DRIPSTONE_ELIGIBLE_TOKENS = new Set([
 // "fluid → canonical primitive, air → dripstone (when eligible)"
 // decision so the call site stays a one-liner. Mirrors
 // _lookupCrystalPrimitive in js/99d-renderer-wireframe.ts.
+//
+// Dispatch precedence (matches the wireframe side):
+//   1. Twin override — mineral-specific iconic twins (v134 onward)
+//   2. Air-mode dripstone override (Slice 4)
+//   3. Canonical habit-string token
+//
+// Twins win over air-mode because real twinned cubes don't drip into
+// stalactites just because the cavity drained. Future iconic twin
+// primitives (gypsum swallowtail, marcasite cockscomb, cerussite
+// trilling, pyrite iron-cross, galena octahedron-twin, aragonite
+// pseudo-hex) plug into this same gate.
 function _resolveCrystalGeomToken(crystal: any, habitForGeom: string): string {
+  if (crystal && crystal.mineral === 'fluorite' && crystal.twinned
+      && crystal.twin_law === 'penetration') {
+    return 'fluorite_penetration_twin';
+  }
   const canonical = _habitGeomToken(habitForGeom);
   if (crystal && crystal.growth_environment === 'air'
       && _DRIPSTONE_ELIGIBLE_TOKENS.has(canonical)) {
@@ -926,6 +942,74 @@ function _makeBotryoidalCluster(): any {
   return geom;
 }
 
+// Fluorite penetration twin — two interpenetrating cubes rotated 60°
+// around their shared body diagonal [1,1,1]/√3 (Sunagawa 2005 §6.4;
+// Dana 8th ed. CaF2 section). The Weardale Cumbria / Cave-in-Rock /
+// Berbes signature visible in real specimens as a 14-pointed star
+// silhouette. Mirrors PRIM_FLUORITE_PENETRATION_TWIN in
+// js/99c-renderer-primitives.ts so the wireframe and Three.js renderers
+// agree on the twin geometry (PROPOSAL-HABIT-BIAS.md §11 cross-renderer
+// parity rule).
+//
+// Math: cube A has 8 corners at (±c, ±c, ±c) for half-extent c = 0.4
+// (matching the cube case's BoxGeometry(0.8) so a twinned fluorite is
+// the same overall envelope as an untwinned one). Cube B is cube A
+// rotated by R = (1/3) × [[2,2,-1],[-1,2,2],[2,-1,2]], the 60°-around-
+// [1,1,1]/√3 rotation derived from Rodrigues' formula. The body-
+// diagonal endpoints (-c,-c,-c) and (+c,+c,+c) sit on the rotation
+// axis and are invariant under R; the other 6 corners of each cube map
+// to NEW positions, producing the interpenetrating-cube silhouette.
+//
+// Flat-shaded: 6 faces × 2 triangles per cube × 2 cubes = 24 triangles,
+// 72 vertex triples in the position attribute. No shared verts between
+// faces — each face reads as its own facet, matching the convention of
+// the other _make* builders in this file.
+function _makeFluoritePenetrationTwin(): any {
+  const c = 0.4;  // half-extent — matches cube case's BoxGeometry(0.8)
+  // Cube A: 8 corners ordered by (sx, sy, sz) loops to match
+  // PRIM_FLUORITE_PENETRATION_TWIN's vertex indexing on the wireframe
+  // side. 0:(-,-,-) 1:(-,-,+) 2:(-,+,-) 3:(-,+,+) 4:(+,-,-) 5:(+,-,+)
+  // 6:(+,+,-) 7:(+,+,+). Body-diagonal axis is 0 → 7.
+  const A: number[][] = [];
+  for (const sx of [-1, 1]) {
+    for (const sy of [-1, 1]) {
+      for (const sz of [-1, 1]) {
+        A.push([c * sx, c * sy, c * sz]);
+      }
+    }
+  }
+  // Cube B: rotate each cube-A vertex by R around the origin (which
+  // is on the body-diagonal axis, so the (-,-,-) and (+,+,+) corners
+  // stay fixed). Centered at origin to match the cube case's anchoring;
+  // the wireframe's y=0.45 offset is its own convention.
+  const B = A.map(([x, y, z]) => [
+    (2 * x + 2 * y - z) / 3,
+    (-x + 2 * y + 2 * z) / 3,
+    (2 * x - y + 2 * z) / 3,
+  ]);
+  // Emit 6 cube faces as 12 triangles, CCW from outside (so flat-shaded
+  // normals point outward). Indexing is consistent across both cubes
+  // because both share the (sx, sy, sz) ordering above.
+  const pushCube = (out: number[], v: number[][]): void => {
+    const tri = (a: number, b: number, c: number) => {
+      _pushTri(out, v[a][0], v[a][1], v[a][2], v[b][0], v[b][1], v[b][2], v[c][0], v[c][1], v[c][2]);
+    };
+    tri(0, 1, 3); tri(0, 3, 2);  // -X face
+    tri(4, 6, 7); tri(4, 7, 5);  // +X face
+    tri(0, 4, 5); tri(0, 5, 1);  // -Y face
+    tri(2, 3, 7); tri(2, 7, 6);  // +Y face
+    tri(0, 2, 6); tri(0, 6, 4);  // -Z face
+    tri(1, 5, 7); tri(1, 7, 3);  // +Z face
+  };
+  const positions: number[] = [];
+  pushCube(positions, A);
+  pushCube(positions, B);
+  const geom = new THREE.BufferGeometry();
+  geom.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+  geom.computeVertexNormals();
+  return geom;
+}
+
 // Build a unit-sized geometry for a given habit token, oriented so
 // its long axis (= c-axis) lies along +Y. The instance transform
 // later places the base at the wall and scales by c_length / a_width.
@@ -954,6 +1038,12 @@ function _buildHabitGeom(token: string): any {
       return _makeScalenohedron();
     case 'cube':
       return new THREE.BoxGeometry(0.8, 0.8, 0.8);
+    case 'fluorite_penetration_twin':
+      // v134 (2026-05-22) — first iconic twin to render its own
+      // geometry. Two interpenetrating cubes rotated 60° around the
+      // body diagonal. Dispatch is gated by _resolveCrystalGeomToken
+      // on mineral='fluorite' + twinned=true + twin_law='penetration'.
+      return _makeFluoritePenetrationTwin();
     case 'octahedron':
       return new THREE.OctahedronGeometry(0.55, 0);
     case 'snowball':

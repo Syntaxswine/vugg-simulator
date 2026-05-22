@@ -251,6 +251,10 @@ const EXPORTS = [
   // Slice 4 dripstone token resolver (99i-renderer-three.ts).
   '_resolveCrystalGeomToken',
   '_habitGeomToken',
+  // v134 (2026-05-22) — 99i fluorite-twin parity: _buildHabitGeom is
+  // exposed so tests can assert the twin token produces the right
+  // BufferGeometry vertex count (24 cube faces × 3 = 72 vertex triples).
+  '_buildHabitGeom',
   // 2026-05-22 wireframe cluster-spec refactor (99d-renderer-wireframe.ts).
   // Per-habit cluster pattern dispatch; mirrors 99i's _CLUSTER_PATTERNS.
   '_druzyClusterSpec',
@@ -332,9 +336,26 @@ const EXPORTS = [
 
 let _bundleLoaded = false;
 
-function loadBundle() {
+// Load the vendored Three.js module into the test global scope so the
+// 99i renderer's geometry builders (which reference THREE.BufferGeometry,
+// THREE.BoxGeometry, THREE.Float32BufferAttribute, etc.) work when
+// invoked from tests. In the browser, index.html boots the same module
+// before the bundle runs and sets THREE as a global. In jsdom we mimic
+// that here.
+async function installThreeGlobal(): Promise<void> {
+  if ((globalThis as any).THREE) return;
+  const threeModulePath = path.join(ROOT, 'tools', 'three.module.js');
+  // Use file:// URL so dynamic import resolves the absolute path on
+  // both POSIX and Windows.
+  const url = 'file://' + threeModulePath.replace(/\\/g, '/');
+  const THREE = await import(url);
+  (globalThis as any).THREE = THREE;
+}
+
+async function loadBundle() {
   if (_bundleLoaded) return;
   installFetchMock();
+  await installThreeGlobal();
   const files = walkDistSorted();
   if (!files.length) {
     throw new Error(
@@ -394,6 +415,6 @@ async function waitForScenarios(timeoutMs = 5000): Promise<void> {
 }
 
 beforeAll(async () => {
-  loadBundle();
+  await loadBundle();
   await waitForScenarios();
 });
