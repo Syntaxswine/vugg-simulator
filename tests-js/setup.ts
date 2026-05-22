@@ -262,6 +262,13 @@ const EXPORTS = [
   '_resolveTexture',
   'HABIT_TO_TEXTURE',
   'TEXTURE_PARAMS',
+  // 2026-05-22 fluorite penetration-twin primitive (v134,
+  // 99c-renderer-primitives.ts + 99d dispatch). Two interpenetrating
+  // cubes rotated 60° around their shared body diagonal — the iconic
+  // Cumbria / Cave-in-Rock fluorite twin.
+  'PRIM_FLUORITE_PENETRATION_TWIN',
+  'PRIM_CUBE',  // baseline reference for twin tests
+  '_lookupCrystalPrimitive',
   // Phase 4a redox infrastructure (20c-chemistry-redox.ts).
   'EH_DYNAMIC_ENABLED',
   'REDOX_COUPLES',

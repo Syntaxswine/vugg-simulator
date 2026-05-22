@@ -17,6 +17,19 @@ function _isDripstoneEligibleCanonical(prim) {
 
 function _lookupCrystalPrimitive(crystal) {
   if (!crystal) return PRIM_RHOMBOHEDRON;
+  // v134 (2026-05-22): twin-law geometry override. The first iconic
+  // twin to render with its own primitive is the fluorite penetration
+  // twin ({111}, two interpenetrating cubes rotated 60° around the
+  // shared body diagonal — the Weardale Cumbria / Cave-in-Rock signature).
+  // Runs BEFORE the air-mode dripstone override: a twinned fluorite in
+  // an air cavity is still a twin, not a dripstone (twins don't drip).
+  // Future twin primitives — gypsum swallowtail, marcasite cockscomb,
+  // cerussite snowflake-trilling, pyrite iron-cross — will land as
+  // additional checks here.
+  if (crystal.mineral === 'fluorite' && crystal.twinned
+      && crystal.twin_law === 'penetration') {
+    return PRIM_FLUORITE_PENETRATION_TWIN;
+  }
   // v24 air-mode override — crystals nucleated in vadose rings get
   // dripstone geometry instead of their canonical habit primitive,
   // when the canonical primitive is structurally compatible with a
