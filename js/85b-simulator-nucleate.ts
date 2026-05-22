@@ -824,16 +824,45 @@ _applyZoneMassBalance(crystal, zone) {
 _computeGraduatedZones() {
   // cellKey → { fluid: <Record>, items: Array<{crystal, zone, sigma, initiative}> }
   const cellGroups = new Map();
+  // out is the public return; we populate it here for crystals whose
+  // dry-run didn't produce positive thickness (negative = dissolution,
+  // null/zero = no growth). Those entries don't go through rationing —
+  // they pass through to pass 2 as-is so the growth loop knows the
+  // engine was already called for them and not to re-invoke it.
+  // (Re-invoking would double-consume RNG vs v127, breaking determinism.)
+  const out = new Map();
 
   for (const crystal of this.crystals) {
     if (!crystal.active) continue;
     const engine = MINERAL_ENGINES[crystal.mineral];
     if (!engine) continue;
 
-    // Dry-run the engine to get its desired zone.
+    // Dry-run the engine to get its desired zone. The engine is called
+    // EXACTLY ONCE per crystal per step — same as v127. Pass 2 will
+    // consume this stored zone instead of calling the engine again.
     const dryZone = this._dryRunEngineForCrystal(engine, crystal);
-    if (!dryZone) continue;
-    if (typeof dryZone.thickness_um !== 'number' || dryZone.thickness_um <= 0) continue;
+    if (!dryZone) {
+      // Engine returned null (no zone produced). Pass 2 needs to know
+      // we already called the engine — store an explicit null sentinel
+      // so the growth loop's `else` branch doesn't re-call.
+      out.set(crystal.crystal_id, null);
+      continue;
+    }
+    if (typeof dryZone.thickness_um !== 'number') {
+      out.set(crystal.crystal_id, null);
+      continue;
+    }
+    if (dryZone.thickness_um < 0) {
+      // Dissolution: no rationing applies (a crystal dissolving doesn't
+      // compete for fluid — it RELEASES species). Pass directly to
+      // pass 2 with thickness preserved.
+      out.set(crystal.crystal_id, dryZone);
+      continue;
+    }
+    if (dryZone.thickness_um === 0) {
+      out.set(crystal.crystal_id, null);
+      continue;
+    }
 
     // Identify the cell + fluid this crystal competes within.
     const anchor = this.wall_state._resolveAnchor(crystal);
@@ -878,8 +907,9 @@ _computeGraduatedZones() {
     cellGroups.get(cellKey).items.push({ crystal, zone: dryZone, sigma, initiative: 0 });
   }
 
-  // Per-cell: compute initiatives + rationing.
-  const out = new Map();
+  // Per-cell: compute initiatives + rationing (`out` already has
+  // entries for crystals whose dry-run was non-positive — those bypass
+  // rationing entirely).
   for (const [cellKey, group] of cellGroups) {
     const items = group.items;
     if (items.length === 0) continue;

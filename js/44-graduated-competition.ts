@@ -46,7 +46,7 @@
 // All exposed as `let` so calibration sweeps in v129 can rebind them
 // without rebuilding. Defaults are the proposal's initial estimates.
 
-let GRADUATED_COMPETITION_ENABLED = false;     // OFF in v128a (byte-identical to v127)
+let GRADUATED_COMPETITION_ENABLED = true;      // v128c: ON. Per-cell rationing drives growth.
 let GRADUATED_GAP_THRESHOLD       = 3;          // initiative units; above this, winner-takes-most
 let GRADUATED_POWER_LAW_K         = 2;          // exponent for proportional regime
 let GRADUATED_WINNER_TAKES_FRAC   = 0.8;        // top initiative's share when gap > threshold
@@ -301,14 +301,26 @@ function buildCrystalDryRun(
   initiative: number,
   desired_thickness_um: number,
 ): CrystalDryRun | null {
-  const stoich = (globalThis as any).MINERAL_STOICHIOMETRY as Record<string, Record<string, number>> | undefined;
-  const scale = (globalThis as any).MASS_BALANCE_SCALE as number | undefined;
-  if (!stoich || scale === undefined) return null;
-  const mineStoich = stoich[mineral];
+  // SCRIPT-mode bundle: MINERAL_STOICHIOMETRY (js/19) and
+  // MASS_BALANCE_SCALE (js/18) are top-level `const` declarations that
+  // wind up as closure-scoped identifiers after concatenation. Reading
+  // them as free identifiers is the canonical pattern across the
+  // bundle (engines do the same).
+  //
+  // EARLIER BUG (v128c diagnosis): this function originally read them
+  // off globalThis. The tests-js/setup.ts harness exposed them; the
+  // tools/_harness.mjs harness did not. Result: gen-js-baseline.mjs
+  // produced v127-like baselines (rationing never fired because the
+  // function returned null), while the test runtime produced v128
+  // output. Calibration test failed against its own baseline because
+  // they were generated from different code paths. Fixed by reading
+  // the constants from their script-scoped declarations.
+  if (typeof MINERAL_STOICHIOMETRY === 'undefined' || typeof MASS_BALANCE_SCALE === 'undefined') return null;
+  const mineStoich = MINERAL_STOICHIOMETRY[mineral];
   if (!mineStoich) return null;
   const debit_per_species: Record<string, number> = {};
   for (const sp of Object.keys(mineStoich)) {
-    debit_per_species[sp] = scale * desired_thickness_um * mineStoich[sp];
+    debit_per_species[sp] = MASS_BALANCE_SCALE * desired_thickness_um * mineStoich[sp];
   }
   return { crystal_id, mineral, sigma, initiative, desired_thickness_um, debit_per_species };
 }

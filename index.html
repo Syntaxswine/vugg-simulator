@@ -10783,7 +10783,111 @@ let timeScale = 5.0;
 //            MOD: js/15-version.ts (this block, SIM_VERSION 126 → 127)
 //
 //          Coverage 145 minerals (unchanged). Scenarios 30 (unchanged).
-const SIM_VERSION = 127;
+//
+//   v128  — GRADUATED COMPETITION LIVE (2026-05-21)
+//
+//          The growth loop is no longer fixed-order. Per-cell graduated
+//          competition (proposals/PROPOSAL-INITIATIVE-VARIABLE.md §3.1
+//          rev 2) now drives every step's allocation. The cascade-
+//          displacement pattern recorded in v109-v126 is structurally
+//          mitigated: crystals at edge-of-gate σ get a small share of
+//          a limiting cation rather than being displaced to zero.
+//
+//          THE ARC (v128a, v128b, v128c — three sub-commits)
+//          v128a (1291a9c): Algorithm module (js/44) + 17 unit tests.
+//            Flag-gated, off by default. No simulator wiring; the math
+//            is callable but inert.
+//          v128b (ea4f7e4): Wired the algorithm into run-step. Added
+//            _dryRunEngineForCrystal + _applyZoneMassBalance +
+//            _computeGraduatedZones to VugSimulator. Flag still off;
+//            baselines still byte-identical. 5 wiring tests.
+//          v128c (this commit): Flipped the flag. Regenerated all 30
+//            baselines. Documented the per-scenario drift.
+//
+//          THE ALGORITHM (recap)
+//          For each step:
+//          1. Per active crystal, dry-run the engine to get its
+//             desired zone (engine reads cell.fluid; no mass balance).
+//          2. Group dry-run records by per-cell anchor (per-cell mesh
+//             is the canonical scope; cells have independent fluid).
+//          3. Per cell: compute initiative scores via js/43 (base +
+//             temp + edge-of-gate + surface energy + competition +
+//             cascade-ripple). Compute graduated allocations:
+//               - For each species, sum demanded debit
+//               - If demanded ≤ available: no rationing
+//               - If oversubscribed:
+//                   gap ≤ 3: power-law shares (k=2)
+//                   gap > 3: winner-takes-most (top 80%, rest split 20%)
+//          4. Per crystal: final scaling = min over its species of
+//             allowed/desired (Liebig's law of the minimum).
+//          5. In the existing growth loop, consume the pre-computed
+//             scaled zone instead of re-running the engine (otherwise
+//             the recomputed σ on a depleted fluid would re-introduce
+//             cascade displacement).
+//
+//          WHY THIS LANDS
+//          The v109-v126 antipattern record (cascade-probe arc across
+//          ~30 deferred minerals) confirmed that fixed-order growth
+//          made stoichiometry adds structurally cascade-prone. Adding
+//          a new mineral's stoichiometry shifted other minerals' σ
+//          across their gates, displacing their nucleation. Graduated
+//          competition makes that pressure proportional: edge-of-gate
+//          minerals still feel pressure but they don't disappear —
+//          they shrink. The 5 calibration assertions (proposal §4.1)
+//          translate the v125-v126 cascade record into specific
+//          paragenesis expectations under graduated competition, e.g.:
+//            - dioptase in schneeberg: dioptase grows, pharmacolite
+//              stays in paragenesis at reduced max_um
+//            - cassiterite in radioactive_pegmatite: the 2-of-3
+//              near-miss becomes 3-of-3
+//          Validating these requires adding stoichiometry for the 5
+//          deferred minerals (dioptase, koettigite, lepidolite,
+//          cassiterite, uranophane). That add lands in v128d after
+//          this commit's baseline regen confirms graduated competition
+//          is producing well-formed paragenesis.
+//
+//          BASELINES
+//          All 30 scenarios regenerated as seed42_v128.json. Per-
+//          scenario drift documented in the commit message — most
+//          scenarios saw modest shifts (max_um changes within ±5%);
+//          dense-suite scenarios (schneeberg, supergene_oxidation,
+//          radioactive_pegmatite) saw larger shifts as cation
+//          rationing redistributes growth. No catastrophic dropouts;
+//          minimum-mineral counts preserved across all 30 scenarios.
+//
+//          TEST CHURN
+//          Old baselines (v127 and earlier) preserved as historical
+//          reference under tests-js/baselines/. The calibration test
+//          (tests-js/calibration.test.ts) auto-loads the baseline
+//          matching the current SIM_VERSION, so old baselines are
+//          inert. Tests that asserted specific seed-42 paragenesis
+//          patterns from the fixed-order era may need updating in
+//          follow-on commits; v128c surfaces those by running the
+//          full suite after the regen.
+//
+//          NEXT
+//          v128d: stoichiometry for the 5 deferred cascade-stuck
+//                 minerals (dioptase + koettigite + lepidolite +
+//                 cassiterite + uranophane) + the 5 calibration
+//                 assertions (proposal §4.1)
+//          v129: modifier calibration sweep — opal σ_crit literature
+//                 value (0.8 vs current 1.0), temperature optimums
+//                 for top 50 minerals from ΔH° table, power-law k +
+//                 gap threshold tuning
+//          v130: substrate/epitaxy modifier (catalysis vs competition
+//                 vs encapsulation modes)
+//          v131+: induction counter, per-zone initiative, stochastic
+//                 mode (Monte Carlo Option B/C from §3.4)
+//
+//          REFERENCES
+//          proposals/PROPOSAL-INITIATIVE-VARIABLE.md (rev 2) §3.1 + §4.1
+//          js/15-version.ts v109 — original cascade-ripple antipattern
+//          js/15-version.ts v124-v126 — empirical cascade probe arc
+//          js/15-version.ts v127 — engine gates + initiative scaffold
+//          research/INITIATIVE-VARIABLE/07-graduated-competition.md
+//
+//          Coverage 145 minerals (unchanged). Scenarios 30 (unchanged).
+const SIM_VERSION = 128;
 
 // ── 18-constants.js ──
 
@@ -22994,8 +23098,7 @@ function baseInitiative(sigma) {
 //   Within 50% of T_optimal: +1 (comfortable)
 //   Otherwise within range: 0
 function temperatureInitiativeModifier(mineral, fluid) {
-    const reg = globalThis.MINERAL_GATES_REGISTRY;
-    const g = reg?.[mineral];
+    const g = (typeof MINERAL_GATES_REGISTRY !== 'undefined') ? MINERAL_GATES_REGISTRY[mineral] : undefined;
     if (!g)
         return { source: 'temperature', value: 0, reason: `no gates for ${mineral}` };
     const T = fluid?.temperature;
@@ -23029,8 +23132,7 @@ function temperatureInitiativeModifier(mineral, fluid) {
 //   σ / σ_crit > 2.0: +1 (robust)
 //   else: 0
 function edgeOfGateInitiativeModifier(mineral, sigma) {
-    const reg = globalThis.MINERAL_GATES_REGISTRY;
-    const g = reg?.[mineral];
+    const g = (typeof MINERAL_GATES_REGISTRY !== 'undefined') ? MINERAL_GATES_REGISTRY[mineral] : undefined;
     if (!g || !Number.isFinite(g.sigma_crit) || g.sigma_crit <= 0) {
         return { source: 'edge-of-gate', value: 0, reason: `no finite sigma_crit for ${mineral}` };
     }
@@ -23050,8 +23152,7 @@ function edgeOfGateInitiativeModifier(mineral, sigma) {
 // Per proposal §3.2. Lower γ → lower nucleation barrier → higher base
 // initiative. Categories from the MineralGates surface_energy field.
 function surfaceEnergyInitiativeModifier(mineral) {
-    const reg = globalThis.MINERAL_GATES_REGISTRY;
-    const g = reg?.[mineral];
+    const g = (typeof MINERAL_GATES_REGISTRY !== 'undefined') ? MINERAL_GATES_REGISTRY[mineral] : undefined;
     if (!g)
         return { source: 'surface-energy', value: 0, reason: `no gates for ${mineral}` };
     switch (g.surface_energy) {
@@ -23073,10 +23174,9 @@ function surfaceEnergyInitiativeModifier(mineral) {
 //   1 competitor:  -1
 //   2+ competitors: -2 (dense-suite penalty)
 function competitionInitiativeModifier(mineral, activeMinerals) {
-    const stoich = globalThis.MINERAL_STOICHIOMETRY;
-    if (!stoich)
+    if (typeof MINERAL_STOICHIOMETRY === 'undefined')
         return { source: 'competition', value: 0, reason: 'no stoichiometry table' };
-    const mine = stoich[mineral];
+    const mine = MINERAL_STOICHIOMETRY[mineral];
     if (!mine)
         return { source: 'competition', value: 0, reason: `no stoichiometry for ${mineral}` };
     const myCations = Object.keys(mine);
@@ -23084,7 +23184,7 @@ function competitionInitiativeModifier(mineral, activeMinerals) {
     for (const other of activeMinerals) {
         if (other === mineral)
             continue;
-        const otherStoich = stoich[other];
+        const otherStoich = MINERAL_STOICHIOMETRY[other];
         if (!otherStoich)
             continue;
         for (const c of myCations) {
@@ -23106,10 +23206,9 @@ function competitionInitiativeModifier(mineral, activeMinerals) {
 // this is about how many σ gates the mineral's debit can perturb when
 // it grows, not who else is firing now. Cap at -2.
 function cascadeRippleInitiativeModifier(mineral) {
-    const stoich = globalThis.MINERAL_STOICHIOMETRY;
-    if (!stoich)
+    if (typeof MINERAL_STOICHIOMETRY === 'undefined')
         return { source: 'cascade-ripple', value: 0, reason: 'no stoichiometry table' };
-    const mine = stoich[mineral];
+    const mine = MINERAL_STOICHIOMETRY[mineral];
     if (!mine)
         return { source: 'cascade-ripple', value: 0, reason: `no stoichiometry for ${mineral}` };
     const n = Object.keys(mine).length;
@@ -23214,7 +23313,7 @@ function rankInitiative(sigmaByMineral, fluid) {
 //
 // All exposed as `let` so calibration sweeps in v129 can rebind them
 // without rebuilding. Defaults are the proposal's initial estimates.
-let GRADUATED_COMPETITION_ENABLED = false; // OFF in v128a (byte-identical to v127)
+let GRADUATED_COMPETITION_ENABLED = true; // v128c: ON. Per-cell rationing drives growth.
 let GRADUATED_GAP_THRESHOLD = 3; // initiative units; above this, winner-takes-most
 let GRADUATED_POWER_LAW_K = 2; // exponent for proportional regime
 let GRADUATED_WINNER_TAKES_FRAC = 0.8; // top initiative's share when gap > threshold
@@ -23428,16 +23527,28 @@ function computeGraduatedAllocations(runs, fluid) {
 // must have stoichiometry, enforced by tests-js/mineral-stoichiometry-
 // coverage.test.ts).
 function buildCrystalDryRun(crystal_id, mineral, sigma, initiative, desired_thickness_um) {
-    const stoich = globalThis.MINERAL_STOICHIOMETRY;
-    const scale = globalThis.MASS_BALANCE_SCALE;
-    if (!stoich || scale === undefined)
+    // SCRIPT-mode bundle: MINERAL_STOICHIOMETRY (js/19) and
+    // MASS_BALANCE_SCALE (js/18) are top-level `const` declarations that
+    // wind up as closure-scoped identifiers after concatenation. Reading
+    // them as free identifiers is the canonical pattern across the
+    // bundle (engines do the same).
+    //
+    // EARLIER BUG (v128c diagnosis): this function originally read them
+    // off globalThis. The tests-js/setup.ts harness exposed them; the
+    // tools/_harness.mjs harness did not. Result: gen-js-baseline.mjs
+    // produced v127-like baselines (rationing never fired because the
+    // function returned null), while the test runtime produced v128
+    // output. Calibration test failed against its own baseline because
+    // they were generated from different code paths. Fixed by reading
+    // the constants from their script-scoped declarations.
+    if (typeof MINERAL_STOICHIOMETRY === 'undefined' || typeof MASS_BALANCE_SCALE === 'undefined')
         return null;
-    const mineStoich = stoich[mineral];
+    const mineStoich = MINERAL_STOICHIOMETRY[mineral];
     if (!mineStoich)
         return null;
     const debit_per_species = {};
     for (const sp of Object.keys(mineStoich)) {
-        debit_per_species[sp] = scale * desired_thickness_um * mineStoich[sp];
+        debit_per_species[sp] = MASS_BALANCE_SCALE * desired_thickness_um * mineStoich[sp];
     }
     return { crystal_id, mineral, sigma, initiative, desired_thickness_um, debit_per_species };
 }
@@ -36092,12 +36203,23 @@ class VugSimulator {
             // against a clean snapshot), scaled by the per-crystal allocation.
             let zone;
             if (this._graduatedZones && this._graduatedZones.has(crystal.crystal_id)) {
+                // The engine was already called once during pass 1 (dry-run).
+                // The stored zone may be null (engine returned nothing), zero
+                // (no growth), negative (dissolution — un-scaled), or positive
+                // (precipitation — already scaled by allocation factor).
+                // In all cases, DO NOT re-call the engine — that would
+                // double-consume RNG vs v127's once-per-crystal contract.
                 zone = this._graduatedZones.get(crystal.crystal_id);
-                if (zone && typeof zone.thickness_um === 'number') {
+                if (zone && typeof zone.thickness_um === 'number' && zone.thickness_um !== 0) {
                     this._applyZoneMassBalance(crystal, zone);
                 }
             }
             else {
+                // Crystal had no engine entry (skipped at the top of the loop)
+                // or wasn't in _graduatedZones (only happens when flag is off,
+                // because pass 1 enumerates every active crystal). The flag-off
+                // branch runs the engine exactly once via _runEngineForCrystal,
+                // matching v127 byte-identically.
                 zone = this._runEngineForCrystal(engine, crystal);
             }
             if (zone) {
@@ -37859,18 +37981,45 @@ Object.assign(VugSimulator.prototype, {
     _computeGraduatedZones() {
         // cellKey → { fluid: <Record>, items: Array<{crystal, zone, sigma, initiative}> }
         const cellGroups = new Map();
+        // out is the public return; we populate it here for crystals whose
+        // dry-run didn't produce positive thickness (negative = dissolution,
+        // null/zero = no growth). Those entries don't go through rationing —
+        // they pass through to pass 2 as-is so the growth loop knows the
+        // engine was already called for them and not to re-invoke it.
+        // (Re-invoking would double-consume RNG vs v127, breaking determinism.)
+        const out = new Map();
         for (const crystal of this.crystals) {
             if (!crystal.active)
                 continue;
             const engine = MINERAL_ENGINES[crystal.mineral];
             if (!engine)
                 continue;
-            // Dry-run the engine to get its desired zone.
+            // Dry-run the engine to get its desired zone. The engine is called
+            // EXACTLY ONCE per crystal per step — same as v127. Pass 2 will
+            // consume this stored zone instead of calling the engine again.
             const dryZone = this._dryRunEngineForCrystal(engine, crystal);
-            if (!dryZone)
+            if (!dryZone) {
+                // Engine returned null (no zone produced). Pass 2 needs to know
+                // we already called the engine — store an explicit null sentinel
+                // so the growth loop's `else` branch doesn't re-call.
+                out.set(crystal.crystal_id, null);
                 continue;
-            if (typeof dryZone.thickness_um !== 'number' || dryZone.thickness_um <= 0)
+            }
+            if (typeof dryZone.thickness_um !== 'number') {
+                out.set(crystal.crystal_id, null);
                 continue;
+            }
+            if (dryZone.thickness_um < 0) {
+                // Dissolution: no rationing applies (a crystal dissolving doesn't
+                // compete for fluid — it RELEASES species). Pass directly to
+                // pass 2 with thickness preserved.
+                out.set(crystal.crystal_id, dryZone);
+                continue;
+            }
+            if (dryZone.thickness_um === 0) {
+                out.set(crystal.crystal_id, null);
+                continue;
+            }
             // Identify the cell + fluid this crystal competes within.
             const anchor = this.wall_state._resolveAnchor(crystal);
             const ringIdx = anchor ? anchor.ringIdx : null;
@@ -37917,8 +38066,9 @@ Object.assign(VugSimulator.prototype, {
             }
             cellGroups.get(cellKey).items.push({ crystal, zone: dryZone, sigma, initiative: 0 });
         }
-        // Per-cell: compute initiatives + rationing.
-        const out = new Map();
+        // Per-cell: compute initiatives + rationing (`out` already has
+        // entries for crystals whose dry-run was non-positive — those bypass
+        // rationing entirely).
         for (const [cellKey, group] of cellGroups) {
             const items = group.items;
             if (items.length === 0)

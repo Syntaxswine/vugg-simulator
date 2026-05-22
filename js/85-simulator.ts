@@ -290,11 +290,22 @@ class VugSimulator {
       // against a clean snapshot), scaled by the per-crystal allocation.
       let zone: any;
       if (this._graduatedZones && this._graduatedZones.has(crystal.crystal_id)) {
+        // The engine was already called once during pass 1 (dry-run).
+        // The stored zone may be null (engine returned nothing), zero
+        // (no growth), negative (dissolution — un-scaled), or positive
+        // (precipitation — already scaled by allocation factor).
+        // In all cases, DO NOT re-call the engine — that would
+        // double-consume RNG vs v127's once-per-crystal contract.
         zone = this._graduatedZones.get(crystal.crystal_id);
-        if (zone && typeof zone.thickness_um === 'number') {
+        if (zone && typeof zone.thickness_um === 'number' && zone.thickness_um !== 0) {
           this._applyZoneMassBalance(crystal, zone);
         }
       } else {
+        // Crystal had no engine entry (skipped at the top of the loop)
+        // or wasn't in _graduatedZones (only happens when flag is off,
+        // because pass 1 enumerates every active crystal). The flag-off
+        // branch runs the engine exactly once via _runEngineForCrystal,
+        // matching v127 byte-identically.
         zone = this._runEngineForCrystal(engine, crystal);
       }
       if (zone) {

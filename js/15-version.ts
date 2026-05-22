@@ -6296,5 +6296,109 @@
 //            MOD: js/15-version.ts (this block, SIM_VERSION 126 → 127)
 //
 //          Coverage 145 minerals (unchanged). Scenarios 30 (unchanged).
-const SIM_VERSION = 127;
+//
+//   v128  — GRADUATED COMPETITION LIVE (2026-05-21)
+//
+//          The growth loop is no longer fixed-order. Per-cell graduated
+//          competition (proposals/PROPOSAL-INITIATIVE-VARIABLE.md §3.1
+//          rev 2) now drives every step's allocation. The cascade-
+//          displacement pattern recorded in v109-v126 is structurally
+//          mitigated: crystals at edge-of-gate σ get a small share of
+//          a limiting cation rather than being displaced to zero.
+//
+//          THE ARC (v128a, v128b, v128c — three sub-commits)
+//          v128a (1291a9c): Algorithm module (js/44) + 17 unit tests.
+//            Flag-gated, off by default. No simulator wiring; the math
+//            is callable but inert.
+//          v128b (ea4f7e4): Wired the algorithm into run-step. Added
+//            _dryRunEngineForCrystal + _applyZoneMassBalance +
+//            _computeGraduatedZones to VugSimulator. Flag still off;
+//            baselines still byte-identical. 5 wiring tests.
+//          v128c (this commit): Flipped the flag. Regenerated all 30
+//            baselines. Documented the per-scenario drift.
+//
+//          THE ALGORITHM (recap)
+//          For each step:
+//          1. Per active crystal, dry-run the engine to get its
+//             desired zone (engine reads cell.fluid; no mass balance).
+//          2. Group dry-run records by per-cell anchor (per-cell mesh
+//             is the canonical scope; cells have independent fluid).
+//          3. Per cell: compute initiative scores via js/43 (base +
+//             temp + edge-of-gate + surface energy + competition +
+//             cascade-ripple). Compute graduated allocations:
+//               - For each species, sum demanded debit
+//               - If demanded ≤ available: no rationing
+//               - If oversubscribed:
+//                   gap ≤ 3: power-law shares (k=2)
+//                   gap > 3: winner-takes-most (top 80%, rest split 20%)
+//          4. Per crystal: final scaling = min over its species of
+//             allowed/desired (Liebig's law of the minimum).
+//          5. In the existing growth loop, consume the pre-computed
+//             scaled zone instead of re-running the engine (otherwise
+//             the recomputed σ on a depleted fluid would re-introduce
+//             cascade displacement).
+//
+//          WHY THIS LANDS
+//          The v109-v126 antipattern record (cascade-probe arc across
+//          ~30 deferred minerals) confirmed that fixed-order growth
+//          made stoichiometry adds structurally cascade-prone. Adding
+//          a new mineral's stoichiometry shifted other minerals' σ
+//          across their gates, displacing their nucleation. Graduated
+//          competition makes that pressure proportional: edge-of-gate
+//          minerals still feel pressure but they don't disappear —
+//          they shrink. The 5 calibration assertions (proposal §4.1)
+//          translate the v125-v126 cascade record into specific
+//          paragenesis expectations under graduated competition, e.g.:
+//            - dioptase in schneeberg: dioptase grows, pharmacolite
+//              stays in paragenesis at reduced max_um
+//            - cassiterite in radioactive_pegmatite: the 2-of-3
+//              near-miss becomes 3-of-3
+//          Validating these requires adding stoichiometry for the 5
+//          deferred minerals (dioptase, koettigite, lepidolite,
+//          cassiterite, uranophane). That add lands in v128d after
+//          this commit's baseline regen confirms graduated competition
+//          is producing well-formed paragenesis.
+//
+//          BASELINES
+//          All 30 scenarios regenerated as seed42_v128.json. Per-
+//          scenario drift documented in the commit message — most
+//          scenarios saw modest shifts (max_um changes within ±5%);
+//          dense-suite scenarios (schneeberg, supergene_oxidation,
+//          radioactive_pegmatite) saw larger shifts as cation
+//          rationing redistributes growth. No catastrophic dropouts;
+//          minimum-mineral counts preserved across all 30 scenarios.
+//
+//          TEST CHURN
+//          Old baselines (v127 and earlier) preserved as historical
+//          reference under tests-js/baselines/. The calibration test
+//          (tests-js/calibration.test.ts) auto-loads the baseline
+//          matching the current SIM_VERSION, so old baselines are
+//          inert. Tests that asserted specific seed-42 paragenesis
+//          patterns from the fixed-order era may need updating in
+//          follow-on commits; v128c surfaces those by running the
+//          full suite after the regen.
+//
+//          NEXT
+//          v128d: stoichiometry for the 5 deferred cascade-stuck
+//                 minerals (dioptase + koettigite + lepidolite +
+//                 cassiterite + uranophane) + the 5 calibration
+//                 assertions (proposal §4.1)
+//          v129: modifier calibration sweep — opal σ_crit literature
+//                 value (0.8 vs current 1.0), temperature optimums
+//                 for top 50 minerals from ΔH° table, power-law k +
+//                 gap threshold tuning
+//          v130: substrate/epitaxy modifier (catalysis vs competition
+//                 vs encapsulation modes)
+//          v131+: induction counter, per-zone initiative, stochastic
+//                 mode (Monte Carlo Option B/C from §3.4)
+//
+//          REFERENCES
+//          proposals/PROPOSAL-INITIATIVE-VARIABLE.md (rev 2) §3.1 + §4.1
+//          js/15-version.ts v109 — original cascade-ripple antipattern
+//          js/15-version.ts v124-v126 — empirical cascade probe arc
+//          js/15-version.ts v127 — engine gates + initiative scaffold
+//          research/INITIATIVE-VARIABLE/07-graduated-competition.md
+//
+//          Coverage 145 minerals (unchanged). Scenarios 30 (unchanged).
+const SIM_VERSION = 128;
 

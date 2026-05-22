@@ -104,8 +104,7 @@ function baseInitiative(sigma: number): number {
 //   Otherwise within range: 0
 
 function temperatureInitiativeModifier(mineral: string, fluid: any): InitiativeModifier {
-  const reg = (globalThis as any).MINERAL_GATES_REGISTRY as Record<string, MineralGates> | undefined;
-  const g = reg?.[mineral];
+  const g = (typeof MINERAL_GATES_REGISTRY !== 'undefined') ? MINERAL_GATES_REGISTRY[mineral] : undefined;
   if (!g) return { source: 'temperature', value: 0, reason: `no gates for ${mineral}` };
   const T = fluid?.temperature;
   if (typeof T !== 'number') return { source: 'temperature', value: 0, reason: 'no fluid temperature' };
@@ -134,8 +133,7 @@ function temperatureInitiativeModifier(mineral: string, fluid: any): InitiativeM
 //   else: 0
 
 function edgeOfGateInitiativeModifier(mineral: string, sigma: number): InitiativeModifier {
-  const reg = (globalThis as any).MINERAL_GATES_REGISTRY as Record<string, MineralGates> | undefined;
-  const g = reg?.[mineral];
+  const g = (typeof MINERAL_GATES_REGISTRY !== 'undefined') ? MINERAL_GATES_REGISTRY[mineral] : undefined;
   if (!g || !Number.isFinite(g.sigma_crit) || g.sigma_crit <= 0) {
     return { source: 'edge-of-gate', value: 0, reason: `no finite sigma_crit for ${mineral}` };
   }
@@ -153,8 +151,7 @@ function edgeOfGateInitiativeModifier(mineral: string, sigma: number): Initiativ
 // initiative. Categories from the MineralGates surface_energy field.
 
 function surfaceEnergyInitiativeModifier(mineral: string): InitiativeModifier {
-  const reg = (globalThis as any).MINERAL_GATES_REGISTRY as Record<string, MineralGates> | undefined;
-  const g = reg?.[mineral];
+  const g = (typeof MINERAL_GATES_REGISTRY !== 'undefined') ? MINERAL_GATES_REGISTRY[mineral] : undefined;
   if (!g) return { source: 'surface-energy', value: 0, reason: `no gates for ${mineral}` };
   switch (g.surface_energy) {
     case 'very_low': return { source: 'surface-energy', value: +2, reason: 'γ very low (opal-class)' };
@@ -177,15 +174,14 @@ function surfaceEnergyInitiativeModifier(mineral: string): InitiativeModifier {
 //   2+ competitors: -2 (dense-suite penalty)
 
 function competitionInitiativeModifier(mineral: string, activeMinerals: string[]): InitiativeModifier {
-  const stoich = (globalThis as any).MINERAL_STOICHIOMETRY as Record<string, Record<string, number>> | undefined;
-  if (!stoich) return { source: 'competition', value: 0, reason: 'no stoichiometry table' };
-  const mine = stoich[mineral];
+  if (typeof MINERAL_STOICHIOMETRY === 'undefined') return { source: 'competition', value: 0, reason: 'no stoichiometry table' };
+  const mine = MINERAL_STOICHIOMETRY[mineral];
   if (!mine) return { source: 'competition', value: 0, reason: `no stoichiometry for ${mineral}` };
   const myCations = Object.keys(mine);
   const competitors = new Set<string>();
   for (const other of activeMinerals) {
     if (other === mineral) continue;
-    const otherStoich = stoich[other];
+    const otherStoich = MINERAL_STOICHIOMETRY[other];
     if (!otherStoich) continue;
     for (const c of myCations) {
       if (otherStoich[c] !== undefined) {
@@ -206,9 +202,8 @@ function competitionInitiativeModifier(mineral: string, activeMinerals: string[]
 // it grows, not who else is firing now. Cap at -2.
 
 function cascadeRippleInitiativeModifier(mineral: string): InitiativeModifier {
-  const stoich = (globalThis as any).MINERAL_STOICHIOMETRY as Record<string, Record<string, number>> | undefined;
-  if (!stoich) return { source: 'cascade-ripple', value: 0, reason: 'no stoichiometry table' };
-  const mine = stoich[mineral];
+  if (typeof MINERAL_STOICHIOMETRY === 'undefined') return { source: 'cascade-ripple', value: 0, reason: 'no stoichiometry table' };
+  const mine = MINERAL_STOICHIOMETRY[mineral];
   if (!mine) return { source: 'cascade-ripple', value: 0, reason: `no stoichiometry for ${mineral}` };
   const n = Object.keys(mine).length;
   if (n <= 1) return { source: 'cascade-ripple', value: 0, reason: '1-cation: no ripple' };

@@ -216,8 +216,8 @@ describe('buildCrystalDryRun', () => {
 });
 
 describe('graduated competition tuning constants exposed for sweeps', () => {
-  it('GRADUATED_COMPETITION_ENABLED defaults to false (v128a)', () => {
-    expect((globalThis as any).GRADUATED_COMPETITION_ENABLED).toBe(false);
+  it('GRADUATED_COMPETITION_ENABLED is on as of v128c', () => {
+    expect((globalThis as any).GRADUATED_COMPETITION_ENABLED).toBe(true);
   });
 
   it('GRADUATED_GAP_THRESHOLD defaults to 3', () => {
