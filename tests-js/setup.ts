@@ -280,6 +280,10 @@ const EXPORTS = [
   // iconic twin). Two octahedra sharing a {111} triangular face — the
   // classic contact twin documented in Ramdohr 1980 + Boyle 1968.
   'PRIM_GALENA_OCTAHEDRON_TWIN',
+  // 2026-05-22 aragonite cyclic-sextet pseudo-hex twin (v134 fourth
+  // iconic twin). Three tabular orthorhombic prisms at 60° around the
+  // c-axis, interpenetrating to form pseudo-hexagonal column.
+  'PRIM_ARAGONITE_PSEUDOHEX_TWIN',
   '_lookupCrystalPrimitive',
   // Phase 4a redox infrastructure (20c-chemistry-redox.ts).
   'EH_DYNAMIC_ENABLED',

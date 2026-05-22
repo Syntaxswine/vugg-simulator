@@ -52399,6 +52399,80 @@ const PRIM_GALENA_OCTAHEDRON_TWIN = {
         return [...octEdges(0), ...octEdges(6)];
     })(),
 };
+// v134 (2026-05-22): aragonite pseudo-hex sextet primitive. Three
+// tabular orthorhombic prisms at 60° spacing around the c-axis,
+// interpenetrating to produce a pseudo-hexagonal column (Dana 8th
+// ed. CaCO3 section; Strunz 9th ed. 5.AB.15; Speer 1983 "Aragonite"
+// in Reviews in Mineralogy v.11). Aragonite's {110} angle is ~116°
+// — close enough to 120° that 3 crystals at 60° rotation produce
+// a pseudo-hex envelope with subtle edge offsets along the contact
+// planes.
+//
+// Why 3 crystals = "sextet": each tabular crystal contributes 2
+// {110}-type faces (one on each side of its broad face), so 3
+// crystals × 2 = 6 visible faces around the column. The "sextet"
+// (or "sixling") terminology refers to the 6 outer faces, not
+// 6 separate crystals.
+//
+// v133 added the cyclic_sextet twin_law to data/minerals.json with
+// probability 0.40 — about 40% of aragonite nucleations get
+// crystal.twinned = true + crystal.twin_law = 'cyclic_sextet'.
+//
+// Geometry: 24 vertices (8 per prism × 3 prisms), 36 edges (12 per
+// prism × 3). Each prism is a tabular rectangle: half-thickness
+// 'a' (perpendicular to broad face), full length L along the
+// vertical c-axis, half-width 'b' (parallel to broad face direction).
+// Tabular ratio a:b ≈ 1:3 — broad-faced.
+//
+// Anchoring: base at y=-0.1 (PRIM_CUBE wall convention), top at
+// y=1.0 — gives a tall vertical column with the trilling axis +Y.
+const PRIM_ARAGONITE_PSEUDOHEX_TWIN = {
+    name: 'aragonite_pseudohex_twin',
+    vertices: (() => {
+        const a = 0.10; // half-thickness (perp to broad face)
+        const b = 0.30; // half-width (parallel to broad face dir)
+        const yMin = -0.1;
+        const yMax = 1.0;
+        const vs = [];
+        // Three prisms at θ = 0°, 60°, 120° around y-axis. Each prism's
+        // local frame: xl is the "thin" direction (perpendicular to broad
+        // face), zl is the "wide" direction (parallel to broad face).
+        // After rotation by θ around y-axis, each prism's broad-face
+        // normal lies in the XZ plane at angle θ from +X.
+        for (let k = 0; k < 3; k++) {
+            const theta = k * Math.PI / 3; // 60° spacing
+            const cT = Math.cos(theta);
+            const sT = Math.sin(theta);
+            // 8 corners per prism, ordered (xl ∈ {-a, +a}) × (yl ∈ {yMin,
+            // yMax}) × (zl ∈ {-b, +b}) to match the cube-edge topology
+            // already used by fluorite-twin and swallowtail.
+            for (const xl of [-a, a]) {
+                for (const yl of [yMin, yMax]) {
+                    for (const zl of [-b, b]) {
+                        const wx = xl * cT - zl * sT;
+                        const wz = xl * sT + zl * cT;
+                        vs.push([wx, yl, wz]);
+                    }
+                }
+            }
+        }
+        return vs;
+    })(),
+    edges: (() => {
+        // 12 edges per prism, same topology as a box. Three prisms × 12
+        // = 36 edges total. No cross-prism edges — the visual contact
+        // lines emerge from edge intersections during rendering.
+        const prismEdges = (off) => [
+            // zl-edges (xl, yl fixed; zl varies):
+            [off + 0, off + 1], [off + 2, off + 3], [off + 4, off + 5], [off + 6, off + 7],
+            // yl-edges (xl, zl fixed; yl varies):
+            [off + 0, off + 2], [off + 1, off + 3], [off + 4, off + 6], [off + 5, off + 7],
+            // xl-edges (yl, zl fixed; xl varies):
+            [off + 0, off + 4], [off + 1, off + 5], [off + 2, off + 6], [off + 3, off + 7],
+        ];
+        return [...prismEdges(0), ...prismEdges(8), ...prismEdges(16)];
+    })(),
+};
 // Habit string → primitive lookup. Direct hits checked first; the
 // fuzzy-substring fallback in _lookupCrystalPrimitive catches the
 // many compound forms in data/minerals.json (e.g. "rhombohedral_or_
@@ -52588,13 +52662,14 @@ function _lookupCrystalPrimitive(crystal) {
     // cavity is still a twin, not a dripstone (twins don't drip).
     //
     // Iconic twins shipped so far:
-    //   fluorite penetration   {111}  — two cubes rotated 60° around body diagonal
-    //   selenite swallowtail   {100}  — two tabular blades opening in V (60°)
-    //   galena spinel-law      {111}  — two octahedra sharing a triangular face
+    //   fluorite penetration    {111}  — two cubes rotated 60° around body diagonal
+    //   selenite swallowtail    {100}  — two tabular blades opening in V (60°)
+    //   galena spinel-law       {111}  — two octahedra sharing a triangular face
+    //   aragonite cyclic-sextet {110}  — 3 prisms at 60° forming pseudo-hex column
     //
     // Future twin primitives (data side already complete in v133):
-    //   marcasite cockscomb, cerussite trilling, pyrite iron-cross,
-    //   aragonite pseudo-hex
+    //   cerussite sixling (stellate version of aragonite cyclic),
+    //   marcasite cockscomb, pyrite iron-cross
     if (crystal.mineral === 'fluorite' && crystal.twinned
         && crystal.twin_law === 'penetration') {
         return PRIM_FLUORITE_PENETRATION_TWIN;
@@ -52606,6 +52681,10 @@ function _lookupCrystalPrimitive(crystal) {
     if (crystal.mineral === 'galena' && crystal.twinned
         && crystal.twin_law === 'spinel_law') {
         return PRIM_GALENA_OCTAHEDRON_TWIN;
+    }
+    if (crystal.mineral === 'aragonite' && crystal.twinned
+        && crystal.twin_law === 'cyclic_sextet') {
+        return PRIM_ARAGONITE_PSEUDOHEX_TWIN;
     }
     // v24 air-mode override — crystals nucleated in vadose rings get
     // dripstone geometry instead of their canonical habit primitive,
@@ -55291,6 +55370,7 @@ const _GEOM_TOKEN_RATIO = {
     selenite_swallowtail_twin: 1.5, // tabular blades — c > a like 'tablet' family
     octahedron: 1.0,
     galena_octahedron_twin: 1.0, // two octahedra sharing a face — isometric
+    aragonite_pseudohex_twin: 0.6, // tall pseudo-hex column — c > a, prism family
     rhombic_dodec: 1.0,
     dodecahedron: 1.0,
     snowball: 1.0,
@@ -55336,6 +55416,10 @@ function _resolveCrystalGeomToken(crystal, habitForGeom) {
     if (crystal && crystal.mineral === 'galena' && crystal.twinned
         && crystal.twin_law === 'spinel_law') {
         return 'galena_octahedron_twin';
+    }
+    if (crystal && crystal.mineral === 'aragonite' && crystal.twinned
+        && crystal.twin_law === 'cyclic_sextet') {
+        return 'aragonite_pseudohex_twin';
     }
     const canonical = _habitGeomToken(habitForGeom);
     if (crystal && crystal.growth_environment === 'air'
@@ -55967,6 +56051,77 @@ function _makeGalenaOctahedronTwin() {
     geom.computeVertexNormals();
     return geom;
 }
+// Aragonite pseudo-hex sextet — three tabular orthorhombic prisms at
+// 60° rotation around the c-axis (+Y), interpenetrating to produce a
+// pseudo-hexagonal column (Dana 8th ed. CaCO3 section; Speer 1983
+// "Aragonite" Reviews in Mineralogy v.11). Mirrors
+// PRIM_ARAGONITE_PSEUDOHEX_TWIN in 99c-renderer-primitives.ts for
+// cross-renderer parity. v133's twin_laws[].probability=0.40 means
+// ~40% of aragonite crystals carry crystal.twinned=true +
+// crystal.twin_law='cyclic_sextet'.
+//
+// Math: each prism is a tabular box with half-thickness a=0.10 and
+// half-width b=0.30 in its local (xl, zl) frame. Long axis +Y from
+// y=-L to y=+L (L=0.5 for the 99i convention centered at origin).
+// Prism k is rotated by k·60° around the y-axis:
+//   wx = xl·cos(θ_k) - zl·sin(θ_k)
+//   wz = xl·sin(θ_k) + zl·cos(θ_k)
+// for θ_k = k·π/3, k ∈ {0, 1, 2}.
+//
+// Why 3 crystals = "sextet": each tabular crystal contributes 2
+// {110}-type broad faces (one on each side), so 3 crystals × 2 = 6
+// visible faces around the column. The "sextet" terminology counts
+// faces, not crystals.
+//
+// Flat-shaded: 6 box faces × 2 triangles × 3 prisms = 36 triangles,
+// 108 vertex triples in the position attribute (324 floats).
+function _makeAragonitePseudohexTwin() {
+    const a = 0.10; // half-thickness (perp to broad face)
+    const b = 0.30; // half-width (parallel to broad face)
+    const L = 0.5; // half-length along c-axis (centered at origin)
+    const positions = [];
+    // Build each prism's 8 corners then emit 6 box faces as 12
+    // flat-shaded triangles. Same face-winding pattern as the
+    // fluorite-twin / swallowtail builders.
+    const pushPrism = (theta) => {
+        const cT = Math.cos(theta);
+        const sT = Math.sin(theta);
+        // 8 corners in (xl, yl, zl) loop order — xl ∈ {-a, +a},
+        // yl ∈ {-L, +L}, zl ∈ {-b, +b}. Same indexing as the cube helper
+        // in _makeFluoritePenetrationTwin so the face-winding rule
+        // transfers directly.
+        const v = [];
+        for (const xl of [-a, a]) {
+            for (const yl of [-L, L]) {
+                for (const zl of [-b, b]) {
+                    v.push([xl * cT - zl * sT, yl, xl * sT + zl * cT]);
+                }
+            }
+        }
+        const tri = (i, j, k) => {
+            _pushTri(positions, v[i][0], v[i][1], v[i][2], v[j][0], v[j][1], v[j][2], v[k][0], v[k][1], v[k][2]);
+        };
+        tri(0, 1, 3);
+        tri(0, 3, 2); // xl = -a face
+        tri(4, 6, 7);
+        tri(4, 7, 5); // xl = +a face
+        tri(0, 4, 5);
+        tri(0, 5, 1); // yl = -L face (bottom)
+        tri(2, 3, 7);
+        tri(2, 7, 6); // yl = +L face (top)
+        tri(0, 2, 6);
+        tri(0, 6, 4); // zl = -b face
+        tri(1, 5, 7);
+        tri(1, 7, 3); // zl = +b face
+    };
+    for (let k = 0; k < 3; k++) {
+        pushPrism(k * Math.PI / 3);
+    }
+    const geom = new THREE.BufferGeometry();
+    geom.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+    geom.computeVertexNormals();
+    return geom;
+}
 // Build a unit-sized geometry for a given habit token, oriented so
 // its long axis (= c-axis) lies along +Y. The instance transform
 // later places the base at the wall and scales by c_length / a_width.
@@ -56014,6 +56169,12 @@ function _buildHabitGeom(token) {
             // 1968). Dispatch gated on mineral='galena' + twinned +
             // twin_law='spinel_law'.
             return _makeGalenaOctahedronTwin();
+        case 'aragonite_pseudohex_twin':
+            // v134 (2026-05-22) — fourth iconic twin. Three tabular
+            // orthorhombic prisms at 60° rotation around c-axis, producing
+            // pseudo-hex column. Dispatch gated on mineral='aragonite' +
+            // twinned + twin_law='cyclic_sextet'.
+            return _makeAragonitePseudohexTwin();
         case 'octahedron':
             return new THREE.OctahedronGeometry(0.55, 0);
         case 'snowball':

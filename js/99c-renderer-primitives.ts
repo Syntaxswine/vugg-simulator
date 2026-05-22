@@ -636,6 +636,81 @@ const PRIM_GALENA_OCTAHEDRON_TWIN = {
   })(),
 };
 
+// v134 (2026-05-22): aragonite pseudo-hex sextet primitive. Three
+// tabular orthorhombic prisms at 60° spacing around the c-axis,
+// interpenetrating to produce a pseudo-hexagonal column (Dana 8th
+// ed. CaCO3 section; Strunz 9th ed. 5.AB.15; Speer 1983 "Aragonite"
+// in Reviews in Mineralogy v.11). Aragonite's {110} angle is ~116°
+// — close enough to 120° that 3 crystals at 60° rotation produce
+// a pseudo-hex envelope with subtle edge offsets along the contact
+// planes.
+//
+// Why 3 crystals = "sextet": each tabular crystal contributes 2
+// {110}-type faces (one on each side of its broad face), so 3
+// crystals × 2 = 6 visible faces around the column. The "sextet"
+// (or "sixling") terminology refers to the 6 outer faces, not
+// 6 separate crystals.
+//
+// v133 added the cyclic_sextet twin_law to data/minerals.json with
+// probability 0.40 — about 40% of aragonite nucleations get
+// crystal.twinned = true + crystal.twin_law = 'cyclic_sextet'.
+//
+// Geometry: 24 vertices (8 per prism × 3 prisms), 36 edges (12 per
+// prism × 3). Each prism is a tabular rectangle: half-thickness
+// 'a' (perpendicular to broad face), full length L along the
+// vertical c-axis, half-width 'b' (parallel to broad face direction).
+// Tabular ratio a:b ≈ 1:3 — broad-faced.
+//
+// Anchoring: base at y=-0.1 (PRIM_CUBE wall convention), top at
+// y=1.0 — gives a tall vertical column with the trilling axis +Y.
+const PRIM_ARAGONITE_PSEUDOHEX_TWIN = {
+  name: 'aragonite_pseudohex_twin',
+  vertices: (() => {
+    const a = 0.10;          // half-thickness (perp to broad face)
+    const b = 0.30;          // half-width (parallel to broad face dir)
+    const yMin = -0.1;
+    const yMax = 1.0;
+    const vs: number[][] = [];
+    // Three prisms at θ = 0°, 60°, 120° around y-axis. Each prism's
+    // local frame: xl is the "thin" direction (perpendicular to broad
+    // face), zl is the "wide" direction (parallel to broad face).
+    // After rotation by θ around y-axis, each prism's broad-face
+    // normal lies in the XZ plane at angle θ from +X.
+    for (let k = 0; k < 3; k++) {
+      const theta = k * Math.PI / 3;  // 60° spacing
+      const cT = Math.cos(theta);
+      const sT = Math.sin(theta);
+      // 8 corners per prism, ordered (xl ∈ {-a, +a}) × (yl ∈ {yMin,
+      // yMax}) × (zl ∈ {-b, +b}) to match the cube-edge topology
+      // already used by fluorite-twin and swallowtail.
+      for (const xl of [-a, a]) {
+        for (const yl of [yMin, yMax]) {
+          for (const zl of [-b, b]) {
+            const wx = xl * cT - zl * sT;
+            const wz = xl * sT + zl * cT;
+            vs.push([wx, yl, wz]);
+          }
+        }
+      }
+    }
+    return vs;
+  })(),
+  edges: (() => {
+    // 12 edges per prism, same topology as a box. Three prisms × 12
+    // = 36 edges total. No cross-prism edges — the visual contact
+    // lines emerge from edge intersections during rendering.
+    const prismEdges = (off: number) => [
+      // zl-edges (xl, yl fixed; zl varies):
+      [off + 0, off + 1], [off + 2, off + 3], [off + 4, off + 5], [off + 6, off + 7],
+      // yl-edges (xl, zl fixed; yl varies):
+      [off + 0, off + 2], [off + 1, off + 3], [off + 4, off + 6], [off + 5, off + 7],
+      // xl-edges (yl, zl fixed; xl varies):
+      [off + 0, off + 4], [off + 1, off + 5], [off + 2, off + 6], [off + 3, off + 7],
+    ];
+    return [...prismEdges(0), ...prismEdges(8), ...prismEdges(16)];
+  })(),
+};
+
 // Habit string → primitive lookup. Direct hits checked first; the
 // fuzzy-substring fallback in _lookupCrystalPrimitive catches the
 // many compound forms in data/minerals.json (e.g. "rhombohedral_or_
