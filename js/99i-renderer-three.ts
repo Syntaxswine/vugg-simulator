@@ -526,6 +526,7 @@ const _GEOM_TOKEN_RATIO: Record<string, number> = {
   octahedron: 1.0,
   galena_octahedron_twin: 1.0,  // two octahedra sharing a face — isometric
   aragonite_pseudohex_twin: 0.6,  // tall pseudo-hex column — c > a, prism family
+  cerussite_sixling_twin: 1.8,  // flat stellate — wider than tall, like botryoidal crusts
   rhombic_dodec: 1.0,
   dodecahedron: 1.0,
   snowball: 1.0,
@@ -577,6 +578,10 @@ function _resolveCrystalGeomToken(crystal: any, habitForGeom: string): string {
   if (crystal && crystal.mineral === 'aragonite' && crystal.twinned
       && crystal.twin_law === 'cyclic_sextet') {
     return 'aragonite_pseudohex_twin';
+  }
+  if (crystal && crystal.mineral === 'cerussite' && crystal.twinned
+      && crystal.twin_law === 'cyclic_sixling') {
+    return 'cerussite_sixling_twin';
   }
   const canonical = _habitGeomToken(habitForGeom);
   if (crystal && crystal.growth_environment === 'air'
@@ -1276,6 +1281,63 @@ function _makeAragonitePseudohexTwin(): any {
   return geom;
 }
 
+// Cerussite stellate-sixling — the flat-star counterpart to the
+// aragonite pseudo-hex column. Three thin blades lying in the wall
+// plane (XZ), each rotated 60° from the next around y-axis. Each
+// blade extends through origin in both radial directions, so 3
+// blades × 2 arms = 6 arms (the "sixling" of the law name).
+// Documented in Dana 8th ed. PbCO3 section; Heinrich & Vian 1967
+// reported stellate trillings as the dominant cerussite twin habit
+// in MVT districts. Mirrors PRIM_CERUSSITE_SIXLING_TWIN in
+// 99c-renderer-primitives.ts. v133 set the probability to 0.40.
+//
+// Math: each blade in its local frame has xl as the long axis
+// (radial after rotation), yl as the thin wall-perpendicular
+// dimension, zl as the thin tangential dimension. Rotation by
+// θ_k = k · 60° around the y-axis spreads the blades in the wall
+// plane.
+//
+// Flat-shaded: 6 box faces × 2 triangles × 3 blades = 36 triangles,
+// 108 vertex triples (matches the aragonite twin's vertex count;
+// the math is parallel, just with different axis convention).
+function _makeCerussiteSixlingTwin(): any {
+  const c_long = 0.5;        // radial half-length (long axis in XZ)
+  const b_tan = 0.08;        // tangential half-width (narrow)
+  const thin_y = 0.05;       // half-thickness in Y (very thin — flat on wall)
+  const positions: number[] = [];
+  const pushBlade = (theta: number): void => {
+    const cT = Math.cos(theta);
+    const sT = Math.sin(theta);
+    const v: number[][] = [];
+    // 8 corners in (xl, yl, zl) loop order — same indexing as the
+    // aragonite twin's pushPrism helper. Difference: here xl is the
+    // long axis (the radial direction in XZ), not the thin direction.
+    for (const xl of [-c_long, c_long]) {
+      for (const yl of [-thin_y, thin_y]) {
+        for (const zl of [-b_tan, b_tan]) {
+          v.push([xl * cT - zl * sT, yl, xl * sT + zl * cT]);
+        }
+      }
+    }
+    const tri = (i: number, j: number, k: number) => {
+      _pushTri(positions, v[i][0], v[i][1], v[i][2], v[j][0], v[j][1], v[j][2], v[k][0], v[k][1], v[k][2]);
+    };
+    tri(0, 1, 3); tri(0, 3, 2);  // xl = -c face (outer arm 1 endcap)
+    tri(4, 6, 7); tri(4, 7, 5);  // xl = +c face (outer arm 2 endcap)
+    tri(0, 4, 5); tri(0, 5, 1);  // yl = -thin face (bottom against wall)
+    tri(2, 3, 7); tri(2, 7, 6);  // yl = +thin face (top, facing into cavity)
+    tri(0, 2, 6); tri(0, 6, 4);  // zl = -b face (tangential side 1)
+    tri(1, 5, 7); tri(1, 7, 3);  // zl = +b face (tangential side 2)
+  };
+  for (let k = 0; k < 3; k++) {
+    pushBlade(k * Math.PI / 3);
+  }
+  const geom = new THREE.BufferGeometry();
+  geom.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+  geom.computeVertexNormals();
+  return geom;
+}
+
 // Build a unit-sized geometry for a given habit token, oriented so
 // its long axis (= c-axis) lies along +Y. The instance transform
 // later places the base at the wall and scales by c_length / a_width.
@@ -1329,6 +1391,13 @@ function _buildHabitGeom(token: string): any {
       // pseudo-hex column. Dispatch gated on mineral='aragonite' +
       // twinned + twin_law='cyclic_sextet'.
       return _makeAragonitePseudohexTwin();
+    case 'cerussite_sixling_twin':
+      // v134 (2026-05-22) — fifth iconic twin. The flat-star (stellate)
+      // counterpart to aragonite's vertical pseudo-hex column: 3 thin
+      // blades in the wall plane (XZ), each rotated 60° → 6 visible
+      // arms. Dispatch gated on mineral='cerussite' + twinned +
+      // twin_law='cyclic_sixling'.
+      return _makeCerussiteSixlingTwin();
     case 'octahedron':
       return new THREE.OctahedronGeometry(0.55, 0);
     case 'snowball':

@@ -284,6 +284,10 @@ const EXPORTS = [
   // iconic twin). Three tabular orthorhombic prisms at 60° around the
   // c-axis, interpenetrating to form pseudo-hexagonal column.
   'PRIM_ARAGONITE_PSEUDOHEX_TWIN',
+  // 2026-05-22 cerussite stellate-sixling twin (v134 fifth iconic twin).
+  // Flat-star counterpart to aragonite — 3 thin blades in the wall plane
+  // (XZ), each rotated 60° → 6 visible arms.
+  'PRIM_CERUSSITE_SIXLING_TWIN',
   '_lookupCrystalPrimitive',
   // Phase 4a redox infrastructure (20c-chemistry-redox.ts).
   'EH_DYNAMIC_ENABLED',

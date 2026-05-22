@@ -711,6 +711,73 @@ const PRIM_ARAGONITE_PSEUDOHEX_TWIN = {
   })(),
 };
 
+// v134 (2026-05-22): cerussite stellate-sixling primitive. Same cyclic-
+// trilling math as aragonite, but with each blade lying FLAT in the
+// wall plane (XZ) rather than standing as a vertical column (along Y).
+// The result is a 6-pointed star morphology — 3 horizontal blades
+// rotated 60° from each other, each extending through origin in both
+// directions so each blade contributes 2 visible arms (3 × 2 = 6
+// arms, the "sixling" naming). Documented in Dana 8th ed. PbCO3
+// section; Heinrich & Vian 1967 (American Mineralogist v.52, p.1747)
+// "Cerussite from MVT districts" report stellate trilling as the
+// dominant twin habit. v133 set cyclic_sixling probability to 0.40.
+//
+// Geometry vs. aragonite pseudo-hex twin:
+//   - Aragonite (vertical column):  each blade's long axis = +Y
+//   - Cerussite (flat star):        each blade's long axis = XZ plane
+//
+// Concretely: each blade is a thin elongated box where xl (the local
+// "long" axis) becomes the radial direction after rotation around Y,
+// yl is the thin wall-perpendicular dimension, and zl is the tangential
+// width (also thin). The whole assembly lies in the wall plane (slim
+// in Y, broad in XZ).
+//
+// Anchoring: yl spans [-0.1, 0.0] — just 0.1 thick, sitting flush
+// with the PRIM_CUBE wall convention (base at y=-0.1). The radial
+// extent c=0.55 matches the wireframe primitive envelope.
+const PRIM_CERUSSITE_SIXLING_TWIN = {
+  name: 'cerussite_sixling_twin',
+  vertices: (() => {
+    const c_long = 0.55;     // radial half-length (the blade's long extent)
+    const b_tan = 0.08;      // tangential half-width (narrow blade)
+    const yMin = -0.1;       // bottom at PRIM_CUBE wall
+    const yMax = 0.0;        // top slightly above wall (Y is thin direction)
+    const vs: number[][] = [];
+    // Three blades at θ_k = k · 60° (k = 0, 1, 2) — 60° spacing makes
+    // the 6 visible arms (each blade extends through origin in ±xl,
+    // contributing 2 arms 180° apart, so 3 blades × 2 arms = 6 arms).
+    // 120° spacing would give a 3-arm propeller; 60° gives the
+    // 6-pointed star.
+    for (let k = 0; k < 3; k++) {
+      const theta = k * Math.PI / 3;
+      const cT = Math.cos(theta);
+      const sT = Math.sin(theta);
+      // 8 corners ordered (xl, yl, zl) — same cube-edge topology as
+      // every other twin primitive in this file. xl is the LONG axis
+      // (radial after rotation), yl is thin (wall-perpendicular), zl
+      // is tangential (also thin).
+      for (const xl of [-c_long, c_long]) {
+        for (const yl of [yMin, yMax]) {
+          for (const zl of [-b_tan, b_tan]) {
+            const wx = xl * cT - zl * sT;
+            const wz = xl * sT + zl * cT;
+            vs.push([wx, yl, wz]);
+          }
+        }
+      }
+    }
+    return vs;
+  })(),
+  edges: (() => {
+    const bladeEdges = (off: number) => [
+      [off + 0, off + 1], [off + 2, off + 3], [off + 4, off + 5], [off + 6, off + 7],
+      [off + 0, off + 2], [off + 1, off + 3], [off + 4, off + 6], [off + 5, off + 7],
+      [off + 0, off + 4], [off + 1, off + 5], [off + 2, off + 6], [off + 3, off + 7],
+    ];
+    return [...bladeEdges(0), ...bladeEdges(8), ...bladeEdges(16)];
+  })(),
+};
+
 // Habit string → primitive lookup. Direct hits checked first; the
 // fuzzy-substring fallback in _lookupCrystalPrimitive catches the
 // many compound forms in data/minerals.json (e.g. "rhombohedral_or_

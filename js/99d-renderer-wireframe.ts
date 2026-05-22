@@ -48,6 +48,10 @@ function _lookupCrystalPrimitive(crystal) {
       && crystal.twin_law === 'cyclic_sextet') {
     return PRIM_ARAGONITE_PSEUDOHEX_TWIN;
   }
+  if (crystal.mineral === 'cerussite' && crystal.twinned
+      && crystal.twin_law === 'cyclic_sixling') {
+    return PRIM_CERUSSITE_SIXLING_TWIN;
+  }
   // v24 air-mode override — crystals nucleated in vadose rings get
   // dripstone geometry instead of their canonical habit primitive,
   // when the canonical primitive is structurally compatible with a
