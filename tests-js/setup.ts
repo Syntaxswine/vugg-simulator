@@ -212,6 +212,14 @@ const EXPORTS = [
   'GRADUATED_GAP_THRESHOLD',
   'GRADUATED_POWER_LAW_K',
   'GRADUATED_WINNER_TAKES_FRAC',
+  // Setter functions for the closure-scoped tuning constants. Tests
+  // that need to flip the flag mid-run must call setGraduatedCompetitionEnabled(...)
+  // not assign to globalThis — the bundle's `let` bindings live inside
+  // the IIFE and globalThis writes don't reach them.
+  'setGraduatedCompetitionEnabled',
+  'setGraduatedGapThreshold',
+  'setGraduatedPowerLawK',
+  'setGraduatedWinnerTakesFrac',
   'computeGraduatedAllocations',
   'buildCrystalDryRun',
   // MASS_BALANCE_SCALE is referenced by buildCrystalDryRun lookup.

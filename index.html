@@ -23218,6 +23218,23 @@ let GRADUATED_COMPETITION_ENABLED = false; // OFF in v128a (byte-identical to v1
 let GRADUATED_GAP_THRESHOLD = 3; // initiative units; above this, winner-takes-most
 let GRADUATED_POWER_LAW_K = 2; // exponent for proportional regime
 let GRADUATED_WINNER_TAKES_FRAC = 0.8; // top initiative's share when gap > threshold
+// Setter functions — the bundle wraps top-level `let`/`const` in a
+// closure, so external callers (tests, DevTools, calibration sweeps)
+// cannot mutate the bindings directly. These setters keep the bundle's
+// internal references in sync. Mirrors the setSeed epilogue in
+// tests-js/setup.ts.
+function setGraduatedCompetitionEnabled(v) {
+    GRADUATED_COMPETITION_ENABLED = !!v;
+}
+function setGraduatedGapThreshold(v) {
+    GRADUATED_GAP_THRESHOLD = +v;
+}
+function setGraduatedPowerLawK(v) {
+    GRADUATED_POWER_LAW_K = +v;
+}
+function setGraduatedWinnerTakesFrac(v) {
+    GRADUATED_WINNER_TAKES_FRAC = +v;
+}
 // ---- Per-species share computation ----
 //
 // Given the list of CrystalDryRuns wanting a single species `sp`, and
@@ -35993,6 +36010,23 @@ class VugSimulator {
             this.log.push(sealMsg);
         }
         this.check_nucleation(vugFill);
+        // v128 graduated competition: pre-compute per-crystal scaled zones
+        // BEFORE the growth loop runs. The pre-computation does a dry-run
+        // pass through every active crystal's engine using the per-cell
+        // fluid SNAPSHOT, then rations against demand per species.
+        //
+        // When GRADUATED_COMPETITION_ENABLED is false (v128a/v128b ship
+        // state) this is a no-op — the growth loop runs the engine
+        // directly via _runEngineForCrystal, exactly as v127 did.
+        //
+        // When the flag flips on (v128c) the growth loop reads pre-computed
+        // zones from this._graduatedZones rather than re-calling the
+        // engine. The byte-identical guarantee depends on the flag being
+        // false here.
+        this._graduatedZones = null;
+        if (GRADUATED_COMPETITION_ENABLED) {
+            this._graduatedZones = this._computeGraduatedZones();
+        }
         let currentFill = vugFill; // Track fill dynamically during growth loop
         for (const crystal of this.crystals) {
             if (!crystal.active)
@@ -36045,7 +36079,27 @@ class VugSimulator {
             const engine = MINERAL_ENGINES[crystal.mineral];
             if (!engine)
                 continue;
-            const zone = this._runEngineForCrystal(engine, crystal);
+            // v128 graduated competition: consume the pre-computed scaled zone
+            // when present, applying mass balance against the cell fluid that
+            // the dry-run originally read. Otherwise fall through to the
+            // single-pass engine call (v127 behavior).
+            //
+            // The graduated path skips the engine in pass 2 BECAUSE the
+            // engine would now see a fluid that's been mutated by prior
+            // crystals' rationed mass-balance debits — re-running it would
+            // re-introduce the cascade-displacement the algorithm is designed
+            // to prevent. Instead, we trust the dry-run zone (computed
+            // against a clean snapshot), scaled by the per-crystal allocation.
+            let zone;
+            if (this._graduatedZones && this._graduatedZones.has(crystal.crystal_id)) {
+                zone = this._graduatedZones.get(crystal.crystal_id);
+                if (zone && typeof zone.thickness_um === 'number') {
+                    this._applyZoneMassBalance(crystal, zone);
+                }
+            }
+            else {
+                zone = this._runEngineForCrystal(engine, crystal);
+            }
             if (zone) {
                 // Proposal A — apply fill dampener to positive zone thickness
                 // (growth). check_nucleation stashed this._fillDampener for the
@@ -37702,6 +37756,239 @@ Object.assign(VugSimulator.prototype, {
                 return k;
         }
         return n - 1;
+    },
+    // ============================================================
+    // v128 graduated-competition support
+    // ============================================================
+    // _dryRunEngineForCrystal — same per-cell swap as _runEngineForCrystal,
+    // but DOES NOT call applyMassBalance. The engine reads cell.fluid +
+    // cell.temperature; the returned zone is the "desired" growth that
+    // would happen at zero competition. Used by _computeGraduatedZones
+    // during pass 1.
+    //
+    // IMPORTANT: like _runEngineForCrystal, this temporarily swaps
+    // conditions.fluid / .temperature for the per-cell view. The engine
+    // may dereference fluid fields; we don't mutate the cell fluid
+    // because mass balance is the only mutation path and we skip it.
+    //
+    // Returns the engine's zone (or null). Callers should not treat the
+    // returned zone as mutable shared state — it's a fresh object per
+    // crystal per call.
+    _dryRunEngineForCrystal(engine, crystal) {
+        const anchor = this.wall_state._resolveAnchor(crystal);
+        const ringIdx = anchor ? anchor.ringIdx : null;
+        let savedFluid = null;
+        let savedTemp = null;
+        if (ringIdx != null && ringIdx >= 0 && ringIdx < this.ring_fluids.length) {
+            savedFluid = this.conditions.fluid;
+            savedTemp = this.conditions.temperature;
+            const mesh = this.wall_state.meshFor(this);
+            const cell = mesh.cellOf(crystal, this.wall_state);
+            this.conditions.fluid = (cell && cell.fluid)
+                ? cell.fluid
+                : this.ring_fluids[ringIdx];
+            this.conditions.temperature = this.ring_temperatures[ringIdx];
+        }
+        try {
+            return engine(crystal, this.conditions, this.step);
+        }
+        finally {
+            if (savedFluid != null) {
+                this.conditions.fluid = savedFluid;
+            }
+            if (savedTemp != null) {
+                this.ring_temperatures[ringIdx] = this.conditions.temperature;
+                this.conditions.temperature = savedTemp;
+            }
+        }
+    },
+    // _applyZoneMassBalance — apply mass balance for a pre-computed zone
+    // (one that came from _dryRunEngineForCrystal × graduated scaling).
+    // Mirrors the per-cell swap of _runEngineForCrystal so applyMassBalance
+    // hits cell.fluid, then restores.
+    //
+    // Returns the depletion list from applyMassBalance (or null).
+    _applyZoneMassBalance(crystal, zone) {
+        if (!zone)
+            return null;
+        const anchor = this.wall_state._resolveAnchor(crystal);
+        const ringIdx = anchor ? anchor.ringIdx : null;
+        let savedFluid = null;
+        let savedTemp = null;
+        if (ringIdx != null && ringIdx >= 0 && ringIdx < this.ring_fluids.length) {
+            savedFluid = this.conditions.fluid;
+            savedTemp = this.conditions.temperature;
+            const mesh = this.wall_state.meshFor(this);
+            const cell = mesh.cellOf(crystal, this.wall_state);
+            this.conditions.fluid = (cell && cell.fluid)
+                ? cell.fluid
+                : this.ring_fluids[ringIdx];
+            this.conditions.temperature = this.ring_temperatures[ringIdx];
+        }
+        try {
+            return applyMassBalance(crystal, zone, this.conditions);
+        }
+        finally {
+            if (savedFluid != null) {
+                this.conditions.fluid = savedFluid;
+            }
+            if (savedTemp != null) {
+                this.ring_temperatures[ringIdx] = this.conditions.temperature;
+                this.conditions.temperature = savedTemp;
+            }
+        }
+    },
+    // _computeGraduatedZones — pass 1 of v128 graduated competition.
+    //
+    // For each active crystal:
+    //   1. Run engine in dry-run mode (no mass balance) to get its desired
+    //      zone.thickness_um and σ
+    //   2. Compute its initiative score via js/43-initiative.ts
+    //   3. Group by per-cell anchor (with ring fallback)
+    //
+    // Then per-cell:
+    //   4. Run computeGraduatedAllocations against the cell's fluid
+    //   5. Scale each crystal's desired zone by its allocation factor
+    //
+    // Returns Map<crystal_id, scaledZone>. Crystals not in the map either
+    // produced no zone, had no positive thickness, or had no stoichiometry
+    // (they grow via the existing engine path).
+    //
+    // CALLED ONLY when GRADUATED_COMPETITION_ENABLED is true. The flag-off
+    // branch never invokes this — the existing growth loop runs unchanged.
+    _computeGraduatedZones() {
+        // cellKey → { fluid: <Record>, items: Array<{crystal, zone, sigma, initiative}> }
+        const cellGroups = new Map();
+        for (const crystal of this.crystals) {
+            if (!crystal.active)
+                continue;
+            const engine = MINERAL_ENGINES[crystal.mineral];
+            if (!engine)
+                continue;
+            // Dry-run the engine to get its desired zone.
+            const dryZone = this._dryRunEngineForCrystal(engine, crystal);
+            if (!dryZone)
+                continue;
+            if (typeof dryZone.thickness_um !== 'number' || dryZone.thickness_um <= 0)
+                continue;
+            // Identify the cell + fluid this crystal competes within.
+            const anchor = this.wall_state._resolveAnchor(crystal);
+            const ringIdx = anchor ? anchor.ringIdx : null;
+            let cellFluid = null;
+            let cellKey;
+            if (ringIdx != null && ringIdx >= 0 && ringIdx < this.ring_fluids.length) {
+                const mesh = this.wall_state.meshFor(this);
+                const cell = mesh.cellOf(crystal, this.wall_state);
+                cellFluid = (cell && cell.fluid) ? cell.fluid : this.ring_fluids[ringIdx];
+                cellKey = cell ? `cell:${cell.id ?? cell.idx ?? ringIdx + ':' + (cell.vertexIdx ?? '?')}` : `ring:${ringIdx}`;
+            }
+            else {
+                cellFluid = this.conditions.fluid;
+                cellKey = 'bulk';
+            }
+            // Compute σ for the initiative scoring. The dry-run zone doesn't
+            // carry σ explicitly, so we re-derive via the supersaturation method
+            // on the cell fluid + temperature.
+            let sigma = 0;
+            try {
+                const sigmaFn = this.conditions['supersaturation_' + crystal.mineral];
+                if (typeof sigmaFn === 'function') {
+                    // Need the per-cell swap context for σ too. Re-do the swap.
+                    const savedFluid = this.conditions.fluid;
+                    const savedTemp = this.conditions.temperature;
+                    this.conditions.fluid = cellFluid;
+                    this.conditions.temperature = ringIdx != null ? this.ring_temperatures[ringIdx] : savedTemp;
+                    try {
+                        sigma = sigmaFn.call(this.conditions);
+                    }
+                    finally {
+                        this.conditions.fluid = savedFluid;
+                        this.conditions.temperature = savedTemp;
+                    }
+                }
+            }
+            catch (_) {
+                sigma = 0;
+            }
+            if (typeof sigma !== 'number' || !Number.isFinite(sigma))
+                sigma = 0;
+            if (!cellGroups.has(cellKey)) {
+                cellGroups.set(cellKey, { fluid: cellFluid, items: [] });
+            }
+            cellGroups.get(cellKey).items.push({ crystal, zone: dryZone, sigma, initiative: 0 });
+        }
+        // Per-cell: compute initiatives + rationing.
+        const out = new Map();
+        for (const [cellKey, group] of cellGroups) {
+            const items = group.items;
+            if (items.length === 0)
+                continue;
+            // Compute initiative scores using js/43-initiative.ts. The active-
+            // minerals list is everyone in THIS cell with σ > 0 (the competition
+            // is intra-cell — different cells have independent fluid budgets).
+            const activeMinerals = items.map(it => it.crystal.mineral);
+            const sigmaByMineral = {};
+            for (const it of items) {
+                // If multiple crystals of the same mineral are in the cell, take
+                // the max σ — they share the same initiative score.
+                if ((sigmaByMineral[it.crystal.mineral] ?? 0) < it.sigma) {
+                    sigmaByMineral[it.crystal.mineral] = it.sigma;
+                }
+            }
+            // Per-mineral initiative (one score per mineral, shared by every
+            // crystal of that mineral in the cell).
+            const initiativeByMineral = {};
+            for (const mineral of Object.keys(sigmaByMineral)) {
+                const r = computeInitiative(mineral, sigmaByMineral[mineral], this.conditions, activeMinerals);
+                initiativeByMineral[mineral] = r.finalInitiative;
+            }
+            for (const it of items) {
+                it.initiative = initiativeByMineral[it.crystal.mineral] ?? 0;
+            }
+            // Build dry-run records. Crystals without stoichiometry skip
+            // graduated competition entirely (treated as full-growth).
+            const runs = [];
+            const noStoich = [];
+            for (const it of items) {
+                const r = buildCrystalDryRun(it.crystal.crystal_id, it.crystal.mineral, it.sigma, it.initiative, it.zone.thickness_um);
+                if (r)
+                    runs.push(r);
+                else
+                    noStoich.push(it);
+            }
+            // No-stoichiometry crystals get full-growth scaling (no rationing
+            // possible without knowing what they debit). The existing engine
+            // path would have given them full growth too, so this preserves
+            // behavior for them.
+            for (const it of noStoich) {
+                out.set(it.crystal.crystal_id, it.zone);
+            }
+            if (!runs.length)
+                continue;
+            const allocs = computeGraduatedAllocations(runs, group.fluid);
+            for (const it of items) {
+                if (noStoich.includes(it))
+                    continue;
+                const a = allocs.get(it.crystal.crystal_id);
+                const scaling = a ? a.scaling : 1.0;
+                if (scaling >= 1.0) {
+                    out.set(it.crystal.crystal_id, it.zone);
+                }
+                else if (scaling <= 0) {
+                    // Edge-of-gate skip — the crystal was rationed to zero. Log it
+                    // (proposal §3.1 step 7).
+                    this.log.push(`  ◌ ${capitalize(it.crystal.mineral)} #${it.crystal.crystal_id}: ` +
+                        `edge-of-gate skip — ${a?.why ?? 'rationed to 0'}`);
+                }
+                else {
+                    // Scale the dry-run zone. Clone to avoid sharing state.
+                    const scaled = Object.assign({}, it.zone);
+                    scaled.thickness_um = it.zone.thickness_um * scaling;
+                    out.set(it.crystal.crystal_id, scaled);
+                }
+            }
+        }
+        return out;
     },
 });
 

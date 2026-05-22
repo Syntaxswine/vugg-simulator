@@ -51,6 +51,25 @@ let GRADUATED_GAP_THRESHOLD       = 3;          // initiative units; above this,
 let GRADUATED_POWER_LAW_K         = 2;          // exponent for proportional regime
 let GRADUATED_WINNER_TAKES_FRAC   = 0.8;        // top initiative's share when gap > threshold
 
+// Setter functions — the bundle wraps top-level `let`/`const` in a
+// closure, so external callers (tests, DevTools, calibration sweeps)
+// cannot mutate the bindings directly. These setters keep the bundle's
+// internal references in sync. Mirrors the setSeed epilogue in
+// tests-js/setup.ts.
+
+function setGraduatedCompetitionEnabled(v: boolean): void {
+  GRADUATED_COMPETITION_ENABLED = !!v;
+}
+function setGraduatedGapThreshold(v: number): void {
+  GRADUATED_GAP_THRESHOLD = +v;
+}
+function setGraduatedPowerLawK(v: number): void {
+  GRADUATED_POWER_LAW_K = +v;
+}
+function setGraduatedWinnerTakesFrac(v: number): void {
+  GRADUATED_WINNER_TAKES_FRAC = +v;
+}
+
 // ---- Types ----
 //
 // CrystalDryRun captures what one crystal's engine would have produced
