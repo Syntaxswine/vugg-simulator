@@ -50,14 +50,14 @@ describe('twin cluster patterns — 99d wireframe (_clusterPatternKeyForPrim)', 
     expect(_clusterPatternKeyForPrim(PRIM_CERUSSITE_SIXLING_TWIN)).toBe(null);
   });
 
-  it('marcasite cockscomb twin → spike cluster (the comb morphology payoff)', () => {
-    // The KEY case: marcasite cockscomb's "comb" silhouette is literally
-    // multiple cockscomb V-twins arranged in a tight spray. The 'spike'
-    // pattern (count=8, sizeMin=0.35, sizeMax=0.75, radiusMul=0.55,
-    // tightish spread) emits 4-8 satellite cockscomb-twins around the
-    // parent, producing the serrated row morphology Ramdohr 1980 + the
-    // v133 _retune_note describe.
-    expect(_clusterPatternKeyForPrim(PRIM_MARCASITE_COCKSCOMB_TWIN)).toBe('spike');
+  it('marcasite cockscomb twin → fan cluster (the comb chain morphology)', () => {
+    // The KEY case: marcasite cockscomb's "comb" silhouette is multiple
+    // sub-parallel V-twins arranged in a tight chain. v134 introduced
+    // 'fan' as a denser + tighter + more parallel variant of 'spike' —
+    // tuned for repeated-twin chain morphologies. Routes here.
+    // (v134 update: was 'spike' in the 56a8504 first wiring; fan-cluster-pattern
+    // test in this commit verifies fan is genuinely distinct from spike.)
+    expect(_clusterPatternKeyForPrim(PRIM_MARCASITE_COCKSCOMB_TWIN)).toBe('fan');
   });
 
   it('pyrite iron-cross twin → cube cluster', () => {
@@ -106,7 +106,8 @@ describe('twin cluster patterns — 99i Three.js (_CLUSTER_PATTERNS by token)', 
     expect(_CLUSTER_PATTERNS.galena_octahedron_twin).toBe(_CLUSTER_PATTERNS.octahedron);
     expect(_CLUSTER_PATTERNS.aragonite_pseudohex_twin).toBe(_CLUSTER_PATTERNS.prism);
     expect(_CLUSTER_PATTERNS.cerussite_sixling_twin).toBe(_CLUSTER_PATTERNS.botryoidal);
-    expect(_CLUSTER_PATTERNS.marcasite_cockscomb_twin).toBe(_CLUSTER_PATTERNS.spike);
+    // v134: cockscomb re-routed from 'spike' to the new 'fan' pattern.
+    expect(_CLUSTER_PATTERNS.marcasite_cockscomb_twin).toBe(_CLUSTER_PATTERNS.fan);
     expect(_CLUSTER_PATTERNS.pyrite_iron_cross_twin).toBe(_CLUSTER_PATTERNS.cube);
   });
 
@@ -131,7 +132,8 @@ describe('twin cluster patterns — 99i Three.js (_CLUSTER_PATTERNS by token)', 
       { prim: PRIM_SELENITE_SWALLOWTAIL_TWIN, token: 'selenite_swallowtail_twin', key: 'tablet' },
       { prim: PRIM_GALENA_OCTAHEDRON_TWIN, token: 'galena_octahedron_twin', key: 'octahedron' },
       { prim: PRIM_ARAGONITE_PSEUDOHEX_TWIN, token: 'aragonite_pseudohex_twin', key: 'prism' },
-      { prim: PRIM_MARCASITE_COCKSCOMB_TWIN, token: 'marcasite_cockscomb_twin', key: 'spike' },
+      // v134: cockscomb routes to the new 'fan' key (not 'spike').
+      { prim: PRIM_MARCASITE_COCKSCOMB_TWIN, token: 'marcasite_cockscomb_twin', key: 'fan' },
       { prim: PRIM_PYRITE_IRON_CROSS_TWIN, token: 'pyrite_iron_cross_twin', key: 'cube' },
     ];
     for (const m of mappings) {

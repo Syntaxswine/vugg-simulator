@@ -106,7 +106,9 @@ describe('marcasite-spearhead-twin — dispatch + cluster', () => {
     expect(_lookupCrystalPrimitive(c)).not.toBe(PRIM_MARCASITE_SPEARHEAD_TWIN);
   });
 
-  it('cluster pattern → spike (single elongated form clusters as needles)', () => {
-    expect(_clusterPatternKeyForPrim(PRIM_MARCASITE_SPEARHEAD_TWIN)).toBe('spike');
+  it('cluster pattern → fan (dense chain of sub-parallel arrowheads — same fan as cockscomb)', () => {
+    // v134: spearhead re-routed from 'spike' to 'fan' alongside the
+    // cockscomb twin. Both are marcasite twin chain morphologies.
+    expect(_clusterPatternKeyForPrim(PRIM_MARCASITE_SPEARHEAD_TWIN)).toBe('fan');
   });
 });

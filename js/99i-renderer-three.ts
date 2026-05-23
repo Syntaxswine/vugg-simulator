@@ -1886,6 +1886,32 @@ const _CLUSTER_PATTERNS: Record<string, ClusterPattern> = {
     scaleMin: 1, scaleMax: 1,
     evenAngles: false,
   },
+  // v134 (2026-05-22): fan cluster. Denser + tighter + more parallel
+  // than 'spike'. Tuned for the marcasite cockscomb chain — multiple
+  // sub-parallel V-twins standing close on a shared baseline. Higher
+  // countScale + lower spreadMul + lower tiltMax + narrower size span
+  // give the chain-of-similar-units look that real cockscomb specimens
+  // show.
+  //
+  // KNOWN LIMITATION: the satellite-emission code in
+  // _emitClusterSatellites positions each satellite in a polar disc
+  // around the parent (chord offset r·(cosθ·t1 + sinθ·t2)) and tilts
+  // each off its own normal axis. A real cockscomb chain has
+  // satellites lined up along ONE tangent direction with tilts all
+  // in the SAME plane — that's a fundamentally different positioning
+  // mode (linear array, not polar disc). The 'fan' pattern below
+  // approximates the chain look via density + tightness + uniformity,
+  // but the literal serrated-row arrangement is future work that
+  // needs per-satellite arrangement logic (a linearArray field or
+  // similar in ClusterPattern + branching in _emitClusterSatellites).
+  fan: {
+    countScale: 1.5,        // denser than spike (1.3)
+    spreadMul: 0.4,         // tighter than spike (0.6) — chain bunches close
+    tiltMax: 0.30,          // ±17° — more parallel than spike's ±31°
+    scaleMin: 0.50,         // less variation than spike's 0.35-0.75
+    scaleMax: 0.80,         //   — chain units are similar-sized siblings
+    evenAngles: false,
+  },
 };
 
 const _CLUSTER_PATTERN_DEFAULT: ClusterPattern = {
@@ -1924,9 +1950,9 @@ _CLUSTER_PATTERNS.selenite_swallowtail_twin = _CLUSTER_PATTERNS.tablet;
 _CLUSTER_PATTERNS.galena_octahedron_twin = _CLUSTER_PATTERNS.octahedron;
 _CLUSTER_PATTERNS.aragonite_pseudohex_twin = _CLUSTER_PATTERNS.prism;
 _CLUSTER_PATTERNS.cerussite_sixling_twin = _CLUSTER_PATTERNS.botryoidal;  // skip cluster
-_CLUSTER_PATTERNS.marcasite_cockscomb_twin = _CLUSTER_PATTERNS.spike;
+_CLUSTER_PATTERNS.marcasite_cockscomb_twin = _CLUSTER_PATTERNS.fan;  // v134: dense tight chain of sub-parallel V-twins — the cockscomb morphology
 _CLUSTER_PATTERNS.pyrite_iron_cross_twin = _CLUSTER_PATTERNS.cube;
-_CLUSTER_PATTERNS.marcasite_spearhead_twin = _CLUSTER_PATTERNS.spike;
+_CLUSTER_PATTERNS.marcasite_spearhead_twin = _CLUSTER_PATTERNS.fan;  // v134: dense cluster of sub-parallel spear arrowheads — fan morphology like cockscomb
 _CLUSTER_PATTERNS.aragonite_contact_twin = _CLUSTER_PATTERNS.prism;
 
 // Number of satellite meshes per crystal — scales inversely with

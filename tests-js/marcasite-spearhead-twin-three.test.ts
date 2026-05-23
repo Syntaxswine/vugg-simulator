@@ -85,8 +85,9 @@ describe('marcasite-spearhead-twin (99i) — _resolveCrystalGeomToken + cluster'
     expect(_resolveCrystalGeomToken(c, c.habit)).not.toBe('marcasite_spearhead_twin');
   });
 
-  it('cluster pattern → spike (countScale > 0)', () => {
-    expect(_CLUSTER_PATTERNS.marcasite_spearhead_twin).toBe(_CLUSTER_PATTERNS.spike);
+  it('cluster pattern → fan (countScale > 0)', () => {
+    // v134: re-routed from spike to the new 'fan' pattern alongside cockscomb.
+    expect(_CLUSTER_PATTERNS.marcasite_spearhead_twin).toBe(_CLUSTER_PATTERNS.fan);
     expect(_CLUSTER_PATTERNS.marcasite_spearhead_twin.countScale).toBeGreaterThan(0);
   });
 });
