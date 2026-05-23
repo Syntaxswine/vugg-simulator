@@ -1,6 +1,6 @@
 ---
 name: vugg-add-twin-law
-description: Quickly add twin_laws entries to data/minerals.json for the vugg-simulator. Use this whenever extending twin coverage across minerals that are missing twin_laws data. Documents the JSON shape, probability calibration, common laws by mineral class, source citation patterns, and validation steps. 57 minerals still need entries post-v137 (silicate + sulfide classes complete).
+description: Quickly add twin_laws entries to data/minerals.json for the vugg-simulator. Use this whenever extending twin coverage across minerals that are missing twin_laws data. Documents the JSON shape, probability calibration, common laws by mineral class, source citation patterns, and validation steps. 44 minerals still need entries post-v138 (silicate + sulfide + phosphate classes complete; arsenate + sulfate + others remaining).
 ---
 
 # Add twin_laws Entry
