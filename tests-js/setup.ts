@@ -292,6 +292,10 @@ const EXPORTS = [
   // thin needle blades joined on {110}, opening in a tight 40° V — the
   // diagnostic FeS2-dimorph signature.
   'PRIM_MARCASITE_COCKSCOMB_TWIN',
+  // 2026-05-22 pyrite iron-cross twin (v134 seventh and final iconic
+  // twin — completes RESEARCH-CRYSTAL-NATURALISM.md §7's list of 7).
+  // Two chiral {120} pyritohedra interpenetrating at 90° around c-axis.
+  'PRIM_PYRITE_IRON_CROSS_TWIN',
   '_lookupCrystalPrimitive',
   // Phase 4a redox infrastructure (20c-chemistry-redox.ts).
   'EH_DYNAMIC_ENABLED',

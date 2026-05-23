@@ -528,6 +528,7 @@ const _GEOM_TOKEN_RATIO: Record<string, number> = {
   aragonite_pseudohex_twin: 0.6,  // tall pseudo-hex column — c > a, prism family
   cerussite_sixling_twin: 1.8,  // flat stellate — wider than tall, like botryoidal crusts
   marcasite_cockscomb_twin: 0.3,  // thin needle blades — c >> a, acicular family
+  pyrite_iron_cross_twin: 1.0,  // interpenetrating pyritohedra — isometric envelope
   rhombic_dodec: 1.0,
   dodecahedron: 1.0,
   snowball: 1.0,
@@ -587,6 +588,10 @@ function _resolveCrystalGeomToken(crystal: any, habitForGeom: string): string {
   if (crystal && crystal.mineral === 'marcasite' && crystal.twinned
       && crystal.twin_law === 'cockscomb') {
     return 'marcasite_cockscomb_twin';
+  }
+  if (crystal && crystal.mineral === 'pyrite' && crystal.twinned
+      && crystal.twin_law === 'iron_cross') {
+    return 'pyrite_iron_cross_twin';
   }
   const canonical = _habitGeomToken(habitForGeom);
   if (crystal && crystal.growth_environment === 'air'
@@ -1407,6 +1412,112 @@ function _makeMarcasiteCockscombTwin(): any {
   return geom;
 }
 
+// Pyrite iron-cross twin — two chiral {120} pyritohedra interpenetrating
+// at 90° around the c-axis (Ramdohr 1980 §4 FeS2 section; Dana 8th ed.;
+// Mindat pyrite habits). v133 retuned the probability from 0.008 → 0.07
+// to match the field-observation 5-10% twin frequency. Mirrors
+// PRIM_PYRITE_IRON_CROSS_TWIN in 99c-renderer-primitives.ts.
+//
+// The trick: a proper chiral {120} pyritohedron has m-3 (Th) symmetry —
+// NO 4-fold axis along c. So 90° rotation around c-axis is NOT a
+// symmetry, and the rotated pyritohedron occupies distinct positions.
+// (The simplified PRIM_PYRITOHEDRON used for non-twin pyrite has cubic
+// over-symmetry — 90° rotation around any axis maps it to itself —
+// which is why this twin needs its own non-shared geometry.)
+//
+// 20 vertices per pyritohedron × 2 = 40 vertices.
+// 12 pentagonal faces × 3 triangles per fan × 2 = 72 triangles.
+// 72 × 3 = 216 vertex triples in the position attribute (648 floats).
+function _makePyriteIronCrossTwin(): any {
+  // Unscaled pyritohedron parameters then scaled so max coord = 0.5
+  // (99i centered convention). b is the long edge param; max coord is b.
+  const s = 0.5 / (Math.sqrt(5) / 2);
+  const a = (Math.sqrt(5) / 3) * s;      // cube corner extent
+  const b = 0.5;                          // long edge param (max coord)
+  const c = (Math.sqrt(5) / 4) * s;      // short edge param
+  // "+" pyritohedron: 20 vertices, centered at origin (no y-shift —
+  // 99i convention).
+  const plus: number[][] = [];
+  // Cube corners (0-7) in (sx, sy, sz) loop order.
+  for (const sx of [-1, 1]) {
+    for (const sy of [-1, 1]) {
+      for (const sz of [-1, 1]) {
+        plus.push([sx * a, sy * a, sz * a]);
+      }
+    }
+  }
+  // Edge verts in 3 cyclic groups (indices 8-19).
+  for (const sy of [-1, 1]) {
+    for (const sz of [-1, 1]) {
+      plus.push([0, sy * b, sz * c]);  // 8-11: YZ-plane (x=0)
+    }
+  }
+  for (const sx of [-1, 1]) {
+    for (const sy of [-1, 1]) {
+      plus.push([sx * b, sy * c, 0]);  // 12-15: XY-plane (z=0)
+    }
+  }
+  for (const sx of [-1, 1]) {
+    for (const sz of [-1, 1]) {
+      plus.push([sx * c, 0, sz * b]);  // 16-19: ZX-plane (y=0)
+    }
+  }
+  // "-" pyritohedron: rotation by 90° around y-axis. (x, y, z) → (z, y, -x).
+  const minus: number[][] = plus.map(v => [v[2], v[1], -v[0]]);
+  // 12 pentagonal faces per pyritohedron, with face normals for winding-
+  // direction verification. Each pentagon is a 5-vertex sequence; the
+  // emitter checks the cross product of (v1-v0)×(v2-v0) and reverses
+  // the pentagon order if the result points opposite the face normal
+  // (i.e., if the pentagon would render with inward-pointing flat-shaded
+  // normals).
+  const facesPlus: { vs: number[]; n: number[] }[] = [
+    { vs: [7, 15, 6, 10, 11],    n: [ 1,  2,  0] },  // (1, 2, 0)
+    { vs: [3, 13, 2, 10, 11],    n: [-1,  2,  0] },  // (-1, 2, 0)
+    { vs: [5, 14, 4, 8, 9],      n: [ 1, -2,  0] },  // (1, -2, 0)
+    { vs: [1, 12, 0, 8, 9],      n: [-1, -2,  0] },  // (-1, -2, 0)
+    { vs: [7, 11, 3, 17, 19],    n: [ 0,  1,  2] },  // (0, 1, 2)
+    { vs: [6, 10, 2, 16, 18],    n: [ 0,  1, -2] },  // (0, 1, -2)
+    { vs: [5, 9, 1, 17, 19],     n: [ 0, -1,  2] },  // (0, -1, 2)
+    { vs: [4, 8, 0, 16, 18],     n: [ 0, -1, -2] },  // (0, -1, -2)
+    { vs: [7, 19, 5, 14, 15],    n: [ 2,  0,  1] },  // (2, 0, 1)
+    { vs: [3, 17, 1, 12, 13],    n: [-2,  0,  1] },  // (-2, 0, 1)
+    { vs: [6, 18, 4, 14, 15],    n: [ 2,  0, -1] },  // (2, 0, -1)
+    { vs: [2, 16, 0, 12, 13],    n: [-2,  0, -1] },  // (-2, 0, -1)
+  ];
+  // For "-" pyritohedron: same vertex indices (offset by 20) but face
+  // normals rotated 90° around y. Normal (nx, ny, nz) → (nz, ny, -nx).
+  const facesMinus = facesPlus.map(f => ({
+    vs: f.vs.map(i => i + 20),
+    n: [f.n[2], f.n[1], -f.n[0]],
+  }));
+  const positions: number[] = [];
+  const emitPentagon = (verts: number[][], face: { vs: number[]; n: number[] }) => {
+    const o = face.vs;
+    const n = face.n;
+    const v0 = verts[o[0]], v1 = verts[o[1]], v2 = verts[o[2]];
+    // (v1 - v0) × (v2 - v0)
+    const e1x = v1[0] - v0[0], e1y = v1[1] - v0[1], e1z = v1[2] - v0[2];
+    const e2x = v2[0] - v0[0], e2y = v2[1] - v0[1], e2z = v2[2] - v0[2];
+    const cx = e1y * e2z - e1z * e2y;
+    const cy = e1z * e2x - e1x * e2z;
+    const cz = e1x * e2y - e1y * e2x;
+    const dot = cx * n[0] + cy * n[1] + cz * n[2];
+    const seq = dot >= 0 ? o : [o[0], o[4], o[3], o[2], o[1]];
+    // Fan-triangulate from seq[0]: (seq[0], seq[1], seq[2]),
+    // (seq[0], seq[2], seq[3]), (seq[0], seq[3], seq[4]).
+    for (let i = 1; i < 4; i++) {
+      const a = verts[seq[0]], b = verts[seq[i]], c = verts[seq[i + 1]];
+      _pushTri(positions, a[0], a[1], a[2], b[0], b[1], b[2], c[0], c[1], c[2]);
+    }
+  };
+  for (const f of facesPlus) emitPentagon(plus, f);
+  for (const f of facesMinus) emitPentagon([...plus, ...minus], f);
+  const geom = new THREE.BufferGeometry();
+  geom.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+  geom.computeVertexNormals();
+  return geom;
+}
+
 // Build a unit-sized geometry for a given habit token, oriented so
 // its long axis (= c-axis) lies along +Y. The instance transform
 // later places the base at the wall and scales by c_length / a_width.
@@ -1473,6 +1584,13 @@ function _buildHabitGeom(token: string): any {
       // marcasite morphology. Dispatch gated on mineral='marcasite'
       // + twinned + twin_law='cockscomb'.
       return _makeMarcasiteCockscombTwin();
+    case 'pyrite_iron_cross_twin':
+      // v134 (2026-05-22) — seventh and final iconic twin (completes
+      // the 7 listed in RESEARCH-CRYSTAL-NATURALISM.md §7). Two chiral
+      // {120} pyritohedra interpenetrating at 90° around c-axis —
+      // canonical "Eisernes Kreuz" twin (Ramdohr 1980). Dispatch gated
+      // on mineral='pyrite' + twinned + twin_law='iron_cross'.
+      return _makePyriteIronCrossTwin();
     case 'octahedron':
       return new THREE.OctahedronGeometry(0.55, 0);
     case 'snowball':

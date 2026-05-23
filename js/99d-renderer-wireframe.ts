@@ -23,15 +23,18 @@ function _lookupCrystalPrimitive(crystal) {
   // the air-mode dripstone override: a twinned crystal in an air
   // cavity is still a twin, not a dripstone (twins don't drip).
   //
-  // Iconic twins shipped so far:
+  // Iconic twins shipped so far (all 7 from RESEARCH-CRYSTAL-NATURALISM.md §7):
   //   fluorite penetration    {111}  — two cubes rotated 60° around body diagonal
   //   selenite swallowtail    {100}  — two tabular blades opening in V (60°)
   //   galena spinel-law       {111}  — two octahedra sharing a triangular face
   //   aragonite cyclic-sextet {110}  — 3 prisms at 60° forming pseudo-hex column
+  //   cerussite sixling       {110}  — 3 flat blades at 60° → 6-pointed star
+  //   marcasite cockscomb     {110}  — 2 needle blades opening in 40° V
+  //   pyrite iron-cross       {110}  — 2 chiral pyritohedra at 90° around c-axis
   //
-  // Future twin primitives (data side already complete in v133):
-  //   cerussite sixling (stellate version of aragonite cyclic),
-  //   marcasite cockscomb, pyrite iron-cross
+  // Future primitive candidates (currently fall through to canonical):
+  //   marcasite spearhead {101} — single arrowhead form
+  //   aragonite contact {110}   — single-contact twin (vs cyclic sextet)
   if (crystal.mineral === 'fluorite' && crystal.twinned
       && crystal.twin_law === 'penetration') {
     return PRIM_FLUORITE_PENETRATION_TWIN;
@@ -55,6 +58,10 @@ function _lookupCrystalPrimitive(crystal) {
   if (crystal.mineral === 'marcasite' && crystal.twinned
       && crystal.twin_law === 'cockscomb') {
     return PRIM_MARCASITE_COCKSCOMB_TWIN;
+  }
+  if (crystal.mineral === 'pyrite' && crystal.twinned
+      && crystal.twin_law === 'iron_cross') {
+    return PRIM_PYRITE_IRON_CROSS_TWIN;
   }
   // v24 air-mode override — crystals nucleated in vadose rings get
   // dripstone geometry instead of their canonical habit primitive,

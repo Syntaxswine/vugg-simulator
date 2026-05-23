@@ -849,6 +849,136 @@ const PRIM_MARCASITE_COCKSCOMB_TWIN = {
   })(),
 };
 
+// v134 (2026-05-22): pyrite iron-cross twin primitive. Two chiral
+// {120} pyritohedra interpenetrating at 90° around the c-axis — the
+// canonical pyrite "Iron Cross" / "Eisernes Kreuz" twin documented
+// in Ramdohr 1980 §4 (FeS2 section), Dana 8th ed., and Mindat's
+// pyrite habit catalog. Common at Elba (Italy), Pyrite Hill (Spain,
+// Peru); specimens mined since antiquity for use in jewelry. v133
+// retuned the probability from 0.008 → 0.07 to match the field-
+// observation 5-10% twin frequency among euhedral pyrite.
+//
+// THE PYRITOHEDRON
+//
+//   A {120} pyritohedron (NOT the cube-symmetric approximation used
+//   by PRIM_PYRITOHEDRON for non-twin pyrite) has m-3 symmetry —
+//   3-fold rotations along [111] and 2-fold along [100], but NO
+//   4-fold axis. So a 90° rotation around the c-axis is NOT a
+//   symmetry, and the rotated pyritohedron occupies distinct
+//   geometric positions from the original.
+//
+//   20 vertices, 12 pentagonal faces, 30 edges:
+//     - 8 "cube corner" vertices at (±a, ±a, ±a) with a = √5/3·s
+//     - 12 "edge" vertices in 3 cyclic groups:
+//         (0, ±b, ±c) in YZ plane (long axis ±y)
+//         (±b, ±c, 0) in XY plane (long axis ±x)
+//         (±c, 0, ±b) in ZX plane (long axis ±z)
+//       where b = √5/2·s, c = √5/4·s (b:c = 2:1 ratio).
+//
+//   Scaling: s = 0.55/b_unscaled chosen so max coordinate = 0.55
+//   (matches PRIM_CUBE envelope). After scaling: a≈0.367, b=0.55,
+//   c≈0.275. Y-shift +0.45 anchors at PRIM_CUBE wall convention
+//   (y_min = -0.1, y_max = 1.0, center at y = 0.45).
+//
+// THE TWIN
+//
+//   First pyritohedron "+": vertex indices 0-19.
+//   Second pyritohedron "-": 90° rotation around y-axis of "+":
+//       (x, y, z) → (z, y, -x)
+//     Vertex indices 20-39.
+//
+//   The 90° rotation is NOT a symmetry of "+" (chiral pyritohedron),
+//   so "-" lands at distinct positions. The two interpenetrate to
+//   produce the cross silhouette visible in real specimens.
+//
+//   40 vertices total (20 per pyritohedron), 60 edges total (30 per).
+//   Some edges may visually coincide between the two pyritohedra at
+//   crossing points; the wireframe renderer just draws both.
+const PRIM_PYRITE_IRON_CROSS_TWIN = {
+  name: 'pyrite_iron_cross_twin',
+  vertices: (() => {
+    // Unscaled pyritohedron parameters (d=1 units):
+    //   a_raw = √5/3, b_raw = √5/2, c_raw = √5/4
+    // Scaled so max coord = 0.55:
+    const s = 0.55 / (Math.sqrt(5) / 2);  // ≈ 0.4924
+    const a = (Math.sqrt(5) / 3) * s;     // cube corner — ≈ 0.367
+    const b = 0.55;                       // long edge param (max coord by construction)
+    const c = (Math.sqrt(5) / 4) * s;     // short edge param — ≈ 0.275
+    const yC = 0.45;                      // y-center (matches PRIM_CUBE anchoring)
+    // Build "+" pyritohedron — 20 vertices in centered coords, then
+    // y-shift by yC.
+    const plus: number[][] = [];
+    // 8 cube corners (indices 0-7), ordered by (sx, sy, sz) loops.
+    for (const sx of [-1, 1]) {
+      for (const sy of [-1, 1]) {
+        for (const sz of [-1, 1]) {
+          plus.push([sx * a, sy * a + yC, sz * a]);
+        }
+      }
+    }
+    // 12 edge verts in 3 cyclic groups:
+    //   indices 8-11: YZ plane (x=0), long along y. (0, sy·b, sz·c).
+    //   indices 12-15: XY plane (z=0), long along x. (sx·b, sy·c, 0).
+    //   indices 16-19: ZX plane (y=0), long along z. (sx·c, 0, sz·b).
+    for (const sy of [-1, 1]) {
+      for (const sz of [-1, 1]) {
+        plus.push([0, sy * b + yC, sz * c]);
+      }
+    }
+    for (const sx of [-1, 1]) {
+      for (const sy of [-1, 1]) {
+        plus.push([sx * b, sy * c + yC, 0]);
+      }
+    }
+    for (const sx of [-1, 1]) {
+      for (const sz of [-1, 1]) {
+        plus.push([sx * c, 0 + yC, sz * b]);
+      }
+    }
+    // Build "-" pyritohedron — "+" rotated 90° around y-axis through
+    // y-center. Transform: (x, y, z) → (z, y_C + (y - y_C), -x) =
+    // (z, y, -x). For our verts, since y_C is built into y already,
+    // we just apply (x, y, z) → (z, y, -x).
+    // Actually that's the rotation around y AT THE CENTER (y=yC,
+    // x=0, z=0). The rotation is (x - 0, y - yC, z - 0) →
+    // ((z - 0), (y - yC), -(x - 0)) → translate back yC. Since y
+    // doesn't change and x, z don't get shifted, it's just (z, y, -x).
+    const minus: number[][] = plus.map(v => [v[2], v[1], -v[0]]);
+    return [...plus, ...minus];
+  })(),
+  edges: (() => {
+    // 30 edges per pyritohedron. Computed from the 12 pentagonal
+    // face boundaries (each pentagon has 5 edges; each edge shared
+    // by 2 pentagons → 12·5/2 = 30).
+    //
+    // Cube-corner indices 0-7 connect to edge-vert indices 8-19.
+    // Each cube corner has 3 neighbors (one per adjacent face).
+    // Each edge vert has 3 neighbors: 2 cube corners (one per
+    // adjacent corner of the same face direction) + 1 "partner"
+    // edge vert (the one on the same XY/YZ/ZX plane at the opposite
+    // short-axis position).
+    const pyritEdges = (off: number) => [
+      // Cube → edge connections (24 edges):
+      [off+0, off+8], [off+0, off+12], [off+0, off+16],   // (-,-,-)
+      [off+1, off+9], [off+1, off+12], [off+1, off+17],   // (-,-,+)
+      [off+2, off+10], [off+2, off+13], [off+2, off+16],  // (-,+,-)
+      [off+3, off+11], [off+3, off+13], [off+3, off+17],  // (-,+,+)
+      [off+4, off+8], [off+4, off+14], [off+4, off+18],   // (+,-,-)
+      [off+5, off+9], [off+5, off+14], [off+5, off+19],   // (+,-,+)
+      [off+6, off+10], [off+6, off+15], [off+6, off+18],  // (+,+,-)
+      [off+7, off+11], [off+7, off+15], [off+7, off+19],  // (+,+,+)
+      // Edge → edge "partner" connections (6 edges):
+      [off+8, off+9],     // YZ verts at sy=-1 (partner on z)
+      [off+10, off+11],   // YZ verts at sy=+1
+      [off+12, off+13],   // XY verts at sx=-1 (partner on y)
+      [off+14, off+15],   // XY verts at sx=+1
+      [off+16, off+18],   // ZX verts at sz=-1 (partner on x)
+      [off+17, off+19],   // ZX verts at sz=+1
+    ];
+    return [...pyritEdges(0), ...pyritEdges(20)];
+  })(),
+};
+
 // Habit string → primitive lookup. Direct hits checked first; the
 // fuzzy-substring fallback in _lookupCrystalPrimitive catches the
 // many compound forms in data/minerals.json (e.g. "rhombohedral_or_
