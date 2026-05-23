@@ -530,6 +530,7 @@ const _GEOM_TOKEN_RATIO: Record<string, number> = {
   marcasite_cockscomb_twin: 0.3,  // thin needle blades — c >> a, acicular family
   pyrite_iron_cross_twin: 1.0,  // interpenetrating pyritohedra — isometric envelope
   marcasite_spearhead_twin: 0.4,  // elongated bipyramid — c >> a, spike-like aspect
+  aragonite_contact_twin: 0.5,  // V of prismatic blades — prism-like aspect
   rhombic_dodec: 1.0,
   dodecahedron: 1.0,
   snowball: 1.0,
@@ -597,6 +598,10 @@ function _resolveCrystalGeomToken(crystal: any, habitForGeom: string): string {
   if (crystal && crystal.mineral === 'marcasite' && crystal.twinned
       && crystal.twin_law === 'spearhead') {
     return 'marcasite_spearhead_twin';
+  }
+  if (crystal && crystal.mineral === 'aragonite' && crystal.twinned
+      && crystal.twin_law === 'contact') {
+    return 'aragonite_contact_twin';
   }
   const canonical = _habitGeomToken(habitForGeom);
   if (crystal && crystal.growth_environment === 'air'
@@ -1570,6 +1575,70 @@ function _makeMarcasiteSpearheadTwin(): any {
   return geom;
 }
 
+// Aragonite contact twin — the single-contact {110} variant (vs
+// aragonite's 3-fold cyclic-sextet). Two prismatic orthorhombic
+// crystals joined at base, opening in a 60° V. Mirrors
+// PRIM_ARAGONITE_CONTACT_TWIN in 99c. Dana 8th ed. CaCO3 section,
+// Speer 1983 Reviews in Mineralogy v.11.
+//
+// Visual distinction from the other V-twin builders:
+//   _makeSeleniteSwallowtailTwin: tabular blades (a=0.05, b=0.15)
+//   _makeMarcasiteCockscombTwin:  needle blades (a=0.025, b=0.08)
+//   _makeAragoniteContactTwin:    prismatic blades (a=0.06, b=0.06 — square)
+//
+// 24 triangles, 72 vertex triples (matches selenite + marcasite V-pair
+// counts — same box-pair flat-shaded emission pattern).
+function _makeAragoniteContactTwin(): any {
+  const a = 0.06;             // half-thickness (square cross-section)
+  const L = 0.95;             // blade length along c-axis
+  const b = 0.06;             // half-width along contact (square)
+  const theta = Math.PI / 6;  // 30° tilt per blade — 60° total V
+  const cT = Math.cos(theta);
+  const sT = Math.sin(theta);
+  const buildBladeA = (): number[][] => {
+    const out: number[][] = [];
+    for (const xl of [-2 * a, 0]) {
+      for (const yl of [0, L]) {
+        for (const zl of [-b, b]) {
+          out.push([xl * cT - yl * sT, xl * sT + yl * cT, zl]);
+        }
+      }
+    }
+    return out;
+  };
+  const buildBladeB = (): number[][] => {
+    const out: number[][] = [];
+    for (const xl of [0, 2 * a]) {
+      for (const yl of [0, L]) {
+        for (const zl of [-b, b]) {
+          out.push([xl * cT + yl * sT, -xl * sT + yl * cT, zl]);
+        }
+      }
+    }
+    return out;
+  };
+  const A = buildBladeA();
+  const B = buildBladeB();
+  const pushBlade = (out: number[], v: number[][]): void => {
+    const tri = (i: number, j: number, k: number) => {
+      _pushTri(out, v[i][0], v[i][1], v[i][2], v[j][0], v[j][1], v[j][2], v[k][0], v[k][1], v[k][2]);
+    };
+    tri(0, 1, 3); tri(0, 3, 2);  // xl = -2a face
+    tri(4, 6, 7); tri(4, 7, 5);  // xl = 0 face (contact)
+    tri(0, 4, 5); tri(0, 5, 1);  // yl = 0 face (base)
+    tri(2, 3, 7); tri(2, 7, 6);  // yl = L face (top)
+    tri(0, 2, 6); tri(0, 6, 4);  // zl = -b face
+    tri(1, 5, 7); tri(1, 7, 3);  // zl = +b face
+  };
+  const positions: number[] = [];
+  pushBlade(positions, A);
+  pushBlade(positions, B);
+  const geom = new THREE.BufferGeometry();
+  geom.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+  geom.computeVertexNormals();
+  return geom;
+}
+
 // Build a unit-sized geometry for a given habit token, oriented so
 // its long axis (= c-axis) lies along +Y. The instance transform
 // later places the base at the wall and scales by c_length / a_width.
@@ -1648,6 +1717,12 @@ function _buildHabitGeom(token: string): any {
       // rhombic bipyramid {101} (vs the cockscomb's V-pair). Dispatch
       // gated on mineral='marcasite' + twinned + twin_law='spearhead'.
       return _makeMarcasiteSpearheadTwin();
+    case 'aragonite_contact_twin':
+      // v134 (2026-05-22) — secondary aragonite twin. Two prismatic
+      // (square cross-section) crystals joined in a {110} contact V
+      // (vs the cyclic-sextet's 3-fold pseudo-hex column). Dispatch
+      // gated on mineral='aragonite' + twinned + twin_law='contact'.
+      return _makeAragoniteContactTwin();
     case 'octahedron':
       return new THREE.OctahedronGeometry(0.55, 0);
     case 'snowball':
@@ -1852,6 +1927,7 @@ _CLUSTER_PATTERNS.cerussite_sixling_twin = _CLUSTER_PATTERNS.botryoidal;  // ski
 _CLUSTER_PATTERNS.marcasite_cockscomb_twin = _CLUSTER_PATTERNS.spike;
 _CLUSTER_PATTERNS.pyrite_iron_cross_twin = _CLUSTER_PATTERNS.cube;
 _CLUSTER_PATTERNS.marcasite_spearhead_twin = _CLUSTER_PATTERNS.spike;
+_CLUSTER_PATTERNS.aragonite_contact_twin = _CLUSTER_PATTERNS.prism;
 
 // Number of satellite meshes per crystal — scales inversely with
 // crystal size. Big gem crystals (>60 mm) read as solo specimens;

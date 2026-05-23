@@ -306,6 +306,10 @@ const EXPORTS = [
   // 2026-05-22 marcasite spearhead twin (v134 secondary, post-iconic-7).
   // Elongated rhombic bipyramid — the {101} contact twin.
   'PRIM_MARCASITE_SPEARHEAD_TWIN',
+  // 2026-05-22 aragonite contact twin (v134 secondary). Single V-pair
+  // {110} contact (vs cyclic-sextet's 3-fold). Prismatic (square)
+  // cross-section distinguishes from selenite's tabular swallowtail.
+  'PRIM_ARAGONITE_CONTACT_TWIN',
   '_lookupCrystalPrimitive',
   // Phase 4a redox infrastructure (20c-chemistry-redox.ts).
   'EH_DYNAMIC_ENABLED',

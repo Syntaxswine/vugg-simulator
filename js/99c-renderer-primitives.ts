@@ -1017,6 +1017,72 @@ const PRIM_MARCASITE_SPEARHEAD_TWIN = {
   ],
 };
 
+// v134 (2026-05-22): aragonite contact-twin primitive. The single
+// {110} contact twin variant (v133 has both 'cyclic_sextet' p=0.40
+// and 'contact' p=0.05 in aragonite's twin_laws). Two prismatic
+// orthorhombic prisms joined at base in a V — distinct from the
+// 3-fold cyclic-sextet pseudo-hex column. Documented in Dana 8th ed.
+// CaCO3 section + Speer 1983 (Reviews in Mineralogy v.11) as the
+// "simple contact twin" variant.
+//
+// Visual distinction from the other V-twin primitives:
+//   selenite swallowtail (gypsum {100}):   tabular blades (a:b = 0.08:0.18),
+//                                          60° V opening
+//   marcasite cockscomb (marcasite {110}): needle blades (a:b = 0.04:0.10),
+//                                          40° V opening
+//   aragonite contact (aragonite {110}):   prismatic blades (a:b = 0.10:0.10
+//                                          — chunky square cross-section),
+//                                          60° V opening
+//
+// 16 vertices (8 per blade), 24 edges. Same construction pattern as
+// the swallowtail / cockscomb V-pair twins, just with square cross-
+// section reflecting aragonite's prismatic individual habit.
+const PRIM_ARAGONITE_CONTACT_TWIN = {
+  name: 'aragonite_contact_twin',
+  vertices: (() => {
+    const a = 0.10;             // half-thickness (perpendicular to broad face)
+    const L = 1.1;              // blade length along c-axis
+    const b = 0.10;             // half-width along contact edge — SQUARE cross-section
+    const base_y = -0.1;        // anchor base contact at PRIM_CUBE wall y
+    const theta = Math.PI / 6;  // 30° tilt per blade — 60° total V
+    const cT = Math.cos(theta);
+    const sT = Math.sin(theta);
+    const vs: number[][] = [];
+    // Blade A — local (xl, yl, zl) in {-2a, 0} × {0, L} × {-b, +b}.
+    // Contact face (xl=0) sits on the rotation axis; the blade body
+    // extends to xl=-2a after rotation by +30° around z (through origin),
+    // then translated up by base_y.
+    for (const xl of [-2 * a, 0]) {
+      for (const yl of [0, L]) {
+        for (const zl of [-b, b]) {
+          const wx = xl * cT - yl * sT;
+          const wy = xl * sT + yl * cT + base_y;
+          vs.push([wx, wy, zl]);
+        }
+      }
+    }
+    // Blade B — mirror across X=0 (rotate -30°).
+    for (const xl of [0, 2 * a]) {
+      for (const yl of [0, L]) {
+        for (const zl of [-b, b]) {
+          const wx = xl * cT + yl * sT;
+          const wy = -xl * sT + yl * cT + base_y;
+          vs.push([wx, wy, zl]);
+        }
+      }
+    }
+    return vs;
+  })(),
+  edges: (() => {
+    const bladeEdges = (off: number) => [
+      [off + 0, off + 1], [off + 2, off + 3], [off + 4, off + 5], [off + 6, off + 7],
+      [off + 0, off + 2], [off + 1, off + 3], [off + 4, off + 6], [off + 5, off + 7],
+      [off + 0, off + 4], [off + 1, off + 5], [off + 2, off + 6], [off + 3, off + 7],
+    ];
+    return [...bladeEdges(0), ...bladeEdges(8)];
+  })(),
+};
+
 // Habit string → primitive lookup. Direct hits checked first; the
 // fuzzy-substring fallback in _lookupCrystalPrimitive catches the
 // many compound forms in data/minerals.json (e.g. "rhombohedral_or_

@@ -67,6 +67,10 @@ function _lookupCrystalPrimitive(crystal) {
       && crystal.twin_law === 'spearhead') {
     return PRIM_MARCASITE_SPEARHEAD_TWIN;
   }
+  if (crystal.mineral === 'aragonite' && crystal.twinned
+      && crystal.twin_law === 'contact') {
+    return PRIM_ARAGONITE_CONTACT_TWIN;
+  }
   // v24 air-mode override — crystals nucleated in vadose rings get
   // dripstone geometry instead of their canonical habit primitive,
   // when the canonical primitive is structurally compatible with a
@@ -339,6 +343,7 @@ function _clusterPatternKeyForPrim(prim) {
   if (prim === PRIM_MARCASITE_COCKSCOMB_TWIN) return 'spike';
   if (prim === PRIM_PYRITE_IRON_CROSS_TWIN) return 'cube';
   if (prim === PRIM_MARCASITE_SPEARHEAD_TWIN) return 'spike';  // single elongated form — same spike cluster as cockscomb's individual blades
+  if (prim === PRIM_ARAGONITE_CONTACT_TWIN) return 'prism';  // V of prismatic blades — clusters like a prismatic forest
   return null;  // unknown → caller falls through to legacy drusy-habit path or single primitive
 }
 
