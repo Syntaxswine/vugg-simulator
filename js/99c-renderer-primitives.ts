@@ -778,6 +778,77 @@ const PRIM_CERUSSITE_SIXLING_TWIN = {
   })(),
 };
 
+// v134 (2026-05-22): marcasite cockscomb-twin primitive. Two thin
+// needle-like blades joined on a {110} contact at the base, opening
+// in a tight V — the canonical morphology distinguishing marcasite
+// from its dimorph pyrite (Ramdohr 1980 FeS2 dimorph section; Dana
+// 8th ed. marcasite habit). v133's _retune_note flags this as "the
+// visually defining feature of marcasite," reporting 50-70% twin
+// frequency at the Joplin / Tri-State MVT district and Folkestone
+// (Kent) Cretaceous chalk concretions. Probability set to 0.55 per
+// nucleation; combined with the {101} spearhead twin (p=0.05) at
+// path-1, ~57% of marcasite ends up twinned in scenarios.
+//
+// Why "cockscomb": real specimens show a chain of repeated blade-
+// pair twins arranged in a serrated row resembling a rooster's
+// comb. A single PRIM_* primitive can't capture the multi-pair
+// chain directly, but when multiple twin instances cluster on a
+// shared substrate (via the existing druzy/cluster dispatch), the
+// chain emerges from the spatial arrangement. The primitive itself
+// is the unit cell: one {110} blade-pair.
+//
+// Geometry vs. selenite swallowtail (PRIM_SELENITE_SWALLOWTAIL_TWIN):
+//   Swallowtail (gypsum {100}): tabular blades, V opening 60°
+//   Cockscomb (marcasite {110}): needle blades, V opening 40°
+// Same 16-vertex / 24-edge topology — the tighter V + thinner blade
+// dimensions give the arrowhead silhouette that distinguishes it.
+const PRIM_MARCASITE_COCKSCOMB_TWIN = {
+  name: 'marcasite_cockscomb_twin',
+  vertices: (() => {
+    const a = 0.04;             // half-thickness (perpendicular to broad face)
+    const L = 1.1;              // blade length along c-axis
+    const b = 0.10;             // half-width (along contact edge)
+    const base_y = -0.1;        // anchor base contact at PRIM_CUBE wall y
+    const theta = Math.PI / 9;  // 20° tilt per blade — 40° total V (tighter than swallowtail's 60°)
+    const c30 = Math.cos(theta);
+    const s30 = Math.sin(theta);
+    const vs: number[][] = [];
+    // Blade A — same construction as swallowtail (rotate +θ around z
+    // through origin, then translate Y by base_y). Local coords with
+    // xl ∈ {-2a, 0}, yl ∈ {0, L}, zl ∈ {-b, +b}. Contact face xl=0
+    // sits on the z-axis at the base.
+    for (const xl of [-2 * a, 0]) {
+      for (const yl of [0, L]) {
+        for (const zl of [-b, b]) {
+          const wx = xl * c30 - yl * s30;
+          const wy = xl * s30 + yl * c30 + base_y;
+          vs.push([wx, wy, zl]);
+        }
+      }
+    }
+    // Blade B — mirror across X=0 (rotate -θ).
+    for (const xl of [0, 2 * a]) {
+      for (const yl of [0, L]) {
+        for (const zl of [-b, b]) {
+          const wx = xl * c30 + yl * s30;
+          const wy = -xl * s30 + yl * c30 + base_y;
+          vs.push([wx, wy, zl]);
+        }
+      }
+    }
+    return vs;
+  })(),
+  edges: (() => {
+    // 12 edges per blade — box topology. Same as swallowtail.
+    const bladeEdges = (off: number) => [
+      [off + 0, off + 1], [off + 2, off + 3], [off + 4, off + 5], [off + 6, off + 7],
+      [off + 0, off + 2], [off + 1, off + 3], [off + 4, off + 6], [off + 5, off + 7],
+      [off + 0, off + 4], [off + 1, off + 5], [off + 2, off + 6], [off + 3, off + 7],
+    ];
+    return [...bladeEdges(0), ...bladeEdges(8)];
+  })(),
+};
+
 // Habit string → primitive lookup. Direct hits checked first; the
 // fuzzy-substring fallback in _lookupCrystalPrimitive catches the
 // many compound forms in data/minerals.json (e.g. "rhombohedral_or_

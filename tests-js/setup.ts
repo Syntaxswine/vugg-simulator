@@ -288,6 +288,10 @@ const EXPORTS = [
   // Flat-star counterpart to aragonite — 3 thin blades in the wall plane
   // (XZ), each rotated 60° → 6 visible arms.
   'PRIM_CERUSSITE_SIXLING_TWIN',
+  // 2026-05-22 marcasite cockscomb twin (v134 sixth iconic twin). Two
+  // thin needle blades joined on {110}, opening in a tight 40° V — the
+  // diagnostic FeS2-dimorph signature.
+  'PRIM_MARCASITE_COCKSCOMB_TWIN',
   '_lookupCrystalPrimitive',
   // Phase 4a redox infrastructure (20c-chemistry-redox.ts).
   'EH_DYNAMIC_ENABLED',

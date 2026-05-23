@@ -52539,6 +52539,76 @@ const PRIM_CERUSSITE_SIXLING_TWIN = {
         return [...bladeEdges(0), ...bladeEdges(8), ...bladeEdges(16)];
     })(),
 };
+// v134 (2026-05-22): marcasite cockscomb-twin primitive. Two thin
+// needle-like blades joined on a {110} contact at the base, opening
+// in a tight V — the canonical morphology distinguishing marcasite
+// from its dimorph pyrite (Ramdohr 1980 FeS2 dimorph section; Dana
+// 8th ed. marcasite habit). v133's _retune_note flags this as "the
+// visually defining feature of marcasite," reporting 50-70% twin
+// frequency at the Joplin / Tri-State MVT district and Folkestone
+// (Kent) Cretaceous chalk concretions. Probability set to 0.55 per
+// nucleation; combined with the {101} spearhead twin (p=0.05) at
+// path-1, ~57% of marcasite ends up twinned in scenarios.
+//
+// Why "cockscomb": real specimens show a chain of repeated blade-
+// pair twins arranged in a serrated row resembling a rooster's
+// comb. A single PRIM_* primitive can't capture the multi-pair
+// chain directly, but when multiple twin instances cluster on a
+// shared substrate (via the existing druzy/cluster dispatch), the
+// chain emerges from the spatial arrangement. The primitive itself
+// is the unit cell: one {110} blade-pair.
+//
+// Geometry vs. selenite swallowtail (PRIM_SELENITE_SWALLOWTAIL_TWIN):
+//   Swallowtail (gypsum {100}): tabular blades, V opening 60°
+//   Cockscomb (marcasite {110}): needle blades, V opening 40°
+// Same 16-vertex / 24-edge topology — the tighter V + thinner blade
+// dimensions give the arrowhead silhouette that distinguishes it.
+const PRIM_MARCASITE_COCKSCOMB_TWIN = {
+    name: 'marcasite_cockscomb_twin',
+    vertices: (() => {
+        const a = 0.04; // half-thickness (perpendicular to broad face)
+        const L = 1.1; // blade length along c-axis
+        const b = 0.10; // half-width (along contact edge)
+        const base_y = -0.1; // anchor base contact at PRIM_CUBE wall y
+        const theta = Math.PI / 9; // 20° tilt per blade — 40° total V (tighter than swallowtail's 60°)
+        const c30 = Math.cos(theta);
+        const s30 = Math.sin(theta);
+        const vs = [];
+        // Blade A — same construction as swallowtail (rotate +θ around z
+        // through origin, then translate Y by base_y). Local coords with
+        // xl ∈ {-2a, 0}, yl ∈ {0, L}, zl ∈ {-b, +b}. Contact face xl=0
+        // sits on the z-axis at the base.
+        for (const xl of [-2 * a, 0]) {
+            for (const yl of [0, L]) {
+                for (const zl of [-b, b]) {
+                    const wx = xl * c30 - yl * s30;
+                    const wy = xl * s30 + yl * c30 + base_y;
+                    vs.push([wx, wy, zl]);
+                }
+            }
+        }
+        // Blade B — mirror across X=0 (rotate -θ).
+        for (const xl of [0, 2 * a]) {
+            for (const yl of [0, L]) {
+                for (const zl of [-b, b]) {
+                    const wx = xl * c30 + yl * s30;
+                    const wy = -xl * s30 + yl * c30 + base_y;
+                    vs.push([wx, wy, zl]);
+                }
+            }
+        }
+        return vs;
+    })(),
+    edges: (() => {
+        // 12 edges per blade — box topology. Same as swallowtail.
+        const bladeEdges = (off) => [
+            [off + 0, off + 1], [off + 2, off + 3], [off + 4, off + 5], [off + 6, off + 7],
+            [off + 0, off + 2], [off + 1, off + 3], [off + 4, off + 6], [off + 5, off + 7],
+            [off + 0, off + 4], [off + 1, off + 5], [off + 2, off + 6], [off + 3, off + 7],
+        ];
+        return [...bladeEdges(0), ...bladeEdges(8)];
+    })(),
+};
 // Habit string → primitive lookup. Direct hits checked first; the
 // fuzzy-substring fallback in _lookupCrystalPrimitive catches the
 // many compound forms in data/minerals.json (e.g. "rhombohedral_or_
@@ -52755,6 +52825,10 @@ function _lookupCrystalPrimitive(crystal) {
     if (crystal.mineral === 'cerussite' && crystal.twinned
         && crystal.twin_law === 'cyclic_sixling') {
         return PRIM_CERUSSITE_SIXLING_TWIN;
+    }
+    if (crystal.mineral === 'marcasite' && crystal.twinned
+        && crystal.twin_law === 'cockscomb') {
+        return PRIM_MARCASITE_COCKSCOMB_TWIN;
     }
     // v24 air-mode override — crystals nucleated in vadose rings get
     // dripstone geometry instead of their canonical habit primitive,
@@ -55442,6 +55516,7 @@ const _GEOM_TOKEN_RATIO = {
     galena_octahedron_twin: 1.0, // two octahedra sharing a face — isometric
     aragonite_pseudohex_twin: 0.6, // tall pseudo-hex column — c > a, prism family
     cerussite_sixling_twin: 1.8, // flat stellate — wider than tall, like botryoidal crusts
+    marcasite_cockscomb_twin: 0.3, // thin needle blades — c >> a, acicular family
     rhombic_dodec: 1.0,
     dodecahedron: 1.0,
     snowball: 1.0,
@@ -55495,6 +55570,10 @@ function _resolveCrystalGeomToken(crystal, habitForGeom) {
     if (crystal && crystal.mineral === 'cerussite' && crystal.twinned
         && crystal.twin_law === 'cyclic_sixling') {
         return 'cerussite_sixling_twin';
+    }
+    if (crystal && crystal.mineral === 'marcasite' && crystal.twinned
+        && crystal.twin_law === 'cockscomb') {
+        return 'marcasite_cockscomb_twin';
     }
     const canonical = _habitGeomToken(habitForGeom);
     if (crystal && crystal.growth_environment === 'air'
@@ -56259,6 +56338,75 @@ function _makeCerussiteSixlingTwin() {
     geom.computeVertexNormals();
     return geom;
 }
+// Marcasite cockscomb — thin needle blades joined on {110}, opening
+// in a tight V. The diagnostic morphology distinguishing marcasite
+// from pyrite (Ramdohr 1980 FeS2 dimorph section). Mirrors
+// PRIM_MARCASITE_COCKSCOMB_TWIN in 99c-renderer-primitives.ts.
+//
+// Same construction as the selenite swallowtail builder, with two
+// param differences:
+//   a = 0.025  (thinner — was 0.05 for swallowtail)
+//   b = 0.08   (narrower — was 0.15)
+//   theta = π/9  (20° tilt → 40° V — tighter than swallowtail's 60°)
+//
+// L kept the same as swallowtail (~0.95) for the blade length.
+// Centered at origin per the 99i convention.
+function _makeMarcasiteCockscombTwin() {
+    const a = 0.025; // half-thickness (perpendicular to broad face)
+    const L = 0.95; // blade length along c-axis
+    const b = 0.08; // half-width along contact edge
+    const theta = Math.PI / 9; // 20° tilt per blade — 40° total V
+    const c30 = Math.cos(theta);
+    const s30 = Math.sin(theta);
+    const buildBladeA = () => {
+        const out = [];
+        for (const xl of [-2 * a, 0]) {
+            for (const yl of [0, L]) {
+                for (const zl of [-b, b]) {
+                    out.push([xl * c30 - yl * s30, xl * s30 + yl * c30, zl]);
+                }
+            }
+        }
+        return out;
+    };
+    const buildBladeB = () => {
+        const out = [];
+        for (const xl of [0, 2 * a]) {
+            for (const yl of [0, L]) {
+                for (const zl of [-b, b]) {
+                    out.push([xl * c30 + yl * s30, -xl * s30 + yl * c30, zl]);
+                }
+            }
+        }
+        return out;
+    };
+    const A = buildBladeA();
+    const B = buildBladeB();
+    const pushBlade = (out, v) => {
+        const tri = (i, j, k) => {
+            _pushTri(out, v[i][0], v[i][1], v[i][2], v[j][0], v[j][1], v[j][2], v[k][0], v[k][1], v[k][2]);
+        };
+        tri(0, 1, 3);
+        tri(0, 3, 2); // xl = -2a face
+        tri(4, 6, 7);
+        tri(4, 7, 5); // xl = 0 face (contact)
+        tri(0, 4, 5);
+        tri(0, 5, 1); // yl = 0 face (base)
+        tri(2, 3, 7);
+        tri(2, 7, 6); // yl = L face (top)
+        tri(0, 2, 6);
+        tri(0, 6, 4); // zl = -b face
+        tri(1, 5, 7);
+        tri(1, 7, 3); // zl = +b face
+    };
+    const positions = [];
+    pushBlade(positions, A);
+    pushBlade(positions, B);
+    const geom = new THREE.BufferGeometry();
+    geom.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+    geom.computeVertexNormals();
+    return geom;
+}
 // Build a unit-sized geometry for a given habit token, oriented so
 // its long axis (= c-axis) lies along +Y. The instance transform
 // later places the base at the wall and scales by c_length / a_width.
@@ -56319,6 +56467,12 @@ function _buildHabitGeom(token) {
             // arms. Dispatch gated on mineral='cerussite' + twinned +
             // twin_law='cyclic_sixling'.
             return _makeCerussiteSixlingTwin();
+        case 'marcasite_cockscomb_twin':
+            // v134 (2026-05-22) — sixth iconic twin. Two thin needle blades
+            // joined on {110}, opening in a tight 40° V — the diagnostic
+            // marcasite morphology. Dispatch gated on mineral='marcasite'
+            // + twinned + twin_law='cockscomb'.
+            return _makeMarcasiteCockscombTwin();
         case 'octahedron':
             return new THREE.OctahedronGeometry(0.55, 0);
         case 'snowball':
