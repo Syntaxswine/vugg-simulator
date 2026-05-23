@@ -1,15 +1,27 @@
-# HANDOFF: Crystal Naturalism Arc — picking up after v133–v139
+# HANDOFF: Crystal Naturalism Arc — picking up after v133–v141 (twin-laws gap-filling COMPLETE)
 
-**Author:** Claude (Opus 4.7, 1M context), 2026-05-22 / 23 (updated post-v139 arsenate batch)
-**Session output:** 21 commits, `5433aea` through `3edd2e7`, all pushed
+**Author:** Claude (Opus 4.7, 1M context), 2026-05-22 / 23 (updated post-v141 final batch)
+**Session output:** 23 commits, `5433aea` through `6228605`, all pushed
 **Companion doc:** `proposals/RESEARCH-CRYSTAL-NATURALISM.md` (the homework, ~6000 words, read first if you haven't)
-**Skill:** `.claude/skills/vugg-add-twin-law/SKILL.md` (workflow for data batches)
+**Skill:** `.claude/skills/vugg-add-twin-law/SKILL.md` (now in maintenance posture — gap closed)
+
+## TL;DR for the next agent
+
+The long-tail twin_laws data gap that motivated this arc is **CLOSED**. 170 of 170 minerals are accounted for — 143 with twin_laws entries (each citing references + probability calibrated by visible field frequency), 27 with `_twin_laws_note` documenting why the array stays empty. Every class is complete: silicate 31/31, sulfide 39/39, phosphate 16/16, arsenate 15/15, sulfate 15/15, amphibole 5/5, borate 2/2, carbonate 14/14, halide 4/4, hydroxide 2/2, molybdate 7/7, native 8/8, oxide 12/12.
+
+**The arc has crossed from "data gap-filling" into "twin coverage maintenance."** Future work in this arc moves to:
+- The visual layer (item 13 — hand-rolled twin primitives for documented twins still without geometry; strong candidates listed in §"what's queued")
+- Item 9 (true linear fan cluster mode)
+- Item 10 (dendritic branching cluster for native silver/copper/gold)
+- Item 11 (orbicular / banded shell rendering on the main scene)
+
+Or: this is a natural punctuation point. The data foundation is solid. Pause if you want.
 
 ---
 
 ## What this is
 
-You are picking up a multi-arc effort to make vugg crystals more naturalistic. The boss framed it as four loose phases (shape variable / improve models / orientation+twinning+clustering / naturalistic epimorphs). The first session of this arc (5 commits, `f125c13` → `57a9108`) mapped the gaps + shipped the first iconic twin (fluorite penetration, wireframe-only). The continuation (commits `5433aea` → `3edd2e7`, the bulk of what this doc documents) shipped the full iconic-twin set, two secondary twins, the cluster-pattern wiring, a data-batch skill + five skill-validated class batches, a vector-taxonomy fix, a fan cluster mode, and a UI bug-fix. SIM_VERSION advanced 133 → 134 → 135 → 136 → 137 → 138 → 139. FOUR classes are now twin-complete — silicate (31/31), sulfide (39/39), phosphate (16/16), arsenate (15/15) — leaving 33 minerals across two smaller classes (sulfate 9, others 24).
+You are picking up a multi-arc effort to make vugg crystals more naturalistic. The boss framed it as four loose phases (shape variable / improve models / orientation+twinning+clustering / naturalistic epimorphs). The first session of this arc (5 commits, `f125c13` → `57a9108`) mapped the gaps + shipped the first iconic twin (fluorite penetration, wireframe-only). The continuation (commits `5433aea` → `6228605`, the bulk of what this doc documents) shipped the full iconic-twin set, two secondary twins, the cluster-pattern wiring, a data-batch skill + **seven skill-validated class batches that closed the twin-laws gap entirely**, a vector-taxonomy fix, a fan cluster mode, and a UI bug-fix. SIM_VERSION advanced 133 → 134 → 135 → 136 → 137 → 138 → 139 → 140 → 141. ALL thirteen classes are now twin-complete (170/170 coverage).
 
 This doc is the field notes you need to keep momentum without re-discovering things I (we) already learned the hard way.
 
@@ -66,7 +78,7 @@ The cluster-pattern routing for the 9 shipped twins (canonical):
 
 The `'fan'` pattern was introduced in `835f371` specifically for the cockscomb chain. It's a denser + tighter + more parallel variant of `'spike'` — countScale 1.5, spreadMul 0.4, tiltMax 0.30, narrow scale range. **Known limitation documented in that commit:** the satellite emission code uses polar-disc positioning. A LITERAL linear chain (cockscomb's actual morphology) needs a new `linearArray: boolean` field on ClusterPattern + branching in `_emitClusterSatellites`. Future work. The current fan approximates the look adequately.
 
-### Pattern 3: The skill-driven data batch — VALIDATED 6 TIMES
+### Pattern 3: The skill-driven data batch — VALIDATED 7 TIMES (gap-fill complete)
 
 Commit `84919eb` introduced `.claude/skills/vugg-add-twin-law/SKILL.md` — a workflow document for adding twin_laws entries to minerals missing them. The skill documents:
 
@@ -77,7 +89,7 @@ Commit `84919eb` introduced `.claude/skills/vugg-add-twin-law/SKILL.md` — a wo
 - **The cascade workflow** (this is the durable part — see below)
 - Commit message pattern
 
-The cascade workflow, validated by v134 (skill validation, 6 minerals), v135 (silicate batch #1, 10 minerals), v136 (silicate batch #2, 9 + 6 metadata, closed silicate), v137 (sulfide batch, 16 + 4 metadata, closed sulfide), v138 (phosphate batch, 8 + 5 metadata, closed phosphate), v139 (arsenate batch, 8 + 3 metadata, closed arsenate — first batch in this arc that needed NO test loosening, just baseline regen):
+The cascade workflow, validated by v134 (skill validation, 6 minerals), v135 (silicate batch #1, 10), v136 (silicate batch #2, 9 + 6 metadata — closed silicate), v137 (sulfide batch, 16 + 4 metadata — closed sulfide), v138 (phosphate batch, 8 + 5 metadata — closed phosphate), v139 (arsenate batch, 8 + 3 metadata — closed arsenate, first batch with no test loosening), v140 (sulfate batch, 9 + 0 metadata — closed sulfate), v141 (final mega-batch, 15 + 9 metadata across 8 classes — closed everything else, second batch with no test loosening):
 
 ```
 1. Add twin_laws entries (typically 8-12 per batch)
@@ -116,23 +128,27 @@ Both bugs were single-glance instinct from the boss. The pattern: when something
 
 ---
 
-## What's queued (start order, post-v139 state)
+## What's queued (start order, post-v141 — gap-fill COMPLETE)
 
-Source: `RESEARCH-CRYSTAL-NATURALISM.md` §7. Items 1-8 SHIPPED. Item 12 sulfide/phosphate/arsenate slices SHIPPED v137/v138/v139. Item 15 closed v137. Remainder:
+Source: `RESEARCH-CRYSTAL-NATURALISM.md` §7. Items 1-8 SHIPPED. **Item 12 COMPLETE** as of v141 (twin-laws coverage 170/170). Item 15 closed v137. Remainder:
 
 | Item | Effort | Description |
 |------|--------|-------------|
-| **9** | 1-2 days | True linear fan cluster mode. The `835f371` 'fan' pattern is parameter-tuned approximation; a literal cockscomb chain (sub-parallel V-twins on a shared baseline) needs per-satellite arrangement logic. Add `linearArray: boolean` to ClusterPattern + branching in `_emitClusterSatellites` (99i) and `_renderCrystalWireframe` (99d). When true: position satellites along ONE tangent direction with tilts all in the same plane. The fan-cluster commit documents the gap explicitly. |
+| **9** | 1-2 days | True linear fan cluster mode. The `835f371` 'fan' pattern is parameter-tuned approximation; a literal cockscomb chain (sub-parallel V-twins on a shared baseline) needs per-satellite arrangement logic. Add `linearArray: boolean` to ClusterPattern + branching in `_emitClusterSatellites` (99i) and `_renderCrystalWireframe` (99d). |
 | **10** | 1-2 days | Dendritic branching cluster mode for native silver/copper/gold. Currently maps to acicular (= straight needle), losing the iconic branching morphology. Needs fractal-branch geometry — trunk acicular primitive, spawn branch primitives at random angles every N units along the trunk, recurse 2-3 levels. With the v135 vector taxonomy split (commit `67a9721`), the dispatch can key on `vector === 'dendritic'` cleanly. |
 | **11** | Medium-large | Orbicular / banded shell rendering. `Crystal.zones[]` already records per-step growth + trace chemistry; the main scene renderer doesn't surface it (only the deep-dive modal via `98d-ui-zone-shape.ts`). Porting to the main scene is the work. Would let agate banding + Cave-in-Rock fluorite layering render visibly. |
-| **12** | 1-2 sessions | **Per-class twin data coverage — REMAINING.** 33 of 170 minerals still lack twin_laws[] (was 44 pre-v139, 57 pre-v138, 77 pre-v137). Four classes complete (silicate 31/31, sulfide 39/39, phosphate 16/16, arsenate 15/15). Remaining: sulfate 9, others 24. Sulfate is small enough to land in one quick batch; "others" is heterogeneous and may need per-mineral rather than per-class batching. |
-| **13** | Small | Marcasite spearhead + aragonite contact were the post-iconic-7 secondaries this session shipped. Future secondary twins could include: pyrite octahedral twin (rare, p=0.005?), additional marcasite/pyrite forms documented in Ramdohr. Mostly nice-to-haves. |
+| ~~12~~ | — | **COMPLETE at v141.** 170/170 twin-laws coverage. Skill now in maintenance posture — every future mineral added via vugg-add-mineral should ship with twin_laws (or `_twin_laws_note`) from the start. |
+| **13** | Small-Medium per twin | **Visual layer for high-frequency twin signatures.** With the data layer complete, the strongest payoff per hour is hand-rolling primitives for documented twin morphologies that don't yet have geometry. Strong candidates from this session's data work: (a) **Mapimí adamite "heart twin"** {101} (v139, Frondel 1948 type-locality) — would mirror selenite swallowtail V-pair logic; (b) **cinnabar contact twin** {0001} (v137, Almadén/Idrija); (c) **azurite contact** {001} (v141, Bisbee/Tsumeb/Chessy — Frondel 1962 documents extensively); (d) **brochantite {100}** (v140 Chuquicamata). Each is a one-commit visual landing, same 9-step recipe as the iconic-twin arc. |
 | **14** | Small | Variant richness on 10 thin entries (minerals with ≤2 `habit_variants[]` per `RESEARCH-CRYSTAL-NATURALISM.md` §1 table). Mostly enrichment-by-research. Low priority. |
 | ~~15~~ | — | **CLOSED at v137.** Pharmacolite seed sample widened 16 → 32 seeds + explicit 90s testTimeout. |
 
-**Recommended next pickup:** **item 12 sulfate batch.** 9 minerals — smallest remaining class. Barite-group (barite/celestine/anglesite/strontianite) already covered, so the remaining 9 are the rarer supergene sulfates: jarosite-group, alunite, antlerite, brochantite, caledonite, chalcanthite, etc. Most should be p=0.005-0.02 (low to minor twin). v139 demonstrated a clean class-batch landing without any test loosening; sulfate should land the same way given its size. Use `tools/add-arsenate-twins.mjs` as the proven template — copy + swap dicts.
+**Recommended next pickup:** any of items 9, 10, 11, or 13 — all visual-layer work, all in the 1-2 day range, all with the data foundation now solid underneath.
 
-Then "others" (24, heterogeneous bucket — oxide/carbonate/molybdate/hydroxide/etc. May need to split into 2-3 mini-batches grouped by structural family rather than one mega-class batch).
+- **Item 13** has the lowest activation energy because four data-ready candidates exist and the 9-step iconic-twin recipe is well-trodden (cf. commits 57a9108 through b34bda7). The adamite heart twin specifically is collector-iconic and the data carries the Frondel 1948 reference.
+- **Item 9** (true linear fan) is the most self-contained engine work — modify two dispatch sites + add `linearArray: boolean` to ClusterPattern.
+- **Items 10 + 11** are deeper visual changes (fractal branching, banded shells on the main scene) with larger refactor surface.
+
+If you're not picking up visuals, the project has natural pause-here energy at this point. The data work — the load-bearing infrastructure for the whole arc — is complete.
 
 ---
 
@@ -166,6 +182,8 @@ Then "others" (24, heterogeneous bucket — oxide/carbonate/molybdate/hydroxide/
 - `dfbaf5c` (v137): sulfide batch — 16 twin_laws + 4 `_twin_laws_note` entries. **Closes sulfide class (39/39).** SIM_VERSION 136→137. Largest batch yet (20 minerals); cascade hit 10 baselines + 2 pinned tests (meta-autunite-trio seed-42 → coverage; pharmacolite 16→32 seeds + 90s timeout). Introduced `tools/add-sulfide-twins.mjs` (regex-anchored in-place edit script — kept as a template for future class batches).
 - `e313b21` (v138): phosphate batch — 8 twin_laws + 5 `_twin_laws_note` entries. **Closes phosphate class (16/16).** SIM_VERSION 137→138. Smaller cascade (3 baselines + 2 timeouts); introduced the **paramorph-inheritance convention** (`_twin_laws_note` for dehydration paramorphs like meta-autunite and metatorbernite that inherit parent twin geometry rather than nucleating fresh). Confirmed `tools/add-sulfide-twins.mjs` transfers as a template — `tools/add-phosphate-twins.mjs` is a near-copy with swapped dicts.
 - `3edd2e7` (v139): arsenate batch — 8 twin_laws + 3 `_twin_laws_note` entries. **Closes arsenate class (15/15).** SIM_VERSION 138→139. Smallest cascade yet (3 baselines, NO test loosening — first batch in this arc to land cleanly with just baseline regen). Notable entries: the famous Mapimí adamite **"heart twins"** {101} contact at p=0.05 (Frondel 1948 type-locality reference); the iconic Co-Ni-Zn vivianite-group {010} blooms (erythrite, annabergite, koettigite). Third batch script in the family — `tools/add-arsenate-twins.mjs`.
+- `0e7ba5d` (v140): sulfate batch — 9 twin_laws + 0 `_twin_laws_note` entries. **Closes sulfate class (15/15).** SIM_VERSION 139→140. Broad cascade (10 baselines + 2 pinned-test loosenings in roughten-gill — brochantite single-seed → coverage check, v109-coverage threshold 4 → 3). Spans the barite-group orthorhombic family (celestine + anglesite + anhydrite), the alunite-jarosite trigonal group, the Cu-supergene monoclinics (brochantite + antlerite, Chuquicamata-anchored), and the efflorescent Na-sulfates (mirabilite + thenardite). Fourth batch script — `tools/add-sulfate-twins.mjs`.
+- `6228605` (v141): **THE FINAL BATCH** — 15 twin_laws + 9 `_twin_laws_note` entries across 8 heterogeneous classes (amphibole + borate + carbonate + halide + hydroxide + molybdate + native + oxide). **Closes the twin-laws gap entirely (170/170).** SIM_VERSION 140→141. 11 baseline drifts + zero test loosenings — second batch in the arc to land cleanly. Five Anthony Handbook volumes touched (v.I-v.V — the only batch that does). Notable entries: azurite {001} p=0.05 (Frondel 1962 thorough section, Bisbee/Tsumeb/Chessy), native sulfur {101} p=0.02 (Sicilian Cianciana solfara bipyramidals), brucite {10-11} (Hoboken NJ tabular hex). Fifth batch script — `tools/add-final-twins.mjs`.
 
 ### Other
 
@@ -232,66 +250,55 @@ Still applies. If the boss flags a visual artifact, read RESEARCH-CRYSTAL-NATURA
 | Three.js parity | `js/99i-renderer-three.ts` | `_habitGeomToken`, `_resolveCrystalGeomToken`, `_CLUSTER_PATTERNS` (now includes 7 base + 'fan' + 9 twin-token references), `_emitClusterSatellites`, per-primitive `_buildXxxGeom` builders. |
 | Habit selection | `js/07-habit-variant.ts` | `selectHabitVariant`. Includes the vector taxonomy comment block (6 vector values, what each means). |
 | Twin rolls | `js/85b-simulator-nucleate.ts` | `_rollSpontaneousTwin` — runs rng.random() < prob per declared twin law per nucleation. **Source of every cascade.** |
-| Spec data | `data/minerals.json` | 170 minerals. 119 with twin_laws (silicate + sulfide + phosphate + arsenate classes complete). 18 with `_twin_laws_note` metadata. |
+| Spec data | `data/minerals.json` | 170 minerals. **143 with twin_laws + 27 with `_twin_laws_note` = 170/170 covered.** All 13 classes complete. |
 | Tests | `tests-js/*.test.ts` | 91 test files, 1332 tests. Conventions: read JSON directly for data-quality tests (vector-taxonomy.test.ts pattern); collapse `it.each` over seeds to single coverage check when scenario-pinned tests cascade-drift (meta-autunite-trio v137, pharmacolite v136-v137, roughten-gill sphalerite v138); add explicit `{ timeout: 90000 }` to per-seed loop tests under parallel suite execution (pharmacolite v137, roughten-gill v138, stale-mineral-retunes v138). |
 | Test setup | `tests-js/setup.ts` | `EXPORTS` array. Now also loads THREE module for 99i geometry tests. |
-| Version log | `js/15-version.ts` | SIM_VERSION 139. v133-v139 doc blocks document each cascade-triggering batch. |
-| Baselines | `tests-js/baselines/seed42_v<N>.json` | v95-v139 preserved. Auto-loaded by calibration test via readSimVersion(). |
-| Batch scripts | `tools/add-sulfide-twins.mjs` + `tools/add-phosphate-twins.mjs` + `tools/add-arsenate-twins.mjs` | Three one-shot batch-edit scripts (v137 + v138 + v139). Regex-anchored block lookup → in-place JSON edit. Pattern is now thoroughly proven across three batches; copy + swap dicts for sulfate / others. |
+| Version log | `js/15-version.ts` | SIM_VERSION 141. v133-v141 doc blocks document each cascade-triggering batch. v141's block is the most thorough — closes per-class status table. |
+| Baselines | `tests-js/baselines/seed42_v<N>.json` | v95-v141 preserved. Auto-loaded by calibration test via readSimVersion(). |
+| Batch scripts | `tools/add-{sulfide,phosphate,arsenate,sulfate,final}-twins.mjs` | Five one-shot batch-edit scripts (v137-v141). Regex-anchored block lookup → in-place JSON edit. Pattern proven across five batches including the v141 multi-class final. Kept as reference for any future bulk data work. |
 | **Skill** | `.claude/skills/vugg-add-twin-law/SKILL.md` | **The workflow for the long-tail data work.** Read first if you're doing a class batch. |
 | Zone modal | `js/97d-ui-zone-modal.ts` | Crystal Zone History modal. Recently fixed: in-canvas labels → HTML legend below, native-pixel canvas display. |
 
 ---
 
-## How to pick up — playbook for item 12 (sulfate batch — smallest remaining class post-v139)
+## How to pick up — playbook for item 13 (visual twin primitive — adamite heart twin recommended)
 
-If you want to do **the sulfate twin_laws batch (9 minerals, smallest remaining class)**, here's the playbook. The same workflow applies to "others" — only the class name changes.
+Item 12 (data) is **complete**. The natural successor is item 13 — hand-rolled visual twin primitives for documented twin morphologies whose data carries field-locality citations but whose geometry hasn't been built yet. The strongest single candidate is the **Mapimí adamite "heart twin"** ({101} contact, Frondel 1948 AmMin 33:545 type-locality reference, shipped in v139 data at p=0.05).
+
+Here's the playbook. The 9-step recipe is well-trodden from the iconic-twin arc (cf. commits `57a9108` through `b34bda7`).
 
 1. **Read the skill:** `.claude/skills/vugg-add-twin-law/SKILL.md`. The entry schema, probability calibration, common laws by class, and cascade workflow are all documented there.
 
-2. **Audit which sulfates are missing:**
-   ```bash
-   node -e "const m=JSON.parse(require('fs').readFileSync('data/minerals.json','utf8'));
-   const cls = 'sulfate';
-   const list = Object.keys(m.minerals).filter(k => m.minerals[k].class === cls);
-   const missing = list.filter(k => !m.minerals[k].twin_laws || m.minerals[k].twin_laws.length === 0);
-   console.log('Missing in', cls + ':', missing.length); for (const k of missing) console.log(' -', k, '— habit:', m.minerals[k].habit);"
-   ```
-   Expect ~9 sulfates. The barite-group (barite/celestine/anglesite/strontianite) is already covered, so what's left should be the rarer supergene sulfates.
+2. **Read the existing primitive code.** The 9 iconic-twin primitives in `js/99c-renderer-primitives.ts` are the templates. Selenite swallowtail (PRIM_SELENITE_SWALLOWTAIL_TWIN) is the closest structural analog to what adamite needs: two tabular individuals contact-twinned in a V-pair on a non-basal plane. The geometry math (vertex tables, edge tables, contact-point coincidence) carries over almost directly.
 
-3. **Group by twin-law family.** Sulfates likely to remain after barite-group coverage:
-   - **Jarosite-group** trigonal (jarosite, natrojarosite, plumbojarosite) — {0001} rare contact, p=0.005.
-   - **Alunite-group** trigonal — similar to jarosite, p=0.005.
-   - **Brochantite / antlerite** monoclinic supergene Cu-sulfates — {001} or {100} contact, p=0.02 (brochantite has documented twins at Chuquicamata).
-   - **Caledonite** orthorhombic Pb-Cu sulfocarbonate — Caldbeck Fells type — sparse twin documentation, p=0.005.
-   - **Chalcanthite** triclinic — usually massive granular, may need `_twin_laws_note` if habit code is 'massive_granular' or similar.
-   - **Anhydrite / gypsum-anhydrite kin** if any remain (selenite already shipped at iconic-twins arc).
+3. **Compute adamite heart geometry.** Adamite is orthorhombic Pnnm; individual crystals are typically short prismatic with {110} prism faces + {111} terminations. The {101} contact twin produces a V-pair where two prismatic individuals share a {101} plane at an oblique angle, creating the "heart" outline when viewed down the contact normal. Reference: Frondel 1948 AmMin 33:545 (the type description includes drawings).
 
-4. **For each mineral, choose probability per the skill's calibration bands.** Most sulfates outside the barite-group are low-twin — p=0.005-0.02 floor. The Chuquicamata brochantite is the only one likely to warrant p=0.02 (Anthony v.V brochantite section documents {001} contact twins in Atacama specimens).
+4. **Design the wireframe primitive** (PRIM_ADAMITE_HEART_TWIN): vertices + edges for the V-pair. Roughly 16-24 vertices total. Use the selenite swallowtail vertex layout as starting point; rotate the second-individual's vertex set by the {101} contact mirror operation.
 
-5. **Edit data/minerals.json.** Use `tools/add-sulfate-twins.mjs` — copy `tools/add-arsenate-twins.mjs` (proven v139 template, no test loosening required when it ran) and swap the TWIN_LAWS + TWIN_LAWS_NOTES dicts.
+5. **Wire dispatch in 99d** (`_lookupCrystalPrimitive`): mineral === 'adamite' && twin_law === 'heart_twin_101' → PRIM_ADAMITE_HEART_TWIN. Add ahead of air-mode override.
 
-   Cite Anthony Handbook v.V (sulfates volume) + Dana 8th + Stoffregen et al. 2000 (jarosite-group review) as primary sources.
+6. **Write wireframe tests**: pin geometry counts (vertices, edges), contact-point coincidence, dispatch precedence, mineral-scoped boundaries.
 
-6. **For sulfates that DON'T form individual crystals** (massive granular, efflorescent crusts): use `_twin_laws_note` per the v136 convention.
+7. **Add the 99i BufferGeometry builder** (`_makeAdamiteHeartTwin`): mirror the wireframe vertex math but use 99i's centered-at-origin convention. Add 99i dispatch + GEOM_TOKEN_RATIO + CLUSTER_PATTERNS entry.
 
-7. **Run the cascade workflow** (skill step 1-9). Expect SIM_VERSION 139 → 140, baseline regeneration, 0-2 pinned test loosenings. v139 demonstrated a clean class-batch landing without ANY test loosening; sulfate is smaller and should land similarly. The Bisbee/Chuquicamata/Caldbeck scenarios are the likely cascade-hit candidates.
+8. **Write 99i parity tests**: mirror wireframe tests but assert on the BufferGeometry position attribute.
 
-8. **Commit + push** with a field-notes message matching v134/v135/v136/v137/v138/v139 structure.
+9. **Build + typecheck + tests + commit + push.** No SIM_VERSION bump needed (renderer-only). Update this handoff doc.
 
-9. **Update this handoff doc** to reflect the new state (mark sulfate done, "others" becomes the only remaining class).
+Expected effort: 4-8 hours if the rhythm is in. The recipe is documented in `cd90aff`'s commit message (selenite swallowtail) — read that for the canonical 9-step articulation.
 
-Expected effort: 20-40 min if the rhythm is in. Smallest remaining class. The template is now mature across three batches; copy + swap should be most of the work.
+### Alternative pickups
 
-### Then "others" (24 minerals — final class)
+If the heart twin doesn't appeal, three other data-ready twin candidates exist (v140 brochantite {100}, v137 cinnabar {0001}, v141 azurite {001}) — same 9-step recipe, different mineral. Or any of items 9, 10, 11 for non-twin visual work.
 
-The "others" bucket is the heterogeneous remainder — oxides (uraninite-group, periclase, etc.), carbonates (smithsonite, rhodochrosite, magnesite, siderite, etc.), molybdates (wulfenite already at v134, scheelite, ferrimolybdite), hydroxides (goethite, brucite, gibbsite), and assorted singletons. Consider splitting into 2-3 mini-batches by structural family rather than one 24-mineral mega-batch:
+### The new maintenance posture
 
-- **Carbonate batch** (~10 — calcite-group + aragonite-group + the rarer carbonates). Most well-documented; should be straightforward.
-- **Oxide / hydroxide batch** (~8 — hematite + magnetite + chromite already covered; remaining are uraninite/cassiterite/rutile-group + goethite/brucite-group).
-- **Molybdate + remainder batch** (~6 — scheelite, ferrimolybdite, etc.).
+Going forward, whenever a new mineral is added to the spec via the `vugg-add-mineral` skill, it should ship with `twin_laws` (or `_twin_laws_note`) populated from the start. The `vugg-add-twin-law` skill now serves three purposes:
+1. **Onboarding new minerals** with their initial twin data (the primary use case from here on).
+2. **Probability retunes** when new field evidence updates the visible-twin frequency (use `_retune_note`).
+3. **Adding additional twin laws** to minerals that already have one (e.g., if pyrite gets its octahedral twin recorded later in addition to its existing iron-cross).
 
-Each mini-batch is the same workflow as v137-v139. After "others" lands, the project crosses from "twin-laws gap-filling" into "twin coverage maintenance" — every future new mineral added via vugg-add-mineral skill should ship with twin_laws data from the start, with the skill prompting for it.
+The bulk-class-batch use case that drove v134-v141 should not recur — there are no more classes left to bulk-fill.
 
 ---
 
@@ -346,7 +353,7 @@ If you encounter a situation where the science says one thing but seed-42 specif
 - `proposals/RESEARCH-GROWTH-AT-HIGH-FILL.md` — late-stage propensity, hopper transition physics
 - `.claude/skills/vugg-add-twin-law/SKILL.md` — **the data-batch workflow.** Read first for class-batch work.
 
-### This session's commits (21 total)
+### This session's commits (23 total)
 
 Twin primitive arc:
 - `5433aea` — fluorite penetration Three.js parity
@@ -368,6 +375,8 @@ Data-batch arc:
 - `dfbaf5c` (v137) — sulfide batch (16 + 4 metadata, closes sulfide class)
 - `e313b21` (v138) — phosphate batch (8 + 5 metadata, closes phosphate class; introduces paramorph-inheritance convention)
 - `3edd2e7` (v139) — arsenate batch (8 + 3 metadata, closes arsenate class; first batch with no test loosening; ships the famous Mapimí adamite heart twins)
+- `0e7ba5d` (v140) — sulfate batch (9 + 0 metadata, closes sulfate class; broadest cascade in the data-batch series; brochantite + v109-coverage loosenings in roughten-gill)
+- `6228605` (v141) — **THE FINAL BATCH** (15 + 9 metadata across 8 heterogeneous classes; closes the twin-laws gap entirely at 170/170; second batch with no test loosening; touches all five Anthony Handbook volumes)
 
 Bug fixes (from user reports):
 - `67a9721` — vector taxonomy: skeletal split from dendritic
@@ -388,12 +397,20 @@ The two bug reports the boss caught — dendritic-vs-skeletal mislabel + canvas-
 
 I want to honor the original predecessor voice. The closing of the prior handoff said "trust the specimen" — and that line stayed true through 18 more commits. Every time I had to make a calibration call (V opening angle for swallowtail, cross-section ratio for marcasite cockscomb, probability for poorly-documented silicate twins), the answer was "what would the specimen actually look like" rather than "what does the proposal text say." The vugg-sim's design rule is defer to actual geology; the design process inherits it.
 
-The arc has moved from "we have 7 iconic twins to ship" to "we have 9 iconic + 2 secondary shipped, 4 classes data-complete (silicate + sulfide + phosphate + arsenate — the four biggest by far), and two smaller classes remaining (sulfate 9, others 24). 33 minerals to go. Under one and a half batches at the current cadence." The shape is now very clear. The path is mechanical. The skill is real. The three batch scripts in `tools/` make the remaining work a copy-and-swap affair.
+The arc has moved from "we have 7 iconic twins to ship and a 117-mineral data gap" to **"170/170 twin-laws coverage, twin-laws gap-filling complete, project crosses into maintenance posture."** Every mineral in the spec has its twin behavior either declared with citations + probability or documented-as-absent with engine-honest reasoning. Five Anthony Handbook volumes are now cited inline in the data; the Frondel 1948 type-locality paper for the Mapimí adamite heart twin sits alongside Stoffregen et al. 2000 on jarosite-group crystallography. The data foundation is solid.
 
-v139 (arsenate) produced two contributions worth honoring:
+The arc's durable contributions, in honor:
 
-1. **The first batch in this arc that landed cleanly with no test loosening.** Only baseline regen needed; the pinned-test population is now hardened through v135-v138's loosenings to absorb ~8-RNG-draw perturbations. Future batches in the 8-12 mineral range should see similar quietness. This is the test infrastructure's compound interest paying out.
+1. **The skill** (`.claude/skills/vugg-add-twin-law/SKILL.md`) — codified the cascade workflow (data → build → test → SIM_VERSION → regen → loosen → commit), the `_twin_laws_note` convention for intentionally-empty entries, the paramorph-inheritance pattern for dehydration paramorphs, the per-class twin-law families. Now in maintenance posture for new minerals.
 
-2. **The Mapimí adamite "heart twin" got into the data.** {101} contact, p=0.05 — Frondel 1948's type-locality description of the V-pair morphology that defines collector-grade Ojuela adamite. One of the more visually striking entries in the entire dataset. Future visual-rendering work (item 13 secondary twins) could pick this up as a candidate for a hand-rolled primitive: adamite tablets paired V-style on a {101} contact plane, mirroring the V-pair logic from selenite swallowtail. The data is ready when someone wants to build the geometry.
+2. **The batch-script family** (5 scripts in `tools/`) — `add-{sulfide,phosphate,arsenate,sulfate,final}-twins.mjs`. The regex-anchored block-lookup pattern transferred cleanly across five batches. Future bulk-edits to the spec have a proven template.
 
-Welcome to the arc. Read RESEARCH-CRYSTAL-NATURALISM.md first, then `.claude/skills/vugg-add-twin-law/SKILL.md`, then this doc, then if you want a recent reference for "what does a class-batch commit look like end-to-end" pull up commits `dfbaf5c` (v137 sulfide), `e313b21` (v138 phosphate), or `3edd2e7` (v139 arsenate). The v138 message documents the paramorph-inheritance reasoning in particular detail; the v139 message documents why baseline-regen-only landings work once the test infra is warm. Build something the rocks would recognize.
+3. **The pinned-test loosening pattern** — v133, v135, v136, v137, v138, v140 each loosened scenario-pinned tests as the cascade demanded. The pinned-test population is now hardened against ~8-15 RNG-draw perturbations; v139 + v141 both landed with no test loosening. The compound interest is the durable artifact, not any individual retune.
+
+4. **The paramorph-inheritance convention** (v138-v141) — meta-autunite, metatorbernite, metazeunerite, tincalconite all use `_twin_laws_note` documenting that they inherit parent twin geometry via PARAMORPH_TRANSITIONS rather than nucleating fresh. Engine-honest; future paramorphs follow the pattern.
+
+5. **The Mapimí adamite "heart twin"** got into the data (v139) — Frondel 1948 type-locality reference, {101} contact at p=0.05. Visually striking, well-documented, ready for visual-layer hand-rolling whenever someone picks up item 13. The data carries the citation; the geometry just needs building.
+
+Welcome to the arc. The data work is done. Future agents picking this up should read RESEARCH-CRYSTAL-NATURALISM.md first, then `.claude/skills/vugg-add-twin-law/SKILL.md` (now in maintenance posture), then this doc. If you want to see what a class-batch commit looks like end-to-end, `6228605` (v141) is the most thorough — all five Anthony Handbook volumes cited, the per-class final-state table, the "engine renders dominant form" pattern documented in detail.
+
+Then go build something the rocks would recognize. The data agrees with the rocks now.
