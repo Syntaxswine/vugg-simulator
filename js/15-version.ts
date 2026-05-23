@@ -7367,5 +7367,158 @@
 //          twin_law. 15 of 15 accounted for. FIVE classes complete.
 //          24 minerals remain across the heterogeneous classes —
 //          handled in v141 as the final mega-batch.
-const SIM_VERSION = 140;
+// ----------------------------------------------------------------
+// v141 (2026-05-23): THE FINAL TWIN_LAWS BATCH — closes the gap entirely.
+//          24 minerals across 8 heterogeneous classes processed:
+//          15 get twin_laws, 9 get `_twin_laws_note`. The project
+//          crosses from "twin-laws gap-filling" into "twin coverage
+//          maintenance" — 170 of 170 minerals now accounted for.
+//
+//          THE 15 TWIN_LAWS ENTRIES — grouped by class
+//
+//            AMPHIBOLE (1):
+//              actinolite     {100} simple+lamellar  p=0.02
+//                             (Ca-Mg-Fe amphibole, tremolite-iso, Ala/Cziklowa)
+//
+//            BORATE (1):
+//              borax          {100} contact          p=0.005
+//                             (Boron CA, Searles Lake — efflorescent limits)
+//
+//            CARBONATE (4):
+//              malachite      {100} contact          p=0.02
+//                             (Mashamba/Kolwezi acicular sprays)
+//              smithsonite    {0001} contact         p=0.02
+//                             (calcite-iso, Tsumeb/Kelly/Choix rhombs)
+//              azurite        {001} contact          p=0.05
+//                             (Tsumeb, Bisbee, Chessy type — well-doc)
+//              aurichalcite   {100} contact          p=0.005
+//                             (data sparse, acicular tufts)
+//
+//            HALIDE (1):
+//              sylvite        {111} penetration      p=0.005
+//                             (halite-iso, rare in Carlsbad potash)
+//
+//            HYDROXIDE (1):
+//              lepidocrocite  {100} contact          p=0.005
+//                             (γ-FeOOH, Easton/Siegen platy scales)
+//
+//            MOLYBDATE/TUNGSTATE (3):
+//              ferrimolybdite {010} contact          p=0.005
+//                             (Climax/Bingham yellow tufts)
+//              raspite        {100} contact          p=0.02
+//                             (PbWO4 monoclinic dimorph — Broken Hill type)
+//              stolzite       {110} contact          p=0.02
+//                             (PbWO4 tetragonal dimorph, scheelite-group)
+//
+//            NATIVE (3):
+//              native_bismuth   {01-12} contact      p=0.005
+//                               (Schneeberg + Cobalt ON platelets)
+//              native_sulfur    {101} contact        p=0.02
+//                               (Cianciana/Agrigento bipyramidal — Sicilian)
+//              native_tellurium {01-12} contact      p=0.005
+//                               (Cresson Vug, Săcărâmb — data sparse)
+//
+//            OXIDE (1):
+//              brucite        {10-11} contact        p=0.005
+//                             (Hoboken NJ type, Wood's Chrome PA — layered)
+//
+//          Citations span Anthony Handbook v.I-v.V (all five volumes
+//          touched in this batch — the only batch in this arc that
+//          does), Frondel 1962 v.III (carbonates), Deer Howie Zussman
+//          (amphibole-group monograph), Ramdohr 1980 §3 (natives),
+//          Dana 8th. Probabilities calibrated by visible-twin frequency
+//          per the skill's calibration bands; azurite's p=0.05 is the
+//          highest in the batch, reflecting Frondel 1962's thorough
+//          documentation of {001} contacts in Bisbee/Tsumeb/Chessy
+//          collector-grade specimens.
+//
+//          THE 9 _TWIN_LAWS_NOTE ADDITIONS — INTENTIONALLY EMPTY
+//
+//            FIBROUS-ASBESTIFORM AMPHIBOLES (3):
+//              anthophyllite — fibrous_asbestiform, no individual euhedra
+//              amosite       — grunerite asbestos variety, same
+//              crocidolite   — riebeckite asbestos variety, same
+//
+//            PARAMORPH-INHERITANCE (1 — v138 convention):
+//              tincalconite  — dehydration paramorph of borax;
+//                              inherits borax's {100} twin geometry
+//                              via paramorph transition.
+//
+//            NON-EUHEDRAL HABITS (5):
+//              hydrozincite  — spherulitic_crust (Zn-CO3-hydroxide)
+//              goethite      — botryoidal_or_mammillary_or_fibrous
+//                              (well-formed Kongsberg crystals WOULD
+//                              twin {021}, but engine renders the
+//                              dominant non-euhedral form)
+//              native_arsenic — massive_granular (Schneeberg sooty
+//                               masses; Anthony v.I notes near-zero
+//                               euhedra)
+//              awaruite      — grains_microscopic (Ni-Fe alloy,
+//                              serpentinite-hosted, sub-visual)
+//              uraninite     — pitchblende_massive (Černý Důl cubic
+//                              individuals twin {111}, but engine
+//                              renders the dominant colloform form)
+//
+//          The "engine renders dominant form" pattern (goethite +
+//          uraninite) is documented inline so future agents understand
+//          the science-vs-engine distinction: well-formed individuals
+//          DO twin per the literature, but the spec's habit code
+//          tells the engine to produce the more common non-euhedral
+//          form, and that's what `_twin_laws_note` captures.
+//
+//          WHY THIS DRIFTS BASELINES
+//
+//          15 new twin_laws → ~15 new rng.random() draws per nucleation.
+//          The heterogeneous classes touch many scenarios — broadest
+//          cascade in the arc since v137 sulfide (which had 16 new
+//          twin_laws). The native-element + carbonate additions
+//          particularly drive scenarios with Cu-supergene + native-
+//          element + Bi-As-Te suites.
+//
+//          SCENARIOS DRIFTED EMPIRICALLY:
+//            bisbee, epithermal_telluride, jeffrey_mine, naica_geothermal,
+//            ouro_preto, porphyry, schneeberg, searles_lake,
+//            sicily_solfifera, sulphur_bank, supergene_oxidation —
+//            11 baselines. (Same count as v140 within ±1, normal range
+//            for a class-batch this size.)
+//
+//          NO PINNED-BEHAVIOR TESTS NEEDED LOOSENING — the cascade was
+//          fully absorbed by baseline regen alone. SECOND batch in this
+//          arc to land cleanly with just baseline regen (v139 arsenate
+//          was the first). The test infra has continued to harden.
+//
+//          WHAT v141 SHIPS
+//            data/minerals.json (MOD): 15 twin_laws + 9 _twin_laws_note.
+//            tests-js/baselines/seed42_v141.json (NEW).
+//            js/15-version.ts (MOD): this block + SIM_VERSION 140 -> 141.
+//            tools/add-final-twins.mjs (NEW): the fifth batch script.
+//
+//          NO TEST LOOSENINGS. NO RENDERER WORK.
+//
+//          COVERAGE: 170 of 170 minerals accounted for.
+//            143 with twin_laws entries
+//            27 with `_twin_laws_note` (intentionally-empty + documented)
+//            0 missing
+//
+//          THE TWIN-LAWS GAP IS NOW CLOSED. The project crosses from
+//          "twin-laws gap-filling" into "twin coverage maintenance":
+//          every future mineral added via the vugg-add-mineral skill
+//          should ship with twin_laws data (or a `_twin_laws_note`)
+//          from the start.
+//
+//          PER-CLASS STATUS (final state):
+//            silicate    COMPLETE (31/31)
+//            sulfide     COMPLETE (39/39)
+//            phosphate   COMPLETE (16/16)
+//            arsenate    COMPLETE (15/15)
+//            sulfate     COMPLETE (15/15)
+//            amphibole   COMPLETE (5/5)   <-- v141
+//            borate      COMPLETE (2/2)   <-- v141
+//            carbonate   COMPLETE (14/14) <-- v141
+//            halide      COMPLETE (4/4)   <-- v141
+//            hydroxide   COMPLETE (2/2)   <-- v141
+//            molybdate   COMPLETE (7/7)   <-- v141
+//            native      COMPLETE (8/8)   <-- v141
+//            oxide       COMPLETE (12/12) <-- v141
+const SIM_VERSION = 141;
 
