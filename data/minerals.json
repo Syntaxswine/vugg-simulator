@@ -308,7 +308,8 @@
           "miller_indices": "{001}",
           "trigger": "thermal_shock",
           "probability": 0.15,
-          "min_delta_T_C": 30
+          "min_delta_T_C": 30,
+          "_source": "Frondel 1962, System of Mineralogy vol III (Silica Minerals). Trigonal 180°-rotation electrical twin about [0001] (the c-axis); merohedric — does not change crystal morphology, detected by reversed piezoelectric domains. Ubiquitous in α-quartz; arises from β→α inversion on cooling through ~573°C."
         },
         {
           "name": "Brazil",
@@ -466,7 +467,8 @@
           "name": "c_twin",
           "miller_indices": "{0001}",
           "trigger": "stress_or_growth",
-          "probability": 0.1
+          "probability": 0.1,
+          "_source": "Anthony Handbook of Mineralogy v.V calcite entry (handbookofmineralogy.org). Basal contact twin on {0001}; documented as both rare growth twin and more common stress/deformation twin (the latter dominates the polysynthetic {01-12} e-twin lamellae visible in deformed marble; the {0001} c-twin proper is a contact twin)."
         }
       ],
       "acid_dissolution": {
@@ -587,13 +589,15 @@
           "name": "cyclic_sextet",
           "miller_indices": "{110}",
           "trigger": "growth in twinned_cyclic habit",
-          "probability": 0.4
+          "probability": 0.4,
+          "_source": "Anthony Handbook of Mineralogy v.V aragonite entry (handbookofmineralogy.org). Pseudo-hexagonal cyclic twin on {110} arising from the b/a ≈ √3 metric relationship in Pmcn (b/a = 1.606, 7.3% off ideal hex). The 60° (actually 63.82°) latent hex symmetry produces trilling / sixling cyclic aggregates with the residual angular misfit accommodated by lattice strain (Bevan et al. 2024 PNAS describe the resulting 'enigmatic twisting'). Defining aragonite habit at Sicilian sulfur-deposit and Spanish Pb-Zn localities."
         },
         {
           "name": "contact",
           "miller_indices": "{110}",
           "trigger": "growth (any habit)",
-          "probability": 0.05
+          "probability": 0.05,
+          "_source": "Anthony Handbook of Mineralogy v.V aragonite entry. Same {110} twin law as the cyclic_sextet, but expressed as a simple two-individual contact twin rather than a cyclic trilling — the lower-probability morphological alternative when the cyclic habit doesn't develop fully."
         }
       ],
       "acid_dissolution": {
@@ -1547,7 +1551,8 @@
           "name": "spearhead",
           "miller_indices": "{101}",
           "trigger": "growth in spearhead habit",
-          "probability": 0.05
+          "probability": 0.05,
+          "_source": "Anthony Handbook of Mineralogy v.I marcasite entry (handbookofmineralogy.org); Ramdohr 1980 The Ore Minerals and Their Intergrowths (FeS2 dimorph section). Marcasite {101} 'spearhead' or 'swallowtail' contact twin — two tabular individuals joined along {101} with pyramidal terminations meeting at ~74°. Structural origin in the Fe-S2-Fe dimer alignment along the {101} plane (not predictable from lattice CSL alone — flagged by tools/twin-law-check.mjs as expected). v142+ audit pass: was missing _source until 2026-05-23 audit added this reference."
         },
         {
           "name": "cockscomb",
@@ -5551,7 +5556,8 @@
           "name": "cyclic_sixling",
           "miller_indices": "{110}",
           "trigger": "moderate σ, growth-driven",
-          "probability": 0.4
+          "probability": 0.4,
+          "_source": "Anthony Handbook of Mineralogy v.V cerussite entry (handbookofmineralogy.org). Pmcn isostructural with aragonite (b/a = 1.639, 5.4% off √3 — closer to ideal hex than aragonite itself). The {110} pseudo-hex cyclic six-sector twin produces the canonical 'stellate sixling' habit at Tsumeb, Touissit, Mibladen, and most Pb-deposit oxidation zones."
         }
       ],
       "acid_dissolution": {
@@ -6714,7 +6720,8 @@
           "name": "spinel_law",
           "miller_indices": "{111}",
           "trigger": "growth",
-          "probability": 0.03
+          "probability": 0.03,
+          "_source": "Anthony Handbook of Mineralogy v.III magnetite entry (handbookofmineralogy.org); Ramdohr 1980 The Ore Minerals and Their Intergrowths (Fe3O4 section). Spinel-law contact twin on {111} — two octahedra sharing a triangular {111} face. Σ3 cubic CSL boundary on the FCC oxygen sublattice (same mechanism as MgAl2O4 spinel). Documented at Magnet Cove (Arkansas), Mineville (NY), and Tellnes (Norway). Lower probability (0.03) than fluorite/galena spinel-law because magnetite typically grows as untwinned octahedra; iron-cross like geometries are rarer in the field."
         }
       ],
       "acid_dissolution": {
@@ -11622,13 +11629,15 @@
           "name": "geniculate",
           "miller_indices": "{011}",
           "trigger": "moderate σ, T 300-500°C",
-          "probability": 0.25
+          "probability": 0.25,
+          "_source": "Anthony Handbook of Mineralogy v.III rutile entry (handbookofmineralogy.org). Tetragonal P4_2/mnm 'knee' or 'elbow' twin on {011} (axis-equivalent to {101}); two prismatic individuals joined at ~114.5° dihedral. The TiO6 octahedron chain alignment across the {011} plane is the structural mechanism. Diagnostic field signature for rutile vs. cassiterite (both rutile-isostructural but with different aspect ratios)."
         },
         {
           "name": "sixling_cyclic",
           "miller_indices": "{011}",
           "trigger": "low σ, moderate T",
-          "probability": 0.05
+          "probability": 0.05,
+          "_source": "Anthony Handbook of Mineralogy v.III rutile entry — sixling is the cyclic extension of the geniculate (three sequential knee twins meeting in a closed loop). Less common than the simple two-individual elbow; canonical at Alpine quartz-rutile-hematite localities (Cavradi, Switzerland)."
         }
       ],
       "acid_dissolution": null,
@@ -12352,7 +12361,8 @@
           "composition_plane": "{011}",
           "twin_axis": "[100]",
           "probability": 0.30,
-          "trigger": "DIAGNOSTIC — elbow/knee twin bent ~60° on {011} is the cassiterite signature (research §Crystal Habits & Morphology: 'Twin signature: Elbow/knee twins on {011} bent ~60°; diagnostic feature'). Fires probabilistically when excess > 0.6"
+          "trigger": "DIAGNOSTIC — elbow/knee twin bent ~60° on {011} is the cassiterite signature (research §Crystal Habits & Morphology: 'Twin signature: Elbow/knee twins on {011} bent ~60°; diagnostic feature'). Fires probabilistically when excess > 0.6",
+          "_source": "Anthony Handbook of Mineralogy v.III cassiterite entry (handbookofmineralogy.org). P4_2/mnm rutile-isostructural — same {011}/{101} elbow twin mechanism as rutile, but more frequently developed (cassiterite knee twins are textbook diagnostic). Common at Cornish + Bolivian + Schlaggenwald tin deposits."
         }
       ],
       "acid_dissolution": null,
@@ -14330,7 +14340,8 @@
           "name": "pseudohex_cyclic_110",
           "miller_indices": "{110}",
           "trigger": "moderate σ — almost always cyclic twinned",
-          "probability": 0.85
+          "probability": 0.85,
+          "_source": "Anthony Handbook of Mineralogy v.V strontianite entry (handbookofmineralogy.org). Pmcn aragonite-group (b/a = 1.649, 4.8% off √3). Same {110} pseudo-hex cyclic twin mechanism as aragonite + cerussite; strontianite cyclic trillings + sixlings dominate field specimens (hence the high p=0.85). Type locality Strontian (Argyll, Scotland)."
         }
       ],
       "acid_dissolution": {
@@ -14632,7 +14643,8 @@
           "name": "pseudohex_cyclic_110",
           "miller_indices": "{110}",
           "trigger": "almost always — cyclic triplets",
-          "probability": 0.95
+          "probability": 0.95,
+          "_source": "Anthony Handbook of Mineralogy v.V witherite entry (handbookofmineralogy.org). Pmcn aragonite-group (b/a = 1.676 — closest of the four aragonite-group carbonates to ideal √3 ≈ 1.732, only 3.3% off). Witherite's pseudohex cyclic twin is so ubiquitous (p=0.95) that field samples almost always show the trilling habit; rare to find an untwinned witherite crystal. Type locality Anglezarke (Lancashire) + dominant at Settlingstones (Northumberland)."
         }
       ],
       "acid_dissolution": {
