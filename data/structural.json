@@ -1,0 +1,138 @@
+{
+  "_doc": [
+    "Lattice + space group reference data for tools/twin-law-check.mjs.",
+    "",
+    "Each entry is a single crystallographic refinement: unit-cell parameters",
+    "(Å for lengths, ° for angles), space-group symbol in Hermann-Mauguin",
+    "form, and the literature citation the values came from. The tool reads",
+    "this file, computes structural twin-plane candidates from the lattice",
+    "geometry, and compares them against declared twin_laws in",
+    "data/minerals.json.",
+    "",
+    "Initial population (this commit): 17 minerals — the canonical cubic",
+    "spinel-law set, the aragonite-group pseudo-hex carbonates, plus a",
+    "monoclinic / tetragonal / trigonal / orthorhombic sample. Adamite is",
+    "included so the v139 {101} back-test runs automatically. Spinel,",
+    "staurolite, gypsum, orthoclase are included even though they don't",
+    "have twin_laws entries in minerals.json yet — they're known structural",
+    "reference points and the tool will skip them gracefully.",
+    "",
+    "Future populations should add: the remaining 142 minerals-with-twins.",
+    "Strategy: do them in batches matching the v137-v141 batch boundaries",
+    "(sulfides, phosphates, arsenates, sulfates, others). Each lattice value",
+    "must cite a real source. See v142 citation-conservatism rule."
+  ],
+
+  "spinel": {
+    "system": "cubic",
+    "space_group": "Fd-3m",
+    "lattice": { "a": 8.0898 },
+    "_source": "Wikipedia spinel; matches Bosi et al. 2019 (Mineralogical Magazine 83:687-704) structural refinement"
+  },
+  "magnetite": {
+    "system": "cubic",
+    "space_group": "Fd-3m",
+    "lattice": { "a": 8.396 },
+    "_source": "Fleet 1981 (Acta Cryst. B37:917-920) Fe3O4 refinement at 298 K"
+  },
+  "fluorite": {
+    "system": "cubic",
+    "space_group": "Fm-3m",
+    "lattice": { "a": 5.4626 },
+    "_source": "standard CaF2 refinement; Anthony Handbook v.III fluorite entry"
+  },
+  "galena": {
+    "system": "cubic",
+    "space_group": "Fm-3m",
+    "lattice": { "a": 5.9362 },
+    "_source": "Noda et al. 1987 PbS refinement; Anthony Handbook v.I galena entry"
+  },
+  "pyrite": {
+    "system": "cubic",
+    "space_group": "Pa-3",
+    "lattice": { "a": 5.4179 },
+    "_source": "Bayliss 1989 (Amer. Mineral. 74:1168-1176) pyrite refinement"
+  },
+
+  "aragonite": {
+    "system": "orthorhombic",
+    "space_group": "Pmcn",
+    "lattice": { "a": 4.9598, "b": 7.9641, "c": 5.7379 },
+    "_source": "De Villiers 1971 (Amer. Mineral. 56:758-767) aragonite at 25 °C; Wikipedia aragonite"
+  },
+  "cerussite": {
+    "system": "orthorhombic",
+    "space_group": "Pmcn",
+    "lattice": { "a": 5.180, "b": 8.492, "c": 6.134 },
+    "_source": "Antao & Hassan 2009 (Canadian Mineralogist 47:1245-1255) orthorhombic ACO3 isostructural series"
+  },
+  "witherite": {
+    "system": "orthorhombic",
+    "space_group": "Pmcn",
+    "lattice": { "a": 5.314, "b": 8.904, "c": 6.430 },
+    "_source": "Antao & Hassan 2009 (Canadian Mineralogist 47:1245-1255) BaCO3 entry in the same series"
+  },
+  "strontianite": {
+    "system": "orthorhombic",
+    "space_group": "Pmcn",
+    "lattice": { "a": 5.107, "b": 8.422, "c": 6.029 },
+    "_source": "Antao & Hassan 2009 (Canadian Mineralogist 47:1245-1255) SrCO3 entry in the same series"
+  },
+  "marcasite": {
+    "system": "orthorhombic",
+    "space_group": "Pnnm",
+    "lattice": { "a": 4.443, "b": 5.424, "c": 3.387 },
+    "_source": "Rieder et al. 2007 (Canadian Mineralogist 45:1395-1407) marcasite refinement"
+  },
+  "adamite": {
+    "system": "orthorhombic",
+    "space_group": "Pnnm",
+    "lattice": { "a": 8.30, "b": 8.51, "c": 6.04 },
+    "_source": "Hill 1976 (Amer. Mineral. 61:979-986) adamite structure; matches crystalsymmetry.wordpress.com and Anthony Handbook v.IV"
+  },
+
+  "cassiterite": {
+    "system": "tetragonal",
+    "space_group": "P4_2/mnm",
+    "lattice": { "a": 4.737, "c": 3.186 },
+    "_source": "Bolzan et al. 1997 (Acta Cryst. B53:373-380) rutile-type oxide refinement series"
+  },
+  "rutile": {
+    "system": "tetragonal",
+    "space_group": "P4_2/mnm",
+    "lattice": { "a": 4.594, "c": 2.959 },
+    "_source": "Meagher & Lager 1979 (Canadian Mineralogist 17:77-85) rutile refinement"
+  },
+
+  "calcite": {
+    "system": "trigonal",
+    "space_group": "R-3c",
+    "lattice": { "a": 4.99, "c": 17.06 },
+    "_source": "Anthony Handbook v.V calcite entry; hex setting"
+  },
+  "quartz": {
+    "system": "trigonal",
+    "space_group": "P3_121",
+    "lattice": { "a": 4.913, "c": 5.405 },
+    "_source": "Le Page & Donnay 1976 (Acta Cryst. B32:2456-2459) α-quartz refinement"
+  },
+
+  "staurolite": {
+    "system": "monoclinic",
+    "space_group": "C2/m",
+    "lattice": { "a": 7.8713, "b": 16.6204, "c": 5.6560, "beta": 90.45 },
+    "_source": "Hawthorne et al. 1993 (Canadian Mineralogist 31:551-582)"
+  },
+  "gypsum": {
+    "system": "monoclinic",
+    "space_group": "C2/c",
+    "lattice": { "a": 6.284, "b": 15.20, "c": 5.679, "beta": 114.09 },
+    "_source": "Cole & Lancucki 1974 (Acta Cryst. B30:921-929) CaSO4·2H2O refinement"
+  },
+  "orthoclase": {
+    "system": "monoclinic",
+    "space_group": "C2/m",
+    "lattice": { "a": 8.56, "b": 12.96, "c": 7.21, "beta": 116.0 },
+    "_source": "Anthony Handbook v.V orthoclase entry; representative high-Or feldspar values"
+  }
+}
