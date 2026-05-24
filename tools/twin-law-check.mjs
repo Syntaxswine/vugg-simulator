@@ -276,30 +276,44 @@ export function generateCandidates(struct) {
     case 'monoclinic': {
       const beta = lattice && lattice.beta;
       const isPseudoOrth = beta != null && Math.abs(beta - 90) < PS_MONO_TOL;
-      // Common monoclinic twin laws (Manebach / Baveno / Carlsbad family).
-      // These are documented mineralogically across many monoclinic species
-      // (feldspars, gypsum, pyroxenes), so we include them as 'moderate'
-      // candidates — not the strongest pseudo-symmetry argument, but a
-      // recognized structural family.
+      // Common monoclinic twin laws — the feldspar family is the canonical
+      // reference set:
+      //   {010} — Albite-law / Carlsbad-type composition plane (plagioclase + K-feldspar)
+      //   {001} — Manebach law
+      //   {021} — Baveno law (feldspar)
+      //   {100} — Carlsbad-type composition plane (alternate convention)
+      //   {201} — also Carlsbad in some conventions
+      // Many other monoclinic species share these planes (pyroxenes,
+      // amphiboles, micas, gypsum, vivianite-group).
       candidates.push({
-        indices: [1, 0, 0],
-        reason: 'monoclinic {100} twin (Manebach-like; common composition plane)',
+        indices: [0, 1, 0],
+        reason: 'monoclinic {010} twin (Albite/Carlsbad-type composition plane)',
         strength: 'moderate',
       });
       candidates.push({
         indices: [0, 0, 1],
-        reason: 'monoclinic {001} twin (Baveno-like)',
+        reason: 'monoclinic {001} twin (Manebach law)',
+        strength: 'moderate',
+      });
+      candidates.push({
+        indices: [1, 0, 0],
+        reason: 'monoclinic {100} twin (common composition plane)',
+        strength: 'moderate',
+      });
+      candidates.push({
+        indices: [0, 2, 1],
+        reason: 'monoclinic {021} twin (Baveno law)',
         strength: 'moderate',
       });
       candidates.push({
         indices: [2, 0, 1],
-        reason: 'monoclinic {201} twin (Carlsbad-like)',
+        reason: 'monoclinic {201} twin (Carlsbad-type)',
         strength: 'moderate',
       });
       if (isPseudoOrth) {
         candidates.push({
-          indices: [0, 1, 0],
-          reason: `pseudo-orth {010} (β = ${beta}° ≈ 90°; pseudo-orthorhombic)`,
+          indices: [1, 1, 0],
+          reason: `pseudo-orth {110} (β = ${beta}° ≈ 90°; pseudo-orthorhombic)`,
           strength: 'moderate',
         });
       }
@@ -343,9 +357,29 @@ export function generateCandidates(struct) {
     }
 
     case 'triclinic': {
-      // No system-level canonical twins; would need case-by-case documentation.
-      // Triclinic minerals (kyanite, axinite, plagioclase) twin on planes
-      // determined by their specific structural quirks, not by metric symmetry.
+      // Common triclinic twin laws (mostly plagioclase + pyroxenoid family):
+      //   {010} — Albite law (the dominant twin in plagioclase feldspar)
+      //   [010] / pericline-direction twins — projects to {001} or {h0l} planes
+      //   {001} — Manebach-equivalent in triclinic context
+      //   {100} — also common in pyroxenoids (wollastonite, pectolite, bustamite)
+      // Triclinic structures generally pseudo-monoclinic; the angles α γ ≈ 90°
+      // give a latent monoclinic pseudo-symmetry that the twin operations
+      // exploit.
+      candidates.push({
+        indices: [0, 1, 0],
+        reason: 'triclinic {010} twin (Albite law — dominant plagioclase twin)',
+        strength: 'moderate',
+      });
+      candidates.push({
+        indices: [0, 0, 1],
+        reason: 'triclinic {001} twin (Manebach-equivalent / pericline-related)',
+        strength: 'moderate',
+      });
+      candidates.push({
+        indices: [1, 0, 0],
+        reason: 'triclinic {100} twin (pyroxenoid family — wollastonite, pectolite)',
+        strength: 'moderate',
+      });
       break;
     }
 

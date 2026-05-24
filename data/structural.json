@@ -492,5 +492,241 @@
     "space_group": "P4/nnc",
     "lattice": { "a": 7.16, "c": 20.71 },
     "_source": "Anthony Handbook v.IV uranospinite entry; Ca(UO2)2(AsO4)2·10H2O autunite-group with As-for-P"
+  },
+
+  "barite": {
+    "system": "orthorhombic",
+    "space_group": "Pnma",
+    "lattice": { "a": 8.879, "b": 5.450, "c": 7.152 },
+    "_source": "Anthony Handbook of Mineralogy v.V barite entry (handbookofmineralogy.org); BaSO4 type structure for the barite group (celestine, anglesite isostructural)"
+  },
+  "celestine": {
+    "system": "orthorhombic",
+    "space_group": "Pnma",
+    "lattice": { "a": 8.359, "b": 5.352, "c": 6.866 },
+    "_source": "Anthony Handbook v.V celestine entry; SrSO4 barite-group"
+  },
+  "anglesite": {
+    "system": "orthorhombic",
+    "space_group": "Pnma",
+    "lattice": { "a": 8.482, "b": 5.398, "c": 6.959 },
+    "_source": "Anthony Handbook v.V anglesite entry; PbSO4 barite-group"
+  },
+  "jarosite": {
+    "system": "trigonal",
+    "space_group": "R-3m",
+    "lattice": { "a": 7.304, "c": 17.224 },
+    "_source": "Anthony Handbook v.V jarosite entry; KFe3(SO4)2(OH)6 — type for the alunite supergroup; Stoffregen et al. 2000 (Reviews in Mineralogy v.40) crystal-chemistry review"
+  },
+  "alunite": {
+    "system": "trigonal",
+    "space_group": "R-3m",
+    "lattice": { "a": 6.981, "c": 17.32 },
+    "_source": "Anthony Handbook v.V alunite entry; KAl3(SO4)2(OH)6 alunite-supergroup type species"
+  },
+  "brochantite": {
+    "system": "monoclinic",
+    "space_group": "P2_1/a",
+    "lattice": { "a": 13.14, "b": 9.86, "c": 6.024, "beta": 103.4 },
+    "_source": "Anthony Handbook v.V brochantite entry; Cu4(SO4)(OH)6"
+  },
+  "antlerite": {
+    "system": "orthorhombic",
+    "space_group": "Pnma",
+    "lattice": { "a": 8.24, "b": 11.97, "c": 6.04 },
+    "_source": "Anthony Handbook v.V antlerite entry; Cu3(SO4)(OH)4"
+  },
+  "anhydrite": {
+    "system": "orthorhombic",
+    "space_group": "Cmcm",
+    "lattice": { "a": 6.998, "b": 6.245, "c": 6.991 },
+    "_source": "Anthony Handbook v.V anhydrite entry; CaSO4 — chains of CaO8 polyhedra parallel to c, pseudo-tetragonal metrics (a ≈ c) but distinct b"
+  },
+  "selenite": {
+    "system": "monoclinic",
+    "space_group": "C2/c",
+    "lattice": { "a": 6.284, "b": 15.20, "c": 5.679, "beta": 114.09 },
+    "_source": "Anthony Handbook v.V gypsum entry; same CaSO4·2H2O C2/c structure as gypsum (selenite = the transparent crystalline variety; not a separate mineral structurally)"
+  },
+  "chalcanthite": {
+    "system": "triclinic",
+    "space_group": "P-1",
+    "lattice": { "a": 6.122, "b": 10.722, "c": 5.957 },
+    "_source": "Anthony Handbook v.V chalcanthite entry; CuSO4·5H2O — triclinic; full cell α=82.27°, β=107.43°, γ=102.67° (Beevers & Lipson 1934 Proc. Roy. Soc. A146:570)"
+  },
+  "mirabilite": {
+    "system": "monoclinic",
+    "space_group": "P2_1/c",
+    "lattice": { "a": 11.51, "b": 10.38, "c": 12.84, "beta": 107.75 },
+    "_source": "Anthony Handbook v.V mirabilite entry; Na2SO4·10H2O — Glauber's salt"
+  },
+  "thenardite": {
+    "system": "orthorhombic",
+    "space_group": "Fddd",
+    "lattice": { "a": 5.863, "b": 12.304, "c": 9.821 },
+    "_source": "Anthony Handbook v.V thenardite entry; Na2SO4 — anhydrous polymorph of mirabilite"
+  },
+  "linarite": {
+    "system": "monoclinic",
+    "space_group": "P2_1/m",
+    "lattice": { "a": 9.700, "b": 5.650, "c": 4.690, "beta": 102.6 },
+    "_source": "Anthony Handbook v.V linarite entry; PbCu(SO4)(OH)2 (Effenberger 1987 N. Jb. Mineral. Mh. 1987:127-135)"
+  },
+  "caledonite": {
+    "system": "orthorhombic",
+    "space_group": "Pnma",
+    "lattice": { "a": 20.10, "b": 7.13, "c": 6.56 },
+    "_source": "Anthony Handbook v.V caledonite entry; Pb5Cu2(SO4)3(CO3)(OH)6 — mixed sulfate-carbonate"
+  },
+  "leadhillite": {
+    "system": "monoclinic",
+    "space_group": "P2_1/a",
+    "lattice": { "a": 9.07, "b": 20.65, "c": 11.65, "beta": 90.4 },
+    "_source": "Anthony Handbook v.V leadhillite entry; Pb4(SO4)(CO3)2(OH)2 — β ≈ 90° makes it pseudo-orthorhombic; dimorphic with susannite (trigonal high-T)"
+  },
+
+  "apophyllite": {
+    "system": "tetragonal",
+    "space_group": "P4/mnc",
+    "lattice": { "a": 8.965, "c": 15.83 },
+    "_source": "Anthony Handbook of Mineralogy v.II apophyllite entry; KCa4(Si8O20)F·8H2O fluorapophyllite — tetragonal sheet silicate"
+  },
+  "feldspar": {
+    "system": "monoclinic",
+    "space_group": "C2/m",
+    "lattice": { "a": 8.56, "b": 12.96, "c": 7.21, "beta": 116.0 },
+    "_source": "Generic K-feldspar (orthoclase-equivalent); same C2/m structure + parameters as the orthoclase entry. The 'feldspar' species in vugg's data is treated as KAlSi3O8 monoclinic."
+  },
+  "albite": {
+    "system": "triclinic",
+    "space_group": "C-1",
+    "lattice": { "a": 8.137, "b": 12.785, "c": 7.157 },
+    "_source": "Anthony Handbook v.II albite entry; NaAlSi3O8 — low-T ordered albite; full cell α=94.27°, β=116.57°, γ=87.66° (Harlow & Brown 1980 Amer. Mineral. 65:986-995)"
+  },
+  "topaz": {
+    "system": "orthorhombic",
+    "space_group": "Pbnm",
+    "lattice": { "a": 4.650, "b": 8.795, "c": 8.392 },
+    "_source": "Anthony Handbook v.II topaz entry; Al2(SiO4)(F,OH)2 (Ribbe & Gibbs 1971 Amer. Mineral. 56:24)"
+  },
+  "tourmaline": {
+    "system": "trigonal",
+    "space_group": "R3m",
+    "lattice": { "a": 15.94, "c": 7.18 },
+    "_source": "Anthony Handbook v.II tourmaline entry; representative schorl-dravite values; the tourmaline supergroup has the same R3m framework with varying chemistry"
+  },
+  "beryl": {
+    "system": "hexagonal",
+    "space_group": "P6/mcc",
+    "lattice": { "a": 9.211, "c": 9.190 },
+    "_source": "Anthony Handbook of Mineralogy v.II beryl entry; Be3Al2(SiO3)6 hexagonal ring silicate"
+  },
+  "emerald": {
+    "system": "hexagonal",
+    "space_group": "P6/mcc",
+    "lattice": { "a": 9.211, "c": 9.190 },
+    "_source": "Cr-bearing beryl variety; same P6/mcc structure as beryl within composition error"
+  },
+  "aquamarine": {
+    "system": "hexagonal",
+    "space_group": "P6/mcc",
+    "lattice": { "a": 9.211, "c": 9.190 },
+    "_source": "Fe²⁺-bearing beryl variety; same P6/mcc structure as beryl"
+  },
+  "morganite": {
+    "system": "hexagonal",
+    "space_group": "P6/mcc",
+    "lattice": { "a": 9.211, "c": 9.190 },
+    "_source": "Mn-bearing beryl variety; same P6/mcc structure as beryl"
+  },
+  "heliodor": {
+    "system": "hexagonal",
+    "space_group": "P6/mcc",
+    "lattice": { "a": 9.211, "c": 9.190 },
+    "_source": "Fe³⁺-bearing beryl variety (yellow); same P6/mcc structure as beryl"
+  },
+  "spodumene": {
+    "system": "monoclinic",
+    "space_group": "C2/c",
+    "lattice": { "a": 9.466, "b": 8.394, "c": 5.218, "beta": 110.1 },
+    "_source": "Anthony Handbook v.II spodumene entry; LiAlSi2O6 clinopyroxene Li-end-member"
+  },
+  "lepidolite": {
+    "system": "monoclinic",
+    "space_group": "C2/m",
+    "lattice": { "a": 5.18, "b": 8.99, "c": 10.07, "beta": 100.5 },
+    "_source": "Anthony Handbook v.II lepidolite entry; K(Li,Al)3(Si,Al)4O10(F,OH)2 — Li-mica (1M polytype values; 2M1 and 3T polytypes also exist)"
+  },
+  "dioptase": {
+    "system": "trigonal",
+    "space_group": "R-3",
+    "lattice": { "a": 14.61, "c": 7.83 },
+    "_source": "Anthony Handbook v.II dioptase entry; CuSiO3·H2O 6-membered ring silicate"
+  },
+  "uranophane": {
+    "system": "monoclinic",
+    "space_group": "P2_1/a",
+    "lattice": { "a": 15.91, "b": 7.00, "c": 6.66, "beta": 97.3 },
+    "_source": "Anthony Handbook v.II uranophane entry; Ca(UO2)2(SiO3OH)2·5H2O — uranyl silicate layered structure (alpha-uranophane polymorph values)"
+  },
+  "hemimorphite": {
+    "system": "orthorhombic",
+    "space_group": "Imm2",
+    "lattice": { "a": 8.37, "b": 10.72, "c": 5.12 },
+    "_source": "Anthony Handbook v.II hemimorphite entry; Zn4Si2O7(OH)2·H2O — non-centrosymmetric (pyroelectric, piezoelectric)"
+  },
+  "willemite": {
+    "system": "trigonal",
+    "space_group": "R-3",
+    "lattice": { "a": 13.948, "c": 9.315 },
+    "_source": "Anthony Handbook v.II willemite entry; Zn2SiO4 phenakite-group"
+  },
+  "shattuckite": {
+    "system": "orthorhombic",
+    "space_group": "Pcab",
+    "lattice": { "a": 9.882, "b": 19.811, "c": 5.392 },
+    "_source": "Anthony Handbook v.II shattuckite entry; Cu5(SiO3)4(OH)2 chain silicate (Pcab is non-standard Pbca setting)"
+  },
+  "datolite": {
+    "system": "monoclinic",
+    "space_group": "P2_1/c",
+    "lattice": { "a": 4.832, "b": 7.608, "c": 9.620, "beta": 90.15 },
+    "_source": "Anthony Handbook v.II datolite entry; CaB(SiO4)(OH); β ≈ 90° → strongly pseudo-orthorhombic"
+  },
+  "vesuvianite": {
+    "system": "tetragonal",
+    "space_group": "P4/nnc",
+    "lattice": { "a": 15.55, "c": 11.82 },
+    "_source": "Anthony Handbook v.II vesuvianite entry; complex Ca-Al-Mg-Fe sorosilicate; large unit cell"
+  },
+  "grossular": {
+    "system": "cubic",
+    "space_group": "Ia-3d",
+    "lattice": { "a": 11.85 },
+    "_source": "Anthony Handbook v.II grossular entry; Ca3Al2(SiO4)3 garnet-group (typical garnet space group Ia-3d)"
+  },
+  "diopside": {
+    "system": "monoclinic",
+    "space_group": "C2/c",
+    "lattice": { "a": 9.748, "b": 8.924, "c": 5.252, "beta": 105.6 },
+    "_source": "Anthony Handbook v.II diopside entry; CaMgSi2O6 clinopyroxene"
+  },
+  "pectolite": {
+    "system": "triclinic",
+    "space_group": "P-1",
+    "lattice": { "a": 7.99, "b": 7.04, "c": 7.02 },
+    "_source": "Anthony Handbook v.II pectolite entry; NaCa2Si3O8(OH); full cell α=90.5°, β=95.2°, γ=102.5° — pyroxenoid"
+  },
+  "wollastonite": {
+    "system": "triclinic",
+    "space_group": "P-1",
+    "lattice": { "a": 7.94, "b": 7.32, "c": 7.07 },
+    "_source": "Anthony Handbook v.II wollastonite entry; CaSiO3 1T polytype (the most common); full cell α=90.04°, β=95.4°, γ=103.4°"
+  },
+  "prehnite": {
+    "system": "orthorhombic",
+    "space_group": "Pncm",
+    "lattice": { "a": 4.646, "b": 5.483, "c": 18.486 },
+    "_source": "Anthony Handbook v.II prehnite entry; Ca2Al(AlSi3O10)(OH)2 sheet silicate (Pncm pseudo-tetragonal a ≈ b)"
   }
 }
