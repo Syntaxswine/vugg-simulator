@@ -383,6 +383,13 @@ function _helixSpinTick(now: number) {
     const dt = Math.max(0, Math.min(0.1, (now - _helixSpinPrevTime) / 1000));
     const omega = (_HELIX_RPM / 60) * 2 * Math.PI;
     _helixSweepAngle += dt * omega;
+    // Visibly spin the helix surface — boss reminder "the helicoid is
+    // no longer spinning." The surface rotates rigidly around the
+    // central Y axis at the sweep rate; trails remain world-anchored
+    // in their own scene group so the radar fade still reads as
+    // returns persisting in screen-space while the sweep arm passes
+    // over them.
+    state.helixGroup.rotation.y = _helixSweepAngle;
     if (state.helixContext) {
       const c = state.helixContext;
       _helixUpdateTrails(c.sim, c.wall, c.R, c.ySpan, c.wallRadius, c.ringCount);
