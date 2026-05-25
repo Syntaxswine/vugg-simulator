@@ -82,7 +82,18 @@ function _helixDisposeGroup(g: any) {
   });
 }
 
-function _helixGeometry(wall: any): { R: number, ySpan: number, wallRadius: number } {
+// Helicoid geometry derived from the cavity mesh. R = cavity equatorial
+// wall radius (used for value normalization). yMin/yMax = actual
+// vertical extent of the cavity from its mesh bounding box — NOT
+// assumed from wallRadius, because scenarios with polar_collapse,
+// elongation, asymmetric architecture, etc. can put the cavity's true
+// top/bottom far inside ±wallRadius. The v8 bug: rings were stacked
+// from -wallRadius to +wallRadius which floated trails clear off both
+// ends of an oblate or collapsed cavity. ySpan is computed from
+// yMax−yMin so the helicoid and the rings track the actual cavity.
+function _helixGeometry(state: any, wall: any): {
+  R: number, wallRadius: number, yMin: number, yMax: number, ySpan: number,
+} {
   let R: number;
   if (wall && typeof wall.max_seen_radius_mm === 'number' && wall.max_seen_radius_mm > 0) {
     R = wall.max_seen_radius_mm;
@@ -91,30 +102,52 @@ function _helixGeometry(wall: any): { R: number, ySpan: number, wallRadius: numb
   } else {
     R = 25;
   }
-  const ySpan = (wall && wall.vug_diameter_mm) ? wall.vug_diameter_mm : 50;
-  const wallRadius = (wall && typeof wall.max_seen_radius_mm === 'number' && wall.max_seen_radius_mm > 0)
-                   ? wall.max_seen_radius_mm
-                   : R;
-  return { R, ySpan, wallRadius };
+  const wallRadius = R;
+
+  // Pull actual Y extent from the cavity mesh's bounding box. Falls
+  // back to centred ±R if the cavity geometry isn't built yet.
+  let yMin = -R, yMax = R;
+  const geom = state && state.cavity && state.cavity.geometry;
+  if (geom) {
+    if (!geom.boundingBox) geom.computeBoundingBox();
+    const bb = geom.boundingBox;
+    if (bb && isFinite(bb.min.y) && isFinite(bb.max.y) && bb.max.y > bb.min.y) {
+      yMin = bb.min.y;
+      yMax = bb.max.y;
+    }
+  }
+  const ySpan = yMax - yMin;
+  return { R, wallRadius, yMin, yMax, ySpan };
 }
 
-function _helixRingY(ringIndex: number, ringCount: number, wallRadius: number): number {
+// Ring index → world Y, using the cavity's actual yMin/yMax (not
+// assumed ±wallRadius). Mirrors the cavity mesh's spherical phi_cav
+// distribution centred on the cavity's actual midpoint.
+function _helixRingY(ringIndex: number, ringCount: number, yMin: number, yMax: number): number {
   const phiCav = Math.PI * (ringIndex + 0.5) / ringCount;
-  return -wallRadius * Math.cos(phiCav);
+  const yCenter = (yMin + yMax) * 0.5;
+  const yHalf = (yMax - yMin) * 0.5;
+  return yCenter - yHalf * Math.cos(phiCav);
 }
 
 // Per-ring angular offset on the helicoid surface — the local θ
-// where the spiral passes through that ring's Y. Adding sweep_global
-// to this gives the world angle of that ring's leading-edge dot at
-// the current moment.
+// where the spiral passes through that ring's Y. The spiral's
+// parametric Y is yCenter + (u − 0.5) · ySpan with u = θ_local/(2π·N),
+// so:
 //
-//   y = (θ_local / (2π·N) − 0.5) · ySpan
-//   θ_local = ((y / ySpan) + 0.5) · 2π · N
-function _helixComputeRingOffsets(ringCount: number, wallRadius: number, ySpan: number): number[] {
+//   u = (y − yCenter) / ySpan + 0.5
+//   θ_local = u · 2π · N
+//
+// Adding sweep_global to this gives the world angle of that ring's
+// leading-edge dot at the current moment.
+function _helixComputeRingOffsets(ringCount: number, yMin: number, yMax: number): number[] {
+  const ySpan = yMax - yMin;
+  const yCenter = (yMin + yMax) * 0.5;
   const out: number[] = [];
   for (let i = 0; i < ringCount; i++) {
-    const y = _helixRingY(i, ringCount, wallRadius);
-    const theta = ((y / ySpan) + 0.5) * 2 * Math.PI * _HELIX_N_TURNS;
+    const y = _helixRingY(i, ringCount, yMin, yMax);
+    const u = (y - yCenter) / ySpan + 0.5;
+    const theta = u * 2 * Math.PI * _HELIX_N_TURNS;
     out.push(theta);
   }
   return out;
@@ -143,10 +176,10 @@ function _topoHelixOverlayDraw(state: any, sim: any, wall: any) {
   }
   if (!sim || !wall || !wall.ring_count) return;
 
-  const { R, ySpan, wallRadius } = _helixGeometry(wall);
+  const { R, wallRadius, yMin, yMax, ySpan } = _helixGeometry(state, wall);
   const ringCount = wall.ring_count;
 
-  const sig = `${R.toFixed(2)}|${ySpan.toFixed(2)}|${ringCount}`;
+  const sig = `${R.toFixed(2)}|${yMin.toFixed(2)}|${yMax.toFixed(2)}|${ringCount}`;
   const sigChanged = state.helixSig !== sig;
 
   if (sigChanged) {
@@ -156,7 +189,7 @@ function _topoHelixOverlayDraw(state: any, sim: any, wall: any) {
     }
     const group = new THREE.Group();
     group.name = 'helix-record';
-    _helixAddSurface(group, R, ySpan);
+    _helixAddSurface(group, R, yMin, yMax);
     state.scene.add(group);
     state.helixGroup = group;
     state.helixSig = sig;
@@ -165,16 +198,18 @@ function _topoHelixOverlayDraw(state: any, sim: any, wall: any) {
 
   _helixEnsureTrailInfra(state.scene, ringCount, _HELIX_CHEM_PARAMS.length);
 
-  const ringOffsets = _helixComputeRingOffsets(ringCount, wallRadius, ySpan);
-  state.helixContext = { sim, wall, R, ySpan, wallRadius, ringCount, ringOffsets };
+  const ringOffsets = _helixComputeRingOffsets(ringCount, yMin, yMax);
+  state.helixContext = { sim, wall, R, wallRadius, yMin, yMax, ySpan, ringCount, ringOffsets };
   _helixStartSpin();
 }
 
 // ----- Sub-builders ------------------------------------------------
 
-function _helixAddSurface(group: any, R: number, ySpan: number) {
+function _helixAddSurface(group: any, R: number, yMin: number, yMax: number) {
   const NU = 16;
   const NV = Math.max(120, _HELIX_N_TURNS * 120);
+  const ySpan = yMax - yMin;
+  const yCenter = (yMin + yMax) * 0.5;
   const surfPositions = new Float32Array((NU + 1) * (NV + 1) * 3);
   const surfIndices: number[] = [];
   for (let i = 0; i <= NU; i++) {
@@ -182,7 +217,7 @@ function _helixAddSurface(group: any, R: number, ySpan: number) {
     for (let j = 0; j <= NV; j++) {
       const u = j / NV;
       const phi = u * _HELIX_N_TURNS * Math.PI * 2;
-      const y = (u - 0.5) * ySpan;
+      const y = yCenter + (u - 0.5) * ySpan;
       const vIdx = (i * (NV + 1) + j) * 3;
       surfPositions[vIdx + 0] = ri * Math.cos(phi);
       surfPositions[vIdx + 1] = y;
@@ -280,7 +315,7 @@ function _helixEnsureTrailInfra(scene: any, ringCount: number, nParams: number) 
 // chemistry, push a new {sweep, r} sample, prune old samples beyond
 // the fade window, rewrite the LineSegments buffer with positions
 // (computed as world_angle = sweep + ringOffset) and per-vertex alpha.
-function _helixUpdateTrails(sim: any, wall: any, R: number, ySpan: number, wallRadius: number, ringCount: number, ringOffsets: number[]) {
+function _helixUpdateTrails(sim: any, wall: any, R: number, yMin: number, yMax: number, ringCount: number, ringOffsets: number[]) {
   if (!sim || !wall || !ringCount || !ringOffsets) return;
   const nParams = _HELIX_CHEM_PARAMS.length;
   if (!_helixTrailGroup || _helixTrails.length !== nParams) return;
@@ -312,7 +347,7 @@ function _helixUpdateTrails(sim: any, wall: any, R: number, ySpan: number, wallR
       if (typeof raw !== 'number' || isNaN(raw)) continue;
       const norm = Math.max(0, Math.min(1, (raw - param.min) / (param.max - param.min)));
       const r = norm * R;
-      const y = _helixRingY(i, ringCount, wallRadius);
+      const y = _helixRingY(i, ringCount, yMin, yMax);
       const offset = ringOffsets[i] || 0;
 
       const trail = _helixTrails[p][i];
@@ -390,7 +425,7 @@ function _helixSpinTick(now: number) {
     state.helixGroup.rotation.y = _helixSweepAngle;
     if (state.helixContext) {
       const c = state.helixContext;
-      _helixUpdateTrails(c.sim, c.wall, c.R, c.ySpan, c.wallRadius, c.ringCount, c.ringOffsets);
+      _helixUpdateTrails(c.sim, c.wall, c.R, c.yMin, c.yMax, c.ringCount, c.ringOffsets);
     }
     if (state.renderer && state.scene && state.camera) {
       state.renderer.render(state.scene, state.camera);
