@@ -109,8 +109,62 @@ function _topoHelixOverlayDraw(state: any, sim: any, wall: any) {
   const group = new THREE.Group();
   group.name = 'helix-record';
 
-  // Backbone curve — finely sampled so the helix reads as smooth even
-  // at sparse zone counts.
+  // Helicoid surface — boss redefinition: not just an edge curve but
+  // the actual 2D ruled surface around the central axis. Radial
+  // parameter sweeps from r=0 (the cavity's vertical axis) out to R
+  // (the outer-edge curve drawn below). Angular parameter traces the
+  // same spiral as the curve. The surface looks like a spiral ramp /
+  // screw thread inside the cavity.
+  //
+  // NU radial × NV angular vertices. NV scales with turn count so a
+  // long helix doesn't get blocky. DoubleSide so the surface is
+  // visible from above and below; depthWrite: false to avoid biasing
+  // the transparency sort against the cavity wall behind it.
+  {
+    const NU = 16;
+    const NV = Math.max(180, _HELIX_N_TURNS * 60);
+    const surfPositions = new Float32Array((NU + 1) * (NV + 1) * 3);
+    const surfIndices: number[] = [];
+    for (let i = 0; i <= NU; i++) {
+      const ri = (i / NU) * R;
+      for (let j = 0; j <= NV; j++) {
+        const u = j / NV;
+        const phi = u * _HELIX_N_TURNS * Math.PI * 2;
+        const y = (u - 0.5) * ySpan;
+        const vIdx = (i * (NV + 1) + j) * 3;
+        surfPositions[vIdx + 0] = ri * Math.cos(phi);
+        surfPositions[vIdx + 1] = y;
+        surfPositions[vIdx + 2] = ri * Math.sin(phi);
+      }
+    }
+    for (let i = 0; i < NU; i++) {
+      for (let j = 0; j < NV; j++) {
+        const a = i * (NV + 1) + j;
+        const b = a + 1;
+        const c = (i + 1) * (NV + 1) + j;
+        const d = c + 1;
+        // Two triangles per quad.
+        surfIndices.push(a, c, b, b, c, d);
+      }
+    }
+    const surfGeom = new THREE.BufferGeometry();
+    surfGeom.setAttribute('position', new THREE.BufferAttribute(surfPositions, 3));
+    surfGeom.setIndex(surfIndices);
+    surfGeom.computeVertexNormals();
+    const surfMat = new THREE.MeshBasicMaterial({
+      color: 0xf0d5a0,
+      transparent: true,
+      opacity: 0.18,
+      side: THREE.DoubleSide,
+      depthWrite: false,
+    });
+    const surfMesh = new THREE.Mesh(surfGeom, surfMat);
+    group.add(surfMesh);
+  }
+
+  // Outer-edge curve — finely sampled so the helix reads as smooth even
+  // at sparse zone counts. Sits on the r=R boundary of the helicoid
+  // surface above; the brighter line defines the edge clearly.
   const SAMPLES = Math.max(120, Math.min(800, zones.length * 6));
   const pts: any[] = [];
   for (let i = 0; i <= SAMPLES; i++) {
