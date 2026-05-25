@@ -1,47 +1,44 @@
 // ============================================================
 // js/99j-helix-overlay.ts — Helix Record overlay for the 3D vug
 // ============================================================
-// Boss model:
+// Boss model (final, post-v5 feedback):
 //
-//   - r ∈ [0, R] where R = cavity wall radius. r=0 = MIN of each
-//     dimension; r=R = MAX. Per-parameter polarity:
-//        T:  cold at axis,    hot at outer edge
-//        pH: basic at axis,   acidic at outer edge
-//        any cation:          low at axis, high at outer edge
-//        distance-from-center is literal (r=R IS the wall).
-//   - Y = vugg height literally — a point at Y=10mm on the helicoid
-//     sits at Y=10mm in the cavity.
-//   - θ = time, advanced by the spin at 40 RPM (1 rev / 1.5 s real
-//     time = 2 rev / sim-time-unit at the sim's 3 s/unit cadence).
-//   - Each (parameter, ring) carries a radar-style trailing line:
-//        - new sample plotted at the current sweep angle every frame
-//        - sample held in WORLD frame at its plot-time angle
-//        - fades from full opacity to full transparency over 1/4 turn
-//        - "its the same trailing line as radar has"
+//   "this should be giving data as if it was written on the two
+//   dimensional plane of the helicoid… the helicoid is a Cartesian
+//   graph."
 //
-// v4 implementation:
-//   - Helicoid SURFACE is the static backdrop / chart paper. Doesn't
-//     rotate visibly any more — the trails carry the time semantics.
-//   - Trails are world-anchored (separate scene group, not children
-//     of the helix group). RGBA vertex colors carry the alpha fade.
-//   - Trails sample at every 2° of sweep advance — 45 segments per
-//     trail × 16 rings × 6 parameters = 4320 segments max.
+//   - The helicoid surface IS the chart paper. r is one axis
+//     (parameter value, radial); θ is the other axis (also Y via the
+//     spiral pitch). Dots live ON the surface, not floating at
+//     arbitrary heights inside the cavity.
+//   - Per parameter ONE trail (not one per ring). The trail snakes
+//     along the helicoid surface as the sweep advances.
+//   - At each sample step, Y is determined by the sweep angle:
+//         Y_helix(θ) = (((θ mod 2πN) / 2πN) − 0.5) · ySpan
+//     The chemistry at the ring closest to Y_helix is what gets
+//     plotted. The "vertical = vugg height" rule still holds — at
+//     each θ, the dot's Y matches a real vugg height, and the data
+//     is the chemistry at that vugg height.
+//   - Single turn over the full vugg height (N_TURNS = 1) — one
+//     revolution of the sweep covers the cavity from bottom to top.
+//     1/4 turn visible trail = ¼ of the cavity vertically.
+//   - Primary = wall distance (literal mm, per-cell); secondaries =
+//     per-ring chemistry, normalized into [0, R]. Both follow the
+//     helicoid surface — primary's trail traces the cavity wall as
+//     the sweep crosses cells; secondaries are stairstep arcs (one
+//     plateau per ring crossed).
+//   - Radar fade: trail fades from full opacity at the leading edge
+//     to zero exactly 1/4 turn behind. Segments crossing the spiral
+//     wrap (Y jumps from top back to bottom) are skipped to avoid
+//     a teleport line through the middle of the cavity.
 
 let _helixOverlayEnabled = true;
-const _HELIX_N_TURNS = 3;
+const _HELIX_N_TURNS = 1;   // one full revolution = bottom to top of cavity
 
-// Parameters surfaced as radar trails. First entry is the PRIMARY:
-// distance from the central axis to the local cavity wall at this
-// (ring, cell). Plotted at the LITERAL world-mm radius — no
-// normalization — so the trail traces the cavity wall outline as the
-// sweep crosses each cell of each ring. The other entries are
-// SECONDARIES: chemistry at "that exact spot in the vugg" (per-ring
-// is the finest granularity the simulator tracks; per-cell chemistry
-// would land in a later sim change). Normalized to [0, R] each.
-//
-// `primary` flag flips the plotting to literal mm. `read` gets
-// (sim, wall, ringIdx, cellIdx) so the primary can find the cell at
-// the current sweep angle. Secondaries ignore wall + cellIdx.
+// Parameters drawn as trails on the helicoid surface. `primary` (the
+// wall distance) plots at literal world-mm; secondaries are
+// per-ring chemistry normalized into [0, R]. `read` gets (sim, wall,
+// ringIdx, cellIdx) so the primary can look up per-cell wall radius.
 const _HELIX_CHEM_PARAMS: Array<{
   id: string,
   label: string,
@@ -51,7 +48,6 @@ const _HELIX_CHEM_PARAMS: Array<{
   primary?: boolean,
   read: (sim: any, wall: any, ringIdx: number, cellIdx: number) => number | null | undefined,
 }> = [
-  // PRIMARY — wall distance at the current sweep cell.
   { id: 'wall', label: 'wall distance', min: 0, max: 0, color: 0xffffff,
     primary: true,
     read: (sim, wall, i, c) => {
@@ -62,7 +58,6 @@ const _HELIX_CHEM_PARAMS: Array<{
       if (!cell) return null;
       return (cell.base_radius_mm || 0) + (cell.wall_depth || 0);
     } },
-  // SECONDARIES — per-ring chemistry, normalized to [0, R].
   { id: 'T',   label: 'temperature', min: 50,  max: 250,  color: 0xff5544,
     read: (s, w, i, c) => (s.ring_temperatures || [])[i] },
   { id: 'pH',  label: 'pH',          min: 2,   max: 12,   color: 0x9966ee,
@@ -91,7 +86,7 @@ function _helixDisposeGroup(g: any) {
   });
 }
 
-function _helixGeometry(wall: any): { R: number, ySpan: number } {
+function _helixGeometry(wall: any): { R: number, ySpan: number, wallRadius: number } {
   let R: number;
   if (wall && typeof wall.max_seen_radius_mm === 'number' && wall.max_seen_radius_mm > 0) {
     R = wall.max_seen_radius_mm;
@@ -101,31 +96,32 @@ function _helixGeometry(wall: any): { R: number, ySpan: number } {
     R = 25;
   }
   const ySpan = (wall && wall.vug_diameter_mm) ? wall.vug_diameter_mm : 50;
-  return { R, ySpan };
+  // wallRadius is used to convert cavity ring index → Y. For an
+  // ellipsoidal cavity this is the equatorial radius. Falls back to R
+  // when wall_state isn't built yet.
+  const wallRadius = (wall && typeof wall.max_seen_radius_mm === 'number' && wall.max_seen_radius_mm > 0)
+                   ? wall.max_seen_radius_mm
+                   : R;
+  return { R, ySpan, wallRadius };
 }
 
+// Ring index → world Y for the cavity build.
 function _helixRingY(ringIndex: number, ringCount: number, wallRadius: number): number {
   const phiCav = Math.PI * (ringIndex + 0.5) / ringCount;
   return -wallRadius * Math.cos(phiCav);
 }
 
-function _helixChemSig(sim: any): string {
-  if (!sim) return 'none';
-  const rt = sim.ring_temperatures || [];
-  const rf = sim.ring_fluids || [];
-  const parts: string[] = [];
-  for (let i = 0; i < Math.max(rt.length, rf.length); i++) {
-    parts.push((rt[i] || 0).toFixed(0));
-    const f = rf[i] || {};
-    parts.push(
-      (f.pH || 0).toFixed(1),
-      (f.salinity || 0).toFixed(0),
-      (f.Ca || 0).toFixed(0),
-      (f.Fe || 0).toFixed(0),
-      (f.Mn || 0).toFixed(0),
-    );
-  }
-  return parts.join('|');
+// Inverse: world Y → ring index. Used when a sample on the helicoid
+// surface lands at some Y and we need to know which ring's chemistry
+// to read. Nearest-ring (no interpolation) for v6 — secondaries will
+// stairstep across ring boundaries, which is honest given chemistry
+// is per-ring in the current simulator.
+function _helixYToRing(y: number, ringCount: number, wallRadius: number): number {
+  if (wallRadius <= 0 || !isFinite(wallRadius)) return 0;
+  const cosPhi = Math.max(-1, Math.min(1, -y / wallRadius));
+  const phiCav = Math.acos(cosPhi);
+  const ringFloat = (phiCav / Math.PI) * ringCount - 0.5;
+  return Math.max(0, Math.min(ringCount - 1, Math.round(ringFloat)));
 }
 
 // ----- Main entry — called by _topoRenderThree once per frame -----
@@ -151,11 +147,8 @@ function _topoHelixOverlayDraw(state: any, sim: any, wall: any) {
   }
   if (!sim || !wall || !wall.ring_count) return;
 
-  const { R, ySpan } = _helixGeometry(wall);
+  const { R, ySpan, wallRadius } = _helixGeometry(wall);
 
-  // The surface is static now — rebuild only when geometry changes
-  // (ring_count, R, ySpan). Trail content updates every frame via
-  // the spin tick, independent of this signature.
   const sig = `${R.toFixed(2)}|${ySpan.toFixed(2)}|${wall.ring_count}`;
   const sigChanged = state.helixSig !== sig;
 
@@ -170,18 +163,12 @@ function _topoHelixOverlayDraw(state: any, sim: any, wall: any) {
     state.scene.add(group);
     state.helixGroup = group;
     state.helixSig = sig;
-
-    // Geometry change → reset trails too, otherwise stale dots persist
-    // at the old wall radius / ring positions.
     _helixClearTrails();
   }
 
-  _helixEnsureTrailInfra(state.scene, wall.ring_count, _HELIX_CHEM_PARAMS.length);
+  _helixEnsureTrailInfra(state.scene, _HELIX_CHEM_PARAMS.length);
 
-  // Stash context so the spin tick can update trails every frame
-  // without re-running topoRender.
-  state.helixContext = { sim, wall, R };
-
+  state.helixContext = { sim, wall, R, ySpan, wallRadius, ringCount: wall.ring_count };
   _helixStartSpin();
 }
 
@@ -189,7 +176,7 @@ function _topoHelixOverlayDraw(state: any, sim: any, wall: any) {
 
 function _helixAddSurface(group: any, R: number, ySpan: number) {
   const NU = 16;
-  const NV = Math.max(180, _HELIX_N_TURNS * 60);
+  const NV = Math.max(120, _HELIX_N_TURNS * 120);
   const surfPositions = new Float32Array((NU + 1) * (NV + 1) * 3);
   const surfIndices: number[] = [];
   for (let i = 0; i <= NU; i++) {
@@ -228,36 +215,23 @@ function _helixAddSurface(group: any, R: number, ySpan: number) {
 }
 
 // =========== TRAIL STATE (radar sweep + fading trails) ===================
+// One buffer per parameter (no per-ring nesting any more — each
+// parameter has a single trail that snakes along the helicoid).
 
-// _helixTrails[paramIdx][ringIdx] = ordered list of recent samples,
-// pruned to within _HELIX_FADE_ANGLE behind the sweep.
-let _helixTrails: Array<Array<Array<{ angle: number, r: number, y: number }>>> = [];
-
-// One LineSegments per parameter — every ring's per-frame segment
-// concatenated into the parameter's buffer. RGBA vertex colors carry
-// the per-vertex alpha (1 at the sweep edge, 0 at the fade boundary).
+let _helixTrails: Array<Array<{ angle: number, r: number, y: number }>> = [];
 let _helixTrailGroup: any = null;
 const _helixTrailLines: any[] = [];
 
-// Generous per-parameter vertex budget. Caps at:
-//   ringCount × ceil(_HELIX_FADE_ANGLE / _HELIX_SAMPLE_STEP) × 2
-// = 32 rings × 46 samples × 2 (line-segment expansion) = 2944 verts
-// at the most. Round up to 4096 for headroom.
-const _TRAIL_MAX_VERTS_PER_PARAM = 4096;
+const _TRAIL_MAX_VERTS_PER_PARAM = 512;   // per-param trail is ~45 samples
+                                          // × 2 (line-segment expansion) = ~90;
+                                          // budget is huge headroom.
 
 function _helixClearTrails() {
-  for (let p = 0; p < _helixTrails.length; p++) {
-    if (!_helixTrails[p]) continue;
-    for (let i = 0; i < _helixTrails[p].length; i++) {
-      _helixTrails[p][i] = [];
-    }
-  }
+  for (let p = 0; p < _helixTrails.length; p++) _helixTrails[p] = [];
 }
 
-function _helixEnsureTrailInfra(scene: any, ringCount: number, nParams: number) {
-  const sized = _helixTrailGroup
-    && _helixTrails.length === nParams
-    && (_helixTrails[0] && _helixTrails[0].length === ringCount);
+function _helixEnsureTrailInfra(scene: any, nParams: number) {
+  const sized = _helixTrailGroup && _helixTrails.length === nParams;
   if (sized) return;
 
   if (_helixTrailGroup) {
@@ -273,8 +247,6 @@ function _helixEnsureTrailInfra(scene: any, ringCount: number, nParams: number) 
 
   for (let p = 0; p < nParams; p++) {
     _helixTrails[p] = [];
-    for (let i = 0; i < ringCount; i++) _helixTrails[p][i] = [];
-
     const positions = new Float32Array(_TRAIL_MAX_VERTS_PER_PARAM * 3);
     const colors = new Float32Array(_TRAIL_MAX_VERTS_PER_PARAM * 4);
     const geom = new THREE.BufferGeometry();
@@ -296,69 +268,49 @@ function _helixEnsureTrailInfra(scene: any, ringCount: number, nParams: number) 
   }
 }
 
-// Per-frame trail update. Called from the spin tick. Adds a new
-// sample at the current sweep angle for every (param, ring), prunes
-// samples older than _HELIX_FADE_ANGLE, rewrites the LineSegments
-// buffers with positions and per-vertex alpha.
-function _helixUpdateTrails(sim: any, wall: any, R: number) {
-  if (!sim || !wall || !wall.ring_count) return;
-  const ringCount = wall.ring_count;
+// Per-frame trail update. Single trail per parameter — for each
+// parameter, at each sample step, plot one dot on the helicoid
+// surface at (r = value, Y = Y_helix(sweep), θ = sweep).
+function _helixUpdateTrails(sim: any, wall: any, R: number, ySpan: number, wallRadius: number, ringCount: number) {
+  if (!sim || !wall || !ringCount) return;
   const nParams = _HELIX_CHEM_PARAMS.length;
   if (!_helixTrailGroup || _helixTrails.length !== nParams) return;
 
-  const wallRadius = wall.max_seen_radius_mm
-                   || (wall.vug_diameter_mm ? wall.vug_diameter_mm * 0.5 : R);
   const sweep = _helixSweepAngle;
   const TWO_PI = Math.PI * 2;
-  // Sweep angle wrapped into [0, 2π) for cell-index lookups. (The
-  // unwrapped sweep is monotonic for trail-age math, but cells live
-  // in [0, N) and need the wrapped angle.)
+  const TURN_LEN = TWO_PI * _HELIX_N_TURNS;
+  const sweepInTurn = ((sweep % TURN_LEN) + TURN_LEN) % TURN_LEN;
+  const yHelix = (sweepInTurn / TURN_LEN - 0.5) * ySpan;
   const sweepWrapped = ((sweep % TWO_PI) + TWO_PI) % TWO_PI;
+  const ringIdx = _helixYToRing(yHelix, ringCount, wallRadius);
+  const ringArr = (wall.rings && wall.rings[ringIdx]) || null;
+  const N = ringArr && ringArr.length ? ringArr.length : 0;
+  const cellIdx = N > 0 ? Math.floor(sweepWrapped / (TWO_PI / N)) % N : 0;
 
   for (let p = 0; p < nParams; p++) {
     const param = _HELIX_CHEM_PARAMS[p];
-
-    // Sample / prune per ring.
-    for (let i = 0; i < ringCount; i++) {
-      // Cell at the current sweep angle for this ring. Each ring is a
-      // closed loop of cells_per_ring cells, so cellIdx maps a world
-      // angle into the cell's slot. The primary parameter (wall
-      // distance) uses this to look up the per-cell wall radius;
-      // secondaries ignore it (per-ring chemistry has no cell variation).
-      const ringArr = (wall.rings && wall.rings[i]) || null;
-      const N = ringArr && ringArr.length ? ringArr.length : 0;
-      const cellIdx = N > 0 ? Math.floor(sweepWrapped / (TWO_PI / N)) % N : 0;
-
-      const raw = param.read(sim, wall, i, cellIdx);
-      if (typeof raw !== 'number' || isNaN(raw)) continue;
-
-      // Primary plots at literal world-mm r (the wall outline);
-      // secondaries normalize their range into [0, R].
-      let r: number;
-      if (param.primary) {
-        r = raw;
-      } else {
-        const norm = Math.max(0, Math.min(1, (raw - param.min) / (param.max - param.min)));
-        r = norm * R;
-      }
-      const y = _helixRingY(i, ringCount, wallRadius);
-      const trail = _helixTrails[p][i];
-      const last = trail[trail.length - 1];
-      if (!last || (sweep - last.angle) > _HELIX_SAMPLE_STEP) {
-        trail.push({ angle: sweep, r, y });
-      } else {
-        // Refresh the leading sample so live-sim value drift between
-        // sample steps still appears.
-        last.r = r;
-        last.y = y;
-      }
-      while (trail.length && (sweep - trail[0].angle) > _HELIX_FADE_ANGLE) {
-        trail.shift();
-      }
+    const raw = param.read(sim, wall, ringIdx, cellIdx);
+    if (typeof raw !== 'number' || isNaN(raw)) continue;
+    let r: number;
+    if (param.primary) {
+      r = raw;
+    } else {
+      const norm = Math.max(0, Math.min(1, (raw - param.min) / (param.max - param.min)));
+      r = norm * R;
+    }
+    const trail = _helixTrails[p];
+    const last = trail[trail.length - 1];
+    if (!last || (sweep - last.angle) > _HELIX_SAMPLE_STEP) {
+      trail.push({ angle: sweep, r, y: yHelix });
+    } else {
+      last.r = r;
+      last.y = yHelix;
+    }
+    while (trail.length && (sweep - trail[0].angle) > _HELIX_FADE_ANGLE) {
+      trail.shift();
     }
 
-    // Rewrite the LineSegments buffer for this parameter from all
-    // rings' current trail buffers.
+    // Rewrite the LineSegments buffer for this parameter.
     const lines = _helixTrailLines[p];
     if (!lines) continue;
     const posArr = lines.geometry.attributes.position.array as Float32Array;
@@ -368,35 +320,36 @@ function _helixUpdateTrails(sim: any, wall: any, R: number) {
     const cb = (param.color & 0xff) / 255;
 
     let v = 0;
-    for (let i = 0; i < ringCount; i++) {
-      const trail = _helixTrails[p][i];
-      for (let k = 0; k < trail.length - 1; k++) {
-        if (v + 2 > _TRAIL_MAX_VERTS_PER_PARAM) break;
-        const a = trail[k];
-        const b = trail[k + 1];
-        const ageA = (sweep - a.angle) / _HELIX_FADE_ANGLE;
-        const ageB = (sweep - b.angle) / _HELIX_FADE_ANGLE;
-        const aA = Math.max(0, 1 - ageA);
-        const aB = Math.max(0, 1 - ageB);
+    for (let k = 0; k < trail.length - 1; k++) {
+      if (v + 2 > _TRAIL_MAX_VERTS_PER_PARAM) break;
+      const a = trail[k];
+      const b = trail[k + 1];
+      // Skip segments that cross the helicoid wrap (one turn boundary)
+      // — the trail would teleport from Y = +ySpan/2 back down to
+      // Y = -ySpan/2 across that segment, which paints an awkward
+      // diagonal through the cavity centre. Just drop the segment.
+      const turnA = Math.floor(a.angle / TURN_LEN);
+      const turnB = Math.floor(b.angle / TURN_LEN);
+      if (turnA !== turnB) continue;
 
-        posArr[v * 3 + 0] = a.r * Math.cos(a.angle);
-        posArr[v * 3 + 1] = a.y;
-        posArr[v * 3 + 2] = a.r * Math.sin(a.angle);
-        colArr[v * 4 + 0] = cr;
-        colArr[v * 4 + 1] = cg;
-        colArr[v * 4 + 2] = cb;
-        colArr[v * 4 + 3] = aA;
-        v++;
+      const ageA = (sweep - a.angle) / _HELIX_FADE_ANGLE;
+      const ageB = (sweep - b.angle) / _HELIX_FADE_ANGLE;
+      const aA = Math.max(0, 1 - ageA);
+      const aB = Math.max(0, 1 - ageB);
 
-        posArr[v * 3 + 0] = b.r * Math.cos(b.angle);
-        posArr[v * 3 + 1] = b.y;
-        posArr[v * 3 + 2] = b.r * Math.sin(b.angle);
-        colArr[v * 4 + 0] = cr;
-        colArr[v * 4 + 1] = cg;
-        colArr[v * 4 + 2] = cb;
-        colArr[v * 4 + 3] = aB;
-        v++;
-      }
+      posArr[v * 3 + 0] = a.r * Math.cos(a.angle);
+      posArr[v * 3 + 1] = a.y;
+      posArr[v * 3 + 2] = a.r * Math.sin(a.angle);
+      colArr[v * 4 + 0] = cr; colArr[v * 4 + 1] = cg;
+      colArr[v * 4 + 2] = cb; colArr[v * 4 + 3] = aA;
+      v++;
+
+      posArr[v * 3 + 0] = b.r * Math.cos(b.angle);
+      posArr[v * 3 + 1] = b.y;
+      posArr[v * 3 + 2] = b.r * Math.sin(b.angle);
+      colArr[v * 4 + 0] = cr; colArr[v * 4 + 1] = cg;
+      colArr[v * 4 + 2] = cb; colArr[v * 4 + 3] = aB;
+      v++;
     }
 
     lines.geometry.setDrawRange(0, v);
@@ -406,16 +359,11 @@ function _helixUpdateTrails(sim: any, wall: any, R: number) {
 }
 
 // =========== SPINNING ==========================================
-// θ = time. The spin advances the sweep angle. Trail samples are
-// stamped at the current sweep angle in world frame and fade over
-// 1/4 turn. The helicoid surface itself does NOT visibly rotate in
-// v4 — it's the static chart paper; the trails carry the motion.
 
 let _helixSpinRAF: number | null = null;
 let _helixSpinPrevTime = 0;
-let _helixSweepAngle = 0;   // monotonic, never modded — trail age math
-                            // needs unwrapped angles.
-const _HELIX_RPM = 40;       // 1 rev / 1.5 s real time
+let _helixSweepAngle = 0;
+const _HELIX_RPM = 40;
 
 function _helixStartSpin() {
   if (_helixSpinRAF != null) return;
@@ -436,7 +384,8 @@ function _helixSpinTick(now: number) {
     const omega = (_HELIX_RPM / 60) * 2 * Math.PI;
     _helixSweepAngle += dt * omega;
     if (state.helixContext) {
-      _helixUpdateTrails(state.helixContext.sim, state.helixContext.wall, state.helixContext.R);
+      const c = state.helixContext;
+      _helixUpdateTrails(c.sim, c.wall, c.R, c.ySpan, c.wallRadius, c.ringCount);
     }
     if (state.renderer && state.scene && state.camera) {
       state.renderer.render(state.scene, state.camera);
