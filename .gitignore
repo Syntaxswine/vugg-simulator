@@ -1,0 +1,22 @@
+agent-api/game*-grooves/
+
+# Python bytecode — regenerated on every run
+__pycache__/
+*.pyc
+
+# pytest — local cache, regenerated per run
+.pytest_cache/
+
+# Editor / tooling local config
+# .claude/* ignores top-level files (launch.json, settings.local.json,
+# agent state) without blocking recursion into subdirectories — required
+# so the negation patterns below can re-include the project-level skills
+# subtree (.claude/skills/ is committed: it's workflow documentation the
+# whole team / future agents can use).
+.claude/*
+!.claude/skills/
+
+# TypeScript build output + npm artifacts
+node_modules/
+dist/
+*.tsbuildinfo
