@@ -60279,6 +60279,9 @@ function _topoHelixOverlayDraw(state, sim, wall) {
     const simChanged = !state.helixContext || state.helixContext.sim !== sim;
     if (sigChanged || simChanged) {
         _helixSweepAngle = 0;
+        // v21: also reset playback time so a fresh sim starts at step 0.
+        _helixCurrentTimeStep = 0;
+        _helixDisplayedStep = 0;
     }
     if (sigChanged) {
         if (state.helixGroup) {
@@ -60414,11 +60417,14 @@ function _helixUpdateTrails(sim, wall, R, yMin, yMax, ringCount, ringOffsets) {
     const sweep = _helixSweepAngle;
     const TWO_PI = Math.PI * 2;
     const sweepWrapped = ((sweep % TWO_PI) + TWO_PI) % TWO_PI;
-    // v15: route the per-frame value sample through the snap that
-    // corresponds to the current sweep angle. If history is present,
-    // the trail samples become a scenario-time replay; if not, the
-    // proxies fall through to the live sim (Creative Mode / mid-run).
-    const snap = _helixSnapAt(sim, sweep);
+    // v21: snap lookup now keyed on _helixDisplayedStep, not sweep
+    // angle. Within one revolution, every sample sees the SAME snap
+    // (one moment in time per rotation); the snap only changes when
+    // time advances enough for the floor() to tick over. Pre-v21
+    // used sweep angle directly, which spread one revolution across
+    // many snaps and showed crystals at different growth stages
+    // simultaneously around the helicoid — boss diagnosed this.
+    const snap = _helixSnapAtStep(sim, _helixDisplayedStep);
     const histSim = _helixSimAtSnap(sim, snap);
     const histWall = _helixWallAtSnap(wall, snap);
     for (let p = 0; p < nParams; p++) {
@@ -60622,16 +60628,18 @@ function _helixUpdateTrails(sim, wall, R, yMin, yMax, ringCount, ringOffsets) {
                     const futureAgeB = ((k + 1) * _HELIX_SAMPLE_STEP) / _HELIX_FADE_ANGLE;
                     const aFA = Math.max(0, 1 - futureAgeA);
                     const aFB = Math.max(0, 1 - futureAgeB);
-                    // Cell at future angles. v15: wall evolves with scenario
-                    // time, so sample the future snap (sweep + Δ → its own
-                    // historical step) rather than current snap. Still exact
-                    // prediction: the sim already completed, we know the future.
+                    // v21: future-fade samples the SAME snap as the present
+                    // (one moment per rotation). Pre-v21 sampled a future snap
+                    // to predict where the wall would be a quarter-turn from
+                    // now, but with time fixed during a rotation that's just
+                    // the current snap — and the wall reading at different
+                    // angles around the current snap. Effect: the future-fade
+                    // band still gradient-fades but plots the same wall geometry
+                    // the past band does, so the band is symmetric around the
+                    // leading edge for any given moment in time.
                     const wrappedB = ((futureSweepB % TWO_PI) + TWO_PI) % TWO_PI;
                     const cellB = Math.floor(wrappedB / (TWO_PI / N)) % N;
-                    const snapB = _helixSnapAt(sim, futureSweepB);
-                    const histSimB = _helixSimAtSnap(sim, snapB);
-                    const histWallB = _helixWallAtSnap(wall, snapB);
-                    const rawB = param.read(histSimB, histWallB, i, cellB);
+                    const rawB = param.read(histSim, histWall, i, cellB);
                     const rNext = (typeof rawB === 'number' && !isNaN(rawB)) ? rawB : rPrev;
                     posArr[v * 3 + 0] = rPrev * Math.cos(angleA);
                     posArr[v * 3 + 1] = y;
@@ -60928,27 +60936,62 @@ function _helixRestoreCrystalOpacity(state) {
 let _helixSpinRAF = null;
 let _helixSpinPrevTime = 0;
 let _helixSweepAngle = 0;
-// v20: one revolution = entire scenario timeline. At 200 steps / 15 s
-// → ~13 steps/s; at 4 RPM the eye can track crystal-growth and
-// fluid-evolution between frames. Pre-v20 was 40 RPM (1.5 s per
-// scenario), which was too fast to read individual steps.
-const _HELIX_RPM = 4;
-// v20: convert sweep angle → wall_state_history step index. One full
-// revolution covers steps [0, lastStep]. Boss: "link it to the
-// turn by turn data so each step in the game changes what you see
-// in the vugg." Returns -1 when no history is available (creative
-// mode mid-edit, or pre-sim) — caller falls back to live-sim.
+// v21: rotation rate is now LINKED to scenario time-step advancement.
+// One revolution = _HELIX_STEPS_PER_REV scenario steps advance. Boss
+// caught the v20 conflation: "each sweep of the helicoid through the
+// vug should be capturing only what is happening at that exact
+// moment in time, not what has come before it or after it." So a
+// single revolution must show ONE moment (one fixed step), and time
+// must advance between (or across multiple) revolutions.
+//
+// 60 RPM = 1 rev/sec. With 1 step per revolution, time advances at
+// 1 step/sec. A 200-step scenario plays in ~3.3 minutes. To slow
+// playback (more rotations per step = more time to study each
+// moment), increase _HELIX_STEPS_PER_REV down toward 1/5 (= 5 revs
+// per step). Boss's range: "1 rotation per unit of time through 5
+// rotations per unit of time." Starting on the fast end.
+const _HELIX_RPM = 60;
+const _HELIX_STEPS_PER_REV = 1;
+// v21: time-step state, advanced by the spin tick independently of
+// the visual sweep. Within one revolution, _helixDisplayedStep stays
+// constant (the floor of the continuous _helixCurrentTimeStep), so
+// every sample taken inside that revolution sees the same scenario
+// state. Loops back to 0 after the last step.
+let _helixCurrentTimeStep = 0;
+let _helixDisplayedStep = 0;
+// v21: snap lookup keyed on scenario step (not sweep angle). Binary-
+// searches the wall_state_history for the most recent snap whose
+// .step ≤ requested step. v15's _helixSnapAt(sim, sweep) is kept as
+// a thin wrapper for back-compat but routes through here using the
+// currently-displayed step.
+function _helixSnapAtStep(sim, step) {
+    const history = sim && sim.wall_state_history;
+    if (!history || !history.length)
+        return null;
+    if (step <= history[0].step)
+        return history[0];
+    if (step >= history[history.length - 1].step)
+        return history[history.length - 1];
+    let lo = 0, hi = history.length - 1;
+    while (lo < hi) {
+        const mid = (lo + hi + 1) >> 1;
+        if (history[mid] && typeof history[mid].step === 'number' && history[mid].step <= step)
+            lo = mid;
+        else
+            hi = mid - 1;
+    }
+    return history[lo];
+}
+// v20 helper kept for callers (e.g. the spin-tick line that passes
+// step into _topoSyncCrystalMeshes). v21 makes it just return the
+// pre-computed _helixDisplayedStep, which the spin tick updates each
+// frame. Returns -1 when no history exists.
 function _helixCurrentStep(sim, sweep) {
+    void sweep; // sweep no longer drives step lookup
     const history = sim && sim.wall_state_history;
     if (!history || !history.length)
         return -1;
-    const last = history[history.length - 1];
-    const lastStep = last && typeof last.step === 'number' ? last.step : 0;
-    if (lastStep <= 0)
-        return 0;
-    const TWO_PI = Math.PI * 2;
-    const wrapped = ((sweep % TWO_PI) + TWO_PI) % TWO_PI;
-    return Math.floor((wrapped / TWO_PI) * (lastStep + 1));
+    return _helixDisplayedStep;
 }
 function _helixStartSpin() {
     if (_helixSpinRAF != null)
@@ -60969,6 +61012,18 @@ function _helixSpinTick(now) {
         const omega = (_HELIX_RPM / 60) * 2 * Math.PI;
         _helixSweepAngle += dt * omega;
         state.helixGroup.rotation.y = _helixSweepAngle;
+        // v21: advance scenario time at (RPM/60) × STEPS_PER_REV steps
+        // per second. Wrap at scenario end so playback loops.
+        if (state.helixContext && state.helixContext.sim) {
+            const history = state.helixContext.sim.wall_state_history;
+            if (history && history.length) {
+                const lastStep = history[history.length - 1].step || 0;
+                _helixCurrentTimeStep += dt * (_HELIX_RPM / 60) * _HELIX_STEPS_PER_REV;
+                if (_helixCurrentTimeStep > lastStep)
+                    _helixCurrentTimeStep = 0;
+                _helixDisplayedStep = Math.floor(_helixCurrentTimeStep);
+            }
+        }
         if (state.helixContext) {
             const c = state.helixContext;
             // v20: rebuild crystal meshes at the current scenario step so
