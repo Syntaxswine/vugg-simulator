@@ -59551,23 +59551,46 @@ function topoToggleThreeRenderer() {
 //     trail × 16 rings × 6 parameters = 4320 segments max.
 let _helixOverlayEnabled = true;
 const _HELIX_N_TURNS = 3;
-// Parameters surfaced as radar trails. Add params here — no other
-// change needed. Each entry: id (used in the chemistry signature),
-// [min, max] normalization window, colour, and reader that pulls the
-// per-ring value from the sim.
+// Parameters surfaced as radar trails. First entry is the PRIMARY:
+// distance from the central axis to the local cavity wall at this
+// (ring, cell). Plotted at the LITERAL world-mm radius — no
+// normalization — so the trail traces the cavity wall outline as the
+// sweep crosses each cell of each ring. The other entries are
+// SECONDARIES: chemistry at "that exact spot in the vugg" (per-ring
+// is the finest granularity the simulator tracks; per-cell chemistry
+// would land in a later sim change). Normalized to [0, R] each.
+//
+// `primary` flag flips the plotting to literal mm. `read` gets
+// (sim, wall, ringIdx, cellIdx) so the primary can find the cell at
+// the current sweep angle. Secondaries ignore wall + cellIdx.
 const _HELIX_CHEM_PARAMS = [
+    // PRIMARY — wall distance at the current sweep cell.
+    { id: 'wall', label: 'wall distance', min: 0, max: 0, color: 0xffffff,
+        primary: true,
+        read: (sim, wall, i, c) => {
+            if (!wall || !wall.rings)
+                return null;
+            const ring = wall.rings[i];
+            if (!ring || !ring.length)
+                return null;
+            const cell = ring[c % ring.length];
+            if (!cell)
+                return null;
+            return (cell.base_radius_mm || 0) + (cell.wall_depth || 0);
+        } },
+    // SECONDARIES — per-ring chemistry, normalized to [0, R].
     { id: 'T', label: 'temperature', min: 50, max: 250, color: 0xff5544,
-        read: (sim, i) => (sim.ring_temperatures || [])[i] },
+        read: (s, w, i, c) => (s.ring_temperatures || [])[i] },
     { id: 'pH', label: 'pH', min: 2, max: 12, color: 0x9966ee,
-        read: (sim, i) => ((sim.ring_fluids || [])[i] || {}).pH },
+        read: (s, w, i, c) => ((s.ring_fluids || [])[i] || {}).pH },
     { id: 'sal', label: 'salinity', min: 0, max: 30, color: 0x44ccdd,
-        read: (sim, i) => ((sim.ring_fluids || [])[i] || {}).salinity },
+        read: (s, w, i, c) => ((s.ring_fluids || [])[i] || {}).salinity },
     { id: 'Ca', label: 'Ca', min: 0, max: 1000, color: 0x66cc77,
-        read: (sim, i) => ((sim.ring_fluids || [])[i] || {}).Ca },
+        read: (s, w, i, c) => ((s.ring_fluids || [])[i] || {}).Ca },
     { id: 'Fe', label: 'Fe', min: 0, max: 200, color: 0xee9944,
-        read: (sim, i) => ((sim.ring_fluids || [])[i] || {}).Fe },
+        read: (s, w, i, c) => ((s.ring_fluids || [])[i] || {}).Fe },
     { id: 'Mn', label: 'Mn', min: 0, max: 100, color: 0xffdd55,
-        read: (sim, i) => ((sim.ring_fluids || [])[i] || {}).Mn },
+        read: (s, w, i, c) => ((s.ring_fluids || [])[i] || {}).Mn },
 ];
 const _HELIX_FADE_ANGLE = Math.PI / 2; // 1/4 turn — boss spec
 const _HELIX_SAMPLE_STEP = Math.PI / 90; // sample every 2° of sweep
@@ -59782,15 +59805,36 @@ function _helixUpdateTrails(sim, wall, R) {
     const wallRadius = wall.max_seen_radius_mm
         || (wall.vug_diameter_mm ? wall.vug_diameter_mm * 0.5 : R);
     const sweep = _helixSweepAngle;
+    const TWO_PI = Math.PI * 2;
+    // Sweep angle wrapped into [0, 2π) for cell-index lookups. (The
+    // unwrapped sweep is monotonic for trail-age math, but cells live
+    // in [0, N) and need the wrapped angle.)
+    const sweepWrapped = ((sweep % TWO_PI) + TWO_PI) % TWO_PI;
     for (let p = 0; p < nParams; p++) {
         const param = _HELIX_CHEM_PARAMS[p];
         // Sample / prune per ring.
         for (let i = 0; i < ringCount; i++) {
-            const raw = param.read(sim, i);
+            // Cell at the current sweep angle for this ring. Each ring is a
+            // closed loop of cells_per_ring cells, so cellIdx maps a world
+            // angle into the cell's slot. The primary parameter (wall
+            // distance) uses this to look up the per-cell wall radius;
+            // secondaries ignore it (per-ring chemistry has no cell variation).
+            const ringArr = (wall.rings && wall.rings[i]) || null;
+            const N = ringArr && ringArr.length ? ringArr.length : 0;
+            const cellIdx = N > 0 ? Math.floor(sweepWrapped / (TWO_PI / N)) % N : 0;
+            const raw = param.read(sim, wall, i, cellIdx);
             if (typeof raw !== 'number' || isNaN(raw))
                 continue;
-            const norm = Math.max(0, Math.min(1, (raw - param.min) / (param.max - param.min)));
-            const r = norm * R;
+            // Primary plots at literal world-mm r (the wall outline);
+            // secondaries normalize their range into [0, R].
+            let r;
+            if (param.primary) {
+                r = raw;
+            }
+            else {
+                const norm = Math.max(0, Math.min(1, (raw - param.min) / (param.max - param.min)));
+                r = norm * R;
+            }
             const y = _helixRingY(i, ringCount, wallRadius);
             const trail = _helixTrails[p][i];
             const last = trail[trail.length - 1];
