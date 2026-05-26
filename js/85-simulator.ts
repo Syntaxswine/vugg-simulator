@@ -178,6 +178,13 @@ class VugSimulator {
         `  ☁ Vadose oxidation: rings ${newlyVadose.join(',')} now exposed `
         + `to air — O₂ rises, sulfides become unstable`);
     }
+    // PROPOSAL-CARBONATE-GEOCHEM Phase 1 Week 4b — open-system pH
+    // equilibration. No-op when conditions._scenario is absent OR
+    // open_to_atmosphere is false (default). When on, the fluid's
+    // pH is re-solved so its equilibrium pCO2 matches the local
+    // atmospheric value. Runs BEFORE dissolution + nucleation so
+    // downstream supersat math sees the equilibrated chemistry.
+    this._applyOpenAtmosphereEquilibration();
     // Track dolomite saturation crossings for the Kim 2023 cycle mechanism.
     this.conditions.update_dol_cycles();
     snap = this._snapshotGlobal();

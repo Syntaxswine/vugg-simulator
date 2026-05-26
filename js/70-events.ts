@@ -371,6 +371,20 @@ function _buildScenarioFromSpec(scenarioId, spec) {
       fluid: new FluidChemistry(fluidKwargs),
       wall: new VugWall(mergedWall),
     });
+    // PROPOSAL-CARBONATE-GEOCHEM Phase 1 Week 4b — attach the
+    // scenario's open-system flags to conditions so the simulator's
+    // _applyOpenAtmosphereEquilibration (in 85c) can resolve them
+    // per-step without needing a separate scenario reference.
+    // Polymorphic per the resolvers in 20d (scalar | fn | per-region
+    // map). Absent fields default to closed cavity / modern
+    // atmospheric pCO2 at the resolver site, so spec-side opt-in is
+    // the only thing that flips behavior.
+    conditions._scenario = {
+      open_to_atmosphere: spec.open_to_atmosphere,
+      atmospheric_pCO2_bar: spec.atmospheric_pCO2_bar,
+      wall_rock_thermal_buffer_C: spec.wall_rock_thermal_buffer_C,
+      host_rock_composition: spec.host_rock_composition,
+    };
     // JS events are plain objects (no Event class on the JS side; the
     // global DOM Event would shadow it). Match the {step,name,description,
     // apply_fn} shape used by the legacy in-code scenarios.

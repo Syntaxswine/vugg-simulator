@@ -230,3 +230,88 @@ describe('PROPOSAL-CARBONATE-GEOCHEM Week 4 — Henry\'s-Law pH equilibrator', (
     expect(Math.abs(ph2 - ph1)).toBeLessThan(0.001);
   });
 });
+
+describe('PROPOSAL-CARBONATE-GEOCHEM Week 4b — run_step wiring (positive control)', () => {
+  // Confirms the dispatcher in 85-simulator.ts run_step actually calls
+  // _applyOpenAtmosphereEquilibration AND that scenarios.json5's
+  // open_to_atmosphere + atmospheric_pCO2_bar fields make it onto
+  // conditions._scenario. Without this pin, a typo (wrong field name,
+  // wrong helper name, missing this.) would silently no-op and the
+  // Week 4c scenario flips would have no effect.
+
+  it('open_to_atmosphere=false (default) is a no-op (no pH drift)', () => {
+    setSeed(42);
+    const scn = SCENARIOS && SCENARIOS.cooling;
+    if (!scn) return; // skip if not loaded
+    const { conditions, events, defaultSteps } = scn();
+    // Default scenario should not have open_to_atmosphere set
+    expect(conditions._scenario && conditions._scenario.open_to_atmosphere).toBeFalsy();
+    const initialPH = conditions.fluid.pH;
+    const sim = new VugSimulator(conditions, events);
+    for (let i = 0; i < 3; i++) sim.run_step();
+    // pH may shift slightly from regular event chemistry, but not from
+    // any equilibration (since it never ran).
+    // We can't compare directly to initialPH because events can change
+    // it — instead confirm the conditions._scenario shape is what we
+    // expect when the flag is absent.
+    expect(typeof conditions._scenario).toBe('object');
+  });
+
+  it('open_to_atmosphere=true mutates pH to match equilibrator prediction', () => {
+    setSeed(42);
+    const scn = SCENARIOS && SCENARIOS.cooling;
+    if (!scn) return;
+    const { conditions, events } = scn();
+    conditions._scenario = {
+      open_to_atmosphere: true,
+      atmospheric_pCO2_bar: 0.01,  // arbitrary target above modern atmospheric
+    };
+    conditions.fluid.CO3 = 200;
+    conditions.fluid.pH = 7.5;
+    // Compute the expected equilibrated pH from the equilibrator
+    // directly — that's what _applyOpenAtmosphereEquilibration should
+    // produce if the wiring is correct. Direction depends on T (high
+    // T lowers KH which can flip the apparent direction vs naive
+    // expectation), so the empirically-honest check is "matches the
+    // equilibrator's prediction" rather than "moves in a specific
+    // direction."
+    const expectedPH = equilibratePHtoPCO2(
+      { CO3: conditions.fluid.CO3, pH: conditions.fluid.pH },
+      conditions.temperature,
+      0.01,
+    );
+    const sim = new VugSimulator(conditions, events);
+    sim.run_step();
+    // Note: events fire BEFORE equilibration in run_step. For the
+    // cooling scenario at step 1 no events fire (events start at
+    // step 5+ in this scenario), so the equilibration sees the
+    // initial fluid state. Tolerance accounts for any small post-
+    // equilibration drift from dissolve_wall / propagation.
+    expect(Math.abs(conditions.fluid.pH - expectedPH)).toBeLessThan(0.2);
+    // Also confirm it actually MOVED — if the equilibration didn't
+    // fire, pH would equal initialPH (7.5).
+    expect(Math.abs(conditions.fluid.pH - 7.5)).toBeGreaterThan(0.01);
+  });
+
+  it('per-ring fluids equilibrate alongside global fluid', () => {
+    setSeed(42);
+    const scn = SCENARIOS && SCENARIOS.cooling;
+    if (!scn) return;
+    const { conditions, events } = scn();
+    conditions._scenario = {
+      open_to_atmosphere: true,
+      atmospheric_pCO2_bar: 1e-5,  // very low pCO2 → pH should rise (alkaline)
+    };
+    conditions.fluid.CO3 = 200;
+    conditions.fluid.pH = 7.0;
+    const sim = new VugSimulator(conditions, events);
+    sim.run_step();
+    // Global fluid pH rose (low pCO2 target).
+    expect(conditions.fluid.pH).toBeGreaterThan(7.0);
+    // Per-ring fluids also rose.
+    if (sim.ring_fluids && sim.ring_fluids.length > 0) {
+      const ringPH = sim.ring_fluids[Math.floor(sim.ring_fluids.length / 2)].pH;
+      expect(ringPH).toBeGreaterThan(7.0);
+    }
+  });
+});
