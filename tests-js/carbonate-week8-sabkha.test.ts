@@ -99,17 +99,36 @@ describe('PROPOSAL-CARBONATE-GEOCHEM Week 8 — Kim 2023 cycle accumulation', ()
     const final = probes[probes.length - 1];
     // Proposal critical pass: f_ord > 0.7 by cycle 9. With Kim N0=7:
     //   1 - exp(-N/7) > 0.7  ⟺  N > 7 × ln(1/0.3) ≈ 8.43
-    // So _dol_cycle_count should reach ≥ 9 by the end of the scenario.
+    // So _dol_cycle_count must reach ≥ 9 by the end of the scenario.
     //
-    // SOFTER ASSERTION (current): cycle_count > 0. If this passes but
-    // the count is small (< 9), the Kim mechanism wiring is firing
-    // but the threshold crossings aren't tracking the flood/evap
-    // cycles correctly — a calibration issue for Phase 1c, not a
-    // fatal bug. We capture the actual value via a max-bound check.
-    expect(final.dol_cycle_count).toBeGreaterThan(0);
-    // Cap at the number of scheduled cycles (12). If cycle_count >>12
-    // there's noise in the threshold detection.
-    expect(final.dol_cycle_count).toBeLessThanOrEqual(20);
+    // Per the W8 follow-up diagnostic (tools/w8_diagnostic_sabkha.mjs),
+    // the per-cycle threshold detection actually tracks ALL 12
+    // scheduled flood/evap pairs cleanly on the v143 baseline:
+    //   - cycle_count advances by 1 per scheduled pair
+    //   - final cycle_count = 12 (= number of scheduled pairs)
+    //   - f_ord = 0.820 (crosses 0.7 around step 195, near proposal's
+    //     "between cycle 6 and 10" target)
+    //
+    // The original soft assertion (count > 0) was hiding STRONG
+    // behavior, not weak — and a regression in Kim cycle wiring or
+    // threshold detection would only fall back to "weak". Tightened
+    // here to the proposal's target. If this fails, the threshold
+    // detection has regressed; run the diagnostic tool to see the
+    // actual trajectory.
+    expect(final.dol_cycle_count).toBeGreaterThanOrEqual(9);
+    // Cap at the number of scheduled cycles (12). If cycle_count >> 12
+    // there's noise in the threshold detection (over-triggering on
+    // sub-cycle Ω oscillations near the threshold).
+    expect(final.dol_cycle_count).toBeLessThanOrEqual(15);
+  });
+
+  it('f_ord crosses 0.7 by end of scenario (proposal critical pass)', () => {
+    const probes = probeSabkha();
+    if (!probes.length) return;
+    const final = probes[probes.length - 1];
+    // Proposal: f_ord > 0.7 between cycle 6 and 10. Sabkha's 12-cycle
+    // schedule should clear this comfortably.
+    expect(final.f_ord).toBeGreaterThan(0.7);
   });
 
   it('f_ord rises across the scenario (Kim formula applied to actual cycle counts)', () => {
