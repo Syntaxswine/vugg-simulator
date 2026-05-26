@@ -8262,5 +8262,160 @@
 //   js/15-version.ts: this block + SIM_VERSION 147 → 148
 //   data/scenarios.json5: sabkha cavity bump + rationale
 //   tests-js/baselines/seed42_v148.json: regenerated baseline
-const SIM_VERSION = 148;
+//
+// ============================================================
+//   v149 — Strip View bedrock + helicoid-as-recorder (2026-05-26)
+// ============================================================
+//
+// First commit of the strip view arc. Closes the design conversation
+// captured in HANDOFF-CARBONATE-PHASE-1-COMPLETE.md §"strip view" by
+// laying the BEDROCK that the v2+ viewer iterations build on:
+//
+//   1. Strip dataset format (js/85f-strip-dataset.ts) — typed manifest
+//      + uint8-quantized chip data tensor [step][angle][height][chip]
+//      + sparse nucleation event list. Manifest-header future-proofing:
+//      chips that exist in old datasets but not in the current chip set
+//      load as "legacy" with default-off in the selector. Browser-native
+//      gzip via CompressionStream/DecompressionStream for download.
+//
+//   2. StripRecorder (js/85g-strip-recorder.ts) — helicoid-as-recorder
+//      reframe (Shy's 2026-05-26 design insight). Hooks into
+//      run_step() at end-of-step, samples every chip in _HELIX_CHEM_PARAMS
+//      at every (angle, height) position, downsamples 120 native cells
+//      to 24 angular sub-strips by picking the midpoint cell per 15°
+//      bin, quantizes to uint8, appends to the running dataset. Captures
+//      nucleation events from this step via crystal.nucleation_step.
+//      finalize() trims trailing unused steps if the run ends early
+//      (vug sealed before duration_steps reached).
+//
+//   3. IndexedDB persistence (js/85h-strip-storage.ts) — async save /
+//      load / list / delete / clear. Datasets keyed by
+//      scenario_id@seed#recorded_at. Browser-native binary storage; no
+//      base64 inflation. Quota-friendly (~1-5 MB per typical 200-step
+//      run; modern browsers grant 100s of MB - GB).
+//
+//   4. Strip View UI tab (js/99k-strip-view.ts) — toolbar toggle
+//      button + floating panel. Dataset list (sorted newest first;
+//      click to load; ✕ to delete). When loaded: chip selector
+//      grouped by helicoid system (wall/special/carbonate/ion),
+//      per-chip toggles, filmstrip render with one row per time step
+//      (older at bottom — stratigraphic convention), variance dot
+//      (green/yellow/red), expand arrow (visual stub for v2 angular
+//      expansion), star button (turns yellow on click, no other v1
+//      behavior per locked design), mineral nucleation markers
+//      overlay, fixed-position jump-to-top/jump-to-bottom buttons.
+//
+//   5. End-to-end wiring (js/85-simulator.ts run_step + js/96-ui-random.ts)
+//      — one-line hook in run_step calls _stripRecorder.captureStep
+//      when present (no-op without recorder; baseline byte-identical).
+//      Random mode entry point attaches a recorder at sim creation +
+//      finalizes + saves to IndexedDB at run end. Other entry points
+//      (Simulation, Fortress, Zen, Agent API) can opt in by copying
+//      the same pattern. v1 wires Random only as the proof of flow.
+//
+// SHY'S HELICOID-AS-RECORDER REFRAME
+//
+// The deeper architectural insight from the design conversation:
+//
+//   "the helicoid is currently a visualization — it samples chips
+//   and renders them, then discards. Shy's request reframes the
+//   helicoid as a RECORDING DEVICE for multidimensional space. The
+//   samples ARE the artifact; the live chip display is one downstream
+//   consumer."
+//
+// Consumers of the recording:
+//   - Helicoid chip display      (live viz, existing — consumer #1)
+//   - Strip view                 (post-hoc filmstrip — consumer #2)
+//   - Record / filter / branch   (future — consumer #3, handoff §3)
+//
+// The dataset becomes the central artifact; the helicoid becomes the
+// instrument that writes it. Architecturally clean — the current
+// helicoid that "samples → renders → discards" was always a lossy
+// intermediary; this turns it into a proper instrument.
+//
+// V1 SCOPE BOUNDARY (locked design)
+//
+// Ships:
+//   - Default-on collapsed strips (mean across 24 angles), screen-width
+//     SVG render, all 30+ chips overlaid, mineral nucleation markers,
+//     variance dot, favorite star (visual only), jump buttons,
+//     per-system chip selector, dataset list + delete, IndexedDB
+//     auto-capture for Random runs.
+//
+// Deferred to v2+ (data model supports them; UI not built yet):
+//   - Expansion arrow opening 24 angular sub-strips stacked vertically
+//   - Cross-sub-strip cursor on hover
+//   - Line bundling (Sankey-style merge for coincident lines)
+//   - Star functional integration (filters/export/compare)
+//   - Adaptive height resolution (zoom on a row)
+//   - Download dataset as gzipped file (stripSerialize is built; need
+//     UI button)
+//   - Upload + load dataset from file (stripDeserialize is built; need
+//     UI)
+//   - Wiring auto-capture in Simulation/Fortress/Zen/Agent paths
+//
+// Deferred to spatial chemistry expansion (load-bearing prerequisite):
+//   - Real per-vertex angular variation in chip values. Today every
+//     chip except `wall` returns the same value across the 24 angular
+//     sub-strips because the underlying ring_fluids is per-ring not
+//     per-cell. The strip viewer renders this honestly (uniform
+//     horizontal lines for most chips, varying lines for wall geometry).
+//     When per-vertex spatial chemistry ships, the SAME viewer comes
+//     alive with real angular variation automatically.
+//
+// PER-STEP CAPTURE COST
+//
+//   ~24 angles × 16 rings × 58 chips ≈ 22K chip.read() calls per step.
+//   At ~5M JS function calls/sec: ~5 ms per step.
+//   For a 200-step Random run: ~1 second added recording overhead.
+//   Acceptable; users won't notice.
+//
+// DATASET SIZE
+//
+//   Per run: ~200 × 24 × 16 × 58 ≈ 4.45 MB raw uint8.
+//   After gzip (download path): ~1-2 MB.
+//   IndexedDB stores uncompressed (browser handles binary efficiently).
+//   Power user accumulating 20 runs ≈ 90 MB. Well within quota.
+//
+// BASELINE INVARIANCE
+//
+// The recorder hook is a single conditional call in run_step:
+//
+//     if (this._stripRecorder) this._stripRecorder.captureStep(this);
+//
+// With no _stripRecorder attached (the default for calibration tests
+// + all baseline regeneration paths), the call is a no-op. Sim state
+// is byte-identical to v148. Calibration test reads seed42_v149.json
+// = seed42_v148.json (renamed). 1562/1562 tests pass (+14 strip view
+// tests; the 1548 from v148 unchanged).
+//
+// SETTINGS FLIPPED
+//   js/85-simulator.ts: single-line hook at end of run_step
+//   js/96-ui-random.ts: attach recorder + finalize at run end
+//   tests-js/setup.ts: expose strip-view symbols to test global scope
+//
+// FILES ADDED
+//   js/85f-strip-dataset.ts            (format + codecs, ~245 lines)
+//   js/85g-strip-recorder.ts           (recorder, ~230 lines)
+//   js/85h-strip-storage.ts            (IndexedDB, ~170 lines)
+//   js/99k-strip-view.ts               (UI tab, ~480 lines)
+//   tests-js/strip-view-bedrock.test.ts (14 tests, ~180 lines)
+//
+// HANDOFF
+//
+// HANDOFF-CARBONATE-PHASE-1-COMPLETE.md §"strip view" is the design
+// spec. This bedrock implements the data path + minimal UI; the v2+
+// iterations (expansion, bundling, filters, etc.) plug into the same
+// data model without re-architecting.
+//
+// WHAT v149 SHIPS
+//   js/15-version.ts: this block + SIM_VERSION 148 → 149
+//   js/85f-strip-dataset.ts, 85g-strip-recorder.ts, 85h-strip-storage.ts
+//   js/99k-strip-view.ts
+//   js/85-simulator.ts: run_step hook (one conditional line)
+//   js/96-ui-random.ts: recorder lifecycle wiring
+//   tests-js/setup.ts: 8 new EXPORTS entries
+//   tests-js/strip-view-bedrock.test.ts (14 new tests)
+//   tests-js/baselines/seed42_v149.json: regenerated baseline (byte-identical to v148)
+const SIM_VERSION = 149;
 

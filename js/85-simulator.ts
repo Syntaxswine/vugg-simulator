@@ -660,6 +660,18 @@ class VugSimulator {
     // this preserves byte-equality for default scenarios.
     this._diffuseRingState();
 
+    // === HELIX-OVERLAY-FORK ADDITION (strip view bedrock, v149+) =====
+    // Helicoid-as-recorder hook (Shy's 2026-05-26 design reframe).
+    // When a StripRecorder is attached to the sim, capture one step's
+    // worth of chip data + nucleation events at end-of-step. Single
+    // conditional call with no side effects on sim state — runs without
+    // the recorder, baseline identical. Wired by the UI layer at run
+    // start; see 99k-strip-view.ts and 94-ui-menu.ts.
+    if (this._stripRecorder && typeof this._stripRecorder.captureStep === 'function') {
+      try { this._stripRecorder.captureStep(this); } catch (_err) { /* swallow — strip view is non-essential */ }
+    }
+    // === END HELIX-OVERLAY-FORK ADDITION ==============================
+
     return this.log;
   }
 

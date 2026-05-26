@@ -423,6 +423,17 @@ const EXPORTS = [
   'applyParamorphTransitions',
   'applyDehydrationTransitions',
   'applyLightTransitions',
+  // Strip view bedrock (v149+, 2026-05-26) — helicoid-as-recorder
+  // architecture. 85f = dataset format + codecs, 85g = recorder, 85h
+  // = IndexedDB storage, 99k = UI tab.
+  'stripQuantize',
+  'stripDequantize',
+  'stripDequantizeNormalized',
+  'stripDataIndex',
+  'stripAllocateData',
+  'stripSerialize',
+  'stripDeserialize',
+  'StripRecorder',
 ];
 
 let _bundleLoaded = false;
