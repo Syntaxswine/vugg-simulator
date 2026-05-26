@@ -61103,7 +61103,7 @@ function _topoHelixOverlayDraw(state, sim, wall) {
         }
         const group = new THREE.Group();
         group.name = 'helix-record';
-        _helixAddSurface(group, R, yMin, yMax);
+        _helixAddSurface(group, R, yMin, yMax, wall);
         state.scene.add(group);
         state.helixGroup = group;
         state.helixSig = sig;
@@ -61115,19 +61115,75 @@ function _topoHelixOverlayDraw(state, sim, wall) {
     _helixStartSpin();
 }
 // ----- Sub-builders ------------------------------------------------
-function _helixAddSurface(group, R, yMin, yMax) {
+// Returns the cavity's lateral extent (perpendicular to the vertical
+// axis) at world-y. The helicoid surface uses this so its lateral
+// width tracks the actual cavity wall instead of being a constant
+// cylinder. Two paths:
+//
+//   1. wall.maxRadiusByRing is populated (built by 23-geometry-wall-
+//      mesh.ts during the cavity mesh build). Use it: interpolate by
+//      mapping y → ring index via the cavity's polar-angle convention,
+//      then take wall.maxRadiusByRing[ring] * sin(phi_cav). Handles
+//      non-spherical archetypes (basin polar-collapse, multi-bubble
+//      pocket lobes, tabular elongation) correctly.
+//
+//   2. Fallback: ellipsoid approximation. R * sqrt(1 - ((y-yC)/yH)²).
+//      Correct for sphere; reasonable first-order for ovate cavities.
+//      Used pre-mesh-build or when maxRadiusByRing isn't set.
+//
+// Pre-fix the helicoid surface was a CYLINDER (constant max radius R
+// for every y), which didn't fit the cavity at the polar caps — the
+// surface visibly stuck out past the actual cavity shape near top and
+// bottom, and at oblique viewing angles read as a stretched/figure-8
+// silhouette instead of matching the egg-shaped cavity. Boss flagged
+// the wall-shape mismatch via screenshots showing the surface at 195%
+// zoom didn't match the cavity outline at 100%.
+function _helixLateralAtY(wall, y, yMin, yMax, R) {
+    const yCenter = (yMin + yMax) * 0.5;
+    const yHalf = (yMax - yMin) * 0.5;
+    if (yHalf <= 0)
+        return R;
+    // Path 1: use actual ring radii when available.
+    if (wall && wall.maxRadiusByRing && wall.ring_count > 0) {
+        const ringCount = wall.ring_count;
+        // y = yCenter - yHalf * cos(phi_cav)  (see 23-geometry-wall-mesh.ts
+        // line 538). Invert for phi_cav:
+        const arg = Math.max(-1, Math.min(1, (yCenter - y) / yHalf));
+        const phiCav = Math.acos(arg);
+        // ring i: phi_cav_i = π * (i + 0.5) / ringCount  (see 22-geometry-
+        // wall.ts line 724). Invert for i:
+        const ringFrac = phiCav * ringCount / Math.PI - 0.5;
+        const iLo = Math.max(0, Math.min(ringCount - 1, Math.floor(ringFrac)));
+        const iHi = Math.max(0, Math.min(ringCount - 1, iLo + 1));
+        const t = Math.max(0, Math.min(1, ringFrac - iLo));
+        const sinPhi = Math.sin(phiCav);
+        const rLo = wall.maxRadiusByRing[iLo] || R;
+        const rHi = wall.maxRadiusByRing[iHi] || R;
+        const rLocal = rLo * (1 - t) + rHi * t;
+        return rLocal * sinPhi;
+    }
+    // Path 2: ellipsoid fallback.
+    const yNorm = (y - yCenter) / yHalf;
+    const cylindrical = 1 - yNorm * yNorm;
+    return cylindrical > 0 ? R * Math.sqrt(cylindrical) : 0;
+}
+function _helixAddSurface(group, R, yMin, yMax, wall) {
     const NU = 16;
     const NV = Math.max(120, _HELIX_N_TURNS * 120);
     const ySpan = yMax - yMin;
     const yCenter = (yMin + yMax) * 0.5;
     const surfPositions = new Float32Array((NU + 1) * (NV + 1) * 3);
     const surfIndices = [];
-    for (let i = 0; i <= NU; i++) {
-        const ri = (i / NU) * R;
-        for (let j = 0; j <= NV; j++) {
-            const u = j / NV;
-            const phi = u * _HELIX_N_TURNS * Math.PI * 2;
-            const y = yCenter + (u - 0.5) * ySpan;
+    // Loops swapped from the pre-fix order: j (height) is outer so the
+    // per-height lateral extent R_at_y can be computed once per height
+    // rather than per (i, j) vertex.
+    for (let j = 0; j <= NV; j++) {
+        const u = j / NV;
+        const phi = u * _HELIX_N_TURNS * Math.PI * 2;
+        const y = yCenter + (u - 0.5) * ySpan;
+        const R_at_y = _helixLateralAtY(wall, y, yMin, yMax, R);
+        for (let i = 0; i <= NU; i++) {
+            const ri = (i / NU) * R_at_y;
             const vIdx = (i * (NV + 1) + j) * 3;
             surfPositions[vIdx + 0] = ri * Math.cos(phi);
             surfPositions[vIdx + 1] = y;
