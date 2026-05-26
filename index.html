@@ -12561,7 +12561,130 @@ let timeScale = 5.0;
 //   js/52-engines-carbonate.ts: grow_calcite PWP wiring
 //   tests-js/baselines/seed42_v144.json: regenerated baseline
 //   tests-js/carbonate-week9-promotion.test.ts: validation tests
-const SIM_VERSION = 144;
+// ----------------------------------------------------------------
+// v145 (2026-05-26): PROPOSAL-CARBONATE-GEOCHEM Phase 1 Week 10 —
+// dolomite engine promotion. CARBONATE_KSP_ACTIVE_PER_MINERAL.dolomite
+// flipped true. Dolomite joins calcite on the textbook SI engine + PWP
+// rate law. PWP calibration factor (5e4) is shared from W9 calcite —
+// already lands dolomite typical growth at 0.6-2.7 µm/step matching
+// empirical 0.5-4 µm/step range. Kim 2023 cyclic-omega ordering gate
+// remains the real kinetic barrier (encoded in dolomiteRate's
+// (0.30 + 0.70 × f_ord) factor); sigma_crit promoted to 10 to
+// acknowledge a heterogeneous-nucleation barrier separate from the
+// ordering gate.
+//
+// SEE COMMIT MESSAGE for the dense per-scenario drift table.
+//
+// SETTINGS FLIPPED
+//   js/32b-supersat-carbonate-Ksp.ts:
+//     CARBONATE_KSP_ACTIVE_PER_MINERAL.dolomite: false → true
+//   js/32-supersat-carbonate.ts:
+//     MINERAL_GATES_dolomite.sigma_crit: 1.0 → 10
+//     (empirical sigma was 4th-root of Ca·Mg·CO3²/eq vs textbook
+//      omega = a(Ca)·a(Mg)·a(CO3)² / Ksp. Probe near-threshold band
+//      median omega = 504; sigma_crit = 10 is a meaningful kinetic
+//      barrier that doesn't double-count Kim's ordering gate)
+//   js/52-engines-carbonate.ts:
+//     grow_dolomite growth rate calc gated by kspSupersatActiveFor —
+//     when dolomite SI flag is on, rate = dolomiteRate (PWP with
+//     Kim ordering gate built in) → pwpRateToSimMicronsPerStep.
+//     Empirical base_rate × (0.30 + 0.70 × f_ord) stays as fallback.
+//
+// PER-SCENARIO DOLOMITE DRIFT (v144 → v145 seed42 baseline)
+//
+//   sabkha_dolomitization        1 active 49 µm → 1 active 2.5 µm
+//                                MICROCRYSTALLINE — geologically what
+//                                Kim 2023 dolomite actually looks like
+//                                (real sabkha dolomite is 5-50 µm
+//                                dolomicrite). v144's 49 µm came from
+//                                the empirical engine's much-larger
+//                                INITIAL growth zone (~13 µm/step) that
+//                                landed before the cabinet cavity
+//                                capped at fill=1.0. PWP at sabkha
+//                                alkaline cold conditions is only
+//                                0.2 µm/step (Arrhenius + a(H+) terms
+//                                give honest small rates), so initial
+//                                growth caps the crystal at 2.5 µm
+//                                before the cavity fills. The Kim
+//                                mechanism still fires correctly:
+//                                12/12 scheduled cycles, f_ord = 0.82.
+//                                The drift is the geology landing —
+//                                the empirical engine was 60× too fast
+//                                at alkaline cold conditions, masking
+//                                "the dolomite problem" Kim 2023
+//                                actually solves. Phase 1c scenario
+//                                re-anchor candidate (larger cavity
+//                                radius or tuned broth) for visual
+//                                impact.
+//
+//   jeffrey_mine                 2 active 1075 µm → 1 active 1833 µm
+//                                One fewer crystal nucleation,
+//                                surviving crystal grew bigger. PWP
+//                                Arrhenius accelerates at jeffrey's
+//                                100-150°C skarn conditions. f_ord = 0
+//                                throughout (no Kim cycling).
+//
+//   ultramafic_supergene         1 active 83 µm → 27 active 19 µm each
+//                                Many more crystal nucleations, each
+//                                smaller. Likely air-mode nucleation
+//                                probability triggering on more steps
+//                                because omega stays above sigma_crit
+//                                = 10 for longer. Geologically the
+//                                "many small dolomite crystals"
+//                                pattern is right for supergene
+//                                weathering of ultramafic protolith.
+//
+//   zoned_dripstone_cave         1 active 16188 µm → 1 active 1180 µm
+//                                Same cold-PWP story as W9 cave
+//                                calcite — empirical engine was
+//                                massively over-extrapolating cave
+//                                growth rates. 1180 µm = 1.2 mm is
+//                                still visible, just smaller than the
+//                                v144 1.6 cm. Phase 1c candidate.
+//
+//   reactive_wall (NEW)          0 → 1 dissolved 6092 µm
+//                                Acid pulses now dissolve transient
+//                                dolomite. Real Sweetwater MVT
+//                                paragenesis documents this as the
+//                                Stage I dissolution event;
+//                                geologically right.
+//
+// CASCADE DRIFT
+//
+//   5 scenarios touched (much tighter than W9's 15). jeffrey_mine and
+//   reactive_wall picked up RNG-cascade drift in non-dolomite minerals
+//   (calcite, siderite, etc.). No EXPECTED species disappeared.
+//
+// THE CYCLE COUNTER FIX
+//
+//   The Kim cycle counter in VugConditions.update_dol_cycles() detects
+//   crossings of sigma_dolomite. Under the empirical engine, sigma is
+//   in ppm-style units (4th-root of Ca·Mg·CO3²/eq), and sabkha's evap
+//   state drops sigma below 1.0 cleanly. Under the SI engine, sigma is
+//   raw omega, and sabkha's evap state has omega ~6.5 (still > 1) —
+//   the cycle counter would NEVER detect crossings without a smarter
+//   threshold.
+//
+//   v145 fix: when CARBONATE_KSP_ACTIVE_PER_MINERAL.dolomite is true,
+//   the threshold is omega = 100 — the ordered-dolomite stability
+//   boundary per Burton 1993 / Wright 1999 / Kim 2023. Below ω=100:
+//   disordered Mg-calcite is favored; above: ordered dolomite is
+//   favored. Cycles across this boundary drive the Kim ordering
+//   mechanism. Sabkha now counts 12/12 again (verified by the W8
+//   diagnostic tool re-run post-fix).
+//
+//   The empirical-mode threshold stays at 1.0 to preserve v144 and
+//   earlier behavior.
+//
+// WHAT v145 SHIPS
+//   js/15-version.ts: this block + SIM_VERSION 144 → 145
+//   js/32b-supersat-carbonate-Ksp.ts: dolomite per-mineral flag flipped
+//   js/32-supersat-carbonate.ts: sigma_crit 1.0 → 10
+//   js/52-engines-carbonate.ts: grow_dolomite PWP wiring
+//   tests-js/baselines/seed42_v145.json: regenerated baseline
+//   tests-js/carbonate-week10-promotion.test.ts: validation tests
+//   tools/w10_dolomite_calibration_probe.mjs: prep diagnostic
+const SIM_VERSION = 145;
 
 // ── 18-constants.js ──
 
@@ -16937,13 +17060,34 @@ class VugConditions {
     }
     update_dol_cycles() {
         // Track dolomite saturation crossings — call once per step.
+        //
+        // Kim 2023 cyclic-omega mechanism: ordering builds when the system
+        // alternates between supersaturated-for-ordered-dolomite and
+        // undersaturated-for-ordered-dolomite. The relevant threshold is
+        // NOT thermodynamic equilibrium (omega = 1 — the boundary for
+        // "any dolomite at all") but the ordered-dolomite stability
+        // boundary (~omega 100 per Burton 1993 / Wright 1999 / Kim 2023).
+        //
+        // v145 fix: under the SI engine (CARBONATE_KSP_ACTIVE_PER_MINERAL.
+        // dolomite = true), supersaturation_dolomite returns raw omega
+        // which never drops below 1.0 in sabkha's Mg-rich brine even
+        // during evap events — the empirical engine masked this because
+        // its ppm-style sigma formula DID cross 1.0 cleanly. The SI
+        // engine's honest omega numbers require an honest geological
+        // threshold for cycle detection. omega = 100 is "ordered
+        // dolomite is favored" vs below = "disordered Mg-calcite is
+        // favored," which is the actual Kim 2023 ordering criterion.
+        //
+        // Pre-SI (empirical) mode keeps the 1.0 threshold so v144 and
+        // earlier behavior is preserved.
         const sigma = this.supersaturation_dolomite();
         const prev = this._dol_prev_sigma;
+        const threshold = (typeof kspSupersatActiveFor === 'function' && kspSupersatActiveFor('dolomite')) ? 100 : 1.0;
         if (prev > 0.0) {
-            if (prev >= 1.0 && sigma < 1.0) {
+            if (prev >= threshold && sigma < threshold) {
                 this._dol_in_undersat = true;
             }
-            else if (prev < 1.0 && sigma >= 1.0 && this._dol_in_undersat) {
+            else if (prev < threshold && sigma >= threshold && this._dol_in_undersat) {
                 this._dol_cycle_count += 1;
                 this._dol_in_undersat = false;
             }
@@ -18415,13 +18559,23 @@ const MINERAL_GATES_aragonite = {
     _notes: 'Orthorhombic CaCO3 dimorph. Favored by Mg/Ca > 1.5, T > 50, Ω > 10, trace Sr/Pb/Ba. Pseudohexagonal cyclic twinning.',
 };
 const MINERAL_GATES_dolomite = {
-    sigma_crit: 1.0,
+    // v145 (Week 10 SI-engine promotion): sigma_crit bumped 1.0 → 10.
+    // The empirical engine's 1.0 was in empirical-sigma units (4th-root
+    // of Ca·Mg·CO3² / eq, ppm-scale); the SI engine returns textbook
+    // omega = IAP/Ksp where dolomite's a(Ca)·a(Mg)·a(CO3)² gives huge
+    // omegas in any Mg-rich brine (median omega at empirical threshold
+    // = 504 per tools/w10_dolomite_calibration_probe.mjs, p25-p75
+    // 486-525). Setting sigma_crit = 10 acknowledges a meaningful
+    // heterogeneous-nucleation barrier without double-counting Kim
+    // 2023's f_ord gate (which is the real kinetic barrier for
+    // ordered dolomite and lives in dolomiteRate / grow_dolomite).
+    sigma_crit: 10,
     T_min: 10, T_max: 400, T_optimal: 150,
     fluid_min: { Ca: 30, Mg: 25, CO3: 20 },
     pH_min: 6.5, pH_max: 10.0,
     surface_energy: 'medium',
-    _sources: ['dolomite engine v17+', 'Kim 2023'],
-    _notes: 'Mg/Ca window 0.3-30. T floor lowered to 10°C (Kim 2023) — ambient T thermodynamically fine, kinetics handled by ordering factor.',
+    _sources: ['dolomite engine v17+', 'Kim 2023', 'Morse & Arvidson 2002'],
+    _notes: 'Mg/Ca window 0.3-30. T floor lowered to 10°C (Kim 2023) — ambient T thermodynamically fine, kinetics handled by ordering factor. v145 SI engine: sigma is textbook omega; sigma_crit 10 acknowledges nucleation kinetic barrier separate from the Kim f_ord ordering gate.',
 };
 const MINERAL_GATES_siderite = {
     sigma_crit: 1.0,
@@ -19108,10 +19262,15 @@ let CARBONATE_KSP_ACTIVE = true;
 // v144: calcite flipped to true. Aragonite, dolomite, siderite,
 // rhodochrosite remain false pending their own Week 10/11/12 promotion
 // commits.
+// v145 (Week 10): dolomite flipped to true. Kim 2023 cyclic-omega gate
+// stays the kinetic barrier (encoded in dolomiteRate via the
+// (0.30 + 0.70 * f_ord) factor); sigma_crit promoted to 10 in the
+// MINERAL_GATES entry to acknowledge the heterogeneous-nucleation
+// margin without double-counting Kim's f_ord gate.
 const CARBONATE_KSP_ACTIVE_PER_MINERAL = {
     calcite: true,
     aragonite: false,
-    dolomite: false,
+    dolomite: true,
     siderite: false,
     rhodochrosite: false,
     smithsonite: false,
@@ -27195,15 +27354,30 @@ function grow_dolomite(crystal, conditions, step) {
         return null;
     }
     const excess = sigma - 1.0;
-    const base_rate = 4.5 * excess * rng.uniform(0.7, 1.3);
     // Kim 2023: ordering fraction f_ord ramps with FLUID-LEVEL cycle count.
     // Tracking at the fluid level captures the geological insight that an
     // oscillatory environment ratchets ordering across all dolomite nuclei,
-    // not just the ones that survive enclosure. N₀=10 calibrated for sim
-    // timescale (each sim cycle stands in for thousands of real tidal cycles).
+    // not just the ones that survive enclosure. N₀=7 (matches dolomiteRate
+    // in 52b) calibrated for sim timescale (each sim cycle stands in for
+    // thousands of real tidal cycles).
     const cycle_count = conditions._dol_cycle_count;
     const f_ord = 1.0 - Math.exp(-cycle_count / 7.0);
-    const rate = base_rate * (0.30 + 0.70 * f_ord);
+    // Growth rate dispatch — v145 Week 10: when the dolomite SI flag is
+    // on, delegate the rate to PWP kinetics (dolomiteRate already bakes
+    // in the Kim 2023 (0.30 + 0.70 × f_ord) ordering gate; we just pass
+    // f_ord). Same flag gate pattern as Week 9 calcite. The empirical
+    // base_rate formula stays as the fallback path.
+    let rate;
+    if (kspSupersatActiveFor('dolomite')) {
+        const pwp_mol = dolomiteRate(conditions.fluid, conditions.temperature, f_ord);
+        rate = pwpRateToSimMicronsPerStep('dolomite', pwp_mol) * rng.uniform(0.7, 1.3);
+        if (rate < 0)
+            rate = 0;
+    }
+    else {
+        const base_rate = 4.5 * excess * rng.uniform(0.7, 1.3);
+        rate = base_rate * (0.30 + 0.70 * f_ord);
+    }
     if (conditions.temperature > 200 && excess < 0.5) {
         crystal.habit = 'coarse_rhomb';
         crystal.dominant_forms = ['coarse rhombohedral {104}', 'transparent to white textbook crystals'];

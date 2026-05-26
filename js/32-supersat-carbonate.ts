@@ -40,13 +40,23 @@ const MINERAL_GATES_aragonite: MineralGates = {
 };
 
 const MINERAL_GATES_dolomite: MineralGates = {
-  sigma_crit: 1.0,
+  // v145 (Week 10 SI-engine promotion): sigma_crit bumped 1.0 → 10.
+  // The empirical engine's 1.0 was in empirical-sigma units (4th-root
+  // of Ca·Mg·CO3² / eq, ppm-scale); the SI engine returns textbook
+  // omega = IAP/Ksp where dolomite's a(Ca)·a(Mg)·a(CO3)² gives huge
+  // omegas in any Mg-rich brine (median omega at empirical threshold
+  // = 504 per tools/w10_dolomite_calibration_probe.mjs, p25-p75
+  // 486-525). Setting sigma_crit = 10 acknowledges a meaningful
+  // heterogeneous-nucleation barrier without double-counting Kim
+  // 2023's f_ord gate (which is the real kinetic barrier for
+  // ordered dolomite and lives in dolomiteRate / grow_dolomite).
+  sigma_crit: 10,
   T_min: 10, T_max: 400, T_optimal: 150,
   fluid_min: { Ca: 30, Mg: 25, CO3: 20 },
   pH_min: 6.5, pH_max: 10.0,
   surface_energy: 'medium',
-  _sources: ['dolomite engine v17+', 'Kim 2023'],
-  _notes: 'Mg/Ca window 0.3-30. T floor lowered to 10°C (Kim 2023) — ambient T thermodynamically fine, kinetics handled by ordering factor.',
+  _sources: ['dolomite engine v17+', 'Kim 2023', 'Morse & Arvidson 2002'],
+  _notes: 'Mg/Ca window 0.3-30. T floor lowered to 10°C (Kim 2023) — ambient T thermodynamically fine, kinetics handled by ordering factor. v145 SI engine: sigma is textbook omega; sigma_crit 10 acknowledges nucleation kinetic barrier separate from the Kim f_ord ordering gate.',
 };
 
 const MINERAL_GATES_siderite: MineralGates = {

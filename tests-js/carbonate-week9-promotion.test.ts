@@ -40,11 +40,13 @@ describe('PROPOSAL-CARBONATE-GEOCHEM Week 9 — calcite engine promotion (v144)'
     expect(kspSupersatActiveFor('calcite')).toBe(true);
   });
 
-  it('only calcite is promoted at v144 (siblings still empirical)', () => {
-    // Week 10-12 will flip dolomite, HMC, aragonite. Verify they
-    // haven't accidentally come along for the ride.
+  it('calcite remains promoted alongside dolomite at v145 (siderite/HMC/aragonite still empirical)', () => {
+    // v144 only calcite was promoted; v145 added dolomite. Week 11
+    // will flip HMC (blocked on vugg-add-mineral); Week 12 aragonite.
+    // The other carbonates should still be on the empirical engine.
+    expect(kspSupersatActiveFor('calcite')).toBe(true);   // since v144
+    expect(kspSupersatActiveFor('dolomite')).toBe(true);  // since v145
     expect(kspSupersatActiveFor('aragonite')).toBe(false);
-    expect(kspSupersatActiveFor('dolomite')).toBe(false);
     expect(kspSupersatActiveFor('siderite')).toBe(false);
     expect(kspSupersatActiveFor('HMC')).toBe(false);
   });

@@ -59,20 +59,24 @@ describe('PROPOSAL-CARBONATE-GEOCHEM Week 2 — flag mechanism', () => {
     expect(CARBONATE_KSP_ACTIVE).toBe(true);
   });
 
-  it('per-mineral flags: calcite true (v144); aragonite/dolomite/siderite/HMC still false', () => {
-    // Calcite is the first carbonate promoted (Week 9 / v144). Aragonite
-    // is Week 12, dolomite Week 10, HMC Week 11 — all still pending.
+  it('per-mineral flags: calcite + dolomite true (v145); aragonite/siderite/HMC still false', () => {
+    // Calcite was first promoted (Week 9 / v144). Dolomite second
+    // (Week 10 / v145). Aragonite is Week 12, HMC Week 11 — still
+    // pending. Each promotion is a single-mineral flip per the
+    // proposal's Week-9-12 discipline.
     expect(CARBONATE_KSP_ACTIVE_PER_MINERAL.calcite).toBe(true);
+    expect(CARBONATE_KSP_ACTIVE_PER_MINERAL.dolomite).toBe(true);
     expect(CARBONATE_KSP_ACTIVE_PER_MINERAL.aragonite).toBe(false);
-    expect(CARBONATE_KSP_ACTIVE_PER_MINERAL.dolomite).toBe(false);
     expect(CARBONATE_KSP_ACTIVE_PER_MINERAL.siderite).toBe(false);
     expect(CARBONATE_KSP_ACTIVE_PER_MINERAL.HMC).toBe(false);
   });
 
-  it('kspSupersatActiveFor returns true only for calcite (v144 state)', () => {
+  it('kspSupersatActiveFor returns true for calcite + dolomite (v145 state)', () => {
     expect(kspSupersatActiveFor('calcite')).toBe(true);
+    expect(kspSupersatActiveFor('dolomite')).toBe(true);
+    const promoted = new Set(['calcite', 'dolomite']);
     for (const m of carbonatesWithSI()) {
-      if (m === 'calcite') continue;
+      if (promoted.has(m)) continue;
       expect(kspSupersatActiveFor(m)).toBe(false);
     }
   });
@@ -463,19 +467,30 @@ describe('PROPOSAL-CARBONATE-GEOCHEM Week 2 — dispatcher positive control', ()
     expect(sigma).toBe(0);
   });
 
-  it('per-mineral flag isolates — flipping calcite does NOT affect dolomite', () => {
+  it('per-mineral flag isolates — flipping aragonite does NOT affect siderite', () => {
+    // v145: calcite + dolomite are already promoted, so the original
+    // "calcite vs dolomite" isolation test no longer demonstrates the
+    // gate semantics (both are SI by default). Use a still-pending
+    // pair instead. Same semantics: flipping one carbonate's flag
+    // doesn't bleed into another mineral's dispatch path.
     _flagSnap = snapshotCarbonateKspFlags();
-    setCarbonateKspActive(true);
-    setCarbonateKspActiveFor('calcite', true);
-    // dolomite per-mineral is still false → dolomite uses empirical
-    const f = new FluidChemistry({ Ca: 200, Mg: 200, CO3: 150, pH: 7.5 });
+    // Make sure both start empirical (override v145 defaults).
+    setCarbonateKspActiveFor('aragonite', false);
+    setCarbonateKspActiveFor('siderite', false);
+    const f = new FluidChemistry({ Ca: 200, Mg: 200, Fe: 100, CO3: 150, pH: 7.5, O2: 0.1 });
     const cond = new VugConditions({ temperature: 25, fluid: f });
-    const dol_si_off = cond.supersaturation_dolomite();
-    // Now flip dolomite specifically
-    setCarbonateKspActiveFor('dolomite', true);
-    const dol_si_on = cond.supersaturation_dolomite();
-    // These should differ — flipping the per-mineral flag changes path
-    expect(Math.abs(dol_si_off - dol_si_on)).toBeGreaterThan(0.01);
+    setCarbonateKspActiveFor('aragonite', true);
+    // siderite per-mineral still false → siderite uses empirical
+    const sid_si_off = cond.supersaturation_siderite();
+    setCarbonateKspActiveFor('siderite', true);
+    const sid_si_on = cond.supersaturation_siderite();
+    expect(Math.abs(sid_si_off - sid_si_on)).toBeGreaterThan(0.01);
+    // ALSO sanity-check the original calcite/dolomite gate independence
+    // by flipping calcite off transiently and confirming dolomite stays on.
+    const dol_calcite_on = cond.supersaturation_dolomite();
+    setCarbonateKspActiveFor('calcite', false);
+    const dol_calcite_off = cond.supersaturation_dolomite();
+    expect(dol_calcite_off).toBeCloseTo(dol_calcite_on, 6);
   });
 
   it('global flag OFF + per-mineral ON still uses empirical (AND-gate semantics)', () => {

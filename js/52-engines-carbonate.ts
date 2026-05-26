@@ -253,16 +253,29 @@ function grow_dolomite(crystal, conditions, step) {
   }
 
   const excess = sigma - 1.0;
-  const base_rate = 4.5 * excess * rng.uniform(0.7, 1.3);
-
   // Kim 2023: ordering fraction f_ord ramps with FLUID-LEVEL cycle count.
   // Tracking at the fluid level captures the geological insight that an
   // oscillatory environment ratchets ordering across all dolomite nuclei,
-  // not just the ones that survive enclosure. N₀=10 calibrated for sim
-  // timescale (each sim cycle stands in for thousands of real tidal cycles).
+  // not just the ones that survive enclosure. N₀=7 (matches dolomiteRate
+  // in 52b) calibrated for sim timescale (each sim cycle stands in for
+  // thousands of real tidal cycles).
   const cycle_count = conditions._dol_cycle_count;
   const f_ord = 1.0 - Math.exp(-cycle_count / 7.0);
-  const rate = base_rate * (0.30 + 0.70 * f_ord);
+
+  // Growth rate dispatch — v145 Week 10: when the dolomite SI flag is
+  // on, delegate the rate to PWP kinetics (dolomiteRate already bakes
+  // in the Kim 2023 (0.30 + 0.70 × f_ord) ordering gate; we just pass
+  // f_ord). Same flag gate pattern as Week 9 calcite. The empirical
+  // base_rate formula stays as the fallback path.
+  let rate;
+  if (kspSupersatActiveFor('dolomite')) {
+    const pwp_mol = dolomiteRate(conditions.fluid, conditions.temperature, f_ord);
+    rate = pwpRateToSimMicronsPerStep('dolomite', pwp_mol) * rng.uniform(0.7, 1.3);
+    if (rate < 0) rate = 0;
+  } else {
+    const base_rate = 4.5 * excess * rng.uniform(0.7, 1.3);
+    rate = base_rate * (0.30 + 0.70 * f_ord);
+  }
 
   if (conditions.temperature > 200 && excess < 0.5) {
     crystal.habit = 'coarse_rhomb';

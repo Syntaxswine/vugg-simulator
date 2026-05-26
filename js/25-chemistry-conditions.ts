@@ -87,12 +87,33 @@ class VugConditions {
 
   update_dol_cycles() {
     // Track dolomite saturation crossings — call once per step.
+    //
+    // Kim 2023 cyclic-omega mechanism: ordering builds when the system
+    // alternates between supersaturated-for-ordered-dolomite and
+    // undersaturated-for-ordered-dolomite. The relevant threshold is
+    // NOT thermodynamic equilibrium (omega = 1 — the boundary for
+    // "any dolomite at all") but the ordered-dolomite stability
+    // boundary (~omega 100 per Burton 1993 / Wright 1999 / Kim 2023).
+    //
+    // v145 fix: under the SI engine (CARBONATE_KSP_ACTIVE_PER_MINERAL.
+    // dolomite = true), supersaturation_dolomite returns raw omega
+    // which never drops below 1.0 in sabkha's Mg-rich brine even
+    // during evap events — the empirical engine masked this because
+    // its ppm-style sigma formula DID cross 1.0 cleanly. The SI
+    // engine's honest omega numbers require an honest geological
+    // threshold for cycle detection. omega = 100 is "ordered
+    // dolomite is favored" vs below = "disordered Mg-calcite is
+    // favored," which is the actual Kim 2023 ordering criterion.
+    //
+    // Pre-SI (empirical) mode keeps the 1.0 threshold so v144 and
+    // earlier behavior is preserved.
     const sigma = this.supersaturation_dolomite();
     const prev = this._dol_prev_sigma;
+    const threshold = (typeof kspSupersatActiveFor === 'function' && kspSupersatActiveFor('dolomite')) ? 100 : 1.0;
     if (prev > 0.0) {
-      if (prev >= 1.0 && sigma < 1.0) {
+      if (prev >= threshold && sigma < threshold) {
         this._dol_in_undersat = true;
-      } else if (prev < 1.0 && sigma >= 1.0 && this._dol_in_undersat) {
+      } else if (prev < threshold && sigma >= threshold && this._dol_in_undersat) {
         this._dol_cycle_count += 1;
         this._dol_in_undersat = false;
       }

@@ -134,10 +134,15 @@ let CARBONATE_KSP_ACTIVE = true;
 // v144: calcite flipped to true. Aragonite, dolomite, siderite,
 // rhodochrosite remain false pending their own Week 10/11/12 promotion
 // commits.
+// v145 (Week 10): dolomite flipped to true. Kim 2023 cyclic-omega gate
+// stays the kinetic barrier (encoded in dolomiteRate via the
+// (0.30 + 0.70 * f_ord) factor); sigma_crit promoted to 10 in the
+// MINERAL_GATES entry to acknowledge the heterogeneous-nucleation
+// margin without double-counting Kim's f_ord gate.
 const CARBONATE_KSP_ACTIVE_PER_MINERAL: Record<string, boolean> = {
   calcite:        true,
   aragonite:      false,
-  dolomite:       false,
+  dolomite:       true,
   siderite:       false,
   rhodochrosite:  false,
   smithsonite:    false,
