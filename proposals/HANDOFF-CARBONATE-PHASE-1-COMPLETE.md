@@ -157,6 +157,18 @@ These are NOT engine work. They're the bigger-than-engine horizon the boss surfa
 
 1. **Per-vertex chip selectors** (smallest deliverable). The Week 4a accessors `fluidAtMeshVertex` + `temperatureAtMeshVertex` are the API. The chips currently sample equator ring; let players pick a vertex and see chip trails sourced from THAT vertex. Unblocks the spatial chemistry the engine produces.
 
+   **BOSS NOTE (2026-05-26):** the localized data those accessors return needs to be EXPANDED to reflect how real vuggs work. Right now `fluidAtMeshVertex` likely just returns the uniform global composition. Real vugs have spatial gradients:
+   - **Fluid stratification** — denser brines pool at the floor, lighter fluids rise; especially load-bearing for sabkha (hypersaline floor + meteoric ceiling), stratified anoxic systems, MVT (basinal brine vs. meteoric mixing zones).
+   - **Wall-rock diffusion** — Mg leaching from dolomite host rock concentrates near walls (dolomitization driver); Si from quartz host enriches near walls; carbonate cement source-region distinguishes wall-near vs. cavity-center chemistry.
+   - **Boundary layer effects** — stagnant fluid near surfaces depletes faster than bulk; controls why euhedral terminations point toward open space, not into walls.
+   - **Temperature gradients** — geothermal flux from below (vertical T-gradient), cooler at top in shallow systems; in hydrothermal systems the cooling gradient is the precipitation driver.
+   - **pH / redox gradients** — boundary-layer pH shifts at carbonate dissolution surfaces; redox stratification in anoxic-cap systems (sulfide precipitation at the chemocline).
+   - **Evaporation gradients** — sabkha-style: concentration follows the evaporating-surface direction; the upper meniscus is where ions concentrate.
+
+   Before per-vertex chips can show anything useful, the per-vertex data model needs to ACTUALLY differ vertex-to-vertex. This is its own architectural sub-project — probably needs a per-vertex fluid-state cache that updates from a gradient model (stratification + diffusion sources), then the chip selectors read from it. The chip-UI piece is small; the data-model expansion is the real work.
+
+   Sequencing implication: the design direction may grow from "per-vertex chips (smallest deliverable)" into "per-vertex fluid state + chips" as a single coherent unit. Worth a proposal doc before building.
+
 2. **Strip view (boss's brother's request).** Vertical filmstrip — one rectangular multi-line graph per time step. x=ring index 1-16, y=chip value, one line per chip. Virtual scrolling. Geologically a paragenesis viewer — each strip is a moment-in-time chemistry snapshot.
 
 3. **Filter system + record mode (the biggest).** DF-style work-order conditional UI (NOT movies — DF doesn't have those; the work-order conditional form is the relevant reference). Expression-tree underneath. Subject + operator + threshold + action. Composable AND/OR/NOT. Recording = scenario snap data + filter rules bundled. Branching from recording is the killer feature.

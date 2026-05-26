@@ -12921,7 +12921,91 @@ let timeScale = 5.0;
 //   tests-js/baselines/seed42_v147.json: regenerated baseline
 //   tests-js/carbonate-week12-promotion.test.ts: validation tests
 //   tools/w12_aragonite_calibration_probe.mjs: prep diagnostic
-const SIM_VERSION = 147;
+//
+// ============================================================
+//   v148 — Phase 1c sabkha cavity bump (2026-05-26)
+// ============================================================
+//
+// First Phase 1c scenario re-anchor. Addresses the cavity-fill
+// ceiling identified in HANDOFF-CARBONATE-PHASE-1-COMPLETE.md §1.5:
+// at sabkha_dolomitization, three different carbonate minerals
+// (dolomite W10, HMC W11, aragonite W12) all grew sub-visible because
+// the 30 mm cavity (volume = 14.1 cm³) filled with selenite +
+// anhydrite within ~2 steps of step-1 evap. The currentFill ≥ 1.0
+// in-loop guard (85-simulator.ts lines 260-269) then dropped
+// positive growth zones for all slower-growing crystals.
+//
+// SCIENTIFIC NUMBERS (v147 baseline, sabkha_dolomitization, seed 42):
+//   selenite:   2 active, max 47622 µm (47.6 mm) — over 30 mm cavity diameter
+//   anhydrite:  2 active, max  171 µm
+//   aragonite:  1 active, max   15 µm — should be 100s of µm
+//   dolomite:   1 active, max  2.2 µm — should be 10s of µm
+//   HMC:        4 active, max  0.8 µm — should be 10s of µm
+//   calcite:    1 active, max  0.9 µm
+// Kim mechanism status: 12/12 cycles, f_ord = 0.82 (proposal target).
+//
+// ROOT CAUSE
+//
+// The architecture is correct (geometric truth: you can't grow past
+// cavity volume). The bottleneck is rate disparity:
+//   - Selenite + anhydrite at evap-mode broth: aggressive rates,
+//     reach cavity-fill in steps 1-2
+//   - Carbonates: PWP at sabkha cool-warm T + Kim ordering gate
+//     (rate × 0.30-1.0) + Mg poisoning (HMC) = slow, get capped
+//     out before producing visible mass
+//
+// FIX
+//
+// Bump sabkha vug_diameter_mm 30 → 60. Gives 8× cavity volume
+// (14.1 cm³ → 113.1 cm³). Selenite + anhydrite still grow visibly
+// (selenite at 47 mm fits 60 mm cavity); slow-growing carbonates
+// now have room to develop past nucleation. Geologically defensible
+// — Persian Gulf sabkha intercrystalline pores range from <1 mm to
+// several cm, depending on depth + parent lithology. 60 mm is on
+// the cm-scale end (cavity-collapse pore in carbonate-cemented
+// zone) but matches the cathedral tier the simulator uses for
+// showcase scenarios elsewhere.
+//
+// CAVE SCENARIOS (stalactite_demo, zoned_dripstone_cave): the
+// handoff also flagged these as Phase 1c targets ("bump Ca + CO3
+// so omega stays high enough at cold cave T"), but reanalysis
+// shows omega already ≈ 26,000 in the floor/ceiling zones — well
+// past where (1 - 1/Ω) saturates. The rate ceiling is the PWP
+// forward rate at 15-18°C (~4-5 µm/step), not omega. Bumping Ca/
+// CO3 wouldn't help. The honest geological knob is duration_steps
+// (real cave calcite grows 0.001-1 mm/year; the sim's 100-step
+// budget is too short to grow cathedral-scale speleothems at honest
+// PWP rates).
+//
+// v147 cave sizes are actually visible:
+//   stalactite_demo:        calcite 3.0 mm, aragonite 6.9 mm
+//   zoned_dripstone_cave:   calcite 2.2 mm, aragonite 5.7 mm,
+//                           HMC 2.1 mm
+// — hand-specimen scale, sufficient to show the habit-bias c-axis
+// distinction. DEFERRED for separate Phase 1c re-anchor (would
+// require duration_steps bump + test recalibration).
+//
+// SETTINGS FLIPPED
+//   data/scenarios.json5: sabkha_dolomitization.initial.wall.
+//     vug_diameter_mm: 30 → 60 (with inline rationale block)
+//
+// PER-SCENARIO DRIFT (v147 → v148, seed 42): regenerated baseline
+// shows the sabkha carbonate cascade. Expected directions: dolomite
+// + HMC + aragonite grow to visible scale; selenite + anhydrite
+// slightly larger as cavity-fill ceiling now further off; the Kim
+// 12/12 cycles + f_ord stay intact (chemistry unchanged).
+//
+// Phase 1c continues: cave scenario duration_steps re-anchor is the
+// next candidate. mvt + sunnyside CO3 dial-down too. Phase 1c is
+// scoped as "scenario polish on stable engines" — not blocking
+// Phase 2 (Pitzer-HMW84 activity model) or the three design
+// directions (per-vertex chips, strip view, filter/record).
+//
+// WHAT v148 SHIPS
+//   js/15-version.ts: this block + SIM_VERSION 147 → 148
+//   data/scenarios.json5: sabkha cavity bump + rationale
+//   tests-js/baselines/seed42_v148.json: regenerated baseline
+const SIM_VERSION = 148;
 
 // ── 18-constants.js ──
 
