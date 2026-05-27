@@ -110,7 +110,24 @@ interface CavityVoxel {
 }
 ```
 
-Storage allocation at sim startup: clone the initial broth into every voxel. Total memory at 16×120×8 = 15,360 voxels × ~50 fluid fields × 8 bytes = ~6 MB. Acceptable.
+Storage allocation at sim startup: clone the initial broth into every voxel. Total memory at 16×120×4 (per [FIRM] A) = 7,680 voxels × ~50 fluid fields × 8 bytes = ~3 MB. Negligible.
+
+**Naming the 4 slices (boss-blessed mental model):**
+
+```
+   wall                                                       center
+    │                                                            │
+    ▼                                                            ▼
+    ┌────────────┬────────────┬────────────┬────────────────────┐
+    │   d=0      │   d=1      │   d=2      │   d=3              │
+    │ boundary   │ near-wall  │ interior   │ center             │
+    │ layer      │ buffer     │ bulk       │ baseline           │
+    └────────────┴────────────┴────────────┴────────────────────┘
+   ↑ aliased to wall cell                                       ↑ slowest to equilibrate;
+   ↑ engines deposit + deplete here                              "what the cavity was"
+```
+
+Consumers wanting finer resolution sample fractional depth `d ∈ [0, 3]` via linear interpolation across adjacent stored slices. See [FIRM] A.
 
 ### [FIRM] Diffusion: 6-neighbor Laplacian
 
@@ -168,20 +185,18 @@ The simplest API: event handlers accept an optional `target: 'all' | 'top' | 'bo
 |---|---|---|---|---|
 | 16 × 120 × 16 | 30,720 | 184k | 9.2M | ~92 ms |
 | 16 × 120 × 8 | 15,360 | 92k | 4.6M | ~46 ms |
-| 16 × 120 × 4 | 7,680 | 46k | 2.3M | ~23 ms |
-| 8 × 60 × 4 (coarse) | 1,920 | 12k | 580k | ~6 ms |
+| **16 × 120 × 4 (chosen — see [FIRM] A below)** | **7,680** | **46k** | **2.3M** | **~23 ms** |
+| 8 × 60 × 4 (coarse if 4-slice is still too slow) | 1,920 | 12k | 580k | ~6 ms |
 
-**Target: under 20 ms per step.** That's roughly the existing per-step cost budget; doubling it is acceptable but going much higher would slow scenario runs noticeably (200-step run goes from ~6s to ~10s+).
+**Decision (2026-05-27):** ship Phase 1 at 4 radial slices. Boss direction: *"a coarser radial axis is perfect. if you want steps in the middle they can just average."* The 4-tier slice scheme (boundary / near-wall / interior / center) has clean geological semantics; consumers that need higher resolution average between adjacent slices on the read path (mirrors the strip recorder's 120→24 angular downsample pattern). See [FIRM] A in the open-questions section for the full rationale.
 
-**Three mitigations** if naive perf is too slow:
+**Target: under 20 ms per step.** Roughly the existing per-step cost budget; doubling it is acceptable but going much higher would slow scenario runs noticeably (200-step run goes from ~6s to ~10s+). The 4-slice resolution lands ~23 ms naive — just over target. Two mitigations available if that's still too slow:
 
-1. **Coarser radial axis.** Depth 4 or 8 instead of 16. Most chemistry action is near the wall anyway (boundary layer is the load-bearing physics).
+1. **Sparse diffusion.** Maintain a "dirty voxel" set; only diffuse voxels adjacent to a recently-changed voxel. Most voxels in most scenarios sit at equilibrium most of the time — sparse diffusion would only touch ~5-15% of voxels per step in typical runs. Cuts cost to ~3-5 ms in steady state.
 
-2. **Sparse diffusion.** Maintain a "dirty voxel" set; only diffuse voxels adjacent to a recently-changed voxel. Most voxels in most scenarios sit at equilibrium most of the time — sparse diffusion would only touch ~5-15% of voxels per step in typical runs.
+2. **Asymmetric stepping.** Boundary-shell diffusion every step (where engines hit); interior-shell diffusion every N steps (it's slower in reality anyway). E.g., d=0,1 diffuse every step; d=2,3 every 5 steps. Cuts cost to ~10 ms.
 
-3. **Asymmetric stepping.** Wall-adjacent diffusion every step (where engines hit); radial-inner diffusion every N steps (it's slower in reality anyway). E.g., shells 0–1 diffuse every step, shells 2–3 every 5 steps, shells 4+ every 20 steps.
-
-**Recommendation:** ship Phase 1 with the coarsest resolution that produces visible spatial chemistry (8 or 16 radial slices), measure actual wall-clock against the scenario test suite, optimize only if it's a problem.
+**Recommendation:** ship Phase 1 with naive Laplacian + 4 slices. If `npm test` slows past comfort, add sparse diffusion as a second-pass optimization.
 
 ### Memory
 
@@ -283,13 +298,49 @@ These are all addable later if a scenario demands them. None are foundational; t
 
 ## Open questions
 
-### [OPEN] A. Radial resolution
+### [FIRM] A. Radial resolution — 4 slices, average on demand
 
-How many depth slices? 4, 8, 16, more?
+**Decision (2026-05-27, boss):** ship Phase 1 with **4 radial slices**. Consumers that need finer resolution average from adjacent slices.
 
-**Trade-off:** more slices = finer spatial chemistry = bigger perf hit + more memory. Fewer slices = coarse halos, harder to see boundary-layer effects.
+**Why 4 specifically:** each slice has a clean physical interpretation that maps to a real fluid regime:
 
-**Recommendation:** ship Phase 1 with 8. Probe representative scenarios; if visible spatial chemistry is too coarse, bump to 16; if perf is too slow, drop to 4.
+| Slice | Physical interpretation | What happens here |
+|---|---|---|
+| `d=0` | **Boundary layer** | Where crystals deposit + deplete mass directly. Aliased to the wall cell. |
+| `d=1` | **Near-wall** | Diffusion buffer between wall-driven chemistry and the cavity interior. The depletion halo lives mostly here. |
+| `d=2` | **Interior** | Bulk cavity volume. Receives event chemistry; sources fresh fluid back toward the wall via diffusion. |
+| `d=3` | **Center** | Gradient-far from any wall. Slowest to equilibrate; baseline reference for "what is the cavity fluid still saturated with." |
+
+This is a 4-tier mental model that maps cleanly to how geologists think about cavity-fluid spatial structure (boundary layer / mass-transfer zone / bulk fluid / unaffected core).
+
+**Averaging-on-demand pattern (for consumers that want finer resolution):** parallels the strip recorder's existing 120→24 cell downsampling. Any consumer that needs N > 4 slices linearly interpolates between adjacent stored slices:
+
+```typescript
+// Sample at any fractional depth d ∈ [0, 3] by linear interpolation
+function sampleVoxelFluid(r: number, c: number, depth: number, field: string): number {
+  const d0 = Math.floor(depth);
+  const d1 = Math.min(d0 + 1, 3);
+  const t = depth - d0;
+  const a = voxelAt(r, c, d0).fluid[field];
+  const b = voxelAt(r, c, d1).fluid[field];
+  return a * (1 - t) + b * t;
+}
+```
+
+This means strip view's hypothetical "expand 8 radial sub-strips" works against a 4-slice store by sampling at d = 0, 0.43, 0.86, 1.29, ..., 3.0. Visualization-only consumers can fake any resolution they want. Engines + diffusion only deal with the 4 stored slices.
+
+**Performance after this decision (4 slices):**
+
+| Stage | Cost per step |
+|---|---|
+| Voxel count | 16 × 120 × 4 = 7,680 |
+| Diffusion ops per chip | ~46k |
+| Diffusion ops × 50 chips | ~2.3M |
+| Wall-clock (~100M ops/sec naive) | ~23 ms |
+
+Well under the 20-ms-ish target if we want it; comfortably under any reasonable budget. Sparse diffusion (mitigation #2 in the performance section) would drop it further if scenarios get pathological.
+
+**Memory after this decision:** 7,680 voxels × ~50 fields × 8 bytes = ~3 MB. Negligible.
 
 ### [OPEN] B. Wall cell ↔ boundary voxel: alias or sync?
 
