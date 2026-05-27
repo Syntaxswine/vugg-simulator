@@ -8575,5 +8575,36 @@
 //   js/15-version.ts: this block + SIM_VERSION 150 → 151
 //   js/99k-strip-view.ts: height bumps + stroke + marker tweaks
 //   tests-js/baselines/seed42_v151.json: regenerated baseline
-const SIM_VERSION = 151;
+//
+// ============================================================
+//   v152 — Strip view height polish round 2 (2026-05-26)
+// ============================================================
+//
+// Second visual iteration. Boss tune after v151 playtest: "how about
+// 100px tall and stroke width of 1.25". Roomier vertical axis; slightly
+// thinner stroke for cleaner reading at the new height.
+//
+// CHANGES
+//   - Main strip canvas height: 72 → 100 px
+//   - Sub-strip canvas height: 72 → 100 px (still matches main)
+//   - Polyline stroke-width: 1.5 → 1.25
+//
+// Expanded time unit now takes 24 × 100 + gaps ≈ 2400 px scroll. Boss
+// already accepted the scroll cost in the original 2026-05-26 design
+// discussion.
+//
+// BASELINE
+//
+// CSS/render-only. Sim state unchanged. seed42_v152.json byte-identical
+// to v151.
+//
+// TESTS
+//
+// 1562/1562 pass.
+//
+// WHAT v152 SHIPS
+//   js/15-version.ts: this block + SIM_VERSION 151 → 152
+//   js/99k-strip-view.ts: 72 → 100 height + 1.5 → 1.25 stroke
+//   tests-js/baselines/seed42_v152.json: regenerated baseline
+const SIM_VERSION = 152;
 
