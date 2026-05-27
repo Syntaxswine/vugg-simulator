@@ -9085,5 +9085,143 @@
 //     rejected (dolomite cap, sunnyside CO3 bump), multi-condition
 //     nucleation envelope architectural note added, ring_fluids
 //     vestigial status documented
-const SIM_VERSION = 157;
+
+// ============================================================
+//   v158 — Cavity interior voxel grid: Phase 1 infra (2026-05-27)
+// ============================================================
+//
+// First commit of PROPOSAL-CAVITY-INTERIOR-VOXELS. Ships the data
+// model + accessors + diffusion entry point for a 3D voxel grid
+// spanning the cavity interior. Pure infrastructure: no engine wiring,
+// no event wiring, no behavior change. Sim chemistry unchanged;
+// seed42_v158.json byte-identical to seed42_v157.json.
+//
+// ARCHITECTURAL CONTEXT
+//
+// Pre-v158, "chemistry inside the vug" was a single bulk view
+// (conditions.fluid, aliased to ring_fluids[equator]). The wall mesh
+// (PROPOSAL-CAVITY-MESH, Tranches 1-4c) discretized chemistry across
+// the cavity SURFACE — per-vertex cell.fluid on a 16-ring × 120-cell
+// lat-long grid. But the cavity INTERIOR was uniform: no spatial
+// chemistry, no place for fluid stratification, no place for depletion
+// halos to be 3D objects.
+//
+// v157 made the wall-side chemistry visible (chip reads rewired from
+// vestigial ring_fluids to live mesh.cells). The boss's question
+// immediately after — "if there is a big calcite somewhere would it
+// draw other smaller calcites near it or would it strangle competition
+// by sucking out the local chemistry?" — surfaced that the simulator
+// models the attraction side of local competition (heterogeneous
+// nucleation discount, CGS via enclosure) but not the strangulation
+// side (depletion halo), and the halo is fundamentally a 3D object
+// that needs a discretized interior to exist in.
+//
+// PROPOSAL-CAVITY-INTERIOR-VOXELS landed as the architectural plan;
+// boss locked all 9 firm decisions; this commit ships Phase 1.
+//
+// WHAT v158 SHIPS
+//
+// js/24-geometry-voxel-grid.ts (NEW):
+//   - CavityVoxelGrid class with (r, c, d) addressing matching the
+//     wall mesh + a radial dimension. depth_count = 4 per [FIRM] A.
+//   - 4-tier semantic slice scheme:
+//       d=0  boundary layer (aliased to wall mesh cell fluid)
+//       d=1  near-wall buffer
+//       d=2  interior bulk
+//       d=3  center baseline
+//   - Accessors: voxelAt(r, c, d), boundaryVoxel(r, c), fluidAt(r, c, d),
+//     sampleFluid(r, c, depth, field) [linear interpolation across
+//     stored slices per [FIRM] A average-on-demand pattern]
+//   - diffuse(rate, fieldNames, ringTemps) — v158 delegates to
+//     wall.mesh.diffuse for the d=0 slab (preserves byte-identity);
+//     d≥1 slabs are uniform at init and never receive writes in v158.
+//     Phase 2 (v159) expands the body to do real per-voxel + radial
+//     diffusion without changing the call signature.
+//
+// js/22-geometry-wall.ts:
+//   - New voxelGridFor(sim) on WallState — lazy + cached factory,
+//     mirrors meshFor(sim) pattern. Forces mesh build first (the d=0
+//     aliasing depends on mesh.cells[].fluid being populated).
+//
+// js/85-simulator.ts:
+//   - VugSimulator constructor calls wall_state.voxelGridFor(this)
+//     immediately after the mesh + bindRingChemistry pass. Forces the
+//     grid build so it's ready when _diffuseRingState first fires.
+//
+// js/85c-simulator-state.ts:
+//   - _diffuseRingState rewired to call voxelGrid.diffuse instead of
+//     mesh.diffuse directly. Per [FIRM] H merge: voxel diffusion is
+//     the canonical path. v158 delegate preserves behavior; Phase 2
+//     expands the implementation.
+//   - New sim-level accessors: sim.voxelAt, sim.boundaryVoxel,
+//     sim.fluidAtVoxel, sim.sampleVoxelFluid. Convenience pass-
+//     throughs to wall_state.voxelGridFor(this).<method>.
+//
+// tests-js/voxel-grid.test.ts (NEW): 24 tests covering data model,
+//   aliasing, accessor bounds, interpolation, diffuse delegation, sim
+//   accessors, integration smoke test.
+//
+// tests-js/setup.ts: CavityVoxelGrid added to EXPORTS.
+//
+// [FIRM] DECISIONS LOCKED IN PROPOSAL (all 9):
+//   A. depth_count = 4 (boss: "a coarser radial axis is perfect")
+//   B. d=0 voxel ↔ wall cell: ALIAS (same object, two access paths)
+//   C. Engine boundary-layer view: SINGLE VOXEL (d=0)
+//   D. Density-driven settling: DEFER to v162+
+//   E. Per-voxel temperature: YES from v158 (stored, not consumed)
+//   F. Replay snapshot capture: v160 (visualization phase)
+//   G. zone_chemistry semantics: KEEP PER-RING
+//   H. _diffuseRingState merge: YES (voxel canonical; v158 delegates)
+//
+// BASELINE INVARIANCE
+//
+// seed42_v158.json byte-identical to seed42_v157.json. The proof:
+//   1. d=0 voxels alias mesh.cells[].fluid (same object identity);
+//      no new write paths exist, so engine + event behavior unchanged.
+//   2. d≥1 voxels exist but are never read by engines or events in
+//      v158; they get an initial clone of bulk fluid and stay frozen.
+//   3. voxelGrid.diffuse delegates to mesh.diffuse for v158; the
+//      diffusion deltas applied to d=0 (= wall) are identical to the
+//      pre-v158 mesh.diffuse call.
+//   4. Per-voxel temperature stored but not consumed; engines still
+//      read ring_temperatures[].
+//
+// MEMORY + PERFORMANCE
+//
+// Memory: 16 × 120 × 4 = 7,680 voxels × ~50 fluid fields × 8 bytes
+//         = ~3 MB. Plus 7,680 × 8 bytes for per-voxel temperature
+//         = ~60 KB. Negligible.
+// Perf: v158 diffuse is a pure delegate; no extra cost over v157.
+//       Phase 2 will introduce real per-voxel diffusion (~23 ms/step
+//       naive Laplacian per the proposal's performance budget; under
+//       target with the sparse + asymmetric stepping mitigations
+//       available if needed).
+//
+// PHASES REMAINING
+//
+//   v159 Phase 2: engine + event coupling. Per-voxel nucleation gates
+//                 (depletion halo strangulation becomes load-bearing).
+//                 Event-targeting API. Baselines drift.
+//   v160 Phase 3: visualization. Strip view radial sub-strips. Helicoid
+//                 depth-profile trails. 3D voxel cloud option.
+//   v161+ Phase 4: per-scenario re-tune against the new spatial physics.
+//
+// TESTS
+//
+//   Pre-v158:  1564 tests pass (v157)
+//   Post-v158: 1588 tests pass (+24 voxel-grid tests)
+//
+// WHAT v158 SHIPS (file list)
+//   js/15-version.ts                    SIM_VERSION 157 → 158 + this block
+//   js/22-geometry-wall.ts              voxelGridFor(sim) lazy factory
+//   js/24-geometry-voxel-grid.ts        NEW — CavityVoxelGrid + tests
+//   js/85-simulator.ts                  constructor allocates grid
+//   js/85c-simulator-state.ts           _diffuseRingState → grid.diffuse
+//                                        + sim-level voxel accessors
+//   index.html                          rebuilt bundle
+//   tests-js/setup.ts                   CavityVoxelGrid in EXPORTS
+//   tests-js/voxel-grid.test.ts         NEW — 24 tests
+//   tests-js/baselines/seed42_v158.json regen (byte-identical to v157)
+//   proposals/PROPOSAL-CAVITY-INTERIOR-VOXELS.md  living doc anchor
+const SIM_VERSION = 158;
 

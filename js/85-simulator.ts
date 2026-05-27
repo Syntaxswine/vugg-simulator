@@ -136,6 +136,15 @@ class VugSimulator {
     if (_initialMesh && _initialMesh.bindRingChemistry) {
       _initialMesh.bindRingChemistry(this.ring_fluids, this.ring_temperatures);
     }
+    // PROPOSAL-CAVITY-INTERIOR-VOXELS Phase 1 (v158) — allocate the
+    // cavity interior voxel grid now that the mesh is built and
+    // chemistry is bound. d=0 voxels alias the mesh.cells[].fluid
+    // objects (per [FIRM] B); d=1, d=2, d=3 voxels each get an
+    // independent clone of the bulk fluid. Per-voxel temperature is
+    // initialized to bulk T (per [FIRM] E) but not consumed in v158.
+    // The grid is lazy-cached on wall_state; this call forces the
+    // build so the grid is ready when _diffuseRingState first fires.
+    this.wall_state.voxelGridFor(this);
     // Cache the FluidChemistry numeric field names once for the
     // diffusion loop. Pulled from a fresh instance so any future field
     // additions to FluidChemistry pick up automatically — no separate

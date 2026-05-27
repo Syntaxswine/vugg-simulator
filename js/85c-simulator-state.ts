@@ -171,14 +171,78 @@ _applyVadoseOxidationOverride() {
 _diffuseRingState(rate?) {
   if (rate == null) rate = this.inter_ring_diffusion_rate;
   if (!(rate > 0)) return;
-  // PROPOSAL-CAVITY-MESH Phase 4 Tranche 4c — mesh is a constructor
-  // invariant; the legacy ring-Laplacian fallback path is unreachable
-  // in normal flow and dropped. mesh.diffuse is the canonical
-  // diffusion implementation. Post-Tranche-4a it operates truly per-
-  // vertex (cells are un-aliased); Path C in full.
-  const mesh = this.wall_state.meshFor(this);
-  mesh.diffuse(rate, this._fluidFieldNames, this.ring_temperatures);
+  // PROPOSAL-CAVITY-INTERIOR-VOXELS Phase 1 (v158) — voxel grid is
+  // now the canonical diffusion entry point per [FIRM] H. In v158 the
+  // implementation delegates to mesh.diffuse() for the d=0 (wall) slab
+  // — byte-identical to the pre-v158 path because d=0 voxels alias
+  // mesh.cells[].fluid via [FIRM] B, and d≥1 slabs are uniform at init
+  // and never receive writes in v158. Phase 2 (v159) expands the
+  // implementation to do real per-voxel diffusion + radial coupling
+  // without changing this call site.
+  //
+  // Defensive fallback: if the voxel grid can't be resolved (headless
+  // harness without CavityVoxelGrid loaded), fall through to direct
+  // mesh.diffuse(). Maintains pre-v158 behavior in those paths.
+  const grid = this.wall_state.voxelGridFor(this);
+  if (grid && typeof grid.diffuse === 'function') {
+    grid.diffuse(rate, this._fluidFieldNames, this.ring_temperatures);
+  } else {
+    const mesh = this.wall_state.meshFor(this);
+    if (mesh && typeof mesh.diffuse === 'function') {
+      mesh.diffuse(rate, this._fluidFieldNames, this.ring_temperatures);
+    }
+  }
 },
+
+  // ====================================================================
+  // PROPOSAL-CAVITY-INTERIOR-VOXELS Phase 1 (v158) — sim-level voxel
+  // accessors. Convenience pass-throughs to wall_state.voxelGridFor.
+  //
+  // Engines + UI consumers can reach the voxel grid directly via
+  // sim.voxelAt(r, c, d) / sim.boundaryVoxel(r, c) / sim.fluidAtVoxel
+  // without threading wall_state through every call site. Returns null
+  // in headless paths where the grid couldn't be allocated.
+  // ====================================================================
+
+  // Get the voxel at (r, c, d). r ∈ [0, ring_count), c ∈ [0, cells_per_ring),
+  // d ∈ [0, 3] (per [FIRM] A: 4-slice radial axis).
+  voxelAt(r, c, d) {
+    const grid = this.wall_state && this.wall_state.voxelGridFor
+      ? this.wall_state.voxelGridFor(this)
+      : null;
+    return grid ? grid.voxelAt(r, c, d) : null;
+  },
+
+  // Get the boundary-layer voxel (d=0) for wall cell (r, c). Engine
+  // mass-balance lands here in Phase 2+; in v158 the d=0 voxel is
+  // aliased to wall.mesh.cells[r*N+c].fluid via [FIRM] B, so reading
+  // through this and reading through mesh.cellOf() return the same
+  // fluid object.
+  boundaryVoxel(r, c) {
+    const grid = this.wall_state && this.wall_state.voxelGridFor
+      ? this.wall_state.voxelGridFor(this)
+      : null;
+    return grid ? grid.boundaryVoxel(r, c) : null;
+  },
+
+  // Get the fluid object at (r, c, d). Returns null if the voxel or
+  // fluid is missing.
+  fluidAtVoxel(r, c, d) {
+    const grid = this.wall_state && this.wall_state.voxelGridFor
+      ? this.wall_state.voxelGridFor(this)
+      : null;
+    return grid ? grid.fluidAt(r, c, d) : null;
+  },
+
+  // Sample a fluid field at fractional depth via linear interpolation
+  // (per [FIRM] A: average-on-demand for consumers wanting > 4 slices
+  // of resolution). depth is clamped to [0, depth_count-1].
+  sampleVoxelFluid(r, c, depth, field) {
+    const grid = this.wall_state && this.wall_state.voxelGridFor
+      ? this.wall_state.voxelGridFor(this)
+      : null;
+    return grid ? grid.sampleFluid(r, c, depth, field) : NaN;
+  },
 
   _repaintWallState() {
   // Rebuild ring-0 occupancy from the crystal list. Cheap (~120 × ~20)

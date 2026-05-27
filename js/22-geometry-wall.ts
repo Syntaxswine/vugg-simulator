@@ -1014,6 +1014,33 @@ class WallState {
     return this._mesh;
   }
 
+  // PROPOSAL-CAVITY-INTERIOR-VOXELS Phase 1 (v158) — lazy + cached
+  // factory for the cavity interior voxel grid. Same pattern as
+  // meshFor(): build on first call, cache for subsequent calls.
+  //
+  // Address scheme: (ringIdx, cellIdx, depthIdx) where depth 0 is the
+  // wall (aliased to mesh cell fluid via [FIRM] B) and depth_count-1
+  // is the cavity center. See PROPOSAL-CAVITY-INTERIOR-VOXELS.md for
+  // the full design + decision rationale.
+  //
+  // The grid build requires the wall mesh to exist (the d=0 voxel
+  // aliasing depends on mesh.cells[].fluid being populated). This
+  // method forces the mesh first, then builds the voxel grid against
+  // it. Returns null in headless test paths where CavityVoxelGrid
+  // isn't loaded (the lazy guard mirrors meshFor's WallMesh guard).
+  voxelGridFor(sim?) {
+    if (!this._voxelGrid) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const VG: any = (typeof CavityVoxelGrid !== 'undefined') ? CavityVoxelGrid : null;
+      if (!VG) return null;
+      // Force the mesh first — voxel grid aliases mesh cell fluids
+      // at d=0, so the mesh must be live before allocation.
+      this.meshFor(sim);
+      this._voxelGrid = VG.fromWallState(this, sim);
+    }
+    return this._voxelGrid;
+  }
+
   // PHASE-1-CAVITY-MESH (PROPOSAL-CAVITY-MESH §5): compute the
   // spherical-coordinate anchor for a (ringIdx, cellIdx) pair on the
   // current ring grid. phi ∈ [0, π] (south pole 0, north pole π),
