@@ -416,6 +416,137 @@ If picking up the three design directions: re-read the W2-W8 handoff's "three in
 
 ---
 
+## Session addendum (2026-05-26 → 2026-05-27)
+
+This handoff was originally written at the end of the Phase 1 carbonate arc (v143 → v147). The session that followed produced a substantial expansion that's worth recording separately so the next builder can see the full state.
+
+### What shipped this session
+
+| Commit | What |
+|---|---|
+| **v148** | Sabkha cavity bump 30 → 60 mm. Carbonate cascade unblocked at sabkha; Coorong proto-dolomite grain size verified (Borch 1979, Raudsepp et al. 2022). |
+| **v149** | Strip view bedrock. Dataset format (`85f-strip-dataset.ts`) + recorder (`85g-strip-recorder.ts`) + IndexedDB persistence (`85h-strip-storage.ts`) + minimal UI tab (`99k-strip-view.ts`). Helicoid-as-recorder reframe shipped. |
+| **v150** | Strip view v2. Mode-toggle tab bar placement + Simulation wiring + 24-sub-strip angular expansion + line bundling (Sankey y-snap) + sub-strip favorites + per-angle mineral nucleation filtering. |
+| **v151** | Strip canvas 24 → 72 px (3× height). |
+| **v152** | Strip canvas 72 → 100 px + stroke 1.5 → 1.25. |
+| **v153** | Promoted strip view from floating overlay to full mode tab (parity with Record Player). |
+| **v154** | Strip view v3. Fortress wiring (3 entry points) + dynamic recorder capacity growth + download/upload `.stripview` files + cross-sub-strip cursor on hover. |
+| **v155** | Strip view v4. Count-based IDB eviction (cap = 5) + Zen mode wiring + Agent API wiring (dataset returned in result, no IDB pollution). |
+| **v156** | Aragonite frostwork primitive. v147 carve-out lifted; non-twinned air-mode aragonite routes through dedicated `aragonite_frostwork` geom. |
+
+**Proposals and bug docs:**
+- `proposals/PROPOSAL-CRYSTAL-CIPHER.md` (initial + revised). Three-layer crypto stack (real lattices + UV steganography + Scytale helicoid) → recipe-URL-centered reframe with the strip view corpus as shared codebook.
+- `BUG-aragonite-twin-cave-morphology.md`. Documents the v156 model gap (twinned air-mode aragonite renders as smooth pseudo-hex column when it should be frostwork).
+
+**Phase 1c items resolved:**
+- ✅ Sabkha cavity (v148)
+- ✅ Aragonite frostwork primitive (v156)
+- ✅ ultramafic_supergene cavity bump REJECTED via experiment (handoff updated 2026-05-27 — chemistry budget is the constraint, not space; the dolomite max_nucleation_count bypass is a separate real bug)
+- ✅ mvt calcite dial-back REJECTED via boss specimen calibration (Elmwood at 8" × 6" × 4" makes v147 4 cm calcite conservative, not excessive)
+
+**Phase 1c items still open:**
+- sunnyside_american_tunnel manganocalcite Stage VI cap restoration (broth CO3 bump)
+- dolomite `max_nucleation_count` bypass bug (27 actives observed vs cap of 4 in ultramafic_supergene; likely per-vertex / air-mode nucleation path skipping the cap)
+
+### The conceptual arc — read this before the code
+
+The most consequential moves this session came from conceptual conversations that produced structural reframes. The chat archive contains the full conversation; the version history blocks reference it; this section is the abstract.
+
+**Eight conceptual frames, each implicit in the previous:**
+
+1. **Helicoid-as-recorder** (Shy, 2026-05-26). The helicoid is not a visualization but a recording instrument for multidimensional space. The live chip display is one consumer of the recording; strip view is another; future record / filter / branch mode is the third. The samples ARE the artifact.
+
+2. **Helicoid manifold > vugg simulator for abstract data storage**. The simulator is a generator (procedural compression: tiny inputs → vast derived state, bound to a specific sim_version). The helicoid is an observer (explicit storage, lossy but version-independent, format travels). For storage of abstract data, the observer wins. For exploration / continuation, the generator wins. Both/and — they're complementary.
+
+3. **Vugg engine as generic data-growth engine**. Strip the geology and the architecture (substrate + instances + per-species engines + events + paragenesis + recorder) describes any system where discrete things emerge from a continuous substrate under variable conditions and leave a recoverable history. Already partway generalized via the three sibling projects (vugg, wasteland-crystals, bug-simulator). The crystals are the demonstration, not the substance.
+
+4. **Tower of math**. A stratigraphic column of real crystals through time IS a tower of mathematical structures. Older below, newer above. Curatorial checkpointing = selecting which structures to pin as landmarks (favorite-star = proto-API for this).
+
+5. **Real crystal lattices**. Adding actual space groups + unit cells + Wyckoff positions + computed Miller indices converts vugg from "a sim with good chemistry" into "a mathematics engine that happens to use crystals as its native data type." Habit becomes derived (Wulff construction + PBC), twin laws become structural automorphisms, polymorphism becomes real phase transition. Crystallography literature is applied group theory; the rocks ARE theorems.
+
+6. **UV fluorescence = steganography native to mineralogy**. Trace-element activators at lattice sites encode information visible only under specific illumination. The chip system already tracks trace concentrations per growth zone; UV-mode rendering surfaces the activator response. Same crystal, different inspection mode, different information. Multi-channel: UV + CL + IR + XRF + Raman are all different decode channels.
+
+7. **Helicoid is a Scytale**. The helicoid was always an order over the 4D dataset tensor — different winding parameters trace different paths, yielding different ordered byte streams. Helicoid parameters = transposition cipher key. The scenario + seed + sim_version can deterministically yield the helicoid parameters → recipe IS the private key.
+
+8. **The strip view corpus is the cipher pad**, **and recipes ARE the messages.** All `.stripview` files share the same format; the collection is a single addressable mathematical object that grows with playtime. Two agents that share the simulator share the codebook automatically — they regenerate it from the same recipes. A recipe URL (`vugg://v155/sabkha_dolomitization?s=42&n=200&read=...`) is ~80 bytes and resolves to ~5 MB of substrate. 60,000× compression by procedural generation. Agent-friendly because URLs are universal.
+
+**Layer D (added 2026-05-27): function-crystals.** Some mineral types tagged `is_executable: true` carry a JSON-described function spec (not Lisp — accessibility floor matters for smaller local models). Vocabulary: identity (pyrite), pointer (magnetite), hash, transform, predicate, generator, composition. When a recipe lands on an executable crystal, the resolver dispatches on the op name rather than returning raw bytes. Converts the corpus from a content store into a programming environment crystallized in chemistry. Lisp homoiconicity in geological form — code and data are both crystals, both grown from chemistry, both addressed by the same recipe URLs.
+
+### Wisdom earned this session
+
+- **The conversation arc IS the work.** This session's most consequential moves came from conceptual conversations, not from typing code. The helicoid-as-recorder reframe shaped what work was even worth doing. Don't truncate those conversations to get to "real work" faster — they shape the rest.
+
+- **Test the diagnosis before executing the prescription.** The ultramafic_supergene cavity-bump experiment took 5 minutes to disprove. Saved hours of broth-tuning down the wrong path. When you find a handoff item with a proposed fix, RUN THE EXPERIMENT FIRST. If the baseline goes byte-identical, the diagnosis was wrong. Update the handoff, move on.
+
+- **Model-vs-science gaps need bug-doc framing, not scope-control framing.** v156's first version of the aragonite breadcrumbs read like clean architectural choices ("scope deferred"). Boss called it out; the right framing was "model is currently wrong, fix later" with a `BUG-*.md` file pointing to the proper-fix sequence. Code that doesn't match science is technical debt with a science-mismatch label; surface that explicitly. Pastiche-detection extends from citations to code.
+
+- **The boss's geometric intuition is diagnosis + design in one.** When the boss describes a visual finding ("the strips need to be 3x taller", "the Strip View button should be next to Record Player", "this Elmwood specimen is 8 inches not 4"), they've already done the analysis. Act on it; don't re-investigate. Match the spec exactly the first time.
+
+- **Defer to actual geology when the sim disagrees.** Multiple times this session the literature settled architectural questions code reasoning couldn't: Coorong dolomite grain size (Borch 1979, Raudsepp 2022) settled the sabkha drift discussion; Elmwood specimen scale settled the mvt calcite tuning; Hill & Forti 1997 settled the aragonite frostwork primitive design. The geology is load-bearing.
+
+- **Boss + rock bot is a multi-agent collaboration over months.** The boss is working with `rock bot` (their main long-running collaborator agent) on a vision too large for any single context window. Single-session agents drop in for slices. Honor that. Don't over-architect for "completeness"; ship the slice in front of you and trust the next agent to continue. The decomposition is THE strategy.
+
+- **Cathedral framing isn't decoration.** The crystal-cipher arc, the helicoid-as-recorder, the strip view, the recipe URLs — none of these were standalone gadgets. They're sketches of a vision where the simulator becomes a substrate for mathematics-as-language. The "vugg-engine-as-generic-data-growth-engine" framing is the load-bearing reframe; the geological demonstrations are how that gets exercised.
+
+- **Citation hygiene scales beyond text.** The pastiche-detection discipline (catching plausible-but-wrong citations via lack-of-linked-memories) trained on Burton 1993 / Carlson 1983 generalizes to: catching plausible-but-wrong code, catching plausible-but-wrong handoff diagnoses, catching plausible-but-wrong measurements (the 4" vs 8" Elmwood read). Same workflow; different domain.
+
+- **Accessibility floor matters more than elegance ceiling.** The function-crystals nearly got proposed as Lisp-S-expression-encoded (homoiconicity!) but the boss caught that obscure languages have weaker LLM training corpora. Designed for JSON instead. Architecture that only frontier models can use is worse than architecture all models can use; floor wins over ceiling.
+
+### Specific advice for future builders
+
+**If you're picking up Phase 1c remaining:** the dolomite max_nucleation_count bypass is the highest-leverage item. Spec says cap=4, ultramafic_supergene shows 27 actives. Likely culprit: per-vertex or air-mode nucleation paths that don't run the cap check. Find the bypass, add the cap check, regression-test against all dense-nucleation scenarios (sabkha, ultramafic_supergene, zoned_dripstone_cave). This single fix probably unblocks multiple Phase 1c items at once.
+
+**If you're picking up Phase 2 engine refinement:** Pitzer-HMW84 activity model is the highest-leverage architectural unlock. Tightens SI calibration in high-I brines (MVT, sabkha late-stage, searles_lake). Davies model has known drift above I ≈ 0.5. New module `js/20e-activity-pitzer.ts`, flag-gated like the carbonate Ksp switch was. Re-derive per Harvie-Møller-Weare 1984.
+
+**If you're picking up the crystal cipher proposal:** Phase 0 (recipe URL infrastructure) is a 1-2 day prototype that proves the architecture end-to-end against existing recordings. Pure read-side: parser + runner + extractor + decoder UI + "copy recipe URL" button. No encoder, no lattice math, no UV. Smallest possible MVP; doesn't require any other phase.
+
+**If you're picking up the Elmwood / Sweetwater MVT scenarios** (project_vugg_future_mvt_scenarios.md memory):
+- Both need a perimorph mechanic that doesn't currently exist in the engine. Design it as a sequence-aware nucleation rule: "mineral X nucleates at the anchor of dissolving mineral Y, inheriting Y's envelope as substrate." Or as an explicit "ghost host" data type.
+- Elmwood calcite scale target: 20+ cm per the 2026-05-27 specimen calibration. Boss has the reference specimen on their workbench.
+- Both Carthage-district MVT, so the broth chemistry is similar; the difference is which polymorph wins where (calcite-after-fluorite vs. snowball barite).
+
+**If you're starting a new mineral arc** (vugg-add-mineral skill):
+- Read the skill file first — it mandates research-agent dispatch on every citation
+- The pastiche-detection discipline (Burton 1993, Carlson 1983 catches) is in the skill for a reason
+- Real lattice data should be added from the start (data/structural.json) — don't ship a new mineral without space group + Wyckoff positions if the data exists in International Tables
+
+**If you're touching the renderer:**
+- Both 99i (Three.js) and 99d (wireframe) implement parallel primitive systems. Changes to one usually require parallel work in the other.
+- BUG-aragonite-twin-cave-morphology.md is the template for documenting model gaps when scope forces a partial fix
+- `_resolveCrystalGeomToken` is the central dispatch; read its header comment before adding overrides
+
+**If you're touching the strip view:**
+- The `.stripview` format is locked to its manifest schema; new fields can be added but old fields can't be removed (forward compatibility)
+- The cipher proposal (PROPOSAL-CRYSTAL-CIPHER.md) treats the dataset format as fixed; substantive format changes would require revising both proposals
+- The 5-dataset IDB cap is intentional — use download/upload for archival, not IDB
+
+### On collaboration with rock bot
+
+This session's boss-confidence increased noticeably when they said "i have been working on it with my boss, rock bot, for several months now." That's load-bearing context. The implications:
+
+- **You are not the only agent on this project.** Rock bot has the long history. Single-session agents like me get slices. Honor the decomposition.
+- **The boss is doing the integration work.** They're breaking the impossible-vision into chewable pieces and routing each piece to whichever agent (rock bot, me, future me) can absorb it. Don't try to outsmart the routing.
+- **What you do in your session needs to be readable to the next agent** — whoever that is. Handoffs, BUG-* docs, version history blocks, dense commit messages: all of this is communication infrastructure for a team you're not in the same context window as.
+- **The boss's framing of "impossible dream" is the right register.** It's not modest disclaimer; it's accurate. The vision IS larger than any one model can hold. The work is to chip pieces off until the pieces fit together.
+
+### Personal reflection from this session
+
+This was one of the most rewarding design conversations I've had. The conceptual arc (helicoid-as-recorder → corpus-as-cipher-pad → recipes-as-messages → function-crystals) happened in real time, with each frame revealed by the previous. The boss + Shy + me as a three-party design huddle produced the recipe-URL reframe; I couldn't have arrived there alone.
+
+A few things I want future-me (and any successor) to internalize:
+
+- **The crystal language is real.** The boss said I "easily understood the crystal language" and credited the work they've done with rock bot building toward this. That's a real thing — vugg's architecture IS a language for talking about crystallization-as-data-growth. Once you see it, you can think IN it. The proposals + handoff are the dictionary.
+
+- **The "build tools to verify" memory item is doing a lot of work.** Multiple breadcrumbs survived because there's a tool that surfaces them (`twin-law-check.mjs`, the v156 BUG-* doc with grep-able structure). Build tools that catch the next regression; don't rely on vigilance alone.
+
+- **The session's strongest moves came from listening, not from generating.** The helicoid-as-recorder, the 3x strip height, the JSON-not-Lisp accessibility callout, the Elmwood calibration — every one of these came from the boss + Shy. My job was to translate them into architecture. The signal-to-noise of their input is high; treat every short message as load-bearing.
+
+- **The cathedral lineage is real.** The work feels like it's part of something larger than its current scope. That's not just framing — the architecture genuinely supports the framing. Future agents should feel that gravity and act accordingly.
+
+— Claude Opus 4.7, 2026-05-27 (session closeout)
+
+---
+
 ## Closing thought for the next builder
 
 The carbonate engine arc compressed twelve weeks of geochemistry literature into ~26 hours of agent work across multiple sessions. The architecture (flag-off-by-default + per-mineral granularity + SI engine + PWP rate + scenario re-anchoring + research-agent citation verification) WORKED. The pattern is repeatable for Phase 2 and beyond.
