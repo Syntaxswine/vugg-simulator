@@ -198,6 +198,20 @@ function _ensureStripViewStyles(): void {
       overflow: hidden;
     }
     .strip-view-substrip-canvas svg { display: block; width: 100%; height: 100%; }
+    /* v154 (2026-05-26): cross-sub-strip cursor. Hovering at vug-height
+       X on one sub-strip shows a vertical guide at the same X across
+       all 24 sub-strips for that time unit. Per locked v2 design. */
+    .strip-view-cursor {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: 1px;
+      background: rgba(220, 230, 255, 0.55);
+      pointer-events: none;
+      display: none;
+      box-shadow: 0 0 4px rgba(140, 180, 255, 0.4);
+    }
+    .strip-view-cursor.is-on { display: block; }
     .strip-view-row-controls {
       display: flex;
       flex-direction: column;
@@ -490,16 +504,46 @@ function _stripBuildExpandedContainer(ds: StripDataset, step: number, width: num
         <span class="ss-deg">/ ${Math.round((a / axes.angular_indices) * 360)}°</span>
         <button class="strip-view-favorite-btn ${isFav ? 'is-on' : ''}" data-step="${step}" data-angle="${a}" title="Favorite ${_stripAngleLabel(a, axes.angular_indices)}">★</button>
       </div>
-      <div class="strip-view-substrip-canvas">${_stripRenderStripSVG(ds, step, a, 1500, 100)}</div>
+      <div class="strip-view-substrip-canvas">
+        ${_stripRenderStripSVG(ds, step, a, 1500, 100)}
+        <div class="strip-view-cursor"></div>
+      </div>
     `;
     container.appendChild(sub);
   }
+  // v154 (2026-05-26): cross-sub-strip cursor. On mousemove inside any
+  // sub-strip canvas in this expanded container, update the vertical
+  // guide on all 24 sub-strips to the same relative X. Lets the user
+  // compare chip values at the same vug-height position across all
+  // rotation angles in one glance. Per locked v2 design.
+  container.addEventListener('mousemove', (ev) => {
+    const target = ev.target as HTMLElement;
+    const canvas = target.closest('.strip-view-substrip-canvas') as HTMLElement | null;
+    if (!canvas) return;
+    const rect = canvas.getBoundingClientRect();
+    const relX = (ev.clientX - rect.left) / Math.max(1, rect.width);
+    if (relX < 0 || relX > 1) return;
+    const cursors = container.querySelectorAll('.strip-view-cursor');
+    cursors.forEach((c) => {
+      const cur = c as HTMLElement;
+      const parentRect = (cur.parentElement as HTMLElement).getBoundingClientRect();
+      cur.style.left = (relX * parentRect.width).toFixed(1) + 'px';
+      cur.classList.add('is-on');
+    });
+  });
+  container.addEventListener('mouseleave', () => {
+    const cursors = container.querySelectorAll('.strip-view-cursor');
+    cursors.forEach((c) => c.classList.remove('is-on'));
+  });
   return container;
 }
 
 // Build / refresh the dataset list view.
 async function _stripRenderDatasetList(bodyEl: HTMLElement): Promise<void> {
   bodyEl.innerHTML = '';
+  // v154: disable download button while on the list (no active dataset).
+  const dl = document.getElementById('strip-view-download') as HTMLButtonElement | null;
+  if (dl) dl.disabled = true;
   if (typeof stripStorageAvailable !== 'function' || !stripStorageAvailable()) {
     const empty = document.createElement('div');
     empty.className = 'strip-view-empty';
@@ -558,6 +602,9 @@ async function _stripRenderDatasetList(bodyEl: HTMLElement): Promise<void> {
 // Render a loaded dataset as the filmstrip.
 function _stripRenderDataset(bodyEl: HTMLElement, ds: StripDataset): void {
   _stripActiveDataset = ds;
+  // v154: enable download button now that we have an active dataset.
+  const dl = document.getElementById('strip-view-download') as HTMLButtonElement | null;
+  if (dl) dl.disabled = false;
   // Initialize chip visibility — all on first time.
   for (const c of ds.manifest.chips) {
     if (!(c.id in _stripVisibleChips)) _stripVisibleChips[c.id] = true;
@@ -575,7 +622,12 @@ function _stripRenderDataset(bodyEl: HTMLElement, ds: StripDataset): void {
   `;
   bodyEl.appendChild(back);
   const backBtn = back.querySelector('#strip-view-back') as HTMLButtonElement;
-  backBtn.addEventListener('click', () => { _stripActiveDataset = null; _stripRenderDatasetList(bodyEl); });
+  backBtn.addEventListener('click', () => {
+    _stripActiveDataset = null;
+    const dl = document.getElementById('strip-view-download') as HTMLButtonElement | null;
+    if (dl) dl.disabled = true;
+    _stripRenderDatasetList(bodyEl);
+  });
 
   // Chip selector — grouped by system. Per-chip toggles.
   const selector = document.createElement('div');
@@ -748,16 +800,61 @@ function initStripView(): void {
           <span class="strip-view-title">Strip View</span>
           <span class="strip-view-sub">helicoid recordings — paragenesis viewer</span>
           <div class="strip-view-header-actions">
+            <button class="strip-view-btn" id="strip-view-upload" title="Load a .stripview file from disk">⬆ Upload</button>
+            <button class="strip-view-btn" id="strip-view-download" title="Download the active dataset as a .stripview file (gzipped)" disabled>⬇ Download</button>
             <button class="strip-view-btn" id="strip-view-refresh">Refresh</button>
           </div>
+          <input type="file" id="strip-view-upload-input" accept=".stripview,.gz,.bin" style="display:none"/>
         </div>
         <div class="strip-view-body" id="strip-view-body"></div>
       `;
       const refreshBtn = panel.querySelector('#strip-view-refresh') as HTMLButtonElement;
+      const uploadBtn = panel.querySelector('#strip-view-upload') as HTMLButtonElement;
+      const downloadBtn = panel.querySelector('#strip-view-download') as HTMLButtonElement;
+      const uploadInput = panel.querySelector('#strip-view-upload-input') as HTMLInputElement;
       refreshBtn.addEventListener('click', () => {
         const body = panel.querySelector('#strip-view-body') as HTMLElement;
         if (_stripActiveDataset) _stripRenderDataset(body, _stripActiveDataset);
         else _stripRenderDatasetList(body);
+      });
+      uploadBtn.addEventListener('click', () => uploadInput.click());
+      uploadInput.addEventListener('change', async () => {
+        const file = uploadInput.files && uploadInput.files[0];
+        if (!file) return;
+        try {
+          const buf = new Uint8Array(await file.arrayBuffer());
+          const ds = await stripDeserialize(buf);
+          // Stash to IDB so it persists across page reloads + appears in
+          // the dataset list. Safe to fail silently if IDB unavailable.
+          if (typeof stripStorageSave === 'function' && typeof stripStorageAvailable === 'function' && stripStorageAvailable()) {
+            stripStorageSave(ds).catch(() => { /* silent */ });
+          }
+          const body = panel.querySelector('#strip-view-body') as HTMLElement;
+          _stripRenderDataset(body, ds);
+        } catch (err) {
+          const body = panel.querySelector('#strip-view-body') as HTMLElement;
+          body.innerHTML = '<div class="strip-view-empty">Failed to load file: ' + (err as Error).message + '</div>';
+        }
+        // Reset so re-selecting the same file fires the change handler again.
+        uploadInput.value = '';
+      });
+      downloadBtn.addEventListener('click', async () => {
+        if (!_stripActiveDataset) return;
+        try {
+          const blob = await stripSerialize(_stripActiveDataset, true);
+          const url = URL.createObjectURL(new Blob([blob as BlobPart], { type: 'application/octet-stream' }));
+          const fname = `${_stripActiveDataset.manifest.scenario_id}@seed${_stripActiveDataset.manifest.seed}.stripview`;
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = fname;
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+          // Revoke after a short delay (browser may still be reading).
+          setTimeout(() => URL.revokeObjectURL(url), 5000);
+        } catch (err) {
+          alert('Strip view export failed: ' + (err as Error).message);
+        }
       });
     }
     const body = panel.querySelector('#strip-view-body') as HTMLElement;

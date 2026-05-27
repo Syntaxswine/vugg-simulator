@@ -8673,5 +8673,103 @@
 //   js/99k-strip-view.ts: mode-panel layout + stripViewModeShow exposure
 //   index.html: new mode-panel container + tab-button rewired
 //   tests-js/baselines/seed42_v153.json: regenerated baseline
-const SIM_VERSION = 153;
+//
+// ============================================================
+//   v154 — Strip View v3: Fortress + download/upload + cursor (2026-05-26)
+// ============================================================
+//
+// Closeout pass on the strip view arc. Boss directive ("lets finish up
+// any other parts of this that you want to wire up") + auto-mode license
+// to pick the highest-leverage items.
+//
+// FEATURES SHIPPED
+//
+//   1. Fortress mode wiring. Three entry points (94-ui-menu.ts
+//      fortressBegin + fortressBeginFromScenario, 97-ui-fortress.ts
+//      custom-setup path) now attach a StripRecorder at sim creation
+//      via the new _attachStripRecorderToSim() helper. Save lifecycle
+//      differs from Simulation/Random: Fortress is interactive (user
+//      drives steps via Wait/Heat/Cool buttons; no fixed run end), so
+//      switchMode hooks finalize + save when the user leaves the
+//      mode. Idempotent — the helper nulls _stripRecorder after save
+//      so re-leaves don't double-write.
+//
+//   2. Dynamic capacity growth. StripRecorder._growCapacity() doubles
+//      chip_data when captureStep is called past axes.steps. Removes
+//      the "data drops past N steps" cap that would have hit long
+//      Fortress sessions. Recorder no longer auto-deactivates on
+//      capacity hit; finalize() is the only deactivation path now.
+//      Test added: recorder grows from 2 → 4 → 8 step capacity over
+//      a 5-step run, captures all 5, finalize trims correctly.
+//
+//   3. Download dataset as .stripview file. Strip-view-header has a
+//      new ⬇ Download button that's enabled when a dataset is active.
+//      Click → stripSerialize(ds, gzip=true) → Blob → browser download
+//      as "<scenario_id>@seed<N>.stripview". Closes the share loop.
+//
+//   4. Upload + load dataset from file. Strip-view-header has a new
+//      ⬆ Upload button that triggers a hidden file input. Selected
+//      file is read as ArrayBuffer → stripDeserialize → saved to
+//      IndexedDB (so it persists in the list) → loaded as active.
+//      Handles both raw and gzipped formats via magic-byte sniff in
+//      stripDeserialize.
+//
+//   5. Cross-sub-strip cursor. When a time strip is expanded into 24
+//      angular sub-strips, hovering at vug-height X on any sub-strip
+//      now shows a thin vertical guide at the same X across ALL 24.
+//      Lets the user compare chip values at the same height position
+//      across rotation in one glance. Per locked v2 design (handoff
+//      §"strip view" — "Cross-sub-strip cursor on hover: confirmed
+//      yes. Hovering at height-X on one sub-strip lights a thin
+//      vertical cursor on all 24 simultaneously.")
+//
+// HELPER FUNCTIONS ADDED (js/94-ui-menu.ts)
+//
+//   _attachStripRecorderToSim(sim, scenarioId, notes)
+//     Attaches a recorder with generous 500-step allocation (grows on
+//     overflow), patches manifest.scenario_id. Idempotent + silent
+//     on failure. Reusable across Fortress entry points.
+//
+//   _saveStripRecorderIfPresent(sim)
+//     Finalizes the recorder + saves to IDB if at least one step was
+//     captured (skips empty recordings — user enters Fortress, leaves
+//     immediately, no pollution). Nulls sim._stripRecorder so re-calls
+//     are no-ops.
+//
+// STILL DEFERRED TO V4+
+//
+//   - Zen mode wiring (98a-ui-zen.ts) — same one-line pattern; will
+//     ship in a follow-up
+//   - Agent API wiring (99z-agent-interface.ts) — agents typically
+//     don't need replay capture
+//   - Favorite-based filters / comparison views / export-favorites-only
+//   - Per-vertex spatial chemistry expansion (the load-bearing
+//     prerequisite for non-wall chips to actually vary across angles)
+//
+// BASELINE
+//
+// All changes are either UI lifecycle (Fortress save hook, download/
+// upload buttons, cursor overlay) or recorder behavior (growth on
+// overflow) — none touch sim state. Calibration tests don't use
+// Fortress; they call run_step directly. seed42_v154.json byte-
+// identical to v153.
+//
+// TESTS
+//
+//   Pre-v154:  1562 tests pass (v153)
+//   Post-v154: 1563 tests pass (+1 _growCapacity test)
+//
+// WHAT v154 SHIPS
+//
+//   js/15-version.ts: this block + SIM_VERSION 153 → 154
+//   js/85g-strip-recorder.ts: _growCapacity + remove capacity-deactivate
+//   js/94-ui-menu.ts: _attachStripRecorderToSim, _saveStripRecorderIfPresent,
+//     Fortress entry-point wiring, save-on-leave hook
+//   js/97-ui-fortress.ts: custom-setup entry point wiring
+//   js/99k-strip-view.ts: download/upload buttons, cursor CSS,
+//     cursor event handlers in _stripBuildExpandedContainer
+//   tests-js/strip-view-bedrock.test.ts: +1 test for _growCapacity
+//   tests-js/baselines/seed42_v154.json: regenerated baseline (byte-
+//     identical to v153)
+const SIM_VERSION = 154;
 

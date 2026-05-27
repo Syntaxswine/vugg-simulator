@@ -182,12 +182,30 @@ class StripRecorder {
 
   // ---- main capture path --------------------------------------------
 
+  // v3 (2026-05-26): grow chipData capacity when interactive modes
+  // (Fortress / Zen) outrun the initial duration_steps allocation.
+  // Doubles the step capacity each time it's hit; keeps overhead
+  // amortized O(1) per step.
+  private _growCapacity(): void {
+    const oldSteps = this.manifest.axes.steps;
+    const newSteps = oldSteps * 2;
+    const chipCount = this.manifest.chips.length;
+    const newAxes = { ...this.manifest.axes, steps: newSteps };
+    const newSize = newSteps * newAxes.angular_indices * newAxes.height_positions * chipCount;
+    const grown = new Uint8Array(newSize);
+    grown.set(this.chipData);  // preserve existing data
+    this.chipData = grown;
+    this.manifest = { ...this.manifest, axes: newAxes, duration_steps: newSteps };
+  }
+
   // Called from VugSimulator.run_step() at end-of-step. Records one
   // step's slice of chip data + any new nucleation events this step.
   // Safe to call when the recorder is finished — just becomes a no-op.
   captureStep(sim: any): void {
     if (!this.active) return;
-    if (this.capturedSteps >= this.manifest.axes.steps) return;
+    if (this.capturedSteps >= this.manifest.axes.steps) {
+      this._growCapacity();
+    }
 
     const wall = sim?.wall_state || sim?.conditions?.wall;
     const step = this.capturedSteps;
@@ -244,9 +262,10 @@ class StripRecorder {
     }
 
     this.capturedSteps++;
-    if (this.capturedSteps >= axes.steps) {
-      this.active = false;
-    }
+    // v3: no longer deactivate on capacity — _growCapacity handles
+    // overflow now. Recorder stays active until finalize() is called
+    // externally (run-end for Random/Simulation, mode-leave or seal
+    // for Fortress/Zen).
   }
 
   // ---- finalize ------------------------------------------------------

@@ -9,6 +9,42 @@
 // ============================================================
 // MENU PAGES — New Game menu + Scenarios picker
 // ============================================================
+
+// === HELIX-OVERLAY-FORK ADDITION (strip view v154+, 2026-05-26) =====
+// Helper to attach a StripRecorder to any sim (Fortress lifecycle).
+// Generous initial allocation (500 steps) since Fortress sessions
+// can run long; the recorder _growCapacity() handles overflow if
+// the player goes past that.
+function _attachStripRecorderToSim(sim: any, scenarioId: string, notes: string): void {
+  if (!sim || typeof StripRecorder !== 'function') return;
+  try {
+    sim._stripRecorder = new StripRecorder(sim, {
+      duration_steps: 500,
+      notes,
+    });
+    const m = sim._stripRecorder.getManifest();
+    if (m) m.scenario_id = String(scenarioId || 'unknown');
+  } catch (_e) { /* strip view is optional */ }
+}
+
+// Finalize + save a sim's recorder to IndexedDB. Called on mode-leave.
+function _saveStripRecorderIfPresent(sim: any): void {
+  if (!sim || !sim._stripRecorder) return;
+  try {
+    const dataset = sim._stripRecorder.finalize();
+    sim._stripRecorder = null; // prevent double-save
+    if (typeof stripStorageSave === 'function' && typeof stripStorageAvailable === 'function' && stripStorageAvailable()) {
+      // Only save if at least one step was captured. Don't pollute the
+      // dataset list with empty recordings (user clicked into Fortress
+      // and immediately left without doing anything).
+      if (dataset.manifest.duration_steps > 0) {
+        stripStorageSave(dataset).catch(() => { /* silent */ });
+      }
+    }
+  } catch (_e) { /* silent */ }
+}
+// === END HELIX-OVERLAY-FORK ADDITION ==================================
+
 function hideAllMenuAndModePanels() {
   const ids = [
     'title-screen', 'new-game-panel', 'scenarios-panel',
@@ -102,6 +138,7 @@ function fortressBeginFromStarterFluid(presetId) {
 
   rng = new SeededRandom(Date.now());
   fortressSim = new VugSimulator(conditions, []);
+  _attachStripRecorderToSim(fortressSim, `fortress_starter_${presetId}`, `Fortress — starter fluid: ${preset.label}`);
   fortressActive = true;
   fortressLogLines = [];
 
@@ -142,6 +179,7 @@ function fortressBeginFromScenario(scenarioName) {
 
   rng = new SeededRandom(Date.now());
   fortressSim = new VugSimulator(conditions, events);
+  _attachStripRecorderToSim(fortressSim, `fortress_${scenarioName}`, `Fortress — scenario: ${scenarioName}`);
   fortressActive = true;
   fortressLogLines = [];
 
@@ -257,6 +295,14 @@ function switchMode(mode) {
   // Switching out of fortress while a tutorial is running tears down
   // the overlay + restores controls. (Tutorials only live in fortress.)
   if (mode !== 'fortress' && typeof endTutorial === 'function') endTutorial();
+  // HELIX-OVERLAY-FORK ADDITION (strip view v154+): leaving Fortress
+  // with an attached recorder → finalize + save the dataset. Fortress
+  // sessions are interactive (no fixed run end), so this is the
+  // natural save point. Idempotent: the helper nulls _stripRecorder
+  // after save so re-leaves don't double-save.
+  if (mode !== 'fortress' && typeof fortressSim !== 'undefined' && fortressSim) {
+    _saveStripRecorderIfPresent(fortressSim);
+  }
 
   // Hide title screen, show mode toggle
   document.body.classList.remove('title-on');

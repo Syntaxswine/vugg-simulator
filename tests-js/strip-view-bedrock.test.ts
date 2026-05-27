@@ -193,4 +193,26 @@ describe('strip recorder — instrumentation', () => {
     expect(sim2.step).toBe(3);
     expect(rec2.capturedStepCount()).toBe(3);
   });
+
+  // v154 (2026-05-26): Fortress / Zen sessions can outrun the initial
+  // duration_steps allocation. The recorder grows capacity on overflow
+  // instead of dropping data.
+  it('grows capacity dynamically when interactive session exceeds initial allocation', () => {
+    setSeed(42);
+    const scen3 = SCENARIOS.cooling();
+    const sim3 = new VugSimulator(scen3.conditions, scen3.events);
+    const rec3 = new StripRecorder(sim3, { duration_steps: 2 });
+    sim3._stripRecorder = rec3;
+    expect(rec3.getManifest().axes.steps).toBe(2);
+    // Run 5 steps — capacity should double at step 3 (to 4), then again
+    // at step 5 (to 8). All 5 steps captured, no data dropped.
+    for (let s = 0; s < 5; s++) sim3.run_step();
+    expect(rec3.capturedStepCount()).toBe(5);
+    expect(rec3.getManifest().axes.steps).toBeGreaterThanOrEqual(5);
+    expect(rec3.isActive()).toBe(true); // no longer auto-deactivates on capacity
+    // finalize trims to the actual captured count
+    const ds = rec3.finalize();
+    expect(ds.manifest.duration_steps).toBe(5);
+    expect(ds.manifest.axes.steps).toBe(5);
+  });
 });

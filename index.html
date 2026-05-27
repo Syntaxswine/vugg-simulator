@@ -13431,7 +13431,105 @@ let timeScale = 5.0;
 //   js/99k-strip-view.ts: mode-panel layout + stripViewModeShow exposure
 //   index.html: new mode-panel container + tab-button rewired
 //   tests-js/baselines/seed42_v153.json: regenerated baseline
-const SIM_VERSION = 153;
+//
+// ============================================================
+//   v154 — Strip View v3: Fortress + download/upload + cursor (2026-05-26)
+// ============================================================
+//
+// Closeout pass on the strip view arc. Boss directive ("lets finish up
+// any other parts of this that you want to wire up") + auto-mode license
+// to pick the highest-leverage items.
+//
+// FEATURES SHIPPED
+//
+//   1. Fortress mode wiring. Three entry points (94-ui-menu.ts
+//      fortressBegin + fortressBeginFromScenario, 97-ui-fortress.ts
+//      custom-setup path) now attach a StripRecorder at sim creation
+//      via the new _attachStripRecorderToSim() helper. Save lifecycle
+//      differs from Simulation/Random: Fortress is interactive (user
+//      drives steps via Wait/Heat/Cool buttons; no fixed run end), so
+//      switchMode hooks finalize + save when the user leaves the
+//      mode. Idempotent — the helper nulls _stripRecorder after save
+//      so re-leaves don't double-write.
+//
+//   2. Dynamic capacity growth. StripRecorder._growCapacity() doubles
+//      chip_data when captureStep is called past axes.steps. Removes
+//      the "data drops past N steps" cap that would have hit long
+//      Fortress sessions. Recorder no longer auto-deactivates on
+//      capacity hit; finalize() is the only deactivation path now.
+//      Test added: recorder grows from 2 → 4 → 8 step capacity over
+//      a 5-step run, captures all 5, finalize trims correctly.
+//
+//   3. Download dataset as .stripview file. Strip-view-header has a
+//      new ⬇ Download button that's enabled when a dataset is active.
+//      Click → stripSerialize(ds, gzip=true) → Blob → browser download
+//      as "<scenario_id>@seed<N>.stripview". Closes the share loop.
+//
+//   4. Upload + load dataset from file. Strip-view-header has a new
+//      ⬆ Upload button that triggers a hidden file input. Selected
+//      file is read as ArrayBuffer → stripDeserialize → saved to
+//      IndexedDB (so it persists in the list) → loaded as active.
+//      Handles both raw and gzipped formats via magic-byte sniff in
+//      stripDeserialize.
+//
+//   5. Cross-sub-strip cursor. When a time strip is expanded into 24
+//      angular sub-strips, hovering at vug-height X on any sub-strip
+//      now shows a thin vertical guide at the same X across ALL 24.
+//      Lets the user compare chip values at the same height position
+//      across rotation in one glance. Per locked v2 design (handoff
+//      §"strip view" — "Cross-sub-strip cursor on hover: confirmed
+//      yes. Hovering at height-X on one sub-strip lights a thin
+//      vertical cursor on all 24 simultaneously.")
+//
+// HELPER FUNCTIONS ADDED (js/94-ui-menu.ts)
+//
+//   _attachStripRecorderToSim(sim, scenarioId, notes)
+//     Attaches a recorder with generous 500-step allocation (grows on
+//     overflow), patches manifest.scenario_id. Idempotent + silent
+//     on failure. Reusable across Fortress entry points.
+//
+//   _saveStripRecorderIfPresent(sim)
+//     Finalizes the recorder + saves to IDB if at least one step was
+//     captured (skips empty recordings — user enters Fortress, leaves
+//     immediately, no pollution). Nulls sim._stripRecorder so re-calls
+//     are no-ops.
+//
+// STILL DEFERRED TO V4+
+//
+//   - Zen mode wiring (98a-ui-zen.ts) — same one-line pattern; will
+//     ship in a follow-up
+//   - Agent API wiring (99z-agent-interface.ts) — agents typically
+//     don't need replay capture
+//   - Favorite-based filters / comparison views / export-favorites-only
+//   - Per-vertex spatial chemistry expansion (the load-bearing
+//     prerequisite for non-wall chips to actually vary across angles)
+//
+// BASELINE
+//
+// All changes are either UI lifecycle (Fortress save hook, download/
+// upload buttons, cursor overlay) or recorder behavior (growth on
+// overflow) — none touch sim state. Calibration tests don't use
+// Fortress; they call run_step directly. seed42_v154.json byte-
+// identical to v153.
+//
+// TESTS
+//
+//   Pre-v154:  1562 tests pass (v153)
+//   Post-v154: 1563 tests pass (+1 _growCapacity test)
+//
+// WHAT v154 SHIPS
+//
+//   js/15-version.ts: this block + SIM_VERSION 153 → 154
+//   js/85g-strip-recorder.ts: _growCapacity + remove capacity-deactivate
+//   js/94-ui-menu.ts: _attachStripRecorderToSim, _saveStripRecorderIfPresent,
+//     Fortress entry-point wiring, save-on-leave hook
+//   js/97-ui-fortress.ts: custom-setup entry point wiring
+//   js/99k-strip-view.ts: download/upload buttons, cursor CSS,
+//     cursor event handlers in _stripBuildExpandedContainer
+//   tests-js/strip-view-bedrock.test.ts: +1 test for _growCapacity
+//   tests-js/baselines/seed42_v154.json: regenerated baseline (byte-
+//     identical to v153)
+const SIM_VERSION = 154;
 
 // ── 18-constants.js ──
 
@@ -43682,14 +43780,30 @@ class StripRecorder {
         return 'ppm';
     }
     // ---- main capture path --------------------------------------------
+    // v3 (2026-05-26): grow chipData capacity when interactive modes
+    // (Fortress / Zen) outrun the initial duration_steps allocation.
+    // Doubles the step capacity each time it's hit; keeps overhead
+    // amortized O(1) per step.
+    _growCapacity() {
+        const oldSteps = this.manifest.axes.steps;
+        const newSteps = oldSteps * 2;
+        const chipCount = this.manifest.chips.length;
+        const newAxes = { ...this.manifest.axes, steps: newSteps };
+        const newSize = newSteps * newAxes.angular_indices * newAxes.height_positions * chipCount;
+        const grown = new Uint8Array(newSize);
+        grown.set(this.chipData); // preserve existing data
+        this.chipData = grown;
+        this.manifest = { ...this.manifest, axes: newAxes, duration_steps: newSteps };
+    }
     // Called from VugSimulator.run_step() at end-of-step. Records one
     // step's slice of chip data + any new nucleation events this step.
     // Safe to call when the recorder is finished — just becomes a no-op.
     captureStep(sim) {
         if (!this.active)
             return;
-        if (this.capturedSteps >= this.manifest.axes.steps)
-            return;
+        if (this.capturedSteps >= this.manifest.axes.steps) {
+            this._growCapacity();
+        }
         const wall = sim?.wall_state || sim?.conditions?.wall;
         const step = this.capturedSteps;
         const axes = this.manifest.axes;
@@ -43746,9 +43860,10 @@ class StripRecorder {
             this.lastSeenCrystalCount = total;
         }
         this.capturedSteps++;
-        if (this.capturedSteps >= axes.steps) {
-            this.active = false;
-        }
+        // v3: no longer deactivate on capacity — _growCapacity handles
+        // overflow now. Recorder stays active until finalize() is called
+        // externally (run-end for Random/Simulation, mode-leave or seal
+        // for Fortress/Zen).
     }
     // ---- finalize ------------------------------------------------------
     // Trim chipData if the run ended before reaching duration_steps
@@ -50670,6 +50785,44 @@ function collectAllFromIdle() {
 // ============================================================
 // MENU PAGES — New Game menu + Scenarios picker
 // ============================================================
+// === HELIX-OVERLAY-FORK ADDITION (strip view v154+, 2026-05-26) =====
+// Helper to attach a StripRecorder to any sim (Fortress lifecycle).
+// Generous initial allocation (500 steps) since Fortress sessions
+// can run long; the recorder _growCapacity() handles overflow if
+// the player goes past that.
+function _attachStripRecorderToSim(sim, scenarioId, notes) {
+    if (!sim || typeof StripRecorder !== 'function')
+        return;
+    try {
+        sim._stripRecorder = new StripRecorder(sim, {
+            duration_steps: 500,
+            notes,
+        });
+        const m = sim._stripRecorder.getManifest();
+        if (m)
+            m.scenario_id = String(scenarioId || 'unknown');
+    }
+    catch (_e) { /* strip view is optional */ }
+}
+// Finalize + save a sim's recorder to IndexedDB. Called on mode-leave.
+function _saveStripRecorderIfPresent(sim) {
+    if (!sim || !sim._stripRecorder)
+        return;
+    try {
+        const dataset = sim._stripRecorder.finalize();
+        sim._stripRecorder = null; // prevent double-save
+        if (typeof stripStorageSave === 'function' && typeof stripStorageAvailable === 'function' && stripStorageAvailable()) {
+            // Only save if at least one step was captured. Don't pollute the
+            // dataset list with empty recordings (user clicked into Fortress
+            // and immediately left without doing anything).
+            if (dataset.manifest.duration_steps > 0) {
+                stripStorageSave(dataset).catch(() => { });
+            }
+        }
+    }
+    catch (_e) { /* silent */ }
+}
+// === END HELIX-OVERLAY-FORK ADDITION ==================================
 function hideAllMenuAndModePanels() {
     const ids = [
         'title-screen', 'new-game-panel', 'scenarios-panel',
@@ -50770,6 +50923,7 @@ function fortressBeginFromStarterFluid(presetId) {
     });
     rng = new SeededRandom(Date.now());
     fortressSim = new VugSimulator(conditions, []);
+    _attachStripRecorderToSim(fortressSim, `fortress_starter_${presetId}`, `Fortress — starter fluid: ${preset.label}`);
     fortressActive = true;
     fortressLogLines = [];
     document.getElementById('fortress-setup').style.display = 'none';
@@ -50807,6 +50961,7 @@ function fortressBeginFromScenario(scenarioName) {
     const { conditions, events, defaultSteps } = make();
     rng = new SeededRandom(Date.now());
     fortressSim = new VugSimulator(conditions, events);
+    _attachStripRecorderToSim(fortressSim, `fortress_${scenarioName}`, `Fortress — scenario: ${scenarioName}`);
     fortressActive = true;
     fortressLogLines = [];
     document.getElementById('fortress-setup').style.display = 'none';
@@ -50925,6 +51080,14 @@ function switchMode(mode) {
     // the overlay + restores controls. (Tutorials only live in fortress.)
     if (mode !== 'fortress' && typeof endTutorial === 'function')
         endTutorial();
+    // HELIX-OVERLAY-FORK ADDITION (strip view v154+): leaving Fortress
+    // with an attached recorder → finalize + save the dataset. Fortress
+    // sessions are interactive (no fixed run end), so this is the
+    // natural save point. Idempotent: the helper nulls _stripRecorder
+    // after save so re-leaves don't double-save.
+    if (mode !== 'fortress' && typeof fortressSim !== 'undefined' && fortressSim) {
+        _saveStripRecorderIfPresent(fortressSim);
+    }
     // Hide title screen, show mode toggle
     document.body.classList.remove('title-on');
     titleScreen.style.display = 'none';
@@ -52253,6 +52416,10 @@ function fortressBegin() {
     const conditions = new VugConditions({ temperature: temp, pressure, fluid, wall });
     rng = new SeededRandom(Date.now());
     fortressSim = new VugSimulator(conditions, []);
+    // HELIX-OVERLAY-FORK ADDITION (strip view v154+): attach recorder.
+    if (typeof _attachStripRecorderToSim === 'function') {
+        _attachStripRecorderToSim(fortressSim, 'fortress_custom', 'Fortress — custom setup');
+    }
     fortressActive = true;
     fortressLogLines = [];
     // Show active panels, hide setup
@@ -65222,6 +65389,20 @@ function _ensureStripViewStyles() {
       overflow: hidden;
     }
     .strip-view-substrip-canvas svg { display: block; width: 100%; height: 100%; }
+    /* v154 (2026-05-26): cross-sub-strip cursor. Hovering at vug-height
+       X on one sub-strip shows a vertical guide at the same X across
+       all 24 sub-strips for that time unit. Per locked v2 design. */
+    .strip-view-cursor {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: 1px;
+      background: rgba(220, 230, 255, 0.55);
+      pointer-events: none;
+      display: none;
+      box-shadow: 0 0 4px rgba(140, 180, 255, 0.4);
+    }
+    .strip-view-cursor.is-on { display: block; }
     .strip-view-row-controls {
       display: flex;
       flex-direction: column;
@@ -65514,15 +65695,48 @@ function _stripBuildExpandedContainer(ds, step, width) {
         <span class="ss-deg">/ ${Math.round((a / axes.angular_indices) * 360)}°</span>
         <button class="strip-view-favorite-btn ${isFav ? 'is-on' : ''}" data-step="${step}" data-angle="${a}" title="Favorite ${_stripAngleLabel(a, axes.angular_indices)}">★</button>
       </div>
-      <div class="strip-view-substrip-canvas">${_stripRenderStripSVG(ds, step, a, 1500, 100)}</div>
+      <div class="strip-view-substrip-canvas">
+        ${_stripRenderStripSVG(ds, step, a, 1500, 100)}
+        <div class="strip-view-cursor"></div>
+      </div>
     `;
         container.appendChild(sub);
     }
+    // v154 (2026-05-26): cross-sub-strip cursor. On mousemove inside any
+    // sub-strip canvas in this expanded container, update the vertical
+    // guide on all 24 sub-strips to the same relative X. Lets the user
+    // compare chip values at the same vug-height position across all
+    // rotation angles in one glance. Per locked v2 design.
+    container.addEventListener('mousemove', (ev) => {
+        const target = ev.target;
+        const canvas = target.closest('.strip-view-substrip-canvas');
+        if (!canvas)
+            return;
+        const rect = canvas.getBoundingClientRect();
+        const relX = (ev.clientX - rect.left) / Math.max(1, rect.width);
+        if (relX < 0 || relX > 1)
+            return;
+        const cursors = container.querySelectorAll('.strip-view-cursor');
+        cursors.forEach((c) => {
+            const cur = c;
+            const parentRect = cur.parentElement.getBoundingClientRect();
+            cur.style.left = (relX * parentRect.width).toFixed(1) + 'px';
+            cur.classList.add('is-on');
+        });
+    });
+    container.addEventListener('mouseleave', () => {
+        const cursors = container.querySelectorAll('.strip-view-cursor');
+        cursors.forEach((c) => c.classList.remove('is-on'));
+    });
     return container;
 }
 // Build / refresh the dataset list view.
 async function _stripRenderDatasetList(bodyEl) {
     bodyEl.innerHTML = '';
+    // v154: disable download button while on the list (no active dataset).
+    const dl = document.getElementById('strip-view-download');
+    if (dl)
+        dl.disabled = true;
     if (typeof stripStorageAvailable !== 'function' || !stripStorageAvailable()) {
         const empty = document.createElement('div');
         empty.className = 'strip-view-empty';
@@ -65586,6 +65800,10 @@ async function _stripRenderDatasetList(bodyEl) {
 // Render a loaded dataset as the filmstrip.
 function _stripRenderDataset(bodyEl, ds) {
     _stripActiveDataset = ds;
+    // v154: enable download button now that we have an active dataset.
+    const dl = document.getElementById('strip-view-download');
+    if (dl)
+        dl.disabled = false;
     // Initialize chip visibility — all on first time.
     for (const c of ds.manifest.chips) {
         if (!(c.id in _stripVisibleChips))
@@ -65602,7 +65820,13 @@ function _stripRenderDataset(bodyEl, ds) {
   `;
     bodyEl.appendChild(back);
     const backBtn = back.querySelector('#strip-view-back');
-    backBtn.addEventListener('click', () => { _stripActiveDataset = null; _stripRenderDatasetList(bodyEl); });
+    backBtn.addEventListener('click', () => {
+        _stripActiveDataset = null;
+        const dl = document.getElementById('strip-view-download');
+        if (dl)
+            dl.disabled = true;
+        _stripRenderDatasetList(bodyEl);
+    });
     // Chip selector — grouped by system. Per-chip toggles.
     const selector = document.createElement('div');
     selector.className = 'strip-view-chipselector';
@@ -65777,18 +66001,67 @@ function initStripView() {
           <span class="strip-view-title">Strip View</span>
           <span class="strip-view-sub">helicoid recordings — paragenesis viewer</span>
           <div class="strip-view-header-actions">
+            <button class="strip-view-btn" id="strip-view-upload" title="Load a .stripview file from disk">⬆ Upload</button>
+            <button class="strip-view-btn" id="strip-view-download" title="Download the active dataset as a .stripview file (gzipped)" disabled>⬇ Download</button>
             <button class="strip-view-btn" id="strip-view-refresh">Refresh</button>
           </div>
+          <input type="file" id="strip-view-upload-input" accept=".stripview,.gz,.bin" style="display:none"/>
         </div>
         <div class="strip-view-body" id="strip-view-body"></div>
       `;
             const refreshBtn = panel.querySelector('#strip-view-refresh');
+            const uploadBtn = panel.querySelector('#strip-view-upload');
+            const downloadBtn = panel.querySelector('#strip-view-download');
+            const uploadInput = panel.querySelector('#strip-view-upload-input');
             refreshBtn.addEventListener('click', () => {
                 const body = panel.querySelector('#strip-view-body');
                 if (_stripActiveDataset)
                     _stripRenderDataset(body, _stripActiveDataset);
                 else
                     _stripRenderDatasetList(body);
+            });
+            uploadBtn.addEventListener('click', () => uploadInput.click());
+            uploadInput.addEventListener('change', async () => {
+                const file = uploadInput.files && uploadInput.files[0];
+                if (!file)
+                    return;
+                try {
+                    const buf = new Uint8Array(await file.arrayBuffer());
+                    const ds = await stripDeserialize(buf);
+                    // Stash to IDB so it persists across page reloads + appears in
+                    // the dataset list. Safe to fail silently if IDB unavailable.
+                    if (typeof stripStorageSave === 'function' && typeof stripStorageAvailable === 'function' && stripStorageAvailable()) {
+                        stripStorageSave(ds).catch(() => { });
+                    }
+                    const body = panel.querySelector('#strip-view-body');
+                    _stripRenderDataset(body, ds);
+                }
+                catch (err) {
+                    const body = panel.querySelector('#strip-view-body');
+                    body.innerHTML = '<div class="strip-view-empty">Failed to load file: ' + err.message + '</div>';
+                }
+                // Reset so re-selecting the same file fires the change handler again.
+                uploadInput.value = '';
+            });
+            downloadBtn.addEventListener('click', async () => {
+                if (!_stripActiveDataset)
+                    return;
+                try {
+                    const blob = await stripSerialize(_stripActiveDataset, true);
+                    const url = URL.createObjectURL(new Blob([blob], { type: 'application/octet-stream' }));
+                    const fname = `${_stripActiveDataset.manifest.scenario_id}@seed${_stripActiveDataset.manifest.seed}.stripview`;
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = fname;
+                    document.body.appendChild(a);
+                    a.click();
+                    a.remove();
+                    // Revoke after a short delay (browser may still be reading).
+                    setTimeout(() => URL.revokeObjectURL(url), 5000);
+                }
+                catch (err) {
+                    alert('Strip view export failed: ' + err.message);
+                }
             });
         }
         const body = panel.querySelector('#strip-view-body');
