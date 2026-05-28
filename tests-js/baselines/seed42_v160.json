@@ -500,11 +500,17 @@
     }
   },
   "marble_contact_metamorphism": {
-    "aragonite": {
-      "active": 1,
-      "dissolved": 1,
+    "albite": {
+      "active": 2,
+      "dissolved": 0,
       "total": 2,
-      "max_um": 1050.9
+      "max_um": 101.6
+    },
+    "aragonite": {
+      "active": 0,
+      "dissolved": 2,
+      "total": 2,
+      "max_um": 15736.2
     },
     "calcite": {
       "active": 1,
@@ -512,11 +518,17 @@
       "total": 1,
       "max_um": 63496
     },
+    "grossular": {
+      "active": 3,
+      "dissolved": 0,
+      "total": 3,
+      "max_um": 3
+    },
     "ruby": {
       "active": 1,
       "dissolved": 0,
       "total": 1,
-      "max_um": 163.1
+      "max_um": 170.5
     }
   },
   "mvt": {
