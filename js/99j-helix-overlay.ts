@@ -462,7 +462,17 @@ const _HELIX_CHEM_PARAMS: ChemParam[] = (function() {
     id: 'f_ord', label: 'f_ord', fullName: _HELIX_FULL_NAMES.f_ord,
     min: 0, max: 1, color: 0xA060D0,
     read: (s, w, i, c) => {
-      const n = (typeof s._dol_cycle_count === 'number') ? s._dol_cycle_count : 0;
+      // _dol_cycle_count lives on conditions. The live helicoid passes a
+      // snap that mirrors it up to the top level (_helixSimAtSnap), so the
+      // first branch hits there. The strip RECORDER passes the raw sim
+      // (85g captureStep), where the counter sits at sim.conditions —
+      // without this fallback the recorded f_ord trail was silently flat
+      // zero (the Kim-mechanism ordering signal invisible in strip view).
+      const n = (typeof s._dol_cycle_count === 'number')
+        ? s._dol_cycle_count
+        : (s && s.conditions && typeof s.conditions._dol_cycle_count === 'number')
+          ? s.conditions._dol_cycle_count
+          : 0;
       return 1 - Math.exp(-n / _F_ORD_N0);
     },
   });
