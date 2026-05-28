@@ -66687,6 +66687,38 @@ function helixOverlayToggle() {
 //
 // ============================================================
 // === HELIX-OVERLAY-FORK ADDITION (strip view bedrock, v149+) =========
+// Hover-to-isolate (ported from helicoid legend, 2026-05-27). When the
+// cursor sits on a chip in the selector, every OTHER chip's lines dim
+// across all strips + sub-strips so the hovered chip stands out. The
+// helicoid does this by setting _helixHoveredParam and having the live
+// trail renderer read it each frame; the strip view is static SVG, so
+// instead we swap a single dynamic stylesheet rule. CSS does the
+// matching against data-chip-id — no per-line DOM walk, scales to
+// thousand-step scenarios.
+//
+// _stripSetHoverIsolate(chipId): dim all .strip-chip-line except the
+// one matching chipId. Pass null to clear (restore full opacity).
+function _stripSetHoverIsolate(chipId) {
+    let el = document.getElementById('strip-view-hover-style');
+    if (!el) {
+        el = document.createElement('style');
+        el.id = 'strip-view-hover-style';
+        document.head.appendChild(el);
+    }
+    if (!chipId) {
+        el.textContent = '';
+        return;
+    }
+    // Escape the chip id for the attribute selector. Chip ids are simple
+    // tokens (Ca, CO3, SI_calcite, etc.) so a CSS.escape is belt-and-
+    // suspenders, but cheap and correct for any future id with odd chars.
+    const safe = (typeof window.CSS !== 'undefined' && window.CSS.escape)
+        ? window.CSS.escape(chipId)
+        : chipId.replace(/["\\]/g, '\\$&');
+    el.textContent =
+        `.strip-chip-line { stroke-opacity: 0.05 !important; }\n` +
+            `.strip-chip-line[data-chip-id="${safe}"] { stroke-opacity: 0.95 !important; stroke-width: 2 !important; }`;
+}
 // CSS injection — strip view's styles live alongside helicoid styles.
 // One-shot inject at first show.
 function _ensureStripViewStyles() {
@@ -67082,7 +67114,13 @@ function _stripRenderStripSVG(ds, step, angle, width, height) {
             // v152 (2026-05-26): stroke-width 1.5 → 1.25 per boss tune.
             // Slightly thinner reads cleaner at the now-100 px height; bundle
             // stacking still cumulative.
-            segs.push(`<polyline points="${pts.join(' ')}" fill="none" stroke="${colorHex}" stroke-width="1.25" stroke-opacity="0.65"/>`);
+            //
+            // data-chip-id (2026-05-27): tags the line for the hover-to-isolate
+            // behavior ported from the helicoid legend. On chip hover, a
+            // dynamic stylesheet dims every .strip-chip-line except the
+            // hovered chip's data-chip-id. CSS does the matching — no
+            // per-element DOM walk.
+            segs.push(`<polyline class="strip-chip-line" data-chip-id="${meta.id}" points="${pts.join(' ')}" fill="none" stroke="${colorHex}" stroke-width="1.25" stroke-opacity="0.65"/>`);
         }
     }
     // Mineral nucleation markers. When `angle` is null (collapsed view),
@@ -67363,6 +67401,14 @@ function _stripRenderDataset(bodyEl, ds) {
                 sysLabel.style.opacity = sysAnyOnNow ? '1' : '0.4';
                 _stripRefreshFilmstrip(bodyEl, ds);
             });
+            // Hover-to-isolate (ported from helicoid legend, boss-requested
+            // 2026-05-27). On hover, dim every other chip's lines so the
+            // hovered chip stands out across all strips + sub-strips. Uses
+            // pointerenter/leave (fire once per chip; don't bubble like
+            // pointerover/out) + a dynamic stylesheet so the dimming is a
+            // single CSS rule swap rather than a per-line DOM walk.
+            chipEl.addEventListener('pointerenter', () => _stripSetHoverIsolate(chip.id));
+            chipEl.addEventListener('pointerleave', () => _stripSetHoverIsolate(null));
             selector.appendChild(chipEl);
         }
     }
