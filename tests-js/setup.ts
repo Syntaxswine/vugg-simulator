@@ -236,6 +236,7 @@ const EXPORTS = [
   'WallState',
   'WallCell',
   'WallMesh',
+  'CavityVoxelGrid',  // v158 — PROPOSAL-CAVITY-INTERIOR-VOXELS Phase 1
   'Crystal',
   'GrowthZone',
   'EVENT_REGISTRY',
@@ -310,6 +311,11 @@ const EXPORTS = [
   // {110} contact (vs cyclic-sextet's 3-fold). Prismatic (square)
   // cross-section distinguishes from selenite's tabular swallowtail.
   'PRIM_ARAGONITE_CONTACT_TWIN',
+  // 2026-05-28 cave-aragonite frostwork (BUG-aragonite-twin-cave-
+  // morphology.md). 2D wireframe counterpart of the Three.js
+  // aragonite_frostwork geometry — radiating 5-needle acicular spray for
+  // air-mode aragonite (twinned or not).
+  'PRIM_ARAGONITE_FROSTWORK',
   '_lookupCrystalPrimitive',
   // Phase 4a redox infrastructure (20c-chemistry-redox.ts).
   'EH_DYNAMIC_ENABLED',
@@ -343,6 +349,59 @@ const EXPORTS = [
   'carbonateRedoxFactor',
   'carbonateRedoxAnoxic',
   'carbonateRedoxPenalty',
+  // PROPOSAL-CARBONATE-GEOCHEM Phase 1 Week 1+2 — carbonate aqueous
+  // speciation (20b) + Ksp(T) (20c) + SI engine (32b).
+  'CARBONATE_SPECIATION_ACTIVE',
+  'bjerrumFractions',
+  'carbonateIonPpm',
+  'effectiveCO3',
+  'equilibriumPCO2',
+  'getCarbonateLogKsp',
+  'getCarbonateKsp',
+  'getCarbonateData',
+  'getCarbonateThermoTier',
+  'getCarbonateKineticTier',
+  'listCarbonatesAtTier',
+  'carbonateThermoCoverage',
+  // Week 2 SI engine + flag mechanism (32b).
+  'CARBONATE_KSP_ACTIVE',
+  'CARBONATE_KSP_ACTIVE_PER_MINERAL',
+  'kspSupersatActiveFor',
+  'carbonateSaturationIndex',
+  'carbonateOmega',
+  'carbonateEngineSigma',
+  'carbonatesWithSI',
+  'carbonatePromotionReady',
+  // Flag setters — closure-scoped `let` requires explicit setters per
+  // the graduated-competition precedent (globalThis writes don't reach
+  // bundle-internal let bindings).
+  'setCarbonateKspActive',
+  'setCarbonateKspActiveFor',
+  'snapshotCarbonateKspFlags',
+  'restoreCarbonateKspFlags',
+  // Week 4 — wall-mesh localization resolvers + per-vertex accessors
+  // + Henry's-Law pH equilibration (20d-localization-resolvers.ts).
+  'fluidAtMeshVertex',
+  'temperatureAtMeshVertex',
+  'isOpenAtMeshVertex',
+  'atmosphericPCO2AtMeshVertex',
+  'wallRockThermalBufferAtMeshVertex',
+  'hostRockCompositionAtMeshVertex',
+  'equilibratePHtoPCO2',
+  // Week 6 PWP kinetic engine (52b-engines-carbonate-kinetics.ts).
+  'pwpForwardRate',
+  'pwpNetRate',
+  'pwpRateToSimMicronsPerStep',
+  'setPWPCalibrationFactor',
+  'aragoniteKineticallyFavoredOver',
+  'mgPoisoningFactor',
+  'calciteRate',
+  'aragoniteRate',
+  'dolomiteRate',
+  'HMCRate',
+  'sideriteRate',
+  'rhodochrositeRate',
+  'smithsoniteRate',
   // Phase 4b sulfide-class helpers (20c-chemistry-redox.ts).
   'sulfideRedoxAnoxic',
   'sulfideRedoxLinearFactor',
@@ -370,6 +429,17 @@ const EXPORTS = [
   'applyParamorphTransitions',
   'applyDehydrationTransitions',
   'applyLightTransitions',
+  // Strip view bedrock (v149+, 2026-05-26) — helicoid-as-recorder
+  // architecture. 85f = dataset format + codecs, 85g = recorder, 85h
+  // = IndexedDB storage, 99k = UI tab.
+  'stripQuantize',
+  'stripDequantize',
+  'stripDequantizeNormalized',
+  'stripDataIndex',
+  'stripAllocateData',
+  'stripSerialize',
+  'stripDeserialize',
+  'StripRecorder',
 ];
 
 let _bundleLoaded = false;

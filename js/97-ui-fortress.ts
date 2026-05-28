@@ -186,6 +186,10 @@ function fortressBegin() {
 
   rng = new SeededRandom(Date.now());
   fortressSim = new VugSimulator(conditions, []);
+  // HELIX-OVERLAY-FORK ADDITION (strip view v154+): attach recorder.
+  if (typeof _attachStripRecorderToSim === 'function') {
+    _attachStripRecorderToSim(fortressSim, 'fortress_custom', 'Fortress — custom setup');
+  }
   fortressActive = true;
   fortressLogLines = [];
 
