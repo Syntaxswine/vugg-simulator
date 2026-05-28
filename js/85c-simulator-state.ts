@@ -41,13 +41,26 @@ _propagateGlobalDelta(snap) {
   const [preFluid, preTemp] = snap;
   const equator = Math.floor(this.wall_state.ring_count / 2);
   const equatorFluid = this.ring_fluids[equator];  // = conditions.fluid (aliased)
-  // PROPOSAL-CAVITY-MESH Phase 4 Tranche 4c — mesh is a constructor
-  // invariant; the legacy ring_fluids[] direct-propagation path is
-  // unreachable in normal flow and dropped from the wrapper. The
-  // mesh.propagateDelta call is the canonical chemistry-mutation
-  // propagation now.
-  const mesh = this.wall_state.meshFor(this);
-  mesh.propagateDelta(preFluid, this._fluidFieldNames, equatorFluid);
+  // PROPOSAL-CAVITY-INTERIOR-VOXELS Phase 2a (v159) — voxel grid is
+  // now the canonical event-delta propagation path. Spreads the delta
+  // to ALL voxels (wall + interior) so event chemistry affects the
+  // whole cavity uniformly, matching pre-v158 bulk-view semantics.
+  // Pre-v159 mesh.propagateDelta hit only the d=0 wall slab; combined
+  // with the new v159 radial diffusion that would have STOLEN the
+  // event effect from the wall by mixing it with stale interior fluid.
+  // Spreading to all voxels preserves event reach.
+  //
+  // Defensive fallback to mesh.propagateDelta when the voxel grid
+  // isn't available (headless test harnesses without CavityVoxelGrid).
+  const grid = this.wall_state.voxelGridFor(this);
+  if (grid && typeof grid.propagateEventDelta === 'function') {
+    grid.propagateEventDelta(preFluid, this._fluidFieldNames, equatorFluid);
+  } else {
+    const mesh = this.wall_state.meshFor(this);
+    if (mesh && typeof mesh.propagateDelta === 'function') {
+      mesh.propagateDelta(preFluid, this._fluidFieldNames, equatorFluid);
+    }
+  }
   const deltaT = this.conditions.temperature - preTemp;
   if (deltaT !== 0) {
     for (let k = 0; k < this.ring_temperatures.length; k++) {

@@ -9223,5 +9223,116 @@
 //   tests-js/voxel-grid.test.ts         NEW — 24 tests
 //   tests-js/baselines/seed42_v158.json regen (byte-identical to v157)
 //   proposals/PROPOSAL-CAVITY-INTERIOR-VOXELS.md  living doc anchor
-const SIM_VERSION = 158;
+
+// ============================================================
+//   v159 — Cavity voxels Phase 2a: event delta propagation to interior
+// ============================================================
+//
+// Phase 2 of PROPOSAL-CAVITY-INTERIOR-VOXELS, split into 2a (v159) + 2b
+// (v160) for safety. v159 is the pure-infrastructure half: events
+// propagate to interior voxels; engines still read d=0 only; baseline
+// byte-identical to v158. v160 will turn on real per-voxel diffusion +
+// per-cell nucleation gates together (the coupled mechanism that
+// produces the depletion-halo strangulation behavior).
+//
+// WHY SPLIT
+//
+// The original Phase 2 plan ran ALL the engine + event + diffusion
+// + nucleation changes in one commit. v159 prep landed the per-voxel
+// 3D Laplacian and immediately surfaced two problems:
+//   1. ~14-18 ms/step diffusion cost pushed several test files past
+//      their 30s timeouts (8 seeds × 200 steps × 18 ms ≈ 29 s, right
+//      at the edge). Optimization knocked it to 10-12 ms but still
+//      tight.
+//   2. Baseline drift across all event-heavy scenarios (geologically
+//      defensible per the W9-W12 "landing on the geology" pattern,
+//      but several scenarios now broke specific test assertions —
+//      lepidolite cap, carbonate week-7 PWP rate).
+//
+// The geological behavior change (depletion halos strangling nearby
+// nucleation) needs both per-voxel diffusion AND per-cell nucleation
+// gates to work as a unit. Shipping diffusion alone would surface
+// drift without the corresponding geological gain. Shipping both
+// together at v160 is the cleaner narrative.
+//
+// v159 ships just the event propagation — pure infrastructure that
+// makes the interior voxels carry real chemistry. No engine wiring,
+// no diffusion change, no nucleation change. Strip view radial sub-
+// strip rendering (v161+) becomes possible because the interior now
+// has differentiated chemistry to show.
+//
+// WHAT v159 SHIPS
+//
+// js/24-geometry-voxel-grid.ts:
+//   + New propagateEventDelta(preFluid, fieldNames, postFluid, target='all')
+//     method. Replaces the wall-only mesh.propagateDelta path that
+//     was the canonical pre-v159 event-propagation hook. Default
+//     'all' target spreads the delta to every voxel (wall + interior).
+//   + Optional target parameter accepts 'all' | 'boundary' | 'top' |
+//     'bottom' — v159 ships the framework; v160+ scenarios can opt
+//     into spatial targeting via event handler signatures.
+//   + _diffuseFull private method: real 3D Laplacian implementation
+//     (snapshot + variance skip + branchless inner loop) prototyped
+//     in v159 prep, kept as a private method so v160 can flip the
+//     dispatch with a one-line change. Public diffuse() still
+//     delegates to wall mesh in v159.
+//
+// js/85c-simulator-state.ts:
+//   + _propagateGlobalDelta rewired to call voxelGrid.propagateEventDelta
+//     instead of mesh.propagateDelta. Defensive fallback to mesh
+//     preserved for headless test paths.
+//
+// BASELINE INVARIANCE
+//
+// seed42_v159.json byte-identical to seed42_v158.json. The proof:
+//   1. Engines still read d=0 voxels (= mesh.cells fluids via [FIRM] B
+//      alias). Event chemistry reaches d=0 the same way it did in v158
+//      (events mutate conditions.fluid; equator wall cell sees the
+//      update via the legacy ring_fluids[equator] alias; propagateEvent
+//      Delta spreads to all OTHER wall cells — exact same end state).
+//   2. propagateEventDelta ALSO writes to d=1, d=2, d=3 voxels — new
+//      behavior — but nothing in v159 reads from those voxels. No RNG
+//      consumed; no chemistry consumed; no crystal nucleation or growth
+//      sees the interior values.
+//   3. voxelGrid.diffuse delegates to mesh.diffuse (unchanged from v158).
+//
+// PERF
+//
+// propagateEventDelta cost: ~7,680 voxels × ~50 fields × ~3 ops per
+// write-back = ~1.2M ops per event firing. At ~100M ops/sec ≈ 12 ms.
+// Events fire at most a handful of times per scenario run, so total
+// event-propagation cost is ~50-100 ms per run — negligible.
+//
+// WHAT THIS UNLOCKS FOR v160+
+//
+// Interior voxels now carry real event chemistry. Once v160 turns on
+// per-voxel diffusion + per-cell nucleation gates:
+//   - Depletion halos form as 3D objects in the boundary buffer
+//   - Sustained crystal growth is replenished from the cavity reservoir
+//   - Per-cell σ sampling strangles nucleation in depleted halos
+//   - Stratification scenarios (sabkha, dripstone) get richer spatial
+//     chemistry without per-scenario rework
+//
+// v161+ visualization (strip view radial sub-strips, helicoid depth
+// profile trails) can also consume the new interior chemistry
+// directly.
+//
+// TESTS
+//
+//   Pre-v159:  1592 tests pass (v158)
+//   Post-v159: 1592 tests pass (no test changes; v159 ships infra
+//              only with byte-identical baseline)
+//
+// WHAT v159 SHIPS (file list)
+//   js/15-version.ts                    SIM_VERSION 158 → 159 + this block
+//   js/24-geometry-voxel-grid.ts        + propagateEventDelta method
+//                                       + _diffuseFull (private; v160-ready)
+//                                       + per-field variance skip + perf
+//                                         optimizations on the v160 path
+//   js/85c-simulator-state.ts           _propagateGlobalDelta → voxelGrid
+//                                       .propagateEventDelta (fallback
+//                                       to mesh.propagateDelta preserved)
+//   index.html                          rebuilt bundle
+//   tests-js/baselines/seed42_v159.json regen (byte-identical to v158)
+const SIM_VERSION = 159;
 
