@@ -152,6 +152,7 @@ const _HELIX_FULL_NAMES: { [id: string]: string } = {
   Eh:       'Eh (redox potential, mV)',
   salinity: 'Salinity (TDS, ppt)',
   O2:       'Dissolved O₂ (mg/L)',
+  concentration: 'Evaporative concentration (×, vadose-drying multiplier)',
   SiO2:     'Silica (dissolved SiO₂)',
   Ca:       'Calcium',
   CO3:      'Carbonate (CO₃²⁻)',
@@ -332,6 +333,16 @@ const _HELIX_CHEM_PARAMS: ChemParam[] = (function() {
     read: (s, w, i, c) => (_chipFluid(s, w, i, c) || {}).salinity });
   params.push({ id: 'O2',       label: 'O2',          fullName: _HELIX_FULL_NAMES.O2,       min: 0,    max: 10,   color: 0xaaccff,
     read: (s, w, i, c) => (_chipFluid(s, w, i, c) || {}).O2 });
+  // v161 evaporite driver: the per-cell `concentration` multiplier (default
+  // 1.0, ×EVAPORATIVE_CONCENTRATION_FACTOR per wet→vadose drying in
+  // 85c _applyVadoseOxidationOverride). This is THE driver for the evaporite
+  // family (searles/sabkha/naica) — borax/mirabilite/thenardite nucleation
+  // gates key off it, not off the raw ions (which the seed sets once and the
+  // events leave static). Before this chip the strip was blind to it, so
+  // evaporite scenarios read as misleadingly "flat". Recording-only — reads
+  // the same per-cell store as the other specials; no sim change.
+  params.push({ id: 'concentration', label: 'evap conc', fullName: _HELIX_FULL_NAMES.concentration, min: 0, max: 10, color: 0xffbb33,
+    read: (s, w, i, c) => (_chipFluid(s, w, i, c) || {}).concentration });
 
   // === HELIX-OVERLAY-FORK ADDITION (Week 3 carbonate) ===============
   // PROPOSAL-CARBONATE-GEOCHEM Phase 1 Week 3 — Carbonate System chips.
@@ -613,13 +624,13 @@ function _helixBuildLegend() {
     _helixParamEnabled = _HELIX_CHEM_PARAMS.map(() => true);
   }
   // Section boundaries inside _HELIX_CHEM_PARAMS (matches the IIFE
-  // build order: 1 primary, 5 specials, 11 carbonate-system (Week 3),
-  // then 41 ions = 58 total).
+  // build order: 1 primary, 6 specials (v161 added `concentration`),
+  // 11 carbonate-system (Week 3), then 41 ions = 59 total).
   const sections: Array<{ title: string, start: number, end: number }> = [
     { title: 'Wall',            start: 0,  end: 1 },
-    { title: 'Conditions',      start: 1,  end: 6 },
-    { title: 'Carbonate System', start: 6,  end: 17 },
-    { title: 'Ions',            start: 17, end: _HELIX_CHEM_PARAMS.length },
+    { title: 'Conditions',      start: 1,  end: 7 },
+    { title: 'Carbonate System', start: 7,  end: 18 },
+    { title: 'Ions',            start: 18, end: _HELIX_CHEM_PARAMS.length },
   ];
 
   // v22: banner layout. Header at top (title + bulk + focus pills in

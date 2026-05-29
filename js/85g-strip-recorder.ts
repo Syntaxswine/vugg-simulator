@@ -39,7 +39,9 @@
 // recorder downsamples by picking ONE representative cell per angular
 // bin — the midpoint cell (cell = bin_start + bin_size/2). This is
 // equivalent to averaging when chips are cell-uniform (which is true
-// for ~57 of the 58 chips today; only `wall` distance varies per cell).
+// for ~58 of the 59 chips today; only `wall` distance varies per cell.
+// `concentration` (v161) varies per ring once drying begins but stays
+// cell-uniform within a ring, so the representative cell captures it).
 //
 // When future spatial chemistry expansion makes chips per-cell aware,
 // the representative-cell approach still works — it just becomes a
@@ -49,7 +51,7 @@
 //
 // PERFORMANCE
 //
-// Per step cost: ~24 angles × 16 rings × 58 chips = ~22K chip.read()
+// Per step cost: ~24 angles × 16 rings × 59 chips = ~23K chip.read()
 // calls. At ~5M JS function calls/sec, that's ~5 ms per step.
 // For a 200-step scenario: ~1 second total recording overhead.
 // Acceptable. If perf becomes an issue:

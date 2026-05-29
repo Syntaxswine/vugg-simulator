@@ -58,8 +58,8 @@
 //      3D formula. So v1 datasets load + render unchanged, and the same
 //      code path serves both.
 //
-// SIZE ESTIMATES (typical 200-step × 24 × 16 × 4 × 58 dataset):
-//   raw uint8:              200 × 24 × 16 × 4 × 58 = 17.8 MB
+// SIZE ESTIMATES (typical 200-step × 24 × 16 × 4 × 59 dataset):
+//   raw uint8:              200 × 24 × 16 × 4 × 59 = 18.1 MB
 //   + manifest + events:    ~5 KB
 //   after gzip:             ~1.5 - 3 MB (interior slices are largely
 //                           uniform — long byte runs compress well, so
