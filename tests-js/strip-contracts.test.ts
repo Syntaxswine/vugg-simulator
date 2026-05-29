@@ -15,12 +15,18 @@
 // bulk-probe findings on a second instrument — they do not duplicate them,
 // and a divergence between strip and bulk is a real signal, not a bug.
 //
-// SCENARIO PICK. Anchored on the best-grounded carbonate scenarios:
+// SCENARIO PICK. Anchored on the best-grounded scenarios, best-data-first:
 //   - sabkha_dolomitization → Kim et al. 2023 (Science 382:915) cyclic-Ω
 //     dolomitization, validated in tests-js/carbonate-week8-* and the
 //     calibration sweep.
 //   - reactive_wall → PWP (Plummer-Wigley-Parkhurst 1978) kinetics, validated
 //     in tests-js/carbonate-week7-reactive-wall.
+//   - tutorial_travertine / cooling / mvt → open-system degassing, calcite
+//     retrograde solubility, and hot dolomite-favored MVT starts.
+//   - searles_lake → Smith 1979 (USGS PP 1043) closed-basin alkaline-saline
+//     evaporite. Pins the evaporative `concentration` cycle (the v161
+//     rewetting fix: ramp ×3 on drying, reset to 1.0 on the fresh_pulse flood)
+//     plus the soda-lake signatures (alkaline pH, dolomite-favored carbonate).
 // The all-scenarios sweep is intentionally a separate effort (each scenario's
 // contract needs its data re-checked).
 //
@@ -150,5 +156,63 @@ describe('strip chemistry contract — mvt (hot carbonate-supersaturated start)'
     expect(series.first(cal)!).toBeGreaterThan(0);                  // starts supersaturated
     expect(series.first(dol)!).toBeGreaterThan(series.first(cal)!); // dolomite favored early
     expect(series.last(cal)!).toBeLessThan(series.first(cal)!);     // declines on cooling
+  });
+});
+
+describe('strip chemistry contract — searles_lake (evaporite concentration cycle)', () => {
+  let ds: any;
+  beforeAll(() => { ds = recordScenario('searles_lake'); }, 60000);
+
+  it('evaporative concentration CYCLES — ramps on drying, resets on the flood (v161 ratchet fix)', () => {
+    if (!ds) return;
+    const conc = chipSeries(ds, 'concentration', { depth: 'wall' });
+    // Observed (wall): 1.0 → ~3.0 across each dry window (×EVAPORATIVE_
+    // CONCENTRATION_FACTOR=3 in 85c _applyVadoseOxidationOverride), then RESET
+    // to ~1.0 at each fresh_pulse flood (steps 75/135/195/255). This is the
+    // v161 fix: pre-fix the boost was a ONE-WAY RATCHET (1→3→9→clamp@10, never
+    // returning) because the override early-returned on rising water. The
+    // min<1.5 assertion is the regression guard — the old ratchet pinned min
+    // at ≥3 once the first dry cycle fired; only the rewetting reset brings it
+    // back to baseline. crossings prove it's a real cycle, not one excursion.
+    expect(series.peak(conc)).toBeGreaterThan(2.5);          // the ×3 dry-window boost
+    expect(series.min(conc)).toBeLessThan(1.5);              // resets to baseline on the flood (NOT a ratchet)
+    expect(series.crossings(conc, 2.0)).toBeGreaterThanOrEqual(2); // multiple dry cycles
+  });
+
+  it('the cavity interior never evaporatively concentrates (spatial signature)', () => {
+    if (!ds) return;
+    const D = ds.manifest.axes.depth_positions || 1;
+    if (D < 2) return; // depth-collapsed recording → no wall/interior contrast
+    const center = chipSeries(ds, 'concentration', { depth: 'center' });
+    // Observed: center stays flat at ~1.0 the entire run. Only wall rings
+    // transition wet→vadose (the playa surface dries); the interior voxel
+    // store never dries, so the evaporative boost never touches it. The
+    // evaporite action is a wall phenomenon.
+    expect(series.peak(center)).toBeLessThan(1.5);
+  });
+
+  it('soda-lake brine: alkaline pH, dolomite-favored carbonate supersaturation', () => {
+    if (!ds) return;
+    const pH = chipSeries(ds, 'pH', { depth: 'wall' });
+    const cal = chipSeries(ds, 'SI_calcite', { depth: 'wall' });
+    const dol = chipSeries(ds, 'SI_dolomite', { depth: 'wall' });
+    const arg = chipSeries(ds, 'SI_aragonite', { depth: 'wall' });
+    // Observed (wall, first): pH ~9.48 (held alkaline — Searles keeps borate as
+    // B(OH)4⁻); SI_dolomite +1.89 > SI_calcite +0.69 > SI_aragonite +0.50. The
+    // Mg-bearing alkaline brine favors dolomite over the CaCO3 polymorphs.
+    expect(series.min(pH)).toBeGreaterThan(9);                       // stays alkaline
+    expect(series.first(dol)!).toBeGreaterThan(series.first(cal)!);  // dolomite favored
+    expect(series.first(cal)!).toBeGreaterThan(series.first(arg)!);  // calcite over aragonite
+    expect(series.first(arg)!).toBeGreaterThan(0);                   // all carbonate supersaturated
+  });
+
+  it('temperature cycles into the summer-bake range', () => {
+    if (!ds) return;
+    const T = chipSeries(ds, 'T', { depth: 'wall' });
+    // Observed (wall ring): baseline ~24°C with spikes to ~53°C on the four
+    // summer_bake events (T=55 set globally). Pin the heat excursions + that
+    // there are several of them — the seasonal cycling, not a single ramp.
+    expect(series.peak(T)).toBeGreaterThan(50);
+    expect(series.crossings(T, 40)).toBeGreaterThanOrEqual(2);
   });
 });

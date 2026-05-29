@@ -111,9 +111,17 @@ _applyVadoseOxidationOverride() {
   const oldSurface = this._prevFluidSurfaceRing;
   this._prevFluidSurfaceRing = newSurface;
   if (newSurface === null || newSurface === undefined) return [];
-  if (oldSurface !== null && oldSurface !== undefined && newSurface >= oldSurface) {
-    return [];
-  }
+  // v161: handle BOTH water-level directions in one pass. Drying (wet→vadose)
+  // oxidizes + evaporatively concentrates; rewetting (vadose→wet) re-dilutes.
+  // Previously this early-returned whenever the surface rose, which made the
+  // evaporative `concentration` boost a ONE-WAY RATCHET: searles_lake pinned
+  // at the chip clamp after 2-3 dry cycles, and the redissolution half of the
+  // evaporite cycle (fresh_pulse's narrated "brine dilutes, salt crusts
+  // begin to redissolve") never fired — only the first few dryings did any
+  // chemical work. The rewetting branch in the loop below restores it, so a
+  // freshwater flood (searles fresh_pulse, naica/aquifer recharge) actually
+  // dilutes the brine. A no-transition step (surface unchanged) now falls
+  // through the loop as a cheap no-op rather than early-returning.
   // PROPOSAL-CAVITY-MESH Phase 4 Tranche 4a — apply the vadose override
   // to EVERY cell in a transitioning ring, not just the ring-level
   // pool. Post-un-aliasing each cell has its own fluid; the
@@ -125,6 +133,7 @@ _applyVadoseOxidationOverride() {
     : null;
   const cellsPerRing = this.wall_state.cells_per_ring || 0;
   const becameVadose = [];
+  const rewetted = [];
   for (let r = 0; r < n; r++) {
     const was = VugConditions._classifyWaterState(oldSurface, r, n);
     const now = VugConditions._classifyWaterState(newSurface, r, n);
@@ -164,7 +173,33 @@ _applyVadoseOxidationOverride() {
         rf.concentration *= EVAPORATIVE_CONCENTRATION_FACTOR;
       }
       becameVadose.push(r);
+    } else if (was === 'vadose' && now !== 'vadose'
+               && oldSurface !== null && oldSurface !== undefined) {
+      // v161 rewetting: a freshwater flood (searles fresh_pulse, naica /
+      // aquifer recharge) reflooded this ring. Reset the evaporative
+      // `concentration` multiplier to baseline 1.0 — the dissolved load
+      // re-dilutes and salt crusts redissolve, exactly as those events
+      // narrate. Mirror of the drying boost above (same cells + ring_fluids
+      // mirror so engine gate and per-vertex view agree). We deliberately do
+      // NOT un-oxidize (O2) or restore S: air-exposure mineral reactions
+      // (sulfide→oxide supergene paragenesis) persist through reflooding;
+      // only the soluble evaporite load dilutes.
+      if (mesh && mesh.cells && cellsPerRing > 0) {
+        for (let c = 0; c < cellsPerRing; c++) {
+          const cell = mesh.cells[r * cellsPerRing + c];
+          if (!cell || !cell.fluid) continue;
+          cell.fluid.concentration = 1.0;
+        }
+      }
+      const rf = this.ring_fluids[r];
+      if (rf) rf.concentration = 1.0;
+      rewetted.push(r);
     }
+  }
+  if (rewetted.length) {
+    this.log.push(
+      `  💧 Rewetting: rings ${rewetted.join(',')} reflooded — brine dilutes, `
+      + `evaporative concentration resets to baseline 1.0×`);
   }
   return becameVadose;
 },

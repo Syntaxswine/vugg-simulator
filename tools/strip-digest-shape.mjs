@@ -27,13 +27,20 @@ export const STRIP_DIGEST_SCENARIOS = [
   'cooling',
   'mvt',
   'tutorial_travertine',
+  // v161: searles_lake added with the evaporite family in mind. Its digest
+  // pins the `concentration` cycle (the rewetting fix — ramp ×3 on drying,
+  // reset to 1.0 on the fresh_pulse flood); a regression to the one-way
+  // ratchet would move the wall samples and trip this tripwire.
+  'searles_lake',
 ];
 
-// Key carbonate-system chips. Always present in the manifest (the recorder
-// bakes every _HELIX_CHEM_PARAMS chip); may be flat in non-carbonate
-// scenarios, which is itself worth pinning.
+// Key carbonate-system chips + the evaporite driver. Always present in the
+// manifest (the recorder bakes every _HELIX_CHEM_PARAMS chip); may be flat in
+// scenarios that don't exercise them, which is itself worth pinning (e.g.
+// `concentration` stays 1.0 wherever no ring ever dries — a guard that a
+// non-evaporite scenario never spuriously concentrates).
 export const STRIP_DIGEST_CHIPS = [
-  'SI_calcite', 'SI_dolomite', 'SI_aragonite', 'pH', 'DIC', 'f_ord',
+  'SI_calcite', 'SI_dolomite', 'SI_aragonite', 'pH', 'DIC', 'f_ord', 'concentration',
 ];
 
 const SAMPLE_COUNT = 8;

@@ -9491,5 +9491,59 @@
 //   tests-js/pharmacolite.test.ts                    timeout 90s → 150s
 //   tests-js/voxel-grid.test.ts    + 3D-diffusion + strangulation tests
 //   tests-js/baselines/seed42_v160.json              regen
-const SIM_VERSION = 160;
+//
+// ============================================================
+// v161 (2026-05-28) — EVAPORITE REWETTING: dilute the brine on reflood
+// ============================================================
+//
+// THE BUG. The per-cell `concentration` multiplier (the evaporite driver —
+// FluidChemistry.concentration, default 1.0) was a ONE-WAY RATCHET.
+// 85c _applyVadoseOxidationOverride multiplied it by
+// EVAPORATIVE_CONCENTRATION_FACTOR (×3) on each wet→vadose drying, but the
+// method early-returned whenever the water level ROSE, so nothing ever
+// re-diluted it. Surfaced by the new strip `concentration` chip (v161
+// recording): searles_lake pinned 1→3→9→clamp after 2-3 dry cycles and
+// stayed there. The redissolution half of the evaporite cycle — fresh_pulse's
+// own narrated "the brine dilutes, salt crusts begin to redissolve... the
+// basin briefly resembles a real lake" — never fired; 3 of the 5 advertised
+// seasonal cycles were chemically inert for the evaporite minerals.
+//
+// THE FIX. _applyVadoseOxidationOverride now handles BOTH water-level
+// directions in one pass (the early-return on rising water is gone). On a
+// vadose→wet transition it resets cell.fluid.concentration AND
+// ring_fluids[r].concentration to 1.0 — full freshening, matching the flood
+// narratives and playa hydrology. Drying behavior is byte-unchanged. We do
+// NOT un-oxidize (O2) or restore S on reflood: air-exposure supergene
+// reactions persist; only the soluble evaporite load re-dilutes.
+//
+// BASELINE DRIFT (seed42_v160 → seed42_v161). 29/30 scenarios BYTE-IDENTICAL.
+// Only naica_geothermal drifts: thenardite 10 → 3 (active + total; max_um 0
+// both — these are dehydration paramorphs). The drift is geologically CORRECT:
+// the 2017 mining_recharge (step 290 of 320) now actually dilutes the brine,
+// so the late soluble Na-sulfate (thenardite) stops precipitating in the final
+// ~30 steps instead of riding a ratcheted concentration. searles_lake — the
+// scenario that MOTIVATED the fix — is byte-identical: the fix corrects the
+// fluid TRAJECTORY (concentration now oscillates 1↔3 instead of ratcheting to
+// the chip clamp) but the seed-42 final mineral census is set during the dry
+// windows, and dilution gates NEW nucleation rather than dissolving existing
+// crystals. No assertion test needed editing — the calibration regen covers
+// the count, and a new searles strip contract + the strip digest pin the
+// trajectory. naica seal/peak-fill/habit tests unaffected (thenardite is
+// zero-volume, so peak fill is unchanged).
+//
+// The strip `concentration` chip (the evaporite driver) was added in the
+// immediately-preceding recording-only commit (no version bump); this is what
+// made the ratchet visible. v161 also grows the tripwire: strip_digest_v161
+// adds searles_lake + the `concentration` chip and pins the oscillation.
+//
+// FILES
+//   js/85c-simulator-state.ts   _applyVadoseOxidationOverride: + rewetting
+//                               branch (vadose→wet resets concentration to 1.0)
+//   js/15-version.ts            SIM_VERSION 160 → 161 + this block
+//   index.html                  rebuilt bundle
+//   tests-js/baselines/seed42_v161.json        regen (naica thenardite 10→3)
+//   tests-js/strip-contracts.test.ts           + searles_lake contract (4 its)
+//   tools/strip-digest-shape.mjs               + searles_lake + concentration
+//   tests-js/baselines/strip_digest_v161.json  regen (6 scenarios, 7 chips)
+const SIM_VERSION = 161;
 
