@@ -8,6 +8,7 @@
     "build": "node tools/build-all.mjs",
     "build:check": "node tools/build-all.mjs --check",
     "typecheck": "tsc -p tsconfig.json --noEmit",
+    "pretest": "tsc -p tsconfig.json",
     "test": "vitest run",
     "test:watch": "vitest",
     "ci": "npm run typecheck && npm run build:check && npm test"
