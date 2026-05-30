@@ -470,6 +470,42 @@ async function installThreeGlobal(): Promise<void> {
   (globalThis as any).THREE = THREE;
 }
 
+// Post-v165 review #2 — auto-derive top-level declaration names from the
+// compiled bundle. The hand-maintained EXPORTS list was a footgun: every
+// new global function added to a JS module (e.g. v164's sulfateSaturation-
+// Index, sulfateOmega) compiled clean and ran fine in the harness, but
+// every test using them failed with `ReferenceError: X is not defined`
+// until the name was manually added to EXPORTS. This step harvests names
+// directly from dist/ so new top-level functions / consts become test-
+// visible without a setup.ts edit.
+//
+// Limitations (intentional):
+//  - Only matches top-level decls at column 0 (`^(function|const|let|class|
+//    var)\s+<name>`). Methods added via Object.assign(SomeClass.prototype,
+//    {...}) won't be auto-discovered — but those are typically called via
+//    instance.method(), not as free identifiers, so tests don't need them
+//    in EXPORTS.
+//  - Does not strip `_`-prefixed internals; they're harmless on globalThis.
+//  - Explicit EXPORTS list still wins (any name in both is preserved). The
+//    explicit list documents intent + survives as a recovery surface if the
+//    auto-derive ever misses something.
+function autoDeriveExportNames(files: string[]): string[] {
+  const found = new Set<string>();
+  // Strict: declaration token at start of line (column 0) followed by a name.
+  // tsc output for script-mode TS keeps top-level decls at column 0.
+  const RE = /^(?:function|const|let|class|var)\s+([A-Za-z_$][\w$]*)/gm;
+  for (const f of files) {
+    let src: string;
+    try { src = fs.readFileSync(f, 'utf8'); }
+    catch { continue; }
+    let m: RegExpExecArray | null;
+    while ((m = RE.exec(src)) !== null) {
+      if (m[1] && /^[A-Za-z_$]/.test(m[1])) found.add(m[1]);
+    }
+  }
+  return Array.from(found);
+}
+
 async function loadBundle() {
   if (_bundleLoaded) return;
   installFetchMock();
@@ -500,12 +536,16 @@ async function loadBundle() {
       rng = new SeededRandom(seed | 0);
     }
   `;
-  const exportObject = '{' + EXPORTS.map(n => `${n}: typeof ${n} !== 'undefined' ? ${n} : undefined`).join(', ') + '}';
+  // EXPORTS ∪ auto-derived names — dedupe via Set. Explicit list comes
+  // first so its ordering is preserved in the literal (cosmetic only).
+  const autoDerived = autoDeriveExportNames(files);
+  const ALL_EXPORTS = Array.from(new Set([...EXPORTS, ...autoDerived]));
+  const exportObject = '{' + ALL_EXPORTS.map(n => `${n}: typeof ${n} !== 'undefined' ? ${n} : undefined`).join(', ') + '}';
   const body = `${concatenated}\n${epilogue}\n;return ${exportObject};`;
   // eslint-disable-next-line @typescript-eslint/no-implied-eval
   const fn = new Function(body);
   const exports = fn();
-  for (const name of EXPORTS) {
+  for (const name of ALL_EXPORTS) {
     if (exports[name] !== undefined) {
       (globalThis as any)[name] = exports[name];
     }
