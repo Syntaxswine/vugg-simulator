@@ -144,7 +144,7 @@
       "sources": ["Sherman_Barak_2000", "PHREEQC_wateq4f"],
       "databases_agree": ["PHREEQC_wateq4f"],
       "confidence_tier": "A",
-      "notes": "Ksp value is for ORDERED dolomite. Disordered dolomite has higher Ksp (~10^-16.5, less stable). The thermodynamic distinction matters: Kim 2023 mechanism is specifically about producing ordered from disordered via cycling."
+      "notes": "Ksp value is for ORDERED dolomite (logKsp -17.09 matches wateq4f phase 'Dolomite 401' exactly). Disordered dolomite has higher Ksp (~10^-16.5, less stable). The thermodynamic distinction matters: Kim 2023 mechanism is specifically about producing ordered from disordered via cycling. deltaH_diss FLAGGED (NOT changed) 2026-05-30: ours -28 (Sherman-Barak 2000) sits below wateq4f -9.436 kcal = -39.48 and below the first-principles value from this entry's own enthalpies (ΔHf Ca2+ -542.8 + Mg2+ -466.9 + 2*CO3-2 -677.1 - dolomite -2329.9 = -34 kJ/mol). Real spread (-28/-34/-39.5). LEFT UNCHANGED because dolomite is ENGINE-PROMOTED (CARBONATE_KSP_ACTIVE_PER_MINERAL.dolomite=true) — its deltaH_diss drives logKsp(T) in the production nucleation path, so any change shifts seed-42 output and needs a calibration-aware re-tune (vugg-tune-scenario), not a data-only edit. Deferred to a dedicated dolomite-ΔH calibration pass."
     },
     "kinetics": {
       "rate_law": "kim_2023_cyclic_omega",
@@ -183,7 +183,7 @@
       "sources": ["Benezeth_2009", "PHREEQC_wateq4f"],
       "databases_agree": ["PHREEQC_wateq4f"],
       "confidence_tier": "A",
-      "notes": "Bénézeth 2009 redetermined siderite solubility with modern techniques after decades of literature scatter (old PHREEQC value -10.55 was off by 0.34 log units). Reducing conditions required for Fe2+ stability — at high Eh, Fe2+ oxidizes to Fe3+, siderite dissolves and Fe-oxides precipitate."
+      "notes": "Bénézeth 2009 redetermined siderite solubility with modern techniques after decades of literature scatter (old PHREEQC value -10.55 was off by 0.34 log units; our -10.89 matches wateq4f 'Siderite 94' exactly). Reducing conditions required for Fe2+ stability — at high Eh, Fe2+ oxidizes to Fe3+, siderite dissolves and Fe-oxides precipitate. deltaH_diss FLAGGED (NOT changed) 2026-05-30: ours -20 is the exothermic outlier vs wateq4f -2.48 kcal = -10.38, minteq.v4 -16, and the first-principles value from this entry's own enthalpies (ΔHf Fe2+ -89.1 + CO3-2 -677.1 - FeCO3 -752.0 = -14.2 kJ/mol). LEFT UNCHANGED pending verification against the Bénézeth 2009 full text — IF Bénézeth specifically reports ΔH≈-20 it stands as the modern measurement; if -20 is an unverified estimate it should move toward the -10 to -16 cluster. NOT a data-only edit because siderite feeds the SI_siderite STRIP CHIP, so changing it drifts the strip digest baseline (regen + tripwire update required)."
     },
     "kinetics": {
       "rate_law": "calcite_pwp_scaled_with_redox_gate",
@@ -214,7 +214,7 @@
       "sources": ["PHREEQC_wateq4f", "Robie_Hemingway_1995"],
       "databases_agree": ["PHREEQC_wateq4f", "Robie_Hemingway_1995"],
       "confidence_tier": "A",
-      "notes": "Well-measured by both calorimetry (Robie 1995) and solubility (PHREEQC compilation). Mn carbonate analog of siderite; less redox-confounded because Mn2+ is more stable to oxidation than Fe2+ at typical groundwater Eh."
+      "notes": "Well-measured by both calorimetry (Robie 1995) and solubility (PHREEQC compilation). Mn carbonate analog of siderite; less redox-confounded because Mn2+ is more stable to oxidation than Fe2+ at typical groundwater Eh. INTER-DATABASE SCATTER documented (NOT changed) 2026-05-30: both logKsp and deltaH_diss sit at the low-magnitude/exothermic edge of the published range. logKsp ours -10.39 vs wateq4f 'Rhodochrosite 564' -11.13 vs minteq.v4 -10.58. deltaH_diss ours -12 vs wateq4f -1.43 kcal = -5.98 vs minteq -1.88 vs first-principles from this entry's own enthalpies (ΔHf Mn2+ -220.8 + CO3-2 -677.1 - MnCO3 -889.3 = -8.6 kJ/mol). No single canonical value (genuine literature scatter, unlike the cerussite/witherite/strontianite sign-flips which were clear errors). LEFT UNCHANGED: observer-only (not promoted, no strip chip) so low stakes, and -12/-10.39 are within the published envelope — picking one database over another would be an unjustified preference. Flagged for a future literature-consolidation pass."
     },
     "kinetics": {
       "rate_law": "calcite_pwp_scaled",
@@ -266,13 +266,13 @@
       "logKsp_25C": -13.13,
       "logKsp_fit": {
         "form": "vanthoff",
-        "deltaH_diss_kJ_mol": -23.0
+        "deltaH_diss_kJ_mol": 20.33
       },
       "valid_T_range_C": [0, 150],
       "sources": ["PHREEQC_wateq4f", "Robie_Hemingway_1995"],
       "databases_agree": ["PHREEQC_wateq4f", "Robie_Hemingway_1995"],
       "confidence_tier": "A",
-      "notes": "Pb-carbonate Ksp well-established. Very low solubility — cerussite is highly insoluble, forms readily in supergene oxidation of galena."
+      "notes": "Pb-carbonate Ksp well-established (logKsp -13.13 matches wateq4f exactly + is consistent with deltaGf -625.5). Very low solubility — cerussite is highly insoluble, forms readily in supergene oxidation of galena. deltaH_diss CORRECTED 2026-05-30: was -23.0 (exothermic) which was an unverified estimate with the WRONG SIGN. Cerussite dissolution is ENDOTHERMIC: wateq4f +4.86 kcal = +20.33 kJ/mol; minteq.v4 +24.79 kJ/mol; and the first-principles value from THIS entry's own stored enthalpies (ΔHf Pb2+ -1.7 + ΔHf CO3-2 -677.1 - ΔHf PbCO3 -699.1) = +20.3 kJ/mol — the old -23 contradicted our own deltaHf field. Observer-only fix (cerussite is not engine-promoted + has no strip chip), so zero runtime footprint."
     },
     "kinetics": {
       "rate_law": "calcite_pwp_scaled",
@@ -295,13 +295,13 @@
       "logKsp_25C": -8.562,
       "logKsp_fit": {
         "form": "vanthoff",
-        "deltaH_diss_kJ_mol": -15.0
+        "deltaH_diss_kJ_mol": 2.94
       },
       "valid_T_range_C": [0, 800],
       "sources": ["PHREEQC_wateq4f", "Robie_Hemingway_1995"],
       "databases_agree": ["PHREEQC_wateq4f", "Robie_Hemingway_1995"],
       "confidence_tier": "A",
-      "notes": "Ba-carbonate. Above 811C transitions to a different polymorph (γ-BaCO3); stable phase below."
+      "notes": "Ba-carbonate (logKsp -8.562 matches wateq4f exactly). Above 811C transitions to a different polymorph (γ-BaCO3); stable phase below. deltaH_diss CORRECTED 2026-05-30: was -15.0 (exothermic) — wrong sign + an order of magnitude off. Witherite dissolution is mildly ENDOTHERMIC near thermoneutral: wateq4f +0.703 kcal = +2.94 kJ/mol; minteq.v4 +4.0 kJ/mol. The -15 was an unverified estimate (one of an identical -15 cluster with strontianite/smithsonite — a placeholder tell). Observer-only fix (not engine-promoted, no strip chip), zero runtime footprint."
     },
     "kinetics": {
       "rate_law": "calcite_pwp_scaled",
@@ -324,13 +324,13 @@
       "logKsp_25C": -9.271,
       "logKsp_fit": {
         "form": "vanthoff",
-        "deltaH_diss_kJ_mol": -15.0
+        "deltaH_diss_kJ_mol": -1.67
       },
       "valid_T_range_C": [0, 900],
       "sources": ["PHREEQC_wateq4f", "Robie_Hemingway_1995"],
       "databases_agree": ["PHREEQC_wateq4f", "Robie_Hemingway_1995"],
       "confidence_tier": "A",
-      "notes": "Sr-carbonate. Analogous to witherite; aragonite-structured at low T (orthorhombic). Less soluble than witherite."
+      "notes": "Sr-carbonate (logKsp -9.271 matches wateq4f exactly). Analogous to witherite; aragonite-structured at low T (orthorhombic). Less soluble than witherite. deltaH_diss CORRECTED 2026-05-30: was -15.0 — ~9x too exothermic (part of the same placeholder -15 cluster as witherite/smithsonite). Strontianite dissolution is near thermoneutral: wateq4f -0.4 kcal = -1.67 kJ/mol; minteq.v4 0.0 kJ/mol; first-principles from this entry's own enthalpies ≈ -3 kJ/mol. Observer-only fix (not engine-promoted, no strip chip), zero runtime footprint."
     },
     "kinetics": {
       "rate_law": "calcite_pwp_scaled",

@@ -214,6 +214,58 @@ cited values automatically, making rigor a tool not a habit).
 
 ---
 
+## post-v166 — carbonate ΔH sign-flips (the verification tool catching its own backlog)
+
+**Commits:** `4ef6365` (parser fix) + the carbonate-ΔH-triage commit
+
+Running the new `thermo-coverage-check.mjs --verify` (the tool built for
+v164's lesson) against the LEGACY carbonate thermo file surfaced a backlog
+of the same failure mode the tool was built to catch — but in the
+dissolution-enthalpy field this time. Three entries had `deltaH_diss_kJ_mol`
+values that were unverified estimates citing `PHREEQC_wateq4f` as a source
+that doesn't contain them:
+
+- **cerussite** −23 kJ/mol (exothermic) → actually **+20.3** (endothermic) — a SIGN FLIP
+- **witherite** −15 → **+2.9** — a SIGN FLIP
+- **strontianite** −15 → **−1.7** — ~9× too exothermic
+
+**How caught:** the verification tool, run against the carbonate file for
+the first time. THREE independent confirmations converged: (1) wateq4f
+delta_h, (2) minteq.v4 delta_h (a second free-ion-form database), and
+crucially (3) **first-principles from the entries' OWN stored ΔHf fields** —
+e.g. cerussite ΔH_diss = ΔHf(Pb²⁺) + ΔHf(CO₃²⁻) − ΔHf(PbCO₃) = −1.7 − 677.1
+− (−699.1) = +20.3, computed from the −699.1 sitting in the same JSON
+object. The entries were INTERNALLY SELF-CONTRADICTORY: their formation
+enthalpy implied a different (and opposite-sign) dissolution enthalpy than
+their stated `deltaH_diss`. The tell was a cluster of identical −15 values
+(witherite/strontianite/smithsonite) — placeholder estimates, not pulled
+calorimetry.
+
+**Fix:** corrected the three to wateq4f values (cross-confirmed by minteq +
+first-principles); after the fix the tool reports them VERIFIED. All three
+are observer-only (not engine-promoted, no strip chip) so the correction is
+zero-runtime-footprint — seed-42 + strip-digest baselines byte-identical.
+The ambiguous/load-bearing cases were DOCUMENTED not changed: dolomite
+(engine-promoted — changing ΔH shifts seed-42, needs a calibration pass),
+siderite (Bénézeth-2009-cited + feeds the SI_siderite chip — verify against
+full text first), rhodochrosite (genuine inter-database scatter, no single
+canonical value). All logKsp values were confirmed CORRECT.
+
+**A WebFetch-confabulation sub-lesson.** During triage, an initial WebFetch
+summary of wateq4f.dat reported nonexistent duplicate phase variants
+("Dolomite 11" vs "401", "Siderite 9" vs "94"). A direct byte-level fetch
+showed the file has one entry per carbonate — the summarizer invented
+plausible structure. The verification tool was hardened to fetch + parse
+raw bytes itself precisely so a model's read never sits between us and
+ground truth.
+
+**Lesson canonized in:** the tool now cross-checks ΔH on every run; the
+corrected entries carry notes recording the old value + all three
+confirmation methods; the deferred entries carry explicit "FLAGGED (NOT
+changed)" notes with the disposition.
+
+---
+
 ## Pattern summary
 
 | Catch | Mode | Caught by |
@@ -224,14 +276,18 @@ cited values automatically, making rigor a tool not a habit).
 | v162 thermal-pulse contamination | Visualization-surfaced bug | strip recorder (T chip on bisbee) |
 | v163 native_bismuth window | Load-bearing spurious mechanism | calibration test failure post-v162 |
 | v164 barite endotherm sign | Fabricated value (memory) | WebFetch verification BEFORE commit |
+| post-v166 carbonate ΔH sign-flips | Fabricated value (estimate citing absent source) | the verification TOOL (run on the legacy file) |
 
-Three of six were caught by *looking at trajectories the simulator was
-already producing*. Two were caught by *reading carefully*. One was caught
-by *trying to remove a mechanism and watching what died*. The pattern is
-the same in all three modes: a question gets asked of the existing data
-in a slightly different way, and the answer that comes back surprises.
-Build the next instrument that asks the next slightly-different question
-and the next catch will surface itself.
+The seventh catch is the most satisfying: the verification tool built from
+the sixth catch's lesson found a backlog of the same failure mode on its
+first sweep of the older data — and the entries even carried the data
+(their own ΔHf) to prove themselves wrong. Three of seven caught by
+*looking at trajectories the simulator was already producing*, two by
+*reading carefully*, one by *trying to remove a mechanism and watching what
+died*, and now one by *a tool asking every value to agree with its own
+sources*. The pattern holds: a question asked of existing data in a
+slightly different way returns a surprising answer. Build the instrument
+that asks, and the next catch surfaces itself.
 
 The bedrock is now laid. The sediment is the next round of work; the truth
 is told in time.
