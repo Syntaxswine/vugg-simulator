@@ -264,6 +264,18 @@ corrected entries carry notes recording the old value + all three
 confirmation methods; the deferred entries carry explicit "FLAGGED (NOT
 changed)" notes with the disposition.
 
+**Made permanent + offline:** `thermo-coverage-check.mjs --internal` now
+automates confirmation method #3 — for every simple carbonate it checks
+`logKsp` against the entry's own `ΔGf` and `deltaH_diss` against its own
+`ΔHf` (via CODATA ion constants validated against the verified anchors).
+No network, covers minerals absent from any external DB, exit 4 on a
+ΔH self-inconsistency. Verified: feeding the old cerussite −23 makes it
+hard-fail (Δ=43 vs the +20.3 its own ΔHf implies); the corrected values
+pass. It also surfaced a NEW review-level finding — witherite's reference
+`deltaGf` (−1132.2) is ~0.9 log units adrift from its verified logKsp
+(non-fatal; logKsp is the `--verify`-guarded value, deltaGf is a reference
+field). The data now testifies against itself automatically, every run.
+
 ---
 
 ## Pattern summary

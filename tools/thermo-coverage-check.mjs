@@ -25,13 +25,31 @@
  *
  * Exit codes:
  *   0  — report generated, no issues
+ *   3) --internal — OFFLINE self-consistency check. For each simple
+ *      carbonate (MCO3 / dolomite) with full formation data, asserts the
+ *      stored logKsp_25C and deltaH_diss agree with the values DERIVED from
+ *      the entry's own deltaGf / deltaHf via standard aqueous-ion constants.
+ *      Needs no network and covers minerals absent from any external DB.
+ *      This is the permanent automated form of the manual check that caught
+ *      the post-v166 ΔH sign-flips (cerussite/witherite/strontianite): the
+ *      data testifying against itself. Generalizes confirmation method #3
+ *      from that triage (first-principles from each entry's own ΔHf).
+ *
+ * Usage adds:
+ *   node tools/thermo-coverage-check.mjs --internal
+ *   node tools/thermo-coverage-check.mjs --internal --json
+ *
+ * Exit codes:
  *   1  — file missing or unparseable
  *   2  — any mineral has confidence_tier 'unknown' (= schema gap)
  *   3  — --verify mode: any logKsp_25C or ΔH_diss disagrees with the
  *        canonical wateq4f.dat beyond the documented tolerance
+ *   4  — --internal mode: a stored value is self-inconsistent with the
+ *        entry's own formation data beyond tolerance (OR the ion-constant
+ *        table fails to reproduce the verified anchor minerals)
  *
  * Per PROPOSAL-CARBONATE-GEOCHEM Week 1 (original deliverable) + post-
- * v165 review item #7 (verification tool extension).
+ * v165 review item #7 (--verify) + the post-v166 carbonate-ΔH triage (--internal).
  */
 
 import { readFileSync, existsSync } from 'node:fs';
@@ -53,6 +71,7 @@ const FILES = [
 const args = process.argv.slice(2);
 const jsonMode = args.includes('--json');
 const verifyMode = args.includes('--verify');
+const internalMode = args.includes('--internal');
 
 // ---- Load all thermo files --------------------------------------------------
 
@@ -359,11 +378,167 @@ async function verifyAgainstWateq4f() {
   return verification;
 }
 
+// ---- --internal: offline thermodynamic self-consistency --------------------
+//
+// For a dissolution reaction (written free-ion-product form, our convention):
+//   MCO3 = M2+ + CO3-2          (simple carbonates)
+//   CaMg(CO3)2 = Ca2+ + Mg2+ + 2 CO3-2   (dolomite)
+// two identities must hold from the entry's OWN formation data:
+//   (B1) logKsp(25C) = -ΔG°rxn / (ln10·R·T)   with ΔG°rxn = ΣΔGf(ions) - ΔGf(mineral)
+//   (B2) ΔH_diss      = ΣΔHf(ions) - ΔHf(mineral)
+// The entry stores ΔGf(mineral) + ΔHf(mineral); we supply the standard
+// aqueous-ion ΔGf/ΔHf. If the stored logKsp_25C / logKsp_fit.deltaH_diss
+// disagree with the derived values, the entry is internally inconsistent —
+// which is exactly how the post-v166 cerussite/witherite/strontianite
+// ΔH sign-flips were caught by hand (their deltaH_diss contradicted the
+// ΔHf sitting in the same object). This makes that check automatic + offline,
+// and it covers minerals absent from any external database.
+//
+// ION CONSTANTS — standard aqueous-ion ΔGf/ΔHf at 25C, 1 bar, from CODATA
+// Key Values for Thermodynamics (Cox, Wagman & Medvedev 1989) cross-checked
+// with Robie & Hemingway 1995 (USGS Bull. 2131). These are well-established
+// REFERENCE CONSTANTS (not paper-specific claims — the v145 fabricated-
+// citation hazard does not apply; these appear unchanged across all major
+// compilations). The tool VALIDATES them against our wateq4f-verified anchor
+// minerals on every run and prints the residuals, so the constants are shown
+// to reproduce known-good entries rather than trusted blind.
+//
+// CAVEAT — Fe2+: ΔGf scatters notably across databases (-79 to -92 kJ/mol).
+// We use the Robie-Hemingway value (-90.5/-92.0) which reproduces our
+// wateq4f-verified siderite logKsp (-10.89); a lower-magnitude Fe2+ would
+// false-flag siderite. Documented because it's the one constant where the
+// choice is load-bearing.
+const ION_THERMO = {
+  // anion (well-measured, low scatter)
+  CO3: { dGf: -527.90, dHf: -677.14 },
+  // divalent cations
+  Ca:  { dGf: -552.8,  dHf: -543.0 },
+  Mg:  { dGf: -454.8,  dHf: -466.9 },
+  Fe:  { dGf: -90.5,   dHf: -92.0,  note: 'Fe2+ ΔGf scattered -79..-92; Robie-Hemingway value chosen to reproduce verified siderite logKsp' },
+  Mn:  { dGf: -228.1,  dHf: -220.8 },
+  Zn:  { dGf: -147.3,  dHf: -153.4 },
+  Pb:  { dGf: -24.2,   dHf: -1.7 },
+  Ba:  { dGf: -560.7,  dHf: -537.6 },
+  Sr:  { dGf: -563.8,  dHf: -545.8 },
+};
+
+// Dissolution stoichiometry (ion -> count) for the SIMPLE carbonates the
+// check covers. OH-bearing (malachite/azurite/hydrozincite) + the variable-
+// composition HMC are out of scope for now (their reactions need OH- ion
+// data + per-crystal mg_content); noted as skipped. The keys are our mineral
+// ids; each maps to the divalent-cation key(s) + CO3 count.
+const CARBONATE_DISSOC = {
+  calcite:       { Ca: 1, CO3: 1 },
+  aragonite:     { Ca: 1, CO3: 1 },
+  dolomite:      { Ca: 1, Mg: 1, CO3: 2 },
+  siderite:      { Fe: 1, CO3: 1 },
+  rhodochrosite: { Mn: 1, CO3: 1 },
+  smithsonite:   { Zn: 1, CO3: 1 },
+  cerussite:     { Pb: 1, CO3: 1 },
+  witherite:     { Ba: 1, CO3: 1 },
+  strontianite:  { Sr: 1, CO3: 1 },
+};
+
+// Anchors whose logKsp we've INDEPENDENTLY verified (against wateq4f /
+// Plummer-Busenberg). Used to validate the ion-constant table: the derived
+// logKsp must reproduce the stored value within tolerance, else the constant
+// table itself is suspect (reported, not silently trusted).
+const INTERNAL_ANCHORS = ['calcite', 'aragonite', 'dolomite', 'siderite'];
+
+const LN10_R_T = Math.LN10 * 0.0083144626 * 298.15; // = 5.7080 kJ/mol per log unit
+const TOL_INTERNAL_LOGK = 0.7;   // log units; absorbs ~3-4 kJ ion-constant scatter
+const TOL_INTERNAL_DH = 8.0;     // kJ/mol; catches the sign-flips (Δ 13-43), passes the corrections
+const round2 = (v) => (v == null ? null : Math.round(v * 100) / 100);
+
+function internalConsistencyCheck() {
+  const result = { anchors: [], checks: [], failures: [], reviews: [], skipped: [], constantsOK: true };
+  for (const { meta, doc } of files) {
+    if (meta.kind !== 'carbonates') continue; // sulfate file has no ΔGf/ΔHf to check (yet)
+    for (const [name, entry] of Object.entries(doc)) {
+      if (name.startsWith('_')) continue;
+      const stoich = CARBONATE_DISSOC[name];
+      if (!stoich) {
+        result.skipped.push({ name, reason: 'OH-bearing / variable-composition — dissolution stoich not modeled for internal check' });
+        continue;
+      }
+      const t = entry.thermodynamics || {};
+      const dGfMin = t.deltaGf_kJ_mol, dHfMin = t.deltaHf_kJ_mol;
+      const storedLogK = (typeof t.logKsp_25C === 'number') ? t.logKsp_25C : null;
+      const storedDH = (t.logKsp_fit && typeof t.logKsp_fit.deltaH_diss_kJ_mol === 'number')
+        ? t.logKsp_fit.deltaH_diss_kJ_mol : null;
+      // Sum ion contributions
+      let sumGf = 0, sumHf = 0, missingIon = false;
+      for (const [ion, n] of Object.entries(stoich)) {
+        const c = ION_THERMO[ion];
+        if (!c) { missingIon = true; break; }
+        sumGf += n * c.dGf; sumHf += n * c.dHf;
+      }
+      if (missingIon) { result.skipped.push({ name, reason: 'ion constant missing' }); continue; }
+
+      const check = { name, isAnchor: INTERNAL_ANCHORS.includes(name) };
+      // hardIssues = ΔH_diss self-inconsistency. ΔH is ENGINE-CONSUMED (van't
+      //   Hoff logKsp(T)) and is the field the post-v166 sign-flips lived in
+      //   → exit-4 hard fail.
+      // reviewIssues = logKsp-vs-ΔGf disagreement. logKsp is independently
+      //   guarded by --verify (external truth) and ΔGf is a REFERENCE/audit
+      //   field that nothing consumes → surface as a review flag, not a
+      //   hard fail (a flag here usually means the reference ΔGf drifted from
+      //   the logKsp, e.g. witherite's -1132.2 vs the Robie-Hemingway value
+      //   consistent with its verified logKsp).
+      const hardIssues = [];
+      const reviewIssues = [];
+      // (B1) logKsp from ΔGf — review-level
+      if (typeof dGfMin === 'number' && storedLogK != null) {
+        const dGrxn = sumGf - dGfMin;
+        const logKImplied = -dGrxn / LN10_R_T;
+        const dLogK = storedLogK - logKImplied;
+        check.logK = { stored: storedLogK, implied: round2(logKImplied), delta: round2(dLogK) };
+        if (Math.abs(dLogK) > TOL_INTERNAL_LOGK) {
+          reviewIssues.push(`logKsp vs ΔGf: stored ${storedLogK}, ΔGf-implied ${logKImplied.toFixed(2)} (Δ=${dLogK.toFixed(2)} log units) — reference ΔGf likely drifted (logKsp itself is --verify-guarded)`);
+        }
+      }
+      // (B2) ΔH_diss from ΔHf — hard-level (the sign-flip field, engine-consumed)
+      if (typeof dHfMin === 'number' && storedDH != null) {
+        const dHImplied = sumHf - dHfMin;
+        const dDH = storedDH - dHImplied;
+        check.dH = { stored: storedDH, implied: round2(dHImplied), delta: round2(dDH) };
+        if (Math.abs(dDH) > TOL_INTERNAL_DH) {
+          hardIssues.push(`ΔH_diss self-inconsistent: stored ${storedDH} kJ/mol, ΔHf-implied ${dHImplied.toFixed(2)} kJ/mol (Δ=${dDH.toFixed(2)})`);
+        }
+      }
+      check.issues = hardIssues;       // back-compat: 'issues' = hard issues
+      check.reviewIssues = reviewIssues;
+      result.checks.push(check);
+      if (check.isAnchor) result.anchors.push(check);
+      if (hardIssues.length) result.failures.push(check);
+      if (reviewIssues.length) result.reviews.push(check);
+    }
+  }
+  // Validate the constant table: anchors must be self-consistent on the HARD
+  // (ΔH) axis. A review-level ΔGf drift on an anchor doesn't invalidate the
+  // ΔHf constants used for the ΔH check.
+  result.constantsOK = result.anchors.every(a => !a.issues.length);
+  return result;
+}
+
 // ---- Reporting --------------------------------------------------------------
+
+// Set the exit code and return rather than process.exit(). On Windows Node,
+// calling process.exit() while a --verify fetch keepalive socket is still
+// closing triggers a libuv abort (UV_HANDLE_CLOSING) that mangles the exit
+// code to 127 — defeating CI gating on the intended 2/3/4. Setting
+// process.exitCode + returning lets the event loop drain cleanly so the
+// process exits with the right code on its own.
+function finish(code) { process.exitCode = code; }
 
 async function main() {
   const verification = verifyMode ? await verifyAgainstWateq4f() : null;
   const anyMismatch = verification && verification.mismatches.length > 0;
+  const internal = internalMode ? internalConsistencyCheck() : null;
+  // An internal FAILURE is real only if the constants validated (anchors
+  // passed). If an anchor failed, the constant table is suspect — report
+  // but don't exit-3-style fail the data.
+  const anyInternalFail = internal && internal.constantsOK && internal.failures.length > 0;
 
   if (jsonMode) {
     const out = {
@@ -373,9 +548,10 @@ async function main() {
         ...r.report,
       })),
       verification,
+      internal,
     };
     console.log(JSON.stringify(out, null, 2));
-    process.exit(anyMismatch ? 3 : anyUnknown ? 2 : 0);
+    return finish(anyInternalFail ? 4 : anyMismatch ? 3 : anyUnknown ? 2 : 0);
   }
 
   // Human-readable.
@@ -480,6 +656,53 @@ async function main() {
     }
   }
 
+  if (internal) {
+    console.log('');
+    console.log('INTERNAL THERMODYNAMIC SELF-CONSISTENCY (offline)');
+    console.log('=================================================');
+    console.log('Each entry checked against its OWN deltaGf/deltaHf via CODATA ion constants:');
+    console.log('  (B1) logKsp =? -[ΣΔGf(ions) - ΔGf(mineral)] / 5.708');
+    console.log('  (B2) ΔH_diss =? ΣΔHf(ions) - ΔHf(mineral)');
+    console.log(`Tolerances: logKsp ±${TOL_INTERNAL_LOGK} log units, ΔH ±${TOL_INTERNAL_DH} kJ/mol`);
+    console.log('');
+    console.log(`Constant-table validation (anchors must be self-consistent): ${internal.constantsOK ? 'PASS' : 'FAIL — constants suspect'}`);
+    console.log('');
+    // Full residual table — transparency: show the constants reproducing every entry.
+    console.log('  mineral          logKsp  stored/implied (Δ)        ΔH_diss  stored/implied (Δ)');
+    console.log('  ---------------------------------------------------------------------------------');
+    for (const c of internal.checks) {
+      const lk = c.logK ? `${String(c.logK.stored).padStart(7)} / ${String(c.logK.implied).padStart(7)} (${c.logK.delta >= 0 ? '+' : ''}${c.logK.delta})` : '         —';
+      const dh = c.dH ? `${String(c.dH.stored).padStart(6)} / ${String(c.dH.implied).padStart(7)} (${c.dH.delta >= 0 ? '+' : ''}${c.dH.delta})` : '       —';
+      const flag = c.issues.length ? '  ✗ ΔH' : c.reviewIssues.length ? '  ⚠ ΔGf' : (c.isAnchor ? '  ⚓' : '');
+      console.log(`  ${c.name.padEnd(15)}  ${lk.padEnd(26)}  ${dh}${flag}`);
+    }
+    console.log('');
+    if (internal.failures.length) {
+      console.log('SELF-INCONSISTENT — ΔH_diss (engine-consumed; hard fail)');
+      console.log('-------------------------------------------------------');
+      for (const f of internal.failures) {
+        console.log(`  ${f.name}`);
+        for (const issue of f.issues) console.log(`    ${issue}`);
+      }
+      console.log('');
+    }
+    if (internal.reviews.length) {
+      console.log('REVIEW — logKsp vs reference ΔGf (non-fatal; logKsp is --verify-guarded)');
+      console.log('-----------------------------------------------------------------------');
+      for (const r of internal.reviews) {
+        console.log(`  ${r.name}`);
+        for (const issue of r.reviewIssues) console.log(`    ${issue}`);
+      }
+      console.log('');
+    }
+    if (internal.skipped.length) {
+      console.log('SKIPPED (out of internal-check scope)');
+      console.log('-------------------------------------');
+      for (const s of internal.skipped) console.log(`  ${s.name.padEnd(16)}  ${s.reason}`);
+      console.log('');
+    }
+  }
+
   console.log('SUMMARY');
   console.log('-------');
   for (const { meta, report } of reports) {
@@ -490,17 +713,27 @@ async function main() {
   if (verification) {
     console.log(`  verification: ${verification.checked.length} verified, ${verification.mismatches.length} mismatches, ${verification.skipped.length} skipped against wateq4f.dat`);
   }
+  if (internal) {
+    console.log(`  internal: ${internal.checks.length - internal.failures.length}/${internal.checks.length} ΔH-self-consistent, ${internal.reviews.length} ΔGf-review, constants ${internal.constantsOK ? 'validated' : 'SUSPECT'}, ${internal.skipped.length} out-of-scope`);
+  }
   console.log('');
 
+  if (internal && !internal.constantsOK) {
+    console.error('[thermo-coverage] WARN: --internal anchor minerals failed — the ion-constant table is suspect, not necessarily the data. Not failing the run.');
+  }
+  if (anyInternalFail) {
+    console.error('[thermo-coverage] FAIL: --internal found self-inconsistent entries — see SELF-INCONSISTENT above');
+    return finish(4);
+  }
   if (anyMismatch) {
     console.error('[thermo-coverage] FAIL: --verify found JSON values disagreeing with wateq4f.dat — see MISMATCHES above');
-    process.exit(3);
+    return finish(3);
   }
   if (anyUnknown) {
     console.error('[thermo-coverage] FAIL: some minerals have unknown tier — schema gap');
-    process.exit(2);
+    return finish(2);
   }
-  process.exit(0);
+  return finish(0);
 }
 
 main();
