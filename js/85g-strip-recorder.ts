@@ -170,14 +170,22 @@ class StripRecorder {
 
   // Group chips into the same systems the helicoid legend uses. The
   // strip view selector mirrors this grouping.
+  //
+  // Post-v165 refactor: chips DECLARE their system at the params.push
+  // site in 99j (the ChemParam.system field). The classifier reads that
+  // declaration first; the id-prefix patterns below stay only as a
+  // back-compat fallback for chips that forget to declare. The whole
+  // point of moving to declared fields is to kill the silent-mis-
+  // categorization smell — adding a new SI_<sulfate> chip used to be
+  // lumped under 'carbonate' until someone noticed and added an explicit
+  // fork in this classifier. Now: if you declare system at the source,
+  // you're correctly grouped. The fallback exists so chips written
+  // before this refactor don't break.
   private _classifyChipSystem(p: any): string {
+    if (p?.system) return String(p.system);  // declared wins
     const id = String(p?.id || '');
     if (p?.primary) return 'wall';
     if (id === 'T' || id === 'pH' || id === 'Eh' || id === 'salinity' || id === 'O2') return 'special';
-    // v165: sulfate SI chips (selenite/anhydrite/barite/celestine) read
-    // the new 40b sulfateSaturationIndex. Classified into their own
-    // 'sulfate' group so the strip-view selector + helicoid legend can
-    // toggle them as a set, parallel to the carbonate-system group.
     if (id === 'SI_selenite' || id === 'SI_anhydrite' ||
         id === 'SI_barite'   || id === 'SI_celestine') return 'sulfate';
     if (id === 'DIC' || id === 'CO2aq' || id === 'HCO3' || id === 'CO3_2' ||
@@ -185,9 +193,12 @@ class StripRecorder {
     return 'ion';
   }
 
-  // Heuristic — chip data doesn't carry units, so we infer them from
-  // id. Future improvement: add `units` field to ChemParam.
+  // Post-v165 refactor: chips DECLARE their units at the params.push
+  // site in 99j (the ChemParam.units field) — completing the "future
+  // improvement" this comment used to flag. Pattern fallback retained
+  // for back-compat with any chip that forgets to declare.
   private _inferChipUnits(p: any): string {
+    if (typeof p?.units === 'string') return p.units;  // declared wins
     const id = String(p?.id || '');
     if (id === 'wall') return 'mm';
     if (id === 'T') return '°C';

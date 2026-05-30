@@ -135,6 +135,20 @@ type ChemParam = {
   max: number,
   color: number,
   primary?: boolean,
+  // Post-v165 refactor: chips declare their classification + units at
+  // the source. The recorder's _classifyChipSystem / _inferChipUnits in
+  // 85g read these first, falling back to id-prefix patterns only for
+  // back-compat with chips that forget to declare. Killing the silent-
+  // miscategorization smell I introduced when SI_selenite landed in
+  // v165 and got lumped under 'carbonate' until I added an explicit fork.
+  //   system: which legend group this chip belongs to ('wall'|'special'|
+  //           'carbonate'|'sulfate'|'ion'). Drives the strip-view selector
+  //           and helicoid legend section.
+  //   units:  display unit (e.g. '°C', 'log Ω', 'mg/L', 'ppm'). Read by
+  //           strip-view tooltips + the dataset manifest's per-chip
+  //           units field.
+  system?: 'wall' | 'special' | 'carbonate' | 'sulfate' | 'ion',
+  units?: string,
   read: (sim: any, wall: any, ringIdx: number, cellIdx: number) => number | null | undefined,
 };
 
@@ -304,6 +318,7 @@ const _HELIX_CHEM_PARAMS: ChemParam[] = (function() {
     id: 'wall', label: 'wall distance', fullName: _HELIX_FULL_NAMES.wall,
     min: 0, max: 80, color: 0xffffff,
     primary: true,
+    system: 'wall', units: 'mm',
     read: (sim, wall, i, c) => {
       if (!wall || !wall.rings) return null;
       const ring = wall.rings[i];
@@ -331,14 +346,19 @@ const _HELIX_CHEM_PARAMS: ChemParam[] = (function() {
 
   // Specials
   params.push({ id: 'T',        label: 'temperature', fullName: _HELIX_FULL_NAMES.T,        min: 0,    max: 750,  color: 0xff5544,
+    system: 'special', units: '°C',
     read: (s, w, i, c) => (s.ring_temperatures || [])[i] });
   params.push({ id: 'pH',       label: 'pH',          fullName: _HELIX_FULL_NAMES.pH,       min: 0,    max: 14,   color: 0x9966ee,
+    system: 'special', units: '',
     read: (s, w, i, c) => (_chipFluid(s, w, i, c) || {}).pH });
   params.push({ id: 'Eh',       label: 'Eh',          fullName: _HELIX_FULL_NAMES.Eh,       min: -400, max: 800,  color: 0xddee44,
+    system: 'special', units: 'mV',
     read: (s, w, i, c) => (_chipFluid(s, w, i, c) || {}).Eh });
   params.push({ id: 'salinity', label: 'salinity',    fullName: _HELIX_FULL_NAMES.salinity, min: 0,    max: 200,  color: 0x44ccdd,
+    system: 'special', units: 'psu',
     read: (s, w, i, c) => (_chipFluid(s, w, i, c) || {}).salinity });
   params.push({ id: 'O2',       label: 'O2',          fullName: _HELIX_FULL_NAMES.O2,       min: 0,    max: 10,   color: 0xaaccff,
+    system: 'special', units: 'mg/L',
     read: (s, w, i, c) => (_chipFluid(s, w, i, c) || {}).O2 });
   // v161 evaporite driver: the per-cell `concentration` multiplier (default
   // 1.0, ×EVAPORATIVE_CONCENTRATION_FACTOR per wet→vadose drying in
@@ -349,6 +369,7 @@ const _HELIX_CHEM_PARAMS: ChemParam[] = (function() {
   // evaporite scenarios read as misleadingly "flat". Recording-only — reads
   // the same per-cell store as the other specials; no sim change.
   params.push({ id: 'concentration', label: 'evap conc', fullName: _HELIX_FULL_NAMES.concentration, min: 0, max: 10, color: 0xffbb33,
+    system: 'special', units: '×',
     read: (s, w, i, c) => (_chipFluid(s, w, i, c) || {}).concentration });
 
   // === HELIX-OVERLAY-FORK ADDITION (Week 3 carbonate) ===============
@@ -391,11 +412,13 @@ const _HELIX_CHEM_PARAMS: ChemParam[] = (function() {
   params.push({
     id: 'DIC', label: 'DIC', fullName: _HELIX_FULL_NAMES.DIC,
     min: 0, max: 4500, color: 0xC9A875,
+    system: 'carbonate', units: 'mg/L',
     read: (s, w, i, c) => (_chipFluid(s, w, i, c) || {}).CO3,
   });
   params.push({
     id: 'CO2aq', label: 'CO₂', fullName: _HELIX_FULL_NAMES.CO2aq,
     min: 0, max: 500, color: 0xF5E5A0,
+    system: 'carbonate', units: 'mg/L',
     read: (s, w, i, c) => {
       const f = _chipFluid(s, w, i, c);
       if (!f || typeof f.CO3 !== 'number' || f.CO3 <= 0) return null;
@@ -409,6 +432,7 @@ const _HELIX_CHEM_PARAMS: ChemParam[] = (function() {
   params.push({
     id: 'HCO3', label: 'HCO₃', fullName: _HELIX_FULL_NAMES.HCO3,
     min: 0, max: 4500, color: 0x6B96D9,
+    system: 'carbonate', units: 'mg/L',
     read: (s, w, i, c) => {
       const f = _chipFluid(s, w, i, c);
       if (!f || typeof f.CO3 !== 'number' || f.CO3 <= 0) return null;
@@ -422,6 +446,7 @@ const _HELIX_CHEM_PARAMS: ChemParam[] = (function() {
   params.push({
     id: 'CO3_2', label: 'CO₃²⁻', fullName: _HELIX_FULL_NAMES.CO3_2,
     min: 0, max: 80, color: 0x4A7FE0,
+    system: 'carbonate', units: 'mg/L',
     read: (s, w, i, c) => {
       const f = _chipFluid(s, w, i, c);
       if (!f) return null;
@@ -434,21 +459,25 @@ const _HELIX_CHEM_PARAMS: ChemParam[] = (function() {
   params.push({
     id: 'SI_calcite', label: 'SI cal', fullName: _HELIX_FULL_NAMES.SI_calcite,
     min: -8, max: 8, color: 0xF0F0FF,
+    system: 'carbonate', units: 'log Ω',
     read: _readSI('calcite'),
   });
   params.push({
     id: 'SI_aragonite', label: 'SI arg', fullName: _HELIX_FULL_NAMES.SI_aragonite,
     min: -8, max: 8, color: 0xCCCCCC,
+    system: 'carbonate', units: 'log Ω',
     read: _readSI('aragonite'),
   });
   params.push({
     id: 'SI_dolomite', label: 'SI dol', fullName: _HELIX_FULL_NAMES.SI_dolomite,
     min: -8, max: 8, color: 0xB87C40,
+    system: 'carbonate', units: 'log Ω',
     read: _readSI('dolomite'),
   });
   params.push({
     id: 'SI_HMC', label: 'SI HMC', fullName: _HELIX_FULL_NAMES.SI_HMC,
     min: -8, max: 8, color: 0x9078A0,
+    system: 'carbonate', units: 'log Ω',
     read: (s, w, i, c) => {
       const f = _chipFluid(s, w, i, c);
       if (!f) return null;
@@ -462,11 +491,13 @@ const _HELIX_CHEM_PARAMS: ChemParam[] = (function() {
   params.push({
     id: 'SI_siderite', label: 'SI sid', fullName: _HELIX_FULL_NAMES.SI_siderite,
     min: -8, max: 8, color: 0xB85C2B,
+    system: 'carbonate', units: 'log Ω',
     read: _readSI('siderite'),
   });
   params.push({
     id: 'pCO2', label: 'pCO₂', fullName: _HELIX_FULL_NAMES.pCO2,
     min: 0, max: 1, color: 0x4DBC5C,
+    system: 'carbonate', units: 'atm',
     read: (s, w, i, c) => {
       const f = _chipFluid(s, w, i, c);
       if (!f) return null;
@@ -479,6 +510,7 @@ const _HELIX_CHEM_PARAMS: ChemParam[] = (function() {
   params.push({
     id: 'f_ord', label: 'f_ord', fullName: _HELIX_FULL_NAMES.f_ord,
     min: 0, max: 1, color: 0xA060D0,
+    system: 'carbonate', units: '',
     read: (s, w, i, c) => {
       // _dol_cycle_count lives on conditions. The live helicoid passes a
       // snap that mirrors it up to the top level (_helixSimAtSnap), so the
@@ -519,21 +551,25 @@ const _HELIX_CHEM_PARAMS: ChemParam[] = (function() {
     params.push({
       id: 'SI_selenite', label: 'SI sel', fullName: _HELIX_FULL_NAMES.SI_selenite,
       min: -8, max: 8, color: 0xE8DDB5,
+      system: 'sulfate', units: 'log Ω',
       read: _readSulfateSI('selenite'),
     });
     params.push({
       id: 'SI_anhydrite', label: 'SI anh', fullName: _HELIX_FULL_NAMES.SI_anhydrite,
       min: -8, max: 8, color: 0xC9B98E,
+      system: 'sulfate', units: 'log Ω',
       read: _readSulfateSI('anhydrite'),
     });
     params.push({
       id: 'SI_barite', label: 'SI bar', fullName: _HELIX_FULL_NAMES.SI_barite,
       min: -8, max: 8, color: 0xB8B0A8,
+      system: 'sulfate', units: 'log Ω',
       read: _readSulfateSI('barite'),
     });
     params.push({
       id: 'SI_celestine', label: 'SI cel', fullName: _HELIX_FULL_NAMES.SI_celestine,
       min: -8, max: 8, color: 0x9EC5D9,
+      system: 'sulfate', units: 'log Ω',
       read: _readSulfateSI('celestine'),
     });
   }
@@ -571,6 +607,7 @@ const _HELIX_CHEM_PARAMS: ChemParam[] = (function() {
     const fullName = _HELIX_FULL_NAMES[ionId] || ionId;
     params.push({
       id: ionId, label: ionId, fullName, min: mn, max: mx, color,
+      system: 'ion', units: 'ppm',
       read: (s: any, w: any, ri: number, c: number) =>
         (_chipFluid(s, w, ri, c) || {})[ionId],
     });
