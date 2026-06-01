@@ -256,3 +256,42 @@ set instead of per-parcel rolls — perf and geology aligned there.
 - All **Python↔JS parity** items (effectiveTemperature port, silica_equilibrium,
   supersat-drift reconciliation, sync-spec Check 7, scenario_random parity,
   Python A6–A8 refactor): Python is deleted. JS is canonical.
+
+---
+
+## ☆ Builder's note to the next builder (coda, 2026-06-01)
+
+Things worth carrying that aren't fully captured above:
+
+1. **The inverse problem (the finish line) probably factors through the strip
+   dataset.** "Photo → recipe" direct is brutally ill-posed. But the strip
+   dataset (the fluid TRAJECTORY) is the deterministic interface between a
+   specimen and its recipe — and a crystal's zoning literally IS its recorded
+   trajectory. So the inverse likely decomposes: *photo → trajectory* (read the
+   zoning — hard, but it's reading what nature already wrote down) → *trajectory
+   → recipe* (seeds + settings that reproduce it — low-dimensional, tractable).
+   The Movements engine is building the recipe→trajectory leg. So Movements
+   isn't only forward-faithfulness — it's the **middle leg of backward
+   compatibility**. Design the strip dataset asking "could I invert from this?"
+
+2. **The convergence heuristic.** This session, "cheaper," "truer," and "more
+   invertible" kept landing on the SAME choice (fluid-source spots were all
+   three). That's the signature of a good parameterization. Rule: when a choice
+   is at once more efficient, more geologically honest, AND more invertible,
+   trust it hard. If making something prettier costs truth or invertibility,
+   be suspicious — you've probably left the science.
+
+3. **First thing to check in Phase 1:** is the OU fine-texture even visible at
+   sim resolution (~100–260 steps, post-downsample)? Holten's anti-persistence
+   is at the zoning-band scale, finer than our step. If it's below the noise
+   floor, rip it — don't tune an invisible parameter.
+
+4. **Two watch-items.** (a) The suite proves *determinism*, not *correctness* —
+   build the geological oracle FROM the first dark observation, never blind
+   (the too-tight-contract trap). (b) The arc's risk is *convergence*, not
+   capability — lock a minimum-lovable v1 (broth measurably less flat, reads
+   true on 2 scenarios) before coupling spots/spatial.
+
+5. When the science contradicts your plan, that's the compass working, not a
+   setback. The best moves this session were the two corrections (red-noise →
+   mean-reverting; iron → solubility cycling). Stay glad to be wrong.
