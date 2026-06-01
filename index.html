@@ -47474,6 +47474,18 @@ const _MOVEMENT_SALT = 0x4d4f5645;
 function _makeMovementRng(vuggSeed, salt = _MOVEMENT_SALT) {
     return _mulberry32((((vuggSeed | 0) ^ salt) >>> 0));
 }
+// SPATIAL origin (boss, 2026-06-01): a movement can originate at one
+// semi-random CELL and flow outward via the diffusion that already runs each
+// step (_diffuseRingState over mesh.cells[].fluid) — instead of applying
+// evenly across the whole cavity. That makes the vug's 3-D-ness matter and
+// reproduces one-sided growth (the hematite-on-one-side-of-calcite specimens).
+// The pick is seeded from the movement stream → reproducible AND tied to the
+// vugg/cavity seed (same cavity → same origin spots). Pure + deterministic
+// given the rng. Returns a cell index in [0, cellCount).
+function _pickOriginCell(rng, cellCount) {
+    const n = Math.max(1, cellCount | 0);
+    return Math.min(n - 1, Math.floor(rng() * n));
+}
 // ----------------------------------------------------------------
 // THE PRIMITIVE ALPHABET — pure shape functions of progress u ∈ [0,1].
 // Each returns a unitless shape in roughly [0,1] (or [-1,1] for mixing),

@@ -343,3 +343,45 @@ coherent vug, because the *chemistry is computed from the master variables, not
 scripted*. (This is "two consistencies compose" again: the seed gives
 reproducibility; the SI engines give coherence — which is exactly what frees
 the SHAPES to vary without going incoherent.)
+
+### 9c. SPATIAL origin — a movement starts at one cell and flows out (boss, 2026-06-01)
+
+Movements have a temporal shape (above) AND a **spatial origin**. Today a
+movement (like an event) changes `conditions` globally and `_propagateGlobalDelta`
+spreads it evenly — the whole cavity shifts at once. The boss's refinement:
+**a movement should originate at a semi-random SINGLE CELL and flow outward**,
+using the fact that the vug is a 3-D object.
+
+Motivating specimen: stepped calcite with hematite (Punjab, India) where the
+**hematite grows mostly on ONE side** of the calcite. If the Fe (or the redox
+shift that precipitates it) enters at one cell and diffuses outward, you get a
+spatial gradient — high near the source, decaying away — so the oxide
+concentrates on the near side instead of coating uniformly. That asymmetry is
+what real specimens show; uniform application can never produce it.
+
+**Viable on existing infra (confirmed):** the live per-cell fluid store is
+`mesh.cells[].fluid` ("mesh.cells is the source of truth"), and the step loop
+already runs `_diffuseRingState()` every step over it (85-simulator.ts:682). So
+a movement in `origin:'cell'` mode injects its per-step delta into ONE cell's
+fluid and the diffusion that ALREADY runs carries it out — no new diffusion
+machinery. The origin cell is drawn from the seeded movement stream
+(`_pickOriginCell(movementRng, cellCount)`) → reproducible AND linked to the
+vugg seed, so the same cavity always seeds its movements at the same spots
+(geology drives outcome, spatially too).
+
+**Per-movement, not global:** `origin` is a property of each movement. A
+temperature movement reasonably stays `'global'` (heat equilibrates fast across
+a small cavity); an element that should localize (Fe → one-sided hematite) uses
+`'cell'`. The boss's framing: *specific fluid elements* originate on one cell.
+
+**This also feeds the per-vertex nucleation feature.** That feature was found
+SCALE-STARVED (σ uniform because chemistry was uniform — see
+HANDOFF-PER-VERTEX-PLACEMENT.md). Localized movement origins CREATE the spatial
+chemistry heterogeneity per-vertex placement needs — so the two threads
+compose: movements supply the gradient, per-vertex placement reads it.
+
+**Build status:** the scaffold's `MovementSpec` carries an `origin` field +
+the pure seeded `_pickOriginCell` helper (Phase 0, tested). The actual
+cell-injection wiring (controller needs the sim's mesh handle) is **Phase
+1-spatial** — after the temporal pilot reads right, since it's a second
+sim-affecting change and wants its own look-and-verify pass.

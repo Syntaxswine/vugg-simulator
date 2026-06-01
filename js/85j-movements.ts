@@ -50,6 +50,19 @@ function _makeMovementRng(vuggSeed: number, salt: number = _MOVEMENT_SALT): () =
   return _mulberry32((((vuggSeed | 0) ^ salt) >>> 0));
 }
 
+// SPATIAL origin (boss, 2026-06-01): a movement can originate at one
+// semi-random CELL and flow outward via the diffusion that already runs each
+// step (_diffuseRingState over mesh.cells[].fluid) — instead of applying
+// evenly across the whole cavity. That makes the vug's 3-D-ness matter and
+// reproduces one-sided growth (the hematite-on-one-side-of-calcite specimens).
+// The pick is seeded from the movement stream → reproducible AND tied to the
+// vugg/cavity seed (same cavity → same origin spots). Pure + deterministic
+// given the rng. Returns a cell index in [0, cellCount).
+function _pickOriginCell(rng: () => number, cellCount: number): number {
+  const n = Math.max(1, cellCount | 0);
+  return Math.min(n - 1, Math.floor(rng() * n));
+}
+
 // ----------------------------------------------------------------
 // THE PRIMITIVE ALPHABET — pure shape functions of progress u ∈ [0,1].
 // Each returns a unitless shape in roughly [0,1] (or [-1,1] for mixing),
@@ -136,6 +149,15 @@ interface MovementSpec {
   texture?: { theta: number; sigma: number };
   clampMin?: number;
   clampMax?: number;
+  // SPATIAL origin. 'global' (default) = apply to conditions, propagated
+  // evenly (current behavior). 'cell' = inject into ONE seeded origin cell's
+  // mesh.cells[].fluid and let _diffuseRingState carry it out (one-sided
+  // growth). `originCell` optionally pins the cell; otherwise it's drawn from
+  // the movement stream via _pickOriginCell. NB: 'cell' injection is wired in
+  // Phase 1-spatial (the controller needs the sim's mesh handle); Phase 0
+  // carries the field + the picker but applyStep still does the global path.
+  origin?: 'global' | 'cell';
+  originCell?: number;
 }
 
 function _movementGetField(conditions: any, path: string): number {

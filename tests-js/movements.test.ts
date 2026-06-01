@@ -17,6 +17,7 @@ declare const _mvMixFraction: any;
 declare const _evalMovementOps: any;
 declare const MovementController: any;
 declare const _createMovementController: any;
+declare const _pickOriginCell: any;
 
 const conds = () => ({ temperature: 200, fluid: { pH: 6, Eh: 200 } });
 
@@ -38,6 +39,19 @@ describe('movements — seed-derived PRNG (reproducible randomness)', () => {
     const other = _makeMovementRng(58, 0x700aa517);           // a different sub-stream
     expect(Array.from({ length: 6 }, () => moves()))
       .not.toEqual(Array.from({ length: 6 }, () => other()));
+  });
+
+  it('_pickOriginCell is seeded (reproducible), in-range, and seed-sensitive', () => {
+    const cellCount = 1920;
+    const a = _pickOriginCell(_makeMovementRng(58), cellCount);
+    const b = _pickOriginCell(_makeMovementRng(58), cellCount);
+    expect(a).toBe(b);                                        // same vugg seed → same origin cell
+    expect(a).toBeGreaterThanOrEqual(0);
+    expect(a).toBeLessThan(cellCount);
+    expect(Number.isInteger(a)).toBe(true);
+    const spread = [58, 59, 60, 61, 62].map((s) => _pickOriginCell(_makeMovementRng(s), cellCount));
+    expect(new Set(spread).size).toBeGreaterThan(1);         // different cavities → varied origins
+    expect(_pickOriginCell(_makeMovementRng(58), 0)).toBe(0); // degenerate cellCount is safe
   });
 });
 
