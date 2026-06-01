@@ -171,7 +171,64 @@ specific event into a movement — so we can migrate one scenario, regenerate
    event) — likely incremental, scenario by scenario, each its own dense
    commit.
 
-## 6. Open questions
+## 6b. EMPIRICAL FINDING — the boss was right, and it's deeper than events
+
+`tools/broth-stability-probe.mjs` (2026-06-01) runs each scenario headless and
+measures how much each bulk-fluid field actually moves over the vug's life
+(CV = std/|mean|; FLAT = CV<0.05). Across 6 scenarios:
+
+| scenario | % of broth fields FLAT |
+|---|---|
+| cooling | 76% |
+| sabkha_dolomitization | 70% |
+| bisbee | 66% |
+| mvt | 65% |
+| porphyry | 64% |
+| supergene_oxidation | 44% |
+| **mean** | **~64%** |
+
+So **~2/3 of the broth is a dead-flat line over the vug's lifetime**, and many
+fields are *exactly* constant (CV=0.000: Na, Cl, K, Mg, Al, Ti, F, Ag…). Three
+things stand out:
+
+1. **`Eh` (redox potential) is 200, EXACTLY CONSTANT, in every scenario.**
+   Redox is THE master control on Fe/Mn/Cu/U/As/V solubility — and it never
+   moves. `O2` is likewise flat except where an oxidation event shoves it.
+   This is the smoking gun for the boss's Fe question: Fe can't autonomously
+   pulse-and-wane because the variable that would drive it is frozen.
+2. **Where elements DO move, it's almost entirely because a discrete event
+   shoved them.** MVT's S/Fe/Mn/Zn go DYNAMIC via `fluid_mixing`; sabkha's
+   Ca/Mg/CO₃/Sr cycle via flood/evap; supergene (the most event-dense) is the
+   least flat. Between events, fields are plateaus. The broth is a **step
+   function** — flat shelves joined by event cliffs — where reality is a
+   continuously-evolving curve.
+3. **This reframes #4.** "Events as movements" smooths the cliffs into ramps,
+   but it does NOT fix the flat shelves. The deeper fix is **autonomous,
+   persistent drift in the master variables BETWEEN events — led by redox** —
+   and letting the existing solubility/SI engines translate that into
+   correlated element pulses (Fe + Mn moving together because one Eh swing
+   drove both), rather than 50 independent noise generators.
+
+## 6c. The refined model (to be researched + planned, NOT built)
+
+Physically-faithful dynamism is driven by a FEW master variables, and elements
+track them through solubility/speciation (they covary, they don't each
+random-walk):
+
+- **Master drivers** that should evolve as persistent movements: redox (Eh —
+  currently frozen), pH, temperature, and fluid flux/mixing.
+- **Volatile (redox/solubility-sensitive) species** — Fe, Mn, Cu, U, As, V, S,
+  Pb, Zn — should be the ones that visibly pulse, *as a consequence* of the
+  Eh/pH movements, not by direct randomization.
+- **Conservative major ions** — Na, Cl, (K) — change slowly/monotonically
+  (e.g. evaporative concentration is a ramp), and stay buffered. Flat-ish is
+  CORRECT for these; the bug is that *everything* is flat.
+- Optional second source of banding: **self-organized / intrinsic oscillatory
+  zoning** at the crystal–fluid interface (diffusion-limited feedback), which
+  produces fine banding even in a constant bulk fluid — complementary to the
+  external-forcing story above.
+
+## 7. Open questions
 
 - **Ramp or drift as the default movement?** Ramp is calibration-friendlier
   and never reverses; drift is the literal ask and more organic. We may want
