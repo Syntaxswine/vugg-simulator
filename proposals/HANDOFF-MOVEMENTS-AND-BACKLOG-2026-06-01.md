@@ -202,6 +202,20 @@ inline JS narrator fallbacks (likely moot post-extraction — verify).
 `fortress*`→Creative, `legendsSim`→Simulation, `idle*`→Zen, `groove*`→Record
 Player. ~199/40/30 occurrences; breadcrumbs in place. No UX gain; pure churn.
 
+### Q. Performance / optimization (flagged boss 2026-06-01 — "down the line")
+**Symptom:** computer fans spin up on **new-vug GENERATION** (not during the
+run) → the cost is in the synchronous SETUP path, not the step loop. Suspects to
+PROFILE (observe-before-assert; don't pre-optimize): the wall-mesh build
+(bubble placement / tessellation in 22-geometry-wall), the cavity voxel-grid
+construction (4 depth slices × cells — `voxelGridFor`, v158/159), per-cell
+chemistry binding (`bindRingChemistry`), and the initial diffusion warm-up
+(`_diffuseFull`/`_diffuseRingState`, v160). Likely a one-time O(cells)–O(cells²)
+setup cost. Deferred — not now, and NOT to derail the movements arc. When picked
+up: build a timing probe first (match the gen-baseline/calibration-sweep tool
+pattern), profile, then optimize the actual hotspot. NB: the fluid-source-spots
+design (§10) already reduces per-step RNG by using a bounded precomputed origin
+set instead of per-parcel rolls — perf and geology aligned there.
+
 ### O. RESOLVED / DONE (don't re-open)
 - **Per-vertex placement flip** — investigated v167, deliberately NOT globally
   flipped (scale-starved); area-skew bug fixed. Stays opt-in. Don't re-attempt

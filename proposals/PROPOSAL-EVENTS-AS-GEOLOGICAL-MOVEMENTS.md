@@ -448,3 +448,11 @@ spatial-origin wiring SHIP TOGETHER (origins should BE spots), so what was
   - Phase 2d: open/close events (spatialize the existing seal/breach handlers).
 Each sub-step is one sim-affecting change with its own verify pass; the seam is
 already in the scaffold (`MovementSpec.origin`/`originCell`, §9c).
+
+**Spots are also a PERFORMANCE win (boss, 2026-06-01), not just geologically
+truer.** A small, precomputed, seeded set of injection points means you compute
+the origins ONCE at seed time and reuse them — chemistry injection is
+O(spots·steps), not "roll where every chemistry parcel enters" per piece per
+step. Fewer RNG draws, fewer per-step decisions. The cheaper model and the more
+honest model are the same model here. (Composes with the dedicated movement
+stream, which is also draw-light.)
