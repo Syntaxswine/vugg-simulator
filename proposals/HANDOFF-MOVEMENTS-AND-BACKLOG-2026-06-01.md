@@ -34,6 +34,33 @@ the science faithfully:
   sources, defer to geology, observe before assert, never fabricate) isn't
   caution for its own sake — it's what keeps the destination reachable.
 
+### What "byte-identical / replication of life" actually means (boss, 2026-06-02)
+Do NOT under-shoot this (I did, twice — first missing inversion, then missing
+individuality). Byte-identical means the **INDIVIDUAL crystal, not a plausible
+member of its type.** Growing "a doubly-terminated 1.5″ calcite on 2″ sphalerite"
+that matches species + habit + size is a **type-match** and is NOT the target —
+it misses *"all the textures and oddities that make that crystal THAT crystal"*:
+step-bunching, etch pits, phantoms, twin re-entrants, included blebs, the
+asymmetry from the side that faced the fluid. None of that is habit; **all of it
+is record** — the deterministic consequence of that individual's contingent
+history.
+- **The textures are not decoration to add — they EMERGE from complete physics
+  run on the exact conditions.** The crystal *computed* its texture by living its
+  history; a complete-enough sim re-runs that computation. So a small seed CAN
+  reproduce a megabit crystal: the seed is small, the **physics** is what's big
+  and does the unfolding (like a short PRNG seed → long reproducible stream).
+- **Byte-identical is the ASYMPTOTE of forward-fidelity at resolution, not a
+  bolt-on feature.** Every increment of truer + FINER physics emits more of the
+  real textures on its own. This is *why* the finish line is inevitable iff we
+  follow the science — all the way down into the grain.
+- **Honest distance:** today the forward model emits STYLIZED crystals
+  (primitives + habit tokens), not etch pits / step-bunching / phantoms at
+  individual resolution. So the texture layer isn't even in the forward physics
+  yet, let alone invertible. Bulk-chemistry fidelity (Eh, movements) is the
+  COARSEST grain — real, necessary, but the individual lives many resolution
+  increments up. Don't offer type-match seed-searches as progress toward an
+  individual; they're a category answer to a token question.
+
 Every arc — Movements included — needs no other justification than: *it is the
 next faithful step.* Movements aren't chrome; they're "model what real broths
 actually do."
