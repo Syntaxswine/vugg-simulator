@@ -255,9 +255,32 @@ diverges only above O2=5, unreachable by any scenario → clamp in 4c.2).
 **★ The "make Eh live" arc is COMPLETE (4c.1 observer → 4c.2 consume → 4c.3a
 Eh-canonical → 4c.3b first movement).** Eh went frozen+inert → live, consumed, and
 drivable, with the first geological movement (mvt redox trend) shipped. The
-Movements engine is now PROVEN end-to-end on a real scenario. Next arcs: Phase 3
-incremental rollout (more scenarios/archetypes opt in, each its own commit +
-look+listen) and Phase 2 fluid-source spots (spatial).
+Movements engine is now PROVEN end-to-end on a real scenario.
+
+**★ Phase 3 — FIRST ROLLOUT SHIPPED (SIM 170, `5b589d3`): `supergene_oxidation`
+meteoric acid front.** The SECOND scenario movement → the "reads true on 2
+SCENARIOS" minimum-lovable-v1 (coda watch-item 4b) is HIT. Deliberately a DIFFERENT
+master variable (pH, not Eh) → the engine's GENERALITY is proven, not a repeat. A
+sustained acid front (pH 6.8→4.3 smoothstep + OU, startStep 20) that RECOVERS
+vanadinite — a declared `expects_species` the static baseline never grew (36→40
+species, expects whole). Grounded in RESEARCH-supergene-acid-front-2026-06-02.md
+(Bowell 2014; Singer & Stumm 1970; verified). Pages-verified (SIM 170 + scenarios
+data serve 200). **Boss look+listen on BOTH pilots (mvt Eh trend + supergene pH
+front) is the pending sensory acceptance** — strip shows the supergene pH chip
+descending after the flush; tune by eye+ear if wanted.
+
+**★★ MOVEMENT DESIGN RULE learned this rollout (carry forward): a same-FIELD
+movement CLOBBERS same-field EVENTS.** run_step applies movements AFTER
+apply_events (85-sim:184) and a movement SETS its field absolutely each step — so a
+pH movement starting at step 0 ERASES an early pH-event window (supergene's acid
+pulses, steps 5-16 → lost jarosite+alunite). FIX: start the movement AFTER any
+same-field event window (supergene uses startStep 20, post-flush) so the events own
+their window and the movement owns the rest — they COMPOSE. mvt was immune (its
+movement drove Eh while events drove S/Zn/Pb). When opting a new scenario in, check
+whether any event touches the movement's field and start after it.
+
+Next arcs: Phase 3 continues (more scenarios/archetypes opt in, each its own commit
++ look+listen) and Phase 2 fluid-source spots (spatial).
 - **Latent note:** even flag-ON, the helpers use the coarse `ehFromO2` bijection,
   NOT the principled Nernst couples (`REDOX_COUPLES`/`redoxFraction`, built in 4a,
   still uncalled). Richer per-couple redox is a later refinement, not 4c.
@@ -269,7 +292,20 @@ look+listen) and Phase 2 fluid-source spots (spatial).
   a defect. The pivotal-but-flat fields (Ca/CO₃/Mn in closed scenarios) are the
   real targets, and a single pH movement unfreezes them.
 - `tools/movement-dark-observe.mjs` — the A/C/B observation harness above; run
-  before opting any scenario in, to ground the oracle and pick field + amplitude.
+  before opting any scenario in, to ground the oracle and pick field + amplitude
+  (trajectory + correlated-CV view; does NOT report assemblage survival).
+- `tools/movement-assemblage-observe.mjs` — **the Phase-3 rollout instrument** (the
+  generalized successor to mvt-redox-observe; any scenario+field). BASE/FLAT/TREND
+  ASSEMBLAGE SURVIVAL — does the movement keep the scenario's `expects_species`? —
+  plus the full Δ-vs-baseline assemblage + correlated-CV table. Reads
+  `expects_species` from `SCENARIOS[scen]._json5_spec`. Run THIS before baking; the
+  shape that reads true in prose can still wipe a headline mineral (the mvt-barite
+  + supergene-vanadinite tensions both surfaced here). Args (positional, startStep
+  before the rarely-used clampMax): `<scen> <field> <base> <amp> <sigma> <clampMin>
+  <startStep> <clampMax>`. **Verified finding (don't re-attempt): `colorado_plateau`
+  roll-front U with a reducing Eh trend WIPES carnotite+tyuyamunite — they're
+  oxidized U(VI) uranyl-vanadates, so reduction destroys them. Roll-front U is NOT
+  a reducing-Eh pilot; its target assemblage IS the oxidized expression.**
 - The strip view + sonifier ARE the look+listen instruments for the pilot.
 
 ---
