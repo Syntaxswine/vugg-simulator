@@ -487,3 +487,33 @@ describe('Phase 4c.2 — engines CONSUME Eh (flag ON by default)', () => {
     }
   });
 });
+
+describe('Phase 4c.3a — Eh-CANONICAL: a movement driving Eh makes O2 follow', () => {
+  // "Follow the science": Eh is the master redox variable. By default the sync
+  // is O2→Eh (Eh is a derived view). But when a movement drives fluid.Eh,
+  // run_step flips to Eh→O2 so the movement's Eh is the source of truth and
+  // isn't clobbered before the engines (which read o2FromEh(Eh)) see it. This
+  // is the mechanism the mvt Eh-movement pilot rides on. Sim-neutral until a
+  // scenario opts in (no scenario declares movements yet → byte-identical,
+  // locked by calibration.test.ts).
+
+  it('an injected fluid.Eh movement drives O2 = o2FromEh(Eh), overriding the O2→Eh default', () => {
+    setSeed(42);
+    const { conditions, events } = SCENARIOS.cooling();   // closed, O2≈0.1 (reducing)
+    const sim = new VugSimulator(conditions, events);
+    // Inject (runtime only) a movement holding Eh at +400 mV (oxidizing) — far
+    // from what cooling's O2≈0.1 would imply (ehFromO2(0.1) ≈ −75).
+    if (!sim.conditions._scenario) sim.conditions._scenario = {};
+    sim.conditions._scenario.movements = [
+      { field: 'fluid.Eh', startStep: 0, endStep: 20, base: 400, ops: [{ kind: 'trend', amp: 0 }] },
+    ];
+    for (let s = 0; s < 10; s++) sim.run_step();
+    const f = sim.conditions.fluid;
+    // Eh is the movement's setpoint, NOT the O2→Eh derivation.
+    expect(f.Eh).toBeGreaterThan(300);
+    // O2 was reverse-derived from the movement's Eh (Eh-canonical direction) —
+    // i.e. the engines (o2FromEh(Eh)) now see the movement, not the stale O2.
+    expect(f.O2).toBeCloseTo(o2FromEh(f.Eh), 6);
+    expect(f.O2).toBeGreaterThan(1);   // +400 mV → oxidizing O2, well above the initial 0.1
+  });
+});

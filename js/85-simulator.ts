@@ -236,14 +236,17 @@ class VugSimulator {
       this.log.push(sealMsg);
     }
 
-    // Phase 4c.2 — sync Eh from O2 BEFORE the engines read it. With
+    // Phase 4c.2/4c.3a — sync Eh⇄O2 BEFORE the engines read it. With
     // EH_DYNAMIC_ENABLED on, the redox helpers derive their O2 from
-    // fluid.Eh (o2FromEh), so Eh must equal ehFromO2(O2) at engine-read
-    // time for the consumed path to match the legacy O2 path. O2 is final
-    // for the step by here (events + vadose + dissolve_wall are all done;
-    // nothing between here and the growth loop rewrites O2). The
-    // end-of-step _syncRedoxEh (after diffusion) still runs, for the strip.
-    this._syncRedoxEh();
+    // fluid.Eh (o2FromEh), so the two must be consistent at engine-read
+    // time. Default direction is O2→Eh (O2 de-facto master). When a
+    // movement drives fluid.Eh this step, flip to Eh-canonical (Eh→O2) so
+    // the movement's Eh is the source of truth and isn't clobbered. O2 is
+    // final by here (events + vadose + dissolve_wall done; dissolve_wall
+    // touches only SiO2). The end-of-step sync (after diffusion) repeats this
+    // for the strip.
+    this._syncRedoxEh(this._movements
+      ? this._movements.drivesFieldAt('Eh', this.step) : false);
     this.check_nucleation(vugFill);
 
     // v128 graduated competition: pre-compute per-crystal scaled zones
@@ -689,12 +692,13 @@ class VugSimulator {
     // this preserves byte-equality for default scenarios.
     this._diffuseRingState();
 
-    // PROPOSAL-GEOLOGICAL-ACCURACY Phase 4c.1 — sync fluid.Eh from O2 on
-    // every container AFTER diffusion settles O2, so the value the strip
-    // records below reflects the step's final redox state (Eh was frozen
-    // at init before this). Observer-only while EH_DYNAMIC_ENABLED is off
-    // (nothing reads Eh in flag-OFF mode) → seed-42 byte-identical.
-    this._syncRedoxEh();
+    // PROPOSAL-GEOLOGICAL-ACCURACY Phase 4c.1/4c.3a — re-sync Eh⇄O2 on every
+    // container AFTER diffusion settles both, so the pair the strip records
+    // below reflects the step's final redox state. Same direction as the
+    // pre-nucleation sync: O2→Eh by default, Eh→O2 on steps a movement drives
+    // fluid.Eh (so the movement's Eh is what the strip shows).
+    this._syncRedoxEh(this._movements
+      ? this._movements.drivesFieldAt('Eh', this.step) : false);
 
     // === HELIX-OVERLAY-FORK ADDITION (strip view bedrock, v149+) =====
     // Helicoid-as-recorder hook (Shy's 2026-05-26 design reframe).

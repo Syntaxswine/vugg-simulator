@@ -102,6 +102,24 @@ describe('movements — controller: EMPTY is a total no-op (sim-neutral guarante
     const simMoves = { _seed: 42, conditions: { wall: { shape_seed: 58 }, _scenario: { movements: [{ field: 'temperature', startStep: 0, endStep: 5, ops: [{ kind: 'trend', amp: -10 }] }] } } };
     expect(_createMovementController(simMoves).isEmpty).toBe(false);
   });
+
+  it('drivesFieldAt detects an active movement on a field (Phase 4c.3a redox-canonical gate)', () => {
+    const ctl = new MovementController([
+      { field: 'fluid.Eh', startStep: 5, endStep: 15, ops: [{ kind: 'trend', amp: 100 }] },
+    ], 58);
+    // exact dotted path, inside the window
+    expect(ctl.drivesFieldAt('fluid.Eh', 5)).toBe(true);
+    expect(ctl.drivesFieldAt('fluid.Eh', 14)).toBe(true);
+    // bare leaf form also matches (run_step queries drivesFieldAt('Eh', step))
+    expect(ctl.drivesFieldAt('Eh', 10)).toBe(true);
+    // outside the window (start inclusive, end exclusive)
+    expect(ctl.drivesFieldAt('Eh', 4)).toBe(false);
+    expect(ctl.drivesFieldAt('Eh', 15)).toBe(false);
+    // a different field is not driven
+    expect(ctl.drivesFieldAt('temperature', 10)).toBe(false);
+    // empty controller drives nothing
+    expect(new MovementController(undefined, 58).drivesFieldAt('Eh', 10)).toBe(false);
+  });
 });
 
 describe('movements — controller: active movement drives its field', () => {

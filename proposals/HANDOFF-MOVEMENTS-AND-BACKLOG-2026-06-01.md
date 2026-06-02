@@ -198,9 +198,23 @@ diverges only above O2=5, unreachable by any scenario → clamp in 4c.2).
   the exported EH_DYNAMIC_ENABLED is a frozen load-time snapshot); flag-state +
   consumed-path tests added. No O2≤5 clamp needed (max observed O2≈2.2;
   o2FromEh saturates >5 gently). Commit: 4c.2.
-- **4c.3 — Eh drivable (canonical fork) + `mvt` Eh-movement pilot.** Decide
-  O2-canonical+Eh-view vs Eh-canonical+O2-view so a movement on Eh propagates
-  (a naive Eh movement would be overwritten by the O2→Eh sync). Then pilot.
+- **✅ 4c.3a — Eh-CANONICAL mechanism (DONE, sim-neutral, no bump).** Boss chose
+  "follow the science" → Eh is the master redox axis (O2 is one expression).
+  `_syncRedoxEh(ehCanonical)`: default O2→Eh (the 4c.1/4c.2 view); when a movement
+  drives fluid.Eh this step, flip to Eh→O2 so the movement's Eh survives to the
+  engines instead of being clobbered. `MovementController.drivesFieldAt(field,
+  step)` gates it; run_step passes the flag to both sync call sites. No scenario
+  opts in → ehCanonical always false → byte-identical (calibration green, still
+  v168). Tests: drivesFieldAt unit + injected-Eh-movement sim test (O2 derives
+  from the movement's Eh). NB: vadose-override O2 writes + an Eh movement on the
+  SAME cells is a per-cell-ownership conflict deferred to Phase 2; mvt (the pilot)
+  is closed/no-vadose so the coarse whole-cavity flip is exact there.
+- **4c.3b — `mvt` Eh-movement pilot (NEXT; boss look+listen + baseline regen).**
+  Author a geologically-faithful redox movement on mvt (MVT = low-T basinal-brine
+  carbonate-hosted Pb-Zn; sulfide deposition driven by REDUCING pulses when
+  reduced/H₂S fluid mixes in → an Eh-DROP trend/pulse-train is the faithful
+  shape). Opt mvt in, regen seed42 + strip baselines (SIM bump), then boss LOOKS
+  at the strip + LISTENS to the sonifier (the look+listen gate I can't do).
 - **Latent note:** even flag-ON, the helpers use the coarse `ehFromO2` bijection,
   NOT the principled Nernst couples (`REDOX_COUPLES`/`redoxFraction`, built in 4a,
   still uncalled). Richer per-couple redox is a later refinement, not 4c.

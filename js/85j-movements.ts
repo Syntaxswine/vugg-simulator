@@ -192,6 +192,20 @@ class MovementController {
 
   get isEmpty(): boolean { return this.movements.length === 0; }
 
+  // Phase 4c.3a — is any movement driving `field` active at this step? Used by
+  // the sim's _syncRedoxEh to flip the redox sync to Eh-CANONICAL (Eh→O2) for
+  // steps where a movement owns fluid.Eh, so the movement's Eh isn't clobbered
+  // by the default O2→Eh sync before the engines read it. Accepts the dotted
+  // path ('fluid.Eh') or the bare leaf ('Eh') a spec might use.
+  drivesFieldAt(field: string, step: number): boolean {
+    for (let i = 0; i < this.movements.length; i++) {
+      const m = this.movements[i];
+      if ((m.field === field || m.field === 'fluid.' + field || 'fluid.' + m.field === field)
+          && step >= m.startStep && step < m.endStep) return true;
+    }
+    return false;
+  }
+
   // Apply every active movement for this step. No-op (and zero draws) when
   // empty. Mutates `conditions` in place; the caller propagates the global
   // delta to per-ring fluids exactly as it does for discrete events.

@@ -14706,9 +14706,10 @@ let timeScale = 5.0;
 //                                 uranyl phases) is intact. radioactive_pegmatite
 //                                 shifts max_um <1µm + uraninite 11374→11022.
 //                                 Same class as every prior engine-flip cascade.
-//   strip_digest_v167 → v168:    regenerated; shifts only where the 2 changed
-//                                 scenarios intersect the digest set (Eh itself
-//                                 is not a hashed digest field).
+//   strip_digest_v167 → v168:    byte-identical except the sim_version stamp —
+//                                 neither changed scenario (radioactive_pegmatite,
+//                                 schneeberg) is in the 10-scenario digest set,
+//                                 and Eh itself is not a hashed digest field.
 const SIM_VERSION = 168;
 
 // ── 18-constants.js ──
@@ -42666,14 +42667,17 @@ class VugSimulator {
             }
             this.log.push(sealMsg);
         }
-        // Phase 4c.2 — sync Eh from O2 BEFORE the engines read it. With
+        // Phase 4c.2/4c.3a — sync Eh⇄O2 BEFORE the engines read it. With
         // EH_DYNAMIC_ENABLED on, the redox helpers derive their O2 from
-        // fluid.Eh (o2FromEh), so Eh must equal ehFromO2(O2) at engine-read
-        // time for the consumed path to match the legacy O2 path. O2 is final
-        // for the step by here (events + vadose + dissolve_wall are all done;
-        // nothing between here and the growth loop rewrites O2). The
-        // end-of-step _syncRedoxEh (after diffusion) still runs, for the strip.
-        this._syncRedoxEh();
+        // fluid.Eh (o2FromEh), so the two must be consistent at engine-read
+        // time. Default direction is O2→Eh (O2 de-facto master). When a
+        // movement drives fluid.Eh this step, flip to Eh-canonical (Eh→O2) so
+        // the movement's Eh is the source of truth and isn't clobbered. O2 is
+        // final by here (events + vadose + dissolve_wall done; dissolve_wall
+        // touches only SiO2). The end-of-step sync (after diffusion) repeats this
+        // for the strip.
+        this._syncRedoxEh(this._movements
+            ? this._movements.drivesFieldAt('Eh', this.step) : false);
         this.check_nucleation(vugFill);
         // v128 graduated competition: pre-compute per-crystal scaled zones
         // BEFORE the growth loop runs. The pre-computation does a dry-run
@@ -43107,12 +43111,13 @@ class VugSimulator {
         // carry identical values (Laplacian of a constant is zero) —
         // this preserves byte-equality for default scenarios.
         this._diffuseRingState();
-        // PROPOSAL-GEOLOGICAL-ACCURACY Phase 4c.1 — sync fluid.Eh from O2 on
-        // every container AFTER diffusion settles O2, so the value the strip
-        // records below reflects the step's final redox state (Eh was frozen
-        // at init before this). Observer-only while EH_DYNAMIC_ENABLED is off
-        // (nothing reads Eh in flag-OFF mode) → seed-42 byte-identical.
-        this._syncRedoxEh();
+        // PROPOSAL-GEOLOGICAL-ACCURACY Phase 4c.1/4c.3a — re-sync Eh⇄O2 on every
+        // container AFTER diffusion settles both, so the pair the strip records
+        // below reflects the step's final redox state. Same direction as the
+        // pre-nucleation sync: O2→Eh by default, Eh→O2 on steps a movement drives
+        // fluid.Eh (so the movement's Eh is what the strip shows).
+        this._syncRedoxEh(this._movements
+            ? this._movements.drivesFieldAt('Eh', this.step) : false);
         // === HELIX-OVERLAY-FORK ADDITION (strip view bedrock, v149+) =====
         // Helicoid-as-recorder hook (Shy's 2026-05-26 design reframe).
         // When a StripRecorder is attached to the sim, capture one step's
@@ -45199,35 +45204,44 @@ Object.assign(VugSimulator.prototype, {
     // (conditions.fluid is the equator alias) + every voxel (d=0 aliases
     // mesh.cells[].fluid; d≥1 are the interior slices), with a mesh.cells
     // fallback for headless paths that have no voxel grid.
-    _syncRedoxEh() {
+    //
+    // Phase 4c.3a — Eh-CANONICAL direction. "Follow the science": redox
+    // potential (Eh) is the fundamental master variable; dissolved O2 is one
+    // expression of it. By DEFAULT (ehCanonical=false) O2 is the de-facto
+    // master and Eh is its derived view (the 4c.1/4c.2 behavior, byte-identical).
+    // But when a geological MOVEMENT drives fluid.Eh (run_step passes
+    // ehCanonical=true for those steps), Eh is the source of truth: we reverse
+    // the map and derive O2 = o2FromEh(Eh) so the movement's Eh survives to the
+    // engines (which read Eh) AND any O2-reading path follows it. Without this,
+    // the default O2→Eh sync would clobber a movement-driven Eh before the
+    // engines saw it. NB: a scenario that ALSO drives O2 locally (vadose
+    // override) while an Eh movement is active is a per-cell-ownership conflict
+    // deferred to Phase 2 (mvt — the pilot — is closed, no vadose, so the coarse
+    // whole-cavity flip is exact there). Sim-neutral until a scenario opts in.
+    _syncRedoxEh(ehCanonical) {
+        const one = ehCanonical
+            ? (f) => { if (f && typeof f.Eh === 'number')
+                f.O2 = o2FromEh(f.Eh); }
+            : (f) => { if (f && typeof f.O2 === 'number')
+                f.Eh = ehFromO2(f.O2); };
         const rf = this.ring_fluids;
-        if (rf) {
-            for (let i = 0; i < rf.length; i++) {
-                const f = rf[i];
-                if (f && typeof f.O2 === 'number')
-                    f.Eh = ehFromO2(f.O2);
-            }
-        }
+        if (rf)
+            for (let i = 0; i < rf.length; i++)
+                one(rf[i]);
         const grid = this.wall_state && this.wall_state.voxelGridFor
             ? this.wall_state.voxelGridFor(this) : null;
         if (grid && grid.voxels && grid.voxels.length) {
             const vox = grid.voxels;
-            for (let i = 0; i < vox.length; i++) {
-                const f = vox[i] && vox[i].fluid;
-                if (f && typeof f.O2 === 'number')
-                    f.Eh = ehFromO2(f.O2);
-            }
+            for (let i = 0; i < vox.length; i++)
+                one(vox[i] && vox[i].fluid);
         }
         else {
             // No grid (headless harness) — d=0 wall fluids live on mesh.cells.
             const mesh = this.wall_state && this.wall_state.meshFor
                 ? this.wall_state.meshFor(this) : null;
             if (mesh && mesh.cells) {
-                for (let i = 0; i < mesh.cells.length; i++) {
-                    const f = mesh.cells[i] && mesh.cells[i].fluid;
-                    if (f && typeof f.O2 === 'number')
-                        f.Eh = ehFromO2(f.O2);
-                }
+                for (let i = 0; i < mesh.cells.length; i++)
+                    one(mesh.cells[i] && mesh.cells[i].fluid);
             }
         }
     },
@@ -47716,6 +47730,20 @@ class MovementController {
         this._state = this.movements.map(() => ({ base: 0, ou: 0, started: false }));
     }
     get isEmpty() { return this.movements.length === 0; }
+    // Phase 4c.3a — is any movement driving `field` active at this step? Used by
+    // the sim's _syncRedoxEh to flip the redox sync to Eh-CANONICAL (Eh→O2) for
+    // steps where a movement owns fluid.Eh, so the movement's Eh isn't clobbered
+    // by the default O2→Eh sync before the engines read it. Accepts the dotted
+    // path ('fluid.Eh') or the bare leaf ('Eh') a spec might use.
+    drivesFieldAt(field, step) {
+        for (let i = 0; i < this.movements.length; i++) {
+            const m = this.movements[i];
+            if ((m.field === field || m.field === 'fluid.' + field || 'fluid.' + m.field === field)
+                && step >= m.startStep && step < m.endStep)
+                return true;
+        }
+        return false;
+    }
     // Apply every active movement for this step. No-op (and zero draws) when
     // empty. Mutates `conditions` in place; the caller propagates the global
     // delta to per-ring fluids exactly as it does for discrete events.

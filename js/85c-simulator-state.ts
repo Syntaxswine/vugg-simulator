@@ -315,31 +315,37 @@ _diffuseRingState(rate?) {
   // (conditions.fluid is the equator alias) + every voxel (d=0 aliases
   // mesh.cells[].fluid; d≥1 are the interior slices), with a mesh.cells
   // fallback for headless paths that have no voxel grid.
-  _syncRedoxEh() {
+  //
+  // Phase 4c.3a — Eh-CANONICAL direction. "Follow the science": redox
+  // potential (Eh) is the fundamental master variable; dissolved O2 is one
+  // expression of it. By DEFAULT (ehCanonical=false) O2 is the de-facto
+  // master and Eh is its derived view (the 4c.1/4c.2 behavior, byte-identical).
+  // But when a geological MOVEMENT drives fluid.Eh (run_step passes
+  // ehCanonical=true for those steps), Eh is the source of truth: we reverse
+  // the map and derive O2 = o2FromEh(Eh) so the movement's Eh survives to the
+  // engines (which read Eh) AND any O2-reading path follows it. Without this,
+  // the default O2→Eh sync would clobber a movement-driven Eh before the
+  // engines saw it. NB: a scenario that ALSO drives O2 locally (vadose
+  // override) while an Eh movement is active is a per-cell-ownership conflict
+  // deferred to Phase 2 (mvt — the pilot — is closed, no vadose, so the coarse
+  // whole-cavity flip is exact there). Sim-neutral until a scenario opts in.
+  _syncRedoxEh(ehCanonical) {
+    const one = ehCanonical
+      ? (f) => { if (f && typeof f.Eh === 'number') f.O2 = o2FromEh(f.Eh); }
+      : (f) => { if (f && typeof f.O2 === 'number') f.Eh = ehFromO2(f.O2); };
     const rf = this.ring_fluids;
-    if (rf) {
-      for (let i = 0; i < rf.length; i++) {
-        const f = rf[i];
-        if (f && typeof f.O2 === 'number') f.Eh = ehFromO2(f.O2);
-      }
-    }
+    if (rf) for (let i = 0; i < rf.length; i++) one(rf[i]);
     const grid = this.wall_state && this.wall_state.voxelGridFor
       ? this.wall_state.voxelGridFor(this) : null;
     if (grid && grid.voxels && grid.voxels.length) {
       const vox = grid.voxels;
-      for (let i = 0; i < vox.length; i++) {
-        const f = vox[i] && vox[i].fluid;
-        if (f && typeof f.O2 === 'number') f.Eh = ehFromO2(f.O2);
-      }
+      for (let i = 0; i < vox.length; i++) one(vox[i] && vox[i].fluid);
     } else {
       // No grid (headless harness) — d=0 wall fluids live on mesh.cells.
       const mesh = this.wall_state && this.wall_state.meshFor
         ? this.wall_state.meshFor(this) : null;
       if (mesh && mesh.cells) {
-        for (let i = 0; i < mesh.cells.length; i++) {
-          const f = mesh.cells[i] && mesh.cells[i].fluid;
-          if (f && typeof f.O2 === 'number') f.Eh = ehFromO2(f.O2);
-        }
+        for (let i = 0; i < mesh.cells.length; i++) one(mesh.cells[i] && mesh.cells[i].fluid);
       }
     }
   },
