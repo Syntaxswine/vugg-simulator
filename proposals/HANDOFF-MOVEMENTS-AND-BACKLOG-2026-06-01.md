@@ -359,9 +359,35 @@ wall-decay bonus → 2c origin-rides-spots + deposition bias → 2d open/close e
   because the rendered output changed. **Boss: the lopsided cavity is the look — on
   acidic scenarios (porphyry/bisbee/supergene) the vug should be visibly deeper
   toward its feeder columns.**
-- **2c:** `origin:'cell'` movements ride OPEN spots (supersede _pickOriginCell) +
-  deposition bias (supplyAt → check_nucleation). The one-sided-growth payoff.
+- **2c (NEXT — the bigger arc, one-sided GROWTH):** wire the spatial-origin injection
+  (the never-built "Phase 1-spatial", §9c) + deposition bias. CONCRETE START:
+  (1) MovementController.applyStep currently sets `conditions` GLOBALLY then run_step
+  `_propagateGlobalDelta`s it evenly. For an `origin:'cell'` movement, inject the
+  per-step delta into ONE seeded cell's `mesh.cells[idx].fluid` instead, and let
+  `_diffuseRingState()` (already runs every step, 85-sim:693) carry it outward → a
+  near→far gradient (the Punjab hematite-on-one-side). The controller needs the sim's
+  mesh handle (pass it in run_step). (2) The origin cell SHOULD BE an open fluid-spot
+  (FluidSpotField.openSpots()), not the naive `_pickOriginCell` any-cell pick — spots
+  supersede it. (3) Deposition bias: `FluidSpotField.supplyAt(cell)` (already built,
+  per-kind: geyser 1.8 / hotspot 1.4 / crack 1.0) multiplies local σ/nucleation
+  probability in `check_nucleation` → crystals cluster near the feeder. Flag-gate each;
+  dark-observe the gradient (does a localized element pulse decay with distance from
+  the spot?) BEFORE baking; this WILL shift the assemblage baseline (unlike 2b's pure
+  geometry) → SIM bump + regen. This also FEEDS the scale-starved per-vertex placement
+  (it was starved for exactly this spatial heterogeneity — HANDOFF-PER-VERTEX-PLACEMENT).
 - **2d:** open/close via events (spatialize the seal/breach handlers).
+- **SHOWPIECE (boss look, banked from chat):** `supergene_oxidation` + `shape_seed 23`
+  is the strongest 2b lopsided cavity — 3 feeders incl. a crack (1.6×) carve it ~1.8×
+  deeper on one side (mean wall_depth ~41mm, feeder lobe ~74mm, 34mm bulge). supergene
+  wins because its acid front dissolves the most wall → biggest absolute bulge. Seeds
+  16/15/14 similar (14 = twin crack). Default supergene (shape_seed 7) has 1 hotspot
+  (subtle). porphyry default = cleanest uniform→single-bulge A/B but small (~0.5mm).
+- **OPEN QUESTION (boss feedback pending):** is 2b's lopsidedness VISIBLE ENOUGH on the
+  3D render vs the existing 'irregular' architecture variance? If too subtle, the
+  decay bonuses (1.2-1.6×) want amplifying — a cheap tune in _KIND_DEFAULTS (85k).
+  Also: erodeCells is RING0-only (equatorial slices) — the bulge is an equatorial-plane
+  asymmetry; a per-(ring,col) erosion model would make spots deepen at their actual
+  latitude (bigger refactor, future).
 - **Latent note:** even flag-ON, the helpers use the coarse `ehFromO2` bijection,
   NOT the principled Nernst couples (`REDOX_COUPLES`/`redoxFraction`, built in 4a,
   still uncalled). Richer per-couple redox is a later refinement, not 4c.
@@ -674,3 +700,43 @@ What I'd have the next builder do, in order:
 This is a years-long cathedral. Build the next faithful step, write down what you
 learn for the one after you, and trust that following the science all the way down
 into the grain is the road that gets there. It was an honor to lay a few stones.
+
+---
+
+### ☆☆☆ Addendum — the "second movement + spatial spots" session (2026-06-02)
+
+What shipped (all on Syntaxswine, green throughout): **supergene_oxidation pH acid
+front** (SIM 170, the SECOND movement → "reads true on 2 scenarios" v1 hit; recovers
+vanadinite, a baseline miss) → **Phase 3 coverage map** (the clean temporal set is
+just 2; the rest are gated — documented, not forced) → **Phase 2a fluid-spots dark
+scaffold** (seeded, byte-identical) → **Phase 2b feeder-localized erosion** (SIM 171,
+lopsided cavities, render-visible). Two new instruments: `movement-assemblage-observe`
+(Phase-3) + `fluid-spots-observe` (Phase-2).
+
+Meta-lessons worth carrying (not captured elsewhere):
+- **Mass-conserving redistribution is a superpower.** 2b adds a real, render-visible
+  feature (lopsided erosion) with ZERO chemistry-baseline drift, because it
+  redistributes a fixed budget instead of adding to it. When you can phrase a change
+  as "same total, different distribution," you get the feature nearly free of risk.
+- **A change can be real and invisible to the suite at once.** 2b is byte-identical on
+  seed-42 + strip-digest yet changes the render. The suite proves chemistry
+  determinism, not geometry. When that happens, PIN the new behavior with a dedicated
+  test (don't lean on the baseline) and bump SIM_VERSION anyway — the rendered game
+  changed (Pages-is-the-game). Different doors, same room: the baseline door simply
+  doesn't open onto geometry.
+- **"Finish in totality" can mean proving the boundary.** Asked to finish the temporal
+  feature, the honest answer was "the clean set is 2; baking unmotivated movements
+  would betray follow-the-science." Documenting WHY the other 28 are gated (T-blocked,
+  event-confounded, baseline-debt, assemblage-cost) IS finishing it. A feature is done
+  when its coverage is deliberate, not when every slot is filled.
+- **Verify the mechanism, every time — it keeps paying.** Two "bugs" this session were
+  caught by instrumenting, not narrating: the all-zero spots (wrong wall handle:
+  wall_state vs conditions.wall) and a "tool contamination" scare that was just my own
+  arg-order mistake (a contamination test proved the engine clean). The clobber rule
+  (a same-field movement overwrites same-field events → start after the event window)
+  came the same way.
+
+Next builder: **2c** is the one-sided-GROWTH payoff (spatial-origin injection +
+deposition bias) — concrete entry points are in the Phase 2 section above. The boss
+has the seed-23 supergene showpiece to look at, and one open question pending their
+eye: is 2b lopsidedness visible enough, or do the decay bonuses want amplifying?
