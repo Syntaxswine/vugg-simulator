@@ -359,22 +359,50 @@ wall-decay bonus → 2c origin-rides-spots + deposition bias → 2d open/close e
   because the rendered output changed. **Boss: the lopsided cavity is the look — on
   acidic scenarios (porphyry/bisbee/supergene) the vug should be visibly deeper
   toward its feeder columns.**
-- **2c (NEXT — the bigger arc, one-sided GROWTH):** wire the spatial-origin injection
-  (the never-built "Phase 1-spatial", §9c) + deposition bias. CONCRETE START:
-  (1) MovementController.applyStep currently sets `conditions` GLOBALLY then run_step
-  `_propagateGlobalDelta`s it evenly. For an `origin:'cell'` movement, inject the
-  per-step delta into ONE seeded cell's `mesh.cells[idx].fluid` instead, and let
-  `_diffuseRingState()` (already runs every step, 85-sim:693) carry it outward → a
-  near→far gradient (the Punjab hematite-on-one-side). The controller needs the sim's
-  mesh handle (pass it in run_step). (2) The origin cell SHOULD BE an open fluid-spot
-  (FluidSpotField.openSpots()), not the naive `_pickOriginCell` any-cell pick — spots
-  supersede it. (3) Deposition bias: `FluidSpotField.supplyAt(cell)` (already built,
-  per-kind: geyser 1.8 / hotspot 1.4 / crack 1.0) multiplies local σ/nucleation
-  probability in `check_nucleation` → crystals cluster near the feeder. Flag-gate each;
-  dark-observe the gradient (does a localized element pulse decay with distance from
-  the spot?) BEFORE baking; this WILL shift the assemblage baseline (unlike 2b's pure
-  geometry) → SIM bump + regen. This also FEEDS the scale-starved per-vertex placement
-  (it was starved for exactly this spatial heterogeneity — HANDOFF-PER-VERTEX-PLACEMENT).
+- **✅ 2c.1 DONE (dark mechanism + observer, byte-identical, NO SIM bump): origin:'cell'
+  spatial injection.** `MovementController.applyStep(conditions, step, sim)` gained a sim
+  handle (run_step passes `this`; 2-arg callers degrade safely to global). For an
+  `origin:'cell'` movement it PINS one seeded cell's `mesh.cells[idx].fluid[leaf]` to the
+  movement value each step (a fixed-composition feeder) and SKIPS the bulk set, so run_step's
+  `_propagateGlobalDelta` is a no-op for it and the step-end `_diffuseRingState` carries the
+  value outward. Origin resolved ONCE at first window activation (`_resolveOriginCell`):
+  explicit `m.originCell` → a seeded pick among `FluidSpotField.openSpots()` → `_pickOriginCell`
+  fallback (one draw from the dedicated movement stream → reproducible, independent of the
+  nucleation rng). DARK: no scenario declares origin:'cell' → seed-42 + strip-digest byte-
+  identical (regen-confirmed). Tests: 5 new in movements.test.ts (pin-one-cell + leave-bulk-and-
+  conditions-untouched, open-spot resolution incl. skip-closed, no-spots fallback, 2-arg back-
+  compat, reproducibility). Observer: **tools/fluid-spot-origin-observe.mjs**.
+  - **★ KEY ARCHITECTURE FINDING (load-bearing, was a stale-comment trap):** per-cell
+    `mesh.cells[].fluid` are INDEPENDENT clones (Tranche 4c) and are **DECOUPLED** from
+    `ring_fluids`/`conditions.fluid` — writing one does NOT update the other (proof:
+    85c-simulator-state.ts:152-168, the vadose override must explicitly mirror writes to
+    BOTH because "the mesh-only path left ring_fluids[r] alone, so the nucleation gate never
+    saw it"). The LEGACY nucleation gate + placement read ring_fluids; only the STRIP view +
+    the per-vertex sampler read mesh.cells. ⇒ a cell injection is strip/per-vertex-VISIBLE but
+    **assemblage-NEUTRAL on its own** (byte-identical seed-42, like 2b). Assemblage-level
+    one-sided GROWTH needs the deposition bias (2c.2) to bite the legacy placement. (Fixed the
+    stale Tranche-1 comment at 85-sim:131 that claimed `cells[i].fluid === ring_fluids[r]`.)
+  - **OBSERVED (supergene seed-23, pH trend 6.8→4.3 at the hotspot@cell1002 feeder, texture
+    off):** the gradient is REAL and correctly SHARP for a point source + slow diffusion
+    (rate 0.05) — acid pinned at d=0 (pH 4.93) recovers to bulk (6.52) within ~8 graph-hops,
+    then flat; GLOBAL gives a uniform bulk drop (per-cell spread 0.00). So `origin:'cell'` is
+    NOT a drop-in for a global movement: it models a DIFFERENT geology (a point feeder
+    decorating a local halo — the Punjab hematite case), not pervasive supergene acid. Pick
+    the 2c.3 demonstrator accordingly (a distinct point-source fluid into an otherwise-static
+    cavity), NOT supergene's pervasive front.
+- **2c.2 (NEXT — the assemblage lever): deposition bias on PLACEMENT.** `FluidSpotField.supplyAt(cell)`
+  (per-kind: geyser 1.8 / hotspot 1.4 / crack 1.0) weights WHERE crystals nucleate so they
+  cluster near feeders — the lever that reaches the LEGACY assemblage every spot scenario sees
+  (the cell injection above can't, per the decoupling finding). Hooks: (a) the legacy empty-cell
+  pick (85b-simulator-nucleate.ts:572-576) — weight empty ring0 columns by supply, the placement
+  analog of 2b's columnWeights; (b) the per-vertex sampler weight (85b:674) — multiply `w` by
+  supply. Like 2b/2c.1 it's count-neutral (same draws, biased WHERE) so it MAY stay byte-identical
+  where rings are chemically uniform, but WILL shift growth where the feeder's ring differs
+  chemically → dark-observe placement shift, then SIM bump + regen if it bites. Flag-gate.
+- **2c.3:** bake origin:'cell' (2c.1) + deposition (2c.2) into ONE science-chosen point-source
+  demonstrator → the visible one-sided specimen. SIM bump + regen. This also FEEDS the scale-
+  starved per-vertex placement (it was starved for exactly this spatial heterogeneity —
+  HANDOFF-PER-VERTEX-PLACEMENT).
 - **2d:** open/close via events (spatialize the seal/breach handlers).
 - **SHOWPIECE (boss look, banked from chat):** `supergene_oxidation` + `shape_seed 23`
   is the strongest 2b lopsided cavity — 3 feeders incl. a crack (1.6×) carve it ~1.8×
