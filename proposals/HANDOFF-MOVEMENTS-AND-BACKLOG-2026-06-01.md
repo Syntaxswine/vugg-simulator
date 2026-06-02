@@ -322,7 +322,33 @@ Broad coverage requires real sub-projects, in leverage order: (1) **T-reconcilia
 (subsume ambient_cooling → unlocks ~8 cooling/hydrothermal/metamorphic scenarios —
 the biggest unlock), (2) **event-subsumption** (bisbee/schneeberg redox events →
 movements), (3) **baseline calibration** (roughten_gill/sunnyside). Each is its own
-arc. Phase 2 (spatial fluid-source spots) remains the other parked feature.
+arc. (Boss 2026-06-02: pH/Eh temporal feature ACCEPTED as done at its clean set;
+pivoted to Phase 2.)
+
+## Phase 2 — FLUID-SOURCE SPOTS (spatial), active 2026-06-02
+"The specific points where things enter the vugg" (boss). Cracks/geysers/hotspots —
+seeded wall entry points (PROPOSAL §10). Sub-steps: 2a seed+observe (dark) → 2b
+wall-decay bonus → 2c origin-rides-spots + deposition bias → 2d open/close events.
+- **✅ 2a DONE (dark scaffold, byte-identical, NO SIM bump).** `js/85k-fluid-spots.ts`:
+  `FluidSpot {cell,kind,open,supply,decayBonus}` + `_seedFluidSpots(shape_seed,
+  cellCount, opts)` off a DEDICATED `_mulberry32(shape_seed ^ 0x53504f54)` stream
+  (independent of the shared rng → seeding draws nothing from the nucleation
+  cascade) + a no-op-safe `FluidSpotField` (empty set = neutral everywhere). The sim
+  constructor seeds `this._fluidSpots` after the mesh is built; scenarios may pin
+  count/kinds via a `fluid_spots` block (threaded in 70-events). DARK: stored, NOT
+  consumed → seed-42 + strip-digest byte-identical (regen confirmed no drift).
+  Observed (tools/fluid-spots-observe.mjs): count distribution {0:6,1:10,2:12,3:1,4:1}
+  across 30 scenarios (mode 1-2, ~20% zero — as designed), sensible floor/wall/ceiling
+  positions, reproducible (same shape_seed → identical spots; scenarios sharing a
+  shape_seed share spots). GOTCHA fixed: the built+cached mesh AND shape_seed live on
+  `sim.wall_state` (WallState), NOT `sim.conditions.wall` (the VugWall config) — read
+  spatial state from wall_state. Tests: tests-js/fluid-spots.test.ts (9).
+- **2b NEXT:** wall-decay bonus — open-spot cells erode faster in `erodeCells`/
+  `dissolve_wall` (FluidSpotField.decayMultiplierAt is already the hook) → lopsided
+  cavity deepening. First coupling; flag-gate it, baseline regen + look.
+- **2c:** `origin:'cell'` movements ride OPEN spots (supersede _pickOriginCell) +
+  deposition bias (supplyAt → check_nucleation). The one-sided-growth payoff.
+- **2d:** open/close via events (spatialize the seal/breach handlers).
 - **Latent note:** even flag-ON, the helpers use the coarse `ehFromO2` bijection,
   NOT the principled Nernst couples (`REDOX_COUPLES`/`redoxFraction`, built in 4a,
   still uncalled). Richer per-couple redox is a later refinement, not 4c.
