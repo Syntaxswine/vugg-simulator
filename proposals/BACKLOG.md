@@ -2,6 +2,28 @@
 
 Living list of open work items, captured from session conversations so context survives compaction. Each item has enough detail that someone picking it up cold can act without re-discovering the rationale.
 
+> ## 🔊 UPDATE (2026-06-03, later) — TWO LISTENING FINDINGS closed (SIM 175)
+>
+> Boss listened to the strip sonifier + looked at the strip, and flagged two things;
+> both are now shipped + accepted (drone by ear, halo by eye on Pages):
+> - **Drones go silent in scale modes** → `54bc53f` (SIM-neutral). The rhythm layer
+>   rested held pitches to silence (~5% sounded); now they SUSTAIN (legato, ~90%) in
+>   every scale mode. `STRIP_RHYTHM.sustainFrac` is the tuning knob.
+> - **No dips in the broth around crystals** → the DEPLETION-FLOOR channel, `a5837ed`
+>   (SIM 175, dataset format_version 3). The recorder sampled one midpoint cell per 15°
+>   bin → threw away ~80-90% of the halo. Fix: a parallel `floor_data` tensor = per-bin
+>   MIN for ION chips at the wall (depth 0); the LEVEL (`chip_data`) stays byte-identical
+>   so seed42 + strip_digest don't move. Renderer (99k) draws a shadow band hanging to
+>   the floor. strip-floor-probe: reactive_wall Ag halo 19.87% recovered (vs 2.35%).
+>   The bin-MEAN first attempt was a measured DEAD-END (dilutes + 5× perf timeouts) —
+>   logged as the 8th catch in `proposals/CATCHES.md`. Probes: depletion-dip /
+>   strip-depletion / strip-floor. Test infra: testTimeout 30→60s, hookTimeout 60→120s
+>   (heavier recorder). Full suite 1754/1754 green.
+> - **Open from this arc:** (1) a SONIFIER depletion voice (hear the sag — the audible
+>   twin of the shadow; not built); (2) the floor shadow's visual weight (boss's eye);
+>   (3) the halo is still DECOUPLED from the nucleation gate — showing where the broth
+>   thins, not a distinct mineral firing only there (still the per-cell-gating frontier).
+>
 > ## 🪨 UPDATE (2026-06-03) — the FLUID-SPOTS arc is COMPLETE (SIM 174)
 >
 > Phase 2 fluid-spots shipped end-to-end: **2a** seed → **2b** lopsided erosion →

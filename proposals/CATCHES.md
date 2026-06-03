@@ -289,6 +289,7 @@ field). The data now testifies against itself automatically, every run.
 | v163 native_bismuth window | Load-bearing spurious mechanism | calibration test failure post-v162 |
 | v164 barite endotherm sign | Fabricated value (memory) | WebFetch verification BEFORE commit |
 | post-v166 carbonate ΔH sign-flips | Fabricated value (estimate citing absent source) | the verification TOOL (run on the legacy file) |
+| v175 bin-mean recorder (depletion halo) | Plausible fix refuted by measurement, BEFORE shipping | the probe — twice: it DILUTES a one-cell halo ~5×, AND its 5× reads cascaded test timeouts |
 
 The seventh catch is the most satisfying: the verification tool built from
 the sixth catch's lesson found a backlog of the same failure mode on its
@@ -300,6 +301,20 @@ died*, and now one by *a tool asking every value to agree with its own
 sources*. The pattern holds: a question asked of existing data in a
 slightly different way returns a surprising answer. Build the instrument
 that asks, and the next catch surfaces itself.
+
+The EIGHTH catch (v175, 2026-06-03) is a different species — not a wrong value
+that shipped, but a wrong APPROACH caught before it could. Boss heard "I don't
+see dips in the broth around crystals"; the obvious fix (have the strip recorder
+AVERAGE each angular bin instead of sampling one midpoint cell) was wired,
+built, and measured — and the measurement refuted it twice: (1) averaging a
+5-cell bin DILUTES a single crystal's ~22% cell-dip to ~4-5%, so the halo still
+didn't surface; (2) the 5× chip-reads cascaded recording-heavy tests into
+timeouts under parallel load. Reverted. The science pointed at the per-bin
+MINIMUM (a depletion-FLOOR channel, format_version 3, ion chips at the wall),
+which recovered the full 19.87% Ag halo with the level kept byte-identical. The
+lesson generalizes the first seven: a probe doesn't only catch values that
+already shipped — run it on a fix you're ABOUT to ship and it tells you whether
+the fix does the thing. The cheapest catch is the one before the commit.
 
 The bedrock is now laid. The sediment is the next round of work; the truth
 is told in time.
