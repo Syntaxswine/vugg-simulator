@@ -248,9 +248,13 @@ diverges only above O2=5, unreachable by any scenario → clamp in 4c.2).
   (sulfate gangue early → sulfide ore late). mvt's scenarios.json5 gains a
   `movements` block; Eh-canonical (O2 follows). Only mvt changed; all other
   scenarios byte-identical; seed42_v169 + strip_digest regen; suite 1719/1719.
-  **REMAINING: boss LOOK (strip Eh chip should sweep +60→−246, paragenetic barite-
-  early/galena-late) + LISTEN (sonifier) — the sensory acceptance I can't do —
-  then tune shape by eye+ear if wanted.**
+  **✅ LISTEN ACCEPTANCE (boss 2026-06-03): "MVT is great, i love the way it sounds."**
+  The sonifier door confirms the Eh-movement reads true BY EAR — the door-test passes
+  (strip + sound = same room). It sings because the Eh trend gives the redox voice a
+  slow descent, OU gives it a living mean-reverting wobble, and one-master-var →
+  correlated pulses means the crystal-bells play the paragenetic ORDER (barite early
+  gangue → galena swelling late 1×→4×): harmony from shared causation. NO tuning
+  requested. (Strip-LOOK acceptance still open, but the ear has spoken.)**
 
 **★ The "make Eh live" arc is COMPLETE (4c.1 observer → 4c.2 consume → 4c.3a
 Eh-canonical → 4c.3b first movement).** Eh went frozen+inert → live, consumed, and
@@ -265,9 +269,9 @@ sustained acid front (pH 6.8→4.3 smoothstep + OU, startStep 20) that RECOVERS
 vanadinite — a declared `expects_species` the static baseline never grew (36→40
 species, expects whole). Grounded in RESEARCH-supergene-acid-front-2026-06-02.md
 (Bowell 2014; Singer & Stumm 1970; verified). Pages-verified (SIM 170 + scenarios
-data serve 200). **Boss look+listen on BOTH pilots (mvt Eh trend + supergene pH
-front) is the pending sensory acceptance** — strip shows the supergene pH chip
-descending after the flush; tune by eye+ear if wanted.
+data serve 200). **Sensory acceptance: mvt Eh trend ✅ ACCEPTED BY EAR (boss 2026-06-03,
+"love the way it sounds"). supergene pH front — listen still pending** (strip shows the
+supergene pH chip descending after the flush; tune by eye+ear if wanted).
 
 **★★ MOVEMENT DESIGN RULE learned this rollout (carry forward): a same-FIELD
 movement CLOBBERS same-field EVENTS.** run_step applies movements AFTER
