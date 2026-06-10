@@ -2,6 +2,17 @@
 
 Living list of open work items, captured from session conversations so context survives compaction. Each item has enough detail that someone picking it up cold can act without re-discovering the rationale.
 
+> ## 🪨 UPDATE (2026-06-10) — SESSION HANDOFF: review → rebake → soundtrack
+>
+> **`proposals/HANDOFF-REVIEW-REBAKE-MUSIC-2026-06-10.md`** is the handoff for
+> the 2026-06-09/10 session (three-metrics review, the v177-v179 rebake arc,
+> the music + settings shell, the GainNode volume fix). It carries the nine
+> lessons learned, the ordered next steps (tune-scenario pass first, ehFromO2
+> before Movements Phase 1), and pointers into this backlog. CATCHES.md gained
+> the 10th-12th catches (same-length staleness / the test that loved the bug /
+> the latent "HIGH"). Next builder: read the 2026-06-05 orientation handoff
+> first if cold, then that one, then the banners below.
+>
 > ## 🎵 UPDATE (2026-06-09, latest) — MUSIC + the settings shell (SIM-NEUTRAL)
 >
 > Boss-directed: two boss-supplied tracks now loop per room — "Vugg
