@@ -10239,5 +10239,43 @@
 //   mvt-analog), honestly framed as a demonstrator archetype, not a measured locality.
 //   FILES: js/70t (handlers), js/70-events.ts (registry), data/scenarios.json5
 //   (spec), index.html (3 menu surfaces), tests-js/reactivated-fluorite-vein.test.ts.
-const SIM_VERSION = 176;
+// v177 (2026-06-09) — GRADUATED COMPETITION: the per-cell group key actually keys
+//                     per-cell now. First fix of the three-metrics-review rebake arc
+//                     (proposals/REVIEW-THREE-METRICS-2026-06-09.md §1.3).
+//
+//   THE BUG (shipping since v128c): _computeGraduatedZones built its competition-group
+//   key from `cell.id ?? cell.idx ?? ringIdx + ':' + cell.vertexIdx` — but WallCell
+//   defines NONE of those fields, so every key degraded to `cell:<ringIdx>:?`. All
+//   crystals in a ring competed in ONE group, rationed against whichever cell's fluid
+//   happened to register first (insertion-order-dependent), while their mass-balance
+//   debits landed on their OWN cells. A ring with N crystals in N separate cells got
+//   each rationed to ~1/N of one arbitrary cell's budget instead of growing freely on
+//   its own; a crystal on a depleted cell could be granted growth funded by a rich
+//   neighbor's budget it never debits. Probe evidence (mvt seed 42, step 40): fluorite
+//   (r7,c39) + willemite (r7,c118) + barite (r7,c20) — three cells, one group key.
+//
+//   THE FIX: key off the resolved anchor, and make group identity always match the
+//   budget being rationed — `cell:${anchor.ringIdx}:${anchor.cellIdx}` when the cell
+//   carries its own fluid (post-Tranche-4a normal case), `ring:${ringIdx}` when the
+//   budget falls back to the shared ring fluid. RNG-neutral (no draws touched); the
+//   change is allocation-only, so drift comes from rationing, not cascade displacement.
+//
+//   THE MEASUREMENT (tools/graduated-binding-probe.mjs — built WITH the fix, reading a
+//   new observer-only _gradCompStats counter in 44): rationing binds RARELY but really —
+//   199/80,649 allocations (0.25%) across all 31 scenarios at seed 42 (porphyry 120,
+//   schneeberg 65, bisbee 11, gem_pegmatite 3; some scalings hit 0.000). The decisive
+//   fact: the BOUND populations are IDENTICAL under the old per-ring key and the fixed
+//   per-cell key (probe run both ways via stash), even though the old key lumped ~4×
+//   more crystals into contention groups (bisbee multi-crystal groups 1692 → 398).
+//   Every allocation that actually binds is a SAME-CELL stack (substrate nucleation
+//   piles crystals onto one anchor cell), which both keys group identically.
+//
+//   BASELINE: seed42 byte-identical to v176, all 31 scenarios (0 moved). The bug was
+//   structurally real but output-LATENT at current MASS_BALANCE_SCALE — cross-cell
+//   lumping never had budget pressure to express itself. It would have started biting
+//   exactly when budgets tighten (the v178 PWP Ea fix, Phase 1e scale rise, per-cell
+//   gating). SIM bumps because allocation-grouping semantics changed (the old key was
+//   insertion-ORDER-DEPENDENT in which budget fluid it rationed against — other seeds /
+//   future scenarios could diverge even though seed 42 doesn't).
+const SIM_VERSION = 177;
 

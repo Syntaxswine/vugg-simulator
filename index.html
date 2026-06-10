@@ -15003,7 +15003,45 @@ let timeScale = 5.0;
 //   mvt-analog), honestly framed as a demonstrator archetype, not a measured locality.
 //   FILES: js/70t (handlers), js/70-events.ts (registry), data/scenarios.json5
 //   (spec), index.html (3 menu surfaces), tests-js/reactivated-fluorite-vein.test.ts.
-const SIM_VERSION = 176;
+// v177 (2026-06-09) — GRADUATED COMPETITION: the per-cell group key actually keys
+//                     per-cell now. First fix of the three-metrics-review rebake arc
+//                     (proposals/REVIEW-THREE-METRICS-2026-06-09.md §1.3).
+//
+//   THE BUG (shipping since v128c): _computeGraduatedZones built its competition-group
+//   key from `cell.id ?? cell.idx ?? ringIdx + ':' + cell.vertexIdx` — but WallCell
+//   defines NONE of those fields, so every key degraded to `cell:<ringIdx>:?`. All
+//   crystals in a ring competed in ONE group, rationed against whichever cell's fluid
+//   happened to register first (insertion-order-dependent), while their mass-balance
+//   debits landed on their OWN cells. A ring with N crystals in N separate cells got
+//   each rationed to ~1/N of one arbitrary cell's budget instead of growing freely on
+//   its own; a crystal on a depleted cell could be granted growth funded by a rich
+//   neighbor's budget it never debits. Probe evidence (mvt seed 42, step 40): fluorite
+//   (r7,c39) + willemite (r7,c118) + barite (r7,c20) — three cells, one group key.
+//
+//   THE FIX: key off the resolved anchor, and make group identity always match the
+//   budget being rationed — `cell:${anchor.ringIdx}:${anchor.cellIdx}` when the cell
+//   carries its own fluid (post-Tranche-4a normal case), `ring:${ringIdx}` when the
+//   budget falls back to the shared ring fluid. RNG-neutral (no draws touched); the
+//   change is allocation-only, so drift comes from rationing, not cascade displacement.
+//
+//   THE MEASUREMENT (tools/graduated-binding-probe.mjs — built WITH the fix, reading a
+//   new observer-only _gradCompStats counter in 44): rationing binds RARELY but really —
+//   199/80,649 allocations (0.25%) across all 31 scenarios at seed 42 (porphyry 120,
+//   schneeberg 65, bisbee 11, gem_pegmatite 3; some scalings hit 0.000). The decisive
+//   fact: the BOUND populations are IDENTICAL under the old per-ring key and the fixed
+//   per-cell key (probe run both ways via stash), even though the old key lumped ~4×
+//   more crystals into contention groups (bisbee multi-crystal groups 1692 → 398).
+//   Every allocation that actually binds is a SAME-CELL stack (substrate nucleation
+//   piles crystals onto one anchor cell), which both keys group identically.
+//
+//   BASELINE: seed42 byte-identical to v176, all 31 scenarios (0 moved). The bug was
+//   structurally real but output-LATENT at current MASS_BALANCE_SCALE — cross-cell
+//   lumping never had budget pressure to express itself. It would have started biting
+//   exactly when budgets tighten (the v178 PWP Ea fix, Phase 1e scale rise, per-cell
+//   gating). SIM bumps because allocation-grouping semantics changed (the old key was
+//   insertion-ORDER-DEPENDENT in which budget fluid it rationed against — other seeds /
+//   future scenarios could diverge even though seed 42 doesn't).
+const SIM_VERSION = 177;
 
 // ── 18-constants.js ──
 
@@ -29749,10 +29787,37 @@ function _computeSpeciesShares(runs, sp, available) {
 // Output:
 //   Map<crystal_id, GraduatedAllocation>
 //
-// Determinism: this function is pure. Same inputs → same outputs.
-// No RNG, no I/O, no global-state mutation.
+// Determinism: this function is pure in its OUTPUT. Same inputs → same
+// outputs. No RNG, no I/O. The only global it touches is _gradCompStats,
+// an observer-only telemetry counter the engine never reads back.
+// v177 observer-only telemetry — how often graduated rationing BINDS.
+// Reset + read by tools/graduated-binding-probe.mjs; never read by the
+// engine, no RNG draws, zero effect on sim output. Added alongside the
+// v177 cell-key fix so "does rationing ever bind at seed 42?" is a
+// measured fact instead of an assumption.
+const _gradCompStats = {
+    calls: 0, // computeGraduatedAllocations invocations (= groups)
+    multiCrystalGroups: 0, // groups with 2+ crystals (contention possible)
+    maxGroupSize: 0,
+    allocations: 0, // per-crystal allocation decisions
+    bound: 0, // allocations scaled below 0.999 (rationing bit)
+    minScaling: 1.0,
+    reset() {
+        this.calls = 0;
+        this.multiCrystalGroups = 0;
+        this.maxGroupSize = 0;
+        this.allocations = 0;
+        this.bound = 0;
+        this.minScaling = 1.0;
+    },
+};
 function computeGraduatedAllocations(runs, fluid) {
     const out = new Map();
+    _gradCompStats.calls++;
+    if (runs.length > 1)
+        _gradCompStats.multiCrystalGroups++;
+    if (runs.length > _gradCompStats.maxGroupSize)
+        _gradCompStats.maxGroupSize = runs.length;
     if (!runs.length)
         return out;
     // Collect species touched by any crystal.
@@ -29802,6 +29867,12 @@ function computeGraduatedAllocations(runs, fluid) {
                 limiting = sp;
                 limitingShare = myShareFrac;
             }
+        }
+        _gradCompStats.allocations++;
+        if (scaling < 0.999) {
+            _gradCompStats.bound++;
+            if (scaling < _gradCompStats.minScaling)
+                _gradCompStats.minScaling = scaling;
         }
         let why;
         if (limiting === null) {
@@ -45233,8 +45304,21 @@ Object.assign(VugSimulator.prototype, {
             if (ringIdx != null && ringIdx >= 0 && ringIdx < this.ring_fluids.length) {
                 const mesh = this.wall_state.meshFor(this);
                 const cell = mesh.cellOf(crystal, this.wall_state);
-                cellFluid = (cell && cell.fluid) ? cell.fluid : this.ring_fluids[ringIdx];
-                cellKey = cell ? `cell:${cell.id ?? cell.idx ?? ringIdx + ':' + (cell.vertexIdx ?? '?')}` : `ring:${ringIdx}`;
+                // v177: the key must identify the BUDGET being rationed. WallCell
+                // carries no id/idx/vertexIdx fields, so the old `cell.id ?? …`
+                // chain always degraded to `cell:<ringIdx>:?` — every crystal in a
+                // ring shared ONE group, rationed against whichever cell's fluid
+                // registered first. Key off the anchor (ring, cell) when the cell
+                // has its own fluid; fall back to the ring key when the budget is
+                // the shared ring fluid, so group identity always matches budget.
+                if (cell && cell.fluid) {
+                    cellFluid = cell.fluid;
+                    cellKey = `cell:${anchor.ringIdx}:${anchor.cellIdx}`;
+                }
+                else {
+                    cellFluid = this.ring_fluids[ringIdx];
+                    cellKey = `ring:${ringIdx}`;
+                }
             }
             else {
                 cellFluid = this.conditions.fluid;
