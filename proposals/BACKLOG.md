@@ -2,6 +2,44 @@
 
 Living list of open work items, captured from session conversations so context survives compaction. Each item has enough detail that someone picking it up cold can act without re-discovering the rationale.
 
+> ## ⚒️ UPDATE (2026-06-09, later) — REBAKE ARC SHIPPED: v177 + v178 + v179
+>
+> The three calibration-coupled fixes from the review below are DONE
+> (`51487a4` / `61bef7c` / `503e228`, all suites 1769/1769):
+> - **v177 cell-key:** per-cell competition grouping fixed. The measured truth
+>   (new `tools/graduated-binding-probe.mjs` + `_gradCompStats` telemetry, run
+>   both ways): rationing binds 199/80,649 allocations (0.25%), ONLY in
+>   same-cell stacks, identically under both keys → seed-42 baselines
+>   byte-identical; the bug was output-LATENT. It matters when budgets tighten.
+> - **v178 PWP Ea:** array was a PERMUTATION (acid↔carbonate), corrected to
+>   [k1 14.4, k2 35.4, k3 23.5] + `_PWP_CALIBRATION_FACTOR` re-anchored 5.0e4
+>   → 1.9e4 (the factor was tuned under the wrong Ea; response to the factor is
+>   SUPER-linear, naive linear rescale overshot). 13/31 scenarios move,
+>   carbonate-centric; mvt + vein identity minerals byte-identical. ALSO fixed:
+>   week-11's HMC Arrhenius test had an UNDERSATURATED fixture — a green test
+>   was load-bearing for the wrong physics.
+> - **v179 vein seal:** `thermal_pulses:false` + non-heating Math.max(Math.min)
+>   floors + NEW opt-in `wall.cooling_rate` knob (default 1.5, RNG-neutral; the
+>   vein sets 0.4 — an open feeder advects heat, so a live vein holds near
+>   brine T until the conduit chokes). Sealed interval now genuinely quiet
+>   (111→104 °C, flow 0.05, zero injections); both generations inside North
+>   Pennine fluid-inclusion T (~90-150 °C). 1/31 baselines moved.
+> - **SWEEP MOVEMENT: stale 8 → 7 (borax recovered at searles_lake), dead
+>   35 → 34 (tremolite revived).** Remaining 7 stale are vugg-tune-scenario
+>   candidates, NOT engine bugs: roughten_gill's four (linarite, leadhillite,
+>   mottramite, bayldonite), jeffrey magnetite, searles mirabilite, schneeberg
+>   torbernite (0/10 seeds; zeunerite thin at 2/10). bisbee azurite verified
+>   gate-not-cleared (its azurite_peak event fires, the mineral never
+>   nucleates) — do NOT just add it to expects_species; tune first.
+> - **Tune-watch items from the v178 rebake:** jeffrey lost aragonite+siderite
+>   (not in expects), deccan gained a 1-crystal wollastonite (suspect at
+>   zeolite T), w9-probe trap documented in 52b (its printed columns bake in
+>   the LIVE factor).
+> - Still open from the review: §1.4 ring_fluids retire-or-restore decision,
+>   §1.6 hygiene items (cells_per_ring manifest, IDB leak, pH clamp), the
+>   ehFromO2 asymmetry (MOVEMENTS BLOCKER), the §2.4 narrator/spec one-liners,
+>   carbonate pK(T) slopes (§2.2), and the whole Steam §3 ladder.
+>
 > ## 🔍 UPDATE (2026-06-09) — THREE-METRICS REVIEW: bugs / accuracy / Steam-readiness
 >
 > A cold-eyes review sweep on the boss's three metrics. **Full report:

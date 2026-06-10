@@ -47,7 +47,13 @@ unreachable after bulk **none**. One-line fix + a new self-checking probe
 through the real selector; verified FAIL pre-fix / PASS post-fix). UI-only,
 SIM-NEUTRAL.
 
-### 1.3 OPEN HIGH — graduated-competition "per-cell" grouping collapses to per-ring with an arbitrary budget fluid
+### 1.3 ✅ FIXED v177 (`51487a4`) — graduated-competition "per-cell" grouping collapses to per-ring with an arbitrary budget fluid
+
+> **Outcome note:** fixed and MEASURED (tools/graduated-binding-probe.mjs):
+> rationing binds only in same-cell stacks, identically under both keys, so
+> the bug was output-latent at seed 42 — "load-bearing for shipped growth
+> allocation" below was overstated. It becomes load-bearing when budgets
+> tighten. Original finding kept for the record:
 
 `js/85b-simulator-nucleate.ts` (~line 1081, `_computeGraduatedZones`): the
 cell key reads `cell.id ?? cell.idx ?? ringIdx + ':' + cell.vertexIdx` — but
@@ -76,7 +82,11 @@ The vadose override still mirrors into `ring_fluids[r]`, so the store is
 half-maintained. **Decision needed: retire the store or restore the loop** —
 not a third partial mirror.
 
-### 1.5 OPEN MED — reactivated_fluorite_vein's "sealed" interval isn't quiet
+### 1.5 ✅ FIXED v179 (`503e228`) — reactivated_fluorite_vein's "sealed" interval isn't quiet
+
+> **Outcome note:** flag + non-heating floors landed, and the flag exposed a
+> missing knob — the pulses had been incidentally holding stage-1 temperature.
+> New opt-in `wall.cooling_rate` (default 1.5, RNG-neutral); the vein runs 0.4.
 
 Two coupled issues in the v176 demonstrator (`js/70t-reactivated-vein.ts` +
 `data/scenarios.json5`):
@@ -124,7 +134,12 @@ narrator trivia hit-rate on checkable facts (Ontonagon Boulder, Kim 2023
 dolomite, García-Ruiz 2007, acanthite 173 °C, hawleyite 1955…) impressively
 high.
 
-### 2.1 HIGH — PWP activation energies are paired to the wrong mechanisms
+### 2.1 ✅ FIXED v178 (`61bef7c`) — PWP activation energies are paired to the wrong mechanisms
+
+> **Outcome note:** corrected to [14.4, 35.4, 23.5] + factor re-anchored
+> 5.0e4 → 1.9e4 (tuned under the wrong Ea; super-linear response, see the
+> commit). Borax un-staled at searles_lake; week-11's HMC test fixture was
+> undersaturated and only the bug satisfied it — fixed and premise-pinned.
 
 `data/thermo-carbonates.json` calcite `Ea_kJ_mol: [35.4, 23.5, 14.4]` +
 `js/52b-engines-carbonate-kinetics.ts` defaults: the three numbers are real
