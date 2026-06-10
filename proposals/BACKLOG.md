@@ -2,6 +2,44 @@
 
 Living list of open work items, captured from session conversations so context survives compaction. Each item has enough detail that someone picking it up cold can act without re-discovering the rationale.
 
+> ## 🔍 UPDATE (2026-06-09) — THREE-METRICS REVIEW: bugs / accuracy / Steam-readiness
+>
+> A cold-eyes review sweep on the boss's three metrics. **Full report:
+> `proposals/REVIEW-THREE-METRICS-2026-06-09.md`** — read it before picking up
+> any item below. Fixed in the pass (both SIM-NEUTRAL): the committed bundle
+> was STALE (npm run ci was RED since c1b161e — same-length comment drift hid
+> as "diff length: 0 chars") and the four v165 sulfate SI chips were
+> unreachable in the Strip View chip selector (hardcoded systems list; new
+> probe `tools/strip-chip-selector-probe.mjs` guards it). New OPEN items:
+> - **HIGH bug:** graduated-competition cell key collapses to per-ring with an
+>   arbitrary budget fluid (`85b` `_computeGraduatedZones` — WallCell has no
+>   id/idx/vertexIdx). One-line fix, but CALIBRATION-REBAKING; shipping since
+>   v128c. May be suppressing some of the 8 stale expects_species — fix, then
+>   re-sweep.
+> - **HIGH accuracy:** PWP activation energies paired to the WRONG mechanisms
+>   (`thermo-carbonates.json` + `52b`): correct [k1,k2,k3] = [14.4, 35.4, 23.5]
+>   kJ/mol (P&K 2004 assigns acid=14.4); shipped array is reversed → hot acid
+>   scenarios over-amplify ~12×. Rebake with the cell-key fix as ONE arc.
+> - **MED:** `_propagateGlobalDelta` no longer reaches non-equator ring_fluids
+>   (stale store still read by open-atmosphere pH, Eh sync, replay snapshots —
+>   retire it or restore the loop, no third partial mirror); carbonate pK(T)
+>   slopes ~5-10× too flat (`20b`); reactivated_fluorite_vein needs
+>   `thermal_pulses:false` + a non-heating seal floor; 8 stale expects_species
+>   are locality-fidelity breaks (searles borax/mirabilite, roughten_gill
+>   linarite/leadhillite/mottramite/bayldonite, jeffrey magnetite, schneeberg
+>   torbernite) + bisbee expects omits azurite.
+> - **MOVEMENTS BLOCKER:** ehFromO2/o2FromEh are 10× asymmetric above O2=5
+>   (`20c`) — an Eh +800 mV movement snaps back to +530 when its window closes.
+>   Align slopes before Movements Phase 1 drives Eh.
+> - **Narrator/spec one-liners (afternoon, SIM-NEUTRAL):** wurtzite 95 °C
+>   "boundary" myth, flos-ferri is aragonite not calcite, Statue of Liberty
+>   patina is brochantite/antlerite not malachite, hiddenite is N. Carolina,
+>   + ~10 more tabled in the report §2.4.
+> - **Steam:** verdict "sim core is ready; the game around it is 3-5 months."
+>   T1 blockers (collection has NO export; 16 prompt()/alert() sites that
+>   silently break under Electron; scenarios.json5 has no offline fallback; no
+>   settings menu) + WP1-WP5 sequencing in the report §3.
+>
 > ## 🟢 UPDATE (2026-06-08) — 2d BREACH shipped: reactivated_fluorite_vein (SIM 176)
 >
 > The "2d breach API — wire a seal-then-reopen scenario" open item is **DONE**
