@@ -301,10 +301,12 @@ _diffuseRingState(rate?) {
   // variable every redox engine actually reads — moved underneath it. So
   // the strip's Eh chip showed a dead flat line at 200 even as the redox
   // state swung. This derives Eh from O2 via the SAME ehFromO2 anchor map
-  // the flag-ON redox helpers (20c) invert, so when EH_DYNAMIC_ENABLED
-  // flips in 4c.2 the engines read back the identical O2 (ehFromO2 /
-  // o2FromEh are exact inverses for O2 ∈ [0.05, 5], which covers every
-  // scenario; the top saturation segment diverges and is clamped in 4c.2).
+  // the flag-ON redox helpers (20c) invert, so the engines read back the
+  // identical O2. (Historical note: the planned 4c.2 clamp for the
+  // diverging top saturation segment was never added — deemed unneeded at
+  // max observed O2 ≈ 2.2 — and on 2026-06-10 the divergence itself was
+  // fixed instead: both functions now saturate at 1000 mV/decade and are
+  // exact inverses over the whole representable domain, Eh ≥ -620 mV.)
   //
   // OBSERVER-ONLY while the flag is OFF: nothing in flag-OFF mode reads
   // fluid.Eh (redoxFraction is uncalled; the per-class helpers read O2),

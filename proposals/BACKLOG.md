@@ -2,6 +2,30 @@
 
 Living list of open work items, captured from session conversations so context survives compaction. Each item has enough detail that someone picking it up cold can act without re-discovering the rationale.
 
+> ## ⚡ UPDATE (2026-06-10, latest) — MOVEMENTS GATE CLEARED: ehFromO2 ↔ o2FromEh exact (SIM-NEUTRAL)
+>
+> Part II's next-step #1 is DONE. The 10× saturation-slope asymmetry above
+> the top anchor (`ehFromO2` rose at 100 mV/decade past O2=5 while
+> `o2FromEh` came back at 1000 — each author had picked "gentle" in their
+> own output space) is fixed by aligning `ehFromO2`'s top branch to
+> 1000 mV/decade. An Eh-canonical movement writing +800 mV now survives
+> the window-close round trip EXACTLY (was: snapped to +530). 1000 won
+> over 100 because the inverse keeps synthetic O2 physical across the
+> whole Eh domain (+900 mV → 12.6 ppm ≈ air-saturated water; slope-100
+> would hand uncapped ratio engine sites thousands of ppm).
+> **NEW STANDING INSTRUMENT: `tools/redox-anchor-probe.mjs`** — round-trip
+> audit + `--fleet` ceiling sweep. Measured: fleet max O2 = **5.000 exactly**
+> (dripstone caves sit AT the anchor, Eh 499.6) → changed branch unreachable
+> → SIM-NEUTRAL, no bump, no rebake. Also measured: a -620 mV
+> representability floor (ehFromO2's 1e-6 ppm log clamp — documented, not
+> fixed; beyond water stability at pH 7, methanogenic anchor is -400).
+> Stale comments trued: 20c header ("exact inverses for [0.05,5]" → full
+> domain), 85c ("clamped in 4c.2" — that clamp was never added; now
+> unneeded). 4 new round-trip tests pin exactness, the +800 case, the O2
+> ceiling, and the floor. **Movements Phase 1 is UNBLOCKED** — next per
+> Part II: ring_fluids retire-or-restore, then the Movements arc itself
+> (HANDOFF-MOVEMENTS-AND-BACKLOG-2026-06-01.md).
+>
 > ## 💙 UPDATE (2026-06-10, later) — v180: LINARITE FIRES at roughten_gill
 >
 > First execution of the handoff's tune pass (`12a0b09`): the headline
@@ -97,7 +121,8 @@ Living list of open work items, captured from session conversations so context s
 >   the LIVE factor).
 > - Still open from the review: §1.4 ring_fluids retire-or-restore decision,
 >   §1.6 hygiene items (cells_per_ring manifest, IDB leak, pH clamp), the
->   ehFromO2 asymmetry (MOVEMENTS BLOCKER), the §2.4 narrator/spec one-liners,
+>   ehFromO2 asymmetry (MOVEMENTS BLOCKER — ✅ FIXED 2026-06-10, see ⚡
+>   banner above), the §2.4 narrator/spec one-liners,
 >   carbonate pK(T) slopes (§2.2), and the whole Steam §3 ladder.
 >
 > ## 🔍 UPDATE (2026-06-09) — THREE-METRICS REVIEW: bugs / accuracy / Steam-readiness
@@ -128,7 +153,8 @@ Living list of open work items, captured from session conversations so context s
 >   torbernite) + bisbee expects omits azurite.
 > - **MOVEMENTS BLOCKER:** ehFromO2/o2FromEh are 10× asymmetric above O2=5
 >   (`20c`) — an Eh +800 mV movement snaps back to +530 when its window closes.
->   Align slopes before Movements Phase 1 drives Eh.
+>   Align slopes before Movements Phase 1 drives Eh. *(✅ FIXED 2026-06-10 —
+>   see the ⚡ banner above; +800 now round-trips exactly.)*
 > - **Narrator/spec one-liners (afternoon, SIM-NEUTRAL):** wurtzite 95 °C
 >   "boundary" myth, flos-ferri is aragonite not calcite, Statue of Liberty
 >   patina is brochantite/antlerite not malachite, hiddenite is N. Carolina,
