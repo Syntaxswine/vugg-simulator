@@ -2,7 +2,20 @@
 
 Living list of open work items, captured from session conversations so context survives compaction. Each item has enough detail that someone picking it up cold can act without re-discovering the rationale.
 
-> ## 📖 UPDATE (2026-06-10, latest) — the §2.4 NARRATOR/SPEC AFTERNOON: 15 corrections, SIM-NEUTRAL
+> ## 🗿 UPDATE (2026-06-10, latest) — SESSION HANDOFF: gates + narrators
+>
+> **`proposals/HANDOFF-GATES-AND-NARRATORS-2026-06-10.md`** is the handoff
+> for the 2026-06-10 second session (the redox round-trip gate, the
+> ring_fluids retirement + 14th catch, the §2.4 narrator afternoon, the
+> concurrent-session commit-title collision, and the Movements
+> re-orientation — the mvt pilot was ALREADY shipped+accepted; next real
+> Movements work is the T-RECONCILIATION sub-project, fresh session, fleet
+> rebake). Lessons 13–18 continue the prior handoff's twelve. CATCHES.md
+> holds FOURTEEN. Next builder: prior session's handoff first if cold
+> (HANDOFF-REVIEW-REBAKE-MUSIC-2026-06-10.md), then that one, then the
+> banners below.
+>
+> ## 📖 UPDATE (2026-06-10, earlier) — the §2.4 NARRATOR/SPEC AFTERNOON: 15 corrections, SIM-NEUTRAL
 >
 > Part II's next-step #3 is DONE. All 15 shippable rows of the review's
 > §2.4 table executed — wurtzite's 95°C "boundary" myth (equilibrium
