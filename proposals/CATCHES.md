@@ -295,6 +295,7 @@ field). The data now testifies against itself automatically, every run.
 | v178 PWP Ea permutation + the test that loved it | Real values, wrong PAIRING; green test pinned to backwards physics | literature audit of the pairing; the corrected physics failing the test exposed the fixture |
 | v177 "load-bearing" that was latent | Review claim ahead of measurement | the probe run BOTH ways (fix stashed/unstashed) — identical binding populations |
 | 2026-06-10 "stale" mirabilite + torbernite | Correct geology mis-filed as failure by end-state-only accounting | the gate census said PASS×242 σ=24.6 — then reading the sim's own log, which narrated the seasonal cycle the checkers couldn't see |
+| 2026-06-10 ring_fluids view sync timeouts | Behaviorally-neutral observer whose COST broke the suite (1.32 ms/step ≈ 12%) — and 4 timeout reds initially read as chemistry regressions | the full suite's time budgets; then the census probe (0 fallback hits) + the timeout text refuting the first theory |
 
 The seventh catch is the most satisfying: the verification tool built from
 the sixth catch's lesson found a backlog of the same failure mode on its
@@ -425,6 +426,28 @@ list 4 → 2 (both remainders are genuine: jeffrey magnetite is engine-level,
 mottramite needs its own arc). **An instrument that only reads final state
 will mis-file every process whose beauty is in the passing — check whether
 your accounting can see what your simulator can do.**
+
+The FOURTEENTH catch (2026-06-10, the ring_fluids retirement) has two faces.
+First: a change can be perfectly behavior-neutral and still break the suite —
+the first cut synced the derived ring view into the live store at the end of
+every step, measured EXACT zero divergence on the probe, kept seed-42 and the
+strip digests byte-identical… and timed out four 32-seed integration tests,
+because the sync cost 1.32 ms/call (~12% of a 10.7 ms step; 16×120 cells × 45
+dynamic-key fields) and those tests were already running 3× inflated under
+parallel suite load. **Time budgets are part of the contract: an observer
+that costs 12% of a step is not an observer.** Second face, the more
+dangerous one: the four reds were mineral-firing tests (schneeberg
+pharmacolite, roughten_gill sphalerite/brochantite), and the obvious story —
+"the fallback readers saw changed chemistry" — was WRONG. The census probe
+measured 0 fallback hits in 8,966+ crystal-step reads, and the failure text
+said `Test timed out`, not `AssertionError`. Had the first theory been
+trusted, the "fix" would have been a calibration rebake chasing a chemistry
+change that never happened. **Read the failure text before theorizing the
+failure mode — a red mineral test is not necessarily a mineral problem.**
+Cure: move the projection to snapshot-capture time (_ringFluidMeans, ~63
+captures per 200-step run instead of every step), leave the live store
+frozen so the sim path is byte-identical by CONSTRUCTION rather than by
+measurement, and pin the frozen-store contract with its own test.
 
 The bedrock is now laid. The sediment is the next round of work; the truth
 is told in time.

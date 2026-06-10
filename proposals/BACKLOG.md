@@ -2,7 +2,40 @@
 
 Living list of open work items, captured from session conversations so context survives compaction. Each item has enough detail that someone picking it up cold can act without re-discovering the rationale.
 
-> ## ⚡ UPDATE (2026-06-10, latest) — MOVEMENTS GATE CLEARED: ehFromO2 ↔ o2FromEh exact (SIM-NEUTRAL)
+> ## 🪞 UPDATE (2026-06-10, latest) — ring_fluids RETIRED as a store: replay snapshot now projects cell chemistry (review §1.4, SIM-NEUTRAL) + 14th CATCH
+>
+> Part II's next-step #2 is DECIDED AND DONE — retire, not restore (the
+> boss's standing v157 direction: "mesh.cells is the way to go"). The
+> non-equator `ring_fluids` slots froze at the initial broth when v159
+> re-pointed event propagation at the voxel grid; their one live consumer
+> — the REPLAY SNAPSHOT chips — was faithfully displaying that frozen
+> chemistry (the replay-mode sibling of the v157 pyramid artifact). Final
+> design: `_ringFluidMeans` (85c) computes the per-ring cell-mean
+> projection AT SNAPSHOT CAPTURE (~63 captures per 200-step run) directly
+> into `snap.ring_fluids`; the LIVE store is untouched — frozen slots stay
+> frozen, so the sim path is byte-identical BY CONSTRUCTION. Untouched,
+> deliberately: the equator alias (`ring_fluids[equator] ===
+> conditions.fluid`, load-bearing, the Tranche-6 borax lesson) and
+> `concentration` (vadose-mirror-owned, same exclusion as diffusion).
+> **14th CATCH rode along** (CATCHES.md): the FIRST cut synced the live
+> store every step — probe-exact, seed-42-identical, and it TIMED OUT four
+> 32-seed integration tests (1.32 ms/call ≈ 12% of a step under 3×
+> parallel-load inflation). The reds were mineral-firing tests and the
+> obvious "fallback readers saw new chemistry" theory was WRONG (census:
+> 0 fallback hits in 8,966+ crystal-step reads; failure text said
+> `Test timed out`). Time budgets are part of the contract; read the
+> failure text before theorizing the failure mode. New standing
+> instruments: **`tools/ring-fluid-view-probe.mjs`** (3-invariant
+> contract: store FROZEN / projection LIVE / alias INTACT) +
+> **`tools/cell-resolution-census.mjs`** (how often does the engine
+> fallback actually fire?). 5 tests pin the projection, the bulk-view
+> equator entry, concentration ownership, the frozen-store contract, and
+> the snapshot fix. Stale comments trued (`_propagateGlobalDelta` header +
+> constructor Phase-C block). Next per Part II: §2.4 narrator one-liners…
+> or the **Movements Phase 1 pilot on mvt, which now has NOTHING in front
+> of it.**
+>
+> ## ⚡ UPDATE (2026-06-10, earlier) — MOVEMENTS GATE CLEARED: ehFromO2 ↔ o2FromEh exact (SIM-NEUTRAL)
 >
 > Part II's next-step #1 is DONE. The 10× saturation-slope asymmetry above
 > the top anchor (`ehFromO2` rose at 100 mV/decade past O2=5 while
@@ -119,7 +152,8 @@ Living list of open work items, captured from session conversations so context s
 >   (not in expects), deccan gained a 1-crystal wollastonite (suspect at
 >   zeolite T), w9-probe trap documented in 52b (its printed columns bake in
 >   the LIVE factor).
-> - Still open from the review: §1.4 ring_fluids retire-or-restore decision,
+> - Still open from the review: §1.4 ring_fluids retire-or-restore decision
+>   (✅ RESOLVED 2026-06-10 — retired to a derived view, see 🪞 banner),
 >   §1.6 hygiene items (cells_per_ring manifest, IDB leak, pH clamp), the
 >   ehFromO2 asymmetry (MOVEMENTS BLOCKER — ✅ FIXED 2026-06-10, see ⚡
 >   banner above), the §2.4 narrator/spec one-liners,
