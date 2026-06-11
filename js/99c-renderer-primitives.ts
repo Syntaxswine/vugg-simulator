@@ -1140,6 +1140,17 @@ const HABIT_TO_PRIMITIVE = {
   'botryoidal_or_rhombohedral':     PRIM_BOTRYOIDAL,
   'scalenohedral':                  PRIM_SCALENOHEDRON,
   'scalenohedral_or_rhombohedral':  PRIM_SCALENOHEDRON,
+  // Calcite-morphology arc Phase 2 (2026-06-11): σ-regime habit strings
+  // route to their parent-form primitives. EXPLICIT entries are load-
+  // bearing for the hopper pair: the 99d fuzzy fallback checks 'hopper'
+  // BEFORE 'rhomb'/'scalenohed' and would route calcite hoppers to
+  // PRIM_CUBE (cubic skeletal — wrong system for a carbonate).
+  'stepped_rhombohedral':           PRIM_RHOMBOHEDRON,
+  'stepped_scalenohedral':          PRIM_SCALENOHEDRON,
+  'hopper_rhombohedral':            PRIM_RHOMBOHEDRON,
+  'hopper_scalenohedral':           PRIM_SCALENOHEDRON,
+  'dendritic_rhombohedral':         PRIM_ACICULAR,
+  'dendritic_scalenohedral':        PRIM_ACICULAR,
   'prismatic':                      PRIM_HEX_PRISM_TERMINATED,
   'short_prismatic':                PRIM_HEX_PRISM,
   'striated_prism':                 PRIM_HEX_PRISM_TERMINATED,

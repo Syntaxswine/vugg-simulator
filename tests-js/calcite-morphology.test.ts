@@ -163,6 +163,60 @@ describe('calcite morphology instruments (Phase 1)', () => {
     }
   });
 
+  it('Phase 2: habit strings follow the recorded regime (one-step lag is physical)', () => {
+    // stalactite_demo is STEPPED-dominant (74% macro at seed 42): its
+    // calcite must end the run wearing a stepped_* habit with terraced
+    // dominant_forms.
+    const stal = runScenario('stalactite_demo');
+    const steppedCal = stal.crystals.filter((c: any) =>
+      c.mineral === 'calcite' && !c.dissolved && String(c.habit).startsWith('stepped_'));
+    expect(steppedCal.length).toBeGreaterThan(0);
+    for (const c of steppedCal) {
+      expect(['stepped_rhombohedral', 'stepped_scalenohedral']).toContain(c.habit);
+      const forms = (c.dominant_forms || []).join(' ');
+      expect(/macrostep|growth steps/.test(forms)).toBe(true);
+    }
+
+    // sabkha is hopper/skeletal 100%: its calcite ends hoppered.
+    const sabkha = runScenario('sabkha_dolomitization');
+    const sabkhaCal = sabkha.crystals.filter((c: any) => c.mineral === 'calcite' && !c.dissolved && c._morphology);
+    expect(sabkhaCal.length).toBeGreaterThan(0);
+    for (const c of sabkhaCal) {
+      expect(String(c.habit).startsWith('hopper_')).toBe(true);
+      expect((c.dominant_forms || []).join(' ')).toContain('hopper');
+    }
+
+    // mvt is smooth-spar (98%, and the stepped sliver is the tiny CORE,
+    // not the rim): its calcite keeps the plain parent-form habit — the
+    // no-regression hook (research §6.4).
+    const mvt = runScenario('mvt');
+    const mvtCal = mvt.crystals.filter((c: any) => c.mineral === 'calcite' && !c.dissolved && c._morphology);
+    expect(mvtCal.length).toBeGreaterThan(0);
+    for (const c of mvtCal) {
+      expect(['rhombohedral', 'scalenohedral']).toContain(c.habit);
+    }
+
+    // The general lag contract: a crystal's habit family matches the
+    // regime of its last or second-to-last tagged zone (habit was set
+    // DURING the final growth step, reading the state recorded at the
+    // END of the step before it).
+    const familyOf = (habit: string) =>
+      habit.startsWith('stepped_') ? ['stepped_mild', 'stepped_macro']
+      : habit.startsWith('hopper_') ? ['hopper_skeletal']
+      : habit.startsWith('dendritic_') ? ['dendritic']
+      : ['spiral_smooth'];
+    for (const sim of [stal, sabkha, mvt]) {
+      for (const c of sim.crystals) {
+        if (c.mineral !== 'calcite' || c.dissolved || c._variety === 'manganocalcite') continue;
+        const tagged = (c.zones || []).filter((z: any) => z.morph_regime);
+        if (tagged.length < 2) continue;
+        const recent = [tagged[tagged.length - 1].morph_regime, tagged[tagged.length - 2].morph_regime];
+        const fam = familyOf(String(c.habit));
+        expect(recent.some((r: string) => fam.includes(r))).toBe(true);
+      }
+    }
+  });
+
   it('calcite_morph strip chip: Sunagawa ordinal at the anchor, null in empty rock', () => {
     const chip = _HELIX_CHEM_PARAMS.find((p: any) => p.id === 'calcite_morph');
     expect(chip).toBeTruthy();

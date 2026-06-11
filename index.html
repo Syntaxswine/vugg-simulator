@@ -21472,6 +21472,18 @@ function _habitAspectRatio(habit) {
         return 0.8;
     if (habit === 'snowball')
         return 1.0;
+    // Calcite-morphology arc Phase 2 (2026-06-11): the σ-regime habit
+    // strings carry their PARENT FORM's exact aspect ratio — rhombohedral
+    // family 0.8, scalenohedral family 0.5 (= the default 'scalenohedral'
+    // always landed on). This is the byte-identity keystone: a habit
+    // RENAME must not move _volume_mm3 → a_width → vug fill → chemistry.
+    // (Verified by the calibration suite passing unchanged at v186.)
+    if (habit === 'stepped_rhombohedral' || habit === 'hopper_rhombohedral'
+        || habit === 'dendritic_rhombohedral')
+        return 0.8;
+    if (habit === 'stepped_scalenohedral' || habit === 'hopper_scalenohedral'
+        || habit === 'dendritic_scalenohedral')
+        return 0.5;
     return 0.5;
 }
 // Ellipsoid volume coefficient: V = kVol(aRatio) × c_mm³.
@@ -31532,10 +31544,54 @@ function grow_calcite(crystal, conditions, step) {
     // Per Pohl 2011 Economic Geology of Mineral Deposits + observed
     // Silverton specimen aesthetic.
     const is_manganocalcite = (conditions.fluid.Mn > 5 && conditions.fluid.Fe < 2);
+    // Calcite-morphology arc Phase 2 (2026-06-11): the habit string is now
+    // driven by the classifier's recorded regime (crystal._morphology,
+    // written by classifyCalciteMorphologyStep at the END of last step —
+    // the one-step lag is physical: it is the rock's recorded state, on
+    // the calibrated post-step basis, 18th catch). Precedence preserved:
+    // manganocalcite (chemistry variety) outranks the σ regime, exactly
+    // as it outranked the old T ladder. The form axis stays T-ONLY here —
+    // calciteMorphForm's Mg:Ca flip is Phase 4's call, because flipping
+    // form flips _habitAspectRatio → volume → fill → chemistry, and this
+    // commit is aspect-preserving byte-identical (stepped_/hopper_/
+    // dendritic_<form> carry their parent form's exact aspect ratio in
+    // 27-geometry-crystal.ts).
+    const morphFormT = conditions.temperature > 200 ? 'scalenohedral' : 'rhombohedral';
+    const morphRegime = (crystal._morphology && crystal._morphology.regime) || null;
     if (is_manganocalcite && excess < 0.4) {
         crystal.habit = 'botryoidal_manganocalcite';
         crystal.dominant_forms = ['cauliflower botryoidal mass', 'mammillary surface', 'cryptocrystalline interior'];
         crystal._variety = 'manganocalcite';
+    }
+    else if (morphRegime === 'stepped_mild' || morphRegime === 'stepped_macro') {
+        const macro = morphRegime === 'stepped_macro';
+        crystal.habit = `stepped_${morphFormT}`;
+        if (morphFormT === 'scalenohedral') {
+            crystal.dominant_forms = macro
+                ? ['v{211} scalenohedron with macrostep terraces', 'stepped dog-tooth']
+                : ['v{211} scalenohedron, gentle growth steps', 'dog-tooth'];
+        }
+        else {
+            crystal.dominant_forms = macro
+                ? ['e{104} rhombohedron with macrostep terraces', 'pagoda-stacked faces']
+                : ['e{104} rhombohedron, gentle growth steps'];
+        }
+        if (is_manganocalcite)
+            crystal._variety = 'manganocalcite';
+    }
+    else if (morphRegime === 'hopper_skeletal') {
+        crystal.habit = `hopper_${morphFormT}`;
+        crystal.dominant_forms = morphFormT === 'scalenohedral'
+            ? ['v{211} scalenohedron, faces hollowed to funnels (hopper)', 'skeletal edge frame']
+            : ['e{104} rhombohedron, faces hollowed to funnels (hopper)', 'skeletal edge frame'];
+        if (is_manganocalcite)
+            crystal._variety = 'manganocalcite';
+    }
+    else if (morphRegime === 'dendritic') {
+        crystal.habit = `dendritic_${morphFormT}`;
+        crystal.dominant_forms = ['branched dendritic calcite', 'the instability run past hopper — trunks with side arms'];
+        if (is_manganocalcite)
+            crystal._variety = 'manganocalcite';
     }
     else if (conditions.temperature > 200) {
         crystal.habit = 'scalenohedral';
@@ -62360,6 +62416,17 @@ const HABIT_TO_TEXTURE = {
     'skeletal_hopper': 'hopper', // galena very-high-σ
     'skeletal_fenster': 'hopper', // quartz "window" skeletal (rapid cooling)
     'hoppered_hexagonal': 'hopper', // pyromorphite moderate-high σ low T
+    // Stage 7 — calcite σ-regime habits (calcite-morphology arc Phase 2,
+    // 2026-06-11). Stepped + hopper families read as the right-angle
+    // 'hopper' notch texture (terraced, not spiky) in the 2D wall view;
+    // dendritic reads as the acicular rasp (branches = dense spikes at
+    // wall-cell scale).
+    'stepped_scalenohedral': 'hopper',
+    'stepped_rhombohedral': 'hopper',
+    'hopper_scalenohedral': 'hopper',
+    'hopper_rhombohedral': 'hopper',
+    'dendritic_scalenohedral': 'acicular',
+    'dendritic_rhombohedral': 'acicular',
 };
 // Mineral-specific overrides: HABIT_TO_TEXTURE_BY_MINERAL[mineral][habit]
 // wins over HABIT_TO_TEXTURE[habit]. Used when one habit string covers
@@ -64449,6 +64516,17 @@ const HABIT_TO_PRIMITIVE = {
     'botryoidal_or_rhombohedral': PRIM_BOTRYOIDAL,
     'scalenohedral': PRIM_SCALENOHEDRON,
     'scalenohedral_or_rhombohedral': PRIM_SCALENOHEDRON,
+    // Calcite-morphology arc Phase 2 (2026-06-11): σ-regime habit strings
+    // route to their parent-form primitives. EXPLICIT entries are load-
+    // bearing for the hopper pair: the 99d fuzzy fallback checks 'hopper'
+    // BEFORE 'rhomb'/'scalenohed' and would route calcite hoppers to
+    // PRIM_CUBE (cubic skeletal — wrong system for a carbonate).
+    'stepped_rhombohedral': PRIM_RHOMBOHEDRON,
+    'stepped_scalenohedral': PRIM_SCALENOHEDRON,
+    'hopper_rhombohedral': PRIM_RHOMBOHEDRON,
+    'hopper_scalenohedral': PRIM_SCALENOHEDRON,
+    'dendritic_rhombohedral': PRIM_ACICULAR,
+    'dendritic_scalenohedral': PRIM_ACICULAR,
     'prismatic': PRIM_HEX_PRISM_TERMINATED,
     'short_prismatic': PRIM_HEX_PRISM,
     'striated_prism': PRIM_HEX_PRISM_TERMINATED,
@@ -67463,6 +67541,16 @@ function _habitGeomToken(habit) {
     // more specific tokens first (e.g. "rhombic dodec" before "dodec").
     if (h === 'snowball')
         return 'snowball';
+    // Calcite-morphology arc Phase 2 (2026-06-11): dendritic_<form> must
+    // dispatch BEFORE the rhombohedral/scalenohedral substring checks —
+    // 'dendritic_rhombohedral' contains 'rhombohedral' and would land on
+    // the solid rhomb. Branches render as the spike geom (same routing as
+    // the generic dendritic check further down). The stepped_/hopper_
+    // families intentionally FALL THROUGH to their parent-form tokens
+    // here; the Phase 3 zone-stack terrace geometry overrides at the
+    // mesh-sync level, and this token stays the graceful fallback.
+    if (h.startsWith('dendritic_'))
+        return 'spike';
     if (h.includes('rhombic dodec') || h.includes('rhombic-dodec') || h === 'garnet' || h === 'trapezohedral')
         return 'rhombic_dodec';
     if (h === 'dodecahedral' || h === 'dodecahedron')
@@ -69307,6 +69395,12 @@ function _topoHistoricalCrystalSize(crystal, replayStep) {
     else if (crystal.habit === 'acicular')
         a = c * 0.15;
     else if (crystal.habit === 'rhombohedral')
+        a = c * 0.8;
+    // Calcite-morphology arc Phase 2: σ-regime rhomb-family habits keep
+    // the parent rhomb aspect in replay (mirrors _habitAspectRatio).
+    else if (crystal.habit === 'stepped_rhombohedral'
+        || crystal.habit === 'hopper_rhombohedral'
+        || crystal.habit === 'dendritic_rhombohedral')
         a = c * 0.8;
     else if (crystal.habit === 'snowball')
         a = c;

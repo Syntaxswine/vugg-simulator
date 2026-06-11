@@ -531,6 +531,15 @@ function _habitGeomToken(habit: string): string {
   // checks miss those; substring checks pick them up. Order matters:
   // more specific tokens first (e.g. "rhombic dodec" before "dodec").
   if (h === 'snowball') return 'snowball';
+  // Calcite-morphology arc Phase 2 (2026-06-11): dendritic_<form> must
+  // dispatch BEFORE the rhombohedral/scalenohedral substring checks —
+  // 'dendritic_rhombohedral' contains 'rhombohedral' and would land on
+  // the solid rhomb. Branches render as the spike geom (same routing as
+  // the generic dendritic check further down). The stepped_/hopper_
+  // families intentionally FALL THROUGH to their parent-form tokens
+  // here; the Phase 3 zone-stack terrace geometry overrides at the
+  // mesh-sync level, and this token stays the graceful fallback.
+  if (h.startsWith('dendritic_')) return 'spike';
   if (h.includes('rhombic dodec') || h.includes('rhombic-dodec') || h === 'garnet' || h === 'trapezohedral') return 'rhombic_dodec';
   if (h === 'dodecahedral' || h === 'dodecahedron') return 'dodecahedron';
   if (h === 'cubic' || h === 'cuboid' || h === 'cube') return 'cube';
@@ -2362,6 +2371,11 @@ function _topoHistoricalCrystalSize(crystal: any, replayStep: number): { c_lengt
   else if (crystal.habit === 'tabular') a = c * 1.5;
   else if (crystal.habit === 'acicular') a = c * 0.15;
   else if (crystal.habit === 'rhombohedral') a = c * 0.8;
+  // Calcite-morphology arc Phase 2: σ-regime rhomb-family habits keep
+  // the parent rhomb aspect in replay (mirrors _habitAspectRatio).
+  else if (crystal.habit === 'stepped_rhombohedral'
+        || crystal.habit === 'hopper_rhombohedral'
+        || crystal.habit === 'dendritic_rhombohedral') a = c * 0.8;
   else if (crystal.habit === 'snowball') a = c;
   else a = c * 0.5;
   return { c_length_mm: c, a_width_mm: a };

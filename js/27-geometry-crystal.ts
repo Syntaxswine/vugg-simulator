@@ -36,6 +36,16 @@ function _habitAspectRatio(habit: string): number {
   if (habit === 'acicular') return 0.15;
   if (habit === 'rhombohedral') return 0.8;
   if (habit === 'snowball') return 1.0;
+  // Calcite-morphology arc Phase 2 (2026-06-11): the σ-regime habit
+  // strings carry their PARENT FORM's exact aspect ratio — rhombohedral
+  // family 0.8, scalenohedral family 0.5 (= the default 'scalenohedral'
+  // always landed on). This is the byte-identity keystone: a habit
+  // RENAME must not move _volume_mm3 → a_width → vug fill → chemistry.
+  // (Verified by the calibration suite passing unchanged at v186.)
+  if (habit === 'stepped_rhombohedral' || habit === 'hopper_rhombohedral'
+      || habit === 'dendritic_rhombohedral') return 0.8;
+  if (habit === 'stepped_scalenohedral' || habit === 'hopper_scalenohedral'
+      || habit === 'dendritic_scalenohedral') return 0.5;
   return 0.5;
 }
 

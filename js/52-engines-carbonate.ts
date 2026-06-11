@@ -144,10 +144,47 @@ function grow_calcite(crystal, conditions, step) {
   // Per Pohl 2011 Economic Geology of Mineral Deposits + observed
   // Silverton specimen aesthetic.
   const is_manganocalcite = (conditions.fluid.Mn > 5 && conditions.fluid.Fe < 2);
+  // Calcite-morphology arc Phase 2 (2026-06-11): the habit string is now
+  // driven by the classifier's recorded regime (crystal._morphology,
+  // written by classifyCalciteMorphologyStep at the END of last step —
+  // the one-step lag is physical: it is the rock's recorded state, on
+  // the calibrated post-step basis, 18th catch). Precedence preserved:
+  // manganocalcite (chemistry variety) outranks the σ regime, exactly
+  // as it outranked the old T ladder. The form axis stays T-ONLY here —
+  // calciteMorphForm's Mg:Ca flip is Phase 4's call, because flipping
+  // form flips _habitAspectRatio → volume → fill → chemistry, and this
+  // commit is aspect-preserving byte-identical (stepped_/hopper_/
+  // dendritic_<form> carry their parent form's exact aspect ratio in
+  // 27-geometry-crystal.ts).
+  const morphFormT = conditions.temperature > 200 ? 'scalenohedral' : 'rhombohedral';
+  const morphRegime = (crystal._morphology && crystal._morphology.regime) || null;
   if (is_manganocalcite && excess < 0.4) {
     crystal.habit = 'botryoidal_manganocalcite';
     crystal.dominant_forms = ['cauliflower botryoidal mass', 'mammillary surface', 'cryptocrystalline interior'];
     crystal._variety = 'manganocalcite';
+  } else if (morphRegime === 'stepped_mild' || morphRegime === 'stepped_macro') {
+    const macro = morphRegime === 'stepped_macro';
+    crystal.habit = `stepped_${morphFormT}`;
+    if (morphFormT === 'scalenohedral') {
+      crystal.dominant_forms = macro
+        ? ['v{211} scalenohedron with macrostep terraces', 'stepped dog-tooth']
+        : ['v{211} scalenohedron, gentle growth steps', 'dog-tooth'];
+    } else {
+      crystal.dominant_forms = macro
+        ? ['e{104} rhombohedron with macrostep terraces', 'pagoda-stacked faces']
+        : ['e{104} rhombohedron, gentle growth steps'];
+    }
+    if (is_manganocalcite) crystal._variety = 'manganocalcite';
+  } else if (morphRegime === 'hopper_skeletal') {
+    crystal.habit = `hopper_${morphFormT}`;
+    crystal.dominant_forms = morphFormT === 'scalenohedral'
+      ? ['v{211} scalenohedron, faces hollowed to funnels (hopper)', 'skeletal edge frame']
+      : ['e{104} rhombohedron, faces hollowed to funnels (hopper)', 'skeletal edge frame'];
+    if (is_manganocalcite) crystal._variety = 'manganocalcite';
+  } else if (morphRegime === 'dendritic') {
+    crystal.habit = `dendritic_${morphFormT}`;
+    crystal.dominant_forms = ['branched dendritic calcite', 'the instability run past hopper — trunks with side arms'];
+    if (is_manganocalcite) crystal._variety = 'manganocalcite';
   } else if (conditions.temperature > 200) {
     crystal.habit = 'scalenohedral';
     crystal.dominant_forms = ['v{211} scalenohedron', 'dog-tooth'];

@@ -55,6 +55,17 @@ const HABIT_TO_TEXTURE = {
   'skeletal_hopper':     'hopper',  // galena very-high-σ
   'skeletal_fenster':    'hopper',  // quartz "window" skeletal (rapid cooling)
   'hoppered_hexagonal':  'hopper',  // pyromorphite moderate-high σ low T
+  // Stage 7 — calcite σ-regime habits (calcite-morphology arc Phase 2,
+  // 2026-06-11). Stepped + hopper families read as the right-angle
+  // 'hopper' notch texture (terraced, not spiky) in the 2D wall view;
+  // dendritic reads as the acicular rasp (branches = dense spikes at
+  // wall-cell scale).
+  'stepped_scalenohedral':   'hopper',
+  'stepped_rhombohedral':    'hopper',
+  'hopper_scalenohedral':    'hopper',
+  'hopper_rhombohedral':     'hopper',
+  'dendritic_scalenohedral': 'acicular',
+  'dendritic_rhombohedral':  'acicular',
 };
 
 // Mineral-specific overrides: HABIT_TO_TEXTURE_BY_MINERAL[mineral][habit]
