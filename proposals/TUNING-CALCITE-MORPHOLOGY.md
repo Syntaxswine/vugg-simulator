@@ -148,3 +148,59 @@ designed. The locality is the authority; the literature was scaffolding.
 - **jsdom can't see the terraces** — geometry contracts are headless
   (band derivation), but the LOOK needs a human eye or a preview
   screenshot. The replay scrubber is the fastest way to judge a change.
+- **The build:check / line-ending phantom.** After editing index.html's
+  BODY directly (the menu surfaces — which every new scenario requires),
+  `tools/cold-ci.mjs` can go RED with "index.html out of date" and a
+  ~70KB diff while `git diff` shows NOTHING. Not a real drift:
+  build:check compares BYTES, git compares normalized text, and the
+  Edit-path can leave the file differing from fresh build output by
+  line endings alone. Cure: `npm run build` (regenerates byte-canonical
+  output), confirm `git status` stays clean, re-run cold-ci. Don't
+  chase a content bug; there isn't one.
+
+## 8. Field recipe — looking at a specific crystal in the browser
+
+Used throughout this arc's visual verification; recorded because the
+naive paths both fail:
+
+- **`?scenario=X&seed=42` does NOT reproduce harness runs.** The UI
+  boot path consumes rng differently than the test harness, so the
+  seed-42 crystals you tuned against may simply not exist in the page.
+  Inject the harness-exact sim instead (preview_eval / devtools console
+  on the loaded page):
+
+  ```js
+  rng = new SeededRandom(42);
+  const def = SCENARIOS.elmwood();
+  const sim = new VugSimulator(def.conditions, def.events);
+  for (let i = 0; i < (def.defaultSteps ?? 200); i++) sim.run_step();
+  legendsSim = sim;                       // hand the view the real thing
+  topoRender(sim, sim.conditions.wall);   // force the repaint
+  ```
+
+  Bundle globals (`rng`, `SCENARIOS`, `legendsSim`, `topoRender`,
+  `calciteTerraceBands`…) are top-level `let`s in a classic script —
+  reachable and ASSIGNABLE from any console/eval context.
+- **Do not assign to `topoActiveSim`** — it is a FUNCTION the render
+  loop calls; clobbering it with a sim object breaks the page until
+  reload (found the hard way).
+- Camera: the zoom −/＋ buttons + pointer-drags on `#topo-canvas-three`
+  orbit (drags rotate, they don't pan — frame by orbiting). ~125–200%
+  zoom puts you inside the cavity; the per-fragment wall clip handles
+  the rest. To test a hypothetical morphology without a scenario,
+  retag a live crystal's `zones[].morph_regime` + set its habit, then
+  call `topoRender` — the band walk and terrace geometry run off the
+  zone stack directly (this is how the Phase-3 ziggurat was first
+  verified, on an mvt 44 mm calcite).
+
+## 9. Two free wins waiting (logged, unclaimed)
+
+- **elmwood → STRIP_DIGEST_SCENARIOS** (tools/strip-digest-shape.mjs):
+  its coupled CO3+pH fault-valve trajectory is exactly the kind of
+  curve the digest tripwire exists to pin. One list entry + regen.
+- **elmwood → the sonifier.** Five coupled chemistry pulses + a late
+  nucleation cascade should make it the most MUSICAL scenario in the
+  fleet (the chip drone rides the pulse train; each terrace era rings
+  bells). Nobody has listened yet — jsdom is deaf; this needs the
+  boss's ear, and it composes with the standing "make it more musical"
+  thread.
