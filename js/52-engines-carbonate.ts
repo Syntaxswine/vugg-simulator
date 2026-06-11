@@ -10,66 +10,22 @@
 // Phase B8 of PROPOSAL-MODULAR-REFACTOR.
 
 // ============================================================
-// Calcite morphology classifier (calcite-morphology arc Phase 0,
-// 2026-06-11) — the growth-regime spectrum from
-// proposals/RESEARCH-calcite-morphology-2026-06-11.md, thresholds
-// calibrated in SIM units via tools/calcite-sigma-observe.mjs and
-// tuned in tools/calcite-morphology-map.mjs (the transparent bench —
-// keep the two copies in sync; the map tool cross-checks this one).
-//
-// Sunagawa order (17th catch — peer-review corrected; never regress):
-//   polyhedral/spiral → stepped → hopper/skeletal (instability ONSET,
-//   hollow faces still faceted) → dendritic (instability furthered).
-//
-// Surface σ lags bulk σ on big slow crystals (boundary-layer damping,
-// Wolthers 2022): surfσ = 1 + (bulkσ−1)/(1 + size/SIZE_HALF_UM).
-// σ here is the sim's omega-like supersaturation_calcite() (measured
-// 1.05–664), NOT the papers' reduced σ — do not transcribe paper
-// thresholds (research doc §5).
-const CALCITE_MORPH_TH = {
-  SIZE_HALF_UM: 80,
-  // Phase 5 (2026-06-11): the boundary layer is BOUNDED. The original
-  // proxy let damping grow linearly with crystal size forever, which
-  // divided a 19 mm crystal's σ-excess by ~240 — no geologically sane
-  // chemistry could ever step a cabinet-scale crystal, yet stepped
-  // GIANTS are exactly what Elmwood grows (the locality ground truth
-  // that exposed the flaw). Wolthers 2022's own model parameterizes a
-  // FIXED boundary-layer thickness — δ saturates at the hydrodynamic
-  // scale (~mm in still fluid), it does not track crystal size without
-  // limit. min(size, SIZE_DAMP_CAP_UM) is the faithful proxy: crystals
-  // under 2 mm behave exactly as before; giants damp at the δ ceiling
-  // (factor 26) instead of without bound. Fleet consequence (measured,
-  // recorded in the research doc §1): the sustained-high-σ big-crystal
-  // scenarios (marble, deccan, jeffrey) pick up gentle stepped_mild
-  // shares — Sunagawa-consistent for sustained driving force — while
-  // every dramatic band (macro/hopper/dendrite) and every smooth
-  // low-σ scenario (mvt q75 6.4 → surf 1.2, Tri-State spar stays
-  // glass) holds. Chemistry-invisible by Phase 2's aspect-preserving
-  // design (regime renames carry the parent form's aspect ratio).
-  SIZE_DAMP_CAP_UM: 2000,
-  SPIRAL_MAX: 2.0,      // < this → smooth spiral spar (BCF lateral growth)
-  STEP_MILD_MAX: 8.0,   // 2–8 → gentle macrosteps (onset 2D nucleation)
-  STEP_MACRO_MAX: 50.0, // 8–50 → pronounced macrostepped (step bunching)
-  HOPPER_MAX: 200.0,    // 50–200 → hopper/skeletal (faces hollow, faceted)
-  // ≥ HOPPER_MAX → dendritic (the instability branches)
-  MG_SCALENO: 0.15,     // Mg:Ca above this → scalenohedral elongation
-  // Phase 4 (Mg axis, 2026-06-11): Mg²⁺ pins step edges (growth
-  // inhibition, GCA 2015 / AFM literature) → the same σ bunches HARDER
-  // in Mg-rich fluid. Encoded as an effective-σ multiplier
-  // (1 + MG_BUNCH·min(Mg:Ca, 1)) applied before the regime cut.
-  // k=0.4 calibrated by fleet observation (tools/_probe-mg-axis sweep,
-  // recorded in the research doc §4): Jeffrey Mine (Mg:Ca 0.84,
-  // serpentinite water) shifts toward stepped — the §6.3 hook — while
-  // every scenario's DOMINANT regime stays the validated one; k=0.8
-  // over-steepened the dripstone family toward dendrite, against
-  // ground truth.
-  MG_BUNCH: 0.4,
-};
+// Calcite morphology (calcite-morphology arc, 2026-06-11) — the
+// classification machinery + threshold table were HOISTED to
+// js/45-morphology.ts in the registry hoist (morphology-generalization
+// arc, 2026-06-12): calcite is MORPH_TH.calcite, the registry's first
+// tenant, and the threshold values + their physics rationale live
+// there now (Sunagawa ladder, Wolthers bounded boundary layer, Mg
+// step-edge pinning). These aliases keep this file's grow_calcite, the
+// tests, the UI surfaces, and the bench mirror
+// (tools/calcite-morphology-map.mjs) on their existing names.
+const CALCITE_MORPH_TH = MORPH_TH.calcite;
 
-// Regime list in Sunagawa order (index = severity ordinal — the strip
-// chip records this ordinal) + the player-facing display names (shared
-// by the zone modal, strip chip hovertext, and library card text).
-const CALCITE_MORPH_REGIMES = ['spiral_smooth', 'stepped_mild', 'stepped_macro', 'hopper_skeletal', 'dendritic'];
+// Severity-ordinal regime list = the shared MORPH_REGIMES (js/45); the
+// player-facing display names below are calcite-flavored ("spar") and
+// stay here (shared by the zone modal, strip chip hovertext, and
+// library card text).
+const CALCITE_MORPH_REGIMES = MORPH_REGIMES;
 const CALCITE_MORPH_DISPLAY: Record<string, string> = {
   spiral_smooth: 'smooth spar',
   stepped_mild: 'stepped (mild)',
@@ -78,17 +34,15 @@ const CALCITE_MORPH_DISPLAY: Record<string, string> = {
   dendritic: 'dendritic',
 };
 
+// Thin wrappers over the js/45 generics (kept: tests + bench bind to
+// these names; calciteMorphForm below is REAL calcite physics — the
+// registry's form hook calls it).
 function calciteSurfaceSigma(bulkSigma: number, sizeUm: number): number {
-  const effSize = Math.min(Math.max(0, sizeUm), CALCITE_MORPH_TH.SIZE_DAMP_CAP_UM);
-  return 1 + (bulkSigma - 1) / (1 + effSize / CALCITE_MORPH_TH.SIZE_HALF_UM);
+  return morphSurfaceSigma(MORPH_TH.calcite, bulkSigma, sizeUm);
 }
 
 function calciteMorphRegime(surfSigma: number): string {
-  if (surfSigma < CALCITE_MORPH_TH.SPIRAL_MAX) return 'spiral_smooth';
-  if (surfSigma < CALCITE_MORPH_TH.STEP_MILD_MAX) return 'stepped_mild';
-  if (surfSigma < CALCITE_MORPH_TH.STEP_MACRO_MAX) return 'stepped_macro';
-  if (surfSigma < CALCITE_MORPH_TH.HOPPER_MAX) return 'hopper_skeletal';
-  return 'dendritic';
+  return morphRegime(MORPH_TH.calcite, surfSigma);
 }
 
 function calciteMorphForm(mgRatio: number, temperature: number): string {
@@ -329,47 +283,13 @@ function grow_calcite(crystal, conditions, step) {
   });
 }
 
-// Morphology classification pass (calcite-morphology arc Phase 0 — DARK:
-// metadata only, nothing reads it yet). Called at the END of run_step,
-// AFTER growth + mass balance + diffusion, so zones are classified from
-// the POST-STEP σ — the basis the thresholds were calibrated on (the map
-// tool samples after run_step). 18th-catch design note: the first draft
-// classified inside grow_calcite from the IN-STEP (pre-growth) σ; the
-// --engine agreement check in the map tool exposed 0% agreement on
-// stalactite_demo — thin-film scenarios inject a σ spike each step that
-// the crystal itself consumes within the step. The crystal's interface
-// never sees that transient (boundary-layer buffering, Wolthers 2022),
-// so the depleted post-step σ is the physical proxy for interface σ —
-// AND it is the basis the fleet map was ground-truth-validated on
-// (stalactite STEPPED, zero stable dendrites). Classifying pre-growth
-// would have called the whole dripstone family dendritic.
-//
-// Pure tagging: no rng, no fluid mutation — byte-identical chemistry.
-function classifyCalciteMorphologyStep(sim) {
-  let sigma;
-  try { sigma = sim.conditions.supersaturation_calcite(); } catch (_e) { return; }
-  if (!isFinite(sigma) || sigma < 1.0) return;
-  const f = sim.conditions.fluid;
-  const mgRatio = (f.Mg || 0) / Math.max(1e-6, f.Ca || 0);
-  const form = calciteMorphForm(mgRatio, sim.conditions.temperature);
-  // Phase 4: Mg step-edge pinning sharpens bunching — effective σ for
-  // the regime cut rises with Mg:Ca (capped at 1). Keep IN SYNC with
-  // tools/calcite-morphology-map.mjs (the bench cross-checks this).
-  const mgBunch = 1 + CALCITE_MORPH_TH.MG_BUNCH * Math.min(mgRatio, 1);
-  for (const c of sim.crystals) {
-    if (!c || c.mineral !== 'calcite' || c.dissolved) continue;
-    const z = c.zones.length ? c.zones[c.zones.length - 1] : null;
-    if (!z || z.step !== sim.step || z.thickness_um <= 0) continue;
-    // Size BEFORE this zone — the map tool's sizeAcc semantics.
-    const sizeBefore = Math.max(0, c.total_growth_um - z.thickness_um);
-    const surf = calciteSurfaceSigma(sigma, sizeBefore) * mgBunch;
-    const regime = calciteMorphRegime(surf);
-    z.morph_regime = regime;
-    z.morph_form = form;
-    z.morph_surf_sigma = surf;
-    c._morphology = { regime, form, surf_sigma: surf };
-  }
-}
+// The end-of-step morphology classification pass (with its 18th-catch
+// post-step-basis rationale) moved to js/45-morphology.ts in the
+// registry hoist — classifyMorphologyStep iterates MORPH_TH, of which
+// calcite was the first tenant. The Mg-bunching multiplier and the
+// Mg/T form rule ride along as the calcite entry's effSigmaMult/form
+// hooks (the form hook calls calciteMorphForm above — the physics
+// stays in this file).
 
 function grow_aragonite(crystal, conditions, step) {
   const sigma = conditions.supersaturation_aragonite();

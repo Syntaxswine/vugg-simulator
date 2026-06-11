@@ -47,7 +47,8 @@ const TH = {
   SIZE_HALF_UM: 80,
   // Phase 5: δ is BOUNDED at the hydrodynamic scale — damping saturates
   // for crystals above 2 mm (the Elmwood-giant fix; Wolthers's own model
-  // uses a fixed boundary-layer thickness). KEEP IN SYNC with js/52.
+  // uses a fixed boundary-layer thickness). KEEP IN SYNC with
+  // MORPH_TH.calcite in js/45-morphology.ts.
   SIZE_DAMP_CAP_UM: 2000,
   // regime cutoffs on SURFACE σ (sim units), in SUNAGAWA order:
   // polyhedral → hopper/skeletal → dendritic (peer-review correction
@@ -62,7 +63,8 @@ const TH = {
   MG_SCALENO: 0.15,     // Mg:Ca above this → scalenohedral elongation (GCA 2015 ~0.2)
   // Phase 4 (SIM 187): Mg step-edge pinning sharpens bunching —
   // effective σ × (1 + MG_BUNCH·min(Mg:Ca,1)) before the regime cut.
-  // KEEP IN SYNC with CALCITE_MORPH_TH in js/52-engines-carbonate.ts.
+  // KEEP IN SYNC with MORPH_TH.calcite in js/45-morphology.ts (the
+  // registry hoist 2026-06-12 moved the engine table out of js/52).
   MG_BUNCH: 0.4,
 };
 
