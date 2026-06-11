@@ -137,3 +137,70 @@ describe('schneeberg event-subsumption (v185 — redox as a declared movement)',
     for (const c of bi) expect(c.nucleation_step).toBeLessThan(85);  // before the front
   });
 });
+
+function mkBisbee(seed = 42) {
+  setSeed(seed);
+  const { conditions, events } = SCENARIOS.bisbee();
+  return new VugSimulator(conditions, events);
+}
+
+describe('bisbee event-subsumption (v186 — the non-monotonic rollercoaster)', () => {
+
+  it('bisbee declares the four-op fluid.Eh rollercoaster movement', () => {
+    const { conditions } = SCENARIOS.bisbee();
+    const ms = conditions._scenario && conditions._scenario.movements;
+    expect(Array.isArray(ms)).toBe(true);
+    const eh = ms.find((m: any) => m.field === 'fluid.Eh');
+    expect(eh).toBeTruthy();
+    expect(eh.startStep).toBe(0);
+    expect(eh.endStep).toBe(305);             // = the step-305 final_drying (full drain)
+    expect(eh.base).toBe(-150);               // primary chalcopyrite-stable brine
+    expect(eh.texture).toBeUndefined();       // deterministic (CATCHES 16)
+    // the alphabet: a front, two pulses (sag + the deep native-copper dip), a trend
+    const kinds = eh.ops.map((o: any) => o.kind);
+    expect(kinds).toEqual(['step', 'pulse', 'pulse', 'trend']);
+    const deep = eh.ops[2];
+    expect(deep.amp).toBe(-400);              // the load-bearing reducing pulse
+  });
+
+  it('the rollercoaster: front up, a deep reducing dip, then the oxidizing climb', () => {
+    const sim = mkBisbee();
+    const eh: number[] = [];
+    for (let s = 0; s < 305; s++) { sim.run_step(); eh.push(sim.conditions.fluid.Eh); }
+    // Primary reducing brine before the front (well before step 65 uplift).
+    for (const v of eh.slice(40, 60)) expect(v).toBeLessThan(-100);
+    // Oxidized after the front (step 85+, the weathering plateau).
+    expect(eh[88]).toBeGreaterThan(60);
+    // The DEEP reducing pulse near step 133 dips back below cuprite stability —
+    // the native-copper window. It must be the most reducing point AFTER the
+    // front (a genuine non-monotonic excursion, not just noise).
+    const dip = Math.min(...eh.slice(125, 142));
+    expect(dip).toBeLessThan(-50);
+    // Late oxidation plateau (azurite era) climbs back up well above the dip.
+    expect(eh[270]).toBeGreaterThan(200);
+    expect(eh[270]).toBeGreaterThan(dip + 250);
+  });
+
+  it('the window ends at the drain: after step 305 air owns redox', () => {
+    const sim = mkBisbee();
+    for (let s = 0; s < 320; s++) sim.run_step();
+    expect(sim._movements.drivesFieldAt('Eh', sim.step)).toBe(false);
+    const f = sim.conditions.fluid;
+    expect(f.O2).toBeGreaterThan(0.8);           // vadose / drained — oxidizing
+    expect(o2FromEh(f.Eh)).toBeCloseTo(f.O2, 4); // O2→Eh reverted (round-trip identity)
+  });
+
+  it('the azurite→malachite→chrysocolla cascade + native copper survive (seed 42)', () => {
+    const sim = mkBisbee();
+    for (let s = 0; s < 340; s++) sim.run_step();
+    const have = new Set(sim.crystals.map((c: any) => c.mineral));
+    // The expects cascade (chalcopyrite primary → malachite/chrysocolla supergene).
+    for (const m of ['chalcopyrite', 'malachite', 'chrysocolla', 'brochantite']) {
+      expect(have.has(m)).toBe(true);
+    }
+    // The Cu-sulfide enrichment suite + native copper (the deep-pulse product).
+    for (const m of ['chalcocite', 'covellite', 'cuprite', 'native_copper']) {
+      expect(have.has(m)).toBe(true);
+    }
+  });
+});

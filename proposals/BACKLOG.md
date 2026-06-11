@@ -2,9 +2,35 @@
 
 Living list of open work items, captured from session conversations so context survives compaction. Each item has enough detail that someone picking it up cold can act without re-discovering the rationale.
 
-> ## ⚗️ UPDATE (2026-06-11, latest) — EVENT-SUBSUMPTION BEGINS (SIM 185): schneeberg's scripted redox swing retired into a declared movement
+> ## ⚗️ UPDATE (2026-06-11, latest) — EVENT-SUBSUMPTION COMPLETE (SIM 186): both bisbee + schneeberg redox step-functions retired into declared movements
 >
-> The next Movements arc after the T-rollout. The master doc's
+> The "EVENT-CONFOUNDED redox" gated class (bisbee/schneeberg) is now
+> CLOSED — both members subsumed in one session. **bisbee shipped (SIM
+> 186):** the harder of the two, because its redox is NON-MONOTONIC (nine
+> event O2 writes trace −150 → +180 → a deep reducing dip → +280, a true
+> rollercoaster), so the movement uses the full primitive alphabet — a
+> `step` front (+330 at u=0.233, rising from the step-65 uplift), a `pulse`
+> sag (−60, the enrichment-blanket poise), a deep `pulse` (−400 at u=0.436,
+> the barren reducing window that grows the Cornish-style native-copper
+> trees), and a late `trend` (+100, the azurite-era oxidation climb).
+> Window 0→305 = the phreatic life, ending at the step-305 final_drying
+> drain (air owns redox after). Deterministic; gate whole at 8 seeds
+> (native_copper 5/5 — the −400 pulse is load-bearing, −330 dropped it
+> below 5/8; brochantite 8/8; malachite/chrysocolla cascade whole).
+> Single-scenario rebake (bisbee: species 30→29, crystals 74→71,
+> −jarosite, a seed-42 marginal still live fleet-wide). Coverage UNCHANGED
+> 133/2/36. Logged BASE-side debt: azurite 0/8 — the famous Bisbee Blue
+> isn't nucleating; its own future tune arc.
+>
+> **NEXT (Movements):** roughten_gill baseline-debt re-survey (v180 partly
+> cleared it), carbonate pK(T) slopes (§2.2 pure follow-the-science debt).
+> The "biggest lever" (T-reconciliation) and the redox-confound class are
+> both now done — what remains is calibration debt + specialized gated
+> classes (assemblage-cost, concentration-confounded), not engine work.
+>
+> ## ⚗️ UPDATE (2026-06-11) — EVENT-SUBSUMPTION BEGINS (SIM 185): schneeberg's scripted redox swing retired into a declared movement
+>
+> The first of the arc. The master doc's
 > "EVENT-CONFOUNDED redox" class (bisbee/schneeberg — redox already
 > dynamic, but told as a step function through scripted event O2 writes)
 > starts closing. **schneeberg shipped (SIM 185):** its redox was a step

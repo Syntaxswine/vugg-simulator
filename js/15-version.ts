@@ -10603,5 +10603,59 @@
 //
 //   BASELINE: single-scenario rebake expected (schneeberg only; per-
 //   scenario movements are opt-in). Coverage gate: stale must stay 2.
-const SIM_VERSION = 185;
+//
+// v186 (2026-06-11) — BISBEE EVENT-SUBSUMPTION: the supergene rollercoaster
+//                     as a declared movement. The EVENT-CONFOUNDED redox
+//                     class (bisbee/schneeberg) is now CLOSED.
+//
+//   The second and harder subsumption (after schneeberg v185). bisbee's
+//   redox is NON-MONOTONIC — the nine scripted event O2 writes trace
+//   −150 → +180 → a deep reducing dip → +280, a true rollercoaster — so
+//   the movement needs the full primitive alphabet (step + two pulses +
+//   trend), not schneeberg's single front. Composition is identical:
+//   events keep the Cu/S/CO3/pH/T cascade beats, the movement is the
+//   redox sentence. Window 0→305 = the whole phreatic life, ending AT the
+//   step-305 final_drying (full drain → vadose; air owns redox after, the
+//   flat +322 mV the strip showed past 305 was always the vadose floor).
+//
+//   THE FOUR OPS, each a measured beat of the Warren-District cascade:
+//   (1) step +330 at u=0.233 (step 71, the meteoric front rising FROM the
+//   step-65 uplift — never before its arrival, the schneeberg lesson; a
+//   12-step ramp, because the 22-step ramp first tried starved
+//   brochantite's acid-flush window); (2) pulse −60 at u=0.351 (step 107,
+//   the enrichment-blanket poise — the pocket rides the redox interface
+//   ~+131 mV where chalcocite replaces chalcopyrite); (3) pulse −400 at
+//   u=0.436 (step 133, the barren DEEP REDUCING PULSE to ~−185 mV — the
+//   brief Eh-below-cuprite window that grows the Cornish-style
+//   native-copper trees; −400 not −330 is load-bearing, the shallower dip
+//   dropped native_copper below 5/8 seeds); (4) trend +100 ease (the long
+//   late oxidation climb to the +280 mV azurite-era plateau).
+//
+//   DETERMINISTIC (no texture): the monsoon punctuation is the EVENTS
+//   (azurite_peak/co2_drop/silica_seep); OU re-rolls 1-crystal marginals.
+//   Gate verified at 8 seeds (tools/eh-subsumption-observe.mjs): every
+//   lineage at BASE fire-rate — native_copper 5/5, brochantite 8/8, the
+//   malachite/chrysocolla cascade whole. Event O2 writes (primary_cooling
+//   0.08 → silica_seep 1.3) superseded inside the window; kept in the
+//   handlers with a v186 header note for the narrative record.
+//
+//   Logged BASE-side debt (NOT this change): azurite 0/8 in BASE — the
+//   famous "Bisbee Blue" isn't nucleating in the sim; a future tune arc
+//   (its own follow-the-science problem, independent of the redox shape).
+//
+//   CALIBRATION-TEST CONVERSION (the v135/v137/v181 widen-the-brittle-pin
+//   pattern): calibration-assertions.test.ts Assertion 1 pinned "graduated
+//   competition lets dioptase fire" to a single seed-42 bisbee crystal
+//   that was a 10.7µm knife-edge marginal. The movement tipped seed 42
+//   specifically to a 0µm nucleation — but dioptase still grows in 4/8
+//   bisbee seeds (and bisbee is its ONLY home, measured: schneeberg +
+//   supergene never grow it at any seed, pre- OR post-v186). The
+//   cascade-fix INTENT is intact; the brittle single-seed pin became an
+//   8-seed coverage check (floor ≥2/8, measured 4/8). Distribution
+//   measured BEFORE touching the test — not a test loosened to pass.
+//
+//   BASELINE: single-scenario rebake (bisbee only). Coverage gate: stale
+//   must stay 2. With this, the master doc's "EVENT-CONFOUNDED redox"
+//   gated class no longer exists — both members subsumed.
+const SIM_VERSION = 186;
 

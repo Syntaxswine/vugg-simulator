@@ -66,9 +66,11 @@ FIXED 2026-06-01 (`083d994`, boss).
 > Deterministic (texture re-rolls marginals); gate whole at 8 seeds via
 > the NEW tools/eh-subsumption-observe.mjs. 16th catch en route (the
 > expects gate is blind to vadose-renamed crystals → gate lineages).
-> Single-scenario rebake, coverage unchanged. **bisbee = NEXT** (shape
-> observed + locked this session, not yet shipped — see the BACKLOG
-> banner). The "⚠ EVENT-CONFOUNDED redox" entry below is now half-closed.
+> Single-scenario rebake, coverage unchanged. **bisbee SHIPPED same
+> session (SIM 186)** — the harder NON-MONOTONIC rollercoaster as a
+> four-op movement (step front + sag pulse + deep −400 reducing pulse for
+> native copper + late trend; window 0→305). The "⚠ EVENT-CONFOUNDED
+> redox" class is now fully CLOSED — both members subsumed.
 
 ---
 
@@ -369,13 +371,14 @@ that set is SMALL — most scenarios are gated. The honest map:
   (Eh −150→322 rollercoaster), `schneeberg` (Eh −200→322). A movement just fights
   the scripted swings. To move these, SUBSUME their redox events into a movement
   (the "movements subsume ad-hoc events" vision) — a per-scenario refactor.
-  **STATUS 2026-06-11: HALF-CLOSED. schneeberg SHIPPED (SIM 185)** — the
-  step function is now a declared fluid.Eh movement (window 0→110, base
-  −200, step +490 at u=0.8; events keep the chemistry beats). **bisbee
-  shape OBSERVED + locked, not yet shipped** (the nine-beat rollercoaster:
-  step front from the step-65 uplift, −60 enrichment sag, −400 reducing
-  pulse at u=0.44 for native copper, +100 late oxidation trend;
-  deterministic, gate whole at 8 seeds via eh-subsumption-observe.mjs).
+  **STATUS 2026-06-11: ✅ CLOSED — both subsumed in one session.**
+  schneeberg SHIPPED (SIM 185): step function → declared fluid.Eh movement
+  (window 0→110, base −200, step +490 at u=0.8). bisbee SHIPPED (SIM 186):
+  the harder NON-MONOTONIC rollercoaster → four-op movement (step +330 at
+  u=0.233, pulse −60 sag, deep pulse −400 at u=0.436 for native copper,
+  trend +100; window 0→305, base −150). Both deterministic, both gate
+  whole at 8 seeds via tools/eh-subsumption-observe.mjs; events keep their
+  chemistry beats. This class no longer exists.
 - **⚠ BASELINE-DEBT (fails many expects regardless of movement):** `roughten_gill`
   (8 expects missing), `sunnyside_american_tunnel` (4 missing). Calibration debt,
   not a movement target — fix the broth first.
