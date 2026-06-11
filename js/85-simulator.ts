@@ -736,6 +736,13 @@ class VugSimulator {
     this._syncRedoxEh(this._movements
       ? this._movements.drivesFieldAt('Eh', this.step) : false);
 
+    // Calcite morphology classification (calcite-morphology arc Phase 0,
+    // 2026-06-11) — tag this step's calcite zones from the POST-STEP σ
+    // (the calibrated basis; see classifyCalciteMorphologyStep in js/52
+    // for the 18th-catch sampling-basis note). Pure metadata pass: no
+    // rng, no fluid mutation — byte-identical chemistry.
+    classifyCalciteMorphologyStep(this);
+
     // === HELIX-OVERLAY-FORK ADDITION (strip view bedrock, v149+) =====
     // Helicoid-as-recorder hook (Shy's 2026-05-26 design reframe).
     // When a StripRecorder is attached to the sim, capture one step's

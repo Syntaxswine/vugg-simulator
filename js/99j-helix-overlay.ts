@@ -225,6 +225,7 @@ const _HELIX_FULL_NAMES: { [id: string]: string } = {
   SI_siderite:  'Saturation index — siderite (log Ω)',
   pCO2:         'Equilibrium pCO₂ (bar)',
   f_ord:        'Dolomite ordering fraction (Kim 2023; 0=disordered, 1=ordered)',
+  calcite_morph: 'Calcite growth regime at this spot (Sunagawa ordinal: 0 smooth spar · 1 stepped mild · 2 stepped macrostep · 3 hopper/skeletal · 4 dendritic)',
   // === END HELIX-OVERLAY-FORK ADDITION ==============================
   // v165 — Sulfate System section (PHREEQC wateq4f Ksp via 20d + 40b).
   // Strip is no longer SI-blind on the sulfate/evaporite family
@@ -537,6 +538,38 @@ const _HELIX_CHEM_PARAMS: ChemParam[] = (function() {
           ? s.conditions._dol_cycle_count
           : 0;
       return 1 - Math.exp(-n / _F_ORD_N0);
+    },
+  });
+  // Calcite-morphology arc Phase 1 (2026-06-11) — the "the rock got
+  // stepped HERE" chip. Records the Sunagawa ordinal of the latest
+  // classified growth regime of the calcite anchored near this
+  // (ring, cell): 0 smooth spar · 1 stepped mild · 2 stepped macrostep ·
+  // 3 hopper/skeletal · 4 dendritic. Reads crystal._morphology written
+  // by classifyCalciteMorphologyStep (js/52) at end of step — observer-
+  // only, no sim change. Null where no living calcite sits within the
+  // 15° bin (±2 native cells of the sampled cell) — sparse BY DESIGN:
+  // morphology is a property of the crystals, not the broth, so the
+  // strip shows golden dashes exactly where stepped rock exists.
+  params.push({
+    id: 'calcite_morph', label: 'cal morph', fullName: _HELIX_FULL_NAMES.calcite_morph,
+    min: 0, max: 4, color: 0xF0D898,
+    system: 'carbonate', units: '',
+    read: (s, w, i, c) => {
+      const crys = (s && Array.isArray(s.crystals)) ? s.crystals : null;
+      if (!crys || typeof CALCITE_MORPH_REGIMES === 'undefined') return null;
+      const N = (w && w.cells_per_ring) || 120;
+      let best: any = null, bestSize = -1;
+      for (const cr of crys) {
+        if (!cr || cr.mineral !== 'calcite' || cr.dissolved || !cr._morphology) continue;
+        const a = cr.wall_anchor;
+        if (!a || a.ringIdx !== i) continue;
+        const d = (((a.cellIdx - c) % N) + N) % N;
+        if (Math.min(d, N - d) > 2) continue;
+        if (cr.total_growth_um > bestSize) { bestSize = cr.total_growth_um; best = cr; }
+      }
+      if (!best) return null;
+      const idx = CALCITE_MORPH_REGIMES.indexOf(best._morphology.regime);
+      return idx >= 0 ? idx : null;
     },
   });
   // === END HELIX-OVERLAY-FORK ADDITION ==============================

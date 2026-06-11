@@ -9,6 +9,62 @@
 //
 // Phase B8 of PROPOSAL-MODULAR-REFACTOR.
 
+// ============================================================
+// Calcite morphology classifier (calcite-morphology arc Phase 0,
+// 2026-06-11) — the growth-regime spectrum from
+// proposals/RESEARCH-calcite-morphology-2026-06-11.md, thresholds
+// calibrated in SIM units via tools/calcite-sigma-observe.mjs and
+// tuned in tools/calcite-morphology-map.mjs (the transparent bench —
+// keep the two copies in sync; the map tool cross-checks this one).
+//
+// Sunagawa order (17th catch — peer-review corrected; never regress):
+//   polyhedral/spiral → stepped → hopper/skeletal (instability ONSET,
+//   hollow faces still faceted) → dendritic (instability furthered).
+//
+// Surface σ lags bulk σ on big slow crystals (boundary-layer damping,
+// Wolthers 2022): surfσ = 1 + (bulkσ−1)/(1 + size/SIZE_HALF_UM).
+// σ here is the sim's omega-like supersaturation_calcite() (measured
+// 1.05–664), NOT the papers' reduced σ — do not transcribe paper
+// thresholds (research doc §5).
+const CALCITE_MORPH_TH = {
+  SIZE_HALF_UM: 80,
+  SPIRAL_MAX: 2.0,      // < this → smooth spiral spar (BCF lateral growth)
+  STEP_MILD_MAX: 8.0,   // 2–8 → gentle macrosteps (onset 2D nucleation)
+  STEP_MACRO_MAX: 50.0, // 8–50 → pronounced macrostepped (step bunching)
+  HOPPER_MAX: 200.0,    // 50–200 → hopper/skeletal (faces hollow, faceted)
+  // ≥ HOPPER_MAX → dendritic (the instability branches)
+  MG_SCALENO: 0.15,     // Mg:Ca above this → scalenohedral elongation
+};
+
+// Regime list in Sunagawa order (index = severity ordinal — the strip
+// chip records this ordinal) + the player-facing display names (shared
+// by the zone modal, strip chip hovertext, and library card text).
+const CALCITE_MORPH_REGIMES = ['spiral_smooth', 'stepped_mild', 'stepped_macro', 'hopper_skeletal', 'dendritic'];
+const CALCITE_MORPH_DISPLAY: Record<string, string> = {
+  spiral_smooth: 'smooth spar',
+  stepped_mild: 'stepped (mild)',
+  stepped_macro: 'stepped (macrostep)',
+  hopper_skeletal: 'hopper/skeletal',
+  dendritic: 'dendritic',
+};
+
+function calciteSurfaceSigma(bulkSigma: number, sizeUm: number): number {
+  return 1 + (bulkSigma - 1) / (1 + Math.max(0, sizeUm) / CALCITE_MORPH_TH.SIZE_HALF_UM);
+}
+
+function calciteMorphRegime(surfSigma: number): string {
+  if (surfSigma < CALCITE_MORPH_TH.SPIRAL_MAX) return 'spiral_smooth';
+  if (surfSigma < CALCITE_MORPH_TH.STEP_MILD_MAX) return 'stepped_mild';
+  if (surfSigma < CALCITE_MORPH_TH.STEP_MACRO_MAX) return 'stepped_macro';
+  if (surfSigma < CALCITE_MORPH_TH.HOPPER_MAX) return 'hopper_skeletal';
+  return 'dendritic';
+}
+
+function calciteMorphForm(mgRatio: number, temperature: number): string {
+  if (mgRatio > CALCITE_MORPH_TH.MG_SCALENO || temperature > 200) return 'scalenohedral';
+  return 'rhombohedral';
+}
+
 function grow_calcite(crystal, conditions, step) {
   const sigma = conditions.supersaturation_calcite();
   if (sigma < 1.0) {
@@ -142,6 +198,44 @@ function grow_calcite(crystal, conditions, step) {
     ca_from_wall: ca_wall_fraction,
     ca_from_fluid: ca_fluid_fraction,
   });
+}
+
+// Morphology classification pass (calcite-morphology arc Phase 0 — DARK:
+// metadata only, nothing reads it yet). Called at the END of run_step,
+// AFTER growth + mass balance + diffusion, so zones are classified from
+// the POST-STEP σ — the basis the thresholds were calibrated on (the map
+// tool samples after run_step). 18th-catch design note: the first draft
+// classified inside grow_calcite from the IN-STEP (pre-growth) σ; the
+// --engine agreement check in the map tool exposed 0% agreement on
+// stalactite_demo — thin-film scenarios inject a σ spike each step that
+// the crystal itself consumes within the step. The crystal's interface
+// never sees that transient (boundary-layer buffering, Wolthers 2022),
+// so the depleted post-step σ is the physical proxy for interface σ —
+// AND it is the basis the fleet map was ground-truth-validated on
+// (stalactite STEPPED, zero stable dendrites). Classifying pre-growth
+// would have called the whole dripstone family dendritic.
+//
+// Pure tagging: no rng, no fluid mutation — byte-identical chemistry.
+function classifyCalciteMorphologyStep(sim) {
+  let sigma;
+  try { sigma = sim.conditions.supersaturation_calcite(); } catch (_e) { return; }
+  if (!isFinite(sigma) || sigma < 1.0) return;
+  const f = sim.conditions.fluid;
+  const mgRatio = (f.Mg || 0) / Math.max(1e-6, f.Ca || 0);
+  const form = calciteMorphForm(mgRatio, sim.conditions.temperature);
+  for (const c of sim.crystals) {
+    if (!c || c.mineral !== 'calcite' || c.dissolved) continue;
+    const z = c.zones.length ? c.zones[c.zones.length - 1] : null;
+    if (!z || z.step !== sim.step || z.thickness_um <= 0) continue;
+    // Size BEFORE this zone — the map tool's sizeAcc semantics.
+    const sizeBefore = Math.max(0, c.total_growth_um - z.thickness_um);
+    const surf = calciteSurfaceSigma(sigma, sizeBefore);
+    const regime = calciteMorphRegime(surf);
+    z.morph_regime = regime;
+    z.morph_form = form;
+    z.morph_surf_sigma = surf;
+    c._morphology = { regime, form, surf_sigma: surf };
+  }
 }
 
 function grow_aragonite(crystal, conditions, step) {

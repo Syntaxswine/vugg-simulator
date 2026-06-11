@@ -21506,6 +21506,23 @@ class GrowthZone {
         // through to the first declared mode when missing.
         if (opts.dissolutionMode)
             this.dissolutionMode = opts.dissolutionMode;
+        // Calcite-morphology arc Phase 1 (2026-06-11): per-zone growth-regime
+        // tags — the SHAPE history recorded alongside the chemistry history.
+        //   morph_regime:     'spiral_smooth' | 'stepped_mild' | 'stepped_macro'
+        //                     | 'hopper_skeletal' | 'dendritic' (Sunagawa order)
+        //   morph_form:       'rhombohedral' | 'scalenohedral'
+        //   morph_surf_sigma: boundary-layer-damped surface σ the regime was
+        //                     classified from (post-step basis — 18th catch)
+        // Optional like dissolutionMode: written post-hoc by
+        // classifyCalciteMorphologyStep (js/52) at end of run_step; only
+        // calcite zones carry them today. Zone-stack consumers (strip chip,
+        // zone modal, the Phase 3 terrace geometry) read them when present.
+        if (opts.morph_regime)
+            this.morph_regime = opts.morph_regime;
+        if (opts.morph_form)
+            this.morph_form = opts.morph_form;
+        if (opts.morph_surf_sigma != null)
+            this.morph_surf_sigma = opts.morph_surf_sigma;
     }
 }
 class Crystal {
@@ -31382,6 +31399,62 @@ function grow_tincalconite(_crystal, _conditions, _step) { return null; }
 // returns the GrowthZone produced (or null to skip the step).
 //
 // Phase B8 of PROPOSAL-MODULAR-REFACTOR.
+// ============================================================
+// Calcite morphology classifier (calcite-morphology arc Phase 0,
+// 2026-06-11) — the growth-regime spectrum from
+// proposals/RESEARCH-calcite-morphology-2026-06-11.md, thresholds
+// calibrated in SIM units via tools/calcite-sigma-observe.mjs and
+// tuned in tools/calcite-morphology-map.mjs (the transparent bench —
+// keep the two copies in sync; the map tool cross-checks this one).
+//
+// Sunagawa order (17th catch — peer-review corrected; never regress):
+//   polyhedral/spiral → stepped → hopper/skeletal (instability ONSET,
+//   hollow faces still faceted) → dendritic (instability furthered).
+//
+// Surface σ lags bulk σ on big slow crystals (boundary-layer damping,
+// Wolthers 2022): surfσ = 1 + (bulkσ−1)/(1 + size/SIZE_HALF_UM).
+// σ here is the sim's omega-like supersaturation_calcite() (measured
+// 1.05–664), NOT the papers' reduced σ — do not transcribe paper
+// thresholds (research doc §5).
+const CALCITE_MORPH_TH = {
+    SIZE_HALF_UM: 80,
+    SPIRAL_MAX: 2.0, // < this → smooth spiral spar (BCF lateral growth)
+    STEP_MILD_MAX: 8.0, // 2–8 → gentle macrosteps (onset 2D nucleation)
+    STEP_MACRO_MAX: 50.0, // 8–50 → pronounced macrostepped (step bunching)
+    HOPPER_MAX: 200.0, // 50–200 → hopper/skeletal (faces hollow, faceted)
+    // ≥ HOPPER_MAX → dendritic (the instability branches)
+    MG_SCALENO: 0.15, // Mg:Ca above this → scalenohedral elongation
+};
+// Regime list in Sunagawa order (index = severity ordinal — the strip
+// chip records this ordinal) + the player-facing display names (shared
+// by the zone modal, strip chip hovertext, and library card text).
+const CALCITE_MORPH_REGIMES = ['spiral_smooth', 'stepped_mild', 'stepped_macro', 'hopper_skeletal', 'dendritic'];
+const CALCITE_MORPH_DISPLAY = {
+    spiral_smooth: 'smooth spar',
+    stepped_mild: 'stepped (mild)',
+    stepped_macro: 'stepped (macrostep)',
+    hopper_skeletal: 'hopper/skeletal',
+    dendritic: 'dendritic',
+};
+function calciteSurfaceSigma(bulkSigma, sizeUm) {
+    return 1 + (bulkSigma - 1) / (1 + Math.max(0, sizeUm) / CALCITE_MORPH_TH.SIZE_HALF_UM);
+}
+function calciteMorphRegime(surfSigma) {
+    if (surfSigma < CALCITE_MORPH_TH.SPIRAL_MAX)
+        return 'spiral_smooth';
+    if (surfSigma < CALCITE_MORPH_TH.STEP_MILD_MAX)
+        return 'stepped_mild';
+    if (surfSigma < CALCITE_MORPH_TH.STEP_MACRO_MAX)
+        return 'stepped_macro';
+    if (surfSigma < CALCITE_MORPH_TH.HOPPER_MAX)
+        return 'hopper_skeletal';
+    return 'dendritic';
+}
+function calciteMorphForm(mgRatio, temperature) {
+    if (mgRatio > CALCITE_MORPH_TH.MG_SCALENO || temperature > 200)
+        return 'scalenohedral';
+    return 'rhombohedral';
+}
 function grow_calcite(crystal, conditions, step) {
     const sigma = conditions.supersaturation_calcite();
     if (sigma < 1.0) {
@@ -31517,6 +31590,51 @@ function grow_calcite(crystal, conditions, step) {
         ca_from_wall: ca_wall_fraction,
         ca_from_fluid: ca_fluid_fraction,
     });
+}
+// Morphology classification pass (calcite-morphology arc Phase 0 — DARK:
+// metadata only, nothing reads it yet). Called at the END of run_step,
+// AFTER growth + mass balance + diffusion, so zones are classified from
+// the POST-STEP σ — the basis the thresholds were calibrated on (the map
+// tool samples after run_step). 18th-catch design note: the first draft
+// classified inside grow_calcite from the IN-STEP (pre-growth) σ; the
+// --engine agreement check in the map tool exposed 0% agreement on
+// stalactite_demo — thin-film scenarios inject a σ spike each step that
+// the crystal itself consumes within the step. The crystal's interface
+// never sees that transient (boundary-layer buffering, Wolthers 2022),
+// so the depleted post-step σ is the physical proxy for interface σ —
+// AND it is the basis the fleet map was ground-truth-validated on
+// (stalactite STEPPED, zero stable dendrites). Classifying pre-growth
+// would have called the whole dripstone family dendritic.
+//
+// Pure tagging: no rng, no fluid mutation — byte-identical chemistry.
+function classifyCalciteMorphologyStep(sim) {
+    let sigma;
+    try {
+        sigma = sim.conditions.supersaturation_calcite();
+    }
+    catch (_e) {
+        return;
+    }
+    if (!isFinite(sigma) || sigma < 1.0)
+        return;
+    const f = sim.conditions.fluid;
+    const mgRatio = (f.Mg || 0) / Math.max(1e-6, f.Ca || 0);
+    const form = calciteMorphForm(mgRatio, sim.conditions.temperature);
+    for (const c of sim.crystals) {
+        if (!c || c.mineral !== 'calcite' || c.dissolved)
+            continue;
+        const z = c.zones.length ? c.zones[c.zones.length - 1] : null;
+        if (!z || z.step !== sim.step || z.thickness_um <= 0)
+            continue;
+        // Size BEFORE this zone — the map tool's sizeAcc semantics.
+        const sizeBefore = Math.max(0, c.total_growth_um - z.thickness_um);
+        const surf = calciteSurfaceSigma(sigma, sizeBefore);
+        const regime = calciteMorphRegime(surf);
+        z.morph_regime = regime;
+        z.morph_form = form;
+        z.morph_surf_sigma = surf;
+        c._morphology = { regime, form, surf_sigma: surf };
+    }
 }
 function grow_aragonite(crystal, conditions, step) {
     const sigma = conditions.supersaturation_aragonite();
@@ -44415,6 +44533,12 @@ class VugSimulator {
         // fluid.Eh (so the movement's Eh is what the strip shows).
         this._syncRedoxEh(this._movements
             ? this._movements.drivesFieldAt('Eh', this.step) : false);
+        // Calcite morphology classification (calcite-morphology arc Phase 0,
+        // 2026-06-11) — tag this step's calcite zones from the POST-STEP σ
+        // (the calibrated basis; see classifyCalciteMorphologyStep in js/52
+        // for the 18th-catch sampling-basis note). Pure metadata pass: no
+        // rng, no fluid mutation — byte-identical chemistry.
+        classifyCalciteMorphologyStep(this);
         // === HELIX-OVERLAY-FORK ADDITION (strip view bedrock, v149+) =====
         // Helicoid-as-recorder hook (Shy's 2026-05-26 design reframe).
         // When a StripRecorder is attached to the sim, capture one step's
@@ -56539,6 +56663,14 @@ function buildCrystalRecord(crystal, meta) {
         inclusion_type: z.inclusion_type || '',
         note: z.note || '',
         is_phantom: !!z.is_phantom,
+        // Calcite-morphology arc Phase 1: per-zone growth-regime tags ride
+        // into the collection so a stepped calcite remembers its terraces.
+        // Conditional spread keeps non-calcite records lean.
+        ...(z.morph_regime ? {
+            morph_regime: z.morph_regime,
+            morph_form: z.morph_form || '',
+            morph_surf_sigma: +(z.morph_surf_sigma || 0).toFixed(2),
+        } : {}),
     }));
     return {
         id: `cry-${Date.now().toString(36)}-${Math.floor(Math.random() * 46656).toString(36)}`,
@@ -60169,6 +60301,10 @@ function showZoneHistory(crystal) {
             html += `<span style="color:#88cc88">Ti: ${z.trace_Ti.toFixed(3)}</span><br>`;
             if (z.fluid_inclusion)
                 html += `💧 ${z.inclusion_type}<br>`;
+            if (z.morph_regime) {
+                const label = (typeof CALCITE_MORPH_DISPLAY !== 'undefined' && CALCITE_MORPH_DISPLAY[z.morph_regime]) || z.morph_regime;
+                html += `🪜 ${label} (σ_surf ${(+z.morph_surf_sigma || 0).toFixed(1)})<br>`;
+            }
             if (z.note)
                 html += `<span style="color:#8a7a40">${z.note}</span>`;
             tooltip.innerHTML = html;
@@ -60214,6 +60350,10 @@ function showZoneHistory(crystal) {
                 html += ` · <span style="color:#a89040">${traces.join(', ')} ppm</span>`;
             if (z.fluid_inclusion)
                 html += ` · <span class="z-fi">FI: ${z.inclusion_type}</span>`;
+            if (z.morph_regime) {
+                const label = (typeof CALCITE_MORPH_DISPLAY !== 'undefined' && CALCITE_MORPH_DISPLAY[z.morph_regime]) || z.morph_regime;
+                html += ` · <span style="color:#8a7a40">🪜 ${label}</span>`;
+            }
             if (z.note)
                 html += `<div class="z-note">${z.note}</div>`;
             entry.innerHTML = html;
@@ -70071,6 +70211,7 @@ const _HELIX_FULL_NAMES = {
     SI_siderite: 'Saturation index — siderite (log Ω)',
     pCO2: 'Equilibrium pCO₂ (bar)',
     f_ord: 'Dolomite ordering fraction (Kim 2023; 0=disordered, 1=ordered)',
+    calcite_morph: 'Calcite growth regime at this spot (Sunagawa ordinal: 0 smooth spar · 1 stepped mild · 2 stepped macrostep · 3 hopper/skeletal · 4 dendritic)',
     // === END HELIX-OVERLAY-FORK ADDITION ==============================
     // v165 — Sulfate System section (PHREEQC wateq4f Ksp via 20d + 40b).
     // Strip is no longer SI-blind on the sulfate/evaporite family
@@ -70392,6 +70533,46 @@ const _HELIX_CHEM_PARAMS = (function () {
                     ? s.conditions._dol_cycle_count
                     : 0;
             return 1 - Math.exp(-n / _F_ORD_N0);
+        },
+    });
+    // Calcite-morphology arc Phase 1 (2026-06-11) — the "the rock got
+    // stepped HERE" chip. Records the Sunagawa ordinal of the latest
+    // classified growth regime of the calcite anchored near this
+    // (ring, cell): 0 smooth spar · 1 stepped mild · 2 stepped macrostep ·
+    // 3 hopper/skeletal · 4 dendritic. Reads crystal._morphology written
+    // by classifyCalciteMorphologyStep (js/52) at end of step — observer-
+    // only, no sim change. Null where no living calcite sits within the
+    // 15° bin (±2 native cells of the sampled cell) — sparse BY DESIGN:
+    // morphology is a property of the crystals, not the broth, so the
+    // strip shows golden dashes exactly where stepped rock exists.
+    params.push({
+        id: 'calcite_morph', label: 'cal morph', fullName: _HELIX_FULL_NAMES.calcite_morph,
+        min: 0, max: 4, color: 0xF0D898,
+        system: 'carbonate', units: '',
+        read: (s, w, i, c) => {
+            const crys = (s && Array.isArray(s.crystals)) ? s.crystals : null;
+            if (!crys || typeof CALCITE_MORPH_REGIMES === 'undefined')
+                return null;
+            const N = (w && w.cells_per_ring) || 120;
+            let best = null, bestSize = -1;
+            for (const cr of crys) {
+                if (!cr || cr.mineral !== 'calcite' || cr.dissolved || !cr._morphology)
+                    continue;
+                const a = cr.wall_anchor;
+                if (!a || a.ringIdx !== i)
+                    continue;
+                const d = (((a.cellIdx - c) % N) + N) % N;
+                if (Math.min(d, N - d) > 2)
+                    continue;
+                if (cr.total_growth_um > bestSize) {
+                    bestSize = cr.total_growth_um;
+                    best = cr;
+                }
+            }
+            if (!best)
+                return null;
+            const idx = CALCITE_MORPH_REGIMES.indexOf(best._morphology.regime);
+            return idx >= 0 ? idx : null;
         },
     });
     // === END HELIX-OVERLAY-FORK ADDITION ==============================

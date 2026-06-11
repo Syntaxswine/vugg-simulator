@@ -180,8 +180,8 @@ science gives the SHAPE and ordering; the sim's own numbers give the
 thresholds. Do not fabricate a sim-unit σ cutoff.)
 
 **What the engine reads (all already available per step):**
-- `supersaturation_calcite()` — the σ level → spiral / 2D / dendrite /
-  hopper band.
+- `supersaturation_calcite()` — the σ level → spiral / 2D / hopper /
+  dendrite band (Sunagawa order — see the §3 ordering correction).
 - σ HISTORY across recent zones (`crystal.zones[]` already stores per-step
   growth_rate) → step-bunching strength: a fluctuating/rising σ train
   bunches; a flat low σ stays smooth. THIS is where Movements feeds in.
@@ -212,8 +212,11 @@ thresholds. Do not fabricate a sim-unit σ cutoff.)
 ## 6. Open verification hooks (what a future check should re-test)
 
 1. **Regime ordering** holds in sim units: as the calibrated σ rises, the
-   emergent habit walks smooth → stepped → dendrite → hopper, never out of
-   order. (A dark-observe sweep over a σ ramp is the test.)
+   emergent habit walks smooth → stepped → hopper → dendritic, never out of
+   order (Sunagawa order per the §3 correction — two residuals of the
+   pre-correction draft survived in §5/§6 until 2026-06-11; if you find
+   another, fix it AND re-check the classifier against §3).
+   (A dark-observe sweep over a σ ramp is the test.)
 2. **Movement-driven bunching**: a scenario with an oscillatory σ movement
    produces MORE/ taller macrosteps than the same scenario with flat σ —
    i.e. the steps track the curve. (The headline claim of §2.)

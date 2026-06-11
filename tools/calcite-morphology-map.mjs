@@ -17,7 +17,15 @@
  * band assignments be checked against what these localities actually look like
  * before any of it is wired in or made visible.
  *
- * Usage:  node tools/calcite-morphology-map.mjs [--seed 42]
+ * Usage:  node tools/calcite-morphology-map.mjs [--seed 42] [--engine]
+ *
+ * --engine (Phase 0, 2026-06-11): classify from the ENGINE's own per-zone
+ * tags (zone.morph_regime, written dark by grow_calcite) instead of this
+ * tool's independent recompute, and report the per-zone agreement between
+ * the two. They are NOT expected to match 100%: the engine classifies from
+ * the IN-STEP σ (before that step's growth depletes the fluid), the tool
+ * from the POST-STEP sample. Disagreements cluster at band boundaries.
+ * The engine tag is the truth going forward; the recompute is the bench.
  */
 
 import { loadSimBundle } from './_harness.mjs';
@@ -26,6 +34,7 @@ const { SCENARIOS, VugSimulator, setSeed } = await loadSimBundle({ toolName: 'ca
 
 const args = process.argv.slice(2);
 const SEED = args.includes('--seed') ? Number(args[args.indexOf('--seed') + 1]) : 42;
+const ENGINE = args.includes('--engine');
 
 // ---------------------------------------------------------------------------
 // CANDIDATE CLASSIFIER — thresholds in SIM units, from calcite-sigma-observe.
@@ -100,6 +109,7 @@ for (const scen of Object.keys(SCENARIOS)) {
   // regime mass (µm grown in each regime) summed over all calcite crystals
   const mass = Object.fromEntries(REGIMES.map((r) => [r, 0]));
   let zonedCount = 0;
+  let agreeZones = 0, compareZones = 0;
   for (const c of calcites) {
     let sizeAcc = 0;
     const seen = new Set();
@@ -109,7 +119,14 @@ for (const scen of Object.keys(SCENARIOS)) {
       const bulk = isFinite(sigmaByStep[z.step]) ? sigmaByStep[z.step] : NaN;
       if (!isFinite(bulk) || bulk < 1.0) { sizeAcc += t; continue; }
       const ss = surfaceSigma(bulk, sizeAcc);
-      const r = regimeOf(ss);
+      const recomputed = regimeOf(ss);
+      // --engine: trust the engine's dark tag; track agreement vs recompute.
+      const engineTag = (typeof z.morph_regime === 'string') ? z.morph_regime : null;
+      if (engineTag) {
+        compareZones++;
+        if (engineTag === recomputed) agreeZones++;
+      }
+      const r = (ENGINE && engineTag) ? engineTag : recomputed;
       mass[r] += t;
       seen.add(r);
       sizeAcc += t;
@@ -123,6 +140,7 @@ for (const scen of Object.keys(SCENARIOS)) {
     crystals: calcites.length, zoned: zonedCount, mgRatio, temperature,
     form: formOf(mgRatio, temperature),
     dominant, mass, totalMass,
+    agreeZones, compareZones,
   };
 }
 
@@ -147,4 +165,19 @@ console.log('\n### fleet tally by dominant regime');
 const tally = Object.fromEntries(REGIMES.map((r) => [r, 0]));
 for (const f of Object.values(fleet)) tally[f.dominant]++;
 for (const r of REGIMES) console.log(`  ${SHORT[r].padEnd(14)} ${tally[r]} scenarios`);
+
+// Engine-tag agreement (meaningful once grow_calcite writes dark tags;
+// before that compareZones is 0 everywhere and this section is silent).
+const totCompare = Object.values(fleet).reduce((s, f) => s + f.compareZones, 0);
+if (totCompare > 0) {
+  const totAgree = Object.values(fleet).reduce((s, f) => s + f.agreeZones, 0);
+  console.log(`\n### engine-tag agreement vs tool recompute${ENGINE ? ' (map above used ENGINE tags)' : ''}`);
+  console.log(`  ${totAgree}/${totCompare} zones agree (${(100 * totAgree / totCompare).toFixed(1)}%) — disagreements are in-step vs post-step σ sampling at band boundaries`);
+  for (const scen of order) {
+    const f = fleet[scen];
+    if (!f.compareZones) continue;
+    const pct = (100 * f.agreeZones / f.compareZones).toFixed(0);
+    if (f.agreeZones !== f.compareZones) console.log(`    ${scen.padEnd(27)} ${f.agreeZones}/${f.compareZones} (${pct}%)`);
+  }
+}
 console.log('');

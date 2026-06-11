@@ -73,6 +73,20 @@ class GrowthZone {
     // single-mode (legacy) entries don't need it; the wrapper falls
     // through to the first declared mode when missing.
     if (opts.dissolutionMode) this.dissolutionMode = opts.dissolutionMode;
+    // Calcite-morphology arc Phase 1 (2026-06-11): per-zone growth-regime
+    // tags — the SHAPE history recorded alongside the chemistry history.
+    //   morph_regime:     'spiral_smooth' | 'stepped_mild' | 'stepped_macro'
+    //                     | 'hopper_skeletal' | 'dendritic' (Sunagawa order)
+    //   morph_form:       'rhombohedral' | 'scalenohedral'
+    //   morph_surf_sigma: boundary-layer-damped surface σ the regime was
+    //                     classified from (post-step basis — 18th catch)
+    // Optional like dissolutionMode: written post-hoc by
+    // classifyCalciteMorphologyStep (js/52) at end of run_step; only
+    // calcite zones carry them today. Zone-stack consumers (strip chip,
+    // zone modal, the Phase 3 terrace geometry) read them when present.
+    if (opts.morph_regime) this.morph_regime = opts.morph_regime;
+    if (opts.morph_form) this.morph_form = opts.morph_form;
+    if (opts.morph_surf_sigma != null) this.morph_surf_sigma = opts.morph_surf_sigma;
   }
 }
 
