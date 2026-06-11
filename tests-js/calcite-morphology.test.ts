@@ -35,6 +35,7 @@ declare const calciteSurfaceSigma: any;
 declare const CALCITE_MORPH_REGIMES: any;
 declare const CALCITE_MORPH_TH: any;
 declare const _HELIX_CHEM_PARAMS: any;
+declare const calciteTerraceBands: any;
 
 function runScenario(name: string, seed = 42, steps?: number) {
   setSeed(seed);
@@ -215,6 +216,48 @@ describe('calcite morphology instruments (Phase 1)', () => {
         expect(recent.some((r: string) => fam.includes(r))).toBe(true);
       }
     }
+  });
+
+  it('Phase 3: calciteTerraceBands — relief crystals get knots, smooth stays null, replay truncates', () => {
+    // ultramafic_supergene is STEPPED 100% at seed 42 — every calcite
+    // carries terraces.
+    const ultra = runScenario('ultramafic_supergene');
+    const ultraCal = ultra.crystals.filter((c: any) => c.mineral === 'calcite' && !c.dissolved && c.total_growth_um > 0);
+    expect(ultraCal.length).toBeGreaterThan(0);
+    let sawTerraces = 0;
+    for (const c of ultraCal) {
+      const terr = calciteTerraceBands(c);
+      if (!terr) continue;
+      sawTerraces++;
+      expect(['scalene', 'rhomb']).toContain(terr.form);
+      // knots ascending, closing exactly at 1.0
+      let last = 0;
+      for (const k of terr.knots) {
+        expect(k.frac).toBeGreaterThan(last);
+        last = k.frac;
+      }
+      expect(terr.knots[terr.knots.length - 1].frac).toBe(1.0);
+      // replay truncation: an early cut yields a prefix-sized stack —
+      // the watch-it-grow contract (terraces accumulate, never pre-exist)
+      const early = calciteTerraceBands(c, c.nucleation_step + 5);
+      if (early) expect(early.knots.length).toBeLessThanOrEqual(terr.knots.length);
+    }
+    expect(sawTerraces).toBeGreaterThan(0);
+
+    // mvt's calcite is smooth spar with a sub-5% stepped CORE — below
+    // the relief floor, so it renders smooth (hand-specimen truth).
+    const mvt = runScenario('mvt');
+    const mvtCal = mvt.crystals.find((c: any) => c.mineral === 'calcite' && !c.dissolved);
+    expect(mvtCal).toBeTruthy();
+    expect(calciteTerraceBands(mvtCal)).toBeNull();
+
+    // sabkha is hopper/skeletal 100%: the apex hollows into a funnel.
+    const sabkha = runScenario('sabkha_dolomitization');
+    const sabCal = sabkha.crystals.find((c: any) => c.mineral === 'calcite' && !c.dissolved && c.total_growth_um > 0);
+    expect(sabCal).toBeTruthy();
+    const sabTerr = calciteTerraceBands(sabCal);
+    expect(sabTerr).toBeTruthy();
+    expect(sabTerr.hopperTip).toBe(true);
   });
 
   it('calcite_morph strip chip: Sunagawa ordinal at the anchor, null in empty rock', () => {

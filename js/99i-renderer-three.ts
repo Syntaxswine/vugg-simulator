@@ -1810,6 +1810,155 @@ function _makeAragoniteContactTwin(): any {
 // Build a unit-sized geometry for a given habit token, oriented so
 // its long axis (= c-axis) lies along +Y. The instance transform
 // later places the base at the wall and scales by c_length / a_width.
+// ----- Calcite-morphology arc Phase 3 (2026-06-11): VISIBLE TERRACES -----
+//
+// The boss's ask: WATCH stepped calcite grow. The geometry is built from
+// the crystal's own zone stack (calciteTerraceBands in js/52 reads the
+// per-zone regime tags): every macrostep band becomes a ledge, so the
+// crystal's recorded σ history is literally its silhouette — the steps
+// are the chemistry curve made solid. Because the band walk truncates at
+// the replay step, terraces ACCUMULATE live as the crystal grows and as
+// the replay scrubber advances.
+//
+// Construction: hex cross-section ziggurat under the parent form's
+// envelope. Lower half (in the druse/wall) stays smooth; the upper
+// (tip-ward) half maps cumulative growth fraction → height, and each
+// band quantizes the envelope profile into ledges — fine shallow steps
+// for stepped_mild, bold deep steps for stepped_macro, one massive step
+// for mid-stack hopper bands. A crystal whose LAST band is hopper gets
+// its apex hollowed into a funnel (the hollow-but-faceted instability
+// onset — Sunagawa order, 17th catch) instead of a solid tip.
+
+// Envelope profile of the parent form at height y (unit form, y ∈ [-0.5, 0.5]).
+function _calciteEnvelopeR(form: string, y: number): number {
+  const ay = Math.abs(y);
+  if (ay >= 0.5) return 0;
+  if (form === 'rhomb') {
+    // rhombohedron-like: full width through the mid-belt, linear taper to apex
+    return ay <= 0.18 ? 0.42 : 0.42 * (0.5 - ay) / (0.5 - 0.18);
+  }
+  // scalenohedron-like: waist at the equator, long linear taper (dogtooth)
+  return 0.30 * (0.5 - ay) / 0.5;
+}
+
+function _makeTerracedCalciteGeom(terr: any): any {
+  const form = terr.form === 'rhomb' ? 'rhomb' : 'scalene';
+  const R = (y: number) => _calciteEnvelopeR(form, y);
+  const SEG = 6;
+  const positions: number[] = [];
+  const mkRing = (y: number, r: number) => {
+    const out: number[][] = [];
+    for (let i = 0; i < SEG; i++) {
+      const a = (i / SEG) * Math.PI * 2 + Math.PI / 6;
+      out.push([Math.cos(a) * r, y, Math.sin(a) * r]);
+    }
+    return out;
+  };
+  const band = (r0: number[][], r1: number[][]) => {
+    for (let i = 0; i < SEG; i++) {
+      const a = r0[i], b = r0[(i + 1) % SEG], c = r1[(i + 1) % SEG], d = r1[i];
+      _pushTri(positions, a[0], a[1], a[2], b[0], b[1], b[2], c[0], c[1], c[2]);
+      _pushTri(positions, a[0], a[1], a[2], c[0], c[1], c[2], d[0], d[1], d[2]);
+    }
+  };
+
+  // Lower half — smooth (it sits in the wall / druse carpet).
+  const yWaist = form === 'rhomb' ? -0.18 : 0.0;
+  let prev = mkRing(yWaist, R(yWaist));
+  for (let i = 0; i < SEG; i++) {
+    const a = prev[i], b = prev[(i + 1) % SEG];
+    _pushTri(positions, 0, -0.5, 0, b[0], b[1], b[2], a[0], a[1], a[2]);
+  }
+  if (form === 'rhomb') {
+    const r0 = mkRing(0, R(0));
+    band(prev, r0);
+    prev = r0;
+  }
+
+  // Upper half — the terraced stack. Cumulative growth fraction maps to
+  // height: early bands sit low (the old, wide plates), late bands climb
+  // toward the tip — the pagoda read.
+  const yStart = 0;
+  const yTipBase = terr.hopperTip ? 0.44 : 0.40;
+  let yA = yStart;
+  let fracA = 0;
+  for (const k of terr.knots) {
+    const yB = yStart + k.frac * (yTipBase - yStart);
+    const span = yB - yA;
+    if (span <= 1e-4) { fracA = k.frac; continue; }
+    if (k.regime === 'stepped_macro' || k.regime === 'hopper_skeletal' || k.regime === 'stepped_mild') {
+      const mild = k.regime === 'stepped_mild';
+      // A macrostep band is a TRAIN of bunched steps, not one cliff —
+      // ledge pitch sized so a typical band reads as 2-4 terraces
+      // (pagoda stack), mild bands as finer shallower treads.
+      const stepH = k.regime === 'hopper_skeletal' ? span : (mild ? 0.022 : 0.04);
+      const n = Math.max(1, Math.min(10, Math.round(span / stepH)));
+      for (let s = 0; s < n; s++) {
+        const ya = yA + (s / n) * span;
+        const yb = yA + ((s + 1) / n) * span;
+        // Tread radius: macro/hopper hold the OLD radius the whole riser
+        // (bold ledge); mild splits the difference (gentle ledge).
+        const rTread = mild ? (R(ya) + R(yb)) / 2 : R(ya);
+        const riser0 = mkRing(ya, rTread);
+        const riser1 = mkRing(yb, rTread);
+        band(prev, riser0);          // step up onto the tread (ledge in/out)
+        band(riser0, riser1);        // vertical riser
+        prev = riser1;
+      }
+      const closeRing = mkRing(yB, R(yB));
+      band(prev, closeRing);         // ledge in to the envelope
+      prev = closeRing;
+    } else {
+      // smooth band — follow the envelope in two segments
+      const mid = mkRing((yA + yB) / 2, R((yA + yB) / 2));
+      const end = mkRing(yB, R(yB));
+      band(prev, mid);
+      band(mid, end);
+      prev = end;
+    }
+    yA = yB;
+    fracA = k.frac;
+  }
+
+  // The tip: solid apex, or a hopper funnel (apex pulled INSIDE — the
+  // hollow face read; DoubleSide material lights the bowl interior).
+  if (terr.hopperTip) {
+    const rim = mkRing(yTipBase + 0.03, R(yTipBase) * 0.92);
+    band(prev, rim);
+    const sink = yTipBase - 0.14;
+    for (let i = 0; i < SEG; i++) {
+      const a = rim[i], b = rim[(i + 1) % SEG];
+      _pushTri(positions, 0, sink, 0, a[0], a[1], a[2], b[0], b[1], b[2]);
+    }
+  } else {
+    for (let i = 0; i < SEG; i++) {
+      const a = prev[i], b = prev[(i + 1) % SEG];
+      _pushTri(positions, 0, 0.5, 0, a[0], a[1], a[2], b[0], b[1], b[2]);
+    }
+  }
+
+  const geom = new THREE.BufferGeometry();
+  geom.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+  geom.computeVertexNormals();
+  return geom;
+}
+
+// Per-crystal terrace-geometry cache. Keyed by crystal_id; the signature
+// (form + knot list + hopper tip) busts the entry the moment a new band
+// forms or the replay scrubber crosses a band boundary — old geometry is
+// disposed, not leaked. Bounded by live calcite count.
+function _getTerracedCalciteGeom(state: any, crystal: any, terr: any): any {
+  if (!state._terraceGeoms) state._terraceGeoms = new Map();
+  const sig = `${terr.form}:${terr.hopperTip ? 'H' : 's'}:`
+    + terr.knots.map((k: any) => `${k.regime[0]}${k.frac.toFixed(3)}`).join('|');
+  const hit = state._terraceGeoms.get(crystal.crystal_id);
+  if (hit && hit.sig === sig) return hit.geom;
+  if (hit && hit.geom && hit.geom.dispose) hit.geom.dispose();
+  const geom = _makeTerracedCalciteGeom(terr);
+  state._terraceGeoms.set(crystal.crystal_id, { sig, geom });
+  return geom;
+}
+
 function _buildHabitGeom(token: string): any {
   switch (token) {
     case 'spike':
@@ -2599,10 +2748,24 @@ function _topoSyncCrystalMeshes(state: any, sim: any, wall: any, replayStep?: nu
     // (canonical → 'dripstone' for ceiling/floor crystals on a
     // prism/spike/rhomb/scalene/botryoidal habit).
     const token = _resolveCrystalGeomToken(crystal, habitForGeom);
-    let geom = state.geomCache.get(token);
+    let geom: any = null;
+    // Calcite-morphology arc Phase 3: a calcite crystal whose zone stack
+    // carries real stepped/hopper relief renders zone-stack TERRACES
+    // instead of the smooth parent form. Gated on the parent-form tokens
+    // so twins, manganocalcite botryoids, and air-mode dripstone all keep
+    // their own geometry. Replay passes the frame's step so terraces
+    // accumulate as the scrubber advances — the watch-it-grow read.
+    if (crystal.mineral === 'calcite' && (token === 'scalene' || token === 'rhomb')
+        && typeof calciteTerraceBands === 'function') {
+      const terr = calciteTerraceBands(crystal, replayStep);
+      if (terr) geom = _getTerracedCalciteGeom(state, crystal, terr);
+    }
     if (!geom) {
-      geom = _buildHabitGeom(token);
-      state.geomCache.set(token, geom);
+      geom = state.geomCache.get(token);
+      if (!geom) {
+        geom = _buildHabitGeom(token);
+        state.geomCache.set(token, geom);
+      }
     }
 
     // v66 paramorph rewind — argentite → acanthite (and dehydration
