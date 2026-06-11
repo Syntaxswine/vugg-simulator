@@ -164,6 +164,27 @@ manganocalcite branch. Mg is the right SECOND knob: high Mg/Ca → bias the
 emergent form toward scalenohedral/dogtooth + sharpen step bunching; low Mg
 → rhombohedral. This composes with, and does not replace, the σ axis.
 
+**SHIPPED (Phase 4, SIM 187, 2026-06-11) — calibration evidence.** Both
+knobs landed, thresholds set by fleet observation (a k∈{0, 0.4, 0.8}
+sweep over every calcite scenario at seed 42):
+- *Form elongation*: `calciteMorphForm` (Mg:Ca > 0.15 OR T > 200 →
+  scalenohedral) drives the habit form everywhere (smooth spar included —
+  elongation is form-level physics, regime-independent). Exactly four
+  Mg-dominated waters flip: sabkha (Mg:Ca 3.3), searles (1.6),
+  ultramafic (10), zoned_dripstone (0.75). The MVT brines (~0.075)
+  correctly stay rhombohedral — Tri-State spar is rhombs, not dogtooth.
+- *Bunching bias*: effective σ × (1 + 0.4·min(Mg:Ca, 1)) before the
+  regime cut (engine + map tool in sync). k=0.4 chosen because Jeffrey
+  Mine (Mg:Ca 0.84, serpentinite water) visibly shifts toward stepped
+  (smooth 52%→37%, stepped 46%→60%) — the §6.3 hook observable in the
+  fleet — while every scenario's DOMINANT regime stays the validated one
+  and dendrite remains transient-rims-only. k=0.8 pushed zoned_dripstone
+  to 47% dendritic, against ground truth — rejected.
+- Seed-42 counts and the strip digest did not move (the four flipped
+  calcites are µm-scale crusts; the aspect-ratio coupling is below
+  count/trajectory resolution at this seed) — but the coupling is real,
+  hence the SIM bump.
+
 ---
 
 ## 5. How this maps onto the sim (units + calibration caveat)

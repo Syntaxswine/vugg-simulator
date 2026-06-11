@@ -10657,5 +10657,39 @@
 //   BASELINE: single-scenario rebake (bisbee only). Coverage gate: stale
 //   must stay 2. With this, the master doc's "EVENT-CONFOUNDED redox"
 //   gated class no longer exists — both members subsumed.
-const SIM_VERSION = 186;
+//
+// v187 (2026-06-11) — CALCITE MORPHOLOGY Phase 4: the Mg axis. The σ axis
+//                     (Phases 0-3, all sim-neutral: post-step classifier,
+//                     zone tags + strip chip, σ-regime habit strings,
+//                     zone-stack TERRACE render) set smooth↔stepped↔
+//                     hopper; Mg now sets the FORM the steps build into.
+//
+//   TWO COUPLED KNOBS, both per GCA 2015 ("Evolution of calcite growth
+//   morphology in the presence of magnesium") + the AFM growth-inhibition
+//   literature, thresholds calibrated by fleet observation (the probe
+//   sweep recorded in RESEARCH-calcite-morphology-2026-06-11.md §4):
+//
+//   (1) FORM ELONGATION — habit form is the full calciteMorphForm:
+//   Mg:Ca > 0.15 elongates toward scalenohedral/dogtooth alongside the
+//   old T>200 trigger, for BOTH smooth spar and the σ-regime habits.
+//   This is the chemistry coupling that forced the bump: scaleno aspect
+//   0.5 vs rhomb 0.8 → _volume_mm3 → fill, in exactly the four
+//   Mg-dominated waters (sabkha Mg:Ca 3.3, searles 1.6, ultramafic 10,
+//   zoned_dripstone 0.75). The MVT brines (~0.075) correctly stay
+//   rhombohedral — Tri-State spar is rhombs, not dogtooth.
+//
+//   (2) BUNCHING BIAS — Mg pins step edges, so the same σ bunches
+//   harder: effective σ × (1 + 0.4·min(Mg:Ca,1)) before the regime cut
+//   (engine + map tool in sync). k=0.4 chosen from the k∈{0,0.4,0.8}
+//   sweep: Jeffrey Mine (Mg:Ca 0.84 serpentinite water) shifts toward
+//   stepped — the research §6.3 Mg-elongation hook observable in the
+//   fleet — while every scenario's DOMINANT regime stays the validated
+//   one (dripstone stays hopper; dendrite stays transient-rims-only).
+//   k=0.8 over-steepened the dripstone family toward dendrite, against
+//   ground truth — rejected.
+//
+//   BASELINE: rebake. Expected movers are the four form-flip scenarios
+//   (+ jeffrey via regime drift feeding habit); everything else should
+//   hold byte-identical — inspect the diff against that prediction.
+const SIM_VERSION = 187;
 

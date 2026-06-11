@@ -56,6 +56,10 @@ const TH = {
   // > HOPPER_MAX → dendritic (the instability branches)
   // impurity / T form axis
   MG_SCALENO: 0.15,     // Mg:Ca above this → scalenohedral elongation (GCA 2015 ~0.2)
+  // Phase 4 (SIM 187): Mg step-edge pinning sharpens bunching —
+  // effective σ × (1 + MG_BUNCH·min(Mg:Ca,1)) before the regime cut.
+  // KEEP IN SYNC with CALCITE_MORPH_TH in js/52-engines-carbonate.ts.
+  MG_BUNCH: 0.4,
 };
 
 function surfaceSigma(bulkSigma, sizeUm) {
@@ -93,12 +97,15 @@ for (const scen of Object.keys(SCENARIOS)) {
   const sim = new VugSimulator(conditions, events);
   const steps = defaultSteps ?? 120;
 
-  // sample bulk σ + size each step so we can attribute a σ to each zone by step
+  // sample bulk σ + Mg:Ca + size each step so we can attribute a σ to
+  // each zone by step (post-step basis — the calibrated one, 18th catch)
   const sigmaByStep = {};
+  const mgByStep = {};
   for (let s = 0; s < steps; s++) {
     sim.run_step();
     let sg; try { sg = sim.conditions.supersaturation_calcite(); } catch (e) { sg = NaN; }
     sigmaByStep[sim.step] = sg;
+    mgByStep[sim.step] = (sim.conditions.fluid.Mg || 0) / Math.max(1e-6, sim.conditions.fluid.Ca || 0);
   }
   const calcites = sim.crystals.filter((c) => c.mineral === 'calcite' && !c.dissolved && c.total_growth_um > 0);
   if (!calcites.length) continue;
@@ -118,7 +125,9 @@ for (const scen of Object.keys(SCENARIOS)) {
       if (t <= 0) { sizeAcc += 0; continue; }
       const bulk = isFinite(sigmaByStep[z.step]) ? sigmaByStep[z.step] : NaN;
       if (!isFinite(bulk) || bulk < 1.0) { sizeAcc += t; continue; }
-      const ss = surfaceSigma(bulk, sizeAcc);
+      // Phase 4 (SIM 187): Mg bunching term, mirroring the engine.
+      const mgBunch = 1 + TH.MG_BUNCH * Math.min(mgByStep[z.step] || 0, 1);
+      const ss = surfaceSigma(bulk, sizeAcc) * mgBunch;
       const recomputed = regimeOf(ss);
       // --engine: trust the engine's dark tag; track agreement vs recompute.
       const engineTag = (typeof z.morph_regime === 'string') ? z.morph_regime : null;

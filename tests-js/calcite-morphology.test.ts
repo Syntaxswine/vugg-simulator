@@ -36,6 +36,7 @@ declare const CALCITE_MORPH_REGIMES: any;
 declare const CALCITE_MORPH_TH: any;
 declare const _HELIX_CHEM_PARAMS: any;
 declare const calciteTerraceBands: any;
+declare const calciteMorphForm: any;
 
 function runScenario(name: string, seed = 42, steps?: number) {
   setSeed(seed);
@@ -112,12 +113,16 @@ describe('calcite morphology classifier (Phase 0)', () => {
       let sigmaPost: number;
       try { sigmaPost = sim.conditions.supersaturation_calcite(); } catch (_e) { continue; }
       if (!isFinite(sigmaPost) || sigmaPost < 1.0) continue;
+      // Phase 4: the Mg bunching term rides the recompute too (post-step
+      // Mg:Ca, same basis as σ).
+      const mg = (sim.conditions.fluid.Mg || 0) / Math.max(1e-6, sim.conditions.fluid.Ca || 0);
+      const mgBunch = 1 + CALCITE_MORPH_TH.MG_BUNCH * Math.min(mg, 1);
       for (const c of sim.crystals) {
         if (!c || c.mineral !== 'calcite' || c.dissolved || !c.zones.length) continue;
         const z = c.zones[c.zones.length - 1];
         if (z.step !== sim.step || z.thickness_um <= 0) continue;
         const sizeBefore = Math.max(0, c.total_growth_um - z.thickness_um);
-        const expected = calciteMorphRegime(calciteSurfaceSigma(sigmaPost, sizeBefore));
+        const expected = calciteMorphRegime(calciteSurfaceSigma(sigmaPost, sizeBefore) * mgBunch);
         expect(z.morph_regime).toBe(expected);
         expect(c._morphology.regime).toBe(expected);
         checked++;
@@ -258,6 +263,29 @@ describe('calcite morphology instruments (Phase 1)', () => {
     const sabTerr = calciteTerraceBands(sabCal);
     expect(sabTerr).toBeTruthy();
     expect(sabTerr.hopperTip).toBe(true);
+  });
+
+  it('Phase 4 (SIM 187): the Mg axis — form elongation + bunching bias', () => {
+    // Form: Mg:Ca > 0.15 elongates toward scalenohedral at any T
+    // (GCA 2015); T > 200 elongates at any Mg (the original ladder).
+    expect(calciteMorphForm(0.2, 25)).toBe('scalenohedral');
+    expect(calciteMorphForm(0.05, 25)).toBe('rhombohedral');
+    expect(calciteMorphForm(0.05, 250)).toBe('scalenohedral');
+    // Bunching factor pinned to the calibrated k (the k∈{0,0.4,0.8}
+    // sweep — 0.8 over-steepened the dripstone family, rejected).
+    expect(CALCITE_MORPH_TH.MG_BUNCH).toBe(0.4);
+
+    // Fleet: the Mg-dominated waters wear scalenohedral-family habits.
+    const sabkha = runScenario('sabkha_dolomitization');   // Mg:Ca ≈ 3.3
+    const sabCal = sabkha.crystals.find((c: any) => c.mineral === 'calcite' && !c.dissolved && c._morphology);
+    expect(sabCal.habit).toBe('hopper_scalenohedral');
+
+    const ultra = runScenario('ultramafic_supergene');     // Mg:Ca ≈ 10
+    const ultraCal = ultra.crystals.filter((c: any) => c.mineral === 'calcite' && !c.dissolved && c._morphology);
+    expect(ultraCal.length).toBeGreaterThan(0);
+    for (const c of ultraCal) expect(c.habit).toBe('stepped_scalenohedral');
+    // (mvt at Mg:Ca ~0.075 staying plain rhombohedral is pinned in the
+    // Phase 2 contract above — Tri-State spar is rhombs, not dogtooth.)
   });
 
   it('calcite_morph strip chip: Sunagawa ordinal at the anchor, null in empty rock', () => {

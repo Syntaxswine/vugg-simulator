@@ -34,6 +34,17 @@ const CALCITE_MORPH_TH = {
   HOPPER_MAX: 200.0,    // 50–200 → hopper/skeletal (faces hollow, faceted)
   // ≥ HOPPER_MAX → dendritic (the instability branches)
   MG_SCALENO: 0.15,     // Mg:Ca above this → scalenohedral elongation
+  // Phase 4 (Mg axis, 2026-06-11): Mg²⁺ pins step edges (growth
+  // inhibition, GCA 2015 / AFM literature) → the same σ bunches HARDER
+  // in Mg-rich fluid. Encoded as an effective-σ multiplier
+  // (1 + MG_BUNCH·min(Mg:Ca, 1)) applied before the regime cut.
+  // k=0.4 calibrated by fleet observation (tools/_probe-mg-axis sweep,
+  // recorded in the research doc §4): Jeffrey Mine (Mg:Ca 0.84,
+  // serpentinite water) shifts toward stepped — the §6.3 hook — while
+  // every scenario's DOMINANT regime stays the validated one; k=0.8
+  // over-steepened the dripstone family toward dendrite, against
+  // ground truth.
+  MG_BUNCH: 0.4,
 };
 
 // Regime list in Sunagawa order (index = severity ordinal — the strip
@@ -204,13 +215,15 @@ function grow_calcite(crystal, conditions, step) {
   // the one-step lag is physical: it is the rock's recorded state, on
   // the calibrated post-step basis, 18th catch). Precedence preserved:
   // manganocalcite (chemistry variety) outranks the σ regime, exactly
-  // as it outranked the old T ladder. The form axis stays T-ONLY here —
-  // calciteMorphForm's Mg:Ca flip is Phase 4's call, because flipping
-  // form flips _habitAspectRatio → volume → fill → chemistry, and this
-  // commit is aspect-preserving byte-identical (stepped_/hopper_/
-  // dendritic_<form> carry their parent form's exact aspect ratio in
-  // 27-geometry-crystal.ts).
-  const morphFormT = conditions.temperature > 200 ? 'scalenohedral' : 'rhombohedral';
+  // as it outranked the old T ladder.
+  // Phase 4 (SIM 187): the form axis is the FULL calciteMorphForm —
+  // Mg:Ca > 0.15 elongates toward scalenohedral (GCA 2015) alongside
+  // the T>200 trigger. This IS a chemistry change (scaleno aspect 0.5
+  // vs rhomb 0.8 → volume → fill) for the four Mg-dominated waters
+  // (sabkha 3.3, searles 1.6, ultramafic 10, zoned_dripstone 0.75);
+  // the MVT brines (Mg:Ca ~0.075) correctly stay rhombohedral.
+  const morphMgRatio = (conditions.fluid.Mg || 0) / Math.max(1e-6, conditions.fluid.Ca || 0);
+  const morphFormT = calciteMorphForm(morphMgRatio, conditions.temperature);
   const morphRegime = (crystal._morphology && crystal._morphology.regime) || null;
   if (is_manganocalcite && excess < 0.4) {
     crystal.habit = 'botryoidal_manganocalcite';
@@ -239,9 +252,14 @@ function grow_calcite(crystal, conditions, step) {
     crystal.habit = `dendritic_${morphFormT}`;
     crystal.dominant_forms = ['branched dendritic calcite', 'the instability run past hopper — trunks with side arms'];
     if (is_manganocalcite) crystal._variety = 'manganocalcite';
-  } else if (conditions.temperature > 200) {
+  } else if (morphFormT === 'scalenohedral') {
+    // Smooth growth, scalenohedral form — T>200 (the original ladder)
+    // OR Mg:Ca>0.15 (Phase 4: GCA 2015 elongation is form-level
+    // physics, regime-independent — Mg-rich smooth spar elongates too).
     crystal.habit = 'scalenohedral';
-    crystal.dominant_forms = ['v{211} scalenohedron', 'dog-tooth'];
+    crystal.dominant_forms = conditions.temperature > 200
+      ? ['v{211} scalenohedron', 'dog-tooth']
+      : ['v{211} scalenohedron', 'dog-tooth (Mg-elongated)'];
     if (is_manganocalcite) crystal._variety = 'manganocalcite';
   } else if (conditions.temperature > 100) {
     crystal.habit = 'rhombohedral';
@@ -314,13 +332,17 @@ function classifyCalciteMorphologyStep(sim) {
   const f = sim.conditions.fluid;
   const mgRatio = (f.Mg || 0) / Math.max(1e-6, f.Ca || 0);
   const form = calciteMorphForm(mgRatio, sim.conditions.temperature);
+  // Phase 4: Mg step-edge pinning sharpens bunching — effective σ for
+  // the regime cut rises with Mg:Ca (capped at 1). Keep IN SYNC with
+  // tools/calcite-morphology-map.mjs (the bench cross-checks this).
+  const mgBunch = 1 + CALCITE_MORPH_TH.MG_BUNCH * Math.min(mgRatio, 1);
   for (const c of sim.crystals) {
     if (!c || c.mineral !== 'calcite' || c.dissolved) continue;
     const z = c.zones.length ? c.zones[c.zones.length - 1] : null;
     if (!z || z.step !== sim.step || z.thickness_um <= 0) continue;
     // Size BEFORE this zone — the map tool's sizeAcc semantics.
     const sizeBefore = Math.max(0, c.total_growth_um - z.thickness_um);
-    const surf = calciteSurfaceSigma(sigma, sizeBefore);
+    const surf = calciteSurfaceSigma(sigma, sizeBefore) * mgBunch;
     const regime = calciteMorphRegime(surf);
     z.morph_regime = regime;
     z.morph_form = form;
