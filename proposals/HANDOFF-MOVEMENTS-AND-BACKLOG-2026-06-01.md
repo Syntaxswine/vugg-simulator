@@ -43,6 +43,17 @@ FIXED 2026-06-01 (`083d994`, boss).
 > with the cavity still sealing (the fewer-nuclei-larger-individuals
 > mechanism emerged unscripted). The composition pattern it established:
 > events are the chemistry beats, the movement is the thermal sentence.
+> **And by end of day: THE WHOLE T-ROLLOUT IS CLOSED (SIM 184).** v183
+> found the second shape (events-anchor-T → silence the noise, don't
+> movement over it); v184 swept the remaining six by observation — marble/
+> deccan/radioactive flagged, cooling got the Herkimer burial movement
+> (crystal count 3→1, the signature), deccan additionally got the
+> rollout's deep find (a fluid.SiO2 constant-setpoint movement replacing a
+> structural noise-dependence in its silica budget), and porphyry +
+> epithermal KEEP their pulses deliberately (fault-valve pulsing is native
+> and, for epithermal, load-bearing). The "⛔ T-BLOCKED (~8)" class in the
+> coverage map below NO LONGER EXISTS. Next per the totality verdict:
+> event-subsumption (bisbee/schneeberg).
 
 ---
 

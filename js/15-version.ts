@@ -10493,5 +10493,54 @@
 //   readout players see goes from a spurious ~476°C re-warm to the
 //   documented ~300°C floor (same SIM-bump-for-render-visible pattern as
 //   v173/v174).
-const SIM_VERSION = 183;
+//
+// v184 (2026-06-10) — T-ROLLOUT CLOSE-OUT: the remaining six scenarios,
+//                     each by its measured shape. The "~8 T-blocked"
+//                     class is now FULLY SWEPT (181 mechanic → 182/183
+//                     the two shapes → 184 the rest).
+//
+//   marble (flag): one leucogranite intrusion, one arc — events anchor
+//   700@20/500@60, default drift carries the 500→350 retrograde
+//   correctly; the pulses' Fe riders poisoned the Cr-vs-Fe chromophore
+//   budget that decides ruby vs sapphire. Clean at 3 seeds.
+//
+//   deccan (flag + cooling_rate 0.3 + a fluid.SiO2 MOVEMENT): the deep
+//   find of the sweep. Flag-only KILLED apophyllite (an expects) at every
+//   seed — the random pulses' SiO2 riders were the scenario's de-facto
+//   silica budget (gate needs ≥800; the stage-III event's one-shot +600
+//   gets eaten by quartz depletion). Ottens calls Stage III "the
+//   long-lasting late stage" (21-58 Ma) — a SUSTAINED groundwater regime,
+//   which is exactly what a constant-setpoint movement models: fluid.SiO2
+//   pinned at 950 for steps 110-200 (the percolating aquifer is an
+//   infinite reservoir on vesicle timescales). First non-temperature
+//   movement of the rollout, first ops:[] constant setpoint. All three
+//   expects at all seeds; fill IMPROVES 0.07-0.18 → 0.28-0.30;
+//   wollastonite (a skarn mineral in an amygdale!) and pulse-Mn
+//   rhodochrosite drop out.
+//
+//   radioactive_pegmatite (flag): sealed pocket like gem; a late pulse
+//   had re-warmed the "approaches ambient" endgame to 541°C with autunite
+//   (T_max 50!) in the expects. The ≤50°C autunite window now opens
+//   deterministically; pyrite/goethite were pulse-Fe artifacts.
+//
+//   cooling (MOVEMENT + flag): the only events:[] scenario — pure
+//   naica-shape. Old regime: drift fell out of the Herkimer 140-200°C
+//   window and 2-3 random pulses balanced it back by ACCIDENT (band
+//   65-86%). New: declared burial plateau (base 180, smoothstep −20 —
+//   peak Alleghenian burial, Harris et al. 1978) → band 100%, and
+//   crystal count 3→1 at every seed. ONE large doubly-terminated quartz
+//   is the literal Herkimer signature — the fewer-nuclei mechanism
+//   (García-Ruiz, naica v182) emerging at a second locality.
+//
+//   porphyry + epithermal (KEPT, documented in their notes): episodic
+//   injection IS the porphyry deposit class (Sillitoe 2010), and
+//   epithermal's pulses are load-bearing AND native — fault-valve boiling
+//   (Sibson) is the heat supply; without them the system crashes from the
+//   epithermal window to the floor (meanT 226→121, fill →0.00). The rare
+//   case where the random mechanic is the geology.
+//
+//   BASELINE: 4-scenario rebake (marble, deccan, radioactive_pegmatite,
+//   cooling — porphyry/epithermal untouched, gem-precedent partial
+//   neutrality possible per scenario). Coverage gate: stale must stay 2.
+const SIM_VERSION = 184;
 

@@ -26,8 +26,12 @@
  *   node tools/t-story-observe.mjs <scenario> [options]
  *     --pulses-off              candidate sets wall.thermal_pulses=false
  *     --cooling-rate <x>        candidate sets wall.cooling_rate=x
- *     --move base,amp,start,end candidate adds a temperature movement
- *                               (smoothstep trend; no texture)
+ *     --move base,amp,start,end[,field]
+ *                               candidate adds a movement (smoothstep trend,
+ *                               no texture; amp 0 = constant setpoint —
+ *                               models a sustained reservoir like deccan's
+ *                               stage-III groundwater). field defaults to
+ *                               temperature; dotted paths OK (fluid.SiO2).
  *     --seeds a,b,c             (default 42,7,1009)
  *     --band lo,hi              report %steps with T in [lo,hi]
  *
@@ -59,8 +63,10 @@ const [bandLo, bandHi] = (opt('--band') || '').split(',').map(Number);
 
 let movement = null;
 if (moveArg) {
-  const [base, amp, start, end] = moveArg.split(',').map(Number);
-  movement = [{ field: 'temperature', startStep: start, endStep: end, base, ops: [{ kind: 'trend', amp, ease: true }] }];
+  const parts = moveArg.split(',');
+  const [base, amp, start, end] = parts.slice(0, 4).map(Number);
+  const field = parts[4] || 'temperature';
+  movement = [{ field, startStep: start, endStep: end, base, ops: [{ kind: 'trend', amp, ease: true }] }];
 }
 if (!pulsesOff && coolingRate === null && !movement) {
   console.error('no candidate options given — nothing to compare. Pass --pulses-off / --cooling-rate / --move.');
@@ -114,9 +120,14 @@ for (const seed of seeds) {
   const gained = Object.keys(B.species).filter(k => !A.species[k]);
   if (lost.length) console.log(`  lost under story:   ${lost.join(', ')}`);
   if (gained.length) console.log(`  gained under story: ${gained.join(', ')}`);
-  const missing = expects.filter(e => !Object.keys(B.species).some(k => k === e));
-  console.log(missing.length
-    ? `  ⚠ EXPECTS MISSING under story: ${missing.join(', ')}`
-    : `  expects_species all present under story (${expects.join(', ')})`);
+  // Distinguish "the story LOST an expects" (red flag) from "expects was
+  // already missing in BASE" (pre-existing aspirational miss — the gem
+  // topaz / radioactive autunite case; not the candidate's doing).
+  const missing = expects.filter(e => !B.species[e]);
+  const lostExpects = missing.filter(e => A.species[e]);
+  const preExisting = missing.filter(e => !A.species[e]);
+  if (lostExpects.length) console.log(`  ⚠⚠ STORY LOSES EXPECTS: ${lostExpects.join(', ')}`);
+  if (preExisting.length) console.log(`  (expects already missing in BASE at this seed: ${preExisting.join(', ')})`);
+  if (!missing.length) console.log(`  expects_species all present under story (${expects.join(', ')})`);
   console.log('');
 }

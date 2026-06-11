@@ -2,7 +2,47 @@
 
 Living list of open work items, captured from session conversations so context survives compaction. Each item has enough detail that someone picking it up cold can act without re-discovering the rationale.
 
-> ## 💎 UPDATE (2026-06-10, latest) — NAICA'S THERMAL STORY (SIM 182): the first declared temperature movement
+> ## 🏁 UPDATE (2026-06-10, latest) — T-ROLLOUT COMPLETE (SIM 184): all eight T-blocked scenarios swept, each by its measured shape
+>
+> The Movements master doc's "biggest lever" sub-project is CLOSED
+> end-to-end in one day: v181 (mechanic: dedicated thermal stream +
+> stand-down) → v182 (naica-shape demonstrated) → v183 (pegmatite-shape
+> demonstrated + the classification) → **v184 (the remaining six, each by
+> observation)**. Per-scenario verdicts, all dark-observed
+> (tools/t-story-observe.mjs, 3 seeds each):
+>
+> * **marble** — flag (one intrusion, one arc; pulse-Fe poisoned the
+>   ruby-vs-sapphire chromophore budget). Byte-identical at seed 42.
+> * **deccan** — flag + cooling_rate 0.3 + a **fluid.SiO2 constant-setpoint
+>   MOVEMENT** (950, steps 110-200): the sweep's deep find — the pulses'
+>   SiO2 riders were the scenario's de-facto silica budget (apophyllite
+>   gate ≥800; flag-only KILLED an expects at every seed). Ottens' "long-
+>   lasting late stage" = a sustained groundwater regime = exactly what a
+>   constant-setpoint movement models. First non-T movement; first ops:[]
+>   setpoint. Fill IMPROVES 0.07-0.18 → 0.28-0.30; wollastonite (a skarn
+>   mineral in an amygdale) correctly exits.
+> * **radioactive_pegmatite** — flag (sealed pocket; a late pulse had
+>   re-warmed the endgame to 541°C with autunite T_max=50 in expects; the
+>   ≤50°C window now opens deterministically every run).
+> * **cooling** — declared BURIAL MOVEMENT (base 180, −20 smoothstep; peak
+>   Alleghenian plateau) + flag. Old regime was noise-as-thermal-budget
+>   (2-3 random pulses accidentally balancing the drift, band 65-86%).
+>   Now: band 100% and crystal count 3→1 — ONE large doubly-terminated
+>   quartz, the literal Herkimer signature (fewer-nuclei mechanism, second
+>   locality).
+> * **porphyry + epithermal** — pulses KEPT, deliberately, documented in
+>   their notes (do not re-litigate): episodic injection IS the porphyry
+>   class; epithermal's pulses are load-bearing AND native (fault-valve
+>   boiling is the heat supply — without them it crashes to the floor,
+>   fill →0.00).
+>
+> Rebake: 3/31 moved (cooling/deccan/radioactive; marble byte-identical),
+> coverage UNCHANGED (133/2/36). Logged aspirational misses for future
+> tune arcs: epithermal native_gold + fluorite, radioactive autunite at
+> seed 42, gem topaz. NEXT Movements work: event-subsumption
+> (bisbee/schneeberg) per the master doc's queue.
+>
+> ## 💎 UPDATE (2026-06-10, earlier) — NAICA'S THERMAL STORY (SIM 182): the first declared temperature movement
 >
 > The first consumer of the v181 unlock, shipped the same day. naica's
 > buffered pool is now a DECLARED movement (base 56°C, smoothstep −3 over
