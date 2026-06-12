@@ -15974,7 +15974,54 @@ let timeScale = 5.0;
 //   exact, the mixed fidelity flips the cooling-scenario SI drift
 //   mildly positive (re-pinned bounded until the Ksp analytic
 //   upgrade lands — BACKLOG).
-const SIM_VERSION = 192;
+//
+// v193 (2026-06-12) — THE CALDBECK V-SUITE: mottramite delivered at
+//                     roughten_gill (task #55, the twice-deferred V-axis
+//                     arc), via TWO engine corrections + one event leach.
+//                     The gate-census pattern again — measure, don't bump.
+//
+//   THE CENSUS (tools/roughten-gill-mottramite-probe.mjs, NEW): at v192
+//   mottramite fired NOWHERE in the 33-scenario fleet (dead-species pair
+//   with descloizite), while its V-gate sat at 10 — FIVE TIMES
+//   vanadinite's 2 — with v_f normalized /20 vs vanadinite's /6. That is
+//   BACKWARDS against the deposits: the descloizite-group vanadates
+//   (mottramite/descloizite) are the ABUNDANT supergene V ores (Otavi
+//   Mountainland, once the world's largest; Boni et al. 2007 Econ Geol
+//   102:441), vanadinite the locality-special collector phase. Two bugs
+//   compounded the misweighting, plus a missing scenario mechanic:
+//
+//   FIX 1 — vanadinite's MISSING redox gate. Pb5(VO4)3Cl is a V⁵⁺
+//   vanadate exactly like its O2_min-0.5 siblings, but its engine was
+//   cloned from pyromorphite (PO4 — P is always +5, no redox gate) and
+//   the O2 requirement never came along. Census proof: all 6 roughten_gill
+//   vanadinite nucleated at O2 0.20 (reducing — where V⁵⁺ isn't mobile).
+//   Added O2_min 0.5 + phosphateRedoxAvailable gate (the v92 As-state
+//   family). Vanadinite now waits for the oxidation pulse; still 6 at
+//   both tenants (supergene scenarios are oxidizing).
+//
+//   FIX 2 — descloizite-group V-economics. V_min 10→4, v_f /20→/8 for
+//   BOTH group members — bringing them to vanadinite-COMPARABLE V economy
+//   (not privileged; the Cu/Zn cation forks remain their distinctive
+//   routing). FREE WIN: mottramite now also fires at supergene_oxidation
+//   (Tsumeb, 0→2) — its own type-abundance locality.
+//
+//   FIX 3 — roughten_gill supergene V-leach. The scenario's own header
+//   said Caldbeck wallrock carries V 10-20 ppm that "leaches in the
+//   supergene window," yet fluid.V sat STATIC at 6 — described, never
+//   modelled. Added V 6→14 to the pyrite-oxidation event (step 70, where
+//   O2 jumps 0.05→1.2 — V⁵⁺ mobilizes at oxidation onset). Fires AFTER
+//   the step-25 primary lockup, so it CANNOT reproduce the v180 failure
+//   (an INITIAL-broth V bump from step 0 that re-rolled the primary RNG
+//   and halved sphalerite). The V axis was never the problem — its
+//   PLACEMENT in time was. mottramite 5 at seed 42; primaries intact
+//   (sphalerite 2→3, galena 4 unchanged). Kingsbury & Hartley 1956 +
+//   Stanley et al. 1991 document the Caldbeck V suite.
+//
+//   BASELINE: rebake. Expected movers: roughten_gill (+mottramite,
+//   vanadinite re-timed) + supergene_oxidation (+mottramite); vanadinite
+//   redox gate is inert everywhere else (no other tenant). Any cascade
+//   re-roll from the v_f σ-magnitude change is reviewed in the diff.
+const SIM_VERSION = 193;
 
 // ── 18-constants.js ──
 
@@ -25639,24 +25686,40 @@ const MINERAL_GATES_plumbogummite = {
     _sources: ['plumbogummite engine v108+', 'Hartley 1882 MinMag 5:21', 'Förtsch 1967', 'Bridges et al. 2011'],
     _notes: 'PbAl3(PO4)2(OH)5·H2O alunite-supergroup. Cl > 30 mildly suppresses (pyromorphite stability).',
 };
+// v193 descloizite-group V-economics correction: V_min 10 → 4 (and v_f
+// normalization /20 → /8 in the σ methods) for BOTH group members. The
+// old thresholds made the descloizite group need 5× vanadinite's V
+// (gate 10 vs 2, v_f /20 vs /6) — backwards against the deposits: the
+// descloizite-group vanadates are the ABUNDANT supergene V ores
+// (Otavi Mountainland — once the world's largest V deposits — is
+// descloizite/mottramite country; Boni et al. 2007, Econ Geol 102:441:
+// mottramite around Cu-sulfide Tsumeb-type bodies, descloizite around
+// sphalerite Berg Aukas-type), while vanadinite is the locality-special
+// collector phase. Census evidence at v192: mottramite + descloizite
+// fired NOWHERE in the 33-scenario fleet (dead-species pair) while
+// vanadinite fired in 2. The correction brings the group to vanadinite-
+// COMPARABLE V economics (gate 4 vs 2, v_f /8 vs /6), not privileged —
+// the Cu/Zn cation forks remain the group's distinctive routing.
+// Caldbeck V suite (vanadinite + mottramite + descloizite): Kingsbury
+// & Hartley 1956 MinMag; Stanley, Symes & Jones 1991 MinMag 55:121.
 const MINERAL_GATES_descloizite = {
     sigma_crit: 1.0,
     T_optimal: 40,
-    fluid_min: { Pb: 40, Zn: 50, V: 10, Cu: 0.5 },
+    fluid_min: { Pb: 40, Zn: 50, V: 4, Cu: 0.5 },
     O2_min: 0.5,
     pH_min: 4, pH_max: 8,
     surface_energy: 'medium',
-    _sources: ['descloizite engine v17+'],
+    _sources: ['descloizite engine v17+', 'Boni et al. 2007 Econ Geol 102:441 (v193 V-economics)'],
     _notes: 'PbZn(VO4)(OH) — Zn-dominant Pb-Zn-V (Zn/(Zn+Cu) ≥ 0.5).',
 };
 const MINERAL_GATES_mottramite = {
     sigma_crit: 1.0,
     T_optimal: 40,
-    fluid_min: { Pb: 40, Cu: 50, V: 10, Zn: 0.5 },
+    fluid_min: { Pb: 40, Cu: 50, V: 4, Zn: 0.5 },
     O2_min: 0.5,
     pH_min: 4, pH_max: 8,
     surface_energy: 'medium',
-    _sources: ['mottramite engine v17+'],
+    _sources: ['mottramite engine v17+', 'Boni et al. 2007 Econ Geol 102:441 (v193 V-economics)'],
     _notes: 'PbCu(VO4)(OH) — Cu-dominant Pb-Cu-V (Cu/(Cu+Zn) ≥ 0.5).',
 };
 const MINERAL_GATES_clinobisvanite = {
@@ -25682,6 +25745,16 @@ const MINERAL_GATES_vanadinite = {
     sigma_crit: 1.3,
     T_optimal: 40,
     fluid_min: { Pb: 20, V: 2, Cl: 5 },
+    // v193: O2_min added — the MISSING vanadate redox gate. Vanadinite is
+    // Pb5(VO4)3Cl, a V⁵⁺ vanadate exactly like its siblings descloizite/
+    // mottramite (O2_min 0.5) and clinobisvanite (1.0), but its formula
+    // was cloned from pyromorphite (PO4 — P is always +5, needs no gate)
+    // and the redox requirement never came along. Census evidence: at
+    // roughten_gill v192 all 6 vanadinite crystals nucleated in steps
+    // 30-70 at O2 0.20 — reducing-ish fluid where V⁵⁺ isn't mobile
+    // (roll-front V geochemistry: V³⁺/V⁴⁺ immobile, V⁵⁺ vanadate needs
+    // oxidizing conditions). Same family as the v92 As-state split.
+    O2_min: 0.5,
     pH_min: 2.5,
     surface_energy: 'medium',
     _sources: ['vanadinite engine v17+'],
@@ -25843,7 +25916,7 @@ Object.assign(VugConditions.prototype, {
             return 0;
         const pb_f = Math.min(this.fluid.Pb / 80.0, 2.5);
         const zn_f = Math.min(this.fluid.Zn / 80.0, 2.5);
-        const v_f = Math.min(this.fluid.V / 20.0, 2.5);
+        const v_f = Math.min(this.fluid.V / 8.0, 2.5); // v193: /20 → /8 (V-economics, see gates comment)
         const ox_f = phosphateRedoxFactor(this.fluid, 1.0, 2.0);
         let sigma = pb_f * zn_f * v_f * ox_f;
         if (zn_fraction >= 0.55 && zn_fraction <= 0.85)
@@ -25883,7 +25956,7 @@ Object.assign(VugConditions.prototype, {
             return 0;
         const pb_f = Math.min(this.fluid.Pb / 80.0, 2.5);
         const cu_f = Math.min(this.fluid.Cu / 80.0, 2.5);
-        const v_f = Math.min(this.fluid.V / 20.0, 2.5);
+        const v_f = Math.min(this.fluid.V / 8.0, 2.5); // v193: /20 → /8 (V-economics, see gates comment)
         const ox_f = phosphateRedoxFactor(this.fluid, 1.0, 2.0);
         let sigma = pb_f * cu_f * v_f * ox_f;
         if (cu_fraction >= 0.55 && cu_fraction <= 0.85)
@@ -25944,6 +26017,11 @@ Object.assign(VugConditions.prototype, {
     supersaturation_vanadinite() {
         const g = MINERAL_GATES_vanadinite;
         if (this.fluid.Pb < g.fluid_min.Pb || this.fluid.V < g.fluid_min.V || this.fluid.Cl < g.fluid_min.Cl)
+            return 0;
+        // v193: the missing vanadate redox gate (see MINERAL_GATES_vanadinite
+        // comment). V⁵⁺ mobility requires oxidizing fluid; without this gate
+        // vanadinite fired at roughten_gill steps 30-70 at O2 0.20.
+        if (!phosphateRedoxAvailable(this.fluid, g.O2_min))
             return 0;
         const pb_f = Math.min(this.fluid.Pb / 30.0, 1.8);
         const v_f = Math.min(this.fluid.V / 6.0, 2.0);
@@ -43084,11 +43162,27 @@ function event_roughten_gill_pyrite_oxidation(c) {
     c.fluid.Cu = Math.min(75, c.fluid.Cu + 35); // bump to mottramite + brochantite sweet spot
     c.fluid.Pb = Math.min(95, c.fluid.Pb + 20); // Pb mobilized from galena
     c.fluid.As = Math.min(18, c.fluid.As + 5); // As(V) mobilized but less than v107 (give pyromorphite the win)
+    // v193: SUPERGENE V-LEACH — the missing half of the mottramite story.
+    // This scenario's own header (and the v180 V-axis note) say Caldbeck
+    // wallrock carries V ~10-20 ppm that "leaches in the supergene window,"
+    // yet fluid.V sat STATIC at 6 the entire run — the leach was described
+    // but never modelled. V⁵⁺ vanadate mobilizes precisely at oxidation
+    // onset (this event is where O2 jumps 0.05→1.2), so the leach belongs
+    // HERE, not in the initial broth. Critically it fires at step 70 —
+    // AFTER the step-25 primary lockup — so it canNOT reproduce the v180
+    // failure (that was an INITIAL-broth V bump from step 0 that re-rolled
+    // the primary-suite RNG and halved sphalerite). 6→14 lands inside the
+    // header's 10-20 ppm wallrock range; with the v193 descloizite-group
+    // V-economics correction (gate 10→4, v_f /20→/8) this clears mottramite
+    // honestly. Same supergene-leach shape as supergene_v_bearing_seep
+    // (Tsumeb). Kingsbury & Hartley 1956 + Stanley et al. 1991 document
+    // the Caldbeck vanadinite-mottramite-descloizite V suite.
+    c.fluid.V = Math.min(14, c.fluid.V + 8); // red-bed/wallrock V⁵⁺ leach at oxidation onset
     c.fluid.O2 = Math.min(1.4, c.fluid.O2 + 1.0); // full atmospheric oxidation
     c.fluid.pH = Math.max(4.2, c.fluid.pH - 1.3); // acid pulse (gentler than v107 to keep linarite pH window in range)
     c.fluid.CO3 = Math.min(40, c.fluid.CO3 + 15); // CO3 builds — bigger early input helps cerussite + caledonite
     c.flow_rate = 0.4;
-    return `Pyrite oxidation pulse — AMD-style acid window. T ${c.temperature.toFixed(0)}°C, pH crashes to ${c.fluid.pH.toFixed(1)}, SO4 surges to ${c.fluid.S.toFixed(0)} ppm. Cu (${c.fluid.Cu.toFixed(0)}) + Pb (${c.fluid.Pb.toFixed(0)}) + As (${c.fluid.As.toFixed(0)}) mobilized. CO3 builds to ${c.fluid.CO3.toFixed(0)} (cerussite gate clears). Plumbogummite gates clear (Pb=${c.fluid.Pb.toFixed(0)}, Al=${c.fluid.Al.toFixed(0)}, P=${c.fluid.P.toFixed(0)}).`;
+    return `Pyrite oxidation pulse — AMD-style acid window. T ${c.temperature.toFixed(0)}°C, pH crashes to ${c.fluid.pH.toFixed(1)}, SO4 surges to ${c.fluid.S.toFixed(0)} ppm. Cu (${c.fluid.Cu.toFixed(0)}) + Pb (${c.fluid.Pb.toFixed(0)}) + As (${c.fluid.As.toFixed(0)}) + V (${c.fluid.V.toFixed(0)}, wallrock leach) mobilized. CO3 builds to ${c.fluid.CO3.toFixed(0)} (cerussite gate clears). Plumbogummite gates clear (Pb=${c.fluid.Pb.toFixed(0)}, Al=${c.fluid.Al.toFixed(0)}, P=${c.fluid.P.toFixed(0)}).`;
 }
 function event_roughten_gill_linarite_stage(c) {
     // HISTORY: v109 diagnosed linarite as Shape B (RNG-cascade

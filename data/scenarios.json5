@@ -3075,8 +3075,10 @@
       // ~75 at the plateau); forcing it would mean tripling Cu and
       // transforming the whole scenario. At the real Roughten Gill
       // bayldonite is a minor accessory; the catalog keeps the species,
-      // this locality just doesn't promise it. mottramite STAYS as the
-      // one aspirational entry — see the V-axis note in initial.fluid.
+      // this locality just doesn't promise it. mottramite WAS the one
+      // aspirational entry; v193 DELIVERED it (5 crystals at seed 42) via
+      // the supergene V-leach + engine V-economics fixes — see the
+      // V-axis note in initial.fluid.
       "expects_species": ["galena", "sphalerite", "chalcopyrite", "pyrite", "tetrahedrite", "tennantite", "quartz", "calcite", "cerussite", "anglesite", "linarite", "caledonite", "leadhillite", "brochantite", "pyromorphite", "mimetite", "mottramite", "native_silver"],
       "duration_steps": 200,
       "notes": [
@@ -3119,14 +3121,20 @@
           "Ag": 12,
           "As": 12,
           "Sb": 5,
-          // V stays 6 — TWICE-CONFIRMED touchy axis. v109: 6→0 rippled 3
-          // minerals (reverted). v180: 6→12 (literature-plausible — the
-          // 70q header cites wallrock V ~10-20 ppm) STILL didn't fire
-          // mottramite (V gate 10 cleared; blocker is elsewhere, likely
-          // Zn≥0.5 or the redox/T product) AND rippled sphalerite 7x→2x
-          // in the primary stage (reverted). Mottramite needs its own
-          // gate-census arc, possibly engine-level — don't retry the
-          // naive V bump.
+          // V stays 6 in the INITIAL broth — and that is now understood to
+          // be CORRECT. History: v109 6→0 rippled 3 minerals; v180 6→12
+          // rippled sphalerite 7x→2x. Both reverted, both blamed "the V
+          // axis." v193's gate census proved the axis was never the
+          // problem — its PLACEMENT IN TIME was. An initial-broth V bump
+          // fires from step 0 and re-rolls the primary-suite RNG; the V
+          // actually belongs in the SUPERGENE window (the header's
+          // "wallrock V 10-20 ppm leaches in the supergene window"), so
+          // v193 added the leach to the step-70 pyrite-oxidation event
+          // (V 6→14, AFTER the step-25 primary lockup → primaries intact,
+          // sphalerite 2→3). Combined with the v193 engine fixes
+          // (vanadinite redox gate + descloizite-group V-economics gate
+          // 10→4) mottramite NOW fires 5 at seed 42. Leave initial V at 6;
+          // the mechanism lives in the event, not the broth.
           "V": 6,
           "Al": 15,
           "P": 8,

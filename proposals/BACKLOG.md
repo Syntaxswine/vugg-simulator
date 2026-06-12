@@ -2,7 +2,42 @@
 
 Living list of open work items, captured from session conversations so context survives compaction. Each item has enough detail that someone picking it up cold can act without re-discovering the rationale.
 
-> ## ⚗️ UPDATE (2026-06-12, latest) — CARBONATE pK(T) CORRECTED (SIM 192, `d683a33`): review §2.2's oldest calibration debt CLOSED; its sibling exposed
+> ## 🔴 UPDATE (2026-06-12, latest) — CALDBECK V-SUITE ✅ mottramite DELIVERED (SIM 193): the twice-deferred roughten_gill V-axis arc, closed by measurement
+>
+> **Task #55 CLOSED.** mottramite was a dead-species pair with descloizite
+> fleet-wide while its V-gate sat at 10 — 5× vanadinite's 2 — backwards
+> against the deposits (the descloizite group ARE the abundant supergene
+> V ores; Boni et al. 2007 Econ Geol 102:441). The gate census
+> (**tools/roughten-gill-mottramite-probe.mjs**, NEW) found three faults,
+> each fixed and pinned:
+> - **FIX 1 — vanadinite's MISSING redox gate.** Pb5(VO4)3Cl is a V⁵⁺
+>   vanadate like its O2_min-0.5 siblings, but its engine was cloned from
+>   pyromorphite (PO4 — no redox gate) and the requirement never came
+>   along. Census proof: all 6 roughten_gill vanadinite nucleated at
+>   O2 0.20 (reducing). Added O2_min 0.5 + phosphateRedoxAvailable.
+> - **FIX 2 — descloizite-group V-economics.** V_min 10→4, v_f /20→/8 for
+>   both members → vanadinite-comparable V economy. FREE WIN: mottramite
+>   now also fires at supergene_oxidation (Tsumeb, 0→2) — its own
+>   type-abundance locality.
+> - **FIX 3 — roughten_gill supergene V-leach.** The scenario's own header
+>   said wallrock V 10-20 ppm "leaches in the supergene window," yet
+>   fluid.V sat STATIC at 6. Added V 6→14 to the step-70 oxidation event
+>   (where O2 jumps 0.05→1.2 — V⁵⁺ mobilizes at oxidation onset). Fires
+>   AFTER the step-25 primary lockup, so it CANNOT reproduce the v109/v180
+>   failures (those bumped INITIAL-broth V from step 0 and halved
+>   sphalerite). **The V axis was never the problem — its PLACEMENT IN
+>   TIME was.** mottramite 5 at seed 42; primaries intact (sphalerite
+>   2→3, galena 4 unchanged).
+>
+> Rebake 2/33 (roughten_gill +mottramite −duftite [the As-vs-V fork
+> routing Pb-Cu to the vanadate — correct]; supergene_oxidation
+> +mottramite). duftite still lives at supergene_oxidation. Coverage:
+> mottramite dead→live. NEW test **vanadate-v-economics.test.ts** (10).
+> Lesson for the queue: a "touchy axis" reverted twice may be a
+> mis-PLACED intervention, not a forbidden one — census WHERE in the run
+> a change lands before blaming the variable.
+>
+> ## ⚗️ UPDATE (2026-06-12, earlier) — CARBONATE pK(T) CORRECTED (SIM 192, `d683a33`): review §2.2's oldest calibration debt CLOSED; its sibling exposed
 >
 > **Session handoff: `HANDOFF-PKT-AND-FIX-SWEEP-2026-06-12.md`** — the
 > next builder's advice doc (consumer-structure blast-radius prediction,
@@ -31,10 +66,9 @@ Living list of open work items, captured from session conversations so context s
 > retrograde-direction pin. Composes with the open dolomite/siderite ΔH
 > items in the thermo-verification note.
 >
-> **STILL QUEUED from the calibration-debt arc:** roughten_gill
-> mottramite gate-census (post-pK(T) chemistry is now the stable base
-> it was waiting for; V axis twice-confirmed touchy — probe the Zn/
-> redox·T blockers first, per the memory note).
+> **STILL QUEUED from the calibration-debt arc:** ~~roughten_gill
+> mottramite gate-census~~ ✅ DONE (SIM 193, the 🔴 banner above) —
+> Ksp(T) analytic upgrade is now the front of the queue.
 >
 > ## 🔧 UPDATE (2026-06-12, earlier) — FIX-BACKLOG SWEEP ✅ COMPLETE (SIM 190→191, six commits): every open follow-up from the morphology arc closed in one session
 >

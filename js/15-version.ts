@@ -10877,5 +10877,52 @@
 //   exact, the mixed fidelity flips the cooling-scenario SI drift
 //   mildly positive (re-pinned bounded until the Ksp analytic
 //   upgrade lands — BACKLOG).
-const SIM_VERSION = 192;
+//
+// v193 (2026-06-12) — THE CALDBECK V-SUITE: mottramite delivered at
+//                     roughten_gill (task #55, the twice-deferred V-axis
+//                     arc), via TWO engine corrections + one event leach.
+//                     The gate-census pattern again — measure, don't bump.
+//
+//   THE CENSUS (tools/roughten-gill-mottramite-probe.mjs, NEW): at v192
+//   mottramite fired NOWHERE in the 33-scenario fleet (dead-species pair
+//   with descloizite), while its V-gate sat at 10 — FIVE TIMES
+//   vanadinite's 2 — with v_f normalized /20 vs vanadinite's /6. That is
+//   BACKWARDS against the deposits: the descloizite-group vanadates
+//   (mottramite/descloizite) are the ABUNDANT supergene V ores (Otavi
+//   Mountainland, once the world's largest; Boni et al. 2007 Econ Geol
+//   102:441), vanadinite the locality-special collector phase. Two bugs
+//   compounded the misweighting, plus a missing scenario mechanic:
+//
+//   FIX 1 — vanadinite's MISSING redox gate. Pb5(VO4)3Cl is a V⁵⁺
+//   vanadate exactly like its O2_min-0.5 siblings, but its engine was
+//   cloned from pyromorphite (PO4 — P is always +5, no redox gate) and
+//   the O2 requirement never came along. Census proof: all 6 roughten_gill
+//   vanadinite nucleated at O2 0.20 (reducing — where V⁵⁺ isn't mobile).
+//   Added O2_min 0.5 + phosphateRedoxAvailable gate (the v92 As-state
+//   family). Vanadinite now waits for the oxidation pulse; still 6 at
+//   both tenants (supergene scenarios are oxidizing).
+//
+//   FIX 2 — descloizite-group V-economics. V_min 10→4, v_f /20→/8 for
+//   BOTH group members — bringing them to vanadinite-COMPARABLE V economy
+//   (not privileged; the Cu/Zn cation forks remain their distinctive
+//   routing). FREE WIN: mottramite now also fires at supergene_oxidation
+//   (Tsumeb, 0→2) — its own type-abundance locality.
+//
+//   FIX 3 — roughten_gill supergene V-leach. The scenario's own header
+//   said Caldbeck wallrock carries V 10-20 ppm that "leaches in the
+//   supergene window," yet fluid.V sat STATIC at 6 — described, never
+//   modelled. Added V 6→14 to the pyrite-oxidation event (step 70, where
+//   O2 jumps 0.05→1.2 — V⁵⁺ mobilizes at oxidation onset). Fires AFTER
+//   the step-25 primary lockup, so it CANNOT reproduce the v180 failure
+//   (an INITIAL-broth V bump from step 0 that re-rolled the primary RNG
+//   and halved sphalerite). The V axis was never the problem — its
+//   PLACEMENT in time was. mottramite 5 at seed 42; primaries intact
+//   (sphalerite 2→3, galena 4 unchanged). Kingsbury & Hartley 1956 +
+//   Stanley et al. 1991 document the Caldbeck V suite.
+//
+//   BASELINE: rebake. Expected movers: roughten_gill (+mottramite,
+//   vanadinite re-timed) + supergene_oxidation (+mottramite); vanadinite
+//   redox gate is inert everywhere else (no other tenant). Any cascade
+//   re-roll from the v_f σ-magnitude change is reviewed in the diff.
+const SIM_VERSION = 193;
 
