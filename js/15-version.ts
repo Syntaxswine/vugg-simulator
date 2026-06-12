@@ -10924,5 +10924,60 @@
 //   vanadinite re-timed) + supergene_oxidation (+mottramite); vanadinite
 //   redox gate is inert everywhere else (no other tenant). Any cascade
 //   re-roll from the v_f σ-magnitude change is reviewed in the diff.
-const SIM_VERSION = 193;
+//
+// v194 (2026-06-12) — CARBONATE Ksp(T) ANALYTIC UPGRADE: the pK(T)
+//                     debt's SIBLING, closing the mixed-fidelity seam
+//                     SIM 192 exposed. js/20c's constant-ΔH van't Hoff
+//                     logKsp(T) → the PHREEQC analytic expression
+//                     (wateq4f.dat verbatim) for every carbonate the
+//                     database ships one: calcite, aragonite,
+//                     strontianite, witherite. Clamp [0,250] matches the
+//                     pK side so IAP and Ksp share a T-domain.
+//
+//   THE DEBT, measured (tools/ksp-t-observe.mjs --table): the van't Hoff
+//   form reproduced the 25°C anchor but ran ~1.3 log too FLAT at 158°C
+//   (calcite −9.05 vs analytic −10.32) — the full retrograde curvature
+//   was missing. Analytic reproduces every 25°C anchor to ±0.0002 and
+//   bends correctly hot. SI = logIAP − logKsp, so the more-negative hot
+//   Ksp RAISES calcite/aragonite SI (more supersaturated — the correct
+//   retrograde direction). dolomite/siderite/rhodochrosite/smithsonite/
+//   cerussite have NO wateq4f analytic → stay van't Hoff (honest mixed
+//   fidelity); strontianite + witherite upgraded too (observer-only,
+//   zero baseline footprint — free SI-library correctness).
+//
+//   Blast radius dark-observed (--fleet) BEFORE the rebake: the SI shift
+//   is + (raises SI) and grows with T. A FIRST rebake at a [0,250] clamp
+//   (matching the pK side) was a RUNAWAY — +3.37 SI at the cap overwhelmed
+//   the old-SI-calibrated calcite/aragonite gates: sunnyside calcite
+//   DOUBLED (41→88), mvt LOST its silver suite (43→20, −acanthite/
+//   cerussite/greenockite/native_silver), and the metastable HOT aragonite
+//   v192 correctly retired REANIMATED across jeffrey/marble/pulse. That
+//   exposed the real boundary: the PB82 calcite/aragonite -analytical are
+//   SOLUBILITY FITS to ~90°C; their curvature must NOT be extrapolated into
+//   the 150-700°C scenarios.
+//
+//   THE CLAMP DECISION (js/20c _THERMO_ANALYTIC_CLAMP_C = [0,90]): hold the
+//   analytic to its fit validity, frozen flat above 90°C. This closes the
+//   seam where carbonates dominantly form AND where the data supports it,
+//   without the hot runaway. Rebake at clamp-90 = CLEAN: 9/33 moved, every
+//   move a single-crystal +aragonite in a WARM scenario (reactive_wall,
+//   tutorial_mn_calcite, travertine — the Folk 1974 warm-aragonite regime,
+//   ≤~100°C, defensible) plus minor cascade re-rolls (mvt +celestine/
+//   hawleyite −anhydrite). calcite stays 1 crystal everywhere (no runaway);
+//   mvt silver suite PRESERVED; nothing lost fleet-wide (anhydrite still at
+//   porphyry/sabkha, cerussite at elmwood/mvt/roughten_gill/supergene).
+//
+//   THE COOLING PIN stays bounded-drift (NOT restored to directional). With
+//   the analytic flat above 90°C the cooling scenario (158-180°C) gets a
+//   constant Ksp, so its retrograde must come from the IAP term alone —
+//   not enough to flip the v192 mild-positive drift. The DIRECTIONAL
+//   retrograde pin's restoration needs the analytic ACTIVE in the hot band,
+//   which is exactly the runaway — so it waits on the hot-band promotion
+//   (calcite/aragonite gate re-calibration + aragonite metastability
+//   hardening). Logged as the remaining sliver. observer SI/strip chips
+//   now carry correct curvature ≤90°C.
+//
+//   strontianite + witherite also upgraded to analytic — observer-only
+//   (not engine-promoted, no strip chip), zero baseline footprint.
+const SIM_VERSION = 194;
 

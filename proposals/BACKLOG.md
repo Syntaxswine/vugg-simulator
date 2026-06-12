@@ -2,7 +2,41 @@
 
 Living list of open work items, captured from session conversations so context survives compaction. Each item has enough detail that someone picking it up cold can act without re-discovering the rationale.
 
-> ## 🔴 UPDATE (2026-06-12, latest) — CALDBECK V-SUITE ✅ mottramite DELIVERED (SIM 193): the twice-deferred roughten_gill V-axis arc, closed by measurement
+> ## ⚗️ UPDATE (2026-06-12, latest) — CARBONATE Ksp(T) ANALYTIC ✅ the pK debt's SIBLING closed in the validated band (SIM 194)
+>
+> js/20c's constant-ΔH van't Hoff logKsp(T) → the PHREEQC analytic
+> expression (wateq4f.dat verbatim) for the carbonates the database ships
+> one for: **calcite, aragonite, strontianite, witherite**. The mixed-
+> fidelity seam the v192 pK fix exposed (IAP exact, Ksp flat — ~1.3 log
+> too flat at 158°C) is now CLOSED below 90°C. NEW instrument
+> **tools/ksp-t-observe.mjs** (--table science pin / --fleet dark-observe).
+> --verify improved 7→9 (calcite + aragonite now match wateq4f on both
+> logKsp AND ΔH; the vestigial deltaH_diss was trued to the analytic's
+> implied value).
+>
+> **THE CLAMP DECISION (the load-bearing judgment):** the PB82 calcite/
+> aragonite -analytical are ~90°C SOLUBILITY FITS. A first rebake at a
+> [0,250] clamp (matching the pK side) was a RUNAWAY — +3.4 SI at the cap
+> overwhelmed the old-SI-calibrated gates: sunnyside calcite DOUBLED, mvt
+> LOST its silver suite, and the metastable HOT aragonite v192 retired
+> REANIMATED. So the analytic is held to its fit validity
+> (_THERMO_ANALYTIC_CLAMP_C [0,90]) and frozen flat above. Clean rebake
+> at clamp-90: **9/33 moved, every move a single-crystal +aragonite in a
+> WARM (≤~100°C, Folk 1974) scenario + minor cascade re-rolls; calcite
+> stays 1 everywhere, mvt silver PRESERVED, nothing lost fleet-wide.**
+>
+> **NEW OPEN ITEM — hot-band carbonate Ksp(T) promotion** (the remaining
+> sliver): activating the analytic above 90°C (where genuine hydrothermal
+> calcite forms, mvt/cooling/epithermal 150-280°C) needs the calcite +
+> aragonite GATE re-calibration for the new SI scale + aragonite
+> metastability HARDENING (a hard T-gate so raw SI can't reanimate the hot
+> polymorph). That is what restores the cooling DIRECTIONAL retrograde pin
+> (still bounded-drift). It also wants high-T Ksp coefficients (llnl/SUPCRT,
+> fitted to 300°C) rather than extrapolating PB82. Composes with the open
+> dolomite/siderite/rhodochrosite/smithsonite ΔH items (still --verify
+> mismatches; this arc cleared calcite+aragonite).
+>
+> ## 🔴 UPDATE (2026-06-12, earlier) — CALDBECK V-SUITE ✅ mottramite DELIVERED (SIM 193): the twice-deferred roughten_gill V-axis arc, closed by measurement
 >
 > **Task #55 CLOSED.** mottramite was a dead-species pair with descloizite
 > fleet-wide while its V-gate sat at 10 — 5× vanadinite's 2 — backwards

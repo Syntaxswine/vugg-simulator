@@ -107,9 +107,21 @@ ever. (Memory: feedback_file_corruption_recovery.)
    intervention's TIMING/PLACEMENT before declaring the variable
    forbidden (sibling to lesson 4's richer-claim move — both say "the
    obvious read of a failure is often wrong about WHAT failed").
-2. **Carbonate Ksp(T) analytic upgrade** (§2) — thermo-carbonates.json
-   + 20c, clone pk-t-observe, restore the retrograde pin. Composes
-   with the open dolomite/siderite ΔH items in the thermo memory.
+2. ~~**Carbonate Ksp(T) analytic upgrade**~~ ✅ DONE in the validated
+   band (SIM 194). PHREEQC analytic (wateq4f verbatim) for calcite/
+   aragonite/strontianite/witherite, CLAMPED to the PB82 ~90°C fit
+   validity. The clamp is the lesson: a first [0,250] attempt (matching
+   the pK side) was a RUNAWAY — extrapolating a 90°C solubility fit into
+   the 150-700°C scenarios over-grew calcite and reanimated the hot
+   aragonite v192 retired. "Match the other term's clamp" was WRONG
+   here precisely because the two fits have different validity ranges
+   (lesson 2's mixed-fidelity seam has a TWIN: a shared *domain* is only
+   right when both terms are *valid* across it). REMAINING SLIVER —
+   hot-band promotion: activate the analytic >90°C with calcite/aragonite
+   gate re-calibration + aragonite metastability hardening + high-T
+   (llnl/SUPCRT) coefficients; THAT restores the cooling directional
+   retrograde pin (still bounded-drift). tools/ksp-t-observe.mjs is the
+   reusable instrument; pins in carbonate-ksp-analytic.test.ts.
 3. **Quartz arc** — unchanged from the morphology handoff; hiatus
    census first.
 4. **Boss verification additions** from tonight: the mvt phantom-core
