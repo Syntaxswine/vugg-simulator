@@ -30951,6 +30951,20 @@ const MORPH_DISPLAY = {
         hopper_skeletal: 'skeletal',
         dendritic: 'dendritic crust',
     },
+    native_copper: {
+        spiral_smooth: 'crystalline (cube/dodecahedron)',
+        stepped_mild: 'wire/filamentary',
+        stepped_macro: 'arborescent onset',
+        hopper_skeletal: 'skeletal branches',
+        dendritic: 'dendritic trees',
+    },
+    native_gold: {
+        spiral_smooth: 'octahedral (rare crystal)',
+        stepped_mild: 'spongy',
+        stepped_macro: 'dendritic/fishbone',
+        hopper_skeletal: 'skeletal leaf',
+        dendritic: 'wire/arborescent',
+    },
 };
 function morphDisplayLabel(mineral, regime) {
     return (MORPH_DISPLAY[mineral] && MORPH_DISPLAY[mineral][regime]) || regime;
@@ -31167,6 +31181,46 @@ MORPH_TH.pyrite = {
             return 'cubo-pyritohedral';
         return 'framboidal';
     },
+};
+// ---- native copper + native gold — sixth/seventh tenants (the
+// conflation sweep that closes the boss's list) ----
+// Copper (bisbee, the only home): σ rides the v186 −400 mV pulse —
+// measured ramp 1.0 → 2.09 (peak EXACTLY at the pulse center, step
+// 133) → 0; the crystal then dissolves in the azurite-era oxidation
+// (the Cornish trees survive as casts — grows-then-dies is the correct
+// geology, like schneeberg's bismuth). Bands on the measured ramp: the
+// σ ceiling IS the dendrite moment (the bismuth activity-ceiling
+// lesson). The legacy dispatch was ALREADY Sunagawa-ascending
+// (crystal → wire → arborescent) except massive_sheet at top — a
+// fissure-fill aggregate TEXTURE (Keweenaw), not interface morphology,
+// and dead code at current calibration (needs σ>2.5; fleet max 2.09).
+MORPH_TH.native_copper = {
+    SIZE_HALF_UM: Infinity,
+    SIZE_DAMP_CAP_UM: Infinity,
+    SPIRAL_MAX: 1.3, // rare well-formed cube/dodecahedron
+    STEP_MILD_MAX: 1.7, // wire/filamentary growth
+    STEP_MACRO_MAX: 1.95, // arborescent onset
+    HOPPER_MAX: 2.05, // skeletal sliver
+    // ≥ 2.05 → dendritic — the −400 pulse peak (the Cornish trees)
+    sigma(conditions) { return conditions.supersaturation_native_copper(); },
+    form(_conditions) { return 'native'; },
+};
+// Gold: bisbee plateau 2.77–2.89 (1309 zones), porphyry 1.35. The
+// legacy dispatch had octahedral at the bottom (correct!) and nugget
+// at the top — the same texture/morphology conflation as bismuth's
+// massive and copper's sheet (nuggets are PLACER/accretion features;
+// the sim never models transport). Bands → bisbee oxide-zone gold
+// reads spongy DENDRITIC (which it is — the fishbone-and-leaf habit),
+// porphyry stays the rare octahedral inclusion.
+MORPH_TH.native_gold = {
+    SIZE_HALF_UM: Infinity,
+    SIZE_DAMP_CAP_UM: Infinity,
+    SPIRAL_MAX: 1.8,
+    STEP_MILD_MAX: 2.5,
+    STEP_MACRO_MAX: 3.2,
+    HOPPER_MAX: 4.5,
+    sigma(conditions) { return conditions.supersaturation_native_gold(); },
+    form(_conditions) { return 'native'; },
 };
 function morphSurfaceSigma(th, bulkSigma, sizeUm) {
     const effSize = Math.min(Math.max(0, sizeUm), th.SIZE_DAMP_CAP_UM);
@@ -34347,21 +34401,33 @@ function grow_native_gold(crystal, conditions, step) {
     const rate = 1.5 * excess * rng.uniform(0.8, 1.2);
     if (rate < 0.05)
         return null;
+    // Morphology-generalization arc (2026-06-12, the conflation sweep):
+    // regime-driven (MORPH_TH.native_gold, js/45). The legacy ladder had
+    // octahedral at the bottom (CORRECT — kept) but 'nugget' at the top:
+    // nuggets are PLACER/accretion textures, not growth morphology, and
+    // the sim never models transport — same conflation as bismuth's
+    // massive-at-top. Fleet consequence: bisbee oxide-zone gold (σ
+    // plateau 2.77) reads spongy/dendritic — which Bisbee gold IS; the
+    // nugget string is retired from σ-dispatch (render maps keep it for
+    // old saves). No rng → sim-neutral (aspects all 0.5).
     let habit_note;
-    if (excess > 1.5) {
-        crystal.habit = 'nugget';
-        crystal.dominant_forms = ['rounded nugget', 'massive native gold'];
-        habit_note = 'nugget — rapid precipitation in pocket';
-    }
-    else if (excess > 0.5) {
-        crystal.habit = 'dendritic';
-        crystal.dominant_forms = ['dendritic {111} branching', 'spongy gold'];
-        habit_note = 'dendritic / spongy native gold (the fishbone-and-leaf habit of supergene Au)';
-    }
-    else {
-        crystal.habit = 'octahedral';
-        crystal.dominant_forms = ['{111} octahedron', 'rare well-formed crystal'];
-        habit_note = 'octahedral well-formed native gold (rare — slow growth)';
+    {
+        const regime = (crystal._morphology && crystal._morphology.regime) || null;
+        if (regime === 'hopper_skeletal' || regime === 'dendritic') {
+            crystal.habit = 'dendritic';
+            crystal.dominant_forms = ['skeletal leaf/wire gold', 'arborescent {111}'];
+            habit_note = 'skeletal/wire native gold — the instability end of the ladder';
+        }
+        else if (regime === 'stepped_mild' || regime === 'stepped_macro') {
+            crystal.habit = 'dendritic';
+            crystal.dominant_forms = ['dendritic {111} branching', 'spongy gold'];
+            habit_note = 'dendritic / spongy native gold (the fishbone-and-leaf habit of supergene Au)';
+        }
+        else {
+            crystal.habit = 'octahedral';
+            crystal.dominant_forms = ['{111} octahedron', 'rare well-formed crystal'];
+            habit_note = 'octahedral well-formed native gold (rare — slow growth)';
+        }
     }
     // Alloying note — pick whichever alloying element is dominant.
     if (conditions.fluid.Ag > conditions.fluid.Cu * 0.5 && conditions.fluid.Ag > 5) {
@@ -34388,26 +34454,37 @@ function grow_native_copper(crystal, conditions, step) {
     const rate = 2.0 * excess * rng.uniform(0.8, 1.2);
     if (rate < 0.1)
         return null;
+    // Morphology-generalization arc (2026-06-12): regime-driven
+    // (MORPH_TH.native_copper, js/45 — bands on bisbee's measured −400mV
+    // pulse ramp, peak σ 2.09 at the pulse center). The legacy ladder
+    // was ALREADY Sunagawa-ascending (crystal → wire → arborescent);
+    // only 'massive_sheet' at top was the texture conflation — a
+    // Keweenaw fissure-fill AGGREGATE, dead code at current calibration
+    // (needed σ>2.5; fleet max 2.09). Retired from σ-dispatch; a future
+    // Keweenaw scenario can model it as what it is. No rng → sim-neutral.
     let color_note;
-    if (excess > 1.5) {
-        crystal.habit = 'massive_sheet';
-        crystal.dominant_forms = ['massive sheet copper', 'fills large void'];
-        color_note = 'massive sheet copper (rapid precipitation in open void)';
-    }
-    else if (excess > 0.6) {
-        crystal.habit = 'arborescent_dendritic';
-        crystal.dominant_forms = ['arborescent branching growth', 'dendritic {100}'];
-        color_note = 'arborescent dendritic — tree-like branching copper';
-    }
-    else if (excess > 0.25) {
-        crystal.habit = 'wire_copper';
-        crystal.dominant_forms = ['wire growth along narrow channel', 'filamentary Cu'];
-        color_note = 'wire copper — filamentary growth in narrow channel';
-    }
-    else {
-        crystal.habit = 'cubic_dodecahedral';
-        crystal.dominant_forms = ['{100} cube', '{110} rhombic dodecahedron', 'rare well-formed crystal'];
-        color_note = 'cubic/dodecahedral well-formed native copper (rare)';
+    {
+        const regime = (crystal._morphology && crystal._morphology.regime) || null;
+        if (regime === 'hopper_skeletal' || regime === 'dendritic') {
+            crystal.habit = 'arborescent_dendritic';
+            crystal.dominant_forms = ['arborescent branching growth', 'dendritic {100} trees'];
+            color_note = 'arborescent dendritic — the Eh-shock copper trees (Cornish/Keweenaw habit)';
+        }
+        else if (regime === 'stepped_macro') {
+            crystal.habit = 'arborescent_dendritic';
+            crystal.dominant_forms = ['arborescent branching onset', 'dendritic {100}'];
+            color_note = 'arborescent dendritic — tree-like branching copper';
+        }
+        else if (regime === 'stepped_mild') {
+            crystal.habit = 'wire_copper';
+            crystal.dominant_forms = ['wire growth along narrow channel', 'filamentary Cu'];
+            color_note = 'wire copper — filamentary growth in narrow channel';
+        }
+        else {
+            crystal.habit = 'cubic_dodecahedral';
+            crystal.dominant_forms = ['{100} cube', '{110} rhombic dodecahedron', 'rare well-formed crystal'];
+            color_note = 'cubic/dodecahedral well-formed native copper (rare)';
+        }
     }
     conditions.fluid.Cu = Math.max(conditions.fluid.Cu - rate * 0.04, 0);
     return new GrowthZone({ step, temperature: conditions.temperature, thickness_um: rate, growth_rate: rate, note: color_note });
@@ -71506,6 +71583,8 @@ const _HELIX_FULL_NAMES = {
     bismuth_morph: 'Native bismuth growth regime at this spot (Sunagawa ordinal: 0 massive/foliated · 1 feathery · 2 feather/skeletal · 3 skeletal frame · 4 arborescent dendrite — the five-element reduction-shock texture)',
     fluorite_morph: 'Fluorite growth regime at this spot (Sunagawa ordinal: 0 glassy cube · 1 growth-banded · 2 composite/stepped · 3 hopper frame · 4 dendritic)',
     pyrite_morph: 'Pyrite growth regime at this spot (Sunagawa ordinal: 0 smooth euhedral · 1 finely striated · 2 coarsely striated · 3 skeletal · 4 dendritic — striations are bunched growth steps)',
+    copper_morph: 'Native copper growth regime at this spot (Sunagawa ordinal: 0 crystalline · 1 wire · 2 arborescent onset · 3 skeletal · 4 dendritic trees — spikes on the reducing pulse)',
+    gold_morph: 'Native gold growth regime at this spot (Sunagawa ordinal: 0 octahedral · 1 spongy · 2 dendritic/fishbone · 3 skeletal leaf · 4 wire/arborescent)',
     // === END HELIX-OVERLAY-FORK ADDITION ==============================
     // v165 — Sulfate System section (PHREEQC wateq4f Ksp via 20d + 40b).
     // Strip is no longer SI-blind on the sulfate/evaporite family
@@ -71893,6 +71972,11 @@ const _HELIX_CHEM_PARAMS = (function () {
     // Pyrite (fifth tenant) opens the 'sulfide' legend group — striation
     // intensity as a chemistry trace (brassy gold chip).
     params.push(_morphChipParam('pyrite', 'pyrite_morph', 'py morph', 0xD4B048, 'sulfide'));
+    // Copper + gold complete the native group (the conflation sweep). In
+    // bisbee the copper chip should spike on the −400 pulse and then go
+    // null as the trees dissolve into the azurite era.
+    params.push(_morphChipParam('native_copper', 'copper_morph', 'cu morph', 0xE08850, 'native'));
+    params.push(_morphChipParam('native_gold', 'gold_morph', 'au morph', 0xF0C830, 'native'));
     // === END HELIX-OVERLAY-FORK ADDITION ==============================
     // v165 — SULFATE SYSTEM SI chips. 4 chips consuming the Ksp engine
     // (20d) + SI dispatcher (40b) shipped in v164 as observer-only reads,

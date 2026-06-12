@@ -37,17 +37,40 @@ Living list of open work items, captured from session conversations so context s
 > direction — it correctly DESTROYS Bi; the shock needed a new
 > scenario).
 >
-> **OPEN (the rest of the boss's list, in order):** fluorite σ-ladder
-> riding elmwood (the REE {111} flip is the form axis already; makes
-> elmwood a two-mineral showcase); pyrite striations (terrace bands as
-> {100} face striations); copper dendrites (bisbee's −400 pulse) + the
-> gold nugget-at-top-σ conflation fix; quartz research doc (sceptre/
-> fenster/phantom — needs its own design pass). **Wittichen follow-ups:**
-> barite + erythrite aspirational (need late oxidation the living
-> arsenide suite can't survive — a spatially-partial oxidation or a
-> vein-top barite stage, vugg-tune-scenario); arborescent 3D render is
-> the acicular-spike fallback (a true dendrite tree geometry is its own
-> piece); morph-chip severity could join the sonifier (a dendrite bell?).
+> **THE LIST IS COMPLETE (same session, continued):** fluorite
+> (sim-neutral — elmwood is now the TWO-MINERAL showcase, calcite_morph
+> + fluorite_morph digest-pinned co-pulsing on the fault-valve beats;
+> mvt pins the stays-glassy guard; the REE octahedra compose untouched);
+> pyrite striations (sim-neutral — striations ARE bunched steps;
+> sulphur_bank 86% striated, mvt zoned 51/49, sunnyside smooth
+> Navajún-glass euhedra; form stays T-driven, the regime OVERLAYS
+> striated_; 'sulfide' legend group opened); native copper + gold (the
+> conflation sweep — nugget + massive_sheet retired from σ-dispatch as
+> placer/fissure TEXTURES; bisbee gold reads spongy/fishbone as it
+> should, and bisbee's copper tree records 33% dendritic mass on the
+> −400 pulse then dissolves into the azurite era — THE CAST STORY);
+> quartz = RESEARCH-quartz-morphology-2026-06-12.md (deliberately a
+> design doc: quartz needs a ZONE-STACK PATTERN classifier for sceptres
+> — hiatus-then-renewal, the registry's second classifier KIND — plus a
+> fenster σ-top band and a Tessin form rule gated on a future
+> alpine-cleft scenario; splitting/faden named out of scope).
+>
+> **Registry census at arc close: 8 minerals** (calcite, halite,
+> sylvite, native_bismuth, fluorite, pyrite, native_copper,
+> native_gold), 6 morph chips digest-pinned, 3 standing judges
+> (elmwood/halide/wittichen), 1 generic survey instrument.
+>
+> **OPEN follow-ups:** wittichen barite + erythrite aspirational (need
+> late oxidation the living arsenide suite can't survive — a
+> spatially-partial oxidation or vein-top barite stage,
+> vugg-tune-scenario); arborescent 3D render is the acicular-spike
+> fallback (a true dendrite TREE geometry is its own render piece — the
+> sceptre two-body builder in the quartz doc is the natural sibling);
+> plain 'pyritohedral' 3D token defaults to 'prism' (pre-existing wart,
+> renders pyritohedra as hex prisms — render item); σ-stepped REE
+> octahedra (fluorite) unmodeled; morph severity → sonifier (a dendrite
+> bell on the ordinal slam?) — needs the boss's ear like all sonifier
+> work.
 
 > ## 🪜✅ UPDATE (2026-06-11, latest) — CALCITE MORPHOLOGY ARC SHIPPED, ALL SIX PHASES (SIM 187 + elmwood)
 >

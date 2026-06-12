@@ -232,6 +232,8 @@ const _HELIX_FULL_NAMES: { [id: string]: string } = {
   bismuth_morph: 'Native bismuth growth regime at this spot (Sunagawa ordinal: 0 massive/foliated · 1 feathery · 2 feather/skeletal · 3 skeletal frame · 4 arborescent dendrite — the five-element reduction-shock texture)',
   fluorite_morph: 'Fluorite growth regime at this spot (Sunagawa ordinal: 0 glassy cube · 1 growth-banded · 2 composite/stepped · 3 hopper frame · 4 dendritic)',
   pyrite_morph: 'Pyrite growth regime at this spot (Sunagawa ordinal: 0 smooth euhedral · 1 finely striated · 2 coarsely striated · 3 skeletal · 4 dendritic — striations are bunched growth steps)',
+  copper_morph: 'Native copper growth regime at this spot (Sunagawa ordinal: 0 crystalline · 1 wire · 2 arborescent onset · 3 skeletal · 4 dendritic trees — spikes on the reducing pulse)',
+  gold_morph: 'Native gold growth regime at this spot (Sunagawa ordinal: 0 octahedral · 1 spongy · 2 dendritic/fishbone · 3 skeletal leaf · 4 wire/arborescent)',
   // === END HELIX-OVERLAY-FORK ADDITION ==============================
   // v165 — Sulfate System section (PHREEQC wateq4f Ksp via 20d + 40b).
   // Strip is no longer SI-blind on the sulfate/evaporite family
@@ -602,6 +604,11 @@ const _HELIX_CHEM_PARAMS: ChemParam[] = (function() {
   // Pyrite (fifth tenant) opens the 'sulfide' legend group — striation
   // intensity as a chemistry trace (brassy gold chip).
   params.push(_morphChipParam('pyrite', 'pyrite_morph', 'py morph', 0xD4B048, 'sulfide'));
+  // Copper + gold complete the native group (the conflation sweep). In
+  // bisbee the copper chip should spike on the −400 pulse and then go
+  // null as the trees dissolve into the azurite era.
+  params.push(_morphChipParam('native_copper', 'copper_morph', 'cu morph', 0xE08850, 'native'));
+  params.push(_morphChipParam('native_gold', 'gold_morph', 'au morph', 0xF0C830, 'native'));
   // === END HELIX-OVERLAY-FORK ADDITION ==============================
 
   // v165 — SULFATE SYSTEM SI chips. 4 chips consuming the Ksp engine

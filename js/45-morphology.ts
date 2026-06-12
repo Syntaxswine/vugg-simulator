@@ -102,6 +102,20 @@ const MORPH_DISPLAY: Record<string, Record<string, string>> = {
     hopper_skeletal: 'skeletal',
     dendritic: 'dendritic crust',
   },
+  native_copper: {
+    spiral_smooth: 'crystalline (cube/dodecahedron)',
+    stepped_mild: 'wire/filamentary',
+    stepped_macro: 'arborescent onset',
+    hopper_skeletal: 'skeletal branches',
+    dendritic: 'dendritic trees',
+  },
+  native_gold: {
+    spiral_smooth: 'octahedral (rare crystal)',
+    stepped_mild: 'spongy',
+    stepped_macro: 'dendritic/fishbone',
+    hopper_skeletal: 'skeletal leaf',
+    dendritic: 'wire/arborescent',
+  },
 };
 
 function morphDisplayLabel(mineral: string, regime: string): string {
@@ -323,6 +337,48 @@ MORPH_TH.pyrite = {
     if (T > 100) return 'cubo-pyritohedral';
     return 'framboidal';
   },
+};
+
+// ---- native copper + native gold — sixth/seventh tenants (the
+// conflation sweep that closes the boss's list) ----
+// Copper (bisbee, the only home): σ rides the v186 −400 mV pulse —
+// measured ramp 1.0 → 2.09 (peak EXACTLY at the pulse center, step
+// 133) → 0; the crystal then dissolves in the azurite-era oxidation
+// (the Cornish trees survive as casts — grows-then-dies is the correct
+// geology, like schneeberg's bismuth). Bands on the measured ramp: the
+// σ ceiling IS the dendrite moment (the bismuth activity-ceiling
+// lesson). The legacy dispatch was ALREADY Sunagawa-ascending
+// (crystal → wire → arborescent) except massive_sheet at top — a
+// fissure-fill aggregate TEXTURE (Keweenaw), not interface morphology,
+// and dead code at current calibration (needs σ>2.5; fleet max 2.09).
+MORPH_TH.native_copper = {
+  SIZE_HALF_UM: Infinity,
+  SIZE_DAMP_CAP_UM: Infinity,
+  SPIRAL_MAX: 1.3,       // rare well-formed cube/dodecahedron
+  STEP_MILD_MAX: 1.7,    // wire/filamentary growth
+  STEP_MACRO_MAX: 1.95,  // arborescent onset
+  HOPPER_MAX: 2.05,      // skeletal sliver
+  // ≥ 2.05 → dendritic — the −400 pulse peak (the Cornish trees)
+  sigma(conditions: any): number { return conditions.supersaturation_native_copper(); },
+  form(_conditions: any): string { return 'native'; },
+};
+
+// Gold: bisbee plateau 2.77–2.89 (1309 zones), porphyry 1.35. The
+// legacy dispatch had octahedral at the bottom (correct!) and nugget
+// at the top — the same texture/morphology conflation as bismuth's
+// massive and copper's sheet (nuggets are PLACER/accretion features;
+// the sim never models transport). Bands → bisbee oxide-zone gold
+// reads spongy DENDRITIC (which it is — the fishbone-and-leaf habit),
+// porphyry stays the rare octahedral inclusion.
+MORPH_TH.native_gold = {
+  SIZE_HALF_UM: Infinity,
+  SIZE_DAMP_CAP_UM: Infinity,
+  SPIRAL_MAX: 1.8,
+  STEP_MILD_MAX: 2.5,
+  STEP_MACRO_MAX: 3.2,
+  HOPPER_MAX: 4.5,
+  sigma(conditions: any): number { return conditions.supersaturation_native_gold(); },
+  form(_conditions: any): string { return 'native'; },
 };
 
 function morphSurfaceSigma(th: any, bulkSigma: number, sizeUm: number): number {
