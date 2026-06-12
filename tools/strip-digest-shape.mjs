@@ -37,6 +37,11 @@ export const STRIP_DIGEST_SCENARIOS = [
   // CH4 Eh pulse — the dendrite moment as a trajectory tripwire (the
   // morphology registry's only dendrite-band tenant).
   'wittichen',
+  // elmwood (the calcite arc's showcase, joined with the fluorite wave
+  // — closing the logged free win): pins BOTH morph chips co-pulsing
+  // on the fault-valve beats (calcite stepped + fluorite banded) plus
+  // the CO3/pH pulse-train chemistry itself.
+  'elmwood',
   // supergene_oxidation (Tsumeb gossan): a clean, cold, oxidizing supergene
   // trajectory — the acid window (pH dip), the carbonate ramp (DIC), calcite
   // undersaturation. NOT bisbee: bisbee's T is contaminated by the ungated
@@ -83,6 +88,11 @@ export const STRIP_DIGEST_CHIPS = [
   // v189: bismuth_morph joins with its first tenant (wittichen) — the
   // digest pins the ordinal slamming to 4 on the CH4 reduction pulse.
   'bismuth_morph',
+  // fluorite (fourth tenant): in elmwood, fluorite_morph + calcite_morph
+  // must co-pulse on the same fault-valve beats — two minerals, one
+  // fluid history. mvt pins the stays-glassy guard (4.96 just under
+  // the 5.0 edge — a drift in either direction trips here).
+  'fluorite_morph',
 ];
 
 const SAMPLE_COUNT = 8;
@@ -119,7 +129,7 @@ function seriesAt(ds, chipId, depth, deps) {
 // SEVEREST regime visible ANYWHERE per step — max over angle × height —
 // which is the pan pulse itself (banded 1 ↔ hopper 3 on the wet/dry
 // concentration spikes).
-const STRIP_DIGEST_SPARSE_MAX_CHIPS = new Set(['calcite_morph', 'halite_morph', 'sylvite_morph', 'bismuth_morph']);
+const STRIP_DIGEST_SPARSE_MAX_CHIPS = new Set(['calcite_morph', 'halite_morph', 'sylvite_morph', 'bismuth_morph', 'fluorite_morph']);
 
 function seriesMaxAt(ds, chipId, depth, deps) {
   const { stripDataIndex, stripDequantize } = deps;

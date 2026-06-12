@@ -2888,7 +2888,9 @@ function _topoSyncCrystalMeshes(state: any, sim: any, wall: any, replayStep?: nu
     // Halide render wave (2026-06-12): banded/hoppered cubes get the
     // square-section ziggurat (grooved bands + funnel-sunk top face).
     // Same accumulate-on-replay contract as the calcite terraces.
-    if (!geom && (crystal.mineral === 'halite' || crystal.mineral === 'sylvite')
+    // Fluorite joined as the fourth tenant — its REE octahedra resolve
+    // to the 'octahedron' token and correctly skip this path.
+    if (!geom && (crystal.mineral === 'halite' || crystal.mineral === 'sylvite' || crystal.mineral === 'fluorite')
         && token === 'cube' && typeof halideTerraceBands === 'function') {
       const terr = halideTerraceBands(crystal, replayStep);
       if (terr) geom = _getTerracedCalciteGeom(state, crystal, terr);

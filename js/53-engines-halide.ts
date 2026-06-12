@@ -52,8 +52,30 @@ function grow_fluorite(crystal, conditions, step) {
     // fluorescence is electronic-transition-based and survives bleaching.
     crystal._photobleachable_color = true;
   } else {
-    crystal.habit = 'cubic';
-    crystal.dominant_forms = ['{100} cube'];
+    // Morphology-generalization arc (2026-06-12, fourth tenant): the
+    // cube path is regime-driven (MORPH_TH.fluorite, js/45 — survey
+    // plateaus: reactivated vein 7.15 → composite/stepped, elmwood
+    // fault-valve spikes 5.94 → banded, mvt 4.96 → glassy smooth).
+    // Same shared cube alphabet as the halides — render, aspect, and
+    // texture routes all pre-exist. The REE octahedral branch above
+    // outranks the regime (form beats roughness; σ-stepped octahedra
+    // are a noted debt). No rng here → sim-neutral.
+    const regime = (crystal._morphology && crystal._morphology.regime) || null;
+    if (regime === 'stepped_mild' || regime === 'stepped_macro') {
+      crystal.habit = 'stepped_cube';
+      crystal.dominant_forms = regime === 'stepped_macro'
+        ? ['{100} cube with composite/stepped faces', 'cube-on-cube regrowth']
+        : ['{100} cube, growth-banded faces'];
+    } else if (regime === 'hopper_skeletal') {
+      crystal.habit = 'hopper_cube';
+      crystal.dominant_forms = ['{100} cube, faces hollowed to stepped funnels'];
+    } else if (regime === 'dendritic') {
+      crystal.habit = 'dendritic_cube';
+      crystal.dominant_forms = ['dendritic fluorite crust'];
+    } else {
+      crystal.habit = 'cubic';
+      crystal.dominant_forms = ['{100} cube'];
+    }
   }
 
   let color;

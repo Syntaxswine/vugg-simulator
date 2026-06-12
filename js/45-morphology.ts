@@ -88,6 +88,13 @@ const MORPH_DISPLAY: Record<string, Record<string, string>> = {
     hopper_skeletal: 'skeletal frame',
     dendritic: 'arborescent dendrite',
   },
+  fluorite: {
+    spiral_smooth: 'glassy cube',
+    stepped_mild: 'growth-banded cube',
+    stepped_macro: 'composite/stepped cube',
+    hopper_skeletal: 'hopper frame',
+    dendritic: 'dendritic',
+  },
 };
 
 function morphDisplayLabel(mineral: string, regime: string): string {
@@ -246,6 +253,38 @@ MORPH_TH.native_bismuth = {
   form(_conditions: any): string { return 'native'; },
 };
 
+// ---- fluorite — fourth tenant (the elmwood two-mineral showcase) ----
+// Survey (tools/morph-sigma-observe.mjs, seed 42): six scenarios, σ
+// range 1.25–7.16, in-step == post-step (stable like the halides).
+// Plateaus → claims (defer-to-geology):
+//   reactivated_fluorite_vein 7.15 → stepped_macro: COMPOSITE/stepped
+//     cube faces — re-opened vein regrowing fast on old crystals
+//   elmwood base 3.96 / fault-valve spikes 5.94 → smooth ↔ banded:
+//     the SAME CO3/pH pulses that step the golden calcite zone the
+//     purple cubes — the two-mineral showcase (real Elmwood fluorite
+//     carries stepped/composite faces)
+//   mvt 4.96 → smooth (just under the edge — Tri-State glassy cubes)
+//   zoned_dripstone 2.21 / sunnyside 1.95 / jeffrey 1.3 → smooth
+// No damping: fluorite's whole fleet range spans 1.2–7.2 — the edges
+// separate the claims directly on bulk σ; a calcite-style size damp
+// would glass every cabinet crystal (elmwood fluorite is 20 mm) with
+// nothing for the band structure to gain.
+// FORM: composes with the v103 REE rule — the registry form hook
+// mirrors grow_fluorite's own Y>1 {111} flip (Bosze & Rakovan 2002).
+// Regime HABIT renames apply to the cube path only; REE octahedra keep
+// octahedral_REE (σ-stepped octahedra are a noted debt, not modeled).
+MORPH_TH.fluorite = {
+  SIZE_HALF_UM: Infinity,
+  SIZE_DAMP_CAP_UM: Infinity,
+  SPIRAL_MAX: 5.0,       // < this → smooth glassy cube (mvt 4.96 lives here)
+  STEP_MILD_MAX: 6.5,    // growth-banded cube (elmwood pulse plateaus 5.94)
+  STEP_MACRO_MAX: 7.5,   // composite/stepped cube (reactivated vein 7.15)
+  HOPPER_MAX: 9.0,       // hopper frame (unoccupied in fleet)
+  // ≥ 9.0 → dendritic (unoccupied — kept for ladder completeness)
+  sigma(conditions: any): number { return conditions.supersaturation_fluorite(); },
+  form(conditions: any): string { return (conditions.fluid.Y > 1.0) ? 'octahedron' : 'cube'; },
+};
+
 function morphSurfaceSigma(th: any, bulkSigma: number, sizeUm: number): number {
   const effSize = Math.min(Math.max(0, sizeUm), th.SIZE_DAMP_CAP_UM);
   return 1 + (bulkSigma - 1) / (1 + effSize / th.SIZE_HALF_UM);
@@ -311,10 +350,13 @@ function morphTerraceKnots(crystal: any, uptoStep: any) {
   return { knots, hopperTip: lastBand.regime === 'hopper_skeletal' };
 }
 
-// Halide wrapper: banded/hoppered cubes (halite + sylvite). The form
-// token routes the renderer to the square-section ziggurat builder.
+// Halide wrapper: banded/hoppered cubes (halite + sylvite + fluorite's
+// cube path — REE octahedra never reach the renderer's cube-token gate,
+// so they can't arrive here mis-formed). The form token routes the
+// renderer to the square-section ziggurat builder.
 function halideTerraceBands(crystal: any, uptoStep: any) {
-  if (!crystal || (crystal.mineral !== 'halite' && crystal.mineral !== 'sylvite')) return null;
+  if (!crystal || (crystal.mineral !== 'halite' && crystal.mineral !== 'sylvite'
+      && crystal.mineral !== 'fluorite')) return null;
   const walk = morphTerraceKnots(crystal, uptoStep);
   if (!walk) return null;
   return { form: 'cube', knots: walk.knots, hopperTip: walk.hopperTip };

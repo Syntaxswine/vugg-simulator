@@ -28,6 +28,24 @@ Object.assign(VugSimulator.prototype, {
       parts.push(narrative_variant('fluorite', 'color_zoning_single', { color: [...colors][0] }) || `Uniformly ${[...colors][0]}.`);
     }
   }
+  // Zone-stack morphology read (morphology-generalization arc,
+  // 2026-06-12 — fourth tenant): the regime bands are the fluid's
+  // pressure-valve log, same as the calcite they often grow beside.
+  {
+    const mass: Record<string, number> = {};
+    let tot = 0;
+    for (const z of (c.zones || [])) {
+      if (!(z.thickness_um > 0) || !z.morph_regime) continue;
+      mass[z.morph_regime] = (mass[z.morph_regime] || 0) + z.thickness_um;
+      tot += z.thickness_um;
+    }
+    const banded = ((mass.stepped_mild || 0) + (mass.stepped_macro || 0)) / Math.max(1, tot);
+    if (tot > 0 && banded > 0.6) {
+      parts.push(`The faces are composite — cube regrown on cube, ${Math.round(banded * 100)}% of the mass laid down in the stepped regime. This crystal spent most of its life being pushed.`);
+    } else if (tot > 0 && banded > 0.15) {
+      parts.push(`Growth banding on the cube faces: ${Math.round(banded * 100)}% of the mass went down during driven episodes — read the bands and you are reading the vein's pressure valve.`);
+    }
+  }
   if (c.twinned) parts.push(narrative_variant('fluorite', 'twinned', { twin_law: c.twin_law }) || `Shows ${c.twin_law} twinning — two interpenetrating cubes.`);
   const fl = c.predict_fluorescence();
   if (fl !== 'non-fluorescent') parts.push(narrative_variant('fluorite', 'fluorescence', { fl }) || `Would show ${fl} under UV excitation.`);

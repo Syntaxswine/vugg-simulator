@@ -230,6 +230,7 @@ const _HELIX_FULL_NAMES: { [id: string]: string } = {
   halite_morph: 'Halite growth regime at this spot (Sunagawa ordinal: 0 smooth cube · 1 banded/chevron · 2 macrostepped · 3 hopper/raft · 4 dendritic crust)',
   sylvite_morph: 'Sylvite growth regime at this spot (Sunagawa ordinal: 0 smooth cube · 1 banded · 2 macrostepped · 3 hopper · 4 dendritic crust)',
   bismuth_morph: 'Native bismuth growth regime at this spot (Sunagawa ordinal: 0 massive/foliated · 1 feathery · 2 feather/skeletal · 3 skeletal frame · 4 arborescent dendrite — the five-element reduction-shock texture)',
+  fluorite_morph: 'Fluorite growth regime at this spot (Sunagawa ordinal: 0 glassy cube · 1 growth-banded · 2 composite/stepped · 3 hopper frame · 4 dendritic)',
   // === END HELIX-OVERLAY-FORK ADDITION ==============================
   // v165 — Sulfate System section (PHREEQC wateq4f Ksp via 20d + 40b).
   // Strip is no longer SI-blind on the sulfate/evaporite family
@@ -593,6 +594,10 @@ const _HELIX_CHEM_PARAMS: ChemParam[] = (function() {
   // wittichen (when it lands) this chip should slam 0→4 exactly on the
   // reducing Eh pulse — the shock made visible in the strip.
   params.push(_morphChipParam('native_bismuth', 'bismuth_morph', 'bi morph', 0xD8C8E8, 'native'));
+  // Fluorite (fourth tenant): in elmwood this chip should co-pulse
+  // with calcite_morph on the SAME fault-valve beats — two minerals,
+  // one fluid history, two recorded shapes.
+  params.push(_morphChipParam('fluorite', 'fluorite_morph', 'fl morph', 0xB890E0, 'halide'));
   // === END HELIX-OVERLAY-FORK ADDITION ==============================
 
   // v165 — SULFATE SYSTEM SI chips. 4 chips consuming the Ksp engine
