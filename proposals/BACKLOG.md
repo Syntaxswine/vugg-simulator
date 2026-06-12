@@ -2,7 +2,35 @@
 
 Living list of open work items, captured from session conversations so context survives compaction. Each item has enough detail that someone picking it up cold can act without re-discovering the rationale.
 
-> ## 🔧 UPDATE (2026-06-12, latest) — FIX-BACKLOG SWEEP ✅ COMPLETE (SIM 190→191, six commits): every open follow-up from the morphology arc closed in one session
+> ## ⚗️ UPDATE (2026-06-12, latest) — CARBONATE pK(T) CORRECTED (SIM 192, `d683a33`): review §2.2's oldest calibration debt CLOSED; its sibling exposed
+>
+> js/20b's linear pK fits → the full PB82 analytic expressions,
+> verified verbatim against canonical wateq4f.dat; clamp 80→250 °C.
+> NEW instrument **tools/pk-t-observe.mjs** (--table science receipt /
+> --fleet dark-observe). Rebake 12/33: headline loss = HOT-SCENARIO
+> ARAGONITE (geologically correct — the low-T polymorph never belonged
+> at 150–700 °C); coverage IMPROVED live 133→135, dead 36→34. Re-pins,
+> each measured: mvt dogtooth survives with a small stepped CORE
+> (the Tri-State PHANTOM read — claims table updated); elmwood pulse
+> train re-pinned (amps ×1.15 + width 0.08 — calibrated in old
+> constants' units; judge 8/8, headline gate trued); marble aragonite
+> pin inverted; sunnyside pyrite ≥0.99 smooth.
+>
+> **NEW OPEN ITEM — carbonate Ksp(T) analytic upgrade** (the pK debt's
+> sibling, exposed by the fix): Ksp(T) is still constant-ΔH van't Hoff,
+> ~1.3 log units too FLAT at 158 °C vs PHREEQC's calcite analytic. With
+> the IAP side now exact, the mixed fidelity flips the cooling-scenario
+> SI drift mildly positive (bounded, re-pinned). The upgrade = analytic
+> expressions in thermo-carbonates.json + 20c, then restore the
+> retrograde-direction pin. Composes with the open dolomite/siderite ΔH
+> items in the thermo-verification note.
+>
+> **STILL QUEUED from the calibration-debt arc:** roughten_gill
+> mottramite gate-census (post-pK(T) chemistry is now the stable base
+> it was waiting for; V axis twice-confirmed touchy — probe the Zn/
+> redox·T blockers first, per the memory note).
+>
+> ## 🔧 UPDATE (2026-06-12, earlier) — FIX-BACKLOG SWEEP ✅ COMPLETE (SIM 190→191, six commits): every open follow-up from the morphology arc closed in one session
 >
 > The 🌳 banner's "OPEN follow-ups" list below is now ✅ DONE end to
 > end (ledger with commits in
