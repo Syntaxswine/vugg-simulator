@@ -563,6 +563,14 @@ function _habitGeomToken(habit: string): string {
   // before this. Striated pyritohedra render without grooves (the
   // terrace path is cube-token-gated); the envelope is the fix.
   if (h.includes('pyritohedral')) return 'dodecahedron';
+  // REE-octahedron family (incl. the σ-graded stepped_/hopper_ renames,
+  // fix-backlog 2026-06-12): plain 'octahedral_REE' had missed the
+  // exact 'octahedral' check below and fallen to the PRISM default
+  // since v103 — sunnyside's green Y-fluorite octahedra rendered as
+  // hex prisms. Same wart family as pyritohedral, same cure.
+  // ('dendritic_octahedral_REE' is caught by the dendritic_ route at
+  // the top of this function and gets the tree — correct.)
+  if (h.includes('octahedral_ree')) return 'octahedron';
   if (h === 'octahedral' || h === 'octahedron') return 'octahedron';
   if (h.includes('rhombohedral')) return 'rhomb';
   if (h.includes('scalenohedral')) return 'scalene';

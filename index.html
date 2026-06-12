@@ -21659,6 +21659,12 @@ function _habitAspectRatio(habit) {
     if (habit === 'striated_cubic' || habit === 'striated_pyritohedral'
         || habit === 'striated_cubo_pyritohedral')
         return 0.5;
+    // REE-octahedron regime family (fix-backlog 2026-06-12): the parent
+    // 'octahedral_REE' lands on the default 0.5 — the σ-graded renames
+    // carry it explicitly. Same firewall as above.
+    if (habit === 'stepped_octahedral_REE' || habit === 'hopper_octahedral_REE'
+        || habit === 'dendritic_octahedral_REE')
+        return 0.5;
     return 0.5;
 }
 // Ellipsoid volume coefficient: V = kVol(aRatio) × c_mm³.
@@ -31166,8 +31172,10 @@ MORPH_TH.native_bismuth = {
 // nothing for the band structure to gain.
 // FORM: composes with the v103 REE rule — the registry form hook
 // mirrors grow_fluorite's own Y>1 {111} flip (Bosze & Rakovan 2002).
-// Regime HABIT renames apply to the cube path only; REE octahedra keep
-// octahedral_REE (σ-stepped octahedra are a noted debt, not modeled).
+// Regime HABIT renames apply to BOTH paths since 2026-06-12: the cube
+// alphabet AND the REE octahedra (stepped_/hopper_/dendritic_
+// octahedral_REE — fleet-inert today, sunnyside is flat at σ 1.95;
+// fires when a driven Y-fluorite scenario lands).
 MORPH_TH.fluorite = {
     SIZE_HALF_UM: Infinity,
     SIZE_DAMP_CAP_UM: Infinity,
@@ -33522,8 +33530,32 @@ function grow_fluorite(crystal, conditions, step) {
     // aging. Silverton / San Juan late hydrothermal fluorite is the
     // canonical natural occurrence.
     if (f.Y > 1.0) {
-        crystal.habit = 'octahedral_REE';
-        crystal.dominant_forms = ['{111} octahedron', 'REE-stabilized faces', 'blue Y³⁺/Eu²⁺ SW UV fluorescence (bleach-stable)'];
+        // σ-stepped REE octahedra (fix-backlog 2026-06-12): the {111} REE
+        // form still outranks the cube alphabet, and the regime now grades
+        // the octahedron's SURFACE the same way it grades the cube's —
+        // Bosze & Rakovan's face stabilization picks the FORM; Sunagawa's
+        // ladder picks the TEXTURE; they compose. FLEET-INERT today by
+        // measurement (sunnyside, the only Y>1 tenant, is flat at σ 1.95 —
+        // deep in the smooth band; morph-sigma-observe re-confirmed at this
+        // commit), so the renames are byte-identical until a driven
+        // Y-fluorite scenario lands. No rng → sim-neutral.
+        const regime = (crystal._morphology && crystal._morphology.regime) || null;
+        if (regime === 'stepped_mild' || regime === 'stepped_macro') {
+            crystal.habit = 'stepped_octahedral_REE';
+            crystal.dominant_forms = ['{111} octahedron with growth-stepped faces', 'REE-stabilized faces', 'blue Y³⁺/Eu²⁺ SW UV fluorescence (bleach-stable)'];
+        }
+        else if (regime === 'hopper_skeletal') {
+            crystal.habit = 'hopper_octahedral_REE';
+            crystal.dominant_forms = ['{111} octahedron, faces hollowed to stepped funnels', 'REE-stabilized faces'];
+        }
+        else if (regime === 'dendritic') {
+            crystal.habit = 'dendritic_octahedral_REE';
+            crystal.dominant_forms = ['dendritic REE-fluorite crust'];
+        }
+        else {
+            crystal.habit = 'octahedral_REE';
+            crystal.dominant_forms = ['{111} octahedron', 'REE-stabilized faces', 'blue Y³⁺/Eu²⁺ SW UV fluorescence (bleach-stable)'];
+        }
         crystal._ree_substitution = true;
         // Photobleaching: F-center visible color fades with light exposure.
         // Display specimens trend pale-blue/colorless even when fresh
@@ -33539,8 +33571,9 @@ function grow_fluorite(crystal, conditions, step) {
         // fault-valve spikes 5.94 → banded, mvt 4.96 → glassy smooth).
         // Same shared cube alphabet as the halides — render, aspect, and
         // texture routes all pre-exist. The REE octahedral branch above
-        // outranks the regime (form beats roughness; σ-stepped octahedra
-        // are a noted debt). No rng here → sim-neutral.
+        // outranks the regime for FORM, and carries its own regime grading
+        // (σ-stepped octahedra, modeled 2026-06-12). No rng here →
+        // sim-neutral.
         const regime = (crystal._morphology && crystal._morphology.regime) || null;
         if (regime === 'stepped_mild' || regime === 'stepped_macro') {
             crystal.habit = 'stepped_cube';
@@ -33602,7 +33635,7 @@ function grow_fluorite(crystal, conditions, step) {
         trace_Fe: f.Fe * 0.02,
         trace_Mn: f.Mn * 0.05,
         trace_Y: f.Y * 0.008,
-        note: `color zone: ${color}` + (crystal.habit === 'octahedral_REE' ? ` (octahedral, Y ${f.Y.toFixed(1)} ppm)` : '')
+        note: `color zone: ${color}` + (String(crystal.habit).includes('octahedral_REE') ? ` (octahedral, Y ${f.Y.toFixed(1)} ppm)` : '')
     });
 }
 function grow_halite(crystal, conditions, step) {
@@ -63418,6 +63451,13 @@ const HABIT_TO_TEXTURE = {
     'striated_cubic': 'cube_edge_deep',
     'striated_pyritohedral': 'cube_edge_deep',
     'striated_cubo_pyritohedral': 'cube_edge_deep',
+    // Stage 11 — REE-octahedron regime family (fix-backlog 2026-06-12).
+    // Same texture grammar as every other stepped/hopper/dendritic
+    // family: terraced notch for the driven bands, acicular rasp for the
+    // dendritic crust. Plain octahedral_REE keeps the default (no entry).
+    'stepped_octahedral_REE': 'hopper',
+    'hopper_octahedral_REE': 'hopper',
+    'dendritic_octahedral_REE': 'acicular',
 };
 // Mineral-specific overrides: HABIT_TO_TEXTURE_BY_MINERAL[mineral][habit]
 // wins over HABIT_TO_TEXTURE[habit]. Used when one habit string covers
@@ -65536,6 +65576,14 @@ const HABIT_TO_PRIMITIVE = {
     'striated_cubic': PRIM_CUBE,
     'striated_pyritohedral': PRIM_PYRITOHEDRON,
     'striated_cubo_pyritohedral': PRIM_PYRITOHEDRON,
+    // REE-octahedron regime family (fix-backlog 2026-06-12): explicit
+    // beats fuzzy — the fuzzy fallback's 'hopper' check fires before
+    // 'octahed' and would route hopper_octahedral_REE to a CUBE.
+    // dendritic goes acicular like the other dendritic crusts.
+    'octahedral_REE': PRIM_OCTAHEDRON,
+    'stepped_octahedral_REE': PRIM_OCTAHEDRON,
+    'hopper_octahedral_REE': PRIM_OCTAHEDRON,
+    'dendritic_octahedral_REE': PRIM_ACICULAR,
     'prismatic': PRIM_HEX_PRISM_TERMINATED,
     'short_prismatic': PRIM_HEX_PRISM,
     'striated_prism': PRIM_HEX_PRISM_TERMINATED,
@@ -68589,6 +68637,15 @@ function _habitGeomToken(habit) {
     // terrace path is cube-token-gated); the envelope is the fix.
     if (h.includes('pyritohedral'))
         return 'dodecahedron';
+    // REE-octahedron family (incl. the σ-graded stepped_/hopper_ renames,
+    // fix-backlog 2026-06-12): plain 'octahedral_REE' had missed the
+    // exact 'octahedral' check below and fallen to the PRISM default
+    // since v103 — sunnyside's green Y-fluorite octahedra rendered as
+    // hex prisms. Same wart family as pyritohedral, same cure.
+    // ('dendritic_octahedral_REE' is caught by the dendritic_ route at
+    // the top of this function and gets the tree — correct.)
+    if (h.includes('octahedral_ree'))
+        return 'octahedron';
     if (h === 'octahedral' || h === 'octahedron')
         return 'octahedron';
     if (h.includes('rhombohedral'))
