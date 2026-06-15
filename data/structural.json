@@ -123,6 +123,12 @@
     "lattice": { "a": 7.8713, "b": 16.6204, "c": 5.6560, "beta": 90.45 },
     "_source": "Hawthorne et al. 1993 (Canadian Mineralogist 31:551-582)"
   },
+  "epidote": {
+    "system": "monoclinic",
+    "space_group": "P2_1/m",
+    "lattice": { "a": 8.8877, "b": 5.6275, "c": 10.1517, "beta": 115.383 },
+    "_source": "Dollase 1971 (Am. Min. 56:447-464) epidote structure refinement; Anthony et al. Handbook of Mineralogy 2001 (epidote sheet)"
+  },
   "gypsum": {
     "system": "monoclinic",
     "space_group": "C2/c",

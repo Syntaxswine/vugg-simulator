@@ -1654,6 +1654,79 @@ function grow_prehnite(crystal, conditions, step) {
   });
 }
 
+// v196 (2026-06-15): Epidote Ca2(Al,Fe3+)3(SiO4)(Si2O7)O(OH) — monoclinic
+// P2_1/m sorosilicate, the Fe3+ endmember of the clinozoisite-epidote
+// series. Alpine-cleft / greenschist mineral; lustrous pistachio-green
+// prisms striated ∥b (the Tormiq, Gilgit-Baltistan gem swords). Habits:
+//   striated_prismatic (default) — elongated prisms striated ∥[010]
+//   gem_prismatic (high σ) — doubly-terminated Tormiq/Knappenwand swords
+//   divergent_spray (on byssolite/actinolite substrate) — radiating fans
+//   granular (low excess) — coarse-to-fine massive / saussurite replacement
+// Green deepens with Fe3+/oxidation (the pistacite content); Fe-poor →
+// pale yellow-green toward clinozoisite.
+function grow_epidote(crystal, conditions, step) {
+  const sigma = conditions.supersaturation_epidote();
+  if (sigma < 1.0) {
+    if (crystal.total_growth_um > 5 && conditions.fluid.pH < 5.5) {
+      crystal.dissolved = true;
+      const d = Math.min(2.0, crystal.total_growth_um * 0.05);
+      return new GrowthZone({
+        step, temperature: conditions.temperature,
+        thickness_um: -d, growth_rate: -d, dissolutionMode: 'acid',
+        note: `acid dissolution (pH ${conditions.fluid.pH.toFixed(1)}) — epidote releases Ca + Al + Fe + Si`,
+      });
+    }
+    return null;
+  }
+  const excess = sigma - 1.0;
+  const rate = 2.0 * excess * rng.uniform(0.8, 1.2);
+  if (rate < 0.1) return null;
+
+  // Habit dispatch — substrate first (sprays on byssolite), then σ
+  const pos = crystal.position || '';
+  const on_amphibole = pos.includes('actinolite') || pos.includes('tremolite');
+  if (on_amphibole) {
+    crystal.habit = 'divergent_spray';
+    crystal.dominant_forms = ['radiating prismatic fans', 'epidote sprays interwoven with byssolite fibers', 'striated ∥b'];
+  } else if (excess > 1.3) {
+    crystal.habit = 'gem_prismatic';
+    crystal.dominant_forms = ['doubly-terminated lustrous prisms', 'the Tormiq / Knappenwand gem sword', 'striated ∥[010]'];
+  } else if (excess < 0.3) {
+    crystal.habit = 'granular';
+    crystal.dominant_forms = ['coarse-to-fine granular aggregate', 'vein-fill / saussurite replacement'];
+  } else {
+    crystal.habit = 'striated_prismatic';
+    crystal.dominant_forms = ['elongated prisms striated parallel b [010]', 'perfect {001} basal cleavage'];
+  }
+
+  // Color dispatch — green deepens with Fe³⁺ (pistacite) + oxidation
+  let color_note;
+  const o2 = conditions.fluid.O2 ?? 0;
+  if (conditions.fluid.Fe > 20 && o2 > 1.0) color_note = 'deep pistachio-to-blackish-green (high Fe³⁺, strongly oxidized — pistacite-rich)';
+  else if (conditions.fluid.Fe > 8) color_note = 'classic pistachio-green (Fe³⁺ at M3 — the Tormiq aesthetic)';
+  else color_note = 'pale yellow-green (Fe³⁺-poor, toward clinozoisite)';
+
+  // Substrate flavor
+  let substrate_flavor = '';
+  if (pos.includes('quartz')) substrate_flavor = ' perched on quartz — the alpine-cleft signature';
+  else if (pos.includes('feldspar')) substrate_flavor = ' with adularia — low-T cleft feldspar stage';
+  else if (pos.includes('magnetite')) substrate_flavor = ' on magnetite — the Fe-oxide redox partner';
+  else if (pos.includes('calcite')) substrate_flavor = ' with calcite — late cooling stage';
+
+  // Mass-balance debits — Ca2 (Al,Fe)3 Si3
+  conditions.fluid.Ca = Math.max(conditions.fluid.Ca - rate * 0.022, 0);
+  conditions.fluid.Al = Math.max(conditions.fluid.Al - rate * 0.012, 0);
+  conditions.fluid.Fe = Math.max(conditions.fluid.Fe - rate * 0.010, 0);
+  conditions.fluid.SiO2 = Math.max(conditions.fluid.SiO2 - rate * 0.035, 0);
+
+  return new GrowthZone({
+    step, temperature: conditions.temperature,
+    thickness_um: rate, growth_rate: rate,
+    trace_Fe: conditions.fluid.Fe > 5 ? conditions.fluid.Fe * 0.006 : 0,
+    note: `epidote ${crystal.habit}, ${color_note}${substrate_flavor}; monoclinic Ca-Al-Fe³⁺ sorosilicate, H 6-7, vitreous, {001} perfect`,
+  });
+}
+
 // v112 (2026-05-20): Grossular garnet Ca3Al2(SiO4)3 — cubic Ia-3d
 // Ca-Al endmember of the garnet group. Three settings:
 //   - Rodingite metasomatism (Jeffrey + Italian Alps + Asbestos Hill NL).

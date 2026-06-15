@@ -323,6 +323,17 @@ const MINERAL_GATES_datolite: MineralGates = {
   _notes: 'CaB(SiO4)(OH) — Lake Superior basalt amygdale + Jeffrey rodingite. Gemmy colorless.',
 };
 
+const MINERAL_GATES_epidote: MineralGates = {
+  sigma_crit: 1.0,
+  T_min: 200, T_max: 450, T_optimal: 320,
+  fluid_min: { Ca: 80, Al: 4, Fe: 5, SiO2: 100 },
+  pH_min: 6.5, pH_max: 9.0,
+  O2_min: 0.5,
+  surface_energy: 'medium',
+  _sources: ['epidote engine v196', 'Anthony et al. Handbook of Mineralogy 2001', 'Armbruster et al. 2006 EJM 18:551', 'Holdaway 1972 CMP 37:307', 'Liou 1973 J.Petrol 14:381'],
+  _notes: 'Ca2(Al,Fe3+)3(SiO4)(Si2O7)O(OH) sorosilicate, monoclinic P2_1/m. Fe3+ endmember of clinozoisite-epidote series — needs OXIDIZED fluid (near HM buffer) for the pistachio-green Fe3+; reducing sends Fe to magnetite/actinolite (Fe2+). Al-rich Ca-silicate, alpine-cleft Tormiq/Knappenwand. The O2_min gate is the discriminator. Twin {100} lamellar.',
+};
+
 Object.assign(VugConditions.prototype, {
   supersaturation_quartz() {
   const eq = this.silica_equilibrium(this.effectiveTemperature);
@@ -1022,6 +1033,48 @@ Object.assign(VugConditions.prototype, {
     if (pH >= 9.0 && pH <= 11.0) sigma *= 1.2;
     else sigma *= Math.max(0.5, 1.0 - Math.abs(pH - 10.0) * 0.3);
     if (ACTIVITY_CORRECTED_SUPERSAT) sigma *= activityCorrectionFactor(this.fluid, 'prehnite');
+    return Math.max(sigma, 0);
+  },
+
+  // v196 (2026-06-15): Epidote Ca2(Al,Fe3+)3(SiO4)(Si2O7)O(OH) — the Fe3+
+  // endmember of the clinozoisite-epidote sorosilicate series, monoclinic
+  // P2_1/m. The classic alpine-cleft / greenschist-facies mineral: lustrous
+  // pistachio-green prisms striated ∥b, the famous Tormiq (Gilgit-Baltistan,
+  // Pakistan) gem swords (Handbook of Mineralogy, Anthony et al. 2001 — which
+  // names Tormiq as type-quality, rivaling Knappenwand). THE GATE THAT MATTERS
+  // is redox: epidote needs FERRIC iron, so an OXIDIZING fluid near the
+  // hematite-magnetite buffer — under reducing conditions Fe partitions into
+  // magnetite + actinolite (Fe2+) and you get clinozoisite, not green epidote
+  // (Holdaway 1972 CMP 37:307; Liou 1973 J.Petrol 14:381; the Fe3+>=0.5 apfu
+  // boundary is Armbruster et al. 2006 EJM 18:551). Ca-Al-Si backbone like
+  // prehnite/grossular; the oxidizing + Al-bearing + moderate-T window is the
+  // discriminator. More oxidizing = more Fe3+ = deeper-green epidote.
+  supersaturation_epidote() {
+    const g = MINERAL_GATES_epidote;
+    if (this.fluid.Ca < g.fluid_min!.Ca || this.fluid.Al < g.fluid_min!.Al
+        || this.fluid.Fe < g.fluid_min!.Fe || this.fluid.SiO2 < g.fluid_min!.SiO2) return 0;
+    if (this.temperature < g.T_min! || this.temperature > g.T_max!) return 0;
+    if (this.fluid.pH < g.pH_min! || this.fluid.pH > g.pH_max!) return 0;
+    // Fe3+ gate — epidote needs OXIDIZED iron (near HM buffer). Reducing
+    // fluid → magnetite + clinozoisite/actinolite instead. THE discriminator.
+    if (!oxideRedoxAvailable(this.fluid, g.O2_min!)) return 0;
+    const ca_f = Math.min(this.fluid.Ca / 400.0, 2.0);
+    const al_f = Math.min(this.fluid.Al / 8.0, 2.0);
+    const fe_f = Math.min(this.fluid.Fe / 20.0, 1.8);
+    const si_f = Math.min(this.fluid.SiO2 / 250.0, 1.5);
+    let sigma = ca_f * al_f * fe_f * si_f;
+    // more oxidizing → more Fe3+ → stronger (deeper-green) epidote vs clinozoisite
+    sigma *= Math.max(0.6, Math.min(oxideRedoxFactor(this.fluid, 1.0), 1.6));
+    // T sweet spot 250-400°C (alpine-cleft main stage)
+    const T = this.temperature;
+    if (T >= 250 && T <= 400) sigma *= 1.3;
+    else if (T < 250) sigma *= Math.max(0.4, (T - 200) / 50 + 0.4);
+    else sigma *= Math.max(0.4, 1.0 - (T - 400) / 50);
+    // pH sweet spot 6.5-8.5 (near-neutral; coexists with calcite + adularia)
+    const pH = this.fluid.pH;
+    if (pH >= 6.5 && pH <= 8.5) sigma *= 1.2;
+    else sigma *= Math.max(0.5, 1.0 - Math.abs(pH - 7.5) * 0.3);
+    if (ACTIVITY_CORRECTED_SUPERSAT) sigma *= activityCorrectionFactor(this.fluid, 'epidote');
     return Math.max(sigma, 0);
   },
 

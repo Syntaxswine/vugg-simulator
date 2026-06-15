@@ -16117,7 +16117,43 @@ let timeScale = 5.0;
 //   events to archive/strips/v<N>/ at each rebake; v194 was backfilled
 //   BEFORE this correction so the last confabulated-silver story is
 //   preserved as part of the record.
-const SIM_VERSION = 195;
+//   v196 — Epidote Ca2(Al,Fe3+)3(SiO4)(Si2O7)O(OH) (2026-06-15, this
+//        commit). The first ALPINE-CLEFT Fe3+ silicate in the catalog;
+//        retires the longest-deferred orphan in PROPOSALS-LEDGER §G (the
+//        Round-6 metamorphic-silicate gap). Monoclinic P2_1/m sorosilicate,
+//        the Fe3+ endmember of the clinozoisite-epidote series — lustrous
+//        pistachio-green prisms striated ∥b, the world-best Tormiq
+//        (Gilgit-Baltistan, Pakistan) gem swords.
+//
+//        THE DISCRIMINATOR IS REDOX. Epidote requires ferric iron, so the
+//        engine gates on an OXIDIZING fluid (oxideRedoxAvailable O2>=0.5,
+//        the same proxy hematite + vanadinite use) on top of Ca/Al/Fe/Si +
+//        T 200-450 (sweet 250-400) + pH 6.5-9.0. Under reducing conditions
+//        the gate returns 0 — geologically, Fe partitions into magnetite +
+//        actinolite (Fe2+) and clinozoisite forms instead of green epidote
+//        (Holdaway 1972 CMP 37:307; Liou 1973 J.Petrol 14:381; the
+//        Fe3+>=0.5 apfu epidote/clinozoisite boundary is Armbruster et al.
+//        2006 EJM 18:551). sigma scales with oxidation (more O2 -> more Fe3+
+//        -> deeper green). This cleanly separates epidote from its catalog
+//        cousins actinolite (Mg+Fe2+) and the Ca-Al silicates prehnite/
+//        grossular (no redox gate).
+//
+//        Habit dispatch: striated_prismatic (default, ∥[010] + {001}
+//        cleavage) | gem_prismatic (excess>1.3, doubly-terminated Tormiq
+//        sword) | divergent_spray (on byssolite/actinolite substrate) |
+//        granular (excess<0.3, replacement). Substrate priority: quartz
+//        (cleft lining) > byssolite/actinolite (sprays) > adularia/feldspar
+//        > magnetite (Fe-oxide redox partner) > calcite > wall.
+//
+//        8-file add (supersat 39 + grow 59 + nucleation 89 + MINERAL_ENGINES
+//        65 + minerals.json + structural.json epidote cell for twin-law-
+//        check + this version block + tests-js/epidote.test.ts). Twin {100}
+//        lamellar p=0.12 (Handbook 'common'). DESIGNED for the
+//        tormiq_alpine_cleft scenario shipping next (v197); per the
+//        add-mineral default it fires at seed-42 wherever an oxidized
+//        Ca-Al-Fe-Si fluid hits the window — calibration drift documented
+//        in the seed42_v196 regen + commit message. Coverage 171 -> 172.
+const SIM_VERSION = 196;
 
 // ── 18-constants.js ──
 
@@ -16416,6 +16452,7 @@ const MINERAL_STOICHIOMETRY = {
     vesuvianite: { Ca: 10, Mg: 1, Fe: 1, Al: 4, SiO2: 9 }, // Ca10(Mg,Fe)2Al4(SiO4)5(Si2O7)2(OH)4 — Bernardini 1981 cyprine host
     wollastonite: { Ca: 1, SiO2: 1 }, // CaSiO3
     prehnite: { Ca: 2, Al: 2, SiO2: 3 }, // Ca2Al2Si3O10(OH)2 — zeolite-facies sorosilicate (Liou 1971)
+    epidote: { Ca: 2, Al: 2, Fe: 1, SiO2: 3 }, // Ca2(Al,Fe3+)3(SiO4)(Si2O7)O(OH) — Fe3+ endmember (2 Al + 1 Fe at M-sites), alpine-cleft (v196)
     datolite: { Ca: 1, B: 1, SiO2: 1 }, // CaB(SiO4)(OH) — terminal-stage cabinet aesthetic
     tremolite: { Ca: 2, Mg: 5, SiO2: 8 }, // Ca2Mg5Si8O22(OH)2 — Mg-end calcic amphibole
     actinolite: { Ca: 2, Mg: 4, Fe: 1, SiO2: 8 }, // Ca2(Mg,Fe)5Si8O22(OH)2 — Mg:Fe mid-range 4:1
@@ -26827,6 +26864,16 @@ const MINERAL_GATES_datolite = {
     _sources: ['datolite engine v110+', 'Hawthorne Burns Grice 1996', 'Bornhorst 2017'],
     _notes: 'CaB(SiO4)(OH) — Lake Superior basalt amygdale + Jeffrey rodingite. Gemmy colorless.',
 };
+const MINERAL_GATES_epidote = {
+    sigma_crit: 1.0,
+    T_min: 200, T_max: 450, T_optimal: 320,
+    fluid_min: { Ca: 80, Al: 4, Fe: 5, SiO2: 100 },
+    pH_min: 6.5, pH_max: 9.0,
+    O2_min: 0.5,
+    surface_energy: 'medium',
+    _sources: ['epidote engine v196', 'Anthony et al. Handbook of Mineralogy 2001', 'Armbruster et al. 2006 EJM 18:551', 'Holdaway 1972 CMP 37:307', 'Liou 1973 J.Petrol 14:381'],
+    _notes: 'Ca2(Al,Fe3+)3(SiO4)(Si2O7)O(OH) sorosilicate, monoclinic P2_1/m. Fe3+ endmember of clinozoisite-epidote series — needs OXIDIZED fluid (near HM buffer) for the pistachio-green Fe3+; reducing sends Fe to magnetite/actinolite (Fe2+). Al-rich Ca-silicate, alpine-cleft Tormiq/Knappenwand. The O2_min gate is the discriminator. Twin {100} lamellar.',
+};
 Object.assign(VugConditions.prototype, {
     supersaturation_quartz() {
         const eq = this.silica_equilibrium(this.effectiveTemperature);
@@ -27719,6 +27766,57 @@ Object.assign(VugConditions.prototype, {
             sigma *= Math.max(0.5, 1.0 - Math.abs(pH - 10.0) * 0.3);
         if (ACTIVITY_CORRECTED_SUPERSAT)
             sigma *= activityCorrectionFactor(this.fluid, 'prehnite');
+        return Math.max(sigma, 0);
+    },
+    // v196 (2026-06-15): Epidote Ca2(Al,Fe3+)3(SiO4)(Si2O7)O(OH) — the Fe3+
+    // endmember of the clinozoisite-epidote sorosilicate series, monoclinic
+    // P2_1/m. The classic alpine-cleft / greenschist-facies mineral: lustrous
+    // pistachio-green prisms striated ∥b, the famous Tormiq (Gilgit-Baltistan,
+    // Pakistan) gem swords (Handbook of Mineralogy, Anthony et al. 2001 — which
+    // names Tormiq as type-quality, rivaling Knappenwand). THE GATE THAT MATTERS
+    // is redox: epidote needs FERRIC iron, so an OXIDIZING fluid near the
+    // hematite-magnetite buffer — under reducing conditions Fe partitions into
+    // magnetite + actinolite (Fe2+) and you get clinozoisite, not green epidote
+    // (Holdaway 1972 CMP 37:307; Liou 1973 J.Petrol 14:381; the Fe3+>=0.5 apfu
+    // boundary is Armbruster et al. 2006 EJM 18:551). Ca-Al-Si backbone like
+    // prehnite/grossular; the oxidizing + Al-bearing + moderate-T window is the
+    // discriminator. More oxidizing = more Fe3+ = deeper-green epidote.
+    supersaturation_epidote() {
+        const g = MINERAL_GATES_epidote;
+        if (this.fluid.Ca < g.fluid_min.Ca || this.fluid.Al < g.fluid_min.Al
+            || this.fluid.Fe < g.fluid_min.Fe || this.fluid.SiO2 < g.fluid_min.SiO2)
+            return 0;
+        if (this.temperature < g.T_min || this.temperature > g.T_max)
+            return 0;
+        if (this.fluid.pH < g.pH_min || this.fluid.pH > g.pH_max)
+            return 0;
+        // Fe3+ gate — epidote needs OXIDIZED iron (near HM buffer). Reducing
+        // fluid → magnetite + clinozoisite/actinolite instead. THE discriminator.
+        if (!oxideRedoxAvailable(this.fluid, g.O2_min))
+            return 0;
+        const ca_f = Math.min(this.fluid.Ca / 400.0, 2.0);
+        const al_f = Math.min(this.fluid.Al / 8.0, 2.0);
+        const fe_f = Math.min(this.fluid.Fe / 20.0, 1.8);
+        const si_f = Math.min(this.fluid.SiO2 / 250.0, 1.5);
+        let sigma = ca_f * al_f * fe_f * si_f;
+        // more oxidizing → more Fe3+ → stronger (deeper-green) epidote vs clinozoisite
+        sigma *= Math.max(0.6, Math.min(oxideRedoxFactor(this.fluid, 1.0), 1.6));
+        // T sweet spot 250-400°C (alpine-cleft main stage)
+        const T = this.temperature;
+        if (T >= 250 && T <= 400)
+            sigma *= 1.3;
+        else if (T < 250)
+            sigma *= Math.max(0.4, (T - 200) / 50 + 0.4);
+        else
+            sigma *= Math.max(0.4, 1.0 - (T - 400) / 50);
+        // pH sweet spot 6.5-8.5 (near-neutral; coexists with calcite + adularia)
+        const pH = this.fluid.pH;
+        if (pH >= 6.5 && pH <= 8.5)
+            sigma *= 1.2;
+        else
+            sigma *= Math.max(0.5, 1.0 - Math.abs(pH - 7.5) * 0.3);
+        if (ACTIVITY_CORRECTED_SUPERSAT)
+            sigma *= activityCorrectionFactor(this.fluid, 'epidote');
         return Math.max(sigma, 0);
     },
     // v112 (2026-05-20): Grossular garnet Ca3Al2(SiO4)3 — Ca-Al endmember
@@ -30576,6 +30674,7 @@ const MINERAL_GATES_REGISTRY = {
     pectolite: MINERAL_GATES_pectolite,
     wollastonite: MINERAL_GATES_wollastonite,
     prehnite: MINERAL_GATES_prehnite,
+    epidote: MINERAL_GATES_epidote,
     grossular: MINERAL_GATES_grossular,
     diopside: MINERAL_GATES_diopside,
     vesuvianite: MINERAL_GATES_vesuvianite,
@@ -38039,6 +38138,84 @@ function grow_prehnite(crystal, conditions, step) {
         note: `prehnite ${crystal.habit}, ${color_note}${substrate_flavor}; orthorhombic Ca-Al phyllosilicate, H 6-6.5, vitreous`,
     });
 }
+// v196 (2026-06-15): Epidote Ca2(Al,Fe3+)3(SiO4)(Si2O7)O(OH) — monoclinic
+// P2_1/m sorosilicate, the Fe3+ endmember of the clinozoisite-epidote
+// series. Alpine-cleft / greenschist mineral; lustrous pistachio-green
+// prisms striated ∥b (the Tormiq, Gilgit-Baltistan gem swords). Habits:
+//   striated_prismatic (default) — elongated prisms striated ∥[010]
+//   gem_prismatic (high σ) — doubly-terminated Tormiq/Knappenwand swords
+//   divergent_spray (on byssolite/actinolite substrate) — radiating fans
+//   granular (low excess) — coarse-to-fine massive / saussurite replacement
+// Green deepens with Fe3+/oxidation (the pistacite content); Fe-poor →
+// pale yellow-green toward clinozoisite.
+function grow_epidote(crystal, conditions, step) {
+    const sigma = conditions.supersaturation_epidote();
+    if (sigma < 1.0) {
+        if (crystal.total_growth_um > 5 && conditions.fluid.pH < 5.5) {
+            crystal.dissolved = true;
+            const d = Math.min(2.0, crystal.total_growth_um * 0.05);
+            return new GrowthZone({
+                step, temperature: conditions.temperature,
+                thickness_um: -d, growth_rate: -d, dissolutionMode: 'acid',
+                note: `acid dissolution (pH ${conditions.fluid.pH.toFixed(1)}) — epidote releases Ca + Al + Fe + Si`,
+            });
+        }
+        return null;
+    }
+    const excess = sigma - 1.0;
+    const rate = 2.0 * excess * rng.uniform(0.8, 1.2);
+    if (rate < 0.1)
+        return null;
+    // Habit dispatch — substrate first (sprays on byssolite), then σ
+    const pos = crystal.position || '';
+    const on_amphibole = pos.includes('actinolite') || pos.includes('tremolite');
+    if (on_amphibole) {
+        crystal.habit = 'divergent_spray';
+        crystal.dominant_forms = ['radiating prismatic fans', 'epidote sprays interwoven with byssolite fibers', 'striated ∥b'];
+    }
+    else if (excess > 1.3) {
+        crystal.habit = 'gem_prismatic';
+        crystal.dominant_forms = ['doubly-terminated lustrous prisms', 'the Tormiq / Knappenwand gem sword', 'striated ∥[010]'];
+    }
+    else if (excess < 0.3) {
+        crystal.habit = 'granular';
+        crystal.dominant_forms = ['coarse-to-fine granular aggregate', 'vein-fill / saussurite replacement'];
+    }
+    else {
+        crystal.habit = 'striated_prismatic';
+        crystal.dominant_forms = ['elongated prisms striated parallel b [010]', 'perfect {001} basal cleavage'];
+    }
+    // Color dispatch — green deepens with Fe³⁺ (pistacite) + oxidation
+    let color_note;
+    const o2 = conditions.fluid.O2 ?? 0;
+    if (conditions.fluid.Fe > 20 && o2 > 1.0)
+        color_note = 'deep pistachio-to-blackish-green (high Fe³⁺, strongly oxidized — pistacite-rich)';
+    else if (conditions.fluid.Fe > 8)
+        color_note = 'classic pistachio-green (Fe³⁺ at M3 — the Tormiq aesthetic)';
+    else
+        color_note = 'pale yellow-green (Fe³⁺-poor, toward clinozoisite)';
+    // Substrate flavor
+    let substrate_flavor = '';
+    if (pos.includes('quartz'))
+        substrate_flavor = ' perched on quartz — the alpine-cleft signature';
+    else if (pos.includes('feldspar'))
+        substrate_flavor = ' with adularia — low-T cleft feldspar stage';
+    else if (pos.includes('magnetite'))
+        substrate_flavor = ' on magnetite — the Fe-oxide redox partner';
+    else if (pos.includes('calcite'))
+        substrate_flavor = ' with calcite — late cooling stage';
+    // Mass-balance debits — Ca2 (Al,Fe)3 Si3
+    conditions.fluid.Ca = Math.max(conditions.fluid.Ca - rate * 0.022, 0);
+    conditions.fluid.Al = Math.max(conditions.fluid.Al - rate * 0.012, 0);
+    conditions.fluid.Fe = Math.max(conditions.fluid.Fe - rate * 0.010, 0);
+    conditions.fluid.SiO2 = Math.max(conditions.fluid.SiO2 - rate * 0.035, 0);
+    return new GrowthZone({
+        step, temperature: conditions.temperature,
+        thickness_um: rate, growth_rate: rate,
+        trace_Fe: conditions.fluid.Fe > 5 ? conditions.fluid.Fe * 0.006 : 0,
+        note: `epidote ${crystal.habit}, ${color_note}${substrate_flavor}; monoclinic Ca-Al-Fe³⁺ sorosilicate, H 6-7, vitreous, {001} perfect`,
+    });
+}
 // v112 (2026-05-20): Grossular garnet Ca3Al2(SiO4)3 — cubic Ia-3d
 // Ca-Al endmember of the garnet group. Three settings:
 //   - Rodingite metasomatism (Jeffrey + Italian Alps + Asbestos Hill NL).
@@ -41487,6 +41664,8 @@ const MINERAL_ENGINES = {
     pectolite: grow_pectolite,
     wollastonite: grow_wollastonite,
     prehnite: grow_prehnite,
+    // v196 (2026-06-15): epidote — Fe3+ alpine-cleft sorosilicate (Tormiq, Pakistan).
+    epidote: grow_epidote,
     // v114 (2026-05-20): Mg-matrix family completing the Jeffrey Mine
     // rodingite assemblage. Three minerals in three different chemistry
     // classes:
@@ -53120,6 +53299,46 @@ function _nuc_prehnite(sim) {
         }
     }
 }
+// v196 (2026-06-15): Epidote — the Fe3+ alpine-cleft sorosilicate. Substrate
+// priority follows the Tormiq paragenesis: quartz (cleft lining) > adularia
+// (feldspar) > byssolite (actinolite, → divergent sprays) > magnetite (the
+// Fe-oxide redox partner) > calcite (late) > wall. RNG-cascade-guarded at
+// sigma < 1.0 early-out (the supersat already carries the oxidizing O2 gate,
+// so this only consumes RNG in oxidized Ca-Al-Fe-Si fluids).
+function _nuc_epidote(sim) {
+    const sigma = sim.conditions.supersaturation_epidote();
+    if (sigma < MINERAL_GATES_epidote.sigma_crit)
+        return; // RNG-cascade guard — DO NOT MOVE
+    if (sim._atNucleationCap('epidote'))
+        return;
+    const existing = sim.crystals.filter(c => c.mineral === 'epidote' && c.active);
+    if (existing.length >= 5)
+        return;
+    let pos = 'vug wall';
+    const active_qz = sim.crystals.filter(c => c.mineral === 'quartz' && c.active);
+    const active_fsp = sim.crystals.filter(c => c.mineral === 'feldspar' && c.active);
+    const active_act = sim.crystals.filter(c => c.mineral === 'actinolite' && c.active);
+    const active_mag = sim.crystals.filter(c => c.mineral === 'magnetite' && c.active);
+    const active_cal = sim.crystals.filter(c => c.mineral === 'calcite' && c.active);
+    if (active_qz.length && rng.random() < 0.55)
+        pos = `perched on quartz #${active_qz[0].crystal_id}`;
+    else if (active_act.length && rng.random() < 0.45)
+        pos = `as sprays on byssolite (actinolite #${active_act[0].crystal_id})`;
+    else if (active_fsp.length && rng.random() < 0.40)
+        pos = `with adularia (feldspar #${active_fsp[0].crystal_id})`;
+    else if (active_mag.length && rng.random() < 0.30)
+        pos = `on magnetite #${active_mag[0].crystal_id}`;
+    else if (active_cal.length && rng.random() < 0.25)
+        pos = `with calcite #${active_cal[0].crystal_id}`;
+    const discount = sim._sigmaDiscountForPosition('epidote', pos);
+    if (sigma > 1.2 * discount) {
+        if (!existing.length || (sigma > 2.0 && rng.random() < 0.20)) {
+            const c = sim.nucleate('epidote', pos, sigma);
+            const o2 = sim.conditions.fluid.O2 ?? 0;
+            sim.log.push(`  ✦ NUCLEATION: 🫒 Epidote #${c.crystal_id} on ${c.position} (T=${sim.conditions.temperature.toFixed(0)}°C, σ=${sigma.toFixed(2)}, Ca=${sim.conditions.fluid.Ca.toFixed(0)}, Al=${sim.conditions.fluid.Al.toFixed(1)}, Fe=${sim.conditions.fluid.Fe.toFixed(1)}, O₂=${o2.toFixed(1)}, pH=${sim.conditions.fluid.pH.toFixed(1)}) — pistachio-green Fe³⁺ alpine-cleft sorosilicate`);
+        }
+    }
+}
 // v112 (2026-05-20): Paired Ca-Al-Mg calc-silicates for the Jeffrey
 // Mine rodingite arc. Both early-stage rodingite + skarn (T ~300-450°C,
 // alkaline). Grossular substrate priority: diopside > wollastonite >
@@ -53305,6 +53524,7 @@ function _nucleateClass_silicate(sim) {
     _nuc_pectolite(sim);
     _nuc_wollastonite(sim);
     _nuc_prehnite(sim);
+    _nuc_epidote(sim);
     _nuc_chrysotile(sim);
     _nuc_tigers_eye(sim);
 }

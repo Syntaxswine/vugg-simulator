@@ -16586,6 +16586,128 @@
       "_late_stage_note": "Mid-to-late stage in the rodingite paragenesis. Prehnite forms after grossular + diopside + vesuvianite but before terminal datolite + zeolites. In Lake Superior amygdales, prehnite is one of the EARLY-to-mid amygdale fillings (with calcite + analcime + native_copper); the rodingite paragenesis pushes it later.",
       "class_color": "#a8e0a0"
     },
+    "epidote": {
+      "formula": "Ca2(Al,Fe3+)3(SiO4)(Si2O7)O(OH)",
+      "nucleation_sigma": 1.2,
+      "max_nucleation_count": 5,
+      "max_size_cm": 35,
+      "growth_rate_mult": 0.3,
+      "habit_variants": [
+        {
+          "name": "striated_prismatic",
+          "wall_spread": 0.35,
+          "void_reach": 0.7,
+          "vector": "projecting",
+          "trigger": "default — elongated prisms striated parallel to b [010], perfect {001} basal cleavage, pistachio-green. The alpine-cleft classic."
+        },
+        {
+          "name": "gem_prismatic",
+          "wall_spread": 0.3,
+          "void_reach": 0.85,
+          "vector": "projecting",
+          "trigger": "high supersaturation (excess > 1.3) in open cavity — doubly-terminated lustrous prisms, the Tormiq / Knappenwand gem 'sword'."
+        },
+        {
+          "name": "divergent_spray",
+          "wall_spread": 0.55,
+          "void_reach": 0.6,
+          "vector": "projecting",
+          "trigger": "nucleation on byssolite/actinolite fibers — radiating prismatic fans interwoven with the amphibole mat."
+        },
+        {
+          "name": "granular",
+          "wall_spread": 0.8,
+          "void_reach": 0.2,
+          "vector": "coating",
+          "trigger": "low supersaturation (excess < 0.3) — coarse-to-fine granular aggregate, vein-fill / saussurite replacement."
+        }
+      ],
+      "class": "silicate",
+      "description": "Ca₂(Al,Fe³⁺)₃(SiO₄)(Si₂O₇)O(OH) — monoclinic (P2₁/m) sorosilicate, the Fe³⁺ endmember of the clinozoisite–epidote series (epidote sensu stricto = Fe³⁺ ≥ 0.5 apfu at the M3 site, Armbruster et al. 2006 EJM 18:551). H 6-7, density 3.38-3.49, vitreous luster, perfect {001} cleavage, strong pleochroism, the diagnostic PISTACHIO-GREEN from Fe³⁺ (the green deepens with pistacite content). The classic ALPINE-CLEFT / greenschist-facies mineral: lustrous prisms striated ∥b in low-salinity oxidized metamorphic fissures. World-best gem prisms from Tormiq Valley (Haramosh Mts., Gilgit-Baltistan, Pakistan — named type-quality in the Handbook of Mineralogy, rivaling Knappenwand, Austria). THE LOAD-BEARING CONTROL IS REDOX: epidote requires ferric iron, so an OXIDIZING fluid near the hematite-magnetite buffer; under reducing conditions Fe partitions into magnetite + actinolite (Fe²⁺) and clinozoisite forms instead of green epidote (Holdaway 1972 CMP 37:307; Liou 1973 J.Petrol 14:381). Discriminator from catalog cousins: vs actinolite (amphibole, Mg + Fe²⁺, cleavage 56°/124°); vs prehnite (botryoidal, no striated prisms); vs diopside (pyroxene, 87°/93° cleavage); vs grossular (isometric, isotropic); vs vesuvianite (tetragonal, weak birefringence). Refs: Anthony et al. Handbook of Mineralogy 2001 (epidote sheet, names Tormiq); Deer Howie Zussman Rock-Forming Minerals v.1B (1986) pp.44-134; Liebscher & Franz eds. 2004 Reviews in Mineralogy v.56 Epidotes; Armbruster et al. 2006 EJM 18:551 (nomenclature).",
+      "scenarios": [
+        "tormiq_alpine_cleft"
+      ],
+      "T_range_C": [
+        200,
+        450
+      ],
+      "T_optimum_C": [
+        250,
+        400
+      ],
+      "T_behavior": "narrow",
+      "pH_dissolution_below": 5.5,
+      "pH_dissolution_above": null,
+      "redox_requirement": "oxidizing",
+      "required_ingredients": {
+        "Ca": 80,
+        "Al": 4,
+        "Fe": 5,
+        "SiO2": 100
+      },
+      "_ingredients_note": "Ca ≥ 80 + Al ≥ 4 + Fe ≥ 5 + SiO2 ≥ 100, AND oxidizing fluid (oxideRedoxAvailable O2 ≥ 0.5 — the Fe³⁺ gate, THE discriminator). T 200-450°C, sweet spot 250-400°C (alpine-cleft main stage). pH 6.5-9.0 near-neutral. σ scales with oxidation (more O2 → more Fe³⁺ → deeper green). Reducing fluid blocks it entirely (→ magnetite/clinozoisite). Al is the rate-limiter (low solubility, wall-rock leached). Activity correction applied.",
+      "trace_ingredients": {
+        "Fe": "the defining cation — 5-30 ppm + oxidized gives pistachio-green; >20 ppm + O2>1 gives deep pistachio-to-blackish-green (pistacite-rich); <8 ppm trends pale yellow-green toward clinozoisite",
+        "Mn": "rare trace gives the pink-red piemontite variety (not modeled separately)",
+        "Sr": "minor substitution for Ca in some alpine-cleft epidote"
+      },
+      "thermal_decomp_C": 650,
+      "thermal_decomp_reaction": "Above ~635-750°C (fO2-dependent, HM buffer; Liou 1973): epidote breaks down to grandite garnet + anorthite + magnetite/hematite + quartz + H2O. Upper-T limit of the greenschist-amphibolite epidote window.",
+      "thermal_decomp_products": {
+        "Ca": 0.22,
+        "Al": 0.12,
+        "Fe": 0.1,
+        "SiO2": 0.35
+      },
+      "fluorescence": {
+        "activator": null,
+        "threshold_ppm": 0,
+        "color": null,
+        "quencher": "Fe",
+        "status": "Non-fluorescent — the high Fe³⁺ content quenches any luminescence. Not diagnostic."
+      },
+      "twin_laws": [
+        {
+          "name": "lamellar_100",
+          "miller_indices": "{100}",
+          "trigger": "growth",
+          "probability": 0.12,
+          "status": "newly_added",
+          "_source": "Anthony et al. Handbook of Mineralogy 2001 (epidote sheet: 'Twinning: on {100}, lamellar, common'); Deer Howie Zussman v.1B epidote group. Polysynthetic lamellar twinning on {100} is the common epidote-group twin; conservative p=0.12 for the 'common' qualifier."
+        }
+      ],
+      "acid_dissolution": {
+        "pH_threshold": 5.5,
+        "reaction": "Ca2(Al,Fe)3Si3O12(OH) + H⁺ → 2Ca²⁺ + Al³⁺/Fe³⁺ + H4SiO4 — releases Ca + Al + Fe + Si below pH 5.5. Slow kinetics; epidote is fairly resistant.",
+        "products": {
+          "Ca": 0.22,
+          "Al": 0.12,
+          "Fe": 0.1,
+          "SiO2": 0.35
+        }
+      },
+      "habit": "striated_prismatic",
+      "color_rules": {
+        "pistachio_green": {
+          "default": true,
+          "trigger": "Fe > 8 ppm + oxidizing — the classic Tormiq Fe³⁺ aesthetic"
+        },
+        "deep_blackish_green": {
+          "trigger": "Fe > 20 ppm + O2 > 1.0 — pistacite-rich, strongly oxidized"
+        },
+        "pale_yellow_green": {
+          "trigger": "Fe < 8 ppm — Fe³⁺-poor, toward clinozoisite"
+        }
+      },
+      "narrate_function": null,
+      "runtimes_present": [
+        "js"
+      ],
+      "audit_status": "new v196 (2026-06-15). Monoclinic Ca-Al-Fe³⁺ sorosilicate; the first alpine-cleft Fe³⁺ silicate in the catalog. THE GATE is oxidizing (oxideRedoxAvailable O2≥0.5, like hematite/vanadinite) — the geochemical discriminator vs actinolite (Fe²⁺+Mg) and clinozoisite (Fe-poor) per Holdaway 1972 + Liou 1973. Substrate priority: quartz (cleft lining) > byssolite/actinolite (sprays) > adularia/feldspar > magnetite (Fe-oxide redox partner) > calcite > wall. Designed for the tormiq_alpine_cleft scenario (v197). Fills the long-deferred Round-6 metamorphic-silicate gap (PROPOSALS-LEDGER §G). Clinozoisite/titanite/zoisite remain future adds. Per Handbook of Mineralogy 2001 (Tormiq) + Armbruster 2006 + Liebscher & Franz RiMG 56.",
+      "late_stage_propensity": 0.5,
+      "_late_stage_note": "Main-stage in the alpine-cleft paragenesis — epidote forms after the early quartz lining + Ti-Fe oxides, alongside byssolite, and before the late adularia + calcite. Mid-sequence, not terminal.",
+      "class_color": "#84a82c"
+    },
     "chrysotile": {
       "formula": "Mg3Si2O5(OH)4",
       "nucleation_sigma": 1.2,

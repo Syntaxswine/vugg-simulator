@@ -604,6 +604,39 @@ function _nuc_prehnite(sim) {
   }
 }
 
+// v196 (2026-06-15): Epidote — the Fe3+ alpine-cleft sorosilicate. Substrate
+// priority follows the Tormiq paragenesis: quartz (cleft lining) > adularia
+// (feldspar) > byssolite (actinolite, → divergent sprays) > magnetite (the
+// Fe-oxide redox partner) > calcite (late) > wall. RNG-cascade-guarded at
+// sigma < 1.0 early-out (the supersat already carries the oxidizing O2 gate,
+// so this only consumes RNG in oxidized Ca-Al-Fe-Si fluids).
+function _nuc_epidote(sim) {
+  const sigma = sim.conditions.supersaturation_epidote();
+  if (sigma < MINERAL_GATES_epidote.sigma_crit) return;   // RNG-cascade guard — DO NOT MOVE
+  if (sim._atNucleationCap('epidote')) return;
+  const existing = sim.crystals.filter(c => c.mineral === 'epidote' && c.active);
+  if (existing.length >= 5) return;
+  let pos = 'vug wall';
+  const active_qz = sim.crystals.filter(c => c.mineral === 'quartz' && c.active);
+  const active_fsp = sim.crystals.filter(c => c.mineral === 'feldspar' && c.active);
+  const active_act = sim.crystals.filter(c => c.mineral === 'actinolite' && c.active);
+  const active_mag = sim.crystals.filter(c => c.mineral === 'magnetite' && c.active);
+  const active_cal = sim.crystals.filter(c => c.mineral === 'calcite' && c.active);
+  if (active_qz.length && rng.random() < 0.55) pos = `perched on quartz #${active_qz[0].crystal_id}`;
+  else if (active_act.length && rng.random() < 0.45) pos = `as sprays on byssolite (actinolite #${active_act[0].crystal_id})`;
+  else if (active_fsp.length && rng.random() < 0.40) pos = `with adularia (feldspar #${active_fsp[0].crystal_id})`;
+  else if (active_mag.length && rng.random() < 0.30) pos = `on magnetite #${active_mag[0].crystal_id}`;
+  else if (active_cal.length && rng.random() < 0.25) pos = `with calcite #${active_cal[0].crystal_id}`;
+  const discount = sim._sigmaDiscountForPosition('epidote', pos);
+  if (sigma > 1.2 * discount) {
+    if (!existing.length || (sigma > 2.0 && rng.random() < 0.20)) {
+      const c = sim.nucleate('epidote', pos, sigma);
+      const o2 = sim.conditions.fluid.O2 ?? 0;
+      sim.log.push(`  ✦ NUCLEATION: 🫒 Epidote #${c.crystal_id} on ${c.position} (T=${sim.conditions.temperature.toFixed(0)}°C, σ=${sigma.toFixed(2)}, Ca=${sim.conditions.fluid.Ca.toFixed(0)}, Al=${sim.conditions.fluid.Al.toFixed(1)}, Fe=${sim.conditions.fluid.Fe.toFixed(1)}, O₂=${o2.toFixed(1)}, pH=${sim.conditions.fluid.pH.toFixed(1)}) — pistachio-green Fe³⁺ alpine-cleft sorosilicate`);
+    }
+  }
+}
+
 // v112 (2026-05-20): Paired Ca-Al-Mg calc-silicates for the Jeffrey
 // Mine rodingite arc. Both early-stage rodingite + skarn (T ~300-450°C,
 // alkaline). Grossular substrate priority: diopside > wollastonite >
@@ -761,6 +794,7 @@ function _nucleateClass_silicate(sim) {
   _nuc_pectolite(sim);
   _nuc_wollastonite(sim);
   _nuc_prehnite(sim);
+  _nuc_epidote(sim);
   _nuc_chrysotile(sim);
   _nuc_tigers_eye(sim);
 }

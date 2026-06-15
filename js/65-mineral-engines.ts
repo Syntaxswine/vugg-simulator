@@ -339,6 +339,8 @@ const MINERAL_ENGINES = {
   pectolite: grow_pectolite,
   wollastonite: grow_wollastonite,
   prehnite: grow_prehnite,
+  // v196 (2026-06-15): epidote — Fe3+ alpine-cleft sorosilicate (Tormiq, Pakistan).
+  epidote: grow_epidote,
   // v114 (2026-05-20): Mg-matrix family completing the Jeffrey Mine
   // rodingite assemblage. Three minerals in three different chemistry
   // classes:

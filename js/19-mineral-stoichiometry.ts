@@ -201,6 +201,7 @@ const MINERAL_STOICHIOMETRY: Record<string, Record<string, number>> = {
   vesuvianite:    { Ca: 10, Mg: 1, Fe: 1, Al: 4, SiO2: 9 }, // Ca10(Mg,Fe)2Al4(SiO4)5(Si2O7)2(OH)4 — Bernardini 1981 cyprine host
   wollastonite:   { Ca: 1, SiO2: 1 },                // CaSiO3
   prehnite:       { Ca: 2, Al: 2, SiO2: 3 },         // Ca2Al2Si3O10(OH)2 — zeolite-facies sorosilicate (Liou 1971)
+  epidote:        { Ca: 2, Al: 2, Fe: 1, SiO2: 3 },  // Ca2(Al,Fe3+)3(SiO4)(Si2O7)O(OH) — Fe3+ endmember (2 Al + 1 Fe at M-sites), alpine-cleft (v196)
   datolite:       { Ca: 1, B: 1, SiO2: 1 },          // CaB(SiO4)(OH) — terminal-stage cabinet aesthetic
   tremolite:      { Ca: 2, Mg: 5, SiO2: 8 },         // Ca2Mg5Si8O22(OH)2 — Mg-end calcic amphibole
   actinolite:     { Ca: 2, Mg: 4, Fe: 1, SiO2: 8 }, // Ca2(Mg,Fe)5Si8O22(OH)2 — Mg:Fe mid-range 4:1

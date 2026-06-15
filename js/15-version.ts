@@ -11020,5 +11020,41 @@
 //   events to archive/strips/v<N>/ at each rebake; v194 was backfilled
 //   BEFORE this correction so the last confabulated-silver story is
 //   preserved as part of the record.
-const SIM_VERSION = 195;
+//   v196 — Epidote Ca2(Al,Fe3+)3(SiO4)(Si2O7)O(OH) (2026-06-15, this
+//        commit). The first ALPINE-CLEFT Fe3+ silicate in the catalog;
+//        retires the longest-deferred orphan in PROPOSALS-LEDGER §G (the
+//        Round-6 metamorphic-silicate gap). Monoclinic P2_1/m sorosilicate,
+//        the Fe3+ endmember of the clinozoisite-epidote series — lustrous
+//        pistachio-green prisms striated ∥b, the world-best Tormiq
+//        (Gilgit-Baltistan, Pakistan) gem swords.
+//
+//        THE DISCRIMINATOR IS REDOX. Epidote requires ferric iron, so the
+//        engine gates on an OXIDIZING fluid (oxideRedoxAvailable O2>=0.5,
+//        the same proxy hematite + vanadinite use) on top of Ca/Al/Fe/Si +
+//        T 200-450 (sweet 250-400) + pH 6.5-9.0. Under reducing conditions
+//        the gate returns 0 — geologically, Fe partitions into magnetite +
+//        actinolite (Fe2+) and clinozoisite forms instead of green epidote
+//        (Holdaway 1972 CMP 37:307; Liou 1973 J.Petrol 14:381; the
+//        Fe3+>=0.5 apfu epidote/clinozoisite boundary is Armbruster et al.
+//        2006 EJM 18:551). sigma scales with oxidation (more O2 -> more Fe3+
+//        -> deeper green). This cleanly separates epidote from its catalog
+//        cousins actinolite (Mg+Fe2+) and the Ca-Al silicates prehnite/
+//        grossular (no redox gate).
+//
+//        Habit dispatch: striated_prismatic (default, ∥[010] + {001}
+//        cleavage) | gem_prismatic (excess>1.3, doubly-terminated Tormiq
+//        sword) | divergent_spray (on byssolite/actinolite substrate) |
+//        granular (excess<0.3, replacement). Substrate priority: quartz
+//        (cleft lining) > byssolite/actinolite (sprays) > adularia/feldspar
+//        > magnetite (Fe-oxide redox partner) > calcite > wall.
+//
+//        8-file add (supersat 39 + grow 59 + nucleation 89 + MINERAL_ENGINES
+//        65 + minerals.json + structural.json epidote cell for twin-law-
+//        check + this version block + tests-js/epidote.test.ts). Twin {100}
+//        lamellar p=0.12 (Handbook 'common'). DESIGNED for the
+//        tormiq_alpine_cleft scenario shipping next (v197); per the
+//        add-mineral default it fires at seed-42 wherever an oxidized
+//        Ca-Al-Fe-Si fluid hits the window — calibration drift documented
+//        in the seed42_v196 regen + commit message. Coverage 171 -> 172.
+const SIM_VERSION = 196;
 
