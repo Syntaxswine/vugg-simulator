@@ -2,7 +2,24 @@
 
 Living list of open work items, captured from session conversations so context survives compaction. Each item has enough detail that someone picking it up cold can act without re-discovering the rationale.
 
-> ## 🫒 UPDATE (2026-06-15, latest) — EPIDOTE + TORMIQ SHIPPED · PROPOSALS-LEDGER built · canary hardened
+> ## 🔑 UPDATE (2026-06-16, latest) — THE KEYSTONE SHIPPED (SIM 198) · but it did NOT unblock the held ZnS gate
+>
+> Read **`proposals/HANDOFF-KEYSTONE-2026-06-16.md`**. SHIPPED the keystone
+> (`68edacd`): per-(mineral,step) derived nucleation seeds (`_makeNucRng`/`_runNuc`
+> in js/85j) — each mineral's nucleation RNG is now isolated; the isolation property
+> is proven (`tests-js/nuc-seed-isolation.test.ts`). Full-fleet rebake, 1916 tests
+> green.
+>
+> **KEY FINDING (corrected):** the keystone did NOT unblock the held sphalerite/
+> wurtzite redox gate (ledger #11). Measurement after shipping showed gating ZnS
+> STILL drops mottramite 98→49 — the displacement was NEVER nucleation-RNG. The
+> blocker is the **growth/competition layer** (`GRADUATED_COMPETITION_ENABLED=true`,
+> v128c, per-cell rationing + shared growth-jitter `rng.uniform`). The gate was
+> reverted; HEAD is clean v198. Its real unblocker is a separate growth/competition
+> arc (or accept-and-tune) — see the handoff's NEXT section. The memory
+> [[project_vugg_redox_census]] is corrected.
+>
+> ## 🫒 UPDATE (2026-06-15) — EPIDOTE + TORMIQ SHIPPED · PROPOSALS-LEDGER built · canary hardened
 >
 > **Master open-work map is now `proposals/PROPOSALS-LEDGER.md` §A** (a verified
 > delivered-vs-promised reconciliation of the whole proposals corpus). The

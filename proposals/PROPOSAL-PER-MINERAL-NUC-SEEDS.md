@@ -1,8 +1,22 @@
 # PROPOSAL — per-mineral derived nucleation seeds (THE KEYSTONE)
 
-**Status:** design (2026-06-16). **Closes:** PROPOSALS-LEDGER §A #12 (the keystone) +
-unblocks #11 (held sphalerite/wurtzite redox gate). **Memory:**
-[[project_vugg_redox_census]], [[project_vugg_movements]] (15th catch).
+**Status:** ✅ SHIPPED SIM 198 (`68edacd`, 2026-06-16). Closes PROPOSALS-LEDGER §A #12
+(the keystone). **Memory:** [[project_vugg_redox_census]], [[project_vugg_movements]].
+
+> **⚠️ POST-SHIP FINDING — the keystone did NOT unblock the ZnS redox gate (#11).**
+> The keystone isolates NUCLEATION RNG (proven: tests-js/nuc-seed-isolation.test.ts).
+> But measurement after shipping (tools/mottramite-frequency-sweep.mjs, a valid A/B
+> once the gate's σ-methods exist) showed gating sphalerite/wurtzite STILL drops
+> mottramite 98%→49% — unchanged from the pre-keystone 96→47. The displacement was
+> never nucleation-RNG. Diagnostic: final fluid identical, sphalerite grown-count
+> unchanged, but total crystal count cascades at sensitive seeds and the mottramite
+> drop tracks it. The blocker is the GROWTH/COMPETITION layer — `GRADUATED_COMPETITION_
+> ENABLED=true` (js/44, v128c) rations growth per-cell (inherently cross-crystal) and
+> the growth loop's `rng.uniform` jitter still draws from the SHARED stream, so
+> changing the nuclei count re-phases growth + re-rations competition. Per-mineral (or
+> even per-crystal) RNG isolation can't remove competition coupling. The gate STAYS
+> HELD; its real unblocker is a separate growth/competition arc (or accept-and-tune).
+> The keystone remains valuable infra — it just wasn't this gate's blocker.
 
 ---
 
