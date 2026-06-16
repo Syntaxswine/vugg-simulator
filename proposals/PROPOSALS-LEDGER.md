@@ -50,7 +50,7 @@ is the one-time reconciliation. Keep it current when a handoff lands.
 | 10 | **Stale `expects_species` — 3 to diagnose** | ◐ partial ⚠ | bisbee azurite (gate not cleared despite event firing), searles mirabilite, schneeberg torbernite (0/10). (jeffrey magnetite + roughten_gill bayldonite are deliberate, not debt.) Confirm each. |
 | 11 | **Redox-gate omission sweep — follow-up fixes** | ⏳ held | Census shipped (`b81cf7d`); sphalerite/wurtzite gate held on the keystone (RNG artifact, not chemistry). [[project_vugg_redox_census]] |
 | 12 | **Per-mineral derived nucleation seeds (THE KEYSTONE)** | ⏳ tracked | The bottleneck unblocking #11 and a whole class of correct-physics fixes. |
-| 13 | **Mineral catalog orphans (6)** — franklinite, staurolite, epidote, titanite (=sphene), stilbite, heulandite | 🅾 never-added | Round-5/6 metamorphic + zeolite cohort. VERIFIED absent (only comments/`dominant_forms` strings). See §G. The build-candidate bucket. |
+| 13 | **Mineral catalog orphans (5)** — franklinite, staurolite, titanite (=sphene), stilbite, heulandite | 🅾 never-added | Round-5/6 metamorphic + zeolite cohort. VERIFIED absent. See §G. ~~epidote~~ **✅ SHIPPED v196** (`a3c1cb5`) + its anchor scenario tormiq_alpine_cleft **v197** (`5043d57`) 2026-06-15 — was the build-candidate this list flagged; the others remain. |
 | 14 | **deccan_zeolite Stage-II narrative gap** | ◐ content | step-70 event "Zeolite Stage II" describes *"Stilbite + heulandite + calcite blades"* — but those minerals don't exist → narration promises blades that can't grow. De-confab candidate (cf. mvt silver). |
 | 15 | **Edge-textures: 11 of 17 unbuilt** | ◐ partial | smooth/dogtooth/cube/botryoidal/saddle_rhomb shipped; prismatic_hex, octahedral, bladed, tabular, spherulitic, dendritic, fibrous, drusy, flos_ferri, cyclic_twin_hex, pyritohedron_edge fall back to a fuzzy substring match. |
 | 16 | **Broth-control fortress UI verbs** | ◐ partial | Advance/Warm/Cool/Shock shipped; Seep/Flood/Drain + standalone Replenish buttons not built. **[UI]** |
@@ -154,7 +154,7 @@ tail is one cohort: **Round-5/6 metamorphic + zeolite silicates.**
 **🅾 Never-added (verified — present only in comments / narrative, no spec/engine):**
 - **franklinite** (Franklin/Sterling Hill Zn-Mn spinel) — named only in willemite's `dominant_forms`
 - **staurolite** (cruciform fairy-cross twins) — wholly absent
-- **epidote** (+ zoisite group) — Jeffrey notes flag it explicitly as a "future add-mineral candidate"
+- ~~**epidote**~~ **✅ SHIPPED v196** (`a3c1cb5`) + anchor scenario `tormiq_alpine_cleft` v197 (`5043d57`), 2026-06-15 — the Fe³⁺ alpine-cleft sorosilicate, the build-candidate this section flagged. (zoisite group still a future add-mineral candidate per the Jeffrey notes.)
 - **titanite / sphene** — only a competition comment in `37-supersat-oxide`
 - **stilbite**, **heulandite** (Deccan zeolite blades) — narrated, not modeled
 

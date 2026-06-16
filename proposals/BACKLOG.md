@@ -2,7 +2,32 @@
 
 Living list of open work items, captured from session conversations so context survives compaction. Each item has enough detail that someone picking it up cold can act without re-discovering the rationale.
 
-> ## 🔬 UPDATE (2026-06-13, latest) — REDOX-GATE OMISSION SWEEP: census DONE (2 real catches), fix HELD on an RNG prerequisite
+> ## 🫒 UPDATE (2026-06-15, latest) — EPIDOTE + TORMIQ SHIPPED · PROPOSALS-LEDGER built · canary hardened
+>
+> **Master open-work map is now `proposals/PROPOSALS-LEDGER.md` §A** (a verified
+> delivered-vs-promised reconciliation of the whole proposals corpus). The
+> session narrative + ranked next-steps live in
+> **`proposals/HANDOFF-EPIDOTE-LEDGER-CANARY-2026-06-15.md`** — read that for the
+> full bugs-and-holes list. Highlights:
+>
+> **SHIPPED:** epidote (SIM 196, `a3c1cb5`) — first alpine-cleft Fe³⁺ silicate,
+> redox-gated, closes the ledger's #1 mineral orphan; tormiq_alpine_cleft scenario
+> (SIM 197, `5043d57`) — the Pakistan epidote showcase, epidote the star. Plus the
+> clip-bug doc resolved (`c343f71`), the PROPOSALS-LEDGER (`1d4857f`/`cab1e63`), and
+> three vugg-canary fixes (scheduler/dirt-scope/status) with the first real sweep.
+>
+> **TOP OPEN ITEMS (ranked, full detail in the handoff):**
+> 1. ⭐ KEYSTONE — per-mineral derived nucleation seeds (unblocks the held redox gate).
+> 2. Canary heartbeat (self-monitoring) + dirt-scope-by-hash — harden the instrument first.
+> 3. Hot-band Ksp(T) >90°C; thermo ΔH tail (dolomite/siderite/witherite).
+> 4. Build-candidates: quartz arc, weathering-epilogue, **stilbite+heulandite** (fills
+>    the deccan_zeolite Stage-II narrative gap — a de-confab candidate), Gibbs-Thompson.
+> 5. UI/partials: strip filter-rule UI, per-vertex chip-selector, broth-control verbs,
+>    specimen-object B–E, edge-textures 11/17, sonifier musicality.
+> 6. epidote loose ends: tormiq calcite aspirational (tune late CO3); swap the
+>    clinozoisite/titanite/zoisite/adularia/byssolite stand-ins when those land.
+>
+> ## 🔬 UPDATE (2026-06-13) — REDOX-GATE OMISSION SWEEP: census DONE (2 real catches), fix HELD on an RNG prerequisite
 >
 > **Task #59.** The vanadinite catch (v193 — a redox-sensitive species whose
 > engine was cloned without its redox gate) prompted a systematic census.
