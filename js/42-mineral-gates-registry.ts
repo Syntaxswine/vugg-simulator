@@ -146,6 +146,8 @@ const MINERAL_GATES_REGISTRY: Record<string, MineralGates> = {
   wollastonite: MINERAL_GATES_wollastonite,
   prehnite: MINERAL_GATES_prehnite,
   epidote: MINERAL_GATES_epidote,
+  stilbite: MINERAL_GATES_stilbite,
+  heulandite: MINERAL_GATES_heulandite,
   grossular: MINERAL_GATES_grossular,
   diopside: MINERAL_GATES_diopside,
   vesuvianite: MINERAL_GATES_vesuvianite,

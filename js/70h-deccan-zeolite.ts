@@ -29,7 +29,7 @@ function event_deccan_zeolite_stage_ii(c) {
   c.fluid.SiO2 += 200;
   c.fluid.pH = 8.5;
   c.temperature = 130;
-  return 'Stage II — zeolite blades begin to fill the vesicle. Stilbite, scolecite, heulandite (modeled here as the zeolite paragenesis pH/Si signature). Calcite forms as a late-stage carbonate. The vug is filling slowly.';
+  return 'Stage II — zeolite blades begin to fill the vesicle. Heulandite (the warmer, dehydrated member) crystallizes first as coffin-shaped tablets; stilbite (the cooler, more-hydrated member) follows on the cooling path as peach wheatsheaf sheaves — the stilbite/heulandite dehydration couple (Ca-stilbite = Ca-heulandite + H₂O, Fridriksson et al. 2001). The fibrous Ca-zeolites scolecite + mesolite are part of this paragenesis in nature but are not yet modelled. Calcite forms as a late-stage carbonate. The vug is filling slowly.';
 }
 
 function event_deccan_zeolite_apophyllite_stage_iii(c) {

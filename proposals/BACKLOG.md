@@ -2,7 +2,24 @@
 
 Living list of open work items, captured from session conversations so context survives compaction. Each item has enough detail that someone picking it up cold can act without re-discovering the rationale.
 
-> ## 🔑 UPDATE (2026-06-16, latest) — THE KEYSTONE SHIPPED (SIM 198) · but it did NOT unblock the held ZnS gate
+> ## 🪨 UPDATE (2026-06-17, latest) — DECCAN STAGE-II ZEOLITE COUPLE SHIPPED (SIM 200)
+>
+> **stilbite + heulandite** added (the highest-leverage mineral add on the
+> PROPOSALS-LEDGER, §A #14 + §G): two new silicate-class zeolites that BOTH fill
+> the deccan_zeolite Stage-II mineral gap AND retire its narrative over-promise —
+> the step-70 event narrated *"Stilbite + heulandite + calcite blades"* while
+> neither mineral existed (the mvt-silver-deconfab discipline applied to a positive
+> over-promise). They are the stilbite/heulandite DEHYDRATION COUPLE
+> (Ca-stilbite = Ca-heulandite + H₂O, Fridriksson et al. 2001): stilbite the cooler/
+> more-hydrated member (T sweet 60-110°C, peach sheaves), heulandite the warmer
+> dehydration product (higher silica, T sweet 120-180°C, coffin tablets). Both fire
+> 20/20 seeds in deccan (added to expects_species); twin laws ✓ PASS twin-law-check.
+> baseline-diff: **1/34 moved (deccan only), zero losses**; coverage Live 137→139;
+> CI **1931/1931**. SIM 199 → 200. Closes LEDGER §A #14 + the zeolite half of §G.
+> Stoichiometry entries added (kept the DEFERRED list empty). NEXT zeolite candidate:
+> scolecite + mesolite (the fibrous Ca-zeolites; step-70 names them as unmodelled).
+>
+> ## 🔑 UPDATE (2026-06-16) — THE KEYSTONE SHIPPED (SIM 198) · but it did NOT unblock the held ZnS gate
 >
 > Read **`proposals/HANDOFF-KEYSTONE-2026-06-16.md`**. SHIPPED the keystone
 > (`68edacd`): per-(mineral,step) derived nucleation seeds (`_makeNucRng`/`_runNuc`

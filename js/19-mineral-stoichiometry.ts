@@ -202,6 +202,8 @@ const MINERAL_STOICHIOMETRY: Record<string, Record<string, number>> = {
   wollastonite:   { Ca: 1, SiO2: 1 },                // CaSiO3
   prehnite:       { Ca: 2, Al: 2, SiO2: 3 },         // Ca2Al2Si3O10(OH)2 — zeolite-facies sorosilicate (Liou 1971)
   epidote:        { Ca: 2, Al: 2, Fe: 1, SiO2: 3 },  // Ca2(Al,Fe3+)3(SiO4)(Si2O7)O(OH) — Fe3+ endmember (2 Al + 1 Fe at M-sites), alpine-cleft (v196)
+  stilbite:       { Na: 1, Ca: 4, Al: 9, SiO2: 27 },  // NaCa4Si27Al9O72·28H2O — Deccan Stage-II zeolite, cooler member (v200)
+  heulandite:     { Ca: 1, Al: 2, SiO2: 7 },          // (Ca,Na)Al2Si7O18·6H2O — Deccan Stage-II zeolite, warmer dehydration product (v200)
   datolite:       { Ca: 1, B: 1, SiO2: 1 },          // CaB(SiO4)(OH) — terminal-stage cabinet aesthetic
   tremolite:      { Ca: 2, Mg: 5, SiO2: 8 },         // Ca2Mg5Si8O22(OH)2 — Mg-end calcic amphibole
   actinolite:     { Ca: 2, Mg: 4, Fe: 1, SiO2: 8 }, // Ca2(Mg,Fe)5Si8O22(OH)2 — Mg:Fe mid-range 4:1

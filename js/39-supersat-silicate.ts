@@ -334,6 +334,37 @@ const MINERAL_GATES_epidote: MineralGates = {
   _notes: 'Ca2(Al,Fe3+)3(SiO4)(Si2O7)O(OH) sorosilicate, monoclinic P2_1/m. Fe3+ endmember of clinozoisite-epidote series — needs OXIDIZED fluid (near HM buffer) for the pistachio-green Fe3+; reducing sends Fe to magnetite/actinolite (Fe2+). Al-rich Ca-silicate, alpine-cleft Tormiq/Knappenwand. The O2_min gate is the discriminator. Twin {100} lamellar.',
 };
 
+// v200 (2026-06-17): the Deccan Stage-II zeolite pair. stilbite + heulandite
+// are the stilbite/heulandite dehydration couple (Fridriksson, Bish &
+// Navrotsky 2001, Am.Mineral. 86:448: Ca-stilbite = Ca-heulandite + H2O).
+// Stilbite is the COOLER, more-hydrated member (28 H2O, moderate silica);
+// heulandite is the WARMER dehydration product (6 H2O, higher silica
+// activity). Both: Ca-dominant exchangeable cation, alkaline basalt-buffered
+// fluid, low-T zeolite facies, redox-insensitive (no redox-active ion → no
+// redox gate, like prehnite). The T-window + silica-activity split is the
+// discriminator. fluid_min.Ca is the essential-cation gate; the supersat
+// uses (Ca+Na) as the exchangeable budget so stilbite-Na can still fire in
+// Na-dominant brines (the Deccan endmember is overwhelmingly the -Ca form).
+const MINERAL_GATES_stilbite: MineralGates = {
+  sigma_crit: 1.0,
+  T_min: 40, T_max: 150, T_optimal: 90,
+  fluid_min: { Ca: 60, Al: 4, SiO2: 250 },
+  pH_min: 7.0, pH_max: 10.5,
+  surface_energy: 'low',
+  _sources: ['stilbite engine v200', 'Coombs et al. 1997 Can.Mineral. 35:1571', 'Fridriksson Bish Navrotsky 2001 Am.Mineral. 86:448', 'Ottens et al. 2019 (Deccan paragenesis)'],
+  _notes: 'Stilbite-Ca NaCa4(Si27Al9)O72·28H2O — monoclinic C2/m. The cooler, more-hydrated member of the stilbite/heulandite couple; dehydrates to heulandite as T rises. Deccan amygdale Stage-II peach sheaves/bowties (twinned {001} cruciform). Moderate silica (lower-Si than heulandite). Redox-insensitive framework silicate.',
+};
+
+const MINERAL_GATES_heulandite: MineralGates = {
+  sigma_crit: 1.0,
+  T_min: 95, T_max: 210, T_optimal: 150,
+  fluid_min: { Ca: 60, Al: 4, SiO2: 400 },
+  pH_min: 7.0, pH_max: 10.5,
+  surface_energy: 'low',
+  _sources: ['heulandite engine v200', 'Coombs et al. 1997 Can.Mineral. 35:1571 (Si/Al=4.0 boundary)', 'Fridriksson Bish Navrotsky 2001 Am.Mineral. 86:448', 'Anthony et al. Handbook of Mineralogy 2001'],
+  _notes: 'Heulandite-Ca (Ca,Na)Al2Si7O18·6H2O — monoclinic C2/m. The warmer, dehydrated member (the dehydration product of stilbite). Higher silica activity than stilbite; Si/Al<4 (Si/Al>=4 is clinoptilolite, not wired — the boundary is compositional per Coombs 1997, not modeled as a hard fluid gate because the sim SiO2 ppm is dissolved silica, not framework Si/Al). Coffin-shaped tabular {010}. Twin {100}.',
+};
+
 Object.assign(VugConditions.prototype, {
   supersaturation_quartz() {
   const eq = this.silica_equilibrium(this.effectiveTemperature);
@@ -1033,6 +1064,62 @@ Object.assign(VugConditions.prototype, {
     if (pH >= 9.0 && pH <= 11.0) sigma *= 1.2;
     else sigma *= Math.max(0.5, 1.0 - Math.abs(pH - 10.0) * 0.3);
     if (ACTIVITY_CORRECTED_SUPERSAT) sigma *= activityCorrectionFactor(this.fluid, 'prehnite');
+    return Math.max(sigma, 0);
+  },
+
+  // v200 (2026-06-17): Stilbite — the COOLER, more-hydrated member of the
+  // Deccan Stage-II zeolite couple. Ca-dominant, alkaline, moderate silica.
+  // T sweet spot 60-110°C (stilbite precedes heulandite on a cooling path).
+  // Redox-insensitive: no redox gate. See MINERAL_GATES_stilbite.
+  supersaturation_stilbite() {
+    const g = MINERAL_GATES_stilbite;
+    const exch = this.fluid.Ca + this.fluid.Na;   // exchangeable cation budget
+    if (this.fluid.Ca < g.fluid_min!.Ca || this.fluid.Al < g.fluid_min!.Al
+        || this.fluid.SiO2 < g.fluid_min!.SiO2) return 0;
+    if (this.temperature < g.T_min! || this.temperature > g.T_max!) return 0;
+    if (this.fluid.pH < g.pH_min! || this.fluid.pH > g.pH_max!) return 0;
+    const ca_f = Math.min(exch / 200.0, 2.0);
+    const al_f = Math.min(this.fluid.Al / 12.0, 2.0);
+    const si_f = Math.min(this.fluid.SiO2 / 600.0, 1.5);
+    let sigma = ca_f * al_f * si_f;
+    // T sweet spot 60-110°C (the cool member)
+    const T = this.temperature;
+    if (T >= 60 && T <= 110) sigma *= 1.3;
+    else if (T < 60) sigma *= Math.max(0.4, (T - 40) / 20 * 0.6 + 0.4);
+    else sigma *= Math.max(0.4, 1.0 - (T - 110) / 40);
+    // pH sweet spot 8-9.5 (alkaline basalt groundwater)
+    const pH = this.fluid.pH;
+    if (pH >= 8.0 && pH <= 9.5) sigma *= 1.2;
+    else sigma *= Math.max(0.5, 1.0 - Math.abs(pH - 8.75) * 0.3);
+    if (ACTIVITY_CORRECTED_SUPERSAT) sigma *= activityCorrectionFactor(this.fluid, 'stilbite');
+    return Math.max(sigma, 0);
+  },
+
+  // v200 (2026-06-17): Heulandite — the WARMER, dehydrated member (the
+  // dehydration product of stilbite). Higher silica activity (SiO2 gate 400
+  // vs stilbite's 250); T sweet spot 120-180°C. Ca-dominant, alkaline,
+  // redox-insensitive. See MINERAL_GATES_heulandite.
+  supersaturation_heulandite() {
+    const g = MINERAL_GATES_heulandite;
+    const exch = this.fluid.Ca + this.fluid.Na;
+    if (this.fluid.Ca < g.fluid_min!.Ca || this.fluid.Al < g.fluid_min!.Al
+        || this.fluid.SiO2 < g.fluid_min!.SiO2) return 0;
+    if (this.temperature < g.T_min! || this.temperature > g.T_max!) return 0;
+    if (this.fluid.pH < g.pH_min! || this.fluid.pH > g.pH_max!) return 0;
+    const ca_f = Math.min(exch / 200.0, 2.0);
+    const al_f = Math.min(this.fluid.Al / 12.0, 2.0);
+    const si_f = Math.min(this.fluid.SiO2 / 700.0, 1.6);   // higher-silica member
+    let sigma = ca_f * al_f * si_f;
+    // T sweet spot 120-180°C (the warm member — the dehydration product)
+    const T = this.temperature;
+    if (T >= 120 && T <= 180) sigma *= 1.3;
+    else if (T < 120) sigma *= Math.max(0.4, (T - 95) / 25 * 0.6 + 0.4);
+    else sigma *= Math.max(0.4, 1.0 - (T - 180) / 30);
+    // pH sweet spot 8-9.5
+    const pH = this.fluid.pH;
+    if (pH >= 8.0 && pH <= 9.5) sigma *= 1.2;
+    else sigma *= Math.max(0.5, 1.0 - Math.abs(pH - 8.75) * 0.3);
+    if (ACTIVITY_CORRECTED_SUPERSAT) sigma *= activityCorrectionFactor(this.fluid, 'heulandite');
     return Math.max(sigma, 0);
   },
 

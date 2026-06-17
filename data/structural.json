@@ -135,6 +135,18 @@
     "lattice": { "a": 6.284, "b": 15.20, "c": 5.679, "beta": 114.09 },
     "_source": "Cole & Lancucki 1974 (Acta Cryst. B30:921-929) CaSO4·2H2O refinement"
   },
+  "stilbite": {
+    "system": "monoclinic",
+    "space_group": "C2/m",
+    "lattice": { "a": 13.64, "b": 18.24, "c": 11.27, "beta": 129.16 },
+    "_source": "Galli 1971 / 'Crystal structure of stilbite' Am. Mineral. 55(3-4):387 (stilbite-Ca C2/m cell); Coombs et al. 1997 Can. Mineral. 35:1571 nomenclature"
+  },
+  "heulandite": {
+    "system": "monoclinic",
+    "space_group": "C2/m",
+    "lattice": { "a": 17.77, "b": 17.95, "c": 7.435, "beta": 116.46 },
+    "_source": "Anthony et al. Handbook of Mineralogy (heulandite sheet, handbookofmineralogy.org); Coombs et al. 1997 Can. Mineral. 35:1571"
+  },
   "orthoclase": {
     "system": "monoclinic",
     "space_group": "C2/m",

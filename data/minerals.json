@@ -16586,6 +16586,233 @@
       "_late_stage_note": "Mid-to-late stage in the rodingite paragenesis. Prehnite forms after grossular + diopside + vesuvianite but before terminal datolite + zeolites. In Lake Superior amygdales, prehnite is one of the EARLY-to-mid amygdale fillings (with calcite + analcime + native_copper); the rodingite paragenesis pushes it later.",
       "class_color": "#a8e0a0"
     },
+    "stilbite": {
+      "formula": "NaCa4Si27Al9O72·28H2O",
+      "nucleation_sigma": 1.2,
+      "max_nucleation_count": 5,
+      "max_size_cm": 12,
+      "growth_rate_mult": 0.3,
+      "habit_variants": [
+        {
+          "name": "sheaf",
+          "wall_spread": 0.5,
+          "void_reach": 0.6,
+          "vector": "projecting",
+          "trigger": "default — wheatsheaf/sheaf bundle of divergent tabular crystals splaying from a constricted waist. The signature stilbite habit."
+        },
+        {
+          "name": "bowtie",
+          "wall_spread": 0.45,
+          "void_reach": 0.65,
+          "vector": "projecting",
+          "trigger": "high supersaturation (excess > 1.0) — twinned sheaves meeting at the waist ({001} cruciform penetration twin); the bowtie / hourglass."
+        },
+        {
+          "name": "spherulitic",
+          "wall_spread": 0.7,
+          "void_reach": 0.35,
+          "vector": "coating",
+          "trigger": "very high supersaturation (excess > 1.8) / high nucleation density — radiating globular aggregates."
+        },
+        {
+          "name": "tabular",
+          "wall_spread": 0.6,
+          "void_reach": 0.3,
+          "vector": "coating",
+          "trigger": "low supersaturation (excess < 0.3) — thin tabular {010} plates, pearly on {010}."
+        }
+      ],
+      "class": "silicate",
+      "description": "NaCa₄Si₂₇Al₉O₇₂·28H₂O (stilbite-Ca) — monoclinic (C2/m) framework silicate of the zeolite group. H 3.5-4, density 2.12-2.22, vitreous luster, pearly on {010}; the Deccan endmember is the famous peach-to-salmon colour. The COOLER, more-hydrated member of the stilbite/heulandite dehydration couple: calorimetry (Fridriksson, Bish & Navrotsky 2001) gives the reaction Ca-stilbite = Ca-heulandite + H₂O, so stilbite is stable on the cooler/wetter side and dehydrates to heulandite as temperature rises. Signature habit is the wheatsheaf/bowtie sheaf bundle — twinning on {001} is 'extremely common' (Wikipedia/Mindat/IZA), producing the cruciform/hourglass aggregates. Type expression for collectors is the Deccan Traps basalt amygdule (Nashik, Pune, Mumbai, Maharashtra) — the world's premier locality — where peach stilbite perches on a chalcedony/quartz silica veneer with apophyllite, scolecite, mesolite, heulandite and calcite. Field discriminator: stilbite = sheaves/bowties; heulandite = isolated coffin-shaped {010} tablets; stellerite is the orthorhombic (Fmmm) Na-poor analog lacking the bowtie habit; epistilbite rarely forms the large sheaf clusters. Refs: Coombs et al. 1997 Can. Mineral. 35:1571 (nomenclature, stilbite-Ca/-Na); Fridriksson Bish Navrotsky 2001 Am. Mineral. 86:448; Anthony et al. Handbook of Mineralogy; Ottens et al. 2019 (Deccan paragenesis); Sukheswala Avasia & Gangopadhyay 1974 Mineral. Mag. (Deccan zonation).",
+      "scenarios": [
+        "deccan_zeolite"
+      ],
+      "T_range_C": [
+        40,
+        150
+      ],
+      "T_optimum_C": [
+        60,
+        110
+      ],
+      "T_behavior": "narrow",
+      "pH_dissolution_below": 6.0,
+      "pH_dissolution_above": null,
+      "redox_requirement": "any",
+      "required_ingredients": {
+        "Ca": 60,
+        "Al": 4,
+        "SiO2": 250
+      },
+      "_ingredients_note": "Ca ≥ 60 (essential exchangeable cation; the engine uses Ca+Na as the exchangeable budget so stilbite-Na can fire in Na-dominant brines) + Al ≥ 4 (framework) + SiO2 ≥ 250 (moderate silica — lower than heulandite's 400). T 40-150°C, sweet spot 60-110°C (the COOL member). pH 7.0-10.5 alkaline, sweet spot 8.0-9.5. Redox-insensitive — no redox gate. The T-window + silica-activity split discriminates stilbite from heulandite. Activity correction applied.",
+      "trace_ingredients": {
+        "Na": "Na > Ca shifts the variety to stilbite-Na (white; uncommon — the Deccan endmember is stilbite-Ca)",
+        "Sr": "Sr substitutes for Ca, often 100s of ppm in Deccan zeolites (the scenario carries Sr=2 in the parent fluid to document the source)",
+        "Fe": "Fe staining gives deeper salmon/orange tones"
+      },
+      "thermal_decomp_C": 200,
+      "thermal_decomp_reaction": "Reversible zeolitic dehydration begins below ~150°C; sustained heating toward ~200°C drives the Ca-stilbite → Ca-heulandite + H₂O dehydration (Fridriksson et al. 2001) and ultimately framework collapse. No ionic release to the fluid (water loss only).",
+      "thermal_decomp_products": {},
+      "fluorescence": {
+        "activator": null,
+        "threshold_ppm": 0,
+        "color": null,
+        "quencher": null,
+        "status": "Generally non-fluorescent."
+      },
+      "twin_laws": [
+        {
+          "name": "cruciform_001",
+          "miller_indices": "{001}",
+          "trigger": "growth",
+          "probability": 0.35,
+          "status": "newly_added",
+          "_source": "Cruciform / penetration twinning on {001} is 'extremely common' in stilbite (Wikipedia/Stilbite; corroborated by the IZA-Online stilbite datasheet and Mindat) — it produces the diagnostic bowtie/hourglass aggregates. Conservative-but-high p=0.35 reflecting that the twin is a near-defining feature of the habit. General references only per the citation-conservatism rule (no synthesized page cite)."
+        }
+      ],
+      "acid_dissolution": {
+        "pH_threshold": 6.0,
+        "reaction": "Stilbite dissolves below pH 6, releasing Ca + Al + Si to the fluid. Zeolites are reactive in acidic groundwater.",
+        "products": {
+          "Ca": 0.018,
+          "Al": 0.012,
+          "SiO2": 0.05
+        }
+      },
+      "habit": "sheaf",
+      "color_rules": {
+        "peach_salmon": {
+          "default": true,
+          "trigger": "Ca-dominant (the Nashik/Deccan aesthetic); colourless when Fe-free"
+        },
+        "white": {
+          "trigger": "Na > Ca — stilbite-Na (uncommon)"
+        },
+        "orange_salmon": {
+          "trigger": "Fe staining > deeper salmon/orange"
+        }
+      },
+      "narrate_function": null,
+      "runtimes_present": [
+        "js"
+      ],
+      "audit_status": "new v200 (2026-06-17). Monoclinic C2/m Ca-zeolite, the cooler member of the Deccan Stage-II zeolite couple (with heulandite). Fills the deccan_zeolite Stage-II narrative gap (the step-70 event narrated 'stilbite + heulandite + calcite blades' that could not grow). Substrate priority: silica lining (chalcedony/quartz veneer) > heulandite intergrowth > calcite > apophyllite > wall. Discriminated from heulandite by the cooler T-window (sweet 60-110 vs 120-180°C) + moderate silica (gate 250 vs 400) per the Fridriksson et al. 2001 dehydration thermochemistry. Per Coombs et al. 1997 + Ottens et al. 2019.",
+      "late_stage_propensity": 0.75,
+      "_late_stage_note": "Late zeolite stage — stilbite fills the cooled basalt vesicle after the early silica veneer + fibrous Ca-zeolites (scolecite/mesolite), on a cooling/dehydrating path. The cooler member precedes heulandite on that path.",
+      "class_color": "#f0c8a8"
+    },
+    "heulandite": {
+      "formula": "(Ca,Na)Al2Si7O18·6H2O",
+      "nucleation_sigma": 1.2,
+      "max_nucleation_count": 5,
+      "max_size_cm": 10,
+      "growth_rate_mult": 0.3,
+      "habit_variants": [
+        {
+          "name": "coffin",
+          "wall_spread": 0.5,
+          "void_reach": 0.55,
+          "vector": "projecting",
+          "trigger": "default — coffin-shaped tablet ∥{010}, elongated and widest at the centre. The diagnostic heulandite shape (Handbook of Mineralogy)."
+        },
+        {
+          "name": "stout",
+          "wall_spread": 0.45,
+          "void_reach": 0.5,
+          "vector": "projecting",
+          "trigger": "high supersaturation (excess > 1.8) — trapezoidal / diamond-section stout crystals (the coffin cross-section)."
+        },
+        {
+          "name": "tabular",
+          "wall_spread": 0.6,
+          "void_reach": 0.3,
+          "vector": "coating",
+          "trigger": "low supersaturation (excess < 0.6) — thin tabular {010} plates, pearly on {010}."
+        },
+        {
+          "name": "granular",
+          "wall_spread": 0.8,
+          "void_reach": 0.2,
+          "vector": "coating",
+          "trigger": "very low supersaturation (excess < 0.25) — coarse-to-fine granular mass."
+        }
+      ],
+      "class": "silicate",
+      "description": "(Ca,Na)Al₂Si₇O₁₈·6H₂O (heulandite-Ca) — monoclinic (C2/m) framework silicate of the zeolite group. H 3.5-4, density 2.10-2.20, vitreous, pearly on {010}; colourless/white/grey or red-orange when Fe-stained (the classic Berufjord, Iceland and Deccan look). The WARMER, dehydrated member of the stilbite/heulandite couple — the dehydration product of stilbite (Ca-stilbite = Ca-heulandite + H₂O, Fridriksson Bish & Navrotsky 2001) — so it forms at higher silica activity and the warmer end of the zeolite window. Signature habit is the 'coffin-shaped' tablet parallel to {010}, widest at the centre (Handbook of Mineralogy). The heulandite/clinoptilolite boundary is COMPOSITIONAL: Si/Al < 4.0 = heulandite, ≥ 4.0 = clinoptilolite (Coombs et al. 1997) — clinoptilolite is not modelled here, and the boundary is not a hard fluid gate because the sim's SiO2 ppm is dissolved silica, not framework Si/Al. Deccan Traps amygdule Stage-II classic (Nashik, Poona, Bombay — the Handbook lists large Deccan crystals) on a chalcedony/quartz veneer with stilbite, apophyllite, scolecite, mesolite and calcite. Field discriminator: heulandite = isolated coffin tablets; stilbite = sheaves/bowties; clinoptilolite needs Si/Al ≥ 4 + is far more thermally stable. Refs: Anthony et al. Handbook of Mineralogy (formula, cell, twin {100}); Coombs et al. 1997 Can. Mineral. 35:1571 (Si/Al=4.0 boundary); Fridriksson Bish Navrotsky 2001 Am. Mineral. 86:448; Ottens et al. 2019 (Deccan).",
+      "scenarios": [
+        "deccan_zeolite"
+      ],
+      "T_range_C": [
+        95,
+        210
+      ],
+      "T_optimum_C": [
+        120,
+        180
+      ],
+      "T_behavior": "narrow",
+      "pH_dissolution_below": 6.0,
+      "pH_dissolution_above": null,
+      "redox_requirement": "any",
+      "required_ingredients": {
+        "Ca": 60,
+        "Al": 4,
+        "SiO2": 400
+      },
+      "_ingredients_note": "Ca ≥ 60 (essential; engine uses Ca+Na as the exchangeable budget) + Al ≥ 4 (framework) + SiO2 ≥ 400 (HIGHER silica than stilbite's 250 — the silica-activity discriminator). T 95-210°C, sweet spot 120-180°C (the WARM member — the dehydration product). pH 7.0-10.5 alkaline, sweet spot 8.0-9.5. Redox-insensitive — no redox gate. Activity correction applied.",
+      "trace_ingredients": {
+        "Na": "Na substitutes for Ca (heulandite-Na varieties); the Deccan endmember is heulandite-Ca",
+        "Sr": "Sr substitutes for Ca, often 100s of ppm in Deccan zeolites",
+        "Fe": "Fe staining gives the diagnostic red-to-orange Berufjord/Deccan colour"
+      },
+      "thermal_decomp_C": 250,
+      "thermal_decomp_reaction": "Reversible zeolitic dehydration; the heulandite framework collapses near ~200-300°C (the low thermal stability that historically distinguished it from clinoptilolite, which is stable >500°C — Coombs et al. 1997 demoted this to a derivative aid). Water loss only; no ionic release to the fluid.",
+      "thermal_decomp_products": {},
+      "fluorescence": {
+        "activator": null,
+        "threshold_ppm": 0,
+        "color": null,
+        "quencher": null,
+        "status": "Generally non-fluorescent."
+      },
+      "twin_laws": [
+        {
+          "name": "contact_100",
+          "miller_indices": "{100}",
+          "trigger": "growth",
+          "probability": 0.05,
+          "status": "newly_added",
+          "_source": "Handbook of Mineralogy (heulandite): '{100} as twin and contact plane.' Far less conspicuous than stilbite's cruciform twinning — conservative p=0.05. General reference per the citation-conservatism rule."
+        }
+      ],
+      "acid_dissolution": {
+        "pH_threshold": 6.0,
+        "reaction": "Heulandite dissolves below pH 6, releasing Ca + Al + Si to the fluid.",
+        "products": {
+          "Ca": 0.02,
+          "Al": 0.014,
+          "SiO2": 0.055
+        }
+      },
+      "habit": "coffin",
+      "color_rules": {
+        "colorless_white": {
+          "default": true,
+          "trigger": "Fe-free heulandite-Ca, pearly on {010}"
+        },
+        "red_orange": {
+          "trigger": "Fe staining > 20 ppm — the classic Berufjord/Deccan colour"
+        }
+      },
+      "narrate_function": null,
+      "runtimes_present": [
+        "js"
+      ],
+      "audit_status": "new v200 (2026-06-17). Monoclinic C2/m Ca-zeolite, the warmer member of the Deccan Stage-II zeolite couple (with stilbite); the dehydration product of stilbite per Fridriksson et al. 2001. Fills the deccan_zeolite Stage-II narrative gap with stilbite. Substrate priority: silica lining > stilbite intergrowth > calcite > apophyllite > wall. Discriminated from stilbite by the warmer T-window (sweet 120-180 vs 60-110°C) + higher silica (gate 400 vs 250). Si/Al≥4 clinoptilolite endmember intentionally not modelled (Coombs 1997 compositional boundary, not a fluid gate). Per Anthony Handbook + Coombs et al. 1997 + Ottens et al. 2019.",
+      "late_stage_propensity": 0.7,
+      "_late_stage_note": "Late zeolite stage — the warmer/earlier end of the Stage-II zeolite window relative to stilbite, on the cooling/dehydrating path in the basalt vesicle.",
+      "class_color": "#e8d4b0"
+    },
     "epidote": {
       "formula": "Ca2(Al,Fe3+)3(SiO4)(Si2O7)O(OH)",
       "nucleation_sigma": 1.2,

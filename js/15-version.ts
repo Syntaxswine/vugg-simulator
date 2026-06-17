@@ -11141,5 +11141,50 @@
 //        FULL REBAKE: mottramite can now fire in pure-Cu fluids + ZnS excluded
 //        from oxidizing zones; baselines re-realize where those bite. SIM 198 ->
 //        199. Closes LEDGER §A #11.
-const SIM_VERSION = 199;
+//   v200 — THE DECCAN STAGE-II ZEOLITE COUPLE: stilbite + heulandite
+//        (2026-06-17). Two new silicate-class minerals that fill the
+//        deccan_zeolite Stage-II NARRATIVE GAP — the step-70 event narrated
+//        "Stilbite + heulandite + calcite blades" while neither mineral
+//        existed in the catalog (PROPOSALS-LEDGER §A #14 + §G; the highest-
+//        leverage mineral add on that list because it ALSO retires a
+//        confabulation, the mvt-silver-deconfab discipline applied to a
+//        positive over-promise). The step-70 event text is trued in the same
+//        ship.
+//
+//        THE SCIENCE — they are the stilbite/heulandite DEHYDRATION COUPLE:
+//        Ca-stilbite = Ca-heulandite + H2O (Fridriksson, Bish & Navrotsky
+//        2001, Am. Mineral. 86:448, measured by calorimetry). So:
+//          • stilbite — NaCa4Si27Al9O72·28H2O, the COOLER, more-hydrated
+//            member; moderate silica; T sweet 60-110C; sheaf/bowtie/{001}
+//            cruciform habit (the wheatsheaf); Deccan peach.
+//          • heulandite — (Ca,Na)Al2Si7O18·6H2O, the WARMER dehydration
+//            product; HIGHER silica activity (SiO2 gate 400 vs stilbite 250);
+//            T sweet 120-180C; coffin-shaped {010} tablets.
+//        DISCRIMINATOR = two axes: temperature window + silica activity. Both
+//        Ca-dominant (engine uses Ca+Na as the exchangeable budget so the -Na
+//        varieties can fire), alkaline (pH 7.0-10.5), and REDOX-INSENSITIVE
+//        (framework silicates, no redox-active ion -> no redox gate, like
+//        prehnite). Si/Al>=4 clinoptilolite endmember intentionally NOT
+//        modelled: that boundary is COMPOSITIONAL (Coombs et al. 1997
+//        Can.Mineral. 35:1571), not a fluid gate, and the sim's SiO2 ppm is
+//        dissolved silica not framework Si/Al.
+//
+//        Engines: supersaturation_{stilbite,heulandite} (js/39) +
+//        grow_{stilbite,heulandite} (js/59) + _nuc_{stilbite,heulandite}
+//        (js/89, RNG-cascade-guarded, wired into _nucleateClass_silicate via
+//        _runNuc) + MINERAL_GATES_{stilbite,heulandite} (registry js/42) +
+//        MINERAL_ENGINES (js/65) + minerals.json specs + structural.json
+//        cells (both twin laws ✓ PASS twin-law-check: stilbite {001}
+//        cruciform p=0.35, heulandite {100} p=0.05).
+//
+//        Substrate priority (the amygdale paragenesis): the chalcedony/quartz
+//        SILICA LINING is the primary nucleation surface (Pune/turnstone:
+//        stilbite "crystallized on a microcrystalline silicate layer already
+//        deposited on the basalt host"), then mutual zeolite intergrowth, then
+//        calcite/apophyllite, then bare wall. CALIBRATION DRIFT: both fire in
+//        deccan_zeolite (the anchor) — heulandite in the Stage-II/III warm
+//        window, stilbite in the cool tail; full-fleet rebake re-realizes any
+//        alkaline-Ca-Al-silica-rich scenario where the gates also bite (see
+//        baseline-diff). SIM 199 -> 200. Coverage +2 live.
+const SIM_VERSION = 200;
 

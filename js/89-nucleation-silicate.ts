@@ -769,6 +769,63 @@ function _nuc_datolite(sim) {
   }
 }
 
+// v200 (2026-06-17): Stilbite — the cooler Deccan Stage-II zeolite. Substrate
+// priority follows the amygdale paragenesis: the silica lining (chalcedony/
+// quartz veneer) is the primary nucleation surface (turnstone/Pune: stilbite
+// "crystallized on a microcrystalline silicate layer already deposited on the
+// basalt host"), then intergrowth with heulandite, then late calcite /
+// apophyllite. RNG-cascade-guarded at sigma < sigma_crit.
+function _nuc_stilbite(sim) {
+  const sigma = sim.conditions.supersaturation_stilbite();
+  if (sigma < MINERAL_GATES_stilbite.sigma_crit) return;   // RNG-cascade guard — DO NOT MOVE
+  if (sim._atNucleationCap('stilbite')) return;
+  const existing = sim.crystals.filter(c => c.mineral === 'stilbite' && c.active);
+  if (existing.length >= 5) return;
+  let pos = 'vug wall';
+  const active_qz = sim.crystals.filter(c => c.mineral === 'quartz' && c.active);
+  const active_heu = sim.crystals.filter(c => c.mineral === 'heulandite' && c.active);
+  const active_cal = sim.crystals.filter(c => c.mineral === 'calcite' && c.active);
+  const active_apo = sim.crystals.filter(c => c.mineral === 'apophyllite' && c.active);
+  if (active_qz.length && rng.random() < 0.55) pos = `on the silica lining (quartz #${active_qz[0].crystal_id})`;
+  else if (active_heu.length && rng.random() < 0.35) pos = `intergrown with heulandite #${active_heu[0].crystal_id}`;
+  else if (active_cal.length && rng.random() < 0.30) pos = `with calcite #${active_cal[0].crystal_id}`;
+  else if (active_apo.length && rng.random() < 0.25) pos = `with apophyllite #${active_apo[0].crystal_id}`;
+  const discount = sim._sigmaDiscountForPosition('stilbite', pos);
+  if (sigma > 1.2 * discount) {
+    if (!existing.length || (sigma > 2.0 && rng.random() < 0.20)) {
+      const c = sim.nucleate('stilbite', pos, sigma);
+      sim.log.push(`  ✦ NUCLEATION: 🌾 Stilbite #${c.crystal_id} on ${c.position} (T=${sim.conditions.temperature.toFixed(0)}°C, σ=${sigma.toFixed(2)}, Ca=${sim.conditions.fluid.Ca.toFixed(0)}, Al=${sim.conditions.fluid.Al.toFixed(1)}, SiO₂=${sim.conditions.fluid.SiO2.toFixed(0)}, pH=${sim.conditions.fluid.pH.toFixed(1)}) — peach wheatsheaf zeolite, Deccan Stage-II`);
+    }
+  }
+}
+
+// v200 (2026-06-17): Heulandite — the warmer Deccan Stage-II zeolite (the
+// dehydration product of stilbite). Same silica-lining-first substrate
+// priority; intergrows with stilbite. RNG-cascade-guarded.
+function _nuc_heulandite(sim) {
+  const sigma = sim.conditions.supersaturation_heulandite();
+  if (sigma < MINERAL_GATES_heulandite.sigma_crit) return;   // RNG-cascade guard — DO NOT MOVE
+  if (sim._atNucleationCap('heulandite')) return;
+  const existing = sim.crystals.filter(c => c.mineral === 'heulandite' && c.active);
+  if (existing.length >= 5) return;
+  let pos = 'vug wall';
+  const active_qz = sim.crystals.filter(c => c.mineral === 'quartz' && c.active);
+  const active_stb = sim.crystals.filter(c => c.mineral === 'stilbite' && c.active);
+  const active_cal = sim.crystals.filter(c => c.mineral === 'calcite' && c.active);
+  const active_apo = sim.crystals.filter(c => c.mineral === 'apophyllite' && c.active);
+  if (active_qz.length && rng.random() < 0.55) pos = `on the silica lining (quartz #${active_qz[0].crystal_id})`;
+  else if (active_stb.length && rng.random() < 0.35) pos = `intergrown with stilbite #${active_stb[0].crystal_id}`;
+  else if (active_cal.length && rng.random() < 0.30) pos = `with calcite #${active_cal[0].crystal_id}`;
+  else if (active_apo.length && rng.random() < 0.25) pos = `with apophyllite #${active_apo[0].crystal_id}`;
+  const discount = sim._sigmaDiscountForPosition('heulandite', pos);
+  if (sigma > 1.2 * discount) {
+    if (!existing.length || (sigma > 2.0 && rng.random() < 0.20)) {
+      const c = sim.nucleate('heulandite', pos, sigma);
+      sim.log.push(`  ✦ NUCLEATION: ⚰️ Heulandite #${c.crystal_id} on ${c.position} (T=${sim.conditions.temperature.toFixed(0)}°C, σ=${sigma.toFixed(2)}, Ca=${sim.conditions.fluid.Ca.toFixed(0)}, Al=${sim.conditions.fluid.Al.toFixed(1)}, SiO₂=${sim.conditions.fluid.SiO2.toFixed(0)}, pH=${sim.conditions.fluid.pH.toFixed(1)}) — coffin-tablet zeolite, Deccan Stage-II`);
+    }
+  }
+}
+
 function _nucleateClass_silicate(sim) {
   _runNuc(sim, _nuc_quartz);
   _runNuc(sim, _nuc_apophyllite);
@@ -795,6 +852,8 @@ function _nucleateClass_silicate(sim) {
   _runNuc(sim, _nuc_wollastonite);
   _runNuc(sim, _nuc_prehnite);
   _runNuc(sim, _nuc_epidote);
+  _runNuc(sim, _nuc_stilbite);
+  _runNuc(sim, _nuc_heulandite);
   _runNuc(sim, _nuc_chrysotile);
   _runNuc(sim, _nuc_tigers_eye);
 }

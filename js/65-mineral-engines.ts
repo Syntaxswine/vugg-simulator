@@ -341,6 +341,11 @@ const MINERAL_ENGINES = {
   prehnite: grow_prehnite,
   // v196 (2026-06-15): epidote — Fe3+ alpine-cleft sorosilicate (Tormiq, Pakistan).
   epidote: grow_epidote,
+  // v200 (2026-06-17): the Deccan Stage-II zeolite couple. stilbite (cooler,
+  // 28 H2O, peach sheaves) + heulandite (warmer dehydration product, 6 H2O,
+  // coffin tablets). Fills the deccan_zeolite Stage-II narrative gap.
+  stilbite: grow_stilbite,
+  heulandite: grow_heulandite,
   // v114 (2026-05-20): Mg-matrix family completing the Jeffrey Mine
   // rodingite assemblage. Three minerals in three different chemistry
   // classes:
