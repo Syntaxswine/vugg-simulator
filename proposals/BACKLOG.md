@@ -10,14 +10,15 @@ Living list of open work items, captured from session conversations so context s
 > is proven (`tests-js/nuc-seed-isolation.test.ts`). Full-fleet rebake, 1916 tests
 > green.
 >
-> **KEY FINDING (corrected, then refined):** the keystone did NOT unblock the held
-> sphalerite/wurtzite redox gate (ledger #11). Measurement after shipping showed
-> gating ZnS STILL drops mottramite 98→49 — never nucleation-RNG. A discriminator
-> then RULED OUT graduated competition (toggle ON/OFF → identical drop), pinning the
-> blocker on the **shared growth-jitter RNG**. So the gate IS fixable — extend the
-> keystone to per-(crystal,step) GROWTH streams (same technique, one layer down),
-> self-testing via the mottramite A/B. The gate was reverted; HEAD is clean v198.
-> See the handoff's NEXT section; memory [[project_vugg_redox_census]] corrected.
+> **KEY FINDING (resolved over three probes):** the keystone did NOT unblock the
+> held sphalerite/wurtzite redox gate (ledger #11), and neither did a growth
+> keystone. Probe 1: gating ZnS still drops mottramite 98→49 (not nucleation-RNG).
+> Probe 2: graduated competition RULED OUT (toggle → identical drop). Probe 3: BUILT
+> the growth keystone (per-crystal growth streams) — drop shrank only 60→43, then
+> the decisive measurement: gating drops mottramite *nucleation* 52→22 = **CHEMISTRY**
+> (σ via fluid trajectory), which no RNG isolation reaches. Growth keystone REVERTED;
+> HEAD clean v198. The gate is chemistry-bound — next is a fluid-pathway trace
+> (likely a model artifact) or accept-and-tune. See the handoff; memory corrected.
 >
 > ## 🫒 UPDATE (2026-06-15) — EPIDOTE + TORMIQ SHIPPED · PROPOSALS-LEDGER built · canary hardened
 >

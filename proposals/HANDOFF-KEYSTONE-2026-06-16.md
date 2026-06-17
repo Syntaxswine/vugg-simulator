@@ -75,30 +75,40 @@ So the gate was reverted (`git checkout js/41`); HEAD stays at the clean v198.
 Lifting it would halve a genuinely-abundant Tsumeb phase (mottramite, Boni 2007)
 via a competition artifact — "follow the science → don't ship."
 
-## NEXT (the real unblocker — a separate arc)
+## RESOLVED — the gate is CHEMISTRY-bound, not RNG-bound (do NOT keep chasing RNG)
 
-**Discriminator RUN 2026-06-16 — competition is RULED OUT.** Re-ran the gated-vs-
-ungated mottramite A/B (N=40) with `setGraduatedCompetitionEnabled` ON vs OFF
-(toggle verified to actually change the sim: n/Σµm differ per seed). The drop is
-IDENTICAL both ways — **98%→45%, −53 pts, regardless of competition**. So the
-cascade is NOT per-cell rationing. With fluid + fill endpoints already identical,
-the only remaining cross-crystal coupling is the **shared growth-jitter RNG**
-(`rng.uniform` in the grow engines; its stream phase shifts when the nuclei count
-changes).
+Three probes, in order, each refuting the last hypothesis:
 
-**This is good news for the gate** — it's the SAME RNG-isolation problem the
-keystone already solved, one layer down (nucleation → growth), not an inherent
-competition cost. So:
+1. **Competition RULED OUT** (2026-06-16). Gated-vs-ungated mottramite A/B (N=40)
+   with `setGraduatedCompetitionEnabled` ON vs OFF (toggle verified live): drop
+   IDENTICAL both ways (98→45). Not per-cell rationing.
+2. **Growth-jitter is only a SLICE.** Built the growth keystone (per-`(crystal,
+   step)` derived growth streams — `_makeGrowthRng`/`_runGrowth`/`_assignGrowthSeed`,
+   wrapping the engine call in both `_runEngineForCrystal` + `_dryRunEngineForCrystal`,
+   `_growthSeed` stamped at nucleation from the isolated nucleation stream so it's
+   stable per-crystal). Self-test A/B: the drop shrank **60→43 pts** but mottramite
+   did NOT hold. So growth-jitter RNG was real but minor.
+3. **The dominant residual is CHEMISTRY.** With growth streams ON, gating drops
+   mottramite *NUCLEATION* 52→22 (binary per-seed: 4→0 or 4→4), not just growth.
+   Nucleation RNG is already isolated (v198), so a nucleation drop = **σ via the
+   fluid trajectory**: gating oxidized-zone sphalerite shifts the supergene fluid
+   enough to hold mottramite below saturation at ~half the seeds.
 
-1. **Extend the keystone to growth**: wrap each crystal's growth-engine call in a
-   per-`(crystal_id, step)` derived stream (mirror `_runNuc`). Both paths need it:
-   the graduated path calls the engine in `_computeGraduatedZones` pass 1, the
-   non-graduated in `_runEngineForCrystal`. This is the larger surgery but the
-   technique is proven.
-2. **Self-testing**: rebuild, re-run this exact A/B — if growth-jitter was the
-   coupling, mottramite holds ungated≈gated, and the ZnS gate ships clean.
-3. Only if it does NOT hold (residual coupling) does accept-and-tune come back on
-   the table. Current evidence says it will hold.
+**The growth keystone was REVERTED** (HEAD stays clean v198): it's correct infra
+but a full rebake that does NOT deliver the gate, and the real blocker is now known
+to be chemistry — no amount of RNG isolation reaches it.
+
+**The real next arc (if the gate is wanted):**
+- It's likely a MODEL ARTIFACT: geologically, sphalerite (reduced primary) and
+  mottramite (oxidized supergene) occupy DIFFERENT zones — removing oxidized-zone
+  sphalerite shouldn't touch mottramite. Find the indirect fluid pathway in the sim
+  by which gating ZnS lowers mottramite's σ (trace Pb/Cu/V — and the intermediates
+  that route them — step-by-step, gated vs ungated, at a seed that flips like seed 1
+  or 2). Fix that pathway, OR
+- **accept-and-tune**: mottramite at ~50% may be defensible (it IS a rare-ish phase),
+  ship the gate, re-pin the vanadate test. A design call for the boss.
+- The growth keystone is recoverable from this handoff if wanted as standalone
+  RNG-isolation infra (≈6 small edits), but it does not unblock this gate.
 
 ## SESSION LESSONS
 
