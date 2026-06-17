@@ -11186,5 +11186,51 @@
 //        window, stilbite in the cool tail; full-fleet rebake re-realizes any
 //        alkaline-Ca-Al-silica-rich scenario where the gates also bite (see
 //        baseline-diff). SIM 199 -> 200. Coverage +2 live.
-const SIM_VERSION = 200;
+//   v201 — THE FIBROUS NATROLITE-GROUP ZEOLITES: scolecite + mesolite
+//        (2026-06-17). The companion pair to v200's stilbite/heulandite — the
+//        LOW-Si fibrous Ca-(Na) zeolites that form EARLIER in the Deccan
+//        amygdule sequence (...natrolite -> analcime -> scolecite/mesolite ->
+//        stilbite -> heulandite -> apophyllite). Closes the §G fibrous-zeolite
+//        gap; the v200 step-70 text named them as honestly-unmodelled, now
+//        trued (they form first; the sheet zeolites drape over their sprays).
+//
+//        THE SCIENCE — the natrolite group is a Na<->Ca COUPLED-SUBSTITUTION
+//        series (Na+ + 1/2-vacancy <-> Ca2+ + 1/2 H2O, which is why the Ca
+//        member carries extra channel water), all built from the same low-Si
+//        (Si/Al~1.5) "natrolite chain":
+//          * scolecite — CaAl2Si3O10·3H2O, monoclinic Cc, the Ca ENDMEMBER;
+//            radiating acicular sprays/puffballs + square prisms; {100} twin
+//            (axis [001]) near-ubiquitous. Deccan (Poona/Nashik) premier.
+//          * mesolite — Na2Ca2Al6Si9O30·8H2O, orthorhombic Fdd2 with a GIANT
+//            b-axis (~56.6A = ordered 1-natrolite:2-scolecite layer stack); the
+//            ordered Na-Ca intermediate; finest hair-like fibrous tufts.
+//        DISCRIMINATOR = the Na/Ca FORK: scolecite fires Ca-dominant
+//        (Na/(Na+Ca)<=0.5); mesolite fires only in the MIXED band
+//        (0.2<=Na/(Na+Ca)<=0.8, needs BOTH cations — sigma uses the geometric
+//        mean of the Na+Ca factors); natrolite (Na endmember) is not wired.
+//        Gated on a LOW silica FLOOR (150, vs stilbite's 250) NOT a low-Si
+//        ceiling — Deccan is THE scolecite locality despite its silica-rich
+//        fluid (fluid SiO2 ppm != framework Si/Al; the group coexists with the
+//        sheet zeolites, just earlier). Alkaline, redox-insensitive (no gate).
+//
+//        Engines: supersaturation_{scolecite,mesolite} (js/39) +
+//        grow_{scolecite,mesolite} (js/59) + _nuc_{scolecite,mesolite} (js/89,
+//        RNG-cascade-guarded, wired into _nucleateClass_silicate BEFORE the
+//        sheet zeolites) + MINERAL_GATES (js/42) + MINERAL_ENGINES (js/65) +
+//        MINERAL_STOICHIOMETRY (js/19: scolecite {Ca1Al2Si3}, mesolite
+//        {Na2Ca2Al6Si9}) + minerals.json + structural.json cells. twin-law-
+//        check: scolecite {100} PASS; mesolite {010} FLAG (expected — the Fdd2
+//        giant-b cell defeats the simple-cell heuristic; real Handbook
+//        citation, ships per the citation-conservatism rule).
+//
+//        DECCAN TUNE: initial Na 40 -> 80. At Na=40 the fluid sat at
+//        Na/(Na+Ca)~0.15 (pure-scolecite regime) and mesolite never cleared its
+//        mixed-cation gate; 80 opens the window (Na-Ca amygdule fluid is
+//        geologically correct — mesolite is the Poona/Pashan classic). The bump
+//        also unlocked pectolite (NaCa2Si3O8(OH), a real basalt-amygdule Na-Ca
+//        silicate — legitimate). CALIBRATION: deccan now fires all four zeolites
+//        at seed 42 (scolecite 6, mesolite 5, stilbite 5, heulandite 5);
+//        full-fleet rebake re-realizes where the Na bump + new engines bite (see
+//        baseline-diff). SIM 200 -> 201. Coverage +2 live (scolecite, mesolite).
+const SIM_VERSION = 201;
 

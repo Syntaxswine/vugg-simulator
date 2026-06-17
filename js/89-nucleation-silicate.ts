@@ -826,6 +826,57 @@ function _nuc_heulandite(sim) {
   }
 }
 
+// v201 (2026-06-17): Scolecite — the Ca-endmember fibrous natrolite-group
+// zeolite, forms BEFORE the sheet zeolites. Substrate priority: silica lining
+// (chalcedony/quartz) > mesolite intergrowth > calcite > wall. RNG-cascade-
+// guarded. (Later stilbite/heulandite nucleate ON these sprays — see their
+// substrate logic.)
+function _nuc_scolecite(sim) {
+  const sigma = sim.conditions.supersaturation_scolecite();
+  if (sigma < MINERAL_GATES_scolecite.sigma_crit) return;   // RNG-cascade guard — DO NOT MOVE
+  if (sim._atNucleationCap('scolecite')) return;
+  const existing = sim.crystals.filter(c => c.mineral === 'scolecite' && c.active);
+  if (existing.length >= 5) return;
+  let pos = 'vug wall';
+  const active_qz = sim.crystals.filter(c => c.mineral === 'quartz' && c.active);
+  const active_mes = sim.crystals.filter(c => c.mineral === 'mesolite' && c.active);
+  const active_cal = sim.crystals.filter(c => c.mineral === 'calcite' && c.active);
+  if (active_qz.length && rng.random() < 0.55) pos = `on the silica lining (quartz #${active_qz[0].crystal_id})`;
+  else if (active_mes.length && rng.random() < 0.40) pos = `intergrown with mesolite #${active_mes[0].crystal_id}`;
+  else if (active_cal.length && rng.random() < 0.30) pos = `on calcite #${active_cal[0].crystal_id}`;
+  const discount = sim._sigmaDiscountForPosition('scolecite', pos);
+  if (sigma > 1.2 * discount) {
+    if (!existing.length || (sigma > 2.0 && rng.random() < 0.20)) {
+      const c = sim.nucleate('scolecite', pos, sigma);
+      sim.log.push(`  ✦ NUCLEATION: 🪮 Scolecite #${c.crystal_id} on ${c.position} (T=${sim.conditions.temperature.toFixed(0)}°C, σ=${sigma.toFixed(2)}, Ca=${sim.conditions.fluid.Ca.toFixed(0)}, Na=${sim.conditions.fluid.Na.toFixed(0)}, Al=${sim.conditions.fluid.Al.toFixed(1)}, pH=${sim.conditions.fluid.pH.toFixed(1)}) — radiating fibrous Ca-zeolite, Deccan pre-Stage-II`);
+    }
+  }
+}
+
+// v201 (2026-06-17): Mesolite — the ordered Na-Ca intermediate. Same fibrous-
+// group substrate priority; co-deposits with scolecite. RNG-cascade-guarded.
+function _nuc_mesolite(sim) {
+  const sigma = sim.conditions.supersaturation_mesolite();
+  if (sigma < MINERAL_GATES_mesolite.sigma_crit) return;   // RNG-cascade guard — DO NOT MOVE
+  if (sim._atNucleationCap('mesolite')) return;
+  const existing = sim.crystals.filter(c => c.mineral === 'mesolite' && c.active);
+  if (existing.length >= 5) return;
+  let pos = 'vug wall';
+  const active_qz = sim.crystals.filter(c => c.mineral === 'quartz' && c.active);
+  const active_sco = sim.crystals.filter(c => c.mineral === 'scolecite' && c.active);
+  const active_cal = sim.crystals.filter(c => c.mineral === 'calcite' && c.active);
+  if (active_qz.length && rng.random() < 0.55) pos = `on the silica lining (quartz #${active_qz[0].crystal_id})`;
+  else if (active_sco.length && rng.random() < 0.40) pos = `intergrown with scolecite #${active_sco[0].crystal_id}`;
+  else if (active_cal.length && rng.random() < 0.30) pos = `on calcite #${active_cal[0].crystal_id}`;
+  const discount = sim._sigmaDiscountForPosition('mesolite', pos);
+  if (sigma > 1.2 * discount) {
+    if (!existing.length || (sigma > 2.0 && rng.random() < 0.20)) {
+      const c = sim.nucleate('mesolite', pos, sigma);
+      sim.log.push(`  ✦ NUCLEATION: 🧵 Mesolite #${c.crystal_id} on ${c.position} (T=${sim.conditions.temperature.toFixed(0)}°C, σ=${sigma.toFixed(2)}, Ca=${sim.conditions.fluid.Ca.toFixed(0)}, Na=${sim.conditions.fluid.Na.toFixed(0)}, Al=${sim.conditions.fluid.Al.toFixed(1)}, pH=${sim.conditions.fluid.pH.toFixed(1)}) — hair-like Na-Ca zeolite tuft, Deccan pre-Stage-II`);
+    }
+  }
+}
+
 function _nucleateClass_silicate(sim) {
   _runNuc(sim, _nuc_quartz);
   _runNuc(sim, _nuc_apophyllite);
@@ -852,6 +903,8 @@ function _nucleateClass_silicate(sim) {
   _runNuc(sim, _nuc_wollastonite);
   _runNuc(sim, _nuc_prehnite);
   _runNuc(sim, _nuc_epidote);
+  _runNuc(sim, _nuc_scolecite);
+  _runNuc(sim, _nuc_mesolite);
   _runNuc(sim, _nuc_stilbite);
   _runNuc(sim, _nuc_heulandite);
   _runNuc(sim, _nuc_chrysotile);

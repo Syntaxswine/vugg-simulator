@@ -365,6 +365,41 @@ const MINERAL_GATES_heulandite: MineralGates = {
   _notes: 'Heulandite-Ca (Ca,Na)Al2Si7O18·6H2O — monoclinic C2/m. The warmer, dehydrated member (the dehydration product of stilbite). Higher silica activity than stilbite; Si/Al<4 (Si/Al>=4 is clinoptilolite, not wired — the boundary is compositional per Coombs 1997, not modeled as a hard fluid gate because the sim SiO2 ppm is dissolved silica, not framework Si/Al). Coffin-shaped tabular {010}. Twin {100}.',
 };
 
+// v201 (2026-06-17): the FIBROUS natrolite-group zeolites — scolecite + mesolite.
+// They form EARLIER in the Deccan amygdale paragenesis than the sheet zeolites
+// (sequence: ...natrolite -> analcime -> scolecite/mesolite -> stilbite ->
+// heulandite -> apophyllite). The natrolite group is LOW-Si (Si/Al~1.5), so in
+// nature it forms at lower silica activity than stilbite/heulandite — BUT the
+// sim's SiO2 ppm is dissolved silica, not framework Si/Al, and Deccan (a silica-
+// rich fluid) is THE world locality for scolecite, so the group is gated on a
+// LOW silica FLOOR (150, vs stilbite's 250), NOT a low-Si ceiling. The
+// discriminator within the group is the Na/Ca FORK (the Na<->Ca coupled
+// substitution): scolecite = Ca endmember (Na/(Na+Ca)<=0.5), mesolite = the
+// ordered Na-Ca intermediate (needs BOTH Na and Ca, 0.2<=Na/(Na+Ca)<=0.8;
+// natrolite, the Na endmember, is not wired). Both alkaline + redox-insensitive
+// (no redox gate). Refs: Anthony et al. Handbook of Mineralogy (scolecite +
+// mesolite sheets); Alberti Pongiluppi & Vezzalini 1982 N.Jb.Min.Abh. 143:231
+// (natrolite/mesolite/scolecite crystal chemistry); Coombs et al. 1997.
+const MINERAL_GATES_scolecite: MineralGates = {
+  sigma_crit: 1.0,
+  T_min: 40, T_max: 150, T_optimal: 95,
+  fluid_min: { Ca: 60, Al: 4, SiO2: 150 },
+  pH_min: 7.0, pH_max: 10.5,
+  surface_energy: 'low',
+  _sources: ['scolecite engine v201', 'Anthony et al. Handbook of Mineralogy', 'Alberti Pongiluppi & Vezzalini 1982 N.Jb.Min.Abh. 143:231', 'Smith & Walls 1971 Mineral.Mag. 38:72'],
+  _notes: 'CaAl2Si3O10·3H2O — monoclinic Cc, the Ca endmember of the fibrous natrolite group. Radiating acicular sprays/puffballs + square prisms. Twin {100} (axis [001]) near-ubiquitous. Deccan (Poona/Nashik) is the premier locality. Na/(Na+Ca)<=0.5 fork suppresses it in Na-rich (mesolite/natrolite) fluid.',
+};
+
+const MINERAL_GATES_mesolite: MineralGates = {
+  sigma_crit: 1.0,
+  T_min: 40, T_max: 140, T_optimal: 90,
+  fluid_min: { Ca: 60, Na: 40, Al: 4, SiO2: 150 },
+  pH_min: 7.0, pH_max: 10.5,
+  surface_energy: 'low',
+  _sources: ['mesolite engine v201', 'Anthony et al. Handbook of Mineralogy', 'Artioli Smith & Pluth 1986 Acta Cryst. C42:937', 'Alberti Pongiluppi & Vezzalini 1982'],
+  _notes: 'Na2Ca2Al6Si9O30·8H2O — orthorhombic Fdd2 with a GIANT b-axis (~56.6 A, the ordered 1-natrolite:2-scolecite layer stack). The ordered Na-Ca intermediate — needs BOTH Na and Ca (0.2<=Na/(Na+Ca)<=0.8). Finest hair-like/cottony fibrous tufts. Twin {010}/{100} (secondary vs scolecite). The mixed-cation gate is the discriminator from scolecite (Ca-only) + natrolite (Na-only).',
+};
+
 Object.assign(VugConditions.prototype, {
   supersaturation_quartz() {
   const eq = this.silica_equilibrium(this.effectiveTemperature);
@@ -1120,6 +1155,71 @@ Object.assign(VugConditions.prototype, {
     if (pH >= 8.0 && pH <= 9.5) sigma *= 1.2;
     else sigma *= Math.max(0.5, 1.0 - Math.abs(pH - 8.75) * 0.3);
     if (ACTIVITY_CORRECTED_SUPERSAT) sigma *= activityCorrectionFactor(this.fluid, 'heulandite');
+    return Math.max(sigma, 0);
+  },
+
+  // v201 (2026-06-17): Scolecite — the Ca-endmember fibrous natrolite-group
+  // zeolite. Na/(Na+Ca)<=0.5 fork (Ca-dominant). Low-Si floor (150), broad
+  // low-T window, alkaline, redox-insensitive. See MINERAL_GATES_scolecite.
+  supersaturation_scolecite() {
+    const g = MINERAL_GATES_scolecite;
+    if (this.fluid.Ca < g.fluid_min!.Ca || this.fluid.Al < g.fluid_min!.Al
+        || this.fluid.SiO2 < g.fluid_min!.SiO2) return 0;
+    if (this.temperature < g.T_min! || this.temperature > g.T_max!) return 0;
+    if (this.fluid.pH < g.pH_min! || this.fluid.pH > g.pH_max!) return 0;
+    // Na/Ca fork — scolecite is the Ca ENDMEMBER; suppress when Na approaches
+    // dominance (that's mesolite -> natrolite territory).
+    const naFrac = this.fluid.Na / (this.fluid.Na + this.fluid.Ca);
+    if (naFrac > 0.5) return 0;
+    const ca_f = Math.min(this.fluid.Ca / 200.0, 2.0);
+    const al_f = Math.min(this.fluid.Al / 12.0, 2.0);
+    const si_f = Math.min(this.fluid.SiO2 / 400.0, 1.5);   // low-Si zeolite saturates lower
+    let sigma = ca_f * al_f * si_f;
+    // Ca-purity bonus: the most-Ca fluids favor scolecite most strongly.
+    sigma *= Math.max(0.7, 1.3 - naFrac);
+    // T sweet spot 70-120 (low-T fibrous zeolite)
+    const T = this.temperature;
+    if (T >= 70 && T <= 120) sigma *= 1.3;
+    else if (T < 70) sigma *= Math.max(0.4, (T - 40) / 30 * 0.6 + 0.4);
+    else sigma *= Math.max(0.4, 1.0 - (T - 120) / 40);
+    // pH sweet spot 8-9.5
+    const pH = this.fluid.pH;
+    if (pH >= 8.0 && pH <= 9.5) sigma *= 1.2;
+    else sigma *= Math.max(0.5, 1.0 - Math.abs(pH - 8.75) * 0.3);
+    if (ACTIVITY_CORRECTED_SUPERSAT) sigma *= activityCorrectionFactor(this.fluid, 'scolecite');
+    return Math.max(sigma, 0);
+  },
+
+  // v201 (2026-06-17): Mesolite — the ordered Na-Ca intermediate of the
+  // natrolite group. Needs BOTH Na and Ca (0.2<=Na/(Na+Ca)<=0.8). Finest
+  // fibrous tufts. See MINERAL_GATES_mesolite.
+  supersaturation_mesolite() {
+    const g = MINERAL_GATES_mesolite;
+    if (this.fluid.Ca < g.fluid_min!.Ca || this.fluid.Na < g.fluid_min!.Na
+        || this.fluid.Al < g.fluid_min!.Al || this.fluid.SiO2 < g.fluid_min!.SiO2) return 0;
+    if (this.temperature < g.T_min! || this.temperature > g.T_max!) return 0;
+    if (this.fluid.pH < g.pH_min! || this.fluid.pH > g.pH_max!) return 0;
+    // Na/Ca fork — mesolite is the MIXED member; below 0.2 it's scolecite,
+    // above 0.8 it's natrolite (not wired).
+    const naFrac = this.fluid.Na / (this.fluid.Na + this.fluid.Ca);
+    if (naFrac < 0.2 || naFrac > 0.8) return 0;
+    const ca_f = Math.min(this.fluid.Ca / 200.0, 1.8);
+    const na_f = Math.min(this.fluid.Na / 80.0, 1.8);
+    const al_f = Math.min(this.fluid.Al / 12.0, 2.0);
+    const si_f = Math.min(this.fluid.SiO2 / 400.0, 1.5);
+    let sigma = Math.sqrt(ca_f * na_f) * al_f * si_f;   // geometric mean — needs BOTH
+    // intermediate-fraction bonus: strongest near the ordered Na2Ca2 (~0.45)
+    sigma *= Math.max(0.6, 1.2 - Math.abs(naFrac - 0.45) * 1.5);
+    // T sweet spot 70-110
+    const T = this.temperature;
+    if (T >= 70 && T <= 110) sigma *= 1.3;
+    else if (T < 70) sigma *= Math.max(0.4, (T - 40) / 30 * 0.6 + 0.4);
+    else sigma *= Math.max(0.4, 1.0 - (T - 110) / 30);
+    // pH sweet spot 8-9.5
+    const pH = this.fluid.pH;
+    if (pH >= 8.0 && pH <= 9.5) sigma *= 1.2;
+    else sigma *= Math.max(0.5, 1.0 - Math.abs(pH - 8.75) * 0.3);
+    if (ACTIVITY_CORRECTED_SUPERSAT) sigma *= activityCorrectionFactor(this.fluid, 'mesolite');
     return Math.max(sigma, 0);
   },
 

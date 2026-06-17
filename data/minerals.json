@@ -16813,6 +16813,224 @@
       "_late_stage_note": "Late zeolite stage — the warmer/earlier end of the Stage-II zeolite window relative to stilbite, on the cooling/dehydrating path in the basalt vesicle.",
       "class_color": "#e8d4b0"
     },
+    "scolecite": {
+      "formula": "CaAl2Si3O10·3H2O",
+      "nucleation_sigma": 1.2,
+      "max_nucleation_count": 5,
+      "max_size_cm": 30,
+      "growth_rate_mult": 0.3,
+      "habit_variants": [
+        {
+          "name": "spray",
+          "wall_spread": 0.4,
+          "void_reach": 0.7,
+          "vector": "projecting",
+          "trigger": "default — radiating acicular needle spray / divergent fibrous bundle. The signature scolecite habit."
+        },
+        {
+          "name": "puffball",
+          "wall_spread": 0.5,
+          "void_reach": 0.6,
+          "vector": "projecting",
+          "trigger": "very high supersaturation (excess > 1.6) — dense divergent needle burst from a point."
+        },
+        {
+          "name": "prismatic",
+          "wall_spread": 0.3,
+          "void_reach": 0.75,
+          "vector": "projecting",
+          "trigger": "low supersaturation (excess < 0.3) — slender square-section prism ∥[001], striated single blade."
+        },
+        {
+          "name": "fibrous",
+          "wall_spread": 0.7,
+          "void_reach": 0.3,
+          "vector": "coating",
+          "trigger": "lowest supersaturation (excess < 0.15) — silky fibrous mass."
+        }
+      ],
+      "class": "silicate",
+      "description": "CaAl₂Si₃O₁₀·3H₂O — monoclinic (Cc, β≈90.64° pseudo-orthorhombic) framework silicate, the Ca-endmember of the fibrous natrolite-group zeolites (natrolite Na → mesolite Na-Ca → scolecite Ca, a coupled Na⁺+½□ ↔ Ca²⁺+½H₂O substitution — the Ca member carries the extra channel water). H 5-5.5, density 2.25-2.29, vitreous/silky, white to colorless; pyroelectric + piezoelectric. The signature habit is radiating acicular sprays and 'puffball' needle bursts, plus slender square-section prisms to 30 cm. Twinning on {100} (twin axis [001]) is near-ubiquitous — it makes the monoclinic crystal mimic tetragonal symmetry. A LOW-silica zeolite (Si/Al≈1.5) that forms EARLIER in the basalt-amygdule paragenesis than the higher-Si sheet zeolites stilbite + heulandite (which drape over the scolecite sprays); the Deccan Traps (Poona/Nashik/Mumbai, Maharashtra) + Teigarhorn, Berufjord, Iceland are the premier localities. Field discriminator: scolecite is the monoclinic member → OBLIQUE (inclined) extinction, vs the parallel extinction of orthorhombic natrolite + mesolite; coarser needles than mesolite. Refs: Anthony et al. Handbook of Mineralogy (scolecite); Alberti, Pongiluppi & Vezzalini 1982 N.Jb.Min.Abh. 143:231 (natrolite-group crystal chemistry); Smith & Walls 1971 Mineral.Mag. 38:72; Ottens et al. 2019 (Deccan).",
+      "scenarios": [
+        "deccan_zeolite"
+      ],
+      "T_range_C": [
+        40,
+        150
+      ],
+      "T_optimum_C": [
+        70,
+        120
+      ],
+      "T_behavior": "narrow",
+      "pH_dissolution_below": 6.0,
+      "pH_dissolution_above": null,
+      "redox_requirement": "any",
+      "required_ingredients": {
+        "Ca": 60,
+        "Al": 4,
+        "SiO2": 150
+      },
+      "_ingredients_note": "Ca ≥ 60 + Al ≥ 4 + SiO2 ≥ 150 (LOW-Si floor — lower than stilbite's 250, reflecting the low-Si natrolite framework). T 40-150°C, sweet spot 70-120°C. pH 7.0-10.5 alkaline. Redox-insensitive (no redox gate). Na/Ca FORK: scolecite fires when Na/(Na+Ca) ≤ 0.5 (Ca-dominant); above that it's mesolite/natrolite territory. Activity correction applied.",
+      "trace_ingredients": {
+        "Na": "minor Na substitution; Na/(Na+Ca) > 0.5 shifts the chemistry to mesolite (the Na-Ca intermediate)",
+        "Sr": "Sr substitutes for Ca, common in Deccan zeolites"
+      },
+      "thermal_decomp_C": 250,
+      "thermal_decomp_reaction": "Reversible zeolitic dehydration; the fibrous framework collapses near ~200-300°C. Water loss only; no ionic release to the fluid.",
+      "thermal_decomp_products": {},
+      "fluorescence": {
+        "activator": null,
+        "threshold_ppm": 0,
+        "color": null,
+        "quencher": null,
+        "status": "May fluoresce weak yellow-brown under SW/LW UV; not diagnostic."
+      },
+      "twin_laws": [
+        {
+          "name": "contact_penetration_100",
+          "miller_indices": "{100}",
+          "trigger": "growth",
+          "probability": 0.4,
+          "status": "newly_added",
+          "_source": "Handbook of Mineralogy (scolecite): twinning on {100}, twin axis [001], very common as contact OR penetration twins (it is what makes the monoclinic crystal mimic tetragonal/orthorhombic symmetry optically — 'nearly all scolecite is twinned' is a fair design default). High p=0.4. General reference per the citation-conservatism rule."
+        }
+      ],
+      "acid_dissolution": {
+        "pH_threshold": 6.0,
+        "reaction": "Scolecite dissolves below pH 6, releasing Ca + Al + Si to the fluid.",
+        "products": {
+          "Ca": 0.020,
+          "Al": 0.016,
+          "SiO2": 0.030
+        }
+      },
+      "habit": "spray",
+      "color_rules": {
+        "white_colorless": {
+          "default": true,
+          "trigger": "Ca-zeolite, white to colorless, silky when fibrous"
+        }
+      },
+      "narrate_function": null,
+      "runtimes_present": [
+        "js"
+      ],
+      "audit_status": "new v201 (2026-06-17). Monoclinic Cc Ca-endmember fibrous natrolite-group zeolite. Forms before the sheet zeolites (stilbite/heulandite) in the Deccan amygdule sequence; closes the scolecite half of the PROPOSALS-LEDGER §G fibrous-zeolite gap (the deccan step-70 text named scolecite+mesolite as unmodelled). Substrate priority: silica lining > mesolite intergrowth > calcite > wall. Na/Ca fork (Na/(Na+Ca)≤0.5) discriminates it from mesolite. Per Anthony Handbook + Alberti et al. 1982.",
+      "late_stage_propensity": 0.55,
+      "_late_stage_note": "Mid-stage zeolite — forms after the early Ca-zeolites + analcime but before the sheet zeolites stilbite/heulandite + apophyllite. Scolecite is generally the most Ca-evolved (latest) of the natrolite-group trio.",
+      "class_color": "#e8e0d0"
+    },
+    "mesolite": {
+      "formula": "Na2Ca2Al6Si9O30·8H2O",
+      "nucleation_sigma": 1.2,
+      "max_nucleation_count": 5,
+      "max_size_cm": 20,
+      "growth_rate_mult": 0.3,
+      "habit_variants": [
+        {
+          "name": "tuft",
+          "wall_spread": 0.4,
+          "void_reach": 0.7,
+          "vector": "projecting",
+          "trigger": "default — hair-like cottony fibrous tuft (the finest fiber of the group). The diagnostic mesolite habit."
+        },
+        {
+          "name": "acicular",
+          "wall_spread": 0.4,
+          "void_reach": 0.7,
+          "vector": "projecting",
+          "trigger": "mid supersaturation (excess 0.8-1.6) — divergent acicular spray, finer than scolecite."
+        },
+        {
+          "name": "prismatic",
+          "wall_spread": 0.3,
+          "void_reach": 0.75,
+          "vector": "projecting",
+          "trigger": "high supersaturation (excess > 1.6) — slender prism ∥[001] (the coarse, rarer mode)."
+        },
+        {
+          "name": "porcelaneous",
+          "wall_spread": 0.8,
+          "void_reach": 0.2,
+          "vector": "coating",
+          "trigger": "lowest supersaturation (excess < 0.2) — compact porcelaneous mass."
+        }
+      ],
+      "class": "silicate",
+      "description": "Na₂Ca₂Al₆Si₉O₃₀·8H₂O — orthorhombic (Fdd2) framework silicate, the ORDERED Na-Ca intermediate of the fibrous natrolite group. Its giant b-axis (~56.6 Å) is the structural signature: an ordered stack of one natrolite-type (Na) layer to two scolecite-type (Ca) layers along b, giving the ideal Na₂Ca₂ per 30-O formula — this is why mesolite needs BOTH Na and Ca present, unlike Ca-only scolecite or Na-only natrolite. H 5, density 2.26, vitreous/silky, white to colorless; pyroelectric. The diagnostic habit is the finest hair-like / cottony fibrous tufts (finer than scolecite). Low-Si (Si/Al≈1.5), forms with scolecite earlier than the sheet zeolites; first described from the Cyclopean Islands, Sicily (1816), superb at Poona/Pashan Hills (Deccan) and Nova Scotia. Field discriminator: orthorhombic → PARALLEL extinction (vs scolecite's oblique), finer fiber than both scolecite and natrolite, biaxial (+). Refs: Anthony et al. Handbook of Mineralogy (mesolite); Artioli, Smith & Pluth 1986 Acta Cryst. C42:937 (Fdd2, giant b, layer-ordering); Alberti, Pongiluppi & Vezzalini 1982 N.Jb.Min.Abh. 143:231.",
+      "scenarios": [
+        "deccan_zeolite"
+      ],
+      "T_range_C": [
+        40,
+        140
+      ],
+      "T_optimum_C": [
+        70,
+        110
+      ],
+      "T_behavior": "narrow",
+      "pH_dissolution_below": 6.0,
+      "pH_dissolution_above": null,
+      "redox_requirement": "any",
+      "required_ingredients": {
+        "Ca": 60,
+        "Na": 40,
+        "Al": 4,
+        "SiO2": 150
+      },
+      "_ingredients_note": "Ca ≥ 60 AND Na ≥ 40 (BOTH essential — the ordered Na-Ca intermediate) + Al ≥ 4 + SiO2 ≥ 150 (low-Si floor). T 40-140°C, sweet spot 70-110°C. pH 7.0-10.5 alkaline. Redox-insensitive. Na/Ca FORK: mesolite fires only in the MIXED band 0.2 ≤ Na/(Na+Ca) ≤ 0.8 (below = scolecite, above = natrolite); strongest near the ordered Na₂Ca₂ (~0.45). The sigma uses the geometric mean of the Na and Ca factors, so it needs both. Activity correction applied.",
+      "trace_ingredients": {
+        "Sr": "Sr substitutes for Ca, common in Deccan zeolites",
+        "K": "minor K substitution for Na"
+      },
+      "thermal_decomp_C": 250,
+      "thermal_decomp_reaction": "Reversible zeolitic dehydration; framework collapses near ~200-300°C. Water loss only; no ionic release to the fluid.",
+      "thermal_decomp_products": {},
+      "fluorescence": {
+        "activator": null,
+        "threshold_ppm": 0,
+        "color": null,
+        "quencher": null,
+        "status": "Generally non-fluorescent."
+      },
+      "twin_laws": [
+        {
+          "name": "contact_010",
+          "miller_indices": "{010}",
+          "trigger": "growth",
+          "probability": 0.08,
+          "status": "newly_added",
+          "_source": "Handbook of Mineralogy (mesolite): 'characteristically twinned' on {010} or {100}. Less emphasized than scolecite's ubiquitous {100} twinning — conservative p=0.08. NOTE: twin-law-check.mjs ⚠ FLAGs this (no cell-heuristic prediction matches) — an expected genuinely-subtle case: the Fdd2 framework with its giant b≈56.6Å (ordered 1-natrolite:2-scolecite layer stack) defeats the simple-cell twin predictor (cf. the pyrite/marcasite Tier-2 class). The citation is the real, web-verified Handbook entry, so per the citation-conservatism rule the entry ships. General reference only (no synthesized page cite)."
+        }
+      ],
+      "acid_dissolution": {
+        "pH_threshold": 6.0,
+        "reaction": "Mesolite dissolves below pH 6, releasing Na + Ca + Al + Si to the fluid.",
+        "products": {
+          "Na": 0.012,
+          "Ca": 0.012,
+          "Al": 0.018,
+          "SiO2": 0.030
+        }
+      },
+      "habit": "tuft",
+      "color_rules": {
+        "white_colorless": {
+          "default": true,
+          "trigger": "Na-Ca zeolite, white to colorless, silky/cottony fibrous"
+        }
+      },
+      "narrate_function": null,
+      "runtimes_present": [
+        "js"
+      ],
+      "audit_status": "new v201 (2026-06-17). Orthorhombic Fdd2 ordered Na-Ca intermediate of the natrolite group. Needs BOTH Na and Ca (the mixed-cation gate is the discriminator from Ca-only scolecite + Na-only natrolite). Co-deposits with scolecite, before the sheet zeolites. Closes the mesolite half of PROPOSALS-LEDGER §G. Deccan Na bumped 40→80 so the mixed-cation window opens. Substrate priority: silica lining > scolecite intergrowth > calcite > wall. Per Anthony Handbook + Artioli et al. 1986 + Alberti et al. 1982.",
+      "late_stage_propensity": 0.5,
+      "_late_stage_note": "Mid-stage zeolite — co-deposits with scolecite (natrolite → mesolite → scolecite cation-evolution order; mesolite forms before the most-Ca-evolved scolecite), before the sheet zeolites.",
+      "class_color": "#ece4d8"
+    },
     "epidote": {
       "formula": "Ca2(Al,Fe3+)3(SiO4)(Si2O7)O(OH)",
       "nucleation_sigma": 1.2,

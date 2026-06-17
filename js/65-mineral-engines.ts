@@ -346,6 +346,11 @@ const MINERAL_ENGINES = {
   // coffin tablets). Fills the deccan_zeolite Stage-II narrative gap.
   stilbite: grow_stilbite,
   heulandite: grow_heulandite,
+  // v201 (2026-06-17): the fibrous natrolite-group Ca-(Na) zeolites — scolecite
+  // (Ca endmember) + mesolite (ordered Na-Ca intermediate). Form before the
+  // sheet zeolites in the Deccan amygdale paragenesis.
+  scolecite: grow_scolecite,
+  mesolite: grow_mesolite,
   // v114 (2026-05-20): Mg-matrix family completing the Jeffrey Mine
   // rodingite assemblage. Three minerals in three different chemistry
   // classes:

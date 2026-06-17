@@ -159,8 +159,13 @@ tail is one cohort: **Round-5/6 metamorphic + zeolite silicates.**
 - ~~**stilbite**, **heulandite**~~ **✅ SHIPPED v200** (2026-06-17) — the Deccan Stage-II zeolite couple (the stilbite/heulandite dehydration couple, Fridriksson 2001). Was the highest-leverage add on this list (closed §A #14's narrative gap too). scolecite + mesolite (the fibrous Ca-zeolites of the same paragenesis) remain the next zeolite candidates; the step-70 text now names them as honestly-unmodelled.
 
 **Also scenario-named-but-unbuilt** (associate/future mentions, lower priority):
-scolecite, mesolite (deccan Stage II), zoisite, perovskite, titanian-clinohumite,
-antigorite, lizardite (Jeffrey "future candidates"), zincite (willemite associate).
+~~scolecite, mesolite (deccan Stage II)~~ **✅ SHIPPED v201** (2026-06-17) — the
+fibrous natrolite-group Ca-(Na) zeolites (Na/Ca fork: scolecite Ca-endmember,
+mesolite ordered Na-Ca intermediate); deccan Na 40→80 opened mesolite's mixed-
+cation window; all four Deccan zeolites now fire 20/20. zoisite, perovskite,
+titanian-clinohumite, antigorite, lizardite (Jeffrey "future candidates"),
+zincite (willemite associate) remain. The full Deccan zeolite paragenesis
+(scolecite/mesolite → stilbite/heulandite) is now modelled end-to-end.
 
 **Content gap (§A #14):** `deccan_zeolite` step-70 promises stilbite + heulandite
 blades that can't form — either build the zeolites or true the event text.

@@ -2,7 +2,27 @@
 
 Living list of open work items, captured from session conversations so context survives compaction. Each item has enough detail that someone picking it up cold can act without re-discovering the rationale.
 
-> ## 🪨 UPDATE (2026-06-17, latest) — DECCAN STAGE-II ZEOLITE COUPLE SHIPPED (SIM 200)
+> ## 🧵 UPDATE (2026-06-17, latest) — FIBROUS NATROLITE-GROUP ZEOLITES SHIPPED (SIM 201)
+>
+> **scolecite + mesolite** added — the companion pair to v200's stilbite/
+> heulandite, completing the Deccan zeolite paragenesis END-TO-END (the fibrous
+> low-Si Ca-(Na) zeolites that form FIRST: scolecite/mesolite sprays → stilbite/
+> heulandite sheets drape over them). They are the natrolite Na↔Ca coupled-
+> substitution series: **scolecite** the Ca endmember (Na/(Na+Ca)≤0.5, radiating
+> acicular sprays, {100} twin), **mesolite** the ordered Na-Ca intermediate (needs
+> BOTH cations, 0.2≤Na/(Na+Ca)≤0.8, finest hair-like tufts). The **Na/Ca FORK** is
+> the discriminator. Gated on a LOW silica FLOOR (150, not a low-Si ceiling —
+> Deccan is THE scolecite locality despite silica-rich fluid). **Deccan tune:**
+> initial Na 40→80 opened mesolite's mixed-cation window (also unlocked pectolite,
+> a legit basalt-amygdule Na-Ca silicate). All FOUR Deccan zeolites now fire 20/20
+> seeds; scolecite/mesolite added to expects_species. baseline-diff: **1/34 moved
+> (deccan only), +[scolecite, mesolite, pectolite], zero losses**; coverage Live
+> 139→141; twin-check scolecite {100} PASS, mesolite {010} FLAG (expected — Fdd2
+> giant-b defeats the heuristic, real Handbook citation). SIM 200→201. Closes the
+> §G fibrous-zeolite gap. NEXT zeolite candidates: thomsonite, analcime, natrolite
+> (the Na endmember).
+>
+> ## 🪨 UPDATE (2026-06-17) — DECCAN STAGE-II ZEOLITE COUPLE SHIPPED (SIM 200)
 >
 > **stilbite + heulandite** added (the highest-leverage mineral add on the
 > PROPOSALS-LEDGER, §A #14 + §G): two new silicate-class zeolites that BOTH fill

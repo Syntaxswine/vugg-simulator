@@ -147,6 +147,18 @@
     "lattice": { "a": 17.77, "b": 17.95, "c": 7.435, "beta": 116.46 },
     "_source": "Anthony et al. Handbook of Mineralogy (heulandite sheet, handbookofmineralogy.org); Coombs et al. 1997 Can. Mineral. 35:1571"
   },
+  "scolecite": {
+    "system": "monoclinic",
+    "space_group": "Cc",
+    "lattice": { "a": 18.508, "b": 18.981, "c": 6.527, "beta": 90.64 },
+    "_source": "Anthony et al. Handbook of Mineralogy (scolecite sheet); Smith & Walls 1971 Mineral.Mag. 38:72; Joswig Bartl & Fuess 1984 Z.Kristallogr. 166:219 (β≈90.64°, pseudo-orthorhombic)"
+  },
+  "mesolite": {
+    "system": "orthorhombic",
+    "space_group": "Fdd2",
+    "lattice": { "a": 18.4049, "b": 56.655, "c": 6.5443 },
+    "_source": "Anthony et al. Handbook of Mineralogy (mesolite sheet); Artioli Smith & Pluth 1986 Acta Cryst. C42:937 (giant b≈56.6Å = 1-natrolite:2-scolecite layer stack)"
+  },
   "orthoclase": {
     "system": "monoclinic",
     "space_group": "C2/m",

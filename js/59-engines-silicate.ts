@@ -1791,6 +1791,128 @@ function grow_heulandite(crystal, conditions, step) {
   });
 }
 
+// v201 (2026-06-17): Scolecite CaAl2Si3O10·3H2O — monoclinic Cc, the Ca-
+// endmember fibrous natrolite-group zeolite. Habits:
+//   spray (default) — radiating acicular needle sprays (the signature)
+//   puffball (very high excess) — dense divergent needle bursts from a point
+//   prismatic (low excess / clean substrate) — slender square-section prisms ∥[001]
+//   fibrous (lowest) — silky fibrous mass
+// Forms BEFORE the sheet zeolites; later stilbite/heulandite drape over the
+// sprays. White/colorless. Dissolves in acid.
+function grow_scolecite(crystal, conditions, step) {
+  const sigma = conditions.supersaturation_scolecite();
+  if (sigma < 1.0) {
+    if (crystal.total_growth_um > 5 && conditions.fluid.pH < 6.0) {
+      crystal.dissolved = true;
+      const d = Math.min(2.0, crystal.total_growth_um * 0.06);
+      return new GrowthZone({
+        step, temperature: conditions.temperature,
+        thickness_um: -d, growth_rate: -d, dissolutionMode: 'acid',
+        note: `acid dissolution (pH ${conditions.fluid.pH.toFixed(1)}) — scolecite releases Ca + Al + Si to fluid`,
+      });
+    }
+    return null;
+  }
+  const excess = sigma - 1.0;
+  const rate = 1.7 * excess * rng.uniform(0.8, 1.2);
+  if (rate < 0.1) return null;
+
+  // Habit dispatch — radiating acicular sprays are scolecite's signature.
+  if (excess > 1.6) {
+    crystal.habit = 'puffball';
+    crystal.dominant_forms = ['dense divergent needle burst from a point', 'radiating acicular puffball'];
+  } else if (excess < 0.3) {
+    crystal.habit = 'prismatic';
+    crystal.dominant_forms = ['slender square-section prism ∥[001]', 'striated single blade'];
+  } else if (excess < 0.15) {
+    crystal.habit = 'fibrous';
+    crystal.dominant_forms = ['silky fibrous mass'];
+  } else {
+    crystal.habit = 'spray';
+    crystal.dominant_forms = ['radiating acicular needle spray', 'divergent fibrous bundle'];
+  }
+
+  // Substrate flavor
+  const pos = crystal.position || '';
+  let substrate_flavor = '';
+  if (pos.includes('chalcedony') || pos.includes('quartz')) substrate_flavor = ' on the silica lining';
+  else if (pos.includes('mesolite')) substrate_flavor = ' intergrown with mesolite';
+  else if (pos.includes('calcite')) substrate_flavor = ' on calcite';
+
+  // Mass-balance debits — Ca Al2 Si3 (low-Si framework)
+  conditions.fluid.Ca = Math.max(conditions.fluid.Ca - rate * 0.020, 0);
+  conditions.fluid.Al = Math.max(conditions.fluid.Al - rate * 0.016, 0);
+  conditions.fluid.SiO2 = Math.max(conditions.fluid.SiO2 - rate * 0.030, 0);
+
+  return new GrowthZone({
+    step, temperature: conditions.temperature,
+    thickness_um: rate, growth_rate: rate,
+    trace_Sr: conditions.fluid.Sr > 1 ? conditions.fluid.Sr * 0.01 : 0,
+    note: `scolecite ${crystal.habit}, white-colorless Ca-zeolite${substrate_flavor}; monoclinic, H 5-5.5, vitreous/silky, twinned {100}`,
+  });
+}
+
+// v201 (2026-06-17): Mesolite Na2Ca2Al6Si9O30·8H2O — orthorhombic Fdd2, the
+// ordered Na-Ca intermediate. Habits:
+//   tuft (default) — the finest hair-like / cottony fibrous tufts (diagnostic)
+//   acicular (mid) — divergent acicular sprays (finer than scolecite)
+//   prismatic (high excess) — slender prisms ∥[001] (the coarse, rarer mode)
+//   porcelaneous (lowest) — compact porcelaneous mass
+// Co-deposits with scolecite; needs BOTH Na and Ca. White/colorless.
+function grow_mesolite(crystal, conditions, step) {
+  const sigma = conditions.supersaturation_mesolite();
+  if (sigma < 1.0) {
+    if (crystal.total_growth_um > 5 && conditions.fluid.pH < 6.0) {
+      crystal.dissolved = true;
+      const d = Math.min(2.0, crystal.total_growth_um * 0.06);
+      return new GrowthZone({
+        step, temperature: conditions.temperature,
+        thickness_um: -d, growth_rate: -d, dissolutionMode: 'acid',
+        note: `acid dissolution (pH ${conditions.fluid.pH.toFixed(1)}) — mesolite releases Na + Ca + Al + Si to fluid`,
+      });
+    }
+    return null;
+  }
+  const excess = sigma - 1.0;
+  const rate = 1.6 * excess * rng.uniform(0.8, 1.2);
+  if (rate < 0.1) return null;
+
+  // Habit dispatch — the finest hair-like tufts are mesolite's signature.
+  if (excess > 1.6) {
+    crystal.habit = 'prismatic';
+    crystal.dominant_forms = ['slender prism ∥[001] (the coarse rarer mode)'];
+  } else if (excess < 0.2) {
+    crystal.habit = 'porcelaneous';
+    crystal.dominant_forms = ['compact porcelaneous mass'];
+  } else if (excess > 0.8) {
+    crystal.habit = 'acicular';
+    crystal.dominant_forms = ['divergent acicular spray (finer than scolecite)'];
+  } else {
+    crystal.habit = 'tuft';
+    crystal.dominant_forms = ['hair-like cottony fibrous tuft (the finest fiber)', 'silky white tuft'];
+  }
+
+  // Substrate flavor
+  const pos = crystal.position || '';
+  let substrate_flavor = '';
+  if (pos.includes('chalcedony') || pos.includes('quartz')) substrate_flavor = ' on the silica lining';
+  else if (pos.includes('scolecite')) substrate_flavor = ' intergrown with scolecite';
+  else if (pos.includes('calcite')) substrate_flavor = ' on calcite';
+
+  // Mass-balance debits — Na2 Ca2 Al6 Si9 (low-Si framework, Na+Ca)
+  conditions.fluid.Na = Math.max(conditions.fluid.Na - rate * 0.012, 0);
+  conditions.fluid.Ca = Math.max(conditions.fluid.Ca - rate * 0.012, 0);
+  conditions.fluid.Al = Math.max(conditions.fluid.Al - rate * 0.018, 0);
+  conditions.fluid.SiO2 = Math.max(conditions.fluid.SiO2 - rate * 0.030, 0);
+
+  return new GrowthZone({
+    step, temperature: conditions.temperature,
+    thickness_um: rate, growth_rate: rate,
+    trace_Sr: conditions.fluid.Sr > 1 ? conditions.fluid.Sr * 0.01 : 0,
+    note: `mesolite ${crystal.habit}, white-colorless Na-Ca zeolite${substrate_flavor}; orthorhombic, H 5, vitreous/silky`,
+  });
+}
+
 // v196 (2026-06-15): Epidote Ca2(Al,Fe3+)3(SiO4)(Si2O7)O(OH) — monoclinic
 // P2_1/m sorosilicate, the Fe3+ endmember of the clinozoisite-epidote
 // series. Alpine-cleft / greenschist mineral; lustrous pistachio-green

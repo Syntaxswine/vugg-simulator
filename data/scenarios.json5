@@ -1608,7 +1608,7 @@
       // magnetite stopped firing under sim_version 20 (Phase C v1).
       // Same drift cause as bornite/porphyry — see that note. Restore
       // when chemistry tunes for the new sim version.
-      "expects_species": ["hematite", "quartz", "apophyllite", "stilbite", "heulandite"],
+      "expects_species": ["hematite", "quartz", "apophyllite", "stilbite", "heulandite", "scolecite", "mesolite"],
       "duration_steps": 200,
       "notes": [
         "Per Ottens et al. 2019, the Deccan basalt vesicles fill in stages over tens of millions of years. Stage I (early): silica veneers, chalcedony coating. Stage II: zeolite blades (stilbite, scolecite, heulandite) and early calcite. Stage III: the apophyllite stage — alkaline K-Ca-Si-F fluid percolates through cooled basalt vesicles and crystallizes pseudo-cubic apophyllite blocks, sometimes carrying hematite-needle phantoms (the 'bloody apophyllite' of Nashik).",
@@ -1651,7 +1651,13 @@
           "Mg": 8,
           "Al": 15,
           "K": 2,
-          "Na": 40,
+          // Na 40→80 (v201): Deccan amygdule fluids are Na-Ca, and the ordered
+          // Na-Ca zeolite mesolite needs BOTH cations — 40 kept Na/(Na+Ca) at
+          // ~0.15 (pure-scolecite regime), starving mesolite. 80 opens the
+          // mixed-cation window (Na/(Na+Ca) ~0.2-0.3) so mesolite fires while
+          // Ca-dominance still favors scolecite. (mesolite is the Poona/Pashan
+          // classic; Na-Ca fluid is geologically correct here.)
+          "Na": 80,
           "F": 1,
           // Audit gap-fill: zeolites carry Sr substituting for Ca.
           "Sr": 2,
