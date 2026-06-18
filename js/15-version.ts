@@ -11288,5 +11288,23 @@
 //        cleavage + no effervescence + harder + lighter) + structural.json
 //        (R-3m hexagonal a13.83 c15.02). twin-law-check: {0001} PASS (basal,
 //        the phacolite penetration twin). SIM 202 -> 203. Coverage +1 live.
-const SIM_VERSION = 203;
+//   v204 — BISBEE AZURITE FIX — the "Bisbee Blue" finally nucleates (2026-06-18).
+//        PROPOSALS-LEDGER §A #10 stale-expects diagnosis. Of the 3 flagged stale
+//        (mineral,scenario) pairs, TWO were FALSE POSITIVES: mirabilite/searles_lake
+//        and torbernite/schneeberg both nucleate then DEHYDRATE (paramorph) to
+//        thenardite / metatorbernite respectively — correct geology, and the
+//        coverage tool already credits paramorph_origin (they read Live). Only
+//        azurite/bisbee was a real miss: event_bisbee_azurite_peak did `CO3 += 80`
+//        off a CO3 base depleted to ~20 (earlier carbonate draw) → landed ~100,
+//        under azurite's effectiveCO3 >= 120 gate (and pH-7 Bjerrum speciation
+//        pulls effective BELOW raw). Flagged "azurite 0/8" debt at v186. FIX: two
+//        coupled event edits — (1) azurite_peak sets a CO3 FLOOR (260) + pH 7.4
+//        (the monsoon's CO2-charged rainwater aggressively dissolving Escabrosa
+//        limestone drives high DIC + a near-neutral-mild-alkaline buffered pocket,
+//        Vink 1986); (2) co2_drop deepened -120 -> -210 so the higher floor draws
+//        back down (260 -> 50 -> 20) and the step-265 low-CO3 phases keep their
+//        CO3<=50 windows (floor-only first pass had killed dioptase/halite). azurite
+//        now fires (σ peak ~2.3); whole-fleet seed-42 diff = EXACTLY one line,
+//        bisbee azurite 0->4, zero other drift. SIM 203 -> 204.
+const SIM_VERSION = 204;
 

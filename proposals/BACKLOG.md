@@ -2,6 +2,29 @@
 
 Living list of open work items, captured from session conversations so context survives compaction. Each item has enough detail that someone picking it up cold can act without re-discovering the rationale.
 
+> ## 🔵 UPDATE (2026-06-18) — BISBEE AZURITE FIX (SIM 204) + stale-expects §A #10 RESOLVED
+>
+> PROPOSALS-LEDGER §A #10 ("stale expects_species — 3 to diagnose") is **CLOSED**.
+> Diagnosed all three; **only one was real debt**. **azurite/bisbee**: the
+> "Bisbee Blue" never nucleated because `event_bisbee_azurite_peak` did
+> `CO3 += 80` off a CO3 base depleted to ~20 (earlier carbonate draw) → ~100,
+> under azurite's **effectiveCO3 ≥ 120** gate (pH-7 Bjerrum speciation pulls
+> effective below raw). FIX (js/70j, TWO coupled event edits): azurite_peak CO3
+> **floor 260** + pH **7.4** (monsoon CO2-charged limestone dissolution → high DIC
+> + buffered near-neutral, Vink 1986); AND co2_drop deepened **−120→−210** so the
+> higher floor draws back down (260→50→20) and the step-265 low-CO3 phases keep
+> their CO3≤50 windows. Result is **SURGICAL**: whole-fleet seed-42 diff is exactly
+> ONE line — bisbee **azurite 0→4** — zero other drift (dioptase/halite/chrysocolla/
+> malachite/brochantite all unchanged from v203). azurite added to bisbee
+> expects_species. (First pass with floor-only left residual CO3 ~110 at step 265
+> and killed dioptase/halite/1× chrysocolla via their CO3≤50 gates — the co2_drop
+> deepening is what made it clean.) **mirabilite/searles + torbernite/schneeberg
+> were FALSE POSITIVES** — both nucleate then DEHYDRATE (paramorph) to thenardite /
+> metatorbernite (correct geology); the coverage tool already credits
+> `paramorph_origin` so they read Live (azurite was likewise already Live fleet-wide
+> via supergene_oxidation — the flag was the per-(mineral,SCENARIO) bisbee pair).
+> SIM 203→204, bisbee-only rebake.
+>
 > ## 🔦 UPDATE (2026-06-18) — ZEOLITE FLUORESCENCE ENRICHMENT (SIM-NEUTRAL) + a cross-check catch
 >
 > Enriched the `fluorescence` fields of the six Deccan zeolites + apophyllite from

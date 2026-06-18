@@ -1083,7 +1083,7 @@
     "bisbee": {
       "anchor": "Bisbee, Arizona — Warren Mining District, Cochise County. Laramide quartz-monzonite porphyry intruding Paleozoic Escabrosa Limestone + Abrigo Formation. Major Cu-Ag-Au district (~8 Mt Cu, ~25 Moz Ag, ~3 Moz Au historically).",
       "description": "Classic copper porphyry with world-class oxidation zone. Complete Cu paragenesis from primary sulfides through supergene enrichment to the cyan-blue chrysocolla finale. Centerpiece mechanic: azurite ↔ malachite ↔ chrysocolla cascade tracking pCO2 evolution.",
-      "expects_species": ["chalcopyrite", "malachite", "chrysocolla", "brochantite"],
+      "expects_species": ["chalcopyrite", "malachite", "azurite", "chrysocolla", "brochantite"],
       "duration_steps": 340,
       "movements": [
         {
