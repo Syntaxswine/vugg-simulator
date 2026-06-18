@@ -11152,8 +11152,8 @@
 //        ship.
 //
 //        THE SCIENCE — they are the stilbite/heulandite DEHYDRATION COUPLE:
-//        Ca-stilbite = Ca-heulandite + H2O (Fridriksson, Bish & Navrotsky
-//        2001, Am. Mineral. 86:448, measured by calorimetry). So:
+//        Ca-stilbite = Ca-heulandite + H2O (Kiseleva, Navrotsky, Belitsky &
+//        Fursenko 2001, Am. Mineral. 86:448, measured by calorimetry). So:
 //          • stilbite — NaCa4Si27Al9O72·28H2O, the COOLER, more-hydrated
 //            member; moderate silica; T sweet 60-110C; sheaf/bowtie/{001}
 //            cruciform habit (the wheatsheaf); Deccan peach.

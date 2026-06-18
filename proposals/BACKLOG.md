@@ -67,7 +67,7 @@ Living list of open work items, captured from session conversations so context s
 > the step-70 event narrated *"Stilbite + heulandite + calcite blades"* while
 > neither mineral existed (the mvt-silver-deconfab discipline applied to a positive
 > over-promise). They are the stilbite/heulandite DEHYDRATION COUPLE
-> (Ca-stilbite = Ca-heulandite + H₂O, Fridriksson et al. 2001): stilbite the cooler/
+> (Ca-stilbite = Ca-heulandite + H₂O, Kiseleva et al. 2001): stilbite the cooler/
 > more-hydrated member (T sweet 60-110°C, peach sheaves), heulandite the warmer
 > dehydration product (higher silica, T sweet 120-180°C, coffin tablets). Both fire
 > 20/20 seeds in deccan (added to expects_species); twin laws ✓ PASS twin-law-check.

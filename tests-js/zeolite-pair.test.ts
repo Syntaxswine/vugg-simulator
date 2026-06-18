@@ -4,8 +4,8 @@
 // These two zeolites fill the deccan_zeolite Stage-II narrative gap: the
 // step-70 event narrated "Stilbite + heulandite + calcite blades" that could
 // not grow (PROPOSALS-LEDGER §A #14 / §G). They are the stilbite/heulandite
-// dehydration couple — Ca-stilbite = Ca-heulandite + H2O (Fridriksson, Bish &
-// Navrotsky 2001, Am. Mineral. 86:448). Stilbite is the COOLER, more-hydrated
+// dehydration couple — Ca-stilbite = Ca-heulandite + H2O (Kiseleva, Navrotsky,
+// Belitsky & Fursenko 2001, Am. Mineral. 86:448). Stilbite is the COOLER, more-hydrated
 // member (28 H2O, moderate silica, T sweet 60-110°C); heulandite the WARMER
 // dehydration product (6 H2O, higher silica activity, T sweet 120-180°C).
 //

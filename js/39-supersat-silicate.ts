@@ -335,8 +335,8 @@ const MINERAL_GATES_epidote: MineralGates = {
 };
 
 // v200 (2026-06-17): the Deccan Stage-II zeolite pair. stilbite + heulandite
-// are the stilbite/heulandite dehydration couple (Fridriksson, Bish &
-// Navrotsky 2001, Am.Mineral. 86:448: Ca-stilbite = Ca-heulandite + H2O).
+// are the stilbite/heulandite dehydration couple (Kiseleva, Navrotsky,
+// Belitsky & Fursenko 2001, Am.Mineral. 86:448: Ca-stilbite = Ca-heulandite + H2O).
 // Stilbite is the COOLER, more-hydrated member (28 H2O, moderate silica);
 // heulandite is the WARMER dehydration product (6 H2O, higher silica
 // activity). Both: Ca-dominant exchangeable cation, alkaline basalt-buffered
@@ -351,7 +351,7 @@ const MINERAL_GATES_stilbite: MineralGates = {
   fluid_min: { Ca: 60, Al: 4, SiO2: 250 },
   pH_min: 7.0, pH_max: 10.5,
   surface_energy: 'low',
-  _sources: ['stilbite engine v200', 'Coombs et al. 1997 Can.Mineral. 35:1571', 'Fridriksson Bish Navrotsky 2001 Am.Mineral. 86:448', 'Ottens et al. 2019 (Deccan paragenesis)'],
+  _sources: ['stilbite engine v200', 'Coombs et al. 1997 Can.Mineral. 35:1571', 'Kiseleva Navrotsky Belitsky & Fursenko 2001 Am.Mineral. 86:448', 'Ottens et al. 2019 (Deccan paragenesis)'],
   _notes: 'Stilbite-Ca NaCa4(Si27Al9)O72·28H2O — monoclinic C2/m. The cooler, more-hydrated member of the stilbite/heulandite couple; dehydrates to heulandite as T rises. Deccan amygdale Stage-II peach sheaves/bowties (twinned {001} cruciform). Moderate silica (lower-Si than heulandite). Redox-insensitive framework silicate.',
 };
 
@@ -361,7 +361,7 @@ const MINERAL_GATES_heulandite: MineralGates = {
   fluid_min: { Ca: 60, Al: 4, SiO2: 400 },
   pH_min: 7.0, pH_max: 10.5,
   surface_energy: 'low',
-  _sources: ['heulandite engine v200', 'Coombs et al. 1997 Can.Mineral. 35:1571 (Si/Al=4.0 boundary)', 'Fridriksson Bish Navrotsky 2001 Am.Mineral. 86:448', 'Anthony et al. Handbook of Mineralogy 2001'],
+  _sources: ['heulandite engine v200', 'Coombs et al. 1997 Can.Mineral. 35:1571 (Si/Al=4.0 boundary)', 'Kiseleva Navrotsky Belitsky & Fursenko 2001 Am.Mineral. 86:448', 'Anthony et al. Handbook of Mineralogy 2001'],
   _notes: 'Heulandite-Ca (Ca,Na)Al2Si7O18·6H2O — monoclinic C2/m. The warmer, dehydrated member (the dehydration product of stilbite). Higher silica activity than stilbite; Si/Al<4 (Si/Al>=4 is clinoptilolite, not wired — the boundary is compositional per Coombs 1997, not modeled as a hard fluid gate because the sim SiO2 ppm is dissolved silica, not framework Si/Al). Coffin-shaped tabular {010}. Twin {100}.',
 };
 
