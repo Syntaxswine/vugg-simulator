@@ -38,9 +38,15 @@ Living list of open work items, captured from session conversations so context s
 > - **titanite** (SIM 205, `6f5627a`) was the prerequisite (de-orphans §A #13).
 >
 > Baselines: v206 only grimsel moved (0→11 species, smoky colour-only fleet-wide);
-> v207 gwindel = 0/35 drift. NEXT open quartz work = fenster (growth-rate driver)
-> + the optional deformation/shear-field mechanic (would give true gwindel torsion
-> + bent/curved crystals).
+> v207 gwindel = 0/35 drift.
+>
+> **NEXT ARC (boss-chosen 2026-06-20): a real DEFORMATION / SHEAR FIELD.** Gwindel
+> v207 is an honest abstraction (largest cleft quartz = the twist, no stress field);
+> the boss wants the real mechanic. It's a declared movement field (the T/Eh idiom,
+> js/85j) that crystals integrate per-zone as they grow → true gwindel torsion +
+> bent/curved crystals + saddle dolomite + strain-band zone tags. **Full design +
+> knowledge transfer in `HANDOFF-ALPINE-CLEFT-2026-06-19.md` §8** (read it first).
+> Also still open: FENSTER (classify on per-zone growth_RATE, not σ — §6/§9).
 
 > ## 🔵 UPDATE (2026-06-18) — BISBEE AZURITE FIX (SIM 204) + stale-expects §A #10 RESOLVED
 >
