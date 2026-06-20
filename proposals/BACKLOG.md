@@ -2,33 +2,36 @@
 
 Living list of open work items, captured from session conversations so context survives compaction. Each item has enough detail that someone picking it up cold can act without re-discovering the rationale.
 
-> ## ⛰️ SESSION HANDOFF (2026-06-19) — THE ALPINE-CLEFT ARC (titanite SIM 205 shipped; Grimsel scenario WIP)
+> ## ⛰️ SESSION HANDOFF (2026-06-19) — THE ALPINE-CLEFT ARC ✅ SHIPPED (Grimsel SIM 206)
 >
-> **Master doc: `proposals/HANDOFF-ALPINE-CLEFT-2026-06-19.md`** (the current
-> handoff — read it). The quartz-morphology arc (§A #8) was found CONTENT-blocked
-> by its own scouting (no fleet scenario honestly earns a fenster band — quartz σ
-> is a silica-abundance signal, so the highest-σ scenarios are the slow euhedral
-> pegmatites; sceptre signal absent; Tessin/gwindel need a cleft that didn't
-> exist). Benches committed `644b267`. Pivot (boss): build a Swiss Central-Alps
-> (Grimsel / Aar massif) alpine cleft as the content HOME, then ride the morphology.
+> **Master doc: `proposals/HANDOFF-ALPINE-CLEFT-2026-06-19.md`** (read it). The
+> quartz-morphology arc (§A #8) was reshaped — scouting proved fenster
+> content-blocked (quartz σ = silica-abundance), so we built the content home: a
+> Grimsel/Aar Swiss alpine cleft, and rode the honest variants on it.
 >
-> **✅ SHIPPED: titanite (sphene) CaTiSiO₅, SIM 205, `6f5627a`** — de-orphans §A #13
-> AND is the cleft's first assemblage piece. Ti = the discriminator, no redox gate,
-> Cr/Fe colour dispatch; clean 4-scenario footprint (tormiq/porphyry/jeffrey/
-> sunnyside), zero collateral; upgrades the tormiq cleft (real titanite replaces
-> the magnetite stand-in). CI 1982/1982, Pages live.
+> **✅ SHIPPED v206 — `grimsel_alpine_cleft` + quartz morphology & variants.**
+> - **SCEPTRE** (the headline): `grow_quartz` dissolves at σ<1, so a crack-seal
+>   SEAL corrodes the gen-1 tip and the BREACH regenerates a wider gen-2 cap on
+>   ONE crystal — resorption→renewal across a phantom boundary (NOT a step-gap;
+>   EXTENT not rate — the cooler cap is slower/step yet larger). js/45
+>   classifyQuartzSceptre + js/99i two-body render + `tools/quartz-sceptre-scan.mjs`.
+>   3 robust sceptres/seed.
+> - **SMOKY/MORION**: radiogenic-host γ-dose + Al (Rossman 1994) — a FLEET-WIDE
+>   colour fix (granite/pegmatite quartz now smoky; the prior model only dosed
+>   quartz beside a uraninite crystal). Colour only, zero assemblage churn.
+> - **TESSIN**: steep-rhomb face form on cleft quartz.
+> - **Blocker fixed**: dilute-broth correction (K 120→30, Na 80→25, Al 12→6) — the
+>   prior broth grew an 18 mm feldspar / 7 mm albite that ENCLOSED the quartz
+>   (geologically inverted). Full assemblage now fires (quartz/feldspar/titanite/
+>   hematite/fluorite/apatite/calcite + epidote).
+> - **NOT shipped (honest gaps):** FENSTER (no honest σ home — would confabulate)
+>   + GWINDEL (needs a tectonic-shear field the sim lacks; would cannibalize the
+>   sceptre showcase). Both documented in RESEARCH-quartz-morphology §6.
+> - **titanite** (SIM 205, `6f5627a`) was the prerequisite (de-orphans §A #13).
 >
-> **🚧 WIP (uncommitted, NOT baked): `grimsel_alpine_cleft`** — `js/70u-grimsel.ts`
-> + `js/70-events.ts` + `data/scenarios.json5`. Declared retrograde T movement
-> (450→200, thermal_pulses:false) + crack-seal SiO₂ sawtooth events; compiles,
-> fires quartz. **KEY FINDING:** `grow_quartz` dissolves at σ<1 (doesn't pause), so
-> the seal CORRODES the gen-1 tip → the sceptre signature is RESORPTION→fast-renewal
-> on one crystal, NOT a step-gap (that IS how alpine sceptres form). NEXT (#108):
-> build the resorption-aware sceptre scan (= the #109 classifier brought forward),
-> tune the seal to corrode-not-destroy (σ≈0.92–0.97) + slow stem + fast breach,
-> verify ratio≥1.3, THEN bake (SIM 206 + menus + baseline + test + CI + commit).
-> Then #109 morphology (incl. gwindel), #110 smoky-quartz colour, #111 close.
-> Tree: titanite is the last clean+live commit; grimsel WIP will fail CI until baked.
+> Baseline-diff v205→v206: only grimsel moved (0→11 species); smoky is colour-only
+> fleet-wide. NEXT open quartz work = gwindel (needs a shear mechanic) + fenster
+> (needs a growth-rate-instability driver) — both new-mechanic backlog items.
 
 > ## 🔵 UPDATE (2026-06-18) — BISBEE AZURITE FIX (SIM 204) + stale-expects §A #10 RESOLVED
 >

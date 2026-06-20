@@ -11321,5 +11321,40 @@
 //        Footprint: fires in tormiq_alpine_cleft (Ti=1 broth — replaces the
 //        magnetite stand-in for the Ti-Fe oxide stage) + any other Ca-Ti-Si fluid
 //        the baseline-diff surfaces. Cap 3 (minor accessory). SIM 204 -> 205.
-const SIM_VERSION = 205;
+//   v206 — GRIMSEL ALPINE CLEFT + QUARTZ MORPHOLOGY & VARIANTS (2026-06-19) —
+//        the alpine-cleft arc's payload: the Grimsel/Aar Swiss Zerrkluft scenario
+//        + the honest quartz variants it homes.
+//        SCENARIO grimsel_alpine_cleft (data/scenarios.json5 + js/70u-grimsel.ts
+//        crack-seal events + js/70-events registry): declared retrograde T
+//        movement 450->200C (naica idiom, thermal_pulses:false, cooling_rate 0.4)
+//        + a crack-seal SiO2 sawtooth (seal corrodes the tip, breach re-floods at
+//        cooler T -> higher sigma). DILUTE felsic broth (K 30, Al 6, Na 25) so
+//        adularia/albite stay the MINOR early coatings they are in nature — the
+//        prior K=120/Na=80 grew an 18mm feldspar / 7mm albite that ENCLOSED and
+//        killed the quartz (geologically inverted: cleft quartz is the large main
+//        stage). Late chemistry (P 40, F 12 + the late_carbonate pulse) fires the
+//        full assemblage: quartz, feldspar, titanite, hematite (iron-roses),
+//        fluorite, apatite, calcite (+ epidote).
+//        SCEPTRE (js/45 classifyQuartzSceptre + js/99i two-body render): grow_quartz
+//        DISSOLVES at sigma<1 (it does not pause), so a seal CORRODES the gen-1 tip
+//        and the breach regenerates a wider gen-2 cap on the SAME crystal — the
+//        resorption->renewal phantom-boundary signature (3 robust sceptres/seed;
+//        the rate-ratio guess was the wrong instrument, extent is the right one —
+//        the cooler cap grows SLOWER per-step yet LARGER by extent. tools/
+//        quartz-sceptre-scan.mjs). habit='scepter_overgrowth' + cap-zone tags.
+//        SMOKY/MORION (grow_quartz): Al-precursor + a gamma-dose from the radiogenic
+//        FELSIC HOST (pegmatite/granite K-40/U/Th), clamped <0.8 (Rossman 1994). The
+//        Aar morion is granite-hosted, not uraninite-driven — the prior model only
+//        dosed quartz beside a uraninite crystal, missing every granite cleft. THIS
+//        IS A FLEET-WIDE CHANGE: pegmatite-hosted quartz now develops smoky colour
+//        (gem_pegmatite, radioactive_pegmatite, etc.) — geologically correct, colour
+//        only (radiation_damage), no assemblage shift. morion color_rule added.
+//        TESSIN (grow_quartz, alpine-gated): the steep-rhombohedron z{011} face
+//        development (Tessiner Habitus) on cleft quartz. + narrators (js/92i).
+//        FENSTER + GWINDEL deliberately NOT shipped: fenster has no honest fleet home
+//        (quartz sigma is silica ABUNDANCE not a skeletalization driver — an occupied
+//        band would mislabel slow pegmatites; the 644b267 content-block finding
+//        stands), and gwindel needs a tectonic-shear field the sim lacks (forcing it
+//        would cannibalize the sceptre showcase). Both honest gaps. SIM 205 -> 206.
+const SIM_VERSION = 206;
 

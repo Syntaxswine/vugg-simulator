@@ -158,3 +158,43 @@ always with macromosaic normal-habit quartz. Mechanism = cumulative c-axis
 rotation during slow continuous cleft opening → driven by the D2/D3
 strike-slip reactivation (rotating stress field), a FORM/render axis not a
 σ band. Arc tasks #106–111; titanite (#106, de-orphans §A #13) first.
+
+**SHIPPED (2026-06-19, SIM 206) — what homed honestly, and what didn't.**
+The Grimsel cleft (grimsel_alpine_cleft) shipped with THREE honest quartz
+variants and TWO documented honest gaps:
+
+- **SCEPTRE ✓ (the headline).** The §108 finding reframed the whole feature:
+  grow_quartz DISSOLVES at σ<1 (it does not pause), so a crack-seal SEAL
+  CORRODES the gen-1 tip and the BREACH regenerates a wider gen-2 cap on the
+  SAME crystal — corrosion→regeneration, the documented natural sceptre
+  trigger. The signature is therefore RESORPTION→RENEWAL across a phantom
+  boundary, NOT the step-gap the old quartz-hiatus-census looked for (wrong
+  instrument). And it is EXTENT not RATE: the cooler cap grows SLOWER per-step
+  (Arrhenius) yet ends LARGER by cumulative extent — so the handoff's
+  "renewal-rate ≥1.3" guess was wrong; the right metric is cumulative cap vs
+  stem. New right instrument: tools/quartz-sceptre-scan.mjs (promoted into the
+  engine as js/45 classifyQuartzSceptre). 3 robust sceptres/seed. Two-body
+  stem+cap render in js/99i. THE blocker en route was geological, not the σ
+  math: the dilute-cleft broth correction (K 120→30, Na 80→25, Al 12→6) — the
+  prior broth grew an 18 mm feldspar / 7 mm albite that ENCLOSED and killed the
+  quartz, the inverse of a real cleft where quartz is the large main stage.
+- **SMOKY / MORION ✓.** Al precursor + a γ-dose from the radiogenic FELSIC host
+  (pegmatite/granite), Rossman 1994 — a fleet-wide engine fix: the prior model
+  only dosed quartz beside a uraninite crystal, so granite-hosted morion (the
+  iconic Aar specimen) was impossible. Colour only; zero assemblage churn in
+  the baseline-diff.
+- **TESSIN ✓ (face form).** Steep-rhombohedron z{011} dominance on cleft quartz.
+
+- **FENSTER ✗ — NOT shipped (the §6 content-block stands, confirmed at ship).**
+  This §6 (above) had hoped fenster was "THE one that IS the ladder." It is
+  not, in THIS engine: quartz σ is silica ABUNDANCE, so an occupied fenster
+  band tags the slow giant-euhedral pegmatites as skeletal — backwards. We did
+  NOT register MORPH_TH.quartz; faking the band would be a confabulated label
+  (same discipline as the mvt-silver de-confabulation). Honest gap: fenster
+  needs a genuine growth-rate-instability driver the σ proxy can't isolate.
+- **GWINDEL ✗ — NOT shipped (honest deferral).** The twist's physical driver is
+  syn-growth tectonic SHEAR (the D2/D3 rotating stress field), and the sim has
+  no shear/deformation field. Worse, in grimsel every surviving quartz becomes
+  a SCEPTRE (the crack-seal design), so forcing a gwindel would cannibalize the
+  sceptre showcase. Deferred honestly: gwindel needs a shear-field mechanic
+  (a real new-mechanic backlog item), not a faked random habit flag.

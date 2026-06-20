@@ -347,6 +347,9 @@
         "smoky": {
           "trigger": "radiation_damage > 0.3"
         },
+        "morion": {
+          "trigger": "radiation_damage > 0.6"
+        },
         "amethyst": {
           "trigger": "Fe > 2 and radiation_damage > 0.1"
         },

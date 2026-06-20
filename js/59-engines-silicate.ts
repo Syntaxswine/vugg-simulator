@@ -12,6 +12,26 @@
 function grow_quartz(crystal, conditions, step) {
   const sigma = conditions.supersaturation_quartz();
 
+  // Smoky / morion colour centres (Rossman 1994, Rev. Mineral. 29:433) —
+  // Al³⁺→Si⁴⁺ substitution PLUS a natural γ-dose from the radiogenic felsic
+  // host rock (granite / pegmatite K-40 + U + Th background) creates [AlO₄]⁰
+  // colour centres: clear → smoky → morion (black). Al is the necessary
+  // precursor — no Al, no centre even under dose. The famous Aar/Grimsel
+  // morion is GRANITE-hosted, not uraninite-driven; the js/85 radiation path
+  // only doses quartz adjacent to a uraninite crystal, so it missed every
+  // granite-cleft smoky quartz. Dose accrues with residence (every step the
+  // crystal sits in the host), scaled by available Al; clamped at 0.7 so
+  // background dose tips quartz to morion but never to metamict (>0.8 — quartz
+  // is radiation-hard; that branch is for zircon-like phases).
+  {
+    const wallComp = (conditions.wall && conditions.wall.composition) || '';
+    const radHost = wallComp === 'pegmatite' ? 1.0 : wallComp === 'phonolite' ? 0.5 : 0;
+    if (radHost > 0 && conditions.fluid.Al > 1) {
+      const dose = 0.006 * radHost * Math.min(conditions.fluid.Al / 10, 1.2);
+      crystal.radiation_damage = Math.min((crystal.radiation_damage || 0) + dose, 0.7);
+    }
+  }
+
   if (sigma < 1.0) {
     if (crystal.total_growth_um > 10) {
       crystal.dissolved = true;
@@ -122,6 +142,23 @@ function grow_quartz(crystal, conditions, step) {
         crystal.twinned = true;
         crystal.twin_law = 'Dauphiné (thermal stress)';
       }
+    }
+  }
+
+  // Tessin habit (Tessiner Habitus) — the alpine-cleft face development: the
+  // steep rhombohedron z{011}/{h0hl} dominates the prism m{100}, giving
+  // slender, sharply-tapered, pseudo-pyramidal terminations. Set for granite-
+  // cleft α-quartz (pegmatite host + CO₂, cooler than ~360 °C). The sceptre
+  // classifier (js/45) may later re-label the OVERALL habit to
+  // scepter_overgrowth, but these Tessin terminations stay the face-form
+  // descriptor — a Grimsel crystal is faithfully "a Tessin-habit smoky
+  // sceptre." (quartzpage.de; Stalder et al., Alpine fissure quartz.)
+  {
+    const wc = (conditions.wall && conditions.wall.composition) || '';
+    if (polymorph === 'alpha-quartz' && wc === 'pegmatite'
+        && (conditions.fluid.CO3 || 0) > 15 && conditions.temperature < 360) {
+      crystal.habit = 'Tessin';
+      crystal.dominant_forms = ['z{011} steep rhombohedron dominant', 'subordinate m{100} prism', 'slender tapered termination'];
     }
   }
 

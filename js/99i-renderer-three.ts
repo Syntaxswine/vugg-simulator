@@ -786,6 +786,43 @@ function _makeHexPrismWithPyramid(): any {
   return geom;
 }
 
+// Quartz SCEPTRE — gen-1 stem + a wider gen-2 cap grown over the resorbed
+// tip (alpine-cleft arc SIM 206; the sim tags crystal._sceptre.capFrac after
+// the resorption→renewal phantom boundary). Two stacked hexagonal prisms: a
+// NARROW stem (r 0.30) for the lower (1−capFrac) of the height, a WIDER cap
+// (r 0.50) with a pyramidal tip for the upper capFrac, joined by a horizontal
+// shoulder ring — the corrosion surface the cap overgrew, the defining sceptre
+// silhouette. Same unit box (y −0.5..+0.5) as _makeHexPrismWithPyramid so the
+// per-crystal transform scales it identically.
+function _makeSceptreHexPrism(capFrac: number): any {
+  const cf = Math.max(0.25, Math.min(0.7, capFrac || 0.5));
+  const rStem = 0.30, rCap = 0.50;
+  const yBase = -0.50, yApex = 0.50;
+  const yBound = yBase + (1 - cf);          // top of stem / base of cap
+  const yShoulder = yBound + cf * 0.62;     // cap prism top / start of tip pyramid
+  const positions: number[] = [];
+  for (let i = 0; i < 6; i++) {
+    const a0 = (i / 6) * Math.PI * 2, a1 = ((i + 1) / 6) * Math.PI * 2;
+    const sx0 = Math.cos(a0) * rStem, sz0 = Math.sin(a0) * rStem, sx1 = Math.cos(a1) * rStem, sz1 = Math.sin(a1) * rStem;
+    const cx0 = Math.cos(a0) * rCap, cz0 = Math.sin(a0) * rCap, cx1 = Math.cos(a1) * rCap, cz1 = Math.sin(a1) * rCap;
+    // stem side face
+    _pushTri(positions, sx0, yBase, sz0, sx1, yBase, sz1, sx1, yBound, sz1);
+    _pushTri(positions, sx0, yBase, sz0, sx1, yBound, sz1, sx0, yBound, sz0);
+    // shoulder ring (stem radius → cap radius) — the resorbed corrosion surface
+    _pushTri(positions, sx0, yBound, sz0, sx1, yBound, sz1, cx1, yBound, cz1);
+    _pushTri(positions, sx0, yBound, sz0, cx1, yBound, cz1, cx0, yBound, cz0);
+    // cap side face
+    _pushTri(positions, cx0, yBound, cz0, cx1, yBound, cz1, cx1, yShoulder, cz1);
+    _pushTri(positions, cx0, yBound, cz0, cx1, yShoulder, cz1, cx0, yShoulder, cz0);
+    // cap pyramid tip
+    _pushTri(positions, cx0, yShoulder, cz0, cx1, yShoulder, cz1, 0, yApex, 0);
+  }
+  const geom = new THREE.BufferGeometry();
+  geom.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+  geom.computeVertexNormals();
+  return geom;
+}
+
 // Calcite cleavage rhombohedron — 6 rhombic faces, 8 vertices, 3-fold
 // symmetric around the c-axis. Two apex vertices on the c-axis at
 // y=±h; 6 equatorial vertices in two staggered triangles at y=±t,
@@ -3047,6 +3084,17 @@ function _topoSyncCrystalMeshes(state: any, sim: any, wall: any, replayStep?: nu
     // dendritic_cube all read as trees.
     if (!geom && token === 'spike' && _isDendriticHabit(habitForGeom)) {
       geom = _getDendriteTreeGeom(state, crystal);
+    }
+    // Quartz SCEPTRE (alpine-cleft arc SIM 206): a crystal the sim tagged with
+    // _sceptre renders as the two-body stem+cap silhouette. Gated on the prism
+    // token so twins / air-mode dripstone keep their own geometry. Replay
+    // guard: before the resorption boundary step the crystal is still a plain
+    // gen-1 prism (the cap appears as the scrubber crosses the boundary).
+    if (!geom && crystal.mineral === 'quartz' && crystal._sceptre && token === 'prism'
+        && (replayStep == null || replayStep >= crystal._sceptre.boundaryStep)) {
+      const cf = Math.round((crystal._sceptre.capFrac || 0.5) * 20) / 20;  // quantize for cache reuse
+      if (crystal._sceptreGeomCf !== cf) { crystal._sceptreGeom = _makeSceptreHexPrism(cf); crystal._sceptreGeomCf = cf; }
+      geom = crystal._sceptreGeom;
     }
     if (!geom) {
       geom = state.geomCache.get(token);

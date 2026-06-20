@@ -748,6 +748,10 @@ class VugSimulator {
     // Pure metadata pass: no rng, no fluid mutation — byte-identical
     // chemistry.
     classifyMorphologyStep(this);
+    // Quartz sceptre — crystal-level structural classifier (alpine-cleft arc
+    // SIM 206). Reads completed zones for the resorption→renewal phantom
+    // boundary (gen-1 stem + gen-2 cap). Pure tagging; see js/45.
+    classifyQuartzSceptre(this);
 
     // === HELIX-OVERLAY-FORK ADDITION (strip view bedrock, v149+) =====
     // Helicoid-as-recorder hook (Shy's 2026-05-26 design reframe).

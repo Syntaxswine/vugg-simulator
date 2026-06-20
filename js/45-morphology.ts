@@ -460,6 +460,46 @@ function halideTerraceBands(crystal: any, uptoStep: any) {
   return { form: 'cube', knots: walk.knots, hopperTip: walk.hopperTip };
 }
 
+// ---- Quartz sceptre — a CRYSTAL-LEVEL structural classifier ----
+// A sceptre is gen-2 quartz overgrowing the RESORBED tip of gen-1: ONE
+// continuous crystal with a corrosion surface (phantom boundary) between a
+// real stem and a real, wider cap. grow_quartz DISSOLVES at σ<1 (it does not
+// pause), so an alpine crack-seal SEAL corrodes the tip (negative zones) and
+// the following BREACH regenerates the cap — corrosion-then-regeneration, the
+// documented natural sceptre trigger (mindat; quartzpage.de). The cooler cap
+// grows at a LOWER linear rate (Arrhenius) yet ends LARGER by extent, so the
+// signature is cumulative growth on BOTH sides of the phantom boundary, NOT a
+// rate spike — the §108 finding (the rate-ratio guess was the wrong instrument;
+// tools/quartz-sceptre-scan.mjs is the right one, and this is it promoted into
+// the engine). PURE tagging: no rng, no fluid mutation. Runs after the growth
+// loop so it reads completed zones; recomputed each step so capFrac tracks the
+// growing cap and the LAST pass (the saved state) carries the final geometry.
+const QZ_SCEPTRE_STEM_MIN = 200;  // µm (timeScale-applied) — a real gen-1 stem
+const QZ_SCEPTRE_CAP_MIN = 200;   // µm — a real gen-2 cap before we call it a sceptre
+function classifyQuartzSceptre(sim: any) {
+  for (const c of sim.crystals) {
+    if (!c || c.mineral !== 'quartz' || !c.zones || c.zones.length < 4) continue;
+    const zones = c.zones;
+    let i = 0;
+    while (i < zones.length) {
+      if ((zones[i].thickness_um || 0) < 0) {
+        const start = i;
+        while (i < zones.length && (zones[i].thickness_um || 0) < 0) i++;
+        const endIdx = i - 1;
+        let stem = 0; for (let k = 0; k < start; k++) { const t = zones[k].thickness_um || 0; if (t > 0) stem += t; }
+        let cap = 0; for (let k = endIdx + 1; k < zones.length; k++) { const t = zones[k].thickness_um || 0; if (t > 0) cap += t; }
+        if (stem >= QZ_SCEPTRE_STEM_MIN && cap >= QZ_SCEPTRE_CAP_MIN) {
+          const capFrac = cap / (stem + cap);   // gen-2 share of grown length — render widens the top capFrac
+          c._sceptre = { boundaryStep: zones[endIdx].step, stemUm: stem, capUm: cap, capFrac };
+          c.habit = 'scepter_overgrowth';
+          for (let k = endIdx + 1; k < zones.length; k++) if ((zones[k].thickness_um || 0) > 0) zones[k].morph_sceptre = 'cap';
+          break;   // first qualifying phantom boundary defines the sceptre
+        }
+      } else i++;
+    }
+  }
+}
+
 function classifyMorphologyStep(sim: any) {
   for (const mineral in MORPH_TH) {
     const th = MORPH_TH[mineral];
