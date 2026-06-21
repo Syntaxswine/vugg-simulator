@@ -2099,7 +2099,9 @@
         { "step": 80,  "type": "tormiq_epidote_main",  "name": "The Epidote Stage",          "description": "Oxidized Ca-Al-Fe³⁺ fluid grows the pistachio-green Tormiq gem swords" },
         { "step": 110, "type": "tormiq_byssolite",     "name": "Byssolite Sprays",           "description": "Fibrous actinolite sprays; epidote nucleates on the amphibole mats as fans" },
         { "step": 140, "type": "tormiq_adularia",      "name": "Adularia Stage",             "description": "Lower-T cleft K-feldspar (adularia) crystallizes" },
-        { "step": 170, "type": "tormiq_late_calcite",  "name": "Late Calcite — Cooling",     "description": "Below ~200°C, calcite seals the paragenesis and growth winds down" }
+        { "step": 170, "type": "tormiq_late_calcite",  "name": "Late Calcite — Cooling",     "description": "Below ~200°C, calcite seals the paragenesis and growth winds down" },
+        { "step": 188, "type": "tormiq_late_shear",     "name": "Late Karakoram-Thrust Shearing", "description": "Continued thrust motion plastically bends the sealed cleft's early quartz lining — a post-growth tectonic overprint",
+          "deformation": { "style": "bend", "magnitude": 0.55, "minerals": ["quartz"] } }
       ],
       "sources": [
         "Anthony, Bideaux, Bladh & Nichols 2001, Handbook of Mineralogy (epidote sheet — names Tormiq, Pakistan as type-quality)",

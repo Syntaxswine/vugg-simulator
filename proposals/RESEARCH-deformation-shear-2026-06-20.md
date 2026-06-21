@@ -242,6 +242,29 @@ the §5.3 overprint arc's bend/curve transforms.
   homes: alpine/MVT scenarios with a late tectonic event; fadenquartz (crack-seal)
   is the genuinely-tectonic quartz tenant if quartz is wanted here.
 
+**✅ STEP 3 TENANT 1 SHIPPED — BENT QUARTZ @ TORMIQ (SIM 208, 2026-06-20).** The
+overprint architecture is built and proven, render-and-all:
+- A scenario event carries a `deformation` directive `{style,magnitude,minerals}`
+  (mirrors the `spots` directive pattern). `apply_events` (js/85d) records it on
+  `sim._deformationEvents` WITH the step it fired. `classifyDeformation` (js/45,
+  post-growth like the gwindel/sceptre passes) bends crystals that had ALREADY
+  grown by that step (`firstZone.step < event.step`) — the bend lands on a crystal
+  that existed to be bent. PURE tagging (`crystal._deformation`, a render tag).
+- Render: `js/99i _makeBentPrism` arcs the long axis (generalizes the gwindel SEG
+  loop — lateral cantilever offset instead of twist + a tip that rides the bend).
+  Mesh-sync hook gated on `_deformation.kind==='bend'` + prism token + replay-step.
+- **CHEMICALLY INERT** → fleet byte-identical (baseline-diff 207↔208 = 0/35). The
+  deformation is mechanical + post-growth, so the handler mutates no fluid/T; only
+  the tormiq strip story gains the shear-event log line + the quartz gains a tag.
+- Tenant: `tormiq_alpine_cleft` late Karakoram-Thrust shear (step 188) bends the
+  early quartz lining (1 quartz @ seed 42); the epidote swords grew later and are
+  spared (directive targets quartz only). Honest that tormiq quartz is MINOR.
+- Verified in the preview Three renderer (arced prism vs straight, no errors).
+  Test `tests-js/deformation-overprint.test.ts` (5 pins). Narrator `js/92i` 'bent'.
+- **Next tenants** (same pass, new directives): calcite mechanical e-twins (lamellae
+  render, density ↔ Ferrill Type I–IV); bent stibnite (needs stibnite in a
+  scenario first); deformation-lamellae/undulose overlay tag.
+
 ### 5.4 Syntectonic porphyroblast (snowball garnet) — OPTIONAL, the true syn-growth-stress case
 - The ONE thing a grow-integrate stress field models correctly. But contested
   physics + hard inclusion-trail render. Defer unless specifically wanted; if

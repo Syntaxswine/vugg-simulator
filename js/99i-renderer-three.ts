@@ -861,6 +861,51 @@ function _makeGwindelGeom(twistDeg: number): any {
   return geom;
 }
 
+// BENT PRISM — post-growth deformation overprint (deformation/shear arc
+// 2026-06-20, RESEARCH-deformation-shear §5.3). A hexagonal prism whose long
+// axis arcs sideways: the crystal grew straight, then a later tectonic shear
+// bent it (bent quartz = post-growth bend-gliding, NOT a growth habit). Built
+// like _makeGwindelGeom's SEG loop, but each ring is TRANSLATED laterally along
+// a cantilever arc (offsetX ∝ t², base fixed, tip swung) instead of twisted —
+// the generic "deformation transform on a finished mesh" the arc was after. The
+// pyramidal termination follows the bend so the tip stays on-axis with its ring.
+// `bend` is the lateral tip offset (unit box). Gated in the mesh-sync hook on
+// crystal._deformation.kind === 'bend'.
+function _makeBentPrism(bend: number): any {
+  const b = Math.max(0.0, Math.min(0.6, bend || 0.3));
+  const r = 0.26;                       // columnar (quartz-like) cross-section
+  const yBase = -0.5, yShoulder = 0.32, yApex = 0.5;
+  const SEG = 14, N = 6;
+  const offX = (y: number): number => { const t = (y - yBase) / (yApex - yBase); return b * t * t; };
+  const ring = (y: number): number[][] => {
+    const cx = offX(y); const out: number[][] = [];
+    for (let k = 0; k < N; k++) { const a = (k / N) * Math.PI * 2; out.push([cx + r * Math.cos(a), y, r * Math.sin(a)]); }
+    return out;
+  };
+  const positions: number[] = [];
+  for (let s = 0; s < SEG; s++) {
+    const y0 = yBase + (yShoulder - yBase) * (s / SEG);
+    const y1 = yBase + (yShoulder - yBase) * ((s + 1) / SEG);
+    const r0 = ring(y0), r1 = ring(y1);
+    for (let k = 0; k < N; k++) {
+      const j = (k + 1) % N;
+      _pushTri(positions, r0[k][0], r0[k][1], r0[k][2], r0[j][0], r0[j][1], r0[j][2], r1[j][0], r1[j][1], r1[j][2]);
+      _pushTri(positions, r0[k][0], r0[k][1], r0[k][2], r1[j][0], r1[j][1], r1[j][2], r1[k][0], r1[k][1], r1[k][2]);
+    }
+  }
+  // pyramidal termination (apex rides the bend)
+  const rs = ring(yShoulder);
+  const apex = [offX(yApex), yApex, 0];
+  for (let k = 0; k < N; k++) { const j = (k + 1) % N; _pushTri(positions, rs[k][0], rs[k][1], rs[k][2], rs[j][0], rs[j][1], rs[j][2], apex[0], apex[1], apex[2]); }
+  // base cap (fan)
+  const rb = ring(yBase);
+  for (let k = 1; k < N - 1; k++) { _pushTri(positions, rb[0][0], rb[0][1], rb[0][2], rb[k + 1][0], rb[k + 1][1], rb[k + 1][2], rb[k][0], rb[k][1], rb[k][2]); }
+  const geom = new THREE.BufferGeometry();
+  geom.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+  geom.computeVertexNormals();
+  return geom;
+}
+
 // Calcite cleavage rhombohedron — 6 rhombic faces, 8 vertices, 3-fold
 // symmetric around the c-axis. Two apex vertices on the c-axis at
 // y=±h; 6 equatorial vertices in two staggered triangles at y=±t,
@@ -3218,6 +3263,21 @@ function _topoSyncCrystalMeshes(state: any, sim: any, wall: any, replayStep?: nu
       const q = Math.round(amp * 100) / 100;  // quantize for cache reuse
       if (crystal._saddleGeomAmp !== q) { crystal._saddleGeom = _makeSaddleRhomb(q); crystal._saddleGeomAmp = q; }
       geom = crystal._saddleGeom;
+    }
+    // BENT crystal — post-growth deformation overprint (deformation/shear arc
+    // 2026-06-20). The sim tags crystal._deformation when a scenario shear event
+    // bent a crystal that had already grown (js/45 classifyDeformation). Gated on
+    // the prism token (the quartz tenant); the bend transform replaces the
+    // straight prism with an arced one. Takes precedence over gwindel/sceptre is
+    // unnecessary — those are quartz-cleft features and the bend tenant (tormiq)
+    // shares none of them, so order doesn't collide; placed last among the quartz
+    // hooks. (A replay before the shear step keeps the straight prism.)
+    if (!geom && crystal._deformation && crystal._deformation.kind === 'bend' && token === 'prism'
+        && (replayStep == null || replayStep >= crystal._deformation.atStep)) {
+      const bend = Math.max(0.15, Math.min(0.6, 0.15 + (crystal._deformation.amount || 0.5) * 0.45));
+      const q = Math.round(bend * 100) / 100;  // quantize for cache reuse
+      if (crystal._bentGeomAmt !== q) { crystal._bentGeom = _makeBentPrism(q); crystal._bentGeomAmt = q; }
+      geom = crystal._bentGeom;
     }
     if (!geom) {
       geom = state.geomCache.get(token);

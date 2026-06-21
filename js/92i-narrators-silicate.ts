@@ -41,6 +41,14 @@ Object.assign(VugSimulator.prototype, {
     parts.push(narrative_variant('quartz', 'sceptre', { capUm: c._sceptre.capUm.toFixed(0) })
       || `A SCEPTRE: a fissure seal corroded the gen-1 termination, then a fresh silica breach regenerated a wider second-generation cap over the resorbed tip — the alpine crack-seal habit.`);
   }
+  // Bent — POST-GROWTH deformation overprint (deformation/shear arc; js/45
+  // classifyDeformation). The crystal grew straight, then a later tectonic shear
+  // plastically bent it (bent quartz = post-growth bend-gliding, undulose strain
+  // — NOT a growth habit). Distinct from the gwindel twist (a growth feature).
+  if (c._deformation && c._deformation.kind === 'bend') {
+    parts.push(narrative_variant('quartz', 'bent')
+      || `BENT — the prism is plastically curved: it grew straight, then a later tectonic shear (still-active thrusting) bent the finished crystal, leaving undulose strain. A post-growth overprint, not a growth habit.`);
+  }
   // Tessin (Tessiner Habitus) — the alpine face development.
   if ((c.dominant_forms || []).some(f => f.includes('steep rhombohedron'))) {
     parts.push(narrative_variant('quartz', 'tessin')

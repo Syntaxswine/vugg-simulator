@@ -21,11 +21,18 @@ Living list of open work items, captured from session conversations so context s
 >   warm reactive_wall; ambient stays massive). Preview-verified, 3 test pins.
 > - **STEP 2 (gwindel) — DECIDED, no build:** the §8.5 shear re-pin is STRUCK. Leave
 >   the v207 growth-duration proxy (closer to real Eshelby physics than shear).
-> - **⏭ STEP 3 (the real "deformation" arc) — NOT STARTED:** a POST-GROWTH OVERPRINT
->   pass keyed to a scenario deformation event (bent quartz/stibnite, calcite
->   mechanical e-twins, deformation lamellae). Architecturally NEW (deform a
->   FINISHED crystal), not a grow-integrate field. The _makeSaddleRhomb face-perturb
->   + the gwindel SEG-loop twist are the render groundwork. Design in research §5.3.
+> - **✅ STEP 3 TENANT 1 SHIPPED — the real "deformation" arc, bent quartz @ tormiq**
+>   (SIM 208). The POST-GROWTH OVERPRINT pass: a scenario event carries a
+>   `deformation` directive (mirrors `spots`); apply_events (js/85d) records it on
+>   sim._deformationEvents w/ the fired step; classifyDeformation (js/45) bends
+>   crystals that already grew by that step; js/99i _makeBentPrism arcs the long
+>   axis (generalizes the gwindel SEG loop). CHEMICALLY INERT → fleet byte-identical
+>   (baseline-diff 207↔208 = 0/35); only tormiq's strip gains the shear log + the
+>   quartz a render tag. tormiq late Karakoram-Thrust shear (step 188) bends the
+>   early quartz lining; epidote spared. Preview-verified, 5 test pins. Research §5.3.
+>   **NEXT TENANTS (same pass):** calcite mechanical e-twins (lamellae render, density
+>   ↔ Ferrill Type I–IV); bent stibnite (add stibnite to a scenario first); undulose
+>   overlay. Optional: syntectonic snowball garnet (research §5.4, contested physics).
 >
 > ---
 >

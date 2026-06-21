@@ -11376,5 +11376,28 @@
 //        Single-scenario change (grimsel only); the rest of the fleet is
 //        byte-identical (alpine_cleft defaults false). + narrator (js/92i) +
 //        minerals.json habit_variant. SIM 206 -> 207.
-const SIM_VERSION = 207;
+//   v208 — POST-GROWTH DEFORMATION OVERPRINT — the genuine "deformation" mechanic
+//        (deformation/shear arc, 2026-06-20; research dossier RESEARCH-deformation-
+//        shear-2026-06-20.md). FIRST TENANT: bent quartz at Tormiq. THE SCIENCE
+//        (4 cross-checked passes): the handoff §8 "one shear field crystals
+//        integrate as they grow" FAILED the literature — bent quartz/stibnite/mica
+//        + mechanical twins are NOT recorded during growth; they are imposed on a
+//        FINISHED lattice by later tectonic gliding (post-growth crystal-plastic
+//        deformation, unambiguous in the literature). So this is an OVERPRINT pass,
+//        not a grow-integrate field: a scenario event carries a `deformation`
+//        directive {style,magnitude,minerals}; apply_events (js/85d) records it on
+//        sim._deformationEvents WITH the step it fired; classifyDeformation (js/45,
+//        post-growth like the gwindel/sceptre passes) bends crystals that had
+//        ALREADY grown by that step (firstZone.step < event.step). PURE tagging —
+//        crystal._deformation is a RENDER tag; js/99i _makeBentPrism arcs the long
+//        axis (generalizes the gwindel SEG loop: lateral cantilever offset instead
+//        of twist). CHEMICALLY INERT: deformation is mechanical + post-growth, so
+//        the handler mutates no fluid/T → the FLEET (incl. tormiq) is BYTE-IDENTICAL
+//        (gen-baseline serialises only counts/sizes; the bend is a render tag + a
+//        log line). Tenant: tormiq_alpine_cleft late Karakoram-Thrust shear (step
+//        188) bends the early quartz lining; the epidote swords grew later and are
+//        spared. + narrator (js/92i 'bent'). The §8.5 gwindel shear re-pin is
+//        STRUCK (gwindel = spiral-growth Eshelby twist, not shear — research §1).
+//        SIM 207 -> 208 (provenance; baseline-diff 207↔208 = 0 drift).
+const SIM_VERSION = 208;
 

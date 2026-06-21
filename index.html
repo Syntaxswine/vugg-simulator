@@ -16479,7 +16479,30 @@ let timeScale = 5.0;
 //        Single-scenario change (grimsel only); the rest of the fleet is
 //        byte-identical (alpine_cleft defaults false). + narrator (js/92i) +
 //        minerals.json habit_variant. SIM 206 -> 207.
-const SIM_VERSION = 207;
+//   v208 — POST-GROWTH DEFORMATION OVERPRINT — the genuine "deformation" mechanic
+//        (deformation/shear arc, 2026-06-20; research dossier RESEARCH-deformation-
+//        shear-2026-06-20.md). FIRST TENANT: bent quartz at Tormiq. THE SCIENCE
+//        (4 cross-checked passes): the handoff §8 "one shear field crystals
+//        integrate as they grow" FAILED the literature — bent quartz/stibnite/mica
+//        + mechanical twins are NOT recorded during growth; they are imposed on a
+//        FINISHED lattice by later tectonic gliding (post-growth crystal-plastic
+//        deformation, unambiguous in the literature). So this is an OVERPRINT pass,
+//        not a grow-integrate field: a scenario event carries a `deformation`
+//        directive {style,magnitude,minerals}; apply_events (js/85d) records it on
+//        sim._deformationEvents WITH the step it fired; classifyDeformation (js/45,
+//        post-growth like the gwindel/sceptre passes) bends crystals that had
+//        ALREADY grown by that step (firstZone.step < event.step). PURE tagging —
+//        crystal._deformation is a RENDER tag; js/99i _makeBentPrism arcs the long
+//        axis (generalizes the gwindel SEG loop: lateral cantilever offset instead
+//        of twist). CHEMICALLY INERT: deformation is mechanical + post-growth, so
+//        the handler mutates no fluid/T → the FLEET (incl. tormiq) is BYTE-IDENTICAL
+//        (gen-baseline serialises only counts/sizes; the bend is a render tag + a
+//        log line). Tenant: tormiq_alpine_cleft late Karakoram-Thrust shear (step
+//        188) bends the early quartz lining; the epidote swords grew later and are
+//        spared. + narrator (js/92i 'bent'). The §8.5 gwindel shear re-pin is
+//        STRUCK (gwindel = spiral-growth Eshelby twist, not shear — research §1).
+//        SIM 207 -> 208 (provenance; baseline-diff 207↔208 = 0 drift).
+const SIM_VERSION = 208;
 
 // ── 18-constants.js ──
 
@@ -32652,6 +32675,51 @@ function classifyQuartzGwindel(sim) {
     g._gwindel = { twistDeg: Math.max(45, Math.min(120, span * 0.7)), lengthUm: g.total_growth_um, span };
     g.habit = 'gwindel';
 }
+// POST-GROWTH DEFORMATION OVERPRINT — the genuine "deformation" mechanic
+// (deformation/shear arc, RESEARCH-deformation-shear-2026-06-20.md §5.3). This
+// is the category the handoff §8 conflated: bent quartz / stibnite / mica kink
+// bands + mechanical twins are NOT recorded as the crystal grows — they are
+// imposed on a FINISHED lattice by a later tectonic event (post-growth crystal-
+// plastic gliding; the literature is unambiguous, research §3–4). So this is an
+// OVERPRINT, not a grow-integrate field: a scenario declares a `deformation`
+// directive on a late event (apply_events records it onto sim._deformationEvents
+// with the step it fired), and this pass — run post-growth like the gwindel/
+// sceptre classifiers — tags crystals that had ALREADY GROWN by that step
+// (firstZone.step < event.step) so the bend is stamped on a crystal that existed
+// to be bent. PURE tagging (no rng, no fluid) → the render reads crystal._defor-
+// mation; the engine baseline is untouched (gen-baseline serialises only counts/
+// sizes). Tag-once (idempotent across the per-step calls). minerals=null → any.
+const DEFORM_MIN_UM = 100; // skip nucleation-only specks — need a body to bend
+function classifyDeformation(sim) {
+    const evs = sim._deformationEvents;
+    if (!evs || !evs.length)
+        return;
+    for (const ev of evs) {
+        const mins = (ev && ev.minerals) || null;
+        const style = (ev && ev.style) || 'bend';
+        const amount = (ev && typeof ev.amount === 'number') ? ev.amount
+            : (ev && typeof ev.magnitude === 'number') ? ev.magnitude : 0.5;
+        for (const c of sim.crystals) {
+            if (!c || c.dissolved || c._deformation)
+                continue;
+            if (mins && mins.indexOf(c.mineral) < 0)
+                continue;
+            if ((c.total_growth_um || 0) < DEFORM_MIN_UM)
+                continue;
+            // must have existed (grown) BEFORE the shear fired
+            let firstStep = null;
+            for (const z of (c.zones || [])) {
+                if ((z.thickness_um || 0) > 0) {
+                    firstStep = z.step;
+                    break;
+                }
+            }
+            if (firstStep == null || firstStep >= ev.step)
+                continue;
+            c._deformation = { kind: style, amount, atStep: ev.step };
+        }
+    }
+}
 function classifyMorphologyStep(sim) {
     for (const mineral in MORPH_TH) {
         const th = MORPH_TH[mineral];
@@ -43441,6 +43509,7 @@ const EVENT_REGISTRY = {
     tormiq_byssolite: event_tormiq_byssolite,
     tormiq_adularia: event_tormiq_adularia,
     tormiq_late_calcite: event_tormiq_late_calcite,
+    tormiq_late_shear: event_tormiq_late_shear,
     // 2026-06-19 — Grimsel / Aar-massif alpine cleft (the quartz-morphology
     // content home). T is a declared movement; these are the crack-seal SiO₂
     // sawtooth + Fe/CO₃ chemistry beats. See js/70u-grimsel.ts.
@@ -43531,6 +43600,12 @@ function _buildScenarioFromSpec(scenarioId, spec) {
             // declare "this fracture-seal event shuts the plumbing" without touching
             // the shared event handler.
             spots: ev.spots,
+            // POST-GROWTH DEFORMATION (deformation/shear arc 2026-06-20) — optional
+            // directive {style,magnitude,minerals}. apply_events records it onto
+            // sim._deformationEvents with the step it fired; classifyDeformation (js/45)
+            // bends/twins crystals that already grew. Absent → no overprint → byte-
+            // identical. Mechanical + post-growth, so it does NOT mutate the fluid.
+            deformation: ev.deformation,
         }));
         return { conditions, events, defaultSteps: duration };
     };
@@ -45691,6 +45766,19 @@ function event_tormiq_late_calcite(c) {
     c.flow_rate = 0.2;
     return `The cleft cools below ~200°C: calcite + late zeolites close the paragenesis and growth winds down. T ${c.temperature.toFixed(0)}°C.`;
 }
+// LATE KARAKORAM-THRUST SHEARING (deformation/shear arc 2026-06-20). The cleft
+// is sealed and its quartz lining is fully grown, but the Main Karakoram Thrust
+// is still active — continued shearing of the rock mass plastically BENDS the
+// early quartz (post-growth bend-gliding / undulose strain; the literature is
+// unambiguous that bent quartz is a post-growth overprint, NOT a growth habit —
+// see RESEARCH-deformation-shear-2026-06-20.md §3). The epidote swords grew
+// later and are spared here (the directive targets quartz only). CHEMICALLY
+// INERT: deformation is mechanical and post-growth, so this handler touches no
+// fluid/T — the assemblage stays byte-identical. The bend is carried by the
+// event's `deformation` directive (handled in apply_events → classifyDeformation).
+function event_tormiq_late_shear(c) {
+    return `Continued Main Karakoram Thrust shearing wracks the sealed cleft: the early quartz lining, long since grown, is plastically BENT — its prisms curve and go undulose. (A post-growth tectonic overprint; the later epidote is spared.)`;
+}
 
 // ── 75-transitions.js ──
 
@@ -47649,6 +47737,11 @@ class VugSimulator {
         // Quartz gwindel — alpine-cleft slow-continuous twisted column (SIM 207).
         // Runs AFTER the sceptre pass (mutually exclusive). Pure tagging; see js/45.
         classifyQuartzGwindel(this);
+        // Post-growth DEFORMATION overprint (deformation arc 2026-06-20) — bends
+        // crystals that had ALREADY grown when a scenario event recorded a
+        // deformation directive (sim._deformationEvents). Pure tagging; no-op unless
+        // a scenario declares one → byte-identical fleet. See js/45.
+        classifyDeformation(this);
         // === HELIX-OVERLAY-FORK ADDITION (strip view bedrock, v149+) =====
         // Helicoid-as-recorder hook (Shy's 2026-05-26 design reframe).
         // When a StripRecorder is attached to the sim, capture one step's
@@ -50454,6 +50547,25 @@ Object.assign(VugSimulator.prototype, {
                         const kinds = toggled.map(s => s.kind).join(', ');
                         this.log.push(`     🔌 ${toggled.length} fluid feeder${toggled.length === 1 ? '' : 's'} ${verb} (${kinds}) — plumbing changed`);
                     }
+                }
+                // POST-GROWTH DEFORMATION (deformation/shear arc 2026-06-20) — an event may
+                // carry a `deformation` directive {style,magnitude,minerals}. It records a
+                // shear event onto the sim WITH the step it fired (classifyDeformation,
+                // post-growth in js/45, then bends crystals that had grown by this step).
+                // Chemically inert by design: deformation is MECHANICAL and POST-growth, so
+                // apply_fn must not touch fluid/T — the assemblage stays byte-identical.
+                if (event.deformation) {
+                    if (!this._deformationEvents)
+                        this._deformationEvents = [];
+                    const d = event.deformation;
+                    this._deformationEvents.push({
+                        step: this.step,
+                        style: d.style || 'bend',
+                        magnitude: (typeof d.magnitude === 'number') ? d.magnitude : 0.5,
+                        minerals: d.minerals || null,
+                    });
+                    const ms = d.minerals ? d.minerals.join(', ') : 'all grown crystals';
+                    this.log.push(`     ⟁ DEFORMATION: ${d.style || 'bend'} overprint on ${ms} — a post-growth tectonic shear bends what already grew`);
                 }
                 this.log.push('');
             }
@@ -59130,6 +59242,14 @@ Object.assign(VugSimulator.prototype, {
         if (c._sceptre && !c._gwindel) {
             parts.push(narrative_variant('quartz', 'sceptre', { capUm: c._sceptre.capUm.toFixed(0) })
                 || `A SCEPTRE: a fissure seal corroded the gen-1 termination, then a fresh silica breach regenerated a wider second-generation cap over the resorbed tip — the alpine crack-seal habit.`);
+        }
+        // Bent — POST-GROWTH deformation overprint (deformation/shear arc; js/45
+        // classifyDeformation). The crystal grew straight, then a later tectonic shear
+        // plastically bent it (bent quartz = post-growth bend-gliding, undulose strain
+        // — NOT a growth habit). Distinct from the gwindel twist (a growth feature).
+        if (c._deformation && c._deformation.kind === 'bend') {
+            parts.push(narrative_variant('quartz', 'bent')
+                || `BENT — the prism is plastically curved: it grew straight, then a later tectonic shear (still-active thrusting) bent the finished crystal, leaving undulose strain. A post-growth overprint, not a growth habit.`);
         }
         // Tessin (Tessiner Habitus) — the alpine face development.
         if ((c.dominant_forms || []).some(f => f.includes('steep rhombohedron'))) {
@@ -71569,6 +71689,59 @@ function _makeGwindelGeom(twistDeg) {
     geom.computeVertexNormals();
     return geom;
 }
+// BENT PRISM — post-growth deformation overprint (deformation/shear arc
+// 2026-06-20, RESEARCH-deformation-shear §5.3). A hexagonal prism whose long
+// axis arcs sideways: the crystal grew straight, then a later tectonic shear
+// bent it (bent quartz = post-growth bend-gliding, NOT a growth habit). Built
+// like _makeGwindelGeom's SEG loop, but each ring is TRANSLATED laterally along
+// a cantilever arc (offsetX ∝ t², base fixed, tip swung) instead of twisted —
+// the generic "deformation transform on a finished mesh" the arc was after. The
+// pyramidal termination follows the bend so the tip stays on-axis with its ring.
+// `bend` is the lateral tip offset (unit box). Gated in the mesh-sync hook on
+// crystal._deformation.kind === 'bend'.
+function _makeBentPrism(bend) {
+    const b = Math.max(0.0, Math.min(0.6, bend || 0.3));
+    const r = 0.26; // columnar (quartz-like) cross-section
+    const yBase = -0.5, yShoulder = 0.32, yApex = 0.5;
+    const SEG = 14, N = 6;
+    const offX = (y) => { const t = (y - yBase) / (yApex - yBase); return b * t * t; };
+    const ring = (y) => {
+        const cx = offX(y);
+        const out = [];
+        for (let k = 0; k < N; k++) {
+            const a = (k / N) * Math.PI * 2;
+            out.push([cx + r * Math.cos(a), y, r * Math.sin(a)]);
+        }
+        return out;
+    };
+    const positions = [];
+    for (let s = 0; s < SEG; s++) {
+        const y0 = yBase + (yShoulder - yBase) * (s / SEG);
+        const y1 = yBase + (yShoulder - yBase) * ((s + 1) / SEG);
+        const r0 = ring(y0), r1 = ring(y1);
+        for (let k = 0; k < N; k++) {
+            const j = (k + 1) % N;
+            _pushTri(positions, r0[k][0], r0[k][1], r0[k][2], r0[j][0], r0[j][1], r0[j][2], r1[j][0], r1[j][1], r1[j][2]);
+            _pushTri(positions, r0[k][0], r0[k][1], r0[k][2], r1[j][0], r1[j][1], r1[j][2], r1[k][0], r1[k][1], r1[k][2]);
+        }
+    }
+    // pyramidal termination (apex rides the bend)
+    const rs = ring(yShoulder);
+    const apex = [offX(yApex), yApex, 0];
+    for (let k = 0; k < N; k++) {
+        const j = (k + 1) % N;
+        _pushTri(positions, rs[k][0], rs[k][1], rs[k][2], rs[j][0], rs[j][1], rs[j][2], apex[0], apex[1], apex[2]);
+    }
+    // base cap (fan)
+    const rb = ring(yBase);
+    for (let k = 1; k < N - 1; k++) {
+        _pushTri(positions, rb[0][0], rb[0][1], rb[0][2], rb[k + 1][0], rb[k + 1][1], rb[k + 1][2], rb[k][0], rb[k][1], rb[k][2]);
+    }
+    const geom = new THREE.BufferGeometry();
+    geom.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+    geom.computeVertexNormals();
+    return geom;
+}
 // Calcite cleavage rhombohedron — 6 rhombic faces, 8 vertices, 3-fold
 // symmetric around the c-axis. Two apex vertices on the c-axis at
 // y=±h; 6 equatorial vertices in two staggered triangles at y=±t,
@@ -73966,6 +74139,24 @@ function _topoSyncCrystalMeshes(state, sim, wall, replayStep) {
                 crystal._saddleGeomAmp = q;
             }
             geom = crystal._saddleGeom;
+        }
+        // BENT crystal — post-growth deformation overprint (deformation/shear arc
+        // 2026-06-20). The sim tags crystal._deformation when a scenario shear event
+        // bent a crystal that had already grown (js/45 classifyDeformation). Gated on
+        // the prism token (the quartz tenant); the bend transform replaces the
+        // straight prism with an arced one. Takes precedence over gwindel/sceptre is
+        // unnecessary — those are quartz-cleft features and the bend tenant (tormiq)
+        // shares none of them, so order doesn't collide; placed last among the quartz
+        // hooks. (A replay before the shear step keeps the straight prism.)
+        if (!geom && crystal._deformation && crystal._deformation.kind === 'bend' && token === 'prism'
+            && (replayStep == null || replayStep >= crystal._deformation.atStep)) {
+            const bend = Math.max(0.15, Math.min(0.6, 0.15 + (crystal._deformation.amount || 0.5) * 0.45));
+            const q = Math.round(bend * 100) / 100; // quantize for cache reuse
+            if (crystal._bentGeomAmt !== q) {
+                crystal._bentGeom = _makeBentPrism(q);
+                crystal._bentGeomAmt = q;
+            }
+            geom = crystal._bentGeom;
         }
         if (!geom) {
             geom = state.geomCache.get(token);

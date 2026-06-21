@@ -534,6 +534,42 @@ function classifyQuartzGwindel(sim: any) {
   g.habit = 'gwindel';
 }
 
+// POST-GROWTH DEFORMATION OVERPRINT — the genuine "deformation" mechanic
+// (deformation/shear arc, RESEARCH-deformation-shear-2026-06-20.md §5.3). This
+// is the category the handoff §8 conflated: bent quartz / stibnite / mica kink
+// bands + mechanical twins are NOT recorded as the crystal grows — they are
+// imposed on a FINISHED lattice by a later tectonic event (post-growth crystal-
+// plastic gliding; the literature is unambiguous, research §3–4). So this is an
+// OVERPRINT, not a grow-integrate field: a scenario declares a `deformation`
+// directive on a late event (apply_events records it onto sim._deformationEvents
+// with the step it fired), and this pass — run post-growth like the gwindel/
+// sceptre classifiers — tags crystals that had ALREADY GROWN by that step
+// (firstZone.step < event.step) so the bend is stamped on a crystal that existed
+// to be bent. PURE tagging (no rng, no fluid) → the render reads crystal._defor-
+// mation; the engine baseline is untouched (gen-baseline serialises only counts/
+// sizes). Tag-once (idempotent across the per-step calls). minerals=null → any.
+const DEFORM_MIN_UM = 100;   // skip nucleation-only specks — need a body to bend
+function classifyDeformation(sim: any) {
+  const evs = sim._deformationEvents;
+  if (!evs || !evs.length) return;
+  for (const ev of evs) {
+    const mins = (ev && ev.minerals) || null;
+    const style = (ev && ev.style) || 'bend';
+    const amount = (ev && typeof ev.amount === 'number') ? ev.amount
+      : (ev && typeof ev.magnitude === 'number') ? ev.magnitude : 0.5;
+    for (const c of sim.crystals) {
+      if (!c || c.dissolved || c._deformation) continue;
+      if (mins && mins.indexOf(c.mineral) < 0) continue;
+      if ((c.total_growth_um || 0) < DEFORM_MIN_UM) continue;
+      // must have existed (grown) BEFORE the shear fired
+      let firstStep: any = null;
+      for (const z of (c.zones || [])) { if ((z.thickness_um || 0) > 0) { firstStep = z.step; break; } }
+      if (firstStep == null || firstStep >= ev.step) continue;
+      c._deformation = { kind: style, amount, atStep: ev.step };
+    }
+  }
+}
+
 function classifyMorphologyStep(sim: any) {
   for (const mineral in MORPH_TH) {
     const th = MORPH_TH[mineral];

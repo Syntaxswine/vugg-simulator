@@ -351,6 +351,7 @@ const EVENT_REGISTRY = {
   tormiq_byssolite: event_tormiq_byssolite,
   tormiq_adularia: event_tormiq_adularia,
   tormiq_late_calcite: event_tormiq_late_calcite,
+  tormiq_late_shear: event_tormiq_late_shear,
   // 2026-06-19 — Grimsel / Aar-massif alpine cleft (the quartz-morphology
   // content home). T is a declared movement; these are the crack-seal SiO₂
   // sawtooth + Fe/CO₃ chemistry beats. See js/70u-grimsel.ts.
@@ -443,6 +444,12 @@ function _buildScenarioFromSpec(scenarioId, spec) {
       // declare "this fracture-seal event shuts the plumbing" without touching
       // the shared event handler.
       spots: ev.spots,
+      // POST-GROWTH DEFORMATION (deformation/shear arc 2026-06-20) — optional
+      // directive {style,magnitude,minerals}. apply_events records it onto
+      // sim._deformationEvents with the step it fired; classifyDeformation (js/45)
+      // bends/twins crystals that already grew. Absent → no overprint → byte-
+      // identical. Mechanical + post-growth, so it does NOT mutate the fluid.
+      deformation: ev.deformation,
     }));
     return { conditions, events, defaultSteps: duration };
   };
