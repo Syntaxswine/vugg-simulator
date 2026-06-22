@@ -32883,12 +32883,72 @@ function classifyDeformation(sim) {
 // contrast), NOT a colour hourglass. (Correction trail: boss handoff said "Cu" →
 // corrected to V; my "not real sector zoning" → corrected, the zoning is real but
 // optical; the image corpus then corrected the visible-colour model to uniform.)
+//
+// GYPSUM HOURGLASS (selenite) — the arc's first GENUINELY VISIBLE sector tenant
+// (2026-06-22). Where apophyllite's sector zoning is optical-only, selenite's is the
+// classic VISIBLE "hourglass selenite" of the Great Salt Plains, Oklahoma (the state
+// crystal; USFWS Salt Plains NWR): fine clay + sand particles, stained reddish-to-
+// chocolate-brown by soil iron oxide, are mechanically trapped on the fast-growing
+// terminal growth SECTORS, forming a bowtie/hourglass of inclusions inside an
+// otherwise water-clear blade. It is a true growth-sector phenomenon (boss-confirmed
+// firsthand; corpus = boss's own provenance-locked specimens 2026-06-22): the apex
+// tracks the c-axis growth direction, so the internal hourglass stays self-similar
+// even as the outer envelope changes (the stepped-growth specimen). `requiresInclusion`
+// reads the engine's EXISTING hourglass-inclusion zones (grow_selenite already tags a
+// growth zone inclusion_type='hourglass (sand inclusions)' when rate>5 + a 30% roll) —
+// no new RNG, no chemistry: this is a pure render classification (SIM-neutral). The
+// derived `intensity` (trapped-zone fraction × accumulated trace_Fe) drives the brown
+// depth, and `flooded` (heavy inclusion load) collapses the contrast to a solid-brown
+// overgrown crystal — the boss's clear↔flooded variant spectrum in one knob.
 const SECTOR_ZONED_MINERALS = {
     tourmaline: { kind: 'hourglass' },
     andalusite: { kind: 'cross', requiresGraphitic: true }, // chiastolite — the carbon cross
     apophyllite: { kind: 'apophyllite_green', requiresGreen: true }, // Poona V⁴⁺ UNIFORM green body + pearly basal (sector zoning is optical-only — see note)
+    selenite: { kind: 'gypsum_hourglass', requiresInclusion: true }, // Great Salt Plains clay/Fe sector hourglass — genuinely VISIBLE (see note)
 };
 const SECTOR_ZONED_MIN_UM = 50; // need a real body + termination/sectors to partition
+// Read-only scan of a selenite crystal's growth zones for the engine's trapped-
+// sediment record. Returns null if no hourglass inclusions were trapped (a water-
+// clear blade — most specimens), else the visible-render parameters. SIM-NEUTRAL:
+// only reads zone fields the engine already wrote.
+// Hourglass selenite is a COOL near-surface, sediment-laden phenomenon (wet soil /
+// evaporite playa — Great Salt Plains). A hot, clean, slow geothermal pool (Naica,
+// ~54°C) grows water-CLEAR blades and traps no soil sediment, so an inclusion zone
+// only counts toward the visible hourglass if it grew below this temperature. This is
+// the defer-to-geology gate that keeps Naica's iconic clear crystals clear.
+const HOURGLASS_MAX_T = 45;
+const HOURGLASS_FAST_RATE = 5; // µm/step — the engine's "fast growth traps inclusions" threshold
+function _seleniteHourglassParams(c) {
+    const zones = (c && c.zones) || [];
+    let growth = 0, hgCount = 0, feLoad = 0, pulses = 0, prevFast = false;
+    for (const z of zones) {
+        const t = z.thickness_um || 0;
+        if (t <= 0)
+            continue;
+        growth++;
+        if (typeof z.inclusion_type === 'string' && z.inclusion_type.indexOf('hourglass') >= 0
+            && (z.temperature == null || z.temperature < HOURGLASS_MAX_T))
+            hgCount++;
+        feLoad += z.trace_Fe || 0;
+        // Count distinct FAST-growth pulses (rate crossing up through the threshold) — the
+        // stepped-growth driver. Pulsed evaporite settings (sabkha flood/evap, playa wet/dry)
+        // grow the blade in episodes, so the outer envelope steps down between pulses while the
+        // internal hourglass stays self-similar (the boss's stepped-growth specimen / quartz
+        // sceptre / calcite ziggurat). SIM-neutral: reads growth_rate the engine already wrote.
+        const fast = (z.growth_rate || 0) > HOURGLASS_FAST_RATE;
+        if (fast && !prevFast)
+            pulses++;
+        prevFast = fast;
+    }
+    if (hgCount === 0 || growth === 0)
+        return null;
+    const hgFrac = hgCount / growth; // 0..1 — share of growth that trapped sediment
+    // Brown depth: trapped fraction sets the sharpness, iron load sets the hue depth.
+    const intensity = Math.max(0.15, Math.min(1, hgFrac * (0.6 + Math.min(1, feLoad * 4))));
+    const flooded = hgFrac > 0.6; // heavy load → overgrown solid brown, hourglass lost
+    const steps = pulses >= 2 ? Math.min(5, pulses) : 0; // 0 = smooth chisel tip; ≥2 = stepped ziggurat tip
+    return { kind: 'gypsum_hourglass', intensity, flooded, hgFrac, steps };
+}
 function classifySectorZoning(sim) {
     const graphitic = !!(sim.conditions && sim.conditions.wall && sim.conditions.wall.graphitic);
     for (const c of sim.crystals) {
@@ -32903,6 +32963,13 @@ function classifySectorZoning(sim) {
             continue; // V⁴⁺ green only (grow_apophyllite)
         if ((c.total_growth_um || 0) < SECTOR_ZONED_MIN_UM)
             continue;
+        if (cfg.requiresInclusion) { // selenite — only blades that trapped sediment
+            const hg = _seleniteHourglassParams(c);
+            if (!hg)
+                continue;
+            c._sectorZoned = hg;
+            continue;
+        }
         c._sectorZoned = { kind: cfg.kind };
     }
 }
@@ -60129,6 +60196,20 @@ Object.assign(VugSimulator.prototype, {
         if (c.c_length_mm > 10) {
             parts.push(narrative_variant('selenite', 'giant_naica') || 'Large selenite crystals are among the biggest in nature — the Cave of Crystals in Naica, Mexico holds selenite beams 11 meters long, grown over 500,000 years in water just 2°C above saturation. Patience beyond patience.');
         }
+        // Hourglass selenite — clay/sand/iron trapped on the low-T fast-growing sectors
+        // (js/45 _seleniteHourglassParams; render js/99i). The Great Salt Plains signature.
+        if (c._sectorZoned && c._sectorZoned.kind === 'gypsum_hourglass') {
+            const hg = c._sectorZoned;
+            if (hg.flooded) {
+                parts.push(narrative_variant('selenite', 'hourglass_flooded') || 'Sediment-flooded — clay, sand, and iron oxide swept into the growing crystal so densely that later overgrowth buried the interior in solid reddish-to-chocolate brown. The hourglass is still in there, lost under the flood. The Great Salt Plains way: a crystal grown through wet, iron-stained soil.');
+            }
+            else {
+                parts.push(narrative_variant('selenite', 'hourglass') || 'An hourglass inside the blade — fine clay and sand, stained amber by soil iron oxide, trapped on the fast-growing terminal sectors as a sandglass of inclusions pinched at the waist. The signature of the Great Salt Plains of Oklahoma, the only place on Earth selenite grows this way. The interior records which faces were growing, and keeps that order even as the outer shape changes.');
+            }
+            if (hg.steps >= 2) {
+                parts.push(narrative_variant('selenite', 'hourglass_stepped') || 'It grew in pulses — flood and evaporation, season after season — so the blade steps down toward its tip in terraces, like a stepped pyramid, while the hourglass within holds its ordered shape through every step.');
+            }
+        }
         if (c.dissolved) {
             parts.push(narrative_variant('selenite', 'dissolved'));
         }
@@ -72095,6 +72176,88 @@ function _makeApophyllitePrism(prismRGB, pyramidRGB, basalRGB) {
     geom.computeVertexNormals();
     return geom;
 }
+// GYPSUM HOURGLASS BLADE — the genuinely VISIBLE sector tenant (crystal-face-realism
+// arc 2026-06-22). A tabular selenite blade (thin in x, wide in z, elongated up the
+// c-axis y) carrying the iconic "hourglass selenite" of the Great Salt Plains: clay +
+// sand stained chocolate-brown by soil iron oxide, mechanically trapped on the fast-
+// growing terminal growth SECTORS, forming a sandglass of inclusions inside an
+// otherwise water-clear blade (USFWS Salt Plains NWR; Oklahoma state crystal). ONE
+// rule paints it, chiastolite-style: on each broad {010} face, a cell at normalized
+// (yn, zn) is in the inclusion sector when |zn| < |yn| — two cones meeting apex-to-apex
+// at the crystal centre (wide at both terminations, pinched to a clear waist). The apex
+// sits at the geometric centre so the hourglass is self-similar along the c-axis — the
+// boss's stepped-growth specimen, where the internal order survives the outer envelope
+// changing. `flooded` collapses the whole blade to solid brown (the overgrown variant —
+// heavy inclusion load buries the contrast; boss: "the brown ones are overgrown").
+// Colours are ABSOLUTE per-CELL (material runs vertexColors with color=white): body =
+// pale clear gypsum, sector = amber→chocolate by trapped-load intensity. Same unit box
+// (y −0.5..+0.5) as the other prism builders so the per-crystal transform scales it.
+function _makeHourglassSeleniteBlade(bodyRGB, sectorRGB, flooded, steps) {
+    const a = 0.09; // half-thickness (x) — tabular blade, constant thin
+    const bMax = 0.34; // max half-width (z) at the base/body
+    const yBase = -0.50, yTop = 0.50;
+    const yShoulder = 0.02; // body below (full width); tapering chisel tip above
+    const Nz = 14; // z-cells across the broad face (the hourglass)
+    const Ny = 26; // y-slices up the c-axis
+    const positions = [];
+    const colors = [];
+    // Inclusion sector: |zn| < |yn| — the sandglass (apex at centre, wide at the tips).
+    // Normalized against the FULL bMax so the bowtie stays geometrically fixed as the
+    // outer envelope tapers/steps — the boss's "internal hourglass survives the envelope".
+    const isSector = (yn, zn) => flooded || Math.abs(zn) < Math.abs(yn);
+    const pushQuad = (ax, ay, az, bx, by, bz, cx, cy, cz, dx, dy, dz, col) => {
+        _pushTri(positions, ax, ay, az, bx, by, bz, cx, cy, cz);
+        _pushTri(positions, ax, ay, az, cx, cy, cz, dx, dy, dz);
+        for (let k = 0; k < 6; k++)
+            colors.push(col[0], col[1], col[2]);
+    };
+    const edgeCol = flooded ? sectorRGB : bodyRGB;
+    // Half-width at a given y: full below the shoulder, then taper to a chisel tip. When
+    // `steps` ≥ 2 the taper is quantized into discrete narrowing terraces (the stepped-
+    // growth ziggurat); otherwise it is a fine smooth chisel.
+    const halfWidth = (y) => {
+        if (y <= yShoulder)
+            return bMax;
+        let t = (y - yShoulder) / (yTop - yShoulder); // 0..1 up the tip
+        if (steps >= 2) {
+            const lvl = Math.min(steps - 1, Math.floor(t * steps));
+            t = lvl / (steps - 1);
+        }
+        return bMax * (1 - 0.9 * t); // 1.0 → 0.1 (a thin tip, not a degenerate point)
+    };
+    let prevBB = -1;
+    for (let i = 0; i < Ny; i++) {
+        const y0 = yBase + (yTop - yBase) * (i / Ny), y1 = yBase + (yTop - yBase) * ((i + 1) / Ny);
+        const yc = (y0 + y1) / 2, yn = yc / 0.5;
+        const bb = halfWidth(yc);
+        // Broad faces (x = ±a) — z-cells across −bb..bb, coloured by the fixed hourglass rule.
+        for (let j = 0; j < Nz; j++) {
+            const z0 = -bb + (2 * bb) * (j / Nz), z1 = -bb + (2 * bb) * ((j + 1) / Nz);
+            const zn = ((z0 + z1) / 2) / bMax;
+            const col = isSector(yn, zn) ? sectorRGB : bodyRGB;
+            pushQuad(a, y0, z0, a, y1, z0, a, y1, z1, a, y0, z1, col); // +x face
+            pushQuad(-a, y0, z0, -a, y0, z1, -a, y1, z1, -a, y1, z0, col); // −x face
+        }
+        // Side faces at z = ±bb for this slice.
+        pushQuad(-a, y0, bb, a, y0, bb, a, y1, bb, -a, y1, bb, edgeCol); // +z side
+        pushQuad(-a, y0, -bb, -a, y1, -bb, a, y1, -bb, a, y0, -bb, edgeCol); // −z side
+        // Step tread (horizontal ledge facing up) where the width shrank from the slice below.
+        if (prevBB > bb + 1e-6) {
+            pushQuad(-a, y0, bb, -a, y0, prevBB, a, y0, prevBB, a, y0, bb, edgeCol); // +z ledge
+            pushQuad(-a, y0, -prevBB, -a, y0, -bb, a, y0, -bb, a, y0, -prevBB, edgeCol); // −z ledge
+        }
+        prevBB = bb;
+    }
+    // Base cap (full width, sits on the matrix) + thin tip cap.
+    const bTip = halfWidth(yTop - 1e-4);
+    pushQuad(-a, yBase, -bMax, a, yBase, -bMax, a, yBase, bMax, -a, yBase, bMax, sectorRGB); // base
+    pushQuad(-a, yTop, -bTip, -a, yTop, bTip, a, yTop, bTip, a, yTop, -bTip, sectorRGB); // tip
+    const geom = new THREE.BufferGeometry();
+    geom.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+    geom.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+    geom.computeVertexNormals();
+    return geom;
+}
 // Quartz SCEPTRE — gen-1 stem + a wider gen-2 cap grown over the resorbed
 // tip (alpine-cleft arc SIM 206; the sim tags crystal._sceptre.capFrac after
 // the resorption→renewal phantom boundary). Two stacked hexagonal prisms: a
@@ -74638,6 +74801,34 @@ function _topoSyncCrystalMeshes(state, sim, wall, replayStep) {
             }
             geom = crystal._bentGeom;
         }
+        // GYPSUM HOURGLASS (selenite) — the visible sandglass of trapped clay/Fe sediment
+        // inside a water-clear blade (Great Salt Plains; js/45 _seleniteHourglassParams).
+        // NOT gated on the prism token: selenite has its own bladed geometry. The body is
+        // pale clear gypsum, the inclusion sector amber→chocolate by trapped-load intensity;
+        // `flooded` buries the contrast to solid brown (the overgrown variant). Bucketed
+        // cache key (intensity rounded to 0.1) keeps the geom cache small.
+        let isGypsumHourglass = false;
+        if (!geom && crystal._sectorZoned && crystal._sectorZoned.kind === 'gypsum_hourglass') {
+            const hg = crystal._sectorZoned;
+            const inten = Math.max(0.15, Math.min(1, hg.intensity || 0.5));
+            const bucket = Math.round(inten * 10) / 10;
+            const flooded = !!hg.flooded;
+            const steps = hg.steps | 0; // 0 = smooth chisel tip; ≥2 = stepped ziggurat
+            const key = '__gypsum_hg_' + bucket + (flooded ? '_f' : '') + '_s' + steps;
+            geom = state.geomCache.get(key);
+            if (!geom) {
+                // amber (#c89a5b, light load) → chocolate (#5a3621, heavy load), per USFWS
+                // "reddish to chocolate brown" iron-oxide staining.
+                const sector = new THREE.Color('#c89a5b').lerp(new THREE.Color('#5a3621'), bucket);
+                const clear = new THREE.Color('#e8e2d4'); // pale water-clear gypsum body
+                // Flooded: body collapses most of the way toward the sector colour (solid brown).
+                const bodyCol = flooded ? clear.clone().lerp(sector, 0.8) : clear;
+                geom = _makeHourglassSeleniteBlade([bodyCol.r, bodyCol.g, bodyCol.b], [sector.r, sector.g, sector.b], flooded, steps);
+                state.geomCache.set(key, geom);
+            }
+            isSectorZoned = true;
+            isGypsumHourglass = !crystal._sectorZoned.flooded; // clear blade reads translucent; flooded reads opaque
+        }
         // SECTOR (HOURGLASS) ZONING — crystals tagged by js/45 classifySectorZoning
         // (tourmaline + future sector minerals) render with the pyramid termination
         // sector painted a contrasting colour from the prism body (Dowty 1976 / Ferguson
@@ -74773,6 +74964,12 @@ function _topoSyncCrystalMeshes(state, sim, wall, replayStep) {
         if (isSectorZoned) {
             matOpts.color = 0xffffff;
             matOpts.vertexColors = true;
+        }
+        // A clear (non-flooded) hourglass blade reads as glassy gypsum — translucent so the
+        // internal sandglass of inclusions shows through; flooded blades stay opaque brown.
+        if (isGypsumHourglass) {
+            matOpts.transparent = true;
+            matOpts.opacity = 0.82;
         }
         const mat = new THREE.MeshStandardMaterial(matOpts);
         _applyCavityClip(mat, state.clipUniforms);

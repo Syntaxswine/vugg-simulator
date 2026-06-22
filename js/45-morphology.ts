@@ -618,12 +618,68 @@ function classifyDeformation(sim: any) {
 // contrast), NOT a colour hourglass. (Correction trail: boss handoff said "Cu" →
 // corrected to V; my "not real sector zoning" → corrected, the zoning is real but
 // optical; the image corpus then corrected the visible-colour model to uniform.)
+//
+// GYPSUM HOURGLASS (selenite) — the arc's first GENUINELY VISIBLE sector tenant
+// (2026-06-22). Where apophyllite's sector zoning is optical-only, selenite's is the
+// classic VISIBLE "hourglass selenite" of the Great Salt Plains, Oklahoma (the state
+// crystal; USFWS Salt Plains NWR): fine clay + sand particles, stained reddish-to-
+// chocolate-brown by soil iron oxide, are mechanically trapped on the fast-growing
+// terminal growth SECTORS, forming a bowtie/hourglass of inclusions inside an
+// otherwise water-clear blade. It is a true growth-sector phenomenon (boss-confirmed
+// firsthand; corpus = boss's own provenance-locked specimens 2026-06-22): the apex
+// tracks the c-axis growth direction, so the internal hourglass stays self-similar
+// even as the outer envelope changes (the stepped-growth specimen). `requiresInclusion`
+// reads the engine's EXISTING hourglass-inclusion zones (grow_selenite already tags a
+// growth zone inclusion_type='hourglass (sand inclusions)' when rate>5 + a 30% roll) —
+// no new RNG, no chemistry: this is a pure render classification (SIM-neutral). The
+// derived `intensity` (trapped-zone fraction × accumulated trace_Fe) drives the brown
+// depth, and `flooded` (heavy inclusion load) collapses the contrast to a solid-brown
+// overgrown crystal — the boss's clear↔flooded variant spectrum in one knob.
 const SECTOR_ZONED_MINERALS: any = {
   tourmaline: { kind: 'hourglass' },
   andalusite: { kind: 'cross', requiresGraphitic: true },   // chiastolite — the carbon cross
   apophyllite: { kind: 'apophyllite_green', requiresGreen: true },  // Poona V⁴⁺ UNIFORM green body + pearly basal (sector zoning is optical-only — see note)
+  selenite: { kind: 'gypsum_hourglass', requiresInclusion: true },  // Great Salt Plains clay/Fe sector hourglass — genuinely VISIBLE (see note)
 };
 const SECTOR_ZONED_MIN_UM = 50;   // need a real body + termination/sectors to partition
+// Read-only scan of a selenite crystal's growth zones for the engine's trapped-
+// sediment record. Returns null if no hourglass inclusions were trapped (a water-
+// clear blade — most specimens), else the visible-render parameters. SIM-NEUTRAL:
+// only reads zone fields the engine already wrote.
+// Hourglass selenite is a COOL near-surface, sediment-laden phenomenon (wet soil /
+// evaporite playa — Great Salt Plains). A hot, clean, slow geothermal pool (Naica,
+// ~54°C) grows water-CLEAR blades and traps no soil sediment, so an inclusion zone
+// only counts toward the visible hourglass if it grew below this temperature. This is
+// the defer-to-geology gate that keeps Naica's iconic clear crystals clear.
+const HOURGLASS_MAX_T = 45;
+const HOURGLASS_FAST_RATE = 5;   // µm/step — the engine's "fast growth traps inclusions" threshold
+function _seleniteHourglassParams(c: any): any {
+  const zones = (c && c.zones) || [];
+  let growth = 0, hgCount = 0, feLoad = 0, pulses = 0, prevFast = false;
+  for (const z of zones) {
+    const t = z.thickness_um || 0;
+    if (t <= 0) continue;
+    growth++;
+    if (typeof z.inclusion_type === 'string' && z.inclusion_type.indexOf('hourglass') >= 0
+        && (z.temperature == null || z.temperature < HOURGLASS_MAX_T)) hgCount++;
+    feLoad += z.trace_Fe || 0;
+    // Count distinct FAST-growth pulses (rate crossing up through the threshold) — the
+    // stepped-growth driver. Pulsed evaporite settings (sabkha flood/evap, playa wet/dry)
+    // grow the blade in episodes, so the outer envelope steps down between pulses while the
+    // internal hourglass stays self-similar (the boss's stepped-growth specimen / quartz
+    // sceptre / calcite ziggurat). SIM-neutral: reads growth_rate the engine already wrote.
+    const fast = (z.growth_rate || 0) > HOURGLASS_FAST_RATE;
+    if (fast && !prevFast) pulses++;
+    prevFast = fast;
+  }
+  if (hgCount === 0 || growth === 0) return null;
+  const hgFrac = hgCount / growth;                        // 0..1 — share of growth that trapped sediment
+  // Brown depth: trapped fraction sets the sharpness, iron load sets the hue depth.
+  const intensity = Math.max(0.15, Math.min(1, hgFrac * (0.6 + Math.min(1, feLoad * 4))));
+  const flooded = hgFrac > 0.6;                           // heavy load → overgrown solid brown, hourglass lost
+  const steps = pulses >= 2 ? Math.min(5, pulses) : 0;    // 0 = smooth chisel tip; ≥2 = stepped ziggurat tip
+  return { kind: 'gypsum_hourglass', intensity, flooded, hgFrac, steps };
+}
 function classifySectorZoning(sim: any) {
   const graphitic = !!(sim.conditions && sim.conditions.wall && sim.conditions.wall.graphitic);
   for (const c of sim.crystals) {
@@ -633,6 +689,12 @@ function classifySectorZoning(sim: any) {
     if (cfg.requiresGraphitic && !graphitic) continue;
     if (cfg.requiresGreen && !c._apophylliteGreen) continue;   // V⁴⁺ green only (grow_apophyllite)
     if ((c.total_growth_um || 0) < SECTOR_ZONED_MIN_UM) continue;
+    if (cfg.requiresInclusion) {                                // selenite — only blades that trapped sediment
+      const hg = _seleniteHourglassParams(c);
+      if (!hg) continue;
+      c._sectorZoned = hg;
+      continue;
+    }
     c._sectorZoned = { kind: cfg.kind };
   }
 }

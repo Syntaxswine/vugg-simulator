@@ -941,6 +941,88 @@ function _makeApophyllitePrism(prismRGB: number[], pyramidRGB: number[], basalRG
   return geom;
 }
 
+// GYPSUM HOURGLASS BLADE — the genuinely VISIBLE sector tenant (crystal-face-realism
+// arc 2026-06-22). A tabular selenite blade (thin in x, wide in z, elongated up the
+// c-axis y) carrying the iconic "hourglass selenite" of the Great Salt Plains: clay +
+// sand stained chocolate-brown by soil iron oxide, mechanically trapped on the fast-
+// growing terminal growth SECTORS, forming a sandglass of inclusions inside an
+// otherwise water-clear blade (USFWS Salt Plains NWR; Oklahoma state crystal). ONE
+// rule paints it, chiastolite-style: on each broad {010} face, a cell at normalized
+// (yn, zn) is in the inclusion sector when |zn| < |yn| — two cones meeting apex-to-apex
+// at the crystal centre (wide at both terminations, pinched to a clear waist). The apex
+// sits at the geometric centre so the hourglass is self-similar along the c-axis — the
+// boss's stepped-growth specimen, where the internal order survives the outer envelope
+// changing. `flooded` collapses the whole blade to solid brown (the overgrown variant —
+// heavy inclusion load buries the contrast; boss: "the brown ones are overgrown").
+// Colours are ABSOLUTE per-CELL (material runs vertexColors with color=white): body =
+// pale clear gypsum, sector = amber→chocolate by trapped-load intensity. Same unit box
+// (y −0.5..+0.5) as the other prism builders so the per-crystal transform scales it.
+function _makeHourglassSeleniteBlade(bodyRGB: number[], sectorRGB: number[], flooded: boolean, steps: number): any {
+  const a = 0.09;             // half-thickness (x) — tabular blade, constant thin
+  const bMax = 0.34;          // max half-width (z) at the base/body
+  const yBase = -0.50, yTop = 0.50;
+  const yShoulder = 0.02;     // body below (full width); tapering chisel tip above
+  const Nz = 14;              // z-cells across the broad face (the hourglass)
+  const Ny = 26;              // y-slices up the c-axis
+  const positions: number[] = [];
+  const colors: number[] = [];
+  // Inclusion sector: |zn| < |yn| — the sandglass (apex at centre, wide at the tips).
+  // Normalized against the FULL bMax so the bowtie stays geometrically fixed as the
+  // outer envelope tapers/steps — the boss's "internal hourglass survives the envelope".
+  const isSector = (yn: number, zn: number) => flooded || Math.abs(zn) < Math.abs(yn);
+  const pushQuad = (
+    ax: number, ay: number, az: number, bx: number, by: number, bz: number,
+    cx: number, cy: number, cz: number, dx: number, dy: number, dz: number,
+    col: number[],
+  ) => {
+    _pushTri(positions, ax, ay, az, bx, by, bz, cx, cy, cz);
+    _pushTri(positions, ax, ay, az, cx, cy, cz, dx, dy, dz);
+    for (let k = 0; k < 6; k++) colors.push(col[0], col[1], col[2]);
+  };
+  const edgeCol = flooded ? sectorRGB : bodyRGB;
+  // Half-width at a given y: full below the shoulder, then taper to a chisel tip. When
+  // `steps` ≥ 2 the taper is quantized into discrete narrowing terraces (the stepped-
+  // growth ziggurat); otherwise it is a fine smooth chisel.
+  const halfWidth = (y: number): number => {
+    if (y <= yShoulder) return bMax;
+    let t = (y - yShoulder) / (yTop - yShoulder);        // 0..1 up the tip
+    if (steps >= 2) { const lvl = Math.min(steps - 1, Math.floor(t * steps)); t = lvl / (steps - 1); }
+    return bMax * (1 - 0.9 * t);                          // 1.0 → 0.1 (a thin tip, not a degenerate point)
+  };
+  let prevBB = -1;
+  for (let i = 0; i < Ny; i++) {
+    const y0 = yBase + (yTop - yBase) * (i / Ny), y1 = yBase + (yTop - yBase) * ((i + 1) / Ny);
+    const yc = (y0 + y1) / 2, yn = yc / 0.5;
+    const bb = halfWidth(yc);
+    // Broad faces (x = ±a) — z-cells across −bb..bb, coloured by the fixed hourglass rule.
+    for (let j = 0; j < Nz; j++) {
+      const z0 = -bb + (2 * bb) * (j / Nz), z1 = -bb + (2 * bb) * ((j + 1) / Nz);
+      const zn = ((z0 + z1) / 2) / bMax;
+      const col = isSector(yn, zn) ? sectorRGB : bodyRGB;
+      pushQuad(a, y0, z0, a, y1, z0, a, y1, z1, a, y0, z1, col);        // +x face
+      pushQuad(-a, y0, z0, -a, y0, z1, -a, y1, z1, -a, y1, z0, col);   // −x face
+    }
+    // Side faces at z = ±bb for this slice.
+    pushQuad(-a, y0, bb, a, y0, bb, a, y1, bb, -a, y1, bb, edgeCol);          // +z side
+    pushQuad(-a, y0, -bb, -a, y1, -bb, a, y1, -bb, a, y0, -bb, edgeCol);      // −z side
+    // Step tread (horizontal ledge facing up) where the width shrank from the slice below.
+    if (prevBB > bb + 1e-6) {
+      pushQuad(-a, y0, bb, -a, y0, prevBB, a, y0, prevBB, a, y0, bb, edgeCol);        // +z ledge
+      pushQuad(-a, y0, -prevBB, -a, y0, -bb, a, y0, -bb, a, y0, -prevBB, edgeCol);    // −z ledge
+    }
+    prevBB = bb;
+  }
+  // Base cap (full width, sits on the matrix) + thin tip cap.
+  const bTip = halfWidth(yTop - 1e-4);
+  pushQuad(-a, yBase, -bMax, a, yBase, -bMax, a, yBase, bMax, -a, yBase, bMax, sectorRGB);   // base
+  pushQuad(-a, yTop, -bTip, -a, yTop, bTip, a, yTop, bTip, a, yTop, -bTip, sectorRGB);       // tip
+  const geom = new THREE.BufferGeometry();
+  geom.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+  geom.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+  geom.computeVertexNormals();
+  return geom;
+}
+
 // Quartz SCEPTRE — gen-1 stem + a wider gen-2 cap grown over the resorbed
 // tip (alpine-cleft arc SIM 206; the sim tags crystal._sceptre.capFrac after
 // the resorption→renewal phantom boundary). Two stacked hexagonal prisms: a
@@ -3435,6 +3517,35 @@ function _topoSyncCrystalMeshes(state: any, sim: any, wall: any, replayStep?: nu
       if (crystal._bentGeomAmt !== q) { crystal._bentGeom = _makeBentPrism(q); crystal._bentGeomAmt = q; }
       geom = crystal._bentGeom;
     }
+    // GYPSUM HOURGLASS (selenite) — the visible sandglass of trapped clay/Fe sediment
+    // inside a water-clear blade (Great Salt Plains; js/45 _seleniteHourglassParams).
+    // NOT gated on the prism token: selenite has its own bladed geometry. The body is
+    // pale clear gypsum, the inclusion sector amber→chocolate by trapped-load intensity;
+    // `flooded` buries the contrast to solid brown (the overgrown variant). Bucketed
+    // cache key (intensity rounded to 0.1) keeps the geom cache small.
+    let isGypsumHourglass = false;
+    if (!geom && crystal._sectorZoned && crystal._sectorZoned.kind === 'gypsum_hourglass') {
+      const hg = crystal._sectorZoned;
+      const inten = Math.max(0.15, Math.min(1, hg.intensity || 0.5));
+      const bucket = Math.round(inten * 10) / 10;
+      const flooded = !!hg.flooded;
+      const steps = hg.steps | 0;                   // 0 = smooth chisel tip; ≥2 = stepped ziggurat
+      const key = '__gypsum_hg_' + bucket + (flooded ? '_f' : '') + '_s' + steps;
+      geom = state.geomCache.get(key);
+      if (!geom) {
+        // amber (#c89a5b, light load) → chocolate (#5a3621, heavy load), per USFWS
+        // "reddish to chocolate brown" iron-oxide staining.
+        const sector = new THREE.Color('#c89a5b').lerp(new THREE.Color('#5a3621'), bucket);
+        const clear = new THREE.Color('#e8e2d4');     // pale water-clear gypsum body
+        // Flooded: body collapses most of the way toward the sector colour (solid brown).
+        const bodyCol = flooded ? clear.clone().lerp(sector, 0.8) : clear;
+        geom = _makeHourglassSeleniteBlade(
+          [bodyCol.r, bodyCol.g, bodyCol.b], [sector.r, sector.g, sector.b], flooded, steps);
+        state.geomCache.set(key, geom);
+      }
+      isSectorZoned = true;
+      isGypsumHourglass = !crystal._sectorZoned.flooded;   // clear blade reads translucent; flooded reads opaque
+    }
     // SECTOR (HOURGLASS) ZONING — crystals tagged by js/45 classifySectorZoning
     // (tourmaline + future sector minerals) render with the pyramid termination
     // sector painted a contrasting colour from the prism body (Dowty 1976 / Ferguson
@@ -3568,6 +3679,9 @@ function _topoSyncCrystalMeshes(state: any, sim: any, wall: any, replayStep?: nu
     // directly (the two sectors read as distinct colours, sharp boundary at the
     // prism/pyramid shoulder).
     if (isSectorZoned) { matOpts.color = 0xffffff; matOpts.vertexColors = true; }
+    // A clear (non-flooded) hourglass blade reads as glassy gypsum — translucent so the
+    // internal sandglass of inclusions shows through; flooded blades stay opaque brown.
+    if (isGypsumHourglass) { matOpts.transparent = true; matOpts.opacity = 0.82; }
     const mat = new THREE.MeshStandardMaterial(matOpts);
     _applyCavityClip(mat, state.clipUniforms);
 

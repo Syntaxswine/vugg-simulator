@@ -4757,19 +4757,24 @@
       "habit": "tabular_or_prismatic_or_fibrous",
       "color_rules": {
         "colorless": {
-          "default": true
+          "default": true,
+          "trigger": "clear blade, no trapped sediment (most settings — Naica, alpine)"
         },
         "white": {
-          "trigger": "inclusions"
+          "trigger": "fine inclusions / satin spar chatoyancy"
+        },
+        "amber_hourglass": {
+          "trigger": "clay + sand trapped on the fast-growing terminal growth SECTORS at low T (<45°C), light iron staining — the VISIBLE hourglass (Great Salt Plains, Oklahoma; USFWS Salt Plains NWR). Render: js/45 _seleniteHourglassParams → js/99i _makeHourglassSeleniteBlade."
+        },
+        "chocolate_brown": {
+          "trigger": "heavy iron-oxide-stained sediment load; later overgrowth floods the blade to solid reddish-to-chocolate brown and the hourglass is lost (the overgrown variant). USFWS: soil iron oxide gives the reddish-to-chocolate-brown colour."
         }
       },
       "narrate_function": "_narrate_selenite",
       "runtimes_present": [
-        "vugg.py",
-        "index.html",
-        "agent-api/vugg-agent.js"
+        "js"
       ],
-      "audit_status": "ok — all 3 runtimes (phase-3). Naica giant crystals at T~58°C for 500,000 years; above 60°C anhydrite wins.",
+      "audit_status": "js-only (Python tree deleted 2026-05-07). Naica giant crystals at T~58°C for 500,000 years; above 60°C anhydrite wins. 2026-06-22: VISIBLE hourglass-sector render added (crystal-face-realism arc) — clay/Fe sediment trapped on low-T fast-growth sectors forms the Great Salt Plains hourglass; clear→amber-hourglass→flooded-brown spectrum + stepped-growth chisel blade; SIM-neutral (reads existing engine inclusion zones, no chemistry change).",
       "class_color": "#eb137f"
     },
     "goethite": {
