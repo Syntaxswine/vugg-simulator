@@ -1143,6 +1143,36 @@ function _makeBentPrism(bend: number): any {
   return geom;
 }
 
+// Etched / dissolution-sculpted cube (crystal-face-realism arc §2, 2026-06-22). A
+// returning UNDERSATURATED fluid rounds a finished crystal's edges + corners (Sangwal
+// 1987, Etching of Crystals); on an isometric habit (fluorite / galena cube) the corners
+// — the highest-energy sites — round first, the classic etched/dissolved fluorite look.
+// Built from a SUBDIVIDED box whose vertices are lerped toward a sphere: corners (the
+// farthest from centre) move the most, face-centres barely move, so the cube keeps flat
+// faces but gains rounded etched edges + corners. `round` 0 = sharp, ~0.5 = strongly
+// dissolved. Gated in the mesh-sync hook on crystal._etch + the cube token; paired with a
+// frosted (high-roughness) material. Lead-with-rounding — reads better than literal pits
+// at thumbnail scale (the §2 design note). A low-poly box can't round (its 8 corners are
+// equidistant → a uniform lerp just shrinks it), hence the SEG subdivision.
+function _makeEtchedCube(round: number): any {
+  const t = Math.max(0.0, Math.min(0.85, round || 0.3));
+  const SEG = 12;
+  const geom = new THREE.BoxGeometry(0.8, 0.8, 0.8, SEG, SEG, SEG);
+  const pos = geom.attributes.position;
+  const R = 0.47;                         // target sphere radius (slightly > inscribed 0.4 so faces stay flattish)
+  for (let i = 0; i < pos.count; i++) {
+    const x = pos.getX(i), y = pos.getY(i), z = pos.getZ(i);
+    const r = Math.hypot(x, y, z) || 1e-6;
+    pos.setXYZ(i,
+      x * (1 - t) + (x / r) * R * t,
+      y * (1 - t) + (y / r) * R * t,
+      z * (1 - t) + (z / r) * R * t);
+  }
+  pos.needsUpdate = true;
+  geom.computeVertexNormals();
+  return geom;
+}
+
 // Calcite cleavage rhombohedron — 6 rhombic faces, 8 vertices, 3-fold
 // symmetric around the c-axis. Two apex vertices on the c-axis at
 // y=±h; 6 equatorial vertices in two staggered triangles at y=±t,
@@ -3431,6 +3461,25 @@ function _topoSyncCrystalMeshes(state: any, sim: any, wall: any, replayStep?: nu
     const token = _resolveCrystalGeomToken(crystal, habitForGeom);
     let geom: any = null;
     let isSectorZoned = false;   // sector (hourglass) zoning → vertexColors material
+    // ETCHED crystal — post-growth dissolution overprint (crystal-face realism arc §2,
+    // 2026-06-22). The sim tags crystal._etch when a scenario etch event corroded a
+    // crystal that had ALREADY grown (js/45 classifyEtch; reactivated_fluorite_vein's
+    // breach reopens the conduit and a cooler undersaturated fluid rounds the gen-1
+    // fluorite + galena). Runs FIRST — BEFORE the terrace/hopper render — because
+    // corrosion ROUNDS AWAY fine growth relief: an etched stepped cube becomes a rounded
+    // dissolved blob, not a fresh ziggurat. Gated on the cube token (the isometric
+    // fluorite/galena tenant). Cached per rounding bucket; the matOpts block frosts the
+    // surface. A replay before the etch step keeps the sharp (un-etched) crystal.
+    let isEtched = false;
+    if (crystal._etch && token === 'cube'
+        && (replayStep == null || replayStep >= crystal._etch.atStep)) {
+      const round = Math.max(0.18, Math.min(0.6, 0.18 + (crystal._etch.amount || 0.5) * 0.5));
+      const q = Math.round(round * 100) / 100;   // quantize for cache reuse
+      const key = '__etched_cube_' + q;
+      geom = state.geomCache.get(key);
+      if (!geom) { geom = _makeEtchedCube(round); state.geomCache.set(key, geom); }
+      isEtched = true;
+    }
     // Calcite-morphology arc Phase 3: a calcite crystal whose zone stack
     // carries real stepped/hopper relief renders zone-stack TERRACES
     // instead of the smooth parent form. Gated on the parent-form tokens
@@ -3644,6 +3693,12 @@ function _topoSyncCrystalMeshes(state: any, sim: any, wall: any, replayStep?: nu
     // viewer.
     if (isCdrPseudomorph) {
       roughness = Math.min(1.0, roughness + 0.18);
+    }
+    // Etched crystal — a corroded/dissolved surface is matte, not lustrous. Frost the
+    // material (crystal-face realism arc §2): higher roughness reads as the dull etched
+    // skin of a re-dissolved face. Geometry rounding (above) + frost together sell it.
+    if (isEtched) {
+      roughness = Math.min(1.0, roughness + 0.30);
     }
     // Q4 — perimorph cast. When a perimorph_eligible crystal has
     // dissolved, it persists as a hollow shell (Cumbria/Cornwall

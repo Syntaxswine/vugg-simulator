@@ -455,6 +455,12 @@ function _buildScenarioFromSpec(scenarioId, spec) {
       // bends/twins crystals that already grew. Absent → no overprint → byte-
       // identical. Mechanical + post-growth, so it does NOT mutate the fluid.
       deformation: ev.deformation,
+      // POST-GROWTH ETCH (crystal-face-realism arc §2, 2026-06-22) — optional directive
+      // {amount,minerals,style}. apply_events records it onto sim._etchEvents with the
+      // step it fired; classifyEtch (js/45) rounds/frosts crystals that already grew.
+      // Absent → no overprint → byte-identical. Chemical corrosion is post-growth, so it
+      // does NOT mutate the fluid.
+      etch: ev.etch,
     }));
     return { conditions, events, defaultSteps: duration };
   };

@@ -514,7 +514,18 @@
         { "step": 20,  "type": "fluid_mixing",            "name": "Ascending Brine",   "description": "Stage-1 brine meets groundwater — fluorite + galena + barite at the open feeders" },
         { "step": 60,  "type": "fluid_pulse",             "name": "Second Pulse",       "description": "More stage-1 growth" },
         { "step": 78,  "type": "reactivated_vein_seal",   "name": "Feeder Sealed",      "description": "Cement chokes the fracture — the vug goes quiet", "spots": "seal" },
-        { "step": 118, "type": "reactivated_vein_breach", "name": "Reactivation",       "description": "Tectonic uplift breaches the feeder — a cooler fresh pulse grows gen-2 fluorite + calcite", "spots": "breach" }
+        { "step": 118, "type": "reactivated_vein_breach", "name": "Reactivation",       "description": "Tectonic uplift breaches the feeder — a cooler fresh pulse grows gen-2 fluorite + calcite, and the returning undersaturated fluid ETCHES the gen-1 fluorite (rounded, frosted edges) before the overgrowth", "spots": "breach",
+          // POST-GROWTH ETCH overprint (crystal-face-realism arc §2). A reopened vein's
+          // first returning fluid is undersaturated w.r.t. the early fluorite it meets:
+          // it corrodes/rounds the gen-1 cubes (steps 0-78) before gen-2 fluorite + calcite
+          // overgrow them — the classic etched-then-overgrown texture of reactivated
+          // North-Pennine fluorite veins. minerals:['fluorite'] so only the early fluorite
+          // is etched; gen-2 fluorite (grown after step 118) stays sharp. Galena is
+          // included — the early galena cubes corrode the same way when the vein reopens
+          // (cubic galena → the etched-cube render; octahedral galena keeps its form).
+          // INERT directive: records sim._etchEvents only (no fluid/T change) → byte-identical.
+          "etch": { "minerals": ["fluorite", "galena"], "amount": 0.6, "style": "rounded" }
+        }
       ],
       "sources": [
         "Dunham, K.C. (1990) — Geology of the Northern Pennine Orefield, Vol. 1 (2nd ed.), British Geological Survey Economic Memoir.",
