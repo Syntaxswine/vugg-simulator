@@ -28,6 +28,30 @@ Living list of open work items, captured from session conversations so context s
 > defer-to-geology, image-corpus method). Full goal text in
 > `proposals/HANDOFF-APOPHYLLITE-AND-GYPSUM-2026-06-22.md` (➕ NEW GOAL section).
 >
+> ## ⟂ SESSION (2026-06-22, later) — CALCITE MECHANICAL e-TWIN OVERPRINT ✅ SHIPPED (SIM 213)
+>
+> Deformation/shear arc §5.3 next tenant — the calcite sibling of the v208 bent-quartz
+> overprint, the second of the boss's "both in sequence" pickups. Calcite e-twins {01-12}
+> are POST-growth crystal-plastic glide lamellae imposed on a finished lattice by later
+> tectonic strain (the textbook Ferrill Type I-IV paleostress/temperature gauge; citations
+> verified in RESEARCH-deformation-shear §4). Ships on the EXISTING deformation-directive
+> plumbing — no classifier change: a scenario event carries deformation {style:'etwin',...};
+> classifyDeformation (js/45) already tags any style → `_deformation.kind='etwin'`; js/99i
+> `_makeTwinnedCalcite` SUBDIVIDES the scalenohedron (3 levels) and bakes parallel dark
+> lamella stripes into vertex colours (the chiastolite/sector idiom), magnitude → lamella
+> count + thickness (Ferrill I few → IV many). **TENANT: marble_contact_metamorphism** —
+> the Mogok Stone Tract marble was regionally deformed in the Himalayan orogeny (~30 Ma); a
+> new step-165 orogenic-strain event (post-seal) twins the already-grown calcite.
+> minerals:['calcite'] — the ruby (twin-resistant corundum) is spared. (tormiq was the
+> elegant first choice — its step-188 thrust already bends quartz — but its calcite is
+> aspirational and doesn't fire at seed 42, so marble, the textbook e-twin host, is the
+> home.) CHEMICALLY INERT (no-op handler) → baseline-diff 212↔213 = **0/37 drift**
+> (provenance bump). 1 calcite tagged @seed42 (40mm dogtooth). + narrator (calcite
+> 'e_twinned') + tests (etwin-overprint.test.ts, 4 pins) + tools/etwin-probe.mjs +
+> standalone-render verified (parallel lamellae vs smooth reference). NEXT overprint
+> tenants (same pass): bent stibnite (needs stibnite in a scenario); undulose/strain-band
+> overlay. Deformation arc §5.3 now has TWO tenants (bent quartz + calcite e-twins).
+>
 > ## 🪓 SESSION (2026-06-22, later) — ETCH-PIT / DISSOLUTION SCULPTURE ✅ SHIPPED (SIM 212)
 >
 > Crystal-face-realism arc §2, the flagged best value-per-effort. The §2 premise was that

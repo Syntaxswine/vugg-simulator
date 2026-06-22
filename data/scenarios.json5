@@ -715,9 +715,21 @@
       "events": [
         { "step": 20,  "type": "marble_peak_metamorphism", "name": "Peak Metamorphism", "description": "Leucogranite intrusion at contact" },
         { "step": 60,  "type": "marble_retrograde_cooling", "name": "Retrograde Cooling", "description": "Slow cooling, main ruby growth window" },
-        { "step": 150, "type": "marble_fracture_seal", "name": "Fracture Seal", "description": "System closes" }
+        { "step": 150, "type": "marble_fracture_seal", "name": "Fracture Seal", "description": "System closes" },
+        { "step": 165, "type": "marble_tectonic_strain", "name": "Orogenic Strain — e-twin Lamellae", "description": "Continued Himalayan shortening glides the already-grown marble calcite on its e-twin plane {01-12} — parallel mechanical-twin lamellae, the Ferrill paleostress gauge; the ruby is spared",
+          // POST-GROWTH e-twin OVERPRINT (crystal-face-realism arc, calcite e-twin tenant).
+          // Mogok marble was regionally deformed in the Himalayan orogeny (~30 Ma); the
+          // calcite (grown by the step-150 seal) twins on {01-12} (Ferrill 2004 Type I-IV;
+          // Burkhard 1993; Turner 1953). minerals:['calcite'] — only the calcite twins;
+          // corundum (ruby) is twin-resistant and spared. INERT directive (no fluid/T
+          // change) → assemblage byte-identical. style:'etwin' → classifyDeformation tags
+          // _deformation.kind='etwin'; js/99i renders the parallel lamellae.
+          "deformation": { "style": "etwin", "magnitude": 0.7, "minerals": ["calcite"] }
+        }
       ],
       "sources": [
+        "Ferrill D.A. et al. 2004 (J. Struct. Geol. 26:1521) — calcite twin morphology Type I-IV geothermometer",
+        "Burkhard M. 1993 (J. Struct. Geol. 15:351) — calcite twins as strain/T gauge; Turner 1953 (Am. J. Sci. 251:276)",
         "Garnier et al. 2008 (Ore Geology Reviews 34:169-191) — Marble-hosted ruby deposits from Central and Southeast Asia",
         "Peretti et al. 2018 (Gems & Gemology special issue) — Update on corundum and its gem varieties",
         "Searle et al. 2007 (Journal of Geology 115:1-23) — Tectonic evolution of the Mogok metamorphic belt, Burma (Myanmar)"

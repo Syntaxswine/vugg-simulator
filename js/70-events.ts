@@ -186,6 +186,7 @@ const EVENT_REGISTRY = {
   marble_peak_metamorphism: event_marble_peak_metamorphism,
   marble_retrograde_cooling: event_marble_retrograde_cooling,
   marble_fracture_seal: event_marble_fracture_seal,
+  marble_tectonic_strain: event_marble_tectonic_strain,
   // Phase 2 — reactive_wall
   reactive_wall_acid_pulse_1: event_reactive_wall_acid_pulse_1,
   reactive_wall_acid_pulse_2: event_reactive_wall_acid_pulse_2,

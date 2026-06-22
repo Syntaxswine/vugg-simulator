@@ -1320,6 +1320,56 @@ function _makeScalenohedron(): any {
   return geom;
 }
 
+// Calcite mechanical e-TWIN lamellae (deformation arc §5.3 tenant, 2026-06-22). A
+// post-growth crystal-plastic OVERPRINT: tectonic strain glides the finished calcite on
+// its e-twin plane {01-12}, filling it with parallel mechanical-twin lamellae — the
+// textbook calcite paleostress/paleotemperature gauge (Ferrill et al. 2004 Type I-IV;
+// Burkhard 1993; Turner 1953). Built by subdividing the scalenohedron (dogtooth — the
+// marble-calcite habit) enough to bake crisp parallel dark stripes (the lamella traces)
+// into vertex colours along an oblique-to-c lamella normal, the chiastolite/sector idiom.
+// `density` (∝ strain, the directive magnitude) drives BOTH the lamella count (Ferrill
+// Type I few → Type IV many) and their thickness. Material runs vertexColors with
+// color=white so the baked stripes render directly. Gated in the mesh-sync hook on
+// crystal._deformation.kind === 'etwin' + mineral calcite.
+function _makeTwinnedCalcite(density: number): any {
+  const base = _makeScalenohedron();
+  let pos: number[] = Array.from(base.attributes.position.array as Float32Array);
+  // Subdivide each triangle (midpoint 1→4) so the bands resolve crisply, not as gradients.
+  const LEVELS = 3;
+  for (let lv = 0; lv < LEVELS; lv++) {
+    const next: number[] = [];
+    for (let i = 0; i < pos.length; i += 9) {
+      const a = [pos[i], pos[i + 1], pos[i + 2]];
+      const b = [pos[i + 3], pos[i + 4], pos[i + 5]];
+      const c = [pos[i + 6], pos[i + 7], pos[i + 8]];
+      const mid = (p: number[], q: number[]) => [(p[0] + q[0]) / 2, (p[1] + q[1]) / 2, (p[2] + q[2]) / 2];
+      const ab = mid(a, b), bc = mid(b, c), ca = mid(c, a);
+      const push3 = (p: number[], q: number[], r: number[]) => next.push(p[0], p[1], p[2], q[0], q[1], q[2], r[0], r[1], r[2]);
+      push3(a, ab, ca); push3(ab, b, bc); push3(ca, bc, c); push3(ab, bc, ca);
+    }
+    pos = next;
+  }
+  const d = Math.max(0, Math.min(1, density));
+  // Lamella normal — oblique to the c-axis (y), the e-twin {01-12} trace direction.
+  const nx = 0.32, ny = 1.0, nz = 0.0, nlen = Math.hypot(nx, ny, nz);
+  const freq = 5 + d * 9;              // band count: Ferrill Type I (few) → Type IV (many)
+  const bandFrac = 0.30 + d * 0.12;    // lamella thickness fraction (thicker at higher strain)
+  const body = new THREE.Color('#f1ece1');   // pale calcite body (warm white)
+  const twin = new THREE.Color('#b09a78');   // the lamella trace — a darker tan line
+  const colors: number[] = [];
+  for (let i = 0; i < pos.length; i += 3) {
+    const t = (pos[i] * nx + pos[i + 1] * ny + pos[i + 2] * nz) / nlen;
+    let frac = ((t + 0.5) * freq) % 1; if (frac < 0) frac += 1;
+    const col = frac < bandFrac ? twin : body;
+    colors.push(col.r, col.g, col.b);
+  }
+  const geom = new THREE.BufferGeometry();
+  geom.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+  geom.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+  geom.computeVertexNormals();
+  return geom;
+}
+
 // PROPOSAL-HABIT-BIAS Slice 4 — cave dripstone primitive. Tapered
 // hexagonal icicle for air-mode crystals (stalactites + stalagmites)
 // on dripstone-eligible canonicals (prism / spike / rhomb / scalene /
@@ -3479,6 +3529,22 @@ function _topoSyncCrystalMeshes(state: any, sim: any, wall: any, replayStep?: nu
       geom = state.geomCache.get(key);
       if (!geom) { geom = _makeEtchedCube(round); state.geomCache.set(key, geom); }
       isEtched = true;
+    }
+    // CALCITE e-TWIN — post-growth mechanical-twin overprint (deformation arc §5.3 tenant,
+    // 2026-06-22). classifyDeformation tags _deformation.kind='etwin' on calcite that grew
+    // before a scenario strain event (marble orogenic strain). Renders parallel {01-12}
+    // twin lamellae as baked dark stripes (Ferrill 2004 Type I-IV: density rises with
+    // strain). Runs BEFORE the terrace render — the twin overprint dominates the late
+    // texture. Cached per density bucket; sets isSectorZoned so the vertex-colour stripes
+    // render. A replay before the strain step keeps the un-twinned crystal.
+    if (!geom && crystal.mineral === 'calcite' && crystal._deformation && crystal._deformation.kind === 'etwin'
+        && (replayStep == null || replayStep >= crystal._deformation.atStep)) {
+      const dens = Math.max(0.15, Math.min(1, crystal._deformation.amount || 0.6));
+      const q = Math.round(dens * 10) / 10;   // quantize for cache reuse
+      const key = '__etwin_calcite_' + q;
+      geom = state.geomCache.get(key);
+      if (!geom) { geom = _makeTwinnedCalcite(dens); state.geomCache.set(key, geom); }
+      isSectorZoned = true;   // baked vertex-colour lamellae → vertexColors material
     }
     // Calcite-morphology arc Phase 3: a calcite crystal whose zone stack
     // carries real stepped/hopper relief renders zone-stack TERRACES

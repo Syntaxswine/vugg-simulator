@@ -11504,5 +11504,25 @@
 //        a render tag + a log line). 5 crystals tagged at seed 42 (fluorite×1 6.2mm,
 //        galena×4). + narrator (js/92 'etched'). SIM 211 -> 212 (provenance;
 //        baseline-diff 211↔212 = 0 drift, the v208 deformation precedent).
-const SIM_VERSION = 212;
+//   v213 — CALCITE MECHANICAL e-TWIN overprint (deformation/shear arc §5.3 next tenant,
+//        2026-06-22; the calcite sibling of the v208 bent-quartz overprint). Calcite
+//        e-twins {01-12} are POST-growth crystal-plastic glide lamellae imposed on a
+//        FINISHED lattice by later tectonic strain — the textbook calcite paleostress/
+//        paleotemperature gauge (Ferrill et al. 2004 J.Struct.Geol. 26:1521 Type I-IV;
+//        Burkhard 1993; Turner 1953 — all VERIFIED, research §4). Ships on the EXISTING
+//        deformation directive plumbing: a scenario event carries deformation
+//        {style:'etwin',magnitude,minerals}; classifyDeformation (js/45) already tags any
+//        style → _deformation.kind='etwin' (no classifier change); js/99i _makeTwinnedCalcite
+//        SUBDIVIDES the scalenohedron (3 levels) and bakes parallel dark lamella stripes
+//        into vertex colours along an oblique-to-c normal (the chiastolite/sector idiom),
+//        magnitude → lamella count + thickness (Ferrill Type I few → IV many). TENANT:
+//        marble_contact_metamorphism — the Mogok Stone Tract marble was regionally
+//        deformed in the Himalayan orogeny (~30 Ma); a new step-165 orogenic-strain event
+//        (post-seal) twins the already-grown marble calcite. minerals:['calcite'] — the
+//        ruby (twin-resistant corundum) is spared. CHEMICALLY INERT (no-op handler, no
+//        fluid/T) → BYTE-IDENTICAL fleet. 1 calcite tagged at seed 42 (40mm dogtooth
+//        scalenohedron). + narrator (calcite 'e_twinned') + tests (etwin-overprint.test.ts)
+//        + tools/etwin-probe.mjs. Standalone-render verified (parallel lamellae vs the
+//        smooth reference). SIM 212 -> 213 (provenance; baseline-diff 212↔213 = 0 drift).
+const SIM_VERSION = 213;
 
