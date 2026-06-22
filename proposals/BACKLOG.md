@@ -2,6 +2,37 @@
 
 Living list of open work items, captured from session conversations so context survives compaction. Each item has enough detail that someone picking it up cold can act without re-discovering the rationale.
 
+> ## 🟢 SESSION HANDOFF (2026-06-22) — GREEN APOPHYLLITE ✅ SHIPPED (SIM 210) · hourglass GYPSUM QUEUED
+>
+> **Current handoff doc: `proposals/HANDOFF-APOPHYLLITE-AND-GYPSUM-2026-06-22.md`**
+> (read it first — the cross-check trail, the reusable image-corpus method, the gypsum
+> sub-arc plan + the boss's design envelope, the traps, + the maker's mark).
+>
+> **✅ STEP 3 SHIPPED — green apophyllite.** Arc went augite → apophyllite (augite
+> REJECTED: magmatic phenocryst, breaks the vug premise). `1710ac0` SIM 210 (V⁴⁺ green
+> dispatcher + deccan V=3, 60→59 crystals/species 17→17, 35 scenarios byte-identical)
+> + `45ca65c` SIM-neutral (uniform-green render correction). Both Pages-verified.
+> THREE cross-check corrections, an error caught at each: chromophore Cu→**V⁴⁺**
+> (Rossman 1974, the handoff's Cu was a confabulation); my "not real sector zoning"→
+> it IS, but **optically only** (anomalous birefringence); and an **image corpus** of
+> Pune specimens proved the visible green is a **UNIFORM body colour** (no visible
+> sector partition) → render corrected from two-tone to uniform green + pearly basal
+> luster. Apophyllite is a uniform-green COLOUR variety, NOT a visible-sector tenant.
+>
+> **○ NEXT QUEUED — hourglass GYPSUM (selenite)**, the real VISIBLE-sector vug tenant.
+> Clay/anhydrite-inclusion growth sectors → a genuine visible hourglass ("hourglass
+> selenite"). Boss design envelope (firsthand): visible even near-clear; VARIABLE (not
+> every specimen) → model as a variant (clear-with-hourglass ↔ inclusion-flooded brown
+> via overgrowth). Preflight: gypsum/selenite is likely already in the catalogue (a
+> habit-variant + render + scenario job, not a new mineral). Research-first + image-
+> corpus the visible geometry before rendering. **Fresh session recommended.**
+>
+> **Reusable method captured this session — the IMAGE-CORPUS check:** when the
+> literature won't pin a VISUAL detail, gather a provenance-locked specimen-image
+> corpus (agent finds direct URLs; curl to temp; VIEW yourself; filter by provenance;
+> never commit the images) and report the pattern even when it contradicts what you
+> shipped. It caught the apophyllite render error.
+
 > ## ✚ SESSION HANDOFF (2026-06-21, later) — ANDALUSITE + CHIASTOLITE CROSS ✅ SHIPPED (SIM 209)
 >
 > **Current handoff doc: `proposals/HANDOFF-CRYSTAL-FACE-REALISM-2026-06-21.md`** (read
