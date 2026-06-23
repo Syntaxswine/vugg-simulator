@@ -135,10 +135,16 @@ Living list of open work items, captured from session conversations so context s
 >   faithful). No geometry change. The over-confident +c/−c pole LABELS in `_makeHemimorphicPrism`
 >   were softened — the analogous/antilogous → ±c mapping is reported inconsistently, so the render
 >   shows the two-different-ends FACT, not a sign.
-> - **HEMIMORPHITE — NEW FLAG (not fixed; the next morphology-fidelity sliver).** It routes to the
->   same hex prism, but it is ORTHORHOMBIC (mm2), not hexagonal — a hex cross-section is wrong (real
->   habit: thin tabular crystals in fan-shaped sheaves / botryoidal crusts). Scoped OUT of this pass's
->   research, so flagged for its own verification rather than guess-fixed.
+> - **HEMIMORPHITE — FIXED (2026-06-23, same session — the flag, closed).** It WAS routed to the
+>   hexagonal hemimorphic prism, but it is ORTHORHOMBIC (Imm2, mm2). Researched (Handbook of
+>   Mineralogy: thin tabular {010}, elongated ∥ [001], hemimorphic; signature = "sheaflike /
+>   fan-shaped aggregates") and built `_makeHemimorphiteFan` (js/99i) — a divergent fan/sheaf of thin
+>   tabular blades, pointed pyramidal/chisel free ends + flat pedion bases (the Tsumeb bowtie); caught
+>   BEFORE the generic hexagonal prism (greenockite/wurtzite, genuinely 6mm, still use it).
+>   Hemimorphite keeps its `_polarAxis` tag (mm2 IS polar) — only the geometry changed. BROWSER-
+>   VERIFIED (face-on bowtie splay + c-elongated sheaf). Render-only, byte-identical, NO SIM bump.
+>   Remaining sliver: the `botryoidal_blue` (Mapimí crust) variant also renders as the fan — fine for
+>   now (better than a hexagon), but a true botryoidal-blob builder is a possible future refinement.
 > Remaining specimen-debt: a real calcite specimen for the free-vs-attached macrostep contrast is
 > still owed; greenockite/tourmaline terminations are now literature-verified but a real-specimen
 > look is still the apex check ([[feedback_terminal_verification_specimens]]).

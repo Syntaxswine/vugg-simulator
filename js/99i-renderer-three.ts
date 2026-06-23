@@ -1538,6 +1538,60 @@ function _makeHemimorphicPrism(): any {
   return geom;
 }
 
+// HEMIMORPHITE FAN — the signature divergent fan / sheaf of thin tabular blades (the Tsumeb
+// "bowtie"). Hemimorphite is ORTHORHOMBIC (Imm2, mm2) — NOT hexagonal: single crystals are thin
+// tabular on {010}, elongated on c, and hemimorphic (a pointed pyramidal/chisel free end, a flat
+// pedion base). Here several blades radiate from a low common attachment — flat ends converge,
+// pointed ends splay out and up — the recognizable crystalline habit (Handbook of Mineralogy:
+// "sheaflike or fan-shaped aggregates"; thin tabular {010} striated ∥ [001]). Replaces the WRONG
+// hexagonal _makeHemimorphicPrism for hemimorphite (greenockite/wurtzite are genuinely 6mm and
+// keep that one). Specimen-debt verification pass 2026-06-23. Deterministic (index-varied, no RNG).
+function _makeHemimorphiteFan(): any {
+  const positions: number[] = [];
+  // one thin tabular blade: base point o, unit long axis a, unit broad-face normal n; width dir
+  // e = a×n. Rectangular section (hw along e, ht along n) base→shoulder, then a chisel ridge (a
+  // thin tabular crystal terminates as a roof-edge, not a 4-faced point). Flat pedion base cap.
+  const blade = (o: number[], a: number[], n: number[], len: number, hw: number, ht: number) => {
+    const e = [a[1]*n[2]-a[2]*n[1], a[2]*n[0]-a[0]*n[2], a[0]*n[1]-a[1]*n[0]];
+    const P = (t: number, u: number, v: number) => [
+      o[0] + a[0]*t*len + e[0]*u + n[0]*v,
+      o[1] + a[1]*t*len + e[1]*u + n[1]*v,
+      o[2] + a[2]*t*len + e[2]*u + n[2]*v,
+    ];
+    const tS = 0.78, hwT = hw * 0.35;
+    const B = [P(0,-hw,-ht), P(0,hw,-ht), P(0,hw,ht), P(0,-hw,ht)];      // base ring (pedion)
+    const S = [P(tS,-hw,-ht), P(tS,hw,-ht), P(tS,hw,ht), P(tS,-hw,ht)];  // shoulder ring
+    for (let i = 0; i < 4; i++) {
+      const j = (i + 1) % 4;
+      _pushTri(positions, B[i][0],B[i][1],B[i][2], B[j][0],B[j][1],B[j][2], S[j][0],S[j][1],S[j][2]);
+      _pushTri(positions, B[i][0],B[i][1],B[i][2], S[j][0],S[j][1],S[j][2], S[i][0],S[i][1],S[i][2]);
+    }
+    _pushTri(positions, B[0][0],B[0][1],B[0][2], B[2][0],B[2][1],B[2][2], B[1][0],B[1][1],B[1][2]);  // flat pedion base
+    _pushTri(positions, B[0][0],B[0][1],B[0][2], B[3][0],B[3][1],B[3][2], B[2][0],B[2][1],B[2][2]);
+    const t0 = P(1,-hwT,0), t1 = P(1,hwT,0);                             // chisel ridge edge (ht→0)
+    _pushTri(positions, S[3][0],S[3][1],S[3][2], S[2][0],S[2][1],S[2][2], t1[0],t1[1],t1[2]);        // +n broad face → ridge
+    _pushTri(positions, S[3][0],S[3][1],S[3][2], t1[0],t1[1],t1[2], t0[0],t0[1],t0[2]);
+    _pushTri(positions, S[0][0],S[0][1],S[0][2], t0[0],t0[1],t0[2], t1[0],t1[1],t1[2]);              // -n broad face → ridge
+    _pushTri(positions, S[0][0],S[0][1],S[0][2], t1[0],t1[1],t1[2], S[1][0],S[1][1],S[1][2]);
+    _pushTri(positions, S[1][0],S[1][1],S[1][2], t1[0],t1[1],t1[2], S[2][0],S[2][1],S[2][2]);        // +e chisel end
+    _pushTri(positions, S[0][0],S[0][1],S[0][2], S[3][0],S[3][1],S[3][2], t0[0],t0[1],t0[2]);        // -e chisel end
+  };
+  const N = 6;
+  for (let k = 0; k < N; k++) {
+    const f = k / (N - 1);                          // 0..1 across the fan
+    const ang = -0.80 + 1.60 * f;                   // ~ -46°..+46° from vertical, splayed in x-y
+    const a = [Math.sin(ang), Math.cos(ang), 0];    // unit long axis (fans in the x-y plane)
+    const n = [0, 0, 1];                            // broad face ≈ ±z → a flat bowtie spray
+    const len = 0.74 + 0.09 * Math.cos(k * 1.7);    // slight deterministic length variation
+    const o = [(f - 0.5) * 0.05, -0.5, (k % 2 === 0 ? 0.015 : -0.015)];
+    blade(o, a, n, len, 0.10, 0.03);
+  }
+  const geom = new THREE.BufferGeometry();
+  geom.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+  geom.computeVertexNormals();
+  return geom;
+}
+
 // Phase 1c (v156, 2026-05-27): aragonite cave frostwork — radiating
 // spray of acicular needles from a central anchor. Real cave aragonite
 // morphology per Hill & Forti 1997 (Cave Minerals of the World §5.3.4,
@@ -3918,13 +3972,23 @@ function _topoSyncCrystalMeshes(state: any, sim: any, wall: any, replayStep?: nu
       }
       isSectorZoned = true;
     }
-    // HEMIMORPHIC polar termination (central-distance arc Phase 3, 2026-06-22) — the polar
-    // tenants (tourmaline/hemimorphite/wurtzite/greenockite, tagged _polarAxis by js/45
-    // classifyPolarAxis) render with DIFFERENT terminations: a dominant +c pyramid + flat -c
-    // pinacoid. Gated on a prism/spike token + !geom so tourmaline's sector-zoned hourglass
-    // (set above, already pyramid-top/flat-base) wins and other specials are untouched. Also
-    // fixes the greenockite 'hexagonal_pyramidal' → 'prism' token wart (it fell to a generic
-    // hex prism). Render-only; one cached geom for all polar prisms.
+    // HEMIMORPHITE — orthorhombic (mm2), NOT hexagonal: render the signature divergent fan /
+    // sheaf of thin tabular hemimorphic blades (the Tsumeb "bowtie"), pointed free ends / flat
+    // pedion bases. Catches hemimorphite BEFORE the generic hexagonal hemimorphic-prism below
+    // (which is right only for the genuinely 6mm tenants greenockite/wurtzite). It still carries
+    // _polarAxis (correctly — mm2 is polar); only the geometry differs. Specimen-debt fix
+    // 2026-06-23. Render-only; one cached geom.
+    if (!geom && crystal.mineral === 'hemimorphite') {
+      geom = state.geomCache.get('__hemimorphite_fan');
+      if (!geom) { geom = _makeHemimorphiteFan(); state.geomCache.set('__hemimorphite_fan', geom); }
+    }
+    // HEMIMORPHIC polar termination (central-distance arc Phase 3, 2026-06-22) — the hexagonal
+    // polar tenants (wurtzite/greenockite 6mm, tagged _polarAxis by js/45 classifyPolarAxis;
+    // hemimorphite is caught above) render with DIFFERENT terminations: a dominant +c pyramid +
+    // flat -c pinacoid. Gated on a prism/spike token + !geom so tourmaline's sector-zoned
+    // hourglass (set above, already pyramid-top/flat-base) wins and other specials are untouched.
+    // Also fixes the greenockite 'hexagonal_pyramidal' → 'prism' token wart (it fell to a generic
+    // hex prism). Render-only; one cached geom for the polar hexagonal prisms.
     if (!geom && crystal._polarAxis && (token === 'prism' || token === 'spike')) {
       geom = state.geomCache.get('__hemimorphic');
       if (!geom) { geom = _makeHemimorphicPrism(); state.geomCache.set('__hemimorphic', geom); }
