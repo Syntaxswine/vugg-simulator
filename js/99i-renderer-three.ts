@@ -2966,6 +2966,82 @@ function _getTerracedCalciteGeom(state: any, crystal: any, terr: any): any {
   return geom;
 }
 
+// CRYSTAL_SYSTEM — citation-backed crystal systems (from data/structural.json `system`, NON-
+// hexagonal only; regenerate with `node tools/morph-fidelity-audit.mjs --systemmap`). Drives the
+// system-aware prism cross-section. The default 'prism' primitive is a HEXAGONAL prism
+// (_makeHexPrismWithPyramid) — faithful ONLY for hexagonal/trigonal minerals; a tetragonal
+// mineral must read SQUARE, orthorhombic RECTANGULAR, monoclinic/triclinic SHEARED. Specimen-debt
+// fidelity arc 2026-06-23 (the audit found 72 non-hex minerals rendered hexagonal — tourmaline &
+// hemimorphite were the first two caught + fixed). Only minerals that resolve to the 'prism' token
+// are redirected (below); entries that render via other tokens (tablet/botryoidal/rhomb/spike/
+// special) are inert. Render-only / byte-identical — gen-baseline serialises only counts/sizes.
+const CRYSTAL_SYSTEM: Record<string, string> = {
+  acanthite: 'monoclinic', actinolite: 'monoclinic', adamite: 'orthorhombic', albite: 'triclinic',
+  andalusite: 'orthorhombic', anglesite: 'orthorhombic', anhydrite: 'orthorhombic', annabergite: 'monoclinic',
+  antlerite: 'orthorhombic', apophyllite: 'tetragonal', aragonite: 'orthorhombic', arsenopyrite: 'monoclinic',
+  atacamite: 'orthorhombic', aurichalcite: 'monoclinic', austinite: 'orthorhombic', autunite: 'tetragonal',
+  azurite: 'monoclinic', barite: 'orthorhombic', bismuthinite: 'orthorhombic', borax: 'monoclinic',
+  brochantite: 'monoclinic', calaverite: 'monoclinic', caledonite: 'orthorhombic', carnotite: 'monoclinic',
+  cassiterite: 'tetragonal', celestine: 'orthorhombic', cerussite: 'orthorhombic', chalcanthite: 'triclinic',
+  chalcocite: 'monoclinic', chalcopyrite: 'tetragonal', clinobisvanite: 'monoclinic', conichalcite: 'orthorhombic',
+  datolite: 'monoclinic', descloizite: 'orthorhombic', diopside: 'monoclinic', enargite: 'orthorhombic',
+  epidote: 'monoclinic', erythrite: 'monoclinic', feldspar: 'monoclinic', ferrimolybdite: 'orthorhombic',
+  gypsum: 'monoclinic', haidingerite: 'orthorhombic', hemimorphite: 'orthorhombic', hessite: 'monoclinic',
+  heulandite: 'monoclinic', koettigite: 'monoclinic', leadhillite: 'monoclinic', legrandite: 'monoclinic',
+  lepidocrocite: 'orthorhombic', lepidolite: 'monoclinic', linarite: 'monoclinic', loellingite: 'orthorhombic',
+  malachite: 'monoclinic', marcasite: 'orthorhombic', mesolite: 'orthorhombic', mirabilite: 'monoclinic',
+  mottramite: 'orthorhombic', native_sulfur: 'orthorhombic', naumannite: 'orthorhombic', olivenite: 'monoclinic',
+  orpiment: 'monoclinic', orthoclase: 'monoclinic', pectolite: 'triclinic', pharmacolite: 'monoclinic',
+  powellite: 'tetragonal', prehnite: 'orthorhombic', pyrolusite: 'tetragonal', rammelsbergite: 'orthorhombic',
+  raspite: 'monoclinic', realgar: 'monoclinic', rosasite: 'monoclinic', rutile: 'tetragonal',
+  safflorite: 'orthorhombic', scheelite: 'tetragonal', scolecite: 'monoclinic', scorodite: 'orthorhombic',
+  selenite: 'monoclinic', shattuckite: 'orthorhombic', spodumene: 'monoclinic', staurolite: 'monoclinic',
+  stibnite: 'orthorhombic', stilbite: 'monoclinic', stolzite: 'tetragonal', strontianite: 'orthorhombic',
+  sylvanite: 'monoclinic', thenardite: 'orthorhombic', thomsonite: 'orthorhombic', titanite: 'monoclinic',
+  topaz: 'orthorhombic', torbernite: 'tetragonal', tremolite: 'monoclinic', uranophane: 'monoclinic',
+  uranospinite: 'tetragonal', vesuvianite: 'tetragonal', witherite: 'orthorhombic', wolframite: 'monoclinic',
+  wollastonite: 'triclinic', wulfenite: 'tetragonal', zeunerite: 'tetragonal',
+};
+
+// SYSTEM-AWARE prism+pyramid — a 4-faced cross-section matching the crystal system: SQUARE
+// (tetragonal), RECTANGULAR (orthorhombic), or rectangular with an oblique/leaning character
+// (monoclinic = beta-inclined termination; triclinic = leaning column + skewed apex). Replaces the
+// hexagonal prism for non-hex minerals. Deterministic; cached per system. Hex/trigonal minerals
+// never reach here (not in CRYSTAL_SYSTEM) so they keep _makeHexPrismWithPyramid -> byte-identical.
+function _makeSystemPrism(system: string): any {
+  const yBase = -0.5, yShoulder = 0.2, yApex = 0.5;
+  let rx = 0.40, rz = 0.40;     // tetragonal default = square section
+  let apexX = 0, apexZ = 0;     // oblique termination (monoclinic / triclinic)
+  let shearX = 0, shearZ = 0;   // leaning column (triclinic)
+  if (system === 'orthorhombic') { rx = 0.48; rz = 0.30; }
+  else if (system === 'monoclinic') { rx = 0.46; rz = 0.32; apexX = 0.24; }
+  else if (system === 'triclinic') { rx = 0.46; rz = 0.32; apexX = 0.22; apexZ = 0.14; shearX = 0.10; }
+  // 4-corner rectangular cross-section (flat faces toward +-x and +-z); shear leans upper rings.
+  const ring = (y: number, s: number) => {
+    const dx = shearX * s, dz = shearZ * s;
+    return [[rx + dx, y, rz + dz], [-rx + dx, y, rz + dz], [-rx + dx, y, -rz + dz], [rx + dx, y, -rz + dz]];
+  };
+  const positions: number[] = [];
+  const B = ring(yBase, 0);
+  const S = ring(yShoulder, (yShoulder - yBase) / (yApex - yBase));
+  const apex = [apexX + shearX, yApex, apexZ + shearZ];
+  for (let i = 0; i < 4; i++) {     // prism walls
+    const j = (i + 1) % 4;
+    _pushTri(positions, B[i][0], B[i][1], B[i][2], B[j][0], B[j][1], B[j][2], S[j][0], S[j][1], S[j][2]);
+    _pushTri(positions, B[i][0], B[i][1], B[i][2], S[j][0], S[j][1], S[j][2], S[i][0], S[i][1], S[i][2]);
+  }
+  for (let i = 0; i < 4; i++) {     // pyramid to the (possibly offset) apex
+    const j = (i + 1) % 4;
+    _pushTri(positions, S[i][0], S[i][1], S[i][2], S[j][0], S[j][1], S[j][2], apex[0], apex[1], apex[2]);
+  }
+  _pushTri(positions, B[0][0], B[0][1], B[0][2], B[2][0], B[2][1], B[2][2], B[1][0], B[1][1], B[1][2]); // base cap
+  _pushTri(positions, B[0][0], B[0][1], B[0][2], B[3][0], B[3][1], B[3][2], B[2][0], B[2][1], B[2][2]);
+  const geom = new THREE.BufferGeometry();
+  geom.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+  geom.computeVertexNormals();
+  return geom;
+}
+
 function _buildHabitGeom(token: string): any {
   switch (token) {
     case 'spike':
@@ -3992,6 +4068,19 @@ function _topoSyncCrystalMeshes(state: any, sim: any, wall: any, replayStep?: nu
     if (!geom && crystal._polarAxis && (token === 'prism' || token === 'spike')) {
       geom = state.geomCache.get('__hemimorphic');
       if (!geom) { geom = _makeHemimorphicPrism(); state.geomCache.set('__hemimorphic', geom); }
+    }
+    // SYSTEM-AWARE prism cross-section (specimen-debt fidelity arc 2026-06-23): a NON-hexagonal
+    // mineral that resolves to the generic 'prism' token must not render as a hexagonal prism.
+    // Redirect by crystal system (square / rectangular / sheared) before the hex fallback below.
+    // Hex/trigonal/unknown minerals aren't in CRYSTAL_SYSTEM → they keep the hex builder
+    // (byte-identical). Gated on !geom so all the special builders above still win.
+    if (!geom && token === 'prism') {
+      const sys = CRYSTAL_SYSTEM[crystal.mineral];
+      if (sys) {
+        const skey = '__sysprism_' + sys;
+        geom = state.geomCache.get(skey);
+        if (!geom) { geom = _makeSystemPrism(sys); state.geomCache.set(skey, geom); }
+      }
     }
     if (!geom) {
       geom = state.geomCache.get(token);

@@ -149,6 +149,30 @@ Living list of open work items, captured from session conversations so context s
 > still owed; greenockite/tourmaline terminations are now literature-verified but a real-specimen
 > look is still the apex check ([[feedback_terminal_verification_specimens]]).
 >
+> **SYSTEM-AWARE PRISM CROSS-SECTION — THE SYSTEMIC FIX ✅ SHIPPED (2026-06-23, render-only,
+> byte-identical, NO SIM bump).** Tourmaline + hemimorphite were not isolated bugs: the 3D renderer's
+> DEFAULT habit token is `prism`, and `_buildHabitGeom('prism')` → `_makeHexPrismWithPyramid()` (a
+> HEXAGONAL prism); `spike` → a hexagonal pyramid. So EVERY non-hex mineral that resolves to prism/
+> spike rendered with a hexagonal cross-section. New probe `tools/morph-fidelity-audit.mjs` (ports the
+> renderer's habit→token rules, joins crystal SYSTEM from structural.json; `--json`/`--systemmap`
+> outputs): 175 minerals, 108 hex-rendered, only 25 actually hex/trig → **72 non-hex minerals
+> mis-shaped** (chunky `prism` = HIGH visual priority: azurite, epidote, topaz, vesuvianite, titanite,
+> diopside, anglesite, realgar, orpiment, cassiterite, scheelite, datolite, zeolites…; `spike` needles
+> = low, cross-section invisible). **Fix:** a `CRYSTAL_SYSTEM` map (js/99i, citation-backed from
+> structural.json — regen with `--systemmap`) + `_makeSystemPrism(system)` building a SQUARE
+> (tetragonal) / RECTANGULAR (orthorhombic) / oblique-terminated (monoclinic, β-lean) / leaning-skewed
+> (triclinic) cross-section, redirected at the dispatch BEFORE the hex fallback, gated on the `prism`
+> token. Hex/trigonal/unknown minerals aren't in the map → keep `_makeHexPrismWithPyramid` →
+> byte-identical. BROWSER-VERIFIED all 4 systems (square/rect/oblique/skewed render distinct & correct).
+> **DEFERRED slivers:** `spike` needles still hexagonal (cross-section invisible — low priority);
+> some flagged minerals are non-euhedral aggregates (earthy/scaly/crust) that shouldn't be a single
+> prism at all (a habit, not cross-section, issue); cubic prism-token entries are habit-string
+> artifacts (grow engines assign cube/octahedral at runtime). **LESSON (the costly one): a research
+> WORKFLOW to verify crystal systems ran away to the 1000-agent cap (~14.9M tokens, hit the session
+> limit) — `args` arrived as a STRING and the script's `chunk()` sliced it into ~950 fragments. The
+> verification was never needed: structural.json is the citation-backed source; the fix is
+> deterministic. Guard `chunk()` against non-arrays; don't fan out what a data join can do.**
+>
 > ## 🏞️ SESSION (2026-06-22, later) — OPEN-SYSTEM EVAPORITE PLAIN + flooded selenite ✅ SHIPPED (SIM 214)
 >
 > Boss directive: "the salt plain shape should be its own unique shape that should not be
