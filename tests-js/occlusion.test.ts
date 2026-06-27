@@ -91,4 +91,34 @@ describe('substrate occlusion tag (central-distance arc Phase 2)', () => {
     expect(fa.length).toBeGreaterThan(0);
     expect(fa).toEqual(fb);
   });
+
+  it('habit guard — no tagged crystal is a non-euhedral aggregate (crust/dendrite/spray/scaly/massive)', () => {
+    // Occlusion is the read for a single euhedral crystal emerging from a footprint; aggregates,
+    // crusts, dendrites and sprays keep the base-on-surface float. Across every opted-in scenario,
+    // assert nothing tagged matches the aggregate-habit set (mirrors js/45 OCCLUSION_SKIP_HABIT).
+    const AGG = /botryoid|mammillary|reniform|colloform|crust|coat|encrust|drusy|druze|sinter|nodular|cauliflower|massive|earthy|sooty|powder|granular|disseminat|chalcedony|banded|dendrit|arborescent|wire|reticulat|fibrous|scaly|micaceous|capillary|cotton|spherulit|spray|rosette|radiat|sheaf|tuft|frostwork|stalactit|stellate|sixling|fiveling|plush|film/i;
+    for (const scen of ['mvt', 'elmwood', 'gem_pegmatite']) {
+      const sim = run(scen);
+      expect(sim).toBeTruthy();
+      const tagged = occluded(sim);
+      expect(tagged.length).toBeGreaterThan(0);          // each opted scenario roots SOMETHING
+      for (const c of tagged) expect(AGG.test(c.habit || '')).toBe(false);
+    }
+  });
+
+  it('elmwood tags its scalenohedral calcite (Phase 1 stepping + Phase 2 occlusion compound)', () => {
+    const sim = run('elmwood');
+    expect(sim).toBeTruthy();
+    const cc = occluded(sim).filter((c: any) => c.mineral === 'calcite');
+    expect(cc.length).toBeGreaterThan(0);                // the golden scalenohedra now ALSO root in matrix
+  });
+
+  it('gem_pegmatite honors occlusion_fraction 0.30 — shallower mean embed than the 0.40 default', () => {
+    const sim = run('gem_pegmatite');
+    expect(sim).toBeTruthy();
+    const tagged = occluded(sim);
+    expect(tagged.length).toBeGreaterThan(0);            // pocket prisms (tourmaline/beryl/spodumene) root
+    // base 0.30 ± 0.12 jitter, clamped → every tagged fraction must be <= 0.42 (proves the knob)
+    for (const c of tagged) expect(c._occlusion.attachedFraction).toBeLessThanOrEqual(0.42);
+  });
 });

@@ -136,6 +136,21 @@ Living list of open work items, captured from session conversations so context s
 > per-habit skip for botryoidal/dendrite/air-mode crusts (where base-embed is moot) is a refinement, not
 > needed for the prismatic/blocky MVT assemblage. Phase 4 (full per-face Wulff) is the remaining big lift.
 >
+> **PHASE 2 BROADENED + HABIT GUARD (2026-06-26, same day).** Occlusion is universal, so it shouldn't live
+> on one scenario. Added a HABIT GUARD to classifyOcclusion: non-euhedral forms (crusts/coatings, massive-
+> earthy, dendrites/wires, fibrous/scaly, sprays/tufts/rosettes — the OCCLUSION_SKIP_HABIT regex) + air-mode
+> crystals do NOT sink (a buried base is meaningless for a crust or a tree). The classifier now RE-EVALUATES
+> each step and CLEARS a stale tag when a crystal LATER becomes an aggregate — caught two real mvt cases of
+> habit-evolution-after-tag-time (quartz→chalcedony (microcrystalline), wurtzite→platy_massive); the end-state
+> now reflects the FINAL habit (deterministic → still byte-identical, no longer "tag-once"). Opted in two more
+> habit-diverse scenarios: **elmwood** (default 0.40 — golden scalenohedra now ALSO emerge from matrix,
+> compounding with Phase 1 directional_steps: stepped AND rooted) and **gem_pegmatite** (occlusion_fraction
+> 0.30 — pocket crystals are attached but famously well-terminated, so a shallower embed; London 2008; defers
+> to geology + exercises the knob; guard skips lepidolite's scaly aggregate while tourmaline/beryl/spodumene
+> prisms root). occlusion.test.ts → 8 pins (+ habit guard, + elmwood compound, + the 0.30 knob). cold-ci GREEN.
+> **NEXT toward fleet-wide default:** a few more habit-diverse looks, then flip occlusion ON by default
+> (the guard is now proven) — or keep opt-in if per-scenario occlusion_fraction tuning is wanted.
+>
 > **SPECIMEN-DEBT VERIFICATION PASS DONE (2026-06-23) — Phases 1+3 falsified against the
 > literature; shipped 4 render-only/doc corrections, byte-identical, NO SIM bump (still v214).**
 > Paid the owed terminal-verification debt the right way ([[feedback_terminal_verification_specimens]]):
