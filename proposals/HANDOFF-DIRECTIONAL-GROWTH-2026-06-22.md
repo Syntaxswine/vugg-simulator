@@ -28,6 +28,18 @@ macrostep contrast, and a real greenockite/tourmaline termination, remain owed.
 
 ---
 
+## ADDENDUM (2026-06-26) — Phase 2 substrate occlusion SHIPPED (the re-promoted next phase, byte-identical)
+
+The DOMINANT, UNIVERSAL extrinsic driver is now built — render-only, **NO SIM bump (still v214)**, cold-ci GREEN, browser-verified.
+
+- **What:** js/45 `classifyOcclusion` (pure, rng-free, gated on `wall.occlusion`) tags every wall-nucleated crystal `_occlusion = { attachedFraction }`; the renderer sinks the buried fraction: `offsetMm = cLen*(0.5 − attachedFraction)` (js/99i, the universal placement path). attachedFraction = scenario mean (`wall.occlusion_fraction`, default 0.40) ± a deterministic golden-ratio hash of crystal_id (±0.12, clamped [0.10,0.60]) — a natural spread of embed depths with **no rng** (the byte-identity gate). UNIVERSAL: all minerals, any point group (unlike intrinsic `_polarAxis`). A wall crystal can carry BOTH — `_occlusion` (buried base) AND `_polarAxis` (polar +c).
+- **Opt-in: mvt** (`wall.occlusion: true`) — the canonical druse, so occlusion spans sphalerite/galena/fluorite/calcite/barite (demonstrates the universal nature better than a single-species scenario). js/22 whitelists occlusion + occlusion_fraction + occlusion_minerals (the WallState-drops-unlisted-flags catch); js/27 field doc marked shipped (+ corrected the stale `_polarAxis {plusC_rate,minusC_rate}` → `{pointGroup}`); tests-js/occlusion.test.ts (5 pins: dormancy, opt-in sane fraction, UNIVERSAL >1 mineral, determinism, no-widen). occF=0 (every non-opted scenario) ⇒ the EXACT base-at-anchor float ⇒ byte-identical placement fleet-wide.
+- **The flagged risk resolved FAVORABLY.** The proposal warned "watch the offset math" because the cavity wall is translucent (BackSide, opacity 0.40) — a sunk base could ghost through it. Browser-verify (offscreen: real `_buildHabitGeom` + a faithful 0.40 translucent wall + the real offset math) showed the opposite: the translucent matrix **VEILS** the buried base (reads as rooted in rock), with the emergent termination crisp. No ghost.
+- **Honest read note:** occlusion reads strongest on FAR-wall crystals (the translucent matrix sits between camera and the dimmed base); NEAR-wall crystals projecting at the camera show it less (their base sinks into the culled near hemisphere). Net-positive, render-only, reversible.
+- **Next:** the arc's remaining big lift is **Phase 4** (full per-face central-distance / Wulff form) — needs the concavity-primitive decision first (proposal §2.3). Cheaper adjacent wins: broader occlusion rollout (it's universal — a fleet-wide default after a multi-scenario look), and the **reactive-morphology** rungs (face-set selected by the void normal / flow / diffusion field, not yaw-arbitrary). Owed terminal checks unchanged: a real drusy specimen (Phase 2), free-vs-attached macrostep calcite (Phase 1), a real hemimorphic termination (Phase 3).
+
+---
+
 ## What shipped (commit by commit)
 
 | Commit | Phase | What | Verify |
@@ -48,7 +60,7 @@ Three crystal-level RENDER tags, each its own field (the science forbids conflat
 
 - **`_faceStep`** `{ steppedFaceSet, atStep }` — directional macrostep relief on ONE face-set (calcite {104} obtuse/acute anisotropy). **SHIPPED** (Phase 1, elmwood). Gated on `wall.directional_steps` (opt-in).
 - **`_polarAxis`** `{ pointGroup }` — intrinsic crystallographic polarity, the 10 polar point groups only. **SHIPPED** (Phase 3). ALWAYS-ON for the 4 tenants (intrinsic, not opt-in).
-- **`_occlusion`** `{ attachedFraction }` — the buried substrate-attached end (extrinsic, universal). **NOT BUILT** (Phase 2, re-promoted — see below).
+- **`_occlusion`** `{ attachedFraction }` — the buried substrate-attached end (extrinsic, universal). **SHIPPED** (Phase 2, 2026-06-26; mvt opts in via `wall.occlusion`). js/45 classifyOcclusion → js/99i sinks the base offset. See the 2026-06-26 addendum.
 
 The classifier-dispatch pattern (mirror `classifyDeformation`/`classifyEtch`/`classifySectorZoning`): a pure function in js/45, wired into the js/85 post-step dispatch, no-op unless its gate fires → byte-identical fleet. This is the cheapest way to add render-only morphology in this codebase, and it's the spine of the whole arc.
 
@@ -70,7 +82,7 @@ The classifier-dispatch pattern (mirror `classifyDeformation`/`classifyEtch`/`cl
 
 ## Where the next builder picks up (ranked)
 
-1. **Phase 2 — substrate occlusion (RE-PROMOTED, recommended next).** The dominant universal driver, now confirmed visible. Real drusy crystals emerge single-terminated with the base embedded in the matrix; the sim shows the full free-standing crystal perched base-on-surface. **Approach** (proposal §2, Phase 2 row): add `_occlusion = { attachedFraction }` (classifier in js/45, gated on a `wall.occlusion` opt-in + the js/22 whitelist line); in js/99i shift the base offset so the lower `attachedFraction` of the crystal sinks below the wall surface (render the buried portion short / clipped). Render-only → byte-identical. **CAVEAT:** this is the UNIVERSAL placement path (`offsetMm`/`mesh.position` at js/99i:4076) — the proposal flagged "watch the offset math"; browser-verify across several scenarios (elmwood, a pegmatite, mvt). The float-vs-embed screenshot in this session shows exactly the target read (lower ~40% embedded, single free termination).
+1. **Phase 2 — substrate occlusion. ✅ SHIPPED (2026-06-26)** — see the addendum at the top; the description below was the plan, and is what shipped. The dominant universal driver, now confirmed visible. Real drusy crystals emerge single-terminated with the base embedded in the matrix; the sim shows the full free-standing crystal perched base-on-surface. **Approach** (proposal §2, Phase 2 row): add `_occlusion = { attachedFraction }` (classifier in js/45, gated on a `wall.occlusion` opt-in + the js/22 whitelist line); in js/99i shift the base offset so the lower `attachedFraction` of the crystal sinks below the wall surface (render the buried portion short / clipped). Render-only → byte-identical. **CAVEAT:** this is the UNIVERSAL placement path (`offsetMm`/`mesh.position` at js/99i:4076) — the proposal flagged "watch the offset math"; browser-verify across several scenarios (elmwood, a pegmatite, mvt). The float-vs-embed screenshot in this session shows exactly the target read (lower ~40% embedded, single free termination).
 
 2. **Phase 4 — the full central-distance (Wulff) model.** The destination: replace the (c_length, a_width, habit) triple with a per-crystal face set `[{normal, d, regime}]`, render via half-space intersection → `ConvexGeometry`. Reshapes the VISIBLE crystal per-face. Big lift; **decide the concavity primitive (nested convex shells, recommended) BEFORE generalizing stepped/skeletal** — neither the convex MVP nor the convex Wulff body can render hopper/skeletal concavity (proposal §2.3). Validate with the cube+octahedron fixture (equal d → cuboctahedron; shrink {111} → cube). Δd must be deterministic (per-(mineral,step) derived RNG, not the shared stream).
 

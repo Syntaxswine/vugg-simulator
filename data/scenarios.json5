@@ -285,7 +285,16 @@
           "architecture": "irregular",
           "primary_bubbles": 3,
           "secondary_bubbles": 8,
-          "shape_seed": 3
+          "shape_seed": 3,
+          // Substrate occlusion (central-distance arc Phase 2, 2026-06-22). MVT cavities are
+          // the canonical DRUSE: sphalerite, galena, fluorite, calcite + barite line the vug,
+          // each crystal sealed against the host over its nucleation footprint and growing only
+          // into the void. Opting in renders that singly-terminated drusy read — the renderer
+          // (js/45 classifyOcclusion → js/99i) sinks each crystal's buried -c fraction below the
+          // wall surface. The universal extrinsic driver's first showcase (applies across all the
+          // species here, not just one — unlike elmwood's calcite-only directional_steps).
+          // RENDER-ONLY: the tag never touches counts/sizes/chemistry → baseline byte-identical.
+          "occlusion": true
         }
       },
       "events": [

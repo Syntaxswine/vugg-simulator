@@ -4252,7 +4252,17 @@ function _topoSyncCrystalMeshes(state: any, sim: any, wall: any, replayStep?: nu
     // direction by half the c-length — for fluid crystals this is
     // substrate-normal; for air-mode crystals it's gravity-aligned
     // (so stalactites drop straight down from the ceiling anchor).
-    const offsetMm = cLen * 0.5;
+    //
+    // SUBSTRATE OCCLUSION (central-distance arc Phase 2, 2026-06-22): a wall-nucleated crystal
+    // is sealed against the host over its attachment footprint, so the buried -c fraction does
+    // NOT project into the cavity. When js/45 classifyOcclusion (gated on wall.occlusion) tags
+    // _occlusion, sink the base by attachedFraction·cLen — pulling the centroid back toward the
+    // wall by the same amount — so only the emergent (1-attachedFraction) length + the free
+    // termination show: the singly-terminated drusy read. occF=0 (unset) ⇒ offsetMm = cLen·0.5,
+    // the EXACT base-at-anchor float (byte-identical placement for every non-opted scenario).
+    const occF = (crystal._occlusion && typeof crystal._occlusion.attachedFraction === 'number')
+      ? crystal._occlusion.attachedFraction : 0;
+    const offsetMm = cLen * (0.5 - occF);
     mesh.position.set(
       ax + cAxisX * offsetMm,
       ay + cAxisY * offsetMm,

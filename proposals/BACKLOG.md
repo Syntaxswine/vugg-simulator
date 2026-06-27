@@ -28,7 +28,7 @@ Living list of open work items, captured from session conversations so context s
 > defer-to-geology, image-corpus method). Full goal text in
 > `proposals/HANDOFF-APOPHYLLITE-AND-GYPSUM-2026-06-22.md` (➕ NEW GOAL section).
 >
-> ## ⬡ ARC (2026-06-22) — DIRECTIONAL / POLAR / STEPPED GROWTH (the central-distance model) — RESEARCHED · PHASE 0+1+3 SHIPPED (byte-identical, render-only)
+> ## ⬡ ARC (2026-06-22) — DIRECTIONAL / POLAR / STEPPED GROWTH (the central-distance model) — RESEARCHED · PHASE 0+1+2+3 SHIPPED (byte-identical, render-only)
 >
 > Boss directive: "geologically accurate wireframe models … asymmetric stepped growth — steps
 > on one face-set not all, opposite faces smoother; polarized growth, one end faster, the other
@@ -110,6 +110,31 @@ Living list of open work items, captured from session conversations so context s
 > the boss's "look before you assert" check corrected it. NEXT = boss decision: **Phase 2
 > (occlusion, re-promoted)** or **Phase 4 (full per-face form)**. Phase 1 (azimuthal stepping) +
 > Phase 3 (polarity) are the visible wins so far. Composes with the optics goal.
+>
+> **PHASE 2 SHIPPED (2026-06-26) — SUBSTRATE OCCLUSION, the DOMINANT universal driver (render-only,
+> byte-identical, NO SIM bump, still v214).** The re-promoted next phase, now built. js/45
+> `classifyOcclusion` (pure, rng-free, gated on `wall.occlusion`) tags every wall-nucleated crystal with
+> `_occlusion = { attachedFraction }` — UNIVERSAL (all minerals, any point group; the science's dominant
+> driver, unlike intrinsic `_polarAxis`). attachedFraction = scenario mean (`wall.occlusion_fraction`,
+> default 0.40) ± a deterministic golden-ratio hash of crystal_id (±0.12, clamped [0.10,0.60]) → a natural
+> spread of embed depths with NO rng (byte-identical). js/99i sinks the base:
+> `offsetMm = cLen*(0.5 − attachedFraction)` (occF=0 unset ⇒ the exact base-at-anchor float ⇒
+> byte-identical placement for every non-opted scenario). **mvt opts in** (`wall.occlusion: true`) — the
+> canonical druse; occlusion spans sphalerite/galena/fluorite/calcite/barite, not one species (the whole
+> point of UNIVERSAL). js/22 whitelists occlusion + occlusion_fraction + occlusion_minerals (the
+> WallState-drops-unlisted-flags catch — directional_steps_minerals is still unwired, left as-is); js/27
+> field doc marked shipped (+ corrected the stale _polarAxis `{plusC_rate,minusC_rate}` → `{pointGroup}`);
+> tests-js/occlusion.test.ts (5 pins: dormancy, opt-in sane fraction, UNIVERSAL >1 mineral, determinism,
+> no-widen). **BROWSER-VERIFIED** (offscreen: real _buildHabitGeom + faithful BackSide/0.40 translucent
+> wall + the real offset math): occluded crystals sink the buried fraction below the matrix and read as
+> EMBEDDED/rooted — the translucent wall VEILS the base (no ghost). The proposal's flagged "watch the
+> offset math" risk resolved FAVORABLY. cold-ci GREEN. **HONEST READ NOTE:** occlusion reads strongest on
+> FAR-wall crystals (the translucent matrix dims the base behind them); NEAR-wall crystals projecting at
+> the camera show it less (their base sinks into the culled near hemisphere) — net-positive, render-only,
+> reversible. **DEFERRED (none blocking):** broader rollout (occlusion is universal — could default ON
+> fleet-wide after a multi-scenario look) + a real drusy specimen as the terminal check both owed; a
+> per-habit skip for botryoidal/dendrite/air-mode crusts (where base-embed is moot) is a refinement, not
+> needed for the prismatic/blocky MVT assemblage. Phase 4 (full per-face Wulff) is the remaining big lift.
 >
 > **SPECIMEN-DEBT VERIFICATION PASS DONE (2026-06-23) — Phases 1+3 falsified against the
 > literature; shipped 4 render-only/doc corrections, byte-identical, NO SIM bump (still v214).**

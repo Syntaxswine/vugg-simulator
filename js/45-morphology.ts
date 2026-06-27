@@ -823,6 +823,40 @@ function classifyPolarAxis(sim: any) {
   }
 }
 
+// SUBSTRATE OCCLUSION — central-distance arc Phase 2 (2026-06-22). The DOMINANT, UNIVERSAL
+// extrinsic driver of the singly-terminated drusy habit: a wall-nucleated crystal is sealed
+// against the host over its attachment footprint, so that interface is feed-starved and frozen
+// (flux ≈ 0) while only the void-facing termination grows (proposal §1.3). Unlike intrinsic
+// polarity (_polarAxis — the 10 polar point groups only) this applies to ANY mineral regardless
+// of point group, and typically SWAMPS intrinsic polarity in magnitude — so it is its own field
+// (§1.3 forbids one scalar for both; a wall-nucleated tourmaline can carry BOTH _occlusion AND
+// _polarAxis). Sets crystal._occlusion = { attachedFraction } = how much of the anchored (-c)
+// half is buried in the matrix; the renderer (js/99i) sinks that fraction below the wall surface
+// so only the emergent termination shows. PURE tagging (no rng/fluid) → byte-identical baseline
+// (gen-baseline serialises only counts/sizes). Gated on wall.occlusion — Phase 2 opts mvt in
+// (the canonical drusy cavity); every other scenario stays dormant → byte-identical fleet.
+// Tag-once (idempotent). Mirrors classifyFaceStep / classifyPolarAxis.
+const OCCLUSION_MIN_UM = 50;       // skip nucleation specks — need a body to embed
+function classifyOcclusion(sim: any) {
+  const wall = sim.conditions && sim.conditions.wall;
+  if (!wall || !wall.occlusion) return;            // opt-in gate — dormant unless a scenario sets it
+  const base = (typeof wall.occlusion_fraction === 'number') ? wall.occlusion_fraction : 0.40;
+  const only = (wall.occlusion_minerals && wall.occlusion_minerals.length) ? wall.occlusion_minerals : null;
+  for (const c of sim.crystals) {
+    if (!c || c.dissolved || c._occlusion) continue;
+    if (only && only.indexOf(c.mineral) < 0) continue;        // null = universal (the science default)
+    if ((c.total_growth_um || 0) < OCCLUSION_MIN_UM) continue;
+    // Deterministic per-crystal embed depth: a golden-ratio hash of the id spreads the druse
+    // across a natural range of burial depths instead of one uniform sink — and uses NO rng, so
+    // the seed-42 baseline stays byte-identical (the hard gate). ±0.12 around the scenario mean,
+    // clamped so a crystal is never buried past 60% (always ≥40% emergent to read as a crystal).
+    const h = (((c.crystal_id || 0) * 0.6180339887498949) % 1 + 1) % 1;
+    let f = base + (h - 0.5) * 0.24;
+    f = Math.max(0.10, Math.min(0.60, f));
+    c._occlusion = { attachedFraction: f };
+  }
+}
+
 function classifyMorphologyStep(sim: any) {
   for (const mineral in MORPH_TH) {
     const th = MORPH_TH[mineral];
