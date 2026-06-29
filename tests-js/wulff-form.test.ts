@@ -47,6 +47,7 @@ const wulffed = (sim: any) => sim.crystals.filter((c: any) => c._wulffForm && !c
 // minimal sim-shaped object for direct classifier unit tests
 const mkSim = (flag: boolean, crystals: any[]) => ({ conditions: { wall: { wulff_fluorite: flag } }, crystals });
 const mkSimC = (flag: boolean, crystals: any[]) => ({ conditions: { wall: { wulff_calcite: flag } }, crystals });
+const mkSimW = (flag: boolean, crystals: any[]) => ({ conditions: { wall: { wulff_wulfenite: flag } }, crystals });
 const mkCrystal = (over: any) => Object.assign({ mineral: 'fluorite', habit: 'octahedral_REE', total_growth_um: 200, crystal_id: 5, dissolved: false }, over);
 
 describe('Wulff form tag (central-distance arc Phase 4 rung 4a.1)', () => {
@@ -183,5 +184,67 @@ describe('Wulff form tag — calcite tenant (rung 4a.2)', () => {
     expect(cal._wulffForm).toBeUndefined();              // calcite stays dormant under the fluorite flag
     classifyWulffForm(mkSimC(true, [cal]));              // now wulff_calcite on
     expect(cal._wulffForm).toBeTruthy();
+  });
+});
+
+// rung 4a.3 — the wulfenite tenant (the THIRD crystal system, tetragonal 4/m). grow_wulfenite
+// hardcodes habit='tabular', so the classifier spreads the plate THICKNESS across the tabular
+// family by the per-crystal hash (biasC [1.4,2.8]) rather than splitting on a habit the engine never
+// emits. supergene_oxidation is the ONLY scenario that grows wulfenite (so it carries the opt-in);
+// dormancy is pinned by the flag-off + cross-flag unit tests rather than a grows-but-not-opted scenario.
+describe('Wulff form tag — wulfenite tenant (rung 4a.3)', () => {
+  it('supergene_oxidation (wall.wulff_wulfenite) tags its tabular wulfenite, biasC in the tabular band', () => {
+    const sim = run('supergene_oxidation');
+    expect(sim).toBeTruthy();
+    const tagged = wulffed(sim).filter((c: any) => c.mineral === 'wulfenite');
+    expect(tagged.length).toBeGreaterThan(0);            // the honey-yellow square plate
+    for (const c of tagged) {
+      expect(c._wulffForm.tabular).toBe(true);
+      // tabular thickness band [1.4,2.8] (aspect ≈ 3.4–6.1 — a thin square plate; eye-checked)
+      expect(c._wulffForm.biasC).toBeGreaterThanOrEqual(1.4);
+      expect(c._wulffForm.biasC).toBeLessThanOrEqual(2.8);
+      expect(_makeWulffGeom(wulffFaceSetForMineral('wulfenite', c._wulffForm.growthFrac, 0, c._wulffForm.biasC))).toBeTruthy();
+    }
+  });
+
+  it('supergene_oxidation tenant scoping — only wulfenite is Wulff-tagged, though many other species grow', () => {
+    const sim = run('supergene_oxidation');
+    // the scenario grows a rich oxidation assemblage (smithsonite, mimetite, malachite, …); none of
+    // those — nor calcite/fluorite, the OTHER Wulff-registered minerals — may be tagged under the
+    // wulfenite-only flag. The size assert makes the scope check non-vacuous (a real multi-mineral run).
+    const species = new Set(sim.crystals.filter((c: any) => !c.dissolved).map((c: any) => c.mineral));
+    expect(species.size).toBeGreaterThan(3);
+    for (const c of wulffed(sim)) expect(c.mineral).toBe('wulfenite');
+  });
+
+  it('unit — tabular wulfenite → tabular band [1.4,2.8]; flag-off / twinned / speck are skipped', () => {
+    const tab = mkCrystal({ mineral: 'wulfenite', habit: 'tabular', crystal_id: 5 });
+    classifyWulffForm(mkSimW(true, [tab]));
+    expect(tab._wulffForm.tabular).toBe(true);
+    expect(tab._wulffForm.biasC).toBeGreaterThanOrEqual(1.4);
+    expect(tab._wulffForm.biasC).toBeLessThanOrEqual(2.8);
+
+    const off = mkCrystal({ mineral: 'wulfenite', habit: 'tabular', crystal_id: 5 });
+    classifyWulffForm(mkSimW(false, [off]));
+    expect(off._wulffForm).toBeUndefined();              // opt-in gate
+
+    // a twinned wulfenite keeps its OWN geometry (the {001} tabular-on-tabular twin), and a sub-30µm
+    // speck has no body to read a form on — neither may be Wulff-tagged (mirrors the fluorite skips).
+    const twin = mkCrystal({ mineral: 'wulfenite', habit: 'tabular', twinned: true, crystal_id: 5 });
+    const speck = mkCrystal({ mineral: 'wulfenite', habit: 'tabular', total_growth_um: 10, crystal_id: 5 });
+    classifyWulffForm(mkSimW(true, [twin, speck]));
+    expect(twin._wulffForm).toBeUndefined();             // the twin owns its geometry
+    expect(speck._wulffForm).toBeUndefined();            // need a body to read a form on
+  });
+
+  it('unit — the wulff_wulfenite flag is independent of the fluorite/calcite flags', () => {
+    const wulf = mkCrystal({ mineral: 'wulfenite', habit: 'tabular', crystal_id: 7 });
+    classifyWulffForm(mkSim(true, [wulf]));              // only wulff_fluorite on
+    expect(wulf._wulffForm).toBeUndefined();
+    classifyWulffForm(mkSimC(true, [wulf]));             // only wulff_calcite on
+    expect(wulf._wulffForm).toBeUndefined();
+    classifyWulffForm(mkSimW(true, [wulf]));             // now wulff_wulfenite on
+    expect(wulf._wulffForm).toBeTruthy();
+    expect(wulf._wulffForm.tabular).toBe(true);
   });
 });

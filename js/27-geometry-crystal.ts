@@ -202,14 +202,17 @@ class Crystal {
     //               (hemimorphite/wurtzite/tourmaline/greenockite). Phase 3 renders it.
     //               Kept DISTINCT from _occlusion — the science forbids one scalar for
     //               both, and a wall crystal can carry BOTH (buried base + polar +c).
-    //   _wulffForm  { biasC, growthFrac, octahedral, scaleno } — js/45 classifyWulffForm: the
-    //               central-distance (Wulff) FORM bias (Phase 4). Renderer (js/99i) builds the true
-    //               convex polyhedron (js/46) instead of a fixed primitive. Two tenants:
-    //               fluorite (4a.1, wall.wulff_fluorite) — {100}/{111} cube↔octahedron (fluid.Y);
-    //               token stays cube/octahedron → isometric scale unchanged. calcite (4a.2,
-    //               wall.wulff_calcite) — {104}/{21-31} rhombohedron↔scalenohedron (nailhead↔
-    //               dogtooth); token stays rhomb/scalene, scaled ISOTROPICALLY (the geom carries the
-    //               true c-elongation). Both render-only → size scalars untouched, byte-identical.
+    //   _wulffForm  { biasC, growthFrac, octahedral, scaleno, tabular } — js/45 classifyWulffForm:
+    //               the central-distance (Wulff) FORM bias (Phase 4). Renderer (js/99i) builds the
+    //               true convex polyhedron (js/46) instead of a fixed primitive. THREE tenants, one
+    //               per crystal system: fluorite (4a.1, wall.wulff_fluorite, CUBIC) — {100}/{111}
+    //               cube↔octahedron (fluid.Y); token stays cube/octahedron → isometric scale
+    //               unchanged. calcite (4a.2, wall.wulff_calcite, TRIGONAL) — {104}/{21-31}
+    //               rhombohedron↔scalenohedron (nailhead↔dogtooth); token stays rhomb/scalene, scaled
+    //               ISOTROPICALLY by cLen (c is the LONG axis). wulfenite (4a.3, wall.wulff_wulfenite,
+    //               TETRAGONAL 4/m) — c{001}/{101} tabular square plate; token stays 'tablet', scaled
+    //               isotropically by the plate DIAMETER (c is the SHORT axis). All render-only → size
+    //               scalars untouched, byte-identical (no SIM bump, no rebake).
     this.zones = [];
     this.total_growth_um = 0;
     this.active = true;

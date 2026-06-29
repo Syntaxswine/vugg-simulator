@@ -18,6 +18,7 @@ import { describe, expect, it } from 'vitest';
 
 declare const wulffCubicNormals: any;
 declare const wulffTrigonalNormals: any;
+declare const wulffTetragonalNormals: any;
 declare const wulffPolyhedron: any;
 declare const wulffFaceSetForMineral: any;
 declare const _makeWulffGeom: any;
@@ -186,6 +187,71 @@ describe('Wulff geometry kernel — calcite via the registry (rung 4a.2)', () =>
   it('determinism — identical calcite inputs give byte-identical face sets (rng-free)', () => {
     const a = wulffFaceSetForMineral('calcite', 0.5, 11, 0.6);
     const b = wulffFaceSetForMineral('calcite', 0.5, 11, 0.6);
+    expect(JSON.stringify(a)).toBe(JSON.stringify(b));
+  });
+});
+
+// The THIRD crystal system (rung 4a.3) — wulfenite, tetragonal I4₁/a (scheelite-type) / Laue class
+// 4/m, cell a=5.4347 c=12.110. Like calcite the normal is the reciprocal vector g=(h/a, l/c, k/a)
+// with the 4-fold c-axis on Y, expanded by the 4/m orbit (order 8, built once via generator
+// closure). {101}→8 confirms the full order-8 group; the basal pinacoid points along ±Y so a
+// tabular plate lies flat. Validated against a standalone prototype (wulff-tetragonal-proto.mjs).
+describe('Wulff geometry kernel — tetragonal 4/m (wulfenite) symmetry', () => {
+  it('c{001} basal pinacoid → 2 face normals', () => {
+    expect(wulffTetragonalNormals([0, 0, 1], 5.4347, 12.110).length).toBe(2);
+  });
+  it('{101} tetragonal bipyramid → 8 face normals (the full 4/m orbit ⇒ group order 8)', () => {
+    expect(wulffTetragonalNormals([1, 0, 1], 5.4347, 12.110).length).toBe(8);
+  });
+  it('{100} prism → 4; {110} prism → 4', () => {
+    expect(wulffTetragonalNormals([1, 0, 0], 5.4347, 12.110).length).toBe(4);
+    expect(wulffTetragonalNormals([1, 1, 0], 5.4347, 12.110).length).toBe(4);
+  });
+  it('every tetragonal normal is unit length', () => {
+    for (const n of [...wulffTetragonalNormals([0, 0, 1], 5.4347, 12.110), ...wulffTetragonalNormals([1, 0, 1], 5.4347, 12.110)]) {
+      expect(Math.hypot(n[0], n[1], n[2])).toBeCloseTo(1, 9);
+    }
+  });
+  it('c on Y — the basal pinacoid normals point along ±Y, so a tabular plate lies flat', () => {
+    for (const n of wulffTetragonalNormals([0, 0, 1], 5.4347, 12.110)) {
+      expect(Math.abs(n[1])).toBeCloseTo(1, 9);
+    }
+  });
+});
+
+describe('Wulff geometry kernel — wulfenite via the registry (rung 4a.3)', () => {
+  // face set is built [2 basal-pinacoid planes (idx 0-1), 8 bipyramid planes (idx 2-9)]
+  const pinacoidFaces = (p: any) => p.faces.filter((f: any) => f.plane < 2).length;
+  const bipyramidFaces = (p: any) => p.faces.filter((f: any) => f.plane >= 2).length;
+  const extent = (p: any, ax: number) => {
+    let mn = Infinity, mx = -Infinity;
+    for (const v of p.vertices) { mn = Math.min(mn, v[ax]); mx = Math.max(mx, v[ax]); }
+    return mx - mn;
+  };
+
+  it('wulfenite yields the 10-plane face set (2 basal pinacoid + 8 bipyramid) + builds a solid', () => {
+    const faces = wulffFaceSetForMineral('wulfenite', 0.5, 7, 1.86);
+    expect(faces).toBeTruthy();
+    expect(faces.length).toBe(10);
+    expect(_makeWulffGeom(faces)).toBeTruthy();
+  });
+
+  it('the live supergene values (biasC 1.86, g 0.21) → a truncated-bipyramid TABLET: 2 pinacoid + 8 bipyramid, wider than thick', () => {
+    const p = wulffPolyhedron(wulffFaceSetForMineral('wulfenite', 0.21, 7, 1.86));
+    expect(pinacoidFaces(p)).toBe(2);                    // the flat plate faces, top + bottom
+    expect(bipyramidFaces(p)).toBe(8);                   // the bevelled square edge
+    expect(extent(p, 0)).toBeGreaterThan(extent(p, 1));  // diameter (X) > thickness (Y) — a plate, not a column
+  });
+
+  it('higher biasC → thinner plate (the tabular thinness knob; bias on {001})', () => {
+    const thin = extent(wulffPolyhedron(wulffFaceSetForMineral('wulfenite', 0.5, 7, 2.8)), 1);
+    const thick = extent(wulffPolyhedron(wulffFaceSetForMineral('wulfenite', 0.5, 7, 1.4)), 1);
+    expect(thin).toBeLessThan(thick);                    // slowing {001} (higher biasC) flattens the plate
+  });
+
+  it('determinism — identical wulfenite inputs give byte-identical face sets (rng-free)', () => {
+    const a = wulffFaceSetForMineral('wulfenite', 0.5, 11, 1.86);
+    const b = wulffFaceSetForMineral('wulfenite', 0.5, 11, 1.86);
     expect(JSON.stringify(a)).toBe(JSON.stringify(b));
   });
 });

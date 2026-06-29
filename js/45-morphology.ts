@@ -903,12 +903,12 @@ const WULFF_MIN_UM = 30;            // skip nucleation specks — need a body to
 function classifyWulffForm(sim: any) {
   const wall = sim.conditions && sim.conditions.wall;
   if (!wall) return;
-  const fluoriteOn = !!wall.wulff_fluorite, calciteOn = !!wall.wulff_calcite;
-  if (!fluoriteOn && !calciteOn) return;            // opt-in gate — dormant unless a scenario sets one
+  const fluoriteOn = !!wall.wulff_fluorite, calciteOn = !!wall.wulff_calcite, wulfeniteOn = !!wall.wulff_wulfenite;
+  if (!fluoriteOn && !calciteOn && !wulfeniteOn) return;   // opt-in gate — dormant unless a scenario sets one
   for (const c of sim.crystals) {
     if (!c || c.dissolved) continue;
     const m = c.mineral;
-    const tenant = (m === 'fluorite' && fluoriteOn) || (m === 'calcite' && calciteOn);
+    const tenant = (m === 'fluorite' && fluoriteOn) || (m === 'calcite' && calciteOn) || (m === 'wulfenite' && wulfeniteOn);
     // Disqualify: not an opted tenant, a nucleation speck, or a twin (twins resolve to their own
     // geometry token, never the cube/octahedron/rhomb/scalene the Wulff path needs).
     if (!tenant || (c.total_growth_um || 0) < WULFF_MIN_UM || !!c.twinned) {
@@ -917,21 +917,30 @@ function classifyWulffForm(sim: any) {
     if (c._wulffForm) continue;                      // already tagged and still qualifies
     const habit = String(c.habit || '');
     const h = (((c.crystal_id || 0) * 0.6180339887498949) % 1 + 1) % 1;   // rng-free per-crystal spread
-    let biasC: number, octahedral = false, scaleno = false;
+    let biasC: number, octahedral = false, scaleno = false, tabular = false;
     if (m === 'fluorite') {
       octahedral = habit.indexOf('octahedral') >= 0;  // octahedral_REE + stepped_/hopper_/dendritic_
       biasC = octahedral ? (0.32 + h * 0.20) : (1.15 + h * 1.25);
-    } else {                                          // calcite
+    } else if (m === 'calcite') {
       scaleno = habit.indexOf('scaleno') >= 0;        // scalenohedral (dogtooth) vs rhombohedral (nailhead)
       // dogtooth band [0.15,0.26] eye-checked in the live renderer: an elongated prism body with
       // sharp {21-31} scalenohedron terminations, capped by minor {104} rhombs (the real dogtooth).
       // [0.34,0.50] read as a stubby block (NOT a tooth); ≤0.10 thinned to an unnatural spike.
       biasC = scaleno ? (0.15 + h * 0.11) : (1.30 + h * 0.90);
+    } else {                                          // wulfenite (rung 4a.3)
+      // grow_wulfenite hardcodes habit='tabular' (the iconic honey-yellow square plate), so there
+      // is no pyramidal/pseudo-octahedral habit to split on — driving one would render a form the
+      // engine never chose. Instead spread the plate THICKNESS across the tabular family by the
+      // per-crystal hash: biasC [1.4,2.8] → diameter/thickness aspect ≈ 3.4–6.1, a natural drusy of
+      // thin honey plates and thicker tablets. bias is on {001}: higher biasC slows the basal
+      // pinacoid → thinner plate. (Band placed from the wulff-tetragonal aspect sweep; eye-checked.)
+      tabular = true;
+      biasC = 1.4 + h * 1.4;
     }
     // growthFrac maps the engine's growth scalar into the kernel's [0,1] envelope (topology is
     // largely g-insensitive in these bias ranges; bigger crystals trend a hair sharper).
     const growthFrac = Math.max(0.15, Math.min(1.0, (c.total_growth_um || 0) / 250));
-    c._wulffForm = { biasC, growthFrac, octahedral, scaleno };
+    c._wulffForm = { biasC, growthFrac, octahedral, scaleno, tabular };
   }
 }
 

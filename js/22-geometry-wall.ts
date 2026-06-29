@@ -320,6 +320,15 @@ class VugWall {
     // bump, no rebake). Default false → every other scenario dormant. Whitelisted explicitly (an
     // unlisted flag from scenarios.json5 is silently dropped).
     this.wulff_calcite = !!opts.wulff_calcite;
+    // wulff_wulfenite — CENTRAL-DISTANCE (Wulff) FORM rung 4a.3 (2026-06-29): the THIRD crystal
+    // system (tetragonal 4/m, scheelite-type). Opts a scenario's wulfenite into the true c{001}
+    // pinacoid + {101} bipyramid tabular plate (js/46 wulffTetragonalNormals) instead of the flat
+    // 'tablet' box primitive. js/45 classifyWulffForm tags _wulffForm; js/99i builds the mesh after
+    // the twin/etch paths (gated !geom) and scales it ISOTROPICALLY by the plate diameter (the geom
+    // carries the true c<a tabular aspect). RENDER-ONLY — byte-identical (no SIM bump, no rebake).
+    // Default false → every other scenario dormant. Whitelisted explicitly (an unlisted flag from
+    // scenarios.json5 is silently dropped).
+    this.wulff_wulfenite = !!opts.wulff_wulfenite;
   }
 
   dissolve(acid_strength, fluid) {

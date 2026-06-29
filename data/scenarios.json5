@@ -1497,7 +1497,13 @@
           "architecture": "irregular",
           "primary_bubbles": 3,
           "secondary_bubbles": 7,
-          "shape_seed": 7
+          "shape_seed": 7,
+          // rung 4a.3 — opt Tsumeb's wulfenite into the central-distance TABULAR PLATE (tetragonal
+          // 4/m, c{001} pinacoid + {101} bipyramid) instead of the flat 'tablet' box. Render-only:
+          // the engine grows the same crystals (one 12.3 mm honey plate at seed 42, biasC 1.86 →
+          // aspect ≈ 3.8), the baseline stays byte-identical. The THIRD crystal system in the Wulff
+          // family — cubic (fluorite) + trigonal (calcite) + tetragonal (wulfenite).
+          "wulff_wulfenite": true
         }
       },
       "events": [

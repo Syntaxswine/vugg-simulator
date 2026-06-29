@@ -1,6 +1,12 @@
 # HANDOFF — Phase 4, the central-distance (Wulff) crystal-form model
 
-**2026-06-29 · SIM_VERSION 214 (unchanged — the whole arc is render-only) · HEAD `770ec7a` · live on Syntaxswine/main + Pages**
+**2026-06-29 · SIM_VERSION 214 (unchanged — the whole arc is render-only) · live on Syntaxswine/main + Pages**
+
+> **Update (later 2026-06-29):** rung **4a.3** added a THIRD crystal system — **wulfenite, tetragonal 4/m**
+> (`supergene_oxidation`, Tsumeb), rendering as the true tabular plate. Still byte-identical (SIM 214). See
+> the new commit-table row, the wulfenite addendum to **Trap §3**, and **what's-next #3** (a *fourth*,
+> genuinely-new-symmetry system — orthorhombic / monoclinic — is the prize now; the cheap same-system
+> path is galena).
 
 You're reading this because you're about to extend the way vugg decides what a crystal *looks like*.
 Sit with the model for ten minutes before you touch a file — it is small, and once it clicks the
@@ -29,8 +35,8 @@ literal* — and only the central distances **dᵢ grow**. Habit falls out of th
 its slower neighbours — it self-eliminates). Equal rates → cuboctahedron; shrink {111} → cube;
 shrink {100} → octahedron. Cube↔octahedron and nailhead↔dogtooth are not two pieces of code. They
 are *the same equation* solved against different face-normal sets. That is the whole point: it is a
-**general framework**, not a pile of special cases. Fluorite (cubic) and calcite (trigonal) are just
-two unit cells plugged into one machine.
+**general framework**, not a pile of special cases. Fluorite (cubic), calcite (trigonal), and wulfenite
+(tetragonal) are just three unit cells plugged into one machine.
 
 The kernel is `js/46-wulff-geometry.ts`. Read it top to bottom — it's ~290 lines and it's the spine.
 
@@ -38,7 +44,7 @@ The kernel is `js/46-wulff-geometry.ts`. Read it top to bottom — it's ~290 lin
 
 ## What is shipped (and what each commit bought)
 
-All four rungs are **render-only and byte-identical** — the seed-42 calibration baseline
+All five rungs are **render-only and byte-identical** — the seed-42 calibration baseline
 (`tests-js/baselines/seed42_v214.json`) never moved, so there was **no SIM bump and no rebake**.
 That is the load-bearing discipline (see Traps §1).
 
@@ -48,22 +54,28 @@ That is the load-bearing discipline (see Traps §1).
 | `57a5aae` | **4a.1** | first tenant — **fluorite**, the cube↔octahedron transition, on `sunnyside_american_tunnel`. |
 | `c555f21` | **4a.2 kernel** | **hex-R** support — the first NON-cubic system. `wulffTrigonalNormals` + calcite registry. |
 | `770ec7a` | **4a.2 tenant** | **calcite** renders as a true dogtooth on `mvt`. Two crystal systems now live. |
+| *(this commit)* | **4a.3** | **wulfenite** — the THIRD system (**tetragonal 4/m**, scheelite-type). `wulffTetragonalNormals` + the `_WULFF_TETRAGONAL_GROUP` closure + registry + classifier + the tabular-plate render on `supergene_oxidation`. A new crystal system *and* its tenant in one commit. |
 
 **File map (where the pieces live):**
 - `js/46-wulff-geometry.ts` — the kernel: the `WULFF_FORM_GEOMETRY` registry, `wulffCubicNormals`,
-  `wulffTrigonalNormals` + the `_WULFF_TRIGONAL_GROUP` point-group closure, `wulffFaceSetForMineral`
-  (registry → `[{n,d}]`), `wulffPolyhedron` (the triple-plane intersection), `_makeWulffGeom`
-  (→ `THREE.BufferGeometry`, normalized to ±0.5, **null-clamp on a degenerate solid**).
+  `wulffTrigonalNormals` (-3m) + `wulffTetragonalNormals` (4/m) and their `_WULFF_*_GROUP` point-group
+  closures, `wulffFaceSetForMineral` (registry → `[{n,d}]`), `wulffPolyhedron` (the triple-plane
+  intersection), `_makeWulffGeom` (→ `THREE.BufferGeometry`, normalized to ±0.5, **null-clamp on a
+  degenerate solid**).
 - `js/45-morphology.ts` — `classifyWulffForm(sim)`: the post-growth classifier that tags
-  `crystal._wulffForm = { biasC, growthFrac, octahedral, scaleno }`. Gated per-tenant on
-  `wall.wulff_fluorite` / `wall.wulff_calcite`. Mirrors `classifyOcclusion` exactly.
+  `crystal._wulffForm = { biasC, growthFrac, octahedral, scaleno, tabular }`. Gated per-tenant on
+  `wall.wulff_fluorite` / `wall.wulff_calcite` / `wall.wulff_wulfenite`. Mirrors `classifyOcclusion`.
 - `js/85-simulator.ts` — calls `classifyWulffForm(this)` in the step loop (after `classifyOcclusion`).
 - `js/22-geometry-wall.ts` — the `wall.wulff_*` whitelist (an unlisted wall flag is silently dropped).
 - `js/99i-renderer-three.ts` — the dispatch branch (~line 3900, gated `!geom` after the
-  etched/terrace/e-twin/twin paths) + the `isWulffCalcite` isotropic-scale branch (~line 4267).
+  etched/terrace/e-twin/twin paths) + the isotropic-scale branches (~line 4267): `isWulffCalcite`
+  (scale by `cLen`, the c-elongated case) and `isWulffWulfenite` (scale by the plate diameter
+  `max(aWid,cLen)`, the tabular case).
 - `js/27-geometry-crystal.ts` — the `_wulffForm` tag is documented in the render-tag block.
-- `data/scenarios.json5` — `sunnyside_american_tunnel.wall.wulff_fluorite`, `mvt.wall.wulff_calcite`.
-- `tests-js/wulff-geometry.test.ts` (22 kernel pins) + `tests-js/wulff-form.test.ts` (13 classifier pins).
+- `data/scenarios.json5` — `sunnyside_american_tunnel.wall.wulff_fluorite`, `mvt.wall.wulff_calcite`,
+  `supergene_oxidation.wall.wulff_wulfenite`.
+- `tests-js/wulff-geometry.test.ts` (31 kernel pins) + `tests-js/wulff-form.test.ts` (17 classifier pins);
+  `tools/wulfenite-wulff-probe.mjs` — the tenant-survival probe (display-size, untwinned, in-band).
 - `proposals/DESIGN-WULFF-PHASE-4-2026-06-28.md` — the design pass (the six decisions D1–D6 + the
   rolling UPDATE log). Read it for the *why* behind the architecture choices.
 
@@ -90,10 +102,15 @@ The framework is built so a new tenant in an existing crystal system is a few li
 5. **Eye-check** (non-negotiable — see Traps §4), tests, adversarial review, cold-ci, ship. Still
    byte-identical → no SIM bump.
 
-A **new crystal system** (orthorhombic, monoclinic, tetragonal, …) is more: it needs its own
-`wulff<System>Normals(hkl, cell)` — the reciprocal-metric normal generator + the point-group orbit,
-modelled on `wulffTrigonalNormals`. That's the interesting work, and it's the proof the framework
-keeps generalizing. Prototype the crystallography in a scratchpad first (see Instruments).
+A **new crystal system** is more: it needs its own `wulff<System>Normals(hkl, cell)` — the reciprocal-
+metric normal generator + the point-group orbit, modelled on `wulffTrigonalNormals`. **Wulfenite (4a.3)
+is the worked example**: tetragonal 4/m, `g = (h/a, l/c, k/a)` (orthogonal cell, c on Y), the order-8
+group from the closure of `{ C4(y), σh, inversion }`. The two parts that took care were (i) using the
+mineral's *true* point group — **4/m, not the convenient 4/mmm** (for `{001}+{101}` both give the same
+faces, but the honest group won't silently lie when someone adds a skew form), and (ii) the tabular
+scale (Trap §3). That's the interesting work, and the proof the framework keeps generalizing. Prototype
+the crystallography in a scratchpad first (see Instruments) — validate the orbit sizes and a bbox
+(which axis is long?) before porting a single line.
 
 ---
 
@@ -121,6 +138,15 @@ dogtooth renders lying on its side. `wulffTrigonalNormals` now puts c on Y (g = 
 c-elongation*, so it must scale **isotropically** (`isWulffCalcite` → `mesh.scale.set(cLen,cLen,cLen)`)
 — the token's `(aWid,cLen,aWid)` would **double-stretch** the already-elongated geom. Any future
 non-isometric tenant inherits both of these.
+
+  *Wulfenite (4a.3) is the mirror-image lesson: it is **tabular**, so `c` is the **short** axis.* The
+  Wulff geom still carries the true aspect, but the right isotropic scale is now by the plate
+  **diameter** — `max(aWid, cLen)` (= `aWid` for a `tablet` token), in a SEPARATE `isWulffWulfenite`
+  branch. Scaling by `cLen` (the calcite path) would shrink the whole plate down to its *thickness*.
+  The general rule the two cases teach: **an anisotropic Wulff geom scales isotropically by its LONGEST
+  physical axis** — `cLen` for a c-elongated tenant, `aWid` for a tabular one. Keep the existing
+  tenants' branches untouched so they stay byte-identical (don't fold them into one `max()` — calcite's
+  `rhomb` nailhead can have `aWid ≳ cLen`, which would change its render).
 
 **4 — A render upgrade must be visibly BETTER, not just different — and you can't tell without
 looking.** The fluorite "obvious" mapping (high-Y → biasC 0.28) produced a *perfect* octahedron —
@@ -185,10 +211,12 @@ run. Diagnose by shape: all-timeouts + zero assertion failures + slow total = co
 2. **A nailhead (rhombohedral) calcite showcase.** Only the *dogtooth* (biasC<1) branch is live; the
    nailhead band (biasC≥1) is implemented + tested but never eye-checked in a scenario. A
    rhombohedral-calcite locality would exercise it and is a cheap, satisfying win.
-3. **A third crystal system.** Quartz (trigonal, but enantiomorphic 32 — NOT -3m; its own orbit) is
-   the obvious prize, though quartz already has a rich bespoke render (sceptre/gwindel/smoky) that
-   the Wulff path would have to *compose* with, not replace. Barite/celestine (orthorhombic) or
-   gypsum (monoclinic) are cleaner first non-trigonal extensions. Each needs a `wulff<System>Normals`.
+3. **A FOURTH crystal system** (the third — tetragonal — shipped as 4a.3, wulfenite). Barite/celestine
+   (orthorhombic *mmm*) or gypsum (monoclinic *2/m*) are the cleanest next extensions — each a new
+   `wulff<System>Normals`, prototyped in a scratchpad first. Quartz (enantiomorphic 32, its own orbit)
+   is the trophy but must *compose* with quartz's rich bespoke render (sceptre/gwindel/smoky), not
+   replace it — more delicate. Wulfenite (4a.3) is the template for the mechanical part: build the true
+   point group, put the symmetry axis on Y, scale isotropically by the longest physical axis.
 4. **The concavity primitive.** Decided in the design pass (D1: nested convex shells) but NOT built —
    no tenant is concave yet (hoppers/skeletal forms are the eventual customers). The convex body is
    the base layer either way, so it's not blocking anything.

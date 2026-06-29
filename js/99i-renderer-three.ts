@@ -3834,6 +3834,7 @@ function _topoSyncCrystalMeshes(state: any, sim: any, wall: any, replayStep?: nu
     let geom: any = null;
     let isSectorZoned = false;   // sector (hourglass) zoning → vertexColors material
     let isWulffCalcite = false;  // calcite Wulff polyhedron → isotropic scale (geom carries c-elongation)
+    let isWulffWulfenite = false;  // wulfenite Wulff tabular plate → isotropic scale by plate diameter (rung 4a.3)
     // ETCHED crystal — post-growth dissolution overprint (crystal-face realism arc §2,
     // 2026-06-22). The sim tags crystal._etch when a scenario etch event corroded a
     // crystal that had ALREADY grown (js/45 classifyEtch; reactivated_fluorite_vein's
@@ -3918,8 +3919,10 @@ function _topoSyncCrystalMeshes(state: any, sim: any, wall: any, replayStep?: nu
       const wf = crystal._wulffForm;
       const isFlWulff = crystal.mineral === 'fluorite' && (token === 'cube' || token === 'octahedron');
       const isCalWulff = crystal.mineral === 'calcite' && (token === 'rhomb' || token === 'scalene');
-      if (isFlWulff || isCalWulff) {
-        const formKey = isFlWulff ? (wf.octahedral ? 'o' : 'c') : (wf.scaleno ? 's' : 'r');
+      const isWfWulff = crystal.mineral === 'wulfenite' && token === 'tablet';   // rung 4a.3 (tetragonal)
+      if (isFlWulff || isCalWulff || isWfWulff) {
+        const formKey = isFlWulff ? (wf.octahedral ? 'o' : 'c')
+          : isCalWulff ? (wf.scaleno ? 's' : 'r') : 't';   // wulfenite is tabular-only
         const key = '__wulff_' + crystal.mineral + '_' + formKey
           + '_' + Math.round(wf.biasC * 100) + '_' + Math.round(wf.growthFrac * 10);
         geom = state.geomCache.get(key);
@@ -3930,7 +3933,8 @@ function _topoSyncCrystalMeshes(state: any, sim: any, wall: any, replayStep?: nu
           const g2 = faces ? _makeWulffGeom(faces) : null;
           if (g2) { geom = g2; state.geomCache.set(key, geom); }
         }
-        if (isCalWulff && geom) isWulffCalcite = true;   // signal the isotropic scale below
+        if (isCalWulff && geom) isWulffCalcite = true;     // signal the isotropic scale below
+        if (isWfWulff && geom) isWulffWulfenite = true;    // signal the isotropic-by-diameter scale below
       }
     }
     // Dendrite TREE (morphology fix-backlog, 2026-06-12): dendritic /
@@ -4270,6 +4274,14 @@ function _topoSyncCrystalMeshes(state: any, sim: any, wall: any, replayStep?: nu
       // UNIFORMLY by cLen — the geom's own aspect gives the nailhead-vs-dogtooth shape. Applying
       // the token's anisotropic (aWid,cLen,aWid) here would double-stretch the already-elongated geom.
       mesh.scale.set(cLen, cLen, cLen);
+    } else if (isWulffWulfenite) {
+      // isWulffWulfenite (rung 4a.3): the wulfenite Wulff plate already carries its true c<a TABULAR
+      // aspect (kernel builds c on Y, normalized to ±0.5 → the plate diameter is the max extent), so
+      // it scales ISOTROPICALLY by that diameter = max(aWid, cLen) (aWid for a 'tablet' token). The
+      // token's (aWid,cLen,aWid) would re-flatten the already-thin geom; scaling by cLen alone (the
+      // calcite path) would shrink the whole plate to its thickness. Opposite of calcite: c is SHORT.
+      const s = Math.max(aWid, cLen);
+      mesh.scale.set(s, s, s);
     } else if (token === 'botryoidal') {
       // Botryoidal crusts spread laterally on the wall — the c-axis (along
       // the substrate normal) should be SHORTER than the a-axis. Sim-side

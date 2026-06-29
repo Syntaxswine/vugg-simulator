@@ -86,6 +86,19 @@ const WULFF_FORM_GEOMETRY: any = {
     { hkl: [1, 0, 4], R: 1.0, bias: true },
     { hkl: [2, 1, 1], R: 1.87 },
   ] },
+  // rung 4a.3 — the THIRD crystal system: wulfenite, tetragonal I4₁/a (scheelite-type), Laue class
+  // 4/m (C4h, order 8 — NOT the higher 4/mmm; the reduced symmetry, no vertical mirrors, is the
+  // real reason wulfenite crystals look pyramidal/asymmetric). a=5.4347 c=12.110 (data/structural.
+  // json). Forms: the basal pinacoid c{001} (the flat plate faces) and the tetragonal bipyramid
+  // {101} (the bevelled edge). BFDH (R ∝ 1/d_hkl): d_001=c=12.11Å ≫ d_101=4.96Å ⇒ R_101≈2.44·R_001,
+  // so {001} is by far the slowest form ⇒ TABULAR by default — exactly wulfenite's nature, no knob
+  // needed. bias on {001}: biasC>1 slows the pinacoid further → thinner plate; biasC<1 speeds it →
+  // the {101} bipyramid takes over (pyramidal → pseudo-octahedral). One equation, three crystal
+  // systems.
+  wulfenite: { system: 'tetragonal', cell: { a: 5.4347, c: 12.110 }, forms: [
+    { hkl: [0, 0, 1], R: 1.0, bias: true },
+    { hkl: [1, 0, 1], R: 2.44 },
+  ] },
 };
 
 // ------------------------------------------------------------
@@ -217,6 +230,39 @@ function wulffTrigonalNormals(hkl: any, a: number, c: number): any {
 }
 
 // ------------------------------------------------------------
+// Tetragonal symmetry expansion (wulfenite, rung 4a.3). Scheelite-type I4₁/a → Laue class 4/m
+// (C4h, order 8). Like calcite the face normal is the RECIPROCAL vector g = h·a* + k·b* + l·c*, but
+// the tetragonal cell is ORTHOGONAL (a*=b*=1/a, c*=1/c), so with the crystallographic c-axis (the
+// 4-fold) on the renderer's Y:
+//   g(h,k,l) = ( h/a , l/c , k/a ).
+// The orbit is the point group 4/m acting on g — built once by closure of its generators
+// { C4(y), σh(⊥y), inversion } (8 ops; validated: {001}→2 pinacoid, {100}→4 prism, {101}→8
+// bipyramid, with Y the SHORT axis so a thin plate lies FLAT — the tabular plate stands on c).
+// 4/m and NOT 4/mmm: the lower symmetry IS wulfenite's true point group (the absent vertical
+// mirrors are why {hkl}≠{khl} there); for the {001}+{101} forms used here both groups give the
+// same faces, but the honest group leaves room for a future skew form without a silent error.
+// ------------------------------------------------------------
+const _WULFF_TETRAGONAL_GROUP = _wulffBuildGroup([
+  [[0, 0, 1], [0, 1, 0], [-1, 0, 0]],    // C4 about y (+90°)
+  [[1, 0, 0], [0, -1, 0], [0, 0, 1]],    // σh — mirror perpendicular to the 4-fold (y → -y)
+  [[-1, 0, 0], [0, -1, 0], [0, 0, -1]],  // inversion centre
+]);
+function wulffTetragonalNormals(hkl: any, a: number, c: number): any {
+  const h = hkl[0], k = hkl[1], l = hkl[2];
+  const seed = _wulffNorm([h / a, l / c, k / a]);   // g = (h/a, l/c, k/a) — c on Y
+  const out: any[] = [];
+  const found: any = {};
+  for (const M of _WULFF_TETRAGONAL_GROUP) {
+    const u = _wulffMatVec(M, seed);
+    const key = u.map((x: number) => (Math.abs(x) < 1e-12 ? 0 : x).toFixed(6)).join(',');
+    if (found[key]) continue;
+    found[key] = true;
+    out.push(u);
+  }
+  return out;
+}
+
+// ------------------------------------------------------------
 // Build the dynamic face set for a registry mineral at a given scalar growth.
 //   dᵢ(g) = SEED + SPAN·g·Rᵢ_effective   (proposal §1.2, normalized units)
 // growthFrac ∈ [0,1] is how developed the crystal is (maps the engine's growth
@@ -253,6 +299,7 @@ function wulffFaceSetForMineral(mineral: string, growthFrac: number, crystalId: 
     const d = 0.05 + 1.0 * g * R;
     const normals = reg.system === 'cubic' ? wulffCubicNormals(form.hkl)
       : reg.system === 'trigonalR' ? wulffTrigonalNormals(form.hkl, reg.cell.a, reg.cell.c)
+      : reg.system === 'tetragonal' ? wulffTetragonalNormals(form.hkl, reg.cell.a, reg.cell.c)
       : null;
     if (!normals) return null;          // unknown crystal system — no Wulff path
     for (const n of normals) faces.push({ n, d });
