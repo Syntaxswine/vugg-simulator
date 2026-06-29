@@ -202,12 +202,14 @@ class Crystal {
     //               (hemimorphite/wurtzite/tourmaline/greenockite). Phase 3 renders it.
     //               Kept DISTINCT from _occlusion — the science forbids one scalar for
     //               both, and a wall crystal can carry BOTH (buried base + polar +c).
-    //   _wulffForm  { biasC, growthFrac, octahedral } — js/45 classifyWulffForm: the
-    //               central-distance (Wulff) FORM bias (Phase 4 rung 4a.1). Renderer (js/99i)
-    //               builds the true {100}/{111} polyhedron (js/46) instead of the fixed
-    //               cube/octahedron primitive — the cube↔cuboctahedron↔octahedron transition
-    //               fluid.Y drives in grow_fluorite. Gated on wall.wulff_fluorite (opt-in).
-    //               Token stays cube/octahedron so the size scale is unchanged → render-only.
+    //   _wulffForm  { biasC, growthFrac, octahedral, scaleno } — js/45 classifyWulffForm: the
+    //               central-distance (Wulff) FORM bias (Phase 4). Renderer (js/99i) builds the true
+    //               convex polyhedron (js/46) instead of a fixed primitive. Two tenants:
+    //               fluorite (4a.1, wall.wulff_fluorite) — {100}/{111} cube↔octahedron (fluid.Y);
+    //               token stays cube/octahedron → isometric scale unchanged. calcite (4a.2,
+    //               wall.wulff_calcite) — {104}/{21-31} rhombohedron↔scalenohedron (nailhead↔
+    //               dogtooth); token stays rhomb/scalene, scaled ISOTROPICALLY (the geom carries the
+    //               true c-elongation). Both render-only → size scalars untouched, byte-identical.
     this.zones = [];
     this.total_growth_um = 0;
     this.active = true;

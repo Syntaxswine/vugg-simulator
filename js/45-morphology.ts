@@ -876,57 +876,62 @@ function classifyOcclusion(sim: any) {
   }
 }
 
-// CENTRAL-DISTANCE (Wulff) FORM — Phase 4 rung 4a.1 (2026-06-28). The DESTINATION of the
-// central-distance arc: render a crystal's external shape as the true convex polyhedron of its
-// growing form faces (js/46 P = ⋂ᵢ{x:nᵢ·x≤dᵢ}) instead of a fixed primitive. First tenant is
-// fluorite — the textbook cube↔octahedron mineral. The end-member decision is ALREADY made and
-// persisted by grow_fluorite from the fluid (fluid.Y > 1 ppm → 'octahedral_REE' habit family;
-// else 'cubic' family — Bosze & Rakovan 2002 GCA 66:997, REE-stabilized {111} over {100}); this
-// classifier only sets the RENDER bias so js/99i draws the geometrically-true form, with a
-// golden-ratio crystal-id hash spreading the population across the cube↔cuboctahedron↔octahedron
-// continuum (the per-zone trace_Y that would give a chemically-exact bias is not persisted — the
-// GrowthZone constructor drops it — so the hash stands in for that unrecorded local-Y variation,
-// the classifyOcclusion idiom). PURE tagging (NO rng, NO fluid) → byte-identical baseline
-// (gen-baseline serialises only counts/sizes); the token stays cube/octahedron so the renderer's
-// isometric scale path is unchanged → same size, new shape → no SIM bump, no rebake (Phase 0-3
-// discipline). Gated on wall.wulff_fluorite — only the opted-in scenario; every other stays
-// dormant → byte-identical fleet. Re-evaluated each step (mirrors classifyOcclusion): a crystal
-// that drops below the body threshold or twins loses its tag so the end-state reflects its FINAL
-// form. biasC>1 slows {100} → cube; biasC<1 → octahedron (js/46 wulffFaceSetForMineral).
+// CENTRAL-DISTANCE (Wulff) FORM — Phase 4 (rung 4a.1 fluorite + 4a.2 calcite; 2026-06-28). The
+// DESTINATION of the central-distance arc: render a crystal's external shape as the true convex
+// polyhedron of its growing form faces (js/46 P = ⋂ᵢ{x:nᵢ·x≤dᵢ}) instead of a fixed primitive.
+// The END-MEMBER is the habit the grow engine ALREADY persisted from the fluid; this classifier
+// only sets the RENDER bias so js/99i draws the geometrically-true form, with a golden-ratio
+// crystal-id hash spreading the population across the form continuum (the per-zone trace that
+// would give a chemically-exact bias is not persisted — the GrowthZone constructor drops it — so
+// the hash stands in for that unrecorded local variation, the classifyOcclusion idiom). PURE
+// tagging (NO rng, NO fluid) → byte-identical baseline (gen-baseline serialises only counts/sizes);
+// render-only, no SIM bump, no rebake (the Phase 0-3 discipline). Per-tenant opt-in:
+//   fluorite (wall.wulff_fluorite; Bosze & Rakovan 2002, REE-stabilized {111}): octahedral_REE
+//     habit → biasC [0.32,0.52] (octahedron-DOMINANT with small {100} truncations — NOT a perfect
+//     octahedron: a Y-stabilized fluorite has {100} reduced not absent, the faithful render AND
+//     visibly distinct from the old primitive); cubic → [1.15,2.40] (sharp {100} cube). Token stays
+//     cube/octahedron → the isometric scale path is unchanged.
+//   calcite (wall.wulff_calcite): scalenohedral habit (dogtooth) → biasC [0.34,0.50] (the {21-31}
+//     scalenohedron comes in, capped by the {104} rhombohedron — a real composite habit);
+//     rhombohedral (nailhead) → [1.30,2.20] (the rhombohedron dominates). Token stays rhomb/scalene;
+//     js/99i scales the calcite Wulff geom ISOTROPICALLY (it already carries the true c-elongation,
+//     so the token's mesh.scale.set(aWid,cLen,aWid) would DOUBLE-stretch it).
+// Re-evaluated each step (mirrors classifyOcclusion): a crystal that drops below the body threshold
+// or twins loses its tag (twins own their own geometry). biasC>1 slows the bias-flagged form so it
+// dominates; biasC<1 speeds it so its competitor takes over (js/46 wulffFaceSetForMineral).
 const WULFF_MIN_UM = 30;            // skip nucleation specks — need a body to read a form on
 function classifyWulffForm(sim: any) {
   const wall = sim.conditions && sim.conditions.wall;
-  if (!wall || !wall.wulff_fluorite) return;       // opt-in gate — dormant unless a scenario sets it
+  if (!wall) return;
+  const fluoriteOn = !!wall.wulff_fluorite, calciteOn = !!wall.wulff_calcite;
+  if (!fluoriteOn && !calciteOn) return;            // opt-in gate — dormant unless a scenario sets one
   for (const c of sim.crystals) {
     if (!c || c.dissolved) continue;
-    // Disqualify: non-tenant mineral, nucleation speck, or a twin (the penetration twin has its
-    // own geometry and resolves to its own token — never the cube/octahedron the Wulff path needs).
-    const disqualified =
-         c.mineral !== 'fluorite'
-      || (c.total_growth_um || 0) < WULFF_MIN_UM
-      || !!c.twinned;
-    if (disqualified) { if (c._wulffForm) delete c._wulffForm; continue; }
-    if (c._wulffForm) continue;                     // already tagged and still qualifies
+    const m = c.mineral;
+    const tenant = (m === 'fluorite' && fluoriteOn) || (m === 'calcite' && calciteOn);
+    // Disqualify: not an opted tenant, a nucleation speck, or a twin (twins resolve to their own
+    // geometry token, never the cube/octahedron/rhomb/scalene the Wulff path needs).
+    if (!tenant || (c.total_growth_um || 0) < WULFF_MIN_UM || !!c.twinned) {
+      if (c._wulffForm) delete c._wulffForm; continue;
+    }
+    if (c._wulffForm) continue;                      // already tagged and still qualifies
     const habit = String(c.habit || '');
-    // 'octahedral_REE' + its σ-graded stepped_/hopper_/dendritic_ renames all carry 'octahedral'.
-    const octahedral = habit.indexOf('octahedral') >= 0;
-    // Deterministic per-crystal bias: a golden-ratio hash of the id spreads the population across
-    // the form continuum instead of stamping N identical primitives — and uses NO rng, so the
-    // seed-42 baseline stays byte-identical (the hard gate). Ranges were swept + eye-checked in the
-    // live renderer (rung 4a.1) against the js/46 d-formula:
-    //   octahedral [0.32,0.52] = octahedron-DOMINANT with small {100} truncations. NOT a perfect
-    //     {111}-only octahedron (biasC≤0.30): a Y-rich REE fluorite has {111} STABILIZED over {100},
-    //     not {100} absent — the minor cube truncations are the faithful render (and a perfect
-    //     octahedron is visually identical to the old primitive, wasting the kernel). Lower in the
-    //     range = sharper; upper = more truncated.
-    //   cubic [1.15,2.40] = sharp {100} cubes (Cave-in-Rock idiom), the low end with tiny {111} bevels.
-    // (The cube↔oct END-MEMBER itself is the persisted habit; this only sets the truncation degree.)
-    const h = (((c.crystal_id || 0) * 0.6180339887498949) % 1 + 1) % 1;
-    const biasC = octahedral ? (0.32 + h * 0.20) : (1.15 + h * 1.25);
+    const h = (((c.crystal_id || 0) * 0.6180339887498949) % 1 + 1) % 1;   // rng-free per-crystal spread
+    let biasC: number, octahedral = false, scaleno = false;
+    if (m === 'fluorite') {
+      octahedral = habit.indexOf('octahedral') >= 0;  // octahedral_REE + stepped_/hopper_/dendritic_
+      biasC = octahedral ? (0.32 + h * 0.20) : (1.15 + h * 1.25);
+    } else {                                          // calcite
+      scaleno = habit.indexOf('scaleno') >= 0;        // scalenohedral (dogtooth) vs rhombohedral (nailhead)
+      // dogtooth band [0.15,0.26] eye-checked in the live renderer: an elongated prism body with
+      // sharp {21-31} scalenohedron terminations, capped by minor {104} rhombs (the real dogtooth).
+      // [0.34,0.50] read as a stubby block (NOT a tooth); ≤0.10 thinned to an unnatural spike.
+      biasC = scaleno ? (0.15 + h * 0.11) : (1.30 + h * 0.90);
+    }
     // growthFrac maps the engine's growth scalar into the kernel's [0,1] envelope (topology is
     // largely g-insensitive in these bias ranges; bigger crystals trend a hair sharper).
     const growthFrac = Math.max(0.15, Math.min(1.0, (c.total_growth_um || 0) / 250));
-    c._wulffForm = { biasC, growthFrac, octahedral };
+    c._wulffForm = { biasC, growthFrac, octahedral, scaleno };
   }
 }
 

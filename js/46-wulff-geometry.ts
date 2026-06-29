@@ -153,13 +153,15 @@ function wulffCubicNormals(hkl: any): any {
 // ------------------------------------------------------------
 // Trigonal / hexagonal-R symmetry expansion (calcite -3m, rung 4a.2). Unlike cubic,
 // {hkl} is NOT the real-space direction — the face normal is the RECIPROCAL vector
-// g = h·a* + k·b* + l·c*. For the hexagonal metric (a=b, γ=120°, c) the reciprocal
-// basis works out to a*=(1/a, 1/(a√3), 0), b*=(0, 2/(a√3), 0), c*=(0,0,1/c), so
-//   g(h,k,l) = ( h/a , (h+2k)/(a√3) , l/c )   [3-index Miller; i = -(h+k) dropped].
-// The orbit is then the point group -3m (D3d, order 12) acting on g — built once by
-// closure of its generators { C3(z), C2(x), inversion } (validated: 12 ops;
-// {104}→6 rhombohedron faces, {21-31}→12 scalenohedron faces). a-axis C2 ⇒ -3m1,
-// the calcite setting.
+// g = h·a* + k·b* + l·c*. We put the crystallographic c-axis (the 3-fold) on the
+// renderer's Y (its c-axis convention: mesh.scale.set(aWid, cLen, aWid)), so the
+// basal plane lies in X-Z. The hexagonal reciprocal metric in that frame gives
+// a*=(1/a, 0, 1/(a√3)), b*=(0, 0, 2/(a√3)), c*=(0, 1/c, 0), so
+//   g(h,k,l) = ( h/a , l/c , (h+2k)/(a√3) )   [3-index Miller; i = -(h+k) dropped].
+// The orbit is the point group -3m (D3d, order 12) acting on g — built once by
+// closure of its generators { C3(y), C2(x), inversion } (validated: 12 ops;
+// {104}→6 rhombohedron faces, {21-31}→12 scalenohedron faces with Y the long axis —
+// the dogtooth stands on c). a-axis C2 ⇒ -3m1, the calcite setting.
 // ------------------------------------------------------------
 function _wulffMatVec(M: any, v: any): any {
   return [
@@ -193,15 +195,15 @@ function _wulffBuildGroup(gens: any[]): any[] {
   return mats;
 }
 const _WULFF_S3 = Math.sqrt(3) / 2;
-// -3m1 generators (Cartesian, hexagonal setting, 3-fold along z, 2-fold along a1=x):
+// -3m1 generators (Cartesian; c-axis on Y so the 3-fold is along Y, 2-fold along a1=x):
 const _WULFF_TRIGONAL_GROUP = _wulffBuildGroup([
-  [[-0.5, -_WULFF_S3, 0], [_WULFF_S3, -0.5, 0], [0, 0, 1]],   // C3 about z
+  [[-0.5, 0, _WULFF_S3], [0, 1, 0], [-_WULFF_S3, 0, -0.5]],    // C3 about y (120°)
   [[1, 0, 0], [0, -1, 0], [0, 0, -1]],                         // C2 about x (a1 axis)
   [[-1, 0, 0], [0, -1, 0], [0, 0, -1]],                        // inversion centre
 ]);
 function wulffTrigonalNormals(hkl: any, a: number, c: number): any {
   const h = hkl[0], k = hkl[1], l = hkl[2];
-  const seed = _wulffNorm([h / a, (h + 2 * k) / (a * Math.sqrt(3)), l / c]);
+  const seed = _wulffNorm([h / a, l / c, (h + 2 * k) / (a * Math.sqrt(3))]);
   const out: any[] = [];
   const found: any = {};
   for (const M of _WULFF_TRIGONAL_GROUP) {

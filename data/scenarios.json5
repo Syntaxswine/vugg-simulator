@@ -294,7 +294,15 @@
           // wall surface. The universal extrinsic driver's first showcase (applies across all the
           // species here, not just one — unlike elmwood's calcite-only directional_steps).
           // RENDER-ONLY: the tag never touches counts/sizes/chemistry → baseline byte-identical.
-          "occlusion": true
+          "occlusion": true,
+          // Central-distance (Wulff) FORM rung 4a.2 — the FIRST non-cubic Wulff tenant. MVT's
+          // scalenohedral calcite renders as the TRUE {104}+{21-31} polyhedron (the dogtooth, with
+          // {104} rhombohedron caps) instead of the _makeScalenohedron primitive. MVT is the clean
+          // showcase: a quiet basin (no orogenic strain → no e-twin overprint, unlike marble), so
+          // the dogtooth stands at the final frame, and occlusion above roots it in the matrix → a
+          // drusy dogtooth. js/45 classifyWulffForm → js/99i (isotropic scale; the geom carries the
+          // true c-elongation). RENDER-ONLY → baseline byte-identical.
+          "wulff_calcite": true
         }
       },
       "events": [

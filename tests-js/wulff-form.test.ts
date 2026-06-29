@@ -46,6 +46,7 @@ const wulffed = (sim: any) => sim.crystals.filter((c: any) => c._wulffForm && !c
 
 // minimal sim-shaped object for direct classifier unit tests
 const mkSim = (flag: boolean, crystals: any[]) => ({ conditions: { wall: { wulff_fluorite: flag } }, crystals });
+const mkSimC = (flag: boolean, crystals: any[]) => ({ conditions: { wall: { wulff_calcite: flag } }, crystals });
 const mkCrystal = (over: any) => Object.assign({ mineral: 'fluorite', habit: 'octahedral_REE', total_growth_um: 200, crystal_id: 5, dissolved: false }, over);
 
 describe('Wulff form tag (central-distance arc Phase 4 rung 4a.1)', () => {
@@ -132,5 +133,55 @@ describe('Wulff form tag (central-distance arc Phase 4 rung 4a.1)', () => {
     expect(notFluorite._wulffForm).toBeUndefined();       // tenant is fluorite only
     expect(speck._wulffForm).toBeUndefined();             // need a body to read a form on
     expect(twin._wulffForm).toBeUndefined();              // the penetration twin owns its own geometry
+  });
+});
+
+// rung 4a.2 — the calcite tenant (the first NON-cubic Wulff tenant). Same opt-in/byte-identity
+// contract as fluorite; the {104} rhombohedron↔{21-31} scalenohedron habit knob is the new piece.
+describe('Wulff form tag — calcite tenant (rung 4a.2)', () => {
+  it('DORMANT — marble grows scalenohedral calcite but did NOT opt in → tags nothing', () => {
+    const sim = run('marble_contact_metamorphism');
+    expect(sim).toBeTruthy();
+    expect(sim.crystals.some((c: any) => c.mineral === 'calcite')).toBe(true);   // it DOES grow calcite
+    expect(sim.crystals.filter((c: any) => c.mineral === 'calcite' && c._wulffForm).length).toBe(0);
+  });
+
+  it('mvt (wall.wulff_calcite) tags its scalenohedral calcite as a dogtooth, biasC in the scaleno band', () => {
+    const sim = run('mvt');
+    expect(sim).toBeTruthy();
+    const tagged = wulffed(sim).filter((c: any) => c.mineral === 'calcite');
+    expect(tagged.length).toBeGreaterThan(0);
+    for (const c of tagged) {
+      expect(c.habit.indexOf('scaleno')).toBeGreaterThanOrEqual(0);
+      expect(c._wulffForm.scaleno).toBe(true);
+      // dogtooth band [0.15,0.26] (eye-checked: sharp scalenohedron termination, not a stubby block)
+      expect(c._wulffForm.biasC).toBeGreaterThanOrEqual(0.15);
+      expect(c._wulffForm.biasC).toBeLessThanOrEqual(0.26);
+      expect(_makeWulffGeom(wulffFaceSetForMineral('calcite', c._wulffForm.growthFrac, 0, c._wulffForm.biasC))).toBeTruthy();
+    }
+  });
+
+  it('mvt tenant scoping — only calcite is Wulff-tagged there (its fluorite did NOT opt in)', () => {
+    const sim = run('mvt');
+    for (const c of wulffed(sim)) expect(c.mineral).toBe('calcite');
+  });
+
+  it('unit — scalenohedral habit → scaleno band (<1, dogtooth); rhombohedral → nailhead band (>1)', () => {
+    const sca = mkCrystal({ mineral: 'calcite', habit: 'scalenohedral', crystal_id: 5 });
+    const rho = mkCrystal({ mineral: 'calcite', habit: 'rhombohedral', crystal_id: 5 });
+    classifyWulffForm(mkSimC(true, [sca]));
+    classifyWulffForm(mkSimC(true, [rho]));
+    expect(sca._wulffForm.scaleno).toBe(true);
+    expect(sca._wulffForm.biasC).toBeLessThan(0.30);     // scalenohedron comes in (biasC<1)
+    expect(rho._wulffForm.scaleno).toBe(false);
+    expect(rho._wulffForm.biasC).toBeGreaterThan(1.0);   // rhombohedron dominates (nailhead)
+  });
+
+  it('unit — the wulff_calcite flag is independent of wulff_fluorite (a calcite crystal needs the calcite flag)', () => {
+    const cal = mkCrystal({ mineral: 'calcite', habit: 'scalenohedral', crystal_id: 7 });
+    classifyWulffForm(mkSim(true, [cal]));                // only wulff_fluorite on
+    expect(cal._wulffForm).toBeUndefined();              // calcite stays dormant under the fluorite flag
+    classifyWulffForm(mkSimC(true, [cal]));              // now wulff_calcite on
+    expect(cal._wulffForm).toBeTruthy();
   });
 });

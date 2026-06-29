@@ -3833,6 +3833,7 @@ function _topoSyncCrystalMeshes(state: any, sim: any, wall: any, replayStep?: nu
     const token = _resolveCrystalGeomToken(crystal, habitForGeom);
     let geom: any = null;
     let isSectorZoned = false;   // sector (hourglass) zoning → vertexColors material
+    let isWulffCalcite = false;  // calcite Wulff polyhedron → isotropic scale (geom carries c-elongation)
     // ETCHED crystal — post-growth dissolution overprint (crystal-face realism arc §2,
     // 2026-06-22). The sim tags crystal._etch when a scenario etch event corroded a
     // crystal that had ALREADY grown (js/45 classifyEtch; reactivated_fluorite_vein's
@@ -3898,30 +3899,38 @@ function _topoSyncCrystalMeshes(state: any, sim: any, wall: any, replayStep?: nu
       const terr = halideTerraceBands(crystal, replayStep);
       if (terr) geom = _getTerracedCalciteGeom(state, crystal, terr);
     }
-    // CENTRAL-DISTANCE (Wulff) FORM (central-distance arc Phase 4 rung 4a.1, 2026-06-28): the
-    // arc's DESTINATION. A fluorite crystal the sim tagged _wulffForm (js/45 classifyWulffForm,
-    // gated on wall.wulff_fluorite) renders as the TRUE {100}/{111} convex polyhedron (js/46
-    // wulffFaceSetForMineral → _makeWulffGeom) instead of the fixed OctahedronGeometry/BoxGeometry
-    // — the cube↔cuboctahedron↔octahedron transition fluid.Y drives in grow_fluorite (Bosze &
-    // Rakovan 2002 GCA 66:997, REE-stabilized {111}). Gated on the isometric cube/octahedron
-    // tokens so the penetration-twin / etched-cube / stepped-cube / dendrite paths above keep
-    // their own geometry, and on !geom so they all win. The geom is normalized to ±0.5 and the
-    // token is UNCHANGED, so the downstream isometric scale (mesh.scale.set(cLen,cLen,cLen)) is
-    // identical → same SIZE, new SHAPE → byte-identical baseline (no SIM bump, no rebake).
-    // Cached by quantized (form, biasC, growth) so each distinct population form builds once;
-    // _makeWulffGeom null-clamps a degenerate polyhedron → fall through to the primitive below.
-    if (!geom && crystal._wulffForm && (token === 'cube' || token === 'octahedron')
-        && typeof wulffFaceSetForMineral === 'function') {
+    // CENTRAL-DISTANCE (Wulff) FORM (central-distance arc Phase 4, 2026-06-28): the arc's
+    // DESTINATION. A crystal the sim tagged _wulffForm (js/45 classifyWulffForm) renders as the
+    // TRUE convex polyhedron of its growing form faces (js/46 wulffFaceSetForMineral →
+    // _makeWulffGeom) instead of a fixed primitive:
+    //   fluorite (4a.1, token cube/octahedron) — the cube↔octahedron transition fluid.Y drives
+    //     (Bosze & Rakovan 2002, REE-stabilized {111}). ISOMETRIC: token stays cube/octahedron, so
+    //     the downstream uniform scale is unchanged → byte-identical.
+    //   calcite (4a.2, token rhomb/scalene) — the {104} rhombohedron↔{21-31} scalenohedron
+    //     (nailhead↔dogtooth), the first NON-cubic tenant. ANISOTROPIC: the Wulff geom already
+    //     carries the true c-elongation (kernel builds c on Y), so the scale block below treats it
+    //     ISOTROPICALLY (isWulffCalcite) instead of the token's mesh.scale.set(aWid,cLen,aWid),
+    //     which would DOUBLE-stretch it.
+    // Gated on the matching tokens so the twin / etched / terrace / e-twin / dendrite paths above
+    // keep their geometry, and on !geom so they all win. Cached by quantized (mineral, form, biasC,
+    // growth); _makeWulffGeom null-clamps a degenerate polyhedron → fall through to the primitive.
+    if (!geom && crystal._wulffForm && typeof wulffFaceSetForMineral === 'function') {
       const wf = crystal._wulffForm;
-      const key = '__wulff_fluorite_' + (wf.octahedral ? 'o' : 'c')
-        + '_' + Math.round(wf.biasC * 100) + '_' + Math.round(wf.growthFrac * 10);
-      geom = state.geomCache.get(key);
-      if (!geom) {
-        // crystalId 0 → the kernel's internal jitter is a harmless constant (the per-crystal
-        // spread already lives in biasC), so the quantized cache key dedupes cleanly.
-        const faces = wulffFaceSetForMineral('fluorite', wf.growthFrac, 0, wf.biasC);
-        const g2 = faces ? _makeWulffGeom(faces) : null;
-        if (g2) { geom = g2; state.geomCache.set(key, geom); }
+      const isFlWulff = crystal.mineral === 'fluorite' && (token === 'cube' || token === 'octahedron');
+      const isCalWulff = crystal.mineral === 'calcite' && (token === 'rhomb' || token === 'scalene');
+      if (isFlWulff || isCalWulff) {
+        const formKey = isFlWulff ? (wf.octahedral ? 'o' : 'c') : (wf.scaleno ? 's' : 'r');
+        const key = '__wulff_' + crystal.mineral + '_' + formKey
+          + '_' + Math.round(wf.biasC * 100) + '_' + Math.round(wf.growthFrac * 10);
+        geom = state.geomCache.get(key);
+        if (!geom) {
+          // crystalId 0 → the kernel's internal jitter is a harmless constant (the per-crystal
+          // spread already lives in biasC), so the quantized cache key dedupes cleanly.
+          const faces = wulffFaceSetForMineral(crystal.mineral, wf.growthFrac, 0, wf.biasC);
+          const g2 = faces ? _makeWulffGeom(faces) : null;
+          if (g2) { geom = g2; state.geomCache.set(key, geom); }
+        }
+        if (isCalWulff && geom) isWulffCalcite = true;   // signal the isotropic scale below
       }
     }
     // Dendrite TREE (morphology fix-backlog, 2026-06-12): dendritic /
@@ -4255,7 +4264,11 @@ function _topoSyncCrystalMeshes(state: any, sim: any, wall: any, replayStep?: nu
         cLen = Math.max(cLen, aWid / targetRatio);
       }
     }
-    if (token === 'cube' || token === 'octahedron' || token === 'rhombic_dodec' || token === 'dodecahedron' || token === 'snowball') {
+    if (token === 'cube' || token === 'octahedron' || token === 'rhombic_dodec' || token === 'dodecahedron' || token === 'snowball' || isWulffCalcite) {
+      // isWulffCalcite (rung 4a.2): the calcite Wulff polyhedron already carries its true
+      // crystallographic c-elongation (kernel builds c on Y, normalized to ±0.5), so it scales
+      // UNIFORMLY by cLen — the geom's own aspect gives the nailhead-vs-dogtooth shape. Applying
+      // the token's anisotropic (aWid,cLen,aWid) here would double-stretch the already-elongated geom.
       mesh.scale.set(cLen, cLen, cLen);
     } else if (token === 'botryoidal') {
       // Botryoidal crusts spread laterally on the wall — the c-axis (along

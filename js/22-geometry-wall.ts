@@ -311,6 +311,15 @@ class VugWall {
     // dormant. Like the flags above, WallState whitelists each opt explicitly — an
     // unlisted flag from scenarios.json5 is silently dropped, so this line is required.
     this.wulff_fluorite = !!opts.wulff_fluorite;
+    // wulff_calcite — CENTRAL-DISTANCE (Wulff) FORM rung 4a.2 (2026-06-28). Opts a scenario's
+    // calcite into the true {104} rhombohedron / {21-31} scalenohedron polyhedron (js/46
+    // wulffTrigonalNormals — the first NON-cubic tenant) instead of the _makeRhombohedron /
+    // _makeScalenohedron primitive. js/45 classifyWulffForm tags _wulffForm; js/99i builds the
+    // mesh AFTER the terrace/e-twin paths (gated on !geom so those still win) and scales it
+    // ISOTROPICALLY (the geom carries the true c-elongation). RENDER-ONLY — byte-identical (no SIM
+    // bump, no rebake). Default false → every other scenario dormant. Whitelisted explicitly (an
+    // unlisted flag from scenarios.json5 is silently dropped).
+    this.wulff_calcite = !!opts.wulff_calcite;
   }
 
   dissolve(acid_strength, fluid) {
