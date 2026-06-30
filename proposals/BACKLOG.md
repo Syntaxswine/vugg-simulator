@@ -28,7 +28,7 @@ Living list of open work items, captured from session conversations so context s
 > defer-to-geology, image-corpus method). Full goal text in
 > `proposals/HANDOFF-APOPHYLLITE-AND-GYPSUM-2026-06-22.md` (➕ NEW GOAL section).
 >
-> ## ⬡ ARC (2026-06-22) — DIRECTIONAL / POLAR / STEPPED GROWTH (the central-distance model) — RESEARCHED · PHASE 0+1+2+3 SHIPPED · PHASE 4 DESIGN + 4a.0 KERNEL + 4a.1 FLUORITE + 4a.2 CALCITE + 4a.3 WULFENITE + 4a.4 BARITE + 4a.5 GALENA (FOUR crystal systems, FIVE tenants — cubic carries fluorite + galena) TENANTS SHIPPED (byte-identical, render-only)
+> ## ⬡ ARC (2026-06-22) — DIRECTIONAL / POLAR / STEPPED GROWTH (the central-distance model) — RESEARCHED · PHASE 0+1+2+3 SHIPPED · PHASE 4 DESIGN + 4a.0 KERNEL + 4a.1 FLUORITE + 4a.2 CALCITE + 4a.3 WULFENITE + 4a.4 BARITE + 4a.5 GALENA + 4a.6 TITANITE (FIVE crystal systems, SIX tenants — cubic carries fluorite + galena; titanite is the FIRST oblique cell, monoclinic 2/m) TENANTS SHIPPED (byte-identical, render-only)
 >
 > Boss directive: "geologically accurate wireframe models … asymmetric stepped growth — steps
 > on one face-set not all, opposite faces smoother; polarized growth, one end faster, the other
@@ -42,10 +42,11 @@ Living list of open work items, captured from session conversations so context s
 > first: Phase 4 SHIPPED — the central-distance/Wulff model renders fluorite (cubic, sunnyside) +
 > calcite (trigonal, mvt) + wulfenite (tetragonal 4/m, supergene_oxidation) + barite (orthorhombic
 > mmm, wittichen — the first RECTANGULAR tabular plate) + galena (cubic again, mvt — a TWO-tenant druse
-> with the calcite, truncated cubes) as true convex polyhedra: FOUR crystal systems, FIVE tenants; the
-> kernel, the add-a-tenant recipe, the traps, and what's next — next is the FIFTH system, monoclinic 2/m
-> (the oblique cell; math already proven in a scratchpad; titanite/epidote/erythrite are cleaner tenants
-> than gypsum). PRIOR entry points: `proposals/HANDOFF-OCCLUSION-2026-06-26.md` (Phase 2
+> with the calcite, truncated cubes) + titanite (monoclinic 2/m, grimsel_alpine_cleft — the FIRST oblique
+> cell, the {100}∧{001}=66.19° SPHENOID WEDGE, replacing the hex-prism token-wart) as true convex polyhedra:
+> FIVE crystal systems, SIX tenants; the kernel, the add-a-tenant recipe, the traps, and what's next — the
+> lattice now reaches monoclinic; cheap fleet-outs remain (erythrite already grows in wittichen — a one-line
+> monoclinic clone, like galena was), then triclinic. PRIOR entry points: `proposals/HANDOFF-OCCLUSION-2026-06-26.md` (Phase 2
 > occlusion on mvt/elmwood/gem_pegmatite + the fork that led here) and
 > `proposals/HANDOFF-DIRECTIONAL-GROWTH-2026-06-22.md` (Phases 0/1/3 + specimen-debt backstory).
 > **Phase 4 design pass + decisions = `proposals/DESIGN-WULFF-PHASE-4-2026-06-28.md`.**

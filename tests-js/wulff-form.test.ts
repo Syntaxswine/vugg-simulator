@@ -50,6 +50,7 @@ const mkSimC = (flag: boolean, crystals: any[]) => ({ conditions: { wall: { wulf
 const mkSimW = (flag: boolean, crystals: any[]) => ({ conditions: { wall: { wulff_wulfenite: flag } }, crystals });
 const mkSimB = (flag: boolean, crystals: any[]) => ({ conditions: { wall: { wulff_barite: flag } }, crystals });
 const mkSimG = (flag: boolean, crystals: any[]) => ({ conditions: { wall: { wulff_galena: flag } }, crystals });
+const mkSimT = (flag: boolean, crystals: any[]) => ({ conditions: { wall: { wulff_titanite: flag } }, crystals });
 const mkCrystal = (over: any) => Object.assign({ mineral: 'fluorite', habit: 'octahedral_REE', total_growth_um: 200, crystal_id: 5, dissolved: false }, over);
 
 describe('Wulff form tag (central-distance arc Phase 4 rung 4a.1)', () => {
@@ -395,5 +396,72 @@ describe('Wulff form tag — galena tenant (rung 4a.5, cubic fleet-out)', () => 
     classifyWulffForm(mkSimG(true, [gal]));              // now wulff_galena on
     expect(gal._wulffForm).toBeTruthy();
     expect(gal._wulffForm.octahedral).toBe(false);
+  });
+});
+
+// rung 4a.6 — the titanite tenant (the FIFTH crystal system, monoclinic 2/m). grimsel_alpine_cleft grows
+// wedge titanite late on the smoky quartz (the alpine-cleft suite). All titanite habits (sphenoid_wedge /
+// prismatic / flattened_tabular) opt into the one monoclinic WEDGE body; the band [1.3,2.3] sets how
+// flattened-on-{100} the wedge is, and the β-lean ({100}∧{001}=66.19°) is in the FACES, invariant of
+// biasC. grimsel's seed-42 titanite grows flattened_tabular on the cooling tail (token 'tablet') — the
+// frozen growthFrac (0.15) MUST still build a real wedge (these pins guard against the hex-prism fallback).
+describe('Wulff form tag — titanite tenant (rung 4a.6, monoclinic)', () => {
+  it('grimsel_alpine_cleft (wall.wulff_titanite) tags its wedge titanite, biasC in band + wedge flag, and builds a real solid at the frozen growthFrac', () => {
+    const sim = run('grimsel_alpine_cleft');
+    expect(sim).toBeTruthy();
+    const tagged = wulffed(sim).filter((c: any) => c.mineral === 'titanite');
+    expect(tagged.length).toBeGreaterThan(0);            // the alpine-cleft wedges survive to the final frame
+    for (const c of tagged) {
+      expect(c._wulffForm.wedge).toBe(true);
+      expect(c._wulffForm.biasC).toBeGreaterThanOrEqual(1.3);
+      expect(c._wulffForm.biasC).toBeLessThanOrEqual(2.3);
+      // the render contract: the tag must build a non-degenerate wedge at ITS OWN frozen growthFrac —
+      // else the renderer silently falls back to the old hex prism (the no-op trap).
+      expect(_makeWulffGeom(wulffFaceSetForMineral('titanite', c._wulffForm.growthFrac, 0, c._wulffForm.biasC))).toBeTruthy();
+    }
+  });
+
+  it('grimsel tenant scoping — only titanite is Wulff-tagged, though fluorite + calcite (registered tenants) also grow there', () => {
+    // grimsel sets ONLY wulff_titanite; its fluorite and calcite are registered Wulff tenants too, but with
+    // their flags OFF they must STAY untagged — a strong, non-vacuous scope check.
+    const sim = run('grimsel_alpine_cleft');
+    const tagged = wulffed(sim);
+    expect(tagged.length).toBeGreaterThan(0);
+    for (const c of tagged) expect(c.mineral).toBe('titanite');
+  });
+
+  it('unit — titanite → wedge band [1.3,2.3] + wedge flag; octahedral/scaleno/tabular/bladed all false', () => {
+    const ti = mkCrystal({ mineral: 'titanite', habit: 'sphenoid_wedge', crystal_id: 5 });
+    classifyWulffForm(mkSimT(true, [ti]));
+    expect(ti._wulffForm.wedge).toBe(true);
+    expect(ti._wulffForm.biasC).toBeGreaterThanOrEqual(1.3);
+    expect(ti._wulffForm.biasC).toBeLessThanOrEqual(2.3);
+    expect(ti._wulffForm.octahedral).toBe(false);
+    expect(ti._wulffForm.scaleno).toBe(false);
+    expect(ti._wulffForm.tabular).toBe(false);
+    expect(ti._wulffForm.bladed).toBe(false);
+  });
+
+  it('unit — flag-off / twinned / speck titanite are skipped', () => {
+    const off = mkCrystal({ mineral: 'titanite', habit: 'sphenoid_wedge', crystal_id: 5 });
+    classifyWulffForm(mkSimT(false, [off]));
+    expect(off._wulffForm).toBeUndefined();              // opt-in gate
+
+    const twin = mkCrystal({ mineral: 'titanite', habit: 'sphenoid_wedge', twinned: true, crystal_id: 5 });
+    const speck = mkCrystal({ mineral: 'titanite', habit: 'sphenoid_wedge', total_growth_um: 10, crystal_id: 5 });
+    classifyWulffForm(mkSimT(true, [twin, speck]));
+    expect(twin._wulffForm).toBeUndefined();
+    expect(speck._wulffForm).toBeUndefined();
+  });
+
+  it('unit — the wulff_titanite flag is independent of the fluorite/barite flags', () => {
+    const ti = mkCrystal({ mineral: 'titanite', habit: 'sphenoid_wedge', crystal_id: 7 });
+    classifyWulffForm(mkSim(true, [ti]));                // only wulff_fluorite on
+    expect(ti._wulffForm).toBeUndefined();
+    classifyWulffForm(mkSimB(true, [ti]));              // only wulff_barite on
+    expect(ti._wulffForm).toBeUndefined();
+    classifyWulffForm(mkSimT(true, [ti]));              // now wulff_titanite on
+    expect(ti._wulffForm).toBeTruthy();
+    expect(ti._wulffForm.wedge).toBe(true);
   });
 });

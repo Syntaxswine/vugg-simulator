@@ -17,8 +17,15 @@
 > specimen). The catch: galena is hardcoded `habit='cubic'`, and a *perfect* cube Wulff body is pixel-
 > identical to the old cube primitive (a no-op), so the band is tuned **low [1.0,1.15]** to keep the {111}
 > **corner truncations** visible (the cuboctahedron-leaning cube real galena shows). Still byte-identical.
-> The FIFTH-system (**monoclinic 2/m**) oblique-cell math is now PROVEN in a scratchpad prototype
-> (`scratchpad/wulff-monoclinic-proto.mjs`: order-4 group, {100}∧{001}=180−β≠90° — see **what's-next**).
+>
+> **Update (2026-06-30, later):** rung **4a.6** ships the **FIFTH** crystal system — **titanite (sphene),
+> monoclinic 2/m** (`grimsel_alpine_cleft`, the Swiss Aar-massif alpine cleft), rendering its wedge titanite
+> as the true **oblique SPHENOID** — the FIRST non-orthogonal cell (β=113.81°), so the a{100} and c{001}
+> faces meet at **180−β = 66.19° ≠ 90°**: the first non-perpendicular face pair the kernel can express. The
+> oblique-cell math (the metric-tensor h↔l cross-term, b on Y) was proven in
+> `scratchpad/wulff-monoclinic-proto.mjs` first, then ported. Replaces the **hex-prism** the `sphenoid_wedge`
+> habit had been falling through to (`_habitGeomToken` default — a token-wart fix, same family as
+> pyritohedral/octahedral_REE). Still byte-identical (SIM 214).
 
 You're reading this because you're about to extend the way vugg decides what a crystal *looks like*.
 Sit with the model for ten minutes before you touch a file — it is small, and once it clicks the
@@ -48,7 +55,8 @@ its slower neighbours — it self-eliminates). Equal rates → cuboctahedron; sh
 shrink {100} → octahedron. Cube↔octahedron and nailhead↔dogtooth are not two pieces of code. They
 are *the same equation* solved against different face-normal sets. That is the whole point: it is a
 **general framework**, not a pile of special cases. Fluorite (cubic), calcite (trigonal), wulfenite
-(tetragonal), and barite (orthorhombic) are just four unit cells plugged into one machine.
+(tetragonal), barite (orthorhombic), and titanite (monoclinic) are just five unit cells plugged into one
+machine — and titanite's is the first that is **not box-orthogonal** (β≠90°, the oblique wedge).
 
 The kernel is `js/46-wulff-geometry.ts`. Read it top to bottom — it's ~290 lines and it's the spine.
 
@@ -56,9 +64,9 @@ The kernel is `js/46-wulff-geometry.ts`. Read it top to bottom — it's ~290 lin
 
 ## What is shipped (and what each commit bought)
 
-All seven rungs are **render-only and byte-identical** — the seed-42 calibration baseline
+All eight rungs are **render-only and byte-identical** — the seed-42 calibration baseline
 (`tests-js/baselines/seed42_v214.json`) never moved, so there was **no SIM bump and no rebake**.
-That is the load-bearing discipline (see Traps §1). FOUR crystal systems, FIVE tenants (cubic carries two:
+That is the load-bearing discipline (see Traps §1). FIVE crystal systems, SIX tenants (cubic carries two:
 fluorite + galena).
 
 | commit | rung | what |
@@ -69,7 +77,8 @@ fluorite + galena).
 | `770ec7a` | **4a.2 tenant** | **calcite** renders as a true dogtooth on `mvt`. Two crystal systems now live. |
 | `821b7ce` | **4a.3** | **wulfenite** — the THIRD system (**tetragonal 4/m**, scheelite-type). `wulffTetragonalNormals` + the `_WULFF_TETRAGONAL_GROUP` closure + registry + classifier + the tabular *square* plate on `supergene_oxidation`. A new crystal system *and* its tenant in one commit. |
 | `7b908a9` | **4a.4** | **barite** — the FOURTH system (**orthorhombic *mmm***, barite-group). `wulffOrthorhombicNormals` + the `_WULFF_ORTHORHOMBIC_GROUP` closure (3 mirrors) + registry + classifier (bladed/tabular bands) + the **RECTANGULAR** tabular plate on `wittichen`. First cell with three *unequal* axes → the lozenge plate. |
-| *(this commit)* | **4a.5** | **galena** — the SECOND cubic tenant (a fleet-out; no new kernel). Classifier band [1.0,1.15] + `wulff_galena` flag + dispatch + opt-in on `mvt` → a **TWO-tenant druse** (truncated cubes + dogtooth calcite). The band is low to keep the {111} truncations visible (a perfect cube = no-op). |
+| `aa7e211` | **4a.5** | **galena** — the SECOND cubic tenant (a fleet-out; no new kernel). Classifier band [1.0,1.15] + `wulff_galena` flag + dispatch + opt-in on `mvt` → a **TWO-tenant druse** (truncated cubes + dogtooth calcite). The band is low to keep the {111} truncations visible (a perfect cube = no-op). |
+| *(this commit)* | **4a.6** | **titanite** — the FIFTH system (**monoclinic 2/m**, the FIRST oblique cell). `wulffMonoclinicNormals` (the metric-tensor h↔l cross-term, b on Y) + the `_WULFF_MONOCLINIC_GROUP` closure ({C2(b), inversion}, order 4) + registry + classifier (the wedge band [1.3,2.3]) + the oblique **SPHENOID WEDGE** on `grimsel_alpine_cleft`. {100}∧{001}=66.19°≠90° — the first non-perpendicular face pair. Replaces the hex-prism token-wart. |
 
 **File map (where the pieces live):**
 - `js/46-wulff-geometry.ts` — the kernel: the `WULFF_FORM_GEOMETRY` registry, `wulffCubicNormals`,
@@ -86,21 +95,23 @@ fluorite + galena).
   truncations alive so the truncated cube isn't a perfect-cube no-op.)
 - `js/85-simulator.ts` — calls `classifyWulffForm(this)` in the step loop (after `classifyOcclusion`).
 - `js/22-geometry-wall.ts` — the `wall.wulff_*` whitelist (an unlisted wall flag is silently dropped).
-- `js/99i-renderer-three.ts` — the dispatch branch (~line 3918, gated `!geom` after the
-  etched/terrace/e-twin/twin paths) + the isotropic-scale branches (~line 4271): `isWulffCalcite`
-  (scale by `cLen`, the c-elongated case) and `isWulffWulfenite || isWulffBarite` (scale by the plate
-  diameter `max(aWid,cLen)`, the tabular case — both tetragonal *square* and orthorhombic *rectangular*
-  plates share this one rule; the geom carries the aspect). `isGlWulff` (galena) needs **no scale
-  branch** — it's cubic/isometric like fluorite, so it falls into the existing cube/octahedron scale.
+- `js/99i-renderer-three.ts` — the dispatch branch (~line 3920, gated `!geom` after the
+  etched/terrace/e-twin/twin paths) + the isotropic-scale branches (~line 4278): `isWulffCalcite`
+  (scale by `cLen`, the c-elongated case) and `isWulffWulfenite || isWulffBarite || isWulffTitanite`
+  (scale by `max(aWid,cLen)` — the tabular tetragonal *square* + orthorhombic *rectangular* plates AND
+  the monoclinic oblique *wedge* all carry their full shape internally, so one rule serves all three).
+  `isGlWulff` (galena) needs **no scale branch** — cubic/isometric like fluorite. `isTiWulff` (titanite)
+  gates on token `prism||tablet` (sphenoid_wedge/prismatic→prism, flattened_tabular→tablet).
 - `js/27-geometry-crystal.ts` — the `_wulffForm` tag is documented in the render-tag block.
 - `data/scenarios.json5` — `sunnyside_american_tunnel.wall.wulff_fluorite`, `mvt.wall.{wulff_calcite,
   wulff_galena}` (the two-tenant druse), `supergene_oxidation.wall.wulff_wulfenite`,
-  `wittichen.wall.wulff_barite`.
-- `tests-js/wulff-geometry.test.ts` (kernel pins, +9 orthorhombic, +4 galena) + `tests-js/wulff-form.test.ts`
-  (classifier pins, +5 barite, +4 galena); `npx vitest run wulff` → 71 green. `tools/wulfenite-wulff-probe.mjs`
-  + `tools/barite-wulff-probe.mjs` + `tools/galena-wulff-probe.mjs` — the tenant-survival probes
-  (display-size, untwinned, in-band; the barite + galena probes also report the habit histogram, since
-  only the right habits hit the Wulff token).
+  `wittichen.wall.wulff_barite`, `grimsel_alpine_cleft.wall.wulff_titanite` (the monoclinic wedge).
+- `tests-js/wulff-geometry.test.ts` (kernel pins, +9 orthorhombic, +4 galena, +9 monoclinic/titanite) +
+  `tests-js/wulff-form.test.ts` (classifier pins, +5 barite, +4 galena, +5 titanite); `npx vitest run wulff`
+  → **85 green**. `tools/{wulfenite,barite,galena,titanite}-wulff-probe.mjs` — the tenant-survival probes
+  (display-size, untwinned, in-band; the barite/galena/titanite probes also report the habit histogram,
+  since only the right habits hit the Wulff token). The titanite probe further confirms the body builds at
+  the *frozen* growthFrac 0.15 — the no-degeneration guard against a silent hex-prism fallback.
 - `proposals/DESIGN-WULFF-PHASE-4-2026-06-28.md` — the design pass (the six decisions D1–D6 + the
   rolling UPDATE log). Read it for the *why* behind the architecture choices.
 
@@ -263,20 +274,19 @@ run. Diagnose by shape: all-timeouts + zero assertion failures + slow total = co
 2. **A nailhead (rhombohedral) calcite showcase.** Only the *dogtooth* (biasC<1) branch is live; the
    nailhead band (biasC≥1) is implemented + tested but never eye-checked in a scenario. A
    rhombohedral-calcite locality would exercise it and is a cheap, satisfying win.
-3. **A FIFTH crystal system — monoclinic *2/m* (the math is ALREADY PROVEN).** `scratchpad/
-   wulff-monoclinic-proto.mjs` validated it against titanite's cell: the order-4 group from
-   `{ C2(b), inversion }`, the reciprocal vector `g = (h/a, k/b, (l/c − h·cosβ/a)/sinβ)` (the unique axis
-   b on Y, the **h↔l cross-term** the oblique cell forces — the first cell where `g≠(h/a,k/b,l/c)`), orbit
-   sizes (pinacoids→2, prism/general→4), and the signature: **{100}∧{001}=180−β≠90°**, the first
-   non-perpendicular face pair. To ship it: port that into `wulffMonoclinicNormals` + a `_WULFF_MONOCLINIC_GROUP`
-   closure, add a registry entry, classifier tenant + a scenario. **Pick the tenant carefully** — gypsum is
-   iconic but already has a bespoke hourglass-blade render to *compose* with (and the swallowtail is a
-   twin); **cleaner candidates that render as plain prisms** (no bespoke mesh): **titanite** (the textbook
-   wedge — the β-lean IS its identity), **epidote** (pistachio prisms), **erythrite** (the crimson
-   cobalt-bloom already in wittichen). Once monoclinic works, **triclinic** is the same tensor with even
-   less symmetry. Quartz (enantiomorphic 32) is the trophy but must compose with sceptre/gwindel/smoky —
-   most delicate. The 4a.3/4a.4 template still holds: build the true point group, symmetry axis on Y,
-   scale by the longest physical axis, and eye-check the in-plane outline against the system.
+3. **A FIFTH crystal system — monoclinic *2/m* — DONE (4a.6, `titanite` on `grimsel_alpine_cleft`).**
+   The first OBLIQUE cell: `wulffMonoclinicNormals` carries the metric-tensor **h↔l cross-term**
+   `g = (h/a, k/b, (l/c − h·cosβ/a)/sinβ)` (unique axis b on Y), the `_WULFF_MONOCLINIC_GROUP` is the
+   order-4 closure of `{ C2(b), inversion }`, and the signature **{100}∧{001}=66.19°≠90°** is the first
+   non-perpendicular face pair the kernel renders. titanite was chosen over gypsum (which has a bespoke
+   hourglass-blade render to compose with): its `sphenoid_wedge` habit had been falling through to a HEX
+   PRISM, so the oblique wedge is a clean token-wart fix as well. **Cheap monoclinic fleet-outs remain:**
+   epidote (pistachio prisms), **erythrite** (the crimson cobalt-bloom *already growing in wittichen* — a
+   one-line registry clone + opt-in, exactly like galena was), diopside, azurite. Then **triclinic** is the
+   same tensor with even less symmetry (the FIRST cell needing α and γ too; general position → 2). Quartz
+   (enantiomorphic 32) is the trophy but must compose with sceptre/gwindel/smoky — most delicate. The
+   template holds: build the true point group, the symmetry/long axis on Y, scale isotropically by the
+   longest physical axis, and eye-check the in-plane outline against the system.
 4. **The concavity primitive.** Decided in the design pass (D1: nested convex shells) but NOT built —
    no tenant is concave yet (hoppers/skeletal forms are the eventual customers). The convex body is
    the base layer either way, so it's not blocking anything.

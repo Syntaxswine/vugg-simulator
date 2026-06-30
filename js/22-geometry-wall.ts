@@ -348,6 +348,15 @@ class VugWall {
     // no rebake). Default false → every other scenario dormant. Whitelisted explicitly (an unlisted
     // flag from scenarios.json5 is silently dropped).
     this.wulff_galena = !!opts.wulff_galena;
+    // wulff_titanite — CENTRAL-DISTANCE (Wulff) FORM rung 4a.6 (2026-06-30): the FIFTH crystal system,
+    // monoclinic 2/m (titanite/sphene CaTiSiO₅). The FIRST OBLIQUE cell (β=113.81°≠90°), so its
+    // reciprocal vector carries the metric-tensor h↔l cross-term (js/46 wulffMonoclinicNormals) — and
+    // its a{100}∧c{001} faces meet at 180−β = 66.19°, the first NON-perpendicular face pair: the oblique
+    // titanite WEDGE (the "sphene" sphenoid). Opts a scenario's titanite into that body; rendered
+    // isotropically-by-diameter like wulfenite/barite (the wedge aspect is in the geometry). Opt-in:
+    // grimsel_alpine_cleft (the alpine-cleft wedge titanite, late on the smoky quartz). Render-only,
+    // byte-identical (no SIM bump, no rebake). Default false; whitelisted explicitly.
+    this.wulff_titanite = !!opts.wulff_titanite;
   }
 
   dissolve(acid_strength, fluid) {

@@ -20,6 +20,7 @@ declare const wulffCubicNormals: any;
 declare const wulffTrigonalNormals: any;
 declare const wulffTetragonalNormals: any;
 declare const wulffOrthorhombicNormals: any;
+declare const wulffMonoclinicNormals: any;
 declare const wulffPolyhedron: any;
 declare const wulffFaceSetForMineral: any;
 declare const _makeWulffGeom: any;
@@ -362,6 +363,76 @@ describe('Wulff geometry kernel — galena via the registry (rung 4a.5, cubic)',
   it('determinism — identical galena inputs give byte-identical face sets (rng-free)', () => {
     const a = wulffFaceSetForMineral('galena', 0.5, 11, 1.1);
     const b = wulffFaceSetForMineral('galena', 0.5, 11, 1.1);
+    expect(JSON.stringify(a)).toBe(JSON.stringify(b));
+  });
+});
+
+// The FIFTH crystal system (rung 4a.6) — titanite (sphene CaTiSiO₅), monoclinic 2/m (P2₁/a) / point
+// group C2h, cell a=7.057 b=8.707 c=6.555 β=113.81°. The FIRST OBLIQUE cell: the normal is the
+// reciprocal vector g=(h/a, k/b, (l/c−h·cosβ/a)/sinβ) — the h↔l cross-term is the metric-tensor
+// signature no orthogonal cell needs. b (the unique 2-fold) on Y. The order-4 group (closure of
+// {C2(b), inversion}) gives the pinacoids→2 and the prism/dome/general→4. The capability the four
+// orthogonal systems CANNOT show: {100}∧{001} = 180−β = 66.19° ≠ 90°. Validated against the standalone
+// prototype (wulff-monoclinic-proto.mjs).
+describe('Wulff geometry kernel — monoclinic 2/m (titanite) symmetry', () => {
+  const mono = (hkl: number[]) => wulffMonoclinicNormals(hkl, 7.057, 8.707, 6.555, 113.81);
+  const ang = (u: number[], v: number[]) => Math.acos(Math.min(1, Math.abs(u[0] * v[0] + u[1] * v[1] + u[2] * v[2]))) * 180 / Math.PI;
+
+  it('the three pinacoids a{100}, b{010}, c{001} each → 2 face normals (order-4 group, special positions)', () => {
+    expect(mono([1, 0, 0]).length).toBe(2);
+    expect(mono([0, 1, 0]).length).toBe(2);
+    expect(mono([0, 0, 1]).length).toBe(2);
+  });
+  it('m{110} prism, u{011} clinodome, and the general {-111} pyramid each → 4 (the full 2/m orbit ⇒ order 4)', () => {
+    expect(mono([1, 1, 0]).length).toBe(4);
+    expect(mono([0, 1, 1]).length).toBe(4);
+    expect(mono([-1, 1, 1]).length).toBe(4);
+  });
+  it('THE oblique signature: a{100} ∧ c{001} = 180−β = 66.19°, NOT 90° (the first non-perpendicular face pair)', () => {
+    expect(ang(mono([1, 0, 0])[0], mono([0, 0, 1])[0])).toBeCloseTo(66.19, 1);
+  });
+  it('b{010} (the unique 2-fold) on Y — its normals point along ±Y, so the body stands on b', () => {
+    for (const n of mono([0, 1, 0])) expect(Math.abs(n[1])).toBeCloseTo(1, 9);
+  });
+  it('every monoclinic normal is unit length', () => {
+    for (const n of [...mono([1, 1, 0]), ...mono([-1, 1, 1]), ...mono([0, 0, 1])]) {
+      expect(Math.hypot(n[0], n[1], n[2])).toBeCloseTo(1, 9);
+    }
+  });
+});
+
+describe('Wulff geometry kernel — titanite via the registry (rung 4a.6, monoclinic)', () => {
+  const extent = (p: any, ax: number) => {
+    let mn = Infinity, mx = -Infinity;
+    for (const v of p.vertices) { mn = Math.min(mn, v[ax]); mx = Math.max(mx, v[ax]); }
+    return mx - mn;
+  };
+
+  it('titanite yields the 16-plane face set (2 a{100} + 2 c{001} + 4 m{110} + 4 u{011} + 4 {-111}) + builds a solid', () => {
+    const faces = wulffFaceSetForMineral('titanite', 0.5, 7, 1.8);
+    expect(faces).toBeTruthy();
+    expect(faces.length).toBe(16);
+    expect(_makeWulffGeom(faces)).toBeTruthy();
+  });
+
+  it('at the live runtime params (g 0.15 frozen, biasC ≈ 2.0) → a 16-face oblique WEDGE: no degeneration (no hex-prism fallback), b (Y) the long axis', () => {
+    // g 0.15 is the frozen growthFrac the classifier tags at ~30µm; the renderer calls with crystalId 0
+    // (jitter a fixed 0.88). This is the EXACT body grimsel renders — it must be a real wedge, not null.
+    const p = wulffPolyhedron(wulffFaceSetForMineral('titanite', 0.15, 0, 2.0));
+    expect(p.faces.length).toBe(16);                      // all forms survive → the full sphenoid, not a fallback
+    expect(extent(p, 1)).toBeGreaterThan(extent(p, 0));   // b (Y) longer than a (X) — the elongate sphenoid
+    expect(extent(p, 1)).toBeGreaterThan(extent(p, 2));   // b (Y) longer than c-ish (Z)
+  });
+
+  it('higher biasC → flatter wedge on a{100} (the flattening knob; bias on {100})', () => {
+    const flat = extent(wulffPolyhedron(wulffFaceSetForMineral('titanite', 0.5, 7, 2.3)), 0);
+    const chunky = extent(wulffPolyhedron(wulffFaceSetForMineral('titanite', 0.5, 7, 1.3)), 0);
+    expect(flat).toBeLessThan(chunky);                    // slowing {100} (higher biasC) thins the X (a) extent
+  });
+
+  it('determinism — identical titanite inputs give byte-identical face sets (rng-free)', () => {
+    const a = wulffFaceSetForMineral('titanite', 0.5, 11, 1.8);
+    const b = wulffFaceSetForMineral('titanite', 0.5, 11, 1.8);
     expect(JSON.stringify(a)).toBe(JSON.stringify(b));
   });
 });

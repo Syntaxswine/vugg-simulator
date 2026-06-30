@@ -116,6 +116,26 @@ const WULFF_FORM_GEOMETRY: any = {
     { hkl: [0, 1, 1], R: 1.65 },
     { hkl: [2, 1, 0], R: 2.08 },
   ] },
+  // rung 4a.6 — the FIFTH crystal system: titanite (sphene) CaTiSiO₅, monoclinic 2/m (space group
+  // P2₁/a, point group C2h, order 4 — HALF of orthorhombic mmm). a=7.057 b=8.707 c=6.555 β=113.81°
+  // (data/structural.json) — the FIRST OBLIQUE cell (β≠90°), so the reciprocal vector needs the metric-
+  // tensor cross-term (an h↔l coupling), NOT the trivial (h/a,k/b,l/c) the four orthogonal-cell systems
+  // shared. The genuinely-new capability: a{100} and c{001} meet at 180−β = 66.19° — the FIRST non-
+  // perpendicular face pair in the kernel, which IS the oblique titanite WEDGE (the "sphene" sphenoid).
+  // Unique axis b on the renderer Y (the 2-fold ∥ Y), a on X, c in the X-Z plane at β from a. Forms:
+  // a{100} the flattening pinacoid, c{001} the bevel that opens the 66° wedge, m{110} prism, u{011}
+  // clinodome, and the negative pyramid {-111} capping the wedge end. BFDH (R ∝ 1/d): d_100=6.456 >
+  // d_001=5.997 > d_110=5.186 > d_011=4.939 > d_-111=4.760 ⇒ R_001=1.08, R_110=1.25, R_011=1.31,
+  // R_-111=1.36 vs R_100=1.0, so a{100} is the slowest ⇒ flattened wedge by default. bias on a{100}:
+  // higher biasC flattens the wedge further on {100} (the β-lean lives in the FACES, invariant of biasC).
+  // The fifth crystal system from the same one equation — and the first that is not box-orthogonal.
+  titanite: { system: 'monoclinic', cell: { a: 7.057, b: 8.707, c: 6.555, beta: 113.81 }, forms: [
+    { hkl: [1, 0, 0], R: 1.0, bias: true },
+    { hkl: [0, 0, 1], R: 1.08 },
+    { hkl: [1, 1, 0], R: 1.25 },
+    { hkl: [0, 1, 1], R: 1.31 },
+    { hkl: [-1, 1, 1], R: 1.36 },
+  ] },
 };
 
 // ------------------------------------------------------------
@@ -317,6 +337,42 @@ function wulffOrthorhombicNormals(hkl: any, a: number, b: number, c: number): an
 }
 
 // ------------------------------------------------------------
+// Monoclinic symmetry expansion (titanite, rung 4a.6 — the FIFTH crystal system, 2/m / C2h order 4).
+// The FIRST OBLIQUE cell: β≠90°, so the reciprocal vector needs the full metric tensor — an h↔l cross-
+// term — not the trivial (h/a,k/b,l/c) the four orthogonal-cell systems used. With the unique axis b
+// (the 2-fold) on the renderer Y, a on X, and c in the X-Z plane at β from a, the b-unique reciprocal
+// basis a*=(1/a,0,−cosβ/(a·sinβ)), b*=(0,1/b,0), c*=(0,0,1/(c·sinβ)) gives
+//   g(h,k,l) = ( h/a , k/b , (l/c − h·cosβ/a)/sinβ ).
+// The orbit is the point group 2/m acting on g — built once by closure of { C2(y), inversion } (the
+// mirror m⊥b falls out as C2·i). 4 ops (validated in scratchpad/wulff-monoclinic-proto.mjs): the
+// pinacoids {100}/{010}/{001}→2, the prism/dome/general {110}/{011}/{-111}→4. The signature the four
+// orthogonal systems CANNOT produce: {100}∧{001} = 180−β ≠ 90° — the oblique wedge, the whole reason
+// monoclinic looks different. (The renderer scales this body isotropically-by-diameter like wulfenite/
+// barite, so the b-on-Y internal frame never has to agree with a token's c-on-Y convention.)
+// ------------------------------------------------------------
+const _WULFF_MONOCLINIC_GROUP = _wulffBuildGroup([
+  [[-1, 0, 0], [0, 1, 0], [0, 0, -1]],   // C2 about Y — the unique 2-fold (crystal b-axis)
+  [[-1, 0, 0], [0, -1, 0], [0, 0, -1]],  // inversion centre (closure yields m⊥b = C2·i)
+]);
+function wulffMonoclinicNormals(hkl: any, a: number, b: number, c: number, betaDeg: number): any {
+  const h = hkl[0], k = hkl[1], l = hkl[2];
+  const beta = betaDeg * Math.PI / 180;
+  const cosB = Math.cos(beta), sinB = Math.sin(beta);
+  // monoclinic reciprocal vector (b-unique, b on Y); the h↔l cross-term is the oblique-cell signature
+  const seed = _wulffNorm([h / a, k / b, (l / c - h * cosB / a) / sinB]);
+  const out: any[] = [];
+  const found: any = {};
+  for (const M of _WULFF_MONOCLINIC_GROUP) {
+    const u = _wulffMatVec(M, seed);
+    const key = u.map((x: number) => (Math.abs(x) < 1e-12 ? 0 : x).toFixed(6)).join(',');
+    if (found[key]) continue;
+    found[key] = true;
+    out.push(u);
+  }
+  return out;
+}
+
+// ------------------------------------------------------------
 // Build the dynamic face set for a registry mineral at a given scalar growth.
 //   dᵢ(g) = SEED + SPAN·g·Rᵢ_effective   (proposal §1.2, normalized units)
 // growthFrac ∈ [0,1] is how developed the crystal is (maps the engine's growth
@@ -355,6 +411,7 @@ function wulffFaceSetForMineral(mineral: string, growthFrac: number, crystalId: 
       : reg.system === 'trigonalR' ? wulffTrigonalNormals(form.hkl, reg.cell.a, reg.cell.c)
       : reg.system === 'tetragonal' ? wulffTetragonalNormals(form.hkl, reg.cell.a, reg.cell.c)
       : reg.system === 'orthorhombic' ? wulffOrthorhombicNormals(form.hkl, reg.cell.a, reg.cell.b, reg.cell.c)
+      : reg.system === 'monoclinic' ? wulffMonoclinicNormals(form.hkl, reg.cell.a, reg.cell.b, reg.cell.c, reg.cell.beta)
       : null;
     if (!normals) return null;          // unknown crystal system — no Wulff path
     for (const n of normals) faces.push({ n, d });

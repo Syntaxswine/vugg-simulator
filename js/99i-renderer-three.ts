@@ -3836,6 +3836,7 @@ function _topoSyncCrystalMeshes(state: any, sim: any, wall: any, replayStep?: nu
     let isWulffCalcite = false;  // calcite Wulff polyhedron → isotropic scale (geom carries c-elongation)
     let isWulffWulfenite = false;  // wulfenite Wulff tabular plate → isotropic scale by plate diameter (rung 4a.3)
     let isWulffBarite = false;  // barite Wulff RECTANGULAR tabular plate → isotropic scale by plate diameter (rung 4a.4)
+    let isWulffTitanite = false;  // titanite Wulff monoclinic sphenoid WEDGE → isotropic scale by diameter (rung 4a.6)
     // ETCHED crystal — post-growth dissolution overprint (crystal-face realism arc §2,
     // 2026-06-22). The sim tags crystal._etch when a scenario etch event corroded a
     // crystal that had ALREADY grown (js/45 classifyEtch; reactivated_fluorite_vein's
@@ -3923,9 +3924,10 @@ function _topoSyncCrystalMeshes(state: any, sim: any, wall: any, replayStep?: nu
       const isWfWulff = crystal.mineral === 'wulfenite' && token === 'tablet';   // rung 4a.3 (tetragonal)
       const isBaWulff = crystal.mineral === 'barite' && token === 'tablet';      // rung 4a.4 (orthorhombic) — tabular/bladed only
       const isGlWulff = crystal.mineral === 'galena' && (token === 'cube' || token === 'octahedron');   // rung 4a.5 (cubic, like fluorite — isometric, no new scale branch)
-      if (isFlWulff || isCalWulff || isWfWulff || isBaWulff || isGlWulff) {
+      const isTiWulff = crystal.mineral === 'titanite' && (token === 'prism' || token === 'tablet');   // rung 4a.6 (monoclinic) — sphenoid_wedge/prismatic→prism, flattened_tabular→tablet
+      if (isFlWulff || isCalWulff || isWfWulff || isBaWulff || isGlWulff || isTiWulff) {
         const formKey = (isFlWulff || isGlWulff) ? (wf.octahedral ? 'o' : 'c')   // cubic cube↔octahedron (galena octahedral is always false → 'c')
-          : isCalWulff ? (wf.scaleno ? 's' : 'r') : 't';   // wulfenite + barite are tablet-only → 't' (mineral is in the key)
+          : isCalWulff ? (wf.scaleno ? 's' : 'r') : 't';   // wulfenite + barite + titanite are single-body → 't' (mineral is in the key)
         const key = '__wulff_' + crystal.mineral + '_' + formKey
           + '_' + Math.round(wf.biasC * 100) + '_' + Math.round(wf.growthFrac * 10);
         geom = state.geomCache.get(key);
@@ -3939,6 +3941,7 @@ function _topoSyncCrystalMeshes(state: any, sim: any, wall: any, replayStep?: nu
         if (isCalWulff && geom) isWulffCalcite = true;     // signal the isotropic scale below
         if (isWfWulff && geom) isWulffWulfenite = true;    // signal the isotropic-by-diameter scale below
         if (isBaWulff && geom) isWulffBarite = true;       // signal the isotropic-by-diameter scale below (rung 4a.4)
+        if (isTiWulff && geom) isWulffTitanite = true;     // signal the isotropic-by-diameter scale below (rung 4a.6)
       }
     }
     // Dendrite TREE (morphology fix-backlog, 2026-06-12): dendritic /
@@ -4278,15 +4281,14 @@ function _topoSyncCrystalMeshes(state: any, sim: any, wall: any, replayStep?: nu
       // UNIFORMLY by cLen — the geom's own aspect gives the nailhead-vs-dogtooth shape. Applying
       // the token's anisotropic (aWid,cLen,aWid) here would double-stretch the already-elongated geom.
       mesh.scale.set(cLen, cLen, cLen);
-    } else if (isWulffWulfenite || isWulffBarite) {
-      // isWulffWulfenite (4a.3, tetragonal) + isWulffBarite (4a.4, orthorhombic): both are TABULAR
-      // Wulff plates with c the SHORT axis (opposite calcite). The kernel builds c on Y, normalized to
-      // ±0.5, so the plate diameter is the max extent — scale ISOTROPICALLY by that diameter =
-      // max(aWid, cLen) (aWid for a 'tablet' token). The token's (aWid,cLen,aWid) would re-flatten the
-      // already-thin geom; scaling by cLen alone (the calcite path) would shrink the whole plate to its
-      // thickness. The plates differ only in the geom's own aspect: wulfenite is SQUARE (a=b), barite
-      // is RECTANGULAR (a≠b ≈ 1.28:1) — both carried internally by the polyhedron, so one scale rule
-      // serves both.
+    } else if (isWulffWulfenite || isWulffBarite || isWulffTitanite) {
+      // isWulffWulfenite (4a.3, tetragonal) + isWulffBarite (4a.4, orthorhombic) + isWulffTitanite (4a.6,
+      // MONOCLINIC): all carry their full shape INTERNALLY in the normalized ±0.5 polyhedron, so they
+      // scale ISOTROPICALLY by the max extent = max(aWid, cLen). The token's (aWid,cLen,aWid) would
+      // re-flatten the geom; scaling by cLen alone (the calcite path) would shrink it to one axis. The
+      // bodies differ only in the geom's own aspect: wulfenite is a SQUARE tabular plate (a=b), barite a
+      // RECTANGULAR one (a≠b ≈ 1.28:1), and titanite the OBLIQUE SPHENOID WEDGE (b the long axis, the
+      // {100}∧{001}=66.19° lean baked into the faces) — one scale rule serves all three.
       const s = Math.max(aWid, cLen);
       mesh.scale.set(s, s, s);
     } else if (token === 'botryoidal') {
