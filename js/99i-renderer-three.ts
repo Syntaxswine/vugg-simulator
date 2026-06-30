@@ -3922,8 +3922,9 @@ function _topoSyncCrystalMeshes(state: any, sim: any, wall: any, replayStep?: nu
       const isCalWulff = crystal.mineral === 'calcite' && (token === 'rhomb' || token === 'scalene');
       const isWfWulff = crystal.mineral === 'wulfenite' && token === 'tablet';   // rung 4a.3 (tetragonal)
       const isBaWulff = crystal.mineral === 'barite' && token === 'tablet';      // rung 4a.4 (orthorhombic) — tabular/bladed only
-      if (isFlWulff || isCalWulff || isWfWulff || isBaWulff) {
-        const formKey = isFlWulff ? (wf.octahedral ? 'o' : 'c')
+      const isGlWulff = crystal.mineral === 'galena' && (token === 'cube' || token === 'octahedron');   // rung 4a.5 (cubic, like fluorite — isometric, no new scale branch)
+      if (isFlWulff || isCalWulff || isWfWulff || isBaWulff || isGlWulff) {
+        const formKey = (isFlWulff || isGlWulff) ? (wf.octahedral ? 'o' : 'c')   // cubic cube↔octahedron (galena octahedral is always false → 'c')
           : isCalWulff ? (wf.scaleno ? 's' : 'r') : 't';   // wulfenite + barite are tablet-only → 't' (mineral is in the key)
         const key = '__wulff_' + crystal.mineral + '_' + formKey
           + '_' + Math.round(wf.biasC * 100) + '_' + Math.round(wf.growthFrac * 10);

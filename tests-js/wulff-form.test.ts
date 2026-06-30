@@ -49,6 +49,7 @@ const mkSim = (flag: boolean, crystals: any[]) => ({ conditions: { wall: { wulff
 const mkSimC = (flag: boolean, crystals: any[]) => ({ conditions: { wall: { wulff_calcite: flag } }, crystals });
 const mkSimW = (flag: boolean, crystals: any[]) => ({ conditions: { wall: { wulff_wulfenite: flag } }, crystals });
 const mkSimB = (flag: boolean, crystals: any[]) => ({ conditions: { wall: { wulff_barite: flag } }, crystals });
+const mkSimG = (flag: boolean, crystals: any[]) => ({ conditions: { wall: { wulff_galena: flag } }, crystals });
 const mkCrystal = (over: any) => Object.assign({ mineral: 'fluorite', habit: 'octahedral_REE', total_growth_um: 200, crystal_id: 5, dissolved: false }, over);
 
 describe('Wulff form tag (central-distance arc Phase 4 rung 4a.1)', () => {
@@ -163,9 +164,14 @@ describe('Wulff form tag — calcite tenant (rung 4a.2)', () => {
     }
   });
 
-  it('mvt tenant scoping — only calcite is Wulff-tagged there (its fluorite did NOT opt in)', () => {
+  it('mvt tenant scoping — calcite is tagged (4a.2); since 4a.5 galena is too, but fluorite/sphalerite/barite are NOT', () => {
+    // mvt opts in BOTH wulff_calcite (4a.2) and wulff_galena (4a.5) → a two-tenant druse. The scope
+    // check: calcite fires, and every tagged crystal is one of {calcite, galena} — its fluorite,
+    // sphalerite and barite (none opted in) stay dormant.
     const sim = run('mvt');
-    for (const c of wulffed(sim)) expect(c.mineral).toBe('calcite');
+    const tagged = wulffed(sim);
+    expect(tagged.some((c: any) => c.mineral === 'calcite')).toBe(true);
+    for (const c of tagged) expect(['calcite', 'galena']).toContain(c.mineral);
   });
 
   it('unit — scalenohedral habit → scaleno band (<1, dogtooth); rhombohedral → nailhead band (>1)', () => {
@@ -326,5 +332,68 @@ describe('Wulff form tag — barite tenant (rung 4a.4)', () => {
     classifyWulffForm(mkSimB(true, [bar]));              // now wulff_barite on
     expect(bar._wulffForm).toBeTruthy();
     expect(bar._wulffForm.bladed).toBe(true);
+  });
+});
+
+// rung 4a.5 — the galena tenant (the SECOND cubic tenant, a fleet-out — no new kernel). grow_galena
+// hardcodes habit='cubic', so the classifier gives it a cube-DOMINANT band that keeps the {111}
+// corner truncations visible (NOT a perfect cube = no-op). mvt opts BOTH calcite (4a.2) AND galena
+// in → a two-tenant Wulff druse (golden dogtooth calcite + lead-grey truncated cubes), the canonical
+// MVT specimen.
+describe('Wulff form tag — galena tenant (rung 4a.5, cubic fleet-out)', () => {
+  it('mvt (wall.wulff_galena) tags its cube galena, biasC in the truncated-cube band, octahedral false', () => {
+    const sim = run('mvt');
+    expect(sim).toBeTruthy();
+    const tagged = wulffed(sim).filter((c: any) => c.mineral === 'galena');
+    expect(tagged.length).toBeGreaterThan(0);            // the lead-grey cubes
+    for (const c of tagged) {
+      expect(c._wulffForm.octahedral).toBe(false);       // galena never goes octahedron-dominant
+      // band [1.0,1.15] — cube with visible {111} corner truncations (NOT a perfect-cube no-op)
+      expect(c._wulffForm.biasC).toBeGreaterThanOrEqual(1.0);
+      expect(c._wulffForm.biasC).toBeLessThanOrEqual(1.15);
+      expect(_makeWulffGeom(wulffFaceSetForMineral('galena', c._wulffForm.growthFrac, 0, c._wulffForm.biasC))).toBeTruthy();
+    }
+  });
+
+  it('mvt is a TWO-tenant druse — exactly calcite + galena are tagged (sphalerite/fluorite/barite are NOT)', () => {
+    const sim = run('mvt');
+    const tagged = wulffed(sim);
+    const species = new Set(tagged.map((c: any) => c.mineral));
+    expect(species.has('galena')).toBe(true);            // the new tenant
+    expect(species.has('calcite')).toBe(true);           // the existing 4a.2 tenant still fires
+    for (const c of tagged) expect(['calcite', 'galena']).toContain(c.mineral);   // and NOTHING else
+  });
+
+  it('unit — cubic galena → cube band [1.0,1.15], octahedral always false; flag-off / twinned (spinel) / speck skip', () => {
+    const cube = mkCrystal({ mineral: 'galena', habit: 'cubic', crystal_id: 5 });
+    classifyWulffForm(mkSimG(true, [cube]));
+    expect(cube._wulffForm.octahedral).toBe(false);
+    expect(cube._wulffForm.biasC).toBeGreaterThanOrEqual(1.0);
+    expect(cube._wulffForm.biasC).toBeLessThanOrEqual(1.15);
+
+    const off = mkCrystal({ mineral: 'galena', habit: 'cubic', crystal_id: 5 });
+    classifyWulffForm(mkSimG(false, [off]));
+    expect(off._wulffForm).toBeUndefined();              // opt-in gate
+
+    // a spinel-law-twinned galena owns its own twin geometry, and a sub-30µm speck has no body —
+    // neither may be Wulff-tagged.
+    const twin = mkCrystal({ mineral: 'galena', habit: 'cubic', twinned: true, crystal_id: 5 });
+    const speck = mkCrystal({ mineral: 'galena', habit: 'cubic', total_growth_um: 10, crystal_id: 5 });
+    classifyWulffForm(mkSimG(true, [twin, speck]));
+    expect(twin._wulffForm).toBeUndefined();
+    expect(speck._wulffForm).toBeUndefined();
+  });
+
+  it('unit — the wulff_galena flag is independent of the fluorite/calcite/wulfenite/barite flags', () => {
+    const gal = mkCrystal({ mineral: 'galena', habit: 'cubic', crystal_id: 7 });
+    classifyWulffForm(mkSim(true, [gal]));               // only wulff_fluorite on
+    expect(gal._wulffForm).toBeUndefined();
+    classifyWulffForm(mkSimC(true, [gal]));              // only wulff_calcite on
+    expect(gal._wulffForm).toBeUndefined();
+    classifyWulffForm(mkSimB(true, [gal]));              // only wulff_barite on
+    expect(gal._wulffForm).toBeUndefined();
+    classifyWulffForm(mkSimG(true, [gal]));              // now wulff_galena on
+    expect(gal._wulffForm).toBeTruthy();
+    expect(gal._wulffForm.octahedral).toBe(false);
   });
 });

@@ -302,7 +302,14 @@
           // the dogtooth stands at the final frame, and occlusion above roots it in the matrix → a
           // drusy dogtooth. js/45 classifyWulffForm → js/99i (isotropic scale; the geom carries the
           // true c-elongation). RENDER-ONLY → baseline byte-identical.
-          "wulff_calcite": true
+          "wulff_calcite": true,
+          // Wulff rung 4a.5 (2026-06-30) — galena, the SECOND cubic tenant. MVT galena is the textbook
+          // cube; render it as the TRUE {100}+{111} polyhedron — a cube-DOMINANT body with visible
+          // {111} corner truncations (js/45 band [1.0,1.15] keeps the truncations alive, not a perfect
+          // cube = no-op). Pairs with the calcite dogtooth above → a TWO-tenant Wulff druse, the
+          // canonical MVT specimen (galena cubes + golden dogtooth calcite). Cubic = isometric, token
+          // stays 'cube' → the cube scale path is unchanged → baseline byte-identical.
+          "wulff_galena": true
         }
       },
       "events": [

@@ -330,3 +330,38 @@ describe('Wulff geometry kernel — barite via the registry (rung 4a.4)', () => 
     expect(JSON.stringify(a)).toBe(JSON.stringify(b));
   });
 });
+
+// rung 4a.5 — galena, the SECOND cubic tenant (after fluorite). No new kernel: it reuses
+// wulffCubicNormals + the registry's {100}+{111}. grow_galena hardcodes habit='cubic', so the
+// classifier renders a cube-DOMINANT body with VISIBLE {111} corner truncations — the band [1.0,1.15]
+// is chosen to KEEP those truncations alive; a perfect cube (biasC ≳ 1.25) would be pixel-identical to
+// the old cube primitive (the render-upgrade-visible no-op). These pins guard exactly that property.
+describe('Wulff geometry kernel — galena via the registry (rung 4a.5, cubic)', () => {
+  it('galena yields the 14-plane cube+octahedron face set (like fluorite) + builds a solid', () => {
+    const faces = wulffFaceSetForMineral('galena', 0.5, 7, 1.1);
+    expect(faces).toBeTruthy();
+    expect(faces.length).toBe(14);                       // 6 {100} + 8 {111}
+    expect(_makeWulffGeom(faces)).toBeTruthy();
+  });
+
+  it('the cube band (biasC 1.1) is a TRUNCATED cube — all 8 {111} corner triangles survive, the 6 {100} faces become octagons', () => {
+    // crystalId 0 = the renderer's actual call (its internal jitter is then a fixed 0.88)
+    const p = wulffPolyhedron(wulffFaceSetForMineral('galena', 0.5, 0, 1.1));
+    const tri = p.faces.filter((f: any) => f.verts.length === 3).length;   // {111} truncation triangles
+    const oct = p.faces.filter((f: any) => f.verts.length > 4).length;     // {100} faces, now octagonal
+    expect(tri).toBe(8);     // every corner truncated → the visible upgrade over a perfect cube
+    expect(oct).toBe(6);
+  });
+
+  it('biasC ≳ 1.25 self-eliminates {111} → a PERFECT cube (the no-op galena must avoid — render-upgrade-visible)', () => {
+    const p = wulffPolyhedron(wulffFaceSetForMineral('galena', 0.5, 0, 2.0));
+    expect(p.faces.length).toBe(6);                              // pure cube
+    expect(p.faces.every((f: any) => f.verts.length === 4)).toBe(true);   // 6 squares, no {111} truncation
+  });
+
+  it('determinism — identical galena inputs give byte-identical face sets (rng-free)', () => {
+    const a = wulffFaceSetForMineral('galena', 0.5, 11, 1.1);
+    const b = wulffFaceSetForMineral('galena', 0.5, 11, 1.1);
+    expect(JSON.stringify(a)).toBe(JSON.stringify(b));
+  });
+});

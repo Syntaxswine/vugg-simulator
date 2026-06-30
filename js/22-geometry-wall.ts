@@ -339,6 +339,15 @@ class VugWall {
     // every other scenario dormant. Whitelisted explicitly (an unlisted flag from scenarios.json5 is
     // silently dropped).
     this.wulff_barite = !!opts.wulff_barite;
+    // wulff_galena — CENTRAL-DISTANCE (Wulff) FORM rung 4a.5 (2026-06-30): the SECOND cubic tenant
+    // (after fluorite — galena's registry entry already existed). Opts a scenario's galena into the
+    // true {100} cube + {111} octahedron polyhedron (js/46 wulffCubicNormals) — rendered as a cube-
+    // DOMINANT body with VISIBLE {111} corner truncations (galena is hardcoded habit='cubic', so the
+    // band is low [1.0,1.15] to keep the truncations alive, NOT a perfect cube = no-op). Isometric:
+    // token stays 'cube', so the existing cube scale path is unchanged → byte-identical (no SIM bump,
+    // no rebake). Default false → every other scenario dormant. Whitelisted explicitly (an unlisted
+    // flag from scenarios.json5 is silently dropped).
+    this.wulff_galena = !!opts.wulff_galena;
   }
 
   dissolve(acid_strength, fluid) {

@@ -205,17 +205,19 @@ class Crystal {
     //   _wulffForm  { biasC, growthFrac, octahedral, scaleno, tabular, bladed } — js/45
     //               classifyWulffForm: the central-distance (Wulff) FORM bias (Phase 4). Renderer
     //               (js/99i) builds the true convex polyhedron (js/46) instead of a fixed primitive.
-    //               FOUR tenants, one per crystal system: fluorite (4a.1, wall.wulff_fluorite, CUBIC)
-    //               — {100}/{111} cube↔octahedron (fluid.Y); token stays cube/octahedron → isometric
-    //               scale unchanged. calcite (4a.2, wall.wulff_calcite, TRIGONAL) — {104}/{21-31}
-    //               rhombohedron↔scalenohedron (nailhead↔dogtooth); token stays rhomb/scalene, scaled
-    //               ISOTROPICALLY by cLen (c is the LONG axis). wulfenite (4a.3, wall.wulff_wulfenite,
-    //               TETRAGONAL 4/m) — c{001}/{101} tabular SQUARE plate; token stays 'tablet', scaled
-    //               isotropically by the plate DIAMETER (c is the SHORT axis). barite (4a.4,
-    //               wall.wulff_barite, ORTHORHOMBIC mmm) — c{001}/o{011}/m{210} tabular RECTANGULAR
-    //               plate (a≠b); tabular+bladed only (token 'tablet'), scaled isotropically by the
-    //               plate diameter (c SHORT, like wulfenite). All render-only → size scalars
-    //               untouched, byte-identical (no SIM bump, no rebake).
+    //               FIVE tenants across FOUR crystal systems: fluorite (4a.1, wall.wulff_fluorite,
+    //               CUBIC) — {100}/{111} cube↔octahedron (fluid.Y); token stays cube/octahedron →
+    //               isometric scale unchanged. calcite (4a.2, wall.wulff_calcite, TRIGONAL) —
+    //               {104}/{21-31} rhombohedron↔scalenohedron (nailhead↔dogtooth); token stays
+    //               rhomb/scalene, scaled ISOTROPICALLY by cLen (c is the LONG axis). wulfenite (4a.3,
+    //               wall.wulff_wulfenite, TETRAGONAL 4/m) — c{001}/{101} tabular SQUARE plate; token
+    //               stays 'tablet', scaled isotropically by the plate DIAMETER (c is the SHORT axis).
+    //               barite (4a.4, wall.wulff_barite, ORTHORHOMBIC mmm) — c{001}/o{011}/m{210} tabular
+    //               RECTANGULAR plate (a≠b); tabular+bladed only (token 'tablet'), scaled isotropically
+    //               by the plate diameter (c SHORT, like wulfenite). galena (4a.5, wall.wulff_galena,
+    //               CUBIC again) — {100}/{111} cube-dominant with VISIBLE {111} corner truncations
+    //               (hardcoded cubic habit → octahedral always false; isometric scale like fluorite).
+    //               All render-only → size scalars untouched, byte-identical (no SIM bump, no rebake).
     this.zones = [];
     this.total_growth_um = 0;
     this.active = true;

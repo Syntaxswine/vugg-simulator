@@ -904,13 +904,13 @@ function classifyWulffForm(sim: any) {
   const wall = sim.conditions && sim.conditions.wall;
   if (!wall) return;
   const fluoriteOn = !!wall.wulff_fluorite, calciteOn = !!wall.wulff_calcite,
-        wulfeniteOn = !!wall.wulff_wulfenite, bariteOn = !!wall.wulff_barite;
-  if (!fluoriteOn && !calciteOn && !wulfeniteOn && !bariteOn) return;   // opt-in gate — dormant unless a scenario sets one
+        wulfeniteOn = !!wall.wulff_wulfenite, bariteOn = !!wall.wulff_barite, galenaOn = !!wall.wulff_galena;
+  if (!fluoriteOn && !calciteOn && !wulfeniteOn && !bariteOn && !galenaOn) return;   // opt-in gate — dormant unless a scenario sets one
   for (const c of sim.crystals) {
     if (!c || c.dissolved) continue;
     const m = c.mineral;
     const tenant = (m === 'fluorite' && fluoriteOn) || (m === 'calcite' && calciteOn)
-      || (m === 'wulfenite' && wulfeniteOn) || (m === 'barite' && bariteOn);
+      || (m === 'wulfenite' && wulfeniteOn) || (m === 'barite' && bariteOn) || (m === 'galena' && galenaOn);
     // Disqualify: not an opted tenant, a nucleation speck, or a twin (twins resolve to their own
     // geometry token, never the cube/octahedron/rhomb/scalene the Wulff path needs).
     if (!tenant || (c.total_growth_um || 0) < WULFF_MIN_UM || !!c.twinned) {
@@ -938,7 +938,7 @@ function classifyWulffForm(sim: any) {
       // pinacoid → thinner plate. (Band placed from the wulff-tetragonal aspect sweep; eye-checked.)
       tabular = true;
       biasC = 1.4 + h * 1.4;
-    } else {                                          // barite (rung 4a.4, orthorhombic mmm)
+    } else if (m === 'barite') {                      // barite (rung 4a.4, orthorhombic mmm)
       // barite's habit is σ-driven (grow_barite: prismatic/cockscomb/bladed/tabular/snowball). ONLY
       // tabular + bladed map to the renderer's 'tablet' token (js/99i geomTokenForHabit: h.includes
       // 'tabular'||'blade'), so only those become the Wulff RECTANGULAR plate; prismatic→prism token,
@@ -951,6 +951,17 @@ function classifyWulffForm(sim: any) {
       tabular = true;
       bladed = habit.indexOf('blade') >= 0;
       biasC = bladed ? (1.9 + h * 1.1) : (1.3 + h * 0.9);
+    } else {                                          // galena (rung 4a.5 — second CUBIC tenant after fluorite)
+      // grow_galena hardcodes habit='cubic' (galena is the textbook cube; the engine emits no
+      // octahedral/skeletal habit to split on — like wulfenite's hardcoded tabular). Render a cube-
+      // DOMINANT body with VISIBLE {111} corner truncations (the cuboctahedron-leaning cube real
+      // galena shows) — NOT a perfect cube, which is pixel-identical to the old cube primitive (the
+      // render-upgrade-visible no-op). bias on {100}: the band [1.0,1.15] keeps the {111} faces alive
+      // (truncFrac ≈ 0.11–0.38 from the wulff-galena-band sweep); biasC ≳ 1.2 self-eliminates {111}
+      // → a featureless perfect cube. (galena registry R_111=1.5 sits BELOW BFDH's √3≈1.73 — galena
+      // IS more octahedral-prone than fluorite, which is why its truncation window is low + narrow.)
+      octahedral = false;   // galena is cube-habit only; the {111} only TRUNCATES, never dominates
+      biasC = 1.0 + h * 0.15;
     }
     // growthFrac maps the engine's growth scalar into the kernel's [0,1] envelope (topology is
     // largely g-insensitive in these bias ranges; bigger crystals trend a hair sharper).
