@@ -101,20 +101,33 @@ const WULFF_FORM_GEOMETRY: any = {
   ] },
   // rung 4a.4 — the FOURTH crystal system: barite, orthorhombic Pnma (barite-group BaSO4), point
   // group mmm (D2h, order 8). a=8.879 b=5.450 c=7.152 (data/structural.json) — the FIRST cell with
-  // THREE UNEQUAL axes (a≠b≠c), so the c{001} tabular plate is RECTANGULAR (longer along a than b),
-  // not square like wulfenite's — a habit NO cubic/trigonal/tetragonal cell can express. Forms: the
-  // basal pinacoid c{001} (the flat tabular face), the dome o{011} (the bevelled edge) and the prism
-  // m{210} (the lozenge outline) — the textbook barite c/o/m triple. BFDH (R ∝ 1/d_hkl):
-  // d_001=c=7.15Å > d_011=4.34Å > d_210=3.44Å ⇒ R_011≈1.65, R_210≈2.08 vs R_001=1.0, so {001} is the
-  // slowest form ⇒ TABULAR by default — exactly barite's nature. bias on {001}: biasC>1 slows the
-  // pinacoid → thinner plate/blade; biasC<1 speeds it → the prism/dome take over (prismatic). The
-  // barite group (celestine a=8.359 c=6.866, anglesite a=8.482 c=6.959) is isostructural — same forms,
-  // different cell — so this entry is a one-line clone away from those siblings. One equation, four
-  // crystal systems.
+  // THREE UNEQUAL axes (a≠b≠c), so the c{001} tabular plate is RECTANGULAR (a≠b), not square like
+  // wulfenite's — a habit NO cubic/trigonal/tetragonal cell can express. Forms: the basal pinacoid
+  // c{001} (the flat tabular face), the prism m{210} (the perfect-cleavage side faces) and the dome
+  // o{011} (a minor bevel) — the textbook barite c/m/o triple. {001} slowest (bias, tabular), then
+  // m{210} < o{011}.
+  //   FACE-RATE ORDERING — {210}>{011} corrected 2026-07-01 (verified attachment-energy pass). The
+  //   original BFDH seeding had it BACKWARDS: BFDH (R ∝ 1/d_hkl) ranks by d-spacing alone, and
+  //   d_210=3.44Å < d_011=4.34Å made {210} the FASTEST, most-minor face (R=2.08) — but m{210} is a
+  //   PERFECT CLEAVAGE and a low-energy F-face, so it must OUT-RANK the o{011} dome, not sit below it.
+  //   Bittarello, Bruno & Aquilano 2018 (Cryst. Growth Des. 18:4084, DOI 10.1021/acs.cgd.8b00460)
+  //   ab-initio B3LYP surface energies give the order (210)≈(001) < (211) < (101) < (010) < (011) < …,
+  //   and Hartman & Strom 1989 (J. Cryst. Growth 97:502) F/S/K analysis finds {210} an F form and {011}
+  //   a kinked (fast) form. So R_210=1.65 (dominant prism), R_011=2.08 (minor dome), R_001=1.0.
+  //   NB these stay ORDERING-informed BFDH-class values, NOT measured growth rates: the ab-initio σ are
+  //   0 K EQUILIBRIUM energies while barite's tabular habit is a GROWTH form — plugging σ in directly
+  //   (R_210≈1.0) collapses the tabular habit (equant + the dome self-eliminates, proto-verified), so
+  //   only the {210}>{011} ORDERING is taken from the literature, not the magnitudes. bias on {001}:
+  //   biasC>1 slows the pinacoid → thinner plate/blade; biasC<1 speeds it → prism/dome take over
+  //   (prismatic). The a-vs-b elongation of the plate is LOCALITY-DEPENDENT (varies by formation
+  //   conditions) and was never verified against ground truth — the original BFDH guessed longer-along-a;
+  //   the corrected ordering renders longer-along-b. Only the rectangular-ness (a≠b) is a real invariant.
+  //   The barite group (celestine a=8.359 c=6.866, anglesite a=8.482 c=6.959) is isostructural — a
+  //   one-line clone away from those siblings. One equation, four crystal systems.
   barite: { system: 'orthorhombic', cell: { a: 8.879, b: 5.450, c: 7.152 }, forms: [
-    { hkl: [0, 0, 1], R: 1.0, bias: true },
-    { hkl: [0, 1, 1], R: 1.65 },
-    { hkl: [2, 1, 0], R: 2.08 },
+    { hkl: [0, 0, 1], R: 1.0, bias: true },   // c{001} basal pinacoid — slowest, the tabular plate face
+    { hkl: [0, 1, 1], R: 2.08 },              // o{011} dome — high-E minor fast bevel (was R=1.65, see note)
+    { hkl: [2, 1, 0], R: 1.65 },              // m{210} prism — perfect cleavage + low-E F-face, dominant edge (was R=2.08)
   ] },
   // rung 4a.6 — the FIFTH crystal system: titanite (sphene) CaTiSiO₅, monoclinic 2/m (space group
   // P2₁/a, point group C2h, order 4 — HALF of orthorhombic mmm). a=7.057 b=8.707 c=6.555 β=113.81°

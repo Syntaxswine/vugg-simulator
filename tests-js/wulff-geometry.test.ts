@@ -308,15 +308,16 @@ describe('Wulff geometry kernel — barite via the registry (rung 4a.4)', () => 
     expect(_makeWulffGeom(faces)).toBeTruthy();
   });
 
-  it('a representative wittichen-bladed value (biasC 2.5 — mid of the live 2.24–2.82 band — at g 0.15) → a RECTANGULAR tabular plate: 2 pinacoid, wider than thick, and longer along a than b', () => {
+  it('a representative wittichen-bladed value (biasC 2.5 — mid of the live 2.24–2.82 band — at g 0.15) → a RECTANGULAR tabular plate: 2 pinacoid, wider than thick, elongated along b (the {210}>{011} face-rate correction, 2026-07-01)', () => {
     const p = wulffPolyhedron(wulffFaceSetForMineral('barite', 0.15, 0, 2.5));
     expect(pinacoidFaces(p)).toBe(2);                    // the flat plate faces, top + bottom
-    expect(p.faces.length).toBe(10);                     // the full pinacoid+dome+prism rim survives
+    expect(p.faces.length).toBe(10);                     // the full pinacoid+dome+prism rim survives (o{011} does NOT self-eliminate)
     expect(extent(p, 0)).toBeGreaterThan(extent(p, 1));  // diameter (X) > thickness (Y) — a plate, not a column
-    // THE orthorhombic signature: a≠b → the in-plane outline is rectangular, X (≈a) clearly > Z (≈b).
-    // Wulfenite's tetragonal plate is square (X≈Z); barite's is ~1.25:1. Jitter scales X and Z
-    // equally, so the ratio is jitter-invariant.
-    expect(extent(p, 0)).toBeGreaterThan(extent(p, 2) * 1.15);
+    // THE orthorhombic signature: a≠b → the in-plane outline is RECTANGULAR, not square (wulfenite's is
+    // square, X≈Z). Since the {210}>{011} correction the prominent m{210} prism makes the plate longer
+    // along b (Z≈b) than a (X≈a) — the a-vs-b direction is locality-dependent + was never ground-truth-
+    // verified; only the rectangular-ness (Z≠X) is invariant. Jitter scales X and Z ~equally.
+    expect(extent(p, 2)).toBeGreaterThan(extent(p, 0) * 1.1);
   });
 
   it('higher biasC → thinner plate (the tabular thinness knob; bias on {001})', () => {
