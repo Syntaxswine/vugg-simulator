@@ -28,7 +28,18 @@ Living list of open work items, captured from session conversations so context s
 > defer-to-geology, image-corpus method). Full goal text in
 > `proposals/HANDOFF-APOPHYLLITE-AND-GYPSUM-2026-06-22.md` (➕ NEW GOAL section).
 >
-> ## ⬡ ARC (2026-06-22) — DIRECTIONAL / POLAR / STEPPED GROWTH (the central-distance model) — RESEARCHED · PHASE 0+1+2+3 SHIPPED · PHASE 4 DESIGN + 4a.0 KERNEL + 4a.1 FLUORITE + 4a.2 CALCITE + 4a.3 WULFENITE + 4a.4 BARITE + 4a.5 GALENA + 4a.6 TITANITE (FIVE crystal systems, SIX tenants — cubic carries fluorite + galena; titanite is the FIRST oblique cell, monoclinic 2/m) TENANTS SHIPPED (byte-identical, render-only)
+> ## ⬡ ARC (2026-06-22) — DIRECTIONAL / POLAR / STEPPED GROWTH (the central-distance model) — RESEARCHED · PHASE 0+1+2+3 SHIPPED · PHASE 4 DESIGN + 4a.0 KERNEL + 4a.1 FLUORITE + 4a.2 CALCITE + 4a.3 WULFENITE + 4a.4 BARITE + 4a.5 GALENA + 4a.6 TITANITE + 4a.4b BARITE {210}>{011} FACE-RATE CORRECTION (FIVE crystal systems, SIX tenants — cubic carries fluorite + galena; titanite is the FIRST oblique cell, monoclinic 2/m) TENANTS SHIPPED (byte-identical, render-only)
+>
+> **▸ 2026-07-01 — GROWTH-GEOMETRY BEDROCK pass (read `proposals/HANDOFF-GROWTH-GEOMETRY-2026-07-01.md`).**
+> Investigated "make form a readout of chemistry"; the value was the *"not that, this"* chain — **five**
+> plausible keystones killed by probes (erythrite-as-tenant, kinetic-biasC, the bulk-σ temporal walk =
+> shape-invariant, Stage-3 "measured E_att" = mostly a mirage, plug-in ab-initio σ = regresses). **Shipped:**
+> the one real change — barite `{210}>{011}` (`bad547e`, render-only; BFDH mis-ranked the perfect-cleavage
+> F-face). **Key law:** *equilibrium ≠ growth form* — don't plug equilibrium surface energies into a kinetic
+> `R_i`. **The honest "earned form" bedrock is CHEMISTRY LEVERS, not swapped constants:** wulfenite **Pb:Mo**
+> → tabular/bipyramidal (Sci.Rep. 2024, verified; the strongest next stone), calcite **σ/Ca:CO₃** → dogtooth/
+> nailhead. Method: three-source triangulation (workflow ↔ StonePhilosopher/rockbot-research ↔ primary source).
+> The kernel is already a kinetic-Wulff construction; only its two inputs (`R_i`, `g`) are faked.
 >
 > Boss directive: "geologically accurate wireframe models … asymmetric stepped growth — steps
 > on one face-set not all, opposite faces smoother; polarized growth, one end faster, the other

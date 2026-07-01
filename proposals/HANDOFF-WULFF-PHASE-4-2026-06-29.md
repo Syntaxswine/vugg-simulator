@@ -26,6 +26,16 @@
 > `scratchpad/wulff-monoclinic-proto.mjs` first, then ported. Replaces the **hex-prism** the `sphenoid_wedge`
 > habit had been falling through to (`_habitGeomToken` default — a token-wart fix, same family as
 > pyritohedral/octahedral_REE). Still byte-identical (SIM 214).
+>
+> **Update (2026-07-01):** rung **4a.4b** — a **barite `{210}>{011}` face-rate correction** (`bad547e`). A
+> *verified attachment-energy pass* (resolve + READ the primary source, three-way against
+> `StonePhilosopher/rockbot-research`) found BFDH had ranked barite's perfect-cleavage F-face m{210} as the
+> *most-minor* form; corrected so it out-ranks the o{011} dome (Bittarello 2018 ab-initio + Hartman & Strom
+> 1989). **Ordering only, not magnitudes** — *equilibrium σ ≠ growth velocities* (plugging the ab-initio σ in
+> directly makes the plate equant + self-eliminates the dome). Still byte-identical. **The larger finding:**
+> Stage-3 "swap BFDH for measured E_att" is mostly a MIRAGE (fluorite/calcite cite real papers for rates they
+> don't report); the honest "earned form" bedrock is **chemistry levers** (wulfenite Pb:Mo, calcite σ/Ca:CO₃),
+> not swapped constants. **Full record + the corrected roadmap: `HANDOFF-GROWTH-GEOMETRY-2026-07-01.md`.**
 
 You're reading this because you're about to extend the way vugg decides what a crystal *looks like*.
 Sit with the model for ten minutes before you touch a file — it is small, and once it clicks the
