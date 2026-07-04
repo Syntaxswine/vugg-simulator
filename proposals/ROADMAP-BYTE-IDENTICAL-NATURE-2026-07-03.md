@@ -78,6 +78,7 @@ Grounded in the tree as of `69203ad` (SIM 214). "Have" means shipped and tested,
 | **optics** | Depth-A diaphaneity SHIPPED (94/180 two-source verified → % translucency); lustre data recorded (parked, boss call); trace-cation colour dispatchers (V⁴⁺, smoky, garnet Cr/Mn/Fe) | Depth-C body colour (class palette → species/chemistry colour); zoned colour + phantoms; inclusions (chlorite/rutile/two-phase); fluorescence render (chemistry-side UV exists in zone bars; no emissive render) | **W-D** |
 | **context** | 37 scenarios; paragenesis/substrate affinity (js/26); open_system walls; wall composition classes | host-rock lithology as a rendered material (the vug sits in a rock, not a void); matrix/gangue textures; more locality scenarios (Sweetwater, Elmwood slated) | **W-E** |
 | **ontogeny (individual + aggregate)** | ideal convex Wulff bodies (full polyhedra, base-at-anchor); enclosure/liberation bookkeeping the renderer never reads (js/85c:672-751); spontaneous-twin roll; sceptre/etch as DECLARED overprints; c-axis hard-coded wall-normal | attachment half-forms; unequal face development (per-face h_i — the kernel already stores {n,d} per face; js/46:431 is the single broadcast point); induction/contact surfaces (neighbor meshes interpenetrate freely today); EARNED geometric selection; engulfment render; ELO phantoms/sceptres; hopper+recovery | **W-F** |
+| **cavity (the stage itself)** | sphere-union profile builder + 5 architecture archetypes + per-scenario knobs (js/22); per-cell dissolution recession (ring 0 ONLY — dynamically 2D); star-convex topology ceiling | genesis-shaped cavities (the alpine-cleft scenarios are round 'pocket' cavities today); 3D wall microtexture (zero exists); primer coats + substrate conditioning; substrate-aware botryoidal (the 4-blob ignores the wall); precursor-dissolution genesis (Chowns & Elkins ✓) | **W-K** |
 | **verification** | cold-ci; canary; seed-42 baselines + strip archive/differ; probe/census/sweep idiom; optics-audit; image-corpus method | **the specimen bench — NOTHING today verifies against a real rock quantitatively.** The apex instrument is missing; everything else is proxies | **W-A** |
 
 ---
@@ -254,6 +255,23 @@ multi-generation tenants. The genuinely NEW architecture is three things:
    specimen. The boss's lot-based ingestion design and this workstream are the same idea seen
    from opposite ends.
 
+## 6g. W-K — vug genesis: the cavity's own ontogeny (added 2026-07-03 — boss ask, researched same day)
+
+Full arc: **`PROPOSAL-VUG-GENESIS-2026-07-03.md`** (8-agent census + research, citations
+verified — both boss claims CONFIRMED in the literature: precursor-dissolution genesis is
+Chowns & Elkins 1974's canonical geode model, Crossref-verified; botryoids-on-modeled-surfaces
+is Self & Hill's substrate selection, fetched verbatim). Rungs in brief:
+
+| rung | one line | SIM |
+|---|---|---|
+| **V0** | archetype truth: give the cleft scenarios a real planar cleft (grimsel/tormiq are round 'pocket' cavities today); audit all 38 wall blocks against the genesis taxonomy | bump, per-scenario staged |
+| **V1** | wall microtexture per genesis: Blumberg-Curl scallops (flow-velocity-parameterized), cleft fracture steps, sediment rind, vesicle glass | render-only |
+| **V2** | primer coats (Deccan green celadonite Stage-0) + substrate-conditioning decay s(d)=exp(−d/d₀) in nucleation | bump |
+| **V3** | substrate-aware botryoidal/colloform (convexity-biased hemispheres, contour-then-relax banding, Roedder crystalline anchor) — **retires the 4-blob** | render-first |
+| **V4** | geometry-aware nucleation (curvature input; unifies with W-F O3; shared Krapivsky oracle) | bump |
+| **V5** | precursor-dissolution genesis: precursor-shape × two-clock rigidity × fill_fraction; first tenant = the Tennessee silicified-anhydrite geode. **W-J's first paying customer** | bump + scenarios |
+| **V6–V7** | whole-wall dissolution dynamics · topology breakers (two-wall fissures, boxwork — needs a successor representation, honestly deferred) | bump / XL unscheduled |
+
 ---
 
 ## 7. The data-availability map (the boss's stated worry, answered)
@@ -281,7 +299,9 @@ C0 ships with the first T2 acceptance pair; A1/A2 are cheap and unlock everythin
 **Phase 1.5 (the big ask's visible foundation, amended 2026-07-03):** O0 half-forms → O1
 unequal development → O2 induction surfaces — the render-only ontogeny core; each is a
 byte-identity candidate shipped by the standing ritual.
-**Phase 2:** A3 metrics + A4 bench (passive) + B2 PHREEQC instrument + B3 debt closure.
+**Phase 2:** A3 metrics + A4 bench (passive) + B2 PHREEQC instrument + B3 debt closure · W-K's
+visible foundation (V0 cleft truth + V1 wall microtexture; V3/V4 later share W-F O2/O3's era —
+same induction-surface and selection mathematics, one oracle).
 **Phase 3:** C1 depletion field (boss stone, EV check first — **now doubly load-bearing: it is
 the bedrock driver of W-F's one-sidedness**) · O3 geometric selection · then B1 Pitzer against
 B2's table.

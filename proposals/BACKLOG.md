@@ -63,6 +63,21 @@ Living list of open work items, captured from session conversations so context s
 > history, every specimen predicted together). Post-Phase-5+ — named, not scheduled. (W-H
 > letter now canonical for the inverse solver; the review's passing "texture W-H" superseded.)
 >
+> **▸ W-K VUG GENESIS (boss ask, 2026-07-03) — the cavity's own ontogeny:**
+> `PROPOSAL-VUG-GENESIS-2026-07-03.md` — BOTH boss claims literature-CONFIRMED: precursor
+> dissolution ("starts as a vein of other material that gets worn away") = Chowns & Elkins 1974
+> geode genesis, Crossref-verified; botryoids-on-modeled-surfaces = Self & Hill SUBSTRATE
+> SELECTION verbatim. Census headlines: all 38 scenarios share ONE sphere-union path;
+> **grimsel/tormiq alpine CLEFTS are round 'pocket' cavities**; dissolution sculpts RING 0 ONLY
+> (dynamically-2D cavity); zero 3D wall microtexture; the 4-blob botryoid ignores the wall;
+> nucleation is geometry-blind (promontory == alcove). Rungs V0 cleft-truth → V1 microtexture
+> (Blumberg-Curl scallop LAW: L32=2200ν/v — one paleo-velocity scalar) → V2 primer coats +
+> s(d)=exp(−d/d₀) conditioning → V3 substrate-aware botryoidal (Roedder: colloform is
+> CRYSTALLINE — the 4-blob retires onto the Wulff-fiber kernel) → V4 geometry-aware nucleation
+> (shares W-F O3's Krapivsky oracle) → V5 precursor-dissolution (two-clock rigidity;
+> fill_fraction geode↔pseudomorph; first tenant = the TENNESSEE silicified-anhydrite geode;
+> W-J's first customer) → V6 whole-wall dynamics → V7 topology breakers (honestly deferred).
+>
 > **▸ DIGITIZATION TEMPLATE SHIPPED (boss ask, 2026-07-03) — A2 DELIVERED:**
 > `SPECIMEN-DIGITIZATION-TEMPLATE-2026-07-03.md` — the template for turning crystal images into
 > sim-growable data at thousands-of-rocks scale. 5-block record w/ evidence levels; 3 tiers
