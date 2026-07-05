@@ -37,12 +37,44 @@
 //                                 while this step is showing (used to
 //                                 un-dim the mode-toggle bar)
 //
-// Optional tutorial-level field:
+// Optional tutorial-level fields:
 //   tutorial.unlock: [...]      — controls whitelisted at start.
 //                                 DEFAULTS to ['#f-advance'] so the
 //                                 legacy sim-step tutorials keep their
 //                                 Advance button; the Grand Tour sets
 //                                 [] and unlocks progressively.
+//   tutorial.mode: 'legends'    — ENGINE v3: run the tutorial in
+//                                 Simulation (legends) mode instead of
+//                                 Creative. Boot switches to legends and
+//                                 PRESETS the setup row (see preset);
+//                                 the player presses Grow themselves.
+//                                 `step: N` triggers read the NARRATIVE
+//                                 PLAYBACK position (_legendsPlaybackStep,
+//                                 ticked from displayLines), not the
+//                                 sim's final step counter — legends
+//                                 runs the whole sim up front and paces
+//                                 the story afterwards.
+//   tutorial.preset: {...}      — legends boot presets: {scenario, seed,
+//                                 steps} written into #scenario / #seed /
+//                                 #steps so the player's Grow press runs
+//                                 the intended deterministic run.
+//
+// Optional per-step field (v3):
+//   allowModes: ['library']     — mode switches the CURRENT step
+//                                 sanctions. switchMode() consults
+//                                 _tutorialAllowsMode(); a switch to the
+//                                 tutorial's home mode or a sanctioned
+//                                 mode keeps the tutorial alive (this is
+//                                 how a tour walks Simulation → Library
+//                                 without self-destructing). Home always
+//                                 ends the tutorial.
+//
+// v3 caveat for authors: legends narration pauses on its own
+// .narrative-continue-pill at the prologue/epilogue boundaries (Enter/
+// Space activate the focused pill). The tutorial keydown ignores
+// keypresses targeting the pill — but still avoid authoring a
+// continue-trigger tutorial step that would sit on screen while a pill
+// is armed; use playback-step or action triggers around those beats.
 //
 // Control locking is CSS-driven off body.tutorial-active (see
 // index.html): action buttons are now VISIBLE-BUT-INERT (dimmed,
@@ -212,21 +244,47 @@ function _positionCallout(anchorEl, tooltipEl, arrowEl, side) {
 }
 
 function startTutorial(scenarioName) {
-  // Boot the underlying scenario in Creative Mode first.
-  if (typeof startScenarioInCreative !== 'function') {
-    console.error('startTutorial: startScenarioInCreative not available');
-    return;
-  }
-  startScenarioInCreative(scenarioName);
-
   const make = (typeof SCENARIOS !== 'undefined') ? SCENARIOS[scenarioName] : null;
   const spec = make && make._json5_spec;
   const tut = spec && spec.tutorial;
+  const tutMode = (tut && tut.mode) || 'fortress';
+
+  // Boot the stage. Both boot paths run BEFORE _tutorialState is set,
+  // so their internal endTutorial() calls are no-ops.
+  if (tutMode === 'legends') {
+    // ENGINE v3 — Simulation-mode tutorial: switch to legends and preset
+    // the setup row; the player presses Grow themselves (that's a lesson).
+    if (typeof switchMode !== 'function') {
+      console.error('startTutorial: switchMode not available');
+      return;
+    }
+    switchMode('legends');
+    const preset = (tut && tut.preset) || {};
+    const scenEl = document.getElementById('scenario');
+    if (scenEl) scenEl.value = preset.scenario || scenarioName;
+    if (preset.seed != null) {
+      const seedEl = document.getElementById('seed');
+      if (seedEl) seedEl.value = String(preset.seed);
+    }
+    if (preset.steps != null) {
+      const stepsEl = document.getElementById('steps');
+      if (stepsEl) stepsEl.value = String(preset.steps);
+    }
+    _legendsPlaybackStep = 0;
+  } else {
+    // Legacy path — boot the underlying scenario in Creative Mode.
+    if (typeof startScenarioInCreative !== 'function') {
+      console.error('startTutorial: startScenarioInCreative not available');
+      return;
+    }
+    startScenarioInCreative(scenarioName);
+  }
+
   if (!tut || !Array.isArray(tut.steps) || !tut.steps.length) {
     console.warn('startTutorial: scenario has no tutorial.steps:', scenarioName);
     return; // scenario still runs, just without overlay
   }
-  _tutorialState = { steps: tut.steps.slice(), stepIdx: 0, renderedIdx: -1 };
+  _tutorialState = { steps: tut.steps.slice(), stepIdx: 0, renderedIdx: -1, mode: tutMode };
   document.body.classList.add('tutorial-active');
 
   // Starting whitelist. Legacy tutorials (no tutorial.unlock field) keep
@@ -236,13 +294,18 @@ function startTutorial(scenarioName) {
     document.querySelectorAll(sel).forEach(el => el.classList.add('tutorial-allow'));
   }
 
-  // Engine-v2 listeners: Enter/Space for continue steps; delegated
-  // click/change for action steps. Bubble phase for the action
-  // listeners so the game's own handler runs FIRST (e.g. the ⌇
-  // toggle creates #helix-legend before the next step anchors to it).
+  // Engine-v2/v3 listeners: Enter/Space for continue steps; delegated
+  // click/change/input for action steps, on the CAPTURE phase so the
+  // match is recorded BEFORE the game's own handler can detach the
+  // target (the collect button re-renders the inventory synchronously,
+  // which would kill a bubble-phase listener — engine v3). The advance
+  // itself is DEFERRED one tick so the game handler still runs first
+  // (e.g. the ⌇ toggle creates #helix-legend before the next step
+  // anchors to it).
   document.addEventListener('keydown', _tutorialKeydown, true);
-  document.addEventListener('click', _tutorialActionEvent, false);
-  document.addEventListener('change', _tutorialActionEvent, false);
+  document.addEventListener('click', _tutorialActionEvent, true);
+  document.addEventListener('change', _tutorialActionEvent, true);
+  document.addEventListener('input', _tutorialActionEvent, true);
 
   // Fire any steps whose trigger is already satisfied (typically the
   // welcome step, or step:0 in the legacy tutorials).
@@ -255,9 +318,24 @@ function endTutorial() {
   document.querySelectorAll('.tutorial-allow').forEach(el => el.classList.remove('tutorial-allow'));
   document.querySelectorAll('.tutorial-spotlight').forEach(el => el.classList.remove('tutorial-spotlight'));
   document.removeEventListener('keydown', _tutorialKeydown, true);
-  document.removeEventListener('click', _tutorialActionEvent, false);
-  document.removeEventListener('change', _tutorialActionEvent, false);
+  document.removeEventListener('click', _tutorialActionEvent, true);
+  document.removeEventListener('change', _tutorialActionEvent, true);
+  document.removeEventListener('input', _tutorialActionEvent, true);
   hideCallout();
+}
+
+// ENGINE v3 — consulted by switchMode() (js/94-ui-menu.ts) before it
+// tears down a running tutorial. A switch to the tutorial's home mode
+// or to a mode the CURRENT step sanctions (allowModes) keeps the
+// tutorial alive; anything else ends it. With no tutorial running the
+// return value preserves the legacy shape (endTutorial no-ops anyway).
+function _tutorialAllowsMode(mode) {
+  const s = _tutorialState;
+  if (!s) return mode === 'fortress';
+  const home = s.mode || 'fortress';
+  if (mode === home) return true;
+  const st = (s.stepIdx < s.steps.length) ? s.steps[s.stepIdx] : null;
+  return !!(st && Array.isArray(st.allowModes) && st.allowModes.includes(mode));
 }
 
 // ---- trigger classification -------------------------------------
@@ -306,8 +384,13 @@ function _maybeAdvanceTutorial() {
     if (s.renderedIdx !== s.stepIdx) _renderTutorialStep(s.stepIdx, trig);
     return;
   }
-  if (typeof fortressSim === 'undefined' || !fortressSim) return;
-  const cur = fortressSim.step || 0;
+  // v3: legends tutorials trigger off the narrative PLAYBACK position
+  // (ticked from displayLines); fortress tutorials off the live sim.
+  const isLegends = (s.mode === 'legends');
+  if (!isLegends && (typeof fortressSim === 'undefined' || !fortressSim)) return;
+  const cur = isLegends
+    ? ((typeof _legendsPlaybackStep !== 'undefined') ? _legendsPlaybackStep : 0)
+    : (fortressSim.step || 0);
   // Walk forward, consuming every due sim-step step; the last fired
   // one's callout is shown. Stop at the first continue/action step or
   // undue threshold.
@@ -386,6 +469,10 @@ function _tutorialKeydown(e) {
   const t = e.target;
   if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' ||
             t.tagName === 'SELECT' || t.isContentEditable)) return;
+  // v3: the legends narrative's own continue-pill is a focused
+  // role=button div that activates on Enter/Space — never steal its
+  // keypress (see the authoring caveat in the header).
+  if (t && t.closest && t.closest('.narrative-continue-pill')) return;
   // A focused game button would ALSO activate on Space/Enter — blur it
   // so one keypress can't both advance the tutorial and press a button.
   if (t && t.tagName === 'BUTTON') t.blur();
@@ -395,6 +482,9 @@ function _tutorialKeydown(e) {
 }
 
 function _tutorialActionEvent(e) {
+  const s = _tutorialState;
+  if (!s) return;
+  const stepIdx = s.stepIdx;
   const st = _tutCurrentStep();
   if (!st || _tutStepTrigger(st) !== 'action') return;
   const a = st.action;
@@ -405,6 +495,16 @@ function _tutorialActionEvent(e) {
   const hit = t.closest(a.selector);
   if (!hit) return;
   // Optional checkbox-state expectation (e.g. Dormant must be UNchecked).
+  // On the 'input'/'change' events the value is already committed; on a
+  // raw 'click' of a checkbox it may not be — but our checkbox actions
+  // use 'change', so reading hit.checked here is correct.
   if (typeof a.checked === 'boolean' && ('checked' in hit) && hit.checked !== a.checked) return;
-  _tutorialAdvance();
+  // DEFER the advance one tick (capture phase — the target's own handler
+  // hasn't run yet). This lets the game react first (create #helix-legend,
+  // save the collected crystal + re-render the inventory, open the zone
+  // modal, switch mode) before the next step renders + anchors. Guard on
+  // stepIdx so a stray second event in the same tick can't double-advance.
+  setTimeout(() => {
+    if (_tutorialState === s && s.stepIdx === stepIdx) _tutorialAdvance();
+  }, 0);
 }

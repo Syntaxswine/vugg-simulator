@@ -152,7 +152,14 @@ window.hideCallout = hideCallout;
 // `unlock` arrays (tutorial-level `unlock` defaults to ['#f-advance']
 // for the legacy sim-step tutorials).
 
-let _tutorialState = null; // { steps: [...], stepIdx, renderedIdx } | null (engine v2 — see 70a)
+let _tutorialState = null; // { steps: [...], stepIdx, renderedIdx, mode } | null (engine v2/v3 — see 70a)
+
+// ENGINE v3 — the narrative playback position for legends-mode
+// tutorials. Legends runs the whole sim synchronously up front, then
+// displayLines paces the story; `step: N` tutorial triggers in legends
+// mode fire against THIS counter (written from displayLines' per-step
+// header sync + completion), not against the sim's final step count.
+let _legendsPlaybackStep = 0;
 
 window.startTutorial = startTutorial;
 window.endTutorial = endTutorial;
@@ -365,6 +372,17 @@ const EVENT_REGISTRY = {
   grimsel_seal_2: event_grimsel_seal_2,
   grimsel_breach_2: event_grimsel_breach_2,
   grimsel_late_carbonate: event_grimsel_late_carbonate,
+  // 2026-07-05 — Shigar Valley aquamarine pegmatite (Gilgit-Baltistan,
+  // Pakistan): the beryl-family's anchor scenario + Tutorial 4's stage.
+  // Seven pocket-story beats; the hf_etch is the Shigar signature.
+  // See js/70w-shigar.ts.
+  shigar_outer_shell: event_shigar_outer_shell,
+  shigar_first_schorl: event_shigar_first_schorl,
+  shigar_cleavelandite: event_shigar_cleavelandite,
+  shigar_aqua_saturation: event_shigar_aqua_saturation,
+  shigar_topaz_window: event_shigar_topaz_window,
+  shigar_hf_etch: event_shigar_hf_etch,
+  shigar_final_cooling: event_shigar_final_cooling,
 };
 
 // Minimal JSONC parser — strips // line + /* */ block comments and
