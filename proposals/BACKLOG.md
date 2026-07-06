@@ -2,6 +2,37 @@
 
 Living list of open work items, captured from session conversations so context survives compaction. Each item has enough detail that someone picking it up cold can act without re-discovering the rationale.
 
+> ## 🧱→🎨 WALL UX (2026-07-06, boss asks off the O2/C0 review) — WALL DISPLAY TOGGLE + MATRIX SKINS SHIPPED `37353c1`; **LOCAL CRYSTAL COLOR QUEUED**
+>
+> Boss, reviewing the O2 druse screenshots: *"i'd like to be able to turn the display of the
+> vugg wall on or off. i think the vugg wall should also have a specific texture skin that
+> tells you what kind of matrix it is. another one on the todo list is local color for
+> crystals, that will resolve your concern about minerals that share space blending together
+> invisibly."*
+>
+> **SHIPPED `37353c1`** (render-only, byte-identical baseline, CI 158/2222): `topo-wall-btn`
+> cycles solid → translucent(0.18, the druse-portrait view) → hidden, composed with the
+> camera insideMode at one point (`_topoApplyWallDisplay`, js/99i). 13 procedural lithology
+> skins (js/99a `_matrixSkinTexture`, deterministic LCG, field-guide palette) mapped onto new
+> static WallMesh UVs; renderer resolves `wall.matrix ?? wall.composition`; 8 note-backed
+> matrix overrides where composition is a physics proxy (chiastolite→hornfels, marble→marble,
+> grimsel→granite, tormiq→amphibolite, ouro_preto→phyllite, wittichen→granite,
+> ultramafic_supergene→ultramafic, elmwood→dolomite). **THE DOUBLE-WHITELIST TRAP is real:**
+> a scenarios.json5 wall flag must survive BOTH VugWall's constructor copy AND the js/85
+> WallState mirror — `matrix`+`composition` now mirrored (cavity_render idiom), pinned by
+> tests-js/matrix-skin.test.ts.
+>
+> **▸ QUEUED — LOCAL CRYSTAL COLOR (boss todo, not yet built):** per-crystal color variance
+> so same-species neighbors and translucent overlaps read as SEPARATE individuals — the
+> boss's answer to the O2 caveat (satellite fill + translucent minerals blending; satellites
+> stay decorative, color is the fix, NOT satellite clipping). Bedrock version reads each
+> crystal's OWN zone traces (Fe/Mn/… already recorded per zone) → hue/tone shift, the
+> chemistry-exact idiom (wulfenite 4a.7 / calcite C0); cheap first cut = per-crystal_id
+> deterministic jitter, upgraded when Depth-C colour lands (see
+> HANDOFF-FROZEN-G-AND-OPTICS-A-2026-07-02.md — Depth-C is "on call"). Sequencing note:
+> volcanic-hosted scenarios (sunnyside/roughten_gill/sulphur_bank) kept the basalt skin —
+> no note-backed finer host; a future data pass may name andesite/rhyolite.
+
 > ## 🎓 DETOUR (2026-07-04→05, the tutorial arc) — THE TUTORIALS CAUGHT UP TO THE GAME: ENGINE v2→v3 + FOUR TUTORIALS + shigar_pegmatite — **detour handoff: `HANDOFF-TUTORIALS-2026-07-05.md`** (a side-arc off the roadmap; for the MAIN line read the foundations handoff below)
 >
 > Boss: *"the game has expanded so much I think we really need to update it"* → then *"we
