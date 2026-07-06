@@ -33,7 +33,20 @@ Living list of open work items, captured from session conversations so context s
 > surfaces should auto-generate from SCENARIOS (vugg-add-scenario §10.5 TODO). Traps in the
 > handoff (native prompt() hangs preview; v116 picker guard; fortress RNG non-determinism).
 
-> ## 🧱 SESSION (2026-07-03→06, the foundation) — THE ROADMAP'S RENDER-ONLY ONTOGENY CORE: V0 CLEFT-TRUTH + O0 HALF-FORMS + O1a EXPOSURE + **O2 INDUCTION SURFACES** — **CURRENT HANDOFF (the main line): `HANDOFF-FOUNDATIONS-2026-07-03.md` (+ its dated addenda through the O2 act 2026-07-06)**
+> ## 🧱 SESSION (2026-07-03→06, the foundation) — V0 CLEFT-TRUTH + O0 HALF-FORMS + O1a EXPOSURE + **O2 INDUCTION SURFACES** + **C0 THE CALCITE σ LEVER (boss stone #1)** — **CURRENT HANDOFF (the main line): `HANDOFF-FOUNDATIONS-2026-07-03.md` (+ its dated addenda through the σ-lever act 2026-07-06)**
+>
+> **C0 UPDATE (`299a270` SIM 217, 2026-07-06, CI 157/2211):** boss stone #1 SHIPPED by the
+> 4a.7 recipe. calciteMorphForm gains the Ω branch (OMEGA_SCALENO=12, the fleet's own
+> measured gap; subaqueous-gated — air drip films keep Mg/T; González/Carpenter/Lohmann 1992
+> + García-Carmona 2003 + Weremeichik 2024). SWEEP: ONE flip — deccan calcite → its iconic
+> golden dogtooth (locked); all other genres HOLD; elmwood dual-fenced (Mg AND Ω — the 10%-
+> margin fragility fixed). RENDER RIDER: calcite Wulff biasC=B(Ω̄) live integral
+> (`_wulffCalInt`), id-hash retired (2nd tenant after wulfenite); mvt verified 0.248 blunt.
+> **The Ca:CO₃ half: RECORDED, NO sim signal (bookkeeping pool ≠ activity) — gate
+> PRE-REGISTERED for B5.** Confinement: baseline 0/38, strips 0/38 CONTENT (word-blind), the
+> flip lives in the test pins (+15). O1b measured en route: 8 Wulff crystals fleet-wide →
+> DEFERRED (ripens as tenants grow). Probe: `tools/c0-calcite-form-probe.mjs`. **C0's OPEN
+> half: the T2 acceptance pair wants A1 anchors (specimen 1298 named for dogtooth).**
 >
 > **O2 UPDATE (`eea52bc`, 2026-07-06, render-only, 0/38 drift, CI 156/2196):** induction
 > surfaces — crystals clipped at growth-rate-weighted meeting planes, cuts capped MATTE. The

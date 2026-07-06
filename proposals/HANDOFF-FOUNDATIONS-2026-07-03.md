@@ -309,3 +309,65 @@ draw the brackets; one day it will read them back.
 Measure before you estimate, cap your own cuts, and let the crowd leave its mark on the stone.
 
 — the builder, fifth hand, the induction-surfaces act · 2026-07-06
+
+---
+
+## Addendum — C0, THE CALCITE σ LEVER (same hand, second act · 2026-07-06)
+
+The boss said *"keep going while I review"* — so the roadmap's #1 stone came next. En route,
+O1b neighbor-shadow was measured (8 Wulff crystals fleet-wide — the same near-no-op scoping
+O2's probe caught) and DEFERRED; it ripens as tenants grow. C0 shipped `299a270`, SIM 217,
+CI 157/2211, Pages-verified.
+
+**What shipped.** `calciteMorphForm` gains the Ω branch: sustained textbook-Ω > 12
+(OMEGA_SCALENO, placed in the fleet's own measured gap) in SUBAQUEOUS growth →
+scalenohedral, independent of Mg/T. Direction from González, Carpenter & Lohmann 1992 +
+García-Carmona 2003 + Weremeichik 2024 (whose subaqueous-spar applicability IS the air
+gate); magnitude from `tools/c0-calcite-form-probe.mjs` — growth-weighted per-crystal Ω̄
+against each crystal's OWN CELL fluid, never transcribed from a paper. Sweep: EXACTLY ONE
+flip — deccan's calcite becomes the iconic Deccan golden dogtooth (genre improvement,
+regression-locked); every other genre holds; the Ω≈1500 stalactites correctly don't flip.
+Render rider: calcite Wulff biasC = B(Ω̄) from a live integral (`_wulffCalInt`), the id-hash
+retired — mvt's slow-spar tooth reads blunt 0.248, verified.
+
+**The honest finding the stone is named for and doesn't do:** the Ca:CO₃ half carries NO
+signal in this sim — dogtooth r̄ 2.0–3.1 interleaved with nailhead 1.6–4.5, because
+`fluid.CO3` is a bookkeeping pool, not an activity. It is RECORDED in the integral,
+direction pinned to Kirov 1972 + Stack & Grantham 2010, and its gate is PRE-REGISTERED for
+the B5 speciation era. When B5 lands, re-probe and open the second half.
+
+**Traps paid here:** (1) elmwood is NOT the wulff_calcite tenant — mvt is; elmwood's stepped
+dogtooth renders via the TERRACE path (biasC-blind) and takes C0 at the WORD level
+(dual-fenced: Mg 0.165 AND cell-Ω̄ 28.6). I wrote the steep-tooth claim into two doc blocks
+before checking which scenario owns the flag — the post-build verify caught it; census the
+CONSUMER before writing the payoff. (2) A synthetic test broth (Ca600/CO3400/pH8) turned out
+to be Ω=157 water — the old pin was asking supersaturation-157 water for a nailhead. When a
+fence earns new physics, sweep the synthetic broths too: they encode the OLD fence's
+accidents. (3) The strips are word-blind (0/38 content) — the deccan flip lives only in the
+test suite's pins. Know which instrument can see your change BEFORE you claim confinement.
+
+### The mark — what this act adds
+
+**A boss stone can be half-buildable, and saying so IS the build.** The stone's name promises
+two levers; the probe showed the sim can only honestly power one today. Shipping σ now and
+pre-registering r for B5 — with the direction citations already in place — beats either
+waiting for B5 or gating on noise dressed up as chemistry. A stone laid honestly at half its
+named size still bears load; a full-size stone with a hollow half does not.
+
+**The recipe transfers.** Probe → law → calibrate on the sim's own scale → sweep → ship,
+proven on wulfenite 4a.7, ran here on a FENCE instead of a bias map without modification.
+Two runs make it a road: the next chemistry lever (fluorite's Y is already earned; barite's
+σ-habit fence is a candidate) should cost less than this one did.
+
+**The dream, this act's telling.** Elmwood's tooth no longer hangs on a 10% Mg margin — the
+same rock is now held up by two independent physical claims, either sufficient. That is what
+"byte-identical to nature" actually converges through: not one perfect parameter, but every
+render claim standing on ENOUGH independent physics that no single calibration owns it. The
+day a specimen disagrees with the sim, I want the argument to be about which LAW is wrong,
+not which knob drifted. Redundant truth is the only kind that survives contact with a drawer
+full of rocks.
+
+Lay the stone at its honest size, name the half you deferred, and leave the citations where
+the next hand can check them.
+
+— the builder, fifth hand, the σ-lever act · 2026-07-06
