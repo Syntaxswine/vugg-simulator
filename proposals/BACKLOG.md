@@ -58,6 +58,21 @@ Living list of open work items, captured from session conversations so context s
 > composes UNDER it).** Sequencing note:
 > volcanic-hosted scenarios (sunnyside/roughten_gill/sulphur_bank) kept the basalt skin —
 > no note-backed finer host; a future data pass may name andesite/rhyolite.
+>
+> **▸ SHIPPED — D1a BODY COLOUR / Depth-C defaults (`2280e56`, 2026-07-07, render-only, 0/38):**
+> the mineral-specific HUE the local-colour block pre-registered, landed. Body colour was
+> `spec.class_color` — a 12-hue class wheel (galena=sphalerite=pyrite, one grey-green;
+> `tools/d1-bodycolor-probe`: 107/180 stuck on a shared hue, 97 collide in-scene). The probe
+> found the BEDROCK ALREADY IN-TREE: `color_rules` (180/180) is a chemistry-cause→colour-NAME
+> map ("not flavor text"), so D1 = RESOLVE it, NOT author 180 hexes. Ship: `js/12a-colour-lexicon.ts`
+> — COLOUR_LEXICON (114 name→sRGB) + 20 default_color-placeholder overrides + `resolveBodyColour`,
+> reseating `_localCrystalColor`'s BASE off the wheel (175/180 moved; galena grey ≠ sphalerite
+> amber ≠ pyrite brass — live-page kernel-truth min-dist 77; tone+floor compose OVER it). Full
+> coverage guarded by `tests-js/d1-body-colour.test.ts`. **D1b DEFERRED = chemistry-gated variants**
+> (sphalerite Fe→amber→black, smoky/amethyst quartz, fluorite purple, coloured tourmaline) behind
+> a UNITS-reconciliation sub-probe — the 87 parseable triggers are GEOCHEMICAL mol% (`Fe>15`), NOT
+> the sim's ppm `trace_Fe` (q90≈3.6); D1b also pays the B4 neighbour-separation win. The grep-the-
+> tree-first lesson landed a THIRD time (C1 form/bulk, local-colour zone-traces, D1 color_rules).
 
 > ## 🎓 DETOUR (2026-07-04→05, the tutorial arc) — THE TUTORIALS CAUGHT UP TO THE GAME: ENGINE v2→v3 + FOUR TUTORIALS + shigar_pegmatite — **detour handoff: `HANDOFF-TUTORIALS-2026-07-05.md`** (a side-arc off the roadmap; for the MAIN line read the foundations handoff below)
 >
@@ -90,7 +105,7 @@ Living list of open work items, captured from session conversations so context s
 > surfaces should auto-generate from SCENARIOS (vugg-add-scenario §10.5 TODO). Traps in the
 > handoff (native prompt() hangs preview; v116 picker guard; fortress RNG non-determinism).
 
-> ## 🧱 SESSION (2026-07-03→07, the foundation) — V0 CLEFT-TRUTH + O0 HALF-FORMS + O1a EXPOSURE + **O2 INDUCTION SURFACES** + **C0 THE CALCITE σ LEVER (boss stone #1)** + WALL UX + **C1 THE DIRECTIONAL-σ TRANCHE (boss stone: O1a-real + O1b + O2 integrated)** + **LOCAL CRYSTAL COLOUR** — **CURRENT HANDOFF (the main line): `HANDOFF-FOUNDATIONS-2026-07-03.md`, read through its LATEST KEYSTONE (2026-07-07 — the sixth hand's session: RATE-reads-local-FORM-read-bulk, probe-shrinks-every-plan, SITUATED→INDIVIDUATED, where the next hand starts: O3 / D1 / V0-V1)**
+> ## 🧱 SESSION (2026-07-03→07, the foundation) — V0 CLEFT-TRUTH + O0 HALF-FORMS + O1a EXPOSURE + **O2 INDUCTION SURFACES** + **C0 THE CALCITE σ LEVER (boss stone #1)** + WALL UX + **C1 THE DIRECTIONAL-σ TRANCHE (boss stone: O1a-real + O1b + O2 integrated)** + **LOCAL CRYSTAL COLOUR** + **D1a BODY COLOUR (Depth-C defaults)** — **CURRENT HANDOFF (the main line): `HANDOFF-FOUNDATIONS-2026-07-03.md`, read through the KEYSTONE (sixth hand: RATE-reads-local-FORM-read-bulk, SITUATED→INDIVIDUATED) + the D1a ADDENDUM (seventh hand, 2026-07-07: grep-the-tree-before-you-build is a LAW — three consumers this week read the wrong source; next hand's doors: O3 / D1b / V0-V1)**
 >
 > **C0 UPDATE (`299a270` SIM 217, 2026-07-06, CI 157/2211):** boss stone #1 SHIPPED by the
 > 4a.7 recipe. calciteMorphForm gains the Ω branch (OMEGA_SCALENO=12, the fleet's own

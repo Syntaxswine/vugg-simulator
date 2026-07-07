@@ -588,3 +588,57 @@ every crystal an individual — because a crowd that all looks alike has forgott
 population.
 
 — the builder, sixth hand, the keystone · 2026-07-07
+
+---
+
+## Addendum — D1a, THE BODY-COLOUR ACT (a new hand, off the keystone's menu · 2026-07-07)
+
+The sixth hand's keystone named three doors — O3, D1, V0/V1 — and the boss picked **D1: Depth-C
+body colour**. So the seventh hand took the render-only colour door, the one whose on-ramp the
+sixth hand had already built (local crystal colour). Shipped `2280e56`, render-only, seed-42
+baseline byte-identical (0/38), Pages-verified, CI green (16 colour pins + full lexicon coverage;
+the 7 full-suite reds were stochastic e2e nucleation flakes under 11× load — green in isolation,
+not on D1's render-time path).
+
+**The probe found the bedrock already in the tree — for the THIRD time this week.** Colour was
+`spec.class_color`, a 12-hue class wheel (galena = sphalerite = pyrite, one grey-green). I
+expected D1 to mean authoring ~180 real hexes. The probe (`tools/d1-bodycolor-probe`) said
+otherwise: `color_rules` — present for all 180 species, authored as "not flavor text" — is a full
+chemistry-cause → colour-NAME map. Calcite white, galena lead-grey, cinnabar cochineal-red,
+sphalerite pale-yellow/honey-brown/black-marmatite-by-Fe: the sourced science was already sitting
+in the data, unrendered. D1 wasn't authoring; it was RESOLVING — a name→sRGB lexicon (114 names) +
+a resolver, reseating one line in `_localCrystalColor`. The sixth hand's keystone lesson — *point
+the consumer at the truth the sim already holds* — landed a third time: C1 (form read bulk σ, not
+cell σ), local colour (zone traces unread), now D1 (color_rules unrendered). Three in a row is not
+a coincidence; it is a LAW of this codebase. **Before you build a new machine, grep for what the
+sim already knows and isn't reading.** This tree accretes truth ahead of its consumers.
+
+**The probe shrank the plan honestly, and caught a units trap the eye never would.** The 87
+machine-parseable chemistry triggers (`Fe 2-10`, `black_marmatite Fe>15`) are written in
+GEOCHEMICAL units — mol% substitution — but the sim's `trace_Fe` field is ppm-scale (fleet q90 ≈
+3.6). `Fe>15` mol% would never fire against a ppm trace; a naive evaluator would have shipped a
+chemistry axis that silently did nothing. So the tranche boundary drew itself: **D1a = the
+DEFAULTS** (unconditional, units-independent, fixes 100% of the collision), **D1b = the
+chemistry-gated variants** behind a units-reconciliation sub-probe. A stone laid at its honest
+size — the fifth hand's C0 lesson, reused.
+
+**Fidelity is sometimes restraint.** The resolved defaults leave genuinely-same-colour minerals
+genuinely the same: calcite and witherite both white, brochantite and antlerite both emerald,
+raspite and stolzite (literally the same PbWO₄) both honey. The instinct is to spread them for
+legibility — but real specimens of these ARE hard to tell apart by colour, and the shipped id-hash
+floor already separates their individuals. Over-separating would be LESS true. Defer to the rock:
+two white carbonates in one vug should read as two whites. The colour that individuates is the
+colour that's really there.
+
+**The dream, seventh telling.** The sixth hand dreamed the inverse solver reading the crowd's
+VARIANCE — the spread of exposures and tints across a druse. D1a makes that spread MEANINGFUL: a
+crowd now differs by real species-chemistry (galena grey beside sphalerite amber), not only by an
+id-hash nudge. And D1b is where colour becomes an instrument: when the Fe-axis lights up, a druse
+of sphalerites grading amber-to-black IS a readout of the iron gradient the fluid left behind —
+colour as a chemistry map you can see across the whole population. Today we gave the crowd its
+real palette. Tomorrow the palette becomes the data.
+
+Grep the tree before you build; lay the stone at its honest size; and let the rock keep the
+colours it actually has.
+
+— the builder, seventh hand, the body-colour act · 2026-07-07
