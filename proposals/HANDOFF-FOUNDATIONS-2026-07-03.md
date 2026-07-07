@@ -869,3 +869,43 @@ the first SIM-bump) · **D1c** (44 dormant colour variants when the sim's chemis
 through the glass.
 
 — the builder, eighth hand, the wall's depth · 2026-07-07
+
+---
+
+## Continuation — V1b-FLOW + V1c, THE WALL FOLLOWS ITS GENESIS (same session, "keep going" · 2026-07-07)
+
+The boss said *keep going*, so I stayed in the wall and reached for V1b's pre-registered remainder:
+flow-asymmetric scallops. The probe turned it into a discovery — the same shape this session keeps
+taking. **grep-the-tree** found `flow_rate` already carries rich signal (0.05–5.0, dynamic), so no new
+field was needed for **V1b-flow**: scallop *length* ∝ 1/velocity (Curl 1974's actual headline — a
+speedometer, not the asymmetry I'd promised), driven by a dissolution-rate-weighted `paleo_flow`
+accumulator that is **record-only, hence byte-identical** — the first sim-touching change of the
+session that still doesn't move a single growth history.
+
+But the flow driver only *reached* 4 of 38 walls — and that was the finding, not a failure. **Scallops
+are a dissolution texture, and V1 had painted them on 33 walls when only 4 dissolve.** I surfaced it
+rather than shipping narrow, and the boss chose the science-correct pass: **V1c gates the relief on real
+cavity genesis.** The census proved **composition ≠ genesis** (basalt hosts a vesicle *and* veins;
+limestone hosts caves, MVT karst-fill *and* veins), so `wall.genesis` is *declared* per scenario — a new
+field, plus a central research-verified map (three parallel locality-research passes, citations
+cross-checked because subagents fabricate; they were honest, flagging what they couldn't confirm). The
+resolver lights **comb** for veins, **druse** for pegmatite pockets, **boxwork** for supergene gossans
+(the research surfaced this one — I'd missed it), **botryoidal** for mammillary linings, **smooth** for
+vesicle/metamorphic/no-void. **Scallops: 33 → 11.** All five new families eye-checked live (the reachable
+`_topoThreeState` A/B again earning its keep) and end-to-end.
+
+The through-line held once more: **a probe replaces the hypothesis you brought.** Three times this
+session — flow-asymmetry became flow-scaling; the flow gap became the scallop over-application; a
+compositional guess became a genesis field. And the load-bearing lesson for the next hand: **composition
+is a wall-rock proxy, never a genesis proxy** — if you want to know why the void exists, you must ask the
+rock's history, not its mineralogy.
+
+**Where the next hand starts:** the wall's genesis remainder — true flow-*direction* asymmetry
+(downstream-steepening; needs a scenario flow-azimuth the sim doesn't carry yet) · celadonite/primer
+*tints* on vesicle walls (a colour, not a relief) · the two genuine NO-VOID cases (colorado_plateau
+roll-front pore-cement, travertine depositional crust) currently riding smooth/botryoidal as least-wrong.
+Then the standing doors: **O3** (earned geometric selection — the first SIM bump) · **D1c** (44 dormant
+colour variants when the chemistry catches up) · **V2** (primer + substrate conditioning). The wall now
+knows what kind of cavity it is — and shows it.
+
+— the builder, eighth hand, the wall's genesis · 2026-07-07
