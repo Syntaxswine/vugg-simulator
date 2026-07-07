@@ -744,3 +744,84 @@ Build it, wire it, and then LOOK — because the wall that photographs smooth wa
 matter what the code says.
 
 — the builder, seventh hand, third act · 2026-07-07
+
+---
+
+## KEYSTONE — the seventh hand's session, whole (2026-07-07, the boss asked to craft it)
+
+The sixth hand's keystone named three doors — O3, D1, V0/V1 — and left them for whoever came next.
+I came next, and over one session walked through two of them (D1, then V1), each in its render-only
+tranche. Here is the arch, whole.
+
+| commit | what |
+|---|---|
+| `2280e56` | **D1a body colour** — color_rules DEFAULTS resolved into real per-species hue; the 12-hue class wheel retired as the base (galena grey ≠ sphalerite amber ≠ pyrite brass; 175/180 moved) |
+| `3c58a37` | **D1b chemistry axes** — colour as a per-crystal chemistry READOUT: sphalerite/wurtzite Fe→amber→black, quartz clear→smoky→morion |
+| `d6ab4c6` | **V1 wall microtexture** — the cavity's GENESIS as surface relief: dissolution scallops, cleft striations, basin rind |
+| `45211af` `548aaa6` `6b5e870` | the docs passes — three act addenda, roadmap rows, backlog |
+
+Every code commit render-only, seed-42 byte-identical (0/38, confirmed each time), Pages built==HEAD,
+cold-ci GREEN each time (161 files). Five instruments committed along the way: `d1-bodycolor-probe`,
+`d1b-units-probe`, `v1-wall-census`, plus the standing baseline + cold-ci. Deferred with NUMBERS, not
+hand-waved: **D1c** (44 colour variants need a trace field the sim lacks — Cr×12, Li, Co…; 57 more
+have the field but never reach threshold) and **V1b** (flow-asymmetric scallops; an AO channel that
+reads through translucency) — cut stones waiting for the wall to reach them.
+
+### The mark — what the keystone adds
+
+**Three rungs, three ways of learning you were wrong.** The sixth hand's keystone was about one
+instrument — the probe — run at every rung. This session ran three DIFFERENT instruments of knowing,
+and each caught a different species of error:
+- **the grep** (D1a): I thought colour meant authoring 180 hexes. The tree already held `color_rules`
+  — the truth was in the data, unread. *Grep before you build.*
+- **the probe** (D1b): I thought the chemistry triggers were unusable mol%. The probe found sphalerite
+  Fe reaches 40 ppm (the axis fires) AND handed me two errors I hadn't imagined — the
+  "<"-fires-on-a-blank-field trap and the darkening-ladder gap. *A probe replaces the hypothesis you
+  brought.*
+- **the eye** (V1): every unit check passed and the relief was invisible at normalScale 0.5. Only a
+  screenshot knew. *Wired is not visible; the eye-check is the acceptance test.*
+
+Grep, probe, eye — three lenses, and NOT ONE of the three plans survived first contact with its
+instrument intact. The discipline of this project was never "have a good plan." It is: own the
+instrument that proves the plan wrong, and run it before you believe yourself.
+
+**And watch what the session BUILT beneath the method: it made the specimen READABLE.** The sixth
+hand individuated the crowd — each crystal its own exposure, its own tint. This hand gave the render
+its READABLE CHANNELS: a crystal's SPECIES is now in its colour, its CHEMISTRY is in how that colour
+deepens, and the CAVITY'S OWN HISTORY is in the texture of the wall behind it. A druse this morning
+was thirty individuals of ambiguous colour on a smooth void. Tonight it is a document — you can read
+the minerals off their hues, the iron gradient off the ambers-to-blacks, the genesis off the
+scalloped or striated wall. INDIVIDUATED became LEGIBLE.
+
+**The dream, keystone telling.** Every prior hand dreamed the inverse solver reading a label-less
+rock back into its history — its water, its crowd, its direction, its variance. This session added
+the CHANNELS that reading will use, and built each one honestly limited to what the sim can truly
+drive, with the rest deferred by name. That honesty is the whole point. The day a photograph of a
+real druse and a render of the sim's druse sit side by side and cannot be told apart, it must be
+because every readable feature — the hue that names the mineral, the darkening that maps the iron,
+the scallop that remembers the flow — is driven by the SAME physics the rock obeyed, not painted to
+match. We did not make the render prettier today. We turned three of its features from decoration
+into MEASUREMENT. The bench's T2 is a specimen you cannot tell from its render on any metric you can
+afford to measure; this session moved three metrics across that line. The distance to the rock shrank
+not because we faked the rock better, but because more of the render became true.
+
+**Diagenesis — what this stood on.** Three shipped rungs in a day is not solo speed. D1a/D1b grew on
+the local-colour on-ramp the sixth hand laid the night before; V1 grew on the matrix-skin pipeline and
+the `architecture` field V0 had already mirrored to the render wall; every rung was scoped by the
+probe/census idiom from the Wulff arc and proven byte-identical by the seed-42 baseline and cold-ci
+earlier hands built. The velocity was borrowed from every hand that cut a stone I got to lean on.
+
+**Where the next hand starts.** The render-only colour and genesis layers are in good shape. The
+doors: **O3** — earned geometric selection, the first SIM-bump rung, the ontogeny arc's crown
+(unfavourably-oriented crystals OVERGROWN, not painted; Gray d^(−1/2) oracle); **D1c** — when the
+sim's chemistry catches up (Cr/Li/REE trace fields → 44 dormant colour variants light up with no
+render change, the evaluator is general); **V1b/V2** — flow-asymmetric scallops + the deeper cavity
+genesis. Boss stones read C0 ✅ · C1 ◐ · Depth-C ✅ through D1b. Traps this session bought are in the
+three act addenda above; the load-bearing one: on a render change the eye-check is not optional and
+the tooling WILL fight you (module-scoped scene, intermittent WebGL screenshots) — pay it anyway.
+
+Grep before you build, let the probe rewrite the plan, and LOOK before you call it done — because the
+truth was usually already in the tree, the plan you brought was usually wrong in a way you didn't
+expect, and the wall that photographs smooth was never textured no matter what the code says.
+
+— the builder, seventh hand, the keystone · 2026-07-07
