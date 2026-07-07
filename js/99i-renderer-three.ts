@@ -3653,8 +3653,69 @@ function opticsClarityFor(spec: any): number {
 // init), and it was the shipped behavior for the perimorph/hourglass
 // transparents; one policy, no divergence. Accept minor blend-order
 // softness in deep druses (doc §4.2 mitigation note updated).
+// LOCAL CRYSTAL COLOUR (2026-07-07, boss queued: "local color for crystals,
+// that will resolve your concern about minerals that share space blending
+// together invisibly"). Two honest layers on top of spec.class_color, so
+// same-species neighbours and translucent overlaps read as SEPARATE individuals:
+//
+//   (1) CHEMISTRY — bedrock, generically true. A crystal's growth-weighted
+//       chromophore trace load (Fe/Mn/Ti, normalized by the fleet's own q90 —
+//       tools/localcolor-signal-probe.mjs) DEEPENS its colour (lightness down,
+//       saturation up) via a saturating tanh. Higher-impurity crystals read
+//       deeper; a pure one reads paler/clearer. NO mineral-specific HUE claim —
+//       that (Mn→pink calcite, Fe→amber sphalerite) is Depth-C / D1's job, boss-
+//       gated; this tone modulation composes UNDER it when D1 lands. The probe
+//       showed chemistry mostly separates SPECIES/scenarios, not same-broth
+//       neighbours (they share the broth) — so:
+//   (2) LEGIBILITY FLOOR — a small DETERMINISTIC per-crystal_id hue+value jitter
+//       (two low-discrepancy hashes, RNG-free) guarantees the boss's GOAL for the
+//       trace-free / flat-broth majority (halite cubes, galena, barite). This is
+//       the "later layer" the bedrock-over-effect-hacks rule sanctions — a
+//       legibility aid, explicitly NOT a chemistry claim. Field-guide subtle.
+//
+// Render-only (only matOpts.color), reads zones + id, RNG-free → byte-identical.
+// Chemistry-driven NEIGHBOUR separation (traces from the local depleting cell) is
+// the pre-registered B4 upgrade (solid-solution trace partitioning).
+const LOCAL_COLOR = {
+  REF_FE: 3.6, REF_MN: 1.75, REF_TI: 1.24,   // fleet q90 trace levels (ppm) — the tint reference
+  CHEM_K: 0.7, CHEM_DARKEN: 0.13, CHEM_SAT: 0.10,   // field-guide restraint: even q99-trace crystals stay subtle
+  FLOOR_HUE: 0.04, FLOOR_SAT: 0.12, FLOOR_VAL: 0.13,  // ±0.02 hue / ±0.06 sat / ±0.065 value — 3-axis so
+                                                       // worst-case neighbour separation stays up without any
+                                                       // single axis reading garish (per-axis stays subtle)
+};
+function _localCrystalColor(crystal: any, spec: any): any {
+  const base = _topoParseColor((spec && spec.class_color) || '#d2691e');
+  const hsl: any = { h: 0, s: 0, l: 0 };
+  base.getHSL(hsl);
+  // (1) chemistry — growth-weighted chromophore trace load → tone deepening
+  let feG = 0, mnG = 0, tiG = 0, G = 0;
+  for (const z of (crystal.zones || [])) {
+    const w = z.thickness_um;
+    if (!(w > 0)) continue;
+    feG += (z.trace_Fe || 0) * w; mnG += (z.trace_Mn || 0) * w; tiG += (z.trace_Ti || 0) * w; G += w;
+  }
+  if (G > 0) {
+    const load = (feG / G) / LOCAL_COLOR.REF_FE + (mnG / G) / LOCAL_COLOR.REF_MN + (tiG / G) / LOCAL_COLOR.REF_TI;
+    const chem = Math.tanh(LOCAL_COLOR.CHEM_K * load);
+    hsl.l = Math.max(0, hsl.l - LOCAL_COLOR.CHEM_DARKEN * chem);
+    hsl.s = Math.min(1, hsl.s + LOCAL_COLOR.CHEM_SAT * chem);
+  }
+  // (2) legibility floor — deterministic per-id micro-jitter across 3 axes
+  // (hue, saturation, value) from three low-discrepancy hashes, so two
+  // same-broth neighbours rarely collide on all three at once.
+  const id = crystal && crystal.crystal_id ? crystal.crystal_id : 0;
+  const h1 = ((id * 0.6180339887498949) % 1 + 1) % 1;   // golden-ratio conjugate
+  const h2 = ((id * 0.7548776662466927) % 1 + 1) % 1;   // second low-discrepancy constant
+  const h3 = ((id * 0.5698402909980532) % 1 + 1) % 1;   // third (plastic-number related)
+  hsl.h = ((hsl.h + (h1 - 0.5) * LOCAL_COLOR.FLOOR_HUE) % 1 + 1) % 1;
+  hsl.s = Math.max(0, Math.min(1, hsl.s + (h3 - 0.5) * LOCAL_COLOR.FLOOR_SAT));
+  hsl.l = Math.max(0.03, Math.min(0.97, hsl.l + (h2 - 0.5) * LOCAL_COLOR.FLOOR_VAL));
+  const out = new THREE.Color();
+  out.setHSL(hsl.h, hsl.s, hsl.l);
+  return out;
+}
+
 function buildCrystalMaterial(crystal: any, spec: any, f: any): any {
-  const colorStr = (spec && spec.class_color) || '#d2691e';
   const klass = spec && spec.class;
   const metalness = (klass === 'sulfide' || klass === 'native') ? 0.45 : 0.08;
   let roughness = (klass === 'silicate' || klass === 'oxide') ? 0.42 : 0.62;
@@ -3669,7 +3730,10 @@ function buildCrystalMaterial(crystal: any, spec: any, f: any): any {
   if (f.isCdrPseudomorph) clarity *= 0.5;
   if (f.isGypsumHourglass) clarity = Math.min(clarity, 0.30);
   const matOpts: any = {
-    color: _topoParseColor(colorStr),
+    // LOCAL CRYSTAL COLOUR — per-crystal chemistry tone + deterministic legibility
+    // floor so same-species neighbours read apart (isSectorZoned overrides to
+    // white below — its baked vertex colours are absolute — so no double-tint).
+    color: _localCrystalColor(crystal, spec),
     roughness: f.isPerimorphCast ? Math.min(1.0, roughness + 0.25) : roughness,
     metalness: f.isPerimorphCast ? 0.0 : metalness,
     // DoubleSide for every crystal — inside-the-cavity camera angles cull front-side-only
