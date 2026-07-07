@@ -2,6 +2,28 @@
 
 Living list of open work items, captured from session conversations so context survives compaction. Each item has enough detail that someone picking it up cold can act without re-discovering the rationale.
 
+> ## 🌊 C1 — THE DIRECTIONAL-σ TRANCHE (2026-07-07, boss stone) — SHIPPED `e08ab3d` (render-only); SCALAR-CHEMISTRY HALF DEFERRED
+>
+> Boss said *"continue with the work in the handoff"* → the keystone named C1 next, EV check
+> first. **EV verdict** (`tools/c1-depletion-ev-probe`, the pre-registered mass-conservation
+> check): solute books balance, field real (34% of 1131 fluid crystals ≥10% off bulk). But the
+> code already reads local σ for RATE (`_runEngineForCrystal` swaps cell.fluid); only FORM read
+> bulk. Boss chose the **full directional tranche**. **SHIPPED render-only, 0/38, CI 159/2236:**
+> O1a real per-crystal exposure (voxel base/tip σ gradient → kExp, js/45 `_o1aExp`, retiring the
+> 0.18 fiction — the 13 Wulff tenants are the calm minerals, so they SYMMETRIZE; kernel-truth
+> y-asym 6–10× down) · O1b neighbour shadow (crowd reinforces radial exposure) · O2
+> integrated-growth meeting weights (`total_growth_um`, dissolved/anisotropic drift pop). The
+> frozen-param converse came back EMPTY (biasC/kExp always calibrated independently;
+> `wulff-frozen-g-aspect-sweep` green). Full detail: HANDOFF-FOUNDATIONS §"directional-σ act",
+> ROADMAP O1/O2/C1 rows.
+>
+> **▸ DEFERRED with numbers — the SCALAR-chemistry half:** making biasC / the calcite form gate
+> read cell σ instead of bulk is a no-op TODAY — only 1 calcite Wulff tenant fleet-wide (mvt),
+> and its local Ω sits in a flat biasC band. Re-opens when B5 sharpens σ into activities, or when
+> more chemically-levered Wulff tenants (calcite/fluorite/barite variants) join the fleet. A cut
+> stone awaiting drinkers, same class as the biasC steep end + the r-gate. Also open: O1a/O1b
+> per-FACE directional shadow (this rung is the radial-scalar reduction); O2 concave forms (~174).
+>
 > ## 🧱→🎨 WALL UX (2026-07-06, boss asks off the O2/C0 review) — WALL DISPLAY TOGGLE + MATRIX SKINS SHIPPED `37353c1`; **LOCAL CRYSTAL COLOR QUEUED**
 >
 > Boss, reviewing the O2 druse screenshots: *"i'd like to be able to turn the display of the
