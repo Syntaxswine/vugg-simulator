@@ -825,3 +825,47 @@ truth was usually already in the tree, the plan you brought was usually wrong in
 expect, and the wall that photographs smooth was never textured no matter what the code says.
 
 — the builder, seventh hand, the keystone · 2026-07-07
+
+---
+
+## Continuation — V1b, THE WALL'S DEPTH (a new session, "lets continue building together" · 2026-07-07)
+
+The keystone above sealed the seventh hand's arch and, twice, warned the next hand that "the tooling
+WILL fight you — the THREE scene is module-scoped, no live material A/B." The very first rung of the
+next session **disproved that premise.** `_topoThreeState` is a top-level `let` in a classic-script
+bundle — which means it is a **page global**, reachable straight from `preview_eval`. The scene was
+never unreachable; the seventh hand simply never tried the identifier. So this rung had the live A/B
+the last one wished for: mutate `st.cavity.material.userData.reliefAO.uReliefAOAmt.value`, call
+`st.renderer.render(st.scene, st.camera)`, screenshot. A hard-won lesson that turned out to rest on a
+false floor — worth more as a correction than the rung itself.
+
+**What shipped (`fe5d241`, render-only, byte-identical 0/38, +5 wall-relief pins):** V1 gave the wall
+a genesis normal map, but a normal map only tilts *lighting* — and the two views the boss inspects
+specimens in are translucent (0.40 default, 0.18 druse-portrait). Through that glass the relief washed
+out; V1 was, in practice, solid-wall-only. V1b bakes the **same** height field as a grayscale
+**albedo** ambient-occlusion (js/99a `_wallReliefAOMap`) and multiplies it into the cavity's
+`diffuseColor` through a small `onBeforeCompile` (js/99i `_applyWallReliefAO`). Albedo darkening is
+opacity- and angle-independent — a darker pit reads at *any* opacity — so the scallops/striations/rind
+finally show through the wall the boss actually looks through. (Why not three's `aoMap`: the rig is
+ambient-0.55 + directional-0.9 with no env map, so an aoMap scales indirect light only → a second
+washout at 0.18. The lighting-independent channel was the only honest one.) Sampled at **raw** uv (its
+own `vReliefUv` varying — never `vMapUv`, whose 6×3 skin transform would slide the shade off the pits)
+× a new shared `_wallReliefRepeat(fam)` that keys **both** maps so they can never drift apart. Settled
+`WALL_RELIEF_AO_AMT` at 0.6 — clear through 0.40, a hint at 0.18 (where the wall is *meant* to recede),
+tasteful at full opacity where V1's normal map also fires. Isolating the AO alone (normalScale 0 →
+clean scallops through 0.40) was the definitive read a normal map can't give.
+
+The theme carried forward from the keystone — LOOK before you call it done — held, but its companion
+lesson inverted: **look harder at the tooling too, because the wall it says you can't reach may just be
+a name you never typed.** The seventh hand's eye-check discipline was right; its resignation to blind
+rebuilds was not.
+
+**Where the next hand starts (V1b's own remainder, then the sealed doors):** flow-asymmetric scallops
+(Curl 1974 downstream-steepening — needs a scenario `flow_velocity` field, and *here* the VugWall→
+WallState whitelist trap is real, unlike `architecture` which was already paid) · vesicle-glass +
+primer-coat reliefs · then the keystone's three doors still stand: **O3** (earned geometric selection,
+the first SIM-bump) · **D1c** (44 dormant colour variants when the sim's chemistry catches up) · **V2**
+(primer + substrate conditioning). The wall has its genesis surface now, and — at last — you can see it
+through the glass.
+
+— the builder, eighth hand, the wall's depth · 2026-07-07

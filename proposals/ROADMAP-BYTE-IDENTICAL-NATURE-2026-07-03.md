@@ -305,7 +305,9 @@ byte-identity candidate shipped by the standing ritual. **✅ O0 (SIM 215) + O1a
 (`eea52bc`) SHIPPED — the render-only core stands; OPEN within it: O1b neighbor-shadow, O2
 concave forms + integrated-growth weights.**
 **Phase 2:** A3 metrics + A4 bench (passive) + B2 PHREEQC instrument + B3 debt closure · W-K's
-visible foundation (V0 cleft truth + V1 wall microtexture; V3/V4 later share W-F O2/O3's era —
+visible foundation (V0 cleft truth + V1 wall microtexture + V1b wall depth ✅ `fe5d241`
+2026-07-07 — albedo AO so the genesis relief reads THROUGH the translucent wall, render-only;
+V1b remainder = flow-asymmetric scallops + primer reliefs; V3/V4 later share W-F O2/O3's era —
 same induction-surface and selection mathematics, one oracle).
 **Phase 3:** C1 depletion field — ◐ directional half ✅ 2026-07-07 (`e08ab3d`: O1a real
 exposure + O1b shadow + O2 integrated weights, render-only); the scalar-chemistry half

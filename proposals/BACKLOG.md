@@ -89,6 +89,23 @@ Living list of open work items, captured from session conversations so context s
 > threshold (cassiterite Fe, fluorite REE) — they light up with NO code change as the sim models the
 > chemistry (rocks-catch-up). Lesson: a probe replaces the hypothesis you brought; check a field is
 > POPULATED before trusting a "<".
+>
+> **▸ SHIPPED — V1b WALL DEPTH / genesis relief THROUGH translucency (`fe5d241`, 2026-07-07,
+> render-only, 0/38, +5 wall-relief pins):** V1's normal map only perturbs LIGHTING → it washes out
+> in the 0.40 default + 0.18 druse views (exactly the specimen-viewing modes), so V1 was effectively
+> solid-wall-only. V1b bakes the SAME height field as a grayscale ALBEDO ambient-occlusion (js/99a
+> `_wallReliefAOMap`) and multiplies it into the cavity `diffuseColor` via a small `onBeforeCompile`
+> (js/99i `_applyWallReliefAO`) — albedo darkening is opacity/angle-independent so it reads through
+> ANY wall opacity (why albedo not `aoMap`: the rig is ambient-0.55 + directional-0.9, no env map, so
+> aoMap scales indirect-only → another washout at 0.18). Sampled at RAW uv (`vReliefUv`, NOT `vMapUv`
+> — the skin's 6×3 transform must not scale it) × the relief's own repeat; new shared
+> `_wallReliefRepeat(fam)` keys BOTH maps so they can't drift. amt 0.6 (`WALL_RELIEF_AO_AMT`),
+> eye-checked solid/0.40/0.18. **The V1 handoff was WRONG that the THREE scene is unreachable —
+> `_topoThreeState` IS a page-global**, so the live A/B V1 couldn't do isolated the AO (normalScale 0
+> → clean scallops through 0.40): the definitive read a normal map fails there. Future renderer
+> eye-checks can toggle uniforms + `st.renderer.render(st.scene, st.camera)` live. **V1b REMAINDER
+> (open, the whitelist trap is REAL here): flow-asymmetric scallops (Curl 1974, needs a scenario
+> `flow_velocity` field surviving VugWall ctor + WallState mirror) + vesicle-glass/primer reliefs.**
 
 > ## 🎓 DETOUR (2026-07-04→05, the tutorial arc) — THE TUTORIALS CAUGHT UP TO THE GAME: ENGINE v2→v3 + FOUR TUTORIALS + shigar_pegmatite — **detour handoff: `HANDOFF-TUTORIALS-2026-07-05.md`** (a side-arc off the roadmap; for the MAIN line read the foundations handoff below)
 >
@@ -121,7 +138,7 @@ Living list of open work items, captured from session conversations so context s
 > surfaces should auto-generate from SCENARIOS (vugg-add-scenario §10.5 TODO). Traps in the
 > handoff (native prompt() hangs preview; v116 picker guard; fortress RNG non-determinism).
 
-> ## 🧱 SESSION (2026-07-03→07, the foundation) — V0 CLEFT-TRUTH + O0 HALF-FORMS + O1a EXPOSURE + **O2 INDUCTION SURFACES** + **C0 THE CALCITE σ LEVER (boss stone #1)** + WALL UX + **C1 THE DIRECTIONAL-σ TRANCHE (boss stone: O1a-real + O1b + O2 integrated)** + **LOCAL CRYSTAL COLOUR** + **D1a+D1b BODY COLOUR (Depth-C defaults + chemistry axes)** + **V1 WALL MICROTEXTURE (genesis relief)** — **CURRENT HANDOFF (the main line): `HANDOFF-FOUNDATIONS-2026-07-03.md`, read through the LATEST KEYSTONE (**seventh hand, 2026-07-07: GREP/PROBE/EYE — three instruments of knowing, one per rung; INDIVIDUATED→LEGIBLE; WIRED ≠ VISIBLE**) + the sixth hand's keystone below it (RATE-reads-local-FORM-read-bulk, SITUATED→INDIVIDUATED) + the D1a/D1b/V1 act addenda (grep-the-tree-first is a LAW; a probe REPLACES the hypothesis you brought; check a field is POPULATED before trusting a "<"; the eye-check is a render change's acceptance test, not ceremony; **next hand's doors: O3 / D1c / V1b flow-asymmetric+AO / V2+**)
+> ## 🧱 SESSION (2026-07-03→07, the foundation) — V0 CLEFT-TRUTH + O0 HALF-FORMS + O1a EXPOSURE + **O2 INDUCTION SURFACES** + **C0 THE CALCITE σ LEVER (boss stone #1)** + WALL UX + **C1 THE DIRECTIONAL-σ TRANCHE (boss stone: O1a-real + O1b + O2 integrated)** + **LOCAL CRYSTAL COLOUR** + **D1a+D1b BODY COLOUR (Depth-C defaults + chemistry axes)** + **V1 WALL MICROTEXTURE (genesis relief)** — **CURRENT HANDOFF (the main line): `HANDOFF-FOUNDATIONS-2026-07-03.md`, read through the LATEST KEYSTONE (**seventh hand, 2026-07-07: GREP/PROBE/EYE — three instruments of knowing, one per rung; INDIVIDUATED→LEGIBLE; WIRED ≠ VISIBLE**) + the sixth hand's keystone below it (RATE-reads-local-FORM-read-bulk, SITUATED→INDIVIDUATED) + the D1a/D1b/V1 act addenda (grep-the-tree-first is a LAW; a probe REPLACES the hypothesis you brought; check a field is POPULATED before trusting a "<"; the eye-check is a render change's acceptance test, not ceremony; **next hand's doors: O3 / D1c / V1b flow-asymmetric (V1b AO-depth ✅ `fe5d241`) / V2+**)
 >
 > **C0 UPDATE (`299a270` SIM 217, 2026-07-06, CI 157/2211):** boss stone #1 SHIPPED by the
 > 4a.7 recipe. calciteMorphForm gains the Ω branch (OMEGA_SCALENO=12, the fleet's own
