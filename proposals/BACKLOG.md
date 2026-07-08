@@ -2,6 +2,31 @@
 
 Living list of open work items, captured from session conversations so context survives compaction. Each item has enough detail that someone picking it up cold can act without re-discovering the rationale.
 
+> ## 🔴🟢 NUCLEATION HOVER POPOVER (2026-07-08, boss ask) — SHIPPED (render-only)
+>
+> Boss: *"i want to play with the hover text in creative mode for what is nucleating …
+> boxes with the specific variables for the crystal are either red or green depending on
+> whether the conditions are met … [acid dissolution] needs to be reversed for the
+> nucleation pop up since you are measuring when it doesn't dissolve, vs when it does."*
+>
+> Hovering a σ pill in the Creative saturation panel (js/97b) opens a recipe popover —
+> the Library card's rows as live condition chips: **T window** (green inside
+> T_range_C) · **Requires** (per-ingredient floors vs the broth) · **Traces** (green when
+> the broth carries the chromophore; spec flavor text rides as chip tooltips) · **Acid
+> dissolution REVERSED into survival** (`pH ≥ X` for dissolves-below, `pH ≤ Y` for
+> dissolves-above — both-sided species like wulfenite show both chips; threshold-less
+> species chip 'resistant', always green). Chips evaluate against the conditions the
+> panel LAST RENDERED (`_satLastConditions`) so a topo replay scrub shows that moment's
+> truth, matching the pills' own rewind. The pills' native `title` tooltip is gone — it
+> fought the popover. Pure builder `_nucleationHoverGroups` (testable, DOM-free) + thin
+> HTML/position layer; body-mounted, pointer-events:none, hides on leave/scroll/re-render.
+> CI: tests-js/nucleation-hover.test.ts (5 — happy/hostile broths, both reversal
+> directions, resistant class, HTML degrade). Eye-checked on cooling @ seed 424242:
+> actinolite popover [T 180 → red · Ca 80/Mg 50/SiO2 260 → green · Fe 5 → red · Cr red /
+> Mn green · pH 6.8 → `pH ≥ 5` green], then 2× Shift↓pH → 2.8 flipped it red live.
+> Discovery-in-tests note: read data/minerals.json from disk, NOT the globalThis
+> MINERAL_SPEC snapshot (stale fallback — the _liveRng staleness class, 3rd sighting).
+
 > ## 💾 SAVE SYSTEM + LIFETIME SCORE (2026-07-08, boss stone) — SHIPPED (SIM-neutral, 0/38)
 >
 > Boss: *"saving the game should be automatic. the last button should be 'narrate, collect,
