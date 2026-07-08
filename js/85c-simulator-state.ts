@@ -754,6 +754,24 @@ _check_enclosure() {
         // poikilotopic, no horizon significance. v1 is the substrate-link
         // read; O5 sharpens it to per-face film coverage.
         candidate.coats_front = candOnGrower;
+        // W-F O5 (perturbed regrowth) WRITER 2 — a front-coating guest is itself
+        // a film on the host's growth front: record it as termination-film on the
+        // grower (js/44b O5_COATS_FRONT_PHI_STEP, accumulating across guests,
+        // capped). This turns O4b's coats_front enclosures into O5's first organic
+        // film writers — no new scenario content needed. RECORDED in O5a, UNREAD
+        // (the σ*(φ) gate is behind O5_MASKING_ENABLED); deterministic, no RNG, so
+        // byte-identical until O5b. A lateral (embedded-inert) swallow deposits no
+        // film — it is poikilotopic, not a front coat.
+        if (candOnGrower) {
+          const prevT = grower._film ? (grower._film.phi_term || 0) : 0;
+          const prevP = grower._film ? (grower._film.phi_prism || 0) : 0;
+          grower._film = {
+            mineral: candidate.mineral,
+            phi_term: Math.min(O5_PHI_MAX, prevT + O5_COATS_FRONT_PHI_STEP),
+            phi_prism: prevP,
+            step: this.step,
+          };
+        }
         candidate.active = false;
         this.log.push(
           `  💎 ENCLOSURE: ${capitalize(grower.mineral)} #${grower.crystal_id} ` +

@@ -71,7 +71,23 @@ Living list of open work items, captured from session conversations so context s
 > builder's AFM lit (DeYoreo 2004 calcite = sharp super-linear shape, kills linear). Both
 > load-bearing refs web-verified real; Ranganathan&Weeks 2013 == the builder's "PRL 110
 > 055503" (same paper, cross-confirm). k calibrated 4a.7 on sim-σ; 1294/1295/1300 = T2
-> anchor.** O5a CODE UNBLOCKED (record-unread tranche, 0/38) — awaits boss go.**
+> anchor.**
+>
+> **▸ O5a SHIPPED (record-unread, byte-identical 0/38) — boss: "you got this".** js/44b
+> (new module, O3a template): `O5_MASKING_ENABLED=false` flag, the reconciled law
+> `sigmaStarForCoverage(σ*₀,φ)=σ*₀·(1+k·φ/(1−φ))` as a unit-tested pure function (called by
+> nothing yet), `applyFilmDusting` (writer 1 core), `SIGMA_STAR_K`/`O5_COATS_FRONT_PHI_STEP`
+> calibration dials. `_film` state on Crystal (js/27). Writer 1 = event `film:` directive
+> (js/70 thread + js/85d apply — the deformation-directive idiom; no fleet scenario uses it
+> yet). Writer 2 = O4b coats_front enclosures deposit termination-film on the host (js/85c).
+> Census `tools/o5-film-census.mjs`: 13 crystals filmed across 10 scenarios at seed 42 (all
+> via writer 2; 0 directives), φ_term 0.15–0.75 (accumulation visible — fluorite vein 0.75 =
+> 5 stacked guests). BYTE-IDENTICAL PROVEN: baseline + strip digest regenerated → zero git
+> diff (writers fire, nothing reads `_film`); no SIM bump. Tests o5-film.test.ts (11). The
+> census PRE-REGISTERS O5b's movers: only those 10 scenarios may move when the flag flips.
+> **O5b (the gate) is the next SIM bump: wire sigmaStarForCoverage into the growth path,
+> tag masked_horizon, generalize classifyQuartzSceptre, calibrate k (4a.7), author the
+> Sweetwater snowball-barite scenario as first content.**
 
 > ## 🔴🟢 NUCLEATION HOVER POPOVER (2026-07-08, boss ask) — SHIPPED (render-only)
 >

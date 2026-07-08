@@ -515,6 +515,15 @@ function _buildScenarioFromSpec(scenarioId, spec) {
       // Absent → no overprint → byte-identical. Chemical corrosion is post-growth, so it
       // does NOT mutate the fluid.
       etch: ev.etch,
+      // FILM DUSTING (W-F O5 perturbed regrowth) — optional directive
+      // {mineral, prism, term, minerals?}. apply_events (js/85d) sets `_film` on
+      // the active target crystals via applyFilmDusting (js/44b): a foreign film
+      // (chlorite, clay) settles on their growth fronts. UNLIKE deformation/etch
+      // this is not post-growth-inert — it masks FUTURE growth via the σ*(φ)
+      // gate — but in O5a nothing reads `_film` (gate behind O5_MASKING_ENABLED),
+      // so a scenario carrying this directive stays byte-identical until O5b. No
+      // fleet scenario uses it yet (Sweetwater, O5b's first content, is unbuilt).
+      film: ev.film,
     }));
     return { conditions, events, defaultSteps: duration };
   };

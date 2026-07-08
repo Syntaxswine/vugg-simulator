@@ -142,6 +142,8 @@ Each is `Object.assign(VugConditions.prototype, { supersaturation_<mineral>(): �
 | 42     | `42-mineral-gates-registry.ts`  | `MINERAL_GATES_REGISTRY` — per-mineral nucleation-gate params (σ_crit, …); consumed by the per-cell strangulation gate (85b) + nucleation dispatchers |
 | 43     | `43-initiative.ts`              | initiative scaffold (read-only as of v127) |
 | 44     | `44-graduated-competition.ts`   | graduated-competition allocation — how co-nucleating minerals split a shared solute budget |
+| 44a    | `44a-geometric-selection.ts`    | W-F O3 geometric selection — nucleation tilt draw + burial pass (`GEOMETRIC_SELECTION_ENABLED`, `_nucTilt`, `o3TiltedAxis`) |
+| 44b    | `44b-perturbed-regrowth.ts`     | W-F O5 perturbed regrowth — the σ*(φ) masking law + film dusting (`O5_MASKING_ENABLED`, `sigmaStarForCoverage`, `applyFilmDusting`; `_film` state) |
 
 ### Per-class growth engines (50–61)
 

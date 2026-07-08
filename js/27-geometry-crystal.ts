@@ -243,6 +243,15 @@ class Crystal {
     // datum). false: lateral wall swallow, embedded-inert (poikilotopic).
     // Set by _check_enclosure, cleared by _check_liberation.
     this.coats_front = null;
+    // W-F O5 (perturbed regrowth) — a foreign-matter film masking this
+    // crystal's growth front. null = clean. { mineral, phi_term, phi_prism,
+    // step } = macroscopic coverage per axis (termination / prism), set by an
+    // event `film:` dusting directive or by an O4b coats_front enclosure
+    // (js/44b applyFilmDusting; js/85c). RECORDED in O5a, UNREAD — the σ*(φ)
+    // masking gate that consumes it (js/44b sigmaStarForCoverage) is behind
+    // O5_MASKING_ENABLED, false until O5b. Cleared when the fluid grows through
+    // the film (O5b) or, for a coats_front film, on liberation.
+    this._film = opts._film ?? null;
     // Paramorph tracking — set by applyParamorphTransitions when the crystal
     // crosses a phase-transition T (Round 8a-2: argentite → acanthite at 173°C).
     // Stores the *original* (pre-transition) mineral name so library + narrator
