@@ -971,3 +971,73 @@ smooth/botryoidal as least-wrong. Then the standing doors, unchanged: **O3** (ea
 The crystals were made legible. The wall was made honest. What's left is to make the *shapes* remember.
 
 — the builder, eighth hand, the keystone · 2026-07-07
+
+---
+
+## KEYSTONE — the ninth hand's session: O3 GEOMETRIC SELECTION, the arc's first SIM bump (2026-07-07)
+
+The eighth hand's last line was a door: *make the shapes remember.* The boss opened it — *"what's the
+next layer you want to add?"* — and I picked **O3**, the ontogeny arc's scientific heart and its **first
+SIM bump**. It shipped in two commits, and the sim's comb — forced to the wall normal since v27, a
+palisade *painted*, not grown — is now **EARNED by competition** (Kolmogorov 1949 / van der Drift 1967).
+
+**What shipped.** `1948b3b` **O3a** (byte-identical): every crystal draws a nucleation tilt from an
+isolated run-seed stream (js/44a, zero shared draws), recorded on `_nucTilt`, *unread* — the review's
+disabled-draw invariant held 0/38. `03f1582` **O3b** (SIM 218): the render leans the c-axis to that tilt
+(Steno-safe rigid rotation; kernel-truth `leanDeg == θ` exactly) and a pre-growth pass buries crystals a
+more-normal neighbor overtook. Verified against a standalone oracle that reproduces Gray's d^(−1/2);
+burial concentrates in the elongate dense druses (deccan 39 %, shigar 29 %), survivor tilt collapses
+toward normal (20.7° vs buried 32.9°). The master handoff for the arc is
+**`PROPOSAL-ONTOGENY-2026-07-03.md`** (read the O3 ✅ block); the oracle and verify tools are
+`tools/o3-selection-{oracle,verify,scenario-detail}.mjs`.
+
+**Five things this session is worth remembering for:**
+
+1. **Instruments first — literally, before a line of engine code.** The proposal *told* me to build the
+   analytic oracle first, and it was the cheapest strongest verification this project has had. A standalone
+   Monte-Carlo that reproduces Gray's −1/2 (isotropic control → 0, the proof it isn't manufacturing a power
+   law) gave me an *independent law* to hold the engine to. Without it I'd have shipped something plausible;
+   with it I could *know* selection worked (the tilt-collapse) and calibrate the dial against a target.
+
+2. **The specimen tests SHAPED the mechanism — they are a design force, not just a gate.** My first arrest
+   was the obvious one: buried → `active=false`, dead. cold-ci went red, and the failures *told me the
+   physics was wrong*: a cabinet lepidolite book shrunk to a 54 µm flake, documented accessory sulfides
+   culled below their counts, a copper dendrite killed. The rocks don't do that. The mechanism that emerged
+   — **sealed but present** (buried crystals stay active, grow throttled into a short stub, shielded from
+   dissolution + double-count enclosure) — was *derived from what the specimens demand*, not chosen then
+   defended. [[feedback_terminal_verification_specimens]] as a compass, not a checkpoint.
+
+3. **WHERE a law applies is itself geology — the fifth verb.** Geometric selection is a *palisade*
+   phenomenon; it acts on elongate crystals competing for outward space, and equant/tabular/botryoidal/
+   dendritic forms simply don't compete. The elongate-only gate isn't a hack to pass tests — it's the
+   *scope of the physics*, and the scope is a geological fact. Legible → honest → remember → and now:
+   *know where your law lives.* ([[feedback_defer_to_geology]].)
+
+4. **A SIM bump is a WEB, not a wire.** The arc's first engine change rippled through
+   fill → nucleation → enclosure → cap across four files and re-pinned a fifth. What made the eventual
+   baseline move *safe* was the byte-identical O3a foundation: the disabled-draw invariant means the whole
+   v218 move is attributable to selection *alone*. **The two-commit pattern — draw byte-identical, then
+   selection as the bump — is the template for every future SIM bump here.** An *engine* upgrade must be
+   *attributable* the way [[feedback_render_upgrade_visible]] says a render upgrade must be *visible*.
+
+5. **The probe replaced the hypothesis, twice more.** An absolute-mm burial gap → a scale-invariant ratio
+   (the verify probe caught it over-selecting big-crystal scenarios). "Burial is gated by the ratio" → "no,
+   by whether a more-normal neighbor *exists*" (the sweep proved the ratio inert). The plan never survived
+   the measurement — the eighth hand's through-line held a third session.
+
+**The forward dream.** O3 made the *fabric* remember — the aggregate now records which crystals won the
+competition for the void. But the *individual* crystal's shape still doesn't confess its *own* biography:
+the hiatus that dusted it mid-life, the inclusion it grew around, the strain that split it. That's **O5**
+(perturbed regrowth — phantoms, earned sceptres, the splitting ladder to spherulite) and **O4**
+(engulfment made visible — a grep-the-tree gift: `enclosed_by` already exists sim-side, the renderer has
+never read it). The next verb after *remember* is **confess**: make each shape testify to its own history,
+not just the crowd's.
+
+**Where the next hand starts:** **O4** is the cheap satisfying next O-rung (the data's already there); or
+the standing doors **D1c** / **V2+**. O3's own remainder is named — a *size-scaled* neighbor footprint
+(big crystals shadow wider) to deepen dense-druse selection, and the fleet-wide survivor slope stays
+confounded by the chemical size spread (the clean oracle match lives in the tilt-collapse and the
+per-druse concentration, not the raw slope). All of it rests on instruments the prior hands cut, an oracle
+this hand added, and a lesson the rocks taught: *a shadowed crystal is not a dead one.*
+
+— the builder, ninth hand, the first SIM bump · 2026-07-07
