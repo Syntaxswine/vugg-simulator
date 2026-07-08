@@ -330,6 +330,12 @@ class VugSimulator {
       this._graduatedZones = this._computeGraduatedZones();
     }
 
+    // W-F O3b — geometric-selection burial pass. Marks crystals overtaken by a
+    // more-normal neighbor's front as arrested (active=false) BEFORE the growth
+    // loop, so the buried losers stop this step. Gated inside (no-op + byte-
+    // identical when GEOMETRIC_SELECTION_ENABLED is off).
+    this._applyGeometricSelection();
+
     let currentFill = vugFill; // Track fill dynamically during growth loop
     for (const crystal of this.crystals) {
       if (!crystal.active) continue;
@@ -356,7 +362,9 @@ class VugSimulator {
         const engine = MINERAL_ENGINES[crystal.mineral];
         if (!engine) continue;
         const zone = this._runEngineForCrystal(engine, crystal);
-        if (zone && zone.thickness_um < 0) {
+        // W-F O3b — sealed crystals don't dissolve (shielded by neighbors), same
+        // as the main-path guard below. Byte-identical when selection is off.
+        if (zone && zone.thickness_um < 0 && !crystal._buried) {
           crystal.add_zone(zone);
           currentFill = openSystem ? 0 : this.get_vug_fill();
           this.log.push(`  ⬇ ${capitalize(crystal.mineral)} #${crystal.crystal_id}: DISSOLUTION ${zone.note}`);
@@ -411,6 +419,13 @@ class VugSimulator {
         zone = this._runEngineForCrystal(engine, crystal);
       }
       if (zone) {
+        // W-F O3b — a SEALED (geometrically buried) crystal is shielded from the
+        // corrosive fluid by its overgrowing neighbors: suppress its dissolution
+        // so it persists as a present short stub rather than being etched away
+        // (which would also reopen its mineral's nucleation cap on the freed
+        // slot). Positive growth is throttled just below. No-op when selection
+        // is off (nothing is _buried) → byte-identical.
+        if (crystal._buried && zone.thickness_um < 0) zone.thickness_um = 0;
         // Proposal A — apply fill dampener to positive zone thickness
         // (growth). check_nucleation stashed this._fillDampener for the
         // current step; it equals 1.0 below vugFill ~0.7 and tapers
@@ -430,6 +445,13 @@ class VugSimulator {
         // dissolving an existing crystal isn't a function of free
         // pore space.
         if (zone.thickness_um > 0) {
+          // W-F O3b — a geometrically BURIED crystal (overgrown by a more-normal
+          // neighbor; _applyGeometricSelection tagged it) grows at a throttled
+          // rate, ending a short leaning stub rather than dying. Scales positive
+          // growth exactly like the fill dampener below, so mass-balance
+          // semantics match the established path. No-op when selection is off
+          // (nothing is ever _buried) → byte-identical.
+          if (crystal._buried) zone.thickness_um *= O3_BURY_GROWTH_MULT;
           // Proposal D (2026-05-18) part 1: per-iteration dampener
           // recomputation. Pre-D this used this._fillDampener — the step-
           // start value stashed by check_nucleation. That single-stash is

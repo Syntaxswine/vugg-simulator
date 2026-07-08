@@ -3954,6 +3954,15 @@ function _topoCAxisForCrystal(
     if (ny < -0.4) return [0, -1, 0];   // ceiling → stalactite
     if (ny > 0.4)  return [0, 1, 0];    // floor → stalagmite
   }
+  // W-F O3b — geometric selection: lean the c-axis to the crystal's RECORDED
+  // nucleation tilt (rigid whole-body rotation off the substrate normal, Steno-
+  // safe). Gated; when off, the raw normal (the legacy forced-normal comb) is
+  // returned. Survivors nucleated near-normal read tall + upright; buried losers
+  // (arrested small by the burial pass) read as short tilted stubs — the palisade
+  // earned, not painted.
+  if (GEOMETRIC_SELECTION_ENABLED && crystal && crystal._nucTilt) {
+    return o3TiltedAxis([nx, ny, nz], crystal._nucTilt);
+  }
   return [nx, ny, nz];
 }
 

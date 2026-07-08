@@ -1,20 +1,16 @@
-// tests-js/o3-selection.test.ts — W-F O3a: the nucleation orientation DRAW
-// (2026-07-07). The ontogeny arc's first SIM-bump FOUNDATION, shipped in its
-// byte-identical half: every crystal records a nucleation tilt from an isolated
-// stream, but GEOMETRIC_SELECTION_ENABLED is false so NO consumer reads it.
+// tests-js/o3-selection.test.ts — W-F O3: geometric selection (2026-07-07).
+// The ontogeny arc's first SIM bump, in two halves:
+//   * O3a (SIM 217, byte-identical) — every crystal records a nucleation tilt
+//     from an ISOLATED stream (zero shared draws). The disabled-draw invariant
+//     ("enabling the draw is byte-identical fleet-wide", review §6 #4) was
+//     proven by the seed42_v217 baseline regenerating 0/38 with the draw live.
+//   * O3b (SIM 218) — GEOMETRIC_SELECTION_ENABLED flips true: the burial pass
+//     arrests crystals a more-normal neighbor's front has overtaken (Kolmogorov
+//     1949 / van der Drift 1967; oracle-verified −1/2). Baselines move by design.
 //
-// The review's sharpened invariant (PROPOSAL-ONTOGENY §6 #4): "with selection
-// DISABLED, enabling the orientation DRAW must be byte-identical fleet-wide —
-// the draw exists, is recorded, and is unused." Byte-identity itself is guarded
-// by calibration.test.ts (the seed42_v217 baseline regenerated 0/38 with this
-// code). Here we pin the OBSERVABLE properties of the draw:
-//   * every nucleated crystal carries a well-formed _nucTilt (Steno-safe: a
-//     rigid whole-body orientation, θ off the substrate normal + azimuth);
-//   * it is DETERMINISTIC at a given run seed (baseline-reproducible)…
-//   * …but VARIES across run seeds (weather-not-geology — the isolated stream
-//     derives from the run, so the canary sweep sees real orientation variance);
-//   * the draw is non-degenerate (real spread, sane mean);
-//   * selection is OFF: no crystal is _buried (O3b's arrest tag is absent).
+// Pins here: the draw is well-formed / deterministic-per-seed / run-varying /
+// non-degenerate (O3a properties, unchanged); and selection culls by orientation
+// — dense druses bury their tilted losers, and the flag gates it (O3b).
 
 import { describe, expect, it } from 'vitest';
 
@@ -23,6 +19,7 @@ declare const SCENARIOS: any;
 declare const setSeed: any;
 declare const drawNucleationTilt: any;
 declare const _mulberry32: any;
+declare const setGeometricSelectionEnabled: any;
 
 const HALF_PI = Math.PI / 2;
 const TWO_PI = Math.PI * 2;
@@ -108,11 +105,44 @@ describe('W-F O3a — nucleation orientation draw (recorded, unread)', () => {
     expect(stdDeg, `tilt std ${stdDeg.toFixed(1)}° too small (degenerate draw)`).toBeGreaterThan(4);
   });
 
-  it('selection is OFF — no crystal is _buried (O3b arrest tag absent)', () => {
-    for (const name of presentScenarios()) {
+  it('O3b: dense druses BURY their tilted losers (selection culls by orientation)', () => {
+    // The pegmatite pockets / zeolite druses are the dense competitors (probe:
+    // shigar 53%, gem-peg 41%, deccan-zeolite 37%). Buried = the tilted ones.
+    const dense = ['gem_pegmatite', 'shigar_pegmatite', 'deccan_zeolite', 'radioactive_pegmatite']
+      .filter((n) => SCENARIOS[n]);
+    expect(dense.length, 'no dense druse scenarios present').toBeGreaterThan(0);
+    let anyBuried = false;
+    for (const name of dense) {
       const sim = makeSim(name, 42);
-      const buried = sim.crystals.filter((c: any) => c && c._buried === true).length;
-      expect(buried, `${name}: ${buried} crystals buried but selection is disabled`).toBe(0);
+      const cr = sim.crystals.filter((c: any) => c && c._nucTilt && !c.dissolved);
+      const buried = cr.filter((c: any) => c._buried === true);
+      if (!buried.length) continue;
+      anyBuried = true;
+      const mt = (a: any[]) => a.reduce((s, c) => s + c._nucTilt.theta, 0) / a.length;
+      const surv = cr.filter((c: any) => !c._buried);
+      expect(mt(buried), `${name}: buried should be MORE tilted than survivors`).toBeGreaterThan(mt(surv));
+    }
+    expect(anyBuried, 'expected some dense druse to bury losers with selection on').toBe(true);
+  });
+
+  it('O3b: the flag GATES selection — OFF buries nothing, ON buries some', () => {
+    const name = ['gem_pegmatite', 'shigar_pegmatite', 'deccan_zeolite'].find((n) => SCENARIOS[n]);
+    if (!name) return;
+    try {
+      setGeometricSelectionEnabled(false);
+      const off = makeSim(name, 42);
+      const offBuried = off.crystals.filter((c: any) => c && c._buried === true).length;
+      setGeometricSelectionEnabled(true);
+      const on = makeSim(name, 42);
+      const onBuried = on.crystals.filter((c: any) => c && c._buried === true).length;
+      expect(offBuried, 'selection OFF must bury nothing').toBe(0);
+      expect(onBuried, 'selection ON must bury some in a dense druse').toBeGreaterThan(0);
+      // The DRAW is unconditional — every crystal still records a tilt with the
+      // flag off (the tilt exists; only its CONSUMERS are gated).
+      expect(off.crystals.filter((c: any) => c && c._nucTilt).length,
+        'the draw is recorded regardless of the flag').toBeGreaterThan(0);
+    } finally {
+      setGeometricSelectionEnabled(true);   // restore the ship default (SIM 218)
     }
   });
 

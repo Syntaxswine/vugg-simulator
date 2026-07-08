@@ -27,8 +27,11 @@
 //     baselines move BY DESIGN, and the disabled-draw invariant is what makes
 //     that move attributable to selection alone.
 
-// Master switch. O3a = false (draw recorded, unread → byte-identical).
-let GEOMETRIC_SELECTION_ENABLED = false;
+// Master switch. O3a shipped this false (draw recorded, unread → byte-identical);
+// O3b (SIM 218) flips it TRUE — the render leans crystals at their real tilt and
+// the burial pass arrests overtaken losers. Baselines move BY DESIGN, and the
+// O3a disabled-draw invariant is what attributes the move to selection alone.
+let GEOMETRIC_SELECTION_ENABLED = true;
 
 // Nucleation tilt draw — a truncated half-normal in θ (angle off the substrate
 // normal) + uniform azimuth. The oracle showed both uniform and σ≈30° draws
@@ -89,3 +92,84 @@ function setGeometricSelectionEnabled(v: boolean): void {
 }
 function setO3TiltSigmaDeg(v: number): void { O3_TILT_SIGMA_DEG = +v; }
 function setO3TiltMaxDeg(v: number): void { O3_TILT_MAX_DEG = +v; }
+
+// ============================================================
+// O3b — the SELECTION consumers (read _nucTilt; gated by the flag)
+// ============================================================
+
+// The burial rule's two calibrated dials (tools/o3-selection-verify.mjs tunes
+// them so the fleet's survivor-density-vs-height matches the oracle's h^(−1/2)).
+// A crystal is buried when a more-normal NEIGHBOR's growth front leads its own
+// by more than the gap — the van der Drift overtaking condition, with the
+// lateral geometry folded into one length scale. Larger gap ⇒ gentler thinning
+// (only well-overtaken losers sealed) ⇒ closer to Gray's −1/2; a small gap
+// over-culls. `let` so the calibration sweep rebinds without a rebuild.
+// A crystal is buried when a more-normal NEIGHBOR has out-reached it by more
+// than O3_BURY_LEAD_FRAC of the neighbor's OWN front — a RATIO, so the rule is
+// scale-invariant (the oracle is about angles + relative positions, not mm): it
+// selects identically in a sub-mm crust and a 40 mm pocket. An absolute mm gap
+// (the first cut) over-selected big-crystal scenarios and never fired in tiny
+// ones — the verify probe caught it. Larger fraction ⇒ gentler (a neighbor must
+// tower higher to seal you); smaller over-culls. `let` for the calibration sweep.
+let O3_BURY_LEAD_FRAC      = 0.35;  // neighbor front must exceed yours by this fraction to seal you
+let O3_BURY_DTHETA_MIN_DEG = 8;     // min tilt advantage — parallel columns (near-equal tilt) coexist
+// Young crystals get a GRACE period (in steps) before selection can judge them.
+// The sim nucleates over time (unlike the oracle's simultaneous seeding), so a
+// fresh nucleus starts at front ~0 and any ratio test would insta-seal it —
+// killing the late gap-nucleation real druses keep. Age-based (scale-invariant),
+// not a length floor. Never limits who can OVERTAKE.
+let O3_BURY_GRACE_STEPS    = 5;
+// Geometric selection is a PALISADE phenomenon: it acts on ELONGATE crystals
+// competing for outward space (van der Drift's crusts are columnar; Grigor'ev's
+// druse). Equant forms (cube/rhomb/octahedron/tetrahedron), tabular + platy
+// forms (barite, wulfenite, lepidolite mica books), botryoidal crusts, and
+// dendritic/arborescent metal do NOT palisade-compete, so they are exempt from
+// BOTH being buried and burying. Gate on aspect c/a — the specimen tests caught
+// hard arrest shrinking a cabinet lepidolite book to a 54µm flake and culling a
+// bisbee copper dendrite; neither undergoes geometric selection in nature. This
+// is the "defer to geology" bedrock, not a threshold nudge to pass tests.
+let O3_SELECT_MIN_ASPECT   = 1.4;   // c_length must exceed this × a_width to compete
+// Burial SLOWS growth, it does not kill it. A shadowed crystal in a real druse
+// keeps creeping in the diminishing space between its overtaking neighbors — it
+// is not instantly dead. So a buried crystal stays ACTIVE (still present, still
+// counted) but grows at this fraction of its rate, ending a short leaning stub.
+// This is gentler than hard arrest (which the specimen tests caught culling
+// present-and-documented accessory sulfides below their counts), keeps the fill
+// ripple small, and is the more faithful mechanism. 0 would be hard arrest.
+let O3_BURY_GROWTH_MULT    = 0.12;
+function setO3BuryLeadFrac(v: number): void { O3_BURY_LEAD_FRAC = +v; }
+function setO3BuryDThetaMinDeg(v: number): void { O3_BURY_DTHETA_MIN_DEG = +v; }
+function setO3BuryGraceSteps(v: number): void { O3_BURY_GRACE_STEPS = +v; }
+function setO3SelectMinAspect(v: number): void { O3_SELECT_MIN_ASPECT = +v; }
+
+// Apply a recorded nucleation tilt to a substrate normal — a RIGID rotation of
+// the whole c-axis by θ off the normal, azimuth around it, in the normal's own
+// tangent frame (_orthonormalBasis, js/99d — a bundle global available at render
+// time). The result is unit-length by construction (cos²+sin²=1 across an
+// orthonormal triad). Steno-safe: this rotates the AXIS the body is built along;
+// the render's per-vertex build preserves every interfacial angle. Returns the
+// normal unchanged when tilt is absent.
+function o3TiltedAxis(
+  normal: number[],
+  tilt: { theta: number; azim: number } | null | undefined,
+): [number, number, number] {
+  if (!tilt) return [normal[0], normal[1], normal[2]];
+  const [tA, tB] = _orthonormalBasis(normal, 0);
+  const st = Math.sin(tilt.theta), ct = Math.cos(tilt.theta);
+  const ca = Math.cos(tilt.azim), sa = Math.sin(tilt.azim);
+  return [
+    normal[0] * ct + (tA[0] * ca + tB[0] * sa) * st,
+    normal[1] * ct + (tA[1] * ca + tB[1] * sa) * st,
+    normal[2] * ct + (tA[2] * ca + tB[2] * sa) * st,
+  ];
+}
+
+// A crystal's growth-front reach into the void = its length projected onto the
+// substrate normal: a tilted crystal projects LESS far per unit growth, so it
+// is overtaken by a more-normal neighbor — the mechanism of selection. Reads
+// c_length_mm (the actual rendered extent, cavity-capped) × cos θ.
+function o3NormalFrontMm(crystal: any): number {
+  const t = crystal && crystal._nucTilt;
+  const L = (crystal && crystal.c_length_mm) || 0;
+  return t ? L * Math.cos(t.theta) : L;
+}
