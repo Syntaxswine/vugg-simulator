@@ -42,6 +42,12 @@ Living list of open work items, captured from session conversations so context s
 > agent drives are now fully deterministic INCLUDING wall geometry (resolves the old 99z
 > comment caveat).
 >
+> **▸ Score surfaces (same-day boss follow-up):** the Library's completion banner is the
+> total's home — `_libraryProgressHTML` grew a third segment (`N crystals all-time`, the
+> life list; survives a wiped shelf) and the SAME banner now renders on the title card
+> (`#title-progress`, numeric from zero: "0 / 180 species (0%) · …"), repainted on every
+> collect/delete/save via the refreshTitleLoadButton cadence + onSpecReady first paint.
+>
 > **▸ Deferred, named:** zen/legends runs don't save (fortress-only v1 — legends completes
 > instantly, zen is a screensaver; wire them when asked); repeated loads of one save re-record
 > duplicate strip datasets (user-driven, acceptable; revisit if the Strip View list silts up);

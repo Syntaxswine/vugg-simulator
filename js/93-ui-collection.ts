@@ -225,6 +225,9 @@ function refreshTitleLoadButton() {
         ? `Open Library (${n} collected crystal${n === 1 ? '' : 's'})`
         : 'No saves or collected crystals yet — grow a vugg';
   } catch (e) { /* localStorage unavailable */ }
+  // The title card's collection banner rides the same refresh cadence
+  // (every collect / delete / save funnels through here).
+  if (typeof _refreshTitleProgress === 'function') _refreshTitleProgress();
 }
 
 // Called by the per-crystal Collect button in each mode's inventory.

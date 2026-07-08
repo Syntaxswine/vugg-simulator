@@ -38,6 +38,7 @@ declare function loadLifetimeStats(): { crystals_collected: number; runs_finishe
 declare function _saveManualNamed(name: string): any;
 declare function loadSaveById(id: string): boolean;
 declare function collectAllCrystals(crystals: any[], metaFn: any, opts?: any): { count: number; newSpecies: string[] };
+declare function _libraryProgressHTML(opts?: any): string;
 
 // Real broth sliders so the recording has something genuine to capture.
 // Held by module-scoped references — setup.ts's DOM stub wraps
@@ -246,5 +247,33 @@ describe('fortress save system (93a) — event-sourced replay', () => {
     expect(res.newSpecies.length).toBeGreaterThan(0); // first collect of these species
     const again = collectAllCrystals(_liveFortressSim().crystals, () => ({ mode: 'creative' }), { silent: true });
     expect(again).toEqual({ count: 0, newSpecies: [] });
+  });
+
+  it('the collection banner carries the lifetime total; home-screen variant is numeric from zero (boss ask 2026-07-08)', () => {
+    const strip = (html: string) => html.replace(/<[^>]+>/g, '');
+
+    // Fresh profile, home-screen variant: real zeros, not teaching prose.
+    const zero = strip(_libraryProgressHTML({ numericWhenEmpty: true }));
+    expect(zero).toMatch(/0 \/ \d+ species \(0%\)/);
+    expect(zero).toMatch(/0 \/ \d+ twinned variants \(0%\)/);
+    expect(zero).toContain('0 crystals all-time');
+    expect(zero).not.toContain('Empty');
+
+    // Library default keeps the teaching prose when nothing was ever found.
+    expect(strip(_libraryProgressHTML())).toContain('Empty — grow a vugg');
+
+    // Collect a run → the total lands in both variants.
+    fortressBeginFromScenario('cooling', 424242);
+    for (let i = 0; i < 14; i++) fortressStep('wait');
+    const res = collectAllCrystals(_liveFortressSim().crystals, () => ({ mode: 'creative' }), { silent: true });
+    const after = strip(_libraryProgressHTML());
+    expect(after).toContain(`${res.count} crystal${res.count === 1 ? '' : 's'} all-time`);
+
+    // Wipe the shelf: prose returns, but the life list survives — the
+    // specimens are gone, the finding of them isn't.
+    localStorage.setItem('vugg-crystals-v1', JSON.stringify([]));
+    const wiped = strip(_libraryProgressHTML());
+    expect(wiped).toContain('Empty — grow a vugg');
+    expect(wiped).toContain(`${res.count} crystal${res.count === 1 ? '' : 's'} all-time`);
   });
 });
