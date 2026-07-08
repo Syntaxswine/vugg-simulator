@@ -233,12 +233,38 @@ apply it to the neglected tutorials. Two commits, both cold-ci gated, no SIM bum
 - **Verify claims against the LIVE run, not the scenario notes** — two of the
   three tutorials' physics narrations had drifted from their own broths (T3's
   σ-story, T2's UV-bar story). The probe replaces the hypothesis here too.
+- **After ANY direct index.html edit, run `npm run build` even if no module
+  changed** — the edit path can leave the worktree file CRLF; `git status`
+  reads clean (autocrlf hides it) but `build:check` compares raw bytes →
+  cold-ci RED with `diff length ≈ the file's line count` (~80k). The builder
+  is also the normalizer. A diff length suspiciously close to the line count
+  = line endings, not content. (Root-cause option for a future pass:
+  .gitattributes `eol=lf` pinning — deferred, mass-renormalization noise.)
 
 ## Open (updated)
 
-- **Fifth tutorial** — Record Player + Strip View ("Reading a Crystal"), the two
-  quick-nav doors T1 introduces and nothing teaches. IN PROGRESS this session.
-- **Menu auto-generation** from SCENARIOS (§10.5 TODO) — unchanged.
+- **Fifth tutorial ✅ SHIPPED** (`b6f55db`) — "Reading a Crystal", 18 steps,
+  legends, rides `tn457_barite_pulses` @ seed 42 (the boss's own specimen
+  lineage as the teaching rock — the shigar move repeated). Grow → 📀 Record
+  Player walk (platter pick = the 103-zone star barite the probe measured;
+  drop the needle; the Mn lane IS the pink banding) → 📼 Strip View walk
+  (open the auto-recorded flight dataset; ▶ Sonify gets its first
+  player-facing mention) → the five-tutorial closing: GROW, KEEP, READ.
+  Beat numbers are measured facts of the probed seed-42 run.
+- **Menu auto-generation §10.5 — tranche 1 of 3 ✅ SHIPPED** (`6b6e719`):
+  the #scenario quick-play dropdown auto-generates from SCENARIOS at
+  load-complete (`_populateScenarioDropdowns`, js/94; called from
+  `_loadScenariosJSON5`, js/70-events) — the surface whose hand-written
+  options were already raw ids, so zero curation lost. Guard test flipped:
+  the static select must ship EMPTY (single source of truth) + the
+  populator's existence/exclusion/call-site are asserted against source.
+  REMAINING (tranches 2-3): the Scenarios picker buttons (50, curated
+  prose, GROUPED under Real-locality / Test / Tutorial-broth subheadings),
+  the zen #idle-scenario dropdown (curated short names like "MVT
+  (Tri-State)"), and the Begin tutorial buttons (now 6 incl. Tutorial 5,
+  curated) — all need a menu.group/menu.label data migration (~90 curated
+  strings from index.html into scenarios.json5) before they can derive.
+  Design sized 2026-07-07; do it as its own pass.
 - **NEW — UV palette scale audit** (backlog): the other zoneFluorescence gates
   (ruby Fe<10, apophyllite, willemite, …) are still broth-scale numbers checked
   against zone-scale traces; audit each against the partition. Sibling:

@@ -170,10 +170,18 @@ Living list of open work items, captured from session conversations so context s
 > post-history per frame (18 ferrous-blue meshes verified; elmwood control inert). Sibling: the
 > UV bar's calcite quench gate read BROTH-scale Fe<5.0 against ZONE-scale traces (partition
 > ~0.08×) — unreachable, no calcite ever quenched; recalibrated Fe<0.4 with tutorial_mn_calcite
-> as the calibration anchor. **OPEN (updated):** 5th tutorial (Record Player + Strip View — in
-> progress) · menu auto-gen from SCENARIOS (§10.5) · NEW: UV-palette scale audit (other minerals'
-> gates still broth-scale; js/27 predict_fluorescence same disease but feeds narrators →
-> SIM-adjacent, instruments-first) · NEW: shigar aqua SIZE (should the etch leave 0.13-0.6 mm in
+> as the calibration anchor. **CLOSED SAME SESSION:** Tutorial 5 "Reading a Crystal" ✅ `b6f55db`
+> (18 steps, legends, tn457 @ seed 42 — the boss's own specimen as the teaching rock; 📀 platter
+> pick lands the measured 103-zone star barite, 📼 opens the auto-recorded flight dataset,
+> ▶ Sonify surfaced to players for the first time; both mode walks + Begin button verified) ·
+> #scenario dropdown auto-generates from SCENARIOS ✅ `6b6e719` (§10.5 TRANCHE 1: static select
+> ships EMPTY, guard flipped to single-source-of-truth + populator assertions; 35 options, cooling
+> default, zero tutorial leaks, verified live) · CRLF trap documented (any index.html edit →
+> ALWAYS npm run build after; build:check reads raw bytes; diff-length ≈ line-count = endings).
+> **OPEN (final):** §10.5 tranches 2-3 (picker/zen/Begin surfaces need the ~90-string
+> menu.group/menu.label data migration — sized, own pass) · UV-palette scale audit (other
+> minerals' gates still broth-scale; js/27 predict_fluorescence same disease but feeds narrators →
+> SIM-adjacent, instruments-first) · shigar aqua SIZE (should the etch leave 0.13-0.6 mm in
 > the world's-finest-aquamarine pocket? vugg-tune-scenario, pinned census → SIM bump, boss call).
 
 > ## 🧱 SESSION (2026-07-03→07, the foundation) — V0 CLEFT-TRUTH + O0 HALF-FORMS + O1a EXPOSURE + **O2 INDUCTION SURFACES** + **C0 THE CALCITE σ LEVER (boss stone #1)** + WALL UX + **C1 THE DIRECTIONAL-σ TRANCHE (boss stone: O1a-real + O1b + O2 integrated)** + **LOCAL CRYSTAL COLOUR** + **D1a+D1b BODY COLOUR (Depth-C defaults + chemistry axes)** + **V1 WALL MICROTEXTURE (genesis relief)** + **O3 GEOMETRIC SELECTION (SIM 218 — the ontogeny arc's FIRST SIM bump; the palisade EARNED)** + **O4a ENGULFMENT MADE VISIBLE (render-only `5260134` — the Sweetwater enclosed guests finally render as opaque grains INSIDE their translucent hosts; naica 35/35 kernel-truth, 569-px diff)** — **CURRENT HANDOFF (the main line): `HANDOFF-FOUNDATIONS-2026-07-03.md`, read through the LATEST KEYSTONE (**ninth hand, 2026-07-07: O3 geometric selection — INSTRUMENTS-FIRST (the standalone Gray d^(−1/2) oracle before any engine code); SEALED-BUT-PRESENT (the specimen tests SHAPED the arrest — hard-kill culled documented accessory sulfides; throttle+shield instead); the fifth verb — WHERE a law applies is itself geology (elongate-only palisade gate); a SIM bump is a WEB, not a wire (fill→nucleation→enclosure→cap rippled 4 files)**) + the eighth hand's below it (the wall VOID→WITNESS; a FOURTH instrument — READ THE ROCKS beside grep/probe/eye; the probe replaces the hypothesis, 3× a session; render decoration→measurement; composition is NEVER a genesis proxy**) + the seventh hand's below it (GREP/PROBE/EYE; INDIVIDUATED→LEGIBLE; WIRED≠VISIBLE) + the sixth hand's below that (RATE-reads-local-FORM-read-bulk, SITUATED→INDIVIDUATED) + the D1a/D1b/V1 act addenda (grep-the-tree-first is a LAW; a probe REPLACES the hypothesis you brought; check a field is POPULATED before trusting a "<"; the eye-check is a render change's acceptance test, not ceremony; **next hand's doors: D1c / V2+ / O4b (O4a ENGULFMENT RENDER ✅ `5260134` — enclosed guests render as opaque grains inside translucent hosts; O4b = adjacency string→geometry SIM bump + coats_front embedded/front-coating classes) / O3 GEOMETRIC SELECTION ✅ SIM 218 — `1948b3b` O3a byte-identical draw + `03f1582` O3b the SIM bump; V1b AO-depth ✅ `fe5d241`, V1b-flow + V1c genesis-gated textures ✅ `3a7cf6e` — remainder: flow-DIRECTION asymmetry + primer tints; O3 remainder: size-scaled neighbor footprint)**)
