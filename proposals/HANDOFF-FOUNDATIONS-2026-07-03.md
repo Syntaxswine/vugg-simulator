@@ -1458,3 +1458,88 @@ prints about itself. Take Door 2 or Door 3 next; run the instrument first; let i
 plan you walked in with. It has, for every hand so far, and the rocks are better for it.
 
 — the builder, eleventh hand, at the close of the second act: three deaths, one fry · 2026-07-08
+
+
+---
+
+## KEYSTONE — the eleventh hand's third act (2026-07-08, the afternoon: the day the vug learned to remember)
+
+The morning of this same date closed Door 1 and clamped the broadcast — two SIM bumps,
+the wallet law, the fry. The afternoon never touched the physics once. Four commits
+(`7a6791d` the save system · `e9f6120` the score surfaces · `240ea4e` the nucleation
+hover · `1b2f4d8` the teaching step), four cold-CI GREENs (2298 → 2311 tests), four
+Pages-verified deploys, zero baseline movement — and at the end of it the simulator is
+a GAME: it remembers your runs, counts your life list, explains its own forecasts, and
+teaches you to read them. The boss's asks arrived as a cascade and each one landed on
+bedrock an earlier hand had laid.
+
+**The save system is determinism turned into a feature.** A save is not a snapshot — it
+is the run's RECIPE: the rng seed installed BEFORE any construction (the seed-first
+order legends has always used, the order the seed-42 baselines PROVE reproduces a run
+from one number), plus the action log, plus the broth-slider deltas. Load replays it
+through the real fortressStep. The whole feature is the house religion — the thing we
+built ten hands of baselines and archives on — handed to the player as a button. Byte
+parity to six decimals, browser-verified. A save made under an older SIM version replays
+under today's physics and SAYS SO in the log; the recipe is what was saved, and the rock
+record is allowed to have shifted underneath it.
+
+**The catch of the act: sliders are TRANSPORT, not physics.** Broth reaches the sim
+through exactly one gate — fortressStep's pre-action re-sync — and post-sync slider
+values are quantized ECHOES of sim state (toSlider rounds). The first cut force-fed the
+saved broth back through m.set and turned T 178.785 into 179. Every jsdom test was
+green; the sliders there are stubs. The LIVE eye-check — all 38 sliders real — caught it
+in one hover of the fingerprint. The law: capture inputs at the gate where they enter
+physics, replay them through the same gate, and let NOTHING in out-of-band. The
+regression net now holds a real temp slider so the echo class stays pinned.
+
+### The marks — what the third act adds
+
+- **Sliders are transport, not physics.** Any future record/replay surface (zen saves,
+  demo recordings, macros): inputs enter through their live gate or not at all. An echo
+  written back as a value is a quantization the original run never suffered.
+- **The first headless driver hardens the whole floor.** Four dormant landmines — NaN
+  broth poisoning, two null-ctx renderer families, the stub Proxy's missing
+  Symbol.toPrimitive — had waited YEARS of sessions for the first thing to ever drive
+  fortress without a browser. Building the save system was that thing. The landmines
+  were not the feature's cost; they were its dividend.
+- **The stale-snapshot law, third sighting, now named.** globalThis exports from the
+  test harness are LOAD-TIME copies (_liveRng was the first sighting; _liveFortressSim
+  the second; MINERAL_SPEC-in-discovery the third). Live bindings need accessor
+  functions; species discovery reads the disk. Stop being surprised by this.
+- **Same datum, opposite reading — the question decides the sign.** The Library states
+  death: "dissolves at pH < 5." The nucleation popover states survival: "pH ≥ 5," green
+  while the broth is safe. The boss called the reversal before the code existed. Cousin
+  to the morning's negative-is-a-value law: the dimension AND the question both get a
+  say before a number is printed.
+- **A taught instruction must be actionable the moment it is taught.** T1's new hover
+  step was verified with elementFromPoint THROUGH the tutorial's dim layer — the player
+  who reads "hover any mineral" can do it right there, mid-callout. Teaching a control
+  you've locked is a lie with a caret on it.
+- **The panel's truth is the popover's truth.** Chips grade _satLastConditions — what
+  the panel last rendered — so a replay scrub shows that moment's broth. Time-travel
+  surfaces must agree with each other or the player learns to distrust both.
+
+### Diagenesis
+
+Named, per the standing rule: the seed-42 fleet and legends' seed-first order (many
+hands) made replay-saves conceivable in an afternoon — the save system is their
+discipline wearing a player's coat. The collection records (93, early hands) gave
+collect-all its bones; B18's σ panel gave the hover its pills AND its replay-aware
+conditions object; the tenth hand's tutorial engine v3.1 took the new step without a
+single engine change; O4a's eye-check-as-acceptance-test discipline is the only reason
+the T-echo died today instead of in a player's bug report. Borrowed speed, all of it.
+
+### The dream, thirteenth telling
+
+The falsifiable fleet was the instruments interrogating the SCENARIOS. This act turns
+the same honesty toward the PLAYER: a save that replays is a baseline the player owns;
+a score that only rises is a life list, not an inventory; a chip that goes red under
+acid is a σ-function made legible at the surface where it bites. The dream grows a
+second wing — every number the sim knows, readable WHERE IT ACTS: hover it, scrub it,
+replay it, and "why did my pocket do that" stops being a question you ask and becomes
+a thing you look at. Doors 2 and 3 stand open for the next hand; Door 4 waits last, as
+sequenced; the deferred score surfaces (species %, size records, per-locality firsts)
+are cut stones — the records they'd read from are already being written. Run the
+instrument first. Eye-check what the instrument can't see. The rocks are better for it.
+
+— the builder, eleventh hand, at the close of the third act: the day the vug learned to remember · 2026-07-08
