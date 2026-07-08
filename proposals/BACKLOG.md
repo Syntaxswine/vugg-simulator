@@ -187,9 +187,15 @@ Living list of open work items, captured from session conversations so context s
 > found dGrowth/dσ(bulk) = 0.00 (engines read CELL fluid; deliveries only arrive via the
 > event broadcast), σ capped at 9.05, and THE WALLET LAW (~200 µm per cell-Be unit, refill ≈
 > nil): neither dial suffices alone. 4/38 movers all justified by name; STATURE PINS now live
-> in shigar-pegmatite.test.ts (the Door 4 template). Found en route, pinned separately: the
-> additive event broadcast can push drained cell fluids NEGATIVE (star cell ≈ −90 Be
-> post-etch at 219) — census probe + clamp = its own attributable bump, in progress.**
+> in shigar-pegmatite.test.ts (the Door 4 template). Found en route, ✅ CLOSED same day as
+> its own arc (SIM 220, `dc8b883` census + clamp): the additive broadcast pushed drained
+> cell CONCENTRATIONS negative — 7 rows / 6 scenarios (sabkha Ca −90.6 the worst; two rows
+> event-less = the MOVEMENTS vector, same call path). Concentrations now floor at 0 at both
+> write sites (js/24 propagateEventDelta + js/23 fallback); pH/Eh stay signed (Eh −200 mV is
+> ordinary reducing geochemistry — the census's own first finding; never clamp those).
+> Post-clamp census: concentration defects [] · baseline diff 0/38 — the rot was UNREAD,
+> and the clamp makes that a guarantee for the trace-reading consumers coming (D1c,
+> narrators, UV rules). tools/negative-fluid-census.mjs is re-runnable.**
 > · Door 2 UV scale audit (uv-zone-census tool first → 98c recalibration render-only →
 > js/27 separately under SIM-bump discipline, narrator text moves) · Door 3 §10.5 t2-3 (~90
 > curated strings verbatim → menu.group/label/blurb + tutorial.number/menu_label; acceptance =

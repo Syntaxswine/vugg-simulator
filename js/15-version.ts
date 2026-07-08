@@ -11691,5 +11691,21 @@
 //        (gem_pegmatite, radioactive_pegmatite, schneeberg reviewed by name in
 //        the baseline diff); non-beryl movement inside shigar is the shared-RNG
 //        stream shifting (fluid-inclusion rolls now pass rate>3), not chemistry.
-const SIM_VERSION = 219;
+// v220 — NEGATIVE-FLUID CLAMP (Door 1's found-in-passing defect, own arc).
+//        The additive broadcast (_propagateGlobalDelta → js/24
+//        propagateEventDelta; js/23 propagateDelta fallback) applied bulk
+//        deltas unguarded, so crash-style events/movements landing on
+//        drift-drained cells pushed CONCENTRATIONS below zero — census
+//        (tools/negative-fluid-census.mjs, instrument commit dc8b883):
+//        7 rows / 6 scenarios at SIM 219, worst sabkha Ca −90.6 (Tidal
+//        Flood #2) and shigar Be −60.0 (The Etch); the event-less rows
+//        (bisbee S, roughten_gill Fe — 6,082 voxels negative at run end)
+//        are the MOVEMENTS vector, same call path. Concentrations now
+//        floor at 0 at both write sites; a cell the crash empties is
+//        EMPTY, not indebted. pH and Eh stay signed and unclamped
+//        (Iron Mountain pH −3.6; Eh −200 mV = ordinary reducing
+//        geochemistry — the census's own first finding). Blast radius
+//        pre-registered by the census table: at most the 6 named
+//        scenarios move; every mover reviewed in the baseline diff.
+const SIM_VERSION = 220;
 
