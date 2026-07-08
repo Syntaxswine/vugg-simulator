@@ -2852,6 +2852,7 @@
       "duration_steps": 30,
       "notes": [
         "Tutorial scenario. Teaches how additives change a growing crystal's properties: Mn²⁺ activates orange fluorescence in calcite (threshold 2 ppm) and Fe²⁺ quenches it. The carbonate broth ships with Fe:10 already at the quencher range and Mn:8 just past the activator threshold — early calcite zones incorporate Mn but stay dim under UV. The Mn pulse at step 8 pushes Mn well past the activator threshold; the Fe drop at step 16 clears the quencher. The boundary between dim early zones and bright late zones records the moment the broth changed.",
+        "REWORKED 2026-07-07 (tutorial-parity pass): legacy 7-beat sim-step script rebuilt in the Grand Tour's engine-v2 vocabulary — continue-step framing, a Begin ⏎ handoff with progressive unlock, and an action-step payoff: the player taps their calcite card and reads the dim-vs-bright stratigraphy off the zone modal's 'Under UV' fluorescence bar instead of being told about it. Broth + events byte-identical to the original.",
         "Surfaced in the New Game Menu under Tutorials. Not anchored to a real locality — it's a teaching scaffold. The Franklin/Sterling Hill (NJ) Mn-activated calcite glow is the real-world reference for the lesson.",
         "Broth shape mirrors FLUID_PRESETS.carbonate so the lesson generalizes to that picker entry."
       ],
@@ -2887,16 +2888,56 @@
         { "step": 8,  "type": "tutorial_mn_pulse", "name": "Manganese Pulse",    "description": "Mn²⁺ injected — next calcite zones incorporate the activator" },
         { "step": 16, "type": "tutorial_fe_drop",  "name": "Iron-Poor Recharge", "description": "Fe²⁺ quencher cleared — Mn-doped zones fluoresce at full brightness" }
       ],
-      // Tutorial overlay script — see tutorial_first_crystal for schema notes.
+      // Tutorial overlay script — see tutorial_first_crystal for schema
+      // notes. Reworked 2026-07-07 to the Grand Tour's vocabulary:
+      // continue-step framing → Begin ⏎ handoff (progressive unlock) →
+      // sim-step narration riding the two scripted events → an ACTION
+      // payoff (tap the calcite card, read the zone modal's 'Under UV'
+      // fluorescence bar) → finale unlocks the whole panel.
       "tutorial": {
+        // Nothing whitelisted at start — Advance arrives at the Begin
+        // handoff, the whole panel at the finale (Grand Tour pattern).
+        "unlock": [],
         "steps": [
-          { "step": 0,  "anchor": "#f-advance",       "side": "top",   "text": "This vug holds a carbonate broth — calcium and CO₃ ions floating around, waiting to crystallize. Calcite forms here. Press 'Advance Step' to begin." },
-          { "step": 4,  "anchor": "#fortress-status", "side": "right", "text": "Calcite is forming. The broth has a little manganese in it (Mn ≈ 8 ppm) — Mn²⁺ activates orange fluorescence in calcite under longwave UV. But the broth also has iron (Fe ≈ 10 ppm), and iron quenches that glow. So the early zones of your calcite are recording Mn but staying dim." },
-          { "step": 9,  "anchor": "#fortress-log",    "side": "left",  "text": "A pulse just brought a lot more manganese into the broth. The next zones of calcite will incorporate Mn²⁺ heavily — but iron is still quenching most of the activation. Keep advancing." },
-          { "step": 14, "anchor": "#fortress-status", "side": "right", "text": "The Mn is being recorded into every growth ring from here on. But you wouldn't see it glow yet — Fe is still suppressing the fluorescence. The broth is loaded with the right ingredient and the wrong inhibitor at the same time." },
-          { "step": 17, "anchor": "#fortress-log",    "side": "left",  "text": "Iron just crashed out of the broth. The Mn-doped zones that grow next will fluoresce at full brightness. There's a boundary forming inside your crystal: dim early stripes from the iron-quenched phase, bright late stripes from now on." },
-          { "step": 25, "anchor": "#fortress-log",    "side": "left",  "text": "The crystal you grew is now a stratigraphic record of everything you put in the broth. Same crystal, written in fluorescence by every change in chemistry. This is what real Franklin / Sterling Hill calcite specimens look like under UV — bands of glow and quench, recording the deep-time fluid history of the vein." },
-          { "step": 30, "anchor": "#fortress-log",    "side": "left",  "text": "That's the lesson: additives change a growing crystal's properties. The vug remembers what you put into it. Tutorial complete. (Press Home when ready, or keep going.)" }
+          // ---- Framing: what's different about this run ----
+          { "anchor": "#fortress-status", "side": "bottom",
+            "text": "Tutorial 2. Same kind of vug, different question. The Grand Tour asked whether a crystal grows at all. This time growth comes easy — a warm carbonate broth, calcite country — and the question is what gets WRITTEN INSIDE the crystal while it grows.",
+            "hint": "press Enter or Space (or click Continue) to step through" },
+          { "anchor": "#f-sat-bar", "side": "bottom",
+            "text": "The σ readout, your forecast. Calcite leads it here, and this broth is built to keep it growing the whole run — 100°C, calcium and carbonate to spare. Growth is the given today. Chemistry is the variable." },
+          { "anchor": "#fortress-status", "side": "bottom",
+            "text": "Two trace metals ride this broth. Manganese (about 8 ppm) is a fluorescence ACTIVATOR: swap Mn²⁺ into calcite's lattice and the crystal answers longwave UV with an orange-red glow. Iron (about 10 ppm) is a QUENCHER: it silences exactly that glow. The broth carries the ingredient and the off-switch at the same time." },
+
+          // ---- Handoff ----
+          { "anchor": "#f-advance", "side": "top", "unlock": ["#f-advance", ".act-wait"],
+            "text": "Grow it. Advance is unlocked (⏩ Advance 10 too, for the impatient). Watch the log for a ✦ — calcite will seed within a few steps.",
+            "buttonLabel": "Begin ⏎" },
+
+          // ---- The arc: two events write two boundaries ----
+          { "step": 4, "anchor": "#fortress-inventory", "side": "left",
+            "text": "Calcite is on the wall. Every step it grows, it reads the broth and writes a zone — temperature, trace chemistry, all of it, in growth order. The zones forming right now record manganese WITH iron: activator plus quencher. Under a UV lamp they'd stay dark." },
+          { "step": 9, "anchor": "#fortress-log", "side": "left",
+            "text": "⚡ A manganese pulse just flooded the broth — read it in the log. From this zone outward the calcite is loading up on activator. The iron is still in there quenching, though. The record is still being written in invisible ink." },
+          { "step": 14, "anchor": "#fortress-status", "side": "right",
+            "text": "Halfway. Inside your crystal there is already a boundary: a low-Mn core, then Mn-rich bands. Nothing about it shows in ordinary light — fluorescence is chemistry that needs the right lamp to read." },
+          { "step": 17, "anchor": "#fortress-log", "side": "left",
+            "text": "⚡ There it is — an iron-poor recharge just swept the quencher out of the broth, and the manganese stayed. Every zone from here on carries the activator WITHOUT the off-switch. These bands will glow orange-red at full strength." },
+
+          // ---- The payoff: read the record back ----
+          { "step": 22, "anchor": "#fortress-inventory", "side": "left",
+            "text": "Your calcite now holds three stripes it grew in order: dim early growth, loaded-but-quenched middle, bright rim. A fluid history written radially, oldest at the core. Time to read it back." },
+          { "action": { "event": "click", "selector": ".inv-crystal" },
+            "anchor": "#fortress-inventory", "side": "left",
+            "text": "Tap your calcite's card in the inventory.",
+            "hint": "tap the calcite card (no card yet? Advance a few more steps first)" },
+          { "anchor": "#zone-modal", "side": "left",
+            "text": "The zone history. Find the bar labeled 'Under UV — fluorescence response': that is your crystal under the lamp. Dark segments at the nucleation end — the quenched early growth. Bright segments from the moment the iron left. Hover any segment and it tells you why it glows or stays inert. Close the modal when you've had a look." },
+
+          // ---- Franklin + finale ----
+          { "step": 26, "anchor": "#fortress-log", "side": "left",
+            "text": "This is what the famous Franklin and Sterling Hill calcites are: crystals whose UV stripes record every change the New Jersey ore fluids went through. Same physics as yours — theirs just ran a few million years longer." },
+          { "step": 30, "anchor": ".action-grid", "side": "top", "unlock": [".action-btn"],
+            "text": "The lesson: additives change what a crystal IS, not just whether it grows. The broth writes, the crystal remembers, UV reads it back. The whole instrument panel is now unlocked — keep going and stripe it further, or finish up and keep the specimen." }
         ]
       },
       "sources": [
@@ -2907,12 +2948,13 @@
 
     "tutorial_travertine": {
       "anchor": "Mammoth Hot Springs (Yellowstone) — travertine is the canonical CO₂-degas calcite",
-      "description": "Tutorial 3: How CO₂ Builds a Calcite Crust. CO₂-rich groundwater rises into a hot-spring pool, loses CO₂ as gas, and pH rises until calcite saturates and starts depositing on every available surface. The same mechanism that grows speleothems in caves and travertine terraces at hot springs.",
+      "description": "Tutorial 3: How CO₂ Builds a Calcite Crust. CO₂-rich groundwater rises into a hot-spring pool, loses CO₂ as gas, and every pH step multiplies calcite's supersaturation until crust plates every available surface. The same mechanism that grows speleothems in caves and travertine terraces at hot springs.",
       "expects_species": ["calcite"],
       "duration_steps": 60,
       "notes": [
-        "Tutorial scenario for PROPOSAL-GEOLOGICAL-ACCURACY Phase 3. Showcases the CO₂-degas → pH rise → calcite supersaturates cascade. Player presses Advance through three degassing pulses (steps 10, 25, 40) and watches calcite go from undersaturated to massive precipitation purely via pH change — no temperature drop, no mineral mixing, no fluid pulse adds Ca.",
-        "Initial fluid is high-DIC (CO3 = 500 ppm = ~10 mmol/kg DIC, typical of CO₂-charged hot-spring source water) at moderately acidic pH 6.5 (the pH at which most DIC sits as H₂CO₃* and HCO₃⁻; <0.1% is CO₃²⁻). Despite Ca = 200 ppm being well above seawater levels, calcite stays subsaturated — the carbonate ion isn't there.",
+        "Tutorial scenario for PROPOSAL-GEOLOGICAL-ACCURACY Phase 3. Showcases the CO₂-degas → pH rise → calcite supersaturates cascade. Player presses Advance through three degassing pulses (steps 10, 25, 40) and watches calcite go from a barely-viable trickle to massive precipitation purely via pH change — no temperature drop, no mineral mixing, no fluid pulse adds Ca.",
+        "REWORKED 2026-07-07 (tutorial-parity pass): legacy 8-beat sim-step script rebuilt in the Grand Tour's engine-v2 vocabulary — continue-step framing on the σ forecast, Begin ⏎ handoff, sim-step beats riding the pulses, then the INVERSE EXPERIMENT: the 🧪 acid verbs unlock and the player runs the cascade backwards, watching σ(calcite) fall (the cave-dissolution lesson for free). Broth + events byte-identical. TEXT RE-TRUED against the observed run: the old script's claims ('Ca 200 ppm', 'calcite isn't growing yet', 'crossed the line at step 20') predate the Ca 200→350 recalibration — measured seed run shows σ(calcite) 1.61 at t0 (one crystal creeping from step ~2) and pulse 1 multiplying σ 1.34→5.04, so the lesson is narrated as barely-viable-trickle → multiplication, which is also the truer Mammoth story (vent water arrives near saturation; degassing drives the plating downstream).",
+        "Initial fluid is high-DIC (CO3 = 500 ppm = ~10 mmol/kg DIC, typical of CO₂-charged hot-spring source water) at moderately acidic pH 6.5 (the pH at which most DIC sits as H₂CO₃* and HCO₃⁻; <0.1% is CO₃²⁻). At the current Ca = 350 ppm calibration, calcite starts MARGINAL (σ ≈ 1.6, a bare trickle of growth) rather than subsaturated — the pre-recalibration 'Ca = 200, stays subsaturated' description was stale; the pulses do the real work either way.",
         "Each `co2_degas` event removes 30% of the DIC (CO₂ leaves as gas) and raises pH by 0.5 units. The CO₃²⁻ fraction of DIC grows ~10× per pH unit (Bjerrum partition). After three degassing pulses, pH ~ 8 and calcite is wildly supersaturated; players see calcite nucleate and grow steadily through the back half of the run.",
         "Geological reference: Mammoth Hot Springs (Yellowstone, USA), Pamukkale (Turkey), Pancake Hot Springs (CA). All build travertine via this exact cascade. Cave flowstone uses the same chemistry but with cooler fluid and lower flow."
       ],
@@ -2951,16 +2993,58 @@
         { "step": 25, "type": "co2_degas_with_reheat", "name": "Second Pulse", "description": "Continued CO₂ outgassing — pH continues to rise, CO₃²⁻ fraction grows" },
         { "step": 40, "type": "co2_degas_with_reheat", "name": "Third Pulse", "description": "Final pulse — pH near 8, calcite massively supersaturated" }
       ],
+      // Tutorial overlay script — see tutorial_first_crystal for schema
+      // notes. Reworked 2026-07-07 to the Grand Tour's vocabulary:
+      // continue-step framing on the σ forecast (calcite dormant with
+      // every ingredient present) → Begin ⏎ handoff → sim-step beats
+      // riding the three degas pulses → the INVERSE EXPERIMENT (unlock
+      // the 🧪 acid verbs, the player runs the cascade backwards) →
+      // finale. The old script's step-4 text claimed Ca 200 ppm against
+      // the broth's actual 350 — fixed in passing.
       "tutorial": {
+        // Grand Tour pattern: nothing whitelisted at start; Advance at
+        // the handoff, the acid verbs at the experiment, all at the end.
+        "unlock": [],
         "steps": [
-          { "step": 0,  "anchor": "#f-advance",       "side": "top",   "text": "This vug holds high-DIC hot-spring water — lots of dissolved CO₂, calcium, and bicarbonate. The pH is 6.5, which sounds neutral, but at that pH almost none of the carbonate is in the CO₃²⁻ form needed for calcite. Press Advance to start." },
-          { "step": 4,  "anchor": "#fortress-status", "side": "right", "text": "Notice: calcite isn't growing yet. The Ca is there (200 ppm), the DIC is there (500 ppm), but pH 6.5 means CO₃²⁻ is essentially zero. The Bjerrum partition keeps almost all carbonate as H₂CO₃* and HCO₃⁻. Calcite needs the ionic form." },
-          { "step": 11, "anchor": "#fortress-log",    "side": "left",  "text": "First CO₂ degas event just fired. Read the log — 30% of the DIC just left as gas, and pH jumped from 6.5 to 7.0. The next steps will start to nucleate calcite as the CO₃²⁻ fraction climbs." },
-          { "step": 20, "anchor": "#fortress-status", "side": "right", "text": "Calcite is starting to grow. The same Ca²⁺ that's been sitting in solution the whole time is now precipitating because the carbonate ion finally exists in meaningful amounts. The fluid composition barely changed — only the pH did." },
-          { "step": 26, "anchor": "#fortress-log",    "side": "left",  "text": "Second degas pulse. pH rises again. Watch calcite growth accelerate." },
-          { "step": 41, "anchor": "#fortress-log",    "side": "left",  "text": "Third degas. pH near 8 now. Calcite is wildly supersaturated; every nucleation site available is depositing crystal." },
-          { "step": 55, "anchor": "#fortress-log",    "side": "left",  "text": "That's how travertine builds at Mammoth Hot Springs. Hot CO₂-charged water reaches the surface, CO₂ escapes as bubbles, pH rises, and calcite plates everything in white. The same fluid that ARRIVES too acidic to grow calcite ENDS UP loaded with it — only the dissolved gas changed." },
-          { "step": 60, "anchor": "#fortress-log",    "side": "left",  "text": "Tutorial complete. The lesson: pH controls carbonate-system chemistry as fundamentally as temperature. Cave flowstone, hot-spring travertine, ocean carbonate sediments — they all run on this same Bjerrum cascade. (Press Home when ready, or keep going.)" }
+          // ---- Framing: everything present, nothing growing ----
+          { "anchor": "#fortress-status", "side": "bottom",
+            "text": "Tutorial 3. This vug is hot-spring plumbing — water that came up through limestone loaded with dissolved CO₂, calcium, and bicarbonate. Everything calcite is made of, in quantity — and the pool can barely grow any. This tutorial is about the one number holding it back.",
+            "hint": "press Enter or Space (or click Continue) to step through" },
+          { "anchor": "#f-stat-ph", "side": "bottom",
+            "text": "There it is, in the vitals: pH 6.5, barely acidic. Dissolved carbonate wears three costumes — CO₂-acid, bicarbonate, and the carbonate ion CO₃²⁻ — and pH decides the wardrobe. At 6.5, essentially none of it is the CO₃²⁻ form that calcite is actually built from." },
+          { "anchor": "#f-sat-bar", "side": "bottom",
+            "text": "Now the forecast. Calcium at 350 ppm, dissolved carbonate at 500 — a rich broth — and calcite reads σ 1.6, scraping along barely past the line. That mismatch is the tell: at this pH almost none of the carbonate is wearing the CO₃²⁻ costume, so calcite is growing on fumes." },
+          { "anchor": "#f-stat-ph", "side": "bottom",
+            "text": "Here's the mechanism this pocket runs on. The water rising into the pool is fizzing — losing CO₂ to the air like an opened bottle. Every bubble that escapes drags acid out of the water, so pH rises. And per unit of pH, the CO₃²⁻ share of the dissolved carbonate grows about tenfold. Keep your eye on calcite's σ: the pulses won't add to it, they'll MULTIPLY it." },
+
+          // ---- Handoff ----
+          { "anchor": "#f-advance", "side": "top", "unlock": ["#f-advance", ".act-wait"],
+            "text": "Advance is unlocked. Three degassing pulses are coming. Watch two things each time they hit: pH in the vitals, and calcite's σ in the forecast.",
+            "buttonLabel": "Begin ⏎" },
+
+          // ---- The arc: three pulses walk σ across the line ----
+          { "step": 4, "anchor": "#f-sat-bar", "side": "bottom",
+            "text": "A calcite has seeded, and it's creeping — thin-film pace, σ drifting along in the 1.3s. The pool is barely keeping ahead of its own dissolution. Without the gas leaving, this trickle would be the entire story." },
+          { "step": 11, "anchor": "#f-sat-bar", "side": "bottom",
+            "text": "⚡ First pulse — the log says a third of the dissolved CO₂ just left as gas and pH climbed half a unit. Now look at the forecast: σ(calcite) LEAPED to around 5. Half a pH unit, several times the supersaturation. Nothing was added to this water. Something left it." },
+          { "step": 20, "anchor": "#f-sat-bar", "side": "bottom",
+            "text": "See σ easing back as the wall drinks the surplus — every new layer of crust locks carbonate away, and growth is compounding. The pool spends what the pulse loaded. Two more deliveries coming." },
+          { "step": 26, "anchor": "#f-stat-ph", "side": "bottom",
+            "text": "⚡ Second pulse. pH 7.5 and climbing — and tenfold-per-unit means the CO₃²⁻ supply is compounding. Watch the growth lines in the log pick up pace with it." },
+          { "step": 41, "anchor": "#fortress-log", "side": "left",
+            "text": "⚡ Third pulse. pH is near 8: this water arrived acidic and is leaving alkaline, and calcite is now wildly supersaturated — every surface in the pool is getting plated. This is travertine. Not a rare mineral; ordinary calcite with an extraordinary delivery mechanism." },
+          { "step": 50, "anchor": "#topo-panel", "side": "top",
+            "text": "Look at the wall — crusted. At Mammoth Hot Springs the active vents plate travertine at millimeters a DAY, geologically explosive, and the result is terraces, rimstone pools, whole petrified waterfalls. Pamukkale in Turkey is this same cascade; so is the flowstone in every limestone cave, just colder and slower." },
+
+          // ---- The inverse experiment: run the cascade backwards ----
+          { "action": { "event": "click", "selector": ".act-acid" }, "unlock": [".act-acid"],
+            "anchor": ".action-grid", "side": "top",
+            "text": "You've watched degassing run this cascade forward. Now run it backwards yourself. The 🧪 acid verbs are unlocked — Tweak ↓pH nudges pH down a third of a unit, Shift ↓pH slams it down two. Press one.",
+            "hint": "click a highlighted 🧪 acid button" },
+          { "anchor": "#f-sat-bar", "side": "bottom",
+            "text": "Watch the forecast: σ(calcite) dropped the moment the acid went in. Push far enough and it slides back under 1 and growth stops; further still and the water starts EATING the crust it built. That is how limestone caves get hollowed out in the first place — CO₂-charged rainwater running this exact cascade in reverse. Press it again if you want to see the slide; the pool will take the abuse." },
+          { "anchor": ".action-grid", "side": "top", "unlock": [".action-btn"],
+            "text": "The lesson: pH controls carbonate chemistry as decisively as temperature controls silica — and it works both directions. Nothing but gas entered or left this water all run, and it went from growing-on-fumes to plating-every-surface. Cave flowstone, spring terraces, ocean sediments: the same Bjerrum cascade at different tempos. The whole panel is unlocked — push the pool around, or finish and keep the crust." }
         ]
       },
       "sources": [

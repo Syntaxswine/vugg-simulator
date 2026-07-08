@@ -152,7 +152,7 @@ window.hideCallout = hideCallout;
 // `unlock` arrays (tutorial-level `unlock` defaults to ['#f-advance']
 // for the legacy sim-step tutorials).
 
-let _tutorialState = null; // { steps: [...], stepIdx, renderedIdx, mode } | null (engine v2/v3 — see 70a)
+let _tutorialState = null; // { steps: [...], stepIdx, renderedIdx, pausedAt, mode } | null (engine v2/v3.1 — see 70a)
 
 // ENGINE v3 — the narrative playback position for legends-mode
 // tutorials. Legends runs the whole sim synchronously up front, then
