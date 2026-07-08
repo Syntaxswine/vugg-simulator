@@ -270,6 +270,7 @@ Loads after the simulator class is defined.
 | 91     | `91-ui-legends.ts`              | Simulation (legends) mode             |
 | 92     | `92-ui-mode-switch.ts`          | `showTitleScreen` + cross-mode switch |
 | 93     | `93-ui-collection.ts`           | crystal-collection localStorage records (`buildCrystalRecord`, `reconstructCrystalFromRecord`, …) |
+| 93a    | `93a-ui-saves.ts`               | game saves (event-sourced autosave/manual, deterministic replay via `loadSaveById`) + lifetime stats + Saves panel |
 | 94     | `94-ui-menu.ts`                 | New Game menu + Scenarios picker      |
 | 95     | `95-ui-library.ts`              | Library mineral browser               |
 | 96     | `96-ui-random.ts`               | Random Vugg + discovery narrative     |

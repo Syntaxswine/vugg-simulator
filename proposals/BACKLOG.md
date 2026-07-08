@@ -2,6 +2,53 @@
 
 Living list of open work items, captured from session conversations so context survives compaction. Each item has enough detail that someone picking it up cold can act without re-discovering the rationale.
 
+> ## 💾 SAVE SYSTEM + LIFETIME SCORE (2026-07-08, boss stone) — SHIPPED (SIM-neutral, 0/38)
+>
+> Boss: *"saving the game should be automatic. the last button should be 'narrate, collect,
+> and save.' … a save button between library and home … a save menu that has manual saves in
+> addition to the autosaves … for now a total crystals collected across all runs is a good
+> base stat that … points towards something more."*
+>
+> **SHIPPED — event-sourced saves (js/93a-ui-saves.ts).** A save is the run's RECIPE, not a
+> state dump: origin (begin path + resolved params + the rng seed installed BEFORE any
+> construction — the legends seed-first order) + the action log (every fortressStep verb with
+> broth-slider DELTAS) + collected-crystal pairs. Load = deterministic replay through the
+> REAL fortressStep with the tempo player in instant mode; browser-verified fingerprint
+> parity (step/T/pH/Fe/Ca/crystals to 6 decimals, T 178.785 preserved). The active run keeps
+> ONE rolling autosave re-persisted after every action ("automatic" = a crash costs nothing);
+> `📜 Narrate, Collect & Save` (the renamed fortress finish button) narrates, silently batch-
+> collects every grown crystal into the Library (log line, not alert), seals the autosave,
+> and ticks the lifetime counters. 💾 Saves nav button (Library ↔ Home) opens the shelf:
+> AUTO/MANUAL badges, in-progress/narrated status, Load/Rename/Delete, and the score line —
+> `vugg-stats-v1` lifetime `crystals_collected` (the boss's scoring base stat; counters only
+> go UP — deleting a specimen doesn't un-find it) + `runs_finished`. Title-screen Load Game
+> opens Saves when any exist, else Library. Cross-SIM loads replay honestly under today's
+> physics with a ⚠️ log line. CI: tests-js/fortress-saves.test.ts (7 — round-trip ×2 begin
+> paths, rolling autosave, finish-seals-once, finished-restore-no-recollect, stat
+> monotonicity, batch return shape).
+>
+> **THE LAW THE LIVE EYE-CHECK ADDED — sliders are TRANSPORT, not physics.** Broth values
+> reach the sim ONLY through fortressStep's pre-action re-sync; post-sync slider values are
+> quantized ECHOES (toSlider rounds). The first cut force-fed `broth_final` back via m.set
+> and turned T 178.785 into 179 — invisible to jsdom (stub sliders), caught in the browser
+> where all 38 sliders are real. `_saveApplyBroth` now writes sliders only; the test grew a
+> real temp slider so the echo class stays pinned.
+>
+> **Rode along — four pre-existing headless landmines** (each would corrupt/crash any
+> DOM-less fortress drive): NaN broth poisoning (re-sync now finite-guards parses), null-ctx
+> throws in topoRender + placeholder (99b) and the three 98c zone-bar painters, and the
+> tests-js stub Proxy lacking `Symbol.toPrimitive`. Plus: fortress begins now seed BEFORE
+> `make()`/construction and `startScenarioInCreative`/agent `startScenario` thread the seed —
+> agent drives are now fully deterministic INCLUDING wall geometry (resolves the old 99z
+> comment caveat).
+>
+> **▸ Deferred, named:** zen/legends runs don't save (fortress-only v1 — legends completes
+> instantly, zen is a screensaver; wire them when asked); repeated loads of one save re-record
+> duplicate strip datasets (user-driven, acceptable; revisit if the Strip View list silts up);
+> the scoring system beyond the base stat (boss: *"points towards something more"* — species
+> completion %, size records, per-locality firsts all read cheaply off existing records);
+> save export/import as a JSON file (cross-browser portability).
+
 > ## 🌊 C1 — THE DIRECTIONAL-σ TRANCHE (2026-07-07, boss stone) — SHIPPED `e08ab3d` (render-only); SCALAR-CHEMISTRY HALF DEFERRED
 >
 > Boss said *"continue with the work in the handoff"* → the keystone named C1 next, EV check

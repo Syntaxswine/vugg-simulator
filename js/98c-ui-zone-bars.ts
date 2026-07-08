@@ -114,6 +114,7 @@ function renderChemistryBar(canvas, crystal, opts: any = {}) {
   canvas.height = height;
   canvas.style.display = 'block';
   const ctx = canvas.getContext('2d');
+  if (!ctx) return []; // canvas-less env (headless drives) — nothing to draw on
   ctx.fillStyle = '#070706';
   ctx.fillRect(0, 0, width, height);
 
@@ -301,6 +302,7 @@ function renderUVBar(canvas, crystal, opts: any = {}) {
   canvas.height = height;
   canvas.style.display = 'block';
   const ctx = canvas.getContext('2d');
+  if (!ctx) return []; // canvas-less env (headless drives) — nothing to draw on
 
   // Background — deep cool gray suggesting "lamp on, dark room, no
   // emission yet". Inert segments stay this color.
@@ -366,6 +368,7 @@ function renderZoneBarCanvas(canvas, zones, opts: any = {}) {
   canvas.style.display = 'block';
 
   const ctx = canvas.getContext('2d');
+  if (!ctx) return; // canvas-less env (headless drives) — nothing to draw on
   ctx.fillStyle = '#070706';
   ctx.fillRect(0, 0, W, H);
 
