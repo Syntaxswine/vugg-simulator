@@ -41,9 +41,21 @@ Living list of open work items, captured from session conversations so context s
 > great_salt_plains' red-mud flood. Tuning a scenario to chase a seed flag = pinning
 > weather.
 >
-> **▸ NEXT on this line:** O5 perturbed regrowth (THE ORIGINATING ASK — masked faces →
-> phantom horizon → sceptre by ELO; the coats_front class + enclosed_at_step horizons
-> are its prepared data), research-first per the ontogeny proposal §O5.
+> **▸ NEXT on this line — O5 PROPOSAL CUT (same session): `PROPOSAL-O5-PERTURBED-REGROWTH-
+> 2026-07-08.md`** — the film / the phantom / the masking sceptre. Verified science
+> (Takahashi & Sunagawa 2004 ELO — masked trunk + purer renewal, mechanism prose confirmed;
+> Cabrera–Vermilyea dead-zone σ*(φ) with the modern step-bunching caveats DECLARED);
+> census corrections: **the corrosion sceptre is already EARNED** (js/45 classifyQuartzSceptre
+> + grimsel seal/breach — the "declared-but-painted" line was stale; O5 adds the SECOND
+> natural route, not the first), phantom rails are dissolution-only today (masked_horizon =
+> a positive-growth phantom, new origin on the same rails), the two axes ARE the face-class
+> granularity (φ_term/φ_prism, no per-face state needed for primitives), D2's vertexColors
+> seam is the band's render home. Tranches O5a record-unread (0/38 REQUIRED) → O5b gate
+> (census-bounded movers; tormiq's fresh quartz lining is the first dusted cleft — grimsel
+> deliberately stays clean as the corrosion-route reference) → O5c band render. Splitting
+> ladder NAMED-DEFERRED (its own state class). Specimen anchors: 1294/1295/1300 chlorite
+> phantoms + 1307–1309 sceptres. **AWAITS boss/rockbot review (§8 open questions) before
+> O5a code.**
 
 > ## 🔴🟢 NUCLEATION HOVER POPOVER (2026-07-08, boss ask) — SHIPPED (render-only)
 >
