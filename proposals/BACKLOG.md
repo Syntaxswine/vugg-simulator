@@ -2,6 +2,58 @@
 
 Living list of open work items, captured from session conversations so context survives compaction. Each item has enough detail that someone picking it up cold can act without re-discovering the rationale.
 
+> ## 🔦 DOOR 2 — UV FLUORESCENCE SCALE AUDIT (2026-07-09, the eleventh hand's second door) — SHIPPED, 3 commits (`e81ce83` census · `7c4ded5` 98c render · `c954cf2` SIM 225)
+>
+> The seed finding generalized exactly as scoped — and further: BOTH voices (98c bar,
+> js/27 narrator) were broth-scale numbers tested against zone-scale traces, AND they
+> contradicted each other on 27 fleet crystals (narrator 'unknown' on 819/1098). The
+> census (tools/uv-zone-census.mjs, --detail per-crystal mode) found **the engines had
+> been recording graded UV verdicts all along** — js/52's 4-tier calcite ladder in zone
+> notes, js/59's willemite ladder, js/53's trace_Y with Eu²⁺ named in its own comment,
+> spec canon (uraninite NON-fluorescent, boss-canonical 626bb22; the Cu²⁺ veto on the
+> autunite entry) — so Door 2 became a RECONCILIATION, not an invention: both consumers
+> now mirror the engines' recorded classifiers, gate-for-gate.
+>
+> **The catch of the arc:** calcite's 223a96b "fixed" gate was nearly dead (1 glowing
+> zone in 1370) and FALSE-QUENCHED the famous fluorescents — and no gate on (Fe, Mn)
+> could dark the tutorial's early stripes (zone 0.8/5.4) while glowing elmwood
+> (1.27/4.0): **the tutorial broth was chemically brighter than Elmwood.** The fix was
+> the BROTH (Fe 10→60, SIM 225) — T2's taught dark-then-brilliant story is now
+> chemically true (payoff bar kernel-truth: 347px dark → brilliant #ff5040 boundary →
+> 239px bright rim; honest new 0.26mm background siderite, the FeCO₃ the broth
+> deserves). Literature pass: 40+ opened sources (fluomin fiches, Bostwick 2008,
+> LA-ICP-MS Fe rails for ruby Mogok-92ppm-vs-Thai-2000+ and emerald Muzo-70-vs-Kafubu-
+> 8941, Czaja willemite, Cannon's scheelite-Mo patent). **Two confirmed inversions:**
+> adamite (trace-URANYL activates, Cu²⁺ quenches — the engine had Cu as the ACTIVATOR,
+> backwards on three verified legs; supergene's cuproadamite now honestly dim) and
+> uraninite (always-on green ×584 zones → canon-null; dark IS the diagnostic). Retired:
+> quartz Al-blue (CL, not UV), mimetite always-orange (Långban's is often hedyphane),
+> smithsonite always-blue-green (weak/rare), amazonite Pb glow (colour centre ≠
+> activator). Added: uranyl family cases (uranophane/uranospinite bright;
+> metatorbernite/metazeunerite dark by Cu²⁺ veto — schneeberg now teaches the field
+> classic in one cavity), sphalerite cleiophane-orange (Fe the ZnS killer; elmwood's
+> gemmy cleiophane glows, marmatite dead), feldspar weak Fe³⁺ deep-red (Bostwick's
+> Franklin albite). **The record completed itself:** ruby/sapphire/emerald record
+> trace_Cr, feldspar trace_Pb, adamite trace_Cu — three compute-and-drop datums whose
+> notes narrated numbers the zones never carried. uvSummary's "[object Object]"
+> modal-header bug fixed. Movement: baseline 1/39 (tutorial +siderite); strips carry
+> version stamps only (fluorescence narration feeds the LIVE surfaces — Library, zone
+> modal, agent API). Tests: uv-zone-bars.test.ts (41 — bar + narrator held together by
+> the same synthetic stacks). CI green, coverage Stale 0.
+>
+> **▸ NAMED, NOT BUILT (this door's follow-ons):** the calcite Pb SENSITIZER
+> (Schulman/USGS 1947 — Mn-only calcite is near-inert to UV; Pb explains "world calcite
+> dim, Franklin loud" better than Fe alone; needs calcite trace_Pb + a Franklin-type
+> tenant — fleet calcites are MVT-adjacent so today's Mn/Fe ladder approximates it) ·
+> the BIOGENIC-DRIVERS organics field (aragonite fluoresces VERY OFTEN via organics —
+> fluomin, surveyed since 1903; selenite's 1927 Wiesloch UV HOURGLASS = sector-zoned
+> organics in clay-grown crystals, and SIM 211's hourglass-selenite sediment sectors
+> are the recorded datum already waiting — joins the fourth-act "biogenic drivers"
+> awaiting-adoption line) · scheelite's Mo hue ladder (blue→white→yellow, verified
+> against Cannon US2,346,661 — banked for a future tenant) · apophyllite's
+> multi-activator exceptions (fluomin id=126: uranyl/Ce/Mn locality accidents; sim
+> default now honest-inert).
+
 > ## 💎 O4b — GEOMETRIC ENCLOSURE ADJACENCY + coats_front (2026-07-08, boss: "O4b it is… you always follow the science") — SHIPPED SIM 221 (`6967c57` census + `08287eb` bump)
 >
 > The second commit O4a deferred. **The census found the string gate 81% phantom**
@@ -480,8 +532,10 @@ Living list of open work items, captured from session conversations so context s
 > Post-clamp census: concentration defects [] · baseline diff 0/38 — the rot was UNREAD,
 > and the clamp makes that a guarantee for the trace-reading consumers coming (D1c,
 > narrators, UV rules). tools/negative-fluid-census.mjs is re-runnable.**
-> · Door 2 UV scale audit (uv-zone-census tool first → 98c recalibration render-only →
-> js/27 separately under SIM-bump discipline, narrator text moves) · Door 3 §10.5 t2-3 (~90
+> · **Door 2 ✅ WALKED (2026-07-09, 3 commits `e81ce83`/`7c4ded5`/`c954cf2` SIM 225 — see
+> the 🔦 DOOR 2 banner at top: the two voices reconciled to the engines' recorded ladders;
+> the tutorial broth made honest; adamite + uraninite inversions; the record completed
+> itself)** · Door 3 §10.5 t2-3 (~90
 > curated strings verbatim → menu.group/label/blurb + tutorial.number/menu_label; acceptance =
 > byte-identical rendered menus via before/after DOM snapshot) · **Door 4 (boss-sequenced
 > LAST, after the handoff's other arcs): THE FLEET SIGNATURE AUDIT — re-evaluate all 38
