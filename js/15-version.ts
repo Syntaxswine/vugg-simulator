@@ -11773,5 +11773,28 @@
 //        neighbor via mass redistribution. The DELIBERATE-blanket showcase (φ≈0.9,
 //        real stalls) is the Sweetwater snowball-barite scenario, the next commit —
 //        this bump ships the proven, confined mechanism it will stand on.
-const SIM_VERSION = 222;
+// v223 — W-F O5 FIRST CONTENT: the ELMWOOD BARITE SNOWBALL. Elmwood is famous
+//        for barite on honey sphalerite (boss), and the scenario nucleated barite
+//        on the sphalerite base all along — but its barite σ peaked at 0.97 (Ba
+//        capped 18; the "Brine Meets Sulfur" event delivers the S) and never
+//        cleared the 1.0 growth floor, so barite sat as subcritical DUST. This
+//        cashes in the documented "purple fluorite + barite" stage: a new
+//        elmwood_barite_stage handler (js/70) sets a Ba FLOOR of 28 (NOT a
+//        stacking pulse — the first cut's +22/stage stacked to σ≈3.2 and spawned
+//        WITHERITE against elmwood's high CO3; a modest floor keeps barite σ≈1.5
+//        so Ba goes into barite, not barium carbonate), and clay / iron-oxide
+//        `film:` dustings (the O5a directive) between the pulses stall the blades.
+//        The stall→pulse→break cycle buries 2 masked_horizons per blade + leaves
+//        the final clay rind uncleared = the snowball's concentric banding + dusty
+//        skin (6 blades → 0.36 mm, 12 horizons; barite is a minor phase in this
+//        calcite/fluorite/aragonite-packed cavity, so it stays small — geologically
+//        right). Calibrated by tools/o5-masking-probe + a bespoke elmwood probe:
+//        the VARIETY IS PRESERVED (boss's favorite locality "for the variety of
+//        cool stuff it makes") — golden calcite 19.16 vs 19.18 mm, fluorite/
+//        aragonite/sphalerite base/smithsonite/selenite all within noise, witherite
+//        excluded. Movement is confined to elmwood (the only scenario carrying the
+//        new events): barite dust→grown + its snowball zones, plus minor dust
+//        over-nucleation (barite 6→11, sphalerite 1→3 — the sustained-Ba web, all
+//        extras 0 mm). tests-js/elmwood-snowball.test.ts (5).
+const SIM_VERSION = 223;
 

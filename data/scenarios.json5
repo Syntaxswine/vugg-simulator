@@ -414,7 +414,13 @@
       },
       "events": [
         { "step": 15, "type": "fluid_mixing", "name": "Brine Meets Sulfur", "description": "Metal brine meets sulfur-bearing groundwater in the breccia — the honey-sphalerite era begins" },
-        { "step": 70, "type": "tectonic_shock", "name": "Fault Slip", "description": "The fault valve slips — pressure pulse through the breccia run" }
+        { "step": 28, "type": "elmwood_barite_stage", "name": "Barite Stage — Generation 1", "description": "A barium-rich brine pulse lifts barite above its growth threshold; the first generation of blades strikes out from the honey sphalerite" },
+        { "step": 40, "type": "film_coat", "name": "Clay Coat", "description": "Fine clay settles on the barite blades, masking their faces — the next barium pulse must grow through it", "film": { "mineral": "clay", "term": 0.3, "prism": 0.3, "minerals": ["barite"] } },
+        { "step": 50, "type": "elmwood_barite_stage", "name": "Barite Stage — Generation 2", "description": "A fresh barium pulse overtakes the clay film; barite grows a second generation THROUGH it, sealing the coat as an internal snowball horizon" },
+        { "step": 60, "type": "film_coat", "name": "Iron-Oxide Coat", "description": "Iron oxides tint the blade fronts a rusty film — the second masking coat", "film": { "mineral": "iron oxide", "term": 0.3, "prism": 0.3, "minerals": ["barite"] } },
+        { "step": 68, "type": "elmwood_barite_stage", "name": "Barite Stage — Generation 3", "description": "The third barium pulse breaks through the iron-oxide film — a second snowball horizon buried in the blade" },
+        { "step": 70, "type": "tectonic_shock", "name": "Fault Slip", "description": "The fault valve slips — pressure pulse through the breccia run" },
+        { "step": 78, "type": "film_coat", "name": "Final Clay Rind", "description": "A last clay film coats the outermost blades — the snowball's dusty rind, left uncleared as the barium wanes", "film": { "mineral": "clay", "term": 0.45, "prism": 0.45, "minerals": ["barite"] } }
       ],
       "movements": [
         {

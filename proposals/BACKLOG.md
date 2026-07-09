@@ -99,11 +99,27 @@ Living list of open work items, captured from session conversations so context s
 > single-inclusion films are LIGHT by design (φ≈0.15 → σ*≈1.18); a lone speck masks little,
 > the science.** Tests o5-masking-gate.test.ts (4, incl. THE INVARIANT: a masked_horizon is
 > positive-thickness + not is_phantom — "dusted and buried" ≠ the etch phantom's "etched and
-> healed"). Rebake v222: baseline + strips + archive. **The DELIBERATE-blanket showcase is
-> next: the Sweetwater snowball-barite scenario (φ≈0.9 → real stalls → the snowball texture
-> the film mechanic is load-bearing for), its own commit on this proven gate.** Masking
-> sceptre (per-axis prism/tip asymmetry, classifyQuartzSceptre generalization) + O5c band
-> render also ahead.
+> healed"). Rebake v222: baseline + strips + archive.
+>
+> **▸ O5 FIRST CONTENT SHIPPED — THE ELMWOOD BARITE SNOWBALL (SIM 223).** Boss picked the
+> locality: *"elmwood TN is famous for barite on sphalerite"* → grep-the-tree, NOT a new
+> Sweetwater — elmwood ALREADY grows barite on honey sphalerite, but its barite σ peaked at
+> 0.97 and never cleared 1.0, so it sat as subcritical DUST. New `elmwood_barite_stage`
+> handler (js/70) sets a Ba FLOOR of 28 (the documented "purple fluorite + barite" stage;
+> NOT a stacking pulse — the first cut's +22/stage stacked to σ≈3.2 and spawned WITHERITE
+> against elmwood's high CO3), and clay/iron-oxide `film:` dustings (steps 40/60/78) between
+> pulses stall the blades. The stall→pulse→break cycle buries 2 masked_horizons per blade +
+> leaves the final clay rind uncleared = the snowball's concentric banding + dusty skin
+> (6 blades → 0.36 mm, 12 horizons; barite is a minor phase in this calcite/fluorite/
+> aragonite-packed cavity, so it stays small — geologically right). **THE VARIETY IS
+> PRESERVED** (boss's favorite locality "for the variety of cool stuff it makes"): golden
+> calcite 19.16 vs 19.18 mm, fluorite/aragonite/sphalerite base/smithsonite/selenite all
+> within noise, witherite excluded. baseline-diff: elmwood ONLY (value-level confirmed);
+> crystals 20→27 (minor dust over-nucleation — barite 6→11, sphalerite 1→3, the sustained-Ba
+> web, extras 0 mm), species 13→13. Tests elmwood-snowball.test.ts (5). A `film_coat` no-op
+> handler carries the pure-dusting events (no chemistry). **NEXT on the O5 line:** the masking
+> SCEPTRE (per-axis prism/tip asymmetry + classifyQuartzSceptre generalization, grimsel
+> corrosion stays the clean reference) + O5c band render (the D2 vertexColors seam).
 
 > ## 🔴🟢 NUCLEATION HOVER POPOVER (2026-07-08, boss ask) — SHIPPED (render-only)
 >
