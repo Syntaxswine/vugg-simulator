@@ -182,6 +182,24 @@ Living list of open work items, captured from session conversations so context s
 > the V1b-flow speedometer; grep-the-tree, the data exists) + continuous axis-wander (the specimen's
 > stem wobble) — pairs with W-K's flow-DIRECTION asymmetry line. Also open: per-axis GROWTH gating
 > (stall prism/term independently) — census said not needed for v1 (capFrac is growth-timing-set).
+> **▸ THE CITRINE HALF IS BIGGER THAN A COLOUR TRIGGER (boss, 2026-07-09):** *"you would need more
+> than just adding citrine — you would need localized heat. right now heat is uniform through the
+> vugg."* Verified correct, and the tree already holds the receptacles. Heat is uniform in SPACE by
+> construction: js/85c `_propagateGlobalDelta` moves every ring by the same ΔT in lockstep (js/85:130
+> initializes all rings to one T; the v157 note calls ring_temperatures "synced cavity-wide"), while
+> per-VOXEL temperature has existed since v158 as stored-but-unconsumed (js/24 `[FIRM] E` — "engines
+> still read ring_temperatures[]"). The LOCAL consumption plumbing already works: js/20d localization
+> resolvers deliver `ring_temperatures[cell.temperature_ring]` per cell — nothing ever DIFFERENTIATES
+> the array. And zones already record their growth T (`z.temperature` — js/12's legacy citrine gate
+> reads it), so the EPISODE datum exists too. The citrine half therefore parks behind a THERMAL-FIELD
+> stone with three pieces: (1) a SOURCE of spatial ΔT — feeder-spot heat / one-sided wall bake / dike
+> contact; (2) differentiated ring_temperatures (or waking the voxel column) flowing through the
+> EXISTING 20d resolvers; (3) episode→colour split — body colour is per-CRYSTAL today (D1b), and an
+> ametrine needs the head coloured by the episode that grew it while the buried amethyst phantom keeps
+> its purple. `citrine` itself sits authored-but-dormant (trigger `heated_amethyst`, unimplemented;
+> legacy js/12 gate `avgFe > 5` — the amethyst scale-debt's sibling). Bench anchors 1307–1309
+> (amethyst-citrine sceptres, triple Eh oscillation) wait in the pilot manifest. NOT a colour patch —
+> a foundation stone; sequenced behind the approved doors unless the boss pulls it forward.
 
 > ## 🔴🟢 NUCLEATION HOVER POPOVER (2026-07-08, boss ask) — SHIPPED (render-only)
 >
