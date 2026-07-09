@@ -297,6 +297,20 @@ class Crystal {
     } else if (this.zones.length && this.zones[this.zones.length - 1].thickness_um < 0 && zone.thickness_um > 0) {
       zone.note = (zone.note + ' [phantom boundary — growing over dissolution surface]').trim();
     }
+    // W-F O5b — a MASKED HORIZON is a phantom of a DIFFERENT origin: the growth
+    // loop (js/85) tags the first zone that grows THROUGH a foreign film
+    // (`zone.masked_horizon`, positive thickness, no mass ever lost). It joins
+    // the phantom_surfaces record beside the dissolution phantoms so narrators,
+    // the Strip View, and O5c's band render read one horizon list — but the
+    // ORIGIN differs ("dusted and buried" vs the etch phantom's "etched and
+    // healed"), which `zone.masked_horizon` + `zone.film_mineral` preserve. This
+    // is the phantom the ontogeny arc's originating ask leaves in the lattice.
+    if (zone.masked_horizon && zone.thickness_um > 0) {
+      this.phantom_surfaces.push(this.zones.length);
+      this.phantom_count++;
+      const fm = zone.film_mineral ? `${zone.film_mineral} ` : '';
+      zone.note = (`${zone.note || ''} [masked horizon — grew through a ${fm}film]`).trim();
+    }
     this.zones.push(zone);
     // 2026-05-18 habit-stability fix: integrate _volume_mm3 PER ZONE at
     // the aspect ratio of the habit AS-OF-THIS-ZONE. Stamp the aspect

@@ -85,9 +85,25 @@ Living list of open work items, captured from session conversations so context s
 > 5 stacked guests). BYTE-IDENTICAL PROVEN: baseline + strip digest regenerated → zero git
 > diff (writers fire, nothing reads `_film`); no SIM bump. Tests o5-film.test.ts (11). The
 > census PRE-REGISTERS O5b's movers: only those 10 scenarios may move when the flag flips.
-> **O5b (the gate) is the next SIM bump: wire sigmaStarForCoverage into the growth path,
-> tag masked_horizon, generalize classifyQuartzSceptre, calibrate k (4a.7), author the
-> Sweetwater snowball-barite scenario as first content.**
+> **▸ O5b SHIPPED — THE MASKING GATE LIVE (SIM 222).** `O5_MASKING_ENABLED` flipped;
+> the growth loop (js/85, beside the O3b `_buried` throttle) gates a filmed crystal on
+> σ > σ*(φ) = σ*₀·(1+k·φ/(1−φ)) (σ*₀=1 equilibrium, k=1.0). Below → the axis STALLS; above
+> → grows THROUGH, tagging a `masked_horizon` (positive-growth phantom, joined to
+> phantom_surfaces beside is_phantom in js/27 add_zone) and clearing `_film`. Calibration
+> (tools/o5-masking-probe.mjs, off/on sweep k∈{0.3…4}): movement confined to the census-10
+> at EVERY k (the `_film` guard holds); k≥2 froze the fluorite-vein showpiece (−0.897 mm)
+> and rippled reactive_wall −5 crystals → rejected; **k=1.0 keeps Δcrystals 0 fleet-wide**.
+> BASELINE MOVED: reactive_wall ONLY (value-level; its accumulated φ=0.75 from 5 stacked
+> coats_front guests stalls a crystal, ~+100 µm redistributes to a neighbor — mass
+> conservation). The other 9 record horizons that break through instantly — **organic
+> single-inclusion films are LIGHT by design (φ≈0.15 → σ*≈1.18); a lone speck masks little,
+> the science.** Tests o5-masking-gate.test.ts (4, incl. THE INVARIANT: a masked_horizon is
+> positive-thickness + not is_phantom — "dusted and buried" ≠ the etch phantom's "etched and
+> healed"). Rebake v222: baseline + strips + archive. **The DELIBERATE-blanket showcase is
+> next: the Sweetwater snowball-barite scenario (φ≈0.9 → real stalls → the snowball texture
+> the film mechanic is load-bearing for), its own commit on this proven gate.** Masking
+> sceptre (per-axis prism/tip asymmetry, classifyQuartzSceptre generalization) + O5c band
+> render also ahead.
 
 > ## 🔴🟢 NUCLEATION HOVER POPOVER (2026-07-08, boss ask) — SHIPPED (render-only)
 >

@@ -11751,5 +11751,27 @@
 //        v220 seed-42 flood was RNG weather (v221 sweep: 5/12 seeds still
 //        flood at 0.95); the flooded variant's mechanism pins live on
 //        great_salt_plains' red-mud flood.
-const SIM_VERSION = 221;
+// v222 — W-F O5b: THE MASKING GATE GOES LIVE (perturbed regrowth, the ontogeny
+//        arc's SECOND SIM bump; O5a shipped the record-unread foundation at 221).
+//        O5_MASKING_ENABLED flips true (js/44b): a crystal carrying a foreign
+//        film (`_film`, from an event `film:` dusting or an O4b coats_front
+//        enclosure) can only grow through it when σ clears the two-pass-
+//        reconciled dead-zone barrier σ*(φ)=σ*₀·(1+k·φ/(1−φ)) (σ*₀=1 equilibrium,
+//        k=SIGMA_STAR_K=1.0). Below it the axis STALLS; above it grows THROUGH,
+//        tagging a `masked_horizon` (a POSITIVE-growth phantom — the film buried
+//        in the lattice, joined to phantom_surfaces beside the dissolution
+//        phantom, js/27) and clearing `_film`. The `_film` guard + σ*(0)=1 keep
+//        every UNfilmed crystal byte-identical: movement is confined to the O5a
+//        census's 10 film-carrying scenarios (tools/o5-masking-probe.mjs verified
+//        confinement + picked k across a 0.3–4.0 sweep — k≥2 froze the fluorite-
+//        vein showpiece and rippled reactive_wall −5 crystals; k=1.0 keeps Δcrystals
+//        0 fleet-wide). BASELINE MOVEMENT IS SMALL BY DESIGN: organic single-
+//        inclusion films are LIGHT (φ≈0.15 → σ*≈1.18, cleared instantly — a lone
+//        speck masks little, the science), so 9/10 scenarios record a horizon that
+//        breaks through with no size change; only reactive_wall (accumulated φ=0.75
+//        from 5 stacked coats_front guests) stalls and ripples ~+100 µm into a
+//        neighbor via mass redistribution. The DELIBERATE-blanket showcase (φ≈0.9,
+//        real stalls) is the Sweetwater snowball-barite scenario, the next commit —
+//        this bump ships the proven, confined mechanism it will stand on.
+const SIM_VERSION = 222;
 

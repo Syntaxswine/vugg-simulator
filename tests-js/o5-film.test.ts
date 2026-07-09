@@ -147,8 +147,12 @@ describe('W-F O5 — coats_front writer 2 records host film (O4b enclosures)', (
   });
 });
 
-describe('W-F O5a — the gate is UNREAD (record-only, byte-identity contract)', () => {
-  it('O5_MASKING_ENABLED is false — the σ*(φ) gate does not run in O5a', () => {
-    expect(O5_MASKING_ENABLED).toBe(false);
+describe('W-F O5 — the masking gate flag (O5a recorded-unread → O5b live)', () => {
+  it('O5_MASKING_ENABLED is TRUE — the σ*(φ) gate is live as of O5b (SIM 222)', () => {
+    // O5a shipped this false (film recorded, unread → byte-identical). O5b flipped
+    // it: the growth loop now gates filmed crystals on σ*(φ). The byte-identity of
+    // the non-film fleet is preserved by the `crystal._film` guard, NOT by the flag
+    // (the full-suite baseline pins carry that proof); this pin just tracks the flip.
+    expect(O5_MASKING_ENABLED).toBe(true);
   });
 });

@@ -56,11 +56,12 @@
 //     byte-identical. First content = the Sweetwater snowball-barite scenario.
 //   • O5c — the phantom band renders (D2 vertexColors seam), the O4a idiom.
 
-// Master switch. O5a ships this FALSE (film recorded + law defined, unread →
-// byte-identical). O5b flips it TRUE (the masking gate goes live in the growth
-// path; baselines move by design, attributed to masking alone by the O5a
-// disabled-read invariant — the exact discipline O3a/O3b established).
-let O5_MASKING_ENABLED = false;
+// Master switch. O5a shipped this FALSE (film recorded + law defined, unread →
+// byte-identical). O5b (SIM 222) flips it TRUE: the masking gate goes live in
+// the growth path (js/85 growth loop). Baselines move BY DESIGN, and the O5a
+// disabled-read invariant is what attributes the move to masking alone —
+// confined to the film-carrying scenarios the O5a census pre-registered.
+let O5_MASKING_ENABLED = true;
 
 // The single calibrated constant of the σ*(φ) law. Placeholder 1.0 for O5a
 // (the law is unread); O5b calibrates it on the sim's σ scale by the 4a.7
