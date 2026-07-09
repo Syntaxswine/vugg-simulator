@@ -1621,3 +1621,88 @@ do. The light bends now. Teach the eye to see it bend. The rocks were never idea
 catching up to their flaws, and the flaws are where the biography lives.
 
 — the builder, twelfth hand: the light learned to bend · 2026-07-08
+
+---
+
+## KEYSTONE — the thirteenth hand: the center learned to wander (2026-07-09)
+
+The twelfth hand bent the light and closed owing two payoffs by name: teach the EYE to see
+the bend (O5c, the band render), and grow the SECOND sceptre (masking, beside grimsel's
+corrosion). This hand paid both. And then the boss set a thumbnail-sized ametrine sceptre on
+the desk — frosted stem, wide citrine head, a purple phantom floating mid-stem, iron staining
+at the base — and said the thing the tree did not know yet: *"the center point of the growth
+shifts throughout the scepter."* So this act ends somewhere the dream never named: the render
+learned that a crystal's biography is not concentric.
+
+The arc in one breath. **O5c** (`48ace89`): every masked_horizon now renders as a thin shell
+inside its crystal at the depth the sim buried it, tinted by its film, revealed through the
+very translucency O4a built — an opaque host honestly hides its scars. **The masking sceptre**
+(`7566915` the byte-identical classifier + `244c2fd` SIM 224 the content): classifyQuartzSceptre
+reads a PRISM-dominant masked horizon as a second boundary route, and the Brazilian amethyst
+geode is its first rock — the geode's own documented celadonite rim frosts the amethyst prism,
+the Silica Renewal Pulse breaks the tip through wider, three masking sceptres at seed 42, the
+goethite base-stain correctly refusing to be a fourth. Amethyst itself had to be REVIVED to be
+there — authored-but-dormant since its trigger was written, waiting on a colour system that
+could tell a moderate dose from a heavy one. **The wander**: within the hour of the boss's
+sentence, phantoms shared the base (nested cones — localY == minY·(1−f), exact, all six geode
+bands) and every sceptre cap sat off-axis, each its own lean, a druse and not a lathe.
+
+### The marks
+
+- **A keystone dream is a work order.** The session opened by paying debts the prior stone had
+  named, and no re-scoping was needed — the dream's own words ("the payoff still owed") were the
+  plan. Write the dream so the next hand can bill against it.
+- **The census caught its second over-broad gate in two arcs.** A naive any-horizon sceptre
+  trigger would have crowned deccan's mesolite-dusted quartz (a 30 mm stem!) the fleet's first
+  masking sceptre. Prism-dominance was simultaneously the geology (Takahashi & Sunagawa's ELO:
+  sides frosted, tip free) and the byte-identity proof (every existing film is termination-only).
+  When one criterion is both the science and the confinement certificate, you have found the
+  right gate. Pre-registration converts "should be safe" into "is confined."
+- **Verify the render's data path on the LIVE objects.** headlessRun's specimen JSON strips the
+  zone flags — masked_horizon survived only inside the narrative `note` string. The renderer
+  reads the raw add_zone objects via topoActiveSim, which keep everything. A probe pointed at
+  the serialization would have declared O5c broken; a lazier one would have "verified" the band
+  render against data that wasn't there. Kernel-truth means the objects the code actually reads.
+- **A dormant path is a debt with interest — pay the principal.** Amethyst's trigger needed
+  ~600 ppm fluid Fe against a ×0.005 partition and would have out-ranked smoky on every granite
+  cleft the day it ever fired. The boss said do it right: the fix was a SYSTEM fix — range
+  ceilings honoured for crystal-level fields only, amethyst and smoky made mutually exclusive on
+  dose, the sphalerite Fe-ladder regression-pinned — not a scenario hack. When content finally
+  asks for a dormant path, the path gets truer for everyone or it stays a hack forever.
+- **The boss's eye is an instrument the tree does not have.** "The center point of the growth
+  shifts" was both the bug report and the design hint (the concentric bands and coaxial caps
+  were idealizations wearing the costume of geometry). The specimen on the desk out-instruments
+  the sweep — the fleet had no rock that could have said this.
+- **The archive is only as good as the hand that re-reads it.** The CRLF build-check trap cost
+  this session a red CI and a live re-derivation — and the fix was already written, one
+  paragraph below the trap I did remember, in a memory I had read for its headline. Read the
+  whole stone, not the line that named it.
+
+### Diagenesis
+
+Named. O4a's translucency — the bands render through the light the tenth hand turned on. O5b's
+rails — the band reads exactly what the gate wrote, and the breakthrough now stamps which AXIS
+the film masked, which is the whole classifier. The twelfth hand's reconciled σ*(φ) — the
+celadonite film's break-through σ was calibrated against the law two hands argued into shape.
+SIM 206's capFrac-driven sceptre silhouette — the masking sceptre came FREE at the render
+because the alpine arc drew the geometry off the classifier's verdict, not the sim's mesh; a
+second route needed only a second trigger. D1a/D1b's colour rails — reviving amethyst was a
+recalibration on existing track. The §10.5 menu auto-gen and its coverage guard — which turned
+"add the menu entries" from courtesy into a CI requirement, and caught it. And the elmwood
+snowball, the twelfth hand's own rock, quietly improved: its twelve horizons now sit
+growth-true, sharing their blades' bases. Borrowed speed, all of it.
+
+### The dream, fifteenth telling
+
+The center wanders now — but only by hash. Teach it to wander with the WATER. The wall already
+records the paleo-flow every scallop was carved by (the V1b speedometer); point each sceptre
+cap DOWN-FLOW and Sizaret's asymmetry becomes real instead of random. Let the stem itself
+wobble — the curved growth axis the specimen shows, each renewal re-picking the best-fed
+direction. And the boss's rock is AMETRINE: the geode ships the amethyst half; the citrine half
+waits on a heating beat the colour rules already name (heated_amethyst), with the sector split
+between the two — one crystal, two chromophore histories, divided by geometry. The splitting
+ladder stays named and deferred. The ontogeny arc promised the imperfect real, and the
+imperfection has an address now: the biography lives not only in the flaws the crystal keeps
+but in WHERE it keeps them — off-center, low, toward the feed.
+
+— the builder, thirteenth hand: the center learned to wander · 2026-07-09
