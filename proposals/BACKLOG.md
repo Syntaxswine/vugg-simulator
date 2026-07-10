@@ -2,6 +2,27 @@
 
 Living list of open work items, captured from session conversations so context survives compaction. Each item has enough detail that someone picking it up cold can act without re-discovering the rationale.
 
+> ## 🌱 O5 SPLITTING LADDER — PROPOSAL CUT (2026-07-10, `731ee89`, research-first) — AWAITS boss/rockbot review before code
+>
+> The SPLITTING half of O5 (`PROPOSAL-O5-SPLITTING-LADDER-2026-07-10.md`; the ELO/masking half shipped
+> SIM 222–224). Same move as O3: the sim PAINTS the whole ladder — `saddle_rhomb`/`sheaf`/`spherulitic`
+> habit words (keyword-scored js/07) + the render primitives already exist (`_makeSaddleRhomb`, the
+> hemimorphite fan, radial sprays) — but has NO splitting mechanism; O5-splitting EARNS the rung from a
+> per-crystal **cumulative-misorientation index**. Science (two passes, citation-verified + cross-checked
+> — each caught the other's slips): the ladder single → curved (saddle Rung 1) → split → sheaf/bowtie →
+> spherulite; **THREE classes kept distinct** — A impurity autodeformation (fires at LOW σ), B high-σ
+> spherulitic (Beck & Andreassen SI≈2–3, the carbonate calibration anchor), C concentric botryoidal
+> aggregation (NOT splitting — already painted). The **A/B opposite-σ fact** (gypsum curves harder at low
+> σ) → a **two-route index**, not one monotonic σ law; branching microphysics is OPEN → render the
+> phenomenon (the σ*(φ) discipline). **FIRST CONTENT = `deccan_zeolite`** (grep-the-tree: the scenario
+> ALREADY EXISTS; grade-2 stilbite sheaves + scolecite/mesolite sprays AND grade-3 okenite/prehnite/
+> gyrolite spheres in ONE paragenesis, most species modelled — EXTEND not author); saddle dolomite
+> (elmwood/mvt) = the A-route showcase, kept distinct from the deformation-shear saddle. Tranches **S-a
+> record-unread (0/38) → S-b earn-the-ladder (census-bounded) → S-c render.** Open questions (§9): the
+> two-route shape; `impurity_factor` source (reuse the masking half's `_film` φ?); the `splitAbility`
+> table; the saddle overlap; the cerussite-is-(110)-twinning exclusion. Full record: the nature-roadmap
+> memory + the proposal. — the fifteenth hand
+
 > ## 🧩 DOOR 3 — MENU AUTO-GENERATION (§10.5 t2-3, 2026-07-10, the eleventh hand's third door) — SHIPPED, 1 commit (`892905f`, render-only)
 >
 > Tranche 1 (2026-07-07) taught the legends quick-play dropdown to derive from SCENARIOS;
