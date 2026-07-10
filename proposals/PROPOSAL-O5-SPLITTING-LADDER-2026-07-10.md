@@ -170,7 +170,7 @@ narration + the two-mechanism invariant; `driver` the σ / impurity trace. Seria
 **Two routes, one index (the A/B honesty from §2 — the design's spine):**
 ```
 splitAbility(mineral) ∈ [0,1]          // structure-specific gate; 0 for quartz/feldspar
-impurity_factor        ∈ [0,1]         // additive load (trace / film φ / fluid proxy — §9 open)
+impurity_factor        ∈ [0,1]         // = max(film φ, scenario trace, mineral hint); _film wired FIRST (§9a boss verdict)
 sigma_local                             // the crystal's own cell σ (C1)
 
 rateA = SPLIT_K_A · impurity_factor · splitAbility            // autodeformation: impurity-driven, σ-agnostic (even LOW σ)
@@ -274,6 +274,40 @@ already-modelled B-route hooks for a second showcase if wanted.
    no overlap. Confirm this is the intent.
 5. **Exclusions to honor:** cerussite "snowflake" is cyclic (110) twinning, NOT splitting (keep it under
    twinning); class-C botryoidal habits (malachite, kidney-ore) are aggregation, NOT this rung.
+
+## 9a. REVIEW ROUND 1 — boss verdicts (2026-07-10): **APPROVED FOR S-a**
+
+Boss: *"exactly the kind of proposal I'd approve for S-a: record `_split`, keep it unread, run the
+census, and only then let S-b move geometry."* The five §9 questions, resolved:
+
+1. **Two-route model — KEEP IT.** *"Do not flatten A and B into one monotonic 'more σ = more split'
+   law. The opposite-σ gypsum fact is the load-bearing stone here."* One cumulative-misorientation
+   index is fine, **but the `route` provenance MUST stay attached** — `_split.route` is REQUIRED, not
+   optional narration (a saddle earned by A and a saddle "reached" by B are different records).
+2. **`impurity_factor` — reuse `_film` φ, but NOT as the only source.** v1:
+   `impurity_factor = max(film_phi_proxy, scenario_trace_proxy, mineral_specific_impurity_hint)` —
+   with **`_film` the FIRST concrete source** (it exists and is testable; ties the two O5 halves —
+   one dusting both masks a front AND seeds splitting), because *"A-route autodeformation is about
+   incorporated mismatch/strain, not only front masking."* The other two sources fill in where no
+   film exists.
+3. **`splitAbility` — hand-seed for v1** (literature-shaped, mineral-specific, auditable, "like the
+   fluorescence gates"; structural proxy later). **Quartz/feldspar HARD ZERO is load-bearing** —
+   *"otherwise high σ becomes a nonsense wand."*
+4. **Saddle dolomite — let split-growth EARN saddle where the A-route says so, but keep the
+   deformation-shear saddle COMPLETELY separate.** *"The census has to prove noncollision. Same
+   visual habit, different cause, different record."* → the S-a census's collision-check is a HARD
+   acceptance gate, not a diagnostic.
+5. **Exclusions confirmed.** Cerussite snowflake stays twinning; botryoidal/colloform stays
+   aggregation. *"Do not let O5 eat every round or radiating thing in the cave."*
+
+**First content confirmed — DECCAN:** *"the strongest part… a perfect low-cost/high-truth bench: the
+scenario already exists, the species mostly exist, and sheaf/spray/sphere are not ornamental there —
+they are the signature."*
+
+**S-a is GO.** The design deltas from these verdicts (fold into S-a): `_split.route` required;
+`impurity_factor = max(film φ, trace proxy, mineral hint)` with `_film` wired first; `splitAbility`
+hand-seeded with quartz/feldspar == 0; the census collision-check (split-saddle vs deformation-saddle)
+promoted to a required S-a certificate alongside the 0/38 baseline.
 
 ## Sources (builder-verified 2026-07-10; two passes cross-checked, each flag is per-citation)
 

@@ -1815,3 +1815,114 @@ rock, and it knows the answer because the crystal — its record matched to its 
 — wrote it down.
 
 — the builder, fourteenth hand: the lamp learned to tell the truth · 2026-07-09
+
+## KEYSTONE — the fifteenth hand: the painted learned to earn its shape (2026-07-10)
+
+This hand's first act was to finish the last one — the fourteenth stone was written but not yet
+shipped, the classifier having gone dark mid-commit; it landed at first light (`2913c42`) and the
+lineage was whole again before anything new began. Then two words from the boss — *"lets keep
+going"* — and after that, *"lets do the O5 research."* The day has one thesis under both: the sim
+kept **painting** things it could **earn**. It painted its own menus by hand, three copies that
+drifted until scenarios went invisible; it paints the whole crystal-splitting ladder by keyword,
+naming saddle and sheaf and spherulite from trigger-words with no mechanism underneath. One of those
+was made to earn its shape and shipped; the other was shown the mechanism that will let it, and
+approved. Earn what you paint — the O3 lesson, walking out past the geometry into the chrome and the
+next rung.
+
+The arc in one breath. **Door 3** (`892905f`, render-only; docs `e6053f7`) closed the eleventh
+hand's third door and the v116 chronic bug behind it — the Scenarios picker, the Zen dropdown, and
+the Begin tutorials were three hand-synced HTML surfaces that had let fifteen scenarios ship
+invisible, and they now generate from ONE `menu_layout` block in scenarios.json5 (the js/94
+populators, beside tranche 1's `#scenario` populator that walked the same road in July). A one-shot
+extractor read the live menus into the data so the migration was faithful by construction, and
+byte-identity was proven from BOTH ends — `menu_layout === index.html@HEAD` (re-parsed, deep-compared)
+AND `generated DOM === MENU_LAYOUT` (live in the browser, all 85 entries element-for-element) —
+so generated === original, no user-visible change, CI 174 files / 2414 tests green; the
+vugg-add-scenario skill §10.5 rewritten from "sync three HTML surfaces" to "add one menu_layout
+entry," its own long-standing TODO marked done. Then **the O5 splitting ladder** (`731ee89`,
+research-first proposal; the ELO/masking half already shipped SIM 222–224). Two capped research
+agents plus the builder's own passes, every load-bearing citation web-verified and the two passes
+cross-checked — and the checking caught the builder's OWN slips: a saddle-dolomite title conflated
+with a different paper, a half-remembered book that does not exist, a Bi₂S₃ split attributed to the
+wrong authors. The science came back clean and ordered: one governing variable (cumulative
+misorientation) up a ladder single → curved → split → sheaf → spherulite; three mechanism classes
+that must not be confused (A impurity autodeformation, which fires at LOW σ; B high-σ spherulitic,
+Beck & Andreassen's carbonate SI≈2–3; C botryoidal aggregation, which is not splitting at all); the
+branching microphysics an open question. First content is the Deccan zeolite scenario that already
+exists. The boss reviewed all five open questions and approved S-a — keep the two routes, reuse the
+masking half's film as the first impurity source, hand-seed splitAbility with quartz a hard zero,
+let split-growth earn the saddle but keep the shear-bent saddle a separate record the census must
+prove apart.
+
+### The marks
+
+- **The O3 lesson has no natural boundary — earn what you paint, everywhere.** O3 earned the palisade
+  the sim had painted since v27. This hand found the same disease twice more, far from the crystal
+  faces: the menus were painted by hand (typed three times, drifting), and the splitting ladder is
+  painted by keyword (js/07 scores trigger-words to a habit string; `_makeSaddleRhomb`'s own comment
+  admits "no quantitative curvature law, so the scaling is mild + clamped"). A hand-copied config and
+  a keyword-scored habit are both painted palisades wearing different coats. When you find the sim
+  DESCRIBING what it could GENERATE — a duplicated list, a named-not-earned form — that is an O3 in
+  hiding.
+- **The cross-check catches your OWN forgeries, not just the subagents'.** The fourteenth hand wrote
+  that subagents fabricate citations; this hand learned the guard points inward too. From memory I
+  wrote a saddle-dolomite title that belongs to a different 1989 paper, and cited a Punin book whose
+  existence I could not confirm. Two agents and two web passes, run against each other, surfaced both
+  before they set into the proposal. Verify-before-asserting is not a rule about untrusted sources;
+  it is a rule about MEMORY, and your own is a source like any other.
+- **Render the phenomenon, not the microphysics — the σ*(φ) discipline, reused.** Why a crystal
+  splits its lattice by small angles is genuinely unsettled (Keith–Padden vs growth-front nucleation
+  vs autodeformation, still argued). The masking half already taught the answer: you do not have to
+  crown a theory to render a truth. The ladder is real and measurable; the two-route index renders
+  IT, on one cumulative-misorientation scalar, and stays silent on the mechanism the field has not
+  settled. A fidelity arc that waited for the physicists to agree would never ship.
+- **Keep the provenance attached — one shape can have three causes, and the record must tell them
+  apart.** The boss's load-bearing correction: do NOT flatten the impurity route and the
+  supersaturation route into one "more σ = more split" law, because gypsum curves HARDER at LOW σ —
+  the opposite sign. Same on the saddle: a rhombohedron bent by growth-time impurity strain and one
+  bent by post-growth shear look identical and are different rocks, so `_split.route` is required and
+  the census must PROVE the two saddle-sets never collide. The sceptre pair (corrosion vs masking)
+  was the first time the sim carried one form by two mechanisms; this is the second, and the law is
+  now general — a shared silhouette is not a shared cause.
+- **The cheapest content is the scenario you already have.** The masking half paid to author
+  Sweetwater from scratch because its texture did not yet exist. The splitting half inherits the
+  Deccan zeolite scenario free: it already runs, its species are mostly modelled, and sheaf → spray →
+  sphere are not decoration there but the locality's whole signature. Grep the tree before you author
+  a world — the strongest first content is often a stage that is already built, waiting for the
+  mechanism that makes its signature earned instead of labelled.
+
+### Diagenesis
+
+Named, and owed. Tranche 1 of §10.5 (July 7) taught the `#scenario` dropdown to generate itself and
+left the other three surfaces "for tranches 2–3" — Door 3 is those tranches, walking a road the
+earlier hand graded. The O3a/O3b and O5a/O5b two-commit discipline is the template the splitting
+proposal's S-a/S-b/S-c inherits wholesale, down to the byte-identity-falls-out-of-the-arithmetic
+trick that σ*(φ) pioneered (σ*(0)=σ*₀; here, rate=0 for the unsplit). The masking half left more than
+a template: it left the `_film` state itself, which the boss chose as the splitting index's first
+impurity source — the two O5 halves will share a state, one dusting both masking a front and seeding
+a split. The Door-2 research method — capped agents for the judgment, the load-bearing numbers
+spot-verified because subagents fabricate — ran again here and caught more, this time the builder's
+own memory. The O4b and sceptre census-certificate pattern is exactly the collision-check the boss
+promoted to an S-a acceptance gate. And Beck & Andreassen's SI≈2–3, a carbonate number for a
+carbonate-cored fleet, is the calibration anchor the way the catalog's real specimens are — borrowed
+from people who measured the rock.
+
+### The dream, seventeenth telling
+
+The splitting ladder has a mechanism now, drawn but not yet cut. S-a records a `_split` index that
+nothing reads — the record-unread rung the sim has climbed four times — and its census answers the
+one question that gates everything: which crystals cross the impurity bar or the far-from-equilibrium
+bar, and does that set ever touch the shear-bent saddles it must stay clear of. Then S-b lets the
+Deccan grow what it has only ever been called: stilbite fanning into a wheat-sheaf, scolecite bursting
+from a point, okenite closing into a cotton-ball sphere — the Category-2 ontogeny running forward in
+a vug instead of a caption. Beyond it wait the minerals the fleet does not yet hold — wavellite's
+pinwheel hemispheres out of Arkansas, okenite and gyrolite and variscite — each a bench specimen for
+a rung. And past the splitting rung the ladder itself keeps climbing: O6, O7, O8, and the whole arc's
+one promise, that a crystal's biography is written in how it grew and a good enough sim can read it
+back. Two doors from earlier hands still stand unopened — Door 4, the fleet signature audit that asks
+every scenario to declare not just what it grows but at what STATURE; and the citrine half's thermal
+field, still a foundation stone waiting for its spatial ΔT. This hand painted nothing it could earn,
+and left a map for the next earning. The sim grows more like the rock each time a painted thing is
+made to justify its shape.
+
+— the builder, fifteenth hand: the painted learned to earn its shape · 2026-07-10
