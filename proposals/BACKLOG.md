@@ -2,7 +2,7 @@
 
 Living list of open work items, captured from session conversations so context survives compaction. Each item has enough detail that someone picking it up cold can act without re-discovering the rationale.
 
-> ## 🌱 O5 SPLITTING LADDER — PROPOSAL CUT (2026-07-10, `731ee89`, research-first) — AWAITS boss/rockbot review before code
+> ## 🌱 O5 SPLITTING LADDER — **S-a SHIPPED** (2026-07-10, record-unread, byte-identical 0/39; proposal `731ee89`, boss-APPROVED §9a/§9b)
 >
 > The SPLITTING half of O5 (`PROPOSAL-O5-SPLITTING-LADDER-2026-07-10.md`; the ELO/masking half shipped
 > SIM 222–224). Same move as O3: the sim PAINTS the whole ladder — `saddle_rhomb`/`sheaf`/`spherulitic`
@@ -18,10 +18,19 @@ Living list of open work items, captured from session conversations so context s
 > ALREADY EXISTS; grade-2 stilbite sheaves + scolecite/mesolite sprays AND grade-3 okenite/prehnite/
 > gyrolite spheres in ONE paragenesis, most species modelled — EXTEND not author); saddle dolomite
 > (elmwood/mvt) = the A-route showcase, kept distinct from the deformation-shear saddle. Tranches **S-a
-> record-unread (0/38) → S-b earn-the-ladder (census-bounded) → S-c render.** Open questions (§9): the
-> two-route shape; `impurity_factor` source (reuse the masking half's `_film` φ?); the `splitAbility`
-> table; the saddle overlap; the cerussite-is-(110)-twinning exclusion. Full record: the nature-roadmap
-> memory + the proposal. — the fifteenth hand
+> record-unread ✅ SHIPPED → S-b earn-the-ladder (census-bounded, NEXT) → S-c render.**
+> **S-a landed** (`js/44c-split-growth.ts` + accrual in js/85 + `tools/o5-split-census.mjs` + 21 pins,
+> byte-identical **0/39**, no SIM bump): the two-route index (rateA impurity·splitAbility at LOW σ +
+> rateB high-σ) accrues on every growth step, `O5_SPLITTING_ENABLED=false` (read by nothing).
+> `splitAbility` hand-seeded (quartz/feldspar/cerussite/malachite **explicit 0**); `impurity_factor =
+> max(_film φ, wall.split_trace, mineral hint)`, `_film` first. **Census (seed 42): 147 crystals accrue
+> across 30 scenarios, split-able roster only (zero quartz/feldspar); route A=0 B=142 both=5; rung
+> curved=12 split=14 sheaf=9 spherulite=58. NONCOLLISION CERTIFICATE PASS** (no saddle-rung crystal
+> carries `_deformation`). **S-b's first move (census signal):** raise `SPLIT_SIGMA_SPHERULITE` from the
+> 2.0 placeholder to the SI≈2–3 sim-σ image (4a.7) — it sits below the fleet's σ so B over-fires and A
+> never isolates; the raise thins B AND isolates low-σ dolomite as pure-A saddle. Then calibrate K_A/B +
+> band cuts and let `rung` drive habit/render on the pre-registered movers. Full record: proposal §9b +
+> the nature-roadmap memory. — the fifteenth hand
 
 > ## 🧩 DOOR 3 — MENU AUTO-GENERATION (§10.5 t2-3, 2026-07-10, the eleventh hand's third door) — SHIPPED, 1 commit (`892905f`, render-only)
 >

@@ -309,6 +309,35 @@ they are the signature."*
 hand-seeded with quartz/feldspar == 0; the census collision-check (split-saddle vs deformation-saddle)
 promoted to a required S-a certificate alongside the 0/38 baseline.
 
+## 9b. S-a SHIPPED (2026-07-10) — record-unread, byte-identical, census pre-registered
+
+All §9a deltas landed. `js/44c-split-growth.ts` (the module, sibling to 44a/44b) accrues the two-route
+index (`accrueSplitIndex`, wired in the js/85 growth loop right before `add_zone`, on the settled growth
+increment; zero RNG, writes only `_split`); `O5_SPLITTING_ENABLED = false` (consumers gated, accrual
+unconditional — the O3a-draw idiom). `splitAbility` hand-seeded (carbonates/zeolites/gypsum/fibrous
+silicates high; quartz/feldspar/cerussite/malachite **explicit 0**; unlisted → 0). `impurity_factor =
+max(_film φ, wall.split_trace, mineral hint)`, `_film` first; the lone mineral hint is dolomite 0.3
+(Mg-excess). 21 unit pins (`tests-js/o5-split.test.ts`), full CI green.
+
+- **Byte-identical: 0/39** — baseline regenerated with the accrual live, zero scenarios changed (the
+  index is read by nothing; `splitAbility` 0 or rate 0 writes no `_split`; the baseline serialises only
+  counts/sizes). No SIM bump.
+- **Census (`tools/o5-split-census.mjs`, seed 42):** 147 crystals accrue across 30 scenarios, confined
+  to the split-able roster (calcite×30, selenite×22, aragonite×14, zeolites, …) — **zero
+  quartz/feldspar/framework**. By route **A=0 · B=142 · both=5**; by rung curved=12 / split=14 / sheaf=9
+  / spherulite=58.
+- **Noncollision certificate: PASS** — no curved-rung (saddle) crystal also carries `_deformation`.
+  Quartz-deformation can't collide (`splitAbility` 0); the one marble e-twin calcite is a B-route
+  *spherulite*, logged as a legible sequence (grew radial → tectonized), not a saddle collision. The
+  certificate guards the SADDLE specifically, per §9a #4's "same visual habit."
+- **S-b calibration signal the census surfaced (the deliverable of the record-unread pass):**
+  `SPLIT_SIGMA_SPHERULITE = 2.0` (placeholder) sits *below* the fleet's σ scale → the B route over-fires
+  and route A never isolates (only dolomite carries an A-hint and it co-occurs with high σ → "both").
+  **S-b's first job:** raise the threshold to the true SI ≈ 2–3 sim-σ image (the 4a.7 recipe), which
+  will thin B to the genuinely far-from-equilibrium set AND isolate low-σ dolomite as the pure-A saddle
+  low rung — then calibrate `SPLIT_K_A/B` + the rung band cuts, and let `rung` drive habit + render on
+  the census's pre-registered movers (the deformation-saddle set untouched).
+
 ## Sources (builder-verified 2026-07-10; two passes cross-checked, each flag is per-citation)
 
 **Splitting / spherulite theory** — VERIFIED:

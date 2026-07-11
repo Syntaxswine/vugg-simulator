@@ -202,6 +202,18 @@ class Crystal {
     //               (hemimorphite/wurtzite/tourmaline/greenockite). Phase 3 renders it.
     //               Kept DISTINCT from _occlusion — the science forbids one scalar for
     //               both, and a wall crystal can carry BOTH (buried base + polar +c).
+    //   _split      { index, rung, route, dominant, sumA, sumB, driver } — js/44c
+    //               accrueSplitIndex (W-F O5 SPLITTING): the two-route cumulative-
+    //               misorientation index (A impurity/low-σ + B high-σ) that earns a
+    //               crystal's place on the saddle→split→sheaf→spherulite ladder. The
+    //               ONE grow-integrated member of this list (accrued in the js/85
+    //               growth loop each positive-growth step, not a post-growth
+    //               classifier) — but it shares the same never-init / never-widen
+    //               property: written ONLY when a split-able crystal actually accrues
+    //               (rate > 0), so untagged crystals stay undefined. RECORDED &
+    //               UNREAD in S-a (byte-identical, 0/38); S-b lets `rung` drive the
+    //               habit + render params. `route` provenance is REQUIRED, never
+    //               optional (boss §9a #1: an A-saddle ≠ a B-reached saddle).
     //   _wulffForm  { biasC, growthFrac, octahedral, scaleno, tabular, bladed, wedge } — js/45
     //               classifyWulffForm: the central-distance (Wulff) FORM bias (Phase 4). Renderer
     //               (js/99i) builds the true convex polyhedron (js/46) instead of a fixed primitive.
