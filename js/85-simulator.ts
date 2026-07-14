@@ -609,17 +609,16 @@ class VugSimulator {
             crystal.late_interlocking = true;
           }
         }
-        // W-F O5 SPLITTING (S-a) — accrue the two-route cumulative-misorientation
-        // index (js/44c accrueSplitIndex) on the REALIZED growth increment, right
-        // before add_zone seals the zone. UNREAD in S-a (record-only): it writes
-        // crystal._split and nothing else — no RNG, no fluid/T/zone mutation — so
-        // the fleet is byte-identical (splitAbility 0, or rate 0, → no state
-        // written at all; the `_deformation` idiom). Guards internally on
-        // thickness > 0, so dissolution/zero zones never accrue (splitting is a
-        // GROWTH phenomenon). S-b lets crystal._split.rung drive the habit +
-        // render params; tools/o5-split-census.mjs pre-registers who accrues and
-        // certifies the split-saddle set does not collide with the deformation-
-        // saddle set (boss §9a #4).
+        // W-F O5 SPLITTING (S-b) — accrue the two-route cumulative-misorientation
+        // index (js/44c) over this zone's growth. NO RNG, no fluid/T mutation;
+        // writes only crystal._split. The SIM effect (the axial compaction that
+        // gives a split crystal a compact max extent at CONSTANT volume — so fill,
+        // and thus every other crystal, is untouched: a census-bounded bump) is
+        // applied inside crystal.add_zone, keyed to this same index. The render
+        // (js/99i) reads _split.rung for the saddle/sheaf/spherulite geometry, with
+        // the deformation-saddle set a separate cause (§9a #4, census-certified).
+        // splitAbility 0 (quartz/feldspar) → no _split → untouched everywhere (the
+        // structure-specificity invariant).
         accrueSplitIndex(crystal, this.conditions, zone.thickness_um);
         crystal.add_zone(zone);
         // Re-check fill after each crystal grows to prevent >100% overshoot

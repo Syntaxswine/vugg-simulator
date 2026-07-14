@@ -4614,6 +4614,28 @@ function _topoSyncCrystalMeshes(state: any, sim: any, wall: any, replayStep?: nu
       if (crystal._sceptreGeomCf !== cf) { crystal._sceptreGeom = _makeSceptreHexPrism(cf, ecc); crystal._sceptreGeomCf = cf; }
       geom = crystal._sceptreGeom;
     }
+    // W-F O5 SPLITTING (S-b) — a crystal that EARNED the sheaf or spherulite rung
+    // (js/44c _split, the two-route cumulative-misorientation ladder) renders as
+    // its divergent / radial aggregate instead of a single faceted primitive:
+    // sheaf → the hemimorphite-style divergent blade fan; spherulite → the radial
+    // botryoidal cluster. Mineral-agnostic (a stilbite sheaf, an aragonite
+    // flos-ferri sphere, a byssolite spray all read from the one form). The CURVED
+    // rung keeps its existing habit render (dolomite saddle_rhomb hook below) +
+    // the growth throttle; per-mineral curved/split curvature = f(index) is the
+    // S-c refinement. SKIP when _deformation is present — the shear-bent saddle is
+    // a SEPARATE cause (§9a #4; tools/o5-split-census.mjs certifies these two sets
+    // do not collide). Gated by O5_SPLITTING_ENABLED (js/44c); splitAbility-0
+    // minerals (quartz/feldspar) never carry _split, so their gwindel/sceptre
+    // hooks above are untouched — the structure-specificity invariant.
+    if (!geom && O5_SPLITTING_ENABLED && crystal._split && !crystal._deformation) {
+      if (crystal._split.rung === 'sheaf') {
+        geom = state.geomCache.get('__split_sheaf');
+        if (!geom) { geom = _makeHemimorphiteFan(); state.geomCache.set('__split_sheaf', geom); }
+      } else if (crystal._split.rung === 'spherulite') {
+        geom = state.geomCache.get('__split_spherulite');
+        if (!geom) { geom = _makeBotryoidalCluster(); state.geomCache.set('__split_spherulite', geom); }
+      }
+    }
     // Saddle (baroque) DOLOMITE curved-face rhombohedron (deformation arc
     // 2026-06-20). Gated on the habit string 'saddle_rhomb' — mineral-agnostic
     // so a future saddle siderite/rhodochrosite inherits it for free. RENDER-

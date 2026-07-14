@@ -34,9 +34,9 @@ const VERBOSE = process.argv.includes('--verbose');
 
 const bundle = await loadSimBundle({
   toolName: 'o5-split-census',
-  extraExports: ['splitAbilityFor', 'SPLIT_ABILITY'],
+  extraExports: ['splitAbleFor', 'SPLIT_ABILITY'],
 });
-const { SCENARIOS, VugSimulator, setSeed, splitAbilityFor, SPLIT_ABILITY } = bundle;
+const { SCENARIOS, VugSimulator, setSeed, splitAbleFor, SPLIT_ABILITY } = bundle;
 
 const rows = [];
 const collisions = [];          // CERTIFICATE: split-SADDLE ∩ deformation (the gate)
@@ -44,6 +44,9 @@ const overlaps = [];            // informational: any-rung split ∩ deformation
 const routeTotals = { A: 0, B: 0, both: 0 };
 const rungTotals = { curved: 0, split: 0, sheaf: 0, spherulite: 0 };
 const mineralsAccrued = new Map();   // mineral -> count
+const rungByMineral = new Map();     // mineral -> { none, curved, split, sheaf, spherulite } (UNtruncated)
+const sigmaSamples = [];             // driver.sigma of accruing crystals (σ-scale calibration)
+const indexSamples = [];             // final index of accruing crystals (band-cut calibration)
 let fleetSplit = 0, fleetDeform = 0, fleetOverlap = 0;
 
 // The split-able roster present in the fleet (splitAbility > 0), whether or not
@@ -75,7 +78,7 @@ for (const name of Object.keys(SCENARIOS).sort()) {
   // Track the split-able roster present in this scenario.
   for (const c of sim.crystals) {
     if (!c) continue;
-    if (splitAbilityFor(c.mineral) > 0) {
+    if (splitAbleFor(c.mineral) > 0) {
       const rec = splitAbleSeen.get(c.mineral) || { present: 0, accrued: 0 };
       rec.present++;
       if (c._split) rec.accrued++;
@@ -88,6 +91,11 @@ for (const name of Object.keys(SCENARIOS).sort()) {
       routeTotals[c._split.route] = (routeTotals[c._split.route] || 0) + 1;
       if (c._split.rung in rungTotals) rungTotals[c._split.rung]++;
       mineralsAccrued.set(c.mineral, (mineralsAccrued.get(c.mineral) || 0) + 1);
+      const rm = rungByMineral.get(c.mineral) || { none: 0, curved: 0, split: 0, sheaf: 0, spherulite: 0 };
+      rm[c._split.rung] = (rm[c._split.rung] || 0) + 1;
+      rungByMineral.set(c.mineral, rm);
+      if (c._split.driver && Number.isFinite(c._split.driver.sigma)) sigmaSamples.push(c._split.driver.sigma);
+      if (Number.isFinite(c._split.index)) indexSamples.push(c._split.index);
     }
     fleetSplit += splitCrystals.length;
     fleetDeform += deformCrystals.length;
@@ -146,6 +154,35 @@ if (!rows.length) {
     const byM = [...mineralsAccrued.entries()].sort((a, b) => b[1] - a[1])
       .map(([m, n]) => `${m}×${n}`).join('  ');
     console.log(`  minerals:  ${byM}`);
+  }
+  // σ + index distributions — the 4a.7 calibration instrument. Pick
+  // SPLIT_SIGMA_SPHERULITE at the high end of the σ spread (the SI≈2–3 image),
+  // and the band cuts against the index spread, so the ladder distributes.
+  const pct = (arr, p) => {
+    if (!arr.length) return NaN;
+    const s = [...arr].sort((a, b) => a - b);
+    return s[Math.min(s.length - 1, Math.max(0, Math.floor(p / 100 * s.length)))];
+  };
+  const fmt = (arr) => arr.length
+    ? `min ${pct(arr, 0).toFixed(2)}  p25 ${pct(arr, 25).toFixed(2)}  med ${pct(arr, 50).toFixed(2)}  p75 ${pct(arr, 75).toFixed(2)}  p95 ${pct(arr, 95).toFixed(2)}  max ${pct(arr, 100).toFixed(2)}`
+    : '—';
+  console.log(`  σ spread:  ${fmt(sigmaSamples)}`);
+  console.log(`  idx spread: ${fmt(indexSamples)}`);
+  // Full (UNtruncated) rung × mineral — the calibration matrix. Only minerals
+  // that reach a real rung (curved+) shown; sorted by highest rung reached.
+  console.log('  rung × mineral (curved/split/sheaf/spherulite; none omitted):');
+  const rank = (rm) => (rm.spherulite ? 4 : rm.sheaf ? 3 : rm.split ? 2 : rm.curved ? 1 : 0);
+  const rows2 = [...rungByMineral.entries()]
+    .filter(([, rm]) => rm.curved || rm.split || rm.sheaf || rm.spherulite)
+    .sort((a, b) => rank(b[1]) - rank(a[1]) || a[0].localeCompare(b[0]));
+  for (const [m, rm] of rows2) {
+    const parts = [];
+    if (rm.curved) parts.push(`curved×${rm.curved}`);
+    if (rm.split) parts.push(`split×${rm.split}`);
+    if (rm.sheaf) parts.push(`sheaf×${rm.sheaf}`);
+    if (rm.spherulite) parts.push(`spherulite×${rm.spherulite}`);
+    if (rm.none) parts.push(`(none×${rm.none})`);
+    console.log(`    ${m.padEnd(14)} ${parts.join('  ')}`);
   }
 }
 

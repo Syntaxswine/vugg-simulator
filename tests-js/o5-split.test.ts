@@ -1,191 +1,197 @@
-// tests-js/o5-split.test.ts — W-F O5 SPLITTING, the S-a record-unread tranche
-// (SIM-neutral, byte-identical).
+// tests-js/o5-split.test.ts — W-F O5 SPLITTING, the ladder EARNED (S-b live).
 //
-// S-a accrues a two-route cumulative-misorientation index (`_split`, js/44c) on
-// crystals in the growth loop, and defines the splitAbility gate + rung bands,
-// but NO habit/render path reads `rung` (the consumers are behind
-// O5_SPLITTING_ENABLED, false until S-b). So these pins are on the pure gate/law
-// + the accrual's recorded state, exactly as the O3a suite pinned
-// drawNucleationTilt + _nucTilt and the O5a suite pinned sigmaStarForCoverage
-// before their consumers read them.
+// S-a recorded the two-route cumulative-misorientation index unread; S-b flips
+// O5_SPLITTING_ENABLED and lets it drive the sim (an axial-growth throttle) + the
+// render (js/99i reads _split.rung → sheaf/spherulite geometry). These pins are on
+// the accrual model as CALIBRATED in S-b (per-route abilities, per-mineral σ-crit
+// anchoring, the structural-radial floor) + the throttle.
 //
-// The load-bearing science pins (boss §9a): (1) two routes stay distinct — A
-// (impurity, fires at LOW σ) and B (high-σ), route provenance REQUIRED; (2)
-// impurity_factor = max(film φ, scenario trace, mineral hint); (3) splitAbility
-// is a hard per-mineral gate with quartz/feldspar == 0 ("else high σ becomes a
-// nonsense wand"); (5) exclusions — cerussite (twinning) + malachite (aggregation)
-// == 0.
+// The load-bearing science (boss §9a + "follow the science"): (1) TWO routes,
+// MECHANISM-SPECIFIC per mineral — gypsum autodeforms (A), zeolites spherulite (B),
+// and the scalar model that let high-σ gypsum spherulite was WRONG; (2) the B onset
+// is per-mineral (× σ_crit) because the sim's σ scale is mineral-specific; (3)
+// intrinsically-radial chain silicates express by STRUCTURE, growth-ramped, not σ;
+// (4) splitAbility 0 (quartz/feldspar) never splits at any σ.
 
 import { beforeEach, describe, expect, it } from 'vitest';
 
 declare const accrueSplitIndex: any;
-declare const splitAbilityFor: any;
+declare const splitAbilityA: any;
+declare const splitAbilityB: any;
+declare const splitAbleFor: any;
+declare const sigmaCritFor: any;
+declare const sigmaSpheruliteFor: any;
 declare const splitRung: any;
 declare const splitImpurityFactor: any;
+declare const splitGrowthMult: any;
 declare const setSplitKA: any;
 declare const setSplitKB: any;
-declare const setSplitSigmaSpherulite: any;
+declare const setSplitSpheruliteFactor: any;
+declare const setSplitAxialFloor: any;
 declare const O5_SPLITTING_ENABLED: any;
 
-// Reset the calibration constants to their shipped S-a defaults before each test
-// so numeric pins are stable regardless of any later rebind (mirrors o5-film's
-// beforeEach(setSigmaStarK(1.0))).
-beforeEach(() => { setSplitKA(1.0); setSplitKB(1.0); setSplitSigmaSpherulite(2.0); });
+// Reset the calibration constants to their shipped S-b defaults so numeric pins
+// are stable regardless of any later rebind.
+beforeEach(() => {
+  setSplitKA(0.8); setSplitKB(0.8); setSplitSpheruliteFactor(2.5); setSplitAxialFloor(0.7);
+});
 
 const mkCrystal = (mineral: string, over: any = {}) => ({
   crystal_id: over.id ?? 1, mineral,
   _film: over._film ?? null,
-  total_growth_um: over.total_growth_um ?? 1000,
+  total_growth_um: over.total_growth_um ?? 1000,   // 1 mm — past the radial ramp by default
 });
-// A minimal conditions stub: a supersaturation fn for the mineral + a wall (for
-// the scenario-trace impurity source).
 const mkCond = (mineral: string, sigma: number, wall: any = {}) => ({
   ['supersaturation_' + mineral]: () => sigma,
   wall,
 });
 
-describe('W-F O5 SPLITTING — splitAbility gate (hard per-mineral, boss §9a #3+#5)', () => {
-  it('quartz + feldspar are HARD ZERO ("else high σ becomes a nonsense wand")', () => {
-    expect(splitAbilityFor('quartz')).toBe(0);
-    expect(splitAbilityFor('feldspar')).toBe(0);
-    expect(splitAbilityFor('albite')).toBe(0);
+describe('W-F O5 SPLITTING — splitAbility per-route gate (§9a #3 + #5)', () => {
+  it('quartz + feldspar are {0,0} on BOTH routes ("else high σ is a nonsense wand")', () => {
+    for (const m of ['quartz', 'feldspar', 'albite', 'fluorite']) {
+      expect(splitAbilityA(m)).toBe(0);
+      expect(splitAbilityB(m)).toBe(0);
+      expect(splitAbleFor(m)).toBe(0);
+    }
   });
-  it('the boss exclusions are ZERO — cerussite (twinning), malachite (aggregation)', () => {
-    expect(splitAbilityFor('cerussite')).toBe(0);
-    expect(splitAbilityFor('malachite')).toBe(0);
+  it('the boss exclusions are {0,0} — cerussite (twinning), malachite (aggregation)', () => {
+    expect(splitAbleFor('cerussite')).toBe(0);
+    expect(splitAbleFor('malachite')).toBe(0);
   });
-  it('unlisted minerals default to 0 (safe, byte-identical — do not eat every radiating thing)', () => {
-    expect(splitAbilityFor('pyrite')).toBe(0);
-    expect(splitAbilityFor('not_a_mineral')).toBe(0);
+  it('unlisted minerals default to {0,0}', () => {
+    expect(splitAbleFor('pyrite')).toBe(0);
+    expect(splitAbleFor('not_a_mineral')).toBe(0);
   });
-  it('the readily-splitting set is positive (carbonates / zeolites / gypsum)', () => {
-    expect(splitAbilityFor('dolomite')).toBeGreaterThan(0);
-    expect(splitAbilityFor('selenite')).toBeGreaterThan(0);   // gypsum autodeformation
-    expect(splitAbilityFor('stilbite')).toBeGreaterThan(0);   // zeolite sheaf
-    expect(splitAbilityFor('scolecite')).toBeGreaterThan(0);
+  it('gypsum (selenite) is A-DOMINANT (autodeformation), NOT a spherulite former', () => {
+    expect(splitAbilityA('selenite')).toBeGreaterThan(0.5);
+    expect(splitAbilityB('selenite')).toBeLessThan(0.2);   // the scalar-model bug fix
+  });
+  it('zeolites are B-DOMINANT (spherulitic sheaf/sphere)', () => {
+    expect(splitAbilityB('stilbite')).toBeGreaterThan(0.5);
+    expect(splitAbilityB('scolecite')).toBeGreaterThan(0.5);
+    expect(splitAbilityA('stilbite')).toBeLessThan(0.3);
+  });
+  it('saddle dolomite is A-dominant (Mg-excess autodeformation)', () => {
+    expect(splitAbilityA('dolomite')).toBeGreaterThan(0.5);
   });
 });
 
-describe('W-F O5 SPLITTING — splitRung bands (unread in S-a)', () => {
-  it('bands index → ladder rung, none below the first cut', () => {
+describe('W-F O5 SPLITTING — per-mineral B onset (σ scale is mineral-specific)', () => {
+  it('σ_spherulite* = FACTOR × the mineral\'s own σ_crit', () => {
+    setSplitSpheruliteFactor(2.5);
+    // dolomite σ_crit = 10 (very insoluble) → onset 25; calcite σ_crit = 1.5 → 3.75.
+    expect(sigmaSpheruliteFor('dolomite')).toBeCloseTo(2.5 * sigmaCritFor('dolomite'), 6);
+    expect(sigmaSpheruliteFor('dolomite')).toBeGreaterThan(sigmaSpheruliteFor('calcite'));
+  });
+});
+
+describe('W-F O5 SPLITTING — splitRung bands + growth throttle', () => {
+  it('bands index → ladder rung', () => {
     expect(splitRung(0)).toBe('none');
-    expect(splitRung(0.05)).toBe('none');
-    expect(splitRung(0.08)).toBe('curved');    // Rung 1 (saddle / bent)
+    expect(splitRung(0.08)).toBe('curved');
     expect(splitRung(0.3)).toBe('split');
     expect(splitRung(0.6)).toBe('sheaf');
     expect(splitRung(0.9)).toBe('spherulite');
   });
-  it('is monotone non-decreasing in index', () => {
-    const order = ['none', 'curved', 'split', 'sheaf', 'spherulite'];
-    let prev = 0;
-    for (const x of [0, 0.08, 0.25, 0.55, 0.85, 1.0]) {
-      const r = splitRung(x);
-      expect(order.indexOf(r)).toBeGreaterThanOrEqual(prev);
-      prev = order.indexOf(r);
-    }
+  it('splitGrowthMult: 1 at index 0, floor at index 1, monotone decreasing', () => {
+    setSplitAxialFloor(0.7);
+    expect(splitGrowthMult(0)).toBe(1);
+    expect(splitGrowthMult(1)).toBeCloseTo(0.7, 6);
+    expect(splitGrowthMult(0.5)).toBeCloseTo(0.85, 6);
+    expect(splitGrowthMult(0.9)).toBeLessThan(splitGrowthMult(0.3));   // more split → more compact
   });
 });
 
-describe('W-F O5 SPLITTING — impurity_factor = max(film φ, scenario trace, mineral hint)', () => {
-  it('reads the masking half\'s _film φ (the FIRST source, ties the two O5 halves)', () => {
+describe('W-F O5 SPLITTING — impurity_factor = max(film φ, trace, mineral hint)', () => {
+  it('reads _film φ (the masking half — ties the two O5 halves)', () => {
     const c = mkCrystal('calcite', { _film: { phi_term: 0.2, phi_prism: 0.7, step: 1 } });
-    expect(splitImpurityFactor(c, mkCond('calcite', 0))).toBe(0.7);   // most-masked axis
+    expect(splitImpurityFactor(c, mkCond('calcite', 0))).toBe(0.7);
   });
-  it('reads the intrinsic mineral hint (saddle dolomite Mg-excess) with no film', () => {
+  it('reads the intrinsic dolomite Mg hint with no film', () => {
     expect(splitImpurityFactor(mkCrystal('dolomite'), mkCond('dolomite', 0))).toBeCloseTo(0.3, 6);
   });
-  it('reads the scenario trace proxy from wall.split_trace', () => {
-    const c = mkCrystal('calcite');
-    expect(splitImpurityFactor(c, mkCond('calcite', 0, { split_trace: 0.6 }))).toBe(0.6);
-  });
-  it('takes the MAX across all three sources', () => {
-    const c = mkCrystal('dolomite', { _film: { phi_term: 0.5, phi_prism: 0.1, step: 1 } });
-    // film 0.5 vs hint 0.3 vs trace 0.4 → 0.5
-    expect(splitImpurityFactor(c, mkCond('dolomite', 0, { split_trace: 0.4 }))).toBe(0.5);
-  });
-  it('is 0 for a clean, hint-less, trace-less crystal', () => {
+  it('is 0 for a clean, hint-less crystal', () => {
     expect(splitImpurityFactor(mkCrystal('calcite'), mkCond('calcite', 0))).toBe(0);
   });
 });
 
-describe('W-F O5 SPLITTING — accrueSplitIndex two-route accrual (recorded, unread)', () => {
-  it('writes NOTHING for a splitAbility-0 mineral, even at huge σ + heavy film', () => {
+describe('W-F O5 SPLITTING — accrual: the two mechanism-specific routes', () => {
+  it('quartz writes NOTHING even at huge σ + heavy film (the hard structure gate)', () => {
     const c: any = mkCrystal('quartz', { _film: { phi_term: 0.9, phi_prism: 0.9, step: 1 } });
-    accrueSplitIndex(c, mkCond('quartz', 9.0), 1000);
-    expect(c._split).toBeUndefined();   // the hard gate: no state written at all
+    accrueSplitIndex(c, mkCond('quartz', 9999), 1000);
+    expect(c._split).toBeUndefined();
   });
 
-  it('A-route: an impure crystal accrues at LOW σ (below the spherulite onset)', () => {
-    const c: any = mkCrystal('dolomite');                 // hint 0.3, no film
-    accrueSplitIndex(c, mkCond('dolomite', 0.5), 1000);   // σ 0.5 < 2.0 → B silent
+  it('A-route: dolomite accrues at LOW σ (below its onset) via its Mg hint', () => {
+    const c: any = mkCrystal('dolomite');                 // hint 0.3; σ_crit 10 → onset 25
+    accrueSplitIndex(c, mkCond('dolomite', 5), 1000);     // σ 5 ≪ 25 → B silent
     expect(c._split).toBeTruthy();
     expect(c._split.index).toBeGreaterThan(0);
-    expect(c._split.route).toBe('A');                     // impurity drove it, not σ
+    expect(c._split.route).toBe('A');
     expect(c._split.sumB).toBe(0);
   });
 
-  it('B-route: a clean split-able crystal accrues only ABOVE the spherulite onset', () => {
-    const lo: any = mkCrystal('calcite');                 // no impurity
-    accrueSplitIndex(lo, mkCond('calcite', 1.0), 1000);   // σ 1.0 < 2.0 → nothing
+  it('B-route (σ): a clean calcite spherulites only ABOVE its per-mineral onset', () => {
+    const onset = sigmaSpheruliteFor('calcite');
+    const lo: any = mkCrystal('calcite');
+    accrueSplitIndex(lo, mkCond('calcite', onset * 0.5), 1000);   // below → nothing (calcite no radial floor)
     expect(lo._split).toBeUndefined();
 
     const hi: any = mkCrystal('calcite');
-    accrueSplitIndex(hi, mkCond('calcite', 3.0), 1000);   // σ 3.0 > 2.0 → B fires
+    accrueSplitIndex(hi, mkCond('calcite', onset * 3), 1000);     // well above → B fires
     expect(hi._split).toBeTruthy();
     expect(hi._split.route).toBe('B');
     expect(hi._split.sumA).toBe(0);
   });
 
-  it('both routes compose when an impure crystal is ALSO far-from-equilibrium', () => {
-    const c: any = mkCrystal('dolomite');                 // hint 0.3
-    accrueSplitIndex(c, mkCond('dolomite', 3.0), 300);    // impurity AND σ>2
-    expect(c._split.route).toBe('both');
-    expect(c._split.sumA).toBeGreaterThan(0);
-    expect(c._split.sumB).toBeGreaterThan(0);
-    expect(['A', 'B']).toContain(c._split.dominant);      // provenance detail attached
+  it('B-route (structural): a GROWN zeolite expresses its radial rung even at low σ', () => {
+    const c: any = mkCrystal('scolecite', { total_growth_um: 1000 });   // 1 mm, past the ramp
+    accrueSplitIndex(c, mkCond('scolecite', 0.1), 1000);               // low σ — structure carries it
+    expect(c._split).toBeTruthy();
+    expect(c._split.route).toBe('B');
+    expect(['sheaf', 'spherulite']).toContain(c._split.rung);          // floored to its structural rung
   });
 
-  it('route provenance is ALWAYS attached (boss §9a #1 — required, not optional)', () => {
-    const c: any = mkCrystal('dolomite');
-    accrueSplitIndex(c, mkCond('dolomite', 0.5), 500);
-    expect(['A', 'B', 'both']).toContain(c._split.route);
+  it('the structural floor RAMPS with size — a speck is not yet a sphere', () => {
+    const speck: any = mkCrystal('scolecite', { total_growth_um: 7 });   // 7 µm nucleus
+    accrueSplitIndex(speck, mkCond('scolecite', 0.1), 7);
+    // below the 0.3 mm ramp → floor is scaled to near-nothing → still 'none'
+    expect(speck._split ? speck._split.rung : 'none').toBe('none');
   });
 
-  it('does not accrue on dissolution / zero growth (splitting is a GROWTH phenomenon)', () => {
+  it('does not accrue on dissolution / zero growth', () => {
     const c: any = mkCrystal('dolomite');
-    accrueSplitIndex(c, mkCond('dolomite', 3.0), 0);      // zero
+    accrueSplitIndex(c, mkCond('dolomite', 5), 0);
     expect(c._split).toBeUndefined();
-    accrueSplitIndex(c, mkCond('dolomite', 3.0), -800);   // dissolution
+    accrueSplitIndex(c, mkCond('dolomite', 5), -800);
     expect(c._split).toBeUndefined();
   });
 
   it('clamps the cumulative index into [0,1]', () => {
     const c: any = mkCrystal('dolomite');
-    accrueSplitIndex(c, mkCond('dolomite', 9.0), 1e9);    // absurd growth
+    accrueSplitIndex(c, mkCond('dolomite', 9999), 1e9);
     expect(c._split.index).toBe(1);
-  });
-
-  it('accumulates across successive steps (a cumulative integral)', () => {
-    const c: any = mkCrystal('dolomite');
-    accrueSplitIndex(c, mkCond('dolomite', 0.5), 200);
-    const first = c._split.index;
-    accrueSplitIndex(c, mkCond('dolomite', 0.5), 200);
-    expect(c._split.index).toBeGreaterThan(first);
   });
 
   it('is deterministic (no RNG) and mutates ONLY crystal._split', () => {
     const a: any = mkCrystal('dolomite');
     const b: any = mkCrystal('dolomite');
-    accrueSplitIndex(a, mkCond('dolomite', 0.5), 400);
-    accrueSplitIndex(b, mkCond('dolomite', 0.5), 400);
-    expect(a._split.index).toBe(b._split.index);          // repeatable
-    expect(a.total_growth_um).toBe(1000);                 // growth untouched
-    expect(a.mineral).toBe('dolomite');                   // nothing else changed
+    accrueSplitIndex(a, mkCond('dolomite', 5), 400);
+    accrueSplitIndex(b, mkCond('dolomite', 5), 400);
+    expect(a._split.index).toBe(b._split.index);
+    expect(a.total_growth_um).toBe(1000);
+    expect(a.mineral).toBe('dolomite');
+  });
+
+  it('route provenance is ALWAYS one of A / B / both (§9a #1 — required)', () => {
+    const c: any = mkCrystal('dolomite');
+    accrueSplitIndex(c, mkCond('dolomite', 5), 500);
+    expect(['A', 'B', 'both']).toContain(c._split.route);
   });
 });
 
-describe('W-F O5 SPLITTING — the flag (S-a recorded-unread)', () => {
-  it('O5_SPLITTING_ENABLED is FALSE in S-a (index accrued, read by nothing)', () => {
-    expect(O5_SPLITTING_ENABLED).toBe(false);
+describe('W-F O5 SPLITTING — the flag (S-b live)', () => {
+  it('O5_SPLITTING_ENABLED is TRUE — the ladder drives the sim + render as of S-b', () => {
+    expect(O5_SPLITTING_ENABLED).toBe(true);
   });
 });

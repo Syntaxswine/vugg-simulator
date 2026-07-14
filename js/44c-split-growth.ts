@@ -58,84 +58,120 @@
 // itself is UNCONDITIONAL (the O3a-draw idiom: the writer always runs so the
 // census observes a real index; only the CONSUMERS are gated), so this flag is
 // defined-but-unread in S-a exactly as GEOMETRIC_SELECTION_ENABLED was in O3a.
-let O5_SPLITTING_ENABLED = false;
+let O5_SPLITTING_ENABLED = true;
 function setO5SplittingEnabled(v: boolean): void { O5_SPLITTING_ENABLED = !!v; }
 
-// The two route gains + the B-route spherulitic onset σ. PLACEHOLDERS for S-a
-// (the index is unread, so their magnitude is cosmetic until S-b). S-b calibrates
-// on the sim's own σ scale by the 4a.7 recipe: SPLIT_SIGMA_SPHERULITE is the
-// sim-σ image of Beck & Andreassen's SI ≈ 2–3 carbonate onset; SPLIT_K_A/B are
-// tuned so a realistic impurity load (A) and a far-from-equilibrium pulse (B)
-// each walk a crystal up a rung or two over a full run, not zero and not pinned
-// at spherulite instantly. `let` so the S-b calibration sweep rebinds without a
-// rebuild (the O3/O5b dial idiom).
-let SPLIT_K_A = 1.0;                 // A-route (impurity autodeformation) gain
-let SPLIT_K_B = 1.0;                 // B-route (high-σ spherulitic) gain
-let SPLIT_SIGMA_SPHERULITE = 2.0;    // B-route onset — sim-σ image of SI ≈ 2–3
+// The two route gains + the B-route spherulitic onset. CALIBRATED in S-b by the
+// 4a.7 recipe (tools/o5-split-census.mjs σ-spread instrument): SPLIT_K_A/B are
+// tuned low so a realistic impurity load (A) and a far-from-equilibrium pulse (B)
+// walk a crystal up a rung or two over a full run's growth, not pinned at
+// spherulite instantly. `let` so the calibration sweep rebinds without a rebuild.
+let SPLIT_K_A = 0.8;                  // A-route (impurity autodeformation) gain
+let SPLIT_K_B = 0.8;                  // B-route (high-σ spherulitic) gain
 function setSplitKA(v: number): void { SPLIT_K_A = +v; }
 function setSplitKB(v: number): void { SPLIT_K_B = +v; }
-function setSplitSigmaSpherulite(v: number): void { SPLIT_SIGMA_SPHERULITE = +v; }
 
-// ── splitAbility — the structure-specific gate (boss §9a #3: hand-seed for v1) ──
-// A per-mineral scalar in [0,1]: how readily this structure grows by splitting.
-// Hand-seeded from the literature's "readily splitting" set (carbonates, zeolites,
-// fibrous chain/framework silicates, some phosphates HIGH; framework silicates
-// ~0), auditable like the fluorescence gates; a structural proxy is named-not-
-// built. UNLISTED minerals default to 0 (splitAbilityFor) — the safe byte-
-// identical default that honors "don't let O5 eat every radiating thing in the
-// cave" (boss §9a #5). Quartz/feldspar carry an EXPLICIT 0 (load-bearing per
-// boss §9a #3: "otherwise high σ becomes a nonsense wand") — documented-zero,
-// not merely absent, the `_twin_laws_note` convention. Cerussite (snowflake =
-// cyclic twinning) and malachite (botryoidal = C aggregation) are EXPLICIT 0 per
-// the boss's exclusions (§9a #5).
-const SPLIT_ABILITY: Record<string, number> = {
+// The B-route spherulitic onset is PER-MINERAL, anchored to each mineral's own
+// nucleation threshold σ_crit (MINERAL_GATES) — the far-from-equilibrium sibling
+// of the masking gate's σ*₀ (proposal §3.6). WHY per-mineral, not a global
+// constant: the sim's σ scale is wildly mineral-specific (dolomite σ_crit = 10,
+// calcite = 1.5, and σ tails to ~1e5 at seed 42 — the census σ-spread caught it).
+// A single global threshold would never fire for the high-σ_crit minerals and
+// always fire for the low ones. Onset = FACTOR × σ_crit puts the spherulitic
+// regime a fixed multiple ABOVE nucleation (the SI ≈ 2–3 far-from-eq image, Beck
+// & Andreassen), on every mineral's own scale. The DRIVE it feeds is bounded in
+// [0,1] (accrueSplitIndex) so the σ outliers saturate the B contribution rather
+// than pinning the index. `let` for the sweep.
+let SPLIT_SPHERULITE_FACTOR = 2.5;   // spherulitic onset = 2.5 × σ_crit (per mineral)
+const SPLIT_SIGMA_CRIT_FALLBACK = 1.5;   // minerals with no MINERAL_GATES entry
+function setSplitSpheruliteFactor(v: number): void { SPLIT_SPHERULITE_FACTOR = +v; }
+
+// The mineral's nucleation threshold σ_crit, from the shared gates registry
+// (js/42) the masking gate + nucleation dispatchers already read. Fallback for
+// the (few) split-able minerals with no gate entry.
+function sigmaCritFor(mineral: string): number {
+  const reg = (typeof MINERAL_GATES_REGISTRY !== 'undefined') ? MINERAL_GATES_REGISTRY : null;
+  const g = reg && reg[mineral];
+  return (g && Number.isFinite(g.sigma_crit)) ? g.sigma_crit : SPLIT_SIGMA_CRIT_FALLBACK;
+}
+// The B-route onset for a mineral. Exposed (not inlined) so the census + tests
+// compute the same boundary the accrual uses.
+function sigmaSpheruliteFor(mineral: string): number {
+  return SPLIT_SPHERULITE_FACTOR * sigmaCritFor(mineral);
+}
+
+// ── splitAbility — the structure-specific gate, PER ROUTE (boss §9a #3) ──────
+// { a, b } in [0,1]²: how readily this structure splits by the A route (impurity
+// autodeformation — bending/curved/fishtail) vs the B route (high-σ spherulitic —
+// sheaf/sphere). PER-ROUTE because the two mechanisms are MINERAL-SPECIFIC, not
+// interchangeable (the census caught the scalar model letting high-σ GYPSUM take
+// the B route → 18 false spherulites; gypsum autodeforms, it does NOT spherulite):
+//   • gypsum/selenite, saddle dolomite, curved barite → A-dominant (a≫b)
+//   • zeolites, aragonite flos-ferri, siderite, radial phosphates → B-dominant (b≫a)
+//   • split calcite does BOTH moderately.
+// Hand-seeded from the literature's mechanism assignment (auditable like the
+// fluorescence gates; a structural proxy is named-not-built). UNLISTED → {0,0}
+// (splitAbilityA/B) — the safe byte-identical default honoring "don't let O5 eat
+// every radiating thing" (§9a #5). Quartz/feldspar/etc. carry EXPLICIT {0,0}
+// (load-bearing §9a #3: "else high σ is a nonsense wand"); cerussite (cyclic
+// twinning) + malachite (C aggregation) EXPLICIT {0,0} (§9a #5 exclusions).
+const SPLIT_ABILITY: Record<string, { a: number; b: number }> = {
   // ── carbonates — the fleet's core; the calibration anchor class ──
-  dolomite: 0.9,        // saddle/baroque dolomite — the A-route low-rung showcase
-  aragonite: 0.8,       // flos ferri (Erzberg) — B-route radial
-  siderite: 0.8,        // spherulitic / sphaerosiderite — B-route
-  calcite: 0.6,         // split calcite; keep < dolomite (less iconic autodeform)
-  rhodochrosite: 0.5,   // radial / botryoid interiors are B micro-texture
-  magnesite: 0.5,
-  smithsonite: 0.4,     // botryoidal crusts are C, but radial interiors split
-  strontianite: 0.5,    // radiating acicular sprays
-  witherite: 0.4,
-  hydrozincite: 0.3,
-  // ── sulfates ──
-  selenite: 0.9,        // gypsum autodeformation — THE A-route classic (fishtail/ram's-horn)
-  barite: 0.5,          // curved barite (Rung 1); the snowball is masking, not this
-  celestine: 0.4,
+  dolomite:      { a: 0.9, b: 0.2 },   // saddle/baroque dolomite — THE A-route low-rung showcase
+  calcite:       { a: 0.5, b: 0.4 },   // split calcite (A) + spherulitic calcite (B) — genuinely both
+  aragonite:     { a: 0.3, b: 0.7 },   // flos ferri (Erzberg) — radial, B-dominant
+  siderite:      { a: 0.2, b: 0.8 },   // spherulitic / sphaerosiderite — B
+  rhodochrosite: { a: 0.3, b: 0.5 },   // radial botryoid interiors — B micro-texture
+  magnesite:     { a: 0.4, b: 0.4 },
+  smithsonite:   { a: 0.2, b: 0.4 },
+  strontianite:  { a: 0.3, b: 0.5 },   // radiating acicular sprays
+  witherite:     { a: 0.3, b: 0.3 },
+  hydrozincite:  { a: 0.2, b: 0.3 },
+  // ── sulfates — gypsum is the A-route classic; barite curves (A rung 1) ──
+  selenite:      { a: 0.9, b: 0.05 },  // gypsum autodeformation (fishtail/ram's-horn) — A ONLY, never spherulitic
+  barite:        { a: 0.5, b: 0.15 },  // curved barite (Rung 1, A); the snowball is masking, not this
+  celestine:     { a: 0.4, b: 0.2 },
   // ── zeolites + fibrous / chain silicates — the Deccan B-route suite ──
-  stilbite: 0.9,        // wheat-sheaf bowties (Rung 3)
-  scolecite: 0.9,       // radial sprays
-  mesolite: 0.9,        // hair-fine radial sprays
-  thomsonite: 0.8,      // radial spheres
-  heulandite: 0.6,
-  chabazite: 0.3,
-  prehnite: 0.8,        // botryoidal-radial spheres (Rung 4)
-  pectolite: 0.7,       // radiating acicular ("pectolite spray")
-  wollastonite: 0.5,    // fibrous / radiating
-  // ── fibrous chain silicates (asbestiform / byssolite) ──
-  tremolite: 0.6, actinolite: 0.6, anthophyllite: 0.5,
-  chrysotile: 0.5, amosite: 0.5, crocidolite: 0.5,
-  // ── phosphates / arsenates — radiating families ──
-  erythrite: 0.6,       // radiating_fibrous rosettes
-  annabergite: 0.5,     // erythrite sibling
-  legrandite: 0.5,      // radiating golden sprays
-  pyromorphite: 0.3, mimetite: 0.3,
+  stilbite:      { a: 0.15, b: 0.9 },  // wheat-sheaf bowties (Rung 3) — B
+  scolecite:     { a: 0.1, b: 0.9 },   // radial sprays — B
+  mesolite:      { a: 0.1, b: 0.9 },   // hair-fine radial sprays — B
+  thomsonite:    { a: 0.1, b: 0.8 },   // radial spheres — B
+  heulandite:    { a: 0.2, b: 0.6 },
+  chabazite:     { a: 0.1, b: 0.3 },
+  prehnite:      { a: 0.1, b: 0.8 },   // botryoidal-radial spheres (Rung 4) — B
+  pectolite:     { a: 0.2, b: 0.7 },   // radiating acicular ("pectolite spray") — B
+  wollastonite:  { a: 0.2, b: 0.5 },   // fibrous / radiating
+  // ── fibrous chain silicates (asbestiform / byssolite) — B ──
+  tremolite:     { a: 0.2, b: 0.6 }, actinolite: { a: 0.2, b: 0.6 }, anthophyllite: { a: 0.1, b: 0.5 },
+  chrysotile:    { a: 0.1, b: 0.5 }, amosite:    { a: 0.1, b: 0.5 }, crocidolite:   { a: 0.1, b: 0.5 },
+  // ── phosphates / arsenates — radiating families, B ──
+  erythrite:     { a: 0.2, b: 0.6 },   // radiating_fibrous rosettes
+  annabergite:   { a: 0.2, b: 0.5 },   // erythrite sibling
+  legrandite:    { a: 0.2, b: 0.5 },   // radiating golden sprays
+  pyromorphite:  { a: 0.2, b: 0.3 }, mimetite: { a: 0.2, b: 0.3 },
   // ── hydroxides / oxides — radial fibre (botryoid interiors are B) ──
-  goethite: 0.4,        // velvety radial; kidney-ore botryoid macro-form stays C
-  millerite: 0.5,       // radiating brass hair
+  goethite:      { a: 0.1, b: 0.4 },   // velvety radial; kidney-ore botryoid macro-form stays C
+  millerite:     { a: 0.2, b: 0.5 },   // radiating brass hair
   // ── EXPLICIT ZEROES (documented, load-bearing — not merely absent) ──
-  quartz: 0.0,          // framework silica — the gwindel TWIST is a separate mechanism
-  feldspar: 0.0, albite: 0.0,   // framework — "high σ must not become a nonsense wand"
-  topaz: 0.0, beryl: 0.0, emerald: 0.0, aquamarine: 0.0,   // rigid ring/framework
-  fluorite: 0.0,        // isometric — cleaves, does not split-grow
-  cerussite: 0.0,       // snowflake = cyclic (110) twinning, NOT splitting (§9a #5)
-  malachite: 0.0,       // botryoidal = Class-C aggregation, NOT this rung (§9a #5)
+  quartz:    { a: 0, b: 0 },           // framework silica — the gwindel TWIST is a separate mechanism
+  feldspar:  { a: 0, b: 0 }, albite: { a: 0, b: 0 },   // framework — "high σ must not become a nonsense wand"
+  topaz:     { a: 0, b: 0 }, beryl: { a: 0, b: 0 }, emerald: { a: 0, b: 0 }, aquamarine: { a: 0, b: 0 },
+  fluorite:  { a: 0, b: 0 },           // isometric — cleaves, does not split-grow
+  cerussite: { a: 0, b: 0 },           // snowflake = cyclic (110) twinning, NOT splitting (§9a #5)
+  malachite: { a: 0, b: 0 },           // botryoidal = Class-C aggregation, NOT this rung (§9a #5)
 };
-function splitAbilityFor(mineral: string): number {
+function splitAbilityA(mineral: string): number {
   const v = SPLIT_ABILITY[mineral];
-  return typeof v === 'number' ? v : 0;   // unlisted → 0 (safe, byte-identical)
+  return v && Number.isFinite(v.a) ? v.a : 0;   // unlisted → 0
+}
+function splitAbilityB(mineral: string): number {
+  const v = SPLIT_ABILITY[mineral];
+  return v && Number.isFinite(v.b) ? v.b : 0;   // unlisted → 0
+}
+// "Can this mineral split at all" — the census roster gate + the accrual's
+// early-out. max(a,b) so a mineral susceptible to EITHER route counts.
+function splitAbleFor(mineral: string): number {
+  return Math.max(splitAbilityA(mineral), splitAbilityB(mineral));
 }
 
 // ── impurity_factor mineral hint (boss §9a #2: max of three sources) ──────────
@@ -153,6 +189,38 @@ const SPLIT_IMPURITY_HINT: Record<string, number> = {
   dolomite: 0.3,        // Mg-excess incorporation — the saddle autodeformation seed
 };
 
+// ── SPLIT_RADIAL_HINT — the B-route's INTRINSIC baseline (symmetric to the A-hint) ──
+// Some minerals are radial/fibrous/spherulitic by STRUCTURE, not by supersaturation:
+// the natrolite-group chain silicates (scolecite/mesolite) are fibrous at ALL
+// conditions; stilbite is intrinsically sheafy; prehnite/thomsonite botryoidal-
+// radial. In the sim these never reach the far-from-eq σ band (the census caught
+// the Deccan zeolites accruing ~0), yet the sheaf/sphere is their SIGNATURE. So the
+// B-drive floors at this intrinsic baseline: bDrive = max(σ far-from-eq, radialHint).
+// This mirrors the A-route's SPLIT_IMPURITY_HINT (dolomite Mg) — an intrinsic seed
+// the extrinsic driver (σ / impurity) adds to. Carbonates get NONE (calcite/dolomite
+// spherulite ONLY when driven far-from-eq, not intrinsically). Seeded from the
+// structural habit; a structural proxy is named-not-built.
+const SPLIT_RADIAL_HINT: Record<string, number> = {
+  // natrolite-group + framework zeolites — intrinsically fibrous/sheafy/radial
+  scolecite: 0.85, mesolite: 0.85, stilbite: 0.8, thomsonite: 0.7,
+  heulandite: 0.5, chabazite: 0.35, prehnite: 0.7, pectolite: 0.7,
+  // fibrous chain / asbestiform silicates
+  tremolite: 0.55, actinolite: 0.55, anthophyllite: 0.5, wollastonite: 0.45,
+  chrysotile: 0.6, amosite: 0.6, crocidolite: 0.6,
+  // radial carbonate/oxide/phosphate/sulfide habits (structural, not σ)
+  aragonite: 0.4,      // flos ferri coralloid-radial
+  siderite: 0.4,       // sphaerosiderite botryoid-radial
+  erythrite: 0.45, annabergite: 0.4, legrandite: 0.4,
+  goethite: 0.35, millerite: 0.5, rhodochrosite: 0.3, smithsonite: 0.3,
+};
+// A structurally-radial mineral expresses its habit once it has grown past this
+// size — below it, even a fibrous zeolite is only a nucleation speck, not yet a
+// sheaf/sphere. The radial floor ramps linearly to full over [0, this]. Small
+// (~0.3 mm) so the Deccan zeolites (0.3–1.7 mm at seed 42) express, while a 7 µm
+// speck stays 'none'. The growth-integrated accrual still governs the σ/impurity
+// routes; this floor only lifts the INTRINSICALLY radial minerals to their rung.
+const SPLIT_RADIAL_REF_MM = 0.3;
+
 // The rung bands. PLACEHOLDER cuts for S-a (unread); S-b calibrates them against
 // the SPLIT_K_A/B scale so a realistic run distributes crystals sensibly across
 // the ladder rather than piling at one rung. Mirrors §4's worked example.
@@ -163,6 +231,24 @@ function splitRung(index: number): string {
   if (index >= 0.25) return 'split';
   if (index >= 0.08) return 'curved';   // saddle / bent — Rung 1
   return 'none';
+}
+
+// ── the SIM effect (S-b): axial growth throttle by split index ────────────────
+// A splitting crystal packs the same material into a compact radial/branched form,
+// so its coherent MAX AXIAL EXTENT is less than the single crystal that material
+// would otherwise have built — a spherulite's diameter < the needle's length it
+// replaced (Beck & Andreassen 2010: spherulites REPLACE faceted single crystals
+// above the onset; Sunagawa's morphodrom packs the split/dendritic forms at high
+// driving force). So the per-step axial increment is throttled by the accrued
+// index: 1.0 at the base (no split) down to SPLIT_AXIAL_FLOOR at full spherulite.
+// FLOORED (never arrests — a split crystal keeps growing, just less axially; this
+// is not O3 burial nor O5 masking). Gated by O5_SPLITTING_ENABLED at the js/85
+// call site: flag off → mult is never applied → byte-identical.
+let SPLIT_AXIAL_FLOOR = 0.7;   // spherulite grows its axis at 70% — compact, not arrested
+function setSplitAxialFloor(v: number): void { SPLIT_AXIAL_FLOOR = +v; }
+function splitGrowthMult(index: number): number {
+  const x = Math.max(0, Math.min(1, index || 0));
+  return 1 - (1 - SPLIT_AXIAL_FLOOR) * x;   // 1 at index 0 → SPLIT_AXIAL_FLOOR at index 1
 }
 
 // impurity_factor = max(film φ, scenario trace, mineral hint). Pure, DOM-free.
@@ -195,8 +281,9 @@ function splitImpurityFactor(crystal: any, conditions: any): number {
 // equilibrium (B)} — census-bounded, the O4b/O5b certificate pattern.
 function accrueSplitIndex(crystal: any, conditions: any, dGrowthUm: number): void {
   if (!crystal || !(dGrowthUm > 0)) return;
-  const ability = splitAbilityFor(crystal.mineral);
-  if (ability <= 0) return;                       // structure-gate: never splits
+  const abilityA = splitAbilityA(crystal.mineral);
+  const abilityB = splitAbilityB(crystal.mineral);
+  if (abilityA <= 0 && abilityB <= 0) return;     // structure-gate: never splits (either route)
 
   const impurity = splitImpurityFactor(crystal, conditions);
 
@@ -209,15 +296,38 @@ function accrueSplitIndex(crystal: any, conditions: any, dGrowthUm: number): voi
     try { const v = sfn.call(conditions); if (Number.isFinite(v)) sig = v; } catch (_e) { sig = 0; }
   }
 
-  const rateA = SPLIT_K_A * impurity * ability;                                    // impurity-driven, σ-agnostic
-  const rateB = SPLIT_K_B * Math.max(0, sig - SPLIT_SIGMA_SPHERULITE) * ability;   // high-σ spherulitic
+  // B-route far-from-equilibrium DRIVE, bounded in [0,1]: how far past this
+  // mineral's spherulitic onset (2.5 × its own σ_crit) the crystal sits, saturating
+  // at 1 one onset-width above. Bounded so a σ outlier (dolomite can see σ ~1e5)
+  // saturates the B contribution instead of pinning the index in a single step.
+  const sigmaSpherulite = sigmaSpheruliteFor(crystal.mineral);
+  const bDriveSigma = sigmaSpherulite > 0
+    ? Math.max(0, Math.min(1, (sig - sigmaSpherulite) / sigmaSpherulite)) : 0;
+  // B-drive floors at the mineral's INTRINSIC radial baseline — a structurally
+  // fibrous zeolite reaches its sheaf/sphere even when the sim never drives it
+  // far-from-eq; a carbonate (no radial hint) needs the σ drive.
+  const bDrive = Math.max(bDriveSigma, SPLIT_RADIAL_HINT[crystal.mineral] || 0);
+  const rateA = SPLIT_K_A * impurity * abilityA;  // impurity-driven, σ-agnostic (fires even at low σ)
+  const rateB = SPLIT_K_B * bDrive * abilityB;    // spherulitic: per-mineral σ onset ∨ intrinsic radial
   if (rateA <= 0 && rateB <= 0) return;           // nothing accrues → no state churn
 
   const dGrow = dGrowthUm / 1000;                 // µm → mm, the integral's length scale
   const prev = crystal._split || { index: 0, sumA: 0, sumB: 0 };
   const sumA = (prev.sumA || 0) + rateA * dGrow;
   const sumB = (prev.sumB || 0) + rateB * dGrow;
-  const index = Math.max(0, Math.min(1, (prev.index || 0) + (rateA + rateB) * dGrow));
+  let index = Math.max(0, Math.min(1, (prev.index || 0) + (rateA + rateB) * dGrow));
+  // STRUCTURAL FLOOR — intrinsically radial minerals (natrolite-group zeolites,
+  // stilbite, prehnite, byssolite) express their sheaf/sphere by STRUCTURE, not by
+  // accumulated growth: a small scolecite is still a radial spray. So the index
+  // floors at the mineral's radial baseline, RAMPED by size (a nucleation speck is
+  // not yet a sphere; a matured crystal sits at its floor). Growth-integration
+  // still governs the σ/impurity routes above; this only lifts the structural set.
+  const radialFloor = SPLIT_RADIAL_HINT[crystal.mineral] || 0;
+  if (radialFloor > 0) {
+    const grownMm = (crystal.total_growth_um || 0) / 1000;
+    const ramp = Math.max(0, Math.min(1, grownMm / SPLIT_RADIAL_REF_MM));
+    index = Math.max(index, radialFloor * ramp);
+  }
   // route provenance (REQUIRED): which route(s) actually contributed. 'both' when
   // each fired at least once; else the lone route. `dominant` records which
   // supplied more of the accumulation, for S-b narration.
