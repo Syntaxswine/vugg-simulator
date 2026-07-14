@@ -1694,7 +1694,11 @@ function _makeHemimorphicPrism(): any {
 // "sheaflike or fan-shaped aggregates"; thin tabular {010} striated ∥ [001]). Replaces the WRONG
 // hexagonal _makeHemimorphicPrism for hemimorphite (greenockite/wurtzite are genuinely 6mm and
 // keep that one). Specimen-debt verification pass 2026-06-23. Deterministic (index-varied, no RNG).
-function _makeHemimorphiteFan(): any {
+function _makeHemimorphiteFan(splay: number = 0.80): any {
+  // `splay` = the half-angle (rad) from vertical of the outermost blade. The
+  // O5-splitting render (S-c) drives it continuously from `_split.index` so a
+  // just-split crystal is a narrow bundle and a mature sheaf a wide wheat-sheaf;
+  // the default 0.80 keeps the hemimorphite habit render byte-identical.
   const positions: number[] = [];
   // one thin tabular blade: base point o, unit long axis a, unit broad-face normal n; width dir
   // e = a×n. Rectangular section (hw along e, ht along n) base→shoulder, then a chisel ridge (a
@@ -1727,7 +1731,7 @@ function _makeHemimorphiteFan(): any {
   const N = 6;
   for (let k = 0; k < N; k++) {
     const f = k / (N - 1);                          // 0..1 across the fan
-    const ang = -0.80 + 1.60 * f;                   // ~ -46°..+46° from vertical, splayed in x-y
+    const ang = -splay + 2 * splay * f;             // -splay..+splay from vertical, splayed in x-y
     const a = [Math.sin(ang), Math.cos(ang), 0];    // unit long axis (fans in the x-y plane)
     const n = [0, 0, 1];                            // broad face ≈ ±z → a flat bowtie spray
     const len = 0.74 + 0.09 * Math.cos(k * 1.7);    // slight deterministic length variation
@@ -1903,12 +1907,20 @@ function _makeRhombicDodecahedron(): any {
 // than a single sphere. Each "bubble" is just a low-poly sphere
 // translated; the geometries get merged at the end so the cluster
 // is one BufferGeometry per token.
-function _makeBotryoidalCluster(): any {
+function _makeBotryoidalCluster(completeness: number = 1): any {
+  // `completeness` in [0,1] = how CLOSED the radial sphere is. The O5-splitting
+  // render (S-c) drives it from `_split.index` past the spherulite onset: a
+  // just-crossed spherulite is a tighter central mass with under-grown lobes, a
+  // full-index one closes into the round botryoidal rosette. The peripheral lobe
+  // radii scale 0.35→1.0 with completeness (central bump always full); default 1
+  // keeps the botryoidal habit render byte-identical.
+  const c = Math.max(0, Math.min(1, completeness));
+  const lobeScale = 0.35 + 0.65 * c;
   const bubbles = [
-    { r: 0.42, x: 0.00, y: 0.05, z: 0.00 },   // dominant central bump
-    { r: 0.26, x: 0.30, y: -0.10, z: 0.10 },  // small lobe
-    { r: 0.30, x: -0.18, y: 0.00, z: 0.22 },  // medium lobe
-    { r: 0.22, x: 0.12, y: -0.05, z: -0.30 }, // small lobe (back)
+    { r: 0.42,             x: 0.00, y: 0.05, z: 0.00 },   // dominant central bump
+    { r: 0.26 * lobeScale, x: 0.30, y: -0.10, z: 0.10 },  // small lobe
+    { r: 0.30 * lobeScale, x: -0.18, y: 0.00, z: 0.22 },  // medium lobe
+    { r: 0.22 * lobeScale, x: 0.12, y: -0.05, z: -0.30 }, // small lobe (back)
   ];
   // Build each sphere, translate, accumulate positions.
   const positions: number[] = [];
@@ -4614,26 +4626,51 @@ function _topoSyncCrystalMeshes(state: any, sim: any, wall: any, replayStep?: nu
       if (crystal._sceptreGeomCf !== cf) { crystal._sceptreGeom = _makeSceptreHexPrism(cf, ecc); crystal._sceptreGeomCf = cf; }
       geom = crystal._sceptreGeom;
     }
-    // W-F O5 SPLITTING (S-b) — a crystal that EARNED the sheaf or spherulite rung
-    // (js/44c _split, the two-route cumulative-misorientation ladder) renders as
-    // its divergent / radial aggregate instead of a single faceted primitive:
-    // sheaf → the hemimorphite-style divergent blade fan; spherulite → the radial
-    // botryoidal cluster. Mineral-agnostic (a stilbite sheaf, an aragonite
-    // flos-ferri sphere, a byssolite spray all read from the one form). The CURVED
-    // rung keeps its existing habit render (dolomite saddle_rhomb hook below) +
-    // the growth throttle; per-mineral curved/split curvature = f(index) is the
-    // S-c refinement. SKIP when _deformation is present — the shear-bent saddle is
-    // a SEPARATE cause (§9a #4; tools/o5-split-census.mjs certifies these two sets
-    // do not collide). Gated by O5_SPLITTING_ENABLED (js/44c); splitAbility-0
-    // minerals (quartz/feldspar) never carry _split, so their gwindel/sceptre
-    // hooks above are untouched — the structure-specificity invariant.
+    // W-F O5 SPLITTING (S-b + S-c) — a crystal that EARNED a rung on the two-route
+    // cumulative-misorientation ladder (js/44c _split) renders its divergent /
+    // radial form, and (S-c) the FORM VARIES CONTINUOUSLY with `_split.index`
+    // rather than snapping between fixed meshes:
+    //   • curved  → the saddle-rhomb curved-face render, curvature = f(index),
+    //     for the rhombohedral-carbonate / saddle set only (a curved gypsum keeps
+    //     its blade — a rhomb would be wrong-shaped). This RETIRES the T-painted
+    //     saddle constant FOR THE SPLIT-DRIVEN SET: placed before the T-driven
+    //     saddle-habit hook below so it supersedes; a rung-'none' saddle dolomite
+    //     still falls through to that hook.
+    //   • split + sheaf → ONE continuous blade fan, splay = f(index): a just-split
+    //     crystal is a narrow bundle (few subindividuals / splayed terminations),
+    //     a mature sheaf a wide wheat-sheaf. The split→sheaf boundary no longer snaps.
+    //   • spherulite → the radial botryoidal cluster, completeness = f(index): a
+    //     just-crossed spherulite is tighter/under-grown, a full-index one a closed
+    //     rosette — continuous with the widest sheaf.
+    // Mineral-agnostic for the fan/sphere (a stilbite sheaf, an aragonite flos-ferri
+    // sphere, a byssolite spray all read from the one form). SKIP when _deformation
+    // is present — the shear-bent saddle is a SEPARATE cause (§9a #4;
+    // tools/o5-split-census.mjs certifies these two sets do not collide). Gated by
+    // O5_SPLITTING_ENABLED (js/44c); splitAbility-0 minerals (quartz/feldspar) never
+    // carry _split, so their gwindel/sceptre hooks above are untouched. Params are
+    // quantized before the cache key so the geom cache stays small.
     if (!geom && O5_SPLITTING_ENABLED && crystal._split && !crystal._deformation) {
-      if (crystal._split.rung === 'sheaf') {
-        geom = state.geomCache.get('__split_sheaf');
-        if (!geom) { geom = _makeHemimorphiteFan(); state.geomCache.set('__split_sheaf', geom); }
-      } else if (crystal._split.rung === 'spherulite') {
-        geom = state.geomCache.get('__split_spherulite');
-        if (!geom) { geom = _makeBotryoidalCluster(); state.geomCache.set('__split_spherulite', geom); }
+      const _spIdx = Math.max(0, Math.min(1, crystal._split.index || 0));
+      const _spRung = crystal._split.rung;
+      const _isSaddleHabit = typeof crystal.habit === 'string' && crystal.habit.indexOf('saddle') >= 0;
+      if (_spRung === 'curved' && (token === 'rhomb' || _isSaddleHabit)) {
+        // curved band 0.08..0.25 → curvature 0.05..0.16 (gentle bow, clamped by the mesh)
+        const curv = Math.round((0.05 + 0.11 * Math.max(0, Math.min(1, (_spIdx - 0.08) / 0.17))) * 100) / 100;
+        const key = '__split_saddle_' + curv;
+        geom = state.geomCache.get(key);
+        if (!geom) { geom = _makeSaddleRhomb(curv); state.geomCache.set(key, geom); }
+      } else if (_spRung === 'split' || _spRung === 'sheaf') {
+        // split+sheaf band 0.25..0.85 → splay 0.30..1.08 rad (narrow bundle → wide sheaf)
+        const splay = Math.round((0.30 + 0.78 * Math.max(0, Math.min(1, (_spIdx - 0.25) / 0.60))) * 20) / 20;
+        const key = '__split_fan_' + splay;
+        geom = state.geomCache.get(key);
+        if (!geom) { geom = _makeHemimorphiteFan(splay); state.geomCache.set(key, geom); }
+      } else if (_spRung === 'spherulite') {
+        // spherulite band 0.85..1.0 → completeness 0..1 (tight → closed rosette)
+        const comp = Math.round(Math.max(0, Math.min(1, (_spIdx - 0.85) / 0.15)) * 20) / 20;
+        const key = '__split_sph_' + comp;
+        geom = state.geomCache.get(key);
+        if (!geom) { geom = _makeBotryoidalCluster(comp); state.geomCache.set(key, geom); }
       }
     }
     // Saddle (baroque) DOLOMITE curved-face rhombohedron (deformation arc
