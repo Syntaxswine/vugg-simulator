@@ -420,6 +420,47 @@ spherulite still occupies the axial length of the needle it replaced. New backlo
 generator would let the curved gypsum/selenite the gate currently keeps as blades earn their ram's-horn
 curvature too (the analogue of the saddle-rhomb for the non-rhombohedral A-route set).
 
+## 9e. THE HEAVY DEBT PAID (2026-07-14, SIM 226) — the VOLUME-NEUTRAL SIM effect: splitting costs LENGTH
+
+The debt §9c #1 named, and the last one on this rung. Splitting now genuinely **costs axial length at
+constant volume** — a split crystal's c_length_mm compacts by `splitGrowthMult(_split.index)` while
+a_width_mm auto-widens to conserve `_volume_mm3`: the needle collapsing to the sphere's radius, same
+material. `O5_VOLNEUTRAL_ENABLED` (js/44c) flipped true; the js/85 growth loop passes the multiplier to
+`crystal.add_zone` (js/27), which compacts c BEFORE re-deriving `a_width = √(6V/(π c))` from the UNCHANGED
+volume. A real SIM bump (SIM 226, baseline regen), two-commit (byte-identical wiring `878b150` → this bump).
+
+**The keystone's "~8 sites" was optimism — and why S-b flooded.** The sixteenth keystone assumed a clean
+volume-neutral decouple existed at ~8 sites. A census over `total_growth_um` / `c_length_mm` showed
+otherwise: `total_growth_um` feeds HUNDREDS of dissolution reads, and **`c_length_mm` feeds O3 geometric-
+selection (js/44a, js/85b) + enclosure (js/85c) + paragenesis (js/26)**. Crystal SIZE is intrinsically
+coupled to selection/enclosure/nucleation — so making a split crystal shorter *must* perturb which crystals
+win and enclose. S-b's 80-mineral flood was not a plumbing bug; it was this coupling, amplified by S-b also
+throttling VOLUME (→ fill → nucleation fleet-wide).
+
+**The insight that rescued it: the geometry was already volume-aware.** `add_zone` derives
+`a_width = √(6V/(π c))` to conserve `_volume_mm3`, and `_volume_mm3` (which drives `get_vug_fill` →
+nucleation) is a SEPARATE accumulator from `c_length_mm`. So compacting c at CONSTANT volume leaves the
+volume→fill→nucleation path byte-identical; only the LINEAR reads of c (selection length, enclosure shape,
+the aspect gate) react. Any ellipsoid VOLUME `(4/3)π a b²` is invariant under c→c·m, a→a/√m — proven, and
+confirmed empirically (the shape probe below: volume drift 0.0%).
+
+**Measure first (boss directive 2026-07-14).** `tools/o5-volneutral-census.mjs` toggles the flag off/on in
+one process and diffs the fleet (certifying flag-OFF == committed v225). The constant-volume compaction's
+blast radius: **7 NON-split minerals, ALL ≤0.1% max_um ripples, in ONE competitive scenario
+(sunnyside_american_tunnel); zero count/species collateral.** vs S-b's 80. The only real movement is
+siderite (split-able) 1→3 crystals — a shorter/wider siderite clearing the O3-aspect gate differently.
+`tools/baseline-diff.mjs v225→v226`: **1/39 scenarios moved (sunnyside 41→43 crystals), 0 species
+gained/lost fleet-wide.** The constant-volume trick turned the keystone's feared flood into bounded ripple;
+the boss chose the honest physics over a display-only decouple on that evidence.
+
+**The picture (screenshot-free, per-crystal off→on).** A deccan aragonite spherulite (index 1.00):
+c 26.6→18.6 mm (**−30 %**, the floor), a 13.3→15.9 mm (**+20 %**), volume **0.0 %**. goethite sheaf −25 %,
+chabazite split −12 %, calcite split −15 % — the compaction scales with the rung, volume conserved to 0.0 %
+across the board. Splitting now costs length in the RENDER (js/99 reads c_length/a_width) and everywhere the
+player reads size — narration ("grew to X mm"), inventory, score — at constant mass. **This rung's ladder is
+complete: a crystal now splits when the conditions say split (S-b), shows HOW FAR (S-c), and pays for the
+breadth with its length (this).** CI 175/175 green at v226.
+
 ## Sources (builder-verified 2026-07-10; two passes cross-checked, each flag is per-citation)
 
 **Splitting / spherulite theory** — VERIFIED:

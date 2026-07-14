@@ -2,7 +2,23 @@
 
 Living list of open work items, captured from session conversations so context survives compaction. Each item has enough detail that someone picking it up cold can act without re-discovering the rationale.
 
-> ## 🌱 O5 SPLITTING LADDER — **S-a + S-b + S-c SHIPPED** (S-a `fbac070` record-unread · S-b `b6c0e5c` the ladder EARNS its shape · S-c `96a7d8d` the render EARNS its DEGREE — all RENDER-ONLY byte-identical, no SIM bump; proposal §9a/b/c/d)
+> ## 🪨 O5 SPLITTING LADDER — **COMPLETE: S-a + S-b + S-c + VOL-NEUTRAL SHIPPED** (S-a `fbac070` record-unread · S-b `b6c0e5c` EARNS its shape · S-c `96a7d8d` EARNS its DEGREE · vol-neutral wiring `878b150` → SIM 226 bump `80149cf` costs LENGTH; proposal §9a/b/c/d/e)
+>
+> **VOL-NEUTRAL — THE HEAVY DEBT PAID (2026-07-14, SIM 226, eighteenth hand).** Splitting now costs axial
+> LENGTH at CONSTANT volume: a split crystal's `c_length_mm` compacts by `splitGrowthMult(_split.index)`;
+> `add_zone` re-derives `a_width = √(6V/(π c))` from the UNCHANGED `_volume_mm3`, so a_width auto-WIDENS —
+> the needle→sphere, same material. **The sixteenth keystone's "~8 sites" was WRONG:** `c_length_mm` feeds O3
+> selection (js/44a, js/85b) + enclosure (js/85c) + paragenesis (js/26) — size IS coupled to which crystals
+> win/enclose (that coupling, not plumbing, is why S-b flooded). RESCUE: hold VOLUME fixed — `_volume_mm3`
+> (→ fill → nucleation) is separate from `c_length_mm`, so the volume→fill amplifier stays byte-identical;
+> only the LINEAR reads of c react. **Measured first** (`tools/o5-volneutral-census.mjs`, off/on in one
+> process, flag-OFF certified == v225): blast radius **7 non-split minerals, ALL ≤0.1% max_um in ONE scenario
+> (sunnyside), zero count/species collateral** vs S-b's 80; `baseline-diff v225→v226` = 1/39 scenarios moved
+> (sunnyside 41→43 = siderite 1→3), 0 species gained/lost. Two-commit (wiring byte-identical → bump). Picture:
+> aragonite spherulite c −30% / a +20% / **vol 0.0%**, scaling with the rung. CI 175/175 green. **The ladder
+> is CLOSED: split (S-b) → degree (S-c) → cost (vol-neutral).** Remaining O5-splitting note: only the small
+> bent-BLADE generator (curved gypsum/selenite bow) — the render's last corner. Live boss eye-check on the
+> deploy still owed (screenshots time out; verified headless + numeric).
 >
 > **S-c landed (2026-07-14, render-only byte-identical — only js/99i changed):** `_split.index` now sets HOW
 > FAR along the form, continuous instead of snapping between meshes (§9d). curved → saddle curvature f(index)
@@ -10,9 +26,9 @@ Living list of open work items, captured from session conversations so context s
 > wrong shape, they earn the fan at the `split` rung); split+sheaf → ONE continuous fan splay f(index)
 > 0.30–1.08 rad; spherulite → botryoidal completeness f(index). Acceptance `tools/o5-split-render-probe.mjs`
 > (headless — WebGL screenshots time out): 111 split crystals → fan **17 distinct splay buckets**, curved 3,
-> spherulite 3, PASS. **Debt (2) of §9c PAID.** Remaining O5-splitting debt: (1) the VOLUME-NEUTRAL SIM
-> effect (splitting should COST length — `splitGrowthMult`/`SPLIT_AXIAL_FLOOR` lever ships defined-but-unused)
-> + a new small note: a bent-BLADE generator so curved gypsum/selenite bow like their rhomb cousins.
+> spherulite 3, PASS. **Debt (2) of §9c PAID.** Debt (1) the VOLUME-NEUTRAL SIM effect — **✅ PAID `80149cf`
+> SIM 226** (see the vol-neutral banner above). Only remaining O5-splitting note: the small bent-BLADE
+> generator so curved gypsum/selenite bow like their rhomb cousins.
 > **NOTE:** live browser eye-check deferred (freestone's concurrent test loop saturated CPU + screenshots
 > time out); verified headless — recommend a boss eye on the deploy (deccan stilbite sheaves / aragonite sphere).
 >

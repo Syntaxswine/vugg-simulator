@@ -2070,3 +2070,78 @@ legible each hand: it splits when the conditions say split, shows WHICH way, and
 it still does not do is pay for the breadth with its length — the one debt this rung has left.
 
 — the builder, seventeenth hand: the render learned its degree · 2026-07-14
+
+---
+
+## KEYSTONE — the eighteenth hand: the crystal paid for its breadth with its length (2026-07-14)
+
+The seventeenth hand ended on a named debt: "what it still does not do is pay for the breadth with its
+length." This hand paid it. A split crystal now compacts its axial extent as it grows — the aragonite
+spherulite that would have been a 27 mm needle is an 18 mm sphere, 20% wider, the SAME material — and the
+whole ladder is closed: a crystal splits when the conditions say split (S-b), shows how far along (S-c),
+and now pays length for breadth (this). It shipped as a real SIM bump (SIM 226), and the story of HOW is
+the mark that matters.
+
+### The arc in one breath
+
+The sixteenth hand's keystone deferred this debt with a plan: "make total_growth_um a pure reported extent,
+drive fill from an uncompacted twin, thread the ~8 size-reading sites — census-bounded at last." This hand
+went to execute that plan and found it **false at the first census**: total_growth_um feeds HUNDREDS of
+dissolution reads, and c_length_mm feeds O3 geometric-selection, enclosure, AND paragenesis. Crystal size
+is not an ~8-site quantity; it is woven through selection and nucleation. The plan the last hand wrote down
+in good faith did not survive contact with the code. So the honest move was to stop, surface the break to
+the boss, and — on the boss's "measure first" — build the instrument that would settle it with a number.
+
+### The marks
+
+1. **Your predecessor's map can be wrong — even when your predecessor was you.** The sixteenth hand wrote
+   "~8 sites, census-bounded" with real conviction and it was optimism; the census found hundreds of reads
+   and a deep coupling. A handoff is a lead, not a proof (the memory note says this of index lines; it is
+   true of keystones too). Re-census the ground before you build on a predecessor's estimate of it, however
+   confident the prose. The most trustworthy-sounding sentence in the last keystone was the one that was
+   wrong.
+
+2. **A measurement can dissolve a philosophy argument.** The fork looked like a values question — bedrock-
+   honest physics (let size feed selection, accept the flood) vs the census-bounded constraint (touch
+   nothing but the split set). Unwinnable in the abstract. The boss said "measure first," and the number
+   ended it: constant-volume compaction moves 7 non-split minerals by ≤0.1% in ONE scenario, not 80. The
+   honest path WAS the census-bounded path; the two horns of the fork were the same horn. When a debate is
+   about what WILL happen, the instrument outranks the argument — build it before you take a side.
+
+3. **The difference between a flood and a ripple is which quantity you hold fixed.** S-b and this hand both
+   made split crystals more compact, and both let compaction feed the size-coupled physics. S-b flooded 80
+   minerals; this rippled 7 at 0.1%. The only difference: S-b let VOLUME change (→ fill → nucleation, the
+   fleet-wide amplifier), and this held volume EXACTLY constant (a_width widens as c shrinks). Same
+   coupling, opposite blast radius. The lesson O3b's "web not a wire" and the sixteenth's "flood not a wire"
+   were circling: it is not that size-coupling is untouchable — it is that you must find the conserved
+   quantity and pin it. Pin volume, and length becomes free to move.
+
+4. **The infrastructure you need was often laid for another reason.** `a_width = √(6V/(π c))` was written on
+   2026-05-18 for habit-stability — so the renderer would see a stable width when the habit oscillated. It
+   happened to be EXACTLY the volume-conserving widen this hand needed: shrink c, and a_width grows to hold
+   V. Nothing new had to be derived; the May hand had already built the constant-volume machine without
+   knowing this rung would need it. Diagenesis runs forward in ways you cannot predict — which is the
+   argument for laying every stone true, even the ones whose future use you cannot see.
+
+### Diagenesis
+
+Almost pure inheritance. S-a's recorded index is the input to `splitGrowthMult`; S-b calibrated it; S-c
+made its render continuous. The a_width volume-conservation is the May habit-stability hand's. The
+off/on census idiom is the same instrument shape used for O3a, O5a, and S-b's calibration. And the boss's
+"measure first" was the whole hinge — it converted a philosophy fork into a two-line census verdict, and
+the honest-physics answer fell out of the number. This hand mostly connected wires other hands had already
+run to the wall.
+
+### The dream, twentieth telling
+
+This rung is DONE. The crystal's biography is legible from three sides now: it splits when the conditions
+say split, shows how far along the ladder it climbed, and pays for its breadth with its length — split,
+degree, and cost. What remains are other rungs and older doors. O6, O7, O8 up the ontogeny ladder. Door 4's
+stature audit and the citrine half's thermal field still stand open. A small note waits beside them: a
+bent-BLADE generator, so the curved gypsum and selenite that S-c's gate keeps as straight blades could bow
+like their rhomb cousins — the last unmade corner of the render. But the splitting ladder itself asks for
+nothing more. A vug crystal in this simulator now grows apart, shows its degree of apartness, and is
+smaller along its axis for the breadth it traded — the way a real spherulite is smaller than the needle it
+consumed. The debt the fifteenth hand first wrote down, four hands ago, is paid in full.
+
+— the builder, eighteenth hand: the crystal paid for its breadth with its length · 2026-07-14
