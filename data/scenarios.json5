@@ -32,7 +32,12 @@
 //   initial:
 //     temperature_C
 //     pressure_kbar
-//     fluid:        — partial FluidChemistry (missing fields default to 0)
+//     fluid:        — partial FluidChemistry. CAUTION: missing fields take the
+//                     CLASS defaults in js/20-chemistry-fluid.ts, and several are
+//                     non-zero (SiO2 500, Ca 200, CO3 150, Fe 5, Mn 2, Al 3,
+//                     Ti 0.5, pH 6.5, salinity 5, Eh 200 — and F was 10 until the
+//                     2026-07-14 hostile review made every scenario explicit).
+//                     "unset" is NOT "absent" — author trace ions explicitly.
 //     wall:         — partial VugWall opts (composition / bubbles / shape_seed)
 //                     Optional `size_class: 'vug' | 'pocket' | 'cave'` (2026-05) —
 //                     a literature-anchored size tier. When set without an
@@ -101,6 +106,10 @@
         // [Selleck 1978 on Mohawk Valley stratigraphy + lithostatic calc].
         "pressure_kbar": 1.0,
         "fluid": {
+          // F: the class default this scenario silently inherited since birth, made EXPLICIT
+          // (hostile review 2026-07-14, fix-ladder rung 1 step b — byte-identical; the
+          // deposit-appropriate value lands in the rung-1 science pass).
+          "F": 10,
           // SiO2=260: mildly elevated over quartz equilibrium at 180°C
           // (Rimstidt 1997 gives ~220 ppm) — gives σ(Qz) in the 1.1-1.3
           // range at nucleation, which produces prismatic well-formed
@@ -173,6 +182,10 @@
         "temperature_C": 350.0,
         "pressure_kbar": 1.2,
         "fluid": {
+          // F: the class default this scenario silently inherited since birth, made EXPLICIT
+          // (hostile review 2026-07-14, fix-ladder rung 1 step b — byte-identical; the
+          // deposit-appropriate value lands in the rung-1 science pass).
+          "F": 10,
           "SiO2": 500,
           "Ca": 200,
           "CO3": 120,
@@ -801,6 +814,10 @@
         "temperature_C": 600.0,
         "pressure_kbar": 2.5,
         "fluid": {
+          // F: the class default this scenario silently inherited since birth, made EXPLICIT
+          // (hostile review 2026-07-14, fix-ladder rung 1 step b — byte-identical; the
+          // deposit-appropriate value lands in the rung-1 science pass).
+          "F": 10,
           "Al": 45,       // Al-rich aluminous metapelite — peraluminous
           "SiO2": 350,    // silica-saturated → Al₂SiO₅ (andalusite), not corundum
           "Na": 10,       // low alkali (below the andalusite Na<30 gate) — not a pegmatite
@@ -1219,6 +1236,10 @@
         "temperature_C": 28.0,
         "pressure_kbar": 0.05,
         "fluid": {
+          // F: the class default this scenario silently inherited since birth, made EXPLICIT
+          // (hostile review 2026-07-14, fix-ladder rung 1 step b — byte-identical; the
+          // deposit-appropriate value lands in the rung-1 science pass).
+          "F": 10,
           "SiO2": 30,            // suspended clay + red-bed silt (the inclusion source)
           "Ca": 120,             // gypsum-saturated groundwater
           "Na": 700,             // salt-saturated sand → the crust
@@ -2465,6 +2486,10 @@
         "temperature_C": 420.0,
         "pressure_kbar": 4.0,
         "fluid": {
+          // F: the class default this scenario silently inherited since birth, made EXPLICIT
+          // (hostile review 2026-07-14, fix-ladder rung 1 step b — byte-identical; the
+          // deposit-appropriate value lands in the rung-1 science pass).
+          "F": 10,
           "SiO2": 320,
           "Ca": 600,
           "Al": 12,
@@ -2607,6 +2632,10 @@
         "temperature_C": 22.0,
         "pressure_kbar": 0.05,
         "fluid": {
+          // F: the class default this scenario silently inherited since birth, made EXPLICIT
+          // (hostile review 2026-07-14, fix-ladder rung 1 step b — byte-identical; the
+          // deposit-appropriate value lands in the rung-1 science pass).
+          "F": 10,
           // Sandstone matrix — moderate silica
           "SiO2": 200,
           // Ca dominant by background (groundwater Ca-bicarbonate)
@@ -2981,6 +3010,10 @@
         "temperature_C": 70.0,
         "pressure_kbar": 0.05,
         "fluid": {
+          // F: the class default this scenario silently inherited since birth, made EXPLICIT
+          // (hostile review 2026-07-14, fix-ladder rung 1 step b — byte-identical; the
+          // deposit-appropriate value lands in the rung-1 science pass).
+          "F": 10,
           // CO₂-charged hot-spring water — high DIC, moderate pH.
           // Ca = 350 ppm sits in the realistic Mammoth Hot Springs
           // range (200-1000 ppm typical, e.g. Friedman 1970 reports
@@ -3178,6 +3211,10 @@
         "temperature_C": 30.0,
         "pressure_kbar": 0.05,
         "fluid": {
+          // F: the class default this scenario silently inherited since birth, made EXPLICIT
+          // (hostile review 2026-07-14, fix-ladder rung 1 step b — byte-identical; the
+          // deposit-appropriate value lands in the rung-1 science pass).
+          "F": 10,
           // SiO2 200 → 300 (stale-mineral retune 2026-05): with SiO2=200,
           // chrysoprase σ peaks at 1.05 (just above the engine's 1.0
           // threshold) for only 2 / 600 (seed × step) pairs — borderline
@@ -3280,6 +3317,10 @@
         // Near-atmospheric pressure — cave air, not deep burial.
         "pressure_kbar": 0.01,
         "fluid": {
+          // F: the class default this scenario silently inherited since birth, made EXPLICIT
+          // (hostile review 2026-07-14, fix-ladder rung 1 step b — byte-identical; the
+          // deposit-appropriate value lands in the rung-1 science pass).
+          "F": 10,
           // High DIC + alkaline pH — calcite well-saturated through
           // the run. Initial Ca + CO3 sized so 10 calcite nucleations
           // (the per-species cap) can each grow to multi-mm dripstone
@@ -3384,6 +3425,10 @@
         "temperature_C": 18.0,
         "pressure_kbar": 0.01,
         "fluid": {
+          // F: the class default this scenario silently inherited since birth, made EXPLICIT
+          // (hostile review 2026-07-14, fix-ladder rung 1 step b — byte-identical; the
+          // deposit-appropriate value lands in the rung-1 science pass).
+          "F": 10,
           "Ca": 2000,
           "Mg": 1500,
           "CO3": 2200,
@@ -3478,6 +3523,10 @@
         "temperature_C": 75.0,
         "pressure_kbar": 0.05,
         "fluid": {
+          // F: the class default this scenario silently inherited since birth, made EXPLICIT
+          // (hostile review 2026-07-14, fix-ladder rung 1 step b — byte-identical; the
+          // deposit-appropriate value lands in the rung-1 science pass).
+          "F": 10,
           // Hot-spring waters per White & Roberson 1962 fluid-inclusion
           // + active-spring sampling. Acid-sulfate facies; H₂S-rich;
           // low metal load (Hg arrives as gaseous Hg⁰ vapor, not as
@@ -3645,6 +3694,10 @@
         "temperature_C": 30.0,
         "pressure_kbar": 0.5,            // ~5m depth (top of Solfifera oxidation zone)
         "fluid": {
+          // F: the class default this scenario silently inherited since birth, made EXPLICIT
+          // (hostile review 2026-07-14, fix-ladder rung 1 step b — byte-identical; the
+          // deposit-appropriate value lands in the rung-1 science pass).
+          "F": 10,
           // Calcite-buffered Messinian porewater, mid-oxidation zone.
           // Composition reconstructed from Garcia-Veigas et al. 1995
           // (Mineralogy and isotope geochemistry of the Solfifera Series)
@@ -3854,6 +3907,10 @@
         "temperature_C": 130.0,
         "pressure_kbar": 0.5,
         "fluid": {
+          // F: the class default this scenario silently inherited since birth, made EXPLICIT
+          // (hostile review 2026-07-14, fix-ladder rung 1 step b — byte-identical; the
+          // deposit-appropriate value lands in the rung-1 science pass).
+          "F": 10,
           // v109 tune (2026-05-20): SiO2 200 -> 50 to suppress
           // dioptase (Cu-silicate wrong for Caldbeck); V 12 -> 6 to
           // route to mottramite over vanadinite (vanadinite wrong
@@ -3961,6 +4018,10 @@
         "temperature_C": 380.0,
         "pressure_kbar": 1.5,
         "fluid": {
+          // F: the class default this scenario silently inherited since birth, made EXPLICIT
+          // (hostile review 2026-07-14, fix-ladder rung 1 step b — byte-identical; the
+          // deposit-appropriate value lands in the rung-1 science pass).
+          "F": 10,
           "SiO2": 200,
           "Ca": 350,
           "CO3": 5,
@@ -4039,6 +4100,10 @@
         "temperature_C": 120.0,
         "pressure_kbar": 0.4,
         "fluid": {
+          // F: the class default this scenario silently inherited since birth, made EXPLICIT
+          // (hostile review 2026-07-14, fix-ladder rung 1 step b — byte-identical; the
+          // deposit-appropriate value lands in the rung-1 science pass).
+          "F": 10,
           "Zn": 180,
           "S": 200,
           "Ba": 2,
@@ -4231,6 +4296,10 @@
         // Shallow flood-basalt cavity, near-surface.
         "pressure_kbar": 0.3,
         "fluid": {
+          // F: the class default this scenario silently inherited since birth, made EXPLICIT
+          // (hostile review 2026-07-14, fix-ladder rung 1 step b — byte-identical; the
+          // deposit-appropriate value lands in the rung-1 science pass).
+          "F": 10,
           // SiO2=320: magmatic-sourced silica, σ(Qz) > 1 through the warm phase
           // (Triz-quarry magmatic model); the Renewal Pulse (×1.8) then spikes it
           // over the masked-prism barrier for the sceptre cap.
