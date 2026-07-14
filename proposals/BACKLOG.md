@@ -11,14 +11,22 @@ Living list of open work items, captured from session conversations so context s
 > Part A corrected the canary-gap diagnosis: June gaps = a **publish-path bug** (NO-CHANGE.json written
 > locally, never committed — sweep.mjs returns before publishSpine), NOT a wake failure; July 12-13 =
 > interrupted runs. Canary fixes land in the vugg-canary repo.
-> **THE FIX LADDER (boss-approved order, §6):** 1. F-default leak (`js/20:28` F??10 → explicit-then-0,
-> zero-drift ladder, then per-scenario science bump) · 2. T-gates (quartz/arsenopyrite floors,
-> aragonite/supergene ceilings, wurtzite reading) · 3. tiger's-eye substrate gate (kill the bare-wall
-> fallback) · 4. redox/sulfide vetoes (most coupled — careful census) · 5. halite/salinity rework
-> (biggest surface, maybe own proposal). SEPARATE, LATER: the synergy hunt (regen claim cards after
-> rungs 1-3; cards get sharper), missing engines (magnesite, siegenite, spinel, serpentinization-
-> magnetite), missing events (Sunnyside BOILING → the native gold + Mn-calcite cap). Each rung =
-> instruments-first, two-commit SIM bump, measured blast radius ([[feedback_accuracy_over_determinism]]).
+> **THE FIX LADDER (boss-approved order, §6):** **1. F-default leak ✅ COMPLETE (SIM 227, 2026-07-14)** —
+> the full zero-drift ladder shipped: step (b) explicit F at all 17 omitting sites (byte-identical 39/39),
+> step (c) class default 10→0 (zero-drift, cold-CI green), science pass = 16 researched cross-checked
+> per-deposit values (32 agents, citations verified). Four fluorite confabulations died by STARVATION
+> (tormiq — expects_species promise withdrawn, the mvt-silver precedent; zoned_dripstone; sicily;
+> jeffrey); TWO REVIEW CORRECTIONS (tn457 + amethyst_geode: their lineages genuinely carry F — Dunham
+> zonation / Kugelfluorit — F=5, fluorite stays eligible). Fluorite now grows in EXACTLY the 5 scenarios
+> whose literature documents it. Baseline-diff: 5/39 moved, −4 fluorite, 0 gained; jeffrey pectolite 1→5 +
+> roughten_gill sphalerite 1→3 RNG re-deals. Canary prediction pre-registered (4 "vanished" fluorite
+> alarms tomorrow 04:00). · **NEXT = 2. T-gates** (quartz/arsenopyrite floors, aragonite/supergene
+> ceilings, the `T>95 → wurtzite` reading) · 3. tiger's-eye substrate gate (kill the bare-wall fallback) ·
+> 4. redox/sulfide vetoes (most coupled — careful census) · 5. halite/salinity rework (biggest surface,
+> maybe own proposal). SEPARATE, LATER: the synergy hunt (regen claim cards after rungs 1-3; cards get
+> sharper), missing engines (magnesite, siegenite, spinel, serpentinization-magnetite), missing events
+> (Sunnyside BOILING → the native gold + Mn-calcite cap). Each rung = instruments-first, two-commit SIM
+> bump, measured blast radius ([[feedback_accuracy_over_determinism]]).
 >
 > ## 🗿 SESSION STATE (2026-07-14) — O5-splitting COMPLETE; **NEXT = the HOSTILE REVIEW**
 >

@@ -11896,5 +11896,18 @@
 //        2026-07-14); constant-volume compaction was the key that turned the
 //        keystone's feared flood into bounded ripple. Splitting now costs LENGTH
 //        (shorter c_length in render/narration/inventory/score) at constant mass.
-const SIM_VERSION = 226;
+// v227 — HOSTILE-REVIEW fix-ladder rung 1 (the F science pass): the 16 formerly
+//        F-implicit scenarios get researched per-deposit values (cross-checked
+//        citations; see data/scenarios.json5 per-scenario comments + the
+//        PROPOSAL-HOSTILE-REVIEW-2026-07-14.md ladder). Four confabulated-
+//        fluorite biographies corrected by removing the FUEL, not the score:
+//        tormiq_alpine_cleft (F 10→3, expects_species fluorite promise
+//        withdrawn — the promise was the error), zoned_dripstone_cave (→1),
+//        sicily_solfifera (→2), jeffrey_mine (→2, apophyllite's documented F
+//        stays alive at the gate edge). tn457 (→5) + amethyst_geode (→5) are
+//        REVIEW CORRECTIONS: their lineages genuinely carry F (Dunham zonation;
+//        Kugelfluorit), so fluorite stays eligible-but-marginal. Steps (b)+(c)
+//        of the ladder (explicit-F + default 10→0) were zero-drift; THIS commit
+//        is the attributable bump.
+const SIM_VERSION = 227;
 

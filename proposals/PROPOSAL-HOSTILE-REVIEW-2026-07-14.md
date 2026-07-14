@@ -198,13 +198,17 @@ Each rung: research → census instrument → byte-identical wiring where possib
 attributable SIM bump with measured blast radius → dense commit. Drift from these fixes
 is legitimate and expected; the ritual makes it justify its cost.
 
-1. **F default leak** — smallest, highest-confidence, broad blast radius.
-   Zero-drift ladder: (a) census every FluidChemistry construction site + scenario
-   omitting F; (b) write the implicit value explicit (`F: 10`) at every omitting site —
-   byte-identical, verified; (c) flip the class default 10 → 0 — now provably zero-drift;
-   (d) the science commit: set each F-omitting scenario to its deposit-appropriate value
-   (cave drip ~0.1-0.3 ppm, rodingite ~0, etc.) — the attributable bump, per-scenario
-   blast radius in the commit.
+1. **F default leak — ✅ COMPLETE, SIM 227 (2026-07-14, same day).** The ladder ran
+   exactly as designed: (a) census — 16 scenarios + 1 js literal omitted F; (b) explicit
+   `F: 10` everywhere, byte-identical 39/39; (c) default 10 → 0, zero-drift, cold-CI
+   green; (d) 16 researched cross-checked values (32 agents, citations verified against
+   primary sources). Outcome: fluorite grows in exactly the 5 literature-documented
+   scenarios; 4 confabulations dead; tormiq's expects_species promise withdrawn (the
+   promise was the error). TWO REVIEW CORRECTIONS found by the research: tn457 (Alston
+   lineage produced 2.1 Mt fluorite — the right story is Dunham zonation, not
+   "fluorine-free") and amethyst_geode (Kugelfluorit documented) — both F=5,
+   eligible-but-marginal. The review's verdicts are inputs, not gospel; the research
+   pass is the check on the reviewer.
 2. **T-gates** — wire documented T_min/T_max envelopes into `_nuc_*`: quartz floor
    (route sub-floor silica to opal/chalcedony), arsenopyrite floor, aragonite ceiling
    (unless high Mg/Ca / SO4/Sr), supergene-phase ceilings, retire the `T>95 → wurtzite`
