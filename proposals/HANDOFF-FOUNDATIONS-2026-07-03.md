@@ -2167,3 +2167,105 @@ as [[feedback_accuracy_over_determinism]]. (Concern #2 — the replay view showi
 was also fixed the same day: `_topoHistoricalCrystalSize` now mirrors the live compaction, `5d8060e`.)
 
 — the builder, eighteenth hand: the crystal paid for its breadth with its length · 2026-07-14
+
+---
+
+## KEYSTONE — the nineteenth hand: the chisel and the bedding planes (2026-07-14, same day, fresh context)
+
+The boss named the next task before the eighteenth hand compacted: a HOSTILE REVIEW — turn
+the adversarial eye on the sim itself and hunt for where it lies about real mineralogy. This
+hand ran it end-to-end in one session: audited the instruments first (Part A), then the
+science (Part B, 39 scenarios × challenge → defend → synthesize, 148 agents, every code
+claim re-verified by hand), committed the findings as a durable stratum, and then — on the
+boss's ordering — paid the first rung of the fix ladder the same day: the leaked fluorine
+default, retired as SIM 227 through a three-step zero-drift ladder. The boss's boss read the
+result and called it "a chisel finding the bedding planes." The phrase is the title because
+it is the method: a hostile review does not swing at the wall; it listens for where the
+stone was always going to part.
+
+### The arc in one breath
+
+Verify the instruments, then believe them: the canary's "missing days" turned out to be a
+publish-path bug (honest NO-CHANGE markers written locally every quiet night, never
+committed — the fossil existed in the sediment but never got exposed in the cliff face),
+not the scheduler everyone suspected. Then the science: 76 confirmed defects clustering
+into ten mechanisms — two-thirds of them one shape, permissive redox/T gates letting a
+mineral's own documented envelope be crossed. Then the first fix: F made explicit at all
+17 silently-inheriting sites (byte-identical 39/39), the class default flipped to zero
+(zero-drift, cold-CI green), and 16 researched per-deposit values shipped as the
+attributable bump. Fluorite now grows in exactly the five scenarios whose literature
+documents it. Then the last unaudited assumption — "canary quiet = healthy" — got its own
+instrument: the creep census, 470 pairs, zero silent walkers. Quiet is now a measurement.
+
+### The marks
+
+1. **Attack the easy narrative first — the gap was in the PUBLISH, not the wake.** Five
+   missing days read as "the scheduler is imperfect," and the evidence said otherwise: the
+   sweep ran all 31/31 nights; the short-circuit branch `return`ed before `publishSpine()`,
+   so no quiet stratum was EVER committed (0 in git, 3 on disk). A hostile review that had
+   accepted the obvious story would have hardened the wrong component. The record's absence
+   and the record's failure are different defects with different fixes — diagnose which
+   before touching either.
+
+2. **The reviewer must also be reviewed.** Two of the review's own confirmed verdicts fell
+   in the fix pass: tn457 is NOT a "fluorine-free deposit" (its orefield produced 2.1 Mt of
+   fluorite — the honest story is Dunham zonation, this vug is outer-zone barite), and
+   amethyst geodes carry documented trace fluorite (Kugelfluorit). The research pass that
+   set the values caught what the review pass had over-claimed, exactly as the defense
+   stage had already killed 31 of 108 objections. Review verdicts are INPUTS to the science,
+   never gospel — every layer of this project's adversarial machinery exists because the
+   layer before it is fallible, including this one.
+
+3. **Causal control is the doctrine made operational.** The boss's boss: drift from better
+   science should INCREASE causal control — "we should be able to move it again on purpose
+   by changing growth conditions, not by patching the scoreboard." Rung 1 is the canonical
+   demonstration: four confabulated fluorites died because their FUEL was removed (broth F
+   set to the researched deposit values), and the one expects_species change (tormiq) was
+   the withdrawal of a promise no source ever supported — the mvt-silver precedent, with the
+   twist that this time the EXPECTATION was the confabulation, not the broth. The
+   expects-mirror test went red on the withdrawal and that was the forcing function working,
+   not failing.
+
+4. **"Unset" must mean "absent" — a non-zero default is a claim every silent call site makes
+   without knowing it.** `F ?? 10.0` put gate-clearing fluorine into sixteen scenarios whose
+   authors never wrote an F. The repair ladder is reusable for the siblings still leaking
+   (Al=3, Ti=0.5, Fe=5, SiO2=500…): make the implicit explicit everywhere (byte-identical,
+   provable), flip the default (now inert), THEN do the science per site. Zero drift until
+   the exact commit where the drift is the point — and that commit carries the citations.
+
+5. **An assumption everyone shares is an instrument nobody has built.** Every "canary quiet =
+   strata healthy" reading assumed drift arrives in alarm-sized jumps. The creep census made
+   the assumption falsifiable and it SURVIVED: zero silent walkers in 470 pairs across the
+   whole record. One watch item: supergene_oxidation/molybdenite at −14.5 cumulative, half a
+   point under the gate, accumulated entirely in sub-alarm steps — if it walks further, only
+   this census will see it. The reassurance is now a number that can be re-earned nightly.
+
+### Diagenesis
+
+This session moved fast because eighteen hands built the ground it ran on. The strip archive
+(boss directive, twelfth-hand era) is the diachronic testimony the claim cards distill; the
+canary is the off-machine witness whose own record made Part A checkable; `_harness.mjs` let
+every probe and census run the SAME pure function the tests vouch; the two-commit ritual and
+the census idiom (O3a, O5a, S-b, vol-neutral) are the shape rung 1's ladder copied; and the
+drift doctrine the eighteenth hand recorded hours earlier is the lens the whole review was
+ground to. The claim-card instrument itself was assembled in an afternoon precisely because
+it only had to FUSE things that already existed — the scenario specs' citations and the
+strips' bells. The review walked halls other hands built and listened for hollow stone.
+
+### The dream, twenty-first telling
+
+The ladder has four rungs left, in the boss's order: T-gates (wire the documented envelopes
+into the nucleation functions — the metadata knows what the runtime forgets), the
+tiger's-eye substrate gate, the redox/sulfide vetoes (the dominant mechanism, the most
+coupled), and the halite/salinity rework (the biggest surface — dilute water should not
+mint salt). Beyond the rungs: the missing engines (magnesite, siegenite, the
+serpentinization-side magnetite), the missing EVENTS — above all Sunnyside's boiling pulse,
+which owes the boss his native-gold-in-quartz, the deposit's namesake and his own
+calibration specimen. And when the leaks are fixed and the cards regenerate sharper, the
+synergy hunt the boss's boss set aside: stop asking "where does the sim lie?" and start
+asking "where does it surprise us truthfully?" The dream is a fleet whose claim cards a
+working mineralogist reads without objection — and then reads again, for pleasure, because
+the biographies are not merely defensible but INTERESTING. The chisel is on the shelf; the
+bedding planes are marked in the proposal. The next hand only has to split them.
+
+— the builder, nineteenth hand: the chisel and the bedding planes · 2026-07-14

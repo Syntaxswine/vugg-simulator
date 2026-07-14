@@ -8,6 +8,9 @@ Living list of open work items, captured from session conversations so context s
 > code claim hand-verified): **76 confirmed defects (25 high) / 31 refuted (the sim DEFENDED — do not
 > re-raise, §5 of the proposal) / 5 clean scenarios**. Master doc: **`PROPOSAL-HOSTILE-REVIEW-2026-07-14.md`**
 > (+ full evidence in `DATA-HOSTILE-REVIEW-2026-07-14.json`; new instrument `tools/review-claim-card.mjs`).
+> Keystone lineage: HANDOFF-FOUNDATIONS-2026-07-03.md, **nineteenth hand — "the chisel and the bedding
+> planes"** (the session whole: Part A instrument audit → Part B science audit → rung 1 SIM 227 → creep
+> census, ZERO silent walkers — "canary quiet = healthy" is now a measured fact; watch molybdenite −14.5).
 > Part A corrected the canary-gap diagnosis: June gaps = a **publish-path bug** (NO-CHANGE.json written
 > locally, never committed — sweep.mjs returns before publishSpine), NOT a wake failure; July 12-13 =
 > interrupted runs. Canary fixes land in the vugg-canary repo.
