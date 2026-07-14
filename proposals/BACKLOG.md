@@ -2,6 +2,17 @@
 
 Living list of open work items, captured from session conversations so context survives compaction. Each item has enough detail that someone picking it up cold can act without re-discovering the rationale.
 
+> ## 🗿 SESSION STATE (2026-07-14) — O5-splitting COMPLETE; **NEXT = the HOSTILE REVIEW**
+>
+> Tree green at `d0017e4` (SIM 226, Pages-verified). The O5 SPLITTING LADDER closed this session
+> (split → degree → cost; §9a–§9f below) + the two post-ship concerns fixed (§9f aspect-collapse magnitude
+> `1b8b590` zero-drift, replay-snap `5d8060e`). **The next task is a HOSTILE REVIEW** — an adversarial audit
+> of the sim's scientific accuracy, to be started in a FRESH context (post-/compact), big, likely SEGMENTED.
+> Bridge doc: **`HANDOFF-TOWARD-THE-HOSTILE-REVIEW-2026-07-14.md`** — READ IT FIRST. Primary evidence = the
+> STRIP ARCHIVE (`archive/strips/` v194→v226, the diachronic seed-42 testimony; earliest = bug-era noise,
+> `strip-archive-diff.mjs` to compare). Guiding principle: **[[feedback_accuracy_over_determinism]]** — fix
+> for accuracy, drift is welcome; the anti-drift ritual is a forcing function to justify a change's cost.
+>
 > ## 🪨 O5 SPLITTING LADDER — **COMPLETE: S-a + S-b + S-c + VOL-NEUTRAL SHIPPED** (S-a `fbac070` record-unread · S-b `b6c0e5c` EARNS its shape · S-c `96a7d8d` EARNS its DEGREE · vol-neutral wiring `878b150` → SIM 226 bump `80149cf` costs LENGTH; proposal §9a/b/c/d/e)
 >
 > **VOL-NEUTRAL — THE HEAVY DEBT PAID (2026-07-14, SIM 226, eighteenth hand).** Splitting now costs axial
