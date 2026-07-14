@@ -25,7 +25,16 @@ class FluidChemistry {
     this.SiO2 = opts.SiO2 ?? 500.0;
     this.Ca = opts.Ca ?? 200.0;
     this.CO3 = opts.CO3 ?? 150.0;
-    this.F = opts.F ?? 10.0;
+    // F default 10 → 0 (hostile review 2026-07-14, fix-ladder rung 1 step c).
+    // The old non-zero default meant "unset" read as "present at gate-clearing
+    // level": any partial fluid that omitted F silently carried 10 ppm — twice
+    // fluorite's fluid_min — and minted fluorite into fluorine-free deposits
+    // (karst drip, rodingite, BSR sulfur, amphibolite cleft). Every scenario
+    // and js literal now sets F explicitly (step b, byte-identical), so this
+    // flip is inert for the fleet; for future authors, unset F now honestly
+    // means NO fluorine. The Al/Ti/Fe/SiO2/Ca/CO3 siblings keep their legacy
+    // "generic broth" defaults for now — noted in the proposal for later rungs.
+    this.F = opts.F ?? 0.0;
     this.Zn = opts.Zn ?? 0.0;
     this.S = opts.S ?? 0.0;
     this.Fe = opts.Fe ?? 5.0;
