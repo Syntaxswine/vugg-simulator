@@ -3957,7 +3957,7 @@ function _topoHistoricalCrystalSize(crystal: any, replayStep: number): { c_lengt
   // approximation — the crystal was already splitting as it grew). Constant volume:
   // c×m with a÷√m conserves the ellipsoid (c·a²), mirroring add_zone's a_width widen.
   if (O5_VOLNEUTRAL_ENABLED && crystal._split && crystal._split.index > 0) {
-    const m = splitGrowthMult(crystal._split.index);
+    const m = splitGrowthMult(crystal._split.index, _habitAspectRatio(crystal.habit));
     c *= m;
     a /= Math.sqrt(m);
   }
