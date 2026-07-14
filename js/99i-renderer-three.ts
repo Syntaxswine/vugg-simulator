@@ -3935,7 +3935,7 @@ function _topoHistoricalCrystalSize(crystal: any, replayStep: number): { c_lengt
     totalUm = crystal.total_growth_um;
   }
   if (totalUm <= 0) return null;
-  const c = totalUm / 1000.0;
+  let c = totalUm / 1000.0;
   let a;
   if (crystal.habit === 'prismatic') a = c * 0.4;
   else if (crystal.habit === 'tabular') a = c * 1.5;
@@ -3948,6 +3948,19 @@ function _topoHistoricalCrystalSize(crystal: any, replayStep: number): { c_lengt
         || crystal.habit === 'dendritic_rhombohedral') a = c * 0.8;
   else if (crystal.habit === 'snowball') a = c;
   else a = c * 0.5;
+  // W-K VOL-NEUTRAL (v226) — mirror the live add_zone compaction in the NARRATIVE
+  // REPLAY. Without this a split crystal plays back as its raw needle and then
+  // SNAPS shorter+wider at the live frame (live renderC = the compacted c_length_mm;
+  // this path rebuilt c from raw growth). Per-step index history isn't recorded, so
+  // we apply the FINAL _split.index: the last replay frame then matches the live
+  // render exactly, and earlier frames sit at that same compaction (a mild
+  // approximation — the crystal was already splitting as it grew). Constant volume:
+  // c×m with a÷√m conserves the ellipsoid (c·a²), mirroring add_zone's a_width widen.
+  if (O5_VOLNEUTRAL_ENABLED && crystal._split && crystal._split.index > 0) {
+    const m = splitGrowthMult(crystal._split.index);
+    c *= m;
+    a /= Math.sqrt(m);
+  }
   return { c_length_mm: c, a_width_mm: a };
 }
 
