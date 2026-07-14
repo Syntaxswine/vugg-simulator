@@ -2,6 +2,24 @@
 
 Living list of open work items, captured from session conversations so context survives compaction. Each item has enough detail that someone picking it up cold can act without re-discovering the rationale.
 
+> ## 🗿 SESSION STATE (2026-07-14, later) — HOSTILE REVIEW round 1 DONE; **NEXT = the FIX LADDER**
+>
+> The hostile review ran (39 scenarios × challenge→refute→synthesize, 148 agents; every load-bearing
+> code claim hand-verified): **76 confirmed defects (25 high) / 31 refuted (the sim DEFENDED — do not
+> re-raise, §5 of the proposal) / 5 clean scenarios**. Master doc: **`PROPOSAL-HOSTILE-REVIEW-2026-07-14.md`**
+> (+ full evidence in `DATA-HOSTILE-REVIEW-2026-07-14.json`; new instrument `tools/review-claim-card.mjs`).
+> Part A corrected the canary-gap diagnosis: June gaps = a **publish-path bug** (NO-CHANGE.json written
+> locally, never committed — sweep.mjs returns before publishSpine), NOT a wake failure; July 12-13 =
+> interrupted runs. Canary fixes land in the vugg-canary repo.
+> **THE FIX LADDER (boss-approved order, §6):** 1. F-default leak (`js/20:28` F??10 → explicit-then-0,
+> zero-drift ladder, then per-scenario science bump) · 2. T-gates (quartz/arsenopyrite floors,
+> aragonite/supergene ceilings, wurtzite reading) · 3. tiger's-eye substrate gate (kill the bare-wall
+> fallback) · 4. redox/sulfide vetoes (most coupled — careful census) · 5. halite/salinity rework
+> (biggest surface, maybe own proposal). SEPARATE, LATER: the synergy hunt (regen claim cards after
+> rungs 1-3; cards get sharper), missing engines (magnesite, siegenite, spinel, serpentinization-
+> magnetite), missing events (Sunnyside BOILING → the native gold + Mn-calcite cap). Each rung =
+> instruments-first, two-commit SIM bump, measured blast radius ([[feedback_accuracy_over_determinism]]).
+>
 > ## 🗿 SESSION STATE (2026-07-14) — O5-splitting COMPLETE; **NEXT = the HOSTILE REVIEW**
 >
 > Tree green at `d0017e4` (SIM 226, Pages-verified). The O5 SPLITTING LADDER closed this session
