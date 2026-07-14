@@ -2144,4 +2144,26 @@ nothing more. A vug crystal in this simulator now grows apart, shows its degree 
 smaller along its axis for the breadth it traded — the way a real spherulite is smaller than the needle it
 consumed. The debt the fifteenth hand first wrote down, four hands ago, is paid in full.
 
+### Postscript — the magnitude, refined (same day)
+
+The ship above used a flat `SPLIT_AXIAL_FLOOR = 0.7` for the compaction amount. In the post-ship review the
+boss and I both named it for what it was: the MECHANISM (constant-volume conservation) was bedrock, but the
+30 % NUMBER was an effect-hack magnitude sitting on it. The boss: "follow the science, use the real aspect
+collapse." So `splitGrowthMult` now derives the amount from the geometry that was implied all along — an
+ellipsoid reaching aspect `A_target` at constant volume scales its length by `(A₀/A_target)^(2/3)`, so a
+needle collapses to ~0.28 and an equant rhomb barely moves. And the measurement gave the cleanest possible
+outcome: **zero drift** — the aspect fleet is baseline-identical to the shipped v226, because the cascade
+rides binary gate-crossings that both magnitudes trip the same way. A render-only refinement; the science
+cost nothing.
+
+The mark worth carrying: the boss said **"making it accurate-to-life is more important than making sure it's
+always the same — the reason to avoid drift is that it keeps the science honest by making it justify the cost
+of the change; I always suspected as the science got stronger there would be drift."** This reframes every
+byte-identical / census-bounded / two-commit ritual on this project: they are not a veto on drift, they are
+the FORCING FUNCTION that makes a change earn its churn. A fleet that never moves is a fleet whose science
+stopped improving. Measure the cost, let the science justify it, pay it — and when the accurate model happens
+to cost nothing (as here), take the free win, but never bend the science to keep the number still. Recorded
+as [[feedback_accuracy_over_determinism]]. (Concern #2 — the replay view showing the uncompacted needle —
+was also fixed the same day: `_topoHistoricalCrystalSize` now mirrors the live compaction, `5d8060e`.)
+
 — the builder, eighteenth hand: the crystal paid for its breadth with its length · 2026-07-14

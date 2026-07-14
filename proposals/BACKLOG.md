@@ -14,11 +14,17 @@ Living list of open work items, captured from session conversations so context s
 > only the LINEAR reads of c react. **Measured first** (`tools/o5-volneutral-census.mjs`, off/on in one
 > process, flag-OFF certified == v225): blast radius **7 non-split minerals, ALL ≤0.1% max_um in ONE scenario
 > (sunnyside), zero count/species collateral** vs S-b's 80; `baseline-diff v225→v226` = 1/39 scenarios moved
-> (sunnyside 41→43 = siderite 1→3), 0 species gained/lost. Two-commit (wiring byte-identical → bump). Picture:
-> aragonite spherulite c −30% / a +20% / **vol 0.0%**, scaling with the rung. CI 175/175 green. **The ladder
-> is CLOSED: split (S-b) → degree (S-c) → cost (vol-neutral).** Remaining O5-splitting note: only the small
-> bent-BLADE generator (curved gypsum/selenite bow) — the render's last corner. Live boss eye-check on the
-> deploy still owed (screenshots time out; verified headless + numeric).
+> (sunnyside 41→43 = siderite 1→3), 0 species gained/lost. Two-commit (wiring byte-identical → bump). CI
+> 175/175 green. **The ladder is CLOSED: split (S-b) → degree (S-c) → cost (vol-neutral).**
+> **§9f — magnitude refined to the SCIENCE (`1b8b590`, render-only, ZERO drift):** the flat 0.7 was an
+> effect-hack number; `splitGrowthMult` now = the real constant-volume aspect collapse `(A₀/A_target)^(2/3)`,
+> A_target → sphere with index (needle → 0.28, equant rhomb → 0.86, tabular plate → 1.31 *grows*). Baseline-
+> IDENTICAL to v226 (binary gate-crossings trip the same either way) → no bump, the S-c posture; shape probe
+> aragonite c −37% (was −30%). Post-ship review also fixed the replay snap (`5d8060e`, `_topoHistoricalCrystalSize`
+> mirrors the live compaction). **DRIFT PHILOSOPHY (boss 2026-07-14, [[feedback_accuracy_over_determinism]]):**
+> accuracy-to-life > byte-identity; the anti-drift discipline is a forcing function to make a change JUSTIFY
+> its cost, not a veto — as the science strengthens, drift is expected. Remaining O5-splitting note: only the
+> small bent-BLADE generator (curved gypsum/selenite bow). Live boss eye-check on the deploy still owed.
 >
 > **S-c landed (2026-07-14, render-only byte-identical — only js/99i changed):** `_split.index` now sets HOW
 > FAR along the form, continuous instead of snapping between meshes (§9d). curved → saddle curvature f(index)
