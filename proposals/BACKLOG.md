@@ -2,7 +2,30 @@
 
 Living list of open work items, captured from session conversations so context survives compaction. Each item has enough detail that someone picking it up cold can act without re-discovering the rationale.
 
-> ## 🗿 SESSION STATE (2026-07-14, latest) — FIX-LADDER **RUNG 3 (tiger's-eye substrate) ✅ SIM 229**; NEXT = rung 4 (redox/sulfide vetoes)
+> ## 🗿 SESSION STATE (2026-07-15, latest) — FIX-LADDER **RUNG 4 (redox/sulfide vetoes) — CENSUS DONE + PROPOSAL WRITTEN**; awaiting fix approval
+>
+> Boss chose **proposal-first** (rung 4 is "the most coupled / possibly its own proposal"). Proposal:
+> **`PROPOSAL-RUNG-4-REDOX-2026-07-15.md`** — READ IT before any rung-4 fix. The census **overturned the
+> review's one-line lever** (reviewer-reviewed, a 4th time): the proposed Nernst aHS⁻ veto is INERT (fires
+> 0/188 offender events — the SO₄/HS boundary sits at ~−230 mV but every hypogene brine is modeled at Eh
+> −36…+357 mV, above the sulfidic field). SMOKING GUN: mvt step 20, Eh +50 mV — **willemite (oxidized Zn)
+> nucleates on the SAME step as sphalerite+galena+pyrite** (Zn into a silicate AND a sulfide at once). Root
+> cause = a gate-boundary overlap: sphalerite fires at Eh ≤ +290 (`sulfideRedoxAnoxic(f,1.5)`, ~300 mV too
+> permissive), willemite at Eh ≥ +44 (`O2<0.3`) — overlap +44…+290, and the ore stage sits in it. Timing
+> probe (`sulfide-competition-probe.mjs`) splits the 7 flagged scenarios: **3 hypogene offenders** (mvt,
+> elmwood, tn457 — sulfide σ 1.09–2.04 concurrent) + **3 ceiling-leaks** (bisbee, roughten_gill,
+> supergene_oxidation — sulfides spuriously σ≥1 at Eh +130…+290) + **schneeberg EXONERATED** (0 concurrent).
+> FIX (reframed to ROOT-CAUSE, bedrock-not-veto): **Lever A** reducing Eh trajectories for the hypogene
+> offenders (drop below the +44 mV oxidized floor → oxidized phases die, sulfides live) + **Lever B** tighten
+> the sulfide stability ceiling (+290 → real field) → the ceiling-leaks resolve at the source. The veto
+> (Lever C) is DEMOTED to a conditional backstop (it would mis-fire on bisbee's real malachite before B).
+> Web-verified: MVT sulfides = TSR-reduced S at a reducing front (80–150°C); willemite needs OXIDIZING fluid
+> in ALL modes (never co-precipitates with growing sphalerite) → Lever A fixes the scenario, not the gate.
+> Sub-bumps: 4a Lever A per hypogene scenario (mvt first), 4b Lever B (two-commit), 4c late-oxidation +
+> willemite phase-selection, 4d veto only if residue. Census instruments in scratchpad (promote to tools/ at
+> 4a). **No baselines moved — awaiting the boss's go on rung-4a.**
+>
+> ## 🗿 SESSION STATE (2026-07-14, rung 3) — FIX-LADDER **RUNG 3 (tiger's-eye substrate) ✅ SIM 229**
 >
 > **Rung 3 = the cleanest rung, exactly as the bridge doc predicted**: pure de-confabulation, zero
 > promise decisions, zero expects edits. Tiger's eye is a chalcedony PSEUDOMORPH after crocidolite
