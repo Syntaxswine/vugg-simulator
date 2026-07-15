@@ -90,6 +90,30 @@ ultramafic chrysoprase recoveries. All of those are the fix working. Anything EL
 moving is worth a look. `npm run creep` in vugg-canary re-runs the sub-threshold
 census when wanted.
 
+## Still standing from BEFORE the review (double-checked at handoff time — don't lose these)
+
+Carried from HANDOFF-TOWARD-THE-HOSTILE-REVIEW-2026-07-14.md and the O5-era banners;
+none of them are rung work, all of them are still open:
+
+- **Boss eye-check on the live deploy — OWED, now three bumps deep.** The O5 arc
+  (SIM 226) was verified headless because WebGL screenshots time out here, and SIM
+  227 + 228 shipped the same way. Suggested viewing when the boss looks: the deccan
+  stilbite sheaves / aragonite sphere (the O5 ask), plus rung-2's visible changes —
+  sunnyside's recovered sphalerite, ultramafic's chrysoprase, sicily without its
+  bogus quartz forest, the elmwood snowball still banding.
+- **The bent-BLADE generator** (curved gypsum/selenite bowing like their rhomb
+  cousins) — the last corner of the O5 splitting render arc. Lives in the O5 banner
+  in BACKLOG; unrelated to the fix ladder, still wanted.
+- **vugg-canary owner action: `node src/schedule.mjs --install`** (in the vugg-canary
+  repo) — arms StartWhenAvailable + battery settings on the 04:00 task. Staged in
+  Part A of the review, deliberately never armed by the builder (persistent config =
+  owner's hand). Until it runs, missed 4AM wakes stay possible.
+- **Boss's own strip-mode saves (pre-v194, from the UI)** — offered during review
+  prep; not needed for the fix ladder, but if a review ROUND 2 or the synergy hunt
+  wants testimony older than the automated archive, ask for them.
+- Historical-context note: the earliest archive versions (v194+) are bug-era noise —
+  weight recent versions as current science, mine early ones for what-was-fixed.
+
 ## After rung 3
 
 Rung 4 (redox/sulfide vetoes — the dominant mechanism, most coupled; §T's orphaned-Zn
