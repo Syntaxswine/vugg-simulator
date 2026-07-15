@@ -2269,3 +2269,73 @@ the biographies are not merely defensible but INTERESTING. The chisel is on the 
 bedding planes are marked in the proposal. The next hand only has to split them.
 
 — the builder, nineteenth hand: the chisel and the bedding planes · 2026-07-14
+
+## KEYSTONE — the twentieth hand: the unread envelope (2026-07-14, the rung-2 continuation)
+
+The nineteenth hand marked the bedding planes; this hand split the second one. Same day,
+same drift doctrine, one rung of the boss's ladder: the T-gates, SIM 228 (`892dbb8`,
+deployed, clean-tree stamped, 2436/2436).
+
+### The arc in one breath
+
+Census first — `tools/t-envelope-census.mjs` measured the smoking gun instead of assuming
+it (137 minerals declare temperature envelopes, 37 unenforced, 58 violating nucleation
+events in 15 scenarios) — then four research passes turned the review's one-line levers
+into cited values, and one attributable bump enforced them: quartz [50,700], arsenopyrite
+as-declared, the T>95 wurtzite reading retired, aragonite rebuilt on two honest selectors,
+researched ceilings for gypsum/anhydrite/goethite/mimetite/tellurides. Blast radius 27/39.
+Two expects no-shows RECOVERED without touching a single expects line — sunnyside's
+sphalerite and ultramafic's name-giving chrysoprase grew the moment their competitors'
+leaks died. Four promises withdrawn with locality research. The boss's elmwood snowball,
+stalled by the honestly-stronger sphalerite, was re-fed on the sulfate side — the truer
+MVT mixing story — after the Ba-raise alternative was measured and rejected.
+
+### The marks
+
+1. **"Declared" is not "enforced," and neither is "cited" — audit all three.** The
+   envelopes were already researched (v127!) and already punished by initiative in the
+   cation queue, while the σ gates ignored them. The sim knew; the gate never read the
+   memo. And two shipped citations (the sim's M&B 1986 wurtzite page, the review's own
+   Bessinger 2000) failed re-verification — the reviewer got reviewed, three times this
+   rung (arsenopyrite's floor and naica's silica were review errors the research pass
+   caught).
+2. **Enforcement must be per-value, never blanket.** The census found declared values that
+   are themselves bad science (pyrite T_min 100, bornite 80, native_silver 50 — all
+   contradict textbook low-T occurrences). A sweep that "closes all 37 leaks" would have
+   shipped display-vetted numbers as physics. §T holds the remainder with the warning.
+3. **Fix the class's INPUTS and the promises keep themselves.** The two recoveries cost
+   zero scoreboard edits: kill the thief (cold quartz, hot wurtzite) and the documented
+   mineral takes its own silica, its own zinc. Causal control, demonstrated twice.
+4. **Measure the alternative you reject, and write the numbers down.** Roughten's SiO2
+   raise (8.5 µm speck + chrysocolla draining the documented suite) and elmwood's Ba 36
+   (witherite ×4 — the dead aragonite had thinned its CO3 headroom) both live in comments
+   now. The shipped choice is defensible BECAUSE the road not taken has a measured toll.
+5. **Every kill re-deals the whole table — read the ripples for signal.** The wurtzite
+   retirement orphaned zinc that no engine can claim (a rung-4 census input, found via a
+   dying test); a naica re-deal exposed the sand-inclusions-without-sand bug; the
+   grep-filtered diff briefly hid the snowball's stall. The blast radius is not a
+   formality; it is where half this rung's discoveries came from.
+
+### Diagenesis
+
+Rung 2 ran on rung 1's rails: the ladder shape, the de-confabulation precedent (tormiq,
+now applied four more times), the blast-radius scratchpad pattern, the commit-as-field-
+notes voice. The census instrument is the claim-card idea pointed at metadata instead of
+scenarios. The spring-window aragonite stands on Fouke's facies work the way the UV audit
+stood on the engines' recorded ladders — the literature was always the load-bearing wall.
+And the elmwood snowball fix leaned on the O5 masking arc's own vocabulary (σ*(φ), the
+stall→pulse→break cycle) — the eighteenth hand's mechanism, re-tuned rather than re-built.
+
+### The dream, twenty-second telling
+
+Three rungs left: the tiger's-eye substrate gate (rung 3 — the cleanest one, pure
+de-confabulation, four offenders and zero promises; its handoff is
+HANDOFF-RUNG-3-TIGERS-EYE-2026-07-14.md), the redox/sulfide vetoes (rung 4 — take the
+orphaned-Zn finding with you), the halite model (rung 5). Then the cards regenerate and
+the synergy hunt opens. Somewhere past that, a Precambrian BIF scenario gives tiger's-eye
+the one home it ever had, and Sunnyside's boiling pulse pays the boss his native gold.
+The envelope is read now; the letter said what the literature always said. The next hand
+inherits gates that mean what they declare — and a table, §T, of the ones that still
+don't.
+
+— the builder, twentieth hand: the unread envelope · 2026-07-14

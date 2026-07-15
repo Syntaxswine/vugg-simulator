@@ -4,6 +4,11 @@ Living list of open work items, captured from session conversations so context s
 
 > ## 🗿 SESSION STATE (2026-07-14, latest) — FIX-LADDER **RUNG 2 (T-gates) ✅ SIM 228**; NEXT = rung 3 (tiger's-eye substrate)
 >
+> **Rung-3 bridge doc: `HANDOFF-RUNG-3-TIGERS-EYE-2026-07-14.md` — READ IT FIRST** (offender
+> table incl. the NEW v228 bisbee tigers_eye, the ritual, and the traps rung 2 paid for).
+> Keystone lineage: HANDOFF-FOUNDATIONS-2026-07-03.md, **twentieth hand — "the unread
+> envelope"**. Shipped at `892dbb8` (Pages built==HEAD, cold-CI clean-tree stamp, 2436/2436).
+>
 > **Rung 2 shipped** the way rung 1 did — instrument first, then one attributable bump. New instrument:
 > **`tools/t-envelope-census.mjs`** (`58db876`, passive) — measured smoking gun #3 fleet-wide: 137 minerals
 > declare T envelopes, **37 unenforced**; 58 violating nucleation events in 15 scenarios at v227. SIM 228 then
