@@ -2,7 +2,37 @@
 
 Living list of open work items, captured from session conversations so context survives compaction. Each item has enough detail that someone picking it up cold can act without re-discovering the rationale.
 
-> ## 🗿 SESSION STATE (2026-07-14, latest) — FIX-LADDER **RUNG 2 (T-gates) ✅ SIM 228**; NEXT = rung 3 (tiger's-eye substrate)
+> ## 🗿 SESSION STATE (2026-07-14, latest) — FIX-LADDER **RUNG 3 (tiger's-eye substrate) ✅ SIM 229**; NEXT = rung 4 (redox/sulfide vetoes)
+>
+> **Rung 3 = the cleanest rung, exactly as the bridge doc predicted**: pure de-confabulation, zero
+> promise decisions, zero expects edits. Tiger's eye is a chalcedony PSEUDOMORPH after crocidolite
+> (Precambrian-BIF-only; Heaney & Fisher 2003 Am.Min. 88:1), but `_nuc_tigers_eye` (js/89) fell through
+> to a bare 'vug wall' fallback and minted from generic late silica+Fe+O₂ in 4 NON-BIF scenarios. The
+> substrate census at seed 42 was decisive: 11 crystals across bisbee (bare×1), deccan (bare×1 +
+> **hematite×2**, a basalt amygdale), ouro_preto (bare×3), radioactive_pegmatite (bare×4) — and **ZERO
+> scenarios grow crocidolite**. FIX (js/89): require a dissolving crocidolite substrate; delete the
+> bare-wall fallback AND the standalone hematite/magnetite branches (hematite kept only as a co-present
+> habit modifier → TIGER IRON). **Reviewer-reviewed correction #3 of the arc**: the handoff's "(or BIF
+> Fe-oxide) substrate" prose was too permissive — deccan's hematite "tiger iron" was in a basalt vug,
+> not a BIF; geology + the offender table (all four = pure kills) both demand crocidolite-required.
+> **Census verdict: tiger's eye EXTINCT at seed 42 — CORRECT** (all 10 sweep seeds; DEAD not stale, so
+> the stale gate holds at 1). jeffrey_mine (the minerals.json "home" tag for crocidolite AND tigers_eye)
+> is chrysotile/rodingite (Na 5 + Fe 50, below crocidolite's Na≥30/Fe≥100 gate) — the tag is itself a
+> confabulation, and a Griqualand-West/Hamersley BIF scenario is the missing content that re-lights it
+> (§T rung-3 leftover). **Blast radius 4/39** (the four offenders only): 4 tiger's-eye kills, **0
+> confabulations minted** (contrast rung 2's surprise bisbee tiger's eye), 0 legit species lost; ripples
+> are within-scenario RNG re-deals (bisbee erythrite 2→3 + native_silver 8→7, deccan thomsonite 6→5,
+> apophyllite/goethite grow into the freed silica). ONE test re-centered to the mechanism: bisbee
+> native_copper's dendritic-fraction pin (the −400-Cu-pulse cast story) — the re-deal shifted its growth
+> window off the pulse peak (133.7→54.7 µm), so the pin now asserts a real dendritic burst + dissolution,
+> not the calibrated 0.25 fraction (σ→regime thresholds untouched + independently tested). Capability
+> stays wired + tested (amphibole-asbestos σ-probes + engine-wiring untouched). Shipped SIM 229
+> (2026-07-14), **2436 tests green**. NEXT per boss order: **rung 4, redox/sulfide vetoes** (the
+> dominant, most-coupled mechanism; §T's orphaned-Zn finding is a census input). Bridge doc for rung 3
+> was `HANDOFF-RUNG-3-TIGERS-EYE-2026-07-14.md`; a rung-4 bridge + keystone can be authored at the next
+> compaction boundary.
+>
+> ## 🗿 SESSION STATE (2026-07-14, rung 2) — FIX-LADDER **RUNG 2 (T-gates) ✅ SIM 228**
 >
 > **Rung-3 bridge doc: `HANDOFF-RUNG-3-TIGERS-EYE-2026-07-14.md` — READ IT FIRST** (offender
 > table incl. the NEW v228 bisbee tigers_eye, the ritual, and the traps rung 2 paid for).
@@ -3278,3 +3308,23 @@ Scenarios that never declare a wall composition (supergene_oxidation among them)
 read as limestone to every consumer (wall dissolution chemistry, renderer litho label, the
 v228 selenite particle-source check, which had to grow a wall_Fe branch to see through it).
 Candidate for the explicit→flip→science ladder when wall chemistry is next touched.
+
+### Rung 3 (SIM 229) leftover — the missing BIF crocidolite scenario (the tiger's-eye re-light)
+
+Tiger's eye is now correctly gated on a dissolving crocidolite substrate (rung 3), but NO
+scenario grows crocidolite, so tiger's eye — and crocidolite, and the tiger_iron habit — are
+EXTINCT at seed 42 (confirmed across all 10 coverage-sweep seeds; all three sit in the DEAD
+list, not stale, because no scenario ever promised them). The re-light is a CONTENT item, not
+a fix:
+
+- **Build a Griqualand-West (Northern Cape SA) / Hamersley (WA) BIF scenario**: Precambrian
+  banded iron formation, low-grade metamorphism grows sodic-amphibole asbestos (crocidolite;
+  gate Na≥30 + Fe≥100 + SiO2≥200, T 100-400°C), then a supergene-oxidation tail (O2>0.4,
+  T 20-200) dissolves the crocidolite so the chalcedony pseudomorph precipitates. Would light
+  crocidolite → tiger's eye → (with co-present hematite/jasper) TIGER IRON — the whole
+  paragenesis the engines already model. Pomfret / Prieska are alternate SA localities.
+- **Fix the confabulated home tag**: minerals.json currently tags BOTH crocidolite and
+  tigers_eye with `scenarios: ["jeffrey_mine"]`, but jeffrey_mine is chrysotile/rodingite
+  (Na 5 + Fe 50 — crocidolite's gate never opens there). Repoint the tag to the new BIF
+  scenario when it ships (or to [] meanwhile). Same class as the "scenarios metadata is
+  aspirational, not enforced" gap.

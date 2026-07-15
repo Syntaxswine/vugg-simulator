@@ -11989,5 +11989,38 @@
 //        sink fires) which trips pharmacolite's cation-share gate — a real
 //        rung-4 economy signal (BACKLOG §T), not a pharmacolite defect; the
 //        32-seed capability sweep still passes.
-const SIM_VERSION = 228;
+// v229 — HOSTILE-REVIEW fix-ladder rung 3 (the tiger's-eye substrate gate):
+//        "tiger's eye is a BIF-crocidolite pseudomorph, but the nucleation
+//        cascade falls through to a bare 'vug wall' fallback" (js/89
+//        _nuc_tigers_eye). Measured at seed 42 (scratchpad substrate census):
+//        it minted 11 crystals across 4 non-BIF scenarios — bisbee (bare×1),
+//        deccan_zeolite (bare×1 + hematite×2), ouro_preto (bare×3),
+//        radioactive_pegmatite (bare×4) — from generic late silica+Fe+O₂>0.4.
+//        FIX: require a dissolving crocidolite substrate (the framework the
+//        chalcedony replaces); delete the bare-wall fallback AND the standalone
+//        hematite/magnetite "BIF context" branches. Reviewer-reviewed
+//        correction: the rung-3 handoff's "(or BIF Fe-oxide) substrate" prose
+//        was too permissive — deccan fired tiger iron on hematite in a BASALT
+//        AMYGDALE, which is not a BIF; bare iron oxide (an oxidized ore body, a
+//        basalt vug) is not a crocidolite context. Geology (Heaney & Fisher
+//        2003 Am.Min. 88:1, the sim's own cited source) + the offender table
+//        (all four = pure kills) both demand crocidolite-required. Hematite is
+//        kept ONLY as a co-present habit modifier (dissolving croc + banded
+//        hematite → the TIGER IRON assemblage habit).
+//        Census verdict: NO scenario grows crocidolite (jeffrey_mine — the
+//        minerals.json "home" tag for both crocidolite and tigers_eye — is
+//        chrysotile/rodingite: Na 5 + Fe 50, below crocidolite's Na≥30/Fe≥100
+//        gate). So the p=0.65 crocidolite branch is dead code and tiger's eye
+//        is EXTINCT at seed 42 — CORRECT until a Griqualand-West/Hamersley BIF
+//        scenario ships (BACKLOG §T; the scenarios:[jeffrey_mine] tag on
+//        crocidolite/tigers_eye is itself a confabulation to fix there). No
+//        promise decisions: no scenario expects tiger's eye.
+//        Blast radius 4/39 (the four offenders only): 4 tiger's-eye kills, 0
+//        confabulations minted (contrast rung 2's surprise bisbee tiger's eye),
+//        0 legit species lost. Ripples are within-scenario RNG re-deals from
+//        the removed substrate/nucleation draws — bisbee erythrite 2→3 +
+//        native_silver 8→7, deccan thomsonite 6→5, apophyllite/goethite grow
+//        into the freed silica; no expected species zeroed. Capability stays
+//        wired + tested (amphibole-asbestos σ-probes + engine-wiring untouched).
+const SIM_VERSION = 229;
 
