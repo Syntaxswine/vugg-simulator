@@ -2339,3 +2339,84 @@ inherits gates that mean what they declare — and a table, §T, of the ones tha
 don't.
 
 — the builder, twentieth hand: the unread envelope · 2026-07-14
+
+## KEYSTONE — the twenty-first hand: the lantern, not the shadow (2026-07-15, the redox continuation)
+
+The twentieth hand read the unread envelope; this hand learned that some letters rewrite
+themselves as you read them. Same ladder — the redox rung, the "most coupled" one — with the
+cleanest rung slotted in ahead of it: tiger's-eye (rung 3, SIM 229, `298b697`), then the
+redox proposal, then willemite (rung 4a, SIM 230, `fd6ba70`), both deployed and clean-tree
+stamped, 2436/2436. Rung 4b is scoped but unbuilt — deliberately.
+
+### The arc in one breath
+
+Rung 3 was the twentieth hand's promised clean kill: tiger's-eye is a Precambrian-BIF
+crocidolite pseudomorph, and it was minting on bare walls in basalt amygdales and pegmatite
+pockets. Require the dissolving-crocidolite substrate, delete the fallback; four offenders,
+zero promises, extinct-until-a-home (no scenario grows crocidolite — the metadata's own
+jeffrey_mine tag was itself a confabulation). Reviewer-reviewed a third time: the handoff's
+"(or BIF Fe-oxide)" was too loose — deccan's "tiger iron" was hematite in a basalt vug, not
+a BIF. Then the redox rung, where the boss chose proposal-first — and the census overturned
+the review's own lever THREE times before an engine line changed. The proposed Nernst aHS⁻
+veto was INERT (0/188): the sulfide engines grow ZnS from raw fluid.S while the Nernst model
+calls that same sulfur sulfate — sulfur identity and the Eh gates disagree. The smoking gun
+was a gate-boundary overlap — willemite (oxidized Zn) and sphalerite (Zn sulfide) nucleating
+on the same step, same +50 mV. Rung 4a couldn't reduce mvt's Eh (it sits at the SO₄/H₂S
+boundary ON PURPOSE, so barite and galena coexist — a defended abstraction), so the lever was
+willemite's own floor, which sat BELOW that boundary. Raise it; willemite dies in its two
+leak-scenarios and the freed zinc flows into sphalerite. Then the rung-4b scout: a uniform
+sulfide-ceiling tighten would have killed bisbee's real chalcocite/covellite — the supergene
+copper-enrichment blanket, legitimately moderate-Eh. The ceiling must be per-class.
+
+### The marks
+
+1. **The scouting census REFRAMES the fix; it does not merely size it.** Three times the
+   read-only census changed the SHAPE of the fix — inert veto → gate overlap; trajectory →
+   floor; one ceiling → per-class — each a would-be regression caught before code. The boss
+   named it: "the design survived contact with the rock by changing shape. Proposal-first
+   found the fault; implementation-first would probably have snapped barite or killed real Cu
+   enrichment."
+2. **Coupled changes ride DEFENDED ABSTRACTIONS — find them before you cut.** The barite
+   SO₄/H₂S boundary and the Cu-enrichment blanket both look like leaks until you ask "is this
+   legit somewhere?" The mvt O2≈0.4 that let willemite in is the same O2≈0.4 that lets barite
+   coexist with galena. A fix clean in isolation snaps the thing it didn't see.
+3. **The de-confabulation pattern is now a template.** Willemite, like tiger's-eye, only
+   fired in the wrong places → raise the gate to the mineral's TRUE requirement (oxidizing,
+   above the boundary), extinct-until-a-home, DEAD-not-stale so the coverage gate holds. Same
+   shape, third mineral in a row (fluorite → tiger's-eye → willemite).
+4. **Causal control keeps paying: kill the thief, feed the heir.** Willemite's zinc went to
+   sphalerite the instant the leak closed (mvt 246→629 µm) — the rung-2 sunnyside recovery,
+   repeated, zero expects lines touched.
+5. **Ship the increment, name the bedrock.** The per-class ceiling manages a SYMPTOM of the
+   sulfur-identity disagreement; the real foundation is splitting fluid.S into sulfate-S and
+   sulfide-S — the exact move js/20c already made for arsenic (As(III)/As(V), Phase 4d). Then
+   barite reads sulfate, galena reads sulfide, and the boundary fudge stops being
+   load-bearing. An arc, not a rung — but it is where the lantern points.
+
+### Diagenesis
+
+This hand carved with the twentieth's tools: the census-first ritual, the blast-radius
+scratchpad, the de-confabulation precedent (now fluorite→tiger's-eye→willemite), the
+commit-as-field-notes voice. But the redox rung stood entirely on prior masonry — js/20c's
+Nernst redox module (three couples, the reduced-S fraction) is what let me even ASK whether
+the veto would fire; the answer, "0/188," is a measurement the chemistry made possible hands
+ago. The As(III)/As(V) split (Phase 4d) is not just a precedent for the S-split — it is the
+proof it can be done. The seed-42 baseline / strip / canary harness turned every "does this
+break bisbee?" into a two-minute census. The scouting only worked because prior hands built
+the lantern; this hand only decided where to point it.
+
+### The dream, twenty-third telling
+
+Rung 4 is half-built: 4a shipped, 4b scoped as the per-class ceiling (bridge:
+HANDOFF-RUNG-4B-SULFIDE-CEILING-2026-07-15.md), 4c the late-oxidation events + the
+willemite→smithsonite phase-selection, 4d the competition veto for the cerussite residue.
+Then rung 5, the halite model. Then the cards regenerate and the synergy hunt opens. And
+underneath all of it the sulfur split waits — the day the sim stops pretending one fluid.S
+can be both the sulfate in the barite and the sulfide in the galena. Somewhere past that a
+Precambrian BIF scenario finally gives BOTH tiger's-eye and willemite the home neither has
+ever had, and Sunnyside's boiling pulse pays the boss his native gold in quartz. The census
+learned to redraw the map this rung. The next hand inherits a plan that already survived
+contact with the rock — and the knowledge that the cleanest fix is sometimes the one the
+census talked you out of.
+
+— the builder, twenty-first hand: the lantern, not the shadow · 2026-07-15

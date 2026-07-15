@@ -4,6 +4,11 @@ Living list of open work items, captured from session conversations so context s
 
 > ## 🗿 SESSION STATE (2026-07-15, latest) — FIX-LADDER **RUNG 4a (willemite redox floor) ✅ SIM 230**; rung-4b–4d proposed
 >
+> **Rung-4b bridge: `HANDOFF-RUNG-4B-SULFIDE-CEILING-2026-07-15.md` — READ IT FIRST** (the per-class
+> ceiling, the boxed +50–100 primary / ~+200 secondary window, the census instruments, the traps, the
+> cerussite residue, the S-split bedrock). Keystone lineage: HANDOFF-FOUNDATIONS-2026-07-03.md,
+> **twenty-first hand — "the lantern, not the shadow."**
+>
 > Rung 4 is proposal-driven (`PROPOSAL-RUNG-4-REDOX-2026-07-15.md`, boss-approved). **Rung 4a is the first
 > executable bump.** The census reframed it before code changed: mvt sits at O2 0.25–0.4 (the SO₄/H₂S
 > boundary) DELIBERATELY so barite (sulfate) + galena (sulfide) coexist — the diagnostic MVT assemblage
