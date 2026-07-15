@@ -589,6 +589,39 @@ function sulfideRedoxAnoxic(fluid: any, o2UpperBound: number): boolean {
   return Eh <= EhEquivalent;
 }
 
+// ── Rung-4b (2026-07-15): the PRIMARY base-metal sulfide Eh ceiling ──────────
+// sphalerite/wurtzite (ZnS), pyrite/marcasite (FeS₂), chalcopyrite (CuFeS₂) and
+// galena (PbS) are PRIMARY hypogene sulfides — reducing-side minerals. Fresh
+// sulfide can only nucleate where dissolved sulfur is REDUCED (HS⁻), i.e. below
+// the SO₄²⁻/HS⁻ boundary; above it the sulfur is sulfate and no new ZnS/PbS/FeS₂
+// can supersaturate. A relict grain may PERSIST metastably up into the oxidized
+// zone (Sato 1992's "persistency field"), but that is a dissolution question,
+// not nucleation — the sim governs relict survival separately.
+//
+// These six all shared the class-default `sulfideRedoxAnoxic(fluid, 1.5)` gate
+// = Eh ≤ +290 mV — ~300 mV too oxidizing. The census
+// (tools/sulfide-nucleation-eh-census.mjs) caught the leak: fresh sphalerite
+// nucleating at +290 mV and galena at +131 mV in the supergene_oxidation zone,
+// where the fluid is oxidizing and no reduced S exists. Tightened to +100 mV
+// (= ehFromO2(0.5)), the value threaded through the boxed window the census measured:
+//   • FLOOR: mvt's galena+sphalerite+pyrite nucleate at +50 mV — the SO₄/H₂S
+//     boundary the MVT ore stage sits at ON PURPOSE so barite (sulfate) and
+//     galena (sulfide) coexist (Anderson & Macqueen 1982). Below +50 kills the
+//     diagnostic MVT assemblage. (tn457 sphalerite +76, elmwood +24 — all kept.)
+//   • CAP: the supergene primary-sulfide leak is at +131 mV (galena) / +290
+//     (sphalerite). Below +131 removes it.
+//   → +100 mV threads it: +50 mV margin over mvt (+24 over tn457), 31 under the leak.
+//
+// PER-CLASS, not uniform. The SECONDARY / supergene-enrichment sulfides
+// (bornite/chalcocite/covellite, gated 1.8–2.0 = +345…+375 mV) are LEFT high on
+// purpose — they legitimately nucleate in the moderately-oxidizing Cu-enrichment
+// blanket below the oxidized cap (bisbee, roughten_gill), the "enrichment" half
+// of Sato 1992's oxidation-AND-enrichment title. The As/Ag/Sb sulfides &
+// sulfosalts keep their own bespoke ceilings (0.5–1.2). A uniform tighten would
+// have killed bisbee's namesake chalcocite/covellite — the census's key catch.
+// Refs: Garrels (1954) GCA 5:153–168; Sato (1992) GCA 56:3133–3156.
+const PRIMARY_SULFIDE_CEILING_O2 = 1.5;  // BYTE-IDENTICAL placeholder; rung-4b/commit-2 tightens to 0.5 (+100 mV)
+
 // Unified linear-multiplier helper. Three call patterns:
 //   sulfideRedoxLinearFactor(f, 1.5)                 // no-clamp `1.5 - O2`
 //   sulfideRedoxLinearFactor(f, 1.3, 1.0, 0.5)       // offset clamped at 0.5

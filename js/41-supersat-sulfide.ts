@@ -283,7 +283,7 @@ Object.assign(VugConditions.prototype, {
   // the spurious mottramite Zn-minimum gate (38-supersat-phosphate) was removed:
   // before, gating sphalerite drained Zn to 0 at ~half the seeds and falsely
   // killed mottramite via that bug (98→49); post-fix mottramite holds (98→84).
-  if (!sulfideRedoxAnoxic(this.fluid, 1.5)) return 0;
+  if (!sulfideRedoxAnoxic(this.fluid, PRIMARY_SULFIDE_CEILING_O2)) return 0;
   const product = (this.fluid.Zn / 100.0) * (this.fluid.S / 100.0);
   // v228 (rung 2): single T-decay branch. The pre-v228 accelerated decay
   // above 95°C existed only "so wurtzite wins" — a polymorph handoff with no
@@ -315,7 +315,7 @@ Object.assign(VugConditions.prototype, {
   if (this.fluid.Zn < 10 || this.fluid.S < 10) return 0;
   // v199: sulfide redox gate (see supersaturation_sphalerite) — the
   // metastable branch is still a sulfide environment; anoxic required.
-  if (!sulfideRedoxAnoxic(this.fluid, 1.5)) return 0;
+  if (!sulfideRedoxAnoxic(this.fluid, PRIMARY_SULFIDE_CEILING_O2)) return 0;
   const g_wz = MINERAL_GATES_wurtzite;
   if (this.temperature > g_wz.T_max!) return 0;
   const product = (this.fluid.Zn / 100.0) * (this.fluid.S / 100.0);
@@ -328,7 +328,7 @@ Object.assign(VugConditions.prototype, {
 
   supersaturation_pyrite() {
   if (this.fluid.Fe < 5 || this.fluid.S < 10) return 0;
-  if (!sulfideRedoxAnoxic(this.fluid, 1.5)) return 0;
+  if (!sulfideRedoxAnoxic(this.fluid, PRIMARY_SULFIDE_CEILING_O2)) return 0;
   const product = (this.fluid.Fe / 50.0) * (this.fluid.S / 80.0);
   // v68: effectiveTemperature is now an identity pass-through after the
   // Mo-flux artifact was removed (canonical 5ecbb42). Kept for forward
@@ -346,7 +346,7 @@ Object.assign(VugConditions.prototype, {
   supersaturation_marcasite() {
   // Orthorhombic FeS2 dimorph of pyrite. pH<5 AND T<240 hard gates.
   if (this.fluid.Fe < 5 || this.fluid.S < 10) return 0;
-  if (!sulfideRedoxAnoxic(this.fluid, 1.5)) return 0;
+  if (!sulfideRedoxAnoxic(this.fluid, PRIMARY_SULFIDE_CEILING_O2)) return 0;
   if (this.fluid.pH >= 5.0) return 0;
   if (this.temperature > 240) return 0;
   const product = (this.fluid.Fe / 50.0) * (this.fluid.S / 80.0);
@@ -357,7 +357,7 @@ Object.assign(VugConditions.prototype, {
 
   supersaturation_chalcopyrite() {
   if (this.fluid.Cu < 10 || this.fluid.Fe < 5 || this.fluid.S < 15) return 0;
-  if (!sulfideRedoxAnoxic(this.fluid, 1.5)) return 0;
+  if (!sulfideRedoxAnoxic(this.fluid, PRIMARY_SULFIDE_CEILING_O2)) return 0;
   const product = (this.fluid.Cu / 80.0) * (this.fluid.Fe / 50.0) * (this.fluid.S / 80.0);
   // v68: effectiveTemperature is identity after Mo-flux removal (5ecbb42).
   const eT = this.effectiveTemperature;
@@ -376,7 +376,7 @@ Object.assign(VugConditions.prototype, {
   // sulfide to form under oxidizing conditions (a clear physics bug,
   // surfaced by tools/supersat_drift_audit.py). Now matches vugg.py.
   if (this.fluid.Pb < 5 || this.fluid.S < 10) return 0;
-  if (!sulfideRedoxAnoxic(this.fluid, 1.5)) return 0;  // sulfides can't survive oxidation
+  if (!sulfideRedoxAnoxic(this.fluid, PRIMARY_SULFIDE_CEILING_O2)) return 0;  // sulfides can't survive oxidation
   let sigma = (this.fluid.Pb / 50.0) * (this.fluid.S / 80.0) * sulfideRedoxLinearFactor(this.fluid, 1.5);
   // v68: effectiveTemperature is identity after Mo-flux removal (5ecbb42).
   // Pre-v68 the Mo-flux widened the galena T window; that was a
