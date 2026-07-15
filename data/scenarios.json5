@@ -1089,6 +1089,14 @@
         "temperature_C": 56.0,
         "pressure_kbar": 0.08,    // shallow geothermal — 290m depth
         "fluid": {
+          // SiO2=30: KEPT at rung-2 re-check (2026-07-14) — the hostile
+          // review's lever proposed dropping to 10-12 ppm, but the research
+          // pass REFUTED it: cave silica is genuinely documented at Naica
+          // (Forti & Sanna 2010, Episodes 33:23 — Cueva de las Espadas
+          // oxidation stage precipitated opal AND quartz), and the opened
+          // water analysis carries ~25 ppm Si (Carreño-Márquez et al. 2021,
+          // Minerals 11:292 Table 1). 30 sits inside the honest band. The
+          // v228 quartz T_min 50 still retires the late 32-35°C stragglers.
           "SiO2": 30,
           // Anhydrite-saturated Ca-SO4 brine. Garcia-Ruiz et al.
           // report ~600 ppm Ca, ~1500 ppm SO4 at the cave's 58°C
@@ -1224,9 +1232,10 @@
     "great_salt_plains": {
       "anchor": "Salt Plains National Wildlife Refuge, Alfalfa County, Oklahoma — a 65-km² salt flat on the Permian red beds (Flowerpot Shale / Cedar Hills Sandstone). The ONLY place on Earth selenite grows the iron-stained 'hourglass' habit. The hourglass selenite is the Oklahoma state crystal; the refuge is the public crystal-digging locality.",
       "description": "Gypsum-saturated, salt-saturated groundwater wicks up through red-bed sand and evaporates just under a thin salt crust. Wet/dry seasonal cycling grows selenite in fast bursts that trap clay, sand, and Permian iron oxide on the terminal growth sectors — the visible hourglass — and step the blade outward each dry season. The iron-flooded crystals go solid reddish-to-chocolate brown.",
-      "expects_species": ["selenite", "halite", "anhydrite", "celestine", "quartz"],
+      "expects_species": ["selenite", "halite", "celestine"],
       "duration_steps": 250,
       "notes": [
+        "QUARTZ + ANHYDRITE WITHDRAWN from expects_species (v228, hostile-review rung 2). Quartz: the Salt Plains quartz is DETRITAL — wind/water-blown sand mechanically trapped in the growing selenite (it IS the hourglass inclusion source, which the render already models via the growth-zone sediment record); the broth's SiO2:30 was always a silt proxy, and the sim's chemistry engines were precipitating authigenic quartz from it at 23-27°C, which real kinetics forbid (v228 enforces quartz's T_min 50). Anhydrite: the near-surface crust precipitates halite + selenite ONLY; anhydrite belongs to the deep Permian source beds the brine dissolves, and direct anhydrite nucleation below ~100°C is kinetically impossible (Ossorio 2014, Voigt & Freyer 2023) — the pre-v228 events fired through a saline-low-T branch that modeled REPLACEMENT-after-gypsum as direct nucleation. Both promises were mechanism confabulations, not missing minerals. Celestine kept (documented in the OK evaporite suite) but flagged unverified as a SURFACE precipitate at this locality by the rung-2 pass.",
         "USFWS Salt Plains NWR + Oklahoma Geological Survey: selenite forms just under a wafer-thin salt crust where gypsum-saturated saline groundwater reaches the surface and evaporates. Fine sand + clay are mechanically included on the fast-growing sectors, producing the hourglass shape; iron oxide in the red-bed soil gives the reddish-to-chocolate-brown colour. This hourglass habit is found NOWHERE else in the world.",
         "Showcase for the crystal-face-realism arc's hourglass-selenite render (2026-06-22): low-T (<45°C) sediment-laden fast growth → js/45 _seleniteHourglassParams tags the blade gypsum_hourglass; the repeated wet/dry fast-growth pulses drive the stepped-growth ziggurat (steps≥2); accumulated trace_Fe deepens the amber → chocolate brown and floods the heavily-included blades to solid brown. The render machinery already shipped SIM-neutral; this scenario is where it is the centerpiece.",
         "Initial broth: gypsum-saturated (Ca 120, S 120) salt-saturated (Na 700, Cl 700) oxidized surface brine at 28°C, near-neutral pH 7.6, iron-bearing (Fe 4) with suspended silt (SiO2 30). The DRY events (gsp_dry) spike Ca/S to 150 + concentrate Fe → fast selenite bursts that trap sediment; the WET events (gsp_wet) dilute to Ca/S 35 (σ<1) so growth pauses between pulses. Five wet/dry cycles over 250 steps.",
@@ -2381,7 +2390,7 @@
     "wittichen": {
       "anchor": "Kloster Wittichen, Schwarzwald (Black Forest), Baden-Württemberg, Germany — the classic Bi-Co-Ni-Ag-As-(Ba) five-element vein district; cobalt-pigment + silver mining boom 1730s–40s around the convent. Sophia and Johann-Georg veins.",
       "description": "A five-element vein in granite basement: hot, saline, SULFUR-STARVED brine carries Bi + Co + Ni + Ag + As. S ~3 ppm is load-bearing — bismuthinite and acanthite never gate open, so the metals stay NATIVE and arsenides are the metal sinks. Hot stage grows skutterudite + nickeline rosettes (320–420°C); cooling brings the fluid into bismuth's window; then the deposit-defining REDUCING SHOCK (hydrocarbon influx along the fault — the declared fluid.Eh pulse) slams native-metal σ to its structural ceiling and bismuth precipitates as ARBORESCENT DENDRITES, safflorite riming the fresh branches (its T window overlaps the shock). Late meteoric water brings oxidized sulfate (barite stage) and carbonate gangue seals the dendrites into the vein — the cross-section hand specimen of the class.",
-      "expects_species": ["skutterudite", "nickeline", "safflorite", "native_bismuth", "native_arsenic", "native_silver", "proustite", "acanthite", "calcite", "aragonite", "barite"],
+      "expects_species": ["skutterudite", "nickeline", "safflorite", "native_bismuth", "native_arsenic", "native_silver", "proustite", "acanthite", "calcite", "barite"],
       "duration_steps": 160,
       "notes": [
         "Anchor + mechanism: Kissin 1992 (Canadian Mineralogist 30) defines the five-element class; Burisch et al. 2017 (Geology 45) ties the native-metal stage to methane/hydrocarbon influx — fluid inclusions in Schwarzwald five-element veins carry CH4 exactly at the dendrite stage, and the reduction is fast (hours-to-days), which is WHY the metals dendrite. Scharrer, Kreissl & Markl 2019 (Ore Geology Reviews) survey the assemblage diversity; Staude et al. 2012 (Mineralium Deposita 47) give the Schwarzwald basement-brine fluid-inclusion record (20–26 wt% NaCl, 150–340°C) this broth is anchored on.",
@@ -2390,7 +2399,8 @@
         "Wallrock: 'pegmatite' composition as the granite proxy (inert silicate — Wittichen veins cut Triberg granite; the carbonate gangue arrives in the FLUID via the late CO3 event, not from wall dissolution). Architecture tabular (vein-bounded), pocket size class, shape_seed 1736 (the cobalt-boom decade).",
         "Calibration target: the hand specimen is silver-white dendritic Bi embedded in white carbonate with gray arsenide rims, read in cross-section. MEASURED at seeds 42-45 (calibration session, 2026-06-12): native_bismuth 3-5 alive with 45-49% DENDRITIC zone mass (the shock recorded); skutterudite 2 + safflorite 2 + nickeline 4 + native_arsenic 4 all ALIVE; native_silver grows then sulfidizes to acanthite 4 at the meteoric-sulfate stage (the tarnish story — hand-specimen Wittichen silver is acanthite-coated); proustite 2 (ruby silver); calcite + aragonite gangue. Bi band edges re-pinned against this trajectory (js/45 — the activity correction at salinity 24 compresses the structural ~4.5 ceiling to ~2.4 measured).",
         "BARITE DELIVERED (v191, gate-census tune): the v189 'aspirational barite' diagnosis was WRONG about the mechanism — the gate census (tools/wittichen-sulfate-probe.mjs) measured every gate component PASSING from step ~133 (Ba✓ S✓ redox✓ pH✓ T✓) with σ plateaued at 0.60: barite never needed more OXIDATION, it needed more BARIUM (ba_f 24/30 × s_f 30/40 × the salinity-24 activity penalty ≈ 0.59 pinned σ under 1 forever). The locality is the authority: Wittichen's veins are literally Barytgänge — barite-gangue veins, the district's defining gangue — so Ba 24 was unjustifiably shy. Ba 75 (still modest for a heavy-spar district) puts the barite stage at σ 1.47–1.55 from the meteoric beat on: barite 2/6/3 crystals at seeds 42/43/44, NO witherite (the BaCO3 competitor never gates), and the living suite intact at all probed seeds. No Eh change — the reverted +100 oxidation finger stays reverted.",
-        "ERYTHRITE DEMOTED from expects (v191, measured): the cobalt bloom's gate needs T ≤ 50°C (MINERAL_GATES_erythrite — weathering-zone physics) and this scenario's T trajectory ends at ~150°C, so erythrite is STRUCTURALLY out-of-window in a sealed-vein story, not tuning-shy. The real Wittichen erythrite the 1730s miners followed formed during post-Variscan exhumation weathering, long after the vein sealed; modeling it honestly needs a vadose/weathering EPILOGUE (drain + cool to ~20°C + spatially-partial oxidation), which contradicts this scenario's closing beat (carbonate seals the vug at ~150°C). If a weathering-epilogue mechanic ever lands (the schneeberg step-110 vadose pattern, made spatially partial), erythrite is its first client — logged in BACKLOG, not in expects."
+        "ERYTHRITE DEMOTED from expects (v191, measured): the cobalt bloom's gate needs T ≤ 50°C (MINERAL_GATES_erythrite — weathering-zone physics) and this scenario's T trajectory ends at ~150°C, so erythrite is STRUCTURALLY out-of-window in a sealed-vein story, not tuning-shy. The real Wittichen erythrite the 1730s miners followed formed during post-Variscan exhumation weathering, long after the vein sealed; modeling it honestly needs a vadose/weathering EPILOGUE (drain + cool to ~20°C + spatially-partial oxidation), which contradicts this scenario's closing beat (carbonate seals the vug at ~150°C). If a weathering-epilogue mechanic ever lands (the schneeberg step-110 vadose pattern, made spatially partial), erythrite is its first client — logged in BACKLOG, not in expects.",
+        "ARAGONITE DEMOTED from expects (v228, hostile-review rung 2 — the erythrite precedent, exactly): Wittichen aragonite is REAL but it is the SUPERGENE phase — mindat's cobalt-bearing aragonite (Co²⁺-in-CaCO3) is recorded from Wittichen as a secondary phase over oxidizing Co-arsenides (Staude et al. 2012 describe the supergene alteration suite), not a 156°C vein gangue. Pre-v228 the aragonite favorability's open-ended T-term grew it at step 141 / ~156°C — precisely the hot low-Mg vein confabulation the v228 spring-window ceiling (~90°C, Casella 2017 inversion kinetics) retires; at Mg/Ca 0.04 and a T floor of ~150°C the phase is structurally out-of-window for this sealed-vein story. The vein's primary CaCO3 gangue is CALCITE (kept). Same weathering-epilogue mechanic that owes erythrite its home owes the cobaltoan pink aragonite — second client, logged in BACKLOG."
       ],
       "movements": [
         {
@@ -3027,7 +3037,15 @@
           "Ca": 350,
           "CO3": 500,
           "Mg": 30,
-          "SiO2": 50,
+          // SiO2=54: the documented Mammoth value (USGS Bull. 1444 Table 2 —
+          // same table as the rung-1 F figure). Mammoth is a silica-POOR
+          // Ca-Mg-HCO3-SO4 limestone water (vs ~420 ppm at Norris) and
+          // deposits NO silica sinter. Note (rung 2): quartz still clears its
+          // σ gate here at 68-70°C from this honest broth — that's a
+          // TIMESCALE artifact (a 60-step pool isn't Herkimer's megayears),
+          // owned by the parked silica_polymorph species-selection follow-on,
+          // not by a fake broth value or a dishonest T-floor.
+          "SiO2": 54,
           "Na": 200,
           "Cl": 300,
           "S": 50,
@@ -3513,14 +3531,16 @@
 
     "sulphur_bank": {
       "anchor": "Sulphur Bank Mine, south shore of Clear Lake, Lake County, California — Pleistocene hot-spring mercury-sulfur deposit. Active hot-spring system since ~150,000 years ago; mined for mercury 1865-1957 (one of California's largest Hg producers). Now EPA Superfund site CAD980893275. The textbook hot-spring quicksilver-sulfur deposit per White & Roberson 1962 (USGS PP 432-A).",
-      "description": "Hot-spring mercury-sulfur deposit at the surface mixing zone where rising H₂S-rich fluid meets atmospheric O₂. Headline minerals: native sulfur (from synproportionation 2 H₂S + O₂ → 2 S° + 2 H₂O) and cinnabar (HgS, the deposit's mining commodity — Sulphur Bank yielded ~450 tons of mercury 1865-1957). The H₂SO₄ byproduct keeps fluid pH at 2-4. Accessory As-sulfides realgar (orange-red AsS) and orpiment (golden-yellow As₂S₃) deposit alongside in the same H₂S + O₂ mixing zone — the documented Sulphur Bank arsenic minerals (White & Roberson 1962). Native sulfur grows in α-bipyramidal habit; cinnabar in deep cochineal-red rhombohedra; realgar in orange-red prisms; orpiment in foliated golden plates. Supporting cast: pyrite + marcasite from the Fe trace, arsenopyrite from trace As, quartz from silica-rich hot water.",
-      "expects_species": ["native_sulfur", "cinnabar", "realgar", "orpiment", "pararealgar", "pyrite", "marcasite", "arsenopyrite"],
+      "description": "Hot-spring mercury-sulfur deposit at the surface mixing zone where rising H₂S-rich fluid meets atmospheric O₂. Headline minerals: native sulfur (from synproportionation 2 H₂S + O₂ → 2 S° + 2 H₂O) and cinnabar (HgS, the deposit's mining commodity — Sulphur Bank yielded ~450 tons of mercury 1865-1957). The H₂SO₄ byproduct keeps fluid pH at 2-4. Accessory As-sulfides realgar (orange-red AsS) and orpiment (golden-yellow As₂S₃) deposit alongside in the same H₂S + O₂ mixing zone. Native sulfur grows in α-bipyramidal habit; cinnabar in deep cochineal-red rhombohedra; realgar in orange-red prisms; orpiment in foliated golden plates. Supporting cast: pyrite + marcasite from the Fe trace, quartz from silica-rich hot water.",
+      "expects_species": ["native_sulfur", "cinnabar", "realgar", "orpiment", "pararealgar", "pyrite", "marcasite"],
       "duration_steps": 200,
       "notes": [
         "Anchor: Sulphur Bank Mine, the canonical hot-spring native-sulfur deposit. White & Roberson 1962 (USGS PP 432-A) is the foundational monograph; White 1981 placed it in the broader active-geothermal-ore-deposit framework. The deposit was the type case for the 'hot-spring mercury-sulfur' class. Active hot springs still vent today (60-90°C; the EPA Superfund record documents continuous monitoring 1990s-present).",
         "Engine fit (native_sulfur in js/36-supersat-native.ts): the supersaturation gates are S ≥ 100 ppm, O₂ ∈ [0.1, 0.7] (the synproportionation window), pH ≤ 5, metal_sum (Fe+Cu+Pb+Zn) ≤ 100, T 20-95°C optimal. Sulphur Bank fluid sits dead-center in all five gates. This is the simpler of the two native_sulfur deposit types — the acid-sulfate hot-spring mode the existing engine was implicitly designed for. The Sicily-style sedimentary BSR mode (pH 7-8, calcite-buffered) is a future scenario after engine broadening.",
         "Habit dispatcher: the engine's three habits are sublimation_crust (T > 60 + excess > 1.5; fumarole vent zone), prismatic_beta (T ≥ 95; rare high-T monoclinic), and bipyramidal_alpha (the iconic Sicilian {111} dipyramid habit, < 60°C). The scenario starts at 75°C — sublimation_crust at high σ, bipyramidal_alpha after cooling pulses. Both habits real for Sulphur Bank.",
-        "Mercury: the namesake commodity (cinnabar, HgS) isn't in MINERAL_SPEC yet — a follow-up commit can add it for the full Sulphur Bank assemblage. For now the scenario carries trace Fe + As to fire pyrite + marcasite + arsenopyrite alongside the headline native_sulfur."
+        "Mercury: the namesake commodity (cinnabar, HgS) isn't in MINERAL_SPEC yet — a follow-up commit can add it for the full Sulphur Bank assemblage. For now the scenario carries trace Fe + As to fire pyrite + marcasite alongside the headline native_sulfur.",
+        "ARSENOPYRITE WITHDRAWN from expects_species (v228, hostile-review rung 2 — the tormiq/mvt de-confabulation precedent): White & Roberson 1962's own ore list is cinnabar, marcasite, pyrite, dolomite, calcite, quartz, zeolite, ± metacinnabar, stibnite — no arsenopyrite; the USGS stable-isotope mineral set for the mine likewise lacks it, and FeAsS is a ≥200°C mineral (Kretschmar & Scott calibration; Carlin fluids 180-240°C) that a 50-77°C spring cannot grow. Pre-v228 it fired here only because the declared T_min 200 was unenforced. The promise was the confabulation; the As stays in the broth and reports through the documented low-T As phases.",
+        "⚠ VERIFY (rung-2 research pass, 2026-07-14): the earlier note claiming White & Roberson list realgar + orpiment as accessory species could NOT be re-verified this pass (the monograph's ore list above omits them; mindat loc-3491 was unreachable). They are geologically consistent with an As-bearing acid-sulfate spring and STAY in expects_species for now — but check the mindat species table when reachable, and if they are absent there too, they owe the same withdrawal arsenopyrite got."
       ],
       "initial": {
         "temperature_C": 75.0,
@@ -3895,7 +3915,23 @@
       // aspirational entry; v193 DELIVERED it (5 crystals at seed 42) via
       // the supergene V-leach + engine V-economics fixes — see the
       // V-axis note in initial.fluid.
-      "expects_species": ["galena", "sphalerite", "chalcopyrite", "pyrite", "tetrahedrite", "tennantite", "quartz", "calcite", "cerussite", "anglesite", "linarite", "caledonite", "leadhillite", "brochantite", "pyromorphite", "mimetite", "mottramite", "native_silver"],
+      //
+      // v228 (hostile-review rung 2): QUARTZ withdrawn from expects — the
+      // erythrite/wittichen-aragonite precedent (real mineral, structurally
+      // out-of-window). The district's quartz-carbonate gangue is genuinely
+      // PRIMARY (110-130°C stage), but this scenario's hot stage is ~15
+      // steps and its broth silica-starved there (σ 0.54); the quartz that
+      // used to satisfy the mirror grew at 41-44°C through the unenforced
+      // T_min 50 — the leak itself. Raising SiO2 was measured and rejected
+      // (see the SiO2 comment in initial.fluid: hollow 8.5 µm speck + the
+      // documented supergene suite starved). Honest delivery needs a
+      // re-architected longer/hotter primary stage — BACKLOG. ALSO v228:
+      // realgar/orpiment/pararealgar keep firing at the 121-127°C reducing
+      // primary stage; the review's proposed ~120°C realgar ceiling was NOT
+      // adopted (the As-sulfide envelopes are 20-250/280°C and the real
+      // Roughten complaint is compositional — As should ride the sulfosalt
+      // sink when base metals dominate — which is rung-4 territory).
+      "expects_species": ["galena", "sphalerite", "chalcopyrite", "pyrite", "tetrahedrite", "tennantite", "calcite", "cerussite", "anglesite", "linarite", "caledonite", "leadhillite", "brochantite", "pyromorphite", "mimetite", "mottramite", "native_silver"],
       "duration_steps": 200,
       "notes": [
         "Anchor: Roughten Gill Mine, Caldbeck Fells, Cumbria. The Caldbeck Fells district occupies the northern Skiddaw inlier; Roughten Gill itself sits on the southern flank of Balliway Rigg (NY 304 344). Host is the Ordovician Eycott Volcanic Group (basaltic-andesitic to rhyolitic lavas + tuffs — NOT Borrowdale Volcanic Group, a common error in derivative literature). The South Vein cuts a NE-SW normal fault juxtaposing the Carrock Fell Intrusive Complex's Iron Crag Microgranite (Carrock Granophyre, U-Pb zircon 452.4 ± 3.1 Ma) against gabbro of the same complex. Caldbeck Fells district hosts ~175 valid mineral species — the greatest mineralogical diversity per unit area in the British Isles per Bridges et al. 2011 + Cooper & Stanley 1990.",
@@ -3926,6 +3962,21 @@
           // chemistry (Caldbeck Pb-Cu vein is carbonate-deficient
           // but not carbonate-zero; broth 25 ppm CO3 still well below
           // Tsumeb's 110 ppm).
+          //
+          // SiO2 stays 50 (v228, rung 2 — a MEASURED reversion): the
+          // district's primary ore sits in real quartz-carbonate gangue, and
+          // at 50 ppm the hot stage is silica-starved (σ 0.54 at 127°C vs
+          // eq≈93) — the only quartz this run ever grew was at 41-44°C
+          // through the then-unenforced T_min 50 leak. Raising SiO2 to 140
+          // (σ 1.5 hot) was TRIED and REJECTED by blast radius: the hot
+          // stage is too short (~15 steps before T crosses 50) so quartz
+          // still only made an 8.5 µm dissolved speck, while the extra
+          // silica bloomed chrysocolla ×5 which drained Cu and KILLED
+          // documented olivenite (3→0) and trimmed mottramite 7→4. A hollow
+          // speck is not worth starving the real supergene suite. The quartz
+          // expects promise is withdrawn instead (see notes); growing the
+          // primary gangue honestly needs a longer/hotter primary stage —
+          // scenario re-architecture, logged in BACKLOG.
           "SiO2": 50,
           "Ca": 60,
           "CO3": 25,

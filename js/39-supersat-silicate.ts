@@ -13,11 +13,22 @@
 
 const MINERAL_GATES_quartz: MineralGates = {
   sigma_crit: 1.2,
-  T_min: 50, T_max: 600, T_optimal: 300,
+  // v228 (hostile-review fix ladder, rung 2): envelope now ENFORCED in
+  // supersaturation_quartz. Below T_min, macro-quartz neither nucleates nor
+  // grows on vug timescales (Rimstidt & Barnes kinetics) — cold silica is
+  // opal's field, and the opal engine already holds it (T 5-100, sinter
+  // sweet spot 30-85°C). T_max corrected 600 → 700: miarolitic-pocket quartz
+  // crystallizes up to the water-saturated granite solidus (~700-660°C wall
+  // zones — London 2008; Pikes Peak pegmatite quartz, Frontiers Earth Sci.
+  // 10:976588 2022). The α-β transition at 573°C is displacive, not a growth
+  // barrier (β-quartz grows, inverts on cooling). Pre-v228 the declared 600
+  // was both unenforced AND wrong: gem_pegmatite grew geologically-correct
+  // quartz at 617-650°C in violation of its own metadata.
+  T_min: 50, T_max: 700, T_optimal: 300,
   fluid_min: { SiO2: 50 },
   surface_energy: 'high',
-  _sources: ['quartz engine v17+', 'Rimstidt & Barnes 1980 GCA 44:1683', 'Brantley et al. 2008'],
-  _notes: 'SiO2 trigonal. ΔH° = +22 kJ/mol — strongly T-sensitive (corrected v127). σ_crit 1.2 is the heterogeneous value vug nucleation uses; homogeneous σ_crit is 6-20+.',
+  _sources: ['quartz engine v17+', 'Rimstidt & Barnes 1980 GCA 44:1683', 'Brantley et al. 2008', 'London 2008 (Pegmatites) — pocket quartz to the wet-granite solidus', 'Frontiers Earth Sci. 10:976588 (2022) — Pikes Peak quartz 700-660°C'],
+  _notes: 'SiO2 trigonal. ΔH° = +22 kJ/mol — strongly T-sensitive (corrected v127). σ_crit 1.2 is the heterogeneous value vug nucleation uses; homogeneous σ_crit is 6-20+. v228: envelope hard-enforced — T<50 is opal/chalcedony territory; T_max 700 = wet granite solidus.',
 };
 
 const MINERAL_GATES_feldspar: MineralGates = {
@@ -484,6 +495,16 @@ const MINERAL_GATES_chabazite: MineralGates = {
 
 Object.assign(VugConditions.prototype, {
   supersaturation_quartz() {
+  // v228 (rung 2): enforce the declared T envelope — the review's smoking gun
+  // #3 was that quartz's gates metadata (T_min 50, v127) was never read here,
+  // so 13 scenarios grew macro-quartz at 23-47°C where silica kinetics only
+  // permit opal/chalcedony (sicily's most-fired phase was quartz, at 23°C).
+  // Prograde solubility makes this leak SYSTEMATIC: eq(T) falls as T falls,
+  // so cold water reads as MORE supersaturated — thermodynamically true,
+  // kinetically meaningless. The hard gate is the kinetic truth; sub-floor
+  // silica routes to the opal engine (its window already owns 5-100°C).
+  const g = MINERAL_GATES_quartz;
+  if (this.temperature < g.T_min! || this.temperature > g.T_max!) return 0;
   const eq = this.silica_equilibrium(this.effectiveTemperature);
   if (eq <= 0) return 0;
   let sigma = this.fluid.SiO2 / eq;

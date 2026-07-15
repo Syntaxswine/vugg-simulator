@@ -11909,5 +11909,85 @@
 //        Kugelfluorit), so fluorite stays eligible-but-marginal. Steps (b)+(c)
 //        of the ladder (explicit-F + default 10→0) were zero-drift; THIS commit
 //        is the attributable bump.
-const SIM_VERSION = 227;
+// v228 — HOSTILE-REVIEW fix-ladder rung 2 (the T-gates): "the T envelope exists
+//        as metadata but is never read at the gate" — measured fleet-wide by
+//        tools/t-envelope-census.mjs (137 declare, 37 unenforced; 58 violating
+//        nucleation events in 15 scenarios at v227), then closed for the
+//        review-flagged set with researched values (4 research passes, opened-
+//        source citations in the gates entries):
+//          quartz     — declared [50,600] enforced as [50,700]; T_max was WRONG
+//                       metadata (pegmatite pocket quartz grows to the wet
+//                       solidus; gem_pegmatite's 617-650°C growth was correct
+//                       and is now legal). Kills cold macro-quartz in 13
+//                       scenarios (sicily 23°C 4×, ultramafic, stalactite,
+//                       GSP, searles, sabkha, colorado_plateau, supergene_ox,
+//                       bisbee/naica/ouro_preto/roughten late stragglers).
+//          arsenopyrite — declared [200,600] enforced AS-IS; the review's
+//                       proposed 250-300 floor REFUTED (Kretschmar & Scott 300
+//                       is thermometer calibration, not crystallization;
+//                       Carlin aspy grows 180-240°C). sulphur_bank's 50-68°C
+//                       aspy dies + its expects promise withdrawn (White &
+//                       Roberson's ore list never had it).
+//          ZnS        — the T>95 "wurtzite field" polymorph reading RETIRED
+//                       (inversion is ~1020°C, Scott & Barnes 1972): sphalerite
+//                       keeps a single T-decay branch (no more "so wurtzite
+//                       wins"); wurtzite = metastable branch ONLY (pH<4 +
+//                       σ≥1 + Fe≥5, T_max 350). Wurtzite extinct at seed 42
+//                       (no scenario reaches pH<4); sunnyside/mvt/reactivated/
+//                       reactive_wall/tn457 ZnS re-deals to sphalerite.
+//          aragonite  — favorability RESTRUCTURED: two selectors (Mg/Ca sigmoid
+//                       re-centered 1.5→1.1 ppm ≈ 1.8 molar; T spring-window
+//                       rise ~45 / close ~90°C — Fouke 2000 Mammoth facies,
+//                       Bogoria ~90-96°C ceiling, Casella 2017 inversion-in-
+//                       days at 175°C), soft selector self-gate, Ω demoted from
+//                       OR-branch to bounded amplifier (no-selector high-Ω is
+//                       the vaterite→calcite cascade, not aragonite), SO4 term
+//                       evaluated and EXCLUDED (Bots 2011: Mg-threshold
+//                       modifier, not independent driver). Kills hot low-Mg
+//                       vein aragonite (elmwood 121, mvt 153, reactivated 151,
+//                       wittichen 156, deccan 201, grimsel 221, reactive_wall
+//                       109, tutorial_mn 97); keeps travertine's vent aragonite
+//                       (documented, Fouke), sabkha, zoned ceiling sort.
+//          selenite   — T_max 80 (Ossorio 2014: primary-gypsum ceiling; the
+//                       42°C equilibrium boundary is survival, not nucleation).
+//          anhydrite  — T_min 100 (direct nucleation only; Voigt & Freyer
+//                       2023); the saline-low-T branch (sabkha replacement
+//                       modeled as nucleation) RETIRED — GSP's 8 cold events
+//                       die + its anhydrite AND detrital-quartz expects
+//                       promises withdrawn.
+//          goethite   — T_max 100 (Diakonov 1994: coarse goethite/hematite
+//                       crossover at 373 K) — grimsel 248°C + deccan 201°C
+//                       "primary" goethite die; gossan/ouro_preto keep.
+//          mimetite   — T_max 80 (uniformly supergene, HoM/Keim & Markl) —
+//                       porphyry's 307°C mimetite dies.
+//          tellurides — calaverite/sylvanite T_max 450/400 → 300 (Cooke &
+//                       McPhail 2001; Cripple Creek 105-159°C; Emperor 200-
+//                       250°C) — porphyry's 378-398°C potassic-core tellurides
+//                       die; epithermal_telluride (≤278°C) untouched.
+//        Broth truth: travertine SiO2 50→54 (USGS Bull. 1444 Table 2); naica
+//        SiO2 KEPT (review's 10-12 lever refuted — Naica cave opal/quartz
+//        documented, Forti & Sanna 2010; water ~25 ppm Si). Initiative note:
+//        gates metadata feeds js/43→44 cation rationing, so the new
+//        T_min/T_max/T_optimal entries are behavior-live beyond the σ gates.
+//        Citation hygiene: "Murowchick & Barnes 1986 Am.Min. 71:1196" and the
+//        review's "Bessinger 2000" both failed verification — see
+//        research/research-broth-ratio-sphalerite-wurtzite.md appendix.
+//        Ripple recalibrations shipped in the same bump: (1) elmwood's
+//        barite-stage pulse now carries its own SULFATE charge (S floor 106
+//        alongside Ba 28, js/70) — the honestly-stronger sphalerite drained
+//        the shared S pool ~22% and stalled the snowball as dust; feeding S
+//        restores the banding without waking witherite (the Ba-raise
+//        alternative was measured: floor 36 → witherite ×4 — and the MVT
+//        mixing story is truer anyway (barite grows where Ba brine meets
+//        sulfate water)). (2) grow_selenite's 'hourglass (sand inclusions)'
+//        label now requires a non-carbonate wall (js/60) — sand inclusions
+//        need a sand SOURCE; the rung-2 re-deal had landed one on Naica's
+//        limestone pool, which would have painted the iconic water-clear
+//        selenite brown. (3) The schneeberg pharmacolite 3-seed σ-probe is
+//        retired (tests): the wurtzite retirement leaves ORPHANED Zn in some
+//        seeds' cool tails (~225 ppm; sphalerite's S window closed, no Zn
+//        sink fires) which trips pharmacolite's cation-share gate — a real
+//        rung-4 economy signal (BACKLOG §T), not a pharmacolite defect; the
+//        32-seed capability sweep still passes.
+const SIM_VERSION = 228;
 

@@ -524,7 +524,26 @@ function grow_selenite(crystal, conditions, step) {
   let fi = false, fi_type = '';
   if (rate > 5 && rng.random() < 0.3) {
     fi = true;
-    fi_type = rng.random() < 0.5 ? 'primary (trapped brine)' : 'hourglass (sand inclusions)';
+    // v228 (rung 2, defer-to-geology fix-when-seen): SAND inclusions need a
+    // PARTICLE SOURCE. Two suppliers exist in the fleet: a clastic wall
+    // (GSP's red-bed sandstone) or an Fe-oxide-rich setting whose weathering
+    // mud is the stain itself (Tsumeb's gossan — wall_Fe 2000 by default;
+    // GSP red beds 3000). A clean LOW-Fe crystalline-carbonate pool sheds
+    // neither: Naica (limestone, wall_Fe 600) traps BRINE when it grows
+    // fast — exactly what real Naica selenite is famous for (fluid
+    // inclusions, water-clear). Pre-v228 the label was a bare 50% roll; the
+    // rung-2 RNG re-deal landed one on Naica and would have painted the
+    // iconic clear pool brown. NOTE: wall.composition DEFAULTS to
+    // 'limestone' (js/22:100 — an unset-means-limestone cousin of the F
+    // leak), which is why the carbonate test alone can't discriminate and
+    // the Fe branch is load-bearing. Both rng draws are kept unconditionally
+    // so the downstream draw sequence is unchanged.
+    const wall = conditions.wall || {};
+    const cleanCarbonateWall =
+      (wall.composition === 'limestone' || wall.composition === 'dolomite' || wall.composition === 'marble')
+      && (wall.wall_Fe_ppm ?? 2000) < 1500;
+    const typeRoll = rng.random() < 0.5;
+    fi_type = (!cleanCarbonateWall && !typeRoll) ? 'hourglass (sand inclusions)' : 'primary (trapped brine)';
   }
 
   let note;

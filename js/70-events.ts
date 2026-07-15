@@ -184,11 +184,26 @@ function event_elmwood_barite_stage(conditions) {
   // σ_barite≈3.2 (capped), and against elmwood's high CO3 (180, the calcite
   // showcase's supply) it spawned WITHERITE (BaCO3) — a species outside elmwood's
   // documented paragenesis — and nudged the golden calcite. A modest floor keeps
-  // barite just above its growth threshold (σ≈1.3–1.5) so it grows a generation
-  // without over-delivering Ba into the carbonate system: witherite stays
-  // subcritical and the calcite crown jewel is untouched.
+  // barite just above its growth threshold so it grows a generation without
+  // over-delivering Ba into the carbonate system: witherite stays subcritical
+  // and the calcite crown jewel is untouched.
+  //
+  // v228 (rung 2) recalibration — the SULFATE side, not more Ba: the SIM 228
+  // ZnS fix made the honey sphalerite honestly STRONGER (the ">95°C so
+  // wurtzite wins" decay is retired), and the stronger base drains the shared
+  // S pool ~22% harder through the pulse window (strip S at step 40: 106 → 83
+  // ppm), leaving σ_barite just UNDER the clay-film break-through — 16 barite
+  // seeds all stalled as dust. Raising the Ba floor instead was MEASURED and
+  // REJECTED (floor 36: snowball back but witherite ×4 — the aragonite death
+  // freed CO3, so witherite's Ba-headroom is now THINNER than when 28 was
+  // tuned; floor 32: neither side happy). The S floor is the honest lever:
+  // σ_barite ∝ Ba·S, σ_witherite ∝ Ba·CO3 — sulfate feeds the snowball and
+  // CANNOT feed the carbonate. It is also the truer story: MVT barite grows
+  // where the Ba brine MIXES with sulfate water, so the stage pulse carrying
+  // its own SO4 charge is the textbook mechanism, not a patch.
   conditions.fluid.Ba = Math.max(conditions.fluid.Ba || 0, 28);
-  return `A barium-rich brine pulse floods the Knox breccia — barite grows a generation on the honey sphalerite (Ba ${conditions.fluid.Ba.toFixed(0)} ppm).`;
+  conditions.fluid.S = Math.max(conditions.fluid.S || 0, 106);
+  return `A barium-sulfate brine pulse floods the Knox breccia — barite grows a generation on the honey sphalerite (Ba ${conditions.fluid.Ba.toFixed(0)}, S ${conditions.fluid.S.toFixed(0)} ppm).`;
 }
 
 // A pure film-coat beat: the settling clay / iron-oxide film is carried by the

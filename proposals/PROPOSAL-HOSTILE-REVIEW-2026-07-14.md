@@ -209,10 +209,34 @@ is legitimate and expected; the ritual makes it justify its cost.
    "fluorine-free") and amethyst_geode (Kugelfluorit documented) — both F=5,
    eligible-but-marginal. The review's verdicts are inputs, not gospel; the research
    pass is the check on the reviewer.
-2. **T-gates** — wire documented T_min/T_max envelopes into `_nuc_*`: quartz floor
-   (route sub-floor silica to opal/chalcedony), arsenopyrite floor, aragonite ceiling
-   (unless high Mg/Ca / SO4/Sr), supergene-phase ceilings, retire the `T>95 → wurtzite`
-   reading. Conceptually clean; one mineral at a time, censused.
+2. **T-gates — ✅ COMPLETE, SIM 228 (2026-07-14, same day).** Instrument first:
+   `tools/t-envelope-census.mjs` (137 minerals declare envelopes, 37 unenforced; 58
+   violating events / 15 scenarios at v227 — the leak class measured, not guessed).
+   Then the researched enforcement (4 research passes): quartz [50,700] (the declared
+   T_max 600 was itself wrong — pegmatite quartz is real); arsenopyrite [200,600]
+   AS-DECLARED (**review corrected**: the proposed 250-300 floor misread Kretschmar &
+   Scott's calibration floor as a crystallization floor — Carlin aspy grows 180-240°C);
+   the `T>95 → wurtzite` reading retired on both sides (wurtzite = metastable pH<4
+   branch only, T_max 350 — extinct fleet-wide at seed 42; sunnyside's ZnS re-deals to
+   the sphalerite its expects always promised); aragonite favorability restructured
+   (Mg selector 1.1 ppm OR the 45-90°C spring window; Ω demoted from OR-branch to
+   amplifier — stalactite's Ω≈56 aragonite died to the selector self-gate; SO4
+   evaluated and excluded per Bots 2011); selenite ≤80 / anhydrite ≥100 (nucleation
+   bounds, NOT the 42°C equilibrium; the saline-low-T anhydrite branch modeled
+   replacement as nucleation and is retired); goethite ≤100 (Diakonov 1994); mimetite
+   ≤80; tellurides ≤300 (Cooke & McPhail). Blast radius 27/39; recoveries: sunnyside
+   sphalerite + ultramafic CHRYSOPRASE (both expects no-shows, recovered by removing
+   competitors' leaks, zero expects edits); promises withdrawn with locality research:
+   sulphur_bank arsenopyrite (absent from White & Roberson's own ore list), GSP
+   quartz+anhydrite (detrital / bedrock-only), wittichen aragonite (real but SUPERGENE
+   cobaltoan — the erythrite precedent), roughten quartz (real but structurally
+   out-of-window; the SiO2-raise alternative was measured and rejected). Naica's
+   proposed SiO2 lever REFUTED (cave opal/quartz documented — Forti & Sanna 2010).
+   Citation hygiene: this review's own "Bessinger 2000" + the sim's "Murowchick &
+   Barnes 1986 Am.Min. 71:1196" both failed verification — the reviewer reviewed,
+   twice more. Leftovers (≈30 unenforced envelopes incl. wrong-value flags pyrite/
+   bornite/native_silver) recorded in BACKLOG §T — per-mineral re-research required,
+   never blanket enforcement.
 3. **Tiger's-eye substrate gate** — require dissolving-crocidolite (or BIF Fe-oxide)
    substrate; delete the bare-wall fallback. Strong locality-specific absurdity fix.
 4. **Redox/sulfide vetoes** — the dominant mechanism but the most coupled: reducing

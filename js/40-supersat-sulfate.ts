@@ -35,13 +35,24 @@ const MINERAL_GATES_celestine: MineralGates = {
 
 const MINERAL_GATES_anhydrite: MineralGates = {
   sigma_crit: 1.0,
-  T_optimal: 150,
+  // v228 (rung 2): T_min 100 — anhydrite does NOT nucleate directly from
+  // solution below ~100°C on any timescale the lab has reached ("extremely
+  // slow crystallization kinetics of anhydrite at T<100°C", Voigt & Freyer
+  // 2023; Ossorio 2014 saw NO primary anhydrite at any condition to 120°C
+  // over 2 years — the >80°C anhydrite in those runs was transformation-
+  // derived from gypsum/bassanite). The retired saline-low-T branch modeled
+  // sabkha anhydrite as direct nucleation; real sabkha anhydrite is always
+  // REPLACEMENT after a gypsum precursor (T>30°C + chlorinity >4 mol/kg,
+  // Gunatilaka 1990) — a mechanic the sim doesn't have yet (BACKLOG). Until
+  // it exists, cold-brine anhydrite (great_salt_plains ×8 at 23.6°C) was a
+  // confabulation and dies here.
+  T_min: 100, T_optimal: 150,
   fluid_min: { Ca: 50, S: 20 },
   O2_min: 0.3,
   pH_min: 5, pH_max: 9,
   surface_energy: 'medium',
-  _sources: ['anhydrite engine v17+', 'Blount & Dickson 1973'],
-  _notes: 'CaSO4 — high-T or saline-low-T Ca sulfate. Below 60°C: needs salinity > 50 (dilute low-T → selenite wins).',
+  _sources: ['anhydrite engine v17+', 'Blount & Dickson 1973', 'Ossorio et al. 2014 Chem. Geol. 386:16 (no primary anhydrite ≤120°C)', 'Voigt & Freyer 2023 Front. Nucl. Eng. 2:1208582 (kinetic floor ~100°C; equilibrium boundary 42°C is NOT a nucleation gate)'],
+  _notes: 'CaSO4 — direct nucleation ≥100°C only (v228). Below that, real anhydrite is gypsum-replacement (unbuilt mechanic). Equilibrium gypsum/anhydrite boundary 42±1°C pure water, lower in brines — stability, not nucleability.',
 };
 
 const MINERAL_GATES_brochantite: MineralGates = {
@@ -123,12 +134,20 @@ const MINERAL_GATES_thenardite: MineralGates = {
 
 const MINERAL_GATES_selenite: MineralGates = {
   sigma_crit: 1.0,
-  T_optimal: 30,
+  // v228 (rung 2): T_max 80 — Ossorio et al. 2014 (40-120°C, three
+  // salinities, 2-minute-to-2-year sampling): "below 80°C gypsum is the
+  // sole primary phase"; at 80-120°C it co-nucleates with bassanite and
+  // converts to anhydrite on geological time. The ceiling is a NUCLEATION
+  // bound; the 42°C (brine-shifted) equilibrium boundary is about survival,
+  // not nucleation, and stays out of the gate. Salinity does not lower the
+  // nucleation ceiling. Pre-v228 only a soft decay ran above 60°C, so
+  // elmwood minted gypsum at 88.6°C from a reduced MVT brine.
+  T_max: 80, T_optimal: 30,
   fluid_min: { Ca: 20, S: 15 },
   O2_min: 0.2,
   surface_energy: 'low',
-  _sources: ['selenite engine v17+', 'Van Driessche et al. 2016'],
-  _notes: 'CaSO4·2H2O — Pulpí 20°C, Naica 54.5°C. Phase boundary to anhydrite at ~55-60°C; soft decay above 60°C. T<40 bonus.',
+  _sources: ['selenite engine v17+', 'Van Driessche et al. 2016', 'Ossorio et al. 2014 Chem. Geol. 386:16 (primary-gypsum ceiling 80°C)', 'Voigt & Freyer 2023 (equilibrium 42±1°C ≠ nucleation bound)'],
+  _notes: 'CaSO4·2H2O — Pulpí 20°C, Naica 54.5°C. v228: hard nucleation ceiling 80°C (Ossorio 2014); soft decay above 60°C within the window; T<40 bonus.',
 };
 
 const MINERAL_GATES_anglesite: MineralGates = {
@@ -211,24 +230,19 @@ Object.assign(VugConditions.prototype, {
   const o2_f = sulfateRedoxFactor(this.fluid, 1.0, 1.5);
   let sigma = ca_f * s_f * o2_f;
   const T = this.temperature;
-  const salinity = this.fluid.salinity;
+  // v228 (rung 2): hard kinetic floor from the gates — direct anhydrite
+  // nucleation needs ≥~100°C (Voigt & Freyer 2023; Ossorio 2014). The old
+  // sub-60°C salinity branch (full σ at salinity>100 and ambient T) modeled
+  // sabkha replacement-anhydrite as direct nucleation — retired; salinity
+  // moves the EQUILIBRIUM boundary, not nucleability.
+  if (T < g.T_min!) return 0;
   let T_factor;
-  if (T > 60) {
-    if (T < 200) {
-      T_factor = 0.5 + 0.005 * (T - 60);
-    } else if (T <= 700) {
-      T_factor = 1.2;
-    } else {
-      T_factor = Math.max(0.3, 1.2 - 0.002 * (T - 700));
-    }
+  if (T < 200) {
+    T_factor = 0.5 + 0.005 * (T - 60);
+  } else if (T <= 700) {
+    T_factor = 1.2;
   } else {
-    if (salinity > 100) {
-      T_factor = Math.min(1.0, 0.4 + salinity / 200.0);
-    } else if (salinity > 50) {
-      T_factor = 0.3;
-    } else {
-      return 0;  // dilute low-T → gypsum/selenite wins
-    }
+    T_factor = Math.max(0.3, 1.2 - 0.002 * (T - 700));
   }
   sigma *= T_factor;
   if (this.fluid.pH < 5) {
@@ -413,6 +427,11 @@ Object.assign(VugConditions.prototype, {
   // (real per Pulpí Geode formation).
   const g = MINERAL_GATES_selenite;
   if (this.fluid.Ca < g.fluid_min!.Ca || this.fluid.S < g.fluid_min!.S || !sulfateRedoxAvailable(this.fluid, g.O2_min!)) return 0;
+  // v228 (rung 2): hard nucleation ceiling from the gates (Ossorio 2014 —
+  // above 80°C gypsum is no longer the sole primary CaSO4 phase and converts
+  // on geological time; the sim's CaSO4 above the ceiling belongs to
+  // anhydrite). Soft decay above 60°C still applies within the window.
+  if (this.temperature > g.T_max!) return 0;
   let sigma = (this.fluid.Ca / 60.0) * (this.fluid.S / 50.0) * sulfateRedoxFactor(this.fluid, 0.5);
   if (this.temperature > 60) {
     sigma *= Math.exp(-0.06 * (this.temperature - 60));

@@ -2,6 +2,35 @@
 
 Living list of open work items, captured from session conversations so context survives compaction. Each item has enough detail that someone picking it up cold can act without re-discovering the rationale.
 
+> ## 🗿 SESSION STATE (2026-07-14, latest) — FIX-LADDER **RUNG 2 (T-gates) ✅ SIM 228**; NEXT = rung 3 (tiger's-eye substrate)
+>
+> **Rung 2 shipped** the way rung 1 did — instrument first, then one attributable bump. New instrument:
+> **`tools/t-envelope-census.mjs`** (`58db876`, passive) — measured smoking gun #3 fleet-wide: 137 minerals
+> declare T envelopes, **37 unenforced**; 58 violating nucleation events in 15 scenarios at v227. SIM 228 then
+> enforced the review-flagged set with researched values (4 research passes; opened-source citations live in
+> the gates entries): **quartz [50,700]** (T_max 600 was wrong metadata — pegmatite pocket quartz is real;
+> cold macro-quartz died in 13 scenarios), **arsenopyrite [200,600] AS DECLARED** (the review's 250-300 floor
+> was REFUTED — K&S 300°C is thermometer calibration, Carlin aspy grows 180-240°C), **ZnS polymorph reading
+> retired** (sphalerite no longer decays >95°C "so wurtzite wins"; wurtzite = metastable branch only, pH<4 +
+> σ≥1 + Fe≥5, T_max 350 — extinct at seed 42, all five hosts re-deal to sphalerite), **aragonite favorability
+> restructured** (Mg selector re-centered 1.1 ppm; T = SPRING WINDOW rise ~45 / close ~90°C; Ω demoted to
+> amplifier; SO4 evaluated-and-excluded per Bots 2011), **selenite T_max 80 / anhydrite T_min 100** (Ossorio
+> 2014 + Voigt & Freyer 2023; the saline-low-T anhydrite branch retired — it modeled replacement as
+> nucleation), **goethite T_max 100** (Diakonov 1994), **mimetite T_max 80**, **tellurides T_max 300** (Cooke
+> & McPhail 2001). **Blast radius 27/39** — headline RECOVERIES: sunnyside +sphalerite (expects no-show
+> recovered), ultramafic +chrysoprase ×3 (the name-giving expects recovered — killing cold quartz freed its
+> silica); headline kills: GSP 8× cold anhydrite, porphyry tellurides/mimetite, grimsel 248°C goethite,
+> stalactite aragonite (died despite Ω≈56 — the selector self-gate), hot vein aragonite everywhere.
+> epithermal_telluride + zoned_dripstone byte-identical (showcases intact); travertine keeps its
+> Fouke-documented vent aragonite. **Promises**: sulphur_bank arsenopyrite + GSP quartz/anhydrite + wittichen
+> aragonite + roughten quartz all withdrawn with locality-research notes (erythrite-precedent demotions; see
+> scenarios.json5). Broth truth: travertine SiO2 50→54 (USGS Bull. 1444), naica SiO2 KEPT (review's 10-12
+> lever refuted — Naica cave opal/quartz documented). Citation hygiene: "Murowchick & Barnes 1986 Am.Min.
+> 71:1196" + the review's "Bessinger 2000" both failed verification (research-broth-ratio-sphalerite-wurtzite
+> appendix). **Rung-2 leftovers (§T below): the remaining ~30 unenforced envelopes** — incl. WRONG-value
+> flags that must NOT be blanket-enforced (pyrite T_min 100, bornite T_min 80, native_silver T_min 50 — all
+> contradict real low-T occurrences). NEXT per boss order: **rung 3, tiger's-eye substrate gate**.
+>
 > ## 🗿 SESSION STATE (2026-07-14, later) — HOSTILE REVIEW round 1 DONE; **NEXT = the FIX LADDER**
 >
 > The hostile review ran (39 scenarios × challenge→refute→synthesize, 148 agents; every load-bearing
@@ -3179,3 +3208,68 @@ Documented preferences applied:
 - **Wall:** stibnite, bismuthinite — acicular sprays grow perpendicular to substrate
 
 Sources: Sangster 1990 (MVT paragenesis), Garcia-Ruiz et al. 2007 (Naica selenite), Hanor 2000 (barite brine density), Hill & Forti 1997 (cave mineralogy).
+
+---
+
+## §T — T-GATE LEFTOVERS (rung 2, 2026-07-14): the unenforced remainder + follow-on mechanics
+
+Rung 2 (SIM 228) enforced the REVIEW-FLAGGED envelopes only. `tools/t-envelope-census.mjs`
+still reports ~30 declared-but-unenforced envelopes. They must be closed **per-mineral with
+the value re-researched first** — the census proved blanket enforcement would ship display-
+vetted numbers as physics. Known WRONG declared values (do NOT enforce as-is):
+
+| mineral | declared | why it's wrong |
+|---|---|---|
+| pyrite | T_min 100 | sedimentary/diagenetic pyrite forms at ~0°C up; sulphur_bank's 56-71°C pyrite is real AND expected |
+| bornite | T_min 80 | supergene/enrichment-blanket bornite is textbook-real at ambient T (bisbee grows it at 23-27°C) |
+| native_silver | T_min 50 | supergene wire silver grows in oxidation zones at ambient T (bisbee, 23.6°C) |
+| native_copper | T_min 20 | marginal; Keweenaw natives grow ~150-200°C but supergene copper is ambient |
+
+Also census artifacts to remember: the dynamic census reads T-at-step from strip chips, so
+borderline "violations" within one movement step (deccan stilbite 150.6 vs 150; searles
+thenardite 23.6 vs 25) are chip/event alignment jitter, not defects.
+
+Follow-on mechanics rung 2 exposed (each has a locality client waiting):
+
+- **Weathering/vadose EPILOGUE mechanic** (the schneeberg step-110 pattern, made spatially
+  partial): clients = wittichen erythrite (demoted v191) + wittichen cobaltoan ARAGONITE
+  (demoted v228 — mindat documents it as supergene over the Co-arsenides) + naica late oxide
+  stage. Sealed-vein scenarios end hot; their documented supergene species need a drain-cool-
+  oxidize tail.
+- **Anhydrite-after-gypsum REPLACEMENT mechanic**: direct anhydrite nucleation now honestly
+  needs ≥100°C (v228), which makes sabkha_dolomitization's expects_species anhydrite a
+  PERMANENT no-show until replacement exists (real sabkha anhydrite is always gypsum-
+  replacement — Gunatilaka 1990: T>30°C + chlorinity >4 mol/kg). Client: sabkha, GSP (bedrock
+  story only).
+- **silica_polymorph() species selection** (the review's own lever, engine-level): js/25
+  already KNOWS the polymorph (returns 'opal' below 100°C) but js/59 only uses it as a habit
+  label. Making it select the nucleating SPECIES (opal-A vs chalcedony vs quartz, with the
+  amorphous-solubility threshold) is the honest cure for the remaining timescale artifacts:
+  tutorial_travertine quartz at 68-70°C from a DOCUMENTED 54-ppm broth (USGS Bull. 1444), and
+  the σ→0-outside-envelope semantics reading as "dissolve" for out-of-window relics (naica's
+  early cave quartz now dissolves when T drops below 50 — thermodynamically it should just
+  stop growing).
+- **Roughten Gill primary-stage re-architecture**: the district's REAL quartz-carbonate
+  gangue needs a longer/hotter primary stage — the current ~15-step hot window can't grow
+  visible quartz even silica-saturated (measured 2026-07-14: SiO2 140 → an 8.5 µm dissolved
+  speck + chrysocolla bloom draining Cu from the documented supergene suite; reverted).
+  Quartz promise withdrawn until the thermal story is rebuilt.
+- **Sulphur Bank realgar/orpiment locality verification**: White & Roberson's ore list
+  (per the rung-2 research pass) does NOT include them; the scenario note claiming it does
+  was corrected to a ⚠ VERIFY. Check mindat loc-3491 when reachable; if absent there too,
+  they owe the arsenopyrite treatment (they currently FIRE, so no mirror pressure).
+- **Orphaned-Zn after the wurtzite retirement** (a rung-4 census input, found by the
+  pharmacolite σ-probe's death): at schneeberg seeds {42,1,7} the cool tail now carries
+  ~80-225 ppm dissolved Zn that wurtzite's high-T branch used to consume — sphalerite
+  can't inherit it (its S floor of 10 is unmet by then, S≈9) and the Zn-arsenate/carbonate
+  sinks (adamite, smithsonite) don't fire either, so the Zn lingers as a phantom competitor
+  that trips OTHER minerals' cation-share gates (pharmacolite's Ca-share blocked all run).
+  The rung-4 redox/economy census should ask: where does late orphaned Zn belong, and
+  which cation-share gates read phantom competitors that no engine can actually claim?
+
+Also found in passing (rung-2 ripple work): **`wall.composition` defaults to `'limestone'`**
+(js/22-geometry-wall.ts:100) — the same unset-means-something shape as the F=10 default.
+Scenarios that never declare a wall composition (supergene_oxidation among them) silently
+read as limestone to every consumer (wall dissolution chemistry, renderer litho label, the
+v228 selenite particle-source check, which had to grow a wall_Fe branch to see through it).
+Candidate for the explicit→flip→science ladder when wall chemistry is next touched.
