@@ -951,7 +951,18 @@ Object.assign(VugConditions.prototype, {
     //   SUPERGENE "nonsulfide" 50-200°C (Skorpion Namibia)
     // Engine fires across both regimes; T sweet spot bifurcates.
     if (this.fluid.Zn < 50 || this.fluid.SiO2 < 100) return 0;
-    if (this.fluid.O2 < 0.3) return 0;  // less strict than hemimorphite
+    // O2 floor 0.5 (Eh ≳ +100 mV) — rung 4a (SIM 230). Willemite is a
+    // nonsulfide-Zn phase: it forms only under genuinely OXIDIZING conditions
+    // (supergene weathering, or hypogene-oxidizing REPLACING sphalerite; Boni &
+    // Mondillo 2014, Hitzman et al. 2003). It must never co-precipitate with
+    // actively-growing sphalerite in a reducing/boundary brine. The old 0.3
+    // floor sat BELOW the SO₄/H₂S boundary (O2≈0.4, where barite + galena
+    // legitimately coexist in MVT), so willemite leaked into mvt (O2 0.31–0.33,
+    // beside sphalerite) and tn457 — Zn into a silicate AND a sulfide at once.
+    // Raising the floor above that boundary kills both leaks (the only two in
+    // the fleet, zero legit collateral); willemite is extinct at seed 42 until
+    // a real Skorpion/Vazante nonsulfide-Zn scenario ships.
+    if (this.fluid.O2 < 0.5) return 0;
     // Wide T window covering both modes
     if (this.temperature < 50 || this.temperature > 700) return 0;
     if (this.fluid.pH < 6.0 || this.fluid.pH > 9.0) return 0;

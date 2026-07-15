@@ -2,7 +2,28 @@
 
 Living list of open work items, captured from session conversations so context survives compaction. Each item has enough detail that someone picking it up cold can act without re-discovering the rationale.
 
-> ## 🗿 SESSION STATE (2026-07-15, latest) — FIX-LADDER **RUNG 4 (redox/sulfide vetoes) — CENSUS DONE + PROPOSAL WRITTEN**; awaiting fix approval
+> ## 🗿 SESSION STATE (2026-07-15, latest) — FIX-LADDER **RUNG 4a (willemite redox floor) ✅ SIM 230**; rung-4b–4d proposed
+>
+> Rung 4 is proposal-driven (`PROPOSAL-RUNG-4-REDOX-2026-07-15.md`, boss-approved). **Rung 4a is the first
+> executable bump.** The census reframed it before code changed: mvt sits at O2 0.25–0.4 (the SO₄/H₂S
+> boundary) DELIBERATELY so barite (sulfate) + galena (sulfide) coexist — the diagnostic MVT assemblage
+> (Anderson & Macqueen 1982). So mvt's Eh CAN'T just be reduced (Lever A) — that kills barite, an
+> expects_species. The willemite leak (mvt ×3 at O2 0.31–0.33 beside growing sphalerite; tn457 ×3) was a
+> GATE-FLOOR bug: willemite's O2 floor (0.3) sat BELOW that boundary, so it minted at LESS oxidation than
+> barite needs — backwards, since willemite (nonsulfide-Zn: supergene, or hypogene-oxidizing REPLACING
+> sphalerite; Boni & Mondillo 2014, Hitzman 2003) needs genuinely OXIDIZING fluid. **FIX: willemite O2
+> floor 0.3 → 0.5** (js/39, above the boundary). **Blast 2/39** = the two offenders only; willemite killed
+> in both (the ONLY two in the fleet), 0 legit collateral → EXTINCT at seed 42 until a real Skorpion/
+> Vazante nonsulfide-Zn scenario ships (the tiger's-eye rung-3 de-confab pattern; DEAD-not-stale, gate
+> holds at 1). The barite abstraction PRESERVED (barite 6→6 both); the freed Zn feeds sphalerite (mvt
+> 246→629 µm, tn457 2→3 crystals — causal-control recovery, cf. rung-2 sunnyside). Test: zn-supergene
+> Franklin σ-probe O2 0.5→0.6 (headroom off the floor). Shipped SIM 230 (2026-07-15), **2436 tests green**.
+> **RESIDUE (honest):** cerussite still nucleates in mvt — a COMPETITION bug (Pb split galena/cerussite),
+> no redox gate (js/32), NOT redox-incompatibility. It's the next target (Lever C / sulfide-competition
+> check, sparing legit supergene cerussite at loc-1470/3934). Then rung-4b (sulfide ceiling +290→real,
+> the ceiling-leak scenarios) + 4c (late-oxidation + phase-selection) + 4d (veto if residue).
+>
+> ## 🗿 SESSION STATE (2026-07-15, rung-4 proposal) — FIX-LADDER **RUNG 4 (redox/sulfide vetoes) — CENSUS + PROPOSAL**
 >
 > Boss chose **proposal-first** (rung 4 is "the most coupled / possibly its own proposal"). Proposal:
 > **`PROPOSAL-RUNG-4-REDOX-2026-07-15.md`** — READ IT before any rung-4 fix. The census **overturned the

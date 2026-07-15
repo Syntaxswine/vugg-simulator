@@ -12022,5 +12022,28 @@
 //        native_silver 8→7, deccan thomsonite 6→5, apophyllite/goethite grow
 //        into the freed silica; no expected species zeroed. Capability stays
 //        wired + tested (amphibole-asbestos σ-probes + engine-wiring untouched).
-const SIM_VERSION = 229;
+// v230 — HOSTILE-REVIEW fix-ladder rung 4a (the willemite redox floor): the
+//        first executable bump of the redox/sulfide arc (PROPOSAL-RUNG-4-REDOX-
+//        2026-07-15). Willemite (Zn₂SiO₄, a nonsulfide-Zn phase) leaked into two
+//        hypogene sulfide brines — mvt (×3, O2 0.31-0.33, beside growing
+//        sphalerite+galena+pyrite at Eh +50) and tn457 (×3) — because its O2
+//        floor (0.3) sat BELOW the SO₄/H₂S boundary (O2≈0.4) where barite +
+//        galena legitimately coexist in MVT (a DEFENDED abstraction, Anderson &
+//        Macqueen 1982). Willemite forms only under genuinely OXIDIZING
+//        conditions (supergene weathering, or hypogene-oxidizing REPLACING
+//        sphalerite — never syn-ore with growing sphalerite; Boni & Mondillo
+//        2014, Hitzman et al. 2003), so its floor belongs ABOVE that boundary.
+//        FIX: willemite O2 floor 0.3 → 0.5 (js/39). Blast 2/39 = the two
+//        offenders only; willemite extinct at seed 42 (both, 0 legit collateral)
+//        until a real Skorpion/Vazante nonsulfide-Zn scenario ships — the
+//        tiger's-eye (rung 3) de-confabulation pattern. The barite abstraction
+//        is PRESERVED (mvt/tn457 barite 6→6); the freed Zn feeds sphalerite
+//        (mvt 246→629 µm, tn457 2→3 crystals — the causal-control recovery, cf.
+//        rung 2's sunnyside). Test: zn-supergene Franklin σ-probe O2 0.5→0.6
+//        (off the new floor). PLAN NOTE: the census reframed rung 4 — mvt's Eh
+//        trajectory can't be reduced (Lever A) without killing barite, so the
+//        willemite fix is a gate-floor raise (Lever B class), not a trajectory
+//        change. cerussite (mvt; no redox gate — a competition bug, not redox-
+//        incompatibility) survives this bump and is the next target (Lever C).
+const SIM_VERSION = 230;
 
