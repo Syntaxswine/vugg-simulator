@@ -174,11 +174,26 @@ in bisbee/roughten_gill/supergene_oxidation stop reading as coexisting — *with
 those phases*.
 - ⏳ **RESEARCH-PENDING (cited):** the correct ceiling. Anchor to where galena/sphalerite
   stop being stable vs their carbonate/sulfate — same MVT-Eh research as Lever A.
-- The single highest-leverage knob: it is ONE helper threshold (`sulfideRedoxAnoxic`'s O2
-  argument, or a dedicated sulfide-stability Eh), consumed by ~20 sulfide σ-functions.
-  Blast radius must be measured carefully (it touches every sulfide scenario) — this is why
-  it is its own sub-bump, and why the two-commit discipline (record-identical, then the
-  attributable bump) applies.
+- **NOT a single knob (census finding, 2026-07-15).** `sulfide-nucleation-eh-census.mjs`
+  measured where every sulfide nucleates at seed 42. The ceiling CANNOT be uniformly
+  tightened: the sulfides split into two stability classes —
+  - **Primary hypogene sulfides** (sphalerite, galena, pyrite, chalcopyrite, arsenopyrite,
+    the As-sulfides) nucleate in REDUCING fluid; their only oxidizing-side appearances are
+    spurious (supergene_oxidation sphalerite +290, galena +131 — primary sulfides growing
+    in the oxidized zone). These want a LOW ceiling.
+  - **Secondary / supergene-enrichment sulfides** (chalcocite, covellite, bornite) LEGITIMATELY
+    nucleate at MODERATE Eh — the supergene Cu-enrichment blanket below the oxidized cap
+    (bisbee chalcocite/covellite +154–193, roughten_gill covellite +252). A uniform tighten
+    would KILL these — a real regression, not a leak fix.
+  So Lever B is a PER-CLASS ceiling: a low primary-sulfide ceiling + a preserved (or
+  separately-calibrated) secondary/enrichment ceiling. `sulfideRedoxAnoxic(fluid, 1.5)` is
+  consumed by ~20 σ-functions, so this is a careful, two-commit, per-mineral-class change —
+  exactly the "most coupled" work the review warned of. The mvt constraint compounds it: mvt's
+  own galena/sphalerite nucleate at the +50 mV SO₄/H₂S boundary (for barite coexistence), so
+  even the PRIMARY ceiling can't drop below ~+50 without killing mvt's expects_species.
+  Net: the primary-sulfide ceiling window is roughly **+50 … +100 mV** (above mvt's boundary,
+  below the supergene sphalerite/galena leak at +131), and the secondary/enrichment sulfides
+  need their own higher gate (~+200 mV) to keep chalcocite/covellite.
 
 ### Lever C — sulfide-competition veto (DEMOTED backstop; probably unnecessary)
 The obvious veto ("oxidized-metal phase can't nucleate while its sulfide is σ≥1") is what
@@ -211,11 +226,14 @@ ritual. Root-cause first; the veto is last and conditional.
   floor with per-deposit Eh research; willemite/cerussite/smithsonite wink out, the sulfide
   expects_species survive (verified each scenario). Smallest conceptual surface, highest
   confidence, one scenario per commit so every baseline move is attributable.
-- **rung-4b — the sulfide stability ceiling (Lever B).** Tighten `sulfideRedoxAnoxic`'s
-  ceiling from +290 mV to the researched sulfide-stability field. One threshold, ~20
-  consumer σ-functions, so two-commit discipline (record-identical instrument commit, then
-  the attributable bump) and a careful fleet-wide blast-radius pass. Resolves the ceiling-
-  leak scenarios (bisbee/roughten_gill/supergene_oxidation) at the source.
+- **rung-4b — the PER-CLASS sulfide stability ceiling (Lever B).** NOT a single knob (the
+  census overturned the first-pass assumption): a LOW primary-sulfide ceiling (~+50…+100 mV,
+  above mvt's barite boundary, below the supergene sphalerite/galena leak) + a PRESERVED
+  higher secondary/enrichment ceiling (~+200 mV) so bisbee's legit chalcocite/covellite
+  survive. Per-mineral-class, ~20 consumer σ-functions, two-commit discipline, careful
+  fleet-wide blast radius. Resolves the supergene_oxidation primary-sulfide leak WITHOUT
+  touching the Cu-enrichment blanket. Needs per-class research (the sphalerite/galena vs
+  chalcocite/covellite stability fields) before it lands.
 - **rung-4c — late-oxidation events + willemite phase-selection (Lever D).** Restore the
   correct supergene phases where documented (smithsonite/hemimorphite for carbonate-hosted
   supergene Zn; the tn457 fix), as explicit late events. Shares the backlog weathering-

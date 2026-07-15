@@ -20,8 +20,14 @@ Living list of open work items, captured from session conversations so context s
 > Franklin σ-probe O2 0.5→0.6 (headroom off the floor). Shipped SIM 230 (2026-07-15), **2436 tests green**.
 > **RESIDUE (honest):** cerussite still nucleates in mvt — a COMPETITION bug (Pb split galena/cerussite),
 > no redox gate (js/32), NOT redox-incompatibility. It's the next target (Lever C / sulfide-competition
-> check, sparing legit supergene cerussite at loc-1470/3934). Then rung-4b (sulfide ceiling +290→real,
-> the ceiling-leak scenarios) + 4c (late-oxidation + phase-selection) + 4d (veto if residue).
+> check, sparing legit supergene cerussite at loc-1470/3934). Then rung-4b (sulfide ceiling) — a census
+> scouting run REFRAMED it: NOT a single knob. Sulfides split by stability — primary (sphalerite/galena/
+> pyrite) want a LOW ceiling (~+50–100 mV, above mvt's +50 barite boundary, below the supergene_ox leak at
+> +131–290) but secondary/enrichment sulfides (chalcocite/covellite/bornite) LEGITIMATELY nucleate at
+> +130–193 (bisbee's supergene Cu-enrichment blanket, roughten_gill) — a uniform tighten would KILL them.
+> So Lever B is a PER-CLASS ceiling (per-mineral research + two-commit). Then 4c (late-oxidation + willemite
+> →smithsonite phase-selection) + 4d (veto if residue). Census instruments (incl. sulfide-nucleation-eh) in
+> scratchpad; promote to tools/ at 4b.
 >
 > ## 🗿 SESSION STATE (2026-07-15, rung-4 proposal) — FIX-LADDER **RUNG 4 (redox/sulfide vetoes) — CENSUS + PROPOSAL**
 >
