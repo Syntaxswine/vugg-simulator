@@ -12045,5 +12045,41 @@
 //        willemite fix is a gate-floor raise (Lever B class), not a trajectory
 //        change. cerussite (mvt; no redox gate — a competition bug, not redox-
 //        incompatibility) survives this bump and is the next target (Lever C).
-const SIM_VERSION = 230;
+// v231 — HOSTILE-REVIEW fix-ladder rung 4b (the PRIMARY base-metal sulfide
+//        stability ceiling, Lever B): the root-cause partner to 4a. The six
+//        PRIMARY base-metal sulfides — sphalerite, wurtzite (ZnS), pyrite,
+//        marcasite (FeS₂), chalcopyrite (CuFeS₂), galena (PbS) — all gated on
+//        the class-default sulfideRedoxAnoxic(fluid, 1.5) = Eh ≤ +290 mV, ~300
+//        mV too oxidizing, so fresh primary sulfide NUCLEATED up in the
+//        oxidizing supergene zone (supergene_oxidation: sphalerite σ≥1 at Eh
+//        +290, galena ×4 at +131) — where the sulfur is sulfate and no reduced
+//        S exists to build ZnS/PbS. (A relict grain may PERSIST metastably above
+//        the boundary — Sato 1992's "persistency field" — but that is
+//        dissolution, not nucleation; the sim governs relict survival apart.)
+//        FIX: PRIMARY_SULFIDE_CEILING_O2 1.5 → 0.5 (js/20c) — the six gates
+//        tighten to Eh ≤ +100 mV. Threaded through the boxed window the census
+//        measured (tools/sulfide-nucleation-eh-census + primary-sulfide-margin-
+//        probe): ABOVE mvt's +50 SO₄/H₂S barite-coexistence boundary (Anderson
+//        & Macqueen 1982 — the diagnostic MVT assemblage, PRESERVED; tn457 +76,
+//        elmwood +24 all kept), BELOW the +131 supergene leak. Refs: Garrels
+//        1954 GCA 5:153-168; Sato 1992 GCA 56:3133-3156.
+//        PER-CLASS — the census's key catch: the SECONDARY / supergene-
+//        enrichment Cu-sulfides (bornite/chalcocite/covellite, gated 1.8-2.0 =
+//        +345..+375 mV) are LEFT high on purpose; they legitimately nucleate in
+//        the moderately-oxidizing Cu-enrichment blanket (bisbee/roughten_gill,
+//        the "enrichment" half of Sato's oxidation-AND-enrichment title). A
+//        uniform tighten would have killed bisbee's namesake chalcocite/
+//        covellite. The As/Ag/Sb sulfides & sulfosalts keep their bespoke
+//        0.5-1.2 ceilings.
+//        Blast 3/39, ALL oxidizing scenarios with Eh>+100 excursions: the two
+//        intended kills (supergene_oxidation sphalerite +290 + galena +131
+//        leaks) land; CAUSAL CONTROL — the freed Zn feeds smithsonite (2→3) +
+//        aurichalcite, the freed Pb feeds cerussite (4→8) + anglesite (8→12),
+//        all EXPECTS_SPECIES of supergene_oxidation (the spurious primary
+//        sulfides become the correct supergene oxidation products, cf. rung-2
+//        sunnyside, rung-4a willemite→sphalerite). bisbee + roughten_gill:
+//        size-jitter only, NO species lost, Cu-enrichment + primary counts
+//        preserved. mvt/tn457/elmwood byte-identical. Two-commit: 7a7308b named
+//        the ceiling byte-identically; this is the attributable 1.5→0.5.
+const SIM_VERSION = 231;
 

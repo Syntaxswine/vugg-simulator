@@ -620,7 +620,7 @@ function sulfideRedoxAnoxic(fluid: any, o2UpperBound: number): boolean {
 // sulfosalts keep their own bespoke ceilings (0.5–1.2). A uniform tighten would
 // have killed bisbee's namesake chalcocite/covellite — the census's key catch.
 // Refs: Garrels (1954) GCA 5:153–168; Sato (1992) GCA 56:3133–3156.
-const PRIMARY_SULFIDE_CEILING_O2 = 1.5;  // BYTE-IDENTICAL placeholder; rung-4b/commit-2 tightens to 0.5 (+100 mV)
+const PRIMARY_SULFIDE_CEILING_O2 = 0.5;  // Eh ≤ +100 mV (= ehFromO2(0.5)) — see the rationale block above
 
 // Unified linear-multiplier helper. Three call patterns:
 //   sulfideRedoxLinearFactor(f, 1.5)                 // no-clamp `1.5 - O2`

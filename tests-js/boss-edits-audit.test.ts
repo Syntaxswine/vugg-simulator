@@ -125,7 +125,7 @@ describe('Boss edit 1 — Mo-flux removal (5ecbb42)', () => {
     // would have been HALF of sigma_low if Mo-flux were still active.
     const { lowSigma, highSigma } = bench('pyrite', {
       temperature: 380,
-      fluid: { Fe: 50, S: 80, pH: 6, O2: 0.05, Eh: 100 },
+      fluid: { Fe: 50, S: 80, pH: 6, O2: 0.05, Eh: 0 },  // Eh reducing, below rung-4b's +100 mV primary-sulfide ceiling
     });
     expect(lowSigma).toBeGreaterThan(0);
     expect(highSigma).toBe(lowSigma); // pre-fix: highSigma would be 0.5 × lowSigma
@@ -137,7 +137,7 @@ describe('Boss edit 1 — Mo-flux removal (5ecbb42)', () => {
     // fading branch (factor 0.5). Post-fix the two are equal.
     const { lowSigma, highSigma } = bench('chalcopyrite', {
       temperature: 480,
-      fluid: { Cu: 80, Fe: 50, S: 80, pH: 6, O2: 0.05, Eh: 100 },
+      fluid: { Cu: 80, Fe: 50, S: 80, pH: 6, O2: 0.05, Eh: 0 },  // Eh reducing, below rung-4b's +100 mV primary-sulfide ceiling
     });
     expect(lowSigma).toBeGreaterThan(0);
     expect(highSigma).toBe(lowSigma);
@@ -162,7 +162,7 @@ describe('Boss edit 1 — Mo-flux removal (5ecbb42)', () => {
     // reduction — well outside this tolerance.
     const { lowSigma, highSigma } = bench('galena', {
       temperature: 440,
-      fluid: { Pb: 50, S: 80, pH: 6, O2: 0.05, Eh: 100 },
+      fluid: { Pb: 50, S: 80, pH: 6, O2: 0.05, Eh: 0 },  // Eh reducing, below rung-4b's +100 mV primary-sulfide ceiling
     });
     expect(lowSigma).toBeGreaterThan(0);
     const ratio = highSigma / lowSigma;
