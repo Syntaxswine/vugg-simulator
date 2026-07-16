@@ -1,5 +1,14 @@
 # HANDOFF — fix-ladder rung 4b: the per-class sulfide stability ceiling (2026-07-15)
 
+> ✅ **SHIPPED SIM 231 (2026-07-15, `75ce387`; two-commit, `7a7308b` named the ceiling byte-identical
+> first)** — this bridge is now HISTORICAL. Rung-4b landed exactly as the census designed:
+> PRIMARY_SULFIDE_CEILING_O2 1.5→0.5 (Eh ≤ +100 mV) on the six primary base-metal sulfides, secondaries
+> (bornite/chalcocite/covellite) preserved. Blast 3/39; causal-control heirs (freed Zn→smithsonite/
+> aurichalcite, freed Pb→cerussite/anglesite, + the Tsumeb Cu/Zn vanadate fork mottramite→descloizite);
+> 2436 green, cold-CI stamped, Pages live. **NEXT = rung-4c** (late-oxidation + willemite→smithsonite
+> phase-select) — see the BACKLOG rung-4b banner + PROPOSAL-RUNG-4-REDOX §7. Kept below for the record:
+> the per-class spec, the census instruments (now in tools/), the traps, and the carried residue.
+
 For the fresh context that continues the hostile-review redox arc. Rung 3 (tiger's-eye, SIM
 229 `298b697`) and rung 4a (willemite floor, SIM 230 `fd6ba70`) are SHIPPED, deployed,
 cold-CI clean-tree stamped, 2436/2436. **Rung 4 is proposal-driven** — read the proposal, not

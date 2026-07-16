@@ -2,7 +2,39 @@
 
 Living list of open work items, captured from session conversations so context survives compaction. Each item has enough detail that someone picking it up cold can act without re-discovering the rationale.
 
-> ## 🗿 SESSION STATE (2026-07-15, latest) — FIX-LADDER **RUNG 4a (willemite redox floor) ✅ SIM 230**; rung-4b–4d proposed
+> ## 🗿 SESSION STATE (2026-07-15, latest) — FIX-LADDER **RUNG 4b (per-class primary-sulfide ceiling) ✅ SIM 231**
+>
+> **Next: rung-4c** (late-oxidation events + willemite→smithsonite phase-selection), then rung-4d cerussite
+> competition residue. Bridge: `HANDOFF-RUNG-4B-SULFIDE-CEILING-2026-07-15.md`. Keystone lineage:
+> HANDOFF-FOUNDATIONS-2026-07-03.md, twenty-first hand — "the lantern, not the shadow."
+>
+> Rung-4b (Lever B) landed exactly as the census's PER-CLASS reframing predicted. The six PRIMARY base-metal
+> sulfides (sphalerite, wurtzite, pyrite, marcasite, chalcopyrite, galena) all shared the +290 mV gate
+> (`sulfideRedoxAnoxic(f,1.5)`), ~300 mV too oxidizing → fresh primary sulfide NUCLEATED in the oxidizing
+> supergene zone (supergene_oxidation sphalerite σ≥1 at +290, galena ×4 at +131, where the S is sulfate and
+> no reduced S exists to build ZnS/PbS). **FIX: PRIMARY_SULFIDE_CEILING_O2 1.5→0.5 (js/20c)** — the six gates
+> tighten to Eh ≤ +100 mV: ABOVE mvt's +50 SO₄/H₂S barite boundary (Anderson & Macqueen 1982 — kept; tn457
+> +76, elmwood +24 byte-identical), BELOW the +131 supergene leak. Grounded: Garrels 1954 GCA 5:153, Sato
+> 1992 GCA 56:3133 (the "persistency field" — relict sulfides PERSIST metastably above the boundary, but
+> that's dissolution, not nucleation; the sim governs relict survival separately). **PER-CLASS** (the census's
+> key catch): the secondary Cu-enrichment sulfides (bornite/chalcocite/covellite, gated 1.8-2.0 = +345-375)
+> LEFT high — they legitimately nucleate in bisbee's enrichment blanket (Sato's "enrichment" half); a uniform
+> tighten would have killed bisbee's namesake ore. **Blast 3/39**, all oxidizing scenarios with Eh>+100
+> excursions: 2 intended kills (supergene_ox sphalerite + galena leaks) + **CAUSAL CONTROL** — freed Zn →
+> smithsonite 2→3 + aurichalcite, freed Pb → cerussite 4→8 + anglesite 8→12 (all supergene_ox EXPECTS_SPECIES
+> — the spurious primary sulfides became the correct supergene oxidation products, cf. rung-2 sunnyside,
+> rung-4a willemite→sphalerite). bisbee + roughten_gill size-jitter only (Cu-enrichment + primary counts
+> preserved); mvt/tn457/elmwood byte-identical. **Two-commit**: 7a7308b named the ceiling byte-identically,
+> then the attributable 1.5→0.5. Instruments promoted: tools/sulfide-nucleation-eh-census +
+> primary-sulfide-margin-probe. Shipped SIM 231 (2026-07-15), **2436 tests green** (6 updated for the
+> corrected science — incl. a CAUSAL FORK-FLIP: freed Zn routes the Tsumeb Cu/Zn vanadate fork
+> mottramite→descloizite, Boni 2007's abundant supergene V ore). bisbee native_copper re-dealt 54.7→4.9 µm
+> but the CAST-STORY test survives untouched (rung-3's mechanism-pin: dendr/tot 0.542).
+> **RESIDUE (honest, carried):** rung-4d cerussite competition (mvt cerussite beside galena, sparing legit
+> supergene cerussite loc-1470/3934); molybdenite +131 in supergene_ox LEFT (refractory MoS₂, gated 1.2, not
+> one of the six primaries — a deliberate non-target).
+>
+> ## 🗿 SESSION STATE (2026-07-15, rung-4a) — FIX-LADDER **RUNG 4a (willemite redox floor) ✅ SIM 230**; rung-4b–4d shipped/proposed
 >
 > **Rung-4b bridge: `HANDOFF-RUNG-4B-SULFIDE-CEILING-2026-07-15.md` — READ IT FIRST** (the per-class
 > ceiling, the boxed +50–100 primary / ~+200 secondary window, the census instruments, the traps, the
