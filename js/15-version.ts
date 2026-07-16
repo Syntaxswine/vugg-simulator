@@ -12081,5 +12081,27 @@
 //        size-jitter only, NO species lost, Cu-enrichment + primary counts
 //        preserved. mvt/tn457/elmwood byte-identical. Two-commit: 7a7308b named
 //        the ceiling byte-identically; this is the attributable 1.5→0.5.
-const SIM_VERSION = 231;
+// v232 — HOSTILE-REVIEW fix-ladder rung 4c (the cerussite oxidizing gate): the
+//        rung-4a/4b RESIDUE resolved — and the census reframed it a THIRD time.
+//        The proposal called it a "competition veto" (Lever C: gate cerussite when
+//        galena is actively supersaturating). Grepping the carbonate family (js/32)
+//        reframed it: cerussite is the ONLY supergene carbonate MISSING the
+//        carbonateRedoxAvailable oxidizing gate — smithsonite (O2_min 0.2),
+//        malachite (0.3), azurite (1.0), rosasite (0.8), aurichalcite all have it;
+//        cerussite (PbCO3, the Pb analog of smithsonite, forms by galena OXIDATION)
+//        had none, so it minted in reducing hypogene brines regardless of redox.
+//        Not a competition bug — a MISSING GATE (cf. galena's pre-v13 O2 omission,
+//        willemite's rung-4a floor). FIX: O2_min 0.5 (Eh ≥ +100 mV) + the
+//        carbonateRedoxAvailable call (js/32). +100 = galena's rung-4b stability
+//        ceiling: the REDOX PARTITION of Pb — galena below +100, cerussite above.
+//        Census gap wide (spurious mvt -36 / elmwood +24, both beside actively-
+//        growing galena; legit roughten_gill +202 / supergene_oxidation +220..+357,
+//        both cerussite ∈ expects_species). Blast 2/39 = the two spurious scenarios
+//        ONLY: cerussite killed in mvt + elmwood, 0 legit collateral (both expects-
+//        species cerussite scenarios untouched). CAUSAL CONTROL: freed Pb → galena
+//        (mvt 6062→6100µm) + freed CO3 → calcite (mvt 38885→38997); elmwood barite
+//        18→19. mvt's rung-4a sphalerite recovery (629µm) held. Refs: Garrels 1954
+//        GCA 5:153-168, Sato 1992 GCA 56:3133-3156. One commit (single clean gate,
+//        like 4a).
+const SIM_VERSION = 232;
 

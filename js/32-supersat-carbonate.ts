@@ -166,10 +166,11 @@ const MINERAL_GATES_cerussite: MineralGates = {
   sigma_crit: 1.0,
   T_optimal: 30,
   fluid_min: { Pb: 15, CO3: 30 },
+  O2_min: 0.5,
   pH_min: 4.0,
   surface_energy: 'medium',
-  _sources: ['cerussite engine v17+'],
-  _notes: 'PbCO3 supergene Pb carbonate. Substrate pref: dissolving anglesite > dissolving galena > active galena.',
+  _sources: ['cerussite engine v17+', 'Garrels 1954 GCA 5:153-168', 'Sato 1992 GCA 56:3133-3156'],
+  _notes: 'PbCO3 SUPERGENE Pb carbonate — the Pb analog of smithsonite (ZnCO3), forms by galena OXIDATION. O2_min 0.5 (Eh ≥ +100 mV) added rung-4c (SIM 232): cerussite forms ABOVE galena stability (the +100 mV galena ceiling from rung-4b) — the redox partition of Pb, galena below, cerussite above. Before, cerussite ALONE among the supergene carbonates lacked the carbonateRedoxAvailable gate its siblings (smithsonite/malachite/azurite/rosasite/aurichalcite) all have, so it minted in reducing hypogene brines (mvt Eh -36, elmwood +24) beside actively-growing galena. Substrate pref: dissolving anglesite > dissolving galena > active galena.',
 };
 
 const MINERAL_GATES_rosasite: MineralGates = {
@@ -553,7 +554,14 @@ Object.assign(VugConditions.prototype, {
 
   supersaturation_cerussite() {
   const g = MINERAL_GATES_cerussite;
-  if (this.fluid.Pb < g.fluid_min!.Pb || effectiveCO3(this.fluid, this.temperature) < g.fluid_min!.CO3) return 0;
+  // rung-4c (SIM 232): the missing oxidizing gate. cerussite is the supergene Pb
+  // carbonate (galena → cerussite by OXIDATION), the Pb analog of smithsonite —
+  // but alone among the supergene carbonates it lacked carbonateRedoxAvailable,
+  // so it minted in reducing hypogene brines (mvt Eh -36, elmwood +24) beside
+  // actively-growing galena. Gated to O2_min 0.5 (Eh ≥ +100 mV = galena's rung-4b
+  // stability ceiling): the redox partition of Pb — galena below +100, cerussite
+  // above. Census gap was wide (spurious -36/+24; legit +202..+357). Garrels 1954.
+  if (this.fluid.Pb < g.fluid_min!.Pb || effectiveCO3(this.fluid, this.temperature) < g.fluid_min!.CO3 || !carbonateRedoxAvailable(this.fluid, g.O2_min!)) return 0;
   if (kspSupersatActiveFor('cerussite')) return carbonateEngineSigma('cerussite', this.fluid, this.temperature);
   const pb_f = Math.min(this.fluid.Pb / 40.0, 2.0);
   const co_f = Math.min(effectiveCO3(this.fluid, this.temperature) / 80.0, 1.5);
