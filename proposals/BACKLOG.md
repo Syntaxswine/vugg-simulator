@@ -2,7 +2,31 @@
 
 Living list of open work items, captured from session conversations so context survives compaction. Each item has enough detail that someone picking it up cold can act without re-discovering the rationale.
 
-> ## 🗿 SESSION STATE (2026-07-15, latest) — FIX-LADDER **RUNG 4b (per-class primary-sulfide ceiling) ✅ SIM 231**
+> ## 🗿 SESSION STATE (2026-07-15, latest) — FIX-LADDER **RUNG 4c (cerussite oxidizing gate) ✅ SIM 232**
+>
+> **Next: rung-4d** (late-oxidation events + willemite→smithsonite phase-selection, the old Lever D —
+> willemite is extinct so its phase-select is forward-looking); then the fluid.S sulfate/sulfide split
+> (the bedrock, its own arc). Keystone lineage: HANDOFF-FOUNDATIONS-2026-07-03.md, twenty-first hand.
+>
+> Rung-4c resolved the rung-4a/4b cerussite RESIDUE — and the census reframed it a THIRD time. The
+> proposal filed it as a "competition veto" (Lever C: block cerussite while galena is actively
+> supersaturating). Grepping the carbonate family (js/32) reframed it: **cerussite is the ONLY supergene
+> carbonate MISSING the carbonateRedoxAvailable oxidizing gate** — smithsonite (O2_min 0.2), malachite
+> (0.3), azurite (1.0), rosasite (0.8), aurichalcite all have it; cerussite (PbCO3, the Pb analog of
+> smithsonite, forms by galena OXIDATION) had none, so it minted in reducing hypogene brines regardless
+> of Eh. NOT a competition bug — a **MISSING GATE** (cf. galena's pre-v13 O2 omission, willemite's rung-4a
+> floor; grep-the-tree-first — the fix already existed, cerussite just never called it). **FIX: O2_min
+> 0.5 (Eh ≥ +100 mV) + the carbonateRedoxAvailable call (js/32).** +100 = galena's rung-4b stability
+> ceiling → the **redox partition of Pb**: galena below +100, cerussite above. Census gap wide (spurious
+> mvt -36 / elmwood +24, both beside actively-growing galena; legit roughten_gill +202 /
+> supergene_oxidation +220..+357, both cerussite ∈ expects_species). **Blast 2/39** — the two spurious
+> scenarios ONLY: cerussite killed in mvt + elmwood, **0 legit collateral** (both expects-species
+> cerussite scenarios byte-identical). CAUSAL CONTROL: freed Pb → galena (mvt 6062→6100µm) + freed CO3 →
+> calcite (mvt 38885→38997); elmwood barite 18→19; mvt's rung-4a sphalerite recovery (629µm) held.
+> Garrels 1954, Sato 1992. One commit (`d6ea106`, single clean gate, like rung-4a). Shipped SIM 232
+> (2026-07-15), **2436 tests green** (no fallout — the spurious cerussite was asserted nowhere).
+>
+> ## 🗿 SESSION STATE (2026-07-15, rung-4b) — FIX-LADDER **RUNG 4b (per-class primary-sulfide ceiling) ✅ SIM 231**
 >
 > **Next: rung-4c** (late-oxidation events + willemite→smithsonite phase-selection), then rung-4d cerussite
 > competition residue. Bridge: `HANDOFF-RUNG-4B-SULFIDE-CEILING-2026-07-15.md`. Keystone lineage:
