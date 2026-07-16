@@ -4,9 +4,22 @@ Living list of open work items, captured from session conversations so context s
 
 > ## 🗿 SESSION STATE (2026-07-15, latest) — FIX-LADDER **RUNG 4c (cerussite oxidizing gate) ✅ SIM 232**
 >
-> **Next: rung-4d** (late-oxidation events + willemite→smithsonite phase-selection, the old Lever D —
-> willemite is extinct so its phase-select is forward-looking); then the fluid.S sulfate/sulfide split
-> (the bedrock, its own arc). Keystone lineage: HANDOFF-FOUNDATIONS-2026-07-03.md, twenty-first hand.
+> **Next — FIRST ASK WHETHER RUNG 4 IS ALREADY DONE.** Bridge:
+> `HANDOFF-RUNG-4D-AND-THE-SULFUR-SPLIT-2026-07-16.md` (supersedes the rung-4b bridge, now historical).
+> 4c absorbed the cerussite residue, so what's left under the "4d" label is NOT a bug fix: the
+> late-oxidation events are a NEW MECHANIC (content, → backlog on its own merits) and the
+> willemite→smithsonite phase-select is forward-looking/possibly moot (willemite is extinct — nothing
+> live to select away from). **Re-run the offender census vs SIM 232 first** (tools/sulfide-nucleation-
+> eh-census + primary-sulfide-margin-probe): all three known offender classes are closed (oxidized-Zn-
+> beside-sulfide → 4a; primary-sulfide-in-oxidized-zone → 4b; supergene-carbonate-in-reducing-brine →
+> 4c). **Empty census ⇒ close rung 4 and take rung 5 (halite/salinity).** Don't build a 4d just because
+> the proposal listed one. One open question worth measuring: rung-4a sent tn457's freed Zn to
+> sphalerite — correct for MVT, but the proposal claimed tn457's supergene Zn wants smithsonite/
+> hemimorphite; measure before believing either (hemimorphite is currently DEAD). Then the fluid.S
+> sulfate/sulfide split (the bedrock, its own arc — every ceiling this arc measured becomes a
+> consequence instead of a policy). Keystone lineage: HANDOFF-FOUNDATIONS-2026-07-03.md, **twenty-second
+> hand — "the line through lead"** (4b capped galena at +100, 4c floored cerussite at +100: two censuses,
+> opposite sides, one boundary — Pb now partitions by redox like a real supergene profile).
 >
 > Rung-4c resolved the rung-4a/4b cerussite RESIDUE — and the census reframed it a THIRD time. The
 > proposal filed it as a "competition veto" (Lever C: block cerussite while galena is actively

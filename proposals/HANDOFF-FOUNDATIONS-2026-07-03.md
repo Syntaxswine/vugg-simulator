@@ -2420,3 +2420,85 @@ contact with the rock — and the knowledge that the cleanest fix is sometimes t
 census talked you out of.
 
 — the builder, twenty-first hand: the lantern, not the shadow · 2026-07-15
+
+## KEYSTONE — the twenty-second hand: the line through lead (2026-07-15→16, the redox rung all but finished)
+
+The twenty-first hand aimed the lantern and then stopped, deliberately, with rung 4b scoped
+but unbuilt — the riskiest bump in the arc, left for a hand that could give it a whole
+context. This is that hand. It built 4b (SIM 231, `7a7308b` + `75ce387`) and then 4c (SIM 232,
+`d6ea106`), and learned that the census does more than reframe a fix: **it hands you the
+number.** Both deployed, clean-tree stamped, 2436/2436.
+
+### The arc in one breath
+
+Rung 4b was the per-class ceiling the twenty-first hand scouted. Six primary base-metal
+sulfides — sphalerite, wurtzite, pyrite, marcasite, chalcopyrite, galena — all shared a
+class-default gate of Eh ≤ +290 mV, some 300 mV too oxidizing, so fresh sulfide NUCLEATED up
+in the oxidizing supergene zone, where the sulfur is sulfate and there is no reduced S to
+build ZnS or PbS out of. One character fixed it (`PRIMARY_SULFIDE_CEILING_O2` 1.5 → 0.5) —
+but only after the census boxed the number from both sides and the secondary copper sulfides
+were carved out by name, because bisbee's enrichment blanket grows chalcocite and covellite at
+moderate Eh legitimately and a uniform tighten would have killed the mine's namesake ore.
+Then rung 4c, the cerussite residue the proposal had filed as a "competition veto": grep the
+carbonate family and cerussite turns out to be the ONLY supergene carbonate that never calls
+the oxidizing gate its five siblings all call. Not competition — an omission. Give it the gate
+at +100 mV and it dies in the two reducing brines where it never belonged, while both
+localities that legitimately grow it stay byte-identical.
+
+### The marks
+
+1. **The census doesn't merely reframe the fix — it SUPPLIES the number.** +100 mV was not
+   chosen; it was boxed. Floor: mvt's galena and sphalerite nucleate at +50, the SO₄/H₂S
+   boundary the MVT ore stage sits at on purpose. Cap: the supergene leak at +131. +100 threads
+   it — 50 over the floor, 31 under the cap — and rung 4c's independent census measured a
+   178 mV gap (spurious −36/+24, legit +202/+357) that the same +100 splits with margin both
+   ways. A fitted number is a guess wearing a decimal point; a boxed one is a measurement.
+2. **Grep the tree: the fix was already in the family.** Five supergene carbonates call
+   `carbonateRedoxAvailable`. Cerussite — PbCO₃, the lead analog of smithsonite, a mineral that
+   forms BY galena oxidation, whose own metadata says "supergene Pb carbonate" — never did.
+   The proposal wanted a new mechanism; the tree had the old one sitting unwired. Third reframe
+   of the arc: inert veto → per-class ceiling → missing gate.
+3. **Persistence is not nucleation.** Sato's persistency field says a relict sulfide grain CAN
+   survive above its stability boundary — which reads as a counter-example to this whole rung
+   until you notice it describes dissolution, not nucleation, and that the sim already governs
+   relict survival separately. An objection that names a different mechanism is not an
+   objection. Know which mechanism your gate governs before you let a citation talk you out of
+   a fix — or into one.
+4. **Causal control can flip a FORK, not just feed an heir.** The freed zinc didn't only make
+   smithsonite bigger. It made the oxidation fluid Zn-dominant and flipped Tsumeb's Cu/Zn
+   vanadate fork from mottramite to DESCLOIZITE — the abundant supergene V ore at that exact
+   locality (Boni 2007). Closing a leak changed WHICH mineral grew, and it grew the right one.
+   Read the ripples far enough out and they stop being ripples and start being the point.
+5. **Two rungs, one boundary — the line through lead.** 4b capped galena at +100. 4c floored
+   cerussite at +100. Two rungs, two independent censuses, approached from opposite sides,
+   landing on the same number: lead now partitions by redox the way a real supergene profile
+   does — galena in the reduced protore below the line, cerussite in the oxidized cap above it.
+   Neither rung drew that line alone, and neither was aiming for it. When separate measurements
+   converge on one boundary, that is the rock agreeing with you.
+
+### Diagenesis
+
+The per-class shape of 4b was a gift from the twenty-first hand, which scouted it and then
+declined to build it; the best thing that hand did was stop. Beneath that: js/20c's Nernst
+module with `ehFromO2`, without which "+290" and "+100" are not quantities but vibes;
+`carbonateRedoxAvailable`, written hands ago by whoever gated smithsonite, sitting complete for
+the day cerussite finally needed it; the seed-42 baseline / strip / archive harness that turns
+"does this break bisbee?" into a two-minute census; the promoted instruments
+(`sulfide-nucleation-eh-census`, `primary-sulfide-margin-probe`) that made the window visible
+enough to thread. And the boss's proposal-first ruling, which is why every number in this stone
+was measured instead of argued. The six test updates 4b needed were not damage — each was a pin
+that had been quietly calibrated against a leak, and the leak was load-bearing until it wasn't.
+
+### The dream, twenty-fourth telling
+
+Rung 4 is nearly whole: 4a, 4b, 4c shipped; 4d remains — the late-oxidation events, and a
+willemite→smithsonite phase-selection that is now forward-looking, since willemite is extinct
+until a scenario earns it. Then rung 5, the halite model, the biggest surface left standing.
+And under all of it the sulfur split still waits: the day fluid.S stops pretending to be both
+the sulfate in the barite and the sulfide in the galena — the way arsenic already stopped
+pretending — and every ceiling this arc measured becomes a consequence instead of a policy.
+Somewhere past that, a Precambrian BIF gives tiger's-eye and willemite the home neither has
+ever had, and Sunnyside's boiling pulse finally pays the boss his native gold in quartz. The
+line through lead is a good line. It should not have to be drawn by hand.
+
+— the builder, twenty-second hand: the line through lead · 2026-07-15→16
