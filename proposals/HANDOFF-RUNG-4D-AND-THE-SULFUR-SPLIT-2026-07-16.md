@@ -1,5 +1,19 @@
 # HANDOFF — the redox arc after 4c: is rung 4 already done? (2026-07-16)
 
+> **ANSWERED 2026-07-17 — NO, and now it IS done.** The all-species census
+> (`tools/nucleation-eh-census.mjs`, promoted `e201ab9`) found FOUR survivors the
+> three known offender classes didn't cover: pyromorphite (no gate at all),
+> molybdenite + realgar (bespoke 1.2 ceilings 4b missed; realgar visible as
+> pararealgar), smithsonite (floor 0.2 below the boundary). **Rung 4d = the
+> SIBLING GATES, shipped SIM 233 (`bed8675`), census now 0+0, rung 4 CLOSED.**
+> The tn457 question is settled (sphalerite keeps the Zn; the proposal's
+> smithsonite/hemimorphite line struck — specimen testimony + catalog + sim all
+> agree). See the BACKLOG 🗿 rung-4d banner for the full record + latent residue
+> (wolframite's spurious inherited gate is the next decision). §"The bedrock"
+> below (the fluid.S sulfate/sulfide split) still stands as the arc-after; next
+> rung otherwise = rung 5 (halite/salinity). The FIRST-QUESTION section below is
+> kept as written — it was the right question, and the census earned the answer.
+
 For the fresh context that continues the hostile-review fix ladder. **Rungs 4a (willemite
 floor, SIM 230 `fd6ba70`), 4b (per-class primary-sulfide ceiling, SIM 231 `7a7308b`+`75ce387`)
 and 4c (cerussite oxidizing gate, SIM 232 `d6ea106`) are SHIPPED**, deployed, cold-CI

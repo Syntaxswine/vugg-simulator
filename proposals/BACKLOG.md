@@ -2,7 +2,69 @@
 
 Living list of open work items, captured from session conversations so context survives compaction. Each item has enough detail that someone picking it up cold can act without re-discovering the rationale.
 
-> ## 🗿 SESSION STATE (2026-07-15, latest) — FIX-LADDER **RUNG 4c (cerussite oxidizing gate) ✅ SIM 232**
+> ## 🗿 SESSION STATE (2026-07-17, latest) — FIX-LADDER **RUNG 4d (the SIBLING GATES) ✅ SIM 233 — RUNG 4 CLOSED**
+>
+> **Next: rung 5 (halite/salinity — js/33:97 normalizes ~380× under real saturation; the biggest
+> remaining surface, may deserve its own proposal).** The census answered the bridge's FIRST QUESTION:
+> rung 4 was NOT done — the cerussite pattern repeated in FOUR species, all fixed by adopting the SAME
+> measured +100 mV boundary (no new number fitted anywhere). Census AFTER: **flagged 0+0** (was 2+2) —
+> the all-species instrument `tools/nucleation-eh-census.mjs` (e201ab9) is now the rung-4 no-offender
+> gate; re-run it after any redox-adjacent change. The bridge
+> HANDOFF-RUNG-4D-AND-THE-SULFUR-SPLIT-2026-07-16.md stays the arc doc (FIRST QUESTION answered; its
+> fluid.S sulfate/sulfide-split bedrock section still stands as the arc-after). Keystone lineage:
+> twenty-second hand — "the line through lead" (the +100 partition now spans Pb, Zn, Mo, As).
+>
+> The four (fix `bed8675`, instrument-first `e201ab9`): **pyromorphite** — the LAST ungated Pb oxysalt
+> (js/38); v193's vanadinite comment blamed its own missing gate on being "cloned from pyromorphite
+> (P is always +5, needs no gate)" — the premise WAS the bug (the anion never needed the gate; the Pb
+> CATION partition did, rung-4c logic). All 6 roughten_gill crystals fired at −150..0 in the
+> H₂S-buffered primary stage beside actively-nucleating galena; gated, they re-fire 6→6 at +252 in the
+> post-AMD oxidized stage (max 4650→3361 µm — later births grow less; same promise, right chapter).
+> **molybdenite** — the porphyry primary 4b missed (js/41, bespoke 1.2 = +252 mV): 3 fresh MoS₂ at +131
+> in supergene_oxidation's Cu-enrichment window — a scenario whose own step-40 event DISSOLVES
+> molybdenite to feed wulfenite; joins PRIMARY_SULFIDE_CEILING_O2; porphyry's +44 firings
+> byte-identical. **realgar + orpiment** (js/41, both 1.2→0.5): the +131 As₄S₄ leak — carried in
+> baselines as PARAREALGAR (the js/75 light transform inherits the parent's birth step — check
+> pararealgar counts when verifying); orpiment never leaked (max +76) but shares the As(III)+S
+> chemistry and broths — tightened together as the displacement guard. **smithsonite** — the
+> willemite-4a shape (js/32, floor 0.2 ≈ 0 mV → 0.5): minted at elmwood@88 Eh +24, ONE step after
+> sphalerite at the same +24 — the Zn partition now mirrors the Pb partition (sphalerite below +100,
+> smithsonite above). Structurally settles tn457 (its fluid tops at +76 → nonsulfide Zn impossible
+> there; the old proposal's "tn457 smithsonite/hemimorphite" line is STRUCK — boss specimen testimony,
+> catalog record TN457, and the sim all agree: sphalerite core, hydrozincite alteration crust).
+>
+> **Blast 3/39** = the three offender scenarios ONLY; lost = exactly the three offender records
+> (elmwood smithsonite −1, supergene_ox molybdenite −3 + pararealgar −1); every expects species in all
+> three movers still delivers; porphyry/mvt/tn457/bisbee/sulphur_bank byte-identical; **NO new
+> extinctions** (smithsonite lives at supergene_ox ×3 @ +322..+357, molybdenite at porphyry ×3 @ +44,
+> pararealgar at roughten_gill ×6 + sulphur_bank). Re-deal: roughten_gill **+descloizite ×4** (dust-
+> sized; the real Caldbeck Cu/Zn-fork vanadate — mottramite 4→5 stays the type-locality champion, Boni
+> 2007), caledonite max 5237→799 µm (pyromorphite now competes for Pb in the same late chapter — real
+> competition, presence held, 5-of-7 Caldbeck principals fire), elmwood barite 19→18 (rung-4c's gained
+> crystal re-dealt away; count jitter, max identical). Coverage stale gate held at 1
+> (magnetite/jeffrey_mine). Two test updates, both corrected science: boss-edits molybdenite synthetic
+> fluid Eh 100→0 (sat exactly at ehFromO2(0.5)=+99.74 — the identical 4b trap its
+> pyrite/chalcopyrite/galena siblings hit) + elmwood-snowball smithsonite pin removed (the pin guarded
+> the leak; the guard's own v228 note applies: a confabulated crystal is not a headliner to guard).
+> **2436/2436 green**, cold-CI stamped (`bed8675`, sim v233), deployed. Canary pre-registrations in
+> `bed8675`'s message; the creep watch-item supergene_oxidation/molybdenite (−14.5) is RESOLVED
+> (species gone from that scenario).
+>
+> **Residue from the 4d census** (all latent, no seed-42 leak): wolframite's SPURIOUS inherited
+> oxidizing gate (js/35:93 — a reduced ~350°C greisen mineral wearing the supergene-tungstate
+> template's O2_min 0.5; dead fleet-wide AND blocked in the very W=5 pegmatite broths where its
+> ungated Sn-W partner cassiterite fires at −200..−75; REMOVING it may birth wolframite at seed 42 —
+> needs its own census + decision, pair with deleting scheelite's vestigial 0.0 gate js/35:197);
+> arsenopyrite's 0.8 ceiling (≈ +170 mV — latent, T_min 200 hard-blocks the cold supergene);
+> tetrahedrite/tennantite/proustite/pyrargyrite/enargite on the old 1.5 class default (+290 — latent,
+> T-double-blocked at seed 42; the js/20c comment now states the real ceilings);
+> greenockite/hawleyite hardcode 0.5 as literals instead of the const (js/41 ~994/1014); ~22
+> direct-fluid.O2 gate sites invisible to class-level retunes (the cerussite-pattern factory — a
+> future migration pass); the six 4b primaries' gates tables still DECLARE O2_max 1.5 (dead metadata —
+> call sites enforce the const); redox-gate-census.mjs maintenance (REDOX_CLASS map stale for
+> willemite/cerussite; 9 UNMAPPED silicates).
+>
+> ## 🗿 SESSION STATE (2026-07-15) — FIX-LADDER **RUNG 4c (cerussite oxidizing gate) ✅ SIM 232**
 >
 > **Next — FIRST ASK WHETHER RUNG 4 IS ALREADY DONE.** Bridge:
 > `HANDOFF-RUNG-4D-AND-THE-SULFUR-SPLIT-2026-07-16.md` (supersedes the rung-4b bridge, now historical).
