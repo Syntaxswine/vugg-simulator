@@ -181,7 +181,7 @@ describe('Boss edit 1 — Mo-flux removal (5ecbb42)', () => {
     // verify that the only thing that changes with T-shift would be
     // the T-factor. After the fix, since effectiveTemperature is
     // pinned to T, the T-modifier always picks the right branch.
-    const fluid = { Mo: 50, S: 60, pH: 6, O2: 0.05, Eh: 100 };
+    const fluid = { Mo: 50, S: 60, pH: 6, O2: 0.05, Eh: 0 };  // Eh reducing — rung-4d moved molybdenite onto the +100 mV primary-sulfide ceiling (Eh:100 sat exactly at ehFromO2(0.5)=+99.74, the same 4b synthetic-fluid trap its pyrite/chalcopyrite/galena siblings hit)
     const T = 480; // in the 300 < eT < 500 sweet-spot window
     const c = makeBareConditions({ temperature: T, fluid });
     const sigma = c.supersaturation_molybdenite();

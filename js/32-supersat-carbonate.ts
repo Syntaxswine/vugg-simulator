@@ -144,7 +144,18 @@ const MINERAL_GATES_smithsonite: MineralGates = {
   sigma_crit: 1.0,
   T_max: 100, T_optimal: 30,
   fluid_min: { Zn: 20, CO3: 50 },
-  O2_min: 0.2,
+  // rung-4d (SIM 233): 0.2 → 0.5, the willemite-4a shape. A floor below the
+  // SO₄/HS boundary (0.2 ≈ 0 mV) let the supergene Zn carbonate mint at
+  // elmwood@88, Eh +24 — ONE step after sphalerite nucleated at the same
+  // +24 — Zn double-booked into sulfide + supergene carbonate in a single
+  // reduced MVT brine (elmwood expects neither; its Zn is sphalerite). Legit
+  // firings sit at +322/+357 (supergene_oxidation, expects-listed): zero
+  // collateral. 0.5 = the Zn partition, mirroring cerussite's Pb partition
+  // (rung 4c): sphalerite below +100 mV, smithsonite above. Also settles the
+  // tn457 question structurally — that fluid tops out at +76, so nonsulfide
+  // Zn can never co-precipitate there; the old proposal's "tn457 smithsonite"
+  // claim was the confabulation, not the sim.
+  O2_min: 0.5,
   pH_min: 5,
   surface_energy: 'medium',
   _sources: ['smithsonite engine v17+', 'research-smithsonite.md'],

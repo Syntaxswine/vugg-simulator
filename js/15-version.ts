@@ -12103,5 +12103,64 @@
 //        18→19. mvt's rung-4a sphalerite recovery (629µm) held. Refs: Garrels 1954
 //        GCA 5:153-168, Sato 1992 GCA 56:3133-3156. One commit (single clean gate,
 //        like 4a).
-const SIM_VERSION = 232;
+// v233 — HOSTILE-REVIEW fix-ladder rung 4d (the SIBLING GATES): the census
+//        generalized. The all-species instrument (tools/nucleation-eh-census.mjs,
+//        e201ab9) answered the bridge's "is rung 4 already done?" — NO: the
+//        cerussite pattern repeats on both axes in four species, all fixed by
+//        adopting the SAME measured +100 mV boundary (no new number fitted):
+//        (1) pyromorphite (js/38) — the LAST ungated Pb oxysalt. v193's
+//        vanadinite fix blamed its own missing gate on being "cloned from
+//        pyromorphite (P is always +5, needs no gate)" — the premise WAS the
+//        bug: the anion never needed a gate, the Pb CATION partition did (rung
+//        4c). All 6 roughten_gill crystals nucleated at Eh −150..0 in the
+//        H₂S-buffered primary stage beside actively-nucleating galena. FIX:
+//        O2_min 0.5 + phosphateRedoxAvailable. Gated, roughten_gill re-fires
+//        6 crystals at +252 in its own post-AMD oxidized stage (6→6, max
+//        4650→3361 µm — later births grow less; same promise, right chapter).
+//        (2) molybdenite (js/41) — the porphyry PRIMARY missed by 4b's six:
+//        its bespoke 1.2 (= +252 mV) reproduced the exact leak 4b closed —
+//        3 fresh MoS₂ at +131 in supergene_oxidation's Cu-enrichment window
+//        (O2 0.6), a scenario whose own step-40 event DISSOLVES molybdenite
+//        to feed MoO₄²⁻ → wulfenite. FIX: joins PRIMARY_SULFIDE_CEILING_O2.
+//        porphyry's legit +44 firings byte-identical.
+//        (3) realgar + orpiment (js/41) — same bespoke 1.2: fresh As₄S₄ at
+//        +131 in the same window, carried in baselines as PARAREALGAR (the
+//        js/75 light transform inherits the parent's birth step — check
+//        pararealgar counts when verifying). Orpiment never leaked (max +76)
+//        but shares the chemistry/broths — tightened together so the killed
+//        niche can't re-leak as the S-richer sibling. FIX: bespoke 0.5 both;
+//        all legit As-sulfide firings ≤ +76 kept (sulphur_bank +76 = O2 0.4
+//        exactly, wittichen +69, roughten_gill −150). arsenopyrite left 0.8:
+//        latent by the same argument, but T_min 200 hard-blocks the cold
+//        supergene where it would matter (BACKLOG, with the 1.5 fahlore/
+//        sulfosalts tetrahedrite/tennantite/proustite/pyrargyrite/enargite).
+//        (4) smithsonite (js/32) — the willemite-4a shape: floor 0.2 ≈ 0 mV
+//        sat below the SO₄/HS boundary, letting the supergene Zn carbonate
+//        mint at elmwood@88 Eh +24, ONE step after sphalerite at the same
+//        +24 — Zn double-booked into sulfide + supergene carbonate in one
+//        reduced brine. FIX: 0.2 → 0.5 — the Zn partition mirroring
+//        cerussite's Pb partition (4c): sphalerite below +100, smithsonite
+//        above. Structurally settles the tn457 question (that fluid tops at
+//        +76 → nonsulfide Zn impossible; the old proposal's "tn457
+//        smithsonite/hemimorphite" line was the confabulation, struck).
+//        Blast 3/39 = the three offender scenarios ONLY; lost = exactly the
+//        three offender records (elmwood smithsonite −1, supergene_ox
+//        molybdenite −3 + pararealgar −1); every expects species in all
+//        three still delivers; porphyry/mvt/tn457/bisbee byte-identical.
+//        Re-deal notes: roughten_gill +descloizite ×4 (dust-sized; the real
+//        Caldbeck Cu/Zn-fork vanadate — mottramite 4→5 stays the type-
+//        locality champion), caledonite max 5237→799 µm (pyromorphite now
+//        competes for Pb in the same late oxidized chapter — real
+//        competition, presence held), elmwood barite 19→18 (rung-4c's
+//        gained crystal re-dealt away; count jitter, max identical).
+//        Census AFTER: flagged 0+0 (was 2+2). Two test updates, both
+//        corrected science: boss-edits molybdenite synthetic fluid Eh
+//        100→0 (sat exactly at ehFromO2(0.5)=+99.74 — the same 4b trap its
+//        pyrite/chalcopyrite/galena siblings hit) + elmwood-snowball
+//        smithsonite pin removed (the pin guarded the leak; the guard's own
+//        v228 note: a confabulated crystal is not a headliner to guard).
+//        Instrument-first: e201ab9. Refs: Garrels 1954 GCA 5:153-168; Sato
+//        1992 GCA 56:3133-3156; Boni et al. 2007 Econ Geol 102:441
+//        (descloizite/mottramite Cu-Zn fork).
+const SIM_VERSION = 233;
 

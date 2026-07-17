@@ -67,7 +67,7 @@ const MINERAL_GATES_galena: MineralGates = {
 };
 const MINERAL_GATES_molybdenite: MineralGates = {
   sigma_crit: 1.0, T_optimal: 400,
-  fluid_min: { Mo: 3, S: 10 }, O2_max: 1.2,
+  fluid_min: { Mo: 3, S: 10 }, O2_max: 0.5,  // rung-4d: primary ceiling (was bespoke 1.2)
   surface_energy: 'low', _sources: ['molybdenite engine v13+'],
   _notes: 'MoS2 — porphyry Mo sweet spot 300-500°C.',
 };
@@ -136,13 +136,13 @@ const MINERAL_GATES_cinnabar: MineralGates = {
 };
 const MINERAL_GATES_realgar: MineralGates = {
   sigma_crit: 1.0, T_min: 20, T_max: 250, T_optimal: 115,
-  fluid_min: { As: 5, S: 30 }, O2_max: 1.2, pH_max: 9,
+  fluid_min: { As: 5, S: 30 }, O2_max: 0.5, pH_max: 9,  // rung-4d: SO₄/HS cap (was 1.2)
   surface_energy: 'low', _sources: ['realgar engine v82+'],
   _notes: 'α-As4S4 orange-red monoclinic — hot-spring + epithermal low-T.',
 };
 const MINERAL_GATES_orpiment: MineralGates = {
   sigma_crit: 1.0, T_min: 20, T_max: 280, T_optimal: 130,
-  fluid_min: { As: 8, S: 50 }, O2_max: 1.2, pH_max: 9.5,
+  fluid_min: { As: 8, S: 50 }, O2_max: 0.5, pH_max: 9.5,  // rung-4d: with realgar (was 1.2)
   surface_energy: 'low', _sources: ['orpiment engine v82+'],
   _notes: 'As2S3 golden yellow — Carlin-type + hot-spring habitat. More alkali-tolerant than realgar.',
 };
@@ -402,7 +402,15 @@ Object.assign(VugConditions.prototype, {
   // v13: reconciled to Python (which agent-api already matched). Pre-v13
   // had no O2 gate, allowing the sulfide to form under oxidizing conditions.
   if (this.fluid.Mo < 3 || this.fluid.S < 10) return 0;
-  if (!sulfideRedoxAnoxic(this.fluid, 1.2)) return 0;  // sulfide, needs reducing
+  // rung-4d (SIM 233): bespoke 1.2 (= Eh ≤ +252 mV) → the primary ceiling.
+  // MoS₂ is a PRIMARY hypogene sulfide — THE porphyry Mo mineral — that
+  // rung-4b's six-species tighten missed, and its loose ceiling reproduced
+  // the exact leak 4b closed: 3 fresh MoS₂ nucleations at +131 mV inside
+  // supergene_oxidation's Cu-enrichment window (O2 0.6), a scenario whose
+  // own step-40 event DISSOLVES molybdenite to feed MoO₄²⁻ → wulfenite.
+  // Supergene Mo is Mo(VI) — wulfenite/powellite/ferrimolybdite — never
+  // fresh MoS₂. Legit porphyry firings sit at +44 mV; zero collateral.
+  if (!sulfideRedoxAnoxic(this.fluid, PRIMARY_SULFIDE_CEILING_O2)) return 0;
   let sigma = (this.fluid.Mo / 15.0) * (this.fluid.S / 60.0) * sulfideRedoxLinearFactor(this.fluid, 1.5);
   // v68: effectiveTemperature is identity after Mo-flux removal (5ecbb42).
   const eT = this.effectiveTemperature;
@@ -679,11 +687,21 @@ Object.assign(VugConditions.prototype, {
   // habit; co-deposits with orpiment. Type localities Allchar
   // (Macedonia) + Shimen (China); active hot-spring sites at
   // Yellowstone Norris Geyser Basin + Carbazo Springs + Sulphur Bank
-  // Mine. Engine gates (2026-05-19, v82):
+  // Mine. Engine gates (2026-05-19, v82; redox re-capped rung-4d SIM 233):
   //   As >= 5, S >= 30
-  //   Reducing-to-mixed redox (sulfideRedoxAnoxic threshold 1.2 — broader
-  //     than arsenopyrite's 0.8 because realgar tolerates more O₂ than
-  //     the deeper-anoxic ferrous arsenosulfide).
+  //   Reducing redox: sulfideRedoxAnoxic 0.5 = Eh ≤ +100 mV, the SO₄/HS
+  //     boundary. v82 set 1.2 (+252 mV) as "broader than arsenopyrite's
+  //     0.8" — relative-tolerance framing that let fresh As₄S₄ mint at
+  //     +131 mV in supergene_oxidation's Cu-enrichment window (visible in
+  //     baselines as PARAREALGAR, since the js/75 light transform inherits
+  //     the parent's birth step). Fresh As-sulfide needs REDUCED S; at
+  //     +131 the sim's own boundary says sulfur is sulfate-side, and the
+  //     scenario's As suite is the arsenates (adamite/mimetite/conichalcite,
+  //     all expects-listed — realgar is not). All legit firings sit ≤ +76
+  //     (sulphur_bank +76 = O2 0.4 exactly, wittichen +69, roughten_gill
+  //     primary stage −150): zero collateral. Arsenopyrite keeps 0.8 —
+  //     latent by the same argument, but its T_min 200 hard-blocks the cold
+  //     supergene where it would matter (BACKLOG, with the 1.5 sulfosalts).
   //   pH <= 9 (alkali dissolves it as thioarsenite complex).
   //   T optimum 50-180°C (matches Sulphur Bank's 60-90°C vent regime).
   supersaturation_realgar() {
@@ -693,7 +711,7 @@ Object.assign(VugConditions.prototype, {
   // classified). Not arsenate; reads from the As(III) pool.
   const as_iii = arseniteAvailablePpm(this.fluid);
   if (as_iii < 5 || this.fluid.S < 30) return 0;
-  if (!sulfideRedoxAnoxic(this.fluid, 1.2)) return 0;
+  if (!sulfideRedoxAnoxic(this.fluid, 0.5)) return 0;  // rung-4d: SO₄/HS boundary (see gate block above; was 1.2)
   if (this.fluid.pH > 9) return 0;
   const as_f = Math.min(as_iii / 15.0, 3.0);
   const s_f = Math.min(this.fluid.S / 100.0, 3.0);
@@ -722,7 +740,11 @@ Object.assign(VugConditions.prototype, {
   //            requires As to be present at higher levels)
   //   S >= 50 (more S than realgar; the S/As 3/2 stoichiometry favors
   //            S-rich fluids)
-  //   Reducing-to-mixed redox.
+  //   Reducing redox (rung-4d SIM 233: 0.5 with realgar — same As(III) +
+  //     reduced-S chemistry, same broths; tightened in the same commit so
+  //     the killed realgar niche can't re-leak as its S-richer sibling.
+  //     Orpiment never leaked at seed 42 — max +76 — this is the
+  //     displacement guard, not an offender fix).
   //   pH <= 9.5 (very broad; orpiment is the most alkali-tolerant of
   //              the As-sulfides).
   //   T optimum 60-200°C (slightly hotter than realgar; orpiment is
@@ -732,7 +754,7 @@ Object.assign(VugConditions.prototype, {
   // Orpiment is As₂S₃ — As(III) sulfide. Not arsenate.
   const as_iii = arseniteAvailablePpm(this.fluid);
   if (as_iii < 8 || this.fluid.S < 50) return 0;
-  if (!sulfideRedoxAnoxic(this.fluid, 1.2)) return 0;
+  if (!sulfideRedoxAnoxic(this.fluid, 0.5)) return 0;  // rung-4d: with realgar (see gate block above; was 1.2)
   if (this.fluid.pH > 9.5) return 0;
   const as_f = Math.min(as_iii / 20.0, 3.0);
   const s_f = Math.min(this.fluid.S / 150.0, 3.0);

@@ -616,10 +616,17 @@ function sulfideRedoxAnoxic(fluid: any, o2UpperBound: number): boolean {
 // (bornite/chalcocite/covellite, gated 1.8–2.0 = +345…+375 mV) are LEFT high on
 // purpose — they legitimately nucleate in the moderately-oxidizing Cu-enrichment
 // blanket below the oxidized cap (bisbee, roughten_gill), the "enrichment" half
-// of Sato 1992's oxidation-AND-enrichment title. The As/Ag/Sb sulfides &
-// sulfosalts keep their own bespoke ceilings (0.5–1.2). A uniform tighten would
-// have killed bisbee's namesake chalcocite/covellite — the census's key catch.
-// Refs: Garrels (1954) GCA 5:153–168; Sato (1992) GCA 56:3133–3156.
+// of Sato 1992's oxidation-AND-enrichment title. rung-4d (SIM 233) extended
+// this ceiling to molybdenite (MoS₂ — the porphyry primary 4b missed; its
+// bespoke 1.2 reproduced the +131 leak in the enrichment window) and capped
+// the As-sulfides realgar/orpiment at a bespoke 0.5 (same boundary; As(III) +
+// reduced-S rationale, js/41). Still ABOVE +100 and left there deliberately:
+// arsenopyrite 0.8 (latent — its T_min 200 hard-blocks the cold supergene) and
+// tetrahedrite/tennantite/proustite/pyrargyrite/enargite at the old 1.5 class
+// default (latent, T-double-blocked at seed 42 — BACKLOG; note this corrects
+// an earlier claim here that all sulfosalts sat at 0.5–1.2). A uniform tighten
+// would have killed bisbee's namesake chalcocite/covellite — the census's key
+// catch. Refs: Garrels (1954) GCA 5:153–168; Sato (1992) GCA 56:3133–3156.
 const PRIMARY_SULFIDE_CEILING_O2 = 0.5;  // Eh ≤ +100 mV (= ehFromO2(0.5)) — see the rationale block above
 
 // Unified linear-multiplier helper. Three call patterns:

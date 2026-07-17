@@ -96,7 +96,14 @@ describe('W-F O5 — the Elmwood barite snowball (SIM 223)', () => {
     // the claim; the canary's 200 chem-seeds are the fleet-level instrument
     // for the strengthening prediction.
     expect(maxUm(sim, 'sphalerite') / 1000, 'honey sphalerite base intact').toBeGreaterThan(0.6);
-    for (const m of ['smithsonite', 'selenite', 'galena', 'siderite']) {
+    // rung-4d (SIM 233): smithsonite REMOVED from this pin — it was the leak,
+    // not the variety. The one elmwood smithsonite nucleated at step 88,
+    // Eh +24, ONE step after sphalerite at the same +24: supergene Zn
+    // carbonate minting in the reduced MVT ore brine (floor 0.2 ≈ 0 mV sat
+    // below the SO₄/HS boundary). Elmwood's documented Zn is sphalerite —
+    // smithsonite is not in its expects_species; the same guard's own v228
+    // note applies: a confabulated crystal is not a headliner to guard.
+    for (const m of ['selenite', 'galena', 'siderite']) {
       expect(bySpecies(sim, m).length, `${m} still in the assemblage`).toBeGreaterThan(0);
     }
   });
