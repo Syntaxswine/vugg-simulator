@@ -12162,5 +12162,54 @@
 //        Instrument-first: e201ab9. Refs: Garrels 1954 GCA 5:153-168; Sato
 //        1992 GCA 56:3133-3156; Boni et al. 2007 Econ Geol 102:441
 //        (descloizite/mottramite Cu-Zn fork).
-const SIM_VERSION = 233;
+// v234 — HOSTILE-REVIEW fix-ladder rung 5 (chloride evaporites re-anchored to
+//        REAL BRINE STRENGTH): the ladder's biggest surface. The v27 halite
+//        gate put σ=1 at Na·Cl = 50,000 ppm² — orders of magnitude under real
+//        saturation — so nearly any Cl-bearing fluid minted salt (tn457 grew
+//        halite ×12 from a 4.5-psu Pb-Zn brine at 0.13× seawater: HALF that
+//        scenario's crystals; travertine ×8 at 0.17×; sabkha sylvite ×4 at
+//        3.4× BEFORE any halite = inverted bittern). The ppm axis cannot
+//        carry saturation (broths are deliberately-abstracted, scenario-
+//        inconsistent sim-scale ppm). FIX (js/33): σ keyed to BRINE STRENGTH
+//        = (salinity/35 psu) × evaporative concentration, in seawater
+//        multiples — halite σ = (BS/10.6)² (Usiglio 1849 onset; Warren 2021),
+//        sylvite σ = (BS/70)² (bittern 70–90×, conservative end); quadratic
+//        kept (IAP of two conserved ions ∝ c²); Na/Cl floors = presence
+//        gates only. bisbee final_drying (js/70j) now RAISES salinity 29.9 →
+//        150 psu with the drying (the review's own lever — its noted
+//        decoupling fixed), so the DEFENDED arid efflorescence fires at
+//        12.9× via the honest mechanism (halite ×4 as a 306 µm dusting;
+//        Onac 2025); sylvite stays out (12.9 ≪ 70). SYLVITE NOW EXTINCT
+//        fleet-wide (max fleet BS 15.4×; "no K-evaporite parent exists" —
+//        the review's verdict) — DEAD-not-stale, returns with a potash
+//        scenario. searles tincalconite: PROMISE WITHDRAWN w/ research —
+//        the old ×8 was a DUST ARTIFACT (borax crowded < 5 µm flush
+//        threshold by σ≈405 spurious halite; immortal specks dry-converting
+//        where grown crystals redissolve); real borax→tincalconite is the
+//        40–50%-RH ambient museum-drawer alteration (OSTI 1850965); measured
+//        0 across 8 seeds; mechanic retained (js/75). RECOVERY: searles
+//        BORAX ×17 to 23.6 mm + mirabilite ×2 — both expects-listed, both
+//        missing pre-fix (the spurious salt ate the nucleation economy;
+//        Searles gets back the mineral it is famous for). Halite now lives
+//        as the real playa cycle: births ONLY in desiccation windows, floods
+//        redissolve (searles 2 active + 18 husks, max 64,672→542 µm; GSP 2 +
+//        17, max 293 mm → 461 µm — crusts, not boulders). MORPHOLOGY
+//        RE-PIN (js/45): the σ-currency change EXPIRED the halide MORPH_TH
+//        band calibration (old edges 10/60/150/800 vs new honest range
+//        1–2.2 → everything would read spiral_smooth forever — the
+//        render-upgrade calibration-expiry law). Fresh morph-sigma-observe
+//        survey: living fleet = ONE plateau at 1.41 (GSP + bisbee) →
+//        smooth band; edges re-pinned 1.5/1.7/1.95/5.0 (both chlorides);
+//        chevron band deliberately unoccupied awaiting a perennial-brine
+//        tenant (bismuth-provisional precedent); searles raw-2.12 spikes
+//        land hopper the day spike salt persists. Blast 6/39 = the six
+//        chloride scenarios exactly; expects: zero lost (tincalconite
+//        withdrawn, not lost); tn457 sphalerite re-dealt 3→1 (max held
+//        2226 µm — one massive crystal, MORE specimen-like). Tests: 9
+//        rebake-mechanical + halide-morphology re-pinned to the new claims
+//        table + tn457 control graduated "smooth"→"extinct". Refs: Usiglio
+//        1849 via Warren 2021; OSTI 1850965; Onac 2025; Lowenstein & Hardie
+//        1985 (chevron canon, display strings kept); DATA-HOSTILE-REVIEW
+//        /refuted/13 (the bisbee lever).
+const SIM_VERSION = 234;
 
