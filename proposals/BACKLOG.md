@@ -2,7 +2,55 @@
 
 Living list of open work items, captured from session conversations so context survives compaction. Each item has enough detail that someone picking it up cold can act without re-discovering the rationale.
 
-> ## 🗿 SESSION STATE (2026-07-17, latest) — FIX-LADDER **RUNG 4d (the SIBLING GATES) ✅ SIM 233 — RUNG 4 CLOSED**
+> ## 🗿 SESSION STATE (2026-07-17, latest) — FIX-LADDER **RUNG 5 (chloride evaporites → real brine strength) ✅ SIM 234**
+>
+> **Next: the fluid.S sulfate/sulfide split (the BEDROCK, its own proposal+arc — every boundary this
+> ladder measured becomes a consequence instead of a policy), or the wolframite spurious-gate decision
+> (4d residue, needs its own census — removal may BIRTH the species), or post-review work (synergy
+> hunt: regen claim cards vs SIM 234; missing engines/events).** The LADDER'S NUMBERED RUNGS ARE NOW
+> ALL CLOSED (1 F · 2 T-gates · 3 tiger's-eye · 4a-d redox · 5 salinity). Instruments:
+> `tools/halite-saturation-census.mjs` (082ebdb) + `tools/nucleation-eh-census.mjs` = the standing
+> no-offender gates; run both after touching redox- or brine-adjacent code.
+>
+> The reframe (fix `05aa5e4`): the v27 halite gate put σ=1 at Na·Cl = 50,000 ppm² — any Cl-bearing
+> brine minted salt (tn457 halite ×12 at 0.13× seawater = HALF the boss-specimen scenario's crystals;
+> travertine ×8 at 0.17×; sabkha sylvite ×4 BEFORE any halite = inverted bittern). The ppm axis cannot
+> carry saturation (broths are deliberately-abstracted, scenario-INCONSISTENT sim-scale ppm — searles
+> Na 1500 vs a real ~110,000 brine, sabkha near-real 10,500). The axis the sim tracks in REAL units:
+> **BRINE STRENGTH = (salinity/35 psu) × concentration**, σ_halite = (BS/10.6)² (Usiglio onset),
+> σ_sylvite = (BS/70)² (bittern, conservative end of 70–90×). Quadratic kept — honestly now (IAP of
+> two conserved ions ∝ c²). bisbee final_drying now RAISES salinity 29.9→150 with the drying (the
+> review's own lever; its defended arid efflorescence fires at 12.9× as a 306 µm dusting — Onac 2025).
+> **SYLVITE EXTINCT fleet-wide** (max fleet BS 15.4× ≪ 70; "no K-evaporite parent exists" — the
+> review's verdict; returns with a Zechstein/Prairie/Khorat potash scenario). **searles tincalconite
+> PROMISE WITHDRAWN w/ research** (the old ×8 was a dust artifact — borax pinned <5 µm by σ≈405
+> spurious salt, immortal specks dry-converting; real borax→tincalconite is the 40–50%-RH
+> museum-drawer alteration, OSTI 1850965; 0 across 8 seeds; mechanic retained js/75; scenario note's
+> 55°C-bake overclaim corrected — borax's submerged-instability is ~75°C). **RECOVERY: searles BORAX
+> ×17 → 23.6 mm + mirabilite ×2** — expects-listed, missing pre-fix; the spurious salt ate the
+> nucleation economy; Searles got back the mineral it's famous for. Halite now lives the real playa
+> cycle (births ONLY in desiccation windows; floods redissolve; searles 2 active + 18 husks, GSP 2+17;
+> max 293 mm → 461 µm — crusts, not boulders).
+>
+> **MORPHOLOGY RE-PIN (js/45)** — the σ-currency change EXPIRED the halide MORPH_TH calibration (the
+> render-upgrade calibration-expiry law, hit live): old edges 10/60/150/800 vs honest range 1–2.2 →
+> every zone would have read spiral_smooth forever, hoppers silently vanishing from the render. Fresh
+> morph-sigma-observe survey: living fleet = ONE plateau at 1.41 (GSP+bisbee) → smooth band; edges
+> re-pinned **1.5/1.7/1.95/5.0** both chlorides; chevron band deliberately unoccupied awaiting a
+> perennial-brine tenant (Dead-Sea/solar-saltworks type — a NEW-SCENARIO candidate that would also
+> give banded halite + persisting hopper rafts a home); searles raw-2.12 spikes land hopper the day
+> spike salt persists. Salt-pan-log tests re-authored to the grow/dissolve-cycle contract; tn457
+> control GRADUATED "smooth"→"grows NO halite" — the strongest legacy correction.
+>
+> **Blast 6/39** = exactly the six chloride scenarios; expects lost ZERO (tincalconite withdrawn, not
+> lost); stale gate 1 (magnetite); tincalconite + sylvite → DEAD list (with meta-autunite/willemite).
+> tn457 24→10 crystals (sphalerite re-dealt 3→1, max held 2226 µm — one massive crystal, MORE
+> specimen-like; barite 6 held); travertine 12→4. 2436/2436 green, cold-CI stamped, deployed.
+> Canary pre-registrations in `05aa5e4`. Boss eye-check now NINE bumps deep (SIM 226–234) — richest
+> new viewing: **searles_lake** (borax blades to 23 mm where salt boulders were; the husk cycle) and
+> **tn457** (the boss's own specimen scenario, de-salted — 10 honest crystals).
+>
+> ## 🗿 SESSION STATE (2026-07-17, rung-4d) — FIX-LADDER **RUNG 4d (the SIBLING GATES) ✅ SIM 233 — RUNG 4 CLOSED**
 >
 > **Next: rung 5 (halite/salinity — js/33:97 normalizes ~380× under real saturation; the biggest
 > remaining surface, may deserve its own proposal).** The census answered the bridge's FIRST QUESTION:
