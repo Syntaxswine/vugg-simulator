@@ -2502,3 +2502,112 @@ ever had, and Sunnyside's boiling pulse finally pays the boss his native gold in
 line through lead is a good line. It should not have to be drawn by hand.
 
 — the builder, twenty-second hand: the line through lead · 2026-07-15→16
+
+---
+
+## KEYSTONE — the twenty-third hand: the rock's own units (2026-07-17)
+
+The twenty-second hand's dream named three works and guessed all three shapes wrong — which is
+the record working, not failing. "4d remains — the late-oxidation events" — but 4d turned out to
+be four sibling gates the census hadn't met yet. "Then rung 5, the halite model, the biggest
+surface left standing" — but rung 5 refused to be a tuning at all. "And under all of it the
+sulfur split still waits" — it waits no longer as a hope; it waits as a proposal with a census, a
+physics, and a ladder. Two rungs shipped (SIM 233, 234), the fix ladder's numbered rungs ALL
+closed, and the bedrock arc designed. Each work survived contact with the rock by changing shape.
+
+### The arc in one breath
+
+The bridge's first question — is rung 4 already done? — was answered by measurement: NO, four
+times over. The all-species census found the cerussite pattern repeated in pyromorphite (no gate
+at all, six crystals minting in an H₂S brine), molybdenite and realgar (bespoke ceilings 4b never
+met), and smithsonite (a floor below the boundary, double-booking elmwood's zinc) — and all four
+fixes adopted the ALREADY-MEASURED +100 mV line, so the partition that began as "the line through
+lead" now spans Pb, Zn, Mo, and As without one new fitted number. Then rung 5: the halite gate's
+σ=1 sat at Na·Cl = 50,000 ppm², and no value ON that axis could be right, because the broths are
+deliberately-abstracted ppm that cannot carry saturation — the fix was changing the AXIS, to
+brine strength in seawater multiples, the unit the evaporite literature itself uses. Half of
+tn457's crystals were salt that never belonged; sylvite went extinct on the review's own verdict;
+Searles got back the borax it is famous for, seventeen blades of it, because the spurious salt
+had been eating the nucleation economy all along. The currency change expired the halide
+morphology calibration mid-rung — caught, surveyed, re-pinned in the same commit. And the sulfur
+split, scouted expecting code, came back a proposal instead: the census showed the sim's entire
+barite population living BELOW the SO₄/H₂S boundary beside growing galena, which is not a bug but
+the MVT diagnostic — inherited disequilibrium, real because sulfate-sulfide kinetics are frozen
+at vug temperatures — so the naive split would have been the confabulation, and the honest one
+needs floors that encode inheritance.
+
+### The marks
+
+1. **Close a rung by census, not by narrative.** The handoff asked "is rung 4 already done?"
+   and the temptation was to answer from the story (three offender classes, three fixes, done).
+   The instrument answered with four species nobody had listed. A rung closes when the census
+   returns empty — flagged 0+0 — and the instrument that proved it stays as the standing gate.
+
+2. **When values resist tuning, indict the axis.** Rung 5's surface looked like a mis-set
+   constant (σ=1 at the wrong ppm²), but no constant on the ppm axis could serve scenarios whose
+   broths are deliberately abstracted at inconsistent scales. The honest fix measured saturation
+   in the rock's own units — salinity × concentration as seawater multiples, Usiglio's ladder —
+   and every scenario's honesty became checkable against field numbers. The review's own refuted
+   lever (bisbee's frozen salinity) was sitting in the DATA JSON, prescribing the mechanism.
+
+3. **A currency change expires every calibration priced in the old currency — hunt them in the
+   same commit.** The halide morphology bands were calibrated to the leak-era σ range (10/60/
+   150/800 against values that ran to 385); under the honest range (1–2.2) every future zone
+   would have read spiral_smooth forever — hoppers silently vanishing from the render, the exact
+   silent no-op the render-upgrade law warns about, hit live. The re-pin came from a fresh survey
+   (one living plateau: 1.41), not a rescale of the old edges. And test contracts are calibrations
+   too: the salt-pan log was re-authored to the grow/dissolve cycle, and the tn457 control
+   graduated from "stays smooth" to "grows no halite at all" — the strongest form of its claim.
+
+4. **Withdraw promises with research; kill species with authority.** Tincalconite left searles'
+   expects not by deletion but by diagnosis: the old ×8 was a dust artifact (borax pinned under
+   the flush threshold by spurious salt, immortal specks dry-converting), the real mechanism is
+   ambient museum-drawer alteration, and the measurement was zero across eight seeds — mechanic
+   retained for the scenario that genuinely strands grown borax dry. Sylvite died citing the
+   review's own words: no K-evaporite parent exists. Both landed DEAD-not-stale, each with its
+   resurrection condition written down (a potash scenario; a dry-strand epilogue).
+
+5. **Disequilibrium is content, not error.** The S-split census's smoking number — barite n=49,
+   every crystal at or below the boundary — would read as 49 bugs to an equilibrium mind. It is
+   the opposite: basinal brines inherit both sulfur species and carry them unequilibrated for
+   longer than a vug's whole life (Ohmoto & Lasaga: half-lives of 10⁴+ years below 200°C). The
+   proposal's floors exist to keep the sim's accidental rightness while ending the double-booking.
+   The equilibrium split — the "clean" design — would have been the confabulation.
+
+6. **Identity anchors to the number; everything else floats as dated layers.** TN457 was barite
+   from England, then maybe Elmwood, then sphalerite-and-witherite from England after all — and
+   through every reversal nothing was erased, because the boss ruled early: it will be TN457
+   regardless, the locality science is real regardless, and amendments are additions. The rock
+   voted witherite — the panel's own top pick — and the England attribution walked back in the
+   front door it had been shown out of. The catalog convention and the scenario convention turned
+   out to be the same convention.
+
+### Diagenesis
+
+The 4d fixes were verified before they were written — the census workflow's refuters had already
+monkey-patched each gate and measured its blast, so the build day was transcription. The
+morphology re-pin was a survey because the morphology arc left `morph-sigma-observe` behind a
+month ago. The bisbee lever came verbatim from the hostile review's own refuted-claims JSON. The
+S-split proposal is nine-tenths precedent: the v92 arsenic split is its template down to the
+accessor names, ehFromO2 makes its boundary a quantity, and the ladder's boxed +100 is its
+center. The boss's two rulings — locality-science-stays, and it-will-be-TN457-regardless — kept
+both amendment paths clean before anyone knew which way the rock would vote. And the ritual
+itself (bump-first rebake, explicit staging, title-verified pushes, cold stamps, pre-registered
+canaries) ran nine times this stretch without one deviation, which is the only reason two rungs
+and a proposal fit in one stretch at all.
+
+### The dream, twenty-fifth telling
+
+On approval, S0 lands byte-identical — the speciation census and two inert functions — and then
+the migration walks the classes: sulfates first, sulfides after, and the +100 ceilings retire one
+at a time, each with its redundancy proof in the commit. The line through lead, un-drawn by hand
+at last, redrawn by arithmetic every step. A perennial brine — a Dead Sea, a solar saltworks —
+gives the chevron band its first tenant and banded halite a home; a potash scenario wakes
+sylvite from its honest grave; TN457's witherite stage wakes the dead witherite engine, and the
+boss's own rock becomes its first tenant, England and all. Nine bumps of new rock await the
+boss's eye — the borax blades where the salt boulders were, the de-salted tn457 grown down to
+ten honest crystals. And past the sulfur, the same question stands at every remaining axis the
+sim measures in convenient units — the question this stretch learned to ask first: what are the
+rock's own?
+
+— the builder, twenty-third hand: the rock's own units · 2026-07-17

@@ -8,7 +8,9 @@ Living list of open work items, captured from session conversations so context s
 > `PROPOSAL-FLUID-S-SPLIT-2026-07-17.md` (awaiting approval; recommendation = kinetics-honest derived
 > partition on the v92 As-split template, phased S0-S3, barite's 49-crystal sub-boundary population is
 > the census's smoking number). Behind it: the wolframite spurious-gate decision (4d residue, own
-> census — removal may BIRTH the species) and the synergy hunt (regen claim cards vs SIM 234).** The LADDER'S NUMBERED RUNGS ARE NOW
+> census — removal may BIRTH the species) and the synergy hunt (regen claim cards vs SIM 234).
+> CURRENT BRIDGE: `HANDOFF-S-SPLIT-2026-07-17.md` (supersedes the rung-4d bridge). Keystone lineage:
+> HANDOFF-FOUNDATIONS-2026-07-03.md, twenty-third hand — "the rock's own units."** The LADDER'S NUMBERED RUNGS ARE NOW
 > ALL CLOSED (1 F · 2 T-gates · 3 tiger's-eye · 4a-d redox · 5 salinity). Instruments:
 > `tools/halite-saturation-census.mjs` (082ebdb) + `tools/nucleation-eh-census.mjs` = the standing
 > no-offender gates; run both after touching redox- or brine-adjacent code.
