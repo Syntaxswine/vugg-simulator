@@ -452,6 +452,81 @@ function arseniteAvailablePpm(fluid: any): number {
 }
 
 // ============================================================
+// S0 — the fluid.S sulfate/sulfide split (DEFINED-BUT-UNUSED)
+// ============================================================
+// proposals/PROPOSAL-FLUID-S-SPLIT-2026-07-17.md, phase S0 (byte-identical). These
+// three helpers derive reduced-S (H₂S/HS⁻) vs oxidized-S (SO₄²⁻) fractions from a
+// fluid's total `fluid.S`, exactly as the v92 As-split derives As(III)/As(V) from
+// `fluid.As` (arsenicOxidizedFraction above is the template). NOTHING CALLS THEM YET —
+// they land inert so seed-42 output stays byte-identical; the sulfate class migrates to
+// sulfateAvailablePpm at S1 and the sulfide class to sulfideAvailablePpm at S2, one
+// engine at a time, each with its own blast check.
+//
+// ── the physics (kinetic disequilibrium) ──
+// Aqueous SO₄²⁻↔H₂S interconversion is a single abiotic exchange whose half-life
+// (Ohmoto & Lasaga 1982, GCA 46:1727 — verified) falls monotonically with T: ~10⁸–10⁹ yr
+// below ~100 °C (frozen), through ~10²–10⁴ yr in the taper, to days at 300 °C. So a
+// basinal brine INHERITS both species and carries them out of equilibrium through the
+// ore zone — barite+galena coexistence is inherited disequilibrium, not shared identity.
+// Machel 2001 (Sed. Geol. 140:143) supplies the SOURCE side: BSR (0–80 °C) + TSR
+// (100–180 °C) generate sulfide across the whole vug range, so both pools are present to
+// inherit. Anchors are the LITERATURE-tightened single curve (100/200 °C), not the
+// proposal draft's 150/250 — see research/research-s-split-t-taper-2026-07-22.md.
+//
+// ── the shape (measured, not assumed) ──
+// tools/sulfur-speciation-census.mjs (the S0 instrument) swept this partition against
+// every S-consuming nucleation event at seed 42, re-invoking each species' real engine
+// with fluid.S replaced by the split-available ppm. Findings that set the constants:
+//   • The disequilibrium FLOOR (F_min) is NOT the operative lever — coexistence survival
+//     is flat across F_min. The load-bearing parameter is the FROZEN-regime sigmoid
+//     width: a wide cold sigmoid (≫ vug Eh span) flattens the partition toward the
+//     inherited-ratio limit (~Eh-independent), which is what §4's physics demands. So
+//     SULFUR_W_COLD carries the model; SULFUR_F_MIN is a small residual clamp.
+//   • wCold ≈ 250 mV is the minimum width that preserves both barite@mvt AND barite@
+//     elmwood at their real (position-discounted) nucleation bars.
+//   • KNOWN S1 CASUALTIES (pre-registered): a PURE (Eh,T,S) derivation does NOT preserve
+//     barite@wittichen or selenite@elmwood at ANY wCold — both nucleate bare-wall
+//     (discount 1.00) in reducing fluid, so no substrate epitaxy rescues their SO₄. S1
+//     must confirm they recover at another step in the live split-sim or grant them a
+//     carve-out (proposal §6/§8). The census's per-event table is the pre-registration.
+const SULFUR_EH_BOUNDARY = ehFromO2(0.4);  // ≈ +76 mV, the SO₄/H₂S boundary (rung 4b/4c)
+const SULFUR_T_FROZEN = 100;   // °C — below this the abiotic exchange is frozen (widest sigmoid + floor)
+const SULFUR_T_FAST   = 200;   // °C — above this Ohmoto–Lasaga fast-exchange (sharp equilibrium step)
+const SULFUR_W_COLD   = 250;   // mV — frozen-regime sigmoid width (the inherited-disequilibrium flatness)
+const SULFUR_W_HOT    = 12;    // mV — fast-exchange sigmoid width (near-sharp step)
+const SULFUR_F_MIN    = 0.10;  // residual floor (census: non-binding; a frozen fluid never runs a species to 0)
+
+// Fraction (0–1) of fluid.S sitting as REDUCED sulfur (H₂S/HS⁻); high at low Eh, low at
+// high Eh. T taper: at ≤100 °C the wide cold sigmoid + floor keep both pools present
+// (inherited disequilibrium); by ≥200 °C it collapses to the sharp Eh-driven equilibrium
+// step. Reads fluid.Eh (always set by the FluidChemistry constructor).
+function sulfurReducedFraction(fluid: any, T: number): number {
+  if (!fluid || typeof fluid.S !== 'number') return 1;
+  const Eh = typeof fluid.Eh === 'number' ? fluid.Eh : 200;
+  const t = Math.min(1, Math.max(0, (T - SULFUR_T_FROZEN) / (SULFUR_T_FAST - SULFUR_T_FROZEN)));
+  const w = SULFUR_W_COLD + (SULFUR_W_HOT - SULFUR_W_COLD) * t;  // wide/flat when frozen → sharp when hot
+  const floor = SULFUR_F_MIN * (1 - t);                          // residual collapses to 0 by T_FAST
+  const f = 1 / (1 + Math.exp((Eh - SULFUR_EH_BOUNDARY) / w));
+  return Math.min(1 - floor, Math.max(floor, f));
+}
+
+// Reduced-S ppm (H₂S/HS⁻) for the sulfide/native-S/sulfarsenide class — the S1/S2
+// replacement for direct `fluid.S` reads in supersaturation_* methods of galena,
+// sphalerite, pyrite, acanthite, etc. (js/41-supersat-sulfide.ts, js/91).
+function sulfideAvailablePpm(fluid: any, T: number): number {
+  if (!fluid || typeof fluid.S !== 'number') return 0;
+  return fluid.S * sulfurReducedFraction(fluid, T);
+}
+
+// Oxidized-S ppm (SO₄²⁻) for the sulfate class — the S1 replacement for direct `fluid.S`
+// reads in supersaturation_* methods of barite, celestine, anhydrite, selenite, the
+// supergene Pb/Cu sulfates, etc. (js/40-supersat-sulfate.ts, js/90).
+function sulfateAvailablePpm(fluid: any, T: number): number {
+  if (!fluid || typeof fluid.S !== 'number') return 0;
+  return fluid.S * (1 - sulfurReducedFraction(fluid, T));
+}
+
+// ============================================================
 // Phase 4b arsenate-class engine helpers
 // ============================================================
 // All six arsenates (adamite, annabergite, erythrite, mimetite,
