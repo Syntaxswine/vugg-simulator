@@ -2,7 +2,30 @@
 
 Living list of open work items, captured from session conversations so context survives compaction. Each item has enough detail that someone picking it up cold can act without re-discovering the rationale.
 
-> ## 🗿 SESSION STATE (2026-07-17, latest) — FIX-LADDER **RUNG 5 (chloride evaporites → real brine strength) ✅ SIM 234**
+> ## 🗿 SESSION STATE (2026-07-22, latest) — S-SPLIT **PHASE S0 ✅ (byte-identical, `ab8cd92`) — boss APPROVED the arc; S1 gated on boss go**
+>
+> **Boss decisions (2026-07-22, all via structured ask):** §5-B derived-partition APPROVED → S0 built;
+> F_min = "let S0 measure it"; T-taper = "tighten from literature first" → anchors moved 150/250 →
+> **100/200 °C off ONE curve** (Ohmoto-Lasaga half-life; Machel repurposed as the SOURCE citation —
+> BSR 0-80 + TSR 100-180 make both pools inherited; porphyry 400° + schneeberg 450° sit above either
+> anchor, unaffected). Then two shape calls on the census findings: **derive with wCold≈250** and
+> **harden the census to per-event real substrate discounts before S1 relies on it** — both done.
+>
+> **What S0 measured** (`tools/sulfur-speciation-census.mjs`, the new instrument — full story in
+> `research/research-s-split-t-taper-2026-07-22.md`): **F_min is NOT the lever** (survival flat across
+> F_min; it ships as a 0.10 residual clamp) — the load-bearing parameter is the frozen-regime sigmoid
+> width **wCold ≈ 250 mV** (the §4 inherited-disequilibrium flatness; minimum width preserving
+> barite@mvt ≥150 AND barite@elmwood ≥250 at their REAL position-discounted bars). **§5-B's mechanism
+> was wrong** — barite SO₄ measures 15–70 ppm (s_f 0.4–1.75), NOT cap-saturated; survival = wide cold
+> sigmoid + snowball epitaxy. **PRE-REGISTERED S1 CASUALTIES: barite@wittichen + selenite@elmwood** —
+> bare-wall (disc 1.00) sulfates in reducing broth, unrescuable by pure (Eh,T,S) derivation at ANY
+> wCold; S1 must show live-sim recovery or grant the §6/§8 carve-out. Residual watch-list: 24 groups
+> (census output). Inert `sulfurReducedFraction`/`sulfideAvailablePpm`/`sulfateAvailablePpm` live in
+> js/20c beside their As-split template. 2436/2436, NO SIM bump, both standing gates clean (0+0;
+> zero sub-onset). **NEXT: S1 (barite first, first baseline-moving commit) — needs boss go.**
+> Boss eye-check still OWED, nine bumps (SIM 226-234); searles + tn457 renders were delivered 2026-07-22.
+>
+> ## 🗿 SESSION STATE (2026-07-17) — FIX-LADDER **RUNG 5 (chloride evaporites → real brine strength) ✅ SIM 234**
 >
 > **Next: the fluid.S sulfate/sulfide split — BOSS-SELECTED 2026-07-17, proposal WRITTEN:
 > `PROPOSAL-FLUID-S-SPLIT-2026-07-17.md` (awaiting approval; recommendation = kinetics-honest derived
