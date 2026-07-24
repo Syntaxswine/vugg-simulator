@@ -112,5 +112,27 @@ commit==HEAD) → cold-ci stamp. **After any redox- or brine-adjacent change, ru
   sylvite + tincalconite vanished, borax + mirabilite appeared, descloizite appeared at
   roughten_gill). Anything ELSE moving is worth a look.
 
-*Twenty-third hand's bridge, 2026-07-17. The keystone for this stretch is in
-HANDOFF-FOUNDATIONS-2026-07-03.md ("the rock's own units").*
+## Diversions from the Elmwood eye-check (2026-07-23) — habit-rendering fidelity
+
+Surfaced when the boss eye-checked v234-vs-v235 Elmwood renders during S1 (barite settled:
+"the barite's ok"). Reference: real Elmwood specimen **#103941** (calcite + galena +
+fluorite + celestine). Both are SEPARATE from the S-split (rendering/habit, not chemistry):
+
+- **Elmwood calcite — render the scalenohedral as a real dogtooth.** The 19 mm golden
+  crown-jewel calcite is MODEL-correct (`habit: stepped_scalenohedral`, forms `v{211}
+  scalenohedron, gentle growth steps | dog-tooth`) but the RENDER doesn't read as a
+  dogtooth. It's a Wulff/wireframe GEOMETRY gap (js/45 + the calcite geometry in
+  99c/99d/99i), not a habit-assignment one — the classifier already tags dog-tooth. Boss
+  wants dogtooth OR the larger blockier dogtooth variants. Verify in-browser (elmwood
+  seed 42; the 19 mm calcite is the biggest crystal).
+- **Elmwood celestine — druzy blanketing surface-coating habit.** Renders today as tiny
+  discrete `tabular {001} plates` at **8–9 µm**. The real specimen's celestine is "fibrous
+  and white, seemingly holds the specimen together like a glue" — a large-area DRUZY
+  BLANKET / surface coating, more like chalcedony/chrysoprase than discrete crystals. Needs
+  BOTH a druzy/surface-coating habit variant (grow_celestine js/60 + morphology registry
+  js/45 — study how chalcedony/chrysoprase surface-coating is done) AND for it to actually
+  spread as a coating rather than sit at 8 µm. The bigger of the two.
+
+*Twenty-third hand's bridge, 2026-07-17; Elmwood-diversions addendum by the twenty-fourth
+hand, 2026-07-23. The keystone for this stretch is in HANDOFF-FOUNDATIONS-2026-07-03.md
+("the rock's own units").*

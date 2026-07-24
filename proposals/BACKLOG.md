@@ -2,7 +2,35 @@
 
 Living list of open work items, captured from session conversations so context survives compaction. Each item has enough detail that someone picking it up cold can act without re-discovering the rationale.
 
-> ## 🗿 SESSION STATE (2026-07-22, latest) — S-SPLIT **PHASE S0 ✅ (byte-identical, `ab8cd92`) — boss APPROVED the arc; S1 gated on boss go**
+> ## 🗿 ELMWOOD DIVERSIONS (2026-07-23) — habit-rendering fidelity, from the S1 eye-check
+>
+> Surfaced when the boss eye-checked Elmwood during S1 (barite settled — "the barite's ok"; the
+> honest 2-blade snowball accepted). SEPARATE from the S-split (rendering/habit, not chemistry).
+> Reference: real Elmwood specimen **#103941**. Full detail in the Elmwood-diversions addendum of
+> `HANDOFF-S-SPLIT-2026-07-17.md`.
+> - **Elmwood CALCITE dogtooth render**: the 19 mm golden calcite is model-correct
+>   (stepped_scalenohedral, dog-tooth forms) but the RENDER doesn't read as a dogtooth — a
+>   Wulff/wireframe GEOMETRY fix (js/45 + 99c/99d/99i calcite geometry), not habit-assignment.
+> - **Elmwood CELESTINE druzy blanket**: renders as tiny 8–9 µm discrete tabular {001} plates;
+>   real Elmwood celestine is a fibrous white DRUZY BLANKET / large-area surface coating (like
+>   chalcedony/chrysoprase). Needs a druzy surface-coating habit (grow_celestine js/60 + registry
+>   js/45) AND to actually spread as a coating. The bigger of the two.
+>
+> ## 🗿 SESSION STATE (2026-07-23) — S-SPLIT **S1 (barite) WIP, uncommitted, SIM 235; BARITE SETTLED, ready to land**
+>
+> S0 shipped `ab8cd92`+`18ae96c` (2026-07-22). S1 barite migration DONE + boss-approved, WIP
+> uncommitted: barite reads sulfateAvailablePpm; **honest split** (no re-anchor) starved MVT barite to
+> 0µm growth (killed the Elmwood W-F O5 snowball) → boss **RE-ANCHORED s_f ÷40→÷20 for the SPLIT
+> branch** (÷40 kept for the carve-out branch = wittichen v191-byte-identical) — "recalibration after
+> the model got less fake, not mercy". **wittichen carve-out** via `fluid.sulfateInherited` (meteoric
+> event sets it; narrow+named fill-dampener + `_wallStrangledFor` exemptions; flag broadcast to per-cell
+> mesh fluids in `_propagateGlobalDelta`) → wittichen barite 153.74µm EXACT v234 match. Blast **4/39
+> moved, 0 species lost/gained**. Elmwood snowball honest 2-blade (was 10 blades>100µm/303µm → 2/153µm),
+> boss eye-checked + accepted. **TO LAND: elmwood-snowball pins →≥2 + full vitest + strip-digest/archive
+> regen + coverage + commit ritual + push + stamp.** Then the Elmwood diversions above. Canary still
+> Windows-only (boss on Linux needs a cron/systemd installer path in vugg-canary).
+>
+> ## 🗿 SESSION STATE (2026-07-22) — S-SPLIT **PHASE S0 ✅ (byte-identical, `ab8cd92`) — boss APPROVED the arc; S1 gated on boss go**
 >
 > **Boss decisions (2026-07-22, all via structured ask):** §5-B derived-partition APPROVED → S0 built;
 > F_min = "let S0 measure it"; T-taper = "tighten from literature first" → anchors moved 150/250 →
