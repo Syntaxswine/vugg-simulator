@@ -94,6 +94,12 @@ class FluidChemistry {
     // v27 evaporative concentration multiplier (mirror of
     // FluidChemistry.concentration in vugg.py).
     this.concentration = opts.concentration ?? 1.0;
+    // S1 (fluid.S sulfate/sulfide split): when true, `fluid.S` is externally-sourced
+    // OXIDIZED sulfate (a meteoric SO₄ pulse), so sulfateAvailablePpm returns it in full and
+    // sulfideAvailablePpm returns 0 — the two-pool carve-out for a sulfate injection into an
+    // otherwise-reducing fluid (wittichen's late barite stage). Default false; a scenario
+    // event flips it. Own property so shallow-clones carry it.
+    this.sulfateInherited = opts.sulfateInherited ?? false;
   }
 
   describe() {

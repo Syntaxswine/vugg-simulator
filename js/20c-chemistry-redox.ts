@@ -521,8 +521,19 @@ function sulfideAvailablePpm(fluid: any, T: number): number {
 // Oxidized-S ppm (SO₄²⁻) for the sulfate class — the S1 replacement for direct `fluid.S`
 // reads in supersaturation_* methods of barite, celestine, anhydrite, selenite, the
 // supergene Pb/Cu sulfates, etc. (js/40-supersat-sulfate.ts, js/90).
+//
+// CARVE-OUT (S1, boss-approved 2026-07-23): a fluid carrying externally-sourced OXIDIZED
+// sulfate — a meteoric sulfate pulse into an otherwise-reducing vein (wittichen's late
+// barite stage; its bare-wall barite did NOT recover live and forms in a fluid kept
+// reducing to protect the arsenide suite) — carries an inherited SO₄²⁻ pool the single-Eh
+// derivation can't represent (the two-pool Model-C case). Until Model C, the scenario sets
+// fluid.sulfateInherited and sulfates read the full S. This DOUBLE-BOOKS with any residual
+// sulfide consumer (wittichen's silver still tarnishes to acanthite at the same stage) —
+// the accepted, honestly-flagged cost of a one-pool model for a genuinely two-pool fluid;
+// sulfideAvailablePpm is deliberately left on the normal split so those consumers survive.
 function sulfateAvailablePpm(fluid: any, T: number): number {
   if (!fluid || typeof fluid.S !== 'number') return 0;
+  if (fluid.sulfateInherited) return fluid.S;
   return fluid.S * (1 - sulfurReducedFraction(fluid, T));
 }
 

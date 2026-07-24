@@ -43,7 +43,17 @@ describe('W-F O5 — the Elmwood barite snowball (SIM 223)', () => {
   it('barite finally GROWS (was subcritical dust) — the snowball on sphalerite', () => {
     const sim = runElmwood();
     const grown = bySpecies(sim, 'barite').filter((c: any) => c.total_growth_um > 100);
-    expect(grown.length, 'barite must grow past dust').toBeGreaterThanOrEqual(4);
+    // S1 (SIM 235, the fluid.S sulfate/sulfide split): ≥4 → ≥2. Pre-split, barite
+    // read the FULL fluid.S — an effective-sulfate over-count against which the σ
+    // cap was originally calibrated. The split reads only the oxidized-sulfate pool
+    // (sulfateAvailablePpm), and elmwood's MVT broth is mildly reducing, so most of
+    // its S partitions to H₂S: the honest snowball is 2 blades, not the old 10. This
+    // is a calibration correction (the model got less fake), NOT a starvation bug —
+    // the boss eye-checked v234-vs-v235 and confirmed the 2-blade render still reads
+    // as the Elmwood barite snowball (silhouette + locality signal intact). The
+    // MECHANISM (stall→pulse→break-through banding on the sphalerite base) is what
+    // these pins guard, not the pre-split blade lottery.
+    expect(grown.length, 'barite must grow past dust').toBeGreaterThanOrEqual(2);
   });
 
   it('each grown barite carries masked_horizons — the concentric snowball banding', () => {
@@ -61,12 +71,15 @@ describe('W-F O5 — the Elmwood barite snowball (SIM 223)', () => {
         expect(['clay', 'iron oxide']).toContain(z.film_mineral);
       }
     }
-    expect(withHorizons, 'grown barite should show snowball horizons').toBeGreaterThanOrEqual(4);
+    // S1 (SIM 235): ≥4 → ≥2. Both honest blades carry a masked horizon (the split
+    // trims the blade COUNT, not the banding mechanism inside each surviving blade).
+    expect(withHorizons, 'grown barite should show snowball horizons').toBeGreaterThanOrEqual(2);
     // v228: ≥8 → ≥6. The v223 pin recorded the exact band count of that seed's
     // deal (4 blades × 2 breaks). The SIM 228 S-economy re-deal (stronger honey
-    // sphalerite) leaves one blade with a single break — the MECHANISM (stall →
-    // pulse → break-through banding) is what this guards, not the lottery.
-    expect(totalHorizons, 'multiple bands fleet-wide').toBeGreaterThanOrEqual(6);
+    // sphalerite) left one blade with a single break. S1 (SIM 235): ≥6 → ≥2 — with
+    // 2 honest blades × 1 break each, 2 is the mechanism floor (each grown blade
+    // banded), not the pre-split lottery count.
+    expect(totalHorizons, 'multiple bands fleet-wide').toBeGreaterThanOrEqual(2);
   });
 
   it('the outermost clay rind stays UNCLEARED on the finished blades (the dusty snowball skin)', () => {
@@ -75,7 +88,9 @@ describe('W-F O5 — the Elmwood barite snowball (SIM 223)', () => {
     // The final clay rind (step 78) lands after the last Ba pulse, as σ wanes —
     // it never breaks through, so a finished blade ends still filmed.
     const stillFilmed = grown.filter((c: any) => c._film && c._film.mineral === 'clay');
-    expect(stillFilmed.length, 'the dusty outer rind persists').toBeGreaterThanOrEqual(4);
+    // S1 (SIM 235): ≥4 → ≥2. Both honest blades end filmed (the rind persists on
+    // every finished blade; the split trimmed the count, not the skin behaviour).
+    expect(stillFilmed.length, 'the dusty outer rind persists').toBeGreaterThanOrEqual(2);
   });
 
   it('THE VARIETY GUARD — the golden calcite + fluorite + sphalerite base all survive', () => {

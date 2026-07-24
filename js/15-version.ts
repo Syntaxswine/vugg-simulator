@@ -12211,5 +12211,5 @@
 //        1849 via Warren 2021; OSTI 1850965; Onac 2025; Lowenstein & Hardie
 //        1985 (chevron canon, display strings kept); DATA-HOSTILE-REVIEW
 //        /refuted/13 (the bisbee lever).
-const SIM_VERSION = 234;
+const SIM_VERSION = 235;
 

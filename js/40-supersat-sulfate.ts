@@ -197,10 +197,29 @@ const MINERAL_GATES_leadhillite: MineralGates = {
 Object.assign(VugConditions.prototype, {
   supersaturation_barite() {
   const g = MINERAL_GATES_barite;
-  if (this.fluid.Ba < g.fluid_min!.Ba || this.fluid.S < g.fluid_min!.S || !sulfateRedoxAvailable(this.fluid, g.O2_min!)) return 0;
+  // S1 (fluid.S sulfate/sulfide split, PROPOSAL-FLUID-S-SPLIT §S1) — barite is the FIRST
+  // engine to migrate off total `fluid.S`. It consumes SO₄²⁻, so it reads the sulfate-
+  // available fraction (sulfateAvailablePpm, js/20c): below the SO₄/H₂S boundary a reducing
+  // MVT brine's sulfur is mostly H₂S and barite sees only the inherited sulfate minority;
+  // in an oxidizing supergene fluid the fraction → 1 (byte-identical to the old full-S read).
+  // Boss call 2026-07-23: ACCEPT the honest reduction (barite was partly growing on
+  // double-booked S) — no compensating re-anchor. MVT-class barite shrinks toward its
+  // honest sulfate-limited size; wittichen's late meteoric-sulfate pulse is carved out via
+  // fluid.sulfateInherited (sulfateAvailablePpm returns full S there — the two-pool case).
+  const s_avail = sulfateAvailablePpm(this.fluid, this.temperature);
+  if (this.fluid.Ba < g.fluid_min!.Ba || s_avail < g.fluid_min!.S || !sulfateRedoxAvailable(this.fluid, g.O2_min!)) return 0;
   // Factor caps to prevent evaporite-level S from runaway sigma.
   const ba_f = Math.min(this.fluid.Ba / 30.0, 2.0);
-  const s_f  = Math.min(this.fluid.S  / 40.0, 2.5);
+  // S1 re-anchor (boss directive 2026-07-23): barite's s_f saturation constant was
+  // calibrated (the /40) against PRE-SPLIT effective sulfate — total `fluid.S`, which at the
+  // SO₄/H₂S boundary over-counts real sulfate ~2×. After the honest split the divisor is
+  // stale sediment: MVT-branch barite reads the true sulfate (~0.5×S) and starved to 0µm
+  // growth, killing the Elmwood barite snowball (W-F O5, SIM 223). Restore the growth anchor
+  // for the SPLIT branch (÷20 = the honest sulfate-saturation constant). NOT mercy and NOT a
+  // meteoric-pulse rescue: the carve-out branch (sulfateInherited — wittichen reads full S as
+  // the inherited SO₄ pool) keeps ÷40 so its v191 Ba calibration stays byte-identical.
+  const s_div = this.fluid.sulfateInherited ? 40.0 : 20.0;
+  const s_f  = Math.min(s_avail / s_div, 2.5);
   // O2 saturation at SO₄/H₂S Eh boundary (~O2=0.4), not at fully
   // oxidized. Allows barite + galena coexistence (MVT diagnostic).
   const o2_f = sulfateRedoxFactor(this.fluid, 0.4, 1.5);
