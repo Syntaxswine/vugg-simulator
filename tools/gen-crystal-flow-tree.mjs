@@ -155,10 +155,21 @@ function main() {
   let census = null;
   if (fs.existsSync(CENSUS)) census = JSON.parse(fs.readFileSync(CENSUS, 'utf8'));
   const observedHosts = new Map();   // "host>guest" seen at runtime
+  const observedRuns = new Map();    // "host>guest" -> [{scenario, seed, step, position}]
   const wallSeen = new Map();        // species -> true/false
   for (const row of census?.species || []) {
     wallSeen.set(row.mineral, row.bare > 0);
     for (const host of Object.keys(row.hosts || {})) observedHosts.set(`${host}>${row.mineral}`, row.hosts[host]);
+    // The census records one receipt per sighting. Carry them through so an
+    // "observed" edge can name the run it was observed in, rather than asking
+    // the reader to take a tally on faith.
+    for (const s of row.sightings || []) {
+      const key = `${s.host}>${row.mineral}`;
+      if (!observedRuns.has(key)) observedRuns.set(key, []);
+      observedRuns.get(key).push({
+        scenario: s.scenario, seed: s.seed, step: s.step, position: s.position,
+      });
+    }
   }
 
   const nodes = Object.entries(minerals).map(([id, m]) => ({
@@ -229,6 +240,7 @@ function main() {
           cite: hard ? hard.cite : `${relative}:${line}`,
           certainty: hard ? 'proved' : (seen ? 'observed' : 'inferred'),
           ...(seen ? { runtime_sightings: seen } : {}),
+          ...(observedRuns.has(key) ? { runtime: observedRuns.get(key) } : {}),
         },
         ...(hard?.note ? { note: hard.note } : {}),
       });

@@ -5734,6 +5734,38 @@
         "basis": "code-reference",
         "certainty": "observed",
         "runtime_sightings": 5,
+        "runtime": [
+          {
+            "scenario": "reactivated_fluorite_vein",
+            "seed": 42,
+            "step": 20,
+            "position": "on galena #7"
+          },
+          {
+            "scenario": "reactivated_fluorite_vein",
+            "seed": 42,
+            "step": 23,
+            "position": "on galena #7"
+          },
+          {
+            "scenario": "reactivated_fluorite_vein",
+            "seed": 42,
+            "step": 27,
+            "position": "on galena #7"
+          },
+          {
+            "scenario": "roughten_gill",
+            "seed": 42,
+            "step": 9,
+            "position": "on galena #7"
+          },
+          {
+            "scenario": "roughten_gill",
+            "seed": 42,
+            "step": 18,
+            "position": "on galena #7"
+          }
+        ],
         "cites": [
           "js/91-nucleation-sulfide.ts:346"
         ]
@@ -5780,6 +5812,20 @@
         "basis": "code-reference",
         "certainty": "observed",
         "runtime_sightings": 2,
+        "runtime": [
+          {
+            "scenario": "jeffrey_mine",
+            "seed": 42,
+            "step": 25,
+            "position": "with diopside #5"
+          },
+          {
+            "scenario": "jeffrey_mine",
+            "seed": 42,
+            "step": 26,
+            "position": "with diopside #5"
+          }
+        ],
         "cites": [
           "js/89a-nucleation-amphibole.ts:50"
         ]
@@ -5796,6 +5842,14 @@
         "basis": "code-reference",
         "certainty": "observed",
         "runtime_sightings": 1,
+        "runtime": [
+          {
+            "scenario": "jeffrey_mine",
+            "seed": 42,
+            "step": 38,
+            "position": "with grossular #11 (greenschist-facies association)"
+          }
+        ],
         "cites": [
           "js/89a-nucleation-amphibole.ts:51"
         ]
@@ -5842,6 +5896,62 @@
         "basis": "code-reference",
         "certainty": "observed",
         "runtime_sightings": 9,
+        "runtime": [
+          {
+            "scenario": "bisbee",
+            "seed": 42,
+            "step": 2,
+            "position": "on feldspar #1"
+          },
+          {
+            "scenario": "epithermal_telluride",
+            "seed": 42,
+            "step": 2,
+            "position": "on feldspar #2"
+          },
+          {
+            "scenario": "gem_pegmatite",
+            "seed": 42,
+            "step": 2,
+            "position": "on feldspar #2"
+          },
+          {
+            "scenario": "grimsel_alpine_cleft",
+            "seed": 42,
+            "step": 2,
+            "position": "on feldspar #1"
+          },
+          {
+            "scenario": "ouro_preto",
+            "seed": 42,
+            "step": 2,
+            "position": "on feldspar #1"
+          },
+          {
+            "scenario": "porphyry",
+            "seed": 42,
+            "step": 2,
+            "position": "on feldspar #1"
+          },
+          {
+            "scenario": "radioactive_pegmatite",
+            "seed": 42,
+            "step": 2,
+            "position": "on feldspar #3"
+          },
+          {
+            "scenario": "shigar_pegmatite",
+            "seed": 42,
+            "step": 2,
+            "position": "on feldspar #2"
+          },
+          {
+            "scenario": "tormiq_alpine_cleft",
+            "seed": 42,
+            "step": 2,
+            "position": "on feldspar #1"
+          }
+        ],
         "cites": [
           "js/89-nucleation-silicate.ts:99"
         ]
@@ -5858,6 +5968,14 @@
         "basis": "code-reference",
         "certainty": "observed",
         "runtime_sightings": 1,
+        "runtime": [
+          {
+            "scenario": "deccan_zeolite",
+            "seed": 42,
+            "step": 70,
+            "position": "on quartz #6"
+          }
+        ],
         "cites": [
           "js/89-nucleation-silicate.ts:98"
         ]
@@ -5919,6 +6037,20 @@
         "basis": "code-reference",
         "certainty": "observed",
         "runtime_sightings": 2,
+        "runtime": [
+          {
+            "scenario": "asbestos_hills_crack_seal",
+            "seed": 42,
+            "step": 5,
+            "position": "with magnetite #4 (BIF Fe-amphibole assemblage)"
+          },
+          {
+            "scenario": "asbestos_hills_surficial_alteration",
+            "seed": 42,
+            "step": 5,
+            "position": "with magnetite #4 (BIF Fe-amphibole assemblage)"
+          }
+        ],
         "cites": [
           "js/89a-nucleation-amphibole.ts:95"
         ]
@@ -5935,6 +6067,26 @@
         "basis": "code-reference",
         "certainty": "observed",
         "runtime_sightings": 3,
+        "runtime": [
+          {
+            "scenario": "porphyry",
+            "seed": 42,
+            "step": 85,
+            "position": "on galena #22"
+          },
+          {
+            "scenario": "porphyry",
+            "seed": 42,
+            "step": 88,
+            "position": "on galena #22"
+          },
+          {
+            "scenario": "roughten_gill",
+            "seed": 42,
+            "step": 60,
+            "position": "on galena #7"
+          }
+        ],
         "cites": [
           "js/90-nucleation-sulfate.ts:250"
         ]
@@ -5951,6 +6103,26 @@
         "basis": "code-reference",
         "certainty": "observed",
         "runtime_sightings": 3,
+        "runtime": [
+          {
+            "scenario": "porphyry",
+            "seed": 42,
+            "step": 85,
+            "position": "on galena #22"
+          },
+          {
+            "scenario": "porphyry",
+            "seed": 42,
+            "step": 88,
+            "position": "on galena #22"
+          },
+          {
+            "scenario": "roughten_gill",
+            "seed": 42,
+            "step": 60,
+            "position": "on galena #7"
+          }
+        ],
         "cites": [
           "js/90-nucleation-sulfate.ts:251"
         ]
@@ -5999,6 +6171,20 @@
         "basis": "code-reference",
         "certainty": "observed",
         "runtime_sightings": 2,
+        "runtime": [
+          {
+            "scenario": "schneeberg",
+            "seed": 42,
+            "step": 105,
+            "position": "alongside erythrite #64"
+          },
+          {
+            "scenario": "supergene_oxidation",
+            "seed": 42,
+            "step": 95,
+            "position": "alongside erythrite #73"
+          }
+        ],
         "cites": [
           "js/80-nucleation-arsenate.ts:118"
         ]
@@ -6090,6 +6276,14 @@
         "basis": "code-reference",
         "certainty": "observed",
         "runtime_sightings": 1,
+        "runtime": [
+          {
+            "scenario": "deccan_zeolite",
+            "seed": 42,
+            "step": 110,
+            "position": "on hematite #4"
+          }
+        ],
         "cites": [
           "js/89-nucleation-silicate.ts:63"
         ]
@@ -6151,6 +6345,20 @@
         "basis": "code-reference",
         "certainty": "observed",
         "runtime_sightings": 2,
+        "runtime": [
+          {
+            "scenario": "sunnyside_american_tunnel",
+            "seed": 42,
+            "step": 2,
+            "position": "on galena #6"
+          },
+          {
+            "scenario": "sunnyside_american_tunnel",
+            "seed": 42,
+            "step": 14,
+            "position": "on galena #6"
+          }
+        ],
         "cites": [
           "js/91-nucleation-sulfide.ts:290"
         ]
@@ -6182,6 +6390,26 @@
         "basis": "code-reference",
         "certainty": "observed",
         "runtime_sightings": 3,
+        "runtime": [
+          {
+            "scenario": "sunnyside_american_tunnel",
+            "seed": 42,
+            "step": 4,
+            "position": "on pyrite #2"
+          },
+          {
+            "scenario": "sunnyside_american_tunnel",
+            "seed": 42,
+            "step": 6,
+            "position": "on pyrite #2"
+          },
+          {
+            "scenario": "sunnyside_american_tunnel",
+            "seed": 42,
+            "step": 10,
+            "position": "on pyrite #2"
+          }
+        ],
         "cites": [
           "js/91-nucleation-sulfide.ts:114"
         ]
@@ -6363,6 +6591,26 @@
         "basis": "code-reference",
         "certainty": "observed",
         "runtime_sightings": 3,
+        "runtime": [
+          {
+            "scenario": "bisbee",
+            "seed": 42,
+            "step": 180,
+            "position": "on cuprite #23"
+          },
+          {
+            "scenario": "bisbee",
+            "seed": 42,
+            "step": 185,
+            "position": "on cuprite #23"
+          },
+          {
+            "scenario": "bisbee",
+            "seed": 42,
+            "step": 205,
+            "position": "on cuprite #23"
+          }
+        ],
         "cites": [
           "js/82-nucleation-carbonate.ts:258"
         ]
@@ -6394,6 +6642,92 @@
         "basis": "code-reference",
         "certainty": "observed",
         "runtime_sightings": 14,
+        "runtime": [
+          {
+            "scenario": "elmwood",
+            "seed": 42,
+            "step": 26,
+            "position": "on galena #5"
+          },
+          {
+            "scenario": "elmwood",
+            "seed": 42,
+            "step": 85,
+            "position": "on galena #5"
+          },
+          {
+            "scenario": "mvt",
+            "seed": 42,
+            "step": 26,
+            "position": "on galena #5"
+          },
+          {
+            "scenario": "reactivated_fluorite_vein",
+            "seed": 42,
+            "step": 26,
+            "position": "on galena #7"
+          },
+          {
+            "scenario": "reactivated_fluorite_vein",
+            "seed": 42,
+            "step": 28,
+            "position": "on galena #7"
+          },
+          {
+            "scenario": "reactivated_fluorite_vein",
+            "seed": 42,
+            "step": 40,
+            "position": "on galena #7"
+          },
+          {
+            "scenario": "reactivated_fluorite_vein",
+            "seed": 42,
+            "step": 47,
+            "position": "on galena #7"
+          },
+          {
+            "scenario": "reactivated_fluorite_vein",
+            "seed": 42,
+            "step": 54,
+            "position": "on galena #7"
+          },
+          {
+            "scenario": "reactivated_fluorite_vein",
+            "seed": 42,
+            "step": 84,
+            "position": "on galena #7"
+          },
+          {
+            "scenario": "reactivated_fluorite_vein",
+            "seed": 42,
+            "step": 89,
+            "position": "on galena #7"
+          },
+          {
+            "scenario": "reactivated_fluorite_vein",
+            "seed": 42,
+            "step": 92,
+            "position": "on galena #7"
+          },
+          {
+            "scenario": "reactivated_fluorite_vein",
+            "seed": 42,
+            "step": 96,
+            "position": "on galena #7"
+          },
+          {
+            "scenario": "reactivated_fluorite_vein",
+            "seed": 42,
+            "step": 100,
+            "position": "on galena #7"
+          },
+          {
+            "scenario": "reactivated_fluorite_vein",
+            "seed": 42,
+            "step": 105,
+            "position": "on galena #7"
+          }
+        ],
         "cites": [
           "js/90-nucleation-sulfate.ts:25"
         ]
@@ -6410,6 +6744,50 @@
         "basis": "code-reference",
         "certainty": "observed",
         "runtime_sightings": 7,
+        "runtime": [
+          {
+            "scenario": "mvt",
+            "seed": 42,
+            "step": 24,
+            "position": "on pyrite #4"
+          },
+          {
+            "scenario": "reactivated_fluorite_vein",
+            "seed": 42,
+            "step": 24,
+            "position": "on pyrite #6"
+          },
+          {
+            "scenario": "reactivated_fluorite_vein",
+            "seed": 42,
+            "step": 55,
+            "position": "on pyrite #6"
+          },
+          {
+            "scenario": "reactivated_fluorite_vein",
+            "seed": 42,
+            "step": 76,
+            "position": "on pyrite #6"
+          },
+          {
+            "scenario": "reactivated_fluorite_vein",
+            "seed": 42,
+            "step": 79,
+            "position": "on pyrite #6"
+          },
+          {
+            "scenario": "reactivated_fluorite_vein",
+            "seed": 42,
+            "step": 83,
+            "position": "on pyrite #6"
+          },
+          {
+            "scenario": "reactivated_fluorite_vein",
+            "seed": 42,
+            "step": 107,
+            "position": "on pyrite #6"
+          }
+        ],
         "cites": [
           "js/90-nucleation-sulfate.ts:26"
         ]
@@ -6426,6 +6804,200 @@
         "basis": "code-reference",
         "certainty": "observed",
         "runtime_sightings": 32,
+        "runtime": [
+          {
+            "scenario": "elmwood",
+            "seed": 42,
+            "step": 16,
+            "position": "on sphalerite #3"
+          },
+          {
+            "scenario": "elmwood",
+            "seed": 42,
+            "step": 19,
+            "position": "on sphalerite #3"
+          },
+          {
+            "scenario": "elmwood",
+            "seed": 42,
+            "step": 21,
+            "position": "on sphalerite #3"
+          },
+          {
+            "scenario": "elmwood",
+            "seed": 42,
+            "step": 22,
+            "position": "on sphalerite #3"
+          },
+          {
+            "scenario": "elmwood",
+            "seed": 42,
+            "step": 27,
+            "position": "on sphalerite #3"
+          },
+          {
+            "scenario": "elmwood",
+            "seed": 42,
+            "step": 83,
+            "position": "on sphalerite #3"
+          },
+          {
+            "scenario": "elmwood",
+            "seed": 42,
+            "step": 84,
+            "position": "on sphalerite #3"
+          },
+          {
+            "scenario": "elmwood",
+            "seed": 42,
+            "step": 86,
+            "position": "on sphalerite #3"
+          },
+          {
+            "scenario": "elmwood",
+            "seed": 42,
+            "step": 88,
+            "position": "on sphalerite #3"
+          },
+          {
+            "scenario": "elmwood",
+            "seed": 42,
+            "step": 89,
+            "position": "on sphalerite #3"
+          },
+          {
+            "scenario": "mvt",
+            "seed": 42,
+            "step": 21,
+            "position": "on sphalerite #3"
+          },
+          {
+            "scenario": "mvt",
+            "seed": 42,
+            "step": 22,
+            "position": "on sphalerite #3"
+          },
+          {
+            "scenario": "mvt",
+            "seed": 42,
+            "step": 27,
+            "position": "on sphalerite #3"
+          },
+          {
+            "scenario": "reactivated_fluorite_vein",
+            "seed": 42,
+            "step": 21,
+            "position": "on sphalerite #5"
+          },
+          {
+            "scenario": "reactivated_fluorite_vein",
+            "seed": 42,
+            "step": 22,
+            "position": "on sphalerite #5"
+          },
+          {
+            "scenario": "reactivated_fluorite_vein",
+            "seed": 42,
+            "step": 27,
+            "position": "on sphalerite #5"
+          },
+          {
+            "scenario": "reactivated_fluorite_vein",
+            "seed": 42,
+            "step": 36,
+            "position": "on sphalerite #5"
+          },
+          {
+            "scenario": "reactivated_fluorite_vein",
+            "seed": 42,
+            "step": 41,
+            "position": "on sphalerite #5"
+          },
+          {
+            "scenario": "reactivated_fluorite_vein",
+            "seed": 42,
+            "step": 42,
+            "position": "on sphalerite #5"
+          },
+          {
+            "scenario": "reactivated_fluorite_vein",
+            "seed": 42,
+            "step": 43,
+            "position": "on sphalerite #5"
+          },
+          {
+            "scenario": "reactivated_fluorite_vein",
+            "seed": 42,
+            "step": 45,
+            "position": "on sphalerite #5"
+          },
+          {
+            "scenario": "reactivated_fluorite_vein",
+            "seed": 42,
+            "step": 58,
+            "position": "on sphalerite #5"
+          },
+          {
+            "scenario": "reactivated_fluorite_vein",
+            "seed": 42,
+            "step": 59,
+            "position": "on sphalerite #5"
+          },
+          {
+            "scenario": "reactivated_fluorite_vein",
+            "seed": 42,
+            "step": 62,
+            "position": "on sphalerite #5"
+          },
+          {
+            "scenario": "reactivated_fluorite_vein",
+            "seed": 42,
+            "step": 67,
+            "position": "on sphalerite #5"
+          },
+          {
+            "scenario": "reactivated_fluorite_vein",
+            "seed": 42,
+            "step": 90,
+            "position": "on sphalerite #5"
+          },
+          {
+            "scenario": "reactivated_fluorite_vein",
+            "seed": 42,
+            "step": 94,
+            "position": "on sphalerite #5"
+          },
+          {
+            "scenario": "reactivated_fluorite_vein",
+            "seed": 42,
+            "step": 102,
+            "position": "on sphalerite #5"
+          },
+          {
+            "scenario": "tn457_barite_pulses",
+            "seed": 42,
+            "step": 8,
+            "position": "on sphalerite #1"
+          },
+          {
+            "scenario": "tn457_barite_pulses",
+            "seed": 42,
+            "step": 10,
+            "position": "on sphalerite #1"
+          },
+          {
+            "scenario": "tn457_barite_pulses",
+            "seed": 42,
+            "step": 11,
+            "position": "on sphalerite #1"
+          },
+          {
+            "scenario": "tn457_barite_pulses",
+            "seed": 42,
+            "step": 15,
+            "position": "on sphalerite #1"
+          }
+        ],
         "cites": [
           "js/90-nucleation-sulfate.ts:24"
         ]
@@ -6562,6 +7134,14 @@
         "basis": "code-reference",
         "certainty": "observed",
         "runtime_sightings": 1,
+        "runtime": [
+          {
+            "scenario": "bisbee",
+            "seed": 42,
+            "step": 98,
+            "position": "on chalcopyrite #4"
+          }
+        ],
         "cites": [
           "js/91-nucleation-sulfide.ts:363"
         ]
@@ -6578,6 +7158,14 @@
         "basis": "code-reference",
         "certainty": "observed",
         "runtime_sightings": 1,
+        "runtime": [
+          {
+            "scenario": "bisbee",
+            "seed": 42,
+            "step": 98,
+            "position": "on chalcopyrite #4"
+          }
+        ],
         "cites": [
           "js/91-nucleation-sulfide.ts:364"
         ]
@@ -6594,6 +7182,20 @@
         "basis": "code-reference",
         "certainty": "observed",
         "runtime_sightings": 2,
+        "runtime": [
+          {
+            "scenario": "roughten_gill",
+            "seed": 42,
+            "step": 72,
+            "position": "on chalcocite #8"
+          },
+          {
+            "scenario": "roughten_gill",
+            "seed": 42,
+            "step": 73,
+            "position": "on chalcocite #8"
+          }
+        ],
         "cites": [
           "js/90-nucleation-sulfate.ts:130"
         ]
@@ -6610,6 +7212,20 @@
         "basis": "code-reference",
         "certainty": "observed",
         "runtime_sightings": 2,
+        "runtime": [
+          {
+            "scenario": "roughten_gill",
+            "seed": 42,
+            "step": 72,
+            "position": "on chalcocite #8"
+          },
+          {
+            "scenario": "roughten_gill",
+            "seed": 42,
+            "step": 73,
+            "position": "on chalcocite #8"
+          }
+        ],
         "cites": [
           "js/90-nucleation-sulfate.ts:128"
         ]
@@ -6761,6 +7377,20 @@
         "basis": "code-reference",
         "certainty": "observed",
         "runtime_sightings": 2,
+        "runtime": [
+          {
+            "scenario": "radioactive_pegmatite",
+            "seed": 42,
+            "step": 8,
+            "position": "on feldspar #3"
+          },
+          {
+            "scenario": "schneeberg",
+            "seed": 42,
+            "step": 8,
+            "position": "on feldspar #3"
+          }
+        ],
         "cites": [
           "js/87-nucleation-oxide.ts:113"
         ]
@@ -6777,6 +7407,14 @@
         "basis": "code-reference",
         "certainty": "observed",
         "runtime_sightings": 1,
+        "runtime": [
+          {
+            "scenario": "schneeberg",
+            "seed": 42,
+            "step": 6,
+            "position": "on quartz #2"
+          }
+        ],
         "cites": [
           "js/87-nucleation-oxide.ts:112"
         ]
@@ -6793,6 +7431,20 @@
         "basis": "code-reference",
         "certainty": "observed",
         "runtime_sightings": 2,
+        "runtime": [
+          {
+            "scenario": "schneeberg",
+            "seed": 42,
+            "step": 14,
+            "position": "on topaz #18"
+          },
+          {
+            "scenario": "schneeberg",
+            "seed": 42,
+            "step": 18,
+            "position": "on topaz #18"
+          }
+        ],
         "cites": [
           "js/87-nucleation-oxide.ts:110"
         ]
@@ -6809,6 +7461,44 @@
         "basis": "code-reference",
         "certainty": "observed",
         "runtime_sightings": 6,
+        "runtime": [
+          {
+            "scenario": "gem_pegmatite",
+            "seed": 42,
+            "step": 6,
+            "position": "on tourmaline #5"
+          },
+          {
+            "scenario": "gem_pegmatite",
+            "seed": 42,
+            "step": 14,
+            "position": "on tourmaline #5"
+          },
+          {
+            "scenario": "gem_pegmatite",
+            "seed": 42,
+            "step": 62,
+            "position": "on tourmaline #5"
+          },
+          {
+            "scenario": "radioactive_pegmatite",
+            "seed": 42,
+            "step": 6,
+            "position": "on tourmaline #7"
+          },
+          {
+            "scenario": "radioactive_pegmatite",
+            "seed": 42,
+            "step": 14,
+            "position": "on tourmaline #7"
+          },
+          {
+            "scenario": "radioactive_pegmatite",
+            "seed": 42,
+            "step": 18,
+            "position": "on tourmaline #7"
+          }
+        ],
         "cites": [
           "js/87-nucleation-oxide.ts:111"
         ]
@@ -6840,6 +7530,26 @@
         "basis": "code-reference",
         "certainty": "observed",
         "runtime_sightings": 3,
+        "runtime": [
+          {
+            "scenario": "elmwood",
+            "seed": 42,
+            "step": 86,
+            "position": "on barite #12 (celestobarite-barytocelestine pair)"
+          },
+          {
+            "scenario": "elmwood",
+            "seed": 42,
+            "step": 115,
+            "position": "on barite #12 (celestobarite-barytocelestine pair)"
+          },
+          {
+            "scenario": "reactivated_fluorite_vein",
+            "seed": 42,
+            "step": 39,
+            "position": "on barite #16 (celestobarite-barytocelestine pair)"
+          }
+        ],
         "cites": [
           "js/90-nucleation-sulfate.ts:61"
         ]
@@ -7051,6 +7761,14 @@
         "basis": "code-reference",
         "certainty": "observed",
         "runtime_sightings": 1,
+        "runtime": [
+          {
+            "scenario": "bisbee",
+            "seed": 42,
+            "step": 99,
+            "position": "on bornite #49"
+          }
+        ],
         "cites": [
           "js/91-nucleation-sulfide.ts:382"
         ]
@@ -7067,6 +7785,14 @@
         "basis": "code-reference",
         "certainty": "observed",
         "runtime_sightings": 1,
+        "runtime": [
+          {
+            "scenario": "bisbee",
+            "seed": 42,
+            "step": 99,
+            "position": "on bornite #49"
+          }
+        ],
         "cites": [
           "js/91-nucleation-sulfide.ts:383"
         ]
@@ -7083,6 +7809,38 @@
         "basis": "code-reference",
         "certainty": "observed",
         "runtime_sightings": 5,
+        "runtime": [
+          {
+            "scenario": "bisbee",
+            "seed": 42,
+            "step": 65,
+            "position": "on chalcopyrite #4"
+          },
+          {
+            "scenario": "bisbee",
+            "seed": 42,
+            "step": 76,
+            "position": "on chalcopyrite #4"
+          },
+          {
+            "scenario": "bisbee",
+            "seed": 42,
+            "step": 95,
+            "position": "on chalcopyrite #4"
+          },
+          {
+            "scenario": "roughten_gill",
+            "seed": 42,
+            "step": 1,
+            "position": "on chalcopyrite #4"
+          },
+          {
+            "scenario": "roughten_gill",
+            "seed": 42,
+            "step": 11,
+            "position": "on chalcopyrite #4"
+          }
+        ],
         "cites": [
           "js/91-nucleation-sulfide.ts:380",
           "js/91-nucleation-sulfide.ts:381"
@@ -7115,6 +7873,14 @@
         "basis": "code-reference",
         "certainty": "observed",
         "runtime_sightings": 1,
+        "runtime": [
+          {
+            "scenario": "roughten_gill",
+            "seed": 42,
+            "step": 180,
+            "position": "on azurite #39"
+          }
+        ],
         "cites": [
           "js/89-nucleation-silicate.ts:122"
         ]
@@ -7131,6 +7897,14 @@
         "basis": "code-reference",
         "certainty": "observed",
         "runtime_sightings": 1,
+        "runtime": [
+          {
+            "scenario": "roughten_gill",
+            "seed": 42,
+            "step": 180,
+            "position": "on azurite #39"
+          }
+        ],
         "cites": [
           "js/89-nucleation-silicate.ts:124"
         ]
@@ -7147,6 +7921,32 @@
         "basis": "code-reference",
         "certainty": "observed",
         "runtime_sightings": 4,
+        "runtime": [
+          {
+            "scenario": "bisbee",
+            "seed": 42,
+            "step": 79,
+            "position": "on cuprite #23"
+          },
+          {
+            "scenario": "bisbee",
+            "seed": 42,
+            "step": 92,
+            "position": "on cuprite #23"
+          },
+          {
+            "scenario": "schneeberg",
+            "seed": 42,
+            "step": 92,
+            "position": "on cuprite #47"
+          },
+          {
+            "scenario": "schneeberg",
+            "seed": 42,
+            "step": 94,
+            "position": "on cuprite #47"
+          }
+        ],
         "cites": [
           "js/89-nucleation-silicate.ts:126"
         ]
@@ -7253,6 +8053,14 @@
         "basis": "code-reference",
         "certainty": "observed",
         "runtime_sightings": 1,
+        "runtime": [
+          {
+            "scenario": "schneeberg",
+            "seed": 42,
+            "step": 29,
+            "position": "on arsenopyrite #12"
+          }
+        ],
         "cites": [
           "js/91-nucleation-sulfide.ts:332"
         ]
@@ -7314,6 +8122,14 @@
         "basis": "code-reference",
         "certainty": "observed",
         "runtime_sightings": 1,
+        "runtime": [
+          {
+            "scenario": "supergene_oxidation",
+            "seed": 42,
+            "step": 32,
+            "position": "on malachite #4"
+          }
+        ],
         "cites": [
           "js/80-nucleation-arsenate.ts:204"
         ]
@@ -7360,6 +8176,14 @@
         "basis": "code-reference",
         "certainty": "observed",
         "runtime_sightings": 1,
+        "runtime": [
+          {
+            "scenario": "supergene_oxidation",
+            "seed": 42,
+            "step": 27,
+            "position": "on scorodite #19"
+          }
+        ],
         "cites": [
           "js/80-nucleation-arsenate.ts:201"
         ]
@@ -7376,6 +8200,38 @@
         "basis": "code-reference",
         "certainty": "observed",
         "runtime_sightings": 5,
+        "runtime": [
+          {
+            "scenario": "bisbee",
+            "seed": 42,
+            "step": 65,
+            "position": "on chalcocite #17"
+          },
+          {
+            "scenario": "bisbee",
+            "seed": 42,
+            "step": 66,
+            "position": "on chalcocite #17"
+          },
+          {
+            "scenario": "bisbee",
+            "seed": 42,
+            "step": 78,
+            "position": "on chalcocite #17"
+          },
+          {
+            "scenario": "supergene_oxidation",
+            "seed": 42,
+            "step": 65,
+            "position": "on chalcocite #56"
+          },
+          {
+            "scenario": "supergene_oxidation",
+            "seed": 42,
+            "step": 66,
+            "position": "on chalcocite #56"
+          }
+        ],
         "cites": [
           "js/91-nucleation-sulfide.ts:401"
         ]
@@ -7422,6 +8278,32 @@
         "basis": "code-reference",
         "certainty": "observed",
         "runtime_sightings": 4,
+        "runtime": [
+          {
+            "scenario": "asbestos_hills_crack_seal",
+            "seed": 42,
+            "step": 6,
+            "position": "with magnetite #4 (BIF Fe-amphibole assemblage)"
+          },
+          {
+            "scenario": "asbestos_hills_crack_seal",
+            "seed": 42,
+            "step": 7,
+            "position": "with magnetite #4 (BIF Fe-amphibole assemblage)"
+          },
+          {
+            "scenario": "asbestos_hills_surficial_alteration",
+            "seed": 42,
+            "step": 6,
+            "position": "with magnetite #4 (BIF Fe-amphibole assemblage)"
+          },
+          {
+            "scenario": "asbestos_hills_surficial_alteration",
+            "seed": 42,
+            "step": 7,
+            "position": "with magnetite #4 (BIF Fe-amphibole assemblage)"
+          }
+        ],
         "cites": [
           "js/89a-nucleation-amphibole.ts:115"
         ]
@@ -7438,6 +8320,14 @@
         "basis": "code-reference",
         "certainty": "observed",
         "runtime_sightings": 1,
+        "runtime": [
+          {
+            "scenario": "bisbee",
+            "seed": 42,
+            "step": 74,
+            "position": "on chalcocite #17"
+          }
+        ],
         "cites": [
           "js/87-nucleation-oxide.ts:65"
         ]
@@ -7530,6 +8420,20 @@
         "basis": "code-reference",
         "certainty": "observed",
         "runtime_sightings": 2,
+        "runtime": [
+          {
+            "scenario": "jeffrey_mine",
+            "seed": 42,
+            "step": 170,
+            "position": "with vesuvianite #4"
+          },
+          {
+            "scenario": "jeffrey_mine",
+            "seed": 42,
+            "step": 179,
+            "position": "with vesuvianite #4"
+          }
+        ],
         "cites": [
           "js/89-nucleation-silicate.ts:954"
         ]
@@ -7576,6 +8480,20 @@
         "basis": "code-reference",
         "certainty": "observed",
         "runtime_sightings": 2,
+        "runtime": [
+          {
+            "scenario": "jeffrey_mine",
+            "seed": 42,
+            "step": 2,
+            "position": "on calcite #1"
+          },
+          {
+            "scenario": "jeffrey_mine",
+            "seed": 42,
+            "step": 19,
+            "position": "on calcite #1"
+          }
+        ],
         "cites": [
           "js/89-nucleation-silicate.ts:886"
         ]
@@ -7652,6 +8570,44 @@
         "basis": "code-reference",
         "certainty": "observed",
         "runtime_sightings": 6,
+        "runtime": [
+          {
+            "scenario": "bisbee",
+            "seed": 42,
+            "step": 265,
+            "position": "on chrysocolla #22"
+          },
+          {
+            "scenario": "bisbee",
+            "seed": 42,
+            "step": 269,
+            "position": "on chrysocolla #22"
+          },
+          {
+            "scenario": "bisbee",
+            "seed": 42,
+            "step": 275,
+            "position": "on chrysocolla #22"
+          },
+          {
+            "scenario": "bisbee",
+            "seed": 42,
+            "step": 322,
+            "position": "on chrysocolla #22"
+          },
+          {
+            "scenario": "bisbee",
+            "seed": 42,
+            "step": 335,
+            "position": "on chrysocolla #22"
+          },
+          {
+            "scenario": "schneeberg",
+            "seed": 42,
+            "step": 91,
+            "position": "on chrysocolla #45"
+          }
+        ],
         "cites": [
           "js/89-nucleation-silicate.ts:537"
         ]
@@ -7713,6 +8669,32 @@
         "basis": "code-reference",
         "certainty": "observed",
         "runtime_sightings": 4,
+        "runtime": [
+          {
+            "scenario": "jeffrey_mine",
+            "seed": 42,
+            "step": 1,
+            "position": "on calcite #1"
+          },
+          {
+            "scenario": "sabkha_dolomitization",
+            "seed": 42,
+            "step": 1,
+            "position": "on calcite #1"
+          },
+          {
+            "scenario": "sabkha_dolomitization",
+            "seed": 42,
+            "step": 120,
+            "position": "on calcite #17"
+          },
+          {
+            "scenario": "sabkha_dolomitization",
+            "seed": 42,
+            "step": 188,
+            "position": "on calcite #39"
+          }
+        ],
         "cites": [
           "js/82-nucleation-carbonate.ts:89",
           "js/82-nucleation-carbonate.ts:145"
@@ -7760,6 +8742,14 @@
         "basis": "code-reference",
         "certainty": "observed",
         "runtime_sightings": 1,
+        "runtime": [
+          {
+            "scenario": "supergene_oxidation",
+            "seed": 42,
+            "step": 2,
+            "position": "on malachite #4"
+          }
+        ],
         "cites": [
           "js/80-nucleation-arsenate.ts:287"
         ]
@@ -7776,6 +8766,14 @@
         "basis": "code-reference",
         "certainty": "observed",
         "runtime_sightings": 1,
+        "runtime": [
+          {
+            "scenario": "supergene_oxidation",
+            "seed": 42,
+            "step": 1,
+            "position": "on mimetite #2"
+          }
+        ],
         "cites": [
           "js/80-nucleation-arsenate.ts:289"
         ]
@@ -7852,6 +8850,38 @@
         "basis": "code-reference",
         "certainty": "observed",
         "runtime_sightings": 5,
+        "runtime": [
+          {
+            "scenario": "grimsel_alpine_cleft",
+            "seed": 42,
+            "step": 80,
+            "position": "with adularia (feldspar #1)"
+          },
+          {
+            "scenario": "tormiq_alpine_cleft",
+            "seed": 42,
+            "step": 3,
+            "position": "with adularia (feldspar #1)"
+          },
+          {
+            "scenario": "tormiq_alpine_cleft",
+            "seed": 42,
+            "step": 4,
+            "position": "with adularia (feldspar #1)"
+          },
+          {
+            "scenario": "tormiq_alpine_cleft",
+            "seed": 42,
+            "step": 7,
+            "position": "with adularia (feldspar #1)"
+          },
+          {
+            "scenario": "tormiq_alpine_cleft",
+            "seed": 42,
+            "step": 14,
+            "position": "with adularia (feldspar #1)"
+          }
+        ],
         "cites": [
           "js/89-nucleation-silicate.ts:794"
         ]
@@ -7883,6 +8913,20 @@
         "basis": "code-reference",
         "certainty": "observed",
         "runtime_sightings": 2,
+        "runtime": [
+          {
+            "scenario": "grimsel_alpine_cleft",
+            "seed": 42,
+            "step": 54,
+            "position": "perched on quartz #11"
+          },
+          {
+            "scenario": "grimsel_alpine_cleft",
+            "seed": 42,
+            "step": 73,
+            "position": "perched on quartz #11"
+          }
+        ],
         "cites": [
           "js/89-nucleation-silicate.ts:793"
         ]
@@ -7929,6 +8973,38 @@
         "basis": "code-reference",
         "certainty": "observed",
         "runtime_sightings": 5,
+        "runtime": [
+          {
+            "scenario": "deccan_zeolite",
+            "seed": 42,
+            "step": 110,
+            "position": "on quartz #6"
+          },
+          {
+            "scenario": "gem_pegmatite",
+            "seed": 42,
+            "step": 2,
+            "position": "on quartz #1"
+          },
+          {
+            "scenario": "radioactive_pegmatite",
+            "seed": 42,
+            "step": 2,
+            "position": "on quartz #2"
+          },
+          {
+            "scenario": "schneeberg",
+            "seed": 42,
+            "step": 2,
+            "position": "on quartz #2"
+          },
+          {
+            "scenario": "shigar_pegmatite",
+            "seed": 42,
+            "step": 2,
+            "position": "on quartz #1"
+          }
+        ],
         "cites": [
           "js/89-nucleation-silicate.ts:76"
         ]
@@ -7945,6 +9021,26 @@
         "basis": "code-reference",
         "certainty": "observed",
         "runtime_sightings": 3,
+        "runtime": [
+          {
+            "scenario": "porphyry",
+            "seed": 42,
+            "step": 88,
+            "position": "on molybdenite #25"
+          },
+          {
+            "scenario": "porphyry",
+            "seed": 42,
+            "step": 102,
+            "position": "on molybdenite #25"
+          },
+          {
+            "scenario": "porphyry",
+            "seed": 42,
+            "step": 116,
+            "position": "on molybdenite #25"
+          }
+        ],
         "cites": [
           "js/85-nucleation-molybdate.ts:50"
         ]
@@ -7961,6 +9057,26 @@
         "basis": "code-reference",
         "certainty": "observed",
         "runtime_sightings": 3,
+        "runtime": [
+          {
+            "scenario": "porphyry",
+            "seed": 42,
+            "step": 88,
+            "position": "on molybdenite #25"
+          },
+          {
+            "scenario": "porphyry",
+            "seed": 42,
+            "step": 102,
+            "position": "on molybdenite #25"
+          },
+          {
+            "scenario": "porphyry",
+            "seed": 42,
+            "step": 116,
+            "position": "on molybdenite #25"
+          }
+        ],
         "cites": [
           "js/85-nucleation-molybdate.ts:51"
         ]
@@ -7977,6 +9093,80 @@
         "basis": "code-reference",
         "certainty": "observed",
         "runtime_sightings": 12,
+        "runtime": [
+          {
+            "scenario": "mvt",
+            "seed": 42,
+            "step": 20,
+            "position": "on sphalerite #3"
+          },
+          {
+            "scenario": "mvt",
+            "seed": 42,
+            "step": 29,
+            "position": "on sphalerite #3"
+          },
+          {
+            "scenario": "reactivated_fluorite_vein",
+            "seed": 42,
+            "step": 20,
+            "position": "on sphalerite #5"
+          },
+          {
+            "scenario": "reactive_wall",
+            "seed": 42,
+            "step": 40,
+            "position": "on sphalerite #2"
+          },
+          {
+            "scenario": "roughten_gill",
+            "seed": 42,
+            "step": 1,
+            "position": "on sphalerite #2"
+          },
+          {
+            "scenario": "roughten_gill",
+            "seed": 42,
+            "step": 4,
+            "position": "on sphalerite #2"
+          },
+          {
+            "scenario": "roughten_gill",
+            "seed": 42,
+            "step": 7,
+            "position": "on sphalerite #2"
+          },
+          {
+            "scenario": "roughten_gill",
+            "seed": 42,
+            "step": 10,
+            "position": "on sphalerite #2"
+          },
+          {
+            "scenario": "sunnyside_american_tunnel",
+            "seed": 42,
+            "step": 1,
+            "position": "on sphalerite #1"
+          },
+          {
+            "scenario": "sunnyside_american_tunnel",
+            "seed": 42,
+            "step": 4,
+            "position": "on sphalerite #1"
+          },
+          {
+            "scenario": "sunnyside_american_tunnel",
+            "seed": 42,
+            "step": 7,
+            "position": "on sphalerite #1"
+          },
+          {
+            "scenario": "sunnyside_american_tunnel",
+            "seed": 42,
+            "step": 10,
+            "position": "on sphalerite #1"
+          }
+        ],
         "cites": [
           "js/91-nucleation-sulfide.ts:140"
         ]
@@ -8008,6 +9198,14 @@
         "basis": "code-reference",
         "certainty": "observed",
         "runtime_sightings": 1,
+        "runtime": [
+          {
+            "scenario": "deccan_zeolite",
+            "seed": 42,
+            "step": 160,
+            "position": "on hematite #4"
+          }
+        ],
         "cites": [
           "js/84-nucleation-hydroxide.ts:21"
         ]
@@ -8039,6 +9237,38 @@
         "basis": "code-reference",
         "certainty": "observed",
         "runtime_sightings": 5,
+        "runtime": [
+          {
+            "scenario": "mvt",
+            "seed": 42,
+            "step": 22,
+            "position": "coating sphalerite #3 (Cd liberation source)"
+          },
+          {
+            "scenario": "mvt",
+            "seed": 42,
+            "step": 30,
+            "position": "coating sphalerite #3 (Cd liberation source)"
+          },
+          {
+            "scenario": "reactivated_fluorite_vein",
+            "seed": 42,
+            "step": 22,
+            "position": "coating sphalerite #5 (Cd liberation source)"
+          },
+          {
+            "scenario": "reactivated_fluorite_vein",
+            "seed": 42,
+            "step": 30,
+            "position": "coating sphalerite #5 (Cd liberation source)"
+          },
+          {
+            "scenario": "reactivated_fluorite_vein",
+            "seed": 42,
+            "step": 54,
+            "position": "coating sphalerite #5 (Cd liberation source)"
+          }
+        ],
         "cites": [
           "js/91-nucleation-sulfide.ts:689"
         ]
@@ -8070,6 +9300,20 @@
         "basis": "code-reference",
         "certainty": "observed",
         "runtime_sightings": 2,
+        "runtime": [
+          {
+            "scenario": "jeffrey_mine",
+            "seed": 42,
+            "step": 25,
+            "position": "with diopside #5"
+          },
+          {
+            "scenario": "jeffrey_mine",
+            "seed": 42,
+            "step": 61,
+            "position": "with diopside #5"
+          }
+        ],
         "cites": [
           "js/89-nucleation-silicate.ts:856"
         ]
@@ -8101,6 +9345,20 @@
         "basis": "code-reference",
         "certainty": "observed",
         "runtime_sightings": 2,
+        "runtime": [
+          {
+            "scenario": "jeffrey_mine",
+            "seed": 42,
+            "step": 60,
+            "position": "with wollastonite #22"
+          },
+          {
+            "scenario": "jeffrey_mine",
+            "seed": 42,
+            "step": 74,
+            "position": "with wollastonite #22"
+          }
+        ],
         "cites": [
           "js/89-nucleation-silicate.ts:857"
         ]
@@ -8148,6 +9406,26 @@
         "basis": "code-reference",
         "certainty": "observed",
         "runtime_sightings": 3,
+        "runtime": [
+          {
+            "scenario": "asbestos_hills_crack_seal",
+            "seed": 42,
+            "step": 58,
+            "position": "on quartz #12"
+          },
+          {
+            "scenario": "asbestos_hills_surficial_alteration",
+            "seed": 42,
+            "step": 58,
+            "position": "on quartz #9"
+          },
+          {
+            "scenario": "grimsel_alpine_cleft",
+            "seed": 42,
+            "step": 90,
+            "position": "on quartz #11"
+          }
+        ],
         "cites": [
           "js/87-nucleation-oxide.ts:14"
         ]
@@ -8179,6 +9457,20 @@
         "basis": "code-reference",
         "certainty": "observed",
         "runtime_sightings": 2,
+        "runtime": [
+          {
+            "scenario": "roughten_gill",
+            "seed": 42,
+            "step": 181,
+            "position": "sheaves on smithsonite #33"
+          },
+          {
+            "scenario": "roughten_gill",
+            "seed": 42,
+            "step": 182,
+            "position": "sheaves on smithsonite #33"
+          }
+        ],
         "cites": [
           "js/89-nucleation-silicate.ts:499"
         ]
@@ -8270,6 +9562,20 @@
         "basis": "code-reference",
         "certainty": "observed",
         "runtime_sightings": 2,
+        "runtime": [
+          {
+            "scenario": "deccan_zeolite",
+            "seed": 42,
+            "step": 90,
+            "position": "on the silica lining (quartz #6)"
+          },
+          {
+            "scenario": "deccan_zeolite",
+            "seed": 42,
+            "step": 108,
+            "position": "on the silica lining (quartz #6)"
+          }
+        ],
         "cites": [
           "js/89-nucleation-silicate.ts:1015"
         ]
@@ -8286,6 +9592,20 @@
         "basis": "code-reference",
         "certainty": "observed",
         "runtime_sightings": 2,
+        "runtime": [
+          {
+            "scenario": "deccan_zeolite",
+            "seed": 42,
+            "step": 91,
+            "position": "intergrown with stilbite #14"
+          },
+          {
+            "scenario": "deccan_zeolite",
+            "seed": 42,
+            "step": 109,
+            "position": "intergrown with stilbite #14"
+          }
+        ],
         "cites": [
           "js/89-nucleation-silicate.ts:1016"
         ]
@@ -8572,6 +9892,14 @@
         "basis": "code-reference",
         "certainty": "observed",
         "runtime_sightings": 1,
+        "runtime": [
+          {
+            "scenario": "radioactive_pegmatite",
+            "seed": 42,
+            "step": 24,
+            "position": "on quartz #2"
+          }
+        ],
         "cites": [
           "js/89-nucleation-silicate.ts:379"
         ]
@@ -8588,6 +9916,32 @@
         "basis": "code-reference",
         "certainty": "observed",
         "runtime_sightings": 4,
+        "runtime": [
+          {
+            "scenario": "gem_pegmatite",
+            "seed": 42,
+            "step": 1,
+            "position": "on spodumene #4"
+          },
+          {
+            "scenario": "gem_pegmatite",
+            "seed": 42,
+            "step": 23,
+            "position": "on spodumene #4"
+          },
+          {
+            "scenario": "gem_pegmatite",
+            "seed": 42,
+            "step": 25,
+            "position": "on spodumene #4"
+          },
+          {
+            "scenario": "radioactive_pegmatite",
+            "seed": 42,
+            "step": 1,
+            "position": "on spodumene #5"
+          }
+        ],
         "cites": [
           "js/89-nucleation-silicate.ts:376"
         ]
@@ -8739,6 +10093,20 @@
         "basis": "code-reference",
         "certainty": "observed",
         "runtime_sightings": 2,
+        "runtime": [
+          {
+            "scenario": "bisbee",
+            "seed": 42,
+            "step": 88,
+            "position": "on chalcopyrite #4"
+          },
+          {
+            "scenario": "roughten_gill",
+            "seed": 42,
+            "step": 100,
+            "position": "on chalcopyrite #4"
+          }
+        ],
         "cites": [
           "js/82-nucleation-carbonate.ts:210"
         ]
@@ -8755,6 +10123,20 @@
         "basis": "code-reference",
         "certainty": "observed",
         "runtime_sightings": 2,
+        "runtime": [
+          {
+            "scenario": "bisbee",
+            "seed": 42,
+            "step": 88,
+            "position": "on chalcopyrite #4"
+          },
+          {
+            "scenario": "roughten_gill",
+            "seed": 42,
+            "step": 100,
+            "position": "on chalcopyrite #4"
+          }
+        ],
         "cites": [
           "js/82-nucleation-carbonate.ts:208"
         ]
@@ -8984,6 +10366,32 @@
         "basis": "code-reference",
         "certainty": "observed",
         "runtime_sightings": 4,
+        "runtime": [
+          {
+            "scenario": "bisbee",
+            "seed": 42,
+            "step": 288,
+            "position": "on galena #15"
+          },
+          {
+            "scenario": "roughten_gill",
+            "seed": 42,
+            "step": 180,
+            "position": "on galena #7"
+          },
+          {
+            "scenario": "roughten_gill",
+            "seed": 42,
+            "step": 193,
+            "position": "on galena #7"
+          },
+          {
+            "scenario": "roughten_gill",
+            "seed": 42,
+            "step": 196,
+            "position": "on galena #7"
+          }
+        ],
         "cites": [
           "js/80-nucleation-arsenate.ts:67"
         ]
@@ -9030,6 +10438,20 @@
         "basis": "code-reference",
         "certainty": "observed",
         "runtime_sightings": 2,
+        "runtime": [
+          {
+            "scenario": "porphyry",
+            "seed": 42,
+            "step": 48,
+            "position": "on pyrite #18"
+          },
+          {
+            "scenario": "porphyry",
+            "seed": 42,
+            "step": 54,
+            "position": "on pyrite #18"
+          }
+        ],
         "cites": [
           "js/91-nucleation-sulfide.ts:160"
         ]
@@ -9121,6 +10543,14 @@
         "basis": "code-reference",
         "certainty": "observed",
         "runtime_sightings": 1,
+        "runtime": [
+          {
+            "scenario": "bisbee",
+            "seed": 42,
+            "step": 301,
+            "position": "on bornite #49"
+          }
+        ],
         "cites": [
           "js/86-nucleation-native.ts:142"
         ]
@@ -9137,6 +10567,14 @@
         "basis": "code-reference",
         "certainty": "observed",
         "runtime_sightings": 1,
+        "runtime": [
+          {
+            "scenario": "bisbee",
+            "seed": 42,
+            "step": 126,
+            "position": "on chalcocite #17"
+          }
+        ],
         "cites": [
           "js/86-nucleation-native.ts:140"
         ]
@@ -9153,6 +10591,26 @@
         "basis": "code-reference",
         "certainty": "observed",
         "runtime_sightings": 3,
+        "runtime": [
+          {
+            "scenario": "bisbee",
+            "seed": 42,
+            "step": 120,
+            "position": "on pyrite #3"
+          },
+          {
+            "scenario": "sunnyside_american_tunnel",
+            "seed": 42,
+            "step": 32,
+            "position": "on pyrite #2"
+          },
+          {
+            "scenario": "sunnyside_american_tunnel",
+            "seed": 42,
+            "step": 45,
+            "position": "on pyrite #2"
+          }
+        ],
         "cites": [
           "js/86-nucleation-native.ts:141"
         ]
@@ -9184,6 +10642,14 @@
         "basis": "code-reference",
         "certainty": "observed",
         "runtime_sightings": 1,
+        "runtime": [
+          {
+            "scenario": "bisbee",
+            "seed": 42,
+            "step": 132,
+            "position": "on native_copper #67"
+          }
+        ],
         "cites": [
           "js/86-nucleation-native.ts:99"
         ]
@@ -9230,6 +10696,14 @@
         "basis": "code-reference",
         "certainty": "observed",
         "runtime_sightings": 1,
+        "runtime": [
+          {
+            "scenario": "sicily_solfifera",
+            "seed": 42,
+            "step": 28,
+            "position": "on celestine #2"
+          }
+        ],
         "cites": [
           "js/86-nucleation-native.ts:56"
         ]
@@ -9246,6 +10720,14 @@
         "basis": "code-reference",
         "certainty": "observed",
         "runtime_sightings": 1,
+        "runtime": [
+          {
+            "scenario": "sicily_solfifera",
+            "seed": 42,
+            "step": 16,
+            "position": "on selenite #3"
+          }
+        ],
         "cites": [
           "js/86-nucleation-native.ts:58"
         ]
@@ -9307,6 +10789,20 @@
         "basis": "code-reference",
         "certainty": "observed",
         "runtime_sightings": 2,
+        "runtime": [
+          {
+            "scenario": "supergene_oxidation",
+            "seed": 42,
+            "step": 75,
+            "position": "on malachite #4"
+          },
+          {
+            "scenario": "supergene_oxidation",
+            "seed": 42,
+            "step": 86,
+            "position": "on malachite #4"
+          }
+        ],
         "cites": [
           "js/80-nucleation-arsenate.ts:135"
         ]
@@ -9323,6 +10819,26 @@
         "basis": "code-reference",
         "certainty": "observed",
         "runtime_sightings": 3,
+        "runtime": [
+          {
+            "scenario": "sulphur_bank",
+            "seed": 42,
+            "step": 93,
+            "position": "sinter coating cinnabar #2"
+          },
+          {
+            "scenario": "sulphur_bank",
+            "seed": 42,
+            "step": 94,
+            "position": "sinter coating cinnabar #2"
+          },
+          {
+            "scenario": "sulphur_bank",
+            "seed": 42,
+            "step": 194,
+            "position": "sinter coating cinnabar #2"
+          }
+        ],
         "cites": [
           "js/89-nucleation-silicate.ts:439"
         ]
@@ -9339,6 +10855,20 @@
         "basis": "code-reference",
         "certainty": "observed",
         "runtime_sightings": 2,
+        "runtime": [
+          {
+            "scenario": "sulphur_bank",
+            "seed": 42,
+            "step": 167,
+            "position": "sinter embedding native_sulfur #23"
+          },
+          {
+            "scenario": "sulphur_bank",
+            "seed": 42,
+            "step": 169,
+            "position": "sinter embedding native_sulfur #23"
+          }
+        ],
         "cites": [
           "js/89-nucleation-silicate.ts:440"
         ]
@@ -9355,6 +10885,38 @@
         "basis": "code-reference",
         "certainty": "observed",
         "runtime_sightings": 5,
+        "runtime": [
+          {
+            "scenario": "bisbee",
+            "seed": 42,
+            "step": 90,
+            "position": "coating pyrite #3"
+          },
+          {
+            "scenario": "bisbee",
+            "seed": 42,
+            "step": 91,
+            "position": "coating pyrite #3"
+          },
+          {
+            "scenario": "bisbee",
+            "seed": 42,
+            "step": 92,
+            "position": "coating pyrite #3"
+          },
+          {
+            "scenario": "sulphur_bank",
+            "seed": 42,
+            "step": 97,
+            "position": "coating pyrite #25"
+          },
+          {
+            "scenario": "sulphur_bank",
+            "seed": 42,
+            "step": 170,
+            "position": "coating pyrite #25"
+          }
+        ],
         "cites": [
           "js/89-nucleation-silicate.ts:441"
         ]
@@ -9401,6 +10963,26 @@
         "basis": "code-reference",
         "certainty": "observed",
         "runtime_sightings": 3,
+        "runtime": [
+          {
+            "scenario": "sulphur_bank",
+            "seed": 42,
+            "step": 1,
+            "position": "on realgar #4"
+          },
+          {
+            "scenario": "sulphur_bank",
+            "seed": 42,
+            "step": 13,
+            "position": "on realgar #4"
+          },
+          {
+            "scenario": "sulphur_bank",
+            "seed": 42,
+            "step": 32,
+            "position": "on realgar #4"
+          }
+        ],
         "cites": [
           "js/91-nucleation-sulfide.ts:253"
         ]
@@ -9433,6 +11015,14 @@
         "basis": "code-reference",
         "certainty": "observed",
         "runtime_sightings": 1,
+        "runtime": [
+          {
+            "scenario": "deccan_zeolite",
+            "seed": 42,
+            "step": 114,
+            "position": "on calcite #7"
+          }
+        ],
         "cites": [
           "js/89-nucleation-silicate.ts:716"
         ]
@@ -9464,6 +11054,14 @@
         "basis": "code-reference",
         "certainty": "observed",
         "runtime_sightings": 1,
+        "runtime": [
+          {
+            "scenario": "jeffrey_mine",
+            "seed": 42,
+            "step": 144,
+            "position": "radiating spray on grossular #11"
+          }
+        ],
         "cites": [
           "js/89-nucleation-silicate.ts:713"
         ]
@@ -9495,6 +11093,14 @@
         "basis": "code-reference",
         "certainty": "observed",
         "runtime_sightings": 1,
+        "runtime": [
+          {
+            "scenario": "schneeberg",
+            "seed": 42,
+            "step": 150,
+            "position": "alongside annabergite #65"
+          }
+        ],
         "cites": [
           "js/80-nucleation-arsenate.ts:164"
         ]
@@ -9586,6 +11192,14 @@
         "basis": "code-reference",
         "certainty": "observed",
         "runtime_sightings": 1,
+        "runtime": [
+          {
+            "scenario": "schneeberg",
+            "seed": 42,
+            "step": 149,
+            "position": "on weathering nickeline #29"
+          }
+        ],
         "cites": [
           "js/80-nucleation-arsenate.ts:162"
         ]
@@ -9662,6 +11276,32 @@
         "basis": "code-reference",
         "certainty": "observed",
         "runtime_sightings": 4,
+        "runtime": [
+          {
+            "scenario": "roughten_gill",
+            "seed": 42,
+            "step": 215,
+            "position": "encrusting pyromorphite #29 (cobalt-blue botryoidal overgrowth; green parent remains active)"
+          },
+          {
+            "scenario": "roughten_gill",
+            "seed": 42,
+            "step": 221,
+            "position": "encrusting pyromorphite #29 (cobalt-blue botryoidal overgrowth; green parent remains active)"
+          },
+          {
+            "scenario": "supergene_oxidation",
+            "seed": 42,
+            "step": 115,
+            "position": "encrusting pyromorphite #80 (cobalt-blue botryoidal overgrowth; green parent remains active)"
+          },
+          {
+            "scenario": "supergene_oxidation",
+            "seed": 42,
+            "step": 121,
+            "position": "encrusting pyromorphite #80 (cobalt-blue botryoidal overgrowth; green parent remains active)"
+          }
+        ],
         "cites": [
           "js/88-nucleation-phosphate.ts:280"
         ]
@@ -9693,6 +11333,14 @@
         "basis": "code-reference",
         "certainty": "observed",
         "runtime_sightings": 1,
+        "runtime": [
+          {
+            "scenario": "jeffrey_mine",
+            "seed": 42,
+            "step": 41,
+            "position": "on calcite #1"
+          }
+        ],
         "cites": [
           "js/89-nucleation-silicate.ts:766"
         ]
@@ -9709,6 +11357,14 @@
         "basis": "code-reference",
         "certainty": "observed",
         "runtime_sightings": 1,
+        "runtime": [
+          {
+            "scenario": "jeffrey_mine",
+            "seed": 42,
+            "step": 92,
+            "position": "with diopside #5"
+          }
+        ],
         "cites": [
           "js/89-nucleation-silicate.ts:765"
         ]
@@ -9725,6 +11381,20 @@
         "basis": "code-reference",
         "certainty": "observed",
         "runtime_sightings": 2,
+        "runtime": [
+          {
+            "scenario": "jeffrey_mine",
+            "seed": 42,
+            "step": 65,
+            "position": "with grossular #11"
+          },
+          {
+            "scenario": "jeffrey_mine",
+            "seed": 42,
+            "step": 71,
+            "position": "with grossular #11"
+          }
+        ],
         "cites": [
           "js/89-nucleation-silicate.ts:764"
         ]
@@ -9801,6 +11471,14 @@
         "basis": "code-reference",
         "certainty": "observed",
         "runtime_sightings": 1,
+        "runtime": [
+          {
+            "scenario": "wittichen",
+            "seed": 42,
+            "step": 134,
+            "position": "on native_silver #13"
+          }
+        ],
         "cites": [
           "js/91-nucleation-sulfide.ts:529"
         ]
@@ -9877,6 +11555,14 @@
         "basis": "code-reference",
         "certainty": "observed",
         "runtime_sightings": 1,
+        "runtime": [
+          {
+            "scenario": "reactive_wall",
+            "seed": 42,
+            "step": 41,
+            "position": "on sphalerite #2"
+          }
+        ],
         "cites": [
           "js/91-nucleation-sulfide.ts:36"
         ]
@@ -9969,6 +11655,38 @@
         "basis": "code-reference",
         "certainty": "observed",
         "runtime_sightings": 5,
+        "runtime": [
+          {
+            "scenario": "roughten_gill",
+            "seed": 42,
+            "step": 100,
+            "position": "on cerussite #28"
+          },
+          {
+            "scenario": "roughten_gill",
+            "seed": 42,
+            "step": 101,
+            "position": "on cerussite #28"
+          },
+          {
+            "scenario": "roughten_gill",
+            "seed": 42,
+            "step": 109,
+            "position": "on cerussite #28"
+          },
+          {
+            "scenario": "supergene_oxidation",
+            "seed": 42,
+            "step": 118,
+            "position": "on cerussite #5"
+          },
+          {
+            "scenario": "supergene_oxidation",
+            "seed": 42,
+            "step": 123,
+            "position": "on cerussite #5"
+          }
+        ],
         "cites": [
           "js/88-nucleation-phosphate.ts:66"
         ]
@@ -9985,6 +11703,38 @@
         "basis": "code-reference",
         "certainty": "observed",
         "runtime_sightings": 5,
+        "runtime": [
+          {
+            "scenario": "roughten_gill",
+            "seed": 42,
+            "step": 100,
+            "position": "on cerussite #28"
+          },
+          {
+            "scenario": "roughten_gill",
+            "seed": 42,
+            "step": 101,
+            "position": "on cerussite #28"
+          },
+          {
+            "scenario": "roughten_gill",
+            "seed": 42,
+            "step": 109,
+            "position": "on cerussite #28"
+          },
+          {
+            "scenario": "supergene_oxidation",
+            "seed": 42,
+            "step": 118,
+            "position": "on cerussite #5"
+          },
+          {
+            "scenario": "supergene_oxidation",
+            "seed": 42,
+            "step": 123,
+            "position": "on cerussite #5"
+          }
+        ],
         "cites": [
           "js/88-nucleation-phosphate.ts:67"
         ]
@@ -10241,6 +11991,14 @@
         "basis": "code-reference",
         "certainty": "observed",
         "runtime_sightings": 1,
+        "runtime": [
+          {
+            "scenario": "wittichen",
+            "seed": 42,
+            "step": 36,
+            "position": "mantling skutterudite #1"
+          }
+        ],
         "cites": [
           "js/91-nucleation-sulfide.ts:451"
         ]
@@ -10302,6 +12060,14 @@
         "basis": "code-reference",
         "certainty": "observed",
         "runtime_sightings": 1,
+        "runtime": [
+          {
+            "scenario": "deccan_zeolite",
+            "seed": 42,
+            "step": 70,
+            "position": "on the silica lining (quartz #6)"
+          }
+        ],
         "cites": [
           "js/89-nucleation-silicate.ts:1072"
         ]
@@ -10472,6 +12238,14 @@
         "basis": "code-reference",
         "certainty": "observed",
         "runtime_sightings": 1,
+        "runtime": [
+          {
+            "scenario": "sunnyside_american_tunnel",
+            "seed": 42,
+            "step": 7,
+            "position": "on pyrite #2"
+          }
+        ],
         "cites": [
           "js/82-nucleation-carbonate.ts:175"
         ]
@@ -10548,6 +12322,14 @@
         "basis": "code-reference",
         "certainty": "observed",
         "runtime_sightings": 1,
+        "runtime": [
+          {
+            "scenario": "roughten_gill",
+            "seed": 42,
+            "step": 107,
+            "position": "on sphalerite #2"
+          }
+        ],
         "cites": [
           "js/82-nucleation-carbonate.ts:237"
         ]
@@ -10564,6 +12346,14 @@
         "basis": "code-reference",
         "certainty": "observed",
         "runtime_sightings": 1,
+        "runtime": [
+          {
+            "scenario": "roughten_gill",
+            "seed": 42,
+            "step": 107,
+            "position": "on sphalerite #2"
+          }
+        ],
         "cites": [
           "js/82-nucleation-carbonate.ts:235"
         ]
@@ -10595,6 +12385,32 @@
         "basis": "code-reference",
         "certainty": "observed",
         "runtime_sightings": 4,
+        "runtime": [
+          {
+            "scenario": "gem_pegmatite",
+            "seed": 42,
+            "step": 1,
+            "position": "on quartz #1"
+          },
+          {
+            "scenario": "radioactive_pegmatite",
+            "seed": 42,
+            "step": 1,
+            "position": "on quartz #2"
+          },
+          {
+            "scenario": "radioactive_pegmatite",
+            "seed": 42,
+            "step": 24,
+            "position": "on quartz #2"
+          },
+          {
+            "scenario": "schneeberg",
+            "seed": 42,
+            "step": 1,
+            "position": "on quartz #2"
+          }
+        ],
         "cites": [
           "js/89-nucleation-silicate.ts:150"
         ]
@@ -10671,6 +12487,20 @@
         "basis": "code-reference",
         "certainty": "observed",
         "runtime_sightings": 2,
+        "runtime": [
+          {
+            "scenario": "deccan_zeolite",
+            "seed": 42,
+            "step": 100,
+            "position": "on the silica lining (quartz #6)"
+          },
+          {
+            "scenario": "deccan_zeolite",
+            "seed": 42,
+            "step": 106,
+            "position": "on the silica lining (quartz #6)"
+          }
+        ],
         "cites": [
           "js/89-nucleation-silicate.ts:988"
         ]
@@ -10687,6 +12517,20 @@
         "basis": "code-reference",
         "certainty": "observed",
         "runtime_sightings": 2,
+        "runtime": [
+          {
+            "scenario": "epithermal_telluride",
+            "seed": 42,
+            "step": 7,
+            "position": "intergrown with calaverite #8"
+          },
+          {
+            "scenario": "sunnyside_american_tunnel",
+            "seed": 42,
+            "step": 7,
+            "position": "intergrown with calaverite #12"
+          }
+        ],
         "cites": [
           "js/91-nucleation-sulfide.ts:645"
         ]
@@ -10703,6 +12547,14 @@
         "basis": "code-reference",
         "certainty": "observed",
         "runtime_sightings": 1,
+        "runtime": [
+          {
+            "scenario": "porphyry",
+            "seed": 42,
+            "step": 25,
+            "position": "on chalcopyrite #19"
+          }
+        ],
         "cites": [
           "js/91-nucleation-sulfide.ts:99"
         ]
@@ -10734,6 +12586,32 @@
         "basis": "code-reference",
         "certainty": "observed",
         "runtime_sightings": 4,
+        "runtime": [
+          {
+            "scenario": "bisbee",
+            "seed": 42,
+            "step": 1,
+            "position": "on chalcopyrite #4"
+          },
+          {
+            "scenario": "porphyry",
+            "seed": 42,
+            "step": 25,
+            "position": "on chalcopyrite #19"
+          },
+          {
+            "scenario": "roughten_gill",
+            "seed": 42,
+            "step": 1,
+            "position": "on chalcopyrite #4"
+          },
+          {
+            "scenario": "sunnyside_american_tunnel",
+            "seed": 42,
+            "step": 1,
+            "position": "on chalcopyrite #3"
+          }
+        ],
         "cites": [
           "js/91-nucleation-sulfide.ts:84"
         ]
@@ -10811,6 +12689,44 @@
         "basis": "code-guard",
         "certainty": "proved",
         "runtime_sightings": 6,
+        "runtime": [
+          {
+            "scenario": "asbestos_hills_crack_seal",
+            "seed": 42,
+            "step": 2,
+            "position": "synchronous with crocidolite #2 (model=antitaxial-crack-seal)"
+          },
+          {
+            "scenario": "asbestos_hills_crack_seal",
+            "seed": 42,
+            "step": 11,
+            "position": "synchronous with crocidolite #2 (model=antitaxial-crack-seal)"
+          },
+          {
+            "scenario": "asbestos_hills_crack_seal",
+            "seed": 42,
+            "step": 12,
+            "position": "synchronous with crocidolite #2 (model=antitaxial-crack-seal)"
+          },
+          {
+            "scenario": "asbestos_hills_surficial_alteration",
+            "seed": 42,
+            "step": 59,
+            "position": "after accepted oxidative alteration of crocidolite #2 (model=surficial-alteration)"
+          },
+          {
+            "scenario": "asbestos_hills_surficial_alteration",
+            "seed": 42,
+            "step": 61,
+            "position": "after accepted oxidative alteration of crocidolite #2 (model=surficial-alteration)"
+          },
+          {
+            "scenario": "asbestos_hills_surficial_alteration",
+            "seed": 42,
+            "step": 71,
+            "position": "after accepted oxidative alteration of crocidolite #2 (model=surficial-alteration)"
+          }
+        ],
         "cites": [
           "js/89-nucleation-silicate.ts:657"
         ]
@@ -10844,6 +12760,14 @@
         "basis": "code-reference",
         "certainty": "observed",
         "runtime_sightings": 1,
+        "runtime": [
+          {
+            "scenario": "jeffrey_mine",
+            "seed": 42,
+            "step": 170,
+            "position": "with calcite #1"
+          }
+        ],
         "cites": [
           "js/89-nucleation-silicate.ts:827"
         ]
@@ -10875,6 +12799,38 @@
         "basis": "code-reference",
         "certainty": "observed",
         "runtime_sightings": 5,
+        "runtime": [
+          {
+            "scenario": "grimsel_alpine_cleft",
+            "seed": 42,
+            "step": 17,
+            "position": "with adularia (feldspar #1)"
+          },
+          {
+            "scenario": "grimsel_alpine_cleft",
+            "seed": 42,
+            "step": 19,
+            "position": "with adularia (feldspar #1)"
+          },
+          {
+            "scenario": "porphyry",
+            "seed": 42,
+            "step": 18,
+            "position": "with adularia (feldspar #1)"
+          },
+          {
+            "scenario": "porphyry",
+            "seed": 42,
+            "step": 24,
+            "position": "with adularia (feldspar #1)"
+          },
+          {
+            "scenario": "tormiq_alpine_cleft",
+            "seed": 42,
+            "step": 17,
+            "position": "with adularia (feldspar #1)"
+          }
+        ],
         "cites": [
           "js/89-nucleation-silicate.ts:825"
         ]
@@ -10923,6 +12879,26 @@
         "basis": "code-reference",
         "certainty": "observed",
         "runtime_sightings": 3,
+        "runtime": [
+          {
+            "scenario": "radioactive_pegmatite",
+            "seed": 42,
+            "step": 20,
+            "position": "on quartz #2"
+          },
+          {
+            "scenario": "schneeberg",
+            "seed": 42,
+            "step": 29,
+            "position": "on quartz #2"
+          },
+          {
+            "scenario": "shigar_pegmatite",
+            "seed": 42,
+            "step": 49,
+            "position": "on quartz #1"
+          }
+        ],
         "cites": [
           "js/89-nucleation-silicate.ts:317"
         ]
@@ -10954,6 +12930,26 @@
         "basis": "code-reference",
         "certainty": "observed",
         "runtime_sightings": 3,
+        "runtime": [
+          {
+            "scenario": "radioactive_pegmatite",
+            "seed": 42,
+            "step": 10,
+            "position": "on feldspar #3"
+          },
+          {
+            "scenario": "shigar_pegmatite",
+            "seed": 42,
+            "step": 44,
+            "position": "on feldspar #2"
+          },
+          {
+            "scenario": "shigar_pegmatite",
+            "seed": 42,
+            "step": 53,
+            "position": "on feldspar #2"
+          }
+        ],
         "cites": [
           "js/89-nucleation-silicate.ts:287"
         ]
@@ -10970,6 +12966,68 @@
         "basis": "code-reference",
         "certainty": "observed",
         "runtime_sightings": 10,
+        "runtime": [
+          {
+            "scenario": "radioactive_pegmatite",
+            "seed": 42,
+            "step": 9,
+            "position": "on quartz #2"
+          },
+          {
+            "scenario": "radioactive_pegmatite",
+            "seed": 42,
+            "step": 12,
+            "position": "on quartz #2"
+          },
+          {
+            "scenario": "radioactive_pegmatite",
+            "seed": 42,
+            "step": 17,
+            "position": "on quartz #2"
+          },
+          {
+            "scenario": "radioactive_pegmatite",
+            "seed": 42,
+            "step": 20,
+            "position": "on quartz #2"
+          },
+          {
+            "scenario": "radioactive_pegmatite",
+            "seed": 42,
+            "step": 29,
+            "position": "on quartz #2"
+          },
+          {
+            "scenario": "shigar_pegmatite",
+            "seed": 42,
+            "step": 12,
+            "position": "on quartz #1"
+          },
+          {
+            "scenario": "shigar_pegmatite",
+            "seed": 42,
+            "step": 17,
+            "position": "on quartz #1"
+          },
+          {
+            "scenario": "shigar_pegmatite",
+            "seed": 42,
+            "step": 20,
+            "position": "on quartz #1"
+          },
+          {
+            "scenario": "shigar_pegmatite",
+            "seed": 42,
+            "step": 29,
+            "position": "on quartz #1"
+          },
+          {
+            "scenario": "shigar_pegmatite",
+            "seed": 42,
+            "step": 57,
+            "position": "on quartz #1"
+          }
+        ],
         "cites": [
           "js/89-nucleation-silicate.ts:286"
         ]
@@ -11106,6 +13164,20 @@
         "basis": "code-reference",
         "certainty": "observed",
         "runtime_sightings": 2,
+        "runtime": [
+          {
+            "scenario": "schneeberg",
+            "seed": 42,
+            "step": 106,
+            "position": "weathering crust on uraninite #7"
+          },
+          {
+            "scenario": "schneeberg",
+            "seed": 42,
+            "step": 107,
+            "position": "weathering crust on uraninite #7"
+          }
+        ],
         "cites": [
           "js/89-nucleation-silicate.ts:478",
           "js/89-nucleation-silicate.ts:479"
@@ -11153,6 +13225,14 @@
         "basis": "code-reference",
         "certainty": "observed",
         "runtime_sightings": 1,
+        "runtime": [
+          {
+            "scenario": "schneeberg",
+            "seed": 42,
+            "step": 153,
+            "position": "adjacent to zeunerite #75"
+          }
+        ],
         "cites": [
           "js/88-nucleation-phosphate.ts:196"
         ]
@@ -11184,6 +13264,26 @@
         "basis": "code-reference",
         "certainty": "observed",
         "runtime_sightings": 3,
+        "runtime": [
+          {
+            "scenario": "supergene_oxidation",
+            "seed": 42,
+            "step": 134,
+            "position": "on goethite #6"
+          },
+          {
+            "scenario": "supergene_oxidation",
+            "seed": 42,
+            "step": 143,
+            "position": "on goethite #6"
+          },
+          {
+            "scenario": "supergene_oxidation",
+            "seed": 42,
+            "step": 157,
+            "position": "on goethite #6"
+          }
+        ],
         "cites": [
           "js/88-nucleation-phosphate.ts:85"
         ]
@@ -11215,6 +13315,14 @@
         "basis": "code-reference",
         "certainty": "observed",
         "runtime_sightings": 1,
+        "runtime": [
+          {
+            "scenario": "jeffrey_mine",
+            "seed": 42,
+            "step": 30,
+            "position": "on diopside #5"
+          }
+        ],
         "cites": [
           "js/89-nucleation-silicate.ts:916"
         ]
@@ -11231,6 +13339,20 @@
         "basis": "code-reference",
         "certainty": "observed",
         "runtime_sightings": 2,
+        "runtime": [
+          {
+            "scenario": "jeffrey_mine",
+            "seed": 42,
+            "step": 27,
+            "position": "epitactic on grossular #11"
+          },
+          {
+            "scenario": "jeffrey_mine",
+            "seed": 42,
+            "step": 28,
+            "position": "epitactic on grossular #11"
+          }
+        ],
         "cites": [
           "js/89-nucleation-silicate.ts:915"
         ]
@@ -11367,6 +13489,14 @@
         "basis": "code-reference",
         "certainty": "observed",
         "runtime_sightings": 1,
+        "runtime": [
+          {
+            "scenario": "jeffrey_mine",
+            "seed": 42,
+            "step": 50,
+            "position": "with grossular #11"
+          }
+        ],
         "cites": [
           "js/89-nucleation-silicate.ts:739"
         ]

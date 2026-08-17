@@ -1,0 +1,788 @@
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Crystal Neighborhoods</title>
+<style>
+  :root {
+    --ground: #E9EBE8;
+    --surface: #F5F7F3;
+    --sunk: #DEE1DC;
+    --ink: #191D1A;
+    --ink-soft: #5D6763;
+    --ink-faint: #8A928D;
+    --rule: #C6CBC4;
+    --rule-soft: #D6DAD3;
+    --focus: #3E6B80;
+    --ancestry: #2E6E8E;
+    --descend: #B4632F;
+    --hub: #7E877F;
+
+    --rel-substrate: #7E877F;
+    --rel-replaces:  #7E5BA6;
+    --rel-transform: #B4632F;
+    --rel-required:  #191D1A;
+    --rel-copresent: #8A928D;
+    --rel-wall:      #4F9280;
+
+    --cls-silicate:  #7C8FA8;
+    --cls-sulfide:   #A98D42;
+    --cls-phosphate: #4F9280;
+    --cls-carbonate: #B08A5E;
+    --cls-oxide:     #A8635C;
+    --cls-sulfate:   #8C7FAD;
+    --cls-arsenate:  #A85F8B;
+    --cls-native:    #B5912F;
+    --cls-molybdate: #C0752A;
+    --cls-amphibole: #4E6B52;
+    --cls-halide:    #7E5BA6;
+    --cls-hydroxide: #9A7433;
+    --cls-borate:    #7C9098;
+
+    --serif: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif;
+    --mono: ui-monospace, "SF Mono", "Cascadia Mono", "Roboto Mono", Menlo, Consolas, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ground: #0F1211; --surface: #161A18; --sunk: #0A0D0C;
+      --ink: #E2E7E2; --ink-soft: #98A29C; --ink-faint: #6B746F;
+      --rule: #2B322E; --rule-soft: #222825; --focus: #74A6BE;
+      --ancestry: #6FB4D4; --descend: #DE9257; --hub: #6C756E;
+
+      --rel-substrate: #6C756E;
+      --rel-replaces:  #9A78C4;
+      --rel-transform: #DE9257;
+      --rel-required:  #E2E7E2;
+      --rel-copresent: #6B746F;
+      --rel-wall:      #5FB29B;
+
+      --cls-silicate:  #93A6BE; --cls-sulfide:   #C7A957;
+      --cls-phosphate: #5FB29B; --cls-carbonate: #CBA271;
+      --cls-oxide:     #C67C74; --cls-sulfate:   #A79ACA;
+      --cls-arsenate:  #C77AA6; --cls-native:    #D2AC42;
+      --cls-molybdate: #DE8F40; --cls-amphibole: #6F9074;
+      --cls-halide:    #9A78C4; --cls-hydroxide: #BC9142;
+      --cls-borate:    #94A9B2;
+    }
+  }
+  :root[data-theme="dark"] {
+    --ground: #0F1211; --surface: #161A18; --sunk: #0A0D0C;
+    --ink: #E2E7E2; --ink-soft: #98A29C; --ink-faint: #6B746F;
+    --rule: #2B322E; --rule-soft: #222825; --focus: #74A6BE;
+    --ancestry: #6FB4D4; --descend: #DE9257; --hub: #6C756E;
+    --rel-substrate: #6C756E; --rel-replaces: #9A78C4;
+    --rel-transform: #DE9257; --rel-required: #E2E7E2;
+    --rel-copresent: #6B746F; --rel-wall: #5FB29B;
+    --cls-silicate:  #93A6BE; --cls-sulfide:   #C7A957;
+    --cls-phosphate: #5FB29B; --cls-carbonate: #CBA271;
+    --cls-oxide:     #C67C74; --cls-sulfate:   #A79ACA;
+    --cls-arsenate:  #C77AA6; --cls-native:    #D2AC42;
+    --cls-molybdate: #DE8F40; --cls-amphibole: #6F9074;
+    --cls-halide:    #9A78C4; --cls-hydroxide: #BC9142;
+    --cls-borate:    #94A9B2;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--ground); color: var(--ink);
+    font-family: var(--serif); font-size: 16px; line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 34px 22px 60px; }
+  header { border-bottom: 1px solid var(--rule); padding-bottom: 18px; margin-bottom: 20px; }
+  .eyebrow {
+    font-family: var(--mono); font-size: 10px; letter-spacing: 0.16em;
+    text-transform: uppercase; color: var(--ink-faint); margin: 0 0 10px;
+  }
+  h1 { font-size: clamp(26px, 4vw, 40px); line-height: 1.1; margin: 0 0 4px; font-weight: 600; text-wrap: balance; }
+  .sub { font-family: var(--serif); font-style: italic; color: var(--ink-soft); font-size: 17px; margin: 0 0 12px; }
+  .standfirst { margin: 0; max-width: 68ch; color: var(--ink-soft); font-size: 15.5px; }
+
+  .tally { display: flex; flex-wrap: wrap; gap: 0; margin: 20px 0 0; border: 1px solid var(--rule); background: var(--surface); }
+  .tally div { flex: 1 1 108px; padding: 10px 13px; border-right: 1px solid var(--rule-soft); }
+  .tally div:last-child { border-right: 0; }
+  .tally b { display: block; font-family: var(--mono); font-size: 19px; font-variant-numeric: tabular-nums; font-weight: 600; }
+  .tally span { font-family: var(--mono); font-size: 9.5px; letter-spacing: 0.11em; text-transform: uppercase; color: var(--ink-faint); }
+
+  .controls { display: flex; flex-wrap: wrap; gap: 9px; align-items: center; margin: 20px 0 4px; }
+  input[type="search"] {
+    font-family: var(--mono); font-size: 12.5px; padding: 7px 10px; min-width: 230px;
+    background: var(--surface); color: var(--ink); border: 1px solid var(--rule); border-radius: 0;
+  }
+  input[type="search"]:focus-visible, button:focus-visible, .leaf:focus-visible, .hit:focus-visible {
+    outline: 2px solid var(--focus); outline-offset: 1px;
+  }
+  button {
+    font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.08em; text-transform: uppercase;
+    padding: 7px 11px; background: var(--surface); color: var(--ink-soft);
+    border: 1px solid var(--rule); cursor: pointer; border-radius: 0;
+  }
+  button[aria-pressed="true"] { background: var(--ink); color: var(--ground); border-color: var(--ink); }
+  button:hover { color: var(--ink); }
+  button[aria-pressed="true"]:hover { color: var(--ground); }
+
+  .stage { display: grid; grid-template-columns: minmax(0, 1fr) 330px; gap: 24px; align-items: start; margin-top: 14px; }
+  @media (max-width: 940px) { .stage { grid-template-columns: minmax(0, 1fr); } }
+  .plate { background: var(--surface); border: 1px solid var(--rule); overflow-x: auto; }
+  svg { display: block; width: 100%; height: auto; touch-action: manipulation; }
+
+  .link { fill: none; stroke-linecap: round; }
+  .link.preferred_substrate    { stroke: var(--rel-substrate); stroke-width: 1;   opacity: 0.55; }
+  .link.replacement_opportunity{ stroke: var(--rel-replaces);  stroke-width: 1.3; opacity: 0.85; stroke-dasharray: 5 3; }
+  .link.transformation         { stroke: var(--rel-transform); stroke-width: 1.1; opacity: 0.95; }
+  .link.required_prerequisite  { stroke: var(--rel-required);  stroke-width: 1.9; opacity: 1; }
+  .link.co_presence            { stroke: var(--rel-copresent); stroke-width: 1;   opacity: 0.6; stroke-dasharray: 1 3.5; }
+  .link.bare_wall              { stroke: var(--rel-wall);      stroke-width: 1;   opacity: 0.6; stroke-dasharray: 2 2.5; }
+  .hit { fill: none; stroke: transparent; stroke-width: 11; cursor: pointer; }
+  .sel .link { opacity: 0.13; }
+  .sel .link.picked { opacity: 1; stroke-width: 2.4; }
+
+  .leaf { cursor: pointer; }
+  .leaf text {
+    font-family: var(--mono); font-size: 9.5px; fill: var(--ink-soft); dominant-baseline: middle;
+  }
+  .leaf:hover text { fill: var(--ink); font-weight: 700; }
+  .leaf .node { r: 3.2; }
+  .core text { font-family: var(--mono); font-size: 13px; fill: var(--ink); font-weight: 700; dominant-baseline: middle; text-anchor: middle; }
+  .core .node { r: 6.5; }
+  .band {
+    font-family: var(--mono); font-size: 8.5px; letter-spacing: 0.13em; text-transform: uppercase;
+    fill: var(--ink-faint); dominant-baseline: middle;
+  }
+  .side {
+    font-family: var(--mono); font-size: 9px; letter-spacing: 0.15em; text-transform: uppercase;
+    dominant-baseline: middle; text-anchor: middle;
+  }
+  .side.a { fill: var(--ancestry); }
+  .side.d { fill: var(--descend); }
+  .wallglyph { fill: var(--rel-wall); }
+
+  aside { border: 1px solid var(--rule); background: var(--surface); padding: 15px 16px; }
+  aside h2 { font-size: 18px; margin: 0 0 2px; font-weight: 600; }
+  aside h2 .cls-dot { display: inline-block; width: 9px; height: 9px; margin-right: 7px; }
+  .formula { font-family: var(--mono); font-size: 12px; color: var(--ink-soft); margin: 0 0 10px; }
+  .chip {
+    display: inline-block; font-family: var(--mono); font-size: 9.5px; letter-spacing: 0.09em;
+    text-transform: uppercase; padding: 2px 7px; border: 1px solid currentColor; margin: 0 6px 10px 0;
+  }
+  dl { display: grid; grid-template-columns: auto 1fr; gap: 4px 12px; margin: 0 0 12px; font-family: var(--mono); font-size: 11.5px; }
+  dt { color: var(--ink-faint); letter-spacing: 0.06em; text-transform: uppercase; font-size: 9.5px; padding-top: 2px; }
+  dd { margin: 0; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+  .desc { font-size: 13px; color: var(--ink-soft); margin: 0 0 12px; }
+  .note { font-size: 12.5px; color: var(--ink-soft); margin: 0; }
+  .muted { color: var(--ink-faint); }
+  .receipt { border-top: 1px solid var(--rule-soft); padding-top: 9px; margin-top: 9px; }
+  .receipt h4 {
+    font-family: var(--mono); font-size: 9.5px; letter-spacing: 0.11em; text-transform: uppercase;
+    color: var(--ink-faint); margin: 0 0 6px; font-weight: 400;
+  }
+  .cite { font-family: var(--mono); font-size: 10.5px; color: var(--ink-soft); overflow-wrap: anywhere; margin: 0 0 3px; }
+  .runs { font-family: var(--mono); font-size: 10px; color: var(--ink-soft); margin: 0; max-height: 190px; overflow-y: auto; }
+  .runs table { border-collapse: collapse; width: 100%; }
+  .runs th { text-align: left; color: var(--ink-faint); font-weight: 400; font-size: 9px;
+             letter-spacing: 0.08em; text-transform: uppercase; padding: 0 6px 3px 0; position: sticky; top: 0; background: var(--surface); }
+  .runs td { padding: 1px 6px 1px 0; vertical-align: top; font-variant-numeric: tabular-nums; }
+  .rel-list { list-style: none; margin: 0 0 10px; padding: 0; font-family: var(--mono); font-size: 11px; }
+  .rel-list li { padding: 1.5px 0; }
+  .rel-list button {
+    all: unset; cursor: pointer; font-family: var(--mono); font-size: 11px;
+    border-bottom: 1px dotted var(--rule);
+  }
+  .rel-list button:hover { color: var(--focus); }
+  .rel-list h3 {
+    font-family: var(--mono); font-size: 9.5px; letter-spacing: 0.11em; text-transform: uppercase;
+    margin: 10px 0 5px; padding-bottom: 3px; border-bottom: 1px solid var(--rule-soft); color: var(--ink-faint); font-weight: 400;
+  }
+
+  .key { border: 1px solid var(--rule); background: var(--surface); padding: 11px 13px; margin: 12px 0 0; }
+  .key h3 { font-family: var(--mono); font-size: 9.5px; letter-spacing: .12em; text-transform: uppercase;
+            color: var(--ink-faint); margin: 0 0 8px; font-weight: 400; }
+  .keyrow { display: grid; grid-template-columns: 46px auto; gap: 3px 10px; align-items: center;
+            font-family: var(--mono); font-size: 10.5px; margin-bottom: 5px; }
+  .keyrow:last-child { margin-bottom: 0; }
+  .keyrow b { font-weight: 600; }
+  .keyrow i { font-style: normal; color: var(--ink-soft); }
+
+  footer { margin-top: 38px; border-top: 1px solid var(--rule); padding-top: 16px; }
+  footer p { font-size: 12.5px; color: var(--ink-soft); max-width: 76ch; margin: 0 0 9px; }
+  code { font-family: var(--mono); font-size: 11.5px; background: var(--sunk); padding: 1px 4px; }
+  .caveat { border-left: 3px solid var(--rel-transform); padding: 8px 0 8px 12px; margin: 16px 0 0; background: var(--surface); }
+  .caveat p { margin: 0; font-size: 13px; color: var(--ink-soft); max-width: 76ch; }
+</style>
+
+<div class="wrap">
+  <header>
+    <p class="eyebrow" id="stamp">Vugg Simulator</p>
+    <h1>Crystal Neighborhoods</h1>
+    <p class="sub">An Ecology of Mineral Ancestry</p>
+    <p class="standfirst">Pick a mineral. This plate shows what the simulator's engines say may sit
+      beneath it, replace it, become it, or merely keep it company &mdash; read left to right as
+      ancestry to descent. Every line opens its own receipt, and no line is drawn without one.</p>
+    <div class="tally" id="tally"></div>
+  </header>
+
+  <div class="controls">
+    <input type="search" id="search" list="species" placeholder="find a species&hellip;"
+           aria-label="Find a species" autocomplete="off" spellcheck="false" />
+    <datalist id="species"></datalist>
+    <button id="f-required_prerequisite" aria-pressed="true" title="Absence blocks the target">required</button>
+    <button id="f-transformation" aria-pressed="true" title="The source becomes the target">transforms</button>
+    <button id="f-replacement_opportunity" aria-pressed="true" title="May form on or after a dissolving source">replaces</button>
+    <button id="f-preferred_substrate" aria-pressed="true" title="May grow on the source; an escape route exists">grows on</button>
+    <button id="f-co_presence" aria-pressed="true" title="Appeared together in an executed run">co-observed</button>
+    <button id="f-bare_wall" aria-pressed="true" title="Observed nucleating on bare rock, needing no crystal host">bare wall</button>
+    <button id="reset" aria-pressed="false" title="Show every relationship again">all on</button>
+  </div>
+
+  <div class="stage">
+    <div>
+      <div class="plate"><svg id="plate" viewBox="0 0 900 560" role="img"
+        aria-label="Neighborhood of the selected mineral"></svg></div>
+      <div class="key">
+        <h3>Reading the lines</h3>
+        <div id="keyrows"></div>
+      </div>
+    </div>
+    <aside id="panel"></aside>
+  </div>
+
+  <div class="caveat">
+    <p><b>What the runtime numbers are.</b> Sighting counts, scenarios and steps come from
+      executing every scenario in this build at the canonical seed and reading what actually grew.
+      They describe <i>Vugg runs</i>, not how often minerals occur together in the ground. A pairing
+      never seen here is not thereby impossible &mdash; it means these runs did not produce it.</p>
+  </div>
+
+  <footer>
+    <p><b>Preference is not dependency.</b> The engines let almost everything nucleate on bare rock:
+      <span id="escapees"></span> of <span id="observed"></span> species observed in these runs were
+      seen doing it at least once. So a &ldquo;grows on&rdquo; line records where a crystal
+      <i>likes</i> to sit, never what it needs. Only <span id="strictn"></span> relationships in the
+      whole catalogue are strict &mdash; a species that cannot appear without its source, or that
+      <i>is</i> its source, transformed.</p>
+    <p>Regenerate with
+      <code>node tools/substrate-escape-census.mjs</code>,
+      <code>node tools/gen-crystal-flow-tree.mjs</code>, then
+      <code>node tools/gen-crystal-neighborhood-page.mjs</code>.</p>
+    <p id="prov" class="note"></p>
+  </footer>
+</div>
+
+<script>
+const FLOW = /*__FLOW_DATA__*/null;
+
+const REL_ORDER = ['required_prerequisite', 'transformation', 'replacement_opportunity',
+                   'preferred_substrate', 'co_presence'];
+/**
+ * `reads` is the predicate joining FROM to TO, in that order. Every edge is
+ * stored source-first: the substrate, the dissolving host, the precursor. So
+ * "grows on" and "replaces" both run BACKWARDS along a stored edge, and writing
+ * them the natural way round produces a sentence that reverses the paragenesis.
+ */
+const REL = {
+  required_prerequisite: {
+    label: 'required precursor',
+    reads: 'is required by',
+    gloss: 'The engine refuses to nucleate the target when the source is absent.',
+  },
+  transformation: {
+    label: 'transformation',
+    reads: 'becomes',
+    gloss: 'The source does not host the target. It turns into it.',
+  },
+  replacement_opportunity: {
+    label: 'replacement',
+    reads: 'may be replaced by',
+    gloss: 'The target may form on or after a dissolving source.',
+  },
+  preferred_substrate: {
+    label: 'preferred substrate',
+    reads: 'may host',
+    gloss: 'A preference the engine rolls for, not a gate it enforces.',
+  },
+  co_presence: {
+    label: 'co-observed',
+    reads: 'was seen alongside',
+    gloss: 'Both appeared in the same executed run. No direction is claimed.',
+  },
+  bare_wall: {
+    label: 'bare wall',
+    reads: 'nucleates on bare rock',
+    gloss: 'Observed growing straight off the vug wall, needing no crystal host.',
+  },
+};
+const CERT_RANK = { proved: 3, observed: 2, inferred: 1 };
+const WALL = '__wall__';
+
+/* ---------------------------------------------------------------- *
+ * One arrow per (from, to, relation). The engines sometimes name the
+ * same pairing on two adjacent lines under different source states -
+ * that is two evidence records about one relationship, not two
+ * relationships, so they are merged here and both receipts kept.
+ * ---------------------------------------------------------------- */
+const NODES = new Map(FLOW.nodes.map(n => [n.id, n]));
+const EDGES = [];
+{
+  const byKey = new Map();
+  for (const raw of FLOW.edges) {
+    const key = raw.from + '>' + raw.to + '>' + raw.relation;
+    let edge = byKey.get(key);
+    if (!edge) {
+      edge = {
+        from: raw.from, to: raw.to, relation: raw.relation, mode: raw.mode,
+        mechanism: raw.mechanism || null, note: raw.note || null,
+        required_precursor: !!raw.required_precursor, evidence: [],
+      };
+      byKey.set(key, edge);
+      EDGES.push(edge);
+    }
+    if (raw.mechanism && !edge.mechanism) edge.mechanism = raw.mechanism;
+    if (raw.note && !edge.note) edge.note = raw.note;
+    if (raw.required_precursor) edge.required_precursor = true;
+    edge.evidence.push({
+      basis: raw.evidence.basis,
+      certainty: raw.evidence.certainty,
+      cites: raw.evidence.cites || [],
+      source_state: raw.source_state,
+      kind: raw.kind,
+      sightings: raw.evidence.runtime_sightings || 0,
+      runtime: raw.evidence.runtime || [],
+    });
+  }
+  for (const edge of EDGES) {
+    edge.certainty = edge.evidence
+      .reduce((best, r) => (CERT_RANK[r.certainty] > CERT_RANK[best] ? r.certainty : best), 'inferred');
+    edge.sightings = edge.evidence.reduce((n, r) => Math.max(n, r.sightings), 0);
+  }
+}
+
+const ADJ = new Map();
+for (const edge of EDGES) {
+  if (!ADJ.has(edge.from)) ADJ.set(edge.from, []);
+  if (!ADJ.has(edge.to)) ADJ.set(edge.to, []);
+  ADJ.get(edge.from).push(edge);
+  ADJ.get(edge.to).push(edge);
+}
+
+const filters = {
+  required_prerequisite: true, transformation: true, replacement_opportunity: true,
+  preferred_substrate: true, co_presence: true, bare_wall: true,
+};
+let center = NODES.has('azurite') ? 'azurite' : FLOW.nodes[0].id;
+let picked = null;
+
+const $ = id => document.getElementById(id);
+const svgNS = 'http://www.w3.org/2000/svg';
+const esc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+  .replace(/"/g, '&quot;');
+const pretty = id => String(id).replace(/_/g, ' ');
+const clsVar = id => 'var(--cls-' + ((NODES.get(id) || {}).class || 'silicate') + ')';
+
+function el(name, attrs, parent) {
+  const node = document.createElementNS(svgNS, name);
+  for (const key in attrs) node.setAttribute(key, attrs[key]);
+  if (parent) parent.appendChild(node);
+  return node;
+}
+
+/* Rows: everything first-degree, split into ancestry (earlier) and descent (later). */
+function rowsFor(id) {
+  const ancestry = [];
+  const descent = [];
+  const beside = [];
+  for (const edge of ADJ.get(id) || []) {
+    if (!filters[edge.relation]) continue;
+    if (edge.relation === 'co_presence') {
+      beside.push({ edge, other: edge.from === id ? edge.to : edge.from, side: 'b' });
+      continue;
+    }
+    if (edge.to === id) ancestry.push({ edge, other: edge.from, side: 'a' });
+    if (edge.from === id) descent.push({ edge, other: edge.to, side: 'd' });
+  }
+  const node = NODES.get(id);
+  if (filters.bare_wall && node && node.bare_wall === 'observed') {
+    ancestry.push({ edge: null, other: WALL, side: 'a', relation: 'bare_wall' });
+  }
+  const order = (x, y) => {
+    const ra = REL_ORDER.indexOf(x.relation || x.edge.relation);
+    const rb = REL_ORDER.indexOf(y.relation || y.edge.relation);
+    if (ra !== rb) return ra - rb;
+    return x.other < y.other ? -1 : 1;
+  };
+  ancestry.sort((x, y) => {
+    if (x.other === WALL) return 1;
+    if (y.other === WALL) return -1;
+    return order(x, y);
+  });
+  descent.sort(order);
+  beside.sort(order);
+  return { ancestry, descent, beside };
+}
+
+function groupRows(rows) {
+  const groups = [];
+  for (const row of rows) {
+    const rel = row.relation || row.edge.relation;
+    const last = groups[groups.length - 1];
+    if (last && last.rel === rel) last.rows.push(row);
+    else groups.push({ rel, rows: [row] });
+  }
+  return groups;
+}
+
+const ROW_H = 21, HEAD_H = 20, GAP = 10, TOP = 54;
+
+function blockHeight(groups) {
+  return groups.reduce((h, g) => h + HEAD_H + g.rows.length * ROW_H + GAP, 0);
+}
+
+function render() {
+  const svg = $('plate');
+  while (svg.firstChild) svg.removeChild(svg.firstChild);
+  svg.classList.toggle('sel', !!picked);
+
+  const { ancestry, descent, beside } = rowsFor(center);
+  const aGroups = groupRows(ancestry);
+  const dGroups = groupRows(descent);
+  const bGroups = groupRows(beside);
+
+  const aH = blockHeight(aGroups), dH = blockHeight(dGroups), bH = blockHeight(bGroups);
+  const sideH = Math.max(aH, dH, 90);
+  const height = TOP + sideH + (bH ? bH + 26 : 0) + 46;
+  const W = 900, CX = 450, LX = 250, RX = 650;
+  const cy = TOP + sideH / 2;
+  svg.setAttribute('viewBox', '0 0 ' + W + ' ' + Math.round(height));
+
+  const defs = el('defs', {}, svg);
+  for (const rel of REL_ORDER.concat(['bare_wall'])) {
+    const marker = el('marker', {
+      id: 'ah-' + rel, viewBox: '0 0 8 8', refX: '4', refY: '4',
+      markerWidth: '5.5', markerHeight: '5.5', orient: 'auto-start-reverse',
+    }, defs);
+    el('path', { d: 'M0,1 L8,4 L0,7 z', fill: 'var(--rel-' + relVarTop(rel) + ')' }, marker);
+  }
+
+  el('text', { x: LX, y: 26, class: 'side a' }, svg).textContent = 'ancestry \u2014 what came before';
+  el('text', { x: RX, y: 26, class: 'side d' }, svg).textContent = 'descent \u2014 what may follow';
+
+  const links = el('g', {}, svg);
+  const hits = el('g', {}, svg);
+  const leaves = el('g', {}, svg);
+
+  const place = (groups, side, startY) => {
+    let y = startY;
+    for (const group of groups) {
+      const label = REL[group.rel].label;
+      const lx = side === 'a' ? 20 : W - 20;
+      el('text', { x: lx, y: y + 8, class: 'band',
+        'text-anchor': side === 'a' ? 'start' : 'end' }, svg).textContent = label;
+      y += HEAD_H;
+      for (const row of group.rows) {
+        row.y = y + ROW_H / 2;
+        row.x = side === 'a' ? LX : RX;
+        drawRow(row, side, cy, CX);
+        y += ROW_H;
+      }
+      y += GAP;
+    }
+  };
+
+
+  function drawRow(row, side, ccy, ccx) {
+    const rel = row.relation || row.edge.relation;
+    const left = side === 'a';
+    const nx = row.x, ny = row.y;
+    // Time reads left to right, so every arrow points right, whichever side it is on.
+    const p0 = left ? [nx + 10, ny] : [ccx + 12, ccy];
+    const p3 = left ? [ccx - 12, ccy] : [nx - 10, ny];
+    const dx = (p3[0] - p0[0]) * 0.5;
+    const d = 'M' + p0[0] + ',' + p0[1] + ' C' + (p0[0] + dx) + ',' + p0[1] + ' '
+      + (p3[0] - dx) + ',' + p3[1] + ' ' + p3[0] + ',' + p3[1];
+    const isPicked = picked && row.edge === picked;
+    const line = el('path', { d: d, class: 'link ' + rel + (isPicked ? ' picked' : '') }, links);
+    if (rel !== 'co_presence' && rel !== 'bare_wall') line.setAttribute('marker-end', 'url(#ah-' + rel + ')');
+    if (row.edge) {
+      const hit = el('path', { d: d, class: 'hit', tabindex: '0', role: 'button' }, hits);
+      const from = pretty(row.edge.from), to = pretty(row.edge.to);
+      el('title', {}, hit).textContent = from + ' \u2192 ' + to + ' \u2014 ' + REL[rel].label
+        + ' (' + row.edge.certainty + ')';
+      const open = () => { picked = row.edge; render(); drawReceipt(row.edge); };
+      hit.addEventListener('click', open);
+      hit.addEventListener('keydown', ev => { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); open(); } });
+    }
+    drawLeaf(row, left, rel);
+  }
+
+  function drawLeaf(row, left, rel) {
+    const g = el('g', { class: 'leaf', tabindex: '0', role: 'button' }, leaves);
+    if (row.other === WALL) {
+      el('rect', { x: row.x - 5, y: row.y - 5, width: 10, height: 10, class: 'wallglyph' }, g);
+      const t = el('text', { x: row.x - 12, y: row.y, 'text-anchor': 'end' }, g);
+      t.textContent = 'the bare wall';
+      el('title', {}, g).textContent = pretty(center)
+        + ' was observed nucleating on bare rock, so no crystal host is required.';
+      g.addEventListener('click', () => { picked = null; render(); drawWallReceipt(); });
+      return;
+    }
+    el('circle', { cx: row.x, cy: row.y, class: 'node', fill: clsVar(row.other) }, g);
+    const t = el('text', {
+      x: left ? row.x - 10 : row.x + 10, y: row.y,
+      'text-anchor': left ? 'end' : 'start',
+    }, g);
+    t.textContent = pretty(row.other);
+    el('title', {}, g).textContent = 'Recenter on ' + pretty(row.other);
+    const go = () => { setCenter(row.other); };
+    g.addEventListener('click', go);
+    g.addEventListener('keydown', ev => { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); go(); } });
+  }
+
+  place(aGroups, 'a', TOP + (sideH - aH) / 2);
+  place(dGroups, 'd', TOP + (sideH - dH) / 2);
+
+  if (bGroups.length) {
+    let y = TOP + sideH + 26;
+    for (const group of bGroups) {
+      el('text', { x: 20, y: y + 8, class: 'band' }, svg).textContent = REL[group.rel].label;
+      y += HEAD_H;
+      const perRow = 5;
+      group.rows.forEach((row, i) => {
+        row.x = 120 + (i % perRow) * 155;
+        row.y = y + Math.floor(i / perRow) * ROW_H + ROW_H / 2;
+        // No line to click down here, so the dot carries the receipt and the name recenters.
+        const dot = el('g', { class: 'leaf', tabindex: '0', role: 'button' }, leaves);
+        el('circle', { cx: row.x - 10, cy: row.y, class: 'node', fill: clsVar(row.other) }, dot);
+        el('title', {}, dot).textContent = 'Evidence for this co-observation';
+        const openEdge = () => { picked = row.edge; render(); drawReceipt(row.edge); };
+        dot.addEventListener('click', openEdge);
+        dot.addEventListener('keydown', ev => { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); openEdge(); } });
+        const name = el('g', { class: 'leaf', tabindex: '0', role: 'button' }, leaves);
+        const t = el('text', { x: row.x, y: row.y, 'text-anchor': 'start' }, name);
+        t.textContent = pretty(row.other);
+        el('title', {}, name).textContent = 'Recenter on ' + pretty(row.other);
+        name.addEventListener('click', () => setCenter(row.other));
+        name.addEventListener('keydown', ev => { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); setCenter(row.other); } });
+      });
+      y += Math.ceil(group.rows.length / perRow) * ROW_H + GAP;
+    }
+  }
+
+  const core = el('g', { class: 'core' }, svg);
+  el('circle', { cx: CX, cy: cy, class: 'node', fill: clsVar(center) }, core);
+  el('text', { x: CX, y: cy - 16 }, core).textContent = pretty(center);
+
+  if (!ancestry.length && !descent.length && !beside.length) {
+    el('text', { x: CX, y: cy + 26, class: 'band', 'text-anchor': 'middle' }, svg)
+      .textContent = 'no supported relationship under these filters';
+  }
+}
+
+function relVarTop(rel) {
+  return { required_prerequisite: 'required', transformation: 'transform',
+    replacement_opportunity: 'replaces', preferred_substrate: 'substrate',
+    co_presence: 'copresent', bare_wall: 'wall' }[rel];
+}
+
+/* ------------------------------- receipts ------------------------------- */
+
+function runtimeRows(records) {
+  const all = [];
+  for (const r of records) for (const s of r.runtime) all.push(s);
+  if (!all.length) return '';
+  let html = '<div class="receipt"><h4>Runtime sightings &middot; ' + all.length + '</h4>'
+    + '<div class="runs"><table><thead><tr><th>scenario</th><th>seed</th><th>step</th><th>position</th></tr></thead><tbody>';
+  for (const s of all.slice(0, 60)) {
+    html += '<tr><td>' + esc(pretty(s.scenario)) + '</td><td>' + esc(s.seed) + '</td><td>'
+      + esc(s.step) + '</td><td>' + esc(s.position) + '</td></tr>';
+  }
+  html += '</tbody></table></div>';
+  if (all.length > 60) html += '<p class="note muted">' + (all.length - 60) + ' further sightings not listed.</p>';
+  return html + '</div>';
+}
+
+function drawReceipt(edge) {
+  const rel = REL[edge.relation];
+  const target = NODES.get(edge.to) || {};
+  const strict = edge.mode === 'strict';
+  let html = '<h2>' + esc(pretty(edge.from)) + ' <span class="muted">\u2192</span> '
+    + esc(pretty(edge.to)) + '</h2>';
+  html += '<p class="formula">' + esc(rel.label) + '</p>';
+  html += '<span class="chip" style="color: var(--rel-' + relVarTop(edge.relation) + ')">'
+    + (strict ? 'strict' : 'growth') + '</span>';
+  html += '<span class="chip" style="color: var(--ink-faint)">' + esc(edge.certainty) + '</span>';
+  html += '<p class="desc">' + esc(rel.gloss) + '</p>';
+
+  const dl = [];
+  if (edge.mechanism) dl.push(['mechanism', edge.mechanism]);
+  if (edge.required_precursor) dl.push(['required precursor', 'yes \u2014 absence blocks the target']);
+  dl.push(['direction', edge.relation === 'co_presence' ? 'none claimed'
+    : pretty(edge.from) + ' ' + rel.reads + ' ' + pretty(edge.to)]);
+  if (dl.length) {
+    html += '<dl>' + dl.map(p => '<dt>' + esc(p[0]) + '</dt><dd>' + esc(p[1]) + '</dd>').join('') + '</dl>';
+  }
+  if (edge.note) html += '<p class="desc">' + esc(edge.note) + '</p>';
+
+  html += '<div class="receipt"><h4>Evidence &middot; ' + edge.evidence.length
+    + (edge.evidence.length === 1 ? ' record' : ' records') + '</h4>';
+  for (const r of edge.evidence) {
+    html += '<p class="cite"><b>' + esc(r.basis) + '</b> &middot; ' + esc(r.certainty)
+      + (r.source_state ? ' &middot; source ' + esc(r.source_state) : '') + '</p>';
+    for (const c of r.cites) html += '<p class="cite muted">' + esc(c) + '</p>';
+  }
+  html += '</div>';
+
+  html += runtimeRows(edge.evidence);
+
+  if (!strict) {
+    let honest = 'This is a preference the engine rolls for, not a gate it enforces.';
+    if (target.bare_wall === 'observed') {
+      honest += ' ' + pretty(edge.to) + ' was also observed nucleating on the bare wall in these '
+        + 'runs, so it can reach the vug without ' + pretty(edge.from) + ' entirely.';
+    } else if (target.bare_wall === 'unresolved') {
+      honest += ' These runs never saw ' + pretty(edge.to) + ' on the bare wall, which is an '
+        + 'absence of evidence, not a proven requirement.';
+    }
+    html += '<div class="receipt"><h4>What this does not claim</h4><p class="note">'
+      + esc(honest) + '</p></div>';
+  }
+  $('panel').innerHTML = html;
+}
+
+function drawWallReceipt() {
+  const node = NODES.get(center) || {};
+  const census = (FLOW.census && FLOW.census.species) || null;
+  let html = '<h2>the bare wall <span class="muted">\u2192</span> ' + esc(pretty(center)) + '</h2>';
+  html += '<p class="formula">bare-wall nucleation, observed</p>';
+  html += '<span class="chip" style="color: var(--rel-wall)">observed</span>';
+  html += '<p class="desc">' + esc(REL.bare_wall.gloss) + ' This is the asymmetric proof that '
+    + esc(pretty(center)) + ' is not captive to any crystal substrate: every &ldquo;grows on&rdquo; '
+    + 'line into it records a preference it can decline.</p>';
+  html += '<div class="receipt"><h4>Evidence &middot; 1 record</h4>'
+    + '<p class="cite"><b>runtime-census</b> &middot; observed</p>'
+    + '<p class="cite muted">tools/substrate-escape-census.mjs</p></div>';
+  html += '<p class="note muted">The engines default a nucleation position to the vug wall and only '
+    + 'upgrade it on a probability roll, so a species read off the wall has a proven escape route.</p>';
+  $('panel').innerHTML = html;
+}
+
+function drawCard(id) {
+  const node = NODES.get(id);
+  if (!node) return;
+  const { ancestry, descent, beside } = rowsFor(id);
+  let html = '<h2><span class="cls-dot" style="background:' + clsVar(id) + '"></span>'
+    + esc(pretty(id)) + '</h2>';
+  html += '<p class="formula">' + esc(node.formula || '') + '</p>';
+  html += '<span class="chip" style="color:' + clsVar(id) + '">' + esc(node.class || '') + '</span>';
+  if (node.bare_wall === 'observed') {
+    html += '<span class="chip" style="color: var(--rel-wall)">bare-wall observed</span>';
+  } else if (node.bare_wall === 'unresolved') {
+    html += '<span class="chip" style="color: var(--ink-faint)">no bare-wall sighting</span>';
+  }
+  const dl = [];
+  if (node.t_range_c) dl.push(['temperature', node.t_range_c[0] + ' \u2013 ' + node.t_range_c[1] + ' C']);
+  if (node.redox) dl.push(['redox', node.redox]);
+  if (node.scenarios && node.scenarios.length) dl.push(['scenarios', node.scenarios.map(pretty).join(', ')]);
+  dl.push(['neighbours', (ancestry.length + descent.length + beside.length) + ' under these filters']);
+  html += '<dl>' + dl.map(p => '<dt>' + esc(p[0]) + '</dt><dd>' + esc(p[1]) + '</dd>').join('') + '</dl>';
+  if (node.description) html += '<p class="desc">' + esc(node.description) + '</p>';
+
+  const section = (title, rows, dir) => {
+    if (!rows.length) return '';
+    let out = '<h3>' + esc(title) + '</h3><ul class="rel-list">';
+    for (const row of rows) {
+      const rel = row.relation || row.edge.relation;
+      const name = row.other === WALL ? 'the bare wall' : pretty(row.other);
+      out += '<li><button data-go="' + esc(row.other) + '">' + esc(name) + '</button> '
+        + '<span class="muted">' + esc(REL[rel].label) + '</span></li>';
+    }
+    return out + '</ul>';
+  };
+  html += section('Ancestry \u2014 what came before', ancestry, 'a');
+  html += section('Descent \u2014 what may follow', descent, 'd');
+  html += section('Beside it', beside, 'b');
+  if (!ancestry.length && !descent.length && !beside.length) {
+    html += '<p class="note">No supported relationship. The engines name no substrate, replacement '
+      + 'or transformation for this species, and these runs recorded no companion for it.</p>';
+  }
+  $('panel').innerHTML = html;
+  for (const b of $('panel').querySelectorAll('[data-go]')) {
+    const go = b.getAttribute('data-go');
+    if (go === WALL) b.addEventListener('click', drawWallReceipt);
+    else b.addEventListener('click', () => setCenter(go));
+  }
+}
+
+function setCenter(id) {
+  if (!NODES.has(id)) return;
+  center = id;
+  picked = null;
+  $('search').value = pretty(id);
+  render();
+  drawCard(id);
+}
+
+/* --------------------------------- chrome -------------------------------- */
+
+function drawKey() {
+  const rows = REL_ORDER.concat(['bare_wall']).map(rel => {
+    const swatch = '<svg width="40" height="10" aria-hidden="true">'
+      + '<line x1="1" y1="5" x2="39" y2="5" class="link ' + rel + '" /></svg>';
+    return '<div class="keyrow">' + swatch + '<span><b>' + esc(REL[rel].label) + '</b> &mdash; <i>'
+      + esc(REL[rel].gloss) + '</i></span></div>';
+  });
+  $('keyrows').innerHTML = rows.join('');
+}
+
+function drawTally() {
+  const c = FLOW.counts || {};
+  const cells = [
+    [c.minerals, 'species'],
+    [c.strict, 'strict edges'],
+    [c.growth, 'growth edges'],
+    [c.bare_wall_observed, 'escape the wall'],
+    [(FLOW.census && FLOW.census.runs) || '?', 'runs read'],
+  ];
+  $('tally').innerHTML = cells.map(x => '<div><b>' + esc(x[0]) + '</b><span>' + esc(x[1]) + '</span></div>').join('');
+  $('escapees').textContent = c.bare_wall_observed;
+  $('observed').textContent = (c.bare_wall_observed || 0) + (c.bare_wall_unresolved || 0);
+  $('strictn').textContent = c.strict;
+  $('stamp').textContent = FLOW._stamp || 'Vugg Simulator';
+  $('prov').textContent = FLOW._provenance || '';
+}
+
+function wire() {
+  const list = $('species');
+  list.innerHTML = FLOW.nodes.map(n => '<option value="' + esc(pretty(n.id)) + '"></option>').join('');
+  const search = $('search');
+  const commit = () => {
+    const want = search.value.trim().toLowerCase().replace(/\s+/g, '_');
+    if (NODES.has(want)) { setCenter(want); return; }
+    const hit = FLOW.nodes.find(n => n.id.startsWith(want));
+    if (hit) setCenter(hit.id);
+  };
+  search.addEventListener('change', commit);
+  search.addEventListener('keydown', ev => { if (ev.key === 'Enter') commit(); });
+
+  for (const rel of Object.keys(filters)) {
+    const button = $('f-' + rel);
+    button.addEventListener('click', () => {
+      filters[rel] = !filters[rel];
+      button.setAttribute('aria-pressed', String(filters[rel]));
+      picked = null;
+      render();
+      drawCard(center);
+    });
+  }
+  $('reset').addEventListener('click', () => {
+    for (const rel of Object.keys(filters)) {
+      filters[rel] = true;
+      $('f-' + rel).setAttribute('aria-pressed', 'true');
+    }
+    picked = null;
+    render();
+    drawCard(center);
+  });
+}
+
+drawTally();
+drawKey();
+wire();
+setCenter(center);
+</script>

@@ -17,6 +17,7 @@
       "onCrystal": 0,
       "escapes": true,
       "hosts": {},
+      "sightings": [],
       "scenarios": [
         "deccan_zeolite",
         "elmwood",
@@ -50,6 +51,78 @@
         "cinnabar": 3,
         "native_sulfur": 2
       },
+      "sightings": [
+        {
+          "host": "pyrite",
+          "scenario": "bisbee",
+          "seed": 42,
+          "step": 90,
+          "position": "coating pyrite #3"
+        },
+        {
+          "host": "pyrite",
+          "scenario": "bisbee",
+          "seed": 42,
+          "step": 91,
+          "position": "coating pyrite #3"
+        },
+        {
+          "host": "pyrite",
+          "scenario": "bisbee",
+          "seed": 42,
+          "step": 92,
+          "position": "coating pyrite #3"
+        },
+        {
+          "host": "cinnabar",
+          "scenario": "sulphur_bank",
+          "seed": 42,
+          "step": 93,
+          "position": "sinter coating cinnabar #2"
+        },
+        {
+          "host": "cinnabar",
+          "scenario": "sulphur_bank",
+          "seed": 42,
+          "step": 94,
+          "position": "sinter coating cinnabar #2"
+        },
+        {
+          "host": "pyrite",
+          "scenario": "sulphur_bank",
+          "seed": 42,
+          "step": 97,
+          "position": "coating pyrite #25"
+        },
+        {
+          "host": "native_sulfur",
+          "scenario": "sulphur_bank",
+          "seed": 42,
+          "step": 167,
+          "position": "sinter embedding native_sulfur #23"
+        },
+        {
+          "host": "native_sulfur",
+          "scenario": "sulphur_bank",
+          "seed": 42,
+          "step": 169,
+          "position": "sinter embedding native_sulfur #23"
+        },
+        {
+          "host": "pyrite",
+          "scenario": "sulphur_bank",
+          "seed": 42,
+          "step": 170,
+          "position": "coating pyrite #25"
+        },
+        {
+          "host": "cinnabar",
+          "scenario": "sulphur_bank",
+          "seed": 42,
+          "step": 194,
+          "position": "sinter coating cinnabar #2"
+        }
+      ],
       "scenarios": [
         "asbestos_hills_crack_seal",
         "asbestos_hills_surficial_alteration",
@@ -74,6 +147,379 @@
         "galena": 14,
         "pyrite": 7
       },
+      "sightings": [
+        {
+          "host": "sphalerite",
+          "scenario": "elmwood",
+          "seed": 42,
+          "step": 16,
+          "position": "on sphalerite #3"
+        },
+        {
+          "host": "sphalerite",
+          "scenario": "elmwood",
+          "seed": 42,
+          "step": 19,
+          "position": "on sphalerite #3"
+        },
+        {
+          "host": "sphalerite",
+          "scenario": "elmwood",
+          "seed": 42,
+          "step": 21,
+          "position": "on sphalerite #3"
+        },
+        {
+          "host": "sphalerite",
+          "scenario": "elmwood",
+          "seed": 42,
+          "step": 22,
+          "position": "on sphalerite #3"
+        },
+        {
+          "host": "galena",
+          "scenario": "elmwood",
+          "seed": 42,
+          "step": 26,
+          "position": "on galena #5"
+        },
+        {
+          "host": "sphalerite",
+          "scenario": "elmwood",
+          "seed": 42,
+          "step": 27,
+          "position": "on sphalerite #3"
+        },
+        {
+          "host": "sphalerite",
+          "scenario": "elmwood",
+          "seed": 42,
+          "step": 83,
+          "position": "on sphalerite #3"
+        },
+        {
+          "host": "sphalerite",
+          "scenario": "elmwood",
+          "seed": 42,
+          "step": 84,
+          "position": "on sphalerite #3"
+        },
+        {
+          "host": "galena",
+          "scenario": "elmwood",
+          "seed": 42,
+          "step": 85,
+          "position": "on galena #5"
+        },
+        {
+          "host": "sphalerite",
+          "scenario": "elmwood",
+          "seed": 42,
+          "step": 86,
+          "position": "on sphalerite #3"
+        },
+        {
+          "host": "sphalerite",
+          "scenario": "elmwood",
+          "seed": 42,
+          "step": 88,
+          "position": "on sphalerite #3"
+        },
+        {
+          "host": "sphalerite",
+          "scenario": "elmwood",
+          "seed": 42,
+          "step": 89,
+          "position": "on sphalerite #3"
+        },
+        {
+          "host": "sphalerite",
+          "scenario": "mvt",
+          "seed": 42,
+          "step": 21,
+          "position": "on sphalerite #3"
+        },
+        {
+          "host": "sphalerite",
+          "scenario": "mvt",
+          "seed": 42,
+          "step": 22,
+          "position": "on sphalerite #3"
+        },
+        {
+          "host": "pyrite",
+          "scenario": "mvt",
+          "seed": 42,
+          "step": 24,
+          "position": "on pyrite #4"
+        },
+        {
+          "host": "galena",
+          "scenario": "mvt",
+          "seed": 42,
+          "step": 26,
+          "position": "on galena #5"
+        },
+        {
+          "host": "sphalerite",
+          "scenario": "mvt",
+          "seed": 42,
+          "step": 27,
+          "position": "on sphalerite #3"
+        },
+        {
+          "host": "sphalerite",
+          "scenario": "reactivated_fluorite_vein",
+          "seed": 42,
+          "step": 21,
+          "position": "on sphalerite #5"
+        },
+        {
+          "host": "sphalerite",
+          "scenario": "reactivated_fluorite_vein",
+          "seed": 42,
+          "step": 22,
+          "position": "on sphalerite #5"
+        },
+        {
+          "host": "pyrite",
+          "scenario": "reactivated_fluorite_vein",
+          "seed": 42,
+          "step": 24,
+          "position": "on pyrite #6"
+        },
+        {
+          "host": "galena",
+          "scenario": "reactivated_fluorite_vein",
+          "seed": 42,
+          "step": 26,
+          "position": "on galena #7"
+        },
+        {
+          "host": "sphalerite",
+          "scenario": "reactivated_fluorite_vein",
+          "seed": 42,
+          "step": 27,
+          "position": "on sphalerite #5"
+        },
+        {
+          "host": "galena",
+          "scenario": "reactivated_fluorite_vein",
+          "seed": 42,
+          "step": 28,
+          "position": "on galena #7"
+        },
+        {
+          "host": "sphalerite",
+          "scenario": "reactivated_fluorite_vein",
+          "seed": 42,
+          "step": 36,
+          "position": "on sphalerite #5"
+        },
+        {
+          "host": "galena",
+          "scenario": "reactivated_fluorite_vein",
+          "seed": 42,
+          "step": 40,
+          "position": "on galena #7"
+        },
+        {
+          "host": "sphalerite",
+          "scenario": "reactivated_fluorite_vein",
+          "seed": 42,
+          "step": 41,
+          "position": "on sphalerite #5"
+        },
+        {
+          "host": "sphalerite",
+          "scenario": "reactivated_fluorite_vein",
+          "seed": 42,
+          "step": 42,
+          "position": "on sphalerite #5"
+        },
+        {
+          "host": "sphalerite",
+          "scenario": "reactivated_fluorite_vein",
+          "seed": 42,
+          "step": 43,
+          "position": "on sphalerite #5"
+        },
+        {
+          "host": "sphalerite",
+          "scenario": "reactivated_fluorite_vein",
+          "seed": 42,
+          "step": 45,
+          "position": "on sphalerite #5"
+        },
+        {
+          "host": "galena",
+          "scenario": "reactivated_fluorite_vein",
+          "seed": 42,
+          "step": 47,
+          "position": "on galena #7"
+        },
+        {
+          "host": "galena",
+          "scenario": "reactivated_fluorite_vein",
+          "seed": 42,
+          "step": 54,
+          "position": "on galena #7"
+        },
+        {
+          "host": "pyrite",
+          "scenario": "reactivated_fluorite_vein",
+          "seed": 42,
+          "step": 55,
+          "position": "on pyrite #6"
+        },
+        {
+          "host": "sphalerite",
+          "scenario": "reactivated_fluorite_vein",
+          "seed": 42,
+          "step": 58,
+          "position": "on sphalerite #5"
+        },
+        {
+          "host": "sphalerite",
+          "scenario": "reactivated_fluorite_vein",
+          "seed": 42,
+          "step": 59,
+          "position": "on sphalerite #5"
+        },
+        {
+          "host": "sphalerite",
+          "scenario": "reactivated_fluorite_vein",
+          "seed": 42,
+          "step": 62,
+          "position": "on sphalerite #5"
+        },
+        {
+          "host": "sphalerite",
+          "scenario": "reactivated_fluorite_vein",
+          "seed": 42,
+          "step": 67,
+          "position": "on sphalerite #5"
+        },
+        {
+          "host": "pyrite",
+          "scenario": "reactivated_fluorite_vein",
+          "seed": 42,
+          "step": 76,
+          "position": "on pyrite #6"
+        },
+        {
+          "host": "pyrite",
+          "scenario": "reactivated_fluorite_vein",
+          "seed": 42,
+          "step": 79,
+          "position": "on pyrite #6"
+        },
+        {
+          "host": "pyrite",
+          "scenario": "reactivated_fluorite_vein",
+          "seed": 42,
+          "step": 83,
+          "position": "on pyrite #6"
+        },
+        {
+          "host": "galena",
+          "scenario": "reactivated_fluorite_vein",
+          "seed": 42,
+          "step": 84,
+          "position": "on galena #7"
+        },
+        {
+          "host": "galena",
+          "scenario": "reactivated_fluorite_vein",
+          "seed": 42,
+          "step": 89,
+          "position": "on galena #7"
+        },
+        {
+          "host": "sphalerite",
+          "scenario": "reactivated_fluorite_vein",
+          "seed": 42,
+          "step": 90,
+          "position": "on sphalerite #5"
+        },
+        {
+          "host": "galena",
+          "scenario": "reactivated_fluorite_vein",
+          "seed": 42,
+          "step": 92,
+          "position": "on galena #7"
+        },
+        {
+          "host": "sphalerite",
+          "scenario": "reactivated_fluorite_vein",
+          "seed": 42,
+          "step": 94,
+          "position": "on sphalerite #5"
+        },
+        {
+          "host": "galena",
+          "scenario": "reactivated_fluorite_vein",
+          "seed": 42,
+          "step": 96,
+          "position": "on galena #7"
+        },
+        {
+          "host": "galena",
+          "scenario": "reactivated_fluorite_vein",
+          "seed": 42,
+          "step": 100,
+          "position": "on galena #7"
+        },
+        {
+          "host": "sphalerite",
+          "scenario": "reactivated_fluorite_vein",
+          "seed": 42,
+          "step": 102,
+          "position": "on sphalerite #5"
+        },
+        {
+          "host": "galena",
+          "scenario": "reactivated_fluorite_vein",
+          "seed": 42,
+          "step": 105,
+          "position": "on galena #7"
+        },
+        {
+          "host": "pyrite",
+          "scenario": "reactivated_fluorite_vein",
+          "seed": 42,
+          "step": 107,
+          "position": "on pyrite #6"
+        },
+        {
+          "host": "sphalerite",
+          "scenario": "tn457_barite_pulses",
+          "seed": 42,
+          "step": 8,
+          "position": "on sphalerite #1"
+        },
+        {
+          "host": "sphalerite",
+          "scenario": "tn457_barite_pulses",
+          "seed": 42,
+          "step": 10,
+          "position": "on sphalerite #1"
+        },
+        {
+          "host": "sphalerite",
+          "scenario": "tn457_barite_pulses",
+          "seed": 42,
+          "step": 11,
+          "position": "on sphalerite #1"
+        },
+        {
+          "host": "sphalerite",
+          "scenario": "tn457_barite_pulses",
+          "seed": 42,
+          "step": 15,
+          "position": "on sphalerite #1"
+        }
+      ],
       "scenarios": [
         "elmwood",
         "mvt",
@@ -89,6 +535,7 @@
       "onCrystal": 0,
       "escapes": true,
       "hosts": {},
+      "sightings": [],
       "scenarios": [
         "great_salt_plains",
         "searles_lake"
@@ -103,6 +550,36 @@
       "hosts": {
         "chalcedony": 4
       },
+      "sightings": [
+        {
+          "host": "chalcedony",
+          "scenario": "amethyst_geode",
+          "seed": 42,
+          "step": 18,
+          "position": "chalcedony #1"
+        },
+        {
+          "host": "chalcedony",
+          "scenario": "deccan_zeolite",
+          "seed": 42,
+          "step": 55,
+          "position": "chalcedony #1"
+        },
+        {
+          "host": "chalcedony",
+          "scenario": "deccan_zeolite",
+          "seed": 42,
+          "step": 73,
+          "position": "chalcedony #1"
+        },
+        {
+          "host": "chalcedony",
+          "scenario": "deccan_zeolite",
+          "seed": 42,
+          "step": 75,
+          "position": "chalcedony #1"
+        }
+      ],
       "scenarios": [
         "amethyst_geode",
         "asbestos_hills_crack_seal",
@@ -134,6 +611,29 @@
       "hosts": {
         "barite": 3
       },
+      "sightings": [
+        {
+          "host": "barite",
+          "scenario": "elmwood",
+          "seed": 42,
+          "step": 86,
+          "position": "on barite #12 (celestobarite-barytocelestine pair)"
+        },
+        {
+          "host": "barite",
+          "scenario": "elmwood",
+          "seed": 42,
+          "step": 115,
+          "position": "on barite #12 (celestobarite-barytocelestine pair)"
+        },
+        {
+          "host": "barite",
+          "scenario": "reactivated_fluorite_vein",
+          "seed": 42,
+          "step": 39,
+          "position": "on barite #16 (celestobarite-barytocelestine pair)"
+        }
+      ],
       "scenarios": [
         "elmwood",
         "naica_geothermal",
@@ -150,6 +650,7 @@
       "onCrystal": 0,
       "escapes": true,
       "hosts": {},
+      "sightings": [],
       "scenarios": [
         "asbestos_hills_surficial_alteration",
         "bisbee",
@@ -166,6 +667,43 @@
       "hosts": {
         "galena": 5
       },
+      "sightings": [
+        {
+          "host": "galena",
+          "scenario": "reactivated_fluorite_vein",
+          "seed": 42,
+          "step": 20,
+          "position": "on galena #7"
+        },
+        {
+          "host": "galena",
+          "scenario": "reactivated_fluorite_vein",
+          "seed": 42,
+          "step": 23,
+          "position": "on galena #7"
+        },
+        {
+          "host": "galena",
+          "scenario": "reactivated_fluorite_vein",
+          "seed": 42,
+          "step": 27,
+          "position": "on galena #7"
+        },
+        {
+          "host": "galena",
+          "scenario": "roughten_gill",
+          "seed": 42,
+          "step": 9,
+          "position": "on galena #7"
+        },
+        {
+          "host": "galena",
+          "scenario": "roughten_gill",
+          "seed": 42,
+          "step": 18,
+          "position": "on galena #7"
+        }
+      ],
       "scenarios": [
         "bisbee",
         "porphyry",
@@ -184,6 +722,22 @@
       "hosts": {
         "chalcocite": 2
       },
+      "sightings": [
+        {
+          "host": "chalcocite",
+          "scenario": "roughten_gill",
+          "seed": 42,
+          "step": 72,
+          "position": "on chalcocite #8"
+        },
+        {
+          "host": "chalcocite",
+          "scenario": "roughten_gill",
+          "seed": 42,
+          "step": 73,
+          "position": "on chalcocite #8"
+        }
+      ],
       "scenarios": [
         "bisbee",
         "porphyry",
@@ -202,6 +756,78 @@
         "feldspar": 9,
         "quartz": 1
       },
+      "sightings": [
+        {
+          "host": "feldspar",
+          "scenario": "bisbee",
+          "seed": 42,
+          "step": 2,
+          "position": "on feldspar #1"
+        },
+        {
+          "host": "quartz",
+          "scenario": "deccan_zeolite",
+          "seed": 42,
+          "step": 70,
+          "position": "on quartz #6"
+        },
+        {
+          "host": "feldspar",
+          "scenario": "epithermal_telluride",
+          "seed": 42,
+          "step": 2,
+          "position": "on feldspar #2"
+        },
+        {
+          "host": "feldspar",
+          "scenario": "gem_pegmatite",
+          "seed": 42,
+          "step": 2,
+          "position": "on feldspar #2"
+        },
+        {
+          "host": "feldspar",
+          "scenario": "grimsel_alpine_cleft",
+          "seed": 42,
+          "step": 2,
+          "position": "on feldspar #1"
+        },
+        {
+          "host": "feldspar",
+          "scenario": "ouro_preto",
+          "seed": 42,
+          "step": 2,
+          "position": "on feldspar #1"
+        },
+        {
+          "host": "feldspar",
+          "scenario": "porphyry",
+          "seed": 42,
+          "step": 2,
+          "position": "on feldspar #1"
+        },
+        {
+          "host": "feldspar",
+          "scenario": "radioactive_pegmatite",
+          "seed": 42,
+          "step": 2,
+          "position": "on feldspar #3"
+        },
+        {
+          "host": "feldspar",
+          "scenario": "shigar_pegmatite",
+          "seed": 42,
+          "step": 2,
+          "position": "on feldspar #2"
+        },
+        {
+          "host": "feldspar",
+          "scenario": "tormiq_alpine_cleft",
+          "seed": 42,
+          "step": 2,
+          "position": "on feldspar #1"
+        }
+      ],
       "scenarios": [
         "bisbee",
         "chiastolite_hornfels",
@@ -226,6 +852,92 @@
       "hosts": {
         "sphalerite": 12
       },
+      "sightings": [
+        {
+          "host": "sphalerite",
+          "scenario": "mvt",
+          "seed": 42,
+          "step": 20,
+          "position": "on sphalerite #3"
+        },
+        {
+          "host": "sphalerite",
+          "scenario": "mvt",
+          "seed": 42,
+          "step": 29,
+          "position": "on sphalerite #3"
+        },
+        {
+          "host": "sphalerite",
+          "scenario": "reactivated_fluorite_vein",
+          "seed": 42,
+          "step": 20,
+          "position": "on sphalerite #5"
+        },
+        {
+          "host": "sphalerite",
+          "scenario": "reactive_wall",
+          "seed": 42,
+          "step": 40,
+          "position": "on sphalerite #2"
+        },
+        {
+          "host": "sphalerite",
+          "scenario": "roughten_gill",
+          "seed": 42,
+          "step": 1,
+          "position": "on sphalerite #2"
+        },
+        {
+          "host": "sphalerite",
+          "scenario": "roughten_gill",
+          "seed": 42,
+          "step": 4,
+          "position": "on sphalerite #2"
+        },
+        {
+          "host": "sphalerite",
+          "scenario": "roughten_gill",
+          "seed": 42,
+          "step": 7,
+          "position": "on sphalerite #2"
+        },
+        {
+          "host": "sphalerite",
+          "scenario": "roughten_gill",
+          "seed": 42,
+          "step": 10,
+          "position": "on sphalerite #2"
+        },
+        {
+          "host": "sphalerite",
+          "scenario": "sunnyside_american_tunnel",
+          "seed": 42,
+          "step": 1,
+          "position": "on sphalerite #1"
+        },
+        {
+          "host": "sphalerite",
+          "scenario": "sunnyside_american_tunnel",
+          "seed": 42,
+          "step": 4,
+          "position": "on sphalerite #1"
+        },
+        {
+          "host": "sphalerite",
+          "scenario": "sunnyside_american_tunnel",
+          "seed": 42,
+          "step": 7,
+          "position": "on sphalerite #1"
+        },
+        {
+          "host": "sphalerite",
+          "scenario": "sunnyside_american_tunnel",
+          "seed": 42,
+          "step": 10,
+          "position": "on sphalerite #1"
+        }
+      ],
       "scenarios": [
         "bisbee",
         "elmwood",
@@ -246,6 +958,43 @@
       "hosts": {
         "quartz": 5
       },
+      "sightings": [
+        {
+          "host": "quartz",
+          "scenario": "deccan_zeolite",
+          "seed": 42,
+          "step": 110,
+          "position": "on quartz #6"
+        },
+        {
+          "host": "quartz",
+          "scenario": "gem_pegmatite",
+          "seed": 42,
+          "step": 2,
+          "position": "on quartz #1"
+        },
+        {
+          "host": "quartz",
+          "scenario": "radioactive_pegmatite",
+          "seed": 42,
+          "step": 2,
+          "position": "on quartz #2"
+        },
+        {
+          "host": "quartz",
+          "scenario": "schneeberg",
+          "seed": 42,
+          "step": 2,
+          "position": "on quartz #2"
+        },
+        {
+          "host": "quartz",
+          "scenario": "shigar_pegmatite",
+          "seed": 42,
+          "step": 2,
+          "position": "on quartz #1"
+        }
+      ],
       "scenarios": [
         "bisbee",
         "chiastolite_hornfels",
@@ -270,6 +1019,36 @@
       "hosts": {
         "calcite": 4
       },
+      "sightings": [
+        {
+          "host": "calcite",
+          "scenario": "jeffrey_mine",
+          "seed": 42,
+          "step": 1,
+          "position": "on calcite #1"
+        },
+        {
+          "host": "calcite",
+          "scenario": "sabkha_dolomitization",
+          "seed": 42,
+          "step": 1,
+          "position": "on calcite #1"
+        },
+        {
+          "host": "calcite",
+          "scenario": "sabkha_dolomitization",
+          "seed": 42,
+          "step": 120,
+          "position": "on calcite #17"
+        },
+        {
+          "host": "calcite",
+          "scenario": "sabkha_dolomitization",
+          "seed": 42,
+          "step": 188,
+          "position": "on calcite #39"
+        }
+      ],
       "scenarios": [
         "jeffrey_mine",
         "reactive_wall",
@@ -285,6 +1064,7 @@
       "onCrystal": 0,
       "escapes": true,
       "hosts": {},
+      "sightings": [],
       "scenarios": [
         "amethyst_geode",
         "bisbee",
@@ -305,6 +1085,43 @@
         "cuprite": 4,
         "azurite": 1
       },
+      "sightings": [
+        {
+          "host": "cuprite",
+          "scenario": "bisbee",
+          "seed": 42,
+          "step": 79,
+          "position": "on cuprite #23"
+        },
+        {
+          "host": "cuprite",
+          "scenario": "bisbee",
+          "seed": 42,
+          "step": 92,
+          "position": "on cuprite #23"
+        },
+        {
+          "host": "azurite",
+          "scenario": "roughten_gill",
+          "seed": 42,
+          "step": 180,
+          "position": "on azurite #39"
+        },
+        {
+          "host": "cuprite",
+          "scenario": "schneeberg",
+          "seed": 42,
+          "step": 92,
+          "position": "on cuprite #47"
+        },
+        {
+          "host": "cuprite",
+          "scenario": "schneeberg",
+          "seed": 42,
+          "step": 94,
+          "position": "on cuprite #47"
+        }
+      ],
       "scenarios": [
         "bisbee",
         "porphyry",
@@ -321,6 +1138,50 @@
       "hosts": {
         "chrysocolla": 6
       },
+      "sightings": [
+        {
+          "host": "chrysocolla",
+          "scenario": "bisbee",
+          "seed": 42,
+          "step": 265,
+          "position": "on chrysocolla #22"
+        },
+        {
+          "host": "chrysocolla",
+          "scenario": "bisbee",
+          "seed": 42,
+          "step": 269,
+          "position": "on chrysocolla #22"
+        },
+        {
+          "host": "chrysocolla",
+          "scenario": "bisbee",
+          "seed": 42,
+          "step": 275,
+          "position": "on chrysocolla #22"
+        },
+        {
+          "host": "chrysocolla",
+          "scenario": "bisbee",
+          "seed": 42,
+          "step": 322,
+          "position": "on chrysocolla #22"
+        },
+        {
+          "host": "chrysocolla",
+          "scenario": "bisbee",
+          "seed": 42,
+          "step": 335,
+          "position": "on chrysocolla #22"
+        },
+        {
+          "host": "chrysocolla",
+          "scenario": "schneeberg",
+          "seed": 42,
+          "step": 91,
+          "position": "on chrysocolla #45"
+        }
+      ],
       "scenarios": [
         "bisbee",
         "schneeberg"
@@ -336,6 +1197,99 @@
         "quartz": 10,
         "feldspar": 3
       },
+      "sightings": [
+        {
+          "host": "quartz",
+          "scenario": "radioactive_pegmatite",
+          "seed": 42,
+          "step": 9,
+          "position": "on quartz #2"
+        },
+        {
+          "host": "feldspar",
+          "scenario": "radioactive_pegmatite",
+          "seed": 42,
+          "step": 10,
+          "position": "on feldspar #3"
+        },
+        {
+          "host": "quartz",
+          "scenario": "radioactive_pegmatite",
+          "seed": 42,
+          "step": 12,
+          "position": "on quartz #2"
+        },
+        {
+          "host": "quartz",
+          "scenario": "radioactive_pegmatite",
+          "seed": 42,
+          "step": 17,
+          "position": "on quartz #2"
+        },
+        {
+          "host": "quartz",
+          "scenario": "radioactive_pegmatite",
+          "seed": 42,
+          "step": 20,
+          "position": "on quartz #2"
+        },
+        {
+          "host": "quartz",
+          "scenario": "radioactive_pegmatite",
+          "seed": 42,
+          "step": 29,
+          "position": "on quartz #2"
+        },
+        {
+          "host": "quartz",
+          "scenario": "shigar_pegmatite",
+          "seed": 42,
+          "step": 12,
+          "position": "on quartz #1"
+        },
+        {
+          "host": "quartz",
+          "scenario": "shigar_pegmatite",
+          "seed": 42,
+          "step": 17,
+          "position": "on quartz #1"
+        },
+        {
+          "host": "quartz",
+          "scenario": "shigar_pegmatite",
+          "seed": 42,
+          "step": 20,
+          "position": "on quartz #1"
+        },
+        {
+          "host": "quartz",
+          "scenario": "shigar_pegmatite",
+          "seed": 42,
+          "step": 29,
+          "position": "on quartz #1"
+        },
+        {
+          "host": "feldspar",
+          "scenario": "shigar_pegmatite",
+          "seed": 42,
+          "step": 44,
+          "position": "on feldspar #2"
+        },
+        {
+          "host": "feldspar",
+          "scenario": "shigar_pegmatite",
+          "seed": 42,
+          "step": 53,
+          "position": "on feldspar #2"
+        },
+        {
+          "host": "quartz",
+          "scenario": "shigar_pegmatite",
+          "seed": 42,
+          "step": 57,
+          "position": "on quartz #1"
+        }
+      ],
       "scenarios": [
         "gem_pegmatite",
         "radioactive_pegmatite",
@@ -349,6 +1303,7 @@
       "onCrystal": 0,
       "escapes": true,
       "hosts": {},
+      "sightings": [],
       "scenarios": [
         "searles_lake"
       ]
@@ -363,6 +1318,50 @@
         "chalcopyrite": 5,
         "bornite": 1
       },
+      "sightings": [
+        {
+          "host": "chalcopyrite",
+          "scenario": "bisbee",
+          "seed": 42,
+          "step": 65,
+          "position": "on chalcopyrite #4"
+        },
+        {
+          "host": "chalcopyrite",
+          "scenario": "bisbee",
+          "seed": 42,
+          "step": 76,
+          "position": "on chalcopyrite #4"
+        },
+        {
+          "host": "chalcopyrite",
+          "scenario": "bisbee",
+          "seed": 42,
+          "step": 95,
+          "position": "on chalcopyrite #4"
+        },
+        {
+          "host": "bornite",
+          "scenario": "bisbee",
+          "seed": 42,
+          "step": 99,
+          "position": "on bornite #49"
+        },
+        {
+          "host": "chalcopyrite",
+          "scenario": "roughten_gill",
+          "seed": 42,
+          "step": 1,
+          "position": "on chalcopyrite #4"
+        },
+        {
+          "host": "chalcopyrite",
+          "scenario": "roughten_gill",
+          "seed": 42,
+          "step": 11,
+          "position": "on chalcopyrite #4"
+        }
+      ],
       "scenarios": [
         "bisbee",
         "roughten_gill",
@@ -378,6 +1377,15 @@
       "hosts": {
         "native_copper": 1
       },
+      "sightings": [
+        {
+          "host": "native_copper",
+          "scenario": "bisbee",
+          "seed": 42,
+          "step": 132,
+          "position": "on native_copper #67"
+        }
+      ],
       "scenarios": [
         "bisbee",
         "epithermal_telluride",
@@ -394,6 +1402,29 @@
       "hosts": {
         "quartz": 3
       },
+      "sightings": [
+        {
+          "host": "quartz",
+          "scenario": "radioactive_pegmatite",
+          "seed": 42,
+          "step": 20,
+          "position": "on quartz #2"
+        },
+        {
+          "host": "quartz",
+          "scenario": "schneeberg",
+          "seed": 42,
+          "step": 29,
+          "position": "on quartz #2"
+        },
+        {
+          "host": "quartz",
+          "scenario": "shigar_pegmatite",
+          "seed": 42,
+          "step": 49,
+          "position": "on quartz #1"
+        }
+      ],
       "scenarios": [
         "ouro_preto",
         "radioactive_pegmatite",
@@ -413,6 +1444,85 @@
         "topaz": 2,
         "quartz": 1
       },
+      "sightings": [
+        {
+          "host": "tourmaline",
+          "scenario": "gem_pegmatite",
+          "seed": 42,
+          "step": 6,
+          "position": "on tourmaline #5"
+        },
+        {
+          "host": "tourmaline",
+          "scenario": "gem_pegmatite",
+          "seed": 42,
+          "step": 14,
+          "position": "on tourmaline #5"
+        },
+        {
+          "host": "tourmaline",
+          "scenario": "gem_pegmatite",
+          "seed": 42,
+          "step": 62,
+          "position": "on tourmaline #5"
+        },
+        {
+          "host": "tourmaline",
+          "scenario": "radioactive_pegmatite",
+          "seed": 42,
+          "step": 6,
+          "position": "on tourmaline #7"
+        },
+        {
+          "host": "feldspar",
+          "scenario": "radioactive_pegmatite",
+          "seed": 42,
+          "step": 8,
+          "position": "on feldspar #3"
+        },
+        {
+          "host": "tourmaline",
+          "scenario": "radioactive_pegmatite",
+          "seed": 42,
+          "step": 14,
+          "position": "on tourmaline #7"
+        },
+        {
+          "host": "tourmaline",
+          "scenario": "radioactive_pegmatite",
+          "seed": 42,
+          "step": 18,
+          "position": "on tourmaline #7"
+        },
+        {
+          "host": "quartz",
+          "scenario": "schneeberg",
+          "seed": 42,
+          "step": 6,
+          "position": "on quartz #2"
+        },
+        {
+          "host": "feldspar",
+          "scenario": "schneeberg",
+          "seed": 42,
+          "step": 8,
+          "position": "on feldspar #3"
+        },
+        {
+          "host": "topaz",
+          "scenario": "schneeberg",
+          "seed": 42,
+          "step": 14,
+          "position": "on topaz #18"
+        },
+        {
+          "host": "topaz",
+          "scenario": "schneeberg",
+          "seed": 42,
+          "step": 18,
+          "position": "on topaz #18"
+        }
+      ],
       "scenarios": [
         "gem_pegmatite",
         "radioactive_pegmatite",
@@ -428,6 +1538,29 @@
       "hosts": {
         "pyrite": 3
       },
+      "sightings": [
+        {
+          "host": "pyrite",
+          "scenario": "sunnyside_american_tunnel",
+          "seed": 42,
+          "step": 4,
+          "position": "on pyrite #2"
+        },
+        {
+          "host": "pyrite",
+          "scenario": "sunnyside_american_tunnel",
+          "seed": 42,
+          "step": 6,
+          "position": "on pyrite #2"
+        },
+        {
+          "host": "pyrite",
+          "scenario": "sunnyside_american_tunnel",
+          "seed": 42,
+          "step": 10,
+          "position": "on pyrite #2"
+        }
+      ],
       "scenarios": [
         "porphyry",
         "schneeberg",
@@ -443,6 +1576,43 @@
       "hosts": {
         "cerussite": 5
       },
+      "sightings": [
+        {
+          "host": "cerussite",
+          "scenario": "roughten_gill",
+          "seed": 42,
+          "step": 100,
+          "position": "on cerussite #28"
+        },
+        {
+          "host": "cerussite",
+          "scenario": "roughten_gill",
+          "seed": 42,
+          "step": 101,
+          "position": "on cerussite #28"
+        },
+        {
+          "host": "cerussite",
+          "scenario": "roughten_gill",
+          "seed": 42,
+          "step": 109,
+          "position": "on cerussite #28"
+        },
+        {
+          "host": "cerussite",
+          "scenario": "supergene_oxidation",
+          "seed": 42,
+          "step": 118,
+          "position": "on cerussite #5"
+        },
+        {
+          "host": "cerussite",
+          "scenario": "supergene_oxidation",
+          "seed": 42,
+          "step": 123,
+          "position": "on cerussite #5"
+        }
+      ],
       "scenarios": [
         "roughten_gill",
         "supergene_oxidation"
@@ -457,6 +1627,15 @@
       "hosts": {
         "hematite": 1
       },
+      "sightings": [
+        {
+          "host": "hematite",
+          "scenario": "deccan_zeolite",
+          "seed": 42,
+          "step": 160,
+          "position": "on hematite #4"
+        }
+      ],
       "scenarios": [
         "asbestos_hills_crack_seal",
         "asbestos_hills_surficial_alteration",
@@ -476,6 +1655,7 @@
       "onCrystal": 0,
       "escapes": true,
       "hosts": {},
+      "sightings": [],
       "scenarios": [
         "bisbee",
         "supergene_oxidation"
@@ -491,6 +1671,50 @@
         "feldspar": 5,
         "calcite": 1
       },
+      "sightings": [
+        {
+          "host": "feldspar",
+          "scenario": "grimsel_alpine_cleft",
+          "seed": 42,
+          "step": 17,
+          "position": "with adularia (feldspar #1)"
+        },
+        {
+          "host": "feldspar",
+          "scenario": "grimsel_alpine_cleft",
+          "seed": 42,
+          "step": 19,
+          "position": "with adularia (feldspar #1)"
+        },
+        {
+          "host": "calcite",
+          "scenario": "jeffrey_mine",
+          "seed": 42,
+          "step": 170,
+          "position": "with calcite #1"
+        },
+        {
+          "host": "feldspar",
+          "scenario": "porphyry",
+          "seed": 42,
+          "step": 18,
+          "position": "with adularia (feldspar #1)"
+        },
+        {
+          "host": "feldspar",
+          "scenario": "porphyry",
+          "seed": 42,
+          "step": 24,
+          "position": "with adularia (feldspar #1)"
+        },
+        {
+          "host": "feldspar",
+          "scenario": "tormiq_alpine_cleft",
+          "seed": 42,
+          "step": 17,
+          "position": "with adularia (feldspar #1)"
+        }
+      ],
       "scenarios": [
         "grimsel_alpine_cleft",
         "jeffrey_mine",
@@ -508,6 +1732,57 @@
         "feldspar": 5,
         "quartz": 2
       },
+      "sightings": [
+        {
+          "host": "quartz",
+          "scenario": "grimsel_alpine_cleft",
+          "seed": 42,
+          "step": 54,
+          "position": "perched on quartz #11"
+        },
+        {
+          "host": "quartz",
+          "scenario": "grimsel_alpine_cleft",
+          "seed": 42,
+          "step": 73,
+          "position": "perched on quartz #11"
+        },
+        {
+          "host": "feldspar",
+          "scenario": "grimsel_alpine_cleft",
+          "seed": 42,
+          "step": 80,
+          "position": "with adularia (feldspar #1)"
+        },
+        {
+          "host": "feldspar",
+          "scenario": "tormiq_alpine_cleft",
+          "seed": 42,
+          "step": 3,
+          "position": "with adularia (feldspar #1)"
+        },
+        {
+          "host": "feldspar",
+          "scenario": "tormiq_alpine_cleft",
+          "seed": 42,
+          "step": 4,
+          "position": "with adularia (feldspar #1)"
+        },
+        {
+          "host": "feldspar",
+          "scenario": "tormiq_alpine_cleft",
+          "seed": 42,
+          "step": 7,
+          "position": "with adularia (feldspar #1)"
+        },
+        {
+          "host": "feldspar",
+          "scenario": "tormiq_alpine_cleft",
+          "seed": 42,
+          "step": 14,
+          "position": "with adularia (feldspar #1)"
+        }
+      ],
       "scenarios": [
         "grimsel_alpine_cleft",
         "tormiq_alpine_cleft"
@@ -522,6 +1797,43 @@
       "hosts": {
         "sphalerite": 5
       },
+      "sightings": [
+        {
+          "host": "sphalerite",
+          "scenario": "mvt",
+          "seed": 42,
+          "step": 22,
+          "position": "coating sphalerite #3 (Cd liberation source)"
+        },
+        {
+          "host": "sphalerite",
+          "scenario": "mvt",
+          "seed": 42,
+          "step": 30,
+          "position": "coating sphalerite #3 (Cd liberation source)"
+        },
+        {
+          "host": "sphalerite",
+          "scenario": "reactivated_fluorite_vein",
+          "seed": 42,
+          "step": 22,
+          "position": "coating sphalerite #5 (Cd liberation source)"
+        },
+        {
+          "host": "sphalerite",
+          "scenario": "reactivated_fluorite_vein",
+          "seed": 42,
+          "step": 30,
+          "position": "coating sphalerite #5 (Cd liberation source)"
+        },
+        {
+          "host": "sphalerite",
+          "scenario": "reactivated_fluorite_vein",
+          "seed": 42,
+          "step": 54,
+          "position": "coating sphalerite #5 (Cd liberation source)"
+        }
+      ],
       "scenarios": [
         "mvt",
         "reactivated_fluorite_vein"
@@ -534,6 +1846,7 @@
       "onCrystal": 0,
       "escapes": true,
       "hosts": {},
+      "sightings": [],
       "scenarios": [
         "sabkha_dolomitization"
       ]
@@ -547,6 +1860,15 @@
       "hosts": {
         "sphalerite": 1
       },
+      "sightings": [
+        {
+          "host": "sphalerite",
+          "scenario": "reactive_wall",
+          "seed": 42,
+          "step": 41,
+          "position": "on sphalerite #2"
+        }
+      ],
       "scenarios": [
         "bisbee",
         "elmwood",
@@ -568,6 +1890,43 @@
       "hosts": {
         "chalcocite": 5
       },
+      "sightings": [
+        {
+          "host": "chalcocite",
+          "scenario": "bisbee",
+          "seed": 42,
+          "step": 65,
+          "position": "on chalcocite #17"
+        },
+        {
+          "host": "chalcocite",
+          "scenario": "bisbee",
+          "seed": 42,
+          "step": 66,
+          "position": "on chalcocite #17"
+        },
+        {
+          "host": "chalcocite",
+          "scenario": "bisbee",
+          "seed": 42,
+          "step": 78,
+          "position": "on chalcocite #17"
+        },
+        {
+          "host": "chalcocite",
+          "scenario": "supergene_oxidation",
+          "seed": 42,
+          "step": 65,
+          "position": "on chalcocite #56"
+        },
+        {
+          "host": "chalcocite",
+          "scenario": "supergene_oxidation",
+          "seed": 42,
+          "step": 66,
+          "position": "on chalcocite #56"
+        }
+      ],
       "scenarios": [
         "bisbee",
         "supergene_oxidation"
@@ -584,6 +1943,43 @@
         "chalcocite": 1,
         "bornite": 1
       },
+      "sightings": [
+        {
+          "host": "pyrite",
+          "scenario": "bisbee",
+          "seed": 42,
+          "step": 120,
+          "position": "on pyrite #3"
+        },
+        {
+          "host": "chalcocite",
+          "scenario": "bisbee",
+          "seed": 42,
+          "step": 126,
+          "position": "on chalcocite #17"
+        },
+        {
+          "host": "bornite",
+          "scenario": "bisbee",
+          "seed": 42,
+          "step": 301,
+          "position": "on bornite #49"
+        },
+        {
+          "host": "pyrite",
+          "scenario": "sunnyside_american_tunnel",
+          "seed": 42,
+          "step": 32,
+          "position": "on pyrite #2"
+        },
+        {
+          "host": "pyrite",
+          "scenario": "sunnyside_american_tunnel",
+          "seed": 42,
+          "step": 45,
+          "position": "on pyrite #2"
+        }
+      ],
       "scenarios": [
         "bisbee",
         "sunnyside_american_tunnel"
@@ -598,6 +1994,29 @@
       "hosts": {
         "cuprite": 3
       },
+      "sightings": [
+        {
+          "host": "cuprite",
+          "scenario": "bisbee",
+          "seed": 42,
+          "step": 180,
+          "position": "on cuprite #23"
+        },
+        {
+          "host": "cuprite",
+          "scenario": "bisbee",
+          "seed": 42,
+          "step": 185,
+          "position": "on cuprite #23"
+        },
+        {
+          "host": "cuprite",
+          "scenario": "bisbee",
+          "seed": 42,
+          "step": 205,
+          "position": "on cuprite #23"
+        }
+      ],
       "scenarios": [
         "bisbee",
         "roughten_gill",
@@ -613,6 +2032,29 @@
       "hosts": {
         "galena": 3
       },
+      "sightings": [
+        {
+          "host": "galena",
+          "scenario": "porphyry",
+          "seed": 42,
+          "step": 85,
+          "position": "on galena #22"
+        },
+        {
+          "host": "galena",
+          "scenario": "porphyry",
+          "seed": 42,
+          "step": 88,
+          "position": "on galena #22"
+        },
+        {
+          "host": "galena",
+          "scenario": "roughten_gill",
+          "seed": 42,
+          "step": 60,
+          "position": "on galena #7"
+        }
+      ],
       "scenarios": [
         "porphyry",
         "roughten_gill",
@@ -628,6 +2070,29 @@
       "hosts": {
         "molybdenite": 3
       },
+      "sightings": [
+        {
+          "host": "molybdenite",
+          "scenario": "porphyry",
+          "seed": 42,
+          "step": 88,
+          "position": "on molybdenite #25"
+        },
+        {
+          "host": "molybdenite",
+          "scenario": "porphyry",
+          "seed": 42,
+          "step": 102,
+          "position": "on molybdenite #25"
+        },
+        {
+          "host": "molybdenite",
+          "scenario": "porphyry",
+          "seed": 42,
+          "step": 116,
+          "position": "on molybdenite #25"
+        }
+      ],
       "scenarios": [
         "porphyry",
         "supergene_oxidation"
@@ -643,6 +2108,22 @@
         "selenite": 1,
         "celestine": 1
       },
+      "sightings": [
+        {
+          "host": "selenite",
+          "scenario": "sicily_solfifera",
+          "seed": 42,
+          "step": 16,
+          "position": "on selenite #3"
+        },
+        {
+          "host": "celestine",
+          "scenario": "sicily_solfifera",
+          "seed": 42,
+          "step": 28,
+          "position": "on celestine #2"
+        }
+      ],
       "scenarios": [
         "sicily_solfifera",
         "sulphur_bank"
@@ -655,6 +2136,7 @@
       "onCrystal": 0,
       "escapes": true,
       "hosts": {},
+      "sightings": [],
       "scenarios": [
         "supergene_oxidation"
       ]
@@ -666,6 +2148,7 @@
       "onCrystal": 0,
       "escapes": true,
       "hosts": {},
+      "sightings": [],
       "scenarios": [
         "elmwood",
         "mvt",
@@ -685,6 +2168,36 @@
       "hosts": {
         "pyromorphite": 4
       },
+      "sightings": [
+        {
+          "host": "pyromorphite",
+          "scenario": "roughten_gill",
+          "seed": 42,
+          "step": 215,
+          "position": "encrusting pyromorphite #29 (cobalt-blue botryoidal overgrowth; green parent remains active)"
+        },
+        {
+          "host": "pyromorphite",
+          "scenario": "roughten_gill",
+          "seed": 42,
+          "step": 221,
+          "position": "encrusting pyromorphite #29 (cobalt-blue botryoidal overgrowth; green parent remains active)"
+        },
+        {
+          "host": "pyromorphite",
+          "scenario": "supergene_oxidation",
+          "seed": 42,
+          "step": 115,
+          "position": "encrusting pyromorphite #80 (cobalt-blue botryoidal overgrowth; green parent remains active)"
+        },
+        {
+          "host": "pyromorphite",
+          "scenario": "supergene_oxidation",
+          "seed": 42,
+          "step": 121,
+          "position": "encrusting pyromorphite #80 (cobalt-blue botryoidal overgrowth; green parent remains active)"
+        }
+      ],
       "scenarios": [
         "radioactive_pegmatite",
         "roughten_gill",
@@ -698,6 +2211,7 @@
       "onCrystal": 0,
       "escapes": true,
       "hosts": {},
+      "sightings": [],
       "scenarios": [
         "roughten_gill",
         "supergene_oxidation"
@@ -710,6 +2224,7 @@
       "onCrystal": 0,
       "escapes": true,
       "hosts": {},
+      "sightings": [],
       "scenarios": [
         "roughten_gill",
         "supergene_oxidation"
@@ -722,6 +2237,7 @@
       "onCrystal": 0,
       "escapes": true,
       "hosts": {},
+      "sightings": [],
       "scenarios": [
         "schneeberg",
         "wittichen"
@@ -734,6 +2250,7 @@
       "onCrystal": 0,
       "escapes": true,
       "hosts": {},
+      "sightings": [],
       "scenarios": [
         "searles_lake"
       ]
@@ -747,6 +2264,15 @@
       "hosts": {
         "pyrite": 1
       },
+      "sightings": [
+        {
+          "host": "pyrite",
+          "scenario": "sunnyside_american_tunnel",
+          "seed": 42,
+          "step": 7,
+          "position": "on pyrite #2"
+        }
+      ],
       "scenarios": [
         "asbestos_hills_crack_seal",
         "asbestos_hills_surficial_alteration",
@@ -764,6 +2290,7 @@
       "onCrystal": 0,
       "escapes": true,
       "hosts": {},
+      "sightings": [],
       "scenarios": [
         "bisbee",
         "schneeberg"
@@ -778,6 +2305,36 @@
       "hosts": {
         "galena": 4
       },
+      "sightings": [
+        {
+          "host": "galena",
+          "scenario": "bisbee",
+          "seed": 42,
+          "step": 288,
+          "position": "on galena #15"
+        },
+        {
+          "host": "galena",
+          "scenario": "roughten_gill",
+          "seed": 42,
+          "step": 180,
+          "position": "on galena #7"
+        },
+        {
+          "host": "galena",
+          "scenario": "roughten_gill",
+          "seed": 42,
+          "step": 193,
+          "position": "on galena #7"
+        },
+        {
+          "host": "galena",
+          "scenario": "roughten_gill",
+          "seed": 42,
+          "step": 196,
+          "position": "on galena #7"
+        }
+      ],
       "scenarios": [
         "bisbee",
         "roughten_gill",
@@ -794,6 +2351,29 @@
         "diopside": 2,
         "grossular": 1
       },
+      "sightings": [
+        {
+          "host": "diopside",
+          "scenario": "jeffrey_mine",
+          "seed": 42,
+          "step": 25,
+          "position": "with diopside #5"
+        },
+        {
+          "host": "diopside",
+          "scenario": "jeffrey_mine",
+          "seed": 42,
+          "step": 26,
+          "position": "with diopside #5"
+        },
+        {
+          "host": "grossular",
+          "scenario": "jeffrey_mine",
+          "seed": 42,
+          "step": 38,
+          "position": "with grossular #11 (greenschist-facies association)"
+        }
+      ],
       "scenarios": [
         "jeffrey_mine",
         "tormiq_alpine_cleft"
@@ -808,6 +2388,15 @@
       "hosts": {
         "skutterudite": 1
       },
+      "sightings": [
+        {
+          "host": "skutterudite",
+          "scenario": "wittichen",
+          "seed": 42,
+          "step": 171,
+          "position": "on weathering skutterudite #2"
+        }
+      ],
       "scenarios": [
         "sabkha_dolomitization",
         "tutorial_travertine",
@@ -822,6 +2411,7 @@
       "onCrystal": 0,
       "escapes": true,
       "hosts": {},
+      "sightings": [],
       "scenarios": [
         "schneeberg",
         "wittichen"
@@ -837,6 +2427,22 @@
         "nickeline": 1,
         "annabergite": 1
       },
+      "sightings": [
+        {
+          "host": "nickeline",
+          "scenario": "schneeberg",
+          "seed": 42,
+          "step": 149,
+          "position": "on weathering nickeline #29"
+        },
+        {
+          "host": "annabergite",
+          "scenario": "schneeberg",
+          "seed": 42,
+          "step": 150,
+          "position": "alongside annabergite #65"
+        }
+      ],
       "scenarios": [
         "schneeberg",
         "wittichen"
@@ -851,6 +2457,22 @@
       "hosts": {
         "magnetite": 2
       },
+      "sightings": [
+        {
+          "host": "magnetite",
+          "scenario": "asbestos_hills_crack_seal",
+          "seed": 42,
+          "step": 5,
+          "position": "with magnetite #4 (BIF Fe-amphibole assemblage)"
+        },
+        {
+          "host": "magnetite",
+          "scenario": "asbestos_hills_surficial_alteration",
+          "seed": 42,
+          "step": 5,
+          "position": "with magnetite #4 (BIF Fe-amphibole assemblage)"
+        }
+      ],
       "scenarios": [
         "asbestos_hills_crack_seal",
         "asbestos_hills_surficial_alteration"
@@ -865,6 +2487,36 @@
       "hosts": {
         "magnetite": 4
       },
+      "sightings": [
+        {
+          "host": "magnetite",
+          "scenario": "asbestos_hills_crack_seal",
+          "seed": 42,
+          "step": 6,
+          "position": "with magnetite #4 (BIF Fe-amphibole assemblage)"
+        },
+        {
+          "host": "magnetite",
+          "scenario": "asbestos_hills_crack_seal",
+          "seed": 42,
+          "step": 7,
+          "position": "with magnetite #4 (BIF Fe-amphibole assemblage)"
+        },
+        {
+          "host": "magnetite",
+          "scenario": "asbestos_hills_surficial_alteration",
+          "seed": 42,
+          "step": 6,
+          "position": "with magnetite #4 (BIF Fe-amphibole assemblage)"
+        },
+        {
+          "host": "magnetite",
+          "scenario": "asbestos_hills_surficial_alteration",
+          "seed": 42,
+          "step": 7,
+          "position": "with magnetite #4 (BIF Fe-amphibole assemblage)"
+        }
+      ],
       "scenarios": [
         "asbestos_hills_crack_seal",
         "asbestos_hills_surficial_alteration"
@@ -879,6 +2531,50 @@
       "hosts": {
         "crocidolite": 6
       },
+      "sightings": [
+        {
+          "host": "crocidolite",
+          "scenario": "asbestos_hills_crack_seal",
+          "seed": 42,
+          "step": 2,
+          "position": "synchronous with crocidolite #2 (model=antitaxial-crack-seal)"
+        },
+        {
+          "host": "crocidolite",
+          "scenario": "asbestos_hills_crack_seal",
+          "seed": 42,
+          "step": 11,
+          "position": "synchronous with crocidolite #2 (model=antitaxial-crack-seal)"
+        },
+        {
+          "host": "crocidolite",
+          "scenario": "asbestos_hills_crack_seal",
+          "seed": 42,
+          "step": 12,
+          "position": "synchronous with crocidolite #2 (model=antitaxial-crack-seal)"
+        },
+        {
+          "host": "crocidolite",
+          "scenario": "asbestos_hills_surficial_alteration",
+          "seed": 42,
+          "step": 59,
+          "position": "after accepted oxidative alteration of crocidolite #2 (model=surficial-alteration)"
+        },
+        {
+          "host": "crocidolite",
+          "scenario": "asbestos_hills_surficial_alteration",
+          "seed": 42,
+          "step": 61,
+          "position": "after accepted oxidative alteration of crocidolite #2 (model=surficial-alteration)"
+        },
+        {
+          "host": "crocidolite",
+          "scenario": "asbestos_hills_surficial_alteration",
+          "seed": 42,
+          "step": 71,
+          "position": "after accepted oxidative alteration of crocidolite #2 (model=surficial-alteration)"
+        }
+      ],
       "scenarios": [
         "asbestos_hills_crack_seal",
         "asbestos_hills_surficial_alteration"
@@ -893,6 +2589,29 @@
       "hosts": {
         "quartz": 3
       },
+      "sightings": [
+        {
+          "host": "quartz",
+          "scenario": "asbestos_hills_crack_seal",
+          "seed": 42,
+          "step": 58,
+          "position": "on quartz #12"
+        },
+        {
+          "host": "quartz",
+          "scenario": "asbestos_hills_surficial_alteration",
+          "seed": 42,
+          "step": 58,
+          "position": "on quartz #9"
+        },
+        {
+          "host": "quartz",
+          "scenario": "grimsel_alpine_cleft",
+          "seed": 42,
+          "step": 90,
+          "position": "on quartz #11"
+        }
+      ],
       "scenarios": [
         "asbestos_hills_crack_seal",
         "asbestos_hills_surficial_alteration",
@@ -911,6 +2630,22 @@
       "hosts": {
         "uraninite": 2
       },
+      "sightings": [
+        {
+          "host": "uraninite",
+          "scenario": "schneeberg",
+          "seed": 42,
+          "step": 106,
+          "position": "weathering crust on uraninite #7"
+        },
+        {
+          "host": "uraninite",
+          "scenario": "schneeberg",
+          "seed": 42,
+          "step": 107,
+          "position": "weathering crust on uraninite #7"
+        }
+      ],
       "scenarios": [
         "colorado_plateau",
         "schneeberg"
@@ -925,6 +2660,36 @@
       "hosts": {
         "quartz": 4
       },
+      "sightings": [
+        {
+          "host": "quartz",
+          "scenario": "gem_pegmatite",
+          "seed": 42,
+          "step": 1,
+          "position": "on quartz #1"
+        },
+        {
+          "host": "quartz",
+          "scenario": "radioactive_pegmatite",
+          "seed": 42,
+          "step": 1,
+          "position": "on quartz #2"
+        },
+        {
+          "host": "quartz",
+          "scenario": "radioactive_pegmatite",
+          "seed": 42,
+          "step": 24,
+          "position": "on quartz #2"
+        },
+        {
+          "host": "quartz",
+          "scenario": "schneeberg",
+          "seed": 42,
+          "step": 1,
+          "position": "on quartz #2"
+        }
+      ],
       "scenarios": [
         "gem_pegmatite",
         "radioactive_pegmatite",
@@ -941,6 +2706,43 @@
         "spodumene": 4,
         "quartz": 1
       },
+      "sightings": [
+        {
+          "host": "spodumene",
+          "scenario": "gem_pegmatite",
+          "seed": 42,
+          "step": 1,
+          "position": "on spodumene #4"
+        },
+        {
+          "host": "spodumene",
+          "scenario": "gem_pegmatite",
+          "seed": 42,
+          "step": 23,
+          "position": "on spodumene #4"
+        },
+        {
+          "host": "spodumene",
+          "scenario": "gem_pegmatite",
+          "seed": 42,
+          "step": 25,
+          "position": "on spodumene #4"
+        },
+        {
+          "host": "spodumene",
+          "scenario": "radioactive_pegmatite",
+          "seed": 42,
+          "step": 1,
+          "position": "on spodumene #5"
+        },
+        {
+          "host": "quartz",
+          "scenario": "radioactive_pegmatite",
+          "seed": 42,
+          "step": 24,
+          "position": "on quartz #2"
+        }
+      ],
       "scenarios": [
         "gem_pegmatite",
         "radioactive_pegmatite"
@@ -953,6 +2755,7 @@
       "onCrystal": 0,
       "escapes": true,
       "hosts": {},
+      "sightings": [],
       "scenarios": [
         "grimsel_alpine_cleft"
       ]
@@ -964,6 +2767,7 @@
       "onCrystal": 0,
       "escapes": true,
       "hosts": {},
+      "sightings": [],
       "scenarios": [
         "radioactive_pegmatite",
         "schneeberg"
@@ -978,6 +2782,15 @@
       "hosts": {
         "native_silver": 1
       },
+      "sightings": [
+        {
+          "host": "native_silver",
+          "scenario": "wittichen",
+          "seed": 42,
+          "step": 134,
+          "position": "on native_silver #13"
+        }
+      ],
       "scenarios": [
         "schneeberg",
         "sunnyside_american_tunnel",
@@ -991,6 +2804,7 @@
       "onCrystal": 0,
       "escapes": true,
       "hosts": {},
+      "sightings": [],
       "scenarios": [
         "sulphur_bank"
       ]
@@ -1002,6 +2816,7 @@
       "onCrystal": 0,
       "escapes": true,
       "hosts": {},
+      "sightings": [],
       "scenarios": [
         "sulphur_bank"
       ]
@@ -1015,6 +2830,29 @@
       "hosts": {
         "realgar": 3
       },
+      "sightings": [
+        {
+          "host": "realgar",
+          "scenario": "sulphur_bank",
+          "seed": 42,
+          "step": 1,
+          "position": "on realgar #4"
+        },
+        {
+          "host": "realgar",
+          "scenario": "sulphur_bank",
+          "seed": 42,
+          "step": 13,
+          "position": "on realgar #4"
+        },
+        {
+          "host": "realgar",
+          "scenario": "sulphur_bank",
+          "seed": 42,
+          "step": 32,
+          "position": "on realgar #4"
+        }
+      ],
       "scenarios": [
         "sulphur_bank"
       ]
@@ -1028,6 +2866,29 @@
       "hosts": {
         "goethite": 3
       },
+      "sightings": [
+        {
+          "host": "goethite",
+          "scenario": "supergene_oxidation",
+          "seed": 42,
+          "step": 134,
+          "position": "on goethite #6"
+        },
+        {
+          "host": "goethite",
+          "scenario": "supergene_oxidation",
+          "seed": 42,
+          "step": 143,
+          "position": "on goethite #6"
+        },
+        {
+          "host": "goethite",
+          "scenario": "supergene_oxidation",
+          "seed": 42,
+          "step": 157,
+          "position": "on goethite #6"
+        }
+      ],
       "scenarios": [
         "supergene_oxidation"
       ]
@@ -1041,6 +2902,15 @@
       "hosts": {
         "chalcopyrite": 1
       },
+      "sightings": [
+        {
+          "host": "chalcopyrite",
+          "scenario": "porphyry",
+          "seed": 42,
+          "step": 25,
+          "position": "on chalcopyrite #19"
+        }
+      ],
       "scenarios": [
         "bisbee",
         "porphyry",
@@ -1056,6 +2926,7 @@
       "onCrystal": 0,
       "escapes": true,
       "hosts": {},
+      "sightings": [],
       "scenarios": [
         "chiastolite_hornfels"
       ]
@@ -1067,6 +2938,7 @@
       "onCrystal": 0,
       "escapes": true,
       "hosts": {},
+      "sightings": [],
       "scenarios": [
         "colorado_plateau"
       ]
@@ -1081,6 +2953,22 @@
         "calcite": 1,
         "grossular": 1
       },
+      "sightings": [
+        {
+          "host": "calcite",
+          "scenario": "deccan_zeolite",
+          "seed": 42,
+          "step": 114,
+          "position": "on calcite #7"
+        },
+        {
+          "host": "grossular",
+          "scenario": "jeffrey_mine",
+          "seed": 42,
+          "step": 144,
+          "position": "radiating spray on grossular #11"
+        }
+      ],
       "scenarios": [
         "deccan_zeolite",
         "jeffrey_mine"
@@ -1097,6 +2985,36 @@
         "calcite": 1,
         "diopside": 1
       },
+      "sightings": [
+        {
+          "host": "calcite",
+          "scenario": "jeffrey_mine",
+          "seed": 42,
+          "step": 41,
+          "position": "on calcite #1"
+        },
+        {
+          "host": "grossular",
+          "scenario": "jeffrey_mine",
+          "seed": 42,
+          "step": 65,
+          "position": "with grossular #11"
+        },
+        {
+          "host": "grossular",
+          "scenario": "jeffrey_mine",
+          "seed": 42,
+          "step": 71,
+          "position": "with grossular #11"
+        },
+        {
+          "host": "diopside",
+          "scenario": "jeffrey_mine",
+          "seed": 42,
+          "step": 92,
+          "position": "with diopside #5"
+        }
+      ],
       "scenarios": [
         "deccan_zeolite",
         "jeffrey_mine"
@@ -1109,6 +3027,7 @@
       "onCrystal": 0,
       "escapes": true,
       "hosts": {},
+      "sightings": [],
       "scenarios": [
         "elmwood",
         "grimsel_alpine_cleft",
@@ -1124,6 +3043,7 @@
       "onCrystal": 0,
       "escapes": true,
       "hosts": {},
+      "sightings": [],
       "scenarios": [
         "epithermal_telluride"
       ]
@@ -1135,6 +3055,7 @@
       "onCrystal": 0,
       "escapes": true,
       "hosts": {},
+      "sightings": [],
       "scenarios": [
         "great_salt_plains",
         "naica_geothermal",
@@ -1149,6 +3070,7 @@
       "onCrystal": 0,
       "escapes": true,
       "hosts": {},
+      "sightings": [],
       "scenarios": [
         "jeffrey_mine",
         "pulse",
@@ -1167,6 +3089,36 @@
         "feldspar": 3,
         "quartz": 1
       },
+      "sightings": [
+        {
+          "host": "feldspar",
+          "scenario": "radioactive_pegmatite",
+          "seed": 42,
+          "step": 1,
+          "position": "on feldspar #3"
+        },
+        {
+          "host": "quartz",
+          "scenario": "radioactive_pegmatite",
+          "seed": 42,
+          "step": 14,
+          "position": "on quartz #2"
+        },
+        {
+          "host": "feldspar",
+          "scenario": "radioactive_pegmatite",
+          "seed": 42,
+          "step": 26,
+          "position": "on feldspar #3"
+        },
+        {
+          "host": "feldspar",
+          "scenario": "schneeberg",
+          "seed": 42,
+          "step": 1,
+          "position": "on feldspar #3"
+        }
+      ],
       "scenarios": [
         "radioactive_pegmatite",
         "schneeberg"
@@ -1182,6 +3134,36 @@
         "quartz": 2,
         "feldspar": 2
       },
+      "sightings": [
+        {
+          "host": "quartz",
+          "scenario": "shigar_pegmatite",
+          "seed": 42,
+          "step": 32,
+          "position": "on quartz #1"
+        },
+        {
+          "host": "feldspar",
+          "scenario": "shigar_pegmatite",
+          "seed": 42,
+          "step": 37,
+          "position": "on feldspar #2"
+        },
+        {
+          "host": "feldspar",
+          "scenario": "shigar_pegmatite",
+          "seed": 42,
+          "step": 38,
+          "position": "on feldspar #2"
+        },
+        {
+          "host": "quartz",
+          "scenario": "shigar_pegmatite",
+          "seed": 42,
+          "step": 44,
+          "position": "on quartz #1"
+        }
+      ],
       "scenarios": [
         "shigar_pegmatite"
       ]
@@ -1193,6 +3175,7 @@
       "onCrystal": 0,
       "escapes": true,
       "hosts": {},
+      "sightings": [],
       "scenarios": [
         "bisbee",
         "porphyry",
@@ -1209,6 +3192,36 @@
       "hosts": {
         "chalcopyrite": 4
       },
+      "sightings": [
+        {
+          "host": "chalcopyrite",
+          "scenario": "bisbee",
+          "seed": 42,
+          "step": 1,
+          "position": "on chalcopyrite #4"
+        },
+        {
+          "host": "chalcopyrite",
+          "scenario": "porphyry",
+          "seed": 42,
+          "step": 25,
+          "position": "on chalcopyrite #19"
+        },
+        {
+          "host": "chalcopyrite",
+          "scenario": "roughten_gill",
+          "seed": 42,
+          "step": 1,
+          "position": "on chalcopyrite #4"
+        },
+        {
+          "host": "chalcopyrite",
+          "scenario": "sunnyside_american_tunnel",
+          "seed": 42,
+          "step": 1,
+          "position": "on chalcopyrite #3"
+        }
+      ],
       "scenarios": [
         "bisbee",
         "porphyry",
@@ -1223,6 +3236,7 @@
       "onCrystal": 0,
       "escapes": true,
       "hosts": {},
+      "sightings": [],
       "scenarios": [
         "bisbee"
       ]
@@ -1236,6 +3250,22 @@
       "hosts": {
         "chalcopyrite": 2
       },
+      "sightings": [
+        {
+          "host": "chalcopyrite",
+          "scenario": "bisbee",
+          "seed": 42,
+          "step": 88,
+          "position": "on chalcopyrite #4"
+        },
+        {
+          "host": "chalcopyrite",
+          "scenario": "roughten_gill",
+          "seed": 42,
+          "step": 100,
+          "position": "on chalcopyrite #4"
+        }
+      ],
       "scenarios": [
         "bisbee",
         "porphyry",
@@ -1250,6 +3280,7 @@
       "onCrystal": 0,
       "escapes": true,
       "hosts": {},
+      "sightings": [],
       "scenarios": [
         "colorado_plateau"
       ]
@@ -1263,6 +3294,22 @@
       "hosts": {
         "quartz": 2
       },
+      "sightings": [
+        {
+          "host": "quartz",
+          "scenario": "deccan_zeolite",
+          "seed": 42,
+          "step": 100,
+          "position": "on the silica lining (quartz #6)"
+        },
+        {
+          "host": "quartz",
+          "scenario": "deccan_zeolite",
+          "seed": 42,
+          "step": 106,
+          "position": "on the silica lining (quartz #6)"
+        }
+      ],
       "scenarios": [
         "deccan_zeolite"
       ]
@@ -1277,6 +3324,36 @@
         "quartz": 2,
         "stilbite": 2
       },
+      "sightings": [
+        {
+          "host": "quartz",
+          "scenario": "deccan_zeolite",
+          "seed": 42,
+          "step": 90,
+          "position": "on the silica lining (quartz #6)"
+        },
+        {
+          "host": "stilbite",
+          "scenario": "deccan_zeolite",
+          "seed": 42,
+          "step": 91,
+          "position": "intergrown with stilbite #14"
+        },
+        {
+          "host": "quartz",
+          "scenario": "deccan_zeolite",
+          "seed": 42,
+          "step": 108,
+          "position": "on the silica lining (quartz #6)"
+        },
+        {
+          "host": "stilbite",
+          "scenario": "deccan_zeolite",
+          "seed": 42,
+          "step": 109,
+          "position": "intergrown with stilbite #14"
+        }
+      ],
       "scenarios": [
         "deccan_zeolite"
       ]
@@ -1290,6 +3367,22 @@
       "hosts": {
         "calaverite": 2
       },
+      "sightings": [
+        {
+          "host": "calaverite",
+          "scenario": "epithermal_telluride",
+          "seed": 42,
+          "step": 7,
+          "position": "intergrown with calaverite #8"
+        },
+        {
+          "host": "calaverite",
+          "scenario": "sunnyside_american_tunnel",
+          "seed": 42,
+          "step": 7,
+          "position": "intergrown with calaverite #12"
+        }
+      ],
       "scenarios": [
         "epithermal_telluride",
         "sunnyside_american_tunnel"
@@ -1302,6 +3395,7 @@
       "onCrystal": 0,
       "escapes": true,
       "hosts": {},
+      "sightings": [],
       "scenarios": [
         "epithermal_telluride",
         "sunnyside_american_tunnel"
@@ -1317,6 +3411,29 @@
         "grossular": 2,
         "diopside": 1
       },
+      "sightings": [
+        {
+          "host": "grossular",
+          "scenario": "jeffrey_mine",
+          "seed": 42,
+          "step": 27,
+          "position": "epitactic on grossular #11"
+        },
+        {
+          "host": "grossular",
+          "scenario": "jeffrey_mine",
+          "seed": 42,
+          "step": 28,
+          "position": "epitactic on grossular #11"
+        },
+        {
+          "host": "diopside",
+          "scenario": "jeffrey_mine",
+          "seed": 42,
+          "step": 30,
+          "position": "on diopside #5"
+        }
+      ],
       "scenarios": [
         "jeffrey_mine"
       ]
@@ -1330,6 +3447,22 @@
       "hosts": {
         "calcite": 2
       },
+      "sightings": [
+        {
+          "host": "calcite",
+          "scenario": "jeffrey_mine",
+          "seed": 42,
+          "step": 2,
+          "position": "on calcite #1"
+        },
+        {
+          "host": "calcite",
+          "scenario": "jeffrey_mine",
+          "seed": 42,
+          "step": 19,
+          "position": "on calcite #1"
+        }
+      ],
       "scenarios": [
         "jeffrey_mine"
       ]
@@ -1344,6 +3477,36 @@
         "diopside": 2,
         "wollastonite": 2
       },
+      "sightings": [
+        {
+          "host": "diopside",
+          "scenario": "jeffrey_mine",
+          "seed": 42,
+          "step": 25,
+          "position": "with diopside #5"
+        },
+        {
+          "host": "wollastonite",
+          "scenario": "jeffrey_mine",
+          "seed": 42,
+          "step": 60,
+          "position": "with wollastonite #22"
+        },
+        {
+          "host": "diopside",
+          "scenario": "jeffrey_mine",
+          "seed": 42,
+          "step": 61,
+          "position": "with diopside #5"
+        },
+        {
+          "host": "wollastonite",
+          "scenario": "jeffrey_mine",
+          "seed": 42,
+          "step": 74,
+          "position": "with wollastonite #22"
+        }
+      ],
       "scenarios": [
         "jeffrey_mine"
       ]
@@ -1355,6 +3518,7 @@
       "onCrystal": 0,
       "escapes": true,
       "hosts": {},
+      "sightings": [],
       "scenarios": [
         "porphyry"
       ]
@@ -1366,6 +3530,7 @@
       "onCrystal": 0,
       "escapes": true,
       "hosts": {},
+      "sightings": [],
       "scenarios": [
         "roughten_gill"
       ]
@@ -1379,6 +3544,15 @@
       "hosts": {
         "arsenopyrite": 1
       },
+      "sightings": [
+        {
+          "host": "arsenopyrite",
+          "scenario": "schneeberg",
+          "seed": 42,
+          "step": 29,
+          "position": "on arsenopyrite #12"
+        }
+      ],
       "scenarios": [
         "schneeberg"
       ]
@@ -1390,6 +3564,7 @@
       "onCrystal": 0,
       "escapes": true,
       "hosts": {},
+      "sightings": [],
       "scenarios": [
         "schneeberg",
         "wittichen"
@@ -1404,6 +3579,15 @@
       "hosts": {
         "torbernite": 1
       },
+      "sightings": [
+        {
+          "host": "torbernite",
+          "scenario": "schneeberg",
+          "seed": 42,
+          "step": 110,
+          "position": "adjacent to torbernite #59"
+        }
+      ],
       "scenarios": [
         "schneeberg"
       ]
@@ -1415,6 +3599,7 @@
       "onCrystal": 0,
       "escapes": true,
       "hosts": {},
+      "sightings": [],
       "scenarios": [
         "schneeberg"
       ]
@@ -1428,6 +3613,15 @@
       "hosts": {
         "zeunerite": 1
       },
+      "sightings": [
+        {
+          "host": "zeunerite",
+          "scenario": "schneeberg",
+          "seed": 42,
+          "step": 153,
+          "position": "adjacent to zeunerite #75"
+        }
+      ],
       "scenarios": [
         "schneeberg"
       ]
@@ -1441,6 +3635,22 @@
       "hosts": {
         "galena": 2
       },
+      "sightings": [
+        {
+          "host": "galena",
+          "scenario": "sunnyside_american_tunnel",
+          "seed": 42,
+          "step": 2,
+          "position": "on galena #6"
+        },
+        {
+          "host": "galena",
+          "scenario": "sunnyside_american_tunnel",
+          "seed": 42,
+          "step": 14,
+          "position": "on galena #6"
+        }
+      ],
       "scenarios": [
         "sunnyside_american_tunnel"
       ]
@@ -1455,6 +3665,22 @@
         "scorodite": 1,
         "malachite": 1
       },
+      "sightings": [
+        {
+          "host": "scorodite",
+          "scenario": "supergene_oxidation",
+          "seed": 42,
+          "step": 27,
+          "position": "on scorodite #19"
+        },
+        {
+          "host": "malachite",
+          "scenario": "supergene_oxidation",
+          "seed": 42,
+          "step": 32,
+          "position": "on malachite #4"
+        }
+      ],
       "scenarios": [
         "supergene_oxidation"
       ]
@@ -1466,6 +3692,7 @@
       "onCrystal": 0,
       "escapes": true,
       "hosts": {},
+      "sightings": [],
       "scenarios": [
         "supergene_oxidation"
       ]
@@ -1477,6 +3704,7 @@
       "onCrystal": 0,
       "escapes": true,
       "hosts": {},
+      "sightings": [],
       "scenarios": [
         "supergene_oxidation"
       ]
@@ -1490,6 +3718,22 @@
       "hosts": {
         "malachite": 2
       },
+      "sightings": [
+        {
+          "host": "malachite",
+          "scenario": "supergene_oxidation",
+          "seed": 42,
+          "step": 75,
+          "position": "on malachite #4"
+        },
+        {
+          "host": "malachite",
+          "scenario": "supergene_oxidation",
+          "seed": 42,
+          "step": 86,
+          "position": "on malachite #4"
+        }
+      ],
       "scenarios": [
         "supergene_oxidation"
       ]
@@ -1501,6 +3745,7 @@
       "onCrystal": 0,
       "escapes": true,
       "hosts": {},
+      "sightings": [],
       "scenarios": [
         "supergene_oxidation"
       ]
@@ -1512,6 +3757,7 @@
       "onCrystal": 0,
       "escapes": true,
       "hosts": {},
+      "sightings": [],
       "scenarios": [
         "supergene_oxidation"
       ]
@@ -1523,6 +3769,7 @@
       "onCrystal": 0,
       "escapes": true,
       "hosts": {},
+      "sightings": [],
       "scenarios": [
         "asbestos_hills_crack_seal",
         "asbestos_hills_surficial_alteration",
@@ -1536,6 +3783,7 @@
       "onCrystal": 0,
       "escapes": true,
       "hosts": {},
+      "sightings": [],
       "scenarios": [
         "bisbee",
         "reactive_wall",
@@ -1551,6 +3799,15 @@
       "hosts": {
         "chalcocite": 1
       },
+      "sightings": [
+        {
+          "host": "chalcocite",
+          "scenario": "bisbee",
+          "seed": 42,
+          "step": 74,
+          "position": "on chalcocite #17"
+        }
+      ],
       "scenarios": [
         "bisbee",
         "schneeberg",
@@ -1566,6 +3823,15 @@
       "hosts": {
         "chalcopyrite": 1
       },
+      "sightings": [
+        {
+          "host": "chalcopyrite",
+          "scenario": "bisbee",
+          "seed": 42,
+          "step": 98,
+          "position": "on chalcopyrite #4"
+        }
+      ],
       "scenarios": [
         "bisbee"
       ]
@@ -1577,6 +3843,7 @@
       "onCrystal": 0,
       "escapes": true,
       "hosts": {},
+      "sightings": [],
       "scenarios": [
         "epithermal_telluride"
       ]
@@ -1588,6 +3855,7 @@
       "onCrystal": 0,
       "escapes": true,
       "hosts": {},
+      "sightings": [],
       "scenarios": [
         "jeffrey_mine"
       ]
@@ -1601,6 +3869,22 @@
       "hosts": {
         "vesuvianite": 2
       },
+      "sightings": [
+        {
+          "host": "vesuvianite",
+          "scenario": "jeffrey_mine",
+          "seed": 42,
+          "step": 170,
+          "position": "with vesuvianite #4"
+        },
+        {
+          "host": "vesuvianite",
+          "scenario": "jeffrey_mine",
+          "seed": 42,
+          "step": 179,
+          "position": "with vesuvianite #4"
+        }
+      ],
       "scenarios": [
         "jeffrey_mine"
       ]
@@ -1614,6 +3898,22 @@
       "hosts": {
         "pyrite": 2
       },
+      "sightings": [
+        {
+          "host": "pyrite",
+          "scenario": "porphyry",
+          "seed": 42,
+          "step": 48,
+          "position": "on pyrite #18"
+        },
+        {
+          "host": "pyrite",
+          "scenario": "porphyry",
+          "seed": 42,
+          "step": 54,
+          "position": "on pyrite #18"
+        }
+      ],
       "scenarios": [
         "porphyry"
       ]
@@ -1625,6 +3925,7 @@
       "onCrystal": 0,
       "escapes": true,
       "hosts": {},
+      "sightings": [],
       "scenarios": [
         "roughten_gill"
       ]
@@ -1638,6 +3939,22 @@
       "hosts": {
         "smithsonite": 2
       },
+      "sightings": [
+        {
+          "host": "smithsonite",
+          "scenario": "roughten_gill",
+          "seed": 42,
+          "step": 181,
+          "position": "sheaves on smithsonite #33"
+        },
+        {
+          "host": "smithsonite",
+          "scenario": "roughten_gill",
+          "seed": 42,
+          "step": 182,
+          "position": "sheaves on smithsonite #33"
+        }
+      ],
       "scenarios": [
         "roughten_gill"
       ]
@@ -1651,6 +3968,15 @@
       "hosts": {
         "skutterudite": 1
       },
+      "sightings": [
+        {
+          "host": "skutterudite",
+          "scenario": "wittichen",
+          "seed": 42,
+          "step": 171,
+          "position": "on weathering skutterudite #2"
+        }
+      ],
       "scenarios": [
         "schneeberg",
         "supergene_oxidation",
@@ -1666,6 +3992,22 @@
       "hosts": {
         "erythrite": 2
       },
+      "sightings": [
+        {
+          "host": "erythrite",
+          "scenario": "schneeberg",
+          "seed": 42,
+          "step": 105,
+          "position": "alongside erythrite #64"
+        },
+        {
+          "host": "erythrite",
+          "scenario": "supergene_oxidation",
+          "seed": 42,
+          "step": 95,
+          "position": "alongside erythrite #73"
+        }
+      ],
       "scenarios": [
         "schneeberg",
         "supergene_oxidation",
@@ -1679,6 +4021,7 @@
       "onCrystal": 0,
       "escapes": true,
       "hosts": {},
+      "sightings": [],
       "scenarios": [
         "sulphur_bank"
       ]
@@ -1690,6 +4033,7 @@
       "onCrystal": 0,
       "escapes": true,
       "hosts": {},
+      "sightings": [],
       "scenarios": [
         "ultramafic_supergene"
       ]
@@ -1704,6 +4048,29 @@
         "native_arsenic": 2,
         "nickeline": 1
       },
+      "sightings": [
+        {
+          "host": "native_arsenic",
+          "scenario": "wittichen",
+          "seed": 42,
+          "step": 172,
+          "position": "on weathering native_arsenic #4"
+        },
+        {
+          "host": "nickeline",
+          "scenario": "wittichen",
+          "seed": 42,
+          "step": 178,
+          "position": "on weathering nickeline #3"
+        },
+        {
+          "host": "native_arsenic",
+          "scenario": "wittichen",
+          "seed": 42,
+          "step": 187,
+          "position": "on weathering native_arsenic #4"
+        }
+      ],
       "scenarios": [
         "wittichen"
       ]
@@ -1717,6 +4084,15 @@
       "hosts": {
         "hematite": 1
       },
+      "sightings": [
+        {
+          "host": "hematite",
+          "scenario": "deccan_zeolite",
+          "seed": 42,
+          "step": 110,
+          "position": "on hematite #4"
+        }
+      ],
       "scenarios": [
         "deccan_zeolite",
         "grimsel_alpine_cleft"
@@ -1729,6 +4105,7 @@
       "onCrystal": 0,
       "escapes": true,
       "hosts": {},
+      "sightings": [],
       "scenarios": [
         "porphyry"
       ]
@@ -1742,6 +4119,15 @@
       "hosts": {
         "sphalerite": 1
       },
+      "sightings": [
+        {
+          "host": "sphalerite",
+          "scenario": "roughten_gill",
+          "seed": 42,
+          "step": 107,
+          "position": "on sphalerite #2"
+        }
+      ],
       "scenarios": [
         "roughten_gill",
         "supergene_oxidation"
@@ -1754,6 +4140,7 @@
       "onCrystal": 0,
       "escapes": true,
       "hosts": {},
+      "sightings": [],
       "scenarios": [
         "schneeberg"
       ]
@@ -1765,6 +4152,7 @@
       "onCrystal": 0,
       "escapes": true,
       "hosts": {},
+      "sightings": [],
       "scenarios": [
         "searles_lake"
       ]
@@ -1779,6 +4167,22 @@
         "mimetite": 1,
         "malachite": 1
       },
+      "sightings": [
+        {
+          "host": "mimetite",
+          "scenario": "supergene_oxidation",
+          "seed": 42,
+          "step": 1,
+          "position": "on mimetite #2"
+        },
+        {
+          "host": "malachite",
+          "scenario": "supergene_oxidation",
+          "seed": 42,
+          "step": 2,
+          "position": "on malachite #4"
+        }
+      ],
       "scenarios": [
         "supergene_oxidation"
       ]
@@ -1790,6 +4194,7 @@
       "onCrystal": 0,
       "escapes": true,
       "hosts": {},
+      "sightings": [],
       "scenarios": [
         "supergene_oxidation"
       ]
@@ -1801,6 +4206,7 @@
       "onCrystal": 0,
       "escapes": true,
       "hosts": {},
+      "sightings": [],
       "scenarios": [
         "wittichen"
       ]
@@ -1814,6 +4220,15 @@
       "hosts": {
         "skutterudite": 1
       },
+      "sightings": [
+        {
+          "host": "skutterudite",
+          "scenario": "wittichen",
+          "seed": 42,
+          "step": 36,
+          "position": "mantling skutterudite #1"
+        }
+      ],
       "scenarios": [
         "wittichen"
       ]
@@ -1825,6 +4240,7 @@
       "onCrystal": 0,
       "escapes": true,
       "hosts": {},
+      "sightings": [],
       "scenarios": [
         "bisbee"
       ]
@@ -1838,6 +4254,15 @@
       "hosts": {
         "quartz": 1
       },
+      "sightings": [
+        {
+          "host": "quartz",
+          "scenario": "deccan_zeolite",
+          "seed": 42,
+          "step": 70,
+          "position": "on the silica lining (quartz #6)"
+        }
+      ],
       "scenarios": [
         "deccan_zeolite"
       ]
@@ -1849,6 +4274,7 @@
       "onCrystal": 0,
       "escapes": true,
       "hosts": {},
+      "sightings": [],
       "scenarios": [
         "deccan_zeolite"
       ]
@@ -1860,6 +4286,7 @@
       "onCrystal": 0,
       "escapes": true,
       "hosts": {},
+      "sightings": [],
       "scenarios": [
         "jeffrey_mine"
       ]
@@ -1871,6 +4298,7 @@
       "onCrystal": 0,
       "escapes": true,
       "hosts": {},
+      "sightings": [],
       "scenarios": [
         "jeffrey_mine"
       ]
@@ -1884,6 +4312,15 @@
       "hosts": {
         "grossular": 1
       },
+      "sightings": [
+        {
+          "host": "grossular",
+          "scenario": "jeffrey_mine",
+          "seed": 42,
+          "step": 50,
+          "position": "with grossular #11"
+        }
+      ],
       "scenarios": [
         "jeffrey_mine"
       ]
@@ -1895,6 +4332,7 @@
       "onCrystal": 0,
       "escapes": true,
       "hosts": {},
+      "sightings": [],
       "scenarios": [
         "marble_contact_metamorphism"
       ]
@@ -1906,6 +4344,7 @@
       "onCrystal": 0,
       "escapes": true,
       "hosts": {},
+      "sightings": [],
       "scenarios": [
         "schneeberg"
       ]
@@ -1917,6 +4356,7 @@
       "onCrystal": 0,
       "escapes": true,
       "hosts": {},
+      "sightings": [],
       "scenarios": [
         "supergene_oxidation"
       ]
@@ -1928,6 +4368,7 @@
       "onCrystal": 0,
       "escapes": true,
       "hosts": {},
+      "sightings": [],
       "scenarios": [
         "supergene_oxidation"
       ]
@@ -1939,6 +4380,7 @@
       "onCrystal": 0,
       "escapes": true,
       "hosts": {},
+      "sightings": [],
       "scenarios": [
         "wittichen"
       ]
