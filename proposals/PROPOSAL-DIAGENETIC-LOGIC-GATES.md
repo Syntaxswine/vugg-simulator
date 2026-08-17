@@ -31,6 +31,30 @@ species, two different families of number that must never be conflated:
 | **growth** | `T_range_C`, `T_optimum_C`, `MINERAL_GATES` (`js/18a-mineral-gates-types.ts`) | where a crystal can *form* |
 | **survival** | `pH_dissolution_below`, `pH_dissolution_above`, `acid_dissolution`, `thermal_decomp_C` | where a crystal is *destroyed* |
 
+### The trap inside the survival fields
+
+The two families are not enough on their own, because the survival fields are **not uniform in
+direction**. `acid_dissolution.pH_threshold` usually duplicates `pH_dissolution_below`, but for
+**jarosite, alunite, antlerite and scorodite** it carries an *upper* bound and
+`pH_dissolution_below` is absent entirely — those records say so themselves
+(*"Inverse of typical acid_dissolution semantics"*). Reading the threshold as a floor turns an
+acid-loving mineral into one destroyed by acid: asked about intact scorodite beside HF-etched
+quartz, the first cut of this solver answered *"scorodite dissolves below pH 5.5 ... therefore
+postdates it"* — a paragenesis manufactured out of the mineral's own home turf.
+
+So the solver reads bounds **only** from the two fields whose names state their own direction:
+
+```
+pH_dissolution_below  destroyed when pH falls BELOW this   (acid-side limit)
+pH_dissolution_above  destroyed when pH rises ABOVE this   (alkaline-side limit)
+```
+
+`acid_dissolution` is still read for the reagent it names (HF etching needs F) and its reaction
+text — never for a direction. A record carrying **both** bounds describes a stability window and a
+two-sided fork: brochantite is stable pH 3–7 and dissolves either way out, and which limb the fluid
+took is not recoverable from the fact of dissolution. Those events are marked `fork` and constrain
+nothing until an observer says which way it went.
+
 This matters more than anything else in the proposal. A solver built on `T_range_C` would be
 reading a growth window as a survival limit and would produce confident, wrong histories — a
 mineral that merely *grows* hot is not destroyed when cold. The survival fields exist, they are
@@ -42,8 +66,8 @@ Coverage over 184 species:
 |---|---|---|
 | fluid / pH | 128 | 70% |
 | thermal | 131 | 71% |
-| both | 110 | 60% |
-| **neither — the solver is mute** | **35** | 19% |
+| both | 109 | 59% |
+| **neither — the solver is mute** | **34** | 18% |
 
 The mute set is geologically coherent (tourmaline, beryl and its varieties, corundum and its
 varieties, several native metals) — resistant phases whose destruction is not acid-defined. The
@@ -82,7 +106,7 @@ Never yes/no. Rock Bot's five, in strength order:
 | `required` | envelope wholly outside the mineral's survival limits **and** physical superposition observed |
 | `strongly implied` | envelope wholly outside survival, but only co-presence on the specimen is reported |
 | `compatible` | the mineral survives the envelope — no order established, in either direction |
-| `ambiguous` | no survival datum, **or** the mineral sits exactly on the envelope boundary |
+| `ambiguous` | no survival datum on the side the event pushes, **or** an exact boundary tie, **or** a two-sided fork whose direction is unrecoverable |
 | `contradicted` | the mineral could not survive, yet is reported as predating (enclosed, included) — one of the two observations is wrong |
 
 `compatible` and `ambiguous` are different answers and must stay different. "It survives, so no

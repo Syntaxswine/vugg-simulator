@@ -46,30 +46,65 @@ const VERDICT = {
  * ------------------------------------------------------------------ */
 
 /**
- * The fluid that would dissolve/etch a mineral, taken from its own record.
+ * The pH window a mineral survives in, read ONLY from the two fields whose
+ * names state their own direction.
+ *
+ * `acid_dissolution.pH_threshold` is deliberately NOT trusted for a bound. It
+ * usually duplicates pH_dissolution_below, but for jarosite, alunite, antlerite
+ * and scorodite it carries an UPPER bound while pH_dissolution_below is absent
+ * entirely - those records say so in a note ("Inverse of typical
+ * acid_dissolution semantics"). Reading the threshold as a floor turns an
+ * acid-loving mineral into one destroyed by acid, which is not a rounding
+ * error: it manufactures a paragenesis out of the mineral's home turf. The
+ * threshold is still used for the reagent it names (HF etching needs F) and for
+ * its reaction text, never for a direction.
+ *
+ *   acidLimit   destroyed when pH falls BELOW this  (pH_dissolution_below)
+ *   alkaliLimit destroyed when pH rises ABOVE this  (pH_dissolution_above)
+ */
+export function stabilityWindow(species) {
+  const rec = MINERALS[species];
+  if (!rec) return null;
+  const acidLimit = rec.pH_dissolution_below ?? null;
+  const alkaliLimit = rec.pH_dissolution_above ?? null;
+  if (acidLimit == null && alkaliLimit == null) return null;
+  return { acidLimit, alkaliLimit, agent: rec.acid_dissolution?.requires ?? null };
+}
+
+/**
+ * The fluid that would dissolve a mineral, taken from its own record.
  * Returns null when the catalogue does not say - an unknown, never an assumption.
+ *
+ * A record carrying BOTH bounds describes a two-sided fork (brochantite is
+ * stable pH 3-7 and dissolves either way out). Which way the fluid actually
+ * went is not recoverable from the fact of dissolution, so the event is marked
+ * `fork` and constrains nothing until an observer says which limb it took.
  */
 export function dissolutionEnvelope(species) {
   const rec = MINERALS[species];
-  if (!rec) return null;
-  const acid = rec.acid_dissolution;
-  const below = rec.pH_dissolution_below;
-  if (acid && acid.pH_threshold != null) {
+  const window = stabilityWindow(species);
+  if (!window) return null;
+  const requires = rec.acid_dissolution?.requires || null;
+  const reaction = rec.acid_dissolution?.reaction || null;
+  const field = f => 'data/minerals.json ' + species + '.' + f;
+  if (window.acidLimit != null && window.alkaliLimit != null) {
     return {
-      kind: 'fluid',
-      pH_below: acid.pH_threshold,
-      requires: acid.requires || null,
-      reaction: acid.reaction || null,
-      cite: 'data/minerals.json ' + species + '.acid_dissolution',
+      kind: 'fluid', direction: 'fork',
+      pH_acid: window.acidLimit, pH_alkali: window.alkaliLimit,
+      requires, reaction,
+      cite: field('pH_dissolution_below') + ' + ' + field('pH_dissolution_above'),
     };
   }
-  if (below != null) {
+  if (window.acidLimit != null) {
     return {
-      kind: 'fluid', pH_below: below, requires: null, reaction: null,
-      cite: 'data/minerals.json ' + species + '.pH_dissolution_below',
+      kind: 'fluid', direction: 'acid', pH: window.acidLimit, requires, reaction,
+      cite: field('pH_dissolution_below'),
     };
   }
-  return null;
+  return {
+    kind: 'fluid', direction: 'alkaline', pH: window.alkaliLimit, requires, reaction,
+    cite: field('pH_dissolution_above'),
+  };
 }
 
 /** The heating event a mineral's own decomposition implies. */
@@ -94,20 +129,20 @@ export function survives(species, envelope) {
   const rec = MINERALS[species];
   if (!rec || !envelope) return null;
   if (envelope.kind === 'fluid') {
-    const floor = rec.acid_dissolution?.pH_threshold ?? rec.pH_dissolution_below;
-    if (floor == null) return null;
-    // The event drives pH below envelope.pH_below. The mineral dissolves below
-    // `floor`. It survives only if the fluid never gets under its own floor.
-    const needsAgent = rec.acid_dissolution?.requires;
-    if (needsAgent && !envelope.requires) {
-      // The mineral only dissolves with an agent this event does not carry.
-      return true;
+    // A fork event has no known direction, so it cannot test anything.
+    if (envelope.direction === 'fork') return null;
+    if (envelope.direction === 'acid') {
+      // The mineral only dissolves with a reagent this event does not carry.
+      if (rec.acid_dissolution?.requires && !envelope.requires) return true;
+      const limit = rec.pH_dissolution_below;
+      if (limit == null) return true;          // no acid-side limit to breach
+      if (limit === envelope.pH) return null;  // exact tie - refuse, don't guess
+      return limit < envelope.pH;
     }
-    // The event drove the fluid BELOW envelope.pH_below; the mineral dissolves
-    // BELOW floor. So it survives only if its floor sits under the fluid's reach.
-    // At an exact tie the data cannot separate them - refuse rather than guess.
-    if (floor === envelope.pH_below) return null;
-    return floor < envelope.pH_below;
+    const limit = rec.pH_dissolution_above;
+    if (limit == null) return true;            // no alkaline-side limit to breach
+    if (limit === envelope.pH) return null;
+    return limit > envelope.pH;
   }
   if (envelope.kind === 'thermal') {
     const ceiling = rec.thermal_decomp_C;
@@ -131,45 +166,69 @@ export function survives(species, envelope) {
  */
 export function orderConstraint(intact, event, contact = 'same-specimen') {
   const lived = survives(intact, event.envelope);
+  // `order` is stated, never implied by the verdict. Enclosure can make an order
+  // REQUIRED in the opposite direction to everything else this tool derives, and
+  // a strength that does not say which way round is not an answer.
   const base = {
-    mineral: intact, event: event.label, contact,
+    mineral: intact, event: event.label, contact, order: 'none',
     envelope: event.envelope, evidence: [event.envelope.cite],
   };
+  const rec = MINERALS[intact] || {};
+  const env = event.envelope;
+  // The field that actually supplied the mineral's limit, so the receipt cites
+  // the number it used rather than a plausible-looking neighbour.
+  const limitField = env.kind !== 'fluid' ? 'thermal_decomp_C'
+    : env.direction === 'acid' ? 'pH_dissolution_below' : 'pH_dissolution_above';
+  const limit = rec[limitField];
+
   if (lived === null) {
-    const rec = MINERALS[intact] || {};
-    const floor = rec.acid_dissolution?.pH_threshold ?? rec.pH_dissolution_below;
-    const tie = event.envelope.kind === 'fluid'
-      ? floor != null && floor === event.envelope.pH_below
-      : rec.thermal_decomp_C != null && rec.thermal_decomp_C === event.envelope.T_above;
-    return { ...base, verdict: VERDICT.ambiguous,
-      because: tie
-        ? intact + ' sits exactly on this envelope boundary, where the catalogue '
-          + 'cannot separate survival from destruction. Kinetics and duration decide '
-          + 'it, and neither is recorded.'
-        : 'The catalogue records no survival limit for ' + intact
-          + ', so this event constrains nothing. Absence of a datum is not survival.' };
+    const tie = limit != null
+      && limit === (env.kind === 'fluid' ? env.pH : env.T_above);
+    let why;
+    if (env.direction === 'fork') {
+      why = 'The record for this event describes a two-sided pH fork, so which way the '
+        + 'fluid went is not recoverable from the fact of dissolution. Until an observer '
+        + 'says which limb it took, it constrains nothing.';
+    } else if (tie) {
+      why = intact + ' sits exactly on this envelope boundary, where the catalogue '
+        + 'cannot separate survival from destruction. Kinetics and duration decide it, '
+        + 'and neither is recorded.';
+    } else {
+      why = 'The catalogue records no ' + (env.kind === 'fluid'
+        ? (env.direction === 'acid' ? 'acid-side' : 'alkaline-side') + ' pH limit'
+        : 'thermal limit') + ' for ' + intact
+        + ', so this event constrains nothing. Absence of a datum is not survival.';
+    }
+    return { ...base, verdict: VERDICT.ambiguous, because: why };
   }
   if (lived === true) {
+    // Enclosure is a PHYSICAL order, independent of any envelope: an inclusion
+    // predates the zone that wraps it. Survival does not erase that.
+    if (contact === 'enclosed-by') {
+      return { ...base, verdict: VERDICT.required, order: 'predates',
+        because: intact + ' survives this envelope, so the fluid settles nothing - but it '
+          + 'is reported enclosed by the altered crystal, and an inclusion predates the '
+          + 'zone that wraps it. The order comes from the enclosure, not the chemistry.' };
+    }
     return { ...base, verdict: VERDICT.compatible,
       because: intact + ' survives this envelope, so it may have been present '
         + 'before, during or after. No order is established.' };
   }
-  const floor = MINERALS[intact].acid_dissolution?.pH_threshold
-    ?? MINERALS[intact].pH_dissolution_below;
-  const detail = event.envelope.kind === 'fluid'
-    ? intact + ' dissolves below pH ' + floor + ', and this event ran below pH '
-      + event.envelope.pH_below
-    : intact + ' decomposes above ' + MINERALS[intact].thermal_decomp_C
-      + ' C, and this event exceeded ' + event.envelope.T_above + ' C';
-  base.evidence.push('data/minerals.json ' + intact
-    + (event.envelope.kind === 'fluid' ? '.acid_dissolution' : '.thermal_decomp_C'));
+  const detail = env.kind === 'fluid'
+    ? (env.direction === 'acid'
+      ? intact + ' dissolves below pH ' + limit + ', and this event ran below pH ' + env.pH
+      : intact + ' dissolves above pH ' + limit + ', and this event ran above pH ' + env.pH)
+    : intact + ' decomposes above ' + limit + ' C, and this event exceeded '
+      + env.T_above + ' C';
+  base.evidence.push('data/minerals.json ' + intact + '.' + limitField);
   if (contact === 'enclosed-by') {
-    return { ...base, verdict: VERDICT.contradicted,
+    return { ...base, verdict: VERDICT.contradicted, order: 'conflict',
       because: detail + ', yet it is reported enclosed by the altered crystal, '
         + 'which would place it earlier. One of the two observations is wrong.' };
   }
   return {
     ...base,
+    order: 'postdates',
     verdict: contact === 'on-altered-surface' ? VERDICT.required : VERDICT.strongly_implied,
     because: detail + '. Intact ' + intact + ' therefore postdates it'
       + (contact === 'on-altered-surface'
@@ -208,6 +267,14 @@ export function solve(spec) {
       }
     }
     if (alt.kind === 'heating') {
+      // An observer-supplied heating with no temperature is not a weak event, it
+      // is no event: T_above would be undefined and every comparison against it
+      // returns false, which reads as "destroyed" and condemns the whole specimen.
+      if (!alt.of && !Number.isFinite(alt.T_C)) {
+        caveats.push('A heating event was declared with neither a mineral to derive it '
+          + 'from nor a numeric T_C; there is no envelope to test, so it was NOT used.');
+        continue;
+      }
       const envelope = alt.of
         ? thermalEnvelope(alt.of)
         : { kind: 'thermal', T_above: alt.T_C, reaction: null, cite: 'observer-supplied' };
@@ -249,8 +316,11 @@ function report(spec, out) {
   out.events.forEach((e, i) => {
     line('  E' + (i + 1) + '  ' + e.label);
     const env = e.envelope;
+    const fluidText = env.direction === 'fork'
+      ? 'pH < ' + env.pH_acid + ' OR pH > ' + env.pH_alkali + ' (two-sided fork, direction unknown)'
+      : env.direction === 'acid' ? 'pH < ' + env.pH : 'pH > ' + env.pH;
     line('      envelope: ' + (env.kind === 'fluid'
-      ? 'pH < ' + env.pH_below + (env.requires ? ', requires ' + JSON.stringify(env.requires) : '')
+      ? fluidText + (env.requires ? ', requires ' + JSON.stringify(env.requires) : '')
         + (env.reaction ? ' [' + env.reaction + ']' : '')
       : 'T > ' + env.T_above + ' C'));
     line('      from:     ' + env.cite);
@@ -260,7 +330,14 @@ function report(spec, out) {
   const rank = { required: 0, 'strongly implied': 1, contradicted: 2, compatible: 3, ambiguous: 4 };
   const sorted = [...out.constraints].sort((a, b) => rank[a.verdict] - rank[b.verdict]);
   for (const c of sorted) {
-    line('  [' + c.verdict.toUpperCase() + '] ' + c.event + '  ->  ' + c.mineral);
+    const arrow = { postdates: '  ->  ', predates: '  <-  ', conflict: '  ><  ', none: '   ?  ' }[c.order];
+    const gloss = {
+      postdates: c.mineral + ' postdates the event',
+      predates: c.mineral + ' predates the event',
+      conflict: 'the two observations disagree',
+      none: 'no order established',
+    }[c.order];
+    line('  [' + c.verdict.toUpperCase() + '] ' + c.event + arrow + c.mineral + '   (' + gloss + ')');
     line('      ' + c.because);
     for (const cite of c.evidence) line('      cite: ' + cite);
   }

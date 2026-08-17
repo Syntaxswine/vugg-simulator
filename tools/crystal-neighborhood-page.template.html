@@ -519,7 +519,13 @@ function render() {
       t.textContent = 'the bare wall';
       el('title', {}, g).textContent = pretty(center)
         + ' was observed nucleating on bare rock, so no crystal host is required.';
-      g.addEventListener('click', () => { picked = null; render(); drawWallReceipt(); });
+      const openWall = () => { picked = null; render(); drawWallReceipt(); };
+      g.addEventListener('click', openWall);
+      // It carries tabindex, so it must answer the keyboard too - a focus stop
+      // that does nothing on Enter is worse than not being focusable at all.
+      g.addEventListener('keydown', ev => {
+        if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); openWall(); }
+      });
       return;
     }
     el('circle', { cx: row.x, cy: row.y, class: 'node', fill: clsVar(row.other) }, g);
@@ -569,8 +575,11 @@ function render() {
   el('text', { x: CX, y: cy - 16 }, core).textContent = pretty(center);
 
   if (!ancestry.length && !descent.length && !beside.length) {
+    const node = NODES.get(center) || {};
+    const hasAny = (ADJ.get(center) || []).length > 0 || node.bare_wall === 'observed';
     el('text', { x: CX, y: cy + 26, class: 'band', 'text-anchor': 'middle' }, svg)
-      .textContent = 'no supported relationship under these filters';
+      .textContent = hasAny ? 'hidden by the current filters'
+        : 'no supported relationship';
   }
 }
 
@@ -582,9 +591,24 @@ function relVarTop(rel) {
 
 /* ------------------------------- receipts ------------------------------- */
 
+/**
+ * The census keys receipts by (host, guest) only, so when the tree splits one
+ * pairing into two edges by source_state, BOTH records carry the same sighting
+ * list. Merging those records for display must not merge their receipts too, or
+ * a run seen once is reported twice - on a page whose whole promise is that the
+ * numbers can be audited. Dedupe on the sighting's own identity.
+ */
 function runtimeRows(records) {
   const all = [];
-  for (const r of records) for (const s of r.runtime) all.push(s);
+  const seen = new Set();
+  for (const r of records) {
+    for (const s of r.runtime) {
+      const id = s.scenario + '|' + s.seed + '|' + s.step + '|' + s.position;
+      if (seen.has(id)) continue;
+      seen.add(id);
+      all.push(s);
+    }
+  }
   if (!all.length) return '';
   let html = '<div class="receipt"><h4>Runtime sightings &middot; ' + all.length + '</h4>'
     + '<div class="runs"><table><thead><tr><th>scenario</th><th>seed</th><th>step</th><th>position</th></tr></thead><tbody>';
@@ -698,8 +722,15 @@ function drawCard(id) {
   html += section('Descent \u2014 what may follow', descent, 'd');
   html += section('Beside it', beside, 'b');
   if (!ancestry.length && !descent.length && !beside.length) {
-    html += '<p class="note">No supported relationship. The engines name no substrate, replacement '
-      + 'or transformation for this species, and these runs recorded no companion for it.</p>';
+    // "Nothing to show" and "nothing exists" are different claims, and only the
+    // reader knows which filters they turned off. Never report a hidden
+    // relationship as an absent one.
+    const hasAny = (ADJ.get(id) || []).length > 0 || node.bare_wall === 'observed';
+    html += hasAny
+      ? '<p class="note">Nothing to show <i>under these filters</i>. This species does have '
+        + 'modelled relationships &mdash; turn a filter back on to see them.</p>'
+      : '<p class="note">No supported relationship. The engines name no substrate, replacement '
+        + 'or transformation for this species, and these runs recorded no companion for it.</p>';
   }
   $('panel').innerHTML = html;
   for (const b of $('panel').querySelectorAll('[data-go]')) {
@@ -732,17 +763,22 @@ function drawKey() {
 
 function drawTally() {
   const c = FLOW.counts || {};
+  // Count the arrows this page actually draws, not the raw records behind them.
+  // FLOW.counts is pre-merge, so quoting it here would advertise eight edges the
+  // reader can never find by clicking.
+  const strict = EDGES.filter(e => e.mode === 'strict').length;
+  const growth = EDGES.filter(e => e.mode !== 'strict').length;
   const cells = [
     [c.minerals, 'species'],
-    [c.strict, 'strict edges'],
-    [c.growth, 'growth edges'],
+    [strict, 'strict edges'],
+    [growth, 'growth edges'],
     [c.bare_wall_observed, 'escape the wall'],
     [(FLOW.census && FLOW.census.runs) || '?', 'runs read'],
   ];
   $('tally').innerHTML = cells.map(x => '<div><b>' + esc(x[0]) + '</b><span>' + esc(x[1]) + '</span></div>').join('');
   $('escapees').textContent = c.bare_wall_observed;
   $('observed').textContent = (c.bare_wall_observed || 0) + (c.bare_wall_unresolved || 0);
-  $('strictn').textContent = c.strict;
+  $('strictn').textContent = strict;
   $('stamp').textContent = FLOW._stamp || 'Vugg Simulator';
   $('prov').textContent = FLOW._provenance || '';
 }
@@ -753,6 +789,9 @@ function wire() {
   const search = $('search');
   const commit = () => {
     const want = search.value.trim().toLowerCase().replace(/\s+/g, '_');
+    // Every id startsWith(''), so an empty box would "match" the first species
+    // and silently move the reader somewhere they never asked to go.
+    if (!want) { search.value = pretty(center); return; }
     if (NODES.has(want)) { setCenter(want); return; }
     const hit = FLOW.nodes.find(n => n.id.startsWith(want));
     if (hit) setCenter(hit.id);
