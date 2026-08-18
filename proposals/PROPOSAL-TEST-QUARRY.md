@@ -222,6 +222,114 @@ entire benefit was not locatable from the receipt. Fixed; the next run names it.
 
 ---
 
+## 6b. Process hygiene — a separate defect from test duration
+
+Added 2026-08-18 after the foreman brief. **Leakage and duration must not be diagnosed as
+one thing**, and this section keeps them apart: the census measures the population and
+never blames the suite.
+
+### What the first look found
+
+The brief asked for a pre-reboot receipt — JS processes by age and memory, preserved
+before anything changes. Taken immediately, it found **no sedimentary layer**: 6 JS
+processes, oldest 1.77 h, against 39.8 h of uptime. Nothing days old. The 12 193 s run did
+not leak workers.
+
+It found something live instead:
+
+```
+PID 10124  age 1.77 h   node tools/test-workflow.mjs --fresh
+PID 24276     child     vitest ... AI\GTP\Vugg-Simulator\node_modules\vitest\vitest.mjs
+```
+
+**Another agent had been running a full cold suite out of the GTP checkout for 1.77
+hours**, overlapping a serial-vs-parallel benchmark launched 17 minutes earlier. Nothing
+refused it, nothing recorded it, and the only reason it was caught is that someone looked.
+That is the whole argument for a preflight gate: *a benchmark on a contended machine does
+not report an error, it reports a NUMBER* — and the number goes into a proposal and then
+into a design decision.
+
+The contaminated arm was killed by owned tree: children by PID and ancestry, then the
+root, then verified zero descendants remained. Never by name.
+
+### What the collision was worth measuring
+
+The serial arm completed before the kill: **1030.4 s against 990.4 s** for the same six
+files in the clean profile — and ~8.5 s of that gap is child-start tax the arm avoided by
+running one child instead of six. **Contention cost roughly 5%.** A concurrent full suite
+on 16 logical processors barely dents a single-threaded run, which bounds CPU steal as an
+explanation for the outliers: it cannot manufacture a 15-minute file.
+
+### Host facts, measured rather than assumed
+
+| | |
+|---|---|
+| RAM / cores | **63.9 GB**, 8 physical / **16 logical** (Ryzen 7 5800X) |
+| page file | 4096 MB allocated, **94 MB peak used since boot** |
+| uptime at census | 39.8 h — **covers the 12 193 s run** |
+
+Peak page-file usage of 94 MB across an uptime window containing the whole run is a
+receipt: **there was no reclaim or swap pressure at any point.** Memory contention is
+ruled out retrospectively, from data that already existed.
+
+**This corrects §3 of this document.** It priced the formation check at 65–97 min because
+"2–3 shards is what RAM holds." RAM was never the constraint — 1676 MB worst case against
+63.9 GB. **Cores are.** By the same table, 8 shards is **24.3 min**, before any file
+splitting. The serial config's own justification — "eight workers consumed most system
+RAM" — does not hold on this hardware, which makes re-measuring it the highest-value
+experiment in the plan. **Still owed**: the machine has not been quiet since.
+
+### Built, and honestly not built
+
+| brief bullet | status |
+|---|---|
+| preflight census; refuse if unrelated Vugg workers exist | ✅ `tools/process-census.mjs --preflight`, exits 1. `--allow-busy` to override deliberately |
+| owned process trees, verify zero descendants | ⚠️ `--postflight <rootPid>` verifies and attributes survivors. **Not wired into the runner**, and it does not kill — whoever owns a tree kills that tree |
+| Windows Job Objects | ❌ **blocked, not deferred.** Node has no Job Object API; this needs a native addon. `taskkill /T /F` tears down a *known* tree but cannot help with an abandoned parent, which is the exact case Job Objects exist for. Naming the blocker rather than shipping something weaker under the same name |
+| run manifests (run ID, root PID, tier, heartbeat) | ❌ not built |
+| postflight leak gate | ⚠️ the check exists; the *gate* wiring does not |
+| startup hygiene report | ✅ `--hygiene` — never kills, never exits non-zero |
+
+Host telemetry is a separate instrument: `tools/host-sampler.mjs` records free RAM and
+aggregate CPU every second in-process, with competitor identity on a 10 s cadence. The
+slower cadence is deliberate — the runner's RSS watchdog already shells out every second
+and two consecutive failures kill a batch, so a second per-second spawn would make it
+likelier to false-RED a healthy run. Observing harder must not break the thing observed.
+A missed scan is recorded as `top_error`, never omitted: a telemetry gap must look like a
+gap and not like a quiet machine.
+
+### The rule the tool enforces about accusation
+
+**A name is not evidence.** OpenClaw, MCP servers, language servers and editors are all
+`node.exe` with a long uptime. A process is a leak candidate only when its command line
+points into a checkout **and** it is older than the threshold **and** it is not a
+descendant of a live run — all three printed beside the verdict, so a reader can disagree
+with the classification instead of trusting it.
+
+### Two defects this tooling shipped, and then caught
+
+1. **A leak detector that could never fire.** `ConvertTo-Json` renders a CIM date as
+   `/Date(…)/`; `new Date()` gave NaN; `NaN >= STALE_HOURS` is false for every process
+   ever examined. The tool printed a tidy table, exited 0, and meant nothing. Ages are now
+   formatted to ISO inside PowerShell, an unreadable start time is `null` rather than NaN,
+   and the report prints `?` with *"AGE UNKNOWN — cannot judge staleness"*.
+2. **A rival checkout classified as our own.** Matching on basename made
+   `GTP/Vugg-Simulator` indistinguishable from `vugg/vugg-simulator` — the one
+   misclassification that would have waved a contended benchmark through as clean. Now
+   matched on the full checkout path.
+
+A third was caught by the tests rather than in use: `descendantsOf` returned the root as
+its own descendant under a parent cycle, so a caller terminating "descendants, then the
+root" would have counted the root as a survivor of itself. PIDs are recycled, so cycles
+are not hypothetical.
+
+`tests-js/process-census.test.ts` pins all three, and every staleness assertion has a
+negative twin — a gate is only a gate if something proves it can say **both** yes and no.
+9/9, and the file never touches `VugSimulator`, so it lands in the non-stepping tier where
+the chip check will live.
+
+---
+
 ## 7. The disagreement, stated plainly
 
 Rock Bot's instinct — eliminate repeated excavation rather than parallelise harder — is
