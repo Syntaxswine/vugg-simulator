@@ -155,6 +155,13 @@ export function makeTestCheckpoint({ identity, completedFiles = [], batches = []
     batches: batches.map(batch => ({
       files: [...batch.files],
       peak_rss_bytes: batch.peak_rss_bytes,
+      // Wall time is carried through EXPLICITLY. This mapper rebuilds every
+      // batch record on every checkpoint write, so a field it does not name
+      // is silently dropped — which is how the runner came to record peak RSS
+      // for 232 batches and not one timestamp. `null` when a resumed record
+      // predates this field: unknown, never zero. A shard planner that reads
+      // a missing duration as 0 s balances by fiction.
+      wall_ms: Number.isFinite(batch.wall_ms) ? batch.wall_ms : null,
     })),
   };
 }
@@ -442,6 +449,8 @@ export async function runTestWorkflow({
   onBatchPass = null,
 } = {}) {
   const batches = partitionTests(files, batchSize);
+  let runWallMs = 0;
+  let runStableMs = 0;
   console.log(`[test-workflow] ${files.length} files in ${batches.length} sequential batch(es) of at most ${batchSize}`);
   console.log(`[test-workflow] explicit threads=1; file parallelism off; RSS ceiling ${MAX_BATCH_RSS_BYTES / 1024 / 1024} MB`);
 
@@ -449,7 +458,10 @@ export async function runTestWorkflow({
     const first = path.basename(batch[0]);
     const last = path.basename(batch[batch.length - 1]);
     console.log(`\n[test-workflow] batch ${index + 1}/${batches.length}: ${first} .. ${last}`);
+    const batchStartedMs = Date.now();
     const result = await batchRunner({ batch });
+    const wallMs = Date.now() - batchStartedMs;
+    runWallMs += wallMs;
     const peakMb = Math.ceil(result.peakRssBytes / 1024 / 1024);
     if (result.terminationError) {
       console.error(`[test-workflow] FAIL: ${result.terminationError.message}`);
@@ -468,20 +480,31 @@ export async function runTestWorkflow({
       console.error(`[test-workflow] FAIL in batch ${index + 1}/${batches.length} (peak ${peakMb} MB RSS)`);
       return result.status ?? 1;
     }
+    // The identity re-hash reads every one of ~6000 repository files after
+    // each batch. It is a guard, not a test, so it is timed separately —
+    // a profile that buries the runner's own overhead inside the batch it
+    // follows would send a shard planner chasing the wrong file.
+    const stableStartedMs = Date.now();
     if (assertStable) await assertStable({
       batch: [...batch],
       batchIndex: index,
       batchCount: batches.length,
     });
-    console.log(`[test-workflow] batch ${index + 1}/${batches.length} PASS (peak ${peakMb} MB RSS)`);
+    const stableMs = Date.now() - stableStartedMs;
+    runStableMs += stableMs;
+    console.log(`[test-workflow] batch ${index + 1}/${batches.length} PASS (peak ${peakMb} MB RSS, ${(wallMs / 1000).toFixed(1)}s)`);
     if (onBatchPass) await onBatchPass({
       batch: [...batch],
       batchIndex: index,
       batchCount: batches.length,
       peakRssBytes: result.peakRssBytes,
+      wallMs,
     });
   }
   console.log(`\n[test-workflow] COMPLETE: ${files.length} files across ${batches.length} memory-bounded batches`);
+  console.log(`[test-workflow] ${(runWallMs / 1000).toFixed(0)}s in test batches`
+    + ` + ${(runStableMs / 1000).toFixed(0)}s re-hashing project identity`
+    + ` (${batches.length} checks)`);
   return 0;
 }
 
@@ -534,9 +557,9 @@ if (invokedDirectly) {
         assertStable: automaticCheckpoint
           ? () => assertTestWorkflowIdentityUnchanged(identity)
           : null,
-        onBatchPass: automaticCheckpoint ? ({ batch, peakRssBytes }) => {
+        onBatchPass: automaticCheckpoint ? ({ batch, peakRssBytes, wallMs }) => {
           completedFiles.push(...batch);
-          completedBatches.push({ files: batch, peak_rss_bytes: peakRssBytes });
+          completedBatches.push({ files: batch, peak_rss_bytes: peakRssBytes, wall_ms: wallMs });
           writeJsonAtomic(TEST_CHECKPOINT_PATH, makeTestCheckpoint({
             identity, completedFiles, batches: completedBatches,
           }));

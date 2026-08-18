@@ -2,6 +2,13 @@
 // import these instead of poking at VugSimulator directly so the
 // per-test boilerplate stays small and the contract is one place.
 
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { expect } from 'vitest';
+
+const CENSUS_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+
 declare const VugSimulator: any;
 declare const SCENARIOS: any;
 declare const setSeed: any;
@@ -19,11 +26,59 @@ export function runScenario(name: string, opts: { seed?: number; steps?: number 
   setSeed(seed);
   const { conditions, events, defaultSteps } = SCENARIOS[name]();
   const steps = opts.steps ?? defaultSteps ?? 100;
+  const started = Date.now();
   const sim = new VugSimulator(conditions, events);
   for (let i = 0; i < steps; i++) {
     sim.run_step();
   }
+  recordScenarioCensus(name, seed, steps, Date.now() - started);
   return sim;
+}
+
+/**
+ * Census hook for PROPOSAL-TEST-QUARRY §4 step 2.
+ *
+ * The question a trajectory cache lives or dies on is whether the suite
+ * repeatedly excavates the SAME (scenario, seed, steps) triple, and nothing in
+ * the tree could answer it — the claim was an intuition, not a count. Setting
+ * `VUGG_SCENARIO_CENSUS=1` appends one JSON line per call so it becomes a
+ * count. Unset (every ordinary run, CI included) this is a single env read.
+ *
+ * The census file lives under `.local-evidence/`, which is the ONE directory
+ * `test-workflow.mjs` excludes from its project-identity hash. Writing a
+ * census anywhere else would change the repo's identity mid-run and abort the
+ * very run being measured — an instrument that destroys its own measurement.
+ *
+ * Failures are swallowed on purpose: a census is an observer. It must never be
+ * the reason a test file goes red.
+ */
+let censusBroken = false;
+
+function recordScenarioCensus(name: string, seed: number, steps: number, ms: number): void {
+  if (!process.env.VUGG_SCENARIO_CENSUS) return;
+  try {
+    const target = path.resolve(CENSUS_ROOT, '.local-evidence', 'scenario-census.jsonl');
+    fs.mkdirSync(path.dirname(target), { recursive: true });
+    // Attribution is not decoration. The first census could say that
+    // `supergene_oxidation|42|200` was excavated twice and could not say by
+    // whom — so the single edit that would retire two thirds of a trajectory
+    // cache's entire measured benefit was not locatable from the receipt.
+    const testPath = expect.getState().testPath;
+    fs.appendFileSync(target, JSON.stringify({
+      kind: 'scenario',
+      file: testPath ? path.relative(CENSUS_ROOT, testPath).replaceAll('\\', '/') : null,
+      scenario: name, seed, steps, ms,
+    }) + '\n');
+  } catch (error) {
+    // Never throw — but never go quiet either. A census that fails silently
+    // hands back an empty file, and an empty file reads exactly like "the
+    // suite never repeats a trajectory", which is the conclusion this
+    // measurement exists to test. Say so once, loudly, per process.
+    if (!censusBroken) {
+      censusBroken = true;
+      console.error(`[scenario-census] DISABLED — could not write: ${(error as Error).message}`);
+    }
+  }
 }
 
 /**

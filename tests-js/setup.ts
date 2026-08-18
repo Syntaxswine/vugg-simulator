@@ -23,7 +23,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { beforeAll } from 'vitest';
+import { afterAll, beforeAll, expect } from 'vitest';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const DIST = path.join(ROOT, 'dist');
@@ -690,6 +690,65 @@ async function loadBundle() {
   _bundleLoaded = true;
 }
 
+// ---- Excavation census (PROPOSAL-TEST-QUARRY §4 step 2) ----
+//
+// Per-batch wall time says WHICH file is slow. It cannot say what the file was
+// doing, so the claim "92.6% of the cold run is inside the test bodies" was a
+// subtraction, not a measurement — total minus the overheads I could time.
+// A subtraction inherits every error in its terms and cannot be wrong out loud.
+//
+// This wraps `VugSimulator.prototype.run_step` and counts. It measures the
+// excavation while it happens, and it covers the whole suite rather than the
+// 32 files that route through `runScenario` — 118 files build their sims by
+// hand, and a scenario-keyed census is blind to every one of them.
+//
+// Gated on VUGG_SCENARIO_CENSUS. Off, this is one env read at load and the
+// prototype is never touched: SIM-neutral, no bundle change, nothing shipped.
+// On, it costs two `performance.now()` calls per step against a run_step that
+// walks every crystal — but the wall times from a census run are therefore NOT
+// the profile of record, and the report says so.
+
+const excavation = { steps: 0, ms: 0, sims: 0 };
+const seenSims = new WeakSet<object>();
+let censusInstalled = false;
+
+function installExcavationCensus(): void {
+  if (!process.env.VUGG_SCENARIO_CENSUS || censusInstalled) return;
+  const Sim = (globalThis as any).VugSimulator;
+  const original = Sim?.prototype?.run_step;
+  if (typeof original !== 'function') {
+    // Refuse loudly. A census that quietly measures nothing reports zero
+    // excavation, and zero is a number a reader will believe.
+    console.error('[excavation-census] DISABLED — VugSimulator.prototype.run_step is not a function');
+    return;
+  }
+  Sim.prototype.run_step = function (this: object, ...args: any[]) {
+    if (!seenSims.has(this)) { seenSims.add(this); excavation.sims++; }
+    const t0 = performance.now();
+    try { return original.apply(this, args); }
+    finally { excavation.steps++; excavation.ms += performance.now() - t0; }
+  };
+  censusInstalled = true;
+}
+
+function writeExcavationCensus(testPath: string | undefined, fileWallMs: number): void {
+  if (!process.env.VUGG_SCENARIO_CENSUS || !censusInstalled) return;
+  try {
+    const target = path.join(ROOT, '.local-evidence', 'scenario-census.jsonl');
+    fs.mkdirSync(path.dirname(target), { recursive: true });
+    fs.appendFileSync(target, JSON.stringify({
+      kind: 'file',
+      file: testPath ? path.relative(ROOT, testPath).replaceAll('\\', '/') : null,
+      sims: excavation.sims,
+      steps: excavation.steps,
+      run_step_ms: Math.round(excavation.ms),
+      file_wall_ms: fileWallMs,
+    }) + '\n');
+  } catch (error) {
+    console.error(`[excavation-census] could not write file record: ${(error as Error).message}`);
+  }
+}
+
 // ---- Wait for scenarios ----
 //
 // _loadScenariosJSON5() inside the bundle is async. After eval, the
@@ -742,7 +801,20 @@ async function waitForNarratives(): Promise<void> {
   }
 }
 
+let fileStartedMs = 0;
+
 beforeAll(async () => {
   await loadBundle();
   await Promise.all([waitForScenarios(), waitForMineralSpec(), waitForNarratives()]);
+  // After the bundle binds VugSimulator to globalThis, and before any test
+  // drives it. Installed once per process; the counters below are per file.
+  installExcavationCensus();
+  excavation.steps = 0;
+  excavation.ms = 0;
+  excavation.sims = 0;
+  fileStartedMs = Date.now();
+});
+
+afterAll(() => {
+  writeExcavationCensus(expect.getState().testPath, Date.now() - fileStartedMs);
 });
