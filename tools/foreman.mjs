@@ -16,26 +16,49 @@
  *   lease       a MACHINE-WIDE claim, deliberately not inside the repo. A lease
  *               under `.local-evidence/` cannot see a rival checkout's lease,
  *               which is the exact collision this exists to stop: two Vugg
- *               working copies are two directories and one CPU. It lives beside
- *               the user's temp dir so every checkout on the host shares it.
+ *               working copies are two directories and one CPU.
  *
  *   telemetry   host sampling started and stopped WITH the run, its receipt
- *               keyed to the run's identity hash so a profile and the machine
- *               state behind it can never drift apart. Sampling runs in-process:
- *               a hygiene subsystem that spawns its own long-lived child is one
+ *               keyed to the run's identity so a profile and the machine state
+ *               behind it can never drift apart. Sampling runs in-process: a
+ *               hygiene subsystem that spawns its own long-lived child is one
  *               crash away from being the leak it was built to catch.
  *
  *   postflight  verify the owned tree is gone; kill what remains, because we
  *               own it; re-verify; and report a survivor as a failure. Killing
  *               is scoped to OUR root's descendants and nothing else, ever.
  *
+ * ── OWNERSHIP IS ATOMIC, AND RELEASE IS AUTHENTICATED ──────────────────────
+ *
+ * The first version acquired by read → decide-it-is-free → write. Two agents
+ * entering that window both read "free", both wrote, and the second silently
+ * displaced the first — the precise race the lease exists to prevent, rebuilt
+ * inside the lease. Worse, release deleted unconditionally, so a displaced or
+ * long-finished owner could delete a NEWER owner's claim and hand the machine
+ * to a third.
+ *
+ * So: the claim is a DIRECTORY, created with `mkdir`, which is atomic and
+ * fails with EEXIST on every platform we run. Exactly one racer creates it;
+ * everyone else is told who holds it. Taking over a stale claim is a
+ * compare-and-swap — rename the dead directory aside, and only the racer whose
+ * rename succeeded may recreate it — never a blind overwrite. Every acquisition
+ * mints an unguessable token; heartbeat and release both verify it, so a
+ * process holding a stale handle can refresh nothing and delete nothing.
+ *
  * STALE LEASES ARE DIAGNOSED, NOT TRUSTED AND NOT BULLDOZED. A lease is live
  * only if its recorded (pid, startedIso) still matches a running process AND
  * its heartbeat is fresh. PIDs are recycled, so the start time is load-bearing:
  * a lease naming only a PID is one reuse away from a stranger vouching for a
  * run that ended hours ago.
+ *
+ * NESTED RUNS ADOPT, THEY DO NOT RE-ACQUIRE. `cold-ci.mjs` holds the lease for
+ * the whole wrapper and passes its token down; `test-workflow.mjs` sees the
+ * token, joins the existing claim, and neither re-acquires nor releases it.
+ * A nested second lease would either deadlock against its own parent or, worse,
+ * release the parent's claim mid-run.
  */
 
+import crypto from 'node:crypto';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
@@ -45,26 +68,37 @@ import { sampleHost } from './host-sampler.mjs';
 
 const ROOT = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 
-/** Machine-wide, deliberately OUTSIDE any checkout. See the header. */
-export const LEASE_PATH = path.join(os.tmpdir(), 'vugg-foreman', 'run-lease.json');
+/** Machine-wide, deliberately OUTSIDE any checkout. A directory, because
+ *  `mkdir` is the atomic primitive; the JSON inside is only the description. */
+export const LEASE_DIR = path.join(os.tmpdir(), 'vugg-foreman', 'run-lease.d');
+export const LEASE_FILE = 'lease.json';
+/** Env names by which a parent run hands ownership to a nested one. */
+export const TOKEN_ENV = 'VUGG_FOREMAN_LEASE_TOKEN';
+export const ALLOW_BUSY_ENV = 'VUGG_FOREMAN_ALLOW_BUSY';
 /** A heartbeat older than this means the holder is gone or wedged. */
 export const HEARTBEAT_STALE_MS = 90_000;
-/** Heartbeat cadence. Must be far below HEARTBEAT_STALE_MS, and far below a
- *  single batch's worst case (900 s) — a per-batch heartbeat would make a
- *  healthy 15-minute file look like an abandoned run. */
+/** Heartbeat cadence: far below HEARTBEAT_STALE_MS, and far below a single
+ *  batch's worst case (900 s) — a per-batch heartbeat would make a healthy
+ *  15-minute file look like an abandoned run. */
 export const HEARTBEAT_INTERVAL_MS = 15_000;
+/** A claim directory with no readable lease.json inside is mid-acquisition,
+ *  not abandoned, for this long. Without the grace, one racer's half-written
+ *  claim reads as garbage to another and gets stolen a millisecond later. */
+export const PARTIAL_CLAIM_GRACE_MS = 5_000;
+export const ACQUIRE_ATTEMPTS = 5;
 export const TELEMETRY_INTERVAL_MS = 1000;
 export const TELEMETRY_PROCESS_SCAN_EVERY = 10;
 
+const leaseFileIn = dir => path.join(dir, LEASE_FILE);
+
 const writeJson = (file, value) => {
-  fs.mkdirSync(path.dirname(file), { recursive: true });
-  const temporary = `${file}.${process.pid}.tmp`;
+  const temporary = `${file}.${process.pid}.${crypto.randomBytes(4).toString('hex')}.tmp`;
   fs.writeFileSync(temporary, JSON.stringify(value, null, 2) + '\n');
   fs.renameSync(temporary, file);
 };
 
-export function readLease({ leasePath = LEASE_PATH } = {}) {
-  try { return JSON.parse(fs.readFileSync(leasePath, 'utf8')); }
+export function readLease({ leaseDir = LEASE_DIR } = {}) {
+  try { return JSON.parse(fs.readFileSync(leaseFileIn(leaseDir), 'utf8')); }
   catch { return null; }
 }
 
@@ -91,65 +125,180 @@ export function leaseLiveness(lease, processes, now = Date.now()) {
 }
 
 /**
+ * Atomic acquisition. Returns {acquired:true, lease} or {acquired:false, lease,
+ * liveness}. Never overwrites a live claim, and never takes over a dead one by
+ * writing on top of it.
+ */
+export function acquireLease({
+  leaseDir = LEASE_DIR, describe, processes = [], log = console.log,
+  attempts = ACQUIRE_ATTEMPTS, now = Date.now,
+} = {}) {
+  fs.mkdirSync(path.dirname(leaseDir), { recursive: true });
+  for (let attempt = 0; attempt < attempts; attempt++) {
+    try {
+      // THE atomic step. Exactly one racer's mkdir returns; every other gets
+      // EEXIST. Nothing before this line may be trusted as a decision.
+      fs.mkdirSync(leaseDir);
+      const lease = describe();
+      writeJson(leaseFileIn(leaseDir), lease);
+      return { acquired: true, lease };
+    } catch (error) {
+      if (error.code !== 'EEXIST') throw error;
+    }
+
+    const existing = readLease({ leaseDir });
+    if (!existing) {
+      // The directory exists but carries no readable description. That is
+      // either a racer mid-acquisition or a crash between mkdir and write.
+      // Treat it as live during the grace window: stealing a claim that is
+      // being written is the same bug in a smaller window.
+      let bornMs = 0;
+      try { bornMs = fs.statSync(leaseDir).mtimeMs; } catch { bornMs = 0; }
+      if (now() - bornMs < PARTIAL_CLAIM_GRACE_MS) {
+        return {
+          acquired: false, lease: null,
+          liveness: { live: true, reason: 'another acquisition is in flight' },
+        };
+      }
+    } else {
+      const liveness = leaseLiveness(existing, processes, now());
+      if (liveness.live) return { acquired: false, lease: existing, liveness };
+    }
+
+    // Compare-and-swap takeover: rename the dead claim ASIDE. Rename onto a
+    // fresh unique name succeeds for exactly one racer; the losers get ENOENT
+    // and loop round to discover whoever won. A blind rmdir-then-mkdir here
+    // would let two takers both "succeed".
+    const parked = `${leaseDir}.stale-${crypto.randomBytes(6).toString('hex')}`;
+    try {
+      fs.renameSync(leaseDir, parked);
+      log(`[foreman] stale claim taken over${existing ? ` from run ${existing.runId}` : ''}`
+        + ` — ${existing ? leaseLiveness(existing, processes, now()).reason : 'no readable lease inside'}`);
+      try { fs.rmSync(parked, { recursive: true, force: true }); } catch { /* parked out of the way; that is enough */ }
+    } catch {
+      // Someone else took it over first. Loop; they now hold it and we will be
+      // told so on the next pass.
+    }
+  }
+  return {
+    acquired: false, lease: readLease({ leaseDir }),
+    liveness: { live: true, reason: `could not acquire after ${attempts} attempts` },
+  };
+}
+
+/** Refresh the heartbeat ONLY if we still own the claim. Returns false if we
+ *  were displaced — a holder that lost the lease must stop pretending. */
+export function touchLease({ leaseDir = LEASE_DIR, token } = {}) {
+  const current = readLease({ leaseDir });
+  if (!current || current.token !== token) return false;
+  current.heartbeatIso = new Date().toISOString();
+  try { writeJson(leaseFileIn(leaseDir), current); return true; }
+  catch { return false; }
+}
+
+/** Release ONLY our own claim. A displaced or long-finished owner deleting a
+ *  successor's lease would hand the machine to a third party — which is the
+ *  original race with extra steps. */
+export function releaseLease({ leaseDir = LEASE_DIR, token, warn = console.error } = {}) {
+  const current = readLease({ leaseDir });
+  if (!current) return false;
+  if (current.token !== token) {
+    warn(`[foreman] not releasing lease: it now belongs to run ${current.runId}, not to us.`);
+    return false;
+  }
+  try { fs.rmSync(leaseDir, { recursive: true, force: true }); return true; }
+  catch { return false; }
+}
+
+/**
  * Preflight + lease acquisition. Returns a run handle.
  * `allowBusy` never silently softens anything: it proceeds AND marks the run
  * contaminated, so the override is visible in every artefact downstream.
  */
 export async function beginRun({
   runId, tier = 'full', owner = `pid:${process.pid}`, allowBusy = false,
-  leasePath = LEASE_PATH, repoRoot = ROOT, log = console.log, warn = console.error,
+  leaseDir = LEASE_DIR, repoRoot = ROOT, log = console.log, warn = console.error,
   // Injectable so the refusal can be tested without spawning rival suites. A
   // gate nothing can exercise is a gate nobody knows the shape of.
   list = listJsProcesses, selfPid = process.pid, telemetry = true,
+  // A token inherited from a parent run (cold-ci). Present means: adopt that
+  // claim, do not acquire a second one, and do not release it on the way out.
+  inheritToken = process.env[TOKEN_ENV] || null,
 } = {}) {
   const processes = classify(await list(), { repoRoot, selfPid });
-  const rivals = processes.filter(p => p.kind === 'other-checkout');
-  const lease = readLease({ leasePath });
-  const liveness = leaseLiveness(lease, processes);
-
-  const blockers = [];
-  for (const rival of rivals) blockers.push(`another checkout's worker: pid ${rival.pid} — ${rival.cmd.slice(0, 90)}`);
-  if (liveness.live) blockers.push(`machine lease ${liveness.reason} (run ${lease.runId}, tier ${lease.tier})`);
-  if (lease && !liveness.live) {
-    // Diagnosed out loud, then taken over. Silence here would make a normal
-    // takeover indistinguishable from stomping a live run.
-    log(`[foreman] stale lease from run ${lease.runId} — ${liveness.reason}; taking over`);
-  }
-
-  let contaminated = false;
-  if (blockers.length) {
-    if (!allowBusy) {
-      warn('[foreman] REFUSING to start — the machine is not clear:');
-      for (const line of blockers) warn(`  - ${line}`);
-      warn('[foreman] A run started now does not report an error, it reports NUMBERS.');
-      warn('[foreman] Re-run when clear, or pass --allow-busy to accept a contaminated result.');
-      const error = new Error('foreman refused: machine busy');
-      error.blockers = blockers;
-      throw error;
-    }
-    contaminated = true;
-    warn('[foreman] --allow-busy: starting on a BUSY machine. This run is stamped CONTAMINATED:');
-    for (const line of blockers) warn(`  - ${line}`);
-  }
-
   const self = processes.find(p => p.pid === selfPid);
+
+  if (inheritToken) {
+    const held = readLease({ leaseDir });
+    if (held?.token === inheritToken) {
+      log(`[foreman] adopting the parent run's lease (run ${held.runId}, tier ${held.tier})`
+        + `${held.contaminated ? ' — CONTAMINATED' : ''}`);
+      return {
+        runId: held.runId, tier: held.tier, contaminated: held.contaminated === true,
+        adopted: true, token: null, leaseDir, rootPid: selfPid, telemetryPath: null,
+        telemetryGaps: () => 0, telemetrySamples: () => 0, stop: () => {},
+      };
+    }
+    // An inherited token that matches nothing is a broken handoff, not a
+    // licence to grab the machine. Say so and acquire honestly below.
+    warn('[foreman] inherited lease token does not match the current lease; acquiring our own.');
+  }
+
+  const rivals = processes.filter(p => p.kind === 'other-checkout');
+  const token = crypto.randomUUID();
   const startedIso = new Date().toISOString();
-  const held = {
-    runId, tier, owner, contaminated,
+  const describe = contaminated => () => ({
+    runId, tier, owner, token, contaminated,
     rootPid: selfPid,
     rootStartedIso: self?.startedIso ?? null,
     checkout: repoRoot,
     startedIso,
-    heartbeatIso: startedIso,
-    blockers,
+    heartbeatIso: new Date().toISOString(),
+    blockers: [],
+  });
+
+  const claim = acquireLease({ leaseDir, describe: describe(false), processes, log });
+  const blockers = rivals.map(r => `another checkout's worker: pid ${r.pid} — ${r.cmd.slice(0, 90)}`);
+  if (!claim.acquired) {
+    blockers.push(`machine lease ${claim.liveness.reason}`
+      + `${claim.lease ? ` (run ${claim.lease.runId}, tier ${claim.lease.tier})` : ''}`);
+  }
+
+  if (blockers.length && !allowBusy) {
+    if (claim.acquired) releaseLease({ leaseDir, token, warn: () => {} });
+    warn('[foreman] REFUSING to start — the machine is not clear:');
+    for (const line of blockers) warn(`  - ${line}`);
+    warn('[foreman] A run started now does not report an error, it reports NUMBERS.');
+    warn('[foreman] Re-run when clear, or pass --allow-busy to accept a contaminated result.');
+    const error = new Error('foreman refused: machine busy');
+    error.blockers = blockers;
+    throw error;
+  }
+
+  const contaminated = blockers.length > 0;
+  if (contaminated) {
+    warn('[foreman] --allow-busy: starting on a BUSY machine. This run is stamped CONTAMINATED:');
+    for (const line of blockers) warn(`  - ${line}`);
+  }
+  // Only the holder rewrites the description. If we are running contaminated
+  // BECAUSE someone else holds the lease, we never held it and must not write.
+  const holding = claim.acquired;
+  if (holding) {
+    const record = describe(contaminated)();
+    record.blockers = blockers;
+    writeJson(leaseFileIn(leaseDir), record);
+  }
+  log(`[foreman] ${holding ? 'lease acquired' : 'running WITHOUT the lease'}`
+    + ` — run ${runId}, tier ${tier}, root pid ${selfPid}${contaminated ? ' (CONTAMINATED)' : ''}`);
+
+  const base = {
+    runId, tier, contaminated, adopted: false, leaseDir, rootPid: selfPid,
+    token: holding ? token : null,
   };
-  writeJson(leasePath, held);
-  log(`[foreman] lease acquired — run ${runId}, tier ${tier}, root pid ${selfPid}`
-    + `${contaminated ? ' (CONTAMINATED)' : ''}`);
   if (!telemetry) {
     return {
-      runId, tier, contaminated, leasePath, rootPid: selfPid, telemetryPath: null,
-      telemetryGaps: () => 0, telemetrySamples: () => 0, stop: () => {},
+      ...base, telemetryPath: null, telemetryGaps: () => 0, telemetrySamples: () => 0,
+      stop: () => {},
     };
   }
 
@@ -178,16 +327,17 @@ export async function beginRun({
       catch { /* the disk is the problem; do not compound it */ }
     }
     ticks++;
-    if (Date.now() - lastHeartbeat >= HEARTBEAT_INTERVAL_MS) {
+    if (holding && Date.now() - lastHeartbeat >= HEARTBEAT_INTERVAL_MS) {
       lastHeartbeat = Date.now();
-      held.heartbeatIso = new Date().toISOString();
-      try { writeJson(leasePath, held); } catch { /* heartbeat is best-effort */ }
+      if (!touchLease({ leaseDir, token })) {
+        warn('[foreman] lost the lease (another run holds it now); this run is no longer clean.');
+      }
     }
   }, TELEMETRY_INTERVAL_MS);
   timer.unref?.();
 
   return {
-    runId, tier, contaminated, telemetryPath, leasePath, rootPid: selfPid,
+    ...base, telemetryPath,
     telemetryGaps: () => gaps,
     telemetrySamples: () => ticks,
     stop: () => { clearInterval(timer); },
@@ -233,7 +383,10 @@ export async function postflight({
   return { clean: false, survivors, killed };
 }
 
-export function endRun(handle, { leasePath = LEASE_PATH } = {}) {
+/** Stop telemetry and release the claim — but only the claim we actually hold.
+ *  An adopted run releases nothing: its parent owns the lease. */
+export function endRun(handle, { leaseDir = handle?.leaseDir || LEASE_DIR, warn } = {}) {
   handle?.stop?.();
-  try { fs.unlinkSync(leasePath); } catch { /* already released or never held */ }
+  if (!handle?.token) return false;
+  return releaseLease({ leaseDir, token: handle.token, ...(warn ? { warn } : {}) });
 }

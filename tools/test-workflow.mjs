@@ -20,7 +20,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { promisify } from 'node:util';
 import { fileURLToPath } from 'node:url';
-import { beginRun, endRun, postflight } from './foreman.mjs';
+import { ALLOW_BUSY_ENV, beginRun, endRun, postflight } from './foreman.mjs';
 
 const ROOT = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const VITEST = path.join(ROOT, 'node_modules', 'vitest', 'vitest.mjs');
@@ -559,7 +559,11 @@ if (invokedDirectly) {
           runId: identity.sha256.slice(0, 12),
           tier: 'full',
           owner: `test-workflow pid:${process.pid}`,
-          allowBusy: args.allowBusy,
+          // The override must survive the npm boundary. cold-ci --allow-busy
+          // spawns `npm run ci`, which spawns this; a flag that only reached
+          // the wrapper would let a deliberately-contaminated cold run refuse
+          // the moment tests began.
+          allowBusy: args.allowBusy || process.env[ALLOW_BUSY_ENV] === '1',
         });
       }
       if (automaticCheckpoint && args.fresh && fs.existsSync(TEST_CHECKPOINT_PATH)) {

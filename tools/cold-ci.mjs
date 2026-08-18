@@ -63,20 +63,26 @@ if (process.argv.includes('--check')) {
   process.exit(0);
 }
 
-// Refuse BEFORE the gates, not after. `npm test` runs its own foreman check,
-// but by the time control reaches it the cold run has already spent a minute
-// on typecheck, build and nine audits — and on a busy machine that minute buys
-// a number nobody can quote. Checking here costs about a second.
-if (!process.argv.includes('--allow-busy')) {
-  const { classify, listJsProcesses } = await import('./process-census.mjs');
-  const rivals = classify(await listJsProcesses()).filter(p => p.kind === 'other-checkout');
-  if (rivals.length) {
-    console.error(`[cold-ci] REFUSING — ${rivals.length} worker(s) from another checkout are running:`);
-    for (const rival of rivals) console.error(`  - pid ${rival.pid}: ${rival.cmd.slice(0, 100)}`);
-    console.error('[cold-ci] A 3.5-hour measurement taken now is not a measurement.');
-    console.error('[cold-ci] Wait for a clear machine, or pass --allow-busy to accept a contaminated result.');
-    process.exit(1);
-  }
+// Cold CI owns the lease for the WHOLE wrapper, not merely its own preamble.
+// A rival-process check before the gates still left two same-checkout cold runs
+// free to overlap through the minute of typecheck/build/audits, only for one to
+// be refused later at `npm test` — by which point both have burned the minute
+// and one of them is waste. Holding the claim across the wrapper closes that
+// window, and handing the token down means the nested test workflow ADOPTS this
+// lease instead of deadlocking against its own parent.
+const allowBusy = process.argv.includes('--allow-busy');
+const { beginRun, endRun, postflight, TOKEN_ENV, ALLOW_BUSY_ENV } = await import('./foreman.mjs');
+let run;
+try {
+  run = await beginRun({
+    runId: `coldci-${head().slice(0, 8)}`,
+    tier: 'cold-ci',
+    owner: `cold-ci pid:${process.pid}`,
+    allowBusy,
+  });
+} catch (error) {
+  console.error(`[cold-ci] ${error.message} — a 3.5-hour measurement taken now is not a measurement.`);
+  process.exit(1);
 }
 
 const startedAt = new Date().toISOString();
@@ -85,7 +91,20 @@ const commit = head();
 const dirty = isDirty();
 
 console.log(`[cold-ci] running full guard on ${commit.slice(0, 7)}${dirty ? ' (DIRTY tree)' : ''}…`);
-const r = spawnSync('npm', ['run', 'ci'], { cwd: ROOT, stdio: 'inherit', shell: true });
+const r = spawnSync('npm', ['run', 'ci'], {
+  cwd: ROOT, stdio: 'inherit', shell: true,
+  // The handoff. Without TOKEN_ENV the nested workflow would try to take a
+  // second machine-wide lease and be refused by THIS one. Without
+  // ALLOW_BUSY_ENV the advertised override evaporates at the npm boundary and a
+  // deliberately-contaminated cold run still refuses the moment tests begin —
+  // an override that only works for the first minute is not an option, it is a
+  // trap.
+  env: {
+    ...process.env,
+    [TOKEN_ENV]: run.token || '',
+    ...(allowBusy ? { [ALLOW_BUSY_ENV]: '1' } : {}),
+  },
+});
 
 let simVersion = null;
 try {
@@ -105,6 +124,22 @@ const stamp = {
   platform: `${process.platform}-${process.arch}`,
   simVersion,
 };
+// A contaminated run must not leave a stamp that reads GREEN. The stamp is what
+// the next session trusts in place of paying for the run again, so it is the
+// last place a "the machine was busy" caveat may be dropped.
+stamp.contaminated = run.contaminated === true;
+if (run.contaminated && stamp.verdict === 'green') stamp.verdict = 'contaminated';
 fs.writeFileSync(STAMP, JSON.stringify(stamp, null, 2) + '\n');
 console.log(`[cold-ci] ${stamp.verdict.toUpperCase()} in ${stamp.durationSec}s — stamped .ci-stamp.json for ${commit.slice(0, 7)}${dirty ? ' (dirty: vouches for the working state, not HEAD)' : ''}`);
+
+// Postflight on the way out, including the failing path: a crash is when
+// workers are likeliest to be orphaned, and the wrapper is the outermost thing
+// that can see the whole tree.
+try {
+  const swept = await postflight({ rootPid: process.pid });
+  if (!swept.clean) console.error('[cold-ci] processes survived this run; see above.');
+} catch (error) {
+  console.error(`[cold-ci] postflight could not run: ${error.message}`);
+}
+endRun(run);
 process.exit(r.status ?? 1);

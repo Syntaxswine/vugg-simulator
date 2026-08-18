@@ -15,14 +15,15 @@ import os from 'node:os';
 import path from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import {
-  HEARTBEAT_STALE_MS, beginRun, endRun, leaseLiveness, postflight, readLease,
+  HEARTBEAT_STALE_MS, TOKEN_ENV, beginRun, endRun, leaseLiveness, postflight,
+  readLease, releaseLease, touchLease,
 } from '../tools/foreman.mjs';
 
 const REPO = 'C:/Users/baals/Local Storage/AI/vugg/vugg-simulator';
 const RIVAL = 'C:/Users/baals/Local Storage/AI/GTP/Vugg-Simulator';
 const SELF = 4242;
 
-let leasePath: string;
+let leaseDir: string;
 const quiet = { log: () => {}, warn: () => {} };
 
 const proc = (over: Record<string, any> = {}) => ({
@@ -35,14 +36,14 @@ const rivalWorker = () => proc({
 });
 
 const begin = (opts: Record<string, any> = {}) => beginRun({
-  runId: 'test-run', leasePath, repoRoot: REPO, selfPid: SELF,
-  telemetry: false, ...quiet, ...opts,
+  runId: 'test-run', leaseDir, repoRoot: REPO, selfPid: SELF,
+  telemetry: false, inheritToken: null, ...quiet, ...opts,
 });
 
 beforeEach(() => {
-  leasePath = path.join(os.tmpdir(), `vugg-foreman-test-${process.pid}-${Math.random().toString(36).slice(2)}.json`);
+  leaseDir = path.join(os.tmpdir(), `vugg-foreman-test-${process.pid}-${Math.random().toString(36).slice(2)}.d`);
 });
-afterEach(() => { try { fs.unlinkSync(leasePath); } catch { /* never held */ } });
+afterEach(() => { try { fs.rmSync(leaseDir, { recursive: true, force: true }); } catch { /* never held */ } });
 
 describe('foreman — lease liveness', () => {
   const lease = (over: Record<string, any> = {}) => ({
@@ -92,8 +93,8 @@ describe('foreman — beginRun refuses, and refuses to refuse', () => {
   it('starts on a clear machine', async () => {
     const run = await begin({ list: async () => [me()] });
     expect(run.contaminated).toBe(false);
-    expect(readLease({ leasePath })?.runId).toBe('test-run');
-    endRun(run, { leasePath });
+    expect(readLease({ leaseDir })?.runId).toBe('test-run');
+    endRun(run, { leaseDir });
   });
 
   it('refuses when another checkout is running', async () => {
@@ -101,7 +102,8 @@ describe('foreman — beginRun refuses, and refuses to refuse', () => {
   });
 
   it('refuses when a live lease is held by someone else', async () => {
-    fs.writeFileSync(leasePath, JSON.stringify({
+    fs.mkdirSync(leaseDir, { recursive: true });
+    fs.writeFileSync(path.join(leaseDir, 'lease.json'), JSON.stringify({
       runId: 'other', owner: 'agent-2', tier: 'full', rootPid: 900,
       rootStartedIso: '2026-08-18T09:00:00.000Z',
       heartbeatIso: new Date().toISOString(),
@@ -111,15 +113,16 @@ describe('foreman — beginRun refuses, and refuses to refuse', () => {
   });
 
   it('takes over a STALE lease instead of blocking forever', async () => {
-    fs.writeFileSync(leasePath, JSON.stringify({
+    fs.mkdirSync(leaseDir, { recursive: true });
+    fs.writeFileSync(path.join(leaseDir, 'lease.json'), JSON.stringify({
       runId: 'abandoned', owner: 'agent-2', tier: 'full', rootPid: 901,
       rootStartedIso: '2026-08-18T09:00:00.000Z',
       heartbeatIso: new Date(Date.now() - HEARTBEAT_STALE_MS - 60_000).toISOString(),
     }));
     const run = await begin({ list: async () => [me()] });
     expect(run.contaminated).toBe(false);
-    expect(readLease({ leasePath })?.runId).toBe('test-run');
-    endRun(run, { leasePath });
+    expect(readLease({ leaseDir })?.runId).toBe('test-run');
+    endRun(run, { leaseDir });
   });
 
   it('--allow-busy proceeds but stamps the run CONTAMINATED', async () => {
@@ -127,15 +130,15 @@ describe('foreman — beginRun refuses, and refuses to refuse', () => {
     // is the whole failure mode this subsystem exists to prevent.
     const run = await begin({ list: async () => [me(), rivalWorker()], allowBusy: true });
     expect(run.contaminated).toBe(true);
-    expect(readLease({ leasePath })?.contaminated).toBe(true);
-    expect(readLease({ leasePath })?.blockers.length).toBeGreaterThan(0);
-    endRun(run, { leasePath });
+    expect(readLease({ leaseDir })?.contaminated).toBe(true);
+    expect(readLease({ leaseDir })?.blockers.length).toBeGreaterThan(0);
+    endRun(run, { leaseDir });
   });
 
   it('releases the lease on endRun so the next agent is not blocked by us', async () => {
     const run = await begin({ list: async () => [me()] });
-    endRun(run, { leasePath });
-    expect(readLease({ leasePath })).toBeNull();
+    endRun(run, { leaseDir });
+    expect(readLease({ leaseDir })).toBeNull();
   });
 });
 
@@ -179,5 +182,133 @@ describe('foreman — postflight', () => {
     });
     expect(stubborn.clean).toBe(false);
     expect(stubborn.survivors.map(s => s.pid)).toEqual([602]);
+  });
+});
+
+describe('foreman — ownership is atomic and release is authenticated', () => {
+  it('two racing acquisitions: exactly one wins', async () => {
+    // The defect this pins: acquisition was read → decide-it-is-free → write.
+    // Both racers read "free", both wrote, and the second silently displaced
+    // the first — the precise race the lease exists to prevent, rebuilt inside
+    // the lease. `mkdir` is the atomic step; only one caller can return from it.
+    const OTHER = 4243;
+    const both = [me(), proc({ pid: OTHER, cmd: 'node tools/test-workflow.mjs --fresh' })];
+    const results = await Promise.allSettled([
+      begin({ runId: 'racer-a', selfPid: SELF, list: async () => both }),
+      begin({ runId: 'racer-b', selfPid: OTHER, list: async () => both }),
+    ]);
+    const won = results.filter(r => r.status === 'fulfilled');
+    const lost = results.filter(r => r.status === 'rejected');
+    expect(won).toHaveLength(1);
+    expect(lost).toHaveLength(1);
+    // And the survivor is the one the lease names — not merely "someone".
+    const winner = (won[0] as PromiseFulfilledResult<any>).value;
+    expect(readLease({ leaseDir })?.runId).toBe(winner.runId);
+    expect(readLease({ leaseDir })?.token).toBe(winner.token);
+    endRun(winner, { leaseDir });
+  });
+
+  it('an old handle cannot delete a successor lease', async () => {
+    // A displaced or long-finished owner deleting a newer claim would hand the
+    // machine to a third party — the original race with extra steps.
+    const first = await begin({ runId: 'first', list: async () => [me()] });
+    const stolenToken = first.token;
+    endRun(first, { leaseDir });
+
+    const second = await begin({ runId: 'second', list: async () => [me()] });
+    expect(releaseLease({ leaseDir, token: stolenToken, warn: () => {} })).toBe(false);
+    expect(readLease({ leaseDir })?.runId).toBe('second');
+    expect(releaseLease({ leaseDir, token: second.token, warn: () => {} })).toBe(true);
+    expect(readLease({ leaseDir })).toBeNull();
+  });
+
+  it('a displaced holder cannot refresh the heartbeat it no longer owns', async () => {
+    const first = await begin({ runId: 'first', list: async () => [me()] });
+    const staleToken = first.token;
+    endRun(first, { leaseDir });
+    const second = await begin({ runId: 'second', list: async () => [me()] });
+    expect(touchLease({ leaseDir, token: staleToken })).toBe(false);
+    expect(touchLease({ leaseDir, token: second.token })).toBe(true);
+    expect(readLease({ leaseDir })?.runId).toBe('second');
+    endRun(second, { leaseDir });
+  });
+
+  it('a refused run leaves no lease behind', async () => {
+    // A refusal that leaked a half-made claim would block the very run that is
+    // about to be told to try again.
+    await expect(begin({ list: async () => [me(), rivalWorker()] })).rejects.toThrow();
+    expect(readLease({ leaseDir })).toBeNull();
+  });
+
+  it('a nested run ADOPTS the parent lease and never releases it', async () => {
+    // cold-ci holds the claim for the whole wrapper. If the nested workflow
+    // took a second lease it would deadlock against its own parent; if it
+    // released on exit it would drop the parent's claim mid-run.
+    const parent = await begin({ runId: 'cold-ci', tier: 'cold-ci', list: async () => [me()] });
+    const child = await begin({
+      runId: 'nested', list: async () => [me()], inheritToken: parent.token,
+    });
+    expect(child.adopted).toBe(true);
+    expect(child.token).toBeNull();
+    endRun(child, { leaseDir });
+    // The parent's claim survives the child's exit — the whole point.
+    expect(readLease({ leaseDir })?.runId).toBe('cold-ci');
+    endRun(parent, { leaseDir });
+    expect(readLease({ leaseDir })).toBeNull();
+  });
+
+  it('a nested run inherits the parent CONTAMINATED stamp', async () => {
+    const parent = await begin({
+      runId: 'cold-ci', tier: 'cold-ci', allowBusy: true,
+      list: async () => [me(), rivalWorker()],
+    });
+    const child = await begin({
+      runId: 'nested', list: async () => [me()], inheritToken: parent.token,
+    });
+    expect(child.contaminated).toBe(true);
+    endRun(parent, { leaseDir });
+  });
+
+  it('a bogus inherited token does not become a licence to grab the machine', async () => {
+    const holder = proc({ pid: 900, startedIso: '2026-08-18T09:00:00.000Z' });
+    fs.mkdirSync(leaseDir, { recursive: true });
+    fs.writeFileSync(path.join(leaseDir, 'lease.json'), JSON.stringify({
+      runId: 'someone-else', owner: 'agent-2', tier: 'full', rootPid: 900,
+      token: 'the-real-token', rootStartedIso: '2026-08-18T09:00:00.000Z',
+      heartbeatIso: new Date().toISOString(),
+    }));
+    await expect(begin({
+      list: async () => [me(), holder], inheritToken: 'a-token-from-nowhere',
+    })).rejects.toThrow(/machine busy/);
+    expect(readLease({ leaseDir })?.runId).toBe('someone-else');
+  });
+
+  it('will not steal a claim that is mid-acquisition', async () => {
+    // The sharpest test of the atomic primitive, and the one a single-file
+    // lease cannot pass. The claim DIRECTORY exists but carries no readable
+    // lease.json: either a racer between mkdir and write, or a crash in that
+    // gap. Read-decide-write sees "no lease" and treats it as free — which is
+    // the original defect at millisecond scale. The directory is the claim, so
+    // its mere existence must block during the grace window.
+    fs.mkdirSync(leaseDir, { recursive: true });
+    await expect(begin({ list: async () => [me()] })).rejects.toThrow(/machine busy/);
+  });
+
+  it('reclaims a claim directory abandoned before its lease was written', async () => {
+    // The negative twin: past the grace window an empty claim is a crash, not
+    // a racer, and must not block the machine forever.
+    fs.mkdirSync(leaseDir, { recursive: true });
+    const old = Date.now() / 1000 - 3600;
+    fs.utimesSync(leaseDir, old, old);
+    const run = await begin({ list: async () => [me()] });
+    expect(run.contaminated).toBe(false);
+    expect(readLease({ leaseDir })?.runId).toBe('test-run');
+    endRun(run, { leaseDir });
+  });
+
+  it('exports the env names the cold-CI handoff depends on', () => {
+    // A renamed constant on one side of a process boundary fails silently:
+    // the child simply never sees a token and takes its own lease.
+    expect(TOKEN_ENV).toBe('VUGG_FOREMAN_LEASE_TOKEN');
   });
 });
