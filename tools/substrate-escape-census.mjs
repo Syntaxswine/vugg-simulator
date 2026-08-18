@@ -41,7 +41,13 @@ const NAMES_CRYSTAL = /#\d+/;
 const species = new Map();
 const note = (mineral, key) => {
   if (!species.has(mineral)) {
-    species.set(mineral, { mineral, total: 0, bare: 0, onCrystal: 0, hosts: {}, scenarios: new Set() });
+    species.set(mineral, {
+      mineral, total: 0, bare: 0, onCrystal: 0, hosts: {}, scenarios: new Set(),
+      // One record per sighting, not a tally. A count says a pairing happened;
+      // a receipt says where, in which run, and at which step - which is the
+      // difference between an assertion and something a reader can go check.
+      sightings: [],
+    });
   }
   return species.get(mineral)[key];
 };
@@ -70,7 +76,16 @@ for (const name of scenarioNames) {
       if (NAMES_CRYSTAL.test(pos)) {
         rec.onCrystal++;
         const host = pos.match(/\b([a-z_]+)\s+#\d+/);
-        if (host) rec.hosts[host[1]] = (rec.hosts[host[1]] || 0) + 1;
+        if (host) {
+          rec.hosts[host[1]] = (rec.hosts[host[1]] || 0) + 1;
+          rec.sightings.push({
+            host: host[1],
+            scenario: name,
+            seed,
+            step: Number(crystal.nucleation_step ?? -1),
+            position: pos,
+          });
+        }
       } else {
         rec.bare++;
       }
@@ -87,6 +102,7 @@ const rows = [...species.values()].map(r => ({
   onCrystal: r.onCrystal,
   escapes: r.bare > 0,
   hosts: Object.fromEntries(Object.entries(r.hosts).sort((a, b) => b[1] - a[1])),
+  sightings: r.sightings,
   scenarios: [...r.scenarios].sort(),
 })).sort((a, b) => b.observed - a.observed);
 
