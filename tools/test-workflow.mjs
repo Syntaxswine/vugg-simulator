@@ -20,6 +20,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { promisify } from 'node:util';
 import { fileURLToPath } from 'node:url';
+import { beginRun, endRun, postflight } from './foreman.mjs';
 
 const ROOT = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const VITEST = path.join(ROOT, 'node_modules', 'vitest', 'vitest.mjs');
@@ -162,6 +163,8 @@ export function makeTestCheckpoint({ identity, completedFiles = [], batches = []
       // predates this field: unknown, never zero. A shard planner that reads
       // a missing duration as 0 s balances by fiction.
       wall_ms: Number.isFinite(batch.wall_ms) ? batch.wall_ms : null,
+      started_iso: batch.started_iso ?? null,
+      finished_iso: batch.finished_iso ?? null,
     })),
   };
 }
@@ -171,14 +174,24 @@ export function makeTestCompletionReport({
   completedFiles = [],
   batches = [],
   uninterrupted = false,
+  // Named in the signature, not spread in by the caller. This builder drops
+  // anything it does not destructure — the same silent omission that kept 232
+  // memory figures and no timestamps. A contamination flag that vanishes on the
+  // way to the report is worse than none: the run would read as clean.
+  foreman = null,
 } = {}) {
   return {
     ...makeTestCheckpoint({ identity, completedFiles, batches }),
     status: uninterrupted ? 'pass' : 'operator-resume-complete',
-    full_suite_pass: uninterrupted,
-    trust: uninterrupted
-      ? 'local-uninterrupted-result-not-independent-attestation'
-      : TEST_CHECKPOINT_TRUST,
+    // A contaminated run is not a clean pass, whatever the exit code says.
+    full_suite_pass: uninterrupted && !foreman?.contaminated,
+    contaminated: foreman?.contaminated === true,
+    foreman,
+    trust: foreman?.contaminated
+      ? 'CONTAMINATED-machine-was-busy-not-a-clean-measurement'
+      : uninterrupted
+        ? 'local-uninterrupted-result-not-independent-attestation'
+        : TEST_CHECKPOINT_TRUST,
   };
 }
 
@@ -421,6 +434,9 @@ export function parseArgs(argv) {
   let batchSize = DEFAULT_TEST_BATCH_SIZE;
   let startIndex = 0;
   let fresh = false;
+  // Deliberate override, never a default. It does not soften the check: it
+  // proceeds AND stamps the run contaminated in every artefact it produces.
+  let allowBusy = false;
   const selectedFiles = [];
   for (let index = 0; index < argv.length; index++) {
     const arg = argv[index];
@@ -428,7 +444,8 @@ export function parseArgs(argv) {
     else if (arg === '--start-index') startIndex = Number(argv[++index]);
     else if (arg === '--file') selectedFiles.push(String(argv[++index] || '').replaceAll('\\', '/'));
     else if (arg === '--fresh') fresh = true;
-    else if (arg === '--help') return { help: true, batchSize, startIndex, selectedFiles, fresh };
+    else if (arg === '--allow-busy') allowBusy = true;
+    else if (arg === '--help') return { help: true, batchSize, startIndex, selectedFiles, fresh, allowBusy };
     else throw new Error(`unknown argument: ${arg}`);
   }
   if (!Number.isInteger(startIndex) || startIndex < 0) {
@@ -438,7 +455,7 @@ export function parseArgs(argv) {
   if (selectedFiles.length && startIndex !== 0) {
     throw new Error('--file and --start-index cannot be combined');
   }
-  return { help: false, batchSize, startIndex, selectedFiles, fresh };
+  return { help: false, batchSize, startIndex, selectedFiles, fresh, allowBusy };
 }
 
 export async function runTestWorkflow({
@@ -459,8 +476,10 @@ export async function runTestWorkflow({
     const last = path.basename(batch[batch.length - 1]);
     console.log(`\n[test-workflow] batch ${index + 1}/${batches.length}: ${first} .. ${last}`);
     const batchStartedMs = Date.now();
+    const batchStartedIso = new Date().toISOString();
     const result = await batchRunner({ batch });
     const wallMs = Date.now() - batchStartedMs;
+    const batchFinishedIso = new Date().toISOString();
     runWallMs += wallMs;
     const peakMb = Math.ceil(result.peakRssBytes / 1024 / 1024);
     if (result.terminationError) {
@@ -499,6 +518,12 @@ export async function runTestWorkflow({
       batchCount: batches.length,
       peakRssBytes: result.peakRssBytes,
       wallMs,
+      // Absolute stamps, not just a duration. Host telemetry is a time SERIES;
+      // without both ends of every batch the two records cannot be laid against
+      // each other, and "which file was running when the machine went busy"
+      // stays permanently unanswerable.
+      startedIso: batchStartedIso,
+      finishedIso: batchFinishedIso,
     });
   }
   console.log(`\n[test-workflow] COMPLETE: ${files.length} files across ${batches.length} memory-bounded batches`);
@@ -511,10 +536,13 @@ export async function runTestWorkflow({
 const invokedDirectly = process.argv[1]
   && path.resolve(process.argv[1]) === path.resolve(fileURLToPath(import.meta.url));
 if (invokedDirectly) {
+  // Declared outside the try so the finally block can always reach it: the
+  // postflight sweep must run even when beginRun itself is what threw.
+  let run = null;
   try {
     const args = parseArgs(process.argv.slice(2));
     if (args.help) {
-      console.log('node tools/test-workflow.mjs [--fresh] [--batch-size N] [--start-index N] [--file tests-js/name.test.ts ...]');
+      console.log('node tools/test-workflow.mjs [--fresh] [--allow-busy] [--batch-size N] [--start-index N] [--file tests-js/name.test.ts ...]');
     } else {
       const allFiles = collectTestFiles();
       for (const file of args.selectedFiles) {
@@ -522,6 +550,18 @@ if (invokedDirectly) {
       }
       const automaticCheckpoint = !args.selectedFiles.length && args.startIndex === 0;
       const identity = automaticCheckpoint ? testWorkflowIdentity() : null;
+      // The foreman runs on FULL-SUITE runs, which are the ones whose numbers
+      // get quoted. A targeted `--file` run is a developer checking one thing,
+      // not a measurement, and refusing those would only teach people to pass
+      // --allow-busy by reflex until the refusal means nothing.
+      if (automaticCheckpoint) {
+        run = await beginRun({
+          runId: identity.sha256.slice(0, 12),
+          tier: 'full',
+          owner: `test-workflow pid:${process.pid}`,
+          allowBusy: args.allowBusy,
+        });
+      }
       if (automaticCheckpoint && args.fresh && fs.existsSync(TEST_CHECKPOINT_PATH)) {
         fs.unlinkSync(TEST_CHECKPOINT_PATH);
       }
@@ -557,9 +597,12 @@ if (invokedDirectly) {
         assertStable: automaticCheckpoint
           ? () => assertTestWorkflowIdentityUnchanged(identity)
           : null,
-        onBatchPass: automaticCheckpoint ? ({ batch, peakRssBytes, wallMs }) => {
+        onBatchPass: automaticCheckpoint ? ({ batch, peakRssBytes, wallMs, startedIso, finishedIso }) => {
           completedFiles.push(...batch);
-          completedBatches.push({ files: batch, peak_rss_bytes: peakRssBytes, wall_ms: wallMs });
+          completedBatches.push({
+            files: batch, peak_rss_bytes: peakRssBytes, wall_ms: wallMs,
+            started_iso: startedIso, finished_iso: finishedIso,
+          });
           writeJsonAtomic(TEST_CHECKPOINT_PATH, makeTestCheckpoint({
             identity, completedFiles, batches: completedBatches,
           }));
@@ -571,6 +614,16 @@ if (invokedDirectly) {
         const reportPath = uninterrupted ? TEST_REPORT_PATH : TEST_RESUME_REPORT_PATH;
         writeJsonAtomic(reportPath, makeTestCompletionReport({
           identity, completedFiles, batches: completedBatches, uninterrupted,
+          // The run's own account of the machine it ran on. Bound to the report
+          // rather than left beside it, so a profile and the host state behind
+          // it cannot drift apart or be read without each other.
+          foreman: run ? {
+            run_id: run.runId,
+            contaminated: run.contaminated,
+            telemetry: path.relative(ROOT, run.telemetryPath),
+            telemetry_samples: run.telemetrySamples(),
+            telemetry_gaps: run.telemetryGaps(),
+          } : null,
         }));
         fs.unlinkSync(TEST_CHECKPOINT_PATH);
         if (uninterrupted) {
@@ -586,5 +639,25 @@ if (invokedDirectly) {
   } catch (error) {
     console.error(`[test-workflow] FAIL: ${error.message}`);
     process.exitCode = 1;
+  } finally {
+    // Postflight runs on EVERY exit path, including the failing one. A leak
+    // check that only runs after a clean pass is a leak check that never sees
+    // the crash — and a crash is when workers are most likely to be orphaned.
+    if (run) {
+      try {
+        const swept = await postflight({ rootPid: run.rootPid });
+        if (!swept.clean) {
+          console.error('[test-workflow] FAIL: processes survived this run; see above.');
+          process.exitCode = process.exitCode || 1;
+        }
+      } catch (error) {
+        console.error(`[test-workflow] postflight could not run: ${error.message}`);
+      }
+      endRun(run);
+      if (run.contaminated) {
+        console.error('[test-workflow] NOTE: this run was CONTAMINATED (--allow-busy on a busy machine).');
+        console.error('[test-workflow] Its timings are not a clean measurement and the report says so.');
+      }
+    }
   }
 }

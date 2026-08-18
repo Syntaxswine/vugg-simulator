@@ -107,6 +107,11 @@ const concentration = [];
 const summary = {
   source: path.relative(ROOT, source.path),
   kind: source.label,
+  // Carried from the run's own foreman record. A profile that prints clean
+  // percentiles over a run taken on a busy machine is the exact artefact this
+  // whole exercise exists to prevent.
+  contaminated: source.record.contaminated === true,
+  foreman: source.record.foreman || null,
   partial: source.partial || unmeasured > 0,
   full_suite_pass: source.record.full_suite_pass === true,
   batches: rows.length,
@@ -133,6 +138,19 @@ if (asJson) {
 }
 
 console.log(`[test-profile] ${summary.kind} — ${summary.source}`);
+if (summary.contaminated) {
+  console.log('[test-profile] *** CONTAMINATED RUN *** — the machine was busy and --allow-busy was given.');
+  console.log('[test-profile] These timings describe a contended host. Do not quote them as a measurement.');
+}
+if (summary.foreman) {
+  const { telemetry, telemetry_samples: samples, telemetry_gaps: gaps } = summary.foreman;
+  console.log(`[test-profile] host telemetry: ${telemetry} (${samples} samples`
+    + `${gaps ? `, ${gaps} GAPS` : ''})`);
+} else {
+  // Absence stated, never implied. A run with no foreman record predates the
+  // wiring; it is not a run that was verified clean.
+  console.log('[test-profile] no foreman record — this run predates process-hygiene wiring; cleanliness is UNKNOWN.');
+}
 if (summary.partial) {
   console.log(`[test-profile] PARTIAL: ${unmeasured} of ${rows.length} batches carry no wall time.`);
   console.log('[test-profile] Every figure below is over the measured batches only. A shard plan is refused on this record.');

@@ -63,6 +63,22 @@ if (process.argv.includes('--check')) {
   process.exit(0);
 }
 
+// Refuse BEFORE the gates, not after. `npm test` runs its own foreman check,
+// but by the time control reaches it the cold run has already spent a minute
+// on typecheck, build and nine audits — and on a busy machine that minute buys
+// a number nobody can quote. Checking here costs about a second.
+if (!process.argv.includes('--allow-busy')) {
+  const { classify, listJsProcesses } = await import('./process-census.mjs');
+  const rivals = classify(await listJsProcesses()).filter(p => p.kind === 'other-checkout');
+  if (rivals.length) {
+    console.error(`[cold-ci] REFUSING — ${rivals.length} worker(s) from another checkout are running:`);
+    for (const rival of rivals) console.error(`  - pid ${rival.pid}: ${rival.cmd.slice(0, 100)}`);
+    console.error('[cold-ci] A 3.5-hour measurement taken now is not a measurement.');
+    console.error('[cold-ci] Wait for a clear machine, or pass --allow-busy to accept a contaminated result.');
+    process.exit(1);
+  }
+}
+
 const startedAt = new Date().toISOString();
 const t0 = Date.now();
 const commit = head();

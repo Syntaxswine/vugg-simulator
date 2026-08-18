@@ -47,6 +47,7 @@ describe('memory-bounded full-test workflow', () => {
       startIndex: 115,
       selectedFiles: [],
       fresh: false,
+      allowBusy: false,
     });
     expect(parseArgs(['--file', 'tests-js/a.test.ts', '--file', 'tests-js/b.test.ts']))
       .toEqual({
@@ -55,8 +56,14 @@ describe('memory-bounded full-test workflow', () => {
         startIndex: 0,
         selectedFiles: ['tests-js/a.test.ts', 'tests-js/b.test.ts'],
         fresh: false,
+        allowBusy: false,
       });
     expect(parseArgs(['--fresh'])).toMatchObject({ fresh: true });
+    // The override must be OFF unless asked for. A default-on --allow-busy
+    // would make the foreman's refusal unreachable in normal use, which is
+    // indistinguishable from not having built it.
+    expect(parseArgs([])).toMatchObject({ allowBusy: false });
+    expect(parseArgs(['--allow-busy'])).toMatchObject({ allowBusy: true });
     expect(() => parseArgs(['--start-index', '-1'])).toThrow('non-negative integer');
     expect(() => parseArgs(['--start-index', '1.5'])).toThrow('non-negative integer');
     expect(() => parseArgs(['--start-index', '1', '--file', 'tests-js/a.test.ts']))

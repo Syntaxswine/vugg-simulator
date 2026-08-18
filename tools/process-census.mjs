@@ -95,6 +95,11 @@ export async function listJsProcesses() {
     return {
       pid: p.ProcessId,
       ppid: p.ParentProcessId,
+      // The absolute start time, not just the age. A lease identifies its owner
+      // by (pid, startedIso) because PIDs are RECYCLED: a lease naming only a
+      // PID is one reboot-and-reuse away from a stranger's process vouching for
+      // a run that ended hours ago.
+      startedIso: Number.isFinite(started) ? new Date(started).toISOString() : null,
       // null, never NaN. Callers must decide what to do about "unknown";
       // arithmetic silently deciding it for them is how this broke.
       ageHours: Number.isFinite(started) ? (now - started) / 3600000 : null,

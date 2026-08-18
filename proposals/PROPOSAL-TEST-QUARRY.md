@@ -256,9 +256,15 @@ root, then verified zero descendants remained. Never by name.
 
 The serial arm completed before the kill: **1030.4 s against 990.4 s** for the same six
 files in the clean profile — and ~8.5 s of that gap is child-start tax the arm avoided by
-running one child instead of six. **Contention cost roughly 5%.** A concurrent full suite
-on 16 logical processors barely dents a single-threaded run, which bounds CPU steal as an
-explanation for the outliers: it cannot manufacture a 15-minute file.
+running one child instead of six. **That collision cost roughly 5%.**
+
+*Scope, corrected on review.* This bounds **that** collision — one other serial suite on a
+16-thread host — and not contention in general. It says nothing about several agents each
+launching parallel scenario runs, subagent fleets, or a browser job; two single-threaded
+suites on sixteen threads is close to the friendliest overlap the machine can produce. The
+honest claim is narrow: **ordinary two-suite overlap cannot by itself manufacture a
+fifteen-minute file.** Anything larger is unmeasured, and now instrumented rather than
+argued.
 
 ### Host facts, measured rather than assumed
 
@@ -268,9 +274,14 @@ explanation for the outliers: it cannot manufacture a 15-minute file.
 | page file | 4096 MB allocated, **94 MB peak used since boot** |
 | uptime at census | 39.8 h — **covers the 12 193 s run** |
 
-Peak page-file usage of 94 MB across an uptime window containing the whole run is a
-receipt: **there was no reclaim or swap pressure at any point.** Memory contention is
-ruled out retrospectively, from data that already existed.
+Peak page-file usage of 94 MB across an uptime window containing the whole run rules out
+**meaningful paging**. *Corrected on review — the first draft of this section said it
+proved "no reclaim or memory pressure at any point", which is too strong.* Windows can
+trim working sets and evict standby cache under physical-memory pressure without ever
+growing page-file occupancy, so a small page file is evidence about paging and only about
+paging. **Physical pressure must be adjudicated by the time-series sampler, not by that
+historical number** — which is one more reason telemetry is now bound to the run rather
+than left to be remembered.
 
 **This corrects §3 of this document.** It priced the formation check at 65–97 min because
 "2–3 shards is what RAM holds." RAM was never the constraint — 1676 MB worst case against
@@ -283,12 +294,16 @@ experiment in the plan. **Still owed**: the machine has not been quiet since.
 
 | brief bullet | status |
 |---|---|
-| preflight census; refuse if unrelated Vugg workers exist | ✅ `tools/process-census.mjs --preflight`, exits 1. `--allow-busy` to override deliberately |
-| owned process trees, verify zero descendants | ⚠️ `--postflight <rootPid>` verifies and attributes survivors. **Not wired into the runner**, and it does not kill — whoever owns a tree kills that tree |
-| Windows Job Objects | ❌ **blocked, not deferred.** Node has no Job Object API; this needs a native addon. `taskkill /T /F` tears down a *known* tree but cannot help with an abandoned parent, which is the exact case Job Objects exist for. Naming the blocker rather than shipping something weaker under the same name |
-| run manifests (run ID, root PID, tier, heartbeat) | ❌ not built |
-| postflight leak gate | ⚠️ the check exists; the *gate* wiring does not |
+| preflight census; refuse if unrelated Vugg workers exist | ✅ **wired.** `test-workflow.mjs` calls it on every full-suite run and `cold-ci.mjs` refuses before spending a minute on gates. Verified live: the runner refused while the GTP suite held the box |
+| owned process trees, verify zero descendants | ✅ **wired**, in a `finally` so it runs on the failing path too — a crash is when workers are likeliest to be orphaned. It now *kills*, scoped strictly to our root's descendants |
+| Windows Job Objects | ❌ **blocked, and named separately.** Node has no Job Object API; this needs a native addon. `taskkill /T /F` tears down a *known* tree but cannot help with an abandoned parent, which is the exact case Job Objects exist for. The owned-tree sweep covers polite and crashing exits; it does not cover an abandoned root |
+| machine-wide lease / queue | ✅ **built**, at `%TEMP%/vugg-foreman/run-lease.json` — deliberately **outside any checkout**, because a lease under `.local-evidence/` cannot see a rival checkout's lease, and two working copies sharing one CPU is the exact collision this exists to stop. Holder identified by `(pid, startedIso)`: PIDs are recycled, and a lease naming only a PID is one reuse away from a stranger blocking every future run |
+| run manifest with run ID, owner, PID, tier, heartbeat | ✅ the lease **is** the manifest; heartbeat every 15 s, stale at 90 s — far below a single batch's 900 s worst case, so a healthy 15-minute file never reads as abandoned |
+| host telemetry started/stopped with the run | ✅ **in-process**, keyed to the run's identity hash and recorded *in the completion report*. A hygiene subsystem that spawns its own long-lived child is one crash from being the leak it was built to catch |
+| batch↔telemetry correlation | ✅ every batch now carries `started_iso` / `finished_iso`, so "which file was running when the machine went busy" is answerable |
+| contaminated runs visibly contaminated | ✅ `--allow-busy` proceeds but stamps the run; `full_suite_pass` goes **false**, `trust` reads `CONTAMINATED-…`, and `test-profile` leads with it. A run with no foreman record reports cleanliness **UNKNOWN** rather than clean |
 | startup hygiene report | ✅ `--hygiene` — never kills, never exits non-zero |
+| concurrency experiment on a clean host | ❌ **still owed.** The machine has not been clear since; preflight has refused every attempt, which is the system working |
 
 Host telemetry is a separate instrument: `tools/host-sampler.mjs` records free RAM and
 aggregate CPU every second in-process, with competitor identity on a 10 s cadence. The
