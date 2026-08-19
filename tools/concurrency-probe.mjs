@@ -24,7 +24,7 @@
  *   node tools/concurrency-probe.mjs --allow-busy   # deliberately contaminated
  */
 
-import { spawnSync } from 'node:child_process';
+import { spawn } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -53,7 +53,7 @@ const argv = process.argv.slice(2);
 const flag = name => { const i = argv.indexOf(name); return i >= 0 ? argv[i + 1] : null; };
 const workerCounts = (flag('--workers') || '1,2,4,8').split(',').map(Number).filter(Boolean);
 
-const runArm = (workers) => {
+const runArm = async (workers) => {
   const args = [
     `--max-old-space-size=${HEAP_MB}`, VITEST, 'run', ...PROBE_FILES,
     '--reporter=dot', '--pool=threads', `--maxWorkers=${workers}`, '--maxConcurrency=1',
@@ -61,8 +61,20 @@ const runArm = (workers) => {
   ];
   const startedIso = new Date().toISOString();
   const t0 = Date.now();
-  const result = spawnSync(process.execPath, args, {
-    cwd: ROOT, encoding: 'utf8', windowsHide: true,
+  // Awaited async spawn, never spawnSync: this probe HOLDS the machine-wide
+  // lease, and the heartbeat that proves it lives on this process's event
+  // loop. A synchronous wait froze that heartbeat for the length of the arm
+  // (up to ~990 s), leaving the claim legally takeable mid-measurement — the
+  // defect repaired in cold-ci.mjs, present in the very tool built to
+  // measure cleanly.
+  const result = await new Promise((resolve) => {
+    const child = spawn(process.execPath, args, { cwd: ROOT, windowsHide: true });
+    let stdout = '';
+    let stderr = '';
+    child.stdout.on('data', chunk => { stdout += chunk; });
+    child.stderr.on('data', chunk => { stderr += chunk; });
+    child.on('error', error => resolve({ status: 1, stdout, stderr: `${stderr}\n${error.message}` }));
+    child.on('close', status => resolve({ status, stdout, stderr }));
   });
   const sec = (Date.now() - t0) / 1000;
   const passed = /Test Files\s+(\d+) passed/.exec(result.stdout || '');
@@ -86,7 +98,7 @@ try {
   console.log(`[concurrency] ${PROBE_FILES.length} files per arm; workers: ${workerCounts.join(', ')}`);
   console.log(`[concurrency] clean-profile baseline for these six, one file per child: ${PROFILE_BASELINE_SEC}s\n`);
   for (const workers of workerCounts) {
-    const arm = runArm(workers);
+    const arm = await runArm(workers);
     arms.push(arm);
     console.log(`  workers=${String(workers).padStart(2)}  ${String(arm.sec).padStart(7)}s`
       + `  exit ${arm.status}  files passed ${arm.filesPassed}${arm.anyFailure ? '  <-- FAILURES' : ''}`);
