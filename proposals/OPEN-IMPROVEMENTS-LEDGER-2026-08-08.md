@@ -184,17 +184,35 @@ single execution ledger for the science-first AAA completion branch.
   and `cold-ci.mjs`; `--allow-busy` stamps the run CONTAMINATED everywhere
   downstream. Tests: `tests-js/foreman.test.ts` (24),
   `tests-js/process-census.test.ts` (9), both mutation-tested.
+  **2026-08-19 — the two remaining defects closed** (`9d9c00a`, `017f426`):
+  heartbeats moved to a token-keyed `hb-<token>.json` (a whole-record rewrite could
+  resurrect a stale identity over a successor's); release is park-verify-delete with
+  restore (was verify-then-`rmSync`); `cold-ci.mjs` and `concurrency-probe.mjs` await
+  async spawns (spawnSync froze the event-loop-hosted heartbeat — the wrapper's claim
+  read STALE from 90 s into every run; an external watcher across two full probe runs
+  now measures max heartbeat age **15.1 s**). foreman tests 24→28, all mutation-tested.
 - [ ] **Chip check** — fast tier over the 127 non-stepping files. Its lever is
   BATCHING: `DEFAULT_TEST_BATCH_SIZE = 1` costs 216 s of a 442 s tier, i.e. 3% of
   the cold run but **49% of a chip check**. Needs an authored changed-file →
   subsystem map; that map is the deliverable and it is authored, not derived.
+- [x] **Split `calibration.test.ts`** (2026-08-19, the Flint PR #8 salvage): the
+  745 s #3-heaviest file is now `calibration-lib.ts` + 8 name-hash-homed
+  `calibration-shard-*.test.ts` stripes (4–9 scenarios each, 41 total) with the
+  partition/coverage proof kept in `calibration.test.ts` — completeness and
+  disjointness asserted, mutation-tested (a silently dropped scenario turns it RED).
+  Authenticated fail-closed baseline loading preserved.
 - [ ] **Split the two ~890 s test files** (`conichalcite`, `vanadate-v-economics`).
   PRECONDITION for any formation-check target under an hour: you cannot shard below
   your longest indivisible unit, and that unit is 893.8 s = 14.9 min.
 - [ ] **Shard the full suite**, balanced from the recorded per-file durations, with
   concurrency set by `tools/concurrency-probe.mjs` rather than by the stale
   `vitest.config.ts` comment about eight workers consuming most system RAM (this
-  host is 63.9 GB / 16 logical).
+  host is 63.9 GB / 16 logical). **The probe has now answered** (2026-08-19, clean
+  foreman-held runs, after fixing the rig — its first table was serial in every arm
+  because an absent CLI flag inherited the config's `fileParallelism:false`): the
+  six-file set runs 805.9 s serial → 251.6 s @8 workers (**3.20×**), floor set by
+  the longest file. Receipt `concurrency-mt0cmetf`; never cite `mt0ai09y`'s
+  multi-worker rows.
 - [ ] **Equivalence proof** — the new tiered check must find every deliberately
   seeded failure the old cold check finds. Mutation-test the TIERING: a seeded break
   must turn its *chip* check red, not merely the formation check, or the fast tier is

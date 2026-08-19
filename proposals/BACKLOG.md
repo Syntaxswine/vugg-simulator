@@ -7,6 +7,36 @@
 
 Living list of open work items, captured from session conversations so context survives compaction. Each item has enough detail that someone picking it up cold can act without re-discovering the rationale.
 
+> ## 🪨 THE FLINT INTEGRATION + THE FOREMAN'S LAST TWO DEFECTS (2026-08-19) — **stacked PRs #4→#5→#2**
+>
+> Rock Bot's contract, delivered as THREE verdicts on a stacked Syntaxswine chain off canonical
+> `cb9830c` (the post-receipt-rebake tip): **#7 INTEGRATED** unmodified (agent-api canvas
+> lockfile, cherry-pick `5511abc`, verified Node 24/win32 — 7/7 PNG grooves, roster identical to
+> Flint's Linux run); **#4 ADAPTED** (Node 24 pin + Actions workflow kept; "SIM 237 authority"
+> language re-anchored to the v169→v271 lineage + `cb9830c` receipts; audit:cations excluded on
+> measurement; gen-js-baseline provenance header deferred — digest-pinned producer);
+> **#8 SALVAGED/SUPERSEDED/DEFERRED** (calibration sharded 8-way with a mutation-tested partition
+> proof; runner/config/bundle-cache superseded by the foreman; strip-digest split + producer
+> touches deferred to the next bake).
+>
+> **The foreman's last two defects are CLOSED** (`9d9c00a`+`017f426`+`c08070f`): token-keyed
+> heartbeat files (refresh can no longer clobber a successor), park-verify-delete release, and
+> async-spawn wrappers — `spawnSync` had frozen the event-loop-hosted heartbeat, so every
+> wrapper's machine-wide claim read STALE from 90 s in (yesterday's probe left a 14.8-h corpse
+> as proof). External watcher across two full probe runs: **max heartbeat age 15.1 s**.
+> **Concurrency ANSWERED**: 805.9 s serial → 251.6 s @8 (**3.20×**) on the six-file set, clean
+> foreman-held receipt `concurrency-mt0cmetf` — after fixing the probe's rig (its first table
+> was serial in every arm; an absent CLI flag inherits config `fileParallelism:false`).
+> **Cross-OS, from the first ubuntu Actions runs:** content receipts verify with ZERO violations
+> on linux (the LF rebake is PROVEN portable); audit:science + audit:release fail ONLY on
+> `node_runtime_sha256` host-binding (runs 32274501930 / 32280067117) — the carried debt item c,
+> now with live evidence; those gates are Actions-excluded with run numbers in-file and stay in
+> the canonical box's `npm run ci`. Deeper still (run 32283445918): the authenticated-evidence
+> chain itself refuses a foreign runtime envelope at `loadReceipt`, so the calibration sentinel
+> CANNOT run on Actions at all until the split — it stays a canonical-box check (green twice
+> today at SIM 271). Actions' honest scope until then: typecheck/build + content-only audits +
+> the agent-api leg.
+
 > ## ⛏️ THE TEST QUARRY + THE FOREMAN (2026-08-18) — **`HANDOFF-TEST-QUARRY-AND-FOREMAN-2026-08-18.md`**
 >
 > Boss brief: three cuts — chip check / formation check / core sample — opening on *"instrument

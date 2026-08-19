@@ -201,3 +201,14 @@ digest-pinned `seed42-baseline` producer (`PRODUCER_ENTRIES` in
 just-baked receipts and force the full rebake this integration pass is
 contractually barred from. The next bump rebakes anyway; add the header
 there for free.
+
+One more boundary, measured the same day: the Actions runner cannot host the
+sentinel at all yet. The baseline loads through the authenticated-evidence
+chain, which fails closed on any host whose runtime envelope differs from
+the receipts' (`science evidence receipt does not match the current Node
+runtime envelope`, run 32283445918, thrown at `loadReceipt` before any
+scenario ran). The pin this doc asked for binds even tighter than a Node
+major — it is the whole recorded envelope. So the workflow pins Node 24 and
+validates everything content-only, while the sentinel remains a
+canonical-box check until the environment/content split (BACKLOG debt item
+c) lands with a bake.
