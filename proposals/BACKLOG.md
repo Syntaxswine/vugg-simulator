@@ -7,6 +7,52 @@
 
 Living list of open work items, captured from session conversations so context survives compaction. Each item has enough detail that someone picking it up cold can act without re-discovering the rationale.
 
+> ## ⛏️ THE TEST QUARRY + THE FOREMAN (2026-08-18) — **`HANDOFF-TEST-QUARRY-AND-FOREMAN-2026-08-18.md`**
+>
+> Boss brief: three cuts — chip check / formation check / core sample — opening on *"instrument
+> the existing cold run and publish its time profile."* That step had not been taken. Branch
+> `ci/test-quarry` (PR #2), 5 commits, SIM-neutral. **The architecture survived; the causal story
+> under it changed twice.**
+>
+> **THE NUMBER: a full cold CI is 3 h 28 m**, not the 2.4 h this repo has been quoting and never
+> the 9 min in `tools/cold-ci.mjs:20`. The 8773 s stamp was a **resumed SEGMENT, not a full
+> suite** — the runner said so at the time and the caveat was read as being about process purity
+> when it was also about duration. Nothing could contradict it because `test-workflow.mjs` had
+> recorded peak RSS for 232 batches and **not one timestamp**.
+>
+> **WHERE IT GOES** — measured twice: 83.8% of in-file time is inside `run_step` (95 560 calls,
+> 667 sims), and **127 of 232 files never step at all**. p50 **7.6 s**, max **895.7 s**;
+> **10 files hold half the run**, 60 hold 90%.
+>
+> **TWO DECISIONS THE MEASUREMENTS MADE.** (1) The **trajectory cache is DECLINED**: ceiling
+> **432 s (3.5%)**, of which 283 s is one duplicated triple — and 118 of 232 files build sims by
+> hand, outside the cacheable path entirely. Take the one edit, leave the machinery. (2) The
+> formation check **cannot reach 12–15 min by sharding**: the longest single file is 893.8 s =
+> **14.9 min**, and you cannot shard below your longest indivisible unit. **Splitting the heavy
+> files is a precondition** and was not among the seven proposed steps.
+>
+> **THE FOREMAN.** A benchmark was launched while another agent's cold suite had been running
+> from `GTP\Vugg-Simulator` for 1.77 h — it produced a NUMBER, not an error. So process hygiene
+> is now **enforcement, not observation**: `tools/foreman.mjs` (atomic directory lease, machine-wide
+> and outside any checkout, token-authenticated release, telemetry bound to the run, postflight in
+> a `finally`), wired into `test-workflow.mjs` and `cold-ci.mjs`. `--allow-busy` proceeds but
+> stamps the run **CONTAMINATED** everywhere downstream. Runs with no foreman record report
+> cleanliness **UNKNOWN**, never clean.
+>
+> **OPEN, in measured order:** chip check (its lever is batching — 3% of the cold run but **49%
+> of a chip check**); split the two ~890 s files; shard from recorded durations; merge the
+> duplicated `supergene_oxidation` call sites (283 s); drop the duplicate `tsc` (~8 s, hygiene
+> only); the **equivalence proof** — mutation-test the tiering, a seeded break must turn its
+> *chip* check red or the fast tier is decoration. **Deferred:** Windows Job Objects (needs a
+> native addon; Node has no API). **Still unfixed:** the RSS sampler can false-RED a healthy
+> batch — `monitorError` needs its own outcome.
+>
+> **FOUR CORRECTIONS SO NOBODY INHERITS THEM:** RAM was never the shard constraint (63.9 GB /
+> 16 logical — **cores are**); 94 MB peak page-file rules out **paging**, not physical pressure;
+> the 5% contention figure bounds *that* collision, not agent forests; and the lease initially
+> **rebuilt the race it was built to prevent** (read→decide→write, unconditional delete) — repaired
+> and mutation-tested. Pattern: **a plausible number is more dangerous than a missing one.**
+
 > ## 🧬 CODEX SIM 271 INTEGRATION + THE LINE-ENDING FINDING (2026-08-18) — **branch `integrate/codex-sulfur-valence` — `FINDING-EVIDENCE-LINE-ENDINGS-2026-08-18.md`**
 >
 > Merged Codex's `b62d85f` (sulfur valence authority, SIM 267→271) onto canonical `420bf22`.

@@ -169,6 +169,48 @@ single execution ledger for the science-first AAA completion branch.
 
 ## P3 — product quality gates that can be completed locally
 
+- [x] **Instrument the cold run and publish its time profile** (2026-08-18,
+  `ci/test-quarry`). `tools/test-workflow.mjs` records `wall_ms` +
+  `started_iso`/`finished_iso` per batch; `tools/test-profile.mjs` publishes the
+  distribution and REFUSES a shard plan on a partial record. Measured: a full cold
+  CI is **3 h 28 m**, not the 2.4 h quoted (that stamp was a resumed SEGMENT) and
+  never the 9 min in `tools/cold-ci.mjs:20`. p50 7.6 s, max 895.7 s, **10 files hold
+  half the run**. Evidence: `proposals/PROPOSAL-TEST-QUARRY.md`,
+  `proposals/HANDOFF-TEST-QUARRY-AND-FOREMAN-2026-08-18.md`.
+- [x] **Process-hygiene enforcement** (2026-08-18). `tools/process-census.mjs`,
+  `tools/host-sampler.mjs`, `tools/foreman.mjs` — atomic machine-wide directory
+  lease held outside any checkout, token-authenticated release, telemetry bound to
+  the run identity, postflight sweep in a `finally`. Wired into `test-workflow.mjs`
+  and `cold-ci.mjs`; `--allow-busy` stamps the run CONTAMINATED everywhere
+  downstream. Tests: `tests-js/foreman.test.ts` (24),
+  `tests-js/process-census.test.ts` (9), both mutation-tested.
+- [ ] **Chip check** — fast tier over the 127 non-stepping files. Its lever is
+  BATCHING: `DEFAULT_TEST_BATCH_SIZE = 1` costs 216 s of a 442 s tier, i.e. 3% of
+  the cold run but **49% of a chip check**. Needs an authored changed-file →
+  subsystem map; that map is the deliverable and it is authored, not derived.
+- [ ] **Split the two ~890 s test files** (`conichalcite`, `vanadate-v-economics`).
+  PRECONDITION for any formation-check target under an hour: you cannot shard below
+  your longest indivisible unit, and that unit is 893.8 s = 14.9 min.
+- [ ] **Shard the full suite**, balanced from the recorded per-file durations, with
+  concurrency set by `tools/concurrency-probe.mjs` rather than by the stale
+  `vitest.config.ts` comment about eight workers consuming most system RAM (this
+  host is 63.9 GB / 16 logical).
+- [ ] **Equivalence proof** — the new tiered check must find every deliberately
+  seeded failure the old cold check finds. Mutation-test the TIERING: a seeded break
+  must turn its *chip* check red, not merely the formation check, or the fast tier is
+  decoration.
+- [ ] **Merge the duplicated `supergene_oxidation|42|200` call sites** — 283 s, the
+  bulk of the declined trajectory cache's entire 432 s ceiling, for minutes of work.
+- [ ] **Remove the duplicate `tsc`** (three invocations per cold run). Hygiene, ~8 s.
+  Do it; do not bill it as speed.
+- [ ] **RSS-sampler false-RED** — `tools/test-workflow.mjs` kills a batch after two
+  consecutive `tasklist.exe` failures and reports FAIL, indistinguishable from a real
+  failure (signature: `peak 0 MB RSS`, no vitest output, exit `4294967295`). Give
+  `monitorError` its own outcome. NOT yet in `CATCHES.md`.
+- [ ] **Windows Job Objects** — crash-safe owned-tree teardown. Deferred as separate
+  NATIVE hardening: Node has no Job Object API, and `taskkill /T /F` cannot help with
+  an abandoned parent, which is the exact case they exist for.
+
 - [x] Establish the topology-independent cavity foundation without changing
   simulation authority: deterministic Cartesian exact-bubble-union field with
   immutable authored elongation/cleft/basin masks, indexed
