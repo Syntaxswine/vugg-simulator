@@ -312,3 +312,94 @@ describe('foreman — ownership is atomic and release is authenticated', () => {
     expect(TOKEN_ENV).toBe('VUGG_FOREMAN_LEASE_TOKEN');
   });
 });
+
+describe('foreman — refresh and release are atomic too (2026-08-19)', () => {
+  // Acquisition got the CAS treatment first; refresh and release had kept the
+  // read → decide → write shape. These pin the repair. Reverting touchLease to
+  // a whole-record rewrite, or releaseLease to verify-then-rmSync, turns each
+  // of these RED.
+
+  it('touchLease refreshes through a token-keyed file, never the claim record', async () => {
+    const run = await begin({ list: async () => [me()] });
+    const recordBefore = fs.readFileSync(path.join(leaseDir, 'lease.json'), 'utf8');
+    expect(touchLease({ leaseDir, token: run.token })).toBe(true);
+    // The claim record is immutable for the claim's lifetime — identity and
+    // liveness are separate files, so a racing refresh can no longer clobber
+    // an identity.
+    expect(fs.readFileSync(path.join(leaseDir, 'lease.json'), 'utf8')).toBe(recordBefore);
+    const hb = JSON.parse(fs.readFileSync(path.join(leaseDir, `hb-${run.token}.json`), 'utf8'));
+    expect(Date.now() - Date.parse(hb.heartbeatIso)).toBeLessThan(10_000);
+    // And liveness reads the token-keyed file when given the directory.
+    expect(leaseLiveness(readLease({ leaseDir }), [me()], Date.now(), { leaseDir }).live).toBe(true);
+    endRun(run, { leaseDir });
+  });
+
+  it('a stale holder’s refresh cannot deposit anything into a successor’s claim', async () => {
+    const first = await begin({ runId: 'first', list: async () => [me()] });
+    const staleToken = first.token as string;
+    first.stop();
+    // Simulate the takeover happening WITHOUT the first holder noticing: the
+    // claim it knew is gone and a successor's stands in the same slot.
+    fs.rmSync(leaseDir, { recursive: true, force: true });
+    fs.mkdirSync(leaseDir, { recursive: true });
+    const successor = JSON.stringify({
+      runId: 'successor', owner: 'agent-2', tier: 'full', rootPid: 900,
+      token: 'successor-token', rootStartedIso: '2026-08-18T09:00:00.000Z',
+      heartbeatIso: new Date().toISOString(),
+    });
+    fs.writeFileSync(path.join(leaseDir, 'lease.json'), successor);
+    expect(touchLease({ leaseDir, token: staleToken })).toBe(false);
+    expect(fs.readFileSync(path.join(leaseDir, 'lease.json'), 'utf8')).toBe(successor);
+    expect(fs.existsSync(path.join(leaseDir, `hb-${staleToken}.json`))).toBe(false);
+  });
+
+  it('release parks, verifies, and hands back a claim it raced', async () => {
+    const run = await begin({ list: async () => [me()] });
+    const successor = JSON.stringify({
+      runId: 'successor', owner: 'agent-2', tier: 'full', rootPid: 900,
+      token: 'successor-token', rootStartedIso: '2026-08-18T09:00:00.000Z',
+      heartbeatIso: new Date().toISOString(),
+    });
+    // The seam runs at the only instant the race can be simulated
+    // deterministically: with the claim parked. Swapping the parked record for
+    // a successor's reproduces "a takeover landed between the token check and
+    // the rename".
+    const released = releaseLease({
+      leaseDir, token: run.token, warn: () => {},
+      onParked: (parked: string) => fs.writeFileSync(path.join(parked, 'lease.json'), successor),
+    });
+    expect(released).toBe(false);
+    // The successor's claim is back in the slot, byte-identical — under the
+    // old verify-then-rmSync release it was simply destroyed.
+    expect(fs.readFileSync(path.join(leaseDir, 'lease.json'), 'utf8')).toBe(successor);
+    // And nothing was left parked beside it.
+    const parkedLeftovers = fs.readdirSync(path.dirname(leaseDir))
+      .filter(name => name.startsWith(`${path.basename(leaseDir)}.release-`));
+    expect(parkedLeftovers).toEqual([]);
+    run.stop();
+  });
+
+  it('the heartbeat advances while the run is awaiting its work', async () => {
+    // The cold-CI defect: spawnSync blocked the event loop, so the shared
+    // telemetry/heartbeat timer never fired and the wrapper's machine-wide
+    // claim read STALE from 90 s into a 3.5-hour run. The wrapper now awaits
+    // an async child; this pins the foreman half of that repair — the timer
+    // actually touches the lease while the holder is parked on an await.
+    const repoRoot = `${leaseDir}.repo`;
+    fs.mkdirSync(repoRoot, { recursive: true });
+    const run = await begin({
+      list: async () => [me()], telemetry: true, repoRoot,
+      heartbeatIntervalMs: 30, telemetryIntervalMs: 10,
+    });
+    try {
+      expect(fs.existsSync(path.join(leaseDir, `hb-${run.token}.json`))).toBe(false);
+      await new Promise(resolve => setTimeout(resolve, 250));
+      const hb = JSON.parse(fs.readFileSync(path.join(leaseDir, `hb-${run.token}.json`), 'utf8'));
+      expect(Date.now() - Date.parse(hb.heartbeatIso)).toBeLessThan(1_000);
+      expect(run.telemetrySamples()).toBeGreaterThan(0);
+    } finally {
+      endRun(run, { leaseDir });
+      fs.rmSync(repoRoot, { recursive: true, force: true });
+    }
+  });
+});

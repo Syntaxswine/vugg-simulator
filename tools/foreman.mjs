@@ -56,6 +56,25 @@
  * token, joins the existing claim, and neither re-acquires nor releases it.
  * A nested second lease would either deadlock against its own parent or, worse,
  * release the parent's claim mid-run.
+ *
+ * ── AND SO ARE REFRESH AND RELEASE (the 2026-08-19 repair) ─────────────────
+ *
+ * Acquisition got the CAS treatment first; refresh and release had kept the
+ * read → decide → write shape. `touchLease` re-wrote lease.json wholesale, so a
+ * holder racing a takeover could resurrect its own record on top of the
+ * successor's — ownership silently swapped back with no mkdir ever failing.
+ * And `releaseLease` verified the token, then `rmSync`'d the live directory:
+ * between those two lines a takeover could land, and the delete would destroy
+ * the successor's brand-new claim — the exact defect the comment above it
+ * warned about, one line lower.
+ *
+ * The repair keeps every mutation single-winner:
+ *   - heartbeats live in a TOKEN-KEYED file (`hb-<token>.json`), so a stale
+ *     holder's refresh can at worst deposit an inert orphan in a successor's
+ *     claim — it can never overwrite the successor's identity;
+ *   - release renames the claim directory ASIDE first (the same single-winner
+ *     primitive as takeover), verifies the parked lease is its own, and only
+ *     then deletes; a parked successor is renamed straight back.
  */
 
 import crypto from 'node:crypto';
@@ -107,7 +126,7 @@ export function readLease({ leaseDir = LEASE_DIR } = {}) {
  * "the holder died" and "the holder is working" must be distinguishable in the
  * message a blocked agent reads.
  */
-export function leaseLiveness(lease, processes, now = Date.now()) {
+export function leaseLiveness(lease, processes, now = Date.now(), { leaseDir = null } = {}) {
   if (!lease) return { live: false, reason: 'no lease' };
   const holder = processes.find(p => p.pid === lease.rootPid);
   if (!holder) return { live: false, reason: `holder pid ${lease.rootPid} is gone` };
@@ -116,7 +135,18 @@ export function leaseLiveness(lease, processes, now = Date.now()) {
     // vouch for a run that ended hours ago and block every future run.
     return { live: false, reason: `pid ${lease.rootPid} was RECYCLED (started ${holder.startedIso}, lease says ${lease.rootStartedIso})` };
   }
-  const age = now - Date.parse(lease.heartbeatIso || 0);
+  // Heartbeats live in a token-keyed file beside lease.json (see the module
+  // docstring): the lease record itself is immutable for the claim's lifetime.
+  // A lease that predates the split, or that has not been touched yet, is
+  // judged by the heartbeatIso it was born with.
+  let heartbeatIso = lease.heartbeatIso;
+  if (leaseDir && lease.token) {
+    try {
+      const hb = JSON.parse(fs.readFileSync(path.join(leaseDir, `hb-${lease.token}.json`), 'utf8'));
+      if (hb?.heartbeatIso) heartbeatIso = hb.heartbeatIso;
+    } catch { /* never touched — the acquisition heartbeat stands */ }
+  }
+  const age = now - Date.parse(heartbeatIso || 0);
   if (!Number.isFinite(age)) return { live: false, reason: 'heartbeat unreadable' };
   if (age > HEARTBEAT_STALE_MS) {
     return { live: false, reason: `heartbeat is ${Math.round(age / 1000)} s old (stale after ${HEARTBEAT_STALE_MS / 1000} s)` };
@@ -161,7 +191,7 @@ export function acquireLease({
         };
       }
     } else {
-      const liveness = leaseLiveness(existing, processes, now());
+      const liveness = leaseLiveness(existing, processes, now(), { leaseDir });
       if (liveness.live) return { acquired: false, lease: existing, liveness };
     }
 
@@ -173,7 +203,7 @@ export function acquireLease({
     try {
       fs.renameSync(leaseDir, parked);
       log(`[foreman] stale claim taken over${existing ? ` from run ${existing.runId}` : ''}`
-        + ` — ${existing ? leaseLiveness(existing, processes, now()).reason : 'no readable lease inside'}`);
+        + ` — ${existing ? leaseLiveness(existing, processes, now(), { leaseDir: parked }).reason : 'no readable lease inside'}`);
       try { fs.rmSync(parked, { recursive: true, force: true }); } catch { /* parked out of the way; that is enough */ }
     } catch {
       // Someone else took it over first. Loop; they now hold it and we will be
@@ -187,27 +217,61 @@ export function acquireLease({
 }
 
 /** Refresh the heartbeat ONLY if we still own the claim. Returns false if we
- *  were displaced — a holder that lost the lease must stop pretending. */
+ *  were displaced — a holder that lost the lease must stop pretending.
+ *
+ *  The heartbeat is a TOKEN-KEYED file, never a rewrite of lease.json. The
+ *  ownership check above can race a takeover, but the write it authorises is
+ *  then inert by construction: `hb-<ourToken>.json` deposited into a
+ *  successor's claim is an orphan their liveness never reads (it reads
+ *  `hb-<theirToken>.json`), where the old whole-record rewrite would have
+ *  resurrected our identity on top of theirs. */
 export function touchLease({ leaseDir = LEASE_DIR, token } = {}) {
   const current = readLease({ leaseDir });
   if (!current || current.token !== token) return false;
-  current.heartbeatIso = new Date().toISOString();
-  try { writeJson(leaseFileIn(leaseDir), current); return true; }
-  catch { return false; }
+  try {
+    writeJson(path.join(leaseDir, `hb-${token}.json`), { heartbeatIso: new Date().toISOString() });
+    return true;
+  } catch { return false; }
 }
 
 /** Release ONLY our own claim. A displaced or long-finished owner deleting a
  *  successor's lease would hand the machine to a third party — which is the
- *  original race with extra steps. */
-export function releaseLease({ leaseDir = LEASE_DIR, token, warn = console.error } = {}) {
+ *  original race with extra steps.
+ *
+ *  Deleting the live directory after a token check is that race: the check and
+ *  the delete are two steps, and a takeover fits between them. So release uses
+ *  the same single-winner primitive as takeover — rename the claim ASIDE,
+ *  verify the parked lease is ours, and only then delete it. A parked
+ *  successor (we lost the race) is renamed straight back; if the slot has
+ *  already been re-claimed by a third party the collision is REPORTED, never
+ *  silently eaten. `onParked` is a test seam: it runs with the claim parked,
+ *  which is the only instant the race can be simulated deterministically. */
+export function releaseLease({ leaseDir = LEASE_DIR, token, warn = console.error, onParked = null } = {}) {
   const current = readLease({ leaseDir });
   if (!current) return false;
   if (current.token !== token) {
     warn(`[foreman] not releasing lease: it now belongs to run ${current.runId}, not to us.`);
     return false;
   }
-  try { fs.rmSync(leaseDir, { recursive: true, force: true }); return true; }
-  catch { return false; }
+  const parked = `${leaseDir}.release-${crypto.randomBytes(6).toString('hex')}`;
+  try { fs.renameSync(leaseDir, parked); }
+  catch { return false; /* raced: someone parked or released it first */ }
+  if (onParked) onParked(parked);
+  const inside = readLease({ leaseDir: parked });
+  if (!inside || inside.token !== token) {
+    // We parked a claim that is not (or no longer) ours — a takeover landed
+    // between our read and our rename. Hand it straight back.
+    try {
+      fs.renameSync(parked, leaseDir);
+      warn(`[foreman] release raced a takeover; restored run ${inside?.runId ?? '(mid-write)'}'s claim untouched.`);
+    } catch {
+      warn(`[foreman] release raced TWO takeovers; run ${inside?.runId ?? '(mid-write)'}'s parked claim could not be restored — the machine may be double-booked.`);
+      try { fs.rmSync(parked, { recursive: true, force: true }); } catch { /* parked aside; nothing more to do safely */ }
+    }
+    return false;
+  }
+  try { fs.rmSync(parked, { recursive: true, force: true }); } catch { /* parked out of the slot; that is a release */ }
+  return true;
 }
 
 /**
@@ -224,6 +288,10 @@ export async function beginRun({
   // A token inherited from a parent run (cold-ci). Present means: adopt that
   // claim, do not acquire a second one, and do not release it on the way out.
   inheritToken = process.env[TOKEN_ENV] || null,
+  // Injectable so a test can watch a heartbeat actually advance while an
+  // awaited child runs, without waiting 15 real seconds for the first touch.
+  heartbeatIntervalMs = HEARTBEAT_INTERVAL_MS,
+  telemetryIntervalMs = TELEMETRY_INTERVAL_MS,
 } = {}) {
   const processes = classify(await list(), { repoRoot, selfPid });
   const self = processes.find(p => p.pid === selfPid);
@@ -312,9 +380,24 @@ export async function beginRun({
   let gaps = 0;
   let lastHeartbeat = Date.now();
   const timer = setInterval(async () => {
+    // Heartbeat FIRST, and synchronously: it is the liveness signal, and a
+    // liveness signal queued behind an awaited process scan (1–3 s of
+    // tasklist on this host) inherits the sampler's latency — the first
+    // heartbeat used to arrive only after the first scan came home.
+    if (holding && Date.now() - lastHeartbeat >= heartbeatIntervalMs) {
+      lastHeartbeat = Date.now();
+      if (!touchLease({ leaseDir, token })) {
+        warn('[foreman] lost the lease (another run holds it now); this run is no longer clean.');
+      }
+    }
+    // Count at ENTRY, not after the awaited sample: counted-at-completion,
+    // every callback dispatched while the first process scan was still in
+    // flight saw ticks === 0 and launched ANOTHER full scan — a sampler
+    // storm exactly when the machine was already slow to answer.
+    const tick = ticks++;
     try {
       const { sample, cpus } = await sampleHost({
-        previousCpus, withProcesses: ticks % TELEMETRY_PROCESS_SCAN_EVERY === 0,
+        previousCpus, withProcesses: tick % TELEMETRY_PROCESS_SCAN_EVERY === 0,
       });
       previousCpus = cpus;
       if (sample.top_error) gaps++;
@@ -326,14 +409,7 @@ export async function beginRun({
       try { fs.appendFileSync(telemetryPath, JSON.stringify({ t: new Date().toISOString(), sample_error: error.message, run: runId }) + '\n'); }
       catch { /* the disk is the problem; do not compound it */ }
     }
-    ticks++;
-    if (holding && Date.now() - lastHeartbeat >= HEARTBEAT_INTERVAL_MS) {
-      lastHeartbeat = Date.now();
-      if (!touchLease({ leaseDir, token })) {
-        warn('[foreman] lost the lease (another run holds it now); this run is no longer clean.');
-      }
-    }
-  }, TELEMETRY_INTERVAL_MS);
+  }, telemetryIntervalMs);
   timer.unref?.();
 
   return {
