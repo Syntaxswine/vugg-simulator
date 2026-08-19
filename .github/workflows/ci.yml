@@ -63,10 +63,16 @@ jobs:
       # cross-runtime differential, checked against the CURRENT committed
       # baseline (tests-js/baselines/seed42_v271.json). 220 s on the
       # canonical Windows box; the generous job timeout is for this step.
-      # The full 232-file suite is NOT run here — a cold run is ~3.5 h under
+      # The scenario runs live in the calibration SHARD files (the name-hash
+      # decides which), so the sentinel filters across all of them; the
+      # partition proof itself runs as the first, cheap file. The full
+      # 232-file suite is NOT run here — a cold run is ~3.5 h under
       # tools/test-workflow.mjs and belongs to the foreman-controlled local
       # workflow, not a shared runner.
-      - run: npx vitest run tests-js/calibration.test.ts -t supergene_oxidation
+      # (vitest positional args are substring FILTERS, not shell globs —
+      # "calibration-shard" matches all eight stripe files on any shell.)
+      - run: npx vitest run tests-js/calibration.test.ts
+      - run: npx vitest run tests-js/calibration-shard -t "supergene_oxidation matches baseline"
 
       # agent-api surface (PR #7): the lockfile install must succeed without
       # rewriting the lockfile, and the CLI must answer.

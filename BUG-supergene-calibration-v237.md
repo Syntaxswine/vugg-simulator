@@ -48,13 +48,19 @@ From the repository root:
 ```bash
 npm ci
 npm run build:check
-npx vitest run tests-js/calibration.test.ts -t supergene_oxidation
+npx vitest run tests-js/calibration-shard -t supergene_oxidation
 ```
+
+(Since 2026-08-19 the per-scenario runs live in the `calibration-shard-*`
+files — `calibration.test.ts` keeps the partition/coverage proof. The
+`calibration-shard` argument is a vitest substring filter matching all
+eight stripes; earlier snippets in this doc that name `calibration.test.ts`
+with `-t` date from the monolith era.)
 
 Run the complete calibration sweep with:
 
 ```bash
-npx vitest run tests-js/calibration.test.ts
+npx vitest run tests-js/calibration
 ```
 
 Current result: 39 passed, 1 failed.
