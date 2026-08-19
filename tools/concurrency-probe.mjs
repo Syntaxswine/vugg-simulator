@@ -57,7 +57,15 @@ const runArm = async (workers) => {
   const args = [
     `--max-old-space-size=${HEAP_MB}`, VITEST, 'run', ...PROBE_FILES,
     '--reporter=dot', '--pool=threads', `--maxWorkers=${workers}`, '--maxConcurrency=1',
-    ...(workers === 1 ? ['--no-file-parallelism'] : []),
+    // EXPLICIT in both directions. vitest.config.ts pins fileParallelism:false
+    // — the very setting this probe interrogates — and an absent CLI flag
+    // inherits the CONFIG, not the CLI default. The first full run of this
+    // probe (2026-08-19) passed nothing here for multi-worker arms and
+    // measured 823.5/821.7/809.8/797.6 s across 1/2/4/8 "workers": every arm
+    // had silently run its files serially, and the 1.00–1.03x table said
+    // concurrency was free. The probe questioned the config's maxWorkers
+    // while the config's other half governed the experiment.
+    ...(workers === 1 ? ['--no-file-parallelism'] : ['--fileParallelism']),
   ];
   const startedIso = new Date().toISOString();
   const t0 = Date.now();
