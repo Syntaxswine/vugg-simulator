@@ -44,17 +44,18 @@ jobs:
       # (tools/hash-policy.mjs, policy v1) and the first ubuntu run of this
       # workflow verified it: ZERO content violations on a linux checkout.
       #
-      # audit:science and audit:evidence are NOT run here, with regret: their
-      # aggregate receipts also bind node_runtime_sha256 (platform/Node/V8/
-      # ICU of the baking host, win32/Node 24), so on any other host they
-      # fail with "Node/V8 runtime mismatch" no matter how current the
-      # content is — measured on run 32274501930, where that was the ONLY
-      # violation. They stay in `npm run ci` (the canonical box's cold CI).
-      # Restore them here the moment the recorded-environment check is split
-      # from the content-currency check (the carried debt in
+      # audit:science, audit:evidence and audit:release are NOT run here,
+      # with regret: their aggregate receipts bind node_runtime_sha256
+      # (platform/Node/V8/ICU of the baking host, win32/Node 24), so on any
+      # other host they fail no matter how current the content is. Measured,
+      # not assumed: audit:science → "Node/V8 runtime mismatch", the ONLY
+      # violation on run 32274501930; audit:release → "manifest missing or
+      # stale" on run 32280067117, because catalog_sha256 folds the runtime
+      # fingerprint. All three stay in `npm run ci` (the canonical box's
+      # cold CI). Restore them here the moment the recorded-environment
+      # check is split from the content-currency check (the carried debt in
       # proposals/BACKLOG.md, Codex-integration entry, item c) — that split
       # edits a digest-pinned producer, so it must ride a bake.
-      - run: npm run audit:release
       - run: npm run audit:localities
       - run: npm run audit:scenarios
       - run: npm run audit:narratives
