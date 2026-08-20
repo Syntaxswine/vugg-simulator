@@ -324,6 +324,25 @@ single execution ledger for the science-first AAA completion branch.
   Evidence: `tools/scenario-authoring.mjs` and
   `tests-js/scenario-authoring.test.ts`.
 
+- [ ] **Split content currency from recorded environment in the evidence chain**
+  (promoted from the BACKLOG Codex-integration debt item c on 2026-08-19, now with
+  live evidence). `node_runtime_sha256` CONFLATES two different questions — "is
+  this content current" and "was this the bake host's environment" — in one bound
+  field, so every cross-OS verify fails as a matter of architecture, not content.
+  Measured across three ubuntu adjudication rounds: content receipts verify with
+  **ZERO violations on linux**; the only failures are the envelope —
+  `audit:science` (run 32274501930), `audit:release` via `catalog_sha256` folding
+  the fingerprint (32280067117), and `authenticated-evidence` `loadReceipt`
+  refusing outright (32283445918), which also keeps the calibration sentinel
+  canonical-box-only. The repair: receipts carry a content identity and a
+  recorded-environment identity, verified separately — a content mismatch fails
+  everywhere, an environment mismatch fails only checks that claim environment.
+  Edits digest-pinned producers (`gen-science-provenance-manifest.mjs` at
+  minimum), so it MUST ride a bake. When it lands, restore
+  audit:science/audit:evidence/audit:release and the sentinel to
+  `.github/workflows/ci.yml` — the exclusion comments there carry these run
+  numbers.
+
 ## P4 — release systems that can be prepared locally
 
 - [x] Versioned content packs, changelog/migration policy, telemetry-free local
@@ -339,6 +358,16 @@ single execution ledger for the science-first AAA completion branch.
   `release/asset-manifest.json`, `tools/release-audit.mjs`,
   `tests-js/release-systems.test.ts`, and
   `docs/ASSET-LOD-AUDIO-ART-DIRECTION.md`.
+- [ ] **Refresh `agent-api/vugg-agent.js` from its frozen SIM-237-era bundle to the
+  current SIM.** The headless second runtime has not been rebuilt since the fork
+  commit (`d4a6205`); it still ships the pre-267 engine while the web build is at
+  SIM 271. Tracked INDEPENDENTLY of the environment/content split by explicit
+  direction (2026-08-19) — this is a bundle-refresh/product item, not a receipts
+  item, and neither blocks the other. Scope when taken: regenerate the bundle from
+  the current build, re-verify the Node-24 canvas path (`npm ci --prefix
+  agent-api`, help smoke, one rendered specimen run with PNG-magic assertions),
+  and re-baseline the README example if the MVT seed-1234 roster moves with the
+  engine.
 
 ## External gates — evidence can be prepared, certification cannot be invented
 
