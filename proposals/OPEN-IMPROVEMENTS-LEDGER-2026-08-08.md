@@ -169,6 +169,66 @@ single execution ledger for the science-first AAA completion branch.
 
 ## P3 — product quality gates that can be completed locally
 
+- [x] **Instrument the cold run and publish its time profile** (2026-08-18,
+  `ci/test-quarry`). `tools/test-workflow.mjs` records `wall_ms` +
+  `started_iso`/`finished_iso` per batch; `tools/test-profile.mjs` publishes the
+  distribution and REFUSES a shard plan on a partial record. Measured: a full cold
+  CI is **3 h 28 m**, not the 2.4 h quoted (that stamp was a resumed SEGMENT) and
+  never the 9 min in `tools/cold-ci.mjs:20`. p50 7.6 s, max 895.7 s, **10 files hold
+  half the run**. Evidence: `proposals/PROPOSAL-TEST-QUARRY.md`,
+  `proposals/HANDOFF-TEST-QUARRY-AND-FOREMAN-2026-08-18.md`.
+- [x] **Process-hygiene enforcement** (2026-08-18). `tools/process-census.mjs`,
+  `tools/host-sampler.mjs`, `tools/foreman.mjs` — atomic machine-wide directory
+  lease held outside any checkout, token-authenticated release, telemetry bound to
+  the run identity, postflight sweep in a `finally`. Wired into `test-workflow.mjs`
+  and `cold-ci.mjs`; `--allow-busy` stamps the run CONTAMINATED everywhere
+  downstream. Tests: `tests-js/foreman.test.ts` (24),
+  `tests-js/process-census.test.ts` (9), both mutation-tested.
+  **2026-08-19 — the two remaining defects closed** (`9d9c00a`, `017f426`):
+  heartbeats moved to a token-keyed `hb-<token>.json` (a whole-record rewrite could
+  resurrect a stale identity over a successor's); release is park-verify-delete with
+  restore (was verify-then-`rmSync`); `cold-ci.mjs` and `concurrency-probe.mjs` await
+  async spawns (spawnSync froze the event-loop-hosted heartbeat — the wrapper's claim
+  read STALE from 90 s into every run; an external watcher across two full probe runs
+  now measures max heartbeat age **15.1 s**). foreman tests 24→28, all mutation-tested.
+- [ ] **Chip check** — fast tier over the 127 non-stepping files. Its lever is
+  BATCHING: `DEFAULT_TEST_BATCH_SIZE = 1` costs 216 s of a 442 s tier, i.e. 3% of
+  the cold run but **49% of a chip check**. Needs an authored changed-file →
+  subsystem map; that map is the deliverable and it is authored, not derived.
+- [x] **Split `calibration.test.ts`** (2026-08-19, the Flint PR #8 salvage): the
+  745 s #3-heaviest file is now `calibration-lib.ts` + 8 name-hash-homed
+  `calibration-shard-*.test.ts` stripes (4–9 scenarios each, 41 total) with the
+  partition/coverage proof kept in `calibration.test.ts` — completeness and
+  disjointness asserted, mutation-tested (a silently dropped scenario turns it RED).
+  Authenticated fail-closed baseline loading preserved.
+- [ ] **Split the two ~890 s test files** (`conichalcite`, `vanadate-v-economics`).
+  PRECONDITION for any formation-check target under an hour: you cannot shard below
+  your longest indivisible unit, and that unit is 893.8 s = 14.9 min.
+- [ ] **Shard the full suite**, balanced from the recorded per-file durations, with
+  concurrency set by `tools/concurrency-probe.mjs` rather than by the stale
+  `vitest.config.ts` comment about eight workers consuming most system RAM (this
+  host is 63.9 GB / 16 logical). **The probe has now answered** (2026-08-19, clean
+  foreman-held runs, after fixing the rig — its first table was serial in every arm
+  because an absent CLI flag inherited the config's `fileParallelism:false`): the
+  six-file set runs 805.9 s serial → 251.6 s @8 workers (**3.20×**), floor set by
+  the longest file. Receipt `concurrency-mt0cmetf`; never cite `mt0ai09y`'s
+  multi-worker rows.
+- [ ] **Equivalence proof** — the new tiered check must find every deliberately
+  seeded failure the old cold check finds. Mutation-test the TIERING: a seeded break
+  must turn its *chip* check red, not merely the formation check, or the fast tier is
+  decoration.
+- [ ] **Merge the duplicated `supergene_oxidation|42|200` call sites** — 283 s, the
+  bulk of the declined trajectory cache's entire 432 s ceiling, for minutes of work.
+- [ ] **Remove the duplicate `tsc`** (three invocations per cold run). Hygiene, ~8 s.
+  Do it; do not bill it as speed.
+- [ ] **RSS-sampler false-RED** — `tools/test-workflow.mjs` kills a batch after two
+  consecutive `tasklist.exe` failures and reports FAIL, indistinguishable from a real
+  failure (signature: `peak 0 MB RSS`, no vitest output, exit `4294967295`). Give
+  `monitorError` its own outcome. NOT yet in `CATCHES.md`.
+- [ ] **Windows Job Objects** — crash-safe owned-tree teardown. Deferred as separate
+  NATIVE hardening: Node has no Job Object API, and `taskkill /T /F` cannot help with
+  an abandoned parent, which is the exact case they exist for.
+
 - [x] Establish the topology-independent cavity foundation without changing
   simulation authority: deterministic Cartesian exact-bubble-union field with
   immutable authored elongation/cleft/basin masks, indexed
@@ -264,6 +324,25 @@ single execution ledger for the science-first AAA completion branch.
   Evidence: `tools/scenario-authoring.mjs` and
   `tests-js/scenario-authoring.test.ts`.
 
+- [ ] **Split content currency from recorded environment in the evidence chain**
+  (promoted from the BACKLOG Codex-integration debt item c on 2026-08-19, now with
+  live evidence). `node_runtime_sha256` CONFLATES two different questions — "is
+  this content current" and "was this the bake host's environment" — in one bound
+  field, so every cross-OS verify fails as a matter of architecture, not content.
+  Measured across three ubuntu adjudication rounds: content receipts verify with
+  **ZERO violations on linux**; the only failures are the envelope —
+  `audit:science` (run 32274501930), `audit:release` via `catalog_sha256` folding
+  the fingerprint (32280067117), and `authenticated-evidence` `loadReceipt`
+  refusing outright (32283445918), which also keeps the calibration sentinel
+  canonical-box-only. The repair: receipts carry a content identity and a
+  recorded-environment identity, verified separately — a content mismatch fails
+  everywhere, an environment mismatch fails only checks that claim environment.
+  Edits digest-pinned producers (`gen-science-provenance-manifest.mjs` at
+  minimum), so it MUST ride a bake. When it lands, restore
+  audit:science/audit:evidence/audit:release and the sentinel to
+  `.github/workflows/ci.yml` — the exclusion comments there carry these run
+  numbers.
+
 ## P4 — release systems that can be prepared locally
 
 - [x] Versioned content packs, changelog/migration policy, telemetry-free local
@@ -279,6 +358,16 @@ single execution ledger for the science-first AAA completion branch.
   `release/asset-manifest.json`, `tools/release-audit.mjs`,
   `tests-js/release-systems.test.ts`, and
   `docs/ASSET-LOD-AUDIO-ART-DIRECTION.md`.
+- [ ] **Refresh `agent-api/vugg-agent.js` from its frozen SIM-237-era bundle to the
+  current SIM.** The headless second runtime has not been rebuilt since the fork
+  commit (`d4a6205`); it still ships the pre-267 engine while the web build is at
+  SIM 271. Tracked INDEPENDENTLY of the environment/content split by explicit
+  direction (2026-08-19) — this is a bundle-refresh/product item, not a receipts
+  item, and neither blocks the other. Scope when taken: regenerate the bundle from
+  the current build, re-verify the Node-24 canvas path (`npm ci --prefix
+  agent-api`, help smoke, one rendered specimen run with PNG-magic assertions),
+  and re-baseline the README example if the MVT seed-1234 roster moves with the
+  engine.
 
 ## External gates — evidence can be prepared, certification cannot be invented
 

@@ -48,13 +48,19 @@ From the repository root:
 ```bash
 npm ci
 npm run build:check
-npx vitest run tests-js/calibration.test.ts -t supergene_oxidation
+npx vitest run tests-js/calibration-shard -t supergene_oxidation
 ```
+
+(Since 2026-08-19 the per-scenario runs live in the `calibration-shard-*`
+files — `calibration.test.ts` keeps the partition/coverage proof. The
+`calibration-shard` argument is a vitest substring filter matching all
+eight stripes; earlier snippets in this doc that name `calibration.test.ts`
+with `-t` date from the monolith era.)
 
 Run the complete calibration sweep with:
 
 ```bash
-npx vitest run tests-js/calibration.test.ts
+npx vitest run tests-js/calibration
 ```
 
 Current result: 39 passed, 1 failed.
@@ -195,3 +201,14 @@ digest-pinned `seed42-baseline` producer (`PRODUCER_ENTRIES` in
 just-baked receipts and force the full rebake this integration pass is
 contractually barred from. The next bump rebakes anyway; add the header
 there for free.
+
+One more boundary, measured the same day: the Actions runner cannot host the
+sentinel at all yet. The baseline loads through the authenticated-evidence
+chain, which fails closed on any host whose runtime envelope differs from
+the receipts' (`science evidence receipt does not match the current Node
+runtime envelope`, run 32283445918, thrown at `loadReceipt` before any
+scenario ran). The pin this doc asked for binds even tighter than a Node
+major — it is the whole recorded envelope. So the workflow pins Node 24 and
+validates everything content-only, while the sentinel remains a
+canonical-box check until the environment/content split (BACKLOG debt item
+c) lands with a bake.
