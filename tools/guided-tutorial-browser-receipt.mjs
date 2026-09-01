@@ -69,7 +69,7 @@ const EXPECTED_GAME04_DATASET_SHA256 = 'd074d29098a55892e371c2ad12bc604ccb99cba6
 const EXPECTED_GAME04_DOWNLOAD_SHA256 = 'fc1a173eb221bff3f4c621232f2c1ec66692a53ec16655ba5478f4375d56db0b';
 const EXPECTED_CAVITY_TOOLBAR_IDS = Object.freeze([
   'topo-pan-btn', 'topo-rotate-btn', 'topo-recenter-btn',
-  'topo-three-btn', 'helix-overlay-btn',
+  'topo-three-btn', 'topo-wall-btn', 'helix-overlay-btn',
 ]);
 const EXPECTED_BROWSER_RUNTIME = Object.freeze({
   schema: 'vugg-owned-devtools-browser-runtime-v2',
@@ -310,15 +310,17 @@ export function verifyGuidedTutorialJourneys(journeys, simVersion, { root } = {}
   ])
       || topology.scenario !== 'shigar_pegmatite'
       || canonicalJson(topology.public_control_sequence) !== canonicalJson([
-        'base:on', 'helix:off', 'helix:on', 'base:on', 'helix:on', 'helix:off',
+        'base:on', 'helix:off', 'wall:normal', 'wall:translucent',
+        'wall:hidden', 'wall:normal', 'helix:on', 'base:on', 'helix:on', 'helix:off',
       ])
       || topology.pointer_hit_tested_controls !== true
       || !exactKeys(topology.base_product, [
         'schema', 'control_ids', 'control_count', 'base_selected',
         'helix_selected', 'three_canvas_display', 'placeholder_canvas_visibility',
-        'slice_controls_absent', 'wall_control_absent',
+        'slice_controls_absent', 'wall_control_present', 'wall_display',
+        'wall_mesh_visible', 'wall_material_opacity',
       ])
-      || topology.base_product.schema !== 'three-only-cavity-toolbar-v1'
+      || topology.base_product.schema !== 'three-cavity-toolbar-v2'
       || canonicalJson(topology.base_product.control_ids)
         !== canonicalJson(EXPECTED_CAVITY_TOOLBAR_IDS)
       || topology.base_product.control_count !== EXPECTED_CAVITY_TOOLBAR_IDS.length
@@ -327,7 +329,10 @@ export function verifyGuidedTutorialJourneys(journeys, simVersion, { root } = {}
       || topology.base_product.three_canvas_display !== 'block'
       || topology.base_product.placeholder_canvas_visibility !== 'hidden'
       || topology.base_product.slice_controls_absent !== true
-      || topology.base_product.wall_control_absent !== true
+      || topology.base_product.wall_control_present !== true
+      || topology.base_product.wall_display !== 'normal'
+      || topology.base_product.wall_mesh_visible !== true
+      || topology.base_product.wall_material_opacity !== 0.4
       || topology.final_three_enabled !== true
       || topology.final_helix_enabled !== false) {
     throw new Error('guided tutorial browser receipt does not close topology and Helicoid controls');

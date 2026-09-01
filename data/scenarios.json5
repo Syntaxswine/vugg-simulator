@@ -3430,7 +3430,7 @@
           { "anchor": ".topo-zoom-ctrls", "side": "right", "requiresCapability": "three-renderer",
             "text": "Zoom. − and + step the magnification; the label shows where you are." },
           { "anchor": ".topo-camera-ctrls", "side": "right", "requiresCapability": "three-renderer",
-            "text": "Five controls, left to right: ✥ Move pans the camera, ↻ Rotate orbits it, ⊙ Center resets both, 3D returns to the ordinary cavity, and ⌇ opens the Helicoid Manifold. There is no separate flat or slice viewer." },
+            "text": "Six controls, left to right: ✥ Move pans the camera, ↻ Rotate orbits it, ⊙ Center resets both, 3D returns to the ordinary cavity, ▦ cycles the vug wall through normal, translucent, and hidden views, and ⌇ opens the Helicoid Manifold. There is no separate flat or slice viewer." },
           { "action": { "event": "vugg:tutorial-view-state-committed", "selector": "#helix-overlay-btn",
                           "productState": { "control": "helix-overlay", "beforeEnabled": false, "afterEnabled": true } },
             "anchor": "#helix-overlay-btn", "side": "right", "requiresCapability": "three-renderer",

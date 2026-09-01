@@ -60,21 +60,25 @@ describe('authenticated public-control guided tutorial journeys', () => {
       },
       topology_helix: {
         public_control_sequence: [
-          'base:on', 'helix:off', 'helix:on', 'base:on', 'helix:on', 'helix:off',
+          'base:on', 'helix:off', 'wall:normal', 'wall:translucent',
+          'wall:hidden', 'wall:normal', 'helix:on', 'base:on', 'helix:on', 'helix:off',
         ],
         base_product: {
-          schema: 'three-only-cavity-toolbar-v1',
+          schema: 'three-cavity-toolbar-v2',
           control_ids: [
             'topo-pan-btn', 'topo-rotate-btn', 'topo-recenter-btn',
-            'topo-three-btn', 'helix-overlay-btn',
+            'topo-three-btn', 'topo-wall-btn', 'helix-overlay-btn',
           ],
-          control_count: 5,
+          control_count: 6,
           base_selected: true,
           helix_selected: false,
           three_canvas_display: 'block',
           placeholder_canvas_visibility: 'hidden',
           slice_controls_absent: true,
-          wall_control_absent: true,
+          wall_control_present: true,
+          wall_display: 'normal',
+          wall_mesh_visible: true,
+          wall_material_opacity: 0.4,
         },
       },
       phone: { width: 390, height: 844 },
@@ -167,13 +171,14 @@ describe('authenticated public-control guided tutorial journeys', () => {
     }), { simVersion: SIM_VERSION })).toThrow(/Library and Record Groove|Strip View|phone/);
     expect(() => verifyGuidedTutorialBrowserReceipt(ROOT, rehash(receipt, clone => {
       const topology = clone.payload.journeys.player_surfaces.topology_helix;
-      topology.base_product.control_ids.push('topo-wall-btn');
-      topology.base_product.control_count = 6;
+      topology.base_product.control_ids.splice(4, 1);
+      topology.base_product.control_count = 5;
     }), { simVersion: SIM_VERSION })).toThrow(/topology and Helicoid controls/);
     expect(() => verifyGuidedTutorialBrowserReceipt(ROOT, rehash(receipt, clone => {
       const topology = clone.payload.journeys.player_surfaces.topology_helix;
       topology.public_control_sequence = [
-        'three:on', 'helix:off', 'three:off', 'three:on', 'helix:on', 'helix:off',
+        'base:on', 'helix:off', 'wall:hidden', 'wall:normal',
+        'helix:on', 'base:on', 'helix:on', 'helix:off',
       ];
     }), { simVersion: SIM_VERSION })).toThrow(/topology and Helicoid controls/);
     expect(() => verifyGuidedTutorialBrowserReceipt(ROOT, rehash(receipt, clone => {

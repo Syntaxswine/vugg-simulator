@@ -23,10 +23,12 @@ and the exact-execution evidence receipt.
   replay, and intentional tutorial-overlay teardown. Presentation-only scenario
   edits carry a separate replay projection so unchanged geology remains
   loadable while complete authored/evidence bytes stay exactly authenticated.
-- The Wall Profile retires the orphaned ring slices, CPU flat cross-section,
-  and wall-shell switch. Its camera row is now exactly Move, Rotate, Center,
-  3D, and Helicoid: 3D returns from the manifold to the ordinary cavity rather
-  than toggling the renderer off. Tutorial 1 teaches those actual controls;
+- The Wall Profile retires the orphaned ring slices and CPU flat cross-section
+  while retaining the independent wall-shell switch. Its camera row is now
+  exactly Move, Rotate, Center, 3D, Wall Display, and Helicoid: 3D returns from
+  the manifold to the ordinary cavity rather than toggling the renderer off,
+  and Wall Display cycles normal/translucent/hidden shell views. Tutorial 1
+  teaches those actual controls;
   Three/WebGL-incapable devices get an explicit unavailable disclosure, not a
   substitute topology.
 - Persistent 100%, 125%, and 150% text settings; explicit reduced motion;

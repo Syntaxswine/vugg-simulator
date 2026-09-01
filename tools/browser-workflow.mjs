@@ -1581,7 +1581,33 @@ async function runWorkflow(driver, diagnostics) {
       await driver.click('#topo-three-btn');
       await driver.waitFor(`topoBaseViewSelected() === true`, '3D cavity normalized');
     }
-    const topologySequence = ['base:on', 'helix:off'];
+    const topologySequence = ['base:on', 'helix:off', 'wall:normal'];
+    await driver.click('#topo-wall-btn');
+    await driver.waitFor(
+      `_topoThreeState?.wallDisplay === 1
+        && _topoThreeState?.cavity?.visible === true
+        && _topoThreeState?.cavity?.material?.opacity === 0.18
+        && document.querySelector('#topo-wall-btn')?.dataset.wallDisplay === 'translucent'`,
+      'translucent vug-wall shell',
+    );
+    topologySequence.push('wall:translucent');
+    await driver.click('#topo-wall-btn');
+    await driver.waitFor(
+      `_topoThreeState?.wallDisplay === 2
+        && _topoThreeState?.cavity?.visible === false
+        && document.querySelector('#topo-wall-btn')?.dataset.wallDisplay === 'hidden'`,
+      'hidden vug-wall shell',
+    );
+    topologySequence.push('wall:hidden');
+    await driver.click('#topo-wall-btn');
+    await driver.waitFor(
+      `_topoThreeState?.wallDisplay === 0
+        && _topoThreeState?.cavity?.visible === true
+        && _topoThreeState?.cavity?.material?.opacity === 0.4
+        && document.querySelector('#topo-wall-btn')?.dataset.wallDisplay === 'normal'`,
+      'normal vug-wall shell restored',
+    );
+    topologySequence.push('wall:normal');
     await driver.click('#helix-overlay-btn');
     await driver.waitFor(
       `helixOverlayEnabled() === true
@@ -1606,7 +1632,7 @@ async function runWorkflow(driver, diagnostics) {
       const ids = Array.from(document.querySelectorAll('.topo-camera-ctrls button'),
         button => button.id);
       return {
-        schema: 'three-only-cavity-toolbar-v1',
+        schema: 'three-cavity-toolbar-v2',
         control_ids: ids,
         control_count: ids.length,
         base_selected: topoBaseViewSelected(),
@@ -1614,7 +1640,10 @@ async function runWorkflow(driver, diagnostics) {
         three_canvas_display: getComputedStyle(document.querySelector('#topo-canvas-three')).display,
         placeholder_canvas_visibility: getComputedStyle(document.querySelector('#topo-canvas')).visibility,
         slice_controls_absent: document.querySelector('.topo-slice-ctrls') === null,
-        wall_control_absent: document.querySelector('#topo-wall-btn') === null,
+        wall_control_present: document.querySelector('#topo-wall-btn') !== null,
+        wall_display: document.querySelector('#topo-wall-btn')?.dataset.wallDisplay,
+        wall_mesh_visible: _topoThreeState?.cavity?.visible,
+        wall_material_opacity: _topoThreeState?.cavity?.material?.opacity,
       };
     })()`);
     await driver.click('#helix-overlay-btn');

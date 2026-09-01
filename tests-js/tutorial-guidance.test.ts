@@ -191,6 +191,9 @@ describe('guided tutorial target authority', () => {
     ]);
     expect(first.some((step: any) => step.anchor === '.topo-slice-ctrls')).toBe(false);
     expect(first.map((step: any) => step.text).join(' ')).not.toMatch(/flat cross-section|Slices\./i);
+    const cameraLesson = first.find((step: any) => step.anchor === '.topo-camera-ctrls');
+    expect(cameraLesson?.text).toContain('Six controls');
+    expect(cameraLesson?.text).toContain('normal, translucent, and hidden');
     const acid = SCENARIOS.tutorial_travertine._json5_spec.tutorial.steps
       .find((step: any) => step.action?.productAction === 'carbonate-acid-titration');
     expect(acid.action).toEqual({

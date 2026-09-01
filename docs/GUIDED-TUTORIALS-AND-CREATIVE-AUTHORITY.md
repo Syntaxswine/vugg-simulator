@@ -14,11 +14,12 @@ picker and not in a separate game mode. `data/scenarios.json5` owns the
    top-down interface tour includes the six-door quick-nav bar and the real
    Saves contract: rolling autosave, named manual copies, geological replay,
    and tutorial UI that intentionally does not resurrect on load.
-   Its Wall Profile has one five-control camera row: **Move, Rotate, Center,
-   3D, and Helicoid**. The 3D button is the ordinary-cavity selector and
-   Helicoid is the time-manifold selector; neither turns the renderer off.
-   The obsolete horizontal-ring stepper, wall-shell switch, polar wall, and
-   CPU flat cross-section have no player controls or tutorial references. If
+   Its Wall Profile has one six-control camera row: **Move, Rotate, Center,
+   3D, Wall Display, and Helicoid**. The 3D button is the ordinary-cavity
+   selector, Wall Display cycles its shell through normal/translucent/hidden,
+   and Helicoid is the time-manifold selector; none turns the renderer off.
+   The obsolete horizontal-ring stepper, polar wall, and CPU flat
+   cross-section have no player controls or tutorial references. If
    Three/WebGL cannot be commissioned, the 3D-only lesson rows are removed and
    the unavailable viewer is disclosed rather than replaced by invented flat
    topology.

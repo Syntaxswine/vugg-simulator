@@ -6742,6 +6742,36 @@ function _topoApplyWallDisplay(state: any) {
   mat.needsUpdate = true;
 }
 
+// Wall-shell visibility is a Three.js presentation control, not part of the
+// retired flat/slice renderer. Cycle the ordinary shell through normal,
+// translucent portrait, and hidden-druse views without changing simulation
+// state or leaving the 3-D cavity presentation.
+function topoToggleWallDisplay() {
+  const state = _topoThreeState;
+  if (!state || !state.cavity) return false;
+  state.wallDisplay = ((state.wallDisplay | 0) + 1) % 3;
+  _topoApplyWallDisplay(state);
+  const btn = document.getElementById('topo-wall-btn');
+  if (btn) {
+    const mode = state.wallDisplay | 0;
+    const label = mode === 0 ? 'normal' : mode === 1 ? 'translucent' : 'hidden';
+    (btn as HTMLElement).dataset.wallDisplay = label;
+    (btn as HTMLElement).style.color = mode !== 0 ? '#f0c050' : '';
+    btn.setAttribute('aria-label', `Vug wall display: ${label}`);
+    btn.title = mode === 0 ? 'Vug wall: normal (click: translucent)'
+      : mode === 1 ? 'Vug wall: translucent (click: hidden)'
+      : 'Vug wall: hidden (click: normal)';
+  }
+  // The scene and shader authority are already commissioned. Redraw that
+  // exact scene directly: routing a material-only toggle back through
+  // topoRender can rebuild/recommission the Three state between rapid public
+  // clicks and restart the three-state cycle at normal.
+  if (state.renderer && state.scene && state.camera) {
+    state.renderer.render(state.scene, state.camera);
+  }
+  return true;
+}
+
 // One-time default-on setup. Runs the first time _topoRenderThree
 // succeeds — colors the toggle button and forces drag mode to 'rotate'
 // so dragging the panel orbits the scene out-of-the-box.

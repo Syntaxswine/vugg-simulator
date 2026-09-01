@@ -19,6 +19,7 @@ function mountThreeOnlyToolbar() {
       <button id="topo-rotate-btn">rotate</button>
       <button id="topo-recenter-btn">center</button>
       <button id="topo-three-btn">3D</button>
+      <button id="topo-wall-btn">wall</button>
       <button id="helix-overlay-btn">helix</button>
     </div>
     <canvas id="topo-canvas"></canvas>
@@ -37,17 +38,24 @@ afterEach(() => {
 });
 
 describe('Three-only cavity toolbar', () => {
-  it('ships exactly Move, Rotate, Center, 3D, and Helicoid controls', () => {
+  it('ships Move, Rotate, Center, 3D, Wall Display, and Helicoid without slices', () => {
     const html = readFileSync(join(process.cwd(), 'index.html'), 'utf8');
     const toolbar = html.match(/<div class="topo-camera-ctrls">([\s\S]*?)<\/div>/)?.[1] || '';
     expect([...toolbar.matchAll(/id="([^"]+)"/g)].map(match => match[1])).toEqual([
       'topo-pan-btn', 'topo-rotate-btn', 'topo-recenter-btn',
-      'topo-three-btn', 'helix-overlay-btn',
+      'topo-three-btn', 'topo-wall-btn', 'helix-overlay-btn',
     ]);
-    expect(toolbar).not.toContain('topo-wall-btn');
+    expect(toolbar).toContain('onclick="topoToggleWallDisplay()"');
     expect(html).not.toContain('topo-slice-ctrls');
     expect(html).not.toContain('topoCycleSlice(');
     expect(html).not.toContain('cavity-field-cross-section-v1');
+  });
+
+  it('keeps Wall Display as an independent Three.js shell control', () => {
+    const source = readFileSync(join(process.cwd(), 'js', '99i-renderer-three.ts'), 'utf8');
+    expect(source).toContain('function topoToggleWallDisplay()');
+    expect(source).toContain('state.wallDisplay = ((state.wallDisplay | 0) + 1) % 3');
+    expect(source).toContain('dataset.wallDisplay = label');
   });
 
   it('refuses a retired 3D-off request instead of opening a flat view', () => {
