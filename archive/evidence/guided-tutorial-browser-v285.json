@@ -1,8 +1,8 @@
 {
   "schema": "vugg-guided-tutorial-browser-receipt-v7",
   "sim_version": 285,
-  "browser_bundle_sha256": "a9ccc79958bfd8656643b2b05528c34cade95b93e6c07ac77c25a8bc4cd4734d",
-  "execution_set_sha256": "a8888a6316e04274e56e669c300ea4fcdec3ad04ea9b4ddd5085737490954a58",
+  "browser_bundle_sha256": "c07bf41d71543bc53d21693fd94661a249baadcfa2c26d2a95cd80bd17527876",
+  "execution_set_sha256": "f849c5cbd1873a56df4daff7552f7170e71e12547eb0deaac494969513e9ac4d",
   "node_runtime": {
     "schema": "vugg-evidence-node-runtime-v1",
     "node": "24.15.0",
@@ -13,7 +13,7 @@
     "locale": "en-US"
   },
   "node_runtime_sha256": "b4bb27f2f1b62692b79844cbcc3df7c4966fa7cdc3106c81ce630a74b9a2e62c",
-  "producer_contract_sha256": "898191b7cdae14972861288c8be412b0ba9befcf6faa268661c244f890194350",
+  "producer_contract_sha256": "943c84b63b8fbc28b32bf217268c6c91cfdbd6d1e98bb56b5652cc3b5d43ceac",
   "payload": {
     "browser_runtime": {
       "schema": "vugg-owned-devtools-browser-runtime-v2",
@@ -235,6 +235,10 @@
           "public_control_sequence": [
             "base:on",
             "helix:off",
+            "wall:normal",
+            "wall:translucent",
+            "wall:hidden",
+            "wall:normal",
             "helix:on",
             "base:on",
             "helix:on",
@@ -242,21 +246,25 @@
           ],
           "pointer_hit_tested_controls": true,
           "base_product": {
-            "schema": "three-only-cavity-toolbar-v1",
+            "schema": "three-cavity-toolbar-v2",
             "control_ids": [
               "topo-pan-btn",
               "topo-rotate-btn",
               "topo-recenter-btn",
               "topo-three-btn",
+              "topo-wall-btn",
               "helix-overlay-btn"
             ],
-            "control_count": 5,
+            "control_count": 6,
             "base_selected": true,
             "helix_selected": false,
             "three_canvas_display": "block",
             "placeholder_canvas_visibility": "hidden",
             "slice_controls_absent": true,
-            "wall_control_absent": true
+            "wall_control_present": true,
+            "wall_display": "normal",
+            "wall_mesh_visible": true,
+            "wall_material_opacity": 0.4
           },
           "final_three_enabled": true,
           "final_helix_enabled": false
@@ -292,5 +300,5 @@
       }
     }
   },
-  "payload_sha256": "314cec1df1d68ca07b170cd7af304195addd2fceabb52854fe29bee6d73480cc"
+  "payload_sha256": "31302c3d0c8d5f5bab3eabe90ebfc2029e48ac523ea95368db03f70e58314dfe"
 }
