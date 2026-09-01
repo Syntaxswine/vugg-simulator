@@ -405,11 +405,9 @@ function _topoHitTest(ev) {
     return _hitTest3D(ev, sim, rect);
   }
 
-  // 2D path: hit-test reads whatever ring the renderer is currently
-  // showing. Aggregate (post-scatter default) → resolves any crystal
-  // on any ring at the cursor's angular position. Single-slice mode →
-  // resolves only crystals on that specific ring.
-  const ring0 = _topoActiveRingForRender(sim.wall_state);
+  // Legacy canvas hit-test uses the aggregate projection. The retired ring
+  // stepper no longer changes this selection.
+  const ring0 = _topoAggregateRing(sim.wall_state);
   if (!ring0 || !ring0.length) return null;
   const { mmToPx, cx, cy, initR } = _topoCanvasFrame(rect, sim.wall_state, ring0);
   const N = ring0.length;

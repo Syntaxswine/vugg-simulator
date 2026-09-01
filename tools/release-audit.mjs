@@ -22,7 +22,7 @@ export const RELEASE_RUNTIME_CONTRACT_SCHEMA = 'vugg-release-runtime-contract-v1
 // Presentation/content identity is independent of SIM_VERSION. Tutorial 1's
 // Saves lesson commissioned 1.0.1; its truthful 3D/flat cavity presentation
 // contract commissions the second patch to the core 1.0 pack.
-export const CORE_CONTENT_VERSION = '1.0.2';
+export const CORE_CONTENT_VERSION = '1.0.3';
 
 const compareCodePoint = (a, b) => (a < b ? -1 : a > b ? 1 : 0);
 const sha256 = bytes => crypto.createHash('sha256').update(bytes).digest('hex');

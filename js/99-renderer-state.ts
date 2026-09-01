@@ -47,24 +47,13 @@ const TOPO_DRAG_THRESHOLD_PX = 4;     // movement before drag starts (lets click
 // visible window without clipping against the canvas buffer edge.
 // MUST match the CSS width/height percentages on .topo-canvas-stage.
 const TOPO_STAGE_SCALE = 2;
-// Camera drag mode. 'default' = current 2D hit-test-aware behavior
-// (drag on non-crystal pans; click on crystal tooltips). 'rotate' =
-// drag from anywhere rotates the 3D tilted canvas. 'pan' = drag from
-// anywhere pans (ignores hit-test so user can drag even when starting
-// over a crystal). Mode buttons are in the .topo-camera-ctrls cluster
-// next to the play button; clicking an already-active button returns
-// to 'default'.
+// Camera drag mode for the 3-D cavity. 'rotate' orbits, 'pan' moves the
+// camera rig, and 'default' keeps ordinary pointer selection behavior.
+// Clicking an already-active Move/Rotate button returns to default.
 let _topoDragMode = 'default';
 // _topoView3D is derived: true iff _topoDragMode === 'rotate'. Kept
 // around as a variable because render/hit-test still read it.
 let _topoView3D = false;
-// Phase C v1+: 2D mode can show either the aggregate ring (every
-// crystal across every ring projected to a single slice — the post-
-// scatter default) or one specific ring index. `'aggregate'` ⇄ ints
-// 0..ring_count-1. The stepper buttons in `.topo-slice-ctrls` cycle
-// through them. Hidden in 3D mode (where every ring is rendered
-// stacked anyway) via `body.topo-view-3d` CSS.
-let _topoActiveSlice: number | 'aggregate' = 'aggregate';
 let _topoTiltX = 0;                   // pitch (viewer above/below)
 let _topoTiltY = 0;                   // yaw   (viewer left/right of disc)
 const TOPO_TILT_X_MAX = Math.PI / 2 - 0.05;   // don't flip past vertical

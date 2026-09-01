@@ -937,7 +937,6 @@ async function runWorkflow(driver, diagnostics) {
 
   await check('owns guided tutorial progress by one exact run lifecycle', async () => {
     const started = await driver.evaluate(`(async () => {
-      topoSetThreeRendererEnabled(false, false);
       helixSetOverlayEnabled(true, false);
       await startTutorial('tutorial_first_crystal');
       const locked = document.querySelector('.action-btn:not(.tutorial-allow)');
@@ -977,43 +976,25 @@ async function runWorkflow(driver, diagnostics) {
     const viewerAction = await driver.evaluate(`(() => {
       const steps = SCENARIOS.tutorial_first_crystal._json5_spec.tutorial.steps;
       const idx = steps.findIndex(step =>
-        step.action?.productState?.control === 'topo-three-renderer'
-        && step.action.productState.afterEnabled === false);
+        step.action?.productState?.control === 'helix-overlay'
+        && step.action.productState.afterEnabled === true);
       while (tutorialStateSnapshot()?.step_index < idx) _tutorialAdvance();
       return {
         idx,
         step: tutorialStateSnapshot()?.step_index,
-        enabled: !document.querySelector('#topo-three-btn')?.disabled,
+        enabled: !document.querySelector('#helix-overlay-btn')?.disabled,
       };
     })()`);
     assert.equal(viewerAction.step, viewerAction.idx);
     assert.equal(viewerAction.enabled, true);
-    await driver.click('#topo-three-btn');
+    await driver.click('#helix-overlay-btn');
     await driver.waitFor(
-      `topoThreeRendererEnabled() === false
+      `helixOverlayEnabled() === true
         && tutorialStateSnapshot()?.step_index === ${viewerAction.idx + 1}
-        && getComputedStyle(document.querySelector('#topo-canvas-three')).display === 'none'
-        && getComputedStyle(document.querySelector('#topo-canvas')).visibility !== 'hidden'
-        && getComputedStyle(document.querySelector('.topo-slice-ctrls')).display === 'none'
-        && getComputedStyle(document.querySelector('.topo-zoom-ctrls')).display === 'none'
-        && Array.from(document.querySelectorAll('.topo-camera-ctrls button'))
-          .filter(button => button.id !== 'topo-three-btn')
-          .every(button => button.disabled)
-        && document.querySelector('#topo-canvas')?._cavityFieldCrossSectionReceipt?.schema
-          === 'cavity-field-cross-section-v1'
-        && (() => {
-          const receipt = document.querySelector('#topo-canvas')
-            ?._cavityFieldCrossSectionReceipt;
-          const active = topoActiveSim()?.wall_state
-            ?.activeCavitySurfaceAnchorProvider?.();
-          return receipt?.field_snapshot_digest === active?.field?.snapshotDigest
-            && receipt?.surface_buffer_digest === active?.surface?.buffer_digest;
-        })()
-        && document.querySelector('#topo-canvas')?._cavityFieldCrossSectionLayout
-          ?.plot_inside_visible_bounds === true
-        && document.querySelector('#topo-canvas')?._cavityFieldCrossSectionLayout
-          ?.labels_inside_visible_bounds === true`,
-      'guided tutorial committed flat-view product',
+        && topoBaseViewSelected() === false
+        && document.querySelector('#helix-overlay-btn')?.getAttribute('aria-pressed') === 'true'
+        && document.querySelector('#topo-three-btn')?.getAttribute('aria-pressed') === 'false'`,
+      'guided tutorial committed Helicoid product',
     );
 
     await driver.click('.btn-reset');
@@ -1596,97 +1577,46 @@ async function runWorkflow(driver, diagnostics) {
       `getComputedStyle(document.querySelector('#output-container')).display !== 'none'`,
       'Simulation current-game surface',
     );
-    if (await driver.evaluate(`topoThreeRendererEnabled() !== true`)) {
+    if (await driver.evaluate(`topoBaseViewSelected() !== true`)) {
       await driver.click('#topo-three-btn');
-      await driver.waitFor(`topoThreeRendererEnabled() === true`, '3D topology normalized on');
+      await driver.waitFor(`topoBaseViewSelected() === true`, '3D cavity normalized');
     }
-    if (await driver.evaluate(`helixOverlayEnabled() === true`)) {
-      await driver.click('#helix-overlay-btn');
-      await driver.waitFor(`helixOverlayEnabled() === false`, 'helix normalized closed');
-    }
-    const topologySequence = ['three:on', 'helix:off'];
+    const topologySequence = ['base:on', 'helix:off'];
+    await driver.click('#helix-overlay-btn');
+    await driver.waitFor(
+      `helixOverlayEnabled() === true
+        && topoBaseViewSelected() === false
+        && document.querySelector('#helix-overlay-btn')?.getAttribute('aria-pressed') === 'true'
+        && document.querySelector('#topo-three-btn')?.getAttribute('aria-pressed') === 'false'`,
+      'Helicoid selected from ordinary cavity',
+    );
+    topologySequence.push('helix:on');
     await driver.click('#topo-three-btn');
     await driver.waitFor(
-      `topoThreeRendererEnabled() === false
-        && document.querySelector('#topo-three-btn')?.getAttribute('aria-pressed') === 'false'
-        && getComputedStyle(document.querySelector('#topo-canvas-three')).display === 'none'
-        && getComputedStyle(document.querySelector('#topo-canvas')).visibility !== 'hidden'
-        && getComputedStyle(document.querySelector('.topo-slice-ctrls')).display === 'none'
-        && getComputedStyle(document.querySelector('.topo-zoom-ctrls')).display === 'none'
-        && Array.from(document.querySelectorAll('.topo-camera-ctrls button'))
-          .filter(button => button.id !== 'topo-three-btn')
-          .every(button => button.disabled)
-        && document.querySelector('#topo-canvas')?._cavityFieldCrossSectionReceipt?.schema
-          === 'cavity-field-cross-section-v1'
-        && document.querySelector('#topo-canvas')?._cavityFieldCrossSectionLayout
-          ?.plot_inside_visible_bounds === true
-        && document.querySelector('#topo-canvas')?._cavityFieldCrossSectionLayout
-          ?.labels_inside_visible_bounds === true
-        && (() => {
-          const receipt = document.querySelector('#topo-canvas')
-            ?._cavityFieldCrossSectionReceipt;
-          const active = topoActiveSim()?.wall_state
-            ?.activeCavitySurfaceAnchorProvider?.();
-          return receipt?.field_snapshot_digest === active?.field?.snapshotDigest
-            && receipt?.surface_buffer_digest === active?.surface?.buffer_digest;
-        })()`,
-      'authenticated flat topology product',
+      `topoBaseViewSelected() === true
+        && helixOverlayEnabled() === false
+        && document.querySelector('#topo-three-btn')?.getAttribute('aria-pressed') === 'true'
+        && document.querySelector('#helix-overlay-btn')?.getAttribute('aria-pressed') === 'false'
+        && getComputedStyle(document.querySelector('#topo-canvas-three')).display === 'block'
+        && getComputedStyle(document.querySelector('#topo-canvas')).visibility === 'hidden'`,
+      'ordinary 3D cavity selected from Helicoid',
     );
-    const flatTopologyProduct = await driver.evaluate(`(() => {
-      const flat = document.querySelector('#topo-canvas');
-      const mesh = document.querySelector('#topo-canvas-three');
-      const receipt = flat?._cavityFieldCrossSectionReceipt;
-      const layout = flat?._cavityFieldCrossSectionLayout;
+    topologySequence.push('base:on');
+    const baseTopologyProduct = await driver.evaluate(`(() => {
+      const ids = Array.from(document.querySelectorAll('.topo-camera-ctrls button'),
+        button => button.id);
       return {
-        schema: receipt?.schema || null,
-        presentation: receipt?.presentation || null,
-        axis: receipt?.axis || null,
-        grid_index: receipt?.grid_index ?? null,
-        plane_world_mm: receipt?.plane_world_mm ?? null,
-        dimensions: receipt?.dimensions || null,
-        spacing_mm: receipt?.spacing_mm ?? null,
-        field_snapshot_digest: receipt?.field_snapshot_digest || null,
-        surface_buffer_digest: receipt?.surface_buffer_digest || null,
-        receipt_digest: receipt?.receipt_digest || null,
-        crystal_policy: receipt?.crystal_policy || null,
-        three_canvas_display: getComputedStyle(mesh).display,
-        flat_canvas_visibility: getComputedStyle(flat).visibility,
-        slice_controls_display: getComputedStyle(
-          document.querySelector('.topo-slice-ctrls'),
-        ).display,
-        zoom_controls_display: getComputedStyle(
-          document.querySelector('.topo-zoom-ctrls'),
-        ).display,
-        inapplicable_camera_controls_disabled: Array.from(
-          document.querySelectorAll('.topo-camera-ctrls button'),
-        ).filter(button => button.id !== 'topo-three-btn')
-          .every(button => button.disabled),
-        layout: layout ? {
-          schema: layout.schema,
-          canvas_dimensions_px: Array.from(layout.canvas_dimensions_px || []),
-          visible_bounds_px: Array.from(layout.visible_bounds_px || []),
-          plot_bounds_px: Array.from(layout.plot_bounds_px || []),
-          label_bounds_px: Array.from(layout.label_bounds_px || [],
-            bounds => Array.from(bounds || [])),
-          plot_inside_visible_bounds: layout.plot_inside_visible_bounds === true,
-          labels_inside_visible_bounds: layout.labels_inside_visible_bounds === true,
-        } : null,
+        schema: 'three-only-cavity-toolbar-v1',
+        control_ids: ids,
+        control_count: ids.length,
+        base_selected: topoBaseViewSelected(),
+        helix_selected: helixOverlayEnabled(),
+        three_canvas_display: getComputedStyle(document.querySelector('#topo-canvas-three')).display,
+        placeholder_canvas_visibility: getComputedStyle(document.querySelector('#topo-canvas')).visibility,
+        slice_controls_absent: document.querySelector('.topo-slice-ctrls') === null,
+        wall_control_absent: document.querySelector('#topo-wall-btn') === null,
       };
     })()`);
-    topologySequence.push('three:off');
-    await driver.click('#topo-three-btn');
-    await driver.waitFor(
-      `topoThreeRendererEnabled() === true
-        && document.querySelector('#topo-three-btn')?.getAttribute('aria-pressed') === 'true'
-        && getComputedStyle(document.querySelector('#topo-canvas-three')).display === 'block'
-        && getComputedStyle(document.querySelector('#topo-canvas')).visibility === 'hidden'
-        && getComputedStyle(document.querySelector('.topo-zoom-ctrls')).display !== 'none'
-        && Array.from(document.querySelectorAll('.topo-camera-ctrls button'))
-          .filter(button => button.id !== 'topo-three-btn')
-          .every(button => !button.disabled)`,
-      '3D topology restored',
-    );
-    topologySequence.push('three:on');
     await driver.click('#helix-overlay-btn');
     await driver.waitFor(
       `helixOverlayEnabled() === true
@@ -1816,11 +1746,7 @@ async function runWorkflow(driver, diagnostics) {
         scenario: 'shigar_pegmatite',
         public_control_sequence: topologySequence,
         pointer_hit_tested_controls: true,
-        flat_product: flatTopologyProduct,
-        restored_product: {
-          three_canvas_display: 'block',
-          flat_canvas_visibility: 'hidden',
-        },
+        base_product: baseTopologyProduct,
         final_three_enabled: true,
         final_helix_enabled: false,
       },

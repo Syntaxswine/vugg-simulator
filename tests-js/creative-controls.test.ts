@@ -240,9 +240,7 @@ describe('Creative chemistry control contract', () => {
     const canvas = document.createElement('canvas');
     canvas.id = 'topo-canvas';
     canvas.getContext = () => null;
-    const label = document.createElement('span');
-    label.id = 'topo-slice-label';
-    panel.append(canvas, label);
+    panel.append(canvas);
     fixture.appendChild(panel);
     document.body.appendChild(fixture);
 
@@ -254,9 +252,8 @@ describe('Creative chemistry control contract', () => {
     expect(sim.step).toBe(0);
     expect(sim.wall_state.activeCavitySurfaceAnchorProvider().receipt)
       .toMatchObject({ kind: 'cavity-field', resolution: 48, isovalue: 0 });
-    // `_topoUpdateSliceLabel` runs inside topoRender before any canvas/WebGL
-    // dependency, so this is a non-spy proof that Begin rendered step zero.
-    expect(label.textContent).toBe('All slices');
+    // The retired ring stepper must not reappear as a false step-zero product.
+    expect(htmlShell).not.toContain('topo-slice-label');
   });
 
   it('reconfigures every live control copy when stale or duplicate DOM survives a rerender', () => {
@@ -858,7 +855,7 @@ describe('responsive and accessible shell contracts', () => {
   it('gives symbol-only topology controls accessible names', () => {
     const parsed = new DOMParser().parseFromString(htmlShell, 'text/html');
     const symbolButtons = parsed.querySelectorAll(
-      '.topo-zoom-ctrls button, .topo-slice-ctrls button, .topo-camera-ctrls button, #topo-replay-btn, #topo-replay-bar button',
+      '.topo-zoom-ctrls button, .topo-camera-ctrls button, #topo-replay-btn, #topo-replay-bar button',
     );
     expect(symbolButtons.length).toBeGreaterThan(0);
     for (const button of Array.from(symbolButtons)) {

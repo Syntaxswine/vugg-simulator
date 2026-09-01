@@ -14,14 +14,14 @@ picker and not in a separate game mode. `data/scenarios.json5` owns the
    top-down interface tour includes the six-door quick-nav bar and the real
    Saves contract: rolling autosave, named manual copies, geological replay,
    and tutorial UI that intentionally does not resurrect on load.
-   Its ⬚ viewer action switches the exact Cartesian cavity between the 3D
-   mesh and an authenticated CPU-sampled central cross-section. The flat view
-   labels rock/void/water and explicitly withholds crystals rather than
-   reviving the obsolete polar “unwrapped wall” for re-entrant geometry.
-   Camera, ring, zoom, wall-shell, and Helicoid controls are unavailable in
-   that fixed CPU slice; ⬚ restores them with the 3D presentation. If Three or
-   WebGL cannot be commissioned, the authored lesson removes those impossible
-   transitions and teaches the flat product directly instead of deadlocking.
+   Its Wall Profile has one five-control camera row: **Move, Rotate, Center,
+   3D, and Helicoid**. The 3D button is the ordinary-cavity selector and
+   Helicoid is the time-manifold selector; neither turns the renderer off.
+   The obsolete horizontal-ring stepper, wall-shell switch, polar wall, and
+   CPU flat cross-section have no player controls or tutorial references. If
+   Three/WebGL cannot be commissioned, the 3D-only lesson rows are removed and
+   the unavailable viewer is disclosed rather than replaced by invented flat
+   topology.
    Breadcrumb: the complete scenario hash authenticates authored/evidence
    bytes, while `scenarioReplaySpecHash` excludes only description, notes, and
    tutorial presentation so those corrections do not invalidate unchanged
@@ -65,9 +65,10 @@ are separate controls; they are not padded into the chemistry count.
   `js/99j-helix-overlay.ts`, Library/Strip handlers) → exact matcher in
   `js/70a-tutorial-overlay.ts` → controlled witness in
   `tools/gen-mechanism-witnesses.mjs`.
-- **Change the Wall Profile presentation:** the ⬚ state owner in
-  `js/99i-renderer-three.ts` and panel commissioning in
-  `js/99f-renderer-interaction.ts` → exact-field dispatch and CPU receipt in
+- **Change the Wall Profile presentation:** the 3D selector in
+  `js/99i-renderer-three.ts` ↔ Helicoid selector in
+  `js/99j-helix-overlay.ts` → interaction modes in
+  `js/99f-renderer-interaction.ts` → fail-closed placeholder dispatch in
   `js/99b-renderer-topo-2d.ts` → tutorial prose in `data/scenarios.json5`
   → real-pointer/product checks in `tools/browser-workflow.mjs`.
 - **Change a chemistry lever:** `CREATIVE_CHEMISTRY_CONTROLS` →

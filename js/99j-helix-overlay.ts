@@ -2048,21 +2048,10 @@ function helixOverlayEnabled(): boolean {
   return _helixOverlayEnabled === true;
 }
 
-function _helixForceOverlayOffForFlatPresentation(): boolean {
-  const changed = _helixOverlayEnabled === true;
-  _helixOverlayEnabled = false;
-  const btn = document.getElementById('helix-overlay-btn');
-  if (btn) {
-    (btn as HTMLElement).style.color = '';
-    btn.setAttribute('aria-pressed', 'false');
-  }
-  _helixSyncLegendVisibility();
-  return changed;
-}
-
 function helixSetOverlayEnabled(enabled: boolean, emitProduct = true): boolean {
   const desired = enabled === true;
-  if (desired && _topoExactFlatPresentationActive) return false;
+  if (desired && (typeof topoThreeRendererEnabled !== 'function'
+      || topoThreeRendererEnabled() !== true)) return false;
   const before = helixOverlayEnabled();
   _helixOverlayEnabled = desired;
   const btn = document.getElementById('helix-overlay-btn');
@@ -2071,6 +2060,9 @@ function helixSetOverlayEnabled(enabled: boolean, emitProduct = true): boolean {
     btn.setAttribute('aria-pressed', String(_helixOverlayEnabled));
   }
   _helixSyncLegendVisibility();
+  if (typeof _topoSyncThreeButtonState === 'function') {
+    _topoSyncThreeButtonState();
+  }
   if (typeof topoRender === 'function') topoRender();
   const changed = before !== _helixOverlayEnabled;
   if (changed && emitProduct && typeof _dispatchTutorialViewStateProduct === 'function') {

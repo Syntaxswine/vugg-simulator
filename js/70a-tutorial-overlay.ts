@@ -211,27 +211,14 @@ function _dispatchTutorialViewStateProduct(target, control, beforeEnabled, after
   return true;
 }
 
-function _tutorialTopoPresentationMatches(afterEnabled: boolean): boolean {
+function _tutorialTopoPresentationMatches(): boolean {
   const flat = document.getElementById('topo-canvas') as any;
   const mesh = document.getElementById('topo-canvas-three') as any;
   if (!flat || !mesh) return false;
-  if (afterEnabled) {
-    return mesh.style?.display === 'block'
-      && flat.style?.visibility === 'hidden'
-      && typeof _topoThreeRendererEffective === 'function'
-      && _topoThreeRendererEffective() === true;
-  }
-  const sim = typeof topoActiveSim === 'function' ? topoActiveSim() : null;
-  const active = sim?.wall_state?.activeCavitySurfaceAnchorProvider?.();
-  const receipt = flat._cavityFieldCrossSectionReceipt;
-  return mesh.style?.display === 'none'
-    && flat.style?.visibility !== 'hidden'
-    && active?.receipt?.kind === 'cavity-field'
-    && receipt?.schema === 'cavity-field-cross-section-v1'
-    && receipt.field_snapshot_digest === active.field?.snapshotDigest
-    && receipt.surface_buffer_digest === active.surface?.buffer_digest
-    && receipt.crystal_policy
-      === 'withheld-with-explicit-label-without-authenticated-cpu-field-clipping';
+  return mesh.style?.display === 'block'
+    && flat.style?.visibility === 'hidden'
+    && typeof topoBaseViewSelected === 'function'
+    && topoBaseViewSelected() === true;
 }
 
 // One commissioner is shared by live tutorial boot and the controlled
@@ -244,12 +231,12 @@ function _tutorialCanonicalizeViewerState() {
     helix_overlay_enabled: typeof helixOverlayEnabled === 'function'
       ? helixOverlayEnabled() : null,
   });
-  if (typeof topoSetThreeRendererEnabled !== 'function'
+  if (typeof topoSelectThreeRenderer !== 'function'
       || typeof helixSetOverlayEnabled !== 'function') {
     throw new Error('Guided tutorial viewer authority is unavailable');
   }
-  topoSetThreeRendererEnabled(true, false);
   helixSetOverlayEnabled(false, false);
+  topoSelectThreeRenderer(false);
   _tutorialViewerCommissioningReceipt = Object.freeze({
     schema: 'tutorial-viewer-commissioning-v1',
     before,
@@ -556,17 +543,6 @@ async function startTutorial(scenarioName) {
 }
 
 function endTutorial() {
-  // Tutorial locking and exact-flat presentation can own the same controls.
-  // Release the inner flat snapshot before restoring the tutorial snapshot,
-  // then reacquire it from the restored values when the player merely Skips
-  // or finishes while keeping the same geological presentation. Run-lifecycle
-  // boundaries release flat first in _tutorialRunBoundary, so they do not
-  // reacquire a product belonging to the retired run.
-  const resumeExactFlatPresentation =
-    typeof _topoExactFlatPresentationActive === 'boolean'
-    && _topoExactFlatPresentationActive
-    && typeof _topoSyncFlatPresentationControls === 'function';
-  if (resumeExactFlatPresentation) _topoSyncFlatPresentationControls(false);
   _tutorialState = null;
   _tutorialViewerCommissioningReceipt = null;
   document.body.classList.remove('tutorial-active');
@@ -587,7 +563,6 @@ function endTutorial() {
   document.removeEventListener('vugg:fortress-fluid-action-committed', _tutorialActionEvent, true);
   document.removeEventListener('vugg:tutorial-view-state-committed', _tutorialActionEvent, true);
   hideCallout();
-  if (resumeExactFlatPresentation) _topoSyncFlatPresentationControls(true);
 }
 
 // Shared by 94/97 run constructors and Reset. Only the exact pending token
@@ -599,15 +574,6 @@ function _tutorialRunBoundary(tutorialBootToken?, runLaunchToken?) {
   const ownsPendingBoot = Number.isSafeInteger(tutorialBootToken)
     && tutorialBootToken === _tutorialStartEpoch;
   if (!ownsPendingBoot) _tutorialStartEpoch++;
-  // A run replacement/Home/Reset retires the flat product as well as the
-  // tutorial. Release the newer (inner) owner first so endTutorial restores
-  // the older tutorial snapshot second. This prevents a stale disabled=true
-  // exact-flat snapshot from being replayed after both owners have ended.
-  if (typeof _topoExactFlatPresentationActive === 'boolean'
-      && _topoExactFlatPresentationActive
-      && typeof _topoSyncFlatPresentationControls === 'function') {
-    _topoSyncFlatPresentationControls(false);
-  }
   endTutorial();
   return ownsPendingBoot;
 }
@@ -1002,22 +968,22 @@ function _tutorialProductEventMatches(event, action, hit) {
           'control', 'beforeEnabled', 'afterEnabled',
         ].sort())
         || detail.schema !== 'tutorial-view-state-product-v1'
-        || !['topo-three-renderer', 'helix-overlay'].includes(detail.control)
+        || !['topo-base-view', 'helix-overlay'].includes(detail.control)
         || detail.control !== authority.control
         || typeof detail.before_enabled !== 'boolean'
         || typeof detail.after_enabled !== 'boolean'
         || detail.before_enabled === detail.after_enabled
         || detail.before_enabled !== authority.beforeEnabled
         || detail.after_enabled !== authority.afterEnabled) return false;
-    if (detail.control === 'topo-three-renderer'
-        && typeof topoThreeRendererEnabled !== 'function') return false;
+    if (detail.control === 'topo-base-view'
+        && typeof topoBaseViewSelected !== 'function') return false;
     if (detail.control === 'helix-overlay'
         && typeof helixOverlayEnabled !== 'function') return false;
-    const current = detail.control === 'topo-three-renderer'
-      ? topoThreeRendererEnabled() : helixOverlayEnabled();
+    const current = detail.control === 'topo-base-view'
+      ? topoBaseViewSelected() : helixOverlayEnabled();
     if (current !== detail.after_enabled) return false;
-    return detail.control !== 'topo-three-renderer'
-      || _tutorialTopoPresentationMatches(detail.after_enabled);
+    return detail.control !== 'topo-base-view'
+      || detail.after_enabled === true && _tutorialTopoPresentationMatches();
   }
   return true;
 }

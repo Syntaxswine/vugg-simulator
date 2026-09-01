@@ -1,15 +1,12 @@
 // ============================================================
-// js/99b-renderer-topo-2d.ts — Canvas-2D topo painter — flat wall presentations
+// js/99b-renderer-topo-2d.ts — Canvas-2D placeholder + legacy replay painter
 // ============================================================
-// _topoPaintPlaceholder, _topoProject3D math helper, _topoAggregateRing, _topoActiveRingForRender, topoCycleSlice, _topoUpdateSliceLabel, and the master topoRender function.
+// _topoPaintPlaceholder, _topoProject3D math helper, _topoAggregateRing, and
+// the master topoRender function. The player-facing cavity is Three-only;
+// this canvas remains for truthful unavailable/corrupt-frame messages and
+// historical replay compatibility, not as a selectable flat viewer.
 //
 // Phase B12 of PROPOSAL-MODULAR-REFACTOR — split renderer.
-
-// Exact Cartesian flat presentation has a deliberately smaller interaction
-// vocabulary than either the legacy ring painter or the Three scene. Shared
-// entry points in 99f/99i consult this bit so disabled chrome cannot still be
-// activated by a keyboard shortcut, wheel event, or direct inline call.
-let _topoExactFlatPresentationActive = false;
 
 function _topoPaintPlaceholder(canvas, text) {
   const ctx = canvas.getContext('2d');
@@ -40,273 +37,6 @@ function _topoPaintPlaceholder(canvas, text) {
   } else {
     ctx.fillText(text, cx, cy);
   }
-}
-
-function _topoCavityFieldCrossSectionReceipt(activeProvider: any, appearance: any,
-                                             wall: any, conditions: any,
-                                             sim: any = null): any {
-  const field = activeProvider?.field;
-  const surface = activeProvider?.surface;
-  const provider = activeProvider?.receipt;
-  const currentProvider = wall?.activeCavitySurfaceAnchorProvider?.();
-  if (!currentProvider || currentProvider !== activeProvider
-      || currentProvider.field !== field || currentProvider.surface !== surface
-      || currentProvider.receipt !== provider) {
-    throw new Error('CPU cavity cross-section requires the wall exact current active provider');
-  }
-  if (!field || !surface || provider?.kind !== 'cavity-field'
-      || provider.field_signature !== field.sig
-      || provider.field_snapshot_digest !== field.snapshotDigest
-      || provider.surface_signature !== surface.sig
-      || provider.surface_buffer_digest !== surface.buffer_digest) {
-    throw new Error('CPU cavity cross-section requires one authenticated field/provider pair');
-  }
-  MarchingCubesExtractor.verifyBuffers(surface);
-  const authenticatedAppearance = CavityWaterAppearance.assertReceipt(
-    wall, conditions, appearance,
-    { activeProvider, providerReceipt: provider, surface, sim },
-  ).receipt;
-  const requestedPlane = Math.round((0 - field.origin[2]) / field.spacingMm);
-  const zIndex = Math.max(0, Math.min(field.sizeZ - 1, requestedPlane));
-  const payload: any = {
-    schema: 'cavity-field-cross-section-v1',
-    presentation: 'capability-independent-cpu-sampled-cross-section',
-    field_signature: field.sig,
-    field_snapshot_digest: field.snapshotDigest,
-    surface_signature: surface.sig,
-    surface_buffer_digest: surface.buffer_digest,
-    source_evolution_signature: provider.cavity_evolution_signature ?? null,
-    axis: 'z',
-    grid_index: zIndex,
-    plane_world_mm: field.origin[2] + zIndex * field.spacingMm,
-    dimensions: [field.sizeX, field.sizeY],
-    origin_xy_mm: [field.origin[0], field.origin[1]],
-    spacing_mm: field.spacingMm,
-    isovalue: surface.isovalue,
-    appearance_digest: authenticatedAppearance.appearance_digest,
-    appearance_source_geometry_digest: authenticatedAppearance.source_geometry_digest,
-    appearance_source_provider_kind: authenticatedAppearance.source_provider_kind,
-    appearance_source_evolution_signature:
-      authenticatedAppearance.source_evolution_signature,
-    water_plane_y_mm: authenticatedAppearance.explicit_surface
-      ? authenticatedAppearance.water_plane_y_mm : null,
-    crystal_policy: 'withheld-with-explicit-label-without-authenticated-cpu-field-clipping',
-  };
-  payload.receipt_digest = CavityEvolutionLedger.digest(payload);
-  CavityEvolutionLedger._deepFreeze(payload);
-  return payload;
-}
-
-function _topoCrossSectionTextMetrics(ctx: any, text: string, fontPx: number): any {
-  const measured = typeof ctx?.measureText === 'function' ? ctx.measureText(text) : null;
-  const width = Number.isFinite(measured?.width)
-    ? Number(measured.width) : text.length * fontPx * 0.58;
-  const ascent = Number.isFinite(measured?.actualBoundingBoxAscent)
-    ? Number(measured.actualBoundingBoxAscent) : fontPx * 0.82;
-  const descent = Number.isFinite(measured?.actualBoundingBoxDescent)
-    ? Number(measured.actualBoundingBoxDescent) : fontPx * 0.22;
-  return { width, ascent, descent };
-}
-
-function _topoWrapCrossSectionLabel(ctx: any, text: string,
-                                    maxWidth: number, fontPx: number): string[] {
-  const words = text.trim().split(/\s+/).filter(Boolean);
-  const lines: string[] = [];
-  let line = '';
-  for (const word of words) {
-    const candidate = line ? `${line} ${word}` : word;
-    if (line && _topoCrossSectionTextMetrics(ctx, candidate, fontPx).width > maxWidth) {
-      lines.push(line);
-      line = word;
-    } else {
-      line = candidate;
-    }
-  }
-  if (line) lines.push(line);
-  return lines.length ? lines : [''];
-}
-
-function _topoRenderCavityFieldCrossSection(ctx: any, cssW: number, cssH: number,
-                                            activeProvider: any, appearance: any,
-                                            wall: any, conditions: any,
-                                            sim: any = null): boolean {
-  if (!ctx || !(cssW > 0) || !(cssH > 0)) return false;
-  let receipt: any;
-  try {
-    receipt = _topoCavityFieldCrossSectionReceipt(
-      activeProvider, appearance, wall, conditions, sim,
-    );
-  } catch (_error) {
-    return false;
-  }
-  const field = activeProvider.field;
-  // #topo-canvas fills the centered 200% stage. Only its central half is
-  // inside the clipped player viewport, so all cross-section pixels and both
-  // disclosure labels must be fitted to that central rectangle rather than
-  // to the full backing canvas.
-  const visibleWidth = cssW / TOPO_STAGE_SCALE;
-  const visibleHeight = cssH / TOPO_STAGE_SCALE;
-  const visibleLeft = (cssW - visibleWidth) / 2;
-  const visibleTop = (cssH - visibleHeight) / 2;
-  const visibleRight = visibleLeft + visibleWidth;
-  const visibleBottom = visibleTop + visibleHeight;
-  const margin = 18;
-  const labelMaxWidth = Math.max(1, visibleWidth - 16);
-  const primaryFontPx = 12;
-  const secondaryFontPx = 10;
-  const primaryText = `Authenticated z=${receipt.plane_world_mm.toFixed(2)} mm`;
-  const secondaryText = 'CPU slice · crystals withheld';
-  ctx.font = `${primaryFontPx}px system-ui, sans-serif`;
-  const primaryLines = _topoWrapCrossSectionLabel(
-    ctx, primaryText, labelMaxWidth, primaryFontPx,
-  );
-  ctx.font = `${secondaryFontPx}px system-ui, sans-serif`;
-  const secondaryLines = _topoWrapCrossSectionLabel(
-    ctx, secondaryText, labelMaxWidth, secondaryFontPx,
-  );
-  const primaryLineHeight = 14;
-  const secondaryLineHeight = 12;
-  const labelGap = 2;
-  const labelHeight = primaryLines.length * primaryLineHeight
-    + labelGap + secondaryLines.length * secondaryLineHeight;
-  const plotWidth = Math.max(1, visibleWidth - margin * 2);
-  const plotHeight = Math.max(1, visibleHeight - margin * 2 - labelHeight);
-  const scale = Math.min(
-    plotWidth / Math.max(1, field.sizeX - 1),
-    plotHeight / Math.max(1, field.sizeY - 1),
-  );
-  const drawWidth = scale * Math.max(1, field.sizeX - 1);
-  const drawHeight = scale * Math.max(1, field.sizeY - 1);
-  const left = visibleLeft + (visibleWidth - drawWidth) / 2;
-  const top = visibleTop + margin + (plotHeight - drawHeight) / 2;
-  ctx.save?.();
-  ctx.fillStyle = '#120f0d';
-  ctx.fillRect(0, 0, cssW, cssH);
-  const waterPlane = receipt.water_plane_y_mm;
-  const isovalue = receipt.isovalue;
-  for (let y = 0; y < field.sizeY; y++) {
-    const worldY = field.origin[1] + y * field.spacingMm;
-    const screenY = top + (field.sizeY - 1 - y) * scale;
-    for (let x = 0; x < field.sizeX; x++) {
-      const value = field.valueAt(x, y, receipt.grid_index);
-      if (value > isovalue) {
-        ctx.fillStyle = waterPlane != null && worldY <= waterPlane
-          ? 'rgba(63, 137, 184, 0.88)' : 'rgba(25, 31, 34, 0.96)';
-      } else {
-        ctx.fillStyle = 'rgba(91, 62, 39, 0.98)';
-      }
-      ctx.fillRect(left + x * scale - scale * 0.52, screenY - scale * 0.52,
-        Math.max(1, scale * 1.04), Math.max(1, scale * 1.04));
-    }
-  }
-  ctx.strokeStyle = 'rgba(230, 197, 139, 0.88)';
-  ctx.lineWidth = 1;
-  ctx.strokeRect(left, top, drawWidth, drawHeight);
-  ctx.fillStyle = '#eadfc9';
-  ctx.font = `${primaryFontPx}px system-ui, sans-serif`;
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'alphabetic';
-  const labelBounds: number[][] = [];
-  let labelTop = visibleBottom - labelHeight;
-  for (const line of primaryLines) {
-    const metrics = _topoCrossSectionTextMetrics(ctx, line, primaryFontPx);
-    const labelBaseline = labelTop + metrics.ascent;
-    ctx.fillText(line, cssW / 2, labelBaseline);
-    labelBounds.push([
-      cssW / 2 - metrics.width / 2, labelBaseline - metrics.ascent,
-      cssW / 2 + metrics.width / 2, labelBaseline + metrics.descent,
-    ]);
-    labelTop += primaryLineHeight;
-  }
-  ctx.fillStyle = '#b9aa91';
-  ctx.font = `${secondaryFontPx}px system-ui, sans-serif`;
-  labelTop += labelGap;
-  for (const line of secondaryLines) {
-    const metrics = _topoCrossSectionTextMetrics(ctx, line, secondaryFontPx);
-    const labelBaseline = labelTop + metrics.ascent;
-    ctx.fillText(line, cssW / 2, labelBaseline);
-    labelBounds.push([
-      cssW / 2 - metrics.width / 2, labelBaseline - metrics.ascent,
-      cssW / 2 + metrics.width / 2, labelBaseline + metrics.descent,
-    ]);
-    labelTop += secondaryLineHeight;
-  }
-  ctx.restore?.();
-  ctx.canvas._cavityFieldCrossSectionReceipt = receipt;
-  const labelsInside = labelBounds.every(([x0, y0, x1, y1]) =>
-    x0 >= visibleLeft && y0 >= visibleTop
-      && x1 <= visibleRight && y1 <= visibleBottom);
-  const plotInside = left >= visibleLeft && top >= visibleTop
-    && left + drawWidth <= visibleRight && top + drawHeight <= visibleBottom;
-  ctx.canvas._cavityFieldCrossSectionLayout = Object.freeze({
-    schema: 'cavity-field-cross-section-layout-v1',
-    canvas_dimensions_px: Object.freeze([cssW, cssH]),
-    visible_bounds_px: Object.freeze([
-      visibleLeft, visibleTop, visibleRight, visibleBottom,
-    ]),
-    plot_bounds_px: Object.freeze([left, top, left + drawWidth, top + drawHeight]),
-    label_bounds_px: Object.freeze(labelBounds.map(bounds => Object.freeze(bounds))),
-    plot_inside_visible_bounds: plotInside,
-    labels_inside_visible_bounds: labelsInside,
-  });
-  return true;
-}
-
-function _topoCavityFieldFlatRequested(activeProvider: any): boolean {
-  return _topoUseThreeRenderer !== true
-    && activeProvider?.receipt?.kind === 'cavity-field';
-}
-
-function _topoSyncFlatPresentationControls(exactCrossSection: boolean): void {
-  if (_topoExactFlatPresentationActive !== exactCrossSection
-      && typeof _topoCancelActiveDragForPresentationBoundary === 'function') {
-    _topoCancelActiveDragForPresentationBoundary();
-  }
-  _topoExactFlatPresentationActive = exactCrossSection;
-  if (exactCrossSection
-      && typeof _helixForceOverlayOffForFlatPresentation === 'function') {
-    _helixForceOverlayOffForFlatPresentation();
-  }
-  const slices = document.querySelector('.topo-slice-ctrls') as HTMLElement | null;
-  if (slices) slices.style.display = exactCrossSection ? 'none' : '';
-  const zoom = document.querySelector('.topo-zoom-ctrls') as HTMLElement | null;
-  if (zoom) zoom.style.display = exactCrossSection ? 'none' : '';
-  const camera = document.querySelector('.topo-camera-ctrls');
-  camera?.querySelectorAll('button').forEach((button: HTMLButtonElement) => {
-    // ⬚ remains the exit from the flat product. Every other camera-cluster
-    // control (including Helicoid, whose geometry is Three-owned) is inert.
-    if (button.id === 'topo-three-btn') return;
-    if (exactCrossSection) {
-      if (!Object.prototype.hasOwnProperty.call(button.dataset, 'exactFlatPriorDisabled')) {
-        button.dataset.exactFlatPriorDisabled = String(button.disabled);
-        button.dataset.exactFlatPriorTitle = button.title;
-        button.dataset.exactFlatPriorHadAriaDisabled = String(
-          button.hasAttribute('aria-disabled'),
-        );
-        button.dataset.exactFlatPriorAriaDisabled =
-          button.getAttribute('aria-disabled') || '';
-      }
-      button.disabled = true;
-      button.setAttribute('aria-disabled', 'true');
-      button.title = 'Unavailable in the authenticated flat cavity cross-section';
-    } else if (Object.prototype.hasOwnProperty.call(
-      button.dataset, 'exactFlatPriorDisabled',
-    )) {
-      button.disabled = button.dataset.exactFlatPriorDisabled === 'true';
-      button.title = button.dataset.exactFlatPriorTitle || '';
-      if (button.dataset.exactFlatPriorHadAriaDisabled === 'true') {
-        button.setAttribute(
-          'aria-disabled', button.dataset.exactFlatPriorAriaDisabled || 'true',
-        );
-      } else {
-        button.removeAttribute('aria-disabled');
-      }
-      delete button.dataset.exactFlatPriorDisabled;
-      delete button.dataset.exactFlatPriorTitle;
-      delete button.dataset.exactFlatPriorHadAriaDisabled;
-      delete button.dataset.exactFlatPriorAriaDisabled;
-    }
-  });
 }
 
 // Phase B (Tier 1.5) — per-vertex 3D projection helper.
@@ -416,88 +146,10 @@ function _topoAggregateSnapshotRings(snap): any[] {
   return out;
 }
 
-// Slice resolver: returns the ring data the 2D path should display
-// based on `_topoActiveSlice`. 'aggregate' → aggregate ring (post-
-// scatter default); int N → wall.rings[N] directly. Out-of-range
-// indices clamp back to aggregate so the stepper can never wedge
-// itself on a stale ring count after a scenario reload.
-function _topoActiveRingForRender(wall) {
-  if (!wall || !wall.rings || !wall.rings.length) return [];
-  if (_topoActiveSlice === 'aggregate') return _topoAggregateRing(wall);
-  const idx = _topoActiveSlice | 0;
-  if (idx < 0 || idx >= wall.rings.length) {
-    _topoActiveSlice = 'aggregate';
-    _topoUpdateSliceLabel(wall);
-    return _topoAggregateRing(wall);
-  }
-  return wall.rings[idx];
-}
-
-// Cycle through [aggregate, 0, 1, ..., ring_count-1, aggregate, ...]
-// in either direction. dir=+1 advances; dir=-1 goes back. Wraps at
-// both ends. Re-renders and updates the label after each step.
-function topoCycleSlice(dir) {
-  if (_topoExactFlatPresentationActive) return false;
-  const sim = topoActiveSim();
-  const wall = sim ? sim.wall_state : null;
-
-  // Historical payload authentication precedes shape aggregation and every
-  // empty-state guard. Otherwise a malformed replay can look like a merely
-  // empty frame—or worse, borrow the live wall.
-  const n = wall ? wall.ring_count : 0;
-  if (n <= 1) {
-    // Single-ring sim — no stepper to cycle. Stay aggregated.
-    _topoActiveSlice = 'aggregate';
-    _topoUpdateSliceLabel(wall);
-    return;
-  }
-  // The state space has n + 1 entries: 'aggregate', 0, 1, ..., n-1.
-  // Encode as integers 0..n where 0 = 'aggregate'; cycle there, then
-  // decode back to either 'aggregate' or an int.
-  const cur = (_topoActiveSlice === 'aggregate') ? 0 : (_topoActiveSlice + 1);
-  const next = ((cur + dir) % (n + 1) + (n + 1)) % (n + 1);
-  _topoActiveSlice = (next === 0) ? 'aggregate' : (next - 1);
-  _topoUpdateSliceLabel(wall);
-  topoRender();
-}
-
-// Repaint the slice-stepper label to match `_topoActiveSlice`.
-// Called from topoCycleSlice and from topoRender (so the label stays
-// in sync if a scenario reload trims the ring count under us).
-function _topoUpdateSliceLabel(wall) {
-  const lab = document.getElementById('topo-slice-label');
-  if (!lab) return;
-  if (_topoActiveSlice === 'aggregate') {
-    lab.textContent = 'All slices';
-    return;
-  }
-  const idx = _topoActiveSlice | 0;
-  const orient = (wall && wall.ringOrientation)
-    ? wall.ringOrientation(idx) : '';
-  const total = wall ? wall.ring_count : 0;
-  // "5/16 wall" — compact; the orientation tag tells the player
-  // they're looking at a floor / wall / ceiling slice without a
-  // separate UI element.
-  lab.textContent = `${idx + 1}/${total} ${orient}`.trim();
-}
-
 function topoRender(optOverrideSnap?) {
   const canvas = document.getElementById('topo-canvas');
   const panel = document.getElementById('topo-panel');
-  if (!canvas || !panel) {
-    _topoSyncFlatPresentationControls(false);
-    return;
-  }
-  // A cross-section receipt is a product of this exact render attempt, not a
-  // sticky canvas badge. Clear it before every visible attempt so a later
-  // scenario, replay frame, or failed placeholder cannot borrow testimony
-  // from the cavity that happened to render immediately before it.
-  delete (canvas as any)._cavityFieldCrossSectionReceipt;
-  delete (canvas as any)._cavityFieldCrossSectionLayout;
-  if (panel.style.display === 'none') {
-    _topoSyncFlatPresentationControls(false);
-    return;
-  }
+  if (!canvas || !panel || panel.style.display === 'none') return;
 
   const sim = topoActiveSim();
   const wall = sim ? sim.wall_state : null;
@@ -508,7 +160,6 @@ function topoRender(optOverrideSnap?) {
     ? _topoReplayRenderDecision(wall, optOverrideSnap)
     : { mode: 'wall-mesh', wall };
   if (replayDecision.mode === 'corrupt') {
-    _topoSyncFlatPresentationControls(false);
     if (typeof _topoSyncThreeCanvasVisibility === 'function') {
       if (_topoThreeState) {
         _topoThreeState.cavityAuthorityUnrenderable = true;
@@ -550,10 +201,8 @@ function topoRender(optOverrideSnap?) {
       ring0 = _topoAggregateSnapshotRings(optOverrideSnap);
     }
   } else if (wall) {
-    ring0 = _topoActiveRingForRender(wall);
+    ring0 = _topoAggregateRing(wall);
   }
-  // Keep the stepper label in sync — cheap, runs every render.
-  if (wall) _topoUpdateSliceLabel(wall);
 
   // Empty-state guard: no active sim or no ring data yet (fresh page,
   // pre-first-Grow). Paint a centered placeholder so the panel reads as
@@ -561,7 +210,6 @@ function topoRender(optOverrideSnap?) {
   // first impression of Current Game is a cavernous empty box, which
   // looks like a render bug.
   if (!sim && !optOverrideSnap) {
-    _topoSyncFlatPresentationControls(false);
     _topoPaintPlaceholder(canvas, 'Start a Simulation or begin a Creative vug — the wall profile will appear here');
     const btn = document.getElementById('topo-replay-btn');
     if (btn) btn.style.display = 'none';
@@ -570,7 +218,6 @@ function topoRender(optOverrideSnap?) {
     return;
   }
   if (!ring0 || !ring0.length) {
-    _topoSyncFlatPresentationControls(false);
     _topoPaintPlaceholder(canvas, 'Vug initialized — waiting for first growth step…');
     return;
   }
@@ -584,10 +231,7 @@ function topoRender(optOverrideSnap?) {
   // and the legacy <details class="topo-legend-drop"> element is gone.
 
   const ctx = canvas.getContext('2d');
-  if (!ctx) {
-    _topoSyncFlatPresentationControls(false);
-    return; // canvas-less env (headless drives) — nothing to draw on
-  }
+  if (!ctx) return; // canvas-less env (headless drives) — nothing to draw on
   const { cssW, cssH, dpr } = _topoResize(canvas);
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   ctx.clearRect(0, 0, cssW, cssH);
@@ -653,11 +297,10 @@ function topoRender(optOverrideSnap?) {
 
   const arcStep = 2 * Math.PI / N;
 
-  // Phase E1 branch — Three.js mesh renderer. When the user has
-  // toggled it on AND Three.js loaded, the WebGL canvas takes over
-  // and the canvas-vector path is skipped. Falls through silently if
-  // _topoRenderThree returns false (CDN blocked, canvas missing) so
-  // the user is never left staring at an empty panel.
+  // Player-facing branch — the cavity is one 3-D product. Three.js renders
+  // it, while this canvas supplies only an explicit unavailable message if
+  // WebGL cannot present that exact geometry. There is no flat/ring fallback:
+  // substituting one would make a different topology look like the same vug.
   // v65: optOverrideSnap (replay snapshot) and the extracted
   // optReplayStep are forwarded so the Three.js path can rebuild
   // cavity geometry from the historical rings AND size each crystal
@@ -667,68 +310,17 @@ function topoRender(optOverrideSnap?) {
   // WallMesh frame into the exact-field placeholder (or vice versa).
   const renderAuthorityWall = replayDecision.wall;
   const exactFieldAuthority = renderAuthorityWall?.activeCavitySurfaceAnchorProvider?.();
-  if (_topoUseThreeRenderer && wall && wall.rings && wall.rings.length) {
-    _topoSyncFlatPresentationControls(false);
+  if (wall && wall.rings && wall.rings.length) {
     if (_topoRenderThree(sim, wall, optOverrideSnap, optReplayStep)) {
       _topoSyncThreeCanvasVisibility();
       return;
     }
     if (exactFieldAuthority?.receipt?.kind === 'cavity-field') {
-      // A CPU sample of the same authenticated scalar field is truthful on
-      // hardware that cannot compile the 3-D clipping shader. It is explicitly
-      // a cross-section and withholds crystals rather than drawing a polar lie.
-      let fallbackAppearance = replayDecision.appearance || null;
-      if (!fallbackAppearance) {
-        try {
-          fallbackAppearance = CavityWaterAppearance.create(
-            replayDecision.wall, renderSim.conditions,
-            { sim: renderSim, activeProvider: exactFieldAuthority },
-          ).receipt;
-        } catch (_error) {
-          fallbackAppearance = null;
-        }
-      }
-      _topoSyncFlatPresentationControls(true);
       _topoSyncThreeCanvasVisibility();
-      if (_topoRenderCavityFieldCrossSection(
-        ctx, cssW, cssH, exactFieldAuthority, fallbackAppearance,
-        replayDecision.wall, renderSim.conditions, renderSim,
-      )) return;
       _topoPaintPlaceholder(canvas,
-        'Exact 3D cavity authority is active, but this device cannot render either its authenticated 3D field/clip pair or CPU cross-section. Simulation state is unchanged.');
+        '3D cavity unavailable on this device — simulation state is unchanged.');
       return;
     }
-  } else if (_topoCavityFieldFlatRequested(exactFieldAuthority)) {
-    // The ⬚ control is a presentation choice, not a request to discard the
-    // exact Cartesian geometry. When WebGL is off, draw a CPU sample of that
-    // same authenticated scalar field. Do not fall through to the legacy
-    // polar/unwrapped painter: a re-entrant Cartesian cavity cannot be peeled
-    // into that representation without inventing topology.
-    let flatAppearance = replayDecision.appearance || null;
-    if (!flatAppearance) {
-      try {
-        flatAppearance = CavityWaterAppearance.create(
-          replayDecision.wall, renderSim.conditions,
-          { sim: renderSim, activeProvider: exactFieldAuthority },
-        ).receipt;
-      } catch (_error) {
-        flatAppearance = null;
-      }
-    }
-    _topoSyncFlatPresentationControls(true);
-    _topoSyncThreeCanvasVisibility();
-    if (_topoRenderCavityFieldCrossSection(
-      ctx, cssW, cssH, exactFieldAuthority, flatAppearance,
-      replayDecision.wall, renderSim.conditions, renderSim,
-    )) return;
-    _topoPaintPlaceholder(canvas,
-      'Exact cavity authority is active, but its authenticated CPU cross-section cannot be rendered. Simulation state is unchanged.');
-    return;
-  } else if (typeof _topoSyncThreeCanvasVisibility === 'function') {
-    // Renderer toggled off — make sure the WebGL canvas isn't masking
-    // the 2D one from a prior session.
-    _topoSyncFlatPresentationControls(false);
-    _topoSyncThreeCanvasVisibility();
   }
 
   // Phase B branch — 3D mode renders all rings stacked along a vertical

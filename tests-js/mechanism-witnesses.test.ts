@@ -149,16 +149,14 @@ describe('authenticated production mechanism witnesses', () => {
           },
           headless_capability_authority: {
             unavailable_capability: 'three-renderer',
-            authored_step_count: 37,
-            removed_step_count: 10,
-            removed_product_step_count: 4,
-            commissioned_step_count: 27,
+            authored_step_count: 33,
+            removed_step_count: 7,
+            removed_product_step_count: 2,
+            commissioned_step_count: 26,
           },
           viewer_products: [
-            { selector: '#topo-three-btn', control: 'topo-three-renderer', beforeEnabled: true, afterEnabled: false },
-            { selector: '#topo-three-btn', control: 'topo-three-renderer', beforeEnabled: false, afterEnabled: true },
             { selector: '#helix-overlay-btn', control: 'helix-overlay', beforeEnabled: false, afterEnabled: true },
-            { selector: '#helix-overlay-btn', control: 'helix-overlay', beforeEnabled: true, afterEnabled: false },
+            { selector: '#topo-three-btn', control: 'topo-base-view', beforeEnabled: false, afterEnabled: true },
           ],
           carbonate_titration_product: {
             event: 'vugg:fortress-fluid-action-committed',
@@ -167,13 +165,13 @@ describe('authenticated production mechanism witnesses', () => {
           },
         },
         capable_browser_authority: {
-          schema: 'vugg-guided-tutorial-browser-receipt-v6',
+          schema: 'vugg-guided-tutorial-browser-receipt-v7',
           payload_sha256: expect.stringMatching(/^[0-9a-f]{64}$/),
         },
         viewer_control: {
           formation: 'headless-three-unavailable-fail-closed-control',
           boot_state: {
-            mode: 'fortress', step_index: 0, step_count: 27,
+            mode: 'fortress', step_index: 0, step_count: 26,
             rendered_index: 0, paused_at: -1, current_trigger: 'continue',
           },
           commissioning: {
@@ -269,7 +267,7 @@ describe('authenticated production mechanism witnesses', () => {
       (value: any) => {
         value.viewer_control.emitted_products.push({
           schema: 'tutorial-view-state-product-v1',
-          control: 'topo-three-renderer',
+          control: 'topo-base-view',
           before_enabled: false,
           after_enabled: true,
         });

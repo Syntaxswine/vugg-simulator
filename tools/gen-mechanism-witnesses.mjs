@@ -179,10 +179,8 @@ const guidedTutorialProductSourceAuthority = root => {
     .filter(step => step?.action?.event === 'vugg:tutorial-view-state-committed')
     .map(step => ({ selector: step.action.selector, ...copy(step.action.productState) }));
   const expectedViewerProducts = [
-    { selector: '#topo-three-btn', control: 'topo-three-renderer', beforeEnabled: true, afterEnabled: false },
-    { selector: '#topo-three-btn', control: 'topo-three-renderer', beforeEnabled: false, afterEnabled: true },
     { selector: '#helix-overlay-btn', control: 'helix-overlay', beforeEnabled: false, afterEnabled: true },
-    { selector: '#helix-overlay-btn', control: 'helix-overlay', beforeEnabled: true, afterEnabled: false },
+    { selector: '#topo-three-btn', control: 'topo-base-view', beforeEnabled: false, afterEnabled: true },
   ];
   if (canonicalJson(viewerProducts) !== canonicalJson(expectedViewerProducts)) {
     throw new Error('guided tutorial viewer products do not bind the commissioned transitions');
@@ -672,19 +670,16 @@ async function guidedTutorialInteractionProducts(science) {
   let commissioning;
   let bootState;
   try {
-    // Force the exact offline/headless formation. All four capable-only
-    // setters are still attempted below: none may emit a successful product.
+    // Force the exact offline/headless formation. Both capable-only selectors
+    // are still attempted below: neither may emit a successful product.
     delete globalThis.THREE;
-    science.topoSetThreeRendererEnabled(false, false);
     science.helixSetOverlayEnabled(true, false);
     await science.startTutorial('tutorial_first_crystal');
     commissioning = copy(science.tutorialViewerCommissioningReceipt());
     bootState = copy(science.tutorialStateSnapshot());
     if (!commissioning) throw new Error('guided tutorial boot emitted no viewer commissioning receipt');
-    science.topoSetThreeRendererEnabled(false, true);
-    science.topoSetThreeRendererEnabled(true, true);
     science.helixSetOverlayEnabled(true, true);
-    science.helixSetOverlayEnabled(false, true);
+    science.topoSelectThreeRenderer(true);
   } finally {
     if (hadThree) globalThis.THREE = priorThree;
     else delete globalThis.THREE;
@@ -1187,7 +1182,7 @@ export async function buildMechanismWitnessArtifact(root = ROOT) {
       '_tutorialActionTargetMatches', '_tutorialStripReceiptMatches',
       '_tutorialCanonicalizeViewerState', 'tutorialViewerCommissioningReceipt',
       'tutorialStateSnapshot', 'startTutorial',
-      'topoSetThreeRendererEnabled', 'helixSetOverlayEnabled',
+      'topoSetThreeRendererEnabled', 'topoSelectThreeRenderer', 'helixSetOverlayEnabled',
       'fortressBeginFromScenario', 'fortressStep', 'fortressReset', '_liveFortressSim',
       '_stripDurableRunReceipt', 'stripDurableDatasetDigest',
       'stripStorageOriginEligible',

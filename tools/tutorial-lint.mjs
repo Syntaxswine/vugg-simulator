@@ -85,7 +85,7 @@ function validViewProductState(value) {
   return JSON.stringify(keys) === JSON.stringify([
     'control', 'beforeEnabled', 'afterEnabled',
   ].sort())
-    && ['topo-three-renderer', 'helix-overlay'].includes(value.control)
+    && ['topo-base-view', 'helix-overlay'].includes(value.control)
     && typeof value.beforeEnabled === 'boolean'
     && typeof value.afterEnabled === 'boolean'
     && value.beforeEnabled !== value.afterEnabled;

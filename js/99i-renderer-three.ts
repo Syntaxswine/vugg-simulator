@@ -12,23 +12,12 @@
 // wiring end-to-end before committing to mesh generation. Crystals and
 // per-cell wall geometry land in E2/E3.
 //
-// Loading semantics: Three.js arrives via a CDN <script> tag in
-// index.html; THREE becomes a global before this bundle runs. If the
-// CDN is blocked (file://, offline, network blip) THREE stays
-// undefined and topoRender's branch falls through to the canvas-vector
-// path — every feature here gates on a typeof check first so the page
-// never throws at boot.
+// Loading semantics: Three.js arrives via a bundled script and becomes a
+// global before this bundle runs. If WebGL is unavailable the player sees an
+// explicit unavailable message; a flat/ring rendering is never substituted.
 //
-// Mode toggle: _topoUseThreeRenderer is the single source of truth.
-// Wired to the ⬚ button in .topo-camera-ctrls. Forces drag mode to
-// 'rotate' on enable so dragging actually orbits the scene; the
-// existing _topoTiltX/_topoTiltY/_topoZoom globals drive the camera.
-//
-// v65 (May 2026): Three.js mode is the DEFAULT now. The canvas-vector
-// 2D path is still reachable via the toggle button for users on
-// hardware that can't run WebGL or for the 'topo strip' aesthetic;
-// boot path expects _topoUseThreeRenderer=true and falls back to 2D
-// gracefully if Three.js is unavailable (CDN blocked, file://, etc.).
+// The 3D button is a base-view selector paired with Helicoid, not an on/off
+// switch. Selecting it closes Helicoid and returns to the ordinary cavity.
 
 let _topoUseThreeRenderer = true;
 // Diagnostic override for the production Cartesian cavity renderer. The
@@ -173,9 +162,8 @@ function _topoInitThree(canvas: HTMLCanvasElement): any {
     renderer, scene, camera, cavity, crystals, ambient, directional,
     cavitySig: '',
     crystalsSig: '',
-    // WALL DISPLAY (2026-07-06): 0 solid (default contract) · 1 translucent
-    // shell (druse-portrait view) · 2 hidden. Cycled by topoToggleWallDisplay;
-    // composed with insideMode in _topoApplyWallDisplay.
+    // Wall presentation is fixed at the ordinary cavity view. Historical
+    // internal modes remain understood by the renderer but have no player UI.
     wallDisplay: 0,
     // Cache geometries per habit shape — many crystals can share the
     // same primitive geometry, only the per-mesh transform differs.
@@ -917,14 +905,9 @@ function _topoResetCavityFieldFailures(state: any): void {
 }
 
 function _topoThreeRendererEffective(state = _topoThreeState): boolean {
-  // The exact Cartesian cavity authority chooses which geometry is truthful;
-  // it must not choose the player's presentation. A prior repair used
-  // `cavityAuthorityActive` as an implicit WebGL override so the legacy polar
-  // painter could never misrepresent a Cartesian cavity. That also made the
-  // visible ⬚ control lie: its state flipped to off while WebGL stayed on.
-  // js/99b owns the complementary fail-closed route: when the operator selects
-  // flat presentation for an exact cavity it draws the authenticated CPU
-  // Cartesian cross-section, never the legacy polar/unwrapped wall.
+  // Exact Cartesian geometry has one player presentation: WebGL. A failed
+  // renderer is disclosed as unavailable rather than replaced by a different
+  // flat topology.
   return _topoUseThreeRenderer === true
     && _topoThreeAvailable()
     && _topoThreeInitializationFailure === null
@@ -6759,26 +6742,6 @@ function _topoApplyWallDisplay(state: any) {
   mat.needsUpdate = true;
 }
 
-// The topo-wall-btn onclick (index.html camera-ctrls row). Cycles the three
-// display states; amber button color marks the non-default states (the
-// topo-three-btn convention).
-function topoToggleWallDisplay() {
-  if (_topoExactFlatPresentationActive) return false;
-  const state = _topoThreeState;
-  if (!state) return;
-  state.wallDisplay = ((state.wallDisplay | 0) + 1) % 3;
-  _topoApplyWallDisplay(state);
-  const btn = document.getElementById('topo-wall-btn');
-  if (btn) {
-    const mode = state.wallDisplay | 0;
-    btn.style.color = mode !== 0 ? '#f0c050' : '';
-    btn.title = mode === 0 ? 'Vug wall: solid (click: translucent)'
-      : mode === 1 ? 'Vug wall: translucent (click: hidden)'
-      : 'Vug wall: hidden (click: solid)';
-  }
-  if (typeof topoRender === 'function') topoRender();
-}
-
 // One-time default-on setup. Runs the first time _topoRenderThree
 // succeeds — colors the toggle button and forces drag mode to 'rotate'
 // so dragging the panel orbits the scene out-of-the-box.
@@ -7249,91 +7212,81 @@ function _topoSyncThreeCanvasVisibility(state = _topoThreeState) {
   _topoSyncThreeButtonState();
 }
 
-// Toggle button handler — wired in index.html to the ⬚ button. Flips
-// the renderer tier and forces drag-mode to 'rotate' on enable so
-// clicking once and dragging immediately orbits the scene. Disabled
-// when Three.js failed to load (CDN blocked / offline file://).
 function topoThreeRendererEnabled(): boolean {
   return _topoThreeRendererEffective();
+}
+
+function topoBaseViewSelected(): boolean {
+  return topoThreeRendererEnabled()
+    && !(typeof helixOverlayEnabled === 'function' && helixOverlayEnabled());
 }
 
 function _topoSyncThreeButtonState(): void {
   const btn = document.getElementById('topo-three-btn');
   if (!btn) return;
   const available = _topoThreeAvailable();
-  const presented = topoThreeRendererEnabled();
+  const selected = topoBaseViewSelected();
   const tutorialLocked = (btn as HTMLElement).dataset.tutorialLocked === 'true';
-  (btn as HTMLElement).style.color = presented ? '#f0c050' : '';
+  (btn as HTMLElement).style.color = selected ? '#f0c050' : '';
   (btn as HTMLButtonElement).disabled = !available || tutorialLocked;
   (btn as HTMLElement).style.opacity = available ? '' : '0.4';
-  btn.setAttribute('aria-pressed', String(presented));
+  btn.setAttribute('aria-pressed', String(selected));
   const label = !available
-    ? 'Three.js renderer unavailable (offline or unsupported)'
-    : presented
-    ? 'Show authenticated flat cavity cross-section'
-    : 'Show 3D cavity mesh';
+    ? '3D cavity unavailable (WebGL unsupported)'
+    : selected
+    ? 'Ordinary 3D cavity view selected'
+    : 'Show ordinary 3D cavity view';
   btn.setAttribute('aria-label', label);
   btn.title = label;
 }
 
-// Exact state setter shared by the toolbar and the guided-tour commissioner.
-// `emitProduct=false` is reserved for boot canonicalization; player changes
-// emit a state receipt from the owner control after the product state lands.
-function topoSetThreeRendererEnabled(enabled: boolean, emitProduct = true): boolean {
-  const desired = enabled === true;
-  const before = topoThreeRendererEnabled();
-  if (desired) _topoSyncFlatPresentationControls(false);
-  else if (typeof helixSetOverlayEnabled === 'function') {
-    // Helicoid is Three-owned. Do not carry an invisible enabled overlay
-    // behind the authenticated CPU slice and surprise the player on return.
+// Select the ordinary 3-D cavity. This is mutually exclusive with Helicoid;
+// there is deliberately no corresponding "3-D off" or flat-view state.
+function topoSelectThreeRenderer(emitProduct = true): boolean {
+  const before = topoBaseViewSelected();
+  _topoUseThreeRenderer = true;
+  _topoThreeInitializationFailure = null;
+  if (typeof helixSetOverlayEnabled === 'function') {
     helixSetOverlayEnabled(false, false);
   }
-  _topoUseThreeRenderer = desired;
-  if (desired) _topoThreeInitializationFailure = null;
   if (_topoUseThreeRenderer && _topoThreeState?.threeShaderUnusable) {
     _topoResetCavityFieldFailures(_topoThreeState);
     _topoThreeState.cavitySig = '';
     _topoThreeState.crystalsSig = '';
   }
   const btn = document.getElementById('topo-three-btn');
-  _topoSyncThreeButtonState();
-  if (_topoUseThreeRenderer && typeof topoSetDragMode === 'function'
-      && _topoDragMode !== 'rotate') {
+  if (typeof topoSetDragMode === 'function' && _topoDragMode !== 'rotate') {
     topoSetDragMode('rotate');
-  } else if (!_topoUseThreeRenderer && typeof topoSetDragMode === 'function'
-      && _topoDragMode !== 'default') {
-    // A flat product must not retain a highlighted orbit tool whose drags have
-    // no honest meaning in the CPU cross-section. Default mode restores the
-    // ordinary canvas pan behavior; exact-field dispatch separately withholds
-    // the legacy ring stepper because this is one fixed Cartesian plane.
-    topoSetDragMode('default');
   }
   topoRender();
   _topoSyncThreeCanvasVisibility();
   _topoSyncThreeButtonState();
-  const after = topoThreeRendererEnabled();
+  const after = topoBaseViewSelected();
   const changed = before !== after;
   if (changed && emitProduct && typeof _dispatchTutorialViewStateProduct === 'function') {
     _dispatchTutorialViewStateProduct(
-      btn, 'topo-three-renderer', before, after,
+      btn, 'topo-base-view', before, after,
     );
   }
   return changed;
 }
 
+// Compatibility entry for internal callers that only ever request the 3-D
+// viewer. A false request is refused instead of reviving the retired flat path.
+function topoSetThreeRendererEnabled(enabled: boolean, emitProduct = true): boolean {
+  return enabled === true ? topoSelectThreeRenderer(emitProduct) : false;
+}
+
 function topoToggleThreeRenderer() {
-  if (!topoThreeRendererEnabled() && !_topoThreeAvailable()) {
+  if (!_topoThreeAvailable()) {
     _topoThreeUnavailable = true;
     const btn = document.getElementById('topo-three-btn') as HTMLButtonElement | null;
     if (btn) {
       btn.disabled = true;
-      btn.title = 'Three.js renderer unavailable (CDN blocked or offline)';
+      btn.title = '3D cavity unavailable (WebGL unsupported)';
       btn.style.opacity = '0.4';
     }
     return;
   }
-  // Retry an unavailable/failed 3-D presentation in one click. The requested
-  // preference may still be true after WebGL initialization failed, while the
-  // player is truthfully looking at the CPU cross-section.
-  topoSetThreeRendererEnabled(!topoThreeRendererEnabled(), true);
+  topoSelectThreeRenderer(true);
 }
