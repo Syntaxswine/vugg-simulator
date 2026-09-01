@@ -3490,9 +3490,9 @@
             "text": "Your quartz has a card in the inventory now. Tap it.",
             "hint": "tap the quartz card (if there's no card yet, Advance a few more steps first)" },
           { "anchor": "#zone-modal", "side": "left",
-            "text": "The zone history. Every band is one growth zone — a time-stamped record of the broth at the moment it grew: temperature, chemistry, UV response. This is how real collectors read real crystals, and everything you do to the broth is being written down in here. Close it when you've had a look." },
+            "text": "The zone history. Every band is one growth zone — a time-stamped record of the broth at the moment it grew: temperature, chemistry, UV response. This is how real collectors read real crystals, and everything you do to the broth is being written down in here. Close it when you've had a look, click Continue, then press Advance until the simulation reaches step 16. The tour will resume automatically when geological time catches up." },
           { "step": 16, "anchor": "#fortress-log", "side": "left",
-            "text": "Notice the log: quartz is re-dissolving. Those negative zones are not cosmetic damage—the formula ledger returns the dissolved shell's booked SiO2 to the fluid." },
+            "text": "Notice the log: quartz is re-dissolving. Those negative zones are not cosmetic damage—the formula ledger returns the dissolved shell's booked SiO2 to the fluid. Keep pressing Advance; the final lesson begins at step 25." },
           { "step": 25, "anchor": "#fortress-log", "side": "left", "unlock": [".action-btn"],
             "text": "That's the lesson: conditions control whether a crystal grows or dissolves. Same broth and crystal, different temperature—opposite mass transfer. The whole instrument panel is now unlocked: try cooling the broth back into quartz supersaturation, or finish and inspect the surviving growth record." }
         ]
