@@ -13064,10 +13064,10 @@
         "cdr_replacement_evidence": null,
         "surface_growth": {
           "regime": "botryoidal_crust",
-          "coverage_fraction": 0.29927957463793897,
+          "coverage_fraction": 0.022362851404962,
           "cavity_area_mm2": 8669.225057581923,
-          "covered_area_mm2": 2594.52198767368,
-          "mean_thickness_um": 0.14944455485821928,
+          "covered_area_mm2": 193.8685917588777,
+          "mean_thickness_um": 2,
           "booked_volume_mm3": 0.38773718351775543,
           "wall_spread": 0.3,
           "void_reach": 0.8,

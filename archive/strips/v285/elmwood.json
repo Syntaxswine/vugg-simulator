@@ -95136,24 +95136,7 @@
           "record_cm": 1000
         },
         "cdr_replacement_evidence": null,
-        "surface_growth": {
-          "regime": "botryoidal_crust",
-          "coverage_fraction": 0.9,
-          "cavity_area_mm2": 9024.487248088335,
-          "covered_area_mm2": 8122.0385232795015,
-          "mean_thickness_um": 47.280460144900665,
-          "booked_volume_mm3": 384.01371869526434,
-          "wall_spread": 0.9,
-          "void_reach": 0.15,
-          "substrate": "vug wall",
-          "area_basis": "exact cavity-field triangle area",
-          "mass_basis": "accepted Crystal._volume_mm3; renderer instances are representative only",
-          "at_step": 200,
-          "stratigraphic_index": 0,
-          "nucleation_step": 1,
-          "underlying_surface_crystal_ids": [],
-          "stratigraphy_basis": "exact shared authenticated-surface triangles"
-        },
+        "surface_growth": null,
         "surface_film": null,
         "zone_count": 200
       },
@@ -95601,26 +95584,7 @@
           "record_cm": 50
         },
         "cdr_replacement_evidence": null,
-        "surface_growth": {
-          "regime": "laminated_lining",
-          "coverage_fraction": 0.8796125181177588,
-          "cavity_area_mm2": 9024.487248088335,
-          "covered_area_mm2": 7938.051953012584,
-          "mean_thickness_um": 0.0028184888226731116,
-          "booked_volume_mm3": 0.02237331070336443,
-          "wall_spread": 0.88,
-          "void_reach": 0.12,
-          "substrate": "vug wall",
-          "area_basis": "exact cavity-field triangle area",
-          "mass_basis": "accepted Crystal._volume_mm3; renderer instances are representative only",
-          "at_step": 200,
-          "stratigraphic_index": 1,
-          "nucleation_step": 126,
-          "underlying_surface_crystal_ids": [
-            1
-          ],
-          "stratigraphy_basis": "exact shared authenticated-surface triangles"
-        },
+        "surface_growth": null,
         "surface_film": null,
         "zone_count": 75
       }

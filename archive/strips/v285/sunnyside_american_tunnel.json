@@ -109449,24 +109449,7 @@
           "record_cm": 6
         },
         "cdr_replacement_evidence": null,
-        "surface_growth": {
-          "regime": "euhedral_druse",
-          "coverage_fraction": 0.642732525156865,
-          "cavity_area_mm2": 8851.855391947494,
-          "covered_area_mm2": 5689.375368389824,
-          "mean_thickness_um": 0.0021580548938277683,
-          "booked_volume_mm3": 0.012277984356576822,
-          "wall_spread": 0.8,
-          "void_reach": 0.15,
-          "substrate": "on chalcopyrite #3",
-          "area_basis": "exact cavity-field triangle area",
-          "mass_basis": "accepted Crystal._volume_mm3; renderer instances are representative only",
-          "at_step": 200,
-          "stratigraphic_index": 0,
-          "nucleation_step": 1,
-          "underlying_surface_crystal_ids": [],
-          "stratigraphy_basis": "exact shared authenticated-surface triangles"
-        },
+        "surface_growth": null,
         "surface_film": null,
         "zone_count": 11
       },
@@ -109662,26 +109645,7 @@
           "record_cm": 7.5
         },
         "cdr_replacement_evidence": null,
-        "surface_growth": {
-          "regime": "botryoidal_crust",
-          "coverage_fraction": 0.7620000990920519,
-          "cavity_area_mm2": 8851.855391947494,
-          "covered_area_mm2": 6745.114685812505,
-          "mean_thickness_um": 0.001121850845630411,
-          "booked_volume_mm3": 0.007567012614152862,
-          "wall_spread": 0.9,
-          "void_reach": 0.1,
-          "substrate": "on pyrite #2",
-          "area_basis": "exact cavity-field triangle area",
-          "mass_basis": "accepted Crystal._volume_mm3; renderer instances are representative only",
-          "at_step": 200,
-          "stratigraphic_index": 1,
-          "nucleation_step": 6,
-          "underlying_surface_crystal_ids": [
-            4
-          ],
-          "stratigraphy_basis": "exact shared authenticated-surface triangles"
-        },
+        "surface_growth": null,
         "surface_film": null,
         "zone_count": 24
       },
@@ -110045,12 +110009,9 @@
           "area_basis": "exact cavity-field triangle area",
           "mass_basis": "accepted Crystal._volume_mm3; renderer instances are representative only",
           "at_step": 200,
-          "stratigraphic_index": 2,
+          "stratigraphic_index": 0,
           "nucleation_step": 150,
-          "underlying_surface_crystal_ids": [
-            4,
-            13
-          ],
+          "underlying_surface_crystal_ids": [],
           "stratigraphy_basis": "exact shared authenticated-surface triangles"
         },
         "surface_film": null,

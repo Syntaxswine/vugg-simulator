@@ -12183,24 +12183,7 @@
           "record_cm": 12.5
         },
         "cdr_replacement_evidence": null,
-        "surface_growth": {
-          "regime": "laminated_lining",
-          "coverage_fraction": 0.18164644169917737,
-          "cavity_area_mm2": 8865.203606502564,
-          "covered_area_mm2": 1610.332690059905,
-          "mean_thickness_um": 1.1341443422766373e-9,
-          "booked_volume_mm3": 1.8263497096145592e-9,
-          "wall_spread": 0.6,
-          "void_reach": 0.3,
-          "substrate": "vug wall",
-          "area_basis": "exact cavity-field triangle area",
-          "mass_basis": "accepted Crystal._volume_mm3; renderer instances are representative only",
-          "at_step": 100,
-          "stratigraphic_index": 0,
-          "nucleation_step": 72,
-          "underlying_surface_crystal_ids": [],
-          "stratigraphy_basis": "exact shared authenticated-surface triangles"
-        },
+        "surface_growth": null,
         "surface_film": null,
         "zone_count": 1
       }
