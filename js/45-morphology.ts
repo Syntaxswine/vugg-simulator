@@ -1177,6 +1177,20 @@ const SURFACE_GROWTH_ASBESTOS = new Set([
 const SURFACE_GROWTH_CRUST_HABIT = /botryoid|mammillary|reniform|colloform|crust|coat|encrust|earthy|sooty|ochre|banded|sinter|film|blanket/i;
 const SURFACE_GROWTH_LINING_HABIT = /chalcedony|agate|wall.?lining/i;
 const SURFACE_GROWTH_DRUSE_HABIT = /drus|druz/i;
+// Visual-realism review 2026-09-04 (proposals/PROPOSAL-HOSTILE-REVIEW-VISUAL-REALISM-
+// 2026-09-04.md, finding F1): a crystal whose HABIT is a euhedral form is a crystal, not a
+// crust, whatever its nucleation `vector` says. The Elmwood 14 mm dogtooth calcite carried a
+// stale `vector:'coating'` from its druzy_crust birth and was painted as a botryoidal coin
+// carpet — the body the boss eye-checked in July never rendered. A euhedral habit with a
+// coating vector is a DRUSE of small euhedral crystals below the macro size and a single
+// macro crystal (body rendered, no swath) at or above it.
+const SURFACE_GROWTH_EUHEDRAL_HABIT = /prismatic|tabular|bladed|blade\b|rhombohedral|scalenohedral|nailhead|dogtooth|cubic|\bcube|octahedral|dipyramid|tetrahedral|dodecahedral|pyramidal|sheaf|bowtie|coffin/i;
+const SURFACE_GROWTH_MACRO_BODY_MM = 2.0;
+// The thinnest film that is a visible fabric rather than a stain. Coverage is capped so
+// the booked volume can physically spread over the claimed area at least this thick —
+// a 0.008 mm cassiterite dust grain used to paint a quarter of a pegmatite wall.
+const SURFACE_GROWTH_MIN_FILM_MM = 0.002;
+const SURFACE_GROWTH_MIN_COVERAGE = 0.005;
 const SURFACE_GROWTH_MN_FAMILY = new Set(['birnessite', 'romanechite', 'todorokite']);
 
 function surfaceGrowthRegimeFor(crystal: any): string | null {
@@ -1196,6 +1210,15 @@ function surfaceGrowthRegimeFor(crystal: any): string | null {
   }
   if (mineral === 'chalcedony' || SURFACE_GROWTH_LINING_HABIT.test(habit)) {
     return 'laminated_lining';
+  }
+  // A euhedral habit is never a crust (review 2026-09-04, F1). Projecting euhedral crystals
+  // are bodies; coating-vector euhedral crystals are a druse of small individuals until one
+  // grows a macro body, at which point the body itself is the representation.
+  if (SURFACE_GROWTH_EUHEDRAL_HABIT.test(habit)
+      && !SURFACE_GROWTH_CRUST_HABIT.test(habit)
+      && !SURFACE_GROWTH_DRUSE_HABIT.test(habit)) {
+    if (vector !== 'coating') return null;
+    return (Number(crystal.c_length_mm) || 0) >= SURFACE_GROWTH_MACRO_BODY_MM ? null : 'euhedral_druse';
   }
   // Calcite's production catalog distinguishes botryoidal/travertine crusts
   // from druzy_crust.  Test the authored habit before the generic coating
@@ -1253,8 +1276,13 @@ function surfaceGrowthDescriptor(crystal: any, wall: any, sim?: any): any | null
     : Number(wall && wall.vug_diameter_mm) || Number(crystal.vug_diameter_mm) || 50;
   const radius = Math.max(0.5, diameter / 2);
   const cavityArea = exactArea > 0 ? exactArea : 4 * Math.PI * radius * radius;
-  const coveredArea = Math.max(1e-9, cavityArea * coverage);
   const bookedVolume = Math.max(0, Number(crystal._volume_mm3) || 0);
+  // Mass floor (review 2026-09-04, F1): the booked volume must cover the claimed area at
+  // least SURFACE_GROWTH_MIN_FILM_MM thick, or the fabric is not a visible layer yet.
+  const massCoverageCap = bookedVolume / Math.max(1e-9, cavityArea * SURFACE_GROWTH_MIN_FILM_MM);
+  if (massCoverageCap < SURFACE_GROWTH_MIN_COVERAGE) return null;
+  coverage = Math.min(coverage, Math.max(SURFACE_GROWTH_MIN_COVERAGE, massCoverageCap));
+  const coveredArea = Math.max(1e-9, cavityArea * coverage);
   const meanThicknessUm = bookedVolume / coveredArea * 1000;
 
   return {
