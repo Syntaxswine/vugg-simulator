@@ -71957,33 +71957,7 @@
           "record_cm": 1000
         },
         "cdr_replacement_evidence": null,
-        "surface_growth": {
-          "regime": "botryoidal_crust",
-          "coverage_fraction": 0.2526789763298324,
-          "cavity_area_mm2": 5837.481134575749,
-          "covered_area_mm2": 1475.0087574293088,
-          "mean_thickness_um": 1.597665379701035e-12,
-          "booked_volume_mm3": 2.3565704265006484e-12,
-          "wall_spread": 0.9,
-          "void_reach": 0.15,
-          "substrate": "vug wall",
-          "area_basis": "exact cavity-field triangle area",
-          "mass_basis": "accepted Crystal._volume_mm3; renderer instances are representative only",
-          "at_step": 200,
-          "stratigraphic_index": 8,
-          "nucleation_step": 175,
-          "underlying_surface_crystal_ids": [
-            2,
-            3,
-            5,
-            6,
-            8,
-            14,
-            15,
-            16
-          ],
-          "stratigraphy_basis": "exact shared authenticated-surface triangles"
-        },
+        "surface_growth": null,
         "surface_film": null,
         "zone_count": 3
       },
@@ -72049,34 +72023,7 @@
           "record_cm": 1000
         },
         "cdr_replacement_evidence": null,
-        "surface_growth": {
-          "regime": "botryoidal_crust",
-          "coverage_fraction": 0.2556489060121735,
-          "cavity_area_mm2": 5837.481134575749,
-          "covered_area_mm2": 1492.3456659209915,
-          "mean_thickness_um": 2.467909127700597e-10,
-          "booked_volume_mm3": 3.682973490610841e-10,
-          "wall_spread": 0.9,
-          "void_reach": 0.15,
-          "substrate": "vug wall",
-          "area_basis": "exact cavity-field triangle area",
-          "mass_basis": "accepted Crystal._volume_mm3; renderer instances are representative only",
-          "at_step": 200,
-          "stratigraphic_index": 9,
-          "nucleation_step": 184,
-          "underlying_surface_crystal_ids": [
-            2,
-            3,
-            5,
-            6,
-            8,
-            14,
-            15,
-            16,
-            18
-          ],
-          "stratigraphy_basis": "exact shared authenticated-surface triangles"
-        },
+        "surface_growth": null,
         "surface_film": null,
         "zone_count": 17
       }

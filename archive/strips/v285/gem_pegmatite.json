@@ -28292,24 +28292,7 @@
           "record_cm": 5
         },
         "cdr_replacement_evidence": null,
-        "surface_growth": {
-          "regime": "botryoidal_crust",
-          "coverage_fraction": 0.22596336198581451,
-          "cavity_area_mm2": 9157.601921358528,
-          "covered_area_mm2": 2069.2825178779276,
-          "mean_thickness_um": 2.670729811479267e-8,
-          "booked_volume_mm3": 5.5264945088694605e-8,
-          "wall_spread": 0.75,
-          "void_reach": 0.25,
-          "substrate": "on tourmaline #5",
-          "area_basis": "exact cavity-field triangle area",
-          "mass_basis": "accepted Crystal._volume_mm3; renderer instances are representative only",
-          "at_step": 230,
-          "stratigraphic_index": 0,
-          "nucleation_step": 6,
-          "underlying_surface_crystal_ids": [],
-          "stratigraphy_basis": "exact shared authenticated-surface triangles"
-        },
+        "surface_growth": null,
         "surface_film": null,
         "zone_count": 3
       },

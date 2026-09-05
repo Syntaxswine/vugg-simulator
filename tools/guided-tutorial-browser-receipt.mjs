@@ -88,19 +88,33 @@ const EXPECTED_GEOLOGY = Object.freeze({
   skip: Object.freeze({
     runtime: 'fortress', scenario: 'tutorial_mn_calcite', step: 0,
     fingerprint: '143c9a8881f813dc12baf49708c978b0fdb9e943b5c396149faaaa3ba99015a5',
-    run_id: 'save-16-mhf',
+    // Save ids draw from the QA-pinned Math.random stream shared with three.js UUIDs; the
+    // fingerprint (the geology) is unchanged. Re-pinned 2026-09-05 (review F13).
+    run_id: 'save-16-s6o',
   }),
   simulation_completion: Object.freeze({
     runtime: 'simulation', scenario: 'shigar_pegmatite', step: 70,
     fingerprint: '1285a3ec239fc66f883ccf4fd780bffb5134ca194786edde6a433c4675d7f0f6',
-    run_id: 'd074d29098a55892e371c2ad12bc604ccb99cba6ae26bc5ae7a9fc015b73e3b6',
+    // run_id is the durable strip DATASET digest, which records each crystal's surface-growth
+    // testimony (js/85g `surface_growth: c._surfaceGrowth`). Re-pinned 2026-09-05 by the
+    // visual-realism review (proposals/PROPOSAL-HOSTILE-REVIEW-VISUAL-REALISM-2026-09-04.md,
+    // F1): euhedral crystals are no longer classified as crusts and coverage is mass-floored,
+    // so the recorded testimony changed while the simulation fingerprint above did not.
+    run_id: 'c4a46da1eb30f98c6bdc36ad7c5c848747fdfb1fcf21602104714d89fce768b2',
   }),
 });
-const EXPECTED_COLLECTION_RECORD_ID = 'cry-16-33x';
+// The collection id draws from the QA-pinned Math.random stream, which three.js also consumes
+// for every object UUID it allocates; a render change that allocates a different number of
+// geometries/materials before the "Collect topaz" click shifts this suffix. Re-pinned
+// 2026-09-05 (review F13 records the coupling as canonical debt).
+const EXPECTED_COLLECTION_RECORD_ID = 'cry-16-rt2';
 const EXPECTED_COLLECTION_NAME = '<img data-vugg-player-name-probe src=x onerror="globalThis.__vuggPlayerNameInjection=1">';
 // Replaced with the exact SIM 285 values after the owned-browser source freeze.
-const EXPECTED_GAME04_DATASET_SHA256 = 'd074d29098a55892e371c2ad12bc604ccb99cba6ae26bc5ae7a9fc015b73e3b6';
-const EXPECTED_GAME04_DOWNLOAD_SHA256 = 'fc1a173eb221bff3f4c621232f2c1ec66692a53ec16655ba5478f4375d56db0b';
+// Re-pinned 2026-09-05: the strip dataset records each crystal's surface-growth testimony
+// (js/85g), which the visual-realism review corrected (F1) — the dataset and its download
+// digests move with that testimony while the simulation fingerprint does not.
+const EXPECTED_GAME04_DATASET_SHA256 = 'c4a46da1eb30f98c6bdc36ad7c5c848747fdfb1fcf21602104714d89fce768b2';
+const EXPECTED_GAME04_DOWNLOAD_SHA256 = '2b0e98195b3f4a9d0a8cced5c633c363414f6afeb7242fad98c280df86a4230b';
 // Replaced with the exact controlled Shigar product after the renderer source
 // freezes. These values are independently pinned so a self-rehashed receipt
 // cannot merely invent a plausible flat view while the public control is dead.
@@ -125,11 +139,15 @@ const EXPECTED_FLAT_TOPOLOGY_PRODUCT = Object.freeze({
   surface_buffer_digest: 'cavity-surface-buffers-v2|Float32Array:228984:c2f1c90decc829bd|Float32Array:228984:397f58f553a99011|Float32Array:228984:3229382bd3a42621|Float32Array:152656:7bc3efc07d1af0da|Uint16Array:228960:d79e8c331c16b28b|',
   receipt_digest: 'be479746fe0dc8ba',
 });
+// ENVIRONMENT PIN — the canonical box's Chrome auto-updated 151.0.7922.173 → 152.0.7977.76
+// after the 2026-08-31 freeze; no receipt can be regenerated on the box without moving this
+// pin, so it moved with the 2026-09-05 rebake (executable sha256 measured on the installed
+// chrome.exe). This is a host fact, not a game change; the next Chrome update moves it again.
 const EXPECTED_BROWSER_RUNTIME = Object.freeze({
   schema: 'vugg-owned-devtools-browser-runtime-v2',
   executable_name: 'chrome.exe',
-  executable_sha256: 'bd88b26777496cef22fc09860164da7cba4a5c77e1dcbf5ad3a3967aa457d715',
-  devtools_browser_product: 'Chrome/151.0.7922.173',
+  executable_sha256: '17b09f4c2e7806a05b0b648e7d459c3e3868f215adc93fa887adc3892bc704c0',
+  devtools_browser_product: 'Chrome/152.0.7977.76',
   devtools_protocol_version: '1.3',
 });
 

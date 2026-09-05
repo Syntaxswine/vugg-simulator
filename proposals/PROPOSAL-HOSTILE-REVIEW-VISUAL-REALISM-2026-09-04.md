@@ -207,6 +207,32 @@ tablets at clarity 0.95 → opacity 0.34, grey-beige over a brown wall. No blade
 pearly sheen, no water-clear read (the goal Depth-A named). Halite/selenite in
 `great_salt_plains-s42/hero-1-selenite.png`: the frame is filled by the ridged wall.
 
+### F13 ★ (canonical debt) the guided-tutorial receipt binds UI ids to the render's allocation count
+Found during the transplant onto SIM 285. Two constants in the guided-tutorial receipt moved;
+the simulation-state fingerprint (the science) matched byte for byte.
+
+1. **The simulation run id is the durable strip DATASET digest**, and the strip recorder writes
+   each crystal's surface-growth record into that dataset as testimony (`js/85g` line 489,
+   `surface_growth: c._surfaceGrowth`). F1 changed that record (euhedral crystals are no longer
+   crusts; coverage is mass-floored), so the digest moved. This is the honest consequence of
+   correcting recorded testimony, and it sharpens the F1 claim: `_surfaceGrowth` has no
+   *simulator* consumer, but it is *recorded* as testimony. The v271 archive had no such field
+   (hence the fork-base rebake was byte-identical); the SIM 285 archive does, so the canonical
+   rebake moved it — **30 of 41 stories and all 41 claim cards, with every differing leaf under
+   `surface_growth`** (regime ×220, whole-record null↔record ×214, coverage/area/thickness ×344,
+   stratigraphy lists ×6176) plus the envelope hashes; the seed-42 scenario baseline and the
+   12-story chemistry digest came back byte-identical and all four simulation fingerprints in
+   the guided receipt are unchanged. Drift from corrected testimony, not from moved science
+   (`feedback_accuracy_over_determinism`).
+2. **The collection record id draws from the QA-pinned `Math.random` stream**, which three.js
+   also consumes for every object UUID it allocates; a render change that allocates a different
+   number of geometries or materials before the "Collect topaz" click shifts the suffix
+   (`cry-16-33x` → `cry-16-rt2`). That is a position-not-identity coupling
+   (`feedback_identity_not_index`): every render rung will re-pin it. The durable fix is to draw
+   UI ids from a stream the renderer cannot touch — canonical's call.
+
+Both constants are re-pinned in this branch with the mechanism recorded beside them.
+
 ### F12 ★ Photo-rig limitations found while using it (kept honest)
 The hero camera can end up behind a cavity bump, looking at the wall's matrix skin (the tn457
 `hero-1-sphalerite` frames in `-s42` and `-s42-fixed2` are that wall). Fixed this session with a
@@ -279,10 +305,11 @@ the environment's panels need to face the opening (plan R1 places the key at the
 | F12 | photo rig: cleanup, tolerant polling, camera inside the cavity + raycast, experiments, photo stats | tools/photo-rig.mjs (new) | — | tool |
 
 Verification run: `npm run typecheck`, `build:check` (bundle current), 28 render/morphology test
-files / 310 tests green (`vitest run` on the files named in §9). **Not run: the 3 h 28 m cold CI.**
-The evidence receipts bind the bundle hash, so `strip-digest` and the calibration keeper refuse
-until the next `science:rebake`; that rebake is expected to reproduce every baseline byte for byte
-(nothing here is read by the simulator), and doing it is the first item in §8.
+files / 310 tests green on the fork base and 319 on the canonical base (`vitest run` on the files
+named in §9). Baking: on the fork base (SIM 271) `science:rebake` reproduced every seed-42
+artifact byte for byte; on canonical (SIM 285) it moved only the corrected surface-growth
+testimony (F13 has the leaf audit) and passed its verify phase. Cold CI was run on the canonical
+transplant after that bake; its verdict is recorded in PR #7.
 
 ---
 
@@ -403,10 +430,11 @@ R4–R6 carry it to 7.
 
 ## 8. Not done, and honest about it
 
-- **Cold CI not run** (3.5 h). The rebake of the evidence receipts (`npm run science:rebake`) is
-  required before the authenticated tests will even load on this tree; it should reproduce every
-  baseline byte for byte. Do it before merging; if a byte moves, the review's "render-only" claim
-  is wrong and this commit must be re-examined.
+- **Evidence chain, done twice.** Fork base: rebake byte-identical. Canonical SIM 285: the
+  guided-tutorial receipt had to be regenerated first (`npm run gen:browser-receipt`) and four
+  of its pinned constants re-pinned — two stream-position ids, the testimony dataset digest, and
+  the box's Chrome version (F13) — then the rebake moved the corrected testimony only. Cold CI
+  on the canonical transplant: verdict in PR #7.
 - The laminated lining still tiles (R3); the druse camera is weak (F12); the `halfcut` prototype
   faces the studio's dark side, so its highlight numbers understate the effect.
 - Amethyst geode and deccan chalcedony rinds are *booked* too thin to be fabrics — a science gap

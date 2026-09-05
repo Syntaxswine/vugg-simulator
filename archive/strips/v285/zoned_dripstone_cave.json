@@ -46732,24 +46732,7 @@
           "record_cm": 1000
         },
         "cdr_replacement_evidence": null,
-        "surface_growth": {
-          "regime": "botryoidal_crust",
-          "coverage_fraction": 0.8438113624599038,
-          "cavity_area_mm2": 21691.115949746567,
-          "covered_area_mm2": 18303.210102831403,
-          "mean_thickness_um": 0.004182171177070637,
-          "booked_volume_mm3": 0.07654715773992958,
-          "wall_spread": 0.9,
-          "void_reach": 0.15,
-          "substrate": "vug wall",
-          "area_basis": "exact cavity-field triangle area",
-          "mass_basis": "accepted Crystal._volume_mm3; renderer instances are representative only",
-          "at_step": 150,
-          "stratigraphic_index": 0,
-          "nucleation_step": 11,
-          "underlying_surface_crystal_ids": [],
-          "stratigraphy_basis": "exact shared authenticated-surface triangles"
-        },
+        "surface_growth": null,
         "surface_film": null,
         "zone_count": 140
       },
@@ -46881,26 +46864,7 @@
           "record_cm": 1000
         },
         "cdr_replacement_evidence": null,
-        "surface_growth": {
-          "regime": "botryoidal_crust",
-          "coverage_fraction": 0.4495705159297745,
-          "cavity_area_mm2": 21691.115949746567,
-          "covered_area_mm2": 9751.686188620124,
-          "mean_thickness_um": 0.000010089508469023812,
-          "booked_volume_mm3": 0.00009838972038734527,
-          "wall_spread": 0.9,
-          "void_reach": 0.15,
-          "substrate": "vug wall",
-          "area_basis": "exact cavity-field triangle area",
-          "mass_basis": "accepted Crystal._volume_mm3; renderer instances are representative only",
-          "at_step": 150,
-          "stratigraphic_index": 1,
-          "nucleation_step": 128,
-          "underlying_surface_crystal_ids": [
-            2
-          ],
-          "stratigraphy_basis": "exact shared authenticated-surface triangles"
-        },
+        "surface_growth": null,
         "surface_film": null,
         "zone_count": 23
       },
@@ -46922,27 +46886,7 @@
           "record_cm": 1000
         },
         "cdr_replacement_evidence": null,
-        "surface_growth": {
-          "regime": "botryoidal_crust",
-          "coverage_fraction": 0.26454566482863345,
-          "cavity_area_mm2": 21691.115949746567,
-          "covered_area_mm2": 5738.29068980068,
-          "mean_thickness_um": 6.818476387907e-9,
-          "booked_volume_mm3": 3.912639957535251e-8,
-          "wall_spread": 0.9,
-          "void_reach": 0.15,
-          "substrate": "vug wall",
-          "area_basis": "exact cavity-field triangle area",
-          "mass_basis": "accepted Crystal._volume_mm3; renderer instances are representative only",
-          "at_step": 150,
-          "stratigraphic_index": 2,
-          "nucleation_step": 150,
-          "underlying_surface_crystal_ids": [
-            2,
-            8
-          ],
-          "stratigraphy_basis": "exact shared authenticated-surface triangles"
-        },
+        "surface_growth": null,
         "surface_film": null,
         "zone_count": 1
       }

@@ -60537,10 +60537,10 @@
         "cdr_replacement_evidence": null,
         "surface_growth": {
           "regime": "fibrous_mat",
-          "coverage_fraction": 0.8495596722940284,
+          "coverage_fraction": 0.014477712119318264,
           "cavity_area_mm2": 9993.007869421892,
-          "covered_area_mm2": 8489.65649077771,
-          "mean_thickness_um": 0.03408286101957909,
+          "covered_area_mm2": 144.67589113957212,
+          "mean_thickness_um": 2,
           "booked_volume_mm3": 0.2893517822791442,
           "wall_spread": 0.85,
           "void_reach": 0.1,
@@ -60578,10 +60578,10 @@
         "cdr_replacement_evidence": null,
         "surface_growth": {
           "regime": "fibrous_mat",
-          "coverage_fraction": 0.8499750881381829,
+          "coverage_fraction": 0.03946144685541536,
           "cavity_area_mm2": 9993.007869421892,
-          "covered_area_mm2": 8493.807744577427,
-          "mean_thickness_um": 0.09285318453709787,
+          "covered_area_mm2": 394.3385489649395,
+          "mean_thickness_um": 1.9999999999999996,
           "booked_volume_mm3": 0.7886770979298788,
           "wall_spread": 0.85,
           "void_reach": 0.1,
@@ -60591,9 +60591,7 @@
           "at_step": 120,
           "stratigraphic_index": 1,
           "nucleation_step": 1,
-          "underlying_surface_crystal_ids": [
-            1
-          ],
+          "underlying_surface_crystal_ids": [],
           "stratigraphy_basis": "exact shared authenticated-surface triangles"
         },
         "surface_film": null,
@@ -60685,10 +60683,10 @@
         "cdr_replacement_evidence": null,
         "surface_growth": {
           "regime": "fibrous_mat",
-          "coverage_fraction": 0.8495360566084725,
+          "coverage_fraction": 0.014166428502414107,
           "cavity_area_mm2": 9993.007869421892,
-          "covered_area_mm2": 8489.420499046108,
-          "mean_thickness_um": 0.033350976435230974,
+          "covered_area_mm2": 141.56523150622675,
+          "mean_thickness_um": 2,
           "booked_volume_mm3": 0.2831304630124535,
           "wall_spread": 0.85,
           "void_reach": 0.1,
@@ -60699,8 +60697,6 @@
           "stratigraphic_index": 3,
           "nucleation_step": 2,
           "underlying_surface_crystal_ids": [
-            1,
-            2,
             3
           ],
           "stratigraphy_basis": "exact shared authenticated-surface triangles"
@@ -60730,10 +60726,10 @@
         "cdr_replacement_evidence": null,
         "surface_growth": {
           "regime": "fibrous_mat",
-          "coverage_fraction": 0.8488493094812443,
+          "coverage_fraction": 0.009443990667378149,
           "cavity_area_mm2": 9993.007869421892,
-          "covered_area_mm2": 8482.557829599413,
-          "mean_thickness_um": 0.022251277257089686,
+          "covered_area_mm2": 94.37387305785674,
+          "mean_thickness_um": 1.9999999999999996,
           "booked_volume_mm3": 0.18874774611571346,
           "wall_spread": 0.85,
           "void_reach": 0.1,
@@ -60743,12 +60739,7 @@
           "at_step": 120,
           "stratigraphic_index": 4,
           "nucleation_step": 5,
-          "underlying_surface_crystal_ids": [
-            1,
-            2,
-            3,
-            5
-          ],
+          "underlying_surface_crystal_ids": [],
           "stratigraphy_basis": "exact shared authenticated-surface triangles"
         },
         "surface_film": null,
@@ -60776,10 +60767,10 @@
         "cdr_replacement_evidence": null,
         "surface_growth": {
           "regime": "fibrous_mat",
-          "coverage_fraction": 0.8498785087744526,
+          "coverage_fraction": 0.023662406311394147,
           "cavity_area_mm2": 9993.007869421892,
-          "covered_area_mm2": 8492.842626235648,
-          "mean_thickness_um": 0.05568420913599983,
+          "covered_area_mm2": 236.45861247921997,
+          "mean_thickness_um": 1.9999999999999996,
           "booked_volume_mm3": 0.47291722495843985,
           "wall_spread": 0.85,
           "void_reach": 0.1,
@@ -60790,10 +60781,7 @@
           "stratigraphic_index": 5,
           "nucleation_step": 6,
           "underlying_surface_crystal_ids": [
-            1,
             2,
-            3,
-            5,
             6
           ],
           "stratigraphy_basis": "exact shared authenticated-surface triangles"
@@ -60823,10 +60811,10 @@
         "cdr_replacement_evidence": null,
         "surface_growth": {
           "regime": "fibrous_mat",
-          "coverage_fraction": 0.8498578749194382,
+          "coverage_fraction": 0.022380031235729413,
           "cavity_area_mm2": 9993.007869421892,
-          "covered_area_mm2": 8492.636431960113,
-          "mean_thickness_um": 0.05266770338005261,
+          "covered_area_mm2": 223.64382825655179,
+          "mean_thickness_um": 2,
           "booked_volume_mm3": 0.44728765651310354,
           "wall_spread": 0.85,
           "void_reach": 0.1,
@@ -60837,10 +60825,7 @@
           "stratigraphic_index": 6,
           "nucleation_step": 7,
           "underlying_surface_crystal_ids": [
-            1,
             2,
-            3,
-            5,
             6,
             7
           ],
@@ -60914,10 +60899,10 @@
         "cdr_replacement_evidence": null,
         "surface_growth": {
           "regime": "botryoidal_crust",
-          "coverage_fraction": 0.3999987444684161,
+          "coverage_fraction": 0.19244700640549395,
           "cavity_area_mm2": 9993.007869421892,
-          "covered_area_mm2": 3997.1906012317586,
-          "mean_thickness_um": 0.9622380523281344,
+          "covered_area_mm2": 1923.1244494567864,
+          "mean_thickness_um": 1.9999999999999996,
           "booked_volume_mm3": 3.846248898913572,
           "wall_spread": 0.4,
           "void_reach": 0.5,
@@ -60928,13 +60913,7 @@
           "stratigraphic_index": 7,
           "nucleation_step": 58,
           "underlying_surface_crystal_ids": [
-            1,
-            2,
-            3,
-            5,
-            6,
-            7,
-            8
+            3
           ],
           "stratigraphy_basis": "exact shared authenticated-surface triangles"
         },
@@ -60960,10 +60939,10 @@
         "cdr_replacement_evidence": null,
         "surface_growth": {
           "regime": "botryoidal_crust",
-          "coverage_fraction": 0.34969639284240694,
+          "coverage_fraction": 0.031075727145357564,
           "cavity_area_mm2": 9993.007869421892,
-          "covered_area_mm2": 3494.518805582622,
-          "mean_thickness_um": 0.17772975519002307,
+          "covered_area_mm2": 310.5399859115656,
+          "mean_thickness_um": 2,
           "booked_volume_mm3": 0.6210799718231312,
           "wall_spread": 0.35,
           "void_reach": 0.6,
@@ -60974,14 +60953,8 @@
           "stratigraphic_index": 8,
           "nucleation_step": 58,
           "underlying_surface_crystal_ids": [
-            1,
             2,
-            3,
-            5,
-            6,
-            7,
-            8,
-            11
+            3
           ],
           "stratigraphy_basis": "exact shared authenticated-surface triangles"
         },
@@ -61026,9 +60999,6 @@
             2,
             3,
             5,
-            6,
-            7,
-            8,
             11,
             12
           ],
@@ -61108,10 +61078,10 @@
         "cdr_replacement_evidence": null,
         "surface_growth": {
           "regime": "botryoidal_crust",
-          "coverage_fraction": 0.8499966491835402,
+          "coverage_fraction": 0.18198398811972286,
           "cavity_area_mm2": 9993.007869421892,
-          "covered_area_mm2": 8494.023204273357,
-          "mean_thickness_um": 0.4281993071255671,
+          "covered_area_mm2": 1818.5674253891707,
+          "mean_thickness_um": 1.9999999999999996,
           "booked_volume_mm3": 3.6371348507783408,
           "wall_spread": 0.85,
           "void_reach": 0.15,
@@ -61122,14 +61092,11 @@
           "stratigraphic_index": 11,
           "nucleation_step": 59,
           "underlying_surface_crystal_ids": [
-            1,
             2,
             3,
-            5,
             6,
             7,
             8,
-            11,
             12,
             13,
             14
@@ -61225,7 +61192,6 @@
           "stratigraphic_index": 13,
           "nucleation_step": 61,
           "underlying_surface_crystal_ids": [
-            1,
             2,
             3,
             5,
@@ -61265,10 +61231,10 @@
         "cdr_replacement_evidence": null,
         "surface_growth": {
           "regime": "botryoidal_crust",
-          "coverage_fraction": 0.8999950469060919,
+          "coverage_fraction": 0.16735895862941577,
           "cavity_area_mm2": 9993.007869421892,
-          "covered_area_mm2": 8993.657586173302,
-          "mean_thickness_um": 0.3719108437424066,
+          "covered_area_mm2": 1672.4193906020046,
+          "mean_thickness_um": 2,
           "booked_volume_mm3": 3.3448387812040092,
           "wall_spread": 0.9,
           "void_reach": 0.1,
@@ -61279,14 +61245,11 @@
           "stratigraphic_index": 14,
           "nucleation_step": 61,
           "underlying_surface_crystal_ids": [
-            1,
             2,
             3,
-            5,
             6,
             7,
             8,
-            11,
             12,
             13,
             14,
@@ -61336,7 +61299,6 @@
             1,
             2,
             3,
-            5,
             6,
             7,
             8,
@@ -61375,10 +61337,10 @@
         "cdr_replacement_evidence": null,
         "surface_growth": {
           "regime": "botryoidal_crust",
-          "coverage_fraction": 0.8998961837389118,
+          "coverage_fraction": 0.0683000674406391,
           "cavity_area_mm2": 9993.007869421892,
-          "covered_area_mm2": 8992.669645765674,
-          "mean_thickness_um": 0.1517954374622731,
+          "covered_area_mm2": 682.5231114163524,
+          "mean_thickness_um": 2,
           "booked_volume_mm3": 1.365046222832705,
           "wall_spread": 0.9,
           "void_reach": 0.1,
@@ -61389,14 +61351,11 @@
           "stratigraphic_index": 16,
           "nucleation_step": 71,
           "underlying_surface_crystal_ids": [
-            1,
             2,
             3,
-            5,
             6,
             7,
             8,
-            11,
             12,
             13,
             14,
