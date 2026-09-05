@@ -38,7 +38,9 @@ describe('authenticated public-control guided tutorial journeys', () => {
       .toMatchObject({ accepted_at_step: 50, carbonate_transaction_kind: 'ph_titration' });
     expect(receipt.payload.journeys.simulation.collected)
       .toEqual({
-        record_id: 'cry-16-33x',
+        // Stream-position id (QA-pinned Math.random shared with three.js UUIDs); re-pinned
+        // 2026-09-05 with tools/guided-tutorial-browser-receipt.mjs — see review F13.
+        record_id: 'cry-16-rt2',
         name: '<img data-vugg-player-name-probe src=x onerror="globalThis.__vuggPlayerNameInjection=1">',
         mineral: 'topaz',
         source_scenario: 'shigar_pegmatite',
