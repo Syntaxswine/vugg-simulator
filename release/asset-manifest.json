@@ -144,8 +144,8 @@
         "max_width_css_px": 720,
         "min_device_pixel_ratio": 2.5
       },
-      "surface_growth_instance_cap_mobile": 56,
-      "surface_growth_instance_cap_desktop": 128
+      "surface_growth_instance_cap_mobile": 384,
+      "surface_growth_instance_cap_desktop": 1536
     }
   },
   "audio_mix_states": {
@@ -174,5 +174,5 @@
     "human art direction and final mineral-image coverage beyond the four current thumbnails",
     "physical-device audio loudness, clipping, interruption, and accessibility review"
   ],
-  "asset_manifest_sha256": "7f36ef9c4b6a5295dbf4cb49feb56e8cc0b3b6ae4c3e4e63fc6e98035b3b96ba"
+  "asset_manifest_sha256": "2dd1b6ba39c5a3036045d485a1935b2484f0de1f14fd9e488b59627f03e71bf0"
 }
