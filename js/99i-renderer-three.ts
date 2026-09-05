@@ -1741,6 +1741,15 @@ function _habitGeomToken(habit: string): string {
   // the top of this function and gets the tree — correct.)
   if (h.includes('octahedral_ree')) return 'octahedron';
   if (h === 'octahedral' || h === 'octahedron') return 'octahedron';
+  // Visual-realism review 2026-09-04 (finding F3): the cubic minerals that the default
+  // fell to a HEXAGONAL prism. Sphalerite/chalcopyrite tetrahedra (Td / disphenoid) get a
+  // tetrahedron; 'cubic_*' / 'cubo_*' / pseudo-cubic habit names (hessite, naumannite,
+  // clausthalite, skutterudite, cassiterite equant) route to the cube. The pyritohedral
+  // family is caught above, so 'cubo-pyritohedral' keeps its dodecahedron.
+  if (h.includes('tetrahedr') || h.includes('disphenoid')) return 'tetrahedron';
+  if (h.startsWith('cubic') || h.startsWith('cubo') || h === 'pseudo_cubic' || h === 'equant_octahedral') {
+    return h === 'equant_octahedral' ? 'octahedron' : 'cube';
+  }
   if (h.includes('rhombohedral')) return 'rhomb';
   if (h.includes('scalenohedral')) return 'scalene';
   // S2 celestine tranche (SIM 236): the Ba-fibrous blanket is a wall-spreading
@@ -1800,6 +1809,7 @@ const _GEOM_TOKEN_RATIO: Record<string, number> = {
   scalene: 0.6,       // scalenohedral — calcite dogtooth (taller than rhomb)
   tablet: 1.5,        // tabular — flat plate, a > c
   cube: 1.0,          // isometric
+  tetrahedron: 1.0,   // isometric (sphalerite Td) — review 2026-09-04
   fluorite_penetration_twin: 1.0,  // two cubes interpenetrating — same envelope
   selenite_swallowtail_twin: 1.5,  // tabular blades — c > a like 'tablet' family
   octahedron: 1.0,
@@ -1839,7 +1849,7 @@ const _DRIPSTONE_ELIGIBLE_TOKENS = new Set([
 // these tokens appear here) and stepped/hoppered/etched overprints opt out at
 // the clip site. Mirrors the probe's CONVEX_TOKENS (tools/o2-contact-probe.mjs).
 const _O2_CONVEX_TOKENS = new Set([
-  'cube', 'octahedron', 'rhomb', 'scalene', 'tablet', 'prism', 'spike', 'rhombic_dodec', 'dodecahedron',
+  'cube', 'octahedron', 'tetrahedron', 'rhomb', 'scalene', 'tablet', 'prism', 'spike', 'rhombic_dodec', 'dodecahedron',
 ]);
 
 // PROPOSAL-HABIT-BIAS Slice 4 — choose the geometry token for a
@@ -4248,6 +4258,32 @@ const CRYSTAL_SYSTEM: Record<string, string> = {
 // (monoclinic = beta-inclined termination; triclinic = leaning column + skewed apex). Replaces the
 // hexagonal prism for non-hex minerals. Deterministic; cached per system. Hex/trigonal minerals
 // never reach here (not in CRYSTAL_SYSTEM) so they keep _makeHexPrismWithPyramid -> byte-identical.
+// REGULAR TETRAHEDRON — the {111} form of the hemihedral cubic minerals (sphalerite Td,
+// chalcopyrite's pseudo-tetrahedral disphenoid). Face-attached: the base triangle lies in
+// y = −0.5 (the wall), the apex is at y = +0.5, so the isometric uniform scale by c_length
+// gives a crystal c tall and 1.22·c on edge (true regular-tetrahedron proportions). Flat
+// faces via non-indexed triangles (computeVertexNormals yields per-face normals). Reviewer
+// 2026-09-04: sphalerite had rendered as a hexagonal prism since the token default.
+function _makeTetrahedron(): any {
+  const apex = [0, 0.5, 0];
+  const rb = Math.sqrt(2) / 2;           // base circumradius for height 1 (edge = √1.5)
+  const b = [0, 1, 2].map(i => {
+    const a = Math.PI / 2 + (i * 2 * Math.PI) / 3;
+    return [Math.cos(a) * rb, -0.5, Math.sin(a) * rb];
+  });
+  const positions: number[] = [];
+  const push = (p: number[], q: number[], r: number[]) =>
+    _pushTri(positions, p[0], p[1], p[2], q[0], q[1], q[2], r[0], r[1], r[2]);
+  push(apex, b[1], b[0]);
+  push(apex, b[2], b[1]);
+  push(apex, b[0], b[2]);
+  push(b[0], b[1], b[2]);                // base, outward (−y) winding
+  const geom = new THREE.BufferGeometry();
+  geom.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+  geom.computeVertexNormals();
+  return geom;
+}
+
 function _makeSystemPrism(system: string): any {
   const yBase = -0.5, yShoulder = 0.2, yApex = 0.5;
   let rx = 0.40, rz = 0.40;     // tetragonal default = square section
@@ -4365,6 +4401,10 @@ function _buildHabitGeom(token: string): any {
       return _makeAragoniteContactTwin();
     case 'octahedron':
       return new THREE.OctahedronGeometry(0.55, 0);
+    case 'tetrahedron':
+      // Sphalerite / chalcopyrite (review 2026-09-04, F3): a regular tetrahedron, one
+      // face sealed to the wall (base y = −0.5), apex toward the void (y = +0.5).
+      return _makeTetrahedron();
     case 'snowball':
       // Q5 — population-level epitaxy aggregate (boss-approved sphere
       // primitive). Radius 0.5 → diameter 1.0 → unit-scale sphere
@@ -4504,6 +4544,15 @@ const _CLUSTER_PATTERNS: Record<string, ClusterPattern> = {
     scaleMax: 0.75,
     evenAngles: false,
   },
+  // Tetrahedral sphalerite druse — chunky, modest tilt (the octahedron pattern).
+  tetrahedron: {
+    countScale: 0.8,
+    spreadMul: 1.0,
+    tiltMax: 0.20,
+    scaleMin: 0.40,
+    scaleMax: 0.75,
+    evenAngles: false,
+  },
   rhombic_dodec: {
     countScale: 0.8,
     spreadMul: 1.0,
@@ -4630,13 +4679,23 @@ function _clusterSatelliteCount(crystal: any, pattern: ClusterPattern, cLenOverr
 // The instance cloud below is therefore representative geometry: one draw call,
 // no additions to sim.crystals, no extra accepted volume, and a hard mobile cap.
 // The physical coverage/thickness/volume record is crystal._surfaceGrowth (js/45).
-const SURFACE_GROWTH_INSTANCE_CAP_DESKTOP = 128;
-const SURFACE_GROWTH_INSTANCE_CAP_MOBILE = 56;
+// Visual-realism review 2026-09-04 (finding F1): with a 128-instance cap the representative
+// patches of a 90%-covered 45 mm cavity had to be ~17 mm coins to add up to the covered area,
+// so every coating read as a carpet of octagonal plates. Representatives are now sized at a
+// physical footprint (SURFACE_GROWTH_REPRESENTATIVE_MM — a botryoidal lobe / druse tooth) and
+// the budget is what an InstancedMesh draws for free; the mobile cap stays strict, just larger.
+const SURFACE_GROWTH_INSTANCE_CAP_DESKTOP = 1536;
+const SURFACE_GROWTH_INSTANCE_CAP_MOBILE = 384;
+const SURFACE_GROWTH_REPRESENTATIVE_MM = 1.5;
 const SURFACE_GROWTH_MOBILE_MAX_WIDTH_CSS_PX = 720;
 const SURFACE_GROWTH_MOBILE_MIN_DEVICE_PIXEL_RATIO = 2.5;
 
-function _surfaceGrowthInstanceCount(coverage: number, mobile = false): number {
+function _surfaceGrowthInstanceCount(coverage: number, mobile = false, coveredAreaMm2?: number): number {
   const cap = mobile ? SURFACE_GROWTH_INSTANCE_CAP_MOBILE : SURFACE_GROWTH_INSTANCE_CAP_DESKTOP;
+  if (coveredAreaMm2 > 0) {
+    const footprint = Math.PI * SURFACE_GROWTH_REPRESENTATIVE_MM * SURFACE_GROWTH_REPRESENTATIVE_MM;
+    return Math.max(12, Math.min(cap, Math.round(coveredAreaMm2 / footprint)));
+  }
   return Math.max(12, Math.min(cap, Math.round(12 + coverage * (cap - 12))));
 }
 
@@ -4732,7 +4791,9 @@ function _emitSurfaceGrowthSwath(
   const mobile = typeof window !== 'undefined'
     && ((window.innerWidth || 1024) <= SURFACE_GROWTH_MOBILE_MAX_WIDTH_CSS_PX
       || (window.devicePixelRatio || 1) >= SURFACE_GROWTH_MOBILE_MIN_DEVICE_PIXEL_RATIO);
-  const count = _surfaceGrowthInstanceCount(coverage, mobile);
+  const coveredAreaForBudget = Number(record.cavity_area_mm2) > 0
+    ? Number(record.cavity_area_mm2) * coverage : 0;
+  const count = _surfaceGrowthInstanceCount(coverage, mobile, coveredAreaForBudget);
   const anchorNormal = wall?.surfaceNormalForCrystal?.(crystal) || [ax, ay, az];
   const al = Math.sqrt(anchorNormal[0] * anchorNormal[0]
     + anchorNormal[1] * anchorNormal[1] + anchorNormal[2] * anchorNormal[2]) || 1;
@@ -4749,7 +4810,8 @@ function _emitSurfaceGrowthSwath(
   let key = '__surface_patch_lowpoly';
   let geom = state.geomCache.get(key);
   if (!geom) {
-    geom = new THREE.SphereGeometry(0.5, 8, 5);
+    // 12×8 keeps a lobe round at the new ~3–5 mm representative size (8×5 read as octagons).
+    geom = new THREE.SphereGeometry(0.5, 12, 8);
     state.geomCache.set(key, geom);
   }
   if (record.regime === 'euhedral_druse') {
@@ -4879,9 +4941,15 @@ function _emitSurfaceGrowthSwath(
       );
       dummy.scale.set(width, length, width);
     } else {
-      const lateral = patchRadius * (record.regime === 'laminated_lining' ? 2.2 : 1.55);
+      const lateral = patchRadius * (record.regime === 'laminated_lining' ? 2.6 : 1.55);
+      // A botryoidal lobe is a near-hemisphere, but its height is bounded by the MASS the
+      // ledger booked: a hemispherical lobe of radius r has mean thickness 2r/3, so the
+      // tallest honest lobe is ~3× the record's mean thickness. A 2 µm celestine blanket
+      // therefore renders as a thin bumpy skin, not a pile of balloons burying the dogtooth
+      // it sits on (review 2026-09-04, F1 — the first cut of this fix did exactly that).
+      const massBoundRelief = trueThicknessMm > 0 ? trueThicknessMm * 3 : displayThickness;
       const relief = record.regime === 'botryoidal_crust'
-        ? Math.max(displayThickness, patchRadius * (0.30 + h * 0.18))
+        ? Math.max(displayThickness, Math.min(lateral * (0.45 + h * 0.25), massBoundRelief))
         : displayThickness;
       axis.set(p.nx, p.ny, p.nz);
       dummy.quaternion.setFromUnitVectors(up, axis);
@@ -4914,7 +4982,7 @@ function _emitSurfaceGrowthSwath(
   // Canonical desktop-density relief is intentionally independent of mobile
   // LOD; subsequent layers therefore sit on the same depicted substrate on
   // every viewport even when this layer uses fewer representatives.
-  const canonicalCount = _surfaceGrowthInstanceCount(coverage, false);
+  const canonicalCount = _surfaceGrowthInstanceCount(coverage, false, coveredAreaForBudget);
   const canonicalPatchRadius = Math.max(0.22,
     Math.sqrt(representedArea / canonicalCount / Math.PI) * 1.08);
   const canonicalDisplayThickness = Math.max(0.06, Math.min(canonicalPatchRadius * 0.45,
@@ -5079,7 +5147,7 @@ function _emitClusterSatellites(
     sNx /= nLen; sNy /= nLen; sNz /= nLen;
     const sOffset = sCLen * (0.5 - (parentOccF || 0));   // W-F O0 — see param doc
     const satMesh = new THREE.Mesh(geom, mat);
-    if (geomToken === 'cube' || geomToken === 'octahedron' || geomToken === 'rhombic_dodec' || geomToken === 'dodecahedron' || geomToken === 'snowball') {
+    if (geomToken === 'cube' || geomToken === 'octahedron' || geomToken === 'tetrahedron' || geomToken === 'rhombic_dodec' || geomToken === 'dodecahedron' || geomToken === 'snowball') {
       satMesh.scale.set(sCLen, sCLen, sCLen);
     } else if (geomToken === 'scalene') {
       // Same display-width cap as the parent-mesh 'scalene' scale branch
@@ -5513,7 +5581,7 @@ function _o2PlaceBody(crystal: any, wall: any, replayStep: number | undefined, r
   const inReplay = (replayStep != null);
   const cLen = Math.max(inReplay ? 0.0 : 2.0, renderC);
   const aWid = Math.max(inReplay ? 0.0 : 1.5, renderA);
-  const equant = token === 'cube' || token === 'octahedron' || token === 'rhomb'
+  const equant = token === 'cube' || token === 'octahedron' || token === 'tetrahedron' || token === 'rhomb'
     || token === 'scalene' || token === 'tablet' || token === 'rhombic_dodec' || token === 'dodecahedron';
   const simOccF = (crystal._occlusion && typeof crystal._occlusion.attachedFraction === 'number') ? crystal._occlusion.attachedFraction : null;
   const occF = simOccF != null ? simOccF : (equant && crystal.growth_environment !== 'air' ? 0.5 : 0);
@@ -5835,7 +5903,7 @@ function _topoSyncCrystalMeshes(state: any, sim: any, wall: any, replayStep?: nu
     // Render-only: SIM state and baselines are untouched by construction.
     const _simOccF = (crystal._occlusion && typeof crystal._occlusion.attachedFraction === 'number')
       ? crystal._occlusion.attachedFraction : null;
-    const _o0Equant = token === 'cube' || token === 'octahedron' || token === 'rhomb'
+    const _o0Equant = token === 'cube' || token === 'octahedron' || token === 'tetrahedron' || token === 'rhomb'
       || token === 'scalene' || token === 'tablet' || token === 'rhombic_dodec'
       || token === 'dodecahedron';
     let occF = _simOccF != null ? _simOccF
@@ -6325,7 +6393,7 @@ function _topoSyncCrystalMeshes(state: any, sim: any, wall: any, replayStep?: nu
       cLen = Math.max(renderC, O4_INCLUSION_MIN_MM);
       aWid = Math.max(renderA, O4_INCLUSION_MIN_MM);
     }
-    if (token === 'cube' || token === 'octahedron' || token === 'rhombic_dodec' || token === 'dodecahedron' || token === 'snowball' || isWulffCalcite) {
+    if (token === 'cube' || token === 'octahedron' || token === 'tetrahedron' || token === 'rhombic_dodec' || token === 'dodecahedron' || token === 'snowball' || isWulffCalcite) {
       // isWulffCalcite (rung 4a.2): the calcite Wulff polyhedron already carries its true
       // crystallographic c-elongation (kernel builds c on Y, normalized to ±0.5), so it scales
       // UNIFORMLY by cLen — the geom's own aspect gives the nailhead-vs-dogtooth shape. Applying

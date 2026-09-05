@@ -7,6 +7,26 @@
 
 Living list of open work items, captured from session conversations so context survives compaction. Each item has enough detail that someone picking it up cold can act without re-discovering the rationale.
 
+> ## 📷 HOSTILE REVIEW — VISUAL REALISM (2026-09-04) — **`PROPOSAL-HOSTILE-REVIEW-VISUAL-REALISM-2026-09-04.md`**
+>
+> Boss ask: how true to life do the rendered crystals look (10 = a photograph; target 7)?
+> **Verdict 2/10.** 40 frames of the shipped renderer photographed by the new
+> `tools/photo-rig.mjs` (headless Chrome, the real bundle, WebGL framebuffer read-back, per-frame
+> luminance statistics, prototype experiments): **zero specular highlight pixels in every frame**
+> vs a median of 1% in the boss's own specimen photographs; transparency is alpha cellophane;
+> the wall is a ridged honeycomb; and in eleven scenarios the largest thing on screen was a
+> carpet of 17 mm octagonal "coins" standing in for coatings (SIM 246 surface fabrics).
+> **Fixed on sight:** euhedral crystals are no longer painted as crusts (the Elmwood dogtooth
+> body is back), coverage is mass-floored (dust cannot paint a wall), coating instances are
+> sized at 1.5 mm with mass-bounded lobe height, sphalerite is a tetrahedron (cubic-named
+> habits → cube), and `morph-fidelity-audit` reads the renderer's real system map (75 → 21
+> honest mis-shapes). All render-facing; no simulator consumer; rebake expected byte-identical.
+> **Plan R1–R7** (env-map lighting + shadows + filmic tone mapping · lustre/transmission
+> materials · coatings at physical scale · Wulff quartz/sphalerite/pyrite/gypsum · rock wall ·
+> cut-geode specimen view · aggregate history) with photo-rig acceptance numbers; **five boss
+> decisions** in §7 (transmission, lustre consumer, presentation, instance budgets, studio vs
+> cave mood). Cold CI NOT run this session; ledger §P3 carries the item.
+
 > ## 🧬 CODEX SIM 271 INTEGRATION + THE LINE-ENDING FINDING (2026-08-18) — **branch `integrate/codex-sulfur-valence` — `FINDING-EVIDENCE-LINE-ENDINGS-2026-08-18.md`**
 >
 > Merged Codex's `b62d85f` (sulfur valence authority, SIM 267→271) onto canonical `420bf22`.

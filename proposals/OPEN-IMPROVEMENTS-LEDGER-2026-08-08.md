@@ -264,6 +264,21 @@ single execution ledger for the science-first AAA completion branch.
   Evidence: `tools/scenario-authoring.mjs` and
   `tests-js/scenario-authoring.test.ts`.
 
+- [ ] **Visual realism to 7/10 — render rungs R1–R7** (2026-09-04, branch
+  `review/visual-realism-2026-09-04`; `proposals/PROPOSAL-HOSTILE-REVIEW-VISUAL-REALISM-2026-09-04.md`).
+  Measured today at 2/10 with `tools/photo-rig.mjs` (the review's instrument — headless Chrome
+  photographs of the shipped bundle with per-frame luminance statistics and prototype
+  experiments): highlight fraction 0 in 40/40 frames vs 0.010 median in the boss's specimen
+  photographs; edge fraction 0.009 vs 0.081. Fixed on sight in that commit: euhedral-not-crust
+  classification + mass-floored coverage + physically sized coating instances (F1), the
+  sphalerite tetrahedron and cubic-name routing (F3), the stale shape audit (F4). Open rungs:
+  R1 env-map + shadows + ACES (1–2 d), R2 lustre/transmission materials (3–5 d, needs boss
+  decisions D1/D2), R3 coatings at physical scale (2–4 d), R4 Wulff quartz/sphalerite/pyrite/
+  gypsum/dolomite/aragonite (4–6 d), R5 rock wall (2–3 d), R6 specimen view (2 d, D3), R7
+  aggregate history (3–5 d). Every rung must show a photo-rig before/after and its numbers.
+  Science gap surfaced by the mass floor: amethyst-geode and deccan chalcedony rinds are
+  booked too thin to be fabrics (scenario tuning, not render).
+
 ## P4 — release systems that can be prepared locally
 
 - [x] Versioned content packs, changelog/migration policy, telemetry-free local

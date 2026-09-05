@@ -37,6 +37,11 @@ function habitToken(habitRaw) {
   if (h.includes('pyritohedral')) return 'dodecahedron';
   if (h.includes('octahedral_ree')) return 'octahedron';
   if (h === 'octahedral' || h === 'octahedron') return 'octahedron';
+  // review 2026-09-04 (F3): hemihedral-cubic tetrahedra + cubic-named habits (mirror of js/99i)
+  if (h.includes('tetrahedr') || h.includes('disphenoid')) return 'tetrahedron';
+  if (h.startsWith('cubic') || h.startsWith('cubo') || h === 'pseudo_cubic' || h === 'equant_octahedral') {
+    return h === 'equant_octahedral' ? 'octahedron' : 'cube';
+  }
   if (h.includes('rhombohedral')) return 'rhomb';
   if (h.includes('scalenohedral')) return 'scalene';
   if (h.includes('chalcedony')) return 'botryoidal';
@@ -65,6 +70,18 @@ const HEX_OK_POLAR = new Set(['greenockite', 'wurtzite']);
 const HEX_SYSTEMS = new Set(['hexagonal', 'trigonal', 'rhombohedral']);
 const NONHEX = new Set(['tetragonal', 'orthorhombic', 'monoclinic', 'triclinic']);
 
+// The renderer's OWN system redirect (js/99i CRYSTAL_SYSTEM → _makeSystemPrism): a 'prism'
+// token listed there renders as a square/rectangular/sheared prism, not a hexagonal one.
+// Read from the source so this instrument audits the gate that actually runs (the 2026-06-23
+// redirect had been shipping for ten weeks while this audit still reported every entry as
+// mis-shaped — review 2026-09-04). Entries the renderer lacks stay flagged.
+const RENDERER_SRC = readFileSync(join(ROOT, 'js/99i-renderer-three.ts'), 'utf8');
+const RENDER_SYSTEM_MAP = {};
+{
+  const block = RENDERER_SRC.match(/const CRYSTAL_SYSTEM: Record<string, string> = \{([\s\S]*?)\};/);
+  for (const m of (block ? block[1] : '').matchAll(/([a-z_]+):\s*'([a-z]+)'/g)) RENDER_SYSTEM_MAP[m[1]] = m[2];
+}
+
 function systemOf(name, spec) {
   const s = structural[name];
   if (s && s.system) return { system: s.system.toLowerCase(), src: 'structural.json' };
@@ -84,11 +101,15 @@ for (const [name, spec] of Object.entries(minerals)) {
   const habit = spec.habit || (spec.habit_variants && spec.habit_variants[0] && spec.habit_variants[0].name) || '';
   const token = habitToken(habit);
   const { system, src } = systemOf(name, spec);
-  const hexRender = (token === 'prism' || token === 'spike') && !SPECIAL_RENDER.has(name);
-  rows.push({ name, habit, token, system, src, hexRender });
+  const systemPrism = token === 'prism' && !SPECIAL_RENDER.has(name) && !!RENDER_SYSTEM_MAP[name];
+  const hexRender = (token === 'prism' || token === 'spike') && !SPECIAL_RENDER.has(name) && !systemPrism;
+  const mapDisagrees = systemPrism && NONHEX.has(system) && RENDER_SYSTEM_MAP[name] !== system;
+  rows.push({ name, habit, token, system, src, hexRender, systemPrism, mapDisagrees });
 }
 
 const all = process.argv.includes('--all');
+const redirected = rows.filter(r => r.systemPrism);
+const disagreeing = rows.filter(r => r.mapDisagrees);
 const flagged = rows.filter(r => r.hexRender && NONHEX.has(r.system));
 const unknown = rows.filter(r => r.hexRender && r.system === 'UNKNOWN');
 const cubicPrism = rows.filter(r => r.hexRender && r.system === 'cubic');
@@ -131,6 +152,12 @@ console.log(`\n=== MORPH FIDELITY AUDIT — ${rows.length} minerals ===`);
 console.log(`hex-rendered (prism/spike, not special-cased): ${rows.filter(r => r.hexRender).length}`);
 console.log(`  of which hexagonal/trigonal system (CORRECT): ${okHex.length}`);
 console.log(`  of which special-name-dispatched (excluded):  ${[...SPECIAL_RENDER].length}`);
+
+console.log(`  of which redirected to a system-aware prism in js/99i (OK): ${redirected.length}`);
+if (disagreeing.length) {
+  console.log(`\n### js/99i CRYSTAL_SYSTEM disagrees with the sourced system (${disagreeing.length}) ###`);
+  for (const r of disagreeing) console.log(`  ${pad(r.name, 22)} renderer ${RENDER_SYSTEM_MAP[r.name]} vs ${r.src} ${r.system}`);
+}
 
 console.log(`\n### MIS-SHAPED — non-hex system rendered HEXAGONAL (${flagged.length}) ###`);
 console.log('  ' + pad('mineral', 22) + pad('system', 14) + pad('token', 8) + pad('sys-src', 14) + 'habit');

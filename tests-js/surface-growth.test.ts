@@ -84,6 +84,41 @@ describe('SIM 246 area-covering surface-growth fabrics', () => {
       .toBe('laminated_lining');
   });
 
+  it('never paints a euhedral crystal as a crust (review 2026-09-04, F1)', () => {
+    // The Elmwood 14 mm dogtooth: scalenohedral habit, stale coating vector from its
+    // druzy birth. It is a body, not a botryoidal carpet.
+    const dogtooth = crystal('calcite', 'scalenohedral', 'coating');
+    dogtooth.c_length_mm = 14.07;
+    expect(surfaceGrowthRegimeFor(dogtooth)).toBeNull();
+    // Below the macro size a coating of euhedral individuals is a druse.
+    const small = crystal('calcite', 'scalenohedral', 'coating');
+    small.c_length_mm = 0.4;
+    expect(surfaceGrowthRegimeFor(small)).toBe('euhedral_druse');
+    const plates = crystal('stilbite', 'tabular', 'coating');
+    plates.c_length_mm = 0.3;
+    expect(surfaceGrowthRegimeFor(plates)).toBe('euhedral_druse');
+    // Crust/druse habit names keep their fabric regardless of size.
+    const crust = crystal('azurite', 'crystalline_crust', 'coating');
+    crust.c_length_mm = 5;
+    expect(surfaceGrowthRegimeFor(crust)).toBe('botryoidal_crust');
+    const powder = crystal('greenockite', 'powdery_coating', 'coating');
+    powder.c_length_mm = 2.5;
+    expect(surfaceGrowthRegimeFor(powder)).toBe('botryoidal_crust');
+  });
+
+  it('floors coverage by the booked mass so dust cannot paint a wall (review 2026-09-04, F1)', () => {
+    // A 0.008 mm cassiterite grain (gem_pegmatite seed 42) claimed 23% of the cavity.
+    const dust = crystal('cassiterite', 'botryoidal_woodtin', 'coating');
+    dust._volume_mm3 = 5e-7;
+    expect(surfaceGrowthDescriptor(dust, { meanDiameterMm: () => 86 })).toBeNull();
+    // A real crust: capped so the volume spreads at least 2 µm thick over the covered area.
+    const thin = crystal('malachite', 'botryoidal', 'coating');
+    thin._volume_mm3 = 4;                          // 50 mm vug ≈ 7854 mm² → cap ≈ 0.255
+    const desc = surfaceGrowthDescriptor(thin, { meanDiameterMm: () => 50 });
+    expect(desc.coverage_fraction).toBeCloseTo(4 / (7853.98 * 0.002), 3);
+    expect(desc.mean_thickness_um).toBeCloseTo(2, 6);
+  });
+
   it('does not turn an unspecified Mn oxide or every massive aggregate into black wall paint', () => {
     expect(surfaceGrowthRegimeFor(crystal('pyrolusite', 'massive_sooty')))
       .toBe('botryoidal_crust');
@@ -244,9 +279,16 @@ describe('SIM 246 area-covering surface-growth fabrics', () => {
   it('uses deterministic equal-area sampling and a strict mobile LOD cap', () => {
     const mobile = _surfaceGrowthInstanceCount(1, true);
     const desktop = _surfaceGrowthInstanceCount(1, false);
-    expect(mobile).toBe(56);
-    expect(desktop).toBe(128);
+    // Review 2026-09-04 (F1): the caps were 56/128, which forced ~17 mm "representative"
+    // coins on a covered cavity; instances now carry a ~1.5 mm physical footprint and the
+    // caps are what an InstancedMesh draws for free. Mobile stays strictly lower.
+    expect(mobile).toBe(384);
+    expect(desktop).toBe(1536);
     expect(desktop).toBeGreaterThan(mobile);
+    // Area-budgeted count: one representative per 1.5 mm-radius footprint, capped.
+    expect(_surfaceGrowthInstanceCount(0.5, false, 100)).toBe(14);
+    expect(_surfaceGrowthInstanceCount(0.5, false, 1e6)).toBe(1536);
+    expect(_surfaceGrowthInstanceCount(0.5, true, 1e6)).toBe(384);
 
     const a = _surfaceGrowthSampleDirections([0, 1, 0], mobile, 0.8, 42);
     const b = _surfaceGrowthSampleDirections([0, 1, 0], mobile, 0.8, 42);
@@ -271,9 +313,10 @@ describe('SIM 246 area-covering surface-growth fabrics', () => {
 
   it('turns the Deccan Stage-I claim into a persisted, mass-closing chalcedony lining', () => {
     const sim = runScenario('deccan_zeolite', 42);
-    const linings = sim.crystals.filter((c: any) =>
+    const chalcedony = sim.crystals.filter((c: any) =>
       c.mineral === 'chalcedony' && c.total_growth_um > 0 && !c.dissolved,
     );
+    const linings = chalcedony.filter((c: any) => c._surfaceGrowth);
     expect(linings.length).toBeGreaterThan(0);
     expect(linings.every((c: any) => c._surfaceGrowth?.regime === 'laminated_lining'))
       .toBe(true);
@@ -281,6 +324,12 @@ describe('SIM 246 area-covering surface-growth fabrics', () => {
       const s = c._surfaceGrowth;
       expect(s.covered_area_mm2 * s.mean_thickness_um / 1000)
         .toBeCloseTo(c._volume_mm3, 10);
+    }
+    // Review 2026-09-04 (F1): a chalcedony speck whose silica cannot line 0.5% of the wall
+    // 2 µm thick is not a lining yet — it carries no fabric record until it has grown one.
+    const area = sim.wall_state.meshFor().surfaceAreaMm2();
+    for (const c of chalcedony.filter((x: any) => !x._surfaceGrowth)) {
+      expect(c._volume_mm3 / (area * 0.002)).toBeLessThan(0.005);
     }
   });
 
