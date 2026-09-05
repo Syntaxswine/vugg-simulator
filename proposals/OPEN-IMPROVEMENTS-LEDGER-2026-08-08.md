@@ -272,11 +272,16 @@ single execution ledger for the science-first AAA completion branch.
   experiments): highlight fraction 0 in 40/40 frames vs 0.010 median in the boss's specimen
   photographs; edge fraction 0.009 vs 0.081. Fixed on sight in that commit: euhedral-not-crust
   classification + mass-floored coverage + physically sized coating instances (F1), the
-  sphalerite tetrahedron and cubic-name routing (F3), the stale shape audit (F4). Open rungs:
-  R1 env-map + shadows + ACES (1–2 d), R2 lustre/transmission materials (3–5 d, needs boss
-  decisions D1/D2), R3 coatings at physical scale (2–4 d), R4 Wulff quartz/sphalerite/pyrite/
-  gypsum/dolomite/aragonite (4–6 d), R5 rock wall (2–3 d), R6 specimen view (2 d, D3), R7
-  aggregate history (3–5 d). Every rung must show a photo-rig before/after and its numbers.
+  sphalerite tetrahedron and cubic-name routing (F3), the stale shape audit (F4). **Decided
+  2026-09-05 (doc §10):** D1 transmission YES, D2 lustre YES, D3 specimen view beside the orb,
+  D4 4096 desktop as an adaptive ceiling / 384 mobile, D5 cave mood in process view + restrained
+  studio in specimen view; **order R1 → R2 → R6 → R5 → R3 → R4 → R7**; transplanted onto
+  canonical `a9d32a53` (SIM 285) as `review/visual-realism-canonical`, rebaked there, cold CI
+  run there — the stale-based tip is not to be merged. Rungs: R1 env-map + shadows + ACES
+  (1–2 d), R2 lustre/transmission materials (3–5 d), R6 specimen view (2 d), R5 rock wall
+  (2–3 d), R3 coatings at physical scale (2–4 d), R4 Wulff quartz/sphalerite/pyrite/gypsum/
+  dolomite/aragonite (4–6 d), R7 aggregate history (3–5 d). Every rung must show a photo-rig
+  before/after, its numbers, and an eye-check against the fixed whole-vug photo set.
   Science gap surfaced by the mass floor: amethyst-geode and deccan chalcedony rinds are
   booked too thin to be fabrics (scenario tuning, not render).
 

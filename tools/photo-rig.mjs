@@ -30,6 +30,8 @@
 //   node tools/photo-rig.mjs --list
 //
 // Passive instrument: it reports, it never fails a build (feedback_passive_instrument_not_gate).
+// Transplanted onto canonical SIM 285 (2026-09-05): process cleanup uses browser-workflow's
+// receipt-authenticated descendants API (the profile-path scan it replaced is gone).
 import { randomUUID } from 'node:crypto';
 import { existsSync, mkdirSync, writeFileSync, readFileSync } from 'node:fs';
 import { mkdtemp, rm } from 'node:fs/promises';
@@ -40,11 +42,12 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
   CdpClient,
+  captureOwnedBrowserProcessReceiptsForPort,
   fetchWithDeadline,
   runCleanupActions,
   spawnOwned,
   terminateOwned,
-  terminateOwnedProfileProcesses,
+  terminateOwnedProcessReceipts,
   waitForDevToolsReceipt,
   waitForHttp,
 } from './browser-workflow.mjs';
@@ -644,8 +647,12 @@ async function main() {
       'about:blank',
     ], { stdio: ['ignore', 'ignore', 'pipe'], windowsHide: true });
     cleanup.push(['browser-tree', () => terminateOwned(browser, { tree: true })]);
-    cleanup.push(['profile-processes', () => terminateOwnedProfileProcesses(profileDir)]);
     const devTools = await waitForDevToolsReceipt(profileDir, browser);
+    // SIM 285's browser-workflow authenticates the browser's process fleet by the DevTools
+    // port's listening owner (a receipt per descendant) instead of scanning command lines
+    // for the profile path; the same receipts drive the descendant cleanup below.
+    const ownedBrowser = await captureOwnedBrowserProcessReceiptsForPort(devTools.port);
+    cleanup.push(['browser-descendants', () => terminateOwnedProcessReceipts(ownedBrowser.receipts)]);
     const version = await fetchWithDeadline(`http://127.0.0.1:${devTools.port}/json/version`, {
       options: { cache: 'no-store' }, consume: r => r.json(),
     });

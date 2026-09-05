@@ -292,6 +292,9 @@ Ordered by (visual gain ÷ cost). Each rung is render-only unless marked, must s
 before/after contact sheet, and carries a numeric acceptance on the rig's statistics. R1 and R2
 were prototyped in `tools/photo-rig.mjs --experiment` this session; the pictures are in §3.
 
+**Execution order as decided 2026-09-05 (§10): R1 → R2 → R6 → R5 → R3 → R4 → R7.** The rung
+numbers below are kept as names; the sequence is the decided one.
+
 ### R1 — Light like a photograph (env map, shadows, tone mapping, exposure) · 1–2 days · no decision needed
 - `scene.environment` from a procedural studio (three soft panels: warm key, cool fill, rim;
   `PMREMGenerator.fromScene`) — vendored three r163 has the generator; no CDN, no asset.
@@ -413,6 +416,44 @@ R4–R6 carry it to 7.
   rubric (R6) leans on my reading of geode photography, not on a boss-owned reference.
 
 ---
+
+## 10. Decisions taken (2026-09-05, reviewer verdict relayed by the boss)
+
+The review was approved as "the right programme"; the original branch tip was **not** merged
+because it was cut from a fork main 103 canonical commits behind, so its rebake authenticated
+an old formation. The work was transplanted onto canonical `a9d32a53` (SIM 285) as
+`review/visual-realism-canonical`, rebaked there, and put through cold CI (see the commit
+that carries this section).
+
+| # | decision | answer |
+|---|---|---|
+| D1 | transmission | **YES** — real Three.js transmission with measured mineral IOR and Beer–Lambert body colour; the old alpha path stays only as the low-performance fallback. This does not violate the 2026-07-01 ruling, which was against *fake-looking* refraction. |
+| D2 | lustre consumer | **YES, emphatically** — metallic, adamantine, vitreous, pearly, resinous, silky and dull must visibly behave differently; load-bearing, not decorative. |
+| D3 | presentation | **BESIDE** — the orb stays as the geological/process view; a cut-open, opaque-walled, photographically lit *specimen view* is added. Neither replaces the other. |
+| D4 | instance budget | **4096 desktop as a ceiling, not a quota** — adaptive density, distance/zoom culling, a measured frame-time gate; mobile stays at 384 for now. |
+| D5 | lighting | **cave mood by default in process view; restrained studio in specimen view.** Warm key / cool fill / rim physically present without the jewellery-advert look; moonlit darkness and readable specular highlights are compatible. |
+| 6 | rung order | **R1 → R2 → R6 → R5 → R3 → R4 → R7.** Lighting and mineral materials give the largest immediate gain; specimen presentation lets you see it; the wooden-bowl wall is then the next illusion-breaker; the coating bugs are contained enough that their deeper rewrite need not delay the first convincing specimen image. |
+| 7 | integration | **transplant onto current canonical before integration; rebake there; run cold CI; never merge the stale tip.** |
+
+**Reviewer's caution, adopted as method:** highlight fraction and edge fraction are regression
+guardrails, not a realism measure — a noisy, over-sharpened render would score wonderfully.
+The terminal test is the eye against a **fixed set of whole-vug photographs**. That set now
+exists in the catalog snapshot (all boss-owned): 1257 and 1258 (Keokuk-type citrine geodes,
+17 + 12 frames — quartz druse sparkle, goethite-after-pyrite, hollow interior in focus),
+1256 (druzy quartz vug, 9 frames), 851 (a whole cut geode: brown rind, white druse, orange
+calcite — the R6 presentation reference), 946–950 (cut thunder-egg halves: agate lining and
+quartz-filled centre), 1096 (septarian), 1098 (calcite geode), 1342–1345 (Guanajuato druzy
+amethyst on chalcedony/calcite). Every rung's eye-check compares its specimen-view frame
+against these before its numbers are read. Measured through the rig's statistic (nine
+frames from that set): highlight fraction median 0.004 (0.0005–0.023), edge fraction median
+0.085 (0.006–0.238), mean luminance 100–145 — the same band as the hand-specimen photographs
+in §3.2, so the guardrail thresholds stand; the eye does the rest.
+
+**Transplant check (SIM 285, `elmwood-s42-canon`, `tn457_barite_pulses-s42-canon`):** the
+fixes hold on canonical — sphalerite renders as tetrahedra, no coating swath exceeds the mass
+floor in either scenario, no runtime exceptions; the rig's process cleanup now uses canonical's
+receipt-authenticated browser-descendant API. 28 render/morphology test files / 319 tests
+green on the canonical base.
 
 ## 9. Reproduce
 
