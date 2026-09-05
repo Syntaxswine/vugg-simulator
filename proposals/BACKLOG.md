@@ -26,6 +26,26 @@ Living list of open work items, captured from session conversations so context s
 > cut-geode specimen view · aggregate history) with photo-rig acceptance numbers; **five boss
 > decisions** in §7 (transmission, lustre consumer, presentation, instance budgets, studio vs
 > cave mood). Cold CI NOT run this session; ledger §P3 carries the item.
+>
+> **Decided 2026-09-05 (doc §10)** and transplanted onto canonical `a9d32a53` (SIM 285) as
+> `review/visual-realism-canonical`, rebaked there, cold CI green at `6a82949b` (PR #7).
+> **R1 SHIPPED 2026-09-05 on that base:** image-based lighting (a PMREM room with a small hot
+> lamp beside a soft fill — a glass face mirrors 4 %, so a white highlight needs a source ≥ 25×
+> diffuse white; two moods, `cave` default and `studio` for the R6 specimen view), ACES filmic +
+> exposure, a shadow-casting key riding the camera frame (PCF-soft 2048² desktop / 1024² mobile,
+> a measured step-down gate), inside/outside as an exposure change with the environment kept.
+> **F14 caught on the way:** the cavity surface's normals point outward, so inside mode's
+> FrontSide had culled the whole interior — every zoomed view since the MC wall landed was void
+> (elmwood hero L 46 → 106 two-sided; dark fraction 0.59 → 0). Same-build fleet sweep, 41
+> scenarios, R1 vs the legacy lights: orb subject luminance ratio 0.88–1.53 (median 1.14), edge
+> fraction up on 39/41, no exceptions, no step-downs; elmwood/tn457 hero frames +6–12 L. **Shipped
+> materials still show 0 highlights — by arithmetic, not lighting:** 50 % alpha caps a clipped
+> reflection near L 200 and roughness 0.42/0.62 smears the lamp; under the R2-preview materials
+> (`--experiment opaque,polish`) hero highlights reach 0.0023 (the whole-vug photo band) and a
+> mirror ball shows the room at 0.016, so the criterion moves to R2. Rig: `--mood`, `--exposure`,
+> `--experiment legacylight|polish|opaque|mirror|wall2side`, a lighting receipt per frame,
+> `subject_luminance`. Tests: `lighting-rig.test.ts` (15) + `matrix-skin` re-pinned to DoubleSide.
+> **Next: R2** (transmission + the lustre consumer), then R6.
 
 > ## 🧬 CODEX SIM 271 INTEGRATION + THE LINE-ENDING FINDING (2026-08-18) — **branch `integrate/codex-sulfur-valence` — `FINDING-EVIDENCE-LINE-ENDINGS-2026-08-18.md`**
 >

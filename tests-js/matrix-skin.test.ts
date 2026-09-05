@@ -124,7 +124,10 @@ describe('wall display — the three-state material composition', () => {
     expect(out.cavity.material.transparent).toBe(true);
     const inn = stubState(0, true);
     _topoApplyWallDisplay(inn);
-    expect(inn.cavity.material.side).toBe(THREE.FrontSide);
+    // R1 (2026-09-05): DoubleSide, not FrontSide. The shipped cavity surface's
+    // normals point outward (photo-rig `wall2side` probe), so FrontSide culled
+    // the whole interior from inside — hero views floated in the clear colour.
+    expect(inn.cavity.material.side).toBe(THREE.DoubleSide);
     expect(inn.cavity.material.opacity).toBe(1.0);
     expect(inn.cavity.material.transparent).toBe(false);
   });
