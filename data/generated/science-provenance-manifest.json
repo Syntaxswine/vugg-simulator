@@ -127,10 +127,10 @@
   },
   "science_evidence": {
     "path": "archive/evidence/v285.json",
-    "sha256": "4dc152bb0be847ca75fa72d75bdf2e73e1afa23e659bf4f98ba606b2b98e1b57",
+    "sha256": "99a85bf7ecb5930ec89b8b4909994f65acc5c2409a94022ac01c6f935f25d25e",
     "schema": "vugg-science-evidence-receipt-v2",
-    "browser_bundle_sha256": "458c2c3f0cf66df3266d16a3cf16c6f9d3ec165bded045afa597b4bb2ad5d2f8",
-    "execution_set_sha256": "06870d9f44b1822e3bea1283a4235beb5c7d71cf7d0d4ef7baf3f811e3410db3",
+    "browser_bundle_sha256": "451a32e9a2a9a805b993954490306124bf17dc420b7996e92d7586b04d5b0ed8",
+    "execution_set_sha256": "6745b0a6caf18d4bbb8ee89608ec6014b5c6d5b1b32b86d152ce0f71a8dc7ba1",
     "node_runtime": {
       "schema": "vugg-evidence-node-runtime-v1",
       "node": "24.15.0",
@@ -146,11 +146,11 @@
       "strip-archive": "198c4846e3cbee7430a15b320c2c8f57e8d33d4d13d163a2caf69a84581e995e",
       "locality-frequency": "4012da7d90b3d8f74ac310d23217fdd686ecbf9b72b21a109f2965e05a731db5",
       "strip-digest": "8a0964a47a4d54bdba33bd9acd2b56d6877121a5ae91d8b57d00c892396104df",
-      "claim-cards": "fa82a076ac346504c7a8138fbadbe682e39f405dd5081373d16c65caadbe040a",
-      "mechanism-witnesses": "9946aa678e225989ccbec8daacfc8aa6ddd3316b00d25926ed590737e5625bde",
-      "science-provenance": "25df374c786479f384470d06b4cd4bc0c707a379a19cb320525d455222b33e5e",
-      "science-receipt": "0bf4cdc5ff9796a65843be4c576fba3a73e17b810345e599a5c450b559b5ca16",
-      "guided-tutorial-browser": "d0825fc9adb01d2f4881a6fa396d231cc3f195f09564d304a1df30bdd230d6b7"
+      "claim-cards": "777f783ca1b1707d0c2c1f3c9bfbff6af581c9c73e071dbef4759b5568bb1839",
+      "mechanism-witnesses": "460d23ff14cddfcaa10388a0b2d71bfe8f4dddfa8f9bf5e198e73ac7f3bab32a",
+      "science-provenance": "98f935156a781700b855006973a23d02270d00ad3671c545d9824889ac7b8e76",
+      "science-receipt": "20202db2614da9ecd5fce3aa77151534a134bdd1b0a87fcb7f51954d5b5fda0e",
+      "guided-tutorial-browser": "64f3aa4faf765c4708a70cae0b86f72dfd29742147a7dcae664f5524e7f2e185"
     },
     "artifact_count": 128
   },
