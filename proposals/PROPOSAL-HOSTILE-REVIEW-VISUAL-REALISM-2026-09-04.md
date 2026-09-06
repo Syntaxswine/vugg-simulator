@@ -124,7 +124,11 @@ baseline is untouched):**
 tiles; a druse's teeth should be sized from the aggregate's own crystal size; the "representative
 instance" idea should give way to wall-conformal displacement + normal maps for thin coatings.
 
-### F2 ★★★ No specular reflection anywhere
+### F2 ★★★ No specular reflection anywhere — ADDRESSED (R1 light + R2 materials; the residue is facets, R4)
+*(R1 gave every material something to reflect; R2 gave the materials their real F0 and
+roughness. Highlight fraction now depends on whether a face happens to mirror the lamp —
+fluorite hero 0.0009, galena under the studio mood 0.0068; the whole-frame ≥ 0.002 line waits
+on R4's face count and R6's lamp placement.)*
 *Every frame.* Highlight fraction is **0.0000 in all 40 frames**; the reference photographs run
 0.0002–0.036 (median 0.010). Cause: one `AmbientLight(0.55)` + one `DirectionalLight(0.9)`, no
 `scene.environment`, `toneMapping = NoToneMapping`, `shadowMap` off (`js/99i _topoInitThree`).
@@ -154,7 +158,10 @@ and knows the tetrahedron/cube routes. Honest residue: **21 mis-shaped**, all `s
 (needle habits of monoclinic/orthorhombic minerals — a hex-pyramid needle is a minor sin) plus 5
 cubic-as-prism natives/grains, plus tigers_eye/tincalconite with no sourced system.
 
-### F5 ★★★ Transparency is an alpha ghost, not glass
+### F5 ★★★ Transparency is an alpha ghost, not glass — FIXED (R2, 2026-09-06)
+*(R2: real transmission with the species' measured mean IOR and Beer–Lambert attenuation over
+the crystal's own extent, opacity 1, depth write on; the alpha ghost survives only as the
+low-performance tier. See §5 R2.)*
 *Frames:* `tn457_barite_pulses-s42/hero-2-barite.png`, `amethyst_geode-s42/druse.png`,
 `elmwood-s42-hidden/hero-1-fluorite.png`. Depth-A maps clarity to `opacity = 1 − 0.70·clarity`
 with `transmission 0` — the boss's fixed decision of 2026-07-01 ("NO faked refraction"). Real
@@ -165,7 +172,9 @@ transparent bodies in elmwood; because the alpha ghosts also wrote depth, overla
 crystals today read as paper cut-outs (`tn457 … hero-2-barite.png`). **This needs a new boss
 decision** (§7-D1); the rest of the plan does not depend on it.
 
-### F6 ★★ Lustre is data, not pixels
+### F6 ★★ Lustre is data, not pixels — FIXED (R2, 2026-09-06)
+*(R2: `optics.lustre` → one roughness/metalness/sheen table; metals at their measured
+reflectance `optics.reflectance`; dielectric F0 from `optics.ior`. See §5 R2.)*
 94 species carry verified `optics.lustre` (metallic / adamantine / vitreous / pearly / resinous /
 silky / dull) that nothing consumes; materials use two class heuristics (`metalness 0.45` for
 sulfide/native else 0.08; `roughness 0.42/0.62`). Galena and pyrite are grey and brass matte
@@ -362,6 +371,31 @@ n = 41 scenarios (seed 42, cavity/orb view, same build; legacy = `--experiment l
 
 **tn457_barite_pulses s42, same build (legacy → R1 cave):** hero-1 sphalerite L 96.8 → 102.0, edges 0.023 → 0.033; hero-2 barite 102.9 → 112.7, 0.020 → 0.025; druse 85.8 → 94.7, 0.019 → 0.027; orb 9.6 → 9.2, 0.0053 → 0.0086. Contact sheets: `.local-evidence/photos/{elmwood,tn457_barite_pulses}-s42-r1{,-before}/contact-sheet.html`.
 
+### 3.5 R2 fleet sweep (2026-09-06) — orb view, every scenario, one build
+
+R2 materials vs `--experiment legacylustre` (the pre-R2 class heuristics painted over the same
+scene), seed 42, cavity/orb shot. In the orb view the active tier is **alpha on all 41** (the
+translucent shell is no opaque backdrop for the transmission buffer — §5 R2), so this sweep
+isolates the lustre consumer: roughness per term, metals at their measured reflectance,
+dielectric F0 from the IOR. Subject L = the rig's `subject_luminance` (pixels above the dark bin).
+
+| statistic | value |
+|---|---|
+| R2 / legacy subject-luminance ratio | min 1.00 · median 1.02 · max 2.76 (41 pairs) |
+| edge fraction | higher under R2 on 33/41, lower on 6 (all six within 0.001) |
+| highlight fraction > 0 in an orb frame | 4 scenarios under R2 (epithermal_telluride, mvt, sunnyside_american_tunnel, supergene_oxidation); 0 under legacy — the first orb highlights the rig has ever recorded |
+| shadow step-downs / runtime exceptions | 0 / 0 |
+
+The scenarios that move are the metal- and adamantine-bearing ones, as the mechanism predicts:
+sulphur_bank ×2.76 (cinnabar at n 3.02 reflects 25 % from a 0.06-rough face; native sulfur at
+n 2.08), sunnyside_american_tunnel ×1.51, deccan_zeolite ×1.39, porphyry ×1.36, bisbee ×1.32,
+sicily_solfifera ×1.31, sabkha_dolomitization ×1.27, reactivated_fluorite_vein ×1.21,
+supergene_oxidation ×1.20, mvt ×1.17. The tutorial, cooling, pulse and stalactite scenes are
+unchanged to two decimals (no metals, alpha on both). Per-scenario rows are in the run
+manifests (`.local-evidence/photos/<scenario>-s42-r2f{,-legacy}/manifest.json`, `gl.optics`
+carries the tier receipt). One legacy run (ouro_preto) produced no manifest in the paired
+sweep and was rerun alone (ratio 1.01, edges up, no step-down).
+
 ## 4. Fixed in this commit
 
 | id | change | files | tests | baseline |
@@ -446,20 +480,91 @@ environment reaching the materials (mirror ball), (b) the R2-preview hero highli
 (c) the fleet's orb-view mean luminance within 10–60 (table §3.4), (d) `mineral-optics` green
 and the 10 render test files green.**
 
-### R2 — Materials that behave like minerals · 3–5 days · needs D1 (transmission) and D2 (lustre)
-- Consume `optics.lustre`: metallic → `metalness 1`, coloured F0 (galena grey, pyrite brass,
-  chalcopyrite gold), roughness 0.25–0.4; adamantine → IOR 2.0+, roughness 0.05; vitreous → IOR
-  1.5–1.7, roughness 0.05–0.2; pearly → `sheen`/clearcoat on the named face family; resinous 0.3;
-  dull/earthy 0.8+. One table, one builder.
-- Transparent species (clarity > 0.15): `transmission = f(clarity)`, `ior` per species,
-  `thickness` = rendered extent, `attenuationColor` = body colour, `attenuationDistance` ∝ extent
-  and clarity; `opacity 1`, depth write on. The alpha path stays as the fallback tier for
-  low-end GPUs.
-- Etched/frosted/CDR/inclusion modifiers re-expressed in roughness + transmission (they exist
-  today as opacity multipliers).
-- **Acceptance:** hero shots of quartz/calcite/fluorite/selenite show the substrate *through* the
-  crystal (the rig can assert the wall colour is sampled inside the crystal's silhouette); galena
-  and pyrite highlight fraction ≥ 0.01 in their hero shots.
+### R2 — Materials that behave like minerals · **SHIPPED 2026-09-06** (D1 transmission, D2 lustre)
+
+**Mechanism (js/99i `buildCrystalMaterial`, one pure resolver `opticsMaterialParamsFor`).**
+- **Data first.** `optics.ior` — the mean principal refractive index (uniaxial (2ω+ε)/3, biaxial
+  (α+β+γ)/3, isotropic n) — added to 85 optics blocks from webmineral's Optical Data line by
+  `tools/optics-ior-verify.mjs` (82 machine-verified; spodumene, wollastonite and pararealgar
+  typed from the Handbook of Mineralogy where webmineral has no line), cross-read against the
+  Handbook values; `--gate` refuses a drift > 0.03. `optics.reflectance` — R at 589 nm in air,
+  interpolated from the Handbook of Mineralogy R tables (`tools/optics-reflectance-verify.mjs`,
+  pdftotext over rruff.net's HoM pages; R1–R2 pairs averaged) — on the 12 metallic/submetallic
+  blocks (pyrite 55.1, chalcopyrite 47.4, galena 42.8, native silver 93.8, gold 88.1, …). The
+  Depth-A1 lint now requires an index on every block that can transmit and a reflectance on
+  every metallic one. Class defaults cover the 89 species without a block.
+- **Lustre → one table.** metallic: metalness 1, roughness 0.28, F0 = the lexicon hue scaled to
+  the measured reflectance's linear luminance (a hand-specimen swatch is dark *because* a metal
+  mirrors a dark surround — using it as F0 counted that darkness twice: galena's swatch is 0.18,
+  its R is 0.43); submetallic 0.6/0.42; adamantine 0.06, subadamantine 0.10, vitreous 0.09,
+  subvitreous 0.15, resinous 0.22, subresinous 0.28, greasy 0.30, waxy 0.38, silky 0.45 + sheen,
+  pearly 0.20 + sheen + thin clearcoat, dull 0.85, earthy 0.95 (both with damped specular). The
+  first listed term is the characteristic one (chalcedony is waxy). Dielectric F0 comes from the
+  IOR through `material.ior` (cerussite at n 1.98 reflects 11 %, quartz 4.6 %).
+- **Transmission tier.** clarity > 0.15 → `transmission = 0.35 + 0.65·clarity`, opacity 1, depth
+  write ON (the paper cut-outs of F5 are gone), `attenuationColor` = body colour,
+  `attenuationDistance = extent·(0.6 + 1.4·clarity)` and `thickness = 0.9·extent` from the
+  mesh's own smallest scaled extent once the scale is known (a 0.5 mm barite plate stays clear,
+  a 20 mm fluorite cube is body-coloured across its depth; coating instances get their patch
+  footprint); the base colour is lifted toward white so the body colour rides as attenuation.
+  Species opaque in hand specimen (malachite 0.08) are simply opaque — no 94 % ghost. State
+  modifiers stack as before (etched +0.30 roughness and clarity ×0.35 — still glassy at 0.32,
+  frosted; CDR; inclusions opaque; hourglass cap 0.30; perimorph casts stay alpha shells).
+  Three r163 draws the back faces of DoubleSide transmissive bodies into its buffer, so a
+  crystal reads thick. Dispersion is not drawn (r163 has no `dispersion`).
+- **Alpha tier = Depth-A verbatim** (`opacity = 1 − 0.70·clarity`): mobile viewports, the
+  lighting rig's own fallback, and the step-down gate's second rung (2048 → 1024 → **glass →
+  alpha** → 512 → shadows off; `tests-js/optics-r2-materials.test.ts` pins the ladder).
+  `_topoOpticsApplyTier` moves a live scene between tiers in place; every material carries its
+  resolved params in `userData.optics` for the rig's receipt (`manifest.gl.optics`).
+- **Found on the way — glass needs an opaque backdrop.** three.js renders only opaque objects
+  into the transmission buffer, so in the orb view (translucent BackSide shell) or with the wall
+  hidden, transmissive crystals showed the clear colour through themselves (black holes with
+  reflections; `elmwood-s42-r2/cavity.png`, first cut). The ACTIVE tier therefore follows the
+  wall (`_topoOpticsSyncView`, called from `_topoApplyWallDisplay`): alpha in the orb view,
+  glass inside the cavity and in the R6 specimen view where the wall is opaque. `tier` records
+  the capability, `active` what is painted. A second rig lesson: the see-through probe's
+  no-wall frame must hide the cavity mesh directly — going through the display function
+  retiers the scene and the delta measures the tier change, not the wall.
+
+**Measured (photo rig, seed 42, one build, R2 vs `--experiment legacylustre` = the pre-R2
+class heuristics painted over the same scene; "inside" = the see-through probe's statistics
+inside the hero body's own silhouette; wall Δ = mean |ΔL| inside the silhouette when the wall
+behind is hidden, i.e. how much of the crystal's look is the substrate seen through it).**
+
+| frame | R2: L / inside L / wall Δ / edges / hl | legacy: L / inside L / wall Δ / edges / hl |
+|---|---|---|---|
+| elmwood hero fluorite (cube, clarity 0.85, n 1.433) | 79.7 / 67.5 / 11.1 / 0.0187 / **0.0009** | 94.1 / 104.6 / 16.7 / 0.0096 / 0 |
+| elmwood hero calcite (scalenohedron, 0.85, 1.595) | 91.5 / 84.9 / 12.0 / 0.0087 / 0 | 93.0 / 113.4 / 22.2 / 0.0056 / 0 |
+| elmwood hero celestine (0.80, 1.625) | 107.2 / 89.9 / 9.8 / 0.0133 / 0 | 121.5 / 136.3 / 25.7 / 0.0024 / 0 |
+| elmwood druse | 86.3 / – / – / 0.0207 / 0 | 97.3 / – / – / 0.0101 / 0 |
+| tn457 hero sphalerite (tetrahedron, 0.40, 2.40) | 96.5 / 104.0 / 31.8 / 0.0293 / 0 | 102.0 / 99.8 / 30.6 / 0.0328 / 0 |
+| tn457 hero barite (plates, 0.70, 1.640) | 107.8 / 113.3 / 17.1 / 0.0265 / 0.0001 | 112.7 / 145.1 / 4.0 / 0.0248 / 0 |
+| naica hero selenite (blade, 0.95, 1.524) | 102.9 / 95.4 / 33.2 / 0.0066 / 0 | 120.1 / 121.7 / 46.7 / 0.0061 / 0 |
+| mvt hero galena (cave mood, R 42.8 %) | 83.5 / **37.3** / 1.3 / 0.0108 / 0 | 92.1 / 57.0 / 1.3 / 0.0090 / 0 |
+| mvt hero galena, `--mood studio` | 102.0 / – / – / 0.0133 / **0.0068** | – |
+| mvt hero pyrite (cave mood, R 55.1 %) | 65.0 / 50.3 / 7.7 / 0.0126 / 0.0001 | – |
+
+Reading: a transparent crystal is now *darker* inside its silhouette than its alpha ghost
+(0.65–0.75×) because it shows the attenuated, refracted, Fresnel-weighted wall — including its
+own shadow — instead of a 50 % blend; its edge structure rises ×1.5–5.5; the substrate is
+sampled inside every transparent silhouette on both tiers (wall Δ 10–33), and on the legacy
+tier barite's Δ 4 was the stacked plates hiding the wall from each other. Metals: galena's
+inside luminance 11 → 37 once F0 became its measured reflectance (first cut used the swatch);
+a mirror in the cave room is still darker than the legacy Lambert grey — physically right, and
+the studio mood (the R6 specimen light) puts 0.0068 of the frame in the highlight bin.
+
+**Acceptance, restated honestly.** *Substrate through the crystal:* met on both tiers and now
+measured by the probe. *Galena/pyrite highlight ≥ 0.01:* not met in the cave mood by the
+materials alone — a metal's highlight needs a lamp it can mirror, and the cave room's is a
+small fixed panel; under `--mood studio` galena reaches 0.0068 in a single un-posed frame, so
+the criterion moves to R6's specimen view, where the light faces the specimen. *Whole-frame
+highlight ≥ 0.002 (carried from R1):* fluorite 0.0009 with the crystal alone; the rest is
+facet count — a scalenohedron with 12 faces catches a 5 × 5 lamp rarely; R4's forms are the
+remaining lever. Eye-check (`elmwood-s42-r2/hero-1-fluorite.png` vs `-r2-legacy`): the cube
+shows its far faces and the wall through itself, with weight and a shadow; the barite plates
+in tn457 read as stacked translucent glass; the Naica blade as smoky translucent gypsum. The
+whole-vug photo set still wins on facets and wall texture (R4, R5).
 
 ### R3 — Coatings at physical scale · 2–4 days · no decision
 - `laminated_lining` → a wall-conformal displaced shell (copy of the wall triangles inside the

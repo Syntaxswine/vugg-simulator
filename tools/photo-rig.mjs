@@ -30,6 +30,15 @@
 //   node tools/photo-rig.mjs --scenario elmwood --mood studio --exposure 1.2      (R1 lighting rig)
 //   node tools/photo-rig.mjs --scenario elmwood --experiment legacylight --label before
 //        (ablation: the pre-R1 two-light look on the same build — the before/after pair)
+//   node tools/photo-rig.mjs --scenario elmwood --tier alpha --label alpha            (R2 materials)
+//        (the Depth-A alpha tier on the same build; default = the rig's own decision,
+//        transmission on a desktop viewport — ACTIVE only where the wall is drawn opaque)
+//   node tools/photo-rig.mjs --scenario elmwood --experiment legacylustre --label before
+//        (ablation: the pre-R2 class heuristics painted over the same scene — R2's before half)
+//   node tools/photo-rig.mjs --scenario elmwood --shots hero --probe seethrough
+//        (per hero body: silhouette mask, the frame with the wall hidden, and the inside-mask
+//        statistics — highlight fraction, mean colour, and how much the wall behind changes
+//        the pixels inside the crystal)
 //   node tools/photo-rig.mjs --list
 //
 // Passive instrument: it reports, it never fails a build (feedback_passive_instrument_not_gate).
@@ -88,6 +97,8 @@ function parseArgs(argv) {
     else if (a === '--experiment') out.experiment = next().split(',').map(s => s.trim()).filter(Boolean);
     else if (a === '--mood') out.mood = next();                 // cave | studio (R1 lighting rig)
     else if (a === '--exposure') out.exposure = Number(next()); // toneMappingExposure override
+    else if (a === '--tier') out.tier = next();                 // transmission | alpha (R2 optics tier)
+    else if (a === '--probe') out.probe = next().split(',').map(s => s.trim()).filter(Boolean);   // seethrough
     else if (a === '--help' || a === '-h') { out.help = true; }
     else throw new Error(`unknown argument ${a}`);
   }
@@ -258,6 +269,42 @@ function imageStats(png) {
   };
 }
 
+// R2 see-through probe (2026-09-06): statistics INSIDE one hero body's silhouette. `mask`
+// is the white-on-black silhouette render of that body alone, `other` the same camera
+// with the wall hidden. background_delta is the mean |ΔL| inside the mask between the
+// two frames — how much of what is seen inside the crystal is the wall behind it (≈ 0 for
+// an opaque body); highlight_fraction inside the mask is the Fresnel/lustre pop the whole-
+// frame statistic dilutes.
+function maskStats(main, mask, other) {
+  const n = main.width * main.height;
+  if (mask.width !== main.width || mask.height !== main.height || other.width !== main.width || other.height !== main.height) {
+    throw new Error('probe frame size mismatch');
+  }
+  let inside = 0, sumL = 0, bright = 0, dSum = 0, r = 0, g = 0, b = 0, satSum = 0;
+  for (let i = 0; i < n; i++) {
+    const mL = 0.2126 * mask.data[i * mask.bpp] + 0.7152 * mask.data[i * mask.bpp + 1] + 0.0722 * mask.data[i * mask.bpp + 2];
+    if (mL < 128) continue;
+    inside++;
+    const pr = main.data[i * main.bpp], pg = main.data[i * main.bpp + 1], pb = main.data[i * main.bpp + 2];
+    const L = 0.2126 * pr + 0.7152 * pg + 0.0722 * pb;
+    sumL += L; r += pr; g += pg; b += pb;
+    const mx = Math.max(pr, pg, pb), mn = Math.min(pr, pg, pb);
+    satSum += mx > 0 ? (mx - mn) / mx : 0;
+    if (L > 235) bright++;
+    const oL = 0.2126 * other.data[i * other.bpp] + 0.7152 * other.data[i * other.bpp + 1] + 0.0722 * other.data[i * other.bpp + 2];
+    dSum += Math.abs(L - oL);
+  }
+  if (!inside) return { mask_fraction: 0 };
+  return {
+    mask_fraction: +(inside / n).toFixed(5),
+    mean_luminance: +(sumL / inside).toFixed(2),
+    mean_saturation: +(satSum / inside).toFixed(4),
+    highlight_fraction: +(bright / inside).toFixed(5),
+    mean_rgb: [r, g, b].map(v => Math.round(v / inside)),
+    background_delta: +(dSum / inside).toFixed(2),
+  };
+}
+
 // ---------------------------------------------------------------- in-page programs
 // Everything below runs INSIDE the game page. Bundle-scope `let`/`function` declarations
 // (fortressSim, _topoThreeState, topoRender, …) are reachable from Runtime.evaluate because
@@ -283,7 +330,41 @@ const PAGE_HELPERS = `
       pixelRatio: st.renderer.getPixelRatio(),
       // R1 lighting rig receipt (mood, environment, tone mapping, shadow map, step-downs)
       lighting: st.lightingRig || null, exposure: st.renderer.toneMappingExposure,
+      // R2 optics rig receipt (tier, reason, material counts)
+      optics: st.opticsRig ? { ...st.opticsRig } : null,
     };
+  };
+  // R2: move the live scene between the transmission and alpha tiers in place (the A/B on
+  // one build). No argument → report the current rig.
+  RIG.applyTier = tier => {
+    const st = RIG.state();
+    if (!tier) return st.opticsRig ? { ...st.opticsRig } : null;
+    if (typeof _topoOpticsApplyTier !== 'function') return { error: 'no optics rig in this build' };
+    const rig = _topoOpticsApplyTier(st, tier, 'photo-rig --tier ' + tier);
+    return rig ? { ...rig } : null;
+  };
+  // R2 see-through probe: the hero body's silhouette (everything else hidden, one white
+  // unlit material) and the same frame with the wall hidden. Restores what it touched.
+  RIG.seeThroughFrames = (mesh, w, h, wall) => {
+    const st = RIG.state();
+    const vis = [];
+    st.scene.traverse(o => { if (o.isMesh) vis.push([o, o.visible]); });
+    for (const [o] of vis) o.visible = (o === mesh);
+    const prevOverride = st.scene.overrideMaterial;
+    const white = new THREE.MeshBasicMaterial({ color: 0xffffff, side: THREE.DoubleSide, toneMapped: false });
+    st.scene.overrideMaterial = white;
+    const mask = RIG.render(w, h);
+    st.scene.overrideMaterial = prevOverride;
+    for (const [o, v] of vis) o.visible = v;
+    white.dispose();
+    // Hide the cavity MESH directly — going through _topoApplyWallDisplay would also drop
+    // the active optics tier to alpha (no backdrop), and the no-wall frame must be rendered
+    // with exactly the materials of the main frame.
+    const prevVisible = st.cavity ? st.cavity.visible : null;
+    if (st.cavity) st.cavity.visible = false;
+    const nowall = RIG.render(w, h);
+    if (st.cavity) st.cavity.visible = prevVisible;
+    return { mask, nowall };
   };
   // Own-geometry world box (children such as O5c band shells excluded; an InstancedMesh
   // reports the union of its instances, which is the swath's real footprint).
@@ -542,6 +623,36 @@ const PAGE_HELPERS = `
       st.cavity.material.side = THREE.DoubleSide; st.cavity.material.needsUpdate = true;
       applied.push('wall2side:' + (n ? (dot / n > 0 ? 'outward' : 'inward') : 'no-normals') + ':' + (st.cavity.visible ? 'visible' : 'hidden') + ':op' + st.cavity.material.opacity);
     }
+    if (list.includes('legacylustre')) {
+      // R2 ablation on the same build: the pre-R2 class heuristics (roughness 0.42 silicate/
+      // oxide else 0.62; metalness 0.45 sulfide/native else 0.08; the lexicon swatch as the
+      // colour; Depth-A alpha translucency, no transmission) painted over the resolved
+      // materials — the before half of R2's before/after pair.
+      let n = 0;
+      const seen = new Set();
+      for (const m of st.crystals.children) {
+        const mats = Array.isArray(m.material) ? m.material : [m.material];
+        for (const mat of mats) {
+          if (!mat || seen.has(mat)) continue; seen.add(mat);
+          const o = mat.userData && mat.userData.optics; if (!o) continue;
+          const spec = MINERAL_SPEC && MINERAL_SPEC[m.userData.mineral];
+          const klass = spec && spec.class;
+          let rough = (klass === 'silicate' || klass === 'oxide') ? 0.42 : 0.62;
+          if (o.roughness > OPTICS_LUSTRE_TABLE[o.lustre].roughness + 0.1) rough = Math.min(1, rough + (o.roughness - OPTICS_LUSTRE_TABLE[o.lustre].roughness));   // keep the state modifiers' matte
+          mat.roughness = rough;
+          mat.metalness = (klass === 'sulfide' || klass === 'native') ? 0.45 : 0.08;
+          if (!o.sector) mat.color.setHex(o.body);
+          mat.transmission = 0; mat.sheen = 0; mat.clearcoat = 0; mat.ior = 1.5; mat.specularIntensity = 1;
+          if (o.perimorph) { mat.transparent = true; mat.opacity = Math.min(o.alpha_opacity, 0.42); }
+          else if (o.clarity > 0) { mat.transparent = true; mat.opacity = o.alpha_opacity; }
+          else { mat.transparent = false; mat.opacity = 1; }
+          mat.depthWrite = true; mat.needsUpdate = true; n++;
+        }
+        if (m.userData && mats[0] && mats[0].userData && mats[0].userData.optics) m.userData.naturalOpacity = mats[0].transparent ? mats[0].opacity : 1.0;
+      }
+      if (st.opticsRig) st.opticsRig = { ...st.opticsRig, tier: 'legacy', active: 'legacy', reason: 'legacylustre ablation' };
+      applied.push('legacylustre:' + n);
+    }
     if (list.includes('glass')) {
       // Physically based transmission for the transparent species: the alpha ghost becomes
       // refracting glass with Beer–Lambert body colour (attenuation) and the species' IOR.
@@ -643,7 +754,7 @@ function runProgram(name, seed, steps) {
   })()`;
 }
 
-function cavityShotProgram({ w, h, tilt, zoom, wall, experiment = [], mood = null, exposure = null }) {
+function cavityShotProgram({ w, h, tilt, zoom, wall, experiment = [], mood = null, exposure = null, tier = null }) {
   return `(async () => {
     const RIG = window.__photoRig;
     _topoTiltX = ${tilt[0]}; _topoTiltY = ${tilt[1]}; _topoZoom = ${zoom}; _topoPanX = 0; _topoPanY = 0;
@@ -651,14 +762,15 @@ function cavityShotProgram({ w, h, tilt, zoom, wall, experiment = [], mood = nul
     RIG.wallMode(${JSON.stringify(wall)});
     const st = RIG.state();
     const lighting = RIG.applyLighting(${JSON.stringify(mood)}, ${exposure == null ? 'null' : Number(exposure)});
+    const optics = RIG.applyTier(${JSON.stringify(tier)});
     const applied = RIG.applyExperiments(${JSON.stringify(experiment)});
     const png = RIG.render(${w}, ${h});
     const p = st.camera.position;
-    return { png, camera: { mode: 'game-rig', tilt: [${tilt[0]}, ${tilt[1]}], zoom: ${zoom}, position: [p.x, p.y, p.z].map(v => +v.toFixed(2)), inside: !!st.insideMode, wall: ${JSON.stringify(wall)}, experiments: applied, lighting } };
+    return { png, camera: { mode: 'game-rig', tilt: [${tilt[0]}, ${tilt[1]}], zoom: ${zoom}, position: [p.x, p.y, p.z].map(v => +v.toFixed(2)), inside: !!st.insideMode, wall: ${JSON.stringify(wall)}, experiments: applied, lighting, optics } };
   })()`;
 }
 
-function heroShotProgram({ w, h, index, n, mineral, wall, experiment = [], mood = null, exposure = null }) {
+function heroShotProgram({ w, h, index, n, mineral, wall, experiment = [], mood = null, exposure = null, tier = null, probe = [] }) {
   return `(async () => {
     const RIG = window.__photoRig;
     topoRender();
@@ -670,11 +782,17 @@ function heroShotProgram({ w, h, index, n, mineral, wall, experiment = [], mood 
     const rule = RIG.applyInsideRule(hero.center);
     ${wall === 'game' ? '' : `RIG.wallMode(${JSON.stringify(wall)});`}
     const lighting = RIG.applyLighting(${JSON.stringify(mood)}, ${exposure == null ? 'null' : Number(exposure)});
+    const optics = RIG.applyTier(${JSON.stringify(tier)});
     const applied = RIG.applyExperiments(${JSON.stringify(experiment)});
     const png = RIG.render(${w}, ${h});
+    const frames = ${probe.includes('seethrough') ? `RIG.seeThroughFrames(hero.m, ${w}, ${h}, ${JSON.stringify(wall)})` : 'null'};
     const u = hero.m.userData;
-    return { png, camera: { mode: 'direct', ...cam, ...rule, wall: ${JSON.stringify(wall)}, experiments: applied, lighting },
-      subject: { crystal_id: u.crystal_id, mineral: u.mineral, extent_mm: +hero.ext.toFixed(2) } };
+    const mats = Array.isArray(hero.m.material) ? hero.m.material : [hero.m.material];
+    const mo = mats[0] && mats[0].userData ? mats[0].userData.optics : null;
+    return { png, camera: { mode: 'direct', ...cam, ...rule, wall: ${JSON.stringify(wall)}, experiments: applied, lighting, optics },
+      subject: { crystal_id: u.crystal_id, mineral: u.mineral, extent_mm: +hero.ext.toFixed(2),
+        material: mats[0] ? { tier: mo ? mo.tier : null, lustre: mo ? mo.lustre : null, transmission: mats[0].transmission ?? null, ior: mats[0].ior ?? null, opacity: mats[0].opacity, transparent: !!mats[0].transparent, roughness: mats[0].roughness, metalness: mats[0].metalness, thickness: mats[0].thickness ?? null, attenuation_distance: mats[0].attenuationDistance ?? null } : null },
+      probe_frames: frames };
   })()`;
 }
 
@@ -710,7 +828,7 @@ function photoStatsProgram(url) {
   })()`;
 }
 
-function druseShotProgram({ w, h, wall, experiment = [], mood = null, exposure = null }) {
+function druseShotProgram({ w, h, wall, experiment = [], mood = null, exposure = null, tier = null }) {
   return `(async () => {
     const RIG = window.__photoRig;
     topoRender();
@@ -719,9 +837,10 @@ function druseShotProgram({ w, h, wall, experiment = [], mood = null, exposure =
     const rule = RIG.applyInsideRule(d.center);
     ${wall === 'game' ? '' : `RIG.wallMode(${JSON.stringify(wall)});`}
     const lighting = RIG.applyLighting(${JSON.stringify(mood)}, ${exposure == null ? 'null' : Number(exposure)});
+    const optics = RIG.applyTier(${JSON.stringify(tier)});
     const applied = RIG.applyExperiments(${JSON.stringify(experiment)});
     const png = RIG.render(${w}, ${h});
-    return { png, camera: { mode: 'direct', ...cam, ...rule, wall: ${JSON.stringify(wall)}, experiments: applied, lighting }, subject: { count: d.count, crystal_ids: d.ids } };
+    return { png, camera: { mode: 'direct', ...cam, ...rule, wall: ${JSON.stringify(wall)}, experiments: applied, lighting, optics }, subject: { count: d.count, crystal_ids: d.ids } };
   })()`;
 }
 
@@ -846,15 +965,30 @@ async function main() {
     };
     for (const shot of args.shots) {
       if (shot === 'cavity') {
-        saveShot('cavity', await attempt('cavity', () => page.job(cavityShotProgram({ w: W, h: H, tilt: args.tilt, zoom: args.zoom, wall: args.wall, experiment: args.experiment, mood: args.mood, exposure: args.exposure }), { label: 'cavity shot' })));
+        saveShot('cavity', await attempt('cavity', () => page.job(cavityShotProgram({ w: W, h: H, tilt: args.tilt, zoom: args.zoom, wall: args.wall, experiment: args.experiment, mood: args.mood, exposure: args.exposure, tier: args.tier }), { label: 'cavity shot' })));
       } else if (shot === 'hero') {
         for (let i = 0; i < args.heroN; i++) {
-          const r = await attempt(`hero ${i + 1}`, () => page.job(heroShotProgram({ w: W, h: H, index: i, n: args.heroN, mineral: args.mineral, wall: args.wall, experiment: args.experiment, mood: args.mood, exposure: args.exposure }), { label: `hero ${i}` }));
+          const r = await attempt(`hero ${i + 1}`, () => page.job(heroShotProgram({ w: W, h: H, index: i, n: args.heroN, mineral: args.mineral, wall: args.wall, experiment: args.experiment, mood: args.mood, exposure: args.exposure, tier: args.tier, probe: args.probe }), { label: `hero ${i}` }));
           if (!r) break;
-          saveShot(`hero-${i + 1}-${r.subject.mineral}`, r);
+          const name = `hero-${i + 1}-${r.subject.mineral}`;
+          const extra = {};
+          if (r.probe_frames) {
+            // R2 see-through probe: keep the two auxiliary frames beside the shot and fold
+            // the inside-silhouette statistics into the manifest.
+            const b64 = s => Buffer.from(String(s).replace(/^data:image\/png;base64,/, ''), 'base64');
+            const mainBuf = b64(r.png), maskBuf = b64(r.probe_frames.mask), nowallBuf = b64(r.probe_frames.nowall);
+            writeFileSync(path.join(outDir, `${name}-mask.png`), maskBuf);
+            writeFileSync(path.join(outDir, `${name}-nowall.png`), nowallBuf);
+            try { extra.probe = { seethrough: maskStats(decodePng(mainBuf), decodePng(maskBuf), decodePng(nowallBuf)) }; }
+            catch (e) { extra.probe = { error: e.message }; }
+            const p = extra.probe.seethrough;
+            if (p) process.stderr.write(`[photo-rig] ${name} see-through: mask ${p.mask_fraction} · inside L ${p.mean_luminance} · highlights ${p.highlight_fraction} · wall Δ ${p.background_delta}\n`);
+            delete r.probe_frames;
+          }
+          saveShot(name, r, extra);
         }
       } else if (shot === 'druse') {
-        saveShot('druse', await attempt('druse', () => page.job(druseShotProgram({ w: W, h: H, wall: args.wall, experiment: args.experiment, mood: args.mood, exposure: args.exposure }), { label: 'druse shot' })));
+        saveShot('druse', await attempt('druse', () => page.job(druseShotProgram({ w: W, h: H, wall: args.wall, experiment: args.experiment, mood: args.mood, exposure: args.exposure, tier: args.tier }), { label: 'druse shot' })));
       } else if (shot === 'roster') {
         // roster is always in the manifest; the flag just prints it
         for (const r of run.roster) console.log(`${String(r.crystal_id).padStart(4)} ${r.mineral.padEnd(16)} ${String(r.token).padEnd(12)} c=${r.c_length_mm} a=${r.a_width_mm} ext=${r.rendered_extent_mm} ${r.material?.color} op=${r.material?.opacity} rough=${r.material?.roughness} met=${r.material?.metalness} verts=${r.vertices} ${r.tags.join(',')}`);
@@ -887,7 +1021,9 @@ async function main() {
 function contactSheet(m) {
   const esc = s => String(s).replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' })[c]);
   const lightingTag = l => l ? `${l.mood || '?'} · env ${l.environment ? 'on' : 'OFF' + (l.reason ? ` (${l.reason})` : '')} · ${l.tone_mapping} e${Number(l.exposure).toFixed(2)} · ${l.shadows ? `shadows ${l.shadow_map}²` : 'no shadows'}${l.step_downs ? ` · ${l.step_downs} step-down(s)` : ''}` : 'pre-R1 lights';
-  const shots = m.shots.map(s => `<figure><img src="${s.file}" alt="${esc(s.name)}"><figcaption><b>${esc(s.name)}</b> · ${s.camera?.mode} ${s.camera?.inside ? '(inside cavity)' : ''} · ${s.subject ? esc(JSON.stringify(s.subject)) : ''}<br>L̄ ${s.stats?.mean_luminance} · sat ${s.stats?.mean_saturation} · highlights ${s.stats?.highlight_fraction} · edges ${s.stats?.edge_fraction}<br>light: ${esc(lightingTag(s.camera?.lighting))}${s.camera?.experiments?.length ? ` · experiments ${esc(s.camera.experiments.join('+'))}` : ''}</figcaption></figure>`).join('\n');
+  const opticsTag = o => o ? `${o.tier} tier, active ${o.active}${o.backdrop === false ? ' (no opaque backdrop)' : ''} (${o.transmissive} glass / ${o.alpha} alpha / ${o.opaque} opaque${o.retiers ? ` · ${o.retiers} retier(s)` : ''})` : 'pre-R2 materials';
+  const probeTag = p => p && p.seethrough ? `<br>see-through: mask ${p.seethrough.mask_fraction} · inside L̄ ${p.seethrough.mean_luminance} · inside highlights ${p.seethrough.highlight_fraction} · wall Δ ${p.seethrough.background_delta}` : (p && p.error ? `<br>probe error: ${esc(p.error)}` : '');
+  const shots = m.shots.map(s => `<figure><img src="${s.file}" alt="${esc(s.name)}"><figcaption><b>${esc(s.name)}</b> · ${s.camera?.mode} ${s.camera?.inside ? '(inside cavity)' : ''} · ${s.subject ? esc(JSON.stringify(s.subject)) : ''}<br>L̄ ${s.stats?.mean_luminance} · sat ${s.stats?.mean_saturation} · highlights ${s.stats?.highlight_fraction} · edges ${s.stats?.edge_fraction}<br>light: ${esc(lightingTag(s.camera?.lighting))} · optics: ${esc(opticsTag(s.camera?.optics))}${s.camera?.experiments?.length ? ` · experiments ${esc(s.camera.experiments.join('+'))}` : ''}${probeTag(s.probe)}</figcaption></figure>`).join('\n');
   const census = Object.entries(m.census).sort((a, b) => b[1].bodies - a[1].bodies).map(([k, v]) => `<tr><td>${esc(k)}</td><td>${v.bodies}</td><td>${v.satellites}</td><td>${v.swaths}${v.swaths ? ` (${v.swath_instances} inst; ${esc(Object.keys(v.regimes).join(','))})` : ''}</td><td>${esc(Object.entries(v.tokens).map(([t, c]) => `${t}×${c}`).join(' '))}</td><td><span style="display:inline-block;width:1em;height:1em;background:${v.color};border:1px solid #888"></span> ${v.color}</td><td>${v.opacity}</td><td>${v.roughness}</td><td>${v.metalness}</td><td>${v.max_extent_mm}</td><td>${v.vertices}</td></tr>`).join('\n');
   return `<!doctype html><meta charset="utf-8"><title>photo-rig · ${esc(m.scenario)} s${m.seed}</title>
 <style>body{font:13px/1.4 ui-monospace,monospace;background:#111;color:#ddd;margin:16px}figure{display:inline-block;margin:8px;vertical-align:top;max-width:${Math.min(m.size[0], 600)}px}img{max-width:100%;border:1px solid #333}table{border-collapse:collapse}td,th{border:1px solid #333;padding:2px 6px}</style>

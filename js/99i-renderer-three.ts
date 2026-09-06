@@ -249,6 +249,10 @@ function _topoInitThree(canvas: HTMLCanvasElement): any {
   // the process-view default, decision D5). Needs the renderer + state, so it
   // runs here rather than beside the lights above.
   _topoInstallLightingRig(_topoThreeState, 'cave');
+  // R2 optics rig: transmission tier on desktop, alpha (Depth-A) on mobile or when the
+  // lighting rig fell back. Materials read the tier at build time (buildCrystalMaterial);
+  // the step-down gate can move the live scene to alpha in place (_topoOpticsApplyTier).
+  _topoOpticsInstallRig(_topoThreeState);
   // A lost WebGL context invalidates both the lazy Three.js upload and the raw
   // capability probe. Keep the Cartesian wall/clip pair fail-closed until the
   // restored context has independently passed the probe and upload receipt.
@@ -574,12 +578,19 @@ function _topoLightingNoteRenderTime(state: any, ms: number) {
   const rig = state && state.lightingRig;
   if (!gate || !rig || !rig.environment) return;
   gate.last_render_ms = ms;
-  if (!gate.shadows) return;
+  const optics = state.opticsRig;
+  const canRetier = !!(optics && optics.tier === 'transmission');
+  if (!gate.shadows && !canRetier) return;
   if (ms > LIGHTING_SLOW_RENDER_MS) gate.slow_renders++; else gate.slow_renders = 0;
   if (gate.slow_renders < LIGHTING_SLOW_RENDER_STREAK) return;
   gate.slow_renders = 0;
   gate.step_downs++;
-  if (gate.shadow_map > LIGHTING_SHADOW_MAP_MIN) gate.shadow_map = gate.shadow_map >> 1;
+  // Ladder: 2048 → 1024, then transmission → alpha (R2: the extra scene pass is the
+  // larger cost, and the alpha tier is the decided low-performance fallback), then
+  // 1024 → 512, then shadows off.
+  if (gate.shadows && gate.shadow_map > LIGHTING_SHADOW_MAP_MOBILE) gate.shadow_map = gate.shadow_map >> 1;
+  else if (canRetier) _topoOpticsApplyTier(state, 'alpha', 'step-down gate: ' + LIGHTING_SLOW_RENDER_STREAK + ' renders over ' + LIGHTING_SLOW_RENDER_MS + ' ms');
+  else if (gate.shadows && gate.shadow_map > LIGHTING_SHADOW_MAP_MIN) gate.shadow_map = gate.shadow_map >> 1;
   else gate.shadows = false;
   _topoLightingApplyGate(state);
   rig.shadows = gate.shadows;
@@ -5213,6 +5224,8 @@ function _emitSurfaceGrowthSwath(
   const trueThicknessMm = Math.max(0, Number(record.mean_thickness_um) || 0) / 1000;
   const displayThickness = Math.max(0.06, Math.min(patchRadius * 0.45,
     trueThicknessMm > 0 ? Math.max(trueThicknessMm, 0.06) : 0.06));
+  // R2: a coating instance is patchRadius-scale; its transmissive path length follows.
+  _opticsApplyExtent(mat, patchRadius * 0.6);
 
   for (let i = 0; i < count; i++) {
     const p = exactPatch && exactPatch.samples && exactPatch.samples[i]
@@ -5681,52 +5694,320 @@ function _localCrystalColor(crystal: any, spec: any): any {
   return out;
 }
 
-function buildCrystalMaterial(crystal: any, spec: any, f: any): any {
-  const klass = spec && spec.class;
-  const metalness = (klass === 'sulfide' || klass === 'native') ? 0.45 : 0.08;
-  let roughness = (klass === 'silicate' || klass === 'oxide') ? 0.42 : 0.62;
+// ============================================================
+// OPTICS R2 — materials that behave like minerals (2026-09-06; the visual-realism
+// review's D1 TRANSMISSION + D2 LUSTRE decisions, PROPOSAL-HOSTILE-REVIEW-VISUAL-
+// REALISM-2026-09-04.md §10). Supersedes Depth-A's "transmission stays 0 — NO faked
+// refraction ever without a new decision" (RESEARCH-optical-realism-2026-07-02.md §4.3):
+// the decision was taken, and what ships is not faked — it IS refraction, with the
+// species' measured mean refractive index and Beer–Lambert body colour over the
+// crystal's own rendered thickness.
+//
+// Two tiers, one builder:
+//   'transmission' — MeshPhysicalMaterial.transmission for every species whose verified
+//                    clarity exceeds OPTICS_TRANSMISSION_MIN_CLARITY: `ior` = optics.ior
+//                    (data/minerals.json, the mean principal index; verified against
+//                    webmineral's Optical Data line by tools/optics-ior-verify.mjs),
+//                    `thickness` and `attenuationDistance` from the mesh's own extent
+//                    (_opticsApplyExtent, after the scale is known), `attenuationColor` =
+//                    the body colour, opacity 1, depth write ON — the alpha ghost's paper
+//                    cut-outs (finding F5) are gone, and a species that is opaque in hand
+//                    specimen (malachite 0.08) no longer ghosts at 94 % alpha.
+//   'alpha'        — Depth-A's plain % translucency, opacity = 1 − 0.70·clarity, the exact
+//                    2026-07-02 contract; the LOW-PERFORMANCE fallback: mobile by default
+//                    (OPTICS_MOBILE_TIER), the lighting rig's own fallback, and the landing
+//                    of the frame-time step-down gate (_topoLightingNoteRenderTime).
+// Lustre (optics.lustre, 95 verified species, recorded 2026-07-02 and consumed HERE):
+// OPTICS_LUSTRE_TABLE maps each term to roughness / metalness / specular — metallic
+// species take metalness 1 so their own body colour becomes F0 (galena lead-grey, pyrite
+// pale brass, chalcopyrite gold — the 2026-07-07 colour lexicon supplies the hue);
+// dielectrics take their F0 from the IOR through material.ior (adamantine cerussite at
+// n 1.98 reflects 11 %, vitreous quartz at 1.55 reflects 4.6 %); pearly adds sheen and a
+// thin clearcoat; dull/earthy are rough with damped specular. The FIRST listed term is the
+// characteristic one (chalcedony "waxy, dull, vitreous" is waxy). Class fallbacks cover the
+// 89 species without a block. Every material carries `userData.optics` — the resolved
+// parameters — so the photo rig can receipt them and _topoOpticsApplyTier can move a
+// live scene between tiers in place.
+type _OpticsTier = 'transmission' | 'alpha';
+interface _LustreParams { roughness: number; metalness: number; specular: number; sheen?: number; clearcoat?: number; }
+const OPTICS_LUSTRE_TABLE: Record<string, _LustreParams> = {
+  metallic:      { roughness: 0.28, metalness: 1.0, specular: 1.0 },
+  submetallic:   { roughness: 0.42, metalness: 0.6, specular: 1.0 },
+  adamantine:    { roughness: 0.06, metalness: 0.0, specular: 1.0 },
+  subadamantine: { roughness: 0.10, metalness: 0.0, specular: 1.0 },
+  vitreous:      { roughness: 0.09, metalness: 0.0, specular: 1.0 },
+  subvitreous:   { roughness: 0.15, metalness: 0.0, specular: 1.0 },
+  resinous:      { roughness: 0.22, metalness: 0.0, specular: 1.0 },
+  subresinous:   { roughness: 0.28, metalness: 0.0, specular: 0.9 },
+  greasy:        { roughness: 0.30, metalness: 0.0, specular: 0.8 },
+  waxy:          { roughness: 0.38, metalness: 0.0, specular: 0.7 },
+  silky:         { roughness: 0.45, metalness: 0.0, specular: 0.8, sheen: 0.5 },
+  pearly:        { roughness: 0.20, metalness: 0.0, specular: 0.9, sheen: 0.8, clearcoat: 0.3 },
+  dull:          { roughness: 0.85, metalness: 0.0, specular: 0.4 },
+  earthy:        { roughness: 0.95, metalness: 0.0, specular: 0.2 },
+};
+// Class-default lustre for the 89 species without a verified block — the class's
+// opaque-majority end for sulfide/native (the translucent sulfides carry verified rows).
+const OPTICS_CLASS_LUSTRE: Record<string, string> = {
+  sulfide: 'metallic', native: 'metallic', oxide: 'submetallic', hydroxide: 'submetallic',
+  silicate: 'vitreous', carbonate: 'vitreous', sulfate: 'vitreous', halide: 'vitreous',
+  borate: 'vitreous', phosphate: 'vitreous', arsenate: 'vitreous', molybdate: 'adamantine',
+  amphibole: 'vitreous',
+};
+// Class-default mean refractive index (Handbook-of-Mineralogy class ranges, the tail's
+// safety net — every transmissive species with a verified block carries its own ior).
+const OPTICS_CLASS_IOR: Record<string, number> = {
+  silicate: 1.55, carbonate: 1.62, sulfate: 1.60, halide: 1.50, borate: 1.47,
+  phosphate: 1.65, arsenate: 1.72, molybdate: 1.95, oxide: 2.10, hydroxide: 2.20,
+  sulfide: 2.50, native: 2.00, amphibole: 1.63,
+};
+const OPTICS_IOR_DEFAULT = 1.55;
+const OPTICS_TRANSMISSION_MIN_CLARITY = 0.15;   // ≤ this the species is opaque in hand specimen: no ghost
+const OPTICS_TRANSMISSION_FLOOR = 0.35;          // transmission = FLOOR + (1 − FLOOR)·clarity
+const OPTICS_ATTENUATION_BASE = 0.6;             // attenuationDistance = extent·(BASE + SPAN·clarity):
+const OPTICS_ATTENUATION_SPAN = 1.4;             //   cloudy → body-coloured within its own thickness; water-clear → barely tinted
+const OPTICS_THICKNESS_FRACTION = 0.9;           // thickness = 0.9 × the mesh's smallest scaled extent
+const OPTICS_BODY_TINT_ON_COLOUR = 0.35;         // transmissive base colour = white → body by 0.35·(1 − clarity); the rest rides as attenuation
+const OPTICS_MOBILE_TIER: _OpticsTier = 'alpha';
+// Metallic lustre: F0 IS the species' reflectance at normal incidence, so the metal's base
+// colour is the lexicon's hue scaled to the MEASURED reflectance (optics.reflectance, per
+// cent, R at 589 nm in air — the Handbook of Mineralogy R tables, verified by
+// tools/optics-reflectance-verify.mjs). A hand-specimen swatch is dark because a metal
+// mirrors a dark surround; using it as F0 counts that darkness twice (galena swatch
+// luminance 0.18 vs R 43 %). Class defaults cover the tail.
+const OPTICS_CLASS_REFLECTANCE: Record<string, number> = { sulfide: 40, native: 60, oxide: 20, hydroxide: 20 };
+const OPTICS_REFLECTANCE_DEFAULT = 40;
+function opticsReflectanceFor(spec: any): number {
+  if (spec && spec.optics && typeof spec.optics.reflectance === 'number') {
+    return Math.max(0.03, Math.min(1, spec.optics.reflectance / 100));
+  }
+  const d = spec ? OPTICS_CLASS_REFLECTANCE[spec.class] : undefined;
+  return (typeof d === 'number' ? d : OPTICS_REFLECTANCE_DEFAULT) / 100;
+}
+function _opticsMetalColour(body: any, reflectance: number): any {
+  const out = body.clone();
+  const y = 0.2126 * out.r + 0.7152 * out.g + 0.0722 * out.b;   // linear luminance
+  const k = reflectance / Math.max(1e-4, y);
+  out.r = Math.min(1, out.r * k); out.g = Math.min(1, out.g * k); out.b = Math.min(1, out.b * k);
+  return out;
+}
+
+function opticsIorFor(spec: any): number {
+  if (spec && spec.optics && typeof spec.optics.ior === 'number') {
+    return Math.max(1.0, Math.min(3.5, spec.optics.ior));
+  }
+  const d = spec ? OPTICS_CLASS_IOR[spec.class] : undefined;
+  return typeof d === 'number' ? d : OPTICS_IOR_DEFAULT;
+}
+function opticsLustreFor(spec: any): string {
+  const terms = spec && spec.optics && spec.optics.lustre;
+  if (Array.isArray(terms)) for (const t of terms) if (OPTICS_LUSTRE_TABLE[t]) return t;
+  const d = spec ? OPTICS_CLASS_LUSTRE[spec.class] : undefined;
+  return d && OPTICS_LUSTRE_TABLE[d] ? d : 'vitreous';
+}
+// The PURE resolution — no THREE — so tools/optics-audit.mjs and the tests read exactly
+// what the renderer will build. `f` carries the state modifiers (etched, CDR, perimorph
+// cast, sector-zoned, gypsum hourglass, inclusion) as before; they stack in the same order.
+function opticsMaterialParamsFor(spec: any, f: any, tier: _OpticsTier): any {
+  const fl = f || {};
+  const lustre = opticsLustreFor(spec);
+  const L = OPTICS_LUSTRE_TABLE[lustre];
+  let roughness = L.roughness, metalness = L.metalness;
   // Q3a porosity boost for CDR pseudomorphs — Putnis 2009: CDR products are typically porous
   // (volume-mismatch accommodation). Boss directive 2026-05-06 #4: renderer-roughness is the
   // right fidelity level; the visual cue (less lustre, more matte) is what reads.
-  if (f.isCdrPseudomorph) roughness = Math.min(1.0, roughness + 0.18);
+  if (fl.isCdrPseudomorph) roughness = Math.min(1.0, roughness + 0.18);
   // Etched crystal — a corroded/dissolved surface is matte, not lustrous (face-realism arc §2).
-  if (f.isEtched) roughness = Math.min(1.0, roughness + 0.30);
-  // W-F O4a — an engulfed inclusion is a solid embedded grain: slightly matte (no
-  // free euhedral face to take a polish) and OPAQUE, so it reads THROUGH the
-  // translucent host rather than blending into it. Keeps its own mineral-class
-  // colour (poikilotopic — a pyrite grain stays pyrite inside clear calcite).
-  if (f.isInclusion) roughness = Math.min(1.0, roughness + 0.22);
+  if (fl.isEtched) roughness = Math.min(1.0, roughness + 0.30);
+  // W-F O4a — an engulfed inclusion is a solid embedded grain: slightly matte (no free
+  // euhedral face to take a polish) and OPAQUE, so it reads THROUGH the translucent host.
+  if (fl.isInclusion) roughness = Math.min(1.0, roughness + 0.22);
+  // Q4 perimorph cast — the hollow shell after dissolution: translucent + matte.
+  if (fl.isPerimorphCast) { roughness = Math.min(1.0, roughness + 0.25); metalness = 0; }
   let clarity = opticsClarityFor(spec);
-  if (f.isEtched) clarity *= 0.35;
-  if (f.isCdrPseudomorph) clarity *= 0.5;
-  if (f.isGypsumHourglass) clarity = Math.min(clarity, 0.30);
-  if (f.isInclusion) clarity = 0;
+  if (fl.isEtched) clarity *= 0.35;
+  if (fl.isCdrPseudomorph) clarity *= 0.5;
+  if (fl.isGypsumHourglass) clarity = Math.min(clarity, 0.30);
+  if (fl.isInclusion) clarity = 0;
+  const alphaOpacity = 1 - OPTICS_TRANSLUCENCY_SPAN * clarity;
+  const transmissive = tier === 'transmission' && !fl.isPerimorphCast
+    && metalness < 0.5 && clarity > OPTICS_TRANSMISSION_MIN_CLARITY;
+  return {
+    tier, lustre, clarity, roughness, metalness,
+    specular: L.specular, sheen: L.sheen || 0, clearcoat: L.clearcoat || 0,
+    ior: opticsIorFor(spec),
+    reflectance: opticsReflectanceFor(spec),
+    transmissive,
+    transmission: transmissive ? Math.min(1, OPTICS_TRANSMISSION_FLOOR + (1 - OPTICS_TRANSMISSION_FLOOR) * clarity) : 0,
+    alpha_opacity: alphaOpacity,
+    attenuation_span: OPTICS_ATTENUATION_BASE + OPTICS_ATTENUATION_SPAN * clarity,
+    perimorph: !!fl.isPerimorphCast, sector: !!fl.isSectorZoned,
+  };
+}
+function _topoOpticsTier(): _OpticsTier {
+  const s = (typeof _topoThreeState !== 'undefined') ? _topoThreeState : null;
+  const rig = s && s.opticsRig;
+  return (rig && (rig.active || rig.tier)) || 'transmission';
+}
+// Paint the tier-dependent part of a material from its resolved params — used at build
+// and by the in-place retier. `body` is the local crystal colour (THREE.Color).
+function _opticsPaintTier(mat: any, p: any, body: any) {
+  if (p.transmissive) {
+    mat.transmission = p.transmission;
+    mat.opacity = 1.0; mat.transparent = false; mat.depthWrite = true;
+    mat.attenuationColor.copy(body);
+    // Pale base: the body colour rides through the crystal as attenuation, not as a tint
+    // painted on the surface (a dark surface colour would swallow the transmitted light).
+    if (!p.sector) mat.color.setRGB(1, 1, 1).lerp(body, OPTICS_BODY_TINT_ON_COLOUR * (1 - p.clarity));
+  } else {
+    mat.transmission = 0;
+    if (!p.sector) {
+      if (p.metalness >= 0.5) mat.color.copy(_opticsMetalColour(body, p.reflectance));
+      else mat.color.copy(body);
+    }
+    if (p.perimorph) {
+      // Diaphaneity can only make the hollow shell MORE see-through, never less.
+      mat.transparent = true; mat.opacity = Math.min(p.alpha_opacity, 0.42);
+    } else if (p.tier === 'alpha' && p.clarity > 0) {
+      mat.transparent = true; mat.opacity = p.alpha_opacity;
+    } else {
+      mat.transparent = false; mat.opacity = 1.0;
+    }
+    mat.depthWrite = true;
+  }
+}
+// Called once the mesh's scale is known: thickness and attenuation distance are the
+// crystal's own smallest rendered extent (mm) — a 0.5 mm barite plate stays clear, a 20 mm
+// fluorite cube is body-coloured across its depth. Satellites share the parent's material
+// (the parent's extent); swath clones get their instance footprint.
+function _opticsApplyExtent(mat: any, extentMm: number) {
+  const p = mat && mat.userData && mat.userData.optics;
+  if (!p) return;
+  const ext = Math.max(0.2, Number(extentMm) || 0);
+  p.extent_mm = ext;
+  mat.thickness = ext * OPTICS_THICKNESS_FRACTION;
+  mat.attenuationDistance = ext * p.attenuation_span;
+}
+function _opticsExtentOfScale(scale: any): number {
+  if (!scale) return 1;
+  return Math.max(0.2, Math.min(Math.abs(scale.x) || 1, Math.abs(scale.y) || 1, Math.abs(scale.z) || 1));
+}
+// Install the optics rig on a fresh Three state: desktop starts on transmission, mobile and
+// a failed lighting rig start on alpha. `tier` is the CAPABILITY; `active` is what the scene
+// is painted with right now — glass needs an opaque backdrop in three.js's transmission
+// buffer (only opaque objects are drawn into it), so with the orb's translucent shell or a
+// hidden wall the active tier drops to alpha and comes back when the wall is drawn opaque
+// (inside the cavity; the R6 specimen view). Records the decision like the lighting rig does.
+function _topoOpticsInstallRig(state: any) {
+  if (!state) return null;
+  let tier: _OpticsTier = 'transmission';
+  let reason = 'desktop default';
+  if (typeof _topoLightingIsMobile === 'function' && _topoLightingIsMobile()) { tier = OPTICS_MOBILE_TIER; reason = 'mobile viewport: alpha tier (low-performance fallback)'; }
+  else if (state.lightingRig && !state.lightingRig.environment) { tier = 'alpha'; reason = 'lighting rig fell back (' + (state.lightingRig.reason || 'no environment') + '): alpha tier'; }
+  state.opticsRig = { tier, active: null, backdrop: null, reason, retiers: 0, transmissive: 0, alpha: 0, opaque: 0 };
+  _topoOpticsSyncView(state);
+  return state.opticsRig;
+}
+// Is there an opaque backdrop for the transmission buffer? No cavity object at all counts
+// as yes (nothing translucent stands between the crystals and the clear colour to lose).
+function _topoOpticsBackdrop(state: any): boolean {
+  const cav = state && state.cavity;
+  if (!cav) return true;
+  return !!(cav.visible && cav.material && !cav.material.transparent);
+}
+// Paint every crystal material in the live scene to `active` in place and count what is
+// there. Materials keep their resolved params in userData.optics; only the tier-dependent
+// part moves.
+function _topoOpticsPaintScene(state: any, active: _OpticsTier) {
+  const rig = state.opticsRig;
+  let transmissive = 0, alpha = 0, opaque = 0, moved = 0;
+  const seen = new Set<any>();
+  const body = new THREE.Color();
+  const children = state.crystals && state.crystals.children;
+  if (children) for (let i = 0; i < children.length; i++) {
+    const mesh = children[i];
+    if (!mesh) continue;
+    const mats = Array.isArray(mesh.material) ? mesh.material : (mesh.material ? [mesh.material] : []);
+    for (const mat of mats) {
+      if (!mat || seen.has(mat)) continue;
+      seen.add(mat);
+      const p = mat.userData && mat.userData.optics;
+      if (!p) continue;
+      if (p.tier !== active) {
+        p.tier = active;
+        p.transmissive = active === 'transmission' && !p.perimorph && p.metalness < 0.5 && p.clarity > OPTICS_TRANSMISSION_MIN_CLARITY;
+        p.transmission = p.transmissive ? Math.min(1, OPTICS_TRANSMISSION_FLOOR + (1 - OPTICS_TRANSMISSION_FLOOR) * p.clarity) : 0;
+        body.setHex(p.body);
+        _opticsPaintTier(mat, p, body);
+        mat.needsUpdate = true;
+        moved++;
+      }
+      if (p.transmissive) transmissive++; else if (mat.transparent) alpha++; else opaque++;
+    }
+    // The helix overlay restores to naturalOpacity — keep it the tier's truth.
+    if (mesh.userData && mats[0] && mats[0].userData && mats[0].userData.optics) {
+      mesh.userData.naturalOpacity = mats[0].transparent ? mats[0].opacity : 1.0;
+    }
+  }
+  rig.transmissive = transmissive; rig.alpha = alpha; rig.opaque = opaque;
+  return moved;
+}
+// Bring the active tier in line with the capability and the backdrop. Called by
+// _topoApplyWallDisplay (inside/outside, wall mode) and after a capability change.
+function _topoOpticsSyncView(state: any) {
+  const rig = state && state.opticsRig;
+  if (!rig) return null;
+  const backdrop = _topoOpticsBackdrop(state);
+  const want: _OpticsTier = (rig.tier === 'transmission' && backdrop) ? 'transmission' : 'alpha';
+  const changed = rig.active !== want;
+  if (changed && rig.active != null) rig.retiers++;
+  rig.active = want;
+  rig.backdrop = backdrop;
+  _topoOpticsPaintScene(state, want);
+  return rig;
+}
+// Set the CAPABILITY tier (the step-down gate, the photo rig's A/B) and repaint.
+function _topoOpticsApplyTier(state: any, tier: _OpticsTier, reason?: string) {
+  if (!state) return null;
+  if (!state.opticsRig) state.opticsRig = { tier: null, active: null, backdrop: null, reason: null, retiers: 0, transmissive: 0, alpha: 0, opaque: 0 };
+  const rig = state.opticsRig;
+  rig.tier = tier;
+  if (reason) rig.reason = reason;
+  _topoOpticsSyncView(state);
+  return rig;
+}
+
+function buildCrystalMaterial(crystal: any, spec: any, f: any, tierOverride?: _OpticsTier): any {
+  const fl = f || {};
+  const tier: _OpticsTier = tierOverride || _topoOpticsTier();
+  const p = opticsMaterialParamsFor(spec, fl, tier);
+  // LOCAL CRYSTAL COLOUR — per-crystal chemistry tone + deterministic legibility floor so
+  // same-species neighbours read apart (isSectorZoned overrides to white — its baked vertex
+  // colours are absolute — so no double-tint).
+  const body = _localCrystalColor(crystal, spec);
   const matOpts: any = {
-    // LOCAL CRYSTAL COLOUR — per-crystal chemistry tone + deterministic legibility
-    // floor so same-species neighbours read apart (isSectorZoned overrides to
-    // white below — its baked vertex colours are absolute — so no double-tint).
-    color: _localCrystalColor(crystal, spec),
-    roughness: f.isPerimorphCast ? Math.min(1.0, roughness + 0.25) : roughness,
-    metalness: f.isPerimorphCast ? 0.0 : metalness,
+    color: body.clone(),
+    roughness: p.roughness,
+    metalness: p.metalness,
     // DoubleSide for every crystal — inside-the-cavity camera angles cull front-side-only
     // meshes into hollow outlines; both faces keep terminations solid from any view. Perimorph
-    // casts additionally need it for the translucent-shell read.
+    // casts additionally need it for the translucent-shell read; transmission draws the back
+    // face into its buffer so a crystal reads thick, not as a film.
     side: THREE.DoubleSide,
   };
-  const opacity = 1 - OPTICS_TRANSLUCENCY_SPAN * clarity;
-  if (f.isPerimorphCast) {
-    // Q4 perimorph cast — the hollow shell after dissolution: translucent + matte, the viewer
-    // reads the void inside. Diaphaneity can only make it MORE see-through, never less.
-    matOpts.transparent = true;
-    matOpts.opacity = Math.min(opacity, 0.42);
-  } else if (clarity > 0) {
-    matOpts.transparent = true;
-    matOpts.opacity = opacity;
-  }
+  if (p.metalness < 0.5) { matOpts.ior = p.ior; matOpts.specularIntensity = p.specular; }
+  if (p.sheen > 0) { matOpts.sheen = p.sheen; matOpts.sheenColor = new THREE.Color(0xffffff); matOpts.sheenRoughness = 0.55; }
+  if (p.clearcoat > 0) { matOpts.clearcoat = p.clearcoat; matOpts.clearcoatRoughness = 0.15; }
   // Sector (hourglass) zoning — the geom bakes ABSOLUTE per-vertex colours; colour=white so the
-  // material doesn't tint them. Composes with translucency (opacity applies over vertex colours).
-  if (f.isSectorZoned) { matOpts.color = 0xffffff; matOpts.vertexColors = true; }
-  return new THREE.MeshPhysicalMaterial(matOpts);
+  // material doesn't tint them (transmitted light is multiplied by the vertex colour too, so
+  // the sandglass stays legible through the blade).
+  if (fl.isSectorZoned) { matOpts.color = new THREE.Color(0xffffff); matOpts.vertexColors = true; }
+  const mat = new THREE.MeshPhysicalMaterial(matOpts);
+  mat.userData.optics = { ...p, body: body.getHex() };
+  _opticsPaintTier(mat, mat.userData.optics, body);
+  // Provisional thickness until the mesh scale is known (_opticsApplyExtent).
+  if (p.transmissive) _opticsApplyExtent(mat, 4);
+  return mat;
 }
 
 function _topoParseColor(s: string): any {
@@ -6086,6 +6367,8 @@ function _o2ContactMaterial(mat: any, state: any): any {
   m.metalness = 0.0;
   m.transparent = false;
   m.opacity = 1.0;
+  m.transmission = 0;               // R2: a contact face is an interface, not glass
+  if (m.userData) m.userData.optics = null;   // the retier leaves it alone
   if (typeof _applyCavityClip === 'function') _applyCavityClip(m, state.clipUniforms);
   return m;
 }
@@ -6795,6 +7078,8 @@ function _topoSyncCrystalMeshes(state: any, sim: any, wall: any, replayStep?: nu
       mesh.scale.set(aWid, cLen, aWid);
     }
     mesh.renderOrder = 1;
+    // R2: the transmissive path length is the crystal's own smallest rendered extent.
+    _opticsApplyExtent(mat, _opticsExtentOfScale(mesh.scale));
 
     // Position the BASE of the primitive at the anchor (instead of
     // the centroid), so the crystal projects into the cavity rather
@@ -7138,9 +7423,9 @@ function _topoApplyWallDisplay(state: any) {
   if (!state || !state.cavity) return;
   const mode = state.wallDisplay | 0;
   const mat = state.cavity.material;
-  if (mode === 2) { state.cavity.visible = false; return; }
+  if (mode === 2) { state.cavity.visible = false; _topoOpticsSyncView(state); return; }
   state.cavity.visible = true;
-  if (!mat) return;
+  if (!mat) { _topoOpticsSyncView(state); return; }
   if (mode === 1) {
     mat.side = THREE.BackSide;
     mat.opacity = 0.18;
@@ -7167,6 +7452,8 @@ function _topoApplyWallDisplay(state: any) {
     mat.depthWrite = true;
   }
   mat.needsUpdate = true;
+  // R2: the active optics tier follows the wall — glass only over an opaque backdrop.
+  _topoOpticsSyncView(state);
 }
 
 // The topo-wall-btn onclick (index.html camera-ctrls row). Cycles the three

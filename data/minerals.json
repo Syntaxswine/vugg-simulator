@@ -224,6 +224,7 @@
       "optics": {
         "diaphaneity": "transparent",
         "clarity": 0.92,
+        "ior": 1.547,
         "lustre": ["vitreous"],
         "notes": "to nearly opaque when massive (waxy-dull)",
         "source": "webmineral+HOM 2026-07-02"
@@ -389,6 +390,7 @@
       "optics": {
         "diaphaneity": "translucent_to_opaque",
         "clarity": 0.45,
+        "ior": 1.547,
         "lustre": ["waxy", "dull", "vitreous"],
         "notes": "cryptocrystalline fibrous silica aggregate; locally vitreous on fresh fracture; agate is its rhythmically banded texture",
         "source": "USGS Spectral Library + Heaney & Davis 1995"
@@ -476,6 +478,7 @@
       "optics": {
         "diaphaneity": "transparent_to_opaque",
         "clarity": 0.85,
+        "ior": 1.595,
         "lustre": ["vitreous"],
         "notes": "typical crystal transparent; pearly on cleavages and {0001}",
         "source": "webmineral+HOM 2026-07-02"
@@ -626,6 +629,7 @@
       "optics": {
         "diaphaneity": "transparent_to_translucent",
         "clarity": 0.70,
+        "ior": 1.632,
         "lustre": ["vitreous"],
         "notes": "resinous on fracture",
         "source": "webmineral+HOM 2026-07-02"
@@ -770,6 +774,7 @@
       "optics": {
         "diaphaneity": "transparent_to_translucent",
         "clarity": 0.55,
+        "ior": 1.62,
         "lustre": ["vitreous"],
         "notes": "may be pearly",
         "source": "webmineral+HOM 2026-07-02"
@@ -1009,6 +1014,7 @@
       "optics": {
         "diaphaneity": "translucent",
         "clarity": 0.45,
+        "ior": 1.754,
         "lustre": ["vitreous"],
         "notes": "translucent-only in all three sources; transparent exceptional; may be pearly or silky",
         "source": "webmineral+HOM 2026-07-02"
@@ -1136,6 +1142,7 @@
       "optics": {
         "diaphaneity": "transparent_to_translucent",
         "clarity": 0.70,
+        "ior": 1.742,
         "lustre": ["vitreous"],
         "notes": "pearly in aggregates",
         "source": "webmineral+HOM 2026-07-02"
@@ -1270,6 +1277,7 @@
       "optics": {
         "diaphaneity": "transparent_to_translucent",
         "clarity": 0.40,
+        "ior": 2.4,
         "lustre": ["resinous","adamantine"],
         "notes": "opaque when Fe-rich (marmatite, submetallic)",
         "source": "webmineral+HOM 2026-07-02"
@@ -1520,6 +1528,7 @@
       "optics": {
         "diaphaneity": "transparent_to_translucent",
         "clarity": 0.85,
+        "ior": 1.433,
         "lustre": ["vitreous"],
         "notes": "dull when massive",
         "source": "webmineral+HOM 2026-07-02"
@@ -1646,6 +1655,7 @@
       "optics": {
         "diaphaneity": "opaque",
         "clarity": 0.00,
+        "reflectance": 55.1,
         "lustre": ["metallic"],
         "notes": "splendent",
         "source": "webmineral+HOM 2026-07-02"
@@ -1883,6 +1893,7 @@
       "optics": {
         "diaphaneity": "opaque",
         "clarity": 0.00,
+        "reflectance": 47.4,
         "lustre": ["metallic"],
         "notes": null,
         "source": "webmineral+HOM 2026-07-02"
@@ -1989,6 +2000,8 @@
       "optics": {
         "diaphaneity": "opaque",
         "clarity": 0.02,
+        "ior": 3.092,
+        "reflectance": 27.8,
         "lustre": ["metallic","submetallic"],
         "notes": "thin-edge deep blood-red internal reflections; earthy variety dull",
         "source": "webmineral+HOM 2026-07-02"
@@ -2105,6 +2118,7 @@
       "optics": {
         "diaphaneity": "translucent_to_opaque",
         "clarity": 0.08,
+        "ior": 1.813,
         "lustre": ["adamantine","vitreous"],
         "notes": "typically opaque, translucent only in thin fibres/films; silky fibrous; dull-earthy massive",
         "source": "webmineral+HOM 2026-07-02"
@@ -2233,6 +2247,7 @@
       "optics": {
         "diaphaneity": "opaque",
         "clarity": 0.00,
+        "reflectance": 15.8,
         "lustre": ["submetallic","greasy","dull"],
         "notes": "steel-black to velvet-black; greasy-dull = pitchblende botryoids; thin-fragment transmission is thin-section-scale, invisible at display scale",
         "source": "webmineral+HOM 2026-07-02"
@@ -2333,6 +2348,7 @@
       "optics": {
         "diaphaneity": "opaque",
         "clarity": 0.00,
+        "reflectance": 42.8,
         "lustre": ["metallic"],
         "notes": null,
         "source": "webmineral+HOM 2026-07-02"
@@ -2444,6 +2460,7 @@
       "optics": {
         "diaphaneity": "translucent",
         "clarity": 0.50,
+        "ior": 1.775,
         "lustre": ["vitreous"],
         "notes": "to subtransparent; satiny-pearly on botryoidal",
         "source": "webmineral+HOM 2026-07-02"
@@ -2578,6 +2595,7 @@
       "optics": {
         "diaphaneity": "transparent_to_opaque",
         "clarity": 0.70,
+        "ior": 2.369,
         "lustre": ["resinous","subadamantine","adamantine"],
         "notes": "typical specimen transparent-translucent",
         "source": "webmineral+HOM 2026-07-02"
@@ -2893,6 +2911,7 @@
       "optics": {
         "diaphaneity": "transparent_to_translucent",
         "clarity": 0.70,
+        "ior": 1.64,
         "lustre": ["vitreous","resinous"],
         "notes": "may be pearly on cleavage",
         "source": "webmineral+HOM 2026-07-02"
@@ -3006,6 +3025,7 @@
       "optics": {
         "diaphaneity": "transparent_to_translucent",
         "clarity": 0.80,
+        "ior": 1.625,
         "lustre": ["vitreous"],
         "notes": "pearly on cleavages",
         "source": "webmineral+HOM 2026-07-02"
@@ -3342,6 +3362,7 @@
       "optics": {
         "diaphaneity": "transparent_to_translucent",
         "clarity": 0.45,
+        "ior": 1.766,
         "lustre": ["vitreous"],
         "notes": "somewhat pearly on cleavages",
         "source": "webmineral+HOM 2026-07-02"
@@ -3558,6 +3579,7 @@
       "optics": {
         "diaphaneity": "transparent_to_translucent",
         "clarity": 0.75,
+        "ior": 1.587,
         "lustre": ["vitreous"],
         "notes": "HOM face-specific: pearly on {010}, vitreous-to-greasy on {001}, vitreous on {100}",
         "source": "webmineral+HOM 2026-07-02"
@@ -3854,6 +3876,7 @@
       "optics": {
         "diaphaneity": "transparent_to_translucent",
         "clarity": 0.65,
+        "ior": 1.742,
         "lustre": ["vitreous"],
         "notes": "WM adds resinous",
         "source": "webmineral+HOM 2026-07-02"
@@ -3972,6 +3995,7 @@
       "optics": {
         "diaphaneity": "transparent_to_translucent",
         "clarity": 0.55,
+        "ior": 2.139,
         "lustre": ["resinous","subadamantine"],
         "notes": "subtransparent end",
         "source": "webmineral+HOM 2026-07-02"
@@ -4085,6 +4109,7 @@
       "optics": {
         "diaphaneity": "transparent_to_translucent",
         "clarity": 0.60,
+        "ior": 1.663,
         "lustre": ["subadamantine"],
         "notes": "pearly on {010}",
         "source": "webmineral+HOM 2026-07-02"
@@ -4212,6 +4237,7 @@
       "optics": {
         "diaphaneity": "transparent_to_translucent",
         "clarity": 0.45,
+        "ior": 1.656,
         "lustre": ["subadamantine"],
         "notes": "pearly on cleavages; crusts dull/earthy",
         "source": "webmineral+HOM 2026-07-02"
@@ -4566,6 +4592,7 @@
       "optics": {
         "diaphaneity": "transparent_to_translucent",
         "clarity": 0.80,
+        "ior": 1.536,
         "lustre": ["vitreous"],
         "notes": "pearly on {001} basal — the classic",
         "source": "webmineral+HOM 2026-07-02"
@@ -4700,6 +4727,7 @@
       "optics": {
         "diaphaneity": "transparent_to_translucent",
         "clarity": 0.55,
+        "ior": 1.521,
         "lustre": ["vitreous"],
         "notes": "orthoclase + microcline HOM identical — one generic set is safe; pearly on cleavages; typical specimen milky-translucent",
         "source": "webmineral+HOM 2026-07-02"
@@ -4849,6 +4877,7 @@
       "optics": {
         "diaphaneity": "transparent_to_translucent",
         "clarity": 0.50,
+        "ior": 1.535,
         "lustre": ["vitreous"],
         "notes": "typically pearly on cleavages; typical specimen milky",
         "source": "webmineral+HOM 2026-07-02"
@@ -4977,6 +5006,7 @@
       "optics": {
         "diaphaneity": "transparent_to_translucent",
         "clarity": 0.95,
+        "ior": 1.524,
         "lustre": ["subvitreous"],
         "notes": "pearly on {010} cleavage; silky when fibrous (satin spar); Naica water-clear benchmark",
         "source": "webmineral+HOM 2026-07-02"
@@ -5241,6 +5271,7 @@
       "optics": {
         "diaphaneity": "transparent_to_opaque",
         "clarity": 0.40,
+        "ior": 1.639,
         "lustre": ["vitreous","subvitreous"],
         "notes": "nearly opaque with inclusions (chiastolite!)",
         "source": "webmineral+HOM 2026-07-02"
@@ -5337,6 +5368,7 @@
       "optics": {
         "diaphaneity": "transparent",
         "clarity": 0.93,
+        "ior": 1.622,
         "lustre": ["vitreous"],
         "notes": "opaque only with inclusions",
         "source": "webmineral+HOM 2026-07-02"
@@ -5465,6 +5497,7 @@
       "optics": {
         "diaphaneity": "transparent_to_translucent",
         "clarity": 0.80,
+        "ior": 1.636,
         "lustre": ["vitreous"],
         "notes": "catalog tourmaline = the pegmatite gem (elbaite reading, to resinous); schorl hand-specimens read opaque-black ~0.04 — split the species if a schorl locality lands",
         "source": "webmineral+HOM 2026-07-02"
@@ -5701,6 +5734,7 @@
       "optics": {
         "diaphaneity": "transparent_to_translucent",
         "clarity": 0.80,
+        "ior": 1.66,
         "lustre": ["vitreous"],
         "notes": "pearly on cleavage; gemmy kunzite-grade typical for display; opaque-white log crystals ~0.45 (WM page lacks the fields — HOM+mindat row)",
         "source": "webmineral+HOM 2026-07-02"
@@ -5820,6 +5854,7 @@
       "optics": {
         "diaphaneity": "transparent_to_translucent",
         "clarity": 0.45,
+        "ior": 1.557,
         "lustre": ["pearly","vitreous"],
         "notes": "thin cleavage flakes genuinely transparent; books read translucent",
         "source": "webmineral+HOM 2026-07-02"
@@ -5964,6 +5999,7 @@
       "optics": {
         "diaphaneity": "transparent_to_opaque",
         "clarity": 0.75,
+        "ior": 1.885,
         "lustre": ["adamantine"],
         "notes": "resinous to vitreous; typical specimen transparent-translucent",
         "source": "webmineral+HOM 2026-07-02"
@@ -6081,6 +6117,7 @@
       "optics": {
         "diaphaneity": "transparent_to_translucent",
         "clarity": 0.80,
+        "ior": 1.984,
         "lustre": ["adamantine"],
         "notes": "tending vitreous/resinous",
         "source": "webmineral+HOM 2026-07-02"
@@ -6203,6 +6240,7 @@
       "optics": {
         "diaphaneity": "transparent_to_translucent",
         "clarity": 0.55,
+        "ior": 2.056,
         "lustre": ["resinous","subadamantine"],
         "notes": null,
         "source": "webmineral+HOM 2026-07-02"
@@ -6323,6 +6361,7 @@
       "optics": {
         "diaphaneity": "translucent_to_opaque",
         "clarity": 0.45,
+        "ior": 2.394,
         "lustre": ["subresinous","subadamantine"],
         "notes": "subtransparent end exists",
         "source": "webmineral+HOM 2026-07-02"
@@ -6752,6 +6791,7 @@
       "optics": {
         "diaphaneity": "translucent_to_opaque",
         "clarity": 0.10,
+        "ior": 1.497,
         "lustre": ["vitreous","earthy"],
         "notes": "porcelaneous/enamel-like at its best",
         "source": "webmineral+HOM 2026-07-02"
@@ -6975,6 +7015,7 @@
       "optics": {
         "diaphaneity": "transparent_to_translucent",
         "clarity": 0.35,
+        "ior": 1.775,
         "lustre": ["vitreous","subadamantine"],
         "notes": "body colour nearly opaque-dark at display thickness",
         "source": "webmineral+HOM 2026-07-02"
@@ -7202,6 +7243,7 @@
       "optics": {
         "diaphaneity": "opaque",
         "clarity": 0.00,
+        "reflectance": 88.1,
         "lustre": ["metallic"],
         "notes": null,
         "source": "webmineral+HOM 2026-07-02"
@@ -7306,6 +7348,8 @@
       "optics": {
         "diaphaneity": "opaque",
         "clarity": 0.00,
+        "ior": 2.42,
+        "reflectance": 20.6,
         "lustre": ["metallic","submetallic"],
         "notes": "may be dull; thin-edge translucency only",
         "source": "webmineral+HOM 2026-07-02"
@@ -7519,6 +7563,7 @@
       "optics": {
         "diaphaneity": "opaque",
         "clarity": 0.00,
+        "reflectance": 37.6,
         "lustre": ["metallic"],
         "notes": "splendent on cleavage",
         "source": "webmineral+HOM 2026-07-02"
@@ -7728,6 +7773,7 @@
       "optics": {
         "diaphaneity": "opaque",
         "clarity": 0.00,
+        "reflectance": 65.6,
         "lustre": ["metallic"],
         "notes": "silver-white with reddish hue; tarnishes iridescent",
         "source": "webmineral+HOM 2026-07-02"
@@ -8272,6 +8318,7 @@
       "optics": {
         "diaphaneity": "transparent_to_translucent",
         "clarity": 0.55,
+        "ior": 1.765,
         "lustre": ["adamantine","vitreous"],
         "notes": "species reading; pearly on partings (ruby/sapphire var. rows carry their own)",
         "source": "webmineral+HOM 2026-07-02"
@@ -8383,6 +8430,7 @@
       "optics": {
         "diaphaneity": "transparent_to_translucent",
         "clarity": 0.60,
+        "ior": 1.765,
         "lustre": ["adamantine","vitreous"],
         "notes": "corundum var.; pearly on partings; silk common — gem-clean runs 0.75+, star-grade ~0.35",
         "source": "webmineral+HOM 2026-07-02"
@@ -8491,6 +8539,7 @@
       "optics": {
         "diaphaneity": "transparent_to_translucent",
         "clarity": 0.65,
+        "ior": 1.765,
         "lustre": ["adamantine","vitreous"],
         "notes": "corundum var. (species-page verification; var. reading extends the ruby row)",
         "source": "webmineral+HOM 2026-07-02"
@@ -8793,6 +8842,7 @@
       "optics": {
         "diaphaneity": "opaque",
         "clarity": 0.00,
+        "reflectance": 93.8,
         "lustre": ["metallic"],
         "notes": "tarnishes gray to black",
         "source": "webmineral+HOM 2026-07-02"
@@ -8889,6 +8939,7 @@
       "optics": {
         "diaphaneity": "opaque",
         "clarity": 0.00,
+        "reflectance": 53.2,
         "lustre": ["metallic"],
         "notes": "nearly-metallic fresh, tarnishes fast to dull dark gray — render at the dull end",
         "source": "webmineral+HOM 2026-07-02"
@@ -8977,6 +9028,7 @@
       "optics": {
         "diaphaneity": "transparent_to_translucent",
         "clarity": 0.70,
+        "ior": 2.08,
         "lustre": ["resinous","greasy"],
         "notes": null,
         "source": "webmineral+HOM 2026-07-02"
@@ -9149,6 +9201,7 @@
       "optics": {
         "diaphaneity": "opaque",
         "clarity": 0.00,
+        "reflectance": 53.9,
         "lustre": ["metallic"],
         "notes": "pale copper-red; tarnishes gray to blackish",
         "source": "webmineral+HOM 2026-07-02"
@@ -9481,6 +9534,7 @@
       "optics": {
         "diaphaneity": "translucent_to_opaque",
         "clarity": 0.08,
+        "ior": 2.283,
         "lustre": ["greasy"],
         "notes": "real druses near-opaque green-black (paper range broader)",
         "source": "webmineral+HOM 2026-07-02"
@@ -9795,6 +9849,7 @@
       "optics": {
         "diaphaneity": "translucent",
         "clarity": 0.20,
+        "ior": 1.795,
         "lustre": ["vitreous","greasy"],
         "notes": "subtranslucent",
         "source": "webmineral+HOM 2026-07-02"
@@ -9922,6 +9977,7 @@
       "optics": {
         "diaphaneity": "transparent_to_translucent",
         "clarity": 0.60,
+        "ior": 1.589,
         "lustre": ["vitreous"],
         "notes": "pearly on cleavages; silky in fibrous habit; WM opaque endpoint rejected (outlier vs HOM+mindat)",
         "source": "webmineral+HOM 2026-07-02"
@@ -10048,6 +10104,7 @@
       "optics": {
         "diaphaneity": "transparent_to_translucent",
         "clarity": 0.65,
+        "ior": 1.61,
         "lustre": ["vitreous"],
         "notes": "pearly on cleavage; WM adamantine rejected (unsupported by HOM+mindat)",
         "source": "webmineral+HOM 2026-07-02"
@@ -10556,6 +10613,7 @@
       "optics": {
         "diaphaneity": "transparent_to_translucent",
         "clarity": 0.55,
+        "ior": 1.589,
         "lustre": ["vitreous","subadamantine"],
         "notes": "pearly on cleavages; dull on dehydration to metatorbernite",
         "source": "webmineral+HOM 2026-07-02"
@@ -10766,6 +10824,7 @@
       "optics": {
         "diaphaneity": "transparent_to_translucent",
         "clarity": 0.55,
+        "ior": 1.609,
         "lustre": ["vitreous"],
         "notes": "transparent fresh, translucent on dehydration",
         "source": "webmineral+HOM 2026-07-02"
@@ -10977,6 +11036,7 @@
       "optics": {
         "diaphaneity": "translucent_to_opaque",
         "clarity": 0.05,
+        "ior": 1.915,
         "lustre": ["dull","earthy"],
         "notes": "semitransparent micro-flakes but the aggregate is an opaque powder; silky when crystalline; WM pearly = flake-face reading",
         "source": "webmineral+HOM 2026-07-02"
@@ -11261,6 +11321,7 @@
       "optics": {
         "diaphaneity": "transparent_to_translucent",
         "clarity": 0.55,
+        "ior": 1.568,
         "lustre": ["vitreous"],
         "notes": "pearly on {001} — the broad basal face of the square plates",
         "source": "webmineral+HOM 2026-07-02"
@@ -11491,6 +11552,7 @@
       "optics": {
         "diaphaneity": "translucent_to_opaque",
         "clarity": 0.15,
+        "ior": 1.847,
         "lustre": ["adamantine"],
         "notes": "pearly on {001}; dull-waxy massive",
         "source": "webmineral+HOM 2026-07-02"
@@ -11707,6 +11769,7 @@
       "optics": {
         "diaphaneity": "translucent",
         "clarity": 0.50,
+        "ior": 1.576,
         "lustre": ["waxy"],
         "notes": "semitransparent; pearly on {001}",
         "source": "webmineral+HOM 2026-07-02"
@@ -11930,6 +11993,7 @@
       "optics": {
         "diaphaneity": "transparent",
         "clarity": 0.85,
+        "ior": 1.544,
         "lustre": ["vitreous"],
         "notes": null,
         "source": "webmineral+HOM 2026-07-02"
@@ -12053,6 +12117,7 @@
       "optics": {
         "diaphaneity": "translucent_to_opaque",
         "clarity": 0.55,
+        "ior": 1.463,
         "lustre": ["vitreous","resinous"],
         "notes": "may be earthy (dehydration skin); fresh-grown nearer 0.70; WM greasy rejected (HOM+mindat)",
         "source": "webmineral+HOM 2026-07-02"
@@ -12156,6 +12221,7 @@
       "optics": {
         "diaphaneity": "translucent_to_opaque",
         "clarity": 0.10,
+        "ior": 1.463,
         "lustre": ["dull","earthy"],
         "notes": "typical chalky pseudomorph after borax; rare fresh rhombohedral crystals would read ~0.5 vitreous (form-dependent, both sources true)",
         "source": "webmineral+HOM 2026-07-02"
@@ -12227,6 +12293,7 @@
       "optics": {
         "diaphaneity": "transparent_to_opaque",
         "clarity": 0.75,
+        "ior": 1.408,
         "lustre": ["vitreous"],
         "notes": "fresh; opaque end = dehydration to thenardite powder",
         "source": "webmineral+HOM 2026-07-02"
@@ -12320,6 +12387,7 @@
       "optics": {
         "diaphaneity": "transparent_to_translucent",
         "clarity": 0.50,
+        "ior": 1.477,
         "lustre": ["vitreous","resinous"],
         "notes": null,
         "source": "webmineral+HOM 2026-07-02"
@@ -12655,6 +12723,7 @@
       "optics": {
         "diaphaneity": "translucent",
         "clarity": 0.40,
+        "ior": 1.547,
         "lustre": ["greasy","waxy"],
         "notes": "chalcedony variety — verified at quartz-species + variety level (no species page exists)",
         "source": "webmineral+HOM 2026-07-02"
@@ -12758,6 +12827,7 @@
       "optics": {
         "diaphaneity": "transparent_to_translucent",
         "clarity": 0.80,
+        "ior": 1.632,
         "lustre": ["vitreous","subresinous"],
         "notes": null,
         "source": "webmineral+HOM 2026-07-02"
@@ -13172,6 +13242,7 @@
       "optics": {
         "diaphaneity": "transparent_to_opaque",
         "clarity": 0.15,
+        "ior": 2.032,
         "lustre": ["adamantine"],
         "notes": "adamantine-metallic splendent; greasy on fractures; dark body — thin-edge red-brown internal reflections only, commonly zoned",
         "source": "webmineral+HOM 2026-07-02"
@@ -13475,6 +13546,7 @@
       "optics": {
         "diaphaneity": "transparent_to_translucent",
         "clarity": 0.50,
+        "ior": 1.835,
         "lustre": ["vitreous","subadamantine"],
         "notes": null,
         "source": "webmineral+HOM 2026-07-02"
@@ -13520,6 +13592,7 @@
       "optics": {
         "diaphaneity": "transparent_to_translucent",
         "clarity": 0.45,
+        "ior": 1.864,
         "lustre": ["vitreous","resinous"],
         "notes": null,
         "source": "webmineral+HOM 2026-07-02"
@@ -13565,6 +13638,7 @@
       "optics": {
         "diaphaneity": "transparent_to_translucent",
         "clarity": 0.60,
+        "ior": 1.963,
         "lustre": ["resinous","adamantine"],
         "notes": "pearly on {001}",
         "source": "webmineral+HOM 2026-07-02"
@@ -14046,6 +14120,7 @@
       "optics": {
         "diaphaneity": "translucent",
         "clarity": 0.50,
+        "ior": 2.989,
         "lustre": ["adamantine"],
         "notes": "to transparent; darkens on light exposure (ruby silver)",
         "source": "webmineral+HOM 2026-07-02"
@@ -15701,6 +15776,7 @@
       "optics": {
         "diaphaneity": "transparent_to_opaque",
         "clarity": 0.55,
+        "ior": 3.022,
         "lustre": ["adamantine"],
         "notes": "transparent in thin pieces; inclining to metallic when dark; dull friable",
         "source": "webmineral+HOM 2026-07-02"
@@ -15804,6 +15880,7 @@
       "optics": {
         "diaphaneity": "transparent_to_translucent",
         "clarity": 0.60,
+        "ior": 2.642,
         "lustre": ["resinous","greasy"],
         "notes": "transparent WHEN FRESH — light exposure degrades toward pararealgar; WM submetallic rejected (outlier)",
         "source": "webmineral+HOM 2026-07-02"
@@ -15914,6 +15991,7 @@
       "optics": {
         "diaphaneity": "transparent_to_translucent",
         "clarity": 0.55,
+        "ior": 2.743,
         "lustre": ["resinous"],
         "notes": "pearly on {010} cleavage",
         "source": "webmineral+HOM 2026-07-02"
@@ -16024,6 +16102,7 @@
       "optics": {
         "diaphaneity": "translucent",
         "clarity": 0.12,
+        "ior": 2.02,
         "lustre": ["vitreous","resinous"],
         "notes": "typically bright-yellow powder; coarsely-granular reads translucent (HOM-only row — WM lacks the field)",
         "source": "webmineral+HOM 2026-07-02"
@@ -16769,6 +16848,7 @@
       "optics": {
         "diaphaneity": "transparent_to_translucent",
         "clarity": 0.78,
+        "ior": 1.65,
         "lustre": ["vitreous"],
         "notes": "rarely subresinous on fracture",
         "source": "webmineral+HOM 2026-07-02"
@@ -16898,6 +16978,7 @@
       "optics": {
         "diaphaneity": "transparent_to_translucent",
         "clarity": 0.55,
+        "ior": 1.72,
         "lustre": ["vitreous","resinous"],
         "notes": "WM subtransparent-only rejected — Jeffrey-mine material is genuinely transparent",
         "source": "webmineral+HOM 2026-07-02"
@@ -17038,6 +17119,7 @@
       "optics": {
         "diaphaneity": "transparent_to_opaque",
         "clarity": 0.72,
+        "ior": 1.742,
         "lustre": ["vitreous","resinous"],
         "notes": null,
         "source": "webmineral+HOM 2026-07-02"
@@ -17161,6 +17243,7 @@
       "optics": {
         "diaphaneity": "transparent_to_opaque",
         "clarity": 0.58,
+        "ior": 1.693,
         "lustre": ["vitreous"],
         "notes": "or dull",
         "source": "webmineral+HOM 2026-07-02"
@@ -17290,6 +17373,7 @@
       "optics": {
         "diaphaneity": "translucent_to_opaque",
         "clarity": 0.35,
+        "ior": 1.616,
         "lustre": ["silky","subvitreous"],
         "notes": "fibrous/radiating",
         "source": "webmineral+HOM 2026-07-02"
@@ -17405,6 +17489,7 @@
       "optics": {
         "diaphaneity": "transparent_to_translucent",
         "clarity": 0.30,
+        "ior": 1.64,
         "lustre": ["vitreous"],
         "notes": "pearly on {100} cleavage; silky when parallel-fibrous (habit-split, both sources kept)",
         "source": "webmineral+HOM 2026-07-02"
@@ -17513,6 +17598,7 @@
       "optics": {
         "diaphaneity": "translucent",
         "clarity": 0.52,
+        "ior": 1.635,
         "lustre": ["vitreous"],
         "notes": "semitransparent end; weak pearly on {001}",
         "source": "webmineral+HOM 2026-07-02"
@@ -17633,6 +17719,7 @@
       "optics": {
         "diaphaneity": "transparent_to_translucent",
         "clarity": 0.62,
+        "ior": 1.492,
         "lustre": ["vitreous"],
         "notes": "pearly on {010} — the name MEANS lustre",
         "source": "webmineral+HOM 2026-07-02"
@@ -17755,6 +17842,7 @@
       "optics": {
         "diaphaneity": "transparent_to_translucent",
         "clarity": 0.60,
+        "ior": 1.495,
         "lustre": ["vitreous"],
         "notes": "pearly on {010}",
         "source": "webmineral+HOM 2026-07-02"
@@ -17874,6 +17962,7 @@
       "optics": {
         "diaphaneity": "transparent_to_translucent",
         "clarity": 0.60,
+        "ior": 1.516,
         "lustre": ["vitreous"],
         "notes": "silky when fibrous",
         "source": "webmineral+HOM 2026-07-02"
@@ -17989,6 +18078,7 @@
       "optics": {
         "diaphaneity": "transparent_to_translucent",
         "clarity": 0.50,
+        "ior": 1.505,
         "lustre": ["vitreous"],
         "notes": "silky when fibrous; opaque in porcelaneous masses",
         "source": "webmineral+HOM 2026-07-02"
@@ -18106,6 +18196,7 @@
       "optics": {
         "diaphaneity": "transparent_to_translucent",
         "clarity": 0.45,
+        "ior": 1.524,
         "lustre": ["vitreous"],
         "notes": "to somewhat pearly",
         "source": "webmineral+HOM 2026-07-02"
@@ -18224,6 +18315,7 @@
       "optics": {
         "diaphaneity": "transparent_to_translucent",
         "clarity": 0.70,
+        "ior": 1.484,
         "lustre": ["vitreous"],
         "notes": null,
         "source": "webmineral+HOM 2026-07-02"
@@ -18338,6 +18430,7 @@
       "optics": {
         "diaphaneity": "transparent_to_opaque",
         "clarity": 0.35,
+        "ior": 1.754,
         "lustre": ["vitreous"],
         "notes": "pearly on cleavage, somewhat resinous; dark pistachio body",
         "source": "webmineral+HOM 2026-07-02"
@@ -18467,6 +18560,7 @@
       "optics": {
         "diaphaneity": "transparent_to_opaque",
         "clarity": 0.60,
+        "ior": 1.958,
         "lustre": ["adamantine","resinous"],
         "notes": null,
         "source": "webmineral+HOM 2026-07-02"
@@ -18583,6 +18677,7 @@
       "optics": {
         "diaphaneity": "translucent",
         "clarity": 0.20,
+        "ior": 1.559,
         "lustre": ["silky"],
         "notes": "fibrous aggregates",
         "source": "webmineral+HOM 2026-07-02"
@@ -18683,6 +18778,7 @@
       "optics": {
         "diaphaneity": "transparent",
         "clarity": 0.55,
+        "ior": 1.567,
         "lustre": ["waxy"],
         "notes": "pearly on cleavage (HOM); typical display brucite glows translucent rather than reading glass-clear",
         "source": "webmineral+HOM 2026-07-02"
@@ -18930,6 +19026,7 @@
       "optics": {
         "diaphaneity": "transparent_to_translucent",
         "clarity": 0.35,
+        "ior": 1.634,
         "lustre": ["vitreous"],
         "notes": "silky when fibrous/asbestiform",
         "source": "webmineral+HOM 2026-07-02"

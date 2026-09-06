@@ -278,6 +278,7 @@ buildCrystalMaterial(spec, crystal, state) -> THREE.MeshPhysicalMaterial
 - No colour changes at all — class_color untouched, smoky/amethyst stay Depth-C.
 - No per-crystal clarity modulation (habit/chemistry slots reserved).
 - No transmission/refraction/dispersion, ever, without a new boss decision.
+  *(Superseded 2026-09-05/06: the decision was taken — visual-realism review D1 (`PROPOSAL-HOSTILE-REVIEW-VISUAL-REALISM-2026-09-04.md` §10) — and R2 ships real transmission with the species' measured mean refractive index (`optics.ior`) and Beer–Lambert body colour over the crystal's own thickness; the alpha mapping above survives verbatim as the low-performance tier. Lustre (Depth-B) is consumed by the same rung: `optics.lustre` → roughness/metalness/sheen, metals at their measured reflectance (`optics.reflectance`). Dispersion is still not drawn — the vendored three r163 has no `dispersion` property.)*
 
 ## 5. Verification plan (the instrument is part of the deliverable)
 
