@@ -292,6 +292,20 @@ single execution ledger for the science-first AAA completion branch.
   one build: orb subject luminance ×0.88–1.53 (median 1.14), edges up on 39/41. Acceptance
   restated: highlights need R2's materials (alpha caps a clipped reflection near L 200); under
   `--experiment opaque,polish` hero highlights 0.0023, mirror ball 0.016. Doc §5 R1, §3.4, F14.
+  **R2 ✅ 2026-09-06** (branch `render/r2-materials`, stacked on R1): materials that behave like
+  minerals — `optics.ior` (85 species, mean principal index, webmineral-verified by
+  `tools/optics-ior-verify.mjs`) drives real transmission with Beer–Lambert body colour over the
+  crystal's own extent; `optics.lustre` (95 species) reaches the pixels through one table
+  (metallic → metalness 1 at the measured reflectance `optics.reflectance`, Handbook-of-Mineralogy
+  R tables via `tools/optics-reflectance-verify.mjs`; adamantine/vitreous/resinous → roughness
+  0.06/0.09/0.22 with F0 from the IOR; pearly → sheen); Depth-A's alpha survives as the
+  low-performance tier (mobile, lighting fallback, the step-down gate's second rung). Glass
+  needs an opaque backdrop in three's transmission buffer, so the ACTIVE tier follows the wall
+  (orb view alpha, inside/specimen view glass). Elmwood hero frames on one build, R2 vs the
+  legacy heuristics: edges ×1.5–5.5, inside-silhouette luminance 0.65–0.75× (a clear crystal
+  shows its attenuated, refracted shadowed wall, not a 50 % ghost), fluorite hero highlights
+  0 → 0.0009; galena inside-silhouette L 11 → 37 in the cave room (0.0068 highlights under the
+  studio mood — the R6 number). Doc §5 R2, §3.5.
 
 ## P4 — release systems that can be prepared locally
 

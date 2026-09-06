@@ -611,6 +611,21 @@ const EXPORTS = [
   'LIGHTING_SHADOW_MAP_MIN',
   'LIGHTING_SLOW_RENDER_MS',
   'LIGHTING_SLOW_RENDER_STREAK',
+  // R2 optics (2026-09-06, 99i-renderer-three.ts) — the lustre/IOR tables and the
+  // transmission-tier constants; opticsMaterialParamsFor and friends are functions.
+  'OPTICS_TRANSLUCENCY_SPAN',
+  'OPTICS_LUSTRE_TABLE',
+  'OPTICS_CLASS_LUSTRE',
+  'OPTICS_CLASS_IOR',
+  'OPTICS_IOR_DEFAULT',
+  'OPTICS_TRANSMISSION_MIN_CLARITY',
+  'OPTICS_TRANSMISSION_FLOOR',
+  'OPTICS_ATTENUATION_BASE',
+  'OPTICS_ATTENUATION_SPAN',
+  'OPTICS_THICKNESS_FRACTION',
+  'OPTICS_MOBILE_TIER',
+  'OPTICS_CLASS_REFLECTANCE',
+  'OPTICS_REFLECTANCE_DEFAULT',
 ];
 
 // Bundle source cache. Vitest re-imports setup.ts every file even with

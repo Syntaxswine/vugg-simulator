@@ -73,6 +73,58 @@ describe('mineral optics blocks (Depth-A1 data lint)', () => {
     }
   });
 
+  // R2 (2026-09-06): the transmission tier reads optics.ior — the MEAN principal refractive
+  // index (uniaxial (2ω+ε)/3, biaxial (α+β+γ)/3, isotropic n), verified against webmineral's
+  // Optical Data line by tools/optics-ior-verify.mjs (three manual Handbook-of-Mineralogy
+  // values where webmineral has no line: spodumene, wollastonite, pararealgar).
+  it('R2: every species that can transmit (clarity > 0.15) carries a mean refractive index in [1.3, 3.5]', () => {
+    for (const [name, m] of withOptics) {
+      const o = m.optics;
+      if (o.ior !== undefined) {
+        expect(typeof o.ior, `${name}: ior type`).toBe('number');
+        expect(o.ior, `${name}: ior ≥ 1.3`).toBeGreaterThanOrEqual(1.3);
+        expect(o.ior, `${name}: ior ≤ 3.5`).toBeLessThanOrEqual(3.5);
+      }
+      if (o.clarity > 0.15) {
+        expect(typeof o.ior, `${name}: transmissive species without ior (run tools/optics-ior-verify.mjs)`).toBe('number');
+      }
+    }
+  });
+
+  // R2: a metal's F0 is its reflectance at normal incidence — optics.reflectance (per cent,
+  // R at 589 nm in air; Handbook of Mineralogy R tables via tools/optics-reflectance-verify.mjs)
+  it('R2: every metallic/submetallic block carries a measured reflectance in [3, 100] %', () => {
+    for (const [name, m] of withOptics) {
+      const o = m.optics;
+      if (o.reflectance !== undefined) {
+        expect(typeof o.reflectance, `${name}: reflectance type`).toBe('number');
+        expect(o.reflectance, `${name}: reflectance ≥ 3`).toBeGreaterThanOrEqual(3);
+        expect(o.reflectance, `${name}: reflectance ≤ 100`).toBeLessThanOrEqual(100);
+      }
+      if (/^(sub)?metallic$/.test(o.lustre[0])) {
+        expect(typeof o.reflectance, `${name}: metallic lustre without reflectance (run tools/optics-reflectance-verify.mjs)`).toBe('number');
+      }
+    }
+    // benchmarks — the ore-microscopy numbers everyone knows
+    expect(MINERALS.galena.optics.reflectance).toBeGreaterThan(40);
+    expect(MINERALS.galena.optics.reflectance).toBeLessThan(46);
+    expect(MINERALS.pyrite.optics.reflectance).toBeGreaterThan(50);
+    expect(MINERALS.native_silver.optics.reflectance).toBeGreaterThan(85);
+  });
+
+  it('R2 benchmarks: quartz 1.547, calcite 1.595, fluorite 1.433, sphalerite 2.40, cerussite 1.984, selenite 1.524', () => {
+    expect(MINERALS.quartz.optics.ior).toBeCloseTo(1.547, 3);
+    expect(MINERALS.calcite.optics.ior).toBeCloseTo(1.595, 3);     // (2·1.65 + 1.486)/3 — the mean, not ω
+    expect(MINERALS.fluorite.optics.ior).toBeCloseTo(1.433, 3);
+    expect(MINERALS.sphalerite.optics.ior).toBeCloseTo(2.40, 2);
+    expect(MINERALS.cerussite.optics.ior).toBeCloseTo(1.984, 3);
+    expect(MINERALS.selenite.optics.ior).toBeCloseTo(1.524, 3);
+    // the metallic opaques carry none — they are read by reflectance, not refraction
+    for (const name of ['galena', 'pyrite', 'chalcopyrite', 'stibnite', 'native_gold']) {
+      expect(MINERALS[name].optics.ior, name).toBeUndefined();
+    }
+  });
+
   it('lustre face-notes preserved for the famous cases (Depth-B consumers)', () => {
     expect(MINERALS.apophyllite.optics.notes).toMatch(/pearly on \{001\}/);
     expect(MINERALS.selenite.optics.notes).toMatch(/pearly on \{010\}/);

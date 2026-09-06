@@ -45,7 +45,28 @@ Living list of open work items, captured from session conversations so context s
 > mirror ball shows the room at 0.016, so the criterion moves to R2. Rig: `--mood`, `--exposure`,
 > `--experiment legacylight|polish|opaque|mirror|wall2side`, a lighting receipt per frame,
 > `subject_luminance`. Tests: `lighting-rig.test.ts` (15) + `matrix-skin` re-pinned to DoubleSide.
-> **Next: R2** (transmission + the lustre consumer), then R6.
+> **R2 SHIPPED 2026-09-06 (branch `render/r2-materials`, stacked on R1):** materials that behave
+> like minerals. Data first — `optics.ior` (85 species, the mean principal refractive index read
+> from webmineral's Optical Data line by `tools/optics-ior-verify.mjs`, gate-checked against the
+> source) and `optics.reflectance` (the 12 metallic blocks, R at 589 nm from the Handbook of
+> Mineralogy tables via `tools/optics-reflectance-verify.mjs`). The 95 lustre terms reach the
+> pixels through one table: metals at metalness 1 with F0 = the lexicon hue at the MEASURED
+> reflectance (a swatch is dark because a metal mirrors a dark surround; galena 0.18 → 0.43);
+> adamantine/vitreous/resinous/waxy/dull at their own roughness with F0 from the IOR; pearly →
+> sheen. Transparent species (clarity > 0.15) are real glass: transmission, `ior`, Beer–Lambert
+> attenuation over the crystal's own extent, opacity 1, depth write on — F5's paper cut-outs are
+> gone. Depth-A's alpha survives verbatim as the low-performance tier (mobile, lighting fallback,
+> the step-down gate's second rung). **Found on the way:** three.js draws only opaque objects
+> into its transmission buffer, so glass over the orb's translucent shell showed black holes —
+> the ACTIVE tier now follows the wall (alpha in the orb view, glass inside the cavity and in the
+> R6 specimen view). Same-build hero frames vs the legacy heuristics (`--experiment
+> legacylustre`): edges ×1.5–5.5, a clear crystal 0.65–0.75× as bright inside its silhouette
+> (it shows its attenuated, refracted, shadowed wall, not a 50 % ghost), fluorite hero highlights
+> 0 → 0.0009, galena inside-silhouette L 11 → 37 in the cave room and 0.0068 highlights under
+> the studio mood. Rig: `--tier`, `--probe seethrough` (silhouette mask + wall-hidden frame →
+> inside-silhouette statistics), `--experiment legacylustre`, an optics receipt per frame.
+> Tests: `optics-r2-materials.test.ts` (36) + the optics lint requires ior/reflectance.
+> **Next: R6** (the specimen view — where metals get a lamp to mirror), then R5.
 
 > ## 🧬 CODEX SIM 271 INTEGRATION + THE LINE-ENDING FINDING (2026-08-18) — **branch `integrate/codex-sulfur-valence` — `FINDING-EVIDENCE-LINE-ENDINGS-2026-08-18.md`**
 >
