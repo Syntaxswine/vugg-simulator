@@ -39,8 +39,9 @@ describe('authenticated public-control guided tutorial journeys', () => {
     expect(receipt.payload.journeys.simulation.collected)
       .toEqual({
         // Stream-position id (QA-pinned Math.random shared with three.js UUIDs); re-pinned
-        // 2026-09-05 with tools/guided-tutorial-browser-receipt.mjs — see review F13.
-        record_id: 'cry-16-rt2',
+        // 2026-09-05 with tools/guided-tutorial-browser-receipt.mjs — see review F13 — and
+        // again the same day for the R1 lighting rig's init-time allocations.
+        record_id: 'cry-16-g8q',
         name: '<img data-vugg-player-name-probe src=x onerror="globalThis.__vuggPlayerNameInjection=1">',
         mineral: 'topaz',
         source_scenario: 'shigar_pegmatite',

@@ -78,19 +78,24 @@ const EXPECTED_GEOLOGY = Object.freeze({
   save_load: Object.freeze({
     runtime: 'fortress', scenario: 'tutorial_travertine', step: 1,
     fingerprint: '90dff7024c93d11fa90285ff9ea026c8bf722b1cbfc584bdae68538658652c23',
-    run_id: 'save-16-i77',
+    // Save ids are positions in the QA-pinned Math.random stream that three.js also draws
+    // UUIDs from. Re-pinned 2026-09-05 for the R1 lighting rig (review §5 R1): the PMREM room,
+    // its panels and the key's target are allocated at renderer init, before any save id is
+    // drawn, so every save id moved while every fingerprint (the geology) stayed. Review F13.
+    run_id: 'save-16-7xz',
   }),
   creative_completion: Object.freeze({
     runtime: 'fortress', scenario: 'tutorial_travertine', step: 50,
     fingerprint: '8c2eb2f17bf6355e14bfb98acaaaab16d451c26c89980cb3092edfb2af9e238e',
-    run_id: 'save-16-jua',
+    run_id: 'save-16-4dh',   // re-pinned 2026-09-05, R1 lighting rig allocations (see save_load)
   }),
   skip: Object.freeze({
     runtime: 'fortress', scenario: 'tutorial_mn_calcite', step: 0,
     fingerprint: '143c9a8881f813dc12baf49708c978b0fdb9e943b5c396149faaaa3ba99015a5',
     // Save ids draw from the QA-pinned Math.random stream shared with three.js UUIDs; the
-    // fingerprint (the geology) is unchanged. Re-pinned 2026-09-05 (review F13).
-    run_id: 'save-16-s6o',
+    // fingerprint (the geology) is unchanged. Re-pinned 2026-09-05 (review F13), and again
+    // the same day for the R1 lighting rig allocations (see save_load).
+    run_id: 'save-16-cfv',
   }),
   simulation_completion: Object.freeze({
     runtime: 'simulation', scenario: 'shigar_pegmatite', step: 70,
@@ -106,8 +111,9 @@ const EXPECTED_GEOLOGY = Object.freeze({
 // The collection id draws from the QA-pinned Math.random stream, which three.js also consumes
 // for every object UUID it allocates; a render change that allocates a different number of
 // geometries/materials before the "Collect topaz" click shifts this suffix. Re-pinned
-// 2026-09-05 (review F13 records the coupling as canonical debt).
-const EXPECTED_COLLECTION_RECORD_ID = 'cry-16-rt2';
+// 2026-09-05 (review F13 records the coupling as canonical debt), and again the same day for
+// the R1 lighting rig (PMREM room + key target allocated at renderer init).
+const EXPECTED_COLLECTION_RECORD_ID = 'cry-16-g8q';
 const EXPECTED_COLLECTION_NAME = '<img data-vugg-player-name-probe src=x onerror="globalThis.__vuggPlayerNameInjection=1">';
 // Replaced with the exact SIM 285 values after the owned-browser source freeze.
 // Re-pinned 2026-09-05: the strip dataset records each crystal's surface-growth testimony

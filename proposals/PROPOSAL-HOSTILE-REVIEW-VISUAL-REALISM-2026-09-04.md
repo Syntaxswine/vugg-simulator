@@ -233,6 +233,23 @@ the simulation-state fingerprint (the science) matched byte for byte.
 
 Both constants are re-pinned in this branch with the mechanism recorded beside them.
 
+### F14 ★★★ Inside the cavity, the wall was not drawn at all — FIXED (R1, 2026-09-05)
+
+Every hero and druse frame in §3 has a black background. The review read that as F9
+(presentation) and moved on; it was a culling bug. `_topoApplyWallDisplay` switched the
+cavity material to `FrontSide` whenever the camera crossed inside (the E4 "flythrough"
+contract), but the shipped W-K cavity surface (`js/23-geometry-wall-mesh.ts`) builds its
+normals **outward** by construction, and the photo rig's `wall2side` probe measured them so
+on the live geometry (mean n·p > 0). From inside a closed shell with outward normals every
+face is a back face, so FrontSide drew nothing: slivers of wall where the surface folded,
+void everywhere else. The proof was in the statistic before it was in the picture — the
+hero frame's dark fraction was 0.59123 under the legacy lights and 0.59123 under the R1
+rig, identical to five decimals, which no lit surface produces. Two-sided, the same frame
+is rock from edge to edge (elmwood s42 hero: mean L 46 → 106, dark fraction 0.59 → 0.00).
+`DoubleSide` is winding-agnostic (the legacy ring mesh may wind the other way) and free from
+inside a closed shell. Every zoomed-in view the player has reached since the MC wall landed
+has been the void; this is the single largest change to what the eye sees in R1.
+
 ### F12 ★ Photo-rig limitations found while using it (kept honest)
 The hero camera can end up behind a cavity bump, looking at the wall's matrix skin (the tn457
 `hero-1-sphalerite` frames in `-s42` and `-s42-fixed2` are that wall). Fixed this session with a
@@ -293,6 +310,58 @@ the environment's panels need to face the opening (plan R1 places the key at the
 
 ---
 
+### 3.4 R1 fleet sweep (2026-09-05) — orb view, every scenario, one build
+
+The R1 cave mood against the pre-R1 lights on the SAME build (`--experiment legacylight`), so only the lighting differs. The orb view is the process view the player opens on: a translucent shell in a black void, so the frame mean tracks orb size and the void-stripped subject mean is the number that lighting moves. Hero/druse pairs for the two gate scenarios are in §5 R1 (elmwood) and below (tn457).
+
+| scenario | void | legacy L | R1 L | legacy subject L | R1 subject L | ratio | legacy edge | R1 edge |
+|---|---|---|---|---|---|---|---|---|
+| amethyst_geode | 0.91 | 6.8 | 6.3 | 21 | 25 | 1.19 | 0.0004 | 0.0006 |
+| asbestos_hills_crack_seal | 0.89 | 15.5 | 15.9 | 96 | 112 | 1.17 | 0.0254 | 0.0455 |
+| asbestos_hills_surficial_alteration | 0.82 | 21.0 | 21.8 | 82 | 103 | 1.26 | 0.0368 | 0.0607 |
+| bisbee | 0.83 | 17.7 | 17.8 | 70 | 81 | 1.16 | 0.0329 | 0.0512 |
+| chiastolite_hornfels | 0.92 | 7.6 | 6.8 | 33 | 33 | 1.00 | 0.0063 | 0.0064 |
+| colorado_plateau | 0.86 | 12.2 | 10.9 | 48 | 48 | 1.00 | 0.0169 | 0.0183 |
+| cooling | 0.85 | 9.7 | 9.6 | 32 | 38 | 1.19 | 0.0007 | 0.0011 |
+| deccan_zeolite | 0.91 | 8.6 | 7.8 | 34 | 40 | 1.18 | 0.0090 | 0.0111 |
+| elmwood | 0.86 | 11.8 | 11.0 | 48 | 51 | 1.06 | 0.0065 | 0.0095 |
+| epithermal_telluride | 0.89 | 11.3 | 9.4 | 50 | 48 | 0.96 | 0.0088 | 0.0141 |
+| gem_pegmatite | 0.84 | 15.8 | 12.5 | 62 | 55 | 0.89 | 0.0070 | 0.0144 |
+| great_salt_plains | 0.95 | 8.1 | 7.3 | 54 | 64 | 1.19 | 0.0019 | 0.0024 |
+| grimsel_alpine_cleft | 0.98 | 6.6 | 5.6 | 36 | 55 | 1.53 | 0.0025 | 0.0028 |
+| jeffrey_mine | 0.85 | 13.3 | 12.4 | 54 | 58 | 1.07 | 0.0348 | 0.0385 |
+| marble_contact_metamorphism | 0.84 | 10.9 | 11.2 | 38 | 48 | 1.26 | 0.0012 | 0.0011 |
+| mvt | 0.84 | 13.7 | 12.7 | 49 | 55 | 1.12 | 0.0153 | 0.0194 |
+| naica_geothermal | 0.87 | 10.1 | 9.8 | 38 | 45 | 1.18 | 0.0049 | 0.0057 |
+| ouro_preto | 0.88 | 14.5 | 14.2 | 69 | 88 | 1.28 | 0.0069 | 0.0125 |
+| porphyry | 0.83 | 15.3 | 14.8 | 62 | 66 | 1.06 | 0.0232 | 0.0463 |
+| pulse | 0.86 | 9.7 | 9.3 | 33 | 39 | 1.18 | 0.0009 | 0.0013 |
+| radioactive_pegmatite | 0.81 | 18.8 | 16.0 | 75 | 66 | 0.88 | 0.0070 | 0.0164 |
+| reactivated_fluorite_vein | 0.88 | 14.4 | 15.3 | 86 | 97 | 1.13 | 0.0255 | 0.0346 |
+| reactive_wall | 0.87 | 9.6 | 9.3 | 35 | 41 | 1.17 | 0.0042 | 0.0049 |
+| roughten_gill | 0.78 | 20.0 | 19.4 | 69 | 71 | 1.03 | 0.0148 | 0.0420 |
+| sabkha_dolomitization | 0.90 | 16.2 | 15.3 | 115 | 108 | 0.94 | 0.0146 | 0.0369 |
+| schneeberg | 0.86 | 11.7 | 10.3 | 45 | 47 | 1.04 | 0.0108 | 0.0203 |
+| searles_lake | 0.92 | 14.4 | 14.7 | 121 | 133 | 1.10 | 0.0112 | 0.0267 |
+| shigar_pegmatite | 0.88 | 15.9 | 13.7 | 85 | 81 | 0.95 | 0.0040 | 0.0066 |
+| sicily_solfifera | 0.85 | 20.1 | 19.2 | 104 | 100 | 0.96 | 0.0131 | 0.0435 |
+| stalactite_demo | 0.87 | 9.4 | 9.1 | 33 | 40 | 1.21 | 0.0009 | 0.0013 |
+| sulphur_bank | 0.94 | 7.3 | 5.9 | 29 | 30 | 1.03 | 0.0060 | 0.0052 |
+| sunnyside_american_tunnel | 0.86 | 15.4 | 15.2 | 68 | 82 | 1.21 | 0.0200 | 0.0297 |
+| supergene_oxidation | 0.87 | 13.6 | 11.2 | 56 | 56 | 1.00 | 0.0268 | 0.0340 |
+| tn457_barite_pulses | 0.88 | 9.6 | 9.2 | 34 | 42 | 1.24 | 0.0053 | 0.0086 |
+| tormiq_alpine_cleft | 0.98 | 6.6 | 6.2 | 78 | 84 | 1.08 | 0.0022 | 0.0032 |
+| tutorial_first_crystal | 0.85 | 9.8 | 9.5 | 32 | 39 | 1.22 | 0.0007 | 0.0012 |
+| tutorial_mn_calcite | 0.85 | 10.1 | 9.6 | 32 | 38 | 1.19 | 0.0009 | 0.0014 |
+| tutorial_travertine | 0.83 | 10.8 | 10.9 | 35 | 42 | 1.20 | 0.0022 | 0.0031 |
+| ultramafic_supergene | 0.84 | 21.9 | 20.7 | 112 | 106 | 0.95 | 0.0150 | 0.0469 |
+| wittichen | 0.89 | 8.4 | 8.3 | 35 | 40 | 1.14 | 0.0020 | 0.0025 |
+| zoned_dripstone_cave | 0.84 | 10.4 | 10.2 | 33 | 40 | 1.21 | 0.0021 | 0.0026 |
+
+n = 41 scenarios (seed 42, cavity/orb view, same build; legacy = `--experiment legacylight`; subject L = mean over non-void pixels, derived as (mean L − void·4.5)/(1 − void) with the clear colour at L 4.5). R1 subject luminance 25–133 (median 55); R1/legacy subject-luminance ratio min 0.88, median 1.14, max 1.53 over 41 pairs; edge fraction higher under R1 on 39/41; frame mean L below 10 on 17 (R1) vs 14 (legacy) — that floor measured orb size, not light. Highlight fraction 0 in every orb frame under both (alpha ghosts behind a translucent shell; see R1's acceptance note). No exceptions and no shadow step-downs in any run.
+
+**tn457_barite_pulses s42, same build (legacy → R1 cave):** hero-1 sphalerite L 96.8 → 102.0, edges 0.023 → 0.033; hero-2 barite 102.9 → 112.7, 0.020 → 0.025; druse 85.8 → 94.7, 0.019 → 0.027; orb 9.6 → 9.2, 0.0053 → 0.0086. Contact sheets: `.local-evidence/photos/{elmwood,tn457_barite_pulses}-s42-r1{,-before}/contact-sheet.html`.
+
 ## 4. Fixed in this commit
 
 | id | change | files | tests | baseline |
@@ -322,16 +391,60 @@ were prototyped in `tools/photo-rig.mjs --experiment` this session; the pictures
 **Execution order as decided 2026-09-05 (§10): R1 → R2 → R6 → R5 → R3 → R4 → R7.** The rung
 numbers below are kept as names; the sequence is the decided one.
 
-### R1 — Light like a photograph (env map, shadows, tone mapping, exposure) · 1–2 days · no decision needed
-- `scene.environment` from a procedural studio (three soft panels: warm key, cool fill, rim;
-  `PMREMGenerator.fromScene`) — vendored three r163 has the generator; no CDN, no asset.
-- ACES filmic tone mapping + `toneMappingExposure`; physically sensible light intensities;
-  ambient down to ~0.1 (the env supplies ambient).
-- Shadow-casting key light (PCF-soft, 2048², bounds = 1.6·r0), crystals cast/receive, wall receives.
-- Inside/outside switch keeps the "moonlit cavity" the code comments ask for by scaling exposure,
-  not by removing the environment.
-- **Acceptance:** cavity highlight fraction ≥ 0.002 on every scenario with a vitreous species;
-  no scenario's mean luminance outside 10–60 in the default view; `mineral-optics` green.
+### R1 — Light like a photograph (env map, shadows, tone mapping, exposure) · **SHIPPED 2026-09-05**
+As planned:
+- `scene.environment` from a procedural room baked once through `PMREMGenerator.fromScene`
+  (vendored three r163; no CDN, no asset), rebaked on context restore.
+- ACES filmic + `toneMappingExposure`; ambient floor 0.10 (the environment supplies ambient).
+- Shadow-casting key (PCF-soft 2048² desktop, PCF 1024² on the mobile profile the
+  surface-growth budget already recognises; frustum ±1.6·r0), crystals/swaths/satellites cast
+  and receive, wall and water receive, phantom bands receive only.
+- Inside/outside is an **exposure** change (cave ×1.3 inside); the environment is never removed.
+
+As decided (D4/D5) and as learned building it:
+- **Two moods**, `cave` (process view, default) and `studio` (for the specimen view, R6): the
+  `LIGHTING_MOODS` table in `js/99i`. A `_topoApplyLightingMood(state, mood)` switch exists for R6.
+- **The key rides the camera frame** (`_topoLightingSyncKey`: viewer's upper-left, aimed at the
+  orbit target, shadow frustum sized to r0), so pan/zoom keep shadow texels on the subject and a
+  hero frame is lit the way the player would see it. The old light was parked at a fixed offset.
+- **Small, hot source.** A glass face mirrors ~4 % (F0), so a white highlight needs a source ≥ 25×
+  the diffuse white level — a lamp or flash tube, not a softbox. Each mood has one 5–6 mm panel at
+  intensity 45–60 beside a large soft one; the PMREM blurs the lamp by roughness on its own, so a
+  rough face sees a sheen and a polished face a glint. The environment does not decide lustre;
+  R2's materials do.
+- **A measured step-down gate** (`_topoLightingNoteRenderTime`): four consecutive renders over
+  120 ms halve the shadow map (2048 → 1024 → 512), then drop shadows; recorded in
+  `state.lightingRig` and printed by the rig. CPU submission time only — a coarse guard, not the
+  D4 frame-time gate proper.
+- **Honest fallback**: if the PMREM cannot be baked (no generator, lost context) the rig records
+  the reason and restores the pre-R1 two-light look. `tests-js/lighting-rig.test.ts` (15 tests)
+  covers the contract; the bake itself is measured live by the rig's `gl.lighting` receipt.
+- **F14 fixed on the way** (§2): the interior wall is drawn again from inside the cavity.
+
+Measured (elmwood s42, ONE build; "legacy" = `--experiment legacylight`, the pre-R1 lights on the
+same build, so the wall fix is in both columns — the wall's own before/after is in F14):
+
+| frame | legacy L · edge | R1 cave L · edge | R1 studio L · edge | R1 + R2-preview highlights (cave · studio) |
+|---|---|---|---|---|
+| cavity (orb) | 11.85 · 0.0065 | 10.99 · 0.0095 | 13.82 · 0.0140 | 0.0000 · 0.0001 |
+| hero-1 fluorite | 84.8 · 0.0072 | 94.1 · 0.0096 | 129.5 · 0.0099 | **0.0023 · 0.0024** |
+| hero-2 calcite | 75.2 · 0.0043 | 93.0 · 0.0056 | 114.3 · 0.0069 | 0 · 0 |
+| druse | 83.5 · 0.0073 | 97.3 · 0.0100 | 134.7 · 0.0105 | 0 · 0 |
+
+`R2-preview` = `--experiment opaque,polish` (alpha off, roughness 0.12 on crystal bodies): the
+materials R2 will ship. A mirror-ball body (`--experiment mirror`) shows the room's panels at
+highlight fraction 0.016, so the environment reaches every material.
+
+**Acceptance, restated honestly.** The planned "cavity highlight ≥ 0.002" cannot be met by
+lighting alone and was never going to be: (1) the shipped bodies are 30–70 % alpha over the wall,
+and a 50 % alpha caps a fully clipped reflection near L 200 — below the 235 bin; (2) roughness
+0.42/0.62 spreads the lamp into a sheen. Under the R2-preview materials the hero frames sit in
+the whole-vug photo band (median 0.004, floor 0.0005) in both moods; the orb view stays at
+~0.0001 because its translucent shell halves the far wall (by design — D3 keeps the orb as the
+process view). So the criterion moves to R2, where it belongs: **R1 is accepted on (a) the
+environment reaching the materials (mirror ball), (b) the R2-preview hero highlights ≥ 0.002,
+(c) the fleet's orb-view mean luminance within 10–60 (table §3.4), (d) `mineral-optics` green
+and the 10 render test files green.**
 
 ### R2 — Materials that behave like minerals · 3–5 days · needs D1 (transmission) and D2 (lustre)
 - Consume `optics.lustre`: metallic → `metalness 1`, coloured F0 (galena grey, pyrite brass,

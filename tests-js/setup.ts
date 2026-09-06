@@ -603,6 +603,14 @@ const EXPORTS = [
   '_stripPresentImportedDataset', // commit-gated imported player product
   '_stripReadUploadedDataset', // pre-allocation size-gated file boundary
   'musicDebugState',  // v-music gain-path fix (2026-06-10) — probe surface
+  // R1 lighting rig (2026-09-05, 99i-renderer-three.ts) — the mood table and the
+  // shadow/step-down constants; the rig's functions are harvested like any other.
+  'LIGHTING_MOODS',
+  'LIGHTING_SHADOW_MAP_DESKTOP',
+  'LIGHTING_SHADOW_MAP_MOBILE',
+  'LIGHTING_SHADOW_MAP_MIN',
+  'LIGHTING_SLOW_RENDER_MS',
+  'LIGHTING_SLOW_RENDER_STREAK',
 ];
 
 // Bundle source cache. Vitest re-imports setup.ts every file even with

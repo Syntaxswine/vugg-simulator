@@ -1,8 +1,8 @@
 {
   "schema": "vugg-guided-tutorial-browser-receipt-v6",
   "sim_version": 285,
-  "browser_bundle_sha256": "458c2c3f0cf66df3266d16a3cf16c6f9d3ec165bded045afa597b4bb2ad5d2f8",
-  "execution_set_sha256": "06870d9f44b1822e3bea1283a4235beb5c7d71cf7d0d4ef7baf3f811e3410db3",
+  "browser_bundle_sha256": "451a32e9a2a9a805b993954490306124bf17dc420b7996e92d7586b04d5b0ed8",
+  "execution_set_sha256": "6745b0a6caf18d4bbb8ee89608ec6014b5c6d5b1b32b86d152ce0f71a8dc7ba1",
   "node_runtime": {
     "schema": "vugg-evidence-node-runtime-v1",
     "node": "24.15.0",
@@ -13,7 +13,7 @@
     "locale": "en-US"
   },
   "node_runtime_sha256": "b4bb27f2f1b62692b79844cbcc3df7c4966fa7cdc3106c81ce630a74b9a2e62c",
-  "producer_contract_sha256": "d0825fc9adb01d2f4881a6fa396d231cc3f195f09564d304a1df30bdd230d6b7",
+  "producer_contract_sha256": "64f3aa4faf765c4708a70cae0b86f72dfd29742147a7dcae664f5524e7f2e185",
   "payload": {
     "browser_runtime": {
       "schema": "vugg-owned-devtools-browser-runtime-v2",
@@ -107,14 +107,14 @@
             "scenario": "tutorial_travertine",
             "step": 50,
             "fingerprint": "8c2eb2f17bf6355e14bfb98acaaaab16d451c26c89980cb3092edfb2af9e238e",
-            "run_id": "save-16-jua"
+            "run_id": "save-16-4dh"
           },
           "after": {
             "runtime": "fortress",
             "scenario": "tutorial_travertine",
             "step": 50,
             "fingerprint": "8c2eb2f17bf6355e14bfb98acaaaab16d451c26c89980cb3092edfb2af9e238e",
-            "run_id": "save-16-jua"
+            "run_id": "save-16-4dh"
           }
         },
         "teardown": {
@@ -142,7 +142,7 @@
           "Finish tutorial"
         ],
         "collected": {
-          "record_id": "cry-16-rt2",
+          "record_id": "cry-16-g8q",
           "name": "<img data-vugg-player-name-probe src=x onerror=\"globalThis.__vuggPlayerNameInjection=1\">",
           "mineral": "topaz",
           "source_scenario": "shigar_pegmatite",
@@ -182,14 +182,14 @@
             "scenario": "tutorial_travertine",
             "step": 1,
             "fingerprint": "90dff7024c93d11fa90285ff9ea026c8bf722b1cbfc584bdae68538658652c23",
-            "run_id": "save-16-i77"
+            "run_id": "save-16-7xz"
           },
           "after": {
             "runtime": "fortress",
             "scenario": "tutorial_travertine",
             "step": 1,
             "fingerprint": "90dff7024c93d11fa90285ff9ea026c8bf722b1cbfc584bdae68538658652c23",
-            "run_id": "save-16-i77"
+            "run_id": "save-16-7xz"
           }
         },
         "tutorial_resurrected": false,
@@ -205,14 +205,14 @@
             "scenario": "tutorial_mn_calcite",
             "step": 0,
             "fingerprint": "143c9a8881f813dc12baf49708c978b0fdb9e943b5c396149faaaa3ba99015a5",
-            "run_id": "save-16-s6o"
+            "run_id": "save-16-cfv"
           },
           "after": {
             "runtime": "fortress",
             "scenario": "tutorial_mn_calcite",
             "step": 0,
             "fingerprint": "143c9a8881f813dc12baf49708c978b0fdb9e943b5c396149faaaa3ba99015a5",
-            "run_id": "save-16-s6o"
+            "run_id": "save-16-cfv"
           }
         },
         "callouts": 0,
@@ -221,7 +221,7 @@
       "player_surfaces": {
         "schema": "game04-player-surfaces-v2",
         "collection_record_groove": {
-          "record_id": "cry-16-rt2",
+          "record_id": "cry-16-g8q",
           "stored_name": "<img data-vugg-player-name-probe src=x onerror=\"globalThis.__vuggPlayerNameInjection=1\">",
           "library_name_text": "<img data-vugg-player-name-probe src=x onerror=\"globalThis.__vuggPlayerNameInjection=1\">",
           "groove_name_text": "“<img data-vugg-player-name-probe src=x onerror=\"globalThis.__vuggPlayerNameInjection=1\">”",
@@ -335,5 +335,5 @@
       }
     }
   },
-  "payload_sha256": "aecfc805e7166f8f534f276853c79c40beb7c4b57cda46c48b248be06717487c"
+  "payload_sha256": "2846857e9bc829fec198df64038a3455e29138f3612d09a6b9dcfb4d43c43def"
 }

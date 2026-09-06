@@ -101,15 +101,21 @@ function _topoInitThree(canvas: HTMLCanvasElement): any {
   camera.position.set(0, 0, 600);
   camera.lookAt(0, 0, 0);
 
-  // Lighting: ambient fills shadow side so the wireframe stays visible
-  // even on the back of the cavity; directional acts as the "opening"
-  // of the geode lighting the front face. Intensity tuned for a dim
-  // cavity vibe rather than studio-bright.
-  const ambient = new THREE.AmbientLight(0xffffff, 0.55);
+  // Lighting (R1, 2026-09-05 — see the LIGHTING RIG section below). The
+  // ambient is a floor so the shadow side never clips to black; the
+  // directional is the shadow-casting KEY, re-aimed every frame from the
+  // camera frame by _topoLightingSyncKey (its target must live in the scene
+  // for the shadow camera to follow the orbit aim). The image-based
+  // environment, tone mapping and shadow map are installed by
+  // _topoInstallLightingRig once the state object exists; if that fails
+  // (no PMREM support, lost context) the two lights fall back to the
+  // pre-R1 intensities (0.55 / 0.9) and the picture is the old one.
+  const ambient = new THREE.AmbientLight(0xffffff, LIGHTING_MOODS.cave.ambient);
   scene.add(ambient);
-  const directional = new THREE.DirectionalLight(0xffe6c0, 0.9);
+  const directional = new THREE.DirectionalLight(LIGHTING_MOODS.cave.keyColor, LIGHTING_MOODS.cave.key);
   directional.position.set(150, 300, 400);
   scene.add(directional);
+  scene.add(directional.target);
 
   // Cavity mesh — populated by _topoBuildCavityGeometry from wall.rings
   // on the first _topoRenderThree call once a sim exists. Empty geometry
@@ -150,6 +156,12 @@ function _topoInitThree(canvas: HTMLCanvasElement): any {
   if (typeof _applyWallReliefAO === 'function') _applyWallReliefAO(cavityMat);
   const cavity = new THREE.Mesh(cavityGeom, cavityMat);
   cavity.renderOrder = 0;     // paint cavity first; crystals layer on top
+  // R1: the wall RECEIVES the crystals' shadows (the contact darkening that
+  // makes a druse read as relief) but never casts — the key light must reach
+  // the interior through the near wall from the orb view, and from inside the
+  // wall is behind the viewer anyway.
+  cavity.receiveShadow = true;
+  cavity.castShadow = false;
   // Exclude the cavity from raycaster intersections — bare-wall
   // hovers in Three mode don't get a tooltip (parity with the
   // canvas-vector `_topoView3D` short-circuit), only crystal hits do.
@@ -233,6 +245,10 @@ function _topoInitThree(canvas: HTMLCanvasElement): any {
       // === END HELIX-OVERLAY-FORK ADDITION ===========================
     },
   };
+  // R1 lighting rig: environment map, tone mapping, shadow map (cave mood is
+  // the process-view default, decision D5). Needs the renderer + state, so it
+  // runs here rather than beside the lights above.
+  _topoInstallLightingRig(_topoThreeState, 'cave');
   // A lost WebGL context invalidates both the lazy Three.js upload and the raw
   // capability probe. Keep the Cartesian wall/clip pair fail-closed until the
   // restored context has independently passed the probe and upload receipt.
@@ -251,11 +267,324 @@ function _topoInitThree(canvas: HTMLCanvasElement): any {
     state.cavitySig = '';
     state.crystalsSig = '';
     if (state.crystals) state.crystals.visible = true;
+    // The PMREM environment and the shadow map died with the context; bake
+    // the current mood again on the restored one.
+    _topoInstallLightingRig(state, (state.lightingRig && state.lightingRig.mood) || 'cave', { rebuild: true });
     if (typeof requestAnimationFrame === 'function' && typeof topoRender === 'function') {
       requestAnimationFrame(() => topoRender());
     }
   });
   return _topoThreeState;
+}
+
+// ---------------------------------------------------------------------------
+// R1 LIGHTING RIG (2026-09-05) — light like a photograph.
+// Visual-realism review §5 R1 (proposals/PROPOSAL-HOSTILE-REVIEW-VISUAL-REALISM-
+// 2026-09-04.md) + decisions D4/D5 (§10). The shipped renderer lit every frame
+// with one ambient + one directional light — no environment, no shadows, no
+// tone mapping — so a MeshPhysicalMaterial had nothing to reflect: 40/40
+// photographed frames had a highlight fraction of 0 against a photograph
+// median of 0.010 (finding F2). This rig adds the three things a photograph
+// of a specimen has:
+//   1. an ENVIRONMENT — a procedural room of soft emissive panels baked once
+//      through PMREMGenerator into scene.environment. Every PBR face now
+//      carries a specular highlight, a Fresnel rim and image-based ambient.
+//   2. a SHADOW-CASTING KEY riding the camera frame (upper-left of the viewer,
+//      the way a cave is lit from its opening or the photographer's lamp).
+//      Its target and orthographic shadow frustum follow the orbit aim in
+//      _topoApplyCameraFromTilt, so pan and zoom keep the shadow texels on
+//      the subject.
+//   3. ACES filmic tone mapping + exposure, so the HDR result compresses the
+//      way film does instead of clipping. The inside-cavity "moonlit" feel is
+//      an EXPOSURE change; the environment is never removed (§5 R1).
+// Two moods (D5): `cave` is the process-view default — a dark rock room, one
+// warm key, a faint cool fill from the opening; darkness between readable
+// highlights. `studio` is the restrained photographic set the specimen view
+// (R6) will ask for; the review's prototype numbers (elmwood cavity highlights
+// 0 → 0.003, edges 0.010 → 0.030) were measured with those panels.
+// Failure is recorded, never fatal: a renderer that cannot bake the PMREM
+// (or has just lost its context) falls back to the pre-R1 two-light look and
+// says why in state.lightingRig.reason, which tools/photo-rig.mjs prints.
+// Performance (D4 spirit): the shadow map is 2048² on desktop, 1024² on the
+// mobile profile the surface-growth budget already recognises, and a measured
+// gate steps it down (2048 → 1024 → 512 → off) after four consecutive slow
+// renders. Render-only: no simulator consumer, no strip testimony.
+// ---------------------------------------------------------------------------
+type _LightingMood = 'cave' | 'studio';
+interface _LightingPanel { w: number; h: number; color: number; intensity: number; pos: [number, number, number]; }
+interface _LightingMoodSpec {
+  ambient: number;        // AmbientLight floor (the environment supplies the real ambient)
+  key: number;            // DirectionalLight intensity (physical lights: lux-like)
+  keyColor: number;
+  exposure: number;       // toneMappingExposure outside the cavity
+  insideExposure: number; // × when the camera is inside (the wall goes opaque and the scene darkens)
+  room: number;           // colour of the room shell the panels sit in (what dark faces reflect)
+  panels: _LightingPanel[];
+}
+const LIGHTING_MOODS: Record<_LightingMood, _LightingMoodSpec> = {
+  // Process view. A cave photographed by lamp: one warm key, a cool faint
+  // skylight fill from the opening, the barest rim; the room is dark rock so
+  // the reflections carry darkness between the highlights (D5: "moonlit
+  // darkness and readable specular highlights are compatible").
+  // Why the source is SMALL and INTENSE: a glass face reflects ~4 % of what it
+  // mirrors (F0 of quartz/calcite), so a white highlight needs a source ≥ 25×
+  // the diffuse white level — a lamp or a flash tube, not a softbox. A large
+  // soft panel gives the broad grey "windows" on faces; the small hot one gives
+  // the sparkle a druse shows in every photograph. The PMREM blurs the lamp by
+  // roughness on its own, so a rough face sees a sheen and a polished one a
+  // glint — the environment does not decide lustre, R2's materials do.
+  cave: {
+    ambient: 0.10, key: 1.4, keyColor: 0xffe2c4, exposure: 1.0, insideExposure: 1.3,
+    room: 0x0c0b0a,
+    panels: [
+      { w: 5, h: 5, color: 0xffe3c0, intensity: 60, pos: [16, 24, 22] },     // the lamp: small, hot, warm
+      { w: 26, h: 20, color: 0xffe8cf, intensity: 3.0, pos: [14, 22, 24] },  // its soft spill (a hand-held softbox)
+      { w: 34, h: 24, color: 0xc8d8f4, intensity: 1.2, pos: [-30, 4, 16] },  // cool fill from the opening
+      { w: 8, h: 4, color: 0xffffff, intensity: 8, pos: [-6, 12, -32] },     // a thin rim from behind
+      { w: 60, h: 60, color: 0x221e1a, intensity: 0.8, pos: [0, -44, 0] },   // floor bounce (dark rock)
+    ],
+  },
+  // Specimen view (R6). Restrained photographic studio: one flash head with a
+  // softbox, a cool fill, a rim — the review's prototype geometry with the
+  // source split into hot core + soft spill; not the jewellery-advert look.
+  studio: {
+    ambient: 0.12, key: 1.6, keyColor: 0xfff1dc, exposure: 1.0, insideExposure: 1.0,
+    room: 0x1a1816,
+    panels: [
+      { w: 6, h: 6, color: 0xfff1dc, intensity: 45, pos: [18, 26, 20] },     // flash head
+      { w: 30, h: 22, color: 0xfff1dc, intensity: 6.0, pos: [16, 24, 22] },  // its softbox
+      { w: 34, h: 26, color: 0xdfe9ff, intensity: 2.5, pos: [-30, 6, 14] },  // cool fill
+      { w: 24, h: 12, color: 0xffffff, intensity: 6.0, pos: [-6, 14, -32] }, // rim
+      { w: 60, h: 60, color: 0x2a2622, intensity: 1.2, pos: [0, -44, 0] },   // floor bounce
+    ],
+  },
+};
+const LIGHTING_SHADOW_MAP_DESKTOP = 2048;
+const LIGHTING_SHADOW_MAP_MOBILE = 1024;
+const LIGHTING_SHADOW_MAP_MIN = 512;
+const LIGHTING_SHADOW_BOUNDS_R0 = 1.6;   // orthographic half-extent of the shadow frustum, × cavity r0
+const LIGHTING_KEY_DISTANCE_R0 = 4.0;    // the key sits this many r0 from the aim along its direction
+const LIGHTING_SHADOW_BIAS = -0.0004;
+const LIGHTING_SHADOW_NORMAL_BIAS = 0.02; // mm — well under the 2 mm crystal floor
+// Step-down gate. CPU submission time of renderer.render; GPU stalls surface
+// here only when the command queue fills, so this is a coarse guard, not the
+// D4 frame-time gate proper. Four consecutive slow renders (the first frame's
+// shader compiles are excused by the streak) halve the map, then drop it.
+const LIGHTING_SLOW_RENDER_MS = 120;
+const LIGHTING_SLOW_RENDER_STREAK = 4;
+
+function _topoLightingIsMobile(): boolean {
+  return typeof window !== 'undefined'
+    && ((window.innerWidth || 1024) <= SURFACE_GROWTH_MOBILE_MAX_WIDTH_CSS_PX
+      || (window.devicePixelRatio || 1) >= SURFACE_GROWTH_MOBILE_MIN_DEVICE_PIXEL_RATIO);
+}
+
+// The procedural room, baked to a prefiltered environment. Radiance panels are
+// MeshBasicMaterial colours scaled past 1 (PMREM keeps HDR); the room shell is
+// what a dark, rough face reflects. Everything built here is disposed once the
+// texture exists — only the PMREM texture stays on the GPU.
+function _topoBuildEnvironmentTexture(renderer: any, spec: _LightingMoodSpec): any {
+  const room = new THREE.Scene();
+  const disposables: any[] = [];
+  const shellGeom = new THREE.SphereGeometry(50, 32, 16);
+  const shellMat = new THREE.MeshBasicMaterial({ color: spec.room, side: THREE.BackSide });
+  room.add(new THREE.Mesh(shellGeom, shellMat));
+  disposables.push(shellGeom, shellMat);
+  for (const p of spec.panels) {
+    const geom = new THREE.PlaneGeometry(p.w, p.h);
+    const mat = new THREE.MeshBasicMaterial({
+      color: new THREE.Color(p.color).multiplyScalar(p.intensity), side: THREE.DoubleSide,
+    });
+    const mesh = new THREE.Mesh(geom, mat);
+    mesh.position.set(p.pos[0], p.pos[1], p.pos[2]);
+    mesh.lookAt(0, 0, 0);
+    room.add(mesh);
+    disposables.push(geom, mat);
+  }
+  const pmrem = new THREE.PMREMGenerator(renderer);
+  try {
+    return pmrem.fromScene(room, 0.04).texture;
+  } finally {
+    pmrem.dispose();
+    for (const d of disposables) d.dispose();
+  }
+}
+
+// Tone mapping and environment changes need every program rebuilt; three
+// does not do that for a scene.environment swap on already-compiled materials.
+function _topoLightingMarkMaterials(state: any) {
+  if (!state || !state.scene) return;
+  state.scene.traverse((o: any) => {
+    if (!o.isMesh) return;
+    const mats = Array.isArray(o.material) ? o.material : [o.material];
+    for (const m of mats) if (m) m.needsUpdate = true;
+  });
+}
+
+// Shadow casting on the key follows the gate (castShadow toggles the light
+// count hash, so three refreshes programs by itself; renderer.shadowMap.enabled
+// stays true throughout — toggling THAT needs a manual needsUpdate sweep).
+function _topoLightingApplyGate(state: any) {
+  const light = state && state.directional;
+  const gate = state && state.lightingGate;
+  if (!light || !gate) return;
+  light.castShadow = !!gate.shadows;
+  if (!gate.shadows || !light.shadow) return;
+  if (light.shadow.mapSize.x !== gate.shadow_map) {
+    light.shadow.mapSize.set(gate.shadow_map, gate.shadow_map);
+    if (light.shadow.map) { light.shadow.map.dispose(); light.shadow.map = null; }
+  }
+  light.shadow.bias = LIGHTING_SHADOW_BIAS;
+  light.shadow.normalBias = LIGHTING_SHADOW_NORMAL_BIAS;
+}
+
+function _topoInstallLightingRig(state: any, mood: _LightingMood, opts: { rebuild?: boolean } = {}): any {
+  if (!state || !state.renderer || !state.scene) return null;
+  const spec = LIGHTING_MOODS[mood] || LIGHTING_MOODS.cave;
+  const prior = state.lightingRig;
+  if (prior && prior.mood === mood && prior.environment && !opts.rebuild) return prior;
+  const renderer = state.renderer;
+  const mobile = _topoLightingIsMobile();
+  const rig: any = {
+    mood, environment: false, reason: null, tone_mapping: 'none', exposure: 1,
+    shadows: false, shadow_map: 0, mobile, step_downs: 0,
+  };
+  // The previous mood's PMREM texture is GPU memory; drop it before baking the next.
+  if (state.scene.environment && typeof state.scene.environment.dispose === 'function') {
+    try { state.scene.environment.dispose(); } catch (_) { /* a lost context has nothing to free */ }
+  }
+  state.scene.environment = null;
+  try {
+    if (!THREE.PMREMGenerator) throw new Error('PMREMGenerator unavailable in this three build');
+    state.scene.environment = _topoBuildEnvironmentTexture(renderer, spec);
+    rig.environment = true;
+  } catch (error) {
+    rig.reason = error instanceof Error ? error.message : String(error || 'environment-bake-failed');
+    state.scene.environment = null;
+  }
+  if (rig.environment) {
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = spec.exposure * (state.insideMode ? spec.insideExposure : 1);
+    rig.tone_mapping = 'aces';
+    rig.exposure = renderer.toneMappingExposure;
+    if (state.ambient) state.ambient.intensity = spec.ambient;
+    if (state.directional) {
+      state.directional.color.set(spec.keyColor);
+      state.directional.intensity = spec.key;
+    }
+    const gate = state.lightingGate || (state.lightingGate = {
+      shadows: true,
+      shadow_map: mobile ? LIGHTING_SHADOW_MAP_MOBILE : LIGHTING_SHADOW_MAP_DESKTOP,
+      slow_renders: 0, step_downs: 0, last_render_ms: null,
+    });
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = mobile ? THREE.PCFShadowMap : THREE.PCFSoftShadowMap;
+    _topoLightingApplyGate(state);
+    rig.shadows = gate.shadows;
+    rig.shadow_map = gate.shadows ? gate.shadow_map : 0;
+    rig.step_downs = gate.step_downs;
+  } else {
+    // Pre-R1 two-light look, kept as the honest fallback: the picture the old
+    // code drew, with the old inside/outside intensities.
+    renderer.toneMapping = THREE.NoToneMapping;
+    renderer.toneMappingExposure = 1;
+    renderer.shadowMap.enabled = false;
+    if (state.ambient) state.ambient.intensity = state.insideMode ? 0.85 : 0.55;
+    if (state.directional) {
+      state.directional.color.set(0xffe6c0);
+      state.directional.intensity = state.insideMode ? 1.2 : 0.9;
+      state.directional.castShadow = false;
+    }
+  }
+  state.lightingRig = rig;
+  _topoLightingMarkMaterials(state);
+  return rig;
+}
+
+// Mood switch for the specimen view (R6) and the photo rig's A/B; re-renders.
+function _topoApplyLightingMood(state: any, mood: _LightingMood): any {
+  const rig = _topoInstallLightingRig(state, mood);
+  if (typeof topoRender === 'function') topoRender();
+  return rig;
+}
+
+// Inside/outside: an exposure change on the rig (the wall goes opaque and the
+// scene darkens; the environment stays). Without an environment, the pre-R1
+// intensity swap.
+function _topoLightingApplyInsideMode(state: any, inside: boolean) {
+  const rig = state && state.lightingRig;
+  if (rig && rig.environment && state.renderer) {
+    const spec = LIGHTING_MOODS[rig.mood as _LightingMood] || LIGHTING_MOODS.cave;
+    state.renderer.toneMappingExposure = spec.exposure * (inside ? spec.insideExposure : 1);
+    rig.exposure = state.renderer.toneMappingExposure;
+    return;
+  }
+  if (state && state.ambient) state.ambient.intensity = inside ? 0.85 : 0.55;
+  if (state && state.directional) state.directional.intensity = inside ? 1.2 : 0.9;
+}
+
+// Aim the key from the viewer's upper-left (back·1 + up·0.9 − right·0.6 in the
+// camera frame ≈ 42° above, 31° left of the view axis — the classic key), at
+// the orbit aim, and size the shadow frustum to the cavity. Called with the
+// game camera from _topoApplyCameraFromTilt and with a directly placed camera
+// by the photo rig, so a hero frame is lit the way the player would see it.
+function _topoLightingSyncKey(state: any, aimX: number, aimY: number, aimZ: number, r0: number) {
+  const light = state && state.directional;
+  const cam = state && state.camera;
+  if (!light || !cam) return;
+  cam.updateMatrixWorld(true);
+  const e = cam.matrixWorld.elements;
+  const rx = e[0], ry = e[1], rz = e[2];      // camera right
+  const ux = e[4], uy = e[5], uz = e[6];      // camera up
+  const bx = e[8], by = e[9], bz = e[10];     // camera back (toward the viewer)
+  let dx = bx + 0.9 * ux - 0.6 * rx;
+  let dy = by + 0.9 * uy - 0.6 * ry;
+  let dz = bz + 0.9 * uz - 0.6 * rz;
+  const dl = Math.sqrt(dx * dx + dy * dy + dz * dz) || 1;
+  dx /= dl; dy /= dl; dz /= dl;
+  const safeR0 = Math.max(5, Number(r0) || 25);
+  const dist = safeR0 * LIGHTING_KEY_DISTANCE_R0;
+  light.position.set(aimX + dx * dist, aimY + dy * dist, aimZ + dz * dist);
+  if (light.target) {
+    light.target.position.set(aimX, aimY, aimZ);
+    light.target.updateMatrixWorld(true);
+  }
+  if (light.castShadow && light.shadow && light.shadow.camera) {
+    const R = safeR0 * LIGHTING_SHADOW_BOUNDS_R0;
+    const far = dist + R * 2;   // reaches the far wall of a lumpy (≤ 1.67·r0) cavity
+    const sc = light.shadow.camera;
+    if (sc.right !== R || sc.far !== far) {
+      sc.left = -R; sc.right = R; sc.top = R; sc.bottom = -R;
+      sc.near = 0.5; sc.far = far;
+      sc.updateProjectionMatrix();
+    }
+  }
+}
+
+// Shadow flags at mesh birth (cheaper than a per-frame traverse; the crystal
+// group is rebuilt only when its signature changes).
+function _topoLightingTagMesh(obj: any, cast: boolean) {
+  if (!obj) return;
+  obj.castShadow = !!cast;
+  obj.receiveShadow = true;
+}
+
+function _topoLightingNoteRenderTime(state: any, ms: number) {
+  const gate = state && state.lightingGate;
+  const rig = state && state.lightingRig;
+  if (!gate || !rig || !rig.environment) return;
+  gate.last_render_ms = ms;
+  if (!gate.shadows) return;
+  if (ms > LIGHTING_SLOW_RENDER_MS) gate.slow_renders++; else gate.slow_renders = 0;
+  if (gate.slow_renders < LIGHTING_SLOW_RENDER_STREAK) return;
+  gate.slow_renders = 0;
+  gate.step_downs++;
+  if (gate.shadow_map > LIGHTING_SHADOW_MAP_MIN) gate.shadow_map = gate.shadow_map >> 1;
+  else gate.shadows = false;
+  _topoLightingApplyGate(state);
+  rig.shadows = gate.shadows;
+  rig.shadow_map = gate.shadows ? gate.shadow_map : 0;
+  rig.step_downs = gate.step_downs;
 }
 
 // Inject a sphere-distance discard into a MeshStandardMaterial via
@@ -586,6 +915,7 @@ function _topoSyncCavityWaterAppearance(state: any, source: any,
     water.name = 'authenticated-cavity-water-interface';
     water.renderOrder = 1;
     water.raycast = function() {};
+    water.receiveShadow = true;   // R1: crystals above the water line shade it; the sheet casts nothing
     state.scene.add(water);
     state.waterInterface = water;
     state.waterInterfaceClipVariant = clipVariant;
@@ -1348,7 +1678,9 @@ function _topoRenderPreparedCavityScene(state: any, installFallback: () => boole
     return false;
   }
   state.threeShaderUnusable = false;
+  const t0 = (typeof performance !== 'undefined' && typeof performance.now === 'function') ? performance.now() : 0;
   state.renderer.render(state.scene, state.camera);
+  if (t0) _topoLightingNoteRenderTime(state, performance.now() - t0);
   return true;
 }
 
@@ -4788,6 +5120,7 @@ function _surfaceGrowthWallPoint(
 // legacy trophy parent as well would depict one booked solid twice.
 function _addCrystalParentRepresentation(state: any, crystal: any, mesh: any): boolean {
   if (crystal?._surfaceGrowth) return false;
+  _topoLightingTagMesh(mesh, true);
   state.crystals.add(mesh);
   return true;
 }
@@ -4998,6 +5331,7 @@ function _emitSurfaceGrowthSwath(
     area_basis: record.area_basis,
     stratigraphic_index: record.stratigraphic_index,
   };
+  _topoLightingTagMesh(swath, true);
   state.crystals.add(swath);
   // Canonical desktop-density relief is intentionally independent of mobile
   // LOD; subsequent layers therefore sit on the same depicted substrate on
@@ -5215,6 +5549,7 @@ function _emitClusterSatellites(
       // === END HELIX-OVERLAY-FORK ADDITION ===========================
     };
     satMesh.renderOrder = 1;
+    _topoLightingTagMesh(satMesh, true);
     state.crystals.add(satMesh);
   }
 }
@@ -5718,6 +6053,8 @@ function _o5EmitMaskedBands(hostMesh: any, crystal: any, state?: any): void {
     bandMesh.renderOrder = (hostMesh.renderOrder || 0) + 1;
     bandMesh.raycast = function () {};
     bandMesh.userData = { o5Band: true, crystal_id: crystal.crystal_id, filmMineral: band.mineral };
+    // R1: a phantom band sits inside its host, which already casts; receive only.
+    _topoLightingTagMesh(bandMesh, false);
     hostMesh.add(bandMesh);
   }
 }
@@ -6763,11 +7100,9 @@ function _topoApplyCameraFromTilt(state: any, wall: any) {
   state.camera.position.set(camX + aimX, camY + aimY, camZ + aimZ);
   state.camera.up.set(0, 1, 0);
   state.camera.lookAt(aimX, aimY, aimZ);
-  // Light sits on the camera-side of the scene so the front face
-  // catches the highlight. Subtle moonlit-cavity vibe, not studio.
-  if (state.directional) {
-    state.directional.position.set(camX * 0.7 + 50, camY * 0.7 + 200, camZ * 0.7 + 100);
-  }
+  // R1: the key rides the camera frame (upper-left of the viewer) and aims at
+  // the orbit target, so its shadow frustum follows pan and zoom.
+  _topoLightingSyncKey(state, aimX, aimY, aimZ, r0);
   // Phase E4 inside-out detection. r0 already accounts for bubble-
   // merge bumps (max_seen_radius_mm × 0.6 is the conservative cavity
   // skin); when the camera distance falls below that we're inside the
@@ -6780,15 +7115,13 @@ function _topoApplyCameraFromTilt(state: any, wall: any) {
   if (inside && !state.insideMode) {
     state.insideMode = true;
     _topoApplyWallDisplay(state);
-    // Inside the cavity is darker — boost the ambient + warm the
-    // directional so crystal faces catch a flame-side glow.
-    if (state.ambient) state.ambient.intensity = 0.85;
-    if (state.directional) state.directional.intensity = 1.2;
+    // Inside the cavity is darker (the wall is now an opaque shell around the
+    // camera) — R1 opens the exposure; the environment stays (§5 R1).
+    _topoLightingApplyInsideMode(state, true);
   } else if (outside && state.insideMode) {
     state.insideMode = false;
     _topoApplyWallDisplay(state);
-    if (state.ambient) state.ambient.intensity = 0.55;
-    if (state.directional) state.directional.intensity = 0.9;
+    _topoLightingApplyInsideMode(state, false);
   }
 }
 
@@ -6814,7 +7147,16 @@ function _topoApplyWallDisplay(state: any) {
     mat.transparent = true;
     mat.depthWrite = false;
   } else if (state.insideMode) {
-    mat.side = THREE.FrontSide;
+    // R1 FIX (2026-09-05, photo-rig `wall2side` probe on elmwood s42): the
+    // shipped cavity surface's normals point OUTWARD (mean n·p > 0 over the
+    // vertices), so from inside the cavity every wall face is a back face and
+    // FrontSide culled the whole interior — hero/zoomed views floated in the
+    // clear colour with slivers of wall where it folded (dark fraction 0.59,
+    // identical under any lighting: nothing was drawn). Two-sided is correct
+    // for either winding (the legacy ring mesh may wind the other way), and
+    // from inside a closed shell it costs nothing extra: there are no front
+    // faces to draw. Measured: hero mean L 46 → 106, dark fraction 0.59 → 0.
+    mat.side = THREE.DoubleSide;
     mat.opacity = 1.0;
     mat.transparent = false;
     mat.depthWrite = true;

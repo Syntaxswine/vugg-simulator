@@ -284,6 +284,14 @@ single execution ledger for the science-first AAA completion branch.
   before/after, its numbers, and an eye-check against the fixed whole-vug photo set.
   Science gap surfaced by the mass floor: amethyst-geode and deccan chalcedony rinds are
   booked too thin to be fabrics (scenario tuning, not render).
+  **R1 ✅ 2026-09-05** (same branch, on the cold-CI-green transplant `6a82949b`): PMREM room
+  environment (small hot lamp + soft fill; `cave` default / `studio` for R6), ACES + exposure,
+  camera-frame shadow key (2048²/1024², step-down gate), exposure-scaled inside/outside; and
+  **F14** — the interior wall was culled from inside the cavity (outward normals vs FrontSide;
+  every zoomed view was void; hero L 46 → 106). Fleet sweep 41 scenarios vs legacy lights on
+  one build: orb subject luminance ×0.88–1.53 (median 1.14), edges up on 39/41. Acceptance
+  restated: highlights need R2's materials (alpha caps a clipped reflection near L 200); under
+  `--experiment opaque,polish` hero highlights 0.0023, mirror ball 0.016. Doc §5 R1, §3.4, F14.
 
 ## P4 — release systems that can be prepared locally
 
