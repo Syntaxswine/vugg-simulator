@@ -316,6 +316,13 @@ single execution ledger for the science-first AAA completion branch.
   float buffers), no DoF by reference. Edges in the photograph band on elmwood (0.041) and mvt
   (0.032), tn457 0.028 (content); galena/pyrite highlights 0.020 / 0.015 at +1 EV (≥ 0.01 met).
   Doc §5 R6, §3.6, F9 FIXED. Next: R5 (the wall), then R3.
+  **R5 ✅ 2026-09-07** (branch `render/r5-wall`, stacked on R6): a wall that is rock — F8 re-diagnosed
+  (relief families tiled up the shell + a hard-coded orange orientation palette, not the mesh); the
+  palette decoded to a shade, triplanar object-mm for both surfaces, two-scale anti-tiling, a spectral
+  grain under the genesis relief, per-lithology roughness and iron stain; `--probe wallperiod` (the
+  whitened wall-only power spectrum; photographs 1.19–1.48): elmwood druse wall 9.1 → 1.25, specimen
+  1.34 / edges 0.056; macro-wall edges honestly under 0.02 (R3's crust). Doc §5 R5, §3.7, F8 FIXED.
+  Next: R3, then R4.
 
 ## P4 — release systems that can be prepared locally
 

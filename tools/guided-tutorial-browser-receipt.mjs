@@ -82,12 +82,12 @@ const EXPECTED_GEOLOGY = Object.freeze({
     // UUIDs from. Re-pinned 2026-09-05 for the R1 lighting rig (review §5 R1): the PMREM room,
     // its panels and the key's target are allocated at renderer init, before any save id is
     // drawn, so every save id moved while every fingerprint (the geology) stayed. Review F13.
-    run_id: 'save-16-7xz',
+    run_id: 'save-16-2w5',   // re-pinned 2026-09-07: R5's grain normal map (a CanvasTexture) is allocated at renderer init (review F13)
   }),
   creative_completion: Object.freeze({
     runtime: 'fortress', scenario: 'tutorial_travertine', step: 50,
     fingerprint: '8c2eb2f17bf6355e14bfb98acaaaab16d451c26c89980cb3092edfb2af9e238e',
-    run_id: 'save-16-4dh',   // re-pinned 2026-09-05, R1 lighting rig allocations (see save_load)
+    run_id: 'save-16-33h',   // re-pinned 2026-09-05 (R1) and 2026-09-07 (R5 grain texture; see save_load)
   }),
   skip: Object.freeze({
     runtime: 'fortress', scenario: 'tutorial_mn_calcite', step: 0,
@@ -95,7 +95,7 @@ const EXPECTED_GEOLOGY = Object.freeze({
     // Save ids draw from the QA-pinned Math.random stream shared with three.js UUIDs; the
     // fingerprint (the geology) is unchanged. Re-pinned 2026-09-05 (review F13), and again
     // the same day for the R1 lighting rig allocations (see save_load).
-    run_id: 'save-16-cfv',
+    run_id: 'save-16-zkp',   // re-pinned 2026-09-07 for R5 (see save_load)
   }),
   simulation_completion: Object.freeze({
     runtime: 'simulation', scenario: 'shigar_pegmatite', step: 70,
@@ -113,7 +113,7 @@ const EXPECTED_GEOLOGY = Object.freeze({
 // geometries/materials before the "Collect topaz" click shifts this suffix. Re-pinned
 // 2026-09-05 (review F13 records the coupling as canonical debt), and again the same day for
 // the R1 lighting rig (PMREM room + key target allocated at renderer init).
-const EXPECTED_COLLECTION_RECORD_ID = 'cry-16-g8q';
+const EXPECTED_COLLECTION_RECORD_ID = 'cry-16-15q';   // re-pinned 2026-09-07: R5's grain texture at renderer init (F13)
 const EXPECTED_COLLECTION_NAME = '<img data-vugg-player-name-probe src=x onerror="globalThis.__vuggPlayerNameInjection=1">';
 // Replaced with the exact SIM 285 values after the owned-browser source freeze.
 // Re-pinned 2026-09-05: the strip dataset records each crystal's surface-growth testimony

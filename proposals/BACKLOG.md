@@ -83,8 +83,19 @@ Living list of open work items, captured from session conversations so context s
 > the way: a face that stays pale after its data is darkened is overexposed, not mis-wired — the
 > cloth is a grey card (irradiance ≈ 3 under the studio key); rock albedos were set from it.
 > Rig: `--view specimen`, `--ev`, `specimenoff:<part>` ablations, a specimen receipt per frame.
-> Tests: `specimen-view.test.ts` (20). **Next: R5** (the rock wall — in the specimen frame the
-> hammered honeycomb is now the largest thing on screen), then R3.
+> Tests: `specimen-view.test.ts` (20).
+> **R5 SHIPPED 2026-09-07 (branch `render/r5-wall`, stacked on R6):** a wall that is rock. The census
+> corrected F8: the ridges were the basin/comb/cleft RELIEF FAMILIES tiled up the lat-long shell (not
+> the mesh), the golf ball the scallops family at 5×5, and the orange a HARD-CODED orientation palette
+> in the vertex colours multiplied over every lithology's skin. Render-only, buffers untouched: the
+> palette is decoded into a ±8 % shade (water tint kept); skin, relief and grain sample in object
+> millimetres for both surfaces at two blended scales (nothing repeats in step); the genesis relief
+> stays as one octave at half strength; the rock under it is a spectral-synthesis grain (random-phase
+> sinusoids, |k|^-1.1 — a lattice noise showed rows, Worley grains read as hammered metal); roughness
+> per lithology modulated by the grain; an iron-stain mask per lithology + genesis. Instrument:
+> `--probe wallperiod` (wall-only whitened radial power spectrum; photographs 1.19–1.48). Elmwood druse
+> wall 9.1 → 1.25, specimen wall 1.34 with edges 0.056; the macro wall's edge fraction stays under
+> 0.02 honestly (a bare wall has no drusy crust — R3). **Next: R3** (coatings at physical scale), then R4.
 
 > ## 🧬 CODEX SIM 271 INTEGRATION + THE LINE-ENDING FINDING (2026-08-18) — **branch `integrate/codex-sulfur-valence` — `FINDING-EVIDENCE-LINE-ENDINGS-2026-08-18.md`**
 >

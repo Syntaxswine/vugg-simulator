@@ -41,8 +41,9 @@ describe('Cartesian cavity material-space mapping', () => {
     expect(shader.vertexShader).toContain('vWallNormalBasisX = normalMatrix');
     expect(shader.fragmentShader).toContain('vec3 wallTriplanarWeights');
     expect(shader.fragmentShader).toContain('vec4 wallTriplanarSample');
-    expect(shader.fragmentShader).toContain('wallTriplanarSample(map, vWallMaterialPos');
-    expect(shader.fragmentShader).toContain('wallTriplanarSample(uReliefAO, vWallMaterialPos');
+    // R5: the skin and the relief AO go through the anti-tiled sampler (two scales, noise-blended)
+    expect(shader.fragmentShader).toContain('wallTriplanarSampleAT(map, vWallMaterialPos');
+    expect(shader.fragmentShader).toContain('wallTriplanarSampleAT(uReliefAO, _reliefP');   // the warped position
     expect(shader.fragmentShader).toContain('perturbX * weights.x');
     expect(shader.fragmentShader).toContain('normal + mappedViewPerturbation');
     expect(shader.fragmentShader).not.toContain('normalMatrix * normalize');
@@ -53,7 +54,7 @@ describe('Cartesian cavity material-space mapping', () => {
       .toBe(material.userData.reliefAO.uWallMaterialSpaceEnabled);
   });
 
-  it('uses fixed millimetre scales for Cartesian surfaces and preserves legacy UV walls', () => {
+  it('uses fixed millimetre scales for Cartesian surfaces and (R5) the wall mesh alike', () => {
     const material = materialWithUniforms();
     const state: any = {
       cavity: { material },
@@ -79,12 +80,16 @@ describe('Cartesian cavity material-space mapping', () => {
     });
     expect(material.userData.reliefAO.uWallMaterialSpaceEnabled.value).toBe(1);
 
+    // R5 (2026-09-06): the wall mesh's positions are object == world millimetres exactly like
+    // the marching-cubes surface, so it takes the same triplanar mapping — the lat-long uv path
+    // stretched the skin and relief around the shell (F8's golf ball and parallel ridges).
     const legacy = _topoConfigureCavityWallMaterial(
       state, { mode: 'wall-mesh', buffers: { sig: 'legacy-a' } }, wall,
     );
-    expect(legacy.mapping).toBe('legacy-spherical-uv');
-    expect(legacy.blend_exponent).toBeNull();
-    expect(material.userData.reliefAO.uWallMaterialSpaceEnabled.value).toBe(0);
+    expect(legacy.mapping).toBe('triplanar-object-millimetres');
+    expect(legacy.blend_exponent).toBe(4);
+    expect(legacy.source_surface_digest).toBe('legacy-a');
+    expect(material.userData.reliefAO.uWallMaterialSpaceEnabled.value).toBe(1);
   });
 
   it('keeps physical texture scale invariant across geometry resolution and size', () => {
