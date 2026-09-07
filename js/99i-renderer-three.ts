@@ -6058,6 +6058,7 @@ const SURFACE_GROWTH_INSTANCE_CAP_DESKTOP = 1536;
 const SURFACE_GROWTH_INSTANCE_CAP_MOBILE = 384;
 const SURFACE_GROWTH_REPRESENTATIVE_MM = 1.5;
 const SURFACE_GROWTH_THIN_CRUST_MM = 0.06;
+const SURFACE_GROWTH_MESH_SPACING_MM = 0.9;
 const SURFACE_GROWTH_MOBILE_MAX_WIDTH_CSS_PX = 720;
 const SURFACE_GROWTH_MOBILE_MIN_DEVICE_PIXEL_RATIO = 2.5;
 
@@ -6144,10 +6145,253 @@ function _addCrystalParentRepresentation(state: any, crystal: any, mesh: any): b
   return true;
 }
 
-// R3a: a lining follows the authenticated patch, rather than inflating a finite
-// instance budget into overlapping plates. Neither the source buffers nor the
-// surface-growth testimony is changed. Shared vertices share displacement, so
-// adjacent triangles cannot open cracks when earlier layers add relief.
+function _surfaceGrowthContactAt(layer: any, triangle: number, point: number[]): number[] | null {
+    const sourceTriangles = layer.sourceTriangles, partitions = layer.partitions, p = layer.sourcePositions;
+    if (!sourceTriangles || !partitions || !p) return null;
+    const positionAt = (t: any, uv: number[]) => [0, 1, 2].map(k => p[t.ia * 3 + k] * (1 - uv[0] - uv[1]) + p[t.ib * 3 + k] * uv[0] + p[t.ic * 3 + k] * uv[1]);
+    const cross2 = (a: number[], b: number[], q: number[]) => (b[0] - a[0]) * (q[1] - a[1]) - (b[1] - a[1]) * (q[0] - a[0]);
+    const t = sourceTriangles.get(triangle), faces = partitions.get(triangle);
+    if (!t || !faces) return null;
+    const a = positionAt(t, [0, 0]), b = positionAt(t, [1, 0]), c = positionAt(t, [0, 1]);
+    const ab = b.map((v: number, k: number) => v - a[k]), ac = c.map((v: number, k: number) => v - a[k]);
+    const aq = point.map((v: number, k: number) => v - a[k]);
+    const dot = (u: number[], v: number[]) => u.reduce((sum, x, k) => sum + x * v[k], 0);
+    const bb = dot(ab, ab), bc = dot(ab, ac), cc = dot(ac, ac), qb = dot(aq, ab), qc = dot(aq, ac);
+    const denominator = bb * cc - bc * bc;
+    if (Math.abs(denominator) < 1e-20) return null;
+    const uv = [(qb * cc - qc * bc) / denominator, (qc * bb - qb * bc) / denominator];
+    for (const face of faces) {
+      const area = cross2(face[0].uv, face[1].uv, face[2].uv);
+      const weights = [cross2(face[1].uv, face[2].uv, uv) / area,
+        cross2(face[2].uv, face[0].uv, uv) / area, cross2(face[0].uv, face[1].uv, uv) / area];
+      if (weights.every(w => w >= -1e-8)) return [0, 1, 2].map(k => weights.reduce((sum, w, i) => sum + w * face[i].top[k], 0));
+    }
+    return null;
+}
+
+// Normal offsets can fold on a tightly curved substrate. Reduce only the new
+// representative relief toward its actual basal contact; subsequent deposits
+// inherit this repaired surface. The scientific thickness/volume are untouched.
+function _surfaceGrowthPreventFolds(positions: number[], bases: number[][],
+  source: number[][], indices: number[], samples?: any[][]): any {
+  const limited = new Set<number>();
+  const area = (a: number, b: number, c: number, scale: number) => {
+    const ax = bases[a][0] + (positions[a * 3 + 0] - bases[a][0]) * scale;
+    const ay = bases[a][1] + (positions[a * 3 + 1] - bases[a][1]) * scale;
+    const az = bases[a][2] + (positions[a * 3 + 2] - bases[a][2]) * scale;
+    const bx = bases[b][0] + (positions[b * 3 + 0] - bases[b][0]) * scale - ax;
+    const by = bases[b][1] + (positions[b * 3 + 1] - bases[b][1]) * scale - ay;
+    const bz = bases[b][2] + (positions[b * 3 + 2] - bases[b][2]) * scale - az;
+    const cx = bases[c][0] + (positions[c * 3 + 0] - bases[c][0]) * scale - ax;
+    const cy = bases[c][1] + (positions[c * 3 + 1] - bases[c][1]) * scale - ay;
+    const cz = bases[c][2] + (positions[c * 3 + 2] - bases[c][2]) * scale - az;
+    const sbx = source[b][0] - source[a][0];
+    const sby = source[b][1] - source[a][1];
+    const sbz = source[b][2] - source[a][2];
+    const scx = source[c][0] - source[a][0];
+    const scy = source[c][1] - source[a][1];
+    const scz = source[c][2] - source[a][2];
+    return (by * cz - bz * cy) * (sby * scz - sbz * scy) + (bz * cx - bx * cz) * (sbz * scx - sbx * scz) + (bx * cy - by * cx) * (sbx * scy - sby * scx);
+  };
+  const models = samples || source.map((point, id) => [{ point, weight: 1,
+    vector: point.map((_, k) => positions[id * 3 + k] - bases[id][k]) }]);
+  const hazards = new Map<string, any>(), buckets = new Map<string, any[]>();
+  const pointKey = (point: number[]) => point.map(v => Math.round(v * 1e7)).join(',');
+  let fieldCache = new Map<string, number>();
+  const attenuation = (point: number[]) => {
+    const key = pointKey(point), cached = fieldCache.get(key);
+    if (cached != null) return cached;
+    let value = 1;
+    const cell = point.map(v => Math.floor(v / 5));
+    for (let x = -1; x <= 1; x++) for (let y = -1; y <= 1; y++) for (let z = -1; z <= 1; z++) {
+      const nearby = buckets.get((cell[0] + x) + ',' + (cell[1] + y) + ',' + (cell[2] + z));
+      if (!nearby) continue;
+      for (const h of nearby) {
+        const distance2 = point.reduce((sum, v, k) => sum + (v - h.point[k]) ** 2, 0);
+        if (distance2 > 25) continue;
+        value = Math.min(value, 1 - (1 - h.cap) * Math.exp(-distance2 / 4.5));
+      }
+    }
+    fieldCache.set(key, value); return value;
+  };
+  let unresolved = 0, minimumScale = 1;
+  for (let iteration = 0; iteration < 24; iteration++) {
+    const pending = new Map<string, any>();
+    unresolved = 0;
+    for (let i = 0; i < indices.length; i += 3) {
+      const a = indices[i], b = indices[i + 1], c = indices[i + 2];
+      if (area(a, b, c, 1) >= -1e-12) continue;
+      unresolved++;
+      let low = 0, high = 1;
+      for (let step = 0; step < 16; step++) {
+        const middle = (low + high) * 0.5;
+        if (area(a, b, c, middle) >= 0) low = middle; else high = middle;
+      }
+      // Smooth the safe MIN over a 1.5 mm neighborhood. Re-evaluate the original
+      // displacement field, not a pinched mesh. Canonical edge samples retain
+      // their shared interpolation even where an older footprint added vertices.
+      for (const id of [a, b, c]) for (const sample of models[id]) {
+        const key = pointKey(sample.point), cap = attenuation(sample.point) * low * 0.7;
+        const old = pending.get(key);
+        if (!old || cap < old.cap) pending.set(key, { point: sample.point, cap });
+      }
+    }
+    if (!unresolved) break;
+    for (const [key, h] of pending) {
+      const existing = hazards.get(key);
+      if (existing) existing.cap = Math.min(existing.cap, h.cap);
+      else {
+        hazards.set(key, h);
+        const cell = h.point.map((v: number) => Math.floor(v / 5)).join(',');
+        const bucket = buckets.get(cell) || []; bucket.push(h); buckets.set(cell, bucket);
+      }
+    }
+    fieldCache = new Map();
+    for (let id = 0; id < bases.length; id++) {
+      const displacement = [0, 0, 0];
+      for (const sample of models[id]) {
+        const scale = attenuation(sample.point);
+        minimumScale = Math.min(minimumScale, scale);
+        if (scale < 0.999999) limited.add(id);
+        for (let k = 0; k < 3; k++) displacement[k] += sample.vector[k] * sample.weight * scale;
+      }
+      for (let k = 0; k < 3; k++) positions[id * 3 + k] = Math.fround(bases[id][k] + displacement[k]);
+    }
+  }
+  unresolved = 0;
+  for (let i = 0; i < indices.length; i += 3) if (area(indices[i], indices[i + 1], indices[i + 2], 1) < -1e-12) unresolved++;
+  return { limited_vertices: limited.size, relief_scale: minimumScale, unresolved };
+}
+
+// A later deposit also coats the microscopic riser at an earlier film's edge.
+// Match collinear source intervals, including unequal subdivisions, then bridge
+// their actual top profiles. These side faces add no projected booked footprint.
+function _surfaceGrowthBridgeContactSteps(positions: number[], source: number[][],
+  indices: number[], edges: any[]): number {
+  const buckets = new Map<string, number[]>(), bounds: number[][] = [];
+  const dot = (a: number[], b: number[]) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+  const sub = (a: number[], b: number[]) => a.map((v, k) => v - b[k]);
+  for (let i = 0; i < edges.length; i++) {
+    const a = source[edges[i].a], b = source[edges[i].b];
+    const bound = [0, 1, 2].flatMap(k => [Math.floor((Math.min(a[k], b[k]) - 1e-6) / 2), Math.floor((Math.max(a[k], b[k]) + 1e-6) / 2)]);
+    bounds.push(bound);
+    for (let x = bound[0]; x <= bound[1]; x++) for (let y = bound[2]; y <= bound[3]; y++) for (let z = bound[4]; z <= bound[5]; z++) {
+      const key = `${x},${y},${z}`, bucket = buckets.get(key) || [];
+      bucket.push(i); buckets.set(key, bucket);
+    }
+  }
+  let bridges = 0;
+  const top = (edge: any, t: number) => [0, 1, 2].map(k => positions[edge.a * 3 + k] * (1 - t) + positions[edge.b * 3 + k] * t);
+  for (let i = 0; i < edges.length; i++) {
+    const e = edges[i], a = source[e.a], ab = sub(source[e.b], a), length2 = dot(ab, ab);
+    if (length2 < 1e-20) continue;
+    const bound = bounds[i], candidates = new Set<number>();
+    for (let x = bound[0]; x <= bound[1]; x++) for (let y = bound[2]; y <= bound[3]; y++) for (let z = bound[4]; z <= bound[5]; z++) {
+      for (const j of buckets.get(`${x},${y},${z}`) || []) if (j > i) candidates.add(j);
+    }
+    for (const j of candidates) {
+      const f = edges[j], ac = sub(source[f.a], a), ad = sub(source[f.b], a);
+      const tc = dot(ac, ab) / length2, td = dot(ad, ab) / length2;
+      if (Math.abs(tc - td) < 1e-10) continue;
+      if (Math.hypot(...ac.map((v, k) => v - ab[k] * tc)) > 1e-6
+        || Math.hypot(...ad.map((v, k) => v - ab[k] * td)) > 1e-6) continue;
+      const lo = Math.max(0, Math.min(tc, td)), hi = Math.min(1, Math.max(tc, td));
+      if (hi - lo < 1e-8) continue;
+      const ea = top(e, lo), eb = top(e, hi), fa = top(f, (lo - tc) / (td - tc)), fb = top(f, (hi - tc) / (td - tc));
+      if (Math.max(Math.hypot(...sub(ea, fa)), Math.hypot(...sub(eb, fb))) <= 1e-5) continue;
+      const start = positions.length / 3;
+      positions.push(...ea, ...eb, ...fa, ...fb);
+      indices.push(start, start + 2, start + 1, start + 1, start + 2, start + 3);
+      bridges++;
+    }
+  }
+  return bridges;
+}
+
+function _surfaceGrowthCrustField(wall: any, crystal: any, sim: any,
+  coverage: number, thickness: number, area: number): any {
+  const count = _surfaceGrowthInstanceCount(coverage, false, area * 1.5);
+  const samples = wall.sampleSurfacePatchForCrystal?.(crystal, count, coverage,
+    crystal.crystal_id || 0, sim);
+  if (!samples?.samples?.length) return null;
+  const rand = _clusterRand((crystal.crystal_id || 0) * 0x9E3779B9 + 0x523b);
+  const buckets = new Map<string, any[]>();
+  let maxDiameter = 0;
+  for (const p of samples.samples) {
+    const logSize = Math.exp(0.32 * Math.sqrt(-2 * Math.log(Math.max(1e-9, rand())))
+      * Math.cos(2 * Math.PI * rand()) - 0.32 * 0.32 / 2);
+    const radius = Math.min(2.5, 1.8 * Math.max(0.55, Math.min(1.8, logSize)));
+    const key = `${Math.floor(p.x / 5)},${Math.floor(p.y / 5)},${Math.floor(p.z / 5)}`;
+    const bucket = buckets.get(key) || [];
+    bucket.push({ x: p.x, y: p.y, z: p.z, radius2: radius * radius });
+    buckets.set(key, bucket);
+    maxDiameter = Math.max(maxDiameter, radius * 2);
+  }
+  // A representative envelope, not an extra volume booked by the simulation.
+  // Basal skin plus all merged relief together stay below 3× mean thickness.
+  const base = Math.min(0.08, thickness * 0.25);
+  const amplitude = Math.min(0.8, thickness * 2.75);
+  const heightAt = (point: number[]) => {
+    const [x, y, z] = point;
+    const bx = Math.floor(x / 5), by = Math.floor(y / 5), bz = Math.floor(z / 5);
+    let sum = 0;
+    for (let i = -1; i <= 1; i++) for (let j = -1; j <= 1; j++) for (let k = -1; k <= 1; k++) {
+      const bucket = buckets.get(`${bx + i},${by + j},${bz + k}`);
+      if (!bucket) continue;
+      for (const p of bucket) {
+        const q = 1 - ((x - p.x) ** 2 + (y - p.y) ** 2 + (z - p.z) ** 2) / p.radius2;
+        if (q > 0) sum += q * q * q;
+      }
+    }
+    // Compact smooth kernels merge without full-sphere silhouettes or seams.
+    return base + amplitude * (1 - Math.exp(-sum));
+  };
+  return { heightAt, base, maxRelief: base + amplitude, maxDiameter,
+    count: samples.samples.length, source_signature: samples.source_signature };
+}
+
+// Stable renderer-private growth directions. The authenticated field gradients
+// may turn sharply between nearby vertices; displacing along them folds a thick
+// shell. Smooth geometric normals without moving or editing the source surface.
+function _surfaceGrowthSourceFrame(surface: any, patch: any): any {
+  const positions = Float32Array.from(surface.positions);
+  if (!surface.indices && surface.normals?.length === positions.length) {
+    return { positions, normals: Float32Array.from(surface.normals) };
+  }
+  const count = positions.length / 3, normals = new Float32Array(positions.length);
+  const neighbors: Set<number>[] = Array.from({ length: count }, () => new Set<number>());
+  const indices = surface.indices ? Array.from(surface.indices) as number[]
+    : patch.triangles.flatMap((t: any) => [t.ia, t.ib, t.ic]);
+  for (let i = 0; i < indices.length; i += 3) {
+    const a = indices[i], b = indices[i + 1], c = indices[i + 2];
+    const bx = positions[b * 3] - positions[a * 3], by = positions[b * 3 + 1] - positions[a * 3 + 1], bz = positions[b * 3 + 2] - positions[a * 3 + 2];
+    const cx = positions[c * 3] - positions[a * 3], cy = positions[c * 3 + 1] - positions[a * 3 + 1], cz = positions[c * 3 + 2] - positions[a * 3 + 2];
+    const n = [by * cz - bz * cy, bz * cx - bx * cz, bx * cy - by * cx];
+    for (const id of [a, b, c]) { for (let k = 0; k < 3; k++) normals[id * 3 + k] += n[k]; }
+    for (const [u, v] of [[a, b], [b, c], [c, a]]) { neighbors[u].add(v); neighbors[v].add(u); }
+  }
+  const normalize = (buffer: Float32Array) => {
+    for (let i = 0; i < count; i++) {
+      const length = Math.hypot(buffer[i * 3], buffer[i * 3 + 1], buffer[i * 3 + 2]) || 1;
+      for (let k = 0; k < 3; k++) buffer[i * 3 + k] /= length;
+    }
+  };
+  normalize(normals);
+  let smooth = normals;
+  for (let pass = 0; pass < 3; pass++) {
+    const next = new Float32Array(smooth.length);
+    for (let i = 0; i < count; i++) for (let k = 0; k < 3; k++) {
+      next[i * 3 + k] = smooth[i * 3 + k] * 2;
+      for (const neighbor of neighbors[i]) next[i * 3 + k] += smooth[neighbor * 3 + k];
+    }
+    normalize(next); smooth = next;
+  }
+  return { positions, normals: smooth };
+}
+
+// R3: one authenticated patch carries thin films or connected mound relief.
+// Later deposits inherit the rendered contact triangulation. Scientific records
+// and source buffers stay immutable; this remains a representative envelope.
 function _emitSurfaceGrowthLining(state: any, crystal: any, parentMat: any,
   wall: any, sim: any, coverage: number, maturity: number, earlierLayers: any[]): any {
   const patch = wall.surfacePatchForCrystal?.(crystal, coverage, sim);
@@ -6157,73 +6401,293 @@ function _emitSurfaceGrowthLining(state: any, crystal: any, parentMat: any,
   const record = crystal._surfaceGrowth;
   const thickness = Math.max(0, Number(record.mean_thickness_um) || 0) / 1000 * maturity;
   if (!(thickness > 0)) return null;
-  const p = surface.positions;
-  const vertices = new Map<number, any>();
+  const thickCrust = record.regime === 'botryoidal_crust'
+    && Number(record.mean_thickness_um) / 1000 > SURFACE_GROWTH_THIN_CRUST_MM;
+  const crust = thickCrust
+    ? _surfaceGrowthCrustField(wall, crystal, sim, coverage, thickness, patch.area_mm2) : null;
+  if (thickCrust && !crust) return null;
+  if (crust && crust.source_signature !== patch.source_signature) return null;
+  const frameCache = (earlierLayers as any).sourceFrames || ((earlierLayers as any).sourceFrames = new Map());
+  let frame = frameCache.get(surface.sig);
+  if (!frame) { frame = _surfaceGrowthSourceFrame(surface, patch); frameCache.set(surface.sig, frame); }
+  const p = frame.positions, sourceNormals = frame.normals;
   const triangleKeys = new Set<string>();
+  const domains = new Map<number, number[][]>();
+  const sourceTriangles = frame.triangles || (frame.triangles = new Map<number, any>());
+  const sourceKeys = frame.triangleKeys || (frame.triangleKeys = new Map<number, string>());
+  const fullDomain = [[0, 0], [1, 0], [0, 1]];
+  const boundary = new Map<string, any>();
+  const positionAt = (t: any, uv: number[]) => [0, 1, 2].map(k =>
+    p[t.ia * 3 + k] * (1 - uv[0] - uv[1]) + p[t.ib * 3 + k] * uv[0] + p[t.ic * 3 + k] * uv[1]);
+  const normalAt = (t: any, uv: number[]) => {
+    const n = sourceNormals?.length === p.length
+      ? [0, 1, 2].map(k => -sourceNormals[t.ia * 3 + k] * (1 - uv[0] - uv[1])
+        - sourceNormals[t.ib * 3 + k] * uv[0] - sourceNormals[t.ic * 3 + k] * uv[1])
+      : t.void_normal.slice();
+    const length = Math.hypot(...n) || 1;
+    return n.map((v: number) => v / length);
+  };
+  const pointKey = (point: number[]) => `${Math.round(point[0] * 1e7)},${Math.round(point[1] * 1e7)},${Math.round(point[2] * 1e7)}`;
   for (const t of patch.triangles) {
-    const key = `${patch.source_signature}:${t.triangle_index}`;
-    triangleKeys.add(key);
-    let underburden = 0;
-    for (const layer of earlierLayers) {
-      if (layer.triangle_keys.has(key)) underburden += layer.representative_relief_mm;
-    }
-    for (const id of [t.ia, t.ib, t.ic]) {
-      let v = vertices.get(id);
-      if (!v) { v = { normal: [0, 0, 0], underburden: 0 }; vertices.set(id, v); }
-      for (let k = 0; k < 3; k++) v.normal[k] += t.void_normal[k] * t.area_mm2;
-      v.underburden = Math.max(v.underburden, underburden);
-    }
-  }
-  for (const [id, v] of vertices) {
-    // The source's smooth normals point into the rock; the lining grows into
-    // the void. Area-weighted patch normals are the legacy mesh fallback.
-    if (surface.normals?.length === p.length) {
-      v.normal = [-surface.normals[id * 3], -surface.normals[id * 3 + 1], -surface.normals[id * 3 + 2]];
-    }
-    const length = Math.hypot(...v.normal) || 1;
-    v.normal = v.normal.map((n: number) => n / length);
-    v.position = v.normal.map((n: number, k: number) => p[id * 3 + k] + n * (thickness + v.underburden));
-  }
-  const positions: number[] = [], normals: number[] = [];
-  let footprint = 0;
-  const selected = new Set(patch.triangle_indices);
-  for (const t of patch.triangles) {
-    const ids = [t.ia, t.ib, t.ic];
-    const points = ids.map(id => vertices.get(id).position.slice());
-    const ns = ids.map(id => vertices.get(id).normal.slice());
+    if (!sourceKeys.has(t.triangle_index)) sourceKeys.set(t.triangle_index, patch.source_signature + ':' + t.triangle_index);
+    triangleKeys.add(sourceKeys.get(t.triangle_index));
+    if (!sourceTriangles.has(t.triangle_index)) sourceTriangles.set(t.triangle_index, t);
     const fraction = Math.max(0, Math.min(1, t.weight_mm2 / t.area_mm2));
-    if (!(fraction > 0)) continue;
+    const domain = fraction < 1 ? fullDomain.map(uv => uv.slice()) : fullDomain;
     if (fraction < 1) {
-      // The last triangle owns only the remaining area. Keep its edge shared
-      // with the selected patch and shorten its altitude, not every triangle.
+      const ids = [t.ia, t.ib, t.ic];
       let apex = 2;
       for (const neighbor of patch.triangles) {
-        if (neighbor === t || !selected.has(neighbor.triangle_index)) continue;
+        if (neighbor === t) continue;
         const shared = [neighbor.ia, neighbor.ib, neighbor.ic];
         const opposite = ids.findIndex(id => !shared.includes(id));
         if (opposite >= 0 && ids.filter(id => shared.includes(id)).length === 2) { apex = opposite; break; }
       }
       const a = (apex + 1) % 3, b = (apex + 2) % 3;
-      for (let k = 0; k < 3; k++) {
-        points[apex][k] = (points[a][k] + points[b][k]) * 0.5 * (1 - fraction) + points[apex][k] * fraction;
-        ns[apex][k] = (ns[a][k] + ns[b][k]) * 0.5 * (1 - fraction) + ns[apex][k] * fraction;
+      domain[apex] = [0, 1].map(k => (domain[a][k] + domain[b][k]) * 0.5 * (1 - fraction) + domain[apex][k] * fraction);
+    }
+    if (fraction < 1) domains.set(t.triangle_index, domain);
+    for (let i = 0; crust && i < 3; i++) {
+      const a = positionAt(t, domain[i]), b = positionAt(t, domain[(i + 1) % 3]);
+      const ka = pointKey(a), kb = pointKey(b), key = ka < kb ? ka + ':' + kb : kb + ':' + ka;
+      if (boundary.has(key)) boundary.delete(key); else boundary.set(key, { a, b });
+    }
+  }
+  // A crust feathers into its substrate at the booked perimeter. Interior skin
+  // remains positive; no vertical full-sphere rim or step for a later film to bridge.
+  const boundaryBuckets = new Map<string, any[]>();
+  for (const edge of crust ? boundary.values() : []) {
+    const length = Math.hypot(...edge.a.map((v: number, k: number) => v - edge.b[k]));
+    const steps = Math.max(1, Math.ceil(length)), visited = new Set<string>();
+    for (let step = 0; step <= steps; step++) {
+      const cell = edge.a.map((v: number, k: number) => Math.floor((v + (edge.b[k] - v) * step / steps) / 2));
+      for (let x = -1; x <= 1; x++) for (let y = -1; y <= 1; y++) for (let z = -1; z <= 1; z++) {
+        const key = `${cell[0] + x},${cell[1] + y},${cell[2] + z}`;
+        if (visited.has(key)) continue;
+        visited.add(key);
+        const bucket = boundaryBuckets.get(key) || [];
+        bucket.push(edge); boundaryBuckets.set(key, bucket);
       }
     }
-    // Source triangles wind outwards; lining front faces point into the void.
-    for (const i of [0, 2, 1]) { positions.push(...points[i]); normals.push(...ns[i]); }
-    footprint += t.weight_mm2;
   }
+  const reliefCache = new Map<string, number>();
+  const ownReliefAt = (point: number[]) => {
+    if (!crust) return thickness;
+    const key = pointKey(point), cached = reliefCache.get(key);
+    if (cached != null) return cached;
+    let distance2 = 0.6 * 0.6;
+    const nearby = boundaryBuckets.get(point.map(v => Math.floor(v / 2)).join(',')) || [];
+    for (const { a, b } of nearby) {
+      if ([0, 1, 2].some(k => point[k] < Math.min(a[k], b[k]) - 0.6 || point[k] > Math.max(a[k], b[k]) + 0.6)) continue;
+      const ab = b.map((v: number, k: number) => v - a[k]);
+      const length2 = ab.reduce((sum: number, v: number) => sum + v * v, 0);
+      const along = Math.max(0, Math.min(1, ab.reduce((sum: number, v: number, k: number) => sum + (point[k] - a[k]) * v, 0) / Math.max(1e-20, length2)));
+      distance2 = Math.min(distance2, ab.reduce((sum: number, v: number, k: number) => sum + (point[k] - a[k] - along * v) ** 2, 0));
+    }
+    const x = Math.min(1, Math.sqrt(distance2) / 0.6);
+    const relief = crust.heightAt(point) * x * x * (3 - 2 * x);
+    reliefCache.set(key, relief);
+    return relief;
+  };
+  const growthProfileAt = (t: any, uv: number[]) => {
+    const weights = [1 - uv[0] - uv[1], uv[0], uv[1]];
+    const zero = weights.findIndex(w => Math.abs(w) < 1e-9);
+    if (zero < 0 || !sourceNormals) {
+      const point = positionAt(t, uv), direction = normalAt(t, uv);
+      return { point, samples: [{ point, direction, weight: 1 }] };
+    }
+    const ids = [t.ia, t.ib, t.ic], edge = [0, 1, 2].filter(i => i !== zero).sort((a, b) => ids[a] - ids[b]);
+    const a = ids[edge[0]], b = ids[edge[1]], along = weights[edge[1]];
+    const length = Math.hypot(...[0, 1, 2].map(k => p[b * 3 + k] - p[a * 3 + k]));
+    const segments = Math.min(4096, 2 ** Math.max(0, Math.ceil(Math.log2(length / SURFACE_GROWTH_MESH_SPACING_MM))));
+    const lower = Math.min(segments - 1, Math.floor(along * segments)), blend = along * segments - lower;
+    const sample = (fraction: number) => {
+      const point = [0, 1, 2].map(k => p[a * 3 + k] * (1 - fraction) + p[b * 3 + k] * fraction);
+      const n = [0, 1, 2].map(k => -sourceNormals[a * 3 + k] * (1 - fraction) - sourceNormals[b * 3 + k] * fraction);
+      const scale = 1 / (Math.hypot(...n) || 1);
+      return { point, direction: n.map(v => v * scale) };
+    };
+    const first = sample(lower / segments), second = sample((lower + 1) / segments);
+    // Inherited partial footprints can insert extra vertices on a shared source
+    // edge. Interpolate the common edge profile instead of resampling its mound.
+    return { point: positionAt(t, uv),
+      samples: [{ ...first, weight: 1 - blend }, { ...second, weight: blend }].filter(sample => sample.weight > 0) };
+  };
+  const displacementAt = (t: any, v: any) => {
+    // Carry renderer-private source coordinates and growth directions forward
+    // with the contact vertices. Later films need only evaluate their own height.
+    const profile = v.growthProfile || (v.growthProfile = growthProfileAt(t, v.uv));
+    const vector = [0, 0, 0];
+    const samples = profile.samples.map((sample: any) => {
+      const relief = ownReliefAt(sample.point);
+      const delta = sample.direction.map((n: number, k: number) => {
+        const value = n * relief; vector[k] += value * sample.weight; return value;
+      });
+      return { point: sample.point, vector: delta, weight: sample.weight };
+    });
+    return { vector, samples, profile };
+  };
+  // Every deposit uses the same source grid. Subsequent layers inherit and split
+  // its actual rendered triangles, including previous partial-footprint edges.
+  // Each contact entry stores the cumulative top once, never a sum of absolute tops.
+  const partitions = new Map<number, any[]>();
+  const positions: number[] = [], indices: number[] = [];
+  const sourcePoints: number[][] = [], basalPositions: number[][] = [];
+  const newContactVertices: any[] = [], displacementSamples: any[][] = [];
+  const nodeMap = new Map<string, number>(), edges = new Map<string, any>();
+  const displacedContacts = new Map<string, any>();
+  const cross2 = (a: number[], b: number[], q: number[]) => (b[0] - a[0]) * (q[1] - a[1]) - (b[1] - a[1]) * (q[0] - a[0]);
+  const mixVertex = (a: any, b: any, f: number) => ({
+    uv: a.uv.map((v: number, k: number) => v + (b.uv[k] - v) * f),
+    top: a.top.map((v: number, k: number) => v + (b.top[k] - v) * f),
+  });
+  const splitPolygon = (poly: any[], a: number[], b: number[]) => {
+    const inside: any[] = [], outside: any[] = [];
+    for (let i = 0; i < poly.length; i++) {
+      const v = poly[i], w = poly[(i + 1) % poly.length];
+      const dv = cross2(a, b, v.uv), dw = cross2(a, b, w.uv);
+      if (dv >= -1e-10) inside.push(v);
+      if (dv <= 1e-10) outside.push(v);
+      if ((dv > 1e-10 && dw < -1e-10) || (dv < -1e-10 && dw > 1e-10)) {
+        const intersection = mixVertex(v, w, dv / (dv - dw));
+        inside.push(intersection); outside.push(intersection);
+      }
+    }
+    return { inside, outside };
+  };
+  const triangulate = (poly: any[]) => {
+    const faces: any[][] = [];
+    for (let i = 1; i + 1 < poly.length; i++) {
+      if (Math.abs(cross2(poly[0].uv, poly[i].uv, poly[i + 1].uv)) > 1e-12) faces.push([poly[0], poly[i], poly[i + 1]]);
+    }
+    return faces;
+  };
+  const addNode = (v: any, t: any, base: number[]) => {
+    const key = pointKey(v.top);
+    const found = nodeMap.get(key);
+    if (found != null) { v.renderNode = found; return found; }
+    const id = positions.length / 3;
+    nodeMap.set(key, id);
+    positions.push(...v.top);
+    sourcePoints.push(v.growthProfile.point); basalPositions.push(base); displacementSamples.push(v.samples);
+    v.renderNode = id;
+    return id;
+  };
+  for (const t of patch.triangles) {
+    const key = sourceKeys.get(t.triangle_index);
+    let previous: any[] | undefined;
+    for (const layer of earlierLayers) if (layer.triangle_keys.has(key)) {
+      const inherited = layer.partitions?.get(t.triangle_index);
+      if (inherited) previous = inherited;
+      // Scattered teeth/fibres have no continuous top to inherit. Their nominal
+      // instance height must not lift a whole later coating into a false blanket.
+    }
+    if (!previous) {
+      previous = [];
+      const canonicalVertices = new Map<string, any>();
+      const vertex = (u: number, v: number) => {
+        const key = `${u}:${v}`, cached = canonicalVertices.get(key);
+        if (cached) return cached;
+        const uv = [u, v];
+        const result = { uv, top: positionAt(t, uv) };
+        canonicalVertices.set(key, result);
+        return result;
+      };
+      const subdivide = (face: any[], depth: number) => {
+        const lengths = face.map((v: any, i: number) => v.top.reduce((sum: number, x: number, k: number) => sum + (x - face[(i + 1) % 3].top[k]) ** 2, 0));
+        const longest = lengths.indexOf(Math.max(...lengths));
+        if (lengths[longest] <= SURFACE_GROWTH_MESH_SPACING_MM ** 2 || depth >= 12) { previous!.push(face); return; }
+        const a = face[longest], b = face[(longest + 1) % 3], c = face[(longest + 2) % 3];
+        const middle = vertex((a.uv[0] + b.uv[0]) * 0.5, (a.uv[1] + b.uv[1]) * 0.5);
+        subdivide([a, middle, c], depth + 1); subdivide([middle, b, c], depth + 1);
+      };
+      // Split only edges longer than the common physical spacing. Short source
+      // triangles need no detail; adjacent triangles make the same edge split.
+      subdivide([vertex(0, 0), vertex(1, 0), vertex(0, 1)], 0);
+    }
+    const domain = domains.get(t.triangle_index)!;
+    const output: any[] = [];
+    const topVertices = new Map<any, any>();
+    const fullTriangle = t.weight_mm2 >= t.area_mm2 * (1 - 1e-12);
+    for (const face of previous) {
+      let covered = face;
+      const uncovered: any[] = [];
+      for (let edge = 0; !fullTriangle && edge < 3 && covered.length >= 3; edge++) {
+        const result = splitPolygon(covered, domain[edge], domain[(edge + 1) % 3]);
+        uncovered.push(...triangulate(result.outside)); covered = result.inside;
+      }
+      output.push(...uncovered);
+      for (const inner of fullTriangle ? [face] : triangulate(covered)) {
+        const bases = inner.map((v: any) => v.top);
+        const top = inner.map((v: any, i: number) => {
+          const cached = topVertices.get(v);
+          if (cached) return cached;
+          const contactKey = pointKey(v.top);
+          let contact = displacedContacts.get(contactKey);
+          if (!contact) {
+            const displacement = displacementAt(t, v);
+            contact = { samples: displacement.samples, growthProfile: displacement.profile,
+              top: bases[i].map((x: number, k: number) => Math.fround(x + displacement.vector[k])) };
+            displacedContacts.set(contactKey, contact);
+          }
+          const result = { uv: v.uv, ...contact };
+          topVertices.set(v, result);
+          newContactVertices.push(result);
+          return result;
+        });
+        output.push(top);
+        const ids = top.map((v: any, i: number) => addNode(v, t, bases[i]));
+        indices.push(ids[0], ids[2], ids[1]);
+        for (const [a, b] of [[ids[0], ids[2]], [ids[2], ids[1]], [ids[1], ids[0]]]) {
+          const edgeKey = a < b ? a + ':' + b : b + ':' + a;
+          const edge = edges.get(edgeKey);
+          if (edge) edge.count++; else edges.set(edgeKey, { a, b, count: 1 });
+        }
+      }
+    }
+    partitions.set(t.triangle_index, output);
+  }
+  const topVertexCount = positions.length / 3, topTriangleCount = indices.length / 3;
+  const foldGuard = _surfaceGrowthPreventFolds(positions, basalPositions, sourcePoints, indices, displacementSamples);
+  // Never publish inverted triangles if an exceptional substrate defeats the
+  // bounded local repair. Earlier authenticated contacts remain available.
+  if (foldGuard.unresolved) return null;
+  let minimumRelief = Infinity, maximumRelief = 0;
+  for (let i = 0; i < topVertexCount; i++) {
+    const relief = Math.hypot(positions[i * 3] - basalPositions[i][0],
+      positions[i * 3 + 1] - basalPositions[i][1], positions[i * 3 + 2] - basalPositions[i][2]);
+    minimumRelief = Math.min(minimumRelief, relief);
+    maximumRelief = Math.max(maximumRelief, relief);
+  }
+  const repairedTops = basalPositions.map((_, id) => positions.slice(id * 3, id * 3 + 3));
+  for (const v of newContactVertices) {
+    v.top = repairedTops[v.renderNode];
+    delete v.samples; delete v.renderNode;
+  }
+  let interiorOpenEdges = 0;
+  for (const edge of edges.values()) if (edge.count === 1) {
+    if (crust && [edge.a, edge.b].every(id => ownReliefAt(sourcePoints[id]) > 1e-5)) interiorOpenEdges++;
+    const start = positions.length / 3;
+    positions.push(...positions.slice(edge.a * 3, edge.a * 3 + 3), ...positions.slice(edge.b * 3, edge.b * 3 + 3),
+      ...basalPositions[edge.a], ...basalPositions[edge.b]);
+    indices.push(start, start + 2, start + 1, start + 1, start + 2, start + 3);
+  }
+  const contactStepBridges = _surfaceGrowthBridgeContactSteps(positions, sourcePoints,
+    indices, [...edges.values()].filter(edge => edge.count === 1));
+  const footprint = patch.triangles.reduce((sum: number, t: any) => sum + t.weight_mm2, 0);
   const geom = new THREE.BufferGeometry();
   geom.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
-  geom.setAttribute('normal', new THREE.Float32BufferAttribute(normals, 3));
+  geom.setIndex(indices);
+  geom.computeVertexNormals();
   geom.computeBoundingSphere();
   const mat = parentMat.clone();
   mat.side = THREE.DoubleSide;
   mat.flatShading = false;
   mat.roughness = Math.max(0.38, Math.min(0.65, mat.roughness || 0.5));
-  // Physical displacement, even for a micron film; depth bias avoids z-fighting
-  // without inventing the old 60-micron minimum geometric thickness.
-  mat.polygonOffset = true; mat.polygonOffsetFactor = -1; mat.polygonOffsetUnits = -1;
+  // Physical displacement separates films. A constant depth unit handles the
+  // feather's coincident perimeter; slope bias would pull buried steep faces
+  // through later micrometre coatings and draw false blue/black seams.
+  mat.polygonOffset = true; mat.polygonOffsetFactor = 0; mat.polygonOffsetUnits = -1;
   _opticsApplyExtent(mat, thickness);
   _applyCavityClip(mat, state.clipUniforms, { specimenFragmentCut: true });
   const clipCompile = mat.onBeforeCompile;
@@ -6256,18 +6720,37 @@ function _emitSurfaceGrowthLining(state: any, crystal: any, parentMat: any,
     surfaceGrowth: true, surfaceLining: true, ownsGeometry: true,
     crystal_id: crystal.crystal_id, mineral: crystal.mineral, regime: record.regime,
     coverage_fraction: coverage, physical_mean_thickness_um: record.mean_thickness_um,
-    rendered_thickness_mm: thickness, represented_area_mm2: footprint,
-    representation: record.regime === 'botryoidal_crust' ? 'wall-conformal-crust-skin' : 'wall-conformal-lining', representative_only: true,
+    target_mean_thickness_mm: thickness, represented_area_mm2: footprint,
+    rendered_relief_range_mm: [minimumRelief, maximumRelief],
+    representation: crust ? 'connected-botryoidal-crust'
+      : record.regime === 'botryoidal_crust' ? 'wall-conformal-crust-skin' : 'wall-conformal-lining', representative_only: true,
     area_basis: record.area_basis, stratigraphic_index: record.stratigraphic_index,
     source_signature: patch.source_signature, triangle_indices: [...patch.triangle_indices],
-    representative_relief_mm: thickness,
+    representative_relief_mm: maximumRelief,
+    target_relief_envelope_mm: crust ? crust.maxRelief : thickness,
+    max_lobe_diameter_mm: crust?.maxDiameter, max_lobe_relief_mm: crust ? maximumRelief : undefined,
+    target_basal_skin_mm: crust?.base, mound_count: crust?.count,
+    top_vertex_count: topVertexCount, top_triangle_count: topTriangleCount,
+    interior_open_edges: crust ? interiorOpenEdges : undefined,
+    contact_step_bridges: contactStepBridges,
+    curvature_limited_vertices: foldGuard.limited_vertices,
+    curvature_min_relief_scale: foldGuard.relief_scale,
+    unresolved_folds: foldGuard.unresolved,
+    source_points: sourcePoints,
   };
   mesh.renderOrder = 0.55 + Math.min(0.1, Number(record.stratigraphic_index || 0) * 0.001);
   _topoLightingTagMesh(mesh, true);
   state.crystals.add(mesh);
+  // The new partition includes prior uncovered portions too. Retain only the
+  // current contact per source triangle, so a long coating history cannot keep
+  // every transient JS triangulation alive after its GPU buffers are built.
+  for (const layer of earlierLayers) if (layer.source_signature === patch.source_signature && layer.partitions) {
+    for (const triangle of partitions.keys()) layer.partitions.delete(triangle);
+  }
   earlierLayers.push({ crystal_id: crystal.crystal_id, source_signature: patch.source_signature,
     triangle_indices: new Set(patch.triangle_indices), triangle_keys: triangleKeys,
-    representative_relief_mm: thickness });
+    representative_relief_mm: maximumRelief,
+    partitions, sourceTriangles, sourcePositions: p });
   return mesh;
 }
 
@@ -6287,12 +6770,10 @@ function _emitSurfaceGrowthSwath(
   const replayMaturity = Math.max(0.02, Math.min(1, renderC / liveC));
   const coverage = Math.max(0.005, Math.min(0.98,
     record.coverage_fraction * Math.sqrt(replayMaturity)));
-  // Micron-scale botryoidal films cannot support millimetre lobes. The same
-  // authenticated shell provides continuous coverage and normal-map texture,
-  // with no minimum display thickness or extra booked parent representation.
+  // Films and thick botryoidal crusts share one continuous patch. Only thick
+  // crusts add merged mound relief, bounded together with their basal skin.
   const physicalThickness = Math.max(0, Number(record.mean_thickness_um) || 0) / 1000;
-  if (record.regime === 'laminated_lining'
-      || (record.regime === 'botryoidal_crust' && physicalThickness <= SURFACE_GROWTH_THIN_CRUST_MM)) {
+  if (record.regime === 'laminated_lining' || record.regime === 'botryoidal_crust') {
     return _emitSurfaceGrowthLining(state, crystal, parentMat, wall, sim,
       coverage, replayMaturity, earlierLayers);
   }
@@ -6342,11 +6823,7 @@ function _emitSurfaceGrowthSwath(
 
   const mat = parentMat.clone();
   mat.roughness = record.regime === 'fibrous_mat' ? 0.72
-    : record.regime === 'dendritic_film' ? 0.78
-    : record.regime === 'laminated_lining' ? 0.82 : Math.max(0.48, mat.roughness || 0.5);
-  if (record.regime === 'laminated_lining' && mat.transparent) {
-    mat.opacity = Math.max(0.46, mat.opacity || 0);
-  }
+    : record.regime === 'dendritic_film' ? 0.78 : Math.max(0.48, mat.roughness || 0.5);
   _applyCavityClip(mat, state.clipUniforms, { specimenFragmentCut: true });
 
   const swath = new THREE.InstancedMesh(geom, mat, count);
@@ -6365,33 +6842,30 @@ function _emitSurfaceGrowthSwath(
       : fallbackArea);
   const areaPerRepresentative = representedArea / count;
   const patchRadius = Math.max(0.22, Math.sqrt(areaPerRepresentative / Math.PI) * 1.08);
-  const trueThicknessMm = physicalThickness
-    * (record.regime === 'botryoidal_crust' ? replayMaturity : 1);
+  const trueThicknessMm = physicalThickness;
   const displayThickness = Math.max(0.06, Math.min(patchRadius * 0.45,
     trueThicknessMm > 0 ? Math.max(trueThicknessMm, 0.06) : 0.06));
   // R2: a coating instance is patchRadius-scale; its transmissive path length follows.
   _opticsApplyExtent(mat, patchRadius * 0.6);
 
-  // R3b: a bounded lognormal diameter tail breaks the equal-sized coin carpet.
-  // Separate renderer-local RNG: never consume the simulation's random stream.
-  // Canonical desktop spacing keeps lobe dimensions independent of mobile LOD;
-  // lower budgets omit detail instead of inflating the remaining representatives.
+  // Canonical spacing keeps the legacy druse/fibre/film relief independent of LOD.
   const canonicalCount = _surfaceGrowthInstanceCount(coverage, false, coveredAreaForBudget);
   const canonicalPatchRadius = Math.max(0.22,
     Math.sqrt(representedArea / canonicalCount / Math.PI) * 1.08);
-  const lobeRand = _clusterRand((crystal.crystal_id || 0) * 0x9E3779B9 + 0x523b);
-  let maxLobeDiameter = 0, maxLobeRelief = 0;
 
   for (let i = 0; i < count; i++) {
     const p = exactPatch && exactPatch.samples && exactPatch.samples[i]
       ? exactPatch.samples[i]
       : _surfaceGrowthWallPoint(wall, directions[i], ringCount, N, initR);
     let underburdenDisplayMm = 0;
+    let contactBase = [p.x, p.y, p.z];
     if (p.triangle_index != null) {
       const triangleKey = `${exactPatch?.source_signature}:${p.triangle_index}`;
       for (const layer of earlierLayers) {
         if (layer.triangle_keys.has(triangleKey)) {
-          underburdenDisplayMm += layer.representative_relief_mm;
+          const contact = _surfaceGrowthContactAt(layer, p.triangle_index, [p.x, p.y, p.z]);
+          if (contact) { contactBase = contact; underburdenDisplayMm = 0; }
+          else if (!layer.partitions) underburdenDisplayMm += layer.representative_relief_mm;
         }
       }
     }
@@ -6403,9 +6877,9 @@ function _emitSurfaceGrowthSwath(
       dummy.quaternion.setFromUnitVectors(up, axis);
       dummy.rotateY(h * Math.PI * 2);
       dummy.position.set(
-        p.x + p.nx * (underburdenDisplayMm + height * 0.5),
-        p.y + p.ny * (underburdenDisplayMm + height * 0.5),
-        p.z + p.nz * (underburdenDisplayMm + height * 0.5),
+        contactBase[0] + p.nx * (underburdenDisplayMm + height * 0.5),
+        contactBase[1] + p.ny * (underburdenDisplayMm + height * 0.5),
+        contactBase[2] + p.nz * (underburdenDisplayMm + height * 0.5),
       );
       dummy.scale.set(width, height, width);
     } else if (record.regime === 'dendritic_film') {
@@ -6433,9 +6907,9 @@ function _emitSurfaceGrowthSwath(
       const length = Math.max(0.65, Math.min(3.2, patchRadius * (1.0 + h * 0.6)));
       const filmRelief = Math.max(0.035, Math.min(0.10, displayThickness));
       dummy.position.set(
-        p.x + p.nx * (underburdenDisplayMm + filmRelief * 0.5),
-        p.y + p.ny * (underburdenDisplayMm + filmRelief * 0.5),
-        p.z + p.nz * (underburdenDisplayMm + filmRelief * 0.5),
+        contactBase[0] + p.nx * (underburdenDisplayMm + filmRelief * 0.5),
+        contactBase[1] + p.ny * (underburdenDisplayMm + filmRelief * 0.5),
+        contactBase[2] + p.nz * (underburdenDisplayMm + filmRelief * 0.5),
       );
       dummy.scale.set(length * 0.58, length, filmRelief);
     } else if (record.regime === 'fibrous_mat') {
@@ -6456,34 +6930,19 @@ function _emitSurfaceGrowthSwath(
       const width = Math.max(0.035, Math.min(0.11, length * 0.055));
       dummy.quaternion.setFromUnitVectors(up, axis);
       dummy.position.set(
-        p.x + p.nx * (underburdenDisplayMm + width),
-        p.y + p.ny * (underburdenDisplayMm + width),
-        p.z + p.nz * (underburdenDisplayMm + width),
+        contactBase[0] + p.nx * (underburdenDisplayMm + width),
+        contactBase[1] + p.ny * (underburdenDisplayMm + width),
+        contactBase[2] + p.nz * (underburdenDisplayMm + width),
       );
       dummy.scale.set(width, length, width);
     } else {
-      const logSize = Math.exp(0.32 * Math.sqrt(-2 * Math.log(Math.max(1e-9, lobeRand())))
-        * Math.cos(2 * Math.PI * lobeRand()) - 0.32 * 0.32 / 2);
-      const lateral = record.regime === 'botryoidal_crust'
-        ? Math.min(5, canonicalPatchRadius * 2.2 * Math.max(0.45, Math.min(1.8, logSize)))
-        : patchRadius * 1.55;
-      // A botryoidal lobe is a near-hemisphere, but its height is bounded by the MASS the
-      // ledger booked: a hemispherical lobe of radius r has mean thickness 2r/3, so the
-      // tallest honest lobe is ~3× the record's mean thickness. A 2 µm celestine blanket
-      // therefore renders as a thin bumpy skin, not a pile of balloons burying the dogtooth
-      // it sits on (review 2026-09-04, F1 — the first cut of this fix did exactly that).
-      const massBoundRelief = trueThicknessMm * 3;
-      const relief = record.regime === 'botryoidal_crust'
-        ? Math.min(lateral * (0.45 + h * 0.25), massBoundRelief)
-        : displayThickness;
-      maxLobeDiameter = Math.max(maxLobeDiameter, lateral);
-      maxLobeRelief = Math.max(maxLobeRelief, relief);
+      const lateral = patchRadius * 1.55, relief = displayThickness;
       axis.set(p.nx, p.ny, p.nz);
       dummy.quaternion.setFromUnitVectors(up, axis);
       dummy.position.set(
-        p.x + p.nx * (underburdenDisplayMm + relief * 0.5),
-        p.y + p.ny * (underburdenDisplayMm + relief * 0.5),
-        p.z + p.nz * (underburdenDisplayMm + relief * 0.5),
+        contactBase[0] + p.nx * (underburdenDisplayMm + relief * 0.5),
+        contactBase[1] + p.ny * (underburdenDisplayMm + relief * 0.5),
+        contactBase[2] + p.nz * (underburdenDisplayMm + relief * 0.5),
       );
       dummy.scale.set(lateral, relief, lateral);
     }
@@ -6492,7 +6951,7 @@ function _emitSurfaceGrowthSwath(
   }
   swath.instanceMatrix.needsUpdate = true;
   if (typeof swath.computeBoundingSphere === 'function') swath.computeBoundingSphere();
-  swath.renderOrder = (record.regime === 'laminated_lining' ? 0.55 : 0.8)
+  swath.renderOrder = 0.8
     + Math.min(0.1, Number(record.stratigraphic_index || 0) * 0.001);
   swath.userData = {
     surfaceGrowth: true,
@@ -6504,9 +6963,7 @@ function _emitSurfaceGrowthSwath(
     representative_only: true,
     area_basis: record.area_basis,
     stratigraphic_index: record.stratigraphic_index,
-    representation: record.regime === 'botryoidal_crust' ? 'lognormal-crust-lobes' : 'instanced-swath',
-    max_lobe_diameter_mm: record.regime === 'botryoidal_crust' ? maxLobeDiameter : undefined,
-    max_lobe_relief_mm: record.regime === 'botryoidal_crust' ? maxLobeRelief : undefined,
+    representation: 'instanced-swath',
   };
   _topoLightingTagMesh(swath, true);
   state.crystals.add(swath);
@@ -6515,9 +6972,7 @@ function _emitSurfaceGrowthSwath(
   // every viewport even when this layer uses fewer representatives.
   const canonicalDisplayThickness = Math.max(0.06, Math.min(canonicalPatchRadius * 0.45,
     trueThicknessMm > 0 ? Math.max(trueThicknessMm, 0.06) : 0.06));
-  const representativeRelief = record.regime === 'botryoidal_crust'
-    ? Math.min(trueThicknessMm * 3, Math.min(5, canonicalPatchRadius * 2.2) * 0.575)
-    : record.regime === 'euhedral_druse'
+  const representativeRelief = record.regime === 'euhedral_druse'
       ? Math.max(0.24, Math.min(1.6, canonicalPatchRadius * 0.39))
       : record.regime === 'fibrous_mat'
         ? Math.max(0.035, Math.min(0.11, canonicalPatchRadius * 0.055))

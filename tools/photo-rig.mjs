@@ -542,16 +542,38 @@ const PAGE_HELPERS = `
       const mats = Array.isArray(m.material) ? m.material : [m.material];
       const mat = mats[0];
       const { size, center } = RIG.bbox(m);
+      let foldedTopTriangles = null;
+      if (m.userData.source_points && m.userData.top_triangle_count) {
+        foldedTopTriangles = 0;
+        const source = m.userData.source_points, positions = m.geometry.attributes.position, ix = m.geometry.index.array;
+        const a = new THREE.Vector3(), b = new THREE.Vector3(), c = new THREE.Vector3();
+        const sa = new THREE.Vector3(), sb = new THREE.Vector3(), sc = new THREE.Vector3();
+        for (let i = 0; i < m.userData.top_triangle_count * 3; i += 3) {
+          a.fromBufferAttribute(positions, ix[i]); b.fromBufferAttribute(positions, ix[i + 1]); c.fromBufferAttribute(positions, ix[i + 2]);
+          sa.fromArray(source[ix[i]]); sb.fromArray(source[ix[i + 1]]); sc.fromArray(source[ix[i + 2]]);
+          b.sub(a).cross(c.sub(a)); sb.sub(sa).cross(sc.sub(sa));
+          if (b.dot(sb) < -1e-12) foldedTopTriangles++;
+        }
+      }
       rows.push({
         crystal_id: m.userData.crystal_id, mineral: m.userData.mineral,
         kind: RIG.kind(m), instances: m.isInstancedMesh ? m.count : 1,
         regime: m.userData.regime || null, coverage_fraction: m.userData.coverage_fraction ?? null,
         representation: m.userData.representation || (m.userData.surfaceGrowth ? 'instanced-swath' : null),
-        rendered_thickness_mm: m.userData.rendered_thickness_mm ?? null,
+        target_mean_thickness_mm: m.userData.target_mean_thickness_mm ?? null,
+        rendered_relief_range_mm: m.userData.rendered_relief_range_mm ?? null,
+        target_relief_envelope_mm: m.userData.target_relief_envelope_mm ?? null,
         physical_mean_thickness_um: m.userData.physical_mean_thickness_um ?? null,
         max_lobe_diameter_mm: m.userData.max_lobe_diameter_mm ?? null,
         max_lobe_relief_mm: m.userData.max_lobe_relief_mm ?? null,
         represented_area_mm2: m.userData.represented_area_mm2 ?? null,
+        top_triangle_count: m.userData.top_triangle_count ?? null,
+        interior_open_edges: m.userData.interior_open_edges ?? null,
+        contact_step_bridges: m.userData.contact_step_bridges ?? null,
+        folded_top_triangles: foldedTopTriangles,
+        curvature_limited_vertices: m.userData.curvature_limited_vertices ?? null,
+        curvature_min_relief_scale: m.userData.curvature_min_relief_scale ?? null,
+        unresolved_folds: m.userData.unresolved_folds ?? null,
         habit: cr ? cr.habit : null,
         token: (cr && typeof _habitGeomToken === 'function') ? _habitGeomToken(cr.habit) : null,
         c_length_mm: cr ? +Number(cr.c_length_mm).toFixed(3) : null,
@@ -933,10 +955,24 @@ function runProgram(name, seed, steps) {
     const simMs = performance.now() - t0;
     if (typeof _topoUseThreeRenderer !== 'undefined' && !_topoUseThreeRenderer) _topoUseThreeRenderer = true;
     _topoSyncThreeCanvasVisibility();
+    const renderStart = performance.now();
     topoRender();
+    const renderBuildMs = performance.now() - renderStart;
     const st = RIG.state();
     if (!st || !st.renderer) throw new Error('Three renderer did not initialise (WebGL unavailable?)');
-    return { steps, simMs: +simMs.toFixed(0), sim_version: SIM_VERSION, crystals: (sim.crystals || []).length,
+    const reuseStart = performance.now();
+    topoRender();
+    const renderReuseMs = performance.now() - reuseStart;
+    const frameTimes = [];
+    for (let i = 0; i < 5; i++) {
+      await new Promise(resolve => requestAnimationFrame(resolve));
+      const start = performance.now();
+      _topoRenderFrame(st);
+      st.renderer.getContext().finish();
+      frameTimes.push(performance.now() - start);
+    }
+    frameTimes.sort((a, b) => a - b);
+    return { steps, simMs: +simMs.toFixed(0), renderBuildMs: +renderBuildMs.toFixed(0), renderReuseMs: +renderReuseMs.toFixed(1), frameMedianMs: +frameTimes[2].toFixed(1), sim_version: SIM_VERSION, crystals: (sim.crystals || []).length,
       meshes: st.crystals.children.length, gl: RIG.glInfo(), cavity_r0: RIG.cavityR0(),
       roster: RIG.roster() };
   })()`;
@@ -1140,6 +1176,9 @@ async function main() {
     const manifest = {
       schema: 1, tool: 'tools/photo-rig.mjs', generated: new Date().toISOString(),
       scenario: args.scenario, seed: args.seed, steps: run.steps, sim_version: run.sim_version,
+      render_build_ms: run.renderBuildMs,
+      render_reuse_ms: run.renderReuseMs,
+      frame_median_ms: run.frameMedianMs,
       browser: version.Browser, gl: run.gl, size: [W, H], cavity_r0_mm: run.cavity_r0,
       crystals: run.crystals, meshes: run.meshes, roster: run.roster, shots: [], exceptions: page.exceptions,
     };

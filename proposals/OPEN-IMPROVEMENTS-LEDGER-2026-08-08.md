@@ -337,6 +337,20 @@ single execution ledger for the science-first AAA completion branch.
   (55 science tests, 128 artifacts, zero locality violations); all stories/baselines are
   unchanged. F13's two renderer-allocation-dependent UI IDs are re-pinned from the real
   journey. Cold CI gates publication of the frozen evidence commit.
+  **R3c hostile-review PASS 2026-09-07:** connected basal skin with
+  merged mound relief replaces thick-crust ellipsoids. Actual contact triangulations carry
+  later coats across troughs and partial footprints; local curvature limits prevent folded
+  offsets, and microscopic film-edge risers receive explicit connecting faces. Target
+  thickness and measured representative relief are reported separately. Independent review
+  passed V11 after Bisbee/Deccan/Elmwood production captures and 48 focused tests; Bisbee
+  has zero measured top-face folds and zero uncovered paired film steps. Source faceting
+  and patch borders remain. Bisbee rebuild is still 10.972 s (R3b: 1.859 s), despite 14.5 ms
+  warm reuse and 6.7 ms GPU frame median on RTX 3080; mobile timing is unproven. The browser
+  journey and receipt audit pass unchanged, including UI IDs and geology fingerprints.
+  Fresh science rebake passes: 128 artifacts, zero locality violations, 55 focused science
+  tests. Stories, baselines, digest, mechanism testimony and claim cards are unchanged;
+  only executable-bound evidence hashes/links change. Uninterrupted cold CI gates publication
+  of the frozen delivery commit.
   R3 remains open for mass-sized druse teeth with the approved adaptive instance ceiling.
   Next: finish R3, then R4.
 

@@ -673,6 +673,45 @@ whole-vug photo set still wins on facets and wall texture (R4, R5).
   witness's browser-authority link and the 41 claim-card pairs; witness science is unchanged.
   Uninterrupted cold CI gates publication of the frozen evidence commit; its exact
   verdict belongs in `.local-evidence/test-workflow-last-pass-v2.json`.
+- **R3c hostile-review PASS 2026-09-07:** supersedes R3b's disconnected
+  thick-crust ellipsoids with a basal skin and merged mound relief on the authenticated
+  footprint. The deterministic lobe kernels retain the 5 mm diameter bound; the complete
+  representative envelope is capped by three times recorded mean thickness. This is a
+  representative surface, not a new scientific volume or growth law.
+  Later coatings inherit the actual piecewise-linear contact, including troughs and
+  partially booked triangles. Scattered teeth/fibres no longer lift a whole later coating
+  by a nominal blanket height. Canonical shared-edge interpolation and explicit microscopic
+  risers preserve contact across earlier film boundaries. The same geometry supplies
+  mobile, replay, picking, specimen cuts and disposal.
+  Hostile iterations exposed slope-biased buried faces, normal-offset folds and excessive
+  rebuild cost. Slope bias is now zero; smooth local curvature limits reduce only the new
+  representative relief, and unresolved folds fail closed. Diagnostics distinguish target
+  mean thickness/envelope from measured relief and the minimum local attenuation factor.
+  Source geometry, chemistry and booked surface-growth records remain immutable.
+  Independent hostile review rejected the earlier torn, folded, pinched and globally
+  flattened candidates, then passed V11 after actual Bisbee, Deccan and Elmwood captures.
+  All 20 Bisbee continuous coats have zero measured top-face folds. Malachite's inherited
+  2 µm steps have 168 explicit bridge quads; the independent edge probe finds zero uncovered
+  paired steps. Gold/malachite measured maximum relief is 0.853/0.829 mm against a 0.88 mm
+  target envelope. Deccan's seven continuous coats remain 1.998–2.002 µm at a 2 µm target,
+  with zero folds; Elmwood's ordinary-body control has no material visual regression.
+  Photos: `.local-evidence/photos/{bisbee,deccan_zeolite,elmwood}-s42-connected-r3c-v11/`.
+  Review: `.local-evidence/r3-hostile-review.md`; 48 focused tests pass (13 surface
+  integration, 20 specimen, 15 surface science), including reviewer-authored curved-edge
+  and microscopic-riser regressions. This is a connected-crust pass, not completion of
+  every R3 item or a new photorealism score. Source faceting and patch borders remain.
+  **Performance limitation:** Bisbee rebuild is 10.972 s versus R3b's 1.859 s; shared contact
+  calculations reduce the earlier 62 s candidate substantially but do not restore baseline
+  rebuild speed. Warm reuse is 14.5 ms and five-frame GPU-synchronized median is 6.7 ms on
+  RTX 3080. Deccan/Elmwood builds are 754/305 ms. No mobile hardware timing claim.
+  Local fold checks do not prove absence of all possible global self-intersections.
+  The full owned-browser journey and exact receipt audit pass with no expectation re-pins;
+  its journey payload is identical to R3b, including geology fingerprints and UI IDs.
+  The fresh science rebake passes: 128 authenticated artifacts, zero locality violations,
+  and 55 focused science tests. All 41 stories, both scenario baselines, the strip digest,
+  mechanism testimony and all claim cards are unchanged. Only executable-bound hashes
+  and receipt links change. Uninterrupted cold CI gates publication of the frozen delivery
+  commit; its exact local verdict belongs in `.local-evidence/test-workflow-last-pass-v2.json`.
 - `euhedral_druse` → teeth sized from the aggregate's own zone record, thousands of instances
   where the mass allows, orientation jitter ±20°.
 - **Acceptance:** no swath instance larger than 5 mm across on any scenario (rig roster check);
