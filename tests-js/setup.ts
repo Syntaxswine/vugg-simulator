@@ -626,6 +626,23 @@ const EXPORTS = [
   'OPTICS_MOBILE_TIER',
   'OPTICS_CLASS_REFLECTANCE',
   'OPTICS_REFLECTANCE_DEFAULT',
+  // R6 specimen view (2026-09-06, 99i-renderer-three.ts) — the cut/rind/stage constants and
+  // the GLSL of the cut; the builders and the entry/exit functions are harvested.
+  'SPECIMEN_RAG_FRACTION',
+  'SPECIMEN_RAG_LOBES',
+  'SPECIMEN_RIND_FRACTION',
+  'SPECIMEN_RIND_MIN_MM',
+  'SPECIMEN_RIND_MAX_MM',
+  'SPECIMEN_RIND_KNOB',
+  'SPECIMEN_RIND_WART',
+  'SPECIMEN_SHADOW_BOUNDS_R0',
+  'SPECIMEN_POSE',
+  'SPECIMEN_EV_STOPS',
+  'SPECIMEN_GRAIN',
+  'SPECIMEN_VIGNETTE',
+  'SPECIMEN_FOG_NEAR_R0',
+  'SPECIMEN_FOG_FAR_R0',
+  'SPECIMEN_CUT_GLSL_PARS',
 ];
 
 // Bundle source cache. Vitest re-imports setup.ts every file even with

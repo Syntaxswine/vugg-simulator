@@ -66,7 +66,25 @@ Living list of open work items, captured from session conversations so context s
 > the studio mood. Rig: `--tier`, `--probe seethrough` (silhouette mask + wall-hidden frame →
 > inside-silhouette statistics), `--experiment legacylustre`, an optics receipt per frame.
 > Tests: `optics-r2-materials.test.ts` (36) + the optics lint requires ior/reflectance.
-> **Next: R6** (the specimen view — where metals get a lamp to mirror), then R5.
+> **R6 SHIPPED 2026-09-06 (branch `render/r6-specimen`, stacked on R2):** the specimen view beside
+> the orb (D3). The reference set decided its shape: catalog 851 is a BROKEN geode, not a sawn
+> one — so a ragged cut (periodic value noise around the rim, one uint hash bit-exact on CPU and
+> GPU) faces the camera and pulls toward "opening up"; the wall and the coating swaths discard per
+> fragment, crystal bodies are culled whole by their anchor (never sawn — the rim crystals stand
+> proud of the break); a rind built from the cavity surface (weathered lithology skin, lumps and
+> warts, discarded by its source vertex so its edge is the wall's) and a fracture face built one
+> quad per crossed wall triangle (exact at both edges; a pale lining band then fresh-break brown);
+> a cloth at the half's lowest point with the contact shadow, a cyclorama, fog; the studio mood
+> with the key riding the camera; ½-EV exposure stops; an HDR post pass (ACES, 1.5 % grain,
+> vignette) on desktop, refused honestly elsewhere; no DoF (the reference photographs are sharp
+> through). Measured at the shipped pose: elmwood edges 0.041, mvt 0.032 (in the photograph
+> band), tn457 0.028 (a laminated bowl — content, R3/R5); the metal criterion carried from R2 is
+> met here: galena highlights 0.0068 → **0.020** and pyrite 0.0027 → **0.015** at +1 EV. Found on
+> the way: a face that stays pale after its data is darkened is overexposed, not mis-wired — the
+> cloth is a grey card (irradiance ≈ 3 under the studio key); rock albedos were set from it.
+> Rig: `--view specimen`, `--ev`, `specimenoff:<part>` ablations, a specimen receipt per frame.
+> Tests: `specimen-view.test.ts` (20). **Next: R5** (the rock wall — in the specimen frame the
+> hammered honeycomb is now the largest thing on screen), then R3.
 
 > ## 🧬 CODEX SIM 271 INTEGRATION + THE LINE-ENDING FINDING (2026-08-18) — **branch `integrate/codex-sulfur-valence` — `FINDING-EVIDENCE-LINE-ENDINGS-2026-08-18.md`**
 >

@@ -197,12 +197,13 @@ a per-ring/per-cell radial mesh with a normal+AO map tiled by cell; no albedo te
 roughness map, no rock. A real vug wall is granular host rock with a drusy micro-crust and iron
 stain. Also: `cooling-s42/cavity.png` shows the whole orb honeycombed from outside.
 
-### F9 ★★ Presentation: a translucent orb in a black void
+### F9 ★★ Presentation: a translucent orb in a black void — FIXED (R6, 2026-09-06)
 The default view (`wallDisplay 0`: BackSide at 0.40 opacity) reads as a sci-fi sphere, not a
 geode. Real geodes are photographed cut open. **Prototype `halfcut`** (a clip plane through the
 origin facing the camera, wall opaque) turns the elmwood orb into a bowl with a druse rim
 (`elmwood-s42-envlight+glass+halfcut/cavity.png`), and edge fraction rises to the photograph range
-(0.04–0.08).
+(0.04–0.08). **R6 ships the specimen view beside the orb (D3): a broken geode on a photographer's
+cloth — ragged break, rind, fracture face, contact shadow, studio key, exposure, grain (§5 R6).**
 
 ### F10 ★ Cluster and coating artefacts
 Satellites share the parent's material and scale (0.25–0.95×) — a druse has no size distribution
@@ -395,6 +396,31 @@ unchanged to two decimals (no metals, alpha on both). Per-scenario rows are in t
 manifests (`.local-evidence/photos/<scenario>-s42-r2f{,-legacy}/manifest.json`, `gl.optics`
 carries the tier receipt). One legacy run (ouro_preto) produced no manifest in the paired
 sweep and was rerun alone (ratio 1.01, edges up, no step-down).
+
+### 3.6 R6 fleet sweep (2026-09-06) — the specimen view, every scenario, one build
+
+`--view specimen --shots specimen`, seed 42, the shipped pose (30° above, the half filling ⅔ of
+the frame), the studio mood, the post pass on. Every scenario is a broken geode on the cloth: the
+same cut rule, rind, fracture face and stage, sized by its own r0 and skinned by its own
+lithology (13 lithologies in the fleet).
+
+| statistic | value |
+|---|---|
+| edge fraction | median 0.036 · min 0.011 · max 0.111 · **26/41 in the photograph band [0.03, 0.12]** |
+| below the band | 15: marble_contact_metamorphism 0.011, amethyst_geode 0.012, tormiq_alpine_cleft 0.016, cooling 0.019, chiastolite_hornfels 0.020, tutorial_first_crystal 0.020, pulse 0.022, deccan_zeolite 0.023, tutorial_mn_calcite 0.025, tutorial_travertine 0.026, naica_geothermal 0.026, stalactite_demo 0.026, reactive_wall 0.027, tn457_barite_pulses 0.028, colorado_plateau 0.028 |
+| highest | shigar_pegmatite 0.111, supergene_oxidation 0.092, bisbee 0.082, roughten_gill 0.079, porphyry 0.074, schneeberg 0.072 |
+| mean luminance | median 70.5 (48.8–88.0); the whole-vug photographs sit at 100–145 — the specimen frames run darker (the cloth is a third of the frame) |
+| highlight fraction > 0 | 13/41 frames (median 0 — a whole-specimen frame at 0 EV; the metal criterion is measured on hero frames at +1 EV, §5 R6) |
+| crystal bodies culled by the break | median 40 % of the bodies per scenario (a half, plus the rim band) |
+| fracture quads | 305–748 per scenario |
+| post pass on / transmission tier active | 41/41 · 41/41 (616 glass materials across the fleet — the opaque wall is the backdrop R2's glass needs) |
+| shadow step-downs / runtime exceptions / shot errors | 0 / 0 / 0 |
+
+Reading: the scenarios below the band are the ones whose interiors are a smooth lining with few
+or tiny crystals (the laminated and stalactitic cavities), which is R3/R5 content, not the
+presentation; the highest edge fractions are the crystal-rich pegmatite and druse cavities.
+Per-scenario rows are in `.local-evidence/photos/<scenario>-s42-r6g/manifest.json`
+(`camera.specimen` carries the receipt) and `sweep-r6g.log`.
 
 ## 4. Fixed in this commit
 
@@ -598,13 +624,83 @@ whole-vug photo set still wins on facets and wall texture (R4, R5).
 - **Acceptance:** druse shots no longer show periodic ridges (rig: no dominant spatial frequency
   in the wall's luminance autocorrelation); wall edge fraction 0.02–0.06.
 
-### R6 — Photograph the specimen · 2 days · needs D3 (presentation)
-- "Specimen view": cut-geode clip plane facing the camera (prototyped), opaque wall, key light
-  at the opening, neutral dark-cloth background gradient, exposure control, optional depth of
-  field for hero zoom (a two-pass blur is enough at this scale), 1–2% film grain.
-- The existing orb view stays as the "process view" — the rig proves both from one scene.
-- **Acceptance:** default-view edge fraction in the photograph band (0.03–0.12); a boss
-  eye-check on Pages of the elmwood, tn457 and mvt specimen views.
+### R6 — Photograph the specimen · **SHIPPED 2026-09-06** (D3 beside the orb, D5 studio mood)
+
+**What the reference decided.** The whole-vug photo set (§10) is not sawn thunder eggs but
+broken geodes: catalog 851 — the R6 presentation reference — is a Keokuk-type half on a cutting
+mat with a ragged brown rind, a fracture face showing a pale lining band, rim crystals standing
+proud of the break, and a soft contact shadow. So the specimen view models a BROKEN geode, not
+the `halfcut` prototype's saw cut: the break wanders and goes *around* the rim crystals. A sawn
+presentation with flat caps (thunder eggs) is the natural follow-up, not this rung.
+
+**Mechanism (js/99i, the SPECIMEN VIEW section; ◐ beside ▦ in the camera row, ☼ = exposure).**
+- **The cut.** A plane through the cavity origin whose normal is the camera's forward direction
+  at entry, pulled 0.8 toward −y (the half lies on the cloth, opening upward and toward the
+  viewer — 851 frame 1); a periodic 1-D value noise around the rim (6/12/24 lobes, ±0.12·r0)
+  makes the edge wander. A world point is cut away when `dot(n, p) < amp·rag(θ)`. The SAME
+  integer hash runs on the CPU and in GLSL over uint arithmetic (`Math.imul` + `>>> 0` is
+  GLSL ES 3.00 unsigned multiplication mod 2³²), so the fracture band meets the discarded edge
+  without a hairline; `tests-js/specimen-view.test.ts` pins the hash against a BigInt reference.
+- **What the cut touches.** The wall discards per fragment (its relief-AO injection gains the
+  test). Crystal BODIES are culled whole by their wall anchor — a crystal is never sawn, and the
+  rim crystals project past the break as in every photograph. Instanced coating swaths discard
+  per fragment and carry a depth material with the same test, so the removed half casts no
+  ghost shadow on the cloth. Only meshes the view hid are ever re-shown.
+- **The rind.** The cavity surface offset outward along 0.55·n + 0.45·p̂ by 0.13·r0·(1 ± 0.35
+  lumps ± 0.14 warts): a weathered lithology skin (the matrix-skin texture darkened and
+  iron-tinted, albedo ≈ 0.13), discarded by its SOURCE wall vertex — an attribute — so its edge
+  is exactly the wall's; it casts the contact shadow through a depth material with the cut.
+- **The fracture face.** Every wall triangle the rag crosses contributes one quad from its inner
+  crossing segment to the same segment on the rind (identical lerp factors: exact at both edges,
+  no loop chaining), three rows across, roughened along n, shared crossing points merged and
+  wound consistently so the normals average across the band; vertex-coloured — a pale lining
+  band (18 % of the depth: the wall colour lifted, albedo 0.32) then the fresh-break brown
+  (0.55× the skin); planar UVs for its bump.
+- **The stage.** A cloth plane at the kept half's lowest point (charcoal, roughness 1, a weave
+  bump), a cyclorama, fog for the falloff; the studio mood on entry (D5); the key keeps riding
+  the camera, so it lights the opening from the viewer's upper left; the shadow frustum widens to
+  3·r0 for the cloth; the water sheet is off; the wall is opaque and two-sided in every wall
+  mode (mode 2 hides wall and stage together) — the opaque backdrop R2's glass needs, so the
+  transmission tier is ACTIVE here (16 glass materials in elmwood's receipt).
+- **Exposure and the post pass.** ½-EV stops (☼; `2^EV` folded into the lighting rig's exposure
+  rule, so the inside/outside rule keeps it); an HDR half-float target → ACES → 1.5 % grain
+  after tone mapping → gentle vignette → sRGB, on desktop WebGL2 with float colour buffers and
+  refused honestly otherwise (reason in the receipt). No depth of field: the reference
+  photographs are stopped down or focus-stacked — every one is sharp through the interior — so
+  DoF would be a lie about the subject.
+- Everything is allocated on first entry (F13: the guided-tutorial receipt pins ids that shift
+  with the render allocation count). ⊙ returns to the entry pose while the view is on.
+  Render-only: no simulator consumer, no strip testimony.
+
+**Measured (photo rig `--view specimen`, seed 42, the shipped pose; the reference is the nine
+whole-vug frames of §10 through the same statistic).**
+
+| frame | L / highlights / edges | note |
+|---|---|---|
+| elmwood specimen | 72.7 / 0 / **0.041** | in band |
+| mvt specimen | 67.2 / 0.0003 / **0.032** | in band |
+| tn457 specimen | 69.9 / 0 / 0.028 | just under: a laminated bowl with a dozen small barites |
+| mvt hero galena, EV 0 → +1 | 99.8 / 0.0068 / 0.013 → 139.1 / **0.0204** / 0.013 | the metal criterion carried from R2 |
+| mvt hero pyrite, EV 0 → +1 | 60.2 / 0.0027 / 0.013 → 91.3 / **0.0149** / 0.014 | |
+| reference: nine whole-vug frames | 100–145 / median 0.0043 / median 0.085 (0.006–0.238) | catalog 851, 1256, 1257 ×2, 1258, 948, 1096, 1098, 1344 |
+
+**Acceptance, restated honestly.** *Default-view edge fraction in the photograph band
+(0.03–0.12):* elmwood and mvt yes; tn457 0.028 — its interior is a smooth laminated lining with a
+dozen tiny barites, which is content (R3/R5), not framing: the pose (30° above, the half filling
+⅔ of the frame) is a photographer's, not a search for the number. *Galena/pyrite highlight ≥
+0.01 (carried from R2):* met in the specimen view at +1 EV (0.020 / 0.015; 0.0068 / 0.0027 at
+0 EV) — the exposure control is part of the rung, and a stop up is what a photographer gives a
+dark sulfide. *The boss eye-check on Pages of elmwood, tn457 and mvt:* pending merge. My own eye
+against 851: the rind, the ragged break, the lining band, the contact shadow and the rim crystals
+read; the bowl's interior is still the hammered honeycomb (R5) with sparse crystals (R3), which
+are the rungs that follow — in the specimen frame the wall is now the largest thing on screen.
+**Found on the way:** a surface that stays pale after its colour data is darkened is usually
+overexposed, not mis-wired — the cloth (albedo 0.023) rendered at sRGB 55, i.e. irradiance ≈ 2
+on the horizontal and ≈ 3 on a face turned to the key; a 0.30-albedo rock there is cream under
+ACES. Read the grey card before blaming the data; the rock albedos were set from it. Rig:
+`--view specimen`, `--ev`, the `specimen` shot, `--experiment specimenoff:<part>|fracflat`
+ablations, `manifest.gl.specimen` and per-shot `camera.specimen` receipts; hero/druse cameras
+stand on the open side of the cut. Tests: `tests-js/specimen-view.test.ts` (20).
 
 ### R7 — Aggregates with a history · 3–5 days · no decision
 - Lognormal satellite sizes with a tail; sub-parallel groups; per-generation tint (older
@@ -653,13 +749,13 @@ R4–R6 carry it to 7.
   of its pinned constants re-pinned — two stream-position ids, the testimony dataset digest, and
   the box's Chrome version (F13) — then the rebake moved the corrected testimony only. Cold CI
   on the canonical transplant: verdict in PR #7.
-- The laminated lining still tiles (R3); the druse camera is weak (F12); the `halfcut` prototype
-  faces the studio's dark side, so its highlight numbers understate the effect.
+- The laminated lining still tiles (R3); the druse camera is weak (F12). (The `halfcut` prototype
+  is superseded by R6's specimen view, whose key rides the camera and faces the opening.)
 - Amethyst geode and deccan chalcedony rinds are *booked* too thin to be fabrics — a science gap
   surfaced by the mass floor, not a render one; it belongs to the scenario-tuning queue.
 - The 21 residual `spike` mis-shapes and the five cubic natives (F4) are left for R4.
-- No specimen photograph of a *whole* vug interior was in the catalog set; the presentation
-  rubric (R6) leans on my reading of geode photography, not on a boss-owned reference.
+- No specimen photograph of a *whole* vug interior was in the catalog set at review time; §10
+  names the set that arrived, and R6 was built against catalog 851 from it.
 
 ---
 
@@ -707,9 +803,11 @@ green on the canonical base.
 node tools/photo-rig.mjs --list
 node tools/photo-rig.mjs --scenario elmwood --seed 42 --shots cavity,hero,druse --hero-n 2
 node tools/photo-rig.mjs --scenario elmwood --experiment envlight,glass,halfcut --label demo
+node tools/photo-rig.mjs --scenario elmwood --view specimen --shots specimen,hero --hero-n 2        # R6
+node tools/photo-rig.mjs --scenario mvt --view specimen --shots hero --mineral galena --hero-n 1 --ev 1
 node tools/photo-rig.mjs --photo-stats "<catalog>/photos/1061/front.jpg" ...
 node tools/morph-fidelity-audit.mjs
-npx vitest run tests-js/surface-growth.test.ts tests-js/surface-growth-three-integration.test.ts tests-js/sphalerite-tetrahedron.test.ts tests-js/habit-bias.test.ts tests-js/pyrite-morphology.test.ts tests-js/fluorite-morphology.test.ts tests-js/cluster-spec.test.ts tests-js/manganese-surface-family.test.ts tests-js/mineral-optics.test.ts tests-js/twin-cluster-patterns.test.ts tests-js/fan-cluster-pattern.test.ts tests-js/dendrite-tree-render.test.ts tests-js/d1-body-colour.test.ts tests-js/facestep.test.ts tests-js/hopper-texture.test.ts tests-js/cleft-halfform.test.ts tests-js/mesh.test.ts tests-js/cavity-render.test.ts tests-js/matrix-skin.test.ts tests-js/etch-overprint.test.ts tests-js/o5-band-render.test.ts tests-js/o5-split.test.ts tests-js/aragonite-contact-twin-three.test.ts tests-js/galena-spinel-twin-three.test.ts tests-js/fluorite-twin-three.test.ts tests-js/o2-render-wiring.test.ts tests-js/o4-engulfment.test.ts tests-js/local-color.test.ts
+npx vitest run tests-js/lighting-rig.test.ts tests-js/optics-r2-materials.test.ts tests-js/specimen-view.test.ts tests-js/surface-growth.test.ts tests-js/surface-growth-three-integration.test.ts tests-js/sphalerite-tetrahedron.test.ts tests-js/habit-bias.test.ts tests-js/pyrite-morphology.test.ts tests-js/fluorite-morphology.test.ts tests-js/cluster-spec.test.ts tests-js/manganese-surface-family.test.ts tests-js/mineral-optics.test.ts tests-js/twin-cluster-patterns.test.ts tests-js/fan-cluster-pattern.test.ts tests-js/dendrite-tree-render.test.ts tests-js/d1-body-colour.test.ts tests-js/facestep.test.ts tests-js/hopper-texture.test.ts tests-js/cleft-halfform.test.ts tests-js/mesh.test.ts tests-js/cavity-render.test.ts tests-js/matrix-skin.test.ts tests-js/etch-overprint.test.ts tests-js/o5-band-render.test.ts tests-js/o5-split.test.ts tests-js/aragonite-contact-twin-three.test.ts tests-js/galena-spinel-twin-three.test.ts tests-js/fluorite-twin-three.test.ts tests-js/o2-render-wiring.test.ts tests-js/o4-engulfment.test.ts tests-js/local-color.test.ts
 ```
 
 Evidence index (all under `.local-evidence/photos/`): `<scenario>-s42/` = shipped renderer before

@@ -3743,6 +3743,10 @@ html[data-vugg-motion="reduced"] *::after {
         <button class="topo-zoom-btn" id="topo-three-btn" onclick="topoToggleThreeRenderer()" title="Toggle Three.js mesh renderer (experimental — Phase E1: cavity wireframe only)" aria-label="Toggle 3D mesh renderer">⬚</button>
         <!-- WALL DISPLAY (2026-07-06) — cycles the vug-wall shell: solid → translucent → hidden (3D mesh view) -->
         <button class="topo-zoom-btn" id="topo-wall-btn" onclick="topoToggleWallDisplay()" title="Vug wall: solid (click: translucent)" aria-label="Change vug wall display">▦</button>
+        <!-- SPECIMEN VIEW (R6, 2026-09-06) — the geode broken open on a photographer's cloth, beside the process orb (decision D3);
+             ◐ toggles it, ☼ cycles the exposure in ½-EV stops while it is on -->
+        <button class="topo-zoom-btn" id="topo-specimen-btn" onclick="topoToggleSpecimenView()" title="Specimen view: off (click: break the geode open on the cloth)" aria-label="Toggle specimen view" aria-pressed="false">◐</button>
+        <button class="topo-zoom-btn" id="topo-exposure-btn" onclick="topoCycleSpecimenExposure()" title="Exposure: 0 EV (click: next ½-stop)" aria-label="Cycle specimen exposure" style="display:none">☼</button>
         <!-- HELIX-OVERLAY-FORK ADDITION (v12) — see proposals/HELIX-OVERLAY-FORK-CHANGES.md -->
         <button class="topo-zoom-btn" id="helix-overlay-btn" onclick="helixOverlayToggle()" title="Toggle the helicoid manifold for multidimensional space (spinning radar through the vugg — one moment of time per rotation, advances forward each turn)" aria-label="Toggle helicoid history overlay">⌇</button>
       </div>
@@ -109276,6 +109280,15 @@ function topoSetDragMode(mode) {
 function topoRecenter() {
     if (_topoExactFlatPresentationActive)
         return false;
+    // R6 specimen view: recentre returns to the specimen's entry pose (the cut faces it), not to
+    // the process view's zero tilt.
+    if (typeof _topoThreeState !== 'undefined' && _topoThreeState && _topoThreeState.specimen
+        && typeof _topoSpecimenPose === 'function') {
+        _topoSpecimenPose(_topoThreeState.specimen.pose);
+        _topoApplyTransform();
+        topoRender();
+        return;
+    }
     _topoPanX = 0;
     _topoPanY = 0;
     _topoTiltX = 0;
@@ -110570,6 +110583,10 @@ function _topoInitThree(canvas) {
     // wall data arrives. DoubleSide so the user can see the cavity from
     // both inside (geode flythrough) and outside (the view E2 ships
     // with). Vertex colors carry orientation + water-state tints.
+    // R6 specimen view: the cut uniforms are shared by the cavity material (below), the rind and
+    // every crystal material (through clipUniforms). Plain uniform objects — no allocation the
+    // guided-tutorial receipt could see.
+    const specimenCut = _specimenCutUniforms();
     const cavityGeom = new THREE.BufferGeometry();
     const cavityMat = new THREE.MeshStandardMaterial({
         vertexColors: true,
@@ -110600,6 +110617,7 @@ function _topoInitThree(canvas) {
         uWallMatrixScale: { value: new THREE.Vector2(0.05, 0.05) },
         uWallReliefScale: { value: new THREE.Vector2(0.1, 0.1) },
     };
+    cavityMat.userData.specimenCut = specimenCut;
     if (typeof _applyWallReliefAO === 'function')
         _applyWallReliefAO(cavityMat);
     const cavity = new THREE.Mesh(cavityGeom, cavityMat);
@@ -110689,6 +110707,14 @@ function _topoInitThree(canvas) {
             uHelixNTurns: { value: 1 },
             uHelixFade: { value: Math.PI / 2 },
             // === END HELIX-OVERLAY-FORK ADDITION ===========================
+            // R6 specimen view — the ragged cut (see the SPECIMEN VIEW section); the swath
+            // materials test it per fragment, the wall and the rind through their own injections.
+            uSpecimenCut: specimenCut.uSpecimenCut,
+            uSpecimenCutN: specimenCut.uSpecimenCutN,
+            uSpecimenCutU: specimenCut.uSpecimenCutU,
+            uSpecimenCutV: specimenCut.uSpecimenCutV,
+            uSpecimenCutAmp: specimenCut.uSpecimenCutAmp,
+            uSpecimenCutSeed: specimenCut.uSpecimenCutSeed,
         },
     };
     // R1 lighting rig: environment map, tone mapping, shadow map (cave mood is
@@ -110784,6 +110810,11 @@ function _topoLightingIsMobile() {
     return typeof window !== 'undefined'
         && ((window.innerWidth || 1024) <= SURFACE_GROWTH_MOBILE_MAX_WIDTH_CSS_PX
             || (window.devicePixelRatio || 1) >= SURFACE_GROWTH_MOBILE_MIN_DEVICE_PIXEL_RATIO);
+}
+// Exposure = the mood's base × the inside factor × 2^EV (the specimen view's ½-stop control).
+function _topoLightingExposure(state, spec, inside) {
+    const ev = state && state.specimen ? (Number(state.specimen.ev) || 0) : 0;
+    return spec.exposure * (inside ? spec.insideExposure : 1) * Math.pow(2, ev);
 }
 // The procedural room, baked to a prefiltered environment. Radiance panels are
 // MeshBasicMaterial colours scaled past 1 (PMREM keeps HDR); the room shell is
@@ -110885,7 +110916,7 @@ function _topoInstallLightingRig(state, mood, opts = {}) {
     }
     if (rig.environment) {
         renderer.toneMapping = THREE.ACESFilmicToneMapping;
-        renderer.toneMappingExposure = spec.exposure * (state.insideMode ? spec.insideExposure : 1);
+        renderer.toneMappingExposure = _topoLightingExposure(state, spec, !!state.insideMode);
         rig.tone_mapping = 'aces';
         rig.exposure = renderer.toneMappingExposure;
         if (state.ambient)
@@ -110938,7 +110969,7 @@ function _topoLightingApplyInsideMode(state, inside) {
     const rig = state && state.lightingRig;
     if (rig && rig.environment && state.renderer) {
         const spec = LIGHTING_MOODS[rig.mood] || LIGHTING_MOODS.cave;
-        state.renderer.toneMappingExposure = spec.exposure * (inside ? spec.insideExposure : 1);
+        state.renderer.toneMappingExposure = _topoLightingExposure(state, spec, inside);
         rig.exposure = state.renderer.toneMappingExposure;
         return;
     }
@@ -110977,7 +111008,7 @@ function _topoLightingSyncKey(state, aimX, aimY, aimZ, r0) {
         light.target.updateMatrixWorld(true);
     }
     if (light.castShadow && light.shadow && light.shadow.camera) {
-        const R = safeR0 * LIGHTING_SHADOW_BOUNDS_R0;
+        const R = safeR0 * (state.specimen ? SPECIMEN_SHADOW_BOUNDS_R0 : LIGHTING_SHADOW_BOUNDS_R0);
         const far = dist + R * 2; // reaches the far wall of a lumpy (≤ 1.67·r0) cavity
         const sc = light.shadow.camera;
         if (sc.right !== R || sc.far !== far) {
@@ -111033,6 +111064,991 @@ function _topoLightingNoteRenderTime(state, ms) {
     rig.shadow_map = gate.shadows ? gate.shadow_map : 0;
     rig.step_downs = gate.step_downs;
 }
+// ---------------------------------------------------------------------------
+// SPECIMEN VIEW (R6, 2026-09-06 — visual-realism review §5 R6; decisions D3
+// "beside the orb" and D5 "restrained studio in the specimen view").
+//
+// The orb view is the PROCESS view: a translucent shell in a dark room, the
+// geology as it happens. A geode is photographed after it is broken open, and
+// that is the picture the review's fixed whole-vug photo set holds (doc §10:
+// catalog 851 — a Keokuk-type half on a cutting mat — and 1257/1258/1256):
+//   * the break is a ragged line, not a saw cut, and it goes AROUND the rim
+//     crystals — they stay whole and stand proud of the edge;
+//   * the rind is a thick weathered band around the white lining, and its
+//     fracture face shows the pale inner band and the brown outer band;
+//   * the half rests on a cloth under a soft key, with a contact shadow.
+// So the specimen view models a BROKEN geode (a sawn-thunder-egg presentation
+// with flat caps is the natural follow-up, not this rung):
+//   1. The cut: a plane through the cavity origin whose normal is the camera's
+//      forward direction at entry (the opening faces the viewer), with a
+//      periodic 1-D value noise around the rim so the edge wanders by
+//      ±SPECIMEN_RAG_FRACTION·r0. A world point is cut away when
+//      dot(n, p) < amp·rag(θ(p)). The SAME hash runs on the CPU (culling, the
+//      fracture band) and in GLSL (the wall, the rind, the coating swaths): an
+//      integer hash over uint arithmetic, bit-exact on both sides, so the
+//      fracture band meets the discarded edge without a hairline.
+//   2. The wall discards per fragment (cavity material); rim crystal BODIES are
+//      culled whole by their wall anchor (a crystal is never sawn); instanced
+//      coating swaths discard per fragment, with a depth material so the
+//      removed half casts no ghost shadow on the cloth.
+//   3. The rind: the cavity surface offset outward by rind_mm·(1 ± knob), a
+//      weathered lithology skin, discarded by its SOURCE wall position
+//      (an attribute) so its edge is exactly the wall's edge.
+//   4. The fracture face: every wall triangle the rag crosses contributes one
+//      quad from its inner crossing segment to the same segment on the rind
+//      (identical lerp factors — exact at both edges); subdivided and roughened
+//      across; vertex-coloured pale-inside → brown-outside.
+//   5. The stage: a cloth plane at the half's lowest point and a cyclorama
+//      behind it, fog for the falloff; the studio mood; the key rides the
+//      camera so it lights the opening; a wider shadow frustum for the cloth.
+//   6. Exposure in ½-EV stops (☼ button); a post pass (HDR target → ACES →
+//      1.5 % grain → gentle vignette) on desktop WebGL2 with float colour
+//      buffers, recorded honestly when unavailable. No depth of field: the
+//      reference photographs are focus-stacked or stopped down; every one is
+//      sharp through the interior, so DoF would be a lie about the subject.
+// Everything is allocated on first entry (the guided-tutorial receipt pins
+// stream-position ids that shift with the render allocation count — F13).
+// Render-only: no simulator consumer, no strip testimony.
+// ---------------------------------------------------------------------------
+const SPECIMEN_RAG_FRACTION = 0.12; // break-line wander around the rim, × r0
+const SPECIMEN_RAG_LOBES = 6; // lowest octave: lobes per turn (then 12, 24)
+const SPECIMEN_RIND_FRACTION = 0.13; // rind thickness, × r0 (Keokuk 0.06–0.2; catalog 851 ≈ 0.3)
+const SPECIMEN_RIND_MIN_MM = 2.5;
+const SPECIMEN_RIND_MAX_MM = 30;
+const SPECIMEN_RIND_KNOB = 0.35; // ± thickness modulation (the lumpy outside)
+const SPECIMEN_RIND_KNOB_WAVELENGTH_R0 = 0.45;
+const SPECIMEN_RIND_WART = 0.14; // ± finer modulation (the warty botryoidal skin of a Keokuk geode)
+const SPECIMEN_RIND_WART_WAVELENGTH_R0 = 0.11;
+const SPECIMEN_RIND_TINT = 0x6b4d36; // iron-stained weathering mixed into the lithology skin (catalog 851: a brown, warty rind)
+const SPECIMEN_RIND_TINT_MIX = 0.7;
+const SPECIMEN_RIND_DARKEN = 0.28; // weathered skin albedo ≈ 0.13 after the lithology map (851: dark brown)
+const SPECIMEN_FRACTURE_INNER_LIFT = 0.2; // the pale lining band: wall colour lifted toward white
+const SPECIMEN_FRACTURE_INNER_BAND = 0.18; // its share of the fracture face (then the rind's brown)
+const SPECIMEN_FRACTURE_FRESH = 0.55; // fracture-face albedo, × the skin colour: under the studio key (irradiance ≈ 3) a
+// mid-brown reads at ~0.09 linear (catalog 851's band ≈ sRGB 150/120/100)
+const SPECIMEN_FRACTURE_LINING_ALBEDO = 0.32; // the pale lining band: wall colour lifted, then scaled to an albedo
+const SPECIMEN_CUT_TILT_DOWN = 0.8; // the break faces between the camera and straight up: the half lies on the cloth,
+// opening upward, photographed from above (851 frame 1), not a bowl held at the lens
+const SPECIMEN_FRACTURE_ROUGH = 0.2; // fracture relief across the band, × rind_mm
+const SPECIMEN_CLOTH_COLOR = 0x2a2825;
+const SPECIMEN_CLOTH_SPAN_R0 = 44;
+const SPECIMEN_CYCLO_RADIUS_R0 = 22;
+const SPECIMEN_CYCLO_HEIGHT_R0 = 22;
+const SPECIMEN_FOG_COLOR = 0x0a0908;
+const SPECIMEN_FOG_NEAR_R0 = 8;
+const SPECIMEN_FOG_FAR_R0 = 34;
+const SPECIMEN_SHADOW_BOUNDS_R0 = 3.0; // the cloth needs the whole contact shadow (cave view: 1.6)
+const SPECIMEN_POSE = { tiltX: -0.52, tiltY: 0.42, zoom: 1.4 }; // 30° above, a little to the side, the half filling ~⅔ of the frame
+const SPECIMEN_EV_STOPS = [-1, -0.5, 0, 0.5, 1];
+const SPECIMEN_GRAIN = 0.015;
+const SPECIMEN_VIGNETTE = 0.22;
+// ---- the rag noise: one hash, two languages -------------------------------
+// uint arithmetic on both sides: JS Math.imul + >>> 0 is exactly GLSL ES 3.00
+// unsigned multiplication mod 2^32. Lattice indices are non-negative.
+function _specimenHash(i, seed) {
+    let h = (Math.imul(i >>> 0, 374761393) + Math.imul(seed >>> 0, 668265263)) >>> 0;
+    h = Math.imul(h ^ (h >>> 13), 1274126177) >>> 0;
+    h = (h ^ (h >>> 16)) >>> 0;
+    return (h & 0xffffff) / 16777216;
+}
+// Periodic 1-D value noise around the cut, three octaves (6/12/24 lobes), in [-1, 1].
+function _specimenRagNoise(theta, seed) {
+    let t = theta / (2 * Math.PI);
+    t -= Math.floor(t);
+    let sum = 0, norm = 0, amp = 1;
+    for (let o = 0; o < 3; o++) {
+        const P = SPECIMEN_RAG_LOBES << o;
+        const x = t * P;
+        const i0f = Math.floor(x);
+        const f = x - i0f;
+        const i0 = i0f | 0;
+        const i1 = (i0 + 1) % P;
+        const s = f * f * (3 - 2 * f);
+        const a = _specimenHash(i0, seed + o * 7919);
+        const b = _specimenHash(i1, seed + o * 7919);
+        sum += amp * (a + (b - a) * s);
+        norm += amp;
+        amp *= 0.5;
+    }
+    return (sum / norm) * 2 - 1;
+}
+const SPECIMEN_CUT_GLSL_PARS = `
+uniform float uSpecimenCut;
+uniform vec3 uSpecimenCutN;
+uniform vec3 uSpecimenCutU;
+uniform vec3 uSpecimenCutV;
+uniform float uSpecimenCutAmp;
+uniform int uSpecimenCutSeed;
+float specimenHash(int i, int seed) {
+  uint h = uint(i) * 374761393u + uint(seed) * 668265263u;
+  h = (h ^ (h >> 13u)) * 1274126177u;
+  h = h ^ (h >> 16u);
+  return float(h & 16777215u) / 16777216.0;
+}
+float specimenRagNoise(float theta, int seed) {
+  float t = theta / 6.28318530718;
+  t -= floor(t);
+  float sum = 0.0; float norm = 0.0; float amp = 1.0;
+  for (int o = 0; o < 3; o++) {
+    int P = ${SPECIMEN_RAG_LOBES} << o;
+    float x = t * float(P);
+    float i0f = floor(x);
+    float f = x - i0f;
+    int i0 = int(i0f);
+    int i1 = (i0 + 1) % P;
+    float s = f * f * (3.0 - 2.0 * f);
+    float a = specimenHash(i0, seed + o * 7919);
+    float b = specimenHash(i1, seed + o * 7919);
+    sum += amp * (a + (b - a) * s);
+    norm += amp;
+    amp *= 0.5;
+  }
+  return (sum / norm) * 2.0 - 1.0;
+}
+bool specimenCutAway(vec3 p) {
+  if (uSpecimenCut < 0.5) return false;
+  float th = atan(dot(p, uSpecimenCutV), dot(p, uSpecimenCutU));
+  return dot(p, uSpecimenCutN) < uSpecimenCutAmp * specimenRagNoise(th, uSpecimenCutSeed);
+}`;
+// The shared uniform objects (created once per Three state in _topoInitThree, before the
+// cavity material, and mirrored into clipUniforms for the crystal materials).
+function _specimenCutUniforms() {
+    return {
+        uSpecimenCut: { value: 0 },
+        uSpecimenCutN: { value: new THREE.Vector3(0, 0, -1) },
+        uSpecimenCutU: { value: new THREE.Vector3(1, 0, 0) },
+        uSpecimenCutV: { value: new THREE.Vector3(0, 1, 0) },
+        uSpecimenCutAmp: { value: 0 },
+        uSpecimenCutSeed: { value: 0 },
+    };
+}
+// Inject the cut into a material's shader. `mode` names where the tested position comes from:
+//   crystal   — the cavity-clip varying vCavityWorldPos (crystal materials, _applyCavityClip)
+//   wall      — vWallMaterialPos, the cavity mesh's object == world position (_applyWallReliefAO)
+//   attribute — aSpecimenSrc, the rind's source wall vertex (exact edge match with the wall)
+//   world     — its own world-position varying (the swath depth material; instancing-aware)
+function _specimenCutInject(shader, uniforms, mode) {
+    if (!shader || !uniforms)
+        return;
+    for (const k of Object.keys(uniforms))
+        shader.uniforms[k] = uniforms[k];
+    let posExpr = 'vCavityWorldPos';
+    if (mode === 'wall')
+        posExpr = 'vWallMaterialPos';
+    else if (mode === 'attribute' || mode === 'world') {
+        shader.vertexShader = shader.vertexShader.replace('#include <common>', '#include <common>\nvarying vec3 vSpecimenSrc;' + (mode === 'attribute' ? '\nattribute vec3 aSpecimenSrc;' : ''));
+        if (mode === 'attribute') {
+            shader.vertexShader = shader.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\nvSpecimenSrc = aSpecimenSrc;');
+        }
+        else {
+            shader.vertexShader = shader.vertexShader.replace('#include <project_vertex>', `#include <project_vertex>
+vec4 _specimenW = vec4( transformed, 1.0 );
+#ifdef USE_BATCHING
+  _specimenW = batchingMatrix * _specimenW;
+#endif
+#ifdef USE_INSTANCING
+  _specimenW = instanceMatrix * _specimenW;
+#endif
+vSpecimenSrc = ( modelMatrix * _specimenW ).xyz;`);
+        }
+        shader.fragmentShader = shader.fragmentShader.replace('#include <common>', '#include <common>\nvarying vec3 vSpecimenSrc;');
+        posExpr = 'vSpecimenSrc';
+    }
+    shader.fragmentShader = shader.fragmentShader.replace('#include <common>', '#include <common>\n' + SPECIMEN_CUT_GLSL_PARS);
+    shader.fragmentShader = shader.fragmentShader.replace('void main() {', `void main() {\n  if (specimenCutAway(${posExpr})) discard;`);
+}
+// ---- the cut in world space (CPU mirror) ----------------------------------
+function _specimenCutFromNormal(nx, ny, nz, amp, seed) {
+    const n = new THREE.Vector3(nx, ny, nz).normalize();
+    const helper = Math.abs(n.y) < 0.9 ? new THREE.Vector3(0, 1, 0) : new THREE.Vector3(1, 0, 0);
+    const u = new THREE.Vector3().crossVectors(helper, n).normalize();
+    const v = new THREE.Vector3().crossVectors(n, u).normalize();
+    return { n, u, v, amp: Math.max(0, Number(amp) || 0), seed: (Number(seed) >>> 0) & 0x7fffffff };
+}
+function _specimenCutSigned(cut, x, y, z) {
+    const n = cut.n, u = cut.u, v = cut.v;
+    const th = Math.atan2(x * v.x + y * v.y + z * v.z, x * u.x + y * u.y + z * u.z);
+    return (x * n.x + y * n.y + z * n.z) - cut.amp * _specimenRagNoise(th, cut.seed);
+}
+function _specimenCutAway(cut, x, y, z) {
+    return _specimenCutSigned(cut, x, y, z) < 0;
+}
+function _specimenApplyCutUniforms(uniforms, cut, on) {
+    if (!uniforms)
+        return;
+    uniforms.uSpecimenCut.value = on ? 1 : 0;
+    if (cut) {
+        uniforms.uSpecimenCutN.value.copy(cut.n);
+        uniforms.uSpecimenCutU.value.copy(cut.u);
+        uniforms.uSpecimenCutV.value.copy(cut.v);
+        uniforms.uSpecimenCutAmp.value = cut.amp;
+        uniforms.uSpecimenCutSeed.value = cut.seed;
+    }
+}
+// 3-D value noise in [-1, 1] for the rind's knobbly thickness (CPU only — the rind's
+// outer vertices are built once; the fracture band interpolates them, never re-samples).
+function _specimenKnob(x, y, z, wavelength, seed) {
+    const s = 1 / Math.max(1e-6, wavelength);
+    const fx = x * s + 4096, fy = y * s + 4096, fz = z * s + 4096;
+    const ix = Math.floor(fx), iy = Math.floor(fy), iz = Math.floor(fz);
+    const tx = fx - ix, ty = fy - iy, tz = fz - iz;
+    const sx = tx * tx * (3 - 2 * tx), sy = ty * ty * (3 - 2 * ty), sz = tz * tz * (3 - 2 * tz);
+    const h = (i, j, k) => _specimenHash((i * 73856093) ^ (j * 19349663) ^ (k * 83492791), seed);
+    const lerp = (a, b, t) => a + (b - a) * t;
+    const c00 = lerp(h(ix, iy, iz), h(ix + 1, iy, iz), sx);
+    const c10 = lerp(h(ix, iy + 1, iz), h(ix + 1, iy + 1, iz), sx);
+    const c01 = lerp(h(ix, iy, iz + 1), h(ix + 1, iy, iz + 1), sx);
+    const c11 = lerp(h(ix, iy + 1, iz + 1), h(ix + 1, iy + 1, iz + 1), sx);
+    return lerp(lerp(c00, c10, sy), lerp(c01, c11, sy), sz) * 2 - 1;
+}
+// A cached greyscale value-noise canvas texture for bump maps (rind knobs, fracture
+// grain, the cloth's weave). Null without a 2-D canvas (headless tests).
+let _specimenNoiseTex = undefined;
+function _specimenNoiseTexture() {
+    if (_specimenNoiseTex !== undefined)
+        return _specimenNoiseTex;
+    _specimenNoiseTex = null;
+    try {
+        if (typeof document === 'undefined' || typeof THREE === 'undefined')
+            return null;
+        const size = 256;
+        const canvas = document.createElement('canvas');
+        canvas.width = size;
+        canvas.height = size;
+        const ctx = canvas.getContext('2d');
+        if (!ctx)
+            return null;
+        const img = ctx.createImageData(size, size);
+        for (let y = 0; y < size; y++)
+            for (let x = 0; x < size; x++) {
+                // two octaves, periodic by construction of the lattice (256 = 8 × 32 = 32 × 8)
+                const a = _specimenKnob(x / 32, y / 32, 0.5, 1, 11);
+                const b = _specimenKnob(x / 8, y / 8, 1.5, 1, 23);
+                const v = 128 + 70 * a + 35 * b;
+                const i = (y * size + x) * 4;
+                img.data[i] = img.data[i + 1] = img.data[i + 2] = Math.max(0, Math.min(255, v | 0));
+                img.data[i + 3] = 255;
+            }
+        ctx.putImageData(img, 0, 0);
+        const tex = new THREE.CanvasTexture(canvas);
+        tex.wrapS = THREE.RepeatWrapping;
+        tex.wrapT = THREE.RepeatWrapping;
+        _specimenNoiseTex = tex;
+    }
+    catch (_) {
+        _specimenNoiseTex = null;
+    }
+    return _specimenNoiseTex;
+}
+function _specimenNoiseTextureRepeat(rx, ry) {
+    const base = _specimenNoiseTexture();
+    if (!base)
+        return null;
+    const tex = base.clone();
+    tex.repeat.set(rx, ry);
+    tex.needsUpdate = true;
+    return tex;
+}
+// ---- the rind: the cavity surface offset outward ---------------------------
+// Returns { geometry, outer (Float32Array), src (Float32Array) }. Normals are taken
+// outward (the cavity mesh's own point outward — F14 — but the legacy ring mesh may
+// wind the other way, so each is flipped toward +p when needed).
+function _specimenBuildRindGeometry(cavityGeom, rindMm, r0, seed) {
+    const pos = cavityGeom && cavityGeom.attributes && cavityGeom.attributes.position;
+    if (!pos || !pos.count)
+        return null;
+    const nrm = cavityGeom.attributes.normal;
+    const nV = pos.count;
+    const outer = new Float32Array(nV * 3);
+    const src = new Float32Array(nV * 3);
+    const wavelength = Math.max(1, r0 * SPECIMEN_RIND_KNOB_WAVELENGTH_R0);
+    for (let i = 0; i < nV; i++) {
+        const x = pos.getX(i), y = pos.getY(i), z = pos.getZ(i);
+        const pr = Math.sqrt(x * x + y * y + z * z) || 1;
+        const px = x / pr, py = y / pr, pz = z / pr;
+        let nx = nrm ? nrm.getX(i) : px, ny = nrm ? nrm.getY(i) : py, nz = nrm ? nrm.getZ(i) : pz;
+        const nl = Math.sqrt(nx * nx + ny * ny + nz * nz) || 1;
+        nx /= nl;
+        ny /= nl;
+        nz /= nl;
+        if (nx * px + ny * py + nz * pz < 0) {
+            nx = -nx;
+            ny = -ny;
+            nz = -nz;
+        }
+        let mx = 0.55 * nx + 0.45 * px, my = 0.55 * ny + 0.45 * py, mz = 0.55 * nz + 0.45 * pz;
+        const ml = Math.sqrt(mx * mx + my * my + mz * mz) || 1;
+        mx /= ml;
+        my /= ml;
+        mz /= ml;
+        const t = rindMm * (1 + SPECIMEN_RIND_KNOB * _specimenKnob(x, y, z, wavelength, seed)
+            + SPECIMEN_RIND_WART * _specimenKnob(x, y, z, Math.max(0.5, r0 * SPECIMEN_RIND_WART_WAVELENGTH_R0), seed + 31));
+        outer[i * 3] = x + mx * t;
+        outer[i * 3 + 1] = y + my * t;
+        outer[i * 3 + 2] = z + mz * t;
+        src[i * 3] = x;
+        src[i * 3 + 1] = y;
+        src[i * 3 + 2] = z;
+    }
+    const geom = new THREE.BufferGeometry();
+    geom.setAttribute('position', new THREE.BufferAttribute(outer, 3));
+    geom.setAttribute('aSpecimenSrc', new THREE.BufferAttribute(src, 3));
+    if (cavityGeom.attributes.uv)
+        geom.setAttribute('uv', cavityGeom.attributes.uv.clone());
+    if (cavityGeom.index)
+        geom.setIndex(cavityGeom.index.clone());
+    geom.computeVertexNormals();
+    return { geometry: geom, outer, src };
+}
+// ---- the fracture face: one quad per wall triangle the rag crosses ---------
+// Non-indexed so computeVertexNormals gives flat facets (a fracture is faceted).
+function _specimenBuildFractureGeometry(cavityGeom, outer, cut, rindMm, rindColour, seed) {
+    const pos = cavityGeom && cavityGeom.attributes && cavityGeom.attributes.position;
+    if (!pos || !pos.count)
+        return null;
+    const col = cavityGeom.attributes.color;
+    const index = cavityGeom.index;
+    const triCount = index ? index.count / 3 : pos.count / 3;
+    const P = [], C = [];
+    const ROWS = 3;
+    const rough = rindMm * SPECIMEN_FRACTURE_ROUGH;
+    const rc = rindColour;
+    const s = new Float64Array(3);
+    const idx = [0, 0, 0];
+    const qx = [], qy = [], qz = [], ox = [], oy = [], oz = [], cr = [], cg = [], cb = [];
+    let quads = 0;
+    for (let t = 0; t < triCount; t++) {
+        for (let k = 0; k < 3; k++) {
+            idx[k] = index ? index.getX(t * 3 + k) : t * 3 + k;
+            s[k] = _specimenCutSigned(cut, pos.getX(idx[k]), pos.getY(idx[k]), pos.getZ(idx[k]));
+            if (s[k] === 0)
+                s[k] = 1e-9;
+        }
+        if ((s[0] < 0) === (s[1] < 0) && (s[1] < 0) === (s[2] < 0))
+            continue;
+        qx.length = 0;
+        qy.length = 0;
+        qz.length = 0;
+        ox.length = 0;
+        oy.length = 0;
+        oz.length = 0;
+        cr.length = 0;
+        cg.length = 0;
+        cb.length = 0;
+        for (let e = 0; e < 3; e++) {
+            const i = idx[e], j = idx[(e + 1) % 3];
+            const si = s[e], sj = s[(e + 1) % 3];
+            if ((si < 0) === (sj < 0))
+                continue;
+            const tq = si / (si - sj);
+            qx.push(pos.getX(i) + (pos.getX(j) - pos.getX(i)) * tq);
+            qy.push(pos.getY(i) + (pos.getY(j) - pos.getY(i)) * tq);
+            qz.push(pos.getZ(i) + (pos.getZ(j) - pos.getZ(i)) * tq);
+            ox.push(outer[i * 3] + (outer[j * 3] - outer[i * 3]) * tq);
+            oy.push(outer[i * 3 + 1] + (outer[j * 3 + 1] - outer[i * 3 + 1]) * tq);
+            oz.push(outer[i * 3 + 2] + (outer[j * 3 + 2] - outer[i * 3 + 2]) * tq);
+            if (col) {
+                cr.push(col.getX(i) + (col.getX(j) - col.getX(i)) * tq);
+                cg.push(col.getY(i) + (col.getY(j) - col.getY(i)) * tq);
+                cb.push(col.getZ(i) + (col.getZ(j) - col.getZ(i)) * tq);
+            }
+            else {
+                cr.push(0.85);
+                cg.push(0.82);
+                cb.push(0.78);
+            }
+        }
+        if (qx.length !== 2)
+            continue;
+        // Consistent winding across the band: the face normal (inner edge × across) must point to
+        // the open side (−n) for every quad, or the shared-vertex normals average to nothing.
+        {
+            const e1x = qx[1] - qx[0], e1y = qy[1] - qy[0], e1z = qz[1] - qz[0];
+            const e2x = ox[0] - qx[0], e2y = oy[0] - qy[0], e2z = oz[0] - qz[0];
+            const nx = e1y * e2z - e1z * e2y, ny = e1z * e2x - e1x * e2z, nz = e1x * e2y - e1y * e2x;
+            if (nx * cut.n.x + ny * cut.n.y + nz * cut.n.z > 0) {
+                for (const arr of [qx, qy, qz, ox, oy, oz, cr, cg, cb]) {
+                    const t0 = arr[0];
+                    arr[0] = arr[1];
+                    arr[1] = t0;
+                }
+            }
+        }
+        quads++;
+        // Two rows of ROWS+1 points from the inner edge (row 0) to the outer edge (row ROWS);
+        // interior rows are pushed along the cut normal by the knob noise (a rough face).
+        const rows = [];
+        for (let e = 0; e < 2; e++) {
+            const row = [];
+            for (let r = 0; r <= ROWS; r++) {
+                const f = r / ROWS;
+                let x = qx[e] + (ox[e] - qx[e]) * f, y = qy[e] + (oy[e] - qy[e]) * f, z = qz[e] + (oz[e] - qz[e]) * f;
+                if (r > 0 && r < ROWS) {
+                    const d = rough * _specimenKnob(x, y, z, Math.max(0.5, rindMm * 0.45), seed + 101);
+                    x += cut.n.x * d;
+                    y += cut.n.y * d;
+                    z += cut.n.z * d;
+                }
+                // colour across the band: pale lining band, then the rind's brown
+                const lift = SPECIMEN_FRACTURE_INNER_LIFT;
+                const la = SPECIMEN_FRACTURE_LINING_ALBEDO;
+                const ir = (cr[e] + (1 - cr[e]) * lift) * la, ig = (cg[e] + (1 - cg[e]) * lift) * la, ib = (cb[e] + (1 - cb[e]) * lift) * la;
+                const w = f < SPECIMEN_FRACTURE_INNER_BAND ? 0 : Math.min(1, (f - SPECIMEN_FRACTURE_INNER_BAND) / 0.3);
+                const fr = Math.min(1, rc.r * SPECIMEN_FRACTURE_FRESH), fg = Math.min(1, rc.g * SPECIMEN_FRACTURE_FRESH), fb = Math.min(1, rc.b * SPECIMEN_FRACTURE_FRESH);
+                row.push(x, y, z, ir + (fr - ir) * w, ig + (fg - ig) * w, ib + (fb - ib) * w);
+            }
+            rows.push(row);
+        }
+        const A = rows[0], B = rows[1];
+        for (let r = 0; r < ROWS; r++) {
+            const a0 = r * 6, a1 = (r + 1) * 6;
+            // triangle (A_r, B_r, B_r+1) and (A_r, B_r+1, A_r+1)
+            P.push(A[a0], A[a0 + 1], A[a0 + 2], B[a0], B[a0 + 1], B[a0 + 2], B[a1], B[a1 + 1], B[a1 + 2]);
+            C.push(A[a0 + 3], A[a0 + 4], A[a0 + 5], B[a0 + 3], B[a0 + 4], B[a0 + 5], B[a1 + 3], B[a1 + 4], B[a1 + 5]);
+            P.push(A[a0], A[a0 + 1], A[a0 + 2], B[a1], B[a1 + 1], B[a1 + 2], A[a1], A[a1 + 1], A[a1 + 2]);
+            C.push(A[a0 + 3], A[a0 + 4], A[a0 + 5], B[a1 + 3], B[a1 + 4], B[a1 + 5], A[a1 + 3], A[a1 + 4], A[a1 + 5]);
+        }
+    }
+    if (!quads)
+        return { geometry: null, quads: 0 };
+    // Adjacent quads share their crossing points exactly (same edge, same lerp factor, same
+    // row) — merge them by quantised position so the normals average across the band and the
+    // face reads as one rough surface, not radial strips.
+    const keyOf = new Map();
+    const VP = [], VC = [], IDX = [];
+    for (let i = 0; i < P.length; i += 3) {
+        const key = Math.round(P[i] * 1e4) + ',' + Math.round(P[i + 1] * 1e4) + ',' + Math.round(P[i + 2] * 1e4);
+        let vi = keyOf.get(key);
+        if (vi === undefined) {
+            vi = VP.length / 3;
+            keyOf.set(key, vi);
+            VP.push(P[i], P[i + 1], P[i + 2]);
+            VC.push(C[i], C[i + 1], C[i + 2]);
+        }
+        IDX.push(vi);
+    }
+    const UV = [];
+    const uvScale = 1 / Math.max(1, rindMm * 2);
+    for (let i = 0; i < VP.length; i += 3)
+        UV.push((VP[i] * cut.u.x + VP[i + 1] * cut.u.y + VP[i + 2] * cut.u.z) * uvScale, (VP[i] * cut.v.x + VP[i + 1] * cut.v.y + VP[i + 2] * cut.v.z) * uvScale);
+    const geom = new THREE.BufferGeometry();
+    geom.setAttribute('position', new THREE.Float32BufferAttribute(VP, 3));
+    geom.setAttribute('color', new THREE.Float32BufferAttribute(VC, 3));
+    geom.setAttribute('uv', new THREE.Float32BufferAttribute(UV, 2));
+    geom.setIndex(IDX);
+    geom.computeVertexNormals();
+    return { geometry: geom, quads };
+}
+function _specimenRindColour() {
+    return new THREE.Color(1, 1, 1).multiplyScalar(SPECIMEN_RIND_DARKEN).lerp(new THREE.Color(SPECIMEN_RIND_TINT), SPECIMEN_RIND_TINT_MIX);
+}
+// ---- the scene objects -------------------------------------------------------
+function _specimenDisposeObject(obj) {
+    if (!obj)
+        return;
+    if (obj.parent)
+        obj.parent.remove(obj);
+    if (obj.geometry && obj.geometry.dispose)
+        obj.geometry.dispose();
+    const mats = Array.isArray(obj.material) ? obj.material : (obj.material ? [obj.material] : []);
+    for (const m of mats)
+        if (m && m.dispose)
+            m.dispose();
+    if (obj.customDepthMaterial && obj.customDepthMaterial.dispose)
+        obj.customDepthMaterial.dispose();
+}
+function _specimenRebuildObjects(state) {
+    const sp = state.specimen;
+    if (!sp)
+        return;
+    for (const k of ['rind', 'fracture', 'cloth', 'cyclo']) {
+        _specimenDisposeObject(sp[k]);
+        sp[k] = null;
+    }
+    const cavGeom = state.cavity && state.cavity.geometry;
+    const rind = _specimenBuildRindGeometry(cavGeom, sp.rind_mm, sp.r0, sp.cut.seed);
+    sp.fracture_quads = 0;
+    if (!rind)
+        return;
+    const litho = state._matrixLitho || 'limestone';
+    sp.lithology = litho;
+    const rindColour = _specimenRindColour();
+    const skin = typeof _matrixSkinTexture === 'function' ? _matrixSkinTexture(litho) : null;
+    const rindMat = new THREE.MeshStandardMaterial({
+        color: rindColour, map: skin || null, roughness: 0.96, metalness: 0, side: THREE.FrontSide,
+    });
+    const bump = _specimenNoiseTextureRepeat(8, 4);
+    if (bump) {
+        rindMat.bumpMap = bump;
+        rindMat.bumpScale = Math.max(3, sp.rind_mm * 1.2);
+    }
+    const cutU = sp.uniforms;
+    rindMat.onBeforeCompile = (shader) => { _specimenCutInject(shader, cutU, 'attribute'); };
+    rindMat.customProgramCacheKey = () => 'vugg-specimen-rind';
+    const rindMesh = new THREE.Mesh(rind.geometry, rindMat);
+    rindMesh.name = 'specimen-rind';
+    rindMesh.castShadow = true;
+    rindMesh.receiveShadow = true;
+    rindMesh.raycast = function () { };
+    const rindDepth = new THREE.MeshDepthMaterial({ depthPacking: THREE.RGBADepthPacking });
+    rindDepth.onBeforeCompile = (shader) => { _specimenCutInject(shader, cutU, 'attribute'); };
+    rindDepth.customProgramCacheKey = () => 'vugg-specimen-rind-depth';
+    rindMesh.customDepthMaterial = rindDepth;
+    sp.group.add(rindMesh);
+    sp.rind = rindMesh;
+    // the fracture face
+    const frac = _specimenBuildFractureGeometry(cavGeom, rind.outer, sp.cut, sp.rind_mm, rindColour, sp.cut.seed);
+    sp.fracture_quads = frac ? frac.quads : 0;
+    sp.colours = { rind: [rindColour.r, rindColour.g, rindColour.b].map((v) => +v.toFixed(3)), fracture_inner: null, fracture_outer: null };
+    if (frac && frac.geometry) {
+        const fc = frac.geometry.attributes.color;
+        if (fc && fc.count >= 4) {
+            sp.colours.fracture_inner = [fc.getX(0), fc.getY(0), fc.getZ(0)].map((v) => +v.toFixed(3));
+            sp.colours.fracture_outer = [fc.getX(3), fc.getY(3), fc.getZ(3)].map((v) => +v.toFixed(3));
+        }
+        const fracMat = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 1.0, metalness: 0, side: THREE.DoubleSide });
+        const fb = _specimenNoiseTextureRepeat(1, 1);
+        if (fb) {
+            fracMat.bumpMap = fb;
+            fracMat.bumpScale = Math.max(0.8, sp.rind_mm * 0.25);
+        }
+        const fracMesh = new THREE.Mesh(frac.geometry, fracMat);
+        fracMesh.name = 'specimen-fracture';
+        fracMesh.castShadow = true;
+        fracMesh.receiveShadow = true;
+        fracMesh.raycast = function () { };
+        sp.group.add(fracMesh);
+        sp.fracture = fracMesh;
+    }
+    // the stage: the cloth at the kept half's lowest point, the cyclorama around it
+    let yMin = Infinity;
+    for (let i = 0; i < rind.src.length; i += 3) {
+        if (_specimenCutAway(sp.cut, rind.src[i], rind.src[i + 1], rind.src[i + 2]))
+            continue;
+        if (rind.outer[i + 1] < yMin)
+            yMin = rind.outer[i + 1];
+    }
+    if (!Number.isFinite(yMin))
+        yMin = -(sp.r0 + sp.rind_mm);
+    const yFloor = yMin - 0.3;
+    sp.floor_y = yFloor;
+    const span = sp.r0 * SPECIMEN_CLOTH_SPAN_R0;
+    const clothMat = new THREE.MeshStandardMaterial({ color: SPECIMEN_CLOTH_COLOR, roughness: 1.0, metalness: 0 });
+    const weave = _specimenNoiseTextureRepeat(span / 6, span / 6);
+    if (weave) {
+        clothMat.bumpMap = weave;
+        clothMat.bumpScale = 1.2;
+    }
+    const clothGeom = new THREE.PlaneGeometry(span, span, 1, 1);
+    clothGeom.rotateX(-Math.PI / 2);
+    const cloth = new THREE.Mesh(clothGeom, clothMat);
+    cloth.name = 'specimen-cloth';
+    cloth.position.set(0, yFloor, 0);
+    cloth.receiveShadow = true;
+    cloth.castShadow = false;
+    cloth.raycast = function () { };
+    sp.group.add(cloth);
+    sp.cloth = cloth;
+    const R = sp.r0 * SPECIMEN_CYCLO_RADIUS_R0, H = sp.r0 * SPECIMEN_CYCLO_HEIGHT_R0;
+    const cycloGeom = new THREE.CylinderGeometry(R, R, H, 48, 1, true);
+    const cycloMat = new THREE.MeshStandardMaterial({ color: SPECIMEN_CLOTH_COLOR, roughness: 1.0, metalness: 0, side: THREE.BackSide });
+    const cyclo = new THREE.Mesh(cycloGeom, cycloMat);
+    cyclo.name = 'specimen-cyclorama';
+    cyclo.position.set(0, yFloor + H / 2, 0);
+    cyclo.receiveShadow = true;
+    cyclo.castShadow = false;
+    cyclo.raycast = function () { };
+    sp.group.add(cyclo);
+    sp.cyclo = cyclo;
+}
+// Rim crystal bodies are culled whole by their wall anchor; instanced swaths get the
+// per-fragment cut (already in their shader) plus a depth material so the removed half
+// casts nothing. Only meshes THIS view hid are ever re-shown.
+function _specimenSyncCrystals(state) {
+    const sp = state.specimen;
+    if (!sp || !state.crystals)
+        return;
+    for (const m of sp.hidden) {
+        if (m.parent)
+            m.visible = true;
+    }
+    sp.hidden.clear();
+    let culled = 0, kept = 0;
+    for (const m of state.crystals.children) {
+        if (!m)
+            continue;
+        if (m.isInstancedMesh) {
+            if (!m.customDepthMaterial && sp.uniforms) {
+                const depth = new THREE.MeshDepthMaterial({ depthPacking: THREE.RGBADepthPacking });
+                depth.onBeforeCompile = (shader) => { _specimenCutInject(shader, sp.uniforms, 'world'); };
+                depth.customProgramCacheKey = () => 'vugg-specimen-swath-depth';
+                m.customDepthMaterial = depth;
+                sp.depthMats.add(m);
+            }
+            continue;
+        }
+        if (!m.visible)
+            continue; // hidden by someone else — not ours to touch
+        const p = m.position;
+        if (_specimenCutAway(sp.cut, p.x, p.y, p.z)) {
+            m.visible = false;
+            sp.hidden.add(m);
+            culled++;
+        }
+        else
+            kept++;
+    }
+    sp.culled = culled;
+    sp.kept = kept;
+}
+function _specimenReceipt(state) {
+    const sp = state && state.specimen;
+    if (!sp) {
+        state.specimenRig = { on: false };
+        return state.specimenRig;
+    }
+    const rig = state.lightingRig || {};
+    state.specimenRig = {
+        on: true,
+        cut_normal: [sp.cut.n.x, sp.cut.n.y, sp.cut.n.z].map((v) => +v.toFixed(4)),
+        rag_mm: +sp.cut.amp.toFixed(2), rind_mm: +sp.rind_mm.toFixed(2), seed: sp.cut.seed,
+        r0_mm: +sp.r0.toFixed(2), lithology: sp.lithology || null,
+        culled: sp.culled | 0, kept: sp.kept | 0, fracture_quads: sp.fracture_quads | 0,
+        stage: !!sp.cloth, floor_y_mm: sp.floor_y != null ? +sp.floor_y.toFixed(2) : null,
+        colours: sp.colours || null,
+        mood: rig.mood || null, ev: sp.ev, exposure: state.renderer ? state.renderer.toneMappingExposure : null,
+        post: sp.post ? { ok: !!sp.post.ok, reason: sp.post.reason || null, grain: sp.post.ok ? SPECIMEN_GRAIN : 0, vignette: sp.post.ok ? SPECIMEN_VIGNETTE : 0 } : null,
+        pose: { ...sp.pose },
+    };
+    return state.specimenRig;
+}
+// ---- entry / exit / per-frame sync ---------------------------------------------
+// r0 as the camera rig sees it (cached by _topoApplyCameraFromTilt); a caller can pass
+// its own (tests, the rig) via opts.r0. The cut normal defaults to the camera's forward
+// direction — the opening faces the viewer at entry.
+function _topoSpecimenEnter(state, opts = {}) {
+    if (!state || !state.scene)
+        return null;
+    if (state.specimen)
+        return state.specimen;
+    const r0 = Math.max(5, Number(opts.r0) || Number(state.cameraR0) || 25);
+    const seed = opts.seed != null ? Number(opts.seed) : Number(state.specimenSeed) || 42;
+    let nx = 0, ny = 0, nz = -1;
+    if (opts.normal) {
+        nx = opts.normal[0];
+        ny = opts.normal[1];
+        nz = opts.normal[2];
+    }
+    else if (state.camera) {
+        const dir = new THREE.Vector3();
+        state.camera.getWorldDirection(dir);
+        // n points INTO the kept half: the camera's forward, pulled toward −y so the half rests on the
+        // cloth with its opening up and toward the viewer (opts.tilt overrides the pull)
+        const pull = opts.tilt != null ? Number(opts.tilt) : SPECIMEN_CUT_TILT_DOWN;
+        dir.y -= pull;
+        dir.normalize();
+        nx = dir.x;
+        ny = dir.y;
+        nz = dir.z;
+    }
+    const cut = _specimenCutFromNormal(nx, ny, nz, r0 * SPECIMEN_RAG_FRACTION, seed);
+    const rindMm = Math.max(SPECIMEN_RIND_MIN_MM, Math.min(SPECIMEN_RIND_MAX_MM, r0 * SPECIMEN_RIND_FRACTION));
+    const uniforms = state.clipUniforms && state.clipUniforms.uSpecimenCut ? {
+        uSpecimenCut: state.clipUniforms.uSpecimenCut, uSpecimenCutN: state.clipUniforms.uSpecimenCutN,
+        uSpecimenCutU: state.clipUniforms.uSpecimenCutU, uSpecimenCutV: state.clipUniforms.uSpecimenCutV,
+        uSpecimenCutAmp: state.clipUniforms.uSpecimenCutAmp, uSpecimenCutSeed: state.clipUniforms.uSpecimenCutSeed,
+    } : null;
+    const group = new THREE.Group();
+    group.name = 'specimen-stage';
+    state.scene.add(group);
+    const sp = {
+        on: true, cut, r0, rind_mm: rindMm, lithology: null, uniforms, group,
+        rind: null, fracture: null, cloth: null, cyclo: null, fracture_quads: 0, floor_y: null,
+        hidden: new Set(), depthMats: new Set(), culled: 0, kept: 0,
+        cavitySig: undefined, crystalsSig: undefined,
+        ev: 0, pose: { ...SPECIMEN_POSE }, post: null,
+        prevMood: state.lightingRig ? state.lightingRig.mood : 'cave',
+        prevFog: state.scene.fog || null,
+    };
+    state.specimen = sp;
+    _specimenApplyCutUniforms(uniforms, cut, true);
+    state.scene.fog = new THREE.Fog(SPECIMEN_FOG_COLOR, r0 * SPECIMEN_FOG_NEAR_R0, r0 * SPECIMEN_FOG_FAR_R0);
+    // D5: the restrained studio; the key keeps riding the camera (_topoLightingSyncKey), so it
+    // lights the opening from the viewer's upper left, and the shadow frustum widens for the cloth.
+    if (typeof _topoInstallLightingRig === 'function')
+        _topoInstallLightingRig(state, 'studio');
+    if (typeof _topoApplyWallDisplay === 'function')
+        _topoApplyWallDisplay(state);
+    _topoSpecimenSyncFrame(state);
+    _specimenReceipt(state);
+    return sp;
+}
+function _topoSpecimenExit(state) {
+    const sp = state && state.specimen;
+    if (!sp)
+        return false;
+    for (const m of sp.hidden) {
+        if (m.parent)
+            m.visible = true;
+    }
+    sp.hidden.clear();
+    for (const m of sp.depthMats) {
+        if (m.customDepthMaterial && m.customDepthMaterial.dispose)
+            m.customDepthMaterial.dispose();
+        m.customDepthMaterial = undefined;
+    }
+    sp.depthMats.clear();
+    for (const k of ['rind', 'fracture', 'cloth', 'cyclo']) {
+        _specimenDisposeObject(sp[k]);
+        sp[k] = null;
+    }
+    if (sp.group && sp.group.parent)
+        sp.group.parent.remove(sp.group);
+    _specimenApplyCutUniforms(sp.uniforms, null, false);
+    state.scene.fog = sp.prevFog || null;
+    _topoSpecimenPostDispose(state);
+    state.specimen = null;
+    if (typeof _topoInstallLightingRig === 'function')
+        _topoInstallLightingRig(state, sp.prevMood === 'studio' ? 'cave' : (sp.prevMood || 'cave'));
+    else if (typeof _topoLightingApplyInsideMode === 'function')
+        _topoLightingApplyInsideMode(state, !!state.insideMode);
+    if (typeof _topoApplyWallDisplay === 'function')
+        _topoApplyWallDisplay(state);
+    _specimenReceipt(state);
+    return true;
+}
+// Called every frame from _topoRenderFrame (and from entry): rebuild the rind/fracture/
+// stage when the cavity geometry changed, re-cull when the crystal set changed, keep
+// the water sheet off (a specimen on a cloth holds no fluid).
+function _topoSpecimenSyncFrame(state) {
+    const sp = state && state.specimen;
+    if (!sp)
+        return;
+    if (sp.cavitySig !== state.cavitySig || !sp.rind) {
+        sp.cavitySig = state.cavitySig;
+        _specimenRebuildObjects(state);
+        _specimenReceipt(state);
+    }
+    if (sp.crystalsSig !== state.crystalsSig) {
+        sp.crystalsSig = state.crystalsSig;
+        _specimenSyncCrystals(state);
+        _specimenReceipt(state);
+    }
+    if (state.waterInterface)
+        state.waterInterface.visible = false;
+}
+// The entry pose, also what ⊙ recentre returns to while the view is on.
+function _topoSpecimenPose(pose = SPECIMEN_POSE) {
+    _topoTiltX = pose.tiltX;
+    _topoTiltY = pose.tiltY;
+    _topoZoom = pose.zoom;
+    _topoPanX = 0;
+    _topoPanY = 0;
+    const label = document.getElementById('topo-zoom-label');
+    if (label)
+        label.textContent = `${Math.round(_topoZoom * 100)}%`;
+}
+// ---- the post pass: HDR target → ACES → grain → vignette ---------------------
+function _topoSpecimenPostAllowed(state) {
+    if (!state || !state.renderer)
+        return { ok: false, reason: 'no renderer' };
+    if (typeof _topoLightingIsMobile === 'function' && _topoLightingIsMobile())
+        return { ok: false, reason: 'mobile viewport: no post pass' };
+    if (!state.lightingRig || !state.lightingRig.environment)
+        return { ok: false, reason: 'lighting rig fell back: no tone-mapped post pass' };
+    const r = state.renderer;
+    if (!r.capabilities || !r.capabilities.isWebGL2)
+        return { ok: false, reason: 'WebGL1 context: no float colour buffer' };
+    const ext = r.extensions;
+    if (!ext || !(ext.has('EXT_color_buffer_float') || ext.has('EXT_color_buffer_half_float')))
+        return { ok: false, reason: 'no EXT_color_buffer_float: no HDR target' };
+    return { ok: true, reason: null };
+}
+function _topoSpecimenPostEnsure(state, w, h) {
+    const sp = state.specimen;
+    if (!sp)
+        return null;
+    let created = false;
+    if (!sp.post) {
+        created = true;
+        const allowed = _topoSpecimenPostAllowed(state);
+        sp.post = { ok: allowed.ok, reason: allowed.reason, rt: null, scene: null, camera: null, material: null, quad: null, w: 0, h: 0, frame: 0 };
+        if (allowed.ok) {
+            const material = new THREE.ShaderMaterial({
+                uniforms: {
+                    tDiffuse: { value: null }, uGrain: { value: SPECIMEN_GRAIN }, uVignette: { value: SPECIMEN_VIGNETTE },
+                    uFrame: { value: 0 }, uResolution: { value: new THREE.Vector2(1, 1) },
+                },
+                vertexShader: 'varying vec2 vUv;\nvoid main() { vUv = uv; gl_Position = vec4(position.xy, 0.0, 1.0); }',
+                fragmentShader: `uniform sampler2D tDiffuse;
+uniform float uGrain;
+uniform float uVignette;
+uniform float uFrame;
+uniform vec2 uResolution;
+varying vec2 vUv;
+float specimenGrainHash(vec2 p) {
+  uvec2 q = uvec2(ivec2(p)) * uvec2(1597334677u, 3812015801u);
+  uint n = (q.x ^ q.y) * 1597334677u;
+  n = (n ^ (n >> 13u)) * 1274126177u;
+  return float(n & 16777215u) / 16777216.0;
+}
+void main() {
+  vec4 c = texture2D(tDiffuse, vUv);
+  gl_FragColor = vec4(c.rgb, 1.0);
+  #include <tonemapping_fragment>
+  float g = specimenGrainHash(gl_FragCoord.xy + vec2(uFrame * 17.0, uFrame * 31.0)) - 0.5;
+  float lum = dot(gl_FragColor.rgb, vec3(0.2126, 0.7152, 0.0722));
+  gl_FragColor.rgb += g * uGrain * (0.5 + 2.0 * lum * (1.0 - lum));
+  vec2 d = (vUv - 0.5) * vec2(uResolution.x / max(1.0, uResolution.y), 1.0);
+  gl_FragColor.rgb *= 1.0 - uVignette * smoothstep(0.35, 1.1, length(d));
+  #include <colorspace_fragment>
+}`,
+                depthTest: false, depthWrite: false,
+            });
+            const quad = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), material);
+            quad.frustumCulled = false;
+            const scene = new THREE.Scene();
+            scene.add(quad);
+            const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
+            sp.post.material = material;
+            sp.post.quad = quad;
+            sp.post.scene = scene;
+            sp.post.camera = camera;
+        }
+    }
+    const post = sp.post;
+    if (created)
+        _specimenReceipt(state);
+    if (!post.ok)
+        return post;
+    if (!post.rt || post.w !== w || post.h !== h) {
+        if (post.rt)
+            post.rt.dispose();
+        post.rt = new THREE.WebGLRenderTarget(w, h, {
+            type: THREE.HalfFloatType, samples: 4, depthBuffer: true, stencilBuffer: false,
+            minFilter: THREE.LinearFilter, magFilter: THREE.LinearFilter, generateMipmaps: false,
+        });
+        post.w = w;
+        post.h = h;
+        post.material.uniforms.tDiffuse.value = post.rt.texture;
+        post.material.uniforms.uResolution.value.set(w, h);
+    }
+    return post;
+}
+function _topoSpecimenPostDispose(state) {
+    const sp = state && state.specimen;
+    const post = sp && sp.post;
+    if (!post)
+        return;
+    if (post.rt)
+        post.rt.dispose();
+    if (post.material)
+        post.material.dispose();
+    if (post.quad && post.quad.geometry)
+        post.quad.geometry.dispose();
+    sp.post = null;
+}
+// The one place the scene is drawn (the game's render path and the photo rig): the
+// specimen view's per-frame sync, then either the direct draw or the post-pass pair.
+function _topoRenderFrame(state) {
+    if (!state || !state.renderer)
+        return;
+    _topoSpecimenSyncFrame(state);
+    const sp = state.specimen;
+    const renderer = state.renderer;
+    if (!sp) {
+        renderer.render(state.scene, state.camera);
+        return;
+    }
+    const size = renderer.getDrawingBufferSize(new THREE.Vector2());
+    const post = _topoSpecimenPostEnsure(state, Math.max(1, size.x | 0), Math.max(1, size.y | 0));
+    if (!post || !post.ok || !post.rt) {
+        renderer.render(state.scene, state.camera);
+        return;
+    }
+    renderer.setRenderTarget(post.rt);
+    renderer.render(state.scene, state.camera);
+    renderer.setRenderTarget(null);
+    post.frame = (post.frame + 1) % 4096;
+    post.material.uniforms.uFrame.value = post.frame;
+    renderer.render(post.scene, post.camera);
+}
+// ---- UI --------------------------------------------------------------------------
+function _topoSyncSpecimenButtons(state) {
+    const on = !!(state && state.specimen);
+    const btn = document.getElementById('topo-specimen-btn');
+    if (btn) {
+        btn.style.color = on ? '#f0c050' : '';
+        btn.title = on ? 'Specimen view: on (click: back to the process view)' : 'Specimen view: off (click: break the geode open on the cloth)';
+        btn.setAttribute('aria-pressed', String(on));
+    }
+    const ev = document.getElementById('topo-exposure-btn');
+    if (ev) {
+        ev.style.display = on ? '' : 'none';
+        const stop = on ? state.specimen.ev : 0;
+        const label = (stop > 0 ? '+' : '') + stop + ' EV';
+        ev.title = `Exposure: ${label} (click: next ½-stop)`;
+        ev.style.color = stop !== 0 ? '#f0c050' : '';
+    }
+}
+// The topo-specimen-btn onclick (index.html camera-ctrls row). Needs the Three renderer;
+// turns it on first when the flat view is showing.
+function topoToggleSpecimenView(force) {
+    if (_topoExactFlatPresentationActive)
+        return false;
+    if (!_topoThreeState && typeof topoSetThreeRendererEnabled === 'function') {
+        topoSetThreeRendererEnabled(true);
+        if (typeof topoRender === 'function')
+            topoRender();
+    }
+    const state = _topoThreeState;
+    if (!state)
+        return false;
+    const want = force == null ? !state.specimen : !!force;
+    if (want && !state.specimen) {
+        _topoSpecimenPose();
+        // place the camera at the pose so the cut faces it
+        const sim = typeof topoActiveSim === 'function' ? topoActiveSim() : null;
+        const wall = sim ? sim.wall_state : null;
+        if (wall && typeof _topoApplyCameraFromTilt === 'function')
+            _topoApplyCameraFromTilt(state, wall);
+        state.specimenSeed = sim && Number.isFinite(Number(sim.seed)) ? Number(sim.seed) : 42;
+        _topoSpecimenEnter(state);
+    }
+    else if (!want && state.specimen) {
+        _topoSpecimenExit(state);
+    }
+    _topoSyncSpecimenButtons(state);
+    if (typeof topoRender === 'function')
+        topoRender();
+    return !!state.specimen;
+}
+function topoSetSpecimenExposure(ev) {
+    const state = _topoThreeState;
+    if (!state || !state.specimen)
+        return false;
+    const stop = Number(ev);
+    if (!Number.isFinite(stop))
+        return false;
+    state.specimen.ev = stop;
+    if (typeof _topoLightingApplyInsideMode === 'function')
+        _topoLightingApplyInsideMode(state, !!state.insideMode);
+    _specimenReceipt(state);
+    _topoSyncSpecimenButtons(state);
+    return true;
+}
+// The topo-exposure-btn onclick: cycles the ½-EV stops.
+function topoCycleSpecimenExposure() {
+    const state = _topoThreeState;
+    if (!state || !state.specimen)
+        return false;
+    const i = SPECIMEN_EV_STOPS.indexOf(state.specimen.ev);
+    const next = SPECIMEN_EV_STOPS[(i + 1) % SPECIMEN_EV_STOPS.length];
+    topoSetSpecimenExposure(next);
+    if (typeof topoRender === 'function')
+        topoRender();
+    return true;
+}
 // Inject a sphere-distance discard into a MeshStandardMaterial via
 // onBeforeCompile, so fragments outside the cavity hull radius drop
 // out. The vug becomes a natural slice volume — crystals that grew
@@ -111063,9 +112079,12 @@ function _applyCavityClip(material, clipUniforms, opts = {}) {
     // 3-D sampler declaration or sample instruction.
     const useCavityField = Number(clipUniforms?.uCavityClipMode?.value || 0) === 1;
     const useHelix = opts.helix !== false;
+    // R6 specimen view: coating swaths (instanced) are cut per fragment; crystal BODIES are
+    // never sawn — the view culls them whole by their wall anchor instead.
+    const useFragmentCut = opts.specimenFragmentCut === true;
     const shaderVariant = (useCavityField
         ? 'field-r32f-freudenthal-v2' : 'polar-r32f-free-v1')
-        + (useHelix ? '|helix' : '|no-helix');
+        + (useHelix ? '|helix' : '|no-helix') + (useFragmentCut ? '|fragcut' : '');
     if (!material.userData)
         material.userData = {};
     material.userData.vuggCavityClipVariant = shaderVariant;
@@ -111302,6 +112321,13 @@ float cavityHullRadiusAt(vec3 worldPos) {
         shader.fragmentShader = shader.fragmentShader.replace('#include <dithering_fragment>', `gl_FragColor.a *= _helixSkinAlpha;
   #include <dithering_fragment>`);
         // === END HELIX-OVERLAY-FORK ADDITION ===============================
+        if (useFragmentCut && clipUniforms.uSpecimenCut) {
+            _specimenCutInject(shader, {
+                uSpecimenCut: clipUniforms.uSpecimenCut, uSpecimenCutN: clipUniforms.uSpecimenCutN,
+                uSpecimenCutU: clipUniforms.uSpecimenCutU, uSpecimenCutV: clipUniforms.uSpecimenCutV,
+                uSpecimenCutAmp: clipUniforms.uSpecimenCutAmp, uSpecimenCutSeed: clipUniforms.uSpecimenCutSeed,
+            }, 'crystal');
+        }
     };
     // Force shader rebuild on next render.
     material.needsUpdate = true;
@@ -111474,6 +112500,9 @@ vec4 wallTriplanarSample(sampler2D sourceMap, vec3 sourcePosition,
 #else
   #include <normal_fragment_maps>
 #endif`);
+        // R6 specimen view: the wall discards on the cut-away side of the ragged break.
+        if (material.userData && material.userData.specimenCut)
+            _specimenCutInject(shader, material.userData.specimenCut, 'wall');
     };
     material.needsUpdate = true;
 }
@@ -112146,7 +113175,7 @@ function _topoRenderPreparedCavityScene(state, installFallback) {
     }
     state.threeShaderUnusable = false;
     const t0 = (typeof performance !== 'undefined' && typeof performance.now === 'function') ? performance.now() : 0;
-    state.renderer.render(state.scene, state.camera);
+    _topoRenderFrame(state);
     if (t0)
         _topoLightingNoteRenderTime(state, performance.now() - t0);
     return true;
@@ -115736,7 +116765,7 @@ function _emitSurfaceGrowthSwath(state, crystal, parentMat, ax, ay, az, wall, ri
     if (record.regime === 'laminated_lining' && mat.transparent) {
         mat.opacity = Math.max(0.46, mat.opacity || 0);
     }
-    _applyCavityClip(mat, state.clipUniforms);
+    _applyCavityClip(mat, state.clipUniforms, { specimenFragmentCut: true });
     const swath = new THREE.InstancedMesh(geom, mat, count);
     const dummy = new THREE.Object3D();
     const up = new THREE.Vector3(0, 1, 0);
@@ -117986,6 +119015,7 @@ function _topoApplyCameraFromTilt(state, wall) {
     }
     const baseRadius = r0 * 3.0; // 3× outer radius keeps the cavity comfortably framed
     const radius = baseRadius / Math.max(0.2, _topoZoom);
+    state.cameraR0 = r0; // R6: the specimen view sizes its cut, rind and stage from this
     // Yaw around Y, then pitch around X — same convention as
     // _topoProject3D so the user's drag input behaves identically.
     const cy = Math.cos(_topoTiltY), sy = Math.sin(_topoTiltY);
@@ -118051,17 +119081,30 @@ function _topoApplyWallDisplay(state) {
         return;
     const mode = state.wallDisplay | 0;
     const mat = state.cavity.material;
+    const specimenGroup = state.specimen && state.specimen.group;
     if (mode === 2) {
         state.cavity.visible = false;
+        if (specimenGroup)
+            specimenGroup.visible = false;
         _topoOpticsSyncView(state);
         return;
     }
     state.cavity.visible = true;
+    if (specimenGroup)
+        specimenGroup.visible = true;
     if (!mat) {
         _topoOpticsSyncView(state);
         return;
     }
-    if (mode === 1) {
+    if (state.specimen) {
+        // R6: a specimen is opaque rock from every side; the translucent shell has no meaning
+        // on a broken geode (mode 2 above still hides it — the bare druse on the cloth).
+        mat.side = THREE.DoubleSide;
+        mat.opacity = 1.0;
+        mat.transparent = false;
+        mat.depthWrite = true;
+    }
+    else if (mode === 1) {
         mat.side = THREE.BackSide;
         mat.opacity = 0.18;
         mat.transparent = true;

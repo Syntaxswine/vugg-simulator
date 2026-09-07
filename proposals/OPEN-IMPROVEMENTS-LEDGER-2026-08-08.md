@@ -306,6 +306,16 @@ single execution ledger for the science-first AAA completion branch.
   shows its attenuated, refracted shadowed wall, not a 50 % ghost), fluorite hero highlights
   0 → 0.0009; galena inside-silhouette L 11 → 37 in the cave room (0.0068 highlights under the
   studio mood — the R6 number). Doc §5 R2, §3.5.
+  **R6 ✅ 2026-09-06** (branch `render/r6-specimen`, stacked on R2): the specimen view beside the
+  orb (D3) — a BROKEN geode on a photographer's cloth, as catalog 851 is: a ragged cut facing
+  the camera (one uint hash, bit-exact CPU/GLSL), the wall and coating swaths cut per fragment,
+  crystal bodies culled whole by anchor (rim crystals stand proud), a rind from the cavity surface
+  (weathered lithology skin; edge = the wall's by source vertex) and a fracture face one quad per
+  crossed triangle (lining band + fresh-break brown), cloth + contact shadow + cyclorama + fog,
+  studio mood, ½-EV exposure, HDR post pass (ACES, grain, vignette; refused honestly without
+  float buffers), no DoF by reference. Edges in the photograph band on elmwood (0.041) and mvt
+  (0.032), tn457 0.028 (content); galena/pyrite highlights 0.020 / 0.015 at +1 EV (≥ 0.01 met).
+  Doc §5 R6, §3.6, F9 FIXED. Next: R5 (the wall), then R3.
 
 ## P4 — release systems that can be prepared locally
 
