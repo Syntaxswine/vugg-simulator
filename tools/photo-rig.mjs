@@ -39,6 +39,9 @@
 //        (per hero body: silhouette mask, the frame with the wall hidden, and the inside-mask
 //        statistics — highlight fraction, mean colour, and how much the wall behind changes
 //        the pixels inside the crystal)
+//   node tools/photo-rig.mjs --scenario elmwood --view specimen --shots specimen,hero      (R6 specimen view)
+//        (the geode broken open on the cloth: ragged cut facing the camera, rind + fracture face,
+//        studio mood, post pass; --ev ±0.5 steps the exposure; every shot type works in the view)
 //   node tools/photo-rig.mjs --list
 //
 // Passive instrument: it reports, it never fails a build (feedback_passive_instrument_not_gate).
@@ -75,6 +78,7 @@ function parseArgs(argv) {
     zoom: 1.0, out: null, keepBrowser: false, list: false, jpegQuality: null,
     label: null, photoStats: [], experiment: [],
     mood: null, exposure: null,
+    view: 'process', ev: null, tiltGiven: false, zoomGiven: false,
   };
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];
@@ -87,8 +91,8 @@ function parseArgs(argv) {
     else if (a === '--mineral') out.mineral = next();
     else if (a === '--size') out.size = next().split('x').map(Number);
     else if (a === '--wall') out.wall = next();
-    else if (a === '--tilt') out.tilt = next().split(',').map(Number);
-    else if (a === '--zoom') out.zoom = Number(next());
+    else if (a === '--tilt') { out.tilt = next().split(',').map(Number); out.tiltGiven = true; }
+    else if (a === '--zoom') { out.zoom = Number(next()); out.zoomGiven = true; }
     else if (a === '--out') out.out = next();
     else if (a === '--label') out.label = next();
     else if (a === '--keep-browser') out.keepBrowser = true;
@@ -99,6 +103,8 @@ function parseArgs(argv) {
     else if (a === '--exposure') out.exposure = Number(next()); // toneMappingExposure override
     else if (a === '--tier') out.tier = next();                 // transmission | alpha (R2 optics tier)
     else if (a === '--probe') out.probe = next().split(',').map(s => s.trim()).filter(Boolean);   // seethrough
+    else if (a === '--view') out.view = next();                 // process | specimen (R6)
+    else if (a === '--ev') out.ev = Number(next());             // specimen exposure, ½-EV stops
     else if (a === '--help' || a === '-h') { out.help = true; }
     else throw new Error(`unknown argument ${a}`);
   }
@@ -332,7 +338,18 @@ const PAGE_HELPERS = `
       lighting: st.lightingRig || null, exposure: st.renderer.toneMappingExposure,
       // R2 optics rig receipt (tier, reason, material counts)
       optics: st.opticsRig ? { ...st.opticsRig } : null,
+      // R6 specimen view receipt (cut, rind, culling, stage, post pass)
+      specimen: st.specimenRig ? { ...st.specimenRig } : null,
     };
+  };
+  // R6: enter/leave the specimen view through the game's own toggle (pose, cut, rind, stage,
+  // studio mood) and step the exposure; 'process' leaves it. Returns the receipt.
+  RIG.setView = (view, ev) => {
+    const st = RIG.state();
+    if (typeof topoToggleSpecimenView !== 'function') return view === 'specimen' ? { error: 'no specimen view in this build' } : null;
+    topoToggleSpecimenView(view === 'specimen');
+    if (view === 'specimen' && ev != null && typeof topoSetSpecimenExposure === 'function') topoSetSpecimenExposure(ev);
+    return st.specimenRig ? { ...st.specimenRig } : null;
   };
   // R2: move the live scene between the transmission and alpha tiers in place (the A/B on
   // one build). No argument → report the current rig.
@@ -353,7 +370,7 @@ const PAGE_HELPERS = `
     const prevOverride = st.scene.overrideMaterial;
     const white = new THREE.MeshBasicMaterial({ color: 0xffffff, side: THREE.DoubleSide, toneMapped: false });
     st.scene.overrideMaterial = white;
-    const mask = RIG.render(w, h);
+    const mask = RIG.renderRaw(w, h);
     st.scene.overrideMaterial = prevOverride;
     for (const [o, v] of vis) o.visible = v;
     white.dispose();
@@ -362,6 +379,8 @@ const PAGE_HELPERS = `
     // with exactly the materials of the main frame.
     const prevVisible = st.cavity ? st.cavity.visible : null;
     if (st.cavity) st.cavity.visible = false;
+    // the same grain pattern as the main frame, so the Δ measures the wall, not the noise
+    if (st.specimen && st.specimen.post) st.specimen.post.frame = (st.specimen.post.frame + 4095) % 4096;
     const nowall = RIG.render(w, h);
     if (st.cavity) st.cavity.visible = prevVisible;
     return { mask, nowall };
@@ -413,9 +432,17 @@ const PAGE_HELPERS = `
     const st = RIG.state();
     st.renderer.setSize(w, h, false);
     st.camera.aspect = w / h; st.camera.updateProjectionMatrix();
-    st.renderer.render(st.scene, st.camera);
+    if (typeof _topoRenderFrame === 'function') _topoRenderFrame(st); else st.renderer.render(st.scene, st.camera);
     const canvas = st.renderer.domElement;
     return canvas.toDataURL('image/png');
+  };
+  RIG.renderRaw = (w, h) => {
+    const st = RIG.state();
+    st.renderer.setSize(w, h, false);
+    st.camera.aspect = w / h; st.camera.updateProjectionMatrix();
+    st.renderer.setRenderTarget(null);
+    st.renderer.render(st.scene, st.camera);
+    return st.renderer.domElement.toDataURL('image/png');
   };
   RIG.wallMode = mode => { const st = RIG.state(); st.wallDisplay = ({ solid: 0, translucent: 1, hidden: 2 })[mode] ?? 0; _topoApplyWallDisplay(st); };
   RIG.cavityR0 = () => {
@@ -465,6 +492,9 @@ const PAGE_HELPERS = `
     const helper = Math.abs(axis.y) < 0.9 ? new THREE.Vector3(0, 1, 0) : new THREE.Vector3(1, 0, 0);
     const perp = new THREE.Vector3().crossVectors(axis, helper).normalize();
     const dir = axis.clone().applyAxisAngle(perp, offAxisDeg * Math.PI / 180).applyAxisAngle(axis, yawDeg * Math.PI / 180).normalize();
+    // R6: in the specimen view the camera stands on the open (cut-away) side and looks into the
+    // bowl — mirror the direction across the cut plane when it would put the camera in the rock.
+    if (st.specimen && st.specimen.cut) { const cn = st.specimen.cut.n; const d = dir.dot(cn); if (d > 0) dir.addScaledVector(cn, -2 * d).normalize(); }
     const fovRad = st.camera.fov * Math.PI / 180;
     let dist = (extent * 0.5 / fill) / Math.tan(fovRad / 2) * 1.05;
     // Keep the camera INSIDE the cavity: a wall-hugging subject framed from its own c-axis
@@ -689,6 +719,22 @@ const PAGE_HELPERS = `
       }
       applied.push('glass:' + n);
     }
+    // R6 ablations on the live specimen view: specimenoff:rind|fracture|cloth|cyclo|post hides a
+    // part; fracflat paints the fracture band flat red (vertex colours off) — a diagnosis probe.
+    for (const item of list) {
+      if (!item.startsWith('specimenoff:')) continue;
+      const sp = st.specimen; const part = item.slice(12);
+      if (sp) {
+        if (part === 'post' && sp.post) sp.post.ok = false;
+        else if (sp[part]) sp[part].visible = false;
+      }
+      applied.push(item);
+    }
+    if (list.includes('fracflat')) {
+      const sp = st.specimen;
+      if (sp && sp.fracture) { const fm = sp.fracture.material; fm.vertexColors = false; fm.color.set(0xff2020); fm.needsUpdate = true; }
+      applied.push('fracflat');
+    }
     if (list.includes('halfcut')) {
       // Present the cavity as a cut geode: clip away the camera-side half so the interior
       // wall and its druse read like a specimen half, not a translucent orb.
@@ -704,13 +750,13 @@ const PAGE_HELPERS = `
   };
   RIG.pickHeroes = (n, mineral) => {
     const st = RIG.state();
-    const cands = st.crystals.children.filter(m => RIG.isBody(m) && (!mineral || m.userData.mineral === mineral));
+    const cands = st.crystals.children.filter(m => m.visible && RIG.isBody(m) && (!mineral || m.userData.mineral === mineral));
     return cands.map(m => { const { size, center } = RIG.bbox(m); return { m, size, center, ext: Math.max(size.x, size.y, size.z) }; })
       .sort((a, b) => b.ext - a.ext).slice(0, n);
   };
   RIG.pickDruse = () => {
     const st = RIG.state();
-    const items = st.crystals.children.filter(m => m.isMesh && m.userData && m.userData.crystal_id != null && RIG.kind(m) !== 'swath' && RIG.kind(m) !== 'band')
+    const items = st.crystals.children.filter(m => m.visible && m.isMesh && m.userData && m.userData.crystal_id != null && RIG.kind(m) !== 'swath' && RIG.kind(m) !== 'band')
       .map(m => { const { size, center } = RIG.bbox(m); return { m, size, center }; });
     if (!items.length) return null;
     const R = RIG.cavityR0() * 0.35;
@@ -754,10 +800,14 @@ function runProgram(name, seed, steps) {
   })()`;
 }
 
-function cavityShotProgram({ w, h, tilt, zoom, wall, experiment = [], mood = null, exposure = null, tier = null }) {
+function cavityShotProgram({ w, h, tilt, zoom, wall, experiment = [], mood = null, exposure = null, tier = null, view = 'process', ev = null, tiltGiven = true, zoomGiven = true }) {
+  // In the specimen view the game's entry pose frames the half (the cut faces it); an
+  // explicit --tilt/--zoom still overrides it.
+  const keepPose = view === 'specimen';
   return `(async () => {
     const RIG = window.__photoRig;
-    _topoTiltX = ${tilt[0]}; _topoTiltY = ${tilt[1]}; _topoZoom = ${zoom}; _topoPanX = 0; _topoPanY = 0;
+    const specimen = RIG.setView(${JSON.stringify(view)}, ${ev == null ? 'null' : Number(ev)});
+    ${(keepPose && !tiltGiven) ? '' : `_topoTiltX = ${tilt[0]}; _topoTiltY = ${tilt[1]};`} ${(keepPose && !zoomGiven) ? '' : `_topoZoom = ${zoom};`} _topoPanX = 0; _topoPanY = 0;
     topoRender();
     RIG.wallMode(${JSON.stringify(wall)});
     const st = RIG.state();
@@ -766,13 +816,14 @@ function cavityShotProgram({ w, h, tilt, zoom, wall, experiment = [], mood = nul
     const applied = RIG.applyExperiments(${JSON.stringify(experiment)});
     const png = RIG.render(${w}, ${h});
     const p = st.camera.position;
-    return { png, camera: { mode: 'game-rig', tilt: [${tilt[0]}, ${tilt[1]}], zoom: ${zoom}, position: [p.x, p.y, p.z].map(v => +v.toFixed(2)), inside: !!st.insideMode, wall: ${JSON.stringify(wall)}, experiments: applied, lighting, optics } };
+    return { png, camera: { mode: 'game-rig', view: ${JSON.stringify(view)}, tilt: [_topoTiltX, _topoTiltY], zoom: _topoZoom, position: [p.x, p.y, p.z].map(v => +v.toFixed(2)), inside: !!st.insideMode, wall: ${JSON.stringify(wall)}, experiments: applied, lighting, optics, specimen } };
   })()`;
 }
 
-function heroShotProgram({ w, h, index, n, mineral, wall, experiment = [], mood = null, exposure = null, tier = null, probe = [] }) {
+function heroShotProgram({ w, h, index, n, mineral, wall, experiment = [], mood = null, exposure = null, tier = null, probe = [], view = 'process', ev = null }) {
   return `(async () => {
     const RIG = window.__photoRig;
+    const specimen = RIG.setView(${JSON.stringify(view)}, ${ev == null ? 'null' : Number(ev)});
     topoRender();
     const heroes = RIG.pickHeroes(${n}, ${JSON.stringify(mineral)});
     const hero = heroes[${index}];
@@ -789,7 +840,7 @@ function heroShotProgram({ w, h, index, n, mineral, wall, experiment = [], mood 
     const u = hero.m.userData;
     const mats = Array.isArray(hero.m.material) ? hero.m.material : [hero.m.material];
     const mo = mats[0] && mats[0].userData ? mats[0].userData.optics : null;
-    return { png, camera: { mode: 'direct', ...cam, ...rule, wall: ${JSON.stringify(wall)}, experiments: applied, lighting, optics },
+    return { png, camera: { mode: 'direct', ...cam, ...rule, wall: ${JSON.stringify(wall)}, experiments: applied, lighting, optics, specimen },
       subject: { crystal_id: u.crystal_id, mineral: u.mineral, extent_mm: +hero.ext.toFixed(2),
         material: mats[0] ? { tier: mo ? mo.tier : null, lustre: mo ? mo.lustre : null, transmission: mats[0].transmission ?? null, ior: mats[0].ior ?? null, opacity: mats[0].opacity, transparent: !!mats[0].transparent, roughness: mats[0].roughness, metalness: mats[0].metalness, thickness: mats[0].thickness ?? null, attenuation_distance: mats[0].attenuationDistance ?? null } : null },
       probe_frames: frames };
@@ -828,9 +879,10 @@ function photoStatsProgram(url) {
   })()`;
 }
 
-function druseShotProgram({ w, h, wall, experiment = [], mood = null, exposure = null, tier = null }) {
+function druseShotProgram({ w, h, wall, experiment = [], mood = null, exposure = null, tier = null, view = 'process', ev = null }) {
   return `(async () => {
     const RIG = window.__photoRig;
+    const specimen = RIG.setView(${JSON.stringify(view)}, ${ev == null ? 'null' : Number(ev)});
     topoRender();
     const d = RIG.pickDruse(); if (!d) return null;
     const cam = RIG.placeCamera(d.center, d.size, d.axis, { offAxisDeg: 40, yawDeg: 15, fill: 0.7 });
@@ -840,7 +892,7 @@ function druseShotProgram({ w, h, wall, experiment = [], mood = null, exposure =
     const optics = RIG.applyTier(${JSON.stringify(tier)});
     const applied = RIG.applyExperiments(${JSON.stringify(experiment)});
     const png = RIG.render(${w}, ${h});
-    return { png, camera: { mode: 'direct', ...cam, ...rule, wall: ${JSON.stringify(wall)}, experiments: applied, lighting, optics }, subject: { count: d.count, crystal_ids: d.ids } };
+    return { png, camera: { mode: 'direct', ...cam, ...rule, wall: ${JSON.stringify(wall)}, experiments: applied, lighting, optics, specimen }, subject: { count: d.count, crystal_ids: d.ids } };
   })()`;
 }
 
@@ -964,11 +1016,15 @@ async function main() {
       }
     };
     for (const shot of args.shots) {
+      const common = { experiment: args.experiment, mood: args.mood, exposure: args.exposure, tier: args.tier, view: args.view, ev: args.ev };
       if (shot === 'cavity') {
-        saveShot('cavity', await attempt('cavity', () => page.job(cavityShotProgram({ w: W, h: H, tilt: args.tilt, zoom: args.zoom, wall: args.wall, experiment: args.experiment, mood: args.mood, exposure: args.exposure, tier: args.tier }), { label: 'cavity shot' })));
+        saveShot('cavity', await attempt('cavity', () => page.job(cavityShotProgram({ w: W, h: H, tilt: args.tilt, zoom: args.zoom, wall: args.wall, tiltGiven: args.tiltGiven, zoomGiven: args.zoomGiven, ...common }), { label: 'cavity shot' })));
+      } else if (shot === 'specimen') {
+        // R6: the specimen view's own frame — the entry pose unless --tilt/--zoom say otherwise
+        saveShot('specimen', await attempt('specimen', () => page.job(cavityShotProgram({ w: W, h: H, tilt: args.tilt, zoom: args.zoom, wall: args.wall, tiltGiven: args.tiltGiven, zoomGiven: args.zoomGiven, ...common, view: 'specimen' }), { label: 'specimen shot' })));
       } else if (shot === 'hero') {
         for (let i = 0; i < args.heroN; i++) {
-          const r = await attempt(`hero ${i + 1}`, () => page.job(heroShotProgram({ w: W, h: H, index: i, n: args.heroN, mineral: args.mineral, wall: args.wall, experiment: args.experiment, mood: args.mood, exposure: args.exposure, tier: args.tier, probe: args.probe }), { label: `hero ${i}` }));
+          const r = await attempt(`hero ${i + 1}`, () => page.job(heroShotProgram({ w: W, h: H, index: i, n: args.heroN, mineral: args.mineral, wall: args.wall, probe: args.probe, ...common }), { label: `hero ${i}` }));
           if (!r) break;
           const name = `hero-${i + 1}-${r.subject.mineral}`;
           const extra = {};
@@ -988,7 +1044,7 @@ async function main() {
           saveShot(name, r, extra);
         }
       } else if (shot === 'druse') {
-        saveShot('druse', await attempt('druse', () => page.job(druseShotProgram({ w: W, h: H, wall: args.wall, experiment: args.experiment, mood: args.mood, exposure: args.exposure, tier: args.tier }), { label: 'druse shot' })));
+        saveShot('druse', await attempt('druse', () => page.job(druseShotProgram({ w: W, h: H, wall: args.wall, ...common }), { label: 'druse shot' })));
       } else if (shot === 'roster') {
         // roster is always in the manifest; the flag just prints it
         for (const r of run.roster) console.log(`${String(r.crystal_id).padStart(4)} ${r.mineral.padEnd(16)} ${String(r.token).padEnd(12)} c=${r.c_length_mm} a=${r.a_width_mm} ext=${r.rendered_extent_mm} ${r.material?.color} op=${r.material?.opacity} rough=${r.material?.roughness} met=${r.material?.metalness} verts=${r.vertices} ${r.tags.join(',')}`);
@@ -1022,8 +1078,9 @@ function contactSheet(m) {
   const esc = s => String(s).replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' })[c]);
   const lightingTag = l => l ? `${l.mood || '?'} · env ${l.environment ? 'on' : 'OFF' + (l.reason ? ` (${l.reason})` : '')} · ${l.tone_mapping} e${Number(l.exposure).toFixed(2)} · ${l.shadows ? `shadows ${l.shadow_map}²` : 'no shadows'}${l.step_downs ? ` · ${l.step_downs} step-down(s)` : ''}` : 'pre-R1 lights';
   const opticsTag = o => o ? `${o.tier} tier, active ${o.active}${o.backdrop === false ? ' (no opaque backdrop)' : ''} (${o.transmissive} glass / ${o.alpha} alpha / ${o.opaque} opaque${o.retiers ? ` · ${o.retiers} retier(s)` : ''})` : 'pre-R2 materials';
+  const specimenTag = sp => sp && sp.on ? ` · specimen: rag ±${sp.rag_mm} mm · rind ${sp.rind_mm} mm · culled ${sp.culled}/${sp.culled + sp.kept} bodies · ${sp.fracture_quads} fracture quads · EV ${sp.ev} · post ${sp.post ? (sp.post.ok ? 'on' : 'OFF (' + sp.post.reason + ')') : '—'}` : '';
   const probeTag = p => p && p.seethrough ? `<br>see-through: mask ${p.seethrough.mask_fraction} · inside L̄ ${p.seethrough.mean_luminance} · inside highlights ${p.seethrough.highlight_fraction} · wall Δ ${p.seethrough.background_delta}` : (p && p.error ? `<br>probe error: ${esc(p.error)}` : '');
-  const shots = m.shots.map(s => `<figure><img src="${s.file}" alt="${esc(s.name)}"><figcaption><b>${esc(s.name)}</b> · ${s.camera?.mode} ${s.camera?.inside ? '(inside cavity)' : ''} · ${s.subject ? esc(JSON.stringify(s.subject)) : ''}<br>L̄ ${s.stats?.mean_luminance} · sat ${s.stats?.mean_saturation} · highlights ${s.stats?.highlight_fraction} · edges ${s.stats?.edge_fraction}<br>light: ${esc(lightingTag(s.camera?.lighting))} · optics: ${esc(opticsTag(s.camera?.optics))}${s.camera?.experiments?.length ? ` · experiments ${esc(s.camera.experiments.join('+'))}` : ''}${probeTag(s.probe)}</figcaption></figure>`).join('\n');
+  const shots = m.shots.map(s => `<figure><img src="${s.file}" alt="${esc(s.name)}"><figcaption><b>${esc(s.name)}</b> · ${s.camera?.mode} ${s.camera?.inside ? '(inside cavity)' : ''} · ${s.subject ? esc(JSON.stringify(s.subject)) : ''}<br>L̄ ${s.stats?.mean_luminance} · sat ${s.stats?.mean_saturation} · highlights ${s.stats?.highlight_fraction} · edges ${s.stats?.edge_fraction}<br>light: ${esc(lightingTag(s.camera?.lighting))} · optics: ${esc(opticsTag(s.camera?.optics))}${s.camera?.experiments?.length ? ` · experiments ${esc(s.camera.experiments.join('+'))}` : ''}${esc(specimenTag(s.camera?.specimen))}${probeTag(s.probe)}</figcaption></figure>`).join('\n');
   const census = Object.entries(m.census).sort((a, b) => b[1].bodies - a[1].bodies).map(([k, v]) => `<tr><td>${esc(k)}</td><td>${v.bodies}</td><td>${v.satellites}</td><td>${v.swaths}${v.swaths ? ` (${v.swath_instances} inst; ${esc(Object.keys(v.regimes).join(','))})` : ''}</td><td>${esc(Object.entries(v.tokens).map(([t, c]) => `${t}×${c}`).join(' '))}</td><td><span style="display:inline-block;width:1em;height:1em;background:${v.color};border:1px solid #888"></span> ${v.color}</td><td>${v.opacity}</td><td>${v.roughness}</td><td>${v.metalness}</td><td>${v.max_extent_mm}</td><td>${v.vertices}</td></tr>`).join('\n');
   return `<!doctype html><meta charset="utf-8"><title>photo-rig · ${esc(m.scenario)} s${m.seed}</title>
 <style>body{font:13px/1.4 ui-monospace,monospace;background:#111;color:#ddd;margin:16px}figure{display:inline-block;margin:8px;vertical-align:top;max-width:${Math.min(m.size[0], 600)}px}img{max-width:100%;border:1px solid #333}table{border-collapse:collapse}td,th{border:1px solid #333;padding:2px 6px}</style>

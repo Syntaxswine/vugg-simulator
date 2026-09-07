@@ -146,6 +146,15 @@ function topoSetDragMode(mode) {
 // to keep their zoom level when recentering).
 function topoRecenter() {
   if (_topoExactFlatPresentationActive) return false;
+  // R6 specimen view: recentre returns to the specimen's entry pose (the cut faces it), not to
+  // the process view's zero tilt.
+  if (typeof _topoThreeState !== 'undefined' && _topoThreeState && _topoThreeState.specimen
+      && typeof _topoSpecimenPose === 'function') {
+    _topoSpecimenPose(_topoThreeState.specimen.pose);
+    _topoApplyTransform();
+    topoRender();
+    return;
+  }
   _topoPanX = 0;
   _topoPanY = 0;
   _topoTiltX = 0;
