@@ -621,8 +621,25 @@ in tn457 read as stacked translucent glass; the Naica blade as smoky translucent
 whole-vug photo set still wins on facets and wall texture (R4, R5).
 
 ### R3 — Coatings at physical scale · 2–4 days · no decision
-- `laminated_lining` → a wall-conformal displaced shell (copy of the wall triangles inside the
-  patch, offset by mean thickness, with the lining's colour and a fine noise normal map), not tiles.
+- **R3a implemented 2026-09-07:** `laminated_lining` now copies the authenticated patch's
+  triangles into a continuous shell, displaced into the void by mean thickness (including
+  replay maturity). Shared vertices share normals and underburden; the last triangle is
+  shortened to its booked area. The source geometry and surface-growth record stay unchanged.
+  Fine triplanar grain reuses the wall texture at a 2 mm scale and low amplitude; polygon
+  depth bias replaces the old 60 µm display-thickness floor. The patch remains raycastable,
+  follows the specimen fragment/depth cut, and disposes its owned geometry on rebuild.
+  Desktop/mobile draw identical shells; this does not increase the instance budget.
+  Deccan seed 42 replaces the three chalcedony tile carpets with continuous grey-blue patches;
+  the patch perimeter still reflects the authenticated mesh's triangle resolution. Remaining
+  botryoidal coins and sparse teeth belong to the next two R3 items below. This is a partial
+  R3 delivery, not a new overall realism score.
+  Photo pairs: `.local-evidence/photos/deccan_zeolite-s42-{before-r3,lining-r3a}/`;
+  specimen edges 0.03611 → 0.03366 (removing tile edges), luminance 62.17 → 62.41;
+  druse frame identical because it frames another part of the cavity. Elmwood and tn457
+  use the same before/after labels as regression controls. The rig roster now distinguishes
+  `wall-conformal-lining` and records its actual thickness and covered area.
+  Tests: `surface-growth-three-integration` (7), `specimen-view` (20), `surface-growth` (15).
+  Fresh browser receipt, science rebake and cold CI are required before publication.
 - `botryoidal_crust` → keep instanced lobes (fixed this session) but draw a lognormal size
   distribution and overlap them; add a normal-mapped skin under the lobes for the thin case.
 - `euhedral_druse` → teeth sized from the aggregate's own zone record, thousands of instances

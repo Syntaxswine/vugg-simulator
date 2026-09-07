@@ -322,7 +322,13 @@ single execution ledger for the science-first AAA completion branch.
   grain under the genesis relief, per-lithology roughness and iron stain; `--probe wallperiod` (the
   whitened wall-only power spectrum; photographs 1.19–1.48): elmwood druse wall 9.1 → 1.25, specimen
   1.34 / edges 0.056; macro-wall edges honestly under 0.02 (R3's crust). Doc §5 R5, §3.7, F8 FIXED.
-  Next: R3, then R4.
+  **R3a implemented 2026-09-07** (`codex/visual-realism-r3`, based on R5 `939e483e`):
+  continuous, physical-thickness laminated linings replace overlapping plates; exact patch
+  area, shared displacement, fine grain, specimen cut/shadows, raycasting and owned-geometry
+  cleanup. Deccan's three chalcedony linings photographed before/after; focused 42 tests pass.
+  Browser receipt, rebake and cold CI pending. R3 remains open for botryoidal skin/lobe
+  distribution and mass-sized druse teeth with the approved adaptive instance ceiling.
+  Next: finish R3, then R4.
 
 ## P4 — release systems that can be prepared locally
 

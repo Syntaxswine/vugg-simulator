@@ -1159,7 +1159,7 @@ function _specimenSyncCrystals(state: any) {
   let culled = 0, kept = 0;
   for (const m of state.crystals.children) {
     if (!m) continue;
-    if (m.isInstancedMesh) {
+    if (m.isInstancedMesh || m.userData?.surfaceGrowth) {
       if (!m.customDepthMaterial && sp.uniforms) {
         const depth = new THREE.MeshDepthMaterial({ depthPacking: THREE.RGBADepthPacking });
         depth.onBeforeCompile = (shader: any) => { _specimenCutInject(shader, sp.uniforms, 'world'); };
@@ -6143,6 +6143,133 @@ function _addCrystalParentRepresentation(state: any, crystal: any, mesh: any): b
   return true;
 }
 
+// R3a: a lining follows the authenticated patch, rather than inflating a finite
+// instance budget into overlapping plates. Neither the source buffers nor the
+// surface-growth testimony is changed. Shared vertices share displacement, so
+// adjacent triangles cannot open cracks when earlier layers add relief.
+function _emitSurfaceGrowthLining(state: any, crystal: any, parentMat: any,
+  wall: any, sim: any, coverage: number, maturity: number, earlierLayers: any[]): any {
+  const patch = wall.surfacePatchForCrystal?.(crystal, coverage, sim);
+  const surface = wall.surfaceForCrystal?.(crystal, sim);
+  if (!patch?.triangles?.length || !surface?.positions
+      || patch.source_signature !== surface.sig) return null;
+  const record = crystal._surfaceGrowth;
+  const thickness = Math.max(0, Number(record.mean_thickness_um) || 0) / 1000 * maturity;
+  if (!(thickness > 0)) return null;
+  const p = surface.positions;
+  const vertices = new Map<number, any>();
+  const triangleKeys = new Set<string>();
+  for (const t of patch.triangles) {
+    const key = `${patch.source_signature}:${t.triangle_index}`;
+    triangleKeys.add(key);
+    let underburden = 0;
+    for (const layer of earlierLayers) {
+      if (layer.triangle_keys.has(key)) underburden += layer.representative_relief_mm;
+    }
+    for (const id of [t.ia, t.ib, t.ic]) {
+      let v = vertices.get(id);
+      if (!v) { v = { normal: [0, 0, 0], underburden: 0 }; vertices.set(id, v); }
+      for (let k = 0; k < 3; k++) v.normal[k] += t.void_normal[k] * t.area_mm2;
+      v.underburden = Math.max(v.underburden, underburden);
+    }
+  }
+  for (const [id, v] of vertices) {
+    // The source's smooth normals point into the rock; the lining grows into
+    // the void. Area-weighted patch normals are the legacy mesh fallback.
+    if (surface.normals?.length === p.length) {
+      v.normal = [-surface.normals[id * 3], -surface.normals[id * 3 + 1], -surface.normals[id * 3 + 2]];
+    }
+    const length = Math.hypot(...v.normal) || 1;
+    v.normal = v.normal.map((n: number) => n / length);
+    v.position = v.normal.map((n: number, k: number) => p[id * 3 + k] + n * (thickness + v.underburden));
+  }
+  const positions: number[] = [], normals: number[] = [];
+  let footprint = 0;
+  const selected = new Set(patch.triangle_indices);
+  for (const t of patch.triangles) {
+    const ids = [t.ia, t.ib, t.ic];
+    const points = ids.map(id => vertices.get(id).position.slice());
+    const ns = ids.map(id => vertices.get(id).normal.slice());
+    const fraction = Math.max(0, Math.min(1, t.weight_mm2 / t.area_mm2));
+    if (!(fraction > 0)) continue;
+    if (fraction < 1) {
+      // The last triangle owns only the remaining area. Keep its edge shared
+      // with the selected patch and shorten its altitude, not every triangle.
+      let apex = 2;
+      for (const neighbor of patch.triangles) {
+        if (neighbor === t || !selected.has(neighbor.triangle_index)) continue;
+        const shared = [neighbor.ia, neighbor.ib, neighbor.ic];
+        const opposite = ids.findIndex(id => !shared.includes(id));
+        if (opposite >= 0 && ids.filter(id => shared.includes(id)).length === 2) { apex = opposite; break; }
+      }
+      const a = (apex + 1) % 3, b = (apex + 2) % 3;
+      for (let k = 0; k < 3; k++) {
+        points[apex][k] = (points[a][k] + points[b][k]) * 0.5 * (1 - fraction) + points[apex][k] * fraction;
+        ns[apex][k] = (ns[a][k] + ns[b][k]) * 0.5 * (1 - fraction) + ns[apex][k] * fraction;
+      }
+    }
+    // Source triangles wind outwards; lining front faces point into the void.
+    for (const i of [0, 2, 1]) { positions.push(...points[i]); normals.push(...ns[i]); }
+    footprint += t.weight_mm2;
+  }
+  const geom = new THREE.BufferGeometry();
+  geom.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+  geom.setAttribute('normal', new THREE.Float32BufferAttribute(normals, 3));
+  geom.computeBoundingSphere();
+  const mat = parentMat.clone();
+  mat.side = THREE.DoubleSide;
+  mat.flatShading = false;
+  mat.roughness = Math.max(0.38, Math.min(0.65, mat.roughness || 0.5));
+  // Physical displacement, even for a micron film; depth bias avoids z-fighting
+  // without inventing the old 60-micron minimum geometric thickness.
+  mat.polygonOffset = true; mat.polygonOffsetFactor = -1; mat.polygonOffsetUnits = -1;
+  _opticsApplyExtent(mat, thickness);
+  _applyCavityClip(mat, state.clipUniforms, { specimenFragmentCut: true });
+  const clipCompile = mat.onBeforeCompile;
+  const clipKey = mat.customProgramCacheKey();
+  const grain = typeof _wallGrainNormalMap === 'function' ? _wallGrainNormalMap() : null;
+  if (grain) {
+    // Fine triplanar normal grain: millimetre coordinates, no UV seams or new
+    // texture allocation per crystal. The shared wall grain remains cache-owned.
+    mat.onBeforeCompile = (shader: any) => {
+      clipCompile(shader);
+      shader.uniforms.uLiningGrain = { value: grain };
+      shader.fragmentShader = shader.fragmentShader.replace('#include <common>',
+        '#include <common>\nuniform sampler2D uLiningGrain;');
+      shader.fragmentShader = shader.fragmentShader.replace('#include <normal_fragment_maps>', `#include <normal_fragment_maps>
+        vec3 liningN = inverseTransformDirection(normal, viewMatrix);
+        vec3 liningW = pow(abs(liningN), vec3(4.0));
+        liningW /= max(0.0001, liningW.x + liningW.y + liningW.z);
+        vec2 liningX = texture2D(uLiningGrain, vCavityWorldPos.zy / 2.0).xy * 2.0 - 1.0;
+        vec2 liningY = texture2D(uLiningGrain, vCavityWorldPos.xz / 2.0).xy * 2.0 - 1.0;
+        vec2 liningZ = texture2D(uLiningGrain, vCavityWorldPos.xy / 2.0).xy * 2.0 - 1.0;
+        vec3 liningG = vec3(0.0, liningX.y, -sign(liningN.x) * liningX.x) * liningW.x
+          + vec3(liningY.x, 0.0, -sign(liningN.y) * liningY.y) * liningW.y
+          + vec3(sign(liningN.z) * liningZ.x, liningZ.y, 0.0) * liningW.z;
+        normal = normalize(normal + mat3(viewMatrix) * liningG * 0.08);`);
+    };
+    mat.customProgramCacheKey = () => `${clipKey}|lining-grain-v1`;
+  }
+  const mesh = new THREE.Mesh(geom, mat);
+  mesh.userData = {
+    surfaceGrowth: true, surfaceLining: true, ownsGeometry: true,
+    crystal_id: crystal.crystal_id, mineral: crystal.mineral, regime: record.regime,
+    coverage_fraction: coverage, physical_mean_thickness_um: record.mean_thickness_um,
+    rendered_thickness_mm: thickness, represented_area_mm2: footprint,
+    representation: 'wall-conformal-lining', representative_only: true,
+    area_basis: record.area_basis, stratigraphic_index: record.stratigraphic_index,
+    source_signature: patch.source_signature, triangle_indices: [...patch.triangle_indices],
+    representative_relief_mm: thickness,
+  };
+  mesh.renderOrder = 0.55 + Math.min(0.1, Number(record.stratigraphic_index || 0) * 0.001);
+  _topoLightingTagMesh(mesh, true);
+  state.crystals.add(mesh);
+  earlierLayers.push({ crystal_id: crystal.crystal_id, source_signature: patch.source_signature,
+    triangle_indices: new Set(patch.triangle_indices), triangle_keys: triangleKeys,
+    representative_relief_mm: thickness });
+  return mesh;
+}
+
 function _emitSurfaceGrowthSwath(
   state: any, crystal: any, parentMat: any,
   ax: number, ay: number, az: number,
@@ -6159,6 +6286,10 @@ function _emitSurfaceGrowthSwath(
   const replayMaturity = Math.max(0.02, Math.min(1, renderC / liveC));
   const coverage = Math.max(0.005, Math.min(0.98,
     record.coverage_fraction * Math.sqrt(replayMaturity)));
+  if (record.regime === 'laminated_lining') {
+    return _emitSurfaceGrowthLining(state, crystal, parentMat, wall, sim,
+      coverage, replayMaturity, earlierLayers);
+  }
   const mobile = typeof window !== 'undefined'
     && ((window.innerWidth || 1024) <= SURFACE_GROWTH_MOBILE_MAX_WIDTH_CSS_PX
       || (window.devicePixelRatio || 1) >= SURFACE_GROWTH_MOBILE_MIN_DEVICE_PIXEL_RATIO);
@@ -7397,6 +7528,9 @@ function _topoSyncCrystalMeshes(state: any, sim: any, wall: any, replayStep?: nu
   // textures, so the GC handles the rest.
   while (state.crystals.children.length) {
     const child = state.crystals.children.pop();
+    if (child.userData?.ownsGeometry && child.geometry?.dispose) child.geometry.dispose();
+    if (child.customDepthMaterial?.dispose) child.customDepthMaterial.dispose();
+    if (state.specimen?.depthMats) state.specimen.depthMats.delete(child);
     // O2-contacted crystals carry a [euhedral, contact] material array.
     if (Array.isArray(child.material)) { for (const m of child.material) if (m && m.dispose) m.dispose(); }
     else if (child.material && child.material.dispose) child.material.dispose();

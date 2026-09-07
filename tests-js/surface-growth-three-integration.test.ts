@@ -10,7 +10,7 @@ declare const _topoSnapshotWall: any;
 declare const _topoCrystalsSignature: any;
 declare const _topoSyncCrystalMeshes: any;
 
-function makeAggregate(wall: any, id: number, mineral = 'chalcedony', habit = 'banded_agate') {
+function makeAggregate(wall: any, id: number, mineral = 'malachite', habit = 'botryoidal') {
   const crystal = new Crystal({
     mineral,
     habit,
@@ -50,6 +50,75 @@ function emit(state: any, crystal: any, wall: any, sim: any, layers: any[]) {
 }
 
 describe('SIM 250 executed Three.js surface-fabric contract', () => {
+  it('draws a continuous, raycastable lining at physical thickness, invariant across viewport LOD', () => {
+    const wall = new WallState({ cells_per_ring: 48, ring_count: 12, vug_diameter_mm: 70, shape_seed: 5150 });
+    const crystal = makeAggregate(wall, 500, 'chalcedony', 'banded_agate');
+    const sim = { step: 900, wall_state: wall, crystals: [crystal] };
+    classifySurfaceGrowth(sim);
+    const testimony = JSON.stringify(crystal._surfaceGrowth);
+    const source = wall.surfaceForCrystal(crystal, sim);
+    const sourcePositions = Array.from(source.positions);
+    const run = (width: number, layers: any[] = []) => {
+      Object.defineProperty(window, 'innerWidth', { configurable: true, value: width });
+      const state = renderState(wall);
+      return { state, mesh: emit(state, crystal, wall, sim, layers), layers };
+    };
+    const desktop = run(1200), mobile = run(600);
+    const mesh = desktop.mesh;
+    expect(mesh).toBeInstanceOf(THREE.Mesh);
+    expect(mesh.isInstancedMesh).not.toBe(true);
+    expect(desktop.state.crystals.children).toEqual([mesh]);
+    expect(mesh.userData.representation).toBe('wall-conformal-lining');
+    expect(mesh.geometry.attributes.position.array).toEqual(mobile.mesh.geometry.attributes.position.array);
+    expect(mesh.userData.rendered_thickness_mm).toBeCloseTo(crystal._surfaceGrowth.mean_thickness_um / 1000, 12);
+    expect(mesh.userData.rendered_thickness_mm).toBeLessThan(0.06);
+    const patch = wall.surfacePatchForCrystal(crystal, mesh.userData.coverage_fraction, sim);
+    expect(mesh.userData.represented_area_mm2).toBeCloseTo(patch.area_mm2, 8);
+    expect(mesh.geometry.attributes.position.count).toBe(patch.triangles.length * 3);
+    expect(Array.from(mesh.geometry.attributes.position.array).every(Number.isFinite)).toBe(true);
+    const t = patch.triangles[0];
+    const first = new THREE.Vector3().fromBufferAttribute(mesh.geometry.attributes.position, 0);
+    const original = new THREE.Vector3().fromArray(source.positions, t.ia * 3);
+    expect(first.distanceTo(original)).toBeCloseTo(mesh.userData.rendered_thickness_mm, 5);
+    const target = new THREE.Vector3();
+    for (let i = 0; i < 3; i++) target.add(new THREE.Vector3().fromBufferAttribute(mesh.geometry.attributes.position, i));
+    target.multiplyScalar(1 / 3);
+    const normal = new THREE.Vector3(...t.void_normal);
+    mesh.updateMatrixWorld(true);
+    const hits = new THREE.Raycaster(target.clone().addScaledVector(normal, 1), normal.clone().negate(), 0, 2)
+      .intersectObject(mesh, false);
+    expect(hits.length).toBeGreaterThan(0);
+    expect(hits[0].object.userData.crystal_id).toBe(crystal.crystal_id);
+    const top = run(1200, desktop.layers).mesh;
+    const topVertex = new THREE.Vector3().fromBufferAttribute(top.geometry.attributes.position, 0);
+    expect(topVertex.distanceTo(first)).toBeCloseTo(mesh.userData.rendered_thickness_mm, 5);
+    const wrongSource = run(1200, [{ triangle_keys: new Set(patch.triangle_indices.map((i: number) => `wrong:${i}`)), representative_relief_mm: 7 }]).mesh;
+    expect(wrongSource.geometry.attributes.position.array).toEqual(mesh.geometry.attributes.position.array);
+    expect(Array.from(source.positions)).toEqual(sourcePositions);
+    expect(JSON.stringify(crystal._surfaceGrowth)).toBe(testimony);
+
+    // Dynamic shell geometry must not accumulate in the shared primitive cache.
+    let disposed = false;
+    mesh.geometry.addEventListener('dispose', () => { disposed = true; });
+    _topoSyncCrystalMeshes(desktop.state, { ...sim, crystals: [] }, wall);
+    expect(disposed).toBe(true);
+  });
+
+  it('clips the final lining triangle to its booked area and rejects a mismatched surface', () => {
+    const surface = { sig: 'plane', positions: new Float32Array([0, 0, 0, 2, 0, 0, 0, 2, 0]), normals: new Float32Array([0, 0, 1, 0, 0, 1, 0, 0, 1]) };
+    const patch = { source_signature: 'plane', area_mm2: 0.5, triangle_indices: [0], triangles: [{ ia: 0, ib: 1, ic: 2, triangle_index: 0, area_mm2: 2, weight_mm2: 0.5, void_normal: [0, 0, -1] }] };
+    const wall = { rings: [[]], surfacePatchForCrystal: () => patch, surfaceForCrystal: () => surface, surfaceAnchorDirection: () => [0, 0, 1] };
+    const crystal = { crystal_id: 1, mineral: 'chalcedony', c_length_mm: 1, _surfaceGrowth: { regime: 'laminated_lining', coverage_fraction: 0.25, mean_thickness_um: 2 } };
+    const state = { crystals: new THREE.Group(), geomCache: new Map(), clipUniforms: {} };
+    const mesh = emit(state, crystal, wall, {}, []);
+    const a = new THREE.Vector3().fromBufferAttribute(mesh.geometry.attributes.position, 0);
+    const b = new THREE.Vector3().fromBufferAttribute(mesh.geometry.attributes.position, 1);
+    const c = new THREE.Vector3().fromBufferAttribute(mesh.geometry.attributes.position, 2);
+    expect(b.sub(a).cross(c.sub(a)).length() / 2).toBeCloseTo(0.5, 8);
+    surface.sig = 'other';
+    expect(emit(state, crystal, wall, {}, [])).toBeNull();
+  });
+
   it('emits one raycastable instanced representation with finite matrices and exact overlap relief', () => {
     Object.defineProperty(window, 'innerWidth', { configurable: true, value: 1200 });
     Object.defineProperty(window, 'devicePixelRatio', { configurable: true, value: 1 });

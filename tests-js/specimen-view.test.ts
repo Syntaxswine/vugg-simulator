@@ -317,6 +317,10 @@ describe('R6 specimen view: entry builds the stage, exit restores the process vi
     hiddenByOthers.visible = false;
     const swath = new THREE.InstancedMesh(new THREE.SphereGeometry(0.5, 6, 4), new THREE.MeshPhysicalMaterial(), 4);
     swath.userData = { crystal_id: 9, mineral: 'calcite', surfaceGrowth: true };
+    const lining = new THREE.Mesh(new THREE.PlaneGeometry(30, 30), new THREE.MeshPhysicalMaterial());
+    lining.position.set(-4, 2, 30); // a body here is culled; a lining must be cut per fragment
+    lining.userData = { crystal_id: 10, mineral: 'chalcedony', surfaceGrowth: true, surfaceLining: true };
+    state.crystals.add(lining);
     state.crystals.add(far); state.crystals.add(near); state.crystals.add(hiddenByOthers); state.crystals.add(swath);
     const sp = _topoSpecimenEnter(state);
     expect(far.visible).toBe(true);
@@ -325,12 +329,15 @@ describe('R6 specimen view: entry builds the stage, exit restores the process vi
     expect(sp.hidden.has(hiddenByOthers)).toBe(false);
     expect(swath.visible).toBe(true);
     expect(swath.customDepthMaterial).toBeTruthy();
+    expect(lining.visible).toBe(true);
+    expect(lining.customDepthMaterial).toBeTruthy();
     expect(state.specimenRig.culled).toBe(1);
     expect(state.specimenRig.kept).toBe(1);
     _topoSpecimenExit(state);
     expect(near.visible).toBe(true);
     expect(hiddenByOthers.visible).toBe(false);
     expect(swath.customDepthMaterial).toBeFalsy();
+    expect(lining.customDepthMaterial).toBeFalsy();
   });
 
   it('exits: objects gone, uniforms off, fog restored, cave mood, the orb\'s translucent shell back', () => {
