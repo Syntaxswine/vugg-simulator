@@ -127,10 +127,10 @@
   },
   "science_evidence": {
     "path": "archive/evidence/v285.json",
-    "sha256": "8ef8cd1159130cd26f778899c36e2add4bce6acba0307f1542399496acf6f600",
+    "sha256": "6b105b9ec3e408304806be881a08bff1d9b204eb239fb7ff7f59fc3f9914d1fd",
     "schema": "vugg-science-evidence-receipt-v2",
-    "browser_bundle_sha256": "ad96b22fe57f37ec4750f178134e70c449db41251531aeb14ddf00919765e5e5",
-    "execution_set_sha256": "a8e78620795dee43db61777ff4c442057ad12cc4ea7a113b1d66f93de4cd9d10",
+    "browser_bundle_sha256": "9eac4368f8b869bdcb85bf46585bc325b46799768b19f535f04bb8a42d1193f3",
+    "execution_set_sha256": "6b649cfbb2b67cfff614e12412f05dc8fb4e4fe4607b443a58187705a426f748",
     "node_runtime": {
       "schema": "vugg-evidence-node-runtime-v1",
       "node": "24.15.0",

@@ -326,7 +326,9 @@ single execution ledger for the science-first AAA completion branch.
   continuous, physical-thickness laminated linings replace overlapping plates; exact patch
   area, shared displacement, fine grain, specimen cut/shadows, raycasting and owned-geometry
   cleanup. Deccan's three chalcedony linings photographed before/after; focused 42 tests pass.
-  Browser receipt, rebake and cold CI pending. R3 remains open for botryoidal skin/lobe
+  Browser receipt and rebake PASS: 128 artifacts, 55 science tests, all stories and
+  simulation baselines unchanged. Cold CI gates publication of the frozen evidence commit.
+  R3 remains open for botryoidal skin/lobe
   distribution and mass-sized druse teeth with the approved adaptive instance ceiling.
   Next: finish R3, then R4.
 

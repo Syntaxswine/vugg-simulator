@@ -639,7 +639,13 @@ whole-vug photo set still wins on facets and wall texture (R4, R5).
   use the same before/after labels as regression controls. The rig roster now distinguishes
   `wall-conformal-lining` and records its actual thickness and covered area.
   Tests: `surface-growth-three-integration` (7), `specimen-view` (20), `surface-growth` (15).
-  Fresh browser receipt, science rebake and cold CI are required before publication.
+  The full owned-browser journey and exact receipt audit passed without UI ID re-pins.
+  The fresh science rebake passed (128 artifacts, zero locality violations, 55 focused
+  science tests); all 41 stories, the three-seed frequency baseline, seed-42 scenario
+  baseline and chemistry digest are byte-identical to R5. Only the executable-bound
+  evidence envelopes and release manifest change. Cold CI is a publication gate on
+  the frozen evidence commit; its local verdict belongs in
+  `.local-evidence/test-workflow-last-pass-v2.json`, not in a rewritten science receipt.
 - `botryoidal_crust` → keep instanced lobes (fixed this session) but draw a lognormal size
   distribution and overlap them; add a normal-mapped skin under the lobes for the thin case.
 - `euhedral_druse` → teeth sized from the aggregate's own zone record, thousands of instances
