@@ -621,6 +621,144 @@ function _matrixSkinTexture(litho: string): any {
   return tex;
 }
 
+// ---------------------------------------------------------------------------
+// R5 — A WALL THAT IS ROCK (2026-09-06, visual-realism review §5 R5).
+// The wall's look had three synthetic signatures the review's F8 called a
+// "lathe-turned bowl with a golf-ball skin": the genesis relief tiled 5×5
+// around a lat-long shell (Worley dimples = golf ball; basin/comb/cleft bands
+// = the parallel ridges), a hard-coded orange orientation palette in the vertex
+// colours (floor/wall/ceiling — the 2-D map's legibility cue) multiplied over
+// every lithology's skin, and a constant roughness. R5 keeps every science-
+// bearing input (the genesis family, the paleo-flow tiling, the lithology skin,
+// the water tint, the orientation cue) and changes how it reaches the pixels:
+//   * per-lithology ROCK PARAMETERS — base roughness, micro-relief grain amount,
+//     iron-oxide stain amount (host Fe: banded iron formation, basalt and red
+//     sandstone stain hard; marble and pegmatite barely; a supergene genesis
+//     adds a gossan film; a basin/evaporite genesis a clay film);
+//   * a non-periodic GRAIN normal map (three-octave lattice value noise, 256²,
+//     wrap-periodic so it tiles, sampled at a different scale from the genesis
+//     relief so the two never beat) — the granular host rock under the relief;
+//   * the wall shader samples skin, relief and grain in object millimetres for
+//     BOTH surface sources (the lat-long uv path stretched and seamed), blends
+//     two scales of each map by a low-frequency noise so no repeat is visible,
+//     modulates roughness by the grain's slope, and applies the stain as a
+//     low-frequency mask.
+// Render-only: the WallMesh / marching-cubes buffers (positions, colours,
+// normals, digests) are untouched; the orange palette is DECODED in the renderer
+// (js/99i _topoWallRockTint) into a ±8 % orientation shade with the water tint
+// preserved, so the authenticated surface and its receipts do not move.
+// ---------------------------------------------------------------------------
+interface _WallRockParams { stain: number; roughness: number; grain: number; }
+const WALL_ROCK_PARAMS: Record<string, _WallRockParams> = {
+  limestone:              { stain: 0.25, roughness: 0.86, grain: 0.70 },   // micrite: matte, fine grain, modest Fe
+  dolomite:               { stain: 0.30, roughness: 0.82, grain: 0.90 },   // sucrosic: coarser sparkle
+  basalt:                 { stain: 0.45, roughness: 0.88, grain: 0.80 },   // vesicular groundmass, Fe-rich
+  pegmatite:              { stain: 0.12, roughness: 0.78, grain: 1.00 },   // coarse felsic; little stain
+  granite:                { stain: 0.15, roughness: 0.80, grain: 0.90 },
+  sandstone:              { stain: 0.55, roughness: 0.92, grain: 1.00 },   // red beds: hematite cement
+  banded_iron_formation:  { stain: 0.85, roughness: 0.80, grain: 0.60 },   // hematite/magnetite laminae
+  phonolite:              { stain: 0.30, roughness: 0.84, grain: 0.70 },
+  ultramafic:             { stain: 0.40, roughness: 0.75, grain: 0.60 },   // serpentinite: waxy, Fe-bearing
+  marble:                 { stain: 0.06, roughness: 0.80, grain: 0.70 },   // near-white, clean
+  hornfels:               { stain: 0.30, roughness: 0.88, grain: 0.80 },
+  gneiss:                 { stain: 0.25, roughness: 0.84, grain: 0.80 },
+  amphibolite:            { stain: 0.30, roughness: 0.84, grain: 0.70 },
+  phyllite:               { stain: 0.35, roughness: 0.70, grain: 0.50 },   // sericite sheen: smoother
+};
+const WALL_ROCK_DEFAULT: _WallRockParams = { stain: 0.25, roughness: 0.86, grain: 0.70 };
+const WALL_ROCK_GENESIS_STAIN: Record<string, number> = { supergene: 0.35, evaporite: 0.10, dissolution: 0.05 };
+const WALL_ROCK_STAIN_MAX = 0.9;
+function wallRockParamsFor(litho: string | null | undefined, genesis?: string | null): _WallRockParams {
+  const base = (litho && WALL_ROCK_PARAMS[litho]) || WALL_ROCK_DEFAULT;
+  const extra = (genesis && WALL_ROCK_GENESIS_STAIN[genesis]) || 0;
+  return { stain: Math.min(WALL_ROCK_STAIN_MAX, base.stain + extra), roughness: base.roughness, grain: base.grain };
+}
+// Periodic Worley F1 on a jittered P×P lattice (toroidal): 0 at a grain centre → 1 at the seams.
+function _wallGrainWorley(x: number, y: number, P: number, seed: number): number {
+  const fx = x * P, fy = y * P;
+  const cx = Math.floor(fx), cy = Math.floor(fy);
+  let best = 9;
+  for (let gy = -1; gy <= 1; gy++) for (let gx = -1; gx <= 1; gx++) {
+    const ix = cx + gx, iy = cy + gy;
+    const wx = ((ix % P) + P) % P, wy = ((iy % P) + P) % P;
+    const px = ix + 0.15 + 0.7 * _reliefHash(wx + seed, wy + 31 * seed);
+    const py = iy + 0.15 + 0.7 * _reliefHash(wy + 17 * seed, wx + 5 * seed);
+    const dx = fx - px, dy = fy - py;
+    const d = Math.sqrt(dx * dx + dy * dy);
+    if (d < best) best = d;
+  }
+  return Math.min(1, best / 0.75);
+}
+// The granular host rock, by spectral synthesis: a sum of random-phase sinusoids on integer
+// wave-vectors (exactly periodic on the unit square, isotropic — no lattice rows, no cells) with a
+// fractal amplitude fall-off |k|^-1.1 over |k| = 3..48 (3 mm .. 0.2 mm at the 9 mm tile), plus a
+// small rounded-grain term (1 − Worley F1 at 12 cells) for the sucrosic sparkle. Two earlier
+// grains failed the eye: a lattice value noise showed its rows as streaks (r5b) and Worley
+// populations read as hammered pewter, a finer honeycomb (r5d). In [0,1], tileable.
+const _WALL_GRAIN_WAVES: Array<[number, number, number, number]> = (() => {
+  const waves: Array<[number, number, number, number]> = [];
+  let n = 0;
+  for (let ring = 3; ring <= 48; ring = Math.round(ring * 1.19) + (ring < 6 ? 1 : 0)) {
+    const count = 14;
+    for (let i = 0; i < count; i++) {
+      const ang = (i + 0.5 * _reliefHash(ring, i + 300)) * Math.PI / count;   // half-plane of directions
+      const kx = Math.round(ring * Math.cos(ang)), ky = Math.round(ring * Math.sin(ang));
+      if (kx === 0 && ky === 0) continue;
+      const kk = Math.sqrt(kx * kx + ky * ky);
+      const amp = Math.pow(kk, -1.1);
+      const phase = _reliefHash(kx + 512, ky + 512 + n) * 2 * Math.PI;
+      waves.push([kx, ky, amp, phase]);
+      n++;
+    }
+  }
+  return waves;
+})();
+function _wallGrainHeight(x: number, y: number): number {
+  let sum = 0, norm = 0;
+  for (let i = 0; i < _WALL_GRAIN_WAVES.length; i++) {
+    const w = _WALL_GRAIN_WAVES[i];
+    sum += w[2] * Math.cos(2 * Math.PI * (w[0] * x + w[1] * y) + w[3]);
+    norm += w[2];
+  }
+  const fbm = 0.5 + 0.5 * Math.max(-1, Math.min(1, sum / (0.35 * norm)));   // ±0.35·Σamp spans the gamut
+  const grains = 1 - _wallGrainWorley(x, y, 12, 3);
+  const v = 0.75 * fbm + 0.25 * grains * grains;
+  return Math.max(0, Math.min(1, v));
+}
+let _wallGrainTex: any = undefined;
+function _wallGrainNormalMap(): any {
+  if (_wallGrainTex !== undefined) return _wallGrainTex;
+  _wallGrainTex = null;
+  if (typeof THREE === 'undefined') return null;
+  try {
+    const N = 256;
+    const canvas = document.createElement('canvas'); canvas.width = N; canvas.height = N;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return null;
+    const Hf = new Float32Array(N * N);
+    for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) Hf[y * N + x] = _wallGrainHeight(x / N, y / N);
+    const STR = 4.5;   // eye-checked 2026-09-06/07 (elmwood druse wall-only): 2.2 read as a soft blur; 3.0 with the spectral grain still soft at macro
+    const img = ctx.createImageData(N, N);
+    for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) {
+      const hL = Hf[y * N + ((x - 1 + N) % N)], hR = Hf[y * N + ((x + 1) % N)];
+      const hD = Hf[((y - 1 + N) % N) * N + x], hU = Hf[((y + 1) % N) * N + x];
+      const nx = (hL - hR) * STR * N / 64, ny = (hD - hU) * STR * N / 64, nz = 1;
+      const inv = 1 / Math.sqrt(nx * nx + ny * ny + nz * nz);
+      const i = (y * N + x) * 4;
+      img.data[i] = (nx * inv * 0.5 + 0.5) * 255;
+      img.data[i + 1] = (ny * inv * 0.5 + 0.5) * 255;
+      img.data[i + 2] = (nz * inv * 0.5 + 0.5) * 255;
+      img.data[i + 3] = 255;
+    }
+    ctx.putImageData(img, 0, 0);
+    const tex = new THREE.CanvasTexture(canvas);
+    tex.wrapS = THREE.RepeatWrapping; tex.wrapT = THREE.RepeatWrapping;
+    if ('colorSpace' in tex && typeof (THREE as any).NoColorSpace !== 'undefined') (tex as any).colorSpace = (THREE as any).NoColorSpace;
+    _wallGrainTex = tex;
+  } catch { _wallGrainTex = null; }
+  return _wallGrainTex;
+}
+
 // W-K V1 (wall microtexture, 2026-07-07): the cavity wall's GENESIS RELIEF, a
 // procedural NORMAL map keyed on wall.architecture (render-visible via WallState,
 // js/85:60 — the double-whitelist already paid for `architecture`). The matrix
@@ -676,33 +814,38 @@ function _worleyF12(xf: number, yf: number, G: number, jitter: number): [number,
   return [best, best2];
 }
 // height field 0..1, tiling seamlessly on [0,1)² (toroidal), per family
+// R5: an irregular partition of the unit interval into n segments (widths 0.5..1.5 of the mean,
+// deterministic, periodic): returns [segment index, position within the segment 0..1].
+function _reliefIrregularCell(t: number, n: number, seed: number): [number, number] {
+  let edges: number[] = [];
+  let total = 0;
+  for (let i = 0; i < n; i++) { const w = 0.5 + _reliefHash(i + seed * 101, seed); edges.push(w); total += w; }
+  let acc = 0;
+  t -= Math.floor(t);
+  for (let i = 0; i < n; i++) {
+    const w = edges[i] / total;
+    if (t < acc + w || i === n - 1) return [i, Math.max(0, Math.min(1, (t - acc) / w))];
+    acc += w;
+  }
+  return [n - 1, 0];
+}
 function _wallReliefHeight(fam: string, xf: number, yf: number): number {
   if (fam === 'cleft') {
     // parallel striations running along y; jittered groove spacing in x
-    const nG = 9;
-    const line = Math.floor(xf * nG);
-    const jit = _reliefHash(line, 7) * 0.35;
-    let t = (xf * nG) % 1;                 // 0..1 within a groove
-    t = (t + jit) % 1;
+    const [, t] = _reliefIrregularCell(xf, 9, 7);   // R5: irregular groove widths
     return Math.abs(t * 2 - 1);            // triangle → V-grooves
   }
   if (fam === 'basin') {
     // horizontal sediment bands (layering in y), slight per-band thickness jitter
-    const nB = 7;
-    const band = Math.floor(yf * nB);
-    const jit = _reliefHash(band, 13) * 0.4;
-    let t = (yf * nB) % 1;
-    t = (t + jit) % 1;
-    return t < 0.15 ? 0.0 : 1.0;           // sharp bedding plane risers
+    const [band, t] = _reliefIrregularCell(yf, 7, 13);   // R5: irregular bed thicknesses
+    const riser = 0.10 + 0.10 * _reliefHash(band, 29);
+    return t < riser ? 0.0 : 1.0;          // sharp bedding plane risers
   }
   if (fam === 'comb') {
     // V1c — hydrothermal-vein crystal PALISADE: coarse RAISED parallel columns (prisms growing ⊥
     // the fracture wall), bolder + fewer than cleft's fine incised grooves, so a comb vein reads
     // distinct from a Zerrkluft. Crest at the column centre, seam at the edge.
-    const nC = 6;
-    const col = Math.floor(xf * nC);
-    const jit = _reliefHash(col, 5) * 0.3;
-    let t = (xf * nC) % 1; t = (t + jit) % 1;
+    const [, t] = _reliefIrregularCell(xf, 6, 5);   // R5: prisms of unequal width
     return 1 - Math.abs(t * 2 - 1);
   }
   if (fam === 'druse') {

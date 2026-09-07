@@ -156,6 +156,13 @@ function _topoInitThree(canvas: HTMLCanvasElement): any {
     uWallMaterialSpaceEnabled: { value: 0 },
     uWallMatrixScale: { value: new THREE.Vector2(0.05, 0.05) },
     uWallReliefScale: { value: new THREE.Vector2(0.1, 0.1) },
+    // R5 rock: grain normal map (object-mm scale), relief/AO strengths, roughness base, stain
+    uWallGrain: { value: (typeof _wallGrainNormalMap === 'function' ? _wallGrainNormalMap() : null) },
+    uWallGrainScale: { value: new THREE.Vector2(1 / 9, 1 / 9) },   // a 9 mm tile: 0.75 mm grains (sucrosic dolomite, micrite clots)
+    uWallGrainAmt: { value: 0.7 },
+    uWallReliefAmt: { value: 1.0 },
+    uWallStainAmt: { value: 0.25 },
+    uWallStainScale: { value: 1 / 25 },
   };
   cavityMat.userData.specimenCut = specimenCut;
   if (typeof _applyWallReliefAO === 'function') _applyWallReliefAO(cavityMat);
@@ -1757,7 +1764,7 @@ function _topoSyncCavityWaterAppearance(state: any, source: any,
     if (!colorAttribute || colorAttribute.array.length !== colors.length) {
       throw new RangeError('cavity appearance color buffer differs from geometry');
     }
-    colorAttribute.array.set(colors);
+    colorAttribute.array.set(_topoWallRockTint(colors));
     colorAttribute.needsUpdate = true;
     state.cavityAppearanceSig = receipt.appearance_digest;
   } else return;
@@ -1828,7 +1835,8 @@ function _topoSyncCavityWaterAppearance(state: any, source: any,
 // no recompile is needed. The cavity material carries no other onBeforeCompile (the
 // _applyCavityClip hull-clip is on the CRYSTAL materials), so there's no chunk-anchor
 // collision. Render-only, byte-identical.
-const WALL_RELIEF_AO_AMT = 0.6;   // recess-darkening depth (0=off, 1=recess→black); eye-checked 2026-07-07:
+const WALL_RELIEF_AO_AMT = 0.35;  // recess-darkening depth (0=off, 1=recess→black); R5 (2026-09-06): 0.6 → 0.35 —
+                                   // under R1's lit environment the pits read as a golf ball; eye-checked 2026-07-07 at 0.6:
                                    // 0.6 reads clearly through the 0.40 default view, hints at 0.18 druse-portrait,
                                    // and stays tasteful (not black-pitted) at full opacity where V1's normal map
                                    // also fires. Isolated-AO A/B (normalScale 0) confirmed it carries the relief
@@ -1843,6 +1851,12 @@ function _applyWallReliefAO(material: any) {
     shader.uniforms.uWallMaterialSpaceEnabled = u.uWallMaterialSpaceEnabled;
     shader.uniforms.uWallMatrixScale = u.uWallMatrixScale;
     shader.uniforms.uWallReliefScale = u.uWallReliefScale;
+    shader.uniforms.uWallGrain = u.uWallGrain;
+    shader.uniforms.uWallGrainScale = u.uWallGrainScale;
+    shader.uniforms.uWallGrainAmt = u.uWallGrainAmt;
+    shader.uniforms.uWallReliefAmt = u.uWallReliefAmt;
+    shader.uniforms.uWallStainAmt = u.uWallStainAmt;
+    shader.uniforms.uWallStainScale = u.uWallStainScale;
     shader.vertexShader = shader.vertexShader.replace(
       '#include <common>',
       '#include <common>\nvarying vec2 vReliefUv;\nvarying vec3 vWallMaterialPos;\nvarying vec3 vWallMaterialNormal;\nvarying vec3 vWallNormalBasisX;\nvarying vec3 vWallNormalBasisY;\nvarying vec3 vWallNormalBasisZ;'
@@ -1866,6 +1880,28 @@ varying vec3 vWallMaterialNormal;
 varying vec3 vWallNormalBasisX;
 varying vec3 vWallNormalBasisY;
 varying vec3 vWallNormalBasisZ;
+uniform sampler2D uWallGrain;
+uniform vec2 uWallGrainScale;
+uniform float uWallGrainAmt;
+uniform float uWallReliefAmt;
+uniform float uWallStainAmt;
+uniform float uWallStainScale;
+// R5: low-frequency lattice value noise in object millimetres (anti-tiling blend, stain mask)
+float wallHash3(vec3 p) { return fract(sin(dot(p, vec3(127.1, 311.7, 74.7))) * 43758.5453123); }
+float wallNoise3(vec3 p) {
+  vec3 i = floor(p); vec3 f = fract(p); f = f * f * (3.0 - 2.0 * f);
+  float n000 = wallHash3(i), n100 = wallHash3(i + vec3(1.0, 0.0, 0.0)), n010 = wallHash3(i + vec3(0.0, 1.0, 0.0)), n110 = wallHash3(i + vec3(1.0, 1.0, 0.0));
+  float n001 = wallHash3(i + vec3(0.0, 0.0, 1.0)), n101 = wallHash3(i + vec3(1.0, 0.0, 1.0)), n011 = wallHash3(i + vec3(0.0, 1.0, 1.0)), n111 = wallHash3(i + vec3(1.0, 1.0, 1.0));
+  return mix(mix(mix(n000, n100, f.x), mix(n010, n110, f.x), f.y), mix(mix(n001, n101, f.x), mix(n011, n111, f.x), f.y), f.z);
+}
+// two scales of the same map, blended by a 40 mm noise: a tile never repeats in step with itself
+float wallAntiTileMix(vec3 p) { return smoothstep(0.3, 0.7, wallNoise3(p * 0.025 + vec3(7.0, 3.0, 11.0))); }
+// R5: a domain warp for the genesis relief (up to ±4 mm over a ~30 mm wavelength): comb palisades,
+// cleft grooves and basin bedding risers become wavy lines, as the real ones are, and the tiled
+// pattern loses its straight repeats (wittichen druse: comb ridges read 4.3 unwarped)
+vec3 wallReliefWarp(vec3 p) {
+  return p + 7.0 * (vec3(wallNoise3(p * 0.02 + vec3(1.0, 9.0, 4.0)), wallNoise3(p * 0.02 + vec3(6.0, 2.0, 8.0)), wallNoise3(p * 0.02 + vec3(3.0, 7.0, 5.0))) - 0.5);
+}
 vec3 wallTriplanarWeights(vec3 sourceNormal) {
   vec3 weights = pow(abs(normalize(sourceNormal)), vec3(4.0));
   return weights / max(weights.x + weights.y + weights.z, 1e-6);
@@ -1877,20 +1913,54 @@ vec4 wallTriplanarSample(sampler2D sourceMap, vec3 sourcePosition,
   vec4 alongY = texture2D(sourceMap, vec2(sourcePosition.x, sourcePosition.z) * physicalScale);
   vec4 alongZ = texture2D(sourceMap, vec2(sourcePosition.x, sourcePosition.y) * physicalScale);
   return alongX * weights.x + alongY * weights.y + alongZ * weights.z;
+}
+// R5: the same map at two scales (1× and 0.37×, offset), blended by the anti-tile noise
+vec4 wallTriplanarSampleAT(sampler2D sourceMap, vec3 sourcePosition, vec3 sourceNormal, vec2 physicalScale) {
+  vec4 a = wallTriplanarSample(sourceMap, sourcePosition, sourceNormal, physicalScale);
+  vec4 b = wallTriplanarSample(sourceMap, sourcePosition + vec3(37.0, 19.0, 53.0), sourceNormal, physicalScale * 0.37);
+  return mix(a, b, wallAntiTileMix(sourcePosition));
+}
+// R5: the grain's tangent-space slope (xy of the grain normal map), triplanar and anti-tiled
+// (two scales, 1× and 0.61×, blended by the anti-tile noise at a finer wavelength)
+vec2 wallGrainSlope(vec3 p, vec3 n) {
+  vec3 wts = wallTriplanarWeights(n);
+  float m = wallAntiTileMix(p * 3.1);
+  vec3 q = p + vec3(11.0, 29.0, 5.0);
+  vec2 a = (texture2D(uWallGrain, vec2(p.z, p.y) * uWallGrainScale).xy * wts.x + texture2D(uWallGrain, vec2(p.x, p.z) * uWallGrainScale).xy * wts.y + texture2D(uWallGrain, vec2(p.x, p.y) * uWallGrainScale).xy * wts.z) * 2.0 - 1.0;
+  vec2 b = (texture2D(uWallGrain, vec2(q.z, q.y) * uWallGrainScale * 0.61).xy * wts.x + texture2D(uWallGrain, vec2(q.x, q.z) * uWallGrainScale * 0.61).xy * wts.y + texture2D(uWallGrain, vec2(q.x, q.y) * uWallGrainScale * 0.61).xy * wts.z) * 2.0 - 1.0;
+  return mix(a, b, m);
 }`
     );
     shader.fragmentShader = shader.fragmentShader.replace(
       '#include <map_fragment>',
       `#ifdef USE_MAP
   vec4 sampledDiffuseColor = uWallMaterialSpaceEnabled > 0.5
-    ? wallTriplanarSample(map, vWallMaterialPos, vWallMaterialNormal, uWallMatrixScale)
+    ? wallTriplanarSampleAT(map, vWallMaterialPos, vWallMaterialNormal, uWallMatrixScale)
     : texture2D(map, vMapUv);
   diffuseColor *= sampledDiffuseColor;
 #endif
+  vec3 _reliefP = wallReliefWarp(vWallMaterialPos);
   float _reliefAO = uWallMaterialSpaceEnabled > 0.5
-    ? wallTriplanarSample(uReliefAO, vWallMaterialPos, vWallMaterialNormal, uWallReliefScale).r
+    ? wallTriplanarSampleAT(uReliefAO, _reliefP, vWallMaterialNormal, uWallReliefScale).r
     : texture2D(uReliefAO, vReliefUv * uReliefAORepeat).r;
-  diffuseColor.rgb *= (1.0 - uReliefAOAmt * (1.0 - _reliefAO));`
+  diffuseColor.rgb *= (1.0 - uReliefAOAmt * uWallReliefAmt * (1.0 - _reliefAO));
+  // R5: the grain's slopes darken the albedo — pits and grain boundaries are darker than the flats
+  if (uWallMaterialSpaceEnabled > 0.5) {
+    vec2 _gs = wallGrainSlope(vWallMaterialPos, vWallMaterialNormal);
+    diffuseColor.rgb *= 1.0 - 0.4 * uWallGrainAmt * min(1.0, length(_gs));
+  }
+  // R5: iron-oxide / clay film — a low-frequency mask darkening and warming the rock
+  float _stain = uWallStainAmt * smoothstep(0.35, 0.85, wallNoise3(vWallMaterialPos * uWallStainScale + vec3(3.0, 5.0, 7.0)));
+  diffuseColor.rgb *= mix(vec3(1.0), vec3(0.86, 0.56, 0.34), _stain);`
+    );
+    // R5: roughness = the lithology's base (material.roughness) modulated by the grain slope
+    shader.fragmentShader = shader.fragmentShader.replace(
+      '#include <roughnessmap_fragment>',
+      `#include <roughnessmap_fragment>
+  if (uWallMaterialSpaceEnabled > 0.5) {
+    vec2 _g = wallGrainSlope(vWallMaterialPos, vWallMaterialNormal);
+    roughnessFactor = clamp(roughnessFactor - 0.06 + 0.35 * uWallGrainAmt * length(_g), 0.3, 1.0);
+  }`
     );
     shader.fragmentShader = shader.fragmentShader.replace(
       '#include <normal_fragment_maps>',
@@ -1908,10 +1978,20 @@ vec4 wallTriplanarSample(sampler2D sourceMap, vec3 sourcePosition,
     if (dot(baseViewFromObject, normal) < 0.0) baseObjectNormal = -baseObjectNormal;
     vec3 axisSign = step(vec3(0.0), baseObjectNormal) * 2.0 - 1.0;
     vec3 weights = wallTriplanarWeights(baseObjectNormal);
-    vec3 mapX = texture2D(normalMap, vec2(vWallMaterialPos.z, vWallMaterialPos.y) * uWallReliefScale).xyz * 2.0 - 1.0;
-    vec3 mapY = texture2D(normalMap, vec2(vWallMaterialPos.x, vWallMaterialPos.z) * uWallReliefScale).xyz * 2.0 - 1.0;
-    vec3 mapZ = texture2D(normalMap, vec2(vWallMaterialPos.x, vWallMaterialPos.y) * uWallReliefScale).xyz * 2.0 - 1.0;
-    mapX.xy *= normalScale; mapY.xy *= normalScale; mapZ.xy *= normalScale;
+    vec3 _pW = wallReliefWarp(vWallMaterialPos);
+    float _atMix = wallAntiTileMix(_pW);
+    vec3 _pB = _pW + vec3(37.0, 19.0, 53.0);
+    vec3 mapX = mix(texture2D(normalMap, vec2(_pW.z, _pW.y) * uWallReliefScale).xyz, texture2D(normalMap, vec2(_pB.z, _pB.y) * uWallReliefScale * 0.37).xyz, _atMix) * 2.0 - 1.0;
+    vec3 mapY = mix(texture2D(normalMap, vec2(_pW.x, _pW.z) * uWallReliefScale).xyz, texture2D(normalMap, vec2(_pB.x, _pB.z) * uWallReliefScale * 0.37).xyz, _atMix) * 2.0 - 1.0;
+    vec3 mapZ = mix(texture2D(normalMap, vec2(_pW.x, _pW.y) * uWallReliefScale).xyz, texture2D(normalMap, vec2(_pB.x, _pB.y) * uWallReliefScale * 0.37).xyz, _atMix) * 2.0 - 1.0;
+    mapX.xy *= normalScale * uWallReliefAmt; mapY.xy *= normalScale * uWallReliefAmt; mapZ.xy *= normalScale * uWallReliefAmt;
+    // R5: the granular host rock under the genesis relief — a non-periodic grain octave at its own scale
+    float _gm = wallAntiTileMix(vWallMaterialPos * 3.1);
+    vec3 _gq = vWallMaterialPos + vec3(11.0, 29.0, 5.0);
+    vec3 gX = mix(texture2D(uWallGrain, vec2(vWallMaterialPos.z, vWallMaterialPos.y) * uWallGrainScale).xyz, texture2D(uWallGrain, vec2(_gq.z, _gq.y) * uWallGrainScale * 0.61).xyz, _gm) * 2.0 - 1.0;
+    vec3 gY = mix(texture2D(uWallGrain, vec2(vWallMaterialPos.x, vWallMaterialPos.z) * uWallGrainScale).xyz, texture2D(uWallGrain, vec2(_gq.x, _gq.z) * uWallGrainScale * 0.61).xyz, _gm) * 2.0 - 1.0;
+    vec3 gZ = mix(texture2D(uWallGrain, vec2(vWallMaterialPos.x, vWallMaterialPos.y) * uWallGrainScale).xyz, texture2D(uWallGrain, vec2(_gq.x, _gq.y) * uWallGrainScale * 0.61).xyz, _gm) * 2.0 - 1.0;
+    mapX.xy += gX.xy * uWallGrainAmt; mapY.xy += gY.xy * uWallGrainAmt; mapZ.xy += gZ.xy * uWallGrainAmt;
     // Blend tangent-plane perturbations, not three axis normals. A flat
     // normal-map texel is exactly zero and therefore preserves the geometric
     // normal, including the derivative normal used by FLAT_SHADED.
@@ -1969,6 +2049,49 @@ function _topoTriplanarPerturbObjectNormal(baseNormal: number[], maps: any,
   return out.map(value => value / outLength);
 }
 
+// R5 rock constants (see js/99a WALL_ROCK_PARAMS for the per-lithology table).
+const WALL_ROCK_TRIPLANAR_ALL_SURFACES = true;
+const WALL_ROCK_NORMAL_SCALE = 1.2;      // was 2.0: the genesis relief is one octave of a rock, not the rock
+const WALL_ROCK_RELIEF_STRENGTH = 0.5;   // × the family relief (normal + AO); 0.7 left the 5×5 tile faintly periodic at druse scale (peak 1.52)
+const WALL_ROCK_GRAIN_STRENGTH = 0.8;    // × the lithology grain amount into the grain normal octave (0.55 read soft)
+// The authenticated surfaces colour their vertices with a fixed orientation palette (floor 0xA85820,
+// wall 0xD2691E, ceiling 0xE8782C — the 2-D map's legibility cue) and blend a water tint (35 %)
+// below the water plane. The rock's colour is the lithology skin's; the renderer DECODES the palette
+// into a ±8 % orientation shade and keeps the water blend, leaving the surface buffers untouched.
+const WALL_ROCK_LEGACY_PALETTE: Array<[string, number, number, number]> = [
+  ['floor', 0xA8 / 255, 0x58 / 255, 0x20 / 255],
+  ['wall', 0xD2 / 255, 0x69 / 255, 0x1E / 255],
+  ['ceiling', 0xE8 / 255, 0x78 / 255, 0x2C / 255],
+];
+const WALL_ROCK_ORIENT_SHADE: Record<string, number> = { floor: 0.92, wall: 1.0, ceiling: 0.96 };
+const WALL_ROCK_WATER_TINT = [0.43, 0.74, 0.96];
+const WALL_ROCK_WATER_MIX = 0.35;
+const WALL_ROCK_DECODE_TOLERANCE = 0.02;   // squared distance; the six candidates are ≥ 0.05 apart
+function _topoWallRockTint(colors: Float32Array): Float32Array {
+  if (!colors || colors.length % 3 !== 0) return colors;
+  const cand: Array<{ r: number; g: number; b: number; shade: number; water: boolean }> = [];
+  for (const [orient, r, g, b] of WALL_ROCK_LEGACY_PALETTE) {
+    const shade = WALL_ROCK_ORIENT_SHADE[orient];
+    cand.push({ r, g, b, shade, water: false });
+    const w = WALL_ROCK_WATER_TINT, k = 1 - WALL_ROCK_WATER_MIX, m = WALL_ROCK_WATER_MIX;
+    cand.push({ r: r * k + w[0] * m, g: g * k + w[1] * m, b: b * k + w[2] * m, shade, water: true });
+  }
+  const out = new Float32Array(colors.length);
+  const w = WALL_ROCK_WATER_TINT, k = 1 - WALL_ROCK_WATER_MIX, m = WALL_ROCK_WATER_MIX;
+  for (let i = 0; i < colors.length; i += 3) {
+    const r = colors[i], g = colors[i + 1], b = colors[i + 2];
+    let best: any = null, bestD = Infinity;
+    for (const c of cand) {
+      const d = (c.r - r) * (c.r - r) + (c.g - g) * (c.g - g) + (c.b - b) * (c.b - b);
+      if (d < bestD) { bestD = d; best = c; }
+    }
+    if (!best || bestD > WALL_ROCK_DECODE_TOLERANCE) { out[i] = r; out[i + 1] = g; out[i + 2] = b; continue; }
+    if (best.water) { out[i] = best.shade * k + w[0] * m; out[i + 1] = best.shade * k + w[1] * m; out[i + 2] = best.shade * k + w[2] * m; }
+    else { out[i] = best.shade; out[i + 1] = best.shade; out[i + 2] = best.shade; }
+  }
+  return out;
+}
+
 function _topoConfigureCavityWallMaterial(state: any, source: any, wall: any,
                                            expectedState: any = null): any {
   const target = state?.cavity;
@@ -1995,7 +2118,7 @@ function _topoConfigureCavityWallMaterial(state: any, source: any, wall: any,
       const nrm = typeof _wallReliefNormalMap === 'function'
         ? _wallReliefNormalMap(fam) : null;
       material.normalMap = nrm || null;
-      if (nrm && material.normalScale?.set) material.normalScale.set(2.0, 2.0);
+      if (nrm && material.normalScale?.set) material.normalScale.set(WALL_ROCK_NORMAL_SCALE, WALL_ROCK_NORMAL_SCALE);
       if (ru && typeof _wallReliefAOMap === 'function') {
         const ao = _wallReliefAOMap(fam);
         if (ao) { ru.uReliefAO.value = ao; ru.uReliefAOAmt.value = WALL_RELIEF_AO_AMT; }
@@ -2006,7 +2129,23 @@ function _topoConfigureCavityWallMaterial(state: any, source: any, wall: any,
     if (ru?.uReliefAORepeat?.value) ru.uReliefAORepeat.value.set(rep[0], rep[1]);
     material.needsUpdate = true;
   }
-  const materialSpace = source?.mode === 'marching-cubes';
+  // R5: object-millimetre triplanar for BOTH surface sources. The lat-long uv path stretched the
+  // skin and relief around the shell (the golf-ball dimples and the parallel ridges of F8 were
+  // the 5×5 / 1×6 repeats seen around the poles and the equator); the wall mesh's positions are
+  // object == world millimetres exactly like the marching-cubes surface.
+  const materialSpace = WALL_ROCK_TRIPLANAR_ALL_SURFACES || source?.mode === 'marching-cubes';
+  const rock = typeof wallRockParamsFor === 'function' ? wallRockParamsFor(litho, materialState.genesis) : null;
+  if (rock) {
+    if (material.roughness !== rock.roughness) { material.roughness = rock.roughness; material.needsUpdate = true; }
+    material.metalness = 0;
+    if (ru) {
+      if (ru.uWallGrainAmt) ru.uWallGrainAmt.value = rock.grain * WALL_ROCK_GRAIN_STRENGTH;
+      if (ru.uWallStainAmt) ru.uWallStainAmt.value = rock.stain;
+      if (ru.uWallReliefAmt) ru.uWallReliefAmt.value = WALL_ROCK_RELIEF_STRENGTH;
+      if (ru.uWallGrain && !ru.uWallGrain.value && typeof _wallGrainNormalMap === 'function') ru.uWallGrain.value = _wallGrainNormalMap();
+    }
+    if (material.normalScale?.set && material.normalMap) material.normalScale.set(WALL_ROCK_NORMAL_SCALE, WALL_ROCK_NORMAL_SCALE);
+  }
   const reliefScale = [
     rep[0] / materialState.relief_reference_span_mm,
     rep[1] / materialState.relief_reference_span_mm,
@@ -2022,6 +2161,7 @@ function _topoConfigureCavityWallMaterial(state: any, source: any, wall: any,
     schema: CAVITY_MATERIAL_SPACE_SCHEMA,
     mapping: materialSpace ? 'triplanar-object-millimetres' : 'legacy-spherical-uv',
     blend_exponent: materialSpace ? 4 : null,
+    rock: rock ? { roughness: rock.roughness, grain: +(rock.grain * WALL_ROCK_GRAIN_STRENGTH).toFixed(3), stain: rock.stain, relief: WALL_ROCK_RELIEF_STRENGTH, normal_scale: WALL_ROCK_NORMAL_SCALE, palette: 'orientation-shade' } : null,
     matrix_scale_uv_per_mm: materialState.matrix_scale_uv_per_mm,
     relief_scale_uv_per_mm: Object.freeze(reliefScale),
     lithology: litho,
@@ -2784,7 +2924,7 @@ function _topoBuildCavityGeometry(state: any, wall: any, sim: any,
   // ~75 KB per cavity rebuild at the default 16×120 resolution
   // (≈ once per dissolution event), which is well under the budget.
   geom.setAttribute('position', new THREE.BufferAttribute(surface.positions.slice(), 3));
-  geom.setAttribute('color', new THREE.BufferAttribute(surface.colors.slice(), 3));
+  geom.setAttribute('color', new THREE.BufferAttribute(_topoWallRockTint(surface.colors.slice()), 3));
   geom.setAttribute('normal', new THREE.BufferAttribute(surface.normals.slice(), 3));
   // MATRIX SKIN (2026-07-06): static lat-long texture coords (js/23) so the
   // per-lithology wall skin can map. Guarded — an old cached mesh without uvs

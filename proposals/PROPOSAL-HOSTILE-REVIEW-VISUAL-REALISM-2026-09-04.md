@@ -190,12 +190,14 @@ a point, not the r/z rhombohedra at 38° with unequal development, no horizontal
 Selenite is a beveled octagonal tablet; dolomite a stretched octahedron; halite/fluorite a
 `BoxGeometry`. Edges are razor-sharp everywhere; faces are perfectly flat; nothing is chipped.
 
-### F8 ★★ The wall is a lathe-turned bowl with a golf-ball skin
+### F8 ★★ The wall is a lathe-turned bowl with a golf-ball skin — FIXED (R5, 2026-09-07; diagnosis corrected in §5 R5)
 *Frames:* `wittichen-s42/druse.png` (parallel ridges — the ring tessellation), `mvt-s42-fixed2/
 druse.png` and `elmwood-s42/druse.png` (honeycomb dimples — the per-cell relief AO). The cavity is
 a per-ring/per-cell radial mesh with a normal+AO map tiled by cell; no albedo texture, no
 roughness map, no rock. A real vug wall is granular host rock with a drusy micro-crust and iron
-stain. Also: `cooling-s42/cavity.png` shows the whole orb honeycombed from outside.
+stain. Also: `cooling-s42/cavity.png` shows the whole orb honeycombed from outside. **R5 found the
+ridges were the basin/comb/cleft relief families (not the mesh) and the colour a hard-coded orange
+orientation palette (not the lithology); both are gone (§5 R5).**
 
 ### F9 ★★ Presentation: a translucent orb in a black void — FIXED (R6, 2026-09-06)
 The default view (`wallDisplay 0`: BackSide at 0.40 opacity) reads as a sci-fi sphere, not a
@@ -422,6 +424,32 @@ presentation; the highest edge fractions are the crystal-rich pegmatite and drus
 Per-scenario rows are in `.local-evidence/photos/<scenario>-s42-r6g/manifest.json`
 (`camera.specimen` carries the receipt) and `sweep-r6g.log`.
 
+### 3.7 R5 fleet sweep (2026-09-07) — the wall alone, every scenario, one build
+
+`--view specimen --shots specimen,druse --probe wallperiod`, seed 42, the shipped build. For each
+scenario the specimen frame and the druse frame were taken with the wall alone (crystals, water and
+stage hidden) and measured through the whitened radial power spectrum; the nine reference photographs
+of §10 read **peak ratio 1.19–1.48** through the same statistic. Relief families in the fleet:
+scallops 12, comb 9, boxwork 4, smooth 4, basin 4, druse 3, botryoidal 3, cleft 2; lithologies:
+limestone 14, basalt 5, dolomite 4, granite 4, pegmatite 3, banded_iron_formation 2, sandstone 2, ultramafic 2, hornfels 1, phonolite 1, marble 1, phyllite 1, amphibolite 1.
+
+| statistic | specimen wall | druse (macro) wall |
+|---|---|---|
+| peak ratio | median 1.36 · max 1.93 · **31/41 ≤ 1.5** (the photograph band's top) | median 1.46 · max 2.84 · 25/41 ≤ 1.5 |
+| above 1.5 | asbestos_hills_crack_seal 1.74 (comb), asbestos_hills_surficial_alteration 1.58 (comb), bisbee 1.51 (boxwork), chiastolite_hornfels 1.59 (smooth), colorado_plateau 1.81 (smooth), jeffrey_mine 1.52 (comb), searles_lake 1.52 (basin), sicily_solfifera 1.93 (basin), sunnyside_american_tunnel 1.86 (comb), tormiq_alpine_cleft 1.52 (cleft) | asbestos_hills_crack_seal 1.73 (comb), asbestos_hills_surficial_alteration 2.01 (comb), chiastolite_hornfels 1.83 (smooth), great_salt_plains 2.21 (basin), mvt 1.75 (scallops), ouro_preto 2.07 (comb), sabkha_dolomitization 2.84 (basin), searles_lake 1.69 (basin), shigar_pegmatite 2.25 (druse), sicily_solfifera 2.03 (basin), sulphur_bank 1.60 (botryoidal), tormiq_alpine_cleft 1.88 (cleft), tutorial_first_crystal 1.71 (scallops), tutorial_mn_calcite 1.78 (scallops), ultramafic_supergene 1.72 (botryoidal) |
+| wall edge fraction | median 0.042 · **25/41 in [0.02, 0.06]** | median 0.0032 (a bare wall at macro scale has no drusy crust — R3) |
+| wall mean luminance | median 47.6 | median — |
+| specimen frame (with crystals) | edges median 0.046 · L median 76.5 | |
+| runtime exceptions / shot errors | 0 | |
+
+Reading: 31 of 41 specimen walls sit in the photograph band; the ten above it are the comb, basin
+and cleft families — palisades, laminae and striations, periodic in nature (max 1.93) — and two
+smooth-family walls (colorado_plateau sandstone 1.81, chiastolite hornfels 1.59) where the residue is
+the skin painter's bedding bands at the 20 mm tile, the next thing to de-periodise. The macro walls
+of the comb and basin families keep their structure; none is above 2.9 where the honeycomb read 4–9. Per-scenario rows
+are in `.local-evidence/photos/<scenario>-s42-r5fleet/manifest.json` (`gl.wall` carries the
+lithology, relief family and rock parameters; each shot's `probe.wallperiod` the spectrum).
+
 ## 4. Fixed in this commit
 
 | id | change | files | tests | baseline |
@@ -614,15 +642,73 @@ whole-vug photo set still wins on facets and wall texture (R4, R5).
 - **Acceptance:** `morph-fidelity-audit` mis-shaped count ≤ 10; a quartz hero shot shows six
   alternating termination faces of two sizes (rig can count the distinct face normals).
 
-### R5 — A wall that is rock · 2–3 days · no decision
-- Triplanar procedural albedo + roughness + normal for the host lithology (limestone grey-buff,
-  basalt dark grey, granite speckle, sandstone tan), driven by the existing `wall.composition`.
-- Break the ring/cell ridges: smooth the radial mesh normals across cells, keep the relief map as
-  micro-detail only, add an ambient-occlusion term at crystal contacts (R1's shadows do most of it).
-- Iron-oxide stain and clay film as a low-frequency mask (the sim already knows Fe and the
-  `film:` events).
-- **Acceptance:** druse shots no longer show periodic ridges (rig: no dominant spatial frequency
-  in the wall's luminance autocorrelation); wall edge fraction 0.02–0.06.
+### R5 — A wall that is rock · **SHIPPED 2026-09-07**
+
+**The census corrected F8.** The review read the parallel ridges as the ring tessellation and the
+honeycomb as "a normal+AO map tiled by cell". Neither is what the pixels showed. The ridges are the
+`basin` / `comb` / `cleft` relief families — seven sharp bedding risers per tile, six tiles up the
+lat-long shell (`_wallReliefHeight`, `_wallReliefRepeat`) — and the dimples are the `scallops`
+family's 4×4 Worley grid at 5×5 repeats. And the wall's colour was never the lithology's: every
+authenticated surface paints its vertices with a fixed orientation palette (floor 0xA85820, wall
+0xD2691E, ceiling 0xE8782C — js/23 `WallMesh` and js/23b `_surfaceColor`, the 2-D map's legibility
+cue) multiplied over the skin, so a limestone geode, a basalt vesicle and a pegmatite pocket were all
+chocolate-orange inside. The 16 × 120 mesh itself was fine, and `computeVertexNormals` stays.
+
+**Mechanism (js/99a, js/99i; every surface buffer, digest and receipt untouched).**
+- **Albedo is the lithology's.** `_topoWallRockTint` decodes the palette — its six candidates,
+  including the 35 % water blend — into a ±8 % orientation shade (floor 0.92 / wall 1.0 / ceiling
+  0.96) with the water tint kept, at both colour-write sites; the skin painter sets the colour.
+- **Object-millimetre triplanar for the wall mesh too** (`WALL_ROCK_TRIPLANAR_ALL_SURFACES`): the
+  lat-long uv path stretched skin and relief around the shell; the wall mesh's positions are object
+  == world millimetres exactly like the marching-cubes surface. The material-space receipt reads
+  `triplanar-object-millimetres` for both (`cavity-material-space.test.ts` re-pinned).
+- **Nothing repeats in step with itself.** Skin, relief AO, relief normal and grain are sampled at
+  two scales (1× and 0.37× / 0.61×, offset) and blended by a 40 mm / 13 mm noise
+  (`wallTriplanarSampleAT`, `wallGrainSlope`); the genesis relief keeps its family and its paleo-flow
+  tiling but at 0.5× strength, normal scale 2.0 → 1.2 and AO depth 0.6 → 0.35 — one octave of a rock,
+  not the rock.
+- **The rock under the relief — by spectral synthesis.** `_wallGrainNormalMap` is a 256² height
+  field of ~190 random-phase sinusoids on integer wave-vectors |k| = 3..48 with amplitude |k|^-1.1
+  (3 mm .. 0.2 mm at the 9 mm tile), exactly periodic, isotropic, plus a 25 % rounded-grain term;
+  sampled as a normal octave scaled by the lithology's grain amount, darkening the albedo at its
+  slopes and modulating roughness after `<roughnessmap_fragment>` (base per lithology: 0.70 phyllite
+  … 0.92 sandstone; metalness 0). Two grains failed the eye first: a lattice value noise showed its
+  rows as streaks, and Worley grain populations read as hammered pewter — the golf ball again,
+  smaller. Rock has a 1/f spectrum with no characteristic cell.
+- **Iron stain / clay film.** A 25 mm noise mask tinting toward iron oxide (0.86 / 0.56 / 0.34 as a
+  multiplier) at the lithology's stain amount (BIF 0.85, sandstone 0.55, basalt 0.45 … marble
+  0.06, `WALL_ROCK_PARAMS`) plus a genesis term (supergene +0.35 gossan, evaporite +0.10 clay),
+  clamped 0.9. No Fe reaches the renderer from chemistry today; the table is the host-rock prior.
+- **The instrument.** `--probe wallperiod`: the frame with the wall alone (crystals, water, stage
+  hidden — a second CDP job, since two full frames in one result hung the specimen shot), its 256²
+  radially averaged power spectrum, whitened — each ring against the geometric median of its ±10
+  neighbours (own ±1 excluded), searched from k = 12 (1/12 of the frame) up — `peak_ratio` and the
+  peak's period; `--wallperiod FILE…` measures saved frames offline; `--photo-stats` carries the
+  same statistic (`period`) for the reference photographs, which set the band: **peak ratio
+  1.19–1.48** on the nine whole-vug frames of §10.
+
+**Measured (photo rig, seed 42, one build vs the R6 tip through the same probe).**
+| frame (wall-only) | before: peak ratio @ period · wall edges · L | after |
+|---|---|---|
+| elmwood druse | **9.09** @ 100 px · 0 · 103 | **1.25** @ 16 px · 0.005 · 158 |
+| elmwood specimen | 2.12 @ 300 px (whole frame, R6) | **1.34** @ 14 px · **0.056** · 58 |
+| mvt specimen | **3.45** @ 35 px · 0.022 · 35 | see §3.7 |
+| cooling specimen | **3.84** @ 33 px · 0.016 · 36 | see §3.7 |
+| wittichen druse (comb) | **6.16** @ 100 px · 0.209 · 68 | see §3.7 |
+| tn457 druse (basin) | 4.02 @ 100 px · 0.001 · 91 | see §3.7 |
+| reference photographs (9, whole frame) | peak ratio 1.19–1.48 (median 1.39) | — |
+
+**Acceptance, restated honestly.** *No periodic ridges (no dominant spatial frequency):* met — the
+elmwood druse wall drops from 9.1 to 1.25 and the specimen wall reads 1.34, both inside the
+photograph band; the fleet is in §3.7. *Wall edge fraction 0.02–0.06:* met on the specimen wall
+(0.056); NOT met on the druse (macro) wall, 0.005 — at that magnification a bare rock wall has no
+luminance edges to give; the photographs' walls have theirs from the drusy micro-crust, which is
+R3's teeth. Pushing the grain until the macro frame reached 0.02 pushed the specimen wall past
+0.06 and the look toward sandpaper; the reviewer's caution (a noisy render scores wonderfully)
+decided it. *Eye:* the bowl is now a pale fine-grained dolomite interior with the crystals' shadows
+on it — no honeycomb, no lathe rings, no orange — and each lithology keeps its own skin (§3.7).
+Left for R3: the drusy micro-crust; for the science queue: Fe from chemistry into the stain.
+Tests: `tests-js/wall-rock.test.ts` (9) + `cavity-material-space.test.ts` re-pinned.
 
 ### R6 — Photograph the specimen · **SHIPPED 2026-09-06** (D3 beside the orb, D5 studio mood)
 
@@ -805,9 +891,11 @@ node tools/photo-rig.mjs --scenario elmwood --seed 42 --shots cavity,hero,druse 
 node tools/photo-rig.mjs --scenario elmwood --experiment envlight,glass,halfcut --label demo
 node tools/photo-rig.mjs --scenario elmwood --view specimen --shots specimen,hero --hero-n 2        # R6
 node tools/photo-rig.mjs --scenario mvt --view specimen --shots hero --mineral galena --hero-n 1 --ev 1
+node tools/photo-rig.mjs --scenario elmwood --shots druse,specimen --probe wallperiod                  # R5
+node tools/photo-rig.mjs --wallperiod .local-evidence/photos/elmwood-s42-r2/druse.png                 # offline
 node tools/photo-rig.mjs --photo-stats "<catalog>/photos/1061/front.jpg" ...
 node tools/morph-fidelity-audit.mjs
-npx vitest run tests-js/lighting-rig.test.ts tests-js/optics-r2-materials.test.ts tests-js/specimen-view.test.ts tests-js/surface-growth.test.ts tests-js/surface-growth-three-integration.test.ts tests-js/sphalerite-tetrahedron.test.ts tests-js/habit-bias.test.ts tests-js/pyrite-morphology.test.ts tests-js/fluorite-morphology.test.ts tests-js/cluster-spec.test.ts tests-js/manganese-surface-family.test.ts tests-js/mineral-optics.test.ts tests-js/twin-cluster-patterns.test.ts tests-js/fan-cluster-pattern.test.ts tests-js/dendrite-tree-render.test.ts tests-js/d1-body-colour.test.ts tests-js/facestep.test.ts tests-js/hopper-texture.test.ts tests-js/cleft-halfform.test.ts tests-js/mesh.test.ts tests-js/cavity-render.test.ts tests-js/matrix-skin.test.ts tests-js/etch-overprint.test.ts tests-js/o5-band-render.test.ts tests-js/o5-split.test.ts tests-js/aragonite-contact-twin-three.test.ts tests-js/galena-spinel-twin-three.test.ts tests-js/fluorite-twin-three.test.ts tests-js/o2-render-wiring.test.ts tests-js/o4-engulfment.test.ts tests-js/local-color.test.ts
+npx vitest run tests-js/lighting-rig.test.ts tests-js/optics-r2-materials.test.ts tests-js/specimen-view.test.ts tests-js/wall-rock.test.ts tests-js/cavity-material-space.test.ts tests-js/wall-relief.test.ts tests-js/surface-growth.test.ts tests-js/surface-growth-three-integration.test.ts tests-js/sphalerite-tetrahedron.test.ts tests-js/habit-bias.test.ts tests-js/pyrite-morphology.test.ts tests-js/fluorite-morphology.test.ts tests-js/cluster-spec.test.ts tests-js/manganese-surface-family.test.ts tests-js/mineral-optics.test.ts tests-js/twin-cluster-patterns.test.ts tests-js/fan-cluster-pattern.test.ts tests-js/dendrite-tree-render.test.ts tests-js/d1-body-colour.test.ts tests-js/facestep.test.ts tests-js/hopper-texture.test.ts tests-js/cleft-halfform.test.ts tests-js/mesh.test.ts tests-js/cavity-render.test.ts tests-js/matrix-skin.test.ts tests-js/etch-overprint.test.ts tests-js/o5-band-render.test.ts tests-js/o5-split.test.ts tests-js/aragonite-contact-twin-three.test.ts tests-js/galena-spinel-twin-three.test.ts tests-js/fluorite-twin-three.test.ts tests-js/o2-render-wiring.test.ts tests-js/o4-engulfment.test.ts tests-js/local-color.test.ts
 ```
 
 Evidence index (all under `.local-evidence/photos/`): `<scenario>-s42/` = shipped renderer before

@@ -42,6 +42,11 @@
 //   node tools/photo-rig.mjs --scenario elmwood --view specimen --shots specimen,hero      (R6 specimen view)
 //        (the geode broken open on the cloth: ragged cut facing the camera, rind + fracture face,
 //        studio mood, post pass; --ev ±0.5 steps the exposure; every shot type works in the view)
+//   node tools/photo-rig.mjs --scenario elmwood --shots cavity,druse --probe wallperiod           (R5 wall)
+//        (per frame: the wall alone — crystals and stage hidden — and its radially averaged power
+//        spectrum: peak_ratio = the strongest non-DC ring / the median of its neighbourhood, with
+//        the peak's period in px; a tiled relief shows a ratio ≫ 3, a photograph ≈ 1–2)
+//   node tools/photo-rig.mjs --wallperiod .local-evidence/photos/elmwood-s42-r2/druse.png ...   (offline, no browser)
 //   node tools/photo-rig.mjs --list
 //
 // Passive instrument: it reports, it never fails a build (feedback_passive_instrument_not_gate).
@@ -68,7 +73,7 @@ import {
 } from './browser-workflow.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const DEFAULT_TIMEOUT_MS = 30_000;
+const DEFAULT_TIMEOUT_MS = 120_000;   // R5: the wall program (≈20 samples + noise) can take ANGLE/D3D11 tens of seconds to compile on a first shot
 
 // ---------------------------------------------------------------- args
 function parseArgs(argv) {
@@ -98,6 +103,7 @@ function parseArgs(argv) {
     else if (a === '--keep-browser') out.keepBrowser = true;
     else if (a === '--list') out.list = true;
     else if (a === '--photo-stats') { while (argv[i + 1] && !argv[i + 1].startsWith('--')) out.photoStats.push(argv[++i]); }
+    else if (a === '--wallperiod') { out.wallPeriod = out.wallPeriod || []; while (argv[i + 1] && !argv[i + 1].startsWith('--')) out.wallPeriod.push(argv[++i]); }   // R5: offline spectrum of PNG frames
     else if (a === '--experiment') out.experiment = next().split(',').map(s => s.trim()).filter(Boolean);
     else if (a === '--mood') out.mood = next();                 // cave | studio (R1 lighting rig)
     else if (a === '--exposure') out.exposure = Number(next()); // toneMappingExposure override
@@ -311,6 +317,92 @@ function maskStats(main, mask, other) {
   };
 }
 
+// R5 — radially averaged power spectrum of a frame's luminance (the wall-only frame), and the
+// strongest non-DC ring against the median of its neighbourhood. A relief tiled around the shell
+// puts its repeat at one radius; a rock wall (or a photograph) has a smooth 1/f fall-off.
+function fft1d(re, im, n) {
+  for (let i = 1, j = 0; i < n; i++) {
+    let bit = n >> 1;
+    for (; j & bit; bit >>= 1) j ^= bit;
+    j ^= bit;
+    if (i < j) { let t = re[i]; re[i] = re[j]; re[j] = t; t = im[i]; im[i] = im[j]; im[j] = t; }
+  }
+  for (let len = 2; len <= n; len <<= 1) {
+    const ang = -2 * Math.PI / len, wr = Math.cos(ang), wi = Math.sin(ang);
+    for (let i = 0; i < n; i += len) {
+      let cr = 1, ci = 0;
+      for (let k = 0; k < len / 2; k++) {
+        const a = i + k, b = i + k + len / 2;
+        const tr = re[b] * cr - im[b] * ci, ti = re[b] * ci + im[b] * cr;
+        re[b] = re[a] - tr; im[b] = im[a] - ti; re[a] += tr; im[a] += ti;
+        const ncr = cr * wr - ci * wi; ci = cr * wi + ci * wr; cr = ncr;
+      }
+    }
+  }
+}
+function wallPeriodStats(img) {
+  const N = 256;
+  const { width: w, height: h, data } = img;
+  const lum = new Float64Array(N * N);
+  // box-downsample the luminance to N×N (aspect ignored: the statistic is radial)
+  for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) {
+    const x0 = Math.floor(x * w / N), x1 = Math.max(x0 + 1, Math.floor((x + 1) * w / N));
+    const y0 = Math.floor(y * h / N), y1 = Math.max(y0 + 1, Math.floor((y + 1) * h / N));
+    let sum = 0, n = 0;
+    for (let yy = y0; yy < y1; yy++) for (let xx = x0; xx < x1; xx++) { const i = (yy * w + xx) * 4; sum += 0.2126 * data[i] + 0.7152 * data[i + 1] + 0.0722 * data[i + 2]; n++; }
+    lum[y * N + x] = sum / n;
+  }
+  let mean = 0; for (let i = 0; i < N * N; i++) mean += lum[i]; mean /= N * N;
+  // Hann window, zero mean
+  const re = new Float64Array(N * N), im = new Float64Array(N * N);
+  for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) {
+    const wx = 0.5 - 0.5 * Math.cos(2 * Math.PI * x / N), wy = 0.5 - 0.5 * Math.cos(2 * Math.PI * y / N);
+    re[y * N + x] = (lum[y * N + x] - mean) * wx * wy;
+  }
+  const rowR = new Float64Array(N), rowI = new Float64Array(N);
+  for (let y = 0; y < N; y++) { for (let x = 0; x < N; x++) { rowR[x] = re[y * N + x]; rowI[x] = im[y * N + x]; } fft1d(rowR, rowI, N); for (let x = 0; x < N; x++) { re[y * N + x] = rowR[x]; im[y * N + x] = rowI[x]; } }
+  for (let x = 0; x < N; x++) { for (let y = 0; y < N; y++) { rowR[y] = re[y * N + x]; rowI[y] = im[y * N + x]; } fft1d(rowR, rowI, N); for (let y = 0; y < N; y++) { re[y * N + x] = rowR[y]; im[y * N + x] = rowI[y]; } }
+  const K = N / 2;
+  const ring = new Float64Array(K), cnt = new Float64Array(K);
+  for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) {
+    const fx = x < K ? x : x - N, fy = y < K ? y : y - N;
+    const k = Math.round(Math.sqrt(fx * fx + fy * fy));
+    if (k < 2 || k >= K) continue;
+    const p = re[y * N + x] * re[y * N + x] + im[y * N + x] * im[y * N + x];
+    ring[k] += p; cnt[k]++;
+  }
+  const P = Array.from(ring, (v, k) => cnt[k] ? v / cnt[k] : 0);
+  const peaks = wallPeriodPeaks(P, K, w / N);
+  const total = P.reduce((a, b) => a + b, 0) || 1;
+  const best = peaks[0] || { k: 0, ratio: 0, period_px: 0 };
+  return {
+    peak_ratio: best.ratio, peak_period_px: best.period_px, peak_k: best.k,
+    peak_power_fraction: +((P[best.k] || 0) / total).toFixed(4),
+    peaks,
+    spectrum_slope: +(Math.log(P[8] / (P[64] || 1e-12)) / Math.log(64 / 8)).toFixed(2),
+  };
+}
+// Whitened peak search shared by the Node and page copies: a ring against the geometric median
+// of its ±10 neighbours (own ±1 excluded) — a tiled relief is a narrow bump on a smooth 1/f
+// fall-off; the silhouette and the lighting gradient live below k = 12 (1/12 of the frame) and the
+// ±10 window must fit above k = 2, so the search starts at 12.
+function wallPeriodPeaks(P, K, pxPerCell) {
+  const found = [];
+  for (let k = 12; k < K - 10; k++) {
+    const nb = [];
+    for (let j = k - 10; j <= k + 10; j++) if (Math.abs(j - k) > 1 && j >= 2 && j < K && P[j] > 0) nb.push(Math.log(P[j]));
+    if (nb.length < 8 || !(P[k] > 0)) continue;
+    nb.sort((a, b) => a - b);
+    const med = Math.exp(nb[Math.floor(nb.length / 2)]);
+    found.push({ k, ratio: +(P[k] / med).toFixed(2), period_px: +((256 / k) * pxPerCell).toFixed(1) });
+  }
+  found.sort((a, b) => b.ratio - a.ratio);
+  // keep the three strongest that are not neighbours of a stronger one
+  const out = [];
+  for (const f of found) { if (out.length >= 3) break; if (out.some(o => Math.abs(o.k - f.k) <= 2)) continue; out.push(f); }
+  return out;
+}
+
 // ---------------------------------------------------------------- in-page programs
 // Everything below runs INSIDE the game page. Bundle-scope `let`/`function` declarations
 // (fortressSim, _topoThreeState, topoRender, …) are reachable from Runtime.evaluate because
@@ -338,6 +430,8 @@ const PAGE_HELPERS = `
       lighting: st.lightingRig || null, exposure: st.renderer.toneMappingExposure,
       // R2 optics rig receipt (tier, reason, material counts)
       optics: st.opticsRig ? { ...st.opticsRig } : null,
+      // R5 wall receipt (mapping, lithology, relief family, rock parameters)
+      wall: st.cavityMaterialSpaceReceipt ? { ...st.cavityMaterialSpaceReceipt } : null,
       // R6 specimen view receipt (cut, rind, culling, stage, post pass)
       specimen: st.specimenRig ? { ...st.specimenRig } : null,
     };
@@ -384,6 +478,48 @@ const PAGE_HELPERS = `
     const nowall = RIG.render(w, h);
     if (st.cavity) st.cavity.visible = prevVisible;
     return { mask, nowall };
+  };
+  // R5 wall-periodicity probe: the frame with only the cavity wall drawn (crystals, water and the
+  // specimen stage hidden), same camera and materials — the wall's own texture statistics.
+  RIG.wallOnlyFrame = (w, h) => {
+    const st = RIG.state();
+    const vis = [];
+    const hide = o => { if (o && o.visible) { vis.push(o); o.visible = false; } };
+    hide(st.crystals); hide(st.waterInterface); if (st.specimen && st.specimen.group) hide(st.specimen.group);
+    const png = RIG.render(w, h);
+    for (const o of vis) o.visible = true;
+    return png;
+  };
+
+  // R5: the wall-periodicity statistic in the page (the reference photographs are JPEGs the
+  // browser decodes) — the same algorithm as the Node-side wallPeriodStats on saved frames.
+  RIG.fft1d = (re, im, n) => {
+    for (let i = 1, j = 0; i < n; i++) { let bit = n >> 1; for (; j & bit; bit >>= 1) j ^= bit; j ^= bit; if (i < j) { let t = re[i]; re[i] = re[j]; re[j] = t; t = im[i]; im[i] = im[j]; im[j] = t; } }
+    for (let len = 2; len <= n; len <<= 1) { const ang = -2 * Math.PI / len, wr = Math.cos(ang), wi = Math.sin(ang);
+      for (let i = 0; i < n; i += len) { let cr = 1, ci = 0; for (let k = 0; k < len / 2; k++) { const a = i + k, b = i + k + len / 2; const tr = re[b] * cr - im[b] * ci, ti = re[b] * ci + im[b] * cr; re[b] = re[a] - tr; im[b] = im[a] - ti; re[a] += tr; im[a] += ti; const ncr = cr * wr - ci * wi; ci = cr * wi + ci * wr; cr = ncr; } } }
+  };
+  RIG.periodStats = (data, w, h) => {
+    const N = 256; const lum = new Float64Array(N * N);
+    for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) {
+      const x0 = Math.floor(x * w / N), x1 = Math.max(x0 + 1, Math.floor((x + 1) * w / N)), y0 = Math.floor(y * h / N), y1 = Math.max(y0 + 1, Math.floor((y + 1) * h / N));
+      let sum = 0, n = 0; for (let yy = y0; yy < y1; yy++) for (let xx = x0; xx < x1; xx++) { const i = (yy * w + xx) * 4; sum += 0.2126 * data[i] + 0.7152 * data[i + 1] + 0.0722 * data[i + 2]; n++; }
+      lum[y * N + x] = sum / n;
+    }
+    let mean = 0; for (let i = 0; i < N * N; i++) mean += lum[i]; mean /= N * N;
+    const re = new Float64Array(N * N), im = new Float64Array(N * N);
+    for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) { const wx = 0.5 - 0.5 * Math.cos(2 * Math.PI * x / N), wy = 0.5 - 0.5 * Math.cos(2 * Math.PI * y / N); re[y * N + x] = (lum[y * N + x] - mean) * wx * wy; }
+    const rowR = new Float64Array(N), rowI = new Float64Array(N);
+    for (let y = 0; y < N; y++) { for (let x = 0; x < N; x++) { rowR[x] = re[y * N + x]; rowI[x] = im[y * N + x]; } RIG.fft1d(rowR, rowI, N); for (let x = 0; x < N; x++) { re[y * N + x] = rowR[x]; im[y * N + x] = rowI[x]; } }
+    for (let x = 0; x < N; x++) { for (let y = 0; y < N; y++) { rowR[y] = re[y * N + x]; rowI[y] = im[y * N + x]; } RIG.fft1d(rowR, rowI, N); for (let y = 0; y < N; y++) { re[y * N + x] = rowR[y]; im[y * N + x] = rowI[y]; } }
+    const K = N / 2; const ring = new Float64Array(K), cnt = new Float64Array(K);
+    for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) { const fx = x < K ? x : x - N, fy = y < K ? y : y - N; const k = Math.round(Math.sqrt(fx * fx + fy * fy)); if (k < 2 || k >= K) continue; ring[k] += re[y * N + x] * re[y * N + x] + im[y * N + x] * im[y * N + x]; cnt[k]++; }
+    const P = Array.from(ring, (v, k) => cnt[k] ? v / cnt[k] : 0);
+    const found = [];
+    for (let k = 12; k < K - 10; k++) { const nb = []; for (let j = k - 10; j <= k + 10; j++) if (Math.abs(j - k) > 1 && j >= 2 && j < K && P[j] > 0) nb.push(Math.log(P[j])); if (nb.length < 8 || !(P[k] > 0)) continue; nb.sort((a, b) => a - b); const med = Math.exp(nb[Math.floor(nb.length / 2)]); found.push({ k, ratio: +(P[k] / med).toFixed(2), period_px: +((256 / k) * (w / N)).toFixed(1) }); }
+    found.sort((a, b) => b.ratio - a.ratio);
+    const peaks = []; for (const f of found) { if (peaks.length >= 3) break; if (peaks.some(o => Math.abs(o.k - f.k) <= 2)) continue; peaks.push(f); }
+    const total = P.reduce((a, b) => a + b, 0) || 1; const best = peaks[0] || { k: 0, ratio: 0, period_px: 0 };
+    return { peak_ratio: best.ratio, peak_period_px: best.period_px, peak_k: best.k, peak_power_fraction: +((P[best.k] || 0) / total).toFixed(4), peaks, spectrum_slope: +(Math.log(P[8] / (P[64] || 1e-12)) / Math.log(64 / 8)).toFixed(2) };
   };
   // Own-geometry world box (children such as O5c band shells excluded; an InstancedMesh
   // reports the union of its instances, which is the swath's real footprint).
@@ -800,7 +936,7 @@ function runProgram(name, seed, steps) {
   })()`;
 }
 
-function cavityShotProgram({ w, h, tilt, zoom, wall, experiment = [], mood = null, exposure = null, tier = null, view = 'process', ev = null, tiltGiven = true, zoomGiven = true }) {
+function cavityShotProgram({ w, h, tilt, zoom, wall, experiment = [], mood = null, exposure = null, tier = null, view = 'process', ev = null, tiltGiven = true, zoomGiven = true, probe = [] }) {
   // In the specimen view the game's entry pose frames the half (the cut faces it); an
   // explicit --tilt/--zoom still overrides it.
   const keepPose = view === 'specimen';
@@ -871,7 +1007,8 @@ function photoStatsProgram(url) {
       const i = y * w + x; const gx = lum[i + 1] - lum[i - 1], gy = lum[i + w] - lum[i - w];
       if (gx * gx + gy * gy > 900) edges++;
     }
-    return { width: w, height: h, original: [img.naturalWidth, img.naturalHeight],
+    const period = (window.__photoRig && window.__photoRig.periodStats) ? window.__photoRig.periodStats(d, w, h) : null;
+    return { width: w, height: h, original: [img.naturalWidth, img.naturalHeight], period,
       mean_luminance: +(sumL / n).toFixed(2), subject_luminance: subjN ? +(subjSum / subjN).toFixed(2) : null,
       mean_saturation: +(satSum / n).toFixed(4),
       highlight_fraction: +(bright / n).toFixed(5), dark_fraction: +(dark / n).toFixed(5),
@@ -879,7 +1016,7 @@ function photoStatsProgram(url) {
   })()`;
 }
 
-function druseShotProgram({ w, h, wall, experiment = [], mood = null, exposure = null, tier = null, view = 'process', ev = null }) {
+function druseShotProgram({ w, h, wall, experiment = [], mood = null, exposure = null, tier = null, view = 'process', ev = null, probe = [] }) {
   return `(async () => {
     const RIG = window.__photoRig;
     const specimen = RIG.setView(${JSON.stringify(view)}, ${ev == null ? 'null' : Number(ev)});
@@ -900,7 +1037,15 @@ function druseShotProgram({ w, h, wall, experiment = [], mood = null, exposure =
 async function main() {
   const args = parseArgs(process.argv.slice(2));
   if (args.help) { console.log(readFileSync(fileURLToPath(import.meta.url), 'utf8').split('\n').slice(1, 30).join('\n')); return; }
-  if (!args.list && !args.scenario && !args.photoStats.length) throw new Error('--scenario NAME is required (or --list / --photo-stats FILES)');
+  if (args.wallPeriod && args.wallPeriod.length) {
+    // R5: the wall-periodicity statistic on saved frames — no browser, no scenario run.
+    for (const f of args.wallPeriod) {
+      try { const st = wallPeriodStats(decodePng(readFileSync(f))); console.log(JSON.stringify({ file: f, ...st })); }
+      catch (e) { console.log(JSON.stringify({ file: f, error: String(e && e.message || e) })); }
+    }
+    return;
+  }
+  if (!args.list && !args.scenario && !args.photoStats.length) throw new Error('--scenario NAME is required (or --list / --photo-stats FILES / --wallperiod FILES)');
   const browserPath = findBrowser();
   const serverPort = await freePort();
   const profileDir = await mkdtemp(path.join(os.tmpdir(), 'vugg-photo-rig-'));
@@ -965,6 +1110,7 @@ async function main() {
       const refDir = path.join(ROOT, '.local-evidence', 'photo-refs');
       mkdirSync(refDir, { recursive: true });
       const rows = [];
+      await page.evaluate(`(() => { ${PAGE_HELPERS} return true; })()`);
       for (const src of args.photoStats) {
         const name = path.basename(path.dirname(src)) + '-' + path.basename(src);
         const dst = path.join(refDir, name);
@@ -993,6 +1139,18 @@ async function main() {
     };
     const saveShot = (name, result, extra = {}) => {
       if (!result || !result.png) return null;
+      if (result.wall_only) {
+        // R5 wall-periodicity probe: the wall-only frame beside the shot, its spectrum in the manifest
+        const wb = Buffer.from(String(result.wall_only).replace(/^data:image\/png;base64,/, ''), 'base64');
+        writeFileSync(path.join(outDir, `${name}-wall.png`), wb);
+        try {
+          const wimg = decodePng(wb);
+          extra.probe = { ...(extra.probe || {}), wallperiod: { ...wallPeriodStats(wimg), wall_stats: imageStats(wimg) } };
+          const q = extra.probe.wallperiod;
+          process.stderr.write(`[photo-rig] ${name} wall-only: peak ratio ${q.peak_ratio} at ${q.peak_period_px} px · slope ${q.spectrum_slope} · wall edges ${q.wall_stats.edge_fraction} · L ${q.wall_stats.mean_luminance}\n`);
+        } catch (e) { extra.probe = { ...(extra.probe || {}), wallperiod: { error: e.message } }; }
+        delete result.wall_only;
+      }
       const b64 = result.png.replace(/^data:image\/png;base64,/, '');
       const buf = Buffer.from(b64, 'base64');
       const file = `${name}.png`;
@@ -1005,6 +1163,14 @@ async function main() {
       return shot;
     };
 
+    // R5 wall-periodicity probe: the wall-only frame is a SECOND job on the same page state (the
+    // camera and materials the shot left), so one CDP result never carries two full frames.
+    const withWallOnly = async (result) => {
+      if (!result || !result.png || !(args.probe || []).includes('wallperiod')) return result;
+      try { result.wall_only = await page.job(`window.__photoRig.wallOnlyFrame(${W}, ${H})`, { label: 'wall-only frame' }); }
+      catch (e) { result.wall_only_error = String(e && e.message || e); }
+      return result;
+    };
     // A shot that throws is recorded and skipped — the run's other pictures and the
     // manifest must survive one bad camera (the manifest is written below regardless).
     const attempt = async (label, fn) => {
@@ -1016,15 +1182,15 @@ async function main() {
       }
     };
     for (const shot of args.shots) {
-      const common = { experiment: args.experiment, mood: args.mood, exposure: args.exposure, tier: args.tier, view: args.view, ev: args.ev };
+      const common = { experiment: args.experiment, mood: args.mood, exposure: args.exposure, tier: args.tier, view: args.view, ev: args.ev, probe: args.probe || [] };
       if (shot === 'cavity') {
-        saveShot('cavity', await attempt('cavity', () => page.job(cavityShotProgram({ w: W, h: H, tilt: args.tilt, zoom: args.zoom, wall: args.wall, tiltGiven: args.tiltGiven, zoomGiven: args.zoomGiven, ...common }), { label: 'cavity shot' })));
+        saveShot('cavity', await attempt('cavity', async () => withWallOnly(await page.job(cavityShotProgram({ w: W, h: H, tilt: args.tilt, zoom: args.zoom, wall: args.wall, tiltGiven: args.tiltGiven, zoomGiven: args.zoomGiven, ...common }), { label: 'cavity shot' }))));
       } else if (shot === 'specimen') {
         // R6: the specimen view's own frame — the entry pose unless --tilt/--zoom say otherwise
-        saveShot('specimen', await attempt('specimen', () => page.job(cavityShotProgram({ w: W, h: H, tilt: args.tilt, zoom: args.zoom, wall: args.wall, tiltGiven: args.tiltGiven, zoomGiven: args.zoomGiven, ...common, view: 'specimen' }), { label: 'specimen shot' })));
+        saveShot('specimen', await attempt('specimen', async () => withWallOnly(await page.job(cavityShotProgram({ w: W, h: H, tilt: args.tilt, zoom: args.zoom, wall: args.wall, tiltGiven: args.tiltGiven, zoomGiven: args.zoomGiven, ...common, view: 'specimen' }), { label: 'specimen shot' }))));
       } else if (shot === 'hero') {
         for (let i = 0; i < args.heroN; i++) {
-          const r = await attempt(`hero ${i + 1}`, () => page.job(heroShotProgram({ w: W, h: H, index: i, n: args.heroN, mineral: args.mineral, wall: args.wall, probe: args.probe, ...common }), { label: `hero ${i}` }));
+          const r = await attempt(`hero ${i + 1}`, async () => withWallOnly(await page.job(heroShotProgram({ w: W, h: H, index: i, n: args.heroN, mineral: args.mineral, wall: args.wall, probe: args.probe, ...common }), { label: `hero ${i}` })));
           if (!r) break;
           const name = `hero-${i + 1}-${r.subject.mineral}`;
           const extra = {};
@@ -1044,7 +1210,7 @@ async function main() {
           saveShot(name, r, extra);
         }
       } else if (shot === 'druse') {
-        saveShot('druse', await attempt('druse', () => page.job(druseShotProgram({ w: W, h: H, wall: args.wall, ...common }), { label: 'druse shot' })));
+        saveShot('druse', await attempt('druse', async () => withWallOnly(await page.job(druseShotProgram({ w: W, h: H, wall: args.wall, ...common }), { label: 'druse shot' }))));
       } else if (shot === 'roster') {
         // roster is always in the manifest; the flag just prints it
         for (const r of run.roster) console.log(`${String(r.crystal_id).padStart(4)} ${r.mineral.padEnd(16)} ${String(r.token).padEnd(12)} c=${r.c_length_mm} a=${r.a_width_mm} ext=${r.rendered_extent_mm} ${r.material?.color} op=${r.material?.opacity} rough=${r.material?.roughness} met=${r.material?.metalness} verts=${r.vertices} ${r.tags.join(',')}`);
@@ -1079,8 +1245,9 @@ function contactSheet(m) {
   const lightingTag = l => l ? `${l.mood || '?'} · env ${l.environment ? 'on' : 'OFF' + (l.reason ? ` (${l.reason})` : '')} · ${l.tone_mapping} e${Number(l.exposure).toFixed(2)} · ${l.shadows ? `shadows ${l.shadow_map}²` : 'no shadows'}${l.step_downs ? ` · ${l.step_downs} step-down(s)` : ''}` : 'pre-R1 lights';
   const opticsTag = o => o ? `${o.tier} tier, active ${o.active}${o.backdrop === false ? ' (no opaque backdrop)' : ''} (${o.transmissive} glass / ${o.alpha} alpha / ${o.opaque} opaque${o.retiers ? ` · ${o.retiers} retier(s)` : ''})` : 'pre-R2 materials';
   const specimenTag = sp => sp && sp.on ? ` · specimen: rag ±${sp.rag_mm} mm · rind ${sp.rind_mm} mm · culled ${sp.culled}/${sp.culled + sp.kept} bodies · ${sp.fracture_quads} fracture quads · EV ${sp.ev} · post ${sp.post ? (sp.post.ok ? 'on' : 'OFF (' + sp.post.reason + ')') : '—'}` : '';
+  const wallTag = p => p && p.wallperiod && !p.wallperiod.error ? `<br>wall-only: peak ratio ${p.wallperiod.peak_ratio} at ${p.wallperiod.peak_period_px} px · slope ${p.wallperiod.spectrum_slope} · wall edges ${p.wallperiod.wall_stats?.edge_fraction} · L̄ ${p.wallperiod.wall_stats?.mean_luminance}` : '';
   const probeTag = p => p && p.seethrough ? `<br>see-through: mask ${p.seethrough.mask_fraction} · inside L̄ ${p.seethrough.mean_luminance} · inside highlights ${p.seethrough.highlight_fraction} · wall Δ ${p.seethrough.background_delta}` : (p && p.error ? `<br>probe error: ${esc(p.error)}` : '');
-  const shots = m.shots.map(s => `<figure><img src="${s.file}" alt="${esc(s.name)}"><figcaption><b>${esc(s.name)}</b> · ${s.camera?.mode} ${s.camera?.inside ? '(inside cavity)' : ''} · ${s.subject ? esc(JSON.stringify(s.subject)) : ''}<br>L̄ ${s.stats?.mean_luminance} · sat ${s.stats?.mean_saturation} · highlights ${s.stats?.highlight_fraction} · edges ${s.stats?.edge_fraction}<br>light: ${esc(lightingTag(s.camera?.lighting))} · optics: ${esc(opticsTag(s.camera?.optics))}${s.camera?.experiments?.length ? ` · experiments ${esc(s.camera.experiments.join('+'))}` : ''}${esc(specimenTag(s.camera?.specimen))}${probeTag(s.probe)}</figcaption></figure>`).join('\n');
+  const shots = m.shots.map(s => `<figure><img src="${s.file}" alt="${esc(s.name)}"><figcaption><b>${esc(s.name)}</b> · ${s.camera?.mode} ${s.camera?.inside ? '(inside cavity)' : ''} · ${s.subject ? esc(JSON.stringify(s.subject)) : ''}<br>L̄ ${s.stats?.mean_luminance} · sat ${s.stats?.mean_saturation} · highlights ${s.stats?.highlight_fraction} · edges ${s.stats?.edge_fraction}<br>light: ${esc(lightingTag(s.camera?.lighting))} · optics: ${esc(opticsTag(s.camera?.optics))}${s.camera?.experiments?.length ? ` · experiments ${esc(s.camera.experiments.join('+'))}` : ''}${esc(specimenTag(s.camera?.specimen))}${probeTag(s.probe)}${wallTag(s.probe)}</figcaption></figure>`).join('\n');
   const census = Object.entries(m.census).sort((a, b) => b[1].bodies - a[1].bodies).map(([k, v]) => `<tr><td>${esc(k)}</td><td>${v.bodies}</td><td>${v.satellites}</td><td>${v.swaths}${v.swaths ? ` (${v.swath_instances} inst; ${esc(Object.keys(v.regimes).join(','))})` : ''}</td><td>${esc(Object.entries(v.tokens).map(([t, c]) => `${t}×${c}`).join(' '))}</td><td><span style="display:inline-block;width:1em;height:1em;background:${v.color};border:1px solid #888"></span> ${v.color}</td><td>${v.opacity}</td><td>${v.roughness}</td><td>${v.metalness}</td><td>${v.max_extent_mm}</td><td>${v.vertices}</td></tr>`).join('\n');
   return `<!doctype html><meta charset="utf-8"><title>photo-rig · ${esc(m.scenario)} s${m.seed}</title>
 <style>body{font:13px/1.4 ui-monospace,monospace;background:#111;color:#ddd;margin:16px}figure{display:inline-block;margin:8px;vertical-align:top;max-width:${Math.min(m.size[0], 600)}px}img{max-width:100%;border:1px solid #333}table{border-collapse:collapse}td,th{border:1px solid #333;padding:2px 6px}</style>
