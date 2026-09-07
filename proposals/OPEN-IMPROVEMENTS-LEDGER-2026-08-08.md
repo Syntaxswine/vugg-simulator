@@ -333,7 +333,10 @@ single execution ledger for the science-first AAA completion branch.
   Mobile count no longer inflates lobes; relief and layer underburden follow the physical
   thickness bound and replay maturity. Bisbee's plate carpet is removed in the production
   photo pair; Deccan and Elmwood photographed as controls. Patch seams remain visible.
-  Nine surface integration tests pass; browser/rebake/cold-CI receipts gate publication.
+  All 44 focused surface/specimen tests pass. The browser rerun and science rebake passed
+  (55 science tests, 128 artifacts, zero locality violations); all stories/baselines are
+  unchanged. F13's two renderer-allocation-dependent UI IDs are re-pinned from the real
+  journey. Cold CI gates publication of the frozen evidence commit.
   R3 remains open for mass-sized druse teeth with the approved adaptive instance ceiling.
   Next: finish R3, then R4.
 
