@@ -328,8 +328,13 @@ single execution ledger for the science-first AAA completion branch.
   cleanup. Deccan's three chalcedony linings photographed before/after; focused 42 tests pass.
   Browser receipt and rebake PASS: 128 artifacts, 55 science tests, all stories and
   simulation baselines unchanged. Cold CI gates publication of the frozen evidence commit.
-  R3 remains open for botryoidal skin/lobe
-  distribution and mass-sized druse teeth with the approved adaptive instance ceiling.
+  **R3b implemented 2026-09-07:** botryoidal films ≤60 µm become continuous normal-grained
+  skins; thicker crusts use overlapping, deterministic lognormal lobes capped at 5 mm.
+  Mobile count no longer inflates lobes; relief and layer underburden follow the physical
+  thickness bound and replay maturity. Bisbee's plate carpet is removed in the production
+  photo pair; Deccan and Elmwood photographed as controls. Patch seams remain visible.
+  Nine surface integration tests pass; browser/rebake/cold-CI receipts gate publication.
+  R3 remains open for mass-sized druse teeth with the approved adaptive instance ceiling.
   Next: finish R3, then R4.
 
 ## P4 — release systems that can be prepared locally

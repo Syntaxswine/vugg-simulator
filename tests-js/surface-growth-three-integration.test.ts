@@ -130,6 +130,7 @@ describe('SIM 250 executed Three.js surface-fabric contract', () => {
     const sim = { step: 900, wall_state: wall, crystals: [first] };
     classifySurfaceGrowth(sim);
     const state = renderState(wall);
+    first._surfaceGrowth = { ...first._surfaceGrowth, mean_thickness_um: 300 };
     const parent = new THREE.Mesh(
       new THREE.BoxGeometry(1, 1, 1),
       new THREE.MeshStandardMaterial({ color: 0xffffff }),
@@ -196,6 +197,7 @@ describe('SIM 250 executed Three.js surface-fabric contract', () => {
     const crystal = makeAggregate(wall, 601);
     const sim = { step: 900, wall_state: wall, crystals: [crystal] };
     classifySurfaceGrowth(sim);
+    crystal._surfaceGrowth = { ...crystal._surfaceGrowth, mean_thickness_um: 300 };
 
     const runAtWidth = (width: number) => {
       Object.defineProperty(window, 'innerWidth', { configurable: true, value: width });
@@ -243,6 +245,7 @@ describe('SIM 250 executed Three.js surface-fabric contract', () => {
     const crystal = makeAggregate(wall, 650);
     const sim = { step: 900, wall_state: wall, crystals: [crystal] };
     classifySurfaceGrowth(sim);
+    crystal._surfaceGrowth = { ...crystal._surfaceGrowth, mean_thickness_um: 300 };
 
     const referenceState = renderState(wall);
     const reference = emit(referenceState, crystal, wall, sim, []);
@@ -264,6 +267,64 @@ describe('SIM 250 executed Three.js surface-fabric contract', () => {
     expect(new THREE.Vector3().setFromMatrixPosition(candidateMatrix).distanceTo(
       new THREE.Vector3().setFromMatrixPosition(referenceMatrix),
     )).toBeCloseTo(0, 12);
+  });
+
+  it('replaces micron crust coins with one continuous skin at the recorded thickness', () => {
+    const wall = new WallState({ cells_per_ring: 48, ring_count: 12, vug_diameter_mm: 70, shape_seed: 42 });
+    const crystal = makeAggregate(wall, 680);
+    const sim = { step: 900, wall_state: wall, crystals: [crystal] };
+    classifySurfaceGrowth(sim);
+    crystal._surfaceGrowth = { ...crystal._surfaceGrowth, mean_thickness_um: 2 };
+    const testimony = JSON.stringify(crystal._surfaceGrowth);
+    const state = renderState(wall), layers: any[] = [];
+    const skin = emit(state, crystal, wall, sim, layers);
+    expect(state.crystals.children).toEqual([skin]);
+    expect(skin.isInstancedMesh).not.toBe(true);
+    expect(skin.userData.representation).toBe('wall-conformal-crust-skin');
+    expect(skin.userData.rendered_thickness_mm).toBe(0.002);
+    expect(layers[0].representative_relief_mm).toBe(0.002);
+    expect(JSON.stringify(crystal._surfaceGrowth)).toBe(testimony);
+    let disposed = false;
+    skin.geometry.addEventListener('dispose', () => { disposed = true; });
+    _topoSyncCrystalMeshes(state, { ...sim, crystals: [] }, wall);
+    expect(disposed).toBe(true);
+  });
+
+  it('bounds a repeatable lobe size tail and replay relief without changing the scientific record', () => {
+    const wall = new WallState({ cells_per_ring: 48, ring_count: 12, vug_diameter_mm: 70, shape_seed: 42 });
+    const crystal = makeAggregate(wall, 681);
+    const sim = { step: 900, wall_state: wall, crystals: [crystal] };
+    classifySurfaceGrowth(sim);
+    crystal._surfaceGrowth = { ...crystal._surfaceGrowth, mean_thickness_um: 300 };
+    const testimony = JSON.stringify(crystal._surfaceGrowth);
+    const run = (width: number, maturity = 1) => {
+      Object.defineProperty(window, 'innerWidth', { configurable: true, value: width });
+      Object.defineProperty(window, 'devicePixelRatio', { configurable: true, value: 1 });
+      const state = renderState(wall);
+      const direction = wall.surfaceAnchorDirection(crystal);
+      return _emitSurfaceGrowthSwath(state, crystal, new THREE.MeshStandardMaterial(),
+        ...direction, wall, wall.ring_count, wall.cells_per_ring, wall.initial_radius_mm,
+        crystal.c_length_mm * maturity, sim, []);
+    };
+    const full = run(1200), again = run(1200), mobile = run(600), replay = run(1200, 0.02);
+    expect(full.instanceMatrix.array).toEqual(again.instanceMatrix.array);
+    const widths: number[] = [];
+    const matrix = new THREE.Matrix4(), scale = new THREE.Vector3();
+    for (let i = 0; i < full.count; i++) {
+      full.getMatrixAt(i, matrix); scale.setFromMatrixScale(matrix);
+      widths.push(scale.x);
+      expect(scale.x).toBeLessThanOrEqual(5.000001);
+      expect(scale.y).toBeLessThanOrEqual(0.900001);
+      if (i < mobile.count) {
+        mobile.getMatrixAt(i, matrix);
+        expect(new THREE.Vector3().setFromMatrixScale(matrix).x).toBeCloseTo(scale.x, 5);
+      }
+    }
+    expect(Math.max(...widths) / Math.min(...widths)).toBeGreaterThan(2);
+    expect(new Set(widths.map(x => x.toFixed(4))).size).toBeGreaterThan(full.count / 2);
+    expect(replay.userData.max_lobe_relief_mm).toBeLessThanOrEqual(0.018001);
+    expect(replay.userData.representative_relief_mm).toBeLessThanOrEqual(0.018001);
+    expect(JSON.stringify(crystal._surfaceGrowth)).toBe(testimony);
   });
 
   it('invalidates the crystal renderer signature when wall evolution remaps a birth anchor', () => {

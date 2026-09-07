@@ -646,8 +646,23 @@ whole-vug photo set still wins on facets and wall texture (R4, R5).
   evidence envelopes and release manifest change. Cold CI is a publication gate on
   the frozen evidence commit; its local verdict belongs in
   `.local-evidence/test-workflow-last-pass-v2.json`, not in a rewritten science receipt.
-- `botryoidal_crust` → keep instanced lobes (fixed this session) but draw a lognormal size
-  distribution and overlap them; add a normal-mapped skin under the lobes for the thin case.
+- **R3b implemented 2026-09-07:** `botryoidal_crust` at ≤60 µm mean thickness uses the
+  authenticated continuous shell and shared normal grain, replacing the minimum-height coins.
+  Thicker crusts retain instances with a renderer-local, deterministic bounded lognormal
+  diameter distribution (σ 0.32), overlapping at canonical desktop spacing, capped at 5 mm.
+  Mobile reduces count without inflating diameter; lobe relief and later-layer underburden
+  are bounded by three times recorded thickness, including replay maturity. Thin skins and
+  lobes are alternative representations of the same booked aggregate, never extra parents.
+  This is a visual sampling heuristic, not a new growth law or a claim of volumetric closure.
+  Bisbee seed 42 before/after: 14 thin skins and two lobe swaths; druse edge fraction
+  0.07938 → 0.03637, specimen 0.07887 → 0.07030. Photos at
+  `.local-evidence/photos/bisbee-s42-{before-r3b,crust-r3b}/`; Deccan and Elmwood have
+  `crust-r3b` captures against their R3a photos. The plate carpet is removed; close-up
+  triangle-boundary seams and some exposed bulbous mineral forms remain. No overall
+  realism-score claim. Nine surface integration tests cover physical films, disposal,
+  repeatable size tails, the 5 mm bound, replay relief, and LOD-independent dimensions.
+  The owned-browser receipt, fresh science rebake and uninterrupted cold CI remain
+  publication gates; their exact verdicts belong in the generated/local receipts.
 - `euhedral_druse` → teeth sized from the aggregate's own zone record, thousands of instances
   where the mass allows, orientation jitter ±20°.
 - **Acceptance:** no swath instance larger than 5 mm across on any scenario (rig roster check);

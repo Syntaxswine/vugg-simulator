@@ -6057,6 +6057,7 @@ function _clusterSatelliteCount(crystal: any, pattern: ClusterPattern, cLenOverr
 const SURFACE_GROWTH_INSTANCE_CAP_DESKTOP = 1536;
 const SURFACE_GROWTH_INSTANCE_CAP_MOBILE = 384;
 const SURFACE_GROWTH_REPRESENTATIVE_MM = 1.5;
+const SURFACE_GROWTH_THIN_CRUST_MM = 0.06;
 const SURFACE_GROWTH_MOBILE_MAX_WIDTH_CSS_PX = 720;
 const SURFACE_GROWTH_MOBILE_MIN_DEVICE_PIXEL_RATIO = 2.5;
 
@@ -6256,7 +6257,7 @@ function _emitSurfaceGrowthLining(state: any, crystal: any, parentMat: any,
     crystal_id: crystal.crystal_id, mineral: crystal.mineral, regime: record.regime,
     coverage_fraction: coverage, physical_mean_thickness_um: record.mean_thickness_um,
     rendered_thickness_mm: thickness, represented_area_mm2: footprint,
-    representation: 'wall-conformal-lining', representative_only: true,
+    representation: record.regime === 'botryoidal_crust' ? 'wall-conformal-crust-skin' : 'wall-conformal-lining', representative_only: true,
     area_basis: record.area_basis, stratigraphic_index: record.stratigraphic_index,
     source_signature: patch.source_signature, triangle_indices: [...patch.triangle_indices],
     representative_relief_mm: thickness,
@@ -6286,7 +6287,12 @@ function _emitSurfaceGrowthSwath(
   const replayMaturity = Math.max(0.02, Math.min(1, renderC / liveC));
   const coverage = Math.max(0.005, Math.min(0.98,
     record.coverage_fraction * Math.sqrt(replayMaturity)));
-  if (record.regime === 'laminated_lining') {
+  // Micron-scale botryoidal films cannot support millimetre lobes. The same
+  // authenticated shell provides continuous coverage and normal-map texture,
+  // with no minimum display thickness or extra booked parent representation.
+  const physicalThickness = Math.max(0, Number(record.mean_thickness_um) || 0) / 1000;
+  if (record.regime === 'laminated_lining'
+      || (record.regime === 'botryoidal_crust' && physicalThickness <= SURFACE_GROWTH_THIN_CRUST_MM)) {
     return _emitSurfaceGrowthLining(state, crystal, parentMat, wall, sim,
       coverage, replayMaturity, earlierLayers);
   }
@@ -6359,11 +6365,22 @@ function _emitSurfaceGrowthSwath(
       : fallbackArea);
   const areaPerRepresentative = representedArea / count;
   const patchRadius = Math.max(0.22, Math.sqrt(areaPerRepresentative / Math.PI) * 1.08);
-  const trueThicknessMm = Math.max(0, Number(record.mean_thickness_um) || 0) / 1000;
+  const trueThicknessMm = physicalThickness
+    * (record.regime === 'botryoidal_crust' ? replayMaturity : 1);
   const displayThickness = Math.max(0.06, Math.min(patchRadius * 0.45,
     trueThicknessMm > 0 ? Math.max(trueThicknessMm, 0.06) : 0.06));
   // R2: a coating instance is patchRadius-scale; its transmissive path length follows.
   _opticsApplyExtent(mat, patchRadius * 0.6);
+
+  // R3b: a bounded lognormal diameter tail breaks the equal-sized coin carpet.
+  // Separate renderer-local RNG: never consume the simulation's random stream.
+  // Canonical desktop spacing keeps lobe dimensions independent of mobile LOD;
+  // lower budgets omit detail instead of inflating the remaining representatives.
+  const canonicalCount = _surfaceGrowthInstanceCount(coverage, false, coveredAreaForBudget);
+  const canonicalPatchRadius = Math.max(0.22,
+    Math.sqrt(representedArea / canonicalCount / Math.PI) * 1.08);
+  const lobeRand = _clusterRand((crystal.crystal_id || 0) * 0x9E3779B9 + 0x523b);
+  let maxLobeDiameter = 0, maxLobeRelief = 0;
 
   for (let i = 0; i < count; i++) {
     const p = exactPatch && exactPatch.samples && exactPatch.samples[i]
@@ -6445,16 +6462,22 @@ function _emitSurfaceGrowthSwath(
       );
       dummy.scale.set(width, length, width);
     } else {
-      const lateral = patchRadius * (record.regime === 'laminated_lining' ? 2.6 : 1.55);
+      const logSize = Math.exp(0.32 * Math.sqrt(-2 * Math.log(Math.max(1e-9, lobeRand())))
+        * Math.cos(2 * Math.PI * lobeRand()) - 0.32 * 0.32 / 2);
+      const lateral = record.regime === 'botryoidal_crust'
+        ? Math.min(5, canonicalPatchRadius * 2.2 * Math.max(0.45, Math.min(1.8, logSize)))
+        : patchRadius * 1.55;
       // A botryoidal lobe is a near-hemisphere, but its height is bounded by the MASS the
       // ledger booked: a hemispherical lobe of radius r has mean thickness 2r/3, so the
       // tallest honest lobe is ~3× the record's mean thickness. A 2 µm celestine blanket
       // therefore renders as a thin bumpy skin, not a pile of balloons burying the dogtooth
       // it sits on (review 2026-09-04, F1 — the first cut of this fix did exactly that).
-      const massBoundRelief = trueThicknessMm > 0 ? trueThicknessMm * 3 : displayThickness;
+      const massBoundRelief = trueThicknessMm * 3;
       const relief = record.regime === 'botryoidal_crust'
-        ? Math.max(displayThickness, Math.min(lateral * (0.45 + h * 0.25), massBoundRelief))
+        ? Math.min(lateral * (0.45 + h * 0.25), massBoundRelief)
         : displayThickness;
+      maxLobeDiameter = Math.max(maxLobeDiameter, lateral);
+      maxLobeRelief = Math.max(maxLobeRelief, relief);
       axis.set(p.nx, p.ny, p.nz);
       dummy.quaternion.setFromUnitVectors(up, axis);
       dummy.position.set(
@@ -6481,19 +6504,19 @@ function _emitSurfaceGrowthSwath(
     representative_only: true,
     area_basis: record.area_basis,
     stratigraphic_index: record.stratigraphic_index,
+    representation: record.regime === 'botryoidal_crust' ? 'lognormal-crust-lobes' : 'instanced-swath',
+    max_lobe_diameter_mm: record.regime === 'botryoidal_crust' ? maxLobeDiameter : undefined,
+    max_lobe_relief_mm: record.regime === 'botryoidal_crust' ? maxLobeRelief : undefined,
   };
   _topoLightingTagMesh(swath, true);
   state.crystals.add(swath);
   // Canonical desktop-density relief is intentionally independent of mobile
   // LOD; subsequent layers therefore sit on the same depicted substrate on
   // every viewport even when this layer uses fewer representatives.
-  const canonicalCount = _surfaceGrowthInstanceCount(coverage, false, coveredAreaForBudget);
-  const canonicalPatchRadius = Math.max(0.22,
-    Math.sqrt(representedArea / canonicalCount / Math.PI) * 1.08);
   const canonicalDisplayThickness = Math.max(0.06, Math.min(canonicalPatchRadius * 0.45,
     trueThicknessMm > 0 ? Math.max(trueThicknessMm, 0.06) : 0.06));
   const representativeRelief = record.regime === 'botryoidal_crust'
-    ? Math.max(canonicalDisplayThickness, canonicalPatchRadius * 0.38)
+    ? Math.min(trueThicknessMm * 3, Math.min(5, canonicalPatchRadius * 2.2) * 0.575)
     : record.regime === 'euhedral_druse'
       ? Math.max(0.24, Math.min(1.6, canonicalPatchRadius * 0.39))
       : record.regime === 'fibrous_mat'
