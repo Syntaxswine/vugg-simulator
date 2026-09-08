@@ -369,6 +369,22 @@ single execution ledger for the science-first AAA completion branch.
   and all 41 stories are byte-identical; claim cards only update evidence links.
   Build/typecheck/release audits pass. No new all-files cold CI run is claimed.
   Other R4 tenants and the wider acceptance target remain open.
+  **R4b sulfide pass, 2026-09-08:** sphalerite's distinct positive/negative
+  tetrahedra plus {110}; pyrite's cube/octahedron/twelve-face pyritohedron
+  combinations with fine symmetry-directed striations. Uniform scale preserves
+  angles; attachment and neighbor contacts stay smooth. Etches, iron-cross
+  twins, surface growth and recorded skeletal terraces retain precedence.
+  Representative face distances are not new per-face kinetic measurements.
+  109 focused tests pass; final MVT pyrite captures have no exceptions or failed
+  shots. Sphalerite geometry is confirmed in explicitly isolated diagnostics;
+  surrounding crystals still obscure it in the normal scene. Full browser journey
+  and receipt audit pass with an identical payload and no expectation re-pin;
+  9 receipt tests bring focused validation to 118. Fresh science rebake PASS:
+  128 artifacts, zero locality violations, 55 science tests. Both baselines,
+  all 41 stories, strip digest, mechanism testimony and claim cards are unchanged;
+  only executable-bound hashes and evidence links change. No new all-files cold
+  CI run is claimed. Typecheck, exact build and release audits pass.
+  Remaining R4 species and fleet gate stay open.
 
 - [ ] **Final visual polish — graphics quality and progressive refinement**
   (user decision 2026-09-07; defer implementation until the realism tranches finish).

@@ -8248,7 +8248,12 @@ function _topoSyncCrystalMeshes(state: any, sim: any, wall: any, replayStep?: nu
         || crystal.mineral === 'fluorite' || crystal.mineral === 'pyrite')
         && token === 'cube' && typeof halideTerraceBands === 'function') {
       const terr = halideTerraceBands(crystal, replayStep);
-      if (terr) geom = _getTerracedCalciteGeom(state, crystal, terr);
+      // Pyrite's ordinary step relief belongs on its crystallographic faces.
+      // Retain the existing non-convex builder for recorded skeletal episodes.
+      if (terr && (crystal.mineral !== 'pyrite'
+          || terr.knots.some((k: any) => k.regime === 'hopper_skeletal'))) {
+        geom = _getTerracedCalciteGeom(state, crystal, terr);
+      }
     }
     // CENTRAL-DISTANCE (Wulff) FORM (central-distance arc Phase 4, 2026-06-28): the arc's
     // DESTINATION. A crystal the sim tagged _wulffForm (js/45 classifyWulffForm) renders as the
@@ -8547,6 +8552,21 @@ function _topoSyncCrystalMeshes(state: any, sim: any, wall: any, replayStep?: nu
       geom = state.geomCache.get('__hemimorphic');
       if (!geom) { geom = _makeHemimorphicPrism(); state.geomCache.set('__hemimorphic', geom); }
     }
+    // R4b: ordinary sulfides use their own symmetry-restricted face families.
+    // Specials above (etches, twins, skeletal growth, deformation) keep priority.
+    if (!geom && !crystal.twinned && !crystal._surfaceGrowth
+        && ((crystal.mineral === 'sphalerite' && ['tetrahedron', 'rhombic_dodec', 'dodecahedron'].includes(token))
+          || (crystal.mineral === 'pyrite' && ['cube', 'octahedron', 'dodecahedron'].includes(token)))) {
+      const variant = Math.abs(Math.trunc(crystal.crystal_id || 0)) % 8;
+      const key = '__sulfide_r4_' + crystal.mineral + '_' + token + '_' + variant
+        + '_' + occF + '_' + (_simOccF == null);
+      geom = state.geomCache.get(key);
+      if (!geom) {
+        geom = makeSulfideRenderGeometry(crystal.mineral, token, variant, occF, _simOccF == null);
+        if (geom) state.geomCache.set(key, geom);
+      }
+      if (geom) _o2ConvexGeom = true;
+    }
     // Only ordinary quartz enters R4: all recorded special forms above retain
     // precedence. Defer its geometry until the final display dimensions are known.
     const quartzR4 = !geom && crystal.mineral === 'quartz' && token === 'prism'
@@ -8596,6 +8616,7 @@ function _topoSyncCrystalMeshes(state: any, sim: any, wall: any, replayStep?: nu
       isCdrPseudomorph, isEtched, isPerimorphCast, isSectorZoned, isGypsumHourglass, isInclusion,
     });
     _applyCavityClip(mat, state.clipUniforms);
+    if (geom.userData.sulfideR4?.mineral === 'pyrite') applyPyriteStriations(mat);
 
     const mesh = new THREE.Mesh(geom, mat);
 
@@ -8815,6 +8836,7 @@ function _topoSyncCrystalMeshes(state: any, sim: any, wall: any, replayStep?: nu
         const local = worldPlanes.map((p) => _o2WorldPlaneToNative(p.n, p.d, xf, 1));
         const clipped = _clipConvexGeom(mesh.geometry, local);
         if (clipped && clipped.contactTris > 0) {
+          if (mesh.geometry.userData.sulfideR4) transferSulfideGrooves(mesh.geometry, clipped.geom);
           mesh.geometry = clipped.geom;
           mesh.material = [mat, _o2ContactMaterial(mat, state)];
         }

@@ -36,6 +36,9 @@
 //   node tools/photo-rig.mjs --scenario elmwood --experiment legacylustre --label before
 //        (ablation: the pre-R2 class heuristics painted over the same scene — R2's before half)
 //   node tools/photo-rig.mjs --scenario elmwood --shots hero --probe seethrough
+//   node tools/photo-rig.mjs --scenario elmwood --shots hero --probe isolated
+//        (auxiliary diagnostic: hide neighboring crystals, retaining the actual
+//        subject geometry, material, camera, wall and lighting; not a gameplay frame)
 //        (per hero body: silhouette mask, the frame with the wall hidden, and the inside-mask
 //        statistics — highlight fraction, mean colour, and how much the wall behind changes
 //        the pixels inside the crystal)
@@ -170,10 +173,15 @@ class Page {
     const key = `__photoRigJob_${randomUUID().replace(/-/g, '')}`;
     await this.evaluate(`(() => {
       window.${key} = { done: false, error: null, value: null };
-      (async () => { try { window.${key}.value = await (${bodyExpression}); }
+      (async () => {
+        // Return the launch acknowledgement before synchronous GPU readbacks.
+        // Auxiliary shots can exceed CDP's short request timer; the polling
+        // loop below owns the long job deadline.
+        await new Promise(resolve => setTimeout(resolve, 0));
+        try { window.${key}.value = await (${bodyExpression}); }
         catch (e) { window.${key}.error = String(e && e.stack || e); }
         finally { window.${key}.done = true; } })();
-      return true; })()`);
+      return true; })()`).catch(e => { throw new Error(`${label} launch: ${e.message}`); });
     const deadline = Date.now() + timeoutMs;
     while (Date.now() < deadline) {
       let s = null;
@@ -184,7 +192,7 @@ class Page {
       catch (e) { if (!/timed out/i.test(String(e.message))) throw e; }
       if (s && s.done) {
         if (s.error) throw new Error(`${label}: ${s.error}`);
-        const v = await this.evaluate(`window.${key}.value`);
+        const v = await this.evaluate(`window.${key}.value`).catch(e => { throw new Error(`${label} collect: ${e.message}`); });
         await this.evaluate(`delete window.${key}; true`);
         return v;
       }
@@ -478,6 +486,14 @@ const PAGE_HELPERS = `
     const nowall = RIG.render(w, h);
     if (st.cavity) st.cavity.visible = prevVisible;
     return { mask, nowall };
+  };
+  RIG.isolatedFrame = (mesh, w, h) => {
+    const vis = [];
+    RIG.state().crystals.traverse(o => {
+      if (o.isMesh && o !== mesh) { vis.push([o, o.visible]); o.visible = false; }
+    });
+    try { return RIG.render(w, h); }
+    finally { for (const [o, v] of vis) o.visible = v; }
   };
   // R5 wall-periodicity probe: the frame with only the cavity wall drawn (crystals, water and the
   // specimen stage hidden), same camera and materials — the wall's own texture statistics.
@@ -1015,13 +1031,15 @@ function heroShotProgram({ w, h, index, n, mineral, wall, experiment = [], mood 
     const applied = RIG.applyExperiments(${JSON.stringify(experiment)});
     const png = RIG.render(${w}, ${h});
     const frames = ${probe.includes('seethrough') ? `RIG.seeThroughFrames(hero.m, ${w}, ${h}, ${JSON.stringify(wall)})` : 'null'};
+    const isolated = ${probe.includes('isolated') ? `RIG.isolatedFrame(hero.m, ${w}, ${h})` : 'null'};
+    RIG.lastIsolatedFrame = isolated;
     const u = hero.m.userData;
     const mats = Array.isArray(hero.m.material) ? hero.m.material : [hero.m.material];
     const mo = mats[0] && mats[0].userData ? mats[0].userData.optics : null;
     return { png, camera: { mode: 'direct', ...cam, ...rule, wall: ${JSON.stringify(wall)}, experiments: applied, lighting, optics, specimen },
       subject: { crystal_id: u.crystal_id, mineral: u.mineral, extent_mm: +hero.ext.toFixed(2),
         material: mats[0] ? { tier: mo ? mo.tier : null, lustre: mo ? mo.lustre : null, transmission: mats[0].transmission ?? null, ior: mats[0].ior ?? null, opacity: mats[0].opacity, transparent: !!mats[0].transparent, roughness: mats[0].roughness, metalness: mats[0].metalness, thickness: mats[0].thickness ?? null, attenuation_distance: mats[0].attenuationDistance ?? null } : null },
-      probe_frames: frames };
+      probe_frames: frames, isolated_frame: !!isolated };
   })()`;
 }
 
@@ -1239,6 +1257,15 @@ async function main() {
           if (!r) break;
           const name = `hero-${i + 1}-${r.subject.mineral}`;
           const extra = {};
+          if (r.isolated_frame) {
+            // Transfer separately: two full PNGs in one CDP value can exceed
+            // the short transport deadline even after the GPU work is done.
+            const isolated = await page.evaluate('window.__photoRig.lastIsolatedFrame');
+            writeFileSync(path.join(outDir, `${name}-isolated.png`), Buffer.from(isolated.replace(/^data:image\/png;base64,/, ''), 'base64'));
+            await page.evaluate('window.__photoRig.lastIsolatedFrame = null');
+            extra.isolated = { file: `${name}-isolated.png`, diagnostic: 'neighboring crystals hidden' };
+            delete r.isolated_frame;
+          }
           if (r.probe_frames) {
             // R2 see-through probe: keep the two auxiliary frames beside the shot and fold
             // the inside-silhouette statistics into the manifest.

@@ -757,6 +757,57 @@ the focused suite plus full science rebake, not a new all-files cold CI run.
 Cooling renderer timing: 248 ms cold build (184 ms before), 1.8 ms warm reuse,
 1.1 ms median GPU frame on RTX 3080; no slower-hardware timing claim.
 
+**R4b sulfide implementation, 2026-09-08 (`codex/visual-realism-r4`):** ordinary
+sphalerite now combines separate positive/negative {111} tetrahedra with {110}
+faces, respecting point group -43m. Pyrite now combines {100}, {111} and the
+twelve {210} planes of point group m-3. Its pyritohedron has unequal pentagonal
+edges, replacing the regular Platonic dodecahedron. Sources:
+[sphalerite](https://www.handbookofmineralogy.org/pdfs/sphalerite.pdf) and
+[pyrite](https://www.handbookofmineralogy.org/pdfs/pyrite.pdf), Handbook of Mineralogy.
+Face distances develop the declared habit with eight bounded representative
+variants; these are render choices, not measured kinetic coefficients or new
+inferences about the fluid history. Parent and satellite scales remain uniform.
+
+Pyrite {100}/{210} faces carry shallow normal relief at a nominal 0.08 mm pitch,
+with irregular modulation and pixel-footprint fading. Groove directions cycle
+with pyritohedral symmetry; octahedral faces, attachment scars and new neighbor
+contacts stay smooth. Neighbor clipping transfers attributes only to surviving
+growth faces. Etched cubes, iron-cross twins, surface-growth representations,
+and recorded skeletal terraces retain priority. Ordinary stepped pyrite uses
+the new faces instead of the square-section terrace stack. No growth records,
+random draws, thermodynamic inputs or SIM version were changed.
+
+The photo rig adds an explicitly diagnostic `--probe isolated` image with
+neighboring crystals hidden; geometry, material, camera, wall and lighting remain
+the shipped renderer's. Normal gameplay captures remain alongside it. Its job
+launcher now yields before synchronous GPU readbacks, allowing the existing
+long-job polling deadline to govern auxiliary captures.
+
+Production comparison: `.local-evidence/photos/mvt-s42-r4b-before` versus
+`mvt-s42-r4b-final` (seed 42, specimen view). The final pyrite hero has mean
+luminance 77.52 versus 69.63, edge fraction 0.01561 versus 0.01239. The first
+0.22 mm relief prototype was rejected visually as too corrugated; the final
+0.08 mm pattern is finer and shallower. Full-specimen mean luminance stays
+80.15 versus 80.14. Final capture: zero exceptions and zero failed shots;
+766 ms cold renderer build, 7.2 ms cached redraw, 3.7 ms median GPU frame
+on RTX 3080 (before: 788 / 10.9 / 4.5 ms; single runs, not a speedup claim).
+Sphalerite diagnostics in `mvt-s42-r4b-sphalerite` and `elmwood-s42-r4b-detail`
+confirm developed faces; normal hero views remain heavily obscured by neighbors.
+The isolation probe is not evidence that those faces are visible in gameplay.
+
+109 focused tests pass: 7 new sulfide geometry/shader/clipping/renderer checks,
+4 existing sphalerite, 14 pyrite morphology, 11 iron-cross twin, 7 quartz,
+4 contact-render wiring, 28 cluster, 14 mesh, and 20 specimen tests.
+The full owned-browser journey and receipt audit pass; the browser payload is
+byte-for-byte unchanged and no semantic expectation was re-pinned. Its 9 contract
+tests also pass, bringing focused validation to 118 tests. Fresh science rebake
+PASS: 41 scenarios at seeds 1/2/42, 128 authenticated artifacts, zero locality
+contract violations, and 55 science tests. Both baselines, all 41 story archives,
+the strip digest, mechanism testimony and claim cards are byte-identical;
+only executable hashes and evidence links change. Validation is the focused
+suite plus full science rebake, not a new all-files cold CI run. Typecheck,
+exact generated-bundle check, release audit and diff whitespace check pass.
+
 **Still open in R4:** true doubly terminated quartz routing, accessory s/x faces,
 full per-face growth histories, richer striations on specialized quartz forms,
 the other mineral tenants, chamfers, and the fleet-wide mis-shape acceptance gate.
