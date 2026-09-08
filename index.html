@@ -55105,6 +55105,91 @@ function applyPyriteStriations(material) {
     };
 }
 
+// ── 46c-blade-rhomb-render.js ──
+
+// R4c: gypsum/selenite blades and ordinary dolomite rhombs, render-only.
+// Gypsum: De Jong/Bouman C2/c morphological setting (a=5.63, b=15.201,
+// c=6.23 Å, beta=113.80 deg), as used by Aquilano et al. (2022),
+// https://doi.org/10.1039/D2CE00508E . Do not mix these indices with
+// the Handbook's alternative I2/a cell. Forms: {010}, {120}, {-111}, {011}.
+// Dolomite: -3, a=4.812, c=16.020 Å; {10-14} in the structural hexagonal cell.
+// https://www.handbookofmineralogy.org/pdfs/dolomite.pdf
+// Distances below are representative habit development, not measured kinetics.
+function gypsumRenderNormals(hkl) {
+    const beta = 113.8 * Math.PI / 180, cb = Math.cos(beta), sb = Math.sin(beta);
+    // The generic monoclinic kernel puts b on Y. Rotate rigidly so c is Y
+    // and b is -Z: gypsum's long blade points along the renderer's growth axis.
+    return wulffMonoclinicNormals(hkl, 5.63, 15.201, 6.23, 113.8).map((n) => [sb * n[0] - cb * n[2], cb * n[0] + sb * n[2], -n[1]]);
+}
+function dolomiteRenderNormals() {
+    // C3 plus inversion only: no calcite C2/mirror operators in dolomite's -3.
+    const seed = _wulffNorm([1 / 4.812, 4 / 16.020, 1 / (4.812 * Math.sqrt(3))]);
+    const normals = [];
+    for (let i = 0; i < 3; i++) {
+        const angle = i * 2 * Math.PI / 3, c = Math.cos(angle), s = Math.sin(angle);
+        const n = [c * seed[0] + s * seed[2], seed[1], -s * seed[0] + c * seed[2]];
+        normals.push(n, n.map(v => -v));
+    }
+    return normals;
+}
+function bladeRhombRenderFaces(mineral, token, widthRatio = 0.5) {
+    if (mineral === 'dolomite')
+        return dolomiteRenderNormals().map(n => ({ n, d: 1, family: '104' }));
+    const width = Math.max(0.25, Math.min(token === 'tablet' ? 0.9 : 0.6, widthRatio));
+    const thickness = width * (token === 'tablet' ? 0.22 : 0.40);
+    const faces = [];
+    for (const [hkl, family] of [[[0, 1, 0], '010'], [[1, 2, 0], '120'],
+        [[-1, 1, 1], '-111'], [[0, 1, 1], '011']]) {
+        for (const n of gypsumRenderNormals(hkl)) {
+            const d = family === '010' ? thickness / 2
+                : family === '120' ? Math.abs(n[0]) * width / 2 + Math.abs(n[2]) * thickness * 0.15
+                    : Math.abs(n[1]) * 0.5;
+            faces.push({ n, d, family });
+        }
+    }
+    return faces;
+}
+let _dolomiteR4Radius = null;
+function dolomiteRenderRadius() {
+    if (_dolomiteR4Radius == null) {
+        const poly = wulffPolyhedron(bladeRhombRenderFaces('dolomite', 'rhomb'));
+        const ymax = Math.max(...poly.vertices.map((v) => v[1]));
+        _dolomiteR4Radius = Math.max(...poly.vertices.map((v) => Math.hypot(...v))) * 0.5 / ymax;
+    }
+    return _dolomiteR4Radius;
+}
+function makeBladeRhombRenderGeometry(mineral, token, widthRatio, attachFrac) {
+    const faces = bladeRhombRenderFaces(mineral, token, widthRatio);
+    const full = wulffPolyhedron(faces);
+    if (!full || full.vertices.length < 4)
+        return null;
+    const ymax = Math.max(...full.vertices.map((v) => v[1]));
+    if (!(ymax > 1e-9))
+        return null;
+    // Both forms are centrosymmetric. Normalize by their growth-axis extent,
+    // so uniform cLen scaling and the existing anchor offset agree exactly.
+    const scale = 0.5 / ymax;
+    let poly = full;
+    if (attachFrac > 0) {
+        const f = Math.max(0.05, Math.min(0.95, attachFrac));
+        faces.push({ n: [0, -1, 0], d: ymax * (1 - 2 * f), family: 'scar' });
+        poly = wulffPolyhedron(faces);
+    }
+    if (!poly || poly.vertices.length < 4)
+        return null;
+    const geom = _wulffPolyToGeom(poly, scale);
+    if (!geom)
+        return null;
+    const normals = [];
+    for (const f of poly.faces)
+        for (let i = 0; i < (f.verts.length - 2) * 3; i++)
+            normals.push(...faces[f.plane].n);
+    geom.setAttribute('normal', new THREE.Float32BufferAttribute(normals, 3));
+    geom.userData.bladeRhombR4 = { mineral, token, widthRatio, attachFrac,
+        families: poly.faces.map((f) => faces[f.plane].family) };
+    return geom;
+}
+
 // ── 50-engines-arsenate.js ──
 
 // ============================================================
@@ -114394,7 +114479,10 @@ function _resolveCrystalGeomToken(crystal, habitForGeom) {
         && crystal.twin_law === 'contact') {
         return 'aragonite_contact_twin';
     }
-    const canonical = _habitGeomToken(habitForGeom);
+    // The dolomite engine's ordinary rhomb name is not a generic habit token.
+    // Keep the mineral scope and the air-mode override below.
+    const canonical = crystal?.mineral === 'dolomite' && habitForGeom === 'coarse_rhomb'
+        ? 'rhomb' : _habitGeomToken(habitForGeom);
     if (crystal && crystal.growth_environment === 'air'
         && _DRIPSTONE_ELIGIBLE_TOKENS.has(canonical)) {
         return 'dripstone';
@@ -118364,7 +118452,7 @@ parentOccF) {
         else {
             // R4 geometry already contains quartz's aspect and fixed face angles.
             // Satellites must preserve the parent's uniform-scale contract too.
-            if (geom.userData.quartzR4)
+            if (geom.userData.quartzR4 || geom.userData.bladeRhombR4)
                 satMesh.scale.setScalar(sCLen);
             else
                 satMesh.scale.set(sAWid, sCLen, sAWid);
@@ -119066,7 +119154,10 @@ function _topoCrystalsSignature(sim, wall, replayStep) {
         // the 0.01 mm display bucket. Include that history in live invalidation.
         const quartzHistoryKey = c.mineral === 'quartz'
             ? `:q${c.zones?.length || 0}:${c.total_growth_um || 0}:${c.a_width_mm || 0}` : '';
-        parts.push(`${c.crystal_id}:${c.mineral}:${c.habit}:${c.c_length_mm.toFixed(2)}:${_anchorKey}:${_envKey}:${c.dissolved ? 'd' : 'a'}${quartzHistoryKey}`);
+        // Gypsum's fixed-plane shape develops with width as well as length.
+        const bladeAspectKey = c.mineral === 'selenite' || c.mineral === 'gypsum'
+            ? `:b${c.a_width_mm || 0}:${c.c_length_mm || 0}` : '';
+        parts.push(`${c.crystal_id}:${c.mineral}:${c.habit}:${c.c_length_mm.toFixed(2)}:${_anchorKey}:${_envKey}:${c.dissolved ? 'd' : 'a'}${quartzHistoryKey}${bladeAspectKey}`);
     }
     return parts.join('|');
 }
@@ -119107,8 +119198,11 @@ function _o2PlaceBody(crystal, wall, replayStep, ringCount, N, initR) {
     const [cAxisX, cAxisY, cAxisZ] = _topoCAxisForCrystal(crystal, normal[0], normal[1], normal[2]);
     const token = _resolveCrystalGeomToken(crystal, crystal.habit);
     const inReplay = (replayStep != null);
-    const cLen = Math.max(inReplay ? 0.0 : 2.0, renderC);
+    let cLen = Math.max(inReplay ? 0.0 : 2.0, renderC);
     const aWid = Math.max(inReplay ? 0.0 : 1.5, renderA);
+    const dolomiteRhomb = crystal.mineral === 'dolomite' && token === 'rhomb' && crystal.habit === 'coarse_rhomb';
+    if (dolomiteRhomb && !inReplay && (renderC < 2 || renderA < 1.5))
+        cLen = Math.max(cLen, aWid / _GEOM_TOKEN_RATIO.rhomb);
     const equant = token === 'cube' || token === 'octahedron' || token === 'tetrahedron' || token === 'rhomb'
         || token === 'scalene' || token === 'tablet' || token === 'rhombic_dodec' || token === 'dodecahedron';
     const simOccF = (crystal._occlusion && typeof crystal._occlusion.attachedFraction === 'number') ? crystal._occlusion.attachedFraction : null;
@@ -119118,7 +119212,7 @@ function _o2PlaceBody(crystal, wall, replayStep, ringCount, N, initR) {
         id: crystal.crystal_id,
         enclosed: crystal.enclosed_by != null,
         cx: ax + cAxisX * off, cy: ay + cAxisY * off, cz: az + cAxisZ * off,
-        reach: 0.5 * Math.sqrt(2 * aWid * aWid + cLen * cLen),
+        reach: Math.max(0.5 * Math.sqrt(2 * aWid * aWid + cLen * cLen), dolomiteRhomb ? cLen * dolomiteRenderRadius() : 0),
         // C1 O2 upgrade — gross integrated linear growth (already depletion-aware:
         // the growth loop reads cell σ, so a starved crystal's total_growth_um is
         // already smaller). The meeting-plane weight below prefers this over `reach`
@@ -119900,6 +119994,11 @@ function _topoSyncCrystalMeshes(state, sim, wall, replayStep) {
             if (geom)
                 _o2ConvexGeom = true;
         }
+        // Ordinary gypsum/selenite and dolomite: defer until display dimensions
+        // are known; recorded twins, hourglass sectors and curved forms keep priority.
+        const bladeRhombR4 = !geom && !crystal.twinned && !crystal._surfaceGrowth
+            && (((crystal.mineral === 'gypsum' || crystal.mineral === 'selenite') && ['tablet', 'prism'].includes(token))
+                || (crystal.mineral === 'dolomite' && token === 'rhomb'));
         // Only ordinary quartz enters R4: all recorded special forms above retain
         // precedence. Defer its geometry until the final display dimensions are known.
         const quartzR4 = !geom && crystal.mineral === 'quartz' && token === 'prism'
@@ -120019,6 +120118,22 @@ function _topoSyncCrystalMeshes(state, sim, wall, replayStep) {
             cLen = Math.max(renderC, O4_INCLUSION_MIN_MM);
             aWid = Math.max(renderA, O4_INCLUSION_MIN_MM);
         }
+        let bladeRhombGeometry = null;
+        if (bladeRhombR4 && cLen > 0) {
+            const ratio = Math.round(Math.max(0.25, Math.min(token === 'tablet' ? 0.9 : 0.6, aWid / cLen)) * 40) / 40;
+            const key = '__blade_rhomb_r4_' + crystal.mineral + '_' + token + '_' + ratio + '_' + occF;
+            bladeRhombGeometry = state.geomCache.get(key);
+            if (!bladeRhombGeometry) {
+                bladeRhombGeometry = makeBladeRhombRenderGeometry(crystal.mineral, token, ratio, occF);
+                if (bladeRhombGeometry)
+                    state.geomCache.set(key, bladeRhombGeometry);
+            }
+            if (bladeRhombGeometry) {
+                geom = bladeRhombGeometry;
+                mesh.geometry = geom;
+                _o2ConvexGeom = true;
+            }
+        }
         let quartzGeometry = null;
         if (quartzR4 && cLen > 0) {
             const history = quartzRenderHistory(crystal, replayStep);
@@ -120037,7 +120152,7 @@ function _topoSyncCrystalMeshes(state, sim, wall, replayStep) {
                 applyQuartzStriations(mat, history);
             }
         }
-        if (quartzGeometry) {
+        if (quartzGeometry || bladeRhombGeometry) {
             mesh.scale.set(cLen, cLen, cLen);
         }
         else if (token === 'cube' || token === 'octahedron' || token === 'tetrahedron' || token === 'rhombic_dodec' || token === 'dodecahedron' || token === 'snowball' || isWulffCalcite) {
@@ -120144,7 +120259,7 @@ function _topoSyncCrystalMeshes(state, sim, wall, replayStep) {
             && !isEtched && !isSectorZoned && !isGypsumHourglass
             && crystal.enclosed_by == null && _o2Bodies.length > 1 && mesh.geometry) {
             const meX = mesh.position.x, meY = mesh.position.y, meZ = mesh.position.z;
-            const myReach = 0.5 * Math.sqrt(2 * aWid * aWid + cLen * cLen);
+            const myReach = Math.max(0.5 * Math.sqrt(2 * aWid * aWid + cLen * cLen), bladeRhombGeometry && crystal.mineral === 'dolomite' ? cLen * dolomiteRenderRadius() : 0);
             const worldPlanes = [];
             for (const b of _o2Bodies) {
                 if (b.id === crystal.crystal_id || b.enclosed)
@@ -120175,6 +120290,8 @@ function _topoSyncCrystalMeshes(state, sim, wall, replayStep) {
                 if (clipped && clipped.contactTris > 0) {
                     if (mesh.geometry.userData.sulfideR4)
                         transferSulfideGrooves(mesh.geometry, clipped.geom);
+                    if (mesh.geometry.userData.bladeRhombR4)
+                        clipped.geom.userData.bladeRhombR4 = mesh.geometry.userData.bladeRhombR4;
                     mesh.geometry = clipped.geom;
                     mesh.material = [mat, _o2ContactMaterial(mat, state)];
                 }

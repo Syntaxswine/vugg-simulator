@@ -385,6 +385,21 @@ single execution ledger for the science-first AAA completion branch.
   only executable-bound hashes and evidence links change. No new all-files cold
   CI run is claimed. Typecheck, exact build and release audits pass.
   Remaining R4 species and fleet gate stay open.
+  **R4c gypsum/selenite and dolomite, 2026-09-08:** consistent monoclinic
+  {010}/{120}/{-111}/{011} blade geometry, and dolomite's six {10-14} planes
+  with the `coarse_rhomb` routing defect fixed. Fixed face normals, uniform
+  parent/satellite scaling, exact attachment scar placement, width-sensitive
+  live invalidation, and a full-rhomb neighbor bound. Special forms and air-mode
+  routing retain priority; scientific dimensions and growth records are untouched.
+  Naica/sabkha production captures reviewed, zero exceptions/failed shots;
+  116 focused tests pass. Full browser journey passes with identical testimony;
+  receipt audit and 9 contract tests pass (125 focused tests total).
+  Fresh science rebake passes: 55 tests in 7 files, 128 authenticated artifacts,
+  zero locality-contract violations. Frequencies, canonical seed-42 baselines,
+  all 41 stories, strip digest, mechanism testimony and claim cards are unchanged;
+  only executable-bound hashes and evidence links change. No new all-files cold
+  CI run is claimed. Typecheck, exact build and release audits pass.
+  Remaining R4 species and fleet acceptance stay open.
 
 - [ ] **Final visual polish — graphics quality and progressive refinement**
   (user decision 2026-09-07; defer implementation until the realism tranches finish).

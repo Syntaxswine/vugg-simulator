@@ -808,10 +808,53 @@ only executable hashes and evidence links change. Validation is the focused
 suite plus full science rebake, not a new all-files cold CI run. Typecheck,
 exact generated-bundle check, release audit and diff whitespace check pass.
 
+**R4c gypsum/dolomite work, 2026-09-08 (`codex/visual-realism-r4`):** gypsum's
+selenite variety is the production tenant. Ordinary blades combine {010}, {120},
+{-111} and {011}, using the De Jong/Bouman C2/c morphological setting from
+[Aquilano et al. (2022)](https://doi.org/10.1039/D2CE00508E): a=5.63, b=15.201,
+c=6.23 Å, beta=113.80 degrees. The Handbook's alternative I2/a cell must not
+be mixed with these indices. A rigid rotation places c on renderer Y and b
+on -Z; plane distances develop width and thickness without stretching the
+finished face angles. The exact scalar dimensions invalidate live geometry.
+
+Ordinary dolomite uses six {10-14} planes under point group -3 and its own
+structural hexagonal cell (a=4.812, c=16.020 Å; see the
+[dolomite (104) surface study](https://www.sciencedirect.com/science/article/abs/pii/S0039602810003055)), rather than the generic
+pointed prism reached by the engine's `coarse_rhomb` habit. Its species-scoped
+token correction retains the air-mode override. Both new forms normalize by
+their growth-axis extent and scale uniformly, including satellites. Attachment
+scars coincide with the existing anchor offset; the neighbor-contact bound
+includes the full dolomite rhomb, including visibility-enlarged tiny crystals.
+Face distances are representative render parameters, not measured kinetics.
+
+Recorded twins, hourglass sectors, deformations, saddle/curved forms and
+aggregate routes retain priority. Before captures are in
+`.local-evidence/photos/naica-s42-r4c-before` and `sabkha-s42-r4c-before`.
+Reviewed final captures are `naica-s42-r4c-v1` and `sabkha-s42-r4c-v1`, both
+with zero exceptions and zero failed shots. Naica's generic slab becomes an
+oblique, thin blade; sabkha's pointed dolomite becomes a rhomb. Normal and
+explicitly isolated diagnostics are both retained: crowding, existing optics,
+and visibility floors remain limitations, not claims of specimen-scale fidelity.
+Full-scene mean luminance: Naica 82.93 -> 82.95; sabkha 61.79 -> 61.79.
+Cold build / cached redraw / median GPU frame (RTX 3080, single runs):
+Naica 198/4.0/2.3 -> 211/6.1/2.7 ms; sabkha 2469/11.1/5.5 -> 2449/11.5/5.5 ms.
+
+116 focused tests pass: 9 new form/attachment/cache/contact checks, 3 saddle
+dolomite, 13 swallowtail, 6 hourglass, 5 deformation, 4 contact-render wiring,
+28 cluster, 14 mesh, 20 specimen, 7 quartz and 7 sulfide tests.
+The full owned-browser journey passes with an identical payload and no
+expectation re-pin. Receipt audit and its 9 tests also pass (125 focused tests
+in total). The fresh science rebake passes: 55 tests in 7 files, 128 authenticated
+artifacts, and zero locality-contract violations. Three-seed frequencies,
+canonical seed-42 baselines, all 41 story archives, strip digest, mechanism
+testimony and claim cards are unchanged; only executable-bound hashes and
+evidence links change. No new all-files cold CI run is claimed. Typecheck,
+exact build and release audits pass.
+
 **Still open in R4:** true doubly terminated quartz routing, accessory s/x faces,
 full per-face growth histories, richer striations on specialized quartz forms,
 the other mineral tenants, chamfers, and the fleet-wide mis-shape acceptance gate.
-This first slice does not mark the whole R4 rung complete.
+These delivered slices do not mark the whole R4 rung complete.
 
 **Next tranche selected 2026-09-07:** begin with quartz (R4a), following the
 R3c connected-crust delivery `f1440235`. R3's remaining mass-sized druse work
