@@ -352,7 +352,21 @@ single execution ledger for the science-first AAA completion branch.
   only executable-bound evidence hashes/links change. Uninterrupted cold CI gates publication
   of the frozen delivery commit.
   R3 remains open for mass-sized druse teeth with the approved adaptive instance ceiling.
-  Next: finish R3, then R4.
+  **2026-09-07 delivery:** R3c `f1440235` passed all 276 files in one uninterrupted
+  cold CI run and was pushed. User-directed next tranche: R4 crystal forms, starting
+  with quartz; the remaining R3 druse work stays open.
+
+- [ ] **Final visual polish — graphics quality and progressive refinement**
+  (user decision 2026-09-07; defer implementation until the realism tranches finish).
+  Add an Options quality control for slower computers and render a coarse, usable
+  specimen first, refining geometry and lighting in waves. Quality sets the final
+  detail level; refinement controls how it arrives. Preserve silhouettes, connected
+  coating contacts, mineral colors, populations, growth history and scientific results
+  across tiers. Chunk expensive work or use suitable background workers so refinement
+  stays interactive; cancel obsolete builds and avoid successive main-thread freezes.
+  Optimize cold rebuilds independently, measure slower hardware, and retain a stable
+  low-detail tier. R3c Bisbee baseline: 10.972 s cold rebuild / 14.5 ms warm reuse on
+  RTX 3080. This is a final-step backlog item, not part of the current R4 work.
 
 ## P4 — release systems that can be prepared locally
 

@@ -718,6 +718,31 @@ whole-vug photo set still wins on facets and wall texture (R4, R5).
   Elmwood dogtooth silhouette visible in its hero shot at ≥ 20% of frame height.
 
 ### R4 — Crystallographic forms for the species that matter · 4–6 days · no decision
+**Next tranche selected 2026-09-07:** begin with quartz (R4a), following the
+R3c connected-crust delivery `f1440235`. R3's remaining mass-sized druse work
+stays open; selecting R4 does not close it. Graphics quality controls and
+progressive rendering are deferred to final visual polish (ledger).
+
+**R4a implementation constraints from the initial code review:**
+- Introduce quartz's point group 32 separately from calcite's existing `trigonalR`
+  expansion, which includes inversion. Keep m, r and z as distinct families;
+  larger r faces mean slower advance / smaller central distance, not larger rates.
+- Use the measured cell (a = 4.9135 Å, c = 5.4050 Å) to derive the face normals.
+  Sources: [Handbook of Mineralogy](https://www.handbookofmineralogy.org/pdfs/quartz.pdf)
+  and [Frondel, frequency of quartz twins, American Mineralogist](https://www.minsocam.org/msa/collectors_corner/arc/qtztwin.htm).
+  Relative face development remains a declared rendering model, not a measured
+  growth-rate calibration.
+- Preserve face angles through the final mesh transform. The generic prism's
+  separate width/length scaling would distort a crystallographic termination;
+  develop the aspect using plane distances, then scale the body uniformly.
+- Keep quartz's gwindel, sceptre, deformation, twin and replay precedence intact.
+  Photograph ordinary and doubly terminated quartz on the shipped renderer, with
+  a specialized-habit control, before claiming the tenant complete.
+- Acceptance for this first slice: three large r and three small z faces at the
+  free termination, correct normals at the actual renderer parameters, stable
+  attachment and scientific records, and a same-camera production before/after.
+  The fleet mis-shape target and other tenants below remain the wider R4 gate.
+
 - Extend the Wulff tenancy (`js/46`) to **quartz** (m {10-10}, r {10-11}, z {01-11} at the real
   38° with r > z, plus optional s/x), **sphalerite** ({111} + {-1-1-1} tetrahedra + {110}),
   **pyrite** (cube/pyritohedron/octahedron with {210} striations), **gypsum** ({010} tabular with
