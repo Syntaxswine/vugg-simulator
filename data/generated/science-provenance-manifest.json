@@ -127,10 +127,10 @@
   },
   "science_evidence": {
     "path": "archive/evidence/v285.json",
-    "sha256": "01196ff7fe9297847b716d1bf5c13a1dafdf6453ed87a2b79308ccef9c0ceda3",
+    "sha256": "63049bf1014d87aaa119af9eb53270ba4d5f8dc6f9dcd1a2f7af1c5cf79dd991",
     "schema": "vugg-science-evidence-receipt-v2",
-    "browser_bundle_sha256": "95c022aeda1bb4024eac081789d02f43f55a7747dc189bdc42c9fb589504bbb7",
-    "execution_set_sha256": "ceec4f0fd203f5121c3146cf68cad36d4484aeab383b4dd9883ab84e3c846fd6",
+    "browser_bundle_sha256": "6b926b60ce0a1b4c86b18dcb3f85b5856e59edeffd733c397bd868e4d5fab3be",
+    "execution_set_sha256": "42d443ebd011a3368a6b0710dd5b7a92b9d53803079a36188e5bad6c5f203383",
     "node_runtime": {
       "schema": "vugg-evidence-node-runtime-v1",
       "node": "24.15.0",
@@ -146,11 +146,11 @@
       "strip-archive": "198c4846e3cbee7430a15b320c2c8f57e8d33d4d13d163a2caf69a84581e995e",
       "locality-frequency": "4012da7d90b3d8f74ac310d23217fdd686ecbf9b72b21a109f2965e05a731db5",
       "strip-digest": "8a0964a47a4d54bdba33bd9acd2b56d6877121a5ae91d8b57d00c892396104df",
-      "claim-cards": "22b4a15e5ac04f7b552e1ae309f34d8a108b606953ff816214b14af700ccb588",
-      "mechanism-witnesses": "f1acf3cc8d986b2f1c3a6b5c2330c78c57eb1c9d08f9c6b7218ca9ece118e10c",
-      "science-provenance": "123b8a01ba948ba101e0f8d9fd883c8ba4d4c36f51d5ed06c89082e9e36db931",
-      "science-receipt": "11a8b2621ded3362f38a187c86f26275cf50fc75ddb029bf8e5c8d22bf3c032c",
-      "guided-tutorial-browser": "9fe28a556f9a0d6c077f242cb43d4da5463a04180aba9a75f058f3f21ed1aed3"
+      "claim-cards": "bddcffa693181a87b98c5eeac7f37887071043182acf758985d1a8654455b10f",
+      "mechanism-witnesses": "e7f303dbebdad3b8cffc9ca203fd306c849a3dc24a32cc7c1199f69d0c204926",
+      "science-provenance": "0d81445ee96601cff9817adbfc7cd5cdfa052a222add7afae8fb9bd8731c6573",
+      "science-receipt": "93e08ad24be194affdf579026954d3e9bb16f885b84625b6aaa189e02f0510d4",
+      "guided-tutorial-browser": "100493f8b2ef8c27df691ad9949cf34a8173d29eea607a100e937bf23fb214cd"
     },
     "artifact_count": 128
   },

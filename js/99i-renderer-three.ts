@@ -7141,7 +7141,10 @@ function _emitClusterSatellites(
       const sATooth = Math.min(sAWid, sCLen * _GEOM_TOKEN_RATIO.scalene);
       satMesh.scale.set(sATooth, sCLen, sATooth);
     } else {
-      satMesh.scale.set(sAWid, sCLen, sAWid);
+      // R4 geometry already contains quartz's aspect and fixed face angles.
+      // Satellites must preserve the parent's uniform-scale contract too.
+      if (geom.userData.quartzR4) satMesh.scale.setScalar(sCLen);
+      else satMesh.scale.set(sAWid, sCLen, sAWid);
     }
     satMesh.position.set(
       satAx + sNx * sOffset,
@@ -7795,7 +7798,11 @@ function _topoCrystalsSignature(sim: any, wall: any, replayStep?: number): strin
       parts.push(`${c.crystal_id}:${effectiveMineral}:${c.habit}:${hist.c_length_mm.toFixed(2)}:${_anchorKey}:${_envKey}:r${replayStep}`);
       continue;
     }
-    parts.push(`${c.crystal_id}:${c.mineral}:${c.habit}:${c.c_length_mm.toFixed(2)}:${_anchorKey}:${_envKey}:${c.dissolved ? 'd' : 'a'}`);
+    // Quartz's surface history can gain a striation before its length crosses
+    // the 0.01 mm display bucket. Include that history in live invalidation.
+    const quartzHistoryKey = c.mineral === 'quartz'
+      ? `:q${c.zones?.length || 0}:${c.total_growth_um || 0}:${c.a_width_mm || 0}` : '';
+    parts.push(`${c.crystal_id}:${c.mineral}:${c.habit}:${c.c_length_mm.toFixed(2)}:${_anchorKey}:${_envKey}:${c.dissolved ? 'd' : 'a'}${quartzHistoryKey}`);
   }
   return parts.join('|');
 }
@@ -8540,6 +8547,10 @@ function _topoSyncCrystalMeshes(state: any, sim: any, wall: any, replayStep?: nu
       geom = state.geomCache.get('__hemimorphic');
       if (!geom) { geom = _makeHemimorphicPrism(); state.geomCache.set('__hemimorphic', geom); }
     }
+    // Only ordinary quartz enters R4: all recorded special forms above retain
+    // precedence. Defer its geometry until the final display dimensions are known.
+    const quartzR4 = !geom && crystal.mineral === 'quartz' && token === 'prism'
+      && !crystal.twinned && !crystal._surfaceGrowth;
     // SYSTEM-AWARE prism cross-section (specimen-debt fidelity arc 2026-06-23): a NON-hexagonal
     // mineral that resolves to the generic 'prism' token must not render as a hexagonal prism.
     // Redirect by crystal system (square / rectangular / sheared) before the hex fallback below.
@@ -8652,7 +8663,26 @@ function _topoSyncCrystalMeshes(state: any, sim: any, wall: any, replayStep?: nu
       cLen = Math.max(renderC, O4_INCLUSION_MIN_MM);
       aWid = Math.max(renderA, O4_INCLUSION_MIN_MM);
     }
-    if (token === 'cube' || token === 'octahedron' || token === 'tetrahedron' || token === 'rhombic_dodec' || token === 'dodecahedron' || token === 'snowball' || isWulffCalcite) {
+    let quartzGeometry: any = null;
+    if (quartzR4 && cLen > 0) {
+      const history = quartzRenderHistory(crystal, replayStep);
+      const ratio = Math.round(Math.max(0.2, Math.min(1.1, aWid / cLen)) * 100) / 100;
+      const key = '__quartz_r4_' + ratio + '_' + history.contrast + '_' + history.phase;
+      quartzGeometry = state.geomCache.get(key);
+      if (!quartzGeometry) {
+        quartzGeometry = makeQuartzRenderGeometry(ratio, history.contrast, history.phase);
+        if (quartzGeometry) state.geomCache.set(key, quartzGeometry);
+      }
+      if (quartzGeometry) {
+        geom = quartzGeometry;
+        mesh.geometry = geom;
+        _o2ConvexGeom = true;
+        applyQuartzStriations(mat, history);
+      }
+    }
+    if (quartzGeometry) {
+      mesh.scale.set(cLen, cLen, cLen);
+    } else if (token === 'cube' || token === 'octahedron' || token === 'tetrahedron' || token === 'rhombic_dodec' || token === 'dodecahedron' || token === 'snowball' || isWulffCalcite) {
       // isWulffCalcite (rung 4a.2): the calcite Wulff polyhedron already carries its true
       // crystallographic c-elongation (kernel builds c on Y, normalized to ±0.5), so it scales
       // UNIFORMLY by cLen — the geom's own aspect gives the nailhead-vs-dogtooth shape. Applying

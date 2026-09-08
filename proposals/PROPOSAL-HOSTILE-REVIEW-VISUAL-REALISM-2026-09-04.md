@@ -718,6 +718,50 @@ whole-vug photo set still wins on facets and wall texture (R4, R5).
   Elmwood dogtooth silhouette visible in its hero shot at ≥ 20% of frame height.
 
 ### R4 — Crystallographic forms for the species that matter · 4–6 days · no decision
+**R4a first implementation, 2026-09-07 (`codex/visual-realism-r4`):** ordinary
+prismatic quartz now uses point-group-32 m/r/z planes with a flat attachment scar,
+three larger r and three smaller z termination faces, and a slightly displaced
+apex. Plane distances develop the aspect; parent and satellite transforms are
+uniform, so the metric face angles survive rendering. Geometry is cached by
+bounded aspect, family-contrast and phase buckets. Scientific records are unchanged.
+
+Prism faces carry shallow, anti-aliased transverse normal relief at a nominal
+0.18 mm pitch with irregular modulation. Up to 16 strong changes in recorded
+positive growth increments add broader bands; future zones never enter replay.
+The physical scale comes from each mesh's transform, including satellites.
+Unresolved fine lines fade rather than alias. See [van Praagh & Willis (1952)](https://doi.org/10.1038/169623b0)
+for the transverse growth-sheet texture; the rendering does not claim that every
+line is an oscillatory prism/rhombohedron combination. The mapping from scalar
+growth history to band position and r/z contrast is an explicit visual model,
+not measured per-face kinetics. The deterministic lateral phase is representative
+habit variation, not an inferred directional fluid history.
+
+Production captures: `.local-evidence/photos/cooling-s42-r4-before` versus
+`cooling-s42-r4-final`; the final hero has edge fraction 0.00762 versus 0.00581,
+with mean luminance 182.11 versus 182.35. The first prototype was rejected locally
+for double-stretched satellites and excessive stripe relief; both were corrected.
+The final capture is pixel-identical to the accepted V2 image after the live-history
+invalidation fix. Grimsel control photos are in `grimsel-s42-r4-v2`; its specialized
+quartz forms keep their existing builders. Focused checks: 7 quartz geometry/history/
+shader/renderer tests, 10 Grimsel, 5 deformation, and 20 specimen tests pass.
+**Validation completed 2026-09-08:** 97 focused tests pass (the 42 above, 9 browser
+receipt, 4 contact-render wiring, 28 cluster and 14 mesh tests). The full owned-browser
+journey and receipt audit pass. Its only payload change is F13's collection record
+ID (`cry-16-ie2` → `cry-16-wr2`, in two references), re-pinned only after the exact
+journey comparison and a second complete execution. All geology fingerprints and
+player controls remain unchanged. Fresh science rebake passes: 128 authenticated
+artifacts, zero locality violations, 55 science tests. Both baselines and all 41
+story archives are byte-identical; claim-card edits only update evidence hashes.
+Typecheck, exact generated-bundle check and release audit pass. This validation is
+the focused suite plus full science rebake, not a new all-files cold CI run.
+Cooling renderer timing: 248 ms cold build (184 ms before), 1.8 ms warm reuse,
+1.1 ms median GPU frame on RTX 3080; no slower-hardware timing claim.
+
+**Still open in R4:** true doubly terminated quartz routing, accessory s/x faces,
+full per-face growth histories, richer striations on specialized quartz forms,
+the other mineral tenants, chamfers, and the fleet-wide mis-shape acceptance gate.
+This first slice does not mark the whole R4 rung complete.
+
 **Next tranche selected 2026-09-07:** begin with quartz (R4a), following the
 R3c connected-crust delivery `f1440235`. R3's remaining mass-sized druse work
 stays open; selecting R4 does not close it. Graphics quality controls and
@@ -729,7 +773,7 @@ progressive rendering are deferred to final visual polish (ledger).
   larger r faces mean slower advance / smaller central distance, not larger rates.
 - Use the measured cell (a = 4.9135 Å, c = 5.4050 Å) to derive the face normals.
   Sources: [Handbook of Mineralogy](https://www.handbookofmineralogy.org/pdfs/quartz.pdf)
-  and [Frondel, frequency of quartz twins, American Mineralogist](https://www.minsocam.org/msa/collectors_corner/arc/qtztwin.htm).
+  and [Gault (1949), The Frequency of Twin Types in Quartz Crystals](https://www.minsocam.org/msa/collectors_corner/arc/qtztwin.htm).
   Relative face development remains a declared rendering model, not a measured
   growth-rate calibration.
 - Preserve face angles through the final mesh transform. The generic prism's

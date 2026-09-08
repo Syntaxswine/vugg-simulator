@@ -355,6 +355,20 @@ single execution ledger for the science-first AAA completion branch.
   **2026-09-07 delivery:** R3c `f1440235` passed all 276 files in one uninterrupted
   cold CI run and was pushed. User-directed next tranche: R4 crystal forms, starting
   with quartz; the remaining R3 druse work stays open.
+  **R4a first quartz pass, 2026-09-07** (`codex/visual-realism-r4`): separate
+  point-group-32 m/r/z geometry, unequal termination-face areas, displaced apex,
+  and prism striations with stronger bands derived from recorded growth changes.
+  Uniform parent/satellite scaling preserves face angles; live history invalidation
+  and replay filtering keep the texture current without reading future episodes.
+  The scalar-history-to-face mapping is representative, not measured per-face kinetics.
+  Cooling before/after photos and Grimsel specialty controls captured; 42 focused
+  quartz/alpine/deformation/specimen tests pass. **Validation complete 2026-09-08:**
+  97 focused tests including contact/cluster/mesh and browser receipt contracts;
+  browser rerun/audit PASS after the proven F13 collection-ID re-pin; fresh science
+  rebake PASS (128 artifacts, 55 tests, zero locality violations). Both baselines
+  and all 41 stories are byte-identical; claim cards only update evidence links.
+  Build/typecheck/release audits pass. No new all-files cold CI run is claimed.
+  Other R4 tenants and the wider acceptance target remain open.
 
 - [ ] **Final visual polish — graphics quality and progressive refinement**
   (user decision 2026-09-07; defer implementation until the realism tranches finish).
