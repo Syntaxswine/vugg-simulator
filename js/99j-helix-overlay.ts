@@ -1874,7 +1874,7 @@ function _helixUpdateCrystalVisibility(
   for (let i = 0; i < children.length; i++) {
     const mesh = children[i];
     const u = mesh && mesh.userData;
-    if (!u || u.isSatellite) continue;          // parents drive shared material
+    if (!u || (u.isSatellite && !u.ownsSatelliteMaterial)) continue; // one owner per shared material
     const natural = (typeof u.naturalOpacity === 'number') ? u.naturalOpacity : 1.0;
     // O2-contacted crystals carry a [euhedral, contact] material array — flip
     // every material so the skin shader's alpha multiply reaches both.
@@ -1909,7 +1909,7 @@ function _helixRestoreCrystalOpacity(state: any) {
     for (const mat of mats) {
       mat.opacity = natural;
       mat.transparent = natural < 1;
-      mat.depthWrite = true;
+      mat.depthWrite = !(mat.transparent && mat.userData.gypsumCleavage);
     }
     mesh.visible = true;
   }

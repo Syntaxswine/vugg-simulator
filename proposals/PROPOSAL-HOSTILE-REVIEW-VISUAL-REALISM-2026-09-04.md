@@ -851,6 +851,54 @@ testimony and claim cards are unchanged; only executable-bound hashes and
 evidence links change. No new all-files cold CI run is claimed. Typecheck,
 exact build and release audits pass.
 
+**R4c recognition correction, 2026-09-08:** Rock Bot rejected the original
+selenite capture as too thick, equant and isolated. The earlier geometry checks
+did not establish mineral recognition. Ordinary gypsum/selenite now develops
+narrower {010} lamellae through plane distances, retaining the metric and fixed
+face angles. The user's four natural-reference photos, especially the radial
+South Dakota intergrowth in photo 4, supersede the overly regular coplanar fan
+prototype. Representative members now form three related orientation groups
+around one compact root patch: upright leaders, crossing intermediate blades,
+and nearly horizontal peripheral blades. Length, width, end-face development
+and burial fraction vary deterministically. Three short, broad basal intergrowth
+members fill the center. They remain display members of the same Crystal
+record, not new nucleations or asserted swallowtail twins. Recorded twins,
+sectors, deformations and surface-growth aggregates retain priority.
+
+Broad cleavage faces receive restrained satin roughness and lengthwise optical
+veils. The basal intergrowth is cloudier with localized warm coloration; these
+are representative display details, not new deposits, inclusions or growth
+history. Uniform geometry scaling now supplies the actual local blade thickness
+to the optics model. Alpha layers accumulate without depth writing, including
+after optics-tier changes and helix restore; transmission retains depth writing.
+The separate shared basal material has an explicit helix owner.
+
+The actual Naica seed-42 assemblage contains one selenite and six celestine
+records; the surrounding blocky celestine must not be relabeled as gypsum.
+Photo manifests expose actual twin law, blade geometry, spray groups and depth
+policy. The optional `cluster` probe frames the whole intergrowth from a broad
+side without changing scene geometry/materials; the original hero camera remains
+available for comparison. The `isolated` probe hides all other crystal meshes,
+including satellites, and is labeled accordingly. References are retained only
+locally as `.local-evidence/selenite-reference-{1..4}.png`.
+Broader wall warmth/contact shading, surface damage and encrustations remain
+open. The rejected original is `naica-s42-r4c-v1`; the regular fan is
+`naica-s42-r4c-correction-v3`. Reviewed starburst captures are
+`naica-s42-r4c-spray-v10`, including the unchanged hero-camera comparison and
+the broadside full-cluster diagnostic. Zero exceptions/failed shots; 7 simulated
+crystals remain, with 58 display meshes. This remains cleaner and less weathered
+than reference photo 4, not a claim of complete specimen fidelity.
+145 focused tests pass (12 form/spray/optics/helix, 13 swallowtail, 6 hourglass,
+5 deformation, 4 contact wiring, 14 mesh, 20 specimen, 28 cluster, 34 optics,
+9 browser-receipt). The owned-browser workflow and exact browser-receipt audit
+pass. The required fresh science rebake passes: 55 science tests in 7 files,
+128 authenticated artifacts, 41 scenarios and zero locality-contract violations.
+Three-seed frequencies, canonical seed-42 counts, all 41 stories, strip digest,
+mechanism testimony and claim cards are unchanged. Only executable-bound hashes
+and evidence links change. The earlier fan rebake was deliberately interrupted
+after the user supplied the radial-intergrowth references. No new all-files
+cold CI run is claimed. Typecheck, exact build and release audits pass.
+
 **Still open in R4:** true doubly terminated quartz routing, accessory s/x faces,
 full per-face growth histories, richer striations on specialized quartz forms,
 the other mineral tenants, chamfers, and the fleet-wide mis-shape acceptance gate.

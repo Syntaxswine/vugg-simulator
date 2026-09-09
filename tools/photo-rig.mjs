@@ -495,6 +495,22 @@ const PAGE_HELPERS = `
     try { return RIG.render(w, h); }
     finally { for (const [o, v] of vis) o.visible = v; }
   };
+  RIG.clusterFrame = (mesh, w, h) => {
+    const st = RIG.state(), saved = st.camera.clone(), bounds = new THREE.Box3();
+    st.crystals.traverse(o => {
+      if (o.isMesh && o.userData?.crystal_id === mesh.userData.crystal_id) {
+        const b = RIG.bbox(o); bounds.expandByPoint(b.center.clone().sub(b.size.clone().multiplyScalar(0.5)));
+        bounds.expandByPoint(b.center.clone().add(b.size.clone().multiplyScalar(0.5)));
+      }
+    });
+    const center = bounds.getCenter(new THREE.Vector3()), size = bounds.getSize(new THREE.Vector3());
+    const face = new THREE.Vector3(0, 0, 1).applyQuaternion(mesh.quaternion);
+    if (face.dot(center) > 0) face.negate();
+    try {
+      const camera = RIG.placeCamera(center, size, face, { offAxisDeg: 15, yawDeg: 15, fill: 0.68, upFromAxis: false });
+      return { png: RIG.render(w, h), camera };
+    } finally { st.camera.copy(saved); st.camera.updateProjectionMatrix(); }
+  };
   // R5 wall-periodicity probe: the frame with only the cavity wall drawn (crystals, water and the
   // specimen stage hidden), same camera and materials — the wall's own texture statistics.
   RIG.wallOnlyFrame = (w, h) => {
@@ -591,6 +607,9 @@ const PAGE_HELPERS = `
         curvature_min_relief_scale: m.userData.curvature_min_relief_scale ?? null,
         unresolved_folds: m.userData.unresolved_folds ?? null,
         habit: cr ? cr.habit : null,
+        twinned: !!cr?.twinned, twin_law: cr?.twin_law ?? null,
+        blade_rhomb: m.geometry?.userData?.bladeRhombR4 ?? null,
+        blade_spray: !!m.userData.bladeSpray, spray_group: m.userData.sprayGroup ?? null,
         token: (cr && typeof _habitGeomToken === 'function') ? _habitGeomToken(cr.habit) : null,
         c_length_mm: cr ? +Number(cr.c_length_mm).toFixed(3) : null,
         a_width_mm: cr ? +Number(cr.a_width_mm).toFixed(3) : null,
@@ -601,7 +620,8 @@ const PAGE_HELPERS = `
         material: mat ? { type: mat.type, color: RIG.hex(mat.color), opacity: mat.opacity, transparent: !!mat.transparent,
           roughness: mat.roughness, metalness: mat.metalness, vertexColors: !!mat.vertexColors,
           transmission: mat.transmission ?? null, clearcoat: mat.clearcoat ?? null, ior: mat.ior ?? null,
-          flatShading: !!mat.flatShading, side: mat.side, materials: mats.length } : null,
+          flatShading: !!mat.flatShading, side: mat.side, materials: mats.length,
+          depthWrite: mat.depthWrite, gypsumCleavage: mat.userData?.gypsumCleavage ?? null } : null,
         tags: cr ? Object.keys(cr).filter(k => /^_(sceptre|gwindel|deformation|sectorZoned|split|saddle|etched|film|occlusion|nucTilt)/.test(k) && cr[k]) : [],
         dissolved: !!(cr && cr.dissolved),
       });
@@ -1033,13 +1053,15 @@ function heroShotProgram({ w, h, index, n, mineral, wall, experiment = [], mood 
     const frames = ${probe.includes('seethrough') ? `RIG.seeThroughFrames(hero.m, ${w}, ${h}, ${JSON.stringify(wall)})` : 'null'};
     const isolated = ${probe.includes('isolated') ? `RIG.isolatedFrame(hero.m, ${w}, ${h})` : 'null'};
     RIG.lastIsolatedFrame = isolated;
+    const cluster = ${probe.includes('cluster') ? `RIG.clusterFrame(hero.m, ${w}, ${h})` : 'null'};
+    RIG.lastClusterFrame = cluster;
     const u = hero.m.userData;
     const mats = Array.isArray(hero.m.material) ? hero.m.material : [hero.m.material];
     const mo = mats[0] && mats[0].userData ? mats[0].userData.optics : null;
     return { png, camera: { mode: 'direct', ...cam, ...rule, wall: ${JSON.stringify(wall)}, experiments: applied, lighting, optics, specimen },
       subject: { crystal_id: u.crystal_id, mineral: u.mineral, extent_mm: +hero.ext.toFixed(2),
         material: mats[0] ? { tier: mo ? mo.tier : null, lustre: mo ? mo.lustre : null, transmission: mats[0].transmission ?? null, ior: mats[0].ior ?? null, opacity: mats[0].opacity, transparent: !!mats[0].transparent, roughness: mats[0].roughness, metalness: mats[0].metalness, thickness: mats[0].thickness ?? null, attenuation_distance: mats[0].attenuationDistance ?? null } : null },
-      probe_frames: frames, isolated_frame: !!isolated };
+      probe_frames: frames, isolated_frame: !!isolated, cluster_frame: !!cluster };
   })()`;
 }
 
@@ -1263,8 +1285,15 @@ async function main() {
             const isolated = await page.evaluate('window.__photoRig.lastIsolatedFrame');
             writeFileSync(path.join(outDir, `${name}-isolated.png`), Buffer.from(isolated.replace(/^data:image\/png;base64,/, ''), 'base64'));
             await page.evaluate('window.__photoRig.lastIsolatedFrame = null');
-            extra.isolated = { file: `${name}-isolated.png`, diagnostic: 'neighboring crystals hidden' };
+            extra.isolated = { file: `${name}-isolated.png`, diagnostic: 'all other crystal meshes hidden, including satellites' };
             delete r.isolated_frame;
+          }
+          if (r.cluster_frame) {
+            const cluster = await page.evaluate('window.__photoRig.lastClusterFrame');
+            writeFileSync(path.join(outDir, `${name}-cluster.png`), Buffer.from(cluster.png.replace(/^data:image\/png;base64,/, ''), 'base64'));
+            await page.evaluate('window.__photoRig.lastClusterFrame = null');
+            extra.cluster = { file: `${name}-cluster.png`, diagnostic: 'full cluster, broadside camera; scene geometry and materials unchanged', camera: cluster.camera };
+            delete r.cluster_frame;
           }
           if (r.probe_frames) {
             // R2 see-through probe: keep the two auxiliary frames beside the shot and fold

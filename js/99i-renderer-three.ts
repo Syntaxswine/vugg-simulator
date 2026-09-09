@@ -7011,9 +7011,13 @@ function _emitClusterSatellites(
   // origin, so the satellite offset must sink by the same fraction or the
   // cap floats visibly above the wall. 0 / undefined = legacy base-at-anchor.
   parentOccF?: number,
+  parentMesh?: any,
 ) {
   const pattern = _CLUSTER_PATTERNS[geomToken] || _CLUSTER_PATTERN_DEFAULT;
-  const n = _clusterSatelliteCount(crystal, pattern, parentCLen);
+  const bladeSpray = !!parentMesh && (geom.userData.bladeRhombR4?.mineral === 'selenite'
+    || geom.userData.bladeRhombR4?.mineral === 'gypsum');
+  const count = _clusterSatelliteCount(crystal, pattern, parentCLen);
+  const n = bladeSpray && count > 0 ? Math.min(9, count + 2) : count;
   if (n === 0) return;
   const rand = _clusterRand((crystal.crystal_id || 0) * 0x9E3779B9 + 0x12345);
   // Build an orthonormal tangent frame perpendicular to the substrate
@@ -7041,6 +7045,7 @@ function _emitClusterSatellites(
   const upVec = new THREE.Vector3(0, 1, 0);
   const targetVec = new THREE.Vector3();
   const wallProjOk = !!(wall && wall.rings && ringCount > 0 && N > 0);
+  let gypsumRootMaterial: any = null;
   for (let i = 0; i < n; i++) {
     const r = (0.5 + 0.5 * rand()) * spread;
     // Even angular spacing for rosette habits, random for everything else.
@@ -7090,7 +7095,8 @@ function _emitClusterSatellites(
       satNy = -dirY;
       satNz = -dirZ;
     }
-    const sScale = pattern.scaleMin + scaleSpan * rand();
+    const spray = bladeSpray ? gypsumSprayMember(crystal.crystal_id || 0, i) : null;
+    const sScale = spray ? (spray.basal ? 0.20 + spray.group * 0.015 : spray.scale) : pattern.scaleMin + scaleSpan * rand();
     const sCLen = parentCLen * sScale;
     const sAWid = parentAWid * sScale;
     // Tilt off the satellite's OWN local normal — magnitude per-habit.
@@ -7131,8 +7137,38 @@ function _emitClusterSatellites(
     let sNz = baseNz * cosT + (tax * baseNy - tay * baseNx) * sinT + taz * kDotN * (1 - cosT);
     const nLen = Math.sqrt(sNx * sNx + sNy * sNy + sNz * sNz) || 1;
     sNx /= nLen; sNy /= nLen; sNz /= nLen;
-    const sOffset = sCLen * (0.5 - (parentOccF || 0));   // W-F O0 — see param doc
-    const satMesh = new THREE.Mesh(geom, mat);
+    const sOffset = sCLen * (0.5 - (spray ? spray.burial : (parentOccF || 0)));   // W-F O0 — see param doc
+    let satelliteGeom = geom;
+    if (spray) {
+      const info = geom.userData.bladeRhombR4;
+      const ratio = Math.round(info.widthRatio * (spray.basal ? 1 : spray.width) * 40) / 40;
+      const development = spray.basal ? 3 : 1.5;
+      spray.burial = Math.round(spray.burial * 20) / 20;
+      const key = '__blade_rhomb_r4_' + info.mineral + '_' + info.token + '_' + ratio + '_' + spray.burial + '_' + development + '_' + spray.endBias;
+      satelliteGeom = state.geomCache.get(key);
+      if (!satelliteGeom) {
+        satelliteGeom = makeBladeRhombRenderGeometry(info.mineral, info.token, ratio, spray.burial, development, spray.endBias) || geom;
+        state.geomCache.set(key, satelliteGeom);
+      }
+    }
+    const satMesh = new THREE.Mesh(satelliteGeom, mat);
+    if (spray?.basal) {
+      // A cloudy intergrown base gives the clear blades a common optical body.
+      // Representative display cloudiness/staining, not a new mineral deposit.
+      if (!gypsumRootMaterial) {
+        gypsumRootMaterial = mat.clone();
+        const body = new THREE.Color('#d8c9ae');
+        const p = gypsumRootMaterial.userData.optics;
+        if (p) {
+          Object.assign(p, { clarity: 0, transmissive: false, transmission: 0, alpha_opacity: 1, body: body.getHex() });
+          _opticsPaintTier(gypsumRootMaterial, p, body);
+        }
+        gypsumRootMaterial.roughness = 0.45;
+        _applyCavityClip(gypsumRootMaterial, state.clipUniforms);
+        applyGypsumCleavage(gypsumRootMaterial);
+      }
+      satMesh.material = gypsumRootMaterial;
+    }
     if (geomToken === 'cube' || geomToken === 'octahedron' || geomToken === 'tetrahedron' || geomToken === 'rhombic_dodec' || geomToken === 'dodecahedron' || geomToken === 'snowball') {
       satMesh.scale.set(sCLen, sCLen, sCLen);
     } else if (geomToken === 'scalene') {
@@ -7160,6 +7196,25 @@ function _emitClusterSatellites(
     // PRNG so each satellite gets a distinct rotation around its own
     // local +Y (world-space substrate normal).
     satMesh.rotateY(rand() * Math.PI * 2);
+    if (spray) {
+      // These are representative members of the existing display cluster, not
+      // new simulation crystals or invented twin laws. Small related groups
+      // cross in depth, with overlapping roots sunk into the same matrix patch.
+      const substrate = new THREE.Vector3(nx, ny, nz).normalize();
+      const radial = new THREE.Vector3(t1x, t1y, t1z).multiplyScalar(Math.cos(spray.azimuth))
+        .addScaledVector(new THREE.Vector3(t2x, t2y, t2z), Math.sin(spray.azimuth));
+      const axis = substrate.clone().multiplyScalar(Math.cos(spray.tilt)).addScaledVector(radial, Math.sin(spray.tilt)).normalize();
+      // Retain a related cleavage orientation while c axes radiate in 3-D.
+      // Independent roll made every peripheral blade edge-on in the hero view.
+      const face = new THREE.Vector3(0, 0, 1).applyQuaternion(parentMesh.quaternion);
+      face.addScaledVector(axis, -face.dot(axis));
+      if (face.lengthSq() < 1e-6) face.set(1, 0, 0).applyQuaternion(parentMesh.quaternion).cross(axis);
+      face.normalize().applyAxisAngle(axis, (spray.group - 1) * 0.12);
+      const cross = axis.clone().cross(face).normalize();
+      satMesh.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(cross, axis, face));
+      const root = new THREE.Vector3(...spray.root).multiplyScalar(parentCLen).applyQuaternion(parentMesh.quaternion);
+      satMesh.position.set(ax, ay, az).add(root).addScaledVector(axis, sCLen * (0.5 - spray.burial));
+    }
     // Inherit parent userData so raycaster hit-test resolves a satellite
     // hit back to the parent crystal — clicking a satellite tooltips
     // the parent mineral, no per-satellite identity surfaced.
@@ -7174,13 +7229,15 @@ function _emitClusterSatellites(
       cellIdx: _address.cellIdx,
       surfaceAnchorKey: wall?.surfaceAnchorKey?.(crystal),
       isSatellite: true,
+      ...(spray ? { bladeSpray: true, sprayGroup: spray.group } : {}),
+      ...(spray?.basal && i === 6 ? { ownsSatelliteMaterial: true } : {}),
       // === HELIX-OVERLAY-FORK ADDITION (v13) =========================
       // See proposals/HELIX-OVERLAY-FORK-CHANGES.md for the full
       // breadcrumb. Satellites share the parent's material reference,
       // so the parent's opacity write also moves the satellites. The
       // naturalOpacity here is for completeness; the helix update
       // iterates parents only.
-      naturalOpacity: mat.transparent ? mat.opacity : 1.0,
+      naturalOpacity: satMesh.material.transparent ? satMesh.material.opacity : 1.0,
       // === END HELIX-OVERLAY-FORK ADDITION ===========================
     };
     satMesh.renderOrder = 1;
@@ -7495,7 +7552,7 @@ function _opticsPaintTier(mat: any, p: any, body: any) {
     } else {
       mat.transparent = false; mat.opacity = 1.0;
     }
-    mat.depthWrite = true;
+    mat.depthWrite = !(mat.transparent && mat.userData.gypsumCleavage);
   }
 }
 // Called once the mesh's scale is known: thickness and attenuation distance are the
@@ -7505,7 +7562,7 @@ function _opticsPaintTier(mat: any, p: any, body: any) {
 function _opticsApplyExtent(mat: any, extentMm: number) {
   const p = mat && mat.userData && mat.userData.optics;
   if (!p) return;
-  const ext = Math.max(0.2, Number(extentMm) || 0);
+  const ext = Math.max(mat.userData.gypsumCleavage ? 0.005 : 0.2, Number(extentMm) || 0);
   p.extent_mm = ext;
   mat.thickness = ext * OPTICS_THICKNESS_FRACTION;
   mat.attenuationDistance = ext * p.attenuation_span;
@@ -8707,7 +8764,10 @@ function _topoSyncCrystalMeshes(state: any, sim: any, wall: any, replayStep?: nu
         bladeRhombGeometry = makeBladeRhombRenderGeometry(crystal.mineral, token, ratio, occF);
         if (bladeRhombGeometry) state.geomCache.set(key, bladeRhombGeometry);
       }
-      if (bladeRhombGeometry) { geom = bladeRhombGeometry; mesh.geometry = geom; _o2ConvexGeom = true; }
+      if (bladeRhombGeometry) {
+        geom = bladeRhombGeometry; mesh.geometry = geom; _o2ConvexGeom = true;
+        if (crystal.mineral !== 'dolomite') applyGypsumCleavage(mat);
+      }
     }
     let quartzGeometry: any = null;
     if (quartzR4 && cLen > 0) {
@@ -8774,7 +8834,11 @@ function _topoSyncCrystalMeshes(state: any, sim: any, wall: any, replayStep?: nu
     }
     mesh.renderOrder = 1;
     // R2: the transmissive path length is the crystal's own smallest rendered extent.
-    _opticsApplyExtent(mat, _opticsExtentOfScale(mesh.scale));
+    if (bladeRhombGeometry && crystal.mineral !== 'dolomite') {
+      bladeRhombGeometry.computeBoundingBox();
+      const dims = bladeRhombGeometry.boundingBox.getSize(new THREE.Vector3()).multiply(mesh.scale);
+      _opticsApplyExtent(mat, Math.min(dims.x, dims.y, dims.z));
+    } else _opticsApplyExtent(mat, _opticsExtentOfScale(mesh.scale));
 
     // Position the BASE of the primitive at the anchor (instead of
     // the centroid), so the crystal projects into the cavity rather
@@ -8863,7 +8927,10 @@ function _topoSyncCrystalMeshes(state: any, sim: any, wall: any, replayStep?: nu
         const clipped = _clipConvexGeom(mesh.geometry, local);
         if (clipped && clipped.contactTris > 0) {
           if (mesh.geometry.userData.sulfideR4) transferSulfideGrooves(mesh.geometry, clipped.geom);
-          if (mesh.geometry.userData.bladeRhombR4) clipped.geom.userData.bladeRhombR4 = mesh.geometry.userData.bladeRhombR4;
+          if (mesh.geometry.userData.bladeRhombR4) {
+            clipped.geom.userData.bladeRhombR4 = mesh.geometry.userData.bladeRhombR4;
+            if (crystal.mineral !== 'dolomite') gypsumCleavageHeight(clipped.geom, mesh.geometry.userData.bladeRhombR4.attachFrac);
+          }
           mesh.geometry = clipped.geom;
           mesh.material = [mat, _o2ContactMaterial(mat, state)];
         }
@@ -8931,7 +8998,7 @@ function _topoSyncCrystalMeshes(state: any, sim: any, wall: any, replayStep?: nu
     // tabular rosette, prismatic forest, cubic carpet, etc.). An engulfed
     // inclusion has no free druse spray, so it opts out (W-F O4a).
     if (!isInclusion && !crystal._surfaceGrowth) {
-      _emitClusterSatellites(state, crystal, geom, mat, ax, ay, az, nx, ny, nz, cLen, aWid, token, wall, ringCount, N, initR, occF);
+      _emitClusterSatellites(state, crystal, geom, mat, ax, ay, az, nx, ny, nz, cLen, aWid, token, wall, ringCount, N, initR, occF, mesh);
     }
   }
 

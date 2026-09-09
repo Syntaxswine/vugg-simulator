@@ -27,17 +27,22 @@ function dolomiteRenderNormals(): number[][] {
   return normals;
 }
 
-function bladeRhombRenderFaces(mineral: string, token: string, widthRatio = 0.5): any[] {
+function bladeRhombRenderFaces(mineral: string, token: string, widthRatio = 0.5, development = 1, endBias = 1): any[] {
   if (mineral === 'dolomite') return dolomiteRenderNormals().map(n => ({ n, d: 1, family: '104' }));
-  const width = Math.max(0.25, Math.min(token === 'tablet' ? 0.9 : 0.6, widthRatio));
-  const thickness = width * (token === 'tablet' ? 0.22 : 0.40);
+  // Develop an elongated lamella, including the exposed portion of an attached
+  // half-form. The old 0.9-wide tablet became an equant block above its scar.
+  // Change plane distances, never stretch the finished crystallographic angles.
+  const width = Math.max(0.06, Math.min(token === 'tablet' ? 0.14 : 0.10, widthRatio * 0.20)) * development;
+  // The basal development is a compact intergrowth of short lamellae, with
+  // enough depth for crossing blades to disappear into a common solid center.
+  const thickness = width * (token === 'tablet' ? 0.10 : 0.14) * (development >= 3 ? 4 : 1);
   const faces: any[] = [];
   for (const [hkl, family] of [[[0, 1, 0], '010'], [[1, 2, 0], '120'],
     [[-1, 1, 1], '-111'], [[0, 1, 1], '011']] as any[]) {
     for (const n of gypsumRenderNormals(hkl)) {
       const d = family === '010' ? thickness / 2
         : family === '120' ? Math.abs(n[0]) * width / 2 + Math.abs(n[2]) * thickness * 0.15
-        : Math.abs(n[1]) * 0.5;
+        : Math.abs(n[1]) * 0.5 * (family === '-111' ? endBias : 1);
       faces.push({ n, d, family });
     }
   }
@@ -55,8 +60,8 @@ function dolomiteRenderRadius(): number {
 }
 
 function makeBladeRhombRenderGeometry(mineral: string, token: string, widthRatio: number,
-  attachFrac: number): any {
-  const faces = bladeRhombRenderFaces(mineral, token, widthRatio);
+  attachFrac: number, development = 1, endBias = 1): any {
+  const faces = bladeRhombRenderFaces(mineral, token, widthRatio, development, endBias);
   const full = wulffPolyhedron(faces);
   if (!full || full.vertices.length < 4) return null;
   const ymax = Math.max(...full.vertices.map((v: number[]) => v[1]));
@@ -76,7 +81,73 @@ function makeBladeRhombRenderGeometry(mineral: string, token: string, widthRatio
   const normals: number[] = [];
   for (const f of poly.faces) for (let i = 0; i < (f.verts.length - 2) * 3; i++) normals.push(...faces[f.plane].n);
   geom.setAttribute('normal', new THREE.Float32BufferAttribute(normals, 3));
-  geom.userData.bladeRhombR4 = { mineral, token, widthRatio, attachFrac,
+  geom.userData.bladeRhombR4 = { mineral, token, widthRatio, attachFrac, development, endBias,
     families: poly.faces.map((f: any) => faces[f.plane].family) };
+  if (mineral !== 'dolomite') gypsumCleavageHeight(geom, attachFrac);
   return geom;
+}
+
+function gypsumCleavageHeight(geom: any, attachFrac: number): void {
+  const pos = geom.attributes.position, values = [];
+  const root = attachFrac > 0 ? Math.max(0.05, Math.min(0.95, attachFrac)) - 0.5 : -0.5;
+  for (let i = 0; i < pos.count; i++) values.push(Math.max(0, Math.min(1, (pos.getY(i) - root) / (0.5 - root))));
+  geom.setAttribute('gypsumHeight', new THREE.Float32BufferAttribute(values, 1));
+}
+
+// A few related subgroups, not a coplanar hand fan or independent random sticks.
+// Layout is representative rendering, keyed only by identity; no simulation RNG.
+function gypsumSprayMember(crystalId: number, index: number): any {
+  const group = index >= 6 ? (index - 6) % 3 : Math.floor(index / 2);
+  const common = _clusterRand(crystalId * 0x45d9f3b + group * 0x9e3779b9);
+  const local = _clusterRand(crystalId * 0x27d4eb2d + (index + 1) * 0x85ebca6b);
+  return {
+    group,
+    basal: index >= 6,
+    burial: index >= 6 ? 0.5 : 0.38 + local() * 0.24,
+    scale: [0.91, 0.53, 0.76, 0.38, 0.64, 0.46][index % 6] * (0.90 + local() * 0.18),
+    width: 0.90 + local() * 0.70,
+    endBias: Math.round((0.82 + local() * 0.36) * 20) / 20,
+    tilt: index >= 6 ? 0.3 + local() * 0.2
+      : [0.50, 1.05, 1.35][group] + (common() - 0.5) * 0.10 + (local() - 0.5) * 0.08,
+    azimuth: [0.10, 2.25, 4.50][group] + (common() - 0.5) * 0.40 + (local() - 0.5) * 0.14,
+    root: [(group - 1) * 0.018 + (local() - 0.5) * 0.012,
+      -0.018, (local() - 0.5) * 0.014],
+  };
+}
+
+// Representative optical veils along c, not simulated inclusions or growth
+// records. {010} cleavage faces have a pearly lustre (Handbook of Mineralogy).
+// Keep the existing optics tier and cavity clipping; edges remain clearer.
+function applyGypsumCleavage(material: any): void {
+  // Alpha sheets must accumulate through their intergrowth, rather than the
+  // first translucent face writing depth and erasing all blades behind it.
+  if (material.transparent) material.depthWrite = false;
+  const previous = material.onBeforeCompile;
+  const cacheKey = material.customProgramCacheKey.bind(material);
+  material.customProgramCacheKey = () => cacheKey() + '|gypsum-cleavage-r4c';
+  material.userData.gypsumCleavage = { representation: 'lengthwise-optical-veil' };
+  material.onBeforeCompile = (shader: any) => {
+    previous.call(material, shader);
+    shader.vertexShader = shader.vertexShader.replace('#include <common>',
+      '#include <common>\nattribute float gypsumHeight;\nvarying float vGypsumHeight;\nvarying vec3 vGypsumLocal;\nvarying float vGypsumBroad;');
+    shader.vertexShader = shader.vertexShader.replace('#include <begin_vertex>',
+      '#include <begin_vertex>\nvGypsumHeight = gypsumHeight;\nvGypsumLocal = position;\nvGypsumBroad = step(0.99, abs(normal.z));');
+    shader.fragmentShader = shader.fragmentShader.replace('#include <common>',
+      '#include <common>\nvarying float vGypsumHeight;\nvarying vec3 vGypsumLocal;\nvarying float vGypsumBroad;');
+    shader.fragmentShader = shader.fragmentShader.replace('#include <color_fragment>', `#include <color_fragment>
+      float gx = vGypsumLocal.x;
+      float resolved = 1.0 - smoothstep(0.002, 0.008, fwidth(gx));
+      float veil = smoothstep(0.25, 0.85,
+        0.5 + 0.27 * sin(gx * 173.0 + 0.8 * sin(vGypsumLocal.y * 5.0))
+        + 0.18 * sin(gx * 419.0 + vGypsumLocal.y * 2.0));
+      veil *= vGypsumBroad * resolved;
+      diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.95, 0.96, 0.94), veil * 0.12);
+      diffuseColor.a *= mix(0.78, 1.0 + veil * 0.18, vGypsumBroad);
+      // Subtle representative matrix staining at the roots; no new deposit claim.
+      float rootWarmth = exp(-vGypsumHeight * 5.0);
+      diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.46, 0.31, 0.17), rootWarmth * 0.40);
+      diffuseColor.a = mix(diffuseColor.a, 0.72, rootWarmth * 0.55);`);
+    shader.fragmentShader = shader.fragmentShader.replace('#include <roughnessmap_fragment>',
+      '#include <roughnessmap_fragment>\nroughnessFactor = mix(roughnessFactor, 0.34 + veil * 0.12, vGypsumBroad);');
+  };
 }

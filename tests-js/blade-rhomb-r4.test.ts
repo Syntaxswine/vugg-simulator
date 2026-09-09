@@ -5,6 +5,10 @@ declare const makeBladeRhombRenderGeometry: any, wulffPolyhedron: any;
 declare const _topoSyncCrystalMeshes: any, _resolveCrystalGeomToken: any;
 declare const _topoCrystalsSignature: any;
 declare const _o2PlaceBody: any;
+declare const applyGypsumCleavage: any;
+declare const _opticsPaintTier: any;
+declare const _helixRestoreCrystalOpacity: any;
+declare const _helixUpdateCrystalVisibility: any;
 
 function render(mineral: string, habit: string, extra = {}) {
   const wall = new WallState({ vug_diameter_mm: 70, shape_seed: 42 });
@@ -53,6 +57,8 @@ describe('R4c gypsum blades and dolomite rhombs', () => {
       expect(new Set(poly.faces.map((f: any) => faces[f.plane].family))).toEqual(new Set(['010', '120', '-111', '011']));
       const span = (axis: number) => Math.max(...poly.vertices.map((v: number[]) => v[axis])) - Math.min(...poly.vertices.map((v: number[]) => v[axis]));
       expect(span(2)).toBeLessThan(span(0) * 0.5);
+      expect(span(2) / span(0)).toBeLessThan(0.18);
+      expect(span(1) / span(0)).toBeGreaterThan(4.5);
       expect(span(1)).toBeCloseTo(1, 8);
     }
   });
@@ -115,6 +121,77 @@ describe('R4c gypsum blades and dolomite rhombs', () => {
       expect(new THREE.Vector3(body.cx, body.cy, body.cz).distanceTo(mesh.position)).toBeLessThan(1e-6);
       const ps = mesh.geometry.attributes.position;
       for (let i = 0; i < ps.count; i++) expect(new THREE.Vector3().fromBufferAttribute(ps, i).multiply(mesh.scale).length()).toBeLessThanOrEqual(body.reach + 1e-6);
+    }
+  });
+  it('keeps a three-dimensional selenite spray rooted locally with related subgroups', () => {
+    const { state } = render('selenite', 'tabular', { _nucTilt: { theta: 0.35, azim: 1.2 } });
+    const parent = state.crystals.children.find((m: any) => !m.userData.isSatellite);
+    const blades = state.crystals.children.filter((m: any) => m.userData.bladeSpray);
+    expect(blades).toHaveLength(9);
+    const root = (m: any) => {
+      m.updateMatrixWorld(true);
+      m.geometry.computeBoundingBox();
+      return new THREE.Vector3(0, m.geometry.boundingBox.min.y, 0).applyMatrix4(m.matrixWorld);
+    };
+    const parentRoot = root(parent);
+    const normals = [];
+    for (const m of blades) {
+      expect(root(m).distanceTo(parentRoot)).toBeLessThan(parent.scale.y * 0.04);
+      normals.push(new THREE.Vector3(0, 0, 1).applyQuaternion(m.quaternion));
+      expect(m.userData.crystal_id).toBe(parent.userData.crystal_id);
+      if (m.geometry.userData.bladeRhombR4.development === 3) {
+        expect(m.material.userData.optics.clarity).toBe(0);
+        expect(m.userData.naturalOpacity).toBe(1);
+      } else expect(m.material).toBe(parent.material);
+    }
+    for (let i = 0; i < 6; i += 2) expect(normals[i].dot(normals[i + 1])).toBeGreaterThan(0.96);
+    expect(normals[0].angleTo(normals[4])).toBeGreaterThan(0.15);
+    const sizes = blades.map((m: any) => m.scale.y);
+    expect(Math.max(...sizes) / Math.min(...sizes)).toBeGreaterThan(1.8);
+    expect(new Set(blades.map((m: any) => m.geometry)).size).toBeGreaterThan(1);
+    expect(blades.filter((m: any) => m.geometry.userData.bladeRhombR4.development === 3)).toHaveLength(3);
+    expect(new Set(blades.map((m: any) => m.geometry.userData.bladeRhombR4.attachFrac)).size).toBeGreaterThan(1);
+    for (const m of blades) {
+      expect(m.geometry.attributes.gypsumHeight.count).toBe(m.geometry.attributes.position.count);
+      expect(m.scale.x).toBe(m.scale.y); expect(m.scale.y).toBe(m.scale.z);
+    }
+    expect(parent.material.userData.gypsumCleavage).toBeTruthy();
+    parent.geometry.computeBoundingBox();
+    const dims = parent.geometry.boundingBox.getSize(new THREE.Vector3()).multiply(parent.scale);
+    expect(parent.material.userData.optics.extent_mm).toBeCloseTo(Math.min(dims.x, dims.y, dims.z), 6);
+    const rootOwner = blades.find((m: any) => m.userData.ownsSatelliteMaterial);
+    expect(rootOwner).toBeTruthy();
+    _helixUpdateCrystalVisibility({ crystals: state.crystals }, 0.5, null, 0, []);
+    expect(rootOwner.material.transparent).toBe(true);
+    _helixRestoreCrystalOpacity({ crystals: state.crystals });
+    expect(rootOwner.material.transparent).toBe(false);
+    expect(rootOwner.material.depthWrite).toBe(true);
+  });
+  it('accumulates alpha layers without disabling depth for opaque or transmission-tier materials', () => {
+    for (const transparent of [true, false]) {
+      const mat = new THREE.MeshPhysicalMaterial({ transparent, depthWrite: true });
+      applyGypsumCleavage(mat);
+      expect(mat.depthWrite).toBe(!transparent);
+      _opticsPaintTier(mat, { transmissive: false, metalness: 0, tier: 'alpha', clarity: 0.95, alpha_opacity: 0.335 }, new THREE.Color('#f2f4f6'));
+      expect(mat.depthWrite).toBe(false);
+      _opticsPaintTier(mat, { transmissive: true, transmission: 0.9, clarity: 0.95 }, new THREE.Color('#f2f4f6'));
+      expect(mat.depthWrite).toBe(true);
+      _helixRestoreCrystalOpacity({ crystals: { children: [{ material: mat, userData: { naturalOpacity: 0.335 } }] } });
+      expect(mat.transparent).toBe(true);
+      expect(mat.depthWrite).toBe(false);
+    }
+  });
+  it('keeps cleavage optics and spray placement scoped to ordinary gypsum forms', () => {
+    for (const [mineral, habit, extra] of [
+      ['dolomite', 'coarse_rhomb', {}], ['celestine', 'bladed', {}],
+      ['selenite', 'tabular', { twinned: true, twin_law: 'swallowtail' }],
+      ['selenite', 'tabular', { _sectorZoned: { kind: 'gypsum_hourglass', sandLoad: 0.4 } }],
+    ] as any[]) {
+      const { state } = render(mineral, habit, extra);
+      for (const m of state.crystals.children) {
+        expect(m.userData.bladeSpray).toBeUndefined();
+        expect(m.material.userData.gypsumCleavage).toBeUndefined();
+      }
     }
   });
 });

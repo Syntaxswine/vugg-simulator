@@ -400,6 +400,26 @@ single execution ledger for the science-first AAA completion branch.
   only executable-bound hashes and evidence links change. No new all-files cold
   CI run is claimed. Typecheck, exact build and release audits pass.
   Remaining R4 species and fleet acceptance stay open.
+  **R4c selenite recognition correction, 2026-09-08:** Rock Bot rejected the
+  original blocky, isolated appearance. Tighten ordinary blades into thin
+  elongated lamellae. The user's natural photo 4 supersedes the regular fan:
+  radial intergrowth with related orientation groups, upright and low blades,
+  unequal sizes/end-face development/burial, and a compact cloudy basal mass.
+  Restrained satin cleavage highlights, lengthwise optical veils and root warmth;
+  actual blade thickness feeds optics, alpha depth policy survives tier/helix
+  changes, and the basal material participates in helix reveal. Preserve recorded
+  special forms and the one-selenite, six-celestine Naica population. Broader wall
+  warmth/contact shading and surface damage/encrustations stay open.
+  Reviewed capture `naica-s42-r4c-spray-v10` (original hero camera plus full-cluster
+  broadside diagnostic), zero exceptions/failed shots. 145 focused tests pass;
+  owned-browser validation and its exact receipt audit pass. Fresh science rebake
+  passes: 55 science tests, 128 authenticated artifacts, all 41 scenarios and zero
+  locality-contract violations. Frequencies, canonical counts, stories, strip
+  digest, mechanism testimony and claim cards are unchanged; only executable-bound
+  hashes and evidence links change. No new all-files cold CI run is claimed.
+  Typecheck, exact build and release audits pass.
+  The earlier fan rebake was intentionally interrupted when the user's references
+  changed the target. Surface weathering and full specimen fidelity remain open.
 
 - [ ] **Final visual polish — graphics quality and progressive refinement**
   (user decision 2026-09-07; defer implementation until the realism tranches finish).
