@@ -7017,7 +7017,8 @@ function _emitClusterSatellites(
   const bladeSpray = !!parentMesh && (geom.userData.bladeRhombR4?.mineral === 'selenite'
     || geom.userData.bladeRhombR4?.mineral === 'gypsum');
   const count = _clusterSatelliteCount(crystal, pattern, parentCLen);
-  const n = bladeSpray && count > 0 ? Math.min(9, count + 2) : count;
+  const bariteCrest = !!parentMesh && geom.userData.bariteR4?.habit === 'cockscomb';
+  const n = bladeSpray && count > 0 ? Math.min(9, count + 2) : bariteCrest && count > 0 ? Math.min(7, Math.max(5, count)) : count;
   if (n === 0) return;
   const rand = _clusterRand((crystal.crystal_id || 0) * 0x9E3779B9 + 0x12345);
   // Build an orthonormal tangent frame perpendicular to the substrate
@@ -7096,7 +7097,8 @@ function _emitClusterSatellites(
       satNz = -dirZ;
     }
     const spray = bladeSpray ? gypsumSprayMember(crystal.crystal_id || 0, i) : null;
-    const sScale = spray ? (spray.basal ? 0.20 + spray.group * 0.015 : spray.scale) : pattern.scaleMin + scaleSpan * rand();
+    const crest = bariteCrest ? bariteCrestMember(crystal.crystal_id || 0, i, n) : null;
+    const sScale = crest ? crest.scale : spray ? (spray.basal ? 0.20 + spray.group * 0.015 : spray.scale) : pattern.scaleMin + scaleSpan * rand();
     const sCLen = parentCLen * sScale;
     const sAWid = parentAWid * sScale;
     // Tilt off the satellite's OWN local normal — magnitude per-habit.
@@ -7182,7 +7184,7 @@ function _emitClusterSatellites(
     } else {
       // R4 geometry already contains quartz's aspect and fixed face angles.
       // Satellites must preserve the parent's uniform-scale contract too.
-      if (geom.userData.quartzR4 || geom.userData.bladeRhombR4) satMesh.scale.setScalar(sCLen);
+      if (geom.userData.quartzR4 || geom.userData.bladeRhombR4 || geom.userData.bariteR4) satMesh.scale.setScalar(sCLen);
       else satMesh.scale.set(sAWid, sCLen, sAWid);
     }
     satMesh.position.set(
@@ -7222,6 +7224,15 @@ function _emitClusterSatellites(
       }
       satMesh.position.set(ax, ay, az).add(root).addScaledVector(axis, sCLen * (0.5 - spray.burial));
     }
+    if (crest) {
+      // A crested row of overlapping plates, not a radial selenite spray.
+      // The habit record supplies the crest; no formal twin law is invented.
+      satMesh.quaternion.copy(parentMesh.quaternion);
+      satMesh.rotateZ(crest.lean); satMesh.rotateY(crest.roll);
+      const axis = new THREE.Vector3(0, 1, 0).applyQuaternion(satMesh.quaternion);
+      const root = new THREE.Vector3(crest.x, crest.y, 0).multiplyScalar(parentCLen).applyQuaternion(parentMesh.quaternion);
+      satMesh.position.set(ax, ay, az).add(root).addScaledVector(axis, sCLen * (0.5 - (parentOccF || 0)));
+    }
     // Inherit parent userData so raycaster hit-test resolves a satellite
     // hit back to the parent crystal — clicking a satellite tooltips
     // the parent mineral, no per-satellite identity surfaced.
@@ -7237,6 +7248,7 @@ function _emitClusterSatellites(
       surfaceAnchorKey: wall?.surfaceAnchorKey?.(crystal),
       isSatellite: true,
       ...(spray ? { bladeSpray: true, sprayGroup: spray.group } : {}),
+      ...(crest ? { bariteCrest: true } : {}),
       ...(spray?.basal && i === 6 ? { ownsSatelliteMaterial: true } : {}),
       // === HELIX-OVERLAY-FORK ADDITION (v13) =========================
       // See proposals/HELIX-OVERLAY-FORK-CHANGES.md for the full
@@ -8642,6 +8654,9 @@ function _topoSyncCrystalMeshes(state: any, sim: any, wall: any, replayStep?: nu
     }
     // Ordinary gypsum/selenite and dolomite: defer until display dimensions
     // are known; recorded twins, hourglass sectors and curved forms keep priority.
+    const bariteR4 = !geom && crystal.mineral === 'barite' && !crystal.twinned && !crystal._surfaceGrowth
+      && !crystal._deformation
+      && ['tabular', 'bladed', 'cockscomb', 'prismatic'].includes(crystal.habit);
     const bladeRhombR4 = !geom && !crystal.twinned && !crystal._surfaceGrowth
       && (((crystal.mineral === 'gypsum' || crystal.mineral === 'selenite') && ['tablet', 'prism'].includes(token))
         || (crystal.mineral === 'dolomite' && token === 'rhomb'));
@@ -8762,6 +8777,16 @@ function _topoSyncCrystalMeshes(state: any, sim: any, wall: any, replayStep?: nu
       cLen = Math.max(renderC, O4_INCLUSION_MIN_MM);
       aWid = Math.max(renderA, O4_INCLUSION_MIN_MM);
     }
+    let bariteGeometry: any = null;
+    if (bariteR4 && cLen > 0) {
+      const key = '__barite_r4_' + crystal.habit + '_' + occF;
+      bariteGeometry = state.geomCache.get(key);
+      if (!bariteGeometry) {
+        bariteGeometry = makeBariteRenderGeometry(crystal.habit, occF);
+        if (bariteGeometry) state.geomCache.set(key, bariteGeometry);
+      }
+      if (bariteGeometry) { geom = bariteGeometry; mesh.geometry = geom; _o2ConvexGeom = true; }
+    }
     let bladeRhombGeometry: any = null;
     if (bladeRhombR4 && cLen > 0) {
       const ratio = Math.round(Math.max(0.25, Math.min(token === 'tablet' ? 0.9 : 0.6, aWid / cLen)) * 40) / 40;
@@ -8793,7 +8818,7 @@ function _topoSyncCrystalMeshes(state: any, sim: any, wall: any, replayStep?: nu
         applyQuartzStriations(mat, history);
       }
     }
-    if (quartzGeometry || bladeRhombGeometry) {
+    if (quartzGeometry || bladeRhombGeometry || bariteGeometry) {
       mesh.scale.set(cLen, cLen, cLen);
     } else if (token === 'cube' || token === 'octahedron' || token === 'tetrahedron' || token === 'rhombic_dodec' || token === 'dodecahedron' || token === 'snowball' || isWulffCalcite) {
       // isWulffCalcite (rung 4a.2): the calcite Wulff polyhedron already carries its true
@@ -8938,6 +8963,7 @@ function _topoSyncCrystalMeshes(state: any, sim: any, wall: any, replayStep?: nu
             clipped.geom.userData.bladeRhombR4 = mesh.geometry.userData.bladeRhombR4;
             if (crystal.mineral !== 'dolomite') gypsumCleavageHeight(clipped.geom, mesh.geometry.userData.bladeRhombR4.attachFrac);
           }
+          if (mesh.geometry.userData.bariteR4) clipped.geom.userData.bariteR4 = mesh.geometry.userData.bariteR4;
           mesh.geometry = clipped.geom;
           mesh.material = [mat, _o2ContactMaterial(mat, state)];
         }

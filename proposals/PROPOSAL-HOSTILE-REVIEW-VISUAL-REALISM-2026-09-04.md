@@ -926,6 +926,54 @@ counts, all stories, strip digest, mechanism testimony and claim cards remain
 unchanged; only executable-bound hashes and evidence references change. No new
 all-files cold CI run is claimed. Typecheck, exact build and release audits pass.
 
+**R4d barite habit separation, 2026-09-09:** The user explicitly cautioned that
+selenite-style intergrowth is only one possible barite arrangement. This slice
+does not install a species-wide spray. Ordinary fallback tabular, bladed,
+cockscomb and prismatic records now receive orthorhombic face geometry using the
+existing barite cell (8.879, 5.450, 7.152 Å). Plate forms use b along renderer Y;
+prismatic forms retain c along Y. {001}, {210}, {101}, {011} and supplementary
+pinacoids develop through plane distances, with uniform mesh scaling and the
+existing attachment policy. The proportions/bevel development are representative
+rendering parameters, not calibrated face kinetics. See the
+[Handbook of Mineralogy](https://www.handbookofmineralogy.org/pdfs/baryte.pdf)
+for barite's diverse tabular, prismatic and crested habits.
+
+Only the recorded `cockscomb` habit gets a compact crested row of overlapping
+plates with unequal heights and related lean. No formal twin law or new
+nucleation is asserted. Tabular/bladed/prismatic records retain their existing
+population layout. Used Wulff geometry, deformation, twins, split growth and
+surface aggregates keep priority. A Wulff tag on a cockscomb previously had no
+matching tablet route and still fell through to a generic pointed prism; that
+fallback now receives the crest. Snowball barite remains unchanged.
+
+Reviewed captures: `wittichen-s42-r4d-before` and `wittichen-s42-r4d-final`, crystal
+39; the final hero reuses the before manifest's camera (coordinates rounded to
+0.01 mm), with a separate broadside cluster diagnostic. `mvt-s42-r4d-tabular`
+shows crystal 8 remaining tabular. `elmwood-s42-r4d-control` retains snowballs;
+`tn457-s42-r4d-prismatic` retains a specialized growth form, so it is a preservation
+control, not visual acceptance of the new ordinary prismatic fallback. Ordinary
+prismatic proportions are geometry-tested; broader specimen-fidelity acceptance
+remains open. No material or weathering upgrade is claimed. Photo tooling now
+supports stable `--crystal-id` and `--camera-from` selection and reports barite
+form/crest metadata.
+
+The first browser evidence run completed its journeys but rejected the stale
+Chrome environment pin: the installed browser had updated from 152.0.7977.76 to
+152.0.7977.83. The executable SHA-256 was re-measured and the explicit pin updated;
+DevTools port-owner attestation and exact receipt verification remain required.
+
+158 focused tests pass (149 renderer, including 8 barite; 9 browser-receipt),
+covering metric normals, habit distinction, scars, shared solid interiors,
+routing and unchanged records. Fresh owned-browser generation/audit and the full
+Node 24.15.0 science rebake pass: 128 authenticated artifacts, 41 localities with
+zero unclassified products/contract violations, and 55 science tests. Frequency
+and seed-42 baselines, growth archives and strip digest are unchanged. The Chrome
+pin changes the browser authority hash in the mechanism receipt; regenerated
+claim cards change only their linked evidence hashes, not scientific testimony.
+Release generation/audit, typecheck and exact 182-module build check pass. This is
+focused validation plus the full science rebake, not an all-files cold CI run,
+and does not close R4.
+
 **Still open in R4:** true doubly terminated quartz routing, accessory s/x faces,
 full per-face growth histories, richer striations on specialized quartz forms,
 the other mineral tenants, chamfers, and the fleet-wide mis-shape acceptance gate.

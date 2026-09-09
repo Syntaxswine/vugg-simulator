@@ -145,15 +145,15 @@ const EXPECTED_FLAT_TOPOLOGY_PRODUCT = Object.freeze({
   surface_buffer_digest: 'cavity-surface-buffers-v2|Float32Array:228984:c2f1c90decc829bd|Float32Array:228984:397f58f553a99011|Float32Array:228984:3229382bd3a42621|Float32Array:152656:7bc3efc07d1af0da|Uint16Array:228960:d79e8c331c16b28b|',
   receipt_digest: 'be479746fe0dc8ba',
 });
-// ENVIRONMENT PIN — the canonical box's Chrome auto-updated 151.0.7922.173 → 152.0.7977.76
-// after the 2026-08-31 freeze; no receipt can be regenerated on the box without moving this
-// pin, so it moved with the 2026-09-05 rebake (executable sha256 measured on the installed
-// chrome.exe). This is a host fact, not a game change; the next Chrome update moves it again.
+// ENVIRONMENT PIN — Chrome auto-updated 152.0.7977.76 → 152.0.7977.83 on
+// the canonical box. Re-measured the installed chrome.exe SHA-256 for the
+// 2026-09-09 R4d rebake; live DevTools ownership attestation remains required.
+// This is a host fact, not a game change; the next Chrome update moves it again.
 const EXPECTED_BROWSER_RUNTIME = Object.freeze({
   schema: 'vugg-owned-devtools-browser-runtime-v2',
   executable_name: 'chrome.exe',
-  executable_sha256: '17b09f4c2e7806a05b0b648e7d459c3e3868f215adc93fa887adc3892bc704c0',
-  devtools_browser_product: 'Chrome/152.0.7977.76',
+  executable_sha256: 'caf423e184f0bcefe2ee5bef40539a3c005c63beb44e3321c0834929a13af733',
+  devtools_browser_product: 'Chrome/152.0.7977.83',
   devtools_protocol_version: '1.3',
 });
 

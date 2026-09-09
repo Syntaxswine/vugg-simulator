@@ -55257,6 +55257,59 @@ function applyGypsumCleavage(material) {
     };
 }
 
+// ── 46d-barite-render.js ──
+
+// R4d ordinary barite. Cell uses the existing structural/Wulff convention.
+// Habit-dependent plane distances are representative face development, not new
+// growth kinetics. HOM: baryte.pdf, {001}, {210}, {101}, {011} and diverse habits.
+function bariteRenderFaces(habit) {
+    const prismatic = habit === 'prismatic';
+    const width = habit === 'tabular' ? 0.78 : prismatic ? 0.48 : 0.30;
+    const thickness = habit === 'tabular' ? 0.18 : prismatic ? 0.40 : 0.075;
+    const faces = [];
+    for (const [hkl, family] of [[[1, 0, 0], '100'], [[0, 1, 0], '010'], [[0, 0, 1], '001'],
+        [[2, 1, 0], '210'], [[1, 0, 1], '101'], [[0, 1, 1], '011']]) {
+        for (const raw of wulffOrthorhombicNormals(hkl, 8.879, 5.450, 7.152)) {
+            // Plates stand along b; prisms retain c along Y. Both are rigid frames.
+            const n = prismatic ? raw : [raw[0], raw[2], raw[1]];
+            const support = Math.abs(n[0]) * width / 2 + Math.abs(n[1]) * 0.5 + Math.abs(n[2]) * thickness / 2;
+            const bevel = family.length === 3 && hkl.filter((v) => v !== 0).length > 1;
+            faces.push({ n, d: support * (bevel ? (family === '210' && !prismatic ? 0.87 : 0.94) : 1), family });
+        }
+    }
+    return faces;
+}
+function makeBariteRenderGeometry(habit, attachFrac) {
+    const faces = bariteRenderFaces(habit);
+    const full = wulffPolyhedron(faces);
+    if (!full || full.vertices.length < 4)
+        return null;
+    const ymax = Math.max(...full.vertices.map((v) => v[1]));
+    if (attachFrac > 0)
+        faces.push({ n: [0, -1, 0], d: ymax * (1 - 2 * attachFrac), family: 'scar' });
+    const poly = attachFrac > 0 ? wulffPolyhedron(faces) : full;
+    if (!poly || poly.vertices.length < 4)
+        return null;
+    const geom = _wulffPolyToGeom(poly, 0.5 / ymax);
+    if (!geom)
+        return null;
+    const normals = [];
+    for (const f of poly.faces)
+        for (let i = 0; i < (f.verts.length - 2) * 3; i++)
+            normals.push(...faces[f.plane].n);
+    geom.setAttribute('normal', new THREE.Float32BufferAttribute(normals, 3));
+    geom.userData.bariteR4 = { habit, attachFrac, frame: habit === 'prismatic' ? 'c-on-Y' : 'b-on-Y',
+        families: poly.faces.map((f) => faces[f.plane].family) };
+    return geom;
+}
+function bariteCrestMember(crystalId, index, count) {
+    const rand = _clusterRand(crystalId * 0x45d9f3b + (index + 1) * 0x27d4eb2d);
+    const along = (index - (count - 1) / 2);
+    return { x: along * 0.11, y: 0.015 + rand() * 0.06,
+        scale: 0.75 + rand() * 0.65, lean: along * 0.13 + (rand() - 0.5) * 0.06,
+        roll: (rand() - 0.5) * 0.12 };
+}
+
 // ── 50-engines-arsenate.js ──
 
 // ============================================================
@@ -118381,7 +118434,8 @@ parentOccF, parentMesh) {
     const bladeSpray = !!parentMesh && (geom.userData.bladeRhombR4?.mineral === 'selenite'
         || geom.userData.bladeRhombR4?.mineral === 'gypsum');
     const count = _clusterSatelliteCount(crystal, pattern, parentCLen);
-    const n = bladeSpray && count > 0 ? Math.min(9, count + 2) : count;
+    const bariteCrest = !!parentMesh && geom.userData.bariteR4?.habit === 'cockscomb';
+    const n = bladeSpray && count > 0 ? Math.min(9, count + 2) : bariteCrest && count > 0 ? Math.min(7, Math.max(5, count)) : count;
     if (n === 0)
         return;
     const rand = _clusterRand((crystal.crystal_id || 0) * 0x9E3779B9 + 0x12345);
@@ -118465,7 +118519,8 @@ parentOccF, parentMesh) {
             satNz = -dirZ;
         }
         const spray = bladeSpray ? gypsumSprayMember(crystal.crystal_id || 0, i) : null;
-        const sScale = spray ? (spray.basal ? 0.20 + spray.group * 0.015 : spray.scale) : pattern.scaleMin + scaleSpan * rand();
+        const crest = bariteCrest ? bariteCrestMember(crystal.crystal_id || 0, i, n) : null;
+        const sScale = crest ? crest.scale : spray ? (spray.basal ? 0.20 + spray.group * 0.015 : spray.scale) : pattern.scaleMin + scaleSpan * rand();
         const sCLen = parentCLen * sScale;
         const sAWid = parentAWid * sScale;
         // Tilt off the satellite's OWN local normal — magnitude per-habit.
@@ -118554,7 +118609,7 @@ parentOccF, parentMesh) {
         else {
             // R4 geometry already contains quartz's aspect and fixed face angles.
             // Satellites must preserve the parent's uniform-scale contract too.
-            if (geom.userData.quartzR4 || geom.userData.bladeRhombR4)
+            if (geom.userData.quartzR4 || geom.userData.bladeRhombR4 || geom.userData.bariteR4)
                 satMesh.scale.setScalar(sCLen);
             else
                 satMesh.scale.set(sAWid, sCLen, sAWid);
@@ -118593,6 +118648,16 @@ parentOccF, parentMesh) {
             }
             satMesh.position.set(ax, ay, az).add(root).addScaledVector(axis, sCLen * (0.5 - spray.burial));
         }
+        if (crest) {
+            // A crested row of overlapping plates, not a radial selenite spray.
+            // The habit record supplies the crest; no formal twin law is invented.
+            satMesh.quaternion.copy(parentMesh.quaternion);
+            satMesh.rotateZ(crest.lean);
+            satMesh.rotateY(crest.roll);
+            const axis = new THREE.Vector3(0, 1, 0).applyQuaternion(satMesh.quaternion);
+            const root = new THREE.Vector3(crest.x, crest.y, 0).multiplyScalar(parentCLen).applyQuaternion(parentMesh.quaternion);
+            satMesh.position.set(ax, ay, az).add(root).addScaledVector(axis, sCLen * (0.5 - (parentOccF || 0)));
+        }
         // Inherit parent userData so raycaster hit-test resolves a satellite
         // hit back to the parent crystal — clicking a satellite tooltips
         // the parent mineral, no per-satellite identity surfaced.
@@ -118608,6 +118673,7 @@ parentOccF, parentMesh) {
             surfaceAnchorKey: wall?.surfaceAnchorKey?.(crystal),
             isSatellite: true,
             ...(spray ? { bladeSpray: true, sprayGroup: spray.group } : {}),
+            ...(crest ? { bariteCrest: true } : {}),
             ...(spray?.basal && i === 6 ? { ownsSatelliteMaterial: true } : {}),
             // === HELIX-OVERLAY-FORK ADDITION (v13) =========================
             // See proposals/HELIX-OVERLAY-FORK-CHANGES.md for the full
@@ -120127,6 +120193,9 @@ function _topoSyncCrystalMeshes(state, sim, wall, replayStep) {
         }
         // Ordinary gypsum/selenite and dolomite: defer until display dimensions
         // are known; recorded twins, hourglass sectors and curved forms keep priority.
+        const bariteR4 = !geom && crystal.mineral === 'barite' && !crystal.twinned && !crystal._surfaceGrowth
+            && !crystal._deformation
+            && ['tabular', 'bladed', 'cockscomb', 'prismatic'].includes(crystal.habit);
         const bladeRhombR4 = !geom && !crystal.twinned && !crystal._surfaceGrowth
             && (((crystal.mineral === 'gypsum' || crystal.mineral === 'selenite') && ['tablet', 'prism'].includes(token))
                 || (crystal.mineral === 'dolomite' && token === 'rhomb'));
@@ -120249,6 +120318,21 @@ function _topoSyncCrystalMeshes(state, sim, wall, replayStep) {
             cLen = Math.max(renderC, O4_INCLUSION_MIN_MM);
             aWid = Math.max(renderA, O4_INCLUSION_MIN_MM);
         }
+        let bariteGeometry = null;
+        if (bariteR4 && cLen > 0) {
+            const key = '__barite_r4_' + crystal.habit + '_' + occF;
+            bariteGeometry = state.geomCache.get(key);
+            if (!bariteGeometry) {
+                bariteGeometry = makeBariteRenderGeometry(crystal.habit, occF);
+                if (bariteGeometry)
+                    state.geomCache.set(key, bariteGeometry);
+            }
+            if (bariteGeometry) {
+                geom = bariteGeometry;
+                mesh.geometry = geom;
+                _o2ConvexGeom = true;
+            }
+        }
         let bladeRhombGeometry = null;
         if (bladeRhombR4 && cLen > 0) {
             const ratio = Math.round(Math.max(0.25, Math.min(token === 'tablet' ? 0.9 : 0.6, aWid / cLen)) * 40) / 40;
@@ -120285,7 +120369,7 @@ function _topoSyncCrystalMeshes(state, sim, wall, replayStep) {
                 applyQuartzStriations(mat, history);
             }
         }
-        if (quartzGeometry || bladeRhombGeometry) {
+        if (quartzGeometry || bladeRhombGeometry || bariteGeometry) {
             mesh.scale.set(cLen, cLen, cLen);
         }
         else if (token === 'cube' || token === 'octahedron' || token === 'tetrahedron' || token === 'rhombic_dodec' || token === 'dodecahedron' || token === 'snowball' || isWulffCalcite) {
@@ -120434,6 +120518,8 @@ function _topoSyncCrystalMeshes(state, sim, wall, replayStep) {
                         if (crystal.mineral !== 'dolomite')
                             gypsumCleavageHeight(clipped.geom, mesh.geometry.userData.bladeRhombR4.attachFrac);
                     }
+                    if (mesh.geometry.userData.bariteR4)
+                        clipped.geom.userData.bariteR4 = mesh.geometry.userData.bariteR4;
                     mesh.geometry = clipped.geom;
                     mesh.material = [mat, _o2ContactMaterial(mat, state)];
                 }

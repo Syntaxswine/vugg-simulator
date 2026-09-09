@@ -437,6 +437,22 @@ single execution ledger for the science-first AAA completion branch.
   audits pass.
   Surface weathering and complete specimen fidelity remain open.
 
+  **R4d barite, 2026-09-09:** Preserve the user's habit distinction: no universal
+  selenite-like spray. Ordinary fallback tablets/blades/prisms receive metric
+  orthorhombic faces; only `cockscomb` receives a compact overlapping crest.
+  Used Wulff, twins, deformation, split forms and snowballs retain priority.
+  Correct the generic-prism fallback on cockscombs with unused Wulff tags.
+  Capture `wittichen-s42-r4d-final` uses crystal 39 and the before manifest camera;
+  MVT tabular and Elmwood snowball controls retained. TN457's prismatic specimen
+  is specialized and is only a preservation control. Ordinary prism proportions
+  are geometry-tested; broader visual acceptance and weathering remain open.
+  158 focused renderer/receipt tests and 55 science tests pass. Fresh browser
+  evidence and full science rebake pass (128 artifacts; zero locality violations).
+  Baselines, growth archives and strip digest are unchanged; claim cards only
+  relink evidence hashes after Chrome's .76 → .83 environment-pin update.
+  Release audit, typecheck and exact build check pass. All-files cold CI is not
+  claimed; the full R4 tranche remains open.
+
 - [ ] **Final visual polish — graphics quality and progressive refinement**
   (user decision 2026-09-07; defer implementation until the realism tranches finish).
   Add an Options quality control for slower computers and render a coarse, usable

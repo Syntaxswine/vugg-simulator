@@ -27,6 +27,8 @@
 //   node tools/photo-rig.mjs --scenario mvt --seed 42 --steps 200 --shots cavity,hero,druse
 //        --hero-n 3 --mineral calcite --size 1200x900 --wall solid|translucent|hidden
 //        --tilt 0.35,0.6 --zoom 1.0 --out DIR --keep-browser
+//   --crystal-id 39 --camera-from PATH/manifest.json
+//        (stable hero identity and prior manifest camera; saved coordinates are rounded)
 //   node tools/photo-rig.mjs --scenario elmwood --mood studio --exposure 1.2      (R1 lighting rig)
 //   node tools/photo-rig.mjs --scenario elmwood --experiment legacylight --label before
 //        (ablation: the pre-R1 two-light look on the same build — the before/after pair)
@@ -97,6 +99,8 @@ function parseArgs(argv) {
     else if (a === '--shots') out.shots = next().split(',').map(s => s.trim()).filter(Boolean);
     else if (a === '--hero-n') out.heroN = Number(next());
     else if (a === '--mineral') out.mineral = next();
+    else if (a === '--crystal-id') out.crystalId = Number(next());
+    else if (a === '--camera-from') out.cameraFrom = JSON.parse(readFileSync(path.resolve(ROOT, next()), 'utf8'));
     else if (a === '--size') out.size = next().split('x').map(Number);
     else if (a === '--wall') out.wall = next();
     else if (a === '--tilt') { out.tilt = next().split(',').map(Number); out.tiltGiven = true; }
@@ -609,6 +613,7 @@ const PAGE_HELPERS = `
         habit: cr ? cr.habit : null,
         twinned: !!cr?.twinned, twin_law: cr?.twin_law ?? null,
         blade_rhomb: m.geometry?.userData?.bladeRhombR4 ?? null,
+        barite_form: m.geometry?.userData?.bariteR4 ?? null, barite_crest: !!m.userData.bariteCrest,
         blade_spray: !!m.userData.bladeSpray, spray_group: m.userData.sprayGroup ?? null,
         token: (cr && typeof _habitGeomToken === 'function') ? _habitGeomToken(cr.habit) : null,
         c_length_mm: cr ? +Number(cr.c_length_mm).toFixed(3) : null,
@@ -948,9 +953,10 @@ const PAGE_HELPERS = `
     }
     return applied;
   };
-  RIG.pickHeroes = (n, mineral) => {
+  RIG.pickHeroes = (n, mineral, crystalId = null) => {
     const st = RIG.state();
-    const cands = st.crystals.children.filter(m => m.visible && RIG.isBody(m) && (!mineral || m.userData.mineral === mineral));
+    const cands = st.crystals.children.filter(m => m.visible && RIG.isBody(m) && (!mineral || m.userData.mineral === mineral)
+      && (crystalId == null || m.userData.crystal_id === crystalId));
     return cands.map(m => { const { size, center } = RIG.bbox(m); return { m, size, center, ext: Math.max(size.x, size.y, size.z) }; })
       .sort((a, b) => b.ext - a.ext).slice(0, n);
   };
@@ -1034,16 +1040,27 @@ function cavityShotProgram({ w, h, tilt, zoom, wall, experiment = [], mood = nul
   })()`;
 }
 
-function heroShotProgram({ w, h, index, n, mineral, wall, experiment = [], mood = null, exposure = null, tier = null, probe = [], view = 'process', ev = null }) {
+function heroShotProgram({ w, h, index, n, mineral, wall, experiment = [], mood = null, exposure = null, tier = null, probe = [], view = 'process', ev = null, crystalId = null, cameraFrom = null }) {
   return `(async () => {
     const RIG = window.__photoRig;
     const specimen = RIG.setView(${JSON.stringify(view)}, ${ev == null ? 'null' : Number(ev)});
     topoRender();
-    const heroes = RIG.pickHeroes(${n}, ${JSON.stringify(mineral)});
+    const heroes = RIG.pickHeroes(${n}, ${JSON.stringify(mineral)}, ${JSON.stringify(crystalId)});
     const hero = heroes[${index}];
     if (!hero) return null;
     const axis = RIG.axis(hero.m);
-    const cam = RIG.placeCamera(hero.center, hero.size, axis, {});
+    let cam = RIG.placeCamera(hero.center, hero.size, axis, {});
+    const savedManifest = ${JSON.stringify(cameraFrom)};
+    if (savedManifest) {
+      const saved = savedManifest.shots.find(s => s.subject?.crystal_id === hero.m.userData.crystal_id && s.camera?.mode === 'direct')?.camera;
+      if (!saved || ![...saved.position, ...saved.target, saved.fov].every(Number.isFinite)) throw new Error('No valid saved hero camera for this crystal');
+      const st = RIG.state();
+      st.camera.position.fromArray(saved.position); st.camera.up.copy(axis);
+      st.camera.lookAt(new THREE.Vector3(...saved.target)); st.camera.fov = saved.fov;
+      st.camera.near = Math.max(0.05, saved.dist * 0.02); st.camera.far = Math.max(5000, saved.dist * 50);
+      st.camera.updateProjectionMatrix();
+      cam = { ...saved, reused_manifest_camera: true };
+    }
     const rule = RIG.applyInsideRule(hero.center);
     ${wall === 'game' ? '' : `RIG.wallMode(${JSON.stringify(wall)});`}
     const lighting = RIG.applyLighting(${JSON.stringify(mood)}, ${exposure == null ? 'null' : Number(exposure)});
@@ -1267,7 +1284,7 @@ async function main() {
       }
     };
     for (const shot of args.shots) {
-      const common = { experiment: args.experiment, mood: args.mood, exposure: args.exposure, tier: args.tier, view: args.view, ev: args.ev, probe: args.probe || [] };
+      const common = { experiment: args.experiment, mood: args.mood, exposure: args.exposure, tier: args.tier, view: args.view, ev: args.ev, probe: args.probe || [], crystalId: args.crystalId, cameraFrom: args.cameraFrom };
       if (shot === 'cavity') {
         saveShot('cavity', await attempt('cavity', async () => withWallOnly(await page.job(cavityShotProgram({ w: W, h: H, tilt: args.tilt, zoom: args.zoom, wall: args.wall, tiltGiven: args.tiltGiven, zoomGiven: args.zoomGiven, ...common }), { label: 'cavity shot' }))));
       } else if (shot === 'specimen') {
