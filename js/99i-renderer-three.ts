@@ -7209,10 +7209,17 @@ function _emitClusterSatellites(
       const face = new THREE.Vector3(0, 0, 1).applyQuaternion(parentMesh.quaternion);
       face.addScaledVector(axis, -face.dot(axis));
       if (face.lengthSq() < 1e-6) face.set(1, 0, 0).applyQuaternion(parentMesh.quaternion).cross(axis);
-      face.normalize().applyAxisAngle(axis, (spray.group - 1) * 0.12);
+      face.normalize().applyAxisAngle(axis, [0, 0.65, -0.70][spray.group] + (spray.basal ? 0 : (i % 2) * 0.65));
       const cross = axis.clone().cross(face).normalize();
       satMesh.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(cross, axis, face));
       const root = new THREE.Vector3(...spray.root).multiplyScalar(parentCLen).applyQuaternion(parentMesh.quaternion);
+      if (!spray.basal) {
+        // Cross through the parent's body, rather than meeting tip-to-root
+        // at a common foot. The proximal part remains behind the intersection.
+        root.multiplyScalar(0.12)
+          .add(new THREE.Vector3(0, (i % 2 ? 0.38 : 0.22) * parentCLen, 0).applyQuaternion(parentMesh.quaternion))
+          .addScaledVector(axis, -Math.min(0.12 * parentCLen, sCLen * (1 - spray.burial) * 0.45));
+      }
       satMesh.position.set(ax, ay, az).add(root).addScaledVector(axis, sCLen * (0.5 - spray.burial));
     }
     // Inherit parent userData so raycaster hit-test resolves a satellite

@@ -136,7 +136,7 @@ describe('R4c gypsum blades and dolomite rhombs', () => {
     const parentRoot = root(parent);
     const normals = [];
     for (const m of blades) {
-      expect(root(m).distanceTo(parentRoot)).toBeLessThan(parent.scale.y * 0.04);
+      expect(root(m).distanceTo(parentRoot)).toBeLessThan(parent.scale.y * 0.45);
       normals.push(new THREE.Vector3(0, 0, 1).applyQuaternion(m.quaternion));
       expect(m.userData.crystal_id).toBe(parent.userData.crystal_id);
       if (m.geometry.userData.bladeRhombR4.development === 3) {
@@ -144,7 +144,10 @@ describe('R4c gypsum blades and dolomite rhombs', () => {
         expect(m.userData.naturalOpacity).toBe(1);
       } else expect(m.material).toBe(parent.material);
     }
-    for (let i = 0; i < 6; i += 2) expect(normals[i].dot(normals[i + 1])).toBeGreaterThan(0.96);
+    for (let i = 0; i < 6; i += 2) {
+      expect(normals[i].angleTo(normals[i + 1])).toBeGreaterThan(0.25);
+      expect(normals[i].angleTo(normals[i + 1])).toBeLessThan(1.5);
+    }
     expect(normals[0].angleTo(normals[4])).toBeGreaterThan(0.15);
     const sizes = blades.map((m: any) => m.scale.y);
     expect(Math.max(...sizes) / Math.min(...sizes)).toBeGreaterThan(1.8);
@@ -166,6 +169,37 @@ describe('R4c gypsum blades and dolomite rhombs', () => {
     _helixRestoreCrystalOpacity({ crystals: state.crystals });
     expect(rootOwner.material.transparent).toBe(false);
     expect(rootOwner.material.depthWrite).toBe(true);
+  });
+  it('interpenetrates the parent body with crossing blades rather than only touching at their roots', () => {
+    for (const [habit, id, width] of [['tabular', 1, 6], ['tabular', 17, 4], ['prismatic', 42, 1.2]] as const) {
+      const { state } = render('selenite', habit, { crystal_id: id, a_width_mm: width, _nucTilt: { theta: 0.35, azim: 1.2 } });
+      const parent = state.crystals.children.find((m: any) => !m.userData.isSatellite);
+      const blades = state.crystals.children.filter((m: any) => m.userData.bladeSpray
+        && m.geometry.userData.bladeRhombR4.development !== 3);
+      const inside = (mesh: any, point: any) => {
+        mesh.updateMatrixWorld(true);
+        const local = mesh.worldToLocal(point.clone());
+        const pos = mesh.geometry.attributes.position, normals = mesh.geometry.attributes.normal;
+        for (let i = 0; i < pos.count; i += 3) {
+          const n = new THREE.Vector3().fromBufferAttribute(normals, i);
+          const v = new THREE.Vector3().fromBufferAttribute(pos, i);
+          if (n.dot(local.clone().sub(v)) >= -1e-5) return false;
+        }
+        return true;
+      };
+      parent.updateMatrixWorld(true);
+      parent.geometry.computeBoundingBox();
+      const bounds = parent.geometry.boundingBox;
+      const hits = new Set();
+      // Sample the parent's interior; a projected silhouette overlap or a shared
+      // root contact cannot satisfy strict containment in both solid geometries.
+      for (let j = 1; j < 100; j++) {
+        const point = new THREE.Vector3(0, bounds.min.y + (bounds.max.y - bounds.min.y) * j / 100, 0)
+          .applyMatrix4(parent.matrixWorld);
+        if (inside(parent, point)) for (const blade of blades) if (inside(blade, point)) hits.add(blade);
+      }
+      expect(hits.size).toBeGreaterThanOrEqual(4);
+    }
   });
   it('accumulates alpha layers without disabling depth for opaque or transmission-tier materials', () => {
     for (const transparent of [true, false]) {

@@ -899,6 +899,33 @@ and evidence links change. The earlier fan rebake was deliberately interrupted
 after the user supplied the radial-intergrowth references. No new all-files
 cold CI run is claimed. Typecheck, exact build and release audits pass.
 
+**R4c interpenetration follow-up, 2026-09-08:** The user found the first radial
+spray closer but still missing selenite interpenetration. Shared roots and nearly
+parallel pairs left the blades reading as attached props. Projecting members now
+cross through the parent body at two interior heights, retaining visible length
+on both sides of the junction. Subsidiary blades have oblique axes and cleavage
+faces so they interrupt the larger faces in depth. The basal mass remains the
+cluster's foot. These are representative intergrowths within the existing record,
+not additional nucleations or asserted formal twin laws.
+
+Reviewed actual-render capture: `naica-s42-r4c-penetration-v4`, including the
+original hero camera and full-cluster broadside diagnostic. The new geometry
+regression requires strict shared solid interiors for at least four projecting
+members across multiple identities and tabular/prismatic proportions; projected
+overlap or root-only contact cannot satisfy it. The user accepted this increment
+as "much better" and requested a reusable skill for suitable barite/calcite forms.
+The personal `mineral-intergrowth` skill records the before/after case and keeps
+aggregate arrangement separate from species-specific geometry. Surface weathering
+and complete specimen fidelity remain open.
+
+Validation: 146 focused tests pass (137 renderer/special-form/optics tests plus
+9 browser-receipt tests), owned-browser workflow and exact receipt audit pass.
+Fresh science rebake passes with 55 science tests, 128 authenticated artifacts,
+all 41 scenarios and zero locality-contract violations. Frequencies, canonical
+counts, all stories, strip digest, mechanism testimony and claim cards remain
+unchanged; only executable-bound hashes and evidence references change. No new
+all-files cold CI run is claimed. Typecheck, exact build and release audits pass.
+
 **Still open in R4:** true doubly terminated quartz routing, accessory s/x faces,
 full per-face growth histories, richer striations on specialized quartz forms,
 the other mineral tenants, chamfers, and the fleet-wide mis-shape acceptance gate.

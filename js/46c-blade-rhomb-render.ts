@@ -108,8 +108,8 @@ function gypsumSprayMember(crystalId: number, index: number): any {
     width: 0.90 + local() * 0.70,
     endBias: Math.round((0.82 + local() * 0.36) * 20) / 20,
     tilt: index >= 6 ? 0.3 + local() * 0.2
-      : [0.50, 1.05, 1.35][group] + (common() - 0.5) * 0.10 + (local() - 0.5) * 0.08,
-    azimuth: [0.10, 2.25, 4.50][group] + (common() - 0.5) * 0.40 + (local() - 0.5) * 0.14,
+      : [0.50, 1.05, 1.35][group] + (index % 2) * 0.35 + (common() - 0.5) * 0.10 + (local() - 0.5) * 0.08,
+    azimuth: [0.10, 2.25, 4.50][group] + (index % 2) * 0.65 + (common() - 0.5) * 0.40 + (local() - 0.5) * 0.14,
     root: [(group - 1) * 0.018 + (local() - 0.5) * 0.012,
       -0.018, (local() - 0.5) * 0.014],
   };

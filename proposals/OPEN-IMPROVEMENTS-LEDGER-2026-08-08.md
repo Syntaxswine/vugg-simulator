@@ -421,6 +421,22 @@ single execution ledger for the science-first AAA completion branch.
   The earlier fan rebake was intentionally interrupted when the user's references
   changed the target. Surface weathering and full specimen fidelity remain open.
 
+  **R4c interpenetration follow-up, 2026-09-08:** User feedback rejected root-only
+  joining as insufficient. Blades now cross through the parent body at multiple
+  heights, with oblique subsidiary axes/cleavage faces interrupting larger faces.
+  No new simulation records or formal twin laws. Capture
+  `naica-s42-r4c-penetration-v4`; strict shared-volume regression covers multiple
+  identities and tabular/prismatic proportions. User accepted the increment;
+  reusable personal `mineral-intergrowth` skill created with the before/after
+  case and adaptation guidance for suitable barite/calcite forms. Validation:
+  146 focused tests, owned-browser validation and fresh science rebake pass;
+  55 science tests, 128 authenticated artifacts, all 41 scenarios, zero locality
+  contract violations. Simulation baselines/stories/digest, mechanism testimony
+  and claim cards are unchanged. Only executable hashes/evidence references change.
+  No new all-files cold CI run is claimed. Typecheck, exact build and release
+  audits pass.
+  Surface weathering and complete specimen fidelity remain open.
+
 - [ ] **Final visual polish — graphics quality and progressive refinement**
   (user decision 2026-09-07; defer implementation until the realism tranches finish).
   Add an Options quality control for slower computers and render a coarse, usable
