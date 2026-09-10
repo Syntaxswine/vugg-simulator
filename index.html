@@ -116013,46 +116013,111 @@ function _makeGalenaOctahedronTwin() {
 // frame. Repeated {110} reflection gives ~63.8 degrees between equivalent
 // orientations, not exact hexagonal symmetry. Cell matches structural.json.
 // Habit/twin reference: handbookofmineralogy.org/pdfs/aragonite.pdf.
-// Adjoining sectors use the same {110} planes at their boundaries. A small
-// overlap closes the display core; this is not a calibrated domain reconstruction.
-// Unequal face development exposes the separate terminations.
-function _makeAragonitePseudohexTwin() {
+// Adjoining sectors use the same {110} planes at their boundaries. Broad overlap
+// closes the display core; this is not a calibrated domain reconstruction.
+// The compact habit keeps the original basal anchor at -0.5, shortens exposed
+// height by 40%, and widens the body. Crown steps occupy the upper quarter.
+function _makeAragonitePseudohexTwin(aspect = 0.625) {
     const a = 4.9598, b = 7.9641, c = 5.7379;
     const angle = 2 * Math.atan(a / b);
     const positions = [], normals = [];
     const members = [];
+    const domains = [];
     for (let k = 0; k < 3; k++) {
-        const top = [0.5, 0.44, 0.47][k];
+        const top = [0.1, 0.05, 0.075][k];
         const faces = [];
         for (const [hkl, family, distance] of [
-            [[1, 1, 0], '110', 0.24], [[0, 1, 0], '010', 0.28],
+            [[1, 1, 0], '110', 0.36 * aspect], [[0, 1, 0], '010', 0.42 * aspect],
             [[0, 0, 1], '001', 0.5],
         ]) {
             for (const n of wulffOrthorhombicNormals(hkl, a, b, c)) {
-                const d = family === '110' && n[0] > 0 ? 0.025
+                const d = family === '110' && n[0] > 0 ? 0.12 * aspect
                     : family === '001' && n[1] > 0 ? top : distance;
                 faces.push({ n, d, family });
             }
         }
+        const envelope = wulffPolyhedron(faces);
+        // {011} termination faces start below the shallow stepped {001} caps.
+        // Distances control development; normals retain the reciprocal metric.
+        // Surface-family reference: doi:10.1039/C3CE41654B.
+        for (const n of wulffOrthorhombicNormals([0, 1, 1], a, b, c))
+            if (n[1] > 0) {
+                const support = Math.max(...envelope.vertices.map(v => n[0] * v[0] + n[1] * v[1] + n[2] * v[2]));
+                faces.push({ n, d: support - 0.12 * n[1], family: '011' });
+            }
         const poly = wulffPolyhedron(faces);
         const theta = k * (Math.PI - angle), ct = Math.cos(theta), st = Math.sin(theta);
         const rotate = (v) => [v[0] * ct - v[2] * st, v[1], v[0] * st + v[2] * ct];
-        const first = positions.length / 3;
-        for (const face of poly.faces) {
-            const n = rotate(faces[face.plane].n);
-            for (let j = 1; j < face.verts.length - 1; j++) {
-                for (const vi of [face.verts[0], face.verts[j], face.verts[j + 1]]) {
-                    positions.push(...rotate(poly.vertices[vi]));
-                    normals.push(...n);
+        domains.push({ theta, top, planes: faces.map(f => ({ n: rotate(f.n), d: f.d })),
+            polygons: poly.faces.map(f => ({ points: f.verts.map(vi => rotate(poly.vertices[vi])),
+                n: rotate(faces[f.plane].n), d: faces[f.plane].d })) });
+    }
+    // Render the union boundary. Buried sector faces otherwise remain visible
+    // through transmission and make this solid twin look like an open carton.
+    const dot = (n, p) => n[0] * p[0] + n[1] * p[1] + n[2] * p[2];
+    const subtract = (polygon, planes) => {
+        let inside = polygon;
+        const outside = [];
+        for (const plane of planes) {
+            const front = [], back = [];
+            for (let i = 0; i < inside.length; i++) {
+                const p = inside[i], q = inside[(i + 1) % inside.length];
+                let dp = dot(plane.n, p) - plane.d, dq = dot(plane.n, q) - plane.d;
+                if (Math.abs(dp) < 1e-9)
+                    dp = 0;
+                if (Math.abs(dq) < 1e-9)
+                    dq = 0;
+                if (dp >= 0)
+                    front.push(p);
+                if (dp <= 0)
+                    back.push(p);
+                if (dp * dq < 0) {
+                    const t = dp / (dp - dq), v = p.map((x, j) => x + t * (q[j] - x));
+                    front.push(v);
+                    back.push(v);
                 }
             }
+            if (front.length >= 3 && front.some(p => dot(plane.n, p) - plane.d > 1e-9))
+                outside.push(front);
+            inside = back;
+            if (inside.length < 3)
+                break;
         }
-        members.push({ theta, top, first, count: positions.length / 3 - first });
+        return outside;
+    };
+    for (let k = 0; k < domains.length; k++) {
+        const domain = domains[k], first = positions.length / 3;
+        for (const face of domain.polygons) {
+            let pieces = [face.points];
+            for (let j = 0; j < domains.length; j++) {
+                if (j === k)
+                    continue;
+                // Give coplanar overlap to the earlier sector, avoiding duplicate caps
+                // or a hole where both sectors remove the same shared basal patch.
+                if (j > k && domains[j].planes.some(p => Math.abs(dot(p.n, face.n) - 1) < 1e-9
+                    && Math.abs(p.d - face.d) < 1e-9))
+                    continue;
+                pieces = pieces.flatMap(p => subtract(p, domains[j].planes));
+            }
+            for (const p of pieces)
+                for (let j = 1; j < p.length - 1; j++) {
+                    const u = p[j].map((x, i) => x - p[0][i]), v = p[j + 1].map((x, i) => x - p[0][i]);
+                    const area = [u[1] * v[2] - u[2] * v[1], u[2] * v[0] - u[0] * v[2], u[0] * v[1] - u[1] * v[0]];
+                    if (dot(area, area) < 1e-18)
+                        continue;
+                    for (const point of [p[0], p[j], p[j + 1]]) {
+                        positions.push(...point);
+                        normals.push(...face.n);
+                    }
+                }
+        }
+        members.push({ theta: domain.theta, top: domain.top, planes: domain.planes,
+            first, count: positions.length / 3 - first });
     }
     const geom = new THREE.BufferGeometry();
     geom.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
     geom.setAttribute('normal', new THREE.Float32BufferAttribute(normals, 3));
-    geom.userData.aragoniteR4 = { members, angle, families: ['110', '010', '001'] };
+    geom.userData.aragoniteR4 = { members, angle, aspect, families: ['110', '010', '001', '011'] };
     return geom;
 }
 // Cerussite stellate-sixling — the flat-star counterpart to the
@@ -118584,7 +118649,7 @@ parentOccF, parentMesh) {
         else {
             // R4 geometry already contains quartz's aspect and fixed face angles.
             // Satellites must preserve the parent's uniform-scale contract too.
-            if (geom.userData.quartzR4 || geom.userData.bladeRhombR4 || geom.userData.bariteR4)
+            if (geom.userData.quartzR4 || geom.userData.bladeRhombR4 || geom.userData.bariteR4 || geom.userData.aragoniteR4)
                 satMesh.scale.setScalar(sCLen);
             else
                 satMesh.scale.set(sAWid, sCLen, sAWid);
@@ -120293,6 +120358,18 @@ function _topoSyncCrystalMeshes(state, sim, wall, replayStep) {
             cLen = Math.max(renderC, O4_INCLUSION_MIN_MM);
             aWid = Math.max(renderA, O4_INCLUSION_MIN_MM);
         }
+        let aragoniteGeometry = null;
+        if (geom.userData.aragoniteR4 && cLen > 0) {
+            const aspect = Math.round(Math.max(0.1, aWid / cLen) * 100) / 100;
+            const key = '__aragonite_compact_' + aspect;
+            aragoniteGeometry = state.geomCache.get(key);
+            if (!aragoniteGeometry) {
+                aragoniteGeometry = _makeAragonitePseudohexTwin(aspect);
+                state.geomCache.set(key, aragoniteGeometry);
+            }
+            geom = aragoniteGeometry;
+            mesh.geometry = geom;
+        }
         let bariteGeometry = null;
         if (bariteR4 && cLen > 0) {
             const key = '__barite_r4_' + crystal.habit + '_' + occF;
@@ -120344,7 +120421,7 @@ function _topoSyncCrystalMeshes(state, sim, wall, replayStep) {
                 applyQuartzStriations(mat, history);
             }
         }
-        if (quartzGeometry || bladeRhombGeometry || bariteGeometry) {
+        if (quartzGeometry || bladeRhombGeometry || bariteGeometry || aragoniteGeometry) {
             mesh.scale.set(cLen, cLen, cLen);
         }
         else if (token === 'cube' || token === 'octahedron' || token === 'tetrahedron' || token === 'rhombic_dodec' || token === 'dodecahedron' || token === 'snowball' || isWulffCalcite) {

@@ -467,6 +467,19 @@ single execution ledger for the science-first AAA completion branch.
   cold CI is not claimed. Ordinary aragonite forms and wider specimen fidelity
   remain open.
 
+  **R4e recognition correction, 2026-09-10:** User review rejected the preceding
+  tall, deeply notched twin. The display body is now 40% shorter and broader,
+  with shallow cap steps and metric {011} terminal faces. Aspect-aware geometry
+  with uniform scaling preserves inclined normals. Only the exposed union of
+  its three sectors is emitted; volume and buried-face tests cover overlap and
+  shared-base clipping. The controlled `aragonite-compact-v3` fixture documents
+  the change, without claiming a natural simulation outcome or user acceptance.
+  Validation: 179 renderer/geometry, 9 browser-receipt and 55 science tests pass;
+  fresh browser evidence and full Node 24.15.0 rebake authenticate 128 artifacts
+  with zero locality violations. Scientific baselines, archives and payloads are
+  unchanged. Release audit, typecheck and exact build check pass. R4 remains
+  open; all-files cold CI is not claimed.
+
 - [ ] **Final visual polish — graphics quality and progressive refinement**
   (user decision 2026-09-07; defer implementation until the realism tranches finish).
   Add an Options quality control for slower computers and render a coarse, usable

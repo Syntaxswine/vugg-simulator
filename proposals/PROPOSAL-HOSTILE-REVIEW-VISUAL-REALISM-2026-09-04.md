@@ -1016,6 +1016,34 @@ renderer/execution hashes and their manifest links. Release generation/audit,
 typecheck and exact 182-module build check pass. This is focused validation plus
 the full science rebake, not an all-files cold CI run; R4 remains open.
 
+**R4e recognition correction, 2026-09-10:** User review of `860b4e32`
+rejected the tall, narrow silhouette and deep central notch. The cyclic-twin
+display is now 40% shorter with the same basal anchor, broader sectors, and
+shallow unequal caps. Reciprocal-metric {011} faces begin below the caps to give
+the crown more of the exposed body. The geometry incorporates the recorded
+width/length ratio and uses uniform parent/satellite scaling, preserving those
+inclined face angles. These development distances remain display choices, not
+calibrated growth. The {011} surface family is supported by
+[Massaro et al., surface structure and twinning of aragonite](https://pubs.rsc.org/en/content/articlehtml/2014/ce/c3ce41654b).
+
+The three overlapping domains now emit only the union boundary. Buried faces
+are clipped; shared basal patches have one owner. A numerical union-volume
+check caught duplicate coplanar base fragments during development and now
+guards against that failure alongside winding and buried-face checks.
+`aragonite-compact-v3` reuses the preceding saved camera and explicitly labeled
+controlled fixture. It shows the shorter, wider body; angular crown seams remain
+visible, and user acceptance of natural-specimen recognition is still open.
+This correction does not change recorded growth or the other aragonite routes.
+
+Validation of the correction: 179 renderer/geometry tests, 9 browser-receipt
+tests, and 55 science tests pass. Fresh owned-browser generation/audit and the
+full Node 24.15.0 science rebake pass (128 authenticated artifacts; 41 locality
+envelopes, zero unclassified products or contract violations). Frequency and
+seed-42 baselines, growth archives, strip digest, claim cards and scientific
+payloads remain unchanged. Receipt changes are renderer/execution hashes and
+their manifest links. Release generation/audit, typecheck and the exact
+182-module build check pass. No all-files cold CI or broad R4 completion claim.
+
 **Still open in R4:** true doubly terminated quartz routing, accessory s/x faces,
 full per-face growth histories, richer striations on specialized quartz forms,
 the other mineral tenants, chamfers, and the fleet-wide mis-shape acceptance gate.
