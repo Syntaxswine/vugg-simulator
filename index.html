@@ -116009,75 +116009,50 @@ function _makeGalenaOctahedronTwin() {
     geom.computeVertexNormals();
     return geom;
 }
-// Aragonite pseudo-hex sextet — three tabular orthorhombic prisms at
-// 60° rotation around the c-axis (+Y), interpenetrating to produce a
-// pseudo-hexagonal column (Dana 8th ed. CaCO3 section; Speer 1983
-// "Aragonite" Reviews in Mineralogy v.11). Mirrors
-// PRIM_ARAGONITE_PSEUDOHEX_TWIN in 99c-renderer-primitives.ts for
-// cross-renderer parity. v133's twin_laws[].probability=0.40 means
-// ~40% of aragonite crystals carry crystal.twinned=true +
-// crystal.twin_law='cyclic_sextet'.
-//
-// Math: each prism is a tabular box with half-thickness a=0.10 and
-// half-width b=0.30 in its local (xl, zl) frame. Long axis +Y from
-// y=-L to y=+L (L=0.5 for the 99i convention centered at origin).
-// Prism k is rotated by k·60° around the y-axis:
-//   wx = xl·cos(θ_k) - zl·sin(θ_k)
-//   wz = xl·sin(θ_k) + zl·cos(θ_k)
-// for θ_k = k·π/3, k ∈ {0, 1, 2}.
-//
-// Why 3 crystals = "sextet": each tabular crystal contributes 2
-// {110}-type broad faces (one on each side), so 3 crystals × 2 = 6
-// visible faces around the column. The "sextet" terminology counts
-// faces, not crystals.
-//
-// Flat-shaded: 6 box faces × 2 triangles × 3 prisms = 36 triangles,
-// 108 vertex triples in the position attribute (324 floats).
+// R4e: metric aragonite prisms in the recorded cyclic twin's common c-axis
+// frame. Repeated {110} reflection gives ~63.8 degrees between equivalent
+// orientations, not exact hexagonal symmetry. Cell matches structural.json.
+// Habit/twin reference: handbookofmineralogy.org/pdfs/aragonite.pdf.
+// Adjoining sectors use the same {110} planes at their boundaries. A small
+// overlap closes the display core; this is not a calibrated domain reconstruction.
+// Unequal face development exposes the separate terminations.
 function _makeAragonitePseudohexTwin() {
-    const a = 0.10; // half-thickness (perp to broad face)
-    const b = 0.30; // half-width (parallel to broad face)
-    const L = 0.5; // half-length along c-axis (centered at origin)
-    const positions = [];
-    // Build each prism's 8 corners then emit 6 box faces as 12
-    // flat-shaded triangles. Same face-winding pattern as the
-    // fluorite-twin / swallowtail builders.
-    const pushPrism = (theta) => {
-        const cT = Math.cos(theta);
-        const sT = Math.sin(theta);
-        // 8 corners in (xl, yl, zl) loop order — xl ∈ {-a, +a},
-        // yl ∈ {-L, +L}, zl ∈ {-b, +b}. Same indexing as the cube helper
-        // in _makeFluoritePenetrationTwin so the face-winding rule
-        // transfers directly.
-        const v = [];
-        for (const xl of [-a, a]) {
-            for (const yl of [-L, L]) {
-                for (const zl of [-b, b]) {
-                    v.push([xl * cT - zl * sT, yl, xl * sT + zl * cT]);
+    const a = 4.9598, b = 7.9641, c = 5.7379;
+    const angle = 2 * Math.atan(a / b);
+    const positions = [], normals = [];
+    const members = [];
+    for (let k = 0; k < 3; k++) {
+        const top = [0.5, 0.44, 0.47][k];
+        const faces = [];
+        for (const [hkl, family, distance] of [
+            [[1, 1, 0], '110', 0.24], [[0, 1, 0], '010', 0.28],
+            [[0, 0, 1], '001', 0.5],
+        ]) {
+            for (const n of wulffOrthorhombicNormals(hkl, a, b, c)) {
+                const d = family === '110' && n[0] > 0 ? 0.025
+                    : family === '001' && n[1] > 0 ? top : distance;
+                faces.push({ n, d, family });
+            }
+        }
+        const poly = wulffPolyhedron(faces);
+        const theta = k * (Math.PI - angle), ct = Math.cos(theta), st = Math.sin(theta);
+        const rotate = (v) => [v[0] * ct - v[2] * st, v[1], v[0] * st + v[2] * ct];
+        const first = positions.length / 3;
+        for (const face of poly.faces) {
+            const n = rotate(faces[face.plane].n);
+            for (let j = 1; j < face.verts.length - 1; j++) {
+                for (const vi of [face.verts[0], face.verts[j], face.verts[j + 1]]) {
+                    positions.push(...rotate(poly.vertices[vi]));
+                    normals.push(...n);
                 }
             }
         }
-        const tri = (i, j, k) => {
-            _pushTri(positions, v[i][0], v[i][1], v[i][2], v[j][0], v[j][1], v[j][2], v[k][0], v[k][1], v[k][2]);
-        };
-        tri(0, 1, 3);
-        tri(0, 3, 2); // xl = -a face
-        tri(4, 6, 7);
-        tri(4, 7, 5); // xl = +a face
-        tri(0, 4, 5);
-        tri(0, 5, 1); // yl = -L face (bottom)
-        tri(2, 3, 7);
-        tri(2, 7, 6); // yl = +L face (top)
-        tri(0, 2, 6);
-        tri(0, 6, 4); // zl = -b face
-        tri(1, 5, 7);
-        tri(1, 7, 3); // zl = +b face
-    };
-    for (let k = 0; k < 3; k++) {
-        pushPrism(k * Math.PI / 3);
+        members.push({ theta, top, first, count: positions.length / 3 - first });
     }
     const geom = new THREE.BufferGeometry();
     geom.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
-    geom.computeVertexNormals();
+    geom.setAttribute('normal', new THREE.Float32BufferAttribute(normals, 3));
+    geom.userData.aragoniteR4 = { members, angle, families: ['110', '010', '001'] };
     return geom;
 }
 // Cerussite stellate-sixling — the flat-star counterpart to the
@@ -117116,7 +117091,7 @@ function _buildHabitGeom(token) {
             return _makeGalenaOctahedronTwin();
         case 'aragonite_pseudohex_twin':
             // v134 (2026-05-22) — fourth iconic twin. Three tabular
-            // orthorhombic prisms at 60° rotation around c-axis, producing
+            // metric orthorhombic prisms related by {110} twinning, producing
             // pseudo-hex column. Dispatch gated on mineral='aragonite' +
             // twinned + twin_law='cyclic_sextet'.
             return _makeAragonitePseudohexTwin();

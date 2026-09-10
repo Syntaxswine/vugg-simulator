@@ -1,100 +1,70 @@
-// tests-js/aragonite-pseudohex-twin-three.test.ts — 99i Three.js
-// parity for the aragonite cyclic-sextet pseudo-hex twin.
-//
-// Mirrors tests-js/aragonite-pseudohex-twin.test.ts on the 99i side.
-// Pins _resolveCrystalGeomToken dispatch + _buildHabitGeom geometry
-// for the 'aragonite_pseudohex_twin' token.
-//
-// Geometry: three tabular boxes at 60° rotation around y-axis.
-// Each box: half-thickness a=0.10, half-width b=0.30, half-length
-// L=0.5 (centered at origin per the 99i convention). 6 box faces ×
-// 2 triangles per face × 3 prisms = 36 triangles, 108 vertex triples.
-
+// R4e metric faces and repeated {110} orientations in the Three.js renderer.
+// The legacy 2D primitive remains a schematic; exact hex symmetry is not a
+// crystallographic requirement for this orthorhombic pseudohexagonal aggregate.
 import { describe, expect, it } from 'vitest';
+declare const _resolveCrystalGeomToken: any, _buildHabitGeom: any;
+declare const THREE: any, Crystal: any, WallState: any, _topoSyncCrystalMeshes: any;
 
-declare const _resolveCrystalGeomToken: any;
-declare const _buildHabitGeom: any;
-
-describe('aragonite-pseudohex-twin (99i) — geometry builder', () => {
-  it('_buildHabitGeom("aragonite_pseudohex_twin") returns a BufferGeometry', () => {
-    const geom = _buildHabitGeom('aragonite_pseudohex_twin');
-    expect(geom).toBeTruthy();
-    expect(geom.attributes).toBeTruthy();
-    expect(geom.attributes.position).toBeTruthy();
-  });
-
-  it('has 108 vertex triples (36 triangles × 3): 3 prisms × 12 triangles × 3', () => {
-    // 6 box faces × 2 triangles per face = 12 triangles per prism.
-    // 3 prisms = 36 triangles total. Each triangle has 3 (x, y, z)
-    // vertex triples → 108 triples = 324 floats in the position
-    // attribute.
-    const geom = _buildHabitGeom('aragonite_pseudohex_twin');
-    const positions = geom.attributes.position.array;
-    expect(positions.length).toBe(324);
-    expect(geom.attributes.position.count).toBe(108);
-  });
-
-  it('vertex Y coordinates span [-L, +L] (the c-axis half-length range)', () => {
-    // 99i convention: geometry centered at origin. The prism's
-    // bottom face at yl=-L=-0.5 and top face at yl=+L=+0.5. All
-    // vertices should fall in that Y range (within float tolerance).
-    const geom = _buildHabitGeom('aragonite_pseudohex_twin');
-    const p = geom.attributes.position.array;
-    let minY = Infinity, maxY = -Infinity;
-    for (let i = 1; i < p.length; i += 3) {
-      if (p[i] < minY) minY = p[i];
-      if (p[i] > maxY) maxY = p[i];
+describe('aragonite-pseudohex-twin (99i) — metric geometry', () => {
+  it('uses three adjoining sectors with stepped basal terminations', () => {
+    const g = _buildHabitGeom('aragonite_pseudohex_twin');
+    const p = g.attributes.position;
+    expect(g.userData.aragoniteR4.members).toHaveLength(3);
+    const tops = [];
+    for (const m of g.userData.aragoniteR4.members) {
+      let lo = Infinity, hi = -Infinity;
+      for (let i = m.first; i < m.first + m.count; i++) { lo = Math.min(lo, p.getY(i)); hi = Math.max(hi, p.getY(i)); }
+      expect(lo).toBeCloseTo(-0.5, 6); tops.push(hi);
     }
-    expect(minY).toBeCloseTo(-0.5, 4);
-    expect(maxY).toBeCloseTo(0.5, 4);
+    expect(Math.max(...tops)).toBeCloseTo(0.5, 6);
+    expect(new Set(tops.map(v => v.toFixed(4))).size).toBe(3);
   });
-
-  it('XZ cross-section is bounded by the radius √(a² + b²) ≈ 0.316', () => {
-    // The furthest XZ corner of each prism is at (±a, ±b) → radius
-    // √(0.01 + 0.09) ≈ 0.316. All rotated prism instances share that
-    // radius (rotation is rigid).
-    const geom = _buildHabitGeom('aragonite_pseudohex_twin');
-    const p = geom.attributes.position.array;
-    const rMax = Math.sqrt(0.10 * 0.10 + 0.30 * 0.30) + 1e-4;
-    for (let i = 0; i < p.length; i += 3) {
-      const r = Math.sqrt(p[i] * p[i] + p[i + 2] * p[i + 2]);
-      expect(r).toBeLessThanOrEqual(rMax);
-    }
-  });
-
-  it('has 3-fold rotational symmetry around the y-axis', () => {
-    // For every vertex (x, y, z), there should be another vertex at
-    // the same y, rotated 120° around y. This is a structural pin
-    // that the trilling is actually cyclic-symmetric.
-    const geom = _buildHabitGeom('aragonite_pseudohex_twin');
-    const p = geom.attributes.position.array;
-    const c120 = Math.cos(2 * Math.PI / 3);
-    const s120 = Math.sin(2 * Math.PI / 3);
-    // For each vertex, compute its 120°-rotated image and check that
-    // some vertex in the geometry is close to that image position.
-    // (Using a small sample for speed: every 9th vertex = every 3rd
-    // triangle.)
-    let matches = 0;
-    let checked = 0;
-    for (let i = 0; i < p.length; i += 27) {
-      const x = p[i], y = p[i + 1], z = p[i + 2];
-      const xr = x * c120 - z * s120;
-      const zr = x * s120 + z * c120;
-      // Search for matching vertex.
-      let found = false;
-      for (let j = 0; j < p.length; j += 3) {
-        if (Math.abs(p[j] - xr) < 1e-4 && Math.abs(p[j + 1] - y) < 1e-4 && Math.abs(p[j + 2] - zr) < 1e-4) {
-          found = true;
-          break;
+  it('preserves the reciprocal-metric {110} face angle in every member', () => {
+    const g = _buildHabitGeom('aragonite_pseudohex_twin'), ns = g.attributes.normal;
+    const angle = g.userData.aragoniteR4.angle;
+    expect(angle * 180 / Math.PI).toBeGreaterThan(63);
+    expect(angle * 180 / Math.PI).toBeLessThan(65);
+    for (const m of g.userData.aragoniteR4.members) {
+      let oblique = 0;
+      for (let i = m.first; i < m.first + m.count; i++) {
+        const x = ns.getX(i) * Math.cos(m.theta) + ns.getZ(i) * Math.sin(m.theta);
+        const z = -ns.getX(i) * Math.sin(m.theta) + ns.getZ(i) * Math.cos(m.theta);
+        if (Math.abs(x) > 1e-5 && Math.abs(z) > 1e-5) {
+          expect(Math.abs(x / z)).toBeCloseTo(7.9641 / 4.9598, 5); oblique++;
         }
       }
-      if (found) matches++;
-      checked++;
+      expect(oblique).toBeGreaterThan(0);
     }
-    expect(matches).toBe(checked);
+  });
+  it('has outward winding, unit normals and a shared solid interior', () => {
+    const g = _buildHabitGeom('aragonite_pseudohex_twin'), p = g.attributes.position, ns = g.attributes.normal;
+    for (let i = 0; i < p.count; i += 3) {
+      const n = [ns.getX(i), ns.getY(i), ns.getZ(i)];
+      expect(Math.hypot(...n)).toBeCloseTo(1, 6);
+      // The origin is strictly behind every outward face in all three members.
+      expect(n[0]*p.getX(i)+n[1]*p.getY(i)+n[2]*p.getZ(i)).toBeGreaterThan(0.02);
+      const u = [p.getX(i+1)-p.getX(i),p.getY(i+1)-p.getY(i),p.getZ(i+1)-p.getZ(i)];
+      const v = [p.getX(i+2)-p.getX(i),p.getY(i+2)-p.getY(i),p.getZ(i+2)-p.getZ(i)];
+      expect((u[1]*v[2]-u[2]*v[1])*n[0]+(u[2]*v[0]-u[0]*v[2])*n[1]+(u[0]*v[1]-u[1]*v[0])*n[2]).toBeGreaterThan(0);
+    }
+  });
+  it('reaches the production mesh at different sizes without changing the scientific record', () => {
+    for (const [id, length, width] of [[11, 4, 2], [29, 9, 6]]) {
+      const wall = new WallState({ vug_diameter_mm: 70, shape_seed: 42 });
+      const crystal = new Crystal({ mineral: 'aragonite', habit: 'columnar', crystal_id: id, nucleation_step: 1 });
+      Object.assign(crystal, { twinned: true, twin_law: 'cyclic_sextet', growth_environment: 'fluid',
+        c_length_mm: length, a_width_mm: width, total_growth_um: length * 1000,
+        wall_anchor: wall._anchorFromRingCell(6, 12) });
+      const before = JSON.stringify([crystal.zones, crystal.c_length_mm, crystal.a_width_mm, crystal.twin_law]);
+      const state = { geomCache: new Map(), crystals: new THREE.Group(), clipUniforms: { uVugRadius: { value: 35 } } };
+      _topoSyncCrystalMeshes(state, { crystals: [crystal], step: 100 }, wall);
+      const bodies = state.crystals.children.filter((m: any) => m.geometry.userData.aragoniteR4);
+      expect(bodies.length).toBeGreaterThan(0);
+      for (const body of bodies) expect(body.scale.x).toBe(body.scale.z); // prism cross-section stays metric
+      expect(JSON.stringify([crystal.zones, crystal.c_length_mm, crystal.a_width_mm, crystal.twin_law])).toBe(before);
+    }
   });
 });
-
 describe('aragonite-pseudohex-twin (99i) — _resolveCrystalGeomToken dispatch', () => {
   function mkAragonite(opts: Record<string, any> = {}) {
     return {

@@ -453,6 +453,20 @@ single execution ledger for the science-first AAA completion branch.
   Release audit, typecheck and exact build check pass. All-files cold CI is not
   claimed; the full R4 tranche remains open.
 
+  **R4e aragonite cyclic twin, 2026-09-09:** Three.js now constructs adjoining
+  metric {110} sectors with stepped {001} terminations instead of exact-60-degree
+  crossed boxes. Derived orientations use the existing orthorhombic cell; sector
+  overlap and heights are representative display development. Recorded fluid
+  cyclic twins alone use it; ordinary habits, contact twins, cave frostwork and
+  the 2D schematic retain their routes. Final photos use an explicitly labeled
+  controlled trilling fixture, plus unmodified travertine/cave controls; no natural
+  trilling simulation outcome is claimed. 185 focused tests and 55 science tests
+  pass, with fresh browser evidence and full science rebake (128 artifacts; zero
+  locality violations). Baselines, archives, claim cards and scientific payloads
+  are unchanged. Release audit, typecheck and exact build check pass; all-files
+  cold CI is not claimed. Ordinary aragonite forms and wider specimen fidelity
+  remain open.
+
 - [ ] **Final visual polish — graphics quality and progressive refinement**
   (user decision 2026-09-07; defer implementation until the realism tranches finish).
   Add an Options quality control for slower computers and render a coarse, usable

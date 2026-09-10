@@ -974,6 +974,48 @@ Release generation/audit, typecheck and exact 182-module build check pass. This 
 focused validation plus the full science rebake, not an all-files cold CI run,
 and does not close R4.
 
+**R4e aragonite cyclic twin, 2026-09-09:** Replace the Three.js cyclic-sextet
+builder's three exact-60-degree rectangular boxes with adjoining orthorhombic
+sectors. The existing structural cell (4.9598, 7.9641, 5.7379 Å, c on renderer Y)
+sets reciprocal-metric {110} normals. Repeated reflection gives the derived
+116.17-degree sector orientation step (equivalent basal orientation difference
+63.83 degrees about their shared c-axis), rather than exact hexagonal symmetry.
+{110} sector boundaries overlap
+slightly at the core; unequal {001} termination heights expose the members.
+{010} planes remain in the construction. Face distances, small boundary overlap
+and relative heights are representative display parameters, not calibrated twin
+domain growth or a new simulation mechanism. Reference:
+[Handbook of Mineralogy: aragonite](https://www.handbookofmineralogy.org/pdfs/aragonite.pdf).
+
+Routing remains restricted to the existing fluid-mode `cyclic_sextet` record.
+Air-mode frostwork, ordinary habits, contact twins and the legacy 2D schematic
+remain unchanged. No species-wide aggregate substitution or material change.
+
+Visual evidence: `aragonite-r4e-clean-before` versus `aragonite-r4e-final` reuses
+the same saved hero camera (rounded coordinates), with isolated and broadside
+diagnostics. These are **controlled display fixtures**, not naturally simulated
+trillings: the photo rig substitutes a fresh 8-by-5-mm twinned aragonite record at
+the travertine aragonite anchor and labels its manifest accordingly. The first
+fixture attempt inherited specialized-growth tags and was invalid for this
+comparison; the fresh record fixes that. An intermediate full-prism arrangement
+still looked star-shaped and was replaced by the adjoining sectors. Unmodified
+`aragonite-r4e-travertine-control` and `aragonite-r4e-cave-control` preserve their
+existing forms; all final captures report zero browser exceptions. Broader
+natural-specimen fidelity, contact-twin correction and ordinary aragonite forms
+remain open.
+
+Validation: 185 focused tests pass (176 renderer/geometry, 9 browser-receipt),
+including metric normals, outward winding, connected solid interiors, stepped
+terminations, production mesh routing at two sizes, preserved records and the
+existing air/contact-twin dispatch guards. Fresh owned-browser generation/audit
+and the complete Node 24.15.0 science rebake pass: 128 authenticated artifacts,
+41 localities with zero unclassified products or contract violations, and 55
+science tests. Frequency/seed-42 baselines, growth archives, strip digest, claim
+cards and scientific receipt payloads are unchanged; receipt differences are
+renderer/execution hashes and their manifest links. Release generation/audit,
+typecheck and exact 182-module build check pass. This is focused validation plus
+the full science rebake, not an all-files cold CI run; R4 remains open.
+
 **Still open in R4:** true doubly terminated quartz routing, accessory s/x faces,
 full per-face growth histories, richer striations on specialized quartz forms,
 the other mineral tenants, chamfers, and the fleet-wide mis-shape acceptance gate.

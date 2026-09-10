@@ -29,6 +29,8 @@
 //        --tilt 0.35,0.6 --zoom 1.0 --out DIR --keep-browser
 //   --crystal-id 39 --camera-from PATH/manifest.json
 //        (stable hero identity and prior manifest camera; saved coordinates are rounded)
+//   --fixture aragonite-trilling
+//        (controlled display-only twin fixture; manifest explicitly marks modified records)
 //   node tools/photo-rig.mjs --scenario elmwood --mood studio --exposure 1.2      (R1 lighting rig)
 //   node tools/photo-rig.mjs --scenario elmwood --experiment legacylight --label before
 //        (ablation: the pre-R1 two-light look on the same build — the before/after pair)
@@ -100,6 +102,10 @@ function parseArgs(argv) {
     else if (a === '--hero-n') out.heroN = Number(next());
     else if (a === '--mineral') out.mineral = next();
     else if (a === '--crystal-id') out.crystalId = Number(next());
+    else if (a === '--fixture') {
+      out.fixture = next();
+      if (out.fixture !== 'aragonite-trilling') throw new Error('Unknown photo fixture');
+    }
     else if (a === '--camera-from') out.cameraFrom = JSON.parse(readFileSync(path.resolve(ROOT, next()), 'utf8'));
     else if (a === '--size') out.size = next().split('x').map(Number);
     else if (a === '--wall') out.wall = next();
@@ -614,6 +620,7 @@ const PAGE_HELPERS = `
         twinned: !!cr?.twinned, twin_law: cr?.twin_law ?? null,
         blade_rhomb: m.geometry?.userData?.bladeRhombR4 ?? null,
         barite_form: m.geometry?.userData?.bariteR4 ?? null, barite_crest: !!m.userData.bariteCrest,
+        aragonite_form: m.geometry?.userData?.aragoniteR4 ?? null,
         blade_spray: !!m.userData.bladeSpray, spray_group: m.userData.sprayGroup ?? null,
         token: (cr && typeof _habitGeomToken === 'function') ? _habitGeomToken(cr.habit) : null,
         c_length_mm: cr ? +Number(cr.c_length_mm).toFixed(3) : null,
@@ -983,7 +990,7 @@ const PAGE_HELPERS = `
   true;
 `;
 
-function runProgram(name, seed, steps) {
+function runProgram(name, seed, steps, fixture = null) {
   return `(async () => {
     ${PAGE_HELPERS}
     if (!SCENARIOS[${JSON.stringify(name)}]) throw new Error('unknown scenario ' + ${JSON.stringify(name)});
@@ -995,6 +1002,17 @@ function runProgram(name, seed, steps) {
     // Yield every few steps so the debugger poll can run (the page stays responsive).
     for (let i = 0; i < steps; i++) { sim.run_step(); if (i % 8 === 7) await new Promise(r => setTimeout(r, 0)); }
     const simMs = performance.now() - t0;
+    if (${JSON.stringify(fixture)} === 'aragonite-trilling') {
+      const index = sim.crystals.findIndex(c => c.mineral === 'aragonite');
+      if (index < 0) throw new Error('Trilling fixture requires an existing aragonite anchor');
+      const original = sim.crystals[index];
+      const crystal = new Crystal({ mineral: 'aragonite', habit: 'columnar',
+        crystal_id: original.crystal_id, nucleation_step: original.nucleation_step });
+      Object.assign(crystal, { habit: 'columnar', twinned: true, twin_law: 'cyclic_sextet',
+        growth_environment: 'fluid', c_length_mm: 8, a_width_mm: 5,
+        total_growth_um: 8000, wall_anchor: original.wall_anchor });
+      sim.crystals[index] = crystal;
+    }
     if (typeof _topoUseThreeRenderer !== 'undefined' && !_topoUseThreeRenderer) _topoUseThreeRenderer = true;
     _topoSyncThreeCanvasVisibility();
     const renderStart = performance.now();
@@ -1227,11 +1245,12 @@ async function main() {
     mkdirSync(outDir, { recursive: true });
 
     process.stderr.write(`[photo-rig] running ${args.scenario} seed ${args.seed}…\n`);
-    const run = await page.job(runProgram(args.scenario, args.seed, args.steps), { label: 'scenario run', timeoutMs: 900_000 });
+    const run = await page.job(runProgram(args.scenario, args.seed, args.steps, args.fixture), { label: 'scenario run', timeoutMs: 900_000 });
     process.stderr.write(`[photo-rig] ${run.steps} steps in ${run.simMs} ms · ${run.crystals} crystals · ${run.meshes} meshes · GL ${run.gl?.renderer}\n`);
 
     const manifest = {
       schema: 1, tool: 'tools/photo-rig.mjs', generated: new Date().toISOString(),
+      ...(args.fixture ? { fixture: args.fixture, testimony: 'controlled display fixture; modified crystal record, not a simulated outcome' } : {}),
       scenario: args.scenario, seed: args.seed, steps: run.steps, sim_version: run.sim_version,
       render_build_ms: run.renderBuildMs,
       render_reuse_ms: run.renderReuseMs,
