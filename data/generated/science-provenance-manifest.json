@@ -127,10 +127,10 @@
   },
   "science_evidence": {
     "path": "archive/evidence/v285.json",
-    "sha256": "008b5b036a4daa5a858a845f8aeb348b5a292af9a3b5ec587a62926faa6bb08c",
+    "sha256": "d0b53116313ef3ec5a08ab2a13cdddde69f839d26fd31c4ba5f5db2bda151cc8",
     "schema": "vugg-science-evidence-receipt-v2",
-    "browser_bundle_sha256": "63ea5729e73bf22738ed320278de1d937cec5fbc8cc02325f1bf923f7f14b854",
-    "execution_set_sha256": "5454ce7b8df83c40a257b64b155c41776da588512566e17fa6d5e9f2beb52d3f",
+    "browser_bundle_sha256": "47954069f59dd2b4ee3768789a1be9be91e9ade784b0222a3f4708c7f51c6d8f",
+    "execution_set_sha256": "b46ff6ec0dc72684735a31eddfd121f6c60a2c0f89b004a08d9c7928bd88cfce",
     "node_runtime": {
       "schema": "vugg-evidence-node-runtime-v1",
       "node": "24.15.0",
@@ -146,11 +146,11 @@
       "strip-archive": "198c4846e3cbee7430a15b320c2c8f57e8d33d4d13d163a2caf69a84581e995e",
       "locality-frequency": "4012da7d90b3d8f74ac310d23217fdd686ecbf9b72b21a109f2965e05a731db5",
       "strip-digest": "8a0964a47a4d54bdba33bd9acd2b56d6877121a5ae91d8b57d00c892396104df",
-      "claim-cards": "b21a25b9f04a874cadaf95f70c615d3d5eca831448c082aefe8e1c9a99d9fc9e",
-      "mechanism-witnesses": "66e66463c70c1c7eedda205a18246533e23423ef1902c1a2389a882d2a042d49",
-      "science-provenance": "ebfd55ec2dff7b9b2749aa89788701f676e79c5147ede3bb49dc5c5c46b695fd",
-      "science-receipt": "779e6d06848f000991baa99009e9ab982c408743f3ef32b6579aa51fa4e6f8b9",
-      "guided-tutorial-browser": "df30f2f83e66ce5fc57d0bc4a39c9ec0d4b38c96f525cc401bdbc15c4c3c7840"
+      "claim-cards": "f2966546966ebb83d0ce11f7065be405e4506c68d85681f3009683d9395217c6",
+      "mechanism-witnesses": "349a7b580eeabc66bc75b52a5e2a925b68f62be34bab17f0d61bd48accb837d0",
+      "science-provenance": "57a314352fd704b78b3341cfb672ab55d5fed3c9199a1112b0673d0d100b5c76",
+      "science-receipt": "51e61c83833f48a0338d4aeaf8914b29e3d57dfeb8db4d8fe6e97825bc4a0584",
+      "guided-tutorial-browser": "64d539e8d101968cf9afd047afa9b3a7eb95e97150b63e99238457751596e09d"
     },
     "artifact_count": 128
   },

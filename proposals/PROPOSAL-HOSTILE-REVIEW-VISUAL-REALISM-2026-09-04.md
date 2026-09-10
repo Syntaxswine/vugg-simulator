@@ -1088,10 +1088,67 @@ and its mechanism-witness link. Release generation/audit, typecheck and exact
 183-module build check pass. This is focused validation plus a full science
 rebake, not all-files cold CI; R4 and user visual acceptance remain open.
 
-**Still open in R4:** true doubly terminated quartz routing, accessory s/x faces,
+**R4g form finishing, 2026-09-10:** Topaz prism planes now run to a flat buried
+root; shallower upper domes reduce the shoulder that read as a fused second
+crystal. The original Shigar crystal 13 is compared at the same saved camera
+in `r4f-topaz-final/hero-2-topaz-isolated.png` and
+`r4g-topaz-v2/hero-1-topaz-isolated.png`. These are unmodified scenario records.
+The glass/refraction model is unchanged; user visual acceptance remains open.
+
+Explicit `doubly_terminated` quartz records now remove the attachment scar and
+construct the opposite r/z end using point-group-32 C2 rotation, preserving
+family identity. This does not add a new simulated habit-selection mechanism.
+Ordinary aragonite uses one complete orthorhombic domain; contact twins use two
+domains sharing c across {110}, replacing the tilted square-bar V. The accepted
+cyclic three-domain construction retains its default development. The old 2D
+schematic is unchanged. `r4g-quartz-double-final`, `r4g-aragonite-ordinary` and
+`r4g-aragonite-contact` are explicitly controlled fresh-record fixtures, not
+claims of naturally generated specimens.
+
+The default-habit audit now reports 4 nonhexagonal fallback flags (previously
+21), zero cubic-prism flags (previously 5), and two unknown-system fabrics.
+Fifteen needle/fibre tenants now reach the existing system-aware prism fallback;
+these are coarse crystal-system shapes, not individual metric reconstructions.
+Cobaltite and microscopic awaruite defaults use cubes; native silver wire uses
+a capped curved tube. Existing native dendrites retain their branching geometry;
+the audit now accounts for that production path. Anthophyllite is explicitly
+orthorhombic: its description compares it with monoclinic amosite, which confused
+the keyword scan ([Handbook](https://www.handbookofmineralogy.org/pdfs/anthophyllite.pdf)).
+The four remaining flags are birnessite, hydrozincite, tyuyamunite and coffinite;
+tiger's-eye and tincalconite remain unknown to this audit. Crust/replacement
+coverage needs dedicated review. This passive default-habit audit is not a
+fleet-wide visual acceptance certificate.
+
+Closed convex faceted bodies gain geometric chamfers at 0.5% of their shortest
+local extent, with interpolated custom attributes and cached geometry. Open,
+concave, inclusion and high-complexity meshes retain their specialized paths
+(the helper rejects more than 32 source planes or 1200 vertices). This is not
+universal edge coverage. Bisbee seed 42 at 340 steps records 10.665 s cold build,
+13.6 ms cached redraw and 6.7 ms median frame on RTX 3080, with zero exceptions.
+That is within the earlier approximately 11 s / 15 ms budget; slow hardware is
+still unmeasured. Graphics options and progressive refinement stay deferred.
+
+R4g browser evidence: geometry allocations move the observed collection ID
+from `cry-16-6mp` to `cry-16-8iq` at collection and Record Groove (existing F13
+shared UUID/random-stream debt). Those are the only journey differences;
+simulation fingerprints, run IDs and strip digests are unchanged. Exact pins
+were updated to the observed value, followed by fresh owned-browser generation,
+receipt audit and nine passing receipt tests. Receipts were not edited by hand.
+
+R4g validation: 180 focused geometry/renderer tests, nine browser-receipt tests
+and 55 science tests pass (244 total). The seven finishing tests were rerun
+after correcting anthophyllite's system. Fresh Node 24.15.0 science rebake
+passes: 128 authenticated artifacts, 41 locality envelopes, zero unclassified
+products and zero contract violations. Frequency/seed-42 baselines, all growth
+archives and the strip digest are unchanged. All 41 claim-card JSONs differ only
+in linked artifact payload hashes. The five final photo sets contain their
+expected shots and zero browser exceptions. Release generation/audit, typecheck
+and exact 184-module build check pass. All-files cold CI is not claimed.
+
+**Still open in R4:** topaz user acceptance, optional quartz s/x faces,
 full per-face growth histories, richer striations on specialized quartz forms,
-the other mineral tenants, chamfers, and the fleet-wide mis-shape acceptance gate.
-These delivered slices do not mark the whole R4 rung complete.
+remaining crust/replacement forms, broader chamfer coverage and visual fleet
+acceptance. These delivered slices do not mark the whole R4 rung complete.
 
 **Next tranche selected 2026-09-07:** begin with quartz (R4a), following the
 R3c connected-crust delivery `f1440235`. R3's remaining mass-sized druse work

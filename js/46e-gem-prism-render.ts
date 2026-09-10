@@ -32,14 +32,14 @@ function gemPrismRenderFaces(mineral: string, ratio: number, variant = 0): any[]
   } else add([1, 0, 0], 0.5*ratio, '100');
   const envelope = wulffPolyhedron(faces);
   const forms: any[] = mineral === 'topaz'
-    ? [[[0, 1, 1], '011', variant % 2 === 0 ? 0.23 : 0.42],
+    ? [[[0, 1, 1], '011', variant % 2 === 0 ? 0.20 : 0.28],
       [[0, 2, 1], '021', 0.16], [[1, 1, 1], '111', 0.12]]
     : [[[1, 0, 1], '101', 0.22]];
   for (const [hkl, family, amount] of forms) {
     for (const n of gemPrismNormals(mineral, hkl)) {
       const support = Math.max(...envelope.vertices.map(v => n[0]*v[0]+n[1]*v[1]+n[2]*v[2]));
       // Bevel depth scales with width, with a height cap for tabular records.
-      const depth = Math.min(0.36, ratio*amount);
+      const depth = Math.min(mineral === 'topaz' ? 0.24 : 0.36, ratio*amount);
       faces.push({ n, d: support-Math.abs(n[1])*depth, family });
     }
   }
@@ -47,7 +47,11 @@ function gemPrismRenderFaces(mineral: string, ratio: number, variant = 0): any[]
 }
 
 function makeGemPrismRenderGeometry(mineral: string, ratio: number, attachFrac: number, variant = 0): any {
-  const faces = gemPrismRenderFaces(mineral, ratio, variant);
+  // A wall-rooted topaz has one free termination. Lower dome facets made
+  // the attachment read as a second fused crystal. Carry each prism face
+  // continuously into the flat root; preserve all upper terminal normals.
+  const faces = gemPrismRenderFaces(mineral, ratio, variant).filter(f =>
+    mineral !== 'topaz' || f.n[1] >= 0 || f.family === '001');
   if (attachFrac > 0) faces.push({ n: [0, -1, 0],
     d: 0.5-Math.max(0.05, Math.min(0.95, attachFrac)), family: 'scar' });
   const poly = wulffPolyhedron(faces), geom = _wulffPolyToGeom(poly, 1);

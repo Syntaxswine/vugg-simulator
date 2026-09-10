@@ -1,5 +1,5 @@
 // tests-js/aragonite-contact-twin-three.test.ts — 99i parity for the
-// aragonite contact {110} single-V variant.
+// aragonite contact {110} shared-c-axis variant.
 
 import { describe, expect, it } from 'vitest';
 
@@ -14,12 +14,13 @@ describe('aragonite-contact-twin (99i) — geometry builder', () => {
     expect(geom.attributes.position).toBeTruthy();
   });
 
-  it('has 72 vertex triples (V-pair: 24 triangles × 3)', () => {
+  it('has two adjoining metric domains', () => {
     const geom = _buildHabitGeom('aragonite_contact_twin');
-    expect(geom.attributes.position.count).toBe(72);
+    expect(geom.userData.aragoniteR4.members).toHaveLength(2);
+    expect(geom.attributes.position.count).toBeGreaterThan(72);
   });
 
-  it('V opens upward (top above the contact base)', () => {
+  it('preserves the rooted compact body and shallow stepped caps', () => {
     const geom = _buildHabitGeom('aragonite_contact_twin');
     const p = geom.attributes.position.array;
     let minY = Infinity, maxY = -Infinity;
@@ -27,25 +28,21 @@ describe('aragonite-contact-twin (99i) — geometry builder', () => {
       if (p[i] < minY) minY = p[i];
       if (p[i] > maxY) maxY = p[i];
     }
-    expect(maxY).toBeGreaterThan(0.5);
-    expect(minY).toBeLessThan(0);
+    expect(maxY).toBeCloseTo(0.1, 6);
+    expect(minY).toBeCloseTo(-0.5, 6);
   });
 
-  it('square cross-section: max |x| ≈ max |z| (within rotation effects)', () => {
-    // 99i a=0.06, b=0.06 (square). After 30° rotation, the x envelope
-    // gets stretched by the tilt (max |x| ≈ 2a·cos30° + L·sin30° ≈
-    // 0.475), while z stays at b (max |z| ≈ 0.06). So x/z ratio is
-    // large here — but the BLADE cross-section in the local frame is
-    // square. We test the local square-ness via the contact-base
-    // corner positions.
+  it('uses the repeated {110} orientation about a shared vertical c-axis', () => {
     const geom = _buildHabitGeom('aragonite_contact_twin');
     const p = geom.attributes.position.array;
     let maxAbsZ = 0;
     for (let i = 0; i < p.length; i += 3) {
       if (Math.abs(p[i + 2]) > maxAbsZ) maxAbsZ = Math.abs(p[i + 2]);
     }
-    // Max |z| should be exactly b = 0.06 (square cross-section width).
-    expect(maxAbsZ).toBeCloseTo(0.06, 4);
+    expect(maxAbsZ).toBeGreaterThan(0.1);
+    const members = geom.userData.aragoniteR4.members;
+    expect(members[1].theta * 180 / Math.PI).toBeCloseTo(116.1732, 3);
+    for (const m of members) expect(m.planes.some((f: any) => f.n[1] === 1 && f.n[0] === 0 && f.n[2] === 0)).toBe(true);
   });
 });
 

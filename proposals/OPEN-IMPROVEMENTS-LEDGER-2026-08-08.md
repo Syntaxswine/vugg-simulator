@@ -496,6 +496,27 @@ single execution ledger for the science-first AAA completion branch.
   linked receipt hashes. Release audit, typecheck and exact 183-module build
   check pass. R4 remains open; all-files cold CI is not claimed.
 
+  **R4g form finishing, 2026-09-10:** Topaz gains a continuous prism root and
+  shallower terminal shoulders (user acceptance still open). Explicit doubly
+  terminated quartz records now have both r/z ends; ordinary/contact aragonite
+  uses one/two orthorhombic domains with shared c, retaining the accepted cyclic
+  three-domain default. Fifteen needle/fibre fallbacks become system-aware;
+  cobaltite/awaruite defaults become cubic and native silver wire becomes curved.
+  Existing native dendrites stay branching. Default-habit audit: 21 to 4 nonhex
+  flags, 5 to 0 cubic-prism flags, two unknown fabrics. This is a routing audit,
+  not visual acceptance of every habit. Closed convex bodies gain cached 0.5%
+  short-axis chamfers; complex/open/concave bodies and inclusions are excluded.
+  Bisbee: 10.665 s cold / 13.6 ms cached / 6.7 ms median frame on RTX 3080.
+  Controlled quartz/aragonite fixture photos are labeled as such. Optional s/x,
+  crust/replacement forms, wider chamfers and visual acceptance remain open;
+  cloudy zones and inclusions follow stable forms.
+  Validation: 180 geometry/renderer, nine browser-receipt and 55 science tests
+  pass; fresh Node 24.15.0 browser evidence and full science rebake authenticate
+  128 artifacts with zero locality violations. Scientific baselines, growth
+  archives and strip digest are unchanged; claim-card changes are only linked
+  receipt hashes. Release audit, typecheck and exact 184-module build check pass.
+  R4 remains open; all-files cold CI and user visual acceptance are not claimed.
+
 - [ ] **Final visual polish — graphics quality and progressive refinement**
   (user decision 2026-09-07; defer implementation until the realism tranches finish).
   Add an Options quality control for slower computers and render a coarse, usable

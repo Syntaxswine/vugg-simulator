@@ -48,7 +48,7 @@ function quartzRenderHistory(crystal: any, replayStep: number | null): any {
     bands, variability, growth_um: total };
 }
 
-function quartzRenderFaces(widthRatio: number, contrast: number, phase: number): any[] {
+function quartzRenderFaces(widthRatio: number, contrast: number, phase: number, doubleEnded = false): any[] {
   // Unit c length, uniform final scale. Change distances to develop aspect;
   // never anisotropically stretch the completed termination.
   const radius = 0.4 * Math.max(0.2, Math.min(1.1, widthRatio));
@@ -68,15 +68,27 @@ function quartzRenderFaces(widthRatio: number, contrast: number, phase: number):
   if (!first?.vertices.length) return faces;
   const peak = Math.max(...first.vertices.map((v: number[]) => v[1]));
   for (const face of faces) if (face.n[1] > 0) face.d += face.n[1] * (0.5 - peak);
+  if (doubleEnded) {
+    // Quartz point group 32 relates the opposite end by C2 about a, not
+    // inversion. Mirror neither the chirality nor r/z family identities.
+    faces.pop(); // remove the flat attachment scar
+    const upper = faces.filter(f => f.n[1] > 0);
+    for (const f of upper) faces.push({ n: [f.n[0], -f.n[1], -f.n[2]], d: f.d, family: f.family });
+  }
   return faces;
 }
 
-function makeQuartzRenderGeometry(widthRatio: number, contrast: number, phase: number): any {
-  const faces = quartzRenderFaces(widthRatio, contrast, phase);
+function makeQuartzRenderGeometry(widthRatio: number, contrast: number, phase: number, doubleEnded = false): any {
+  const faces = quartzRenderFaces(widthRatio, contrast, phase, doubleEnded);
   const poly = wulffPolyhedron(faces);
-  if (!poly || poly.faces.length !== 13) return null;
+  if (!poly || (doubleEnded ? poly.faces.length < 12 : poly.faces.length !== 13)) return null;
   const geometry = _wulffPolyToGeom(poly, 1);
-  if (geometry) geometry.userData.quartzR4 = { widthRatio, contrast, phase,
+  if (geometry) {
+    const normals: number[] = [];
+    for (const f of poly.faces) for (let i=0;i<(f.verts.length-2)*3;i++) normals.push(...faces[f.plane].n);
+    geometry.setAttribute('normal', new THREE.Float32BufferAttribute(normals,3));
+  }
+  if (geometry) geometry.userData.quartzR4 = { widthRatio, contrast, phase, doubleEnded,
     families: poly.faces.map((f: any) => faces[f.plane].family) };
   return geometry;
 }

@@ -3239,6 +3239,8 @@ const _O2_CONVEX_TOKENS = new Set([
 // trilling, pyrite iron-cross, galena octahedron-twin, aragonite
 // pseudo-hex) plug into this same gate.
 function _resolveCrystalGeomToken(crystal: any, habitForGeom: string): string {
+  if (!crystal?.twinned && ((crystal?.mineral === 'cobaltite' && habitForGeom === 'default_habit')
+      || (crystal?.mineral === 'awaruite' && habitForGeom === 'grains_microscopic'))) return 'cube';
   // Air-mode aragonite → frostwork, twinned OR not (the v156 override
   // was scoped to !twinned; BUG-aragonite-twin-cave-morphology.md closed
   // that gap). Real cave aragonite (Hill & Forti 1997 — Cave Minerals of
@@ -4670,13 +4672,13 @@ function _makeGalenaOctahedronTwin(): any {
 // closes the display core; this is not a calibrated domain reconstruction.
 // The compact habit keeps the original basal anchor at -0.5, shortens exposed
 // height by 40%, and widens the body. Crown steps occupy the upper quarter.
-function _makeAragonitePseudohexTwin(aspect = 0.625): any {
+function _makeAragonitePseudohexTwin(aspect = 0.625, memberCount = 3): any {
   const a = 4.9598, b = 7.9641, c = 5.7379;
   const angle = 2 * Math.atan(a / b);
   const positions: number[] = [], normals: number[] = [];
   const members: any[] = [];
   const domains: any[] = [];
-  for (let k = 0; k < 3; k++) {
+  for (let k = 0; k < memberCount; k++) {
     const top = [0.1, 0.05, 0.075][k];
     const faces: any[] = [];
     for (const [hkl, family, distance] of [
@@ -4684,7 +4686,7 @@ function _makeAragonitePseudohexTwin(aspect = 0.625): any {
       [[0, 0, 1], '001', 0.5],
     ] as any[]) {
       for (const n of wulffOrthorhombicNormals(hkl, a, b, c)) {
-        const d = family === '110' && n[0] > 0 ? 0.12 * aspect
+        const d = memberCount > 1 && family === '110' && n[0] > 0 ? 0.12 * aspect
           : family === '001' && n[1] > 0 ? top : distance;
         faces.push({ n, d, family });
       }
@@ -4755,7 +4757,7 @@ function _makeAragonitePseudohexTwin(aspect = 0.625): any {
   const geom = new THREE.BufferGeometry();
   geom.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
   geom.setAttribute('normal', new THREE.Float32BufferAttribute(normals, 3));
-  geom.userData.aragoniteR4 = { members, angle, aspect, families: ['110', '010', '001', '011'] };
+  geom.userData.aragoniteR4 = { members, memberCount, angle, aspect, families: ['110', '010', '001', '011'] };
   return geom;
 }
 // Cerussite stellate-sixling — the flat-star counterpart to the
@@ -5034,66 +5036,12 @@ function _makeMarcasiteSpearheadTwin(): any {
 
 // Aragonite contact twin — the single-contact {110} variant (vs
 // aragonite's 3-fold cyclic-sextet). Two prismatic orthorhombic
-// crystals joined at base, opening in a 60° V. Mirrors
-// PRIM_ARAGONITE_CONTACT_TWIN in 99c. Dana 8th ed. CaCO3 section,
-// Speer 1983 Reviews in Mineralogy v.11.
-//
-// Visual distinction from the other V-twin builders:
-//   _makeSeleniteSwallowtailTwin: tabular blades (a=0.05, b=0.15)
-//   _makeMarcasiteCockscombTwin:  needle blades (a=0.025, b=0.08)
-//   _makeAragoniteContactTwin:    prismatic blades (a=0.06, b=0.06 — square)
-//
-// 24 triangles, 72 vertex triples (matches selenite + marcasite V-pair
-// counts — same box-pair flat-shaded emission pattern).
+// domains share c and interpenetrate along {110}. The legacy 2D V remains
+// schematic. Habit source: Handbook of Mineralogy, aragonite.
 function _makeAragoniteContactTwin(): any {
-  const a = 0.06;             // half-thickness (square cross-section)
-  const L = 0.95;             // blade length along c-axis
-  const b = 0.06;             // half-width along contact (square)
-  const theta = Math.PI / 6;  // 30° tilt per blade — 60° total V
-  const cT = Math.cos(theta);
-  const sT = Math.sin(theta);
-  const buildBladeA = (): number[][] => {
-    const out: number[][] = [];
-    for (const xl of [-2 * a, 0]) {
-      for (const yl of [0, L]) {
-        for (const zl of [-b, b]) {
-          out.push([xl * cT - yl * sT, xl * sT + yl * cT, zl]);
-        }
-      }
-    }
-    return out;
-  };
-  const buildBladeB = (): number[][] => {
-    const out: number[][] = [];
-    for (const xl of [0, 2 * a]) {
-      for (const yl of [0, L]) {
-        for (const zl of [-b, b]) {
-          out.push([xl * cT + yl * sT, -xl * sT + yl * cT, zl]);
-        }
-      }
-    }
-    return out;
-  };
-  const A = buildBladeA();
-  const B = buildBladeB();
-  const pushBlade = (out: number[], v: number[][]): void => {
-    const tri = (i: number, j: number, k: number) => {
-      _pushTri(out, v[i][0], v[i][1], v[i][2], v[j][0], v[j][1], v[j][2], v[k][0], v[k][1], v[k][2]);
-    };
-    tri(0, 1, 3); tri(0, 3, 2);  // xl = -2a face
-    tri(4, 6, 7); tri(4, 7, 5);  // xl = 0 face (contact)
-    tri(0, 4, 5); tri(0, 5, 1);  // yl = 0 face (base)
-    tri(2, 3, 7); tri(2, 7, 6);  // yl = L face (top)
-    tri(0, 2, 6); tri(0, 6, 4);  // zl = -b face
-    tri(1, 5, 7); tri(1, 7, 3);  // zl = +b face
-  };
-  const positions: number[] = [];
-  pushBlade(positions, A);
-  pushBlade(positions, B);
-  const geom = new THREE.BufferGeometry();
-  geom.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
-  geom.computeVertexNormals();
-  return geom;
+  // {110} contains c: contact twins rotate about the shared c-axis.
+  // Two adjoining domains use the same exposed-union construction as the trilling.
+  return _makeAragonitePseudohexTwin(0.625, 2);
 }
 
 // Build a unit-sized geometry for a given habit token, oriented so
@@ -5626,9 +5574,11 @@ function _getTerracedCalciteGeom(state: any, crystal: any, terr: any): any {
 // mineral must read SQUARE, orthorhombic RECTANGULAR, monoclinic/triclinic SHEARED. Specimen-debt
 // fidelity arc 2026-06-23 (the audit found 72 non-hex minerals rendered hexagonal — tourmaline &
 // hemimorphite were the first two caught + fixed). Only minerals that resolve to the 'prism' token
-// are redirected (below); entries that render via other tokens (tablet/botryoidal/rhomb/spike/
+// and needle/spike tokens are redirected (below); entries using tablet/botryoidal/rhomb/
 // special) are inert. Render-only / byte-identical — gen-baseline serialises only counts/sizes.
 const CRYSTAL_SYSTEM: Record<string, string> = {
+  // Anthophyllite is orthorhombic (Handbook of Mineralogy, anthophyllite.pdf).
+  amosite: 'monoclinic', anthophyllite: 'orthorhombic', chrysotile: 'monoclinic', crocidolite: 'monoclinic',
   acanthite: 'monoclinic', actinolite: 'monoclinic', adamite: 'orthorhombic', albite: 'triclinic',
   andalusite: 'orthorhombic', anglesite: 'orthorhombic', anhydrite: 'orthorhombic', annabergite: 'monoclinic',
   antlerite: 'orthorhombic', apophyllite: 'tetragonal', aragonite: 'orthorhombic', arsenopyrite: 'monoclinic',
@@ -8697,17 +8647,31 @@ function _topoSyncCrystalMeshes(state: any, sim: any, wall: any, replayStep?: nu
     const gemPrismR4 = !geom && ['topaz', 'apatite'].includes(crystal.mineral)
       && ['prism', 'tablet'].includes(token) && !crystal.twinned
       && !crystal._surfaceGrowth && !crystal._deformation;
+    if (!geom && crystal.mineral === 'native_silver' && habitForGeom === 'wire') {
+      geom = state.geomCache.get('__native_silver_wire');
+      if (!geom) { geom = makeNativeSilverWireGeometry(); state.geomCache.set('__native_silver_wire', geom); }
+    }
+    if (!geom && crystal.mineral === 'aragonite' && crystal.growth_environment !== 'air'
+        && !crystal.twinned && !crystal._surfaceGrowth && token === 'prism') {
+      geom = state.geomCache.get('__aragonite_ordinary');
+      if (!geom) { geom = _makeAragonitePseudohexTwin(0.625, 1); state.geomCache.set('__aragonite_ordinary', geom); }
+      _o2ConvexGeom = true;
+    }
     // SYSTEM-AWARE prism cross-section (specimen-debt fidelity arc 2026-06-23): a NON-hexagonal
     // mineral that resolves to the generic 'prism' token must not render as a hexagonal prism.
     // Redirect by crystal system (square / rectangular / sheared) before the hex fallback below.
     // Hex/trigonal/unknown minerals aren't in CRYSTAL_SYSTEM → they keep the hex builder
     // (byte-identical). Gated on !geom so all the special builders above still win.
-    if (!geom && token === 'prism') {
+    if (!geom && (token === 'prism' || token === 'spike') && !crystal._surfaceGrowth) {
       const sys = CRYSTAL_SYSTEM[crystal.mineral];
       if (sys) {
         const skey = '__sysprism_' + sys;
         geom = state.geomCache.get(skey);
-        if (!geom) { geom = _makeSystemPrism(sys); state.geomCache.set(skey, geom); }
+        if (!geom) {
+          geom = _makeSystemPrism(sys);
+          geom.userData.systemPrism = sys;
+          state.geomCache.set(skey, geom);
+        }
         _o2ConvexGeom = true;   // W-F O2: square/rectangular/sheared prisms are convex
       }
     }
@@ -8825,10 +8789,11 @@ function _topoSyncCrystalMeshes(state: any, sim: any, wall: any, replayStep?: nu
     let aragoniteGeometry: any = null;
     if (geom.userData.aragoniteR4 && cLen > 0) {
       const aspect = Math.round(Math.max(0.1, aWid / cLen) * 100) / 100;
-      const key = '__aragonite_compact_' + aspect;
+      const memberCount = geom.userData.aragoniteR4.memberCount;
+      const key = '__aragonite_compact_' + aspect + '_' + memberCount;
       aragoniteGeometry = state.geomCache.get(key);
       if (!aragoniteGeometry) {
-        aragoniteGeometry = _makeAragonitePseudohexTwin(aspect);
+        aragoniteGeometry = _makeAragonitePseudohexTwin(aspect, memberCount);
         state.geomCache.set(key, aragoniteGeometry);
       }
       geom = aragoniteGeometry; mesh.geometry = geom;
@@ -8860,11 +8825,12 @@ function _topoSyncCrystalMeshes(state: any, sim: any, wall: any, replayStep?: nu
     let quartzGeometry: any = null;
     if (quartzR4 && cLen > 0) {
       const history = quartzRenderHistory(crystal, replayStep);
+      const doubleEnded = habitForGeom === 'doubly_terminated';
       const ratio = Math.round(Math.max(0.2, Math.min(1.1, aWid / cLen)) * 100) / 100;
-      const key = '__quartz_r4_' + ratio + '_' + history.contrast + '_' + history.phase;
+      const key = '__quartz_r4_' + ratio + '_' + history.contrast + '_' + history.phase + '_' + doubleEnded;
       quartzGeometry = state.geomCache.get(key);
       if (!quartzGeometry) {
-        quartzGeometry = makeQuartzRenderGeometry(ratio, history.contrast, history.phase);
+        quartzGeometry = makeQuartzRenderGeometry(ratio, history.contrast, history.phase, doubleEnded);
         if (quartzGeometry) state.geomCache.set(key, quartzGeometry);
       }
       if (quartzGeometry) {
@@ -8873,6 +8839,12 @@ function _topoSyncCrystalMeshes(state: any, sim: any, wall: any, replayStep?: nu
         _o2ConvexGeom = true;
         applyQuartzStriations(mat, history);
       }
+    }
+    if (_o2ConvexGeom && !isInclusion) {
+      const finishKey = '__chamfer_' + geom.uuid;
+      let finished = state.geomCache.get(finishKey);
+      if (!finished) { finished = chamferCrystalGeometry(geom); state.geomCache.set(finishKey, finished); }
+      geom = finished; mesh.geometry = geom;
     }
     if (quartzGeometry || bladeRhombGeometry || bariteGeometry || aragoniteGeometry || gemPrismGeometry) {
       mesh.scale.set(cLen, cLen, cLen);

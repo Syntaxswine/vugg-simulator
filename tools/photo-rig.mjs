@@ -104,7 +104,7 @@ function parseArgs(argv) {
     else if (a === '--crystal-id') out.crystalId = Number(next());
     else if (a === '--fixture') {
       out.fixture = next();
-      if (out.fixture !== 'aragonite-trilling') throw new Error('Unknown photo fixture');
+      if (!['aragonite-trilling', 'aragonite-contact', 'aragonite-ordinary', 'quartz-double'].includes(out.fixture)) throw new Error('Unknown photo fixture');
     }
     else if (a === '--camera-from') out.cameraFrom = JSON.parse(readFileSync(path.resolve(ROOT, next()), 'utf8'));
     else if (a === '--size') out.size = next().split('x').map(Number);
@@ -622,6 +622,9 @@ const PAGE_HELPERS = `
         barite_form: m.geometry?.userData?.bariteR4 ?? null, barite_crest: !!m.userData.bariteCrest,
         aragonite_form: m.geometry?.userData?.aragoniteR4 ?? null,
         gem_prism_form: m.geometry?.userData?.gemPrismR4 ?? null,
+        quartz_form: m.geometry?.userData?.quartzR4 ?? null,
+        chamfer: m.geometry?.userData?.chamferR4 ?? null,
+        system_prism: m.geometry?.userData?.systemPrism ?? null,
         blade_spray: !!m.userData.bladeSpray, spray_group: m.userData.sprayGroup ?? null,
         token: (cr && typeof _habitGeomToken === 'function') ? _habitGeomToken(cr.habit) : null,
         c_length_mm: cr ? +Number(cr.c_length_mm).toFixed(3) : null,
@@ -1003,13 +1006,17 @@ function runProgram(name, seed, steps, fixture = null) {
     // Yield every few steps so the debugger poll can run (the page stays responsive).
     for (let i = 0; i < steps; i++) { sim.run_step(); if (i % 8 === 7) await new Promise(r => setTimeout(r, 0)); }
     const simMs = performance.now() - t0;
-    if (${JSON.stringify(fixture)} === 'aragonite-trilling') {
-      const index = sim.crystals.findIndex(c => c.mineral === 'aragonite');
-      if (index < 0) throw new Error('Trilling fixture requires an existing aragonite anchor');
+    if (${JSON.stringify(fixture)} != null) {
+      const fixtureName = ${JSON.stringify(fixture)};
+      const fixtureMineral = fixtureName === 'quartz-double' ? 'quartz' : 'aragonite';
+      const index = sim.crystals.findIndex(c => c.mineral === fixtureMineral);
+      if (index < 0) throw new Error('Fixture requires an existing ' + fixtureMineral + ' anchor');
       const original = sim.crystals[index];
-      const crystal = new Crystal({ mineral: 'aragonite', habit: 'columnar',
+      const fixtureHabit = fixtureMineral === 'quartz' ? 'doubly_terminated' : 'columnar';
+      const crystal = new Crystal({ mineral: fixtureMineral, habit: fixtureHabit,
         crystal_id: original.crystal_id, nucleation_step: original.nucleation_step });
-      Object.assign(crystal, { habit: 'columnar', twinned: true, twin_law: 'cyclic_sextet',
+      Object.assign(crystal, { habit: fixtureHabit, twinned: fixtureName === 'aragonite-trilling' || fixtureName === 'aragonite-contact',
+        twin_law: fixtureName === 'aragonite-contact' ? 'contact' : fixtureName === 'aragonite-trilling' ? 'cyclic_sextet' : '',
         growth_environment: 'fluid', c_length_mm: 8, a_width_mm: 5,
         total_growth_um: 8000, wall_anchor: original.wall_anchor });
       sim.crystals[index] = crystal;

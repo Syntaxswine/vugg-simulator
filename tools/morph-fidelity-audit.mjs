@@ -85,6 +85,10 @@ const RENDER_SYSTEM_MAP = {};
 function systemOf(name, spec) {
   const s = structural[name];
   if (s && s.system) return { system: s.system.toLowerCase(), src: 'structural.json' };
+  // Its description contrasts orthorhombic anthophyllite with monoclinic
+  // amosite; a keyword-priority scan must not select the comparison mineral.
+  // https://www.handbookofmineralogy.org/pdfs/anthophyllite.pdf
+  if (name === 'anthophyllite') return { system: 'orthorhombic', src: 'Handbook' };
   // parse from description
   const d = String(spec.description || '').toLowerCase();
   for (const sys of ['triclinic', 'monoclinic', 'orthorhombic', 'tetragonal', 'trigonal', 'hexagonal', 'cubic', 'isometric', 'rhombohedral']) {
@@ -99,10 +103,15 @@ const rows = [];
 for (const [name, spec] of Object.entries(minerals)) {
   if (spec._transformation_only) continue;
   const habit = spec.habit || (spec.habit_variants && spec.habit_variants[0] && spec.habit_variants[0].name) || '';
-  const token = habitToken(habit);
+  const token = ((name === 'cobaltite' && habit === 'default_habit')
+    || (name === 'awaruite' && habit === 'grains_microscopic')) ? 'cube' : habitToken(habit);
   const { system, src } = systemOf(name, spec);
-  const systemPrism = token === 'prism' && !SPECIAL_RENDER.has(name) && !!RENDER_SYSTEM_MAP[name];
-  const hexRender = (token === 'prism' || token === 'spike') && !SPECIAL_RENDER.has(name) && !systemPrism;
+  const systemPrism = (token === 'prism' || token === 'spike') && !SPECIAL_RENDER.has(name) && !!RENDER_SYSTEM_MAP[name];
+  // Existing production dendrite routing precedes the fallback. Silver wire
+  // now has an explicit curved-wire route. Neither is a hexagonal prism.
+  const aggregateRoute = (token === 'spike' && (habit === 'dendritic' || habit.startsWith('dendritic_') || habit.includes('arborescent')))
+    || (name === 'native_silver' && habit === 'wire');
+  const hexRender = (token === 'prism' || token === 'spike') && !SPECIAL_RENDER.has(name) && !systemPrism && !aggregateRoute;
   const mapDisagrees = systemPrism && NONHEX.has(system) && RENDER_SYSTEM_MAP[name] !== system;
   rows.push({ name, habit, token, system, src, hexRender, systemPrism, mapDisagrees });
 }
