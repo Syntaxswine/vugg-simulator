@@ -7214,7 +7214,7 @@ function _emitClusterSatellites(
     } else {
       // R4 geometry already contains quartz's aspect and fixed face angles.
       // Satellites must preserve the parent's uniform-scale contract too.
-      if (geom.userData.quartzR4 || geom.userData.bladeRhombR4 || geom.userData.bariteR4 || geom.userData.aragoniteR4) satMesh.scale.setScalar(sCLen);
+      if (geom.userData.quartzR4 || geom.userData.bladeRhombR4 || geom.userData.bariteR4 || geom.userData.aragoniteR4 || geom.userData.gemPrismR4) satMesh.scale.setScalar(sCLen);
       else satMesh.scale.set(sAWid, sCLen, sAWid);
     }
     satMesh.position.set(
@@ -8694,6 +8694,9 @@ function _topoSyncCrystalMeshes(state: any, sim: any, wall: any, replayStep?: nu
     // precedence. Defer its geometry until the final display dimensions are known.
     const quartzR4 = !geom && crystal.mineral === 'quartz' && token === 'prism'
       && !crystal.twinned && !crystal._surfaceGrowth;
+    const gemPrismR4 = !geom && ['topaz', 'apatite'].includes(crystal.mineral)
+      && ['prism', 'tablet'].includes(token) && !crystal.twinned
+      && !crystal._surfaceGrowth && !crystal._deformation;
     // SYSTEM-AWARE prism cross-section (specimen-debt fidelity arc 2026-06-23): a NON-hexagonal
     // mineral that resolves to the generic 'prism' token must not render as a hexagonal prism.
     // Redirect by crystal system (square / rectangular / sheared) before the hex fallback below.
@@ -8807,6 +8810,18 @@ function _topoSyncCrystalMeshes(state: any, sim: any, wall: any, replayStep?: nu
       cLen = Math.max(renderC, O4_INCLUSION_MIN_MM);
       aWid = Math.max(renderA, O4_INCLUSION_MIN_MM);
     }
+    let gemPrismGeometry: any = null;
+    if (gemPrismR4 && cLen > 0) {
+      const ratio = Math.round(Math.max(0.15, Math.min(3, aWid/cLen))*100)/100;
+      const variant = Math.abs(Math.trunc(crystal.crystal_id || 0)) % 2;
+      const key = '__gem_prism_r4_' + crystal.mineral + '_' + ratio + '_' + variant + '_' + occF;
+      gemPrismGeometry = state.geomCache.get(key);
+      if (!gemPrismGeometry) {
+        gemPrismGeometry = makeGemPrismRenderGeometry(crystal.mineral, ratio, occF, variant);
+        if (gemPrismGeometry) state.geomCache.set(key, gemPrismGeometry);
+      }
+      if (gemPrismGeometry) { geom = gemPrismGeometry; mesh.geometry = geom; _o2ConvexGeom = true; }
+    }
     let aragoniteGeometry: any = null;
     if (geom.userData.aragoniteR4 && cLen > 0) {
       const aspect = Math.round(Math.max(0.1, aWid / cLen) * 100) / 100;
@@ -8859,7 +8874,7 @@ function _topoSyncCrystalMeshes(state: any, sim: any, wall: any, replayStep?: nu
         applyQuartzStriations(mat, history);
       }
     }
-    if (quartzGeometry || bladeRhombGeometry || bariteGeometry || aragoniteGeometry) {
+    if (quartzGeometry || bladeRhombGeometry || bariteGeometry || aragoniteGeometry || gemPrismGeometry) {
       mesh.scale.set(cLen, cLen, cLen);
     } else if (token === 'cube' || token === 'octahedron' || token === 'tetrahedron' || token === 'rhombic_dodec' || token === 'dodecahedron' || token === 'snowball' || isWulffCalcite) {
       // isWulffCalcite (rung 4a.2): the calcite Wulff polyhedron already carries its true

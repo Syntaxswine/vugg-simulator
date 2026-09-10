@@ -1032,7 +1032,8 @@ check caught duplicate coplanar base fragments during development and now
 guards against that failure alongside winding and buried-face checks.
 `aragonite-compact-v3` reuses the preceding saved camera and explicitly labeled
 controlled fixture. It shows the shorter, wider body; angular crown seams remain
-visible, and user acceptance of natural-specimen recognition is still open.
+visible. The user accepted this compact base ("much better") on 2026-09-10;
+preserve its proportions in later work.
 This correction does not change recorded growth or the other aragonite routes.
 
 Validation of the correction: 179 renderer/geometry tests, 9 browser-receipt
@@ -1043,6 +1044,49 @@ seed-42 baselines, growth archives, strip digest, claim cards and scientific
 payloads remain unchanged. Receipt changes are renderer/execution hashes and
 their manifest links. Release generation/audit, typecheck and the exact
 182-module build check pass. No all-files cold CI or broad R4 completion claim.
+
+**R4f topaz/apatite, 2026-09-10:** Ordinary topaz now has reciprocal-metric
+{110}/{120} prism faces, {001} caps and {011}/{021}/{111} terminal planes.
+Two identity-stable display developments vary the dome depth. The topaz cell
+comes from the Handbook of Mineralogy; face families and basal-versus-dome
+development follow [Stern et al. (1986), p.416](https://www.minsocam.org/ammin/AM71/AM71_406.pdf).
+These are illustrative development choices, not simulated growth rates.
+
+Ordinary apatite uses sixfold prism faces, equivalent terminal pyramid faces
+and broad basal caps. Its recorded width/length ratio distinguishes prismatic
+and tabular bodies. The generic apatite record uses the fluorapatite hexagonal
+cell as an explicit display reference, without changing chemical identity:
+[Handbook of Mineralogy, fluorapatite](https://www.handbookofmineralogy.org/pdfs/fluorapatite.pdf).
+Both tenants develop aspect through plane distances and scale uniformly in
+parent and satellite meshes. Existing specialized forms and recorded twins
+retain precedence; attachment scars close the buried end.
+
+Production photographs: `r4f-topaz-before` versus `r4f-topaz-final` (Shigar,
+70 steps, seed 42; crystal 13 is before hero 1 / after hero 2, crystal 15 reverses
+that order), and `r4f-apatite-before` versus `r4f-apatite-final` (Grimsel, 200
+steps, seed 42; crystal 8 is before hero 2 / after hero 1). Saved cameras match
+by crystal identity, not size ranking. Isolated diagnostics retain the material,
+wall and camera. These are unmodified scenario records. Topaz remains very
+transparent, so edge legibility depends on the wall behind it; detailed prism
+striations, fine growth figures and broader habit coverage remain future work.
+
+Browser source-freeze correction: new geometry allocations shift the collected
+topaz ID from `cry-16-wr2` to `cry-16-6mp` (the existing F13 shared UUID/random
+stream debt). The first owned journey differs only in that ID at collection
+and Record Groove; geology fingerprints, run IDs and strip download/dataset
+digests are identical. The exact validator/test pin is updated to that observed
+value, followed by fresh browser generation rather than manual receipt edits.
+
+Validation: 182 focused geometry/renderer/scenario tests, 9 browser-receipt
+tests and 55 science tests pass. Final photo manifests each contain two heroes
+and zero browser exceptions. Fresh owned-browser generation/audit and the full
+Node 24.15.0 science rebake pass: 128 authenticated artifacts, 41 locality
+envelopes, zero unclassified products or contract violations. Frequency/seed-42
+baselines, growth archives and strip digest remain unchanged. All 41 claim-card
+JSONs differ only in linked artifact payload hashes, following the browser ID
+and its mechanism-witness link. Release generation/audit, typecheck and exact
+183-module build check pass. This is focused validation plus a full science
+rebake, not all-files cold CI; R4 and user visual acceptance remain open.
 
 **Still open in R4:** true doubly terminated quartz routing, accessory s/x faces,
 full per-face growth histories, richer striations on specialized quartz forms,

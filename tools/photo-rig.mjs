@@ -621,6 +621,7 @@ const PAGE_HELPERS = `
         blade_rhomb: m.geometry?.userData?.bladeRhombR4 ?? null,
         barite_form: m.geometry?.userData?.bariteR4 ?? null, barite_crest: !!m.userData.bariteCrest,
         aragonite_form: m.geometry?.userData?.aragoniteR4 ?? null,
+        gem_prism_form: m.geometry?.userData?.gemPrismR4 ?? null,
         blade_spray: !!m.userData.bladeSpray, spray_group: m.userData.sprayGroup ?? null,
         token: (cr && typeof _habitGeomToken === 'function') ? _habitGeomToken(cr.habit) : null,
         c_length_mm: cr ? +Number(cr.c_length_mm).toFixed(3) : null,

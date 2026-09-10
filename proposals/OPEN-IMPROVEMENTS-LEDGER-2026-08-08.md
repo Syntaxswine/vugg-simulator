@@ -480,6 +480,22 @@ single execution ledger for the science-first AAA completion branch.
   unchanged. Release audit, typecheck and exact build check pass. R4 remains
   open; all-files cold CI is not claimed.
 
+  **R4f topaz/apatite, 2026-09-10:** The compact aragonite base was accepted by
+  the user. Next, ordinary topaz gains metric prism/dome/cap faces and two
+  stable terminal developments; apatite gains sixfold prism/pyramid faces with
+  broad caps and recorded prismatic/tabular aspect. Both use uniform scaling
+  and closed attachment scars. Shigar topaz and Grimsel apatite before/after
+  photos match saved cameras by crystal identity, with isolated diagnostics.
+  These are unmodified scenario records. Topaz striations and growth figures,
+  broader habit coverage and user visual acceptance remain open.
+  Validation: 182 geometry/renderer/scenario tests, 9 browser-receipt tests and
+  55 science tests pass, with fresh browser evidence and full Node 24.15.0
+  rebake (128 authenticated artifacts; zero locality violations). Scientific
+  baselines and growth archives are unchanged. The observed collection-ID
+  suffix was re-pinned for renderer allocations; claim-card changes are only
+  linked receipt hashes. Release audit, typecheck and exact 183-module build
+  check pass. R4 remains open; all-files cold CI is not claimed.
+
 - [ ] **Final visual polish — graphics quality and progressive refinement**
   (user decision 2026-09-07; defer implementation until the realism tranches finish).
   Add an Options quality control for slower computers and render a coarse, usable
