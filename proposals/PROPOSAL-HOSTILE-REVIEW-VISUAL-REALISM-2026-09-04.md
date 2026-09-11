@@ -1185,10 +1185,18 @@ authenticate, with zero locality contract violations or unclassified products.
 Scientific frequency/seed-42 baselines, growth archives and strip digest are
 unchanged. All 41 claim-card JSONs differ only in linked artifact payload hashes.
 Release generation/audit, typecheck and the exact 184-module build check pass.
-This is focused validation plus a full science rebake, not all-files cold CI;
-user visual acceptance remains open.
+This is focused validation plus a full science rebake, not all-files cold CI.
 
-**Still open in R4:** topaz user acceptance, optional quartz s/x faces,
+**User acceptance, 2026-09-10:** Topaz geometry in `60fafb7a` is accepted.
+The substantial orthorhombic body and long parallel edges now carry cleanly
+into the termination, closing the prism-edge debt. Preserve this morphology.
+The remaining feedback belongs to material polish: diagonal rock texture
+appears to transmit almost unchanged, making the crystal read as tinted glass
+over terrain. Improve background distortion/refraction, cleaner vitreous
+highlights and internal depth; clarify contrast between terminal faces without
+another morphology pass. These material changes are queued, not implemented.
+
+**Still open in R4:** optional quartz s/x faces,
 full per-face growth histories, richer striations on specialized quartz forms,
 remaining crust/replacement forms, broader chamfer coverage and visual fleet
 acceptance. These delivered slices do not mark the whole R4 rung complete.
