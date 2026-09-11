@@ -537,6 +537,25 @@ single execution ledger for the science-first AAA completion branch.
   are linked receipt hashes only. Release audit, typecheck and exact 184-module
   build check pass. All-files cold CI is not claimed.
 
+  **Topaz material follow-up, 2026-09-10:** Preserve accepted R4h geometry.
+  Ordinary convex topaz now uses its rendered planes for entry/exit paths and
+  up to four internal segments, with accumulated path attenuation, entry-face
+  rendering and sharper vitreous roughness (0.06). Satellites have individual
+  optical volumes; cavity/helix clipping and alpha fallback remain supported.
+  Catalog optics and scientific records are unchanged. Escaped rays still use
+  screen-space background sampling; unresolved internal reflections use the
+  room environment. This is not full scene ray tracing or an inclusion pass.
+  Matching transmission/alpha photos for crystals 13/15 have zero exceptions
+  or console errors. All 179 tests pass (115 focused renderer/clipping, nine
+  browser receipt, 55 science), with fresh browser verification and full Node
+  24.15.0 rebake. All 128 artifacts authenticate; locality violations are zero.
+  Scientific baselines, archives and strip digest are unchanged; claim-card
+  changes are evidence hash links only. The sole browser journey differences
+  were two collection ID fields (`cry-16-4hq` to `cry-16-yof`), re-pinned from
+  observed evidence and confirmed by a fresh run. Release audit, typecheck and
+  exact 184-module build check pass. All-files cold CI is not claimed.
+  Material acceptance is open; form stays accepted.
+
 - [ ] **Final visual polish — graphics quality and progressive refinement**
   (user decision 2026-09-07; defer implementation until the realism tranches finish).
   Add an Options quality control for slower computers and render a coarse, usable

@@ -1194,7 +1194,45 @@ The remaining feedback belongs to material polish: diagonal rock texture
 appears to transmit almost unchanged, making the crystal read as tinted glass
 over terrain. Improve background distortion/refraction, cleaner vitreous
 highlights and internal depth; clarify contrast between terminal faces without
-another morphology pass. These material changes are queued, not implemented.
+another morphology pass. These material changes were queued at acceptance;
+the follow-up below records the implementation and its remaining limits.
+
+**Topaz material follow-up, 2026-09-10:** The accepted R4h geometry is unchanged.
+Ordinary convex topaz now traces the refracted entry ray against its actual
+rendered planes, including chamfers and contact cuts. Attenuation uses the
+accumulated world-space path length. This replaces the stock constant-thickness
+approximation for this route, which also multiplied an already world-scaled
+thickness by model scale. Each satellite has its own material/path volume and
+attenuation extent; cavity/helix clipping and its shader cache variant survive.
+Closed topaz uses entry faces only, avoiding its own opaque backs in Three's
+transmission buffer. Vitreous roughness moves from 0.09 to 0.06, retaining the
+existing roughness increments. Catalog IOR, clarity, color, and science records
+remain unchanged. Twins, inclusions, deformed forms and other minerals retain
+their existing paths; the alpha fallback still does no refraction.
+
+The trace permits four internal segments, following total internal reflections.
+Unresolved reflected paths sample the existing room environment as a bounded
+approximation. Escaped rays still sample the screen-space transmission buffer
+at their exit position: this is not full scene ray tracing, does not trace the
+outgoing ray to the actual rock surface, and does not implement birefringence,
+dispersion, cloudy growth zones or new inclusions. The wall's stretched texture
+remains visible, now displaced/folded by the crystal. These limits stay explicit.
+
+Original-camera and side-profile images for crystals 13/15 are in
+`.local-evidence/photos/topaz-material-transmission/`, with matching alpha
+fallback images in `topaz-material-alpha/`. Both sets have zero JavaScript or
+console errors. The photo rig now captures console errors as well as exceptions,
+so WebGL shader compilation failures can no longer silently pass that check.
+Final validation: all 115 focused tests across eight bounded files, nine browser
+receipt tests and 55 science tests pass (179 total). The full Node 24.15.0 rebake
+authenticates all 128 artifacts with zero locality violations or unclassified
+products. Frequency/seed-42 baselines, growth archives and strip digest are
+unchanged. All 41 claim-card JSONs differ only in artifact payload hash links.
+Fresh browser verification passes after confirming that the only journey
+differences were the two collection ID fields (`cry-16-4hq` to `cry-16-yof`)
+and updating those exact pins. Release generation/audit, typecheck and the
+exact 184-module build check pass. All-files cold CI is not claimed.
+Material visual acceptance remains open; topaz geometry remains accepted.
 
 **Still open in R4:** optional quartz s/x faces,
 full per-face growth histories, richer striations on specialized quartz forms,

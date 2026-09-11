@@ -1,8 +1,26 @@
 import { describe, expect, it } from 'vitest';
 declare const THREE: any, Crystal: any, WallState: any, _topoSyncCrystalMeshes: any;
 declare const gemPrismNormals: any, gemPrismRenderFaces: any, makeGemPrismRenderGeometry: any;
+declare const _topazOpticalPlanes: any, chamferCrystalGeometry: any, _topoOpticsApplyTier: any;
 
 describe('R4f topaz and apatite', () => {
+  it('traces positive paths from each entry face to the accepted convex topaz boundary', () => {
+    const g = chamferCrystalGeometry(makeGemPrismRenderGeometry('topaz', 1.5, 0.188, 1, 0.4));
+    const planes = _topazOpticalPlanes(g), p = g.attributes.position;
+    for (const plane of planes) for (let i = 0; i < p.count; i++) {
+      expect(plane.n.dot(new THREE.Vector3().fromBufferAttribute(p, i)) - plane.d).toBeLessThan(1e-5);
+    }
+    for (let i = 0; i < p.count; i += 3) {
+      const origin = new THREE.Vector3(), n = new THREE.Vector3().fromBufferAttribute(g.attributes.normal, i);
+      for (let k = 0; k < 3; k++) origin.add(new THREE.Vector3().fromBufferAttribute(p, i+k));
+      origin.divideScalar(3);
+      const direction = n.negate();
+      const distance = Math.min(...planes.filter(f => f.n.dot(direction) > 1e-7)
+        .map(f => Math.max(0, (f.d-f.n.dot(origin))/f.n.dot(direction))));
+      expect(distance).toBeGreaterThan(0.001);
+      expect(distance).toBeLessThan(3);
+    }
+  });
   it('adds uninterrupted topaz prism length without changing its terminal facets', () => {
     const original = makeGemPrismRenderGeometry('topaz', 1.5, 0.188, 1);
     const extended = makeGemPrismRenderGeometry('topaz', 1.5, 0.188, 1, 0.4);
@@ -108,6 +126,29 @@ describe('R4f topaz and apatite', () => {
       const bodies = state.crystals.children.filter((m: any) => m.geometry.userData.gemPrismR4);
       expect(bodies.length).toBeGreaterThan(0);
       for (const m of bodies) { expect(m.scale.x).toBe(m.scale.y); expect(m.scale.z).toBe(m.scale.y); }
+      if (mineral === 'topaz') {
+        const materials = new Set();
+        for (const m of bodies) {
+          const mat = Array.isArray(m.material) ? m.material[0] : m.material;
+          materials.add(mat);
+          expect(mat.side).toBe(THREE.FrontSide);
+          expect(mat.userData.optics.volume_path).toBe('convex-topaz');
+          m.geometry.computeBoundingBox();
+          const dims = m.geometry.boundingBox.getSize(new THREE.Vector3()).multiply(m.scale);
+          expect(mat.userData.optics.extent_mm).toBeCloseTo(Math.min(dims.x, dims.y, dims.z), 6);
+          const shader = { uniforms: {}, vertexShader: '#include <common>\n#include <begin_vertex>', fragmentShader: '#include <transmission_pars_fragment>' };
+          mat.onBeforeCompile(shader, null);
+          expect((shader.uniforms as any).topazExitPlanes.value.length).toBe(mat.userData.optics.exit_planes);
+          expect(shader.fragmentShader).toContain('volumeAttenuation( topazPathLength,');
+        }
+        expect(materials.size).toBe(bodies.length);
+        _topoOpticsApplyTier(state, 'alpha', 'test fallback');
+        for (const mat of materials as Set<any>) { expect(mat.transmission).toBe(0); expect(mat.transparent).toBe(true); }
+        _topoOpticsApplyTier(state, 'transmission', 'test restore');
+        for (const mat of materials as Set<any>) { expect(mat.transmission).toBeGreaterThan(0.9); expect(mat.opacity).toBe(1); }
+      } else {
+        expect(bodies[0].material.userData.optics.volume_path).toBeUndefined();
+      }
       _topoSyncCrystalMeshes(state, { crystals: [c], step: 101 }, wall);
       expect(state.crystals.children.find((m: any) => m.geometry.userData.gemPrismR4).geometry).toBe(bodies[0].geometry);
       expect(JSON.stringify([c.zones, c.c_length_mm, c.a_width_mm, c.habit])).toBe(before);

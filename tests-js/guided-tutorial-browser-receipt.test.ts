@@ -41,7 +41,7 @@ describe('authenticated public-control guided tutorial journeys', () => {
         // Stream-position id (QA-pinned Math.random shared with three.js UUIDs); re-pinned
         // 2026-09-05 with tools/guided-tutorial-browser-receipt.mjs — see review F13 — and
         // again the same day for the R1 lighting rig's init-time allocations.
-        record_id: 'cry-16-4hq',   // re-pinned 2026-09-10 (R4h topaz geometry allocations, review F13)
+        record_id: 'cry-16-yof',   // re-pinned 2026-09-10 (Topaz material allocations, review F13)
         name: '<img data-vugg-player-name-probe src=x onerror="globalThis.__vuggPlayerNameInjection=1">',
         mineral: 'topaz',
         source_scenario: 'shigar_pegmatite',

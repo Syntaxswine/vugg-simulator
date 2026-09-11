@@ -637,7 +637,10 @@ const PAGE_HELPERS = `
           roughness: mat.roughness, metalness: mat.metalness, vertexColors: !!mat.vertexColors,
           transmission: mat.transmission ?? null, clearcoat: mat.clearcoat ?? null, ior: mat.ior ?? null,
           flatShading: !!mat.flatShading, side: mat.side, materials: mats.length,
-          depthWrite: mat.depthWrite, gypsumCleavage: mat.userData?.gypsumCleavage ?? null } : null,
+          depthWrite: mat.depthWrite, gypsumCleavage: mat.userData?.gypsumCleavage ?? null,
+          volumePath: mat.userData?.optics?.volume_path ?? null,
+          exitPlanes: mat.userData?.optics?.exit_planes ?? null,
+          opticalExtentMm: mat.userData?.optics?.extent_mm ?? null } : null,
         tags: cr ? Object.keys(cr).filter(k => /^_(sceptre|gwindel|deformation|sectorZoned|split|saddle|etched|film|occlusion|nucTilt)/.test(k) && cr[k]) : [],
         dissolved: !!(cr && cr.dissolved),
       });
@@ -1223,6 +1226,9 @@ async function main() {
     const page = new Page(client, sessionId);
     await page.send('Page.enable'); await page.send('Runtime.enable');
     client.on('Runtime.exceptionThrown', ev => { page.exceptions.push(ev.exceptionDetails?.exception?.description || ev.exceptionDetails?.text || 'exception'); });
+    client.on('Runtime.consoleAPICalled', ev => {
+      if (ev.type === 'error') page.exceptions.push('console.error: ' + ev.args.map(a => a.value ?? a.description ?? '').join(' '));
+    });
     await page.send('Page.addScriptToEvaluateOnNewDocument', { source: `
       Object.defineProperty(HTMLMediaElement.prototype, 'play', { value: function () { return Promise.resolve(); }, configurable: true });` });
     await page.send('Page.navigate', { url: `${base}/index.html?rig=${Date.now()}` });

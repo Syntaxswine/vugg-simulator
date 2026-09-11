@@ -119233,6 +119233,109 @@ function _opticsExtentOfScale(scale) {
         return 1;
     return Math.max(0.2, Math.min(Math.abs(scale.x) || 1, Math.abs(scale.y) || 1, Math.abs(scale.z) || 1));
 }
+// Topaz's accepted convex body supplies its optical exit surface. Stock r163
+// transmission uses a constant thickness multiplied by model scale; a world-mm
+// thickness there scales twice and cannot distinguish prism and terminal paths.
+function _topazOpticalPlanes(geometry) {
+    const g = geometry.index ? geometry.toNonIndexed() : geometry;
+    const p = g.attributes.position, planes = [];
+    const a = new THREE.Vector3(), b = new THREE.Vector3(), c = new THREE.Vector3();
+    const center = new THREE.Vector3();
+    for (let i = 0; i < p.count; i++)
+        center.add(a.fromBufferAttribute(p, i));
+    center.divideScalar(p.count);
+    for (let i = 0; i < p.count; i += 3) {
+        a.fromBufferAttribute(p, i);
+        b.fromBufferAttribute(p, i + 1);
+        c.fromBufferAttribute(p, i + 2);
+        const n = b.clone().sub(a).cross(c.sub(a));
+        if (n.lengthSq() < 1e-16)
+            continue;
+        n.normalize();
+        if (n.dot(center.clone().sub(a)) > 0)
+            n.negate();
+        const d = n.dot(a);
+        if (!planes.some(q => n.dot(q.n) > 1 - 1e-7 && Math.abs(q.d - d) < 1e-6))
+            planes.push({ n, d });
+    }
+    if (g !== geometry)
+        g.dispose();
+    return planes;
+}
+function _applyTopazVolumeOptics(mat, mesh) {
+    const planes = _topazOpticalPlanes(mesh.geometry);
+    if (planes.length < 4 || planes.length > 96)
+        return;
+    mesh.geometry.computeBoundingBox();
+    const dims = mesh.geometry.boundingBox.getSize(new THREE.Vector3()).multiply(mesh.scale);
+    _opticsApplyExtent(mat, Math.min(dims.x, dims.y, dims.z));
+    // A closed prism viewed from outside needs only its entry faces. Rendering its
+    // backs into the transmission buffer adds a second opaque version of itself.
+    mat.side = THREE.FrontSide;
+    // Clean vitreous faces; the existing etch/porosity roughness increments remain.
+    mat.roughness = Math.max(0.06, mat.roughness - 0.03);
+    mat.userData.optics.volume_path = 'convex-topaz';
+    mat.userData.optics.exit_planes = planes.length;
+    mat.userData.optics.volume_roughness = mat.roughness;
+    const previous = mat.onBeforeCompile;
+    const previousKey = mat.customProgramCacheKey();
+    mat.onBeforeCompile = (shader, renderer) => {
+        previous.call(mat, shader, renderer);
+        shader.uniforms.topazExitPlanes = { value: planes.map(p => new THREE.Vector4(p.n.x, p.n.y, p.n.z, p.d)) };
+        const code = `
+      uniform vec4 topazExitPlanes[${planes.length}];
+      vec3 topazVolumeRay(vec3 n, vec3 v, vec3 position, mat4 model,
+          out float pathLength, out vec3 finalRay, out float trapped) {
+        vec3 ray = refract(-v, normalize(n), 1.0 / ior);
+        mat4 invModel = inverse(model);
+        vec3 origin = (invModel * vec4(position, 1.0)).xyz;
+        pathLength = 0.0;
+        trapped = 1.0;
+        for (int bounce = 0; bounce < 4; bounce++) {
+          vec3 direction = (invModel * vec4(ray, 0.0)).xyz;
+          float exitDistance = 1e20;
+          vec3 exitNormal = n;
+          for (int i = 0; i < ${planes.length}; i++) {
+            vec4 plane = topazExitPlanes[i];
+            float denominator = dot(plane.xyz, direction);
+            if (denominator > 1e-7) {
+              float distance = max(0.0, (plane.w - dot(plane.xyz, origin)) / denominator);
+              if (distance < exitDistance) {
+                exitDistance = distance;
+                exitNormal = normalize(transpose(mat3(invModel)) * plane.xyz);
+              }
+            }
+          }
+          if (exitDistance > 1e19) break;
+          pathLength += exitDistance;
+          origin += direction * exitDistance;
+          vec3 outgoing = refract(ray, -exitNormal, ior);
+          if (dot(outgoing, outgoing) > 0.001) { trapped = 0.0; break; }
+          ray = reflect(ray, exitNormal);
+          origin += (invModel * vec4(ray * 0.00001, 0.0)).xyz;
+        }
+        finalRay = ray;
+        return (model * vec4(origin, 1.0)).xyz - position;
+      }
+    `;
+        const chunk = THREE.ShaderChunk.transmission_pars_fragment.replace('vec3 transmissionRay = getVolumeTransmissionRay( n, v, thickness, ior, modelMatrix );', 'float topazPathLength; float topazTrapped; vec3 topazFinalRay; vec3 transmissionRay = topazVolumeRay( n, v, position, modelMatrix, topazPathLength, topazFinalRay, topazTrapped );')
+            .replace('volumeAttenuation( length( transmissionRay ),', 'volumeAttenuation( topazPathLength,')
+            .replace('vec3 attenuatedColor = transmittance * transmittedLight.rgb;', `
+        // A ray still internally reflected after the bounded trace must not
+        // sample rock through its last reflecting face. Use the room radiance
+        // in that direction as the declared unresolved-path approximation.
+        #ifdef ENVMAP_TYPE_CUBE_UV
+          if (topazTrapped > 0.5) transmittedLight.rgb =
+            textureCubeUV(envMap, envMapRotation * topazFinalRay, roughness).rgb * envMapIntensity;
+        #endif
+        vec3 attenuatedColor = transmittance * transmittedLight.rgb;
+      `);
+        // Place the helper after IOR has been declared by the physical-material chunk.
+        shader.fragmentShader = shader.fragmentShader.replace('#include <transmission_pars_fragment>', code + chunk);
+    };
+    mat.customProgramCacheKey = () => previousKey + '|topaz-convex-volume-v1-' + planes.length;
+    mat.needsUpdate = true;
+}
 // Install the optics rig on a fresh Three state: desktop starts on transmission, mobile and
 // a failed lighting rig start on alpha. `tier` is the CAPABILITY; `active` is what the scene
 // is painted with right now — glass needs an opaque backdrop in three.js's transmission
@@ -120877,6 +120980,26 @@ function _topoSyncCrystalMeshes(state, sim, wall, replayStep) {
         // inclusion has no free druse spray, so it opts out (W-F O4a).
         if (!isInclusion && !crystal._surfaceGrowth) {
             _emitClusterSatellites(state, crystal, geom, mat, ax, ay, az, nx, ny, nz, cLen, aWid, token, wall, ringCount, N, initR, occF, mesh);
+        }
+        // Each representative gets its own path planes/attenuation: contacted parents
+        // and uncut, differently scaled satellites cannot share one optical volume.
+        if (gemPrismGeometry && crystal.mineral === 'topaz' && !isInclusion) {
+            for (const body of state.crystals.children) {
+                if (body.userData.crystal_id !== crystal.crystal_id || body.userData.o5Band || !body.geometry)
+                    continue;
+                if (body === mesh) {
+                    _applyTopazVolumeOptics(mat, body);
+                    continue;
+                }
+                if (body.material !== mat)
+                    continue;
+                body.material = mat.clone();
+                // clone does not copy onBeforeCompile; restore cavity/helix clipping
+                // before installing optics from this body's geometry.
+                _applyCavityClip(body.material, state.clipUniforms);
+                body.material.roughness = mat.userData.optics.roughness;
+                _applyTopazVolumeOptics(body.material, body);
+            }
         }
     }
     // === W-F O4a pass 2 — engulfment placement ==========================
