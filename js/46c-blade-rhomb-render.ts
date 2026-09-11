@@ -94,8 +94,77 @@ function gypsumCleavageHeight(geom: any, attachFrac: number): void {
   geom.setAttribute('gypsumHeight', new THREE.Float32BufferAttribute(values, 1));
 }
 
+// Split gypsum retains tabular subindividuals. A rosette is an arrangement of
+// monoclinic plates, not a rounded botryoidal body (Handbook, gypsum.pdf).
+// All members cross a shared interior; transforms and sector colours are
+// representative display development, not new crystals or growth records.
+function makeGypsumSplitAggregate(index: number, rose: boolean, hourglass: any = null): any {
+  const positions:number[]=[], normals:number[]=[], colors:number[]=[], heights:number[]=[], members:any[]=[];
+  const body=new THREE.Color('#e8e2d4'), sand=new THREE.Color('#c89a5b');
+  const intensity=Math.max(0,Math.min(1,Number(hourglass?.intensity)||0));
+  const spread=rose ? 1.3 : 0.25 + Math.max(0,Math.min(1,(index-0.25)/0.6))*0.95;
+  for(let i=0;i<11;i++) {
+    const faces=bladeRhombRenderFaces('gypsum','tablet',0.9,3.2,0.88+(i%3)*0.1);
+    // The ordinary development>=3 route thickens the basal join; a rose needs
+    // thin exposed petals throughout, while still intersecting at its center.
+    for(const f of faces)if(f.family==='010')f.d/=4;
+    const poly=wulffPolyhedron(faces);
+    const yaw=i*2.3999632297+(i%3)*0.13;
+    const tilt=(i===0 ? 0.15 : spread*(0.65+(i%4)*0.12));
+    const q=new THREE.Quaternion().setFromEuler(new THREE.Euler(tilt, yaw, (i%3-1)*0.18,'YXZ'));
+    const scale=0.67+((i*7)%11)*0.032;
+    const matrix=new THREE.Matrix4().compose(new THREE.Vector3(),q,new THREE.Vector3(scale,scale,scale));
+    members.push({matrix:matrix.toArray(),faces:faces.map(f=>({n:f.n,d:f.d}))});
+    for(const f of poly.faces)for(let k=1;k<f.verts.length-1;k++)for(const vi of [f.verts[0],f.verts[k],f.verts[k+1]]) {
+      const local=new THREE.Vector3(...poly.vertices[vi]);
+      positions.push(...local.clone().applyMatrix4(matrix).toArray());
+      normals.push(...new THREE.Vector3(...faces[f.plane].n).applyQuaternion(q).toArray());
+      heights.push(local.y+0.5);
+      const sector=hourglass ? (hourglass.flooded ? 0.8 : Math.max(0,Math.min(1,(Math.abs(local.y)-Math.abs(local.x)*0.65)*4))*intensity) : 0;
+      colors.push(...body.clone().lerp(sand,sector).toArray());
+    }
+  }
+  const geometry=new THREE.BufferGeometry();
+  geometry.setAttribute('position',new THREE.Float32BufferAttribute(positions,3));
+  geometry.setAttribute('normal',new THREE.Float32BufferAttribute(normals,3));
+  geometry.setAttribute('color',new THREE.Float32BufferAttribute(colors,3));
+  geometry.setAttribute('gypsumHeight',new THREE.Float32BufferAttribute(heights,1));
+  geometry.computeBoundingBox();
+  const size=geometry.boundingBox.getSize(new THREE.Vector3()), s=1/Math.max(size.x,size.y,size.z);
+  const shift=-0.5-geometry.boundingBox.min.y*s;
+  geometry.scale(s,s,s);geometry.translate(0,shift,0);
+  const normalization=new THREE.Matrix4().makeScale(s,s,s);normalization.setPosition(0,shift,0);
+  for(const member of members)member.matrix=normalization.clone().multiply(new THREE.Matrix4().fromArray(member.matrix)).toArray();
+  geometry.userData.gypsumSplitR4={index,rose,members,hourglass:!!hourglass};
+  return geometry;
+}
+
 // A few related subgroups, not a coplanar hand fan or independent random sticks.
 // Layout is representative rendering, keyed only by identity; no simulation RNG.
+function makeGypsumTwinRenderGeometry(): any {
+  // Retain the existing display twin's 60-degree separation, now using the
+  // same monoclinic plates as ordinary selenite instead of rectangular boxes.
+  const positions:number[]=[],normals:number[]=[],heights:number[]=[];
+  const faces=bladeRhombRenderFaces('gypsum','tablet',0.9,3.2);
+  for(const f of faces)if(f.family==='010')f.d/=4;
+  const poly=wulffPolyhedron(faces);
+  for(const sign of [-1,1]) {
+    const q=new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0,0,1),sign*Math.PI/6);
+    for(const f of poly.faces)for(let k=1;k<f.verts.length-1;k++)for(const vi of [f.verts[0],f.verts[k],f.verts[k+1]]) {
+      const p=new THREE.Vector3(...poly.vertices[vi]);
+      heights.push(p.y+0.5);
+      p.y+=0.26;p.applyQuaternion(q);
+      positions.push(...p.toArray());
+      normals.push(...new THREE.Vector3(...faces[f.plane].n).applyQuaternion(q).toArray());
+    }
+  }
+  const g=new THREE.BufferGeometry();
+  g.setAttribute('position',new THREE.Float32BufferAttribute(positions,3));
+  g.setAttribute('normal',new THREE.Float32BufferAttribute(normals,3));
+  g.setAttribute('gypsumHeight',new THREE.Float32BufferAttribute(heights,1));
+  return g;
+}
+
 function gypsumSprayMember(crystalId: number, index: number): any {
   const group = index >= 6 ? (index - 6) % 3 : Math.floor(index / 2);
   const common = _clusterRand(crystalId * 0x45d9f3b + group * 0x9e3779b9);

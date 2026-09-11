@@ -16,6 +16,17 @@ function area(poly: any, face: any) {
 }
 
 describe('R4 quartz fixed planes and differential development', () => {
+  it('adds small s/x faces without losing either main rhombohedron across the live aspect range', () => {
+    for (const ratio of [0.2,0.4,0.7,1.1]) for (const contrast of [0.12,0.24]) for (const double of [false,true]) {
+      const faces=quartzRenderFaces(ratio,contrast,0.6,double,true), poly=wulffPolyhedron(faces);
+      const count=double?6:3;
+      for(const family of ['r','z','s','x']) expect(poly.faces.filter(f=>faces[f.plane].family===family)).toHaveLength(count);
+      const g=makeQuartzRenderGeometry(ratio,contrast,0.6,double,true);
+      expect(g.userData.quartzR4.accessory).toBe(true);
+      for(const f of poly.faces) for(const v of poly.vertices) expect(new THREE.Vector3(...faces[f.plane].n).dot(new THREE.Vector3(...v))).toBeLessThanOrEqual(faces[f.plane].d+1e-6);
+      if(double)expect(g.userData.quartzR4.families).not.toContain('scar');
+    }
+  });
   it('keeps the two rhombohedra distinct under point group 32', () => {
     const m = quartzFormNormals(1, 0, 0), r = quartzFormNormals(1, 0, 1), z = quartzFormNormals(0, 1, 1);
     expect(m).toHaveLength(6); expect(r).toHaveLength(6); expect(z).toHaveLength(6);

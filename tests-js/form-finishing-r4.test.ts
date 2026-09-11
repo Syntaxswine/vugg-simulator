@@ -3,8 +3,33 @@ declare const THREE:any, Crystal:any, WallState:any, _topoSyncCrystalMeshes:any;
 declare const makeQuartzRenderGeometry:any, makeGemPrismRenderGeometry:any, chamferCrystalGeometry:any;
 declare const _buildHabitGeom:any, makeNativeSilverWireGeometry:any;
 declare const _resolveCrystalGeomToken:any;
+declare const applyCrystalFaceRelief:any;
+declare const _makeSystemPrism:any, _makeRhombohedron:any, _makeHexPrismWithPyramid:any;
 
 describe('R4 form finishing',()=>{
+  it('bevels inward-wound legacy prisms and closes only their planar attachment scar',()=>{
+    for(const source of [_makeSystemPrism('monoclinic'),_makeRhombohedron(),_makeHexPrismWithPyramid()]) {
+      const g=chamferCrystalGeometry(source); expect(g).not.toBe(source);
+      expect(g.userData.chamferR4).toBeTruthy();
+      const p=g.attributes.position, edges=new Map<string,number>();
+      const key=(i:number)=>[p.getX(i),p.getY(i),p.getZ(i)].map(v=>Math.round(v*1e5)).join(',');
+      for(let i=0;i<p.count;i+=3)for(let j=0;j<3;j++) {
+        const edge=[key(i+j),key(i+(j+1)%3)].sort().join('|');edges.set(edge,(edges.get(edge)||0)+1);
+      }
+      expect([...edges.values()].every(n=>n===2)).toBe(true);
+    }
+  });
+  it('composes filtered face relief with existing material hooks without accumulating wrappers',()=>{
+    const mat=new THREE.MeshPhysicalMaterial(); let calls=0;
+    mat.onBeforeCompile=()=>{calls++;};
+    applyCrystalFaceRelief(mat); const key=mat.customProgramCacheKey();
+    applyCrystalFaceRelief(mat); expect(mat.customProgramCacheKey()).toBe(key);
+    const shader={uniforms:{},vertexShader:'#include <common>\n#include <begin_vertex>',fragmentShader:'#include <common>\n#include <normal_fragment_maps>'};
+    mat.onBeforeCompile(shader,null); expect(calls).toBe(1);
+    expect(shader.fragmentShader).toContain('fwidth(r4Radius)');
+    expect(shader.vertexShader).toContain('vR4FacePosition = position * r4Scale');
+    expect(mat.userData.faceReliefR4.amplitude_mm).toBeLessThan(0.002);
+  });
   it('carries topaz prism faces continuously to its closed root',()=>{
     for(const attach of [0,0.2,0.5]) {
       const g=makeGemPrismRenderGeometry('topaz',1.5,attach,1),p=g.attributes.position,n=g.attributes.normal;
@@ -85,5 +110,11 @@ describe('R4 form finishing',()=>{
       expect(_resolveCrystalGeomToken({mineral,twinned:false},habit)).toBe('cube');
     for(const [mineral,habit] of [['native_gold','dendritic'],['native_copper','arborescent']])
       expect(_resolveCrystalGeomToken({mineral,twinned:false},habit)).toBe('spike');
+  });
+  it('preserves cottonball borax form across recorded dehydration',()=>{
+    expect(_resolveCrystalGeomToken({mineral:'borax'},'cottonball')).toBe('botryoidal');
+    expect(_resolveCrystalGeomToken({mineral:'tincalconite',paramorph_origin:'borax'},'cottonball')).toBe('botryoidal');
+    // A mineral name alone does not establish a precursor or a pseudomorph.
+    expect(_resolveCrystalGeomToken({mineral:'tincalconite'},'cottonball')).toBe('prism');
   });
 });

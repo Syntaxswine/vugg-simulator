@@ -48,7 +48,7 @@ function quartzRenderHistory(crystal: any, replayStep: number | null): any {
     bands, variability, growth_um: total };
 }
 
-function quartzRenderFaces(widthRatio: number, contrast: number, phase: number, doubleEnded = false): any[] {
+function quartzRenderFaces(widthRatio: number, contrast: number, phase: number, doubleEnded = false, accessory = false): any[] {
   // Unit c length, uniform final scale. Change distances to develop aspect;
   // never anisotropically stretch the completed termination.
   const radius = 0.4 * Math.max(0.2, Math.min(1.1, widthRatio));
@@ -68,27 +68,39 @@ function quartzRenderFaces(widthRatio: number, contrast: number, phase: number, 
   if (!first?.vertices.length) return faces;
   const peak = Math.max(...first.vertices.map((v: number[]) => v[1]));
   for (const face of faces) if (face.n[1] > 0) face.d += face.n[1] * (0.5 - peak);
+  if (accessory) {
+    // Small s {11-21} and x {51-61} faces of one enantiomorph. Development
+    // is a display choice, not an inferred growth rate or measured handedness.
+    // Indices: USGS Bulletin 973-E, p.206, pubs.usgs.gov/bul/0973e/report.pdf.
+    const envelope = wulffPolyhedron(faces);
+    for (const [h, k, family, depth] of [[1, 1, 's', 0.035], [5, 1, 'x', 0.025]] as any[]) {
+      for (const n of quartzFormNormals(h, k, 1)) if (n[1] > 0) {
+        const support = Math.max(...envelope.vertices.map(v => n[0]*v[0]+n[1]*v[1]+n[2]*v[2]));
+        faces.push({ n, d: support - radius * depth, family });
+      }
+    }
+  }
   if (doubleEnded) {
     // Quartz point group 32 relates the opposite end by C2 about a, not
     // inversion. Mirror neither the chirality nor r/z family identities.
-    faces.pop(); // remove the flat attachment scar
+    faces.splice(faces.findIndex(f => f.family === 'scar'), 1);
     const upper = faces.filter(f => f.n[1] > 0);
     for (const f of upper) faces.push({ n: [f.n[0], -f.n[1], -f.n[2]], d: f.d, family: f.family });
   }
   return faces;
 }
 
-function makeQuartzRenderGeometry(widthRatio: number, contrast: number, phase: number, doubleEnded = false): any {
-  const faces = quartzRenderFaces(widthRatio, contrast, phase, doubleEnded);
+function makeQuartzRenderGeometry(widthRatio: number, contrast: number, phase: number, doubleEnded = false, accessory = false): any {
+  const faces = quartzRenderFaces(widthRatio, contrast, phase, doubleEnded, accessory);
   const poly = wulffPolyhedron(faces);
-  if (!poly || (doubleEnded ? poly.faces.length < 12 : poly.faces.length !== 13)) return null;
+  if (!poly || (doubleEnded ? poly.faces.length < 12 : accessory ? poly.faces.length < 13 : poly.faces.length !== 13)) return null;
   const geometry = _wulffPolyToGeom(poly, 1);
   if (geometry) {
     const normals: number[] = [];
     for (const f of poly.faces) for (let i=0;i<(f.verts.length-2)*3;i++) normals.push(...faces[f.plane].n);
     geometry.setAttribute('normal', new THREE.Float32BufferAttribute(normals,3));
   }
-  if (geometry) geometry.userData.quartzR4 = { widthRatio, contrast, phase, doubleEnded,
+  if (geometry) geometry.userData.quartzR4 = { widthRatio, contrast, phase, doubleEnded, accessory,
     families: poly.faces.map((f: any) => faces[f.plane].family) };
   return geometry;
 }

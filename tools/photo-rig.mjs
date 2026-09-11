@@ -104,7 +104,7 @@ function parseArgs(argv) {
     else if (a === '--crystal-id') out.crystalId = Number(next());
     else if (a === '--fixture') {
       out.fixture = next();
-      if (!['aragonite-trilling', 'aragonite-contact', 'aragonite-ordinary', 'quartz-double'].includes(out.fixture)) throw new Error('Unknown photo fixture');
+      if (!['aragonite-trilling', 'aragonite-contact', 'aragonite-ordinary', 'quartz-double', 'quartz-accessory'].includes(out.fixture)) throw new Error('Unknown photo fixture');
     }
     else if (a === '--camera-from') out.cameraFrom = JSON.parse(readFileSync(path.resolve(ROOT, next()), 'utf8'));
     else if (a === '--size') out.size = next().split('x').map(Number);
@@ -623,6 +623,9 @@ const PAGE_HELPERS = `
         aragonite_form: m.geometry?.userData?.aragoniteR4 ?? null,
         gem_prism_form: m.geometry?.userData?.gemPrismR4 ?? null,
         quartz_form: m.geometry?.userData?.quartzR4 ?? null,
+        gypsum_split: m.geometry?.userData?.gypsumSplitR4 ? {index:m.geometry.userData.gypsumSplitR4.index,rose:m.geometry.userData.gypsumSplitR4.rose,members:m.geometry.userData.gypsumSplitR4.members.length,hourglass:m.geometry.userData.gypsumSplitR4.hourglass} : null,
+        split_needles: m.geometry?.userData?.splitNeedleR4 ?? null,
+        surface_fibers: m.geometry?.userData?.surfaceFiberR4 ?? null,
         chamfer: m.geometry?.userData?.chamferR4 ?? null,
         system_prism: m.geometry?.userData?.systemPrism ?? null,
         blade_spray: !!m.userData.bladeSpray, spray_group: m.userData.sprayGroup ?? null,
@@ -1011,17 +1014,18 @@ function runProgram(name, seed, steps, fixture = null) {
     const simMs = performance.now() - t0;
     if (${JSON.stringify(fixture)} != null) {
       const fixtureName = ${JSON.stringify(fixture)};
-      const fixtureMineral = fixtureName === 'quartz-double' ? 'quartz' : 'aragonite';
+      const fixtureMineral = fixtureName.startsWith('quartz-') ? 'quartz' : 'aragonite';
       const index = sim.crystals.findIndex(c => c.mineral === fixtureMineral);
       if (index < 0) throw new Error('Fixture requires an existing ' + fixtureMineral + ' anchor');
       const original = sim.crystals[index];
-      const fixtureHabit = fixtureMineral === 'quartz' ? 'doubly_terminated' : 'columnar';
+      const fixtureHabit = fixtureName === 'quartz-double' ? 'doubly_terminated' : fixtureMineral === 'quartz' ? 'prismatic' : 'columnar';
       const crystal = new Crystal({ mineral: fixtureMineral, habit: fixtureHabit,
         crystal_id: original.crystal_id, nucleation_step: original.nucleation_step });
       Object.assign(crystal, { habit: fixtureHabit, twinned: fixtureName === 'aragonite-trilling' || fixtureName === 'aragonite-contact',
         twin_law: fixtureName === 'aragonite-contact' ? 'contact' : fixtureName === 'aragonite-trilling' ? 'cyclic_sextet' : '',
         growth_environment: 'fluid', c_length_mm: 8, a_width_mm: 5,
         total_growth_um: 8000, wall_anchor: original.wall_anchor });
+      if (fixtureName === 'quartz-accessory') crystal.crystal_id = 4 * (1 + Math.ceil(Math.max(...sim.crystals.map(c=>c.crystal_id))/4));
       sim.crystals[index] = crystal;
     }
     if (typeof _topoUseThreeRenderer !== 'undefined' && !_topoUseThreeRenderer) _topoUseThreeRenderer = true;

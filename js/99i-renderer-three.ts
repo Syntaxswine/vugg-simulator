@@ -3239,6 +3239,10 @@ const _O2_CONVEX_TOKENS = new Set([
 // trilling, pyrite iron-cross, galena octahedron-twin, aragonite
 // pseudo-hex) plug into this same gate.
 function _resolveCrystalGeomToken(crystal: any, habitForGeom: string): string {
+  // Preserve the authored rounded cottonball fabric across executed borax
+  // dehydration; the new mineral name must not reset it to a hexagonal prism.
+  if (habitForGeom === 'cottonball' && (crystal?.mineral === 'borax'
+      || (crystal?.mineral === 'tincalconite' && crystal?.paramorph_origin === 'borax'))) return 'botryoidal';
   if (!crystal?.twinned && ((crystal?.mineral === 'cobaltite' && habitForGeom === 'default_habit')
       || (crystal?.mineral === 'awaruite' && habitForGeom === 'grains_microscopic'))) return 'cube';
   // Air-mode aragonite → frostwork, twinned OR not (the v156 override
@@ -3806,7 +3810,7 @@ function _physicalEtchReliefBucket(intensity: number): number {
 // "stretched cube" silhouette.
 function _makeRhombohedron(): any {
   const h = 0.50;             // apex height
-  const t = 0.18;             // equatorial height (closer to apex than to center → "stretched" look)
+  const t = h / 3;            // coplanar rhomb faces: apex height is three times the equatorial tier
   const r = 0.42;             // equatorial radius
   // Equatorial vertices: 3 upper (at y=+t) staggered 60° from 3 lower (at y=-t)
   const upper = [0, 1, 2].map(i => {
@@ -6794,9 +6798,9 @@ function _emitSurfaceGrowthSwath(
       state.geomCache.set(key, geom);
     }
   } else if (record.regime === 'fibrous_mat') {
-    key = '__surface_fiber';
+    key = '__surface_fiber_r4';
     geom = state.geomCache.get(key);
-    if (!geom) { geom = _buildHabitGeom('spike'); state.geomCache.set(key, geom); }
+    if (!geom) { geom = makeSurfaceFiberBundleGeometry(); state.geomCache.set(key, geom); }
   } else if (record.regime === 'dendritic_film') {
     // A wall dendrite is a branching two-dimensional film, not a forest of
     // pyrolusite needles. Reuse the deterministic tree skeleton, then flatten
@@ -7164,7 +7168,7 @@ function _emitClusterSatellites(
     } else {
       // R4 geometry already contains quartz's aspect and fixed face angles.
       // Satellites must preserve the parent's uniform-scale contract too.
-      if (geom.userData.quartzR4 || geom.userData.bladeRhombR4 || geom.userData.bariteR4 || geom.userData.aragoniteR4 || geom.userData.gemPrismR4) satMesh.scale.setScalar(sCLen);
+      if (geom.userData.quartzR4 || geom.userData.bladeRhombR4 || geom.userData.bariteR4 || geom.userData.aragoniteR4 || geom.userData.gemPrismR4 || geom.userData.gypsumTwinR4) satMesh.scale.setScalar(sCLen);
       else satMesh.scale.set(sAWid, sCLen, sAWid);
     }
     satMesh.position.set(
@@ -8386,6 +8390,7 @@ function _topoSyncCrystalMeshes(state: any, sim: any, wall: any, replayStep?: nu
     let geom: any = null;
     let _o2ConvexGeom = false;   // W-F O2: set by the convex geom paths (Wulff / system-prism / token primitive); the concave/special builders leave it false so the contact clip skips them
     let isSectorZoned = false;   // sector (hourglass) zoning → vertexColors material
+    let isGypsumHourglass = false;
     let isWulffCalcite = false;  // calcite Wulff polyhedron → isotropic scale (geom carries c-elongation)
     let isWulffWulfenite = false;  // wulfenite Wulff tabular plate → isotropic scale by plate diameter (rung 4a.3)
     let isWulffBarite = false;  // barite Wulff RECTANGULAR tabular plate → isotropic scale by plate diameter (rung 4a.4)
@@ -8572,6 +8577,32 @@ function _topoSyncCrystalMeshes(state: any, sim: any, wall: any, replayStep?: nu
       if (crystal._sceptreGeomCf !== cf) { crystal._sceptreGeom = _makeSceptreHexPrism(cf, ecc); crystal._sceptreGeomCf = cf; }
       geom = crystal._sceptreGeom;
     }
+    // A named gypsum twin keeps its two-blade construction even when the same
+    // record also carries split/rose and hourglass tags. The former O5 sphere
+    // ran first and erased both the twin silhouette and sector appearance.
+    if (!geom && token === 'selenite_swallowtail_twin') {
+      const hg=crystal._sectorZoned?.kind==='gypsum_hourglass' ? crystal._sectorZoned : null;
+      const intensity=hg ? Math.round(Math.max(0,Math.min(1,Number(hg.intensity)||0))*10)/10 : 0;
+      const key='__gypsum_twin_r4_'+!!hg+'_'+intensity+'_'+!!hg?.flooded;
+      geom=state.geomCache.get(key);
+      if(!geom) {
+        geom=makeGypsumTwinRenderGeometry();geom.computeBoundingBox();
+        const height=geom.boundingBox.max.y-geom.boundingBox.min.y;
+        const shift=-0.5-geom.boundingBox.min.y/height;
+        geom.scale(1/height,1/height,1/height);geom.translate(0,shift,0);
+        if(hg) {
+          const p=geom.attributes.position,colors=[];
+          const clear=new THREE.Color('#e8e2d4'),sand=new THREE.Color('#c89a5b');
+          for(let i=0;i<p.count;i++) {
+            const sector=hg.flooded ? 0.8 : intensity*Math.max(0,Math.min(1,(Math.abs(p.getY(i))-0.12)*3));
+            colors.push(...clear.clone().lerp(sand,sector).toArray());
+          }
+          geom.setAttribute('color',new THREE.Float32BufferAttribute(colors,3));
+        }
+        geom.userData.gypsumTwinR4={law:'swallowtail',hourglass:!!hg};state.geomCache.set(key,geom);
+      }
+      isSectorZoned=!!hg;isGypsumHourglass=!!hg && !hg.flooded;
+    }
     // W-F O5 SPLITTING (S-b + S-c) — a crystal that EARNED a rung on the two-route
     // cumulative-misorientation ladder (js/44c _split) renders its divergent /
     // radial form, and (S-c) the FORM VARIES CONTINUOUSLY with `_split.index`
@@ -8588,18 +8619,34 @@ function _topoSyncCrystalMeshes(state: any, sim: any, wall: any, replayStep?: nu
     //   • spherulite → the radial botryoidal cluster, completeness = f(index): a
     //     just-crossed spherulite is tighter/under-grown, a full-index one a closed
     //     rosette — continuous with the widest sheaf.
-    // Mineral-agnostic for the fan/sphere (a stilbite sheaf, an aragonite flos-ferri
-    // sphere, a byssolite spray all read from the one form). SKIP when _deformation
+    // R4 keeps gypsum plates and system-mapped acicular prisms in these
+    // aggregates; the generic fan/sphere remains the fallback. SKIP when _deformation
     // is present — the shear-bent saddle is a SEPARATE cause (§9a #4;
     // tools/o5-split-census.mjs certifies these two sets do not collide). Gated by
     // O5_SPLITTING_ENABLED (js/44c); splitAbility-0 minerals (quartz/feldspar) never
     // carry _split, so their gwindel/sceptre hooks above are untouched. Params are
     // quantized before the cache key so the geom cache stays small.
-    if (!geom && O5_SPLITTING_ENABLED && crystal._split && !crystal._deformation) {
-      const _spIdx = Math.max(0, Math.min(1, crystal._split.index || 0));
-      const _spRung = crystal._split.rung;
+    const authoredGypsumRose=['gypsum','selenite'].includes(crystal.mineral) && crystal.habit==='desert_rose';
+    if (!geom && ((O5_SPLITTING_ENABLED && crystal._split) || authoredGypsumRose) && !crystal._deformation) {
+      const _spIdx = Math.max(0, Math.min(1, crystal._split?.index ?? 1));
+      const _spRung = crystal._split?.rung || 'spherulite';
       const _isSaddleHabit = typeof crystal.habit === 'string' && crystal.habit.indexOf('saddle') >= 0;
-      if (_spRung === 'curved' && (token === 'rhomb' || _isSaddleHabit)) {
+      if ((authoredGypsumRose || ['split','sheaf','spherulite'].includes(_spRung))
+          && ['gypsum','selenite'].includes(crystal.mineral) && !crystal.twinned && !crystal._surfaceGrowth) {
+        const index=Math.round(_spIdx*20)/20;
+        const rose=crystal.habit==='desert_rose' || _spRung==='spherulite';
+        const hg=crystal._sectorZoned?.kind==='gypsum_hourglass' ? crystal._sectorZoned : null;
+        const key='__gypsum_split_r4_'+index+'_'+rose+'_'+(hg ? Math.round(hg.intensity*10)/10+'_'+!!hg.flooded : 'plain');
+        geom=state.geomCache.get(key);
+        if(!geom) { geom=makeGypsumSplitAggregate(index,rose,hg ? {...hg,intensity:Math.round(hg.intensity*10)/10} : null); state.geomCache.set(key,geom); }
+        isSectorZoned=!!hg; isGypsumHourglass=!!hg && !hg.flooded;
+      } else if (['split','sheaf','spherulite'].includes(_spRung) && token==='spike'
+          && CRYSTAL_SYSTEM[crystal.mineral] && !crystal.twinned && !crystal._surfaceGrowth) {
+        const index=Math.round(_spIdx*20)/20, radial=_spRung==='spherulite';
+        const key='__split_needle_r4_'+CRYSTAL_SYSTEM[crystal.mineral]+'_'+index+'_'+radial;
+        geom=state.geomCache.get(key);
+        if(!geom) { geom=makeSplitNeedleGeometry(CRYSTAL_SYSTEM[crystal.mineral],index,radial);state.geomCache.set(key,geom); }
+      } else if (_spRung === 'curved' && (token === 'rhomb' || _isSaddleHabit)) {
         // curved band 0.08..0.25 → curvature 0.05..0.16 (gentle bow, clamped by the mesh)
         const curv = Math.round((0.05 + 0.11 * Math.max(0, Math.min(1, (_spIdx - 0.08) / 0.17))) * 100) / 100;
         const key = '__split_saddle_' + curv;
@@ -8659,7 +8706,6 @@ function _topoSyncCrystalMeshes(state: any, sim: any, wall: any, replayStep?: nu
     // pale clear gypsum, the inclusion sector amber→chocolate by trapped-load intensity;
     // `flooded` buries the contrast to solid brown (the overgrown variant). Bucketed
     // cache key (intensity rounded to 0.1) keeps the geom cache small.
-    let isGypsumHourglass = false;
     if (!geom && crystal._sectorZoned && crystal._sectorZoned.kind === 'gypsum_hourglass') {
       const hg = crystal._sectorZoned;
       const inten = Math.max(0.15, Math.min(1, hg.intensity || 0.5));
@@ -8806,7 +8852,8 @@ function _topoSyncCrystalMeshes(state: any, sim: any, wall: any, replayStep?: nu
     // Hex/trigonal/unknown minerals aren't in CRYSTAL_SYSTEM → they keep the hex builder
     // (byte-identical). Gated on !geom so all the special builders above still win.
     if (!geom && (token === 'prism' || token === 'spike') && !crystal._surfaceGrowth) {
-      const sys = CRYSTAL_SYSTEM[crystal.mineral];
+      const sys = CRYSTAL_SYSTEM[crystal.mineral === 'tincalconite' && crystal.paramorph_origin === 'borax'
+        ? 'borax' : crystal.mineral];
       if (sys) {
         const skey = '__sysprism_' + sys;
         geom = state.geomCache.get(skey);
@@ -8850,6 +8897,7 @@ function _topoSyncCrystalMeshes(state: any, sim: any, wall: any, replayStep?: nu
     });
     _applyCavityClip(mat, state.clipUniforms);
     if (geom.userData.sulfideR4?.mineral === 'pyrite') applyPyriteStriations(mat);
+    if (geom.userData.gypsumSplitR4) applyGypsumCleavage(mat);
 
     const mesh = new THREE.Mesh(geom, mat);
 
@@ -8975,10 +9023,11 @@ function _topoSyncCrystalMeshes(state: any, sim: any, wall: any, replayStep?: nu
       const history = quartzRenderHistory(crystal, replayStep);
       const doubleEnded = habitForGeom === 'doubly_terminated';
       const ratio = Math.round(Math.max(0.2, Math.min(1.1, aWid / cLen)) * 100) / 100;
-      const key = '__quartz_r4_' + ratio + '_' + history.contrast + '_' + history.phase + '_' + doubleEnded;
+      const accessory = Math.abs(Math.trunc(crystal.crystal_id || 0)) % 4 === 0;
+      const key = '__quartz_r4_' + ratio + '_' + history.contrast + '_' + history.phase + '_' + doubleEnded + '_' + accessory;
       quartzGeometry = state.geomCache.get(key);
       if (!quartzGeometry) {
-        quartzGeometry = makeQuartzRenderGeometry(ratio, history.contrast, history.phase, doubleEnded);
+        quartzGeometry = makeQuartzRenderGeometry(ratio, history.contrast, history.phase, doubleEnded, accessory);
         if (quartzGeometry) state.geomCache.set(key, quartzGeometry);
       }
       if (quartzGeometry) {
@@ -8988,13 +9037,14 @@ function _topoSyncCrystalMeshes(state: any, sim: any, wall: any, replayStep?: nu
         applyQuartzStriations(mat, history);
       }
     }
-    if (_o2ConvexGeom && !isInclusion) {
+    if (!crystal._surfaceGrowth) {
       const finishKey = '__chamfer_' + geom.uuid;
       let finished = state.geomCache.get(finishKey);
       if (!finished) { finished = chamferCrystalGeometry(geom); state.geomCache.set(finishKey, finished); }
       geom = finished; mesh.geometry = geom;
+      if (geom.userData.chamferR4 && !isInclusion && !isEtched && !isPerimorphCast && !isSectorZoned) applyCrystalFaceRelief(mat);
     }
-    if (quartzGeometry || bladeRhombGeometry || bariteGeometry || aragoniteGeometry || gemPrismGeometry) {
+    if (quartzGeometry || bladeRhombGeometry || bariteGeometry || aragoniteGeometry || gemPrismGeometry || geom.userData.gypsumSplitR4 || geom.userData.gypsumTwinR4 || geom.userData.splitNeedleR4) {
       mesh.scale.set(cLen, cLen, cLen);
     } else if (token === 'cube' || token === 'octahedron' || token === 'tetrahedron' || token === 'rhombic_dodec' || token === 'dodecahedron' || token === 'snowball' || isWulffCalcite) {
       // isWulffCalcite (rung 4a.2): the calcite Wulff polyhedron already carries its true
@@ -9210,7 +9260,7 @@ function _topoSyncCrystalMeshes(state: any, sim: any, wall: any, replayStep?: nu
     // geomToken selects a per-habit cluster pattern (acicular spray,
     // tabular rosette, prismatic forest, cubic carpet, etc.). An engulfed
     // inclusion has no free druse spray, so it opts out (W-F O4a).
-    if (!isInclusion && !crystal._surfaceGrowth) {
+    if (!isInclusion && !crystal._surfaceGrowth && !geom.userData.gypsumSplitR4 && !geom.userData.splitNeedleR4) {
       _emitClusterSatellites(state, crystal, geom, mat, ax, ay, az, nx, ny, nz, cLen, aWid, token, wall, ringCount, N, initR, occF, mesh);
     }
     // Each representative gets its own path planes/attenuation: contacted parents
@@ -9224,6 +9274,10 @@ function _topoSyncCrystalMeshes(state: any, sim: any, wall: any, replayStep?: nu
         // clone does not copy onBeforeCompile; restore cavity/helix clipping
         // before installing optics from this body's geometry.
         _applyCavityClip(body.material, state.clipUniforms);
+        if (mat.userData.faceReliefR4) {
+          delete body.material.userData.faceReliefR4;
+          applyCrystalFaceRelief(body.material);
+        }
         body.material.roughness = mat.userData.optics.roughness;
         _applyTopazVolumeOptics(body.material, body);
       }

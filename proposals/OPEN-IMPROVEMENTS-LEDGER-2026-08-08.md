@@ -591,6 +591,16 @@ single execution ledger for the science-first AAA completion branch.
   Release generation/audit, typecheck and exact 184-module build check pass.
   All-files cold CI is not claimed.
 
+  **R4i form-gate closure, 2026-09-11:** Optional quartz s/x faces, expanded
+  convex-body chamfers and restrained face relief complete the finishing work.
+  The 41-scenario review repairs gypsum split/twin routing, acicular split
+  aggregates, fibrous mats and recorded borax replacement forms. Accepted topaz,
+  ordinary selenite, barite and aragonite shapes are preserved. The 710-habit
+  executed census has no geometry execution failures; the passive morphology
+  instrument stays within its <=10 gate. This is not a zero-visual-defect claim.
+  [R4 form acceptance](R4-FORM-ACCEPTANCE-2026-09-11.md) records validation and
+  carries forward growth-history, material and remaining aggregate detail.
+
 - [ ] **Final visual polish — graphics quality and progressive refinement**
   (user decision 2026-09-07; defer implementation until the realism tranches finish).
   Add an Options quality control for slower computers and render a coarse, usable

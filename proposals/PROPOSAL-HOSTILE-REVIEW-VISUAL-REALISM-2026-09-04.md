@@ -717,7 +717,7 @@ whole-vug photo set still wins on facets and wall texture (R4, R5).
 - **Acceptance:** no swath instance larger than 5 mm across on any scenario (rig roster check);
   Elmwood dogtooth silhouette visible in its hero shot at ≥ 20% of frame height.
 
-### R4 — Crystallographic forms for the species that matter · 4–6 days · no decision
+### R4 — Crystallographic forms for the species that matter · form gate complete 2026-09-11
 **R4a first implementation, 2026-09-07 (`codex/visual-realism-r4`):** ordinary
 prismatic quartz now uses point-group-32 m/r/z planes with a flat attachment scar,
 three larger r and three smaller z termination faces, and a slightly displaced
@@ -1286,10 +1286,17 @@ measurements, not a performance guarantee for slower hardware.
 Release generation/audit, typecheck and the exact 184-module build check pass.
 All-files cold CI is not claimed.
 
-**Still open in R4:** optional quartz s/x faces,
-full per-face growth histories, richer striations on specialized quartz forms,
-remaining crust/replacement forms, broader chamfer coverage and visual fleet
-acceptance. These delivered slices do not mark the whole R4 rung complete.
+**R4i form-gate closure, 2026-09-11:** Optional quartz s/x faces, broader
+convex-body chamfers, filtered face relief and the 41-scenario fleet review
+complete the remaining form work. The fleet also exposed and repaired generic
+gypsum split/twin, acicular aggregate, fibrous-mat and borax replacement routes.
+The passive default-habit instrument remains at four nonhex candidates, zero
+cubic-prism candidates and two unknown fabrics, within the <=10 acceptance gate.
+See [R4 form acceptance](R4-FORM-ACCEPTANCE-2026-09-11.md) for exact evidence,
+limits and reproduction. Actual per-face advance histories, richer specialized
+quartz striations, remaining generic aggregate detail and material/inclusion
+work are explicitly carried forward; this closes the form gate, not those
+scientific or material tasks. Validation is recorded in the acceptance report.
 
 **Next tranche selected 2026-09-07:** begin with quartz (R4a), following the
 R3c connected-crust delivery `f1440235`. R3's remaining mass-sized druse work

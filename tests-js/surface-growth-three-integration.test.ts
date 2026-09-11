@@ -51,6 +51,29 @@ function emit(state: any, crystal: any, wall: any, sim: any, layers: any[]) {
 }
 
 describe('SIM 250 executed Three.js surface-fabric contract', () => {
+  it('renders fibrous mats as closed parallel filaments without changing their coverage record', () => {
+    const wall = new WallState({vug_diameter_mm:70,shape_seed:42});
+    const crystal = makeAggregate(wall,500,'amosite','fibrous_asbestiform');
+    const sim = {step:900,wall_state:wall,crystals:[crystal]};
+    classifySurfaceGrowth(sim);
+    expect(crystal._surfaceGrowth.regime).toBe('fibrous_mat');
+    const before = JSON.stringify([crystal._surfaceGrowth,crystal._volume_mm3,crystal.zones]);
+    const mesh = emit(renderState(wall),crystal,wall,sim,[]);
+    expect(mesh.isInstancedMesh).toBe(true);
+    const g=mesh.geometry,p=g.attributes.position,n=g.attributes.normal;
+    expect(g.userData.surfaceFiberR4.filaments).toBe(9);
+    const edges=new Map<string,number>();
+    const key=(i:number)=>[p.getX(i),p.getY(i),p.getZ(i)].map(v=>Math.round(v*1e6)).join(',');
+    for(let i=0;i<p.count;i+=3)for(let j=0;j<3;j++) {
+      const e=[key(i+j),key(i+(j+1)%3)].sort().join('|');edges.set(e,(edges.get(e)||0)+1);
+    }
+    expect([...edges.values()].every(count=>count===2)).toBe(true);
+    for(let i=0;i<n.count;i++) {
+      // Caps are perpendicular to length; side normals have no taper component.
+      expect(Math.min(Math.abs(n.getY(i)),Math.abs(Math.abs(n.getY(i))-1))).toBeLessThan(1e-6);
+    }
+    expect(JSON.stringify([crystal._surfaceGrowth,crystal._volume_mm3,crystal.zones])).toBe(before);
+  });
   it('draws a continuous, raycastable lining at physical thickness, invariant across viewport LOD', () => {
     const wall = new WallState({ cells_per_ring: 48, ring_count: 12, vug_diameter_mm: 70, shape_seed: 5150 });
     const crystal = makeAggregate(wall, 500, 'chalcedony', 'banded_agate');

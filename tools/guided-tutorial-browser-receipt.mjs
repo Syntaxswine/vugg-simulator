@@ -87,7 +87,7 @@ const EXPECTED_GEOLOGY = Object.freeze({
   creative_completion: Object.freeze({
     runtime: 'fortress', scenario: 'tutorial_travertine', step: 50,
     fingerprint: '8c2eb2f17bf6355e14bfb98acaaaab16d451c26c89980cb3092edfb2af9e238e',
-    run_id: 'save-16-33h',   // re-pinned 2026-09-05 (R1) and 2026-09-07 (R5 grain texture; see save_load)
+    run_id: 'save-16-v6k',   // re-pinned 2026-09-11: R4 geometry allocations; exact geology unchanged (F13)
   }),
   skip: Object.freeze({
     runtime: 'fortress', scenario: 'tutorial_mn_calcite', step: 0,
@@ -95,7 +95,7 @@ const EXPECTED_GEOLOGY = Object.freeze({
     // Save ids draw from the QA-pinned Math.random stream shared with three.js UUIDs; the
     // fingerprint (the geology) is unchanged. Re-pinned 2026-09-05 (review F13), and again
     // the same day for the R1 lighting rig allocations (see save_load).
-    run_id: 'save-16-evi',   // re-pinned 2026-09-07 for R3b's shell geometry allocations; geology unchanged (F13)
+    run_id: 'save-16-idn',   // re-pinned 2026-09-11: R4 geometry allocations; exact geology unchanged (F13)
   }),
   simulation_completion: Object.freeze({
     runtime: 'simulation', scenario: 'shigar_pegmatite', step: 70,
@@ -113,7 +113,7 @@ const EXPECTED_GEOLOGY = Object.freeze({
 // geometries/materials before the "Collect topaz" click shifts this suffix. Re-pinned
 // 2026-09-05 (review F13 records the coupling as canonical debt), and again the same day for
 // the R1 lighting rig (PMREM room + key target allocated at renderer init).
-const EXPECTED_COLLECTION_RECORD_ID = 'cry-16-yof';   // re-pinned 2026-09-10: Topaz material allocations; exact journey diff is this ID only (F13)
+const EXPECTED_COLLECTION_RECORD_ID = 'cry-16-ze5';   // re-pinned 2026-09-11: R4 geometry allocations; collection payload differs only in this ID (F13)
 const EXPECTED_COLLECTION_NAME = '<img data-vugg-player-name-probe src=x onerror="globalThis.__vuggPlayerNameInjection=1">';
 // Replaced with the exact SIM 285 values after the owned-browser source freeze.
 // Re-pinned 2026-09-05: the strip dataset records each crystal's surface-growth testimony
