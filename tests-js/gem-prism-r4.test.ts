@@ -4,6 +4,24 @@ declare const gemPrismNormals: any, gemPrismRenderFaces: any, makeGemPrismRender
 declare const _topazOpticalPlanes: any, chamferCrystalGeometry: any, _topoOpticsApplyTier: any;
 
 describe('R4f topaz and apatite', () => {
+  it('keeps topaz terminal junctions closed and outward-facing after chamfering', () => {
+    for (const ratio of [0.4, 1, 1.5, 2]) for (const variant of [0, 1]) {
+      const g = chamferCrystalGeometry(makeGemPrismRenderGeometry('topaz', ratio, 0.188, variant, 0.4));
+      const p = g.attributes.position, normals = g.attributes.normal, edges = new Map<string, number>();
+      const key = (i: number) => [p.getX(i), p.getY(i), p.getZ(i)].map(v => Math.round(v * 1e5)).join(',');
+      for (let i = 0; i < p.count; i += 3) {
+        const a = new THREE.Vector3().fromBufferAttribute(p, i);
+        const b = new THREE.Vector3().fromBufferAttribute(p, i + 1);
+        const c = new THREE.Vector3().fromBufferAttribute(p, i + 2);
+        expect(b.sub(a).cross(c.sub(a)).dot(new THREE.Vector3().fromBufferAttribute(normals, i))).toBeGreaterThan(0);
+        for (let j = 0; j < 3; j++) {
+          const edge = [key(i + j), key(i + (j + 1) % 3)].sort().join('|');
+          edges.set(edge, (edges.get(edge) || 0) + 1);
+        }
+      }
+      expect([...edges.values()].every(count => count === 2)).toBe(true);
+    }
+  });
   it('traces positive paths from each entry face to the accepted convex topaz boundary', () => {
     const g = chamferCrystalGeometry(makeGemPrismRenderGeometry('topaz', 1.5, 0.188, 1, 0.4));
     const planes = _topazOpticalPlanes(g), p = g.attributes.position;
@@ -140,6 +158,8 @@ describe('R4f topaz and apatite', () => {
           mat.onBeforeCompile(shader, null);
           expect((shader.uniforms as any).topazExitPlanes.value.length).toBe(mat.userData.optics.exit_planes);
           expect((shader.uniforms as any).topazBulkRoughness.value).toBe(0.28);
+          expect((shader.uniforms as any).topazCloudCenter.value.toArray()).toEqual(m.geometry.boundingBox.getCenter(new THREE.Vector3()).toArray());
+          expect((shader.uniforms as any).topazCloudSize.value.toArray()).toEqual(m.geometry.boundingBox.getSize(new THREE.Vector3()).toArray());
           expect(mat.roughness).toBeCloseTo(0.06);
           expect(shader.fragmentShader).toContain('volumeAttenuation( topazPathLength,');
         }

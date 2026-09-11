@@ -1258,6 +1258,34 @@ baselines, growth archives, strip digest and all claim cards remain unchanged.
 Release generation/audit, typecheck and the exact 184-module build check pass.
 All-files cold CI is not claimed.
 
+**Topaz core/rim refinement, 2026-09-11:** Follow the user's accepted cloudy
+direction with a denser, softly bounded core inside a clearer outer zone and
+two restrained clear windows. The field is fixed in each body's local space;
+six interior samples per traced segment integrate it through the existing
+bounded reflection path. Bulk blur and a small broadly scattered-light component
+follow that integrated field, leaving polished surface roughness and the 0.50
+transmission cap unchanged. This is a display approximation of a core/rim
+appearance, not a claim to reconstruct recorded growth chronology or inclusions.
+The alpha fallback retains its simpler 0.90-opacity cloudy body.
+
+An unlit FrontSide rendering of crystal 13 covers the small dark triangle below
+the termination: it is a shaded facet, not a visible mesh gap. Accepted geometry
+is unchanged. A mesh-closure/winding regression covers both topaz variants over
+four aspect ratios after chamfering. Diagnostic: `.local-evidence/photos/topaz-notch-mask/`.
+Final material photos: `.local-evidence/photos/topaz-core-transmission/` and
+`topaz-core-alpha/`. Material visual acceptance remains open.
+
+Validation: 45 focused geometry/material tests, nine browser receipt tests and
+55 science tests pass (109 total). Both photo sets have zero browser exceptions
+or console errors. Fresh browser verification passes without ID changes. The
+full Node 24.15.0 rebake authenticates 128 artifacts, with zero locality violations
+or unclassified products. Scientific baselines, archives, strip digest and all
+claim cards remain unchanged. The transmission photo run measured 9.5 ms cached
+redraw and 3.7 ms median frame time on the local RTX 3080; these are local
+measurements, not a performance guarantee for slower hardware.
+Release generation/audit, typecheck and the exact 184-module build check pass.
+All-files cold CI is not claimed.
+
 **Still open in R4:** optional quartz s/x faces,
 full per-face growth histories, richer striations on specialized quartz forms,
 remaining crust/replacement forms, broader chamfer coverage and visual fleet

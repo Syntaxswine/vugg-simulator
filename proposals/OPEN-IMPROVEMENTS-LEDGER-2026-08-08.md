@@ -575,6 +575,22 @@ single execution ledger for the science-first AAA completion branch.
   Release generation/audit, typecheck and exact 184-module build check pass.
   All-files cold CI is not claimed.
 
+  **Topaz core/rim refinement, 2026-09-11:** A body-local cloudy core, clearer
+  outer zone and two quiet clear windows modulate interior transmission sampling
+  along each traced segment. Surface polish and the 0.50 transmission cap stay
+  unchanged; alpha retains its simpler 0.90-opacity clouding. This is an appearance
+  approximation, not recorded growth chronology. The tiny terminal triangle is
+  covered in an unlit FrontSide diagnostic, so no mesh patch is needed. Added a
+  closure/winding regression over both variants and four aspect ratios. Accepted
+  geometry stays unchanged; material visual acceptance remains open.
+  Validation: 109 tests pass (45 focused, nine browser receipt, 55 science),
+  both photo sets have zero errors, and fresh browser verification requires
+  no ID changes. Full Node 24.15.0 rebake authenticates 128 artifacts with zero
+  locality violations or unclassified products. Scientific baselines, archives,
+  strip digest and claim cards remain unchanged.
+  Release generation/audit, typecheck and exact 184-module build check pass.
+  All-files cold CI is not claimed.
+
 - [ ] **Final visual polish — graphics quality and progressive refinement**
   (user decision 2026-09-07; defer implementation until the realism tranches finish).
   Add an Options quality control for slower computers and render a coarse, usable
