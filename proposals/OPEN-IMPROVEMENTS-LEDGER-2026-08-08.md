@@ -517,6 +517,20 @@ single execution ledger for the science-first AAA completion branch.
   receipt hashes. Release audit, typecheck and exact 184-module build check pass.
   R4 remains open; all-files cold CI and user visual acceptance are not claimed.
 
+  **R4h topaz body correction, 2026-09-10:** User review kept topaz open.
+  Visibility-enlarged topaz now has 40% more straight prism body with preserved
+  terminal geometry, a closed root and no transverse junction bevel strip.
+  Coarse O2 contact clipping is bypassed only for these enlarged topaz displays;
+  actual-size contacts and scientific records remain unchanged. Original-camera
+  images and explicitly labeled side profiles are retained for crystals 13/15
+  in `r4h-topaz-final`. Visual acceptance remains open.
+  Validation: 78 renderer, nine browser-receipt and 55 science tests pass (142
+  total), with fresh browser generation and full Node 24.15.0 science rebake.
+  All 128 artifacts authenticate with zero locality violations. Scientific
+  baselines, archives and strip digest are unchanged; claim-card differences
+  are linked receipt hashes only. Release audit, typecheck and exact 184-module
+  build check pass. All-files cold CI is not claimed.
+
 - [ ] **Final visual polish — graphics quality and progressive refinement**
   (user decision 2026-09-07; defer implementation until the realism tranches finish).
   Add an Options quality control for slower computers and render a coarse, usable

@@ -62,6 +62,10 @@ function chamferCrystalGeometry(source: any): any {
   const cuts = [...planes];
   for(let i=0;i<planes.length;i++) for(let j=i+1;j<planes.length;j++) {
     const a=planes[i],b=planes[j];
+    // Topaz keeps a sharp, continuous prism-to-cap/root junction. A bevel
+    // across that junction produced a dark transverse strip like a fracture.
+    if (source.userData.gemPrismR4?.mineral === 'topaz'
+        && (Math.abs(a.normal.y) < 1e-5) !== (Math.abs(b.normal.y) < 1e-5)) continue;
     if(vertices.filter(v=>Math.abs(a.normal.dot(v)-a.d)<1e-5 && Math.abs(b.normal.dot(v)-b.d)<1e-5).length<2)continue;
     const sum=a.normal.clone().add(b.normal), length=sum.length();
     if(length<1e-5)continue;

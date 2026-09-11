@@ -3,6 +3,43 @@ declare const THREE: any, Crystal: any, WallState: any, _topoSyncCrystalMeshes: 
 declare const gemPrismNormals: any, gemPrismRenderFaces: any, makeGemPrismRenderGeometry: any;
 
 describe('R4f topaz and apatite', () => {
+  it('adds uninterrupted topaz prism length without changing its terminal facets', () => {
+    const original = makeGemPrismRenderGeometry('topaz', 1.5, 0.188, 1);
+    const extended = makeGemPrismRenderGeometry('topaz', 1.5, 0.188, 1, 0.4);
+    const terminalVertices = (g: any, scale: number, shift: number) => {
+      const out = new Set<string>(), p = g.attributes.position, n = g.attributes.normal;
+      for (let i = 0; i < p.count; i++) if (n.getY(i) > 1e-5) {
+        out.add([p.getX(i)*scale, p.getY(i)*scale-shift, p.getZ(i)*scale]
+          .map(v => (Math.abs(v) < 1e-5 ? 0 : v).toFixed(5)).join(','));
+      }
+      return out;
+    };
+    expect(terminalVertices(extended, 1.4, 0.2)).toEqual(terminalVertices(original, 1, 0));
+    extended.computeBoundingBox();
+    expect(extended.boundingBox.min.y).toBeCloseTo(0.188-0.5, 6);
+    expect(extended.boundingBox.max.y).toBeCloseTo(0.5, 6);
+  });
+  it('keeps enlarged tiny topaz intact but retains contact cuts at actual size', () => {
+    for (const tiny of [true, false]) {
+      const wall = new WallState({ vug_diameter_mm: 70, shape_seed: 42 });
+      const crystals = [1, 2].map(id => {
+        const c = new Crystal({ mineral: 'topaz', habit: 'tabular_broad', crystal_id: id, nucleation_step: 1 });
+        Object.assign(c, { c_length_mm: tiny ? 0.6 : 8, a_width_mm: tiny ? 0.3 : 4,
+          total_growth_um: tiny ? 600 : 8000, wall_anchor: wall._anchorFromRingCell(6, 11 + id) });
+        return c;
+      });
+      const before = JSON.stringify(crystals);
+      const state = { geomCache: new Map(), crystals: new THREE.Group(), clipUniforms: { uVugRadius: { value: 35 } } };
+      _topoSyncCrystalMeshes(state, { crystals, step: 100 }, wall);
+      const body = state.crystals.children.find((m: any) => m.userData.crystal_id === 1 && !m.userData.isSatellite);
+      expect(Array.isArray(body.material)).toBe(!tiny);
+      if (tiny) {
+        expect(body.geometry.userData.gemPrismR4.bodyExtension).toBe(0.4);
+        expect(body.scale.y).toBeCloseTo(2.8, 6);
+      } else expect(body.scale.y).toBe(8);
+      expect(JSON.stringify(crystals)).toBe(before);
+    }
+  });
   it('uses orthorhombic reciprocal normals for topaz rather than a square pyramid', () => {
     const ns = gemPrismNormals('topaz', [1, 1, 1]);
     expect(ns).toHaveLength(8);

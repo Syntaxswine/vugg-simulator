@@ -55381,15 +55381,21 @@ function gemPrismRenderFaces(mineral, ratio, variant = 0) {
     }
     return faces;
 }
-function makeGemPrismRenderGeometry(mineral, ratio, attachFrac, variant = 0) {
+function makeGemPrismRenderGeometry(mineral, ratio, attachFrac, variant = 0, bodyExtension = 0) {
     // A wall-rooted topaz has one free termination. Lower dome facets made
     // the attachment read as a second fused crystal. Carry each prism face
     // continuously into the flat root; preserve all upper terminal normals.
     const faces = gemPrismRenderFaces(mineral, ratio, variant).filter(f => mineral !== 'topaz' || f.n[1] >= 0 || f.family === '001');
+    // Add straight prism length without stretching or redeveloping the accepted
+    // terminal faces. Recenter and normalize for uniform production scaling.
+    const extension = mineral === 'topaz' ? Math.max(0, bodyExtension) : 0;
+    for (const f of faces)
+        if (f.n[1] !== 0)
+            f.d += Math.abs(f.n[1]) * extension / 2;
     if (attachFrac > 0)
         faces.push({ n: [0, -1, 0],
-            d: 0.5 - Math.max(0.05, Math.min(0.95, attachFrac)), family: 'scar' });
-    const poly = wulffPolyhedron(faces), geom = _wulffPolyToGeom(poly, 1);
+            d: (1 + extension) * (0.5 - Math.max(0.05, Math.min(0.95, attachFrac))), family: 'scar' });
+    const poly = wulffPolyhedron(faces), geom = _wulffPolyToGeom(poly, 1 / (1 + extension));
     if (!geom)
         return null;
     const normals = [];
@@ -55397,7 +55403,7 @@ function makeGemPrismRenderGeometry(mineral, ratio, attachFrac, variant = 0) {
         for (let i = 0; i < (f.verts.length - 2) * 3; i++)
             normals.push(...faces[f.plane].n);
     geom.setAttribute('normal', new THREE.Float32BufferAttribute(normals, 3));
-    geom.userData.gemPrismR4 = { mineral, ratio, attachFrac, variant,
+    geom.userData.gemPrismR4 = { mineral, ratio, attachFrac, variant, bodyExtension: extension,
         families: poly.faces.map(f => faces[f.plane].family) };
     return geom;
 }
@@ -55491,6 +55497,11 @@ function chamferCrystalGeometry(source) {
     for (let i = 0; i < planes.length; i++)
         for (let j = i + 1; j < planes.length; j++) {
             const a = planes[i], b = planes[j];
+            // Topaz keeps a sharp, continuous prism-to-cap/root junction. A bevel
+            // across that junction produced a dark transverse strip like a fracture.
+            if (source.userData.gemPrismR4?.mineral === 'topaz'
+                && (Math.abs(a.normal.y) < 1e-5) !== (Math.abs(b.normal.y) < 1e-5))
+                continue;
             if (vertices.filter(v => Math.abs(a.normal.dot(v) - a.d) < 1e-5 && Math.abs(b.normal.dot(v) - b.d) < 1e-5).length < 2)
                 continue;
             const sum = a.normal.clone().add(b.normal), length = sum.length();
@@ -120553,13 +120564,18 @@ function _topoSyncCrystalMeshes(state, sim, wall, replayStep) {
             aWid = Math.max(renderA, O4_INCLUSION_MIN_MM);
         }
         let gemPrismGeometry = null;
+        // The generic tablet visibility floor gives tiny topaz an almost entirely
+        // terminal silhouette. Preserve its broad width, but expose a longer prism
+        // body. This is display development only; mature recorded sizes are intact.
+        const topazBodyExtension = gemPrismR4 && crystal.mineral === 'topaz' && wasFloored && !isInclusion ? 0.4 : 0;
         if (gemPrismR4 && cLen > 0) {
             const ratio = Math.round(Math.max(0.15, Math.min(3, aWid / cLen)) * 100) / 100;
+            cLen *= 1 + topazBodyExtension;
             const variant = Math.abs(Math.trunc(crystal.crystal_id || 0)) % 2;
-            const key = '__gem_prism_r4_' + crystal.mineral + '_' + ratio + '_' + variant + '_' + occF;
+            const key = '__gem_prism_r4_' + crystal.mineral + '_' + ratio + '_' + variant + '_' + occF + '_' + topazBodyExtension;
             gemPrismGeometry = state.geomCache.get(key);
             if (!gemPrismGeometry) {
-                gemPrismGeometry = makeGemPrismRenderGeometry(crystal.mineral, ratio, occF, variant);
+                gemPrismGeometry = makeGemPrismRenderGeometry(crystal.mineral, ratio, occF, variant, topazBodyExtension);
                 if (gemPrismGeometry)
                     state.geomCache.set(key, gemPrismGeometry);
             }
@@ -120754,6 +120770,10 @@ function _topoSyncCrystalMeshes(state, sim, wall, replayStep) {
         // lacks a growth scalar. Render-only: replaces mesh.geometry with a fresh
         // clipped geom, leaving the cached form intact for the satellites + geomCache.
         if (_o2ConvexGeom && _O2_CONVEX_TOKENS.has(token)
+            // A sub-floor topaz is an enlarged display body. Cutting that body
+            // against coarse neighbour spheres fabricates a large opaque wedge.
+            // Keep the closed rooted form; actual-size/replay contacts still run.
+            && !(gemPrismGeometry && crystal.mineral === 'topaz' && wasFloored)
             && !isEtched && !isSectorZoned && !isGypsumHourglass
             && crystal.enclosed_by == null && _o2Bodies.length > 1 && mesh.geometry) {
             const meX = mesh.position.x, meY = mesh.position.y, meZ = mesh.position.z;

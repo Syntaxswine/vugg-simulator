@@ -8775,13 +8775,18 @@ function _topoSyncCrystalMeshes(state: any, sim: any, wall: any, replayStep?: nu
       aWid = Math.max(renderA, O4_INCLUSION_MIN_MM);
     }
     let gemPrismGeometry: any = null;
+    // The generic tablet visibility floor gives tiny topaz an almost entirely
+    // terminal silhouette. Preserve its broad width, but expose a longer prism
+    // body. This is display development only; mature recorded sizes are intact.
+    const topazBodyExtension = gemPrismR4 && crystal.mineral === 'topaz' && wasFloored && !isInclusion ? 0.4 : 0;
     if (gemPrismR4 && cLen > 0) {
       const ratio = Math.round(Math.max(0.15, Math.min(3, aWid/cLen))*100)/100;
+      cLen *= 1 + topazBodyExtension;
       const variant = Math.abs(Math.trunc(crystal.crystal_id || 0)) % 2;
-      const key = '__gem_prism_r4_' + crystal.mineral + '_' + ratio + '_' + variant + '_' + occF;
+      const key = '__gem_prism_r4_' + crystal.mineral + '_' + ratio + '_' + variant + '_' + occF + '_' + topazBodyExtension;
       gemPrismGeometry = state.geomCache.get(key);
       if (!gemPrismGeometry) {
-        gemPrismGeometry = makeGemPrismRenderGeometry(crystal.mineral, ratio, occF, variant);
+        gemPrismGeometry = makeGemPrismRenderGeometry(crystal.mineral, ratio, occF, variant, topazBodyExtension);
         if (gemPrismGeometry) state.geomCache.set(key, gemPrismGeometry);
       }
       if (gemPrismGeometry) { geom = gemPrismGeometry; mesh.geometry = geom; _o2ConvexGeom = true; }
@@ -8955,6 +8960,10 @@ function _topoSyncCrystalMeshes(state: any, sim: any, wall: any, replayStep?: nu
     // lacks a growth scalar. Render-only: replaces mesh.geometry with a fresh
     // clipped geom, leaving the cached form intact for the satellites + geomCache.
     if (_o2ConvexGeom && _O2_CONVEX_TOKENS.has(token)
+        // A sub-floor topaz is an enlarged display body. Cutting that body
+        // against coarse neighbour spheres fabricates a large opaque wedge.
+        // Keep the closed rooted form; actual-size/replay contacts still run.
+        && !(gemPrismGeometry && crystal.mineral === 'topaz' && wasFloored)
         && !isEtched && !isSectorZoned && !isGypsumHourglass
         && crystal.enclosed_by == null && _o2Bodies.length > 1 && mesh.geometry) {
       const meX = mesh.position.x, meY = mesh.position.y, meZ = mesh.position.z;

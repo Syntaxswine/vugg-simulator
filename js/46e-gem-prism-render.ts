@@ -46,20 +46,24 @@ function gemPrismRenderFaces(mineral: string, ratio: number, variant = 0): any[]
   return faces;
 }
 
-function makeGemPrismRenderGeometry(mineral: string, ratio: number, attachFrac: number, variant = 0): any {
+function makeGemPrismRenderGeometry(mineral: string, ratio: number, attachFrac: number, variant = 0, bodyExtension = 0): any {
   // A wall-rooted topaz has one free termination. Lower dome facets made
   // the attachment read as a second fused crystal. Carry each prism face
   // continuously into the flat root; preserve all upper terminal normals.
   const faces = gemPrismRenderFaces(mineral, ratio, variant).filter(f =>
     mineral !== 'topaz' || f.n[1] >= 0 || f.family === '001');
+  // Add straight prism length without stretching or redeveloping the accepted
+  // terminal faces. Recenter and normalize for uniform production scaling.
+  const extension = mineral === 'topaz' ? Math.max(0, bodyExtension) : 0;
+  for (const f of faces) if (f.n[1] !== 0) f.d += Math.abs(f.n[1]) * extension / 2;
   if (attachFrac > 0) faces.push({ n: [0, -1, 0],
-    d: 0.5-Math.max(0.05, Math.min(0.95, attachFrac)), family: 'scar' });
-  const poly = wulffPolyhedron(faces), geom = _wulffPolyToGeom(poly, 1);
+    d: (1 + extension) * (0.5-Math.max(0.05, Math.min(0.95, attachFrac))), family: 'scar' });
+  const poly = wulffPolyhedron(faces), geom = _wulffPolyToGeom(poly, 1 / (1 + extension));
   if (!geom) return null;
   const normals: number[] = [];
   for (const f of poly.faces) for (let i = 0; i < (f.verts.length-2)*3; i++) normals.push(...faces[f.plane].n);
   geom.setAttribute('normal', new THREE.Float32BufferAttribute(normals, 3));
-  geom.userData.gemPrismR4 = { mineral, ratio, attachFrac, variant,
+  geom.userData.gemPrismR4 = { mineral, ratio, attachFrac, variant, bodyExtension: extension,
     families: poly.faces.map(f => faces[f.plane].family) };
   return geom;
 }

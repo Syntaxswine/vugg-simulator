@@ -1145,6 +1145,49 @@ in linked artifact payload hashes. The five final photo sets contain their
 expected shots and zero browser exceptions. Release generation/audit, typecheck
 and exact 184-module build check pass. All-files cold CI is not claimed.
 
+**R4h topaz body correction, 2026-09-10:** The user rejected the R4g topaz as
+too short and shard-like, with a disruptive transverse dark seam. Investigation
+found a generic tablet visibility ratio on the submillimetre `tabular_broad`
+records and coarse O2 contact cuts through their enlarged display bodies. The
+apparent upper wedge included such a cut, rather than only crystal form faces.
+
+Tiny ordinary topaz now gets 40% additional straight-body development. The
+existing terminal planes are translated, not stretched or redeveloped; the
+result is renormalized for uniform production scaling and a closed root at the
+recorded attachment fraction. Actual recorded sizes, habit and growth history
+are untouched; full-size topaz and other mineral dimensions retain their paths.
+Topaz keeps longitudinal edge chamfers but omits the transverse prism-to-cap/root
+bevel strip. Normal internal reflections and terminal-face junctions remain.
+
+Only visibility-enlarged topaz bypasses the approximate O2 sphere-based clip:
+a display enlargement does not provide reliable physical contact geometry.
+The rooted closed form remains. Actual-size and replay contacts retain O2;
+this is a declared display exception, not a new scientific contact model.
+Tests preserve the actual-size contact path and scientific record bytes.
+
+Final images are in `.local-evidence/photos/r4h-topaz-final/`: crystal 13 is
+hero 1, crystal 15 hero 2. Original-camera isolated images compare directly
+with R4g. New `--probe profile` images show the same unmodified geometry and
+material at 75 degrees off c, with all other crystals hidden; this angle makes
+the long parallel prism edges inspectable. Both views are retained, with zero
+browser exceptions. The end-on camera still emphasizes the broad termination;
+side-view legibility is not a claim of user acceptance.
+
+R4h browser evidence: the observed collection ID changes from `cry-16-8iq`
+to `cry-16-4hq` at collection and Record Groove, with no other journey
+differences. Both exact pins were updated only after that comparison, followed
+by fresh browser generation and passing receipt audit/nine receipt tests.
+The renderer suite passes 78 tests across six memory-bounded files.
+
+Final R4h validation: all 55 science tests and the full Node 24.15.0 rebake
+pass (142 tests including renderer and browser suites). All 128 artifacts
+authenticate, with zero locality contract violations or unclassified products.
+Scientific frequency/seed-42 baselines, growth archives and strip digest are
+unchanged. All 41 claim-card JSONs differ only in linked artifact payload hashes.
+Release generation/audit, typecheck and the exact 184-module build check pass.
+This is focused validation plus a full science rebake, not all-files cold CI;
+user visual acceptance remains open.
+
 **Still open in R4:** topaz user acceptance, optional quartz s/x faces,
 full per-face growth histories, richer striations on specialized quartz forms,
 remaining crust/replacement forms, broader chamfer coverage and visual fleet

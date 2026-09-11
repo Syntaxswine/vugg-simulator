@@ -1098,13 +1098,19 @@ function heroShotProgram({ w, h, index, n, mineral, wall, experiment = [], mood 
     RIG.lastIsolatedFrame = isolated;
     const cluster = ${probe.includes('cluster') ? `RIG.clusterFrame(hero.m, ${w}, ${h})` : 'null'};
     RIG.lastClusterFrame = cluster;
+    let profile = null;
+    if (${probe.includes('profile')}) {
+      const profileCamera = RIG.placeCamera(hero.center, hero.size, axis, { offAxisDeg: 75, yawDeg: 25, fill: 0.68 });
+      profile = { png: RIG.isolatedFrame(hero.m, ${w}, ${h}), camera: profileCamera };
+    }
+    RIG.lastProfileFrame = profile;
     const u = hero.m.userData;
     const mats = Array.isArray(hero.m.material) ? hero.m.material : [hero.m.material];
     const mo = mats[0] && mats[0].userData ? mats[0].userData.optics : null;
     return { png, camera: { mode: 'direct', ...cam, ...rule, wall: ${JSON.stringify(wall)}, experiments: applied, lighting, optics, specimen },
       subject: { crystal_id: u.crystal_id, mineral: u.mineral, extent_mm: +hero.ext.toFixed(2),
         material: mats[0] ? { tier: mo ? mo.tier : null, lustre: mo ? mo.lustre : null, transmission: mats[0].transmission ?? null, ior: mats[0].ior ?? null, opacity: mats[0].opacity, transparent: !!mats[0].transparent, roughness: mats[0].roughness, metalness: mats[0].metalness, thickness: mats[0].thickness ?? null, attenuation_distance: mats[0].attenuationDistance ?? null } : null },
-      probe_frames: frames, isolated_frame: !!isolated, cluster_frame: !!cluster };
+      probe_frames: frames, isolated_frame: !!isolated, cluster_frame: !!cluster, profile_frame: !!profile };
   })()`;
 }
 
@@ -1339,7 +1345,15 @@ async function main() {
             extra.cluster = { file: `${name}-cluster.png`, diagnostic: 'full cluster, broadside camera; scene geometry and materials unchanged', camera: cluster.camera };
             delete r.cluster_frame;
           }
+          if (r.profile_frame) {
+            const profile = await page.evaluate('window.__photoRig.lastProfileFrame');
+            writeFileSync(path.join(outDir, `${name}-profile.png`), Buffer.from(profile.png.replace(/^data:image\/png;base64,/, ''), 'base64'));
+            await page.evaluate('window.__photoRig.lastProfileFrame = null');
+            extra.profile = { file: `${name}-profile.png`, diagnostic: 'isolated body at 75 degrees off c; geometry and material unchanged', camera: profile.camera };
+            delete r.profile_frame;
+          }
           if (r.probe_frames) {
+            // Main silhouette optics probes use the original saved camera.
             // R2 see-through probe: keep the two auxiliary frames beside the shot and fold
             // the inside-silhouette statistics into the manifest.
             const b64 = s => Buffer.from(String(s).replace(/^data:image\/png;base64,/, ''), 'base64');
