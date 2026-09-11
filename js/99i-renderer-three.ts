@@ -7531,7 +7531,7 @@ function _topoOpticsTier(): _OpticsTier {
 // and by the in-place retier. `body` is the local crystal colour (THREE.Color).
 function _opticsPaintTier(mat: any, p: any, body: any) {
   if (p.transmissive) {
-    mat.transmission = p.transmission;
+    mat.transmission = Math.min(p.transmission, p.specimen_transmission_cap ?? 1);
     mat.opacity = 1.0; mat.transparent = false; mat.depthWrite = true;
     mat.attenuationColor.copy(body);
     // Pale base: the body colour rides through the crystal as attenuation, not as a tint
@@ -7547,7 +7547,7 @@ function _opticsPaintTier(mat: any, p: any, body: any) {
       // Diaphaneity can only make the hollow shell MORE see-through, never less.
       mat.transparent = true; mat.opacity = Math.min(p.alpha_opacity, 0.42);
     } else if (p.tier === 'alpha' && p.clarity > 0) {
-      mat.transparent = true; mat.opacity = p.alpha_opacity;
+      mat.transparent = true; mat.opacity = Math.max(p.alpha_opacity, p.specimen_alpha_floor ?? 0);
     } else {
       mat.transparent = false; mat.opacity = 1.0;
     }
@@ -7612,8 +7612,10 @@ function _applyTopazVolumeOptics(mat: any, mesh: any) {
   mat.onBeforeCompile = (shader: any, renderer: any) => {
     previous.call(mat, shader, renderer);
     shader.uniforms.topazExitPlanes = { value: planes.map(p => new THREE.Vector4(p.n.x, p.n.y, p.n.z, p.d)) };
+    shader.uniforms.topazBulkRoughness = { value: mat.userData.optics.specimen_bulk_roughness ?? 0 };
     const code = `
       uniform vec4 topazExitPlanes[${planes.length}];
+      uniform float topazBulkRoughness;
       vec3 topazVolumeRay(vec3 n, vec3 v, vec3 position, mat4 model,
           out float pathLength, out vec3 finalRay, out float trapped) {
         vec3 ray = refract(-v, normalize(n), 1.0 / ior);
@@ -7652,6 +7654,9 @@ function _applyTopazVolumeOptics(mat: any, mesh: any) {
       'vec3 transmissionRay = getVolumeTransmissionRay( n, v, thickness, ior, modelMatrix );',
       'float topazPathLength; float topazTrapped; vec3 topazFinalRay; vec3 transmissionRay = topazVolumeRay( n, v, position, modelMatrix, topazPathLength, topazFinalRay, topazTrapped );')
       .replace('volumeAttenuation( length( transmissionRay ),', 'volumeAttenuation( topazPathLength,')
+      // Clouding is in the body, separate from the polished surface roughness.
+      .replace('getTransmissionSample( refractionCoords, roughness, ior )',
+        'getTransmissionSample( refractionCoords, max(roughness, topazBulkRoughness * clamp(topazPathLength / max(thickness, 0.0001), 0.25, 1.0)), ior )')
       .replace('vec3 attenuatedColor = transmittance * transmittedLight.rgb;', `
         // A ray still internally reflected after the bounded trace must not
         // sample rock through its last reflecting face. Use the room radiance
@@ -7757,6 +7762,14 @@ function buildCrystalMaterial(crystal: any, spec: any, f: any, tierOverride?: _O
   const fl = f || {};
   const tier: _OpticsTier = tierOverride || _topoOpticsTier();
   const p = opticsMaterialParamsFor(spec, fl, tier);
+  // Default specimen presentation, not a correction to the catalog's possible
+  // transparency. Optical clarity is exceptional in the game's visual language.
+  // Keep hollow casts and embedded guests on their own existing material paths.
+  if (crystal.mineral === 'topaz' && !fl.isPerimorphCast && !fl.isInclusion) {
+    p.specimen_transmission_cap = 0.50;
+    p.specimen_alpha_floor = 0.90;
+    p.specimen_bulk_roughness = 0.28;
+  }
   // LOCAL CRYSTAL COLOUR — per-crystal chemistry tone + deterministic legibility floor so
   // same-species neighbours read apart (isSectorZoned overrides to white — its baked vertex
   // colours are absolute — so no double-tint).

@@ -1234,6 +1234,30 @@ and updating those exact pins. Release generation/audit, typecheck and the
 exact 184-module build check pass. All-files cold CI is not claimed.
 Material visual acceptance remains open; topaz geometry remains accepted.
 
+**Topaz clarity correction, 2026-09-10:** The user rejected the material above
+as overly transparent. Default topaz now caps transmission at 0.50 and keeps
+alpha fallback opacity at least 0.90, including after quality-tier changes.
+Internal transmission sampling has path-weighted bulk roughness (0.28),
+separate from the polished surface roughness (0.06). This obscures and softens
+the rock behind the thick body while retaining some translucency in thinner
+regions. Accepted geometry, catalog optics and scientific growth records are
+unchanged; hollow casts and embedded guests retain their existing material paths.
+This is default specimen clouding, not simulated inclusions or growth zones.
+The user's presentation preference is to reserve near-water-clear specimens
+for explicit optical calcite. A broader fleet clarity review remains pending;
+this correction implements the topaz part only. Matching transmission/alpha
+photos for crystals 13/15 are in `.local-evidence/photos/topaz-cloud-transmission/`
+and `topaz-cloud-alpha/`. Material visual acceptance remains open.
+
+Validation completed 2026-09-11: both photo sets have zero browser exceptions
+or console errors. All 44 focused material/geometry tests, nine browser receipt
+tests and 55 science tests pass (108 total). The fresh browser journey passes
+without changing any pinned ID. The full Node 24.15.0 rebake authenticates all
+128 artifacts with zero locality violations or unclassified products. Scientific
+baselines, growth archives, strip digest and all claim cards remain unchanged.
+Release generation/audit, typecheck and the exact 184-module build check pass.
+All-files cold CI is not claimed.
+
 **Still open in R4:** optional quartz s/x faces,
 full per-face growth histories, richer striations on specialized quartz forms,
 remaining crust/replacement forms, broader chamfer coverage and visual fleet

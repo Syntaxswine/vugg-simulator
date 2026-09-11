@@ -139,15 +139,18 @@ describe('R4f topaz and apatite', () => {
           const shader = { uniforms: {}, vertexShader: '#include <common>\n#include <begin_vertex>', fragmentShader: '#include <transmission_pars_fragment>' };
           mat.onBeforeCompile(shader, null);
           expect((shader.uniforms as any).topazExitPlanes.value.length).toBe(mat.userData.optics.exit_planes);
+          expect((shader.uniforms as any).topazBulkRoughness.value).toBe(0.28);
+          expect(mat.roughness).toBeCloseTo(0.06);
           expect(shader.fragmentShader).toContain('volumeAttenuation( topazPathLength,');
         }
         expect(materials.size).toBe(bodies.length);
         _topoOpticsApplyTier(state, 'alpha', 'test fallback');
-        for (const mat of materials as Set<any>) { expect(mat.transmission).toBe(0); expect(mat.transparent).toBe(true); }
+        for (const mat of materials as Set<any>) { expect(mat.transmission).toBe(0); expect(mat.transparent).toBe(true); expect(mat.opacity).toBeGreaterThanOrEqual(0.9); }
         _topoOpticsApplyTier(state, 'transmission', 'test restore');
-        for (const mat of materials as Set<any>) { expect(mat.transmission).toBeGreaterThan(0.9); expect(mat.opacity).toBe(1); }
+        for (const mat of materials as Set<any>) { expect(mat.transmission).toBe(0.50); expect(mat.opacity).toBe(1); }
       } else {
         expect(bodies[0].material.userData.optics.volume_path).toBeUndefined();
+        expect(bodies[0].material.userData.optics.specimen_transmission_cap).toBeUndefined();
       }
       _topoSyncCrystalMeshes(state, { crystals: [c], step: 101 }, wall);
       expect(state.crystals.children.find((m: any) => m.geometry.userData.gemPrismR4).geometry).toBe(bodies[0].geometry);

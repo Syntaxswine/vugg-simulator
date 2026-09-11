@@ -556,6 +556,25 @@ single execution ledger for the science-first AAA completion branch.
   exact 184-module build check pass. All-files cold CI is not claimed.
   Material acceptance is open; form stays accepted.
 
+  **Topaz clarity correction, 2026-09-10:** The user rejected the preceding
+  material as too clear. Default topaz caps transmission at 0.50, keeps alpha
+  opacity at least 0.90 across tier changes, and softens transmitted background
+  with path-weighted bulk roughness (0.28). Surface roughness remains 0.06.
+  Accepted geometry and catalog/scientific records are unchanged; hollow casts
+  and embedded guests retain their own paths. This is presentation clouding,
+  not growth-zone or inclusion simulation. Reserve near-water-clear default
+  presentation for explicit optical calcite per the user's preference; broader
+  fleet clarity review is still pending. This change covers topaz only, and
+  its material visual acceptance remains open.
+  Validation completed 2026-09-11: 108 tests pass (44 focused, nine browser
+  receipt, 55 science); matching transmission/alpha photos have zero errors.
+  Fresh browser verification needs no ID changes. The full Node 24.15.0 rebake
+  authenticates 128 artifacts with zero locality violations or unclassified
+  products; scientific baselines, archives, strip digest and claim cards are
+  unchanged.
+  Release generation/audit, typecheck and exact 184-module build check pass.
+  All-files cold CI is not claimed.
+
 - [ ] **Final visual polish — graphics quality and progressive refinement**
   (user decision 2026-09-07; defer implementation until the realism tranches finish).
   Add an Options quality control for slower computers and render a coarse, usable
