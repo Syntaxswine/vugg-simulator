@@ -203,7 +203,7 @@ describe('R2 buildCrystalMaterial (real THREE.MeshPhysicalMaterial)', () => {
   it('transmissive quartz: opacity 1, depth write on, ior set, body colour as attenuation, pale base colour, receipt in userData', () => {
     const mat = buildCrystalMaterial(crystal(), QUARTZ, NONE, 'transmission');
     expect(mat.type).toBe('MeshPhysicalMaterial');
-    expect(mat.transmission).toBe(0.60);
+    expect(mat.transmission).toBeCloseTo(opticsMaterialParamsFor(QUARTZ, NONE, 'transmission').transmission);
     expect(mat.opacity).toBe(1);
     expect(mat.transparent).toBe(false);
     expect(mat.depthWrite).toBe(true);
@@ -222,11 +222,11 @@ describe('R2 buildCrystalMaterial (real THREE.MeshPhysicalMaterial)', () => {
     expect(mat.attenuationDistance).toBeGreaterThan(0);
   });
 
-  it('the same quartz on the alpha tier is Depth-A: transparent, specimen opacity floor 0.90, no transmission, body colour on the surface', () => {
+  it('the same quartz on the alpha tier is Depth-A: transparent, catalog clarity, no transmission, body colour on the surface', () => {
     const mat = buildCrystalMaterial(crystal(), QUARTZ, NONE, 'alpha');
     expect(mat.transmission).toBe(0);
     expect(mat.transparent).toBe(true);
-    expect(mat.opacity).toBe(0.90);
+    expect(mat.opacity).toBeCloseTo(opticsMaterialParamsFor(QUARTZ, NONE, 'alpha').alpha_opacity);
     expect(mat.depthWrite).toBe(true);
     expect(mat.color.getHex()).toBe(mat.userData.optics.body);
     expect(mat.userData.optics.tier).toBe('alpha');
@@ -319,7 +319,7 @@ describe('R2 active tier follows the wall (glass needs an opaque backdrop)', () 
     st.cavity.material.transparent = false;
     rig = _topoOpticsSyncView(st);
     expect(rig).toMatchObject({ tier: 'transmission', active: 'transmission', backdrop: true, retiers: 2 });
-    expect(st.q.material.transmission).toBe(0.60);
+    expect(st.q.material.transmission).toBeCloseTo(opticsMaterialParamsFor(QUARTZ, NONE, 'transmission').transmission);
     st.cavity.visible = false;
     rig = _topoOpticsSyncView(st);
     expect(rig).toMatchObject({ active: 'alpha', backdrop: false, retiers: 3 });
@@ -338,7 +338,7 @@ describe('R2 active tier follows the wall (glass needs an opaque backdrop)', () 
     st.insideMode = true;
     _topoApplyWallDisplay(st);
     expect(st.opticsRig).toMatchObject({ active: 'transmission', backdrop: true });
-    expect(st.q.material.transmission).toBe(0.60);
+    expect(st.q.material.transmission).toBeCloseTo(opticsMaterialParamsFor(QUARTZ, NONE, 'transmission').transmission);
     st.wallDisplay = 2;
     _topoApplyWallDisplay(st);
     expect(st.opticsRig).toMatchObject({ active: 'alpha', backdrop: false });
@@ -360,9 +360,9 @@ describe('R2 in-place retier (_topoOpticsApplyTier)', () => {
     expect(rig).toMatchObject({ tier: 'alpha', active: 'alpha', reason: 'test step-down', retiers: 1, transmissive: 0, alpha: 2, opaque: 1 });
     expect(st.q.material.transmission).toBe(0);
     expect(st.q.material.transparent).toBe(true);
-    expect(st.q.material.opacity).toBe(0.90);
+    expect(st.q.material.opacity).toBeCloseTo(opticsMaterialParamsFor(QUARTZ, NONE, 'alpha').alpha_opacity);
     expect(st.q.material.version).toBeGreaterThan(v0);           // needsUpdate: the program must recompile
-    expect(st.q.userData.naturalOpacity).toBe(0.90);
+    expect(st.q.userData.naturalOpacity).toBeCloseTo(opticsMaterialParamsFor(QUARTZ, NONE, 'alpha').alpha_opacity);
     expect(st.g.material.metalness).toBe(1);
     expect(st.g.material.transparent).toBe(false);
     expect(st.band.material.opacity).toBe(0.3);
@@ -376,7 +376,7 @@ describe('R2 in-place retier (_topoOpticsApplyTier)', () => {
     expect(st.q.material.transparent).toBe(true);
     const rig = _topoOpticsApplyTier(st, 'transmission');
     expect(rig).toMatchObject({ tier: 'transmission', active: 'transmission', backdrop: true, retiers: 1, transmissive: 2, alpha: 0, opaque: 1 });
-    expect(st.q.material.transmission).toBe(0.60);
+    expect(st.q.material.transmission).toBeCloseTo(opticsMaterialParamsFor(QUARTZ, NONE, 'transmission').transmission);
     expect(st.q.material.transparent).toBe(false);
     expect(st.q.material.opacity).toBe(1);
     expect(st.q.userData.naturalOpacity).toBe(1);

@@ -17,7 +17,7 @@ function cloudyGrowthHistory(crystal: any, replayStep: number | null = null): an
         if (last.thickness <= 1e-9) layers.pop();
       }
     } else {
-      const density = z.fluid_inclusion ? 0.95 : 0.12;
+      const density = z.fluid_inclusion ? 0.95 : 0;
       const last = layers[layers.length - 1];
       if (last && last.density === density) last.thickness += thickness;
       else layers.push({ thickness, density });
@@ -32,11 +32,11 @@ function cloudyGrowthHistory(crystal: any, replayStep: number | null = null): an
   // Fixed-size uniform budget. Area-average all surviving intervals into bins;
   // never discard the oldest history or invent a newest clear layer.
   const bins = Array.from({ length: 16 }, (_, i) => {
-    if (!total) return 0.12;
+    if (!total) return 0;
     const lo = i / 16, hi = (i + 1) / 16;
     return intervals.reduce((s, l) => s + Math.max(0, Math.min(hi, l.end) - Math.max(lo, l.start)) * l.density * 16, 0);
   });
-  return { schema: 'cloudy-growth-shells-v1', bins, total_um: total,
+  return { schema: 'cloudy-growth-shells-v2', bins, total_um: total,
     phase: (Math.abs(Number(crystal.crystal_id) || 0) % 29) * 0.37,
     inclusion_fraction: total ? layers.reduce((s, l) => s + (l.density > 0.5 ? l.thickness : 0), 0) / total : 0,
     mapping: 'surviving-axial-thickness-to-homothetic-display-shells' };
@@ -62,20 +62,18 @@ const CLOUDY_GROWTH_GLSL = `
         max(0.00001, plane.w - dot(plane.xyz, topazCloudCenter)));
     }
     float index = clamp(shell * 16.0 - 0.5, 0.0, 15.0);
-    float density = 0.12;
+    float density = 0.0;
     for (int i = 0; i < 16; i++) {
       float weight = max(0.0, 1.0 - abs(index - float(i)));
-      density += weight * (growthCloudBins[i] - 0.12);
+      density += weight * growthCloudBins[i];
     }
-    // A modest specimen core remains an explicit appearance convention when
-    // no trapped-fluid population was recorded. It is not labelled an inclusion.
-    float core = 1.0 - smoothstep(0.32, 0.80, shell);
+    // Display variation modulates recorded density; it cannot invent an episode.
     float veil = 0.75 + 0.25 * sin(p.x * 5.0 + growthCloudPhase) * sin(p.y * 3.1 - p.z * 4.2);
     vec2 w = p.xy - vec2(-0.25 + 0.08*sin(growthCloudPhase), 0.18);
     float windowA = exp(-dot(w/vec2(0.25,0.34), w/vec2(0.25,0.34)));
     w = p.xy - vec2(0.32,-0.22);
     float windowB = exp(-dot(w/vec2(0.19,0.25), w/vec2(0.19,0.25)));
-    return (0.10 + 0.30*core + density*1.05) * veil *
+    return (density*1.05) * veil *
       (1.0 - 0.55*max(windowA,windowB)) * (1.0 - 0.65*smoothstep(0.90,1.0,shell));
   }
 `;

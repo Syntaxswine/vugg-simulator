@@ -137,7 +137,7 @@ describe('R4f topaz and apatite', () => {
       const wall = new WallState({ vug_diameter_mm: 70, shape_seed: 42 });
       const c = new Crystal({ mineral, habit, crystal_id: 17, nucleation_step: 1 });
       Object.assign(c, { c_length_mm: 8, a_width_mm: width, total_growth_um: 8000,
-        wall_anchor: wall._anchorFromRingCell(6, 12) });
+        wall_anchor: wall._anchorFromRingCell(6, 12), zones: [{step:1,thickness_um:8000,fluid_inclusion:true}] });
       const before = JSON.stringify([c.zones, c.c_length_mm, c.a_width_mm, c.habit]);
       const state = { geomCache: new Map(), crystals: new THREE.Group(), clipUniforms: { uVugRadius: { value: 35 } } };
       _topoSyncCrystalMeshes(state, { crystals: [c], step: 100 }, wall);

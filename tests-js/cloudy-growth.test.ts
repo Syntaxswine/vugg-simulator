@@ -9,8 +9,8 @@ describe('cloudy surviving growth zones',()=>{
       {step:2,thickness_um:100},{step:3,thickness_um:-50}]};
     const before=JSON.stringify(c),h=cloudyGrowthHistory(c);
     expect(h.total_um).toBe(150);expect(h.inclusion_fraction).toBeCloseTo(2/3);
-    expect(h.bins[0]).toBeCloseTo(0.95);expect(h.bins[15]).toBeCloseTo(0.12);
-    expect(h.bins.reduce((s:number,v:number)=>s+v,0)/16).toBeCloseTo((0.95*100+0.12*50)/150);
+    expect(h.bins[0]).toBeCloseTo(0.95);expect(h.bins[15]).toBeCloseTo(0);
+    expect(h.bins.reduce((s:number,v:number)=>s+v,0)/16).toBeCloseTo((0.95*100+0*50)/150);
     expect(JSON.stringify(c)).toBe(before);
   });
   it('replay excludes future dissolution and future trapped-fluid episodes',()=>{
@@ -25,11 +25,28 @@ describe('cloudy surviving growth zones',()=>{
     const c={zones:Array.from({length:100},(_,i)=>({step:i,thickness_um:1,fluid_inclusion:i%2===0}))};
     const h=cloudyGrowthHistory(c);
     expect(h.bins).toHaveLength(16);expect(h.inclusion_fraction).toBe(0.5);
-    expect(h.bins.reduce((s:number,v:number)=>s+v,0)/16).toBeCloseTo(0.535);
+    expect(h.bins.reduce((s:number,v:number)=>s+v,0)/16).toBeCloseTo(0.475);
   });
   it('ignores invalid thickness and keeps empty histories finite',()=>{
     const h=cloudyGrowthHistory({zones:[{thickness_um:NaN},{thickness_um:Infinity},{thickness_um:-100}]});
     expect(h.total_um).toBe(0);expect(h.bins.every(Number.isFinite)).toBe(true);
+  });
+  it.each([{}, {zones:[{step:1,thickness_um:20}]},
+    {zones:[{step:1,thickness_um:20,fluid_inclusion:true},{step:2,thickness_um:-20}]}])(
+    'does not invent clouds without surviving inclusion records', c=>{
+      expect(cloudyGrowthHistory(c).bins).toEqual(Array(16).fill(0));
+    });
+  it('replay restores clear optics before a future inclusion episode',()=>{
+    const c={mineral:'topaz',zones:[{step:1,thickness_um:20},{step:2,thickness_um:20,fluid_inclusion:true}]};
+    const mat=buildCrystalMaterial(c,{class:'silicate',optics:{ior:1.62,diaphaneity:['transparent']}},{},'transmission');
+    expect(mat.transmission).toBe(.5);
+    const mesh=new THREE.Mesh(makeGemPrismRenderGeometry('topaz',1.5,.5,1,.4),mat);
+    mesh.userData.mineral='topaz';
+    _applyTopazVolumeOptics(mat,mesh,cloudyGrowthHistory(c,1));
+    expect(mat.transmission).toBe(mat.userData.optics.transmission);
+    expect(mat.transmission).toBeGreaterThan(.5);
+    expect(mat.userData.optics.specimen_bulk_roughness).toBe(0);
+    expect(mat.userData.cloudyGrowth.bins).toEqual(Array(16).fill(0));
   });
   it('invalidates rendering when an existing layer changes without changing size or zone count',()=>{
     const c={mineral:'apatite',zones:[{step:1,thickness_um:5}]};
@@ -80,5 +97,9 @@ describe('cloudy surviving growth zones',()=>{
       _topoSyncCrystalMeshes(state,sim,wall);
       const updated=state.crystals.children.find((m:any)=>m.material?.userData?.cloudyGrowth);
       expect(updated.material.userData.cloudyGrowth.inclusion_fraction).toBe(0);
+      expect(updated.material.userData.cloudyGrowth.bins).toEqual(Array(16).fill(0));
+      expect(updated.material.userData.optics.specimen_transmission_cap).toBe(1);
+      expect(updated.material.userData.optics.specimen_alpha_floor).toBe(0);
+      expect(updated.material.userData.optics.specimen_bulk_roughness).toBe(0);
     });
 });

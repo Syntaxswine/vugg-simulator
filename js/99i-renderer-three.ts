@@ -7619,6 +7619,9 @@ function _applyTopazVolumeOptics(mat: any, mesh: any, growthHistory: any = null)
       if (planes.some(f => f.n.dot(v) > f.d + 1e-4)) return;
     }
     mat.userData.cloudyGrowth = growthHistory;
+    // The supplied history is replay-filtered; future inclusions must not cloud it.
+    _applyRecordedCloudPolicy(mat.userData.optics, mesh.userData.mineral, growthHistory);
+    _opticsPaintTier(mat, mat.userData.optics, new THREE.Color(mat.userData.optics.body));
   }
   mesh.geometry.computeBoundingBox();
   const cloudCenter = mesh.geometry.boundingBox.getCenter(new THREE.Vector3());
@@ -7755,7 +7758,7 @@ function _applyTopazVolumeOptics(mat: any, mesh: any, growthHistory: any = null)
     // Place the helper after IOR has been declared by the physical-material chunk.
     shader.fragmentShader = shader.fragmentShader.replace('#include <transmission_pars_fragment>', code + chunk);
   };
-  mat.customProgramCacheKey = () => previousKey + '|topaz-convex-cloud-core-v2-' + planes.length + (growthHistory ? '|growth-shells-v1' : '');
+  mat.customProgramCacheKey = () => previousKey + '|topaz-convex-cloud-core-v2-' + planes.length + (growthHistory ? '|growth-shells-v2' : '');
   mat.needsUpdate = true;
 }
 // Install the optics rig on a fresh Three state: desktop starts on transmission, mobile and
@@ -7843,22 +7846,20 @@ function _topoOpticsApplyTier(state: any, tier: _OpticsTier, reason?: string) {
   return rig;
 }
 
+// Only surviving recorded inclusions justify the cloudy specimen overrides.
+function _applyRecordedCloudPolicy(p: any, mineral: string, history: any): void {
+  const cloudy = history.inclusion_fraction > 0;
+  p.specimen_transmission_cap = cloudy ? (mineral === 'topaz' ? 0.50 : 0.60) : 1;
+  p.specimen_alpha_floor = cloudy ? 0.90 : 0;
+  p.specimen_bulk_roughness = cloudy ? 0.42 : 0;
+}
+
 function buildCrystalMaterial(crystal: any, spec: any, f: any, tierOverride?: _OpticsTier): any {
   const fl = f || {};
   const tier: _OpticsTier = tierOverride || _topoOpticsTier();
   const p = opticsMaterialParamsFor(spec, fl, tier);
-  // Default specimen presentation, not a correction to the catalog's possible
-  // transparency. Optical clarity is exceptional in the game's visual language.
-  // Keep hollow casts and embedded guests on their own existing material paths.
-  if (crystal.mineral === 'topaz' && !fl.isPerimorphCast && !fl.isInclusion) {
-    p.specimen_transmission_cap = 0.50;
-    p.specimen_alpha_floor = 0.90;
-    p.specimen_bulk_roughness = 0.28;
-  }
   if (CLOUDY_GROWTH_MINERALS.has(crystal.mineral) && !fl.isPerimorphCast && !fl.isInclusion) {
-    p.specimen_transmission_cap = crystal.mineral === 'topaz' ? 0.50 : 0.60;
-    p.specimen_alpha_floor = 0.90;
-    p.specimen_bulk_roughness = 0.42;
+    _applyRecordedCloudPolicy(p, crystal.mineral, cloudyGrowthHistory(crystal, fl.replayStep ?? null));
   }
   // LOCAL CRYSTAL COLOUR — per-crystal chemistry tone + deterministic legibility floor so
   // same-species neighbours read apart (isSectorZoned overrides to white — its baked vertex
@@ -8947,7 +8948,7 @@ function _topoSyncCrystalMeshes(state: any, sim: any, wall: any, replayStep?: nu
     const spec = (typeof MINERAL_SPEC !== 'undefined' && MINERAL_SPEC) ? MINERAL_SPEC[effectiveMineral] : null;
     const isPerimorphCast = crystal.dissolved && crystal.perimorph_eligible;
     const mat = buildCrystalMaterial(crystal, spec, {
-      isCdrPseudomorph, isEtched, isPerimorphCast, isSectorZoned, isGypsumHourglass, isInclusion,
+      isCdrPseudomorph, isEtched, isPerimorphCast, isSectorZoned, isGypsumHourglass, isInclusion, replayStep,
     });
     _applyCavityClip(mat, state.clipUniforms);
     if (geom.userData.sulfideR4?.mineral === 'pyrite') applyPyriteStriations(mat);

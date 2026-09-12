@@ -5,6 +5,16 @@ inside ordinary convex quartz, topaz, apatite, barite and aragonite bodies.
 It does not alter crystal dimensions, habits, growth kinetics, inclusion records,
 or the simulation's random stream.
 
+## Acceptance boundary
+
+PASS as a declared visual-realism bridge; HOLD as completed formation memory.
+The recorded-only correction removes all invented cloud density. Empty histories,
+unflagged layers, and fully dissolved inclusion episodes contribute zero density.
+Veils and windows only modulate recorded density; they cannot create a cloud event.
+Without surviving inclusions, materials use catalog clarity, absorption and lustre,
+without the cloudy transmission cap, alpha opacity floor or bulk blur. Replay uses
+only the surviving history at its cursor, including for its material policy.
+
 ## What the records support
 
 `GrowthZone.thickness_um` orders the surviving material and `fluid_inclusion`
@@ -16,7 +26,7 @@ unbounded shader array.
 The records contain axial thickness, not reconstructed per-face growth fronts.
 The display therefore maps surviving thickness to nested, geometrically similar
 shells bounded by the body's actual convex faces. The shell mapping, density
-weights, quiet clear windows and mild default core are appearance conventions.
+weights and quiet clear windows are appearance conventions. There is no default core.
 They are not measured inclusion concentrations, reconstructed fluid chemistry,
 or evidence that an unrecorded inclusion event occurred.
 
@@ -27,7 +37,8 @@ That source does not calibrate this renderer's scattering constants.
 ## Rendering boundaries
 
 - Volume scattering is available in the transmission tier. The alpha fallback
-  keeps a 0.90 opacity floor and does not resolve the internal shells.
+  keeps a 0.90 opacity floor only when surviving inclusions are recorded and does
+  not resolve the internal shells. Unrecorded crystals retain catalog alpha clarity.
 - Convex single bodies and eligible individual satellites each receive their own
   exit planes. Concave cyclic twins and fused intergrowth meshes are excluded;
   a convex approximation must not fill their real gaps with cloudy matter.
@@ -51,7 +62,7 @@ node tools/photo-rig.mjs --scenario amethyst_geode --seed 42 --fixture cloud-cor
 node tools/test-workflow.mjs --file tests-js/cloudy-growth.test.ts --file tests-js/gem-prism-r4.test.ts --file tests-js/optics-r2-materials.test.ts
 ```
 
-## Visual and regression checks
+## Initial bridge validation (before the recorded-only correction)
 
 The final controlled photos live under
 `.local-evidence/photos/cloud-final-{mineral}-{core,band,clear}`. Quartz has all
@@ -89,3 +100,20 @@ artifact-payload hash links. No scientific result was repinned.
 Release generation/audit, typecheck and the exact **185-module** build check pass.
 The delivery uses a clean checkout with fresh dependencies for a further CI
 check; no all-files test-suite or hosted GitHub Actions result is implied here.
+
+## Recorded-only correction validation
+
+Controlled clear/core pairs for quartz and topaz are in
+`.local-evidence/photos/recorded-{quartz,topaz}-{clear,core}`. Geometry, lighting
+and placement are held constant. Clear controls visibly transmit the background;
+recorded cores retain internal scattering. This verifies the record-dependent
+display distinction, not a calibrated physical inclusion concentration.
+
+Validation passed: 176 renderer tests in 14 serial files, nine browser-receipt
+tests, the fresh owned-browser journey, 55 science tests, release audits,
+typecheck and exact build check. All four photo runs completed without runtime
+exceptions. The three-seed locality baseline, canonical seed-42 baseline, all 41
+strip archives, strip digest and all 41 claim cards are unchanged. Only runtime
+bindings and their dependent evidence links changed. No browser expectation or scientific result was
+repinned. These checks establish integration and unchanged science outputs;
+they do not turn the visual bridge into completed formation memory.
