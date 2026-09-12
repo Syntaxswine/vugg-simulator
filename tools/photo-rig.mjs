@@ -104,7 +104,8 @@ function parseArgs(argv) {
     else if (a === '--crystal-id') out.crystalId = Number(next());
     else if (a === '--fixture') {
       out.fixture = next();
-      if (!['aragonite-trilling', 'aragonite-contact', 'aragonite-ordinary', 'quartz-double', 'quartz-accessory'].includes(out.fixture)) throw new Error('Unknown photo fixture');
+      if (!['aragonite-trilling', 'aragonite-contact', 'aragonite-ordinary', 'quartz-double', 'quartz-accessory'].includes(out.fixture)
+        && !/^cloud-(core|band|clear)-(quartz|topaz|apatite|barite|aragonite)$/.test(out.fixture)) throw new Error('Unknown photo fixture');
     }
     else if (a === '--camera-from') out.cameraFrom = JSON.parse(readFileSync(path.resolve(ROOT, next()), 'utf8'));
     else if (a === '--size') out.size = next().split('x').map(Number);
@@ -641,6 +642,7 @@ const PAGE_HELPERS = `
           transmission: mat.transmission ?? null, clearcoat: mat.clearcoat ?? null, ior: mat.ior ?? null,
           flatShading: !!mat.flatShading, side: mat.side, materials: mats.length,
           depthWrite: mat.depthWrite, gypsumCleavage: mat.userData?.gypsumCleavage ?? null,
+          cloudyGrowth: mat.userData?.cloudyGrowth ?? null,
           volumePath: mat.userData?.optics?.volume_path ?? null,
           exitPlanes: mat.userData?.optics?.exit_planes ?? null,
           opticalExtentMm: mat.userData?.optics?.extent_mm ?? null } : null,
@@ -1014,11 +1016,13 @@ function runProgram(name, seed, steps, fixture = null) {
     const simMs = performance.now() - t0;
     if (${JSON.stringify(fixture)} != null) {
       const fixtureName = ${JSON.stringify(fixture)};
-      const fixtureMineral = fixtureName.startsWith('quartz-') ? 'quartz' : 'aragonite';
+      const cloud = /^cloud-(core|band|clear)-(quartz|topaz|apatite|barite|aragonite)$/.exec(fixtureName);
+      const fixtureMineral = cloud ? cloud[2] : fixtureName.startsWith('quartz-') ? 'quartz' : 'aragonite';
       const index = sim.crystals.findIndex(c => c.mineral === fixtureMineral);
       if (index < 0) throw new Error('Fixture requires an existing ' + fixtureMineral + ' anchor');
       const original = sim.crystals[index];
-      const fixtureHabit = fixtureName === 'quartz-double' ? 'doubly_terminated' : fixtureMineral === 'quartz' ? 'prismatic' : 'columnar';
+      const fixtureHabit = cloud ? ({quartz:'prismatic',topaz:'prismatic',apatite:'prismatic_hexagonal',barite:'tabular',aragonite:'columnar'})[fixtureMineral]
+        : fixtureName === 'quartz-double' ? 'doubly_terminated' : fixtureMineral === 'quartz' ? 'prismatic' : 'columnar';
       const crystal = new Crystal({ mineral: fixtureMineral, habit: fixtureHabit,
         crystal_id: original.crystal_id, nucleation_step: original.nucleation_step });
       Object.assign(crystal, { habit: fixtureHabit, twinned: fixtureName === 'aragonite-trilling' || fixtureName === 'aragonite-contact',
@@ -1026,6 +1030,13 @@ function runProgram(name, seed, steps, fixture = null) {
         growth_environment: 'fluid', c_length_mm: 8, a_width_mm: 5,
         total_growth_um: 8000, wall_anchor: original.wall_anchor });
       if (fixtureName === 'quartz-accessory') crystal.crystal_id = 4 * (1 + Math.ceil(Math.max(...sim.crystals.map(c=>c.crystal_id))/4));
+      if (cloud) {
+        crystal.zones = [
+          {step:1,thickness_um:3000,fluid_inclusion:cloud[1]==='core'},
+          {step:2,thickness_um:1800,fluid_inclusion:cloud[1]==='core'||cloud[1]==='band'},
+          {step:3,thickness_um:3200,fluid_inclusion:false}
+        ];
+      }
       sim.crystals[index] = crystal;
     }
     if (typeof _topoUseThreeRenderer !== 'undefined' && !_topoUseThreeRenderer) _topoUseThreeRenderer = true;

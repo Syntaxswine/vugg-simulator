@@ -7590,6 +7590,16 @@ function _topazOpticalPlanes(geometry: any): any[] {
     const n = b.clone().sub(a).cross(c.sub(a));
     if (n.lengthSq() < 1e-16) continue;
     n.normalize();
+    // Faceted generators retain their analytic face normals. Reconstructing
+    // them from very skinny Float32 chamfer triangles loses precision.
+    const normals = g.attributes.normal;
+    if (normals) {
+      const na = new THREE.Vector3().fromBufferAttribute(normals, i);
+      const nb = new THREE.Vector3().fromBufferAttribute(normals, i + 1);
+      const nc = new THREE.Vector3().fromBufferAttribute(normals, i + 2);
+      if (na.lengthSq() > 0.99 && na.distanceToSquared(nb) < 1e-12 && na.distanceToSquared(nc) < 1e-12
+          && Math.abs(n.dot(na)) > 0.999) n.copy(na).normalize();
+    }
     if (n.dot(center.clone().sub(a)) > 0) n.negate();
     const d = n.dot(a);
     if (!planes.some(q => n.dot(q.n) > 1 - 1e-7 && Math.abs(q.d - d) < 1e-6)) planes.push({ n, d });
@@ -7597,9 +7607,19 @@ function _topazOpticalPlanes(geometry: any): any[] {
   if (g !== geometry) g.dispose();
   return planes;
 }
-function _applyTopazVolumeOptics(mat: any, mesh: any) {
+function _applyTopazVolumeOptics(mat: any, mesh: any, growthHistory: any = null) {
   const planes = _topazOpticalPlanes(mesh.geometry);
   if (planes.length < 4 || planes.length > 96) return;
+  if (growthHistory) {
+    const p = mesh.geometry.attributes.position, v = new THREE.Vector3();
+    for (let i = 0; i < p.count; i++) {
+      v.fromBufferAttribute(p, i);
+      // Float32 normals reconstructed from narrow chamfer triangles accumulate
+      // a few 1e-5 normalized units of error; genuine concavity is much larger.
+      if (planes.some(f => f.n.dot(v) > f.d + 1e-4)) return;
+    }
+    mat.userData.cloudyGrowth = growthHistory;
+  }
   mesh.geometry.computeBoundingBox();
   const cloudCenter = mesh.geometry.boundingBox.getCenter(new THREE.Vector3());
   const cloudSize = mesh.geometry.boundingBox.getSize(new THREE.Vector3());
@@ -7609,8 +7629,8 @@ function _applyTopazVolumeOptics(mat: any, mesh: any) {
   // backs into the transmission buffer adds a second opaque version of itself.
   mat.side = THREE.FrontSide;
   // Clean vitreous faces; the existing etch/porosity roughness increments remain.
-  mat.roughness = Math.max(0.06, mat.roughness - 0.03);
-  mat.userData.optics.volume_path = 'convex-topaz';
+  if (!growthHistory || mesh.userData.mineral === 'topaz') mat.roughness = Math.max(0.06, mat.roughness - 0.03);
+  mat.userData.optics.volume_path = growthHistory ? 'convex-growth-zones' : 'convex-topaz';
   mat.userData.optics.exit_planes = planes.length;
   mat.userData.optics.volume_roughness = mat.roughness;
   const previous = mat.onBeforeCompile;
@@ -7621,7 +7641,11 @@ function _applyTopazVolumeOptics(mat: any, mesh: any) {
     shader.uniforms.topazBulkRoughness = { value: mat.userData.optics.specimen_bulk_roughness ?? 0 };
     shader.uniforms.topazCloudCenter = { value: cloudCenter };
     shader.uniforms.topazCloudSize = { value: cloudSize };
-    const code = `
+    if (growthHistory) {
+      shader.uniforms.growthCloudBins = { value: growthHistory.bins };
+      shader.uniforms.growthCloudPhase = { value: growthHistory.phase };
+    }
+    let code = `
       uniform vec4 topazExitPlanes[${planes.length}];
       uniform float topazBulkRoughness;
       uniform vec3 topazCloudCenter;
@@ -7662,9 +7686,11 @@ function _applyTopazVolumeOptics(mat: any, mesh: any) {
             }
           }
           if (exitDistance > 1e19) break;
-          // Integrate the interior on every segment, including reflected paths.
+          // Growth shells use single scattering on the entry segment so a
+          // reflected room sample cannot erase the spatially resolved veil.
+          // The legacy topaz treatment integrates all reflected segments.
           for (int sampleIndex = 0; sampleIndex < 6; sampleIndex++) {
-            cloudDepth += topazCloudDensity(origin + direction * exitDistance *
+            ${growthHistory ? 'if (bounce == 0)' : ''} cloudDepth += topazCloudDensity(origin + direction * exitDistance *
               (float(sampleIndex) + 0.5) / 6.0) * exitDistance / 6.0;
           }
           pathLength += exitDistance;
@@ -7678,6 +7704,11 @@ function _applyTopazVolumeOptics(mat: any, mesh: any) {
         return (model * vec4(origin, 1.0)).xyz - position;
       }
     `;
+    if (growthHistory) {
+      const start = code.indexOf('      float topazCloudDensity');
+      const end = code.indexOf('      vec3 topazVolumeRay');
+      code = code.slice(0, start) + CLOUDY_GROWTH_GLSL.replace('GROWTH_PLANE_COUNT', String(planes.length)) + code.slice(end);
+    }
     const chunk = THREE.ShaderChunk.transmission_pars_fragment.replace(
       'vec3 transmissionRay = getVolumeTransmissionRay( n, v, thickness, ior, modelMatrix );',
       'float topazPathLength; float topazTrapped; float topazCloudDepth; vec3 topazFinalRay; vec3 transmissionRay = topazVolumeRay( n, v, position, modelMatrix, topazPathLength, topazFinalRay, topazTrapped, topazCloudDepth );')
@@ -7699,14 +7730,32 @@ function _applyTopazVolumeOptics(mat: any, mesh: any) {
         if (topazTrapped < 0.5) {
           vec3 scatteredLight = getTransmissionSample(refractionCoords, 0.60, ior).rgb;
           transmittedLight.rgb = mix(transmittedLight.rgb, scatteredLight,
-            clamp(topazCloudDepth / max(thickness, 0.0001) * 0.12, 0.0, 0.20));
+            clamp(topazCloudDepth / max(thickness, 0.0001) * ${growthHistory ? '0.35' : '0.12'}, 0.0, ${growthHistory ? '0.50' : '0.20'}));
         }
+        ${growthHistory ? `
+        // Scattering still occurs on internally reflected paths. Otherwise a
+        // polished crystal's total internal reflection hides its entire history.
+          // Single isotropic scattering of the scene's incident illumination.
+          // Include lamps: an environment-only source can match the reflected
+          // room so closely that it conceals the buried cloud silhouette.
+          vec3 growthIllumination = ambientLightColor;
+          #if NUM_DIR_LIGHTS > 0
+            for (int lamp = 0; lamp < NUM_DIR_LIGHTS; lamp++) {
+              growthIllumination += 0.20 * directionalLights[lamp].color;
+            }
+          #endif
+          #ifdef ENVMAP_TYPE_CUBE_UV
+            growthIllumination += 0.25 * textureCubeUV(envMap, envMapRotation * normalize(n), 1.0).rgb * envMapIntensity;
+          #endif
+          float growthScatter = 1.0 - exp(-3.0 * topazCloudDepth / max(thickness, 0.0001));
+          transmittedLight.rgb = mix(transmittedLight.rgb, growthIllumination, min(0.90, growthScatter));
+        ` : ''}
         vec3 attenuatedColor = transmittance * transmittedLight.rgb;
       `);
     // Place the helper after IOR has been declared by the physical-material chunk.
     shader.fragmentShader = shader.fragmentShader.replace('#include <transmission_pars_fragment>', code + chunk);
   };
-  mat.customProgramCacheKey = () => previousKey + '|topaz-convex-cloud-core-v2-' + planes.length;
+  mat.customProgramCacheKey = () => previousKey + '|topaz-convex-cloud-core-v2-' + planes.length + (growthHistory ? '|growth-shells-v1' : '');
   mat.needsUpdate = true;
 }
 // Install the optics rig on a fresh Three state: desktop starts on transmission, mobile and
@@ -7805,6 +7854,11 @@ function buildCrystalMaterial(crystal: any, spec: any, f: any, tierOverride?: _O
     p.specimen_transmission_cap = 0.50;
     p.specimen_alpha_floor = 0.90;
     p.specimen_bulk_roughness = 0.28;
+  }
+  if (CLOUDY_GROWTH_MINERALS.has(crystal.mineral) && !fl.isPerimorphCast && !fl.isInclusion) {
+    p.specimen_transmission_cap = crystal.mineral === 'topaz' ? 0.50 : 0.60;
+    p.specimen_alpha_floor = 0.90;
+    p.specimen_bulk_roughness = 0.42;
   }
   // LOCAL CRYSTAL COLOUR — per-crystal chemistry tone + deterministic legibility floor so
   // same-species neighbours read apart (isSectorZoned overrides to white — its baked vertex
@@ -8001,7 +8055,7 @@ function _topoCrystalsSignature(sim: any, wall: any, replayStep?: number): strin
         parts.push(`${c.crystal_id}:${effectiveMineral}:${c.habit}:cast:${c.c_length_mm.toFixed(2)}:${_anchorKey}:${_envKey}`);
         continue;
       }
-      parts.push(`${c.crystal_id}:${effectiveMineral}:${c.habit}:${hist.c_length_mm.toFixed(2)}:${_anchorKey}:${_envKey}:r${replayStep}`);
+      parts.push(`${c.crystal_id}:${effectiveMineral}:${c.habit}:${hist.c_length_mm.toFixed(2)}:${_anchorKey}:${_envKey}:r${replayStep}` + cloudyGrowthSignature(c, replayStep));
       continue;
     }
     // Quartz's surface history can gain a striation before its length crosses
@@ -8011,7 +8065,7 @@ function _topoCrystalsSignature(sim: any, wall: any, replayStep?: number): strin
     // Gypsum's fixed-plane shape develops with width as well as length.
     const bladeAspectKey = c.mineral === 'selenite' || c.mineral === 'gypsum'
       ? `:b${c.a_width_mm || 0}:${c.c_length_mm || 0}` : '';
-    parts.push(`${c.crystal_id}:${c.mineral}:${c.habit}:${c.c_length_mm.toFixed(2)}:${_anchorKey}:${_envKey}:${c.dissolved ? 'd' : 'a'}${quartzHistoryKey}${bladeAspectKey}`);
+    parts.push(`${c.crystal_id}:${c.mineral}:${c.habit}:${c.c_length_mm.toFixed(2)}:${_anchorKey}:${_envKey}:${c.dissolved ? 'd' : 'a'}${quartzHistoryKey}${bladeAspectKey}${cloudyGrowthSignature(c)}`);
   }
   return parts.join('|');
 }
@@ -9265,21 +9319,19 @@ function _topoSyncCrystalMeshes(state: any, sim: any, wall: any, replayStep?: nu
     }
     // Each representative gets its own path planes/attenuation: contacted parents
     // and uncut, differently scaled satellites cannot share one optical volume.
-    if (gemPrismGeometry && crystal.mineral === 'topaz' && !isInclusion) {
-      for (const body of state.crystals.children) {
+    if (CLOUDY_GROWTH_MINERALS.has(crystal.mineral) && !isInclusion && !isSectorZoned && !isPerimorphCast && !isEtched && !crystal._surfaceGrowth) {
+      const history = cloudyGrowthHistory(crystal, replayStep ?? null);
+      // Install on satellites before the parent so clones inherit only the
+      // existing surface hooks, never an already-bound parent's optical volume.
+      const bodies = [...state.crystals.children].sort((a, b) => Number(a === mesh) - Number(b === mesh));
+      for (const body of bodies) {
         if (body.userData.crystal_id !== crystal.crystal_id || body.userData.o5Band || !body.geometry) continue;
-        if (body === mesh) { _applyTopazVolumeOptics(mat, body); continue; }
+        if (body === mesh) { _applyTopazVolumeOptics(mat, body, history); continue; }
         if (body.material !== mat) continue;
         body.material = mat.clone();
-        // clone does not copy onBeforeCompile; restore cavity/helix clipping
-        // before installing optics from this body's geometry.
-        _applyCavityClip(body.material, state.clipUniforms);
-        if (mat.userData.faceReliefR4) {
-          delete body.material.userData.faceReliefR4;
-          applyCrystalFaceRelief(body.material);
-        }
-        body.material.roughness = mat.userData.optics.roughness;
-        _applyTopazVolumeOptics(body.material, body);
+        body.material.onBeforeCompile = mat.onBeforeCompile;
+        body.material.customProgramCacheKey = mat.customProgramCacheKey.bind(mat);
+        _applyTopazVolumeOptics(body.material, body, history);
       }
     }
   }

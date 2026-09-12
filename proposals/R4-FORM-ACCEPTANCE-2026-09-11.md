@@ -100,6 +100,10 @@ controls use `tutorial_travertine`; the quartz controls use `amethyst_geode`.
 
 ## Remaining realism work, outside the completed form gate
 
+The next implementation is recorded in
+[Cloudy growth zones](CLOUDY-GROWTH-ZONES-2026-09-11.md): surviving internal
+cloud/clear growth for eligible convex bodies, preserving this form acceptance.
+
 The former broad R4 residual note mixed missing form work with future scientific
 and material work. Actual per-face advance histories are not reconstructed here:
 the existing quartz bands use aggregate zone records, and the new relief is a

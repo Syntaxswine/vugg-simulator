@@ -1,8 +1,8 @@
 {
   "schema": "vugg-guided-tutorial-browser-receipt-v6",
   "sim_version": 285,
-  "browser_bundle_sha256": "7fd68a46803ec4e643b71feb57d8e5b6d973660ebf42b58ea46f1fdf0ab2523c",
-  "execution_set_sha256": "923e7f19fe0924e69101984026618a6a7eead12a83c756e8b9d4060f9328aa2a",
+  "browser_bundle_sha256": "1bf53a19199c0e3a2b2075e3ab390aa1c09a2ef48562da839bd90510a36792af",
+  "execution_set_sha256": "bf812dd344ededdf5485e9ed5326a3883fd34092a886ea99a61279a5d50bd6bd",
   "node_runtime": {
     "schema": "vugg-evidence-node-runtime-v1",
     "node": "24.15.0",
@@ -13,7 +13,7 @@
     "locale": "en-US"
   },
   "node_runtime_sha256": "b4bb27f2f1b62692b79844cbcc3df7c4966fa7cdc3106c81ce630a74b9a2e62c",
-  "producer_contract_sha256": "89f7ba56c2e0df1c79081a80dc4f908d3e03f468965712f7a7cd15baae286e32",
+  "producer_contract_sha256": "89f0d92df6aad938902412af8091b4a36e6c94bbd27ee1fcdd1c92c7be530bde",
   "payload": {
     "browser_runtime": {
       "schema": "vugg-owned-devtools-browser-runtime-v2",
@@ -142,7 +142,7 @@
           "Finish tutorial"
         ],
         "collected": {
-          "record_id": "cry-16-ze5",
+          "record_id": "cry-16-w8g",
           "name": "<img data-vugg-player-name-probe src=x onerror=\"globalThis.__vuggPlayerNameInjection=1\">",
           "mineral": "topaz",
           "source_scenario": "shigar_pegmatite",
@@ -205,14 +205,14 @@
             "scenario": "tutorial_mn_calcite",
             "step": 0,
             "fingerprint": "143c9a8881f813dc12baf49708c978b0fdb9e943b5c396149faaaa3ba99015a5",
-            "run_id": "save-16-idn"
+            "run_id": "save-16-jzb"
           },
           "after": {
             "runtime": "fortress",
             "scenario": "tutorial_mn_calcite",
             "step": 0,
             "fingerprint": "143c9a8881f813dc12baf49708c978b0fdb9e943b5c396149faaaa3ba99015a5",
-            "run_id": "save-16-idn"
+            "run_id": "save-16-jzb"
           }
         },
         "callouts": 0,
@@ -221,7 +221,7 @@
       "player_surfaces": {
         "schema": "game04-player-surfaces-v2",
         "collection_record_groove": {
-          "record_id": "cry-16-ze5",
+          "record_id": "cry-16-w8g",
           "stored_name": "<img data-vugg-player-name-probe src=x onerror=\"globalThis.__vuggPlayerNameInjection=1\">",
           "library_name_text": "<img data-vugg-player-name-probe src=x onerror=\"globalThis.__vuggPlayerNameInjection=1\">",
           "groove_name_text": "“<img data-vugg-player-name-probe src=x onerror=\"globalThis.__vuggPlayerNameInjection=1\">”",
@@ -335,5 +335,5 @@
       }
     }
   },
-  "payload_sha256": "ae314127a35a32f10edf6647b276d35fbcab347f94470723e955d6b7e63bf3aa"
+  "payload_sha256": "a4f3fb75c2ceb59e49438b7119c8341158081ea122657174e119b9d948db1e25"
 }

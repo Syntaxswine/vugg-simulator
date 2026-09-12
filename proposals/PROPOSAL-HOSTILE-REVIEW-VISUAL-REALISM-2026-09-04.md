@@ -718,6 +718,12 @@ whole-vug photo set still wins on facets and wall texture (R4, R5).
   Elmwood dogtooth silhouette visible in its hero shot at ≥ 20% of frame height.
 
 ### R4 — Crystallographic forms for the species that matter · form gate complete 2026-09-11
+
+The subsequent cloudy-growth material pass is tracked in
+[Cloudy growth zones](CLOUDY-GROWTH-ZONES-2026-09-11.md). It consumes surviving
+growth records for ordinary convex quartz, topaz, apatite, barite and aragonite
+bodies without reopening the accepted form gate. Alpha fallback and complex
+intergrowth limitations are explicit in that report.
 **R4a first implementation, 2026-09-07 (`codex/visual-realism-r4`):** ordinary
 prismatic quartz now uses point-group-32 m/r/z planes with a flat attachment scar,
 three larger r and three smaller z termination faces, and a slightly displaced

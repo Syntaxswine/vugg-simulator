@@ -150,14 +150,14 @@ describe('R4f topaz and apatite', () => {
           const mat = Array.isArray(m.material) ? m.material[0] : m.material;
           materials.add(mat);
           expect(mat.side).toBe(THREE.FrontSide);
-          expect(mat.userData.optics.volume_path).toBe('convex-topaz');
+          expect(mat.userData.optics.volume_path).toBe('convex-growth-zones');
           m.geometry.computeBoundingBox();
           const dims = m.geometry.boundingBox.getSize(new THREE.Vector3()).multiply(m.scale);
           expect(mat.userData.optics.extent_mm).toBeCloseTo(Math.min(dims.x, dims.y, dims.z), 6);
           const shader = { uniforms: {}, vertexShader: '#include <common>\n#include <begin_vertex>', fragmentShader: '#include <transmission_pars_fragment>' };
           mat.onBeforeCompile(shader, null);
           expect((shader.uniforms as any).topazExitPlanes.value.length).toBe(mat.userData.optics.exit_planes);
-          expect((shader.uniforms as any).topazBulkRoughness.value).toBe(0.28);
+          expect((shader.uniforms as any).topazBulkRoughness.value).toBe(0.42);
           expect((shader.uniforms as any).topazCloudCenter.value.toArray()).toEqual(m.geometry.boundingBox.getCenter(new THREE.Vector3()).toArray());
           expect((shader.uniforms as any).topazCloudSize.value.toArray()).toEqual(m.geometry.boundingBox.getSize(new THREE.Vector3()).toArray());
           expect(mat.roughness).toBeCloseTo(0.06);
@@ -169,8 +169,8 @@ describe('R4f topaz and apatite', () => {
         _topoOpticsApplyTier(state, 'transmission', 'test restore');
         for (const mat of materials as Set<any>) { expect(mat.transmission).toBe(0.50); expect(mat.opacity).toBe(1); }
       } else {
-        expect(bodies[0].material.userData.optics.volume_path).toBeUndefined();
-        expect(bodies[0].material.userData.optics.specimen_transmission_cap).toBeUndefined();
+        expect(bodies[0].material.userData.optics.volume_path).toBe('convex-growth-zones');
+        expect(bodies[0].material.userData.optics.specimen_transmission_cap).toBe(0.60);
       }
       _topoSyncCrystalMeshes(state, { crystals: [c], step: 101 }, wall);
       expect(state.crystals.children.find((m: any) => m.geometry.userData.gemPrismR4).geometry).toBe(bodies[0].geometry);
