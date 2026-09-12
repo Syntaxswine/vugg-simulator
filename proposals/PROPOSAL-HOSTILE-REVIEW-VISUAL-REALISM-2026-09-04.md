@@ -1495,6 +1495,10 @@ recorded-length, contact, chemistry, collection and replay sections are closed i
 **4/5 PASS**. Full formation-memory physics remains a separate HOLD where events
 or per-face history are unrecorded; final release/evidence checks accompany the
 implementation.
+The next recorded-history increment is [dated coatings and buried surfaces](SURFACE-HISTORY-2026-09-12.md):
+deposition, accepted overgrowth, retreat to/past a boundary and persistence in
+collection/archive. It earned a **4/5 hostile PASS** within declared display
+limits; coating-grain survival after host retreat remains unknown.
 The original ideas below are not universal scientific rules: actual populations
 are not forced into lognormal sizes, and age alone never supplies stain.
 - Lognormal satellite sizes with a tail; sub-parallel groups; per-generation tint (older

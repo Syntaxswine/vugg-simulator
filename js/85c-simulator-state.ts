@@ -2665,14 +2665,16 @@ _check_enclosure() {
       const operationId = `enclosure:${this.step}:${String(grower.crystal_id)}:${String(candidate.crystal_id)}`;
       const beforeTerm = Math.max(0, Number(grower._film?.phi_term) || 0);
       const beforePrism = Math.max(0, Number(grower._film?.phi_prism) || 0);
-      grower._film = filmWithOperation(grower._film, {
+      const filmOperation = {
         kind: 'enclosure-add',
         source_id: operationId,
         mineral: candidate.mineral,
         phi_term: O5_COATS_FRONT_PHI_STEP,
         phi_prism: 0,
         step: this.step,
-      });
+      };
+      grower._film = filmWithOperation(grower._film, filmOperation);
+      recordSurfaceFilmOperation(grower, filmOperation, filmBefore);
       const afterTerm = Math.max(0, Number(grower._film?.phi_term) || 0);
       const afterPrism = Math.max(0, Number(grower._film?.phi_prism) || 0);
       receipt.front_film_operation_id = operationId;
@@ -2718,10 +2720,12 @@ _check_liberation() {
         && hostCurrentGrowthUm < liberationThresholdUm) {
         freed.push(i);
         const operationId = String(originalReceipt?.front_film_operation_id || '');
+        const filmBeforeLiberation = host._film;
         const removal = operationId
           ? filmWithoutOperation(host._film, operationId)
           : { film: host._film || null, found: false, removed_phi_term: 0, removed_phi_prism: 0 };
         host._film = removal.film;
+        recordSurfaceFilmLiberation(host, this.step, operationId, filmBeforeLiberation, removal);
         if (!Array.isArray(this._enclosureReceipts)) this._enclosureReceipts = [];
         const liberationReceipt = {
           schema: 'liberation-receipt-v1',

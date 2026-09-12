@@ -5,7 +5,7 @@ declare function reconstructCrystalFromRecord(r: any): any;
 declare function assertCrystalCollectionRecord(r: any): boolean;
 declare function collectionRecordProducerSchema(r: any): string | null;
 declare function fortressBeginFromScenario(name: string, seed: number): void;
-declare function fortressStep(action: string): void;
+declare function fortressStep(action: string, payload?: any): void;
 declare function fortressFinish(): void;
 declare function fortressReset(): void;
 declare function setFortressInstantLines(v: boolean): void;
@@ -106,7 +106,7 @@ describe('R7 collection history — preserved testimony and legacy authenticatio
     ];
     const record = buildCrystalRecord(c, { mode: 'simulation', scenario: 'fixture', seed: 42,
       sim: { crystals: [c], _enclosureReceipts: [...lifecycle, { ...e, guest_crystal_id: 11 }] } });
-    expect(record.history_schema).toBe('crystal-history-v1');
+    expect(record.history_schema).toBe('crystal-history-v2');
     expect(record.zones).toEqual(clone(c.zones));
     expect(record.history.source).toMatchObject({ crystal_id: 7, enclosed_by: 3, cdr_replaces_crystal_id: 2 });
     expect(record.history.enclosure_lifecycle).toEqual(lifecycle);
@@ -227,7 +227,7 @@ describe('R7 collection history — preserved testimony and legacy authenticatio
 
   it('authenticates both producer generations and rejects self-rehashed false geometry or chemistry', () => {
     const { crystal, index, active, meta } = actualRun();
-    for (const schema of [null, 'crystal-history-v1']) {
+    for (const schema of [null, 'crystal-history-v1', 'crystal-history-v2']) {
       const receipt = receiptFor(buildCrystalRecord(crystal, meta, schema), active.run_id, index, active.actions.length);
       expect(_saveAuthenticateCollectionReceiptAgainstLive(receipt, active.run_id)).toBe(crystal);
       expect(collectionRecordProducerSchema(receipt.record)).toBe(schema);
@@ -245,9 +245,9 @@ describe('R7 collection history — preserved testimony and legacy authenticatio
     }
   });
 
-  it('loads an old collection event without upgrading its bytes, including deliberate deletion and finish replay', () => {
+  it.each([null, 'crystal-history-v1'])('loads a %s collection event without upgrading its bytes, including deletion and finish replay', (schema) => {
     const { crystal, active, meta } = actualRun();
-    const old = buildCrystalRecord(crystal, meta, null);
+    const old = buildCrystalRecord(crystal, meta, schema);
     expect(_saveCommitCreativeCollection([{ crystal, record: old }]).ok).toBe(true);
     const savedOld = clone(loadCrystals()[0]);
     const saveId = active.id;
@@ -288,7 +288,43 @@ describe('R7 collection history — preserved testimony and legacy authenticatio
     expect(loadCrystals()).toEqual(library);
   });
 
-  it('resumes an already-issued legacy finish journal byte-for-byte and only counts it once', () => {
+  it('binds recorded surface testimony to authenticated command replay despite self-rehashed edits or removal', () => {
+    const run = actualRun();
+    fortressStep('apply_film', { mineral: 'chlorite', term: 0.3, prism: 0.6 });
+    const index = run.sim.crystals.findIndex((c: any) => c._surfaceHistory?.events.some((e: any) => e.event === 'dusting'));
+    expect(index).toBeGreaterThanOrEqual(0);
+    const authoredHistory = clone(run.sim.crystals[index]._surfaceHistory);
+    const saveId = run.active.id;
+    fortressReset();
+    expect(loadSaveById(saveId)).toBe(true);
+    const sim = _liveFortressSim(), active = _liveSaveActiveRecord(), crystal = sim.crystals[index];
+    expect(crystal._surfaceHistory).toEqual(authoredHistory);
+    const meta = { mode: 'creative', run_id: active.run_id, crystal_index: index };
+    const original = buildCrystalRecord(crystal, meta);
+    expect(_saveAuthenticateCollectionReceiptAgainstLive(receiptFor(clone(original), active.run_id, index, active.actions.length), active.run_id)).toBe(crystal);
+    const falseHistory = clone(original);
+    falseHistory.history.crystal._surfaceHistory.events[0].operation.source_id += ':forged';
+    falseHistory.history.crystal._film.operations[0].source_id += ':forged';
+    const removed = clone(original); delete removed.history.crystal._surfaceHistory;
+    for (const forged of [falseHistory, removed]) {
+      // Both are structurally valid; only replay authority can reject them.
+      expect(assertCrystalCollectionRecord(forged)).toBe(true);
+      expect(() => _saveAuthenticateCollectionReceiptAgainstLive(receiptFor(clone(forged), active.run_id, index, active.actions.length), active.run_id)).toThrow(/match replayed/);
+    }
+    expect(_saveCommitCreativeCollection([{ crystal, record: original }]).ok).toBe(true);
+    const library = loadCrystals(), tx = _saveBuildFinishTransaction();
+    for (const replacement of [falseHistory, removed]) {
+      replacement.id = library[0].id;
+      const forged = clone(tx), baseline = forged.library_baseline.find((e: any) => e.id === replacement.id);
+      baseline.science_digest = _saveSpecimenScienceDigest(replacement);
+      baseline.record_digest = _saveLibraryRecordDigest(replacement);
+      forged.digest = _saveFinishTransactionDigest(forged);
+      expect(() => _saveAuthenticateFinishTransactionAgainstLive(forged, active.id, [replacement, ...library.slice(1)]))
+        .toThrow(/bound to its baseline/);
+    }
+  });
+
+  it.each([null, 'crystal-history-v1'])('resumes an already-issued %s finish journal byte-for-byte and only counts it once', (schema) => {
     const { sim, active } = actualRun();
     const saveId = active.id;
     const native = Storage.prototype.setItem;
@@ -304,7 +340,7 @@ describe('R7 collection history — preserved testimony and legacy authenticatio
     tx.library_records = tx.library_records.map((r: any) => {
       const old = buildCrystalRecord(sim.crystals[r.source.crystal_index], {
         mode: 'creative', run_id: saved.run_id, crystal_index: r.source.crystal_index,
-      }, null);
+      }, schema);
       old.id = r.id; old.collected_at = r.collected_at; old.name = r.name;
       return old;
     });

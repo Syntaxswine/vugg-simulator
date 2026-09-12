@@ -375340,6 +375340,1659 @@
         "surface_film": null,
         "zone_count": 12
       }
+    ],
+    "surface_history": [
+      {
+        "schema": "strip-surface-history-v1",
+        "crystal_id": 17,
+        "mineral": "chalcocite",
+        "captured_step": 340,
+        "sample_index": 339,
+        "zones": [
+          {
+            "zone_index": 0,
+            "step": 65,
+            "thickness_um": 50.52115395073336
+          },
+          {
+            "zone_index": 1,
+            "step": 66,
+            "thickness_um": 64.92355529751828
+          },
+          {
+            "zone_index": 2,
+            "step": 67,
+            "thickness_um": 48.70195995390973
+          },
+          {
+            "zone_index": 3,
+            "step": 68,
+            "thickness_um": 42.582842685874134
+          },
+          {
+            "zone_index": 4,
+            "step": 69,
+            "thickness_um": 49.97663857742624
+          },
+          {
+            "zone_index": 5,
+            "step": 70,
+            "thickness_um": 48.10592055291417
+          },
+          {
+            "zone_index": 6,
+            "step": 71,
+            "thickness_um": 38.24401425729
+          },
+          {
+            "zone_index": 7,
+            "step": 72,
+            "thickness_um": 44.625501843123494
+          },
+          {
+            "zone_index": 8,
+            "step": 73,
+            "thickness_um": 36.61681506754669
+          },
+          {
+            "zone_index": 9,
+            "step": 74,
+            "thickness_um": 22.602488545756117
+          },
+          {
+            "zone_index": 10,
+            "step": 75,
+            "thickness_um": 20.083905376244214
+          },
+          {
+            "zone_index": 11,
+            "step": 76,
+            "thickness_um": 19.249867850949254
+          },
+          {
+            "zone_index": 12,
+            "step": 77,
+            "thickness_um": 8.593995888130939
+          },
+          {
+            "zone_index": 13,
+            "step": 78,
+            "thickness_um": 9.484692112232128
+          },
+          {
+            "zone_index": 14,
+            "step": 79,
+            "thickness_um": 8.441011042086147
+          },
+          {
+            "zone_index": 15,
+            "step": 80,
+            "thickness_um": 8.81475980769695
+          },
+          {
+            "zone_index": 16,
+            "step": 81,
+            "thickness_um": 10.265636910703133
+          },
+          {
+            "zone_index": 17,
+            "step": 82,
+            "thickness_um": 9.566065445083801
+          },
+          {
+            "zone_index": 18,
+            "step": 83,
+            "thickness_um": 8.208495718795323
+          },
+          {
+            "zone_index": 19,
+            "step": 84,
+            "thickness_um": 9.812182814640062
+          },
+          {
+            "zone_index": 20,
+            "step": 85,
+            "thickness_um": 9.011616306182018,
+            "masked_horizon": true,
+            "film_mineral": "native_gold",
+            "masked_phi_term": 0.15,
+            "masked_phi_prism": 0,
+            "originating_film_step": 84
+          },
+          {
+            "zone_index": 21,
+            "step": 86,
+            "thickness_um": 9.118098578802433
+          },
+          {
+            "zone_index": 22,
+            "step": 87,
+            "thickness_um": 12.552565995327074
+          },
+          {
+            "zone_index": 23,
+            "step": 88,
+            "thickness_um": 12.840010327174088
+          },
+          {
+            "zone_index": 24,
+            "step": 89,
+            "thickness_um": 12.185761923682499
+          },
+          {
+            "zone_index": 25,
+            "step": 90,
+            "thickness_um": 14.172271350103989
+          },
+          {
+            "zone_index": 26,
+            "step": 91,
+            "thickness_um": 1.3086260988399487
+          },
+          {
+            "zone_index": 27,
+            "step": 92,
+            "thickness_um": 1.8341113564952964
+          },
+          {
+            "zone_index": 28,
+            "step": 93,
+            "thickness_um": 1.724235857808508,
+            "masked_horizon": true,
+            "film_mineral": "native_gold",
+            "masked_phi_term": 0.15,
+            "masked_phi_prism": 0,
+            "originating_film_step": 92
+          },
+          {
+            "zone_index": 29,
+            "step": 94,
+            "thickness_um": 1.807000165935192
+          },
+          {
+            "zone_index": 30,
+            "step": 95,
+            "thickness_um": 1.6121875248798707
+          },
+          {
+            "zone_index": 31,
+            "step": 96,
+            "thickness_um": 2.207495897851541
+          },
+          {
+            "zone_index": 32,
+            "step": 97,
+            "thickness_um": 2.1944023444079757
+          },
+          {
+            "zone_index": 33,
+            "step": 98,
+            "thickness_um": 2.4784018106979264
+          },
+          {
+            "zone_index": 34,
+            "step": 99,
+            "thickness_um": 2.1378412061041665
+          },
+          {
+            "zone_index": 35,
+            "step": 100,
+            "thickness_um": 2.6775723220854446
+          },
+          {
+            "zone_index": 36,
+            "step": 101,
+            "thickness_um": 1.8623853139741706
+          },
+          {
+            "zone_index": 37,
+            "step": 102,
+            "thickness_um": 2.726454517259493
+          },
+          {
+            "zone_index": 38,
+            "step": 103,
+            "thickness_um": 2.036829497771298
+          },
+          {
+            "zone_index": 39,
+            "step": 104,
+            "thickness_um": 2.534931952575661
+          },
+          {
+            "zone_index": 40,
+            "step": 105,
+            "thickness_um": 2.070863369622094
+          },
+          {
+            "zone_index": 41,
+            "step": 106,
+            "thickness_um": 2.715334903287143
+          },
+          {
+            "zone_index": 42,
+            "step": 107,
+            "thickness_um": 2.362853076873545
+          },
+          {
+            "zone_index": 43,
+            "step": 108,
+            "thickness_um": 2.217442606828363
+          },
+          {
+            "zone_index": 44,
+            "step": 109,
+            "thickness_um": 2.7568354875797367
+          },
+          {
+            "zone_index": 45,
+            "step": 110,
+            "thickness_um": 2.3006938652489692
+          },
+          {
+            "zone_index": 46,
+            "step": 111,
+            "thickness_um": 3.354362160996014
+          },
+          {
+            "zone_index": 47,
+            "step": 112,
+            "thickness_um": 2.6550542593529025
+          },
+          {
+            "zone_index": 48,
+            "step": 113,
+            "thickness_um": 3.0277643242256285
+          },
+          {
+            "zone_index": 49,
+            "step": 114,
+            "thickness_um": 3.5550466771550444
+          },
+          {
+            "zone_index": 50,
+            "step": 115,
+            "thickness_um": 2.7869597122397503
+          },
+          {
+            "zone_index": 51,
+            "step": 116,
+            "thickness_um": 3.688429535347389
+          },
+          {
+            "zone_index": 52,
+            "step": 117,
+            "thickness_um": 3.626339965506928
+          },
+          {
+            "zone_index": 53,
+            "step": 118,
+            "thickness_um": 4.5787647576658195
+          },
+          {
+            "zone_index": 54,
+            "step": 119,
+            "thickness_um": 5.099935668641339
+          },
+          {
+            "zone_index": 55,
+            "step": 157,
+            "thickness_um": -15
+          }
+        ],
+        "history": {
+          "schema": "surface-history-v1",
+          "initial": {
+            "step": 84,
+            "zone_count": 20,
+            "surface_um": 559.4215036986544,
+            "film": null
+          },
+          "events": [
+            {
+              "seq": 1,
+              "step": 84,
+              "zone_count": 20,
+              "surface_um": 559.4215036986544,
+              "event": "front-coating",
+              "operation": {
+                "kind": "enclosure-add",
+                "source_id": "enclosure:84:17:30",
+                "mineral": "native_gold",
+                "phi_term": 0.15,
+                "phi_prism": 0,
+                "step": 84
+              },
+              "coverage_change": {
+                "term": 0.15,
+                "prism": 0
+              }
+            },
+            {
+              "seq": 2,
+              "step": 85,
+              "zone_count": 21,
+              "surface_um": 568.4331200048364,
+              "event": "buried",
+              "accepted_zone_index": 20,
+              "horizon_um": 559.4215036986544
+            },
+            {
+              "seq": 3,
+              "step": 92,
+              "zone_count": 28,
+              "surface_um": 632.4445656352618,
+              "event": "front-coating",
+              "operation": {
+                "kind": "enclosure-add",
+                "source_id": "enclosure:92:17:45",
+                "mineral": "native_gold",
+                "phi_term": 0.15,
+                "phi_prism": 0,
+                "step": 92
+              },
+              "coverage_change": {
+                "term": 0.15,
+                "prism": 0
+              }
+            },
+            {
+              "seq": 4,
+              "step": 93,
+              "zone_count": 29,
+              "surface_um": 634.1688014930703,
+              "event": "buried",
+              "accepted_zone_index": 28,
+              "horizon_um": 632.4445656352618
+            }
+          ]
+        }
+      },
+      {
+        "schema": "strip-surface-history-v1",
+        "crystal_id": 65,
+        "mineral": "native_copper",
+        "captured_step": 340,
+        "sample_index": 339,
+        "zones": [
+          {
+            "zone_index": 0,
+            "step": 127,
+            "thickness_um": 6.932817643748741
+          },
+          {
+            "zone_index": 1,
+            "step": 128,
+            "thickness_um": 7.593082662406026
+          },
+          {
+            "zone_index": 2,
+            "step": 129,
+            "thickness_um": 6.312398614640867
+          },
+          {
+            "zone_index": 3,
+            "step": 130,
+            "thickness_um": 8.863676390101807
+          },
+          {
+            "zone_index": 4,
+            "step": 131,
+            "thickness_um": 7.408101185343552
+          },
+          {
+            "zone_index": 5,
+            "step": 132,
+            "thickness_um": 7.728598179052815
+          },
+          {
+            "zone_index": 6,
+            "step": 133,
+            "thickness_um": 7.290499425845569
+          },
+          {
+            "zone_index": 7,
+            "step": 134,
+            "thickness_um": 7.029929960590728
+          },
+          {
+            "zone_index": 8,
+            "step": 135,
+            "thickness_um": 6.409401137842537
+          },
+          {
+            "zone_index": 9,
+            "step": 136,
+            "thickness_um": 8.474470226679436
+          },
+          {
+            "zone_index": 10,
+            "step": 137,
+            "thickness_um": 7.349794114096293
+          },
+          {
+            "zone_index": 11,
+            "step": 138,
+            "thickness_um": 7.326475247482533
+          },
+          {
+            "zone_index": 12,
+            "step": 139,
+            "thickness_um": 6.294604300544076
+          },
+          {
+            "zone_index": 13,
+            "step": 140,
+            "thickness_um": 4.554983336534774
+          },
+          {
+            "zone_index": 14,
+            "step": 141,
+            "thickness_um": 3.9860241716799907,
+            "masked_horizon": true,
+            "film_mineral": "native_silver",
+            "masked_phi_term": 0.15,
+            "masked_phi_prism": 0,
+            "originating_film_step": 140
+          },
+          {
+            "zone_index": 15,
+            "step": 142,
+            "thickness_um": 2.508401975731907
+          },
+          {
+            "zone_index": 16,
+            "step": 143,
+            "thickness_um": 1.2758055259073842
+          },
+          {
+            "zone_index": 17,
+            "step": 150,
+            "thickness_um": -10
+          },
+          {
+            "zone_index": 18,
+            "step": 151,
+            "thickness_um": -10
+          },
+          {
+            "zone_index": 19,
+            "step": 152,
+            "thickness_um": -10
+          },
+          {
+            "zone_index": 20,
+            "step": 153,
+            "thickness_um": -10
+          },
+          {
+            "zone_index": 21,
+            "step": 154,
+            "thickness_um": -10
+          }
+        ],
+        "history": {
+          "schema": "surface-history-v1",
+          "initial": {
+            "step": 140,
+            "zone_count": 14,
+            "surface_um": 99.56883242490976,
+            "film": null
+          },
+          "events": [
+            {
+              "seq": 1,
+              "step": 140,
+              "zone_count": 14,
+              "surface_um": 99.56883242490976,
+              "event": "front-coating",
+              "operation": {
+                "kind": "enclosure-add",
+                "source_id": "enclosure:140:65:66",
+                "mineral": "native_silver",
+                "phi_term": 0.15,
+                "phi_prism": 0,
+                "step": 140
+              },
+              "coverage_change": {
+                "term": 0.15,
+                "prism": 0
+              }
+            },
+            {
+              "seq": 2,
+              "step": 141,
+              "zone_count": 15,
+              "surface_um": 103.55485659658974,
+              "event": "buried",
+              "accepted_zone_index": 14,
+              "horizon_um": 99.56883242490976
+            },
+            {
+              "seq": 3,
+              "step": 150,
+              "zone_count": 18,
+              "surface_um": 97.33906409822903,
+              "event": "boundary-crossed",
+              "accepted_zone_index": 17,
+              "horizon_id": 2,
+              "from_um": 107.33906409822903
+            },
+            {
+              "seq": 4,
+              "step": 153,
+              "zone_count": 21,
+              "surface_um": 67.33906409822903,
+              "event": "liberated",
+              "source_id": "enclosure:140:65:66",
+              "found": false,
+              "coverage_change": {
+                "term": 0,
+                "prism": 0
+              }
+            }
+          ]
+        }
+      },
+      {
+        "schema": "strip-surface-history-v1",
+        "crystal_id": 72,
+        "mineral": "chrysocolla",
+        "captured_step": 340,
+        "sample_index": 339,
+        "zones": [
+          {
+            "zone_index": 0,
+            "step": 145,
+            "thickness_um": 19.254514668211677
+          },
+          {
+            "zone_index": 1,
+            "step": 146,
+            "thickness_um": 26.792667781153362
+          },
+          {
+            "zone_index": 2,
+            "step": 147,
+            "thickness_um": 38.62468260243135
+          },
+          {
+            "zone_index": 3,
+            "step": 148,
+            "thickness_um": 40.18528788620263
+          },
+          {
+            "zone_index": 4,
+            "step": 149,
+            "thickness_um": 38.42652706963884
+          },
+          {
+            "zone_index": 5,
+            "step": 150,
+            "thickness_um": 4.972325646429959
+          },
+          {
+            "zone_index": 6,
+            "step": 151,
+            "thickness_um": 6.242698873949866
+          },
+          {
+            "zone_index": 7,
+            "step": 152,
+            "thickness_um": 7.04310430402566
+          },
+          {
+            "zone_index": 8,
+            "step": 153,
+            "thickness_um": 6.183170516926351
+          },
+          {
+            "zone_index": 9,
+            "step": 154,
+            "thickness_um": 9.321706092784384
+          },
+          {
+            "zone_index": 10,
+            "step": 155,
+            "thickness_um": 9.081689185925432
+          },
+          {
+            "zone_index": 11,
+            "step": 156,
+            "thickness_um": 7.497222765524106
+          },
+          {
+            "zone_index": 12,
+            "step": 157,
+            "thickness_um": 7.614390396440809
+          },
+          {
+            "zone_index": 13,
+            "step": 158,
+            "thickness_um": 9.531931619924558
+          },
+          {
+            "zone_index": 14,
+            "step": 159,
+            "thickness_um": 9.252710869576642
+          },
+          {
+            "zone_index": 15,
+            "step": 160,
+            "thickness_um": 8.996523316439966
+          },
+          {
+            "zone_index": 16,
+            "step": 161,
+            "thickness_um": 10.604350024268296
+          },
+          {
+            "zone_index": 17,
+            "step": 162,
+            "thickness_um": 10.887408594521284
+          },
+          {
+            "zone_index": 18,
+            "step": 163,
+            "thickness_um": 9.854468295205878
+          },
+          {
+            "zone_index": 19,
+            "step": 164,
+            "thickness_um": 7.989562279912258
+          },
+          {
+            "zone_index": 20,
+            "step": 165,
+            "thickness_um": 11.424489750475926
+          },
+          {
+            "zone_index": 21,
+            "step": 166,
+            "thickness_um": 10.005663113979857
+          },
+          {
+            "zone_index": 22,
+            "step": 167,
+            "thickness_um": 8.103603657617173
+          },
+          {
+            "zone_index": 23,
+            "step": 168,
+            "thickness_um": 9.428247077032466
+          },
+          {
+            "zone_index": 24,
+            "step": 169,
+            "thickness_um": 10.121196034845026
+          },
+          {
+            "zone_index": 25,
+            "step": 170,
+            "thickness_um": 8.802505222418617
+          },
+          {
+            "zone_index": 26,
+            "step": 171,
+            "thickness_um": 9.185598134009489
+          },
+          {
+            "zone_index": 27,
+            "step": 172,
+            "thickness_um": 8.380203271782277
+          },
+          {
+            "zone_index": 28,
+            "step": 173,
+            "thickness_um": 9.158921293832224
+          },
+          {
+            "zone_index": 29,
+            "step": 174,
+            "thickness_um": 11.94543796937392
+          },
+          {
+            "zone_index": 30,
+            "step": 175,
+            "thickness_um": 8.556023618825963
+          },
+          {
+            "zone_index": 31,
+            "step": 176,
+            "thickness_um": 11.722047038720316
+          },
+          {
+            "zone_index": 32,
+            "step": 177,
+            "thickness_um": 10.007185068019258
+          },
+          {
+            "zone_index": 33,
+            "step": 178,
+            "thickness_um": 9.946849357611981
+          },
+          {
+            "zone_index": 34,
+            "step": 179,
+            "thickness_um": 11.03157551837876
+          },
+          {
+            "zone_index": 35,
+            "step": 180,
+            "thickness_um": 9.786356406299552
+          },
+          {
+            "zone_index": 36,
+            "step": 181,
+            "thickness_um": 9.533332118374684
+          },
+          {
+            "zone_index": 37,
+            "step": 182,
+            "thickness_um": 10.67119772155503
+          },
+          {
+            "zone_index": 38,
+            "step": 183,
+            "thickness_um": 11.554034672294314
+          },
+          {
+            "zone_index": 39,
+            "step": 184,
+            "thickness_um": 9.923014971889383
+          },
+          {
+            "zone_index": 40,
+            "step": 185,
+            "thickness_um": 11.317066424575046
+          },
+          {
+            "zone_index": 41,
+            "step": 186,
+            "thickness_um": 10.610426817271188
+          },
+          {
+            "zone_index": 42,
+            "step": 187,
+            "thickness_um": 11.973249840743627
+          },
+          {
+            "zone_index": 43,
+            "step": 188,
+            "thickness_um": 8.667222714422152
+          },
+          {
+            "zone_index": 44,
+            "step": 189,
+            "thickness_um": 12.542892328097938
+          },
+          {
+            "zone_index": 45,
+            "step": 190,
+            "thickness_um": 11.96176841981755
+          },
+          {
+            "zone_index": 46,
+            "step": 191,
+            "thickness_um": 8.820779610344777
+          },
+          {
+            "zone_index": 47,
+            "step": 192,
+            "thickness_um": 11.266686615494113
+          },
+          {
+            "zone_index": 48,
+            "step": 193,
+            "thickness_um": 11.17532041400948
+          },
+          {
+            "zone_index": 49,
+            "step": 194,
+            "thickness_um": 11.920548158011101
+          },
+          {
+            "zone_index": 50,
+            "step": 195,
+            "thickness_um": 9.326567568765034
+          },
+          {
+            "zone_index": 51,
+            "step": 196,
+            "thickness_um": 12.289295894420516
+          },
+          {
+            "zone_index": 52,
+            "step": 197,
+            "thickness_um": 12.452772374677462
+          },
+          {
+            "zone_index": 53,
+            "step": 198,
+            "thickness_um": 11.583900173917595
+          },
+          {
+            "zone_index": 54,
+            "step": 199,
+            "thickness_um": 12.972905713615685
+          },
+          {
+            "zone_index": 55,
+            "step": 200,
+            "thickness_um": 9.916211862511432
+          },
+          {
+            "zone_index": 56,
+            "step": 201,
+            "thickness_um": 8.952393139640794
+          },
+          {
+            "zone_index": 57,
+            "step": 202,
+            "thickness_um": 9.373027699551837
+          },
+          {
+            "zone_index": 58,
+            "step": 203,
+            "thickness_um": 9.588867704611094
+          },
+          {
+            "zone_index": 59,
+            "step": 204,
+            "thickness_um": 10.478013658942755
+          },
+          {
+            "zone_index": 60,
+            "step": 205,
+            "thickness_um": 9.792312183191644
+          },
+          {
+            "zone_index": 61,
+            "step": 206,
+            "thickness_um": 9.84189423753887
+          },
+          {
+            "zone_index": 62,
+            "step": 207,
+            "thickness_um": 8.546846028045575
+          },
+          {
+            "zone_index": 63,
+            "step": 208,
+            "thickness_um": 8.256540271503637
+          },
+          {
+            "zone_index": 64,
+            "step": 209,
+            "thickness_um": 6.855101337951799
+          },
+          {
+            "zone_index": 65,
+            "step": 210,
+            "thickness_um": 5.423482401726848
+          },
+          {
+            "zone_index": 66,
+            "step": 211,
+            "thickness_um": 3.490499782880497
+          },
+          {
+            "zone_index": 67,
+            "step": 212,
+            "thickness_um": 3.9543950006420014
+          },
+          {
+            "zone_index": 68,
+            "step": 213,
+            "thickness_um": 2.3693742507795617
+          },
+          {
+            "zone_index": 69,
+            "step": 214,
+            "thickness_um": 2.6080304265889542
+          },
+          {
+            "zone_index": 70,
+            "step": 215,
+            "thickness_um": 2.1486323727373895
+          },
+          {
+            "zone_index": 71,
+            "step": 216,
+            "thickness_um": 2.287763873834126
+          },
+          {
+            "zone_index": 72,
+            "step": 217,
+            "thickness_um": 1.9977764684450312
+          },
+          {
+            "zone_index": 73,
+            "step": 218,
+            "thickness_um": 1.3811589026155384
+          },
+          {
+            "zone_index": 74,
+            "step": 219,
+            "thickness_um": 1.5274786555600748
+          },
+          {
+            "zone_index": 75,
+            "step": 220,
+            "thickness_um": 1.3632496874669728
+          },
+          {
+            "zone_index": 76,
+            "step": 221,
+            "thickness_um": 1.1198042896936018
+          },
+          {
+            "zone_index": 77,
+            "step": 222,
+            "thickness_um": 0.9156149133092426
+          },
+          {
+            "zone_index": 78,
+            "step": 223,
+            "thickness_um": 1.1130563712128856
+          },
+          {
+            "zone_index": 79,
+            "step": 224,
+            "thickness_um": 0.7960597700056307
+          },
+          {
+            "zone_index": 80,
+            "step": 225,
+            "thickness_um": 0.7903966886871265
+          },
+          {
+            "zone_index": 81,
+            "step": 226,
+            "thickness_um": 0.8545545206099074
+          },
+          {
+            "zone_index": 82,
+            "step": 227,
+            "thickness_um": 1.047371706252846
+          },
+          {
+            "zone_index": 83,
+            "step": 228,
+            "thickness_um": 0.768663005610638
+          },
+          {
+            "zone_index": 84,
+            "step": 229,
+            "thickness_um": 0.980344275646837
+          },
+          {
+            "zone_index": 85,
+            "step": 230,
+            "thickness_um": 0.8288579926948858
+          },
+          {
+            "zone_index": 86,
+            "step": 231,
+            "thickness_um": 0.8135119352656756
+          },
+          {
+            "zone_index": 87,
+            "step": 232,
+            "thickness_um": 1.0691264700566296
+          },
+          {
+            "zone_index": 88,
+            "step": 233,
+            "thickness_um": 1.0260777327243633
+          },
+          {
+            "zone_index": 89,
+            "step": 234,
+            "thickness_um": 1.0243134145962915
+          },
+          {
+            "zone_index": 90,
+            "step": 235,
+            "thickness_um": 0.8084554933066994
+          },
+          {
+            "zone_index": 91,
+            "step": 236,
+            "thickness_um": 0.9996371736542148
+          },
+          {
+            "zone_index": 92,
+            "step": 237,
+            "thickness_um": 0.7983357265529647
+          },
+          {
+            "zone_index": 93,
+            "step": 238,
+            "thickness_um": 0.9195233314250646
+          },
+          {
+            "zone_index": 94,
+            "step": 239,
+            "thickness_um": 0.9606654926270723
+          },
+          {
+            "zone_index": 95,
+            "step": 240,
+            "thickness_um": 0.8565261508511544
+          },
+          {
+            "zone_index": 96,
+            "step": 241,
+            "thickness_um": 0.9057186001114426
+          },
+          {
+            "zone_index": 97,
+            "step": 242,
+            "thickness_um": 1.0089887088589249
+          },
+          {
+            "zone_index": 98,
+            "step": 243,
+            "thickness_um": 1.077443550158709
+          },
+          {
+            "zone_index": 99,
+            "step": 244,
+            "thickness_um": 1.0434276806296914
+          },
+          {
+            "zone_index": 100,
+            "step": 245,
+            "thickness_um": 0.7444736499675975
+          },
+          {
+            "zone_index": 101,
+            "step": 246,
+            "thickness_um": 0.9858949378415937
+          },
+          {
+            "zone_index": 102,
+            "step": 247,
+            "thickness_um": 1.048049990030754
+          },
+          {
+            "zone_index": 103,
+            "step": 248,
+            "thickness_um": 0.8735899731994189
+          },
+          {
+            "zone_index": 104,
+            "step": 249,
+            "thickness_um": 1.012397541345086
+          },
+          {
+            "zone_index": 105,
+            "step": 250,
+            "thickness_um": 0.981634922666761
+          },
+          {
+            "zone_index": 106,
+            "step": 251,
+            "thickness_um": 0.7833803753481474
+          },
+          {
+            "zone_index": 107,
+            "step": 252,
+            "thickness_um": 0.7947047356631886
+          },
+          {
+            "zone_index": 108,
+            "step": 253,
+            "thickness_um": 1.0767240898471735
+          },
+          {
+            "zone_index": 109,
+            "step": 254,
+            "thickness_um": 0.9343854661297895
+          },
+          {
+            "zone_index": 110,
+            "step": 255,
+            "thickness_um": 0.9212935356229707
+          },
+          {
+            "zone_index": 111,
+            "step": 256,
+            "thickness_um": 1.0382684810927076
+          },
+          {
+            "zone_index": 112,
+            "step": 257,
+            "thickness_um": 0.7820493875142464
+          },
+          {
+            "zone_index": 113,
+            "step": 258,
+            "thickness_um": 0.7284445612058988
+          },
+          {
+            "zone_index": 114,
+            "step": 259,
+            "thickness_um": 0.9577800783624479
+          },
+          {
+            "zone_index": 115,
+            "step": 260,
+            "thickness_um": 0.9864754207794856
+          },
+          {
+            "zone_index": 116,
+            "step": 261,
+            "thickness_um": 0.8416834976567917
+          },
+          {
+            "zone_index": 117,
+            "step": 262,
+            "thickness_um": 0.8847414062365064
+          },
+          {
+            "zone_index": 118,
+            "step": 263,
+            "thickness_um": 0.7424439282441336
+          },
+          {
+            "zone_index": 119,
+            "step": 264,
+            "thickness_um": 0.8629174371758161
+          },
+          {
+            "zone_index": 120,
+            "step": 265,
+            "thickness_um": 0.8690395835417604
+          },
+          {
+            "zone_index": 121,
+            "step": 266,
+            "thickness_um": 0.8909273266491773
+          },
+          {
+            "zone_index": 122,
+            "step": 267,
+            "thickness_um": 0.8559932543372815
+          },
+          {
+            "zone_index": 123,
+            "step": 268,
+            "thickness_um": 0.8694252841105071,
+            "masked_horizon": true,
+            "film_mineral": "dioptase",
+            "masked_phi_term": 0.15,
+            "masked_phi_prism": 0,
+            "originating_film_step": 267
+          },
+          {
+            "zone_index": 124,
+            "step": 269,
+            "thickness_um": 1.0223844236312345
+          },
+          {
+            "zone_index": 125,
+            "step": 270,
+            "thickness_um": 0.8631224533296318
+          },
+          {
+            "zone_index": 126,
+            "step": 271,
+            "thickness_um": 0.7969178104381031
+          },
+          {
+            "zone_index": 127,
+            "step": 272,
+            "thickness_um": 0.8983337933683699
+          },
+          {
+            "zone_index": 128,
+            "step": 273,
+            "thickness_um": 1.0487749430231854
+          },
+          {
+            "zone_index": 129,
+            "step": 274,
+            "thickness_um": 0.8193338715760355
+          },
+          {
+            "zone_index": 130,
+            "step": 275,
+            "thickness_um": 0.8241922352282616,
+            "masked_horizon": true,
+            "film_mineral": "dioptase",
+            "masked_phi_term": 0.15,
+            "masked_phi_prism": 0,
+            "originating_film_step": 274
+          },
+          {
+            "zone_index": 131,
+            "step": 276,
+            "thickness_um": 0.8405074421359207
+          },
+          {
+            "zone_index": 132,
+            "step": 277,
+            "thickness_um": 0.8652469641476578
+          },
+          {
+            "zone_index": 133,
+            "step": 278,
+            "thickness_um": 1.1843266188609065
+          },
+          {
+            "zone_index": 134,
+            "step": 279,
+            "thickness_um": 1.1217083747251968
+          },
+          {
+            "zone_index": 135,
+            "step": 280,
+            "thickness_um": 1.1003268398795023
+          },
+          {
+            "zone_index": 136,
+            "step": 281,
+            "thickness_um": 0.9558341850542869,
+            "masked_horizon": true,
+            "film_mineral": "dioptase",
+            "masked_phi_term": 0.15,
+            "masked_phi_prism": 0,
+            "originating_film_step": 280
+          },
+          {
+            "zone_index": 137,
+            "step": 282,
+            "thickness_um": 0.8973856544137202
+          },
+          {
+            "zone_index": 138,
+            "step": 283,
+            "thickness_um": 1.0231170056754575
+          },
+          {
+            "zone_index": 139,
+            "step": 284,
+            "thickness_um": 1.2509732083372653
+          },
+          {
+            "zone_index": 140,
+            "step": 285,
+            "thickness_um": 1.2355382389150398
+          },
+          {
+            "zone_index": 141,
+            "step": 286,
+            "thickness_um": 1.1146014231649237
+          },
+          {
+            "zone_index": 142,
+            "step": 287,
+            "thickness_um": 1.124170675903616
+          },
+          {
+            "zone_index": 143,
+            "step": 288,
+            "thickness_um": 1.1879940693827418
+          },
+          {
+            "zone_index": 144,
+            "step": 289,
+            "thickness_um": 1.2026824357494628
+          },
+          {
+            "zone_index": 145,
+            "step": 290,
+            "thickness_um": 0.9226672902860582
+          },
+          {
+            "zone_index": 146,
+            "step": 291,
+            "thickness_um": 1.155863492766387
+          },
+          {
+            "zone_index": 147,
+            "step": 292,
+            "thickness_um": 1.2775814808274277
+          },
+          {
+            "zone_index": 148,
+            "step": 293,
+            "thickness_um": 0.9398858499761991
+          },
+          {
+            "zone_index": 149,
+            "step": 294,
+            "thickness_um": 1.176443046768895
+          },
+          {
+            "zone_index": 150,
+            "step": 295,
+            "thickness_um": 0.9229988783728669
+          },
+          {
+            "zone_index": 151,
+            "step": 296,
+            "thickness_um": 1.0746713179804672
+          },
+          {
+            "zone_index": 152,
+            "step": 297,
+            "thickness_um": 1.034652407671567
+          },
+          {
+            "zone_index": 153,
+            "step": 298,
+            "thickness_um": 0.9317650361223471
+          },
+          {
+            "zone_index": 154,
+            "step": 299,
+            "thickness_um": 0.975706541705665
+          },
+          {
+            "zone_index": 155,
+            "step": 300,
+            "thickness_um": 0.9848508136895213
+          },
+          {
+            "zone_index": 156,
+            "step": 301,
+            "thickness_um": 1.2376963766733104
+          },
+          {
+            "zone_index": 157,
+            "step": 302,
+            "thickness_um": 1.1955146125823464
+          },
+          {
+            "zone_index": 158,
+            "step": 303,
+            "thickness_um": 1.3471474288358387
+          },
+          {
+            "zone_index": 159,
+            "step": 304,
+            "thickness_um": 1.0278970757862906
+          },
+          {
+            "zone_index": 160,
+            "step": 305,
+            "thickness_um": 1.426850229895746
+          },
+          {
+            "zone_index": 161,
+            "step": 306,
+            "thickness_um": 1.3426164677138588
+          },
+          {
+            "zone_index": 162,
+            "step": 307,
+            "thickness_um": 1.3771800565819232
+          },
+          {
+            "zone_index": 163,
+            "step": 308,
+            "thickness_um": 1.3012805239266112
+          },
+          {
+            "zone_index": 164,
+            "step": 309,
+            "thickness_um": 1.2877648110623001
+          },
+          {
+            "zone_index": 165,
+            "step": 310,
+            "thickness_um": 1.558662849556463
+          },
+          {
+            "zone_index": 166,
+            "step": 311,
+            "thickness_um": 1.3040736648273303
+          },
+          {
+            "zone_index": 167,
+            "step": 312,
+            "thickness_um": 1.3159356568332337
+          },
+          {
+            "zone_index": 168,
+            "step": 313,
+            "thickness_um": 1.5321005314228417
+          },
+          {
+            "zone_index": 169,
+            "step": 314,
+            "thickness_um": 1.2906163915838738
+          },
+          {
+            "zone_index": 170,
+            "step": 315,
+            "thickness_um": 1.4228135837126066
+          },
+          {
+            "zone_index": 171,
+            "step": 316,
+            "thickness_um": 1.2053494958279722
+          },
+          {
+            "zone_index": 172,
+            "step": 317,
+            "thickness_um": 1.5541400824146194
+          },
+          {
+            "zone_index": 173,
+            "step": 318,
+            "thickness_um": 1.2781483695271971
+          },
+          {
+            "zone_index": 174,
+            "step": 319,
+            "thickness_um": 1.6150143629404
+          },
+          {
+            "zone_index": 175,
+            "step": 320,
+            "thickness_um": 1.5507901896429022
+          },
+          {
+            "zone_index": 176,
+            "step": 321,
+            "thickness_um": 1.5497048445242048
+          },
+          {
+            "zone_index": 177,
+            "step": 322,
+            "thickness_um": 1.1352356981182299
+          },
+          {
+            "zone_index": 178,
+            "step": 323,
+            "thickness_um": 1.6657821274459519
+          },
+          {
+            "zone_index": 179,
+            "step": 324,
+            "thickness_um": 1.2399682129495913
+          },
+          {
+            "zone_index": 180,
+            "step": 325,
+            "thickness_um": 1.6611346144206172
+          },
+          {
+            "zone_index": 181,
+            "step": 326,
+            "thickness_um": 1.190765166004033
+          },
+          {
+            "zone_index": 182,
+            "step": 327,
+            "thickness_um": 1.4056350515158664
+          },
+          {
+            "zone_index": 183,
+            "step": 328,
+            "thickness_um": 1.449713770213497
+          },
+          {
+            "zone_index": 184,
+            "step": 329,
+            "thickness_um": 1.1830031190171961
+          },
+          {
+            "zone_index": 185,
+            "step": 330,
+            "thickness_um": 1.6551786850747583
+          },
+          {
+            "zone_index": 186,
+            "step": 331,
+            "thickness_um": 1.5635385859977955
+          },
+          {
+            "zone_index": 187,
+            "step": 332,
+            "thickness_um": 1.4036097623190282
+          },
+          {
+            "zone_index": 188,
+            "step": 333,
+            "thickness_um": 1.2274429758525809
+          },
+          {
+            "zone_index": 189,
+            "step": 334,
+            "thickness_um": 1.7558274876137823
+          },
+          {
+            "zone_index": 190,
+            "step": 335,
+            "thickness_um": 1.7528550519238186
+          },
+          {
+            "zone_index": 191,
+            "step": 336,
+            "thickness_um": 1.2204652190505052
+          },
+          {
+            "zone_index": 192,
+            "step": 337,
+            "thickness_um": 1.4454118352599388
+          },
+          {
+            "zone_index": 193,
+            "step": 338,
+            "thickness_um": 1.2959064993152871
+          },
+          {
+            "zone_index": 194,
+            "step": 339,
+            "thickness_um": 1.612251500556028
+          },
+          {
+            "zone_index": 195,
+            "step": 340,
+            "thickness_um": 1.6628729029011402
+          }
+        ],
+        "history": {
+          "schema": "surface-history-v1",
+          "initial": {
+            "step": 267,
+            "zone_count": 123,
+            "surface_um": 819.8026463967806,
+            "film": null
+          },
+          "events": [
+            {
+              "seq": 1,
+              "step": 267,
+              "zone_count": 123,
+              "surface_um": 819.8026463967806,
+              "event": "front-coating",
+              "operation": {
+                "kind": "enclosure-add",
+                "source_id": "enclosure:267:72:101",
+                "mineral": "dioptase",
+                "phi_term": 0.15,
+                "phi_prism": 0,
+                "step": 267
+              },
+              "coverage_change": {
+                "term": 0.15,
+                "prism": 0
+              }
+            },
+            {
+              "seq": 2,
+              "step": 268,
+              "zone_count": 124,
+              "surface_um": 820.6720716808911,
+              "event": "buried",
+              "accepted_zone_index": 123,
+              "horizon_um": 819.8026463967806
+            },
+            {
+              "seq": 3,
+              "step": 274,
+              "zone_count": 130,
+              "surface_um": 826.1209389762578,
+              "event": "front-coating",
+              "operation": {
+                "kind": "enclosure-add",
+                "source_id": "enclosure:274:72:103",
+                "mineral": "dioptase",
+                "phi_term": 0.15,
+                "phi_prism": 0,
+                "step": 274
+              },
+              "coverage_change": {
+                "term": 0.15,
+                "prism": 0
+              }
+            },
+            {
+              "seq": 4,
+              "step": 275,
+              "zone_count": 131,
+              "surface_um": 826.945131211486,
+              "event": "buried",
+              "accepted_zone_index": 130,
+              "horizon_um": 826.1209389762578
+            },
+            {
+              "seq": 5,
+              "step": 280,
+              "zone_count": 136,
+              "surface_um": 832.0572474512353,
+              "event": "front-coating",
+              "operation": {
+                "kind": "enclosure-add",
+                "source_id": "enclosure:280:72:104",
+                "mineral": "dioptase",
+                "phi_term": 0.15,
+                "phi_prism": 0,
+                "step": 280
+              },
+              "coverage_change": {
+                "term": 0.15,
+                "prism": 0
+              }
+            },
+            {
+              "seq": 6,
+              "step": 281,
+              "zone_count": 137,
+              "surface_um": 833.0130816362896,
+              "event": "buried",
+              "accepted_zone_index": 136,
+              "horizon_um": 832.0572474512353
+            }
+          ]
+        }
+      }
     ]
   }
 }

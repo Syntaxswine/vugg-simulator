@@ -39631,6 +39631,7 @@ class Crystal {
         else {
             this.a_width_mm = this.c_length_mm * _habitAspectRatio(this.habit);
         }
+        recordAcceptedSurfaceZone(this, zone);
         // No size cap. Crystals grow to chemistry-true size (boss directive
         // "defer to actual geology" 2026-05-06): in real cavities a crystal
         // that outgrows its container either competes for space, deforms,
@@ -50577,14 +50578,16 @@ function applyFilmDusting(crystals, filmMineral, phiTerm, phiPrism, step, minera
         if (mineralFilter && mineralFilter.length && !mineralFilter.includes(c.mineral))
             continue;
         const prev = c._film;
-        c._film = filmWithOperation(prev, {
+        const operation = {
             kind: 'dust-max',
             source_id: `event-dusting:${step}:${String(c.crystal_id)}:${filmMineral || 'film'}`,
             mineral: filmMineral || (prev && prev.mineral) || 'film',
             phi_term: pt,
             phi_prism: pp,
             step,
-        });
+        };
+        c._film = filmWithOperation(prev, operation);
+        recordSurfaceFilmOperation(c, operation, prev);
         n++;
     }
     return n;
@@ -50612,13 +50615,33 @@ function setSigmaStarK(v) { SIGMA_STAR_K = +v; }
 // Fractions map surviving axial history to similar display shells, not measured
 // per-face fronts. No RNG or mutation of scientific records.
 function maskedHorizonBands(crystal, replayStep = null) {
+    if (crystal?._surfaceHistory !== undefined) {
+        const projection = _surfaceHistoryProjection(crystal._surfaceHistory, crystal.zones, replayStep);
+        if (!projection || crystal._surfaceHistory.unavailable)
+            return [];
+        const legacy = _legacyMaskedHorizonBands(crystal, replayStep, crystal._surfaceHistory.initial.zone_count);
+        const view = projection.view;
+        if (!view)
+            return legacy;
+        const zones = crystal.zones.filter(z => replayStep == null || z.step <= replayStep);
+        const depths = _surfaceDepths(zones), total = depths?.[depths.length - 1] || 0;
+        if (!(total > 0))
+            return [];
+        return legacy.concat(view.horizons.filter(h => h.status === 'buried' && h.depth_um > 0 && h.depth_um < total)
+            .map(h => ({ frac: h.depth_um / total, mineral: h.film.mineral, film: h.film, horizon_id: h.id,
+            buried_step: h.buried_step, mapping: 'recorded-face-class-coverage; similar-shell-geometry' })));
+    }
+    return _legacyMaskedHorizonBands(crystal, replayStep);
+}
+function _legacyMaskedHorizonBands(crystal, replayStep = null, beforeZone = Infinity) {
     if (!crystal || !Array.isArray(crystal.zones))
         return [];
     if (replayStep == null && !(Number(crystal.c_length_mm) > 0))
         return [];
     let runUm = 0;
     let horizons = [];
-    for (const z of crystal.zones) {
+    for (let zi = 0; zi < crystal.zones.length; zi++) {
+        const z = crystal.zones[zi];
         if (!z || (replayStep != null && (!Number.isFinite(z.step) || z.step > replayStep)))
             continue;
         const thickness = Number(z.thickness_um);
@@ -50631,7 +50654,7 @@ function maskedHorizonBands(crystal, replayStep = null) {
             // preserved inside this body. Later regrowth must not resurrect it.
             horizons = horizons.filter(h => h.depth < runUm);
         }
-        else if (z.masked_horizon) {
+        else if (z.masked_horizon && zi < beforeZone) {
             // A later live film name is not evidence for an older unnamed horizon.
             horizons.push({ depth: previousSurface, mineral: z.film_mineral || 'film' });
         }
@@ -51610,6 +51633,327 @@ function applyPhysicalEtchDirective(sim, directive, step) {
     }
     (sim._physicalEtchReceipts ||= []).push(summary);
     return summary;
+}
+
+// ── 44d-surface-history.js ──
+
+// Dated observations of the existing O5 model, not a new coating mass/kinetic
+// law. Coverage is face-class coverage; exact patch positions and the fate of
+// foreign grains after host retreat remain unrecorded. No shared RNG is used.
+const SURFACE_HISTORY_SCHEMA = 'surface-history-v1';
+const SURFACE_HISTORY_MAX_EVENTS = 20_000;
+function _surfaceCopy(value) { return value == null ? null : JSON.parse(JSON.stringify(value)); }
+function _surfaceNear(a, b) {
+    return Math.abs(a - b) <= 1e-8 * Math.max(1, Math.abs(a), Math.abs(b));
+}
+function _surfaceDepths(zones) {
+    if (!Array.isArray(zones))
+        return null;
+    const depths = [0];
+    let previousStep = 0;
+    for (const z of zones) {
+        if (!z || !Number.isFinite(z.thickness_um) || !Number.isSafeInteger(z.step) || z.step < previousStep)
+            return null;
+        previousStep = z.step;
+        depths.push(Math.max(0, depths[depths.length - 1] + z.thickness_um));
+        if (!Number.isFinite(depths[depths.length - 1]))
+            return null;
+    }
+    return depths;
+}
+function _surfaceValidOperation(op) {
+    return !!op && !Array.isArray(op) && ['dust-max', 'enclosure-add'].includes(op.kind)
+        && typeof op.source_id === 'string' && op.source_id.length > 0 && op.source_id.length <= 256
+        && typeof op.mineral === 'string' && op.mineral.length > 0 && op.mineral.length <= 128
+        && Number.isSafeInteger(op.step) && op.step >= 0
+        && ['phi_term', 'phi_prism'].every(k => Number.isFinite(op[k]) && op[k] >= 0 && op[k] <= 1)
+        && Object.keys(op).every(k => ['kind', 'source_id', 'mineral', 'step', 'phi_term', 'phi_prism'].includes(k));
+}
+function _surfaceValidFilm(film) {
+    if (film === null)
+        return true;
+    if (!film || Array.isArray(film) || typeof film.mineral !== 'string' || film.mineral.length > 128)
+        return false;
+    if (!['phi_term', 'phi_prism'].every(k => Number.isFinite(film[k]) && film[k] >= 0 && film[k] <= 1))
+        return false;
+    if (film.step != null && (!Number.isSafeInteger(film.step) || film.step < 0))
+        return false;
+    if (Object.keys(film).some(k => !['mineral', 'phi_term', 'phi_prism', 'step', 'operations'].includes(k)))
+        return false;
+    return film.operations === undefined || (Array.isArray(film.operations)
+        && film.operations.length <= SURFACE_HISTORY_MAX_EVENTS && film.operations.every(_surfaceValidOperation));
+}
+function _surfaceEquivalentFilm(a, b) {
+    const aa = _filmOperations(a), bb = _filmOperations(b);
+    return (a?.mineral ?? null) === (b?.mineral ?? null) && (a?.step ?? null) === (b?.step ?? null)
+        && aa.length === bb.length && ['phi_term', 'phi_prism'].every(k => _surfaceNear(a?.[k] || 0, b?.[k] || 0))
+        && aa.every((op, i) => ['kind', 'source_id', 'mineral', 'step', 'phi_term', 'phi_prism'].every(k => op[k] === bb[i][k]));
+}
+// Validate against the accepted zone array as well as the event syntax. A
+// deleted retreat event must not resurrect its buried horizon after regrowth.
+function _surfaceHistoryProjection(history, zones, step) {
+    const depths = _surfaceDepths(zones), initial = history?.initial;
+    if (!depths || history?.schema !== SURFACE_HISTORY_SCHEMA || !initial
+        || (step != null && (!Number.isSafeInteger(step) || step < 0))
+        || Object.keys(history).some(k => !['schema', 'initial', 'events', 'unavailable'].includes(k))
+        || !Array.isArray(history.events) || history.events.length > SURFACE_HISTORY_MAX_EVENTS
+        || !Number.isSafeInteger(initial.step) || initial.step < 0
+        || !Number.isSafeInteger(initial.zone_count) || initial.zone_count < 0 || initial.zone_count > zones.length
+        || !Number.isFinite(initial.surface_um) || initial.surface_um < 0
+        || !_surfaceNear(initial.surface_um, depths[initial.zone_count]) || !_surfaceValidFilm(initial.film)
+        || Object.keys(initial).some(k => !['step', 'zone_count', 'surface_um', 'film'].includes(k)))
+        return null;
+    if ((initial.zone_count && zones[initial.zone_count - 1].step > initial.step)
+        || (zones[initial.zone_count] && zones[initial.zone_count].step < initial.step))
+        return null;
+    if (initial.film && ((initial.film.step != null && initial.film.step > initial.step)
+        || initial.film.operations?.some(op => op.step > initial.step)))
+        return null;
+    if (initial.film?.operations) {
+        const folded = _filmFromOperations(initial.film.operations);
+        if (!folded || initial.film.mineral !== folded.mineral
+            || (initial.film.step != null && initial.film.step !== folded.step)
+            || !['phi_term', 'phi_prism'].every(k => _surfaceNear(initial.film[k], folded[k])))
+            return null;
+    }
+    const unavailable = history.unavailable;
+    if (unavailable !== undefined && (!unavailable || Object.keys(unavailable).some(k => !['reason', 'step', 'zone_count'].includes(k))
+        || !['event-limit', 'observation-gap'].includes(unavailable.reason)
+        || !Number.isSafeInteger(unavailable.step) || unavailable.step < initial.step
+        || !Number.isSafeInteger(unavailable.zone_count) || unavailable.zone_count < initial.zone_count
+        || unavailable.zone_count > zones.length))
+        return null;
+    let film = _surfaceCopy(initial.film), previousStep = initial.step, previousCount = initial.zone_count;
+    const horizons = [], horizonMap = new Map(), observed = [];
+    const retreatKeys = new Set(), burialZones = new Set();
+    let result = null, captured = step != null && step < initial.step;
+    const snapshot = () => ({ film: _surfaceCopy(film), horizons: _surfaceCopy(horizons),
+        events: _surfaceCopy(observed), available_since_step: initial.step });
+    for (let i = 0; i < history.events.length; i++) {
+        const e = history.events[i];
+        if (!e || e.seq !== i + 1 || !Number.isSafeInteger(e.step) || e.step < previousStep
+            || !Number.isSafeInteger(e.zone_count) || e.zone_count < previousCount || e.zone_count > zones.length
+            || !Number.isFinite(e.surface_um) || e.surface_um < 0 || !_surfaceNear(e.surface_um, depths[e.zone_count])
+            || (e.zone_count && zones[e.zone_count - 1].step > e.step)
+            || (zones[e.zone_count] && zones[e.zone_count].step < e.step))
+            return null;
+        if (!captured && step != null && e.step > step) {
+            result = snapshot();
+            captured = true;
+        }
+        const allowed = ['seq', 'step', 'zone_count', 'surface_um', 'event'];
+        if (e.event === 'dusting' || e.event === 'front-coating') {
+            allowed.push('operation', 'coverage_change');
+            if (!_surfaceValidOperation(e.operation) || e.operation.step !== e.step
+                || e.operation.kind !== (e.event === 'dusting' ? 'dust-max' : 'enclosure-add'))
+                return null;
+            // Private fold: append once instead of cloning every accumulated operation
+            // on every event. The resulting algebra is exactly the existing O5 law.
+            const op = e.operation, oldTerm = film?.phi_term || 0, oldPrism = film?.phi_prism || 0;
+            const nextTerm = op.kind === 'dust-max' ? Math.max(oldTerm, op.phi_term) : Math.min(O5_PHI_MAX, oldTerm + op.phi_term);
+            const nextPrism = op.kind === 'dust-max' ? Math.max(oldPrism, op.phi_prism) : Math.min(O5_PHI_MAX, oldPrism + op.phi_prism);
+            const delta = e.coverage_change;
+            if (!delta || Object.keys(delta).some(k => !['term', 'prism'].includes(k))
+                || !Number.isFinite(delta.term) || !Number.isFinite(delta.prism)
+                || !_surfaceNear(delta.term, nextTerm - oldTerm) || !_surfaceNear(delta.prism, nextPrism - oldPrism))
+                return null;
+            const ops = film?.operations || _filmOperations(film);
+            ops.push(_surfaceCopy(op));
+            film = (nextTerm > 0 || nextPrism > 0) ? { mineral: op.mineral, step: op.step || film?.step || 0,
+                phi_term: nextTerm, phi_prism: nextPrism, operations: ops } : null;
+        }
+        else if (e.event === 'buried') {
+            allowed.push('accepted_zone_index', 'horizon_um');
+            const z = zones[e.accepted_zone_index];
+            if (e.accepted_zone_index !== e.zone_count - 1 || !z || z.step !== e.step || !(z.thickness_um > 0)
+                || !z.masked_horizon || !film || !Number.isFinite(e.horizon_um)
+                || e.accepted_zone_index < initial.zone_count || burialZones.has(e.accepted_zone_index)
+                || previousCount >= e.zone_count || !_surfaceNear(e.horizon_um, depths[e.zone_count - 1]))
+                return null;
+            if ((z.film_mineral != null && z.film_mineral !== film.mineral)
+                || (z.originating_film_step != null && z.originating_film_step !== film.step)
+                || ['term', 'prism'].some(k => z['masked_phi_' + k] != null
+                    && (!Number.isFinite(z['masked_phi_' + k]) || !_surfaceNear(z['masked_phi_' + k], film['phi_' + k]))))
+                return null;
+            burialZones.add(e.accepted_zone_index);
+            const horizon = { id: e.seq, depth_um: e.horizon_um, buried_step: e.step, zone_index: e.accepted_zone_index,
+                film: _surfaceCopy(film), status: 'buried' };
+            horizons.push(horizon);
+            horizonMap.set(e.seq, horizon);
+            film = null;
+        }
+        else if (e.event === 'liberated') {
+            allowed.push('source_id', 'found', 'coverage_change');
+            if (typeof e.source_id !== 'string' || e.source_id.length > 256 || typeof e.found !== 'boolean')
+                return null;
+            const removal = filmWithoutOperation(film, e.source_id), delta = e.coverage_change;
+            if (_filmOperations(film).some(op => op.source_id === e.source_id && op.kind !== 'enclosure-add'))
+                return null;
+            if (removal.found !== e.found || !delta || Object.keys(delta).some(k => !['term', 'prism'].includes(k))
+                || !Number.isFinite(delta.term) || !Number.isFinite(delta.prism)
+                || !_surfaceNear(delta.term, -removal.removed_phi_term)
+                || !_surfaceNear(delta.prism, -removal.removed_phi_prism))
+                return null;
+            film = removal.film;
+        }
+        else if (e.event === 'boundary-reached' || e.event === 'boundary-crossed') {
+            allowed.push('accepted_zone_index', 'horizon_id', 'from_um');
+            const z = zones[e.accepted_zone_index], h = horizonMap.get(e.horizon_id);
+            if (e.accepted_zone_index !== e.zone_count - 1 || !z || z.step !== e.step || !(z.thickness_um < 0)
+                || !h || h.status === 'no-longer-enclosed' || !Number.isFinite(e.from_um)
+                || !_surfaceNear(e.from_um, depths[e.zone_count - 1]) || e.from_um < h.depth_um - 1e-8)
+                return null;
+            const reached = _surfaceNear(e.surface_um, h.depth_um);
+            if (e.event === 'boundary-reached' ? !reached || h.status !== 'buried' : reached || !(e.surface_um < h.depth_um))
+                return null;
+            h.status = reached ? 'boundary-reached' : 'no-longer-enclosed';
+            h.retreat_step = e.step;
+            h.retreat_zone_index = e.accepted_zone_index;
+            h.coating_fate = 'unrecorded';
+            retreatKeys.add(`${e.event}:${h.id}:${e.accepted_zone_index}`);
+        }
+        else
+            return null;
+        if (Object.keys(e).some(k => !allowed.includes(k)))
+            return null;
+        observed.push(e);
+        previousStep = e.step;
+        previousCount = e.zone_count;
+    }
+    if (unavailable && (unavailable.step < previousStep || unavailable.zone_count < previousCount))
+        return null;
+    if (!captured)
+        result = snapshot();
+    for (let zi = initial.zone_count; zi < (unavailable ? previousCount : zones.length); zi++) {
+        if (zones[zi].thickness_um > 0 && zones[zi].masked_horizon && !burialZones.has(zi)
+            && !(unavailable && zi === previousCount - 1))
+            return null;
+    }
+    // Each first retreat to/past a recorded boundary requires its actual event.
+    // Subsequent regrowth cannot undo an unknown fate at an exposed interface.
+    for (const h of horizons) {
+        let expected = 'buried';
+        // An explicitly incomplete ledger retains its raw prefix for diagnosis but
+        // supplies no reconstructed view, including before the gap. It is never a
+        // valid-looking truncated chronology at the bounded recording limit.
+        const through = unavailable ? previousCount : zones.length;
+        for (let zi = h.zone_index + 1; zi < through; zi++) {
+            const z = zones[zi];
+            if (!(z.thickness_um < 0) || expected === 'no-longer-enclosed')
+                continue;
+            const reached = _surfaceNear(depths[zi + 1], h.depth_um);
+            if (depths[zi] >= h.depth_um - 1e-8 && (reached || depths[zi + 1] < h.depth_um)) {
+                const kind = reached ? 'boundary-reached' : 'boundary-crossed';
+                if (reached && expected === 'boundary-reached')
+                    continue;
+                if (!retreatKeys.has(`${kind}:${h.id}:${zi}`)) {
+                    if (unavailable && zi === previousCount - 1)
+                        continue;
+                    return null;
+                }
+                expected = reached ? 'boundary-reached' : 'no-longer-enclosed';
+            }
+        }
+        if (h.status !== expected)
+            return null;
+    }
+    return { valid: true, view: unavailable ? null : result };
+}
+function validateSurfaceHistory(history, zones) {
+    return !!_surfaceHistoryProjection(history, zones, null);
+}
+function surfaceHistoryAtStep(crystal, step = null) {
+    return _surfaceHistoryProjection(crystal?._surfaceHistory, crystal?.zones, step)?.view || null;
+}
+function _surfaceStart(crystal, step, beforeFilm, zoneCount = crystal.zones?.length) {
+    const depths = _surfaceDepths(crystal.zones);
+    if (!depths || !Number.isSafeInteger(step) || step < 0 || !Number.isSafeInteger(zoneCount)
+        || zoneCount < 0 || zoneCount >= depths.length)
+        return null;
+    if (!_surfaceValidFilm(beforeFilm)) {
+        _surfaceInvalidate(crystal, step, zoneCount);
+        return null;
+    }
+    if (!crystal._surfaceHistory)
+        crystal._surfaceHistory = { schema: SURFACE_HISTORY_SCHEMA,
+            initial: { step, zone_count: zoneCount, surface_um: depths[zoneCount], film: _surfaceCopy(beforeFilm) }, events: [] };
+    const h = crystal._surfaceHistory;
+    if (h.unavailable)
+        return null;
+    if (h.schema !== SURFACE_HISTORY_SCHEMA || !Array.isArray(h.events))
+        return null;
+    if (h.events.length >= SURFACE_HISTORY_MAX_EVENTS) {
+        _surfaceInvalidate(crystal, step, zoneCount, 'event-limit');
+        return null;
+    }
+    return h;
+}
+function _surfaceInvalidate(crystal, step, zoneCount, reason = 'observation-gap') {
+    if (crystal._surfaceHistory && !crystal._surfaceHistory.unavailable)
+        crystal._surfaceHistory.unavailable = { reason, step, zone_count: zoneCount };
+}
+function _surfaceCheckBefore(crystal, step, before, zoneCount = crystal.zones?.length) {
+    if (!_surfaceStart(crystal, step, before, zoneCount))
+        return false;
+    const prior = _surfaceHistoryProjection(crystal._surfaceHistory, crystal.zones.slice(0, zoneCount), null)?.view;
+    if (!prior || !_surfaceEquivalentFilm(prior.film, before)) {
+        _surfaceInvalidate(crystal, step, zoneCount);
+        return false;
+    }
+    return true;
+}
+function _surfaceAppend(crystal, step, event, beforeFilm, zoneCount = crystal.zones?.length) {
+    const h = _surfaceStart(crystal, step, beforeFilm, zoneCount), depths = _surfaceDepths(crystal.zones);
+    if (!h || !depths)
+        return;
+    h.events.push({ seq: h.events.length + 1, step, zone_count: zoneCount, surface_um: depths[zoneCount], ..._surfaceCopy(event) });
+}
+function recordSurfaceFilmOperation(crystal, operation, before) {
+    if (!_surfaceCheckBefore(crystal, operation.step, before))
+        return;
+    const after = crystal._film;
+    _surfaceAppend(crystal, operation.step, { event: operation.kind === 'dust-max' ? 'dusting' : 'front-coating', operation,
+        coverage_change: { term: (after?.phi_term || 0) - (before?.phi_term || 0), prism: (after?.phi_prism || 0) - (before?.phi_prism || 0) } }, before);
+}
+function recordSurfaceFilmLiberation(crystal, step, sourceId, before, removal) {
+    if (!_surfaceCheckBefore(crystal, step, before))
+        return;
+    _surfaceAppend(crystal, step, { event: 'liberated', source_id: sourceId, found: removal.found,
+        coverage_change: { term: -removal.removed_phi_term, prism: -removal.removed_phi_prism } }, before);
+}
+function recordAcceptedSurfaceZone(crystal, zone) {
+    const pending = zone._surfaceBurialPending;
+    delete zone._surfaceBurialPending; // never changes legacy full-zone fingerprints
+    if (!pending && (!(zone.thickness_um < 0) || !crystal._surfaceHistory))
+        return;
+    const count = crystal.zones.length, depths = _surfaceDepths(crystal.zones);
+    if (!depths || !count)
+        return;
+    if (pending && zone.thickness_um > 0 && zone.masked_horizon) {
+        // Initial observation belongs to the pre-growth surface; append only after
+        // add_zone accepted the final thickness and exposed its permanent index.
+        if (!_surfaceCheckBefore(crystal, zone.step, pending, count - 1))
+            return;
+        _surfaceAppend(crystal, zone.step, { event: 'buried', accepted_zone_index: count - 1, horizon_um: depths[count - 1] }, pending, count);
+    }
+    if (!(zone.thickness_um < 0) || !crystal._surfaceHistory)
+        return;
+    // Project the prior accepted prefix: this zone's crossings have not yet been
+    // appended, so validating against the new negative zone would reject it.
+    const prior = _surfaceHistoryProjection(crystal._surfaceHistory, crystal.zones.slice(0, -1), null)?.view;
+    if (!prior) {
+        _surfaceInvalidate(crystal, zone.step, count);
+        return;
+    }
+    for (const h of prior.horizons) {
+        if (h.status === 'no-longer-enclosed' || depths[count - 1] < h.depth_um - 1e-8)
+            continue;
+        const reached = _surfaceNear(depths[count], h.depth_um);
+        if ((reached && h.status === 'buried') || (!reached && depths[count] < h.depth_um)) {
+            _surfaceAppend(crystal, zone.step, { event: reached ? 'boundary-reached' : 'boundary-crossed', accepted_zone_index: count - 1,
+                horizon_id: h.id, from_um: depths[count - 1] }, crystal._film, count);
+        }
+    }
 }
 
 // ── 44e-weathering-epilogue.js ──
@@ -56021,9 +56365,12 @@ function sphaleriteIronColour(fePpm) {
     return '#' + a.map((v, i) => Math.round(v + (b[i] - v) * t).toString(16).padStart(2, '0')).join('');
 }
 function currentSurfaceFilm(crystal, step = null) {
-    if (step != null || !crystal?._film)
+    const f = step == null ? crystal?._film : surfaceHistoryAtStep(crystal, step)?.film;
+    return surfaceFilmAppearance(f);
+}
+function surfaceFilmAppearance(f) {
+    if (!f)
         return null;
-    const f = crystal._film;
     if (!(f.phi_term > 0 || f.phi_prism > 0))
         return null;
     const operations = _filmOperations(f);
@@ -56061,7 +56408,8 @@ function applyRecordedSurfaceFilm(mat, crystal, step = null) {
     const film = currentSurfaceFilm(crystal, step);
     if (!film)
         return;
-    mat.userData.surfaceFilm = { ...film, mapping: 'face-class-coverage-and-nominal-operation-colour-mixture', chronology: 'current-only' };
+    mat.userData.surfaceFilm = { ...film, mapping: 'face-class-coverage-and-nominal-operation-colour-mixture',
+        chronology: step == null ? 'current-model-state' : 'recorded-prefix' };
     const prior = mat.onBeforeCompile, key = mat.customProgramCacheKey?.bind(mat);
     mat.onBeforeCompile = function (shader, renderer) {
         prior?.call(this, shader, renderer);
@@ -75945,8 +76293,10 @@ function _applyAcceptedCrystalMutations(crystal, zone) {
                 delete crystal[key];
         }
     }
-    if (accepted && zone._clear_film_on_accept && crystal)
+    if (thickness > 0 && zone._clear_film_on_accept && crystal) {
+        zone._surfaceBurialPending = _surfaceCopy(crystal._film);
         crystal._film = null;
+    }
     delete zone._engine_crystal_mutations;
     delete zone._clear_film_on_accept;
 }
@@ -80417,14 +80767,16 @@ Object.assign(VugSimulator.prototype, {
                 const operationId = `enclosure:${this.step}:${String(grower.crystal_id)}:${String(candidate.crystal_id)}`;
                 const beforeTerm = Math.max(0, Number(grower._film?.phi_term) || 0);
                 const beforePrism = Math.max(0, Number(grower._film?.phi_prism) || 0);
-                grower._film = filmWithOperation(grower._film, {
+                const filmOperation = {
                     kind: 'enclosure-add',
                     source_id: operationId,
                     mineral: candidate.mineral,
                     phi_term: O5_COATS_FRONT_PHI_STEP,
                     phi_prism: 0,
                     step: this.step,
-                });
+                };
+                grower._film = filmWithOperation(grower._film, filmOperation);
+                recordSurfaceFilmOperation(grower, filmOperation, filmBefore);
                 const afterTerm = Math.max(0, Number(grower._film?.phi_term) || 0);
                 const afterPrism = Math.max(0, Number(grower._film?.phi_prism) || 0);
                 receipt.front_film_operation_id = operationId;
@@ -80470,10 +80822,12 @@ Object.assign(VugSimulator.prototype, {
                     && hostCurrentGrowthUm < liberationThresholdUm) {
                     freed.push(i);
                     const operationId = String(originalReceipt?.front_film_operation_id || '');
+                    const filmBeforeLiberation = host._film;
                     const removal = operationId
                         ? filmWithoutOperation(host._film, operationId)
                         : { film: host._film || null, found: false, removed_phi_term: 0, removed_phi_prism: 0 };
                     host._film = removal.film;
+                    recordSurfaceFilmLiberation(host, this.step, operationId, filmBeforeLiberation, removal);
                     if (!Array.isArray(this._enclosureReceipts))
                         this._enclosureReceipts = [];
                     const liberationReceipt = {
@@ -81372,6 +81726,56 @@ function _stripPositiveSafeInteger(value, label, max) {
     }
     return value;
 }
+function stripValidateSurfaceHistoryTestimony(value, sampleCount) {
+    if (!Array.isArray(value) || value.length > 10_000) {
+        throw new Error('strip: invalid surface history testimony');
+    }
+    const seen = new Set();
+    for (const row of value) {
+        if (!row || typeof row !== 'object' || Array.isArray(row)
+            || row.schema !== 'strip-surface-history-v1'
+            || Object.keys(row).some(k => !['schema', 'crystal_id', 'mineral', 'captured_step', 'sample_index', 'zones', 'history'].includes(k))) {
+            throw new Error('strip: invalid surface history record');
+        }
+        const id = row.crystal_id;
+        if (!((typeof id === 'number' && Number.isSafeInteger(id) && id >= 0)
+            || (typeof id === 'string' && id.length > 0 && id.length <= 256)) || seen.has(id)) {
+            throw new Error('strip: invalid or duplicate surface history crystal');
+        }
+        seen.add(id);
+        _stripBoundedText(row.mineral, 'surface history mineral', 256);
+        if (!Number.isSafeInteger(row.captured_step) || row.captured_step < 0
+            || !Number.isSafeInteger(row.sample_index) || row.sample_index < 0 || row.sample_index >= sampleCount
+            || !Array.isArray(row.zones) || row.zones.length > 10_000) {
+            throw new Error('strip: invalid surface history coordinates');
+        }
+        for (let i = 0; i < row.zones.length; i++) {
+            const z = row.zones[i];
+            if (!z || typeof z !== 'object' || Array.isArray(z) || z.zone_index !== i
+                || Object.keys(z).some(k => !['zone_index', 'step', 'thickness_um', 'masked_horizon',
+                    'film_mineral', 'masked_phi_term', 'masked_phi_prism', 'originating_film_step'].includes(k))
+                || !Number.isSafeInteger(z.step) || z.step < 0 || z.step > row.captured_step
+                || typeof z.thickness_um !== 'number' || !Number.isFinite(z.thickness_um)
+                || (z.masked_horizon !== undefined && typeof z.masked_horizon !== 'boolean')
+                || (z.film_mineral != null && (typeof z.film_mineral !== 'string' || z.film_mineral.length > 128))
+                || ['masked_phi_term', 'masked_phi_prism'].some(k => z[k] != null
+                    && (typeof z[k] !== 'number' || !Number.isFinite(z[k]) || z[k] < 0 || z[k] > 1))
+                || (z.originating_film_step != null && (!Number.isSafeInteger(z.originating_film_step) || z.originating_film_step < 0))) {
+                throw new Error('strip: invalid surface history zone witness');
+            }
+        }
+        let valid = false;
+        try {
+            valid = validateSurfaceHistory(row.history, row.zones)
+                && row.history.initial.step <= row.captured_step
+                && row.history.events.every((e) => e.step <= row.captured_step)
+                && (!row.history.unavailable || row.history.unavailable.step <= row.captured_step);
+        }
+        catch (_error) { /* reject malformed evidence at the archive boundary */ }
+        if (!valid)
+            throw new Error('strip: invalid surface history ledger');
+    }
+}
 // Validate the complete renderer-facing shape. Testimony payloads are carried
 // as opaque evidence, but every array is bounded by the section byte limit;
 // the manifest, events, and tensors that drive loops/SVG receive exact types,
@@ -81487,6 +81891,11 @@ function stripValidateDatasetShape(ds) {
             throw new Error(`strip: invalid ${key}`);
         }
     }
+    if (ds.surface_history_testimony !== undefined) {
+        if (manifest.format_version < 4)
+            throw new Error('strip: surface history requires a testimony section');
+        stripValidateSurfaceHistoryTestimony(ds.surface_history_testimony, steps);
+    }
 }
 async function _stripReadStreamBounded(stream, maxBytes) {
     const reader = stream.getReader();
@@ -81546,6 +81955,13 @@ async function _stripReadStreamBounded(stream, maxBytes) {
 // Optionally the whole blob is gzipped via CompressionStream before
 // download. Header byte 0 is the gzip magic (0x1F) when compressed.
 async function stripSerialize(ds, gzip = true) {
+    // Keep prior producer bytes unchanged when the optional channel is absent.
+    // A present but invalid/unsupported channel must never be silently dropped.
+    if (ds.surface_history_testimony !== undefined) {
+        if (ds.manifest.format_version < 4)
+            throw new Error('strip: surface history requires a testimony section');
+        stripValidateSurfaceHistoryTestimony(ds.surface_history_testimony, ds.manifest.axes.steps);
+    }
     const enc = new TextEncoder();
     const manifestBytes = enc.encode(JSON.stringify(ds.manifest));
     const eventsBytes = enc.encode(JSON.stringify(ds.nucleation_events));
@@ -81566,6 +81982,7 @@ async function stripSerialize(ds, gzip = true) {
         player_action_testimony: ds.player_action_testimony || [],
         layer_growth_testimony: ds.layer_growth_testimony || [],
         habit_morphology_testimony: ds.habit_morphology_testimony || [],
+        ...(ds.surface_history_testimony !== undefined ? { surface_history_testimony: ds.surface_history_testimony } : {}),
     })) : null;
     const testimonySection = testimonyBytes ? 4 + testimonyBytes.length : 0;
     const headerSize = 4 + manifestBytes.length + 4 + eventsBytes.length + floorSection + testimonySection;
@@ -81670,6 +82087,7 @@ async function stripDeserialize(input) {
     let player_action_testimony;
     let layer_growth_testimony;
     let habit_morphology_testimony;
+    let surface_history_testimony;
     if ((manifest.format_version || 0) >= 4) {
         const testimony = takeJson('testimony');
         pressure_phase_testimony = Array.isArray(testimony.pressure_phase_testimony)
@@ -81692,6 +82110,9 @@ async function stripDeserialize(input) {
             ? testimony.layer_growth_testimony : [];
         habit_morphology_testimony = Array.isArray(testimony.habit_morphology_testimony)
             ? testimony.habit_morphology_testimony : [];
+        // Preserve absence, and retain malformed values for the strict validator.
+        // Coercing a bad channel to [] would erase testimony during import.
+        surface_history_testimony = testimony.surface_history_testimony;
     }
     const chip_data = buf.slice(offset);
     const result = {
@@ -81707,6 +82128,7 @@ async function stripDeserialize(input) {
         ...(player_action_testimony ? { player_action_testimony } : {}),
         ...(layer_growth_testimony ? { layer_growth_testimony } : {}),
         ...(habit_morphology_testimony ? { habit_morphology_testimony } : {}),
+        ...(surface_history_testimony !== undefined ? { surface_history_testimony } : {}),
     };
     stripValidateDatasetShape(result);
     return result;
@@ -81873,6 +82295,8 @@ class StripRecorder {
         this.layerGrowthTestimony = [];
         this.lastSeenZoneCounts = new Map();
         this.latestHabitMorphology = new Map();
+        this.latestSurfaceHistory = new Map();
+        this.surfaceHistoryFailure = null;
     }
     // ---- chip classification helpers ----------------------------------
     // Group chips into the same systems the helicoid legend uses. The
@@ -82171,6 +82595,40 @@ class StripRecorder {
                     surface_film: c._film || null,
                     zone_count: zones.length,
                 })));
+                if (c._surfaceHistory !== undefined) {
+                    const testimony = {
+                        schema: 'strip-surface-history-v1',
+                        crystal_id: crystalId,
+                        mineral: String(c.mineral || ''),
+                        captured_step: Number(sim.step),
+                        sample_index: step,
+                        zones: zones.map((z, zi) => ({
+                            zone_index: zi, step: z.step, thickness_um: z.thickness_um,
+                            ...(z.masked_horizon !== undefined ? { masked_horizon: z.masked_horizon } : {}),
+                            ...(z.film_mineral !== undefined ? { film_mineral: z.film_mineral } : {}),
+                            ...(z.masked_phi_term !== undefined ? { masked_phi_term: z.masked_phi_term } : {}),
+                            ...(z.masked_phi_prism !== undefined ? { masked_phi_prism: z.masked_phi_prism } : {}),
+                            ...(z.originating_film_step !== undefined ? { originating_film_step: z.originating_film_step } : {}),
+                        })),
+                        history: c._surfaceHistory,
+                    };
+                    try {
+                        stripValidateSurfaceHistoryTestimony([testimony], this.manifest.axes.steps);
+                        const surface = surfaceHistoryAtStep(c);
+                        if (surface && c._film !== undefined && !_surfaceEquivalentFilm(surface.film, c._film)) {
+                            throw new Error('strip: surface history contradicts its recorded final film');
+                        }
+                    }
+                    catch (error) {
+                        // run_step deliberately swallows recorder failures. Retain the
+                        // failure here so a later finalization cannot publish stale data.
+                        this.surfaceHistoryFailure = 'strip: surface history capture failed';
+                        throw error;
+                    }
+                    // Freeze the observation at capture time, including an explicitly
+                    // unavailable raw prefix. Later live changes cannot rewrite it.
+                    this.latestSurfaceHistory.set(crystalId, JSON.parse(JSON.stringify(testimony)));
+                }
             }
         }
         // Scientific testimony is captured from EXECUTED state, after the step's
@@ -82279,6 +82737,8 @@ class StripRecorder {
     // serialization / IndexedDB.
     finalize() {
         this.active = false;
+        if (this.surfaceHistoryFailure)
+            throw new Error(this.surfaceHistoryFailure);
         if (this.capturedSteps < this.manifest.axes.steps) {
             // Shrink axes.steps + slice chipData to match what we actually
             // captured. Keeps the dataset honest.
@@ -82310,6 +82770,7 @@ class StripRecorder {
             player_action_testimony: this.playerActionTestimony,
             layer_growth_testimony: this.layerGrowthTestimony,
             habit_morphology_testimony: Array.from(this.latestHabitMorphology.values()),
+            ...(this.latestSurfaceHistory.size ? { surface_history_testimony: Array.from(this.latestSurfaceHistory.values()) } : {}),
         };
     }
     // ---- introspection -------------------------------------------------
@@ -82475,6 +82936,7 @@ function stripStoredRecordFromDataset(ds, origin = 'production-run') {
         ...(ds.player_action_testimony ? { player_action_testimony: ds.player_action_testimony } : {}),
         ...(ds.layer_growth_testimony ? { layer_growth_testimony: ds.layer_growth_testimony } : {}),
         ...(ds.habit_morphology_testimony ? { habit_morphology_testimony: ds.habit_morphology_testimony } : {}),
+        ...(ds.surface_history_testimony !== undefined ? { surface_history_testimony: ds.surface_history_testimony } : {}),
     };
 }
 function stripDatasetFromStoredRecord(rec) {
@@ -82493,6 +82955,7 @@ function stripDatasetFromStoredRecord(rec) {
         ...(rec.player_action_testimony ? { player_action_testimony: rec.player_action_testimony } : {}),
         ...(rec.layer_growth_testimony ? { layer_growth_testimony: rec.layer_growth_testimony } : {}),
         ...(rec.habit_morphology_testimony ? { habit_morphology_testimony: rec.habit_morphology_testimony } : {}),
+        ...(rec.surface_history_testimony !== undefined ? { surface_history_testimony: rec.surface_history_testimony } : {}),
     };
 }
 // Open (or create) the DB. Promisified — IDB's onsuccess callback model
@@ -93538,8 +94001,10 @@ const CRYSTAL_CORRUPT_KEY = 'vugg-crystals-v1.corrupt';
 // only a numeric count; accepting any nonnegative safe integer there allocates
 // nothing and preserves runs made while Simulation steps were unbounded.
 const COLLECTION_MAX_ZONE_RECORDS = 10_000;
+const COLLECTION_MAX_SURFACE_EVENT_RECORDS = 20_000;
 const COLLECTION_MAX_LEGACY_ZONE_COUNT = Number.MAX_SAFE_INTEGER;
-const COLLECTION_HISTORY_SCHEMA = 'crystal-history-v1';
+const COLLECTION_HISTORY_SCHEMA_V1 = 'crystal-history-v1';
+const COLLECTION_HISTORY_SCHEMA = 'crystal-history-v2';
 // Independent from SAVE_FORMAT: old event receipts must reproduce the exact
 // old projection, while every new scientific field participates in the digest.
 function collectionRecordProducerSchema(record) {
@@ -93548,13 +94013,15 @@ function collectionRecordProducerSchema(record) {
             throw new Error('Library history is missing its schema');
         return null;
     }
-    if (record.history_schema !== COLLECTION_HISTORY_SCHEMA) {
+    if (record.history_schema !== COLLECTION_HISTORY_SCHEMA_V1
+        && record.history_schema !== COLLECTION_HISTORY_SCHEMA) {
         throw new Error('Unsupported Library crystal history schema');
     }
-    return COLLECTION_HISTORY_SCHEMA;
+    return record.history_schema;
 }
-// These are snapshots, not new formation events. In particular, final split,
-// Wulff and film descriptors carry no invented per-step chronology.
+// Frozen v1 snapshot fields: adding testimony here would silently change the
+// scientific projection of already authenticated v1 receipts. Dated surface
+// testimony is an optional v2 addition, not an upgrade of the old snapshots.
 const COLLECTION_CRYSTAL_HISTORY_FIELDS = [
     'nucleation_step', 'nucleation_temp', 'c_length_mm', 'a_width_mm', 'total_growth_um', '_volume_mm3',
     'wall_spread', 'void_reach', 'vector', 'growth_environment', '_nucTilt',
@@ -93590,7 +94057,10 @@ function _collectionHistoryCopy(value, label = 'history', budget = { nodes: 0 },
     seen.add(value);
     let copy;
     if (Array.isArray(value)) {
-        if (value.length > COLLECTION_MAX_ZONE_RECORDS)
+        // Only the exact v2 event array gets the larger ledger bound. V1 arrays,
+        // zone arrays and other nested testimony retain their existing limits.
+        const limit = value === budget.surfaceEvents ? COLLECTION_MAX_SURFACE_EVENT_RECORDS : COLLECTION_MAX_ZONE_RECORDS;
+        if (value.length > limit)
             throw new Error(`Library ${label} exceeds history bounds`);
         copy = value.map(item => _collectionHistoryCopy(item, label, budget, depth + 1, seen));
     }
@@ -93608,6 +94078,14 @@ function _collectionHistoryCopy(value, label = 'history', budget = { nodes: 0 },
     }
     seen.delete(value);
     return copy;
+}
+function _collectionHistoryCopyBudget(producerSchema, history) {
+    return {
+        nodes: 0,
+        surfaceEvents: producerSchema === COLLECTION_HISTORY_SCHEMA
+            && Array.isArray(history?.crystal?._surfaceHistory?.events)
+            ? history.crystal._surfaceHistory.events : undefined,
+    };
 }
 function _collectionNumericMap(value, label) {
     if (!value || typeof value !== 'object' || Array.isArray(value)
@@ -93655,15 +94133,17 @@ function _collectionAssertZoneHistory(zone) {
     }
 }
 function _collectionAssertHistory(record) {
-    if (!collectionRecordProducerSchema(record))
+    const producerSchema = collectionRecordProducerSchema(record);
+    if (!producerSchema)
         return;
     const h = record.history;
-    _collectionHistoryCopy({ history: h, zones: record.zones }); // Shared bound across the complete payload.
+    _collectionHistoryCopy({ history: h, zones: record.zones }, 'history', _collectionHistoryCopyBudget(producerSchema, h)); // Shared bound across the complete payload.
     if (!h || typeof h !== 'object' || Array.isArray(h)
         || !h.crystal || typeof h.crystal !== 'object' || Array.isArray(h.crystal)
         || !h.source || typeof h.source !== 'object' || Array.isArray(h.source)
         || Object.keys(h).some(key => !['crystal', 'source', 'enclosure_lifecycle'].includes(key))
-        || Object.keys(h.crystal).some(key => !COLLECTION_CRYSTAL_HISTORY_FIELDS.includes(key))
+        || Object.keys(h.crystal).some(key => !COLLECTION_CRYSTAL_HISTORY_FIELDS.includes(key)
+            && !(producerSchema === COLLECTION_HISTORY_SCHEMA && key === '_surfaceHistory'))
         || Object.keys(h.source).some(key => !COLLECTION_SOURCE_HISTORY_FIELDS.includes(key))) {
         throw new Error('Library has invalid crystal history');
     }
@@ -93672,6 +94152,16 @@ function _collectionAssertHistory(record) {
     for (const z of record.zones)
         _collectionAssertZoneHistory(z);
     const c = h.crystal;
+    if (producerSchema === COLLECTION_HISTORY_SCHEMA && c._surfaceHistory !== undefined
+        && !validateSurfaceHistory(c._surfaceHistory, record.zones)) {
+        throw new Error('Library has invalid dated surface history');
+    }
+    if (producerSchema === COLLECTION_HISTORY_SCHEMA && c._surfaceHistory !== undefined && c._film !== undefined) {
+        const surface = surfaceHistoryAtStep({ _surfaceHistory: c._surfaceHistory, zones: record.zones });
+        if (surface && !_surfaceEquivalentFilm(surface.film, c._film)) {
+            throw new Error('Library surface history contradicts its recorded final film');
+        }
+    }
     for (const key of ['nucleation_step', 'c_length_mm', 'a_width_mm', 'total_growth_um', '_volume_mm3', 'wall_spread', 'void_reach',
         '_peak_differential_stress_mpa', '_resolved_shear_mpa', '_twin_density_per_mm',
         'phase_transition_step', 'paramorph_step', 'dry_exposure_steps', '_ca_so4_hydration_water_mmolkg',
@@ -94145,7 +94635,8 @@ function _collectionSourceSimulator(crystal, meta) {
     return candidates.find(sim => Array.isArray(sim?.crystals) && sim.crystals.includes(crystal)) || null;
 }
 function buildCrystalRecord(crystal, meta, producerSchema = COLLECTION_HISTORY_SCHEMA) {
-    if (producerSchema !== null && producerSchema !== COLLECTION_HISTORY_SCHEMA)
+    if (producerSchema !== null && producerSchema !== COLLECTION_HISTORY_SCHEMA_V1
+        && producerSchema !== COLLECTION_HISTORY_SCHEMA)
         throw new Error('Unsupported collection producer schema');
     const record = _buildLegacyCrystalRecord(crystal, meta);
     if (producerSchema === null)
@@ -94154,6 +94645,9 @@ function buildCrystalRecord(crystal, meta, producerSchema = COLLECTION_HISTORY_S
     for (const key of COLLECTION_CRYSTAL_HISTORY_FIELDS) {
         if (crystal[key] !== undefined)
             snapshot[key] = crystal[key];
+    }
+    if (producerSchema === COLLECTION_HISTORY_SCHEMA && crystal._surfaceHistory !== undefined) {
+        snapshot['_surfaceHistory'] = crystal._surfaceHistory;
     }
     for (const key of COLLECTION_SOURCE_HISTORY_FIELDS) {
         if (crystal[key] !== undefined)
@@ -94169,8 +94663,8 @@ function buildCrystalRecord(crystal, meta, producerSchema = COLLECTION_HISTORY_S
             .map(e => e.guest_crystal_id));
         history.enclosure_lifecycle = sim._enclosureReceipts.filter(e => related.has(e.guest_crystal_id));
     }
-    record.history_schema = COLLECTION_HISTORY_SCHEMA;
-    record.history = _collectionHistoryCopy(history);
+    record.history_schema = producerSchema;
+    record.history = _collectionHistoryCopy(history, 'history', _collectionHistoryCopyBudget(producerSchema, history));
     record.zones = _collectionHistoryCopy(crystal.zones, 'growth zones');
     record.zone_count = record.zones.length;
     assertCrystalCollectionRecord(record);
@@ -94232,8 +94726,9 @@ function reconstructCrystalFromRecord(rec) {
             return `step ${z.step}, T=${z.temperature.toFixed(1)}°C, +${z.thickness_um.toFixed(1)} µm`;
         },
     };
-    if (collectionRecordProducerSchema(rec)) {
-        Object.assign(stand, _collectionHistoryCopy(rec.history.crystal));
+    const producerSchema = collectionRecordProducerSchema(rec);
+    if (producerSchema) {
+        Object.assign(stand, _collectionHistoryCopy(rec.history.crystal, 'history', _collectionHistoryCopyBudget(producerSchema, rec.history)));
         // Old cavity coordinates and IDs cannot attach this isolated specimen to
         // an unrelated host. Keep them as readable source-scoped testimony only.
         stand._collectionSourceHistory = _collectionHistoryCopy(rec.history.source);
@@ -104099,6 +104594,7 @@ function showZoneHistory(crystal) {
   `;
     grooveModalCrystal = crystal;
     body.appendChild(summary);
+    body.appendChild(surfaceHistoryPanel(crystal));
     if (!crystal.zones.length) {
         const noZones = document.createElement('div');
         noZones.className = 'inv-empty';
@@ -104378,6 +104874,47 @@ function showZoneHistory(crystal) {
         body.appendChild(details);
     }
     overlay.classList.add('visible');
+}
+function surfaceHistoryPanel(crystal, step = null) {
+    const details = document.createElement('details');
+    details.style.cssText = 'margin:0.8rem 0;font-size:0.78rem;color:#c7b99e;line-height:1.5';
+    const heading = document.createElement('summary');
+    heading.textContent = 'Coatings and buried surfaces';
+    details.appendChild(heading);
+    const view = surfaceHistoryAtStep(crystal, step), note = document.createElement('p');
+    if (!view) {
+        note.textContent = crystal?._surfaceHistory?.unavailable
+            ? 'This coating record is incomplete. Its surface chronology is unavailable.'
+            : 'No dated coating history is available at this point. An undated coating does not establish when it arrived.';
+        details.appendChild(note);
+        return details;
+    }
+    note.textContent = `Coating observations begin at step ${view.available_since_step}. Coverage describes termination and prism faces as groups; individual grain positions were not recorded.`;
+    details.appendChild(note);
+    const list = document.createElement('ol');
+    const pct = (x) => `${(x * 100).toFixed(1)}%`;
+    for (const e of view.events) {
+        const row = document.createElement('li');
+        let text = '';
+        if (e.event === 'dusting' || e.event === 'front-coating') {
+            text = `${e.operation.mineral} ${e.event === 'dusting' ? 'dusting' : 'front coating'}; coverage change ${pct(e.coverage_change.term)} on terminations, ${pct(e.coverage_change.prism)} on prism faces.`;
+        }
+        else if (e.event === 'buried') {
+            text = `Overgrowth buried the coating at the former ${e.horizon_um.toFixed(1)} µm growth boundary.`;
+        }
+        else if (e.event === 'boundary-reached' || e.event === 'boundary-crossed') {
+            text = e.event === 'boundary-reached' ? 'Host retreat reached a buried coating boundary.' : 'Host retreat passed a buried coating boundary; it is no longer enclosed.';
+            text += ' The coating grains’ fate is unrecorded.';
+        }
+        else if (e.event === 'liberated') {
+            text = e.found ? 'Guest liberation removed its contribution from the active coating model.'
+                : 'Guest liberation found no active coating contribution to remove; it does not erase a buried record.';
+        }
+        row.textContent = `Step ${e.step} · ${text}`;
+        list.appendChild(row);
+    }
+    details.appendChild(list);
+    return details;
 }
 function closeZoneModal() {
     document.getElementById('zone-overlay').classList.remove('visible');
@@ -120929,6 +121466,11 @@ function _o5EmitMaskedBands(hostMesh, crystal, state, replayStep = null) {
         const f = band.frac;
         if (!(f > 0 && f < 1))
             continue;
+        const appearance = band.film ? surfaceFilmAppearance(band.film) : null;
+        // The new ledger keeps contributors. Unsupported material does not become
+        // generic opaque buff dust just because its host buried it.
+        if (band.film && !appearance)
+            continue;
         const [br, bg, bb] = filmBandRGB(band.mineral);
         const bandMat = new THREE.MeshStandardMaterial({
             color: new THREE.Color(br, bg, bb),
@@ -120939,6 +121481,8 @@ function _o5EmitMaskedBands(hostMesh, crystal, state, replayStep = null) {
             depthWrite: false,
             side: THREE.DoubleSide,
         });
+        if (appearance)
+            _applySurfaceHorizonCoverage(bandMat, appearance, band.horizon_id);
         if (state && state.clipUniforms)
             _applyCavityClip(bandMat, state.clipUniforms);
         const bandMesh = new THREE.Mesh(hostMesh.geometry, bandMat);
@@ -120959,12 +121503,44 @@ function _o5EmitMaskedBands(hostMesh, crystal, state, replayStep = null) {
         bandMesh.position.y = (hbb ? hbb.min.y : -0.5) * (1 - f);
         bandMesh.renderOrder = (hostMesh.renderOrder || 0) + 1;
         bandMesh.raycast = function () { };
-        bandMesh.userData = { o5Band: true, crystal_id: crystal.crystal_id, filmMineral: band.mineral };
+        bandMesh.userData = { o5Band: true, crystal_id: crystal.crystal_id, filmMineral: band.mineral,
+            ...(appearance ? { surfaceHistory: { horizon_id: band.horizon_id, buried_step: band.buried_step,
+                    coverage: appearance, geometry: 'similar-base-anchored-shell',
+                    display: 'screen-door-face-class-coverage; patch-positions-unrecorded' } } : {}) };
         // R1: a phantom band sits inside its host, which already casts; receive only.
         _topoLightingTagMesh(bandMesh, false);
         hostMesh.add(bandMesh);
     }
     _o5SyncBandMaterials(hostMesh);
+}
+// Screen-door coverage is a display integration device, not a grain-position
+// reconstruction. It preserves holes in Three's opaque transmission buffer,
+// unlike alpha blended shells (which disappear from that buffer) or a solid
+// shell (which turns a 10% film into a complete opaque inclusion). The local
+// face normal supplies only prism/termination class, already used by the model.
+function _applySurfaceHorizonCoverage(mat, film, horizonId = 0) {
+    mat.userData.surfaceHorizonCoverage = film;
+    mat.onBeforeCompile = (shader) => {
+        shader.uniforms.surfaceHorizonCoverage = { value: new THREE.Vector2(film.prism, film.term) };
+        shader.uniforms.surfaceHorizonPrism = { value: new THREE.Color(...film.prismColour) };
+        shader.uniforms.surfaceHorizonTerm = { value: new THREE.Color(...film.termColour) };
+        // A different phase per recorded interface avoids falsely making every
+        // inner 30% coating a subset of an outer 60% coating's display samples.
+        shader.uniforms.surfaceHorizonPhase = { value: new THREE.Vector2(horizonId % 4, Math.floor(horizonId / 4) % 4) };
+        shader.vertexShader = 'varying float surfaceHorizonTerminal;\n' + shader.vertexShader;
+        shader.vertexShader = shader.vertexShader.replace('#include <beginnormal_vertex>', '#include <beginnormal_vertex>\nsurfaceHorizonTerminal=smoothstep(0.25,0.75,abs(normal.y));');
+        shader.fragmentShader = 'varying float surfaceHorizonTerminal; uniform vec2 surfaceHorizonCoverage; uniform vec2 surfaceHorizonPhase; uniform vec3 surfaceHorizonPrism; uniform vec3 surfaceHorizonTerm;\n' + shader.fragmentShader;
+        shader.fragmentShader = shader.fragmentShader.replace('#include <color_fragment>', `#include <color_fragment>
+      float coverage=mix(surfaceHorizonCoverage.x,surfaceHorizonCoverage.y,surfaceHorizonTerminal);
+      // Ordered 4x4 screen threshold; stable, bounded, no simulation RNG.
+      vec2 p=mod(floor(gl_FragCoord.xy)+surfaceHorizonPhase,4.0);
+      float threshold=mod(p.x,2.0)*8.0+mod(p.y,2.0)*12.0;
+      threshold=mod(threshold,16.0)+floor(p.x/2.0)*2.0+floor(p.y/2.0)*3.0;
+      threshold=mod(threshold,16.0);
+      if(coverage<=0.0 || (threshold+0.5)/16.0>coverage) discard;
+      diffuseColor.rgb=mix(surfaceHorizonPrism,surfaceHorizonTerm,surfaceHorizonTerminal);`);
+    };
+    mat.customProgramCacheKey = () => 'surface-horizon-coverage-v1';
 }
 // Three captures opaque objects for refraction before drawing transmissive hosts.
 // Put the buried interface in that buffer; alpha fallback retains the thin-film

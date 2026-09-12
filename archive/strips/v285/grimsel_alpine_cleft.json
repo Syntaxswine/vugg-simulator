@@ -130783,6 +130783,1456 @@
         "surface_film": null,
         "zone_count": 8
       }
+    ],
+    "surface_history": [
+      {
+        "schema": "strip-surface-history-v1",
+        "crystal_id": 1,
+        "mineral": "feldspar",
+        "captured_step": 200,
+        "sample_index": 199,
+        "zones": [
+          {
+            "zone_index": 0,
+            "step": 1,
+            "thickness_um": 10.116497162067848
+          },
+          {
+            "zone_index": 1,
+            "step": 2,
+            "thickness_um": 10.412311421858472
+          },
+          {
+            "zone_index": 2,
+            "step": 3,
+            "thickness_um": 10.008768536225286
+          },
+          {
+            "zone_index": 3,
+            "step": 4,
+            "thickness_um": 11.321530151978996
+          },
+          {
+            "zone_index": 4,
+            "step": 5,
+            "thickness_um": 9.124852978855632
+          },
+          {
+            "zone_index": 5,
+            "step": 6,
+            "thickness_um": 8.915393189828706
+          },
+          {
+            "zone_index": 6,
+            "step": 7,
+            "thickness_um": 6.485248325127402
+          },
+          {
+            "zone_index": 7,
+            "step": 8,
+            "thickness_um": 10.542088078153604
+          },
+          {
+            "zone_index": 8,
+            "step": 9,
+            "thickness_um": 10.805488088280587
+          },
+          {
+            "zone_index": 9,
+            "step": 10,
+            "thickness_um": 8.649835753508594
+          },
+          {
+            "zone_index": 10,
+            "step": 11,
+            "thickness_um": 9.40944288249067
+          },
+          {
+            "zone_index": 11,
+            "step": 12,
+            "thickness_um": 7.829166852164464
+          },
+          {
+            "zone_index": 12,
+            "step": 13,
+            "thickness_um": 7.715702514749553
+          },
+          {
+            "zone_index": 13,
+            "step": 14,
+            "thickness_um": 9.873906039908642
+          },
+          {
+            "zone_index": 14,
+            "step": 15,
+            "thickness_um": 88.09218934469357
+          },
+          {
+            "zone_index": 15,
+            "step": 16,
+            "thickness_um": 74.13327965576738
+          },
+          {
+            "zone_index": 16,
+            "step": 17,
+            "thickness_um": 65.40725888611478
+          },
+          {
+            "zone_index": 17,
+            "step": 18,
+            "thickness_um": 68.46746690758621
+          },
+          {
+            "zone_index": 18,
+            "step": 19,
+            "thickness_um": 45.14804843194903
+          },
+          {
+            "zone_index": 19,
+            "step": 20,
+            "thickness_um": 53.04687133959408
+          },
+          {
+            "zone_index": 20,
+            "step": 21,
+            "thickness_um": 63.07954522145124
+          },
+          {
+            "zone_index": 21,
+            "step": 22,
+            "thickness_um": 51.79450713042917
+          },
+          {
+            "zone_index": 22,
+            "step": 23,
+            "thickness_um": 63.40438011502242
+          },
+          {
+            "zone_index": 23,
+            "step": 24,
+            "thickness_um": 62.24843922345904
+          },
+          {
+            "zone_index": 24,
+            "step": 25,
+            "thickness_um": 66.59105237342222,
+            "masked_horizon": true,
+            "film_mineral": "titanite",
+            "masked_phi_term": 0.15,
+            "masked_phi_prism": 0,
+            "originating_film_step": 24
+          },
+          {
+            "zone_index": 25,
+            "step": 26,
+            "thickness_um": 56.99574821964892
+          },
+          {
+            "zone_index": 26,
+            "step": 27,
+            "thickness_um": 59.388671005972654,
+            "masked_horizon": true,
+            "film_mineral": "titanite",
+            "masked_phi_term": 0.15,
+            "masked_phi_prism": 0,
+            "originating_film_step": 26
+          },
+          {
+            "zone_index": 27,
+            "step": 28,
+            "thickness_um": 43.43698344889308
+          },
+          {
+            "zone_index": 28,
+            "step": 29,
+            "thickness_um": 40.10233547828978
+          },
+          {
+            "zone_index": 29,
+            "step": 30,
+            "thickness_um": 52.65945445149651
+          },
+          {
+            "zone_index": 30,
+            "step": 31,
+            "thickness_um": 69.57930928946843
+          },
+          {
+            "zone_index": 31,
+            "step": 32,
+            "thickness_um": 69.5132848421112
+          },
+          {
+            "zone_index": 32,
+            "step": 33,
+            "thickness_um": 55.74215553830722
+          },
+          {
+            "zone_index": 33,
+            "step": 34,
+            "thickness_um": 59.838542631659486
+          },
+          {
+            "zone_index": 34,
+            "step": 35,
+            "thickness_um": 59.091161374836105
+          },
+          {
+            "zone_index": 35,
+            "step": 36,
+            "thickness_um": 53.21752106815231
+          },
+          {
+            "zone_index": 36,
+            "step": 37,
+            "thickness_um": 51.65642658321317
+          },
+          {
+            "zone_index": 37,
+            "step": 38,
+            "thickness_um": 46.38748544826444
+          },
+          {
+            "zone_index": 38,
+            "step": 39,
+            "thickness_um": 41.089321769652955
+          },
+          {
+            "zone_index": 39,
+            "step": 40,
+            "thickness_um": 61.81452530336018
+          },
+          {
+            "zone_index": 40,
+            "step": 41,
+            "thickness_um": 55.19682674757555
+          },
+          {
+            "zone_index": 41,
+            "step": 42,
+            "thickness_um": 46.60594632123665
+          },
+          {
+            "zone_index": 42,
+            "step": 43,
+            "thickness_um": 44.22498437965841
+          },
+          {
+            "zone_index": 43,
+            "step": 44,
+            "thickness_um": 53.62181363605332
+          },
+          {
+            "zone_index": 44,
+            "step": 45,
+            "thickness_um": 26.236921421772234
+          },
+          {
+            "zone_index": 45,
+            "step": 46,
+            "thickness_um": 28.22155596478811
+          },
+          {
+            "zone_index": 46,
+            "step": 47,
+            "thickness_um": 18.996542734570713
+          },
+          {
+            "zone_index": 47,
+            "step": 48,
+            "thickness_um": 35.122933412558254
+          },
+          {
+            "zone_index": 48,
+            "step": 49,
+            "thickness_um": 23.518093169821903
+          },
+          {
+            "zone_index": 49,
+            "step": 50,
+            "thickness_um": 31.22411375270716
+          },
+          {
+            "zone_index": 50,
+            "step": 51,
+            "thickness_um": 20.989022439384385
+          },
+          {
+            "zone_index": 51,
+            "step": 52,
+            "thickness_um": 30.70094598487784
+          },
+          {
+            "zone_index": 52,
+            "step": 53,
+            "thickness_um": 34.24087198127003
+          },
+          {
+            "zone_index": 53,
+            "step": 54,
+            "thickness_um": 22.33354142878015
+          },
+          {
+            "zone_index": 54,
+            "step": 55,
+            "thickness_um": 35.900740377448265
+          },
+          {
+            "zone_index": 55,
+            "step": 56,
+            "thickness_um": 28.761265391800464
+          },
+          {
+            "zone_index": 56,
+            "step": 57,
+            "thickness_um": 30.041141371362265,
+            "masked_horizon": true,
+            "film_mineral": "epidote",
+            "masked_phi_term": 0.15,
+            "masked_phi_prism": 0,
+            "originating_film_step": 56
+          },
+          {
+            "zone_index": 57,
+            "step": 58,
+            "thickness_um": 31.219429616261664
+          },
+          {
+            "zone_index": 58,
+            "step": 59,
+            "thickness_um": 35.43305782654312
+          },
+          {
+            "zone_index": 59,
+            "step": 60,
+            "thickness_um": 29.30597578852138
+          },
+          {
+            "zone_index": 60,
+            "step": 61,
+            "thickness_um": 25.929124918623184
+          },
+          {
+            "zone_index": 61,
+            "step": 62,
+            "thickness_um": 26.07898106709307
+          },
+          {
+            "zone_index": 62,
+            "step": 63,
+            "thickness_um": 20.968637798352002
+          },
+          {
+            "zone_index": 63,
+            "step": 64,
+            "thickness_um": 20.57946628474912
+          },
+          {
+            "zone_index": 64,
+            "step": 65,
+            "thickness_um": 65.97125951884749
+          },
+          {
+            "zone_index": 65,
+            "step": 66,
+            "thickness_um": 63.337758436695
+          },
+          {
+            "zone_index": 66,
+            "step": 67,
+            "thickness_um": 54.55402635364983
+          },
+          {
+            "zone_index": 67,
+            "step": 68,
+            "thickness_um": 44.85113873836763
+          },
+          {
+            "zone_index": 68,
+            "step": 69,
+            "thickness_um": 61.43618768820724
+          },
+          {
+            "zone_index": 69,
+            "step": 70,
+            "thickness_um": 40.003127745059174
+          },
+          {
+            "zone_index": 70,
+            "step": 71,
+            "thickness_um": 44.972563524419094
+          },
+          {
+            "zone_index": 71,
+            "step": 72,
+            "thickness_um": 41.49443196151409
+          },
+          {
+            "zone_index": 72,
+            "step": 73,
+            "thickness_um": 55.069466735818196
+          },
+          {
+            "zone_index": 73,
+            "step": 74,
+            "thickness_um": 37.119891500340714
+          },
+          {
+            "zone_index": 74,
+            "step": 75,
+            "thickness_um": 42.697166288802826
+          },
+          {
+            "zone_index": 75,
+            "step": 76,
+            "thickness_um": 38.82586017382982
+          },
+          {
+            "zone_index": 76,
+            "step": 77,
+            "thickness_um": 41.8249801196371
+          },
+          {
+            "zone_index": 77,
+            "step": 78,
+            "thickness_um": 54.97992517434449
+          },
+          {
+            "zone_index": 78,
+            "step": 79,
+            "thickness_um": 53.275008897729506
+          },
+          {
+            "zone_index": 79,
+            "step": 80,
+            "thickness_um": 41.11872998760431
+          },
+          {
+            "zone_index": 80,
+            "step": 81,
+            "thickness_um": 35.62696214096347
+          },
+          {
+            "zone_index": 81,
+            "step": 82,
+            "thickness_um": 42.4861759188654
+          },
+          {
+            "zone_index": 82,
+            "step": 83,
+            "thickness_um": 56.54079344602493
+          },
+          {
+            "zone_index": 83,
+            "step": 84,
+            "thickness_um": 48.5767003517323
+          },
+          {
+            "zone_index": 84,
+            "step": 85,
+            "thickness_um": 46.10835098980684
+          },
+          {
+            "zone_index": 85,
+            "step": 86,
+            "thickness_um": 42.08716478554801
+          },
+          {
+            "zone_index": 86,
+            "step": 87,
+            "thickness_um": 46.82504215380359
+          },
+          {
+            "zone_index": 87,
+            "step": 88,
+            "thickness_um": 59.69297195983258,
+            "masked_horizon": true,
+            "film_mineral": "epidote",
+            "masked_phi_term": 0.15,
+            "masked_phi_prism": 0,
+            "originating_film_step": 87
+          },
+          {
+            "zone_index": 88,
+            "step": 89,
+            "thickness_um": 43.36169813066826
+          },
+          {
+            "zone_index": 89,
+            "step": 90,
+            "thickness_um": 57.26493424903654
+          },
+          {
+            "zone_index": 90,
+            "step": 91,
+            "thickness_um": 45.20102781491914
+          },
+          {
+            "zone_index": 91,
+            "step": 92,
+            "thickness_um": 40.00183091286335
+          },
+          {
+            "zone_index": 92,
+            "step": 93,
+            "thickness_um": 39.19727706917321
+          },
+          {
+            "zone_index": 93,
+            "step": 94,
+            "thickness_um": 45.72158944449711
+          },
+          {
+            "zone_index": 94,
+            "step": 95,
+            "thickness_um": 34.786061347375416
+          },
+          {
+            "zone_index": 95,
+            "step": 96,
+            "thickness_um": 56.54720238187817
+          },
+          {
+            "zone_index": 96,
+            "step": 97,
+            "thickness_um": 48.15216751433114
+          },
+          {
+            "zone_index": 97,
+            "step": 98,
+            "thickness_um": 52.752383819383475
+          },
+          {
+            "zone_index": 98,
+            "step": 99,
+            "thickness_um": 35.11910525152685
+          },
+          {
+            "zone_index": 99,
+            "step": 100,
+            "thickness_um": 46.06426338481938
+          },
+          {
+            "zone_index": 100,
+            "step": 101,
+            "thickness_um": 49.835036832212865
+          },
+          {
+            "zone_index": 101,
+            "step": 102,
+            "thickness_um": 51.27759833457306
+          },
+          {
+            "zone_index": 102,
+            "step": 103,
+            "thickness_um": 58.81060037005501
+          },
+          {
+            "zone_index": 103,
+            "step": 104,
+            "thickness_um": 35.40041193272635
+          },
+          {
+            "zone_index": 104,
+            "step": 105,
+            "thickness_um": 41.816861439271804
+          },
+          {
+            "zone_index": 105,
+            "step": 106,
+            "thickness_um": 43.137410162880165
+          },
+          {
+            "zone_index": 106,
+            "step": 107,
+            "thickness_um": 36.63805156721659
+          },
+          {
+            "zone_index": 107,
+            "step": 108,
+            "thickness_um": 33.701472732341806
+          },
+          {
+            "zone_index": 108,
+            "step": 109,
+            "thickness_um": 38.4755803025886
+          },
+          {
+            "zone_index": 109,
+            "step": 110,
+            "thickness_um": 33.66507623623465
+          },
+          {
+            "zone_index": 110,
+            "step": 111,
+            "thickness_um": 35.2362679986898
+          },
+          {
+            "zone_index": 111,
+            "step": 112,
+            "thickness_um": 44.305985929161466
+          },
+          {
+            "zone_index": 112,
+            "step": 113,
+            "thickness_um": 38.57720763027328
+          },
+          {
+            "zone_index": 113,
+            "step": 114,
+            "thickness_um": 56.24688779719495
+          }
+        ],
+        "history": {
+          "schema": "surface-history-v1",
+          "initial": {
+            "step": 24,
+            "zone_count": 24,
+            "surface_um": 766.0322182312653,
+            "film": null
+          },
+          "events": [
+            {
+              "seq": 1,
+              "step": 24,
+              "zone_count": 24,
+              "surface_um": 766.0322182312653,
+              "event": "front-coating",
+              "operation": {
+                "kind": "enclosure-add",
+                "source_id": "enclosure:24:1:9",
+                "mineral": "titanite",
+                "phi_term": 0.15,
+                "phi_prism": 0,
+                "step": 24
+              },
+              "coverage_change": {
+                "term": 0.15,
+                "prism": 0
+              }
+            },
+            {
+              "seq": 2,
+              "step": 25,
+              "zone_count": 25,
+              "surface_um": 832.6232706046876,
+              "event": "buried",
+              "accepted_zone_index": 24,
+              "horizon_um": 766.0322182312653
+            },
+            {
+              "seq": 3,
+              "step": 26,
+              "zone_count": 26,
+              "surface_um": 889.6190188243365,
+              "event": "front-coating",
+              "operation": {
+                "kind": "enclosure-add",
+                "source_id": "enclosure:26:1:10",
+                "mineral": "titanite",
+                "phi_term": 0.15,
+                "phi_prism": 0,
+                "step": 26
+              },
+              "coverage_change": {
+                "term": 0.15,
+                "prism": 0
+              }
+            },
+            {
+              "seq": 4,
+              "step": 27,
+              "zone_count": 27,
+              "surface_um": 949.0076898303092,
+              "event": "buried",
+              "accepted_zone_index": 26,
+              "horizon_um": 889.6190188243365
+            },
+            {
+              "seq": 5,
+              "step": 56,
+              "zone_count": 56,
+              "surface_um": 2189.0323162023183,
+              "event": "front-coating",
+              "operation": {
+                "kind": "enclosure-add",
+                "source_id": "enclosure:56:1:17",
+                "mineral": "epidote",
+                "phi_term": 0.15,
+                "phi_prism": 0,
+                "step": 56
+              },
+              "coverage_change": {
+                "term": 0.15,
+                "prism": 0
+              }
+            },
+            {
+              "seq": 6,
+              "step": 57,
+              "zone_count": 57,
+              "surface_um": 2219.0734575736806,
+              "event": "buried",
+              "accepted_zone_index": 56,
+              "horizon_um": 2189.0323162023183
+            },
+            {
+              "seq": 7,
+              "step": 87,
+              "zone_count": 87,
+              "surface_um": 3508.3708435054346,
+              "event": "front-coating",
+              "operation": {
+                "kind": "enclosure-add",
+                "source_id": "enclosure:87:1:25",
+                "mineral": "epidote",
+                "phi_term": 0.15,
+                "phi_prism": 0,
+                "step": 87
+              },
+              "coverage_change": {
+                "term": 0.15,
+                "prism": 0
+              }
+            },
+            {
+              "seq": 8,
+              "step": 88,
+              "zone_count": 88,
+              "surface_um": 3568.063815465267,
+              "event": "buried",
+              "accepted_zone_index": 87,
+              "horizon_um": 3508.3708435054346
+            }
+          ]
+        }
+      },
+      {
+        "schema": "strip-surface-history-v1",
+        "crystal_id": 19,
+        "mineral": "quartz",
+        "captured_step": 200,
+        "sample_index": 199,
+        "zones": [
+          {
+            "zone_index": 0,
+            "step": 65,
+            "thickness_um": 26.129691203122984
+          },
+          {
+            "zone_index": 1,
+            "step": 66,
+            "thickness_um": 33.07916684656806
+          },
+          {
+            "zone_index": 2,
+            "step": 67,
+            "thickness_um": 30.372509667666804
+          },
+          {
+            "zone_index": 3,
+            "step": 68,
+            "thickness_um": 31.877766810620844
+          },
+          {
+            "zone_index": 4,
+            "step": 69,
+            "thickness_um": 31.5517561685086
+          },
+          {
+            "zone_index": 5,
+            "step": 70,
+            "thickness_um": 38.84273700177067
+          },
+          {
+            "zone_index": 6,
+            "step": 71,
+            "thickness_um": 33.970719002468726
+          },
+          {
+            "zone_index": 7,
+            "step": 72,
+            "thickness_um": 32.008886376209695
+          },
+          {
+            "zone_index": 8,
+            "step": 73,
+            "thickness_um": 47.341043112186355
+          },
+          {
+            "zone_index": 9,
+            "step": 74,
+            "thickness_um": 34.70521379784152
+          },
+          {
+            "zone_index": 10,
+            "step": 75,
+            "thickness_um": 45.4510552352647
+          },
+          {
+            "zone_index": 11,
+            "step": 76,
+            "thickness_um": 29.54197705745932
+          },
+          {
+            "zone_index": 12,
+            "step": 77,
+            "thickness_um": 43.50119169789272
+          },
+          {
+            "zone_index": 13,
+            "step": 78,
+            "thickness_um": 46.077998665198685
+          },
+          {
+            "zone_index": 14,
+            "step": 79,
+            "thickness_um": 51.36888067136171
+          },
+          {
+            "zone_index": 15,
+            "step": 80,
+            "thickness_um": 34.097863446680094
+          },
+          {
+            "zone_index": 16,
+            "step": 81,
+            "thickness_um": 59.859196127382376
+          },
+          {
+            "zone_index": 17,
+            "step": 82,
+            "thickness_um": 53.59481561735501
+          },
+          {
+            "zone_index": 18,
+            "step": 83,
+            "thickness_um": 59.676190887757855
+          },
+          {
+            "zone_index": 19,
+            "step": 84,
+            "thickness_um": 61.90426022874757
+          },
+          {
+            "zone_index": 20,
+            "step": 85,
+            "thickness_um": 64.65982492212841
+          },
+          {
+            "zone_index": 21,
+            "step": 86,
+            "thickness_um": 40.45927292508545
+          },
+          {
+            "zone_index": 22,
+            "step": 87,
+            "thickness_um": 52.706012048236914
+          },
+          {
+            "zone_index": 23,
+            "step": 88,
+            "thickness_um": 50.387925194477404
+          },
+          {
+            "zone_index": 24,
+            "step": 89,
+            "thickness_um": 69.08471521292547
+          },
+          {
+            "zone_index": 25,
+            "step": 90,
+            "thickness_um": 63.35957016528317
+          },
+          {
+            "zone_index": 26,
+            "step": 91,
+            "thickness_um": 64.53590699617428
+          },
+          {
+            "zone_index": 27,
+            "step": 92,
+            "thickness_um": 57.369832850603984
+          },
+          {
+            "zone_index": 28,
+            "step": 93,
+            "thickness_um": 85.37622562619825
+          },
+          {
+            "zone_index": 29,
+            "step": 94,
+            "thickness_um": 54.85288692527049
+          },
+          {
+            "zone_index": 30,
+            "step": 95,
+            "thickness_um": 55.65440152368211
+          },
+          {
+            "zone_index": 31,
+            "step": 96,
+            "thickness_um": 54.51986870786147
+          },
+          {
+            "zone_index": 32,
+            "step": 97,
+            "thickness_um": 79.79469740362272
+          },
+          {
+            "zone_index": 33,
+            "step": 98,
+            "thickness_um": 53.39478210226638,
+            "masked_horizon": true,
+            "film_mineral": "hematite",
+            "masked_phi_term": 0.15,
+            "masked_phi_prism": 0,
+            "originating_film_step": 97
+          },
+          {
+            "zone_index": 34,
+            "step": 99,
+            "thickness_um": 55.27691633252391
+          },
+          {
+            "zone_index": 35,
+            "step": 100,
+            "thickness_um": 70.3066286531143
+          },
+          {
+            "zone_index": 36,
+            "step": 101,
+            "thickness_um": 88.64547740240182
+          },
+          {
+            "zone_index": 37,
+            "step": 102,
+            "thickness_um": 65.25874360414923
+          },
+          {
+            "zone_index": 38,
+            "step": 103,
+            "thickness_um": 92.22356571319354
+          },
+          {
+            "zone_index": 39,
+            "step": 104,
+            "thickness_um": 73.69839352511431
+          },
+          {
+            "zone_index": 40,
+            "step": 105,
+            "thickness_um": 67.51253779767299
+          },
+          {
+            "zone_index": 41,
+            "step": 106,
+            "thickness_um": 114.87669701832817
+          },
+          {
+            "zone_index": 42,
+            "step": 107,
+            "thickness_um": 64.82544248568378
+          },
+          {
+            "zone_index": 43,
+            "step": 108,
+            "thickness_um": 101.11352278680117
+          },
+          {
+            "zone_index": 44,
+            "step": 109,
+            "thickness_um": 116.25079350115841
+          },
+          {
+            "zone_index": 45,
+            "step": 110,
+            "thickness_um": 100.06767573081346
+          },
+          {
+            "zone_index": 46,
+            "step": 111,
+            "thickness_um": 71.64791827085976
+          },
+          {
+            "zone_index": 47,
+            "step": 112,
+            "thickness_um": 98.1541428880795
+          },
+          {
+            "zone_index": 48,
+            "step": 113,
+            "thickness_um": 81.66878989627548
+          },
+          {
+            "zone_index": 49,
+            "step": 114,
+            "thickness_um": 126.30876598259218
+          },
+          {
+            "zone_index": 50,
+            "step": 115,
+            "thickness_um": -25
+          },
+          {
+            "zone_index": 51,
+            "step": 116,
+            "thickness_um": -25
+          },
+          {
+            "zone_index": 52,
+            "step": 117,
+            "thickness_um": -25
+          },
+          {
+            "zone_index": 53,
+            "step": 118,
+            "thickness_um": -25
+          },
+          {
+            "zone_index": 54,
+            "step": 119,
+            "thickness_um": -25
+          },
+          {
+            "zone_index": 55,
+            "step": 120,
+            "thickness_um": -25
+          },
+          {
+            "zone_index": 56,
+            "step": 121,
+            "thickness_um": -25
+          },
+          {
+            "zone_index": 57,
+            "step": 122,
+            "thickness_um": -25
+          },
+          {
+            "zone_index": 58,
+            "step": 123,
+            "thickness_um": -25
+          },
+          {
+            "zone_index": 59,
+            "step": 124,
+            "thickness_um": -25
+          },
+          {
+            "zone_index": 60,
+            "step": 125,
+            "thickness_um": -25
+          },
+          {
+            "zone_index": 61,
+            "step": 134,
+            "thickness_um": 0.5703227264515808
+          },
+          {
+            "zone_index": 62,
+            "step": 135,
+            "thickness_um": 48.64768973324608
+          },
+          {
+            "zone_index": 63,
+            "step": 136,
+            "thickness_um": 33.55068906560817
+          },
+          {
+            "zone_index": 64,
+            "step": 137,
+            "thickness_um": 44.474289821051585
+          },
+          {
+            "zone_index": 65,
+            "step": 138,
+            "thickness_um": 38.560828145863795
+          },
+          {
+            "zone_index": 66,
+            "step": 139,
+            "thickness_um": 34.6125990737132
+          },
+          {
+            "zone_index": 67,
+            "step": 140,
+            "thickness_um": 48.575868919252294
+          },
+          {
+            "zone_index": 68,
+            "step": 141,
+            "thickness_um": 48.837526477107005
+          },
+          {
+            "zone_index": 69,
+            "step": 142,
+            "thickness_um": 34.21599221558526
+          },
+          {
+            "zone_index": 70,
+            "step": 143,
+            "thickness_um": 31.772332774963537
+          },
+          {
+            "zone_index": 71,
+            "step": 144,
+            "thickness_um": 34.411349680876484
+          },
+          {
+            "zone_index": 72,
+            "step": 145,
+            "thickness_um": 48.07098888205752
+          },
+          {
+            "zone_index": 73,
+            "step": 146,
+            "thickness_um": 34.73563486756235
+          },
+          {
+            "zone_index": 74,
+            "step": 147,
+            "thickness_um": 44.89452577979144
+          },
+          {
+            "zone_index": 75,
+            "step": 148,
+            "thickness_um": 42.41200169791333
+          },
+          {
+            "zone_index": 76,
+            "step": 149,
+            "thickness_um": 42.91110002721808
+          },
+          {
+            "zone_index": 77,
+            "step": 150,
+            "thickness_um": 39.92747246422184
+          },
+          {
+            "zone_index": 78,
+            "step": 151,
+            "thickness_um": 56.562224704467525
+          },
+          {
+            "zone_index": 79,
+            "step": 152,
+            "thickness_um": 53.881313169259464
+          },
+          {
+            "zone_index": 80,
+            "step": 153,
+            "thickness_um": 44.73367305916675
+          },
+          {
+            "zone_index": 81,
+            "step": 154,
+            "thickness_um": 58.93936542422587,
+            "masked_horizon": true,
+            "film_mineral": "epidote",
+            "masked_phi_term": 0.15,
+            "masked_phi_prism": 0,
+            "originating_film_step": 153
+          },
+          {
+            "zone_index": 82,
+            "step": 155,
+            "thickness_um": 48.61305771723248
+          },
+          {
+            "zone_index": 83,
+            "step": 156,
+            "thickness_um": 64.53691761709264
+          },
+          {
+            "zone_index": 84,
+            "step": 157,
+            "thickness_um": 54.54959331588636
+          },
+          {
+            "zone_index": 85,
+            "step": 158,
+            "thickness_um": 58.63675936540776
+          },
+          {
+            "zone_index": 86,
+            "step": 159,
+            "thickness_um": 67.89986964180511
+          },
+          {
+            "zone_index": 87,
+            "step": 160,
+            "thickness_um": 41.67789372244896
+          },
+          {
+            "zone_index": 88,
+            "step": 161,
+            "thickness_um": 54.271564830765364
+          },
+          {
+            "zone_index": 89,
+            "step": 162,
+            "thickness_um": 58.526001139224405
+          },
+          {
+            "zone_index": 90,
+            "step": 163,
+            "thickness_um": 60.103939410912005
+          },
+          {
+            "zone_index": 91,
+            "step": 164,
+            "thickness_um": 43.91204508385812
+          },
+          {
+            "zone_index": 92,
+            "step": 165,
+            "thickness_um": 74.09091161967856
+          },
+          {
+            "zone_index": 93,
+            "step": 166,
+            "thickness_um": 42.65505157465355
+          },
+          {
+            "zone_index": 94,
+            "step": 167,
+            "thickness_um": 71.5860895524001
+          },
+          {
+            "zone_index": 95,
+            "step": 168,
+            "thickness_um": 71.7758171557248
+          },
+          {
+            "zone_index": 96,
+            "step": 169,
+            "thickness_um": 59.294386055836014
+          },
+          {
+            "zone_index": 97,
+            "step": 170,
+            "thickness_um": 45.75327631656733
+          },
+          {
+            "zone_index": 98,
+            "step": 171,
+            "thickness_um": 74.8484912719587
+          },
+          {
+            "zone_index": 99,
+            "step": 172,
+            "thickness_um": 72.19833026764442
+          },
+          {
+            "zone_index": 100,
+            "step": 173,
+            "thickness_um": 52.960451607002724
+          },
+          {
+            "zone_index": 101,
+            "step": 174,
+            "thickness_um": 75.61824775154362
+          },
+          {
+            "zone_index": 102,
+            "step": 175,
+            "thickness_um": 66.37053736948046
+          },
+          {
+            "zone_index": 103,
+            "step": 176,
+            "thickness_um": 59.22968586574407
+          },
+          {
+            "zone_index": 104,
+            "step": 177,
+            "thickness_um": 48.24829866054594
+          },
+          {
+            "zone_index": 105,
+            "step": 178,
+            "thickness_um": 55.2524212500432
+          },
+          {
+            "zone_index": 106,
+            "step": 179,
+            "thickness_um": 77.69866039642918
+          },
+          {
+            "zone_index": 107,
+            "step": 180,
+            "thickness_um": 79.14370951489845
+          },
+          {
+            "zone_index": 108,
+            "step": 181,
+            "thickness_um": 53.681225678890144
+          },
+          {
+            "zone_index": 109,
+            "step": 182,
+            "thickness_um": 69.53382693076243
+          },
+          {
+            "zone_index": 110,
+            "step": 183,
+            "thickness_um": 70.72236863380795
+          },
+          {
+            "zone_index": 111,
+            "step": 184,
+            "thickness_um": 79.09836896191831
+          },
+          {
+            "zone_index": 112,
+            "step": 185,
+            "thickness_um": 86.11057568080679
+          },
+          {
+            "zone_index": 113,
+            "step": 186,
+            "thickness_um": 67.30412563577083
+          },
+          {
+            "zone_index": 114,
+            "step": 187,
+            "thickness_um": 78.76374075067483
+          },
+          {
+            "zone_index": 115,
+            "step": 188,
+            "thickness_um": 73.01814257780666
+          },
+          {
+            "zone_index": 116,
+            "step": 189,
+            "thickness_um": 62.28489161123393
+          },
+          {
+            "zone_index": 117,
+            "step": 190,
+            "thickness_um": 55.96896923500761
+          },
+          {
+            "zone_index": 118,
+            "step": 191,
+            "thickness_um": 68.41319145742696
+          },
+          {
+            "zone_index": 119,
+            "step": 192,
+            "thickness_um": 60.52453322326017
+          },
+          {
+            "zone_index": 120,
+            "step": 193,
+            "thickness_um": 70.91430398978382
+          },
+          {
+            "zone_index": 121,
+            "step": 194,
+            "thickness_um": 87.64026159061983
+          },
+          {
+            "zone_index": 122,
+            "step": 195,
+            "thickness_um": 81.42876502903579
+          },
+          {
+            "zone_index": 123,
+            "step": 196,
+            "thickness_um": 84.99779567496506
+          },
+          {
+            "zone_index": 124,
+            "step": 197,
+            "thickness_um": 87.55242669122265
+          },
+          {
+            "zone_index": 125,
+            "step": 198,
+            "thickness_um": 68.02946478417246
+          },
+          {
+            "zone_index": 126,
+            "step": 199,
+            "thickness_um": 71.60103505883127
+          },
+          {
+            "zone_index": 127,
+            "step": 200,
+            "thickness_um": 81.22595159840284
+          }
+        ],
+        "history": {
+          "schema": "surface-history-v1",
+          "initial": {
+            "step": 97,
+            "zone_count": 33,
+            "surface_um": 1617.7140601236142,
+            "film": null
+          },
+          "events": [
+            {
+              "seq": 1,
+              "step": 97,
+              "zone_count": 33,
+              "surface_um": 1617.7140601236142,
+              "event": "front-coating",
+              "operation": {
+                "kind": "enclosure-add",
+                "source_id": "enclosure:97:19:26",
+                "mineral": "hematite",
+                "phi_term": 0.15,
+                "phi_prism": 0,
+                "step": 97
+              },
+              "coverage_change": {
+                "term": 0.15,
+                "prism": 0
+              }
+            },
+            {
+              "seq": 2,
+              "step": 98,
+              "zone_count": 34,
+              "surface_um": 1671.1088422258806,
+              "event": "buried",
+              "accepted_zone_index": 33,
+              "horizon_um": 1617.7140601236142
+            },
+            {
+              "seq": 3,
+              "step": 153,
+              "zone_count": 81,
+              "surface_um": 3590.3032771000208,
+              "event": "front-coating",
+              "operation": {
+                "kind": "enclosure-add",
+                "source_id": "enclosure:153:19:22",
+                "mineral": "epidote",
+                "phi_term": 0.15,
+                "phi_prism": 0,
+                "step": 153
+              },
+              "coverage_change": {
+                "term": 0.15,
+                "prism": 0
+              }
+            },
+            {
+              "seq": 4,
+              "step": 154,
+              "zone_count": 82,
+              "surface_um": 3649.2426425242465,
+              "event": "buried",
+              "accepted_zone_index": 81,
+              "horizon_um": 3590.3032771000208
+            }
+          ]
+        }
+      }
     ]
   }
 }

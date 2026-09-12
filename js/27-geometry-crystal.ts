@@ -495,6 +495,7 @@ class Crystal {
     } else {
       this.a_width_mm = this.c_length_mm * _habitAspectRatio(this.habit);
     }
+    recordAcceptedSurfaceZone(this, zone);
     // No size cap. Crystals grow to chemistry-true size (boss directive
     // "defer to actual geology" 2026-05-06): in real cavities a crystal
     // that outgrows its container either competes for space, deforms,
@@ -676,4 +677,3 @@ class Crystal {
     return 'unknown';
   }
 }
-

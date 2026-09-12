@@ -95588,6 +95588,1598 @@
         "surface_film": null,
         "zone_count": 75
       }
+    ],
+    "surface_history": [
+      {
+        "schema": "strip-surface-history-v1",
+        "crystal_id": 4,
+        "mineral": "barite",
+        "captured_step": 200,
+        "sample_index": 199,
+        "zones": [
+          {
+            "zone_index": 0,
+            "step": 28,
+            "thickness_um": 19.442680329449068
+          },
+          {
+            "zone_index": 1,
+            "step": 29,
+            "thickness_um": 21.552985000714347
+          },
+          {
+            "zone_index": 2,
+            "step": 30,
+            "thickness_um": 20.77792642678295
+          },
+          {
+            "zone_index": 3,
+            "step": 31,
+            "thickness_um": 17.33537769807653
+          },
+          {
+            "zone_index": 4,
+            "step": 32,
+            "thickness_um": 16.07845725977349
+          },
+          {
+            "zone_index": 5,
+            "step": 33,
+            "thickness_um": 15.937681221309681
+          },
+          {
+            "zone_index": 6,
+            "step": 34,
+            "thickness_um": 18.938725719257263
+          },
+          {
+            "zone_index": 7,
+            "step": 35,
+            "thickness_um": 16.003894541912796
+          },
+          {
+            "zone_index": 8,
+            "step": 36,
+            "thickness_um": 17.16905399588389
+          },
+          {
+            "zone_index": 9,
+            "step": 37,
+            "thickness_um": 14.665582286954324
+          },
+          {
+            "zone_index": 10,
+            "step": 38,
+            "thickness_um": 14.063365705021361
+          },
+          {
+            "zone_index": 11,
+            "step": 39,
+            "thickness_um": 16.550525101724926
+          },
+          {
+            "zone_index": 12,
+            "step": 50,
+            "thickness_um": 24.227780198481522,
+            "masked_horizon": true,
+            "film_mineral": "clay",
+            "masked_phi_term": 0.3,
+            "masked_phi_prism": 0.3,
+            "originating_film_step": 40
+          },
+          {
+            "zone_index": 13,
+            "step": 51,
+            "thickness_um": 22.05367014976084
+          },
+          {
+            "zone_index": 14,
+            "step": 52,
+            "thickness_um": 21.90633713383999
+          },
+          {
+            "zone_index": 15,
+            "step": 53,
+            "thickness_um": 18.84543235851048
+          },
+          {
+            "zone_index": 16,
+            "step": 54,
+            "thickness_um": 15.369957138362409
+          },
+          {
+            "zone_index": 17,
+            "step": 55,
+            "thickness_um": 16.67744442859942
+          },
+          {
+            "zone_index": 18,
+            "step": 56,
+            "thickness_um": 20.542445736797795
+          },
+          {
+            "zone_index": 19,
+            "step": 57,
+            "thickness_um": 16.599037628589922
+          },
+          {
+            "zone_index": 20,
+            "step": 58,
+            "thickness_um": 18.521225801351445
+          },
+          {
+            "zone_index": 21,
+            "step": 59,
+            "thickness_um": 15.698575476479473
+          },
+          {
+            "zone_index": 22,
+            "step": 68,
+            "thickness_um": 22.570182725219112,
+            "masked_horizon": true,
+            "film_mineral": "iron oxide",
+            "masked_phi_term": 0.3,
+            "masked_phi_prism": 0.3,
+            "originating_film_step": 60
+          },
+          {
+            "zone_index": 23,
+            "step": 69,
+            "thickness_um": 18.509067698130096
+          },
+          {
+            "zone_index": 24,
+            "step": 70,
+            "thickness_um": 18.375950059248638
+          },
+          {
+            "zone_index": 25,
+            "step": 71,
+            "thickness_um": 22.1898652428245
+          },
+          {
+            "zone_index": 26,
+            "step": 72,
+            "thickness_um": 18.590005975723273
+          },
+          {
+            "zone_index": 27,
+            "step": 73,
+            "thickness_um": 17.05813621163744
+          },
+          {
+            "zone_index": 28,
+            "step": 74,
+            "thickness_um": 14.947086865270476
+          },
+          {
+            "zone_index": 29,
+            "step": 75,
+            "thickness_um": 20.187784011205675
+          },
+          {
+            "zone_index": 30,
+            "step": 76,
+            "thickness_um": 17.231695516179652
+          },
+          {
+            "zone_index": 31,
+            "step": 77,
+            "thickness_um": 17.630311559565705
+          }
+        ],
+        "history": {
+          "schema": "surface-history-v1",
+          "initial": {
+            "step": 40,
+            "zone_count": 12,
+            "surface_um": 208.51625528686066,
+            "film": null
+          },
+          "events": [
+            {
+              "seq": 1,
+              "step": 40,
+              "zone_count": 12,
+              "surface_um": 208.51625528686066,
+              "event": "dusting",
+              "operation": {
+                "kind": "dust-max",
+                "source_id": "event-dusting:40:4:clay",
+                "mineral": "clay",
+                "phi_term": 0.3,
+                "phi_prism": 0.3,
+                "step": 40
+              },
+              "coverage_change": {
+                "term": 0.3,
+                "prism": 0.3
+              }
+            },
+            {
+              "seq": 2,
+              "step": 50,
+              "zone_count": 13,
+              "surface_um": 232.74403548534218,
+              "event": "buried",
+              "accepted_zone_index": 12,
+              "horizon_um": 208.51625528686066
+            },
+            {
+              "seq": 3,
+              "step": 60,
+              "zone_count": 22,
+              "surface_um": 398.9581613376339,
+              "event": "dusting",
+              "operation": {
+                "kind": "dust-max",
+                "source_id": "event-dusting:60:4:iron oxide",
+                "mineral": "iron oxide",
+                "phi_term": 0.3,
+                "phi_prism": 0.3,
+                "step": 60
+              },
+              "coverage_change": {
+                "term": 0.3,
+                "prism": 0.3
+              }
+            },
+            {
+              "seq": 4,
+              "step": 68,
+              "zone_count": 23,
+              "surface_um": 421.528344062853,
+              "event": "buried",
+              "accepted_zone_index": 22,
+              "horizon_um": 398.9581613376339
+            },
+            {
+              "seq": 5,
+              "step": 78,
+              "zone_count": 32,
+              "surface_um": 586.2482472026384,
+              "event": "dusting",
+              "operation": {
+                "kind": "dust-max",
+                "source_id": "event-dusting:78:4:clay",
+                "mineral": "clay",
+                "phi_term": 0.45,
+                "phi_prism": 0.45,
+                "step": 78
+              },
+              "coverage_change": {
+                "term": 0.45,
+                "prism": 0.45
+              }
+            }
+          ]
+        }
+      },
+      {
+        "schema": "strip-surface-history-v1",
+        "crystal_id": 5,
+        "mineral": "barite",
+        "captured_step": 200,
+        "sample_index": 199,
+        "zones": [
+          {
+            "zone_index": 0,
+            "step": 28,
+            "thickness_um": 20.75190557488689
+          },
+          {
+            "zone_index": 1,
+            "step": 29,
+            "thickness_um": 18.488613209552934
+          },
+          {
+            "zone_index": 2,
+            "step": 30,
+            "thickness_um": 20.703244938087014
+          },
+          {
+            "zone_index": 3,
+            "step": 31,
+            "thickness_um": 20.808218969107166
+          },
+          {
+            "zone_index": 4,
+            "step": 32,
+            "thickness_um": 18.953114908883943
+          },
+          {
+            "zone_index": 5,
+            "step": 33,
+            "thickness_um": 21.482223196283524
+          },
+          {
+            "zone_index": 6,
+            "step": 34,
+            "thickness_um": 16.91082564259363
+          },
+          {
+            "zone_index": 7,
+            "step": 35,
+            "thickness_um": 16.15556260774572
+          },
+          {
+            "zone_index": 8,
+            "step": 36,
+            "thickness_um": 16.466083634681517
+          },
+          {
+            "zone_index": 9,
+            "step": 37,
+            "thickness_um": 17.891307574348453
+          },
+          {
+            "zone_index": 10,
+            "step": 38,
+            "thickness_um": 14.7427071789123
+          },
+          {
+            "zone_index": 11,
+            "step": 39,
+            "thickness_um": 19.468949405785725
+          },
+          {
+            "zone_index": 12,
+            "step": 50,
+            "thickness_um": 24.865923514581606,
+            "masked_horizon": true,
+            "film_mineral": "clay",
+            "masked_phi_term": 0.3,
+            "masked_phi_prism": 0.3,
+            "originating_film_step": 40
+          },
+          {
+            "zone_index": 13,
+            "step": 51,
+            "thickness_um": 18.403971090982196
+          },
+          {
+            "zone_index": 14,
+            "step": 52,
+            "thickness_um": 20.56024303300304
+          },
+          {
+            "zone_index": 15,
+            "step": 53,
+            "thickness_um": 18.301788238471662
+          },
+          {
+            "zone_index": 16,
+            "step": 54,
+            "thickness_um": 17.211931715964347
+          },
+          {
+            "zone_index": 17,
+            "step": 55,
+            "thickness_um": 14.93298057905147
+          },
+          {
+            "zone_index": 18,
+            "step": 56,
+            "thickness_um": 14.897458819981075
+          },
+          {
+            "zone_index": 19,
+            "step": 57,
+            "thickness_um": 15.401257177263457
+          },
+          {
+            "zone_index": 20,
+            "step": 58,
+            "thickness_um": 15.280018456894673
+          },
+          {
+            "zone_index": 21,
+            "step": 59,
+            "thickness_um": 14.0703999330503
+          },
+          {
+            "zone_index": 22,
+            "step": 68,
+            "thickness_um": 25.280416391072734,
+            "masked_horizon": true,
+            "film_mineral": "iron oxide",
+            "masked_phi_term": 0.3,
+            "masked_phi_prism": 0.3,
+            "originating_film_step": 60
+          },
+          {
+            "zone_index": 23,
+            "step": 69,
+            "thickness_um": 22.588069184065617
+          },
+          {
+            "zone_index": 24,
+            "step": 70,
+            "thickness_um": 21.2968636105834
+          },
+          {
+            "zone_index": 25,
+            "step": 71,
+            "thickness_um": 16.092765842051733
+          },
+          {
+            "zone_index": 26,
+            "step": 72,
+            "thickness_um": 18.44391119079096
+          },
+          {
+            "zone_index": 27,
+            "step": 73,
+            "thickness_um": 20.03822733768598
+          },
+          {
+            "zone_index": 28,
+            "step": 74,
+            "thickness_um": 18.952261537982377
+          },
+          {
+            "zone_index": 29,
+            "step": 75,
+            "thickness_um": 15.4535162324955
+          },
+          {
+            "zone_index": 30,
+            "step": 76,
+            "thickness_um": 16.390623183335038
+          },
+          {
+            "zone_index": 31,
+            "step": 77,
+            "thickness_um": 19.448817237204107
+          }
+        ],
+        "history": {
+          "schema": "surface-history-v1",
+          "initial": {
+            "step": 40,
+            "zone_count": 12,
+            "surface_um": 222.8227568408688,
+            "film": null
+          },
+          "events": [
+            {
+              "seq": 1,
+              "step": 40,
+              "zone_count": 12,
+              "surface_um": 222.8227568408688,
+              "event": "dusting",
+              "operation": {
+                "kind": "dust-max",
+                "source_id": "event-dusting:40:5:clay",
+                "mineral": "clay",
+                "phi_term": 0.3,
+                "phi_prism": 0.3,
+                "step": 40
+              },
+              "coverage_change": {
+                "term": 0.3,
+                "prism": 0.3
+              }
+            },
+            {
+              "seq": 2,
+              "step": 50,
+              "zone_count": 13,
+              "surface_um": 247.6886803554504,
+              "event": "buried",
+              "accepted_zone_index": 12,
+              "horizon_um": 222.8227568408688
+            },
+            {
+              "seq": 3,
+              "step": 60,
+              "zone_count": 22,
+              "surface_um": 396.7487294001125,
+              "event": "dusting",
+              "operation": {
+                "kind": "dust-max",
+                "source_id": "event-dusting:60:5:iron oxide",
+                "mineral": "iron oxide",
+                "phi_term": 0.3,
+                "phi_prism": 0.3,
+                "step": 60
+              },
+              "coverage_change": {
+                "term": 0.3,
+                "prism": 0.3
+              }
+            },
+            {
+              "seq": 4,
+              "step": 68,
+              "zone_count": 23,
+              "surface_um": 422.0291457911852,
+              "event": "buried",
+              "accepted_zone_index": 22,
+              "horizon_um": 396.7487294001125
+            },
+            {
+              "seq": 5,
+              "step": 78,
+              "zone_count": 32,
+              "surface_um": 590.73420114738,
+              "event": "dusting",
+              "operation": {
+                "kind": "dust-max",
+                "source_id": "event-dusting:78:5:clay",
+                "mineral": "clay",
+                "phi_term": 0.45,
+                "phi_prism": 0.45,
+                "step": 78
+              },
+              "coverage_change": {
+                "term": 0.45,
+                "prism": 0.45
+              }
+            }
+          ]
+        }
+      },
+      {
+        "schema": "strip-surface-history-v1",
+        "crystal_id": 6,
+        "mineral": "barite",
+        "captured_step": 200,
+        "sample_index": 199,
+        "zones": [
+          {
+            "zone_index": 0,
+            "step": 28,
+            "thickness_um": 24.084078266936086
+          },
+          {
+            "zone_index": 1,
+            "step": 29,
+            "thickness_um": 22.266065812268614
+          },
+          {
+            "zone_index": 2,
+            "step": 30,
+            "thickness_um": 17.049017930398463
+          },
+          {
+            "zone_index": 3,
+            "step": 31,
+            "thickness_um": 17.831418486461835
+          },
+          {
+            "zone_index": 4,
+            "step": 32,
+            "thickness_um": 18.118325727691772
+          },
+          {
+            "zone_index": 5,
+            "step": 33,
+            "thickness_um": 18.459815972262792
+          },
+          {
+            "zone_index": 6,
+            "step": 34,
+            "thickness_um": 16.470922566374178
+          },
+          {
+            "zone_index": 7,
+            "step": 35,
+            "thickness_um": 18.583388773668727
+          },
+          {
+            "zone_index": 8,
+            "step": 36,
+            "thickness_um": 18.763929249692605
+          },
+          {
+            "zone_index": 9,
+            "step": 37,
+            "thickness_um": 19.181522938664695
+          },
+          {
+            "zone_index": 10,
+            "step": 38,
+            "thickness_um": 17.034619738202355
+          },
+          {
+            "zone_index": 11,
+            "step": 39,
+            "thickness_um": 18.13382301060579
+          },
+          {
+            "zone_index": 12,
+            "step": 50,
+            "thickness_um": 22.74502128758754,
+            "masked_horizon": true,
+            "film_mineral": "clay",
+            "masked_phi_term": 0.3,
+            "masked_phi_prism": 0.3,
+            "originating_film_step": 40
+          },
+          {
+            "zone_index": 13,
+            "step": 51,
+            "thickness_um": 20.977454755470184
+          },
+          {
+            "zone_index": 14,
+            "step": 52,
+            "thickness_um": 16.430201942781196
+          },
+          {
+            "zone_index": 15,
+            "step": 53,
+            "thickness_um": 15.348315005241485
+          },
+          {
+            "zone_index": 16,
+            "step": 54,
+            "thickness_um": 20.493091477311296
+          },
+          {
+            "zone_index": 17,
+            "step": 55,
+            "thickness_um": 18.683925532395705
+          },
+          {
+            "zone_index": 18,
+            "step": 56,
+            "thickness_um": 14.490656693694001
+          },
+          {
+            "zone_index": 19,
+            "step": 57,
+            "thickness_um": 19.460732384034053
+          },
+          {
+            "zone_index": 20,
+            "step": 58,
+            "thickness_um": 19.18286352357611
+          },
+          {
+            "zone_index": 21,
+            "step": 59,
+            "thickness_um": 15.989504343242551
+          },
+          {
+            "zone_index": 22,
+            "step": 68,
+            "thickness_um": 25.2401852281181,
+            "masked_horizon": true,
+            "film_mineral": "iron oxide",
+            "masked_phi_term": 0.3,
+            "masked_phi_prism": 0.3,
+            "originating_film_step": 60
+          },
+          {
+            "zone_index": 23,
+            "step": 69,
+            "thickness_um": 19.51202680025404
+          },
+          {
+            "zone_index": 24,
+            "step": 70,
+            "thickness_um": 20.89210348729836
+          },
+          {
+            "zone_index": 25,
+            "step": 71,
+            "thickness_um": 19.21751730796878
+          },
+          {
+            "zone_index": 26,
+            "step": 72,
+            "thickness_um": 19.049730008687604
+          },
+          {
+            "zone_index": 27,
+            "step": 73,
+            "thickness_um": 16.632551358832494
+          },
+          {
+            "zone_index": 28,
+            "step": 74,
+            "thickness_um": 19.129517238202894
+          },
+          {
+            "zone_index": 29,
+            "step": 75,
+            "thickness_um": 14.882315530030933
+          },
+          {
+            "zone_index": 30,
+            "step": 76,
+            "thickness_um": 15.204461812474541
+          },
+          {
+            "zone_index": 31,
+            "step": 77,
+            "thickness_um": 16.652017619694284
+          }
+        ],
+        "history": {
+          "schema": "surface-history-v1",
+          "initial": {
+            "step": 40,
+            "zone_count": 12,
+            "surface_um": 225.97692847322793,
+            "film": null
+          },
+          "events": [
+            {
+              "seq": 1,
+              "step": 40,
+              "zone_count": 12,
+              "surface_um": 225.97692847322793,
+              "event": "dusting",
+              "operation": {
+                "kind": "dust-max",
+                "source_id": "event-dusting:40:6:clay",
+                "mineral": "clay",
+                "phi_term": 0.3,
+                "phi_prism": 0.3,
+                "step": 40
+              },
+              "coverage_change": {
+                "term": 0.3,
+                "prism": 0.3
+              }
+            },
+            {
+              "seq": 2,
+              "step": 50,
+              "zone_count": 13,
+              "surface_um": 248.72194976081548,
+              "event": "buried",
+              "accepted_zone_index": 12,
+              "horizon_um": 225.97692847322793
+            },
+            {
+              "seq": 3,
+              "step": 60,
+              "zone_count": 22,
+              "surface_um": 409.77869541856205,
+              "event": "dusting",
+              "operation": {
+                "kind": "dust-max",
+                "source_id": "event-dusting:60:6:iron oxide",
+                "mineral": "iron oxide",
+                "phi_term": 0.3,
+                "phi_prism": 0.3,
+                "step": 60
+              },
+              "coverage_change": {
+                "term": 0.3,
+                "prism": 0.3
+              }
+            },
+            {
+              "seq": 4,
+              "step": 68,
+              "zone_count": 23,
+              "surface_um": 435.01888064668015,
+              "event": "buried",
+              "accepted_zone_index": 22,
+              "horizon_um": 409.77869541856205
+            },
+            {
+              "seq": 5,
+              "step": 78,
+              "zone_count": 32,
+              "surface_um": 596.1911218101241,
+              "event": "dusting",
+              "operation": {
+                "kind": "dust-max",
+                "source_id": "event-dusting:78:6:clay",
+                "mineral": "clay",
+                "phi_term": 0.45,
+                "phi_prism": 0.45,
+                "step": 78
+              },
+              "coverage_change": {
+                "term": 0.45,
+                "prism": 0.45
+              }
+            }
+          ]
+        }
+      },
+      {
+        "schema": "strip-surface-history-v1",
+        "crystal_id": 7,
+        "mineral": "barite",
+        "captured_step": 200,
+        "sample_index": 199,
+        "zones": [
+          {
+            "zone_index": 0,
+            "step": 28,
+            "thickness_um": 22.82985932866108
+          },
+          {
+            "zone_index": 1,
+            "step": 29,
+            "thickness_um": 23.215813092204787
+          },
+          {
+            "zone_index": 2,
+            "step": 30,
+            "thickness_um": 18.503623982481592
+          },
+          {
+            "zone_index": 3,
+            "step": 31,
+            "thickness_um": 15.88241456258511
+          },
+          {
+            "zone_index": 4,
+            "step": 32,
+            "thickness_um": 15.896743302541676
+          },
+          {
+            "zone_index": 5,
+            "step": 33,
+            "thickness_um": 21.4466580004561
+          },
+          {
+            "zone_index": 6,
+            "step": 34,
+            "thickness_um": 20.415847193420234
+          },
+          {
+            "zone_index": 7,
+            "step": 35,
+            "thickness_um": 15.461638888905235
+          },
+          {
+            "zone_index": 8,
+            "step": 36,
+            "thickness_um": 20.151674151714936
+          },
+          {
+            "zone_index": 9,
+            "step": 37,
+            "thickness_um": 15.087894709844225
+          },
+          {
+            "zone_index": 10,
+            "step": 38,
+            "thickness_um": 18.190726897943062
+          },
+          {
+            "zone_index": 11,
+            "step": 39,
+            "thickness_um": 15.889985897820091
+          },
+          {
+            "zone_index": 12,
+            "step": 50,
+            "thickness_um": 21.758596054502032,
+            "masked_horizon": true,
+            "film_mineral": "clay",
+            "masked_phi_term": 0.3,
+            "masked_phi_prism": 0.3,
+            "originating_film_step": 40
+          },
+          {
+            "zone_index": 13,
+            "step": 51,
+            "thickness_um": 21.26734699869132
+          },
+          {
+            "zone_index": 14,
+            "step": 52,
+            "thickness_um": 17.46817557943521
+          },
+          {
+            "zone_index": 15,
+            "step": 53,
+            "thickness_um": 18.5134620820218
+          },
+          {
+            "zone_index": 16,
+            "step": 54,
+            "thickness_um": 20.563223861906863
+          },
+          {
+            "zone_index": 17,
+            "step": 55,
+            "thickness_um": 15.928740434974273
+          },
+          {
+            "zone_index": 18,
+            "step": 56,
+            "thickness_um": 14.310217772002868
+          },
+          {
+            "zone_index": 19,
+            "step": 57,
+            "thickness_um": 17.50165943291641
+          },
+          {
+            "zone_index": 20,
+            "step": 58,
+            "thickness_um": 15.520559728121002
+          },
+          {
+            "zone_index": 21,
+            "step": 59,
+            "thickness_um": 18.640453391982316
+          },
+          {
+            "zone_index": 22,
+            "step": 68,
+            "thickness_um": 25.135598646307038,
+            "masked_horizon": true,
+            "film_mineral": "iron oxide",
+            "masked_phi_term": 0.3,
+            "masked_phi_prism": 0.3,
+            "originating_film_step": 60
+          },
+          {
+            "zone_index": 23,
+            "step": 69,
+            "thickness_um": 23.244181881374544
+          },
+          {
+            "zone_index": 24,
+            "step": 70,
+            "thickness_um": 15.374897225867636
+          },
+          {
+            "zone_index": 25,
+            "step": 71,
+            "thickness_um": 15.366047008279777
+          },
+          {
+            "zone_index": 26,
+            "step": 72,
+            "thickness_um": 20.97511697889989
+          },
+          {
+            "zone_index": 27,
+            "step": 73,
+            "thickness_um": 15.587080534301851
+          },
+          {
+            "zone_index": 28,
+            "step": 74,
+            "thickness_um": 15.97453371246078
+          },
+          {
+            "zone_index": 29,
+            "step": 75,
+            "thickness_um": 16.052581825709996
+          },
+          {
+            "zone_index": 30,
+            "step": 76,
+            "thickness_um": 15.690473050858396
+          },
+          {
+            "zone_index": 31,
+            "step": 77,
+            "thickness_um": 17.927305069396372
+          }
+        ],
+        "history": {
+          "schema": "surface-history-v1",
+          "initial": {
+            "step": 40,
+            "zone_count": 12,
+            "surface_um": 222.9728800085781,
+            "film": null
+          },
+          "events": [
+            {
+              "seq": 1,
+              "step": 40,
+              "zone_count": 12,
+              "surface_um": 222.9728800085781,
+              "event": "dusting",
+              "operation": {
+                "kind": "dust-max",
+                "source_id": "event-dusting:40:7:clay",
+                "mineral": "clay",
+                "phi_term": 0.3,
+                "phi_prism": 0.3,
+                "step": 40
+              },
+              "coverage_change": {
+                "term": 0.3,
+                "prism": 0.3
+              }
+            },
+            {
+              "seq": 2,
+              "step": 50,
+              "zone_count": 13,
+              "surface_um": 244.73147606308012,
+              "event": "buried",
+              "accepted_zone_index": 12,
+              "horizon_um": 222.9728800085781
+            },
+            {
+              "seq": 3,
+              "step": 60,
+              "zone_count": 22,
+              "surface_um": 404.44531534513214,
+              "event": "dusting",
+              "operation": {
+                "kind": "dust-max",
+                "source_id": "event-dusting:60:7:iron oxide",
+                "mineral": "iron oxide",
+                "phi_term": 0.3,
+                "phi_prism": 0.3,
+                "step": 60
+              },
+              "coverage_change": {
+                "term": 0.3,
+                "prism": 0.3
+              }
+            },
+            {
+              "seq": 4,
+              "step": 68,
+              "zone_count": 23,
+              "surface_um": 429.58091399143916,
+              "event": "buried",
+              "accepted_zone_index": 22,
+              "horizon_um": 404.44531534513214
+            },
+            {
+              "seq": 5,
+              "step": 78,
+              "zone_count": 32,
+              "surface_um": 585.7731312785885,
+              "event": "dusting",
+              "operation": {
+                "kind": "dust-max",
+                "source_id": "event-dusting:78:7:clay",
+                "mineral": "clay",
+                "phi_term": 0.45,
+                "phi_prism": 0.45,
+                "step": 78
+              },
+              "coverage_change": {
+                "term": 0.45,
+                "prism": 0.45
+              }
+            }
+          ]
+        }
+      },
+      {
+        "schema": "strip-surface-history-v1",
+        "crystal_id": 8,
+        "mineral": "barite",
+        "captured_step": 200,
+        "sample_index": 199,
+        "zones": [
+          {
+            "zone_index": 0,
+            "step": 28,
+            "thickness_um": 25.362229068479188
+          },
+          {
+            "zone_index": 1,
+            "step": 29,
+            "thickness_um": 16.73299239182799
+          },
+          {
+            "zone_index": 2,
+            "step": 30,
+            "thickness_um": 16.59085130609
+          },
+          {
+            "zone_index": 3,
+            "step": 31,
+            "thickness_um": 21.339335154909488
+          },
+          {
+            "zone_index": 4,
+            "step": 32,
+            "thickness_um": 14.902848089036475
+          },
+          {
+            "zone_index": 5,
+            "step": 33,
+            "thickness_um": 15.52842548104751
+          },
+          {
+            "zone_index": 6,
+            "step": 34,
+            "thickness_um": 16.408849218962573
+          },
+          {
+            "zone_index": 7,
+            "step": 35,
+            "thickness_um": 15.102497174187146
+          },
+          {
+            "zone_index": 8,
+            "step": 36,
+            "thickness_um": 19.45337814142056
+          },
+          {
+            "zone_index": 9,
+            "step": 37,
+            "thickness_um": 16.326088365173664
+          },
+          {
+            "zone_index": 10,
+            "step": 38,
+            "thickness_um": 18.762564440956865
+          },
+          {
+            "zone_index": 11,
+            "step": 39,
+            "thickness_um": 19.869042197325008
+          },
+          {
+            "zone_index": 12,
+            "step": 50,
+            "thickness_um": 23.80338722618746,
+            "masked_horizon": true,
+            "film_mineral": "clay",
+            "masked_phi_term": 0.3,
+            "masked_phi_prism": 0.3,
+            "originating_film_step": 40
+          },
+          {
+            "zone_index": 13,
+            "step": 51,
+            "thickness_um": 22.835860039405983
+          },
+          {
+            "zone_index": 14,
+            "step": 52,
+            "thickness_um": 22.622167070516326
+          },
+          {
+            "zone_index": 15,
+            "step": 53,
+            "thickness_um": 21.42617381754974
+          },
+          {
+            "zone_index": 16,
+            "step": 54,
+            "thickness_um": 19.443668330167473
+          },
+          {
+            "zone_index": 17,
+            "step": 55,
+            "thickness_um": 17.638244155694977
+          },
+          {
+            "zone_index": 18,
+            "step": 56,
+            "thickness_um": 16.473565924001996
+          },
+          {
+            "zone_index": 19,
+            "step": 57,
+            "thickness_um": 14.937851944133056
+          },
+          {
+            "zone_index": 20,
+            "step": 58,
+            "thickness_um": 14.784463196962319
+          },
+          {
+            "zone_index": 21,
+            "step": 59,
+            "thickness_um": 18.977595768331255
+          },
+          {
+            "zone_index": 22,
+            "step": 68,
+            "thickness_um": 23.818559864380152,
+            "masked_horizon": true,
+            "film_mineral": "iron oxide",
+            "masked_phi_term": 0.3,
+            "masked_phi_prism": 0.3,
+            "originating_film_step": 60
+          },
+          {
+            "zone_index": 23,
+            "step": 69,
+            "thickness_um": 21.11805917815743
+          },
+          {
+            "zone_index": 24,
+            "step": 70,
+            "thickness_um": 20.47003476821252
+          },
+          {
+            "zone_index": 25,
+            "step": 71,
+            "thickness_um": 19.58451253558389
+          },
+          {
+            "zone_index": 26,
+            "step": 72,
+            "thickness_um": 20.073356327695432
+          },
+          {
+            "zone_index": 27,
+            "step": 73,
+            "thickness_um": 19.44691018662644
+          },
+          {
+            "zone_index": 28,
+            "step": 74,
+            "thickness_um": 20.464354491203864
+          },
+          {
+            "zone_index": 29,
+            "step": 75,
+            "thickness_um": 20.638796135393036
+          },
+          {
+            "zone_index": 30,
+            "step": 76,
+            "thickness_um": 20.193281967422166
+          },
+          {
+            "zone_index": 31,
+            "step": 77,
+            "thickness_um": 16.727694424181607
+          }
+        ],
+        "history": {
+          "schema": "surface-history-v1",
+          "initial": {
+            "step": 40,
+            "zone_count": 12,
+            "surface_um": 216.37910102941643,
+            "film": null
+          },
+          "events": [
+            {
+              "seq": 1,
+              "step": 40,
+              "zone_count": 12,
+              "surface_um": 216.37910102941643,
+              "event": "dusting",
+              "operation": {
+                "kind": "dust-max",
+                "source_id": "event-dusting:40:8:clay",
+                "mineral": "clay",
+                "phi_term": 0.3,
+                "phi_prism": 0.3,
+                "step": 40
+              },
+              "coverage_change": {
+                "term": 0.3,
+                "prism": 0.3
+              }
+            },
+            {
+              "seq": 2,
+              "step": 50,
+              "zone_count": 13,
+              "surface_um": 240.1824882556039,
+              "event": "buried",
+              "accepted_zone_index": 12,
+              "horizon_um": 216.37910102941643
+            },
+            {
+              "seq": 3,
+              "step": 60,
+              "zone_count": 22,
+              "surface_um": 409.322078502367,
+              "event": "dusting",
+              "operation": {
+                "kind": "dust-max",
+                "source_id": "event-dusting:60:8:iron oxide",
+                "mineral": "iron oxide",
+                "phi_term": 0.3,
+                "phi_prism": 0.3,
+                "step": 60
+              },
+              "coverage_change": {
+                "term": 0.3,
+                "prism": 0.3
+              }
+            },
+            {
+              "seq": 4,
+              "step": 68,
+              "zone_count": 23,
+              "surface_um": 433.14063836674717,
+              "event": "buried",
+              "accepted_zone_index": 22,
+              "horizon_um": 409.322078502367
+            },
+            {
+              "seq": 5,
+              "step": 78,
+              "zone_count": 32,
+              "surface_um": 611.8576383812235,
+              "event": "dusting",
+              "operation": {
+                "kind": "dust-max",
+                "source_id": "event-dusting:78:8:clay",
+                "mineral": "clay",
+                "phi_term": 0.45,
+                "phi_prism": 0.45,
+                "step": 78
+              },
+              "coverage_change": {
+                "term": 0.45,
+                "prism": 0.45
+              }
+            }
+          ]
+        }
+      },
+      {
+        "schema": "strip-surface-history-v1",
+        "crystal_id": 9,
+        "mineral": "barite",
+        "captured_step": 200,
+        "sample_index": 199,
+        "zones": [
+          {
+            "zone_index": 0,
+            "step": 28,
+            "thickness_um": 24.48876225286053
+          },
+          {
+            "zone_index": 1,
+            "step": 29,
+            "thickness_um": 20.71595100853656
+          },
+          {
+            "zone_index": 2,
+            "step": 30,
+            "thickness_um": 22.046686462102674
+          },
+          {
+            "zone_index": 3,
+            "step": 31,
+            "thickness_um": 19.54783328577529
+          },
+          {
+            "zone_index": 4,
+            "step": 32,
+            "thickness_um": 22.226232540811726
+          },
+          {
+            "zone_index": 5,
+            "step": 33,
+            "thickness_um": 2.12974596737526
+          },
+          {
+            "zone_index": 6,
+            "step": 34,
+            "thickness_um": 2.4639772748577067
+          },
+          {
+            "zone_index": 7,
+            "step": 35,
+            "thickness_um": 2.673305790521008
+          },
+          {
+            "zone_index": 8,
+            "step": 36,
+            "thickness_um": 2.4275868373106073
+          },
+          {
+            "zone_index": 9,
+            "step": 37,
+            "thickness_um": 2.539830251149549
+          },
+          {
+            "zone_index": 10,
+            "step": 38,
+            "thickness_um": 2.990221855523826
+          },
+          {
+            "zone_index": 11,
+            "step": 39,
+            "thickness_um": 2.6281152543725668
+          },
+          {
+            "zone_index": 12,
+            "step": 50,
+            "thickness_um": 2.3506715668617026,
+            "masked_horizon": true,
+            "film_mineral": "clay",
+            "masked_phi_term": 0.3,
+            "masked_phi_prism": 0.3,
+            "originating_film_step": 40
+          },
+          {
+            "zone_index": 13,
+            "step": 51,
+            "thickness_um": 2.423942538044048
+          },
+          {
+            "zone_index": 14,
+            "step": 52,
+            "thickness_um": 2.5229028195307333
+          },
+          {
+            "zone_index": 15,
+            "step": 53,
+            "thickness_um": 2.7121096911823135
+          },
+          {
+            "zone_index": 16,
+            "step": 54,
+            "thickness_um": 2.111945481797873
+          },
+          {
+            "zone_index": 17,
+            "step": 55,
+            "thickness_um": 2.307812000970451
+          },
+          {
+            "zone_index": 18,
+            "step": 56,
+            "thickness_um": 2.2679700306891846
+          },
+          {
+            "zone_index": 19,
+            "step": 57,
+            "thickness_um": 2.1077779717906515
+          },
+          {
+            "zone_index": 20,
+            "step": 58,
+            "thickness_um": 2.691772522812104
+          },
+          {
+            "zone_index": 21,
+            "step": 59,
+            "thickness_um": 2.2770377333919294
+          },
+          {
+            "zone_index": 22,
+            "step": 68,
+            "thickness_um": 3.0068357202282097,
+            "masked_horizon": true,
+            "film_mineral": "iron oxide",
+            "masked_phi_term": 0.3,
+            "masked_phi_prism": 0.3,
+            "originating_film_step": 60
+          },
+          {
+            "zone_index": 23,
+            "step": 69,
+            "thickness_um": 2.2846768834671245
+          },
+          {
+            "zone_index": 24,
+            "step": 70,
+            "thickness_um": 2.9165696789252133
+          },
+          {
+            "zone_index": 25,
+            "step": 71,
+            "thickness_um": 2.832914452799043
+          },
+          {
+            "zone_index": 26,
+            "step": 72,
+            "thickness_um": 2.0244345347361263
+          },
+          {
+            "zone_index": 27,
+            "step": 73,
+            "thickness_um": 2.684434384576206
+          },
+          {
+            "zone_index": 28,
+            "step": 74,
+            "thickness_um": 2.97707746552034
+          },
+          {
+            "zone_index": 29,
+            "step": 75,
+            "thickness_um": 2.5331091829451573
+          },
+          {
+            "zone_index": 30,
+            "step": 76,
+            "thickness_um": 2.655089675966546
+          },
+          {
+            "zone_index": 31,
+            "step": 77,
+            "thickness_um": 2.6150217916493106
+          }
+        ],
+        "history": {
+          "schema": "surface-history-v1",
+          "initial": {
+            "step": 40,
+            "zone_count": 12,
+            "surface_um": 126.8782487811973,
+            "film": null
+          },
+          "events": [
+            {
+              "seq": 1,
+              "step": 40,
+              "zone_count": 12,
+              "surface_um": 126.8782487811973,
+              "event": "dusting",
+              "operation": {
+                "kind": "dust-max",
+                "source_id": "event-dusting:40:9:clay",
+                "mineral": "clay",
+                "phi_term": 0.3,
+                "phi_prism": 0.3,
+                "step": 40
+              },
+              "coverage_change": {
+                "term": 0.3,
+                "prism": 0.3
+              }
+            },
+            {
+              "seq": 2,
+              "step": 50,
+              "zone_count": 13,
+              "surface_um": 129.228920348059,
+              "event": "buried",
+              "accepted_zone_index": 12,
+              "horizon_um": 126.8782487811973
+            },
+            {
+              "seq": 3,
+              "step": 60,
+              "zone_count": 22,
+              "surface_um": 150.6521911382683,
+              "event": "dusting",
+              "operation": {
+                "kind": "dust-max",
+                "source_id": "event-dusting:60:9:iron oxide",
+                "mineral": "iron oxide",
+                "phi_term": 0.3,
+                "phi_prism": 0.3,
+                "step": 60
+              },
+              "coverage_change": {
+                "term": 0.3,
+                "prism": 0.3
+              }
+            },
+            {
+              "seq": 4,
+              "step": 68,
+              "zone_count": 23,
+              "surface_um": 153.6590268584965,
+              "event": "buried",
+              "accepted_zone_index": 22,
+              "horizon_um": 150.6521911382683
+            },
+            {
+              "seq": 5,
+              "step": 78,
+              "zone_count": 32,
+              "surface_um": 177.18235490908154,
+              "event": "dusting",
+              "operation": {
+                "kind": "dust-max",
+                "source_id": "event-dusting:78:9:clay",
+                "mineral": "clay",
+                "phi_term": 0.45,
+                "phi_prism": 0.45,
+                "step": 78
+              },
+              "coverage_change": {
+                "term": 0.45,
+                "prism": 0.45
+              }
+            }
+          ]
+        }
+      }
     ]
   }
 }

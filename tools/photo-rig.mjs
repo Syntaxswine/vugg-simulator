@@ -109,6 +109,7 @@ function parseArgs(argv) {
         && !/^history-[1-5]-quartz$/.test(out.fixture)
         && !/^enclosure-[2358]-quartz$/.test(out.fixture)
         && !/^film-(clear|coat|partial)-quartz$/.test(out.fixture)
+        && !/^surface-[1-8]-quartz$/.test(out.fixture)
         && !/^iron-(zoned|uniform|split)-sphalerite$/.test(out.fixture)) throw new Error('Unknown photo fixture');
     }
     else if (a === '--camera-from') out.cameraFrom = JSON.parse(readFileSync(path.resolve(ROOT, next()), 'utf8'));
@@ -1043,10 +1044,11 @@ function runProgram(name, seed, steps, fixture = null) {
       const fixtureName = ${JSON.stringify(fixture)};
       const iron = /^iron-(zoned|uniform|split)-sphalerite$/.exec(fixtureName);
       const surfaceFilm = /^film-(clear|coat|partial)-quartz$/.exec(fixtureName);
+      const surfaceHistory = /^surface-([1-8])-quartz$/.exec(fixtureName);
       const history = /^history-([1-5])-quartz$/.exec(fixtureName);
       const enclosure = /^enclosure-([2358])-quartz$/.exec(fixtureName);
       const cloud = /^cloud-(core|band|clear)-(quartz|topaz|apatite|barite|aragonite)$/.exec(fixtureName);
-      const fixtureMineral = iron ? 'sphalerite' : surfaceFilm || history || enclosure ? 'quartz' : cloud ? cloud[2] : fixtureName.startsWith('quartz-') ? 'quartz' : 'aragonite';
+      const fixtureMineral = iron ? 'sphalerite' : surfaceFilm || surfaceHistory || history || enclosure ? 'quartz' : cloud ? cloud[2] : fixtureName.startsWith('quartz-') ? 'quartz' : 'aragonite';
       const index = sim.crystals.findIndex(c => c.mineral === fixtureMineral);
       if (index < 0) throw new Error('Fixture requires an existing ' + fixtureMineral + ' anchor');
       const original = sim.crystals[index];
@@ -1068,6 +1070,24 @@ function runProgram(name, seed, steps, fixture = null) {
         crystal.nucleation_step=1; crystal.zones=[{step:1,thickness_um:8000}];
         if(surfaceFilm[1]!=='clear') crystal._film=filmWithOperation(null,{kind:'dust-max',source_id:'fixture-coating',
           mineral:'hematite',step:2,phi_term:1,phi_prism:surfaceFilm[1]==='coat'?1:.15});
+      }
+      if (surfaceHistory) {
+        // Controlled accepted-zone experiment: actual coating/burial/retreat
+        // writers, prescribed growth amounts, not a naturally simulated run.
+        crystal.nucleation_step=0;crystal.zones=[];crystal.total_growth_um=0;crystal._volume_mm3=0;
+        const accept=(step,thickness,buried=false)=>{
+          const z=new GrowthZone({step,temperature:100,thickness_um:thickness,growth_rate:thickness,aspect_ratio:.5});
+          z._time_scaled=true;
+          if(buried) Object.assign(z,{masked_horizon:true,film_mineral:crystal._film.mineral,
+            originating_film_step:crystal._film.step,masked_phi_term:crystal._film.phi_term,
+            masked_phi_prism:crystal._film.phi_prism,_clear_film_on_accept:true});
+          _applyAcceptedCrystalMutations(crystal,z);crystal.add_zone(z);
+        };
+        accept(1,3600);applyFilmDusting([crystal],'chlorite',.8,.35,2);
+        accept(3,2400,true);applyFilmDusting([crystal],'hematite',.4,.65,4);
+        accept(5,2000,true);accept(6,-2000);accept(7,-3200);accept(8,5200);
+        if(!validateSurfaceHistory(crystal._surfaceHistory,crystal.zones)) throw Error('Invalid controlled surface-history record');
+        RIG.historyCursor=Number(surfaceHistory[1]);
       }
       if (fixtureName === 'quartz-micro') {
         crystal.c_length_mm = .3; crystal.a_width_mm = .15; crystal.total_growth_um = 300;
@@ -1110,7 +1130,7 @@ function runProgram(name, seed, steps, fixture = null) {
         wall.surfaceNormalForCrystal=c=>wall._resolveAnchor(c)?.normal;
         sim.crystals=[crystal,guest];RIG.historyCursor=Number(enclosure[1]);
       }
-      if (fixtureName === 'quartz-micro' || iron || surfaceFilm) sim.crystals = [crystal];
+      if (fixtureName === 'quartz-micro' || iron || surfaceFilm || surfaceHistory) sim.crystals = [crystal];
       if (fixtureName === 'quartz-contact') {
         crystal.nucleation_step = 1; crystal.zones = [{step:1,thickness_um:8000}];
         const second = new Crystal({mineral:'quartz',habit:'prismatic',crystal_id:crystal.crystal_id+1000,nucleation_step:1});
@@ -1232,7 +1252,7 @@ function heroShotProgram({ w, h, index, n, mineral, wall, experiment = [], mood 
     RIG.lastProfileFrame = profile;
     const u = hero.m.userData;
     const sourceCrystal = RIG.sim().crystals.find(c=>c.crystal_id===u.crystal_id);
-    const colourRecord = sourceCrystal ? { surviving_Fe_ppm:_bodyFieldVal(colourCrystalAtStep(sourceCrystal,RIG.historyCursor??null),"Fe"), current_film:currentSurfaceFilm(sourceCrystal,RIG.historyCursor??null), enclosed_by:sourceCrystal.enclosed_by??null, dissolved:!!sourceCrystal.dissolved } : null;
+    const colourRecord = sourceCrystal ? { surviving_Fe_ppm:_bodyFieldVal(colourCrystalAtStep(sourceCrystal,RIG.historyCursor??null),"Fe"), current_film:currentSurfaceFilm(sourceCrystal,RIG.historyCursor??null), surface_history:surfaceHistoryAtStep(sourceCrystal,RIG.historyCursor??null), rendered_horizons:hero.m.children.filter(m=>m.userData?.o5Band).map(m=>m.userData), enclosed_by:sourceCrystal.enclosed_by??null, dissolved:!!sourceCrystal.dissolved } : null;
     const mats = Array.isArray(hero.m.material) ? hero.m.material : [hero.m.material];
     const mo = mats[0] && mats[0].userData ? mats[0].userData.optics : null;
     return { png, camera: { mode: 'direct', ...cam, ...rule, wall: ${JSON.stringify(wall)}, experiments: applied, lighting, optics, specimen },

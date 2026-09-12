@@ -134,6 +134,22 @@ interface StripTransformationEvent {
   phase_replacement?: any;
 }
 
+// Dated surface observations have their own channel. The habit testimony's
+// surface_film remains a current snapshot, never an inferred chronology.
+// Zone witnesses retain every accepted index (including signed retreat) so
+// imported ledgers can be checked without recreating a live crystal.
+interface StripSurfaceHistoryTestimony {
+  schema: 'strip-surface-history-v1';
+  crystal_id: number | string;
+  mineral: string;
+  captured_step: number;
+  sample_index: number;
+  zones: { zone_index: number; step: number; thickness_um: number; masked_horizon?: boolean;
+    film_mineral?: string | null; masked_phi_term?: number | null;
+    masked_phi_prism?: number | null; originating_film_step?: number | null }[];
+  history: any;
+}
+
 // The manifest — JSON-serializable. Header tells the reader what's in
 // the binary blob and how to decode it.
 interface StripManifest {
@@ -181,6 +197,7 @@ interface StripDataset {
   player_action_testimony?: any[];
   layer_growth_testimony?: any[];
   habit_morphology_testimony?: any[];
+  surface_history_testimony?: StripSurfaceHistoryTestimony[];
 }
 
 // ============================================================
@@ -289,6 +306,55 @@ function _stripPositiveSafeInteger(value: unknown, label: string, max: number): 
   return value;
 }
 
+function stripValidateSurfaceHistoryTestimony(value: unknown, sampleCount: number): void {
+  if (!Array.isArray(value) || value.length > 10_000) {
+    throw new Error('strip: invalid surface history testimony');
+  }
+  const seen = new Set<number | string>();
+  for (const row of value) {
+    if (!row || typeof row !== 'object' || Array.isArray(row)
+        || row.schema !== 'strip-surface-history-v1'
+        || Object.keys(row).some(k => !['schema', 'crystal_id', 'mineral', 'captured_step', 'sample_index', 'zones', 'history'].includes(k))) {
+      throw new Error('strip: invalid surface history record');
+    }
+    const id = row.crystal_id;
+    if (!((typeof id === 'number' && Number.isSafeInteger(id) && id >= 0)
+        || (typeof id === 'string' && id.length > 0 && id.length <= 256)) || seen.has(id)) {
+      throw new Error('strip: invalid or duplicate surface history crystal');
+    }
+    seen.add(id);
+    _stripBoundedText(row.mineral, 'surface history mineral', 256);
+    if (!Number.isSafeInteger(row.captured_step) || row.captured_step < 0
+        || !Number.isSafeInteger(row.sample_index) || row.sample_index < 0 || row.sample_index >= sampleCount
+        || !Array.isArray(row.zones) || row.zones.length > 10_000) {
+      throw new Error('strip: invalid surface history coordinates');
+    }
+    for (let i = 0; i < row.zones.length; i++) {
+      const z = row.zones[i];
+      if (!z || typeof z !== 'object' || Array.isArray(z) || z.zone_index !== i
+          || Object.keys(z).some(k => !['zone_index', 'step', 'thickness_um', 'masked_horizon',
+            'film_mineral', 'masked_phi_term', 'masked_phi_prism', 'originating_film_step'].includes(k))
+          || !Number.isSafeInteger(z.step) || z.step < 0 || z.step > row.captured_step
+          || typeof z.thickness_um !== 'number' || !Number.isFinite(z.thickness_um)
+          || (z.masked_horizon !== undefined && typeof z.masked_horizon !== 'boolean')
+          || (z.film_mineral != null && (typeof z.film_mineral !== 'string' || z.film_mineral.length > 128))
+          || ['masked_phi_term', 'masked_phi_prism'].some(k => z[k] != null
+            && (typeof z[k] !== 'number' || !Number.isFinite(z[k]) || z[k] < 0 || z[k] > 1))
+          || (z.originating_film_step != null && (!Number.isSafeInteger(z.originating_film_step) || z.originating_film_step < 0))) {
+        throw new Error('strip: invalid surface history zone witness');
+      }
+    }
+    let valid = false;
+    try {
+      valid = validateSurfaceHistory(row.history, row.zones)
+        && row.history.initial.step <= row.captured_step
+        && row.history.events.every((e: any) => e.step <= row.captured_step)
+        && (!row.history.unavailable || row.history.unavailable.step <= row.captured_step);
+    } catch (_error) { /* reject malformed evidence at the archive boundary */ }
+    if (!valid) throw new Error('strip: invalid surface history ledger');
+  }
+}
+
 // Validate the complete renderer-facing shape. Testimony payloads are carried
 // as opaque evidence, but every array is bounded by the section byte limit;
 // the manifest, events, and tensors that drive loops/SVG receive exact types,
@@ -394,6 +460,10 @@ function stripValidateDatasetShape(ds: StripDataset): void {
       throw new Error(`strip: invalid ${key}`);
     }
   }
+  if (ds.surface_history_testimony !== undefined) {
+    if (manifest.format_version < 4) throw new Error('strip: surface history requires a testimony section');
+    stripValidateSurfaceHistoryTestimony(ds.surface_history_testimony, steps);
+  }
 }
 
 async function _stripReadStreamBounded(
@@ -451,6 +521,12 @@ async function stripSerialize(
   ds: StripDataset,
   gzip: boolean = true
 ): Promise<Uint8Array> {
+  // Keep prior producer bytes unchanged when the optional channel is absent.
+  // A present but invalid/unsupported channel must never be silently dropped.
+  if (ds.surface_history_testimony !== undefined) {
+    if (ds.manifest.format_version < 4) throw new Error('strip: surface history requires a testimony section');
+    stripValidateSurfaceHistoryTestimony(ds.surface_history_testimony, ds.manifest.axes.steps);
+  }
   const enc = new TextEncoder();
   const manifestBytes = enc.encode(JSON.stringify(ds.manifest));
   const eventsBytes = enc.encode(JSON.stringify(ds.nucleation_events));
@@ -471,6 +547,7 @@ async function stripSerialize(
     player_action_testimony: ds.player_action_testimony || [],
     layer_growth_testimony: ds.layer_growth_testimony || [],
     habit_morphology_testimony: ds.habit_morphology_testimony || [],
+    ...(ds.surface_history_testimony !== undefined ? { surface_history_testimony: ds.surface_history_testimony } : {}),
   })) : null;
   const testimonySection = testimonyBytes ? 4 + testimonyBytes.length : 0;
 
@@ -558,6 +635,7 @@ async function stripDeserialize(input: Uint8Array): Promise<StripDataset> {
   let player_action_testimony: any[] | undefined;
   let layer_growth_testimony: any[] | undefined;
   let habit_morphology_testimony: any[] | undefined;
+  let surface_history_testimony: StripSurfaceHistoryTestimony[] | undefined;
   if ((manifest.format_version || 0) >= 4) {
     const testimony = takeJson('testimony');
     pressure_phase_testimony = Array.isArray(testimony.pressure_phase_testimony)
@@ -580,6 +658,9 @@ async function stripDeserialize(input: Uint8Array): Promise<StripDataset> {
       ? testimony.layer_growth_testimony : [];
     habit_morphology_testimony = Array.isArray(testimony.habit_morphology_testimony)
       ? testimony.habit_morphology_testimony : [];
+    // Preserve absence, and retain malformed values for the strict validator.
+    // Coercing a bad channel to [] would erase testimony during import.
+    surface_history_testimony = testimony.surface_history_testimony;
   }
   const chip_data = buf.slice(offset);
   const result = {
@@ -595,6 +676,7 @@ async function stripDeserialize(input: Uint8Array): Promise<StripDataset> {
     ...(player_action_testimony ? { player_action_testimony } : {}),
     ...(layer_growth_testimony ? { layer_growth_testimony } : {}),
     ...(habit_morphology_testimony ? { habit_morphology_testimony } : {}),
+    ...(surface_history_testimony !== undefined ? { surface_history_testimony } : {}),
   };
   stripValidateDatasetShape(result);
   return result;

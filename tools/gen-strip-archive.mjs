@@ -229,6 +229,7 @@ function archiveScenario(name, seed = 42) {
       player_actions: ds.player_action_testimony || [],
       layer_growth: ds.layer_growth_testimony || [],
       habit_morphology: ds.habit_morphology_testimony || [],
+      ...(ds.surface_history_testimony !== undefined ? { surface_history: ds.surface_history_testimony } : {}),
     },
   };
   return assertStripIdentity(story, {

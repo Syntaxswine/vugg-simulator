@@ -38,8 +38,11 @@ function sphaleriteIronColour(fePpm: number | null): string | null {
 }
 
 function currentSurfaceFilm(crystal: any, step: number | null = null): any {
-  if (step != null || !crystal?._film) return null;
-  const f = crystal._film;
+  const f=step==null?crystal?._film:surfaceHistoryAtStep(crystal,step)?.film;
+  return surfaceFilmAppearance(f);
+}
+function surfaceFilmAppearance(f: any): any {
+  if(!f) return null;
   if (!(f.phi_term > 0 || f.phi_prism > 0)) return null;
   const operations = _filmOperations(f);
   // Only particulate families with an explicit film palette have a supported
@@ -71,7 +74,8 @@ function applyRecordedSurfaceFilm(mat: any, crystal: any, step: number | null = 
   const film = currentSurfaceFilm(crystal, step);
   if (!film) return;
 
-  mat.userData.surfaceFilm = { ...film, mapping: 'face-class-coverage-and-nominal-operation-colour-mixture', chronology: 'current-only' };
+  mat.userData.surfaceFilm = { ...film, mapping: 'face-class-coverage-and-nominal-operation-colour-mixture',
+    chronology: step==null?'current-model-state':'recorded-prefix' };
   const prior = mat.onBeforeCompile, key = mat.customProgramCacheKey?.bind(mat);
   mat.onBeforeCompile = function(shader: any, renderer: any) {
     prior?.call(this, shader, renderer);

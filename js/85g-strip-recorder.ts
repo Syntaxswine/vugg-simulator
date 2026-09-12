@@ -122,6 +122,8 @@ class StripRecorder {
   private layerGrowthTestimony: any[];
   private lastSeenZoneCounts: Map<number | string, number>;
   private latestHabitMorphology: Map<number | string, any>;
+  private latestSurfaceHistory: Map<number | string, StripSurfaceHistoryTestimony>;
+  private surfaceHistoryFailure: string | null;
 
   constructor(sim: any, opts?: {
     angular_indices?: number,
@@ -215,6 +217,8 @@ class StripRecorder {
     this.layerGrowthTestimony = [];
     this.lastSeenZoneCounts = new Map();
     this.latestHabitMorphology = new Map();
+    this.latestSurfaceHistory = new Map();
+    this.surfaceHistoryFailure = null;
   }
 
   // ---- chip classification helpers ----------------------------------
@@ -490,6 +494,39 @@ class StripRecorder {
           surface_film: c._film || null,
           zone_count: zones.length,
         })));
+        if (c._surfaceHistory !== undefined) {
+          const testimony: StripSurfaceHistoryTestimony = {
+            schema: 'strip-surface-history-v1',
+            crystal_id: crystalId,
+            mineral: String(c.mineral || ''),
+            captured_step: Number(sim.step),
+            sample_index: step,
+            zones: zones.map((z: any, zi: number) => ({
+              zone_index: zi, step: z.step, thickness_um: z.thickness_um,
+              ...(z.masked_horizon !== undefined ? { masked_horizon: z.masked_horizon } : {}),
+              ...(z.film_mineral !== undefined ? { film_mineral: z.film_mineral } : {}),
+              ...(z.masked_phi_term !== undefined ? { masked_phi_term: z.masked_phi_term } : {}),
+              ...(z.masked_phi_prism !== undefined ? { masked_phi_prism: z.masked_phi_prism } : {}),
+              ...(z.originating_film_step !== undefined ? { originating_film_step: z.originating_film_step } : {}),
+            })),
+            history: c._surfaceHistory,
+          };
+          try {
+            stripValidateSurfaceHistoryTestimony([testimony], this.manifest.axes.steps);
+            const surface = surfaceHistoryAtStep(c);
+            if (surface && c._film !== undefined && !_surfaceEquivalentFilm(surface.film, c._film)) {
+              throw new Error('strip: surface history contradicts its recorded final film');
+            }
+          } catch (error) {
+            // run_step deliberately swallows recorder failures. Retain the
+            // failure here so a later finalization cannot publish stale data.
+            this.surfaceHistoryFailure = 'strip: surface history capture failed';
+            throw error;
+          }
+          // Freeze the observation at capture time, including an explicitly
+          // unavailable raw prefix. Later live changes cannot rewrite it.
+          this.latestSurfaceHistory.set(crystalId, JSON.parse(JSON.stringify(testimony)));
+        }
       }
     }
 
@@ -603,6 +640,7 @@ class StripRecorder {
   // serialization / IndexedDB.
   finalize(): StripDataset {
     this.active = false;
+    if (this.surfaceHistoryFailure) throw new Error(this.surfaceHistoryFailure);
     if (this.capturedSteps < this.manifest.axes.steps) {
       // Shrink axes.steps + slice chipData to match what we actually
       // captured. Keeps the dataset honest.
@@ -634,6 +672,7 @@ class StripRecorder {
       player_action_testimony: this.playerActionTestimony,
       layer_growth_testimony: this.layerGrowthTestimony,
       habit_morphology_testimony: Array.from(this.latestHabitMorphology.values()),
+      ...(this.latestSurfaceHistory.size ? { surface_history_testimony: Array.from(this.latestSurfaceHistory.values()) } : {}),
     };
   }
 

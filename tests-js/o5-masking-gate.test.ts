@@ -19,6 +19,7 @@ declare const setSeed: any;
 declare const setO5MaskingEnabled: any;
 declare const setSigmaStarK: any;
 declare const sigmaStarForCoverage: any;
+declare const validateSurfaceHistory:any, surfaceHistoryAtStep:any, _surfaceEquivalentFilm:any;
 
 function freshSim() {
   setSeed(42);
@@ -93,6 +94,11 @@ describe('W-F O5b — the masking gate is live', () => {
     for (let i = 0; i < steps; i++) sim.run_step();
     for (const c of sim.crystals) {
       if (!c || !c.zones) continue;
+      if(c._surfaceHistory) {
+        expect(validateSurfaceHistory(c._surfaceHistory,c.zones),`${name} #${c.crystal_id} surface chronology`).toBe(true);
+        expect(c._surfaceHistory.unavailable,`${name} #${c.crystal_id} observer gap`).toBeUndefined();
+        expect(_surfaceEquivalentFilm(surfaceHistoryAtStep(c)?.film,c._film),`${name} #${c.crystal_id} final coating`).toBe(true);
+      }
       for (const z of c.zones) {
         if (z.masked_horizon) {
           horizonsSeen++;

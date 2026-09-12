@@ -203,14 +203,16 @@ function applyFilmDusting(
     if (!c || !c.active || c.dissolved || currentEnclosureAuthority(sim, c)) continue;
     if (mineralFilter && mineralFilter.length && !mineralFilter.includes(c.mineral)) continue;
     const prev = c._film;
-    c._film = filmWithOperation(prev, {
+    const operation = {
       kind: 'dust-max',
       source_id: `event-dusting:${step}:${String(c.crystal_id)}:${filmMineral || 'film'}`,
       mineral: filmMineral || (prev && prev.mineral) || 'film',
       phi_term: pt,
       phi_prism: pp,
       step,
-    });
+    };
+    c._film = filmWithOperation(prev, operation);
+    recordSurfaceFilmOperation(c, operation, prev);
     n++;
   }
   return n;
@@ -240,12 +242,29 @@ function setSigmaStarK(v: number): void { SIGMA_STAR_K = +v; }
 // Replay excludes future breakthroughs; dissolution removes crossed surfaces.
 // Fractions map surviving axial history to similar display shells, not measured
 // per-face fronts. No RNG or mutation of scientific records.
-function maskedHorizonBands(crystal: any, replayStep: number | null = null): Array<{ frac: number; mineral: string }> {
+function maskedHorizonBands(crystal: any, replayStep: number | null = null): any[] {
+  if(crystal?._surfaceHistory!==undefined) {
+    const projection=_surfaceHistoryProjection(crystal._surfaceHistory,crystal.zones,replayStep);
+    if(!projection || crystal._surfaceHistory.unavailable) return [];
+    const legacy=_legacyMaskedHorizonBands(crystal,replayStep,crystal._surfaceHistory.initial.zone_count);
+    const view=projection.view;
+    if(!view) return legacy;
+    const zones=crystal.zones.filter(z=>replayStep==null || z.step<=replayStep);
+    const depths=_surfaceDepths(zones), total=depths?.[depths.length-1]||0;
+    if(!(total>0)) return [];
+    return legacy.concat(view.horizons.filter(h=>h.status==='buried' && h.depth_um>0 && h.depth_um<total)
+      .map(h=>({frac:h.depth_um/total,mineral:h.film.mineral,film:h.film,horizon_id:h.id,
+        buried_step:h.buried_step,mapping:'recorded-face-class-coverage; similar-shell-geometry'})));
+  }
+  return _legacyMaskedHorizonBands(crystal,replayStep);
+}
+function _legacyMaskedHorizonBands(crystal: any, replayStep: number | null = null, beforeZone=Infinity): Array<{ frac: number; mineral: string }> {
   if (!crystal || !Array.isArray(crystal.zones)) return [];
   if (replayStep == null && !(Number(crystal.c_length_mm) > 0)) return [];
   let runUm = 0;
   let horizons: Array<{ depth: number; mineral: string }> = [];
-  for (const z of crystal.zones) {
+  for (let zi=0;zi<crystal.zones.length;zi++) {
+    const z=crystal.zones[zi];
     if (!z || (replayStep != null && (!Number.isFinite(z.step) || z.step > replayStep))) continue;
     const thickness = Number(z.thickness_um);
     if (!Number.isFinite(thickness) || thickness === 0) continue;
@@ -255,7 +274,7 @@ function maskedHorizonBands(crystal: any, replayStep: number | null = null): Arr
       // Once dissolved back to an old surface, that buried film is no longer
       // preserved inside this body. Later regrowth must not resurrect it.
       horizons = horizons.filter(h => h.depth < runUm);
-    } else if (z.masked_horizon) {
+    } else if (z.masked_horizon && zi<beforeZone) {
       // A later live film name is not evidence for an older unnamed horizon.
       horizons.push({ depth: previousSurface, mineral: z.film_mineral || 'film' });
     }

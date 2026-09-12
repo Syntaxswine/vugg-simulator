@@ -21,8 +21,10 @@ const CRYSTAL_CORRUPT_KEY = 'vugg-crystals-v1.corrupt';
 // only a numeric count; accepting any nonnegative safe integer there allocates
 // nothing and preserves runs made while Simulation steps were unbounded.
 const COLLECTION_MAX_ZONE_RECORDS = 10_000;
+const COLLECTION_MAX_SURFACE_EVENT_RECORDS = 20_000;
 const COLLECTION_MAX_LEGACY_ZONE_COUNT = Number.MAX_SAFE_INTEGER;
-const COLLECTION_HISTORY_SCHEMA = 'crystal-history-v1';
+const COLLECTION_HISTORY_SCHEMA_V1 = 'crystal-history-v1';
+const COLLECTION_HISTORY_SCHEMA = 'crystal-history-v2';
 // Independent from SAVE_FORMAT: old event receipts must reproduce the exact
 // old projection, while every new scientific field participates in the digest.
 function collectionRecordProducerSchema(record): string | null {
@@ -30,14 +32,16 @@ function collectionRecordProducerSchema(record): string | null {
     if (record?.history !== undefined) throw new Error('Library history is missing its schema');
     return null;
   }
-  if (record.history_schema !== COLLECTION_HISTORY_SCHEMA) {
+  if (record.history_schema !== COLLECTION_HISTORY_SCHEMA_V1
+      && record.history_schema !== COLLECTION_HISTORY_SCHEMA) {
     throw new Error('Unsupported Library crystal history schema');
   }
-  return COLLECTION_HISTORY_SCHEMA;
+  return record.history_schema;
 }
 
-// These are snapshots, not new formation events. In particular, final split,
-// Wulff and film descriptors carry no invented per-step chronology.
+// Frozen v1 snapshot fields: adding testimony here would silently change the
+// scientific projection of already authenticated v1 receipts. Dated surface
+// testimony is an optional v2 addition, not an upgrade of the old snapshots.
 const COLLECTION_CRYSTAL_HISTORY_FIELDS = [
   'nucleation_step', 'nucleation_temp', 'c_length_mm', 'a_width_mm', 'total_growth_um', '_volume_mm3',
   'wall_spread', 'void_reach', 'vector', 'growth_environment', '_nucTilt',
@@ -60,7 +64,7 @@ const COLLECTION_SOURCE_HISTORY_FIELDS = [
 // Bounded JSON testimony. Reject nonfinite numbers, executable values, cycles,
 // prototype keys and deep/huge inputs before copying or persisting them. Omitted
 // undefined members remain omitted; they are never fabricated as zero data.
-function _collectionHistoryCopy(value, label = 'history', budget = { nodes: 0 }, depth = 0, seen = new Set()): any {
+function _collectionHistoryCopy(value, label = 'history', budget: { nodes: number; surfaceEvents?: any[] } = { nodes: 0 }, depth = 0, seen = new Set()): any {
   if (++budget.nodes > 2_000_000 || depth > 16) throw new Error(`Library ${label} exceeds history bounds`);
   if (value === null || typeof value === 'boolean') return value;
   if (typeof value === 'number' && Number.isFinite(value)) return value;
@@ -69,7 +73,10 @@ function _collectionHistoryCopy(value, label = 'history', budget = { nodes: 0 },
   seen.add(value);
   let copy: any;
   if (Array.isArray(value)) {
-    if (value.length > COLLECTION_MAX_ZONE_RECORDS) throw new Error(`Library ${label} exceeds history bounds`);
+    // Only the exact v2 event array gets the larger ledger bound. V1 arrays,
+    // zone arrays and other nested testimony retain their existing limits.
+    const limit = value === budget.surfaceEvents ? COLLECTION_MAX_SURFACE_EVENT_RECORDS : COLLECTION_MAX_ZONE_RECORDS;
+    if (value.length > limit) throw new Error(`Library ${label} exceeds history bounds`);
     copy = value.map(item => _collectionHistoryCopy(item, label, budget, depth + 1, seen));
   } else {
     if (Object.keys(value).length > 256) throw new Error(`Library ${label} exceeds history bounds`);
@@ -83,6 +90,15 @@ function _collectionHistoryCopy(value, label = 'history', budget = { nodes: 0 },
   }
   seen.delete(value);
   return copy;
+}
+
+function _collectionHistoryCopyBudget(producerSchema, history): { nodes: number; surfaceEvents?: any[] } {
+  return {
+    nodes: 0,
+    surfaceEvents: producerSchema === COLLECTION_HISTORY_SCHEMA
+      && Array.isArray(history?.crystal?._surfaceHistory?.events)
+      ? history.crystal._surfaceHistory.events : undefined,
+  };
 }
 
 function _collectionNumericMap(value, label) {
@@ -129,20 +145,33 @@ function _collectionAssertZoneHistory(zone) {
 }
 
 function _collectionAssertHistory(record) {
-  if (!collectionRecordProducerSchema(record)) return;
+  const producerSchema = collectionRecordProducerSchema(record);
+  if (!producerSchema) return;
   const h = record.history;
-  _collectionHistoryCopy({ history: h, zones: record.zones }); // Shared bound across the complete payload.
+  _collectionHistoryCopy({ history: h, zones: record.zones }, 'history',
+    _collectionHistoryCopyBudget(producerSchema, h)); // Shared bound across the complete payload.
   if (!h || typeof h !== 'object' || Array.isArray(h)
       || !h.crystal || typeof h.crystal !== 'object' || Array.isArray(h.crystal)
       || !h.source || typeof h.source !== 'object' || Array.isArray(h.source)
       || Object.keys(h).some(key => !['crystal', 'source', 'enclosure_lifecycle'].includes(key))
-      || Object.keys(h.crystal).some(key => !COLLECTION_CRYSTAL_HISTORY_FIELDS.includes(key))
+      || Object.keys(h.crystal).some(key => !COLLECTION_CRYSTAL_HISTORY_FIELDS.includes(key)
+        && !(producerSchema === COLLECTION_HISTORY_SCHEMA && key === '_surfaceHistory'))
       || Object.keys(h.source).some(key => !COLLECTION_SOURCE_HISTORY_FIELDS.includes(key))) {
     throw new Error('Library has invalid crystal history');
   }
   if (!Array.isArray(record.zones)) throw new Error('Library history requires its recorded zone array');
   for (const z of record.zones) _collectionAssertZoneHistory(z);
   const c = h.crystal;
+  if (producerSchema === COLLECTION_HISTORY_SCHEMA && c._surfaceHistory !== undefined
+      && !validateSurfaceHistory(c._surfaceHistory, record.zones)) {
+    throw new Error('Library has invalid dated surface history');
+  }
+  if (producerSchema === COLLECTION_HISTORY_SCHEMA && c._surfaceHistory !== undefined && c._film !== undefined) {
+    const surface = surfaceHistoryAtStep({ _surfaceHistory: c._surfaceHistory, zones: record.zones });
+    if (surface && !_surfaceEquivalentFilm(surface.film, c._film)) {
+      throw new Error('Library surface history contradicts its recorded final film');
+    }
+  }
   for (const key of ['nucleation_step', 'c_length_mm', 'a_width_mm', 'total_growth_um', '_volume_mm3', 'wall_spread', 'void_reach',
     '_peak_differential_stress_mpa', '_resolved_shear_mpa', '_twin_density_per_mm',
     'phase_transition_step', 'paramorph_step', 'dry_exposure_steps', '_ca_so4_hydration_water_mmolkg',
@@ -595,12 +624,16 @@ function _collectionSourceSimulator(crystal, meta) {
 }
 
 function buildCrystalRecord(crystal, meta, producerSchema: string | null = COLLECTION_HISTORY_SCHEMA) {
-  if (producerSchema !== null && producerSchema !== COLLECTION_HISTORY_SCHEMA) throw new Error('Unsupported collection producer schema');
+  if (producerSchema !== null && producerSchema !== COLLECTION_HISTORY_SCHEMA_V1
+      && producerSchema !== COLLECTION_HISTORY_SCHEMA) throw new Error('Unsupported collection producer schema');
   const record: any = _buildLegacyCrystalRecord(crystal, meta);
   if (producerSchema === null) return record;
   const snapshot = {}, source = {};
   for (const key of COLLECTION_CRYSTAL_HISTORY_FIELDS) {
     if (crystal[key] !== undefined) snapshot[key] = crystal[key];
+  }
+  if (producerSchema === COLLECTION_HISTORY_SCHEMA && crystal._surfaceHistory !== undefined) {
+    snapshot['_surfaceHistory'] = crystal._surfaceHistory;
   }
   for (const key of COLLECTION_SOURCE_HISTORY_FIELDS) {
     if (crystal[key] !== undefined) source[key] = crystal[key];
@@ -616,8 +649,8 @@ function buildCrystalRecord(crystal, meta, producerSchema: string | null = COLLE
       .map(e => e.guest_crystal_id));
     history.enclosure_lifecycle = sim._enclosureReceipts.filter(e => related.has(e.guest_crystal_id));
   }
-  record.history_schema = COLLECTION_HISTORY_SCHEMA;
-  record.history = _collectionHistoryCopy(history);
+  record.history_schema = producerSchema;
+  record.history = _collectionHistoryCopy(history, 'history', _collectionHistoryCopyBudget(producerSchema, history));
   record.zones = _collectionHistoryCopy(crystal.zones, 'growth zones');
   record.zone_count = record.zones.length;
   assertCrystalCollectionRecord(record);
@@ -678,8 +711,10 @@ function reconstructCrystalFromRecord(rec): any {
       return `step ${z.step}, T=${z.temperature.toFixed(1)}°C, +${z.thickness_um.toFixed(1)} µm`;
     },
   };
-  if (collectionRecordProducerSchema(rec)) {
-    Object.assign(stand, _collectionHistoryCopy(rec.history.crystal));
+  const producerSchema = collectionRecordProducerSchema(rec);
+  if (producerSchema) {
+    Object.assign(stand, _collectionHistoryCopy(rec.history.crystal, 'history',
+      _collectionHistoryCopyBudget(producerSchema, rec.history)));
     // Old cavity coordinates and IDs cannot attach this isolated specimen to
     // an unrelated host. Keep them as readable source-scoped testimony only.
     stand._collectionSourceHistory = _collectionHistoryCopy(rec.history.source);

@@ -3,6 +3,11 @@
 Continuation from `cf3ed5c7` (R7a), on canonical SIM 285. Scientific records
 remain authoritative. An attractive population is not evidence for an event.
 
+Subsequent increment: [dated coatings and buried surfaces](SURFACE-HISTORY-2026-09-12.md)
+extends the original current-only film boundary below with actual recorded
+operations and collection v2. The descriptions here retain the R7 landing's
+scope; unrecorded legacy chronology still cannot be back-projected.
+
 ## R7b — recorded lengths at macro zoom
 
 The ordinary Three view switches at 400% from overview enlargement to recorded

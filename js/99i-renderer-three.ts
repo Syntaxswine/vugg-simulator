@@ -8148,6 +8148,10 @@ function _o5EmitMaskedBands(hostMesh: any, crystal: any, state?: any, replayStep
   for (const band of bands) {
     const f = band.frac;
     if (!(f > 0 && f < 1)) continue;
+    const appearance=band.film?surfaceFilmAppearance(band.film):null;
+    // The new ledger keeps contributors. Unsupported material does not become
+    // generic opaque buff dust just because its host buried it.
+    if(band.film && !appearance) continue;
     const [br, bg, bb] = filmBandRGB(band.mineral);
     const bandMat = new THREE.MeshStandardMaterial({
       color: new THREE.Color(br, bg, bb),
@@ -8158,6 +8162,7 @@ function _o5EmitMaskedBands(hostMesh: any, crystal: any, state?: any, replayStep
       depthWrite: false,
       side: THREE.DoubleSide,
     });
+    if(appearance) _applySurfaceHorizonCoverage(bandMat,appearance,band.horizon_id);
     if (state && state.clipUniforms) _applyCavityClip(bandMat, state.clipUniforms);
     const bandMesh = new THREE.Mesh(hostMesh.geometry, bandMat);
     bandMesh.scale.setScalar(f);
@@ -8176,12 +8181,46 @@ function _o5EmitMaskedBands(hostMesh: any, crystal: any, state?: any, replayStep
     bandMesh.position.y = (hbb ? hbb.min.y : -0.5) * (1 - f);
     bandMesh.renderOrder = (hostMesh.renderOrder || 0) + 1;
     bandMesh.raycast = function () {};
-    bandMesh.userData = { o5Band: true, crystal_id: crystal.crystal_id, filmMineral: band.mineral };
+    bandMesh.userData = { o5Band: true, crystal_id: crystal.crystal_id, filmMineral: band.mineral,
+      ...(appearance?{surfaceHistory:{horizon_id:band.horizon_id,buried_step:band.buried_step,
+        coverage:appearance,geometry:'similar-base-anchored-shell',
+        display:'screen-door-face-class-coverage; patch-positions-unrecorded'}}:{}) };
     // R1: a phantom band sits inside its host, which already casts; receive only.
     _topoLightingTagMesh(bandMesh, false);
     hostMesh.add(bandMesh);
   }
   _o5SyncBandMaterials(hostMesh);
+}
+
+// Screen-door coverage is a display integration device, not a grain-position
+// reconstruction. It preserves holes in Three's opaque transmission buffer,
+// unlike alpha blended shells (which disappear from that buffer) or a solid
+// shell (which turns a 10% film into a complete opaque inclusion). The local
+// face normal supplies only prism/termination class, already used by the model.
+function _applySurfaceHorizonCoverage(mat: any,film: any,horizonId=0): void {
+  mat.userData.surfaceHorizonCoverage=film;
+  mat.onBeforeCompile=(shader: any)=>{
+    shader.uniforms.surfaceHorizonCoverage={value:new THREE.Vector2(film.prism,film.term)};
+    shader.uniforms.surfaceHorizonPrism={value:new THREE.Color(...film.prismColour)};
+    shader.uniforms.surfaceHorizonTerm={value:new THREE.Color(...film.termColour)};
+    // A different phase per recorded interface avoids falsely making every
+    // inner 30% coating a subset of an outer 60% coating's display samples.
+    shader.uniforms.surfaceHorizonPhase={value:new THREE.Vector2(horizonId%4,Math.floor(horizonId/4)%4)};
+    shader.vertexShader='varying float surfaceHorizonTerminal;\n'+shader.vertexShader;
+    shader.vertexShader=shader.vertexShader.replace('#include <beginnormal_vertex>',
+      '#include <beginnormal_vertex>\nsurfaceHorizonTerminal=smoothstep(0.25,0.75,abs(normal.y));');
+    shader.fragmentShader='varying float surfaceHorizonTerminal; uniform vec2 surfaceHorizonCoverage; uniform vec2 surfaceHorizonPhase; uniform vec3 surfaceHorizonPrism; uniform vec3 surfaceHorizonTerm;\n'+shader.fragmentShader;
+    shader.fragmentShader=shader.fragmentShader.replace('#include <color_fragment>',`#include <color_fragment>
+      float coverage=mix(surfaceHorizonCoverage.x,surfaceHorizonCoverage.y,surfaceHorizonTerminal);
+      // Ordered 4x4 screen threshold; stable, bounded, no simulation RNG.
+      vec2 p=mod(floor(gl_FragCoord.xy)+surfaceHorizonPhase,4.0);
+      float threshold=mod(p.x,2.0)*8.0+mod(p.y,2.0)*12.0;
+      threshold=mod(threshold,16.0)+floor(p.x/2.0)*2.0+floor(p.y/2.0)*3.0;
+      threshold=mod(threshold,16.0);
+      if(coverage<=0.0 || (threshold+0.5)/16.0>coverage) discard;
+      diffuseColor.rgb=mix(surfaceHorizonPrism,surfaceHorizonTerm,surfaceHorizonTerminal);`);
+  };
+  mat.customProgramCacheKey=()=> 'surface-horizon-coverage-v1';
 }
 
 // Three captures opaque objects for refraction before drawing transmissive hosts.

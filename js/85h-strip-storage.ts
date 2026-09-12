@@ -80,6 +80,7 @@ interface StripStoredRecord {
   player_action_testimony?: any[];
   layer_growth_testimony?: any[];
   habit_morphology_testimony?: any[];
+  surface_history_testimony?: StripSurfaceHistoryTestimony[];
 }
 
 interface StripListEntry {
@@ -223,6 +224,7 @@ function stripStoredRecordFromDataset(
     ...(ds.player_action_testimony ? { player_action_testimony: ds.player_action_testimony } : {}),
     ...(ds.layer_growth_testimony ? { layer_growth_testimony: ds.layer_growth_testimony } : {}),
     ...(ds.habit_morphology_testimony ? { habit_morphology_testimony: ds.habit_morphology_testimony } : {}),
+    ...(ds.surface_history_testimony !== undefined ? { surface_history_testimony: ds.surface_history_testimony } : {}),
   };
 }
 
@@ -242,6 +244,7 @@ function stripDatasetFromStoredRecord(rec: StripStoredRecord): StripDataset {
     ...(rec.player_action_testimony ? { player_action_testimony: rec.player_action_testimony } : {}),
     ...(rec.layer_growth_testimony ? { layer_growth_testimony: rec.layer_growth_testimony } : {}),
     ...(rec.habit_morphology_testimony ? { habit_morphology_testimony: rec.habit_morphology_testimony } : {}),
+    ...(rec.surface_history_testimony !== undefined ? { surface_history_testimony: rec.surface_history_testimony } : {}),
   };
 }
 

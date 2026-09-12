@@ -55,6 +55,7 @@ function showZoneHistory(crystal) {
   `;
   grooveModalCrystal = crystal;
   body.appendChild(summary);
+  body.appendChild(surfaceHistoryPanel(crystal));
 
   if (!crystal.zones.length) {
     const noZones = document.createElement('div');
@@ -323,6 +324,40 @@ function showZoneHistory(crystal) {
   }
 
   overlay.classList.add('visible');
+}
+
+function surfaceHistoryPanel(crystal: any, step: number | null = null): HTMLElement {
+  const details=document.createElement('details');
+  details.style.cssText='margin:0.8rem 0;font-size:0.78rem;color:#c7b99e;line-height:1.5';
+  const heading=document.createElement('summary'); heading.textContent='Coatings and buried surfaces'; details.appendChild(heading);
+  const view=surfaceHistoryAtStep(crystal,step), note=document.createElement('p');
+  if(!view) {
+    note.textContent=crystal?._surfaceHistory?.unavailable
+      ? 'This coating record is incomplete. Its surface chronology is unavailable.'
+      : 'No dated coating history is available at this point. An undated coating does not establish when it arrived.';
+    details.appendChild(note); return details;
+  }
+  note.textContent=`Coating observations begin at step ${view.available_since_step}. Coverage describes termination and prism faces as groups; individual grain positions were not recorded.`;
+  details.appendChild(note);
+  const list=document.createElement('ol');
+  const pct=(x:number)=>`${(x*100).toFixed(1)}%`;
+  for(const e of view.events) {
+    const row=document.createElement('li');
+    let text='';
+    if(e.event==='dusting' || e.event==='front-coating') {
+      text=`${e.operation.mineral} ${e.event==='dusting'?'dusting':'front coating'}; coverage change ${pct(e.coverage_change.term)} on terminations, ${pct(e.coverage_change.prism)} on prism faces.`;
+    } else if(e.event==='buried') {
+      text=`Overgrowth buried the coating at the former ${e.horizon_um.toFixed(1)} µm growth boundary.`;
+    } else if(e.event==='boundary-reached' || e.event==='boundary-crossed') {
+      text=e.event==='boundary-reached'?'Host retreat reached a buried coating boundary.':'Host retreat passed a buried coating boundary; it is no longer enclosed.';
+      text+=' The coating grains’ fate is unrecorded.';
+    } else if(e.event==='liberated') {
+      text=e.found?'Guest liberation removed its contribution from the active coating model.'
+        :'Guest liberation found no active coating contribution to remove; it does not erase a buried record.';
+    }
+    row.textContent=`Step ${e.step} · ${text}`; list.appendChild(row);
+  }
+  details.appendChild(list); return details;
 }
 
 function closeZoneModal() {

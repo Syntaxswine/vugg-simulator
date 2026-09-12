@@ -1,8 +1,8 @@
 {
   "schema": "vugg-guided-tutorial-browser-receipt-v6",
   "sim_version": 285,
-  "browser_bundle_sha256": "46c5666dd9c1197befb23253171f2181967c2bfdf5f3b9e1c333e544ba964de5",
-  "execution_set_sha256": "95980298684ef4a69a3a5621ab07ec8da56873081ebab242f922c6afe98956df",
+  "browser_bundle_sha256": "4a91c55e0a6956acb2482b03cbb76bb17e7e2d6cd3059b28c6cc7ed62ea63e25",
+  "execution_set_sha256": "9e269aea819141b23d3231ae97abe3ef77c31f540f215ac5c6f7569ca0abcfd0",
   "node_runtime": {
     "schema": "vugg-evidence-node-runtime-v1",
     "node": "24.15.0",

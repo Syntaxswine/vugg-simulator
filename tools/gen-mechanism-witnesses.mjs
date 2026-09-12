@@ -289,6 +289,7 @@ const serializeGuidedStripControl = dataset => {
     player_action_testimony: dataset.player_action_testimony || [],
     layer_growth_testimony: dataset.layer_growth_testimony || [],
     habit_morphology_testimony: dataset.habit_morphology_testimony || [],
+    ...(dataset.surface_history_testimony !== undefined ? { surface_history_testimony: dataset.surface_history_testimony } : {}),
   }), 'utf8');
   const u32 = value => {
     const out = Buffer.alloc(4);

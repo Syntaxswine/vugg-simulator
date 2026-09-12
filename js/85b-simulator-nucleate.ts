@@ -95,7 +95,10 @@ function _applyAcceptedCrystalMutations(crystal: any, zone: any) {
       else delete crystal[key];
     }
   }
-  if (accepted && zone._clear_film_on_accept && crystal) crystal._film = null;
+  if (thickness > 0 && zone._clear_film_on_accept && crystal) {
+    zone._surfaceBurialPending = _surfaceCopy(crystal._film);
+    crystal._film = null;
+  }
   delete zone._engine_crystal_mutations;
   delete zone._clear_film_on_accept;
 }
