@@ -1,13 +1,11 @@
 // tests-js/o5-band-render.test.ts — W-F O5c: the band render's PURE core.
 //
-// O5c makes the masked_horizon phantom VISIBLE: a thin concentric shell inside
-// the crystal, at the horizon's recorded radial depth, tinted by the film
-// mineral, revealed by the host's Depth-A translucency (the Three renderer, not
-// exercised here). The two testable pieces are pure and DOM-free:
-//   • maskedHorizonBands(crystal) — reconstructs each horizon's radial fraction
-//     from the recorded zone stack (running Σthickness_um / final c_length),
-//     the same accumulation js/27 add_zone does, so it reads back the depth the
-//     sim actually buried the film at. Render-only: mutates nothing.
+// O5c draws masked_horizon records as similar, base-anchored shells. The axial
+// record supports ordering and survival; shell shape is a display approximation,
+// not a recorded radial or per-face growth front. The pure data path is:
+//   • maskedHorizonBands(crystal) — reconstructs each pre-breakthrough surface
+//     from the zone stack, removes surfaces reached by dissolution, and divides
+//     surviving depths by final surviving thickness. Render-only: mutates nothing.
 //   • filmBandRGB(mineral) — the low-saturation field-guide palette.
 //
 // These pin the render's data path so a preview eye-check only has to confirm
@@ -26,10 +24,10 @@ function crystalWithZones(zones: any[], cLenMm: number): any {
   return { zones, c_length_mm: cLenMm };
 }
 
-describe('W-F O5c — maskedHorizonBands (pure radial-depth reconstruction)', () => {
+describe('W-F O5c — maskedHorizonBands (surviving axial history)', () => {
   it('places a single horizon at its running-growth fraction of final size', () => {
     // 300 µm clean → 200 µm masked (film buried) → 500 µm clean. Running total
-    // at the horizon = 500 µm = 0.5 mm; final c_length = 1.0 mm → frac 0.5.
+    // before breakthrough = 300 µm; final surviving thickness = 1000 µm → frac 0.3.
     const c = crystalWithZones([
       { thickness_um: 300 },
       { thickness_um: 200, masked_horizon: true, film_mineral: 'clay' },
@@ -37,7 +35,7 @@ describe('W-F O5c — maskedHorizonBands (pure radial-depth reconstruction)', ()
     ], 1.0);
     const bands = maskedHorizonBands(c);
     expect(bands.length).toBe(1);
-    expect(bands[0].frac).toBeCloseTo(0.5, 6);
+    expect(bands[0].frac).toBeCloseTo(0.3, 6);
     expect(bands[0].mineral).toBe('clay');
   });
 
@@ -45,14 +43,14 @@ describe('W-F O5c — maskedHorizonBands (pure radial-depth reconstruction)', ()
     // The elmwood snowball shape: two buried films, then a final clean skin.
     const c = crystalWithZones([
       { thickness_um: 300 },
-      { thickness_um: 200, masked_horizon: true, film_mineral: 'clay' },       // run 500 → 500/1200
-      { thickness_um: 300, masked_horizon: true, film_mineral: 'iron oxide' }, // run 800 → 800/1200
+      { thickness_um: 200, masked_horizon: true, film_mineral: 'clay' },       // old surface 300/1200
+      { thickness_um: 300, masked_horizon: true, film_mineral: 'iron oxide' }, // old surface 500/1200
       { thickness_um: 400 },                                                   // run 1200 = final
     ], 1.2);
     const bands = maskedHorizonBands(c);
     expect(bands.length).toBe(2);
-    expect(bands[0].frac).toBeCloseTo(500 / 1200, 6);
-    expect(bands[1].frac).toBeCloseTo(800 / 1200, 6);
+    expect(bands[0].frac).toBeCloseTo(300 / 1200, 6);
+    expect(bands[1].frac).toBeCloseTo(500 / 1200, 6);
     expect(bands[1].frac).toBeGreaterThan(bands[0].frac);   // inner → outer
     expect(bands.map((b: any) => b.mineral)).toEqual(['clay', 'iron oxide']);
   });
@@ -65,18 +63,18 @@ describe('W-F O5c — maskedHorizonBands (pure radial-depth reconstruction)', ()
     expect(maskedHorizonBands(c)).toEqual([]);
   });
 
-  it('drops a horizon that lands on the outer surface (frac ≥ 1 needs no internal shell)', () => {
-    // Masked zone is the LAST growth → running total == final c_length → frac 1.
+  it('buries the existing film during the final positive breakthrough zone', () => {
+    // Even the final increment buries the older surface beneath its new growth.
     const c = crystalWithZones([
       { thickness_um: 700 },
-      { thickness_um: 300, masked_horizon: true, film_mineral: 'clay' },   // run 1000 = final → frac 1.0
+      { thickness_um: 300, masked_horizon: true, film_mineral: 'clay' },   // old surface 700/1000
     ], 1.0);
-    expect(maskedHorizonBands(c)).toEqual([]);
+    expect(maskedHorizonBands(c)).toEqual([{ frac: .7, mineral: 'clay' }]);
   });
 
   it('a net dissolution zone shrinks the running depth exactly as the sim does', () => {
     // clean 600 → dissolve −200 (net 400) → masked +400 (net 800). The horizon
-    // sits at 800/1000 = 0.8, NOT (600+400)/final — the negative zone counts.
+    // sits at 400/1000 = 0.4, before breakthrough — the negative zone counts.
     const c = crystalWithZones([
       { thickness_um: 600 },
       { thickness_um: -200 },
@@ -85,7 +83,7 @@ describe('W-F O5c — maskedHorizonBands (pure radial-depth reconstruction)', ()
     ], 1.0);
     const bands = maskedHorizonBands(c);
     expect(bands.length).toBe(1);
-    expect(bands[0].frac).toBeCloseTo(0.8, 6);
+    expect(bands[0].frac).toBeCloseTo(0.4, 6);
   });
 
   it('is defensive on degenerate input (no zones / zero size / garbage)', () => {

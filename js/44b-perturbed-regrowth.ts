@@ -235,31 +235,36 @@ function setSigmaStarK(v: number): void { SIGMA_STAR_K = +v; }
 // (no bump, no baseline rebake); the Three renderer (js/99i) consumes them in a
 // purely-visual pass, the same render-only contract O4a's engulfment shipped on.
 
-// Reconstruct each masked horizon's RADIAL FRACTION from the zone stack. The
-// crystal's c_length at zone i is the running sum of zone thicknesses / 1000
-// (add_zone's own cNew_mm accumulation, js/27 — the running total is net, so a
-// dissolution zone shrinks it exactly as the sim does), so a horizon tagged at
-// zone i sits at fraction (running c_length)/(final c_length) of the growth axis
-// — the band's depth below the current surface. Pure, DOM-free, RNG-free,
-// unit-tested (tests-js/o5-band-render.test.ts). Returns [{ frac, mineral }]
-// inner→outer, dropping horizons at frac ≤ 0 or ≥ 1 (degenerate / the outer
-// surface itself, which is the live face and needs no internal shell).
-function maskedHorizonBands(crystal: any): Array<{ frac: number; mineral: string }> {
-  const out: Array<{ frac: number; mineral: string }> = [];
-  if (!crystal || !Array.isArray(crystal.zones)) return out;
-  const finalC = Number(crystal.c_length_mm) || 0;
-  if (finalC <= 0) return out;
+// A masked_horizon marks the first accepted breakthrough growth THROUGH a
+// previously deposited film (js/85). The film lies on the PRE-growth surface.
+// Replay excludes future breakthroughs; dissolution removes crossed surfaces.
+// Fractions map surviving axial history to similar display shells, not measured
+// per-face fronts. No RNG or mutation of scientific records.
+function maskedHorizonBands(crystal: any, replayStep: number | null = null): Array<{ frac: number; mineral: string }> {
+  if (!crystal || !Array.isArray(crystal.zones)) return [];
+  if (replayStep == null && !(Number(crystal.c_length_mm) > 0)) return [];
   let runUm = 0;
+  let horizons: Array<{ depth: number; mineral: string }> = [];
   for (const z of crystal.zones) {
-    runUm += (z && Number(z.thickness_um)) || 0;
-    if (z && z.masked_horizon && z.thickness_um > 0) {
-      const frac = (runUm / 1000) / finalC;
-      if (frac > 0 && frac < 1) {
-        out.push({ frac, mineral: (z.film_mineral || crystal._film_mineral || 'film') });
-      }
+    if (!z || (replayStep != null && (!Number.isFinite(z.step) || z.step > replayStep))) continue;
+    const thickness = Number(z.thickness_um);
+    if (!Number.isFinite(thickness) || thickness === 0) continue;
+    const previousSurface = runUm;
+    runUm = Math.max(0, runUm + thickness);
+    if (thickness < 0) {
+      // Once dissolved back to an old surface, that buried film is no longer
+      // preserved inside this body. Later regrowth must not resurrect it.
+      horizons = horizons.filter(h => h.depth < runUm);
+    } else if (z.masked_horizon) {
+      // A later live film name is not evidence for an older unnamed horizon.
+      horizons.push({ depth: previousSurface, mineral: z.film_mineral || 'film' });
     }
   }
-  return out;
+  if (!(runUm > 0)) return [];
+  // Axial history supplies ordering/depth, not reconstructed per-face fronts.
+  // Normalize to surviving history as in cloudyGrowthHistory, including caps.
+  return horizons.filter(h => h.depth > 0 && h.depth < runUm)
+    .map(h => ({ frac: h.depth / runUm, mineral: h.mineral }));
 }
 
 // Low-saturation field-guide palette for a film band, keyed on the film

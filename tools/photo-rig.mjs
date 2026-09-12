@@ -105,7 +105,8 @@ function parseArgs(argv) {
     else if (a === '--fixture') {
       out.fixture = next();
       if (!['aragonite-trilling', 'aragonite-contact', 'aragonite-ordinary', 'quartz-double', 'quartz-accessory'].includes(out.fixture)
-        && !/^cloud-(core|band|clear)-(quartz|topaz|apatite|barite|aragonite)$/.test(out.fixture)) throw new Error('Unknown photo fixture');
+        && !/^cloud-(core|band|clear)-(quartz|topaz|apatite|barite|aragonite)$/.test(out.fixture)
+        && !/^history-[1-5]-quartz$/.test(out.fixture)) throw new Error('Unknown photo fixture');
     }
     else if (a === '--camera-from') out.cameraFrom = JSON.parse(readFileSync(path.resolve(ROOT, next()), 'utf8'));
     else if (a === '--size') out.size = next().split('x').map(Number);
@@ -430,6 +431,10 @@ const PAGE_HELPERS = `
   const RIG = window.__photoRig = window.__photoRig || {};
   RIG.state = () => (typeof _topoThreeState !== 'undefined' ? _topoThreeState : null);
   RIG.sim = () => (typeof fortressSim !== 'undefined' ? fortressSim : null);
+  RIG.refresh = () => {
+    topoRender();
+    if (RIG.historyCursor != null) _topoSyncCrystalMeshes(RIG.state(), RIG.sim(), RIG.sim().wall_state, RIG.historyCursor);
+  };
   RIG.hex = c => '#' + c.getHexString();
   RIG.glInfo = () => {
     const st = RIG.state(); if (!st || !st.renderer) return null;
@@ -500,8 +505,9 @@ const PAGE_HELPERS = `
   };
   RIG.isolatedFrame = (mesh, w, h) => {
     const vis = [];
+    const retained = new Set(); mesh.traverse(o => retained.add(o));
     RIG.state().crystals.traverse(o => {
-      if (o.isMesh && o !== mesh) { vis.push([o, o.visible]); o.visible = false; }
+      if (o.isMesh && !retained.has(o)) { vis.push([o, o.visible]); o.visible = false; }
     });
     try { return RIG.render(w, h); }
     finally { for (const [o, v] of vis) o.visible = v; }
@@ -600,6 +606,9 @@ const PAGE_HELPERS = `
       }
       rows.push({
         crystal_id: m.userData.crystal_id, mineral: m.userData.mineral,
+        population_display: m.userData.populationDisplay ?? null,
+        masked_bands: m.children.filter(b => b.userData?.o5Band).map(b => ({fraction:b.scale.x,mineral:b.userData.filmMineral,transparent:b.material.transparent})),
+        history_cursor: RIG.historyCursor ?? null,
         kind: RIG.kind(m), instances: m.isInstancedMesh ? m.count : 1,
         regime: m.userData.regime || null, coverage_fraction: m.userData.coverage_fraction ?? null,
         representation: m.userData.representation || (m.userData.surfaceGrowth ? 'instanced-swath' : null),
@@ -764,6 +773,10 @@ const PAGE_HELPERS = `
     const st = RIG.state(); const sim = RIG.sim(); const applied = [];
     if (!list || !list.length) return applied;
     const r0 = RIG.cavityR0();
+    if (list.includes('filmoff')) {
+      st.crystals.traverse(m => { if (m.userData?.o5Band) m.visible = false; });
+      applied.push('filmoff');
+    }
     if (list.includes('swathoff')) {   // ablation: how much of the picture is the coin carpet?
       for (const m of st.crystals.children) if (m.userData?.surfaceGrowth) m.visible = false;
       applied.push('swathoff');
@@ -1016,8 +1029,9 @@ function runProgram(name, seed, steps, fixture = null) {
     const simMs = performance.now() - t0;
     if (${JSON.stringify(fixture)} != null) {
       const fixtureName = ${JSON.stringify(fixture)};
+      const history = /^history-([1-5])-quartz$/.exec(fixtureName);
       const cloud = /^cloud-(core|band|clear)-(quartz|topaz|apatite|barite|aragonite)$/.exec(fixtureName);
-      const fixtureMineral = cloud ? cloud[2] : fixtureName.startsWith('quartz-') ? 'quartz' : 'aragonite';
+      const fixtureMineral = history ? 'quartz' : cloud ? cloud[2] : fixtureName.startsWith('quartz-') ? 'quartz' : 'aragonite';
       const index = sim.crystals.findIndex(c => c.mineral === fixtureMineral);
       if (index < 0) throw new Error('Fixture requires an existing ' + fixtureMineral + ' anchor');
       const original = sim.crystals[index];
@@ -1037,17 +1051,29 @@ function runProgram(name, seed, steps, fixture = null) {
           {step:3,thickness_um:3200,fluid_inclusion:false}
         ];
       }
+      if (history) {
+        crystal.nucleation_step = 1;
+        crystal._nucTilt = { theta: .3, azim: .8 };
+        crystal.zones = [
+          {step:1,thickness_um:2000},
+          {step:2,thickness_um:2000,masked_horizon:true,film_mineral:'clay'},
+          {step:3,thickness_um:2000,masked_horizon:true,film_mineral:'chlorite'},
+          {step:4,thickness_um:-4500},
+          {step:5,thickness_um:6500}
+        ];
+        RIG.historyCursor = Number(history[1]);
+      }
       sim.crystals[index] = crystal;
     }
     if (typeof _topoUseThreeRenderer !== 'undefined' && !_topoUseThreeRenderer) _topoUseThreeRenderer = true;
     _topoSyncThreeCanvasVisibility();
     const renderStart = performance.now();
-    topoRender();
+    RIG.refresh();
     const renderBuildMs = performance.now() - renderStart;
     const st = RIG.state();
     if (!st || !st.renderer) throw new Error('Three renderer did not initialise (WebGL unavailable?)');
     const reuseStart = performance.now();
-    topoRender();
+    RIG.refresh();
     const renderReuseMs = performance.now() - reuseStart;
     const frameTimes = [];
     for (let i = 0; i < 5; i++) {
@@ -1072,7 +1098,7 @@ function cavityShotProgram({ w, h, tilt, zoom, wall, experiment = [], mood = nul
     const RIG = window.__photoRig;
     const specimen = RIG.setView(${JSON.stringify(view)}, ${ev == null ? 'null' : Number(ev)});
     ${(keepPose && !tiltGiven) ? '' : `_topoTiltX = ${tilt[0]}; _topoTiltY = ${tilt[1]};`} ${(keepPose && !zoomGiven) ? '' : `_topoZoom = ${zoom};`} _topoPanX = 0; _topoPanY = 0;
-    topoRender();
+    RIG.refresh();
     RIG.wallMode(${JSON.stringify(wall)});
     const st = RIG.state();
     const lighting = RIG.applyLighting(${JSON.stringify(mood)}, ${exposure == null ? 'null' : Number(exposure)});
@@ -1088,7 +1114,7 @@ function heroShotProgram({ w, h, index, n, mineral, wall, experiment = [], mood 
   return `(async () => {
     const RIG = window.__photoRig;
     const specimen = RIG.setView(${JSON.stringify(view)}, ${ev == null ? 'null' : Number(ev)});
-    topoRender();
+    RIG.refresh();
     const heroes = RIG.pickHeroes(${n}, ${JSON.stringify(mineral)}, ${JSON.stringify(crystalId)});
     const hero = heroes[${index}];
     if (!hero) return null;
@@ -1169,7 +1195,7 @@ function druseShotProgram({ w, h, wall, experiment = [], mood = null, exposure =
   return `(async () => {
     const RIG = window.__photoRig;
     const specimen = RIG.setView(${JSON.stringify(view)}, ${ev == null ? 'null' : Number(ev)});
-    topoRender();
+    RIG.refresh();
     const d = RIG.pickDruse(); if (!d) return null;
     const cam = RIG.placeCamera(d.center, d.size, d.axis, { offAxisDeg: 40, yawDeg: 15, fill: 0.7 });
     const rule = RIG.applyInsideRule(d.center);

@@ -50609,33 +50609,42 @@ function setSigmaStarK(v) { SIGMA_STAR_K = +v; }
 // the recorded zone stack and mutate nothing, so the SIM record is byte-identical
 // (no bump, no baseline rebake); the Three renderer (js/99i) consumes them in a
 // purely-visual pass, the same render-only contract O4a's engulfment shipped on.
-// Reconstruct each masked horizon's RADIAL FRACTION from the zone stack. The
-// crystal's c_length at zone i is the running sum of zone thicknesses / 1000
-// (add_zone's own cNew_mm accumulation, js/27 — the running total is net, so a
-// dissolution zone shrinks it exactly as the sim does), so a horizon tagged at
-// zone i sits at fraction (running c_length)/(final c_length) of the growth axis
-// — the band's depth below the current surface. Pure, DOM-free, RNG-free,
-// unit-tested (tests-js/o5-band-render.test.ts). Returns [{ frac, mineral }]
-// inner→outer, dropping horizons at frac ≤ 0 or ≥ 1 (degenerate / the outer
-// surface itself, which is the live face and needs no internal shell).
-function maskedHorizonBands(crystal) {
-    const out = [];
+// A masked_horizon marks the first accepted breakthrough growth THROUGH a
+// previously deposited film (js/85). The film lies on the PRE-growth surface.
+// Replay excludes future breakthroughs; dissolution removes crossed surfaces.
+// Fractions map surviving axial history to similar display shells, not measured
+// per-face fronts. No RNG or mutation of scientific records.
+function maskedHorizonBands(crystal, replayStep = null) {
     if (!crystal || !Array.isArray(crystal.zones))
-        return out;
-    const finalC = Number(crystal.c_length_mm) || 0;
-    if (finalC <= 0)
-        return out;
+        return [];
+    if (replayStep == null && !(Number(crystal.c_length_mm) > 0))
+        return [];
     let runUm = 0;
+    let horizons = [];
     for (const z of crystal.zones) {
-        runUm += (z && Number(z.thickness_um)) || 0;
-        if (z && z.masked_horizon && z.thickness_um > 0) {
-            const frac = (runUm / 1000) / finalC;
-            if (frac > 0 && frac < 1) {
-                out.push({ frac, mineral: (z.film_mineral || crystal._film_mineral || 'film') });
-            }
+        if (!z || (replayStep != null && (!Number.isFinite(z.step) || z.step > replayStep)))
+            continue;
+        const thickness = Number(z.thickness_um);
+        if (!Number.isFinite(thickness) || thickness === 0)
+            continue;
+        const previousSurface = runUm;
+        runUm = Math.max(0, runUm + thickness);
+        if (thickness < 0) {
+            // Once dissolved back to an old surface, that buried film is no longer
+            // preserved inside this body. Later regrowth must not resurrect it.
+            horizons = horizons.filter(h => h.depth < runUm);
+        }
+        else if (z.masked_horizon) {
+            // A later live film name is not evidence for an older unnamed horizon.
+            horizons.push({ depth: previousSurface, mineral: z.film_mineral || 'film' });
         }
     }
-    return out;
+    if (!(runUm > 0))
+        return [];
+    // Axial history supplies ordering/depth, not reconstructed per-face fronts.
+    // Normalize to surviving history as in cloudyGrowthHistory, including caps.
+    return horizons.filter(h => h.depth > 0 && h.depth < runUm)
+        .map(h => ({ frac: h.depth / runUm, mineral: h.mineral }));
 }
 // Low-saturation field-guide palette for a film band, keyed on the film
 // mineral's common name. The coats/dustings O5 deals in — clay, iron-oxide,
@@ -55837,6 +55846,38 @@ const CLOUDY_GROWTH_GLSL = `
       (1.0 - 0.55*max(windowA,windowB)) * (1.0 - 0.65*smoothstep(0.90,1.0,shell));
   }
 `;
+
+// ── 46h-population-display.js ──
+
+// R7a: descriptors for representative display members, never simulation births.
+// Real crystal dimensions and nucleation axes remain authoritative. These bounded
+// log-space sizes are an appearance distribution, not a reconstructed natural CSD.
+function populationDisplayMember(id, index, pattern) {
+    const rand = _clusterRand(Math.imul(id | 0, 0x9e3779b9) ^ Math.imul(index + 1, 0x85ebca6b));
+    const sizeU = rand(), radiusU = rand(), angleU = rand();
+    const lo = Math.max(0.12, pattern.scaleMin * 0.55), hi = pattern.scaleMax;
+    const scale = lo * Math.pow(hi / lo, sizeU * sizeU);
+    return {
+        index,
+        scale,
+        // Place smaller representatives nearer the parent footprint. This is local
+        // druse packing, not an inferred common nucleus or independent attachment.
+        radiusInParentWidths: .5 * (1 + scale) * (.72 + .30 * radiusU),
+        azimuth: angleU * Math.PI * 2,
+        tilt: (rand() - 0.5) * pattern.tiltMax * 0.7,
+        tiltAzimuth: rand() * Math.PI * 2,
+        yawOffset: (rand() - 0.5) * 0.7,
+    };
+}
+function populationHistorySignature(crystal, replayStep = null) {
+    const tilt = crystal._nucTilt;
+    return ':population:' + JSON.stringify([
+        crystal.nucleation_step ?? null, replayStep == null ? crystal.a_width_mm ?? null
+            : _topoHistoricalCrystalSize(crystal, replayStep)?.a_width_mm ?? null,
+        tilt ? [tilt.theta, tilt.azim] : null,
+        maskedHorizonBands(crystal, replayStep),
+    ]);
+}
 
 // ── 50-engines-arsenate.js ──
 
@@ -118947,11 +118988,15 @@ function _emitClusterSatellites(state, crystal, geom, mat, ax, ay, az, nx, ny, n
 // GEOM — for a half-form (clipped) geom the scar cap sits at the mesh
 // origin, so the satellite offset must sink by the same fraction or the
 // cap floats visibly above the wall. 0 / undefined = legacy base-at-anchor.
-parentOccF, parentMesh) {
+parentOccF, parentMesh, replayStep = null) {
     const pattern = _CLUSTER_PATTERNS[geomToken] || _CLUSTER_PATTERN_DEFAULT;
     const bladeSpray = !!parentMesh && (geom.userData.bladeRhombR4?.mineral === 'selenite'
         || geom.userData.bladeRhombR4?.mineral === 'gypsum');
     const count = _clusterSatelliteCount(crystal, pattern, parentCLen);
+    // Preserve specialized R4 arrangements and recorded twin/aggregate routes.
+    const population = !!parentMesh && !bladeSpray && !crystal.twinned && !crystal._split
+        && ['prism', 'spike', 'cube', 'octahedron', 'tetrahedron', 'rhombic_dodec'].includes(geomToken)
+        && !geom.userData.bariteR4?.habit?.includes('cockscomb');
     const bariteCrest = !!parentMesh && geom.userData.bariteR4?.habit === 'cockscomb';
     const n = bladeSpray && count > 0 ? Math.min(9, count + 2) : bariteCrest && count > 0 ? Math.min(7, Math.max(5, count)) : count;
     if (n === 0)
@@ -118979,6 +119024,11 @@ parentOccF, parentMesh) {
     const cavityRadius = state.clipUniforms?.uVugRadius?.value ?? Infinity;
     const spreadCap = Number.isFinite(cavityRadius) ? cavityRadius * 0.4 : Infinity;
     const spread = Math.min(parentAWid * 1.5 * pattern.spreadMul, spreadCap);
+    // Isometric and R4 forms carry their own aspect inside the geometry. Measure
+    // the rendered cross-section instead of treating the simulation a-width as it.
+    if (population && !geom.boundingBox)
+        geom.computeBoundingBox();
+    const footprint = population ? Math.max((geom.boundingBox.max.x - geom.boundingBox.min.x) * Math.abs(parentMesh.scale.x), (geom.boundingBox.max.z - geom.boundingBox.min.z) * Math.abs(parentMesh.scale.z)) : parentAWid;
     const scaleSpan = pattern.scaleMax - pattern.scaleMin;
     const tiltSpan = pattern.tiltMax * 2; // span around 0 (i.e. ±tiltMax)
     const upVec = new THREE.Vector3(0, 1, 0);
@@ -118986,9 +119036,12 @@ parentOccF, parentMesh) {
     const wallProjOk = !!(wall && wall.rings && ringCount > 0 && N > 0);
     let gypsumRootMaterial = null;
     for (let i = 0; i < n; i++) {
-        const r = (0.5 + 0.5 * rand()) * spread;
+        const member = population ? populationDisplayMember(crystal.crystal_id || 0, i, pattern) : null;
+        const r = member
+            ? Math.min(footprint * member.radiusInParentWidths * Math.min(1, pattern.spreadMul), spreadCap)
+            : (0.5 + 0.5 * rand()) * spread;
         // Even angular spacing for rosette habits, random for everything else.
-        const angle = pattern.evenAngles
+        const angle = member ? member.azimuth : pattern.evenAngles
             ? (i / n) * Math.PI * 2 + rand() * 0.3
             : rand() * Math.PI * 2;
         const ca = Math.cos(angle), sa = Math.sin(angle);
@@ -119038,15 +119091,15 @@ parentOccF, parentMesh) {
         }
         const spray = bladeSpray ? gypsumSprayMember(crystal.crystal_id || 0, i) : null;
         const crest = bariteCrest ? bariteCrestMember(crystal.crystal_id || 0, i, n) : null;
-        const sScale = crest ? crest.scale : spray ? (spray.basal ? 0.20 + spray.group * 0.015 : spray.scale) : pattern.scaleMin + scaleSpan * rand();
+        const sScale = crest ? crest.scale : spray ? (spray.basal ? 0.20 + spray.group * 0.015 : spray.scale) : member ? member.scale : pattern.scaleMin + scaleSpan * rand();
         const sCLen = parentCLen * sScale;
         const sAWid = parentAWid * sScale;
         // Tilt off the satellite's OWN local normal — magnitude per-habit.
         // For rosettes the tilt direction is the OUTWARD radial (petals
         // open outward); for everything else the tilt axis is randomized
         // so the spray looks irregular rather than synchronized.
-        const tiltAngle = (rand() - 0.5) * tiltSpan;
-        const tiltAxisAngle = pattern.evenAngles
+        const tiltAngle = member ? member.tilt : (rand() - 0.5) * tiltSpan;
+        const tiltAxisAngle = member ? member.tiltAzimuth : pattern.evenAngles
             ? angle + Math.PI / 2 // rosette: tilt axis perpendicular to radial direction
             : rand() * Math.PI * 2;
         const tax = Math.cos(tiltAxisAngle) * t1x + Math.sin(tiltAxisAngle) * t2x;
@@ -119135,10 +119188,9 @@ parentOccF, parentMesh) {
         satMesh.position.set(satAx + sNx * sOffset, satAy + sNy * sOffset, satAz + sNz * sOffset);
         targetVec.set(sNx, sNy, sNz);
         satMesh.quaternion.setFromUnitVectors(upVec, targetVec);
-        // Per-satellite yaw around c-axis — drawn from the same cluster
-        // PRNG so each satellite gets a distinct rotation around its own
-        // local +Y (world-space substrate normal).
-        satMesh.rotateY(rand() * Math.PI * 2);
+        // Generic representatives have related roll around the recorded parent axis;
+        // specialized arrangements retain their existing cluster PRNG route.
+        satMesh.rotateY(member ? _crystalYaw(crystal.crystal_id || 0) + member.yawOffset : rand() * Math.PI * 2);
         if (spray) {
             // These are representative members of the existing display cluster, not
             // new simulation crystals or invented twin laws. Small related groups
@@ -119190,6 +119242,12 @@ parentOccF, parentMesh) {
             cellIdx: _address.cellIdx,
             surfaceAnchorKey: wall?.surfaceAnchorKey?.(crystal),
             isSatellite: true,
+            ...(member ? { populationDisplay: { schema: 'representative-population-v1',
+                    parentCrystalId: crystal.crystal_id, memberIndex: i,
+                    independentNucleation: false, sizeDistribution: 'bounded-log-space-display-only',
+                    axisSource: crystal.growth_environment === 'air' && Math.abs(satNy) > .4 ? 'recorded-air-growth-gravity-rule'
+                        : crystal._nucTilt && GEOMETRIC_SELECTION_ENABLED ? 'parent-recorded-tilt-at-local-substrate' : 'substrate-display-convention',
+                    relativeScale: member.scale } } : {}),
             ...(spray ? { bladeSpray: true, sprayGroup: spray.group } : {}),
             ...(crest ? { bariteCrest: true } : {}),
             ...(spray?.basal && i === 6 ? { ownsSatelliteMaterial: true } : {}),
@@ -119203,6 +119261,8 @@ parentOccF, parentMesh) {
             // === END HELIX-OVERLAY-FORK ADDITION ===========================
         };
         satMesh.renderOrder = 1;
+        if (member)
+            _o5EmitMaskedBands(satMesh, crystal, state, replayStep);
         _topoLightingTagMesh(satMesh, true);
         state.crystals.add(satMesh);
     }
@@ -119789,6 +119849,7 @@ function _topoOpticsPaintScene(state, active) {
                 else
                     opaque++;
             }
+            _o5SyncBandMaterials(mesh);
             // The helix overlay restores to naturalOpacity — keep it the tier's truth.
             if (mesh.userData && mats[0] && mats[0].userData && mats[0].userData.optics) {
                 mesh.userData.naturalOpacity = mats[0].transparent ? mats[0].opacity : 1.0;
@@ -120066,7 +120127,7 @@ function _topoCrystalsSignature(sim, wall, replayStep) {
                 parts.push(`${c.crystal_id}:${effectiveMineral}:${c.habit}:cast:${c.c_length_mm.toFixed(2)}:${_anchorKey}:${_envKey}`);
                 continue;
             }
-            parts.push(`${c.crystal_id}:${effectiveMineral}:${c.habit}:${hist.c_length_mm.toFixed(2)}:${_anchorKey}:${_envKey}:r${replayStep}` + cloudyGrowthSignature(c, replayStep));
+            parts.push(`${c.crystal_id}:${effectiveMineral}:${c.habit}:${hist.c_length_mm.toFixed(2)}:${_anchorKey}:${_envKey}:r${replayStep}` + cloudyGrowthSignature(c, replayStep) + populationHistorySignature(c, replayStep));
             continue;
         }
         // Quartz's surface history can gain a striation before its length crosses
@@ -120076,7 +120137,7 @@ function _topoCrystalsSignature(sim, wall, replayStep) {
         // Gypsum's fixed-plane shape develops with width as well as length.
         const bladeAspectKey = c.mineral === 'selenite' || c.mineral === 'gypsum'
             ? `:b${c.a_width_mm || 0}:${c.c_length_mm || 0}` : '';
-        parts.push(`${c.crystal_id}:${c.mineral}:${c.habit}:${c.c_length_mm.toFixed(2)}:${_anchorKey}:${_envKey}:${c.dissolved ? 'd' : 'a'}${quartzHistoryKey}${bladeAspectKey}${cloudyGrowthSignature(c)}`);
+        parts.push(`${c.crystal_id}:${c.mineral}:${c.habit}:${c.c_length_mm.toFixed(2)}:${_anchorKey}:${_envKey}:${c.dissolved ? 'd' : 'a'}${quartzHistoryKey}${bladeAspectKey}${cloudyGrowthSignature(c)}${populationHistorySignature(c)}`);
     }
     return parts.join('|');
 }
@@ -120185,22 +120246,18 @@ function _o4InclusionLocalPos(ax, ay, az, hcx, hcy, hcz, hostR, id) {
     return [hcx + (dx / dl) * r, hcy + (dy / dl) * r, hcz + (dz / dl) * r];
 }
 // W-F O5c — emit the masked-horizon bands for one host crystal. Reads the
-// recorded zone stack via maskedHorizonBands (js/44b, pure) and adds one thin
-// concentric shell CHILD per horizon: SAME geometry as the host (post-O2-clip,
-// finalized before add(mesh) — so the band matches the visible silhouette),
-// uniform local scale = the horizon's radial fraction, local position 0. As a
-// child it inherits the host's world transform (including a tabular blade's
-// non-uniform scale), so the shell is similar-and-concentric inside — a smaller
-// copy of the same form at the depth the film was buried. Tinted by filmBandRGB,
-// semi-opaque + double-sided + depthWrite off so it reads THROUGH the host's
-// Depth-A translucency without punching the transparent sort; an OPAQUE host
-// hides it (honest, the O4a contract). Non-raycastable — a band is an internal
+// recorded zone stack via maskedHorizonBands (js/44b, pure) and adds one similar,
+// base-anchored child shell per surviving horizon. Scaling the current geometry
+// approximates older surfaces; neither the axial record nor a post-O2 silhouette
+// reconstructs their actual per-face shape. _o5SyncBandMaterials puts films in
+// the appropriate transmission/alpha pass; an opaque host hides its interior.
+// Non-raycastable — a band is an internal
 // feature, not a hit target, so hovers fall through to the host shell.
 // Render-only: no crystal mutated, no sim state touched (byte-identical).
-function _o5EmitMaskedBands(hostMesh, crystal, state) {
+function _o5EmitMaskedBands(hostMesh, crystal, state, replayStep = null) {
     if (!hostMesh || !hostMesh.geometry)
         return;
-    const bands = maskedHorizonBands(crystal);
+    const bands = maskedHorizonBands(crystal, replayStep);
     if (!bands.length)
         return;
     for (const band of bands) {
@@ -120241,6 +120298,25 @@ function _o5EmitMaskedBands(hostMesh, crystal, state) {
         // R1: a phantom band sits inside its host, which already casts; receive only.
         _topoLightingTagMesh(bandMesh, false);
         hostMesh.add(bandMesh);
+    }
+    _o5SyncBandMaterials(hostMesh);
+}
+// Three captures opaque objects for refraction before drawing transmissive hosts.
+// Put the buried interface in that buffer; alpha fallback retains the thin-film
+// approximation. An opaque host still occludes its interior by ordinary depth.
+function _o5SyncBandMaterials(hostMesh) {
+    const hostMat = Array.isArray(hostMesh.material) ? hostMesh.material[0] : hostMesh.material;
+    const transmitted = (hostMat?.transmission || 0) > 0;
+    for (const child of hostMesh.children || []) {
+        if (!child.userData?.o5Band || !child.material)
+            continue;
+        const mat = child.material, transparent = !transmitted;
+        if (mat.transparent !== transparent)
+            mat.needsUpdate = true;
+        mat.transparent = transparent;
+        mat.opacity = transmitted ? 1 : .72;
+        mat.depthWrite = transmitted;
+        child.renderOrder = (hostMesh.renderOrder || 0) + (transmitted ? 1 : -1);
     }
 }
 function _o1bNeighborShadow(crystal, bodies) {
@@ -120301,22 +120377,24 @@ function _topoSyncCrystalMeshes(state, sim, wall, replayStep) {
     // level (geomCache) so we keep them; only materials per crystal
     // need disposing — but materials are MeshStandardMaterial with no
     // textures, so the GC handles the rest.
+    const disposedMaterials = new Set();
+    const disposeMaterial = (material) => {
+        if (material && !disposedMaterials.has(material)) {
+            disposedMaterials.add(material);
+            material.dispose?.();
+            state.specimen?.depthMats?.delete(material);
+        }
+    };
     while (state.crystals.children.length) {
         const child = state.crystals.children.pop();
-        if (child.userData?.ownsGeometry && child.geometry?.dispose)
-            child.geometry.dispose();
-        if (child.customDepthMaterial?.dispose)
-            child.customDepthMaterial.dispose();
-        if (state.specimen?.depthMats)
-            state.specimen.depthMats.delete(child);
-        // O2-contacted crystals carry a [euhedral, contact] material array.
-        if (Array.isArray(child.material)) {
-            for (const m of child.material)
-                if (m && m.dispose)
-                    m.dispose();
-        }
-        else if (child.material && child.material.dispose)
-            child.material.dispose();
+        child.traverse((part) => {
+            if (part.userData?.ownsGeometry)
+                part.geometry?.dispose?.();
+            disposeMaterial(part.customDepthMaterial);
+            state.specimen?.depthMats?.delete(part);
+            for (const material of Array.isArray(part.material) ? part.material : [part.material])
+                disposeMaterial(material);
+        });
     }
     if (!sim.crystals)
         return;
@@ -121422,11 +121500,11 @@ function _topoSyncCrystalMeshes(state, sim, wall, replayStep) {
         }
         // W-F O5c — the phantom band made visible. Each masked_horizon zone (a
         // front that grew THROUGH a foreign film, js/85 gate) renders as a thin
-        // concentric shell at its recorded radial depth. Free-standing crystals
+        // similar shell at its surviving axial-history fraction. Free-standing crystals
         // only — an engulfed guest (O4a) is a tiny grain inside a host, its own
         // internal bands invisible and not worth the meshes. Render-only.
         if (!isInclusion)
-            _o5EmitMaskedBands(mesh, crystal, state);
+            _o5EmitMaskedBands(mesh, crystal, state, replayStep ?? null);
         // Phase E5b: emit cluster satellites around this parent. Same
         // geometry + material; inherits parent userData so hit-tests
         // resolve a satellite click back to the parent crystal. The
@@ -121434,7 +121512,7 @@ function _topoSyncCrystalMeshes(state, sim, wall, replayStep) {
         // tabular rosette, prismatic forest, cubic carpet, etc.). An engulfed
         // inclusion has no free druse spray, so it opts out (W-F O4a).
         if (!isInclusion && !crystal._surfaceGrowth && !geom.userData.gypsumSplitR4 && !geom.userData.splitNeedleR4) {
-            _emitClusterSatellites(state, crystal, geom, mat, ax, ay, az, nx, ny, nz, cLen, aWid, token, wall, ringCount, N, initR, occF, mesh);
+            _emitClusterSatellites(state, crystal, geom, mat, ax, ay, az, nx, ny, nz, cLen, aWid, token, wall, ringCount, N, initR, occF, mesh, replayStep ?? null);
         }
         // Each representative gets its own path planes/attenuation: contacted parents
         // and uncut, differently scaled satellites cannot share one optical volume.
