@@ -96,6 +96,9 @@ let _savePendingAction = null;
 let _saveStorageGeneration = 0;
 let _saveStorageNotice = null;
 const _SAVE_AUTHENTIC_COLLECTION_RECEIPTS = new WeakMap();
+// Bind an earlier collected projection, including its versioned history, to
+// the live crystal independently of its current (possibly later-grown) state.
+const _SAVE_COLLECTION_SCIENCE_MARKS = new WeakMap();
 const _SAVE_COLLECTION_MARKS = new WeakMap();
 // True only when the newest in-memory recipe has not reached an authenticated
 // pending journal. Primary-publication failure is not dirty: the journal is a
@@ -442,6 +445,7 @@ function _saveAssertFinishTransaction(tx, saveId, runId = null) {
         || recordIds.has(record.id) || baselineIds.has(record.id)) {
       throw new Error(`finish transaction has invalid specimen ids for ${saveId}`);
     }
+    assertCrystalCollectionRecord(record, 'finish specimen');
     recordIds.add(record.id);
   }
   const crystalIndexes = new Set();
@@ -548,6 +552,7 @@ function _saveAssertCollectionReceipt(receipt, runId) {
       || receipt.digest !== _saveCollectionReceiptDigest(receipt)) {
     throw new Error(`Creative collection receipt failed authentication for run ${runId}`);
   }
+  assertCrystalCollectionRecord(receipt.record, 'collection receipt specimen');
   return true;
 }
 
@@ -560,6 +565,7 @@ function _saveAuthenticateCollectionReceiptAgainstLive(receipt, runId) {
   const expected = buildCrystalRecord(
     crystal,
     _saveFinishSpecimenMeta(runId, receipt.crystal_index),
+    collectionRecordProducerSchema(receipt.record),
   );
   expected.id = receipt.record.id;
   if (_saveSpecimenScienceDigest(expected) !== _saveSpecimenScienceDigest(receipt.record)) {
@@ -690,11 +696,13 @@ function _saveAuthenticateFinishTransactionAgainstLive(tx, saveId, library, opts
     const crystal = fortressSim.crystals[crystalIdx];
     const recordId = mappedByCrystal.get(crystalIdx);
     const stagedRecord = stagedById.get(recordId);
+    const storedRecord = stagedRecord || libraryById.get(recordId);
     const expected = buildCrystalRecord(
       crystal,
       tx.run_id
         ? _saveFinishSpecimenMeta(tx.run_id, crystalIdx)
         : { mode: 'creative' },
+      collectionRecordProducerSchema(storedRecord),
     );
     if (stagedRecord) {
       const expectedId = _saveAllocateFinishRecordId(specimenIdentity, crystalIdx, occupiedIds);
@@ -705,10 +713,12 @@ function _saveAuthenticateFinishTransactionAgainstLive(tx, saveId, library, opts
       expectedStaged.push({ crystalIdx, record: expected, actual: stagedRecord });
     } else {
       const baseline = baselineById.get(recordId);
+      const earlierCollection = _SAVE_COLLECTION_MARKS.get(crystal) === recordId;
       const exactProvenance = baseline
+        && (!earlierCollection || _SAVE_COLLECTION_SCIENCE_MARKS.get(crystal) === baseline.science_digest)
         && _saveSpecimenScienceDigest(expected) === baseline.science_digest;
       const migratedLegacy = baseline
-        && _SAVE_COLLECTION_MARKS.get(crystal) === recordId
+        && earlierCollection
         && _saveLegacyRecordMatchesCrystal(libraryById.get(recordId), crystal);
       if (!exactProvenance && !migratedLegacy) {
         throw new Error(`pre-collected crystal ${crystalIdx} is not bound to its baseline specimen`);
@@ -1235,6 +1245,7 @@ function _saveApplyCreativeCollectionReceipts(rec, opts: any = {}) {
       if (crystal) {
         crystal._collectedRecordId = receipt.record.id;
         _SAVE_COLLECTION_MARKS.set(crystal, receipt.record.id);
+        _SAVE_COLLECTION_SCIENCE_MARKS.set(crystal, _saveSpecimenScienceDigest(receipt.record));
       }
     }
     return { ok: true, count: appliedCount, newSpecies };
@@ -1408,6 +1419,7 @@ function _saveCollectedPairs() {
 // Library specimen without pretending it equals the later crystal byte-for-byte.
 function _saveLegacyRecordMatchesCrystal(record, crystal) {
   return !!record && !!crystal
+    && _SAVE_COLLECTION_SCIENCE_MARKS.get(crystal) === _saveSpecimenScienceDigest(record)
     && record.mineral === crystal.mineral
     && record.source?.mode === 'creative'
     && record.source?.nucleation_step === crystal.nucleation_step

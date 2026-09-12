@@ -22,6 +22,245 @@ const CRYSTAL_CORRUPT_KEY = 'vugg-crystals-v1.corrupt';
 // nothing and preserves runs made while Simulation steps were unbounded.
 const COLLECTION_MAX_ZONE_RECORDS = 10_000;
 const COLLECTION_MAX_LEGACY_ZONE_COUNT = Number.MAX_SAFE_INTEGER;
+const COLLECTION_HISTORY_SCHEMA = 'crystal-history-v1';
+// Independent from SAVE_FORMAT: old event receipts must reproduce the exact
+// old projection, while every new scientific field participates in the digest.
+function collectionRecordProducerSchema(record): string | null {
+  if (record?.history_schema === undefined) {
+    if (record?.history !== undefined) throw new Error('Library history is missing its schema');
+    return null;
+  }
+  if (record.history_schema !== COLLECTION_HISTORY_SCHEMA) {
+    throw new Error('Unsupported Library crystal history schema');
+  }
+  return COLLECTION_HISTORY_SCHEMA;
+}
+
+// These are snapshots, not new formation events. In particular, final split,
+// Wulff and film descriptors carry no invented per-step chronology.
+const COLLECTION_CRYSTAL_HISTORY_FIELDS = [
+  'nucleation_step', 'nucleation_temp', 'c_length_mm', 'a_width_mm', 'total_growth_um', '_volume_mm3',
+  'wall_spread', 'void_reach', 'vector', 'growth_environment', '_nucTilt',
+  '_occlusion', '_polarAxis', '_faceStep', '_split', '_sceptre', '_wulffForm',
+  '_deformation', '_etch', '_sectorZoned', '_surfaceGrowth', '_morphology', '_gwindel', '_film',
+  '_peak_differential_stress_mpa', '_resolved_shear_mpa', '_twin_density_per_mm', '_mechanical_twin_type',
+  '_mechanical_twinned', '_mechanical_twin_law',
+  'etch_history', 'phase_transition_origin', 'phase_transition_step',
+  'phase_transition_driver', 'phase_transition_history', 'paramorph_origin',
+  'paramorph_step', 'dry_exposure_steps', 'dehydration_history',
+  '_ca_so4_hydration_water_mmolkg', '_ca_so4_solid_volume_ratio',
+  '_ca_so4_replacement_porosity_fraction', '_ca_so4_pseudomorphic_envelope_preserved',
+];
+const COLLECTION_SOURCE_HISTORY_FIELDS = [
+  'crystal_id', 'wall_anchor', 'vug_diameter_mm', 'cdr_replaces_crystal_id', 'cdr_replacement_evidence',
+  'perimorph_eligible', 'enclosed_by', 'enclosed_crystals', 'enclosed_at_step',
+  'coats_front', 'enclosure_receipt', 'liberation_receipt',
+];
+
+// Bounded JSON testimony. Reject nonfinite numbers, executable values, cycles,
+// prototype keys and deep/huge inputs before copying or persisting them. Omitted
+// undefined members remain omitted; they are never fabricated as zero data.
+function _collectionHistoryCopy(value, label = 'history', budget = { nodes: 0 }, depth = 0, seen = new Set()): any {
+  if (++budget.nodes > 2_000_000 || depth > 16) throw new Error(`Library ${label} exceeds history bounds`);
+  if (value === null || typeof value === 'boolean') return value;
+  if (typeof value === 'number' && Number.isFinite(value)) return value;
+  if (typeof value === 'string' && value.length <= 4_096) return value;
+  if (!value || typeof value !== 'object' || seen.has(value)) throw new Error(`Library has invalid ${label}`);
+  seen.add(value);
+  let copy: any;
+  if (Array.isArray(value)) {
+    if (value.length > COLLECTION_MAX_ZONE_RECORDS) throw new Error(`Library ${label} exceeds history bounds`);
+    copy = value.map(item => _collectionHistoryCopy(item, label, budget, depth + 1, seen));
+  } else {
+    if (Object.keys(value).length > 256) throw new Error(`Library ${label} exceeds history bounds`);
+    copy = {};
+    for (const key of Object.keys(value)) {
+      if (key.length > 128 || ['__proto__', 'constructor', 'prototype'].includes(key)) {
+        throw new Error(`Library has invalid ${label} key`);
+      }
+      if (value[key] !== undefined) copy[key] = _collectionHistoryCopy(value[key], label, budget, depth + 1, seen);
+    }
+  }
+  seen.delete(value);
+  return copy;
+}
+
+function _collectionNumericMap(value, label) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)
+      || Object.values(value).some(n => typeof n !== 'number' || !Number.isFinite(n))) {
+    throw new Error(`Library has invalid ${label}`);
+  }
+}
+
+function _collectionAssertZoneHistory(zone) {
+  for (const key of Object.keys(zone)) {
+    if (/^trace_[A-Z][a-z]?$/.test(key) || [
+      'aspect_ratio', 'ca_from_wall', 'ca_from_fluid', 'dissolution_depth_um',
+      'masked_phi_term', 'masked_phi_prism', 'originating_film_step',
+      '_remaining_solid_um', 'silica_ppm', 'silica_sigma', 'layer_number',
+    ].includes(key)) _collectionFiniteOptional(zone[key], `zone ${key}`, { required: !key.startsWith('trace_') });
+  }
+  for (const key of ['masked_horizon', '_time_scaled', '_maskedStall', '_clear_film_on_accept']) {
+    if (zone[key] !== undefined && typeof zone[key] !== 'boolean') throw new Error(`Library has invalid zone ${key}`);
+  }
+  for (const key of ['film_mineral', 'dissolutionMode', 'microfabric', 'morph_sceptre']) {
+    _collectionBoundedOptionalText(zone[key], `zone ${key}`);
+  }
+  for (const key of ['trace_stoichiometry', 'formula_stoichiometry', '_budget_inventory_per_um', '_returned_budget_inventory']) {
+    if (zone[key] != null) _collectionNumericMap(zone[key], `zone ${key}`);
+  }
+  for (const key of ['solid_solution', 'sr_partition', 'co_partition', 'transformation_reactivity', 'physical_etch']) {
+    if (zone[key] != null && (typeof zone[key] !== 'object' || Array.isArray(zone[key]))) {
+      throw new Error(`Library has invalid zone ${key}`);
+    }
+  }
+  if (zone.solid_solution) {
+    for (const key of ['componentMoleFractions', 'activityCoefficients', 'componentActivities']) {
+      if (zone.solid_solution[key] != null) _collectionNumericMap(zone.solid_solution[key], `solid solution ${key}`);
+    }
+    for (const key of ['guggenheimKJMol', 'guggenheimDimensionless']) {
+      const values = zone.solid_solution[key];
+      if (values != null && (!Array.isArray(values) || values.length > 128
+          || values.some(n => typeof n !== 'number' || !Number.isFinite(n)))) {
+        throw new Error(`Library has invalid solid solution ${key}`);
+      }
+    }
+  }
+}
+
+function _collectionAssertHistory(record) {
+  if (!collectionRecordProducerSchema(record)) return;
+  const h = record.history;
+  _collectionHistoryCopy({ history: h, zones: record.zones }); // Shared bound across the complete payload.
+  if (!h || typeof h !== 'object' || Array.isArray(h)
+      || !h.crystal || typeof h.crystal !== 'object' || Array.isArray(h.crystal)
+      || !h.source || typeof h.source !== 'object' || Array.isArray(h.source)
+      || Object.keys(h).some(key => !['crystal', 'source', 'enclosure_lifecycle'].includes(key))
+      || Object.keys(h.crystal).some(key => !COLLECTION_CRYSTAL_HISTORY_FIELDS.includes(key))
+      || Object.keys(h.source).some(key => !COLLECTION_SOURCE_HISTORY_FIELDS.includes(key))) {
+    throw new Error('Library has invalid crystal history');
+  }
+  if (!Array.isArray(record.zones)) throw new Error('Library history requires its recorded zone array');
+  for (const z of record.zones) _collectionAssertZoneHistory(z);
+  const c = h.crystal;
+  for (const key of ['nucleation_step', 'c_length_mm', 'a_width_mm', 'total_growth_um', '_volume_mm3', 'wall_spread', 'void_reach',
+    '_peak_differential_stress_mpa', '_resolved_shear_mpa', '_twin_density_per_mm',
+    'phase_transition_step', 'paramorph_step', 'dry_exposure_steps', '_ca_so4_hydration_water_mmolkg',
+    '_ca_so4_solid_volume_ratio', '_ca_so4_replacement_porosity_fraction']) {
+    _collectionFiniteOptional(c[key], `crystal ${key}`, { min: 0 });
+  }
+  _collectionFiniteOptional(c.nucleation_temp, 'crystal nucleation temperature');
+  for (const key of ['vector', 'growth_environment', 'phase_transition_origin', 'phase_transition_driver', 'paramorph_origin',
+    '_mechanical_twin_type', '_mechanical_twin_law']) {
+    _collectionBoundedOptionalText(c[key], `crystal ${key}`);
+  }
+  for (const key of ['_ca_so4_pseudomorphic_envelope_preserved', '_mechanical_twinned']) {
+    if (c[key] !== undefined && typeof c[key] !== 'boolean') throw new Error(`Library has invalid ${key}`);
+  }
+  // Descriptor members consumed by geometry have fixed scalar types. Unknown
+  // members in this version cannot become a hidden renderer instruction.
+  const descriptorText = new Set(['kind', 'style', 'route', 'rung', 'dominant', 'driver', 'steppedFaceSet', 'pointGroup',
+    'regime', 'substrate', 'area_basis', 'mass_basis', 'schema', 'source', 'mineral', 'morphology', 'surfaceMorphology',
+    'modelId', 'visualRepresentation', 'defectAssumption', 'status', 'unavailable_reason', 'sigma_basis', 'form',
+    'stratigraphy_basis']);
+  const descriptorBool = new Set(['octahedral', 'scaleno', 'tabular', 'bladed', 'wedge', 'flooded']);
+  for (const key of ['_nucTilt', '_occlusion', '_polarAxis', '_faceStep', '_split', '_sceptre', '_wulffForm',
+    '_deformation', '_etch', '_sectorZoned', '_surfaceGrowth', '_morphology', '_gwindel']) {
+    const d = c[key];
+    if (d == null) continue;
+    if (typeof d !== 'object' || Array.isArray(d)) throw new Error(`Library has invalid ${key}`);
+    for (const [field, value] of Object.entries(d)) {
+      if (key === '_surfaceGrowth' && field === 'underlying_surface_crystal_ids') {
+        if (!Array.isArray(value) || value.some(id => !Number.isSafeInteger(id) || id < 0)) {
+          throw new Error('Library has invalid underlying surface crystal ids');
+        }
+      } else if (key === '_split' && field === 'driver') _collectionNumericMap(value, 'split driver');
+      else if (descriptorText.has(field)) _collectionBoundedOptionalText(value, `${key}.${field}`);
+      else if (descriptorBool.has(field)) {
+        if (typeof value !== 'boolean') throw new Error(`Library has invalid ${key}.${field}`);
+      } else _collectionFiniteOptional(value, `${key}.${field}`, { required: key !== '_morphology' });
+    }
+  }
+  for (const key of ['etch_history', 'phase_transition_history', 'dehydration_history']) {
+    if (c[key] !== undefined && (!Array.isArray(c[key]) || c[key].some(e => !e || typeof e !== 'object' || Array.isArray(e)))) {
+      throw new Error(`Library has invalid ${key}`);
+    }
+    for (const event of c[key] || []) {
+      // Transition producers explicitly use null when the caller has no date.
+      // Retain that unknown chronology; do not fabricate step zero.
+      _collectionFiniteOptional(event.step, `${key} step`, { min: 0 });
+      for (const field of ['schema', 'from', 'to', 'driver', 'mineral', 'modelId', 'surfaceMorphology']) {
+        _collectionBoundedOptionalText(event[field], `${key} ${field}`);
+      }
+      for (const field of ['axialLossUm', 'zoneIndex', 'visualIntensity', 'schematicReliefMagnification']) {
+        _collectionFiniteOptional(event[field], `${key} ${field}`, { min: 0 });
+      }
+      if (event.accepted !== undefined && typeof event.accepted !== 'boolean') throw new Error(`Library has invalid ${key} acceptance`);
+    }
+  }
+  if (c._film != null) {
+    const films = [c._film, ...(Array.isArray(c._film.operations) ? c._film.operations : [])];
+    if (c._film.operations !== undefined && !Array.isArray(c._film.operations)) throw new Error('Library has invalid film operations');
+    for (const f of films) {
+      if (!f || typeof f !== 'object' || Array.isArray(f)) throw new Error('Library has invalid surface film');
+      for (const key of ['phi_term', 'phi_prism', 'step']) _collectionFiniteOptional(f[key], `film ${key}`, { min: 0 });
+      for (const key of ['mineral', 'kind', 'source_id']) _collectionBoundedOptionalText(f[key], `film ${key}`);
+    }
+  }
+  if (h.enclosure_lifecycle !== undefined && (!Array.isArray(h.enclosure_lifecycle)
+      || !_runtimeEnclosureLifecycleState(h.enclosure_lifecycle))) throw new Error('Library has invalid enclosure lifecycle');
+  for (const key of ['crystal_id', 'enclosed_by', 'cdr_replaces_crystal_id']) {
+    const value = h.source[key];
+    if (value != null && (!Number.isSafeInteger(value) || value < 0)) throw new Error(`Library has invalid source ${key}`);
+  }
+  for (const key of ['enclosed_crystals', 'enclosed_at_step']) {
+    const values = h.source[key];
+    if (values != null && (!Array.isArray(values) || values.some(value => !Number.isSafeInteger(value) || value < 0))) {
+      throw new Error(`Library has invalid source ${key}`);
+    }
+  }
+  for (const key of ['coats_front', 'perimorph_eligible']) {
+    if (h.source[key] != null && typeof h.source[key] !== 'boolean') throw new Error(`Library has invalid source ${key}`);
+  }
+  _collectionFiniteOptional(h.source.vug_diameter_mm, 'source cavity diameter', { min: 0 });
+  const replacement = h.source.cdr_replacement_evidence;
+  if (replacement != null) {
+    if (typeof replacement !== 'object' || Array.isArray(replacement)
+        || replacement.schema !== 'cdr-replacement-evidence-v1'
+        || !Number.isSafeInteger(replacement.parent_crystal_id) || replacement.parent_crystal_id <= 0
+        || !Number.isSafeInteger(replacement.matching_zone_count) || replacement.matching_zone_count <= 0
+        || !Array.isArray(replacement.matching_zone_steps)
+        || replacement.matching_zone_steps.length !== replacement.matching_zone_count
+        || replacement.matching_zone_steps.some(step => step != null && (!Number.isSafeInteger(step) || step < 0))
+        || typeof replacement.shape_preserved !== 'boolean') {
+      throw new Error('Library has invalid CDR replacement evidence');
+    }
+    _collectionFiniteOptional(replacement.parent_loss_um, 'CDR parent loss', { required: true, min: 0 });
+    for (const field of ['parent_mineral', 'child_mineral', 'route_trigger']) {
+      _collectionBoundedOptionalText(replacement[field], `CDR ${field}`);
+    }
+  }
+  const anchor = h.source.wall_anchor;
+  if (anchor != null) {
+    if (typeof anchor !== 'object' || Array.isArray(anchor)) throw new Error('Library has invalid source wall anchor');
+    for (const key of ['phi', 'theta', 'ringIdx', 'cellIdx', 'triangleIndex']) {
+      _collectionFiniteOptional(anchor[key], `wall anchor ${key}`);
+    }
+    for (const key of ['position', 'normal', 'barycentric', 'fieldCell']) {
+      if (anchor[key] !== undefined && (!Array.isArray(anchor[key]) || anchor[key].length !== 3
+          || anchor[key].some(v => typeof v !== 'number' || !Number.isFinite(v)))) {
+        throw new Error(`Library has invalid wall anchor ${key}`);
+      }
+    }
+  }
+  if (h.enclosure_lifecycle) {
+    const related = new Set(h.enclosure_lifecycle.filter(e => e.host_crystal_id === h.source.crystal_id
+      || e.guest_crystal_id === h.source.crystal_id).map(e => e.guest_crystal_id));
+    if (h.enclosure_lifecycle.some(e => !related.has(e.guest_crystal_id))) {
+      throw new Error('Library enclosure history belongs to another specimen');
+    }
+  }
+}
 
 function _collectionBoundedOptionalText(value, label, maxLength = 4_096) {
   if (value === undefined || value === null) return;
@@ -87,6 +326,7 @@ function assertCrystalCollectionRecord(record, label = 'Library specimen') {
       if (record.zones.length > COLLECTION_MAX_ZONE_RECORDS) {
         throw new Error(`${label} has invalid growth zones`);
       }
+      if (!record.history_schema) _collectionHistoryCopy(record.zones, 'legacy growth zones');
       for (const zone of record.zones) {
         if (!zone || typeof zone !== 'object' || Array.isArray(zone)) {
           throw new Error(`${label} has invalid growth zone`);
@@ -95,7 +335,9 @@ function assertCrystalCollectionRecord(record, label = 'Library specimen') {
           'step', 'temperature', 'thickness_um', 'growth_rate',
           'trace_Fe', 'trace_Mn', 'trace_Al', 'trace_Ti',
         ]) {
-          _collectionFiniteOptional(zone[key], `zone ${key}`, { required: true });
+          _collectionFiniteOptional(zone[key], `zone ${key}`, {
+            required: !record.history_schema || !key.startsWith('trace_'),
+          });
         }
         for (const key of [
           'trace_Pb', 'trace_Cu', 'trace_Ge', 'morph_post_step_sigma',
@@ -134,6 +376,7 @@ function assertCrystalCollectionRecord(record, label = 'Library specimen') {
       && record.zone_count !== record.zones) {
     throw new Error(`${label} has inconsistent zone count`);
   }
+  _collectionAssertHistory(record);
   return true;
 }
 
@@ -252,7 +495,7 @@ function _collectionRecordHasSurvivingSolid(record: any): boolean {
 // Turn a live Crystal + the run it came from into a persistent record.
 // Stores the full zones array so the Record Player can spiral the
 // crystal later — without this the Groove would have nothing to draw.
-function buildCrystalRecord(crystal, meta) {
+function _buildLegacyCrystalRecord(crystal, meta) {
   if (!_crystalHasCollectibleSolid(crystal)) {
     throw new Error('This crystal has no surviving solid specimen to collect.');
   }
@@ -270,8 +513,8 @@ function buildCrystalRecord(crystal, meta) {
     );
   }
 
-  // Serialize zones with the fields the Groove visualization reads.
-  // Everything else on a GrowthZone is recomputable or decorative.
+  // Frozen pre-history producer for authentication of already issued receipts.
+  // New collection uses the complete recorded payload in buildCrystalRecord.
   const zones = liveZones.map(z => ({
     step: z.step,
     temperature: z.temperature,
@@ -341,14 +584,55 @@ function buildCrystalRecord(crystal, meta) {
   };
 }
 
+function _collectionSourceSimulator(crystal, meta) {
+  // Identity membership, never a matching numeric crystal id from another run.
+  const candidates = [meta?.sim,
+    typeof fortressSim !== 'undefined' ? fortressSim : null,
+    typeof legendsSim !== 'undefined' ? legendsSim : null,
+    typeof randomSim !== 'undefined' ? randomSim : null,
+    typeof idleSim !== 'undefined' ? idleSim : null];
+  return candidates.find(sim => Array.isArray(sim?.crystals) && sim.crystals.includes(crystal)) || null;
+}
+
+function buildCrystalRecord(crystal, meta, producerSchema: string | null = COLLECTION_HISTORY_SCHEMA) {
+  if (producerSchema !== null && producerSchema !== COLLECTION_HISTORY_SCHEMA) throw new Error('Unsupported collection producer schema');
+  const record: any = _buildLegacyCrystalRecord(crystal, meta);
+  if (producerSchema === null) return record;
+  const snapshot = {}, source = {};
+  for (const key of COLLECTION_CRYSTAL_HISTORY_FIELDS) {
+    if (crystal[key] !== undefined) snapshot[key] = crystal[key];
+  }
+  for (const key of COLLECTION_SOURCE_HISTORY_FIELDS) {
+    if (crystal[key] !== undefined) source[key] = crystal[key];
+  }
+  const history: any = { crystal: snapshot, source };
+  const sim = _collectionSourceSimulator(crystal, meta);
+  // Lifecycle must include every event for any guest related to this specimen:
+  // a guest can move from a different host into this one. The local retained
+  // slice carries complete per-guest chains, so its receipts remain auditable.
+  if (Array.isArray(sim?._enclosureReceipts)) {
+    const related = new Set(sim._enclosureReceipts.filter(e =>
+      e.host_crystal_id === crystal.crystal_id || e.guest_crystal_id === crystal.crystal_id)
+      .map(e => e.guest_crystal_id));
+    history.enclosure_lifecycle = sim._enclosureReceipts.filter(e => related.has(e.guest_crystal_id));
+  }
+  record.history_schema = COLLECTION_HISTORY_SCHEMA;
+  record.history = _collectionHistoryCopy(history);
+  record.zones = _collectionHistoryCopy(crystal.zones, 'growth zones');
+  record.zone_count = record.zones.length;
+  assertCrystalCollectionRecord(record);
+  return record;
+}
+
 // Build a Crystal-shaped stand-in from a persisted record — enough for the
 // Groove visualization and the zone-history modal to treat it like a live
 // crystal. Does not connect to a VugSimulator; purely for display.
 function reconstructCrystalFromRecord(rec): any {
+  assertCrystalCollectionRecord(rec);
   const zones = Array.isArray(rec.zones)
-    ? rec.zones.map(z => Object.assign({}, z))
+    ? _collectionHistoryCopy(rec.zones, 'growth zones')
     : [];
-  const stand = {
+  const stand: any = {
     mineral: rec.mineral,
     crystal_id: `C${(rec.id || '').slice(-4)}`,
     nucleation_step: rec.source?.nucleation_step ?? 0,
@@ -394,6 +678,13 @@ function reconstructCrystalFromRecord(rec): any {
       return `step ${z.step}, T=${z.temperature.toFixed(1)}°C, +${z.thickness_um.toFixed(1)} µm`;
     },
   };
+  if (collectionRecordProducerSchema(rec)) {
+    Object.assign(stand, _collectionHistoryCopy(rec.history.crystal));
+    // Old cavity coordinates and IDs cannot attach this isolated specimen to
+    // an unrelated host. Keep them as readable source-scoped testimony only.
+    stand._collectionSourceHistory = _collectionHistoryCopy(rec.history.source);
+    stand._collectionEnclosureHistory = _collectionHistoryCopy(rec.history.enclosure_lifecycle || []);
+  }
   return stand;
 }
 
@@ -749,4 +1040,3 @@ function collectAllFromIdle() {
     if (typeof idleRefreshCollectAllBtn === 'function') idleRefreshCollectAllBtn();
   }
 }
-

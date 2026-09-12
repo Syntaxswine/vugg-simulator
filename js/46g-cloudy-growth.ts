@@ -4,25 +4,8 @@
 const CLOUDY_GROWTH_MINERALS = new Set(['quartz', 'topaz', 'apatite', 'aragonite', 'barite']);
 
 function cloudyGrowthHistory(crystal: any, replayStep: number | null = null): any {
-  const layers: any[] = [];
-  for (const z of crystal.zones || []) {
-    if (replayStep != null && (!Number.isFinite(z.step) || z.step > replayStep)) continue;
-    const thickness = Number(z.thickness_um);
-    if (!Number.isFinite(thickness) || thickness === 0) continue;
-    if (thickness < 0) {
-      let loss = -thickness;
-      while (loss > 0 && layers.length) {
-        const last = layers[layers.length - 1], removed = Math.min(loss, last.thickness);
-        last.thickness -= removed; loss -= removed;
-        if (last.thickness <= 1e-9) layers.pop();
-      }
-    } else {
-      const density = z.fluid_inclusion ? 0.95 : 0;
-      const last = layers[layers.length - 1];
-      if (last && last.density === density) last.thickness += thickness;
-      else layers.push({ thickness, density });
-    }
-  }
+  const layers = survivingGrowthLayers(crystal,replayStep).map(l =>
+    ({thickness:l.thickness,density:l.zone.fluid_inclusion ? .95 : 0}));
   const total = layers.reduce((s, l) => s + l.thickness, 0);
   let cumulative = 0;
   const intervals = layers.map(l => {

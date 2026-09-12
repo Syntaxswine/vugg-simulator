@@ -10,6 +10,7 @@ declare const _surfaceGrowthPreventFolds: any;
 declare const _topoSnapshotWall: any;
 declare const _topoCrystalsSignature: any;
 declare const _topoSyncCrystalMeshes: any;
+declare const replayEnclosureCrystals: any, recordedGrowthDimensions: any;
 
 function makeAggregate(wall: any, id: number, mineral = 'malachite', habit = 'botryoidal') {
   const crystal = new Crystal({
@@ -438,6 +439,7 @@ describe('SIM 250 executed Three.js surface-fabric contract', () => {
   it('bounds a repeatable lobe size tail and replay relief without changing the scientific record', () => {
     const wall = new WallState({ cells_per_ring: 48, ring_count: 12, vug_diameter_mm: 70, shape_seed: 42 });
     const crystal = makeAggregate(wall, 681);
+    crystal.zones = [{step:681,thickness_um:28,aspect_ratio:.5},{step:682,thickness_um:1372,aspect_ratio:.5}];
     const sim = { step: 900, wall_state: wall, crystals: [crystal] };
     classifySurfaceGrowth(sim);
     crystal._surfaceGrowth = { ...crystal._surfaceGrowth, mean_thickness_um: 300 };
@@ -446,10 +448,12 @@ describe('SIM 250 executed Three.js surface-fabric contract', () => {
       Object.defineProperty(window, 'innerWidth', { configurable: true, value: width });
       Object.defineProperty(window, 'devicePixelRatio', { configurable: true, value: 1 });
       const state = renderState(wall);
-      const direction = wall.surfaceAnchorDirection(crystal);
-      return _emitSurfaceGrowthSwath(state, crystal, new THREE.MeshStandardMaterial(),
+      const view = maturity < 1 ? replayEnclosureCrystals({...sim,_enclosureReceipts:[]},681)[0] : crystal;
+      const renderC = maturity < 1 ? recordedGrowthDimensions(view,681).c_length_mm : crystal.c_length_mm;
+      const direction = wall.surfaceAnchorDirection(view);
+      return _emitSurfaceGrowthSwath(state, view, new THREE.MeshStandardMaterial(),
         ...direction, wall, wall.ring_count, wall.cells_per_ring, wall.initial_radius_mm,
-        crystal.c_length_mm * maturity, sim, []);
+        renderC, sim, []);
     };
     const full = run(1200), again = run(1200), mobile = run(600), replay = run(1200, 0.02);
     expect(full.geometry.attributes.position.array).toEqual(again.geometry.attributes.position.array);

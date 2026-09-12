@@ -1881,9 +1881,10 @@ function _helixUpdateCrystalVisibility(
     const mats = Array.isArray(mesh.material) ? mesh.material : (mesh.material ? [mesh.material] : []);
     for (const mat of mats) {
       mat.transparent = true;             // shader alpha multiply requires this
-      mat.opacity = natural;              // skin shader scales this down
-      mat.depthWrite = natural >= 1.0;    // perimorphs stay back-face-friendly
+      mat.opacity = mat.userData?.contactFacet ? 1 : natural; // contact remains a separate interface
+      mat.depthWrite = mat.opacity >= 1.0;    // perimorphs stay back-face-friendly
     }
+    contactRimSweepBlending(mesh, true);
     mesh.visible = true;
   }
 }
@@ -1907,10 +1908,11 @@ function _helixRestoreCrystalOpacity(state: any) {
     const natural = (typeof u.naturalOpacity === 'number') ? u.naturalOpacity : 1.0;
     const mats = Array.isArray(mesh.material) ? mesh.material : (mesh.material ? [mesh.material] : []);
     for (const mat of mats) {
-      mat.opacity = natural;
-      mat.transparent = natural < 1;
+      mat.opacity = mat.userData?.contactFacet ? 1 : natural;
+      mat.transparent = mat.opacity < 1;
       mat.depthWrite = !(mat.transparent && mat.userData.gypsumCleavage);
     }
+    contactRimSweepBlending(mesh, false);
     mesh.visible = true;
   }
 }

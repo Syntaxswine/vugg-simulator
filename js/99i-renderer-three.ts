@@ -7331,57 +7331,21 @@ function opticsClarityFor(spec: any): number {
 // init), and it was the shipped behavior for the perimorph/hourglass
 // transparents; one policy, no divergence. Accept minor blend-order
 // softness in deep druses (doc §4.2 mitigation note updated).
-// LOCAL CRYSTAL COLOUR (2026-07-07, boss queued: "local color for crystals,
-// that will resolve your concern about minerals that share space blending
-// together invisibly"). Two honest layers on top of spec.class_color, so
-// same-species neighbours and translucent overlaps read as SEPARATE individuals:
-//
-//   (1) CHEMISTRY — bedrock, generically true. A crystal's growth-weighted
-//       chromophore trace load (Fe/Mn/Ti, normalized by the fleet's own q90 —
-//       tools/localcolor-signal-probe.mjs) DEEPENS its colour (lightness down,
-//       saturation up) via a saturating tanh. Higher-impurity crystals read
-//       deeper; a pure one reads paler/clearer. NO mineral-specific HUE claim —
-//       that (Mn→pink calcite, Fe→amber sphalerite) is Depth-C / D1's job, boss-
-//       gated; this tone modulation composes UNDER it when D1 lands. The probe
-//       showed chemistry mostly separates SPECIES/scenarios, not same-broth
-//       neighbours (they share the broth) — so:
-//   (2) LEGIBILITY FLOOR — a small DETERMINISTIC per-crystal_id hue+value jitter
-//       (two low-discrepancy hashes, RNG-free) guarantees the boss's GOAL for the
-//       trace-free / flat-broth majority (halite cubes, galena, barite). This is
-//       the "later layer" the bedrock-over-effect-hacks rule sanctions — a
-//       legibility aid, explicitly NOT a chemistry claim. Field-guide subtle.
-//
-// Render-only (only matOpts.color), reads zones + id, RNG-free → byte-identical.
-// Chemistry-driven NEIGHBOUR separation (traces from the local depleting cell) is
-// the pre-registered B4 upgrade (solid-solution trace partitioning).
-const LOCAL_COLOR = {
-  REF_FE: 3.6, REF_MN: 1.75, REF_TI: 1.24,   // fleet q90 trace levels (ppm) — the tint reference
-  CHEM_K: 0.7, CHEM_DARKEN: 0.13, CHEM_SAT: 0.10,   // field-guide restraint: even q99-trace crystals stay subtle
-  FLOOR_HUE: 0.04, FLOOR_SAT: 0.12, FLOOR_VAL: 0.13,  // ±0.02 hue / ±0.06 sat / ±0.065 value — 3-axis so
-                                                       // worst-case neighbour separation stays up without any
-                                                       // single axis reading garish (per-axis stays subtle)
-};
-function _localCrystalColor(crystal: any, spec: any): any {
+// R7 body colour: surviving, cursor-filtered mineral-specific causes first.
+// The former universal q90 trace-darkening heuristic is retired. A small stable
+// per-id colour jitter remains a declared display aid for adjacent individuals.
+const LOCAL_COLOR = { FLOOR_HUE: 0.04, FLOOR_SAT: 0.12, FLOOR_VAL: 0.13 };
+function _localCrystalColor(crystal: any, spec: any, replayStep: number | null = null): any {
+  crystal = colourCrystalAtStep(crystal, replayStep);
   // D1a — the BASE hue is now the color_rules-resolved real body colour
   // (js/12a resolveBodyColour), not the class-taxonomy class_color. Falls back
-  // to class_color for anything unresolved. The chemistry tone + legibility
-  // floor below compose OVER it, unchanged.
+  // to class_color for anything unresolved. Only the declared id display
+  // variation below composes over it.
   const base = _topoParseColor(resolveBodyColour(crystal, spec));
   const hsl: any = { h: 0, s: 0, l: 0 };
   base.getHSL(hsl);
-  // (1) chemistry — growth-weighted chromophore trace load → tone deepening
-  let feG = 0, mnG = 0, tiG = 0, G = 0;
-  for (const z of (crystal.zones || [])) {
-    const w = z.thickness_um;
-    if (!(w > 0)) continue;
-    feG += (z.trace_Fe || 0) * w; mnG += (z.trace_Mn || 0) * w; tiG += (z.trace_Ti || 0) * w; G += w;
-  }
-  if (G > 0) {
-    const load = (feG / G) / LOCAL_COLOR.REF_FE + (mnG / G) / LOCAL_COLOR.REF_MN + (tiG / G) / LOCAL_COLOR.REF_TI;
-    const chem = Math.tanh(LOCAL_COLOR.CHEM_K * load);
-    hsl.l = Math.max(0, hsl.l - LOCAL_COLOR.CHEM_DARKEN * chem);
-    hsl.s = Math.min(1, hsl.s + LOCAL_COLOR.CHEM_SAT * chem);
-  }
+  // R7: no universal trace-load darkening. Chromophore effects require a
+  // mineral-specific unit contract; the resolved body palette handles those.
   // (2) legibility floor — deterministic per-id micro-jitter across 3 axes
   // (hue, saturation, value) from three low-discrepancy hashes, so two
   // same-broth neighbours rarely collide on all three at once.
@@ -7641,7 +7605,7 @@ function _applyTopazVolumeOptics(mat: any, mesh: any, growthHistory: any = null)
     }
     mat.userData.cloudyGrowth = growthHistory;
     // The supplied history is replay-filtered; future inclusions must not cloud it.
-    _applyRecordedCloudPolicy(mat.userData.optics, mesh.userData.mineral, growthHistory);
+    if (CLOUDY_GROWTH_MINERALS.has(mesh.userData.mineral)) _applyRecordedCloudPolicy(mat.userData.optics, mesh.userData.mineral, growthHistory);
     _opticsPaintTier(mat, mat.userData.optics, new THREE.Color(mat.userData.optics.body));
   }
   mesh.geometry.computeBoundingBox();
@@ -7668,6 +7632,10 @@ function _applyTopazVolumeOptics(mat: any, mesh: any, growthHistory: any = null)
     if (growthHistory) {
       shader.uniforms.growthCloudBins = { value: growthHistory.bins };
       shader.uniforms.growthCloudPhase = { value: growthHistory.phase };
+      if (growthHistory.absorption) {
+        shader.uniforms.historyAbsorptionBins = { value: growthHistory.absorption.bins.map((b: number[]) => new THREE.Vector3(...b)) };
+        shader.uniforms.historyAbsorptionDistance = { value: mat.attenuationDistance };
+      }
     }
     let code = `
       uniform vec4 topazExitPlanes[${planes.length}];
@@ -7733,7 +7701,17 @@ function _applyTopazVolumeOptics(mat: any, mesh: any, growthHistory: any = null)
       const end = code.indexOf('      vec3 topazVolumeRay');
       code = code.slice(0, start) + CLOUDY_GROWTH_GLSL.replace('GROWTH_PLANE_COUNT', String(planes.length)) + code.slice(end);
     }
-    const chunk = THREE.ShaderChunk.transmission_pars_fragment.replace(
+    if (growthHistory?.absorption) {
+      code = code.replace('out float cloudDepth)', 'out float cloudDepth, out vec3 historyDepth)')
+        .replace('cloudDepth = 0.0;', 'cloudDepth = 0.0; historyDepth = vec3(0.0);')
+        .replace('for (int sampleIndex = 0; sampleIndex < 6; sampleIndex++) {', 'for (int sampleIndex = 0; sampleIndex < 6; sampleIndex++) { historyDepth += historyAbsorptionAt(origin + direction * exitDistance * (float(sampleIndex)+0.5)/6.0) * exitDistance / (6.0*max(historyAbsorptionDistance,0.0001));');
+      code = HISTORY_ABSORPTION_GLSL.replace('HISTORY_PLANE_COUNT',String(planes.length)) + code;
+      // Uniform declarations needed by the absorption lookup precede its body.
+      code = code.replace('uniform vec4 topazExitPlanes[' + planes.length + '];','')
+        .replace('uniform vec3 topazCloudCenter;','');
+      code = 'uniform vec4 topazExitPlanes[' + planes.length + ']; uniform vec3 topazCloudCenter;\n' + code;
+    }
+    let chunk = THREE.ShaderChunk.transmission_pars_fragment.replace(
       'vec3 transmissionRay = getVolumeTransmissionRay( n, v, thickness, ior, modelMatrix );',
       'float topazPathLength; float topazTrapped; float topazCloudDepth; vec3 topazFinalRay; vec3 transmissionRay = topazVolumeRay( n, v, position, modelMatrix, topazPathLength, topazFinalRay, topazTrapped, topazCloudDepth );')
       .replace('volumeAttenuation( length( transmissionRay ),', 'volumeAttenuation( topazPathLength,')
@@ -7776,10 +7754,15 @@ function _applyTopazVolumeOptics(mat: any, mesh: any, growthHistory: any = null)
         ` : ''}
         vec3 attenuatedColor = transmittance * transmittedLight.rgb;
       `);
+    if (growthHistory?.absorption) {
+      chunk = chunk.replace('float topazPathLength;', 'vec3 historyDepth; float topazPathLength;')
+        .replace('topazTrapped, topazCloudDepth );', 'topazTrapped, topazCloudDepth, historyDepth );')
+        .replace('vec3 attenuatedColor = transmittance * transmittedLight.rgb;', 'vec3 attenuatedColor = exp(-historyDepth) * transmittedLight.rgb;');
+    }
     // Place the helper after IOR has been declared by the physical-material chunk.
     shader.fragmentShader = shader.fragmentShader.replace('#include <transmission_pars_fragment>', code + chunk);
   };
-  mat.customProgramCacheKey = () => previousKey + '|topaz-convex-cloud-core-v2-' + planes.length + (growthHistory ? '|growth-shells-v2' : '');
+  mat.customProgramCacheKey = () => previousKey + '|topaz-convex-cloud-core-v2-' + planes.length + (growthHistory ? '|growth-shells-v2' : '') + (growthHistory?.absorption ? '|Fe-absorption-v1' : '');
   mat.needsUpdate = true;
 }
 // Install the optics rig on a fresh Three state: desktop starts on transmission, mobile and
@@ -7886,7 +7869,7 @@ function buildCrystalMaterial(crystal: any, spec: any, f: any, tierOverride?: _O
   // LOCAL CRYSTAL COLOUR — per-crystal chemistry tone + deterministic legibility floor so
   // same-species neighbours read apart (isSectorZoned overrides to white — its baked vertex
   // colours are absolute — so no double-tint).
-  const body = _localCrystalColor(crystal, spec);
+  const body = _localCrystalColor(crystal, spec, fl.replayStep ?? null);
   const matOpts: any = {
     color: body.clone(),
     roughness: p.roughness,
@@ -7921,59 +7904,10 @@ function _topoParseColor(s: string): any {
   }
 }
 
-// v65: historical crystal size for replay. Walks zones[] up to
-// `replayStep` and returns the accumulated c_length_mm / a_width_mm at
-// that historical point — or null if the crystal hadn't nucleated yet
-// or had no positive size by replayStep (in which case the caller skips
-// rendering it entirely so replay shows growth order).
-//
-// Negative-thickness zones net directly into the historical sum. Do not cap
-// an earlier frame to the smaller live total: that erased the larger
-// pre-dissolution body and made sharp → etched → healed replay impossible.
-//
-// Habit ratio mirrors Crystal.add_zone in 27-geometry-crystal.ts; if
-// either file shifts the habit:a_ratio table, both sites need to move
-// together.
-function _topoHistoricalCrystalSize(crystal: any, replayStep: number): { c_length_mm: number; a_width_mm: number } | null {
-  if (!crystal) return null;
-  if (crystal.nucleation_step != null && crystal.nucleation_step > replayStep) return null;
-  if (!crystal.zones || !crystal.zones.length) return null;
-  let totalUm = 0;
-  let zoneCount = 0;
-  for (const z of crystal.zones) {
-    if (z.step != null && z.step > replayStep) break;
-    totalUm += z.thickness_um;
-    zoneCount++;
-  }
-  if (zoneCount === 0) return null;
-  if (totalUm <= 0) return null;
-  let c = totalUm / 1000.0;
-  let a;
-  if (crystal.habit === 'prismatic') a = c * 0.4;
-  else if (crystal.habit === 'tabular') a = c * 1.5;
-  else if (crystal.habit === 'acicular') a = c * 0.15;
-  else if (crystal.habit === 'rhombohedral') a = c * 0.8;
-  // Calcite-morphology arc Phase 2: σ-regime rhomb-family habits keep
-  // the parent rhomb aspect in replay (mirrors _habitAspectRatio).
-  else if (crystal.habit === 'stepped_rhombohedral'
-        || crystal.habit === 'hopper_rhombohedral'
-        || crystal.habit === 'dendritic_rhombohedral') a = c * 0.8;
-  else if (crystal.habit === 'snowball') a = c;
-  else a = c * 0.5;
-  // W-K VOL-NEUTRAL (v226) — mirror the live add_zone compaction in the NARRATIVE
-  // REPLAY. Without this a split crystal plays back as its raw needle and then
-  // SNAPS shorter+wider at the live frame (live renderC = the compacted c_length_mm;
-  // this path rebuilt c from raw growth). Per-step index history isn't recorded, so
-  // we apply the FINAL _split.index: the last replay frame then matches the live
-  // render exactly, and earlier frames sit at that same compaction (a mild
-  // approximation — the crystal was already splitting as it grew). Constant volume:
-  // c×m with a÷√m conserves the ellipsoid (c·a²), mirroring add_zone's a_width widen.
-  if (O5_VOLNEUTRAL_ENABLED && crystal._split && crystal._split.index > 0) {
-    const m = splitGrowthMult(crystal._split.index, _habitAspectRatio(crystal.habit));
-    c *= m;
-    a /= Math.sqrt(m);
-  }
-  return { c_length_mm: c, a_width_mm: a };
+// R7f: historical dimensions follow accepted per-zone aspects and signed growth.
+// Missing legacy aspect and unrecorded split-index history stay explicit.
+function _topoHistoricalCrystalSize(crystal: any, replayStep: number): any {
+  return recordedGrowthDimensions(crystal, replayStep);
 }
 
 // PHASE-D-HABIT-BIAS — 3D-VISION plan Phase D / PROPOSAL-3D-SIMULATION
@@ -8051,7 +7985,8 @@ function _topoCrystalsSignature(sim: any, wall: any, replayStep?: number): strin
     // Only an effectively-zero remnant drops; partially-dissolved
     // crystals stay in the scene (and get the etched-matte surface
     // the face-realism arc already ships for them).
-    if (c.dissolved && !c.perimorph_eligible && !(c.c_length_mm > 0.05)) continue;
+    if (replayStep == null && c.dissolved && !c.perimorph_eligible && !(c.c_length_mm > 0.05)) continue;
+    if (replayStep != null && c.nucleation_step > replayStep) continue;
     // PHASE-4-CAVITY-MESH Tranche 4b — wall_anchor is the truth.
     const _anchorKey = wall?.surfaceAnchorKey
       ? wall.surfaceAnchorKey(c) : CavitySurfaceAnchors.key(c.wall_anchor);
@@ -8078,7 +8013,7 @@ function _topoCrystalsSignature(sim: any, wall: any, replayStep?: number): strin
         parts.push(`${c.crystal_id}:${effectiveMineral}:${c.habit}:cast:${c.c_length_mm.toFixed(2)}:${_anchorKey}:${_envKey}`);
         continue;
       }
-      parts.push(`${c.crystal_id}:${effectiveMineral}:${c.habit}:${hist.c_length_mm.toFixed(2)}:${_anchorKey}:${_envKey}:r${replayStep}` + cloudyGrowthSignature(c, replayStep) + populationHistorySignature(c, replayStep));
+      parts.push(`${c.crystal_id}:${effectiveMineral}:${c.habit}:${hist.c_length_mm}:${hist.a_width_mm}:${_anchorKey}:${_envKey}:r${replayStep}` + cloudyGrowthSignature(c, replayStep) + populationHistorySignature(c, replayStep));
       continue;
     }
     // Quartz's surface history can gain a striation before its length crosses
@@ -8090,19 +8025,19 @@ function _topoCrystalsSignature(sim: any, wall: any, replayStep?: number): strin
       ? `:b${c.a_width_mm || 0}:${c.c_length_mm || 0}` : '';
     parts.push(`${c.crystal_id}:${c.mineral}:${c.habit}:${c.c_length_mm.toFixed(2)}:${_anchorKey}:${_envKey}:${c.dissolved ? 'd' : 'a'}${quartzHistoryKey}${bladeAspectKey}${cloudyGrowthSignature(c)}${populationHistorySignature(c)}`);
   }
-  return parts.join('|');
+  return parts.join('|') + ':enclosure:' + JSON.stringify(sim.crystals.map((c: any) => c ? [c.enclosed_by ?? null, c.enclosed_crystals || [], c._replayEnclosureHistory || 'live'] : null)) + ':colour:' + sim.crystals.map((c: any) => c ? colourHistorySignature(c, replayStep) : '').join('|') + ':contact:' + sim.crystals.map((c: any) => c ? contactGrowthAtStep(c, replayStep) : '').join(',');
 }
 
 // W-F O2 — neighbour placement for the induction-surface clip. Returns a
 // crystal's WORLD centre + a generous (circumscribed-sphere) bounding reach,
 // using the SAME anchor→cAxis→occlusion-offset math the mesh loop applies at
 // mesh.position, so the meeting planes computed below sit consistently with
-// where each crystal actually renders. (The loop's wasFloored aspect
-// re-derivation for sub-floor crystals is skipped here — a <2 mm centre shift
-// on invisible crystals.) Returns null for the crystals the loop also skips
+// where each crystal actually renders. The shared R7 scale policy also applies
+// the same overview aspect correction. Returns null for the crystals the loop also skips
 // (dissolved non-perimorphs, un-anchored floaters, not-yet-nucleated in replay).
-function _o2PlaceBody(crystal: any, wall: any, replayStep: number | undefined, ringCount: number, N: number, initR: number): any {
+function _o2PlaceBody(crystal: any, wall: any, replayStep: number | undefined, ringCount: number, N: number, initR: number, scaleMode = "overview"): any {
   if (!crystal) return null;
+  if (replayStep != null && crystal.nucleation_step > replayStep) return null;
   let renderC = crystal.c_length_mm, renderA = crystal.a_width_mm;
   if (replayStep != null) {
     const hist = _topoHistoricalCrystalSize(crystal, replayStep);
@@ -8112,7 +8047,7 @@ function _o2PlaceBody(crystal: any, wall: any, replayStep: number | undefined, r
   // Mirrors the mesh loop's amended Q4 gate (2026-07-07): partially-
   // dissolved remnants render, so they must also occupy space in the
   // O2 neighbour pre-pass; only effectively-gone remnants drop.
-  if (crystal.dissolved && !crystal.perimorph_eligible && !(renderC > 0.05)) return null;
+  if (replayStep == null && crystal.dissolved && !crystal.perimorph_eligible && !(renderC > 0.05)) return null;
   const anchor = wall._resolveAnchor ? wall._resolveAnchor(crystal) : null;
   if (!anchor) return null;
   const point = wall.surfacePointForCrystal?.(crystal);
@@ -8124,10 +8059,10 @@ function _o2PlaceBody(crystal: any, wall: any, replayStep: number | undefined, r
   );
   const token = _resolveCrystalGeomToken(crystal, crystal.habit);
   const inReplay = (replayStep != null);
-  let cLen = Math.max(inReplay ? 0.0 : 2.0, renderC);
-  const aWid = Math.max(inReplay ? 0.0 : 1.5, renderA);
+  let { cLen, aWid, wasFloored } = crystalDisplayDimensions(renderC, renderA,
+    _GEOM_TOKEN_RATIO[token] ?? .5, inReplay ? 'recorded' : scaleMode, crystal.enclosed_by != null);
+  if (crystal.mineral === 'topaz' && wasFloored && crystal.enclosed_by == null) cLen *= 1.4;
   const dolomiteRhomb = crystal.mineral === 'dolomite' && token === 'rhomb' && crystal.habit === 'coarse_rhomb';
-  if (dolomiteRhomb && !inReplay && (renderC < 2 || renderA < 1.5)) cLen = Math.max(cLen, aWid / _GEOM_TOKEN_RATIO.rhomb);
   const equant = token === 'cube' || token === 'octahedron' || token === 'tetrahedron' || token === 'rhomb'
     || token === 'scalene' || token === 'tablet' || token === 'rhombic_dodec' || token === 'dodecahedron';
   const simOccF = (crystal._occlusion && typeof crystal._occlusion.attachedFraction === 'number') ? crystal._occlusion.attachedFraction : null;
@@ -8139,12 +8074,12 @@ function _o2PlaceBody(crystal: any, wall: any, replayStep: number | undefined, r
     cx: ax + cAxisX * off, cy: ay + cAxisY * off, cz: az + cAxisZ * off,
     reach: Math.max(0.5 * Math.sqrt(2 * aWid * aWid + cLen * cLen),
       dolomiteRhomb ? cLen * dolomiteRenderRadius() : 0),
-    // C1 O2 upgrade — gross integrated linear growth (already depletion-aware:
+    // C1 O2 upgrade — net integrated linear growth (already depletion-aware:
     // the growth loop reads cell σ, so a starved crystal's total_growth_um is
     // already smaller). The meeting-plane weight below prefers this over `reach`
-    // (current circumscribed size), which differs for dissolved-and-regrown or
+    // (current circumscribed size), which differs for anisotropic or
     // strongly anisotropic bodies — the drift population O2's header pre-registered.
-    growth: crystal.total_growth_um > 0 ? crystal.total_growth_um : 0,
+    growth: contactGrowthAtStep(crystal, replayStep),
   };
 }
 
@@ -8290,10 +8225,12 @@ function _o1bNeighborShadow(crystal: any, bodies: any[]): number {
 function _o2ContactMaterial(mat: any, state: any): any {
   const m = mat.clone();
   m.roughness = 0.92;
-  m.metalness = 0.0;
+  m.side = THREE.DoubleSide; // visible through a clear host from either side of the interface
+  m.metalness = mat.metalness;
   m.transparent = false;
   m.opacity = 1.0;
   m.transmission = 0;               // R2: a contact face is an interface, not glass
+  m.userData.contactFacet = true;
   if (m.userData) m.userData.optics = null;   // the retier leaves it alone
   if (typeof _applyCavityClip === 'function') _applyCavityClip(m, state.clipUniforms);
   return m;
@@ -8306,7 +8243,17 @@ function _o2ContactMaterial(mat: any, state: any): any {
 // MINERAL_SPEC[mineral].class_color.
 function _topoSyncCrystalMeshes(state: any, sim: any, wall: any, replayStep?: number) {
   if (!sim || !wall || !wall.rings || !wall.rings.length) return;
-  const sig = _topoCrystalsSignature(sim, wall, replayStep);
+  // One immutable event projection feeds contacts, materials and inclusion placement.
+  if (replayStep != null) sim = Object.assign(Object.create(sim), { crystals: replayEnclosureCrystals(sim, replayStep) });
+  const scaleMode = crystalScaleMode(state.scaleZoomOverride ?? _topoZoom, replayStep);
+  state.crystalScaleMode = scaleMode;
+  const label = typeof document === 'undefined' ? null : document.getElementById('topo-zoom-label');
+  if (label) {
+    label.textContent = Math.round(_topoZoom * 100) + '% · ' + (scaleMode === 'recorded' ? 'recorded lengths' : 'small crystals enlarged');
+    label.title = 'At 400% zoom, visibility enlargement is removed. Mineral form proportions remain display approximations.';
+    label.dataset.crystalScale = scaleMode;
+  }
+  const sig = _topoCrystalsSignature(sim, wall, replayStep) + ':scale:' + scaleMode;
   if (sig === state.crystalsSig) return;
   state.crystalsSig = sig;
 
@@ -8343,7 +8290,7 @@ function _topoSyncCrystalMeshes(state: any, sim: any, wall: any, replayStep?: nu
   // flagged so O2 skips them — they're O4 engulfment, not competitive contact.
   const _o2Bodies: any[] = [];
   for (const c of sim.crystals) {
-    const b = c ? _o2PlaceBody(c, wall, replayStep, ringCount, N, initR) : null;
+    const b = c ? _o2PlaceBody(c, wall, replayStep, ringCount, N, initR, scaleMode) : null;
     if (b) _o2Bodies.push(b);
   }
   // W-F O4a — engulfment made visible (2026-07-07). Host lookup so an enclosed
@@ -8363,6 +8310,7 @@ function _topoSyncCrystalMeshes(state: any, sim: any, wall: any, replayStep?: nu
 
   for (const crystal of sim.crystals) {
     if (!crystal) continue;
+    if (replayStep != null && crystal.nucleation_step > replayStep) continue;
     // v65 replay: rendered c_length / a_width come from history when a
     // replayStep is active. Skips crystals that hadn't nucleated yet
     // (or whose net size at replayStep is non-positive) so replay
@@ -8396,7 +8344,7 @@ function _topoSyncCrystalMeshes(state: any, sim: any, wall: any, replayStep?: nu
     // replay-history branch, so a to-be-etched crystal never appeared
     // at ANY playback step even while alive (Tutorial 4 narrates blue
     // beryl onto a wall that never showed one).
-    if (crystal.dissolved && !crystal.perimorph_eligible && !(renderC > 0.05)) continue;
+    if (replayStep == null && crystal.dissolved && !crystal.perimorph_eligible && !(renderC > 0.05)) continue;
 
     // PHASE-4-CAVITY-MESH Tranche 4b — wall_anchor is the sole
     // positional field; _resolveAnchor reads only from it.
@@ -8994,75 +8942,17 @@ function _topoSyncCrystalMeshes(state: any, sim: any, wall: any, replayStep?: nu
       isCdrPseudomorph, isEtched, isPerimorphCast, isSectorZoned, isGypsumHourglass, isInclusion, replayStep,
     });
     _applyCavityClip(mat, state.clipUniforms);
+    if (!isInclusion && !isPerimorphCast) applyRecordedSurfaceFilm(mat, crystal, replayStep ?? null);
     if (geom.userData.sulfideR4?.mineral === 'pyrite') applyPyriteStriations(mat);
     if (geom.userData.gypsumSplitR4) applyGypsumCleavage(mat);
 
     const mesh = new THREE.Mesh(geom, mat);
 
-    // Scale: c-axis along Y in the unit primitive → scale Y by
-    // c_length_mm. a-axis (perpendicular) scales by a_width_mm.
-    // Floor at 2 mm c / 1.5 mm a so a typical 30 mm cavity reads as
-    // dotted with macro-crystals rather than dusted with invisible
-    // ones. Aesthetic-over-accurate trade-off; E4 can revisit once
-    // the camera supports zoom-into-cavity for true scale.
-    //
-    // Isometric tokens (cube, octahedron, rhombic_dodec) override to
-    // uniform scale: the crystal-side `a_width_mm = c × 0.5` fallback
-    // in 27-geometry-crystal.ts treats every habit not in its
-    // {prismatic, tabular, acicular, rhombohedral} set as 2:1 elongate,
-    // so a fluorite cube ends up rendered as a 2:1 rectangle. Geologically
-    // wrong (cubic-system crystals are 1:1:1 by definition); the dispatch
-    // is part of the v48 baseline so we override at the renderer rather
-    // than touching the sim. cLen is the larger floor so isometric
-    // crystals don't shrink below visible.
-    // Visibility floor — tiny crystals (sub-millimeter) need a minimum
-    // rendered size or they vanish in a 30+ mm vug. Independent floors
-    // on c and a (the previous approach) produce near-cube proportions
-    // when both are below their floors, which is wrong for tabular,
-    // botryoidal, acicular, etc. Boss-spotted: tiny barites + selenites
-    // looked like cubes instead of plates; chalcedony rendered as a
-    // quartz point instead of a wall crust.
-    //
-    // Fix: compute the rendered aspect from the habit's expected ratio
-    // when either dimension is at the floor. The geomToken-keyed ratio
-    // table mirrors 27-geometry-crystal.ts:_update_dimensions but indexed
-    // post-token-mapping so multi-word habit strings collapse to the
-    // right shape.
-    //
-    // Narrative-tempo Phase 5 (2026-05-11 boss bug report): during
-    // narrative playback (replayStep != null) the floor was making
-    // crystals look fully grown at step 1 because their 0.01-0.1 mm
-    // historical sizes were floored UP to 2.0 mm — defeating the whole
-    // point of the step-paced replay. During replay we skip the floor,
-    // so crystals genuinely appear small at first and grow naturally as
-    // the step advances. They may still be sub-pixel for the first few
-    // steps; that's the right look (a real cavity looks empty at the
-    // moment of first nucleation too). Live render keeps the floor for
-    // aesthetic readability of tiny mature crystals.
+    // R7b: macro/replay use recorded lengths; overview retains the R4 habit
+    // floor. This exact policy also sizes neighbours in the contact pre-pass.
     const inReplay = (replayStep != null);
-    const C_FLOOR = inReplay ? 0.0 : 2.0;
-    const A_FLOOR = inReplay ? 0.0 : 1.5;
-    const targetRatio = _GEOM_TOKEN_RATIO[token] ?? 0.5;
-    let cLen = Math.max(C_FLOOR, renderC);
-    let aWid = Math.max(A_FLOOR, renderA);
-    const wasFloored = !inReplay && (renderC < C_FLOOR || renderA < A_FLOOR);
-    if (wasFloored) {
-      // Re-derive aspect from habit so the floor doesn't squash everything
-      // toward 1:1. For tablet-like habits (ratio >= 1) widen aWid; for
-      // prism-like habits (ratio < 1) lengthen cLen.
-      if (targetRatio >= 1.0) {
-        aWid = Math.max(aWid, cLen * targetRatio);
-      } else {
-        cLen = Math.max(cLen, aWid / targetRatio);
-      }
-    }
-    // W-F O4a — an inclusion keeps its true (small) frozen size but bypasses the
-    // 2 mm visibility floor above (which would burst it out of the host). A final
-    // cap relative to the host's RENDERED reach is applied in pass 2 (below).
-    if (isInclusion) {
-      cLen = Math.max(renderC, O4_INCLUSION_MIN_MM);
-      aWid = Math.max(renderA, O4_INCLUSION_MIN_MM);
-    }
+    let { cLen, aWid, wasFloored } = crystalDisplayDimensions(renderC, renderA,
+      _GEOM_TOKEN_RATIO[token] ?? .5, scaleMode, isInclusion);
     let gemPrismGeometry: any = null;
     // The generic tablet visibility floor gives tiny topaz an almost entirely
     // terminal silhouette. Preserve its broad width, but expose a longer prism
@@ -9244,9 +9134,9 @@ function _topoSyncCrystalMeshes(state: any, sim: any, wall: any, replayStep?: nu
     // concave hopper/botryoidal/twin have no single convex cap); stepped/etched/
     // e-twin/hourglass overprints and enclosed guests (O4's job) opt out. The
     // meeting plane uses INTEGRATED-GROWTH weights (C1, 2026-07-07): the plane
-    // sits at the growth-ratio point gA/(gA+gB), gross linear growth — faithful
-    // for dissolved-and-regrown or anisotropic bodies where current size ≠ growth
-    // history, and depletion-aware because the growth loop already reads cell σ.
+    // sits at gA/(gA+gB), NET integrated linear growth (total_growth_um books
+    // signed zones). R7 filters both weights at the replay cursor. This is a
+    // geometric approximation, not recorded facewise contact chronology.
     // Falls back to current-size (reach, Diggle first-order) when either body
     // lacks a growth scalar. Render-only: replaces mesh.geometry with a fresh
     // clipped geom, leaving the cached form intact for the satellites + geomCache.
@@ -9270,7 +9160,7 @@ function _topoSyncCrystalMeshes(state: any, sim: any, wall: any, replayStep?: nu
         // C1 — integrated-growth meeting point gA/(gA+gB); current-size fallback
         // (reach) when either body has no growth scalar, keeping the weight
         // unit-consistent (never mix mm-reach with µm-growth in one ratio).
-        const gA = crystal.total_growth_um > 0 ? crystal.total_growth_um : 0;
+        const gA = contactGrowthAtStep(crystal, replayStep);
         const gB = b.growth;
         const dA = (gA > 0 && gB > 0)
           ? D * gA / (gA + gB)
@@ -9306,6 +9196,13 @@ function _topoSyncCrystalMeshes(state: any, sim: any, wall: any, replayStep?: nu
     // findable by id via sim.crystals if a consumer needs more.
     mesh.userData = {
       crystal_id: crystal.crystal_id,
+      ownsGeometry: mesh.geometry !== geom,
+      enclosedBy: crystal.enclosed_by ?? null,
+      displayScale: { mode: scaleMode, recordedLengthMm: renderC, nominalLengthMm: cLen,
+        enlarged: wasFloored, widthModel: 'mineral-form-display' },
+      replayHistory: replayStep == null ? null : { enclosure: crystal._replayEnclosureHistory,
+        dimensions: recordedGrowthDimensions(crystal, replayStep),
+        formChronology: 'current-form-with-recorded-etch-deformation-and-sceptre-gates' },
       // v66: report the effectiveMineral (paramorph-rewound during
       // replay) so hit-test tooltips match what the user sees.
       mineral: effectiveMineral,
@@ -9324,6 +9221,8 @@ function _topoSyncCrystalMeshes(state: any, sim: any, wall: any, replayStep?: nu
       naturalOpacity: mat.transparent ? mat.opacity : 1.0,
       // === END HELIX-OVERLAY-FORK ADDITION ===========================
     };
+
+    emitContactBoundaryRim(mesh, state);
 
     // An aggregate surface fabric is represented by its swath, not by the old
     // trophy-sized parent body as well. Keeping both would visually double one
@@ -9350,7 +9249,10 @@ function _topoSyncCrystalMeshes(state: any, sim: any, wall: any, replayStep?: nu
     // similar shell at its surviving axial-history fraction. Free-standing crystals
     // only — an engulfed guest (O4a) is a tiny grain inside a host, its own
     // internal bands invisible and not worth the meshes. Render-only.
-    if (!isInclusion) _o5EmitMaskedBands(mesh, crystal, state, replayStep ?? null);
+    if (!isInclusion) {
+      _o5EmitMaskedBands(mesh, crystal, state, replayStep ?? null);
+
+    }
 
     // Phase E5b: emit cluster satellites around this parent. Same
     // geometry + material; inherits parent userData so hit-tests
@@ -9363,8 +9265,9 @@ function _topoSyncCrystalMeshes(state: any, sim: any, wall: any, replayStep?: nu
     }
     // Each representative gets its own path planes/attenuation: contacted parents
     // and uncut, differently scaled satellites cannot share one optical volume.
-    if (CLOUDY_GROWTH_MINERALS.has(crystal.mineral) && !isInclusion && !isSectorZoned && !isPerimorphCast && !isEtched && !crystal._surfaceGrowth) {
+    if ((CLOUDY_GROWTH_MINERALS.has(crystal.mineral) || crystal.mineral === 'sphalerite') && !isInclusion && !isSectorZoned && !isPerimorphCast && !isEtched && !crystal._surfaceGrowth) {
       const history = cloudyGrowthHistory(crystal, replayStep ?? null);
+      history.absorption = chemistryAbsorptionHistory(crystal, replayStep ?? null);
       // Install on satellites before the parent so clones inherit only the
       // existing surface hooks, never an already-bound parent's optical volume.
       const bodies = [...state.crystals.children].sort((a, b) => Number(a === mesh) - Number(b === mesh));
@@ -9389,9 +9292,16 @@ function _topoSyncCrystalMeshes(state: any, sim: any, wall: any, replayStep?: nu
   // nucleated on (its own wall anchor), with an id-based fallback when that is
   // degenerate. Guests whose host didn't render (dissolved) keep their
   // provisional anchor spot. Render-only — mutates no crystal.
-  for (const inc of _pendingInclusions) {
+  const pendingById = new Map(_pendingInclusions.map(inc => [inc.cid, inc]));
+  const placed = new Set(), placing = new Set();
+  const placeInclusion = (inc: any): boolean => {
+    if (placed.has(inc.cid)) return true;
+    if (placing.has(inc.cid)) return false; // Malformed cyclic topology cannot be placed.
+    placing.add(inc.cid);
+    const parent = pendingById.get(inc.hostId);
+    if (parent && !placeInclusion(parent)) { placing.delete(inc.cid); return false; }
     const hm = _hostMeshById.get(inc.hostId);
-    if (!hm || !hm.geometry) continue;
+    if (!hm || !hm.geometry) { placing.delete(inc.cid); return false; }
     hm.geometry.computeBoundingSphere();
     const bs = hm.geometry.boundingSphere;
     const hostR = (bs ? bs.radius : 1) * Math.max(hm.scale.x, hm.scale.y, hm.scale.z);
@@ -9403,7 +9313,12 @@ function _topoSyncCrystalMeshes(state: any, sim: any, wall: any, replayStep?: nu
     const s = inc.mesh.scale;
     const mx = Math.max(s.x, s.y, s.z);
     if (cap > 0 && mx > cap) { const k = cap / mx; s.set(s.x * k, s.y * k, s.z * k); }
-  }
+    fitInclusionInsideHost(inc.mesh, hm);
+    placing.delete(inc.cid); placed.add(inc.cid); return true;
+  };
+  // An older guest can precede a younger host which itself was later enclosed.
+  // Resolve ancestors first, including their size cap, before their descendants.
+  for (const inc of _pendingInclusions) placeInclusion(inc);
   // === END W-F O4a pass 2 =============================================
 }
 

@@ -107704,7 +107704,7 @@
       "transformation_reactivity_commissioning": {
         "role": "controlled production-engine boundary; not a locality trajectory",
         "artifact_schema": "vugg-mechanism-witnesses-v6",
-        "artifact_payload_sha256": "7ae6ea74f22017b01d53860da08f585dc74233091bdf20765e1c365847cb499d",
+        "artifact_payload_sha256": "7f66c3fed04a838cd7cd5f9cedb5cb7d612004e9ea2a01aba157f7203a99d319",
         "link_authority": "artifact-authored scenario route, verified against executed product or surviving parent",
         "controls": []
       },

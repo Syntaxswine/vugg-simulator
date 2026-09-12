@@ -127,10 +127,10 @@
   },
   "science_evidence": {
     "path": "archive/evidence/v285.json",
-    "sha256": "26e3f90aa271911d5481f081b2ae4b406fbc956cdc8fab266f4a11378f625198",
+    "sha256": "e2c9811fdd70b691a7327f7febf5fc8d7b40652bcce62ed54524912d6ad3d4d3",
     "schema": "vugg-science-evidence-receipt-v2",
-    "browser_bundle_sha256": "a1a6e2f5eb79f35c8fdb186d1cd1d9db7a3f361ab7768c4fdf8a41befd1c90ed",
-    "execution_set_sha256": "365ead67e54651f8a2beb9dc55b3273fc338716f6685d407d8f4b91f78f075f7",
+    "browser_bundle_sha256": "46c5666dd9c1197befb23253171f2181967c2bfdf5f3b9e1c333e544ba964de5",
+    "execution_set_sha256": "95980298684ef4a69a3a5621ab07ec8da56873081ebab242f922c6afe98956df",
     "node_runtime": {
       "schema": "vugg-evidence-node-runtime-v1",
       "node": "24.15.0",
@@ -146,11 +146,11 @@
       "strip-archive": "198c4846e3cbee7430a15b320c2c8f57e8d33d4d13d163a2caf69a84581e995e",
       "locality-frequency": "4012da7d90b3d8f74ac310d23217fdd686ecbf9b72b21a109f2965e05a731db5",
       "strip-digest": "8a0964a47a4d54bdba33bd9acd2b56d6877121a5ae91d8b57d00c892396104df",
-      "claim-cards": "b778dda9526737ad3b9ee9a71357bc2939953f1eab2b2eb5bd5d9bd7426971e7",
-      "mechanism-witnesses": "2539d675d89ffac5483b1d0f1c2768b4097772c65706b11abb3a69ae0020b922",
-      "science-provenance": "e8726e5329ceba93d4d05aaa69c230377cd30fe0f9460122d69e9ac3f2214138",
-      "science-receipt": "762cbf0e4a2b7b2446140092c0d0090f7a7521ccedb9884271d48108d2c4501a",
-      "guided-tutorial-browser": "89f0d92df6aad938902412af8091b4a36e6c94bbd27ee1fcdd1c92c7be530bde"
+      "claim-cards": "5429e95fd2659eb495fb17c20c89b891fbb3b0535343ccf6e24f3b931827a4f2",
+      "mechanism-witnesses": "88edfac6f5ec12243e3484df0863123166003d6ea6a1c266f914e599d1a3b4cb",
+      "science-provenance": "cd0fc4a27b18a62ce7a684472c94c5d03d6bddee0296ac345ad459cf3995676b",
+      "science-receipt": "d7707453043dbff6206d3e23044a73d2aadff284a51a3bd6c9adac05625f9b1e",
+      "guided-tutorial-browser": "58cd2dafb54e1564aca7fd12ffa2e1f086688647e8e03957a7b799dd448cba16"
     },
     "artifact_count": 128
   },

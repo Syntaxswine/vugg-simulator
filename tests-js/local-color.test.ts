@@ -45,30 +45,11 @@ describe('local colour — determinism + neighbour separation (the floor)', () =
   });
 });
 
-describe('local colour — chemistry tone (bedrock)', () => {
-  it('a high-trace crystal reads DEEPER (lower lightness) than a trace-free one', () => {
-    const id = 5;   // hold id fixed so the floor cancels — isolate the chemistry
-    const hi = _localCrystalColor({ crystal_id: id, zones: [{ thickness_um: 10, trace_Fe: 6, trace_Mn: 12 }] }, SPEC);
-    const lo = _localCrystalColor({ crystal_id: id, zones: [{ thickness_um: 10 }] }, SPEC);
-    expect(lightness(hi)).toBeLessThan(lightness(lo));
-  });
-
-  it('growth-weights the trace load — a thick clean zone dilutes a thin dirty one', () => {
-    const id = 9;
-    const mostlyClean = _localCrystalColor({ crystal_id: id, zones: [
-      { thickness_um: 1, trace_Fe: 20 }, { thickness_um: 99, trace_Fe: 0 },
-    ] }, SPEC);
-    const allDirty = _localCrystalColor({ crystal_id: id, zones: [{ thickness_um: 100, trace_Fe: 20 }] }, SPEC);
-    expect(lightness(mostlyClean)).toBeGreaterThan(lightness(allDirty));
-  });
-
-  it('dissolution (negative) zones do not count toward the trace load', () => {
-    const id = 3;
-    const withDiss = _localCrystalColor({ crystal_id: id, zones: [
-      { thickness_um: 10, trace_Fe: 5 }, { thickness_um: -5, trace_Fe: 999 },
-    ] }, SPEC);
-    const noDiss = _localCrystalColor({ crystal_id: id, zones: [{ thickness_um: 10, trace_Fe: 5 }] }, SPEC);
-    expect(rgbDist(withDiss, noDiss)).toBeLessThan(0.5);   // the -5 zone was ignored
+describe('local colour — conservative chemistry', () => {
+  it('does not darken every species merely because trace ions were recorded', () => {
+    const hi = _localCrystalColor({crystal_id:5,zones:[{thickness_um:10,trace_Fe:60,trace_Mn:120}]},SPEC);
+    const lo = _localCrystalColor({crystal_id:5,zones:[]},SPEC);
+    expect(rgbDist(hi,lo)).toBe(0);
   });
 });
 

@@ -113,7 +113,7 @@ const EXPECTED_GEOLOGY = Object.freeze({
 // geometries/materials before the "Collect topaz" click shifts this suffix. Re-pinned
 // 2026-09-05 (review F13 records the coupling as canonical debt), and again the same day for
 // the R1 lighting rig (PMREM room + key target allocated at renderer init).
-const EXPECTED_COLLECTION_RECORD_ID = 'cry-16-w8g';   // re-pinned 2026-09-11: cloud-volume material allocations; collection payload differs only in this ID (F13)
+const EXPECTED_COLLECTION_RECORD_ID = 'cry-16-qte';   // re-pinned 2026-09-12: R7 display allocations; full observed journey differs only in this UI ID (F13)
 const EXPECTED_COLLECTION_NAME = '<img data-vugg-player-name-probe src=x onerror="globalThis.__vuggPlayerNameInjection=1">';
 // Replaced with the exact SIM 285 values after the owned-browser source freeze.
 // Re-pinned 2026-09-05: the strip dataset records each crystal's surface-growth testimony

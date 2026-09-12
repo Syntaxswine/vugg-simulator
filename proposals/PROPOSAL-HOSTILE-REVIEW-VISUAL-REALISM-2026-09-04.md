@@ -1486,10 +1486,15 @@ ACES. Read the grey card before blaming the data; the rock albedos were set from
 ablations, `manifest.gl.specimen` and per-shot `camera.specimen` receipts; hero/druse cameras
 stand on the open side of the cut. Tests: `tests-js/specimen-view.test.ts` (20).
 
-### R7 — Aggregates with a history · IN PROGRESS
+### R7 — Aggregates with a history · VISUAL BRIDGE ACCEPTED
 
 The first increment and its science boundaries are recorded in
-[R7a population/history fidelity](R7-POPULATION-HISTORY-2026-09-12.md).
+[R7a population/history fidelity](R7-POPULATION-HISTORY-2026-09-12.md). The remaining
+recorded-length, contact, chemistry, collection and replay sections are closed in
+[R7b–f recorded history](R7-RECORDED-HISTORY-2026-09-12.md), each with a hostile
+**4/5 PASS**. Full formation-memory physics remains a separate HOLD where events
+or per-face history are unrecorded; final release/evidence checks accompany the
+implementation.
 The original ideas below are not universal scientific rules: actual populations
 are not forced into lognormal sizes, and age alone never supplies stain.
 - Lognormal satellite sizes with a tail; sub-parallel groups; per-generation tint (older

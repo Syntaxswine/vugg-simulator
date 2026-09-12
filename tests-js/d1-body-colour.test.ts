@@ -80,17 +80,15 @@ describe('D1a — lexicon integrity + coverage (the regression guard)', () => {
 
 // D1b — chemistry-gated variants fired from the crystal's own growth-weighted traces.
 const sph = (fe: number) => resolveBodyColour({ mineral: 'sphalerite', zones: [{ thickness_um: 10, trace_Fe: fe }] }, SPEC.sphalerite);
-const qtz = (rad: number) => resolveBodyColour({ mineral: 'quartz', radiation_damage: rad, zones: [{ thickness_um: 10 }] }, SPEC.quartz);
+const qtz = (rad: number) => resolveBodyColour({ mineral: 'quartz', radiation_damage: rad, zones: [{ thickness_um: 10, trace_Al: 1 }] }, SPEC.quartz);
 
 describe('D1b — chemistry-gated variants (the Fe / radiation axes)', () => {
-  it('sphalerite darkens MONOTONICALLY with Fe: pale → honey → marmatite (no gap fallback)', () => {
-    expect(sph(0.5)).toBe(COLOUR_LEXICON.pale_yellow);       // Fe<2 → base (default), NOT a "<" variant
-    expect(sph(5)).toBe(COLOUR_LEXICON.honey_brown);         // Fe 2-10
-    expect(sph(12)).toBe(COLOUR_LEXICON.honey_brown);        // Fe 10-15 GAP → rounds DOWN to honey, not pale
-    expect(sph(20)).toBe(COLOUR_LEXICON.black_marmatite);    // Fe>15
-    // and the ladder is non-lightening: lightness never increases as Fe rises
-    // (pale is the lightest, marmatite the darkest)
-    expect(sph(12)).not.toBe(COLOUR_LEXICON.pale_yellow);
+  it('sphalerite uses ppm converted to wt% with a qualitative monotonic palette', () => {
+    expect(sph(40)).toBe(COLOUR_LEXICON.pale_yellow);
+    const colours = [2350,20000,50000,100000,148260].map(sph);
+    const brightness = colours.map(c => parseInt(c.slice(1,3),16)+parseInt(c.slice(3,5),16)+parseInt(c.slice(5,7),16));
+    for(let i=1;i<brightness.length;i++) expect(brightness[i]).toBeLessThan(brightness[i-1]);
+    expect(sph(148260)).toBe(COLOUR_LEXICON.black_marmatite);
   });
 
   it('quartz smoky/morion by radiation_damage; the more extreme threshold wins', () => {

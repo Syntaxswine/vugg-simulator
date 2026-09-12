@@ -321,6 +321,18 @@ const EXPORTS = [
   // Phase D habit-bias helper (99i-renderer-three.ts).
   '_topoCAxisForCrystal',
   '_topoCrystalsSignature',
+  '_o2PlaceBody',
+  'crystalScaleMode',
+  'crystalDisplayDimensions',
+  'contactGrowthAtStep',
+  'contactBoundaryRimGeometry',
+  'contactRimSweepBlending',
+  'survivingGrowthLayers',
+  'colourCrystalAtStep',
+  'sphaleriteIronColour',
+  'chemistryAbsorptionHistory',
+  'currentSurfaceFilm',
+  'applyRecordedSurfaceFilm',
   // SIM 246 area-covering aggregate state + deterministic renderer plan.
   'surfaceGrowthRegimeFor',
   'surfaceGrowthDescriptor',

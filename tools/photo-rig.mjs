@@ -104,9 +104,12 @@ function parseArgs(argv) {
     else if (a === '--crystal-id') out.crystalId = Number(next());
     else if (a === '--fixture') {
       out.fixture = next();
-      if (!['aragonite-trilling', 'aragonite-contact', 'aragonite-ordinary', 'quartz-double', 'quartz-accessory'].includes(out.fixture)
+      if (!['aragonite-trilling', 'aragonite-contact', 'aragonite-ordinary', 'quartz-double', 'quartz-accessory', 'quartz-micro', 'quartz-contact'].includes(out.fixture)
         && !/^cloud-(core|band|clear)-(quartz|topaz|apatite|barite|aragonite)$/.test(out.fixture)
-        && !/^history-[1-5]-quartz$/.test(out.fixture)) throw new Error('Unknown photo fixture');
+        && !/^history-[1-5]-quartz$/.test(out.fixture)
+        && !/^enclosure-[2358]-quartz$/.test(out.fixture)
+        && !/^film-(clear|coat|partial)-quartz$/.test(out.fixture)
+        && !/^iron-(zoned|uniform|split)-sphalerite$/.test(out.fixture)) throw new Error('Unknown photo fixture');
     }
     else if (a === '--camera-from') out.cameraFrom = JSON.parse(readFileSync(path.resolve(ROOT, next()), 'utf8'));
     else if (a === '--size') out.size = next().split('x').map(Number);
@@ -431,6 +434,7 @@ const PAGE_HELPERS = `
   const RIG = window.__photoRig = window.__photoRig || {};
   RIG.state = () => (typeof _topoThreeState !== 'undefined' ? _topoThreeState : null);
   RIG.sim = () => (typeof fortressSim !== 'undefined' ? fortressSim : null);
+  RIG.scale = zoom => { RIG.state().scaleZoomOverride = zoom; };
   RIG.refresh = () => {
     topoRender();
     if (RIG.historyCursor != null) _topoSyncCrystalMeshes(RIG.state(), RIG.sim(), RIG.sim().wall_state, RIG.historyCursor);
@@ -606,6 +610,9 @@ const PAGE_HELPERS = `
       }
       rows.push({
         crystal_id: m.userData.crystal_id, mineral: m.userData.mineral,
+        enclosed_by: m.userData.enclosedBy ?? null,
+        inclusion_fit: m.userData.inclusionFit ?? null,
+        replay_history: m.userData.replayHistory ?? null,
         population_display: m.userData.populationDisplay ?? null,
         masked_bands: m.children.filter(b => b.userData?.o5Band).map(b => ({fraction:b.scale.x,mineral:b.userData.filmMineral,transparent:b.material.transparent})),
         history_cursor: RIG.historyCursor ?? null,
@@ -773,6 +780,10 @@ const PAGE_HELPERS = `
     const st = RIG.state(); const sim = RIG.sim(); const applied = [];
     if (!list || !list.length) return applied;
     const r0 = RIG.cavityR0();
+    if (list.includes('contactoff')) {
+      st.crystals.traverse(m => { if (m.userData?.contactBoundaryRim) m.visible = false; });
+      applied.push('contactoff');
+    }
     if (list.includes('filmoff')) {
       st.crystals.traverse(m => { if (m.userData?.o5Band) m.visible = false; });
       applied.push('filmoff');
@@ -988,6 +999,7 @@ const PAGE_HELPERS = `
   RIG.pickHeroes = (n, mineral, crystalId = null) => {
     const st = RIG.state();
     const cands = st.crystals.children.filter(m => m.visible && RIG.isBody(m) && (!mineral || m.userData.mineral === mineral)
+      && (crystalId != null || m.userData.enclosedBy == null)
       && (crystalId == null || m.userData.crystal_id === crystalId));
     return cands.map(m => { const { size, center } = RIG.bbox(m); return { m, size, center, ext: Math.max(size.x, size.y, size.z) }; })
       .sort((a, b) => b.ext - a.ext).slice(0, n);
@@ -1029,13 +1041,16 @@ function runProgram(name, seed, steps, fixture = null) {
     const simMs = performance.now() - t0;
     if (${JSON.stringify(fixture)} != null) {
       const fixtureName = ${JSON.stringify(fixture)};
+      const iron = /^iron-(zoned|uniform|split)-sphalerite$/.exec(fixtureName);
+      const surfaceFilm = /^film-(clear|coat|partial)-quartz$/.exec(fixtureName);
       const history = /^history-([1-5])-quartz$/.exec(fixtureName);
+      const enclosure = /^enclosure-([2358])-quartz$/.exec(fixtureName);
       const cloud = /^cloud-(core|band|clear)-(quartz|topaz|apatite|barite|aragonite)$/.exec(fixtureName);
-      const fixtureMineral = history ? 'quartz' : cloud ? cloud[2] : fixtureName.startsWith('quartz-') ? 'quartz' : 'aragonite';
+      const fixtureMineral = iron ? 'sphalerite' : surfaceFilm || history || enclosure ? 'quartz' : cloud ? cloud[2] : fixtureName.startsWith('quartz-') ? 'quartz' : 'aragonite';
       const index = sim.crystals.findIndex(c => c.mineral === fixtureMineral);
       if (index < 0) throw new Error('Fixture requires an existing ' + fixtureMineral + ' anchor');
       const original = sim.crystals[index];
-      const fixtureHabit = cloud ? ({quartz:'prismatic',topaz:'prismatic',apatite:'prismatic_hexagonal',barite:'tabular',aragonite:'columnar'})[fixtureMineral]
+      const fixtureHabit = iron ? 'tetrahedral' : cloud ? ({quartz:'prismatic',topaz:'prismatic',apatite:'prismatic_hexagonal',barite:'tabular',aragonite:'columnar'})[fixtureMineral]
         : fixtureName === 'quartz-double' ? 'doubly_terminated' : fixtureMineral === 'quartz' ? 'prismatic' : 'columnar';
       const crystal = new Crystal({ mineral: fixtureMineral, habit: fixtureHabit,
         crystal_id: original.crystal_id, nucleation_step: original.nucleation_step });
@@ -1043,6 +1058,21 @@ function runProgram(name, seed, steps, fixture = null) {
         twin_law: fixtureName === 'aragonite-contact' ? 'contact' : fixtureName === 'aragonite-trilling' ? 'cyclic_sextet' : '',
         growth_environment: 'fluid', c_length_mm: 8, a_width_mm: 5,
         total_growth_um: 8000, wall_anchor: original.wall_anchor });
+      if (iron) {
+        crystal.nucleation_step=1;
+        crystal.zones=iron[1]==='split' ? Array.from({length:16},(_,i)=>({step:i+1,thickness_um:500,trace_Fe:50000}))
+          : iron[1]==='uniform' ? [{step:1,thickness_um:8000,trace_Fe:50000}]
+          : [{step:1,thickness_um:4000,trace_Fe:120000},{step:2,thickness_um:4000,trace_Fe:40}];
+      }
+      if (surfaceFilm) {
+        crystal.nucleation_step=1; crystal.zones=[{step:1,thickness_um:8000}];
+        if(surfaceFilm[1]!=='clear') crystal._film=filmWithOperation(null,{kind:'dust-max',source_id:'fixture-coating',
+          mineral:'hematite',step:2,phi_term:1,phi_prism:surfaceFilm[1]==='coat'?1:.15});
+      }
+      if (fixtureName === 'quartz-micro') {
+        crystal.c_length_mm = .3; crystal.a_width_mm = .15; crystal.total_growth_um = 300;
+        crystal.zones = [{step:1,thickness_um:300}];
+      }
       if (fixtureName === 'quartz-accessory') crystal.crystal_id = 4 * (1 + Math.ceil(Math.max(...sim.crystals.map(c=>c.crystal_id))/4));
       if (cloud) {
         crystal.zones = [
@@ -1064,6 +1094,39 @@ function runProgram(name, seed, steps, fixture = null) {
         RIG.historyCursor = Number(history[1]);
       }
       sim.crystals[index] = crystal;
+      if (enclosure) {
+        crystal.nucleation_step=0;crystal.zones=[{step:1,thickness_um:8000,aspect_ratio:.4}];
+        crystal.a_width_mm=3.2;
+        const guest=new Crystal({mineral:'pyrite',habit:'cubic',crystal_id:crystal.crystal_id+1000,nucleation_step:0});
+        Object.assign(guest,{c_length_mm:1.2,a_width_mm:.6,total_growth_um:1200,wall_anchor:crystal.wall_anchor,
+          zones:[{step:1,thickness_um:1200,aspect_ratio:.5}],enclosed_by:crystal.crystal_id});
+        const event={schema:'enclosure-receipt-v1',event:'enclosed',step:3,host_crystal_id:crystal.crystal_id,
+          guest_crystal_id:guest.crystal_id,host_mineral:'quartz',guest_mineral:'pyrite',route:'geometric-overlap'};
+        sim._enclosureReceipts=[event,{...event,schema:'liberation-receipt-v1',event:'liberated',step:5,enclosure_step:3},{...event,step:8}];
+        const wall=sim.wall_state,resolve=wall._resolveAnchor.bind(wall),anchor=resolve(crystal);
+        const tangent=new THREE.Vector3(1,0,0).cross(new THREE.Vector3(...anchor.normal)).normalize().multiplyScalar(3);
+        wall._resolveAnchor=c=>{const a=resolve(c);return !a||c.crystal_id!==guest.crystal_id?a:{...a,position:anchor.position.map((v,i)=>v+tangent.toArray()[i]),normal:anchor.normal};};
+        wall.surfacePointForCrystal=c=>wall._resolveAnchor(c)?.position;
+        wall.surfaceNormalForCrystal=c=>wall._resolveAnchor(c)?.normal;
+        sim.crystals=[crystal,guest];RIG.historyCursor=Number(enclosure[1]);
+      }
+      if (fixtureName === 'quartz-micro' || iron || surfaceFilm) sim.crystals = [crystal];
+      if (fixtureName === 'quartz-contact') {
+        crystal.nucleation_step = 1; crystal.zones = [{step:1,thickness_um:8000}];
+        const second = new Crystal({mineral:'quartz',habit:'prismatic',crystal_id:crystal.crystal_id+1000,nucleation_step:1});
+        Object.assign(second,{c_length_mm:8,a_width_mm:5,total_growth_um:8000,wall_anchor:crystal.wall_anchor,zones:[{step:1,thickness_um:8000}]});
+        const wall = sim.wall_state, resolve = wall._resolveAnchor.bind(wall);
+        const anchor = resolve(crystal), normal = new THREE.Vector3(...anchor.normal);
+        const tangent = new THREE.Vector3(1,0,0).cross(normal).normalize().multiplyScalar(2);
+        wall._resolveAnchor = c => {
+          const a = resolve(c);
+          if (!a || c.crystal_id !== second.crystal_id) return a;
+          return {...a,position:anchor.position.map((v,i)=>v+tangent.toArray()[i]),normal:anchor.normal};
+        };
+        wall.surfacePointForCrystal = c => wall._resolveAnchor(c)?.position;
+        wall.surfaceNormalForCrystal = c => wall._resolveAnchor(c)?.normal;
+        sim.crystals=[crystal,second];
+      }
     }
     if (typeof _topoUseThreeRenderer !== 'undefined' && !_topoUseThreeRenderer) _topoUseThreeRenderer = true;
     _topoSyncThreeCanvasVisibility();
@@ -1075,6 +1138,17 @@ function runProgram(name, seed, steps, fixture = null) {
     const reuseStart = performance.now();
     RIG.refresh();
     const renderReuseMs = performance.now() - reuseStart;
+    let scaleCheck = null;
+    if (${JSON.stringify(fixture)} === 'quartz-micro') {
+      const savedZoom = _topoZoom;
+      _topoZoom = 4; RIG.refresh();
+      const subject = st.crystals.children.find(m => m.userData.mineral === 'quartz' && !m.userData.isSatellite);
+      subject.geometry.computeBoundingBox();
+      scaleCheck = { mode: st.crystalScaleMode, label: document.getElementById('topo-zoom-label')?.textContent,
+        display: subject.userData.displayScale,
+        localLengthMm: (subject.geometry.boundingBox.max.y - subject.geometry.boundingBox.min.y) * subject.scale.y };
+      _topoZoom = savedZoom; RIG.refresh();
+    }
     const frameTimes = [];
     for (let i = 0; i < 5; i++) {
       await new Promise(resolve => requestAnimationFrame(resolve));
@@ -1084,7 +1158,7 @@ function runProgram(name, seed, steps, fixture = null) {
       frameTimes.push(performance.now() - start);
     }
     frameTimes.sort((a, b) => a - b);
-    return { steps, simMs: +simMs.toFixed(0), renderBuildMs: +renderBuildMs.toFixed(0), renderReuseMs: +renderReuseMs.toFixed(1), frameMedianMs: +frameTimes[2].toFixed(1), sim_version: SIM_VERSION, crystals: (sim.crystals || []).length,
+    return { scaleCheck, steps, simMs: +simMs.toFixed(0), renderBuildMs: +renderBuildMs.toFixed(0), renderReuseMs: +renderReuseMs.toFixed(1), frameMedianMs: +frameTimes[2].toFixed(1), sim_version: SIM_VERSION, crystals: (sim.crystals || []).length,
       meshes: st.crystals.children.length, gl: RIG.glInfo(), cavity_r0: RIG.cavityR0(),
       roster: RIG.roster() };
   })()`;
@@ -1098,6 +1172,7 @@ function cavityShotProgram({ w, h, tilt, zoom, wall, experiment = [], mood = nul
     const RIG = window.__photoRig;
     const specimen = RIG.setView(${JSON.stringify(view)}, ${ev == null ? 'null' : Number(ev)});
     ${(keepPose && !tiltGiven) ? '' : `_topoTiltX = ${tilt[0]}; _topoTiltY = ${tilt[1]};`} ${(keepPose && !zoomGiven) ? '' : `_topoZoom = ${zoom};`} _topoPanX = 0; _topoPanY = 0;
+    RIG.scale(undefined);
     RIG.refresh();
     RIG.wallMode(${JSON.stringify(wall)});
     const st = RIG.state();
@@ -1114,6 +1189,7 @@ function heroShotProgram({ w, h, index, n, mineral, wall, experiment = [], mood 
   return `(async () => {
     const RIG = window.__photoRig;
     const specimen = RIG.setView(${JSON.stringify(view)}, ${ev == null ? 'null' : Number(ev)});
+    RIG.scale(4);
     RIG.refresh();
     const heroes = RIG.pickHeroes(${n}, ${JSON.stringify(mineral)}, ${JSON.stringify(crystalId)});
     const hero = heroes[${index}];
@@ -1143,16 +1219,24 @@ function heroShotProgram({ w, h, index, n, mineral, wall, experiment = [], mood 
     const cluster = ${probe.includes('cluster') ? `RIG.clusterFrame(hero.m, ${w}, ${h})` : 'null'};
     RIG.lastClusterFrame = cluster;
     let profile = null;
-    if (${probe.includes('profile')}) {
-      const profileCamera = RIG.placeCamera(hero.center, hero.size, axis, { offAxisDeg: 75, yawDeg: 25, fill: 0.68 });
-      profile = { png: RIG.isolatedFrame(hero.m, ${w}, ${h}), camera: profileCamera };
+    if (${probe.includes('profile') || probe.includes('profile-scene')}) {
+      const contactGroup = hero.m.geometry.groups.find(g => g.materialIndex === 1);
+      const capAxis = Array.isArray(hero.m.material) && contactGroup
+        ? new THREE.Vector3().fromBufferAttribute(hero.m.geometry.attributes.normal, contactGroup.start).applyQuaternion(hero.m.quaternion) : null;
+      const profileCamera = capAxis
+        ? RIG.placeCamera(hero.center, hero.size, capAxis, { offAxisDeg: 5, yawDeg: 0, fill: 0.68 })
+        : RIG.placeCamera(hero.center, hero.size, axis, { offAxisDeg: 75, yawDeg: 25, fill: 0.68 });
+      profile = { png: ${probe.includes('profile-scene') ? `RIG.render(${w}, ${h})` : `RIG.isolatedFrame(hero.m, ${w}, ${h})`}, camera: profileCamera,
+        diagnostic: ${JSON.stringify(probe.includes('profile-scene') ? 'whole scene from the second angle; inclusions and neighboring representatives retained' : 'isolated body; cap-facing for contacted specimens, otherwise 75 degrees off c; geometry and material unchanged')} };
     }
     RIG.lastProfileFrame = profile;
     const u = hero.m.userData;
+    const sourceCrystal = RIG.sim().crystals.find(c=>c.crystal_id===u.crystal_id);
+    const colourRecord = sourceCrystal ? { surviving_Fe_ppm:_bodyFieldVal(colourCrystalAtStep(sourceCrystal,RIG.historyCursor??null),"Fe"), current_film:currentSurfaceFilm(sourceCrystal,RIG.historyCursor??null), enclosed_by:sourceCrystal.enclosed_by??null, dissolved:!!sourceCrystal.dissolved } : null;
     const mats = Array.isArray(hero.m.material) ? hero.m.material : [hero.m.material];
     const mo = mats[0] && mats[0].userData ? mats[0].userData.optics : null;
     return { png, camera: { mode: 'direct', ...cam, ...rule, wall: ${JSON.stringify(wall)}, experiments: applied, lighting, optics, specimen },
-      subject: { crystal_id: u.crystal_id, mineral: u.mineral, extent_mm: +hero.ext.toFixed(2),
+      subject: { replay_history:u.replayHistory, colour_record:colourRecord, contact_materials: mats.map(m => ({roughness:m.roughness,metalness:m.metalness,transmission:m.transmission,opacity:m.opacity,side:m.side})), display_scale: u.displayScale, crystal_id: u.crystal_id, mineral: u.mineral, extent_mm: +hero.ext.toFixed(2),
         material: mats[0] ? { tier: mo ? mo.tier : null, lustre: mo ? mo.lustre : null, transmission: mats[0].transmission ?? null, ior: mats[0].ior ?? null, opacity: mats[0].opacity, transparent: !!mats[0].transparent, roughness: mats[0].roughness, metalness: mats[0].metalness, thickness: mats[0].thickness ?? null, attenuation_distance: mats[0].attenuationDistance ?? null } : null },
       probe_frames: frames, isolated_frame: !!isolated, cluster_frame: !!cluster, profile_frame: !!profile };
   })()`;
@@ -1195,6 +1279,7 @@ function druseShotProgram({ w, h, wall, experiment = [], mood = null, exposure =
   return `(async () => {
     const RIG = window.__photoRig;
     const specimen = RIG.setView(${JSON.stringify(view)}, ${ev == null ? 'null' : Number(ev)});
+    RIG.scale(4);
     RIG.refresh();
     const d = RIG.pickDruse(); if (!d) return null;
     const cam = RIG.placeCamera(d.center, d.size, d.axis, { offAxisDeg: 40, yawDeg: 15, fill: 0.7 });
@@ -1313,7 +1398,8 @@ async function main() {
       schema: 1, tool: 'tools/photo-rig.mjs', generated: new Date().toISOString(),
       ...(args.fixture ? { fixture: args.fixture, testimony: 'controlled display fixture; modified crystal record, not a simulated outcome' } : {}),
       scenario: args.scenario, seed: args.seed, steps: run.steps, sim_version: run.sim_version,
-      render_build_ms: run.renderBuildMs,
+      scale_check: run.scaleCheck,
+    render_build_ms: run.renderBuildMs,
       render_reuse_ms: run.renderReuseMs,
       frame_median_ms: run.frameMedianMs,
       browser: version.Browser, gl: run.gl, size: [W, H], cavity_r0_mm: run.cavity_r0,
@@ -1396,7 +1482,7 @@ async function main() {
             const profile = await page.evaluate('window.__photoRig.lastProfileFrame');
             writeFileSync(path.join(outDir, `${name}-profile.png`), Buffer.from(profile.png.replace(/^data:image\/png;base64,/, ''), 'base64'));
             await page.evaluate('window.__photoRig.lastProfileFrame = null');
-            extra.profile = { file: `${name}-profile.png`, diagnostic: 'isolated body at 75 degrees off c; geometry and material unchanged', camera: profile.camera };
+            extra.profile = { file: `${name}-profile.png`, diagnostic: profile.diagnostic, camera: profile.camera };
             delete r.profile_frame;
           }
           if (r.probe_frames) {
