@@ -98,7 +98,7 @@
   - Transformation step 70: realgar → pararealgar (visible-light-isomerization); dehydration=null; phase-replacement={"schema":"light-induced-transformation-v1","step":70,"from":"realgar","to":"pararealgar","driver":"visible-light-isomerization","exposure_route":"surface","exposure_steps":60,"threshold_steps":60}
   - Transformation step 72: realgar → pararealgar (visible-light-isomerization); dehydration=null; phase-replacement={"schema":"light-induced-transformation-v1","step":72,"from":"realgar","to":"pararealgar","driver":"visible-light-isomerization","exposure_route":"surface","exposure_steps":60,"threshold_steps":60}
   - Transformation step 73: realgar → pararealgar (visible-light-isomerization); dehydration=null; phase-replacement={"schema":"light-induced-transformation-v1","step":73,"from":"realgar","to":"pararealgar","driver":"visible-light-isomerization","exposure_route":"surface","exposure_steps":60,"threshold_steps":60}
-  - Transformation reactivity commissioning: controlled production-engine boundary; not a locality trajectory; artifact vugg-mechanism-witnesses-v6/7f66c3fed04a838cd7cd5f9cedb5cb7d612004e9ea2a01aba157f7203a99d319.
+  - Transformation reactivity commissioning: controlled production-engine boundary; not a locality trajectory; artifact vugg-mechanism-witnesses-v6/52d25f29e231dd33447637846a7a4d1a07d9f0fc022f6bb73e61155be41a862d.
     - No controlled reactivity witness is applicable to a transformation product in this locality run.
   - Conserved carbonate boundary: not enabled for this archived run.
 

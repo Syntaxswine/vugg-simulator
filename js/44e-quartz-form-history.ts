@@ -1,7 +1,7 @@
 // Finalized-step observations of existing quartz classifiers, not face kinetics.
 // Contract and source audit: proposals/growth-front-audit/04-implementation-gate.md.
-// A only: crystal-owned memory. Collection/strip authentication and render routing
-// do not consume this ledger yet. No clocks, growth, chemistry or RNG are changed.
+// B preserves observations through versioned collections and strip testimony.
+// Rendering remains a separate increment. No growth, chemistry or RNG is changed.
 const QUARTZ_FORM_HISTORY_SCHEMA = 'quartz-form-observations-v1';
 const QUARTZ_FORM_HISTORY_BASIS = 'simulator-state-at-finalized-step';
 const QUARTZ_FORM_HISTORY_LIMITS = Object.freeze({
@@ -324,4 +324,46 @@ function quartzFormObservationAtStep(crystal: any, step: number): any {
   for (const row of h.changes) { if (row.step > step) break; observation = row; }
   return {status:'recorded',observation_step:observation.step,observation_basis:h.observation_basis,
     snapshot:JSON.parse(JSON.stringify(observation.snapshot))};
+}
+
+// Export accepted testimony, never create observations as a side effect of saving.
+// A closed history can differ from today's crystal; its declared prefix survives.
+// Syntax and endpoint fidelity are not origin authentication: collections also
+// replay their commands, while arbitrary strip imports retain imported status.
+function quartzFormAssertKnownBirth(history: QuartzFormHistory, birth: unknown): void {
+  if (birth === undefined || birth === null) return;
+  if (!_quartzFormStep(birth)
+      || (history.initial && history.initial.step < (birth as number))
+      || (!history.initial && history.unavailable && history.unavailable.step < (birth as number))) {
+    throw new Error('quartz form history: observation precedes known nucleation or invalid birth coordinate');
+  }
+}
+
+function quartzFormHistoryForPersistence(crystal: any, capturedStep?: number): QuartzFormHistory | undefined {
+  const failure = crystal && _quartzFormUnownedFailures.get(crystal);
+  if (failure) throw new Error(`quartz form history: ${failure.reason}`);
+  const owner = crystal && _quartzFormOwners.get(crystal);
+  const h = owner ? owner.history : _quartzFormValue(crystal, '_quartzFormHistory');
+  if (h === undefined) return undefined;
+  const zones = _quartzFormValue(crystal, 'zones');
+  if (!validateQuartzFormHistory(h, zones)
+      || h.source_crystal_id !== _quartzFormValue(crystal, 'crystal_id')) {
+    throw new Error('quartz form history: invalid ledger or source identity');
+  }
+  quartzFormAssertKnownBirth(h, _quartzFormValue(crystal, 'nucleation_step'));
+  if (capturedStep !== undefined && (!_quartzFormStep(capturedStep)
+      || (h.observed_through_step !== null && h.observed_through_step > capturedStep)
+      || (h.unavailable && h.unavailable.step > capturedStep))) {
+    throw new Error('quartz form history: future observation at capture');
+  }
+  if (!h.unavailable) {
+    const last = h.changes.length ? h.changes[h.changes.length - 1] : h.initial;
+    if (!last || _quartzFormValue(crystal, 'mineral') !== 'quartz'
+        || h.observed_zone_count !== zones.length
+        || (capturedStep !== undefined && h.observed_through_step !== capturedStep)
+        || !_quartzFormEqual(last.snapshot, _quartzFormSnapshot(crystal, h.observed_through_step))) {
+      throw new Error('quartz form history: final observation contradicts live state');
+    }
+  }
+  return _quartzFormFreeze(JSON.parse(JSON.stringify(h)));
 }

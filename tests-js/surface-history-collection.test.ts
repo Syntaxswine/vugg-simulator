@@ -77,19 +77,19 @@ describe('collection surface history — explicit v2, frozen prior producers', (
     v1.history.crystal._surfaceHistory = { schema: 'surface-history-v1', events: [] };
     expect(() => assertCrystalCollectionRecord(v1)).toThrow(/crystal history/);
     expect(() => reconstructCrystalFromRecord(v1)).toThrow(/crystal history/);
-    v1.history_schema = 'crystal-history-v3';
+    v1.history_schema = 'crystal-history-v99';
     expect(() => collectionRecordProducerSchema(v1)).toThrow(/Unsupported/);
   });
 
   it('retains unavailable chronology across all three schema generations', () => {
     const c = surfaceCrystal();
-    for (const schema of [null, 'crystal-history-v1', 'crystal-history-v2']) {
+    for (const schema of [null, 'crystal-history-v1', 'crystal-history-v2', 'crystal-history-v3']) {
       const record = buildCrystalRecord(c, meta, schema);
       const stand = reconstructCrystalFromRecord(record);
       expect(stand).not.toHaveProperty('_surfaceHistory');
       if (schema) expect(record.history.crystal).not.toHaveProperty('_surfaceHistory');
     }
-    expect(buildCrystalRecord(c, meta).history_schema).toBe('crystal-history-v2');
+    expect(buildCrystalRecord(c, meta).history_schema).toBe('crystal-history-v3');
   });
 
   it('rejects malformed v2 ledger containers before reconstruction', () => {
@@ -107,7 +107,7 @@ describe('collection surface history — explicit v2, frozen prior producers', (
     expect(c._surfaceHistory.initial).toEqual({ step: 2, zone_count: 1, surface_um: 100, film: null });
     expect(c._surfaceHistory.events[0]).toMatchObject({ event: 'dusting', step: 2,
       coverage_change: { term: 0.3, prism: 0.6 } });
-    const record = buildCrystalRecord(c, meta);
+    const record = buildCrystalRecord(c, meta, 'crystal-history-v2');
     expect(record.history_schema).toBe('crystal-history-v2');
     expect(record.history.crystal._surfaceHistory).toEqual(c._surfaceHistory);
     expect(record.history.crystal._surfaceHistory).not.toBe(c._surfaceHistory);

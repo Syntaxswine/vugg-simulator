@@ -81,6 +81,7 @@ interface StripStoredRecord {
   layer_growth_testimony?: any[];
   habit_morphology_testimony?: any[];
   surface_history_testimony?: StripSurfaceHistoryTestimony[];
+  quartz_form_testimony?: StripQuartzFormTestimony[];
 }
 
 interface StripListEntry {
@@ -225,6 +226,7 @@ function stripStoredRecordFromDataset(
     ...(ds.layer_growth_testimony ? { layer_growth_testimony: ds.layer_growth_testimony } : {}),
     ...(ds.habit_morphology_testimony ? { habit_morphology_testimony: ds.habit_morphology_testimony } : {}),
     ...(ds.surface_history_testimony !== undefined ? { surface_history_testimony: ds.surface_history_testimony } : {}),
+    ...(ds.quartz_form_testimony !== undefined ? { quartz_form_testimony: ds.quartz_form_testimony } : {}),
   };
 }
 
@@ -245,6 +247,7 @@ function stripDatasetFromStoredRecord(rec: StripStoredRecord): StripDataset {
     ...(rec.layer_growth_testimony ? { layer_growth_testimony: rec.layer_growth_testimony } : {}),
     ...(rec.habit_morphology_testimony ? { habit_morphology_testimony: rec.habit_morphology_testimony } : {}),
     ...(rec.surface_history_testimony !== undefined ? { surface_history_testimony: rec.surface_history_testimony } : {}),
+    ...(rec.quartz_form_testimony !== undefined ? { quartz_form_testimony: rec.quartz_form_testimony } : {}),
   };
 }
 
@@ -361,6 +364,7 @@ async function stripDatasetFromAuthenticatedStoredRecord(rec: StripStoredRecord)
       throw new Error('strip: legacy dataset key does not match its manifest');
     }
   }
+  if (ds.quartz_form_testimony !== undefined) _quartzFormFreeze(ds.quartz_form_testimony);
   return ds;
 }
 

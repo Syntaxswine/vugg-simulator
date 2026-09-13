@@ -135,6 +135,19 @@ interface StripTransformationEvent {
 }
 
 // Dated surface observations have their own channel. The habit testimony's
+// Quartz observations are independent of the existing latest-state morphology
+// channel. Source IDs and simulator steps survive persistence unchanged.
+interface StripQuartzFormTestimony {
+  schema: 'strip-quartz-form-observations-v1';
+  crystal_id: number | string;
+  captured_step: number;
+  sample_index: number;
+  nucleation_step?: number | null;
+  // Only the ledger's accepted prefix. An unknown suffix is never fabricated.
+  zones: { zone_index: number; step: number }[];
+  history: QuartzFormHistory;
+}
+
 // surface_film remains a current snapshot, never an inferred chronology.
 // Zone witnesses retain every accepted index (including signed retreat) so
 // imported ledgers can be checked without recreating a live crystal.
@@ -198,6 +211,7 @@ interface StripDataset {
   layer_growth_testimony?: any[];
   habit_morphology_testimony?: any[];
   surface_history_testimony?: StripSurfaceHistoryTestimony[];
+  quartz_form_testimony?: StripQuartzFormTestimony[];
 }
 
 // ============================================================
@@ -304,6 +318,48 @@ function _stripPositiveSafeInteger(value: unknown, label: string, max: number): 
     throw new Error(`strip: invalid ${label}`);
   }
   return value;
+}
+
+const STRIP_QUARTZ_FORM_LIMITS = Object.freeze({ rows: 10_000, zonesPerRow: 10_000,
+  zoneWitnesses: 500_000, bytes: 32 * 1024 * 1024 });
+
+function stripValidateQuartzFormTestimony(value: unknown, sampleCount: number): void {
+  if (!Array.isArray(value) || value.length > STRIP_QUARTZ_FORM_LIMITS.rows) {
+    throw new Error('strip: invalid quartz form testimony');
+  }
+  const seen = new Set<number | string>();
+  let bytes = 2, witnesses = 0;
+  try {
+    for (let index = 0; index < value.length; index++) {
+      const row = _quartzFormValue(value, String(index));
+      _quartzFormFields(row, ['schema','crystal_id','captured_step','sample_index','nucleation_step','zones','history']);
+      if (row.schema !== 'strip-quartz-form-observations-v1' || !_quartzFormId(row.crystal_id)
+          || seen.has(row.crystal_id) || !_quartzFormStep(row.captured_step)
+          || !_quartzFormStep(row.sample_index) || row.sample_index >= sampleCount
+          || !Array.isArray(row.zones) || row.zones.length > STRIP_QUARTZ_FORM_LIMITS.zonesPerRow) {
+        throw new Error('record coordinates');
+      }
+      seen.add(row.crystal_id);
+      witnesses += row.zones.length;
+      if (witnesses > STRIP_QUARTZ_FORM_LIMITS.zoneWitnesses) throw new Error('aggregate zone bound');
+      for (let i = 0; i < row.zones.length; i++) {
+        const z = _quartzFormValue(row.zones, String(i));
+        _quartzFormFields(z, ['zone_index','step']);
+        if (z.zone_index !== i || !_quartzFormStep(z.step) || z.step > row.captured_step) throw new Error('zone witness');
+      }
+      const h = row.history;
+      if (!validateQuartzFormHistory(h, row.zones) || h.source_crystal_id !== row.crystal_id
+          || row.zones.length !== (h.observed_zone_count ?? 0)
+          || (h.observed_through_step !== null && h.observed_through_step > row.captured_step)
+          || (h.unavailable && h.unavailable.step > row.captured_step)
+          || (!h.unavailable && h.observed_through_step !== row.captured_step)) throw new Error('ledger coverage');
+      quartzFormAssertKnownBirth(h, row.nucleation_step);
+      // Each validated row is already bounded before encoding; stop before
+      // serializing the whole channel if many individually valid rows overflow.
+      bytes += _quartzFormEncoder.encode(JSON.stringify(row)).length + (index ? 1 : 0);
+      if (bytes > STRIP_QUARTZ_FORM_LIMITS.bytes) throw new Error('aggregate byte bound');
+    }
+  } catch (_error) { throw new Error('strip: invalid or oversized quartz form history'); }
 }
 
 function stripValidateSurfaceHistoryTestimony(value: unknown, sampleCount: number): void {
@@ -464,6 +520,10 @@ function stripValidateDatasetShape(ds: StripDataset): void {
     if (manifest.format_version < 4) throw new Error('strip: surface history requires a testimony section');
     stripValidateSurfaceHistoryTestimony(ds.surface_history_testimony, steps);
   }
+  if (ds.quartz_form_testimony !== undefined) {
+    if (manifest.format_version < 4) throw new Error('strip: quartz form history requires a testimony section');
+    stripValidateQuartzFormTestimony(ds.quartz_form_testimony, steps);
+  }
 }
 
 async function _stripReadStreamBounded(
@@ -528,6 +588,10 @@ async function stripSerialize(
     stripValidateSurfaceHistoryTestimony(ds.surface_history_testimony, ds.manifest.axes.steps);
   }
   const enc = new TextEncoder();
+  if (ds.quartz_form_testimony !== undefined) {
+    if (ds.manifest.format_version < 4) throw new Error('strip: quartz form history requires a testimony section');
+    stripValidateQuartzFormTestimony(ds.quartz_form_testimony, ds.manifest.axes.steps);
+  }
   const manifestBytes = enc.encode(JSON.stringify(ds.manifest));
   const eventsBytes = enc.encode(JSON.stringify(ds.nucleation_events));
   // Floor section only for format_version ≥ 3. floor_data may be absent even
@@ -548,6 +612,7 @@ async function stripSerialize(
     layer_growth_testimony: ds.layer_growth_testimony || [],
     habit_morphology_testimony: ds.habit_morphology_testimony || [],
     ...(ds.surface_history_testimony !== undefined ? { surface_history_testimony: ds.surface_history_testimony } : {}),
+    ...(ds.quartz_form_testimony !== undefined ? { quartz_form_testimony: ds.quartz_form_testimony } : {}),
   })) : null;
   const testimonySection = testimonyBytes ? 4 + testimonyBytes.length : 0;
 
@@ -636,6 +701,7 @@ async function stripDeserialize(input: Uint8Array): Promise<StripDataset> {
   let layer_growth_testimony: any[] | undefined;
   let habit_morphology_testimony: any[] | undefined;
   let surface_history_testimony: StripSurfaceHistoryTestimony[] | undefined;
+  let quartz_form_testimony: StripQuartzFormTestimony[] | undefined;
   if ((manifest.format_version || 0) >= 4) {
     const testimony = takeJson('testimony');
     pressure_phase_testimony = Array.isArray(testimony.pressure_phase_testimony)
@@ -661,6 +727,7 @@ async function stripDeserialize(input: Uint8Array): Promise<StripDataset> {
     // Preserve absence, and retain malformed values for the strict validator.
     // Coercing a bad channel to [] would erase testimony during import.
     surface_history_testimony = testimony.surface_history_testimony;
+    quartz_form_testimony = testimony.quartz_form_testimony;
   }
   const chip_data = buf.slice(offset);
   const result = {
@@ -677,8 +744,10 @@ async function stripDeserialize(input: Uint8Array): Promise<StripDataset> {
     ...(layer_growth_testimony ? { layer_growth_testimony } : {}),
     ...(habit_morphology_testimony ? { habit_morphology_testimony } : {}),
     ...(surface_history_testimony !== undefined ? { surface_history_testimony } : {}),
+    ...(quartz_form_testimony !== undefined ? { quartz_form_testimony } : {}),
   };
   stripValidateDatasetShape(result);
+  if (quartz_form_testimony !== undefined) _quartzFormFreeze(quartz_form_testimony);
   return result;
 }
 

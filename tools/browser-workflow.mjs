@@ -1738,7 +1738,24 @@ async function runWorkflow(driver, diagnostics) {
       const entries = await stripStorageList('shigar_pegmatite');
       const production = entries.find(entry => entry.origin === 'production-run');
       const imported = entries.find(entry => entry.origin === 'imported-file');
+      const dataset = await stripStorageLoad(production.key);
+      stripValidateDatasetShape(dataset);
+      if (!Array.isArray(dataset.quartz_form_testimony) || dataset.quartz_form_testimony.length !== 3) {
+        throw new Error('Shigar persistence bridge requires its three observed quartz sources');
+      }
+      // Exact ablation of the new optional channel from the actual UI product.
+      // Keep manifest/time, tensors, old testimony and binary writer unchanged.
+      const previousProjection = { ...dataset };
+      delete previousProjection.quartz_form_testimony;
+      const quartzPersistenceBridge = {
+        source_ids: dataset.quartz_form_testimony.map(row => row.crystal_id),
+        current_dataset_digest: await stripDurableDatasetDigest(dataset),
+        current_download_digest: sha256HexBytes(await stripSerialize(dataset, true)),
+        previous_dataset_digest: await stripDurableDatasetDigest(previousProjection),
+        previous_download_digest: sha256HexBytes(await stripSerialize(previousProjection, true)),
+      };
       return {
+        quartz_persistence_bridge: quartzPersistenceBridge,
         production_key: production?.key || null,
         production_origin: production?.origin || null,
         production_digest: production?.dataset_digest_sha256 || null,
@@ -1755,6 +1772,16 @@ async function runWorkflow(driver, diagnostics) {
     assert.notEqual(stripIdentity.production_key, stripIdentity.imported_key);
     assert.equal(stripIdentity.production_digest, stripIdentity.imported_digest);
     assert.equal(stripIdentity.visible_import_label, 'IMPORTED FILE');
+    const byteBridge = stripIdentity.quartz_persistence_bridge;
+    assert.equal(byteBridge.source_ids.length, 3);
+    assert.equal(new Set(byteBridge.source_ids).size, 3);
+    assert.equal(byteBridge.current_dataset_digest, stripIdentity.production_digest);
+    assert.equal(byteBridge.current_download_digest, downloadSha256);
+    // Pinned A product bytes (3751060e), independently retained from its
+    // accepted browser receipt. Reconciliation never edits old channels.
+    assert.equal(byteBridge.previous_dataset_digest, 'c4a46da1eb30f98c6bdc36ad7c5c848747fdfb1fcf21602104714d89fce768b2');
+    assert.equal(byteBridge.previous_download_digest, '2b0e98195b3f4a9d0a8cced5c633c363414f6afeb7242fad98c280df86a4230b');
+    process.stdout.write(`[browser-workflow] quartz persistence byte bridge ${JSON.stringify(byteBridge)}\n`);
     await driver.clickExpression(
       `Array.from(document.querySelectorAll('.strip-view-datasetrow')).find(row =>
         row.dataset.origin === 'imported-file' && row.dataset.scenarioId === 'shigar_pegmatite')`,
@@ -1970,6 +1997,109 @@ async function runWorkflow(driver, diagnostics) {
       tamperedEvents: 0,
     });
     await driver.key('n', 'KeyN', 78);
+  });
+
+  await check('retains frozen quartz observations through real IndexedDB reload without promoting imported testimony', async () => {
+    // Isolated storage fixture, using the unchanged authored first-crystal
+    // scenario and normal finalized-step observer/recorder. Only the angular
+    // sampling budget is reduced. It neither replaces a player's active run
+    // nor claims that an imported, self-hashed record authenticates its origin.
+    await driver.navigate(`${baseUrl}/?v=${SIM_VERSION}&browser_qa=quartz-observation-storage`);
+    const saved = await driver.evaluate(`(async () => {
+      rng = new SeededRandom(${TEST_SEED});
+      const scenario = SCENARIOS.tutorial_first_crystal();
+      const sim = new VugSimulator(scenario.conditions, scenario.events);
+      const recorder = new StripRecorder(sim, {
+        duration_steps: 1, angular_indices: 1,
+        notes: 'Browser storage fixture: unchanged tutorial_first_crystal, one finalized step, one angular sample.',
+      });
+      sim._stripRecorder = recorder;
+      sim.run_step();
+      const ds = recorder.finalize();
+      const channel = ds.quartz_form_testimony;
+      if (!Array.isArray(channel) || !channel.length || !channel[0].history.initial) {
+        throw new Error('quartz browser fixture produced no observed form testimony');
+      }
+      const liveMatches = channel.every(row => {
+        const crystal = sim.crystals.find(c => c.crystal_id === row.crystal_id);
+        return crystal && JSON.stringify(row.history) === JSON.stringify(crystal._quartzFormHistory);
+      });
+      const productionKey = await stripStorageSave(ds, 'production-run');
+      const receipt = stripLatestDurableRunReceipt();
+      const original = await stripStorageLoad(productionKey);
+      const originalMatches = await stripDatasetMatchesDurableRunReceipt(productionKey, original, receipt);
+      // A syntactically valid altered observation can be self-hashed as an
+      // imported file. It must remain separate from the commissioned bytes.
+      const forged = { ...ds, quartz_form_testimony: JSON.parse(JSON.stringify(channel)) };
+      const history = forged.quartz_form_testimony[0].history;
+      const terminal = history.changes.length ? history.changes[history.changes.length - 1] : history.initial;
+      terminal.snapshot.habit = 'browser-qa-forged-form';
+      const importedKey = await stripStorageSave(forged, 'imported-file');
+      const imported = await stripStorageLoad(importedKey);
+      const entries = await stripStorageList();
+      const latestUnchanged = JSON.stringify(stripLatestDurableRunReceipt()) === JSON.stringify(receipt);
+      return {
+        productionKey, importedKey, receipt,
+        channelJson: JSON.stringify(channel),
+        importedChannelJson: JSON.stringify(forged.quartz_form_testimony),
+        liveMatches, originalMatches, latestUnchanged,
+        productionOrigin: entries.find(e => e.key === productionKey)?.origin,
+        importedOrigin: entries.find(e => e.key === importedKey)?.origin,
+        importedReceiptMatch: await stripDatasetMatchesDurableRunReceipt(importedKey, imported, receipt),
+        productionUnchanged: JSON.stringify((await stripStorageLoad(productionKey)).quartz_form_testimony) === JSON.stringify(channel),
+        differentDigests: await stripDurableDatasetDigest(imported) !== receipt.dataset_digest_sha256,
+      };
+    })()`);
+    assert.equal(saved.liveMatches, true);
+    assert.equal(saved.originalMatches, true);
+    assert.equal(saved.productionOrigin, 'production-run');
+    assert.equal(saved.importedOrigin, 'imported-file');
+    assert.notEqual(saved.productionKey, saved.importedKey);
+    assert.equal(saved.latestUnchanged, true);
+    assert.equal(saved.importedReceiptMatch, false);
+    assert.equal(saved.productionUnchanged, true);
+    assert.equal(saved.differentDigests, true);
+    assert.notEqual(saved.channelJson, saved.importedChannelJson);
+
+    // Real navigation clears all in-memory owners and cached dataset objects.
+    // Host-retained expected bytes are compared with fresh IndexedDB readback.
+    await driver.reload();
+    const reloaded = await driver.evaluate(`(async () => {
+      const expected = ${JSON.stringify(saved)};
+      const beforeReceipt = stripLatestDurableRunReceipt();
+      const original = await stripStorageLoad(expected.productionKey);
+      const imported = await stripStorageLoad(expected.importedKey);
+      const entries = await stripStorageList();
+      if (!original || !imported) throw new Error('quartz IndexedDB rows missing after reload');
+      const frozen = ds => Object.isFrozen(ds.quartz_form_testimony)
+        && Object.isFrozen(ds.quartz_form_testimony[0])
+        && Object.isFrozen(ds.quartz_form_testimony[0].history)
+        && Object.isFrozen(ds.quartz_form_testimony[0].history.initial.snapshot);
+      const before = JSON.stringify(original.quartz_form_testimony);
+      try { original.quartz_form_testimony[0].history.initial.snapshot.habit = 'attempted-readback-edit'; } catch (_error) {}
+      const result = {
+        exactOriginal: JSON.stringify(original.quartz_form_testimony) === expected.channelJson,
+        exactImported: JSON.stringify(imported.quartz_form_testimony) === expected.importedChannelJson,
+        originalFrozen: frozen(original), importedFrozen: frozen(imported),
+        mutationPrevented: JSON.stringify(original.quartz_form_testimony) === before,
+        originalMatches: await stripDatasetMatchesDurableRunReceipt(expected.productionKey, original, expected.receipt),
+        importedMatches: await stripDatasetMatchesDurableRunReceipt(expected.importedKey, imported, expected.receipt),
+        productionOrigin: entries.find(e => e.key === expected.productionKey)?.origin,
+        importedOrigin: entries.find(e => e.key === expected.importedKey)?.origin,
+        ephemeralReceiptCleared: beforeReceipt === null,
+        loadDidNotCommissionReceipt: stripLatestDurableRunReceipt() === null,
+      };
+      await stripStorageDelete(expected.importedKey);
+      await stripStorageDelete(expected.productionKey);
+      return result;
+    })()`);
+    assert.deepEqual(reloaded, {
+      exactOriginal: true, exactImported: true,
+      originalFrozen: true, importedFrozen: true, mutationPrevented: true,
+      originalMatches: true, importedMatches: false,
+      productionOrigin: 'production-run', importedOrigin: 'imported-file',
+      ephemeralReceiptCleared: true, loadDidNotCommissionReceipt: true,
+    });
   });
 
   // The guided/player-surface tranche above has already closed its durable

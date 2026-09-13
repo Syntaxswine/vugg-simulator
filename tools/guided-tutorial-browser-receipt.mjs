@@ -105,7 +105,9 @@ const EXPECTED_GEOLOGY = Object.freeze({
     // visual-realism review (proposals/PROPOSAL-HOSTILE-REVIEW-VISUAL-REALISM-2026-09-04.md,
     // F1): euhedral crystals are no longer classified as crusts and coverage is mass-floored,
     // so the recorded testimony changed while the simulation fingerprint above did not.
-    run_id: 'c4a46da1eb30f98c6bdc36ad7c5c848747fdfb1fcf21602104714d89fce768b2',
+    // Re-pinned 2026-09-13 for quartz persistence B: deleting only its new channel
+    // restores both old export hashes in the actual owned-browser product.
+    run_id: 'abb871cfc10d2a09c17a8a21a56cbd6000c100aaad2f1b3c0d30bbfdecc5267b',
   }),
 });
 // The collection id draws from the QA-pinned Math.random stream, which three.js also consumes
@@ -119,8 +121,10 @@ const EXPECTED_COLLECTION_NAME = '<img data-vugg-player-name-probe src=x onerror
 // Re-pinned 2026-09-05: the strip dataset records each crystal's surface-growth testimony
 // (js/85g), which the visual-realism review corrected (F1) — the dataset and its download
 // digests move with that testimony while the simulation fingerprint does not.
-const EXPECTED_GAME04_DATASET_SHA256 = 'c4a46da1eb30f98c6bdc36ad7c5c848747fdfb1fcf21602104714d89fce768b2';
-const EXPECTED_GAME04_DOWNLOAD_SHA256 = '2b0e98195b3f4a9d0a8cced5c633c363414f6afeb7242fad98c280df86a4230b';
+// Re-pinned 2026-09-13 by the exact new-channel ablation in browser-workflow.mjs;
+// see proposals/QUARTZ-FORM-PERSISTENCE-B-2026-09-13.md. All other journey data agree.
+const EXPECTED_GAME04_DATASET_SHA256 = 'abb871cfc10d2a09c17a8a21a56cbd6000c100aaad2f1b3c0d30bbfdecc5267b';
+const EXPECTED_GAME04_DOWNLOAD_SHA256 = '81981084b537a888c03990907e443178bd58fb68047fbefe6d3bd0d45c7523ae';
 // Replaced with the exact controlled Shigar product after the renderer source
 // freezes. These values are independently pinned so a self-rehashed receipt
 // cannot merely invent a plausible flat view while the public control is dead.

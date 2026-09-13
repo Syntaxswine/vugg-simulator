@@ -106,7 +106,7 @@ describe('R7 collection history — preserved testimony and legacy authenticatio
     ];
     const record = buildCrystalRecord(c, { mode: 'simulation', scenario: 'fixture', seed: 42,
       sim: { crystals: [c], _enclosureReceipts: [...lifecycle, { ...e, guest_crystal_id: 11 }] } });
-    expect(record.history_schema).toBe('crystal-history-v2');
+    expect(record.history_schema).toBe('crystal-history-v3');
     expect(record.zones).toEqual(clone(c.zones));
     expect(record.history.source).toMatchObject({ crystal_id: 7, enclosed_by: 3, cdr_replaces_crystal_id: 2 });
     expect(record.history.enclosure_lifecycle).toEqual(lifecycle);
@@ -227,7 +227,7 @@ describe('R7 collection history — preserved testimony and legacy authenticatio
 
   it('authenticates both producer generations and rejects self-rehashed false geometry or chemistry', () => {
     const { crystal, index, active, meta } = actualRun();
-    for (const schema of [null, 'crystal-history-v1', 'crystal-history-v2']) {
+    for (const schema of [null, 'crystal-history-v1', 'crystal-history-v2', 'crystal-history-v3']) {
       const receipt = receiptFor(buildCrystalRecord(crystal, meta, schema), active.run_id, index, active.actions.length);
       expect(_saveAuthenticateCollectionReceiptAgainstLive(receipt, active.run_id)).toBe(crystal);
       expect(collectionRecordProducerSchema(receipt.record)).toBe(schema);
@@ -245,7 +245,7 @@ describe('R7 collection history — preserved testimony and legacy authenticatio
     }
   });
 
-  it.each([null, 'crystal-history-v1'])('loads a %s collection event without upgrading its bytes, including deletion and finish replay', (schema) => {
+  it.each([null, 'crystal-history-v1', 'crystal-history-v2'])('loads a %s collection event without upgrading its bytes, including deletion and finish replay', (schema) => {
     const { crystal, active, meta } = actualRun();
     const old = buildCrystalRecord(crystal, meta, schema);
     expect(_saveCommitCreativeCollection([{ crystal, record: old }]).ok).toBe(true);
@@ -324,7 +324,7 @@ describe('R7 collection history — preserved testimony and legacy authenticatio
     }
   });
 
-  it.each([null, 'crystal-history-v1'])('resumes an already-issued %s finish journal byte-for-byte and only counts it once', (schema) => {
+  it.each([null, 'crystal-history-v1', 'crystal-history-v2'])('resumes an already-issued %s finish journal byte-for-byte and only counts it once', (schema) => {
     const { sim, active } = actualRun();
     const saveId = active.id;
     const native = Storage.prototype.setItem;

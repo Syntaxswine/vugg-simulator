@@ -76,3 +76,8 @@ audit probes.
 The subsequent [quartz form observation increment A](QUARTZ-FORM-OBSERVATIONS-A-2026-09-12.md)
 has its own implementation, hostile review and execution evidence. Its results
 do not retroactively change the scope of this audit.
+
+[Persistence increment B](QUARTZ-FORM-PERSISTENCE-B-2026-09-13.md) carries those
+recorded observations through versioned collections and strips, with separate
+validation, authentication boundaries and execution evidence. Renderer consumers
+remain increment C.

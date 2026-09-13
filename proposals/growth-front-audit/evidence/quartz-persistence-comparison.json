@@ -1,0 +1,492 @@
+{
+  "schema": "quartz-form-persistence-b-comparison-v1",
+  "base": "3751060e94bc9ba8aba9a3b488d454b4f5ec4897",
+  "node": "v24.15.0",
+  "browserBundleSha256": "489d348298cbc19b7d78039d3aa759ece86cb3269923aa61379ef6e07440b428",
+  "executionSetSha256": "5f14eeb7b6da824ebbcde4c719d43b00144d1141a9dce5574df7a9099cb804fc",
+  "legacy": [
+    {
+      "kind": "quartz",
+      "schema": null,
+      "bytes": 717,
+      "sha256": "77e99ea20398de6df50d48da109032781166d61858f88433c13f7e9ad30b665b"
+    },
+    {
+      "kind": "quartz",
+      "schema": "crystal-history-v1",
+      "bytes": 1746,
+      "sha256": "123cd8bdf2bb3eb647e94221d3a26544a6174d6e2c6d94b4d2756be836bb5d2e"
+    },
+    {
+      "kind": "quartz",
+      "schema": "crystal-history-v2",
+      "bytes": 1746,
+      "sha256": "8ee5ad6da75408040795d9250364a180168ea052c4ec26cda7cce7eb06fe3e87"
+    },
+    {
+      "kind": "quartz",
+      "strip_version": 1,
+      "bytes": 20209,
+      "sha256": "2a8b8d3e4255a04c7e0490de29eea6ec581316b02270ae380098ec96296a9cb6"
+    },
+    {
+      "kind": "quartz",
+      "strip_version": 2,
+      "bytes": 20209,
+      "sha256": "bcdd710038fca6bd896c2e9e2d4fd9b0f302abc8cfc954c7e181ffe519af4272"
+    },
+    {
+      "kind": "quartz",
+      "strip_version": 3,
+      "bytes": 20284,
+      "sha256": "cb42a45c0443f05adcb55c8fa8eb95872dd5cea82b54a629d2c8992e614de290"
+    },
+    {
+      "kind": "quartz",
+      "strip_version": 4,
+      "bytes": 21970,
+      "sha256": "71fd504df87c03f19dbb01b18148e7402eb7a54692484b44f1e7c42befa43ec3"
+    },
+    {
+      "kind": "quartz",
+      "strip_version": 5,
+      "bytes": 21970,
+      "sha256": "eb5b8f6004d320d28b4405562e2e18a85a224c465ac99761d9f26d24c677ae5a"
+    },
+    {
+      "kind": "quartz-observed",
+      "schema": null,
+      "bytes": 716,
+      "sha256": "256fc9806913a7940c57bf964f78912874cbf900a94776848631de7fffb07d82"
+    },
+    {
+      "kind": "quartz-observed",
+      "schema": "crystal-history-v1",
+      "bytes": 1761,
+      "sha256": "7f0d892deeb15b934af00d425998529d96c87a9a631d9707104af45bf1772b40"
+    },
+    {
+      "kind": "quartz-observed",
+      "schema": "crystal-history-v2",
+      "bytes": 1761,
+      "sha256": "996df8541e746565179ce1944e688334e69117bd2f2f6107dbe7a3517d4c83c0"
+    },
+    {
+      "kind": "quartz-film",
+      "schema": null,
+      "bytes": 717,
+      "sha256": "77e99ea20398de6df50d48da109032781166d61858f88433c13f7e9ad30b665b"
+    },
+    {
+      "kind": "quartz-film",
+      "schema": "crystal-history-v1",
+      "bytes": 1942,
+      "sha256": "2cd0e8b4b77f4b2b1b2927a983e9e6ccb06ea9a01368e8f406613184b9f92335"
+    },
+    {
+      "kind": "quartz-film",
+      "schema": "crystal-history-v2",
+      "bytes": 2315,
+      "sha256": "03832b279ff6a40b0ecf1668fbd2d44067c2eec445a50ff474940f2d977ed9aa"
+    },
+    {
+      "kind": "quartz-film",
+      "strip_version": 4,
+      "bytes": 22724,
+      "sha256": "20b6074bcc7892d41c96717bbe19b002909f3fc03a07c705bfa8150a5f8ca0f9"
+    },
+    {
+      "kind": "quartz-film",
+      "strip_version": 5,
+      "bytes": 22724,
+      "sha256": "ae5de8f064fb3ec64e409c299f5655a75d2803a99d2328ac7b1d27849ab44617"
+    },
+    {
+      "kind": "calcite",
+      "schema": null,
+      "bytes": 716,
+      "sha256": "df0cecbf2dd49e88ced8565920ad9a9c6dd765e7bc3f5215013094cf3a138fbb"
+    },
+    {
+      "kind": "calcite",
+      "schema": "crystal-history-v1",
+      "bytes": 1745,
+      "sha256": "17f0f91ebf4318f76bace024ba90dc8fa92d50c8d58f04976cdddc7a9323b6c7"
+    },
+    {
+      "kind": "calcite",
+      "schema": "crystal-history-v2",
+      "bytes": 1745,
+      "sha256": "ab56f87044a397e09cc90fc9d8a327846b637c682a4aa6773def1d3b5b99af27"
+    },
+    {
+      "kind": "calcite",
+      "strip_version": 1,
+      "bytes": 20209,
+      "sha256": "2a8b8d3e4255a04c7e0490de29eea6ec581316b02270ae380098ec96296a9cb6"
+    },
+    {
+      "kind": "calcite",
+      "strip_version": 2,
+      "bytes": 20209,
+      "sha256": "bcdd710038fca6bd896c2e9e2d4fd9b0f302abc8cfc954c7e181ffe519af4272"
+    },
+    {
+      "kind": "calcite",
+      "strip_version": 3,
+      "bytes": 20284,
+      "sha256": "cb42a45c0443f05adcb55c8fa8eb95872dd5cea82b54a629d2c8992e614de290"
+    },
+    {
+      "kind": "calcite",
+      "strip_version": 4,
+      "bytes": 21973,
+      "sha256": "f81e11b9c681b057b548b2819a63bfea68ba54bc3a11140eeee9553ee5757d25"
+    },
+    {
+      "kind": "calcite",
+      "strip_version": 5,
+      "bytes": 21973,
+      "sha256": "7016fa55e9b0cbfdea9e197673185d9c8e53c25d0c7e8f5c77a6c15823015f1e"
+    }
+  ],
+  "unchanged": [
+    "tests-js/baselines/seed42_v285.json",
+    "tests-js/baselines/locality_frequency_v285.json",
+    "tests-js/baselines/strip_digest_v285.json"
+  ],
+  "rows": [
+    {
+      "name": "amethyst_geode",
+      "ledgers": 1,
+      "records": 96,
+      "ledgerBytes": 41252,
+      "channelBytes": 47324
+    },
+    {
+      "name": "asbestos_hills_crack_seal",
+      "ledgers": 1,
+      "records": 2,
+      "ledgerBytes": 755,
+      "channelBytes": 1730
+    },
+    {
+      "name": "asbestos_hills_surficial_alteration",
+      "ledgers": 1,
+      "records": 2,
+      "ledgerBytes": 755,
+      "channelBytes": 1730
+    },
+    {
+      "name": "bisbee",
+      "ledgers": 0,
+      "records": 0,
+      "ledgerBytes": 0,
+      "channelBytes": 0
+    },
+    {
+      "name": "chiastolite_hornfels",
+      "ledgers": 0,
+      "records": 0,
+      "ledgerBytes": 0,
+      "channelBytes": 0
+    },
+    {
+      "name": "colorado_plateau",
+      "ledgers": 0,
+      "records": 0,
+      "ledgerBytes": 0,
+      "channelBytes": 0
+    },
+    {
+      "name": "cooling",
+      "ledgers": 1,
+      "records": 1,
+      "ledgerBytes": 476,
+      "channelBytes": 3074
+    },
+    {
+      "name": "deccan_zeolite",
+      "ledgers": 3,
+      "records": 5,
+      "ledgerBytes": 2069,
+      "channelBytes": 10412
+    },
+    {
+      "name": "elmwood",
+      "ledgers": 0,
+      "records": 0,
+      "ledgerBytes": 0,
+      "channelBytes": 0
+    },
+    {
+      "name": "epithermal_telluride",
+      "ledgers": 3,
+      "records": 38,
+      "ledgerBytes": 11750,
+      "channelBytes": 23928
+    },
+    {
+      "name": "gem_pegmatite",
+      "ledgers": 3,
+      "records": 3,
+      "ledgerBytes": 1646,
+      "channelBytes": 2543
+    },
+    {
+      "name": "great_salt_plains",
+      "ledgers": 0,
+      "records": 0,
+      "ledgerBytes": 0,
+      "channelBytes": 0
+    },
+    {
+      "name": "grimsel_alpine_cleft",
+      "ledgers": 4,
+      "records": 236,
+      "ledgerBytes": 117291,
+      "channelBytes": 129289
+    },
+    {
+      "name": "jeffrey_mine",
+      "ledgers": 0,
+      "records": 0,
+      "ledgerBytes": 0,
+      "channelBytes": 0
+    },
+    {
+      "name": "marble_contact_metamorphism",
+      "ledgers": 0,
+      "records": 0,
+      "ledgerBytes": 0,
+      "channelBytes": 0
+    },
+    {
+      "name": "mvt",
+      "ledgers": 1,
+      "records": 1,
+      "ledgerBytes": 475,
+      "channelBytes": 1058
+    },
+    {
+      "name": "naica_geothermal",
+      "ledgers": 0,
+      "records": 0,
+      "ledgerBytes": 0,
+      "channelBytes": 0
+    },
+    {
+      "name": "ouro_preto",
+      "ledgers": 7,
+      "records": 155,
+      "ledgerBytes": 77702,
+      "channelBytes": 88783
+    },
+    {
+      "name": "porphyry",
+      "ledgers": 0,
+      "records": 0,
+      "ledgerBytes": 0,
+      "channelBytes": 0
+    },
+    {
+      "name": "pulse",
+      "ledgers": 1,
+      "records": 2,
+      "ledgerBytes": 755,
+      "channelBytes": 1448
+    },
+    {
+      "name": "radioactive_pegmatite",
+      "ledgers": 3,
+      "records": 10,
+      "ledgerBytes": 4206,
+      "channelBytes": 9513
+    },
+    {
+      "name": "reactivated_fluorite_vein",
+      "ledgers": 0,
+      "records": 0,
+      "ledgerBytes": 0,
+      "channelBytes": 0
+    },
+    {
+      "name": "reactive_wall",
+      "ledgers": 0,
+      "records": 0,
+      "ledgerBytes": 0,
+      "channelBytes": 0
+    },
+    {
+      "name": "roughten_gill",
+      "ledgers": 1,
+      "records": 1,
+      "ledgerBytes": 475,
+      "channelBytes": 2251
+    },
+    {
+      "name": "sabkha_dolomitization",
+      "ledgers": 0,
+      "records": 0,
+      "ledgerBytes": 0,
+      "channelBytes": 0
+    },
+    {
+      "name": "schneeberg",
+      "ledgers": 3,
+      "records": 6,
+      "ledgerBytes": 2481,
+      "channelBytes": 9720
+    },
+    {
+      "name": "searles_lake",
+      "ledgers": 0,
+      "records": 0,
+      "ledgerBytes": 0,
+      "channelBytes": 0
+    },
+    {
+      "name": "shigar_pegmatite",
+      "ledgers": 3,
+      "records": 8,
+      "ledgerBytes": 3135,
+      "channelBytes": 9190
+    },
+    {
+      "name": "sicily_solfifera",
+      "ledgers": 0,
+      "records": 0,
+      "ledgerBytes": 0,
+      "channelBytes": 0
+    },
+    {
+      "name": "stalactite_demo",
+      "ledgers": 0,
+      "records": 0,
+      "ledgerBytes": 0,
+      "channelBytes": 0
+    },
+    {
+      "name": "sulphur_bank",
+      "ledgers": 0,
+      "records": 0,
+      "ledgerBytes": 0,
+      "channelBytes": 0
+    },
+    {
+      "name": "sunnyside_american_tunnel",
+      "ledgers": 3,
+      "records": 4,
+      "ledgerBytes": 1771,
+      "channelBytes": 7745
+    },
+    {
+      "name": "supergene_oxidation",
+      "ledgers": 0,
+      "records": 0,
+      "ledgerBytes": 0,
+      "channelBytes": 0
+    },
+    {
+      "name": "tn457_barite_pulses",
+      "ledgers": 0,
+      "records": 0,
+      "ledgerBytes": 0,
+      "channelBytes": 0
+    },
+    {
+      "name": "tormiq_alpine_cleft",
+      "ledgers": 1,
+      "records": 1,
+      "ledgerBytes": 474,
+      "channelBytes": 760
+    },
+    {
+      "name": "tutorial_first_crystal",
+      "ledgers": 1,
+      "records": 1,
+      "ledgerBytes": 474,
+      "channelBytes": 932
+    },
+    {
+      "name": "tutorial_mn_calcite",
+      "ledgers": 1,
+      "records": 1,
+      "ledgerBytes": 473,
+      "channelBytes": 640
+    },
+    {
+      "name": "tutorial_travertine",
+      "ledgers": 0,
+      "records": 0,
+      "ledgerBytes": 0,
+      "channelBytes": 0
+    },
+    {
+      "name": "ultramafic_supergene",
+      "ledgers": 0,
+      "records": 0,
+      "ledgerBytes": 0,
+      "channelBytes": 0
+    },
+    {
+      "name": "wittichen",
+      "ledgers": 0,
+      "records": 0,
+      "ledgerBytes": 0,
+      "channelBytes": 0
+    },
+    {
+      "name": "zoned_dripstone_cave",
+      "ledgers": 0,
+      "records": 0,
+      "ledgerBytes": 0,
+      "channelBytes": 0
+    }
+  ],
+  "updatedIdentities": [
+    {
+      "file": "archive/evidence/mechanism-witnesses-v285.json",
+      "allowedTopLevel": [
+        "browser_bundle_sha256",
+        "execution_set_sha256",
+        "producer_contract_sha256",
+        "payload_sha256"
+      ],
+      "allowedPayloadChanges": [
+        "guided_tutorial.interaction_products.capable_browser_authority.payload_sha256"
+      ],
+      "allowedJourneyChanges": []
+    },
+    {
+      "file": "archive/evidence/guided-tutorial-browser-v285.json",
+      "allowedTopLevel": [
+        "browser_bundle_sha256",
+        "execution_set_sha256",
+        "producer_contract_sha256",
+        "payload_sha256"
+      ],
+      "allowedPayloadChanges": [],
+      "allowedJourneyChanges": [
+        "simulation.geology_preservation.before.run_id",
+        "simulation.geology_preservation.after.run_id",
+        "player_surfaces.strip_view.download_sha256",
+        "player_surfaces.strip_view.dataset_digest_sha256",
+        "player_surfaces.strip_view.imported_digest_sha256",
+        "player_surfaces.strip_view.imported_key"
+      ]
+    }
+  ],
+  "receiptReferences": {
+    "oldBrowserPayload": "01149b8b15da7d11ad7ce5d463b8f22d87e0b9350f61da28e8fb3128b6071ef7",
+    "currentBrowserPayload": "153a45b65654646a0176435578281687fc9e32108b2391e1246921616b4804e2",
+    "oldMechanismPayload": "7f66c3fed04a838cd7cd5f9cedb5cb7d612004e9ea2a01aba157f7203a99d319",
+    "currentMechanismPayload": "52d25f29e231dd33447637846a7a4d1a07d9f0fc022f6bb73e61155be41a862d"
+  },
+  "allowedCardReferenceChanges": [
+    "testimony.executed_science.transformation_reactivity_commissioning.artifact_payload_sha256",
+    "testimony.executed_science.player_choice_commissioning.artifact_payload_sha256"
+  ],
+  "censusComparison": "Ledger counts, snapshot counts and serialized ledger lengths agree with A; A did not retain per-ledger hashes, so this is not an independent value/byte comparison of A histories.",
+  "conclusion": "Old collection and absent-channel strip bytes match pinned producers. All preexisting canonical strip testimony is unchanged; new quartz channels pass structural/date/source validation and the stated aggregate census checks."
+}

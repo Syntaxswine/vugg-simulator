@@ -1,8 +1,8 @@
 {
   "schema": "vugg-guided-tutorial-browser-receipt-v6",
   "sim_version": 285,
-  "browser_bundle_sha256": "90baa55d3795cc41e70377d3acd0d6815c7aeebef429598613e10bb9b0b2ddbf",
-  "execution_set_sha256": "df6fe7aa4be8b78f2507e93c214ae42bed037278e1b6d568a496bc9810dd5d05",
+  "browser_bundle_sha256": "489d348298cbc19b7d78039d3aa759ece86cb3269923aa61379ef6e07440b428",
+  "execution_set_sha256": "5f14eeb7b6da824ebbcde4c719d43b00144d1141a9dce5574df7a9099cb804fc",
   "node_runtime": {
     "schema": "vugg-evidence-node-runtime-v1",
     "node": "24.15.0",
@@ -13,7 +13,7 @@
     "locale": "en-US"
   },
   "node_runtime_sha256": "b4bb27f2f1b62692b79844cbcc3df7c4966fa7cdc3106c81ce630a74b9a2e62c",
-  "producer_contract_sha256": "f3d6a787372e54b5a7165aa52357ae1cba6a79ed30ff070d8d55931a4ce39cbf",
+  "producer_contract_sha256": "61bbace7b4a705fb26005b2254dab7adcb6ee4672e10a6241636854265513efa",
   "payload": {
     "browser_runtime": {
       "schema": "vugg-owned-devtools-browser-runtime-v2",
@@ -156,14 +156,14 @@
             "scenario": "shigar_pegmatite",
             "step": 70,
             "fingerprint": "1285a3ec239fc66f883ccf4fd780bffb5134ca194786edde6a433c4675d7f0f6",
-            "run_id": "c4a46da1eb30f98c6bdc36ad7c5c848747fdfb1fcf21602104714d89fce768b2"
+            "run_id": "abb871cfc10d2a09c17a8a21a56cbd6000c100aaad2f1b3c0d30bbfdecc5267b"
           },
           "after": {
             "runtime": "simulation",
             "scenario": "shigar_pegmatite",
             "step": 70,
             "fingerprint": "1285a3ec239fc66f883ccf4fd780bffb5134ca194786edde6a433c4675d7f0f6",
-            "run_id": "c4a46da1eb30f98c6bdc36ad7c5c848747fdfb1fcf21602104714d89fce768b2"
+            "run_id": "abb871cfc10d2a09c17a8a21a56cbd6000c100aaad2f1b3c0d30bbfdecc5267b"
           }
         },
         "teardown": {
@@ -308,13 +308,13 @@
           "scenario": "shigar_pegmatite",
           "seed": 42,
           "download_filename": "shigar_pegmatite@seed42.stripview",
-          "download_sha256": "2b0e98195b3f4a9d0a8cced5c633c363414f6afeb7242fad98c280df86a4230b",
+          "download_sha256": "81981084b537a888c03990907e443178bd58fb68047fbefe6d3bd0d45c7523ae",
           "production_key": "shigar_pegmatite@42#42",
           "production_origin": "production-run",
-          "imported_key": "imported:shigar_pegmatite@42#42@sha256-c4a46da1eb30f98c6bdc36ad7c5c848747fdfb1fcf21602104714d89fce768b2",
+          "imported_key": "imported:shigar_pegmatite@42#42@sha256-abb871cfc10d2a09c17a8a21a56cbd6000c100aaad2f1b3c0d30bbfdecc5267b",
           "imported_origin": "imported-file",
-          "dataset_digest_sha256": "c4a46da1eb30f98c6bdc36ad7c5c848747fdfb1fcf21602104714d89fce768b2",
-          "imported_digest_sha256": "c4a46da1eb30f98c6bdc36ad7c5c848747fdfb1fcf21602104714d89fce768b2",
+          "dataset_digest_sha256": "abb871cfc10d2a09c17a8a21a56cbd6000c100aaad2f1b3c0d30bbfdecc5267b",
+          "imported_digest_sha256": "abb871cfc10d2a09c17a8a21a56cbd6000c100aaad2f1b3c0d30bbfdecc5267b",
           "visible_import_label": "IMPORTED FILE",
           "upload_via_visible_file_chooser": true,
           "durable_commit_before_render": true,
@@ -335,5 +335,5 @@
       }
     }
   },
-  "payload_sha256": "01149b8b15da7d11ad7ce5d463b8f22d87e0b9350f61da28e8fb3128b6071ef7"
+  "payload_sha256": "153a45b65654646a0176435578281687fc9e32108b2391e1246921616b4804e2"
 }

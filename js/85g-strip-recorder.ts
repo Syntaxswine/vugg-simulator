@@ -124,6 +124,8 @@ class StripRecorder {
   private latestHabitMorphology: Map<number | string, any>;
   private latestSurfaceHistory: Map<number | string, StripSurfaceHistoryTestimony>;
   private surfaceHistoryFailure: string | null;
+  private latestQuartzForms: Map<number | string, StripQuartzFormTestimony>;
+  private quartzFormFailure: string | null;
 
   constructor(sim: any, opts?: {
     angular_indices?: number,
@@ -219,6 +221,8 @@ class StripRecorder {
     this.latestHabitMorphology = new Map();
     this.latestSurfaceHistory = new Map();
     this.surfaceHistoryFailure = null;
+    this.latestQuartzForms = new Map();
+    this.quartzFormFailure = null;
   }
 
   // ---- chip classification helpers ----------------------------------
@@ -293,9 +297,49 @@ class StripRecorder {
   // Safe to call when the recorder is finished — just becomes a no-op.
   captureStep(sim: any): void {
     if (!this.active) return;
+    try { this._captureStep(sim); }
+    catch (error) {
+      // Covers reads, zone-witness construction, copying, tensor work and map
+      // updates: the simulator catches recorder errors, but finalization must
+      // not present the previous observation as a successful latest capture.
+      this.quartzFormFailure = 'strip: capture failed; quartz form history may be incomplete';
+      throw error;
+    }
+  }
+
+  private _captureQuartzForms(sim: any): void {
+    const staged = new Map(this.latestQuartzForms);
+    const seen = new Set<number | string>();
+    for (const c of Array.isArray(sim?.crystals) ? sim.crystals : []) {
+      if (!c) continue;
+      const history = quartzFormHistoryForPersistence(c, sim.step);
+      const id = _quartzFormValue(c, 'crystal_id');
+      if (history === undefined) {
+        if (staged.has(id)) throw new Error('strip: previously recorded quartz history disappeared');
+        continue;
+      }
+      if (seen.has(id)) throw new Error('strip: duplicate quartz history identity');
+      seen.add(id);
+      const count = history.observed_zone_count ?? 0;
+      if (count > STRIP_QUARTZ_FORM_LIMITS.zonesPerRow) throw new Error('strip: quartz zone witness limit');
+      const zones = [];
+      const liveZones = _quartzFormValue(c, 'zones');
+      const birth = _quartzFormValue(c, 'nucleation_step');
+      for (let i = 0; i < count; i++) zones.push({zone_index:i,step:_quartzFormZoneStep(liveZones,i)});
+      staged.set(id, _quartzFormFreeze({schema:'strip-quartz-form-observations-v1',crystal_id:id,
+        captured_step:sim.step,sample_index:this.capturedSteps,
+        ...(birth !== undefined ? {nucleation_step:birth} : {}),zones,history}));
+    }
+    stripValidateQuartzFormTestimony(Array.from(staged.values()), this.manifest.axes.steps);
+    this.latestQuartzForms = staged;
+  }
+
+  private _captureStep(sim: any): void {
+    if (!this.active) return;
     if (this.capturedSteps >= this.manifest.axes.steps) {
       this._growCapacity();
     }
+    this._captureQuartzForms(sim);
 
     const wall = sim?.wall_state || sim?.conditions?.wall;
     const step = this.capturedSteps;
@@ -641,6 +685,7 @@ class StripRecorder {
   finalize(): StripDataset {
     this.active = false;
     if (this.surfaceHistoryFailure) throw new Error(this.surfaceHistoryFailure);
+    if (this.quartzFormFailure) throw new Error(this.quartzFormFailure);
     if (this.capturedSteps < this.manifest.axes.steps) {
       // Shrink axes.steps + slice chipData to match what we actually
       // captured. Keeps the dataset honest.
@@ -673,6 +718,7 @@ class StripRecorder {
       layer_growth_testimony: this.layerGrowthTestimony,
       habit_morphology_testimony: Array.from(this.latestHabitMorphology.values()),
       ...(this.latestSurfaceHistory.size ? { surface_history_testimony: Array.from(this.latestSurfaceHistory.values()) } : {}),
+      ...(this.latestQuartzForms.size ? { quartz_form_testimony: Object.freeze(Array.from(this.latestQuartzForms.values())) as any } : {}),
     };
   }
 

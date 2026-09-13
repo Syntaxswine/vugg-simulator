@@ -51960,8 +51960,8 @@ function recordAcceptedSurfaceZone(crystal, zone) {
 
 // Finalized-step observations of existing quartz classifiers, not face kinetics.
 // Contract and source audit: proposals/growth-front-audit/04-implementation-gate.md.
-// A only: crystal-owned memory. Collection/strip authentication and render routing
-// do not consume this ledger yet. No clocks, growth, chemistry or RNG are changed.
+// B preserves observations through versioned collections and strip testimony.
+// Rendering remains a separate increment. No growth, chemistry or RNG is changed.
 const QUARTZ_FORM_HISTORY_SCHEMA = 'quartz-form-observations-v1';
 const QUARTZ_FORM_HISTORY_BASIS = 'simulator-state-at-finalized-step';
 const QUARTZ_FORM_HISTORY_LIMITS = Object.freeze({
@@ -52361,6 +52361,49 @@ function quartzFormObservationAtStep(crystal, step) {
     }
     return { status: 'recorded', observation_step: observation.step, observation_basis: h.observation_basis,
         snapshot: JSON.parse(JSON.stringify(observation.snapshot)) };
+}
+// Export accepted testimony, never create observations as a side effect of saving.
+// A closed history can differ from today's crystal; its declared prefix survives.
+// Syntax and endpoint fidelity are not origin authentication: collections also
+// replay their commands, while arbitrary strip imports retain imported status.
+function quartzFormAssertKnownBirth(history, birth) {
+    if (birth === undefined || birth === null)
+        return;
+    if (!_quartzFormStep(birth)
+        || (history.initial && history.initial.step < birth)
+        || (!history.initial && history.unavailable && history.unavailable.step < birth)) {
+        throw new Error('quartz form history: observation precedes known nucleation or invalid birth coordinate');
+    }
+}
+function quartzFormHistoryForPersistence(crystal, capturedStep) {
+    const failure = crystal && _quartzFormUnownedFailures.get(crystal);
+    if (failure)
+        throw new Error(`quartz form history: ${failure.reason}`);
+    const owner = crystal && _quartzFormOwners.get(crystal);
+    const h = owner ? owner.history : _quartzFormValue(crystal, '_quartzFormHistory');
+    if (h === undefined)
+        return undefined;
+    const zones = _quartzFormValue(crystal, 'zones');
+    if (!validateQuartzFormHistory(h, zones)
+        || h.source_crystal_id !== _quartzFormValue(crystal, 'crystal_id')) {
+        throw new Error('quartz form history: invalid ledger or source identity');
+    }
+    quartzFormAssertKnownBirth(h, _quartzFormValue(crystal, 'nucleation_step'));
+    if (capturedStep !== undefined && (!_quartzFormStep(capturedStep)
+        || (h.observed_through_step !== null && h.observed_through_step > capturedStep)
+        || (h.unavailable && h.unavailable.step > capturedStep))) {
+        throw new Error('quartz form history: future observation at capture');
+    }
+    if (!h.unavailable) {
+        const last = h.changes.length ? h.changes[h.changes.length - 1] : h.initial;
+        if (!last || _quartzFormValue(crystal, 'mineral') !== 'quartz'
+            || h.observed_zone_count !== zones.length
+            || (capturedStep !== undefined && h.observed_through_step !== capturedStep)
+            || !_quartzFormEqual(last.snapshot, _quartzFormSnapshot(crystal, h.observed_through_step))) {
+            throw new Error('quartz form history: final observation contradicts live state');
+        }
+    }
+    return _quartzFormFreeze(JSON.parse(JSON.stringify(h)));
 }
 
 // ── 44e-weathering-epilogue.js ──
@@ -82136,6 +82179,53 @@ function _stripPositiveSafeInteger(value, label, max) {
     }
     return value;
 }
+const STRIP_QUARTZ_FORM_LIMITS = Object.freeze({ rows: 10_000, zonesPerRow: 10_000,
+    zoneWitnesses: 500_000, bytes: 32 * 1024 * 1024 });
+function stripValidateQuartzFormTestimony(value, sampleCount) {
+    if (!Array.isArray(value) || value.length > STRIP_QUARTZ_FORM_LIMITS.rows) {
+        throw new Error('strip: invalid quartz form testimony');
+    }
+    const seen = new Set();
+    let bytes = 2, witnesses = 0;
+    try {
+        for (let index = 0; index < value.length; index++) {
+            const row = _quartzFormValue(value, String(index));
+            _quartzFormFields(row, ['schema', 'crystal_id', 'captured_step', 'sample_index', 'nucleation_step', 'zones', 'history']);
+            if (row.schema !== 'strip-quartz-form-observations-v1' || !_quartzFormId(row.crystal_id)
+                || seen.has(row.crystal_id) || !_quartzFormStep(row.captured_step)
+                || !_quartzFormStep(row.sample_index) || row.sample_index >= sampleCount
+                || !Array.isArray(row.zones) || row.zones.length > STRIP_QUARTZ_FORM_LIMITS.zonesPerRow) {
+                throw new Error('record coordinates');
+            }
+            seen.add(row.crystal_id);
+            witnesses += row.zones.length;
+            if (witnesses > STRIP_QUARTZ_FORM_LIMITS.zoneWitnesses)
+                throw new Error('aggregate zone bound');
+            for (let i = 0; i < row.zones.length; i++) {
+                const z = _quartzFormValue(row.zones, String(i));
+                _quartzFormFields(z, ['zone_index', 'step']);
+                if (z.zone_index !== i || !_quartzFormStep(z.step) || z.step > row.captured_step)
+                    throw new Error('zone witness');
+            }
+            const h = row.history;
+            if (!validateQuartzFormHistory(h, row.zones) || h.source_crystal_id !== row.crystal_id
+                || row.zones.length !== (h.observed_zone_count ?? 0)
+                || (h.observed_through_step !== null && h.observed_through_step > row.captured_step)
+                || (h.unavailable && h.unavailable.step > row.captured_step)
+                || (!h.unavailable && h.observed_through_step !== row.captured_step))
+                throw new Error('ledger coverage');
+            quartzFormAssertKnownBirth(h, row.nucleation_step);
+            // Each validated row is already bounded before encoding; stop before
+            // serializing the whole channel if many individually valid rows overflow.
+            bytes += _quartzFormEncoder.encode(JSON.stringify(row)).length + (index ? 1 : 0);
+            if (bytes > STRIP_QUARTZ_FORM_LIMITS.bytes)
+                throw new Error('aggregate byte bound');
+        }
+    }
+    catch (_error) {
+        throw new Error('strip: invalid or oversized quartz form history');
+    }
+}
 function stripValidateSurfaceHistoryTestimony(value, sampleCount) {
     if (!Array.isArray(value) || value.length > 10_000) {
         throw new Error('strip: invalid surface history testimony');
@@ -82306,6 +82396,11 @@ function stripValidateDatasetShape(ds) {
             throw new Error('strip: surface history requires a testimony section');
         stripValidateSurfaceHistoryTestimony(ds.surface_history_testimony, steps);
     }
+    if (ds.quartz_form_testimony !== undefined) {
+        if (manifest.format_version < 4)
+            throw new Error('strip: quartz form history requires a testimony section');
+        stripValidateQuartzFormTestimony(ds.quartz_form_testimony, steps);
+    }
 }
 async function _stripReadStreamBounded(stream, maxBytes) {
     const reader = stream.getReader();
@@ -82373,6 +82468,11 @@ async function stripSerialize(ds, gzip = true) {
         stripValidateSurfaceHistoryTestimony(ds.surface_history_testimony, ds.manifest.axes.steps);
     }
     const enc = new TextEncoder();
+    if (ds.quartz_form_testimony !== undefined) {
+        if (ds.manifest.format_version < 4)
+            throw new Error('strip: quartz form history requires a testimony section');
+        stripValidateQuartzFormTestimony(ds.quartz_form_testimony, ds.manifest.axes.steps);
+    }
     const manifestBytes = enc.encode(JSON.stringify(ds.manifest));
     const eventsBytes = enc.encode(JSON.stringify(ds.nucleation_events));
     // Floor section only for format_version ≥ 3. floor_data may be absent even
@@ -82393,6 +82493,7 @@ async function stripSerialize(ds, gzip = true) {
         layer_growth_testimony: ds.layer_growth_testimony || [],
         habit_morphology_testimony: ds.habit_morphology_testimony || [],
         ...(ds.surface_history_testimony !== undefined ? { surface_history_testimony: ds.surface_history_testimony } : {}),
+        ...(ds.quartz_form_testimony !== undefined ? { quartz_form_testimony: ds.quartz_form_testimony } : {}),
     })) : null;
     const testimonySection = testimonyBytes ? 4 + testimonyBytes.length : 0;
     const headerSize = 4 + manifestBytes.length + 4 + eventsBytes.length + floorSection + testimonySection;
@@ -82498,6 +82599,7 @@ async function stripDeserialize(input) {
     let layer_growth_testimony;
     let habit_morphology_testimony;
     let surface_history_testimony;
+    let quartz_form_testimony;
     if ((manifest.format_version || 0) >= 4) {
         const testimony = takeJson('testimony');
         pressure_phase_testimony = Array.isArray(testimony.pressure_phase_testimony)
@@ -82523,6 +82625,7 @@ async function stripDeserialize(input) {
         // Preserve absence, and retain malformed values for the strict validator.
         // Coercing a bad channel to [] would erase testimony during import.
         surface_history_testimony = testimony.surface_history_testimony;
+        quartz_form_testimony = testimony.quartz_form_testimony;
     }
     const chip_data = buf.slice(offset);
     const result = {
@@ -82539,8 +82642,11 @@ async function stripDeserialize(input) {
         ...(layer_growth_testimony ? { layer_growth_testimony } : {}),
         ...(habit_morphology_testimony ? { habit_morphology_testimony } : {}),
         ...(surface_history_testimony !== undefined ? { surface_history_testimony } : {}),
+        ...(quartz_form_testimony !== undefined ? { quartz_form_testimony } : {}),
     };
     stripValidateDatasetShape(result);
+    if (quartz_form_testimony !== undefined)
+        _quartzFormFreeze(quartz_form_testimony);
     return result;
 }
 // === END HELIX-OVERLAY-FORK ADDITION ==================================
@@ -82707,6 +82813,8 @@ class StripRecorder {
         this.latestHabitMorphology = new Map();
         this.latestSurfaceHistory = new Map();
         this.surfaceHistoryFailure = null;
+        this.latestQuartzForms = new Map();
+        this.quartzFormFailure = null;
     }
     // ---- chip classification helpers ----------------------------------
     // Group chips into the same systems the helicoid legend uses. The
@@ -82790,9 +82898,55 @@ class StripRecorder {
     captureStep(sim) {
         if (!this.active)
             return;
+        try {
+            this._captureStep(sim);
+        }
+        catch (error) {
+            // Covers reads, zone-witness construction, copying, tensor work and map
+            // updates: the simulator catches recorder errors, but finalization must
+            // not present the previous observation as a successful latest capture.
+            this.quartzFormFailure = 'strip: capture failed; quartz form history may be incomplete';
+            throw error;
+        }
+    }
+    _captureQuartzForms(sim) {
+        const staged = new Map(this.latestQuartzForms);
+        const seen = new Set();
+        for (const c of Array.isArray(sim?.crystals) ? sim.crystals : []) {
+            if (!c)
+                continue;
+            const history = quartzFormHistoryForPersistence(c, sim.step);
+            const id = _quartzFormValue(c, 'crystal_id');
+            if (history === undefined) {
+                if (staged.has(id))
+                    throw new Error('strip: previously recorded quartz history disappeared');
+                continue;
+            }
+            if (seen.has(id))
+                throw new Error('strip: duplicate quartz history identity');
+            seen.add(id);
+            const count = history.observed_zone_count ?? 0;
+            if (count > STRIP_QUARTZ_FORM_LIMITS.zonesPerRow)
+                throw new Error('strip: quartz zone witness limit');
+            const zones = [];
+            const liveZones = _quartzFormValue(c, 'zones');
+            const birth = _quartzFormValue(c, 'nucleation_step');
+            for (let i = 0; i < count; i++)
+                zones.push({ zone_index: i, step: _quartzFormZoneStep(liveZones, i) });
+            staged.set(id, _quartzFormFreeze({ schema: 'strip-quartz-form-observations-v1', crystal_id: id,
+                captured_step: sim.step, sample_index: this.capturedSteps,
+                ...(birth !== undefined ? { nucleation_step: birth } : {}), zones, history }));
+        }
+        stripValidateQuartzFormTestimony(Array.from(staged.values()), this.manifest.axes.steps);
+        this.latestQuartzForms = staged;
+    }
+    _captureStep(sim) {
+        if (!this.active)
+            return;
         if (this.capturedSteps >= this.manifest.axes.steps) {
             this._growCapacity();
         }
+        this._captureQuartzForms(sim);
         const wall = sim?.wall_state || sim?.conditions?.wall;
         const step = this.capturedSteps;
         const axes = this.manifest.axes;
@@ -83149,6 +83303,8 @@ class StripRecorder {
         this.active = false;
         if (this.surfaceHistoryFailure)
             throw new Error(this.surfaceHistoryFailure);
+        if (this.quartzFormFailure)
+            throw new Error(this.quartzFormFailure);
         if (this.capturedSteps < this.manifest.axes.steps) {
             // Shrink axes.steps + slice chipData to match what we actually
             // captured. Keeps the dataset honest.
@@ -83181,6 +83337,7 @@ class StripRecorder {
             layer_growth_testimony: this.layerGrowthTestimony,
             habit_morphology_testimony: Array.from(this.latestHabitMorphology.values()),
             ...(this.latestSurfaceHistory.size ? { surface_history_testimony: Array.from(this.latestSurfaceHistory.values()) } : {}),
+            ...(this.latestQuartzForms.size ? { quartz_form_testimony: Object.freeze(Array.from(this.latestQuartzForms.values())) } : {}),
         };
     }
     // ---- introspection -------------------------------------------------
@@ -83347,6 +83504,7 @@ function stripStoredRecordFromDataset(ds, origin = 'production-run') {
         ...(ds.layer_growth_testimony ? { layer_growth_testimony: ds.layer_growth_testimony } : {}),
         ...(ds.habit_morphology_testimony ? { habit_morphology_testimony: ds.habit_morphology_testimony } : {}),
         ...(ds.surface_history_testimony !== undefined ? { surface_history_testimony: ds.surface_history_testimony } : {}),
+        ...(ds.quartz_form_testimony !== undefined ? { quartz_form_testimony: ds.quartz_form_testimony } : {}),
     };
 }
 function stripDatasetFromStoredRecord(rec) {
@@ -83366,6 +83524,7 @@ function stripDatasetFromStoredRecord(rec) {
         ...(rec.layer_growth_testimony ? { layer_growth_testimony: rec.layer_growth_testimony } : {}),
         ...(rec.habit_morphology_testimony ? { habit_morphology_testimony: rec.habit_morphology_testimony } : {}),
         ...(rec.surface_history_testimony !== undefined ? { surface_history_testimony: rec.surface_history_testimony } : {}),
+        ...(rec.quartz_form_testimony !== undefined ? { quartz_form_testimony: rec.quartz_form_testimony } : {}),
     };
 }
 // Open (or create) the DB. Promisified — IDB's onsuccess callback model
@@ -83488,6 +83647,8 @@ async function stripDatasetFromAuthenticatedStoredRecord(rec) {
             throw new Error('strip: legacy dataset key does not match its manifest');
         }
     }
+    if (ds.quartz_form_testimony !== undefined)
+        _quartzFormFreeze(ds.quartz_form_testimony);
     return ds;
 }
 // Save a dataset. Returns the stored key. Evicts the oldest same-origin
@@ -94414,7 +94575,8 @@ const COLLECTION_MAX_ZONE_RECORDS = 10_000;
 const COLLECTION_MAX_SURFACE_EVENT_RECORDS = 20_000;
 const COLLECTION_MAX_LEGACY_ZONE_COUNT = Number.MAX_SAFE_INTEGER;
 const COLLECTION_HISTORY_SCHEMA_V1 = 'crystal-history-v1';
-const COLLECTION_HISTORY_SCHEMA = 'crystal-history-v2';
+const COLLECTION_HISTORY_SCHEMA_V2 = 'crystal-history-v2';
+const COLLECTION_HISTORY_SCHEMA = 'crystal-history-v3';
 // Independent from SAVE_FORMAT: old event receipts must reproduce the exact
 // old projection, while every new scientific field participates in the digest.
 function collectionRecordProducerSchema(record) {
@@ -94424,6 +94586,7 @@ function collectionRecordProducerSchema(record) {
         return null;
     }
     if (record.history_schema !== COLLECTION_HISTORY_SCHEMA_V1
+        && record.history_schema !== COLLECTION_HISTORY_SCHEMA_V2
         && record.history_schema !== COLLECTION_HISTORY_SCHEMA) {
         throw new Error('Unsupported Library crystal history schema');
     }
@@ -94431,7 +94594,7 @@ function collectionRecordProducerSchema(record) {
 }
 // Frozen v1 snapshot fields: adding testimony here would silently change the
 // scientific projection of already authenticated v1 receipts. Dated surface
-// testimony is an optional v2 addition, not an upgrade of the old snapshots.
+// testimony is an optional v2 addition; quartz observations belong only to v3.
 const COLLECTION_CRYSTAL_HISTORY_FIELDS = [
     'nucleation_step', 'nucleation_temp', 'c_length_mm', 'a_width_mm', 'total_growth_um', '_volume_mm3',
     'wall_spread', 'void_reach', 'vector', 'growth_environment', '_nucTilt',
@@ -94450,6 +94613,14 @@ const COLLECTION_SOURCE_HISTORY_FIELDS = [
     'perimorph_eligible', 'enclosed_by', 'enclosed_crystals', 'enclosed_at_step',
     'coats_front', 'enclosure_receipt', 'liberation_receipt',
 ];
+// Legacy top-level form fields normalize null/absence. Preserve the exact
+// current allowed state separately when validating a v3 quartz observation.
+const COLLECTION_QUARTZ_CURRENT_FIELDS = [
+    'habit', 'dominant_forms', 'twinned', 'twin_law', '_polymorph', 'mineral_display',
+];
+function _collectionHasSurfaceHistory(producerSchema) {
+    return producerSchema === COLLECTION_HISTORY_SCHEMA_V2 || producerSchema === COLLECTION_HISTORY_SCHEMA;
+}
 // Bounded JSON testimony. Reject nonfinite numbers, executable values, cycles,
 // prototype keys and deep/huge inputs before copying or persisting them. Omitted
 // undefined members remain omitted; they are never fabricated as zero data.
@@ -94467,7 +94638,7 @@ function _collectionHistoryCopy(value, label = 'history', budget = { nodes: 0 },
     seen.add(value);
     let copy;
     if (Array.isArray(value)) {
-        // Only the exact v2 event array gets the larger ledger bound. V1 arrays,
+        // Only the exact v2/v3 surface event array gets the larger bound. V1 arrays,
         // zone arrays and other nested testimony retain their existing limits.
         const limit = value === budget.surfaceEvents ? COLLECTION_MAX_SURFACE_EVENT_RECORDS : COLLECTION_MAX_ZONE_RECORDS;
         if (value.length > limit)
@@ -94492,7 +94663,7 @@ function _collectionHistoryCopy(value, label = 'history', budget = { nodes: 0 },
 function _collectionHistoryCopyBudget(producerSchema, history) {
     return {
         nodes: 0,
-        surfaceEvents: producerSchema === COLLECTION_HISTORY_SCHEMA
+        surfaceEvents: _collectionHasSurfaceHistory(producerSchema)
             && Array.isArray(history?.crystal?._surfaceHistory?.events)
             ? history.crystal._surfaceHistory.events : undefined,
     };
@@ -94553,7 +94724,9 @@ function _collectionAssertHistory(record) {
         || !h.source || typeof h.source !== 'object' || Array.isArray(h.source)
         || Object.keys(h).some(key => !['crystal', 'source', 'enclosure_lifecycle'].includes(key))
         || Object.keys(h.crystal).some(key => !COLLECTION_CRYSTAL_HISTORY_FIELDS.includes(key)
-            && !(producerSchema === COLLECTION_HISTORY_SCHEMA && key === '_surfaceHistory'))
+            && !(_collectionHasSurfaceHistory(producerSchema) && key === '_surfaceHistory')
+            && !(producerSchema === COLLECTION_HISTORY_SCHEMA
+                && (key === '_quartzFormHistory' || COLLECTION_QUARTZ_CURRENT_FIELDS.includes(key))))
         || Object.keys(h.source).some(key => !COLLECTION_SOURCE_HISTORY_FIELDS.includes(key))) {
         throw new Error('Library has invalid crystal history');
     }
@@ -94562,16 +94735,18 @@ function _collectionAssertHistory(record) {
     for (const z of record.zones)
         _collectionAssertZoneHistory(z);
     const c = h.crystal;
-    if (producerSchema === COLLECTION_HISTORY_SCHEMA && c._surfaceHistory !== undefined
+    if (_collectionHasSurfaceHistory(producerSchema) && c._surfaceHistory !== undefined
         && !validateSurfaceHistory(c._surfaceHistory, record.zones)) {
         throw new Error('Library has invalid dated surface history');
     }
-    if (producerSchema === COLLECTION_HISTORY_SCHEMA && c._surfaceHistory !== undefined && c._film !== undefined) {
+    if (_collectionHasSurfaceHistory(producerSchema) && c._surfaceHistory !== undefined && c._film !== undefined) {
         const surface = surfaceHistoryAtStep({ _surfaceHistory: c._surfaceHistory, zones: record.zones });
         if (surface && !_surfaceEquivalentFilm(surface.film, c._film)) {
             throw new Error('Library surface history contradicts its recorded final film');
         }
     }
+    if (producerSchema === COLLECTION_HISTORY_SCHEMA)
+        _collectionAssertQuartzFormHistory(record);
     for (const key of ['nucleation_step', 'c_length_mm', 'a_width_mm', 'total_growth_um', '_volume_mm3', 'wall_spread', 'void_reach',
         '_peak_differential_stress_mpa', '_resolved_shear_mpa', '_twin_density_per_mm',
         'phase_transition_step', 'paramorph_step', 'dry_exposure_steps', '_ca_so4_hydration_water_mmolkg',
@@ -94655,7 +94830,9 @@ function _collectionAssertHistory(record) {
         throw new Error('Library has invalid enclosure lifecycle');
     for (const key of ['crystal_id', 'enclosed_by', 'cdr_replaces_crystal_id']) {
         const value = h.source[key];
-        if (value != null && (!Number.isSafeInteger(value) || value < 0))
+        const valid = key === 'crystal_id' && producerSchema === COLLECTION_HISTORY_SCHEMA
+            ? _quartzFormId(value) : Number.isSafeInteger(value) && value >= 0;
+        if (value != null && !valid)
             throw new Error(`Library has invalid source ${key}`);
     }
     for (const key of ['enclosed_crystals', 'enclosed_at_step']) {
@@ -94706,6 +94883,41 @@ function _collectionAssertHistory(record) {
         if (h.enclosure_lifecycle.some(e => !related.has(e.guest_crystal_id))) {
             throw new Error('Library enclosure history belongs to another specimen');
         }
+    }
+}
+function _collectionAssertQuartzFormHistory(record) {
+    const c = record.history.crystal, h = c._quartzFormHistory;
+    for (const key of ['habit', 'twin_law', '_polymorph', 'mineral_display']) {
+        _collectionBoundedOptionalText(c[key], `quartz form ${key}`, 512);
+    }
+    if (c.twinned != null && typeof c.twinned !== 'boolean')
+        throw new Error('Library has invalid quartz form twin flag');
+    if (c.dominant_forms != null && (!Array.isArray(c.dominant_forms) || c.dominant_forms.length > 32
+        || c.dominant_forms.some(f => typeof f !== 'string' || f.length > 256))) {
+        throw new Error('Library has invalid quartz form list');
+    }
+    if (h === undefined)
+        return; // Missing chronology is unknown, never synthesized.
+    if (!validateQuartzFormHistory(h, record.zones) || h.source_crystal_id !== record.history.source.crystal_id) {
+        throw new Error('Library has invalid quartz form history or source identity');
+    }
+    if (c.nucleation_step !== record.source?.nucleation_step) {
+        throw new Error('Library quartz form history contradicts its source nucleation step');
+    }
+    quartzFormAssertKnownBirth(h, c.nucleation_step);
+    if (h.unavailable)
+        return; // Later current descriptors cannot rewrite a closed interval.
+    try {
+        if (record.mineral !== 'quartz' || h.observed_zone_count !== record.zones.length) {
+            throw new Error('open observation coverage');
+        }
+        const current = _quartzFormSnapshot(c, h.observed_through_step);
+        const terminal = h.changes.length ? h.changes[h.changes.length - 1] : h.initial;
+        if (!_quartzFormEqual(current, terminal.snapshot))
+            throw new Error('current descriptor mismatch');
+    }
+    catch (_error) {
+        throw new Error('Library quartz form history contradicts its current descriptor or coverage');
     }
 }
 function _collectionBoundedOptionalText(value, label, maxLength = 4_096) {
@@ -95046,6 +95258,7 @@ function _collectionSourceSimulator(crystal, meta) {
 }
 function buildCrystalRecord(crystal, meta, producerSchema = COLLECTION_HISTORY_SCHEMA) {
     if (producerSchema !== null && producerSchema !== COLLECTION_HISTORY_SCHEMA_V1
+        && producerSchema !== COLLECTION_HISTORY_SCHEMA_V2
         && producerSchema !== COLLECTION_HISTORY_SCHEMA)
         throw new Error('Unsupported collection producer schema');
     const record = _buildLegacyCrystalRecord(crystal, meta);
@@ -95056,8 +95269,20 @@ function buildCrystalRecord(crystal, meta, producerSchema = COLLECTION_HISTORY_S
         if (crystal[key] !== undefined)
             snapshot[key] = crystal[key];
     }
-    if (producerSchema === COLLECTION_HISTORY_SCHEMA && crystal._surfaceHistory !== undefined) {
+    if (_collectionHasSurfaceHistory(producerSchema) && crystal._surfaceHistory !== undefined) {
         snapshot['_surfaceHistory'] = crystal._surfaceHistory;
+    }
+    if (producerSchema === COLLECTION_HISTORY_SCHEMA) {
+        // The live ledger is a non-enumerable observer-owned getter. Explicitly
+        // capture it through its authority; exporting never observes a new step.
+        const quartzHistory = quartzFormHistoryForPersistence(crystal);
+        if (quartzHistory !== undefined) {
+            snapshot['_quartzFormHistory'] = quartzHistory;
+            for (const key of COLLECTION_QUARTZ_CURRENT_FIELDS) {
+                if (crystal[key] !== undefined)
+                    snapshot[key] = crystal[key];
+            }
+        }
     }
     for (const key of COLLECTION_SOURCE_HISTORY_FIELDS) {
         if (crystal[key] !== undefined)
@@ -95143,6 +95368,20 @@ function reconstructCrystalFromRecord(rec) {
         // an unrelated host. Keep them as readable source-scoped testimony only.
         stand._collectionSourceHistory = _collectionHistoryCopy(rec.history.source);
         stand._collectionEnclosureHistory = _collectionHistoryCopy(rec.history.enclosure_lifecycle || []);
+        if (producerSchema === COLLECTION_HISTORY_SCHEMA && stand._quartzFormHistory !== undefined) {
+            // Rich v3 testimony preserves absent fields too. Do not let legacy
+            // false/empty/zero display defaults turn unknown state into known state.
+            for (const key of [...COLLECTION_QUARTZ_CURRENT_FIELDS, 'nucleation_step']) {
+                if (rec.history.crystal[key] === undefined)
+                    delete stand[key];
+            }
+            // The render specimen has a new local ID; the frozen ledger retains its
+            // original source identity and is not attached to a live observer owner.
+            Object.defineProperty(stand, '_quartzFormHistory', {
+                value: _quartzFormFreeze(stand._quartzFormHistory), enumerable: false,
+                writable: false, configurable: false,
+            });
+        }
     }
     return stand;
 }
