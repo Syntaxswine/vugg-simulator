@@ -1391,6 +1391,10 @@ class VugSimulator {
     // token unchanged so the size scale is untouched (no SIM bump, no rebake). See js/45.
     classifyWulffForm(this);
 
+    // Observe finalized quartz descriptors even without a renderer/strip recorder.
+    // Observation failures retain explicit unknown coverage and never alter growth.
+    recordQuartzFormObservations(this);
+
     // === HELIX-OVERLAY-FORK ADDITION (strip view bedrock, v149+) =====
     // Helicoid-as-recorder hook (Shy's 2026-05-26 design reframe).
     // When a StripRecorder is attached to the sim, capture one step's

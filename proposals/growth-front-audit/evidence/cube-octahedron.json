@@ -1,0 +1,50 @@
+{
+  "baseline": "f7ca38c4544e1d1224ca57962e212ee86ec2f8ab",
+  "node": "v24.15.0",
+  "sourcePath": "js/46-wulff-geometry.ts",
+  "sourceSha256": "6f8cc6e7db0ba132f21f165444d72aa278b2ed7c1eabd0c8b3d8c0685b5ac4dd",
+  "rows": [
+    {
+      "name": "equal perpendicular distances",
+      "cubeD": 1,
+      "octD": 1,
+      "vertices": 24,
+      "faceVertexHistogram": {
+        "4": 6,
+        "6": 8
+      },
+      "pass": true
+    },
+    {
+      "name": "cuboctahedron",
+      "cubeD": 1,
+      "octD": 1.1547005383792517,
+      "vertices": 12,
+      "faceVertexHistogram": {
+        "3": 8,
+        "4": 6
+      },
+      "pass": true
+    },
+    {
+      "name": "octahedron planes beyond cube",
+      "cubeD": 1,
+      "octD": 2,
+      "vertices": 8,
+      "faceVertexHistogram": {
+        "4": 6
+      },
+      "pass": true
+    },
+    {
+      "name": "octahedron planes moved inward",
+      "cubeD": 1,
+      "octD": 0.5,
+      "vertices": 6,
+      "faceVertexHistogram": {
+        "3": 8
+      },
+      "pass": true
+    }
+  ]
+}

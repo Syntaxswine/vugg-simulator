@@ -1,8 +1,8 @@
 {
   "schema": "vugg-guided-tutorial-browser-receipt-v6",
   "sim_version": 285,
-  "browser_bundle_sha256": "4a91c55e0a6956acb2482b03cbb76bb17e7e2d6cd3059b28c6cc7ed62ea63e25",
-  "execution_set_sha256": "9e269aea819141b23d3231ae97abe3ef77c31f540f215ac5c6f7569ca0abcfd0",
+  "browser_bundle_sha256": "90baa55d3795cc41e70377d3acd0d6815c7aeebef429598613e10bb9b0b2ddbf",
+  "execution_set_sha256": "df6fe7aa4be8b78f2507e93c214ae42bed037278e1b6d568a496bc9810dd5d05",
   "node_runtime": {
     "schema": "vugg-evidence-node-runtime-v1",
     "node": "24.15.0",
@@ -13,7 +13,7 @@
     "locale": "en-US"
   },
   "node_runtime_sha256": "b4bb27f2f1b62692b79844cbcc3df7c4966fa7cdc3106c81ce630a74b9a2e62c",
-  "producer_contract_sha256": "58cd2dafb54e1564aca7fd12ffa2e1f086688647e8e03957a7b799dd448cba16",
+  "producer_contract_sha256": "f3d6a787372e54b5a7165aa52357ae1cba6a79ed30ff070d8d55931a4ce39cbf",
   "payload": {
     "browser_runtime": {
       "schema": "vugg-owned-devtools-browser-runtime-v2",

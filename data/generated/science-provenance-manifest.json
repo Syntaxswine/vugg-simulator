@@ -127,10 +127,10 @@
   },
   "science_evidence": {
     "path": "archive/evidence/v285.json",
-    "sha256": "20a8cfae2f50ea4d9a5d2c7d9e5548f895118204f9862f8b4fff2d51e777e7fe",
+    "sha256": "5226903efe6e6bff597dc457d8cfc274c2e33c226a6214200f49091c65cc2afe",
     "schema": "vugg-science-evidence-receipt-v2",
-    "browser_bundle_sha256": "4a91c55e0a6956acb2482b03cbb76bb17e7e2d6cd3059b28c6cc7ed62ea63e25",
-    "execution_set_sha256": "9e269aea819141b23d3231ae97abe3ef77c31f540f215ac5c6f7569ca0abcfd0",
+    "browser_bundle_sha256": "90baa55d3795cc41e70377d3acd0d6815c7aeebef429598613e10bb9b0b2ddbf",
+    "execution_set_sha256": "df6fe7aa4be8b78f2507e93c214ae42bed037278e1b6d568a496bc9810dd5d05",
     "node_runtime": {
       "schema": "vugg-evidence-node-runtime-v1",
       "node": "24.15.0",
@@ -142,15 +142,15 @@
     },
     "node_runtime_sha256": "b4bb27f2f1b62692b79844cbcc3df7c4966fa7cdc3106c81ce630a74b9a2e62c",
     "producer_contracts": {
-      "seed42-baseline": "f8ccf28164355a79c2e00033c283bbb7a7aa45cd27451020f6042f46ce4db7a3",
-      "strip-archive": "4d15e7a2313491b7ed62f43df6807be47778466995e23289b09fbca93078b554",
-      "locality-frequency": "4012da7d90b3d8f74ac310d23217fdd686ecbf9b72b21a109f2965e05a731db5",
-      "strip-digest": "8a0964a47a4d54bdba33bd9acd2b56d6877121a5ae91d8b57d00c892396104df",
-      "claim-cards": "503612ee3d2cfce8d9e2f21927ff7a57518bbede0371bfcadb8e5b9470f33008",
-      "mechanism-witnesses": "437830b594da92cde6184974de742edb20fcb2d667502274173d5f0d23ef669b",
-      "science-provenance": "a83a08ba3b8ae0cc0b8f857655e08cdfaa31991947a820f914778e9a9111f1ce",
-      "science-receipt": "df69910ab1a3a84b23f9725adcb687a8deeb0d01e7aa2346f73087c880297731",
-      "guided-tutorial-browser": "58cd2dafb54e1564aca7fd12ffa2e1f086688647e8e03957a7b799dd448cba16"
+      "seed42-baseline": "4a4f2b000402ea8e08b4708ffdf060383107b77b37aecf3954f2bde454682082",
+      "strip-archive": "0029f173691eb64c6518088a949f0db62452b3aa592b5f239c791a1deab3d11a",
+      "locality-frequency": "0e57d2d0af3af930c0df3e9947357bad041292ff117238021def81efd5c64c6b",
+      "strip-digest": "2e88b9d3cfa550bd5d17c45a19d4d38e7168e8def308a1045bc75d9f9ae1770d",
+      "claim-cards": "460b58034427dc486092797aa30482e091b6df56f7a16a13e1247e7901a5bf79",
+      "mechanism-witnesses": "022dafb224c41bfb2b5d6b0aae818a3c3de311bbf707dcbc2581141b0c87af3b",
+      "science-provenance": "cf42e2c1c161e5af0cd2e4b4c2c22b2b0aee632a53dd34527b57cae8834dad82",
+      "science-receipt": "d2441c1e8a10ce0eca74eacb1ae357527ab198237787479bd05fa12f69840a6f",
+      "guided-tutorial-browser": "f3d6a787372e54b5a7165aa52357ae1cba6a79ed30ff070d8d55931a4ce39cbf"
     },
     "artifact_count": 128
   },

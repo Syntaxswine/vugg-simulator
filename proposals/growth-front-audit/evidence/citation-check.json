@@ -1,0 +1,597 @@
+{
+  "baseline": "f7ca38c4544e1d1224ca57962e212ee86ec2f8ab",
+  "node": "v24.15.0",
+  "scope": "file existence, pinned commit and line-range bounds only; semantic support reviewed separately",
+  "documents": [
+    "proposals/GROWTH-FRONT-AUDIT-2026-09-12.md",
+    "proposals/growth-front-audit/01-producers.md",
+    "proposals/growth-front-audit/02-quartz-physics.md",
+    "proposals/growth-front-audit/03-history-contract.md",
+    "proposals/growth-front-audit/04-implementation-gate.md",
+    "proposals/growth-front-audit/review-log.md"
+  ],
+  "codeCitations": 77,
+  "localLinks": 20,
+  "sources": [
+    {
+      "sourcePath": "js/59-engines-silicate.ts",
+      "lineCount": 2930,
+      "sha256": "c42e123b5f7d0b7eec19dddceabbc069f2bae0f9fc764de58aa3718a2790656b"
+    },
+    {
+      "sourcePath": "js/85b-simulator-nucleate.ts",
+      "lineCount": 1869,
+      "sha256": "4dda133503b85ee89471d78ee55ee7299bc6b1d3d75d9ac5a46a3f7f2f25986c"
+    },
+    {
+      "sourcePath": "js/85-simulator.ts",
+      "lineCount": 1613,
+      "sha256": "98ceedf5b768014f5e306f61d33a514f572a65a5b106edc90cd558b876face72"
+    },
+    {
+      "sourcePath": "js/19-mineral-stoichiometry.ts",
+      "lineCount": 1354,
+      "sha256": "ba64df8e3b23fe992d37e182dc3cd47b5b089838d6de9f5cc4049e1eb7e36e5b"
+    },
+    {
+      "sourcePath": "js/27-geometry-crystal.ts",
+      "lineCount": 679,
+      "sha256": "c894841e6ff55d03584b04f320768145c7fc5088735677cb85d29c6ebe25712d"
+    },
+    {
+      "sourcePath": "js/18-constants.ts",
+      "lineCount": 110,
+      "sha256": "a3fa833ae6db65fd525d90fc70da72e207dcf1b882fc7ca7865241c44d05287c"
+    },
+    {
+      "sourcePath": "js/45-morphology.ts",
+      "lineCount": 1763,
+      "sha256": "4d878dd1f43c9b12b6925dfbe367220bca7980f06caf9bf88012b13d904bbfc6"
+    },
+    {
+      "sourcePath": "js/46-wulff-geometry.ts",
+      "lineCount": 877,
+      "sha256": "6f8cc6e7db0ba132f21f165444d72aa278b2ed7c1eabd0c8b3d8c0685b5ac4dd"
+    },
+    {
+      "sourcePath": "js/46a-quartz-render.ts",
+      "lineCount": 152,
+      "sha256": "75a1198ba9900c88cdfc18d1a248d34e9804687ccd7f320762a2373f59325222"
+    },
+    {
+      "sourcePath": "js/99i-renderer-three.ts",
+      "lineCount": 10143,
+      "sha256": "2bb8c0f2ce2c773a50325479543176e6491b20c4aab77a1398eeb2524d9d6552"
+    },
+    {
+      "sourcePath": "proposals/PROPOSAL-DIRECTIONAL-GROWTH-2026-06-22.md",
+      "lineCount": 271,
+      "sha256": "ab490bb69ec4b55f4fdc80531bc39f867a071b29886fa945f2cb93afb04b9e1a"
+    },
+    {
+      "sourcePath": "tests-js/wulff-geometry.test.ts",
+      "lineCount": 474,
+      "sha256": "1824126170841a539378230b826ebfe45b23330a4dc09f3d67b368e99d26deb0"
+    },
+    {
+      "sourcePath": "js/46l-replay-history.ts",
+      "lineCount": 137,
+      "sha256": "1054096a58c6e452d6024ce02b8840f0b8cf3d6ef2f2d3a0359cbd5e7e3693d2"
+    },
+    {
+      "sourcePath": "js/93-ui-collection.ts",
+      "lineCount": 1077,
+      "sha256": "32b4c14f44060444dd402e1b16f05242ab29540b29a78b291aa0070412f4c4bd"
+    },
+    {
+      "sourcePath": "js/93a-ui-saves.ts",
+      "lineCount": 2155,
+      "sha256": "429db65d38b9a4d0ef749ff48e62bc239c44dcaf9a6212280be660abec144af9"
+    },
+    {
+      "sourcePath": "js/85g-strip-recorder.ts",
+      "lineCount": 686,
+      "sha256": "9baa43cb9b226fd3ae12617c797859298c9689717f1d7d79bceafcbab9fcd72f"
+    },
+    {
+      "sourcePath": "js/85f-strip-dataset.ts",
+      "lineCount": 685,
+      "sha256": "872944e7273ba829c72938eb48a298071eaca601bb711b40e26061e70a4117dc"
+    },
+    {
+      "sourcePath": "tools/gen-strip-archive.mjs",
+      "lineCount": 292,
+      "sha256": "1b2c70fb223a2b56217b3bb6dccf893f3522394291789d05e18e66be8d990803"
+    },
+    {
+      "sourcePath": "js/85h-strip-storage.ts",
+      "lineCount": 489,
+      "sha256": "994820b55eb23808be4d3ffe9c297be6134aa0d649b667e637ca647473c82bcf"
+    },
+    {
+      "sourcePath": "tests-js/replay-history-r7.test.ts",
+      "lineCount": 147,
+      "sha256": "28a6dfd8dcbed81b241192f8b37ba1c205373fe9951cd0b16ad6ba2318005a82"
+    },
+    {
+      "sourcePath": "tests-js/collection-history-r7.test.ts",
+      "lineCount": 362,
+      "sha256": "bc4290308cc68e8088dd595ec4cb2a18b5f7ca6de50bb39d98263f6a353eec19"
+    },
+    {
+      "sourcePath": "js/44d-physical-dissolution.ts",
+      "lineCount": 591,
+      "sha256": "67c075f7d35277726f708cc1ca08588c439ff79894d94a290e63c7e9e8bdf411"
+    },
+    {
+      "sourcePath": "AGENTS.md",
+      "lineCount": 72,
+      "sha256": "109b1605956c02fc11a395cdcec684382696876937ca24ba4cbd0afd6beaf306"
+    }
+  ],
+  "citations": [
+    {
+      "document": "proposals/growth-front-audit/01-producers.md",
+      "sourcePath": "js/59-engines-silicate.ts",
+      "start": 12,
+      "end": 16
+    },
+    {
+      "document": "proposals/growth-front-audit/01-producers.md",
+      "sourcePath": "js/59-engines-silicate.ts",
+      "start": 75,
+      "end": 93
+    },
+    {
+      "document": "proposals/growth-front-audit/01-producers.md",
+      "sourcePath": "js/59-engines-silicate.ts",
+      "start": 187,
+      "end": 191
+    },
+    {
+      "document": "proposals/growth-front-audit/01-producers.md",
+      "sourcePath": "js/85b-simulator-nucleate.ts",
+      "start": 1522,
+      "end": 1547
+    },
+    {
+      "document": "proposals/growth-front-audit/01-producers.md",
+      "sourcePath": "js/85b-simulator-nucleate.ts",
+      "start": 66,
+      "end": 103
+    },
+    {
+      "document": "proposals/growth-front-audit/01-producers.md",
+      "sourcePath": "js/85b-simulator-nucleate.ts",
+      "start": 1576,
+      "end": 1588
+    },
+    {
+      "document": "proposals/growth-front-audit/01-producers.md",
+      "sourcePath": "js/85-simulator.ts",
+      "start": 818,
+      "end": 825
+    },
+    {
+      "document": "proposals/growth-front-audit/01-producers.md",
+      "sourcePath": "js/85-simulator.ts",
+      "start": 919,
+      "end": 927
+    },
+    {
+      "document": "proposals/growth-front-audit/01-producers.md",
+      "sourcePath": "js/85-simulator.ts",
+      "start": 946,
+      "end": 980
+    },
+    {
+      "document": "proposals/growth-front-audit/01-producers.md",
+      "sourcePath": "js/85b-simulator-nucleate.ts",
+      "start": 1380,
+      "end": 1396
+    },
+    {
+      "document": "proposals/growth-front-audit/01-producers.md",
+      "sourcePath": "js/19-mineral-stoichiometry.ts",
+      "start": 1061,
+      "end": 1094
+    },
+    {
+      "document": "proposals/growth-front-audit/01-producers.md",
+      "sourcePath": "js/85-simulator.ts",
+      "start": 1004,
+      "end": 1021
+    },
+    {
+      "document": "proposals/growth-front-audit/01-producers.md",
+      "sourcePath": "js/27-geometry-crystal.ts",
+      "start": 442,
+      "end": 498
+    },
+    {
+      "document": "proposals/growth-front-audit/01-producers.md",
+      "sourcePath": "js/18-constants.ts",
+      "start": 73,
+      "end": 103
+    },
+    {
+      "document": "proposals/growth-front-audit/01-producers.md",
+      "sourcePath": "js/85-simulator.ts",
+      "start": 756,
+      "end": 782
+    },
+    {
+      "document": "proposals/growth-front-audit/01-producers.md",
+      "sourcePath": "js/85-simulator.ts",
+      "start": 842,
+      "end": 882
+    },
+    {
+      "document": "proposals/growth-front-audit/01-producers.md",
+      "sourcePath": "js/59-engines-silicate.ts",
+      "start": 110,
+      "end": 170
+    },
+    {
+      "document": "proposals/growth-front-audit/01-producers.md",
+      "sourcePath": "js/85-simulator.ts",
+      "start": 1332,
+      "end": 1347
+    },
+    {
+      "document": "proposals/growth-front-audit/01-producers.md",
+      "sourcePath": "js/27-geometry-crystal.ts",
+      "start": 31,
+      "end": 82
+    },
+    {
+      "document": "proposals/growth-front-audit/01-producers.md",
+      "sourcePath": "js/27-geometry-crystal.ts",
+      "start": 188,
+      "end": 222
+    },
+    {
+      "document": "proposals/growth-front-audit/01-producers.md",
+      "sourcePath": "js/45-morphology.ts",
+      "start": 125,
+      "end": 460
+    },
+    {
+      "document": "proposals/growth-front-audit/01-producers.md",
+      "sourcePath": "js/45-morphology.ts",
+      "start": 1596,
+      "end": 1616
+    },
+    {
+      "document": "proposals/growth-front-audit/01-producers.md",
+      "sourcePath": "js/45-morphology.ts",
+      "start": 1422,
+      "end": 1428
+    },
+    {
+      "document": "proposals/growth-front-audit/01-producers.md",
+      "sourcePath": "js/45-morphology.ts",
+      "start": 1493,
+      "end": 1509
+    },
+    {
+      "document": "proposals/growth-front-audit/01-producers.md",
+      "sourcePath": "js/46-wulff-geometry.ts",
+      "start": 390,
+      "end": 456
+    },
+    {
+      "document": "proposals/growth-front-audit/01-producers.md",
+      "sourcePath": "js/46a-quartz-render.ts",
+      "start": 1,
+      "end": 104
+    },
+    {
+      "document": "proposals/growth-front-audit/01-producers.md",
+      "sourcePath": "js/99i-renderer-three.ts",
+      "start": 9048,
+      "end": 9065
+    },
+    {
+      "document": "proposals/growth-front-audit/02-quartz-physics.md",
+      "sourcePath": "js/46a-quartz-render.ts",
+      "start": 1,
+      "end": 22
+    },
+    {
+      "document": "proposals/growth-front-audit/02-quartz-physics.md",
+      "sourcePath": "js/85b-simulator-nucleate.ts",
+      "start": 1380,
+      "end": 1397
+    },
+    {
+      "document": "proposals/growth-front-audit/02-quartz-physics.md",
+      "sourcePath": "js/85-simulator.ts",
+      "start": 1440,
+      "end": 1444
+    },
+    {
+      "document": "proposals/growth-front-audit/02-quartz-physics.md",
+      "sourcePath": "proposals/PROPOSAL-DIRECTIONAL-GROWTH-2026-06-22.md",
+      "start": 134,
+      "end": 134
+    },
+    {
+      "document": "proposals/growth-front-audit/02-quartz-physics.md",
+      "sourcePath": "js/46-wulff-geometry.ts",
+      "start": 8,
+      "end": 17
+    },
+    {
+      "document": "proposals/growth-front-audit/02-quartz-physics.md",
+      "sourcePath": "tests-js/wulff-geometry.test.ts",
+      "start": 58,
+      "end": 78
+    },
+    {
+      "document": "proposals/growth-front-audit/03-history-contract.md",
+      "sourcePath": "js/46l-replay-history.ts",
+      "start": 53,
+      "end": 86
+    },
+    {
+      "document": "proposals/growth-front-audit/03-history-contract.md",
+      "sourcePath": "js/99i-renderer-three.ts",
+      "start": 8350,
+      "end": 8370
+    },
+    {
+      "document": "proposals/growth-front-audit/03-history-contract.md",
+      "sourcePath": "js/99i-renderer-three.ts",
+      "start": 8438,
+      "end": 8452
+    },
+    {
+      "document": "proposals/growth-front-audit/03-history-contract.md",
+      "sourcePath": "js/99i-renderer-three.ts",
+      "start": 8643,
+      "end": 8663
+    },
+    {
+      "document": "proposals/growth-front-audit/03-history-contract.md",
+      "sourcePath": "js/99i-renderer-three.ts",
+      "start": 9238,
+      "end": 9244
+    },
+    {
+      "document": "proposals/growth-front-audit/03-history-contract.md",
+      "sourcePath": "js/46a-quartz-render.ts",
+      "start": 1,
+      "end": 48
+    },
+    {
+      "document": "proposals/growth-front-audit/03-history-contract.md",
+      "sourcePath": "js/93-ui-collection.ts",
+      "start": 26,
+      "end": 63
+    },
+    {
+      "document": "proposals/growth-front-audit/03-history-contract.md",
+      "sourcePath": "js/93-ui-collection.ts",
+      "start": 626,
+      "end": 657
+    },
+    {
+      "document": "proposals/growth-front-audit/03-history-contract.md",
+      "sourcePath": "js/93-ui-collection.ts",
+      "start": 663,
+      "end": 723
+    },
+    {
+      "document": "proposals/growth-front-audit/03-history-contract.md",
+      "sourcePath": "js/93a-ui-saves.ts",
+      "start": 471,
+      "end": 486
+    },
+    {
+      "document": "proposals/growth-front-audit/03-history-contract.md",
+      "sourcePath": "js/93a-ui-saves.ts",
+      "start": 559,
+      "end": 583
+    },
+    {
+      "document": "proposals/growth-front-audit/03-history-contract.md",
+      "sourcePath": "js/85g-strip-recorder.ts",
+      "start": 423,
+      "end": 479
+    },
+    {
+      "document": "proposals/growth-front-audit/03-history-contract.md",
+      "sourcePath": "js/85g-strip-recorder.ts",
+      "start": 480,
+      "end": 496
+    },
+    {
+      "document": "proposals/growth-front-audit/03-history-contract.md",
+      "sourcePath": "js/85g-strip-recorder.ts",
+      "start": 660,
+      "end": 675
+    },
+    {
+      "document": "proposals/growth-front-audit/03-history-contract.md",
+      "sourcePath": "js/85f-strip-dataset.ts",
+      "start": 538,
+      "end": 551
+    },
+    {
+      "document": "proposals/growth-front-audit/03-history-contract.md",
+      "sourcePath": "js/85f-strip-dataset.ts",
+      "start": 653,
+      "end": 681
+    },
+    {
+      "document": "proposals/growth-front-audit/03-history-contract.md",
+      "sourcePath": "tools/gen-strip-archive.mjs",
+      "start": 215,
+      "end": 237
+    },
+    {
+      "document": "proposals/growth-front-audit/03-history-contract.md",
+      "sourcePath": "js/93-ui-collection.ts",
+      "start": 67,
+      "end": 102
+    },
+    {
+      "document": "proposals/growth-front-audit/03-history-contract.md",
+      "sourcePath": "js/85f-strip-dataset.ts",
+      "start": 309,
+      "end": 354
+    },
+    {
+      "document": "proposals/growth-front-audit/03-history-contract.md",
+      "sourcePath": "js/85g-strip-recorder.ts",
+      "start": 435,
+      "end": 477
+    },
+    {
+      "document": "proposals/growth-front-audit/03-history-contract.md",
+      "sourcePath": "js/85h-strip-storage.ts",
+      "start": 208,
+      "end": 248
+    },
+    {
+      "document": "proposals/growth-front-audit/03-history-contract.md",
+      "sourcePath": "js/85-simulator.ts",
+      "start": 1394,
+      "end": 1403
+    },
+    {
+      "document": "proposals/growth-front-audit/03-history-contract.md",
+      "sourcePath": "js/85g-strip-recorder.ts",
+      "start": 514,
+      "end": 524
+    },
+    {
+      "document": "proposals/growth-front-audit/03-history-contract.md",
+      "sourcePath": "js/85g-strip-recorder.ts",
+      "start": 638,
+      "end": 647
+    },
+    {
+      "document": "proposals/growth-front-audit/03-history-contract.md",
+      "sourcePath": "tests-js/replay-history-r7.test.ts",
+      "start": 11,
+      "end": 58
+    },
+    {
+      "document": "proposals/growth-front-audit/03-history-contract.md",
+      "sourcePath": "tests-js/collection-history-r7.test.ts",
+      "start": 98,
+      "end": 154
+    },
+    {
+      "document": "proposals/growth-front-audit/03-history-contract.md",
+      "sourcePath": "js/45-morphology.ts",
+      "start": 1596,
+      "end": 1616
+    },
+    {
+      "document": "proposals/growth-front-audit/03-history-contract.md",
+      "sourcePath": "js/85-simulator.ts",
+      "start": 1340,
+      "end": 1347
+    },
+    {
+      "document": "proposals/growth-front-audit/03-history-contract.md",
+      "sourcePath": "js/44d-physical-dissolution.ts",
+      "start": 153,
+      "end": 156
+    },
+    {
+      "document": "proposals/growth-front-audit/04-implementation-gate.md",
+      "sourcePath": "js/85-simulator.ts",
+      "start": 1004,
+      "end": 1021
+    },
+    {
+      "document": "proposals/growth-front-audit/04-implementation-gate.md",
+      "sourcePath": "js/85-simulator.ts",
+      "start": 1332,
+      "end": 1347
+    },
+    {
+      "document": "proposals/growth-front-audit/04-implementation-gate.md",
+      "sourcePath": "js/85-simulator.ts",
+      "start": 1386,
+      "end": 1403
+    },
+    {
+      "document": "proposals/growth-front-audit/04-implementation-gate.md",
+      "sourcePath": "js/59-engines-silicate.ts",
+      "start": 139,
+      "end": 153
+    },
+    {
+      "document": "proposals/growth-front-audit/04-implementation-gate.md",
+      "sourcePath": "js/99i-renderer-three.ts",
+      "start": 8917,
+      "end": 8920
+    },
+    {
+      "document": "proposals/growth-front-audit/04-implementation-gate.md",
+      "sourcePath": "js/99i-renderer-three.ts",
+      "start": 7004,
+      "end": 7008
+    },
+    {
+      "document": "proposals/growth-front-audit/04-implementation-gate.md",
+      "sourcePath": "js/93-ui-collection.ts",
+      "start": 26,
+      "end": 63
+    },
+    {
+      "document": "proposals/growth-front-audit/04-implementation-gate.md",
+      "sourcePath": "js/93-ui-collection.ts",
+      "start": 626,
+      "end": 657
+    },
+    {
+      "document": "proposals/growth-front-audit/04-implementation-gate.md",
+      "sourcePath": "js/93a-ui-saves.ts",
+      "start": 559,
+      "end": 573
+    },
+    {
+      "document": "proposals/growth-front-audit/04-implementation-gate.md",
+      "sourcePath": "js/99i-renderer-three.ts",
+      "start": 8438,
+      "end": 8452
+    },
+    {
+      "document": "proposals/growth-front-audit/04-implementation-gate.md",
+      "sourcePath": "js/99i-renderer-three.ts",
+      "start": 8643,
+      "end": 8663
+    },
+    {
+      "document": "proposals/growth-front-audit/04-implementation-gate.md",
+      "sourcePath": "js/99i-renderer-three.ts",
+      "start": 8715,
+      "end": 8717
+    },
+    {
+      "document": "proposals/growth-front-audit/04-implementation-gate.md",
+      "sourcePath": "js/99i-renderer-three.ts",
+      "start": 8917,
+      "end": 8920
+    },
+    {
+      "document": "proposals/growth-front-audit/04-implementation-gate.md",
+      "sourcePath": "js/99i-renderer-three.ts",
+      "start": 8466,
+      "end": 8473
+    },
+    {
+      "document": "proposals/growth-front-audit/04-implementation-gate.md",
+      "sourcePath": "AGENTS.md",
+      "start": 48,
+      "end": 65
+    }
+  ],
+  "pass": true
+}

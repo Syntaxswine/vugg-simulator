@@ -45,6 +45,7 @@ const BASE_EXPORTS = [
 ];
 
 let _loaded = null;  // memoize across multiple calls in the same process
+let _loadedTransform = undefined;
 
 /**
  * Set up jsdom + fetch + DOM stubs, eval the dist/ bundle, return chosen exports.
@@ -53,6 +54,7 @@ let _loaded = null;  // memoize across multiple calls in the same process
  * @param {string[]} [opts.extraExports=[]] - additional global names to capture beyond BASE_EXPORTS
  * @param {string} [opts.toolName='tool'] - identifier used in error messages
  * @param {number} [opts.scenarioTimeoutMs=5000] - how long to wait for SCENARIOS to populate
+ * @param {(source:string)=>string} [opts.transformBundle] - explicit test-only instrumentation; never used by evidence producers
  * @returns {Promise<object>} an object containing all base + extra exports
  */
 export async function loadSimBundle(opts = {}) {
@@ -65,6 +67,7 @@ export async function loadSimBundle(opts = {}) {
   // Memoize: each tool typically calls this once but if a tool happens to
   // call it twice (e.g. via re-import), don't redo the expensive eval.
   if (_loaded) {
+    if (opts.transformBundle !== _loadedTransform) throw new Error(`[${toolName}] cannot mix differently instrumented bundles in one process`);
     const exportNames = [...BASE_EXPORTS, ...extraExports];
     const missing = exportNames.filter(n => !Object.prototype.hasOwnProperty.call(_loaded, n));
     if (missing.length) {
@@ -140,7 +143,8 @@ export async function loadSimBundle(opts = {}) {
   const epilogue = 'function setSeed(seed) { rng = new SeededRandom(seed | 0); }';
   const exportNames = [...BASE_EXPORTS, ...extraExports];
   const expr = '{ ' + exportNames.map(n => `${n}: typeof ${n} !== 'undefined' ? ${n} : undefined`).join(', ') + ' }';
-  const fn = new Function(`${concat}\n${epilogue}\n;return ${expr};`);
+  const source = opts.transformBundle ? opts.transformBundle(concat) : concat;
+  const fn = new Function(`${source}\n${epilogue}\n;return ${expr};`);
   const exports = fn();
   const unresolved = exportNames.filter(n => exports[n] === undefined);
   if (unresolved.length) {
@@ -155,6 +159,7 @@ export async function loadSimBundle(opts = {}) {
   await waitForScenarios(exports, scenarioTimeoutMs, toolName);
 
   _loaded = exports;
+  _loadedTransform = opts.transformBundle;
   return exports;
 }
 

@@ -1,0 +1,90 @@
+{
+  "baseline": "f7ca38c4544e1d1224ca57962e212ee86ec2f8ab",
+  "node": "v24.15.0",
+  "sources": [
+    {
+      "sourcePath": "js/27-geometry-crystal.ts",
+      "sha256": "c894841e6ff55d03584b04f320768145c7fc5088735677cb85d29c6ebe25712d"
+    },
+    {
+      "sourcePath": "js/46-wulff-geometry.ts",
+      "sha256": "6f8cc6e7db0ba132f21f165444d72aa278b2ed7c1eabd0c8b3d8c0685b5ac4dd"
+    },
+    {
+      "sourcePath": "js/46a-quartz-render.ts",
+      "sha256": "75a1198ba9900c88cdfc18d1a248d34e9804687ccd7f320762a2373f59325222"
+    },
+    {
+      "sourcePath": "js/46l-replay-history.ts",
+      "sha256": "1054096a58c6e452d6024ce02b8840f0b8cf3d6ef2f2d3a0359cbd5e7e3693d2"
+    }
+  ],
+  "scope": "controlled function fixtures; no full renderer or formation run",
+  "rows": [
+    {
+      "name": "earlier dimensions ignore future zones/current habit/split",
+      "before": {
+        "c_length_mm": 1,
+        "a_width_mm": 0.4,
+        "volume_mm3": 0.08377580409572782,
+        "aspect_history": "recorded",
+        "split_extent": "uncompacted-no-recorded-index-history"
+      },
+      "after": {
+        "c_length_mm": 1,
+        "a_width_mm": 0.4,
+        "volume_mm3": 0.08377580409572782,
+        "aspect_history": "recorded",
+        "split_extent": "uncompacted-no-recorded-index-history"
+      },
+      "pass": true
+    },
+    {
+      "name": "positive-only quartz relief ignores retreat",
+      "reliefAt2": {
+        "contrast": 0.18,
+        "phase": 4.71238898038469,
+        "bands": [
+          {
+            "at": -0.16666666666666669,
+            "strength": 0.5
+          }
+        ],
+        "variability": 0.5,
+        "growth_um": 3000
+      },
+      "reliefAt3": {
+        "contrast": 0.18,
+        "phase": 4.71238898038469,
+        "bands": [
+          {
+            "at": -0.16666666666666669,
+            "strength": 0.5
+          }
+        ],
+        "variability": 0.5,
+        "growth_um": 3000
+      },
+      "dimAt3": {
+        "c_length_mm": 1.5,
+        "a_width_mm": 0.6000000000000001,
+        "volume_mm3": 0.28274333882308145,
+        "aspect_history": "recorded",
+        "split_extent": "uncompacted-no-recorded-index-history"
+      },
+      "pass": true,
+      "interpretation": "declared display texture; not surviving physical growth-front history"
+    },
+    {
+      "name": "missing aspect remains explicitly unknown",
+      "legacy": {
+        "c_length_mm": 1,
+        "a_width_mm": 0.5,
+        "volume_mm3": 0.1308996938995747,
+        "aspect_history": "legacy-neutral-display",
+        "split_extent": "uncompacted-no-recorded-index-history"
+      },
+      "pass": true
+    }
+  ]
+}
