@@ -31,6 +31,11 @@
 //        (stable hero identity and prior manifest camera; saved coordinates are rounded)
 //   --fixture aragonite-trilling
 //        (controlled display-only twin fixture; manifest explicitly marks modified records)
+//   --replay-step 24
+//        (exact production wall snapshot and recorded crystal cursor; no nearest-frame substitution)
+//   --fixture quartz-form-1 .. quartz-form-6
+//        (authored six-observation consumer control, fixed dimensions and source cavity;
+//         ordinary, double, sceptre .25/.75, gwindel 45/100; not simulated formation)
 //   node tools/photo-rig.mjs --scenario elmwood --mood studio --exposure 1.2      (R1 lighting rig)
 //   node tools/photo-rig.mjs --scenario elmwood --experiment legacylight --label before
 //        (ablation: the pre-R1 two-light look on the same build — the before/after pair)
@@ -90,7 +95,7 @@ function parseArgs(argv) {
     zoom: 1.0, out: null, keepBrowser: false, list: false, jpegQuality: null,
     label: null, photoStats: [], experiment: [],
     mood: null, exposure: null,
-    view: 'process', ev: null, tiltGiven: false, zoomGiven: false,
+    view: 'process', ev: null, tiltGiven: false, zoomGiven: false, replayStep: null,
   };
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];
@@ -98,6 +103,10 @@ function parseArgs(argv) {
     if (a === '--scenario') out.scenario = next();
     else if (a === '--seed') out.seed = Number(next());
     else if (a === '--steps') out.steps = Number(next());
+    else if (a === '--replay-step') {
+      out.replayStep = Number(next());
+      if (!Number.isSafeInteger(out.replayStep) || out.replayStep < 0) throw new Error('--replay-step requires a nonnegative integer');
+    }
     else if (a === '--shots') out.shots = next().split(',').map(s => s.trim()).filter(Boolean);
     else if (a === '--hero-n') out.heroN = Number(next());
     else if (a === '--mineral') out.mineral = next();
@@ -110,6 +119,7 @@ function parseArgs(argv) {
         && !/^enclosure-[2358]-quartz$/.test(out.fixture)
         && !/^film-(clear|coat|partial)-quartz$/.test(out.fixture)
         && !/^surface-[1-8]-quartz$/.test(out.fixture)
+        && !/^quartz-form-[1-6]$/.test(out.fixture)
         && !/^iron-(zoned|uniform|split)-sphalerite$/.test(out.fixture)) throw new Error('Unknown photo fixture');
     }
     else if (a === '--camera-from') out.cameraFrom = JSON.parse(readFileSync(path.resolve(ROOT, next()), 'utf8'));
@@ -133,6 +143,7 @@ function parseArgs(argv) {
     else if (a === '--help' || a === '-h') { out.help = true; }
     else throw new Error(`unknown argument ${a}`);
   }
+  if (out.fixture && out.replayStep != null) throw new Error('--replay-step is for production scenarios; authored fixtures supply their own cursor');
   return out;
 }
 
@@ -437,8 +448,52 @@ const PAGE_HELPERS = `
   RIG.sim = () => (typeof fortressSim !== 'undefined' ? fortressSim : null);
   RIG.scale = zoom => { RIG.state().scaleZoomOverride = zoom; };
   RIG.refresh = () => {
+    if (RIG.replaySnapshot) {
+      const decision = _topoThreeRenderAuthorityDecision(RIG.sim().wall_state, RIG.replaySnapshot);
+      if (decision.mode === 'corrupt' || !decision.wall) throw new Error(decision.message || 'Historical cavity authority unavailable');
+      RIG.historyWall = decision.wall;
+      RIG.replayAuthority = { basis: 'exact-production-wall-snapshot', snapshot_step: RIG.replaySnapshot.step,
+        mode: decision.mode, authenticated: true };
+      _topoReplayActiveSnap = RIG.replaySnapshot;
+      topoRender(RIG.replaySnapshot);
+      if (RIG.state()?.cavityAuthorityUnrenderable) throw new Error('Historical Three.js cavity was withheld');
+      return;
+    }
+    if (RIG.quartzFormFixture) {
+      // Deliberately fixed final source cavity for this authored consumer control.
+      // The cursor belongs to the six fixture observations, not to the source run.
+      RIG.historyWall = RIG.sim().wall_state;
+      if (!_topoRenderThree(RIG.sim(), RIG.historyWall, null, RIG.historyCursor)
+          || RIG.state()?.cavityAuthorityUnrenderable) throw new Error('Controlled quartz form renderer unavailable');
+      _topoSyncThreeCanvasVisibility();
+      return;
+    }
     topoRender();
     if (RIG.historyCursor != null) _topoSyncCrystalMeshes(RIG.state(), RIG.sim(), RIG.sim().wall_state, RIG.historyCursor);
+  };
+  RIG.rebuild = force => {
+    const st = RIG.state();
+    if (!st || !RIG.sim()) throw new Error('Mesh timing requires an initialized renderer');
+    if (force) st.crystalsSig = null;
+    const start = performance.now();
+    _topoSyncCrystalMeshes(st, RIG.sim(), RIG.historyWall || RIG.sim().wall_state, RIG.historyCursor ?? undefined);
+    return performance.now() - start;
+  };
+  RIG.measureMeshSync = () => {
+    const st = RIG.state(), entriesBefore = st.geomCache.size;
+    // Empty the state geometry map used by covered prism/cap/twist routes.
+    // Other scene/material/legacy caches stay warm; this is not cold startup.
+    st.geomCache.clear();
+    const entriesAtColdStart = st.geomCache.size;
+    const cold = RIG.rebuild(true), entriesAfterCold = st.geomCache.size;
+    const warm = RIG.rebuild(true), hit = RIG.rebuild(false);
+    return {
+      basis: 'shipped _topoSyncCrystalMeshes; empty state geometry map, warm forced rebuild, immediate cached sync',
+      geometry_cache: 'cold means only state.geomCache is empty; scene, materials, legacy per-crystal caches and GPU remain warm',
+      entries_before_clear: entriesBefore, entries_at_cold_start: entriesAtColdStart,
+      entries_after_cold_rebuild: entriesAfterCold,
+      state_geometry_cache_cold_ms: +cold.toFixed(3), rebuild_ms: +warm.toFixed(3), cached_ms: +hit.toFixed(3),
+    };
   };
   RIG.hex = c => '#' + c.getHexString();
   RIG.glInfo = () => {
@@ -614,6 +669,8 @@ const PAGE_HELPERS = `
         enclosed_by: m.userData.enclosedBy ?? null,
         inclusion_fit: m.userData.inclusionFit ?? null,
         replay_history: m.userData.replayHistory ?? null,
+        quartz_form_selection: m.userData.quartzForm ?? null,
+        display_scale: m.userData.displayScale ?? null,
         population_display: m.userData.populationDisplay ?? null,
         masked_bands: m.children.filter(b => b.userData?.o5Band).map(b => ({fraction:b.scale.x,mineral:b.userData.filmMineral,transparent:b.material.transparent})),
         history_cursor: RIG.historyCursor ?? null,
@@ -687,7 +744,7 @@ const PAGE_HELPERS = `
   };
   RIG.wallMode = mode => { const st = RIG.state(); st.wallDisplay = ({ solid: 0, translucent: 1, hidden: 2 })[mode] ?? 0; _topoApplyWallDisplay(st); };
   RIG.cavityR0 = () => {
-    const sim = RIG.sim(); const wall = sim.wall_state;
+    const sim = RIG.sim(); const wall = RIG.historyWall || sim.wall_state;
     let r0 = wall && wall.meanDiameterMm ? wall.meanDiameterMm() / 2 : 25;
     if (wall && typeof wall.max_seen_radius_mm === 'number') r0 = Math.max(r0, wall.max_seen_radius_mm * 0.6);
     return r0;
@@ -1028,23 +1085,33 @@ const PAGE_HELPERS = `
   true;
 `;
 
-function runProgram(name, seed, steps, fixture = null) {
+function runProgram(name, seed, steps, fixture = null, replayStep = null) {
   return `(async () => {
     ${PAGE_HELPERS}
     if (!SCENARIOS[${JSON.stringify(name)}]) throw new Error('unknown scenario ' + ${JSON.stringify(name)});
     await startScenarioInCreative(${JSON.stringify(name)}, ${seed >>> 0});
     const sim = RIG.sim(); if (!sim) throw new Error('fortressSim not created');
+    RIG.historyCursor = null; RIG.replaySnapshot = null; RIG.historyWall = null;
+    RIG.replayAuthority = null; RIG.quartzFormFixture = null;
     const { defaultSteps } = SCENARIOS[${JSON.stringify(name)}]();
     const steps = ${steps == null ? 'null' : Number(steps)} ?? defaultSteps ?? 200;
     const t0 = performance.now();
     // Yield every few steps so the debugger poll can run (the page stays responsive).
     for (let i = 0; i < steps; i++) { sim.run_step(); if (i % 8 === 7) await new Promise(r => setTimeout(r, 0)); }
     const simMs = performance.now() - t0;
+    if (${JSON.stringify(replayStep)} != null) {
+      const requestedStep = ${JSON.stringify(replayStep)};
+      const snapshots = (sim.wall_state_history || []).filter(s => s && s.step === requestedStep);
+      if (snapshots.length !== 1) throw new Error('Expected exactly one wall snapshot at replay step ' + requestedStep
+        + '; available steps: ' + (sim.wall_state_history || []).map(s => s.step).join(','));
+      RIG.replaySnapshot = snapshots[0]; RIG.historyCursor = requestedStep;
+    }
     if (${JSON.stringify(fixture)} != null) {
       const fixtureName = ${JSON.stringify(fixture)};
       const iron = /^iron-(zoned|uniform|split)-sphalerite$/.exec(fixtureName);
       const surfaceFilm = /^film-(clear|coat|partial)-quartz$/.exec(fixtureName);
       const surfaceHistory = /^surface-([1-8])-quartz$/.exec(fixtureName);
+      const quartzForm = /^quartz-form-([1-6])$/.exec(fixtureName);
       const history = /^history-([1-5])-quartz$/.exec(fixtureName);
       const enclosure = /^enclosure-([2358])-quartz$/.exec(fixtureName);
       const cloud = /^cloud-(core|band|clear)-(quartz|topaz|apatite|barite|aragonite)$/.exec(fixtureName);
@@ -1060,6 +1127,44 @@ function runProgram(name, seed, steps, fixture = null) {
         twin_law: fixtureName === 'aragonite-contact' ? 'contact' : fixtureName === 'aragonite-trilling' ? 'cyclic_sextet' : '',
         growth_environment: 'fluid', c_length_mm: 8, a_width_mm: 5,
         total_growth_um: 8000, wall_anchor: original.wall_anchor });
+      if (quartzForm) {
+        // Author the input descriptors; use the real finalized-step observer.
+        // All six captures have the same full ledger and latest stage6 state.
+        crystal.nucleation_step = 0;
+        crystal.zones = []; crystal.total_growth_um = 0; crystal._volume_mm3 = 0;
+        if (original._nucTilt !== undefined) crystal._nucTilt = JSON.parse(JSON.stringify(original._nucTilt));
+        const zone = new GrowthZone({step:1,temperature:100,thickness_um:8000,growth_rate:8000,aspect_ratio:.5});
+        zone._time_scaled = true; crystal.add_zone(zone);
+        crystal.c_length_mm = 8; crystal.a_width_mm = 4;
+        const observed = { step: 1, crystals: [crystal] };
+        for (let stage = 1; stage <= 6; stage++) {
+          observed.step = stage;
+          crystal.habit = stage === 2 ? 'doubly_terminated' : stage >= 5 ? 'gwindel'
+            : stage >= 3 ? 'scepter_overgrowth' : 'prismatic';
+          delete crystal._sceptre; delete crystal._gwindel;
+          if (stage === 3 || stage === 4) {
+            const capFrac = stage === 3 ? .25 : .75;
+            crystal._sceptre = {boundaryStep:1,stemUm:8000 * (1-capFrac),capUm:8000 * capFrac,capFrac,route:'masking'};
+          }
+          if (stage >= 5) crystal._gwindel = {twistDeg:stage === 5 ? 45 : 100,lengthUm:8000,span:stage};
+          recordQuartzFormObservations(observed);
+        }
+        const ledger = quartzFormHistoryForPersistence(crystal);
+        if (!ledger || ledger.unavailable || ledger.observed_through_step !== 6) throw new Error('Controlled quartz observations unavailable');
+        RIG.historyCursor = Number(quartzForm[1]);
+        RIG.quartzFormFixture = { name: fixtureName, authored: true,
+          basis: 'authored descriptors recorded by the production finalized-step observer on an isolated mock simulation',
+          not_a_simulated_formation_outcome: true, source_crystal_id: original.crystal_id,
+          source_scenario_step: sim.step, source_anchor: original.wall_anchor,
+          source_nucleation_tilt: original._nucTilt ?? null,
+          substrate: 'fixed final source cavity; fixture cursor does not date this cavity',
+          assigned_live_dimensions_mm: {c_length_mm:crystal.c_length_mm,a_width_mm:crystal.a_width_mm},
+          accepted_zone: {step:crystal.zones[0].step,thickness_um:crystal.zones[0].thickness_um,aspect_ratio:crystal.zones[0].aspect_ratio},
+          replay_dimensions: recordedGrowthDimensions(crystal, RIG.historyCursor),
+          sceptre_route_label: 'masking is authored descriptor input; no masking event is claimed',
+          selected_observation: quartzFormObservationAtStep(crystal, RIG.historyCursor),
+          complete_form_observations: ledger };
+      }
       if (iron) {
         crystal.nucleation_step=1;
         crystal.zones=iron[1]==='split' ? Array.from({length:16},(_,i)=>({step:i+1,thickness_um:500,trace_Fe:50000}))
@@ -1130,7 +1235,8 @@ function runProgram(name, seed, steps, fixture = null) {
         wall.surfaceNormalForCrystal=c=>wall._resolveAnchor(c)?.normal;
         sim.crystals=[crystal,guest];RIG.historyCursor=Number(enclosure[1]);
       }
-      if (fixtureName === 'quartz-micro' || iron || surfaceFilm || surfaceHistory) sim.crystals = [crystal];
+      if (fixtureName === 'quartz-micro' || iron || surfaceFilm || surfaceHistory || quartzForm) sim.crystals = [crystal];
+      if (quartzForm) sim._enclosureReceipts = [];
       if (fixtureName === 'quartz-contact') {
         crystal.nucleation_step = 1; crystal.zones = [{step:1,thickness_um:8000}];
         const second = new Crystal({mineral:'quartz',habit:'prismatic',crystal_id:crystal.crystal_id+1000,nucleation_step:1});
@@ -1158,6 +1264,7 @@ function runProgram(name, seed, steps, fixture = null) {
     const reuseStart = performance.now();
     RIG.refresh();
     const renderReuseMs = performance.now() - reuseStart;
+    const meshSync = RIG.replaySnapshot || RIG.quartzFormFixture ? RIG.measureMeshSync() : null;
     let scaleCheck = null;
     if (${JSON.stringify(fixture)} === 'quartz-micro') {
       const savedZoom = _topoZoom;
@@ -1179,6 +1286,7 @@ function runProgram(name, seed, steps, fixture = null) {
     }
     frameTimes.sort((a, b) => a - b);
     return { scaleCheck, steps, simMs: +simMs.toFixed(0), renderBuildMs: +renderBuildMs.toFixed(0), renderReuseMs: +renderReuseMs.toFixed(1), frameMedianMs: +frameTimes[2].toFixed(1), sim_version: SIM_VERSION, crystals: (sim.crystals || []).length,
+      historyCursor: RIG.historyCursor, replayAuthority: RIG.replayAuthority, quartzFormFixture: RIG.quartzFormFixture, meshSync,
       meshes: st.crystals.children.length, gl: RIG.glInfo(), cavity_r0: RIG.cavityR0(),
       roster: RIG.roster() };
   })()`;
@@ -1256,7 +1364,7 @@ function heroShotProgram({ w, h, index, n, mineral, wall, experiment = [], mood 
     const mats = Array.isArray(hero.m.material) ? hero.m.material : [hero.m.material];
     const mo = mats[0] && mats[0].userData ? mats[0].userData.optics : null;
     return { png, camera: { mode: 'direct', ...cam, ...rule, wall: ${JSON.stringify(wall)}, experiments: applied, lighting, optics, specimen },
-      subject: { replay_history:u.replayHistory, colour_record:colourRecord, contact_materials: mats.map(m => ({roughness:m.roughness,metalness:m.metalness,transmission:m.transmission,opacity:m.opacity,side:m.side})), display_scale: u.displayScale, crystal_id: u.crystal_id, mineral: u.mineral, extent_mm: +hero.ext.toFixed(2),
+      subject: { replay_history:u.replayHistory, quartz_form_selection:u.quartzForm ?? null, colour_record:colourRecord, contact_materials: mats.map(m => ({roughness:m.roughness,metalness:m.metalness,transmission:m.transmission,opacity:m.opacity,side:m.side})), display_scale: u.displayScale, crystal_id: u.crystal_id, mineral: u.mineral, extent_mm: +hero.ext.toFixed(2),
         material: mats[0] ? { tier: mo ? mo.tier : null, lustre: mo ? mo.lustre : null, transmission: mats[0].transmission ?? null, ior: mats[0].ior ?? null, opacity: mats[0].opacity, transparent: !!mats[0].transparent, roughness: mats[0].roughness, metalness: mats[0].metalness, thickness: mats[0].thickness ?? null, attenuation_distance: mats[0].attenuationDistance ?? null } : null },
       probe_frames: frames, isolated_frame: !!isolated, cluster_frame: !!cluster, profile_frame: !!profile };
   })()`;
@@ -1411,13 +1519,15 @@ async function main() {
     mkdirSync(outDir, { recursive: true });
 
     process.stderr.write(`[photo-rig] running ${args.scenario} seed ${args.seed}…\n`);
-    const run = await page.job(runProgram(args.scenario, args.seed, args.steps, args.fixture), { label: 'scenario run', timeoutMs: 900_000 });
+    const run = await page.job(runProgram(args.scenario, args.seed, args.steps, args.fixture, args.replayStep), { label: 'scenario run', timeoutMs: 900_000 });
     process.stderr.write(`[photo-rig] ${run.steps} steps in ${run.simMs} ms · ${run.crystals} crystals · ${run.meshes} meshes · GL ${run.gl?.renderer}\n`);
 
     const manifest = {
       schema: 1, tool: 'tools/photo-rig.mjs', generated: new Date().toISOString(),
       ...(args.fixture ? { fixture: args.fixture, testimony: 'controlled display fixture; modified crystal record, not a simulated outcome' } : {}),
       scenario: args.scenario, seed: args.seed, steps: run.steps, sim_version: run.sim_version,
+      history_cursor: run.historyCursor, replay_authority: run.replayAuthority,
+      quartz_form_fixture: run.quartzFormFixture, mesh_sync_timing: run.meshSync,
       scale_check: run.scaleCheck,
     render_build_ms: run.renderBuildMs,
       render_reuse_ms: run.renderReuseMs,

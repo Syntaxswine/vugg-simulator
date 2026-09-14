@@ -1,7 +1,7 @@
 // Finalized-step observations of existing quartz classifiers, not face kinetics.
 // Contract and source audit: proposals/growth-front-audit/04-implementation-gate.md.
 // B preserves observations through versioned collections and strip testimony.
-// Rendering remains a separate increment. No growth, chemistry or RNG is changed.
+// C projects this ledger without changing growth, chemistry or RNG.
 const QUARTZ_FORM_HISTORY_SCHEMA = 'quartz-form-observations-v1';
 const QUARTZ_FORM_HISTORY_BASIS = 'simulator-state-at-finalized-step';
 const QUARTZ_FORM_HISTORY_LIMITS = Object.freeze({
@@ -311,19 +311,26 @@ function validateQuartzFormHistory(history: any, zones: any[]): boolean {
   } catch (_error) { return false; }
 }
 
-// Diagnostic projection only in increment A. Do not wire production geometry to
-// these descriptors until the separately reviewed renderer dependency inventory.
+// Data projection only: consumer route eligibility lives in 46m, independently
+// of valid testimony. Never compare a past snapshot to today's descriptors.
 function quartzFormObservationAtStep(crystal: any, step: number): any {
-  const failure = crystal && typeof crystal === 'object' ? _quartzFormUnownedFailures.get(crystal) : null;
-  if (failure) return {status:'unavailable',reason:failure.reason,unavailable_step:failure.step};
-  const h = crystal?._quartzFormHistory;
-  if (!_quartzFormStep(step) || !h || !validateQuartzFormHistory(h, crystal.zones)) return {status:'unavailable',reason:'missing-or-invalid-history'};
-  if (!h.initial || (h.unavailable && step >= h.unavailable.step)) return {status:'unavailable',reason:h.unavailable?.reason || 'unobserved'};
-  if (step < h.initial.step || step > h.observed_through_step) return {status:'unavailable',reason:'outside-observed-coverage'};
-  let observation = h.initial;
-  for (const row of h.changes) { if (row.step > step) break; observation = row; }
-  return {status:'recorded',observation_step:observation.step,observation_basis:h.observation_basis,
-    snapshot:JSON.parse(JSON.stringify(observation.snapshot))};
+  try {
+    const failure = crystal && typeof crystal === 'object' ? _quartzFormUnownedFailures.get(crystal) : null;
+    if (failure) return {status:'unavailable',reason:failure.reason,unavailable_step:failure.step};
+    const h = _quartzFormOwners.get(crystal)?.history ?? _quartzFormValue(crystal, '_quartzFormHistory');
+    if (!_quartzFormStep(step) || !h || !validateQuartzFormHistory(h, crystal.zones)) return {status:'unavailable',reason:'missing-or-invalid-history'};
+    const sourceId = crystal._collectionSourceHistory?.crystal_id ?? crystal.crystal_id;
+    if (h.source_crystal_id !== sourceId) return {status:'unavailable',reason:'source-identity-mismatch'};
+    quartzFormAssertKnownBirth(h, crystal.nucleation_step);
+    if (!h.initial || (h.unavailable && step >= h.unavailable.step)) return {status:'unavailable',reason:h.unavailable?.reason || 'unobserved'};
+    if (step < h.initial.step || step > h.observed_through_step) return {status:'unavailable',reason:'outside-observed-coverage'};
+    let observation = h.initial;
+    for (const row of h.changes) { if (row.step > step) break; observation = row; }
+    return {status:'recorded',observation_step:observation.step,observation_basis:h.observation_basis,
+      snapshot:JSON.parse(JSON.stringify(observation.snapshot))};
+  } catch {
+    return {status:'unavailable',reason:'missing-or-invalid-history'};
+  }
 }
 
 // Export accepted testimony, never create observations as a side effect of saving.

@@ -51961,7 +51961,7 @@ function recordAcceptedSurfaceZone(crystal, zone) {
 // Finalized-step observations of existing quartz classifiers, not face kinetics.
 // Contract and source audit: proposals/growth-front-audit/04-implementation-gate.md.
 // B preserves observations through versioned collections and strip testimony.
-// Rendering remains a separate increment. No growth, chemistry or RNG is changed.
+// C projects this ledger without changing growth, chemistry or RNG.
 const QUARTZ_FORM_HISTORY_SCHEMA = 'quartz-form-observations-v1';
 const QUARTZ_FORM_HISTORY_BASIS = 'simulator-state-at-finalized-step';
 const QUARTZ_FORM_HISTORY_LIMITS = Object.freeze({
@@ -52340,27 +52340,36 @@ function validateQuartzFormHistory(history, zones) {
         return false;
     }
 }
-// Diagnostic projection only in increment A. Do not wire production geometry to
-// these descriptors until the separately reviewed renderer dependency inventory.
+// Data projection only: consumer route eligibility lives in 46m, independently
+// of valid testimony. Never compare a past snapshot to today's descriptors.
 function quartzFormObservationAtStep(crystal, step) {
-    const failure = crystal && typeof crystal === 'object' ? _quartzFormUnownedFailures.get(crystal) : null;
-    if (failure)
-        return { status: 'unavailable', reason: failure.reason, unavailable_step: failure.step };
-    const h = crystal?._quartzFormHistory;
-    if (!_quartzFormStep(step) || !h || !validateQuartzFormHistory(h, crystal.zones))
-        return { status: 'unavailable', reason: 'missing-or-invalid-history' };
-    if (!h.initial || (h.unavailable && step >= h.unavailable.step))
-        return { status: 'unavailable', reason: h.unavailable?.reason || 'unobserved' };
-    if (step < h.initial.step || step > h.observed_through_step)
-        return { status: 'unavailable', reason: 'outside-observed-coverage' };
-    let observation = h.initial;
-    for (const row of h.changes) {
-        if (row.step > step)
-            break;
-        observation = row;
+    try {
+        const failure = crystal && typeof crystal === 'object' ? _quartzFormUnownedFailures.get(crystal) : null;
+        if (failure)
+            return { status: 'unavailable', reason: failure.reason, unavailable_step: failure.step };
+        const h = _quartzFormOwners.get(crystal)?.history ?? _quartzFormValue(crystal, '_quartzFormHistory');
+        if (!_quartzFormStep(step) || !h || !validateQuartzFormHistory(h, crystal.zones))
+            return { status: 'unavailable', reason: 'missing-or-invalid-history' };
+        const sourceId = crystal._collectionSourceHistory?.crystal_id ?? crystal.crystal_id;
+        if (h.source_crystal_id !== sourceId)
+            return { status: 'unavailable', reason: 'source-identity-mismatch' };
+        quartzFormAssertKnownBirth(h, crystal.nucleation_step);
+        if (!h.initial || (h.unavailable && step >= h.unavailable.step))
+            return { status: 'unavailable', reason: h.unavailable?.reason || 'unobserved' };
+        if (step < h.initial.step || step > h.observed_through_step)
+            return { status: 'unavailable', reason: 'outside-observed-coverage' };
+        let observation = h.initial;
+        for (const row of h.changes) {
+            if (row.step > step)
+                break;
+            observation = row;
+        }
+        return { status: 'recorded', observation_step: observation.step, observation_basis: h.observation_basis,
+            snapshot: JSON.parse(JSON.stringify(observation.snapshot)) };
     }
-    return { status: 'recorded', observation_step: observation.step, observation_basis: h.observation_basis,
-        snapshot: JSON.parse(JSON.stringify(observation.snapshot)) };
+    catch {
+        return { status: 'unavailable', reason: 'missing-or-invalid-history' };
+    }
 }
 // Export accepted testimony, never create observations as a side effect of saving.
 // A closed history can differ from today's crystal; its declared prefix survives.
@@ -55664,7 +55673,7 @@ function quartzRenderHistory(crystal, replayStep) {
     const bands = candidates.sort((a, b) => b.strength - a.strength || a.at - b.at).slice(0, 16)
         .sort((a, b) => a.at - b.at);
     return { contrast: Math.round((0.12 + variability * 0.12) * 100) / 100,
-        phase: ((Math.abs(crystal.crystal_id || 0) * 5) % 16) * Math.PI / 8,
+        phase: ((Math.abs(crystalRenderSeed(crystal)) * 5) % 16) * Math.PI / 8,
         bands, variability, growth_um: total };
 }
 function quartzRenderFaces(widthRatio, contrast, phase, doubleEnded = false, accessory = false) {
@@ -57087,6 +57096,141 @@ function fitInclusionInsideHost(guest, host) {
         .sub(guestCenter.multiply(guest.scale).applyQuaternion(guest.quaternion));
     guest.userData.inclusionFit = { model: 'convex-host-display-fit', containment: 'all-guest-vertices', uniformReduction: reduction, measuredPosition: false };
     return true;
+}
+
+// ── 46m-quartz-form-display.js ──
+
+// C: consume finalized quartz observations, never infer physical face velocities.
+// Dependency inventory: proposals/growth-front-audit/05-renderer-consumption.md.
+const QUARTZ_FORM_DISPLAY_FIELDS = [
+    'mineral', 'habit', 'dominant_forms', 'twinned', 'twin_law', '_polymorph',
+    'mineral_display', 'growth_environment', '_sceptre', '_gwindel',
+];
+const QUARTZ_FORM_DISPLAY_HABITS = new Set([
+    'prismatic', 'doubly_terminated', 'scepter overgrowth possible', 'scepter_overgrowth', 'gwindel',
+]);
+// Geometry variation is source-scoped; picking and enclosure still use display IDs.
+// Numeric source IDs preserve the existing renderer's deterministic appearance.
+function crystalRenderSeed(crystal) {
+    const id = crystal?._quartzFormRender?.source_crystal_id ?? crystal?.crystal_id ?? 0;
+    if (typeof id === 'number')
+        return id;
+    let hash = 2166136261;
+    for (const char of String(id))
+        hash = Math.imul(hash ^ char.charCodeAt(0), 16777619);
+    return hash >>> 0;
+}
+function quartzFormRenderProjection(source, topology, step) {
+    if (!source || (source.mineral !== 'quartz' && !source._quartzFormHistory))
+        return topology;
+    const observation = quartzFormObservationAtStep(source, step);
+    const status = { status: 'legacy-current-form', reason: observation.reason,
+        cursor_step: step, source_crystal_id: source._collectionSourceHistory?.crystal_id ?? source.crystal_id };
+    const projected = { ...topology, _quartzFormRender: status };
+    if (observation.status !== 'recorded')
+        return projected;
+    const snapshot = observation.snapshot;
+    Object.assign(status, { observation_step: observation.observation_step,
+        observation_basis: observation.observation_basis, observed_habit: snapshot.habit ?? null });
+    let reason = null;
+    if (snapshot.split_presence === 'present')
+        reason = 'split-parameters-not-recorded';
+    else if (snapshot.surface_growth_presence === 'present')
+        reason = 'surface-fabric-parameters-not-recorded';
+    else if (snapshot.growth_environment !== 'fluid')
+        reason = 'outside-fluid-growth-envelope';
+    else if (snapshot.twinned !== false)
+        reason = 'twinned-or-unknown-twin-state';
+    else if (!QUARTZ_FORM_DISPLAY_HABITS.has(snapshot.habit))
+        reason = 'habit-outside-reviewed-routes';
+    else if ((snapshot.habit === 'gwindel' && !snapshot._gwindel)
+        || (snapshot.habit === 'scepter_overgrowth' && !snapshot._sceptre && !snapshot._gwindel))
+        reason = 'missing-special-form-parameters';
+    else if (snapshot._polymorph && snapshot._polymorph !== 'alpha-quartz')
+        reason = 'polymorph-outside-reviewed-routes';
+    else if (topology.dissolved && topology.perimorph_eligible)
+        reason = 'cast-boundary-form-unavailable';
+    else if (topology.enclosed_by != null)
+        reason = 'enclosed-host-form-not-supported';
+    // CDR parent identity is assigned at nucleation. Its parent's form is not in
+    // this crystal's ledger. A collection preserves that pointer source-scoped.
+    else if ((source._collectionSourceHistory ?? source).cdr_replaces_crystal_id != null)
+        reason = 'parent-form-inheritance-unavailable';
+    if (reason) {
+        status.reason = reason;
+        return projected;
+    }
+    for (const key of QUARTZ_FORM_DISPLAY_FIELDS) {
+        delete projected[key];
+        if (Object.hasOwn(snapshot, key))
+            projected[key] = snapshot[key];
+    }
+    // Scope witnesses establish absence/null, not future split/fabric parameters.
+    for (const [field, witness] of [['_split', 'split_presence'], ['_surfaceGrowth', 'surface_growth_presence']]) {
+        delete projected[field];
+        if (snapshot[witness] === 'null')
+            projected[field] = null;
+    }
+    // These generic hooks have no dated quartz authority. Withhold them uniformly,
+    // including when currently absent, so a later classifier cannot change the past.
+    for (const key of ['_occlusion', '_sectorZoned', '_polarAxis', '_wulffForm', '_deformation'])
+        delete projected[key];
+    // A bend can be assigned late when current growth crosses DEFORM_MIN_UM, yet
+    // carry an earlier event's atStep. That date does not record first application.
+    // Uniformly withhold it here, including when it has not yet been assigned.
+    // Never borrow a live cache with later parameters (or retain geometry on a
+    // short-lived projection). Supported specials use the scene cache below.
+    for (const key of Object.keys(projected))
+        if (/^_(gwindel|sceptre|bent)Geom/.test(key))
+            delete projected[key];
+    Object.assign(status, { status: 'recorded-form-selection', reason: null,
+        route: snapshot._gwindel ? 'gwindel' : snapshot._sceptre ? 'sceptre'
+            : snapshot.habit === 'doubly_terminated' ? 'double-prism' : 'r4-prism',
+        withheld: ['undated-attachment-depth', 'neighbour-shape-contact-clipping', 'unrecorded-sector-or-polar-overprints', 'unrecorded-deformation-application-time'],
+        geometry_basis: 'morphology-display-model-not-physical-growth-fronts',
+        placement_basis: source._collectionSourceHistory ? 'isolated-specimen-display-placement' : 'source-anchor-and-nucleation-axis',
+    });
+    status.signature = JSON.stringify([status, snapshot]);
+    return projected;
+}
+function quartzFormDisplayText(status) {
+    if (!status)
+        return '';
+    if (status.status === 'recorded-form-selection') {
+        const names = { 'r4-prism': 'prism', 'double-prism': 'doubly terminated prism', sceptre: 'sceptre', gwindel: 'gwindel' };
+        return `Form selected from step ${status.observation_step} observation (${names[status.route] || 'quartz'}). Shape and population are representative. Unrecorded attachment depth, contact cuts and deformation are omitted.`;
+    }
+    const reasons = {
+        'outside-observed-coverage': 'This step is outside the recorded period.',
+        'split-parameters-not-recorded': 'Split growth is not covered by this record.',
+        'surface-fabric-parameters-not-recorded': 'Surface fabrics are not covered by this record.',
+        'outside-fluid-growth-envelope': 'This growth environment is not covered.',
+        'twinned-or-unknown-twin-state': 'This twin state is not covered.',
+        'habit-outside-reviewed-routes': 'This habit is not covered.',
+        'missing-special-form-parameters': 'The special form has an incomplete record.',
+        'polymorph-outside-reviewed-routes': 'This silica structure is not covered.',
+        'cast-boundary-form-unavailable': 'The cast’s last solid form is unknown.',
+        'enclosed-host-form-not-supported': 'The enclosing host’s earlier form is unavailable.',
+        'parent-form-inheritance-unavailable': 'The parent’s form at replacement is unavailable.',
+    };
+    return `${reasons[status.reason] || 'No verified form record is available here.'} Showing the latest form as a display fallback.`;
+}
+function quartzFormCollectionText(crystal) {
+    if (crystal?.mineral !== 'quartz' && !crystal?._quartzFormHistory)
+        return '';
+    const history = crystal._quartzFormHistory;
+    if (!history?.initial)
+        return 'Quartz form history is unknown. This specimen has no dated form observations.';
+    const step = history.unavailable ? Math.min(history.observed_through_step, history.unavailable.step - 1)
+        : history.observed_through_step;
+    if (quartzFormObservationAtStep(crystal, step).status !== 'recorded') {
+        return 'Quartz form history cannot be validated for this specimen; its form chronology is unknown.';
+    }
+    const projected = quartzFormRenderProjection(crystal, crystal, step);
+    return `Quartz form observations: steps ${history.initial.step}–${step}. `
+        + quartzFormDisplayText(projected._quartzFormRender)
+        + (history.unavailable ? ` Recording stops at step ${history.unavailable.step}; later form history is unknown.` : '')
+        + ' This is a history summary; the Record Player displays growth zones. Observations record finalized simulator states, not measured face advance.';
 }
 
 // ── 50-engines-arsenate.js ──
@@ -105244,6 +105388,13 @@ function showZoneHistory(crystal) {
     grooveModalCrystal = crystal;
     body.appendChild(summary);
     body.appendChild(surfaceHistoryPanel(crystal));
+    const quartzFormText = quartzFormCollectionText(crystal);
+    if (quartzFormText) {
+        const note = document.createElement('p');
+        note.className = 'quartz-form-history';
+        note.textContent = quartzFormText;
+        body.appendChild(note);
+    }
     if (!crystal.zones.length) {
         const noZones = document.createElement('div');
         noZones.className = 'inv-empty';
@@ -105726,6 +105877,9 @@ function grooveSelectCrystal() {
     infoHtml += `<br>${grooveCrystal.zones.length} growth zones, nucleated step ${grooveCrystal.nucleation_step} at ${grooveCrystal.nucleation_temp.toFixed(0)}°C`;
     if (grooveCrystal.twinned)
         infoHtml += `<br><span style="color:#bb66ee">⟁ ${collectionPlayerTextHTML(grooveCrystal.twin_law)}</span>`;
+    const quartzFormText = quartzFormCollectionText(grooveCrystal);
+    if (quartzFormText)
+        infoHtml += `<br><span class="quartz-form-history">${collectionPlayerTextHTML(quartzFormText)}</span>`;
     infoHtml += `<br>Fluorescence: ${collectionPlayerTextHTML(grooveCrystal.predict_fluorescence())}`;
     infoHtml += `<br><span style="color:#5a4a30;font-size:0.65rem">Source: ${collectionPlayerTextHTML(data.source)}${data.source === 'Library' ? ' collection' : ' mode'}</span>`;
     info.innerHTML = infoHtml;
@@ -112313,9 +112467,20 @@ function _topoTooltipFromEvent(ev) {
             const lines = [];
             lines.push(`<b style="color:${color}">${cell.mineral} #${cell.crystal_id}</b>`);
             if (crystal) {
-                lines.push(`${crystal.habit}${crystal.twinned ? ` (${crystal.twin_law} twin)` : ''}`);
-                lines.push(`${crystal.c_length_mm.toFixed(2)} mm · vector: ${crystal.vector}`);
-                if (crystal._surfaceGrowth) {
+                if (hit.quartzForm) {
+                    const form = hit.quartzForm;
+                    const habit = form.status === 'recorded-form-selection' ? form.observed_habit : crystal.habit;
+                    lines.push(collectionPlayerTextHTML(habit || 'form unknown'));
+                    lines.push(collectionPlayerTextHTML(quartzFormDisplayText(form)));
+                    const length = hit.displayScale?.recordedLengthMm;
+                    if (Number.isFinite(length))
+                        lines.push(`${length.toFixed(2)} mm at replay step ${form.cursor_step}`);
+                }
+                else {
+                    lines.push(`${crystal.habit}${crystal.twinned ? ` (${crystal.twin_law} twin)` : ''}`);
+                    lines.push(`${crystal.c_length_mm.toFixed(2)} mm · vector: ${crystal.vector}`);
+                }
+                if (crystal._surfaceGrowth && !hit.quartzForm) {
                     const sg = crystal._surfaceGrowth;
                     const regime = String(sg.regime || 'surface growth').replace(/_/g, ' ');
                     const cover = Math.round(Math.max(0, Math.min(1, sg.coverage_fraction || 0)) * 100);
@@ -120932,7 +121097,7 @@ parentOccF, parentMesh, replayStep = null) {
     const n = bladeSpray && count > 0 ? Math.min(9, count + 2) : bariteCrest && count > 0 ? Math.min(7, Math.max(5, count)) : count;
     if (n === 0)
         return;
-    const rand = _clusterRand((crystal.crystal_id || 0) * 0x9E3779B9 + 0x12345);
+    const rand = _clusterRand(crystalRenderSeed(crystal) * 0x9E3779B9 + 0x12345);
     // Build an orthonormal tangent frame perpendicular to the substrate
     // normal — used to spread satellites in a chord direction, then
     // re-projected back onto the curved wall (see below).
@@ -120967,7 +121132,7 @@ parentOccF, parentMesh, replayStep = null) {
     const wallProjOk = !!(wall && wall.rings && ringCount > 0 && N > 0);
     let gypsumRootMaterial = null;
     for (let i = 0; i < n; i++) {
-        const member = population ? populationDisplayMember(crystal.crystal_id || 0, i, pattern) : null;
+        const member = population ? populationDisplayMember(crystalRenderSeed(crystal), i, pattern) : null;
         const r = member
             ? Math.min(footprint * member.radiusInParentWidths * Math.min(1, pattern.spreadMul), spreadCap)
             : (0.5 + 0.5 * rand()) * spread;
@@ -121121,7 +121286,7 @@ parentOccF, parentMesh, replayStep = null) {
         satMesh.quaternion.setFromUnitVectors(upVec, targetVec);
         // Generic representatives have related roll around the recorded parent axis;
         // specialized arrangements retain their existing cluster PRNG route.
-        satMesh.rotateY(member ? _crystalYaw(crystal.crystal_id || 0) + member.yawOffset : rand() * Math.PI * 2);
+        satMesh.rotateY(member ? _crystalYaw(crystalRenderSeed(crystal)) + member.yawOffset : rand() * Math.PI * 2);
         if (spray) {
             // These are representative members of the existing display cluster, not
             // new simulation crystals or invented twin laws. Small related groups
@@ -121173,6 +121338,7 @@ parentOccF, parentMesh, replayStep = null) {
             cellIdx: _address.cellIdx,
             surfaceAnchorKey: wall?.surfaceAnchorKey?.(crystal),
             isSatellite: true,
+            quartzForm: parentMesh?.userData?.quartzForm ?? null,
             ...(member ? { populationDisplay: { schema: 'representative-population-v1',
                     parentCrystalId: crystal.crystal_id, memberIndex: i,
                     independentNucleation: false, sizeDistribution: 'bounded-log-space-display-only',
@@ -121277,7 +121443,7 @@ function _localCrystalColor(crystal, spec, replayStep = null) {
     // (2) legibility floor — deterministic per-id micro-jitter across 3 axes
     // (hue, saturation, value) from three low-discrepancy hashes, so two
     // same-broth neighbours rarely collide on all three at once.
-    const id = crystal && crystal.crystal_id ? crystal.crystal_id : 0;
+    const id = crystalRenderSeed(crystal);
     const h1 = ((id * 0.6180339887498949) % 1 + 1) % 1; // golden-ratio conjugate
     const h2 = ((id * 0.7548776662466927) % 1 + 1) % 1; // second low-discrepancy constant
     const h3 = ((id * 0.5698402909980532) % 1 + 1) % 1; // third (plastic-number related)
@@ -121932,7 +122098,9 @@ function _topoCrystalsSignature(sim, wall, replayStep) {
     if (!sim || !sim.crystals || !sim.crystals.length)
         return '';
     const parts = [];
-    for (const c of sim.crystals) {
+    for (const original of sim.crystals) {
+        const c = replayStep != null && original && !original._quartzFormRender
+            ? quartzFormRenderProjection(original, original, replayStep) : original;
         if (!c)
             continue;
         // Q4: dissolved crystals normally drop from the scene, BUT a
@@ -121951,6 +122119,8 @@ function _topoCrystalsSignature(sim, wall, replayStep) {
             continue;
         if (replayStep != null && c.nucleation_step > replayStep)
             continue;
+        if (c._quartzFormRender)
+            parts.push(':quartz-form:' + (c._quartzFormRender.signature || JSON.stringify(c._quartzFormRender)));
         // PHASE-4-CAVITY-MESH Tranche 4b — wall_anchor is the truth.
         const _anchorKey = wall?.surfaceAnchorKey
             ? wall.surfaceAnchorKey(c) : CavitySurfaceAnchors.key(c.wall_anchor);
@@ -122261,9 +122431,14 @@ function _o2ContactMaterial(mat, state) {
 function _topoSyncCrystalMeshes(state, sim, wall, replayStep) {
     if (!sim || !wall || !wall.rings || !wall.rings.length)
         return;
-    // One immutable event projection feeds contacts, materials and inclusion placement.
-    if (replayStep != null)
-        sim = Object.assign(Object.create(sim), { crystals: replayEnclosureCrystals(sim, replayStep) });
+    // Read the original non-enumerable form ledger before enclosure spread copies
+    // lose it. One form projection feeds route gates, cache, neighbours and population.
+    if (replayStep != null) {
+        const source = sim.crystals;
+        const crystals = replayEnclosureCrystals(sim, replayStep)
+            .map((c, i) => quartzFormRenderProjection(source[i], c, replayStep));
+        sim = Object.assign(Object.create(sim), { crystals });
+    }
     const scaleMode = crystalScaleMode(state.scaleZoomOverride ?? _topoZoom, replayStep);
     state.crystalScaleMode = scaleMode;
     const label = typeof document === 'undefined' ? null : document.getElementById('topo-zoom-label');
@@ -122637,11 +122812,21 @@ function _topoSyncCrystalMeshes(state, sim, wall, replayStep) {
         // the twist is the dominant visual). Gated on the prism token.
         if (!geom && crystal.mineral === 'quartz' && crystal._gwindel && token === 'prism') {
             const td = Math.round((crystal._gwindel.twistDeg || 75) / 5) * 5; // quantize for cache reuse
-            if (crystal._gwindelGeomTd !== td) {
-                crystal._gwindelGeom = _makeGwindelGeom(td);
-                crystal._gwindelGeomTd = td;
+            if (crystal._quartzFormRender?.status === 'recorded-form-selection') {
+                const key = '__recorded_gwindel_' + td;
+                geom = state.geomCache.get(key);
+                if (!geom) {
+                    geom = _makeGwindelGeom(td);
+                    state.geomCache.set(key, geom);
+                }
             }
-            geom = crystal._gwindelGeom;
+            else {
+                if (crystal._gwindelGeomTd !== td) {
+                    crystal._gwindelGeom = _makeGwindelGeom(td);
+                    crystal._gwindelGeomTd = td;
+                }
+                geom = crystal._gwindelGeom;
+            }
         }
         // Quartz SCEPTRE (alpine-cleft arc SIM 206): a crystal the sim tagged with
         // _sceptre renders as the two-body stem+cap silhouette. Gated on the prism
@@ -122650,18 +122835,28 @@ function _topoSyncCrystalMeshes(state, sim, wall, replayStep) {
         // resorption boundary step the crystal is still a plain gen-1 prism.
         if (!geom && crystal.mineral === 'quartz' && crystal._sceptre && !crystal._gwindel && token === 'prism'
             && (replayStep == null || replayStep >= crystal._sceptre.boundaryStep)) {
-            const cf = Math.round((crystal._sceptre.capFrac || 0.5) * 20) / 20; // quantize for cache reuse
+            const cf = Math.round((crystal._sceptre.capFrac ?? 0.5) * 20) / 20; // quantize for cache reuse; zero is a recorded value
             // Eccentric cap (growth-centre migration — see _makeSceptreHexPrism): a
             // deterministic per-id lateral offset in 0.06..0.15 (never dead-coaxial —
             // real caps aren't), azimuth-scattered by the per-crystal yaw. Pure fn of
             // the id, so the cf-keyed per-crystal cache stays valid.
-            const eccH = Math.abs(Math.sin((crystal.crystal_id || 1) * 12.9898)) % 1;
+            const eccH = Math.abs(Math.sin((crystalRenderSeed(crystal) || 1) * 12.9898)) % 1;
             const ecc = 0.06 + 0.09 * eccH;
-            if (crystal._sceptreGeomCf !== cf) {
-                crystal._sceptreGeom = _makeSceptreHexPrism(cf, ecc);
-                crystal._sceptreGeomCf = cf;
+            if (crystal._quartzFormRender?.status === 'recorded-form-selection') {
+                const key = '__recorded_sceptre_' + cf + '_' + ecc;
+                geom = state.geomCache.get(key);
+                if (!geom) {
+                    geom = _makeSceptreHexPrism(cf, ecc);
+                    state.geomCache.set(key, geom);
+                }
             }
-            geom = crystal._sceptreGeom;
+            else {
+                if (crystal._sceptreGeomCf !== cf) {
+                    crystal._sceptreGeom = _makeSceptreHexPrism(cf, ecc);
+                    crystal._sceptreGeomCf = cf;
+                }
+                geom = crystal._sceptreGeom;
+            }
         }
         // A named gypsum twin keeps its two-blade construction even when the same
         // record also carries split/rose and hourglass tags. The former O5 sphere
@@ -123115,7 +123310,7 @@ function _topoSyncCrystalMeshes(state, sim, wall, replayStep) {
             const history = quartzRenderHistory(crystal, replayStep);
             const doubleEnded = habitForGeom === 'doubly_terminated';
             const ratio = Math.round(Math.max(0.2, Math.min(1.1, aWid / cLen)) * 100) / 100;
-            const accessory = Math.abs(Math.trunc(crystal.crystal_id || 0)) % 4 === 0;
+            const accessory = Math.abs(Math.trunc(crystalRenderSeed(crystal))) % 4 === 0;
             const key = '__quartz_r4_' + ratio + '_' + history.contrast + '_' + history.phase + '_' + doubleEnded + '_' + accessory;
             quartzGeometry = state.geomCache.get(key);
             if (!quartzGeometry) {
@@ -123238,7 +123433,7 @@ function _topoSyncCrystalMeshes(state, sim, wall, replayStep) {
         // face-toward-camera rotation. rotateY composes the local +Y
         // rotation AFTER the substrate orientation, so the spin happens
         // around the (now world-space) substrate normal.
-        mesh.rotateY(_crystalYaw(crystal.crystal_id || 0));
+        mesh.rotateY(_crystalYaw(crystalRenderSeed(crystal)));
         // W-F O2 — induction surfaces. Clip this crystal against the neighbours it
         // grew into and cap each cut with a matte contact facet (Self & Hill 2003;
         // competitive growth). Convex tenants only (_o2ConvexGeom + the token gate —
@@ -123252,6 +123447,7 @@ function _topoSyncCrystalMeshes(state, sim, wall, replayStep) {
         // lacks a growth scalar. Render-only: replaces mesh.geometry with a fresh
         // clipped geom, leaving the cached form intact for the satellites + geomCache.
         if (_o2ConvexGeom && _O2_CONVEX_TOKENS.has(token)
+            && crystal._quartzFormRender?.status !== 'recorded-form-selection'
             // A sub-floor topaz is an enlarged display body. Cutting that body
             // against coarse neighbour spheres fabricates a large opaque wedge.
             // Keep the closed rooted form; actual-size/replay contacts still run.
@@ -123314,9 +123510,10 @@ function _topoSyncCrystalMeshes(state, sim, wall, replayStep) {
             enclosedBy: crystal.enclosed_by ?? null,
             displayScale: { mode: scaleMode, recordedLengthMm: renderC, nominalLengthMm: cLen,
                 enlarged: wasFloored, widthModel: 'mineral-form-display' },
+            quartzForm: crystal._quartzFormRender ?? null,
             replayHistory: replayStep == null ? null : { enclosure: crystal._replayEnclosureHistory,
                 dimensions: recordedGrowthDimensions(crystal, replayStep),
-                formChronology: 'current-form-with-recorded-etch-deformation-and-sceptre-gates' },
+                formChronology: crystal._quartzFormRender?.status || 'current-form-with-recorded-etch-deformation-and-sceptre-gates' },
             // v66: report the effectiveMineral (paramorph-rewound during
             // replay) so hit-test tooltips match what the user sees.
             mineral: effectiveMineral,
@@ -123523,7 +123720,8 @@ function _topoHitTestThree(ev) {
         wall_depth: 0,
         base_radius_mm: 0,
     };
-    return { mineral: data.mineral, isInclusion: false, cell: synthCell };
+    return { mineral: data.mineral, isInclusion: false, cell: synthCell,
+        quartzForm: data.quartzForm ?? null, displayScale: data.displayScale ?? null };
 }
 // Drive the camera from the existing tilt/zoom globals so toggling
 // between canvas-vector and Three.js modes preserves the user's view.

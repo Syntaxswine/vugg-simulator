@@ -44,7 +44,7 @@ function quartzRenderHistory(crystal: any, replayStep: number | null): any {
   const bands = candidates.sort((a, b) => b.strength - a.strength || a.at - b.at).slice(0, 16)
     .sort((a, b) => a.at - b.at);
   return { contrast: Math.round((0.12 + variability * 0.12) * 100) / 100,
-    phase: ((Math.abs(crystal.crystal_id || 0) * 5) % 16) * Math.PI / 8,
+    phase: ((Math.abs(crystalRenderSeed(crystal)) * 5) % 16) * Math.PI / 8,
     bands, variability, growth_um: total };
 }
 

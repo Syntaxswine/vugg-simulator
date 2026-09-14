@@ -16,8 +16,8 @@
         "minerals": 184,
         "narratives": 94
       },
-      "browser_bundle_sha256": "489d348298cbc19b7d78039d3aa759ece86cb3269923aa61379ef6e07440b428",
-      "runtime_execution_sha256": "5f14eeb7b6da824ebbcde4c719d43b00144d1141a9dce5574df7a9099cb804fc",
+      "browser_bundle_sha256": "3120d6628919d05c3417911e37cf9b0dbfb9aec67ba54d58a330ef93a1bfb8ef",
+      "runtime_execution_sha256": "2e52ce5353743ab157021e35c1b681f430d5105a0b76d5393b74e860382316be",
       "source_files": [
         {
           "path": "data/locality_chemistry.json",
@@ -529,5 +529,5 @@
   ],
   "producer_contract_sha256": "9def72684b848987bf6df5cee1e185f6fe35d8fd3492b28d03903794e095b5d5",
   "node_runtime_sha256": "b4bb27f2f1b62692b79844cbcc3df7c4966fa7cdc3106c81ce630a74b9a2e62c",
-  "catalog_sha256": "fb7d0882c2284284467d665ccba3bd4990c45d223b389415c446ab4fc1b74a81"
+  "catalog_sha256": "71b64dd7bc4585a17d8c7afd2bf7a39f15a94c19cccafef21fd20a2a861f07e4"
 }

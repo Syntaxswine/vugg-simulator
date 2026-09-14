@@ -106,8 +106,11 @@ describe('strip quartz form observations — persistence B', () => {
       const saved = (await stripDeserialize(await stripSerialize(recorder.finalize(), false))).quartz_form_testimony[0];
       expect(saved.history.unavailable.reason).toBe(unsupported ? 'unsupported-mineral' : 'observation-gap');
       expect(saved.history.observed_through_step).toBe(1);
-      expect(quartzFormObservationAtStep({ _quartzFormHistory: saved.history, zones: saved.zones }, 1).snapshot.habit).toBe('prismatic');
-      expect(quartzFormObservationAtStep({ _quartzFormHistory: saved.history, zones: saved.zones }, 2).status).toBe('unavailable');
+      const source = { crystal_id: saved.crystal_id, _quartzFormHistory: saved.history, zones: saved.zones };
+      expect(quartzFormObservationAtStep(source, 1).snapshot.habit).toBe('prismatic');
+      expect(quartzFormObservationAtStep(source, 2).status).toBe('unavailable');
+      expect(quartzFormObservationAtStep({ ...source, crystal_id: 'wrong-source' }, 1))
+        .toMatchObject({ status: 'unavailable', reason: 'source-identity-mismatch' });
     }
   });
 

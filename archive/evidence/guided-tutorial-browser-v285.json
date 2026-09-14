@@ -1,8 +1,8 @@
 {
   "schema": "vugg-guided-tutorial-browser-receipt-v6",
   "sim_version": 285,
-  "browser_bundle_sha256": "489d348298cbc19b7d78039d3aa759ece86cb3269923aa61379ef6e07440b428",
-  "execution_set_sha256": "5f14eeb7b6da824ebbcde4c719d43b00144d1141a9dce5574df7a9099cb804fc",
+  "browser_bundle_sha256": "3120d6628919d05c3417911e37cf9b0dbfb9aec67ba54d58a330ef93a1bfb8ef",
+  "execution_set_sha256": "2e52ce5353743ab157021e35c1b681f430d5105a0b76d5393b74e860382316be",
   "node_runtime": {
     "schema": "vugg-evidence-node-runtime-v1",
     "node": "24.15.0",
@@ -13,7 +13,7 @@
     "locale": "en-US"
   },
   "node_runtime_sha256": "b4bb27f2f1b62692b79844cbcc3df7c4966fa7cdc3106c81ce630a74b9a2e62c",
-  "producer_contract_sha256": "61bbace7b4a705fb26005b2254dab7adcb6ee4672e10a6241636854265513efa",
+  "producer_contract_sha256": "01d77e4129f3e2a69ca2adbbd5402b9af90138b347ec1c4e4758ddb468c36eea",
   "payload": {
     "browser_runtime": {
       "schema": "vugg-owned-devtools-browser-runtime-v2",
@@ -142,7 +142,7 @@
           "Finish tutorial"
         ],
         "collected": {
-          "record_id": "cry-16-qte",
+          "record_id": "cry-16-nmk",
           "name": "<img data-vugg-player-name-probe src=x onerror=\"globalThis.__vuggPlayerNameInjection=1\">",
           "mineral": "topaz",
           "source_scenario": "shigar_pegmatite",
@@ -221,7 +221,7 @@
       "player_surfaces": {
         "schema": "game04-player-surfaces-v2",
         "collection_record_groove": {
-          "record_id": "cry-16-qte",
+          "record_id": "cry-16-nmk",
           "stored_name": "<img data-vugg-player-name-probe src=x onerror=\"globalThis.__vuggPlayerNameInjection=1\">",
           "library_name_text": "<img data-vugg-player-name-probe src=x onerror=\"globalThis.__vuggPlayerNameInjection=1\">",
           "groove_name_text": "“<img data-vugg-player-name-probe src=x onerror=\"globalThis.__vuggPlayerNameInjection=1\">”",
@@ -335,5 +335,5 @@
       }
     }
   },
-  "payload_sha256": "153a45b65654646a0176435578281687fc9e32108b2391e1246921616b4804e2"
+  "payload_sha256": "b521b75238bdc558b63d99369f1db6ace334daba034984aa08fa674575d30e55"
 }
