@@ -1,0 +1,97 @@
+{
+  "schema": "calcite-pilot-sparse-benchmark-v1",
+  "sourceHashes": {
+    "specimen.js": "055c18b37f072e7b5cfcb365ca5c8d608e359f67f1ffbf1f122654a3265cb78e",
+    "capture.mjs": "97151206e464d94ea0b730829fe32b4a605bfe299c465531ff16b0caef903ec7",
+    "benchmark.mjs": "e12472a56902d27449d75b7531a7daf2e4003c12881423046736ee02b9c61e07"
+  },
+  "runtimeDigest": "f849c5cbd1873a56df4daff7552f7170e71e12547eb0deaac494969513e9ac4d",
+  "runtime": "v24.15.0",
+  "platform": "win32",
+  "scope": "Synthetic 48-body sparse changes; compares compiler strategies, NOT full shipped-game performance.",
+  "events": 17,
+  "identicalFactsAndGeometry": true,
+  "memoryCaveat": "Process samples, affected by GC and harness; not peak or retained-memory measurements. Retained path keeps history; reference recreates frames.",
+  "results": [
+    {
+      "strategy": "whole-specimen-recompilation",
+      "firstCompileMs": 17.382600000000025,
+      "laterTotalMs": 148.01120000000037,
+      "compilations": 816,
+      "memoryBefore": {
+        "rss": 215351296,
+        "heapTotal": 225927168,
+        "heapUsed": 77650176,
+        "external": 8848195,
+        "arrayBuffers": 622892
+      },
+      "memoryAfter": {
+        "rss": 294658048,
+        "heapTotal": 232632320,
+        "heapUsed": 102485600,
+        "external": 4379120,
+        "arrayBuffers": 622892
+      }
+    },
+    {
+      "strategy": "retained-compilation",
+      "firstCompileMs": 8.3592000000001,
+      "laterTotalMs": 23.473799999999983,
+      "compilations": 80,
+      "memoryBefore": {
+        "rss": 294658048,
+        "heapTotal": 232632320,
+        "heapUsed": 102491128,
+        "external": 4379120,
+        "arrayBuffers": 622892
+      },
+      "memoryAfter": {
+        "rss": 300580864,
+        "heapTotal": 238551040,
+        "heapUsed": 150358112,
+        "external": 4379120,
+        "arrayBuffers": 622892
+      }
+    },
+    {
+      "strategy": "retained-compilation",
+      "firstCompileMs": 8.936699999999973,
+      "laterTotalMs": 23.2642000000003,
+      "compilations": 80,
+      "memoryBefore": {
+        "rss": 300580864,
+        "heapTotal": 238551040,
+        "heapUsed": 150361544,
+        "external": 4379120,
+        "arrayBuffers": 622892
+      },
+      "memoryAfter": {
+        "rss": 306778112,
+        "heapTotal": 244469760,
+        "heapUsed": 131167400,
+        "external": 4379120,
+        "arrayBuffers": 622892
+      }
+    },
+    {
+      "strategy": "whole-specimen-recompilation",
+      "firstCompileMs": 8.092399999999998,
+      "laterTotalMs": 131.7008999999996,
+      "compilations": 816,
+      "memoryBefore": {
+        "rss": 306778112,
+        "heapTotal": 244469760,
+        "heapUsed": 131169128,
+        "external": 4379120,
+        "arrayBuffers": 622892
+      },
+      "memoryAfter": {
+        "rss": 312905728,
+        "heapTotal": 250388480,
+        "heapUsed": 139975744,
+        "external": 4379120,
+        "arrayBuffers": 622892
+      }
+    }
+  ]
+}

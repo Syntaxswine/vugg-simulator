@@ -22,6 +22,7 @@ If a section below is wrong, update the canonical source — not this file.
 | Cavity geometry migration      | `proposals/PROPOSAL-MARCHING-CUBES-CAVITY.md`         |
 | Build pipeline                 | "Build pipeline" section below                       |
 | Module index (JS source)       | `js/README.md` — every prefix annotated, "find X by purpose" |
+| Experimental calcite specimen separation | `pilots/calcite/README.md` — isolated authority, rendering, and performance pilot |
 | Modes shown to the player      | the title screen — open `index.html` and look       |
 
 ---

@@ -1,0 +1,114 @@
+{
+  "schema": "calcite-pilot-browser-check-v1",
+  "sourceHashes": {
+    "specimen.js": "055c18b37f072e7b5cfcb365ca5c8d608e359f67f1ffbf1f122654a3265cb78e",
+    "render.js": "ff62a926b9286127c493eb293065b79eccf4dcdcdf72ea0fde2fa4aabd55ff24",
+    "viewer.js": "280efb69b219952024e37b794cf0f62675520b40954905c2368f3cac56a01506",
+    "index.html": "b232024f9dd6d2992e96211042fa94a500991f26e9b538a79cb6fb0faaa152c8",
+    "recording.json": "45be9e5aa50bcdc19daf84095dc7bbb4939a480b89a4a2e5628190b6ff4a7da1",
+    "browser-check.mjs": "91205ade9d16784234939446bf169fa8c46f31d4659755ef4c1d75331ccba903"
+  },
+  "browser": {
+    "protocolVersion": "1.3",
+    "product": "Chrome/153.0.8010.53",
+    "revision": "@792bf6722e73a45aa9e47c163b9901bdc17f3230",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+    "jsVersion": "15.3.76.13"
+  },
+  "verify": {
+    "rebuildIdentical": true,
+    "recordUnchanged": true,
+    "resources": {
+      "geometries": 2,
+      "textures": 0
+    }
+  },
+  "surfaceCheck": {
+    "unchanged": true,
+    "rebuild": {
+      "rebuildIdentical": true,
+      "recordUnchanged": true,
+      "resources": {
+        "geometries": 2,
+        "textures": 0
+      }
+    }
+  },
+  "after": {
+    "rebuildIdentical": true,
+    "recordUnchanged": true,
+    "resources": {
+      "geometries": 2,
+      "textures": 0
+    }
+  },
+  "performance": {
+    "scope": "Pilot adapter strategies; NOT shipped-game before/after",
+    "renderer": "WebKit WebGL",
+    "viewport": [
+      973,
+      480
+    ],
+    "devicePixelRatio": 1,
+    "gpuTiming": "Update timings synchronize via gl.finish; orbit uses requestAnimationFrame.",
+    "memoryCaveat": "Heap is process telemetry, not retained allocation or peak memory. GPU figures count resources, not bytes.",
+    "results": [
+      {
+        "strategy": "whole-group",
+        "firstRenderMs": 6.599999999627471,
+        "medianUpdateMs": 8.200000001117587,
+        "orbitMedianFrameMs": 16.700000000000045,
+        "orbitFps": 59.88023952095792,
+        "meshConstructions": 76,
+        "memory": {
+          "geometries": 2,
+          "textures": 0,
+          "heapBefore": 11056629,
+          "heapAfter": 10492233
+        }
+      },
+      {
+        "strategy": "retained",
+        "firstRenderMs": 6.5,
+        "medianUpdateMs": 8.099999999627471,
+        "orbitMedianFrameMs": 16.699999999999818,
+        "orbitFps": 59.88023952095874,
+        "meshConstructions": 76,
+        "memory": {
+          "geometries": 2,
+          "textures": 0,
+          "heapBefore": 12127813,
+          "heapAfter": 13359717
+        }
+      },
+      {
+        "strategy": "retained",
+        "firstRenderMs": 8.400000000372529,
+        "medianUpdateMs": 10,
+        "orbitMedianFrameMs": 16.699999999999818,
+        "orbitFps": 59.88023952095874,
+        "meshConstructions": 76,
+        "memory": {
+          "geometries": 2,
+          "textures": 0,
+          "heapBefore": 14945961,
+          "heapAfter": 16153601
+        }
+      },
+      {
+        "strategy": "whole-group",
+        "firstRenderMs": 7.200000001117587,
+        "medianUpdateMs": 8.199999999254942,
+        "orbitMedianFrameMs": 16.699999999999818,
+        "orbitFps": 59.88023952095874,
+        "meshConstructions": 76,
+        "memory": {
+          "geometries": 2,
+          "textures": 0,
+          "heapBefore": 17820337,
+          "heapAfter": 10916777
+        }
+      }
+    ]
+  }
+}

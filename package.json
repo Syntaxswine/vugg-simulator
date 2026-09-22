@@ -8,6 +8,10 @@
     "node": "24.15.0"
   },
   "scripts": {
+    "pilot:calcite:build": "npm run build:check && node pilots/calcite/build.mjs",
+    "pilot:calcite:test": "npm run build:check && node --test --test-concurrency=1 pilots/calcite/pilot.test.mjs",
+    "pilot:calcite:benchmark": "node pilots/calcite/benchmark.mjs",
+    "pilot:calcite:browser": "node pilots/calcite/browser-check.mjs",
     "build": "node tools/build-all.mjs",
     "build:check": "node tools/build-all.mjs --check",
     "gen:narratives": "node tools/narrative-workflow.mjs",
