@@ -40,6 +40,7 @@ export const CHILD_HEAP_LIMIT_MB = 1536;
 export const MAX_BATCH_RSS_BYTES = 2 * 1024 * 1024 * 1024;
 export const RSS_POLL_INTERVAL_MS = 1000;
 export const MAX_CONSECUTIVE_RSS_FAILURES = 2;
+export const MONITOR_UNAVAILABLE_EXIT_CODE = 2;
 export const TERMINATION_GRACE_MS = 2000;
 export const HARD_KILL_GRACE_MS = 2000;
 export const TEST_CHECKPOINT_SCHEMA = 2;
@@ -399,20 +400,27 @@ export async function runVitestBatch({
   if (spawnError) throw spawnError;
   if (terminationError) {
     return {
+      outcome: 'termination-failed',
       status: 1, peakRssBytes, exceededRssBytes, monitorError, terminationError, exit,
+    };
+  }
+  // A measured limit breach remains a resource failure even if sampling fails
+  // while termination is in progress. Preserve both pieces of evidence.
+  if (exceededRssBytes != null) {
+    return {
+      outcome: 'rss-limit-exceeded',
+      status: 1, peakRssBytes, exceededRssBytes, monitorError, terminationError: null, exit,
     };
   }
   if (monitorError) {
     return {
-      status: 1, peakRssBytes, exceededRssBytes: null, monitorError, terminationError: null, exit,
-    };
-  }
-  if (exceededRssBytes != null) {
-    return {
-      status: 1, peakRssBytes, exceededRssBytes, monitorError: null, terminationError: null, exit,
+      outcome: 'monitor-unavailable',
+      status: MONITOR_UNAVAILABLE_EXIT_CODE, peakRssBytes, exceededRssBytes: null,
+      monitorError, terminationError: null, exit,
     };
   }
   return {
+    outcome: exit.code === 0 ? 'pass' : 'test-process-failed',
     status: exit.code ?? 1, peakRssBytes, exceededRssBytes: null,
     monitorError: null, terminationError: null, exit,
   };
@@ -462,20 +470,21 @@ export async function runTestWorkflow({
     const elapsedMs = Number((performance.now() - started).toFixed(1));
     const peakMb = Math.ceil(result.peakRssBytes / 1024 / 1024);
     if (result.terminationError) {
-      console.error(`[test-workflow] FAIL: ${result.terminationError.message}`);
-      return 1;
-    }
-    if (result.monitorError) {
-      console.error(`[test-workflow] FAIL: RSS watchdog unavailable in batch ${index + 1}/${batches.length}: ${result.monitorError.message}`);
+      console.error(`[test-workflow] FAIL [termination-failed]: ${result.terminationError.message}`);
       return 1;
     }
     if (result.exceededRssBytes != null) {
       const exceededMb = Math.ceil(result.exceededRssBytes / 1024 / 1024);
-      console.error(`[test-workflow] FAIL: batch ${index + 1}/${batches.length} reached ${exceededMb} MB RSS (limit 2048 MB) and was terminated`);
+      console.error(`[test-workflow] FAIL [rss-limit-exceeded]: batch ${index + 1}/${batches.length} reached ${exceededMb} MB RSS (limit 2048 MB) and was terminated`);
       return 1;
     }
+    if (result.monitorError) {
+      console.error(`[test-workflow] INCONCLUSIVE [monitor-unavailable]: RSS watchdog unavailable in batch ${index + 1}/${batches.length}: ${result.monitorError.message}`);
+      console.error('[test-workflow] Batch stopped without a trustworthy monitored result; no PASS or cost measurement recorded. Restore RSS monitoring and rerun this batch.');
+      return MONITOR_UNAVAILABLE_EXIT_CODE;
+    }
     if (result.status !== 0) {
-      console.error(`[test-workflow] FAIL in batch ${index + 1}/${batches.length} (peak ${peakMb} MB RSS)`);
+      console.error(`[test-workflow] FAIL [test-process-failed] in batch ${index + 1}/${batches.length} (peak ${peakMb} MB RSS)`);
       return result.status ?? 1;
     }
     if (assertStable) await assertStable({
