@@ -19,6 +19,15 @@ Passing batches append a measurement-only Test Quarry cost ledger; inspect
 packing with `npm run test:quarry-packing`. The ledger does not change
 science or baselines.
 
+If RSS sampling fails twice consecutively, the runner stops the child and reports
+`INCONCLUSIVE [monitor-unavailable]` (exit 2). That batch does not advance the
+checkpoint or enter the cost ledger. Restore access to the OS RSS query and rerun
+the interrupted batch; do not bypass the watchdog. A measured memory-limit breach
+or failed child termination still reports `FAIL`. Programmatic batch results carry
+an `outcome` field; child test exit codes are preserved, so an exit code alone is
+not a unique diagnosis. No scientific receipt or baseline is changed by these
+runner outcomes.
+
 GitHub Actions CI (`.github/workflows/ci.yml`) runs on **Node 24**, the
 calibration-authority runtime for the committed baselines (SIM 285 /
 `seed42_v285.json`). Node 20/22/23 flip deterministic crystal counts against
