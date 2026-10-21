@@ -549,9 +549,9 @@ surface-growth aggregates — crusts, botryoids, desert roses.
 A crust spreading over the wall can bury the small crystals in its path, so the flag has a physical
 reading when the host is a crust; a prismatic albite crystal cannot reach quartz 50 mm away. At
 Tsumeb and Bingham most of the flagging is done by the molybdate crusts that are themselves
-over-produced (§5.2, §5.3). The flag decides one verdict (Sunnyside) and the five flagged cases of
-§4.1 and §4.3; whether its sideways reach is right — for which host habits, and how far — is a
-simulator question for the boss (§8 step 6).
+over-produced (§5.2, §5.3). The flag decides one verdict (Sunnyside) and the three flagged headline
+cases of §4.1 and §4.3 (Tsumeb's smithsonite and azurite, Bingham's pyrite); whether its sideways
+reach is right — for which host habits, and how far — is a simulator question for the boss (§8 step 6).
 
 ---
 
@@ -992,8 +992,8 @@ measurement first and the changes that move every baseline last.
    growth rate: quartz grows in 19 scenarios and is visible in several, so a global quartz rate change
    moves them all. Before any growth change, the boss's call on the enclosure flag's sideways reach
    (§4.4): should a crystal's painted footprint enclose a stalled neighbour tens of millimetres away,
-   and for which host habits? It decides Sunnyside's verdict and the five flagged cases, and for a
-   prismatic host it is hard to defend (Ouro Preto's albite flags quartz 37–61 mm away).
+   and for which host habits? It decides Sunnyside's verdict and the three flagged headline cases, and
+   for a prismatic host it is hard to defend (Ouro Preto's albite flags quartz 37–61 mm away).
 7. **Species debt (§6).** Hanksite and trona first (half of Searles Lake's Upper Salt by volume); then
    the zeolite group (cavansite, okenite, gyrolite), spinel, chlorite, magnesite.
 
