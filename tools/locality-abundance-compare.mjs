@@ -89,13 +89,18 @@ const DUST_REAL = 0.10;
 // share of the voting record, or a literature class of abundant or common (Herkimer's third place
 // is 0.9 % of a record that is 94 % quartz).
 const FATE_FLOOR = 0.05;
-// The scope rule, applied to every real top-three species whether the simulator grows it or not: a
-// species is set aside when the locality's record of it comes from a part of the deposit the
-// scenario does not model, by the scenario's own description and the review's section on it. It
-// is listed with the reason. (Whether the scenario's species lists name it is a separate matter,
-// reported as each slot's contract status.) A set-aside species leaves the fate table, the dust list
-// and the literature's "abundant, no sim crystal" column; the verdicts compare each scenario with its
-// locality's whole record, and a sensitivity line shows what removing these species would change.
+// The scope rule, applied to every species whether the simulator grows it or not: a species is set
+// aside when its sources say it is absent, at most extremely rare, or present only in another form in
+// the part of the deposit the scenario models (by the scenario's own description and the review's
+// section on it). It is a presence test, not a provenance test: a species that does occur there
+// counts even when the specimens behind its photographs and listings were collected elsewhere in the
+// deposit — Naica's selenite, the Cave of Crystals' own mineral, whose specimens come from the mine
+// and the Cave of Swords; Tsumeb's calcite, "somewhat less common in the upper levels" (TSNB66), not
+// absent (review round 6). Each set-aside is listed with its reason. (Whether the scenario's species
+// lists name it is a separate matter, reported as each slot's contract status.) A set-aside species
+// leaves the fate table, the dust list and the literature's "abundant, no sim crystal" column; the
+// verdicts compare each scenario with its locality's whole record, and a sensitivity line shows what
+// removing these species would change.
 const OUT_OF_CLAIM = {
   'naica_geothermal|fluorite': 'the scenario is the giant-gypsum cave pool; the fluorite is the ore body\'s (review §5.4)',
   'naica_geothermal|calcite': 'the scenario is the giant-gypsum cave pool, where calcite is a wall crust (García-Ruiz et al. 2007); the record\'s calcite crystals are the mine\'s (review §5.4)',
@@ -286,8 +291,9 @@ const data = JSON.parse(fs.readFileSync(DATA, 'utf8'));
   }
 }
 // opts (sensitivity lines only): leadOnly counts a listing for the species its title names first
-// (lead families) rather than every species it names, which removes the classifier's secondary
-// routes ("Hessite Silver Telluride" → native silver); scope = a scenario drops that scenario's
+// (lead families) rather than every species it names — it drops every species named after the first,
+// misread ones ("Hessite Silver Telluride" → native silver) and legitimate associates alike, so it is a
+// bound, not a test of the classifier (review round 6); scope = a scenario drops that scenario's
 // OUT_OF_CLAIM species from the record.
 function realTable(loc, opts = {}) {
   const L = data.localities[loc];
@@ -394,7 +400,7 @@ function compareOne(scn, loc, R, sample = null, opts = {}) {
   return { S, rows, realOk, usePhoto, useEbay, rhoReal: J.rhoReal, rhoSurv: rho('simSurv'), rhoMicro: rho('simMicro'),
     rhoVol: rho('simVol'), rhoVisPres: rho('simVisPres'), realTop, simTop: J.simTop, simTopVol: topTie(rows, 'simVol'),
     leaders: J.leaders, overlap: J.overlap, verdict, verdictOptions: options, exposedVerdict: J.verdict,
-    withEnclosed: { rho: JAll.rhoReal, simTop: JAll.simTop, verdict: JAll.verdict, verdictOptions: JAll.verdictOptions } };
+    withEnclosed: { rho: JAll.rhoReal, simTop: JAll.simTop, leaders: JAll.leaders, verdict: JAll.verdict, verdictOptions: JAll.verdictOptions } };
 }
 
 const lines = [];
@@ -415,17 +421,22 @@ for (const [loc, L] of Object.entries(data.localities)) {
       const drawReal = () => realFrom(resample(R.counts.photos, rnd), resample(R.counts.ebay, rnd), R.lit, R.marketWide);
       const runsOf = { seeds: () => compareOne(scn, loc, R, drawSeeds()), proxies: () => compareOne(scn, loc, drawReal()),
         both: () => compareOne(scn, loc, drawReal(), drawSeeds()) };
-      const acc = Object.fromEntries(modes.map((m) => [m, { rho: [], flips: 0 }]));
+      const acc = Object.fromEntries(modes.map((m) => [m, { rho: [], flips: 0, outcomes: {} }]));
       for (let b = 0; b < BOOT; b++) {
         for (const mode of modes) {
           const B = runsOf[mode]();
           if (B.rhoReal != null) acc[mode].rho.push(B.rhoReal);
           // A TIE-DEPENDENT verdict is matched by any resample whose outcomes lie within its options.
           if (!B.verdictOptions.every((v) => C.verdictOptions.includes(v))) acc[mode].flips++;
+          // Every resample's set of outcomes is kept, so a dependent verdict can show how often each
+          // of its readings holds — the flip rate cannot see a move inside its own options.
+          const key = B.verdictOptions.join(' or ');
+          acc[mode].outcomes[key] = (acc[mode].outcomes[key] || 0) + 1;
         }
       }
       return Object.fromEntries(Object.entries(acc).map(([mode, a]) => [mode, {
-        band: a.rho.length ? [quantile(a.rho, 0.05), quantile(a.rho, 0.95)] : null, flips: a.flips / BOOT }]));
+        band: a.rho.length ? [quantile(a.rho, 0.05), quantile(a.rho, 0.95)] : null, flips: a.flips / BOOT,
+        outcomes: Object.fromEntries(Object.entries(a.outcomes).sort((x, y) => y[1] - x[1] || x[0].localeCompare(y[0])).map(([k, n]) => [k, n / BOOT])) }]));
     };
     const boot = bootstrap(0, ['seeds', 'proxies', 'both']);
     const mc = MC_SALTS.map((salt) => bootstrap(salt, ['both']).both);
@@ -460,6 +471,14 @@ for (const [loc, L] of Object.entries(data.localities)) {
     lines.push(`ρ(sim visible-count, real) = ${rhoTxt(C.rhoReal)} [5–95 % band: seeds ${bandText(boot.seeds.band)}, proxies ${bandText(boot.proxies.band)}, both ${bandText(boot.both.band)}; verdict differs in ${(100 * boot.seeds.flips).toFixed(0)} / ${(100 * boot.proxies.flips).toFixed(0)} / ${(100 * boot.both.flips).toFixed(0)} % of resamples]   ρ(sim volume, real) = ${rhoTxt(C.rhoVol)}   ρ(sim surviving count, real) = ${rhoTxt(C.rhoSurv)}   ρ(sim ≥ 0.1 mm count, real) = ${rhoTxt(C.rhoMicro)}   ρ(≥ 1 mm counting enclosed crystals, real) = ${rhoTxt(C.withEnclosed.rho)}`);
     if (C.verdict === 'TIE-DEPENDENT') lines.push(`Verdict TIE-DEPENDENT: ${C.verdictOptions.join(' or ')} depending on how ties break (sim top three: ${topText(C.simTop)}; sim lead: ${C.leaders.join(' = ')}).`);
     if (C.verdict === 'MEASURE-DEPENDENT') lines.push(`Verdict MEASURE-DEPENDENT: ${C.exposedVerdict} with flagged crystals left out, ${C.withEnclosed.verdict} with them counted.`);
+    // A dependent verdict's PARTLY reading needs ρ ≥ 0 and a simulator lead at ≥ 1 % of the record,
+    // so print how close each reading sits to those lines and how the joint resamples fall
+    // (review round 6).
+    if (/DEPENDENT$/.test(C.verdict)) {
+      const leads = [...new Set([...C.leaders, ...C.withEnclosed.leaders])].filter(Boolean);
+      const share = (k) => rows.find((r) => r.k === k)?.real ?? 0;
+      lines.push(`Knife-edges: ρ ${C.rhoReal?.toFixed(4) ?? '—'} with flagged crystals left out, ${C.withEnclosed.rho?.toFixed(4) ?? '—'} with them counted; the simulator's possible leads hold ${leads.map((k) => `${k} ${(100 * share(k)).toFixed(2)} %`).join(', ')} of the record. Joint bootstrap outcomes: ${Object.entries(boot.both.outcomes).map(([k, f]) => `${k} ${(100 * f).toFixed(1)} %`).join('; ')}.`);
+    }
     if (C.verdict === 'OUT OF SCOPE') lines.push(`Verdict OUT OF SCOPE: ${SCENARIO_OUT_OF_SCOPE[scn]} (on its own measures it would be ${C.exposedVerdict}).`);
     const asides = Object.entries(OUT_OF_CLAIM).filter(([key]) => key.startsWith(`${scn}|`));
     if (asides.length) lines.push(`Set aside from the fate table, the dust list and the literature's "abundant, no sim crystal" column (outside the scenario's scope): ${asides.map(([key, why]) => `${key.split('|')[1]} — ${why}`).join('; ')}.`);
@@ -783,31 +802,45 @@ for (const [scn, j] of Object.entries(json)) {
 }
 json.__dust = dust;
 
-// ---- the species cap counts only the crystals that are neither dissolved nor flagged as enclosed
-// (js/85b-simulator-nucleate.ts:716), and a flagged crystal stops growing
-// (js/85c-simulator-state.ts:2689), so the enclosure flag makes counts as well as hiding crystals.
-// From the census: the (scenario, species) pairs that nucleate more crystals than
-// max_nucleation_count. Counted by each crystal's final species (a paramorph counts under its product).
-const overCap = [];
+// ---- the species cap counts only the crystals that are neither dissolved nor flagged as enclosed,
+// paramorphs of the species included (js/85b-simulator-nucleate.ts:705–718), and a flagged crystal
+// stops growing (js/85c-simulator-state.ts:2689), so the enclosure flag makes counts as well as
+// hiding crystals. From the census: the (scenario, species) pairs that nucleate more crystals than
+// max_nucleation_count. The census counts each crystal under its FINAL species, so in-place
+// products are folded back (review round 6): a parent whose products only form in place (borax →
+// tincalconite) counts them as its own; a parent with a product that also nucleates on its own
+// (argentite → acanthite) has a count that is only a lower bound; and that product's own count mixes
+// its nucleations with converted crystals, so it cannot be read against its cap and is left out.
+const parentsOf = Object.fromEntries(Object.entries(ALSO_FROM).map(([prod, xs]) => [prod, xs.map((x) => x.split(' ')[0])]));
+const productsOf = {};
+for (const [prod, pars] of Object.entries(parentsOf)) for (const par of pars) (productsOf[par] ||= []).push(prod);
+const pureProduct = (m) => gateKind(m) === 'transformation';
+const mixedProduct = (m) => !!parentsOf[m] && !pureProduct(m);
+const overCap = [], capUnreadable = new Set();
 for (const [scn] of Object.entries(json).filter(([k]) => !k.startsWith('__'))) {
   const rs = runsBy[scn];
   for (const m of [...new Set(rs.flatMap((r) => Object.keys(r.species)))].sort()) {
     const cap = SPEC[m]?.max_nucleation_count;
-    if (!(cap > 0)) continue;
-    const seedsOver = rs.filter((r) => (r.species[m]?.n_total ?? 0) > cap).length;
+    if (!(cap > 0) || pureProduct(m)) continue;
+    if (mixedProduct(m)) { capUnreadable.add(m); continue; }
+    const own = [m, ...(productsOf[m] || []).filter(pureProduct)];
+    const lowerBound = (productsOf[m] || []).some((p) => !pureProduct(p));
+    const sum = (r, f) => own.reduce((s, x) => s + (r.species[x] ? f(r.species[x]) : 0), 0);
+    const seedsOver = rs.filter((r) => sum(r, (v) => v.n_total) > cap).length;
     if (!seedsOver) continue;
-    const mean = (f) => rs.reduce((s, r) => s + (r.species[m] ? f(r.species[m]) : 0), 0) / rs.length;
-    overCap.push({ scenario: scn, m, cap, nucleated: mean((v) => v.n_total), surviving: mean((v) => v.n_surv),
+    const mean = (f) => rs.reduce((s, r) => s + sum(r, f), 0) / rs.length;
+    overCap.push({ scenario: scn, m, counted: own, lowerBound, cap, nucleated: mean((v) => v.n_total), surviving: mean((v) => v.n_surv),
       flagged: mean((v) => v.n_encl), dissolved: mean((v) => v.n_dis), seedsOver, seeds: rs.length });
   }
 }
 overCap.sort((a, b) => (b.nucleated - b.cap) - (a.nucleated - a.cap) || a.scenario.localeCompare(b.scenario));
 lines.push('\n## Crystals nucleated above the species cap');
-lines.push(`max_nucleation_count limits the crystals of a species that are neither dissolved nor flagged as enclosed (js/85b-simulator-nucleate.ts:716), and a flagged crystal stops growing (js/85c-simulator-state.ts:2689), so every flagged or dissolved crystal frees a slot for a new one. ${overCap.length} (scenario, species) pairs in the locality scenarios nucleate more crystals than their cap in at least one seed; in ${overCap.filter((x) => x.flagged > x.dissolved).length} of them more crystals end flagged than dissolved.`);
+lines.push(`max_nucleation_count limits the crystals of a species that are neither dissolved nor flagged as enclosed (js/85b-simulator-nucleate.ts:716), and a flagged crystal stops growing (js/85c-simulator-state.ts:2689), so every flagged or dissolved crystal frees a slot for a new one. ${overCap.length} (scenario, species) pairs in the locality scenarios nucleate more crystals than their cap in at least one seed; in ${overCap.filter((x) => x.flagged > x.dissolved).length} of them more crystals end flagged than dissolved. The census counts crystals under their final species, so products formed in place are added back to their parent ("+"); "≥" marks a parent whose product also nucleates on its own, so its converted crystals are not in its count; not readable against a cap, because their counts mix their own nucleations with crystals formed in place: ${[...capUnreadable].sort().map((m) => `${m} (from ${parentsOf[m].join(', ')})`).join(', ') || 'none'}.`);
 lines.push('| scenario | species | cap | nucleated per vug | seeds above the cap | surviving per vug | flagged at the end, per vug | dissolved per vug |');
 lines.push('|---|---|---:|---:|---:|---:|---:|---:|');
-for (const x of overCap) lines.push(`| ${x.scenario} | ${x.m} | ${x.cap} | ${x.nucleated.toFixed(1)} | ${x.seedsOver} of ${x.seeds} | ${x.surviving.toFixed(1)} | ${x.flagged.toFixed(1)} | ${x.dissolved.toFixed(1)} |`);
+for (const x of overCap) lines.push(`| ${x.scenario} | ${x.m}${x.counted.length > 1 ? ` (+ ${x.counted.slice(1).join(', ')})` : ''} | ${x.cap} | ${x.lowerBound ? '≥ ' : ''}${x.nucleated.toFixed(1)} | ${x.seedsOver} of ${x.seeds} | ${x.surviving.toFixed(1)} | ${x.flagged.toFixed(1)} | ${x.dissolved.toFixed(1)} |`);
 json.__over_cap = overCap;
+json.__over_cap_unreadable = [...capUnreadable].sort();
 
 // ---- robustness: does the broad mismatch depend on the measure?
 const scored = Object.entries(json).filter(([k, j]) => !k.startsWith('__') && j.rhoReal != null && j.verdict !== 'OUT OF SCOPE');
@@ -837,6 +870,17 @@ for (const mode of ['seeds', 'proxies', 'both']) {
   const over = scored.filter(([, j]) => flipRange(j)[1] >= 0.2).sort((a, b) => flipRange(b[1])[1] - flipRange(a[1])[1]);
   lines.push(`Monte-Carlo spread of the joint bootstrap (bootstrap seeds 0, ${MC_SALTS.join(', ')}): median band width ${[widthAt((j) => j.boot.both.band), ...widths].map((x) => x?.toFixed(2)).join(' / ')}; verdict differs in ≥ 20 % of resamples under any seed: ${over.map(([k, j]) => `${k} (${flipRange(j).map((x) => (100 * x).toFixed(0)).join('–')} %)`).join(', ') || 'none'}`);
 }
+// Dependent verdicts: how the joint resamples fall between their readings — the flip rate counts a
+// resample as unchanged whenever its outcomes stay within the verdict's options (review round 6).
+{
+  const dep = scored.filter(([, j]) => /DEPENDENT$/.test(j.verdict));
+  const share = (j, key) => j.boot.both.outcomes[key] || 0;
+  const cell = (j) => {
+    const d = share(j, 'DISAGREES'), p = share(j, 'PARTLY'), s = share(j, 'DISAGREES or PARTLY'), other = 1 - d - p - s;
+    return `${(100 * d).toFixed(1)} / ${(100 * p).toFixed(1)} / ${(100 * s).toFixed(1)} %${other > 1e-9 ? ` (other ${(100 * other).toFixed(1)} %)` : ''}`;
+  };
+  lines.push(`TIE- and MEASURE-DEPENDENT verdicts in the joint bootstrap — share of resamples where every reading is DISAGREES / every reading is PARTLY / the readings split: ${dep.map(([k, j]) => `${k} ${cell(j)}`).join('; ') || 'none'}`);
+}
 // Unflagged vs with-flagged: does counting the crystals the simulator flags as enclosed change a verdict?
 {
   const changed = scored.filter(([, j]) => j.withEnclosed.verdict !== j.exposedVerdict);
@@ -865,7 +909,7 @@ for (const mode of ['seeds', 'proxies', 'both']) {
   run('keepZeros', 'counting the species absent from both sides in ρ, as rounds 1–4 did', () => ({}), { keepZeros: true });
   run('thin10', 'a source votes with ≥ 10 observations', () => ({}), { thin: 10 });
   run('thin30', 'a source votes with ≥ 30 observations', () => ({}), { thin: 30 });
-  run('leadOnly', 'listings counted only for the species a title names first (removes the classifier\'s secondary routes)', () => ({ leadOnly: true }), {});
+  run('leadOnly', 'lead species only — listings counted only for the species a title names first; a bound, not a test of the title classifier: it drops every species named after the first, legitimate associates as well as misread ones', () => ({ leadOnly: true }), {});
   run('scoped', 'the set-aside species (OUT_OF_CLAIM) removed from their scenario\'s record', (scn) => ({ scope: scn }), {});
   json.__sensitivity = sensitivity;
 }
@@ -895,7 +939,7 @@ json.__robustness = { medianRho: { visible: medRho('rhoReal'), surviving: medRho
 
 fs.mkdirSync(OUT, { recursive: true });
 const board = ['\n## Scoreboard', `ρ = Spearman between the sim's share of unflagged ≥ 1 mm crystals and the real share (mean of photo and listing shares; a source with < ${THIN} observations does not vote), over the species present on at least one side, with its 5–95 % bootstrap bands: over the seeds, over the proxies (photographs and listing mentions resampled as multinomial draws) and over both. "Verdict differs" = the share of resamples whose verdict is not the one shown (seeds / proxies / both); for a TIE- or MEASURE-DEPENDENT verdict a resample counts as the same when its outcomes lie within the verdict's options, so only an outcome outside them can count (AGREES needs ρ ≥ 0.5). Top 3 = largest shares, by value alone; species tied across third place are shown as "n of {…} (tied)", and a verdict that depends on how ties break is TIE-DEPENDENT. Literature marks: (S) snippet-level, (R) recalled.`, '',
-  '| scenario | locality | verdict | ρ(sim, real) | band: seeds | band: proxies | band: both | verdict differs | real top 3 | sim top 3 (≥ 1 mm) | overlap | literature: sim top 3 rated rare/undocumented | literature: abundant, no sim crystal ≥ 1 mm |', '|---|---|---|---:|---|---|---|---|---|---|---:|---|---|'];
+  '| scenario | locality | verdict | ρ(sim, real) | band: seeds | band: proxies | band: both | verdict differs | real top 3 | sim top 3 (≥ 1 mm) | overlap | literature: sim top 3 rated rare/undocumented | literature: abundant, no visible sim crystal (≥ 1 mm and unflagged) |', '|---|---|---|---:|---|---|---|---|---|---|---:|---|---|'];
 const bandCell = (b) => (b ? `${b[0].toFixed(2)} to ${b[1].toFixed(2)}` : '—');
 for (const [scn, j] of Object.entries(json).filter(([k]) => !k.startsWith('__')).sort((a, b) => (a[1].rhoReal ?? -9) - (b[1].rhoReal ?? -9))) {
   const verdictCell = j.verdict === 'TIE-DEPENDENT' || j.verdict === 'MEASURE-DEPENDENT' ? `${j.verdict} (${j.verdictOptions.join(' or ')})`

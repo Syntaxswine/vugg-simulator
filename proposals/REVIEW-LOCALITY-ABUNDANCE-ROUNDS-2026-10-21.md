@@ -767,3 +767,146 @@ Where the outcome differs from the reviewer's expectation:
   Roughton Gill classes rest on the research pass's reading.
 - **Also found while revising:** §7's "the four micromount-heavy localities get worse" no longer holds
   with the new ρ — Wittichen improves slightly (−0.57 → −0.54); the sentence now says three of four.
+
+---
+
+## Round 6 — 8.5/10 (reviewed commit fbc99e25; run with the boss's leave after the five-round limit)
+
+### Locality-abundance review: round 6
+
+**Score: 8.5/10.** Everything reproduces: two runs of the comparison are byte-identical (compare.md
+`fd19c665…`, compare.json `52446e1d…`) and match the committed run; the appendix from line 3 equals
+compare.md; the header hashes match (runs `86e89c0f…`, data `b5445a61…`, capture `5189d9b7…`, dictionary
+`5d355644…`) and the provenance check passes; the probe subset (mvt@42, searles_lake@42, porphyry@1)
+reproduces the committed probe.json entries exactly (committed probe files restored, `2231b208…`,
+`62c91c6b…`); the 41 seed-42 census rows match seed42_v285 (351 entries, 0 mismatches); about 180
+numbers in §1–§8 and the PR body match compare.json and the probe. Round 5's fixes are coded as
+described and the headline holds. It stays below 9 because two statements about how solid the
+verdicts are mislead, the over-cap count has two errors, and the scope rule is still applied one way
+in two places.
+
+#### MUST-FIX
+
+1. **The three "arbitrary choice" verdicts are DISAGREES in most resamples, and their PARTLY branch
+   rests on a knife-edge** (§1; §3, "their resamples stay within the same two verdicts"). Viburnum:
+   ρ = 0.0000 exactly — PARTLY exists only because DISAGREES needs ρ < 0. Cruzeiro: ρ = +0.0039, and the
+   PARTLY lead (albite) is 1.31 % of the record. Sunnyside: the PARTLY lead (galena) is 1.16 % — 5 of 217
+   listing mentions, no photograph — the same 1 % line §3 flags for Cripple Creek. A scratch copy of the
+   tool (byte-identical compare.md) that records each resample's options: in the joint bootstrap every
+   reading is DISAGREES in 117/200 (Viburnum), 180/200 (Cruzeiro), 114/200 (Sunnyside); PARTLY-only in
+   0, 13, 37. The printed flip rate is 0 % for all three. Fix: print these shares, name the knife-edges,
+   stop presenting the three as a two-way split in §1.
+2. **The "first-named species" sensitivity does not test the classifier's routes** (§2.2, §2.4, the
+   tool's label, the PR body). It drops every second-named species, legitimate associates included,
+   and both verdict changes it reports come from those associates: Cruzeiro's albite 4 mention families
+   → 0 lead families and feldspar 1 → 0, so the tied leads become 0.00 % of the record (ρ 0.004 →
+   −0.54); Sunnyside's galena 5 → 1 (1.16 % → 0.40 %). Only Cripple Creek's native silver (3 → 0) is a
+   classifier route. Fix: call it "lead species only", present it as a bound that also strips
+   associates, and do not imply the routes prop up Cruzeiro or Sunnyside; the routes stay unmeasured.
+
+#### SHOULD-FIX
+
+- **The over-cap table (§4.4; §8 step 4; PR body "58 … past their caps").** For species that are only
+  nucleated, "past their cap" follows: all 49 species in the table have their single `sim.nucleate` call
+  behind `_atNucleationCap` (js/80–91 scanned). But the census counts crystals by final species, and its
+  header still says "n_total every crystal ever nucleated" (`assemblage-census.mjs:14`). A scratch probe
+  over all 13 over-cap seeds: Bisbee acanthite (5 seeds) is 1 acanthite nucleation plus 4 argentite
+  cooled in place; Schneeberg acanthite (8 seeds) 1–2 nucleations plus 3–4 cooled argentite; argentite
+  stops at its cap of 4 in both, so neither passed its cap. Searles borax is missing: borax plus
+  tincalconite = 9 against a cap of 8 in seeds 11 and 42 (a dissolved borax freed the slot). Correct
+  figures: 57 pairs, 47 with more flagged than dissolved.
+- **The scope rule is still applied one way twice.** Naica selenite stays a top-three success, yet the
+  scenario is the Cueva de los Cristales and itself excludes "other Naica caves", while collected
+  selenite comes from the Cave of Swords and the mine (showcaves.com on the Cave of Swords: "removing
+  crystals for the mineralogical museums of the world deprived the cave of its best pieces"; the Cave of
+  Crystals "closed by a brick wall and an iron gate"). Tsumeb calcite stays a never-forming slot, yet
+  TSNB66 says "Collectable calcites were commonly encountered at depth", "somewhat less common in the
+  upper levels" — the kind of evidence that set dioptase aside. Applied to both: 64 slots, never forms
+  11, top three 20, soft 17/20, every gate but strict 20/24, calcite never forming at 2 of 4. Either
+  apply it or state why process rather than place decides.
+- **§8 order.** Step 4 says "decide before any count changes", yet step 3's diagnoses (σ gate, broth,
+  missing events) change counts first; 7 of step 3's 12 species are strictly gated, so step 6 would
+  re-move them. Step 4's second option (free a slot only for substrate-flagged crystals) leaves the
+  largest case untouched: Tri-State barite, 32 of 33 flagged by substrate at seed 42. Say so.
+- **The `_surfaceGrowth` fix should go further.** The flag is per crystal and recomputed every step
+  (`classifySurfaceGrowth`, js/45-morphology.ts:1308–1318); the probe reads it at the end of the run, and
+  5 of the 7 desert-rose selenite hosts at the Great Salt Plains do not carry it.
+- **Small items:** §2.2's "12.1 against 10.1 % of the listing record … 7.6 against 6.5" are
+  combined-record shares, now 12.1/10.0 and 7.4/6.5 (listing shares 9.3/6.3 and 12.7/6.7); at a vote
+  threshold of 10 the Great Salt Plains has two rows, so ρ is undefined and its MEASURE-DEPENDENT comes
+  from the lead rule alone; the PR body's "24 headline cases fleet-wide" covers the locality scenarios
+  only; §3's legend "never grows to 1 mm" — Tsumeb smithsonite and azurite reach 2.7 and 3.1 mm but are
+  flagged; §4.2's "set by the enclosure rule as much as by the species' own probability" — Deccan
+  pectolite exceeds its cap in 1 seed of 21, by one crystal; the galena pattern has no guard for
+  Galena, Kansas, a Tri-State mining town; §3 still lists Searles halite in the simulator's top three,
+  which §4.1 now calls dust.
+
+#### Literature spot-checks (none checked by earlier rounds)
+
+- Tsumeb Mineral Notes TSNB185 (jarosite) — supported: "Questionable"; "there is no record of jarosite
+  in the peer-reviewed literature". S → V.
+- TSNB241 (mimetite) — supported: "Common", found in all three oxidation zones. S → V.
+- TSNB375 (wulfenite) — supported: "Common"; "By far the best Tsumeb wulfenite specimens were
+  recovered from the second oxidation zone."
+- Ferrimolybdite "no species entry" — supported: TSNB130 (ferrilotharmeyerite) is followed directly by
+  TSNB131 (fleischerite).
+- TSNB66 (calcite; round 5 checked the rating, not the zone) — contradicts its use as a first-zone slot
+  (above).
+- TSNB324 (smithsonite zone) — supports keeping it: Keller 1977a ranks it second most abundant in the
+  first and second zones.
+- Hu & Lu 2018, G&G 54(1), gia.edu — supported verbatim: "Albite, muscovite, and tourmaline (schorl)
+  are commonly associated as matrix"; it covers Gilgit-Baltistan generally, so it supports CO, not
+  albite's AB.
+- showcaves.com, Naica — supported as quoted; bears on the Naica selenite scope.
+- North Pennines audit zoning (GeoGuide 502; search text only) — partly: the outer zone "includes much
+  of the Nent Valley", so the Alston Moor page spans both zones.
+
+#### Round 5's must-fix items and the two author-noted issues: status
+
+R5-1 (flag decision too late): done; the step-3 and substrate-option issues above remain. R5-2a ("46
+snippet-level"): done (241 V / 34 S / 3 R). R5-2b (Tormiq): done (21 vs 16 % on the record; 33 / 24 /
+15 % in the simulator). R5-2c (§4.4 Tsumeb hosts): done (ferrimolybdite 26, malachite 3, powellite 3,
+brochantite 2, wulfenite 1; 0–51 mm). Author issue 1 ("Ruby Spinel"): the described fix is correct but
+not enough — MUST-FIX 2. Author issue 2 (`_surfaceGrowth`): correct; extend it as above.
+
+#### What is solid
+
+The tally (5/18/2/1/3/3/1); median ρ −0.04 / −0.04 / −0.11 / −0.17 / −0.08 / −0.06; bands 0.02 / 0.17
+/ 0.18 (0.18–0.19 under other bootstrap seeds); flips Ouro Preto 66 % (57–66), Cripple Creek 36 %
+(33–37), Deccan 16 % once; 178 of 306 pairs identical in every seed; 1,089 of 11,151 crystals flagged;
+32 of 468 mutual-absence rows. The sensitivity lines compute what they say (bar the lead-species
+label). Fate and gate tables (12/16/2/9/6/21; 0/11, 5/11, 6/11 against 21/25, 22/25, 18/25; 24 of 66,
+6.7 of 84, 21 of 90; 76 of 99 strict pairs; 17 lifetime caps in 16 functions). All 12 never-forming
+slots have n_total = 0 in all 21 seeds. F2 36 / 29 / 20 / 7, and the word list misses nothing (the only
+unmatched word is "late-stage"). No Mineralienatlas mis-key that moves a share. §4.4's 112 / 108 / 20.8
+mm / 87 / 30 / 84 and all nine table rows. About 60 §5 figures; §6 shares (25.8 %, 36 %, 15 %); the code
+citations (85c:2493–2509, 2534–2552, 2689; 22:3015; 85b:654–664, 716); the data totals.
+
+#### To reach 9/10
+
+Fix MUST-FIX 1 and 2; correct the over-cap count to 57 / 47 and the census header; apply the scope
+rule to Naica selenite and Tsumeb calcite or justify keeping them; one sentence each on §8 step 3
+versus step 4, and on step 4's substrate option leaving Tri-State barite as it is.
+
+**Response:** every MUST-FIX and SHOULD-FIX item is addressed; the review's §9 lists the changes. Where
+the outcome differs from the reviewer's:
+- **Dependent verdicts.** The comparison now records every resample's set of outcomes and prints, for
+  each TIE- or MEASURE-DEPENDENT verdict, the joint-bootstrap shares and its knife-edges (exact ρ, each
+  possible lead's share of the record). They reproduce the reviewer's counts exactly (58.5 / 0 / 41.5,
+  90.0 / 6.5 / 3.5, 57.0 / 18.5 / 24.5 %); §1, §3 and §5 now present the three as mostly DISAGREES.
+- **The over-cap table: 55 / 47, not 57 / 47.** The rule the reviewer applied to acanthite is applied to
+  every in-place product: a parent with products formed only in place counts them (borax +
+  tincalconite, which adds Searles' borax), a parent whose product also nucleates is a lower bound
+  (argentite, "≥"), and the product itself is left out (acanthite, thenardite, selenite, anhydrite). That
+  also removes Roughton Gill's acanthite and Searles' thenardite. The 47 is unchanged.
+- **Scope: stated, not extended.** The rule was already being used as a presence test (dioptase:
+  "extremely rare (or possibly even absent)" in the modeled zone; Cripple Creek gold "absent from the
+  telluride ores"). Calcite's "somewhat less common in the upper levels" affirms presence, and selenite
+  is the Cave of Crystals' own mineral, so both stay; the review now states the rule as a presence test
+  and gives the provenance alternative's numbers.
+- **Hosts by habit.** §4.4 now classifies the 112 hosts by their habit names (listed in the probe): 82
+  crusts or aggregates and 30 single crystals (prismatic feldspar 15 and albite 4, the disphenoidal
+  chalcopyrite 5, pyromorphite barrels 5, a galena cube 1); the `_surfaceGrowth` count is reported as
+  what it is.
+- **Literature:** jarosite, mimetite, wulfenite and ferrimolybdite at Tsumeb V; Shigar albite CO; 33 of
+  278 classes not V (30 S, 3 R; 12 %).

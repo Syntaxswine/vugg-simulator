@@ -16,9 +16,10 @@
  *
  * The count instrument tools/o4-enclosure-census.mjs lists hosts and guests per scenario at one seed;
  * this probe reads every surviving flagged crystal's receipt, with its size, the host's habit, size
- * and wall spread, and whether the simulator grows the host as a surface aggregate (_surfaceGrowth),
- * and summarizes (a) the flagged crystals a collector could see (≥ 1 mm) and (b) all flagged crystals
- * by guest, host and route.
+ * and wall spread, and whether the host carries the simulator's _surfaceGrowth surface-fabric
+ * descriptor at the end of the run (recomputed every step; not a habit class), and summarizes (a) the
+ * flagged crystals a collector could see (≥ 1 mm) and (b) all flagged crystals by guest, host and
+ * route, with the hosts sorted by habit into crusts or aggregates and single crystals.
  *
  * PASSIVE: runs each (scenario, seed) in-process, serially, exactly as a plain run (it reads the
  * end state only), writes .local-evidence/enclosure-reach/probe.json and prints a markdown summary.
@@ -86,6 +87,19 @@ fs.mkdirSync(OUT, { recursive: true });
 fs.writeFileSync(path.join(OUT, 'probe.json'), JSON.stringify(out, null, 1));
 
 // ---- summary
+// Host habits as the simulator names them, sorted by hand into crusts and aggregates against single
+// crystals; a habit in neither list prints as unclassified. (The simulator's _surfaceGrowth descriptor
+// is recomputed every step by classifySurfaceGrowth, js/45-morphology.ts, and is not a habit class —
+// review round 6 — so it is reported separately, as read at the end of the run.)
+const AGGREGATE_HABITS = new Set(['powdery crust', 'pulverulent_crust', 'drusy_crust', 'druzy_coating', 'botryoidal_crust',
+  'botryoidal_manganocalcite', 'banded_massive', 'banded_agate', 'desert_rose', 'fibrous_satin_spar', 'fibrous_coating',
+  'framboidal', 'fibrous_acicular', 'radiating_stellate', 'radiating_fibrous', 'intergrown_thin_plates', 'massive_granular',
+  'enamel_on_cuprite', 'reniform_layer', 'reniform_globules', 'botryoidal/stalactitic', 'fan_sheaves_on_smithsonite',
+  'encrusting_pyromorphite', 'azurite_sun']);
+const CRYSTAL_HABITS = new Set(['prismatic', 'prismatic_imperial', 'short_prismatic', 'disphenoidal', 'yellow_hex_barrel', 'cubic',
+  'hopper_cube', 'tetrahedral', 'octahedral', 'hexagonal platy', 'Tessin', 'striated_cubo_pyritohedral', 'acicular',
+  'tabular_monoclinic', 'tabular_tetragonal']);
+const habitClass = (h) => (AGGREGATE_HABITS.has(h) ? 'crust or aggregate' : CRYSTAL_HABITS.has(h) ? 'single crystal' : 'unclassified');
 const med = (a) => { if (!a.length) return null; const b = [...a].sort((x, y) => x - y); return b.length % 2 ? b[(b.length - 1) / 2] : (b[b.length / 2 - 1] + b[b.length / 2]) / 2; };
 const range = (a) => (a.length ? `${Math.min(...a).toFixed(1)}–${Math.max(...a).toFixed(1)} mm` : '—');
 const all = out.runs.flatMap((r) => r.flagged.map((f) => ({ ...f, scenario: r.scenario, seed: r.seed })));
@@ -96,7 +110,14 @@ const describe = (set, label) => {
   const routes = {};
   for (const f of set) routes[f.route] = (routes[f.route] || 0) + 1;
   const d = set.filter((f) => f.route === 'geometric-overlap' && f.anchor_distance_mm != null).map((f) => f.anchor_distance_mm);
-  lines.push(`\n${label}: ${set.length} — by route ${Object.entries(routes).sort((a, b) => b[1] - a[1]).map(([k, n]) => `${k} ${n}`).join(', ')}; footprint-overlap anchor distance median ${med(d)?.toFixed(1) ?? '—'} mm (${range(d)}), ${d.filter((x) => x >= 10).length} at 10 mm or more; host a surface-growth aggregate in ${set.filter((f) => f.host_surface_growth).length}.`);
+  const byClass = {};
+  for (const f of set) {
+    const c = (byClass[habitClass(f.host_habit)] ||= {});
+    c[f.host_habit] = (c[f.host_habit] || 0) + 1;
+  }
+  const classText = Object.entries(byClass).sort((a, b) => a[0].localeCompare(b[0]))
+    .map(([c, hs]) => `${c} ${Object.values(hs).reduce((s, n) => s + n, 0)} (${Object.entries(hs).sort((a, b) => b[1] - a[1]).map(([h, n]) => `${h} ${n}`).join(', ')})`).join('; ');
+  lines.push(`\n${label}: ${set.length} — by route ${Object.entries(routes).sort((a, b) => b[1] - a[1]).map(([k, n]) => `${k} ${n}`).join(', ')}; footprint-overlap anchor distance median ${med(d)?.toFixed(1) ?? '—'} mm (${range(d)}), ${d.filter((x) => x >= 10).length} at 10 mm or more, ${d.filter((x) => x >= 30).length} at 30 mm or more. Hosts by habit: ${classText}. Host carries the simulator's _surfaceGrowth descriptor at the end of the run: ${set.filter((f) => f.host_surface_growth).length}.`);
 };
 describe(vis, 'Flagged crystals ≥ 1 mm');
 describe(all, 'All flagged crystals');

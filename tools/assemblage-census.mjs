@@ -11,7 +11,9 @@
  *
  * Per (scenario, seed) it runs the scenario for its authored duration and records, per species,
  * the END-STATE inventory:
- *   n_total      every crystal ever nucleated
+ *   n_total      every crystal at the end of the run, dissolved ones included, counted under its FINAL
+ *                species: a crystal converted in place (argentite → acanthite, borax → tincalconite)
+ *                counts under its product, so this is not the species' own nucleation count
  *   n_surv       not dissolved (a solid that exists at the end, flagged as enclosed or not)
  *   n_dis        dissolved to nothing
  *   n_encl       surviving and flagged as enclosed (`enclosed_by`, set by _check_enclosure in

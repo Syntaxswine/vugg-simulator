@@ -14,8 +14,8 @@ the fleet-wide counts of §4.
 **Nothing in the simulator was changed.** The deliverable is this document, four read-only
 instruments, one data file with its raw capture, and one generated appendix (§10). A proposed fix
 order is in §8 and waits for the boss.
-**Review history:** §9 — rounds 1–5 scored the drafts 6/10, 7/10, 8/10, 8/10 and 8.5/10; all five
-rounds' corrections are folded in.
+**Review history:** §9 — rounds 1–6 scored the drafts 6/10, 7/10, 8/10, 8/10, 8.5/10 and 8.5/10
+(the sixth by the boss's leave); all six rounds' corrections are folded in.
 
 ---
 
@@ -24,9 +24,12 @@ rounds' corrections are folded in.
 **The simulator's crystal ratios do not match the rocks.** Of the 33 locality scenarios, none agrees
 outright with its locality's photographs and listings: 5 agree in part, 18 disagree, 3 depend on an
 arbitrary choice — Viburnum and Cruzeiro on how a tie breaks, Sunnyside on whether crystals the
-simulator flags as enclosed count as visible (each is DISAGREES or PARTLY) — 3 grow no crystal a
-collector could see, 3 have too little proxy data to score, and 1 is out of scope (the North Pennines
-barite cavity, whose record is the whole orefield's). One of the thin three is Bimbowrie, which the
+simulator flags as enclosed count as visible — 3 grow no crystal a collector could see, 3 have too
+little proxy data to score, and 1 is out of scope (the North Pennines barite cavity, whose record is
+the whole orefield's). The three that depend on a choice are not even splits: resampling the
+photographs, listings and seeds, every reading of them is DISAGREES in 59, 90 and 57 % of draws, and
+their PARTLY readings sit on knife-edges — Viburnum's ρ is exactly 0, Cruzeiro's 0.004 with its
+lead at 1.3 % of the record, Sunnyside's lead at 1.2 % (§3). One of the thin three is Bimbowrie, which the
 first drafts scored as the one agreement: its literature and the simulator both make andalusite
 everything, but its listing record came from a worldwide "chiastolite" search, which says nothing
 about Bimbowrie. The median rank correlation between the simulator's visible crystals and the
@@ -183,32 +186,38 @@ titles themselves were classified inside the page and not saved, so the classifi
 audited on the real titles. Round 3 found three unguarded routes on synthetic titles — "copper"
 before an unlisted word ("Chrysocolla Copper Bisbee" → native copper), the town of Trona at the end
 of a title, and "Ruby Spinel" counting as both — which could move two close margins (Bisbee native
-copper against cuprite, 12.1 against 10.1 % of the listing record; Searles trona against
-sulfohalite, 7.6 against 6.5 %) and no fate count. Round 5 found two more families of route in the
+copper against cuprite, 12.1 against 10.0 % of the combined record; Searles trona against
+sulfohalite, 7.4 against 6.5 %) and no fate count. Round 5 found two more families of route in the
 dictionary itself. Telluride names: "Hessite Silver Telluride" also counts native silver, "Calaverite
 Gold Telluride" native gold, "Sylvanite Gold Silver Telluride" both. Colour words are guarded only for
 "ruby red" and "emerald green", so "Amethyst Purple Fluorite" counts quartz, "Sapphire Blue Celestine"
-sapphire, "Turquoise Blue Smithsonite" turquoise and "Silver Galena" native silver. The telluride
-route matters at one place: Cripple Creek's native silver is 0.9 % of its record — three listing
-mentions, none of them the first species a title names — and its fragile DISAGREES rests on that share
-(§3). Every route above except the colour words adds a species after the first one named, so the
-comparison is re-run with each listing counted only for the species its title names first (the data
-file records these "lead" counts): the median ρ falls to −0.15, Cruzeiro's and Sunnyside's verdicts
-become plain DISAGREES, and Cripple Creek's native silver drops out of the record (§2.4).
+sapphire, "Turquoise Blue Smithsonite" turquoise and "Silver Galena" native silver. Round 6 added a
+place name: there is no guard for Galena, Kansas, a Tri-State mining town. The telluride route may
+matter at one place: Cripple Creek's native silver is 0.9 % of its record — three listing mentions,
+none of them the first species a title names — and its fragile DISAGREES rests on that share (§3).
+The titles were not saved, so none of these routes can be measured. The appendix's "lead species
+only" line, which counts each listing only for the species its title names first (the data file
+records these counts), is a bound, not a test of the routes: it drops every species named after the
+first, legitimate associates as well as misread ones. It moves the median ρ to −0.15 and turns Cruzeiro
+and Sunnyside into plain DISAGREES — through their associates, not through any route (Cruzeiro's
+albite is named in 4 listing families and first in none; Sunnyside's galena in 5, first in 1) — and
+takes Cripple Creek's native silver to 0 %, which fits the telluride route without proving it (§2.4).
 
 ### 2.3 The literature
 Three research passes (one per locality family) collected published abundance statements —
 paragenetic tables, "abundant / common / rare" wording, production figures, volume percentages —
 for every locality: 63 sources, 278 species classifications, stored in the data file's
 `literature` blocks with a status per claim (V = source opened and wording seen; S = search snippet
-or low-reliability page; R = recalled). 37 of the 278 classes are not V — 34 S and 3 R (13 %). 11 of
-the S classes are Tsumeb's Harvard specimen-availability ratings; twelve Tsumeb ratings were opened
+or low-reliability page; R = recalled). 33 of the 278 classes are not V — 30 S and 3 R (12 %). 7 of
+the S classes are Tsumeb's Harvard specimen-availability ratings; sixteen Tsumeb ratings were opened
 (smithsonite, scorodite, azurite and dioptase by the author; pyromorphite, descloizite and cerussite
-by review round 4; malachite, duftite, calcite, anglesite and powellite by review round 5), and §5.2
-marks the rest. Round 5 also found two inferences from absence — the Handbook of Mineralogy's locality
-lists omit Cripple Creek for hessite and Bisbee for dioptase, which the research pass had read as
-"rare"; both are now "ND?" (absent from a few sources only) — and a "common" that rested on one cave
-specimen (Picher chalcopyrite in Ransome 1935), now "documented". The author then read 20
+by review round 4; malachite, duftite, calcite, anglesite and powellite by review round 5; jarosite,
+mimetite, wulfenite and ferrimolybdite's missing entry by review round 6), and §5.2 marks the rest.
+Round 5 also found two inferences from absence — the Handbook of Mineralogy's locality lists omit
+Cripple Creek for hessite and Bisbee for dioptase, which the research pass had read as "rare"; both
+are now "ND?" (absent from a few sources only) — and a "common" that rested on one cave specimen
+(Picher chalcopyrite in Ransome 1935), now "documented"; round 6 found Shigar albite's "abundant"
+unsupported by both its sources (now "common", Hu & Lu 2018). The author then read 20
 load-bearing statements in 7 sources first-hand, and review round 1 checked 8 more citations; all
 matched (§9). Round 2 found
 four research-pass notes that over-reached, now corrected in the data file: Phillips et al. 2005
@@ -252,8 +261,12 @@ whether flagged crystals count as visible (§2.1). **OUT OF SCOPE** when the loc
 not sample the part of the deposit the scenario models (one scenario, §5.1).
 
 **Scope and contracts.** A species is set aside — from the fate table in §4.1, the dust list and the
-scoreboard's "lit: missing" column — when the locality's record of it comes from a part of the deposit
-the scenario does not model, by the scenario's own description; the rule is applied to every species,
+scoreboard's "lit: missing" column — when its sources say it is absent, at most extremely rare, or
+present only in another form in the part of the deposit the scenario models, by the scenario's own
+description. It is a presence test, not a provenance test: a species that does occur there counts even
+when its specimens were collected elsewhere in the deposit — Naica's selenite, the sealed Cave of
+Crystals' own mineral, whose specimens come from the mine and the Cave of Swords, and Tsumeb's calcite,
+"somewhat less common in the upper levels" (TSNB66), not absent. The rule is applied to every species,
 whether the simulator grows it or not, and each set-aside is listed with its reason. The verdicts
 compare each scenario with its locality's whole record (§7); removing the set-aside species from the
 records changes no verdict (below). Separately, every slot carries its *contract status*: whether the
@@ -265,16 +278,20 @@ proxies, resampling the photographs and listing mentions as multinomial draws; a
 share of resamples whose verdict differs is reported for each. For a TIE- or MEASURE-DEPENDENT verdict
 a resample counts as unchanged when its outcomes stay within the verdict's two options, so the rate
 can register only a move to a third verdict (AGREES needs ρ ≥ 0.5) and is near zero for those three
-scenarios by construction. The full per-species tables for all 33 scenarios are in
+scenarios by construction. For them the appendix prints instead how the joint resamples fall between
+the two readings and how close each reading sits to its line — ρ = 0 for DISAGREES, a lead at 1 % of
+the record (§3). The full per-species tables for all 33 scenarios are in
 `proposals/DATA-LOCALITY-ABUNDANCE-COMPARE-2026-10-21.md`.
 
 **Sensitivity.** The appendix re-runs the comparison with one choice changed at a time. Counting the
 species absent from both sides, as rounds 1–4 did: median ρ 0.02, and Deccan PARTLY. A source votes
 with 10 observations instead of 20: the Great Salt Plains (13 listings) is scored, MEASURE-DEPENDENT
-(DISAGREES or PARTLY). With 30: both Asbestos Hills scenarios (25 photographs, 29 listings) and
-Marlborough (25 listings) become THIN. Listings counted only for the species a title names first
-(§2.2): median −0.15; Cruzeiro and Sunnyside become DISAGREES. The set-aside species removed from
-their scenarios' records: median −0.05, no verdict changes. No choice makes any scenario agree.
+(DISAGREES or PARTLY) — on the lead rule alone, since with two species on its table ρ is undefined.
+With 30: both Asbestos Hills scenarios (25 photographs, 29 listings) and Marlborough (25 listings)
+become THIN. Lead species only, each listing counted only for the species its title names first — a
+bound that also strips legitimate associates (§2.2): median −0.15; Cruzeiro and Sunnyside become
+DISAGREES, through their associates. The set-aside species removed from their scenarios' records:
+median −0.05, no verdict changes. No choice makes any scenario agree.
 
 ---
 
@@ -283,14 +300,15 @@ their scenarios' records: median −0.05, no verdict changes. No choice makes an
 "Lit: rare" lists the simulator's top-three visible species that the literature rates rare, very
 rare or undocumented ((S) = the class rests on snippet-level evidence; (ND?) = absent from a few
 sources only, the weakest form); "lit: missing" lists species
-the literature calls abundant that the simulator never grows to 1 mm. `x:` = no engine; `ma:` = a
+the literature calls abundant that the simulator never shows as a visible crystal (≥ 1 mm and not
+flagged — Tsumeb's smithsonite and azurite do reach 2.7 and 3.1 mm, but flagged). `x:` = no engine; `ma:` = a
 Mineralienatlas name with no engine and no dictionary entry.
 
 | scenario | verdict | ρ | band: seeds | band: seeds + proxies | real top 3 | sim top 3 (≥ 1 mm, not flagged) | lit: rare | lit: missing |
 |---|---|---:|---|---|---|---|---|---|
 | schneeberg | DISAGREES | −0.58 | −0.61 to −0.55 | −0.67 to −0.52 | erythrite, x:pucherite, one of {ma:eulytine, native silver} (tied) | chrysocolla, quartz, uranophane |  | skutterudite, native bismuth |
 | wittichen | DISAGREES | −0.57 | −0.57 to −0.57 | −0.65 to −0.55 | erythrite, zeunerite, ma:heinrichite | haidingerite, chalcedony, nickeline | haidingerite (S), chalcedony | native silver, safflorite, skutterudite |
-| supergene_oxidation (Tsumeb) | DISAGREES | −0.54 | −0.55 to −0.49 | −0.59 to −0.50 | smithsonite, cerussite, calcite | ferrimolybdite, brochantite, one of {scorodite, pyromorphite} (tied) | ferrimolybdite (S), scorodite, pyromorphite | smithsonite, calcite, azurite |
+| supergene_oxidation (Tsumeb) | DISAGREES | −0.54 | −0.55 to −0.49 | −0.59 to −0.50 | smithsonite, cerussite, calcite | ferrimolybdite, brochantite, one of {scorodite, pyromorphite} (tied) | ferrimolybdite, scorodite, pyromorphite | smithsonite, calcite, azurite |
 | ultramafic_supergene (Marlborough) | DISAGREES | −0.50 | −0.50 to −0.50 | −0.50 to −0.50 | chrysoprase, chalcedony | opal, chrysoprase | opal | chalcedony, x:magnesite |
 | porphyry (Bingham) | DISAGREES | −0.49 | −0.50 to −0.49 | −0.61 to −0.34 | pyrite, tetrahedrite, ma:faustite | ferrimolybdite, brochantite, galena | ferrimolybdite (S) | quartz, bornite |
 | colorado_plateau (Uravan) | DISAGREES | −0.43 | −0.43 to −0.41 | −0.69 to −0.30 | x:pascoite, ma:hughesite, one of {ma:dickthomssenite, ma:lasalite, ma:magnesiopascoite} (tied) | opal, tyuyamunite, uranophane | opal, uranophane | carnotite |
@@ -332,11 +350,18 @@ rests on native silver being 0.9 % of the record, against the 1 % threshold, and
 listing mentions the title classifier may have read from "Silver Telluride", §2.2); rerun under three
 other bootstrap seeds they stay above 20 % (57–66 % and 33–37 %), and Deccan reaches 16 % once.
 Viburnum and Cruzeiro are TIE-DEPENDENT and Sunnyside is MEASURE-DEPENDENT (PARTLY with flagged
-crystals left out, DISAGREES with them counted — §4.4); their resamples stay within the same two
-verdicts, which the flip rate cannot register by construction (§2.4). The North Pennines barite
-cavity is OUT OF SCOPE: its record is the whole orefield's — the Weardale and Alston Moor pages and
-searches, led by the central zone's fluorite — and no page or search targets the outer zone the
-scenario models (§5.1); on its own measures it would be DISAGREES.
+crystals left out, DISAGREES with them counted — §4.4). The flip rate cannot register a move between
+their two readings (§2.4), so the appendix counts them: in the joint resamples every reading is
+DISAGREES in 58.5 % for Viburnum, 90.0 % for Cruzeiro and 57.0 % for Sunnyside, and every reading
+PARTLY in 0, 6.5 and 18.5 %. Their PARTLY readings sit on knife-edges: Viburnum's ρ is exactly 0.0000
+(DISAGREES needs ρ < 0); Cruzeiro's is 0.0039, and its PARTLY lead, albite, is 1.31 % of the record
+(4 listing mentions, none first-named; no photograph); Sunnyside's PARTLY lead, galena, is 1.16 % of
+the record (5 of 217 listing mentions; no photograph) — the same 1 % line as Cripple Creek's. Searles'
+halite is in its simulator top three on the crystals of the 2 seeds of 21 where it reaches 1 mm; §4.1
+counts it as dust. The North Pennines barite cavity is OUT OF SCOPE: its record is the whole
+orefield's — the Weardale and Alston Moor pages and searches, led by the central zone's fluorite — and
+no page or search targets the outer zone the scenario models (§5.1); on its own measures it would be
+DISAGREES.
 
 ---
 
@@ -377,7 +402,12 @@ aside, and listed in the appendix:
   primary telluride vein, §5.3; the simulator ranks it second), and the whole North Pennines barite
   cavity, whose record is the orefield's (§5.1). Tsumeb's dioptase, not a top-three species, is set
   aside from the other lists on the same ground: the scenario is the first oxidation zone, where the
-  *Tsumeb Mineral Notes* find it "extremely rare (or possibly even absent)" (TSNB107, §5.2);
+  *Tsumeb Mineral Notes* find it "extremely rare (or possibly even absent)" (TSNB107, §5.2). Two
+  species stay in by the same rule, because their sources place them in the modeled part: Naica's
+  selenite, the sealed Cave of Crystals' own mineral, though its specimens come from the mine and the
+  Cave of Swords, and Tsumeb's calcite, "somewhat less common in the upper levels" (TSNB66), not
+  absent. Set aside on provenance instead, they would leave 64 slots (never forms 11, in the top three
+  20; every gate but strict 20 in 24);
 - **ties on the real side** — Grimsel's third place (epidote or rutile) and Schneeberg's (eulytine,
   which has no engine, or native silver);
 - **under the floor** — Herkimer calcite, 0.9 % of a record that is 94 % quartz, whose literature
@@ -528,8 +558,9 @@ flagged, and Roughton Gill's chalcocite 3.8, 80 % flagged; both hold by visible 
 (§4.4; the appendix lists every case above a cap): Bisbee's native gold (13.0 per vug against a cap of
 4, 10.8 of them flagged), atacamite (8.1 against 4) and dioptase (4.8 against 4), Searles' celestine
 (8.9 against 6, 7.3 flagged) and calcite (10.8 against 10, 9.3 flagged) and Grimsel's epidote (5.7
-against 5); Tri-State's greenockite and Deccan's pectolite pass theirs by a fraction of a crystal. For
-these the count is set by the enclosure rule as much as by the species' own probability.
+against 5); Tri-State's greenockite and Deccan's pectolite pass theirs by a fraction of a crystal
+(pectolite in 1 seed of 21, by one crystal). For the first six the count is set by the enclosure rule
+as much as by the species' own probability.
 
 **The anhydrite case.** Three of the four anhydrite reasons call it a "trace" accessory and the
 fourth "minor"; all four credit "the corrected PHREEQC analytical K(T) path" (the K(T) correction is
@@ -604,8 +635,13 @@ receipt (route, anchor distance, reach) with its host's habit and size, in 27 ru
 set (Bingham, Sunnyside, the Great Salt Plains, Ouro Preto, Roughton Gill, Schneeberg, Wittichen and
 Tsumeb at seeds 1, 2 and 42; Bisbee at 42) and Tri-State and Searles Lake at 42. Of the 112 flagged
 crystals of 1 mm or more, 108 were flagged by footprint overlap, a median 20.8 mm from the host's
-anchor (0–75.6 mm), 87 of them 10 mm or more away and 30 of them 30 mm or more; 84 of the hosts are
-species the simulator grows as surface aggregates (crusts, banded masses, botryoids, desert roses).
+anchor (0–75.6 mm), 87 of them 10 mm or more away and 30 of them 30 mm or more. By their habit, 82 of
+the hosts are crusts or aggregates (powdery and pulverulent crusts, banded masses, desert roses,
+botryoids, satin spar, sprays, framboids) and 30 are single crystals — prismatic feldspar (15) and
+albite (4), the disphenoidal chalcopyrite (5), pyromorphite barrels (5) and a galena cube (1). (The
+simulator's `_surfaceGrowth` descriptor, which earlier drafts used here, is recomputed every step and is
+not a habit class: at the end of the run it marks 84 of the hosts, the chalcopyrite and the pyromorphite
+among them, and misses 5 of the 7 desert-rose selenites.)
 
 | scenario | flagged crystals ≥ 1 mm | hosts | distance from the host's anchor |
 |---|---|---|---|
@@ -629,8 +665,13 @@ species' cap counts only its crystals that are neither dissolved nor flagged
 (`js/85b-simulator-nucleate.ts:716`) — on purpose, so that a host's advancing front can bury a sulfide
 and leave bare wall for the next, as in MVT calcite's inclusion trails
 (`js/85b-simulator-nucleate.ts:654–664`). So every flagged crystal frees a slot. Across the locality
-scenarios 58 (scenario, species) pairs nucleate past their cap in at least one seed, 49 of them with
-more crystals flagged than dissolved (the appendix lists them all):
+scenarios 55 (scenario, species) pairs nucleate past their cap in at least one seed, 47 of them with
+more crystals flagged than dissolved (the appendix lists them all). The census counts each crystal
+under its final species, so a crystal converted in place is added back to its parent (borax's
+tincalconite), a parent whose product also nucleates on its own is a lower bound (argentite), and
+that product is left out, its count mixing its own nucleations with converted crystals (acanthite,
+thenardite, selenite, anhydrite). Round 5's 58 counted Bisbee's and Schneeberg's acanthite, which are
+mostly argentite converted in place (round 6):
 
 - Tri-State's barite, 55.6 per vug against a cap of 6, 50.8 of them flagged — at seed 42 by the
   substrate route, 32 of 33 on the sphalerite, galena and pyrite they nucleated on: the inclusion-trail
@@ -645,7 +686,8 @@ Eight of F2's 36 minor-phase cases are among them (§4.2). The flag therefore de
 Bingham's pyrite) and part of the counts that the F2 and strict-gate steps would retune. Whether its
 sideways reach is right — for which host habits, and how far — and whether the cap should free a slot
 for a crystal flagged by footprint rather than by substrate, are simulator questions for the boss, to
-settle before any count changes (§8 step 4).
+settle before any count changes (§8 step 4). A substrate-only rule would leave the largest case as it
+is: Tri-State's barite is flagged through its substrate.
 
 ---
 
@@ -687,7 +729,9 @@ Gordonsville mine) never forms.
 
 **Viburnum Trend / Sweetwater (reactive_wall) — TIE-DEPENDENT (DISAGREES or PARTLY).** Galena and
 sphalerite tie as the simulator's most numerous visible species at one crystal each; with galena as
-the lead the verdict is PARTLY, with sphalerite (0.3 % of the record) DISAGREES. This is a *lead*
+the lead the verdict is PARTLY, with sphalerite (0.3 % of the record) DISAGREES. The PARTLY reading
+also needs ρ ≥ 0, and ρ is exactly 0.0000; every reading is DISAGREES in 58.5 % of the joint
+resamples. This is a *lead*
 district: Zn/(Zn+Pb) "is less than 0.1 for the Southeast Missouri district", chalcopyrite "is the
 main source of byproduct copper", and "Barite has never been reported in the Cambrian-hosted Southeast
 Missouri Lead districts" (Leach et al. 2010). The simulator puts 82 % of its crystal volume into
@@ -699,7 +743,8 @@ never survive. Galena is right as a visible species but is one crystal.
 **North Pennines (tn457_barite_pulses — OUT OF SCOPE; reactivated_fluorite_vein — DISAGREES).** The
 orefield's record is fluorite first (56 % of photos, 63 % of listings), then galena, quartz and the
 barium minerals, zoned: fluorite in the central zone, barium minerals outside it (GCR vol. 36; North
-Pennines audit). Galena is "the main sulphide ore" and quartz "abundant in the Alston Block" across the
+Pennines audit — whose outer zone "includes much of the Nent Valley", so the Alston Moor page spans
+both zones; search text, as the audit's online copy returned 502). Galena is "the main sulphide ore" and quartz "abundant in the Alston Block" across the
 orefield (GCR vol. 36), so not every top species is central-zone (the drafts before round 5 said all
 three were). *tn457* models one barite-on-sphalerite cavity from the outer zone, while the record —
 the Weardale and Alston Moor pages and searches — is the whole orefield's, led by the central zone's
@@ -725,7 +770,9 @@ pulverulent crusts 25 and 20 mm across, with no Tsumeb photograph or listing. Of
 species the simulator grows, two are hidden: its one smithsonite per vug (strict gate) and its azurite
 (3.5 crystals ≥ 1 mm per vug) are flagged as enclosed in every seed, by those same molybdate crusts,
 whose footprints reach them 0–34 mm from the crusts' anchors (§4.4). Cerussite (4 per vug), malachite
-(one crystal, strict gate) and duftite are visible; calcite never forms. Dioptase (6 % of photos and
+(one crystal, strict gate) and duftite are visible; calcite never forms, though it is in the scenario's
+zone — "Collectable calcites were commonly encountered at depth", "somewhat less common in the upper
+levels" (TSNB66), not absent, so it stays in scope (§2.4). Dioptase (6 % of photos and
 listings) is set aside: the Notes find it "extremely rare (or possibly even absent) in the first
 oxidation zone" — the zone the scenario models — and abundant in the second and third (TSNB107). Other
 parts of the Tsumeb record may be second-zone material too; the record was not sorted by zone (§7).
@@ -776,7 +823,9 @@ rhodochrosite ties for third place at one crystal per vug (strict gate), with fl
 strict) just behind; sphalerite is dust. Argentite is 6.4 crystals per vug and 3.2 of them reach
 1 mm, but 70 % of those are flagged as enclosed by the scenario's 73 mm botryoidal manganocalcite
 crust, whose footprint reaches them 15–35 mm from its anchor (§4.4). Left out, argentite falls to
-0.95 visible per vug and the verdict is PARTLY; counted, argentite is the second most numerous visible
+0.95 visible per vug and the verdict is PARTLY — a reading that rests on the simulator's lead, galena,
+at 1.16 % of the record (5 of 217 listing mentions, no photograph), next to the 1 % line; every
+reading is DISAGREES in 57 % of the joint resamples. Counted, argentite is the second most numerous visible
 species and the verdict is DISAGREES. Argentite's own reason claims compatibility ("a high-temperature Ag2S precursor compatible with Sunnyside's primary polymetallic
 stage"), not a record, and neither Burbank 1933 nor Guzman et al. 2024 names argentite or acanthite,
 though the mine produced 14.9 Moz of silver. They do name tetrahedrite, a common silver carrier ("a
@@ -870,13 +919,17 @@ sphalerite are outside its claim (the fluorite and calcite were real top-three s
 aside, §4.1). Inside it, García-Ruiz et al. (2007) record the cave walls' crust of calcite and
 celestine, and the selenite. The simulator grows celestine
 ×6 (86 % of visible crystals) to selenite ×1: celestine is real here, but as a wall crust, not as six
-free crystals out-numbering the gypsum the cave is named for.
+free crystals out-numbering the gypsum the cave is named for. The record's selenite comes from the mine
+and the Cave of Swords — the Cave of Crystals is sealed — but selenite is the cave's own mineral, so it
+stays in scope (§2.4).
 
 ### 5.5 Pegmatites and alpine clefts
 
 **Cruzeiro (gem_pegmatite) — TIE-DEPENDENT (DISAGREES or PARTLY).** Albite and microcline
 (feldspar) tie as the simulator's most numerous visible species at 1.9 per vug; with albite (1.3 % of
-the record) as the lead the verdict is PARTLY, with feldspar (0.3 %) DISAGREES. (The first draft
+the record) as the lead the verdict is PARTLY, with feldspar (0.3 %) DISAGREES. Both lines are close:
+ρ is 0.0039, and albite's 1.3 % is 4 listing mentions, none first-named, with no photograph; every
+reading is DISAGREES in 90 % of the joint resamples. (The first draft
 called this verdict PARTLY and "the one unstable verdict"; the instability was the tie.) Tourmaline is
 83 % of the voting record; the pockets "frequently contain superb gem tourmaline crystals" (Proctor
 1985), and Proctor puts the gem tourmaline with albite rather than microcline (p. 90, review round 4). The simulator's tourmaline stays under 1 mm in every seed (median largest 0.37 mm); its visible
@@ -1027,9 +1080,11 @@ Engines that exist but never fire where the record needs them are in §4.1(a).
   record holds everything mined there. Naica's record includes the whole Pb–Zn–Ag skarn while the
   scenario models the giant-gypsum pool; `tn457_barite_pulses` models one outer-zone cavity of the
   North Pennines; Tsumeb's record includes primary ore and the second and third oxidation zones while
-  `supergene_oxidation` models the first. The species whose record plainly comes from elsewhere are set
-  aside (§2.4) — dioptase at Tsumeb among them — but zone by zone the Tsumeb record was not sorted, so
-  other second-zone species may still count against the scenario. The verdicts use the whole record;
+  `supergene_oxidation` models the first. The species that the sources place only elsewhere are set
+  aside (§2.4) — dioptase at Tsumeb among them — while a species that does occur in the modeled part
+  stays even where its specimens were collected elsewhere (Naica's selenite, Tsumeb's calcite). Zone by
+  zone the Tsumeb record was not sorted, so second-zone material may still weigh in its shares
+  (Tsumeb's best wulfenite, for one, came from the second zone — TSNB375). The verdicts use the whole record;
   removing the set-aside species from it changes none of them, and the sections judge each scenario
   against the part of the record it claims.
 - **"Crystal" includes aggregates.** The simulator counts opal, chalcedony, chrysocolla, the Elmwood
@@ -1093,9 +1148,11 @@ measurement first and the changes that move every baseline last.
    scenarios (which also needs the boss's call on the July kinetic verdict). (Tsumeb's dioptase, listed
    here before round 5, is set aside: the scenario is the first oxidation zone, where it is extremely
    rare or absent — §5.2.) This continues the July review's "district-diagnostic no-shows" and "missing
-   ore-forming events" rungs.
+   ore-forming events" rungs. The contract decisions change nothing in the simulator; the diagnoses do
+   change counts, so they wait for step 4's answer — and 7 of the 12 species are strictly gated, so
+   once they form, step 6 re-moves them too.
 4. **The enclosure rule (§4.4) — decide before any count changes.** The flag makes counts as well as
-   hiding crystals: a flagged crystal stops growing and its species' cap no longer counts it, so 58
+   hiding crystals: a flagged crystal stops growing and its species' cap no longer counts it, so 55
    (scenario, species) pairs nucleate past their caps — Tri-State's barite 55.6 per vug against a cap of
    6, Bisbee's native gold 13.0 against 4, Searles' celestine 8.9 against 6 — and eight of F2's cases
    are among them. Two questions for the boss, in this order. Should a crystal's painted footprint
@@ -1103,8 +1160,10 @@ measurement first and the changes that move every baseline last.
    physical reading; for a prismatic host it is hard to defend (Ouro Preto's albite flags quartz 37–61
    mm away, Bisbee's disphenoidal chalcopyrite atacamite 76 mm away). And should the cap keep freeing a
    slot for every flagged crystal — the inclusion-trail design (`js/85b-simulator-nucleate.ts:654–664`)
-   — or only for one a host has overgrown from its substrate? Either answer moves counts in the
-   scenarios behind most of the F2 cases and decides Sunnyside's verdict and the three flagged
+   — or only for one a host has overgrown from its substrate? The second option leaves the largest
+   case as it is: at Tri-State's seed 42, 32 of the 33 flagged barite crystals were flagged through
+   their substrate, so barite's 55.6 per vug needs its own lever (step 5). Either answer moves counts in
+   the scenarios behind most of the F2 cases and decides Sunnyside's verdict and the three flagged
    headline cases, so it comes before steps 5–7, which would otherwise be tuned against counts it is
    about to change.
 5. **The minor-phase counts (F2), one species family at a time, each with its own lever** — after
@@ -1112,7 +1171,9 @@ measurement first and the changes that move every baseline last.
    once the PHREEQC path admits it); greenockite and acanthite through the July lever — lattice
    partition into the host sulfide and a host-first paragenetic gate — rather than a cap;
    transformation products through their parent or their transition (Searles tincalconite is a
-   question about how much borax should dehydrate); Bisbee's atacamite, Tsumeb's and Bingham's
+   question about how much borax should dehydrate); Tri-State's barite (55.6 per vug against a cap of
+   6, all dust, nearly all flagged through its substrate, so step 4's substrate option would not touch
+   it); Bisbee's atacamite, Tsumeb's and Bingham's
    molybdates (whose crusts also flag Tsumeb's smithsonite and azurite and Bingham's pyrite as enclosed
    — §4.4), opal at the Asbestos Hills and Marlborough, celestine at Naica and Searles, strontianite in
    Sicily, argentite at Sunnyside through each species' nucleation probability or cap. Zero-size nuclei
@@ -1175,7 +1236,8 @@ presence error.
 - The enclosure figures in §4.4 come from `tools/enclosure-reach-probe.mjs`, which reads each flagged
   crystal's enclosure receipt; at seed 42 it reproduces the round-5 reviewer's independent probe
   (Searles celestine 8 flagged by the thenardite coating 7.6–30.0 mm away; Tri-State barite 33 flagged,
-  32 by substrate; Tsumeb's aurichalcite and conichalcite hosts).
+  32 by substrate; Tsumeb's aurichalcite and conichalcite hosts). Re-run in full in response to round
+  6, it gave the same 324 flagged crystals, receipts and hosts in all 27 runs; only the timings differ.
 
 **Literature read first-hand by the author (20 statements in 7 sources, all matched the research
 passes).** Smith 1979, USGS PP 1043, p. 59 — Table 14 values; "Trona and halite are the major mineral
@@ -1363,6 +1425,44 @@ Sunnyside's fluorite rests on Guzman et al. (Burbank only "also recognized" it);
 1935 and Viola 1897 otherwise supported the classes used. GCR 36 (Roughton Gill) is still unopened by
 any review — ten Roughton Gill classes rest on the research pass's reading, as §5.2 and the data file
 now say.
+
+**Review round 6 (one reviewer, adversarial; run with the boss's leave after the five-round limit):
+8.5/10.** It reproduced round 5's work — byte-identical runs, the appendix, the hashes, the provenance
+check, a probe subset matching the committed probe exactly, the seed-42 baseline (351 entries) and
+about 180 numbers — and found two statements about how solid the verdicts are that misled, now
+fixed:
+- **The three choice-dependent verdicts were presented as even splits.** In the joint resamples every
+  reading is DISAGREES in 58.5 % (Viburnum), 90.0 % (Cruzeiro) and 57.0 % (Sunnyside), and every reading
+  PARTLY in 0, 6.5 and 18.5 %; their PARTLY readings sit on knife-edges — Viburnum's ρ is exactly 0,
+  Cruzeiro's 0.0039 with albite at 1.31 % of the record, Sunnyside's lead galena at 1.16 % (5 of 217
+  listing mentions, no photograph). The comparison now records every resample's outcome and prints
+  these shares and edges; §1, §3 and §5 say so.
+- **The "first-named species" line was presented as a test of the title classifier.** It drops every
+  second-named species, legitimate associates included, and both verdict changes it reports come from
+  associates (Cruzeiro's albite 4 mentions → 0; Sunnyside's galena 5 → 1); only Cripple Creek's native
+  silver (3 → 0) bears on a route. It is now "lead species only", a bound; the routes stay unmeasured.
+
+The suggested improvements, all made or answered. The cap table now folds in-place products back
+into their parents (borax + tincalconite), marks argentite as a lower bound and leaves out acanthite,
+thenardite, selenite and anhydrite, whose census counts mix their own nucleations with converted
+crystals: 55 pairs past their cap, 47 with more flagged than dissolved (round 5 said 58 / 49; the
+reviewer's estimate was 57 / 47 — the author also left out Roughton Gill's acanthite and Searles'
+thenardite on the same rule), and the census header no longer calls `n_total` the nucleation count.
+The scope rule is now stated as a presence test, not a provenance test, which keeps Naica's selenite
+(the sealed Cave of Crystals' own mineral) and Tsumeb's calcite ("somewhat less common in the upper
+levels", TSNB66) in, with the alternative stated (64 slots; every gate but strict 20 in 24). §8 step 3
+now says its contract decisions change nothing and its diagnoses wait for step 4, whose
+substrate-only option would leave Tri-State's barite as it is — barite now has its place in step 5.
+§4.4 classifies hosts by habit instead of by the simulator's `_surfaceGrowth` descriptor, which is
+recomputed every step and is not a habit class. Small items: §2.2's round-3 margins are
+combined-record shares (12.1 against 10.0 %, 7.4 against 6.5 %); Galena, Kansas added to the
+unguarded routes; the Great Salt Plains' threshold-10 verdict rests on the lead rule alone (ρ is
+undefined on two rows); §3's legend no longer says "never grows to 1 mm"; pectolite's cap overrun is
+one crystal in one seed; Searles' halite is noted in §3 as dust despite its top-three place. From its
+literature checks: Tsumeb jarosite (Questionable), mimetite (Common), wulfenite (Common; best from the
+second zone) and ferrimolybdite's missing entry are now V; Shigar albite is "common", not "abundant"
+(Hu & Lu 2018; Laurs et al. 1998 do not list it); the North Pennines audit puts much of the Nent Valley
+in the outer zone, so the Alston Moor page spans both zones.
 
 ---
 

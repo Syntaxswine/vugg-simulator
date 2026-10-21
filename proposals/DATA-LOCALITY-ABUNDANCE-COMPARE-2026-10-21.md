@@ -1,4 +1,4 @@
-<!-- GENERATED — do not edit by hand. Produced by tools/locality-abundance-compare.mjs on 2026-10-21 from: .local-evidence/assemblage-census/runs.jsonl (sha256 86e89c0f63240216…, SIM 285, census version 2, 861 runs = 41 scenarios × 21 seeds (1-20 and 42), produced by tools/assemblage-census.mjs at ab79f195), proposals/DATA-LOCALITY-ABUNDANCE-2026-10-21.json (sha256 b5445a617950f05f…) and its raw capture proposals/DATA-LOCALITY-ABUNDANCE-CAPTURE-2026-10-21.json (sha256 5189d9b7b2b950fe…); market dictionary entries' JSON sha256 5d3556449edfb5f27d55d9f4d880f6e56c504084f15d80d08fa85ad03a61fd35. Deterministic (a fixed bootstrap seed per scenario). Re-run both tools to regenerate. -->
+<!-- GENERATED — do not edit by hand. Produced by tools/locality-abundance-compare.mjs on 2026-10-21 from: .local-evidence/assemblage-census/runs.jsonl (sha256 86e89c0f63240216…, SIM 285, census version 2, 861 runs = 41 scenarios × 21 seeds (1-20 and 42), produced by tools/assemblage-census.mjs at ab79f195), proposals/DATA-LOCALITY-ABUNDANCE-2026-10-21.json (sha256 c707f1ef02e13d2a…) and its raw capture proposals/DATA-LOCALITY-ABUNDANCE-CAPTURE-2026-10-21.json (sha256 5189d9b7b2b950fe…); market dictionary entries' JSON sha256 5d3556449edfb5f27d55d9f4d880f6e56c504084f15d80d08fa85ad03a61fd35. Deterministic (a fixed bootstrap seed per scenario). Re-run both tools to regenerate. -->
 
 # Sim vs locality abundance — SIM 285, 21 seeds
 
@@ -7,7 +7,7 @@ Thresholds: OVER sim ≥ 10% of visible crystals with photos and listings < 1%; 
 ## Scoreboard
 ρ = Spearman between the sim's share of unflagged ≥ 1 mm crystals and the real share (mean of photo and listing shares; a source with < 20 observations does not vote), over the species present on at least one side, with its 5–95 % bootstrap bands: over the seeds, over the proxies (photographs and listing mentions resampled as multinomial draws) and over both. "Verdict differs" = the share of resamples whose verdict is not the one shown (seeds / proxies / both); for a TIE- or MEASURE-DEPENDENT verdict a resample counts as the same when its outcomes lie within the verdict's options, so only an outcome outside them can count (AGREES needs ρ ≥ 0.5). Top 3 = largest shares, by value alone; species tied across third place are shown as "n of {…} (tied)", and a verdict that depends on how ties break is TIE-DEPENDENT. Literature marks: (S) snippet-level, (R) recalled.
 
-| scenario | locality | verdict | ρ(sim, real) | band: seeds | band: proxies | band: both | verdict differs | real top 3 | sim top 3 (≥ 1 mm) | overlap | literature: sim top 3 rated rare/undocumented | literature: abundant, no sim crystal ≥ 1 mm |
+| scenario | locality | verdict | ρ(sim, real) | band: seeds | band: proxies | band: both | verdict differs | real top 3 | sim top 3 (≥ 1 mm) | overlap | literature: sim top 3 rated rare/undocumented | literature: abundant, no visible sim crystal (≥ 1 mm and unflagged) |
 |---|---|---|---:|---|---|---|---|---|---|---:|---|---|
 | amethyst_geode | amethyst_geode | NO VISIBLE CRYSTALS | — | — | — | — | 0 / 0 / 0 % | quartz, chalcedony, calcite |  | 0 |  | quartz, chalcedony, x:celadonite |
 | chiastolite_hornfels | chiastolite_hornfels | THIN | — | — | — | — | 0 / 0 / 0 % |  | andalusite | 0 |  |  |
@@ -17,7 +17,7 @@ Thresholds: OVER sim ≥ 10% of visible crystals with photos and listings < 1%; 
 | sulphur_bank | sulphur_bank | THIN | — | — | — | — | 0 / 0 / 0 % |  | cinnabar, pararealgar, orpiment | 0 | pararealgar (ND?, S), orpiment (ND?, S) | opal |
 | schneeberg | schneeberg | DISAGREES | -0.58 | -0.61 to -0.55 | -0.64 to -0.51 | -0.67 to -0.52 | 0 / 0 / 0 % | erythrite, x:pucherite, 1 of {ma:eulytine, native_silver} (tied) | chrysocolla, quartz, uranophane | 0 |  | skutterudite, native_bismuth |
 | wittichen | wittichen | DISAGREES | -0.57 | -0.57 to -0.57 | -0.65 to -0.56 | -0.65 to -0.55 | 0 / 0 / 0 % | erythrite, zeunerite, ma:heinrichite | haidingerite, chalcedony, nickeline | 0 | haidingerite (S), chalcedony | native_silver, safflorite, skutterudite |
-| supergene_oxidation | tsumeb | DISAGREES | -0.54 | -0.55 to -0.49 | -0.60 to -0.52 | -0.59 to -0.50 | 0 / 0 / 0 % | smithsonite, cerussite, calcite | ferrimolybdite, brochantite, 1 of {scorodite, pyromorphite} (tied) | 0 | ferrimolybdite (S), scorodite, pyromorphite | smithsonite, calcite, azurite |
+| supergene_oxidation | tsumeb | DISAGREES | -0.54 | -0.55 to -0.49 | -0.60 to -0.52 | -0.59 to -0.50 | 0 / 0 / 0 % | smithsonite, cerussite, calcite | ferrimolybdite, brochantite, 1 of {scorodite, pyromorphite} (tied) | 0 | ferrimolybdite, scorodite, pyromorphite | smithsonite, calcite, azurite |
 | ultramafic_supergene | marlborough | DISAGREES | -0.50 | -0.50 to -0.50 | -0.50 to -0.50 | -0.50 to -0.50 | 0 / 0 / 0 % | chrysoprase, chalcedony | opal, chrysoprase | 1 | opal | chalcedony, x:magnesite |
 | porphyry | bingham | DISAGREES | -0.49 | -0.50 to -0.49 | -0.64 to -0.33 | -0.61 to -0.34 | 0 / 0 / 0 % | pyrite, tetrahedrite, ma:faustite | ferrimolybdite, brochantite, galena | 0 | ferrimolybdite (S) | quartz, bornite |
 | colorado_plateau | colorado_plateau | DISAGREES | -0.43 | -0.43 to -0.41 | -0.68 to -0.33 | -0.69 to -0.30 | 0 / 0 / 0 % | x:pascoite, ma:hughesite, 1 of {ma:dickthomssenite, ma:lasalite, ma:magnesiopascoite} (tied) | opal, tyuyamunite, uranophane | 0 | opal, uranophane | carnotite |
@@ -276,6 +276,7 @@ Flags: UNDER fluorite (photos 13%; sim 0% of visible crystals); OVER hessite (si
 ### gem_pegmatite  ←  cruzeiro   (sim 21 seeds; 58 photos; 153 listing mentions)
 ρ(sim visible-count, real) = 0.00 [5–95 % band: seeds -0.02 to 0.08, proxies -0.44 to 0.11, both -0.45 to 0.13; verdict differs in 0 / 0 / 0 % of resamples]   ρ(sim volume, real) = 0.18   ρ(sim surviving count, real) = 0.23   ρ(sim ≥ 0.1 mm count, real) = 0.38   ρ(≥ 1 mm counting enclosed crystals, real) = 0.00
 Verdict TIE-DEPENDENT: DISAGREES or PARTLY depending on how ties break (sim top three: albite, feldspar, quartz; sim lead: albite = feldspar).
+Knife-edges: ρ 0.0039 with flagged crystals left out, 0.0039 with them counted; the simulator's possible leads hold albite 1.31 %, feldspar 0.33 % of the record. Joint bootstrap outcomes: DISAGREES 90.0 %; PARTLY 6.5 %; DISAGREES or PARTLY 3.5 %.
 Visible = ≥ 1 mm and not flagged as enclosed by the simulator; "with flagged" adds the flagged ≥ 1 mm crystals; the largest crystal is the largest unflagged one.
 | species | sim crystals/vug | seeds with it | sim % of crystals | sim % of ≥0.1 mm | sim % of ≥1 mm | ≥1 mm per vug, unflagged / with flagged | sim % of volume | median largest mm | seeds with a ≥1 mm crystal | % of photos | % of listings | literature |
 |---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---|
@@ -547,6 +548,7 @@ Flags: UNDER pyrite (photos 10%; sim 0.8% of visible crystals); UNDER tetrahedri
 ### reactive_wall  ←  viburnum   (sim 21 seeds; 103 photos; 603 listing mentions)
 ρ(sim visible-count, real) = 0.00 [5–95 % band: seeds 0.00 to 0.00, proxies -0.17 to 0.05, both -0.17 to 0.07; verdict differs in 0 / 0 / 0 % of resamples]   ρ(sim volume, real) = -0.23   ρ(sim surviving count, real) = -0.32   ρ(sim ≥ 0.1 mm count, real) = -0.37   ρ(≥ 1 mm counting enclosed crystals, real) = 0.00
 Verdict TIE-DEPENDENT: DISAGREES or PARTLY depending on how ties break (sim top three: galena, sphalerite, pyrite; sim lead: galena = sphalerite).
+Knife-edges: ρ 0.0000 with flagged crystals left out, 0.0000 with them counted; the simulator's possible leads hold galena 28.67 %, sphalerite 0.33 % of the record. Joint bootstrap outcomes: DISAGREES 58.5 %; DISAGREES or PARTLY 41.5 %.
 Visible = ≥ 1 mm and not flagged as enclosed by the simulator; "with flagged" adds the flagged ≥ 1 mm crystals; the largest crystal is the largest unflagged one.
 | species | sim crystals/vug | seeds with it | sim % of crystals | sim % of ≥0.1 mm | sim % of ≥1 mm | ≥1 mm per vug, unflagged / with flagged | sim % of volume | median largest mm | seeds with a ≥1 mm crystal | % of photos | % of listings | literature |
 |---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---|
@@ -676,7 +678,7 @@ Visible = ≥ 1 mm and not flagged as enclosed by the simulator; "with flagged" 
 | x:garnet | 0.0 | 0% | 0 | 0 | 0 | 0.00 / 0.00 | 0 | — | 0% | 8.3 | 4.9 | CO |
 | x:muscovite | 0.0 | 0% | 0 | 0 | 0 | 0.00 / 0.00 | 0 | — | 0% | 0.7 | 7.7 | CO |
 | epidote | 0.0 | 0% | 0 | 0 | 0 | 0.00 / 0.00 | 0 | — | 0% | 7.3 | 0.8 |  |
-| albite | 2.0 | 100% | 10 | 11 | 19 | 2.00 / 2.00 | 55 | 268.6 | 100% | 2.7 | 5.4 | AB |
+| albite | 2.0 | 100% | 10 | 11 | 19 | 2.00 / 2.00 | 55 | 268.6 | 100% | 2.7 | 5.4 | CO |
 | beryl | 0.0 | 0% | 0 | 0 | 0 | 0.00 / 0.00 | 0 | — | 0% | 5.3 | 2.7 |  |
 | x:clinozoisite | 0.0 | 0% | 0 | 0 | 0 | 0.00 / 0.00 | 0 | — | 0% | 6.0 | 0.2 |  |
 | feldspar | 2.0 | 100% | 10 | 11 | 19 | 2.00 / 2.00 | 45 | 156.2 | 100% | 2.7 | 3.5 | AB |
@@ -732,6 +734,7 @@ Flags: OVER cinnabar (sim 23% of visible crystals; photos 0%, listings 0%); ABSE
 ### sunnyside_american_tunnel  ←  sunnyside   (sim 21 seeds; 51 photos; 216 listing mentions)
 ρ(sim visible-count, real) = 0.03 [5–95 % band: seeds -0.08 to 0.05, proxies -0.04 to 0.18, both -0.12 to 0.17; verdict differs in 0 / 0 / 0 % of resamples]   ρ(sim volume, real) = 0.05   ρ(sim surviving count, real) = -0.30   ρ(sim ≥ 0.1 mm count, real) = 0.18   ρ(≥ 1 mm counting enclosed crystals, real) = -0.06
 Verdict MEASURE-DEPENDENT: PARTLY with flagged crystals left out, DISAGREES with them counted.
+Knife-edges: ρ 0.0333 with flagged crystals left out, -0.0588 with them counted; the simulator's possible leads hold galena 1.16 % of the record. Joint bootstrap outcomes: DISAGREES 57.0 %; DISAGREES or PARTLY 24.5 %; PARTLY 18.5 %.
 Counting enclosed crystals too: verdict DISAGREES, sim top three galena, argentite, quartz.
 Visible = ≥ 1 mm and not flagged as enclosed by the simulator; "with flagged" adds the flagged ≥ 1 mm crystals; the largest crystal is the largest unflagged one.
 | species | sim crystals/vug | seeds with it | sim % of crystals | sim % of ≥0.1 mm | sim % of ≥1 mm | ≥1 mm per vug, unflagged / with flagged | sim % of volume | median largest mm | seeds with a ≥1 mm crystal | % of photos | % of listings | literature |
@@ -797,9 +800,9 @@ Visible = ≥ 1 mm and not flagged as enclosed by the simulator; "with flagged" 
 | azurite | 4.0 | 100% | 4.2 | 0 | 0 | 0.00 / 3.52 | <0.1 | — | 0% | 7.4 | 9.3 | AB |
 | malachite | 1.0 | 100% | 1.0 | 1.4 | 2.1 | 1.00 / 1.00 | 40 | 41.9 | 100% | 4.2 | 9.3 | AB |
 | dioptase (set aside: outside the scenario's scope) | 0.0 | 0% | 0 | 0 | 0 | 0.00 / 0.00 | 0 | — | 0% | 6.3 | 6.5 | AB |
-| mimetite | 1.2 | 100% | 1.2 | 1.4 | 2.1 | 1.00 / 1.00 | <0.1 | 3.4 | 100% | 5.5 | 5.3 | CO (S) |
+| mimetite | 1.2 | 100% | 1.2 | 1.4 | 2.1 | 1.00 / 1.00 | <0.1 | 3.4 | 100% | 5.5 | 5.3 | CO |
 | cuprite | 0.9 | 86% | 0.9 | 0 | 0 | 0.00 / 0.00 | <0.1 | — | 0% | 5.3 | 3.0 | CO (S) |
-| wulfenite | 1.0 | 100% | 1.0 | 1.4 | 2.1 | 1.00 / 1.00 | 1.7 | 15.6 | 100% | 4.6 | 3.0 | CO (S) |
+| wulfenite | 1.0 | 100% | 1.0 | 1.4 | 2.1 | 1.00 / 1.00 | 1.7 | 15.6 | 100% | 4.6 | 3.0 | CO |
 | duftite | 2.4 | 100% | 2.5 | 2.9 | 3.7 | 1.81 / 1.81 | <0.1 | 2.4 | 100% | 2.4 | 4.2 | AB |
 | dolomite | 0.0 | 0% | 0 | 0 | 0 | 0.00 / 0.00 | 0 | — | 0% | 0.9 | 5.0 |  |
 | native_copper | 0.0 | 0% | 0 | 0 | 0 | 0.00 / 0.00 | 0 | — | 0% | 3.3 | 2.0 |  |
@@ -811,9 +814,9 @@ Visible = ≥ 1 mm and not flagged as enclosed by the simulator; "with flagged" 
 | scorodite | 5.9 | 100% | 6.1 | 7.1 | 9.8 | 4.76 / 4.76 | <0.1 | 3.5 | 100% | 0.5 | <0.1 | RA |
 | brochantite | 5.0 | 100% | 5.2 | 7.1 | 10 | 5.00 / 5.00 | 3.3 | 11.4 | 100% | 0.2 | <0.1 |  |
 | pyromorphite | 6.0 | 100% | 6.3 | 8.6 | 9.8 | 4.76 / 4.76 | <0.1 | 1.7 | 100% | <0.1 | 0.1 | VR |
-| jarosite | 6.6 | 100% | 6.9 | 8.6 | 0 | 0.00 / 0.00 | <0.1 | 0.87 | 0% | <0.1 | <0.1 | Q (S) |
+| jarosite | 6.6 | 100% | 6.9 | 8.6 | 0 | 0.00 / 0.00 | <0.1 | 0.87 | 0% | <0.1 | <0.1 | Q |
 | vanadinite | 6.0 | 100% | 6.3 | 8.6 | 2.3 | 1.10 / 1.10 | <0.1 | 1.2 | 71% | <0.1 | 0 | VR (S) |
-| ferrimolybdite | 6.0 | 100% | 6.3 | 8.6 | 12 | 6.00 / 6.00 | 40 | 25.3 | 100% | 0 | 0 | ND (S) |
+| ferrimolybdite | 6.0 | 100% | 6.3 | 8.6 | 12 | 6.00 / 6.00 | 40 | 25.3 | 100% | 0 | 0 | ND |
 | powellite | 4.0 | 100% | 4.2 | 5.7 | 8.2 | 4.00 / 4.00 | 15 | 20.1 | 100% | 0 | 0 | VR |
 | stolzite | 4.7 | 100% | 4.9 | 5.4 | 7.0 | 3.38 / 3.52 | <0.1 | 2.9 | 100% | 0 | 0 | RA (S) |
 | plumbogummite | 3.3 | 100% | 3.4 | 4.2 | 5.0 | 2.43 / 2.43 | <0.1 | 1.8 | 100% | 0 | 0 | VR (S) |
@@ -1113,7 +1116,7 @@ Tied across the sim's third place: fluorite@elmwood (strict), calcite@elmwood (s
 | wittichen | skutterudite | 1.4% | AB | 2.1 | 0.01 | 0.06 | 0.01 | 0% |  |
 
 ## Crystals nucleated above the species cap
-max_nucleation_count limits the crystals of a species that are neither dissolved nor flagged as enclosed (js/85b-simulator-nucleate.ts:716), and a flagged crystal stops growing (js/85c-simulator-state.ts:2689), so every flagged or dissolved crystal frees a slot for a new one. 58 (scenario, species) pairs in the locality scenarios nucleate more crystals than their cap in at least one seed; in 49 of them more crystals end flagged than dissolved.
+max_nucleation_count limits the crystals of a species that are neither dissolved nor flagged as enclosed (js/85b-simulator-nucleate.ts:716), and a flagged crystal stops growing (js/85c-simulator-state.ts:2689), so every flagged or dissolved crystal frees a slot for a new one. 55 (scenario, species) pairs in the locality scenarios nucleate more crystals than their cap in at least one seed; in 47 of them more crystals end flagged than dissolved. The census counts crystals under their final species, so products formed in place are added back to their parent ("+"); "≥" marks a parent whose product also nucleates on its own, so its converted crystals are not in its count; not readable against a cap, because their counts mix their own nucleations with crystals formed in place: acanthite (from argentite), anhydrite (from selenite), selenite (from anhydrite), thenardite (from mirabilite).
 | scenario | species | cap | nucleated per vug | seeds above the cap | surviving per vug | flagged at the end, per vug | dissolved per vug |
 |---|---|---:|---:|---:|---:|---:|---:|
 | mvt | barite | 6 | 55.6 | 21 of 21 | 55.6 | 50.8 | 0.0 |
@@ -1125,7 +1128,7 @@ max_nucleation_count limits the crystals of a species that are neither dissolved
 | bisbee | atacamite | 4 | 8.1 | 21 of 21 | 8.1 | 4.1 | 0.0 |
 | searles_lake | celestine | 6 | 8.9 | 21 of 21 | 8.9 | 7.3 | 0.0 |
 | supergene_oxidation | scorodite | 5 | 7.6 | 20 of 21 | 5.9 | 0.9 | 1.8 |
-| sunnyside_american_tunnel | argentite | 4 | 6.4 | 16 of 21 | 6.4 | 5.0 | 0.0 |
+| sunnyside_american_tunnel | argentite | 4 | ≥ 6.4 | 16 of 21 | 6.4 | 5.0 | 0.0 |
 | supergene_oxidation | jarosite | 6 | 7.5 | 14 of 21 | 6.6 | 0.6 | 1.0 |
 | bisbee | chrysocolla | 5 | 6.2 | 12 of 21 | 6.2 | 1.2 | 0.0 |
 | epithermal_telluride | albite | 2 | 3.2 | 17 of 21 | 3.2 | 1.8 | 0.0 |
@@ -1144,15 +1147,12 @@ max_nucleation_count limits the crystals of a species that are neither dissolved
 | roughten_gill | hemimorphite | 3 | 3.6 | 4 of 21 | 3.6 | 0.6 | 0.0 |
 | gem_pegmatite | cassiterite | 4 | 4.5 | 7 of 21 | 4.5 | 0.5 | 0.0 |
 | bisbee | azurite | 4 | 4.5 | 9 of 21 | 4.0 | 4.0 | 0.4 |
-| roughten_gill | acanthite | 4 | 4.5 | 6 of 21 | 0.9 | 0.9 | 3.6 |
-| schneeberg | acanthite | 4 | 4.4 | 8 of 21 | 3.6 | 2.0 | 0.9 |
 | supergene_oxidation | aurichalcite | 4 | 4.4 | 9 of 21 | 3.8 | 3.8 | 0.6 |
 | mvt | greenockite | 5 | 5.3 | 5 of 21 | 5.3 | 0.3 | 0.0 |
 | sicily_solfifera | native_sulfur | 4 | 4.3 | 5 of 21 | 4.3 | 0.3 | 0.0 |
 | deccan_zeolite | albite | 2 | 2.3 | 5 of 21 | 2.3 | 0.3 | 0.0 |
 | sulphur_bank | cinnabar | 6 | 6.3 | 6 of 21 | 6.3 | 0.3 | 0.0 |
 | supergene_oxidation | plumbogummite | 3 | 3.3 | 4 of 21 | 3.3 | 0.3 | 0.0 |
-| bisbee | acanthite | 4 | 4.2 | 5 of 21 | 4.2 | 3.9 | 0.0 |
 | roughten_gill | cerussite | 4 | 4.2 | 3 of 21 | 4.2 | 1.3 | 0.0 |
 | schneeberg | native_arsenic | 4 | 4.2 | 6 of 21 | 2.0 | 2.0 | 2.3 |
 | supergene_oxidation | cerussite | 4 | 4.1 | 3 of 21 | 4.1 | 0.1 | 0.0 |
@@ -1161,6 +1161,7 @@ max_nucleation_count limits the crystals of a species that are neither dissolved
 | bisbee | alunite | 5 | 5.1 | 2 of 21 | 1.2 | 1.2 | 3.9 |
 | jeffrey_mine | brucite | 4 | 4.1 | 6 of 21 | 4.1 | 0.8 | 0.0 |
 | schneeberg | cobaltite | 4 | 4.1 | 6 of 21 | 2.4 | 2.3 | 1.7 |
+| searles_lake | borax (+ tincalconite) | 8 | 8.1 | 2 of 21 | 8.0 | 0.0 | 0.1 |
 | deccan_zeolite | pectolite | 4 | 4.0 | 1 of 21 | 4.0 | 0.0 | 0.0 |
 | grimsel_alpine_cleft | apatite | 6 | 6.0 | 1 of 21 | 6.0 | 0.0 | 0.0 |
 | tormiq_alpine_cleft | actinolite | 4 | 4.0 | 1 of 21 | 4.0 | 0.0 | 0.0 |
@@ -1170,7 +1171,6 @@ max_nucleation_count limits the crystals of a species that are neither dissolved
 | supergene_oxidation | duftite | 3 | 2.4 | 1 of 21 | 2.4 | 0.4 | 0.0 |
 | schneeberg | cassiterite | 4 | 3.3 | 2 of 21 | 3.3 | 0.4 | 0.0 |
 | sulphur_bank | pyrite | 3 | 2.2 | 2 of 21 | 1.9 | 0.9 | 0.4 |
-| searles_lake | thenardite | 10 | 8.7 | 3 of 21 | 4.7 | 0.0 | 4.0 |
 | supergene_oxidation | raspite | 4 | 2.5 | 2 of 21 | 2.5 | 0.2 | 0.0 |
 | roughten_gill | chalcopyrite | 5 | 3.3 | 3 of 21 | 3.3 | 3.0 | 0.0 |
 | jeffrey_mine | wollastonite | 4 | 1.9 | 2 of 21 | 1.9 | 1.0 | 0.0 |
@@ -1182,6 +1182,7 @@ bootstrap over seeds: median width of the 5–95 % band 0.02; verdict differs in
 bootstrap over proxies: median width of the 5–95 % band 0.17; verdict differs in ≥ 20 % of resamples: ouro_preto (61 %), epithermal_telluride (36 %)
 bootstrap over both: median width of the 5–95 % band 0.18; verdict differs in ≥ 20 % of resamples: ouro_preto (66 %), epithermal_telluride (36 %)
 Monte-Carlo spread of the joint bootstrap (bootstrap seeds 0, 1, 2, 3): median band width 0.18 / 0.19 / 0.17 / 0.19; verdict differs in ≥ 20 % of resamples under any seed: ouro_preto (57–66 %), epithermal_telluride (33–37 %)
+TIE- and MEASURE-DEPENDENT verdicts in the joint bootstrap — share of resamples where every reading is DISAGREES / every reading is PARTLY / the readings split: gem_pegmatite 90.0 / 6.5 / 3.5 %; reactive_wall 58.5 / 0.0 / 41.5 %; sunnyside_american_tunnel 57.0 / 18.5 / 24.5 %
 counting flagged ≥ 1 mm crystals as visible: median ρ -0.06; verdict changes in 1 (sunnyside_american_tunnel: PARTLY → DISAGREES); sim top three changes in 6 (bisbee, ouro_preto, porphyry, schneeberg, sunnyside_american_tunnel, wittichen)
 
 ## Sensitivity of the verdicts to the method's choices
@@ -1189,7 +1190,7 @@ Reported: ρ over the species present on at least one side, a source votes with 
 - counting the species absent from both sides in ρ, as rounds 1–4 did: median ρ 0.02 over 26 scored scenarios; verdict changes in 1 — deccan_zeolite: DISAGREES → PARTLY
 - a source votes with ≥ 10 observations: median ρ -0.04 over 26 scored scenarios; verdict changes in 1 — great_salt_plains: THIN → MEASURE-DEPENDENT (DISAGREES or PARTLY)
 - a source votes with ≥ 30 observations: median ρ -0.03 over 23 scored scenarios; verdict changes in 3 — asbestos_hills_crack_seal: DISAGREES → THIN; asbestos_hills_surficial_alteration: DISAGREES → THIN; ultramafic_supergene: DISAGREES → THIN
-- listings counted only for the species a title names first (removes the classifier's secondary routes): median ρ -0.15 over 26 scored scenarios; verdict changes in 2 — gem_pegmatite: TIE-DEPENDENT (DISAGREES or PARTLY) → DISAGREES; sunnyside_american_tunnel: MEASURE-DEPENDENT (DISAGREES or PARTLY) → DISAGREES
+- lead species only — listings counted only for the species a title names first; a bound, not a test of the title classifier: it drops every species named after the first, legitimate associates as well as misread ones: median ρ -0.15 over 26 scored scenarios; verdict changes in 2 — gem_pegmatite: TIE-DEPENDENT (DISAGREES or PARTLY) → DISAGREES; sunnyside_american_tunnel: MEASURE-DEPENDENT (DISAGREES or PARTLY) → DISAGREES
 - the set-aside species (OUT_OF_CLAIM) removed from their scenario's record: median ρ -0.05 over 26 scored scenarios; verdict changes in 0
 (scenario, species) pairs in the scored scenarios with the same count in all 21 seeds: visible 178 of 306, surviving 156 of 306
 ≥ 1 mm crystals in the locality scenarios, all seeds: 11151, of which 1089 (9.8 %) are flagged as enclosed

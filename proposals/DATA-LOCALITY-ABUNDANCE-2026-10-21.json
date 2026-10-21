@@ -2057,7 +2057,8 @@
      "selenite": {
       "class": "AB",
       "src": "GR07",
-      "status": "V"
+      "status": "V",
+      "note": "the scenario's Cueva de los Cristales is sealed; the photographed and listed selenite comes from the mine and the Cave of Swords (showcaves.com, review round 6) — kept in scope as the cave's own mineral: the scope rule tests presence, not specimen provenance"
      },
      "celestine": {
       "class": "UN-crust",
@@ -2193,7 +2194,7 @@
    "literature": {
     "sources": {
      "GCR36": "Young, ch. 3 in Bevins, Young, Mason, Manning & Symes 2010, Mineralization of England and Wales, GCR Series 36 (JNCC, Open Government Licence): 'the main sulphide ore minerals are galena and sphalerite'; gangue 'barite, locally with abundant witherite, and fluorite'; 'quartz is abundant in the Alston Block' [research pass, VERIFIED-f]",
-     "NPA10": "North Pennines AONB geodiversity audit 2010 — fluorite in the central zone, barium minerals outside it [research pass, VERIFIED-f]",
+     "NPA10": "North Pennines AONB geodiversity audit 2010 — fluorite in the central zone, barium minerals outside it [research pass, VERIFIED-f] — the outer zone \"includes much of the Nent Valley\" (search text quoted by review round 6; the GeoGuide copy returned 502), so the Alston Moor page spans both zones",
      "DGA04": "Lawrence, Vye & Young 2004, Durham Geodiversity Audit — witherite the most abundant Ba carbonate [research pass, VERIFIED-f]"
     },
     "species": {
@@ -3511,9 +3512,10 @@
       "status": "V"
      },
      "albite": {
-      "class": "AB",
-      "src": "L98,HL18",
-      "status": "V"
+      "class": "CO",
+      "src": "HL18",
+      "status": "V",
+      "note": "Hu & Lu 2018: \"Albite, muscovite, and tourmaline (schorl) are commonly associated as matrix\" — Gilgit-Baltistan aquamarine generally; Laurs et al. 1998 Table 1 does not list albite among the commodities (was AB on both; review round 6)"
      },
      "feldspar": {
       "class": "AB",
@@ -4511,7 +4513,7 @@
       "class": "AB",
       "src": "TMN",
       "status": "V",
-      "note": "Very common (TSNB66; confirmed by review round 5); no sim crystal"
+      "note": "Very common (TSNB66; confirmed by review round 5); \"Collectable calcites were commonly encountered at depth\", \"somewhat less common in the upper levels\" (review round 6) — present in the first oxidation zone, so it stays in the scenario's scope; no sim crystal"
      },
      "dioptase": {
       "class": "AB",
@@ -4539,12 +4541,14 @@
      "mimetite": {
       "class": "CO",
       "src": "TMN",
-      "status": "S"
+      "status": "V",
+      "note": "Common (TSNB241), found in all three oxidation zones (confirmed by review round 6)"
      },
      "wulfenite": {
       "class": "CO",
       "src": "TMN",
-      "status": "S"
+      "status": "V",
+      "note": "Common (TSNB375); \"By far the best Tsumeb wulfenite specimens were recovered from the second oxidation zone\" (confirmed by review round 6)"
      },
      "conichalcite": {
       "class": "CO",
@@ -4602,14 +4606,14 @@
      "jarosite": {
       "class": "Q",
       "src": "TMN",
-      "status": "S",
-      "note": "Questionable"
+      "status": "V",
+      "note": "Questionable (TSNB185): \"there is no record of jarosite in the peer-reviewed literature\" (confirmed by review round 6)"
      },
      "ferrimolybdite": {
       "class": "ND",
       "src": "TMN",
-      "status": "S",
-      "note": "no species entry"
+      "status": "V",
+      "note": "no species entry: TSNB130 (ferrilotharmeyerite) is followed directly by TSNB131 (fleischerite) in the alphabetical numbering (confirmed by review round 6)"
      },
      "raspite": {
       "class": "ND",
