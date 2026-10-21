@@ -643,9 +643,10 @@
       "note": "anthraxolite; no engine"
      },
      "calcite": {
-      "class": "CO",
+      "class": "doc",
       "src": "H",
-      "status": "V"
+      "status": "V",
+      "note": "three calcite events in the district sequence, with no abundance word against the other species (was CO; review round 4)"
      },
      "pyrite": {
       "class": "CO",
@@ -870,9 +871,10 @@
       "status": "V"
      },
      "goethite": {
-      "class": "ND",
-      "src": "S74,O22",
-      "status": "V"
+      "class": "RA",
+      "src": "O22",
+      "status": "V",
+      "note": "Ottens et al. 2022 (p. 26) report goethite as crystals up to 2 mm near Sinnar/Mohadari (wording quoted by review round 4); absent from Sukheswala et al. 1974 (was ND)"
      },
      "albite": {
       "class": "RA",
@@ -4488,8 +4490,8 @@
      "cerussite": {
       "class": "AB",
       "src": "TMN",
-      "status": "S",
-      "note": "Very common"
+      "status": "V",
+      "note": "Very common (TSNB74; confirmed by review round 4)"
      },
      "malachite": {
       "class": "AB",
@@ -4567,14 +4569,14 @@
      "descloizite": {
       "class": "RA",
       "src": "TMN",
-      "status": "S",
-      "note": "Very rare"
+      "status": "V",
+      "note": "Very rare (TSNB104; confirmed by review round 4)"
      },
      "pyromorphite": {
       "class": "VR",
       "src": "TMN",
-      "status": "S",
-      "note": "Extremely rare"
+      "status": "V",
+      "note": "Extremely rare (TSNB293; confirmed by review round 4)"
      },
      "vanadinite": {
       "class": "VR",

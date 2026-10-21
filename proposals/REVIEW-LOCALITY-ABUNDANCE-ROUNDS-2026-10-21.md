@@ -422,3 +422,154 @@ each landed, where the outcome differs from the reviewer's expectation:
   Creek 34–39 %, the barite cavity 24–34 %), and Roughton Gill reaches 21 % once.
 - **F2:** with exposed counts, 20 of the 36 cases hold by visible count (Bingham's bismuthinite joins,
   because the headline median dropped), 7 by volume.
+
+---
+
+## Round 4 of 5 — 8/10 (reviewed commit 0c6babd3)
+
+### Locality-abundance review: round 4 of 5
+
+**Score: 8/10.** Round 3's fixes reproduce as described: the tool re-runs (6.9 s) with byte-identical
+output and the appendix from line 3 equals `compare.md`; the header hashes match (86e89c0f…,
+4b70e7ed…, 5189d9b7…, 5d355644…); census v1 and v2 agree in every shared field of all 861 runs
+(7,346 species entries, 0 mismatches); the committed captures reproduce the hashes recorded since
+69ebf04f; about 80 numbers in §1–§7 match `compare.json`. The headline holds: no locality agrees
+outright, the strict gate is a count lever (0/11 against 23/27), and minor phases out-number headline
+phases. But both of round 3's interpretive fixes added claims that don't survive a look at the code
+and the scenario files: "sealed" is not overgrowth — it is the simulator's lateral-footprint flag,
+and at Tsumeb and Bingham the "sealing" hosts are the over-grown molybdate crusts 10–35 mm away; and
+the scope rule runs one way only — all 14 "never forms" species sit outside their scenario's own
+species lists, which is exactly what the four set-asides were removed for. There is also one wrong
+citation and three wrong numbers.
+
+#### MUST-FIX
+
+1. **"Sealed inside other crystals" is a lateral-overlap flag, presented as physical overgrowth**
+   (review §1, §2.1, §4.1, §4.3, §5.2–§5.4, §8 step 6). `enclosed_by` is set in `_check_enclosure`
+   (`js/85c-simulator-state.ts:2433–2696`): an active host that grew this step is more than 3× the
+   guest's size; the guest has stalled (under 3 µm over its last three zones); the two are "adjacent" —
+   substrate-linked, or the guest's anchor lies inside the host's painted footprint, whose half-width
+   is size × wall_spread × 4 / 2 (`js/22-geometry-wall.ts:3015–3026`). No envelopment test exists; the
+   code calls the flag "a convenient rendering/topology projection" (`js/21-enclosure-authority.ts:4`),
+   and the renderer shows inclusions through translucent hosts (`js/99i-renderer-three.ts:8199–8205`).
+   The reviewer's probe (25 runs: porphyry, Sunnyside, Great Salt Plains, Ouro Preto, Roughton Gill,
+   Schneeberg, Wittichen at seeds 1, 2, 42; Tsumeb 1, 2, 42; Bisbee 42): 108 of the 111 enclosed
+   crystals ≥ 1 mm are `geometric-overlap`; median anchor distance about 21 mm (range 0–76; 80 of 103
+   ≥ 10 mm); 72 of the 98 classified hosts are surface-growth aggregates. Tsumeb smithsonite (3 of 3)
+   and azurite (12 of 12) are flagged by ferrimolybdite "powdery crust" or powellite
+   "pulverulent_crust" 0–34 mm away; Bingham pyrite by a ferrimolybdite powdery crust 22 mm away;
+   Sunnyside argentite (6 of 6) by a 73 mm botryoidal manganocalcite crust 15–35 mm away; Great Salt
+   Plains halite (10 of 10) by transparent selenite desert roses 12–48 mm away. So both "sealed" fate
+   slots and all three sealed dust cases come from the molybdate crusts §5.2 and §8 step 4 already call
+   over-produced; "a later crystal overgrows it" is wrong; step 6's open question is answered and
+   belongs with step 4; §5.2's "25 mm and 20 mm crystals" are crusts; Sunnyside's PARTLY rests on the
+   flag (counting flagged crystals gives DISAGREES, ρ −0.01), and so does the Great Salt Plains "What
+   holds" sentence. Fix: describe the flag as the code defines it and name the hosts; report
+   Sunnyside as depending on the measure; qualify the Great Salt Plains sentence; fold "sealed" into
+   step 4's molybdates; send the enclosure rule's lateral reach to the boss as a simulator finding; add
+   the ferrimolybdite and powellite crusts — the simulator's #1 visible species at Bingham and Tsumeb —
+   to §7's aggregate caveat.
+2. **The scope rule runs only one way, and its wording doesn't tell the set-asides apart from the
+   slots it keeps.** None of the 14 "never forms" slots is in its scenario's species lists: 9 are not
+   listed at all (calcite at Ametista, Herkimer, Naica and Tsumeb; chalcopyrite at Viburnum; quartz in
+   the reactivated vein; aragonite in Sicily; zeunerite at Wittichen; chalcedony at Marlborough) and
+   5 are `aspirational_species` with written reasons saying the commissioned seeds produce none
+   (Cripple Creek fluorite, Mogok ruby, Ouro Preto hematite, Viburnum calcite — "does not claim discrete
+   free-grown crystals of either" — and Shigar aquamarine). All 55 slots that do form are listed (49
+   expects, 6 deterministic). What really separates the set-asides is a spatial argument — the record
+   comes from another part of the deposit — and the four set-asides are just as unlisted; the argument
+   was applied only to failures. Cripple Creek native gold is "CO-oxidized" in the data file, and §5.3's
+   own Lindgren & Ransome quote says it is absent from telluride ore except by oxidation, yet it is
+   scored "in the sim top three"; tn457 has all three slots set aside yet still counts among the 18
+   DISAGREES and the fragile verdicts. Consequences: "never forms 14 ≈ dust 15" depends on an unstated
+   rule (applied as worded, never forms is 0 and dust the largest class), and §4.1(a)'s diagnosis
+   leaves out that these scenarios never asked for these species. Fix: state the spatial rule and apply
+   it both ways (set aside or justify native gold; take tn457 out of the tally, 17 DISAGREES); show each
+   never-forming slot's contract status; start step 3 with the boss's per-scenario contract decision —
+   the July rule "never edit expects_species to accept the no-show" applies.
+3. **Deccan: Ottens et al. 2022 does report goethite** — "goethite as crystals up to 2 mm near
+   Sinnar/Mohadari" (p. 26). Pectolite is named only for the Watchung basalts, so "absent from both
+   studies" holds for pectolite alone. Fix: goethite RA (documented); reword.
+4. **Stale or wrong numbers.** §2.3's "49 … not V — 46 S and 3 R (18 %)" is 47 (17 %) after round 3
+   raised two Searles classes; §8 step 5's "6 times in 13" should be 6 in 11; §5.2's "The two 'Very
+   common' species the simulator does grow are hidden" — it grows five of the seven (cerussite 3.95 per
+   vug, malachite 1.0 and duftite 1.81 are visible): "two of the five".
+
+#### SHOULD-FIX
+
+- Credit the existing locality-frequency contract (`tools/locality-frequency-contract.mjs`,
+  `tests-js/baselines/locality_frequency_v285.json`: presence over seeds 1, 2, 42, deciding the
+  expects / deterministic / aspirational tiers); §2.1's "one draw" and §8 step 1 should build on it.
+- Herkimer calcite "CO" (source H) is generous: three calcite events in the district's sequence, no
+  abundance against other species; the slot is 0.94 % of the record and passes FATE_FLOOR only on this
+  class. Mark it "doc" (never forms → 13) or say so.
+- Tsumeb: raise pyromorphite, descloizite and cerussite from S to V (checked below).
+- §8 step 3 lists 9 of the 14 (it omits reactivated-vein quartz, Ouro Preto hematite, zeunerite,
+  Marlborough chalcedony, Mogok ruby) and adds dioptase and dolomite, which are not fate slots, without
+  saying so.
+- "What holds": Tormiq's titanite leads the record but is third in the simulator; "in both top threes"
+  is accurate, "lead on both sides" is not.
+
+#### Literature spot-checks (none checked by earlier rounds)
+
+- Proctor 1985, G&G 21(2):86–104, p. 90 — supported: the core-margin pocket zone holds lepidolite,
+  milky quartz, microcline and albite, and its pockets frequently yield superb gem tourmaline;
+  cassiterite is among the rarer accessories; gem tourmaline goes with albite, not microcline.
+- Sauer, Keller & McClure 1996, G&G 32(4):232–241, p. 234 — supported: topaz in kaolinite with quartz,
+  mica and specular hematite; sometimes rutile, rarely euclase.
+- US FWS 2002 selenite brochure (web archive) — supported: "Exceptional individual crystals measuring
+  up to seven inches long"; clusters to 38 lb; the crystals form just below the salt crust.
+- Ottens et al. 2022, Minerals 12:444 — contradicts the goethite claim (MUST-FIX 3); fluorapophyllite
+  among the most common minerals supports the apophyllite CO class.
+- Hoisington, herkimerhistory.com — partly supported: dolomite rhombs the most common feature; calcite
+  gets no abundance word.
+- Harvard Tsumeb Mineral Notes — supported: pyromorphite TSNB293 "Extremely rare" (Confirmed),
+  descloizite TSNB104 "Very rare", cerussite TSNB74 "Very common".
+- GCR 36, Roughtongill — not opened (HTTP 502 twice, as in round 3); a search summary words the key
+  sentence differently, so the quote in §5.2 is still unverified by anyone.
+
+#### Round 3's must-fix items: status
+
+1. "Visible" included enclosed crystals — implemented (census v2 fields; full re-run, shared fields
+   identical; v2 internally consistent, 0 violations; 1,089 of 11,151 reproduces); the meaning of the
+   measure is wrong (MUST-FIX 1). 2. Out-of-claim slots — implemented (14/15/2/9/6/23 reproduce); the
+   rule runs one way (MUST-FIX 2). 3. Bimbowrie market-wide — done (`market_wide` flag, `useEbay`
+   excludes it, THIN, rests on Teale). Should-fixes: lifetime caps (17 species in 16 functions) match a
+   grep of every `total_<m>` line; todorokite (`js/87:172`, `js/75:379`) and the CaSO₄ replacement
+   (`js/75:262`) confirmed; Monte-Carlo bands 0.19 / 0.22 / 0.21 / 0.22 as stated; literature
+   corrections present apart from §2.3's count.
+
+#### What is solid
+
+Tool output, appendix and hashes reproducible; determinism holds; the provenance check works (every
+data-file count is checked against the capture). All 33 scoreboard rows match, as do the §4 tables
+and the §5 and §7 values (including Roughton Gill chalcocite 80 % flagged, Bisbee jarosite and
+acanthite 97 % and 95 %, 26.2 % of crystals under 0.1 mm). Data totals correct (36 pages, 6,736
+photographs; 72 searches, 15,190 listings, 9,822 families). Wurtzite and enargite never nucleate, so
+"22 form somewhere" holds. The strict-gate finding survives MUST-FIX 1: counting enclosed crystals,
+both sealed strict slots become "visible, outside the top three", and strict stays at 0 by count.
+
+**Response:** every MUST-FIX and SHOULD-FIX item is addressed; the review's §9 lists the changes. Where
+the outcome differs from the reviewer's expectation:
+- **The flag.** Confirmed in the code (`js/85c-simulator-state.ts:2433–2696`; the footprint arc at
+  `js/22-geometry-wall.ts:3015`). Recomputed from the probe's saved outputs: 98 flagged crystals ≥ 1 mm,
+  95 by footprint overlap, median 21 mm from the host's anchor (0–76), 75 at 10 mm or more, 72 hosts
+  surface-growth aggregates (the reviewer's 111 / 103 include runs whose output was not saved). The
+  review keeps the unflagged count as its reference — it is the simulator's own state — but works every
+  verdict out both ways: Sunnyside is MEASURE-DEPENDENT (PARTLY or DISAGREES) and no other verdict
+  changes. The new §4.4 sets out the flag and its hosts, and §8 step 6 puts its sideways reach to the
+  boss.
+- **Scope, both ways.** The rule is stated and applied to every slot. It sets aside one success —
+  Cripple Creek's native gold, which the scenario (a primary telluride vein) does not model where the
+  record has it (oxidized ore) — and makes the North Pennines barite cavity OUT OF SCOPE (17
+  DISAGREES). With Herkimer calcite lowered to "documented" (the floor now sets it aside), the fate
+  table has 67 slots: never forms 13 (8 not listed, 5 aspirational), dust 15, flagged 2, outranked 9,
+  tied 6, top three 22. "Never forms ≈ dust" holds under the stated rule, and every slot's contract
+  status is shown. The conditional test is 0/11 strict against 22/26 for the rest (6/11 against 19/26
+  by volume).
+- **Verdict tally:** 0 AGREES, 6 PARTLY, 17 DISAGREES, 2 TIE-DEPENDENT, 1 MEASURE-DEPENDENT, 1 OUT OF
+  SCOPE, 3 NO VISIBLE CRYSTALS, 3 THIN. With Sunnyside measure-dependent and the barite cavity out of
+  scope, two verdicts change in ≥ 20 % of proxy resamples (Ouro Preto, Cripple Creek), under every
+  bootstrap seed.
+- **Literature status:** with round 4's three Tsumeb confirmations, 44 of 278 classes are not V (41 S,
+  3 R; 16 %).
