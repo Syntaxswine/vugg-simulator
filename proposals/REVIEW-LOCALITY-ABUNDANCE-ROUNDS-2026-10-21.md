@@ -110,3 +110,145 @@ lists what changed. Two figures in the revision differ slightly from the reviewe
 the revised tool gives 10/12 for the soft class's conditional (the reviewer's 10/13), and 72 of 92
 strict pairs at ≤ 1.25 crystals per vug (the reviewer's "about 1" band gave 82). The revision quotes the
 tool's figures.
+
+---
+
+## Round 2 of 5 — 7/10 (reviewed commit 702f9e43)
+
+### Locality-abundance review: round 2 of 5
+
+**Score: 7/10.** Round 1's must-fix items are fixed in substance, and about 90 numbers re-checked
+against the regenerated appendix match. The headline still holds: the ratios don't match, never-firing
+engines are the largest failure class, and strict gates pin species counts at about one. Four
+problems need fixing before this goes to the boss: the tool's gate taxonomy is misclassified; a
+tie-break leaks the real ranking into the simulator's top three and moves two verdicts; the
+uncertainty claim overreaches; two F2 counts in §1 are wrong.
+
+The reviewer re-ran `node tools/locality-abundance-compare.mjs`: its `compare.md` equals the appendix
+after the header comment, and the header hashes match (runs.jsonl `1f44838c…`, data `5c825fbe…`,
+dictionary `5d355644…`). No worktree files were modified.
+
+#### MUST-FIX
+
+1. **`gateKind` files 25 fleet species as "cap-only" when they are gated** (tool:337–339). The regexes
+   only match variables named `existing_<suffix>`; 32 `_nuc_` functions use a plain `existing` with
+   the same soft gate — e.g. epidote, `if (!existing.length || (sigma > 2.0 && rng.random() < 0.20))`
+   (`js/89-nucleation-silicate.ts:805`); also titanite :834, grossular :866, diopside :893,
+   vesuvianite :927, stilbite :998, heulandite :1025, andalusite :346, chalcedony :44, tigers_eye
+   :670 and the amphiboles (`js/89a:35–121`). Strict gates filed as cap-only: goethite
+   (`js/84:22–25`, `ordinaryBirthAllowed = !existing_goe_active.length`) and enargite (`js/91:566`,
+   `if (existing.length) return;`). Corrected: fleet species strict / soft / cap-only 22 / 54 / 55
+   (tool 21 / 30 / 80); real top-three slots 28 / 41 / 6 (28 / 25 / 22); P(in sim top three |
+   visible) soft 21/24 (10/12), cap-only 4/5 (15/17); sim top-three slots soft / cap-only 40 / 36
+   (26 / 50). What survives: all 21 tool-strict matches are genuine, so strict stays 2/13 and the
+   strict-versus-rest contrast holds. Round 1 missed it because none of its 12 spot-checked species
+   uses a plain `existing`.
+2. **Sim-side ties are broken by the real ranking.** `top()` (tool:209) stable-sorts rows already
+   sorted by real share (tool:206), so species with equal simulator shares keep the record's order.
+   Two verdicts depend on it: Viburnum (galena and sphalerite tied at 1.00 visible per vug;
+   sphalerite's real share 0.33 %) and Cruzeiro (albite and feldspar tied at 1.90; feldspar 0.33 %).
+   With a reverse-alphabetical tie-break both become DISAGREES: 21 disagree / 6 partly instead of
+   19 / 8. Both strict "in the sim top three" slots are Elmwood ties (fluorite, calcite and sphalerite
+   all at 1.00); counting ties as in, strict is 4/13 against 25/29 for the rest. Fix: a tie-aware
+   rule, with the ties disclosed.
+3. **"Verdicts are stable … Cruzeiro, the one unstable verdict" overclaims.** The bootstrap resamples
+   seeds only. Resampling the photographs and listing mentions too (multinomial, simulator fixed)
+   gives a median band of 0.18 against 0.02, and six verdicts flip in at least 28 % of resamples:
+   Sunnyside 51 %, Cruzeiro 41 %, Cripple Creek 34 %, Ouro Preto 33 %, tn457 32 %, Viburnum 28 %
+   (indicative: each photograph and mention is treated as independent). The seed bands are narrow
+   because 183 of 355 (scenario, species) pairs (52 %) have identical counts in all 21 seeds, which
+   the document never says; several points sit at the edge of their own band (Searles −0.13
+   [−0.40, −0.13]).
+4. **F2 counts are wrong in §1, §4.2 and §5.2.** "Twenty-one species … eight also out-weigh them in
+   volume" is 21 cases covering 19 species; only 7 of them also hold by volume (the 8th volume case,
+   Sunnyside tennantite, fails the visible test). Roughton Gill's mottramite is a false positive: "the
+   scenario's trace V is specifically retained for this phase" — the trace is the vanadium. Corrected:
+   37 cases, 20 holding by visible count, "trace" 3; §5.2's "'trace' in its own reason" is a misreading.
+
+#### SHOULD-FIX
+
+- Gate definitions (§4.1): soft rolls are 15–30 % at σ 1.4–2.5, not "~30 % at σ > ~2"; most
+  "cap-only" functions also cap active crystals (`existing.length >= 2…5`; Wittichen skutterudite and
+  safflorite at 2), so "max_nucleation_count is the only bound" is false.
+- §8 step 5: quartz is soft-gated, so the "swarm calcite and quartz" trap doesn't apply to it; "21
+  strict gates" should be at least 24 functions; "(F1b's mechanism)" collides with F1b, the
+  documentation drift.
+- §1 "the gate decides its rank" holds for count rank only: by volume strict species reach the sim
+  top three 6/13 against 20/29, because the gate concentrates mass in one crystal (Bisbee malachite
+  43 %, Tri-State calcite 94 % of volume).
+- §4.1(a) says 20 but names 19: quartz in reactivated_fluorite_vein is missing.
+- §3 omits two bands that differ from the point value: Colorado −0.19 [−0.19, −0.18], Asbestos
+  surficial 0.10 [0.07, 0.11].
+- §4.3: Wittichen barite also reaches 1 mm, in 3 of 21 seeds.
+- §7 micromount ρ: no committed tool produces these figures; the reviewer's n_01 reproduction gives
+  Tsumeb −0.68 (doc −0.63), Schneeberg −0.43 (−0.42), Wittichen −0.56, Roughton −0.10. The direction
+  holds; the computation belongs in the tool.
+- §2.3 "a few classes … mindat snippet": 46 classes are S and 3 R (18 % of 278); 21 of the S are
+  Tsumeb's Harvard ratings, which §5.2 states as fact (only smithsonite and scorodite were read, V);
+  §5.2's phrasing also tags anglesite "Extremely rare" by juxtaposition, though its rating is "Common".
+- §5.3 Sunnyside: Guzman et al. write "Aikinite, bornite, and tetrahedrite are locally abundant", and
+  Burbank 1933 (per the data file) "a little tetrahedrite"; tetrahedrite is the usual silver carrier.
+  Reword "no silver mineral is named" to "no argentite/acanthite"; the argentite finding stands.
+- Wording: Cruzeiro and Ouro Preto leave out their visible quartz (30 % and 25 % of visible
+  crystals); Grimsel's "leaders" are ranked by surviving count while §3 ranks by visible count
+  (epidote is 0.81 visible per vug there); Deccan's "78 % of the volume" is quartz alone.
+
+#### Literature spot-checks (none checked in earlier rounds)
+
+- Kane & Kammerling 1992 — real, supported: the quote is verbatim in a map caption, and
+  washing-plant production backs it (spinel 8,054 ct against ruby 7,471 ct). Mogok's "calcite AB"
+  refers to the host marble, not cavity crystals.
+- Keller 1983 — real, supported: "The potassium feldspar is now totally altered to kaolinite"
+  (p. 15) and "900 tons … about 9 kg" a day (p. 17) verbatim.
+- Ross 1940 (USGS Bull. 922-L) — real, supported: cinnabar "the most abundant metallic mineral in
+  both districts" (p. 338; the claim covers the two districts together), the opal replacement and the
+  sulphur quarry (p. 340) verbatim; orpiment and realgar absent, as the document says.
+- Guzman et al. 2024 — real; both quotes verbatim (see the tetrahedrite note).
+- Petersen 1868 (Poggendorff's Ann. 134) — real, supported: "Vorherrschend sind: Speiskobalt …
+  Erdkobalt … Gediegen Silber", Kobaltblüthe "sehr häufig", "Pharmakolith nicht selten" and the
+  barite vein fill verbatim; Petersen relays Vogelgesang's list.
+- Phillips et al. 2005 — real, partly supported: Porter (ed.) 2005, v. 1, pp. 243–257; the abstract
+  supports the main-stage list and molybdenite in quartz veins; the ">50 % of the rock" figure could
+  not be checked (full text paywalled).
+- Laurs et al. 1998 — real, Table 1 not verified: Can. Mineral. 36:1–47, on Stak Nala; the RRUFF copy
+  sits behind a human-check page, which the reviewer did not try to bypass.
+
+#### Round 1's must-fix items: status
+
+All ten done: fate table and conditional test (soft / cap-only numbers wrong — MUST-FIX 1); §4.1
+numbers and classes (goethite and enargite missing); transformation products; F2 dust (§1 counts off —
+MUST-FIX 4); dust criterion; internal contradictions; Tsumeb paragraph; Deccan 612 / 599; count vs
+volume; small factual errors.
+
+#### What is solid
+
+- Census: the seed-42 counts independently re-checked against `seed42_v285` (all 351 entries
+  match); the 26.2 % under 0.1 mm and the 580 zero-size nuclei check.
+- Bootstrap mechanics correct: reimplemented, every band reproduced exactly.
+- The §3 rows, the §4.3 dust table and about 60 §5 numbers match `compare.json`.
+- Code citations correct: `82:36`, `_AIR_MODE_NUCLEATION_PROB` = 0.06, `75-transitions:95–100` and
+  `474`, `15-version:12956`; the `minerals.json:14` vs `85b-simulator-nucleate:716` drift confirmed.
+- All 20 never-forming slots genuinely never nucleate (n_total = 0 in every seed) — none is
+  nucleate-then-dissolve.
+- July-review cross-references accurate (that document's lines 130–132, 140, 175–176, 188–190).
+- §8 facts: ludlockite 20 vs anglesite 12 photos, anhydrite cap 8 with a 16 % roll, quartz in 19
+  scenarios.
+
+**Response:** every MUST-FIX and SHOULD-FIX item is addressed; the review's §9 lists the changes. Where
+the revised tool's figures differ from the reviewer's scratch scripts, the revision quotes the tool,
+and the differences have known causes:
+- The gate reader now also reads the beryl and corundum selector loops and the Mn-oxide helper (all
+  soft) and splits out an active-capped class: the fleet is 22 strict / 55 soft / 10 active-capped /
+  46 cap-only / 5 transformation.
+- Ties are reported, not broken: Viburnum and Cruzeiro are TIE-DEPENDENT (DISAGREES or PARTLY)
+  rather than DISAGREES. The real side's own ties (Grimsel's epidote or rutile, Schneeberg's eulytine
+  or native silver) are set aside, so the fate table has 76 slots, and P(top three | visible) is 0/13
+  strict, 20/23 soft, 4/5 cap-only and 24/28 for every gate but strict (6/13 against 20/28 by volume).
+- The proxy bootstrap gives a median band of 0.17 (proxies alone) and 0.20 (with the seeds). With the
+  TIE-DEPENDENT verdicts reported as such, four verdicts change in ≥ 20 % of joint resamples
+  (Sunnyside 53 %, Ouro Preto 40 %, Cripple Creek 39 %, tn457 30 %).
+- The identical-in-every-seed count is 180 of 311 pairs, counted over the 28 scored scenarios.
+- F2 is 36 cases, 19 by visible count: besides mottramite, the author set aside Schneeberg's quartz,
+  whose "accessory" is a contract role in a reason that calls it "fundamental vein and pegmatite
+  gangue".
+- The tool's micromount ρ is Tsumeb −0.63, Schneeberg −0.42, Wittichen −0.56, Roughton −0.10.

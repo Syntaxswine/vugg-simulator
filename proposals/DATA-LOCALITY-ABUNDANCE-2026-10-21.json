@@ -2553,7 +2553,7 @@
    },
    "literature": {
     "sources": {
-     "P05": "Phillips, Harrison & Smith 2005, Geology of the Bingham Mining District, in Porter (ed.) Super Porphyry Cu & Au Deposits v.1:243-257 — main stage bornite, chalcocite, chalcopyrite, pyrite; molybdenite in quartz veins (sheeted quartz veins can exceed 50% of the rock); outer pyrite halo; peripheral Pb-Zn zone galena, sphalerite, pyrite, tennantite-tetrahedrite [research pass, VERIFIED]"
+     "P05": "Phillips, Harrison & Smith 2005, Geology of the Bingham Mining District, in Porter (ed.) Super Porphyry Cu & Au Deposits v.1:243-257 — main stage bornite, chalcocite, chalcopyrite, pyrite; molybdenite in quartz veins (sheeted quartz veins can exceed 50% of the rock); outer pyrite halo; peripheral Pb-Zn zone galena, sphalerite, pyrite, tennantite-tetrahedrite [research pass, VERIFIED by that pass; the chapter is paywalled, review round 2 could not confirm the >50 % figure, and the author has not read it first-hand]"
     },
     "species": {
      "chalcopyrite": {
@@ -3489,7 +3489,7 @@
    },
    "literature": {
     "sources": {
-     "L98": "Laurs, Dilles, Wairrach, Kausar & Snee 1998, Canadian Mineralogist 36:1-47, Table 1 — Dassu pegmatites principal commodities: aquamarine, apatite, fluorite, morganite, quartz, schorl, spessartine-almandine, topaz [research pass, VERIFIED]",
+     "L98": "Laurs, Dilles, Wairrach, Kausar & Snee 1998, Canadian Mineralogist 36:1-47, Table 1 — Dassu pegmatites principal commodities: aquamarine, apatite, fluorite, morganite, quartz, schorl, spessartine-almandine, topaz [research pass, VERIFIED by that pass; the paper is on the Stak Nala pegmatites, and its Table 1 was not read first-hand by the author or by review round 2]",
      "HL18": "Hu & Lu 2018, Gems & Gemology 54(1) GNI, Aquamarine from Pakistan — 'Albite, muscovite, and tourmaline (schorl) are commonly associated as matrix' [research pass, VERIFIED]"
     },
     "species": {
@@ -3829,7 +3829,7 @@
       "class": "AB",
       "src": "R40",
       "status": "V",
-      "note": "'the most abundant metallic mineral'"
+      "note": "'the most abundant metallic mineral in both districts' (p. 338) — a claim for two districts together, not Sulphur Bank alone (review round 2)"
      },
      "native_sulfur": {
       "class": "AB",
@@ -3961,7 +3961,7 @@
    "literature": {
     "sources": {
      "B33": "Burbank 1933, Am. Mineral. 18:513 — quartz-pyrite, then sphalerite, galena, chalcopyrite, a little tetrahedrite; later rhodonite; free gold in quartz; calcite, fluorite, rhodochrosite, huebnerite [research pass, VERIFIED]",
-     "G24": "Guzman, Monecke & Reynolds 2024, Mineralium Deposita, doi:10.1007/s00126-024-01341-9 — sphalerite and galena the most abundant ore minerals; manganese ore about half the Washington vein; no silver mineral named [research pass, VERIFIED]"
+     "G24": "Guzman, Monecke & Reynolds 2024, Mineralium Deposita, doi:10.1007/s00126-024-01341-9 — sphalerite and galena the most abundant ore minerals; manganese ore about half the Washington vein; no argentite or acanthite named, but 'Aikinite, bornite, and tetrahedrite are locally abundant' (wording quoted by review round 2; the research pass had reported no silver mineral named) [research pass, VERIFIED]"
     },
     "species": {
      "galena": {
@@ -4026,7 +4026,7 @@
       "class": "ND",
       "src": "B33,G24",
       "status": "V",
-      "note": "no silver mineral named in either source, despite 14.9 Moz Ag produced"
+      "note": "neither source names argentite or acanthite, despite 14.9 Moz Ag produced; tetrahedrite is named ('a little', Burbank 1933; 'locally abundant', Guzman et al. 2024)"
      },
      "native_silver": {
       "class": "ND",
