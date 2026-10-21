@@ -11,7 +11,7 @@
    "caveat": "Photo counts measure collector attention, not tonnage: rare species and type-locality species are over-photographed (the Uravan district's photos are almost all rare vanadates, not carnotite), and common gangue is under-photographed."
   },
   "ebay": {
-   "what": "Active listing titles on ebay.com in category 3213 (Rocks, Fossils & Minerals), up to 6 pages of 240 per query, deduplicated by item id across a locality's queries; titles classified by tools/market-title-dictionary.mjs (dictionary sha256 5d3556449edfb5f27d55d9f4d880f6e56c504084f15d80d08fa85ad03a61fd35, the same text ran in the page).",
+   "what": "Active listing titles on ebay.com in category 3213 (Rocks, Fossils & Minerals), up to 6 pages of 240 per query, deduplicated by item id across a locality's queries; titles classified by tools/market-title-dictionary.mjs. Provenance: JSON.stringify(MARKET_TITLE_DICTIONARY) — the 363 entries — hashes to 5d3556449edfb5f27d55d9f4d880f6e56c504084f15d80d08fa85ad03a61fd35 both in the page and from the file; the lapidary pattern was injected from the file's JSON; cleanTitle and titleFamily were re-typed identically in the page (not hash-checked). The file itself hashes differently because it also holds those functions and comments.",
    "counting": "mention_families: a \"family\" is a title with digits, units and punctuation removed, so one seller relisting the same lot counts once; each family counts once for every species its title names. lead_families: the first species a title names. Lapidary families (cabochons, jewelry, slabs, spheres, carvings, tumbled) are excluded from both. \"x:\" keys are species the simulator has no engine for.",
    "verification": "sha256 of the compact summary JSON computed in the page and on disk both = cbb9cb8beeb9c2814cbd5c8c4278b2a265ba25d707bbf1946ae2725ec4bdf497",
    "caveat": "Sold-listing history needs an eBay login and was not used; active supply is a stock, not a flow. ebay.com under-represents European localities (Schneeberg, Wittichen, Grimsel), where Mineralienatlas carries the weight."
@@ -19,7 +19,8 @@
   "literature": {
    "what": "Published abundance statements per locality, gathered by three research passes and keyed to simulator species. class: AB abundant, CO common, UN uncommon, RA rare, VR very rare, ND not documented in the sources read (ND? = absence from a few sources only), Q questionable, doc = documented without an abundance word; suffixes -crust / -coating / -oxidized qualify the form.",
    "status": "V = the source was opened and the wording seen (by the research pass, or \"read first-hand\" by the review itself where the source note says so); S = search snippet or low-reliability page; R = recalled. Only V and S are used as evidence in the review.",
-   "spot_checks": "Read first-hand by the review on 2026-10-21: Smith 1979 USGS PP 1043 Table 14; Smith & Haines 1964 USGS Bull. 1181-P p. P7; Lindgren & Ransome 1904 USGS Bull. 254 pp. 20-21; Peacock 1928 Am. Mineral. 13 p. 243; Leach et al. 2010 USGS SIR 2010-5070-A (four sentences); Harvard Tsumeb Mineral Notes TSNB311 and TSNB324; Koenigsberger 1919 association list. All matched the research passes."
+   "spot_checks": "Read first-hand by the review on 2026-10-21 — 20 statements in 7 sources, all matched the research passes: Smith 1979 USGS PP 1043 p. 59 (Table 14 values; \"Trona and halite are the major mineral components\"; \"Hanksite is the third most abundant mineral, borax the forth\"); Smith & Haines 1964 USGS Bull. 1181-P (p. P1 Upper Salt composition; p. P7 celestite sentence); Lindgren & Ransome 1904 USGS Bull. 254 pp. 20-21 (calaverite/sylvanite; native gold absent except by oxidation; gangue quartz, fluorite, dolomite; celestite never in large amount; secondary K-feldspar; 1 oz Ag to 10 oz Au); Peacock 1928 Am. Mineral. 13 p. 243 (Cape Belt crocidolite exclusively); Leach et al. 2010 USGS SIR 2010-5070-A (dominant MVT minerals, barite minor to absent, fluorite rare; Zn/(Zn+Pb) < 0.1 SE Missouri; Viburnum chalcopyrite; barite never reported SE Missouri; calcite common Central Tennessee); Harvard Tsumeb Mineral Notes TSNB311 (scorodite Very rare) and TSNB324 (smithsonite Very common, Pinch & Wilson 1977 quote); Koenigsberger 1919 (Aar-granite cleft types 1, 1-prime, 1-double-prime; diorite type 5). Review round 1 independently confirmed eight more: Teale 1979; García-Ruiz et al. 2007; Bastin 1914; Weeks & Thompson 1954; Sukheswala et al. 1974; Heaney & Fisher 2003; Eggleton et al. 2011; Proust & Fontaine 2007.",
+   "mindat_note": "Mindat was not used as a data source (its pages are behind a Cloudflare human check). A few literature classes rest on search-snippet text from mindat; they carry status S."
   }
  },
  "localities": {
@@ -543,13 +544,14 @@
      "opal": {
       "class": "RA",
       "src": "WT54",
-      "status": "V"
+      "status": "V",
+      "note": "uraniferous opal mainly on outcrops of non-vanadium ore"
      },
      "uranophane": {
       "class": "RA",
       "src": "WT54",
       "status": "V",
-      "note": "'small amounts'"
+      "note": "'small amounts' (this phrase is about uranophane, not opal)"
      },
      "x:corvusite": {
       "class": "CO",
@@ -992,9 +994,9 @@
      },
      "celestine": {
       "class": "UN",
-      "src": "PM20,J96",
+      "src": "PM20",
       "status": "V",
-      "note": "barian celestine, minor; a 3-page note exists for it"
+      "note": "barian celestine, listed as a minor species by a dealer write-up (PM20, after Gaylord 1996); Jensen 1996 (MR 27:171) exists but only its title was seen"
      },
      "chalcedony": {
       "class": "ND",
@@ -1879,7 +1881,7 @@
    "literature": {
     "sources": {
      "L10": "Leach, Taylor, Fey, Diehl & Saltus 2010, A deposit model for Mississippi Valley-Type lead-zinc ores, USGS SIR 2010-5070-A [read first-hand 2026-10-21]: 'the dominant minerals are sphalerite, galena, pyrite, marcasite, dolomite, and calcite, whereas barite is typically minor to absent and fluorite is rare'",
-     "KGS01": "Brosius & Sawin 2001, Lead and Zinc Mining in Kansas, KGS Public Information Circular 17 — 23 Mt zinc vs 4 Mt lead concentrates [research pass, VERIFIED]",
+     "KGS01": "Brosius & Sawin 2001, Lead and Zinc Mining in Kansas, KGS Public Information Circular 17 — 23 Mt zinc vs 4 Mt lead concentrates, about 6:1 [research pass, VERIFIED]",
      "R35": "Ransome 1935, Am. Mineral. 20:799 — calcite scalenohedra 2-3 ft; large galena crystals common [research pass, VERIFIED]",
      "HOM": "Handbook of Mineralogy, greenockite — chiefly earthy coatings; Joplin district on sphalerite [research pass, VERIFIED]"
     },
@@ -1888,7 +1890,7 @@
       "class": "AB",
       "src": "KGS01,L10",
       "status": "V",
-      "note": "Zn:Pb concentrates about 5:1"
+      "note": "zinc to lead concentrates about 6:1 (23 Mt to 4 Mt)"
      },
      "galena": {
       "class": "AB",
@@ -3157,7 +3159,7 @@
       "class": "ND",
       "src": "B14",
       "status": "V",
-      "note": "'The tin ores are confined to the granite and its immediate vicinity' — a different vein type"
+      "note": "Bastin's 'The tin ores are confined to the granite and its immediate vicinity' describes the western Erzgebirge tin type generally — a different vein type from Schneeberg's cobalt-silver veins"
      },
      "topaz": {
       "class": "ND",
@@ -4011,9 +4013,9 @@
      },
      "x:rhodonite": {
       "class": "AB",
-      "src": "B33",
+      "src": "B33,G24",
       "status": "V",
-      "note": "massive; no engine"
+      "note": "massive; no engine. Manganese ore (rhodonite or pyroxmangite, rhodochrosite, quartz) is about half the Washington vein's volume (G24)"
      },
      "calaverite": {
       "class": "RA",
