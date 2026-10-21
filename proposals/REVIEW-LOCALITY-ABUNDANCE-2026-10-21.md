@@ -12,74 +12,88 @@ teaching scenarios (`pulse`, `radioactive_pegmatite`, `sabkha_dolomitization`, `
 `zoned_dripstone_cave`, three tutorials) have no locality to compare against; they appear only in
 the fleet-wide counts of §4.
 **Nothing in the simulator was changed.** The deliverable is this document, three read-only
-instruments, one data file and one generated appendix (§10). A proposed fix order is in §8 and
-waits for the boss.
-**Review history:** §9 — round 1 scored the first draft 6/10 and round 2 the revision 7/10; both
-rounds' corrections are folded in.
+instruments, one data file with its raw capture, and one generated appendix (§10). A proposed fix
+order is in §8 and waits for the boss.
+**Review history:** §9 — rounds 1, 2 and 3 scored the drafts 6/10, 7/10 and 8/10; all three rounds'
+corrections are folded in.
 
 ---
 
 ## 1. Verdict
 
-**The simulator's crystal ratios do not match the rocks.** Of the 33 locality scenarios, 1 agrees
-(Bimbowrie: andalusite is everything on both sides), 6 agree in part, 19 disagree, 2 sit on a tie
+**The simulator's crystal ratios do not match the rocks.** Of the 33 locality scenarios, none agrees
+outright with its locality's photographs and listings: 7 agree in part, 18 disagree, 2 sit on a tie
 (Viburnum and Cruzeiro are DISAGREES or PARTLY depending on which of two equally numerous species
-counts as the simulator's lead), 3 grow no crystal a collector could see, and 2 have too little proxy
-data to score. The median rank correlation between the simulator's visible crystals and the locality
-record is 0.00, and it stays within 0.11 of zero whichever simulator measure is used (crystals
-≥ 0.1 mm 0.02, surviving count −0.02, volume −0.11). Seed noise barely moves it (median 5–95 % band
-0.02; 180 of the 311 scored (scenario, species) pairs have the same visible count in all 21 seeds).
-The proxies' own sampling noise is larger: resampling the photographs and listing mentions as well
-widens the median band to 0.20 (0.17 from the proxies alone), and that is a floor (§7). It moves four
-verdicts in at least 20 % of resamples: Sunnyside 53 %, Ouro Preto 40 %, Cripple Creek 39 % and the
-North Pennines barite cavity 30 %. The broad mismatch does not depend on any of them.
+counts as the simulator's lead), 3 grow no crystal a collector could see, and 3 have too little proxy
+data to score. One of those three is Bimbowrie, which the first drafts scored as the one agreement:
+its literature and the simulator both make andalusite everything, but its listing record came from a
+worldwide "chiastolite" search, which says nothing about Bimbowrie. The median rank correlation
+between the simulator's visible crystals and the locality record is 0.00, and it stays within 0.12 of
+zero whichever simulator measure is used (crystals ≥ 0.1 mm 0.00, surviving count −0.02, volume
+−0.12, counting crystals sealed inside other crystals −0.01). Seed noise barely moves it (median 5–95 %
+band 0.01; 180 of the 308 scored (scenario, species) pairs have the same visible count in all 21
+seeds). The proxies' own sampling noise is larger: resampling the photographs and listing mentions as
+well widens the median band to 0.19 (0.17 from the proxies alone), and that is a floor (§7). It moves
+four verdicts in at least 20 % of resamples, under every bootstrap seed tried: Sunnyside, Ouro Preto,
+Cripple Creek and the North Pennines barite cavity. The broad mismatch does not depend on any of them.
 
-**Why.** Take each locality's three most-recorded species that the simulator has an engine for —
-76 slots across the 33 scenarios (three species tied for a real third place are set aside, §4.1):
+"Visible" means exposed and ≥ 1 mm. One crystal in ten that reaches 1 mm in these scenarios ends up
+sealed inside another crystal (1,089 of 11,151); the first drafts counted those as visible, and review
+round 3 caught it. Counting them changes one verdict (Sunnyside, PARTLY → DISAGREES) and six
+simulator top threes.
+
+**Why.** Take each locality's three most-recorded species, and keep those the simulator has an engine
+for — 69 slots across the scenarios with a voting record. Set aside are four species the scenario
+does not claim (the North Pennines barite cavity's fluorite, galena and quartz; Naica's fluorite) and
+three that tie for a real third place (§4.1).
 
 | what the simulator does with them | slots |
 |---|---:|
-| never forms the species at all | 20 |
-| forms it, but in most seeds no crystal reaches 1 mm (dust) | 15 |
-| forms visible crystals, but too few to rank in its own top three | 12 |
-| ties for its own third place, at exactly one crystal per vug | 5 |
-| ranks it in its own top three | 24 |
+| never forms the species at all | 14 |
+| forms it, but in most seeds no exposed crystal reaches 1 mm (dust) | 15 |
+| grows it to 1 mm and more, but sealed inside other crystals | 2 |
+| forms visible crystals, but too few to rank in its own top three | 9 |
+| ties for its own third place, at exactly one crystal per vug | 6 |
+| ranks it in its own top three | 23 |
 
-1. **Non-forming engines are the largest failure (§4.1).** Calcite is a top-three species at 7
-   localities and never forms at 5 of them (Ametista, Herkimer, Naica, Viburnum, Tsumeb); fluorite
-   never forms at 3 of its 7 scenarios (Cripple Creek, Naica, the North Pennines barite cavity). This
-   overlaps the July review's "district-diagnostic no-shows", still open.
+1. **Engines that never fire, and headline species grown only as dust, are the two largest failures,
+   about equal in size (§4.1, §4.3).** Calcite is a top-three species at 7 localities and never forms at
+   5 of them (Ametista, Herkimer, Naica, Viburnum, Tsumeb); fluorite never forms at Cripple Creek,
+   aragonite in Sicily, aquamarine at Shigar. This overlaps the July review's "district-diagnostic
+   no-shows", still open.
 2. **Where a gated species does form, the gate decides its rank by count — not by volume (§4.1).**
    Twenty-four species may only nucleate while no active crystal of their own exists (22 of them form
    somewhere in the panel), among them calcite, fluorite, sphalerite, pyrite, chalcopyrite, dolomite,
    malachite and smithsonite. When one of a locality's headline species forms visible crystals, it
-   reaches the simulator's top three by visible count **0 times in 13 if strictly gated** (4 in 13
-   counting ties for third place, all at exactly one crystal per vug), **against 24 in 28 under every
-   other gate.** By volume the gap narrows to 6 in 13 against 20 in 28: the gate limits how many
-   crystals a species has, not how large they grow. Strictly gated species hold 37 % of the real
-   top-three slots and 7 % of the simulator's by visible count.
+   reaches the simulator's top three by visible count **0 times in 11 if strictly gated** (5 more tie
+   for third place, all at exactly one crystal per vug), **against 23 in 27 under every other gate.**
+   By volume the gap narrows to 6 in 11 against 19 in 27: the gate limits how many crystals a species
+   has, not how large they grow. Strictly gated species hold 38 % of the real top-three slots and 8 %
+   of the simulator's by visible count.
 3. **Minor phases out-number headline phases (§4.2).** In 36 cases a scenario's own written reason
    calls a species *trace*, *minor*, *subordinate*, *accessory* or *rare* while its surviving
-   crystals out-number the scenario's typical headline species. In 19 of them it also out-numbers them
+   crystals out-number the scenario's typical headline species. In 20 of them it also out-numbers them
    in *visible* crystals, and in 7 it out-weighs them in volume (6 both ways). The largest: anhydrite at
    Tri-State ("a trace Ca-sulfate accessory", 6.3 visible crystals per vug against 1.0 for the headline
    median — 45 % of the visible crystals, with no photograph, listing or published record at Picher).
 4. **Headline species are grown only as dust (§4.3)** — 24 cases, including Herkimer quartz (median
    largest 0.57 mm), Ametista amethyst (0.84 mm), Cruzeiro tourmaline (0.37 mm; 83 % of the voting
-   record), Bisbee azurite and native copper. At micromount size the two quartz scenarios with no
-   visible crystal rank well (ρ 0.76 Ametista, 0.55 Herkimer, counting crystals ≥ 0.1 mm): the right
-   species, too small.
+   record), Bisbee azurite and native copper — and 3 more whose crystals do grow but end up sealed
+   inside other crystals (Tsumeb's smithsonite and azurite, Bingham's pyrite). At micromount size the
+   two quartz scenarios with no visible crystal rank well (ρ 0.76 Ametista, 0.55 Herkimer, counting
+   crystals ≥ 0.1 mm): the right species, too small.
 
 A fifth cause is **species debt (§6)**: trona and hanksite are 34 and 17 vol % of Searles Lake's
 Upper Salt (USGS PP 1043, Table 14) and have no engine; nor do spinel, chlorite, magnesite,
 cavansite, okenite or gyrolite.
 
 **What holds.** Jeffrey Mine's top three (grossular, vesuvianite, diopside) are the same set in the
-simulator and the record. Bimbowrie agrees outright. Tormiq's epidote and titanite, Ouro Preto's
-topaz and Roughton Gill's pyromorphite lead on both sides; Sicily's sulfur and celestine are in both
-top threes (in opposite order). Elmwood grows the right three headline species — celestine simply
-outnumbers them. At the Great Salt Plains selenite holds 100 % of the crystal volume, as it should;
-only the count is inverted (halite crusts).
+simulator and the record. At Bimbowrie the simulator grows only andalusite, as its literature says.
+Tormiq's epidote and titanite, Ouro Preto's topaz and Roughton Gill's pyromorphite lead on both sides;
+Sicily's sulfur and celestine are in both top threes (in opposite order). Elmwood grows the right
+three headline species — celestine simply outnumbers them. At the Great Salt Plains selenite holds
+99.9 % of the crystal volume and leads the exposed visible crystals, as it should; only the surviving
+count is inverted (halite crusts).
 
 ---
 
@@ -87,10 +101,15 @@ only the count is inverted (halite crusts).
 
 ### 2.1 The simulator's side — `tools/assemblage-census.mjs`
 Every scenario ran for its authored duration on 21 seeds (1–20 and 42): 861 runs (41 × 21), none
-failed. At the end of each run the census records, per species, the crystals that still exist
+failed. The panel ran twice — the second time to add the exposed counts below — and every field the
+two runs share is identical in all 861 runs (7,346 species entries): the simulator is deterministic
+per seed. At the end of each run the census records, per species, the crystals that still exist
 (dissolved ones are dropped; crystals enclosed inside another crystal are kept — they are still in
 the specimen), how many of them are ≥ 0.1, 1, 5 and 10 mm in their longest dimension, their summed
-volume and the largest one. "Visible" below means ≥ 1 mm. All 41 seed-42 rows reproduce the
+volume and the largest one, and the same counts for the *exposed* crystals alone — those not sealed
+inside another crystal. "Visible" below means exposed and ≥ 1 mm: a crystal enclosed in another is
+not one a collector sees (review round 3 found that the first drafts' "visible" counts included
+them). All 41 seed-42 rows reproduce the
 committed baseline (`tests-js/baselines/seed42_v285.json`) exactly — surviving, dissolved and total
 counts for 351 (scenario, species) entries (checked by review round 1; the author checked four
 scenarios before the full panel ran).
@@ -110,13 +129,27 @@ baseline is one draw.
   words — "Copper Queen", "Sulphur Bank", "Silverton" — and for colour words — "ruby red
   sphalerite", "emerald green dioptase"). A seller relisting one lot ×7 counts once (titles are
   grouped into families after stripping weights and numbers). Cabochons, jewellery, slabs, spheres
-  and carvings are excluded. 72 searches, 15,190 listings, 9,822 families.
+  and carvings are excluded. 72 searches, 15,190 listings, 9,822 families — of which three county-
+  or district-level market references (Cumbria, Skardu, Haramosh: 2,213 listings, 1,659 families)
+  feed no scenario. One locality's searches are not locality-specific: Bimbowrie's include
+  "chiastolite", which finds chiastolite from anywhere, so its listings are shown but do not vote
+  (§5.6).
 
-Both captures were checked byte for byte between the browser page and the committed data file
-(SHA-256 of the per-locality counts; hashes in the file's `sources` block). The dictionary's 363
-entries hash identically in the page and in the file (`5d355644…`, the hash of
+Both captures were hashed in the browser page and again on disk, and the hashes agreed. The two
+compact captures themselves are now committed, with their hash recipes
+(`proposals/DATA-LOCALITY-ABUNDANCE-CAPTURE-2026-10-21.json`); the comparison tool recomputes both
+hashes (`b56cf638…` photographs, `cbb9cb8b…` listings) and checks every count in the data file
+against the captures before it compares anything. (Round 3 could not reproduce the hashes from the
+data file alone, because the captures had not been committed.) The dictionary's 363 entries hash
+identically in the page and in the file (`5d355644…`, the hash of
 `JSON.stringify(MARKET_TITLE_DICTIONARY)`); the lapidary pattern was injected from the file, and the
-title-cleaning and family functions were re-typed identically in the page (not hash-checked).
+title-cleaning and family functions were re-typed identically in the page (not hash-checked). The
+titles themselves were classified inside the page and not saved, so the classifier cannot be
+audited on the real titles. Round 3 found three unguarded routes on synthetic titles — "copper"
+before an unlisted word ("Chrysocolla Copper Bisbee" → native copper), the town of Trona at the end
+of a title, and "Ruby Spinel" counting as both — which could move two close margins (Bisbee native
+copper against cuprite, 12.1 against 10.1 % of the listing record; Searles trona against
+sulfohalite, 7.6 against 6.5 %) and no fate count.
 
 ### 2.3 The literature
 Three research passes (one per locality family) collected published abundance statements —
@@ -142,7 +175,8 @@ Plains, Bisbee, Tri-State — §7).
 
 **Ranking.** For each scenario, the simulator's share of visible crystals per species beside the
 locality's share of photographs and of listings, and the literature class. The real ranking is the
-mean of the two shares; a source with fewer than 20 observations does not vote. Spearman ρ is
+mean of the two shares; a source with fewer than 20 observations does not vote, and nor do listings
+from a search that is not locality-specific (Bimbowrie's "chiastolite"). Spearman ρ is
 computed over the union of the simulator's top 12 by visible share, its top 12 by surviving share,
 the photographs' top 12, the listings' top 8 and every species the literature calls abundant or
 common; a species absent from one side scores 0 there. With that zero padding ρ behaves largely as
@@ -173,50 +207,54 @@ rare or undocumented ((S) = the class rests on snippet-level evidence); "lit: mi
 the literature calls abundant that the simulator never grows to 1 mm. `x:` = no engine; `ma:` = a
 Mineralienatlas name with no engine and no dictionary entry.
 
-| scenario | verdict | ρ | band: seeds | band: seeds + proxies | real top 3 | sim top 3 (≥ 1 mm) | lit: rare | lit: missing |
+| scenario | verdict | ρ | band: seeds | band: seeds + proxies | real top 3 | sim top 3 (≥ 1 mm, exposed) | lit: rare | lit: missing |
 |---|---|---:|---|---|---|---|---|---|
-| bisbee | DISAGREES | −0.49 | −0.52 to −0.49 | −0.58 to −0.47 | malachite, azurite, native copper | atacamite, chrysocolla, jarosite |  |  |
-| wittichen | DISAGREES | −0.48 | −0.49 to −0.48 | −0.53 to −0.46 | erythrite, zeunerite, ma:heinrichite | haidingerite, native arsenic, one of {nickeline, chalcedony} (tied) | haidingerite (S), chalcedony | native silver, safflorite, skutterudite |
-| supergene_oxidation (Tsumeb) | DISAGREES | −0.45 | −0.46 to −0.40 | −0.48 to −0.37 | smithsonite, cerussite, calcite | ferrimolybdite, brochantite, one of {scorodite, pyromorphite} (tied) | ferrimolybdite (S), scorodite, pyromorphite (S) | calcite, dioptase |
-| schneeberg | DISAGREES | −0.36 | −0.41 to −0.34 | −0.43 to −0.27 | erythrite, x:pucherite, one of {ma:eulytine, native silver} (tied) | chrysocolla, arsenopyrite, one of {quartz, uraninite} (tied) |  | skutterudite, native bismuth |
-| mvt (Tri-State) | DISAGREES | −0.35 | −0.41 to −0.35 | −0.37 to −0.25 | galena, sphalerite, calcite | anhydrite, greenockite, one of {galena, calcite, fluorite} (tied) | anhydrite, greenockite, fluorite | dolomite |
-| porphyry (Bingham) | DISAGREES | −0.33 | −0.34 to −0.31 | −0.45 to −0.19 | pyrite, tetrahedrite, ma:faustite | ferrimolybdite, brochantite, acanthite | ferrimolybdite (S), acanthite | quartz, bornite |
-| reactivated_fluorite_vein | DISAGREES | −0.28 | −0.28 to −0.28 | −0.38 to −0.22 | fluorite, galena, quartz | barite, celestine, acanthite | celestine, acanthite | quartz |
+| supergene_oxidation (Tsumeb) | DISAGREES | −0.54 | −0.55 to −0.49 | −0.58 to −0.48 | smithsonite, cerussite, calcite | ferrimolybdite, brochantite, one of {scorodite, pyromorphite} (tied) | ferrimolybdite (S), scorodite, pyromorphite (S) | smithsonite, calcite, azurite, dioptase |
+| wittichen | DISAGREES | −0.49 | −0.49 to −0.48 | −0.53 to −0.46 | erythrite, zeunerite, ma:heinrichite | haidingerite, chalcedony, nickeline | haidingerite (S), chalcedony | native silver, safflorite, skutterudite |
+| schneeberg | DISAGREES | −0.37 | −0.39 to −0.35 | −0.42 to −0.30 | erythrite, x:pucherite, one of {ma:eulytine, native silver} (tied) | chrysocolla, quartz, uranophane |  | skutterudite, native bismuth |
+| mvt (Tri-State) | DISAGREES | −0.35 | −0.41 to −0.35 | −0.38 to −0.25 | galena, sphalerite, calcite | anhydrite, greenockite, one of {galena, calcite, fluorite} (tied) | anhydrite, greenockite, fluorite | dolomite |
+| bisbee | DISAGREES | −0.31 | −0.35 to −0.22 | −0.42 to −0.26 | malachite, azurite, native copper | chrysocolla, opal, one of {chalcedony, atacamite} (tied) |  |  |
+| porphyry (Bingham) | DISAGREES | −0.31 | −0.31 to −0.30 | −0.44 to −0.18 | pyrite, tetrahedrite, ma:faustite | ferrimolybdite, brochantite, galena | ferrimolybdite (S) | quartz, bornite |
+| reactivated_fluorite_vein | DISAGREES | −0.28 | −0.28 to −0.28 | −0.37 to −0.21 | fluorite, galena, quartz | barite, celestine, acanthite | celestine, acanthite | quartz |
 | colorado_plateau (Uravan) | DISAGREES | −0.19 | −0.19 to −0.18 | −0.35 to −0.08 | x:pascoite, ma:hughesite, one of {ma:dickthomssenite, ma:lasalite, ma:magnesiopascoite} (tied) | opal, tyuyamunite, uranophane | opal, uranophane | carnotite |
-| grimsel_alpine_cleft | DISAGREES | −0.15 | −0.18 to −0.14 | −0.40 to 0.01 | quartz, fluorite, one of {epidote, rutile} (tied) | apatite, quartz, titanite | titanite | x:chlorite |
-| searles_lake | DISAGREES | −0.13 | −0.40 to −0.13 | −0.42 to −0.02 | halite, x:hanksite, x:trona | tincalconite, thenardite, halite | tincalconite (S) | x:hanksite, x:trona |
+| grimsel_alpine_cleft | DISAGREES | −0.15 | −0.18 to −0.15 | −0.40 to 0.00 | quartz, fluorite, one of {epidote, rutile} (tied) | apatite, quartz, titanite | titanite | x:chlorite |
+| searles_lake | DISAGREES | −0.13 | −0.40 to −0.13 | −0.40 to −0.02 | halite, x:hanksite, x:trona | tincalconite, thenardite, halite | tincalconite | x:hanksite, x:trona |
 | naica_geothermal | DISAGREES | −0.10 | −0.10 to −0.10 | −0.10 to −0.09 | fluorite, selenite, calcite | celestine, selenite |  | fluorite |
-| roughten_gill | DISAGREES | −0.08 | −0.09 to −0.05 | −0.28 to 0.00 | pyromorphite, mimetite, quartz | pyromorphite, chrysocolla, galena |  | quartz |
+| roughten_gill | DISAGREES | −0.02 | −0.03 to 0.01 | −0.24 to 0.06 | pyromorphite, mimetite, quartz | pyromorphite, chrysocolla, galena |  | quartz |
 | tn457_barite_pulses (N. Pennines) | DISAGREES | −0.02 | −0.02 to −0.02 | −0.23 to 0.14 | fluorite, galena, quartz | barite, sphalerite |  | fluorite, galena, quartz |
-| sunnyside_american_tunnel | DISAGREES | −0.01 | −0.10 to −0.01 | −0.06 to 0.15 | rhodochrosite, fluorite, quartz | galena, argentite, quartz | argentite | sphalerite, x:rhodonite |
 | reactive_wall (Viburnum) | TIE-DEPENDENT (DISAGREES or PARTLY) | 0.00 | 0.00 to 0.00 | −0.05 to 0.12 | calcite, galena, chalcopyrite | galena, sphalerite, pyrite |  | dolomite |
-| ouro_preto | PARTLY | 0.03 | 0.03 to 0.03 | −0.23 to 0.17 | topaz, hematite, x:euclase | topaz, quartz, albite | albite |  |
-| deccan_zeolite | PARTLY | 0.04 | 0.01 to 0.06 | −0.01 to 0.07 | apophyllite, stilbite, heulandite | chalcedony, heulandite, quartz |  | stilbite |
+| ouro_preto | PARTLY | 0.03 | 0.03 to 0.03 | −0.22 to 0.17 | topaz, hematite, x:euclase | topaz, quartz, feldspar | feldspar |  |
+| deccan_zeolite | PARTLY | 0.04 | 0.02 to 0.06 | −0.00 to 0.07 | apophyllite, stilbite, heulandite | chalcedony, heulandite, quartz |  | stilbite |
 | asbestos_hills_crack_seal | DISAGREES | 0.04 | 0.04 to 0.04 | −0.18 to 0.30 | tiger's eye, crocidolite, x:jasper | opal, crocidolite, tiger's eye | opal | quartz, magnetite |
+| sunnyside_american_tunnel | PARTLY | 0.07 | −0.03 to 0.09 | −0.01 to 0.22 | rhodochrosite, fluorite, quartz | galena, quartz, one of {rhodochrosite, calcite} (tied) |  | sphalerite, x:rhodonite |
 | epithermal_telluride (Cripple Creek) | DISAGREES | 0.09 | 0.09 to 0.10 | 0.03 to 0.21 | calaverite, native gold, fluorite | native silver, native gold, hessite | native silver, hessite | fluorite, dolomite |
-| asbestos_hills_surficial_alteration | DISAGREES | 0.10 | 0.07 to 0.11 | −0.11 to 0.33 | tiger's eye, crocidolite, x:jasper | opal, crocidolite, tiger's eye | opal | quartz, magnetite |
+| asbestos_hills_surficial_alteration | DISAGREES | 0.10 | 0.06 to 0.12 | −0.11 to 0.33 | tiger's eye, crocidolite, x:jasper | opal, crocidolite, tiger's eye | opal | quartz, magnetite |
 | gem_pegmatite (Cruzeiro) | TIE-DEPENDENT (DISAGREES or PARTLY) | 0.18 | 0.16 to 0.23 | −0.06 to 0.32 | tourmaline, quartz, lepidolite | albite, feldspar, quartz |  | tourmaline |
-| jeffrey_mine | PARTLY | 0.20 | 0.15 to 0.23 | 0.07 to 0.28 | grossular, vesuvianite, diopside | vesuvianite, diopside, grossular |  |  |
+| jeffrey_mine | PARTLY | 0.20 | 0.16 to 0.25 | 0.08 to 0.28 | grossular, vesuvianite, diopside | vesuvianite, diopside, grossular |  |  |
 | ultramafic_supergene (Marlborough) | DISAGREES | 0.22 | 0.22 to 0.22 | 0.22 to 0.46 | chrysoprase, chalcedony | opal, chrysoprase | opal | chalcedony, x:magnesite |
 | shigar_pegmatite | PARTLY | 0.34 | 0.34 to 0.34 | 0.24 to 0.42 | aquamarine, topaz, quartz | tourmaline, quartz, one of {albite, feldspar} (tied) |  | aquamarine |
 | elmwood | DISAGREES | 0.34 | 0.34 to 0.34 | 0.30 to 0.38 | fluorite, calcite, sphalerite | celestine, two of {fluorite, calcite, sphalerite} (tied) |  |  |
-| tormiq_alpine_cleft | PARTLY | 0.35 | 0.31 to 0.35 | 0.14 to 0.45 | titanite, epidote, quartz | epidote, actinolite, titanite |  |  |
+| tormiq_alpine_cleft | PARTLY | 0.35 | 0.31 to 0.35 | 0.11 to 0.45 | titanite, epidote, quartz | epidote, actinolite, titanite |  |  |
 | sicily_solfifera | PARTLY | 0.36 | 0.36 to 0.36 | 0.35 to 0.46 | native sulfur, aragonite, celestine | celestine, native sulfur, strontianite | strontianite (S) | selenite |
-| chiastolite_hornfels | AGREES | 0.66 | 0.66 to 0.66 | 0.65 to 0.71 | andalusite, quartz, chalcedony | andalusite |  |  |
 | amethyst_geode | NO VISIBLE CRYSTALS | — | | | quartz, chalcedony, calcite | — | | quartz, chalcedony, x:celadonite |
 | cooling (Herkimer) | NO VISIBLE CRYSTALS | — | | | quartz, x:bitumen, calcite | — | | quartz, x:bitumen, dolomite |
-| marble_contact_metamorphism (Mogok) | NO VISIBLE CRYSTALS | — | | | x:spinel, ruby, x:painite | — | | calcite |
-| great_salt_plains | THIN (literature: count inverted) | — | | | (13 listing families, all selenite) | halite, selenite | | |
+| marble_contact_metamorphism (Mogok) | NO VISIBLE CRYSTALS | — | | | x:spinel, ruby, x:painite | — | | calcite (the host marble) |
+| chiastolite_hornfels (Bimbowrie) | THIN (literature: andalusite, as the simulator grows) | — | | | (3 photos; listings from a market-wide "chiastolite" search, not voting) | andalusite | | |
+| great_salt_plains | THIN (literature: selenite is the collectible) | — | | | (13 listing families, all selenite) | selenite, halite | | |
 | sulphur_bank | THIN (literature: cinnabar leads, in a two-district sentence) | — | | | (2 photos, 1 listing) | cinnabar, pararealgar, orpiment | pararealgar (S), orpiment (S) | opal |
 
-Bands are 5–95 % of 200 resamples. Ten of the 28 scored scenarios sit within ±0.11 of the ρ = 0 line
+Bands are 5–95 % of 200 resamples. Ten of the 27 scored scenarios sit within ±0.11 of the ρ = 0 line
 between DISAGREES and PARTLY, so individual verdicts near the line carry little weight. The aggregate
-does not depend on them: median ρ is 0.00 by visible count, 0.02 by crystals ≥ 0.1 mm, −0.02 by
-surviving count, −0.11 by volume and 0.00 by the share of seeds with a visible crystal. Proxy noise
-changes four verdicts in at least 20 % of the joint resamples: Sunnyside (53 %), Ouro Preto (40 %),
-Cripple Creek (39 % — its DISAGREES rests on native silver being 0.9 % of the record, against the 1 %
-threshold) and the North Pennines barite cavity (30 %). Viburnum and Cruzeiro are TIE-DEPENDENT, and
-their resamples stay within the same two verdicts.
+does not depend on them: median ρ is 0.00 by visible count, 0.00 by crystals ≥ 0.1 mm, −0.02 by
+surviving count, −0.12 by volume, −0.01 by the share of seeds with a visible crystal and −0.01 when
+crystals sealed inside other crystals are counted as visible. Proxy noise changes four verdicts in at
+least 20 % of the joint resamples: Ouro Preto (40 %), Sunnyside (40 %), Cripple Creek (37 % — its
+DISAGREES rests on native silver being 0.9 % of the record, against the 1 % threshold) and the North
+Pennines barite cavity (30 %). Rerun under three other bootstrap seeds, the same four stay above 20 %
+(Sunnyside 40–48 %, Ouro Preto 35–45 %, Cripple Creek 34–39 %, the barite cavity 24–34 %) and
+Roughton Gill reaches 21 % once. Viburnum and Cruzeiro are TIE-DEPENDENT, and their resamples stay
+within the same two verdicts. Sunnyside is the one verdict that depends on what "visible" means: it
+is DISAGREES if crystals sealed inside other crystals are counted (§5.3).
 
 ---
 
@@ -238,25 +276,31 @@ with file and line number, for every species:
 
 **What happens to each real top-three species**, by the gate of its engine:
 
-| gate | never forms | dust | visible, outside the sim top three | tied for the sim's third place | in the sim top three | total |
-|---|---:|---:|---:|---:|---:|---:|
-| strict | 11 | 4 | 9 | 4 | 0 | 28 |
-| soft | 8 | 11 | 2 | 1 | 20 | 42 |
-| cap-only | 1 | 0 | 1 | 0 | 4 | 6 |
-| all | 20 | 15 | 12 | 5 | 24 | 76 |
+| gate | never forms | dust | sealed inside other crystals | visible, outside the sim top three | tied for the sim's third place | in the sim top three | total |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| strict | 9 | 4 | 2 | 6 | 5 | 0 | 26 |
+| soft | 4 | 11 | 0 | 2 | 1 | 19 | 37 |
+| cap-only | 1 | 0 | 0 | 1 | 0 | 4 | 6 |
+| all | 14 | 15 | 2 | 9 | 6 | 23 | 69 |
 
-No active-capped species is in a real top three. Two real third places are themselves ties and are
-left out: Grimsel's (epidote or rutile) and Schneeberg's (eulytine, which has no engine, or native
-silver).
+No active-capped species is in a real top three. Set aside, and listed in the appendix: four species
+the scenario does not claim — the North Pennines barite cavity's fluorite, galena and quartz (the
+cavity is one outer-zone barite-on-sphalerite pocket, §5.1) and Naica's fluorite (the scenario is the
+cave pool, not the ore body, §5.4) — and two real third places that are themselves ties: Grimsel's
+(epidote or rutile) and Schneeberg's (eulytine, which has no engine, or native silver). Bimbowrie
+contributes no slot, because its listing record is not locality-specific (§5.6). A floor — a slot
+needs 5 % of the record or a literature class of abundant or common — removes nothing: the low-share
+slots (Herkimer calcite 0.9 %, Cruzeiro lepidolite 3.3 %, Marlborough chalcedony 4.0 %) are all rated
+common or abundant in the literature. The two "sealed" slots grow crystals of 2–3 mm that end up
+inside other crystals: Tsumeb's smithsonite and Bingham's pyrite.
 
 Two separate mechanisms are at work.
 
-**(a) Engines that never fire where the record needs them — the largest class (20 of 76).** Calcite
-at Ametista, Herkimer, Naica, Viburnum and Tsumeb; fluorite at Cripple Creek, Naica and the North
-Pennines barite cavity; galena and quartz in that cavity; quartz in the reactivated fluorite vein;
-chalcopyrite at Viburnum; aquamarine at Shigar; aragonite in Sicily; hematite at Ouro Preto; zeunerite
-at Wittichen; quartz and chalcedony at Bimbowrie; chalcedony at Marlborough; ruby at Mogok. These are
-σ-gate, broth or event questions, one scenario at a time — they overlap the July review's
+**(a) Engines that never fire where the record needs them — 14 of 69, level with the dust slots
+(15).** Calcite at Ametista, Herkimer, Naica, Viburnum and Tsumeb; fluorite at Cripple Creek; quartz
+in the reactivated fluorite vein; chalcopyrite at Viburnum; aquamarine at Shigar; aragonite in
+Sicily; hematite at Ouro Preto; zeunerite at Wittichen; chalcedony at Marlborough; ruby at Mogok.
+These are σ-gate, broth or event questions, one scenario at a time — they overlap the July review's
 "district-diagnostic no-shows" and "missing ore-forming events" (`PROPOSAL-HOSTILE-REVIEW-2026-07-14.md`,
 cross-cutting mechanisms table), which are still open.
 
@@ -269,12 +313,12 @@ never do). The calcite gate is commented as exactly what it is — "Water-mode (
 serial gate — one active calcite at a time per scenario, matching every scenario's existing
 baseline" (`js/82-nucleation-carbonate.ts:36`). Across the fleet, in vugs where they survive:
 
-| gate | species | median crystals per vug | median ≥ 1 mm per vug |
+| gate | species | median crystals per vug | median exposed ≥ 1 mm per vug |
 |---|---:|---:|---:|
-| strict | 22 | 1.17 | 0.63 |
-| soft | 55 | 3.10 | 1.50 |
+| strict | 22 | 1.17 | 0.49 |
+| soft | 55 | 3.10 | 1.41 |
 | active-capped | 10 | 2.71 | 1.90 |
-| cap-only | 46 | 3.89 | 2.30 |
+| cap-only | 46 | 3.89 | 1.13 |
 | transformation product (inherits its parent's count) | 5 | 4.57 | 4.57 |
 
 Strictly gated species sit at ≤ 1.25 crystals per vug in 76 of the 99 (species, scenario) pairs
@@ -285,27 +329,35 @@ forms visible crystals reaches the simulator's top three:
 
 | gate | by visible count | counting ties for third place | by volume |
 |---|---:|---:|---:|
-| strict | 0 / 13 | 4 / 13 | 6 / 13 |
-| soft | 20 / 23 | 21 / 23 | 15 / 23 |
+| strict | 0 / 11 | 5 / 11 | 6 / 11 |
+| soft | 19 / 22 | 20 / 22 | 14 / 22 |
 | cap-only | 4 / 5 | 4 / 5 | 5 / 5 |
-| every gate but strict | 24 / 28 | 25 / 28 | 20 / 28 |
+| every gate but strict | 23 / 27 | 24 / 27 | 19 / 27 |
 
 The gate decides the rank by count and much less the rank by volume: a single strictly gated crystal
 can still be the largest in the cavity (Tri-State's one calcite holds 94 % of the crystal volume). By
-visible count, strictly gated species hold 28 of the 76 real top-three slots (37 %) and 5.7 of the
-simulator's 84 (7 %; tied species share their slots); by volume they hold 20 of its 90 (22 %).
+visible count, strictly gated species hold 26 of the 69 real top-three slots (38 %) and 6.7 of the
+simulator's 84 (8 %; tied species share their slots); by volume they hold 21 of its 90 (23 %).
 
-Two further notes. Enclosure feeds raw counts: the cap counts only *exposed* crystals
+Three further notes. Enclosure feeds raw counts: the cap counts only *exposed* crystals
 (`js/85b-simulator-nucleate.ts:716` skips enclosed and dissolved ones), so an overgrown species keeps
 nucleating — barite averages 15.9 crystals per vug where it survives and 55.6 per Tri-State vug, all
 dust; the code says this is deliberate (dense chalcopyrite inclusion trails in MVT calcite), and the
-enclosed crystals are mostly invisible. And species without their own `_nuc_` function are read where
-they are made: the beryl and corundum varieties in their shared selector loops (soft —
-`js/89-nucleation-silicate.ts:221, 266`), raspite in `_nuc_stolzite` (cap-only), the manganese-oxide
-surface phases in a shared helper (soft). Six species are pure transformation products — tincalconite
-from borax, haidingerite from pharmacolite, pararealgar from realgar and three meta-micas
-(`js/75-transitions.ts:95–100, 474`) — and their counts are their parents'. Acanthite and thenardite
-are both: they nucleate on their own (cap-only) and also form from argentite and mirabilite.
+enclosed crystals are invisible, which is why "visible" counts only exposed crystals (§2.4).
+Second, species without their own `_nuc_` function are read where they are made: the beryl and
+corundum varieties in their shared selector loops (soft — `js/89-nucleation-silicate.ts:221, 266`),
+raspite in `_nuc_stolzite` (cap-only), the manganese-oxide surface phases in a shared helper (soft).
+Seven species are pure transformation products, whose counts are their parents': tincalconite from
+borax, haidingerite from pharmacolite, pararealgar from realgar and three meta-micas
+(`js/75-transitions.ts:95–100, 474`), and todorokite, whose `_nuc_todorokite` never calls
+`sim.nucleate` but converts birnessite in place (`js/75-transitions.ts:379`). Acanthite, thenardite,
+selenite and anhydrite are both: they nucleate on their own and also form in place (from argentite,
+mirabilite, and each other — the CaSO₄ replacement at `js/75-transitions.ts:262`). Third, beside
+the gate, 16 functions carry a hand-coded **lifetime cap** — a count of every crystal of the species
+ever made, dissolved and enclosed ones included (`total_mal >= 3`, …). It sits on 7 of the 24 strict
+species (malachite, smithsonite, mimetite, hematite and goethite 3, adamite 4, wulfenite 2) and 10
+soft ones (galena 8, feldspar and molybdenite 6, plumbogummite, pyrolusite and uraninite 5, albite,
+selenite and the two manganese-oxide phases 4); the appendix's fleet table lists them.
 
 **The first two drafts read the gates wrongly** (review round 2). Their pattern matched the strict and
 soft idioms only when the species' crystal list had a suffixed name (`existing_cal`), so the 32 soft
@@ -314,11 +366,13 @@ titanite, grossular, diopside, vesuvianite, the zeolites, the amphiboles, chalce
 andalusite, dioptase… — fell through to "cap-only", and goethite's and enargite's strict gates were
 missed. The drafts' "15 in 17 when ungated" was mostly these soft species. The finding about the
 strict gate survives the correction and sharpens (2 in 13 became 0 in 13, because the drafts' two
-strict "hits" were Elmwood ties broken by the real-world share).
+strict "hits" were Elmwood ties broken by the real-world share; round 3's set-asides and the
+exposed-crystal measure make it 0 in 11).
 
 **F1b — documentation drift.** `data/minerals.json:14` describes `max_nucleation_count` as "Counted
 across the whole simulation (active + dissolved)". The code (`js/85b-simulator-nucleate.ts:716`)
-counts only exposed crystals and skips dissolved and enclosed ones.
+counts only exposed crystals and skips dissolved and enclosed ones. The sentence does describe the
+hand-coded lifetime caps above, which count every crystal ever made.
 
 ### 4.2 F2 — Minor phases out-number headline phases, against the scenarios' own words
 Every scenario names its headline species (`expects_species`) and justifies its other delivered
@@ -332,27 +386,29 @@ phase" — the trace is the vanadium) and Schneeberg's quartz ("Fundamental vein
 counts include dust — 26 % of all surviving crystals in the fleet are under 0.1 mm, and at least 580
 are zero-size nuclei that never grew (Sunnyside's 4 native-silver "crystals" per vug are 4 such
 nuclei; Searles' mirabilite is 8 per vug at 0 mm). "Trace" and "accessory" usually describe volume.
-So each case is tested again by **visible** crystals and by **volume**: **19 of the 36 hold by
-visible count and 7 by volume** — 6 both ways, 13 by visible count only, 1 by volume only
-(Sunnyside's tennantite) and 16 neither. The full table is in the appendix; the cases that hold by
+So each case is tested again by **visible** crystals and by **volume**: **20 of the 36 hold by
+visible count and 7 by volume** — 6 both ways, 14 by visible count only, 1 by volume only
+(Sunnyside's tennantite) and 15 neither. The full table is in the appendix; the cases that hold by
 visible count include:
 
 | scenario | species | its reason says | visible per vug | headline median visible | volume share | headline median volume |
 |---|---|---|---:|---:|---:|---:|
 | mvt | anhydrite | "a trace Ca-sulfate accessory" | 6.29 | 1.00 | 0.3 % | 2.6 % |
-| bisbee | atacamite | "retained as an arid chloride accessory" | 7.52 | 1.00 | 15 % | 1.1 % |
+| bisbee | atacamite | "retained as an arid chloride accessory" | 3.95 | 1.00 | 15 % | 1.1 % |
 | reactivated_fluorite_vein | celestine | "a subordinate Sr-sulfate response" | 5.71 | 1.00 | < 0.1 % | 0.4 % |
 | asbestos_hills_crack_seal | opal | "subordinate" | 5.00 | 2.52 | 65 % | 2.3 % |
 | epithermal_telluride | native_silver | "a legitimate Ag-Au-Te vein accessory" | 4.00 | 2.00 | 5.6 % | 9.4 % |
-| porphyry | arsenopyrite | "a hypogene accessory" | 3.81 | 1.00 | 3.4 % | 0.7 % |
-| roughten_gill | chalcocite | "minor" | 3.76 | 1.00 | < 0.1 % | < 0.1 % |
+| porphyry | arsenopyrite | "a hypogene accessory" | 3.57 | 0.67 | 3.4 % | 0.7 % |
+| roughten_gill | chalcocite | "minor" | 0.76 | 0.71 | < 0.1 % | < 0.1 % |
 | sicily_solfifera | strontianite | "that subordinate Sr-carbonate sink" | 3.48 | 2.29 | 0.2 % | 6.1 % |
 | mvt | greenockite | "a minor CdS accessory" | 3.24 | 1.00 | < 0.1 % | 2.6 % |
 
 Some of the 36 fail the visible test and are dust-count artefacts rather than visible errors:
 Searles calcite ("subordinate", 10.8 per vug, none visible) and celestine ("minor", 8.9, none
 visible), anhydrite at Sweetwater and Wittichen (0 visible), Sunnyside's native silver (zero-size
-nuclei), and Bisbee's native gold (13 per vug but 0.71 visible against 1.00).
+nuclei), and Bisbee's native gold (13 per vug but 0.48 visible against 1.00). Visible counts here are
+exposed crystals: Bisbee's atacamite has 7.5 crystals ≥ 1 mm per vug, but half are sealed inside
+other crystals, and Roughton Gill's chalcocite 3.8, of which 80 % are sealed.
 
 **The anhydrite case.** Three of the four anhydrite reasons call it a "trace" accessory and the
 fourth "minor"; all four credit "the corrected PHREEQC analytical K(T) path" (the K(T) correction is
@@ -371,13 +427,15 @@ Ag → PbS (its cross-cutting mechanisms table). This review measures the same s
 abundance side and inherits that lever (§8 step 3).
 
 ### 4.3 F3 — Headline species grown only as dust
-Twenty-four times a headline species — ≥ 10 % of the voting record, or "abundant" in the literature —
-is grown by the simulator but its median largest crystal is under 1 mm. In most of them no seed
-reaches 1 mm; Searles halite does in 2 of 21 seeds (largest 3.1 mm), Wittichen barite in 3 of 21
-(largest 1.0 mm) and Tormiq quartz in 4 of 21 (largest 4.1 mm). The appendix lists all 24; the ones
-that matter most:
+Twenty-seven times a headline species — ≥ 10 % of the voting record, or "abundant" in the literature
+— is grown by the simulator but its median largest exposed crystal is under 1 mm. In 24 the crystals
+are simply small. In 3 they do grow past 1 mm but end up sealed inside other crystals: Tsumeb's
+smithsonite (median largest 2.7 mm counting enclosed crystals) and azurite (3.1 mm), and Bingham's
+pyrite (2.4 mm). In most cases no seed has an exposed crystal of 1 mm; Searles halite does in 2 of 21
+seeds (largest 3.1 mm), Wittichen barite in 3 (1.0 mm), Tormiq quartz in 4 (4.1 mm) and Bingham
+pyrite in 5 (3.0 mm). The appendix lists all 27; the ones that matter most:
 
-| scenario | species | real share (voting) / literature | sim per vug | median largest | largest in any seed |
+| scenario | species | real share (voting) / literature | sim per vug | median largest exposed | largest exposed in any seed |
 |---|---|---|---:|---:|---:|
 | cooling (Herkimer) | quartz | 94 % / AB | 1.0 | 0.57 mm | 0.59 mm |
 | gem_pegmatite (Cruzeiro) | tourmaline | 83 % / AB | 3.0 | 0.37 mm | 0.58 mm |
@@ -385,37 +443,43 @@ that matter most:
 | searles_lake | halite | 38 % / AB | 5.3 | < 0.01 mm | 3.1 mm |
 | grimsel_alpine_cleft | fluorite | 30 % / CO | 1.0 | 0.51 mm | 0.52 mm |
 | amethyst_geode | chalcedony | 23 % / AB | 2.5 | 0.15 mm | 0.16 mm |
+| porphyry (Bingham) | pyrite — sealed | 18 % / AB | 1.0 | none (2.4 mm counting enclosed) | 3.0 mm |
 | deccan_zeolite | stilbite | 18 % / AB | 4.3 | 0.88 mm | 0.96 mm |
 | roughten_gill | mimetite | 17 % / CO | 1.2 | 0.05 mm | 0.10 mm |
-| bisbee | azurite | 16 % | 4.0 | 0.51 mm | 0.75 mm |
-| bisbee | native copper | 12 % | 0.7 | 0.07 mm | 0.10 mm |
-| tormiq_alpine_cleft | quartz | 11 % | 3.3 | 0.20 mm | 4.1 mm |
-| wittichen | skutterudite, safflorite, native silver | AB (Petersen 1868) | 2.1, 2.0, 3.5 | 0.06, 0.01, 0.55 mm | 0.07, 0.60, 0.90 mm |
-| schneeberg | native bismuth | AB | 0.4 | 0.06 mm | 0.07 mm |
+| bisbee | azurite | 16 % | 4.0 | none (0.51 mm counting enclosed) | < 0.01 mm |
+| bisbee | native copper | 12 % | 0.7 | none (0.07 mm counting enclosed) | none |
+| tormiq_alpine_cleft | quartz | 11 % | 3.3 | 0.01 mm (0.20 counting enclosed) | 4.1 mm |
+| supergene_oxidation (Tsumeb) | smithsonite — sealed | 10 % / AB | 1.0 | none (2.7 mm counting enclosed) | none |
+| supergene_oxidation (Tsumeb) | azurite — sealed | 8 % / AB (S) | 4.0 | none (3.1 mm counting enclosed) | none |
+| wittichen | skutterudite, safflorite, native silver | AB (Petersen 1868) | 2.1, 2.0, 3.5 | 0.01, 0.01, 0.54 mm | 0.01, 0.02, 0.61 mm |
+| schneeberg | native bismuth | AB | 0.4 | none (0.06 mm counting enclosed) | none |
 | colorado_plateau | carnotite | AB (Weeks & Thompson 1954) | 4.0 | 0.81 mm | 0.87 mm |
 
 The Herkimer and Ametista cases decide those scenarios' verdicts: each grows the right mineral and
 nothing a collector could see — at Ametista, where the geode walls end in "large-sized amethyst
 crystals" (Proust & Fontaine 2007). Counted at micromount size (≥ 0.1 mm) both rank well against the
-record (ρ 0.76 Ametista, 0.55 Herkimer): their failure is size, not species.
+record (ρ 0.76 Ametista, 0.55 Herkimer): their failure is size, not species. The sealed cases are a
+different failure: the species grows, then a later crystal overgrows it — at Tsumeb every visible
+smithsonite and azurite crystal in all 21 seeds.
 
 ---
 
 ## 5. Locality findings
 
-Numbers are crystals per vug averaged over 21 seeds; "% vis" is the share of visible (≥ 1 mm)
-crystals; photo and listing shares come from the data file; literature classes are AB / CO / UN / RA
-/ ND. Full tables in the appendix.
+Numbers are crystals per vug averaged over 21 seeds; "% vis" is the share of visible (exposed,
+≥ 1 mm) crystals; photo and listing shares come from the data file; literature classes are AB / CO /
+UN / RA / ND / doc (documented, no abundance word). Full tables in the appendix.
 
 ### 5.1 MVT and fluorite–barite veins
 
-**Tri-State (mvt) — DISAGREES.** A sphalerite district (zinc to lead concentrates about 6:1, 23 Mt
-to 4 Mt; Kansas Geological Survey 2001) whose collectible crystals are calcite (2–3 ft
+**Tri-State (mvt) — DISAGREES.** A sphalerite district (zinc to lead concentrates about 6:1, 23
+million to 4 million short tons; sphalerite about five times as abundant as galena — Kansas
+Geological Survey 2001, pp. 2–3) whose collectible crystals are calcite (2–3 ft
 scalenohedra), sphalerite, galena, dolomite and chalcopyrite. The USGS deposit model: "the dominant
 minerals are sphalerite, galena, pyrite, marcasite, dolomite, and calcite, whereas barite is
 typically minor to absent and fluorite is rare" (Leach et al. 2010). The simulator: barite 55.6 per
 vug (all dust), anhydrite 7.6 (45 % vis), greenockite 5.3 (23 % vis), and about one crystal each of
-galena, calcite, fluorite, pyrite (1.1) and sphalerite (1.5, 0.6 of them visible). Greenockite is
+galena, calcite, fluorite, pyrite (1.1) and sphalerite (1.5, 0.5 of them visible). Greenockite is
 real at Picher, but as an earthy coating on sphalerite, not as 2.3 mm crystals (Handbook of
 Mineralogy). Chalcopyrite (6 % of photos,
 14 % of listings), dolomite and marcasite never survive. *Dolomite:* the July review defended the
@@ -431,7 +495,8 @@ photographs and 1 listing family in 466; a dealer write-up after Gaylord 1996 li
 as a minor species (Jensen 1996 describes it; only that note's title was seen). The celestine count
 is not an accident: the S2 celestine tranche (SIM 236) raised it from 2 to 6 crystals to render the
 documented fibrous blanket. That decision was about habit; this review adds the count it produced.
-Galena (6 % of photos, documented in Gratz 1986's paragenesis) never forms.
+Galena (6 % of photos, documented in the paragenesis of Gratz 1986, a thesis on the neighbouring
+Gordonsville mine) never forms.
 
 **Viburnum Trend / Sweetwater (reactive_wall) — TIE-DEPENDENT (DISAGREES or PARTLY).** Galena and
 sphalerite tie as the simulator's most numerous visible species at one crystal each; with galena as
@@ -439,10 +504,10 @@ the lead the verdict is PARTLY, with sphalerite (0.3 % of the record) DISAGREES.
 district: Zn/(Zn+Pb) "is less than 0.1 for the Southeast Missouri district", chalcopyrite "is the
 main source of byproduct copper", and "Barite has never been reported in the Cambrian-hosted Southeast
 Missouri Lead districts" (Leach et al. 2010). The simulator puts 82 % of its crystal volume into
-sphalerite and grows 6.6 anhydrite
-per vug (none visible; one listing family in 362 names anhydrite); calcite (42 % of photos),
-chalcopyrite (12 %) and dolomite ("the abundant hydrothermal gangue dolomite", Rowan 1987) never
-survive. Galena is right as a visible species but is one crystal.
+sphalerite, where Rowan (1987, USGS OFR 87-675) calls coarse sphalerite "somewhat rare", and grows
+6.6 anhydrite per vug (none visible; one listing family in 362 names anhydrite); calcite (42 % of
+photos), chalcopyrite (12 %) and dolomite ("the abundant hydrothermal gangue dolomite", Rowan 1987)
+never survive. Galena is right as a visible species but is one crystal.
 
 **North Pennines (tn457_barite_pulses, reactivated_fluorite_vein) — DISAGREES.** The orefield's
 record is fluorite first (56 % of photos, 63 % of listings), then galena, quartz and the barium
@@ -461,20 +526,24 @@ on a specimen-availability scale. The author opened two of these entries (smiths
 the other ratings below are snippet-level, marked (S). The "Very common" species are smithsonite
 ("the most abundant secondary mineral at Tsumeb", after Pinch & Wilson 1977), cerussite (S),
 malachite (S), azurite (S), calcite (S), dioptase (S) and duftite (S). The simulator's most numerous
-visible species are ferrimolybdite (9.9 % vis; no species entry (S)), brochantite (8.3 %), and
-scorodite ("Very rare") and pyromorphite ("Extremely rare" (S)), tied at 7.9 %. Cerussite (6.5 %)
-and azurite (5.8 %) are visible too, at about the share of anglesite ("Common" (S), 6.5 %) and
-powellite ("Extremely rare" (S), 6.6 %). Ferrimolybdite and powellite hold 54 % of the crystal volume
-(25 mm and 20 mm crystals) with no Tsumeb photograph or listing. Smithsonite and malachite are one
-crystal each (strict gate); dioptase (6 % of photos and listings) and calcite never form.
+visible species are ferrimolybdite (12 % vis; no species entry (S)), brochantite (10 %), and
+scorodite ("Very rare") and pyromorphite ("Extremely rare" (S)), tied at 9.8 %. Cerussite (8.1 %) is
+visible too, at about the share of anglesite ("Common" (S), 8.0 %) and powellite ("Extremely rare"
+(S), 8.2 %). Ferrimolybdite and powellite hold 54 % of the crystal volume (25 mm and 20 mm crystals)
+with no Tsumeb photograph or listing. The two "Very common" species the simulator does grow are
+hidden: its one smithsonite per vug (strict gate) and its azurite (3.5 crystals ≥ 1 mm per vug) end up
+sealed inside other crystals in every seed — the first drafts counted them as visible (round 3).
+Malachite is one crystal (strict gate); dioptase (6 % of photos and listings) and calcite never form.
 
-**Bisbee — DISAGREES (ρ −0.49).** The record is malachite, azurite, native copper, cuprite and
-calcite. The simulator's visible crystals are led by atacamite (16 % vis, 8.1 per vug), chrysocolla,
-jarosite, opal, chalcedony and acanthite; azurite (4 per vug) and native copper never pass 1 mm,
-cuprite barely (median 0.36 mm); malachite is one crystal, though a 65 mm one holding 43 % of the
-volume; calcite never forms. Lepidocrocite (14.5 per vug, almost all dust) and native gold (13.0;
-0.7 visible) are the most numerous species. Dioptase (4.8 per vug at 0.08 mm) was defended for
-*presence* in July; its count is the new question. No published abundance ranking for Bisbee was
+**Bisbee — DISAGREES (ρ −0.31).** The record is malachite, azurite, native copper, cuprite and
+calcite. The simulator's visible crystals are led by chrysocolla (16 % vis), opal (15 %), chalcedony
+and atacamite (14 % each; atacamite is 8.1 per vug, but half of its crystals ≥ 1 mm are sealed inside
+other crystals). Jarosite and acanthite, which the first drafts counted among the leaders, are
+almost all sealed (97 % and 95 % of their ≥ 1 mm crystals). Azurite (4 per vug), native copper and
+cuprite never reach 1 mm (median largest 0.51, 0.07 and 0.36 mm) and end up enclosed; malachite is one
+crystal, though a 65 mm one holding 43 % of the volume; calcite never forms. Lepidocrocite (14.5 per
+vug, almost all dust) and native gold (13.0; 0.5 visible) are the most numerous species. Dioptase
+(4.8 per vug at 0.08 mm) was defended for *presence* in July; its count is the new question. No published abundance ranking for Bisbee was
 reachable (Graeme's Mineralogical Record articles were not), so this verdict rests on the two proxies.
 
 **Roughton Gill — DISAGREES, narrowly.** The lead is right: pyromorphite tops both sides. The
@@ -492,45 +561,54 @@ molybdenite in quartz veins (Phillips et al. 2005, as summarised by the research
 is paywalled, and its figure of sheeted veins exceeding half the rock was not checked first-hand by
 the author or by review round 2). The simulator grows
 chalcopyrite ×1 and pyrite ×1 beside ferrimolybdite ×5.3, brochantite ×4.7, acanthite ×4,
-arsenopyrite ×3.9 and bismuthinite ×4. Arsenopyrite and bismuthinite are "accessory" in their own
+arsenopyrite ×3.9 and bismuthinite ×4; its pyrite reaches 2–3 mm but is sealed inside other crystals
+in most seeds. Its visible leaders are ferrimolybdite, brochantite and galena (acanthite drops out
+once enclosed crystals are not counted). Arsenopyrite and bismuthinite are "accessory" in their own
 reasons; acanthite is undocumented in Phillips et al. 2005, and ferrimolybdite, arsenopyrite and
 bismuthinite are rated rare only on snippet-level evidence; brochantite has no literature class.
 Quartz and bornite never survive. Bingham's specimen record is thin (30 photographs; dealers call it
 "not known as a fine specimen producer"), so the literature carries this one.
 
-**Sunnyside / American Tunnel — DISAGREES.** The record: rhodochrosite (45 % of photos), fluorite
-(29 %), quartz; sphalerite and galena are "the most abundant ore minerals" (Guzman et al. 2024). The
-simulator's second most numerous visible species is argentite (6.4 per vug). Its own reason claims
-compatibility ("a high-temperature Ag2S precursor compatible with Sunnyside's primary polymetallic
+**Sunnyside / American Tunnel — PARTLY, and fragile.** The record: rhodochrosite (45 % of photos),
+fluorite (29 %), quartz; sphalerite and galena are "the most abundant ore minerals" (Guzman et al.
+2024). The simulator's visible crystals are led by galena (4 per vug, 34 % vis) and quartz (17 %);
+rhodochrosite ties for third place at one crystal per vug (strict gate), with fluorite (0.95, also
+strict) just behind; sphalerite is dust. Argentite is 6.4 crystals per vug, but only 0.95 per vug
+are exposed and ≥ 1 mm: 70 % of its ≥ 1 mm crystals are sealed inside other crystals. The first two
+drafts counted those, made argentite the second most numerous visible species and scored Sunnyside
+DISAGREES (round 3); the verdict changes in 40 % of the joint resamples either way. Argentite's own
+reason claims compatibility ("a high-temperature Ag2S precursor compatible with Sunnyside's primary polymetallic
 stage"), not a record, and neither Burbank 1933 nor Guzman et al. 2024 names argentite or acanthite,
 though the mine produced 14.9 Moz of silver. They do name tetrahedrite, a common silver carrier ("a
 little", Burbank; "Aikinite, bornite, and tetrahedrite are locally abundant", Guzman et al., as quoted
 by review round 2); the simulator grows one tetrahedrite per vug (strict gate), never past 0.5 mm.
-Native silver is documented — the scenario cites wire silver at the Sunnyside Extension mine (USGS Folio 120) — and its 4 per vug are zero-size nuclei, a count
-artefact (§4.2). Rhodochrosite and fluorite are one crystal each (strict gate); sphalerite is dust.
+Native silver is documented — the scenario cites wire silver at the Sunnyside Extension mine (USGS
+Folio 120) — and its 4 per vug are zero-size nuclei, a count artefact (§4.2).
 
 **Cripple Creek (epithermal_telluride) — DISAGREES.** Read first-hand: gold occurs "chiefly as
 calaverite, but partly also as the more argentiferous sylvanite"; "Native gold appears to be absent
 from the telluride ores, except as it may be set free by the oxidation of these tellurides"; "The
 usual gangue minerals of the ores are quartz, fluorite, and dolomite"; silver runs "about 1 ounce of
 silver to 10 ounces of gold" (Lindgren & Ransome 1904, USGS Bull. 254, pp. 20–21). The simulator
-grows native silver ×4 (20 % vis), native gold ×4, hessite ×3 (71 % of crystal volume) and calaverite
-×2; fluorite and dolomite never form; the feldspar the record names is potassic, while the simulator
-grows albite ×3.2. (The verdict sits at the 1 % threshold — §3.)
+grows native silver ×4 (20 % vis), native gold ×4, hessite ×3 (71 % of crystal volume), calaverite
+×2, sylvanite ×2 and K-feldspar ×2 (all visible); fluorite and dolomite never form. The record's
+feldspar is secondary potassic feldspar, which the simulator's K-feldspar matches; its albite (×3.2,
+mostly under 1 mm) has no record. (The verdict sits at the 1 % threshold — §3.)
 
 **Schneeberg — DISAGREES.** A cobalt–silver–bismuth–uranium vein district: native bismuth and
 skutterudite were principal ores, erythrite is the most-photographed species (103 photographs; type
-locality). The simulator's visible leaders are chrysocolla, arsenopyrite and quartz or uraninite
-(tied); native bismuth and native silver are dust; skutterudite never forms; topaz ×3.9, cassiterite
+locality). The simulator's visible leaders are chrysocolla, quartz and uranophane (arsenopyrite and
+uraninite drop out once crystals sealed inside others are not counted); native bismuth and native
+silver are dust; skutterudite never forms; topaz ×3.9, cassiterite
 ×3.3, spodumene and morganite belong to the granite-hosted tin type of the western Erzgebirge (Bastin
 1914), not to these veins. The weakest-sourced verdict here: no published ranking was found, and the
 photo archive is micromount-heavy.
 
-**Wittichen — DISAGREES (ρ −0.48).** Petersen 1868 ranks the ores: predominant Speiskobalt
+**Wittichen — DISAGREES (ρ −0.49).** Petersen 1868 ranks the ores: predominant Speiskobalt
 (skutterudite–safflorite), earthy cobalt and native silver; less widespread native bismuth,
 wittichenite, native arsenic, nickeline, proustite; erythrite "sehr häufig". The vein fill is mainly
 barite. The simulator grows chalcedony ×4 (not recorded), native arsenic and nickeline ×4 each, and
-haidingerite ×4.6 (24 % vis) — haidingerite is pharmacolite dehydrated in place, and pharmacolite
+haidingerite ×4.6 (26 % vis) — haidingerite is pharmacolite dehydrated in place, and pharmacolite
 (type locality, "nicht selten") is the recorded phase. Anhydrite ×4.7 is dust; skutterudite, safflorite
 and native silver are dust too; erythrite is one crystal (strict gate).
 
@@ -543,16 +621,22 @@ third most abundant mineral, borax the forth." USGS Bull. 1181-P (Smith & Haines
 celestite is one of six reported minerals that "almost certainly do not occur within the deposit in
 normally detectable quantities". The simulator's visible crystals are tincalconite (71 % vis) and
 thenardite (95 % of the volume). Its tincalconite is its borax, dehydrated in place
-(`js/75-transitions.ts:95`); the record has borax surviving as 3.1 vol % and tincalconite "common
-only as an alteration rind on borax" — so the mechanism is real and its completeness is the question:
-the simulator converts all of its borax. Calcite (10.8 per vug) and celestine (8.9) are invisible
-dust; trona and hanksite have no engine; halite is mostly sub-0.01 mm crusts.
+(`js/75-transitions.ts:95`). The record has borax surviving as 3.1 vol %, and "Primary crystals of
+tincalconite have been reported only twice from Searles Lake" (Smith & Haines 1964, as quoted by
+review round 3); the tincalconite rind forms on borax exposed to dry air, that is, after recovery.
+So the mechanism is real but belongs after the cavity is opened, and the simulator converts all of
+its borax inside it. (Earlier drafts quoted "common only as an alteration rind on borax", which was
+the research pass's paraphrase, not the source's words.) Calcite (10.8 per vug) and celestine (8.9)
+are invisible dust; trona and hanksite have no engine; halite is mostly sub-0.01 mm crusts.
 
-**Great Salt Plains — THIN; the literature says the count is inverted.** The collectible is hourglass
-selenite (single crystals and twins to 7 in., clusters to 38 lb); halite occurs as a thin surface
-crust (US Fish & Wildlife Service 2002). The simulator: halite 11.3 per vug (69 % vis) to selenite 2.0
-— though selenite takes 99.9 % of the volume (40.6 mm crystals). Count inverts what is collected;
-volume does not.
+**Great Salt Plains — THIN; the literature makes selenite the collectible.** The collectible is
+hourglass selenite (single crystals and twins to 7 in., clusters to 38 lb); halite occurs as a thin
+surface crust (US Fish & Wildlife Service 2002). The simulator: halite 11.3 per vug to selenite 2.0,
+but most halite is sub-millimetre crust and 61 % of its ≥ 1 mm crystals are sealed inside other
+crystals; counting exposed crystals ≥ 1 mm, selenite leads (53 % of them), and it takes 99.9 % of the
+volume (40.6 mm crystals). The surviving count inverts what is collected; the visible count and the
+volume do not. (The first drafts, counting enclosed crystals, had halite at 69 % of the visible
+crystals.)
 
 **Sicily — PARTLY.** Sulfur and celestine are in both top threes. Aragonite — the "well-known large
 aragonite crystals" (Viola 1897; 10 % of photos, 21 % of listings) — never forms, and strontianite (4
@@ -593,15 +677,16 @@ fluorite, apatite, muscovite and garnet never form.
 
 **Ouro Preto — PARTLY.** Topaz leads both sides. The record has quartz, specular hematite, mica,
 rutile and rare euclase with it, and "The potassium feldspar is now totally altered to kaolinite"
-(Keller 1983); the simulator's other visible crystals are quartz (25 % of them), albite (36.8 mm) and
-feldspar. The verdict is fragile: with proxy noise it changes in 40 % of resamples.
+(Keller 1983); the simulator's other visible crystals are quartz (19 % of them; a third of its
+≥ 1 mm crystals are sealed inside other crystals), feldspar and albite (36.8 mm). The verdict is
+fragile: with proxy noise it changes in 40 % of resamples.
 
 **Grimsel — DISAGREES.** Quartz (mostly smoky) and fluorite (much of it pink) are 80 % of the area's
 photographs. Read first-hand in Koenigsberger (1919): the frequent cleft types in normal Aar granite
 are quartz–chlorite–calcite–fluorite (localities I–XX) and quartz–chlorite (I–VII, X–XIV, XXIII), with
 apatite and epidote only as bracketed associates; adularia–quartz–titanite–chlorite is the *diorite*
-type. The simulator's visible leaders are apatite (5.9 visible per vug, 31 % vis), quartz (16 %) and
-titanite (12 %); epidote is 5.7 per vug but only 0.81 of them visible. Titanite belongs to the diorite
+type. The simulator's visible leaders are apatite (5.9 visible per vug, 32 % vis), quartz (16 %) and
+titanite (12 %); epidote is 5.7 per vug but only 0.76 of them visible. Titanite belongs to the diorite
 type and apatite and epidote are only associates in the granite types, while the simulator's fluorite
 is dust and chlorite has no engine.
 
@@ -615,6 +700,9 @@ record) is dust in most seeds.
 **Jeffrey Mine — PARTLY, the best multi-species case.** Grossular, vesuvianite and diopside are the
 top three on both sides. Grossular is under-weighted (13 % vis against 59 % of photos); awaruite (3 per
 vug, 11 % vis) and datolite were not found in the sources read; chlorite and zoisite have no engine.
+Normand & Williams-Jones (2007) name prehnite, wollastonite, zoisite and chlorite only in a list of
+characteristic rodingite minerals, so their earlier "common" class is now "documented" (review round
+3).
 
 **Deccan Traps — PARTLY.** "Heulandite and stilbite constitute the major bulk of the zeolites"
 (Sukheswala et al. 1974); apophyllite is the most-photographed species and the one most often named
@@ -627,13 +715,19 @@ disagreement to resolve, not yet a verdict; albite appears in the record as albi
 cavity crystal. Cavansite, okenite, gyrolite, pentagonite and laumontite (26 % of photographs
 together) have no engine.
 
-**Bimbowrie (chiastolite_hornfels) — AGREES.** Andalusite (chiastolite) is everything on both sides.
-Teale (1979): "The phases plagioclase and paragonite were not detected" — the simulator's albite and
-feldspar crystals (none visible) are unsupported; the July review flagged pure albite at 600 °C as an
-objection with "real force".
+**Bimbowrie (chiastolite_hornfels) — THIN; the literature agrees.** Bimbowrie has three
+Mineralienatlas photographs, and its listing record comes from searches that include "chiastolite"
+— chiastolite from any locality, andalusite by construction — so neither proxy votes. The first two
+drafts scored this as the review's one AGREES (ρ 0.66) without saying where the record came from;
+round 3 caught it. The literature carries the scenario: Teale (1979) describes a graphite-rich schist
+with chiastolitic andalusite to 14 cm in a matrix of quartz, muscovite and graphite, and the
+simulator's only visible crystals are andalusite. "The phases plagioclase and paragonite were not
+detected" — the simulator's albite and feldspar crystals (none visible) are unsupported; the July
+review flagged pure albite at 600 °C as an objection with "real force".
 
 **Ametista do Sul (amethyst_geode) — NO VISIBLE CRYSTALS.** Quartz (amethyst) leads the record, then
-chalcedony and calcite ("Calcita e celadonita, minerais comuns e abundantes", Dias et al. 2019). The
+chalcedony and calcite ("Calcita e celadonita, minerais comuns e abundantes", Dias et al. 2019 — a
+sentence about the Rio Grande do Sul amethyst in a paper on Minas Gerais material). The
 simulator's amethyst reaches 0.87 mm at most and its chalcedony 0.16 mm; calcite and celadonite never
 form.
 
@@ -717,20 +811,24 @@ Engines that exist but never fire where the record needs them are in §4.1(a).
 - **"Crystal" includes aggregates.** The simulator counts opal, chalcedony, chrysocolla and the
   Elmwood celestine blanket as crystals, where a collector sees a coating or a crust.
 - **"Visible" is a choice, and the verdict does not hang on it.** The headline comparison uses
-  crystals ≥ 1 mm. Re-read at the micromount size (≥ 0.1 mm; the appendix's ρ(sim ≥ 0.1 mm count,
-  real)), the four micromount-heavy localities get worse, not better: Tsumeb ρ −0.45 → −0.63,
-  Schneeberg −0.36 → −0.42, Wittichen −0.48 → −0.56, Roughton Gill −0.08 → −0.10. The median over the
-  28 scored scenarios moves from 0.00 to 0.02.
+  exposed crystals ≥ 1 mm. Re-read at the micromount size (exposed crystals ≥ 0.1 mm; the appendix's
+  ρ(sim ≥ 0.1 mm count, real)), the four micromount-heavy localities get worse, not better: Tsumeb ρ
+  −0.54 → −0.66, Schneeberg −0.37 → −0.46, Wittichen −0.49 → −0.54, Roughton Gill −0.02 → −0.08. The
+  median over the 27 scored scenarios stays at 0.00. Counting the crystals sealed inside other
+  crystals as visible moves the median to −0.01 and changes one verdict (Sunnyside).
 - **The proxies are samples too.** Resampling the photographs and listing mentions as multinomial
-  draws widens the median ρ band from 0.02 (seeds alone) to 0.17 (proxies alone) and 0.20 (both), and
+  draws widens the median ρ band from 0.01 (seeds alone) to 0.17 (proxies alone) and 0.19 (both), and
   moves four verdicts in ≥ 20 % of draws (§3). That treats every photograph and every listing as an
   independent draw, which they are not — one collector photographs a whole drawer, one dealer lists a
-  whole flat — so the true proxy noise is larger than this.
-- **Count, visible count and volume rank differently in places** — Great Salt Plains (halite 69 % of
-  visible crystals, selenite 99.9 % of the volume), Bisbee (malachite 2 % of visible crystals, 43 % of
-  the volume), Tri-State (anhydrite 45 % of visible crystals, 0.3 % of the volume). Across the 28 scored
-  scenarios volume ranks better than visible count in 10 and worse in 16 (9 and 9 if differences under
-  0.05 are ignored), and the median ρ is no better by volume (−0.11).
+  whole flat — so the true proxy noise is larger than this. The bootstrap's own Monte-Carlo error is
+  small: under three other bootstrap seeds the median joint band is 0.21–0.22 and the same four
+  verdicts stay above 20 % (§3).
+- **Count, visible count and volume rank differently in places** — Great Salt Plains (halite 11.3
+  crystals per vug to selenite's 2.0, but selenite 53 % of the visible crystals and 99.9 % of the
+  volume), Bisbee (malachite 3.5 % of visible crystals, 43 % of the volume), Tri-State (anhydrite 45 % of
+  visible crystals, 0.3 % of the volume). Across the 27 scored scenarios volume ranks better than
+  visible count in 7 and worse in 18 (7 and 8 if differences under 0.05 are ignored), and the median ρ
+  is no better by volume (−0.12).
 
 ---
 
@@ -748,11 +846,11 @@ measurement first and the changes that move every baseline last.
    a hashed release content file (`tools/release-audit.mjs`) and is embedded in the `file://` bundle
    (`tools/file-bundle-assets.mjs`), so it needs a rebuild and a receipt rebake, though no simulation
    output moves.
-3. **Engines that never fire where the record needs them (§4.1a) — the largest failure class.** One
-   scenario at a time, by its own diagnosis (σ gate, broth, missing event): calcite at Ametista,
-   Herkimer, Naica, Viburnum and Tsumeb; fluorite at Cripple Creek and Naica; chalcopyrite and
-   dolomite in the MVT scenarios (dolomite needs the boss's call on the July kinetic verdict); dioptase
-   at Tsumeb; aquamarine at Shigar; aragonite in Sicily. This continues the July review's
+3. **Engines that never fire where the record needs them (§4.1a) — one of the two largest failure
+   classes, with dust (step 6).** One scenario at a time, by its own diagnosis (σ gate, broth,
+   missing event): calcite at Ametista, Herkimer, Naica, Viburnum and Tsumeb; fluorite at Cripple
+   Creek; chalcopyrite and dolomite in the MVT scenarios (dolomite needs the boss's call on the July
+   kinetic verdict); dioptase at Tsumeb; aquamarine at Shigar; aragonite in Sicily. This continues the July review's
    "district-diagnostic no-shows" and "missing ore-forming events" rungs.
 4. **The minor-phase counts (F2), one species family at a time, each with its own lever.** Anhydrite
    (four scenarios, cap 8 and a 16 %-per-step roll once the PHREEQC path admits it); greenockite and
@@ -773,10 +871,14 @@ measurement first and the changes that move every baseline last.
    count or local depletion, and the fill dampener interacts with it. It also re-moves step 4's
    retunes, because the species compete for the same ions — expect to re-measure step 4 after it. It
    is a count lever only: by volume, strictly gated species already reach the top three 6 times in 13.
+   And seven strict species also carry a hand-coded lifetime cap that counts every crystal ever made
+   (malachite, smithsonite, mimetite, hematite and goethite 3, adamite 4, wulfenite 2 — §4.1), so
+   lifting the gate leaves them at 2–4 crystals unless those caps move too.
 6. **Dust (F3), per scenario first.** Herkimer quartz and Ametista amethyst decide their scenarios'
    verdicts; Cruzeiro tourmaline is next. Diagnose each scenario's growth window before touching a
    growth rate: quartz grows in 19 scenarios and is visible in several, so a global quartz rate change
-   moves them all.
+   moves them all. The three sealed cases (Tsumeb's smithsonite and azurite, Bingham's pyrite) are an
+   overgrowth question, not a growth-rate one: which later crystal encloses them, and should it?
 7. **Species debt (§6).** Hanksite and trona first (half of Searles Lake's Upper Salt by volume); then
    the zeolite group (cavansite, okenite, gyrolite), spinel, chlorite, magnesite.
 
@@ -797,8 +899,13 @@ presence error.
 - Census completeness: 861 rows, all unique (scenario, seed) pairs, one SIM version, every scenario at
   its authored duration.
 - Capture provenance: the listing counts (`cbb9cb8b…`) and the photograph counts (`b56cf638…`) hash
-  identically in the browser page and in the data file. The first photograph transcription dropped one
-  Schneeberg row (Lotharmeyerite = 1); the hash mismatch caught it and it was restored.
+  identically in the browser page and on disk. The first photograph transcription dropped one
+  Schneeberg row (Lotharmeyerite = 1); the hash mismatch caught it and it was restored. Since round 3
+  the two captures are committed (`proposals/DATA-LOCALITY-ABUNDANCE-CAPTURE-2026-10-21.json`), and the
+  comparison tool recomputes both hashes and checks every count in the data file against them on
+  every run.
+- Census determinism: the 861-run panel was run twice (census versions 1 and 2); every field the two
+  share is identical in all 861 runs.
 - Classifier unit checks before capture: "Copper Queen Mine" ≠ native copper; "fool's gold" → pyrite;
   "Sulphur Bank" ≠ sulfur; "ruby silver" → proustite; "Ruby Red Sphalerite" ≠ ruby; "Galena Spinel
   Twin" ≠ spinel; "metatorbernite" ≠ torbernite.
@@ -850,7 +957,8 @@ round 2 revised several of them):
   mechanism; the gate step warned that it re-moves step 4; growth calibration made per scenario.
 
 **Review round 2 of 5 (one reviewer, adversarial): 7/10.** It confirmed the round-1 corrections and
-found four problems that had to be fixed, all now fixed:
+found four problems that had to be fixed, all now fixed (the figures in this entry are as of round 2;
+round 3 revised several):
 - **The gate reader missed a plain `existing`.** The drafts recognised the strict and soft idioms only
   when the species' crystal list had a suffixed name, so 32 soft gates written with a plain
   `existing` (24 on species that form in the panel: epidote, titanite, grossular, diopside,
@@ -886,6 +994,37 @@ the revision was caught before commit: acanthite and thenardite nucleate on thei
 forming from argentite and mirabilite, and the first version of the new reader filed them as
 transformation products; they are cap-only.
 
+**Review round 3 of 5 (one reviewer, adversarial): 8/10.** It confirmed round 2's fixes — the gate
+reader matches the code for all 184 species, the tie handling and the proxy bootstrap are sound, and
+about 100 numbers match — and found three problems that had to be fixed, all now fixed:
+- **"Visible" counted crystals sealed inside other crystals.** One crystal in ten that reached 1 mm
+  (1,089 of 11,151 in the locality scenarios) was enclosed in another. The census now records exposed
+  counts (version 2, re-run in full; every shared field identical), and "visible" means exposed and
+  ≥ 1 mm throughout. Sunnyside becomes PARTLY (70 % of its argentite ≥ 1 mm is sealed), six simulator
+  top threes change, and Tsumeb's smithsonite and azurite turn out to be sealed in every seed, which
+  adds a "sealed" class beside dust.
+- **The fate table counted slots the review itself rules out of scope.** Four never-forming slots
+  belong to species the scenario does not claim (the North Pennines barite cavity's fluorite, galena
+  and quartz; Naica's fluorite); the tool now sets them aside with the reason. With the exposed
+  measure, dust (15) and engines that never fire (14) are the two largest classes, about equal — not
+  non-firing engines alone.
+- **Bimbowrie's AGREES came from a market-wide search.** Its listing record includes "chiastolite"
+  from any locality; the data file now marks that search market-wide, so it does not vote, and
+  Bimbowrie is THIN with its literature agreeing. No scenario now agrees outright on the proxies.
+
+The suggested improvements, all made: the slot rule described as coded; hand-coded lifetime caps added
+to the gate census (17 species in 16 functions — §4.1, §8 step 5, F1b); todorokite read as a pure
+transformation product and the selenite ⇄ anhydrite replacement noted; the two raw captures committed
+and checked on every run; the unsaved listing titles and the classifier's unguarded routes stated,
+with the margins they could cross; a share floor for fate slots stated (it removes nothing — the
+low-share slots are literature-rated); Gratz 1986 identified as a Gordonsville thesis; the Searles
+tincalconite paraphrase replaced with Smith & Haines's words; Cripple Creek's K-feldspar, Bisbee's
+cuprite and the three market-reference captures stated; the bootstrap's Monte-Carlo spread measured
+(§3, §7). From its literature checks: Rowan's "somewhat rare" coarse sphalerite added at Viburnum;
+Searles calcite and tincalconite now V; the Kansas tonnage given in short tons; four Jeffrey classes
+lowered from "common" to "documented"; Dias et al.'s Ametista sentence attributed to the right
+deposit.
+
 ---
 
 ## 10. Reproduce
@@ -895,7 +1034,10 @@ node tools/assemblage-census.mjs --seeds 1-20,42 --workers 4   # .local-evidence
 node tools/locality-abundance-compare.mjs                        # .local-evidence/locality-abundance/compare.{md,json}
 ```
 The census resumes from its own rows (keyed by scenario, seed and SIM version), so a stopped run picks
-up where it stopped; its default is one worker, per AGENTS.md. Both instruments are passive: they write
-only under `.local-evidence/`. The proxy data (`proposals/DATA-LOCALITY-ABUNDANCE-2026-10-21.json`) is a
-dated capture; refreshing it means re-running the browser capture described in its `sources` block. The
-generated appendix (`proposals/DATA-LOCALITY-ABUNDANCE-COMPARE-2026-10-21.md`) is this run's `compare.md`.
+up where it stopped; its default is one worker, per AGENTS.md. It refuses a file written by an older
+census version (move it aside first). Both instruments are passive: they write only under
+`.local-evidence/`. The proxy data (`proposals/DATA-LOCALITY-ABUNDANCE-2026-10-21.json`) is a dated
+capture; refreshing it means re-running the browser capture described in its `sources` block, and
+replacing the raw capture file (`proposals/DATA-LOCALITY-ABUNDANCE-CAPTURE-2026-10-21.json`) that the
+comparison checks it against. The generated appendix (`proposals/DATA-LOCALITY-ABUNDANCE-COMPARE-2026-10-21.md`)
+is this run's `compare.md`.

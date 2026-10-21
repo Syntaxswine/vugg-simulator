@@ -252,3 +252,173 @@ and the differences have known causes:
   whose "accessory" is a contract role in a reason that calls it "fundamental vein and pegmatite
   gangue".
 - The tool's micromount ρ is Tsumeb −0.63, Schneeberg −0.42, Wittichen −0.56, Roughton −0.10.
+
+---
+
+## Round 3 of 5 — 8/10 (reviewed commit 1eed3de0)
+
+### Locality-abundance review: round 3 of 5
+
+**Score: 8/10.** Round 2's four must-fix items are fixed and hold up under an independent check: the
+gate reader matches the code for all 184 species; ties are enumerated, not broken by the record; the
+proxy bootstrap is sound and gives the same result under other random seeds; the F2 counts
+reproduce. The tool re-runs byte-identically, and about 100 numbers in the document match
+`compare.json`. The headline ("the ratios don't match") survives, and so does the strict gate as a
+count lever. Three new problems must be fixed before this goes to the boss.
+
+#### MUST-FIX
+
+1. **The cause ranking counts slots the document rules out of scope** (review §1, §4.1, §8). Of the
+   20 "never forms" slots, four are ones §5 calls outside the scenario's claim — tn457's fluorite,
+   galena and quartz ("a scope question, not an error") and Naica's fluorite ("outside its claim") —
+   and two more are Bimbowrie's quartz and chalcedony (item 2). Without these six: never forms 14,
+   dust 15, visible but outside the top three 12, tied 5, in the top three 24 — 70 slots. Dust and
+   non-firing engines are about equal, so "non-forming engines are the largest failure" does not
+   hold. Knock-ons: "fluorite never forms at 3 of its 7 scenarios" has one in-scope case (Cripple
+   Creek); §8 step 3 proposes fixing fluorite at Naica, which contradicts §5.4. Unaffected: the
+   conditional test (none of the six slots is visible) and the 37 % strict share (26/70). Fix: a
+   scope flag per slot in the fate table; restate §1 item 1 and §4.1(a); drop Naica fluorite from
+   step 3.
+2. **Bimbowrie's AGREES rests on a market-wide search that is never disclosed.** The data file's
+   queries are `["bimbowrie","chiastolite"]` and its locality name says "(+ chiastolite market-wide)".
+   The 3 photographs do not vote, so the whole real record is titles from a worldwide chiastolite
+   search, andalusite by construction (57 of 64 mentions). ρ = 0.66 is not a Bimbowrie measure;
+   quartz (3 listing families) and chalcedony (2), with no literature behind them, become "headline"
+   slots that never form. The AGREES rule was relaxed after round 1 (min(2, size of the sim's top
+   three)) for this one scenario. Fix: disclose it in §1, §3 and §5.6, rest the verdict on Teale 1979,
+   and remove Bimbowrie's quartz and chalcedony from §4.1(a).
+3. **"Visible" includes crystals enclosed inside other crystals.** From the census `n_encl` bounds,
+   965–1,513 of the 11,151 visible crystals in the 33 locality scenarios (8.7–13.6 %) sit inside
+   another crystal. A 21-seed probe splitting ≥ 1 mm crystals by `enclosed_by`: Sunnyside argentite
+   3.19 → 0.95 exposed per vug (70 % enclosed); porphyry acanthite 4.00 → 2.24, with galena replacing
+   it in the sim top three; Jeffrey unchanged. Re-scored with exposed counts, Sunnyside's ρ goes from
+   −0.01 to +0.07 and DISAGREES becomes PARTLY (galena, 1.16 % of the record, stays the lead). The
+   census bounds put 94–100 % of Bisbee's "visible" jarosite and 47–55 % of its atacamite inside other
+   crystals. The Sunnyside sentence fails twice: 6.4 per vug is the surviving count, and most of its
+   3.19 visible argentite crystals are enclosed. Fix: an exposed-visible count in the census, or the
+   bounds; rewrite the Sunnyside paragraph and its "lit: rare" cell.
+
+#### SHOULD-FIX
+
+- **Slot rule misdescribed.** §1 says the slots are the "three most-recorded species that the
+  simulator has an engine for"; the code takes the real top three and drops species with no engine
+  (Colorado contributes 0 slots, Mogok and Searles 1 each).
+- **Lifetime caps are missing from the gate taxonomy.** Sixteen functions carry hand-coded
+  `total_<m>` caps that count every crystal ever made, dissolved and enclosed included. They bind 7
+  of the 24 strict species (malachite and smithsonite ≤ 3, `js/82:204–205, 230–231`; mimetite,
+  hematite and goethite ≤ 3; adamite ≤ 4; wulfenite ≤ 2) and 10 soft species (galena < 8, feldspar
+  < 6, albite and selenite < 4, …). §8 step 5 would still leave those seven strict species at 2–4
+  crystals; F1b should note that these totals do count "active + dissolved".
+- **Two in-place routes are missed.** `_nuc_todorokite` (`js/87:171–199`) never calls
+  `sim.nucleate`; it converts birnessite in place, so todorokite is a seventh pure transformation
+  product, filed as cap-only. The selenite ⇄ anhydrite replacement (`js/75-transitions.ts:255–285`)
+  is not detected. No effect on the panel: seed-42 runs show every anhydrite and selenite nucleated
+  as itself.
+- **Provenance hashes don't reproduce.** `b56cf638…` (photos) and `cbb9cb8b…` (listings) don't come
+  out of the data file with the documented recipe (about 50 serialisations tried). Commit the snippet
+  that made them.
+- **Titles are not stored**, so the classifier can't be audited on real data. Synthetic titles show
+  three unguarded routes: "copper" before an unlisted word ("Chrysocolla Copper Bisbee" → native
+  copper); "Trona" (the town) at the end of a title → x:trona; "Ruby Spinel" → both ruby and spinel.
+  Margins these could cross: Bisbee native copper vs cuprite, 12.1 vs 10.1 %; Searles trona vs
+  sulfohalite, 7.6 vs 6.5 %. No fate count changes. Commit the family titles.
+- **No share floor for "headline" slots.** Five of the 76 are under 5 % of the record: Herkimer
+  calcite 0.9 %, Bimbowrie chalcedony 3.1 %, Cruzeiro lepidolite 3.3 %, Marlborough chalcedony 4.0 %,
+  Bimbowrie quartz 4.7 %.
+- **Citations.** Gratz 1986 is a thesis on the Gordonsville Mine; say so. At Searles, "common only as
+  an alteration rind on borax" is the research pass's paraphrase set in quotation marks; Smith &
+  Haines say the rind forms after borax is exposed to dry air, i.e. after recovery — which
+  strengthens the point that the simulator converts all of its borax.
+- **Wording.** Cripple Creek omits the simulator's visible K-feldspar ×2; Bisbee's "cuprite barely
+  (median 0.36 mm)" reads as passing 1 mm, which cuprite never does; "72 searches, 15,190 listings,
+  9,822 families" include three captures that feed no scenario (Cumbria, Skardu and Haramosh: 2,213
+  listings, 1,659 families).
+- **State the Monte-Carlo error.** With three other random seeds, the same four scenarios exceed
+  20 %: Sunnyside 45–54 %, Ouro Preto 38–44 %, Cripple Creek 30–40 %, tn457 25–32 %. Median bands are
+  0.18 (proxies) and 0.19–0.22 (both).
+
+#### Literature spot-checks (none checked by earlier rounds)
+
+- Rowan 1987, USGS OFR 87-675 (scan) — supported: "the abundant hydrothermal gangue dolomite"
+  (p. 4), most abundant at Sweetwater and Fletcher, vug-lining crystals 1–8 mm; "Calcite is
+  predominantly a late stage mineral" (p. 2, after Roedder 1977); coarse sphalerite is "somewhat
+  rare".
+- Smith & Haines 1964, USGS Bull. 1181-P — supported: the celestite sentence verbatim; "Primary
+  crystals of tincalconite have been reported only twice from Searles Lake"; calcite "much less
+  common than aragonite" (that class is S in the data file and can become V).
+- Brosius & Sawin 2001, KGS PIC 17 — supported: 23 million tons of zinc against 4 million tons of
+  lead concentrates (p. 2) — US tons, so "Mt" is loose; sphalerite five times as abundant as galena
+  (p. 3).
+- Normand & Williams-Jones 2007 — partly supported: a figure caption calls diopside abundant (AB is
+  fine); prehnite, wollastonite, zoisite and chlorite appear only in a list of characteristic
+  minerals, so their "CO" is generous.
+- Gratz 1986 — real; the abstract matches the data file, but the subject is Gordonsville.
+- Rouwendaal et al. 2025 — supported: sulfur dispersed in calcite cement; celestine occasionally fills
+  pores.
+- Dias et al. 2019 — supported; the statement is about Rio Grande do Sul amethyst, made inside a
+  Minas Gerais paper.
+- Handbook of Mineralogy, greenockite — supported: mostly earthy coatings; Joplin district, on
+  sphalerite.
+- GCR vol. 36, ch. 3 — not opened (over the fetch limit; the mirror returned 502).
+
+#### Round 2's must-fix items: status
+
+All four fixed. Gate classifier: every own-list use in js/80–91 dumped for all 184 species, classes
+match the code, including the beryl and corundum loops, the Mn helper, raspite, goethite and enargite.
+Tie-break leak: `topTie`, `combos` and `same` correct; leads enumerated; Viburnum and Cruzeiro
+re-derived. Seed-only bootstrap: multinomial resampling keeps totals (THIN voting unchanged), the
+subset rule is correct, three other random seeds reproduce the result. F2: 36 / 29 / 19 / 7 / 6
+reproduce; all 36 reasons read; none of the 184 reasons uses "uncommon", "occasional", "sporadic",
+"small" or "few".
+
+#### What is solid
+
+- The tool (2.9 s) re-runs byte-identically; the appendix body equals `compare.md` apart from one
+  leading blank line; header hashes `1f44838c…`, `4b648a42…` and `5d355644…` match.
+- About 100 numbers checked against `compare.json`, all matching except as noted: all 33 scoreboard
+  rows, the fate and conditional tables, the fleet gate table, the F2 and dust tables, the §5 values.
+- An independent Spearman implementation reproduces ρ exactly (Sunnyside −0.009, porphyry −0.328,
+  Jeffrey 0.202).
+- Code citations verified: `minerals.json:14`, `85b:716`, `82:28, 36`, `15-version:12956`,
+  `75-transitions:95–100, 474`, `BACKLOG.md:276` (celestine 2 → 6).
+- Literature and data totals reproduce: 63 source entries; 278 classes (229 V / 46 S / 3 R); 36
+  pages; 6,736 photos; 72 searches; 15,190 listings; 9,822 families.
+- The strict-gate finding survives every correction above: 0/13 vs 24/28 by count, 6/13 vs 20/28 by
+  volume.
+
+**Response:** every MUST-FIX and SHOULD-FIX item is addressed; the review's §9 lists the changes. How
+each landed, where the outcome differs from the reviewer's expectation:
+- **Enclosed crystals:** fixed at the source rather than by bounds. The census (version 2) records
+  exposed counts and the largest exposed crystal; the full 861-run panel was re-run (35.7 min, 12
+  workers), and every field it shares with version 1 is identical. 1,089 of 11,151 visible crystals
+  (9.8 %) were enclosed, inside the reviewer's 965–1,513 bound. Sunnyside becomes PARTLY (ρ +0.07, as
+  the reviewer measured); six simulator top threes change (Bisbee, Ouro Preto, Bingham, Schneeberg,
+  Sunnyside, Wittichen). Tsumeb's smithsonite and azurite turn out to be enclosed in every seed, so the
+  fate table gains a "sealed inside other crystals" column beside dust.
+- **Scope:** the four out-of-claim slots are set aside in the tool with reasons; Bimbowrie no longer
+  contributes slots. With the exposed measure the fate table is 69 slots: never forms 14, dust 15,
+  sealed 2, visible outside the top three 9, tied 6, in the top three 23 — the reviewer's "about
+  equal" holds. The conditional test becomes 0/11 strict (5/11 counting ties) against 23/27 for the
+  rest, 6/11 against 19/27 by volume.
+- **Bimbowrie:** the data file marks the "chiastolite" search market-wide; listings from it do not
+  vote, so Bimbowrie is THIN and its verdict rests on Teale 1979. The verdict tally is 0 AGREES, 7
+  PARTLY, 18 DISAGREES, 2 TIE-DEPENDENT, 3 NO VISIBLE CRYSTALS, 3 THIN. The relaxed AGREES rule stays
+  (it is the right rule for a one-species top three) but now decides no verdict.
+- **Provenance:** the reviewer could not reproduce the hashes because the two raw captures had never
+  been committed. Both reproduce exactly from them (`key\npairs\n` over sorted keys for the
+  photographs; `JSON.stringify` of the listing summary), so they are now committed and the tool checks
+  them, and every data-file count against them, on every run.
+- **Titles:** they were classified inside the browser page and never saved, so they cannot be
+  committed. The review now says so and gives the reviewer's three unguarded routes and the two margins
+  they could cross.
+- **Share floor:** applied (5 % of the record, or a literature class of abundant or common). It removes
+  nothing: Bimbowrie's two low-share slots are gone with its market-wide record, and Herkimer calcite,
+  Cruzeiro lepidolite and Marlborough chalcedony are literature-rated common or abundant.
+- **Lifetime caps and in-place routes:** 17 species in 16 functions, as the reviewer counted;
+  todorokite is a transformation product (`_nuc_todorokite` has no `sim.nucleate` call), and the
+  selenite ⇄ anhydrite replacement is read from `js/75-transitions.ts:262`.
+- **Monte-Carlo error:** measured in the tool with three extra bootstrap seeds — median joint band
+  0.19–0.22; the same four verdicts stay above 20 % (Sunnyside 40–48 %, Ouro Preto 35–45 %, Cripple
+  Creek 34–39 %, the barite cavity 24–34 %), and Roughton Gill reaches 21 % once.
+- **F2:** with exposed counts, 20 of the 36 cases hold by visible count (Bingham's bismuthinite joins,
+  because the headline median dropped), 7 by volume.

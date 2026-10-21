@@ -4,23 +4,30 @@
  * (locality-abundance review, 2026-10-21).
  *
  * Inputs:
- *   .local-evidence/assemblage-census/runs.jsonl        (tools/assemblage-census.mjs)
+ *   .local-evidence/assemblage-census/runs.jsonl        (tools/assemblage-census.mjs, census v2)
  *   proposals/DATA-LOCALITY-ABUNDANCE-2026-10-21.json   (the captured proxies: Mineralienatlas
  *                                                        photo counts, eBay listing titles
  *                                                        classified by tools/market-title-dictionary.mjs,
  *                                                        literature classes)
+ *   proposals/DATA-LOCALITY-ABUNDANCE-CAPTURE-2026-10-21.json  (the two raw browser captures; the
+ *                                                        tool re-derives their recorded hashes and
+ *                                                        checks every data-file count against them
+ *                                                        before comparing anything)
  *
  * For each scenario anchored to a real locality it prints, per species, the sim's share of
  * surviving crystals, of crystals ≥ 0.1 mm (micromount size), of eye-visible (≥ 1 mm) crystals
  * and of crystal volume (all averaged over the seed panel), beside the locality's share of
- * photographs, of listings, and the literature class. Shares, not raw counts: the photo archive of
+ * photographs, of listings, and the literature class. "Visible" and "micromount" count EXPOSED
+ * crystals — a crystal sealed inside another crystal is not one a collector sees — and the
+ * with-enclosed count is kept as a robustness check. Shares, not raw counts: the photo archive of
  * Tsumeb and the eBay supply of Herkimer quartz differ by orders of magnitude, and only the
  * within-locality ratio is a claim about the rock. Units differ on the two sides — the sim counts
  * crystals per cavity, the proxies count specimens people photograph or sell — so only ranks are
  * compared, never values.
  *
  * The real ranking is the mean of the photo and listing shares; a source with fewer than THIN
- * observations does not vote. Spearman ρ is computed over the UNION of: the sim's top 12 by visible
+ * observations does not vote, and nor do listings from a search the data file marks market_wide
+ * (not locality-specific). Spearman ρ is computed over the UNION of: the sim's top 12 by visible
  * share, the sim's top 12 by surviving share, the photos' top 12, the listings' top 8, and every
  * species the literature calls abundant or common; a species absent from one side scores 0 there
  * (ties get average ranks). With that zero-padding ρ behaves largely as a set-overlap statistic.
@@ -36,7 +43,8 @@
  * nothing ≥ 1 mm, TIE-DEPENDENT as above. Bootstrap, BOOT resamples each, three ways: the seeds
  * (the sim's own noise); the photographs and listing mentions as multinomial draws (the proxies'
  * sampling noise, and only a floor on it, since one collector photographs a whole drawer); and both
- * at once. Each gives ρ a 5–95 % band and the fraction of resamples whose verdict differs.
+ * at once. Each gives ρ a 5–95 % band and the fraction of resamples whose verdict differs; the
+ * joint bootstrap is rerun under MC_SALTS other seeds to show its own Monte-Carlo spread.
  *
  * Flags (thresholds printed with the tables):
  *   OVER   — the sim gives a species ≥ 10 % of its visible crystals while photos AND listings are < 1 %.
@@ -46,28 +54,46 @@
  * Fleet sections: the scenarios' own abundance words vs their counts (by surviving count, visible
  * count and volume; reasons whose minor word is not about the species' own abundance are listed,
  * not counted); the nucleation-gate census, read from the code with each gate line printed (strict
- * / soft / active-capped / cap-only / transformation product); what happens to each real top-three
- * species (never forms / dust / visible / tied / sim top three) by gate, by count and by volume;
- * the dust list; robustness of the median ρ to the measure; how many (scenario, species) pairs
- * have the same count in every seed (why the seed bands are narrow).
+ * / soft / active-capped / cap-only / transformation product, plus hand-coded lifetime caps); what
+ * happens to each real top-three species (never forms / dust / visible / tied / sim top three) by
+ * gate, by count and by volume — leaving out, with reasons, species the scenario does not claim
+ * (OUT_OF_CLAIM) and species under FATE_FLOOR of the record that the literature does not call
+ * abundant or common; the dust list; robustness of the median ρ to the measure (including the
+ * with-enclosed count); how many (scenario, species) pairs have the same count in every seed (why
+ * the seed bands are narrow).
  *
  * PASSIVE: reads, prints, writes .local-evidence/locality-abundance/compare.{md,json}, exits 0.
  */
 import fs from 'node:fs';
 import path from 'node:path';
+import crypto from 'node:crypto';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { MARKET_TITLE_DICTIONARY, buildMatchers, classifyTitle } from './market-title-dictionary.mjs';
 
 const ROOT = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const RUNS = path.join(ROOT, '.local-evidence', 'assemblage-census', 'runs.jsonl');
 const DATA = path.join(ROOT, 'proposals', 'DATA-LOCALITY-ABUNDANCE-2026-10-21.json');
+const CAPTURE = path.join(ROOT, 'proposals', 'DATA-LOCALITY-ABUNDANCE-CAPTURE-2026-10-21.json');
 const OUT = path.join(ROOT, '.local-evidence', 'locality-abundance');
 const SPEC = JSON.parse(fs.readFileSync(path.join(ROOT, 'data', 'minerals.json'), 'utf8')).minerals;
 
 const OVER_SIM = 0.10, OVER_REAL = 0.01, UNDER_REAL = 0.10, UNDER_SIM = 0.02, ABSENT_SEEDS = 0.25;
 const THIN = 20;    // fewer photos (or listing mentions) than this and the source does not vote
 const BOOT = 200;   // seed-bootstrap resamples per scenario
+const MC_SALTS = [1, 2, 3];   // extra bootstrap seeds: the Monte-Carlo spread of the joint bootstrap
 const DUST_REAL = 0.10;
+// A real top-three species counts as a headline slot in the fate table only with at least this
+// share of the voting record, or a literature class of abundant or common (Herkimer's third place
+// is 0.9 % of a record that is 94 % quartz).
+const FATE_FLOOR = 0.05;
+// Real top-three species the scenario does not claim, by its own section of the review: set aside
+// from the fate table and listed with the reason.
+const OUT_OF_CLAIM = {
+  'tn457_barite_pulses|fluorite': 'the scenario is one outer-zone barite-on-sphalerite cavity; the orefield\'s fluorite, galena and quartz belong to the central zone (review §5.1)',
+  'tn457_barite_pulses|galena': 'the scenario is one outer-zone barite-on-sphalerite cavity (review §5.1)',
+  'tn457_barite_pulses|quartz': 'the scenario is one outer-zone barite-on-sphalerite cavity (review §5.1)',
+  'naica_geothermal|fluorite': 'the scenario is the giant-gypsum cave pool; the fluorite is the ore body\'s (review §5.4)',
+};
 const matchers = buildMatchers(MARKET_TITLE_DICTIONARY);
 
 // Mineralienatlas names are classified by the same dictionary as listing titles, so "Gypsum",
@@ -179,6 +205,8 @@ const topText = (t) => [...t.sure, ...(t.tied.length ? [`${t.slots} of {${t.tied
 const runs = fs.readFileSync(RUNS, 'utf8').split('\n').filter(Boolean).map((l) => JSON.parse(l)).filter((r) => r.ok);
 const simVersions = [...new Set(runs.map((r) => r.sim_version))];
 if (simVersions.length !== 1) throw new Error(`runs.jsonl mixes SIM versions ${simVersions.join(',')}`);
+// Census version 2 records exposed (not enclosed) counts; an older file cannot answer the question.
+if (runs.some((r) => (r.census ?? 1) < 2)) throw new Error('runs.jsonl has census-version-1 rows (no exposed counts); re-run tools/assemblage-census.mjs');
 const runsBy = {};
 for (const r of runs) (runsBy[r.scenario] ||= []).push(r);
 for (const [scn, rs] of Object.entries(runsBy)) {
@@ -189,29 +217,62 @@ function simTable(scn, sample = null) {
   const rs = sample || runsBy[scn];
   if (!rs || !rs.length) return null;
   const n = rs.length;
+  // "Visible" and "micromount" count EXPOSED crystals (not enclosed by another crystal): what a
+  // collector can see. The largest-crystal figures are the largest exposed crystal. visAll keeps
+  // the count with enclosed crystals, for the robustness check.
   const per = {};
   for (const r of rs) {
     for (const [m, v] of Object.entries(r.species)) {
-      const p = (per[m] ||= { surv: 0, micro: 0, vis: 0, vol: 0, present: 0, visPresent: 0, maxmm: [] });
-      p.surv += v.n_surv; p.micro += v.n_01; p.vis += v.n_1; p.vol += v.vol_mm3;
-      if (v.n_surv > 0) { p.present++; p.maxmm.push(v.max_mm); }
-      if (v.n_1 > 0) p.visPresent++;
+      const p = (per[m] ||= { surv: 0, micro: 0, vis: 0, visAll: 0, vol: 0, present: 0, visPresent: 0, maxmm: [], maxmmAll: [] });
+      p.surv += v.n_surv; p.micro += v.n_01_exp; p.vis += v.n_1_exp; p.visAll += v.n_1; p.vol += v.vol_mm3;
+      if (v.n_surv > 0) { p.present++; p.maxmm.push(v.max_exp_mm); p.maxmmAll.push(v.max_mm); }
+      if (v.n_1_exp > 0) p.visPresent++;
     }
   }
-  const surv = {}, micro = {}, vis = {}, vol = {}, visPres = {};
-  for (const [m, p] of Object.entries(per)) { surv[m] = p.surv / n; micro[m] = p.micro / n; vis[m] = p.vis / n; vol[m] = p.vol / n; visPres[m] = p.visPresent / n; }
+  const surv = {}, micro = {}, vis = {}, visAll = {}, vol = {}, visPres = {};
+  for (const [m, p] of Object.entries(per)) {
+    surv[m] = p.surv / n; micro[m] = p.micro / n; vis[m] = p.vis / n; visAll[m] = p.visAll / n;
+    vol[m] = p.vol / n; visPres[m] = p.visPresent / n;
+  }
   return {
-    seeds: n, surv: shares(surv), micro: shares(micro), vis: shares(vis), vol: shares(vol), visPres: shares(visPres),
-    meanSurv: surv, meanVis: vis, meanVol: vol,
+    seeds: n, surv: shares(surv), micro: shares(micro), vis: shares(vis), visAll: shares(visAll), vol: shares(vol),
+    visPres: shares(visPres), meanSurv: surv, meanVis: vis, meanVisAll: visAll, meanVol: vol,
     present: Object.fromEntries(Object.entries(per).map(([m, p]) => [m, p.present / n])),
     visPresent: visPres,
     medMax: Object.fromEntries(Object.entries(per).map(([m, p]) => [m, med(p.maxmm) ?? 0])),
     maxMax: Object.fromEntries(Object.entries(per).map(([m, p]) => [m, p.maxmm.length ? Math.max(...p.maxmm) : 0])),
+    medMaxAll: Object.fromEntries(Object.entries(per).map(([m, p]) => [m, med(p.maxmmAll) ?? 0])),
   };
 }
 
 // ---- real side
 const data = JSON.parse(fs.readFileSync(DATA, 'utf8'));
+// Provenance: the data file's counts must be exactly the two browser captures, and the captures
+// must hash to the values the page reported (recorded in the data file's sources block).
+{
+  const cap = JSON.parse(fs.readFileSync(CAPTURE, 'utf8'));
+  const sha = (s) => crypto.createHash('sha256').update(s, 'utf8').digest('hex');
+  const recorded = (s) => (String(s).match(/[0-9a-f]{64}/) || [])[0];
+  const hMa = sha(Object.keys(cap.mineralienatlas).sort().map((k) => `${k}\n${cap.mineralienatlas[k].p}\n`).join(''));
+  const hEb = sha(JSON.stringify(cap.ebay));
+  if (hMa !== recorded(data.sources.mineralienatlas.verification)) throw new Error(`photo capture hashes to ${hMa}, not the recorded value`);
+  if (hEb !== recorded(data.sources.ebay.verification)) throw new Error(`listing capture hashes to ${hEb}, not the recorded value`);
+  const pairs = (s, sep, kv) => Object.fromEntries((s || '').split(sep).filter(Boolean)
+    .map((x) => [x.slice(0, x.lastIndexOf(kv)), Number(x.slice(x.lastIndexOf(kv) + 1))]));
+  const eq = (a, b) => JSON.stringify(Object.entries(a || {}).sort()) === JSON.stringify(Object.entries(b || {}).sort());
+  for (const [loc, L] of Object.entries(data.localities)) {
+    const k = cap.keymap[loc];
+    if (!k) throw new Error(`no capture key for locality ${loc}`);
+    const m = k.mineralienatlas ? cap.mineralienatlas[k.mineralienatlas] : null;
+    if (m ? !(eq(pairs(m.p, ';', '='), L.mineralienatlas?.photos) && JSON.stringify(m.ids) === JSON.stringify(L.mineralienatlas?.location_ids))
+      : L.mineralienatlas) throw new Error(`${loc}: photo counts differ from the capture`);
+    const e = cap.ebay[k.ebay], d = L.ebay || {};
+    if (!e || e.q !== (d.queries || []).join('|') || e.L !== d.listings || e.F !== d.families || e.lapF !== d.lapidary_families
+      || e.unclF !== d.unclassified_families || !eq(pairs(e.mF, ' ', ':'), d.mention_families) || !eq(pairs(e.lF, ' ', ':'), d.lead_families)) {
+      throw new Error(`${loc}: listing counts differ from the capture`);
+    }
+  }
+}
 function realTable(loc) {
   const L = data.localities[loc];
   // Locality aliases: a generic market word that means one species at this locality
@@ -228,9 +289,11 @@ function realTable(loc) {
     ebay[k] = (ebay[k] || 0) + c;
   }
   delete ebay['x:fossil'];
-  return realFrom(photos, ebay, L.literature?.species || {});
+  // A search that is not locality-specific (Bimbowrie's "chiastolite" finds chiastolite from any
+  // locality) is declared in the data file with its reason; such listings are shown, never voted.
+  return realFrom(photos, ebay, L.literature?.species || {}, !!L.ebay?.market_wide);
 }
-const realFrom = (photos, ebay, lit) => ({ photos: shares(photos), ebay: shares(ebay), lit, counts: { photos, ebay } });
+const realFrom = (photos, ebay, lit, marketWide) => ({ photos: shares(photos), ebay: shares(ebay), lit, marketWide, counts: { photos, ebay } });
 const litLabel = (e) => (e?.class ? `${e.class}${e.status && e.status !== 'V' ? ` (${e.status})` : ''}` : null);
 
 const pct = (x) => (x == null ? '—' : x === 0 ? '0' : x < 0.001 ? '<0.1' : (100 * x).toFixed(x < 0.1 ? 1 : 0));
@@ -246,14 +309,15 @@ function compareOne(scn, loc, R, sample = null) {
     ...Object.entries(R.ebay.out).sort((a, b) => b[1] - a[1]).slice(0, 8).map(([k]) => k),
     ...Object.entries(R.lit).filter(([, v]) => /^(AB|CO)/.test(v?.class || '')).map(([k]) => k),
   ]);
-  const usePhoto = R.photos.tot >= THIN, useEbay = R.ebay.tot >= THIN;
+  const usePhoto = R.photos.tot >= THIN, useEbay = R.ebay.tot >= THIN && !R.marketWide;
   const rows = [...keys].map((k) => {
     const photo = R.photos.out[k] || 0, ebay = R.ebay.out[k] || 0;
     const parts = [usePhoto ? photo : null, useEbay ? ebay : null].filter((x) => x != null);
     return {
       k, engine: !!SPEC[k], simSurv: S.surv.out[k] || 0, simMicro: S.micro.out[k] || 0, simVis: S.vis.out[k] || 0,
-      simVol: S.vol.out[k] || 0, simVisPres: S.visPres.out[k] || 0, meanSurv: S.meanSurv[k] || 0, meanVis: S.meanVis[k] || 0,
-      present: S.present[k] || 0, visPresent: S.visPresent[k] || 0, medMax: S.medMax[k] || 0, maxMax: S.maxMax[k] || 0,
+      simVisAll: S.visAll.out[k] || 0, simVol: S.vol.out[k] || 0, simVisPres: S.visPres.out[k] || 0,
+      meanSurv: S.meanSurv[k] || 0, meanVis: S.meanVis[k] || 0, meanVisAll: S.meanVisAll[k] || 0,
+      present: S.present[k] || 0, visPresent: S.visPresent[k] || 0, medMax: S.medMax[k] || 0, maxMax: S.maxMax[k] || 0, medMaxAll: S.medMaxAll[k] || 0,
       photo, ebay, real: parts.length ? parts.reduce((s, x) => s + x, 0) / parts.length : null,
       lit: R.lit[k]?.class || null, litShown: litLabel(R.lit[k]),
     };
@@ -261,32 +325,37 @@ function compareOne(scn, loc, R, sample = null) {
   const realOk = usePhoto || useEbay;
   const rho = (key) => (realOk ? spearman(rows.map((r) => r[key]), rows.map((r) => r.real)) : null);
   const realTop = realOk ? topTie(rows, 'real') : { sure: [], tied: [], slots: 0 };
-  const simTop = topTie(rows, 'simVis'), simTopVol = topTie(rows, 'simVol');
-  const rhoReal = rho('simVis');
-  // The verdict under every way the ties can break (third place on both sides, and the sim's lead).
-  const maxVis = Math.max(0, ...rows.map((r) => r.simVis));
-  const leaders = maxVis > 0 ? rows.filter((r) => same(r.simVis, maxVis)).map((r) => r.k) : [null];
-  const outcomes = new Set();
-  let ovMin = Infinity, ovMax = -Infinity;
-  for (const rc of combos(realTop.tied, realTop.slots)) {
-    for (const sc of combos(simTop.tied, simTop.slots)) {
-      const rt = [...realTop.sure, ...rc], st = [...simTop.sure, ...sc];
-      const overlap = rt.filter((k) => st.includes(k)).length;
-      ovMin = Math.min(ovMin, overlap); ovMax = Math.max(ovMax, overlap);
-      for (const lead of leaders) {
-        const leadReal = rows.find((r) => r.k === lead)?.real ?? 0;
-        if (!realOk) outcomes.add('THIN');
-        else if (!st.length) outcomes.add('NO VISIBLE CRYSTALS');
-        else if (rhoReal != null && rhoReal >= 0.5 && overlap >= Math.min(2, st.length)) outcomes.add('AGREES');
-        else if ((rhoReal != null && rhoReal < 0) || leadReal < OVER_REAL) outcomes.add('DISAGREES');
-        else outcomes.add('PARTLY');
+  // The verdict on one simulator measure, under every way the ties can break (third place on both
+  // sides, and the sim's lead).
+  const judge = (key) => {
+    const simTop = topTie(rows, key), rhoReal = rho(key);
+    const maxVis = Math.max(0, ...rows.map((r) => r[key]));
+    const leaders = maxVis > 0 ? rows.filter((r) => same(r[key], maxVis)).map((r) => r.k) : [null];
+    const outcomes = new Set();
+    let ovMin = Infinity, ovMax = -Infinity;
+    for (const rc of combos(realTop.tied, realTop.slots)) {
+      for (const sc of combos(simTop.tied, simTop.slots)) {
+        const rt = [...realTop.sure, ...rc], st = [...simTop.sure, ...sc];
+        const overlap = rt.filter((k) => st.includes(k)).length;
+        ovMin = Math.min(ovMin, overlap); ovMax = Math.max(ovMax, overlap);
+        for (const lead of leaders) {
+          const leadReal = rows.find((r) => r.k === lead)?.real ?? 0;
+          if (!realOk) outcomes.add('THIN');
+          else if (!st.length) outcomes.add('NO VISIBLE CRYSTALS');
+          else if (rhoReal != null && rhoReal >= 0.5 && overlap >= Math.min(2, st.length)) outcomes.add('AGREES');
+          else if ((rhoReal != null && rhoReal < 0) || leadReal < OVER_REAL) outcomes.add('DISAGREES');
+          else outcomes.add('PARTLY');
+        }
       }
     }
-  }
-  const verdict = outcomes.size === 1 ? [...outcomes][0] : 'TIE-DEPENDENT';
-  return { S, rows, realOk, usePhoto, useEbay, rhoReal, rhoSurv: rho('simSurv'), rhoMicro: rho('simMicro'),
-    rhoVol: rho('simVol'), rhoVisPres: rho('simVisPres'), realTop, simTop, simTopVol, leaders,
-    overlap: [ovMin, ovMax], verdict, verdictOptions: [...outcomes].sort() };
+    return { simTop, rhoReal, leaders, overlap: [ovMin, ovMax], verdict: outcomes.size === 1 ? [...outcomes][0] : 'TIE-DEPENDENT',
+      verdictOptions: [...outcomes].sort() };
+  };
+  const J = judge('simVis'), JAll = judge('simVisAll');
+  return { S, rows, realOk, usePhoto, useEbay, rhoReal: J.rhoReal, rhoSurv: rho('simSurv'), rhoMicro: rho('simMicro'),
+    rhoVol: rho('simVol'), rhoVisPres: rho('simVisPres'), realTop, simTop: J.simTop, simTopVol: topTie(rows, 'simVol'),
+    leaders: J.leaders, overlap: J.overlap, verdict: J.verdict, verdictOptions: J.verdictOptions,
+    withEnclosed: { rho: JAll.rhoReal, simTop: JAll.simTop, verdict: JAll.verdict, verdictOptions: JAll.verdictOptions } };
 }
 
 const lines = [];
@@ -298,23 +367,29 @@ for (const [loc, L] of Object.entries(data.localities)) {
     const C = compareOne(scn, loc, R);
     const { rows } = C;
     // Bootstrap three ways: how much of ρ and the verdict is seed noise, proxy sampling noise, both?
-    const rnd = prng(hash(scn));
+    // Salt 0 is the reported run; MC_SALTS rerun the joint bootstrap with other seeds to show its own
+    // Monte-Carlo spread.
     const rs = runsBy[scn];
-    const drawSeeds = () => rs.map(() => rs[Math.floor(rnd() * rs.length)]);
-    const drawReal = () => realFrom(resample(R.counts.photos, rnd), resample(R.counts.ebay, rnd), R.lit);
-    const acc = { seeds: { rho: [], flips: 0 }, proxies: { rho: [], flips: 0 }, both: { rho: [], flips: 0 } };
-    for (let b = 0; b < BOOT; b++) {
+    const bootstrap = (salt, modes) => {
+      const rnd = prng(hash(scn) ^ salt);
+      const drawSeeds = () => rs.map(() => rs[Math.floor(rnd() * rs.length)]);
+      const drawReal = () => realFrom(resample(R.counts.photos, rnd), resample(R.counts.ebay, rnd), R.lit, R.marketWide);
       const runsOf = { seeds: () => compareOne(scn, loc, R, drawSeeds()), proxies: () => compareOne(scn, loc, drawReal()),
         both: () => compareOne(scn, loc, drawReal(), drawSeeds()) };
-      for (const mode of ['seeds', 'proxies', 'both']) {
-        const B = runsOf[mode]();
-        if (B.rhoReal != null) acc[mode].rho.push(B.rhoReal);
-        // A TIE-DEPENDENT verdict is matched by any resample whose outcomes lie within its options.
-        if (!B.verdictOptions.every((v) => C.verdictOptions.includes(v))) acc[mode].flips++;
+      const acc = Object.fromEntries(modes.map((m) => [m, { rho: [], flips: 0 }]));
+      for (let b = 0; b < BOOT; b++) {
+        for (const mode of modes) {
+          const B = runsOf[mode]();
+          if (B.rhoReal != null) acc[mode].rho.push(B.rhoReal);
+          // A TIE-DEPENDENT verdict is matched by any resample whose outcomes lie within its options.
+          if (!B.verdictOptions.every((v) => C.verdictOptions.includes(v))) acc[mode].flips++;
+        }
       }
-    }
-    const boot = Object.fromEntries(Object.entries(acc).map(([mode, a]) => [mode, {
-      band: a.rho.length ? [quantile(a.rho, 0.05), quantile(a.rho, 0.95)] : null, flips: a.flips / BOOT }]));
+      return Object.fromEntries(Object.entries(acc).map(([mode, a]) => [mode, {
+        band: a.rho.length ? [quantile(a.rho, 0.05), quantile(a.rho, 0.95)] : null, flips: a.flips / BOOT }]));
+    };
+    const boot = bootstrap(0, ['seeds', 'proxies', 'both']);
+    const mc = MC_SALTS.map((salt) => bootstrap(salt, ['both']).both);
     const flags = [];
     for (const r of rows) {
       if (r.simVis >= OVER_SIM && r.photo < OVER_REAL && r.ebay < OVER_REAL) flags.push(`OVER ${r.k} (sim ${pct(r.simVis)}% of visible crystals; photos ${pct(r.photo)}%, listings ${pct(r.ebay)}%)`);
@@ -329,17 +404,23 @@ for (const [loc, L] of Object.entries(data.localities)) {
     json[scn] = { locality: loc, seeds: C.S.seeds, photos_total: R.photos.tot, listings_total: R.ebay.tot,
       votes: { photos: C.usePhoto, listings: C.useEbay },
       rhoReal: C.rhoReal, rhoSurv: C.rhoSurv, rhoMicro: C.rhoMicro, rhoVol: C.rhoVol, rhoVisPres: C.rhoVisPres,
-      boot, band: boot.both.band, verdictFlips: boot.both.flips,
+      boot, band: boot.both.band, verdictFlips: boot.both.flips, mc,
       realTop: C.realTop, simTop: C.simTop, simTopVol: C.simTopVol, simLeaders: C.leaders, overlap: C.overlap,
-      verdict: C.verdict, verdictOptions: C.verdictOptions, litLow, litMissing, flags, rows };
+      verdict: C.verdict, verdictOptions: C.verdictOptions, withEnclosed: C.withEnclosed, litLow, litMissing, flags, rows };
     const bandText = (b) => (b ? `${b[0].toFixed(2)} to ${b[1].toFixed(2)}` : '—');
-    lines.push(`\n### ${scn}  ←  ${loc}   (sim ${C.S.seeds} seeds; ${R.photos.tot} photos${C.usePhoto ? '' : ' — does not vote'}; ${R.ebay.tot} listing mentions${C.useEbay ? '' : ' — does not vote'})`);
-    lines.push(`ρ(sim visible-count, real) = ${C.rhoReal?.toFixed(2) ?? '—'} [5–95 % band: seeds ${bandText(boot.seeds.band)}, proxies ${bandText(boot.proxies.band)}, both ${bandText(boot.both.band)}; verdict differs in ${(100 * boot.seeds.flips).toFixed(0)} / ${(100 * boot.proxies.flips).toFixed(0)} / ${(100 * boot.both.flips).toFixed(0)} % of resamples]   ρ(sim volume, real) = ${C.rhoVol?.toFixed(2) ?? '—'}   ρ(sim surviving count, real) = ${C.rhoSurv?.toFixed(2) ?? '—'}   ρ(sim ≥ 0.1 mm count, real) = ${C.rhoMicro?.toFixed(2) ?? '—'}`);
+    const listingNote = R.marketWide ? ' — a market-wide search, does not vote' : C.useEbay ? '' : ' — does not vote';
+    lines.push(`\n### ${scn}  ←  ${loc}   (sim ${C.S.seeds} seeds; ${R.photos.tot} photos${C.usePhoto ? '' : ' — does not vote'}; ${R.ebay.tot} listing mentions${listingNote})`);
+    const rhoTxt = (x) => x?.toFixed(2) ?? '—';
+    lines.push(`ρ(sim visible-count, real) = ${rhoTxt(C.rhoReal)} [5–95 % band: seeds ${bandText(boot.seeds.band)}, proxies ${bandText(boot.proxies.band)}, both ${bandText(boot.both.band)}; verdict differs in ${(100 * boot.seeds.flips).toFixed(0)} / ${(100 * boot.proxies.flips).toFixed(0)} / ${(100 * boot.both.flips).toFixed(0)} % of resamples]   ρ(sim volume, real) = ${rhoTxt(C.rhoVol)}   ρ(sim surviving count, real) = ${rhoTxt(C.rhoSurv)}   ρ(sim ≥ 0.1 mm count, real) = ${rhoTxt(C.rhoMicro)}   ρ(≥ 1 mm counting enclosed crystals, real) = ${rhoTxt(C.withEnclosed.rho)}`);
     if (C.verdict === 'TIE-DEPENDENT') lines.push(`Verdict TIE-DEPENDENT: ${C.verdictOptions.join(' or ')} depending on how ties break (sim top three: ${topText(C.simTop)}; sim lead: ${C.leaders.join(' = ')}).`);
-    lines.push('| species | sim crystals/vug | seeds with it | sim % of crystals | sim % of ≥0.1 mm | sim % of ≥1 mm | sim % of volume | median largest mm | seeds with a ≥1 mm crystal | % of photos | % of listings | literature |');
-    lines.push('|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---|');
+    if (C.withEnclosed.verdict !== C.verdict || topText(C.withEnclosed.simTop) !== topText(C.simTop)) {
+      lines.push(`Counting enclosed crystals too: verdict ${C.withEnclosed.verdict}${C.withEnclosed.verdict === 'TIE-DEPENDENT' ? ` (${C.withEnclosed.verdictOptions.join(' or ')})` : ''}, sim top three ${topText(C.withEnclosed.simTop)}.`);
+    }
+    lines.push('Visible = exposed (not enclosed in another crystal) and ≥ 1 mm; "with enclosed" adds the ≥ 1 mm crystals sealed inside another crystal; the largest crystal is the largest exposed one.');
+    lines.push('| species | sim crystals/vug | seeds with it | sim % of crystals | sim % of ≥0.1 mm | sim % of ≥1 mm | ≥1 mm per vug, exposed / with enclosed | sim % of volume | median largest mm | seeds with a ≥1 mm crystal | % of photos | % of listings | literature |');
+    lines.push('|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---|');
     for (const r of rows) {
-      lines.push(`| ${r.k} | ${r.meanSurv.toFixed(1)} | ${pct(r.present)}% | ${pct(r.simSurv)} | ${pct(r.simMicro)} | ${pct(r.simVis)} | ${pct(r.simVol)} | ${mm(r.medMax)} | ${pct(r.visPresent)}% | ${pct(r.photo)} | ${pct(r.ebay)} | ${r.litShown ?? ''} |`);
+      lines.push(`| ${r.k} | ${r.meanSurv.toFixed(1)} | ${pct(r.present)}% | ${pct(r.simSurv)} | ${pct(r.simMicro)} | ${pct(r.simVis)} | ${r.meanVis.toFixed(2)} / ${r.meanVisAll.toFixed(2)} | ${pct(r.simVol)} | ${mm(r.medMax)} | ${pct(r.visPresent)}% | ${pct(r.photo)} | ${pct(r.ebay)} | ${r.litShown ?? ''} |`);
     }
     if (flags.length) lines.push(`\nFlags: ${flags.join('; ')}`);
   }
@@ -412,9 +493,13 @@ json.__not_claims = notClaims;
 //   cap-only      — no test on active crystals: a per-step roll (10–45 %) and max_nucleation_count.
 // Species without their own _nuc_ function are read where they are made: the beryl and corundum
 // varieties in their shared selector loops (js/89), raspite in _nuc_stolzite, the Mn-oxide surface
-// phases in _nuc_manganese_surface_phase. A TRANSFORMATION product (js/75-transitions.ts parent →
-// product tables: tincalconite from borax, pararealgar from realgar, …) is not nucleated at all
-// and inherits its parent's count. The gate line is printed with each species.
+// phases in _nuc_manganese_surface_phase. A TRANSFORMATION product is not nucleated at all and
+// inherits its parent's count: the js/75-transitions.ts parent → product tables (tincalconite from
+// borax, pararealgar from realgar, …) and the function-coded in-place routes (birnessite →
+// todorokite: _nuc_todorokite has no sim.nucleate call; selenite ⇄ anhydrite, both of which also
+// nucleate on their own). Separately from the gate, some functions carry a hand-coded LIFETIME cap
+// (`total_<m> >= N` / `< N` over sim.crystals of the species, dissolved and enclosed included).
+// The gate line is printed with each species.
 const nucRegions = {};
 for (const f of fs.readdirSync(path.join(ROOT, 'js')).filter((x) => /^(8\d|89a|90|91)-nucleation-.*\.ts$/.test(x))) {
   const src = fs.readFileSync(path.join(ROOT, 'js', f), 'utf8');
@@ -427,8 +512,18 @@ for (const f of fs.readdirSync(path.join(ROOT, 'js')).filter((x) => /^(8\d|89a|9
   }
 }
 const transitionsSrc = fs.readFileSync(path.join(ROOT, 'js', '75-transitions.ts'), 'utf8');
-const TRANSFORM = {};
-for (const m of transitionsSrc.matchAll(/^\s*([a-z_]+):\s*\['([a-z_-]+)'/gm)) TRANSFORM[m[2]] = m[1];
+const TRANSFORM = {};   // product → parent
+const ALSO_FROM = {};   // product → ['parent (js/75-transitions.ts:line)', …]
+{
+  const lineAt = (i) => transitionsSrc.slice(0, i).split('\n').length;
+  const add = (from, to, i) => { TRANSFORM[to] ||= from; (ALSO_FROM[to] ||= []).push(`${from} (js/75-transitions.ts:${lineAt(i)})`); };
+  for (const m of transitionsSrc.matchAll(/^\s*([a-z_]+):\s*\['([a-z_-]+)'/gm)) add(m[1], m[2], m.index);
+  for (const m of transitionsSrc.matchAll(/const from = '([a-z_]+)';\s*const to = '([a-z_]+)';/g)) add(m[1], m[2], m.index);
+  for (const m of transitionsSrc.matchAll(/const to = from === '([a-z_]+)' \? '([a-z_]+)' : '([a-z_]+)';/g)) {
+    add(m[1], m[2], m.index);
+    add(m[2], m[1], m.index);
+  }
+}
 function gateRegion(m) {
   const own = nucRegions[`_nuc_${m}`];
   if (own) {
@@ -444,8 +539,14 @@ const gateCache = {};
 function gateInfo(m) {
   if (gateCache[m]) return gateCache[m];
   const R = gateRegion(m);
-  if (!R && TRANSFORM[m]) return (gateCache[m] = { gate: 'transformation', at: 'js/75-transitions.ts', text: `${TRANSFORM[m]} → ${m}` });
+  if (!R && TRANSFORM[m]) return (gateCache[m] = { gate: 'transformation', at: ALSO_FROM[m][0].match(/\((.*)\)/)[1], text: `${TRANSFORM[m]} → ${m}` });
   if (!R) return (gateCache[m] = { gate: 'unread', at: '', text: 'no nucleation code found' });
+  // A _nuc_ function that never calls sim.nucleate converts a precursor in place.
+  if (!/sim\.nucleate\(/.test(R.body)) {
+    return (gateCache[m] = { gate: 'transformation', at: `js/${R.file}:${R.line}`,
+      text: `${TRANSFORM[m] || '?'} → ${m} in place: the function has no sim.nucleate call`,
+      via: ALSO_FROM[m]?.length ? `the transition: ${ALSO_FROM[m].map((s) => s.match(/\((.*)\)/)[1]).join(', ')}` : undefined });
+  }
   const own = [...R.body.matchAll(new RegExp(`const (\\w+) = sim\\.crystals\\.filter\\(c => c\\.mineral === ${R.sel}\\s*&& c\\.active\\)`, 'g'))].map((x) => x[1]);
   const find = (re) => {
     const x = re.exec(R.body);
@@ -475,7 +576,13 @@ function gateInfo(m) {
     out = { gate: 'cap-only', at: `js/${R.file}:${R.line + Math.max(i, 0)}`, text: i >= 0 ? before[i].trim() : '' };
   }
   if (R.via) out.via = R.via;
-  if (TRANSFORM[m]) out.via = [out.via, `also made from ${TRANSFORM[m]} in js/75-transitions.ts`].filter(Boolean).join('; ');
+  if (ALSO_FROM[m]) out.via = [out.via, `also made in place from ${ALSO_FROM[m].join(', ')}`].filter(Boolean).join('; ');
+  // A hand-coded lifetime cap: a count of every crystal of the species ever made, compared to N.
+  const life = [...R.body.matchAll(new RegExp(`const (\\w+) = sim\\.crystals\\.filter\\(c => c\\.mineral === ${R.sel}\\)\\.length`, 'g'))].map((x) => x[1]);
+  if (life.length) {
+    const x = new RegExp(`\\b(?:${life.join('|')})\\s*(?:<|>=)\\s*(\\d+)`).exec(R.body);
+    if (x) out.life = Number(x[1]);
+  }
   return (gateCache[m] = out);
 }
 const gateKind = (m) => gateInfo(m).gate;
@@ -485,7 +592,7 @@ for (const r of runs) {
   for (const [m, v] of Object.entries(r.species)) {
     if (v.n_surv <= 0) continue;
     const f = (fleet[m] ||= { runs: 0, surv: 0, vis: 0, scen: new Set() });
-    f.runs++; f.surv += v.n_surv; f.vis += v.n_1; f.scen.add(r.scenario);
+    f.runs++; f.surv += v.n_surv; f.vis += v.n_1_exp; f.scen.add(r.scenario);
     const p = (pairs[`${m}|${r.scenario}`] ||= { m, scenario: r.scenario, runs: 0, surv: 0 });
     p.runs++; p.surv += v.n_surv;
   }
@@ -506,35 +613,43 @@ for (const kind of GATES) {
   const all = Object.keys(SPEC).map((m) => gateKind(m));
   lines.push(`every species in data/minerals.json (${all.length}, formed in this panel or not): ${GATES.map((g) => `${g} ${all.filter((x) => x === g).length}`).join(', ')}`);
   json.__gates = Object.fromEntries(Object.keys(SPEC).sort().map((m) => [m, gateInfo(m)]));
+  const lifed = Object.entries(json.__gates).filter(([, x]) => x.life != null);
+  lines.push(`hand-coded lifetime caps (every crystal ever made, dissolved and enclosed included): ${lifed.length} species — ${GATES.filter((g) => lifed.some(([, x]) => x.gate === g)).map((g) => `${g}: ${lifed.filter(([, x]) => x.gate === g).map(([m, x]) => `${m} ${x.life}`).join(', ')}`).join('; ')}`);
 }
 const strictPairs = Object.values(pairs).filter((p) => gateKind(p.m) === 'strict');
 const strictAtOne = strictPairs.filter((p) => p.surv / p.runs <= 1.25);
 lines.push(`strict-gated (species, scenario) pairs at ≤ 1.25 surviving crystals per vug (where present): ${strictAtOne.length} of ${strictPairs.length}`);
-lines.push('| species | gate | gate line | the line (or the parent → product) | max_nucleation_count | vugs with it | scenarios | crystals per vug | ≥ 1 mm per vug |');
-lines.push('|---|---|---|---|---:|---:|---:|---:|---:|');
-for (const r of idiom) lines.push(`| ${r.m} | ${r.gate} | ${r.at}${r.via ? ` (${r.via})` : ''} | ${codeCell(r.text)} | ${r.cap ?? '—'} | ${r.runs} | ${r.scenarios} | ${r.perVug.toFixed(2)} | ${r.visPerVug.toFixed(2)} |`);
+lines.push('| species | gate | gate line | the line (or the parent → product) | lifetime cap | max_nucleation_count | vugs with it | scenarios | crystals per vug | exposed ≥ 1 mm per vug |');
+lines.push('|---|---|---|---|---:|---:|---:|---:|---:|---:|');
+for (const r of idiom) lines.push(`| ${r.m} | ${r.gate} | ${r.at}${r.via ? ` (${r.via})` : ''} | ${codeCell(r.text)} | ${r.life ?? '—'} | ${r.cap ?? '—'} | ${r.runs} | ${r.scenarios} | ${r.perVug.toFixed(2)} | ${r.visPerVug.toFixed(2)} |`);
 
 // What happens to each real top-three species, by its gate. Rank against the sim's top three by
 // visible count and, separately, by volume; a species tied across the sim's third place is its
-// own column. Species tied across the REAL third place are listed apart, not counted.
-const fate = [], fateRealTied = [];
+// own column. Listed apart, not counted: species tied across the REAL third place, species the
+// scenario does not claim (OUT_OF_CLAIM), and species under FATE_FLOOR of the record without a
+// literature class of abundant or common.
+const fate = [], fateRealTied = [], fateOutOfClaim = [], fateBelowFloor = [];
 for (const [scn, j] of Object.entries(json)) {
   if (scn.startsWith('__')) continue;
   for (const k of j.realTop.tied) if (SPEC[k]) fateRealTied.push(`${k}@${scn} (${gateKind(k)}; one of ${j.realTop.slots} open slot${j.realTop.slots > 1 ? 's' : ''} for {${j.realTop.tied.join(', ')}})`);
   for (const k of j.realTop.sure) {
     const r = j.rows.find((x) => x.k === k);
     if (!r || !SPEC[k]) continue;   // no engine: species debt, counted separately
+    if (OUT_OF_CLAIM[`${scn}|${k}`]) { fateOutOfClaim.push(`${k}@${scn} (${OUT_OF_CLAIM[`${scn}|${k}`]})`); continue; }
+    if ((r.real ?? 0) < FATE_FLOOR && !/^(AB|CO)/.test(r.lit || '')) { fateBelowFloor.push(`${k}@${scn} (${pct(r.real)} % of the record${r.litShown ? `, literature ${r.litShown}` : ''})`); continue; }
     let what;
     if (r.present === 0) what = 'never forms';
     else if (j.simTop.sure.includes(k)) what = 'in the sim top three';
     else if (j.simTop.tied.includes(k)) what = 'tied across the sim\'s third place';
-    else if (r.medMax < 1) what = 'dust (median largest < 1 mm)';
+    // No exposed crystal reaches 1 mm in most seeds: dust if the crystals are small, "sealed" if they
+    // grow ≥ 1 mm but end up enclosed in another crystal.
+    else if (r.medMax < 1) what = r.medMaxAll >= 1 ? 'sealed inside other crystals' : 'dust (median largest < 1 mm)';
     else what = 'visible, outside the sim top three';
     const byVol = j.simTopVol.sure.includes(k) ? 'in' : j.simTopVol.tied.includes(k) ? 'tied' : 'out';
     fate.push({ scenario: scn, k, gate: gateKind(k), what, byVol, perVug: r.meanSurv, medMax: r.medMax });
   }
 }
-const FATES = ['never forms', 'dust (median largest < 1 mm)', 'visible, outside the sim top three', 'tied across the sim\'s third place', 'in the sim top three'];
+const FATES = ['never forms', 'dust (median largest < 1 mm)', 'sealed inside other crystals', 'visible, outside the sim top three', 'tied across the sim\'s third place', 'in the sim top three'];
 lines.push('\n## What happens to each real top-three species (species with an engine)');
 lines.push(`| gate | ${FATES.join(' | ')} | total |`);
 lines.push(`|---|${FATES.map(() => '---:').join('|')}|---:|`);
@@ -544,7 +659,9 @@ for (const kind of GATES) {
   lines.push(`| ${kind} | ${FATES.map((w) => g.filter((f) => f.what === w).length).join(' | ')} | ${g.length} |`);
 }
 lines.push(`| all | ${FATES.map((w) => fate.filter((f) => f.what === w).length).join(' | ')} | ${fate.length} |`);
-lines.push(`Tied across the real third place, not counted: ${fateRealTied.join('; ') || 'none'}. "In the sim top three" entries whose median largest crystal is < 1 mm: ${fate.filter((f) => f.what === 'in the sim top three' && f.medMax < 1).map((f) => `${f.k}@${f.scenario}`).join(', ') || 'none'}.`);
+lines.push(`Not counted — tied across the real third place: ${fateRealTied.join('; ') || 'none'}. Outside the scenario's claim: ${fateOutOfClaim.join('; ') || 'none'}. Under ${FATE_FLOOR * 100} % of the record with no literature class of abundant or common: ${fateBelowFloor.join('; ') || 'none'}.`);
+lines.push(`"In the sim top three" entries whose median largest exposed crystal is < 1 mm: ${fate.filter((f) => f.what === 'in the sim top three' && f.medMax < 1).map((f) => `${f.k}@${f.scenario}`).join(', ') || 'none'}.`);
+json.__fate_set_aside = { realTied: fateRealTied, outOfClaim: fateOutOfClaim, belowFloor: fateBelowFloor };
 const VISIBLE = ['visible, outside the sim top three', 'tied across the sim\'s third place', 'in the sim top three'];
 lines.push('P(in the sim top three | it forms visible crystals) — "visible" = in or tied for the sim top three, or median largest ≥ 1 mm:');
 lines.push('| gate | by visible count | counting ties as in | by volume | counting ties as in |');
@@ -575,25 +692,32 @@ json.__fate = fate;
 json.__fleet_idiom = idiom;
 
 // ---- dust: a headline species the sim grows but, in most seeds, never past 1 mm.
-// Headline = ≥ 10 % of the voting real record, or a literature class of abundant.
-lines.push('\n## Dust — headline species the sim grows with a median largest crystal < 1 mm');
-lines.push('| scenario | species | real share (voting sources) | literature | sim crystals per vug | median largest mm | largest in any seed mm | seeds with a ≥ 1 mm crystal |');
-lines.push('|---|---|---:|---|---:|---:|---:|---:|');
+// Headline = ≥ 10 % of the voting real record, or a literature class of abundant; the largest
+// crystal is the largest EXPOSED one; species outside the scenario's claim are left out.
+lines.push('\n## Dust — headline species the sim grows with a median largest exposed crystal < 1 mm');
+lines.push('"sealed" = the crystals do reach 1 mm (median largest, counting enclosed ones, ≥ 1 mm) but end up inside other crystals; otherwise they are small.');
+lines.push('| scenario | species | real share (voting sources) | literature | sim crystals per vug | median largest exposed mm | median largest incl. enclosed mm | largest exposed in any seed mm | seeds with an exposed ≥ 1 mm crystal | |');
+lines.push('|---|---|---:|---|---:|---:|---:|---:|---:|---|');
 const dust = [];
 for (const [scn, j] of Object.entries(json)) {
   if (scn.startsWith('__')) continue;
   for (const r of j.rows) {
     const headline = (r.real != null && r.real >= DUST_REAL) || /^AB/.test(r.lit || '');
-    if (!headline || r.meanSurv <= 0 || r.medMax >= 1) continue;
-    dust.push({ scenario: scn, k: r.k, real: r.real, lit: r.litShown, perVug: r.meanSurv, medMax: r.medMax, maxMax: r.maxMax, visPresent: r.visPresent });
-    lines.push(`| ${scn} | ${r.k} | ${r.real == null ? '—' : pct(r.real) + '%'} | ${r.litShown ?? ''} | ${r.meanSurv.toFixed(1)} | ${mm(r.medMax)} | ${mm(r.maxMax)} | ${pct(r.visPresent)}% |`);
+    if (!headline || r.meanSurv <= 0 || r.medMax >= 1 || OUT_OF_CLAIM[`${scn}|${r.k}`]) continue;
+    const sealed = r.medMaxAll >= 1;
+    dust.push({ scenario: scn, k: r.k, real: r.real, lit: r.litShown, perVug: r.meanSurv, medMax: r.medMax, medMaxAll: r.medMaxAll, maxMax: r.maxMax, visPresent: r.visPresent, sealed });
+    lines.push(`| ${scn} | ${r.k} | ${r.real == null ? '—' : pct(r.real) + '%'} | ${r.litShown ?? ''} | ${r.meanSurv.toFixed(1)} | ${mm(r.medMax)} | ${mm(r.medMaxAll)} | ${mm(r.maxMax)} | ${pct(r.visPresent)}% | ${sealed ? 'sealed' : ''} |`);
   }
 }
 json.__dust = dust;
 
 // ---- robustness: does the broad mismatch depend on the measure?
 const scored = Object.entries(json).filter(([k, j]) => !k.startsWith('__') && j.rhoReal != null);
-const medRho = (key) => { const x = med(scored.map(([, j]) => j[key]).filter((v) => v != null)); return x == null ? null : +x.toFixed(2) + 0; };
+const medRho = (key) => {
+  const get = typeof key === 'function' ? key : (j) => j[key];
+  const x = med(scored.map(([, j]) => get(j)).filter((v) => v != null));
+  return x == null ? null : +x.toFixed(2) + 0;
+};
 let volBetter = 0, volWorse = 0, volEqual = 0, volBetter05 = 0, volWorse05 = 0;
 for (const [, j] of scored) {
   if (j.rhoVol == null) continue;
@@ -607,23 +731,46 @@ for (const mode of ['seeds', 'proxies', 'both']) {
   const widths = scored.map(([, j]) => j.boot[mode].band).filter(Boolean).map((b) => b[1] - b[0]);
   lines.push(`bootstrap over ${mode}: median width of the 5–95 % band ${med(widths)?.toFixed(2)}; verdict differs in ≥ 20 % of resamples: ${scored.filter(([, j]) => j.boot[mode].flips >= 0.2).sort((a, b) => b[1].boot[mode].flips - a[1].boot[mode].flips).map(([k, j]) => `${k} (${(100 * j.boot[mode].flips).toFixed(0)} %)`).join(', ') || 'none'}`);
 }
+// The joint bootstrap's own Monte-Carlo spread: the same resampling under MC_SALTS other seeds.
+{
+  const widthAt = (pick) => med(scored.map(([, j]) => pick(j)).filter(Boolean).map((b) => b[1] - b[0]));
+  const widths = MC_SALTS.map((_, i) => widthAt((j) => j.mc[i].band));
+  const flipRange = (j) => { const f = [j.boot.both.flips, ...j.mc.map((x) => x.flips)]; return [Math.min(...f), Math.max(...f)]; };
+  const over = scored.filter(([, j]) => flipRange(j)[1] >= 0.2).sort((a, b) => flipRange(b[1])[1] - flipRange(a[1])[1]);
+  lines.push(`Monte-Carlo spread of the joint bootstrap (bootstrap seeds 0, ${MC_SALTS.join(', ')}): median band width ${[widthAt((j) => j.boot.both.band), ...widths].map((x) => x?.toFixed(2)).join(' / ')}; verdict differs in ≥ 20 % of resamples under any seed: ${over.map(([k, j]) => `${k} (${flipRange(j).map((x) => (100 * x).toFixed(0)).join('–')} %)`).join(', ') || 'none'}`);
+}
+// Exposed vs with-enclosed: does counting crystals sealed inside another crystal change a verdict?
+{
+  const changed = scored.filter(([, j]) => j.withEnclosed.verdict !== j.verdict);
+  const topChanged = scored.filter(([, j]) => topText(j.withEnclosed.simTop) !== topText(j.simTop));
+  lines.push(`counting enclosed ≥ 1 mm crystals as visible: median ρ ${medRho((j) => j.withEnclosed.rho)?.toFixed(2)}; verdict changes in ${changed.length} (${changed.map(([k, j]) => `${k}: ${j.verdict} → ${j.withEnclosed.verdict}`).join(', ') || 'none'}); sim top three changes in ${topChanged.length} (${topChanged.map(([k]) => k).join(', ') || 'none'})`);
+}
 // Why the seed bands are narrow: many (scenario, species) pairs come out the same in every seed.
 const sameEverySeed = { pairs: 0, visible: 0, surviving: 0 };
 for (const [scn] of scored) {
   const rs = runsBy[scn];
   for (const m of new Set(rs.flatMap((r) => Object.keys(r.species)))) {
     sameEverySeed.pairs++;
-    const v = rs.map((r) => r.species[m]?.n_1 ?? 0), s = rs.map((r) => r.species[m]?.n_surv ?? 0);
+    const v = rs.map((r) => r.species[m]?.n_1_exp ?? 0), s = rs.map((r) => r.species[m]?.n_surv ?? 0);
     if (v.every((x) => x === v[0])) sameEverySeed.visible++;
     if (s.every((x) => x === s[0])) sameEverySeed.surviving++;
   }
 }
 lines.push(`(scenario, species) pairs in the scored scenarios with the same count in all ${runsBy[scored[0][0]].length} seeds: visible ${sameEverySeed.visible} of ${sameEverySeed.pairs}, surviving ${sameEverySeed.surviving} of ${sameEverySeed.pairs}`);
-json.__robustness = { medianRho: { visible: medRho('rhoReal'), surviving: medRho('rhoSurv'), micro: medRho('rhoMicro'), volume: medRho('rhoVol'), visiblePresence: medRho('rhoVisPres') },
+// How many visible crystals sit inside another crystal (locality scenarios, all seeds)?
+{
+  let all = 0, exposed = 0;
+  for (const [scn] of Object.entries(json).filter(([k]) => !k.startsWith('__'))) {
+    for (const r of runsBy[scn]) for (const v of Object.values(r.species)) { all += v.n_1; exposed += v.n_1_exp; }
+  }
+  lines.push(`≥ 1 mm crystals in the locality scenarios, all seeds: ${all}, of which ${all - exposed} (${pct((all - exposed) / all)} %) are enclosed in another crystal`);
+  json.__enclosed = { visibleAll: all, visibleExposed: exposed };
+}
+json.__robustness = { medianRho: { visible: medRho('rhoReal'), surviving: medRho('rhoSurv'), micro: medRho('rhoMicro'), volume: medRho('rhoVol'), visiblePresence: medRho('rhoVisPres'), withEnclosed: medRho((j) => j.withEnclosed.rho) },
   volume: { better: volBetter, worse: volWorse, equal: volEqual, better05: volBetter05, worse05: volWorse05 }, sameEverySeed };
 
 fs.mkdirSync(OUT, { recursive: true });
-const board = ['\n## Scoreboard', `ρ = Spearman between the sim's share of ≥ 1 mm crystals and the real share (mean of photo and listing shares; a source with < ${THIN} observations does not vote), with its 5–95 % bootstrap bands: over the seeds, over the proxies (photographs and listing mentions resampled as multinomial draws) and over both. "Verdict differs" = the share of resamples whose verdict is not the one shown (seeds / proxies / both). Top 3 = largest shares, by value alone; species tied across third place are shown as "n of {…} (tied)", and a verdict that depends on how ties break is TIE-DEPENDENT. Literature marks: (S) snippet-level, (R) recalled.`, '',
+const board = ['\n## Scoreboard', `ρ = Spearman between the sim's share of exposed ≥ 1 mm crystals and the real share (mean of photo and listing shares; a source with < ${THIN} observations does not vote), with its 5–95 % bootstrap bands: over the seeds, over the proxies (photographs and listing mentions resampled as multinomial draws) and over both. "Verdict differs" = the share of resamples whose verdict is not the one shown (seeds / proxies / both). Top 3 = largest shares, by value alone; species tied across third place are shown as "n of {…} (tied)", and a verdict that depends on how ties break is TIE-DEPENDENT. Literature marks: (S) snippet-level, (R) recalled.`, '',
   '| scenario | locality | verdict | ρ(sim, real) | band: seeds | band: proxies | band: both | verdict differs | real top 3 | sim top 3 (≥ 1 mm) | overlap | literature: sim top 3 rated rare/undocumented | literature: abundant, no sim crystal ≥ 1 mm |', '|---|---|---|---:|---|---|---|---|---|---|---:|---|---|'];
 const bandCell = (b) => (b ? `${b[0].toFixed(2)} to ${b[1].toFixed(2)}` : '—');
 for (const [scn, j] of Object.entries(json).filter(([k]) => !k.startsWith('__')).sort((a, b) => (a[1].rhoReal ?? -9) - (b[1].rhoReal ?? -9))) {
@@ -633,7 +780,7 @@ for (const [scn, j] of Object.entries(json).filter(([k]) => !k.startsWith('__'))
 const verdicts = {};
 for (const [k, j] of Object.entries(json)) if (!k.startsWith('__')) verdicts[j.verdict] = (verdicts[j.verdict] || 0) + 1;
 board.push('', `Verdicts: ${Object.entries(verdicts).map(([v, n]) => `${v} ${n}`).join(', ')}.`);
-const head = `# Sim vs locality abundance — SIM ${simVersions[0]}, ${[...new Set(runs.map((r) => r.seed))].length} seeds\n\nThresholds: OVER sim ≥ ${OVER_SIM * 100}% of visible crystals with photos and listings < ${OVER_REAL * 100}%; UNDER photos ≥ ${UNDER_REAL * 100}% with sim < ${UNDER_SIM * 100}%; ABSENT sim in ≥ ${ABSENT_SEEDS * 100}% of seeds with no photo and no listing; dust = a headline species (≥ ${DUST_REAL * 100}% of the voting record, or literature AB) with a median largest crystal < 1 mm.\n`;
+const head = `# Sim vs locality abundance — SIM ${simVersions[0]}, ${[...new Set(runs.map((r) => r.seed))].length} seeds\n\nThresholds: OVER sim ≥ ${OVER_SIM * 100}% of visible crystals with photos and listings < ${OVER_REAL * 100}%; UNDER photos ≥ ${UNDER_REAL * 100}% with sim < ${UNDER_SIM * 100}%; ABSENT sim in ≥ ${ABSENT_SEEDS * 100}% of seeds with no photo and no listing; dust = a headline species (≥ ${DUST_REAL * 100}% of the voting record, or literature AB) with a median largest exposed crystal < 1 mm. Visible = exposed (not enclosed in another crystal) and ≥ 1 mm.\n`;
 fs.writeFileSync(path.join(OUT, 'compare.md'), head + board.join('\n') + '\n' + lines.join('\n') + '\n');
 fs.writeFileSync(path.join(OUT, 'compare.json'), JSON.stringify(json, null, 1));
 console.log(head + board.join('\n') + '\n' + lines.join('\n'));

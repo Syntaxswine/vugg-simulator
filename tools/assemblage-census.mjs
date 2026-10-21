@@ -18,8 +18,15 @@
  *   n_encl       surviving but enclosed by another crystal
  *   n_01 n_1 n_5 n_10   surviving with longest dimension ≥ 0.1 / 1 / 5 / 10 mm
  *                (micromount / eye-visible / thumbnail crystal / cabinet crystal)
+ *   n_01_exp n_1_exp    the same ≥ 0.1 / 1 mm counts for EXPOSED survivors only (not enclosed
+ *                by another crystal) — what a collector can see on the specimen's surface
  *   vol_mm3      summed solid volume of the survivors (Crystal._volume_mm3)
+ *   vol_exp_mm3  the same for exposed survivors
  *   max_mm       largest survivor's longest dimension
+ *   max_exp_mm   largest exposed survivor's longest dimension
+ *
+ * Each row carries `census: CENSUS_VERSION`; version 2 added the exposed counts (review round 3
+ * found that 9–14 % of the ≥ 1 mm crystals in the locality scenarios sit inside another crystal).
  *
  * The longest dimension is max(c_length_mm, a_width_mm, total_growth_um / 1000): the renderer's
  * c/a and the growth ledger's c-advance can differ by habit, and a collector sees the larger.
@@ -34,10 +41,12 @@
  *
  * Runs are independent, so the driver forks --workers child processes and hands each
  * (scenario, seed) job to whichever worker is free; a worker loads the bundle once. The default is
- * ONE worker (serial), per AGENTS.md "Workstation safety". A full panel (41 scenarios × 21 seeds)
- * (861 runs; 857 of them in one 43-min pass) ran with --workers 14 on an otherwise idle 16-core box (2026-10-21);
- * serially, budget several hours. supergene_oxidation (≈ 430 s per run under that load),
- * tn457_barite_pulses (≈ 380 s) and bisbee (≈ 150 s) dominate.
+ * ONE worker (serial), per AGENTS.md "Workstation safety". A full panel (41 scenarios × 21 seeds,
+ * 861 runs) ran on an otherwise idle 16-core box on 2026-10-21: census version 1 with --workers 14
+ * (857 runs in one 43-min pass), version 2 with --workers 12 in 35.7 min. Every field the two
+ * versions share came out identical in all 861 runs. Serially, budget several hours;
+ * supergene_oxidation (≈ 430 s per run under that load), tn457_barite_pulses (≈ 380 s) and bisbee
+ * (≈ 150 s) dominate.
  */
 import fs from 'node:fs';
 import os from 'node:os';
@@ -48,6 +57,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 const ROOT = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const OUT = path.join(ROOT, '.local-evidence', 'assemblage-census');
 const SIZE_EDGES_MM = [0.1, 1, 5, 10];
+const CENSUS_VERSION = 2;
 
 function parseSeeds(text) {
   const seeds = new Set();
@@ -70,23 +80,28 @@ function summarize(sim) {
   const per = {};
   for (const c of sim.crystals || []) {
     const r = (per[c.mineral] ||= { n_total: 0, n_surv: 0, n_dis: 0, n_encl: 0,
-      n_01: 0, n_1: 0, n_5: 0, n_10: 0, vol_mm3: 0, max_mm: 0 });
+      n_01: 0, n_1: 0, n_5: 0, n_10: 0, n_01_exp: 0, n_1_exp: 0,
+      vol_mm3: 0, vol_exp_mm3: 0, max_mm: 0, max_exp_mm: 0 });
     r.n_total++;
     if (c.dissolved) { r.n_dis++; continue; }
     r.n_surv++;
-    if (c.enclosed_by != null) r.n_encl++;
+    const enclosed = c.enclosed_by != null;
+    if (enclosed) r.n_encl++;
     const L = longestMm(c);
-    if (L >= SIZE_EDGES_MM[0]) r.n_01++;
-    if (L >= SIZE_EDGES_MM[1]) r.n_1++;
+    if (L >= SIZE_EDGES_MM[0]) { r.n_01++; if (!enclosed) r.n_01_exp++; }
+    if (L >= SIZE_EDGES_MM[1]) { r.n_1++; if (!enclosed) r.n_1_exp++; }
     if (L >= SIZE_EDGES_MM[2]) r.n_5++;
     if (L >= SIZE_EDGES_MM[3]) r.n_10++;
     const v = Number(c._volume_mm3);
-    if (Number.isFinite(v) && v > 0) r.vol_mm3 += v;
+    if (Number.isFinite(v) && v > 0) { r.vol_mm3 += v; if (!enclosed) r.vol_exp_mm3 += v; }
     if (L > r.max_mm) r.max_mm = L;
+    if (!enclosed && L > r.max_exp_mm) r.max_exp_mm = L;
   }
   for (const r of Object.values(per)) {
     r.vol_mm3 = +r.vol_mm3.toPrecision(6);
+    r.vol_exp_mm3 = +r.vol_exp_mm3.toPrecision(6);
     r.max_mm = +r.max_mm.toFixed(4);
+    r.max_exp_mm = +r.max_exp_mm.toFixed(4);
   }
   return Object.fromEntries(Object.entries(per).sort(([a], [b]) => a.localeCompare(b)));
 }
@@ -105,7 +120,7 @@ if (process.env.ASSEMBLAGE_CENSUS_WORKER === '1') {
       const sim = new VugSimulator(s.conditions, s.events);
       const steps = s.defaultSteps ?? 100;
       for (let i = 0; i < steps; i++) sim.run_step();
-      process.send({ ok: true, ...job, sim_version: SIM_VERSION, steps,
+      process.send({ ok: true, ...job, sim_version: SIM_VERSION, census: CENSUS_VERSION, steps,
         ms: Date.now() - t0, species: summarize(sim) });
     } catch (e) {
       // An instrument must refuse rather than guess: report the failure, never a fabricated row.
@@ -126,12 +141,16 @@ if (process.env.ASSEMBLAGE_CENSUS_WORKER === '1') {
   fs.mkdirSync(OUT, { recursive: true });
   const runsPath = path.join(OUT, 'runs.jsonl');
 
-  // Resume: a (scenario, seed, sim_version) row already on disk is not re-run.
+  // Resume: a (scenario, seed, sim_version) row of this census version already on disk is not
+  // re-run. A row from an older census version lacks fields, so the file must be moved aside.
   const done = new Set();
   if (fs.existsSync(runsPath)) {
     for (const line of fs.readFileSync(runsPath, 'utf8').split('\n')) {
       if (!line.trim()) continue;
       const r = JSON.parse(line);
+      if ((r.census ?? 1) !== CENSUS_VERSION) {
+        throw new Error(`${path.relative(ROOT, runsPath)} holds census-version ${r.census ?? 1} rows; move it aside before a version-${CENSUS_VERSION} run`);
+      }
       if (r.ok) done.add(`${r.scenario}|${r.seed}|${r.sim_version}`);
     }
   }

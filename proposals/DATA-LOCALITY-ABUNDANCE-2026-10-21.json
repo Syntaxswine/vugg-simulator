@@ -63,7 +63,7 @@
    },
    "literature": {
     "sources": {
-     "D19": "Dias, Chaves, Juchem & Romano 2019, Pesquisas em Geociências 46(3) (abstract) — 'Calcita e celadonita, minerais comuns e abundantes associados à ametista do RS' [research pass, VERIFIED]",
+     "D19": "Dias, Chaves, Juchem & Romano 2019, Pesquisas em Geociências 46(3) (abstract) — 'Calcita e celadonita, minerais comuns e abundantes associados à ametista do RS' [research pass, VERIFIED; the paper is on Minas Gerais material and the sentence describes the Rio Grande do Sul amethyst — review round 3]",
      "PF07": "Proust & Fontaine 2007, Geological Magazine 144(4):731 (abstract) — geode walls layered celadonite, chalcedony, fine quartz, large amethyst [research pass, VERIFIED]"
     },
     "species": {
@@ -402,6 +402,7 @@
      "bimbowrie",
      "chiastolite"
     ],
+    "market_wide": "The 'chiastolite' search finds chiastolite from any locality, so its titles are andalusite by construction and say nothing about Bimbowrie; the two queries were captured together, so the listings are shown but do not vote (review round 3). Bimbowrie's verdict rests on Teale 1979.",
     "listings": 181,
     "families": 129,
     "lapidary_families": 63,
@@ -956,7 +957,7 @@
    "literature": {
     "sources": {
      "L10": "Leach et al. 2010, USGS SIR 2010-5070-A: 'Calcite is common in a few MVT districts (for example, Central Tennessee)' [read first-hand]",
-     "G86": "Gratz 1986, MS thesis, Univ. Tennessee (abstract) — sphalerite the only Zn ore; gangue fluorite, barite, calcite, galena, minor dolomite and quartz; paragenesis early calcite → sphalerite → galena → fluorite → main calcite → barite → late calcite [research pass, VERIFIED-f]",
+     "G86": "Gratz 1986, MS thesis, Univ. Tennessee (abstract), on the Gordonsville Mine of the same district — sphalerite the only Zn ore; gangue fluorite, barite, calcite, galena, minor dolomite and quartz; paragenesis early calcite → sphalerite → galena → fluorite → main calcite → barite → late calcite [research pass, VERIFIED-f]",
      "PM20": "Prospector Minerals 2020, Minerals of Elmwood Mine (after Gaylord 1996) — four signature species calcite, fluorite, sphalerite, barite; barian celestine minor [research pass, VERIFIED-f]",
      "J96": "Jensen 1996, Mineralogical Record 27(3):171-173, Occurrence of barian celestine at the Elmwood zinc deposit (title/ToC only) [research pass]"
     },
@@ -1551,9 +1552,10 @@
       "status": "V"
      },
      "prehnite": {
-      "class": "CO",
+      "class": "doc",
       "src": "NWJ07",
-      "status": "V"
+      "status": "V",
+      "note": "listed among the characteristic rodingite minerals, with no abundance word (was CO; review round 3)"
      },
      "pectolite": {
       "class": "UN",
@@ -1561,21 +1563,22 @@
       "status": "V"
      },
      "wollastonite": {
-      "class": "CO",
+      "class": "doc",
       "src": "NWJ07",
-      "status": "V"
+      "status": "V",
+      "note": "listed among the characteristic rodingite minerals, with no abundance word (was CO; review round 3)"
      },
      "x:chlorite": {
-      "class": "CO",
+      "class": "doc",
       "src": "NWJ07",
       "status": "V",
-      "note": "no engine"
+      "note": "no engine; listed among the characteristic rodingite minerals, with no abundance word (was CO; review round 3)"
      },
      "x:zoisite": {
-      "class": "CO",
+      "class": "doc",
       "src": "NWJ07",
       "status": "V",
-      "note": "no engine"
+      "note": "no engine; listed among the characteristic rodingite minerals, with no abundance word (was CO; review round 3)"
      },
      "awaruite": {
       "class": "ND?",
@@ -1881,7 +1884,7 @@
    "literature": {
     "sources": {
      "L10": "Leach, Taylor, Fey, Diehl & Saltus 2010, A deposit model for Mississippi Valley-Type lead-zinc ores, USGS SIR 2010-5070-A [read first-hand 2026-10-21]: 'the dominant minerals are sphalerite, galena, pyrite, marcasite, dolomite, and calcite, whereas barite is typically minor to absent and fluorite is rare'",
-     "KGS01": "Brosius & Sawin 2001, Lead and Zinc Mining in Kansas, KGS Public Information Circular 17 — 23 Mt zinc vs 4 Mt lead concentrates, about 6:1 [research pass, VERIFIED]",
+     "KGS01": "Brosius & Sawin 2001, Lead and Zinc Mining in Kansas, KGS Public Information Circular 17 — 23 million vs 4 million (US short) tons of zinc and lead concentrates, about 6:1 (p. 2); sphalerite about five times as abundant as galena (p. 3) [research pass, VERIFIED; confirmed by review round 3]",
      "R35": "Ransome 1935, Am. Mineral. 20:799 — calcite scalenohedra 2-3 ft; large galena crystals common [research pass, VERIFIED]",
      "HOM": "Handbook of Mineralogy, greenockite — chiefly earthy coatings; Joplin district on sphalerite [research pass, VERIFIED]"
     },
@@ -3323,14 +3326,14 @@
      "tincalconite": {
       "class": "RA",
       "src": "SH64",
-      "status": "S",
-      "note": "research pass: primary crystals reported only twice; common only as an alteration rind on borax"
+      "status": "V",
+      "note": "'Primary crystals of tincalconite have been reported only twice from Searles Lake'; the rind on borax forms after the borax is exposed to dry air, i.e. after recovery (wording confirmed by review round 3; the earlier note's 'common only as an alteration rind on borax' was the research pass's paraphrase)"
      },
      "calcite": {
       "class": "RA",
       "src": "SH64",
-      "status": "S",
-      "note": "research pass: 'much less common than aragonite'"
+      "status": "V",
+      "note": "'much less common than aragonite' (wording confirmed by review round 3)"
      }
     }
    }
