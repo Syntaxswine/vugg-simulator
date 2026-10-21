@@ -104,6 +104,9 @@ const FATE_FLOOR = 0.05;
 const OUT_OF_CLAIM = {
   'naica_geothermal|fluorite': 'the scenario is the giant-gypsum cave pool; the fluorite is the ore body\'s (review §5.4)',
   'naica_geothermal|calcite': 'the scenario is the giant-gypsum cave pool, where calcite is a wall crust (García-Ruiz et al. 2007); the record\'s calcite crystals are the mine\'s (review §5.4)',
+  'naica_geothermal|galena': 'the scenario is the giant-gypsum cave pool; galena is an ore mineral of the mine, not of the cave (García-Ruiz et al. 2007; review §5.4)',
+  'naica_geothermal|sphalerite': 'the scenario is the giant-gypsum cave pool; sphalerite is an ore mineral of the mine, not of the cave (García-Ruiz et al. 2007; review §5.4)',
+  'naica_geothermal|pyrite': 'the scenario is the giant-gypsum cave pool; pyrite is an ore mineral of the mine, not of the cave (García-Ruiz et al. 2007; review §5.4)',
   'epithermal_telluride|native_gold': 'the scenario is the primary telluride vein; the record\'s native gold is "set free by the oxidation of these tellurides" (Lindgren & Ransome 1904; review §5.3)',
   'supergene_oxidation|dioptase': 'the scenario is the first oxidation zone ("1st-stage gossan"); the Tsumeb Mineral Notes find dioptase "extremely rare (or possibly even absent)" there and abundant in the second and third zones (TSNB107; review §5.2)',
 };
@@ -937,6 +940,8 @@ lines.push(`(scenario, species) pairs in the scored scenarios with the same coun
 json.__robustness = { medianRho: { visible: medRho('rhoReal'), surviving: medRho('rhoSurv'), micro: medRho('rhoMicro'), volume: medRho('rhoVol'), visiblePresence: medRho('rhoVisPres'), withEnclosed: medRho((j) => j.withEnclosed.rho) },
   volume: { better: volBetter, worse: volWorse, equal: volEqual, better05: volBetter05, worse05: volWorse05 }, sameEverySeed };
 
+json.__out_of_claim = OUT_OF_CLAIM;
+json.__scenario_out_of_scope = SCENARIO_OUT_OF_SCOPE;
 fs.mkdirSync(OUT, { recursive: true });
 const board = ['\n## Scoreboard', `ρ = Spearman between the sim's share of unflagged ≥ 1 mm crystals and the real share (mean of photo and listing shares; a source with < ${THIN} observations does not vote), over the species present on at least one side, with its 5–95 % bootstrap bands: over the seeds, over the proxies (photographs and listing mentions resampled as multinomial draws) and over both. "Verdict differs" = the share of resamples whose verdict is not the one shown (seeds / proxies / both); for a TIE- or MEASURE-DEPENDENT verdict a resample counts as the same when its outcomes lie within the verdict's options, so only an outcome outside them can count (AGREES needs ρ ≥ 0.5). Top 3 = largest shares, by value alone; species tied across third place are shown as "n of {…} (tied)", and a verdict that depends on how ties break is TIE-DEPENDENT. Literature marks: (S) snippet-level, (R) recalled.`, '',
   '| scenario | locality | verdict | ρ(sim, real) | band: seeds | band: proxies | band: both | verdict differs | real top 3 | sim top 3 (≥ 1 mm) | overlap | literature: sim top 3 rated rare/undocumented | literature: abundant, no visible sim crystal (≥ 1 mm and unflagged) |', '|---|---|---|---:|---|---|---|---|---|---|---:|---|---|'];

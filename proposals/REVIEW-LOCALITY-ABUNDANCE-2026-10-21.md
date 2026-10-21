@@ -14,6 +14,11 @@ the fleet-wide counts of §4.
 **Nothing in the simulator was changed.** The deliverable is this document, four read-only
 instruments, one data file with its raw capture, and one generated appendix (§10). A proposed fix
 order is in §8 and waits for the boss.
+**Purpose (stated by the boss after round 6):** vugg models the pockets where something happened — a
+story worth sharing — not the average pocket, and the collector record says what people want to see
+from each place as well as being a biased stand-in for abundance. Read against that purpose, this
+review's findings are re-ranked, with the work and its science, in
+`PROPOSAL-STORY-POCKETS-2026-10-21.md`, which supersedes §8's order.
 **Review history:** §9 — rounds 1–6 scored the drafts 6/10, 7/10, 8/10, 8/10, 8.5/10 and 8.5/10
 (the sixth by the boss's leave); all six rounds' corrections are folded in.
 
@@ -291,7 +296,7 @@ With 30: both Asbestos Hills scenarios (25 photographs, 29 listings) and Marlbor
 become THIN. Lead species only, each listing counted only for the species its title names first — a
 bound that also strips legitimate associates (§2.2): median −0.15; Cruzeiro and Sunnyside become
 DISAGREES, through their associates. The set-aside species removed from their scenarios' records:
-median −0.05, no verdict changes. No choice makes any scenario agree.
+median −0.04, no verdict changes. No choice makes any scenario agree.
 
 ---
 
@@ -400,7 +405,9 @@ aside, and listed in the appendix:
   are the mine's, §5.4), Cripple Creek's native gold (the record finds it only in oxidized ore — "set
   free by the oxidation of these tellurides", Lindgren & Ransome 1904 — while the scenario is the
   primary telluride vein, §5.3; the simulator ranks it second), and the whole North Pennines barite
-  cavity, whose record is the orefield's (§5.1). Tsumeb's dioptase, not a top-three species, is set
+  cavity, whose record is the orefield's (§5.1). Naica's galena, sphalerite and pyrite, the mine's ore
+  minerals (García-Ruiz et al. 2007), are set aside from the other lists the same way (none was a
+  top-three slot). Tsumeb's dioptase, not a top-three species, is set
   aside from the other lists on the same ground: the scenario is the first oxidation zone, where the
   *Tsumeb Mineral Notes* find it "extremely rare (or possibly even absent)" (TSNB107, §5.2). Two
   species stay in by the same rule, because their sources place them in the modeled part: Naica's

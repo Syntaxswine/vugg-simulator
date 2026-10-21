@@ -418,16 +418,16 @@ Flags: OVER anhydrite (sim 45% of visible crystals; photos 0%, listings 0%); ABS
 
 ### naica_geothermal  ←  naica   (sim 21 seeds; 134 photos; 355 listing mentions)
 ρ(sim visible-count, real) = -0.10 [5–95 % band: seeds -0.10 to -0.10, proxies -0.11 to -0.09, both -0.11 to -0.09; verdict differs in 0 / 0 / 0 % of resamples]   ρ(sim volume, real) = -0.10   ρ(sim surviving count, real) = -0.10   ρ(sim ≥ 0.1 mm count, real) = -0.10   ρ(≥ 1 mm counting enclosed crystals, real) = -0.10
-Set aside from the fate table, the dust list and the literature's "abundant, no sim crystal" column (outside the scenario's scope): fluorite — the scenario is the giant-gypsum cave pool; the fluorite is the ore body's (review §5.4); calcite — the scenario is the giant-gypsum cave pool, where calcite is a wall crust (García-Ruiz et al. 2007); the record's calcite crystals are the mine's (review §5.4).
+Set aside from the fate table, the dust list and the literature's "abundant, no sim crystal" column (outside the scenario's scope): fluorite — the scenario is the giant-gypsum cave pool; the fluorite is the ore body's (review §5.4); calcite — the scenario is the giant-gypsum cave pool, where calcite is a wall crust (García-Ruiz et al. 2007); the record's calcite crystals are the mine's (review §5.4); galena — the scenario is the giant-gypsum cave pool; galena is an ore mineral of the mine, not of the cave (García-Ruiz et al. 2007; review §5.4); sphalerite — the scenario is the giant-gypsum cave pool; sphalerite is an ore mineral of the mine, not of the cave (García-Ruiz et al. 2007; review §5.4); pyrite — the scenario is the giant-gypsum cave pool; pyrite is an ore mineral of the mine, not of the cave (García-Ruiz et al. 2007; review §5.4).
 Visible = ≥ 1 mm and not flagged as enclosed by the simulator; "with flagged" adds the flagged ≥ 1 mm crystals; the largest crystal is the largest unflagged one.
 | species | sim crystals/vug | seeds with it | sim % of crystals | sim % of ≥0.1 mm | sim % of ≥1 mm | ≥1 mm per vug, unflagged / with flagged | sim % of volume | median largest mm | seeds with a ≥1 mm crystal | % of photos | % of listings | literature |
 |---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---|
 | fluorite (set aside: outside the scenario's scope) | 0.0 | 0% | 0 | 0 | 0 | 0.00 / 0.00 | 0 | — | 0% | 37 | 22 | AB |
 | selenite | 1.0 | 100% | 14 | 14 | 14 | 1.00 / 1.00 | 47 | 2.8 | 100% | 16 | 19 | AB |
 | calcite (set aside: outside the scenario's scope) | 0.0 | 0% | 0 | 0 | 0 | 0.00 / 0.00 | 0 | — | 0% | 6.0 | 14 | CO |
-| galena | 0.0 | 0% | 0 | 0 | 0 | 0.00 / 0.00 | 0 | — | 0% | 8.2 | 10 |  |
-| sphalerite | 0.0 | 0% | 0 | 0 | 0 | 0.00 / 0.00 | 0 | — | 0% | 6.7 | 9.6 |  |
-| pyrite | 0.0 | 0% | 0 | 0 | 0 | 0.00 / 0.00 | 0 | — | 0% | 3.7 | 7.9 |  |
+| galena (set aside: outside the scenario's scope) | 0.0 | 0% | 0 | 0 | 0 | 0.00 / 0.00 | 0 | — | 0% | 8.2 | 10 |  |
+| sphalerite (set aside: outside the scenario's scope) | 0.0 | 0% | 0 | 0 | 0 | 0.00 / 0.00 | 0 | — | 0% | 6.7 | 9.6 |  |
+| pyrite (set aside: outside the scenario's scope) | 0.0 | 0% | 0 | 0 | 0 | 0.00 / 0.00 | 0 | — | 0% | 3.7 | 7.9 |  |
 | anhydrite | 0.0 | 0% | 0 | 0 | 0 | 0.00 / 0.00 | 0 | — | 0% | 8.2 | 3.4 | CO |
 | quartz | 0.0 | 0% | 0 | 0 | 0 | 0.00 / 0.00 | 0 | — | 0% | 2.2 | 5.9 |  |
 | chalcopyrite | 0.0 | 0% | 0 | 0 | 0 | 0.00 / 0.00 | 0 | — | 0% | 1.5 | 2.8 |  |
@@ -1191,6 +1191,6 @@ Reported: ρ over the species present on at least one side, a source votes with 
 - a source votes with ≥ 10 observations: median ρ -0.04 over 26 scored scenarios; verdict changes in 1 — great_salt_plains: THIN → MEASURE-DEPENDENT (DISAGREES or PARTLY)
 - a source votes with ≥ 30 observations: median ρ -0.03 over 23 scored scenarios; verdict changes in 3 — asbestos_hills_crack_seal: DISAGREES → THIN; asbestos_hills_surficial_alteration: DISAGREES → THIN; ultramafic_supergene: DISAGREES → THIN
 - lead species only — listings counted only for the species a title names first; a bound, not a test of the title classifier: it drops every species named after the first, legitimate associates as well as misread ones: median ρ -0.15 over 26 scored scenarios; verdict changes in 2 — gem_pegmatite: TIE-DEPENDENT (DISAGREES or PARTLY) → DISAGREES; sunnyside_american_tunnel: MEASURE-DEPENDENT (DISAGREES or PARTLY) → DISAGREES
-- the set-aside species (OUT_OF_CLAIM) removed from their scenario's record: median ρ -0.05 over 26 scored scenarios; verdict changes in 0
+- the set-aside species (OUT_OF_CLAIM) removed from their scenario's record: median ρ -0.04 over 26 scored scenarios; verdict changes in 0
 (scenario, species) pairs in the scored scenarios with the same count in all 21 seeds: visible 178 of 306, surviving 156 of 306
 ≥ 1 mm crystals in the locality scenarios, all seeds: 11151, of which 1089 (9.8 %) are flagged as enclosed
