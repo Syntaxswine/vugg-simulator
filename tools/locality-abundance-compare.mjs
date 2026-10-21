@@ -93,17 +93,18 @@ const FATE_FLOOR = 0.05;
 // species is set aside when the locality's record of it comes from a part of the deposit the
 // scenario does not model, by the scenario's own description and the review's section on it. It
 // is listed with the reason. (Whether the scenario's species lists name it is a separate matter,
-// reported as each slot's contract status.)
+// reported as each slot's contract status.) A set-aside species leaves the fate table, the dust list
+// and the literature's "abundant, no sim crystal" column; the verdicts compare each scenario with its
+// locality's whole record, and a sensitivity line shows what removing these species would change.
 const OUT_OF_CLAIM = {
-  'tn457_barite_pulses|fluorite': 'the scenario is one outer-zone barite-on-sphalerite cavity; the orefield\'s fluorite, galena and quartz belong to the central zone (review §5.1)',
-  'tn457_barite_pulses|galena': 'the scenario is one outer-zone barite-on-sphalerite cavity (review §5.1)',
-  'tn457_barite_pulses|quartz': 'the scenario is one outer-zone barite-on-sphalerite cavity (review §5.1)',
   'naica_geothermal|fluorite': 'the scenario is the giant-gypsum cave pool; the fluorite is the ore body\'s (review §5.4)',
+  'naica_geothermal|calcite': 'the scenario is the giant-gypsum cave pool, where calcite is a wall crust (García-Ruiz et al. 2007); the record\'s calcite crystals are the mine\'s (review §5.4)',
   'epithermal_telluride|native_gold': 'the scenario is the primary telluride vein; the record\'s native gold is "set free by the oxidation of these tellurides" (Lindgren & Ransome 1904; review §5.3)',
+  'supergene_oxidation|dioptase': 'the scenario is the first oxidation zone ("1st-stage gossan"); the Tsumeb Mineral Notes find dioptase "extremely rare (or possibly even absent)" there and abundant in the second and third zones (TSNB107; review §5.2)',
 };
 // A scenario whose whole real record lies outside what it models is not scored at all.
 const SCENARIO_OUT_OF_SCOPE = {
-  tn457_barite_pulses: 'all three of the orefield\'s top species belong to the central fluorite zone; the scenario is one outer-zone barite cavity (review §5.1)',
+  tn457_barite_pulses: 'the scenario is one outer-zone barite-on-sphalerite cavity; its record is the whole orefield\'s (the Weardale and Alston Moor pages and searches), led by fluorite, the central zone\'s mineral, and no page or search targets the outer zone (review §5.1)',
 };
 const matchers = buildMatchers(MARKET_TITLE_DICTIONARY);
 
@@ -284,25 +285,33 @@ const data = JSON.parse(fs.readFileSync(DATA, 'utf8'));
     }
   }
 }
-function realTable(loc) {
+// opts (sensitivity lines only): leadOnly counts a listing for the species its title names first
+// (lead families) rather than every species it names, which removes the classifier's secondary
+// routes ("Hessite Silver Telluride" → native silver); scope = a scenario drops that scenario's
+// OUT_OF_CLAIM species from the record.
+function realTable(loc, opts = {}) {
   const L = data.localities[loc];
   // Locality aliases: a generic market word that means one species at this locality
   // (Jeffrey Mine "garnet" is grossular). Declared in the data file, with the reason.
   const alias = (k) => L.aliases?.[k]?.to || k;
+  const drop = (k) => opts.scope != null && !!OUT_OF_CLAIM[`${opts.scope}|${k}`];
   const photos = {};
   for (const [name, c] of Object.entries(L.mineralienatlas?.photos || {})) {
     const k = alias(maKey(name));
+    if (drop(k)) continue;
     photos[k] = (photos[k] || 0) + c;
   }
   const ebay = {};
-  for (const [k0, c] of Object.entries(L.ebay?.mention_families || {})) {
+  for (const [k0, c] of Object.entries((opts.leadOnly ? L.ebay?.lead_families : L.ebay?.mention_families) || {})) {
     const k = alias(k0);
+    if (drop(k)) continue;
     ebay[k] = (ebay[k] || 0) + c;
   }
   delete ebay['x:fossil'];
+  const lit = Object.fromEntries(Object.entries(L.literature?.species || {}).filter(([k]) => !drop(k)));
   // A search that is not locality-specific (Bimbowrie's "chiastolite" finds chiastolite from any
   // locality) is declared in the data file with its reason; such listings are shown, never voted.
-  return realFrom(photos, ebay, L.literature?.species || {}, !!L.ebay?.market_wide);
+  return realFrom(photos, ebay, lit, !!L.ebay?.market_wide);
 }
 const realFrom = (photos, ebay, lit, marketWide) => ({ photos: shares(photos), ebay: shares(ebay), lit, marketWide, counts: { photos, ebay } });
 const litLabel = (e) => (e?.class ? `${e.class}${e.status && e.status !== 'V' ? ` (${e.status})` : ''}` : null);
@@ -310,8 +319,10 @@ const litLabel = (e) => (e?.class ? `${e.class}${e.status && e.status !== 'V' ? 
 const pct = (x) => (x == null ? '—' : x === 0 ? '0' : x < 0.001 ? '<0.1' : (100 * x).toFixed(x < 0.1 ? 1 : 0));
 const mm = (x) => (x ? x.toFixed(x < 1 ? 2 : 1) : '—');
 
-// The comparison for one scenario, on the full seed panel or a bootstrap sample of it.
-function compareOne(scn, loc, R, sample = null) {
+// The comparison for one scenario, on the full seed panel or a bootstrap sample of it. opts
+// (sensitivity lines only): thin = another vote threshold; keepZeros = count the species absent
+// from both sides in ρ, as rounds 1–4 did.
+function compareOne(scn, loc, R, sample = null, opts = {}) {
   const S = simTable(scn, sample);
   const keys = new Set([
     ...Object.entries(S.vis.out).sort((a, b) => b[1] - a[1]).slice(0, 12).map(([k]) => k),
@@ -320,7 +331,8 @@ function compareOne(scn, loc, R, sample = null) {
     ...Object.entries(R.ebay.out).sort((a, b) => b[1] - a[1]).slice(0, 8).map(([k]) => k),
     ...Object.entries(R.lit).filter(([, v]) => /^(AB|CO)/.test(v?.class || '')).map(([k]) => k),
   ]);
-  const usePhoto = R.photos.tot >= THIN, useEbay = R.ebay.tot >= THIN && !R.marketWide;
+  const thin = opts.thin ?? THIN;
+  const usePhoto = R.photos.tot >= thin, useEbay = R.ebay.tot >= thin && !R.marketWide;
   const rows = [...keys].map((k) => {
     const photo = R.photos.out[k] || 0, ebay = R.ebay.out[k] || 0;
     const parts = [usePhoto ? photo : null, useEbay ? ebay : null].filter((x) => x != null);
@@ -334,7 +346,15 @@ function compareOne(scn, loc, R, sample = null) {
     };
   }).sort((a, b) => ((b.real ?? 0) - (a.real ?? 0)) || (b.simVis - a.simVis));   // display order only
   const realOk = usePhoto || useEbay;
-  const rho = (key) => (realOk ? spearman(rows.map((r) => r[key]), rows.map((r) => r.real)) : null);
+  // ρ over the species present on at least one side of the measure. A species absent from both says
+  // nothing about the ratios, and which such species reach the table depends on the routes above
+  // (the sim's dust, the literature's list, sources that do not vote): counted, they tie at the
+  // bottom of both rankings and add agreement (review round 5).
+  const rho = (key) => {
+    if (!realOk) return null;
+    const rr = opts.keepZeros ? rows : rows.filter((r) => r[key] > 0 || r.real > 0);
+    return spearman(rr.map((r) => r[key]), rr.map((r) => r.real));
+  };
   const realTop = realOk ? topTie(rows, 'real') : { sure: [], tied: [], slots: 0 };
   // The verdict on one simulator measure, under every way the ties can break (third place on both
   // sides, and the sim's lead).
@@ -410,16 +430,22 @@ for (const [loc, L] of Object.entries(data.localities)) {
     const boot = bootstrap(0, ['seeds', 'proxies', 'both']);
     const mc = MC_SALTS.map((salt) => bootstrap(salt, ['both']).both);
     const flags = [];
+    const outOfScope = (k) => !!OUT_OF_CLAIM[`${scn}|${k}`];
     for (const r of rows) {
       if (r.simVis >= OVER_SIM && r.photo < OVER_REAL && r.ebay < OVER_REAL) flags.push(`OVER ${r.k} (sim ${pct(r.simVis)}% of visible crystals; photos ${pct(r.photo)}%, listings ${pct(r.ebay)}%)`);
-      if (r.photo >= UNDER_REAL && r.simVis < UNDER_SIM) flags.push(`UNDER ${r.k} (photos ${pct(r.photo)}%; sim ${pct(r.simVis)}% of visible crystals${r.engine ? '' : ' — NO ENGINE'})`);
+      if (r.photo >= UNDER_REAL && r.simVis < UNDER_SIM) flags.push(`UNDER ${r.k} (photos ${pct(r.photo)}%; sim ${pct(r.simVis)}% of visible crystals${r.engine ? '' : ' — NO ENGINE'}${outOfScope(r.k) ? ' — set aside, outside the scenario\'s scope' : ''})`);
       if (r.present >= ABSENT_SEEDS && r.photo === 0 && r.ebay === 0 && C.S && R.photos.tot > 0) flags.push(`ABSENT ${r.k} (sim grows it in ${pct(r.present)}% of seeds; no photo, no listing)`);
     }
     // The literature votes separately: which of the sim's top three visible species does it rate
     // rare or undocumented, and which species does it call abundant that the sim never shows ≥ 1 mm?
+    // "ND?" (absent from a few sources only) is marked as the weak evidence it is.
     const litLow = [...C.simTop.sure, ...C.simTop.tied].filter((k) => /^(RA|VR|ND|Q)/.test(rows.find((r) => r.k === k)?.lit || ''))
-      .map((k) => { const r = rows.find((x) => x.k === k); return r.litShown && /\(/.test(r.litShown) ? `${k} (${r.litShown.match(/\((\w+)\)/)[1]})` : k; });
-    const litMissing = rows.filter((r) => /^AB/.test(r.lit || '') && r.simVis === 0).map((r) => r.k);
+      .map((k) => {
+        const r = rows.find((x) => x.k === k);
+        const marks = [/^ND\?/.test(r.lit) ? 'ND?' : null, r.litShown && /\(/.test(r.litShown) ? r.litShown.match(/\((\w+)\)/)[1] : null].filter(Boolean);
+        return marks.length ? `${k} (${marks.join(', ')})` : k;
+      });
+    const litMissing = SCENARIO_OUT_OF_SCOPE[scn] ? [] : rows.filter((r) => /^AB/.test(r.lit || '') && r.simVis === 0 && !outOfScope(r.k)).map((r) => r.k);
     json[scn] = { locality: loc, seeds: C.S.seeds, photos_total: R.photos.tot, listings_total: R.ebay.tot,
       votes: { photos: C.usePhoto, listings: C.useEbay },
       rhoReal: C.rhoReal, rhoSurv: C.rhoSurv, rhoMicro: C.rhoMicro, rhoVol: C.rhoVol, rhoVisPres: C.rhoVisPres,
@@ -435,6 +461,8 @@ for (const [loc, L] of Object.entries(data.localities)) {
     if (C.verdict === 'TIE-DEPENDENT') lines.push(`Verdict TIE-DEPENDENT: ${C.verdictOptions.join(' or ')} depending on how ties break (sim top three: ${topText(C.simTop)}; sim lead: ${C.leaders.join(' = ')}).`);
     if (C.verdict === 'MEASURE-DEPENDENT') lines.push(`Verdict MEASURE-DEPENDENT: ${C.exposedVerdict} with flagged crystals left out, ${C.withEnclosed.verdict} with them counted.`);
     if (C.verdict === 'OUT OF SCOPE') lines.push(`Verdict OUT OF SCOPE: ${SCENARIO_OUT_OF_SCOPE[scn]} (on its own measures it would be ${C.exposedVerdict}).`);
+    const asides = Object.entries(OUT_OF_CLAIM).filter(([key]) => key.startsWith(`${scn}|`));
+    if (asides.length) lines.push(`Set aside from the fate table, the dust list and the literature's "abundant, no sim crystal" column (outside the scenario's scope): ${asides.map(([key, why]) => `${key.split('|')[1]} — ${why}`).join('; ')}.`);
     if (C.withEnclosed.verdict !== C.verdict || topText(C.withEnclosed.simTop) !== topText(C.simTop)) {
       lines.push(`Counting enclosed crystals too: verdict ${C.withEnclosed.verdict}${C.withEnclosed.verdict === 'TIE-DEPENDENT' ? ` (${C.withEnclosed.verdictOptions.join(' or ')})` : ''}, sim top three ${topText(C.withEnclosed.simTop)}.`);
     }
@@ -442,7 +470,7 @@ for (const [loc, L] of Object.entries(data.localities)) {
     lines.push('| species | sim crystals/vug | seeds with it | sim % of crystals | sim % of ≥0.1 mm | sim % of ≥1 mm | ≥1 mm per vug, unflagged / with flagged | sim % of volume | median largest mm | seeds with a ≥1 mm crystal | % of photos | % of listings | literature |');
     lines.push('|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---|');
     for (const r of rows) {
-      lines.push(`| ${r.k} | ${r.meanSurv.toFixed(1)} | ${pct(r.present)}% | ${pct(r.simSurv)} | ${pct(r.simMicro)} | ${pct(r.simVis)} | ${r.meanVis.toFixed(2)} / ${r.meanVisAll.toFixed(2)} | ${pct(r.simVol)} | ${mm(r.medMax)} | ${pct(r.visPresent)}% | ${pct(r.photo)} | ${pct(r.ebay)} | ${r.litShown ?? ''} |`);
+      lines.push(`| ${r.k}${outOfScope(r.k) ? ' (set aside: outside the scenario\'s scope)' : ''} | ${r.meanSurv.toFixed(1)} | ${pct(r.present)}% | ${pct(r.simSurv)} | ${pct(r.simMicro)} | ${pct(r.simVis)} | ${r.meanVis.toFixed(2)} / ${r.meanVisAll.toFixed(2)} | ${pct(r.simVol)} | ${mm(r.medMax)} | ${pct(r.visPresent)}% | ${pct(r.photo)} | ${pct(r.ebay)} | ${r.litShown ?? ''} |`);
     }
     if (flags.length) lines.push(`\nFlags: ${flags.join('; ')}`);
   }
@@ -669,14 +697,16 @@ for (const [scn, j] of Object.entries(json)) {
     if ((r.real ?? 0) < FATE_FLOOR && !/^(AB|CO)/.test(r.lit || '')) { fateBelowFloor.push(`${k}@${scn} (${pct(r.real)} % of the record${r.litShown ? `, literature ${r.litShown}` : ''})`); continue; }
     let what;
     if (r.present === 0) what = 'never forms';
+    // No unflagged crystal reaches 1 mm in most seeds: dust if the crystals are small, "flagged" if they
+    // grow ≥ 1 mm but end up enclosed in another crystal. Tested before the rank (review round 5): a
+    // species can reach the sim's top three on a few seeds' crystals (Searles halite, visible in 2 of 21).
+    else if (r.medMax < 1) what = r.medMaxAll >= 1 ? 'flagged as enclosed' : 'dust (median largest < 1 mm)';
     else if (j.simTop.sure.includes(k)) what = 'in the sim top three';
     else if (j.simTop.tied.includes(k)) what = 'tied across the sim\'s third place';
-    // No unflagged crystal reaches 1 mm in most seeds: dust if the crystals are small, "flagged" if they
-    // grow ≥ 1 mm but end up enclosed in another crystal.
-    else if (r.medMax < 1) what = r.medMaxAll >= 1 ? 'flagged as enclosed' : 'dust (median largest < 1 mm)';
     else what = 'visible, outside the sim top three';
     const byVol = j.simTopVol.sure.includes(k) ? 'in' : j.simTopVol.tied.includes(k) ? 'tied' : 'out';
-    fate.push({ scenario: scn, k, gate: gateKind(k), what, byVol, contract: contractOf(scn, k), perVug: r.meanSurv, medMax: r.medMax });
+    fate.push({ scenario: scn, k, gate: gateKind(k), what, byVol, contract: contractOf(scn, k), perVug: r.meanSurv, medMax: r.medMax,
+      simRank: j.simTop.sure.includes(k) ? 'in' : j.simTop.tied.includes(k) ? 'tied' : 'out' });
   }
 }
 const FATES = ['never forms', 'dust (median largest < 1 mm)', 'flagged as enclosed', 'visible, outside the sim top three', 'tied across the sim\'s third place', 'in the sim top three'];
@@ -702,7 +732,7 @@ lines.push(`Not counted — tied across the real third place: ${fateRealTied.joi
   }
   lines.push('Never-forming slots by contract status: ' + fate.filter((x) => x.what === 'never forms').map((x) => `${x.k}@${x.scenario} (${x.contract})`).join(', '));
 }
-lines.push(`"In the sim top three" entries whose median largest unflagged crystal is < 1 mm: ${fate.filter((f) => f.what === 'in the sim top three' && f.medMax < 1).map((f) => `${f.k}@${f.scenario}`).join(', ') || 'none'}.`);
+lines.push(`Dust or flagged slots that nonetheless rank in the sim's top three by visible count (on the few seeds where they reach 1 mm): ${fate.filter((f) => f.simRank !== 'out' && f.medMax < 1).map((f) => `${f.k}@${f.scenario} (${f.simRank === 'in' ? 'in' : 'tied'})`).join(', ') || 'none'}.`);
 json.__fate_set_aside = { realTied: fateRealTied, outOfClaim: fateOutOfClaim, belowFloor: fateBelowFloor };
 const VISIBLE = ['visible, outside the sim top three', 'tied across the sim\'s third place', 'in the sim top three'];
 lines.push('P(in the sim top three | it forms visible crystals) — "visible" = in or tied for the sim top three, or median largest ≥ 1 mm:');
@@ -742,7 +772,7 @@ lines.push('| scenario | species | real share (voting sources) | literature | si
 lines.push('|---|---|---:|---|---:|---:|---:|---:|---:|---|');
 const dust = [];
 for (const [scn, j] of Object.entries(json)) {
-  if (scn.startsWith('__')) continue;
+  if (scn.startsWith('__') || SCENARIO_OUT_OF_SCOPE[scn]) continue;
   for (const r of j.rows) {
     const headline = (r.real != null && r.real >= DUST_REAL) || /^AB/.test(r.lit || '');
     if (!headline || r.meanSurv <= 0 || r.medMax >= 1 || OUT_OF_CLAIM[`${scn}|${r.k}`]) continue;
@@ -752,6 +782,32 @@ for (const [scn, j] of Object.entries(json)) {
   }
 }
 json.__dust = dust;
+
+// ---- the species cap counts only the crystals that are neither dissolved nor flagged as enclosed
+// (js/85b-simulator-nucleate.ts:716), and a flagged crystal stops growing
+// (js/85c-simulator-state.ts:2689), so the enclosure flag makes counts as well as hiding crystals.
+// From the census: the (scenario, species) pairs that nucleate more crystals than
+// max_nucleation_count. Counted by each crystal's final species (a paramorph counts under its product).
+const overCap = [];
+for (const [scn] of Object.entries(json).filter(([k]) => !k.startsWith('__'))) {
+  const rs = runsBy[scn];
+  for (const m of [...new Set(rs.flatMap((r) => Object.keys(r.species)))].sort()) {
+    const cap = SPEC[m]?.max_nucleation_count;
+    if (!(cap > 0)) continue;
+    const seedsOver = rs.filter((r) => (r.species[m]?.n_total ?? 0) > cap).length;
+    if (!seedsOver) continue;
+    const mean = (f) => rs.reduce((s, r) => s + (r.species[m] ? f(r.species[m]) : 0), 0) / rs.length;
+    overCap.push({ scenario: scn, m, cap, nucleated: mean((v) => v.n_total), surviving: mean((v) => v.n_surv),
+      flagged: mean((v) => v.n_encl), dissolved: mean((v) => v.n_dis), seedsOver, seeds: rs.length });
+  }
+}
+overCap.sort((a, b) => (b.nucleated - b.cap) - (a.nucleated - a.cap) || a.scenario.localeCompare(b.scenario));
+lines.push('\n## Crystals nucleated above the species cap');
+lines.push(`max_nucleation_count limits the crystals of a species that are neither dissolved nor flagged as enclosed (js/85b-simulator-nucleate.ts:716), and a flagged crystal stops growing (js/85c-simulator-state.ts:2689), so every flagged or dissolved crystal frees a slot for a new one. ${overCap.length} (scenario, species) pairs in the locality scenarios nucleate more crystals than their cap in at least one seed; in ${overCap.filter((x) => x.flagged > x.dissolved).length} of them more crystals end flagged than dissolved.`);
+lines.push('| scenario | species | cap | nucleated per vug | seeds above the cap | surviving per vug | flagged at the end, per vug | dissolved per vug |');
+lines.push('|---|---|---:|---:|---:|---:|---:|---:|');
+for (const x of overCap) lines.push(`| ${x.scenario} | ${x.m} | ${x.cap} | ${x.nucleated.toFixed(1)} | ${x.seedsOver} of ${x.seeds} | ${x.surviving.toFixed(1)} | ${x.flagged.toFixed(1)} | ${x.dissolved.toFixed(1)} |`);
+json.__over_cap = overCap;
 
 // ---- robustness: does the broad mismatch depend on the measure?
 const scored = Object.entries(json).filter(([k, j]) => !k.startsWith('__') && j.rhoReal != null && j.verdict !== 'OUT OF SCOPE');
@@ -787,6 +843,32 @@ for (const mode of ['seeds', 'proxies', 'both']) {
   const topChanged = scored.filter(([, j]) => topText(j.withEnclosed.simTop) !== topText(j.simTop));
   lines.push(`counting flagged ≥ 1 mm crystals as visible: median ρ ${medRho((j) => j.withEnclosed.rho)?.toFixed(2)}; verdict changes in ${changed.length} (${changed.map(([k, j]) => `${k}: ${j.exposedVerdict} → ${j.withEnclosed.verdict}`).join(', ') || 'none'}); sim top three changes in ${topChanged.length} (${topChanged.map(([k]) => k).join(', ') || 'none'})`);
 }
+// Sensitivity: the verdicts and the median ρ under choices a reader could make differently. Each line
+// re-runs the comparison on the full seed panel with one choice changed.
+{
+  const tag = (C) => (C.verdict.endsWith('DEPENDENT') ? `${C.verdict} (${C.verdictOptions.join(' or ')})` : C.verdict);
+  const base = Object.entries(json).filter(([k, j]) => !k.startsWith('__') && j.verdict !== 'OUT OF SCOPE');
+  const sensitivity = {};
+  const run = (name, label, realOpts, cmpOpts) => {
+    const changes = [], rhos = [];
+    for (const [scn, j] of base) {
+      const C = compareOne(scn, j.locality, realTable(j.locality, realOpts(scn)), null, cmpOpts);
+      if (C.rhoReal != null) rhos.push(C.rhoReal);
+      if (tag(C) !== tag(j)) changes.push({ scenario: scn, from: tag(j), to: tag(C), rho: [j.rhoReal, C.rhoReal] });
+    }
+    const m = med(rhos);
+    sensitivity[name] = { medianRho: m == null ? null : +m.toFixed(2) + 0, scored: rhos.length, changes };
+    lines.push(`- ${label}: median ρ ${m?.toFixed(2) ?? '—'} over ${rhos.length} scored scenarios; verdict changes in ${changes.length}${changes.length ? ` — ${changes.map((c) => `${c.scenario}: ${c.from} → ${c.to}`).join('; ')}` : ''}`);
+  };
+  lines.push('\n## Sensitivity of the verdicts to the method\'s choices');
+  lines.push(`Reported: ρ over the species present on at least one side, a source votes with ≥ ${THIN} observations, listings count every species a title names, the whole locality record.`);
+  run('keepZeros', 'counting the species absent from both sides in ρ, as rounds 1–4 did', () => ({}), { keepZeros: true });
+  run('thin10', 'a source votes with ≥ 10 observations', () => ({}), { thin: 10 });
+  run('thin30', 'a source votes with ≥ 30 observations', () => ({}), { thin: 30 });
+  run('leadOnly', 'listings counted only for the species a title names first (removes the classifier\'s secondary routes)', () => ({ leadOnly: true }), {});
+  run('scoped', 'the set-aside species (OUT_OF_CLAIM) removed from their scenario\'s record', (scn) => ({ scope: scn }), {});
+  json.__sensitivity = sensitivity;
+}
 // Why the seed bands are narrow: many (scenario, species) pairs come out the same in every seed.
 const sameEverySeed = { pairs: 0, visible: 0, surviving: 0 };
 for (const [scn] of scored) {
@@ -812,7 +894,7 @@ json.__robustness = { medianRho: { visible: medRho('rhoReal'), surviving: medRho
   volume: { better: volBetter, worse: volWorse, equal: volEqual, better05: volBetter05, worse05: volWorse05 }, sameEverySeed };
 
 fs.mkdirSync(OUT, { recursive: true });
-const board = ['\n## Scoreboard', `ρ = Spearman between the sim's share of unflagged ≥ 1 mm crystals and the real share (mean of photo and listing shares; a source with < ${THIN} observations does not vote), with its 5–95 % bootstrap bands: over the seeds, over the proxies (photographs and listing mentions resampled as multinomial draws) and over both. "Verdict differs" = the share of resamples whose verdict is not the one shown (seeds / proxies / both). Top 3 = largest shares, by value alone; species tied across third place are shown as "n of {…} (tied)", and a verdict that depends on how ties break is TIE-DEPENDENT. Literature marks: (S) snippet-level, (R) recalled.`, '',
+const board = ['\n## Scoreboard', `ρ = Spearman between the sim's share of unflagged ≥ 1 mm crystals and the real share (mean of photo and listing shares; a source with < ${THIN} observations does not vote), over the species present on at least one side, with its 5–95 % bootstrap bands: over the seeds, over the proxies (photographs and listing mentions resampled as multinomial draws) and over both. "Verdict differs" = the share of resamples whose verdict is not the one shown (seeds / proxies / both); for a TIE- or MEASURE-DEPENDENT verdict a resample counts as the same when its outcomes lie within the verdict's options, so only an outcome outside them can count (AGREES needs ρ ≥ 0.5). Top 3 = largest shares, by value alone; species tied across third place are shown as "n of {…} (tied)", and a verdict that depends on how ties break is TIE-DEPENDENT. Literature marks: (S) snippet-level, (R) recalled.`, '',
   '| scenario | locality | verdict | ρ(sim, real) | band: seeds | band: proxies | band: both | verdict differs | real top 3 | sim top 3 (≥ 1 mm) | overlap | literature: sim top 3 rated rare/undocumented | literature: abundant, no sim crystal ≥ 1 mm |', '|---|---|---|---:|---|---|---|---|---|---|---:|---|---|'];
 const bandCell = (b) => (b ? `${b[0].toFixed(2)} to ${b[1].toFixed(2)}` : '—');
 for (const [scn, j] of Object.entries(json).filter(([k]) => !k.startsWith('__')).sort((a, b) => (a[1].rhoReal ?? -9) - (b[1].rhoReal ?? -9))) {

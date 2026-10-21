@@ -19,7 +19,7 @@
   "literature": {
    "what": "Published abundance statements per locality, gathered by three research passes and keyed to simulator species. class: AB abundant, CO common, UN uncommon, RA rare, VR very rare, ND not documented in the sources read (ND? = absence from a few sources only), Q questionable, doc = documented without an abundance word; suffixes -crust / -coating / -oxidized qualify the form.",
    "status": "V = the source was opened and the wording seen (by the research pass, or \"read first-hand\" by the review itself where the source note says so); S = search snippet or low-reliability page; R = recalled. Only V and S are used as evidence in the review.",
-   "spot_checks": "Read first-hand by the review on 2026-10-21 — 20 statements in 7 sources, all matched the research passes: Smith 1979 USGS PP 1043 p. 59 (Table 14 values; \"Trona and halite are the major mineral components\"; \"Hanksite is the third most abundant mineral, borax the forth\"); Smith & Haines 1964 USGS Bull. 1181-P (p. P1 Upper Salt composition; p. P7 celestite sentence); Lindgren & Ransome 1904 USGS Bull. 254 pp. 20-21 (calaverite/sylvanite; native gold absent except by oxidation; gangue quartz, fluorite, dolomite; celestite never in large amount; secondary K-feldspar; 1 oz Ag to 10 oz Au); Peacock 1928 Am. Mineral. 13 p. 243 (Cape Belt crocidolite exclusively); Leach et al. 2010 USGS SIR 2010-5070-A (dominant MVT minerals, barite minor to absent, fluorite rare; Zn/(Zn+Pb) < 0.1 SE Missouri; Viburnum chalcopyrite; barite never reported SE Missouri; calcite common Central Tennessee); Harvard Tsumeb Mineral Notes TSNB311 (scorodite Very rare) and TSNB324 (smithsonite Very common, Pinch & Wilson 1977 quote); Koenigsberger 1919 (Aar-granite cleft types 1, 1-prime, 1-double-prime; diorite type 5). Review round 1 independently confirmed eight more: Teale 1979; García-Ruiz et al. 2007; Bastin 1914; Weeks & Thompson 1954; Sukheswala et al. 1974; Heaney & Fisher 2003; Eggleton et al. 2011; Proust & Fontaine 2007.",
+   "spot_checks": "Read first-hand by the review on 2026-10-21 — 20 statements in 7 sources, all matched the research passes: Smith 1979 USGS PP 1043 p. 59 (Table 14 values; \"Trona and halite are the major mineral components\"; \"Hanksite is the third most abundant mineral, borax the forth\"); Smith & Haines 1964 USGS Bull. 1181-P (p. P1 Upper Salt composition; p. P7 celestite sentence); Lindgren & Ransome 1904 USGS Bull. 254 pp. 20-21 (calaverite/sylvanite; native gold absent except by oxidation; gangue quartz, fluorite, dolomite; celestite never in large amount; secondary K-feldspar; 1 oz Ag to 10 oz Au); Peacock 1928 Am. Mineral. 13 p. 243 (Cape Belt crocidolite exclusively); Leach et al. 2010 USGS SIR 2010-5070-A (dominant MVT minerals, barite minor to absent, fluorite rare; Zn/(Zn+Pb) < 0.1 SE Missouri; Viburnum chalcopyrite; barite never reported SE Missouri; calcite common Central Tennessee); Harvard Tsumeb Mineral Notes TSNB311 (scorodite Very rare) and TSNB324 (smithsonite Very common, Pinch & Wilson 1977 quote); Koenigsberger 1919 (Aar-granite cleft types 1, 1-prime, 1-double-prime; diorite type 5). Review round 1 independently confirmed eight more: Teale 1979; García-Ruiz et al. 2007; Bastin 1914; Weeks & Thompson 1954; Sukheswala et al. 1974; Heaney & Fisher 2003; Eggleton et al. 2011; Proust & Fontaine 2007. In response to review round 5 (2026-10-21), read first-hand: Harvard Tsumeb Mineral Notes TSNB38 (azurite Very common; Keller 1977a ranks it fourth in the first oxidation zone) and TSNB107 (dioptase Very common overall, extremely rare or absent in the first oxidation zone).",
    "mindat_note": "Mindat was not used as a data source (its pages are behind a Cloudflare human check). A few literature classes rest on search-snippet text from mindat; they carry status S."
   }
  },
@@ -365,9 +365,10 @@
       "note": "a by-product of copper ore; few specimens"
      },
      "dioptase": {
-      "class": "RA",
+      "class": "ND?",
       "src": "HOM",
-      "status": "V"
+      "status": "V",
+      "note": "the Handbook's distribution omits Bisbee, but the sheet says many other minor localities are known: an absence from one list, not a rarity statement (was RA; review round 5)"
      },
      "lepidocrocite": {
       "class": "doc",
@@ -1145,10 +1146,10 @@
       "status": "V"
      },
      "hessite": {
-      "class": "RA",
+      "class": "ND?",
       "src": "HOM",
       "status": "V",
-      "note": "the Handbook's US list omits Cripple Creek"
+      "note": "the Handbook's US locality list omits Cripple Creek, but the sheet also cites other localities: an absence from one list, not a rarity statement (was RA; review round 5)"
      },
      "albite": {
       "class": "ND",
@@ -1915,10 +1916,10 @@
       "note": "no surviving sim crystal"
      },
      "chalcopyrite": {
-      "class": "CO",
+      "class": "doc",
       "src": "KGS01,R35",
       "status": "V",
-      "note": "no sim crystal"
+      "note": "Ransome 1935 names chalcopyrite in one cave specimen (p. 800, review round 5), and the KGS circular gives no chalcopyrite abundance; no sim crystal (was CO)"
      },
      "marcasite": {
       "class": "CO",
@@ -2847,7 +2848,7 @@
    },
    "literature": {
     "sources": {
-     "GCR36": "GCR Series 36, Roughtongill Mine site account (OGL): 'The main sulphide ores are, in order of abundance, galena, chalcopyrite and sphalerite'; 'Most abundant are supergene lead and copper minerals'; pyromorphite, cerussite and malachite 'are thought to have been worked commercially' [research pass, VERIFIED-f]"
+     "GCR36": "GCR Series 36, Roughtongill Mine site account (OGL): 'The main sulphide ores are, in order of abundance, galena, chalcopyrite and sphalerite'; 'Most abundant are supergene lead and copper minerals'; pyromorphite, cerussite and malachite 'are thought to have been worked commercially' [research pass, VERIFIED-f] — not re-opened by any review round: the JNCC volume is over the fetch limit and the GeoGuide copy returned HTTP 502 in rounds 3–5 and again in the round-5 response, and a search summary of that copy words the key sentences differently; the ten classes below rest on the research pass's reading"
     },
     "species": {
      "pyromorphite": {
@@ -3993,7 +3994,8 @@
      "fluorite": {
       "class": "CO",
       "src": "B33,G24",
-      "status": "V"
+      "status": "V",
+      "note": "CO rests on Guzman et al. 2024; Burbank 1933 says only that fluorite has 'also been recognized' (p. 518, review round 5)"
      },
      "native_gold": {
       "class": "CO",
@@ -4478,7 +4480,7 @@
    },
    "literature": {
     "sources": {
-     "TMN": "Southwood, Alonso-Perez, Sanders & Keutsch, Tsumeb Mineral Notes (Harvard, tmn.fas.harvard.edu), a specimen-availability scale (Very common / Common / Somewhat rare / Very rare / Extremely rare / Questionable). Spot-checked first-hand 2026-10-21: scorodite (TSNB311) 'Very rare'; smithsonite (TSNB324) 'Very common', with Pinch & Wilson 1977 quoted: 'Smithsonite is the most abundant secondary mineral at Tsumeb.'"
+     "TMN": "Southwood, Alonso-Perez, Sanders & Keutsch, Tsumeb Mineral Notes (Harvard, tmn.fas.harvard.edu), a specimen-availability scale (Very common / Common / Somewhat rare / Very rare / Extremely rare / Questionable). Spot-checked first-hand 2026-10-21: scorodite (TSNB311) 'Very rare'; smithsonite (TSNB324) 'Very common', with Pinch & Wilson 1977 quoted: 'Smithsonite is the most abundant secondary mineral at Tsumeb.' Read first-hand in response to review round 5: azurite (TSNB38) 'Very common'; dioptase (TSNB107) 'Very common', but 'extremely rare (or possibly even absent) in the first oxidation zone'. Review rounds 4 and 5 confirmed eight more ratings."
     },
     "species": {
      "smithsonite": {
@@ -4496,37 +4498,38 @@
      "malachite": {
       "class": "AB",
       "src": "TMN",
-      "status": "S",
-      "note": "Very common"
+      "status": "V",
+      "note": "Very common (TSNB225, \"by far the most commonly encountered secondary copper mineral\"; confirmed by review round 5)"
      },
      "azurite": {
       "class": "AB",
       "src": "TMN",
-      "status": "S",
-      "note": "Very common"
+      "status": "V",
+      "note": "Very common (TSNB38, read first-hand; Keller 1977a ranks it the fourth most abundant supergene mineral of the first oxidation zone)"
      },
      "calcite": {
       "class": "AB",
       "src": "TMN",
-      "status": "S",
-      "note": "Very common; no sim crystal"
+      "status": "V",
+      "note": "Very common (TSNB66; confirmed by review round 5); no sim crystal"
      },
      "dioptase": {
       "class": "AB",
       "src": "TMN",
-      "status": "S",
-      "note": "Very common; no sim crystal"
+      "status": "V",
+      "note": "Very common overall (TSNB107, read first-hand), but \"extremely rare (or possibly even absent) in the first oxidation zone\" that the scenario models; abundant in the second and third zones, so set aside as outside the scenario's scope (review round 5)"
      },
      "duftite": {
       "class": "AB",
       "src": "TMN",
-      "status": "S",
-      "note": "Very common"
+      "status": "V",
+      "note": "Very common (TSNB111; confirmed by review round 5)"
      },
      "anglesite": {
       "class": "CO",
       "src": "TMN",
-      "status": "S"
+      "status": "V",
+      "note": "Common (TSNB12; confirmed by review round 5)"
      },
      "cuprite": {
       "class": "CO",
@@ -4587,8 +4590,8 @@
      "powellite": {
       "class": "VR",
       "src": "TMN",
-      "status": "S",
-      "note": "Extremely rare"
+      "status": "V",
+      "note": "Extremely rare (TSNB286; confirmed by review round 5)"
      },
      "plumbogummite": {
       "class": "VR",

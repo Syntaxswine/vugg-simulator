@@ -12,21 +12,23 @@
  * Per (scenario, seed) it runs the scenario for its authored duration and records, per species,
  * the END-STATE inventory:
  *   n_total      every crystal ever nucleated
- *   n_surv       not dissolved (a solid that exists at the end; enclosed crystals count — they
- *                are inside another crystal, still in the specimen)
+ *   n_surv       not dissolved (a solid that exists at the end, flagged as enclosed or not)
  *   n_dis        dissolved to nothing
- *   n_encl       surviving but enclosed by another crystal
+ *   n_encl       surviving and flagged as enclosed (`enclosed_by`, set by _check_enclosure in
+ *                js/85c-simulator-state.ts when a growing crystal > 3× the guest's size is its
+ *                substrate or reaches it with its painted footprint — a topology projection, not a
+ *                test that one crystal surrounds another; tools/enclosure-reach-probe.mjs)
  *   n_01 n_1 n_5 n_10   surviving with longest dimension ≥ 0.1 / 1 / 5 / 10 mm
  *                (micromount / eye-visible / thumbnail crystal / cabinet crystal)
- *   n_01_exp n_1_exp    the same ≥ 0.1 / 1 mm counts for EXPOSED survivors only (not enclosed
- *                by another crystal) — what a collector can see on the specimen's surface
+ *   n_01_exp n_1_exp    the same ≥ 0.1 / 1 mm counts for survivors NOT flagged as enclosed — the
+ *                simulator's own view of what lies exposed
  *   vol_mm3      summed solid volume of the survivors (Crystal._volume_mm3)
- *   vol_exp_mm3  the same for exposed survivors
+ *   vol_exp_mm3  the same for unflagged survivors
  *   max_mm       largest survivor's longest dimension
- *   max_exp_mm   largest exposed survivor's longest dimension
+ *   max_exp_mm   largest unflagged survivor's longest dimension
  *
- * Each row carries `census: CENSUS_VERSION`; version 2 added the exposed counts (review round 3
- * found that 9–14 % of the ≥ 1 mm crystals in the locality scenarios sit inside another crystal).
+ * Each row carries `census: CENSUS_VERSION`; version 2 added the unflagged ("_exp") counts (review
+ * round 3 found that 9–14 % of the ≥ 1 mm crystals in the locality scenarios carry the flag).
  *
  * The longest dimension is max(c_length_mm, a_width_mm, total_growth_um / 1000): the renderer's
  * c/a and the growth ledger's c-advance can differ by habit, and a collector sees the larger.
