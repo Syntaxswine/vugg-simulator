@@ -99,3 +99,123 @@ response.
 
 Result: STORY 1, STORY (PROXY) 1, NO STORY 3, UNRESOLVED 26, NO ENGINE 1, OUT OF SCOPE 1 (was 1, 1, 7, 22,
 1, 1).
+
+## Round 2 of 5 — 7.5/10 (on 9f46686b)
+
+### The report
+
+> Most round-1 fixes check out against the code and the outputs. I found two must-fixes: the only STORY (PROXY) verdict depends on crystal sizes the parser misfiled as specimen sizes, and the tests still don't pin the conditional size calculation.
+>
+> **Read-only:** `git status` is clean. All local evidence files are byte-identical after my runs (the npm test run appended to the test-quarry ledger, as allowed). Mutants ran on a scratch copy only. One slip: I wrote one throwaway file to /tmp and deleted it; nothing touched the repository.
+>
+> **MUST-FIX**
+>
+> **1. Tsumeb's STORY (PROXY), the only proxy pass, rests on crystal sizes filed as specimen sizes inside the upper-bound proxy**
+> - Code:
+>   - `tools/story-pocket-lib.mjs:59`: the "x" crystal cue needs the number right after the x, so "x, ca. 3 cm" is missed.
+>   - `:79`: AFTER_ADJ has `hoh-` but not the predicative "hoch".
+>   - `:262`: with no cue, a length becomes a specimen.
+>   - `tools/story-pocket-size-evidence.mjs:147`: values under 10 mm are counted but still go into the proxy.
+> - The malachite proxy (n 25) has q25 = 30.0 mm, and that value is image 1102949738, "Malachit nach Azurit x, ca. 3 cm hoch". That is a 3 cm pseudomorph crystal. The parser's own policy calls 1504731096 ("Malachit psm. Azurit, 1,5 cm großer Kristall") a crystal.
+> - The proxy also holds 1231095979 ("Größe: 4,2 mm") and 1107729327 ("-Büschel … Größe: 6 mm"). The appendix's own note says sub-10 mm "Größe" values mostly give the crystal or the field of view.
+> - Read the first as a crystal and leave out the other two: q25 = 44.0 mm. Simulated malachite is 37.6–48.9 mm, so 8/21 runs reach it (38 %, below the 50 % target) and 13 are open. Tsumeb becomes UNRESOLVED and the headline goes STORY (PROXY) 1 → 0.
+> - This breaks "keep crystal dimensions separate" in reverse, and breaks the premise the proxy YES rests on ("a specimen is at least as long as its crystals").
+> - 18 such sub-10 mm values sit in protagonist proxies (Bisbee cuprite 2.71/5.27/7.24, Tsumeb calcite 1.47, Tsumeb azurite 3.83, …).
+> - **Fix:** class micromount "Größe" values under 10 mm as unclassed (or exclude them from proxies by a registered rule), and read "x, ca. N cm hoch/lang". Then rewrite the targets, re-score, and state the sensitivity in §2.
+>
+> **2. The tests still don't prove the conditional size calculation (a named acceptance item)**
+> - I ran 35 of my own mutants on a scratch copy; 11 survive. The ones that matter:
+>   - `assessSize` using the mean instead of the median (`lib:501`). The test named "the median decides" (`test.ts:179–186`) never has the median and the mean on different sides.
+>   - The eligible-share range changed from q25–q90 to q25–q75, or its q25 made exclusive (`lib:499`).
+>   - `runStory`'s per-run YES at q25 changed from ≥ to > (`lib:524`).
+>   - The proxy REACHES PROXY/OVERSIZE boundary moved from q90 to q75 (`lib:504`).
+>   - `scoreStory`'s `beyond` and `oversize` counters (`lib:548–549`); `beyond` drives the "longer than the cavity" open reason.
+>   - Confidence always "high" (`lib:444`); the IN-band upper bound; the 5 % wanted-share boundary.
+> - The round-1 boundary tests cover only `assessSize`'s verdict thresholds.
+> - **Fix:** add a skewed case (e.g. [1, 16, 16, 49]: median 16, mean 20.5), a run exactly at q25, a crystal in (q75, q90] for both the share and the proxy verdict, and assertions on `beyond`, `oversize` and confidence.
+>
+> **SHOULD-FIX**
+>
+> **3. Over-joining, introduced by round-1 fix #5** (`lib:334–345`)
+> - Caption joins have no upload window: 39 of the 112 are more than a day apart, 30 more than 30 days.
+> - 34 of those carry only a picture width. 13 Wittichen zeunerite photos captioned "BB 4,5mm", uploaded over 803 days, become one specimen; so do 11 heinrichite photos.
+> - Three-dimension joins span years (Mogok 5×5×4 mm, 9.4 years apart; 12×11×6, 4.9 years). One joins two different mines: 1310050913 "Fundort: Grov…" with 1319903935 "Fundort: Blac…".
+> - No target changes, but "2084 specimens", "112 by identical captions" and "one specimen counts once" are overstated.
+> - **Fix:** apply the upload window to caption and three-dimension joins, or require a matching Fundort or a crystal/specimen statement.
+>
+> **4. A prose claim the generated blocks don't support** (PROPOSAL:418–419, "Unclassed pockets stay open. Ametista's and Searles'…")
+> - `unclassified` is 0 in every scored scenario; only colorado_plateau (NO ENGINE) has any.
+> - The generated breakdown opens Ametista by "no size target" and Searles by "short of a specimen proxy". The unclassed rule decides no current verdict.
+>
+> **5. "About 10^-84"** (`showcase-scoreboard.mjs:364`, `lib:587`)
+> - This treats species that co-occur in the same runs as independent.
+> - Allowing any dependence within a scenario, the bound is the product over the 30 scenarios of each one's largest single-species chance: 10^-29.1. Same conclusion; report the defensible number.
+>
+> **6. Generated values that are wrong or unlabelled**
+> - Variety table: Bisbee shows "protagonists in every seed: —", though malachite, azurite and cuprite occur 21/21 (`scoreboard:197` requires a band).
+> - The spread guard checks the maximum, not the median (`:157`), giving Tormiq quartz "6960 %" and Searles halite "200 %" from dust medians.
+> - The record's "64 %" pools 55 specimen-proxy spreads with 11 crystal spreads (crystal-only: 75 %). Label it.
+> - `small_yes` ("reported apart", REVIEW:98) appears in no generated block, only in the JSON.
+> - `visible_mm` is registered as the clutter threshold (`targets.mjs:50`), but clutter reads the census's `n_1_exp` (`scoreboard:217`). Changing the rule would not change clutter.
+>
+> **7. Sample counts overstate independence**
+> - 21 of Grimsel's 27 quartz crystal lengths share one caption template ("Etwa N mm x M mm großer…").
+> - 9 of the North Pennines' 17 fluorite lengths share another ("Fluorit-XX max. N mm", Feb–Jul 2011). Without that series q25 rises to 18.75 mm, above every simulated fluorite (17.35–17.99) — the only crystal-target STORY.
+> - **Fix:** record series concentration in the provenance and let confidence reflect it. Also flag knife-edges: Herkimer's (cooling) NO STORY rests on exactly n = 5, the minimum.
+>
+> **8. Prose overreach**
+> - "the cause is the evidence, not the simulator" (PROPOSAL:350): where partial crystal evidence exists, every length exceeds every simulated crystal:
+>   - Ouro Preto: 12–36 mm vs ≤ 5.9 mm
+>   - Naica: 44–226 vs ≤ 2.9
+>   - Reactive Wall galena: 40–75 vs ≤ 4.1
+>   - Elmwood: 20–48 vs ≤ 10.4
+> - Hand-typed results sit outside the markers despite "None is typed by hand": 0.57 mm (line 996), 0.4 mm (1094), 94/83/56 % (770–771). They are accurate.
+>
+> **9. Minor**
+> - `UPLOADED_TOGETHER = 1e6` is not in the sidecar's rules, and nothing says image ids are Unix upload times (1e6 s ≈ 11.6 days).
+> - `runStory`'s early return on a crystal YES drops the `oversize`/`beyond` flags (`lib:525`), so those counts depend on protagonist order.
+> - The "interior" span is the longest vertex-to-vertex chord, never checked to lie inside the cavity (`cavities.mjs:68–73`).
+> - The 9f46686b commit message says 2074 specimens; the generated count is 2084.
+>
+> **Verified correct**
+> - **Guardrails:** neither commit touches `js/` or `data/`. The comparison tool last changed in afbe687f, and its re-run gives a byte-identical `compare.json` (sha256 8419de06…). All evidence is at SIM 285.
+> - **Checks:**
+>   - `story-pocket-targets.mjs` matches a rebuild.
+>   - The size-evidence tool reproduces the appendix byte for byte.
+>   - Scoreboard `--check-splice`: 12/12 blocks match.
+>   - Substrate census `--check-splice`: 2/2.
+>   - Tests: 53/53 pass.
+>   - `showcase.*` reproduces.
+> - **Round-1 responses that hold:**
+>   - #1: no size floor; `visible_mm` affects no verdict.
+>   - #2: code and tests correct (but see 4).
+>   - #3: bands below 100 %, variety section added (see 5).
+>   - #5: both duplicate pairs joined; Ouro Preto has 4 crystal lengths → UNRESOLVED (see 3).
+>   - #6: wording, REACHES PROXY, crystal sample shown, the flag.
+>   - #7: Bisbee's 15 runs longer than the cavity are open.
+>   - #8: never-form list and WP8 generated; #9.
+>   - #10: every named parser case fixed and tested.
+>   - #11: each section exactly once; a mismatched compare hash is refused.
+>   - #12: display range q25–q90 and median-centred verdict, named for the boss. Only "small pockets reported" is partial.
+> - **Audit:**
+>   - I read every crystal row. The targets behind Herkimer's and Grimsel's NO STORY and the North Pennines' STORY are cleanly parsed and distinct specimens.
+>   - The 11 set-asides are correct. One width is read as a length (1208191401, "7 cm breit"), affecting only Grimsel's maximum.
+>   - A seeded sample of 60 proxy specimen values had 2 errors (3 %).
+> - **Present and correct:** `fits`/`pocketClass`/`scoreStory`/`storyVerdict` match their spec; the "before" column is unchanged; every scoreboard column the boss listed is present.
+
+### The response
+
+| # | finding | what changed | evidence |
+|---|---|---|---|
+| 1 | Tsumeb's STORY (PROXY) rests on misfiled crystal sizes | Three parser rules. The crystal cue "x" may be followed by a comma ("Malachit nach Azurit x, ca. 3 cm hoch"). A pseudomorph's length goes to the mineral named first, the material ("Malachit nach Azurit" is malachite's, as round 1 decided for "Malachit psm. Azurit"). A predicative "breit" or "dick" makes a width. A registered rule (`specimen_min_mm`, 10 mm) sets specimen lengths under 10 mm aside: on a micromount the "Größe" usually gives the crystal or the field. | Tsumeb's malachite has crystal lengths 6, 15, 24 and 30 mm (n 4, too few for a target); its proxy is n 22, q25 44 mm; 8 of 21 runs reach it and 13 stay open, so UNRESOLVED. STORY (PROXY) 1 → 0. 1208191401 ("7 cm breit") is a width. Each case is a test. |
+| 2 | the conditional size calculation not pinned | New tests: a skewed sample whose median and mean fall on different sides; a run exactly at q25 (inclusive); crystals in (q75, q90] for the share and for the proxy verdict; the `beyond` and `oversize` counters; the confidence levels; the band's top end; the 5 % wanted-share boundary. | The ten survivors the reviewer named, adapted, and eleven more on the new rules: 21 of 21 killed. Round 1's 35 mutants re-run on the new code: the 30 that still apply killed; the 5 whose code was rewritten, re-anchored, killed. Two new join mutants survived (a find named on one side only; the window's edge) and now have tests. 65 tests. |
+| 3 | over-joining | A join needs the photographs uploaded together (image ids within 1,000,000 s, about 11.6 days), for identical captions as for a shared multi-dimension length. Uploaded apart, only a measured three-dimension size (one dimension to a tenth of a millimetre) joins them, and never when the captions name different finds. The window and its basis (the ids read as upload times; their range runs from 2004 to just before the capture) are a registered rule (`uploaded_together_s`). | 116 joins: 99 by caption, 17 by dimensions; 2,217 photographs → 2,101 specimens. The Wittichen zeunerite "BB 4,5 mm" captions years apart, the Mogok 5×5×4 mm pair and Grove Rake/Blackdene stay apart (tests). |
+| 4 | the unclassed claim | §2.1 now says the unclassed rule decides no current verdict. | — |
+| 5 | 10^-84 assumes independence | The bound counts each scenario once, by its least likely every-seed species: however species that share runs depend on each other, all of them occur in every run no more often than that one does. The independent figure stands beside it. | 10^-29 over 30 scenarios (the reviewer's 10^-29.1); 10^-84 if independent. A first fix took each scenario's likeliest species (10^-15), a valid but looser bound; corrected before commit. Tests and mutants for both. |
+| 6 | wrong or unlabelled generated values | "In every seed" lists protagonists with or without a band. A spread is computed only when the median occurring crystal is visible, and reads "not visible" otherwise. The record's spread is split by basis. The small-pocket count is in the verdicts block. `visible_mm` is asserted equal to the census's fixed 1 mm (`n_1_exp`); the scoreboard refuses any other value. | Bisbee: malachite, azurite, cuprite in every seed. Simulated spread 2 % (51) against 75 % for crystal lengths (11) and 58 % for proxies (55). Tormiq's quartz and Searles' halite read "not visible". |
+| 7 | samples overstate independence | A caption's wording with the numbers taken out is its series key. A crystal target whose largest series holds more than half its lengths drops a confidence level, and its provenance records the series and the target without it. A new §2.6 re-scores every crystal-target verdict without its largest series and, at the minimum sample, with its proxy. | The North Pennines' fluorite (9 of 17 in one series) is UNRESOLVED without it; Herkimer's quartz (n 5) is UNRESOLVED either way; Grimsel's NO STORY holds. |
+| 8 | prose overreach | "The cause is the evidence" is gone. The verdicts block names, where the captions give a few crystal lengths, the species for which every photographed crystal is longer than every simulated one, enclosed crystals included; §2 says they lean against the simulator and do not clear it. The hand-typed 0.57 mm, 0.4 mm and 94/83/56 % now point to the generated tables. | 20 of 25 such protagonists. |
+| 9 | minor | The join window is registered (row 3). `runStory` no longer returns early, so `oversize` and `beyond` count whatever the protagonists' order (a test). The span is called an upper bound (the longest chord between wall vertices, not checked to run inside the cavity) in §1.3 and §5. The 9f46686b message's "2074 specimens" is superseded: 2,101 under the new rules. | — |
+
+Result: STORY 1, STORY (PROXY) 0, NO STORY 3, UNRESOLVED 27, NO ENGINE 1, OUT OF SCOPE 1 (was 1, 1, 3, 26, 1, 1).
+The one STORY (reactivated_fluorite_vein) rests on one contributor's series (§2.6).

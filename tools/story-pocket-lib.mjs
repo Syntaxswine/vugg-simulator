@@ -56,7 +56,7 @@ const CUES = {
   // A crystal: "Kristall…" (not a crystal group, druse, aggregate or width), "crystal", "XX", "X =",
   // edge length ("Kantenlänge", "KL"), a form name (cube, octahedron, rhombohedron, doubly
   // terminated, twin).
-  crystal: new RegExp(String.raw`[${L}-]*kristall(?!${L}*${NOT_ONE_CRYSTAL})${L}*|crystals?\b|\bxx\b|\bxls?\b|\bx\b(?=\s*[=:.]?\s*(?:ca\.?\s*)?$)|kantenl${L}*\.?|\bkl\b|[${L}-]*(?:würfel|oktaeder|rhomboeder|doppelend|zwilling|quader)${L}*|beryllgröße`, 'giu'),
+  crystal: new RegExp(String.raw`[${L}-]*kristall(?!${L}*${NOT_ONE_CRYSTAL})${L}*|crystals?\b|\bxx\b|\bxls?\b|\bx\b(?=\s*[=:.,]?\s*(?:ca\.?\s*)?$)|kantenl${L}*\.?|\bkl\b|[${L}-]*(?:würfel|oktaeder|rhomboeder|doppelend|zwilling|quader)${L}*|beryllgröße`, 'giu'),
   // A named aggregate of one species: sphere, rosette, sheaf, tuft, "iron rose", "ball".
   aggregate: new RegExp(String.raw`${L}*(?:aggregat|kugel|rosette|garbe|büschel|eisenrose|kristallisation|rasen)${L}*|\bball\b`, 'giu'),
   // The whole specimen (Stufe), piece, group or matrix.
@@ -164,12 +164,17 @@ function nearestCue(before, cutStart) {
   return null;
 }
 // The mineral a crystal cue names: the cue's own compound ("Fluoritkristall", "Calcit-XX"), else the
-// word right before it ("Galenit Oktaeder", "Cerussit xx").
+// word right before it ("Galenit Oktaeder", "Cerussit xx") — or, for a pseudomorph ("Malachit nach
+// Azurit x", "Malachit psm. Azurit"), the mineral it is made of, not the one whose form it keeps.
 const PREV_WORD = new RegExp(String.raw`(${L}{4,})[\s-]?$`, 'u');
+const PSEUDOMORPH = new RegExp(String.raw`(${L}{4,})\s+(?:nach|psm\.?|pseudomorph(?:ose)?\s+nach|after)\s+${L}{4,}[\s-]?$`, 'iu');
 function cueMineral(before, cue) {
   const own = mineralOfWord(cue.text);
   if (own) return own;
-  const prev = before.slice(Math.max(0, cue.start - 30), cue.start).match(PREV_WORD);
+  const head = before.slice(Math.max(0, cue.start - 50), cue.start);
+  const psm = head.match(PSEUDOMORPH);
+  if (psm) return mineralOfWord(psm[1]);
+  const prev = head.match(PREV_WORD);
   return prev ? mineralOfWord(prev[1]) : null;
 }
 // "<subject> hat eine Größe von …": the subject decides.
@@ -240,7 +245,10 @@ export function parseSizeStatements(raw) {
     const pred = before.match(PREDICATE);
     const predKind = pred ? predicateKind(pred[1]) : null;
     let kind, named = null, why;
+    // "7 cm breit", "3 mm dick": a width or thickness, said of whatever the clause names.
+    const predicativeWidth = adj && !adj[2] && /^(?:breit|dick)$/iu.test(adj[1]);
     if (AFTER_FOV.test(after)) { kind = 'fov'; why = after.match(AFTER_FOV)[0].trim(); }
+    else if (predicativeWidth) { kind = 'width'; why = adj[0].trim(); }
     else if (AFTER_CRYSTAL.test(after)) {
       kind = 'crystal'; why = after.match(AFTER_CRYSTAL)[0].trim();
       if (cue?.kind === 'crystal') named = cueMineral(before, cue);
@@ -276,9 +284,22 @@ export function parseSizeStatements(raw) {
     if ((kind === 'crystal' || kind === 'aggregate') && !named) {
       subject = subjectOf(before, firstClause && cutStart) ?? (prevClause != null ? subjectOf(prevClause, clauses.length === 2 && cutStart) : null);
     }
-    out.push({ kind, mm: +mm.toFixed(3), named, subject, dims, cue: why, text: m[0] });
+    out.push({ kind, mm: +mm.toFixed(3), named, subject, dims, cue: why, text: m[0], series: seriesKey(before, after) });
   }
   return out;
+}
+
+/**
+ * A statement's wording with its numbers taken out: the last 16 characters of its clause before the
+ * length and the first word after it, spaces dropped and digits as "#". One contributor's photographs
+ * share it ("Etwa # mm x # mm großer …", "Fluorit-XX max. # mm"), so many lengths with one key are one
+ * collection's, not independent samples of the locality.
+ */
+export function seriesKey(before, after) {
+  // "bis" (up to) comes and goes within one contributor's wording ("XX max." / "XX bis max.").
+  const squeeze = (s) => String(s).replace(/(^|\s)bis(?=\s)/giu, '$1').replace(/\s+/g, '').replace(/\d+(?:[.,]\d+)?/g, '#');
+  const word = String(after).match(new RegExp(String.raw`^\s*([${L}.]*)`, 'u'))[1];
+  return `${squeeze(before).slice(-16)}#${squeeze(word)}`;
 }
 
 /**
@@ -287,11 +308,14 @@ export function parseSizeStatements(raw) {
  * naming none, its clause or title is about another mineral (ambiguous). keyOf maps an English
  * mineral name to a species key; same(a, b) says two keys are one mineral (a variety and its
  * species); piece = the lead is a massive or fibrous material sold as pieces (tiger's eye,
- * chrysoprase), whose "crystal" statements describe a piece and so count as specimen dimensions.
+ * chrysoprase), whose "crystal" statements describe a piece and so count as specimen dimensions;
+ * minSpecimenMm = a specimen length below it is set aside (micro): micromount captions give the crystal
+ * or the field as "Größe", and a misread one would pull a specimen proxy below the crystals it bounds.
  */
-export function photoSizes(windows, lead, { keyOf = (x) => x, same = (a, b) => a === b, piece = false } = {}) {
+export function photoSizes(windows, lead, { keyOf = (x) => x, same = (a, b) => a === b, piece = false, minSpecimenMm = 0 } = {}) {
   const best = { crystal: null, aggregate: null, specimen: null, fov: null };
-  let other = 0, ambiguous = 0, unclassed = 0, widths = 0;
+  const bestStatement = {};
+  let other = 0, ambiguous = 0, unclassed = 0, widths = 0, micro = 0;
   const used = [];
   for (const w of windows) {
     for (let s of parseSizeStatements(w)) {
@@ -302,44 +326,54 @@ export function photoSizes(windows, lead, { keyOf = (x) => x, same = (a, b) => a
         if (!s.named && s.subject?.name && !same(keyOf(s.subject.name), lead)) { ambiguous++; continue; }
         if (piece) s = { ...s, kind: 'specimen', cue: `${s.cue} (a piece)` };
       }
-      if (best[s.kind] == null || s.mm > best[s.kind]) best[s.kind] = s.mm;
+      if (s.kind === 'specimen' && s.mm < minSpecimenMm) { micro++; continue; }
+      if (best[s.kind] == null || s.mm > best[s.kind]) { best[s.kind] = s.mm; bestStatement[s.kind] = s; }
       used.push(s);
     }
   }
-  return { ...best, other, ambiguous, unclassed, widths, statements: used };
+  return { ...best, other, ambiguous, unclassed, widths, micro, statements: used, series: bestStatement.crystal?.series ?? null };
 }
 
 /**
- * Which photographs show one specimen. One specimen is often photographed several times: the
- * uploader keeps the caption, or states the same dimensions again in a new one. Photographs of the
- * same species are joined when their caption stretches are identical; or when they state the same
- * length in three dimensions ("5x5x4,8mm"); or the same length in two dimensions ("16 mm x 12 mm") and
- * were uploaded together (image ids within UPLOADED_TOGETHER). A round two-dimension size shared by
- * photographs uploaded years apart ("50 x 45 mm") is more likely two specimens. Two specimens with
- * identical captions or identical three-dimension sizes would be joined; that errs toward fewer samples.
+ * Which photographs show one specimen. One specimen is often photographed several times: the uploader
+ * keeps the caption, or states the same dimensions again in a new one. Two photographs of the same
+ * species are joined when they were uploaded together (image ids, which read as upload times in
+ * seconds, within UPLOADED_TOGETHER) and either their caption stretches are identical or they state the
+ * same multi-dimension length ("16 mm x 12 mm"). Uploaded apart, only a measured size joins them: the
+ * same length in three dimensions, one of them to a tenth of a millimetre ("5x5x4,8mm"). Never when
+ * their captions name different finds ("Fundort: Grove …" against "Fundort: Blackdene …"). A generic
+ * caption ("Zeunerit xx, BB 4,5 mm") or a round size ("4 x 3 x 2 cm") repeated years apart is more
+ * likely two specimens.
  *   photos: [{ id, key, windows }] → { groups: [{ key, photos: [...] }], joined: { caption, dims },
  *   links: [{ a, b, why, dims }] } — every join, for audit
  */
 export const UPLOADED_TOGETHER = 1e6;
+const FIND = new RegExp(String.raw`(?:fundort|f\.\s?o\.|loc\.?)\s*:?\s*([${L}]{4})`, 'iu');
 export function groupSpecimens(photos) {
   const parent = new Map(photos.map((p) => [p.id, p.id]));
   const find = (x) => { while (parent.get(x) !== x) { parent.set(x, parent.get(parent.get(x))); x = parent.get(x); } return x; };
   const joined = { caption: 0, dims: 0 };
   const links = [];
   const seen = new Map();
+  const where = new Map(photos.map((p) => [p.id, (p.windows.join(' ').match(FIND)?.[1] || '').toLowerCase()]));
+  const together = (a, b) => Math.abs(Number(a) - Number(b)) < UPLOADED_TOGETHER;
+  const sameFind = (a, b) => !where.get(a) || !where.get(b) || where.get(a) === where.get(b);
   const join = (a, b, why, dims) => {
     const ra = find(a), rb = find(b);
     if (ra !== rb) { parent.set(rb, ra); joined[why]++; links.push({ a, b, why, dims }); }
   };
   for (const p of photos) {
     const cap = `caption\u0000${p.key}\u0000${p.windows.join('\u0000')}`;
-    if (seen.has(cap)) join(seen.get(cap)[0], p.id, 'caption', null); else seen.set(cap, [p.id]);
+    const earlierCap = seen.get(cap) || [];
+    const capMatch = earlierCap.find((id) => together(id, p.id));
+    if (capMatch != null) join(capMatch, p.id, 'caption', null);
+    seen.set(cap, [...earlierCap, p.id]);
     const dims = new Set(p.windows.flatMap((w) => parseSizeStatements(w)).filter((s) => s.dims).map((s) => s.dims.join('x')));
     for (const d of dims) {
       const sig = `dims\u0000${p.key}\u0000${d}`;
       const earlier = seen.get(sig) || [];
-      const three = d.split('x').length >= 3;
-      const match = earlier.find((id) => three || Math.abs(Number(id) - Number(p.id)) < UPLOADED_TOGETHER);
+      const measured = d.split('x').length >= 3 && d.split('x').some((x) => !Number.isInteger(Number(x)));
+      const match = earlier.find((id) => sameFind(id, p.id) && (measured || together(id, p.id)));
       if (match != null) join(match, p.id, 'dims', d);
       seen.set(sig, [...earlier, p.id]);
     }
@@ -433,16 +467,25 @@ export function bandFor(cls, bands) {
  * A size target from a species' photographed sizes: crystal statements when there are enough, else
  * the specimen dimensions as a proxy, else unknown. A specimen is at least as long as its own
  * crystals, so a proxy overstates the crystal: a crystal that reaches it very likely reaches the
- * crystal target; one that falls short of it may not. Confidence: high or medium by the crystal
- * sample count; low for a proxy.
+ * crystal target; one that falls short of it may not. Confidence for crystal lengths: low below
+ * mediumConfidence specimens, medium below highConfidence, high from it — one step lower when more
+ * than half of them share one wording (one contributor's series, ev.crystal_series); low for a proxy.
  */
-export function sizeTarget(ev, { minSamples, highConfidence }) {
+export function sizeTarget(ev, { minSamples, mediumConfidence = minSamples, highConfidence }) {
   const c = ev?.crystal?.n ?? 0, s = ev?.specimen?.n ?? 0;
   const pick = c >= minSamples ? ['crystal', ev.crystal] : s >= minSamples ? ['specimen-proxy', ev.specimen] : null;
   if (!pick) return { basis: 'unknown', crystal_n: c, specimen_n: s };
   const [basis, d] = pick;
-  const confidence = basis === 'crystal' ? (d.n >= highConfidence ? 'high' : 'medium') : 'low';
-  return { basis, n: d.n, q10: d.q10, q25: d.q25, median: d.median, q75: d.q75, q90: d.q90, confidence, crystal_n: c, specimen_n: s };
+  let confidence = 'low';
+  let series = null;
+  if (basis === 'crystal') {
+    const levels = ['low', 'medium', 'high'];
+    let level = d.n >= highConfidence ? 2 : d.n >= mediumConfidence ? 1 : 0;
+    series = ev.crystal_series ?? null;
+    if (series && series.largest > d.n / 2) level = Math.max(0, level - 1);
+    confidence = levels[level];
+  }
+  return { basis, n: d.n, q10: d.q10, q25: d.q25, median: d.median, q75: d.q75, q90: d.q90, confidence, crystal_n: c, specimen_n: s, ...(series ? { series } : {}) };
 }
 
 // ------------------------------------------------------------------ 4. assessment
@@ -514,7 +557,7 @@ export function assessSize(runs, target) {
  *   run: { span, species: { k: { occurs, size } } }; protagonists: [{ k, target }]
  */
 export function runStory(run, protagonists) {
-  let proxy = null, possible = false, oversize = false, beyond = false;
+  let crystal = null, proxy = null, possible = false, oversize = false, beyond = false;
   for (const { k, target } of protagonists) {
     const s = run.species[k];
     if (!s?.occurs) continue;
@@ -522,10 +565,11 @@ export function runStory(run, protagonists) {
     if (run.span != null && s.size > run.span) { beyond = true; possible = true; continue; }
     if (s.size > target.q90) { oversize = true; continue; }
     if (s.size >= target.q25) {
-      if (target.basis === 'crystal') return { story: 'YES', basis: 'crystal', by: k };
-      proxy ??= k;
+      if (target.basis === 'crystal') crystal ??= k;
+      else proxy ??= k;
     } else if (target.basis !== 'crystal') possible = true;
   }
+  if (crystal) return { story: 'YES', basis: 'crystal', by: crystal, oversize, beyond };
   if (proxy) return { story: 'YES', basis: 'specimen-proxy', by: proxy, oversize, beyond };
   return { story: possible ? 'POSSIBLE' : 'NO', oversize, beyond };
 }
@@ -581,11 +625,25 @@ export function assemblageVariety(sets) {
 }
 /**
  * Species that occur in every seed, against their bands' ceilings: if each occurred at its ceiling,
- * the chance that all of them would show up in every one of their runs (log10 of the product).
- *   slots: [{ ceiling, n }] — one per species that occurred in all n runs
+ * the chance that all of them would show up in every one of their runs. Species of one scenario share
+ * its runs and need not be independent, but however they depend on each other, all of them show up in
+ * every run no more often than the least likely one does: the bound counts each scenario once, by that
+ * species (log10 of the product over scenarios). `independent` multiplies every species: smaller, but
+ * only if they are independent.
+ *   slots: [{ scenario, ceiling, n }] — one per species that occurred in all n runs
  */
 export function everySeedChance(slots) {
-  return { slots: slots.length, log10: slots.reduce((s, { ceiling, n }) => s + n * Math.log10(ceiling), 0) };
+  const per = {};
+  for (const { scenario, ceiling, n } of slots) {
+    const l = n * Math.log10(ceiling);
+    per[scenario] = per[scenario] == null ? l : Math.min(per[scenario], l);
+  }
+  return {
+    slots: slots.length,
+    scenarios: Object.keys(per).length,
+    log10: Object.values(per).reduce((s, l) => s + l, 0),
+    independent_log10: slots.reduce((s, { ceiling, n }) => s + n * Math.log10(ceiling), 0),
+  };
 }
 
 // ------------------------------------------------------------------ 6. sidecar schema
