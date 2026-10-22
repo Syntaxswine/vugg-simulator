@@ -1,0 +1,95 @@
+{
+ "$schema": "https://json-schema.org/draft/2020-12/schema",
+ "$id": "vugg-story-pocket-targets-v1",
+ "title": "Story-pocket targets (pre-registered)",
+ "description": "The sidecar tools/showcase-scoreboard.mjs scores each locality scenario against: per species a role, an occurrence band and a size target, per scenario a story frequency. Written by tools/story-pocket-targets.mjs --write; checked at load by validateSidecar (tools/story-pocket-lib.mjs), which enforces the cross-field rules this schema cannot express (exactly one primary per scored scenario; quantiles in order; a band and a size target each carry their basis or provenance).",
+ "type": "object",
+ "required": ["schema", "rules", "scenarios"],
+ "properties": {
+  "schema": { "const": "vugg-story-pocket-targets-v1" },
+  "generated_by": { "type": "string" },
+  "about": { "type": "string" },
+  "inputs": { "type": "object", "description": "The files the targets were built from, with hashes where they are not committed." },
+  "rules": {
+   "type": "object",
+   "description": "The design rules (proposed; awaiting the boss).",
+   "required": ["wanted_share", "occurrence_bands", "size_min_samples", "size_high_confidence"],
+   "properties": {
+    "status": { "type": "string" },
+    "wanted_share": { "type": "number", "exclusiveMinimum": 0, "exclusiveMaximum": 1 },
+    "occurrence_bands": {
+     "type": "object",
+     "description": "Literature abundance class → [lowest, highest] share of story pockets the species occurs in.",
+     "additionalProperties": { "$ref": "#/$defs/band" }
+    },
+    "size_min_samples": { "type": "integer", "minimum": 1 },
+    "size_medium_confidence": { "type": "integer", "minimum": 1 },
+    "size_high_confidence": { "type": "integer", "minimum": 1 }
+   }
+  },
+  "named_signatures": {
+   "type": "object",
+   "description": "Where no source votes: the collectibles the sources name, with the reason.",
+   "additionalProperties": { "type": "object", "required": ["species", "why"], "properties": { "species": { "type": "array", "items": { "type": "string" } }, "why": { "type": "string" } } }
+  },
+  "overrides": {
+   "type": "object",
+   "description": "Hand decisions per scenario and species, each with its reason (why).",
+   "additionalProperties": { "type": "object", "additionalProperties": { "type": "object", "required": ["why"] } }
+  },
+  "scenarios": {
+   "type": "object",
+   "additionalProperties": { "$ref": "#/$defs/scenario" }
+  }
+ },
+ "$defs": {
+  "band": { "type": "array", "prefixItems": [ { "type": "number", "minimum": 0, "maximum": 1 }, { "type": "number", "minimum": 0, "maximum": 1 } ], "minItems": 2, "maxItems": 2 },
+  "scenario": {
+   "type": "object",
+   "required": ["locality", "species"],
+   "properties": {
+    "locality": { "type": "string" },
+    "out_of_scope": { "type": ["string", "null"], "description": "Why the whole scenario is not scored, or null." },
+    "record": { "enum": ["votes", "thin: named signatures"] },
+    "named_signature_basis": { "type": "string" },
+    "set_aside": { "type": "object", "description": "Species outside the scenario's scope, with the reason; they get no role.", "additionalProperties": { "type": "string" } },
+    "story_frequency": { "type": ["number", "null"], "minimum": 0, "maximum": 1 },
+    "story_frequency_basis": { "type": "string" },
+    "species": { "type": "object", "additionalProperties": { "$ref": "#/$defs/species" } }
+   }
+  },
+  "species": {
+   "type": "object",
+   "required": ["role", "engine", "occurrence_band", "band_basis", "size"],
+   "properties": {
+    "role": { "enum": ["primary", "alternate", "showpiece", "unsupported", "companion"] },
+    "engine": { "type": "boolean", "description": "Whether the simulator has an engine for it (data/minerals.json)." },
+    "record_share": { "type": ["number", "null"], "description": "Its share of the locality's record (photographs and listings); null where the record is thin." },
+    "literature": { "type": ["object", "null"], "properties": { "class": { "type": "string" }, "sources": { "type": ["string", "null"] }, "status": { "type": ["string", "null"] } } },
+    "occurrence_band": { "oneOf": [ { "$ref": "#/$defs/band" }, { "type": "null" } ] },
+    "band_basis": { "type": "string" },
+    "size": { "$ref": "#/$defs/size" },
+    "override": { "type": "string", "description": "The reason, where a hand decision replaced the rule." }
+   }
+  },
+  "size": {
+   "type": "object",
+   "required": ["basis", "provenance"],
+   "properties": {
+    "basis": { "enum": ["crystal", "specimen-proxy", "unknown"], "description": "crystal: photographed crystal lengths; specimen-proxy: photographed specimen dimensions, an upper bound on the crystal; unknown: too few of either." },
+    "n": { "type": "integer", "minimum": 1, "description": "Specimens behind the target." },
+    "q10": { "type": "number" }, "q25": { "type": "number" }, "median": { "type": "number" }, "q75": { "type": "number" }, "q90": { "type": "number" },
+    "confidence": { "enum": ["low", "medium", "high"] },
+    "crystal_n": { "type": "integer", "minimum": 0 },
+    "specimen_n": { "type": "integer", "minimum": 0 },
+    "photographs_with_length": { "type": "integer", "minimum": 0 },
+    "crystal": { "type": "object", "description": "The crystal sample, also where it is too small to be the target." },
+    "specimen": { "type": "object", "description": "The specimen sample." },
+    "piece_material": { "type": "boolean" },
+    "provenance": { "type": "string" }
+   },
+   "if": { "properties": { "basis": { "enum": ["crystal", "specimen-proxy"] } } },
+   "then": { "required": ["n", "q10", "q25", "median", "q75", "q90", "confidence"] }
+  }
+ }
+}
