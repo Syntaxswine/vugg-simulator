@@ -13,6 +13,11 @@
    "file": "proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json",
    "sha256": "3738b9043a76159d3dc7dfb009bfd527fd7a2efc7e823c5651eddd6057de8d2f",
    "extractor_sha256": "b94b4f1bba4a6bb6ba1ebb818c6f7f29ad600ec5db19359788c9dbc450d82db9"
+  },
+  "cavities": {
+   "file": ".local-evidence/locality-abundance/cavities.json",
+   "made_by": "tools/story-pocket-cavities.mjs",
+   "sim_version": 285
   }
  },
  "rules": {
@@ -63,7 +68,7 @@
   "display_range_basis": "The record's quantiles that bound its display scale: a crystal from the record's lower quartile to its 90th percentile is at the scale the record shows; past the 90th it is oversize. A fresh crystal from the record's population lands inside the range of a record of n crystals with probability 0.65 × (n − 1) / (n + 1) (displayCoverage: exact for a uniform population, within about 0.03 and on the low side for lognormal ones): 0.43 at n = 5, 0.58 at n = 17. That coverage enters the story frequency (story_frequency_rule). The scoreboard reads the targets' q25 and q90 and refuses another range.",
   "size_check": "Per run, the species' largest crystal not flagged as enclosed (census max_exp_mm). The record's median is the characteristic crystal, its quartiles the range: a crystal in the display range (q25–q90) is at the record's display scale; past q90 it is oversize. Over the runs where the species occurs in a cavity that holds its median, the median of those crystals against the record: BELOW (< q25), MEETS (q25–q75, around the record's median), LARGE (q75–q90), OVERSIZE (> q90). Against a proxy: BELOW PROXY (< q25, not a verdict), REACHES PROXY (q25–q90; oversize cannot be tested against a proxy), OVERSIZE (> q90). A crystal longer than the cavity's span is left out and flagged: the starting cavity cannot hold it.",
   "eligibility": "A cavity can hold a species' characteristic crystal when its span — the longest distance between two wall vertices (tools/story-pocket-cavities.mjs) — is at least the target's median. The span is an upper bound on the longest crystal the cavity holds (in a cavity that is not convex the chord can cross the wall), so SMALL is conclusive and STORY-SCALE is generous. A pocket is SMALL when it cannot hold the primary protagonist's characteristic crystal: it may lack a showcase and is left out of the story frequency (its stories are reported apart). The locality's target is never shrunk to fit the cavity. A pocket is UNCLASSED when this cannot be told (the primary's size is unknown, or a proxy longer than the cavity): a run without a story there may be a small pocket, so it stays open rather than counting against the story.",
-  "story_frequency_rule": "A run carries the story when an intended protagonist (the primary or an alternate) occurs with its largest unflagged crystal in its record's display range and no longer than the cavity. The scenario should carry it in at least floor × coverage of its scored runs, for the protagonist that can carry a story run (an engine, a band and a size target) with the largest such product: floor = its band's lower bound; coverage = the chance that a crystal drawn from its record's population lands in the display range of a record of its size (display_range_basis). That is the expected story rate of a fleet whose protagonist occurs at its band's floor with crystals drawn from the record. It is an expectation, not a guarantee: with 21 seeds such a fleet falls short of it about half the time, and the verdict marks a shortfall its interval cannot tell from the frequency \"noise\" (noise_z). It does not ask for a protagonist in every seed or a size spread narrower than the record's. A protagonist with no size target cannot carry a story run and does not set the frequency. Unresolved when no protagonist can, or when runs whose protagonist has no known crystal target, or whose pocket is unclassed, could still carry it. The story verdict checks this alone; WP1's whole target also needs every protagonist within its band and none oversize (the scoreboard reports both).",
+  "story_frequency_rule": "A run carries the story when an intended protagonist (the primary or an alternate) occurs with its largest unflagged crystal in its record's display range and no longer than the cavity. The scenario should carry it in at least floor × coverage of its scored runs, for the protagonist that can carry a story run with the largest such product: floor = its band's lower bound; coverage = the chance that a crystal drawn from its record's population lands in the display range of a record of its size (display_range_basis). A protagonist can carry a story run when it has an engine, a band and a size target whose display range starts within the scenario's cavity span (cavity_span_mm); one with no size target, or a range that starts beyond the span, does not set the frequency. For a crystal target the frequency is the expected story rate of a fleet whose protagonist occurs at its band's floor with crystals drawn from the record: an expectation, not a guarantee — with 21 seeds such a fleet falls short about half the time, and the verdict marks a shortfall its interval cannot tell from the frequency \"noise\" (noise_z). For a specimen proxy it is a bar for STORY (PROXY), the rate at which crystals as large as the photographed specimens would reach the proxy's range — not an expected rate, since the proxy overstates the crystal. Runs whose crystal is longer than the cavity stay open, so a cavity shorter than the range's top leaves the verdict open rather than failing it; the frequency is never lowered to fit the cavity. It asks for no protagonist in every seed or size spread narrower than the record's. Unresolved when no protagonist can carry a story run, or when runs whose protagonist has no known crystal target, or whose pocket is unclassed, could still carry it. The story verdict checks this alone; WP1's whole target also needs every protagonist within its band, the protagonist that carries the story at the record's size (its typical crystal within the record's middle half) and none oversize (the scoreboard reports both).",
   "noise_z": 1.96,
   "noise_basis": "The Wilson score interval at z 1.96 (95 %): an occurrence rate outside its band, or a story rate short of its frequency, is \"noise\" when the interval still reaches the band or the frequency — 21 runs cannot tell it from the target. Noise marks a verdict; it does not change it, except that WP1's target counts a band miss within noise as within.",
   "clutter_limit": 0.1,
@@ -219,8 +224,9 @@
      }
     }
    },
+   "cavity_span_mm": 60.76,
    "story_frequency": null,
-   "story_frequency_basis": "unresolved: no protagonist with an engine and an occurrence band has a size target, so none can carry a story run"
+   "story_frequency_basis": "unresolved: no protagonist with an engine and an occurrence band has a size target whose display range starts within the cavity's 60.76 mm span, so none can carry a story run"
   },
   "asbestos_hills_crack_seal": {
    "locality": "asbestos_hills",
@@ -253,6 +259,22 @@
       "confidence": "low",
       "crystal_n": 0,
       "specimen_n": 17,
+      "series": {
+       "largest": 5,
+       "of": 17,
+       "template": "Dieseretwa#große",
+       "days": 1
+      },
+      "without_largest_series": {
+       "n": 12,
+       "min": 20,
+       "q10": 21.1,
+       "q25": 28.75,
+       "median": 39,
+       "q75": 53.25,
+       "q90": 72.9,
+       "max": 75
+      },
       "photographs_with_length": 18,
       "crystal": {
        "n": 0
@@ -416,8 +438,9 @@
      }
     }
    },
+   "cavity_span_mm": 93.28,
    "story_frequency": 0.1733,
-   "story_frequency_basis": "rules.story_frequency_rule: tigers_eye (primary, class CO, specimen-proxy target of 17) has the largest floor × coverage: 0.3 × 0.5778 = 0.1733"
+   "story_frequency_basis": "rules.story_frequency_rule: tigers_eye (primary, class CO, specimen-proxy target of 17) has the largest floor × coverage: 0.3 × 0.5778 = 0.1733: a bar for STORY (PROXY), not an expected rate (the proxy overstates the crystal)"
   },
   "asbestos_hills_surficial_alteration": {
    "locality": "asbestos_hills",
@@ -450,6 +473,22 @@
       "confidence": "low",
       "crystal_n": 0,
       "specimen_n": 17,
+      "series": {
+       "largest": 5,
+       "of": 17,
+       "template": "Dieseretwa#große",
+       "days": 1
+      },
+      "without_largest_series": {
+       "n": 12,
+       "min": 20,
+       "q10": 21.1,
+       "q25": 28.75,
+       "median": 39,
+       "q75": 53.25,
+       "q90": 72.9,
+       "max": 75
+      },
       "photographs_with_length": 18,
       "crystal": {
        "n": 0
@@ -613,8 +652,9 @@
      }
     }
    },
+   "cavity_span_mm": 75.92,
    "story_frequency": 0.1733,
-   "story_frequency_basis": "rules.story_frequency_rule: tigers_eye (primary, class CO, specimen-proxy target of 17) has the largest floor × coverage: 0.3 × 0.5778 = 0.1733"
+   "story_frequency_basis": "rules.story_frequency_rule: tigers_eye (primary, class CO, specimen-proxy target of 17) has the largest floor × coverage: 0.3 × 0.5778 = 0.1733: a bar for STORY (PROXY), not an expected rate (the proxy overstates the crystal)"
   },
   "bisbee": {
    "locality": "bisbee",
@@ -640,6 +680,22 @@
       "confidence": "low",
       "crystal_n": 1,
       "specimen_n": 12,
+      "series": {
+       "largest": 6,
+       "of": 12,
+       "template": "Größe:#",
+       "days": 213
+      },
+      "without_largest_series": {
+       "n": 6,
+       "min": 37,
+       "q10": 40.5,
+       "q25": 56,
+       "median": 106,
+       "q75": 135,
+       "q90": 170,
+       "max": 200
+      },
       "photographs_with_length": 13,
       "crystal": {
        "n": 1,
@@ -683,6 +739,22 @@
       "confidence": "low",
       "crystal_n": 1,
       "specimen_n": 15,
+      "series": {
+       "largest": 7,
+       "of": 15,
+       "template": "Größe:#",
+       "days": 188
+      },
+      "without_largest_series": {
+       "n": 8,
+       "min": 38,
+       "q10": 39.4,
+       "q25": 45.25,
+       "median": 71.5,
+       "q75": 106.25,
+       "q90": 120.5,
+       "max": 145
+      },
       "photographs_with_length": 20,
       "crystal": {
        "n": 1,
@@ -726,6 +798,22 @@
       "confidence": "low",
       "crystal_n": 0,
       "specimen_n": 22,
+      "series": {
+       "largest": 14,
+       "of": 22,
+       "template": "Größe:#",
+       "days": 651
+      },
+      "without_largest_series": {
+       "n": 8,
+       "min": 22,
+       "q10": 24.1,
+       "q25": 25,
+       "median": 26,
+       "q75": 46.25,
+       "q90": 195.5,
+       "max": 500
+      },
       "photographs_with_length": 23,
       "crystal": {
        "n": 0
@@ -762,6 +850,22 @@
       "confidence": "low",
       "crystal_n": 0,
       "specimen_n": 7,
+      "series": {
+       "largest": 4,
+       "of": 7,
+       "template": "Größe:#",
+       "days": 298
+      },
+      "without_largest_series": {
+       "n": 3,
+       "min": 26,
+       "q10": 31,
+       "q25": 38.5,
+       "median": 51,
+       "q75": 55.5,
+       "q90": 58.2,
+       "max": 60
+      },
       "photographs_with_length": 21,
       "crystal": {
        "n": 0
@@ -798,6 +902,22 @@
       "confidence": "low",
       "crystal_n": 0,
       "specimen_n": 9,
+      "series": {
+       "largest": 6,
+       "of": 9,
+       "template": "Größe:#",
+       "days": 227
+      },
+      "without_largest_series": {
+       "n": 3,
+       "min": 26,
+       "q10": 43.6,
+       "q25": 70,
+       "median": 114,
+       "q75": 182,
+       "q90": 222.8,
+       "max": 250
+      },
       "photographs_with_length": 10,
       "crystal": {
        "n": 0
@@ -817,8 +937,9 @@
      }
     }
    },
+   "cavity_span_mm": 60.54,
    "story_frequency": null,
-   "story_frequency_basis": "unresolved: no protagonist with an engine and an occurrence band has a size target, so none can carry a story run"
+   "story_frequency_basis": "unresolved: no protagonist with an engine and an occurrence band has a size target whose display range starts within the cavity's 60.54 mm span, so none can carry a story run"
   },
   "chiastolite_hornfels": {
    "locality": "chiastolite_hornfels",
@@ -864,8 +985,9 @@
      }
     }
    },
+   "cavity_span_mm": 43.32,
    "story_frequency": null,
-   "story_frequency_basis": "unresolved: no protagonist with an engine and an occurrence band has a size target, so none can carry a story run"
+   "story_frequency_basis": "unresolved: no protagonist with an engine and an occurrence band has a size target whose display range starts within the cavity's 43.32 mm span, so none can carry a story run"
   },
   "colorado_plateau": {
    "locality": "colorado_plateau",
@@ -1075,8 +1197,9 @@
      }
     }
    },
+   "cavity_span_mm": 69.66,
    "story_frequency": null,
-   "story_frequency_basis": "unresolved: no protagonist with an engine and an occurrence band has a size target, so none can carry a story run"
+   "story_frequency_basis": "unresolved: no protagonist with an engine and an occurrence band has a size target whose display range starts within the cavity's 69.66 mm span, so none can carry a story run"
   },
   "cooling": {
    "locality": "herkimer",
@@ -1204,8 +1327,9 @@
      }
     }
    },
+   "cavity_span_mm": 59.94,
    "story_frequency": 0.2167,
-   "story_frequency_basis": "rules.story_frequency_rule: quartz (primary, class AB, crystal target of 5) has the largest floor × coverage: 0.5 × 0.4333 = 0.2167"
+   "story_frequency_basis": "rules.story_frequency_rule: quartz (primary, class AB, crystal target of 5) has the largest floor × coverage: 0.5 × 0.4333 = 0.2167, an expected story rate"
   },
   "deccan_zeolite": {
    "locality": "deccan",
@@ -1294,6 +1418,22 @@
       "confidence": "low",
       "crystal_n": 2,
       "specimen_n": 24,
+      "series": {
+       "largest": 6,
+       "of": 24,
+       "template": "Größe:#",
+       "days": 212
+      },
+      "without_largest_series": {
+       "n": 18,
+       "min": 30,
+       "q10": 37,
+       "q25": 45,
+       "median": 67.5,
+       "q75": 88.25,
+       "q90": 124.5,
+       "max": 150
+      },
       "photographs_with_length": 35,
       "crystal": {
        "n": 2,
@@ -1315,8 +1455,8 @@
        "q90": 119.7,
        "max": 150
       },
-      "specimens": 32,
-      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 35 photograph(s) of Stilbite series / Stilbite-Ca at deccan with a stated length, 32 specimen(s); 2 with a crystal length, 24 with specimen dimensions, 1 aggregate, 8 picture width"
+      "specimens": 34,
+      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 35 photograph(s) of Stilbite series / Stilbite-Ca at deccan with a stated length, 34 specimen(s); 2 with a crystal length, 24 with specimen dimensions, 1 aggregate, 8 picture width"
      }
     },
     "heulandite": {
@@ -1344,6 +1484,22 @@
       "confidence": "low",
       "crystal_n": 3,
       "specimen_n": 37,
+      "series": {
+       "largest": 11,
+       "of": 37,
+       "template": "Größe:#",
+       "days": 345
+      },
+      "without_largest_series": {
+       "n": 26,
+       "min": 40,
+       "q10": 41,
+       "q25": 55,
+       "median": 70,
+       "q75": 107.5,
+       "q90": 165,
+       "max": 250
+      },
       "photographs_with_length": 44,
       "crystal": {
        "n": 3,
@@ -1387,6 +1543,22 @@
       "confidence": "low",
       "crystal_n": 2,
       "specimen_n": 27,
+      "series": {
+       "largest": 4,
+       "of": 27,
+       "template": "Größe:#",
+       "days": 268
+      },
+      "without_largest_series": {
+       "n": 23,
+       "min": 10,
+       "q10": 28.6,
+       "q25": 46.5,
+       "median": 58,
+       "q75": 73,
+       "q90": 110.4,
+       "max": 160
+      },
       "photographs_with_length": 55,
       "crystal": {
        "n": 2,
@@ -1437,6 +1609,22 @@
       "confidence": "low",
       "crystal_n": 0,
       "specimen_n": 13,
+      "series": {
+       "largest": 5,
+       "of": 13,
+       "template": "Grösse:#",
+       "days": 16
+      },
+      "without_largest_series": {
+       "n": 8,
+       "min": 65,
+       "q10": 84.6,
+       "q25": 98.25,
+       "median": 119,
+       "q75": 130.75,
+       "q90": 141.1,
+       "max": 160
+      },
       "photographs_with_length": 14,
       "crystal": {
        "n": 0
@@ -1670,8 +1858,9 @@
      }
     }
    },
+   "cavity_span_mm": 66.41,
    "story_frequency": 0.3079,
-   "story_frequency_basis": "rules.story_frequency_rule: heulandite (alternate, class AB, specimen-proxy target of 37) has the largest floor × coverage: 0.5 × 0.6158 = 0.3079"
+   "story_frequency_basis": "rules.story_frequency_rule: heulandite (alternate, class AB, specimen-proxy target of 37) has the largest floor × coverage: 0.5 × 0.6158 = 0.3079: a bar for STORY (PROXY), not an expected rate (the proxy overstates the crystal)"
   },
   "elmwood": {
    "locality": "elmwood",
@@ -1704,6 +1893,22 @@
       "confidence": "low",
       "crystal_n": 4,
       "specimen_n": 50,
+      "series": {
+       "largest": 14,
+       "of": 50,
+       "template": "Größe:#",
+       "days": 614
+      },
+      "without_largest_series": {
+       "n": 36,
+       "min": 28,
+       "q10": 43.5,
+       "q25": 58.75,
+       "median": 75,
+       "q75": 100.25,
+       "q90": 130,
+       "max": 500
+      },
       "photographs_with_length": 59,
       "crystal": {
        "n": 4,
@@ -1754,6 +1959,22 @@
       "confidence": "low",
       "crystal_n": 3,
       "specimen_n": 37,
+      "series": {
+       "largest": 4,
+       "of": 37,
+       "template": "Größe:#",
+       "days": 295
+      },
+      "without_largest_series": {
+       "n": 33,
+       "min": 38,
+       "q10": 48,
+       "q25": 80,
+       "median": 120,
+       "q75": 160,
+       "q90": 240,
+       "max": 480
+      },
       "photographs_with_length": 41,
       "crystal": {
        "n": 3,
@@ -1804,6 +2025,22 @@
       "confidence": "low",
       "crystal_n": 0,
       "specimen_n": 16,
+      "series": {
+       "largest": 5,
+       "of": 16,
+       "template": "Größe:#",
+       "days": 288
+      },
+      "without_largest_series": {
+       "n": 11,
+       "min": 17,
+       "q10": 35,
+       "q25": 57.5,
+       "median": 74,
+       "q75": 85,
+       "q90": 118,
+       "max": 160
+      },
       "photographs_with_length": 22,
       "crystal": {
        "n": 0
@@ -1865,8 +2102,9 @@
      }
     }
    },
-   "story_frequency": 0.3079,
-   "story_frequency_basis": "rules.story_frequency_rule: calcite (alternate, class AB, specimen-proxy target of 37) has the largest floor × coverage: 0.5 × 0.6158 = 0.3079"
+   "cavity_span_mm": 66.01,
+   "story_frequency": 0.2868,
+   "story_frequency_basis": "rules.story_frequency_rule: sphalerite (alternate, class AB, specimen-proxy target of 16) has the largest floor × coverage: 0.5 × 0.5735 = 0.2868: a bar for STORY (PROXY), not an expected rate (the proxy overstates the crystal)"
   },
   "epithermal_telluride": {
    "locality": "cripple_creek",
@@ -1901,6 +2139,22 @@
       "confidence": "low",
       "crystal_n": 3,
       "specimen_n": 9,
+      "series": {
+       "largest": 6,
+       "of": 9,
+       "template": "Größe:#",
+       "days": 201
+      },
+      "without_largest_series": {
+       "n": 3,
+       "min": 37,
+       "q10": 42.8,
+       "q25": 51.5,
+       "median": 66,
+       "q75": 85.5,
+       "q90": 97.2,
+       "max": 105
+      },
       "photographs_with_length": 27,
       "crystal": {
        "n": 3,
@@ -1951,6 +2205,22 @@
       "confidence": "low",
       "crystal_n": 0,
       "specimen_n": 5,
+      "series": {
+       "largest": 4,
+       "of": 5,
+       "template": "Größe:#",
+       "days": 0
+      },
+      "without_largest_series": {
+       "n": 1,
+       "min": 20,
+       "q10": 20,
+       "q25": 20,
+       "median": 20,
+       "q75": 20,
+       "q90": 20,
+       "max": 20
+      },
       "photographs_with_length": 5,
       "crystal": {
        "n": 0
@@ -2105,8 +2375,9 @@
      }
     }
    },
+   "cavity_span_mm": 56.52,
    "story_frequency": 0.26,
-   "story_frequency_basis": "rules.story_frequency_rule: calaverite (primary, class AB, specimen-proxy target of 9) has the largest floor × coverage: 0.5 × 0.52 = 0.26"
+   "story_frequency_basis": "rules.story_frequency_rule: calaverite (primary, class AB, specimen-proxy target of 9) has the largest floor × coverage: 0.5 × 0.52 = 0.26: a bar for STORY (PROXY), not an expected rate (the proxy overstates the crystal)"
   },
   "gem_pegmatite": {
    "locality": "cruzeiro",
@@ -2139,6 +2410,22 @@
       "confidence": "low",
       "crystal_n": 0,
       "specimen_n": 46,
+      "series": {
+       "largest": 27,
+       "of": 46,
+       "template": "Größe:#",
+       "days": 853
+      },
+      "without_largest_series": {
+       "n": 19,
+       "min": 18,
+       "q10": 30.6,
+       "q25": 32.5,
+       "median": 47,
+       "q75": 66,
+       "q90": 79.6,
+       "max": 160
+      },
       "photographs_with_length": 50,
       "crystal": {
        "n": 0
@@ -2278,8 +2565,9 @@
      }
     }
    },
+   "cavity_span_mm": 68.18,
    "story_frequency": 0.3112,
-   "story_frequency_basis": "rules.story_frequency_rule: tourmaline (primary, class AB, specimen-proxy target of 46) has the largest floor × coverage: 0.5 × 0.6223 = 0.3112"
+   "story_frequency_basis": "rules.story_frequency_rule: tourmaline (primary, class AB, specimen-proxy target of 46) has the largest floor × coverage: 0.5 × 0.6223 = 0.3112: a bar for STORY (PROXY), not an expected rate (the proxy overstates the crystal)"
   },
   "great_salt_plains": {
    "locality": "great_salt_plains",
@@ -2346,8 +2634,9 @@
      }
     }
    },
+   "cavity_span_mm": 105.19,
    "story_frequency": null,
-   "story_frequency_basis": "unresolved: no protagonist with an engine and an occurrence band has a size target, so none can carry a story run"
+   "story_frequency_basis": "unresolved: no protagonist with an engine and an occurrence band has a size target whose display range starts within the cavity's 105.19 mm span, so none can carry a story run"
   },
   "grimsel_alpine_cleft": {
    "locality": "grimsel",
@@ -2572,8 +2861,9 @@
      }
     }
    },
+   "cavity_span_mm": 195.24,
    "story_frequency": 0.3,
-   "story_frequency_basis": "rules.story_frequency_rule: quartz (primary, class AB, crystal target of 25) has the largest floor × coverage: 0.5 × 0.6 = 0.3"
+   "story_frequency_basis": "rules.story_frequency_rule: quartz (primary, class AB, crystal target of 25) has the largest floor × coverage: 0.5 × 0.6 = 0.3, an expected story rate"
   },
   "jeffrey_mine": {
    "locality": "jeffrey_mine",
@@ -2662,6 +2952,22 @@
       "confidence": "low",
       "crystal_n": 0,
       "specimen_n": 17,
+      "series": {
+       "largest": 9,
+       "of": 17,
+       "template": "Größe:#",
+       "days": 289
+      },
+      "without_largest_series": {
+       "n": 8,
+       "min": 27,
+       "q10": 29.1,
+       "q25": 30,
+       "median": 44.5,
+       "q75": 51.25,
+       "q90": 53.5,
+       "max": 57
+      },
       "photographs_with_length": 21,
       "crystal": {
        "n": 0
@@ -2705,6 +3011,22 @@
       "confidence": "low",
       "crystal_n": 0,
       "specimen_n": 9,
+      "series": {
+       "largest": 4,
+       "of": 9,
+       "template": "Größe:#",
+       "days": 35
+      },
+      "without_largest_series": {
+       "n": 5,
+       "min": 10,
+       "q10": 27.6,
+       "q25": 54,
+       "median": 68,
+       "q75": 94,
+       "q90": 94,
+       "max": 94
+      },
       "photographs_with_length": 10,
       "crystal": {
        "n": 0
@@ -2748,6 +3070,15 @@
       "confidence": "low",
       "crystal_n": 0,
       "specimen_n": 14,
+      "series": {
+       "largest": 14,
+       "of": 14,
+       "template": "Größe:#",
+       "days": 11
+      },
+      "without_largest_series": {
+       "n": 0
+      },
       "photographs_with_length": 14,
       "crystal": {
        "n": 0
@@ -2767,8 +3098,9 @@
      }
     }
    },
+   "cavity_span_mm": 122.42,
    "story_frequency": 0.26,
-   "story_frequency_basis": "rules.story_frequency_rule: diopside (alternate, class AB, specimen-proxy target of 9) has the largest floor × coverage: 0.5 × 0.52 = 0.26"
+   "story_frequency_basis": "rules.story_frequency_rule: diopside (alternate, class AB, specimen-proxy target of 9) has the largest floor × coverage: 0.5 × 0.52 = 0.26: a bar for STORY (PROXY), not an expected rate (the proxy overstates the crystal)"
   },
   "marble_contact_metamorphism": {
    "locality": "mogok",
@@ -2857,6 +3189,22 @@
       "confidence": "low",
       "crystal_n": 1,
       "specimen_n": 6,
+      "series": {
+       "largest": 4,
+       "of": 6,
+       "template": "Größe:#",
+       "days": 1
+      },
+      "without_largest_series": {
+       "n": 2,
+       "min": 22,
+       "q10": 22.5,
+       "q25": 23.25,
+       "median": 24.5,
+       "q75": 25.75,
+       "q90": 26.5,
+       "max": 27
+      },
       "photographs_with_length": 7,
       "crystal": {
        "n": 1,
@@ -2900,6 +3248,22 @@
       "confidence": "low",
       "crystal_n": 1,
       "specimen_n": 14,
+      "series": {
+       "largest": 8,
+       "of": 14,
+       "template": "Größe:#",
+       "days": 0
+      },
+      "without_largest_series": {
+       "n": 6,
+       "min": 25,
+       "q10": 26,
+       "q25": 27.25,
+       "median": 35,
+       "q75": 45.75,
+       "q90": 51,
+       "max": 55
+      },
       "photographs_with_length": 23,
       "crystal": {
        "n": 1,
@@ -2972,6 +3336,22 @@
       "confidence": "low",
       "crystal_n": 0,
       "specimen_n": 9,
+      "series": {
+       "largest": 5,
+       "of": 9,
+       "template": "Size#",
+       "days": 2
+      },
+      "without_largest_series": {
+       "n": 4,
+       "min": 16,
+       "q10": 20.2,
+       "q25": 26.5,
+       "median": 42.5,
+       "q75": 58,
+       "q90": 63.4,
+       "max": 67
+      },
       "photographs_with_length": 9,
       "crystal": {
        "n": 0
@@ -3012,8 +3392,9 @@
      }
     }
    },
+   "cavity_span_mm": 51.42,
    "story_frequency": 0.1393,
-   "story_frequency_basis": "rules.story_frequency_rule: ruby (alternate, class CO, specimen-proxy target of 6) has the largest floor × coverage: 0.3 × 0.4643 = 0.1393"
+   "story_frequency_basis": "rules.story_frequency_rule: ruby (alternate, class CO, specimen-proxy target of 6) has the largest floor × coverage: 0.3 × 0.4643 = 0.1393: a bar for STORY (PROXY), not an expected rate (the proxy overstates the crystal)"
   },
   "mvt": {
    "locality": "tri_state_picher",
@@ -3046,6 +3427,22 @@
       "confidence": "low",
       "crystal_n": 2,
       "specimen_n": 18,
+      "series": {
+       "largest": 4,
+       "of": 18,
+       "template": "Größe:#",
+       "days": 355
+      },
+      "without_largest_series": {
+       "n": 14,
+       "min": 23,
+       "q10": 30,
+       "q25": 44.75,
+       "median": 79,
+       "q75": 100,
+       "q90": 128,
+       "max": 148
+      },
       "photographs_with_length": 19,
       "crystal": {
        "n": 2,
@@ -3096,6 +3493,22 @@
       "confidence": "low",
       "crystal_n": 0,
       "specimen_n": 9,
+      "series": {
+       "largest": 3,
+       "of": 9,
+       "template": "Größe:#",
+       "days": 624
+      },
+      "without_largest_series": {
+       "n": 6,
+       "min": 45,
+       "q10": 47.5,
+       "q25": 56.25,
+       "median": 77.5,
+       "q75": 117.5,
+       "q90": 142.5,
+       "max": 155
+      },
       "photographs_with_length": 10,
       "crystal": {
        "n": 0
@@ -3269,8 +3682,9 @@
      }
     }
    },
+   "cavity_span_mm": 63.78,
    "story_frequency": 0.2908,
-   "story_frequency_basis": "rules.story_frequency_rule: galena (primary, class AB, specimen-proxy target of 18) has the largest floor × coverage: 0.5 × 0.5816 = 0.2908"
+   "story_frequency_basis": "rules.story_frequency_rule: galena (primary, class AB, specimen-proxy target of 18) has the largest floor × coverage: 0.5 × 0.5816 = 0.2908: a bar for STORY (PROXY), not an expected rate (the proxy overstates the crystal)"
   },
   "naica_geothermal": {
    "locality": "naica",
@@ -3309,6 +3723,22 @@
       "confidence": "low",
       "crystal_n": 4,
       "specimen_n": 15,
+      "series": {
+       "largest": 4,
+       "of": 15,
+       "template": "Größe:#",
+       "days": 539
+      },
+      "without_largest_series": {
+       "n": 11,
+       "min": 62,
+       "q10": 72,
+       "q25": 99.5,
+       "median": 150,
+       "q75": 220,
+       "q90": 280,
+       "max": 400
+      },
       "photographs_with_length": 21,
       "crystal": {
        "n": 4,
@@ -3359,6 +3789,22 @@
       "confidence": "low",
       "crystal_n": 1,
       "specimen_n": 10,
+      "series": {
+       "largest": 3,
+       "of": 10,
+       "template": "Größe:#",
+       "days": 24
+      },
+      "without_largest_series": {
+       "n": 7,
+       "min": 55,
+       "q10": 58,
+       "q25": 71,
+       "median": 130,
+       "q75": 141.5,
+       "q90": 147,
+       "max": 150
+      },
       "photographs_with_length": 11,
       "crystal": {
        "n": 1,
@@ -3385,8 +3831,9 @@
      }
     }
    },
-   "story_frequency": 0.2844,
-   "story_frequency_basis": "rules.story_frequency_rule: selenite (primary, class AB, specimen-proxy target of 15) has the largest floor × coverage: 0.5 × 0.5687 = 0.2844"
+   "cavity_span_mm": 60.15,
+   "story_frequency": null,
+   "story_frequency_basis": "unresolved: no protagonist with an engine and an occurrence band has a size target whose display range starts within the cavity's 60.15 mm span, so none can carry a story run"
   },
   "ouro_preto": {
    "locality": "ouro_preto",
@@ -3419,6 +3866,22 @@
       "confidence": "low",
       "crystal_n": 4,
       "specimen_n": 16,
+      "series": {
+       "largest": 3,
+       "of": 16,
+       "template": "Size#",
+       "days": 156
+      },
+      "without_largest_series": {
+       "n": 13,
+       "min": 15,
+       "q10": 21.8,
+       "q25": 31,
+       "median": 42,
+       "q75": 51,
+       "q90": 67.4,
+       "max": 140
+      },
       "photographs_with_length": 23,
       "crystal": {
        "n": 4,
@@ -3469,6 +3932,22 @@
       "confidence": "low",
       "crystal_n": 0,
       "specimen_n": 11,
+      "series": {
+       "largest": 3,
+       "of": 11,
+       "template": "Größe:#",
+       "days": 109
+      },
+      "without_largest_series": {
+       "n": 8,
+       "min": 40,
+       "q10": 45.6,
+       "q25": 48.75,
+       "median": 52.5,
+       "q75": 75.5,
+       "q90": 100.1,
+       "max": 112
+      },
       "photographs_with_length": 11,
       "crystal": {
        "n": 0
@@ -3545,8 +4024,9 @@
      }
     }
    },
+   "cavity_span_mm": 62.29,
    "story_frequency": 0.1721,
-   "story_frequency_basis": "rules.story_frequency_rule: topaz (primary, class CO, specimen-proxy target of 16) has the largest floor × coverage: 0.3 × 0.5735 = 0.1721"
+   "story_frequency_basis": "rules.story_frequency_rule: topaz (primary, class CO, specimen-proxy target of 16) has the largest floor × coverage: 0.3 × 0.5735 = 0.1721: a bar for STORY (PROXY), not an expected rate (the proxy overstates the crystal)"
   },
   "porphyry": {
    "locality": "bingham",
@@ -3820,8 +4300,9 @@
      }
     }
    },
+   "cavity_span_mm": 76.87,
    "story_frequency": null,
-   "story_frequency_basis": "unresolved: no protagonist with an engine and an occurrence band has a size target, so none can carry a story run"
+   "story_frequency_basis": "unresolved: no protagonist with an engine and an occurrence band has a size target whose display range starts within the cavity's 76.87 mm span, so none can carry a story run"
   },
   "reactivated_fluorite_vein": {
    "locality": "north_pennines",
@@ -4029,6 +4510,22 @@
       "confidence": "low",
       "crystal_n": 2,
       "specimen_n": 16,
+      "series": {
+       "largest": 10,
+       "of": 16,
+       "template": "Größe:#",
+       "days": 447
+      },
+      "without_largest_series": {
+       "n": 6,
+       "min": 30,
+       "q10": 30,
+       "q25": 33.5,
+       "median": 54.5,
+       "q75": 67.25,
+       "q90": 76.5,
+       "max": 85
+      },
       "photographs_with_length": 23,
       "crystal": {
        "n": 2,
@@ -4160,8 +4657,9 @@
      }
     }
    },
+   "cavity_span_mm": 91.93,
    "story_frequency": 0.2889,
-   "story_frequency_basis": "rules.story_frequency_rule: fluorite (primary, class AB, crystal target of 17) has the largest floor × coverage: 0.5 × 0.5778 = 0.2889"
+   "story_frequency_basis": "rules.story_frequency_rule: fluorite (primary, class AB, crystal target of 17) has the largest floor × coverage: 0.5 × 0.5778 = 0.2889, an expected story rate"
   },
   "reactive_wall": {
    "locality": "viburnum",
@@ -4194,6 +4692,22 @@
       "confidence": "low",
       "crystal_n": 3,
       "specimen_n": 35,
+      "series": {
+       "largest": 10,
+       "of": 35,
+       "template": "Größe:#",
+       "days": 5
+      },
+      "without_largest_series": {
+       "n": 25,
+       "min": 43,
+       "q10": 60,
+       "q25": 70,
+       "median": 90,
+       "q75": 100,
+       "q90": 108.8,
+       "max": 165
+      },
       "photographs_with_length": 42,
       "crystal": {
        "n": 3,
@@ -4244,6 +4758,22 @@
       "confidence": "low",
       "crystal_n": 3,
       "specimen_n": 29,
+      "series": {
+       "largest": 10,
+       "of": 29,
+       "template": "Größe:#",
+       "days": 5
+      },
+      "without_largest_series": {
+       "n": 19,
+       "min": 35,
+       "q10": 37,
+       "q25": 45,
+       "median": 58,
+       "q75": 80.5,
+       "q90": 90,
+       "max": 130
+      },
       "photographs_with_length": 33,
       "crystal": {
        "n": 3,
@@ -4377,8 +4907,9 @@
      }
     }
    },
+   "cavity_span_mm": 55.21,
    "story_frequency": 0.3033,
-   "story_frequency_basis": "rules.story_frequency_rule: galena (alternate, class AB, specimen-proxy target of 29) has the largest floor × coverage: 0.5 × 0.6067 = 0.3033"
+   "story_frequency_basis": "rules.story_frequency_rule: galena (alternate, class AB, specimen-proxy target of 29) has the largest floor × coverage: 0.5 × 0.6067 = 0.3033: a bar for STORY (PROXY), not an expected rate (the proxy overstates the crystal)"
   },
   "roughten_gill": {
    "locality": "roughton_gill",
@@ -4445,11 +4976,18 @@
      "band_basis": "literature class CO (GCR36; status V) under rules.occurrence_bands",
      "size": {
       "basis": "unknown",
-      "crystal_n": 0,
+      "crystal_n": 1,
       "specimen_n": 1,
       "photographs_with_length": 4,
       "crystal": {
-       "n": 0
+       "n": 1,
+       "min": 2,
+       "q10": 2,
+       "q25": 2,
+       "median": 2,
+       "q75": 2,
+       "q90": 2,
+       "max": 2
       },
       "specimen": {
        "n": 1,
@@ -4462,7 +5000,7 @@
        "max": 90
       },
       "specimens": 4,
-      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 4 photograph(s) of Mimetite at roughton_gill with a stated length, 4 specimen(s); 0 with a crystal length, 1 with specimen dimensions, 0 aggregate, 3 picture width"
+      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 4 photograph(s) of Mimetite at roughton_gill with a stated length, 4 specimen(s); 1 with a crystal length, 1 with specimen dimensions, 0 aggregate, 3 picture width"
      }
     },
     "quartz": {
@@ -4649,8 +5187,9 @@
      }
     }
    },
+   "cavity_span_mm": 36.68,
    "story_frequency": null,
-   "story_frequency_basis": "unresolved: no protagonist with an engine and an occurrence band has a size target, so none can carry a story run"
+   "story_frequency_basis": "unresolved: no protagonist with an engine and an occurrence band has a size target whose display range starts within the cavity's 36.68 mm span, so none can carry a story run"
   },
   "schneeberg": {
    "locality": "schneeberg",
@@ -4683,6 +5222,22 @@
       "confidence": "low",
       "crystal_n": 2,
       "specimen_n": 8,
+      "series": {
+       "largest": 2,
+       "of": 8,
+       "template": "#",
+       "days": 0
+      },
+      "without_largest_series": {
+       "n": 6,
+       "min": 35,
+       "q10": 47.5,
+       "q25": 61.25,
+       "median": 75,
+       "q75": 96.25,
+       "q90": 110,
+       "max": 120
+      },
       "photographs_with_length": 50,
       "crystal": {
        "n": 2,
@@ -4793,8 +5348,9 @@
      }
     }
    },
+   "cavity_span_mm": 78.84,
    "story_frequency": 0.1517,
-   "story_frequency_basis": "rules.story_frequency_rule: erythrite (primary, class CO, specimen-proxy target of 8) has the largest floor × coverage: 0.3 × 0.5056 = 0.1517"
+   "story_frequency_basis": "rules.story_frequency_rule: erythrite (primary, class CO, specimen-proxy target of 8) has the largest floor × coverage: 0.3 × 0.5056 = 0.1517: a bar for STORY (PROXY), not an expected rate (the proxy overstates the crystal)"
   },
   "searles_lake": {
    "locality": "searles_lake",
@@ -4827,6 +5383,22 @@
       "confidence": "low",
       "crystal_n": 0,
       "specimen_n": 12,
+      "series": {
+       "largest": 5,
+       "of": 12,
+       "template": "Größe:#",
+       "days": 0
+      },
+      "without_largest_series": {
+       "n": 7,
+       "min": 45,
+       "q10": 69,
+       "q25": 86,
+       "median": 110,
+       "q75": 147.5,
+       "q90": 192,
+       "max": 210
+      },
       "photographs_with_length": 12,
       "crystal": {
        "n": 0
@@ -4870,6 +5442,22 @@
       "confidence": "low",
       "crystal_n": 0,
       "specimen_n": 11,
+      "series": {
+       "largest": 3,
+       "of": 11,
+       "template": "eineGrößevonetwa#.",
+       "days": 0
+      },
+      "without_largest_series": {
+       "n": 8,
+       "min": 52,
+       "q10": 56.2,
+       "q25": 58.75,
+       "median": 69.5,
+       "q75": 86.25,
+       "q90": 96.3,
+       "max": 111
+      },
       "photographs_with_length": 13,
       "crystal": {
        "n": 0
@@ -5046,8 +5634,9 @@
      }
     }
    },
-   "story_frequency": 0.275,
-   "story_frequency_basis": "rules.story_frequency_rule: halite (primary, class AB, specimen-proxy target of 12) has the largest floor × coverage: 0.5 × 0.55 = 0.275"
+   "cavity_span_mm": 47.81,
+   "story_frequency": null,
+   "story_frequency_basis": "unresolved: no protagonist with an engine and an occurrence band has a size target whose display range starts within the cavity's 47.81 mm span, so none can carry a story run"
   },
   "shigar_pegmatite": {
    "locality": "shigar",
@@ -5146,6 +5735,22 @@
       "confidence": "low",
       "crystal_n": 2,
       "specimen_n": 36,
+      "series": {
+       "largest": 18,
+       "of": 36,
+       "template": "Size#",
+       "days": 0
+      },
+      "without_largest_series": {
+       "n": 18,
+       "min": 12,
+       "q10": 16.5,
+       "q25": 27.5,
+       "median": 43.5,
+       "q75": 78.25,
+       "q90": 98,
+       "max": 170
+      },
       "photographs_with_length": 41,
       "crystal": {
        "n": 2,
@@ -5196,6 +5801,22 @@
       "confidence": "low",
       "crystal_n": 3,
       "specimen_n": 8,
+      "series": {
+       "largest": 3,
+       "of": 8,
+       "template": "Größe:#",
+       "days": 99
+      },
+      "without_largest_series": {
+       "n": 5,
+       "min": 26,
+       "q10": 45.2,
+       "q25": 74,
+       "median": 75,
+       "q75": 100,
+       "q90": 160,
+       "max": 200
+      },
       "photographs_with_length": 11,
       "crystal": {
        "n": 3,
@@ -5282,6 +5903,22 @@
       "confidence": "low",
       "crystal_n": 4,
       "specimen_n": 11,
+      "series": {
+       "largest": 2,
+       "of": 11,
+       "template": "Größe:#",
+       "days": 121
+      },
+      "without_largest_series": {
+       "n": 9,
+       "min": 17,
+       "q10": 25,
+       "q25": 27,
+       "median": 29,
+       "q75": 30,
+       "q90": 34.4,
+       "max": 36
+      },
       "photographs_with_length": 21,
       "crystal": {
        "n": 4,
@@ -5413,8 +6050,9 @@
      }
     }
    },
+   "cavity_span_mm": 321.25,
    "story_frequency": 0.2708,
-   "story_frequency_basis": "rules.story_frequency_rule: aquamarine (primary, class AB, crystal target of 11) has the largest floor × coverage: 0.5 × 0.5417 = 0.2708"
+   "story_frequency_basis": "rules.story_frequency_rule: aquamarine (primary, class AB, crystal target of 11) has the largest floor × coverage: 0.5 × 0.5417 = 0.2708, an expected story rate"
   },
   "sicily_solfifera": {
    "locality": "sicily",
@@ -5447,6 +6085,22 @@
       "confidence": "low",
       "crystal_n": 0,
       "specimen_n": 20,
+      "series": {
+       "largest": 4,
+       "of": 20,
+       "template": "Größe:#",
+       "days": 247
+      },
+      "without_largest_series": {
+       "n": 16,
+       "min": 32,
+       "q10": 37,
+       "q25": 73.5,
+       "median": 105,
+       "q75": 140,
+       "q90": 185,
+       "max": 320
+      },
       "photographs_with_length": 26,
       "crystal": {
        "n": 0
@@ -5490,6 +6144,22 @@
       "confidence": "low",
       "crystal_n": 2,
       "specimen_n": 8,
+      "series": {
+       "largest": 2,
+       "of": 8,
+       "template": "Größe:#",
+       "days": 15
+      },
+      "without_largest_series": {
+       "n": 6,
+       "min": 94,
+       "q10": 97,
+       "q25": 102.75,
+       "median": 114,
+       "q75": 141.75,
+       "q90": 225,
+       "max": 300
+      },
       "photographs_with_length": 11,
       "crystal": {
        "n": 2,
@@ -5540,6 +6210,22 @@
       "confidence": "low",
       "crystal_n": 0,
       "specimen_n": 15,
+      "series": {
+       "largest": 10,
+       "of": 15,
+       "template": "Größe:#",
+       "days": 907
+      },
+      "without_largest_series": {
+       "n": 5,
+       "min": 60,
+       "q10": 68,
+       "q25": 80,
+       "median": 80,
+       "q75": 113,
+       "q90": 135.2,
+       "max": 150
+      },
       "photographs_with_length": 18,
       "crystal": {
        "n": 0
@@ -5616,8 +6302,9 @@
      }
     }
    },
-   "story_frequency": 0.294,
-   "story_frequency_basis": "rules.story_frequency_rule: native_sulfur (primary, class AB, specimen-proxy target of 20) has the largest floor × coverage: 0.5 × 0.5881 = 0.294"
+   "cavity_span_mm": 38.45,
+   "story_frequency": null,
+   "story_frequency_basis": "unresolved: no protagonist with an engine and an occurrence band has a size target whose display range starts within the cavity's 38.45 mm span, so none can carry a story run"
   },
   "sulphur_bank": {
    "locality": "sulphur_bank",
@@ -5711,8 +6398,9 @@
      }
     }
    },
+   "cavity_span_mm": 52.17,
    "story_frequency": null,
-   "story_frequency_basis": "unresolved: no protagonist with an engine and an occurrence band has a size target, so none can carry a story run"
+   "story_frequency_basis": "unresolved: no protagonist with an engine and an occurrence band has a size target whose display range starts within the cavity's 52.17 mm span, so none can carry a story run"
   },
   "sunnyside_american_tunnel": {
    "locality": "sunnyside",
@@ -5745,6 +6433,22 @@
       "confidence": "low",
       "crystal_n": 1,
       "specimen_n": 17,
+      "series": {
+       "largest": 7,
+       "of": 17,
+       "template": "Größe:#",
+       "days": 109
+      },
+      "without_largest_series": {
+       "n": 10,
+       "min": 24,
+       "q10": 25.8,
+       "q25": 29,
+       "median": 42,
+       "q75": 54,
+       "q90": 75.1,
+       "max": 76
+      },
       "photographs_with_length": 17,
       "crystal": {
        "n": 1,
@@ -5795,6 +6499,22 @@
       "confidence": "low",
       "crystal_n": 1,
       "specimen_n": 15,
+      "series": {
+       "largest": 14,
+       "of": 15,
+       "template": "Größe:#",
+       "days": 406
+      },
+      "without_largest_series": {
+       "n": 1,
+       "min": 300,
+       "q10": 300,
+       "q25": 300,
+       "median": 300,
+       "q75": 300,
+       "q90": 300,
+       "max": 300
+      },
       "photographs_with_length": 15,
       "crystal": {
        "n": 1,
@@ -5998,8 +6718,9 @@
      }
     }
    },
+   "cavity_span_mm": 66.04,
    "story_frequency": 0.2889,
-   "story_frequency_basis": "rules.story_frequency_rule: rhodochrosite (primary, class AB, specimen-proxy target of 17) has the largest floor × coverage: 0.5 × 0.5778 = 0.2889"
+   "story_frequency_basis": "rules.story_frequency_rule: rhodochrosite (primary, class AB, specimen-proxy target of 17) has the largest floor × coverage: 0.5 × 0.5778 = 0.2889: a bar for STORY (PROXY), not an expected rate (the proxy overstates the crystal)"
   },
   "supergene_oxidation": {
    "locality": "tsumeb",
@@ -6034,6 +6755,22 @@
       "confidence": "low",
       "crystal_n": 4,
       "specimen_n": 28,
+      "series": {
+       "largest": 6,
+       "of": 28,
+       "template": "Größe:#",
+       "days": 465
+      },
+      "without_largest_series": {
+       "n": 22,
+       "min": 20,
+       "q10": 31,
+       "q25": 50.5,
+       "median": 70,
+       "q75": 98.75,
+       "q90": 113.6,
+       "max": 180
+      },
       "photographs_with_length": 58,
       "crystal": {
        "n": 4,
@@ -6140,6 +6877,22 @@
       "confidence": "low",
       "crystal_n": 1,
       "specimen_n": 45,
+      "series": {
+       "largest": 10,
+       "of": 45,
+       "template": "Größe:#",
+       "days": 556
+      },
+      "without_largest_series": {
+       "n": 35,
+       "min": 25,
+       "q10": 32,
+       "q25": 42.5,
+       "median": 73,
+       "q75": 98.5,
+       "q90": 123,
+       "max": 1400
+      },
       "photographs_with_length": 57,
       "crystal": {
        "n": 1,
@@ -6190,6 +6943,22 @@
       "confidence": "low",
       "crystal_n": 3,
       "specimen_n": 39,
+      "series": {
+       "largest": 6,
+       "of": 39,
+       "template": "Größe:#",
+       "days": 471
+      },
+      "without_largest_series": {
+       "n": 33,
+       "min": 20,
+       "q10": 26,
+       "q25": 33,
+       "median": 45,
+       "q75": 70,
+       "q90": 89,
+       "max": 120
+      },
       "photographs_with_length": 56,
       "crystal": {
        "n": 3,
@@ -6240,6 +7009,22 @@
       "confidence": "low",
       "crystal_n": 4,
       "specimen_n": 22,
+      "series": {
+       "largest": 7,
+       "of": 22,
+       "template": "#",
+       "days": 7
+      },
+      "without_largest_series": {
+       "n": 15,
+       "min": 18,
+       "q10": 21.2,
+       "q25": 33,
+       "median": 60,
+       "q75": 88,
+       "q90": 116,
+       "max": 125
+      },
       "photographs_with_length": 39,
       "crystal": {
        "n": 4,
@@ -6290,6 +7075,22 @@
       "confidence": "low",
       "crystal_n": 1,
       "specimen_n": 27,
+      "series": {
+       "largest": 7,
+       "of": 27,
+       "template": "#",
+       "days": 70
+      },
+      "without_largest_series": {
+       "n": 20,
+       "min": 20,
+       "q10": 23.8,
+       "q25": 36.75,
+       "median": 46,
+       "q75": 90,
+       "q90": 122.1,
+       "max": 160
+      },
       "photographs_with_length": 54,
       "crystal": {
        "n": 1,
@@ -6442,8 +7243,9 @@
      }
     }
    },
+   "cavity_span_mm": 64.77,
    "story_frequency": 0.3109,
-   "story_frequency_basis": "rules.story_frequency_rule: calcite (alternate, class AB, specimen-proxy target of 45) has the largest floor × coverage: 0.5 × 0.6217 = 0.3109"
+   "story_frequency_basis": "rules.story_frequency_rule: calcite (alternate, class AB, specimen-proxy target of 45) has the largest floor × coverage: 0.5 × 0.6217 = 0.3109: a bar for STORY (PROXY), not an expected rate (the proxy overstates the crystal)"
   },
   "tn457_barite_pulses": {
    "locality": "north_pennines",
@@ -6479,6 +7281,22 @@
       "confidence": "low",
       "crystal_n": 2,
       "specimen_n": 10,
+      "series": {
+       "largest": 5,
+       "of": 10,
+       "template": "Größe:#",
+       "days": 0
+      },
+      "without_largest_series": {
+       "n": 5,
+       "min": 21,
+       "q10": 32.6,
+       "q25": 50,
+       "median": 55,
+       "q75": 60,
+       "q90": 69,
+       "max": 75
+      },
       "photographs_with_length": 11,
       "crystal": {
        "n": 2,
@@ -6529,6 +7347,22 @@
       "confidence": "low",
       "crystal_n": 1,
       "specimen_n": 5,
+      "series": {
+       "largest": 3,
+       "of": 5,
+       "template": "Größe:#",
+       "days": 42
+      },
+      "without_largest_series": {
+       "n": 2,
+       "min": 40,
+       "q10": 43.4,
+       "q25": 48.5,
+       "median": 57,
+       "q75": 65.5,
+       "q90": 70.6,
+       "max": 74
+      },
       "photographs_with_length": 6,
       "crystal": {
        "n": 1,
@@ -6586,6 +7420,15 @@
       "confidence": "low",
       "crystal_n": 0,
       "specimen_n": 7,
+      "series": {
+       "largest": 7,
+       "of": 7,
+       "template": "Größe:#",
+       "days": 0
+      },
+      "without_largest_series": {
+       "n": 0
+      },
       "photographs_with_length": 7,
       "crystal": {
        "n": 0
@@ -6622,6 +7465,22 @@
       "confidence": "low",
       "crystal_n": 0,
       "specimen_n": 6,
+      "series": {
+       "largest": 5,
+       "of": 6,
+       "template": "Größe:#",
+       "days": 348
+      },
+      "without_largest_series": {
+       "n": 1,
+       "min": 55,
+       "q10": 55,
+       "q25": 55,
+       "median": 55,
+       "q75": 55,
+       "q90": 55,
+       "max": 55
+      },
       "photographs_with_length": 7,
       "crystal": {
        "n": 0
@@ -6676,8 +7535,9 @@
      }
     }
    },
+   "cavity_span_mm": 194.96,
    "story_frequency": 0.2167,
-   "story_frequency_basis": "rules.story_frequency_rule: epidote (alternate, class AB, specimen-proxy target of 5) has the largest floor × coverage: 0.5 × 0.4333 = 0.2167"
+   "story_frequency_basis": "rules.story_frequency_rule: epidote (alternate, class AB, specimen-proxy target of 5) has the largest floor × coverage: 0.5 × 0.4333 = 0.2167: a bar for STORY (PROXY), not an expected rate (the proxy overstates the crystal)"
   },
   "ultramafic_supergene": {
    "locality": "marlborough",
@@ -6710,6 +7570,22 @@
       "confidence": "low",
       "crystal_n": 0,
       "specimen_n": 8,
+      "series": {
+       "largest": 3,
+       "of": 8,
+       "template": "Größe:#",
+       "days": 0
+      },
+      "without_largest_series": {
+       "n": 5,
+       "min": 21,
+       "q10": 29,
+       "q25": 41,
+       "median": 88,
+       "q75": 99,
+       "q90": 108.6,
+       "max": 115
+      },
       "photographs_with_length": 10,
       "crystal": {
        "n": 0
@@ -6772,8 +7648,9 @@
      }
     }
    },
-   "story_frequency": 0.1517,
-   "story_frequency_basis": "rules.story_frequency_rule: chrysoprase (primary, class CO, specimen-proxy target of 8) has the largest floor × coverage: 0.3 × 0.5056 = 0.1517"
+   "cavity_span_mm": 58.67,
+   "story_frequency": null,
+   "story_frequency_basis": "unresolved: no protagonist with an engine and an occurrence band has a size target whose display range starts within the cavity's 58.67 mm span, so none can carry a story run"
   },
   "wittichen": {
    "locality": "wittichen",
@@ -6806,6 +7683,22 @@
       "confidence": "low",
       "crystal_n": 0,
       "specimen_n": 7,
+      "series": {
+       "largest": 4,
+       "of": 7,
+       "template": "erg,Deutschland-#",
+       "days": 77
+      },
+      "without_largest_series": {
+       "n": 3,
+       "min": 36,
+       "q10": 38.8,
+       "q25": 43,
+       "median": 50,
+       "q75": 75,
+       "q90": 90,
+       "max": 100
+      },
       "photographs_with_length": 39,
       "crystal": {
        "n": 0
@@ -6914,6 +7807,22 @@
       "confidence": "low",
       "crystal_n": 2,
       "specimen_n": 19,
+      "series": {
+       "largest": 2,
+       "of": 19,
+       "template": "Fluorit,Größeca.#",
+       "days": 0
+      },
+      "without_largest_series": {
+       "n": 17,
+       "min": 35,
+       "q10": 43,
+       "q25": 50,
+       "median": 60,
+       "q75": 70,
+       "q90": 80,
+       "max": 80
+      },
       "photographs_with_length": 24,
       "crystal": {
        "n": 2,
@@ -7045,8 +7954,9 @@
      }
     }
    },
+   "cavity_span_mm": 299.01,
    "story_frequency": 0.2438,
-   "story_frequency_basis": "rules.story_frequency_rule: erythrite (primary, class AB, specimen-proxy target of 7) has the largest floor × coverage: 0.5 × 0.4875 = 0.2438"
+   "story_frequency_basis": "rules.story_frequency_rule: erythrite (primary, class AB, specimen-proxy target of 7) has the largest floor × coverage: 0.5 × 0.4875 = 0.2438: a bar for STORY (PROXY), not an expected rate (the proxy overstates the crystal)"
   }
  }
 }

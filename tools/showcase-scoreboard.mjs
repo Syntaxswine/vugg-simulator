@@ -52,8 +52,8 @@ import path from 'node:path';
 import crypto from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import {
-  assessOccurrence, assessSize, scenarioVerdict, wp1Target, pocketClass, fits, summarize, validateSidecar,
-  protagonistsOf, assemblageVariety, everySeedChance, relativeSpread,
+  assessOccurrence, assessSize, scenarioVerdict, scenarioFrequency, wp1Target, wilson, pocketClass, fits, summarize,
+  validateSidecar, protagonistsOf, assemblageVariety, everySeedChance, relativeSpread,
 } from './story-pocket-lib.mjs';
 import { buildSizeEvidence } from './story-pocket-size-evidence.mjs';
 import { buildTargets } from './story-pocket-targets.mjs';
@@ -158,6 +158,7 @@ for (const [scn, T] of Object.entries(targets.scenarios).sort(([a], [b]) => a.lo
     cavity: { span_mm: C.span_mm, eqd_mm: C.eqd_mm, extents_mm: C.extents_mm, size_class: C.size_class, size_class_basis: C.size_class_basis, all_census_seeds_checked: seedsChecked } };
   if (T.out_of_scope) { out[scn] = { ...o, verdict: 'OUT OF SCOPE', why: T.out_of_scope, flags: [] }; continue; }
   const span = C.span_mm;
+  if (T.cavity_span_mm !== span) throw new Error(`${scn}: the targets were built for a ${T.cavity_span_mm} mm span, cavities.json has ${span}: re-run tools/story-pocket-targets.mjs --write`);
   const sp = (r, k) => {
     const v = r.species[k];
     return { occurs: (v?.n_surv ?? 0) > 0, size: v?.max_exp_mm ?? 0, all: v?.max_mm ?? 0 };
@@ -209,14 +210,20 @@ for (const [scn, T] of Object.entries(targets.scenarios).sort(([a], [b]) => a.lo
   // photographs), or, where the target has exactly the minimum sample, with its proxy instead?
   const minN = targets.rules.size_min_samples;
   const asTarget = (s, basis) => (s && s.n >= minN ? { basis, n: s.n, q10: s.q10, q25: s.q25, median: s.median, q75: s.q75, q90: s.q90 } : null);
-  const verdictWith = (k, target) => scenarioVerdict(runsIn, { ...T.species, [k]: { ...T.species[k], size: target ?? { basis: 'unknown' } } }, T.story_frequency, { z: Z }).verdict;
+  // The verdict with one protagonist's target changed, its frequency rebuilt by the same rule.
+  const verdictWith = (k, target) => {
+    const changed = { ...T.species, [k]: { ...T.species[k], size: target ?? { basis: 'unknown' } } };
+    return scenarioVerdict(runsIn, changed, scenarioFrequency(changed, DR, span)?.frequency ?? null, { z: Z }).verdict;
+  };
   o.robust = [];
-  for (const p of withEngine.filter((x) => x.target?.basis === 'crystal')) {
+  for (const p of withEngine.filter((x) => x.target?.basis === 'crystal' || x.target?.basis === 'specimen-proxy')) {
     const t = p.target;
-    const proxy = asTarget(t.specimen, 'specimen-proxy');
-    const row = { k: p.k, n: t.n, confidence: t.confidence, series: t.series ?? null };
-    if (t.series?.largest > 1) row.without_series = { n: t.without_largest_series.n, q25: t.without_largest_series.q25, verdict: verdictWith(p.k, asTarget(t.without_largest_series, 'crystal') ?? proxy) };
-    if (t.n === minN) row.at_minimum = verdictWith(p.k, proxy);
+    const crystal = t.basis === 'crystal';
+    if (!crystal && !(t.series?.largest > 1) && t.n !== minN) continue;
+    const fallback = crystal ? asTarget(t.specimen, 'specimen-proxy') : null;
+    const row = { k: p.k, basis: t.basis, n: t.n, confidence: t.confidence, series: t.series ?? null };
+    if (t.series?.largest > 1) row.without_series = { n: t.without_largest_series.n, q25: t.without_largest_series.q25, verdict: verdictWith(p.k, asTarget(t.without_largest_series, t.basis) ?? fallback) };
+    if (t.n === minN) row.at_minimum = verdictWith(p.k, fallback);
     o.robust.push(row);
   }
   // Where the captions give a few crystal lengths but no target: how they compare with the simulation,
@@ -257,7 +264,7 @@ for (const [scn, T] of Object.entries(targets.scenarios).sort(([a], [b]) => a.lo
   for (const r of rs) for (const [m, v] of Object.entries(r.species)) if ((v.max_mm ?? 0) > span) o.longer_than_cavity[m] = (o.longer_than_cavity[m] || 0) + 1;
   // The verdict, and WP1's whole target.
   o.verdict = V.verdict;
-  o.wp1 = wp1Target(V.verdict, Object.entries(o.species).filter(([, v]) => isProt(v.role)).map(([k, v]) => ({ k, engine: v.engine, occurrence: v.occurrence, size: v.size })));
+  o.wp1 = wp1Target(V.verdict, Object.entries(o.species).filter(([, v]) => isProt(v.role)).map(([k, v]) => ({ k, engine: v.engine, occurrence: v.occurrence, size: v.size })), Object.keys(V.counts.by));
   if (V.verdict === 'NO ENGINE') o.why = `no protagonist has an engine (${protagonistsOf(T.species).map(({ k }) => name(k)).join(', ')})`;
   else if (V.verdict === 'SMALL POCKETS ONLY') o.why = `the cavity's longest span, ${mm(span)} mm, is shorter than ${name(primary)}'s characteristic crystal, ${mm(primaryT.median)} mm (${primaryT.basis}, n ${primaryT.n})`;
   else o.why = V.why;
@@ -354,19 +361,25 @@ const sections = {};
   const pockets = {};
   for (const o of scored) pockets[o.pocket] = (pockets[o.pocket] || 0) + 1;
   const smallRuns = scored.reduce((s, o) => s + (o.story?.small ?? 0), 0);
+  const zeroTop = wilson(0, runs.length / Object.keys(runsBy).length, Z)[1];
+  const powerless = scored.filter((o) => o.story?.frequency != null && o.story.frequency <= zeroTop);
+  md.push(`Story checks that ${Math.round(runs.length / Object.keys(runsBy).length)} seeds cannot fail beyond noise — a frequency at or below ${zeroTop.toFixed(3)}, the top of the interval for 0 of them, where even a fleet that never tells the story is within noise: ${Object.entries(out).filter(([, o]) => powerless.includes(o)).map(([scn, o]) => `${scn} (${o.story.frequency})`).join(', ') || 'none'}. Where no protagonist with an engine occurs in any seed, the verdict carries no noise mark: the seeds repeat one pocket, and chance explains nothing.`);
+  const larger = Object.entries(out).flatMap(([scn, o]) => (o.flags || []).filter((x) => x.includes('larger than every photographed crystal')).map((x) => `${x.replace(/ larger than every photographed crystal.*$/, '')} at ${scn}`));
+  const longerThan = Object.entries(out).flatMap(([scn, o]) => Object.entries(o.longer_than_cavity || {}).map(([m, cnt]) => `${name(m)} at ${scn} (${cnt}/${o.runs})`));
+  md.push(`Simulated crystals larger than every photographed crystal of their species, where the record gives a few lengths beside a proxy: ${larger.join(', ') || 'none'}. Crystals longer than the starting cavity's span: ${longerThan.join(', ') || 'none'}.`);
   md.push(`Pocket classes against the primary protagonist's characteristic crystal: ${['STORY-SCALE', 'SMALL', 'UNCLASSED'].map((p) => `${p} ${pockets[p] || 0}`).join(', ')} of ${scored.length} scored scenarios; runs in small pockets ${smallRuns} (${scored.reduce((s, o) => s + (o.story?.small_yes ?? 0), 0)} of them with a story, reported apart). Every scenario grows in one cavity in all its seeds (${Object.values(cav.scenarios).reduce((s, v) => s + v.seeds_checked.length, 0)} constructions checked, ${Object.values(cav.scenarios).every((v) => v.identical_across_seeds) ? 'none differ' : 'SOME DIFFER'}), so a scenario's fleet holds a single pocket class: no scenario yet has both small pockets and story-scale ones.`);
   sections.verdicts = md.join('\n');
 }
 {
   const md = [];
-  md.push(`For every protagonist with a crystal target: the share of its lengths in its largest series (one wording, each upload less than ${Math.round(targets.rules.series_gap_s / 86400)} days after the one before: likely one contributor's lot or find), the verdict with that series left out, and — where the target has exactly the minimum of ${targets.rules.size_min_samples} lengths — the verdict if one fewer left it to its specimen proxy.`);
+  md.push(`For every protagonist with a crystal target, and every specimen proxy with a series or at the minimum sample: the share of its lengths in its largest series (one wording, each upload less than ${Math.round(targets.rules.series_gap_s / 86400)} days after the one before: likely one contributor's lot or find), the verdict with that series left out, and — where the target has exactly the minimum of ${targets.rules.size_min_samples} lengths — the verdict with one length fewer (a crystal target falls back to its proxy, a proxy to unknown). Each verdict is scored against the story frequency rebuilt by the same rule.`);
   md.push('');
-  md.push('| scenario | verdict | protagonist: crystal target (n, confidence) | largest series | without it: n, q25 → verdict | at the minimum: with the proxy → verdict |');
+  md.push('| scenario | verdict | protagonist: target (basis, n, confidence) | largest series | without it: n, q25 → verdict | at the minimum, one length fewer → verdict |');
   md.push('|---|---|---|---|---|---|');
   for (const [scn, o] of sorted) {
     for (const r of o.robust || []) {
       const ws = r.without_series ? `${r.without_series.n}, ${mm(r.without_series.q25)} mm → ${r.without_series.verdict}` : '—';
-      md.push(`| ${scn} | ${o.verdict} | ${name(r.k)} (n ${r.n}, ${r.confidence}) | ${r.series && r.series.largest > 1 ? `${r.series.largest} of ${r.series.of}` : '—'} | ${ws} | ${r.at_minimum ?? '—'} |`);
+      md.push(`| ${scn} | ${o.verdict} | ${name(r.k)} (${r.basis === 'crystal' ? 'crystal' : 'proxy'}, n ${r.n}, ${r.confidence}) | ${r.series && r.series.largest > 1 ? `${r.series.largest} of ${r.series.of}` : '—'} | ${ws} | ${r.at_minimum ?? '—'} |`);
     }
   }
   const flips = Object.entries(out).flatMap(([scn, o]) => (o.robust || []).filter((r) => (r.without_series && r.without_series.verdict !== o.verdict) || (r.at_minimum && r.at_minimum !== o.verdict)).map((r) => `${scn} (${name(r.k)})`));
@@ -441,8 +454,9 @@ const sections = {};
   md.push('');
   const scoredWp1 = sorted.filter(([, o]) => o.wp1);
   const metWp1 = scoredWp1.filter(([, o]) => o.wp1.met).map(([scn]) => scn);
-  const storyNotWp1 = scoredWp1.filter(([, o]) => !o.wp1.met && (o.verdict === 'STORY' || o.verdict === 'STORY (PROXY)')).map(([scn, o]) => `${scn} (${o.wp1.fails.map((x) => x.replace(/^(x:|ma:)/, '').replace(/_/g, ' ')).join('; ')})`);
-  md.push(`WP1's whole target — the story frequency met, every protagonist with an engine within its band (a miss within noise counts as within), none oversize — is met by ${metWp1.length} of ${scoredWp1.length} scored scenarios${metWp1.length ? `: ${metWp1.join(', ')}` : ''}. Where the story verdict passes but the whole target does not: ${storyNotWp1.join('; ') || 'none'}.`);
+  const clean = (x) => x.replace(/^(x:|ma:)/, '').replace(/_/g, ' ');
+  const storyNotWp1 = scoredWp1.filter(([, o]) => !o.wp1.met && (o.verdict === 'STORY' || o.verdict === 'STORY (PROXY)')).map(([scn, o]) => `${scn} (${[...o.wp1.fails.map(clean), ...o.wp1.open.map((x) => `open: ${clean(x)}`)].join('; ')})`);
+  md.push(`WP1's whole target — the story frequency met; every protagonist with an engine within its band (a miss within noise counts as within); each protagonist that carries story runs at the record's size (its typical crystal within the record's middle half, or reaching its proxy); none oversize — is met by ${metWp1.length} of ${scoredWp1.length} scored scenarios${metWp1.length ? `: ${metWp1.join(', ')}` : ''}. Where the story verdict passes but the whole target does not: ${storyNotWp1.join('; ') || 'none'}.`);
   md.push('');
   md.push(`Protagonist size targets (${prot.length} primary and alternate slots): ${Object.entries(basis).sort().map(([b, cnt]) => `${b} ${cnt}`).join(', ')}. Size verdicts of protagonists with an engine: ${Object.entries(verdicts).sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0])).map(([x, cnt]) => `${x} ${cnt}`).join(', ')}. "spread" = the interquartile range over the median, of the simulated largest crystal across the seeds and of the record's.`);
   sections.protagonists = md.join('\n');

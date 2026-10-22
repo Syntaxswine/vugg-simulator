@@ -72,8 +72,11 @@ const PREDICATE = new RegExp(String.raw`([${L}]+)\s+(?:hat|hatte|besitzt)\s+eine
 const FRAGMENT = new RegExp(String.raw`^(?:ristall|istall|stall)(?:e|en|es|s|n)?(?!${L})`, 'iu');
 // Cues right after a length bind tighter than any before it.
 const AFTER_IGNORE = /^\s*(?:macro|makro|objektiv|lens\b|f\/\d|mächtig)/iu;
-// "45 mm Durchmesser": a diameter, read as a width (of a column, a ball or a specimen), not a length.
+// "45 mm Durchmesser": a diameter, read as a width (of a column or a specimen), not a length — except of a
+// tabular crystal ("tafelige Kristalle bis 2 mm Durchmesser") or a rounded aggregate ("Eisenrosen von bis
+// zu 19 mm Durchmesser"), whose diameter is its size.
 const AFTER_DIAMETER = /^\s*(?:durchmesser|diameter|ø)/iu;
+const DIAMETER_IS_SIZE = /tafel|plättch|tabular|rose|rosette|kugel|sphär|sphere|scheibe|disc|disk/iu;
 const AFTER_FOV = new RegExp(String.raw`^\s*(?:bildbreite|bildbr|bildhöhe|bb\b|breite[rns]?\s+aus|aus?schnitt)`, 'iu');
 const AFTER_CRYSTAL = new RegExp(String.raw`^\s*(?:kl\b|kantenl|kristall(?!${L}*${NOT_ONE_CRYSTAL})|crystal\b|(?:hohe|lange|große|grosse)[rns]?\s+kristal(?!${L}*${NOT_ONE_CRYSTAL}))`, 'iu');
 // "N mm großer/große/großes <noun>" (or hoher, langer, breiter, dicker): an attributive adjective, so
@@ -263,7 +266,7 @@ export function parseSizeStatements(raw) {
     const parenMineral = paren ? mineralOfWord(paren[1]) : null;
     let kind, named = null, why;
     // "7 cm breit", "3 mm dick": a width or thickness, said of whatever the clause names.
-    const predicativeWidth = (adj && !adj[2] && /^(?:breit|dick)$/iu.test(adj[1])) || AFTER_DIAMETER.test(after);
+    const predicativeWidth = (adj && !adj[2] && /^(?:breit|dick)$/iu.test(adj[1])) || (AFTER_DIAMETER.test(after) && !DIAMETER_IS_SIZE.test(before));
     if (AFTER_FOV.test(after)) { kind = 'fov'; why = after.match(AFTER_FOV)[0].trim(); }
     else if (predicativeWidth) { kind = 'width'; why = (after.match(AFTER_DIAMETER) ?? adj)[0].trim(); }
     else if (AFTER_CRYSTAL.test(after)) {
@@ -383,7 +386,7 @@ export function photoSizes(windows, lead, { keyOf = (x) => x, same = (a, b) => a
       used.push(s);
     }
   }
-  return { ...best, other, ambiguous, unclassed, widths, micro, statements: used, series: bestStatement.crystal?.series ?? null };
+  return { ...best, other, ambiguous, unclassed, widths, micro, statements: used, series: bestStatement.crystal?.series ?? null, specimenSeries: bestStatement.specimen?.series ?? null };
 }
 
 /**
@@ -392,7 +395,8 @@ export function photoSizes(windows, lead, { keyOf = (x) => x, same = (a, b) => a
  * species are joined when they were uploaded together (image ids, which read as upload times in
  * seconds, within UPLOADED_TOGETHER) and either their caption stretches are the same (identical once a
  * word cut at the stretch's start, punctuation and the words "mit", "und", "auf" are dropped) or they
- * state the same multi-dimension length ("16 mm x 12 mm"). Uploaded apart, only a measured size joins
+ * state the same multi-dimension length of a crystal, an aggregate or the specimen ("16 mm x 12 mm"; a
+ * picture's size identifies no specimen). Uploaded apart, only a measured size joins
  * them: the same length in three dimensions, one of them written with a decimal ("5x5x4,8mm",
  * "15,9 x 10 x 4,7 cm"). Never when their captions name different finds ("Fundort: Grove …" against
  * "Fundort: Blackdene …"), or when each names a mineral the other does not ("mit etwas Limonit"
@@ -433,7 +437,7 @@ export function groupSpecimens(photos, { window = UPLOADED_TOGETHER } = {}) {
     const capMatch = earlierCap.find((id) => together(id, p.id) && compatible(id, p.id));
     if (capMatch != null) join(capMatch, p.id, 'caption', null);
     seen.set(cap, [...earlierCap, p.id]);
-    const stated = p.windows.flatMap((w) => parseSizeStatements(w)).filter((s) => s.dims);
+    const stated = p.windows.flatMap((w) => parseSizeStatements(w)).filter((s) => s.dims && (s.kind === 'crystal' || s.kind === 'aggregate' || s.kind === 'specimen'));
     for (const d of new Set(stated.map((s) => s.dims.join('x')))) {
       const sig = `dims\u0000${p.key}\u0000${d}`;
       const earlier = seen.get(sig) || [];
@@ -535,7 +539,7 @@ export function bandFor(cls, bands) {
  * crystal target; one that falls short of it may not. Confidence for crystal lengths: low below
  * mediumConfidence specimens, medium below highConfidence, high from it — one step lower when more
  * than half of them are one series (largestSeries: one wording, uploaded in one stretch;
- * ev.crystal_series); low for a proxy.
+ * ev.crystal_series); low for a proxy, whose series (ev.specimen_series) is recorded too.
  */
 export function sizeTarget(ev, { minSamples, mediumConfidence = minSamples, highConfidence }) {
   const c = ev?.crystal?.n ?? 0, s = ev?.specimen?.n ?? 0;
@@ -550,7 +554,7 @@ export function sizeTarget(ev, { minSamples, mediumConfidence = minSamples, high
     series = ev.crystal_series ?? null;
     if (series && series.largest > d.n / 2) level = Math.max(0, level - 1);
     confidence = levels[level];
-  }
+  } else series = ev.specimen_series ?? null;
   return { basis, n: d.n, q10: d.q10, q25: d.q25, median: d.median, q75: d.q75, q90: d.q90, confidence, crystal_n: c, specimen_n: s, ...(series ? { series } : {}) };
 }
 
@@ -669,7 +673,9 @@ export function scoreStory(runs, species) {
 /**
  * The scenario's story verdict from its counted runs (scoreStory): yes / yesCrystal = runs carrying the
  * story (any basis / on crystal targets); open = runs that might (POSSIBLE, or no story in an
- * unclassed pocket); against the pre-registered story frequency; z for the noise interval.
+ * unclassed pocket); against the pre-registered story frequency; z for the noise interval. A shortfall
+ * is noise when the interval of the runs that carry or could carry the story (yes + open) still reaches
+ * the frequency: an open run might have carried it.
  */
 export function storyVerdict({ runs, yes, yesCrystal, open, frequency, z = 1.96 }) {
   if (!runs) return { verdict: 'SMALL POCKETS ONLY' };
@@ -678,7 +684,7 @@ export function storyVerdict({ runs, yes, yesCrystal, open, frequency, z = 1.96 
   if (frequency == null) return { verdict: 'UNRESOLVED', why: 'no story frequency: no protagonist with an engine, an occurrence band and a size target can carry a story run', rate, ci };
   if (rate >= frequency) return { verdict: yesCrystal / runs >= frequency ? 'STORY' : 'STORY (PROXY)', rate, ci };
   if ((yes + open) / runs >= frequency) return { verdict: 'UNRESOLVED', why: 'runs whose protagonist has no known crystal target, or whose pocket is unclassed, could carry it', rate, ci };
-  return { verdict: yes ? 'THIN STORY' : 'NO STORY', noise: ci[1] >= frequency, rate, ci };
+  return { verdict: yes ? 'THIN STORY' : 'NO STORY', noise: wilson(yes + open, runs, z)[1] >= frequency, rate, ci };
 }
 
 /**
@@ -693,24 +699,33 @@ export function displayCoverage(n, range) {
 }
 
 /**
- * The story frequency a scenario's targets imply: the expected story rate of a fleet whose protagonist
- * occurs at its band's floor with crystals drawn from its record's population — floor ×
- * displayCoverage(n) — for the protagonist that can carry a story run (an engine, a band and a size
- * target) with the largest such rate. It is an expectation: with 21 seeds a fleet at exactly that rate
- * falls short about half the time, and the verdict marks a shortfall its interval cannot tell from the
- * frequency "noise".
- *   protagonists: [{ k, engine, band, target }]; range: rules.display_range
- *   → { frequency, k, floor, coverage, n }, or null when none can carry a story run; ties go to the first
+ * The story frequency a scenario's targets imply: floor × displayCoverage(n) for the protagonist that can
+ * carry a story run — an engine, a band, a size target, and a display range that starts within the
+ * cavity's span (room) — with the largest such product. For a crystal target it is the expected story
+ * rate of a fleet whose protagonist occurs at its band's floor with crystals drawn from its record's
+ * population: with 21 seeds such a fleet falls short about half the time, and the verdict marks a
+ * shortfall its interval cannot tell from the frequency "noise". For a specimen proxy it is a bar for
+ * STORY (PROXY), the rate at which crystals as large as the photographed specimens would reach the
+ * proxy's range — not an expected rate, since the proxy overstates the crystal. Runs whose crystal is
+ * longer than the cavity stay open, so a cavity shorter than the range's top leaves a verdict open
+ * rather than failing it; the frequency is never lowered to fit the cavity.
+ *   protagonists: [{ k, engine, band, target }]; range: rules.display_range; room: the largest span
+ *   → { frequency, k, floor, coverage, n, basis }, or null when none can carry a story run; ties go to
+ *   the first
  */
-export function storyFrequency(protagonists, range) {
+export function storyFrequency(protagonists, range, room = Infinity) {
   let best = null;
   for (const p of protagonists) {
-    if (!p.engine || !p.band || !p.target || p.target.basis === 'unknown') continue;
+    if (!p.engine || !p.band || !p.target || p.target.basis === 'unknown' || !(p.target.q25 <= room)) continue;
     const coverage = displayCoverage(p.target.n, range);
-    if (!best || p.band[0] * coverage > best.rate) best = { k: p.k, floor: p.band[0], coverage, n: p.target.n, rate: p.band[0] * coverage };
+    if (!best || p.band[0] * coverage > best.rate) best = { k: p.k, floor: p.band[0], coverage, n: p.target.n, basis: p.target.basis, rate: p.band[0] * coverage };
   }
-  return best && { frequency: +best.rate.toFixed(4), k: best.k, floor: best.floor, coverage: +best.coverage.toFixed(4), n: best.n };
+  return best && { frequency: +best.rate.toFixed(4), k: best.k, floor: best.floor, coverage: +best.coverage.toFixed(4), n: best.n, basis: best.basis };
 }
+/** storyFrequency over a scenario's sidecar entries: its primary and alternates. */
+export const scenarioFrequency = (species, range, room) => storyFrequency(Object.entries(species)
+  .filter(([, v]) => v.role === 'primary' || v.role === 'alternate')
+  .map(([k, v]) => ({ k, engine: !!v.engine, band: v.occurrence_band, target: v.size })), range, room);
 
 /**
  * A scenario's verdict from its runs and its targets: NO ENGINE when no protagonist has an engine;
@@ -740,8 +755,11 @@ export function scenarioVerdict(runs, species, frequency, { z = 1.96 } = {}) {
   const sized = withEngine.filter((p) => p.target && p.target.basis !== 'unknown');
   const cannot = !withEngine.length || sized.some((p) => p.target.q25 <= room) ? null
     : { cavity: sized.map((p) => p.k), evidence: withEngine.filter((p) => !sized.includes(p)).map((p) => p.k) };
+  // Noise is chance in which runs carry the story; where no protagonist with an engine ever occurs, the
+  // seeds repeat one pocket (§2.5 of the proposal) and chance explains nothing.
+  const occurs = withEngine.some((p) => runs.some((r) => r.species[p.k]?.occurs));
   return {
-    counts: c, verdict: withEngine.length ? story.verdict : 'NO ENGINE', why: story.why ?? null, noise: !!story.noise,
+    counts: c, verdict: withEngine.length ? story.verdict : 'NO ENGINE', why: story.why ?? null, noise: !!story.noise && occurs,
     rate: story.rate ?? null, ci: story.ci ?? null, open: [...new Set(open)], cannot,
   };
 }
@@ -749,20 +767,28 @@ export function scenarioVerdict(runs, species, frequency, { z = 1.96 } = {}) {
 /**
  * WP1's whole pre-registered target for a scenario: the story frequency met (STORY or STORY (PROXY));
  * every protagonist with an engine and a band within it (a miss its interval cannot tell from the band
- * counts as within); none OVERSIZE. The story verdict checks the first alone.
+ * counts as within); each protagonist that carries story runs at the record's size — its typical crystal
+ * within the record's middle half (MEETS; contract rule 4), or reaching its proxy (REACHES PROXY: a proxy
+ * cannot test more); none OVERSIZE. The story verdict checks the first alone. A carrier short of its
+ * proxy is open, not failed: a proxy cannot refute.
  *   verdict: the scenario's story verdict; protagonists: [{ k, engine, occurrence: { verdict, noise },
- *   size: { verdict } }] → { met, fails: [...] }
+ *   size: { verdict } }]; carriers: the protagonists that carried story runs
+ *   → { met, fails: [...], open: [...] }
  */
-export function wp1Target(verdict, protagonists) {
-  const fails = [];
+export function wp1Target(verdict, protagonists, carriers = []) {
+  const fails = [], open = [];
   if (verdict !== 'STORY' && verdict !== 'STORY (PROXY)') fails.push(`story ${verdict}`);
   for (const p of protagonists) {
     if (!p.engine) continue;
-    const o = p.occurrence;
+    const o = p.occurrence, v = p.size?.verdict;
     if ((o?.verdict === 'LOW' || o?.verdict === 'HIGH') && !o.noise) fails.push(`${p.k} ${o.verdict === 'LOW' ? 'below' : 'above'} its band`);
-    if (p.size?.verdict === 'OVERSIZE') fails.push(`${p.k} oversize`);
+    if (v === 'OVERSIZE') fails.push(`${p.k} oversize`);
+    else if (carriers.includes(p.k)) {
+      if (v === 'BELOW' || v === 'LARGE') fails.push(`${p.k} ${v === 'BELOW' ? 'below' : 'above'} the record's middle half`);
+      else if (v !== 'MEETS' && v !== 'REACHES PROXY') open.push(`${p.k} ${v === 'BELOW PROXY' ? 'short of its proxy' : (v || 'unsized').toLowerCase()}`);
+    }
   }
-  return { met: !fails.length, fails };
+  return { met: !fails.length && !open.length, fails, open };
 }
 
 // ------------------------------------------------------------------ 5. how much the fleet varies

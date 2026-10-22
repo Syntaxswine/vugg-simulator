@@ -437,3 +437,109 @@ Tsumeb's STORY (PROXY) is the most fragile verdict (§2.6).
 
 Result: STORY 1, STORY (PROXY) 1, NO STORY 3, UNRESOLVED 26, NO ENGINE 1, OUT OF SCOPE 1 (unchanged from round 3).
 WP1's whole target is met by none.
+
+## Round 5 of 5 — 8.5/10 (on 44f3ac23)
+
+### The report
+
+> I worked read-only. `git status` is clean. Every `.local-evidence` file is byte-identical after my runs, and re-running the comparison gives the same `compare.json` (8419de06…) and `compare.md`. The only write was the row `npm test` adds to the test-quarry ledger. I ran mutants on a scratch copy (`scratchpad\review5\mut`) with a vitest stand-in that reproduces 88/88. Each mutant also went through the targets check and `--check-splice`.
+>
+> **MUST-FIX**
+>
+> 1. **The story frequency's stated basis is true only for the 4 frequencies set by crystal targets. Specimen proxies set the other 20 of 24, and one setter can never carry a run.**
+>    - Where: `story-pocket-lib.mjs:695–713` (the filter at :708), `story-pocket-targets.mjs:68` and `:71`, the rules block (PROPOSAL:183), PROPOSAL:261–275.
+>    - The basis says it is "the expected story rate of a fleet … with crystals drawn from its record's population". For a proxy, that population is specimen sizes, which the proposal itself says overstate the crystal. Only Herkimer, Grimsel, the North Pennines and Shigar have crystal-set frequencies.
+>    - The cavity is ignored. In 15 of the 20 proxy-set scenarios, the setter's q90 is longer than the span, and runs past the span are open, not YES.
+>    - At Elmwood the setter is calcite, whose display range starts at 80 mm in a 66 mm cavity. It can never carry a run: round 4's Asbestos Hills defect in another form. Leaving it out gives 0.287 (sphalerite) instead of 0.308.
+>    - The fleet tests (`test.ts:586–616`) model only crystal targets, in a 1e6 mm cavity.
+>    - No verdict moves today.
+>    - Fix: leave out setters whose q25 exceeds the largest span, as `cannot` already does. Say that for a proxy the frequency is how often crystals as large as the specimens would reach it — a bar for STORY (PROXY), not an expected rate. Mark proxy-set frequencies in the basis.
+>
+> 2. **WP1's whole target fails a crystal that is too large but not one that is too small, so the median — the "central showcase target" — decides nothing.**
+>    - Where: `lib:756–766` (`wp1Target`), PROPOSAL:916–925 and :889, against §1.1 rule 4 (PROPOSAL:99–102: "judged against the record's median").
+>    - Evidence on the committed North Pennines fluorite target (q25 15 mm, median 17 mm):
+>      - Fluorite in 21/21 runs, 7 at 18 mm and 14 at 10 mm, gives STORY with size BELOW. Occurrence is HIGH within noise, so WP1 is **met**.
+>      - The mirror fleet, with the 14 runs at 70 mm, is OVERSIZE and fails WP1.
+>      - In simulation, a protagonist in every seed at half the record's size reaches STORY in 51 % of trials (n 5) and 42 % (n 17) — as often as a correct fleet at its band floor.
+>    - Round 4 (S2) introduced this, and the prose never says BELOW decides nothing.
+>    - Fix: require the story-carrying protagonist to be not BELOW (or MEETS). Or state plainly in §1.1, §1.3 and §4 that the median is reported, not required, and why oversize alone fails.
+>
+> **SHOULD-FIX**
+>
+> 1. **Mogok reads "NO STORY (noise)" although its ruby never forms, and three story checks cannot fail.**
+>    - Where: `lib:681`, PROPOSAL:349.
+>    - Mogok's frequency is now 0.139 (0.195 under round 3's rule). That is below 0.155, the top of the Wilson interval for 0/21, so the label says "noise".
+>    - Schneeberg and Marlborough (0.152) can never fail beyond noise either. §5 (PROPOSAL:1359–1364) calls the check "weak", not powerless.
+>    - Fix: name these three in a generated line. Drop the noise mark when no protagonist with an engine occurs: the seeds are one pocket sampled 21 times (§2.5).
+>
+> 2. **Series are never checked for proxies, and Mogok's NO STORY rests on one.**
+>    - Where: `scoreboard:214` checks series for crystal targets only.
+>    - Mogok's frequency comes from a ruby proxy of 6 specimens. Four of them are one wording ("Rubin ; Größe: NNxNN mm", ids 1286832317–1286909219), uploaded within 0.9 days. Without them n = 2, there is no frequency, and the verdict is UNRESOLVED.
+>    - Other proxies that set a frequency and are dominated by one wording: Cripple Creek 6/9, Tormiq 3/5, Wittichen 4/7.
+>    - Fix: extend §2.6's series rows to these proxies.
+>
+> 3. **A hand-typed list is stale** (PROPOSAL:417–418). Round 4's diameter rule removed the North Pennines calcite's 45 mm length (1309617819), so the generated table (:345) now flags "calcite larger than every photographed crystal". The list still names only four cases. Generate it.
+>
+> 4. **"No verdict holds under every check" (PROPOSAL:734) is false.** 24 of the 26 UNRESOLVED verdicts, and NO ENGINE, hold under every §2.6 row. Say "no decided verdict".
+>
+> 5. **Test gaps in the round-4 code.** Of 39 mutants I wrote, 16 survive the tests, the targets check and all 13 blocks (two are near-equivalent). The survivors:
+>    - `wp1Target`: ignoring HIGH beyond noise, failing LARGE, passing THIN STORY.
+>    - `validateSidecar`: no check on `star_wanted_share`, `visible_mm`, `uploaded_together_s` or `specimen_min_mm` — 4 of the 8 newly required rules are untested.
+>    - Joins and parser: "measured" needing a comma decimal; "und" and "auf" not dropped; the `namedIn` cut flag; "ø" and "diameter" dropped; the cut-word fallback's length set to 4 or 7.
+>
+>    None changes an output. "21/21 killed" covers only the authors' own mutants.
+>
+> 6. **The join description is stale.**
+>    - `size-evidence.mjs:219` (appendix line 5) still says "measured to a tenth of a millimetre … never with captions that name different finds".
+>    - The rule now accepts any decimal ("15,9 cm"), adds the minerals rule, and compares captions without a cut word, punctuation, "mit", "und" and "auf". §5 (PROPOSAL:1343–1345) also omits the minerals rule.
+>
+> 7. **Latent over-join at `lib:436`: a shared picture size joins two specimens.**
+>    - Two photographs a day apart that both state "Bildgröße: 8 x 6 mm", with crystals of 5 and 9 mm, become one specimen (I checked this).
+>    - None of the 17 current dimension joins is a picture size. Limit dimension joins to crystal and specimen statements before WP0 reads micromount galleries.
+>
+> 8. **Minor:**
+>    - The robustness rows keep the committed frequency (`scoreboard:212`). For example, Herkimer at the minimum keeps 0.217 where a rebuild gives 0.282. No verdict changes.
+>    - A "Durchmesser" of tabular crystals or rosettes is their length (1113123336, 1265104333). No target changes.
+>    - The "< 5 %" assertion at `test.ts:603` sits at its edge for n 6 (5.1 % in my 4,000 trials at 11/21).
+>    - The new "limonit" stem, which the Wittichen split needs, is not in the response table.
+>
+> **Verified correct**
+>
+> - **Guardrails:** nothing under `js/` or `data/` changed in f49c1804~..44f3ac23. The comparison tool last changed in afbe687f. No simulation was run.
+> - **Checks:** the targets match a rebuild; 13/13 scoreboard and 2/2 substrate blocks match; the appendix reproduces byte for byte; 88/88 tests pass.
+> - **M1 holds for crystal targets.** `displayCoverage` is exact for a uniform population. My fleets at 11/21:
+>   - reach STORY in 47–62 % of trials;
+>   - fall short beyond noise in 0.5–5 %;
+>   - at a third of the record's size, pass in 0.2–4 %.
+>
+>   Fleets drawn at p = 0.5 reach STORY in 43–51 %. The Asbestos Hills frequency is now tiger's eye's, 0.173.
+> - **Other round-4 responses:**
+>   - S1, S3, S4, S7 and S9 hold.
+>   - S2's generated line is correct (but see MUST-FIX 2). S8 is implemented (but see SHOULD-FIX 5).
+>   - S5: against round 3, exactly three joins change: the Limonit/Hämatit split, 1264324998+1246092168, and the Malad pair. 117 joins = 100 + 17. The whole-word audit reproduces: "groß" 9×, "Smith" 7×.
+>   - S6: 8 of 2,261 caption stretches parse differently from round 3, all of them the diameter and "Krisalle" cases.
+> - **Earlier rounds still hold:** no size floor; no unclassed runs outside colorado_plateau; the Ouro Preto duplicate is joined; Bisbee's runs longer than the cavity stay open; the every-seed bound; Tsumeb's floor sensitivity.
+> - **Audit:**
+>   - All 50 joins that carry a crystal or specimen length are plausible.
+>   - The unjoined near-duplicates are within the registered rules: Tri-State galena with an identical caption 14 days apart, and Tsumeb calcite "45x30x30 mm" 139 days apart.
+>   - The crystal rows behind 7 targets, and the Tsumeb calcite (45) and Mogok ruby (6) proxies, parse cleanly.
+>
+> **Ready for the boss?** Not yet. First fix the two must-fixes (mostly wording, plus leaving out setters that cannot reach the cavity) and should-fixes 1, 3 and 4, which are prose and one-line rules. The rest can go to the boss as known limits.
+
+### The response
+
+| # | finding | what changed | evidence |
+|---|---|---|---|
+| M1 | the frequency's basis holds only for crystal setters; proxies set most; one setter can never carry a run | A protagonist sets the frequency only if it can carry a story run in the scenario's cavity: an engine, a band, and a size target whose display range starts within the span. The targets tool reads each scenario's span from cavities.json (the authored wall, read before any run), records it as `cavity_span_mm`, and the scoreboard refuses a cavities.json that differs. The rule and every basis now say what the number is: an expected story rate for a crystal target; for a proxy, a bar for STORY (PROXY), the rate at which crystals as large as the specimens would reach the range, not an expected rate. Runs longer than the cavity stay open, so a cavity shorter than the range's top leaves a verdict open. The frequency is never lowered to fit the cavity: that would be the rescaling the contract rules out, so the cavity only removes setters that cannot fit at all. A new test draws fleets in a cavity cut at the record's median. It found that the noise mark counted only the runs that carry the story, so a minimal fleet was failed beyond noise in 10.5 % of trials. Noise now counts the runs that carry or could carry it (yes + open). | Elmwood: sphalerite sets 0.287 (calcite could never fit, from 80 mm in 66 mm). Naica, Searles, Sicily and Marlborough have no frequency now: none of their protagonists can carry a run in the cavity, as their flag already said. 4 crystal-set frequencies, 16 proxy-set, each labelled. No verdict moves. The cut-cavity fleet is failed beyond noise in under 8 % of trials (a test). |
+| M2 | WP1 fails too large but not too small, so the median decides nothing | WP1's whole target now requires each protagonist that carries story runs to be at the record's size: its typical crystal within the record's middle half (MEETS, as contract rule 4 says). BELOW and LARGE fail, as OVERSIZE does. A proxy reached passes. A carrier short of its proxy is open, not failed, since a proxy cannot refute (`wp1Target` returns `open`). §1.3, WP1's target and §4 say so. | The reviewer's North Pennines fleets (7 runs at 18 mm with 14 at 10, and the mirror at 70) both tell the story, and both now fail WP1: one below the middle half, one oversize (a test). Today: met by 0 of 32; Tsumeb's malachite is open (short of its proxy). |
+| S1 | Mogok's "NO STORY (noise)" though ruby never forms; checks that cannot fail | A generated line names the story checks that 21 seeds cannot fail beyond noise (a frequency at or below 0.155, the top of the interval for 0 of 21). The noise mark is dropped where no protagonist with an engine occurs in any seed: the seeds repeat one pocket, and chance explains nothing. | Mogok (0.139) and Schneeberg (0.152) are listed. Marlborough has no frequency now (M1). Mogok reads NO STORY without the mark. |
+| S2 | series never checked for proxies; Mogok rests on one | Specimen lengths get the same series rule as crystal lengths (`specimen_series` in the evidence, a new appendix column, `series` and `without_largest_series` on proxy targets). §2.6 gains a row for every proxy with a series or at the minimum. Every robustness verdict is scored against the frequency rebuilt by the same rule, not the committed one (round 5's minor). | Mogok's ruby: 4 of 6 in one series; without it, 2 → UNRESOLVED (listed among the verdicts that move). Its tourmaline series leaves NO STORY standing. |
+| S3 | a stale hand-typed list | Both lists in §2's flags are generated: a line under the table names the crystals larger than every photographed crystal of their species, and the crystals longer than the starting cavity. | It now includes the North Pennines' calcite and Searles' tincalconite. |
+| S4 | "No verdict holds under every check" is false | "No decided verdict (STORY, STORY (PROXY), NO STORY) holds under every check"; most UNRESOLVED verdicts hold, being open already. | — |
+| S5 | 16 surviving mutants | Tests for each named survivor: WP1 fails a HIGH occurrence beyond noise and a THIN STORY, and a LARGE carrier; `validateSidecar` rejects a bad `star_wanted_share`, `visible_mm`, `uploaded_together_s` and `specimen_min_mm`; a size measured with a decimal point joins as one with a comma does; "und" and "auf" are dropped from captions; a mineral cut at a stretch's end counts in the minerals rule; "Ø" and "diameter" are diameters; the cut-word fallback reads five letters ("Rauch") but not four ("Topa"). The fleet test's bound is 8 %, with room above the reviewer's 5.1 % at n 6. | 95 tests. 12 mutants on this round's code, all killed (one after a test that a proxy target records its series). |
+| S6 | the join description is stale | The appendix and §5 describe the rules as they are: the same caption once a cut word, punctuation and "mit", "und", "auf" are dropped; a size written with a decimal; never across two finds, or two captions that each name a mineral the other does not. | — |
+| S7 | a shared picture size joins two specimens | Size joins come only from a crystal, aggregate or specimen statement; a picture's size identifies no specimen (a test). | The 17 size joins are unchanged. |
+| S8 | minor | Robustness verdicts rebuild the frequency (S2). A diameter after a tabular or rounded form is its size ("tafelige Kristalle bis 2 mm Durchmesser", "Eisenrosen … 19 mm Durchmesser"; tests); §5 names the rule's limit. The "limonit" stem (round 4) is what lets the minerals rule split the Wittichen pair; round 4's response omitted it. | No target changes. |
+
+Result: STORY 1, STORY (PROXY) 1, NO STORY 3, UNRESOLVED 26, NO ENGINE 1, OUT OF SCOPE 1 (unchanged).
+WP1's whole target is met by none. Five rounds have run: the standing rule stops here, and a sixth needs the boss's word.

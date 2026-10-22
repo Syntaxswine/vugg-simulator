@@ -17,7 +17,8 @@
    "properties": {
     "record_and_literature_classes": { "type": "object", "required": ["file", "sha256"], "properties": { "file": { "type": "string" }, "made_by": { "type": "string" }, "sha256": { "type": "string" } }, "additionalProperties": false },
     "literature_sources": { "type": "string" },
-    "size_capture": { "type": "object", "required": ["file", "sha256", "extractor_sha256"], "properties": { "file": { "type": "string" }, "sha256": { "type": "string" }, "extractor_sha256": { "type": "string" } }, "additionalProperties": false }
+    "size_capture": { "type": "object", "required": ["file", "sha256", "extractor_sha256"], "properties": { "file": { "type": "string" }, "sha256": { "type": "string" }, "extractor_sha256": { "type": "string" } }, "additionalProperties": false },
+    "cavities": { "type": "object", "required": ["file", "sim_version"], "properties": { "file": { "type": "string" }, "made_by": { "type": "string" }, "sim_version": { "type": "integer" } }, "additionalProperties": false, "description": "Each scenario's cavity span (the authored wall, read before any run); the scoreboard refuses a cavities.json whose spans differ from cavity_span_mm." }
    }
   },
   "rules": {
@@ -100,6 +101,7 @@
     "record": { "enum": ["votes", "thin: named signatures"] },
     "named_signature_basis": { "type": "string" },
     "set_aside": { "type": "object", "description": "Species outside the scenario's scope, with the reason; they get no role.", "additionalProperties": { "type": "string" } },
+    "cavity_span_mm": { "type": "number", "exclusiveMinimum": 0, "description": "The scenario's cavity span the story frequency was built for: a protagonist whose display range starts beyond it cannot carry a story run." },
     "story_frequency": { "type": ["number", "null"], "minimum": 0, "maximum": 1 },
     "story_frequency_basis": { "type": "string" },
     "species": { "type": "object", "additionalProperties": { "$ref": "#/$defs/species" } }

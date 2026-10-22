@@ -260,26 +260,42 @@ chord can cross the wall. So SMALL is conclusive and STORY-SCALE is generous.
 
 **The story frequency.** A run carries the story when a primary or alternate protagonist is at its
 record's display scale. A scenario should carry it in at least *floor × coverage* of its scored runs,
-for the protagonist that can carry a story run — an engine, a band and a size target — with the largest
-such product:
+for the protagonist that can carry a story run with the largest such product. A protagonist can carry
+one when it has an engine, a band and a size target whose display range starts within the scenario's
+cavity span.
 - the floor is its band's lower bound;
 - the coverage is the chance that a crystal drawn from its record's population lands in the display
   range of a record its size: 0.65 × (n − 1) / (n + 1), so 0.43 for a record of five crystals and 0.58
   for seventeen, approaching 65 % as the record grows. It is exact for a uniform population and within
   about 0.03 for skewed ones such as collectors' sizes (the tests simulate both).
 
-That product is the *expected* story rate of a fleet whose protagonist occurs at its band's floor with
-crystals drawn from its record's population. It is not a guarantee. With 21 seeds such a fleet falls
-short about half the time. The verdict marks a shortfall that the 95 % interval cannot tell from the
-frequency "noise", and a shortfall beyond noise is rare (the tests draw such fleets at every committed
-sample size). It asks for no protagonist in every seed, and no size spread narrower than the record's.
+What the product means depends on the target:
+- *For a crystal target* it is the *expected* story rate of a fleet whose protagonist occurs at its
+  band's floor with crystals drawn from its record's population. It is not a guarantee: with 21 seeds
+  such a fleet falls short about half the time. The verdict marks a shortfall "noise" when the 95 %
+  interval of the runs that carry or could carry the story still reaches the frequency. A shortfall
+  beyond noise is rare: the tests draw such fleets at every committed sample size, in a cavity that
+  holds the whole range and in one that cuts it at the median.
+- *For a specimen proxy* it is a bar for STORY (PROXY): the rate at which crystals as large as the
+  photographed specimens would reach the proxy's range. It is not an expected rate, since the proxy
+  overstates the crystal. Most frequencies today are bars of this kind, and the targets file says which.
+
+Runs whose crystal is longer than the cavity stay open, so a cavity shorter than the range's top leaves
+the verdict open rather than failing it. The frequency is never lowered to fit the cavity: that would be
+the rescaling the contract rules out. It asks for no protagonist in every seed, and no size spread
+narrower than the record's.
 - *How it got here.* Review round 3 showed that the floor alone failed a fleet that met every band and
   size target: a protagonist would have had to occur in about 77 % of the seeds. Round 4 showed that a
   fixed 65 % coverage still overstated what a small record's range holds, and that a protagonist with no
-  size target could set a frequency it could never carry.
+  size target could set a frequency it could never carry. Round 5 showed the same of a protagonist whose
+  range starts beyond the cavity (Elmwood's calcite), and that the rate is expected only for crystal
+  targets.
 - *What it does not check.* The story verdict checks the frequency alone. WP1's whole target also needs
-  every protagonist within its band and none oversize, and the scoreboard reports that too, under the WP1
-  table. With 21 seeds the check is weak: a protagonist in 7 seeds is within noise of a 50 % floor.
+  every protagonist within its band, the protagonist that carries the story at the record's size (its
+  typical crystal within the record's middle half, rule 4), and none oversize. The scoreboard reports
+  that too, under the WP1 table. With 21 seeds the check is weak: a protagonist in 7 seeds is within
+  noise of a 50 % floor, and where the frequency falls below 0.155 even a fleet that never tells the
+  story is within noise (the fourth line under §2's table).
 
 **Variety.** The scoreboard reports, per scenario:
 - how many distinct assemblages (sets of surviving species) its seeds grow;
@@ -346,39 +362,41 @@ Status (33 locality scenarios, 861 census runs, 21 seeds each): STORY 1, STORY (
 | supergene_oxidation (tsumeb) | STORY (PROXY) | PARTIAL | 65 | UNCLASSED (smithsonite) | 0 + 8 (+13) / 21, 31 % | malachite 100 % | 100 % | 16 % | smithsonite hidden (its crystals of 1 mm or more are all flagged as enclosed); calcite (alternate) 0/21 below band; azurite hidden (its crystals of 1 mm or more are all flagged as enclosed); malachite larger than every photographed crystal (median 42 mm; 4 crystal lengths, largest 30); mottramite (companion) 0/21 below band; in every seed: smithsonite, cerussite, azurite, malachite, mimetite; clutter 16 % |
 | cooling (herkimer) | NO STORY | MISSING | 60 | STORY-SCALE (quartz) | 0 + 0 / 21, 22 % | quartz 100 % | 100 % | 0 % | quartz dust (< 1 mm); dolomite (companion) 0/21 below band; pyrite (companion) 0/21 below band; in every seed: quartz; one assemblage in every seed |
 | grimsel_alpine_cleft (grimsel) | NO STORY | PARTIAL | 195 | STORY-SCALE (quartz) | 0 + 0 / 21, 30 % | calcite 100 % | 0 % | 10 % | fluorite dust (< 1 mm); in every seed: quartz, fluorite; one assemblage in every seed; star wanted 0/21; clutter 10 % |
-| marble_contact_metamorphism (mogok) | NO STORY (noise) | MISSING | 51 | STORY-SCALE (spinel) | 0 + 0 / 21, 14 % | — | 0 % | 0 % | ruby (alternate) 0/21 below band; calcite (companion) 0/21 below band; one assemblage in every seed; star wanted 0/21 |
+| marble_contact_metamorphism (mogok) | NO STORY | MISSING | 51 | STORY-SCALE (spinel) | 0 + 0 / 21, 14 % | — | 0 % | 0 % | ruby (alternate) 0/21 below band; calcite (companion) 0/21 below band; one assemblage in every seed; star wanted 0/21 |
 | amethyst_geode (amethyst_geode) | UNRESOLVED | MISSING | 61 | UNCLASSED (quartz) | 0 + 0 (+21) / 21, none | quartz 62 % | 100 % | 0 % | quartz dust (< 1 mm); chalcedony dust (< 1 mm); calcite (alternate) 0/21 below band; in every seed: quartz, chalcedony; one assemblage in every seed; no run can carry the story until a protagonist has a size target (quartz, chalcedony, calcite) |
 | asbestos_hills_crack_seal (asbestos_hills) | UNRESOLVED | PARTIAL | 93 | STORY-SCALE (tigers eye) | 0 + 0 (+21) / 21, 17 % | siderite 100 % | 0 % | 39 % | in every seed: tigers eye, crocidolite; one assemblage in every seed; star wanted 0/21; clutter 39 % |
 | asbestos_hills_surficial_alteration (asbestos_hills) | UNRESOLVED | PARTIAL | 76 | STORY-SCALE (tigers eye) | 0 + 0 (+21) / 21, 17 % | siderite 100 % | 0 % | 40 % | in every seed: tigers eye, crocidolite; one assemblage in every seed; star wanted 0/21; clutter 40 % |
 | bisbee (bisbee) | UNRESOLVED | PARTIAL | 61 | UNCLASSED (malachite) | 0 + 0 (+21) / 21, none | malachite 71 % | 71 % | 8 % | malachite larger than every photographed crystal (median 65 mm; 1 crystal length, largest 21); azurite dust (< 1 mm); native copper dust (< 1 mm); cuprite dust (< 1 mm); in every seed: malachite, azurite, cuprite; malachite longer than the cavity 15/21 |
 | chiastolite_hornfels (chiastolite_hornfels) | UNRESOLVED | PARTIAL | 43 | UNCLASSED (andalusite) | 0 + 0 (+21) / 21, none | andalusite 100 % | 100 % | 0 % | in every seed: andalusite; one assemblage in every seed; no run can carry the story until a protagonist has a size target (andalusite) |
 | deccan_zeolite (deccan) | UNRESOLVED | PARTIAL | 66 | STORY-SCALE (apophyllite) | 0 + 0 (+21) / 21, 31 % | quartz 86 % | 0 % | 8 % | stilbite dust (< 1 mm); in every seed: apophyllite, stilbite, heulandite, chalcedony, calcite; one assemblage in every seed; star wanted 0/21 |
-| elmwood (elmwood) | UNRESOLVED | SHOWCASE | 66 | UNCLASSED (fluorite) | 0 + 0 (+21) / 21, 31 % | calcite 100 % | 100 % | 0 % | galena (companion) 0/21 below band; in every seed: fluorite, calcite, sphalerite; one assemblage in every seed |
+| elmwood (elmwood) | UNRESOLVED | SHOWCASE | 66 | UNCLASSED (fluorite) | 0 + 0 (+21) / 21, 29 % | calcite 100 % | 100 % | 0 % | galena (companion) 0/21 below band; in every seed: fluorite, calcite, sphalerite; one assemblage in every seed |
 | epithermal_telluride (cripple_creek) | UNRESOLVED | PARTIAL | 57 | UNCLASSED (calaverite) | 0 + 0 (+21) / 21, 26 % | hessite 100 % | 0 % | 17 % | calaverite larger than every photographed crystal (median 10 mm; 3 crystal lengths, largest 2.5); fluorite (alternate) 0/21 below band; pyrite (companion) 0/21 below band; dolomite (companion) 0/21 below band; in every seed: calaverite, sylvanite, quartz; one assemblage in every seed; star wanted 0/21; clutter 17 % |
 | gem_pegmatite (cruzeiro) | UNRESOLVED | PARTIAL | 68 | STORY-SCALE (tourmaline) | 0 + 0 (+21) / 21, 31 % | feldspar 100 % | 0 % | 0 % | tourmaline dust (< 1 mm); in every seed: tourmaline, quartz; one assemblage in every seed; star wanted 0/21 |
 | great_salt_plains (great_salt_plains) | UNRESOLVED | SHOWCASE | 105 | UNCLASSED (selenite) | 0 + 0 (+21) / 21, none | selenite 100 % | 100 % | 0 % | in every seed: selenite; one assemblage in every seed; no run can carry the story until a protagonist has a size target (selenite) |
 | jeffrey_mine (jeffrey_mine) | UNRESOLVED | SHOWCASE | 122 | STORY-SCALE (grossular) | 0 + 0 (+21) / 21, 26 % | diopside 57 % | 100 % | 28 % | pectolite (alternate) 21/21 above band; in every seed: grossular, vesuvianite, diopside, pectolite; one assemblage in every seed; clutter 28 % |
 | mvt (tri_state_picher) | UNRESOLVED | PARTIAL | 64 | UNCLASSED (galena) | 0 + 0 (+21) / 21, 29 % | calcite 100 % | 100 % | 45 % | dolomite (alternate) 0/21 below band; marcasite (companion) 0/21 below band; in every seed: galena, sphalerite, calcite; clutter 45 % |
-| naica_geothermal (naica) | UNRESOLVED | PARTIAL | 60 | UNCLASSED (selenite) | 0 + 0 (+21) / 21, 28 % | selenite 100 % | 100 % | 0 % | anhydrite (alternate) 0/21 below band; in every seed: selenite; one assemblage in every seed; no run can carry the story in this cavity: selenite (proxy display range from 77 mm), anhydrite (proxy display range from 66 mm) need more room than the cavity's 60 mm span |
+| naica_geothermal (naica) | UNRESOLVED | PARTIAL | 60 | UNCLASSED (selenite) | 0 + 0 (+21) / 21, none | selenite 100 % | 100 % | 0 % | anhydrite (alternate) 0/21 below band; in every seed: selenite; one assemblage in every seed; no run can carry the story in this cavity: selenite (proxy display range from 77 mm), anhydrite (proxy display range from 66 mm) need more room than the cavity's 60 mm span |
 | ouro_preto (ouro_preto) | UNRESOLVED | PARTIAL | 62 | STORY-SCALE (topaz) | 0 + 0 (+21) / 21, 17 % | albite 100 % | 0 % | 32 % | hematite (alternate) 0/21 below band; in every seed: topaz; one assemblage in every seed; star wanted 0/21; clutter 32 % |
 | porphyry (bingham) | UNRESOLVED | MISSING | 77 | UNCLASSED (pyrite) | 0 + 0 (+21) / 21, none | molybdenite 100 % | 0 % | 17 % | tetrahedrite dust (< 1 mm); quartz (companion) 0/21 below band; bornite (companion) 0/21 below band; in every seed: pyrite, tetrahedrite, galena; star wanted 0/21; no run can carry the story until a protagonist has a size target (pyrite, tetrahedrite, galena); clutter 17 % |
 | reactive_wall (viburnum) | UNRESOLVED | PARTIAL | 55 | UNCLASSED (calcite) | 0 + 0 (+21) / 21, 30 % | sphalerite 100 % | 0 % | 0 % | calcite (primary) 0/21 below band; chalcopyrite (alternate) 0/21 below band; dolomite (alternate) 0/21 below band; in every seed: galena; star wanted 0/21 |
 | roughten_gill (roughton_gill) | UNRESOLVED | PARTIAL | 37 | UNCLASSED (pyromorphite) | 0 + 0 (+21) / 21, none | galena 100 % | 0 % | 3 % | mimetite dust (< 1 mm); quartz dust (< 1 mm); linarite (companion) 0/21 below band; in every seed: pyromorphite, mimetite, quartz, hemimorphite; star wanted 0/21; no run can carry the story until a protagonist has a size target (pyromorphite, mimetite, quartz, hemimorphite) |
 | schneeberg (schneeberg) | UNRESOLVED | MISSING | 79 | STORY-SCALE (erythrite) | 0 + 0 (+21) / 21, 15 % | feldspar 86 % | 0 % | 27 % | erythrite dust (< 1 mm); skutterudite (companion) 0/21 below band; in every seed: erythrite; star wanted 0/21; clutter 27 % |
-| searles_lake (searles_lake) | UNRESOLVED | MISSING | 48 | UNCLASSED (halite) | 0 + 0 (+21) / 21, 28 % | thenardite 95 % | 0 % | 0 % | borax (companion) 0/21 below band; in every seed: halite; one assemblage in every seed; star wanted 0/21; no run can carry the story in this cavity: halite (proxy display range from 85 mm) needs more room than the cavity's 48 mm span; thenardite longer than the cavity 14/21; tincalconite longer than the cavity 1/21 |
+| searles_lake (searles_lake) | UNRESOLVED | MISSING | 48 | UNCLASSED (halite) | 0 + 0 (+21) / 21, none | thenardite 95 % | 0 % | 0 % | borax (companion) 0/21 below band; in every seed: halite; one assemblage in every seed; star wanted 0/21; no run can carry the story in this cavity: halite (proxy display range from 85 mm) needs more room than the cavity's 48 mm span; thenardite longer than the cavity 14/21; tincalconite longer than the cavity 1/21 |
 | shigar_pegmatite (shigar) | UNRESOLVED | PARTIAL | 321 | STORY-SCALE (aquamarine) | 0 + 0 (+21) / 21, 27 % | albite 100 % | 0 % | 0 % | aquamarine (primary) 0/21 below band; topaz dust (< 1 mm); apatite (companion) 0/21 below band; fluorite (companion) 0/21 below band; in every seed: topaz, quartz, tourmaline; one assemblage in every seed; star wanted 0/21 |
-| sicily_solfifera (sicily) | UNRESOLVED | PARTIAL | 38 | UNCLASSED (native sulfur) | 0 + 0 (+21) / 21, 29 % | celestine 100 % | 100 % | 0 % | aragonite (alternate) 0/21 below band; in every seed: native sulfur, celestine, calcite; one assemblage in every seed; no run can carry the story in this cavity: native sulfur (proxy display range from 57 mm), aragonite (proxy display range from 99 mm), celestine (proxy display range from 55 mm) need more room than the cavity's 38 mm span; calcite has no size target |
+| sicily_solfifera (sicily) | UNRESOLVED | PARTIAL | 38 | UNCLASSED (native sulfur) | 0 + 0 (+21) / 21, none | celestine 100 % | 100 % | 0 % | aragonite (alternate) 0/21 below band; in every seed: native sulfur, celestine, calcite; one assemblage in every seed; no run can carry the story in this cavity: native sulfur (proxy display range from 57 mm), aragonite (proxy display range from 99 mm), celestine (proxy display range from 55 mm) need more room than the cavity's 38 mm span; calcite has no size target |
 | sulphur_bank (sulphur_bank) | UNRESOLVED | PARTIAL | 52 | UNCLASSED (cinnabar) | 0 + 0 (+21) / 21, none | marcasite 100 % | 0 % | 46 % | opal (companion) 0/21 below band; in every seed: cinnabar, native sulfur; one assemblage in every seed; star wanted 0/21; no run can carry the story until a protagonist has a size target (cinnabar, native sulfur); clutter 46 % |
 | sunnyside_american_tunnel (sunnyside) | UNRESOLVED | PARTIAL | 66 | STORY-SCALE (rhodochrosite) | 0 + 0 (+21) / 21, 29 % | calcite 100 % | 0 % | 23 % | native gold dust (< 1 mm); in every seed: rhodochrosite, fluorite, quartz, native gold; star wanted 0/21; clutter 23 %; calcite longer than the cavity 21/21 |
 | tormiq_alpine_cleft (tormiq) | UNRESOLVED | PARTIAL | 195 | STORY-SCALE (titanite) | 0 + 0 (+21) / 21, 22 % | albite 100 % | 0 % | 0 % | epidote larger than every photographed crystal (median 24 mm; 1 crystal length, largest 20); in every seed: titanite, epidote; star wanted 0/21 |
-| ultramafic_supergene (marlborough) | UNRESOLVED | PARTIAL | 59 | UNCLASSED (chrysoprase) | 0 + 0 (+21) / 21, 15 % | opal 100 % | 0 % | 63 % | chalcedony (companion) 0/21 below band; in every seed: chrysoprase; one assemblage in every seed; star wanted 0/21; no run can carry the story in this cavity: chrysoprase (proxy display range from 63 mm) needs more room than the cavity's 59 mm span; clutter 63 % |
+| ultramafic_supergene (marlborough) | UNRESOLVED | PARTIAL | 59 | UNCLASSED (chrysoprase) | 0 + 0 (+21) / 21, none | opal 100 % | 0 % | 63 % | chalcedony (companion) 0/21 below band; in every seed: chrysoprase; one assemblage in every seed; star wanted 0/21; no run can carry the story in this cavity: chrysoprase (proxy display range from 63 mm) needs more room than the cavity's 59 mm span; clutter 63 % |
 | wittichen (wittichen) | UNRESOLVED | PARTIAL | 299 | STORY-SCALE (erythrite) | 0 + 0 (+21) / 21, 24 % | erythrite 100 % | 100 % | 0 % | fluorite (alternate) 0/21 below band; in every seed: erythrite |
 | colorado_plateau (colorado_plateau) | NO ENGINE | NO ENGINE | 70 | UNCLASSED (pascoite) | 0 + 0 (+21) / 21, none | uranophane 100 % | 0 % | 0 % | one assemblage in every seed; star wanted 0/21 |
 | tn457_barite_pulses (north_pennines) | OUT OF SCOPE | OUT OF SCOPE | 31 | — | — | — | — | — | — |
 
-UNRESOLVED (26), by what leaves it open: short of a specimen proxy — deccan_zeolite, elmwood, jeffrey_mine, naica_geothermal, ouro_preto, reactive_wall, schneeberg, searles_lake, ultramafic_supergene, wittichen; short of a specimen proxy + no size target — asbestos_hills_crack_seal, asbestos_hills_surficial_alteration, epithermal_telluride, gem_pegmatite, mvt, shigar_pegmatite, sicily_solfifera, sunnyside_american_tunnel, tormiq_alpine_cleft; no story frequency + no size target — amethyst_geode, chiastolite_hornfels, great_salt_plains, porphyry, roughten_gill, sulphur_bank; no story frequency + short of a specimen proxy + longer than the cavity — bisbee. A specimen proxy overstates the crystal, so a crystal short of it is not a verdict; a protagonist with no size target has none to miss; in an unclassed pocket a run without a story may be a small pocket.
+UNRESOLVED (26), by what leaves it open: short of a specimen proxy + no size target — asbestos_hills_crack_seal, asbestos_hills_surficial_alteration, epithermal_telluride, gem_pegmatite, mvt, shigar_pegmatite, sunnyside_american_tunnel, tormiq_alpine_cleft; short of a specimen proxy — deccan_zeolite, elmwood, jeffrey_mine, ouro_preto, reactive_wall, schneeberg, wittichen; no story frequency + no size target — amethyst_geode, chiastolite_hornfels, great_salt_plains, porphyry, roughten_gill, sulphur_bank; no story frequency + short of a specimen proxy — naica_geothermal, searles_lake, ultramafic_supergene; no story frequency + short of a specimen proxy + longer than the cavity — bisbee; no story frequency + short of a specimen proxy + no size target — sicily_solfifera. A specimen proxy overstates the crystal, so a crystal short of it is not a verdict; a protagonist with no size target has none to miss; in an unclassed pocket a run without a story may be a small pocket.
 No run can carry the story in its scenario's current cavity, whatever grows, in 10 of 32 scored scenarios. The display range of every protagonist with a size target starts beyond the cavity's span — on crystal targets: none; on specimen proxies, which overstate the crystal: naica_geothermal, searles_lake, ultramafic_supergene; and the other protagonists have no size target: sicily_solfifera. No protagonist with an engine has a size target: amethyst_geode, chiastolite_hornfels, great_salt_plains, porphyry, roughten_gill, sulphur_bank. A crystal target beyond the span waits on bigger pockets (WP9); a proxy on bigger pockets or on crystal lengths that bring it within (WP0); a missing target on crystal lengths.
-Where the captions give a few crystal lengths but too few for a target (24 protagonists), every photographed crystal is longer than every simulated one, enclosed crystals included, in 19: azurite at bisbee (1 length 10 mm; simulated at most 0.8); stilbite at deccan_zeolite (2 lengths 40–62 mm; simulated at most 1.0); heulandite at deccan_zeolite (3 lengths 35–50 mm; simulated at most 3.6); fluorite at elmwood (4 lengths 20–48 mm; simulated at most 10); calcite at elmwood (3 lengths 50–115 mm; simulated at most 15); galena at mvt (2 lengths 12.0–30 mm; simulated at most 11.8); selenite at naica_geothermal (4 lengths 44–226 mm; simulated at most 2.9); topaz at ouro_preto (4 lengths 12–36 mm; simulated at most 5.9); galena at reactive_wall (3 lengths 40–65 mm; simulated at most 4.1); pyromorphite at roughten_gill (1 length 10 mm; simulated at most 6.2); erythrite at schneeberg (2 lengths 4.0–40 mm; simulated at most 0.8); topaz at shigar_pegmatite (2 lengths 13–17 mm; simulated at most 0.7); quartz at shigar_pegmatite (3 lengths 22–80 mm; simulated at most 13); rhodochrosite at sunnyside_american_tunnel (1 length 20 mm; simulated at most 5.2); fluorite at sunnyside_american_tunnel (1 length 80 mm; simulated at most 1.3); smithsonite at supergene_oxidation (4 lengths 5.0–10 mm; simulated at most 3.0); azurite at supergene_oxidation (3 lengths 5.0–25 mm; simulated at most 3.4); mimetite at supergene_oxidation (1 length 20 mm; simulated at most 3.8); titanite at tormiq_alpine_cleft (2 lengths 18–50 mm; simulated at most 5.3); not so for malachite at bisbee, calaverite at epithermal_telluride, calcite at reactivated_fluorite_vein, malachite at supergene_oxidation, epidote at tormiq_alpine_cleft. Too few to set a target, they lean against the simulator; they do not clear it.
+Where the captions give a few crystal lengths but too few for a target (25 protagonists), every photographed crystal is longer than every simulated one, enclosed crystals included, in 20: azurite at bisbee (1 length 10 mm; simulated at most 0.8); stilbite at deccan_zeolite (2 lengths 40–62 mm; simulated at most 1.0); heulandite at deccan_zeolite (3 lengths 35–50 mm; simulated at most 3.6); fluorite at elmwood (4 lengths 20–48 mm; simulated at most 10); calcite at elmwood (3 lengths 50–115 mm; simulated at most 15); galena at mvt (2 lengths 12.0–30 mm; simulated at most 11.8); selenite at naica_geothermal (4 lengths 44–226 mm; simulated at most 2.9); topaz at ouro_preto (4 lengths 12–36 mm; simulated at most 5.9); galena at reactive_wall (3 lengths 40–65 mm; simulated at most 4.1); pyromorphite at roughten_gill (1 length 10 mm; simulated at most 6.2); mimetite at roughten_gill (1 length 2.0 mm; simulated at most 0.1); erythrite at schneeberg (2 lengths 4.0–40 mm; simulated at most 0.8); topaz at shigar_pegmatite (2 lengths 13–17 mm; simulated at most 0.7); quartz at shigar_pegmatite (3 lengths 22–80 mm; simulated at most 13); rhodochrosite at sunnyside_american_tunnel (1 length 20 mm; simulated at most 5.2); fluorite at sunnyside_american_tunnel (1 length 80 mm; simulated at most 1.3); smithsonite at supergene_oxidation (4 lengths 5.0–10 mm; simulated at most 3.0); azurite at supergene_oxidation (3 lengths 5.0–25 mm; simulated at most 3.4); mimetite at supergene_oxidation (1 length 20 mm; simulated at most 3.8); titanite at tormiq_alpine_cleft (2 lengths 18–50 mm; simulated at most 5.3); not so for malachite at bisbee, calaverite at epithermal_telluride, calcite at reactivated_fluorite_vein, malachite at supergene_oxidation, epidote at tormiq_alpine_cleft. Too few to set a target, they lean against the simulator; they do not clear it.
+Story checks that 21 seeds cannot fail beyond noise — a frequency at or below 0.155, the top of the interval for 0 of them, where even a fleet that never tells the story is within noise: marble_contact_metamorphism (0.1393), schneeberg (0.1517). Where no protagonist with an engine occurs in any seed, the verdict carries no noise mark: the seeds repeat one pocket, and chance explains nothing.
+Simulated crystals larger than every photographed crystal of their species, where the record gives a few lengths beside a proxy: malachite at bisbee, calaverite at epithermal_telluride, calcite at reactivated_fluorite_vein, malachite at supergene_oxidation, epidote at tormiq_alpine_cleft. Crystals longer than the starting cavity's span: malachite at bisbee (15/21), thenardite at searles_lake (14/21), tincalconite at searles_lake (1/21), calcite at sunnyside_american_tunnel (21/21).
 Pocket classes against the primary protagonist's characteristic crystal: STORY-SCALE 15, SMALL 0, UNCLASSED 17 of 32 scored scenarios; runs in small pockets 0 (0 of them with a story, reported apart). Every scenario grows in one cavity in all its seeds (861 constructions checked, none differ), so a scenario's fleet holds a single pocket class: no scenario yet has both small pockets and story-scale ones.
 <!-- /generated:verdicts -->
 
@@ -398,7 +416,9 @@ Pocket classes against the primary protagonist's characteristic crystal: STORY-S
   - Herkimer's quartz is dust against its photographed crystals — though that target has exactly the
     minimum of five lengths (§2.6).
   - Grimsel's quartz grows to a fraction of its photographed crystals, and its fluorite is dust.
-  - Mogok grows no ruby, and it has no spinel engine.
+  - Mogok grows no ruby, and it has no spinel engine. Its verdict is the weakest of the three: its
+    frequency comes from a ruby proxy of six specimens, four of them one caption series (§2.6), and it
+    is low enough that no fleet could fail it beyond noise (the fourth line).
 - **Most are UNRESOLVED: the evidence is too thin for a verdict.** The first line under the table sorts
   them by what leaves them open. A specimen proxy can support a crystal size, not refute one, and a
   species with no size target has none to miss.
@@ -412,10 +432,8 @@ Pocket classes against the primary protagonist's characteristic crystal: STORY-S
   frequency.
 - **The flags show what the old rule could not:**
   - protagonists grown as dust, or hidden because all their visible crystals are flagged as enclosed;
-  - crystals longer than the starting cavity's longest span (Bisbee's malachite, Sunnyside's calcite,
-    Searles' thenardite);
-  - crystals larger than every photographed crystal of their species (Tsumeb's and Bisbee's malachite,
-    Cripple Creek's calaverite, Tormiq's epidote);
+  - crystals longer than the starting cavity's longest span, and crystals larger than every photographed
+    crystal of their species (the fifth line lists both);
   - protagonists outside their bands, and in every seed;
   - companions in the star's place.
 
@@ -426,7 +444,7 @@ Before (the previous rule: SHOWCASE 3, PARTIAL 22, MISSING 6, NO ENGINE 1, OUT O
 
 | scenario | before | after | why (generated from the targets and the census) |
 |---|---|---|---|
-| elmwood | SHOWCASE | UNRESOLVED | story in 0/21 runs, open in 21 more, target 31 %; open: short of a specimen proxy — fluorite median 10 mm (21/21) vs specimen proxy q25 56 / median 76 mm (n 50, low; 4 crystal lengths 20–48); calcite median 14 mm (21/21) vs specimen proxy q25 80 / median 120 mm (n 37, low; 3 crystal lengths 50–115); sphalerite median 5.7 mm (21/21) vs specimen proxy q25 59 / median 70 mm (n 16, low) — before: fluorite cabinet, calcite cabinet, sphalerite thumbnail; the star a signature species in 21/21 |
+| elmwood | SHOWCASE | UNRESOLVED | story in 0/21 runs, open in 21 more, target 29 %; open: short of a specimen proxy — fluorite median 10 mm (21/21) vs specimen proxy q25 56 / median 76 mm (n 50, low; 4 crystal lengths 20–48); calcite median 14 mm (21/21) vs specimen proxy q25 80 / median 120 mm (n 37, low; 3 crystal lengths 50–115); sphalerite median 5.7 mm (21/21) vs specimen proxy q25 59 / median 70 mm (n 16, low) — before: fluorite cabinet, calcite cabinet, sphalerite thumbnail; the star a signature species in 21/21 |
 | great_salt_plains | SHOWCASE | UNRESOLVED | story in 0/21 runs, open in 21 more, no story frequency; open: no story frequency, no size target — selenite median 41 mm (21/21) vs size unknown (crystal n 0, specimen n 2) — before: selenite cabinet; the star a signature species in 21/21 |
 | jeffrey_mine | SHOWCASE | UNRESOLVED | story in 0/21 runs, open in 21 more, target 26 %; open: short of a specimen proxy — grossular median 6.0 mm (21/21) vs crystal q25 7.5 / median 12 mm (n 6, low); vesuvianite median 13 mm (21/21) vs specimen proxy q25 30 / median 40 mm (n 17, low); diopside median 13 mm (21/21) vs specimen proxy q25 54 / median 94 mm (n 9, low); pectolite median 0.3 mm (21/21) vs specimen proxy q25 49 / median 65 mm (n 14, low) — before: grossular thumbnail, vesuvianite cabinet, diopside cabinet; the star a signature species in 21/21 |
 | reactivated_fluorite_vein | PARTIAL | STORY | story in 21/21 runs (on crystal targets), target 29 %; carried by fluorite 21 — before: fluorite cabinet, galena thumbnail, quartz never forms; the star a signature species in 0/21 |
@@ -440,23 +458,23 @@ Before (the previous rule: SHOWCASE 3, PARTIAL 22, MISSING 6, NO ENGINE 1, OUT O
 | epithermal_telluride | PARTIAL | UNRESOLVED | story in 0/21 runs, open in 21 more, target 26 %; open: short of a specimen proxy, no size target — calaverite median 10 mm (21/21) vs specimen proxy q25 49 / median 66 mm (n 9, low; 3 crystal lengths 1.8–2.5); fluorite never occurs vs specimen proxy q25 57 / median 57 mm (n 5, low); sylvanite median 10 mm (21/21) vs size unknown (crystal n 0, specimen n 2); quartz median 4.6 mm (21/21) vs size unknown (crystal n 0, specimen n 1) — before: calaverite cabinet, fluorite never forms; the star a signature species in 0/21 |
 | gem_pegmatite | PARTIAL | UNRESOLVED | story in 0/21 runs, open in 21 more, target 31 %; open: short of a specimen proxy, no size target — tourmaline median 0.4 mm (dust) (21/21) vs specimen proxy q25 35 / median 52 mm (n 46, low); quartz median 1.6 mm (21/21) vs size unknown (crystal n 0, specimen n 3) — before: tourmaline dust, quartz visible, lepidolite dust; the star a signature species in 0/21 |
 | mvt | PARTIAL | UNRESOLVED | story in 0/21 runs, open in 21 more, target 29 %; open: short of a specimen proxy, no size target — galena median 12 mm (21/21) vs specimen proxy q25 52 / median 80 mm (n 18, low; 2 crystal lengths 12–30); sphalerite median 1.0 mm (21/21) vs specimen proxy q25 50 / median 71 mm (n 9, low); calcite median 38 mm (21/21) vs size unknown (crystal n 0, specimen n 4); chalcopyrite never occurs vs size unknown (crystal n 0, specimen n 2); dolomite never occurs vs size unknown (crystal n 1, specimen n 1) — before: galena cabinet, sphalerite visible, calcite cabinet; the star a signature species in 21/21 |
-| naica_geothermal | PARTIAL | UNRESOLVED | story in 0/21 runs, open in 21 more, target 28 %; open: short of a specimen proxy — selenite median 2.8 mm (21/21) vs specimen proxy q25 77 / median 121 mm (n 15, low; 4 crystal lengths 44–226); anhydrite never occurs vs specimen proxy q25 66 / median 111 mm (n 10, low; 1 crystal length, 83 mm) — before: selenite visible; the star a signature species in 21/21 |
+| naica_geothermal | PARTIAL | UNRESOLVED | story in 0/21 runs, open in 21 more, no story frequency; open: no story frequency, short of a specimen proxy — selenite median 2.8 mm (21/21) vs specimen proxy q25 77 / median 121 mm (n 15, low; 4 crystal lengths 44–226); anhydrite never occurs vs specimen proxy q25 66 / median 111 mm (n 10, low; 1 crystal length, 83 mm) — before: selenite visible; the star a signature species in 21/21 |
 | ouro_preto | PARTIAL | UNRESOLVED | story in 0/21 runs, open in 21 more, target 17 %; open: short of a specimen proxy — topaz median 4.6 mm (21/21) vs specimen proxy q25 33 / median 43 mm (n 16, low; 4 crystal lengths 12–36); hematite never occurs vs specimen proxy q25 44 / median 49 mm (n 11, low) — before: topaz visible, hematite never forms, euclase no engine; the star a signature species in 0/21 |
 | reactive_wall | PARTIAL | UNRESOLVED | story in 0/21 runs, open in 21 more, target 30 %; open: short of a specimen proxy — calcite never occurs vs specimen proxy q25 58 / median 75 mm (n 35, low; 3 crystal lengths 50–120); galena median 4.0 mm (21/21) vs specimen proxy q25 37 / median 50 mm (n 29, low; 3 crystal lengths 40–65); chalcopyrite never occurs vs size unknown (crystal n 0, specimen n 4); dolomite never occurs vs size unknown (crystal n 0, specimen n 0) — before: calcite never forms, galena visible, chalcopyrite never forms; the star a signature species in 0/21 |
-| roughten_gill | PARTIAL | UNRESOLVED | story in 0/21 runs, open in 21 more, no story frequency; open: no story frequency, no size target — pyromorphite median 6.0 mm (21/21) vs size unknown (crystal n 1, specimen n 2); mimetite median 0.1 mm (dust) (21/21) vs size unknown (crystal n 0, specimen n 1); quartz median 0.2 mm (dust) (21/21) vs size unknown (crystal n 0, specimen n 0); hemimorphite median 1.4 mm (21/21) vs size unknown (crystal n 0, specimen n 3) — before: pyromorphite thumbnail, mimetite dust, quartz dust; the star a signature species in 0/21 |
+| roughten_gill | PARTIAL | UNRESOLVED | story in 0/21 runs, open in 21 more, no story frequency; open: no story frequency, no size target — pyromorphite median 6.0 mm (21/21) vs size unknown (crystal n 1, specimen n 2); mimetite median 0.1 mm (dust) (21/21) vs size unknown (crystal n 1, specimen n 1); quartz median 0.2 mm (dust) (21/21) vs size unknown (crystal n 0, specimen n 0); hemimorphite median 1.4 mm (21/21) vs size unknown (crystal n 0, specimen n 3) — before: pyromorphite thumbnail, mimetite dust, quartz dust; the star a signature species in 0/21 |
 | shigar_pegmatite | PARTIAL | UNRESOLVED | story in 0/21 runs, open in 21 more, target 27 %; open: short of a specimen proxy, no size target — aquamarine never occurs vs crystal q25 30 / median 36 mm (n 11, medium); topaz median 0.6 mm (dust) (21/21) vs specimen proxy q25 30 / median 44 mm (n 36, low; 2 crystal lengths 13–17); quartz median 11 mm (21/21) vs specimen proxy q25 75 / median 83 mm (n 8, low; 3 crystal lengths 22–80); tourmaline median 1.8 mm (21/21) vs size unknown (crystal n 0, specimen n 1) — before: aquamarine never forms, topaz dust, quartz cabinet; the star a signature species in 0/21 |
-| sicily_solfifera | PARTIAL | UNRESOLVED | story in 0/21 runs, open in 21 more, target 29 %; open: short of a specimen proxy, no size target — native sulfur median 5.0 mm (21/21) vs specimen proxy q25 57 / median 93 mm (n 20, low); aragonite never occurs vs specimen proxy q25 99 / median 113 mm (n 8, low; 2 crystal lengths 30–40); celestine median 9.1 mm (21/21) vs specimen proxy q25 55 / median 80 mm (n 15, low); calcite median 1.0 mm (21/21) vs size unknown (crystal n 0, specimen n 4) — before: native sulfur thumbnail, aragonite never forms, celestine thumbnail; the star a signature species in 21/21 |
+| sicily_solfifera | PARTIAL | UNRESOLVED | story in 0/21 runs, open in 21 more, no story frequency; open: no story frequency, short of a specimen proxy, no size target — native sulfur median 5.0 mm (21/21) vs specimen proxy q25 57 / median 93 mm (n 20, low); aragonite never occurs vs specimen proxy q25 99 / median 113 mm (n 8, low; 2 crystal lengths 30–40); celestine median 9.1 mm (21/21) vs specimen proxy q25 55 / median 80 mm (n 15, low); calcite median 1.0 mm (21/21) vs size unknown (crystal n 0, specimen n 4) — before: native sulfur thumbnail, aragonite never forms, celestine thumbnail; the star a signature species in 21/21 |
 | sulphur_bank | PARTIAL | UNRESOLVED | story in 0/21 runs, open in 21 more, no story frequency; open: no story frequency, no size target — cinnabar median 8.6 mm (21/21) vs size unknown (crystal n 0, specimen n 0); native sulfur median 5.1 mm (21/21) vs size unknown (crystal n 0, specimen n 0) — before: cinnabar thumbnail, native sulfur thumbnail; the star a signature species in 0/21 |
 | sunnyside_american_tunnel | PARTIAL | UNRESOLVED | story in 0/21 runs, open in 21 more, target 29 %; open: short of a specimen proxy, no size target — rhodochrosite median 5.1 mm (21/21) vs specimen proxy q25 30 / median 44 mm (n 17, low; 1 crystal length, 20 mm); fluorite median 1.3 mm (21/21) vs specimen proxy q25 43 / median 89 mm (n 15, low; 1 crystal length, 80 mm); quartz median 1.4 mm (21/21) vs size unknown (crystal n 0, specimen n 3); native gold median 0.8 mm (dust) (21/21) vs size unknown (crystal n 0, specimen n 1) — before: rhodochrosite thumbnail, fluorite visible, quartz visible; the star a signature species in 0/21 |
 | tormiq_alpine_cleft | PARTIAL | UNRESOLVED | story in 0/21 runs, open in 21 more, target 22 %; open: short of a specimen proxy, no size target — titanite median 5.2 mm (21/21) vs specimen proxy q25 34 / median 47 mm (n 10, low; 2 crystal lengths 18–50); epidote median 24 mm (21/21) vs specimen proxy q25 40 / median 45 mm (n 5, low; 1 crystal length, 20 mm); quartz median <0.01 mm (20/21) vs size unknown (crystal n 0, specimen n 0); hematite never occurs vs size unknown (crystal n 0, specimen n 0) — before: titanite thumbnail, epidote cabinet, quartz dust; the star a signature species in 0/21 |
-| ultramafic_supergene | PARTIAL | UNRESOLVED | story in 0/21 runs, open in 21 more, target 15 %; open: short of a specimen proxy — chrysoprase median 5.6 mm (21/21) vs specimen proxy q25 63 / median 89 mm (n 8, low) — before: chrysoprase thumbnail, chalcedony never forms; the star a signature species in 0/21 |
+| ultramafic_supergene | PARTIAL | UNRESOLVED | story in 0/21 runs, open in 21 more, no story frequency; open: no story frequency, short of a specimen proxy — chrysoprase median 5.6 mm (21/21) vs specimen proxy q25 63 / median 89 mm (n 8, low) — before: chrysoprase thumbnail, chalcedony never forms; the star a signature species in 0/21 |
 | wittichen | PARTIAL | UNRESOLVED | story in 0/21 runs, open in 21 more, target 24 %; open: short of a specimen proxy — erythrite median 8.1 mm (21/21) vs specimen proxy q25 38 / median 50 mm (n 7, low); zeunerite never occurs vs size unknown (crystal n 1, specimen n 0); fluorite never occurs vs specimen proxy q25 50 / median 60 mm (n 19, low; 2 crystal lengths 8.0–25) — before: erythrite thumbnail, zeunerite never forms, heinrichite no engine; the star a signature species in 21/21 |
 | cooling | MISSING | NO STORY | story in 0/21 runs, target 22 %; quartz median 0.6 mm (dust) (21/21) vs crystal q25 11 / median 16 mm (n 5, low) — before: quartz dust, bitumen no engine, calcite never forms; the star a signature species in 21/21 |
 | marble_contact_metamorphism | MISSING | NO STORY | story in 0/21 runs, target 14 %; ruby never occurs vs specimen proxy q25 25 / median 35 mm (n 6, low; 1 crystal length, 43 mm); sapphire never occurs vs size unknown (crystal n 0, specimen n 1); tourmaline never occurs vs specimen proxy q25 24 / median 30 mm (n 9, low) — before: spinel no engine, ruby never forms, painite no engine; the star a signature species in 0/21 |
 | amethyst_geode | MISSING | UNRESOLVED | story in 0/21 runs, open in 21 more, no story frequency; open: no story frequency, no size target — quartz median 0.8 mm (dust) (21/21) vs size unknown (crystal n 0, specimen n 1); chalcedony median 0.2 mm (dust) (21/21) vs size unknown (crystal n 0, specimen n 0); calcite never occurs vs size unknown (crystal n 0, specimen n 2) — before: quartz dust, chalcedony dust, calcite never forms; the star a signature species in 21/21 |
 | porphyry | MISSING | UNRESOLVED | story in 0/21 runs, open in 21 more, no story frequency; open: no story frequency, no size target — pyrite median 0 mm (21/21) vs size unknown (crystal n 0, specimen n 2); tetrahedrite median 0 mm (dust) (21/21) vs size unknown (crystal n 0, specimen n 1); galena median 11 mm (21/21) vs size unknown (crystal n 0, specimen n 2) — before: pyrite flagged, tetrahedrite dust, faustite no engine; the star a signature species in 0/21 |
 | schneeberg | MISSING | UNRESOLVED | story in 0/21 runs, open in 21 more, target 15 %; open: short of a specimen proxy — erythrite median 0.7 mm (dust) (21/21) vs specimen proxy q25 55 / median 68 mm (n 8, low; 2 crystal lengths 4.0–40) — before: erythrite dust, pucherite no engine, eulytine no engine, native silver dust; the star a signature species in 0/21 |
-| searles_lake | MISSING | UNRESOLVED | story in 0/21 runs, open in 21 more, target 28 %; open: short of a specimen proxy — halite median <0.01 mm (21/21) vs specimen proxy q25 85 / median 102 mm (n 12, low) — before: halite dust, hanksite no engine, trona no engine; the star a signature species in 0/21 |
+| searles_lake | MISSING | UNRESOLVED | story in 0/21 runs, open in 21 more, no story frequency; open: no story frequency, short of a specimen proxy — halite median <0.01 mm (21/21) vs specimen proxy q25 85 / median 102 mm (n 12, low) — before: halite dust, hanksite no engine, trona no engine; the star a signature species in 0/21 |
 | colorado_plateau | NO ENGINE | NO ENGINE | no protagonist has an engine (pascoite, hughesite, dickthomssenite, lasalite, magnesiopascoite) — before: pascoite no engine, hughesite no engine, dickthomssenite no engine, lasalite no engine, magnesiopascoite no engine; the star a signature species in 0/21 |
 | tn457_barite_pulses | OUT OF SCOPE | OUT OF SCOPE | the scenario is one outer-zone barite-on-sphalerite cavity; its record is the whole orefield's (the Weardale and Alston Moor pages and searches), led by fluorite, the central zone's mineral, and no page or search targets the outer zone (review §5.1) |
 <!-- /generated:before-after -->
@@ -583,7 +601,7 @@ What the pockets show:
 ### 2.4 The size evidence
 
 <!-- generated:size-evidence -->
-Capture: 82 Mineralienatlas pages; 2217 photographs with a stated length, 2100 specimens once the photographs of one specimen are joined (100 by identical captions, 17 by the same dimensions). Specimens with a length of each kind: crystal 184, aggregate 13, specimen 1453, picture width 458. Crystal lengths set aside: 9 named another mineral, 1 were about another mineral, 10 gave a width; 9 lengths stayed unclassed. The full audit, every crystal length and every join: `proposals/DATA-STORY-POCKET-SIZES-2026-10-22.md`.
+Capture: 82 Mineralienatlas pages; 2217 photographs with a stated length, 2102 specimens once the photographs of one specimen are joined (100 by identical captions, 15 by the same dimensions). Specimens with a length of each kind: crystal 185, aggregate 13, specimen 1453, picture width 458. Crystal lengths set aside: 10 named another mineral, 1 were about another mineral, 8 gave a width; 9 lengths stayed unclassed. The full audit, every crystal length and every join: `proposals/DATA-STORY-POCKET-SIZES-2026-10-22.md`.
 Protagonist size targets (112): crystal (low) 10, crystal (medium) 1, specimen-proxy 55, unknown 46.
 
 | scenario | primary protagonist | crystal lengths: n, median (q25–q75) mm | specimen dimensions: n, median (q25–q75) mm | target |
@@ -681,22 +699,71 @@ the targets, and WP9 takes it up.
 ### 2.6 How firm the verdicts are
 
 <!-- generated:robustness -->
-For every protagonist with a crystal target: the share of its lengths in its largest series (one wording, each upload less than 365 days after the one before: likely one contributor's lot or find), the verdict with that series left out, and — where the target has exactly the minimum of 5 lengths — the verdict if one fewer left it to its specimen proxy.
+For every protagonist with a crystal target, and every specimen proxy with a series or at the minimum sample: the share of its lengths in its largest series (one wording, each upload less than 365 days after the one before: likely one contributor's lot or find), the verdict with that series left out, and — where the target has exactly the minimum of 5 lengths — the verdict with one length fewer (a crystal target falls back to its proxy, a proxy to unknown). Each verdict is scored against the story frequency rebuilt by the same rule.
 
-| scenario | verdict | protagonist: crystal target (n, confidence) | largest series | without it: n, q25 → verdict | at the minimum: with the proxy → verdict |
+| scenario | verdict | protagonist: target (basis, n, confidence) | largest series | without it: n, q25 → verdict | at the minimum, one length fewer → verdict |
 |---|---|---|---|---|---|
-| reactivated_fluorite_vein | STORY | fluorite (n 17, low) | 9 of 17 | 8, 19 mm → UNRESOLVED | — |
-| reactivated_fluorite_vein | STORY | galena (n 5, low) | 2 of 5 | 3, 16 mm → STORY | STORY |
-| supergene_oxidation | STORY (PROXY) | cerussite (n 5, low) | — | — | STORY (PROXY) |
-| cooling | NO STORY | quartz (n 5, low) | — | — | UNRESOLVED |
-| grimsel_alpine_cleft | NO STORY | quartz (n 25, low) | 18 of 25 | 7, 31 mm → NO STORY | — |
-| grimsel_alpine_cleft | NO STORY | fluorite (n 9, low) | 2 of 9 | 7, 12 mm → NO STORY | — |
-| deccan_zeolite | UNRESOLVED | apophyllite (n 8, low) | — | — | — |
-| deccan_zeolite | UNRESOLVED | calcite (n 5, low) | 2 of 5 | 3, 26 mm → UNRESOLVED | UNRESOLVED |
-| jeffrey_mine | UNRESOLVED | grossular (n 6, low) | — | — | — |
-| shigar_pegmatite | UNRESOLVED | aquamarine (n 11, medium) | 5 of 11 | 6, 36 mm → UNRESOLVED | — |
+| reactivated_fluorite_vein | STORY | fluorite (crystal, n 17, low) | 9 of 17 | 8, 19 mm → UNRESOLVED | — |
+| reactivated_fluorite_vein | STORY | galena (crystal, n 5, low) | 2 of 5 | 3, 16 mm → STORY | STORY |
+| reactivated_fluorite_vein | STORY | calcite (proxy, n 16, low) | 10 of 16 | 6, 34 mm → STORY | — |
+| supergene_oxidation | STORY (PROXY) | smithsonite (proxy, n 28, low) | 6 of 28 | 22, 51 mm → STORY (PROXY) | — |
+| supergene_oxidation | STORY (PROXY) | cerussite (crystal, n 5, low) | — | — | STORY (PROXY) |
+| supergene_oxidation | STORY (PROXY) | calcite (proxy, n 45, low) | 10 of 45 | 35, 43 mm → STORY (PROXY) | — |
+| supergene_oxidation | STORY (PROXY) | azurite (proxy, n 39, low) | 6 of 39 | 33, 33 mm → STORY (PROXY) | — |
+| supergene_oxidation | STORY (PROXY) | malachite (proxy, n 22, low) | 7 of 22 | 15, 33 mm → STORY (PROXY) | — |
+| supergene_oxidation | STORY (PROXY) | mimetite (proxy, n 27, low) | 7 of 27 | 20, 37 mm → STORY (PROXY) | — |
+| cooling | NO STORY | quartz (crystal, n 5, low) | — | — | UNRESOLVED |
+| grimsel_alpine_cleft | NO STORY | quartz (crystal, n 25, low) | 18 of 25 | 7, 31 mm → NO STORY | — |
+| grimsel_alpine_cleft | NO STORY | fluorite (crystal, n 9, low) | 2 of 9 | 7, 12 mm → NO STORY | — |
+| marble_contact_metamorphism | NO STORY | ruby (proxy, n 6, low) | 4 of 6 | 2, 23 mm → UNRESOLVED | — |
+| marble_contact_metamorphism | NO STORY | tourmaline (proxy, n 9, low) | 5 of 9 | 4, 27 mm → NO STORY | — |
+| asbestos_hills_crack_seal | UNRESOLVED | tigers eye (proxy, n 17, low) | 5 of 17 | 12, 29 mm → UNRESOLVED | — |
+| asbestos_hills_surficial_alteration | UNRESOLVED | tigers eye (proxy, n 17, low) | 5 of 17 | 12, 29 mm → UNRESOLVED | — |
+| bisbee | UNRESOLVED | malachite (proxy, n 12, low) | 6 of 12 | 6, 56 mm → UNRESOLVED | — |
+| bisbee | UNRESOLVED | azurite (proxy, n 15, low) | 7 of 15 | 8, 45 mm → UNRESOLVED | — |
+| bisbee | UNRESOLVED | native copper (proxy, n 22, low) | 14 of 22 | 8, 25 mm → UNRESOLVED | — |
+| bisbee | UNRESOLVED | cuprite (proxy, n 7, low) | 4 of 7 | 3, 39 mm → UNRESOLVED | — |
+| bisbee | UNRESOLVED | calcite (proxy, n 9, low) | 6 of 9 | 3, 70 mm → UNRESOLVED | — |
+| deccan_zeolite | UNRESOLVED | apophyllite (crystal, n 8, low) | — | — | — |
+| deccan_zeolite | UNRESOLVED | stilbite (proxy, n 24, low) | 6 of 24 | 18, 45 mm → UNRESOLVED | — |
+| deccan_zeolite | UNRESOLVED | heulandite (proxy, n 37, low) | 11 of 37 | 26, 55 mm → UNRESOLVED | — |
+| deccan_zeolite | UNRESOLVED | chalcedony (proxy, n 13, low) | 5 of 13 | 8, 98 mm → UNRESOLVED | — |
+| deccan_zeolite | UNRESOLVED | calcite (crystal, n 5, low) | 2 of 5 | 3, 26 mm → UNRESOLVED | UNRESOLVED |
+| elmwood | UNRESOLVED | fluorite (proxy, n 50, low) | 14 of 50 | 36, 59 mm → UNRESOLVED | — |
+| elmwood | UNRESOLVED | calcite (proxy, n 37, low) | 4 of 37 | 33, 80 mm → UNRESOLVED | — |
+| elmwood | UNRESOLVED | sphalerite (proxy, n 16, low) | 5 of 16 | 11, 58 mm → UNRESOLVED | — |
+| epithermal_telluride | UNRESOLVED | calaverite (proxy, n 9, low) | 6 of 9 | 3, 52 mm → UNRESOLVED | — |
+| epithermal_telluride | UNRESOLVED | fluorite (proxy, n 5, low) | 4 of 5 | 1, 20 mm → UNRESOLVED | UNRESOLVED |
+| gem_pegmatite | UNRESOLVED | tourmaline (proxy, n 46, low) | 27 of 46 | 19, 33 mm → UNRESOLVED | — |
+| jeffrey_mine | UNRESOLVED | grossular (crystal, n 6, low) | — | — | — |
+| jeffrey_mine | UNRESOLVED | vesuvianite (proxy, n 17, low) | 9 of 17 | 8, 30 mm → UNRESOLVED | — |
+| jeffrey_mine | UNRESOLVED | diopside (proxy, n 9, low) | 4 of 9 | 5, 54 mm → UNRESOLVED | — |
+| jeffrey_mine | UNRESOLVED | pectolite (proxy, n 14, low) | 14 of 14 | 0, — mm → UNRESOLVED | — |
+| mvt | UNRESOLVED | galena (proxy, n 18, low) | 4 of 18 | 14, 45 mm → UNRESOLVED | — |
+| mvt | UNRESOLVED | sphalerite (proxy, n 9, low) | 3 of 9 | 6, 56 mm → UNRESOLVED | — |
+| naica_geothermal | UNRESOLVED | selenite (proxy, n 15, low) | 4 of 15 | 11, 100 mm → UNRESOLVED | — |
+| naica_geothermal | UNRESOLVED | anhydrite (proxy, n 10, low) | 3 of 10 | 7, 71 mm → UNRESOLVED | — |
+| ouro_preto | UNRESOLVED | topaz (proxy, n 16, low) | 3 of 16 | 13, 31 mm → UNRESOLVED | — |
+| ouro_preto | UNRESOLVED | hematite (proxy, n 11, low) | 3 of 11 | 8, 49 mm → UNRESOLVED | — |
+| reactive_wall | UNRESOLVED | calcite (proxy, n 35, low) | 10 of 35 | 25, 70 mm → UNRESOLVED | — |
+| reactive_wall | UNRESOLVED | galena (proxy, n 29, low) | 10 of 29 | 19, 45 mm → UNRESOLVED | — |
+| schneeberg | UNRESOLVED | erythrite (proxy, n 8, low) | 2 of 8 | 6, 61 mm → UNRESOLVED | — |
+| searles_lake | UNRESOLVED | halite (proxy, n 12, low) | 5 of 12 | 7, 86 mm → UNRESOLVED | — |
+| shigar_pegmatite | UNRESOLVED | aquamarine (crystal, n 11, medium) | 5 of 11 | 6, 36 mm → UNRESOLVED | — |
+| shigar_pegmatite | UNRESOLVED | topaz (proxy, n 36, low) | 18 of 36 | 18, 28 mm → UNRESOLVED | — |
+| shigar_pegmatite | UNRESOLVED | quartz (proxy, n 8, low) | 3 of 8 | 5, 74 mm → UNRESOLVED | — |
+| sicily_solfifera | UNRESOLVED | native sulfur (proxy, n 20, low) | 4 of 20 | 16, 74 mm → UNRESOLVED | — |
+| sicily_solfifera | UNRESOLVED | aragonite (proxy, n 8, low) | 2 of 8 | 6, 103 mm → UNRESOLVED | — |
+| sicily_solfifera | UNRESOLVED | celestine (proxy, n 15, low) | 10 of 15 | 5, 80 mm → UNRESOLVED | — |
+| sunnyside_american_tunnel | UNRESOLVED | rhodochrosite (proxy, n 17, low) | 7 of 17 | 10, 29 mm → UNRESOLVED | — |
+| sunnyside_american_tunnel | UNRESOLVED | fluorite (proxy, n 15, low) | 14 of 15 | 1, 300 mm → UNRESOLVED | — |
+| tormiq_alpine_cleft | UNRESOLVED | titanite (proxy, n 10, low) | 5 of 10 | 5, 50 mm → UNRESOLVED | — |
+| tormiq_alpine_cleft | UNRESOLVED | epidote (proxy, n 5, low) | 3 of 5 | 2, 49 mm → UNRESOLVED | UNRESOLVED |
+| ultramafic_supergene | UNRESOLVED | chrysoprase (proxy, n 8, low) | 3 of 8 | 5, 41 mm → UNRESOLVED | — |
+| wittichen | UNRESOLVED | erythrite (proxy, n 7, low) | 4 of 7 | 3, 43 mm → UNRESOLVED | — |
+| wittichen | UNRESOLVED | fluorite (proxy, n 19, low) | 2 of 19 | 17, 50 mm → UNRESOLVED | — |
 
-Verdicts that change under one of these: cooling (quartz), reactivated_fluorite_vein (fluorite).
+Verdicts that change under one of these: cooling (quartz), marble_contact_metamorphism (ruby), reactivated_fluorite_vein (fluorite).
 
 Other values of the evidence rules (registered: specimen floor 10 mm, upload window 1,000,000 s (11.6 days), minimum sample 5 specimens) and of the story frequency (registered: the band floor × the display range's coverage of a record of the target's size): the targets rebuilt from the same capture with one rule changed, every scenario re-scored against the same runs.
 
@@ -731,7 +798,8 @@ And under the other checks:
 - Ouro Preto's UNRESOLVED turns on the join window: a window of about a day would leave one specimen's
   two photographs apart.
 
-No verdict holds under every check, and Grimsel's comes closest. WP0's wider reading, and the boss's
+No decided verdict (STORY, STORY (PROXY), NO STORY) holds under every check, and Grimsel's comes
+closest. Most UNRESOLVED verdicts hold under all of them, being open already. WP0's wider reading, and the boss's
 decisions on these rules, are what would firm them up.
 
 ---
@@ -845,7 +913,7 @@ without crystal lengths.
 | reactive_wall | galena | alternate | 21/21 (50–95 %) HIGH (noise) | specimen proxy q25 37 / median 50 mm (n 29, low; 3 crystal lengths 40–65) | 4.0 (1.1–4.0) | 72 % / 56 % | yes | 0/21 (0 %) | BELOW PROXY |
 | roughten_gill | pyromorphite | primary | 21/21 (50–95 %) HIGH (noise) | size unknown (crystal n 1, specimen n 2) | 6.0 (5.9–6.1) | 2 % / — | — | — | UNKNOWN |
 | roughten_gill | hemimorphite | alternate | 21/21 (30–90 %) HIGH (noise) | size unknown (crystal n 0, specimen n 3) | 1.4 (1.4–1.4) | 2 % / — | — | — | UNKNOWN |
-| roughten_gill | mimetite | alternate | 21/21 (30–90 %) HIGH (noise) | size unknown (crystal n 0, specimen n 1) | 0.1 (0–0.1) dust | not visible / — | — | — | UNKNOWN |
+| roughten_gill | mimetite | alternate | 21/21 (30–90 %) HIGH (noise) | size unknown (crystal n 1, specimen n 1) | 0.1 (0–0.1) dust | not visible / — | — | — | UNKNOWN |
 | roughten_gill | quartz | alternate | 21/21 (50–95 %) HIGH (noise) | size unknown (crystal n 0, specimen n 0) | 0.2 (0.2–0.2) dust | not visible / — | — | — | UNKNOWN |
 | schneeberg | erythrite | primary | 21/21 (30–90 %) HIGH (noise) | specimen proxy q25 55 / median 68 mm (n 8, low; 2 crystal lengths 4.0–40) | 0.7 (0.7–0.7) dust | not visible / 50 % | yes | 0/21 (0 %) | BELOW PROXY |
 | searles_lake | halite | primary | 21/21 (50–95 %) HIGH (noise) | specimen proxy q25 85 / median 102 mm (n 12, low) | <0.01 (0–<0.01) | not visible / 101 % | unknown | — | ELIGIBILITY UNKNOWN |
@@ -886,7 +954,7 @@ without crystal lengths.
 | wittichen | heinrichite | alternate | no engine | size unknown (crystal n 1, specimen n 1) | — | — | — | — | — |
 | wittichen | zeunerite | alternate | 0/21 (no band) UNRESOLVED | size unknown (crystal n 1, specimen n 0) | — | — | — | — | UNKNOWN |
 
-WP1's whole target — the story frequency met, every protagonist with an engine within its band (a miss within noise counts as within), none oversize — is met by 0 of 32 scored scenarios. Where the story verdict passes but the whole target does not: reactivated_fluorite_vein (quartz below its band); supergene_oxidation (calcite below its band).
+WP1's whole target — the story frequency met; every protagonist with an engine within its band (a miss within noise counts as within); each protagonist that carries story runs at the record's size (its typical crystal within the record's middle half, or reaching its proxy); none oversize — is met by 0 of 32 scored scenarios. Where the story verdict passes but the whole target does not: reactivated_fluorite_vein (quartz below its band); supergene_oxidation (calcite below its band; open: malachite short of its proxy).
 
 Protagonist size targets (112 primary and alternate slots): crystal (low) 10, crystal (medium) 1, specimen-proxy 55, unknown 46. Size verdicts of protagonists with an engine: UNKNOWN 33, BELOW PROXY 22, ELIGIBILITY UNKNOWN 17, NEVER OCCURS 11, BELOW 8, MEETS 1. "spread" = the interquartile range over the median, of the simulated largest crystal across the seeds and of the record's.
 <!-- /generated:protagonists -->
@@ -919,10 +987,13 @@ rate. Quartz grows in 19 scenarios, so a global quartz rate would move all of th
   scale.
 - Each protagonist with an engine occurs within its band (a miss that 21 seeds cannot tell from the band
   counts as within).
+- Each protagonist that carries story runs is at the record's size: its typical crystal lies within the
+  record's middle half (MEETS, rule 4), or reaches its proxy where only a proxy exists. Too small fails as
+  too large does; a carrier short of its proxy is open, since a proxy cannot refute.
 - None is OVERSIZE.
 
 The story verdict checks the first bullet alone; the line under the WP1 table reports which scenarios
-meet all three. A target changes only by a reviewed rewrite of its rules or its evidence, never to fit an
+meet all four. A target changes only by a reviewed rewrite of its rules or its evidence, never to fit an
 output.
 
 **Cases that need a decision first.**
@@ -1276,8 +1347,10 @@ leftover components rise. Try it on `gem_pegmatite` against WP1's target before 
      display range and the median-centred size verdict (this proposal's reading of "use the median
      observed crystal size as the central showcase target, with a range/quantiles rather than a single
      cutoff"), eligibility, the story frequency (the band floor × the display range's coverage of a
-     record the target's size), the 95 % interval that marks noise, and WP2's and WP3's targets for the
-     star and the clutter;
+     record the target's size, among protagonists that can carry a story run in the cavity — an
+     expected rate for a crystal target, a bar for a proxy), the 95 % interval that marks noise, WP1's
+     whole target (with the carrier's typical crystal within the record's middle half), and WP2's and
+     WP3's targets for the star and the clutter;
    - the evidence rules (§1.3) — joining photographs of one specimen and the upload window, the 10 mm
      floor under specimen lengths, and the series rule (one wording, uploads less than a year apart)
      that lowers a target's confidence. §2.6 shows the verdicts each one moves;
@@ -1335,14 +1408,20 @@ Every step uses:
   - It reads German phrasing, cut-off captions, the nearest cue, the noun's gender and the title.
   - Review round 1 hand-checked all 194 crystal and aggregate lengths it then used and 80 of its specimen
     lengths: about 1–2 % and 2.5 % were wrong. Round 2 read every crystal row again and a seeded sample
-    of 60 specimen lengths behind the proxies: 2 of the 60 (3 %) were wrong. The cases both found are
-    fixed and are now tests.
+    of 60 specimen lengths behind the proxies: 2 of the 60 (3 %) were wrong. Round 4 sampled 70 more: 1
+    (1.5 %). Rounds 3–5 read every crystal row behind the targets again and found them clean. The cases
+    the rounds found are fixed and are now tests.
+  - A diameter after a number is read as a width, except after a tabular or rounded form ("tafelige
+    Kristalle", "Eisenrosen"), whose diameter is its size. Another wording that gives a length as a
+    diameter would be lost from the lengths.
   - Every crystal length it uses, and every join, is listed in `DATA-STORY-POCKET-SIZES-2026-10-22.md`.
   - Specimen lengths under 10 mm are set aside (§1.3): on a micromount the caption's "Größe" usually
     gives the crystal or the field. A real specimen that small is set aside with them.
 - **One specimen, one sample — by a heuristic.** Photographs are joined when they were uploaded
-  together and their captions are identical or state the same multi-dimension size; uploaded apart,
-  only a measured three-dimension size joins them, and never across two named finds (§1.3).
+  together and their captions are the same (once a cut word, punctuation and "mit", "und", "auf" are
+  dropped) or state the same multi-dimension size of a crystal or the specimen; uploaded apart, only a
+  three-dimension size written with a decimal joins them. Never across two named finds, or two captions
+  that each name a mineral the other does not (§1.3).
   - "Uploaded together" reads the image id as an upload time in seconds. That is inferred from the ids'
     range, which runs from 2004 to just before the capture; the site does not document it.
   - Two specimens with an identical caption uploaded the same week would be joined. A re-photographed
