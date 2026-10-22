@@ -10,7 +10,8 @@ import { fileURLToPath } from 'node:url';
 import {
   parseSizeStatements, photoSizes, groupSpecimens, mineralOfWord, summarize, quantile, relativeSpread, deriveRoles,
   protagonistsOf, bandFor, baseClass, sizeTarget, assessOccurrence, fits, pocketClass, assessSize, runStory, scoreStory,
-  storyVerdict, assemblageVariety, everySeedChance, validateSidecar, UPLOADED_TOGETHER,
+  storyVerdict, storyFrequency, scenarioVerdict, assemblageVariety, everySeedChance, validateSidecar, wilson,
+  largestSeries, UPLOADED_TOGETHER, SERIES_GAP,
 } from '../tools/story-pocket-lib.mjs';
 import { buildSizeEvidence, renderSizeEvidenceMd, APPENDIX_FILE } from '../tools/story-pocket-size-evidence.mjs';
 
@@ -22,6 +23,44 @@ const proxyT = { basis: 'specimen-proxy', n: 50, q10: 40, q25: 56, median: 76, q
 const unknownT = { basis: 'unknown', crystal_n: 2, specimen_n: 3 };
 const kinds = (text: string) => parseSizeStatements(text).map((s: any) => [s.kind, s.mm]);
 const keyOf = (n: string) => ({ 'Tigers Eye': 'tigers_eye', 'Rock Crystal': 'quartz' } as any)[n] ?? n.toLowerCase();
+
+// The JSON Schema keywords proposals/SCHEMA-STORY-POCKET-TARGETS.json uses (a draft 2020-12 subset):
+// type, const, enum, required, properties, additionalProperties, prefixItems, items, minItems, maxItems,
+// minimum, maximum, exclusiveMinimum, exclusiveMaximum, oneOf, if/then, $ref into $defs.
+const typeOf = (v: any) => (v === null ? 'null' : Array.isArray(v) ? 'array' : typeof v === 'number' ? (Number.isInteger(v) ? 'integer' : 'number') : typeof v);
+function schemaErrors(s: any, v: any, root: any, at = '$'): string[] {
+  if (s.$ref) return schemaErrors(s.$ref.replace(/^#\//, '').split('/').reduce((o: any, k: string) => o[k], root), v, root, at);
+  if (s.type) {
+    const types = [].concat(s.type), t = typeOf(v);
+    if (!types.some((x: string) => x === t || (x === 'number' && t === 'integer'))) return [`${at}: ${t}, not ${types.join(' | ')}`];
+  }
+  const e: string[] = [];
+  if ('const' in s && v !== s.const) e.push(`${at}: not ${s.const}`);
+  if (s.enum && !s.enum.includes(v)) e.push(`${at}: ${v} is not one of ${s.enum.join(', ')}`);
+  if (typeof v === 'number') {
+    if (s.minimum != null && v < s.minimum) e.push(`${at}: below ${s.minimum}`);
+    if (s.maximum != null && v > s.maximum) e.push(`${at}: above ${s.maximum}`);
+    if (s.exclusiveMinimum != null && v <= s.exclusiveMinimum) e.push(`${at}: not above ${s.exclusiveMinimum}`);
+    if (s.exclusiveMaximum != null && v >= s.exclusiveMaximum) e.push(`${at}: not below ${s.exclusiveMaximum}`);
+  }
+  if (typeOf(v) === 'object') {
+    for (const k of s.required || []) if (!(k in v)) e.push(`${at}.${k}: missing`);
+    for (const [k, x] of Object.entries(v)) {
+      if (s.properties?.[k]) e.push(...schemaErrors(s.properties[k], x, root, `${at}.${k}`));
+      else if (s.additionalProperties === false) e.push(`${at}.${k}: not in the schema`);
+      else if (s.additionalProperties && typeof s.additionalProperties === 'object') e.push(...schemaErrors(s.additionalProperties, x, root, `${at}.${k}`));
+    }
+  }
+  if (Array.isArray(v)) {
+    if (s.minItems != null && v.length < s.minItems) e.push(`${at}: fewer than ${s.minItems} items`);
+    if (s.maxItems != null && v.length > s.maxItems) e.push(`${at}: more than ${s.maxItems} items`);
+    (s.prefixItems || []).forEach((p: any, i: number) => { if (i < v.length) e.push(...schemaErrors(p, v[i], root, `${at}[${i}]`)); });
+    if (s.items) v.slice((s.prefixItems || []).length).forEach((x: any, i: number) => e.push(...schemaErrors(s.items, x, root, `${at}[${i}]`)));
+  }
+  if (s.oneOf && s.oneOf.filter((o: any) => !schemaErrors(o, v, root, at).length).length !== 1) e.push(`${at}: not exactly one of its oneOf`);
+  if (s.if && s.then && !schemaErrors(s.if, v, root, at).length) e.push(...schemaErrors(s.then, v, root, at));
+  return e;
+}
 
 describe('caption sizes (Mineralienatlas wording)', () => {
   it('the nearest cue decides: a crystal of the specimen, a specimen of the crystals', () => {
@@ -47,13 +86,20 @@ describe('caption sizes (Mineralienatlas wording)', () => {
     expect(kinds('Aquamarin ; ca. 12 cm hoher Kristall')).toEqual([['crystal', 120]]);
     expect(kinds('Calcit ; 8 cm Kristallgruppe')).toEqual([['specimen', 80]]);
   });
-  it('drops lens focal lengths, and the find\'s largest crystal ("the cleft held crystals to 20 cm")', () => {
+  it('drops lens focal lengths, a vein\'s thickness, and the find\'s largest crystal ("the cleft held crystals to 20 cm")', () => {
     expect(parseSizeStatements('Aufnahme mit Canon EF 100mm Makro')).toEqual([]);
+    expect(parseSizeStatements('abgesetzt. Der Gang ist etwa 60 cm mächtig. ;')).toEqual([]);
     expect(parseSizeStatements('ft ; Die Kluft enthält bis zu 20 cm lange, teils d')).toEqual([]);
   });
-  it('a crystal\'s width is not its length', () => {
+  it('a width is not a length, a crystal\'s or a specimen\'s', () => {
     expect(kinds('er Kristall, Kristallbreite = 11 mm; Fundort: Dass')).toEqual([['width', 11]]);
     expect(kinds('uchquarz-Doppelender ; Größe: 7 cm breit; Fundort')).toEqual([['width', 70]]);
+    expect(kinds('Kleinstufe mit Kristallen ; 6cm breit')).toEqual([['width', 60]]);
+  });
+  it('"(Spinell 4 mm)": one length right after a mineral\'s name in parentheses is its crystal', () => {
+    expect(parseSizeStatements('nell ; Mogok, Myanmar Burma - 25 x 2 cm (Spinell 4 mm) ;').map((s: any) => [s.kind, s.mm, s.named])).toEqual([['specimen', 250, null], ['crystal', 4, 'Spinel']]);
+    expect(kinds('(Fluorit 5 x 4 cm)')).toEqual([['specimen', 50]]);
+    expect(kinds('Calcit (Größe 4 mm)')).toEqual([['specimen', 4]]);
   });
   it('"x, ca. 3 cm hoch" is a crystal; a pseudomorph is the mineral it is made of', () => {
     expect(parseSizeStatements('n Malachit nach Azurit x, ca. 3 cm hoch; Fundort:')[0]).toMatchObject({ kind: 'crystal', mm: 30, named: 'Malachite' });
@@ -78,6 +124,11 @@ describe('caption sizes (Mineralienatlas wording)', () => {
     expect(kinds('stall und Albit ; Sufengröße: 8x7x4cm; Fundort: Duss')).toEqual([['specimen', 80]]);
     expect(parseSizeStatements('it Quarz-Doppelender ; Größe: 16,8 x 13,6 cm; Fundort: Cruz')[0]).toMatchObject({ kind: 'crystal', named: 'Quartz' });
     expect(kinds('Bergkristall ; Größe: 9 x 7 cm')).toEqual([['specimen', 90]]);
+  });
+  it('a stretch cut into "…gkristall" (Bergkristall) names no crystal; a whole word, or a crystal word after it, still does', () => {
+    expect(kinds('gkristall-Gwindel; Größe: ca. 3 x 2,5 x 0,9 cm; Fundort: Ober')).toEqual([['specimen', 30]]);
+    expect(kinds('gkristall-Doppelender; Größe: 3 x 2 cm')).toEqual([['crystal', 30]]);
+    expect(kinds('Einkristall ; Größe: 2 cm')).toEqual([['crystal', 20]]);
   });
   it('an attributive size goes to its noun; where the noun is cut off, its gender decides', () => {
     expect(kinds('Kupfer ; Etwa 26 mm x 18 mm große Kupferst')).toEqual([['specimen', 26]]);
@@ -129,6 +180,14 @@ describe('one specimen, one sample', () => {
     expect(groupSpecimens([photo('1350000000', ['Zeunerit xx, BB 4,5 mm']), photo('1420000000', ['Zeunerit xx, BB 4,5 mm'])]).groups.length).toBe(2);
     expect(groupSpecimens([photo('1352231397', ['Crystal size 5x5x4mm']), photo('1650041301', ['crystal size 5x5x4mm'])]).groups.length).toBe(2);
     expect(groupSpecimens([photo('1520005261', ['Fluorit ; Größe: 50 x 45 mm']), photo('1326453956', ['Fluorit ; Größe 50 x 45 mm'])]).groups.length).toBe(2);
+    // Measured, but in two dimensions only.
+    expect(groupSpecimens([photo('1200000000', ['Größe: 15,5 x 12 mm']), photo('1500000000', ['Größe: 15,5 x 12 mm; Mogok'])]).groups.length).toBe(2);
+  });
+  it('the window is an option (the scoreboard\'s sensitivity table varies it)', () => {
+    const cap = ['Zeunerit xx, BB 4,5 mm'];
+    expect(groupSpecimens([photo('1300000000', cap), photo('1300050000', cap)]).groups.length).toBe(1);
+    expect(groupSpecimens([photo('1300000000', cap), photo('1300050000', cap)], { window: 1e4 }).groups.length).toBe(2);
+    expect(groupSpecimens([photo('1300000000', cap), photo('1900000000', cap)], { window: Infinity }).groups.length).toBe(1);
   });
   it('never joins photographs from different finds, or of two species', () => {
     expect(groupSpecimens([photo('1310050913', ['Größe: 12 x 13 x 9,5 cm; Fundort: Grove Rake']), photo('1310050900', ['Größe: 13 x 12 x 9,5 cm; Fundort: Blackdene'])], ).groups.length).toBe(2);
@@ -145,7 +204,28 @@ describe('one specimen, one sample', () => {
   });
 });
 
-describe('a contributor\'s series', () => {
+describe('a series: one wording, uploaded in one stretch', () => {
+  const day = 86400;
+  const it_ = (value: number, key: string, days: number) => ({ value, key, t: 1.3e9 + days * day });
+  it('chains a wording\'s uploads while each follows the last by less than the gap', () => {
+    const s = largestSeries([it_(10, 'a', 0), it_(11, 'a', 100), it_(12, 'a', 200), it_(13, 'a', 300), it_(20, 'b', 0), it_(21, 'b', 1000)], SERIES_GAP);
+    expect(s).toMatchObject({ largest: 4, of: 6, template: 'a', first: 1.3e9, last: 1.3e9 + 300 * day });
+    expect(s.rest.sort()).toEqual([20, 21]);
+  });
+  it('a gap of a year or more splits one wording into two series; the larger counts', () => {
+    const s = largestSeries([it_(1, 'a', 0), it_(2, 'a', 10), it_(3, 'a', 400), it_(4, 'a', 410), it_(5, 'a', 420)], SERIES_GAP);
+    expect(s).toMatchObject({ largest: 3, first: 1.3e9 + 400 * day });
+    expect(s.rest.sort()).toEqual([1, 2]);
+    expect(largestSeries([it_(1, 'a', 0), { value: 2, key: 'a', t: 1.3e9 + SERIES_GAP }], SERIES_GAP).largest).toBe(1);
+    expect(largestSeries([it_(1, 'a', 0), { value: 2, key: 'a', t: 1.3e9 + SERIES_GAP - 1 }], SERIES_GAP).largest).toBe(2);
+  });
+  it('ties go to the wording first alphabetically; no lengths, no series', () => {
+    expect(largestSeries([it_(1, 'b', 0), it_(2, 'b', 1), it_(3, 'a', 0), it_(4, 'a', 1)], SERIES_GAP).template).toBe('a');
+    expect(largestSeries([], SERIES_GAP)).toBeNull();
+  });
+});
+
+describe('a contributor\'s wording', () => {
   const series = (text: string) => parseSizeStatements(text)[parseSizeStatements(text).length - 1].series;
   it('one wording with the numbers taken out, "bis" or not', () => {
     expect(series('Fluorit ; Größe: 12 x 13 x 9 cm,Fluorit-XX max. 15 mm; Fundort: Grov')).toBe(series('Fluorit auf Limonit ; Größe: 25 x 18 x 8 cm, Fluorit-XX bis max. 17 mm; Fundort: Heig'));
@@ -201,6 +281,14 @@ describe('occurrence against its band', () => {
     expect(assessOccurrence(21, 21, BANDS.AB)).toMatchObject({ verdict: 'HIGH', noise: true });
     expect(assessOccurrence(21, 21, BANDS.CO)).toMatchObject({ verdict: 'HIGH', noise: true });
   });
+  it('the noise test is the 95 % Wilson interval (10 of 21: 0.2834–0.6763, worked by hand)', () => {
+    const [lo, hi] = wilson(10, 21);
+    expect(lo).toBeCloseTo(0.2834, 4);
+    expect(hi).toBeCloseTo(0.6763, 4);
+    expect(wilson(0, 21)[0]).toBe(0);
+    expect(wilson(21, 21)[1]).toBeCloseTo(1, 12);
+    expect(wilson(0, 0)).toEqual([0, 1]);
+  });
   it('no band: unresolved, whatever the rate', () => {
     expect(assessOccurrence(21, 21, null).verdict).toBe('UNRESOLVED');
     expect(bandFor('doc', BANDS)).toBeNull();
@@ -244,9 +332,10 @@ describe('size, conditional on occurrence and on the pocket', () => {
     const r = assessSize([run(true, 5, 16), run(true, 6, 16), run(true, 18, 90), run(true, 20, 90)], crystalT);
     expect(r).toMatchObject({ verdict: 'MEETS', occurring: 4, eligible: 2, inRange: 2, share: 1 });
   });
-  it('a crystal longer than the cavity is left out and counted', () => {
+  it('a crystal longer than the cavity is left out and counted; one exactly as long as its span is in', () => {
     expect(assessSize([run(true, 95, 90), run(true, 18, 90)], crystalT)).toMatchObject({ verdict: 'MEETS', eligible: 1, beyond: 1 });
     expect(assessSize([run(true, 95, 90)], crystalT)).toMatchObject({ verdict: 'LONGER THAN THE CAVITY', beyond: 1 });
+    expect(assessSize([run(true, 18, 18)], crystalT)).toMatchObject({ verdict: 'MEETS', eligible: 1, beyond: 0 });
   });
   it('against a proxy: below it is no verdict, reaching it cannot test oversize, past its 90th percentile is oversize', () => {
     expect(fits(60, proxyT)).toBeNull();
@@ -327,8 +416,15 @@ describe('the story, run by run', () => {
     expect(runStory(at({ calcite: sp(true, 0.5) }), prot).story).toBe('POSSIBLE');
     expect(runStory(at({ fluorite: sp(true, 0.4) }), prot).story).toBe('NO');
   });
-  it('a crystal longer than the cavity neither carries the story nor counts against it', () => {
+  it('a crystal longer than the cavity neither carries the story nor counts against it; one as long as the span fits', () => {
     expect(runStory(at({ fluorite: sp(true, 30) }, 25), prot)).toMatchObject({ story: 'POSSIBLE', beyond: true });
+    expect(runStory(at({ fluorite: sp(true, 25) }, 25), prot)).toMatchObject({ story: 'YES', beyond: false });
+  });
+  it('the story is credited to the first protagonist that carries it, a crystal target before a proxy', () => {
+    const two = [{ k: 'a', target: crystalT }, { k: 'b', target: crystalT }];
+    expect(runStory(at({ a: sp(true, 16), b: sp(true, 20) }), two).by).toBe('a');
+    expect(runStory(at({ a: sp(true, 16), b: sp(true, 20) }), [two[1], two[0]]).by).toBe('b');
+    expect(runStory(at({ calcite: sp(true, 60), fluorite: sp(true, 16) }), [prot[1], prot[0]])).toMatchObject({ basis: 'crystal', by: 'fluorite' });
   });
 });
 
@@ -376,6 +472,56 @@ describe('the story of a scenario', () => {
     expect(v(21, 0, 0, 0, 0.5).verdict).toBe('NO STORY');
     expect(v(21, 21, 21, 0, null).verdict).toBe('UNRESOLVED');
     expect(v(0, 0, 0, 0, 0.5).verdict).toBe('SMALL POCKETS ONLY');
+  });
+  it('the scenario\'s verdict keeps unclassed runs open, and says what leaves it open', () => {
+    const species = { quartz: { role: 'primary', engine: true, size: unknownT }, calcite: { role: 'alternate', engine: true, size: crystalT } };
+    const runs = [run(60, { quartz: sp(false, 0), calcite: sp(true, 2) }), run(60, { quartz: sp(false, 0), calcite: sp(true, 2) })];
+    expect(scenarioVerdict(runs, species, 0.5)).toMatchObject({ verdict: 'UNRESOLVED', open: ['unclassed pocket'], counts: { unclassified: 2 } });
+    const proxyRuns = [run(300, { calcite: sp(true, 10) }), run(300, { calcite: sp(true, 400) })];
+    expect(scenarioVerdict(proxyRuns, { calcite: { role: 'primary', engine: true, size: proxyT } }, 0.5).open).toEqual(['short of a specimen proxy', 'longer than the cavity']);
+    expect(scenarioVerdict(runs, { quartz: { role: 'primary', engine: true, size: unknownT } }, null).open).toEqual(['no occurrence band', 'unclassed pocket']);
+  });
+  it('no protagonist with an engine: NO ENGINE; every run small: SMALL POCKETS ONLY', () => {
+    const runs = [run(60, { pascoite: sp(false, 0) })];
+    expect(scenarioVerdict(runs, { pascoite: { role: 'primary', engine: false, size: unknownT } }, null)).toMatchObject({ verdict: 'NO ENGINE', cannot: null });
+    expect(scenarioVerdict([run(16, { fluorite: sp(true, 20) })], { fluorite: { role: 'primary', engine: true, size: crystalT } }, 0.325).verdict).toBe('SMALL POCKETS ONLY');
+  });
+  it('a scenario no run can decide in its cavity, whatever grows: by the cavity, by the evidence, or both', () => {
+    const big = { ...crystalT, q10: 70, q25: 77, median: 90, q75: 120, q90: 200 };
+    const runs = [run(60, {})];
+    expect(scenarioVerdict(runs, { selenite: { role: 'primary', engine: true, size: big }, anhydrite: { role: 'alternate', engine: true, size: { ...proxyT, q25: 66 } } }, 0.325).cannot)
+      .toEqual({ cavity: ['selenite', 'anhydrite'], evidence: [] });
+    expect(scenarioVerdict(runs, { sulfur: { role: 'primary', engine: true, size: { ...proxyT, q25: 61 } }, calcite: { role: 'alternate', engine: true, size: unknownT } }, 0.325).cannot)
+      .toEqual({ cavity: ['sulfur'], evidence: ['calcite'] });
+    expect(scenarioVerdict(runs, { quartz: { role: 'primary', engine: true, size: unknownT } }, 0.325).cannot).toEqual({ cavity: [], evidence: ['quartz'] });
+    // A display range that starts at the span can be reached; a bigger cavity decides; a protagonist without an engine does not count.
+    expect(scenarioVerdict(runs, { sulfur: { role: 'primary', engine: true, size: { ...proxyT, q25: 60 } } }, 0.325).cannot).toBeNull();
+    expect(scenarioVerdict([run(300, {})], { selenite: { role: 'primary', engine: true, size: big } }, 0.325).cannot).toBeNull();
+    // Any run's cavity can decide: once seeds draw their own pockets (WP9), the largest is the room.
+    expect(scenarioVerdict([run(60, {}), run(300, {})], { selenite: { role: 'primary', engine: true, size: big } }, 0.325).cannot).toBeNull();
+    expect(scenarioVerdict(runs, { selenite: { role: 'primary', engine: true, size: big }, x: { role: 'alternate', engine: false, size: crystalT } }, 0.325).cannot).toEqual({ cavity: ['selenite'], evidence: [] });
+  });
+});
+
+describe('the story frequency', () => {
+  it('the most common protagonist\'s band floor, times the display range\'s coverage of the record', () => {
+    const p = [{ k: 'a', engine: true, band: BANDS.CO }, { k: 'b', engine: true, band: BANDS.AB }, { k: 'c', engine: false, band: [0.9, 0.95] }, { k: 'd', engine: true, band: null }];
+    expect(storyFrequency(p, 0.65)).toEqual({ frequency: 0.325, k: 'b', floor: 0.5 });
+    expect(storyFrequency([{ k: 'a', engine: true, band: BANDS.AB }, { k: 'b', engine: true, band: BANDS.AB }], 0.65)!.k).toBe('a');
+    expect(storyFrequency([{ k: 'x', engine: true, band: null }, { k: 'y', engine: false, band: BANDS.AB }], 0.65)).toBeNull();
+  });
+  it('a fleet that meets its band at the floor, with crystals spread as the record\'s are, tells the story', () => {
+    const record = Array.from({ length: 40 }, (_, i) => 5 + i);
+    const target = { ...sizeTarget({ crystal: summarize(record), specimen: { n: 0 } }, { minSamples: 5, mediumConfidence: 10, highConfidence: 30 }), provenance: 'test' };
+    const n = 21, occurring = Math.ceil(BANDS.AB[0] * n);
+    const runs = Array.from({ length: n }, (_, i) => ({ span: 300, species: { q: i < occurring ? { occurs: true, size: quantile(record, (i + 0.5) / occurring) } : { occurs: false, size: 0 } } }));
+    const species = { q: { role: 'primary', engine: true, occurrence_band: BANDS.AB, size: target } };
+    expect(assessOccurrence(occurring, n, BANDS.AB).verdict).toBe('IN');
+    expect(assessSize(runs.map((r) => ({ ...r.species.q, span: r.span })), target).verdict).toBe('MEETS');
+    const f = storyFrequency([{ k: 'q', engine: true, band: BANDS.AB }], 0.65)!.frequency;
+    expect(scenarioVerdict(runs, species, f).verdict).toBe('STORY');
+    // Round 2's rule, the band floor alone, failed the same fleet.
+    expect(scenarioVerdict(runs, species, BANDS.AB[0]).verdict).toBe('THIN STORY');
   });
 });
 
@@ -427,6 +573,27 @@ describe('the committed targets, capture and appendix', () => {
     expect(validateSidecar(sc)).toEqual([]);
     expect(species.length).toBeGreaterThan(100);
     for (const b of Object.values(sc.rules.occurrence_bands) as number[][]) expect(b[1]).toBeLessThan(1);
+  });
+  it('the sidecar matches its JSON Schema, which documents every field (and the check can fail)', () => {
+    const schema = JSON.parse(fs.readFileSync(path.join(ROOT, 'proposals', 'SCHEMA-STORY-POCKET-TARGETS.json'), 'utf8'));
+    expect(schemaErrors(schema, sc, schema)).toEqual([]);
+    const broken = JSON.parse(JSON.stringify(sc));
+    broken.rules.unregistered_threshold = 3;
+    delete broken.rules.display_range;
+    const anySize = Object.values(broken.scenarios as any).flatMap((s: any) => Object.values(s.species)).find((v: any) => v.size.basis === 'crystal') as any;
+    anySize.size.confidence = 'certain';
+    expect(schemaErrors(schema, broken, schema).sort()).toEqual(expect.arrayContaining([
+      '$.rules.unregistered_threshold: not in the schema', '$.rules.display_range: missing', expect.stringMatching(/confidence: certain is not one of/),
+    ]));
+  });
+  it('every story frequency is its most common protagonist\'s band floor times the display range\'s coverage', () => {
+    const coverage = +(sc.rules.display_range[1] - sc.rules.display_range[0]).toFixed(4);
+    expect(coverage).toBe(0.65);
+    for (const s of Object.values(sc.scenarios) as any[]) {
+      if (s.out_of_scope) continue;
+      const sf = storyFrequency(Object.entries(s.species).filter(([, v]: any) => v.role === 'primary' || v.role === 'alternate').map(([k, v]: any) => ({ k, engine: v.engine, band: v.occurrence_band })), coverage);
+      expect(s.story_frequency).toBe(sf ? sf.frequency : null);
+    }
   });
   it('every band is the literature class\'s, and no band comes from anywhere else', () => {
     for (const { v } of species) expect(v.occurrence_band).toEqual(v.literature ? bandFor(v.literature.class, sc.rules.occurrence_bands) : null);

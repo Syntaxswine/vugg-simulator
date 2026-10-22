@@ -12,8 +12,9 @@
  *                     abundance class (RULES.occurrence_bands) — never from photograph or listing shares;
  *   size target       from the photographed crystal lengths (tools/story-pocket-size-evidence.mjs), else
  *                     the specimen dimensions as a labelled proxy, else unknown: no default size;
- *   story frequency   per scenario, the share of story-scale pockets that should carry a protagonist at
- *                     showcase size (RULES.story_frequency_rule).
+ *   story frequency   per scenario, the share of scored pockets that should carry a protagonist at the
+ *                     record's display scale (RULES.story_frequency_rule): what a fleet meeting its
+ *                     occurrence bands and size targets would show.
  * Every number is either evidence (a sample, with its count and provenance) or one of the RULES below,
  * which are design choices proposed by Claude on 2026-10-22 and await the boss. Nothing here is fitted to
  * the census: the census is read only by the scoreboard.
@@ -24,12 +25,14 @@
  *
  * Usage: node tools/story-pocket-targets.mjs           # check: does the committed file match a rebuild?
  *        node tools/story-pocket-targets.mjs --write   # rebuild and write it
+ * buildTargets(root, evidenceRules) takes buildSizeEvidence's options, so the scoreboard can rebuild the
+ * targets under other evidence rules in memory (its sensitivity table); the file uses the defaults.
  */
 import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
 import { fileURLToPath, pathToFileURL } from 'node:url';
-import { deriveRoles, bandFor, baseClass, sizeTarget, validateSidecar, UPLOADED_TOGETHER } from './story-pocket-lib.mjs';
+import { deriveRoles, bandFor, baseClass, sizeTarget, storyFrequency, validateSidecar, UPLOADED_TOGETHER, SERIES_GAP } from './story-pocket-lib.mjs';
 import { buildSizeEvidence, PIECE_SPECIES, SPECIMEN_MIN_MM } from './story-pocket-size-evidence.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -54,13 +57,21 @@ export const RULES = {
   specimen_min_mm: SPECIMEN_MIN_MM,
   specimen_min_basis: 'A specimen length below this is set aside: micromount captions give the crystal or the field of view as "Größe" ("Malachit ; Größe: 4,2 mm"), and a misread crystal would pull a specimen proxy below the crystals it is meant to bound. A cabinet or thumbnail specimen is longer.',
   uploaded_together_s: UPLOADED_TOGETHER,
-  uploaded_together_basis: 'Mineralienatlas image ids read as upload times in seconds since 1970: the newest captured id, 1791032939, falls on 2026-10-03, nineteen days before the capture, and the oldest in 2004. 1,000,000 s is about 11.6 days.',
+  // uploaded_together_basis is written by buildTargets from the capture's image ids.
   specimen_joins: 'Two photographs of one species are one specimen when uploaded together (ids within uploaded_together_s) with identical caption stretches or the same multi-dimension length; or, uploaded apart, when they state the same length in three dimensions measured to a tenth of a millimetre; never when their captions name different finds. A generic caption ("BB 4,5 mm") or a round size repeated years apart counts as two specimens. Every join is listed in proposals/DATA-STORY-POCKET-SIZES-2026-10-22.md.',
-  series: 'Crystal lengths whose wording is the same once the numbers are taken out (seriesKey, tools/story-pocket-lib.mjs) are one contributor\'s series, not independent samples. When the largest series holds more than half of a crystal target\'s lengths, its confidence drops one step, and the target records its quantiles without that series, so the scoreboard can say whether a verdict rests on it.',
+  series: 'Crystal lengths in one wording once the numbers are taken out (seriesKey, tools/story-pocket-lib.mjs) whose specimens were uploaded in one stretch — each less than series_gap_s after the one before (largestSeries) — are one series: likely one contributor\'s lot or find, not independent samples. The capture has no uploader names, so the stretch stands in for the contributor, and a standard wording ("Größe: #") recurring years apart counts as many. When the largest series holds more than half of a crystal target\'s lengths, its confidence drops one step, and the target records its quantiles without that series, so the scoreboard can say whether a verdict rests on it.',
+  series_gap_s: SERIES_GAP,
+  series_gap_basis: 'A year: longer than the gaps inside the runs of one unusual wording that are plainly one contributor\'s (a lot photographed over months), shorter than the gaps at which standard wordings recur (years). The appendix gives each largest series\' span in days.',
   size_basis: 'Photographed lengths (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json, classed by tools/story-pocket-size-evidence.mjs). Photographs of one specimen count once (specimen_joins). Each specimen gives one value per kind: its largest stated crystal of the species. With at least size_min_samples specimens, a crystal target: confidence low below size_medium_confidence, medium below size_high_confidence, high from it, one step lower when one series dominates (series). Otherwise the specimens\' dimensions (none below specimen_min_mm), if at least size_min_samples, as a proxy, confidence low: a specimen is at least as long as its own crystals, so the proxy overstates the crystal — reaching it is strong evidence (not proof: the photographs that state crystal lengths and those that state specimen sizes are different subsets), falling short of it is none. Otherwise unknown. There is no default size. Materials collected as pieces (tiger\'s eye, chrysoprase, chalcedony, jasper) have piece sizes only, so at best a proxy.',
-  size_check: 'Per run, the species\' largest crystal not flagged as enclosed (census max_exp_mm). The record\'s median is the characteristic crystal, its quartiles the range: a crystal in q25–q90 is at the record\'s display scale; past q90 it is oversize. Over the runs where the species occurs in a cavity that holds its median, the median of those crystals against the record: BELOW (< q25), MEETS (q25–q75, around the record\'s median), LARGE (q75–q90), OVERSIZE (> q90). Against a proxy: BELOW PROXY (< q25, not a verdict), REACHES PROXY (q25–q90; oversize cannot be tested against a proxy), OVERSIZE (> q90). A crystal longer than the cavity\'s span is left out and flagged: the starting cavity cannot hold it.',
+  display_range: [0.25, 0.9],
+  display_range_basis: 'The record\'s quantiles that bound its display scale: a crystal from the record\'s lower quartile to its 90th percentile is at the scale the record shows; past the 90th it is oversize. Its coverage — the share of the record\'s own crystals inside it, 0.65 — enters the story frequency (story_frequency_rule). The scoreboard reads the targets\' q25 and q90 and refuses another range.',
+  size_check: 'Per run, the species\' largest crystal not flagged as enclosed (census max_exp_mm). The record\'s median is the characteristic crystal, its quartiles the range: a crystal in the display range (q25–q90) is at the record\'s display scale; past q90 it is oversize. Over the runs where the species occurs in a cavity that holds its median, the median of those crystals against the record: BELOW (< q25), MEETS (q25–q75, around the record\'s median), LARGE (q75–q90), OVERSIZE (> q90). Against a proxy: BELOW PROXY (< q25, not a verdict), REACHES PROXY (q25–q90; oversize cannot be tested against a proxy), OVERSIZE (> q90). A crystal longer than the cavity\'s span is left out and flagged: the starting cavity cannot hold it.',
   eligibility: 'A cavity can hold a species\' characteristic crystal when its span — the longest distance between two wall vertices (tools/story-pocket-cavities.mjs) — is at least the target\'s median. The span is an upper bound on the longest crystal the cavity holds (in a cavity that is not convex the chord can cross the wall), so SMALL is conclusive and STORY-SCALE is generous. A pocket is SMALL when it cannot hold the primary protagonist\'s characteristic crystal: it may lack a showcase and is left out of the story frequency (its stories are reported apart). The locality\'s target is never shrunk to fit the cavity. A pocket is UNCLASSED when this cannot be told (the primary\'s size is unknown, or a proxy longer than the cavity): a run without a story there may be a small pocket, so it stays open rather than counting against the story.',
-  story_frequency_rule: 'A run carries the story when an intended protagonist (the primary or an alternate) occurs with its largest unflagged crystal in its record\'s display range, q25–q90, and no longer than the cavity. The scenario should carry it in at least the largest lower occurrence bound among its protagonists that have an engine and a band: the most common protagonist should usually tell the story. Unresolved when no such protagonist exists, or when runs whose protagonist has no known crystal target, or whose pocket is unclassed, could still carry it.',
+  story_frequency_rule: 'A run carries the story when an intended protagonist (the primary or an alternate) occurs with its largest unflagged crystal in its record\'s display range and no longer than the cavity. The scenario should carry it in at least floor × coverage of its scored runs: floor = the largest lower occurrence bound among its protagonists that have an engine and a band; coverage = the share of the record\'s own crystals in the display range (display_range: 0.65). That is the story rate of a fleet whose most common protagonist occurs at its band\'s floor with crystals spread as the record\'s are, so a fleet that meets every occurrence band and size target meets the story frequency too, without a protagonist in every seed or a size spread narrower than the record\'s. Unresolved when no such protagonist exists, or when runs whose protagonist has no known crystal target, or whose pocket is unclassed, could still carry it.',
+  clutter_limit: 0.1,
+  clutter_basis: 'WP3\'s target: visible clutter (crystals of species with no photograph, no listing and no literature at the locality) under 10 % of a scenario\'s visible crystals. The scoreboard flags a scenario at or above it and lists it in the clutter table.',
+  star_wanted_share: 0.5,
+  star_basis: 'WP2\'s target: the star (the species of a run\'s largest unflagged crystal) is a wanted species, any role but companion, in at least half the runs; a companion as the star in half the runs or more is the supporting cast in the star\'s place. The scoreboard flags a scenario below it and counts the scenarios on either side.',
   variety: 'A scenario should give a distribution of pockets, not one assemblage every run (the boss, 2026-10-22). The scoreboard reports, per scenario, the distinct assemblages (sets of surviving species) across its seeds, the protagonists present in every seed, and how much each protagonist\'s largest crystal varies (interquartile range over median, beside the record\'s); and, for the fleet, the chance that every species seen in all its seeds would be if each occurred at its band\'s ceiling.',
   roles: 'From the record, gated by the literature (deriveRoles, tools/story-pocket-lib.mjs): primary = the most-wanted species the literature does not contradict (ND, ND?, Q) or call rare (RA, VR); alternate = every other such wanted species; showpiece = a wanted species the literature calls rare; unsupported = a wanted species the literature contradicts (listed, not targeted); companion = a species the literature calls abundant or common that the record does not want (the supporting cast: it should occur, not be the star). Species the comparison sets aside as outside the scenario\'s scope have no role.',
   companions_and_showpieces: 'Companions are scored on occurrence against their band and on not being the star; showpieces on occurrence against their band and, where a size target exists, on how often they reach it. Neither carries the story.',
@@ -76,13 +87,22 @@ export const NAMED_SIGNATURES = {
 export const OVERRIDES = {};
 
 const sha = (s) => crypto.createHash('sha256').update(s).digest('hex');
+const day = (t) => new Date(t * 1000).toISOString().slice(0, 10);
+// Why image ids read as upload times, from the capture itself: they fall in the archive's years and end
+// just before the capture.
+function uploadedTogetherBasis(ev) {
+  const { n, first, last } = ev.capture.image_ids;
+  const before = Math.round((Date.parse(ev.capture.captured) / 1000 - last) / 86400);
+  return `Mineralienatlas image ids read as upload times in seconds since 1970: the ${n} captured ids run from ${first} (${day(first)}) to ${last} (${day(last)}), ${before} day${before === 1 ? '' : 's'} before the capture (${ev.capture.captured}). ${UPLOADED_TOGETHER.toLocaleString('en-US')} s is about ${(UPLOADED_TOGETHER / 86400).toFixed(1)} days. The site does not document the ids; this is an inference.`;
+}
 
-export function buildTargets(root = ROOT) {
+export function buildTargets(root = ROOT, evidenceRules = {}) {
   const cmpRaw = fs.readFileSync(CMP, 'utf8');
   const cmp = JSON.parse(cmpRaw);
   if (!cmp.__out_of_claim) throw new Error('compare.json predates the set-aside export; re-run tools/locality-abundance-compare.mjs');
   const data = JSON.parse(fs.readFileSync(path.join(root, DATA_FILE), 'utf8'));
-  const ev = buildSizeEvidence(root);
+  const ev = buildSizeEvidence(root, evidenceRules);
+  const coverage = +(RULES.display_range[1] - RULES.display_range[0]).toFixed(4);
   const scenarios = {};
   for (const [scn, j] of Object.entries(cmp).filter(([k]) => !k.startsWith('__')).sort(([a], [b]) => a.localeCompare(b))) {
     const loc = j.locality;
@@ -132,12 +152,12 @@ export function buildTargets(root = ROOT) {
     }
     entry.set_aside = Object.fromEntries(j.rows.filter((r) => setAside(r.k)).map((r) => [r.k, cmp.__out_of_claim[`${scn}|${r.k}`]]));
     entry.species = species;
-    // Story frequency: the largest lower band among the protagonists that have an engine and a band.
-    const prot = Object.entries(species).filter(([, v]) => (v.role === 'primary' || v.role === 'alternate') && v.engine && v.occurrence_band);
-    if (prot.length) {
-      const [k, v] = prot.reduce((best, cur) => (cur[1].occurrence_band[0] > best[1].occurrence_band[0] ? cur : best));
-      entry.story_frequency = v.occurrence_band[0];
-      entry.story_frequency_basis = `rules.story_frequency_rule: ${k} (${v.role}, class ${baseClass(v.literature?.class)}) has the largest lower band, ${v.occurrence_band[0]}`;
+    // Story frequency: the largest lower band among the protagonists with an engine, times the coverage.
+    const sf = storyFrequency(Object.entries(species).filter(([, v]) => v.role === 'primary' || v.role === 'alternate').map(([k, v]) => ({ k, role: v.role, engine: v.engine, band: v.occurrence_band })), coverage);
+    if (sf) {
+      const v = species[sf.k];
+      entry.story_frequency = sf.frequency;
+      entry.story_frequency_basis = `rules.story_frequency_rule: ${sf.k} (${v.role}, class ${baseClass(v.literature?.class)}) has the largest lower band, ${sf.floor}; × the display range's coverage, ${coverage} = ${sf.frequency}`;
     } else {
       entry.story_frequency = null;
       entry.story_frequency_basis = 'unresolved: no protagonist with an engine has an occurrence band';
@@ -153,7 +173,7 @@ export function buildTargets(root = ROOT) {
       literature_sources: DATA_FILE,
       size_capture: { file: ev.capture.file, sha256: ev.capture.sha256, extractor_sha256: ev.capture.extractor_sha256 },
     },
-    rules: RULES,
+    rules: { ...RULES, uploaded_together_basis: uploadedTogetherBasis(ev) },
     named_signatures: NAMED_SIGNATURES,
     overrides: OVERRIDES,
     scenarios,

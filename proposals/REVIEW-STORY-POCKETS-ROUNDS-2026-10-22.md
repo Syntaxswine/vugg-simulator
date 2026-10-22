@@ -219,3 +219,111 @@ Result: STORY 1, STORY (PROXY) 1, NO STORY 3, UNRESOLVED 26, NO ENGINE 1, OUT OF
 
 Result: STORY 1, STORY (PROXY) 0, NO STORY 3, UNRESOLVED 27, NO ENGINE 1, OUT OF SCOPE 1 (was 1, 1, 3, 26, 1, 1).
 The one STORY (reactivated_fluorite_vein) rests on one contributor's series (§2.6).
+
+## Round 3 of 5 — 7.5/10 (on 5f1eed02)
+
+### The report
+
+> All the round-2 fixes are in the code. Two problems remain that need fixing. First, the story frequency that was set in advance contradicts the occurrence bands and size targets that were also set in advance. Second, the explanation of why Tsumeb's verdict changed in round 2 names the wrong cause.
+>
+> How I worked: everything was read-only, and scratch files went only under scratchpad\review3. `npm test` added a row to the test-quarry ledger, which is allowed. To run vitest on a scratch copy I made a temporary junction to node_modules, and I have removed it. The git tree is clean, and every .local-evidence output is byte-identical to before.
+>
+> **MUST-FIX**
+>
+> 1. **The story frequency cannot be met by a fleet that meets every other target.**
+>    - Where: tools/story-pocket-targets.mjs:63 and :135-140 set the frequency to the largest lower occurrence band. tools/story-pocket-lib.mjs:559-575 counts a run as YES only when the crystal lies in [q25, q90].
+>    - Why it fails: that window holds 65 % of the record's own crystals by construction (North Pennines fluorite: 11 of 17).
+>    - Evidence: I ran the repository's lib on the real targets for cooling quartz, Grimsel quartz, reactivated fluorite and Jeffrey grossular. Fleets occurring in 11, 13, 15 and 16 of 21 seeds are all IN band. With sizes taken at the record's own quantiles, the size verdict is MEETS. The story still lands at 7, 9, 10 and 10 of 21, so the verdict is THIN STORY (noise). Only 17 of 21 seeds or more passes.
+>    - Effect: the real occurrence floor becomes about 77 % for AB and 46 % for CO. That is close to "guaranteed", which the boss ruled out.
+>    - Who it hits: six scored scenarios have only one protagonist with an engine.
+>    - It contradicts WP9's own target, "the size spread approaches the record's" (PROPOSAL:1187). A wider spread lowers the story rate.
+>    - Targets "never change to fit an output" (PROPOSAL:848), so this would push tuning toward a protagonist in every seed at one narrow size.
+>    - No test checks a fleet that meets its own targets.
+>    - Fix: make the frequency consistent with the window. For example, use the band floor × 0.65, or judge the story conditional on occurrence. Register the choice, and add a test that a fleet sampled from the record at its band floor passes.
+>
+> 2. **Tsumeb's STORY (PROXY) → UNRESOLVED comes from the new 10 mm floor, not from the misread caption.**
+>    - Where: PROPOSAL:442-443 ("Corrected, the verdict is UNRESOLVED") and the headline of commit 5f1eed02.
+>    - Evidence: the "x," and pseudomorph fixes are in place in every variant (4 crystal lengths each). I changed only `SPECIMEN_MIN_MM`:
+>
+>    | specimen floor | proxy n | q25 | runs carrying the story | verdict |
+>    |---|---:|---:|---|---|
+>    | 0 mm | 24 | 36.5 mm | 21/21 | STORY (PROXY) |
+>    | 5 mm | 23 | 41 mm | 14/21 | STORY (PROXY) |
+>    | 10 mm | 22 | 44 mm | 8/21, 13 open | UNRESOLVED |
+>
+>    - The caption fix alone moves q25 from 30 to 36.5 mm, still below every simulated malachite (37.6 mm and up).
+>    - The flip needs a floor above 6 mm (photo 1107729327, "-Büschel … Größe: 6 mm"). The floor is still awaiting the boss.
+>    - Round 2 asked for this sensitivity to be stated in §2. It is not.
+>    - Fix: correct the attribution. Add floors of 0, 5, 10 and 20 mm with their verdicts to the generated §2.6, and list Tsumeb among the verdicts that move.
+>
+> **SHOULD-FIX**
+>
+> 3. **The join window's sensitivity is not reported.** At 1e5 s, Ouro Preto becomes NO STORY: its photo pair 1648025549 + 1647884454 is 1.6 days apart. Windows of 1e7 s or no limit change nothing. Add this to §2.6. Also, `uploaded_together_basis` (targets.mjs:57; sidecar line 54) says "the newest captured id, 1791032939, falls on 2026-10-03". That is false: six ids are newer, and the newest is 1792434360, uploaded 2026-10-19.
+>
+> 4. **The series key is generic** (lib:298-303). Standard wordings group photographs taken years apart:
+>    - Naica "Größe:#" (2007 and 2011);
+>    - Ouro Preto "Kristallgröße#." (2011 and 2022);
+>    - Jeffrey "Kristallgröße:#" (2010 and 2014);
+>    - Herkimer "Etwa#großer" (2023 and 2026). This one changes cooling's verdict in §2.6.
+>
+>    Calling it "one contributor's series" (targets.mjs:59, appendix line 8, the §2.6 header) overstates it. Either require the photos to be uploaded close together, or call it "one wording".
+>
+> 5. **Scenarios that can never be decided are not flagged.** In 10 of the 32 scored scenarios, no run can be YES in the current cavity, whatever the simulation does. For four of them — Naica, Searles, Sicily and Marlborough — every protagonist's q25 is longer than the cavity span. That is the substance of the boss's 50 mm concern. The table shows them as UNCLASSED / UNRESOLVED, which reads as "waiting for evidence". The list in §2.3 (PROPOSAL:533) names Elmwood, which can still be decided, and leaves out Sicily and Marlborough. Add a generated flag.
+>
+> 6. **Test gaps.** I ran 46 mutants of the lib: 40 were killed and 2 change nothing. Real survivors:
+>    - the measured join requiring three dimensions changed to two (lib:375, a round-2 rule);
+>    - "longer than the cavity" at exact equality (lib:536, :565);
+>    - the Wilson z value;
+>    - which protagonist is credited when several qualify (`crystal ??=`).
+>
+>    In the scoreboard, dropping `+ c.unclassified` from `open` (showcase-scoreboard.mjs:185, :204) passes all 65 tests and `--check-splice`. Round 1's must-fix #2 is pinned only by a composition written inside the test. Move the verdict assembly into the lib and test it there.
+>
+> 7. **The schema is out of date.** SCHEMA-STORY-POCKET-TARGETS.json lacks `rules.specimen_min_mm`, `uploaded_together_s`, `size.series` and `size.without_largest_series`.
+>
+> 8. **Thresholds outside the sidecar.** CLUTTER_LIMIT 0.1 (scoreboard:67) and the 0.5 star / companion-star threshold (:268, :427) are targets set in advance in WP2 and WP3 (PROPOSAL:922, :954). The 0.5 is also the companion target the boss asked for. Neither is in the sidecar's rules.
+>
+> 9. **Minor:**
+>    - A title cut to "gkristall-Gwindel" gets past the `(?<!berg)` guard (lib:90), so 1571385837 is read as one 30 mm crystal.
+>    - "(Spinell 4 mm)" (1552208990) is read as a specimen length.
+>    - "Kleinstufe … 6cm breit" (a specimen width) is counted under crystal widths set aside.
+>    - A 1,400 mm Tsumeb calcite "specimen" (1207125581, "98 x 140 x 35 cm") goes into a proxy unchecked.
+>    - Audit headers count statements, not specimens: Mogok spinel shows "(9)" against n 8.
+>    - mvt galena: a 0.19 mm margin prints as "12–30 mm; simulated at most 12", which reads as a tie.
+>    - The WP1 target says "story-scale runs", but the denominator also includes unclassed runs.
+>
+> **Verified correct**
+> - **Guardrails:** nothing under js/ or data/ changed in f49c1804..5f1eed02. The comparison tool last changed in afbe687f, and re-running it gives a byte-identical compare.json (sha256 8419de06…). No simulation was run.
+> - **Checks:** the targets match a rebuild. All 13 scoreboard blocks and both substrate blocks match. The size-evidence tool reproduces the appendix. 65 of 65 tests pass.
+> - **Round-2 responses that hold:**
+>   - #1: the parser rules are correct. "x," and the pseudomorph rule each fire on exactly one photo, and "breit" is read as a width. The floor is registered, but see must-fix 2.
+>   - #2: round 2's named mutants are killed.
+>   - #3: the upload window, the measured join and the Fundort check are implemented, and every join is listed.
+>   - #4.
+>   - #5: the bound is correct (Fréchet minimum per scenario). I recompute 10^-29.07 over 30 scenarios, 10^-84.5 if independent. At the band ceilings about 37 species would be expected in every seed; 120 are.
+>   - #6, #8 (20 of 25, using max_mm) and #9.
+>   - #7 is implemented, but see item 4.
+> - **Round 1 spot-checks hold:** #1, #2, #5, #7 and #11.
+> - **Audit:**
+>   - I read every crystal row (about 200); one is debatable (the Gwindel).
+>   - All 34 joins that carry a crystal or specimen length are plausible. The other 82 caption joins carry only picture widths.
+>   - The 22 values behind the Tsumeb malachite proxy parse cleanly.
+> - **Prose numbers outside the markers check out:** quartz grows in 19 scenarios; Herkimer grows one 0.57 mm quartz crystal; Naica grows one selenite against six celestine.
+
+### The response
+
+| # | finding | what changed | evidence |
+|---|---|---|---|
+| 1 | the story frequency contradicts the bands and size targets | The frequency is now the most common protagonist's band floor × the display range's coverage of the record (q25–q90 holds 65 % of the record's own crystals): the story rate of a fleet whose protagonist occurs at its band's floor with crystals spread as the record's are. The display range is a registered rule (`display_range`, which the scoreboard requires to be [0.25, 0.9]); `storyFrequency` is in the lib. | A test samples such a fleet (11 of 21 seeds, IN band; crystals at the record's own quantiles, MEETS): STORY under the new rule, THIN STORY under the floor alone. Another test recomputes every committed frequency: 0.325 for an abundant protagonist, 0.195 for a common one. §2.6 lists the verdicts the floor alone would change. |
+| 2 | Tsumeb's flip came from the 10 mm floor, not the caption | §2.1 now says so, and that round 2's response had credited the caption. §2.6 gains a generated table: the targets rebuilt in memory from the same capture with one evidence rule changed (specimen floor 0, 5, 20 mm; upload window 1.2 days, 116 days, none), and the story frequency without the coverage; every scenario re-scored against the same runs. | Under the corrected frequency Tsumeb is STORY (PROXY) again (8 of 21 runs reach its proxy). It moves to UNRESOLVED at a 20 mm floor or under the floor-alone frequency; floors of 0 and 5 mm change nothing. |
+| 3 | the join window's sensitivity; a false basis | In the same table. `uploaded_together_basis` is now written by the targets tool from the capture's own image ids. | A 1.2-day window makes Ouro Preto NO STORY (its two photographs 1.6 days apart stay apart); 116 days or no limit change nothing. The basis now reads: 2,217 ids from 2004-09-08 to 2026-10-19, 2 days before the capture. |
+| 4 | the series key is generic | A series now also needs its uploads in one stretch, each less than a year after the one before (`largestSeries`; `series_gap_s` registered, with its basis). Measured first: within one unusual wording, Grimsel's 18 quartz lengths span 314 days with gaps up to 166 days, and the North Pennines' 9 fluorite lengths 130 days. Standard wordings recur 979–4,225 days apart (Herkimer, Mogok, Jeffrey, Naica, Ouro Preto). The appendix gives each series' span in days. The prose and the limits call it "one wording, uploaded in one stretch", a proxy for one contributor, since the capture has no uploader names. | Herkimer's two "Etwa # mm großer" lengths, 979 days apart, are no longer a series. Its NO STORY still moves at the five-length minimum. The North Pennines and Grimsel series stand. |
+| 5 | undecidable scenarios not flagged | `scenarioVerdict` returns `cannot`, the protagonists with an engine when none can carry the story in any run's cavity. A generated flag per scenario and a line under the verdicts table split them by cause. The reviewer's "every protagonist's q25 longer than the span" cases all rest on specimen proxies, which overstate the crystal. So the line and the flag mark proxies: crystal lengths could still bring such a target within the cavity. §2.3's hand-typed list is replaced by a pointer. | 10 of 32 scenarios. Proxies beyond the span: Naica, Searles, the Marlborough chrysoprase (ultramafic_supergene). The same plus protagonists with no size target: Sicily. No size target at all: six. Elmwood is not among them. |
+| 6 | test gaps; the verdict assembly untested | The verdict assembly (story counts, open reasons, NO ENGINE, SMALL POCKETS ONLY, `cannot`) moved into the lib as `scenarioVerdict`; the scoreboard and its robustness rows call it. New tests: a measured two-dimension size uploaded apart does not join; a crystal exactly as long as the span fits (runStory and assessSize); the Wilson interval for 10 of 21, worked by hand (0.2834–0.6763); the credited protagonist (the first that qualifies, a crystal target before a proxy); unclassed runs keep the verdict open; any run's cavity can decide. | 21 mutants on the new code, the reviewer's survivors among them: all killed (one needed the two-cavity test, added). 80 tests. |
+| 7 | the schema is out of date | The schema documents every field the sidecar writes, and every object in it is closed (`additionalProperties: false`). A test validates the committed sidecar against it, with a control in which it fails: an unregistered rule, a missing one and a bad confidence are each caught. | — |
+| 8 | thresholds outside the sidecar | `clutter_limit` (0.1) and `star_wanted_share` (0.5) are registered rules with their bases (WP3's and WP2's targets); the scoreboard reads them. The generated rules block lists every registered number a verdict or flag uses. | — |
+| 9 | minor | A stretch cut into "…gkristall" (Bergkristall) names no crystal: 1571385837 is a 30 mm specimen, and Grimsel's quartz crystal sample goes from 26 to 25. "(Spinell 4 mm)" is the spinel's crystal. A width ("Kleinstufe … 6cm breit") is counted as a width, a crystal's or a specimen's. Every specimen length of 300 mm or more is listed for audit and kept as written; the list exposed a parser error the review did not name: "Der Gang ist etwa 60 cm mächtig" (a vein's thickness) had become a 600 mm Schneeberg specimen, now dropped (a test). Audit headers count lengths and specimens. mvt's galena prints 12.0 against 11.8 mm. WP1's target says "scored runs (story-scale and unclassed pockets)". | The verdicts do not change. |
+
+Also added: the variety line now gives the reviewer's expected count. At their bands' ceilings, about 37 species would occur in every seed; 120 do.
+
+Result: STORY 1, STORY (PROXY) 1, NO STORY 3, UNRESOLVED 26, NO ENGINE 1, OUT OF SCOPE 1 (was 1, 0, 3, 27, 1, 1).
+Tsumeb's STORY (PROXY) is the most fragile verdict (§2.6).
