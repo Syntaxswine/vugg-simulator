@@ -10,8 +10,8 @@ import { fileURLToPath } from 'node:url';
 import {
   parseSizeStatements, photoSizes, groupSpecimens, mineralOfWord, summarize, quantile, relativeSpread, deriveRoles,
   protagonistsOf, bandFor, baseClass, sizeTarget, assessOccurrence, fits, pocketClass, assessSize, runStory, scoreStory,
-  storyVerdict, storyFrequency, scenarioVerdict, assemblageVariety, everySeedChance, validateSidecar, wilson,
-  largestSeries, UPLOADED_TOGETHER, SERIES_GAP,
+  storyVerdict, storyFrequency, displayCoverage, scenarioVerdict, wp1Target, assemblageVariety, everySeedChance,
+  validateSidecar, wilson, largestSeries, UPLOADED_TOGETHER, SERIES_GAP,
 } from '../tools/story-pocket-lib.mjs';
 import { buildSizeEvidence, renderSizeEvidenceMd, APPENDIX_FILE } from '../tools/story-pocket-size-evidence.mjs';
 
@@ -96,6 +96,11 @@ describe('caption sizes (Mineralienatlas wording)', () => {
     expect(kinds('uchquarz-Doppelender ; Größe: 7 cm breit; Fundort')).toEqual([['width', 70]]);
     expect(kinds('Kleinstufe mit Kristallen ; 6cm breit')).toEqual([['width', 60]]);
   });
+  it('"Krisalle" (a typo) is a crystal; a diameter is a width, not a length', () => {
+    expect(kinds('; rhomboedrische Krisalle bis 1cm auf Matrix; Fu')).toEqual([['crystal', 10]]);
+    expect(kinds('Calcit auf Fluorit ; Größe: 17 x 14 x 8 cm, Calcit-XX max. 45 mm Durchmesser; F')).toEqual([['specimen', 170], ['width', 45]]);
+    expect(kinds('er mit gekrümmten Flächen bis 1 cm Durchmesser; d')).toEqual([['width', 10]]);
+  });
   it('"(Spinell 4 mm)": one length right after a mineral\'s name in parentheses is its crystal', () => {
     expect(parseSizeStatements('nell ; Mogok, Myanmar Burma - 25 x 2 cm (Spinell 4 mm) ;').map((s: any) => [s.kind, s.mm, s.named])).toEqual([['specimen', 250, null], ['crystal', 4, 'Spinel']]);
     expect(kinds('(Fluorit 5 x 4 cm)')).toEqual([['specimen', 50]]);
@@ -159,7 +164,12 @@ describe('caption sizes (Mineralienatlas wording)', () => {
     expect(mineralOfWord('Gold')).toBe('Gold');
     expect(mineralOfWord('Kupferkies')).toBe('Chalcopyrite');
     expect(mineralOfWord('Kupfer')).toBe('Copper');
-    expect(mineralOfWord('Bergkri')).toBe('Rock Crystal');
+    // Only a word cut at a stretch's end is read as the start of a stem; a whole word never is.
+    expect(mineralOfWord('Bergkri', { cut: true })).toBe('Rock Crystal');
+    expect(mineralOfWord('Bergkri')).toBeNull();
+    expect(mineralOfWord('groß')).toBeNull();
+    expect(mineralOfWord('Smith')).toBeNull();
+    expect(mineralOfWord('Spinel')).toBe('Spinel');
     expect(mineralOfWord('Fluorapophyllit')).toBe('Apophyllite');
     expect(mineralOfWord('Einzelkristall')).toBeNull();
   });
@@ -182,6 +192,21 @@ describe('one specimen, one sample', () => {
     expect(groupSpecimens([photo('1520005261', ['Fluorit ; Größe: 50 x 45 mm']), photo('1326453956', ['Fluorit ; Größe 50 x 45 mm'])]).groups.length).toBe(2);
     // Measured, but in two dimensions only.
     expect(groupSpecimens([photo('1200000000', ['Größe: 15,5 x 12 mm']), photo('1500000000', ['Größe: 15,5 x 12 mm; Mogok'])]).groups.length).toBe(2);
+  });
+  it('a size written with a decimal is measured, in centimetres as in millimetres', () => {
+    expect(groupSpecimens([photo('1264324998', ['pophyllit, Skolezit, Stilbit, 15,9 x 10 x 4,7 cm, Bildbreite ca. 58 mm. Detail von Bi'], 'apophyllite'),
+      photo('1246092168', [' Stilbit, Ahmadnagar, Indien, 15,9 x 10 x 4,7 cm. ;'], 'apophyllite')]).groups.length).toBe(1);
+  });
+  it('the same caption once a cut word, punctuation and "mit", "und", "auf" are dropped', () => {
+    expect(groupSpecimens([photo('1298577983', ['it, Gyrolith ; Kristallgröße: 6 mm; Fundort: Mala'], 'calcite'), photo('1298576363', [' mit Gyrolith; Kristallgröße: 6 mm; Fundort: Mala'], 'calcite')]).groups.length).toBe(1);
+    expect(groupSpecimens([photo('1298577983', ['Calcit ; Kristallgröße: 6 mm'], 'calcite'), photo('1298576363', ['Calcit ; Kristallgröße: 7 mm'], 'calcite')]).groups.length).toBe(2);
+  });
+  it('photographs that each name a mineral the other does not are two specimens; the lead counts as named in both', () => {
+    expect(groupSpecimens([photo('1671709103', [' mit etwas Limonit, Größe ca. 6 x 4 cm ;'], 'fluorite'), photo('1671708672', [' mit etwas Hämatit, Größe ca. 4 x 6 cm, Fund von 2018'], 'fluorite')]).groups.length).toBe(2);
+    const ap = (id: string, w: string) => ({ id, key: 'apophyllite', lead: 'Hydroxyapophyllite-(K)', windows: [w] });
+    expect(groupSpecimens([ap('1322115131', 'th, Apophyllit-(KOH) ; Größe: 11 x 10 cm; Fundort: Pash'), ap('1322115071', 'yllit-(KOH), Stilbit ; Größe: 11 x 10 cm; Fundort: Pash')]).groups.length).toBe(1);
+    // "groß" names no mineral (not grossular), so round 1's Ouro Preto pair still joins.
+    expect(groupSpecimens([photo('1648025549', ['lien. Der rechte Kristall ist 16 mm x 12 mm groß. ;']), photo('1647884454', ['Topas ; 16 mm x 12 mm großer, rosa-v'])]).groups.length).toBe(1);
   });
   it('the window is an option (the scoreboard\'s sensitivity table varies it)', () => {
     const cap = ['Zeunerit xx, BB 4,5 mm'];
@@ -218,6 +243,8 @@ describe('a series: one wording, uploaded in one stretch', () => {
     expect(s.rest.sort()).toEqual([1, 2]);
     expect(largestSeries([it_(1, 'a', 0), { value: 2, key: 'a', t: 1.3e9 + SERIES_GAP }], SERIES_GAP).largest).toBe(1);
     expect(largestSeries([it_(1, 'a', 0), { value: 2, key: 'a', t: 1.3e9 + SERIES_GAP - 1 }], SERIES_GAP).largest).toBe(2);
+    // Chained from upload to upload, not measured from the first: 600 days in all, 300 between each.
+    expect(largestSeries([it_(1, 'a', 0), it_(2, 'a', 300), it_(3, 'a', 600)], SERIES_GAP).largest).toBe(3);
   });
   it('ties go to the wording first alphabetically; no lengths, no series', () => {
     expect(largestSeries([it_(1, 'b', 0), it_(2, 'b', 1), it_(3, 'a', 0), it_(4, 'a', 1)], SERIES_GAP).template).toBe('a');
@@ -288,6 +315,9 @@ describe('occurrence against its band', () => {
     expect(wilson(0, 21)[0]).toBe(0);
     expect(wilson(21, 21)[1]).toBeCloseTo(1, 12);
     expect(wilson(0, 0)).toEqual([0, 1]);
+    // The interval's z is a registered rule (rules.noise_z): a narrower interval calls fewer misses noise.
+    expect(assessOccurrence(9, 21, BANDS.AB, 1.96).noise).toBe(true);
+    expect(assessOccurrence(9, 21, BANDS.AB, 0.5).noise).toBe(false);
   });
   it('no band: unresolved, whatever the rate', () => {
     expect(assessOccurrence(21, 21, null).verdict).toBe('UNRESOLVED');
@@ -466,6 +496,9 @@ describe('the story of a scenario', () => {
     const v = (runs: number, yes: number, yesCrystal: number, open: number, frequency: number | null) => storyVerdict({ runs, yes, yesCrystal, open, frequency });
     expect(v(20, 10, 10, 0, 0.5).verdict).toBe('STORY');
     expect(v(20, 10, 9, 0, 0.5).verdict).toBe('STORY (PROXY)');
+    // Crystal targets alone reach the frequency, proxies add to it: STORY.
+    expect(v(20, 12, 10, 0, 0.5).verdict).toBe('STORY');
+    expect(storyVerdict({ runs: 21, yes: 4, yesCrystal: 4, open: 0, frequency: 0.5, z: 3 }).noise).toBe(true);
     expect(v(20, 9, 9, 0, 0.5)).toMatchObject({ verdict: 'THIN STORY', noise: true });
     expect(v(21, 4, 4, 0, 0.5)).toMatchObject({ verdict: 'THIN STORY', noise: false });
     expect(v(20, 9, 9, 1, 0.5).verdict).toBe('UNRESOLVED');
@@ -479,7 +512,13 @@ describe('the story of a scenario', () => {
     expect(scenarioVerdict(runs, species, 0.5)).toMatchObject({ verdict: 'UNRESOLVED', open: ['unclassed pocket'], counts: { unclassified: 2 } });
     const proxyRuns = [run(300, { calcite: sp(true, 10) }), run(300, { calcite: sp(true, 400) })];
     expect(scenarioVerdict(proxyRuns, { calcite: { role: 'primary', engine: true, size: proxyT } }, 0.5).open).toEqual(['short of a specimen proxy', 'longer than the cavity']);
-    expect(scenarioVerdict(runs, { quartz: { role: 'primary', engine: true, size: unknownT } }, null).open).toEqual(['no occurrence band', 'unclassed pocket']);
+    expect(scenarioVerdict(runs, { quartz: { role: 'primary', engine: true, size: unknownT } }, null).open).toEqual(['no story frequency', 'unclassed pocket']);
+  });
+  it('the noise interval\'s z reaches the scenario\'s verdict', () => {
+    const species = { q: { role: 'primary', engine: true, size: crystalT } };
+    const runs = Array.from({ length: 21 }, (_, i) => run(300, { q: sp(true, i < 4 ? 20 : 2) }));
+    expect(scenarioVerdict(runs, species, 0.5)).toMatchObject({ verdict: 'THIN STORY', noise: false });
+    expect(scenarioVerdict(runs, species, 0.5, { z: 3 })).toMatchObject({ verdict: 'THIN STORY', noise: true });
   });
   it('no protagonist with an engine: NO ENGINE; every run small: SMALL POCKETS ONLY', () => {
     const runs = [run(60, { pascoite: sp(false, 0) })];
@@ -503,25 +542,77 @@ describe('the story of a scenario', () => {
   });
 });
 
-describe('the story frequency', () => {
-  it('the most common protagonist\'s band floor, times the display range\'s coverage of the record', () => {
-    const p = [{ k: 'a', engine: true, band: BANDS.CO }, { k: 'b', engine: true, band: BANDS.AB }, { k: 'c', engine: false, band: [0.9, 0.95] }, { k: 'd', engine: true, band: null }];
-    expect(storyFrequency(p, 0.65)).toEqual({ frequency: 0.325, k: 'b', floor: 0.5 });
-    expect(storyFrequency([{ k: 'a', engine: true, band: BANDS.AB }, { k: 'b', engine: true, band: BANDS.AB }], 0.65)!.k).toBe('a');
-    expect(storyFrequency([{ k: 'x', engine: true, band: null }, { k: 'y', engine: false, band: BANDS.AB }], 0.65)).toBeNull();
+describe('WP1\'s whole target', () => {
+  const p = (k: string, occurrence: any, size: any = { verdict: 'MEETS' }, engine = true) => ({ k, engine, occurrence, size });
+  it('the story, every protagonist in its band (a miss within noise counts as within), none oversize', () => {
+    expect(wp1Target('STORY', [p('a', { verdict: 'IN' }), p('b', { verdict: 'HIGH', noise: true })])).toEqual({ met: true, fails: [] });
+    expect(wp1Target('STORY', [p('a', { verdict: 'IN' }), p('q', { verdict: 'LOW', noise: false })])).toEqual({ met: false, fails: ['q below its band'] });
+    expect(wp1Target('STORY (PROXY)', [p('a', { verdict: 'IN' }, { verdict: 'OVERSIZE' })]).fails).toEqual(['a oversize']);
+    expect(wp1Target('UNRESOLVED', [p('a', { verdict: 'IN' }), p('x', { verdict: 'LOW' }, {}, false)]).fails).toEqual(['story UNRESOLVED']);
   });
-  it('a fleet that meets its band at the floor, with crystals spread as the record\'s are, tells the story', () => {
-    const record = Array.from({ length: 40 }, (_, i) => 5 + i);
-    const target = { ...sizeTarget({ crystal: summarize(record), specimen: { n: 0 } }, { minSamples: 5, mediumConfidence: 10, highConfidence: 30 }), provenance: 'test' };
-    const n = 21, occurring = Math.ceil(BANDS.AB[0] * n);
-    const runs = Array.from({ length: n }, (_, i) => ({ span: 300, species: { q: i < occurring ? { occurs: true, size: quantile(record, (i + 0.5) / occurring) } : { occurs: false, size: 0 } } }));
-    const species = { q: { role: 'primary', engine: true, occurrence_band: BANDS.AB, size: target } };
-    expect(assessOccurrence(occurring, n, BANDS.AB).verdict).toBe('IN');
-    expect(assessSize(runs.map((r) => ({ ...r.species.q, span: r.span })), target).verdict).toBe('MEETS');
-    const f = storyFrequency([{ k: 'q', engine: true, band: BANDS.AB }], 0.65)!.frequency;
-    expect(scenarioVerdict(runs, species, f).verdict).toBe('STORY');
-    // Round 2's rule, the band floor alone, failed the same fleet.
-    expect(scenarioVerdict(runs, species, BANDS.AB[0]).verdict).toBe('THIN STORY');
+});
+
+describe('the story frequency', () => {
+  const DR = [0.25, 0.9];
+  // A seeded generator (mulberry32) and a lognormal population, skewed as collectors' sizes are.
+  const rng = (seed: number) => () => { seed |= 0; seed = (seed + 0x6D2B79F5) | 0; let t = Math.imul(seed ^ (seed >>> 15), 1 | seed); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
+  const lognormal = (r: () => number) => () => { let u = 0, v = 0; while (u === 0) u = r(); while (v === 0) v = r(); return Math.exp(Math.log(20) + 0.6 * Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v)); };
+  const crystalTarget = (record: number[]) => ({ ...sizeTarget({ crystal: summarize(record), specimen: { n: 0 } }, { minSamples: 5, mediumConfidence: 10, highConfidence: 30 }), provenance: 'test' });
+  it('a fresh crystal lands in the display range of a record of n with probability 0.65 (n − 1) / (n + 1): exact for a uniform population, close for a lognormal one', () => {
+    expect(displayCoverage(5, DR)).toBeCloseTo(0.4333, 4);
+    expect(displayCoverage(17, DR)).toBeCloseTo(0.5778, 4);
+    expect(displayCoverage(1, DR)).toBe(0);
+    const r = rng(7);
+    for (const [name, draw, tol] of [['uniform', () => 10 + 40 * r(), 0.015], ['lognormal', lognormal(r), 0.04]] as const) {
+      for (const n of [5, 9, 17]) {
+        let hit = 0, tot = 0;
+        for (let t = 0; t < 4000; t++) {
+          const rec = Array.from({ length: n }, draw).sort((a, b) => a - b);
+          const lo = quantile(rec, 0.25), hi = quantile(rec, 0.9);
+          for (let j = 0; j < 5; j++) { const x = draw(); if (x >= lo && x <= hi) hit++; tot++; }
+        }
+        expect(Math.abs(hit / tot - displayCoverage(n, DR)), `${name} n ${n}`).toBeLessThan(tol);
+      }
+    }
+  });
+  it('the protagonist that can carry a story run with the largest floor × coverage sets it; one with no size target cannot', () => {
+    const t = (n: number) => ({ basis: 'crystal', n });
+    const p = [{ k: 'a', engine: true, band: BANDS.AB, target: unknownT }, { k: 'b', engine: true, band: BANDS.CO, target: t(17) }, { k: 'c', engine: false, band: BANDS.AB, target: t(25) }, { k: 'd', engine: true, band: null, target: t(25) }];
+    expect(storyFrequency(p, DR)).toEqual({ frequency: 0.1733, k: 'b', floor: 0.3, coverage: 0.5778, n: 17 });
+    expect(storyFrequency([{ k: 'x', engine: true, band: BANDS.AB, target: t(5) }, { k: 'y', engine: true, band: BANDS.AB, target: t(25) }], DR)!.k).toBe('y');
+    expect(storyFrequency([{ k: 'x', engine: true, band: BANDS.AB, target: t(17) }, { k: 'y', engine: true, band: BANDS.AB, target: t(17) }], DR)!.k).toBe('x');
+    expect(storyFrequency([{ k: 'a', engine: true, band: BANDS.AB, target: unknownT }], DR)).toBeNull();
+  });
+  it('fleets drawn from the record at the band floor, at the committed sample sizes: the frequency is their expected rate, and a clear shortfall is rare', () => {
+    const r = rng(11), draw = lognormal(r);
+    for (const n of [5, 6, 8, 9, 11, 17, 25]) {
+      let story = 0, clear = 0, rate = 0;
+      const trials = 600;
+      for (let t = 0; t < trials; t++) {
+        const target = crystalTarget(Array.from({ length: n }, draw));
+        const f = storyFrequency([{ k: 'q', engine: true, band: BANDS.AB, target }], DR)!.frequency;
+        // 11 of 21 seeds: the AB band's floor; crystals from the record's population.
+        const runs = Array.from({ length: 21 }, (_, i) => ({ span: 1e6, species: { q: i < 11 ? { occurs: true, size: draw() } : { occurs: false, size: 0 } } }));
+        const v = scenarioVerdict(runs, { q: { role: 'primary', engine: true, occurrence_band: BANDS.AB, size: target } }, f);
+        rate += v.counts.yes_crystal / 21;
+        if (v.verdict === 'STORY') story++;
+        else if (!v.noise) clear++;
+      }
+      expect(rate / trials, `n ${n}: the mean story rate`).toBeGreaterThan(0.5 * displayCoverage(n, DR) - 0.01);
+      expect(story / trials, `n ${n}: STORY`).toBeGreaterThan(0.35);
+      expect(clear / trials, `n ${n}: a shortfall beyond noise`).toBeLessThan(0.05);
+    }
+  });
+  it('a fleet whose crystals run a third of the record\'s size almost never passes', () => {
+    const r = rng(13), draw = lognormal(r);
+    let story = 0;
+    for (let t = 0; t < 600; t++) {
+      const target = crystalTarget(Array.from({ length: 17 }, draw));
+      const f = storyFrequency([{ k: 'q', engine: true, band: BANDS.AB, target }], DR)!.frequency;
+      const runs = Array.from({ length: 21 }, (_, i) => ({ span: 1e6, species: { q: i < 11 ? { occurs: true, size: draw() / 3 } : { occurs: false, size: 0 } } }));
+      if (scenarioVerdict(runs, { q: { role: 'primary', engine: true, occurrence_band: BANDS.AB, size: target } }, f).verdict === 'STORY') story++;
+    }
+    expect(story / 600).toBeLessThan(0.05);
   });
 });
 
@@ -542,7 +633,8 @@ describe('the fleet\'s variety', () => {
 describe('the sidecar\'s validation', () => {
   const good = () => ({
     schema: 'vugg-story-pocket-targets-v1',
-    rules: { wanted_share: 0.05, occurrence_bands: { AB: [0.5, 0.95] }, size_min_samples: 5, size_high_confidence: 30 },
+    rules: { wanted_share: 0.05, occurrence_bands: { AB: [0.5, 0.95] }, size_min_samples: 5, size_high_confidence: 30, visible_mm: 1, specimen_min_mm: 10,
+      uploaded_together_s: 1e6, series_gap_s: 3.15e7, display_range: [0.25, 0.9], clutter_limit: 0.1, star_wanted_share: 0.5, noise_z: 1.96 },
     scenarios: { s: { locality: 'l', story_frequency: 0.5, story_frequency_basis: 'rule',
       species: { q: { role: 'primary', occurrence_band: [0.5, 0.95], band_basis: 'AB', size: { ...crystalT, provenance: 'captions' } } } } },
   });
@@ -553,6 +645,10 @@ describe('the sidecar\'s validation', () => {
     expect(problems((x) => { x.rules.wanted_share = 1; })).toMatch(/wanted_share/);
     expect(problems((x) => { x.rules.occurrence_bands.AB = [0.6, 0.4]; })).toMatch(/occurrence_bands\.AB/);
     expect(problems((x) => { x.rules.size_high_confidence = 2; })).toMatch(/size_high_confidence/);
+    expect(problems((x) => { delete x.rules.clutter_limit; })).toMatch(/clutter_limit/);
+    expect(problems((x) => { x.rules.noise_z = 0; })).toMatch(/noise_z/);
+    expect(problems((x) => { x.rules.display_range = [0.9, 0.25]; })).toMatch(/display_range/);
+    expect(problems((x) => { delete x.rules.series_gap_s; })).toMatch(/series_gap_s/);
     expect(problems((x) => { x.scenarios.s.species.q.role = 'alternate'; })).toMatch(/exactly one primary/);
     expect(problems((x) => { x.scenarios.s.species.q.role = 'hero'; })).toMatch(/unknown role/);
     expect(problems((x) => { delete x.scenarios.s.species.q.band_basis; })).toMatch(/band needs its basis/);
@@ -586,12 +682,11 @@ describe('the committed targets, capture and appendix', () => {
       '$.rules.unregistered_threshold: not in the schema', '$.rules.display_range: missing', expect.stringMatching(/confidence: certain is not one of/),
     ]));
   });
-  it('every story frequency is its most common protagonist\'s band floor times the display range\'s coverage', () => {
-    const coverage = +(sc.rules.display_range[1] - sc.rules.display_range[0]).toFixed(4);
-    expect(coverage).toBe(0.65);
+  it('every story frequency is the largest band floor × display coverage among the protagonists that can carry a story run', () => {
+    expect(sc.rules.display_range).toEqual([0.25, 0.9]);
     for (const s of Object.values(sc.scenarios) as any[]) {
       if (s.out_of_scope) continue;
-      const sf = storyFrequency(Object.entries(s.species).filter(([, v]: any) => v.role === 'primary' || v.role === 'alternate').map(([k, v]: any) => ({ k, engine: v.engine, band: v.occurrence_band })), coverage);
+      const sf = storyFrequency(Object.entries(s.species).filter(([, v]: any) => v.role === 'primary' || v.role === 'alternate').map(([k, v]: any) => ({ k, engine: v.engine, band: v.occurrence_band, target: v.size })), sc.rules.display_range);
       expect(s.story_frequency).toBe(sf ? sf.frequency : null);
     }
   });

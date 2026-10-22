@@ -56,7 +56,8 @@ const CUES = {
   // A crystal: "Kristall…" (not a crystal group, druse, aggregate or width), "crystal", "XX", "X =",
   // edge length ("Kantenlänge", "KL"), a form name (cube, octahedron, rhombohedron, doubly
   // terminated, twin).
-  crystal: new RegExp(String.raw`[${L}-]*kristall(?!${L}*${NOT_ONE_CRYSTAL})${L}*|crystals?\b|\bxx\b|\bxls?\b|\bx\b(?=\s*[=:.,]?\s*(?:ca\.?\s*)?$)|kantenl${L}*\.?|\bkl\b|[${L}-]*(?:würfel|oktaeder|rhomboeder|doppelend|zwilling|quader)${L}*|beryllgröße`, 'giu'),
+  // "Krisall" is a typo the captions make; "rhomboedrisch" is the form's adjective.
+  crystal: new RegExp(String.raw`[${L}-]*kris(?:t)?all(?!${L}*${NOT_ONE_CRYSTAL})${L}*|crystals?\b|\bxx\b|\bxls?\b|\bx\b(?=\s*[=:.,]?\s*(?:ca\.?\s*)?$)|kantenl${L}*\.?|\bkl\b|[${L}-]*(?:würfel|oktaeder|rhomboed|doppelend|zwilling|quader)${L}*|beryllgröße`, 'giu'),
   // A named aggregate of one species: sphere, rosette, sheaf, tuft, "iron rose", "ball".
   aggregate: new RegExp(String.raw`${L}*(?:aggregat|kugel|rosette|garbe|büschel|eisenrose|kristallisation|rasen)${L}*|\bball\b`, 'giu'),
   // The whole specimen (Stufe), piece, group or matrix.
@@ -71,6 +72,8 @@ const PREDICATE = new RegExp(String.raw`([${L}]+)\s+(?:hat|hatte|besitzt)\s+eine
 const FRAGMENT = new RegExp(String.raw`^(?:ristall|istall|stall)(?:e|en|es|s|n)?(?!${L})`, 'iu');
 // Cues right after a length bind tighter than any before it.
 const AFTER_IGNORE = /^\s*(?:macro|makro|objektiv|lens\b|f\/\d|mächtig)/iu;
+// "45 mm Durchmesser": a diameter, read as a width (of a column, a ball or a specimen), not a length.
+const AFTER_DIAMETER = /^\s*(?:durchmesser|diameter|ø)/iu;
 const AFTER_FOV = new RegExp(String.raw`^\s*(?:bildbreite|bildbr|bildhöhe|bb\b|breite[rns]?\s+aus|aus?schnitt)`, 'iu');
 const AFTER_CRYSTAL = new RegExp(String.raw`^\s*(?:kl\b|kantenl|kristall(?!${L}*${NOT_ONE_CRYSTAL})|crystal\b|(?:hohe|lange|große|grosse)[rns]?\s+kristal(?!${L}*${NOT_ONE_CRYSTAL}))`, 'iu');
 // "N mm großer/große/großes <noun>" (or hoher, langer, breiter, dicker): an attributive adjective, so
@@ -102,9 +105,9 @@ const ASSOCIATE = /^(?:mit|auf|neben|sowie|with|on|over|über|unter|and|und)$/iu
 
 // German (and English) stems of the minerals in the captured sections, to an English name the market
 // dictionary classifies (tools/market-title-dictionary.mjs). A stem matches a word that starts with it
-// (the longest such stem wins); failing that, a word cut short (5 letters or more) that the stems of
-// one mineral alone start with. "=" marks a stem that must be the whole word ("Gold", not "goldgelb";
-// "Kupfer", not "Kupferkies").
+// (the longest such stem wins); failing that, a word cut short at the end of a caption stretch (5
+// letters or more) that the stems of one mineral alone start with. "=" marks a stem that must be the
+// whole word ("Gold", not "goldgelb"; "Kupfer", not "Kupferkies").
 export const MINERAL_STEMS = [
   ['fluorit', 'Fluorite'], ['rosafluorit', 'Fluorite'], ['calcit', 'Calcite'], ['kalzit', 'Calcite'], ['kalkspat', 'Calcite'],
   ['kobaltocalcit', 'Cobaltocalcite'], ['galenit', 'Galena'], ['bleiglanz', 'Galena'], ['sphalerit', 'Sphalerite'],
@@ -115,7 +118,7 @@ export const MINERAL_STEMS = [
   ['kupferlasur', 'Azurite'], ['malachit', 'Malachite'], ['cerussit', 'Cerussite'], ['smithsonit', 'Smithsonite'],
   ['mimetesit', 'Mimetite'], ['mimetit', 'Mimetite'], ['=kupfer', 'Copper'], ['cuprit', 'Cuprite'], ['chalkotrichit', 'Chalcotrichite'],
   ['erythrin', 'Erythrite'], ['erythrit', 'Erythrite'], ['zeunerit', 'Zeunerite'], ['heinrichit', 'Heinrichite'], ['topas', 'Topaz'],
-  ['aquamarin', 'Aquamarine'], ['beryll', 'Beryl'], ['spinell', 'Spinel'], ['rubin', 'Ruby'], ['saphir', 'Sapphire'],
+  ['aquamarin', 'Aquamarine'], ['beryll', 'Beryl'], ['spinell', 'Spinel'], ['spinel', 'Spinel'], ['rubin', 'Ruby'], ['saphir', 'Sapphire'],
   ['painit', 'Painite'], ['turmalin', 'Tourmaline'], ['elbait', 'Elbaite'], ['rubellit', 'Rubellite'], ['indigolith', 'Indicolite'],
   ['verdelith', 'Verdelite'], ['schörl', 'Schorl'], ['grossular', 'Grossular'], ['hessonit', 'Hessonite'], ['chromgrossular', 'Grossular'],
   ['vesuvian', 'Vesuvianite'], ['diopsid', 'Diopside'], ['pektolith', 'Pectolite'], ['titanit', 'Titanite'], ['epidot', 'Epidote'],
@@ -128,7 +131,7 @@ export const MINERAL_STEMS = [
   ['pyromorphit', 'Pyromorphite'], ['hemimorphit', 'Hemimorphite'], ['tetraedrit', 'Tetrahedrite'], ['spessartin', 'Spessartine'],
   ['chiastolith', 'Chiastolite'], ['andalusit', 'Andalusite'], ['tigerauge', 'Tigers Eye'], ['falkenauge', "Falcon's Eye"],
   ['chrysopras', 'Chrysoprase'], ['=gold', 'Gold'], ['baryt', 'Baryte'], ['schwerspat', 'Baryte'], ['witherit', 'Witherite'],
-  ['siderit', 'Siderite'], ['ankerit', 'Ankerite'], ['mottramit', 'Mottramite'], ['duftit', 'Duftite'], ['wulfenit', 'Wulfenite'],
+  ['siderit', 'Siderite'], ['limonit', 'Limonite'], ['ankerit', 'Ankerite'], ['mottramit', 'Mottramite'], ['duftit', 'Duftite'], ['wulfenit', 'Wulfenite'],
   ['dioptas', 'Dioptase'], ['anglesit', 'Anglesite'], ['albit', 'Albite'], ['muskowit', 'Muscovite'], ['lepidolith', 'Lepidolite'],
   ['skolezit', 'Scolecite'], ['mesolith', 'Mesolite'], ['prehnit', 'Prehnite'], ['okenit', 'Okenite'], ['gyrolith', 'Gyrolite'],
   ['konichalcit', 'Conichalcite'], ['tennantit', 'Tennantite'], ['linarit', 'Linarite'], ['=silber', 'Silver'], ['skutterudit', 'Skutterudite'],
@@ -136,8 +139,13 @@ export const MINERAL_STEMS = [
 ];
 const fold = (s) => String(s).toLowerCase().replace(/ä/g, 'ae').replace(/ö/g, 'oe').replace(/ü/g, 'ue').replace(/ß/g, 'ss');
 const STEMS = MINERAL_STEMS.map(([stem, name]) => ({ exact: stem.startsWith('='), s: fold(stem.replace(/^=/, '')), name }));
-/** The mineral a word names (an English name), or null. Hyphenated compounds are read part by part. */
-export function mineralOfWord(word) {
+/**
+ * The mineral a word names (an English name), or null. Hyphenated compounds are read part by part. Only a
+ * word cut short at the end of a caption stretch (cut: true) may be read as the start of a stem that one
+ * mineral alone has ("Bergkri", "Rauchqu"); a whole word never is ("groß" is not grossular, "Smith" in
+ * "Smith Co." not smithsonite).
+ */
+export function mineralOfWord(word, { cut = false } = {}) {
   for (const part of String(word || '').split('-')) {
     const w = fold(part);
     if (w.length < 3) continue;
@@ -147,7 +155,7 @@ export function mineralOfWord(word) {
       if (hit && (!best || s.length > best.s.length)) best = { s, name };
     }
     if (best) return best.name;
-    if (w.length >= 5) {
+    if (cut && w.length >= 5) {
       const cut = new Set(STEMS.filter(({ s }) => s.startsWith(w)).map(({ name }) => name));
       if (cut.size === 1) return [...cut][0];
     }
@@ -255,9 +263,9 @@ export function parseSizeStatements(raw) {
     const parenMineral = paren ? mineralOfWord(paren[1]) : null;
     let kind, named = null, why;
     // "7 cm breit", "3 mm dick": a width or thickness, said of whatever the clause names.
-    const predicativeWidth = adj && !adj[2] && /^(?:breit|dick)$/iu.test(adj[1]);
+    const predicativeWidth = (adj && !adj[2] && /^(?:breit|dick)$/iu.test(adj[1])) || AFTER_DIAMETER.test(after);
     if (AFTER_FOV.test(after)) { kind = 'fov'; why = after.match(AFTER_FOV)[0].trim(); }
-    else if (predicativeWidth) { kind = 'width'; why = adj[0].trim(); }
+    else if (predicativeWidth) { kind = 'width'; why = (after.match(AFTER_DIAMETER) ?? adj)[0].trim(); }
     else if (AFTER_CRYSTAL.test(after)) {
       kind = 'crystal'; why = after.match(AFTER_CRYSTAL)[0].trim();
       if (cue?.kind === 'crystal') named = cueMineral(before, cue);
@@ -268,11 +276,12 @@ export function parseSizeStatements(raw) {
       const gender = genderOf(ending, before);
       const upTo = UP_TO.test(before);
       const noun_ = comma ? '' : noun;
+      const nounCut = { cut: adj[0].length === after.length };
       why = adj[0].trim();
       if (noun_ && (NOUN_PIECE.test(noun_) || NOUN_SPECIMEN.test(noun_))) kind = 'specimen';
-      else if (noun_ && NOUN_AGGREGATE.test(noun_)) { kind = 'aggregate'; named = mineralOfWord(noun_); }
-      else if (noun_ && NOUN_CRYSTAL.test(noun_)) { kind = 'crystal'; named = mineralOfWord(noun_); }
-      else { kind = gender === 'm' || upTo ? 'crystal' : 'unclassed'; named = noun_ ? mineralOfWord(noun_) : null; }
+      else if (noun_ && NOUN_AGGREGATE.test(noun_)) { kind = 'aggregate'; named = mineralOfWord(noun_, nounCut); }
+      else if (noun_ && NOUN_CRYSTAL.test(noun_)) { kind = 'crystal'; named = mineralOfWord(noun_, nounCut); }
+      else { kind = gender === 'm' || upTo ? 'crystal' : 'unclassed'; named = noun_ ? mineralOfWord(noun_, nounCut) : null; }
     } else if (parenMineral) {
       kind = 'crystal'; named = parenMineral; why = paren[0].trim();
     } else if (cue) {
@@ -381,16 +390,21 @@ export function photoSizes(windows, lead, { keyOf = (x) => x, same = (a, b) => a
  * Which photographs show one specimen. One specimen is often photographed several times: the uploader
  * keeps the caption, or states the same dimensions again in a new one. Two photographs of the same
  * species are joined when they were uploaded together (image ids, which read as upload times in
- * seconds, within UPLOADED_TOGETHER) and either their caption stretches are identical or they state the
- * same multi-dimension length ("16 mm x 12 mm"). Uploaded apart, only a measured size joins them: the
- * same length in three dimensions, one of them to a tenth of a millimetre ("5x5x4,8mm"). Never when
- * their captions name different finds ("Fundort: Grove …" against "Fundort: Blackdene …"). A generic
- * caption ("Zeunerit xx, BB 4,5 mm") or a round size ("4 x 3 x 2 cm") repeated years apart is more
- * likely two specimens.
- *   photos: [{ id, key, windows }] → { groups: [{ key, photos: [...] }], joined: { caption, dims },
+ * seconds, within UPLOADED_TOGETHER) and either their caption stretches are the same (identical once a
+ * word cut at the stretch's start, punctuation and the words "mit", "und", "auf" are dropped) or they
+ * state the same multi-dimension length ("16 mm x 12 mm"). Uploaded apart, only a measured size joins
+ * them: the same length in three dimensions, one of them written with a decimal ("5x5x4,8mm",
+ * "15,9 x 10 x 4,7 cm"). Never when their captions name different finds ("Fundort: Grove …" against
+ * "Fundort: Blackdene …"), or when each names a mineral the other does not ("mit etwas Limonit"
+ * against "mit etwas Hämatit": two specimens of one lot). A generic caption ("Zeunerit xx, BB 4,5 mm")
+ * or a round size ("4 x 3 x 2 cm") repeated years apart is more likely two specimens.
+ *   photos: [{ id, key, windows, lead? }] → { groups: [{ key, photos: [...] }], joined: { caption, dims },
  *   links: [{ a, b, why, dims }] } — every join, for audit; window: "uploaded together", in seconds
  */
 export const UPLOADED_TOGETHER = 1e6;
+// A caption stretch's core, for "the same caption": a word cut at the stretch's start, punctuation and
+// the linking words "mit", "und", "auf" dropped ("…it, Gyrolith ;" and " mit Gyrolith;" are one).
+const captionCore = (w) => String(w).replace(/^[a-zäöüß][\p{L}]*/u, '').replace(/[^\p{L}\d]+/gu, ' ').replace(/(^| )(?:mit|und|auf)(?= |$)/giu, ' ').replace(/\s+/g, ' ').trim();
 const FIND = new RegExp(String.raw`(?:fundort|f\.\s?o\.|loc\.?)\s*:?\s*([${L}]{4})`, 'iu');
 export function groupSpecimens(photos, { window = UPLOADED_TOGETHER } = {}) {
   const parent = new Map(photos.map((p) => [p.id, p.id]));
@@ -401,22 +415,30 @@ export function groupSpecimens(photos, { window = UPLOADED_TOGETHER } = {}) {
   const where = new Map(photos.map((p) => [p.id, (p.windows.join(' ').match(FIND)?.[1] || '').toLowerCase()]));
   const together = (a, b) => Math.abs(Number(a) - Number(b)) < window;
   const sameFind = (a, b) => !where.get(a) || !where.get(b) || where.get(a) === where.get(b);
+  // The minerals each photograph's captions name; two photographs that each name one the other does not
+  // show different specimens.
+  const namedIn = (w) => [...w.matchAll(WORD)].map((m) => mineralOfWord(m[0], { cut: m.index + m[0].length === w.length })).filter(Boolean);
+  // The lead mineral counts as named in both: a stretch cut through its name must not set two photographs
+  // of it apart.
+  const named = new Map(photos.map((p) => [p.id, new Set([...p.windows.flatMap(namedIn), ...(p.lead ? [mineralOfWord(p.lead)] : [])].filter(Boolean))]));
+  const sameMinerals = (a, b) => { const A = named.get(a), B = named.get(b); return [...A].every((x) => B.has(x)) || [...B].every((x) => A.has(x)); };
+  const compatible = (a, b) => sameFind(a, b) && sameMinerals(a, b);
   const join = (a, b, why, dims) => {
     const ra = find(a), rb = find(b);
     if (ra !== rb) { parent.set(rb, ra); joined[why]++; links.push({ a, b, why, dims }); }
   };
   for (const p of photos) {
-    const cap = `caption\u0000${p.key}\u0000${p.windows.join('\u0000')}`;
+    const cap = `caption\u0000${p.key}\u0000${p.windows.map(captionCore).join('\u0000')}`;
     const earlierCap = seen.get(cap) || [];
-    const capMatch = earlierCap.find((id) => together(id, p.id));
+    const capMatch = earlierCap.find((id) => together(id, p.id) && compatible(id, p.id));
     if (capMatch != null) join(capMatch, p.id, 'caption', null);
     seen.set(cap, [...earlierCap, p.id]);
-    const dims = new Set(p.windows.flatMap((w) => parseSizeStatements(w)).filter((s) => s.dims).map((s) => s.dims.join('x')));
-    for (const d of dims) {
+    const stated = p.windows.flatMap((w) => parseSizeStatements(w)).filter((s) => s.dims);
+    for (const d of new Set(stated.map((s) => s.dims.join('x')))) {
       const sig = `dims\u0000${p.key}\u0000${d}`;
       const earlier = seen.get(sig) || [];
-      const measured = d.split('x').length >= 3 && d.split('x').some((x) => !Number.isInteger(Number(x)));
-      const match = earlier.find((id) => sameFind(id, p.id) && (measured || together(id, p.id)));
+      const measured = stated.some((s) => s.dims.join('x') === d && s.dims.length >= 3 && /\d[.,]\d/.test(s.text));
+      const match = earlier.find((id) => compatible(id, p.id) && (measured || together(id, p.id)));
       if (match != null) join(match, p.id, 'dims', d);
       seen.set(sig, [...earlier, p.id]);
     }
@@ -534,11 +556,11 @@ export function sizeTarget(ev, { minSamples, mediumConfidence = minSamples, high
 
 // ------------------------------------------------------------------ 4. assessment
 
-/** IN / LOW / HIGH against a band; noise = the 95 % interval still reaches the band. */
-export function assessOccurrence(k, n, band) {
+/** IN / LOW / HIGH against a band; noise = the Wilson interval (z: rules.noise_z, 1.96 = 95 %) still reaches the band. */
+export function assessOccurrence(k, n, band, z = 1.96) {
   const rate = n ? k / n : null;
   if (!band || !n) return { verdict: 'UNRESOLVED', rate, k, n };
-  const ci = wilson(k, n);
+  const ci = wilson(k, n, z);
   if (rate >= band[0] && rate <= band[1]) return { verdict: 'IN', rate, k, n, ci };
   return { verdict: rate < band[0] ? 'LOW' : 'HIGH', noise: ci[1] >= band[0] && ci[0] <= band[1], rate, k, n, ci };
 }
@@ -647,31 +669,47 @@ export function scoreStory(runs, species) {
 /**
  * The scenario's story verdict from its counted runs (scoreStory): yes / yesCrystal = runs carrying the
  * story (any basis / on crystal targets); open = runs that might (POSSIBLE, or no story in an
- * unclassed pocket); against the pre-registered story frequency.
+ * unclassed pocket); against the pre-registered story frequency; z for the noise interval.
  */
-export function storyVerdict({ runs, yes, yesCrystal, open, frequency }) {
+export function storyVerdict({ runs, yes, yesCrystal, open, frequency, z = 1.96 }) {
   if (!runs) return { verdict: 'SMALL POCKETS ONLY' };
   const rate = yes / runs;
-  const ci = wilson(yes, runs);
-  if (frequency == null) return { verdict: 'UNRESOLVED', why: 'no story frequency (no protagonist with an engine has an occurrence band)', rate, ci };
+  const ci = wilson(yes, runs, z);
+  if (frequency == null) return { verdict: 'UNRESOLVED', why: 'no story frequency: no protagonist with an engine, an occurrence band and a size target can carry a story run', rate, ci };
   if (rate >= frequency) return { verdict: yesCrystal / runs >= frequency ? 'STORY' : 'STORY (PROXY)', rate, ci };
   if ((yes + open) / runs >= frequency) return { verdict: 'UNRESOLVED', why: 'runs whose protagonist has no known crystal target, or whose pocket is unclassed, could carry it', rate, ci };
   return { verdict: yes ? 'THIN STORY' : 'NO STORY', noise: ci[1] >= frequency, rate, ci };
 }
 
 /**
- * The story frequency a scenario's targets imply: the share of runs that would carry the story if its
- * most common protagonist occurred at its band's floor with its crystals spread as the record's are —
- * floor × coverage, where coverage is the share of the record's own crystals inside the display range
- * (q25–q90: 0.65). A fleet that meets every occurrence band and size target then meets it too.
- *   protagonists: [{ k, role, engine, band }] → { frequency, k, floor }, or null when none has an
- *   engine and a band; ties on the floor go to the first in order
+ * The expected share of fresh crystals from a record's population that land in the record's display
+ * range — between its R-7 quantiles at range[0] and range[1] — when the record holds n crystals:
+ * (range[1] − range[0]) × (n − 1) / (n + 1). For q25–q90 that is 0.43 at n = 5, 0.58 at n = 17,
+ * approaching 0.65. Exact for a uniform population; for skewed ones such as collectors' sizes
+ * (lognormal), within about 0.03 and on the low side (the tests simulate both).
  */
-export function storyFrequency(protagonists, coverage) {
-  const live = protagonists.filter((p) => p.engine && p.band);
-  if (!live.length) return null;
-  const best = live.reduce((a, b) => (b.band[0] > a.band[0] ? b : a));
-  return { frequency: +(best.band[0] * coverage).toFixed(4), k: best.k, floor: best.band[0] };
+export function displayCoverage(n, range) {
+  return n > 1 ? ((range[1] - range[0]) * (n - 1)) / (n + 1) : 0;
+}
+
+/**
+ * The story frequency a scenario's targets imply: the expected story rate of a fleet whose protagonist
+ * occurs at its band's floor with crystals drawn from its record's population — floor ×
+ * displayCoverage(n) — for the protagonist that can carry a story run (an engine, a band and a size
+ * target) with the largest such rate. It is an expectation: with 21 seeds a fleet at exactly that rate
+ * falls short about half the time, and the verdict marks a shortfall its interval cannot tell from the
+ * frequency "noise".
+ *   protagonists: [{ k, engine, band, target }]; range: rules.display_range
+ *   → { frequency, k, floor, coverage, n }, or null when none can carry a story run; ties go to the first
+ */
+export function storyFrequency(protagonists, range) {
+  let best = null;
+  for (const p of protagonists) {
+    if (!p.engine || !p.band || !p.target || p.target.basis === 'unknown') continue;
+    const coverage = displayCoverage(p.target.n, range);
+    if (!best || p.band[0] * coverage > best.rate) best = { k: p.k, floor: p.band[0], coverage, n: p.target.n, rate: p.band[0] * coverage };
+  }
+  return best && { frequency: +best.rate.toFixed(4), k: best.k, floor: best.floor, coverage: +best.coverage.toFixed(4), n: best.n };
 }
 
 /**
@@ -681,14 +719,14 @@ export function storyFrequency(protagonists, coverage) {
  * when none of them can carry the story in any run's cavity, whatever grows — those whose display range
  * starts beyond every span (cavity) and those with no size target (evidence) — else null.
  *   runs: [{ span, species: { k: { occurs, size } } }]; species: the sidecar's entries for the scenario;
- *   frequency: its story frequency
+ *   frequency: its story frequency; z: the noise interval's (rules.noise_z)
  */
-export function scenarioVerdict(runs, species, frequency) {
+export function scenarioVerdict(runs, species, frequency, { z = 1.96 } = {}) {
   const withEngine = protagonistsOf(species).filter((p) => p.engine);
   const c = scoreStory(runs, species);
-  const story = storyVerdict({ runs: c.scored, yes: c.yes_crystal + c.yes_proxy, yesCrystal: c.yes_crystal, open: c.possible + c.unclassified, frequency });
+  const story = storyVerdict({ runs: c.scored, yes: c.yes_crystal + c.yes_proxy, yesCrystal: c.yes_crystal, open: c.possible + c.unclassified, frequency, z });
   const open = [];
-  if (frequency == null) open.push('no occurrence band');
+  if (frequency == null) open.push('no story frequency');
   if (c.unclassified) open.push('unclassed pocket');
   for (const p of withEngine) {
     const occ = runs.filter((r) => r.species[p.k]?.occurs);
@@ -706,6 +744,25 @@ export function scenarioVerdict(runs, species, frequency) {
     counts: c, verdict: withEngine.length ? story.verdict : 'NO ENGINE', why: story.why ?? null, noise: !!story.noise,
     rate: story.rate ?? null, ci: story.ci ?? null, open: [...new Set(open)], cannot,
   };
+}
+
+/**
+ * WP1's whole pre-registered target for a scenario: the story frequency met (STORY or STORY (PROXY));
+ * every protagonist with an engine and a band within it (a miss its interval cannot tell from the band
+ * counts as within); none OVERSIZE. The story verdict checks the first alone.
+ *   verdict: the scenario's story verdict; protagonists: [{ k, engine, occurrence: { verdict, noise },
+ *   size: { verdict } }] → { met, fails: [...] }
+ */
+export function wp1Target(verdict, protagonists) {
+  const fails = [];
+  if (verdict !== 'STORY' && verdict !== 'STORY (PROXY)') fails.push(`story ${verdict}`);
+  for (const p of protagonists) {
+    if (!p.engine) continue;
+    const o = p.occurrence;
+    if ((o?.verdict === 'LOW' || o?.verdict === 'HIGH') && !o.noise) fails.push(`${p.k} ${o.verdict === 'LOW' ? 'below' : 'above'} its band`);
+    if (p.size?.verdict === 'OVERSIZE') fails.push(`${p.k} oversize`);
+  }
+  return { met: !fails.length, fails };
 }
 
 // ------------------------------------------------------------------ 5. how much the fleet varies
@@ -763,6 +820,10 @@ export function validateSidecar(sc) {
     for (const [cls, b] of Object.entries(R.occurrence_bands || {})) band(b, `rules.occurrence_bands.${cls}`);
     if (!Number.isInteger(R.size_min_samples) || R.size_min_samples < 1) bad.push('rules.size_min_samples must be a positive integer');
     if (!Number.isInteger(R.size_high_confidence) || R.size_high_confidence < R.size_min_samples) bad.push('rules.size_high_confidence must be an integer ≥ size_min_samples');
+    const ranged = { visible_mm: [0, Infinity, true], specimen_min_mm: [0, Infinity], uploaded_together_s: [0, Infinity, true], series_gap_s: [0, Infinity, true], clutter_limit: [0, 1], star_wanted_share: [0, 1], noise_z: [0, Infinity, true] };
+    for (const [key, [lo, hi, open]] of Object.entries(ranged)) if (!isNum(R[key]) || R[key] < lo || (open && R[key] === lo) || R[key] > hi) bad.push(`rules.${key} is missing or out of range`);
+    const D = R.display_range;
+    if (!Array.isArray(D) || D.length !== 2 || !isNum(D[0]) || !isNum(D[1]) || D[0] < 0 || D[0] >= D[1] || D[1] > 1) bad.push('rules.display_range must be [lo, hi] with 0 ≤ lo < hi ≤ 1');
   }
   for (const [scn, s] of Object.entries(sc?.scenarios || {})) {
     if (!s.locality) bad.push(`${scn}: locality missing`);

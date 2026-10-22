@@ -51,7 +51,7 @@
   "specimen_min_mm": 10,
   "specimen_min_basis": "A specimen length below this is set aside: micromount captions give the crystal or the field of view as \"Größe\" (\"Malachit ; Größe: 4,2 mm\"), and a misread crystal would pull a specimen proxy below the crystals it is meant to bound. A cabinet or thumbnail specimen is longer.",
   "uploaded_together_s": 1000000,
-  "specimen_joins": "Two photographs of one species are one specimen when uploaded together (ids within uploaded_together_s) with identical caption stretches or the same multi-dimension length; or, uploaded apart, when they state the same length in three dimensions measured to a tenth of a millimetre; never when their captions name different finds. A generic caption (\"BB 4,5 mm\") or a round size repeated years apart counts as two specimens. Every join is listed in proposals/DATA-STORY-POCKET-SIZES-2026-10-22.md.",
+  "specimen_joins": "Two photographs of one species are one specimen when uploaded together (ids within uploaded_together_s) with the same caption stretches (identical once a word cut at the stretch's start, punctuation and the words \"mit\", \"und\", \"auf\" are dropped) or the same multi-dimension length; or, uploaded apart, when they state the same length in three dimensions, one written with a decimal (\"5x5x4,8mm\", \"15,9 x 10 x 4,7 cm\"); never when their captions name different finds, or when each names a mineral the other does not (\"mit etwas Limonit\" against \"mit etwas Hämatit\"). A generic caption (\"BB 4,5 mm\") or a round size repeated years apart counts as two specimens. Every join is listed in proposals/DATA-STORY-POCKET-SIZES-2026-10-22.md.",
   "series": "Crystal lengths in one wording once the numbers are taken out (seriesKey, tools/story-pocket-lib.mjs) whose specimens were uploaded in one stretch — each less than series_gap_s after the one before (largestSeries) — are one series: likely one contributor's lot or find, not independent samples. The capture has no uploader names, so the stretch stands in for the contributor, and a standard wording (\"Größe: #\") recurring years apart counts as many. When the largest series holds more than half of a crystal target's lengths, its confidence drops one step, and the target records its quantiles without that series, so the scoreboard can say whether a verdict rests on it.",
   "series_gap_s": 31536000,
   "series_gap_basis": "A year: longer than the gaps inside the runs of one unusual wording that are plainly one contributor's (a lot photographed over months), shorter than the gaps at which standard wordings recur (years). The appendix gives each largest series' span in days.",
@@ -60,10 +60,12 @@
    0.25,
    0.9
   ],
-  "display_range_basis": "The record's quantiles that bound its display scale: a crystal from the record's lower quartile to its 90th percentile is at the scale the record shows; past the 90th it is oversize. Its coverage — the share of the record's own crystals inside it, 0.65 — enters the story frequency (story_frequency_rule). The scoreboard reads the targets' q25 and q90 and refuses another range.",
+  "display_range_basis": "The record's quantiles that bound its display scale: a crystal from the record's lower quartile to its 90th percentile is at the scale the record shows; past the 90th it is oversize. A fresh crystal from the record's population lands inside the range of a record of n crystals with probability 0.65 × (n − 1) / (n + 1) (displayCoverage: exact for a uniform population, within about 0.03 and on the low side for lognormal ones): 0.43 at n = 5, 0.58 at n = 17. That coverage enters the story frequency (story_frequency_rule). The scoreboard reads the targets' q25 and q90 and refuses another range.",
   "size_check": "Per run, the species' largest crystal not flagged as enclosed (census max_exp_mm). The record's median is the characteristic crystal, its quartiles the range: a crystal in the display range (q25–q90) is at the record's display scale; past q90 it is oversize. Over the runs where the species occurs in a cavity that holds its median, the median of those crystals against the record: BELOW (< q25), MEETS (q25–q75, around the record's median), LARGE (q75–q90), OVERSIZE (> q90). Against a proxy: BELOW PROXY (< q25, not a verdict), REACHES PROXY (q25–q90; oversize cannot be tested against a proxy), OVERSIZE (> q90). A crystal longer than the cavity's span is left out and flagged: the starting cavity cannot hold it.",
   "eligibility": "A cavity can hold a species' characteristic crystal when its span — the longest distance between two wall vertices (tools/story-pocket-cavities.mjs) — is at least the target's median. The span is an upper bound on the longest crystal the cavity holds (in a cavity that is not convex the chord can cross the wall), so SMALL is conclusive and STORY-SCALE is generous. A pocket is SMALL when it cannot hold the primary protagonist's characteristic crystal: it may lack a showcase and is left out of the story frequency (its stories are reported apart). The locality's target is never shrunk to fit the cavity. A pocket is UNCLASSED when this cannot be told (the primary's size is unknown, or a proxy longer than the cavity): a run without a story there may be a small pocket, so it stays open rather than counting against the story.",
-  "story_frequency_rule": "A run carries the story when an intended protagonist (the primary or an alternate) occurs with its largest unflagged crystal in its record's display range and no longer than the cavity. The scenario should carry it in at least floor × coverage of its scored runs: floor = the largest lower occurrence bound among its protagonists that have an engine and a band; coverage = the share of the record's own crystals in the display range (display_range: 0.65). That is the story rate of a fleet whose most common protagonist occurs at its band's floor with crystals spread as the record's are, so a fleet that meets every occurrence band and size target meets the story frequency too, without a protagonist in every seed or a size spread narrower than the record's. Unresolved when no such protagonist exists, or when runs whose protagonist has no known crystal target, or whose pocket is unclassed, could still carry it.",
+  "story_frequency_rule": "A run carries the story when an intended protagonist (the primary or an alternate) occurs with its largest unflagged crystal in its record's display range and no longer than the cavity. The scenario should carry it in at least floor × coverage of its scored runs, for the protagonist that can carry a story run (an engine, a band and a size target) with the largest such product: floor = its band's lower bound; coverage = the chance that a crystal drawn from its record's population lands in the display range of a record of its size (display_range_basis). That is the expected story rate of a fleet whose protagonist occurs at its band's floor with crystals drawn from the record. It is an expectation, not a guarantee: with 21 seeds such a fleet falls short of it about half the time, and the verdict marks a shortfall its interval cannot tell from the frequency \"noise\" (noise_z). It does not ask for a protagonist in every seed or a size spread narrower than the record's. A protagonist with no size target cannot carry a story run and does not set the frequency. Unresolved when no protagonist can, or when runs whose protagonist has no known crystal target, or whose pocket is unclassed, could still carry it. The story verdict checks this alone; WP1's whole target also needs every protagonist within its band and none oversize (the scoreboard reports both).",
+  "noise_z": 1.96,
+  "noise_basis": "The Wilson score interval at z 1.96 (95 %): an occurrence rate outside its band, or a story rate short of its frequency, is \"noise\" when the interval still reaches the band or the frequency — 21 runs cannot tell it from the target. Noise marks a verdict; it does not change it, except that WP1's target counts a band miss within noise as within.",
   "clutter_limit": 0.1,
   "clutter_basis": "WP3's target: visible clutter (crystals of species with no photograph, no listing and no literature at the locality) under 10 % of a scenario's visible crystals. The scoreboard flags a scenario at or above it and lists it in the clutter table.",
   "star_wanted_share": 0.5,
@@ -217,8 +219,8 @@
      }
     }
    },
-   "story_frequency": 0.325,
-   "story_frequency_basis": "rules.story_frequency_rule: quartz (primary, class AB) has the largest lower band, 0.5; × the display range's coverage, 0.65 = 0.325"
+   "story_frequency": null,
+   "story_frequency_basis": "unresolved: no protagonist with an engine and an occurrence band has a size target, so none can carry a story run"
   },
   "asbestos_hills_crack_seal": {
    "locality": "asbestos_hills",
@@ -414,8 +416,8 @@
      }
     }
    },
-   "story_frequency": 0.325,
-   "story_frequency_basis": "rules.story_frequency_rule: crocidolite (alternate, class AB) has the largest lower band, 0.5; × the display range's coverage, 0.65 = 0.325"
+   "story_frequency": 0.1733,
+   "story_frequency_basis": "rules.story_frequency_rule: tigers_eye (primary, class CO, specimen-proxy target of 17) has the largest floor × coverage: 0.3 × 0.5778 = 0.1733"
   },
   "asbestos_hills_surficial_alteration": {
    "locality": "asbestos_hills",
@@ -611,8 +613,8 @@
      }
     }
    },
-   "story_frequency": 0.325,
-   "story_frequency_basis": "rules.story_frequency_rule: crocidolite (alternate, class AB) has the largest lower band, 0.5; × the display range's coverage, 0.65 = 0.325"
+   "story_frequency": 0.1733,
+   "story_frequency_basis": "rules.story_frequency_rule: tigers_eye (primary, class CO, specimen-proxy target of 17) has the largest floor × coverage: 0.3 × 0.5778 = 0.1733"
   },
   "bisbee": {
    "locality": "bisbee",
@@ -816,7 +818,7 @@
     }
    },
    "story_frequency": null,
-   "story_frequency_basis": "unresolved: no protagonist with an engine has an occurrence band"
+   "story_frequency_basis": "unresolved: no protagonist with an engine and an occurrence band has a size target, so none can carry a story run"
   },
   "chiastolite_hornfels": {
    "locality": "chiastolite_hornfels",
@@ -862,8 +864,8 @@
      }
     }
    },
-   "story_frequency": 0.325,
-   "story_frequency_basis": "rules.story_frequency_rule: andalusite (primary, class AB) has the largest lower band, 0.5; × the display range's coverage, 0.65 = 0.325"
+   "story_frequency": null,
+   "story_frequency_basis": "unresolved: no protagonist with an engine and an occurrence band has a size target, so none can carry a story run"
   },
   "colorado_plateau": {
    "locality": "colorado_plateau",
@@ -1074,7 +1076,7 @@
     }
    },
    "story_frequency": null,
-   "story_frequency_basis": "unresolved: no protagonist with an engine has an occurrence band"
+   "story_frequency_basis": "unresolved: no protagonist with an engine and an occurrence band has a size target, so none can carry a story run"
   },
   "cooling": {
    "locality": "herkimer",
@@ -1202,8 +1204,8 @@
      }
     }
    },
-   "story_frequency": 0.325,
-   "story_frequency_basis": "rules.story_frequency_rule: quartz (primary, class AB) has the largest lower band, 0.5; × the display range's coverage, 0.65 = 0.325"
+   "story_frequency": 0.2167,
+   "story_frequency_basis": "rules.story_frequency_rule: quartz (primary, class AB, crystal target of 5) has the largest floor × coverage: 0.5 × 0.4333 = 0.2167"
   },
   "deccan_zeolite": {
    "locality": "deccan",
@@ -1235,7 +1237,7 @@
       "q90": 84.6,
       "confidence": "low",
       "crystal_n": 8,
-      "specimen_n": 89,
+      "specimen_n": 88,
       "series": {
        "largest": 1,
        "of": 8,
@@ -1254,17 +1256,17 @@
        "max": 170
       },
       "specimen": {
-       "n": 89,
+       "n": 88,
        "min": 16,
        "q10": 40,
        "q25": 52,
        "median": 80,
-       "q75": 112,
-       "q90": 150.4,
+       "q75": 110.5,
+       "q90": 147.9,
        "max": 500
       },
-      "specimens": 115,
-      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 120 photograph(s) of Apophyllit-Gruppe / Fluorapophyllite-(K) / Fluorapophyllite-(Na) / Hydroxyapophyllite-(K) at deccan with a stated length, 115 specimen(s); 8 with a crystal length, 89 with specimen dimensions, 0 aggregate, 20 picture width"
+      "specimens": 114,
+      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 120 photograph(s) of Apophyllit-Gruppe / Fluorapophyllite-(K) / Fluorapophyllite-(Na) / Hydroxyapophyllite-(K) at deccan with a stated length, 114 specimen(s); 8 with a crystal length, 88 with specimen dimensions, 0 aggregate, 20 picture width"
      }
     },
     "stilbite": {
@@ -1470,18 +1472,18 @@
      "band_basis": "literature class CO (S74,O22; status V) under rules.occurrence_bands",
      "size": {
       "basis": "crystal",
-      "n": 6,
-      "q10": 6,
-      "q25": 7.25,
-      "median": 16.5,
-      "q75": 28,
-      "q90": 45,
+      "n": 5,
+      "q10": 8,
+      "q25": 11,
+      "median": 22,
+      "q75": 30,
+      "q90": 48,
       "confidence": "low",
-      "crystal_n": 6,
+      "crystal_n": 5,
       "specimen_n": 30,
       "series": {
-       "largest": 3,
-       "of": 6,
+       "largest": 2,
+       "of": 5,
        "template": "Kristallgröße:#",
        "days": 1
       },
@@ -1497,13 +1499,13 @@
       },
       "photographs_with_length": 36,
       "crystal": {
-       "n": 6,
+       "n": 5,
        "min": 6,
-       "q10": 6,
-       "q25": 7.25,
-       "median": 16.5,
-       "q75": 28,
-       "q90": 45,
+       "q10": 8,
+       "q25": 11,
+       "median": 22,
+       "q75": 30,
+       "q90": 48,
        "max": 60
       },
       "specimen": {
@@ -1516,8 +1518,8 @@
        "q90": 126,
        "max": 155
       },
-      "specimens": 36,
-      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 36 photograph(s) of Calcite / Calcite group at deccan with a stated length, 36 specimen(s); 6 with a crystal length, 30 with specimen dimensions, 0 aggregate, 1 picture width"
+      "specimens": 35,
+      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 36 photograph(s) of Calcite / Calcite group at deccan with a stated length, 35 specimen(s); 5 with a crystal length, 30 with specimen dimensions, 0 aggregate, 1 picture width"
      }
     },
     "scolecite": {
@@ -1668,8 +1670,8 @@
      }
     }
    },
-   "story_frequency": 0.325,
-   "story_frequency_basis": "rules.story_frequency_rule: stilbite (alternate, class AB) has the largest lower band, 0.5; × the display range's coverage, 0.65 = 0.325"
+   "story_frequency": 0.3079,
+   "story_frequency_basis": "rules.story_frequency_rule: heulandite (alternate, class AB, specimen-proxy target of 37) has the largest floor × coverage: 0.5 × 0.6158 = 0.3079"
   },
   "elmwood": {
    "locality": "elmwood",
@@ -1863,8 +1865,8 @@
      }
     }
    },
-   "story_frequency": 0.325,
-   "story_frequency_basis": "rules.story_frequency_rule: calcite (alternate, class AB) has the largest lower band, 0.5; × the display range's coverage, 0.65 = 0.325"
+   "story_frequency": 0.3079,
+   "story_frequency_basis": "rules.story_frequency_rule: calcite (alternate, class AB, specimen-proxy target of 37) has the largest floor × coverage: 0.5 × 0.6158 = 0.3079"
   },
   "epithermal_telluride": {
    "locality": "cripple_creek",
@@ -2103,8 +2105,8 @@
      }
     }
    },
-   "story_frequency": 0.325,
-   "story_frequency_basis": "rules.story_frequency_rule: calaverite (primary, class AB) has the largest lower band, 0.5; × the display range's coverage, 0.65 = 0.325"
+   "story_frequency": 0.26,
+   "story_frequency_basis": "rules.story_frequency_rule: calaverite (primary, class AB, specimen-proxy target of 9) has the largest floor × coverage: 0.5 × 0.52 = 0.26"
   },
   "gem_pegmatite": {
    "locality": "cruzeiro",
@@ -2276,8 +2278,8 @@
      }
     }
    },
-   "story_frequency": 0.325,
-   "story_frequency_basis": "rules.story_frequency_rule: tourmaline (primary, class AB) has the largest lower band, 0.5; × the display range's coverage, 0.65 = 0.325"
+   "story_frequency": 0.3112,
+   "story_frequency_basis": "rules.story_frequency_rule: tourmaline (primary, class AB, specimen-proxy target of 46) has the largest floor × coverage: 0.5 × 0.6223 = 0.3112"
   },
   "great_salt_plains": {
    "locality": "great_salt_plains",
@@ -2344,8 +2346,8 @@
      }
     }
    },
-   "story_frequency": 0.325,
-   "story_frequency_basis": "rules.story_frequency_rule: selenite (primary, class AB) has the largest lower band, 0.5; × the display range's coverage, 0.65 = 0.325"
+   "story_frequency": null,
+   "story_frequency_basis": "unresolved: no protagonist with an engine and an occurrence band has a size target, so none can carry a story run"
   },
   "grimsel_alpine_cleft": {
    "locality": "grimsel",
@@ -2570,8 +2572,8 @@
      }
     }
    },
-   "story_frequency": 0.325,
-   "story_frequency_basis": "rules.story_frequency_rule: quartz (primary, class AB) has the largest lower band, 0.5; × the display range's coverage, 0.65 = 0.325"
+   "story_frequency": 0.3,
+   "story_frequency_basis": "rules.story_frequency_rule: quartz (primary, class AB, crystal target of 25) has the largest floor × coverage: 0.5 × 0.6 = 0.3"
   },
   "jeffrey_mine": {
    "locality": "jeffrey_mine",
@@ -2765,8 +2767,8 @@
      }
     }
    },
-   "story_frequency": 0.325,
-   "story_frequency_basis": "rules.story_frequency_rule: grossular (primary, class AB) has the largest lower band, 0.5; × the display range's coverage, 0.65 = 0.325"
+   "story_frequency": 0.26,
+   "story_frequency_basis": "rules.story_frequency_rule: diopside (alternate, class AB, specimen-proxy target of 9) has the largest floor × coverage: 0.5 × 0.52 = 0.26"
   },
   "marble_contact_metamorphism": {
    "locality": "mogok",
@@ -3010,8 +3012,8 @@
      }
     }
    },
-   "story_frequency": 0.195,
-   "story_frequency_basis": "rules.story_frequency_rule: ruby (alternate, class CO) has the largest lower band, 0.3; × the display range's coverage, 0.65 = 0.195"
+   "story_frequency": 0.1393,
+   "story_frequency_basis": "rules.story_frequency_rule: ruby (alternate, class CO, specimen-proxy target of 6) has the largest floor × coverage: 0.3 × 0.4643 = 0.1393"
   },
   "mvt": {
    "locality": "tri_state_picher",
@@ -3267,8 +3269,8 @@
      }
     }
    },
-   "story_frequency": 0.325,
-   "story_frequency_basis": "rules.story_frequency_rule: galena (primary, class AB) has the largest lower band, 0.5; × the display range's coverage, 0.65 = 0.325"
+   "story_frequency": 0.2908,
+   "story_frequency_basis": "rules.story_frequency_rule: galena (primary, class AB, specimen-proxy target of 18) has the largest floor × coverage: 0.5 × 0.5816 = 0.2908"
   },
   "naica_geothermal": {
    "locality": "naica",
@@ -3383,8 +3385,8 @@
      }
     }
    },
-   "story_frequency": 0.325,
-   "story_frequency_basis": "rules.story_frequency_rule: selenite (primary, class AB) has the largest lower band, 0.5; × the display range's coverage, 0.65 = 0.325"
+   "story_frequency": 0.2844,
+   "story_frequency_basis": "rules.story_frequency_rule: selenite (primary, class AB, specimen-proxy target of 15) has the largest floor × coverage: 0.5 × 0.5687 = 0.2844"
   },
   "ouro_preto": {
    "locality": "ouro_preto",
@@ -3543,8 +3545,8 @@
      }
     }
    },
-   "story_frequency": 0.195,
-   "story_frequency_basis": "rules.story_frequency_rule: topaz (primary, class CO) has the largest lower band, 0.3; × the display range's coverage, 0.65 = 0.195"
+   "story_frequency": 0.1721,
+   "story_frequency_basis": "rules.story_frequency_rule: topaz (primary, class CO, specimen-proxy target of 16) has the largest floor × coverage: 0.3 × 0.5735 = 0.1721"
   },
   "porphyry": {
    "locality": "bingham",
@@ -3818,8 +3820,8 @@
      }
     }
    },
-   "story_frequency": 0.325,
-   "story_frequency_basis": "rules.story_frequency_rule: pyrite (primary, class AB) has the largest lower band, 0.5; × the display range's coverage, 0.65 = 0.325"
+   "story_frequency": null,
+   "story_frequency_basis": "unresolved: no protagonist with an engine and an occurrence band has a size target, so none can carry a story run"
   },
   "reactivated_fluorite_vein": {
    "locality": "north_pennines",
@@ -4018,38 +4020,38 @@
      "band_basis": "literature class CO (DGA04; status V) under rules.occurrence_bands",
      "size": {
       "basis": "specimen-proxy",
-      "n": 17,
-      "q10": 30,
-      "q25": 60,
+      "n": 16,
+      "q10": 37,
+      "q25": 63.75,
       "median": 88,
-      "q75": 160,
-      "q90": 182,
+      "q75": 162.5,
+      "q90": 185,
       "confidence": "low",
-      "crystal_n": 3,
-      "specimen_n": 17,
+      "crystal_n": 2,
+      "specimen_n": 16,
       "photographs_with_length": 23,
       "crystal": {
-       "n": 3,
+       "n": 2,
        "min": 32,
-       "q10": 32.4,
-       "q25": 33,
-       "median": 34,
-       "q75": 39.5,
-       "q90": 42.8,
-       "max": 45
+       "q10": 32.2,
+       "q25": 32.5,
+       "median": 33,
+       "q75": 33.5,
+       "q90": 33.8,
+       "max": 34
       },
       "specimen": {
-       "n": 17,
-       "min": 10,
-       "q10": 30,
-       "q25": 60,
+       "n": 16,
+       "min": 30,
+       "q10": 37,
+       "q25": 63.75,
        "median": 88,
-       "q75": 160,
-       "q90": 182,
+       "q75": 162.5,
+       "q90": 185,
        "max": 220
       },
       "specimens": 23,
-      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 23 photograph(s) of Calcite / Cobaltocalcite at north_pennines with a stated length, 23 specimen(s); 3 with a crystal length, 17 with specimen dimensions, 0 aggregate, 7 picture width"
+      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 23 photograph(s) of Calcite / Cobaltocalcite at north_pennines with a stated length, 23 specimen(s); 2 with a crystal length, 16 with specimen dimensions, 0 aggregate, 7 picture width"
      }
     },
     "sphalerite": {
@@ -4158,8 +4160,8 @@
      }
     }
    },
-   "story_frequency": 0.325,
-   "story_frequency_basis": "rules.story_frequency_rule: fluorite (primary, class AB) has the largest lower band, 0.5; × the display range's coverage, 0.65 = 0.325"
+   "story_frequency": 0.2889,
+   "story_frequency_basis": "rules.story_frequency_rule: fluorite (primary, class AB, crystal target of 17) has the largest floor × coverage: 0.5 × 0.5778 = 0.2889"
   },
   "reactive_wall": {
    "locality": "viburnum",
@@ -4240,18 +4242,18 @@
       "q75": 65,
       "q90": 87.6,
       "confidence": "low",
-      "crystal_n": 4,
+      "crystal_n": 3,
       "specimen_n": 29,
       "photographs_with_length": 33,
       "crystal": {
-       "n": 4,
+       "n": 3,
        "min": 40,
        "q10": 40,
        "q25": 40,
-       "median": 52.5,
-       "q75": 67.5,
-       "q90": 72,
-       "max": 75
+       "median": 40,
+       "q75": 52.5,
+       "q90": 60,
+       "max": 65
       },
       "specimen": {
        "n": 29,
@@ -4264,7 +4266,7 @@
        "max": 130
       },
       "specimens": 33,
-      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 33 photograph(s) of Galena at viburnum with a stated length, 33 specimen(s); 4 with a crystal length, 29 with specimen dimensions, 0 aggregate, 2 picture width"
+      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 33 photograph(s) of Galena at viburnum with a stated length, 33 specimen(s); 3 with a crystal length, 29 with specimen dimensions, 0 aggregate, 2 picture width"
      }
     },
     "chalcopyrite": {
@@ -4375,8 +4377,8 @@
      }
     }
    },
-   "story_frequency": 0.325,
-   "story_frequency_basis": "rules.story_frequency_rule: galena (alternate, class AB) has the largest lower band, 0.5; × the display range's coverage, 0.65 = 0.325"
+   "story_frequency": 0.3033,
+   "story_frequency_basis": "rules.story_frequency_rule: galena (alternate, class AB, specimen-proxy target of 29) has the largest floor × coverage: 0.5 × 0.6067 = 0.3033"
   },
   "roughten_gill": {
    "locality": "roughton_gill",
@@ -4443,18 +4445,11 @@
      "band_basis": "literature class CO (GCR36; status V) under rules.occurrence_bands",
      "size": {
       "basis": "unknown",
-      "crystal_n": 1,
+      "crystal_n": 0,
       "specimen_n": 1,
       "photographs_with_length": 4,
       "crystal": {
-       "n": 1,
-       "min": 2,
-       "q10": 2,
-       "q25": 2,
-       "median": 2,
-       "q75": 2,
-       "q90": 2,
-       "max": 2
+       "n": 0
       },
       "specimen": {
        "n": 1,
@@ -4467,7 +4462,7 @@
        "max": 90
       },
       "specimens": 4,
-      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 4 photograph(s) of Mimetite at roughton_gill with a stated length, 4 specimen(s); 1 with a crystal length, 1 with specimen dimensions, 0 aggregate, 3 picture width"
+      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 4 photograph(s) of Mimetite at roughton_gill with a stated length, 4 specimen(s); 0 with a crystal length, 1 with specimen dimensions, 0 aggregate, 3 picture width"
      }
     },
     "quartz": {
@@ -4654,8 +4649,8 @@
      }
     }
    },
-   "story_frequency": 0.325,
-   "story_frequency_basis": "rules.story_frequency_rule: pyromorphite (primary, class AB) has the largest lower band, 0.5; × the display range's coverage, 0.65 = 0.325"
+   "story_frequency": null,
+   "story_frequency_basis": "unresolved: no protagonist with an engine and an occurrence band has a size target, so none can carry a story run"
   },
   "schneeberg": {
    "locality": "schneeberg",
@@ -4798,8 +4793,8 @@
      }
     }
    },
-   "story_frequency": 0.195,
-   "story_frequency_basis": "rules.story_frequency_rule: erythrite (primary, class CO) has the largest lower band, 0.3; × the display range's coverage, 0.65 = 0.195"
+   "story_frequency": 0.1517,
+   "story_frequency_basis": "rules.story_frequency_rule: erythrite (primary, class CO, specimen-proxy target of 8) has the largest floor × coverage: 0.3 × 0.5056 = 0.1517"
   },
   "searles_lake": {
    "locality": "searles_lake",
@@ -5051,8 +5046,8 @@
      }
     }
    },
-   "story_frequency": 0.325,
-   "story_frequency_basis": "rules.story_frequency_rule: halite (primary, class AB) has the largest lower band, 0.5; × the display range's coverage, 0.65 = 0.325"
+   "story_frequency": 0.275,
+   "story_frequency_basis": "rules.story_frequency_rule: halite (primary, class AB, specimen-proxy target of 12) has the largest floor × coverage: 0.5 × 0.55 = 0.275"
   },
   "shigar_pegmatite": {
    "locality": "shigar",
@@ -5418,8 +5413,8 @@
      }
     }
    },
-   "story_frequency": 0.325,
-   "story_frequency_basis": "rules.story_frequency_rule: aquamarine (primary, class AB) has the largest lower band, 0.5; × the display range's coverage, 0.65 = 0.325"
+   "story_frequency": 0.2708,
+   "story_frequency_basis": "rules.story_frequency_rule: aquamarine (primary, class AB, crystal target of 11) has the largest floor × coverage: 0.5 × 0.5417 = 0.2708"
   },
   "sicily_solfifera": {
    "locality": "sicily",
@@ -5621,8 +5616,8 @@
      }
     }
    },
-   "story_frequency": 0.325,
-   "story_frequency_basis": "rules.story_frequency_rule: native_sulfur (primary, class AB) has the largest lower band, 0.5; × the display range's coverage, 0.65 = 0.325"
+   "story_frequency": 0.294,
+   "story_frequency_basis": "rules.story_frequency_rule: native_sulfur (primary, class AB, specimen-proxy target of 20) has the largest floor × coverage: 0.5 × 0.5881 = 0.294"
   },
   "sulphur_bank": {
    "locality": "sulphur_bank",
@@ -5716,8 +5711,8 @@
      }
     }
    },
-   "story_frequency": 0.325,
-   "story_frequency_basis": "rules.story_frequency_rule: cinnabar (primary, class AB) has the largest lower band, 0.5; × the display range's coverage, 0.65 = 0.325"
+   "story_frequency": null,
+   "story_frequency_basis": "unresolved: no protagonist with an engine and an occurrence band has a size target, so none can carry a story run"
   },
   "sunnyside_american_tunnel": {
    "locality": "sunnyside",
@@ -6003,8 +5998,8 @@
      }
     }
    },
-   "story_frequency": 0.325,
-   "story_frequency_basis": "rules.story_frequency_rule: rhodochrosite (primary, class AB) has the largest lower band, 0.5; × the display range's coverage, 0.65 = 0.325"
+   "story_frequency": 0.2889,
+   "story_frequency_basis": "rules.story_frequency_rule: rhodochrosite (primary, class AB, specimen-proxy target of 17) has the largest floor × coverage: 0.5 × 0.5778 = 0.2889"
   },
   "supergene_oxidation": {
    "locality": "tsumeb",
@@ -6030,38 +6025,38 @@
      "band_basis": "literature class AB (TMN; status V) under rules.occurrence_bands",
      "size": {
       "basis": "specimen-proxy",
-      "n": 29,
-      "q10": 29.4,
-      "q25": 45,
+      "n": 28,
+      "q10": 37,
+      "q25": 48.75,
       "median": 70,
       "q75": 100,
-      "q90": 114.6,
+      "q90": 114.9,
       "confidence": "low",
-      "crystal_n": 3,
-      "specimen_n": 29,
+      "crystal_n": 4,
+      "specimen_n": 28,
       "photographs_with_length": 58,
       "crystal": {
-       "n": 3,
+       "n": 4,
        "min": 5,
        "q10": 5,
        "q25": 5,
-       "median": 5,
-       "q75": 7,
-       "q90": 8.2,
-       "max": 9
+       "median": 7,
+       "q75": 9.25,
+       "q90": 9.7,
+       "max": 10
       },
       "specimen": {
-       "n": 29,
-       "min": 10,
-       "q10": 29.4,
-       "q25": 45,
+       "n": 28,
+       "min": 20,
+       "q10": 37,
+       "q25": 48.75,
        "median": 70,
        "q75": 100,
-       "q90": 114.6,
+       "q90": 114.9,
        "max": 180
       },
       "specimens": 56,
-      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 58 photograph(s) of Cobaltoan Smithsonite / Cuprian Smithsonite / Smithsonite at tsumeb with a stated length, 56 specimen(s); 3 with a crystal length, 29 with specimen dimensions, 0 aggregate, 24 picture width"
+      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 58 photograph(s) of Cobaltoan Smithsonite / Cuprian Smithsonite / Smithsonite at tsumeb with a stated length, 56 specimen(s); 4 with a crystal length, 28 with specimen dimensions, 0 aggregate, 24 picture width"
      }
     },
     "cerussite": {
@@ -6447,8 +6442,8 @@
      }
     }
    },
-   "story_frequency": 0.325,
-   "story_frequency_basis": "rules.story_frequency_rule: smithsonite (primary, class AB) has the largest lower band, 0.5; × the display range's coverage, 0.65 = 0.325"
+   "story_frequency": 0.3109,
+   "story_frequency_basis": "rules.story_frequency_rule: calcite (alternate, class AB, specimen-proxy target of 45) has the largest floor × coverage: 0.5 × 0.6217 = 0.3109"
   },
   "tn457_barite_pulses": {
    "locality": "north_pennines",
@@ -6681,8 +6676,8 @@
      }
     }
    },
-   "story_frequency": 0.325,
-   "story_frequency_basis": "rules.story_frequency_rule: epidote (alternate, class AB) has the largest lower band, 0.5; × the display range's coverage, 0.65 = 0.325"
+   "story_frequency": 0.2167,
+   "story_frequency_basis": "rules.story_frequency_rule: epidote (alternate, class AB, specimen-proxy target of 5) has the largest floor × coverage: 0.5 × 0.4333 = 0.2167"
   },
   "ultramafic_supergene": {
    "locality": "marlborough",
@@ -6777,8 +6772,8 @@
      }
     }
    },
-   "story_frequency": 0.195,
-   "story_frequency_basis": "rules.story_frequency_rule: chrysoprase (primary, class CO) has the largest lower band, 0.3; × the display range's coverage, 0.65 = 0.195"
+   "story_frequency": 0.1517,
+   "story_frequency_basis": "rules.story_frequency_rule: chrysoprase (primary, class CO, specimen-proxy target of 8) has the largest floor × coverage: 0.3 × 0.5056 = 0.1517"
   },
   "wittichen": {
    "locality": "wittichen",
@@ -6910,15 +6905,15 @@
      "band_basis": "literature class CO (P1868; status V) under rules.occurrence_bands",
      "size": {
       "basis": "specimen-proxy",
-      "n": 18,
-      "q10": 43.5,
+      "n": 19,
+      "q10": 44,
       "q25": 50,
-      "median": 56.5,
-      "q75": 73.75,
+      "median": 60,
+      "q75": 72.5,
       "q90": 80,
       "confidence": "low",
       "crystal_n": 2,
-      "specimen_n": 18,
+      "specimen_n": 19,
       "photographs_with_length": 24,
       "crystal": {
        "n": 2,
@@ -6931,17 +6926,17 @@
        "max": 25
       },
       "specimen": {
-       "n": 18,
+       "n": 19,
        "min": 35,
-       "q10": 43.5,
+       "q10": 44,
        "q25": 50,
-       "median": 56.5,
-       "q75": 73.75,
+       "median": 60,
+       "q75": 72.5,
        "q90": 80,
        "max": 80
       },
-      "specimens": 23,
-      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 24 photograph(s) of Fluorite at wittichen with a stated length, 23 specimen(s); 2 with a crystal length, 18 with specimen dimensions, 0 aggregate, 4 picture width"
+      "specimens": 24,
+      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 24 photograph(s) of Fluorite at wittichen with a stated length, 24 specimen(s); 2 with a crystal length, 19 with specimen dimensions, 0 aggregate, 4 picture width"
      }
     },
     "native_silver": {
@@ -7050,8 +7045,8 @@
      }
     }
    },
-   "story_frequency": 0.325,
-   "story_frequency_basis": "rules.story_frequency_rule: erythrite (primary, class AB) has the largest lower band, 0.5; × the display range's coverage, 0.65 = 0.325"
+   "story_frequency": 0.2438,
+   "story_frequency_basis": "rules.story_frequency_rule: erythrite (primary, class AB, specimen-proxy target of 7) has the largest floor × coverage: 0.5 × 0.4875 = 0.2438"
   }
  }
 }

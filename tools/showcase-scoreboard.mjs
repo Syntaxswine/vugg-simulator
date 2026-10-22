@@ -52,7 +52,7 @@ import path from 'node:path';
 import crypto from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import {
-  assessOccurrence, assessSize, scenarioVerdict, storyFrequency, pocketClass, fits, summarize, validateSidecar,
+  assessOccurrence, assessSize, scenarioVerdict, wp1Target, pocketClass, fits, summarize, validateSidecar,
   protagonistsOf, assemblageVariety, everySeedChance, relativeSpread,
 } from './story-pocket-lib.mjs';
 import { buildSizeEvidence } from './story-pocket-size-evidence.mjs';
@@ -79,8 +79,8 @@ if (VISIBLE !== 1) throw new Error(`rules.visible_mm is ${VISIBLE}, but the cens
 // The lib reads the targets' q25 and q90, so the display range cannot move without it.
 const DR = targets.rules.display_range;
 if (!(Array.isArray(DR) && DR[0] === 0.25 && DR[1] === 0.9)) throw new Error(`rules.display_range is ${JSON.stringify(DR)}, but the lib reads the targets' q25 and q90`);
-const COVERAGE = +(DR[1] - DR[0]).toFixed(4);
 const CLUTTER_LIMIT = targets.rules.clutter_limit;
+const Z = targets.rules.noise_z;
 const STAR_SHARE = targets.rules.star_wanted_share;
 const cmpRaw = fs.readFileSync(CMP, 'utf8');
 if (crypto.createHash('sha256').update(cmpRaw).digest('hex') !== targets.inputs.record_and_literature_classes.sha256) {
@@ -178,7 +178,7 @@ for (const [scn, T] of Object.entries(targets.scenarios).sort(([a], [b]) => a.lo
     const visible = occ.length > 0 && when.median >= VISIBLE;
     o.species[k] = {
       role: v.role, engine: v.engine, band: v.occurrence_band,
-      occurrence: assessOccurrence(occ.length, n, v.occurrence_band),
+      occurrence: assessOccurrence(occ.length, n, v.occurrence_band, Z),
       target: t.basis === 'unknown' ? { basis: 'unknown', crystal_n: t.crystal_n, specimen_n: t.specimen_n, crystal: t.crystal }
         : { basis: t.basis, n: t.n, confidence: t.confidence, q25: t.q25, median: t.median, q75: t.q75, q90: t.q90, fits: fits(span, t), crystal: t.crystal },
       when_occurring: when,
@@ -200,7 +200,7 @@ for (const [scn, T] of Object.entries(targets.scenarios).sort(([a], [b]) => a.lo
   // could carry it in this cavity.
   const runsIn = rs.map((r) => ({ span, species: Object.fromEntries(entries.map(([k]) => [k, sp(r, k)])) }));
   runsInBy[scn] = runsIn;
-  const V = scenarioVerdict(runsIn, T.species, T.story_frequency);
+  const V = scenarioVerdict(runsIn, T.species, T.story_frequency, { z: Z });
   const withEngine = protagonistsOf(T.species).filter((p) => p.engine);
   o.story = { ...V.counts, frequency: T.story_frequency, frequency_basis: T.story_frequency_basis, verdict: V.verdict, why: V.why, noise: V.noise, rate: V.rate, ci: V.ci };
   o.open = V.open;
@@ -209,7 +209,7 @@ for (const [scn, T] of Object.entries(targets.scenarios).sort(([a], [b]) => a.lo
   // photographs), or, where the target has exactly the minimum sample, with its proxy instead?
   const minN = targets.rules.size_min_samples;
   const asTarget = (s, basis) => (s && s.n >= minN ? { basis, n: s.n, q10: s.q10, q25: s.q25, median: s.median, q75: s.q75, q90: s.q90 } : null);
-  const verdictWith = (k, target) => scenarioVerdict(runsIn, { ...T.species, [k]: { ...T.species[k], size: target ?? { basis: 'unknown' } } }, T.story_frequency).verdict;
+  const verdictWith = (k, target) => scenarioVerdict(runsIn, { ...T.species, [k]: { ...T.species[k], size: target ?? { basis: 'unknown' } } }, T.story_frequency, { z: Z }).verdict;
   o.robust = [];
   for (const p of withEngine.filter((x) => x.target?.basis === 'crystal')) {
     const t = p.target;
@@ -255,8 +255,9 @@ for (const [scn, T] of Object.entries(targets.scenarios).sort(([a], [b]) => a.lo
   // Crystals longer than the cavity's longest span: the census sees a crystal the starting cavity cannot hold.
   o.longer_than_cavity = {};
   for (const r of rs) for (const [m, v] of Object.entries(r.species)) if ((v.max_mm ?? 0) > span) o.longer_than_cavity[m] = (o.longer_than_cavity[m] || 0) + 1;
-  // The verdict.
+  // The verdict, and WP1's whole target.
   o.verdict = V.verdict;
+  o.wp1 = wp1Target(V.verdict, Object.entries(o.species).filter(([, v]) => isProt(v.role)).map(([k, v]) => ({ k, engine: v.engine, occurrence: v.occurrence, size: v.size })));
   if (V.verdict === 'NO ENGINE') o.why = `no protagonist has an engine (${protagonistsOf(T.species).map(({ k }) => name(k)).join(', ')})`;
   else if (V.verdict === 'SMALL POCKETS ONLY') o.why = `the cavity's longest span, ${mm(span)} mm, is shorter than ${name(primary)}'s characteristic crystal, ${mm(primaryT.median)} mm (${primaryT.basis}, n ${primaryT.n})`;
   else o.why = V.why;
@@ -278,7 +279,7 @@ for (const [scn, T] of Object.entries(targets.scenarios).sort(([a], [b]) => a.lo
     const parts = [];
     if (o.cannot.cavity.length) parts.push(`${o.cannot.cavity.map((k) => `${name(k)} (${T.species[k].size.basis === 'crystal' ? 'crystal' : 'proxy'} display range from ${mm(T.species[k].size.q25)} mm)`).join(', ')} need${o.cannot.cavity.length === 1 ? 's' : ''} more room than the cavity's ${mm(span)} mm span`);
     if (o.cannot.evidence.length) parts.push(`${o.cannot.evidence.map(name).join(', ')} ${o.cannot.evidence.length === 1 ? 'has' : 'have'} no size target`);
-    o.flags.push(`no run can carry the story in this cavity: ${parts.join('; ')}`);
+    o.flags.push(o.cannot.cavity.length ? `no run can carry the story in this cavity: ${parts.join('; ')}` : `no run can carry the story until a protagonist has a size target (${o.cannot.evidence.map(name).join(', ')})`);
   }
   if (o.clutter_visible_share >= CLUTTER_LIMIT) o.flags.push(`clutter ${pct(o.clutter_visible_share)} %`);
   for (const [m, cnt] of Object.entries(o.longer_than_cavity)) o.flags.push(`${name(m)} longer than the cavity ${cnt}/${n}`);
@@ -378,23 +379,24 @@ const sections = {};
   const variants = [
     ...[0, 5, 20].map((x) => ({ rule: 'specimen floor', label: `${x} mm`, opts: { specimenMinMm: x } })),
     ...[1e5, 1e7, Infinity].map((x) => ({ rule: 'upload window', label: secs(x), opts: { uploadedTogether: x } })),
+    ...[4, 6, 8, 10].map((x) => ({ rule: 'minimum sample', label: `${x} specimens`, opts: { sizeMinSamples: x } })),
   ];
+  const changed = (verdictOf) => Object.entries(out).filter(([, o]) => o.verdict !== 'OUT OF SCOPE').map(([scn, o]) => [scn, o.verdict, verdictOf(scn)]).filter(([, a, b]) => a !== b);
   for (const v of variants) {
     const VT = buildTargets(ROOT, v.opts);
-    v.changes = Object.entries(out).filter(([, o]) => o.verdict !== 'OUT OF SCOPE').map(([scn, o]) => [scn, o.verdict, scenarioVerdict(runsInBy[scn], VT.scenarios[scn].species, VT.scenarios[scn].story_frequency).verdict]).filter(([, a, b]) => a !== b);
+    v.changes = changed((scn) => scenarioVerdict(runsInBy[scn], VT.scenarios[scn].species, VT.scenarios[scn].story_frequency, { z: Z }).verdict);
   }
-  // The story frequency without the coverage: the band floor alone (round 2's rule).
-  const floorOnly = { rule: 'story frequency', label: 'the band floor alone, without the coverage', changes: [] };
-  for (const [scn, o] of Object.entries(out)) {
-    if (o.verdict === 'OUT OF SCOPE') continue;
-    const T = targets.scenarios[scn];
-    const sf = storyFrequency(protagonistsOf(T.species).map((p) => ({ ...p, band: T.species[p.k].occurrence_band })), 1);
-    const verdict = scenarioVerdict(runsInBy[scn], T.species, sf?.frequency ?? null).verdict;
-    if (verdict !== o.verdict) floorOnly.changes.push([scn, o.verdict, verdict]);
+  // The earlier story-frequency rules: the largest band floor among the protagonists with an engine
+  // (round 2), and that floor × 0.65 whatever the sample (round 3).
+  const floorOf = (scn) => {
+    const fl = protagonistsOf(targets.scenarios[scn].species).filter((p) => p.engine && targets.scenarios[scn].species[p.k].occurrence_band).map((p) => targets.scenarios[scn].species[p.k].occurrence_band[0]);
+    return fl.length ? Math.max(...fl) : null;
+  };
+  for (const [label, scale] of [['the band floor alone (round 2)', 1], ['the band floor × 0.65, whatever the sample (round 3)', 0.65]]) {
+    variants.push({ rule: 'story frequency', label, changes: changed((scn) => scenarioVerdict(runsInBy[scn], targets.scenarios[scn].species, floorOf(scn) == null ? null : floorOf(scn) * scale, { z: Z }).verdict) });
   }
-  variants.push(floorOnly);
   md.push('');
-  md.push(`Other values of the evidence rules (registered: specimen floor ${R.specimen_min_mm} mm, upload window ${secs(R.uploaded_together_s)}) and of the story frequency (registered: the band floor × ${COVERAGE}): the targets rebuilt from the same capture with one rule changed, every scenario re-scored against the same runs.`);
+  md.push(`Other values of the evidence rules (registered: specimen floor ${R.specimen_min_mm} mm, upload window ${secs(R.uploaded_together_s)}, minimum sample ${R.size_min_samples} specimens) and of the story frequency (registered: the band floor × the display range's coverage of a record of the target's size): the targets rebuilt from the same capture with one rule changed, every scenario re-scored against the same runs.`);
   md.push('');
   md.push('| rule | value | verdicts that change |');
   md.push('|---|---|---|');
@@ -436,6 +438,11 @@ const sections = {};
   for (const [, , s] of prot) { const b = s.target.basis === 'crystal' ? `crystal (${s.target.confidence})` : s.target.basis; basis[b] = (basis[b] || 0) + 1; }
   const verdicts = {};
   for (const [, , s] of prot) if (s.engine) verdicts[s.size.verdict] = (verdicts[s.size.verdict] || 0) + 1;
+  md.push('');
+  const scoredWp1 = sorted.filter(([, o]) => o.wp1);
+  const metWp1 = scoredWp1.filter(([, o]) => o.wp1.met).map(([scn]) => scn);
+  const storyNotWp1 = scoredWp1.filter(([, o]) => !o.wp1.met && (o.verdict === 'STORY' || o.verdict === 'STORY (PROXY)')).map(([scn, o]) => `${scn} (${o.wp1.fails.map((x) => x.replace(/^(x:|ma:)/, '').replace(/_/g, ' ')).join('; ')})`);
+  md.push(`WP1's whole target — the story frequency met, every protagonist with an engine within its band (a miss within noise counts as within), none oversize — is met by ${metWp1.length} of ${scoredWp1.length} scored scenarios${metWp1.length ? `: ${metWp1.join(', ')}` : ''}. Where the story verdict passes but the whole target does not: ${storyNotWp1.join('; ') || 'none'}.`);
   md.push('');
   md.push(`Protagonist size targets (${prot.length} primary and alternate slots): ${Object.entries(basis).sort().map(([b, cnt]) => `${b} ${cnt}`).join(', ')}. Size verdicts of protagonists with an engine: ${Object.entries(verdicts).sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0])).map(([x, cnt]) => `${x} ${cnt}`).join(', ')}. "spread" = the interquartile range over the median, of the simulated largest crystal across the seeds and of the record's.`);
   sections.protagonists = md.join('\n');
@@ -556,7 +563,7 @@ const sections = {};
 }
 {
   const R = targets.rules;
-  sections.rules = `Occurrence bands by literature class: ${Object.entries(R.occurrence_bands).map(([cls, b]) => `${cls} ${pct(b[0])}–${pct(b[1])} %`).join(', ')}; any other class leaves the band unresolved. Size targets: at least ${R.size_min_samples} specimens; confidence low below ${R.size_medium_confidence}, medium below ${R.size_high_confidence}, high from ${R.size_high_confidence}, one step lower when one series holds more than half the lengths (a series: one wording, each upload less than ${Math.round(R.series_gap_s / 86400)} days after the one before); a specimen proxy is always low. Specimen lengths under ${R.specimen_min_mm} mm are set aside; photographs of one specimen are joined when uploaded within ${R.uploaded_together_s.toLocaleString('en-US')} s (${(R.uploaded_together_s / 86400).toFixed(1)} days) of each other. Display range: the record's q${Math.round(100 * R.display_range[0])}–q${Math.round(100 * R.display_range[1])}, which holds ${pct(COVERAGE)} % of the record's own crystals. Story frequency: the largest band floor among a scenario's protagonists with an engine, × ${COVERAGE}. Clutter: under ${pct(R.clutter_limit)} % of the visible crystals. The star: a wanted species in at least ${pct(R.star_wanted_share)} % of the runs.`;
+  sections.rules = `Occurrence bands by literature class: ${Object.entries(R.occurrence_bands).map(([cls, b]) => `${cls} ${pct(b[0])}–${pct(b[1])} %`).join(', ')}; any other class leaves the band unresolved. Size targets: at least ${R.size_min_samples} specimens; confidence low below ${R.size_medium_confidence}, medium below ${R.size_high_confidence}, high from ${R.size_high_confidence}, one step lower when one series holds more than half the lengths (a series: one wording, each upload less than ${Math.round(R.series_gap_s / 86400)} days after the one before); a specimen proxy is always low. Specimen lengths under ${R.specimen_min_mm} mm are set aside; photographs of one specimen are joined when uploaded within ${R.uploaded_together_s.toLocaleString('en-US')} s (${(R.uploaded_together_s / 86400).toFixed(1)} days) of each other. Display range: the record's q${Math.round(100 * R.display_range[0])}–q${Math.round(100 * R.display_range[1])}; a fresh crystal from the record's population lands in it with probability ${(R.display_range[1] - R.display_range[0]).toFixed(2)} × (n − 1) / (n + 1) for a record of n. Story frequency: the largest band floor × that coverage among a scenario's protagonists that can carry a story run (an engine, a band, a size target). Noise: the Wilson interval at z ${R.noise_z}. Clutter: under ${pct(R.clutter_limit)} % of the visible crystals. The star: a wanted species in at least ${pct(R.star_wanted_share)} % of the runs.`;
 }
 
 const md = ['# Story-pocket scoreboard', '', `Targets: \`${path.relative(ROOT, TARGETS).replace(/\\/g, '/')}\` (${targets.rules.status}). Census: ${runs.length} runs. Cavities: ${path.relative(ROOT, CAV).replace(/\\/g, '/')} (${cav.seeds_mode} seeds).`, ''];

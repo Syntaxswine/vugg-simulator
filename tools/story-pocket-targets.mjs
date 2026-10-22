@@ -13,8 +13,8 @@
  *   size target       from the photographed crystal lengths (tools/story-pocket-size-evidence.mjs), else
  *                     the specimen dimensions as a labelled proxy, else unknown: no default size;
  *   story frequency   per scenario, the share of scored pockets that should carry a protagonist at the
- *                     record's display scale (RULES.story_frequency_rule): what a fleet meeting its
- *                     occurrence bands and size targets would show.
+ *                     record's display scale (RULES.story_frequency_rule): the expected story rate of a
+ *                     fleet at its protagonist's band floor with crystals drawn from the record.
  * Every number is either evidence (a sample, with its count and provenance) or one of the RULES below,
  * which are design choices proposed by Claude on 2026-10-22 and await the boss. Nothing here is fitted to
  * the census: the census is read only by the scoreboard.
@@ -25,8 +25,9 @@
  *
  * Usage: node tools/story-pocket-targets.mjs           # check: does the committed file match a rebuild?
  *        node tools/story-pocket-targets.mjs --write   # rebuild and write it
- * buildTargets(root, evidenceRules) takes buildSizeEvidence's options, so the scoreboard can rebuild the
- * targets under other evidence rules in memory (its sensitivity table); the file uses the defaults.
+ * buildTargets(root, evidenceRules) takes buildSizeEvidence's options and sizeMinSamples, so the scoreboard
+ * can rebuild the targets under other evidence rules in memory (its sensitivity table); the file uses the
+ * registered values.
  */
 import fs from 'node:fs';
 import path from 'node:path';
@@ -58,16 +59,18 @@ export const RULES = {
   specimen_min_basis: 'A specimen length below this is set aside: micromount captions give the crystal or the field of view as "Größe" ("Malachit ; Größe: 4,2 mm"), and a misread crystal would pull a specimen proxy below the crystals it is meant to bound. A cabinet or thumbnail specimen is longer.',
   uploaded_together_s: UPLOADED_TOGETHER,
   // uploaded_together_basis is written by buildTargets from the capture's image ids.
-  specimen_joins: 'Two photographs of one species are one specimen when uploaded together (ids within uploaded_together_s) with identical caption stretches or the same multi-dimension length; or, uploaded apart, when they state the same length in three dimensions measured to a tenth of a millimetre; never when their captions name different finds. A generic caption ("BB 4,5 mm") or a round size repeated years apart counts as two specimens. Every join is listed in proposals/DATA-STORY-POCKET-SIZES-2026-10-22.md.',
+  specimen_joins: 'Two photographs of one species are one specimen when uploaded together (ids within uploaded_together_s) with the same caption stretches (identical once a word cut at the stretch\'s start, punctuation and the words "mit", "und", "auf" are dropped) or the same multi-dimension length; or, uploaded apart, when they state the same length in three dimensions, one written with a decimal ("5x5x4,8mm", "15,9 x 10 x 4,7 cm"); never when their captions name different finds, or when each names a mineral the other does not ("mit etwas Limonit" against "mit etwas Hämatit"). A generic caption ("BB 4,5 mm") or a round size repeated years apart counts as two specimens. Every join is listed in proposals/DATA-STORY-POCKET-SIZES-2026-10-22.md.',
   series: 'Crystal lengths in one wording once the numbers are taken out (seriesKey, tools/story-pocket-lib.mjs) whose specimens were uploaded in one stretch — each less than series_gap_s after the one before (largestSeries) — are one series: likely one contributor\'s lot or find, not independent samples. The capture has no uploader names, so the stretch stands in for the contributor, and a standard wording ("Größe: #") recurring years apart counts as many. When the largest series holds more than half of a crystal target\'s lengths, its confidence drops one step, and the target records its quantiles without that series, so the scoreboard can say whether a verdict rests on it.',
   series_gap_s: SERIES_GAP,
   series_gap_basis: 'A year: longer than the gaps inside the runs of one unusual wording that are plainly one contributor\'s (a lot photographed over months), shorter than the gaps at which standard wordings recur (years). The appendix gives each largest series\' span in days.',
   size_basis: 'Photographed lengths (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json, classed by tools/story-pocket-size-evidence.mjs). Photographs of one specimen count once (specimen_joins). Each specimen gives one value per kind: its largest stated crystal of the species. With at least size_min_samples specimens, a crystal target: confidence low below size_medium_confidence, medium below size_high_confidence, high from it, one step lower when one series dominates (series). Otherwise the specimens\' dimensions (none below specimen_min_mm), if at least size_min_samples, as a proxy, confidence low: a specimen is at least as long as its own crystals, so the proxy overstates the crystal — reaching it is strong evidence (not proof: the photographs that state crystal lengths and those that state specimen sizes are different subsets), falling short of it is none. Otherwise unknown. There is no default size. Materials collected as pieces (tiger\'s eye, chrysoprase, chalcedony, jasper) have piece sizes only, so at best a proxy.',
   display_range: [0.25, 0.9],
-  display_range_basis: 'The record\'s quantiles that bound its display scale: a crystal from the record\'s lower quartile to its 90th percentile is at the scale the record shows; past the 90th it is oversize. Its coverage — the share of the record\'s own crystals inside it, 0.65 — enters the story frequency (story_frequency_rule). The scoreboard reads the targets\' q25 and q90 and refuses another range.',
+  display_range_basis: 'The record\'s quantiles that bound its display scale: a crystal from the record\'s lower quartile to its 90th percentile is at the scale the record shows; past the 90th it is oversize. A fresh crystal from the record\'s population lands inside the range of a record of n crystals with probability 0.65 × (n − 1) / (n + 1) (displayCoverage: exact for a uniform population, within about 0.03 and on the low side for lognormal ones): 0.43 at n = 5, 0.58 at n = 17. That coverage enters the story frequency (story_frequency_rule). The scoreboard reads the targets\' q25 and q90 and refuses another range.',
   size_check: 'Per run, the species\' largest crystal not flagged as enclosed (census max_exp_mm). The record\'s median is the characteristic crystal, its quartiles the range: a crystal in the display range (q25–q90) is at the record\'s display scale; past q90 it is oversize. Over the runs where the species occurs in a cavity that holds its median, the median of those crystals against the record: BELOW (< q25), MEETS (q25–q75, around the record\'s median), LARGE (q75–q90), OVERSIZE (> q90). Against a proxy: BELOW PROXY (< q25, not a verdict), REACHES PROXY (q25–q90; oversize cannot be tested against a proxy), OVERSIZE (> q90). A crystal longer than the cavity\'s span is left out and flagged: the starting cavity cannot hold it.',
   eligibility: 'A cavity can hold a species\' characteristic crystal when its span — the longest distance between two wall vertices (tools/story-pocket-cavities.mjs) — is at least the target\'s median. The span is an upper bound on the longest crystal the cavity holds (in a cavity that is not convex the chord can cross the wall), so SMALL is conclusive and STORY-SCALE is generous. A pocket is SMALL when it cannot hold the primary protagonist\'s characteristic crystal: it may lack a showcase and is left out of the story frequency (its stories are reported apart). The locality\'s target is never shrunk to fit the cavity. A pocket is UNCLASSED when this cannot be told (the primary\'s size is unknown, or a proxy longer than the cavity): a run without a story there may be a small pocket, so it stays open rather than counting against the story.',
-  story_frequency_rule: 'A run carries the story when an intended protagonist (the primary or an alternate) occurs with its largest unflagged crystal in its record\'s display range and no longer than the cavity. The scenario should carry it in at least floor × coverage of its scored runs: floor = the largest lower occurrence bound among its protagonists that have an engine and a band; coverage = the share of the record\'s own crystals in the display range (display_range: 0.65). That is the story rate of a fleet whose most common protagonist occurs at its band\'s floor with crystals spread as the record\'s are, so a fleet that meets every occurrence band and size target meets the story frequency too, without a protagonist in every seed or a size spread narrower than the record\'s. Unresolved when no such protagonist exists, or when runs whose protagonist has no known crystal target, or whose pocket is unclassed, could still carry it.',
+  story_frequency_rule: 'A run carries the story when an intended protagonist (the primary or an alternate) occurs with its largest unflagged crystal in its record\'s display range and no longer than the cavity. The scenario should carry it in at least floor × coverage of its scored runs, for the protagonist that can carry a story run (an engine, a band and a size target) with the largest such product: floor = its band\'s lower bound; coverage = the chance that a crystal drawn from its record\'s population lands in the display range of a record of its size (display_range_basis). That is the expected story rate of a fleet whose protagonist occurs at its band\'s floor with crystals drawn from the record. It is an expectation, not a guarantee: with 21 seeds such a fleet falls short of it about half the time, and the verdict marks a shortfall its interval cannot tell from the frequency "noise" (noise_z). It does not ask for a protagonist in every seed or a size spread narrower than the record\'s. A protagonist with no size target cannot carry a story run and does not set the frequency. Unresolved when no protagonist can, or when runs whose protagonist has no known crystal target, or whose pocket is unclassed, could still carry it. The story verdict checks this alone; WP1\'s whole target also needs every protagonist within its band and none oversize (the scoreboard reports both).',
+  noise_z: 1.96,
+  noise_basis: 'The Wilson score interval at z 1.96 (95 %): an occurrence rate outside its band, or a story rate short of its frequency, is "noise" when the interval still reaches the band or the frequency — 21 runs cannot tell it from the target. Noise marks a verdict; it does not change it, except that WP1\'s target counts a band miss within noise as within.',
   clutter_limit: 0.1,
   clutter_basis: 'WP3\'s target: visible clutter (crystals of species with no photograph, no listing and no literature at the locality) under 10 % of a scenario\'s visible crystals. The scoreboard flags a scenario at or above it and lists it in the clutter table.',
   star_wanted_share: 0.5,
@@ -102,7 +105,7 @@ export function buildTargets(root = ROOT, evidenceRules = {}) {
   if (!cmp.__out_of_claim) throw new Error('compare.json predates the set-aside export; re-run tools/locality-abundance-compare.mjs');
   const data = JSON.parse(fs.readFileSync(path.join(root, DATA_FILE), 'utf8'));
   const ev = buildSizeEvidence(root, evidenceRules);
-  const coverage = +(RULES.display_range[1] - RULES.display_range[0]).toFixed(4);
+  const minSamples = evidenceRules.sizeMinSamples ?? RULES.size_min_samples;
   const scenarios = {};
   for (const [scn, j] of Object.entries(cmp).filter(([k]) => !k.startsWith('__')).sort(([a], [b]) => a.localeCompare(b))) {
     const loc = j.locality;
@@ -122,7 +125,7 @@ export function buildTargets(root = ROOT, evidenceRules = {}) {
       const cls = row?.lit ?? L?.class ?? null;
       const band = bandFor(cls, RULES.occurrence_bands);
       const sev = ev.localities[loc]?.[k];
-      const t = sizeTarget(sev, { minSamples: RULES.size_min_samples, mediumConfidence: RULES.size_medium_confidence, highConfidence: RULES.size_high_confidence });
+      const t = sizeTarget(sev, { minSamples, mediumConfidence: Math.max(minSamples, RULES.size_medium_confidence), highConfidence: Math.max(minSamples, RULES.size_high_confidence) });
       if (t.basis === 'crystal' && sev.crystal_series?.largest > 1) t.without_largest_series = sev.crystal_without_largest_series;
       const size = { ...t };
       if (sev) {
@@ -152,15 +155,16 @@ export function buildTargets(root = ROOT, evidenceRules = {}) {
     }
     entry.set_aside = Object.fromEntries(j.rows.filter((r) => setAside(r.k)).map((r) => [r.k, cmp.__out_of_claim[`${scn}|${r.k}`]]));
     entry.species = species;
-    // Story frequency: the largest lower band among the protagonists with an engine, times the coverage.
-    const sf = storyFrequency(Object.entries(species).filter(([, v]) => v.role === 'primary' || v.role === 'alternate').map(([k, v]) => ({ k, role: v.role, engine: v.engine, band: v.occurrence_band })), coverage);
+    // Story frequency: the largest band floor × the display range's coverage of the record, among the
+    // protagonists that can carry a story run.
+    const sf = storyFrequency(Object.entries(species).filter(([, v]) => v.role === 'primary' || v.role === 'alternate').map(([k, v]) => ({ k, engine: v.engine, band: v.occurrence_band, target: v.size })), RULES.display_range);
     if (sf) {
       const v = species[sf.k];
       entry.story_frequency = sf.frequency;
-      entry.story_frequency_basis = `rules.story_frequency_rule: ${sf.k} (${v.role}, class ${baseClass(v.literature?.class)}) has the largest lower band, ${sf.floor}; × the display range's coverage, ${coverage} = ${sf.frequency}`;
+      entry.story_frequency_basis = `rules.story_frequency_rule: ${sf.k} (${v.role}, class ${baseClass(v.literature?.class)}, ${v.size.basis} target of ${sf.n}) has the largest floor × coverage: ${sf.floor} × ${sf.coverage} = ${sf.frequency}`;
     } else {
       entry.story_frequency = null;
-      entry.story_frequency_basis = 'unresolved: no protagonist with an engine has an occurrence band';
+      entry.story_frequency_basis = 'unresolved: no protagonist with an engine and an occurrence band has a size target, so none can carry a story run';
     }
     scenarios[scn] = entry;
   }

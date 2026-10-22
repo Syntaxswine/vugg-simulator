@@ -23,7 +23,7 @@
   "rules": {
    "type": "object",
    "description": "The design rules (proposed; awaiting the boss). Each number has a basis field beside it.",
-   "required": ["wanted_share", "occurrence_bands", "visible_mm", "size_min_samples", "size_high_confidence", "specimen_min_mm", "uploaded_together_s", "series_gap_s", "display_range", "clutter_limit", "star_wanted_share"],
+   "required": ["wanted_share", "occurrence_bands", "visible_mm", "size_min_samples", "size_high_confidence", "specimen_min_mm", "uploaded_together_s", "series_gap_s", "display_range", "clutter_limit", "star_wanted_share", "noise_z"],
    "additionalProperties": false,
    "properties": {
     "status": { "type": "string" },
@@ -59,6 +59,8 @@
     "clutter_basis": { "type": "string" },
     "star_wanted_share": { "type": "number", "minimum": 0, "maximum": 1 },
     "star_basis": { "type": "string" },
+    "noise_z": { "type": "number", "exclusiveMinimum": 0, "description": "The Wilson interval's z for 'noise' (1.96 = 95 %)." },
+    "noise_basis": { "type": "string" },
     "variety": { "type": "string" },
     "roles": { "type": "string" },
     "companions_and_showpieces": { "type": "string" }
