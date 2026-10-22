@@ -27,14 +27,20 @@
  * 1, 2 and 42. One seed took 13 minutes on a machine other jobs had saturated (bisbee 161 s,
  * tn457_barite_pulses 123 s, supergene_oxidation 107 s), so budget about 40 for the default.
  *
+ * --splice <file> / --check-splice <file> write or check this tool's generated blocks in a document
+ * (substrate-starts, substrate-walls: the figures PROPOSAL-STORY-POCKETS quotes in WP8), from the same
+ * data; see tools/splice-generated.mjs.
+ *
  * Usage:
  *   node tools/substrate-census.mjs
  *   node tools/substrate-census.mjs --scenarios cooling,mvt --seeds 42
  *   node tools/substrate-census.mjs --summarize
+ *   node tools/substrate-census.mjs --summarize --check-splice proposals/PROPOSAL-STORY-POCKETS-2026-10-21.md
  */
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
+import { spliceGenerated } from './splice-generated.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const OUT = path.join(ROOT, '.local-evidence', 'substrate-census');
@@ -160,8 +166,40 @@ const summary = {
     return { scenario: scn, composition: sc.composition, matrix: sc.matrix, wallMineral: sc.wallMineral,
       perRun: wm.length / sc.runs, onWall: wm.length ? count(wm, (x) => x.kind === 'wall') / wm.length : null };
   }).sort((a, b) => a.scenario.localeCompare(b.scenario)),
+  unparsed: Object.entries(unparsed).sort((a, b) => b[1] - a[1]).map(([position, n]) => ({ position, n,
+    scenarios: [...new Set(all.filter((k) => k.kind === 'unparsed' && k.position === position).map((k) => k.scenario))] })),
 };
 fs.mkdirSync(OUT, { recursive: true });
 fs.writeFileSync(path.join(OUT, 'substrates.md'), md.join('\n') + '\n');
 fs.writeFileSync(path.join(OUT, 'substrates-summary.json'), JSON.stringify(summary, null, 1));
-console.log(md.join('\n'));
+
+// The figures a document quotes, as generated blocks.
+const S = summary;
+const k = S.byKind;
+const other2 = k['other crystal'];
+const seedText = S.seeds.length === 1 ? `seed ${S.seeds[0]}` : `seeds ${S.seeds.join(', ')}`;
+const unparsedText = S.unparsed.map((u) => `${u.scenarios.join(', ')}'s "${u.position}"${u.n > 1 ? ` ×${u.n}` : ''}`).join('; ');
+const sections = {
+  'substrate-starts': [
+    `Of the ${S.crystals} crystals nucleated in ${S.runs} runs (${S.scenarios} scenarios at ${seedText}), ${k.wall} (${pct(k.wall, S.crystals)} %) started on the bare wall, ${other2} (${pct(other2, S.crystals)} %) on a crystal of another species and ${k['own kind']} on a crystal of their own kind; ${k.replacement} were replacements and ${k.unparsed} could not be classed${unparsedText ? ` (${unparsedText})` : ''}. Of the starts on another species, ${S.otherDocumented} (${pct(S.otherDocumented, other2)} %) were pairs in the simulator's substrate table; the rest are placements the engines write themselves.`,
+    '',
+    `The table holds ${S.table.pairs} host → species pairs on ${S.table.hosts} host minerals. This census used ${S.table.used} of them (${S.table.usedPairs.slice(0, 5).map(([p, n]) => `${p.replace('>', ' → ')} ${n}`).join(', ')}${S.table.used > 5 ? ', …' : ''}). ${S.table.sameSpecies ? `${S.table.sameSpecies} are same-mineral pairs` : 'None is a same-mineral pair'}, and ${S.table.dolomite ? `${S.table.dolomite} involve dolomite` : 'none involves dolomite'}.`,
+  ].join('\n'),
+  'substrate-walls': [
+    '| scenario | wall rock (render matrix) | the wall\'s own mineral | crystals of it per run | of those, started on the wall |',
+    '|---|---|---|---:|---:|',
+    ...S.walls.map((w) => `| ${w.scenario} | ${w.composition}${w.matrix ? ` (${w.matrix})` : ''} | ${w.wallMineral} | ${w.perRun ? w.perRun.toFixed(1) : 'never'} | ${w.onWall == null ? '—' : `${Math.round(100 * w.onWall)} %`} |`),
+    '',
+    `In ${S.walls.filter((w) => !w.perRun).length} of ${S.walls.length} scenarios whose wall is limestone, dolomite or sandstone, the wall's own mineral never grows (${S.walls.filter((w) => !w.perRun).map((w) => w.scenario).join(', ')}).`,
+  ].join('\n'),
+};
+const spliceAt = (flag) => { const i = process.argv.indexOf(flag); return i > 0 ? process.argv[i + 1] : null; };
+const spliceFile = spliceAt('--splice') || spliceAt('--check-splice');
+if (spliceFile) {
+  const check = process.argv.includes('--check-splice');
+  const { changed, names } = spliceGenerated(path.resolve(spliceFile), sections, { check, owner: 'substrate-census' });
+  if (check && changed.length) { console.error(`${spliceFile}: generated blocks differ from this census: ${changed.join(', ')}`); process.exit(1); }
+  console.log(`${spliceFile}: ${check ? 'all' : 'spliced'} ${names.length} substrate-census blocks${check ? ' match' : ''}${!check && changed.length ? ` (${changed.join(', ')})` : ''}`);
+} else {
+  console.log(md.join('\n'));
+}

@@ -10,27 +10,32 @@
  *   - its first-listed mineral maps to a species key exactly as the comparison maps photographs
  *     (the market dictionary, the comparison's MA_ALIASES read from tools/locality-abundance-compare.mjs,
  *     and the data file's locality aliases);
- *   - every length its caption states is classed by parseSizeStatements (tools/story-pocket-lib.mjs):
- *     crystal, aggregate, specimen, picture width or unclassed; a crystal statement that names another
- *     mineral is set aside; a photograph contributes its largest length of each kind.
+ *   - photographs of one specimen are joined (groupSpecimens, tools/story-pocket-lib.mjs): identical
+ *     caption stretches, or the same multi-dimension length stated twice;
+ *   - every length a specimen's captions state is classed by parseSizeStatements: crystal, crystal
+ *     width, aggregate, specimen, picture width or unclassed. A crystal length is set aside when it names
+ *     another mineral, or when, naming none, its line or title is about another mineral. A specimen
+ *     contributes its largest length of each kind.
  * Crystal lengths and specimen dimensions stay separate throughout.
  *
  * Writes .local-evidence/locality-abundance/size-evidence.{json,md}: per locality and species, the
  * sample counts and quantiles of each kind, the coverage (photographs in the archive, read, with a
- * stated length), and every crystal and aggregate statement used, for audit. tools/story-pocket-targets.mjs
- * imports buildSizeEvidence().
+ * stated length, specimens), every crystal and aggregate length used and every join, for audit. With
+ * --appendix it also writes the same audit as proposals/DATA-STORY-POCKET-SIZES-2026-10-22.md (the test
+ * checks that file against a rebuild). tools/story-pocket-targets.mjs imports buildSizeEvidence().
  *
- * Usage: node tools/story-pocket-size-evidence.mjs
+ * Usage: node tools/story-pocket-size-evidence.mjs [--appendix]
  */
 import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { MARKET_TITLE_DICTIONARY, buildMatchers, classifyTitle } from './market-title-dictionary.mjs';
-import { photoSizes, summarize, MINERAL_STEMS } from './story-pocket-lib.mjs';
+import { photoSizes, groupSpecimens, summarize, MINERAL_STEMS } from './story-pocket-lib.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 export const CAPTURE_FILE = 'proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json';
+export const APPENDIX_FILE = 'proposals/DATA-STORY-POCKET-SIZES-2026-10-22.md';
 const DATA_FILE = 'proposals/DATA-LOCALITY-ABUNDANCE-2026-10-21.json';
 const KINDS = ['crystal', 'aggregate', 'specimen', 'fov'];
 // Varieties that are one mineral, for "does this crystal statement name the photograph's mineral?".
@@ -119,29 +124,33 @@ export function buildSizeEvidence(root = ROOT) {
       if (!m.has(id)) m.set(id, { lead, nmin, windows });
     }
   }
-  // 5. Classify and summarise.
+  // 5. Specimens: join the photographs of one specimen, then class and summarise their lengths.
   const out = {};
   const audit = {};
+  const joins = {};
   for (const [loc, m] of Object.entries(photos)) {
     const keyOf = keyFor(loc);
+    const list = [...m].map(([id, p]) => ({ id, key: keyOf(p.lead), lead: p.lead, nmin: p.nmin, windows: p.windows }));
+    const { groups, links } = groupSpecimens(list);
+    joins[loc] = links;
     const acc = {};
-    // One specimen photographed several times usually keeps its caption: photographs of a species
-    // whose caption stretches are identical count as one specimen, so no specimen is counted twice.
-    const seenCaption = new Set();
-    for (const [id, { lead, nmin, windows }] of m) {
-      const k = keyOf(lead);
-      const a = (acc[k] ||= { names: new Set(), photos: 0, repeats: 0, multi: 0, values: Object.fromEntries(KINDS.map((x) => [x, []])), other: 0, unclassed: 0, statements: [] });
-      a.names.add(lead);
-      const sig = `${k}\u0000${windows.join('\u0000')}`;
-      if (seenCaption.has(sig)) { a.repeats++; continue; }
-      seenCaption.add(sig);
+    for (const g of groups) {
+      const k = g.key;
+      const a = (acc[k] ||= { names: new Set(), photos: 0, specimens: 0, multi: 0, values: Object.fromEntries(KINDS.map((x) => [x, []])), other: 0, ambiguous: 0, unclassed: 0, widths: 0, small: 0, statements: [] });
+      for (const p of g.photos) a.names.add(p.lead);
+      a.photos += g.photos.length;
+      a.specimens++;
+      if (g.photos.some((p) => p.nmin > 1)) a.multi++;
+      const windows = [...new Set(g.photos.flatMap((p) => p.windows))];
       const ps = photoSizes(windows, k, { keyOf, same: (x, y) => fam(x) === fam(y), piece: PIECE_SPECIES.has(k) });
-      a.photos++;
-      if (nmin > 1) a.multi++;
       for (const kind of KINDS) if (ps[kind] != null) a.values[kind].push(ps[kind]);
+      if (ps.specimen != null && ps.specimen < 10) a.small++;
       a.other += ps.other;
+      a.ambiguous += ps.ambiguous;
       a.unclassed += ps.unclassed;
-      for (const s of ps.statements) if (s.kind === 'crystal' || s.kind === 'aggregate') a.statements.push([id, s.kind, s.mm, s.cue, windows.join(' | ')]);
+      a.widths += ps.widths;
+      const ids = g.photos.map((p) => p.id).join('+');
+      for (const s of ps.statements) if (s.kind === 'crystal' || s.kind === 'aggregate') a.statements.push([ids, s.kind, s.mm, s.cue, windows.join(' | ')]);
     }
     // The archive's photographs of each species: the overview sections, all sub-localities.
     const archive = {};
@@ -154,11 +163,14 @@ export function buildSizeEvidence(root = ROOT) {
         photos_in_archive: archive[k] ?? null,
         photos_read_upper: readCounts[loc]?.[k] ?? null,
         photos_with_length: a.photos,
-        repeat_captions: a.repeats,
-        multi_mineral_photos: a.multi,
+        specimens: a.specimens,
+        multi_mineral_specimens: a.multi,
         ...Object.fromEntries(KINDS.map((kind) => [kind, summarize(a.values[kind])])),
-        crystal_statements_of_other_minerals: a.other,
-        unclassed_statements: a.unclassed,
+        specimen_under_10mm: a.small,
+        crystal_lengths_of_other_minerals: a.other,
+        crystal_lengths_about_other_minerals: a.ambiguous,
+        crystal_widths: a.widths,
+        unclassed_lengths: a.unclassed,
         piece_material: PIECE_SPECIES.has(k),
       };
       audit[loc][k] = a.statements.sort((x, y) => y[2] - x[2]);
@@ -169,32 +181,39 @@ export function buildSizeEvidence(root = ROOT) {
     unmapped_stems: unmappedStems,
     localities: out,
     audit,
+    joins,
   };
 }
 
-function writeOutputs(ev, root = ROOT) {
-  const OUT = path.join(root, '.local-evidence', 'locality-abundance');
+/** The audit, as markdown: per species the samples of each kind, every crystal length used, every join. */
+export function renderSizeEvidenceMd(ev) {
   const r = (x) => (x == null ? '—' : x >= 10 ? x.toFixed(0) : x.toFixed(1));
   const q = (s) => (s.n ? `${s.n}: ${r(s.median)} (${r(s.q25)}–${r(s.q75)})` : '0');
+  const all = Object.values(ev.localities).flatMap((sp) => Object.values(sp));
+  const sum = (f) => all.reduce((s, e) => s + f(e), 0);
   const md = [];
-  md.push(`# Photographed sizes — ${ev.capture.pages} Mineralienatlas pages, ${ev.capture.rows} photographs with a stated length`);
+  md.push(`# Photographed sizes — ${ev.capture.pages} Mineralienatlas pages, ${sum((e) => e.photos_with_length)} photographs with a stated length, ${sum((e) => e.specimens)} specimens`);
   md.push('');
-  md.push(`Capture \`${ev.capture.file}\` (sha256 ${ev.capture.sha256.slice(0, 16)}…), every page hash and the extractor's source hash (${ev.capture.extractor_sha256.slice(0, 16)}…) recomputed. Lengths in mm. Each cell: specimens with a length of that kind: median (q25–q75). A photograph counts once, and photographs of a species with identical caption stretches count as one specimen (the repeats column); each specimen contributes its largest length of each kind. "crystal" = a crystal of the photograph's first-listed mineral; "aggregate" = a named aggregate (sphere, rosette, sheaf); "specimen" = the whole specimen; "width" = the picture's width. Piece materials (*) count every length as a piece (specimen).`);
+  md.push(`Generated by \`node tools/story-pocket-size-evidence.mjs --appendix\` from \`${ev.capture.file}\` (sha256 ${ev.capture.sha256.slice(0, 16)}…); every page hash and the extractor's source hash (${ev.capture.extractor_sha256.slice(0, 16)}…) recomputed. Lengths in mm.`);
   md.push('');
-  md.push('| locality | species (archive names) | photographs: archive / read / with a length / repeats / multi-mineral | crystal | aggregate | specimen | picture width | crystal statements of other minerals | unclassed |');
-  md.push('|---|---|---|---|---|---|---|---:|---:|');
+  md.push('- A photograph counts once. Photographs of one specimen — identical caption stretches, or the same multi-dimension length stated twice — count as one specimen (the joins are listed at the end).');
+  md.push('- Each cell: specimens with a length of that kind: median (q25–q75). A specimen contributes its largest length of each kind.');
+  md.push('- "crystal" = a crystal of the photograph\'s first-listed mineral; "aggregate" = a named aggregate (sphere, rosette, sheaf); "specimen" = the whole specimen; "width" = the picture\'s width. A crystal length is set aside when it names another mineral, or names none while its line or title is about another mineral. A crystal\'s width or thickness is not a length and is not used. Piece materials (*) count every length as a piece (specimen).');
+  md.push('');
+  md.push('| locality | species (archive names) | photographs: archive / read / with a length → specimens | crystal | aggregate | specimen (under 10 mm) | picture width | crystal lengths set aside: of another mineral / about another / widths | unclassed |');
+  md.push('|---|---|---|---|---|---|---|---|---:|');
   for (const [loc, sp] of Object.entries(ev.localities).sort(([a], [b]) => a.localeCompare(b))) {
     for (const [k, e] of Object.entries(sp)) {
-      md.push(`| ${loc} | ${k}${e.piece_material ? ' *' : ''} (${e.names.join(', ')}) | ${e.photos_in_archive ?? '—'} / ${e.photos_read_upper ?? '—'} / ${e.photos_with_length} / ${e.repeat_captions} / ${e.multi_mineral_photos} | ${q(e.crystal)} | ${q(e.aggregate)} | ${q(e.specimen)} | ${q(e.fov)} | ${e.crystal_statements_of_other_minerals} | ${e.unclassed_statements} |`);
+      md.push(`| ${loc} | ${k}${e.piece_material ? ' *' : ''} (${e.names.join(', ')}) | ${e.photos_in_archive ?? '—'} / ${e.photos_read_upper ?? '—'} / ${e.photos_with_length} → ${e.specimens} | ${q(e.crystal)} | ${q(e.aggregate)} | ${q(e.specimen)} (${e.specimen_under_10mm}) | ${q(e.fov)} | ${e.crystal_lengths_of_other_minerals} / ${e.crystal_lengths_about_other_minerals} / ${e.crystal_widths} | ${e.unclassed_lengths} |`);
     }
   }
   md.push('');
-  md.push('"read" sums the photographs of the species on every page read, so a photograph on both an overview and a gallery counts twice: an upper bound.');
+  md.push('"read" sums the photographs of the species on every page read, so a photograph on both an overview and a gallery counts twice: an upper bound. "under 10 mm": specimen lengths below 10 mm, mostly micromount captions whose "Größe" gives the crystal or the field; they pull a specimen proxy down.');
   if (ev.unmapped_stems.length) md.push(`Caption stems whose English name the market dictionary does not classify (compared as written): ${ev.unmapped_stems.join('; ')}.`);
   md.push('');
-  md.push('## Every crystal and aggregate length used, for audit');
+  md.push('## Every crystal and aggregate length used');
   md.push('');
-  md.push('Image id (Mineralienatlas), kind, mm, the words that decided, the caption stretch.');
+  md.push('Image id(s) (Mineralienatlas; "+" joins one specimen\'s photographs), kind, mm, the words that decided, the caption stretch.');
   for (const [loc, sp] of Object.entries(ev.audit).sort(([a], [b]) => a.localeCompare(b))) {
     for (const [k, rows] of Object.entries(sp)) {
       if (!rows.length) continue;
@@ -204,14 +223,23 @@ function writeOutputs(ev, root = ROOT) {
       for (const [id, kind, mm, cue, text] of rows) md.push(`- ${id} · ${kind} · ${mm} · ${cue} · "${text.replace(/\|/g, '/').trim()}"`);
     }
   }
-  fs.mkdirSync(OUT, { recursive: true });
-  fs.writeFileSync(path.join(OUT, 'size-evidence.json'), JSON.stringify(ev, null, 1) + '\n');
-  fs.writeFileSync(path.join(OUT, 'size-evidence.md'), md.join('\n') + '\n');
-  return md;
+  md.push('');
+  md.push('## Photographs joined as one specimen');
+  md.push('');
+  const joins = Object.entries(ev.joins).flatMap(([loc, links]) => links.map((l) => [loc, l]));
+  md.push(`${joins.length} joins: ${joins.filter(([, l]) => l.why === 'caption').length} by identical captions, ${joins.filter(([, l]) => l.why === 'dims').length} by the same multi-dimension length. The dimension joins:`);
+  md.push('');
+  for (const [loc, l] of joins.filter(([, x]) => x.why === 'dims')) md.push(`- ${loc}: ${l.a} + ${l.b} · ${l.dims.replace(/x/g, ' × ')} mm`);
+  return md.join('\n') + '\n';
 }
 
 if (import.meta.url === pathToFileURL(process.argv[1]).href) {
   const ev = buildSizeEvidence();
-  const md = writeOutputs(ev);
-  console.log(md.slice(0, md.indexOf('## Every crystal and aggregate length used, for audit')).join('\n'));
+  const md = renderSizeEvidenceMd(ev);
+  const OUT = path.join(ROOT, '.local-evidence', 'locality-abundance');
+  fs.mkdirSync(OUT, { recursive: true });
+  fs.writeFileSync(path.join(OUT, 'size-evidence.json'), JSON.stringify(ev, null, 1) + '\n');
+  fs.writeFileSync(path.join(OUT, 'size-evidence.md'), md);
+  if (process.argv.includes('--appendix')) fs.writeFileSync(path.join(ROOT, APPENDIX_FILE), md);
+  console.log(md.slice(0, md.indexOf('## Every crystal and aggregate length used')));
 }

@@ -22,6 +22,7 @@
      "description": "Literature abundance class → [lowest, highest] share of story pockets the species occurs in.",
      "additionalProperties": { "$ref": "#/$defs/band" }
     },
+    "visible_mm": { "type": "number", "description": "The review's 'visible' size, a reporting convention (clutter, the dust flag); it decides no verdict." },
     "size_min_samples": { "type": "integer", "minimum": 1 },
     "size_medium_confidence": { "type": "integer", "minimum": 1 },
     "size_high_confidence": { "type": "integer", "minimum": 1 }
@@ -83,6 +84,7 @@
     "crystal_n": { "type": "integer", "minimum": 0 },
     "specimen_n": { "type": "integer", "minimum": 0 },
     "photographs_with_length": { "type": "integer", "minimum": 0 },
+    "specimens": { "type": "integer", "minimum": 0, "description": "The photographs once those of one specimen are joined." },
     "crystal": { "type": "object", "description": "The crystal sample, also where it is too small to be the target." },
     "specimen": { "type": "object", "description": "The specimen sample." },
     "piece_material": { "type": "boolean" },

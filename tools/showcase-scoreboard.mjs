@@ -10,38 +10,49 @@
  *   occurrence   per species with a role, the share of runs it occurs in, against the band its
  *                literature class pre-registers (IN / LOW / HIGH, "noise" when the 95 % interval of 21
  *                runs still reaches the band);
- *   size         conditional on occurrence and on the cavity fitting the species' characteristic
- *                (median photographed) crystal: the share of those runs whose largest unflagged crystal
- *                reaches the record's lower quartile — against crystal lengths where the photographs
- *                give enough, a labelled specimen proxy where they give only specimens, unknown otherwise;
+ *   size         conditional on occurrence and on the cavity holding the species' characteristic
+ *                (median photographed) crystal: the median largest unflagged crystal against the
+ *                record's quartiles, and the share of those runs in the record's display range — against
+ *                crystal lengths where the photographs give enough, a labelled specimen proxy where they
+ *                give only specimens, unknown otherwise;
  *   pocket       the cavity (tools/story-pocket-cavities.mjs: longest interior span, extents, equivalent
  *                diameter, size class) against the primary protagonist's characteristic crystal: SMALL
- *                pockets may lack a showcase and leave the story count;
- *   story        per run, whether an intended protagonist (primary or alternate) carries the story at
- *                showcase size; per scenario, how often, against its pre-registered story frequency;
+ *                pockets may lack a showcase and leave the story count; in UNCLASSED ones a run without a
+ *                story stays open;
+ *   story        per run, whether an intended protagonist (primary or alternate) is at its record's
+ *                display scale (scoreStory, tools/story-pocket-lib.mjs); per scenario, how often, against
+ *                its pre-registered story frequency;
+ *   variety      the distinct assemblages across the seeds, the species present in every seed, and how
+ *                much each protagonist's size varies;
  *   star         the species of each run's largest unflagged crystal, and how often it is a wanted one;
  *   cast         companions (the literature's common species the record does not want) and showpieces
  *                (wanted rarities), each against its own band; visible clutter as before.
  * The verdict ladder: OUT OF SCOPE, NO ENGINE (no protagonist has an engine), SMALL POCKETS ONLY,
  * STORY / STORY (PROXY) (the story frequency is met, on crystal targets / only with proxies), UNRESOLVED
- * (no frequency, or protagonists of unknown size could carry it), THIN STORY, NO STORY. The previous
- * rule (every top-three species ≥ 5 mm in half the seeds: SHOWCASE / PARTIAL / MISSING) is computed
- * alongside as "before".
+ * (no frequency, or open runs could still carry it), THIN STORY, NO STORY. The previous rule (every
+ * top-three species ≥ 5 mm in half the seeds: SHOWCASE / PARTIAL / MISSING) is computed alongside as
+ * "before".
  *
  * PASSIVE: reads the targets sidecar, .local-evidence/locality-abundance/compare.json (record and
- * literature, for clutter and the previous rule), .local-evidence/locality-abundance/cavities.json and the
- * committed census .local-evidence/assemblage-census/runs.jsonl; runs no simulation. Writes
+ * literature, for clutter and the previous rule; its hash must match the one the targets were built
+ * from), .local-evidence/locality-abundance/cavities.json, the size capture (via buildSizeEvidence) and
+ * the committed census .local-evidence/assemblage-census/runs.jsonl; runs no simulation. Writes
  * .local-evidence/locality-abundance/showcase.{md,json}.
  *
  * Usage: node tools/showcase-scoreboard.mjs [--splice <markdown file>] [--check-splice <markdown file>]
- *   --splice replaces each <!-- generated:NAME --> … <!-- /generated:NAME --> block in the file with the
- *   section of that name; --check-splice exits 1 if any block differs.
+ *   --splice replaces this tool's <!-- generated:NAME --> blocks in the file; --check-splice exits 1 if
+ *   any differs. Every section must appear exactly once (tools/splice-generated.mjs).
  */
 import fs from 'node:fs';
 import path from 'node:path';
+import crypto from 'node:crypto';
 import { fileURLToPath } from 'node:url';
-import { assessOccurrence, assessSize, runStory, storyVerdict, pocketClass, fits, summarize, validateSidecar } from './story-pocket-lib.mjs';
+import {
+  assessOccurrence, assessSize, scoreStory, storyVerdict, pocketClass, fits, summarize, validateSidecar,
+  protagonistsOf, assemblageVariety, everySeedChance, relativeSpread,
+} from './story-pocket-lib.mjs';
 import { buildSizeEvidence } from './story-pocket-size-evidence.mjs';
+import { spliceGenerated } from './splice-generated.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const OUT = path.join(ROOT, '.local-evidence', 'locality-abundance');
@@ -58,7 +69,12 @@ const CLUTTER_LIMIT = 0.1;
 const targets = JSON.parse(fs.readFileSync(TARGETS, 'utf8'));
 const bad = validateSidecar(targets);
 if (bad.length) throw new Error(`the targets sidecar fails validation:\n  ${bad.join('\n  ')}`);
-const cmp = JSON.parse(fs.readFileSync(CMP, 'utf8'));
+const VISIBLE = targets.rules.visible_mm;
+const cmpRaw = fs.readFileSync(CMP, 'utf8');
+if (crypto.createHash('sha256').update(cmpRaw).digest('hex') !== targets.inputs.record_and_literature_classes.sha256) {
+  throw new Error('compare.json is not the one the targets were built from: re-run tools/story-pocket-targets.mjs --write and review the diff');
+}
+const cmp = JSON.parse(cmpRaw);
 if (!cmp.__out_of_claim) throw new Error('compare.json predates the set-aside export; re-run tools/locality-abundance-compare.mjs');
 const cav = JSON.parse(fs.readFileSync(CAV, 'utf8'));
 const runs = fs.readFileSync(RUNS, 'utf8').split('\n').filter(Boolean).map((l) => JSON.parse(l)).filter((r) => r.ok);
@@ -71,11 +87,12 @@ const pct = (x) => (x == null ? '—' : `${Math.round(100 * x)}`);
 const mm = (x) => (x == null ? '—' : x === 0 ? '0' : x < 0.01 ? '<0.01' : x.toFixed(x < 10 ? 1 : 0));
 const name = (k) => k.replace(/^(x:|ma:)/, '').replace(/_/g, ' ');
 const med = (a) => summarize(a).median ?? null;
+const isProt = (role) => role === 'primary' || role === 'alternate';
 
 // ------------------------------------------------------------------ the previous rule ("before")
 function legacy(scn, j, rs) {
   const n = rs.length;
-  if (j.verdict === 'OUT OF SCOPE') return { status: 'OUT OF SCOPE', facts: [] };
+  if (j.verdict === 'OUT OF SCOPE') return { status: 'OUT OF SCOPE', facts: [], star: null };
   const setAside = (k) => !!cmp.__out_of_claim[`${scn}|${k}`];
   const named = targets.named_signatures[scn];
   let sig = j.verdict === 'THIN' ? named.species : [...j.realTop.sure, ...j.realTop.tied];
@@ -99,11 +116,13 @@ function legacy(scn, j, rs) {
   const status = !engineSig.length ? 'NO ENGINE'
     : engineSig.every((s) => s.status === 'thumbnail' || s.status === 'cabinet') && starSig / n >= 0.5 ? 'SHOWCASE'
     : engineSig.some((s) => ['visible', 'thumbnail', 'cabinet'].includes(s.status)) ? 'PARTIAL' : 'MISSING';
-  return { status, facts };
+  return { status, facts, star: starSig / n };
 }
 
 // ------------------------------------------------------------------ the target-driven assessment
 const out = {};
+const everySeedSlots = [];
+const occurrencePattern = { every: 0, never: 0, between: 0 };
 for (const [scn, T] of Object.entries(targets.scenarios).sort(([a], [b]) => a.localeCompare(b))) {
   const rs = runsBy[scn];
   if (!rs) throw new Error(`${scn} has targets but no census runs`);
@@ -115,47 +134,67 @@ for (const [scn, T] of Object.entries(targets.scenarios).sort(([a], [b]) => a.lo
   const censusSeeds = new Set(rs.map((r) => r.seed));
   const seedsChecked = [...censusSeeds].every((s) => C.seeds_checked.includes(s));
   const before = legacy(scn, j, rs);
-  const o = { locality: T.locality, before: before.status, before_facts: before.facts, runs: n,
+  const o = { locality: T.locality, before: before.status, before_facts: before.facts, before_star: before.star, runs: n,
     cavity: { span_mm: C.span_mm, eqd_mm: C.eqd_mm, extents_mm: C.extents_mm, size_class: C.size_class, size_class_basis: C.size_class_basis, all_census_seeds_checked: seedsChecked } };
   if (T.out_of_scope) { out[scn] = { ...o, verdict: 'OUT OF SCOPE', why: T.out_of_scope, flags: [] }; continue; }
+  const span = C.span_mm;
   const sp = (r, k) => {
     const v = r.species[k];
-    return { occurs: (v?.n_surv ?? 0) > 0, size: v?.max_exp_mm ?? 0, visible: (v?.n_1_exp ?? 0) > 0 };
+    return { occurs: (v?.n_surv ?? 0) > 0, size: v?.max_exp_mm ?? 0, all: v?.max_mm ?? 0 };
   };
-  const span = C.span_mm;
   const entries = Object.entries(T.species);
   const primary = entries.find(([, v]) => v.role === 'primary')[0];
   const primaryT = T.species[primary].size;
   o.primary = primary;
   o.pocket = pocketClass(span, primaryT);
-  // Per species: occurrence against its band, size conditional on occurrence and on a fitting cavity.
+  // Per species: occurrence against its band, size conditional on occurrence and on a cavity that holds it.
   o.species = {};
   for (const [k, v] of entries) {
     const per = rs.map((r) => ({ ...sp(r, k), span }));
     const occ = per.filter((x) => x.occurs);
+    const when = summarize(occ.map((x) => x.size));
+    const t = v.size;
+    const visible = occ.length > 0 && Math.max(...occ.map((x) => x.size)) >= VISIBLE;
     o.species[k] = {
       role: v.role, engine: v.engine, band: v.occurrence_band,
       occurrence: assessOccurrence(occ.length, n, v.occurrence_band),
-      target: v.size.basis === 'unknown' ? { basis: 'unknown', crystal_n: v.size.crystal_n, specimen_n: v.size.specimen_n }
-        : { basis: v.size.basis, n: v.size.n, confidence: v.size.confidence, q25: v.size.q25, median: v.size.median, q90: v.size.q90, fits: fits(span, v.size) },
-      when_occurring: summarize(occ.map((x) => x.size)),
-      size: assessSize(per, v.size),
+      target: t.basis === 'unknown' ? { basis: 'unknown', crystal_n: t.crystal_n, specimen_n: t.specimen_n, crystal: t.crystal }
+        : { basis: t.basis, n: t.n, confidence: t.confidence, q25: t.q25, median: t.median, q75: t.q75, q90: t.q90, fits: fits(span, t), crystal: t.crystal },
+      when_occurring: when,
+      // How much the largest crystal varies across the seeds (not for dust, whose median is a speck).
+      spread: { sim: visible ? relativeSpread(when) : null, record: t.basis === 'unknown' ? null : relativeSpread(t) },
+      // Dust: no crystal reaches the review's visible size; hidden: some does, but only ones flagged as enclosed.
+      dust: occ.length > 0 && Math.max(...occ.map((x) => x.all)) < VISIBLE,
+      hidden: occ.length > 0 && Math.max(...occ.map((x) => x.all)) >= VISIBLE && Math.max(...occ.map((x) => x.size)) < VISIBLE,
+      size: assessSize(per, t),
     };
+    if (v.engine && v.occurrence_band) {
+      if (occ.length === n) { occurrencePattern.every++; everySeedSlots.push({ ceiling: v.occurrence_band[1], n }); }
+      else if (occ.length === 0) occurrencePattern.never++;
+      else occurrencePattern.between++;
+    }
   }
   // The story, run by run.
-  const protagonists = entries.filter(([, v]) => v.role === 'primary' || v.role === 'alternate').map(([k, v]) => ({ k, target: v.size }));
-  const withEngine = protagonists.filter(({ k }) => T.species[k].engine);
-  const storyRuns = o.pocket === 'SMALL' ? [] : rs;
-  let yesCrystal = 0, yesProxy = 0, possible = 0;
-  const by = {};
-  for (const r of storyRuns) {
-    const s = runStory({ species: Object.fromEntries(protagonists.map(({ k }) => [k, sp(r, k)])) }, protagonists);
-    if (s.story === 'YES') { if (s.basis === 'crystal') yesCrystal++; else yesProxy++; by[s.by] = (by[s.by] || 0) + 1; }
-    else if (s.story === 'POSSIBLE') possible++;
+  const runsIn = rs.map((r) => ({ span, species: Object.fromEntries(entries.map(([k]) => [k, sp(r, k)])) }));
+  const c = scoreStory(runsIn, T.species);
+  const withEngine = protagonistsOf(T.species).filter((p) => p.engine);
+  o.story = { ...c, frequency: T.story_frequency, frequency_basis: T.story_frequency_basis,
+    ...storyVerdict({ runs: c.scored, yes: c.yes_crystal + c.yes_proxy, yesCrystal: c.yes_crystal, open: c.possible + c.unclassified, frequency: T.story_frequency }) };
+  // What leaves the story open, where it is.
+  o.open = [];
+  if (T.story_frequency == null) o.open.push('no occurrence band');
+  if (c.unclassified) o.open.push('unclassed pocket');
+  for (const p of withEngine) {
+    const occ = rs.map((r) => sp(r, p.k)).filter((x) => x.occurs);
+    if (!occ.length) continue;
+    if (p.target.basis === 'unknown') o.open.push('no size target');
+    else if (p.target.basis !== 'crystal' && occ.some((x) => x.size < p.target.q25 && !(x.size > span))) o.open.push('short of a specimen proxy');
   }
-  o.story = { story_runs: storyRuns.length, small_runs: n - storyRuns.length, yes_crystal: yesCrystal, yes_proxy: yesProxy, possible, by,
-    frequency: T.story_frequency, frequency_basis: T.story_frequency_basis,
-    ...storyVerdict({ runs: storyRuns.length, yes: yesCrystal + yesProxy, yesCrystal, possible, frequency: T.story_frequency }) };
+  if (c.beyond) o.open.push('longer than the cavity');
+  o.open = [...new Set(o.open)];
+  // Variety: the assemblages across the seeds.
+  o.variety = assemblageVariety(rs.map((r) => Object.entries(r.species).filter(([, v]) => (v.n_surv ?? 0) > 0).map(([m]) => m)));
+  o.every_seed = entries.filter(([k, v]) => v.engine && v.occurrence_band && isProt(v.role) && o.species[k].occurrence.k === n).map(([k]) => k);
   // The star, and the cast.
   const wanted = new Set(entries.filter(([, v]) => v.role !== 'companion').map(([k]) => k));
   const stars = {};
@@ -166,10 +205,10 @@ for (const [scn, T] of Object.entries(targets.scenarios).sort(([a], [b]) => a.lo
     if (!star) continue;
     stars[star] = (stars[star] || 0) + 1;
     if (wanted.has(star)) starWanted++;
-    if (T.species[star]?.role === 'primary' || T.species[star]?.role === 'alternate') starProt++;
+    if (isProt(T.species[star]?.role)) starProt++;
     if (T.species[star]?.role === 'companion') starComp++;
   }
-  o.stars = Object.fromEntries(Object.entries(stars).sort((a, b) => b[1] - a[1]).map(([m, c]) => [m, c / n]));
+  o.stars = Object.fromEntries(Object.entries(stars).sort((a, b) => b[1] - a[1]).map(([m, cnt]) => [m, cnt / n]));
   o.star_is_wanted = starWanted / n;
   o.star_is_protagonist = starProt / n;
   o.star_is_companion = starComp / n;
@@ -181,54 +220,51 @@ for (const [scn, T] of Object.entries(targets.scenarios).sort(([a], [b]) => a.lo
   // Crystals longer than the cavity's longest span: the census sees a crystal the starting cavity cannot hold.
   o.longer_than_cavity = {};
   for (const r of rs) for (const [m, v] of Object.entries(r.species)) if ((v.max_mm ?? 0) > span) o.longer_than_cavity[m] = (o.longer_than_cavity[m] || 0) + 1;
-  // Why a run could only be POSSIBLE: a visible protagonist with no size target, or one short of a proxy.
-  o.open = [];
-  for (const { k, target } of withEngine) {
-    const per = rs.map((r) => sp(r, k)).filter((x) => x.occurs && x.visible);
-    if (!per.length) continue;
-    if (target.basis === 'unknown') o.open.push({ k, why: 'no size target' });
-    else if (target.basis !== 'crystal' && per.some((x) => x.size < target.q25)) o.open.push({ k, why: 'short of a specimen proxy' });
-  }
   // The verdict.
-  if (!withEngine.length) { o.verdict = 'NO ENGINE'; o.why = `no protagonist has an engine (${protagonists.map(({ k }) => name(k)).join(', ')})`; }
+  if (!withEngine.length) { o.verdict = 'NO ENGINE'; o.why = `no protagonist has an engine (${protagonistsOf(T.species).map(({ k }) => name(k)).join(', ')})`; }
   else if (o.pocket === 'SMALL') { o.verdict = 'SMALL POCKETS ONLY'; o.why = `the cavity's longest span, ${mm(span)} mm, is shorter than ${name(primary)}'s characteristic crystal, ${mm(primaryT.median)} mm (${primaryT.basis}, n ${primaryT.n})`; }
   else { o.verdict = o.story.verdict; o.why = o.story.why ?? null; }
-  // Flags: occurrence outside the band (not noise), oversize, the star, clutter, crystals the cavity cannot hold.
+  // Flags.
   o.flags = [];
   for (const [k, s] of Object.entries(o.species)) {
     if (!s.engine) continue;
     if ((s.occurrence.verdict === 'LOW' || s.occurrence.verdict === 'HIGH') && !s.occurrence.noise) o.flags.push(`${name(k)} (${s.role}) ${s.occurrence.k}/${n} ${s.occurrence.verdict === 'LOW' ? 'below' : 'above'} band`);
-    if (s.size.verdict === 'OVERSIZE') o.flags.push(`${name(k)} oversize (median ${mm(s.size.sizes.median)} > q90 ${mm(s.target.q90)} mm)`);
+    if (s.size.verdict === 'OVERSIZE' || s.size.verdict === 'LARGE') o.flags.push(`${name(k)} ${s.size.verdict.toLowerCase()} (median ${mm(s.size.sizes.median)} mm; record q75 ${mm(s.target.q75)}, q90 ${mm(s.target.q90)})`);
+    const cs = s.target.crystal;
+    if (s.target.basis === 'specimen-proxy' && cs?.n && s.when_occurring.n && s.when_occurring.median > cs.max) o.flags.push(`${name(k)} larger than every photographed crystal (median ${mm(s.when_occurring.median)} mm; ${cs.n} crystal length${cs.n > 1 ? 's' : ''}, largest ${mm(cs.max)})`);
+    if (isProt(s.role) && s.dust) o.flags.push(`${name(k)} dust (< ${VISIBLE} mm)`);
+    if (isProt(s.role) && s.hidden) o.flags.push(`${name(k)} hidden (its crystals of ${VISIBLE} mm or more are all flagged as enclosed)`);
   }
+  if (o.every_seed.length) o.flags.push(`in every seed: ${o.every_seed.map(name).join(', ')}`);
+  if (o.variety.distinct === 1) o.flags.push('one assemblage in every seed');
   if (o.star_is_wanted < 0.5) o.flags.push(`star wanted ${Math.round(o.star_is_wanted * n)}/${n}`);
   if (o.clutter_visible_share >= CLUTTER_LIMIT) o.flags.push(`clutter ${pct(o.clutter_visible_share)} %`);
-  for (const [m, c] of Object.entries(o.longer_than_cavity)) o.flags.push(`${name(m)} longer than the cavity ${c}/${n}`);
+  for (const [m, cnt] of Object.entries(o.longer_than_cavity)) o.flags.push(`${name(m)} longer than the cavity ${cnt}/${n}`);
   out[scn] = o;
 }
 
 // ------------------------------------------------------------------ the reasons, generated
 function targetText(t) {
   if (!t || t.basis === 'unknown') return `size unknown (crystal n ${t?.crystal_n ?? 0}, specimen n ${t?.specimen_n ?? 0})`;
-  return `${t.basis === 'crystal' ? 'crystal' : 'specimen proxy'} q25 ${mm(t.q25)} / median ${mm(t.median)} mm (n ${t.n}, ${t.confidence})`;
+  const cs = t.basis !== 'crystal' && t.crystal?.n ? `; ${t.crystal.n === 1 ? `1 crystal length, ${mm(t.crystal.max)} mm` : `${t.crystal.n} crystal lengths ${mm(t.crystal.min)}–${mm(t.crystal.max)}`}` : '';
+  return `${t.basis === 'crystal' ? 'crystal' : 'specimen proxy'} q25 ${mm(t.q25)} / median ${mm(t.median)} mm (n ${t.n}, ${t.confidence}${cs})`;
 }
 function reason(scn, o) {
-  if (o.verdict === 'OUT OF SCOPE') return o.why;
-  if (o.verdict === 'NO ENGINE' || o.verdict === 'SMALL POCKETS ONLY') return o.why;
+  if (o.verdict === 'OUT OF SCOPE' || o.verdict === 'NO ENGINE' || o.verdict === 'SMALL POCKETS ONLY') return o.why;
   const s = o.story;
-  const prot = Object.entries(o.species).filter(([, v]) => v.role === 'primary' || v.role === 'alternate');
-  const carriers = Object.entries(s.by).sort((a, b) => b[1] - a[1]).map(([k, c]) => `${name(k)} ${c}`).join(', ');
+  const carriers = Object.entries(s.by).sort((a, b) => b[1] - a[1]).map(([k, cnt]) => `${name(k)} ${cnt}`).join(', ');
   const f = s.frequency == null ? 'no story frequency' : `target ${pct(s.frequency)} %`;
   const yes = s.yes_crystal + s.yes_proxy;
   const how = yes ? ` (${s.yes_proxy ? `${s.yes_crystal} on crystal targets, ${s.yes_proxy} on specimen proxies` : 'on crystal targets'})` : '';
-  const head = `story in ${yes}/${s.story_runs} runs${how}${s.possible ? `, possible in ${s.possible} more` : ''}, ${f}`;
-  // What each protagonist with an engine does, against its target.
-  const each = prot.filter(([, v]) => v.engine).map(([k, v]) => {
+  const open = s.possible + s.unclassified;
+  const head = `story in ${yes}/${s.scored} runs${how}${open ? `, open in ${open} more` : ''}, ${f}`;
+  const each = Object.entries(o.species).filter(([, v]) => isProt(v.role) && v.engine).map(([k, v]) => {
     const w = v.when_occurring;
-    const grown = w.n ? `median ${mm(w.median)} mm (${v.occurrence.k}/${o.runs})` : 'never occurs';
+    const grown = w.n ? `median ${mm(w.median)} mm${v.dust ? ' (dust)' : v.hidden ? ' (hidden: flagged as enclosed)' : ''} (${v.occurrence.k}/${o.runs})` : 'never occurs';
     return `${name(k)} ${grown} vs ${targetText(v.target)}`;
   });
   if (o.verdict === 'STORY' || o.verdict === 'STORY (PROXY)') return `${head}; carried by ${carriers}`;
-  if (o.verdict === 'UNRESOLVED') return `${head}; ${o.why}: ${each.join('; ')}`;
+  if (o.verdict === 'UNRESOLVED') return `${head}; open: ${o.open.join(', ')} — ${each.join('; ')}`;
   return `${head}${carriers ? `; carried by ${carriers}` : ''}; ${each.join('; ')}`;
 }
 for (const [scn, o] of Object.entries(out)) o.reason = reason(scn, o);
@@ -246,68 +282,87 @@ const sections = {};
   const md = [];
   md.push(`Status (${Object.keys(out).length} locality scenarios, ${runs.length} census runs, ${[...new Set(runs.map((r) => r.seed))].length} seeds each): ${tally('verdict', VERDICTS)}.`);
   md.push('');
-  md.push('| scenario (locality) | verdict | before | cavity span mm | pocket vs the primary | runs carrying the story: crystal + proxy (+ possible) / runs scored, target | star (share of runs) | star is wanted | clutter | flags |');
+  md.push('| scenario (locality) | verdict | before | cavity span mm | pocket vs the primary | runs carrying the story: crystal + proxy (+ open) / runs scored, target | star (share of runs) | star is wanted | clutter | flags |');
   md.push('|---|---|---|---:|---|---|---|---:|---:|---|');
   for (const [scn, o] of sorted) {
     if (o.verdict === 'OUT OF SCOPE') { md.push(`| ${scn} (${o.locality}) | OUT OF SCOPE | ${o.before} | ${mm(o.cavity.span_mm)} | — | — | — | — | — | — |`); continue; }
     const s = o.story;
-    const storyText = s.story_runs ? `${s.yes_crystal} + ${s.yes_proxy}${s.possible ? ` (+${s.possible})` : ''} / ${s.story_runs}, ${s.frequency == null ? 'none' : `${pct(s.frequency)} %`}` : `— (${s.small_runs} small)`;
+    const open = s.possible + s.unclassified;
+    const storyText = s.scored ? `${s.yes_crystal} + ${s.yes_proxy}${open ? ` (+${open})` : ''} / ${s.scored}, ${s.frequency == null ? 'none' : `${pct(s.frequency)} %`}` : `— (${s.small} small)`;
     const [star] = Object.entries(o.stars);
-    md.push(`| ${scn} (${o.locality}) | ${o.verdict}${o.story?.noise && o.verdict !== 'STORY' ? ' (noise)' : ''} | ${o.before} | ${mm(o.cavity.span_mm)} | ${o.pocket} (${name(o.primary)}) | ${storyText} | ${star ? `${name(star[0])} ${pct(star[1])} %` : '—'} | ${pct(o.star_is_wanted)} % | ${pct(o.clutter_visible_share)} % | ${o.flags.join('; ') || '—'} |`);
+    md.push(`| ${scn} (${o.locality}) | ${o.verdict}${o.story?.noise ? ' (noise)' : ''} | ${o.before} | ${mm(o.cavity.span_mm)} | ${o.pocket} (${name(o.primary)}) | ${storyText} | ${star ? `${name(star[0])} ${pct(star[1])} %` : '—'} | ${pct(o.star_is_wanted)} % | ${pct(o.clutter_visible_share)} % | ${o.flags.join('; ') || '—'} |`);
   }
-  const pockets = {};
-  for (const o of scored) pockets[o.pocket] = (pockets[o.pocket] || 0) + 1;
   md.push('');
   const unres = Object.entries(out).filter(([, o]) => o.verdict === 'UNRESOLVED');
-  const kind = (o) => (o.story.frequency == null ? 'no occurrence band for any protagonist' : [...new Set(o.open.map((x) => x.why))].sort().join(' and ') || 'other');
   const groups = {};
-  for (const [scn, o] of unres) (groups[kind(o)] ||= []).push(scn);
-  md.push(`UNRESOLVED (${unres.length}), by what leaves it open: ${Object.entries(groups).sort((a, b) => b[1].length - a[1].length).map(([g, l]) => `${g} ${l.length} (${l.join(', ')})`).join('; ')}. A specimen proxy overstates the crystal, so a crystal short of it is not a verdict; a protagonist with no size target has none to miss.`);
+  for (const [scn, o] of unres) (groups[o.open.join(' + ') || 'other'] ||= []).push(scn);
+  md.push(`UNRESOLVED (${unres.length}), by what leaves it open: ${Object.entries(groups).sort((a, b) => b[1].length - a[1].length || a[0].localeCompare(b[0])).map(([g, l]) => `${g} — ${l.join(', ')}`).join('; ')}. A specimen proxy overstates the crystal, so a crystal short of it is not a verdict; a protagonist with no size target has none to miss; in an unclassed pocket a run without a story may be a small pocket.`);
+  const pockets = {};
+  for (const o of scored) pockets[o.pocket] = (pockets[o.pocket] || 0) + 1;
   md.push(`Pocket classes against the primary protagonist's characteristic crystal: ${['STORY-SCALE', 'SMALL', 'UNCLASSED'].map((p) => `${p} ${pockets[p] || 0}`).join(', ')} of ${scored.length} scored scenarios. Every scenario grows in one cavity in all its seeds (${Object.values(cav.scenarios).reduce((s, v) => s + v.seeds_checked.length, 0)} constructions checked, ${Object.values(cav.scenarios).every((v) => v.identical_across_seeds) ? 'none differ' : 'SOME DIFFER'}), so a scenario's fleet holds a single pocket class: no scenario yet has both small pockets and story-scale ones.`);
-  md.push(`Size class by the cavity: ${['vug', 'pocket', 'cave'].map((k) => `${k} ${scored.filter((o) => o.cavity.size_class === k).length}`).join(', ')}; median span ${mm(med(scored.map((o) => o.cavity.span_mm)))} mm (${mm(Math.min(...scored.map((o) => o.cavity.span_mm)))}–${mm(Math.max(...scored.map((o) => o.cavity.span_mm)))}).`);
   sections.verdicts = md.join('\n');
 }
 {
   const md = [];
   const moves = {};
   for (const o of Object.values(out)) moves[`${o.before} → ${o.verdict}`] = (moves[`${o.before} → ${o.verdict}`] || 0) + 1;
-  md.push(`Before (the previous rule: ${tally('before', BEFORE)}) → after: ${Object.entries(moves).sort((a, b) => b[1] - a[1]).map(([m, c]) => `${m} ${c}`).join('; ')}.`);
+  md.push(`Before (the previous rule: ${tally('before', BEFORE)}) → after: ${Object.entries(moves).sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0])).map(([m, cnt]) => `${m} ${cnt}`).join('; ')}.`);
   md.push('');
   md.push('| scenario | before | after | why (generated from the targets and the census) |');
   md.push('|---|---|---|---|');
   for (const [scn, o] of Object.entries(out).sort((a, b) => BEFORE.indexOf(a[1].before) - BEFORE.indexOf(b[1].before) || order(a[1]) - order(b[1]) || a[0].localeCompare(b[0]))) {
-    const was = o.before_facts.length ? ` — before: ${o.before_facts.map((f) => `${name(f.k)} ${f.status}`).join(', ')}` : '';
+    const was = o.before_facts.length ? ` — before: ${o.before_facts.map((f) => `${name(f.k)} ${f.status}`).join(', ')}; the star a signature species in ${Math.round(o.before_star * o.runs)}/${o.runs}` : '';
     md.push(`| ${scn} | ${o.before} | ${o.verdict} | ${o.reason}${was} |`);
   }
   sections['before-after'] = md.join('\n');
 }
 {
   const md = [];
-  md.push('| scenario | species | role | occurs (band) | size target | largest unflagged when it occurs: median (q25–q75) | fits the cavity | eligible runs reaching q25 | size verdict |');
-  md.push('|---|---|---|---|---|---|---|---|---|');
+  md.push('| scenario | species | role | occurs (band) | size target | largest unflagged when it occurs: median (q25–q75) | spread: sim / record | holds it | eligible runs in q25–q90 | size verdict |');
+  md.push('|---|---|---|---|---|---|---|---|---|---|');
   const rows = [];
-  for (const [scn, o] of sorted) {
-    if (!o.species) continue;
-    for (const [k, s] of Object.entries(o.species)) {
-      if (s.role === 'companion') continue;
-      rows.push([scn, k, s]);
-    }
-  }
+  for (const [scn, o] of sorted) if (o.species) for (const [k, s] of Object.entries(o.species)) if (s.role !== 'companion') rows.push([scn, k, s]);
   const roleOrder = ['primary', 'alternate', 'showpiece', 'unsupported'];
   for (const [scn, k, s] of rows.sort((a, b) => a[0].localeCompare(b[0]) || roleOrder.indexOf(a[2].role) - roleOrder.indexOf(b[2].role) || a[1].localeCompare(b[1]))) {
     const occ = s.engine ? `${s.occurrence.k}/${s.occurrence.n} (${s.band ? `${pct(s.band[0])}–${pct(s.band[1])} %` : 'no band'}) ${s.occurrence.verdict}${s.occurrence.noise ? ' (noise)' : ''}` : 'no engine';
     const w = s.when_occurring;
-    const cond = s.engine && w.n ? `${mm(w.median)} (${mm(w.q25)}–${mm(w.q75)})` : '—';
+    const cond = s.engine && w.n ? `${mm(w.median)} (${mm(w.q25)}–${mm(w.q75)})${s.dust ? ' dust' : s.hidden ? ' hidden' : ''}` : '—';
+    const spread = s.engine && w.n ? `${s.spread.sim == null ? (s.dust || s.hidden ? 'not visible' : '—') : `${pct(s.spread.sim)} %`} / ${s.spread.record == null ? '—' : `${pct(s.spread.record)} %`}` : '—';
     const fit = s.target.basis === 'unknown' ? '—' : s.target.fits === true ? 'yes' : s.target.fits === false ? 'no' : 'unknown';
-    const elig = s.size.eligible ? `${s.size.meeting}/${s.size.eligible} (${pct(s.size.share)} %)` : '—';
-    md.push(`| ${scn} | ${name(k)} | ${s.role} | ${occ} | ${targetText(s.target)} | ${cond} | ${fit} | ${elig} | ${s.engine ? s.size.verdict : '—'} |`);
+    const elig = s.size.eligible ? `${s.size.inRange}/${s.size.eligible} (${pct(s.size.share)} %)` : '—';
+    md.push(`| ${scn} | ${name(k)} | ${s.role} | ${occ} | ${targetText(s.target)} | ${cond} | ${spread} | ${fit} | ${elig} | ${s.engine ? s.size.verdict : '—'} |`);
   }
-  const prot = rows.filter(([, , s]) => s.role === 'primary' || s.role === 'alternate');
+  const prot = rows.filter(([, , s]) => isProt(s.role));
   const basis = {};
-  for (const [, , s] of prot) basis[s.target.basis === 'crystal' ? `crystal (${s.target.confidence})` : s.target.basis] = (basis[s.target.basis === 'crystal' ? `crystal (${s.target.confidence})` : s.target.basis] || 0) + 1;
+  for (const [, , s] of prot) { const b = s.target.basis === 'crystal' ? `crystal (${s.target.confidence})` : s.target.basis; basis[b] = (basis[b] || 0) + 1; }
+  const verdicts = {};
+  for (const [, , s] of prot) if (s.engine) verdicts[s.size.verdict] = (verdicts[s.size.verdict] || 0) + 1;
   md.push('');
-  md.push(`Protagonist size targets (${prot.length} primary and alternate slots): ${Object.entries(basis).sort().map(([b, c]) => `${b} ${c}`).join(', ')}. Size verdicts of protagonists with an engine: ${(() => { const v = {}; for (const [, , s] of prot) if (s.engine) v[s.size.verdict] = (v[s.size.verdict] || 0) + 1; return Object.entries(v).sort((a, b) => b[1] - a[1]).map(([x, c]) => `${x} ${c}`).join(', '); })()}.`);
+  md.push(`Protagonist size targets (${prot.length} primary and alternate slots): ${Object.entries(basis).sort().map(([b, cnt]) => `${b} ${cnt}`).join(', ')}. Size verdicts of protagonists with an engine: ${Object.entries(verdicts).sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0])).map(([x, cnt]) => `${x} ${cnt}`).join(', ')}. "spread" = the interquartile range over the median, of the simulated largest crystal across the seeds and of the record's.`);
   sections.protagonists = md.join('\n');
+}
+{
+  const md = [];
+  const rows = [];
+  for (const [scn, o] of sorted) if (o.species) for (const [k, s] of Object.entries(o.species)) if (isProt(s.role) && s.engine && s.occurrence.k === 0) rows.push(`${name(k)} at ${scn} (${s.role}${s.band ? `, band ${pct(s.band[0])}–${pct(s.band[1])} %` : ''})`);
+  md.push(`Protagonists with an engine that never form in any seed (${rows.length}): ${rows.join('; ') || 'none'}.`);
+  sections['never-form'] = md.join('\n');
+}
+{
+  const md = [];
+  md.push('| scenario | distinct assemblages in the seeds | the commonest one\'s share | protagonists in every seed | protagonists\' size spread, sim / record |');
+  md.push('|---|---:|---:|---|---|');
+  for (const [scn, o] of sorted) {
+    if (!o.species) continue;
+    const spreads = Object.entries(o.species).filter(([, s]) => isProt(s.role) && s.engine && s.when_occurring.n).map(([k, s]) => `${name(k)} ${s.spread.sim == null ? (s.dust || s.hidden ? 'not visible' : '—') : `${pct(s.spread.sim)} %`} / ${s.spread.record == null ? '—' : `${pct(s.spread.record)} %`}`);
+    md.push(`| ${scn} | ${o.variety.distinct} of ${o.runs} | ${pct(o.variety.modal_share)} % | ${o.every_seed.map(name).join(', ') || '—'} | ${spreads.join('; ') || '—'} |`);
+  }
+  const chance = everySeedChance(everySeedSlots);
+  const simSpreads = scored.flatMap((o) => Object.values(o.species).filter((s) => isProt(s.role) && s.engine && s.spread.sim != null).map((s) => s.spread.sim));
+  const recSpreads = scored.flatMap((o) => Object.values(o.species).filter((s) => isProt(s.role) && s.spread.record != null).map((s) => s.spread.record));
+  md.push('');
+  md.push(`One assemblage in every seed: ${scored.filter((o) => o.variety.distinct === 1).length} of ${scored.length} scored scenarios. Of the species with an engine and a band (all roles), ${occurrencePattern.every} occur in every seed, ${occurrencePattern.never} in none and ${occurrencePattern.between} in some. If each of the ${chance.slots} that occur in every seed occurred at its band's ceiling (90–95 % for the common classes), the chance of seeing all of them in every one of their runs would be about 10^${Math.round(chance.log10)}: the fleet is not a distribution of pockets, whatever the noise on any one species. Median size spread of the protagonists across the seeds: ${pct(med(simSpreads))} % simulated, against ${pct(med(recSpreads))} % in the record.`);
+  sections.variety = md.join('\n');
 }
 {
   const md = [];
@@ -327,7 +382,7 @@ const sections = {};
   const md = [];
   md.push('| scenario | clutter share of visible crystals | species |');
   md.push('|---|---:|---|');
-  for (const [scn, o] of Object.entries(out).filter(([, o]) => (o.clutter_visible_share ?? 0) >= CLUTTER_LIMIT).sort((a, b) => b[1].clutter_visible_share - a[1].clutter_visible_share)) {
+  for (const [scn, o] of Object.entries(out).filter(([, x]) => (x.clutter_visible_share ?? 0) >= CLUTTER_LIMIT).sort((a, b) => b[1].clutter_visible_share - a[1].clutter_visible_share)) {
     md.push(`| ${scn} (${o.locality}) | ${pct(o.clutter_visible_share)} % | ${o.clutter_species.map(name).join(', ')} |`);
   }
   sections.clutter = md.join('\n');
@@ -343,9 +398,9 @@ const sections = {};
   }
   const comp = scored.flatMap((o) => Object.values(o.species).filter((s) => s.role === 'companion' && s.engine && s.band));
   const cv = {};
-  for (const s of comp) cv[s.occurrence.verdict + (s.occurrence.noise ? ' (noise)' : '')] = (cv[s.occurrence.verdict + (s.occurrence.noise ? ' (noise)' : '')] || 0) + 1;
+  for (const s of comp) { const v = s.occurrence.verdict + (s.occurrence.noise ? ' (noise)' : ''); cv[v] = (cv[v] || 0) + 1; }
   md.push('');
-  md.push(`Companions with an engine and a band (${comp.length}): ${Object.entries(cv).sort((a, b) => b[1] - a[1]).map(([v, c]) => `${v} ${c}`).join(', ')}. "~" marks noise: 21 runs cannot tell the rate from the band.`);
+  md.push(`Companions with an engine and a band (${comp.length}): ${Object.entries(cv).sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0])).map(([v, cnt]) => `${v} ${cnt}`).join(', ')}. "~" marks noise: 21 runs cannot tell the rate from the band.`);
   sections.cast = md.join('\n');
 }
 {
@@ -354,7 +409,7 @@ const sections = {};
   md.push('|---|---|---|---:|---|');
   const rows = [];
   for (const [scn, o] of sorted) if (o.species) for (const [k, s] of Object.entries(o.species)) if (!s.engine && s.role !== 'companion') rows.push([scn, k, s, targets.scenarios[scn].species[k]]);
-  for (const [scn, k, s, t] of rows.sort((a, b) => (b[3].record_share ?? 0) - (a[3].record_share ?? 0))) {
+  for (const [scn, k, s, t] of rows.sort((a, b) => (b[3].record_share ?? 0) - (a[3].record_share ?? 0) || a[0].localeCompare(b[0]))) {
     md.push(`| ${scn} (${out[scn].locality}) | ${name(k)} | ${s.role} | ${t.record_share == null ? '—' : `${(100 * t.record_share).toFixed(t.record_share < 0.1 ? 1 : 0)} %`} | ${t.literature?.class ?? '—'} |`);
   }
   sections['no-engine'] = md.join('\n');
@@ -363,7 +418,7 @@ const sections = {};
   const md = [];
   md.push('| scenario | cavity extents x × y × z mm | longest span mm | equivalent diameter mm | size class | primary protagonist\'s characteristic crystal | pocket |');
   md.push('|---|---|---:|---:|---|---|---|');
-  for (const [scn, o] of Object.entries(out).sort((a, b) => a[1].cavity.span_mm - b[1].cavity.span_mm)) {
+  for (const [scn, o] of Object.entries(out).sort((a, b) => a[1].cavity.span_mm - b[1].cavity.span_mm || a[0].localeCompare(b[0]))) {
     const c = o.cavity;
     const t = o.primary ? targets.scenarios[scn].species[o.primary].size : null;
     const char = !t ? '—' : t.basis === 'unknown' ? `${name(o.primary)}: unknown` : `${name(o.primary)}: ${mm(t.median)} mm (${t.basis === 'crystal' ? 'crystal' : 'specimen proxy'}, n ${t.n})`;
@@ -379,12 +434,13 @@ const sections = {};
   if (ev.capture.sha256 !== targets.inputs.size_capture.sha256) throw new Error('the size capture changed since the targets were written: re-run tools/story-pocket-targets.mjs --write');
   const all = Object.values(ev.localities).flatMap((sp) => Object.values(sp));
   const sum = (f) => all.reduce((s, e) => s + f(e), 0);
+  const joins = Object.values(ev.joins).flat();
   const md = [];
-  md.push(`Capture: ${ev.capture.pages} Mineralienatlas pages, ${ev.capture.rows} photographs with a stated length, ${sum((e) => e.photos_with_length)} specimens once ${sum((e) => e.repeat_captions)} repeat captions are merged. Specimens with a length of each kind: crystal ${sum((e) => e.crystal.n)}, aggregate ${sum((e) => e.aggregate.n)}, specimen ${sum((e) => e.specimen.n)}, picture width ${sum((e) => e.fov.n)}; ${sum((e) => e.crystal_statements_of_other_minerals)} crystal lengths named another mineral and were set aside, ${sum((e) => e.unclassed_statements)} lengths stayed unclassed.`);
-  const prot = Object.entries(targets.scenarios).flatMap(([scn, s]) => Object.entries(s.species).filter(([, v]) => v.role === 'primary' || v.role === 'alternate').map(([k, v]) => [scn, k, v]));
+  md.push(`Capture: ${ev.capture.pages} Mineralienatlas pages; ${sum((e) => e.photos_with_length)} photographs with a stated length, ${sum((e) => e.specimens)} specimens once the photographs of one specimen are joined (${joins.filter((l) => l.why === 'caption').length} by identical captions, ${joins.filter((l) => l.why === 'dims').length} by the same dimensions). Specimens with a length of each kind: crystal ${sum((e) => e.crystal.n)}, aggregate ${sum((e) => e.aggregate.n)}, specimen ${sum((e) => e.specimen.n)}, picture width ${sum((e) => e.fov.n)}. Crystal lengths set aside: ${sum((e) => e.crystal_lengths_of_other_minerals)} named another mineral, ${sum((e) => e.crystal_lengths_about_other_minerals)} were about another mineral, ${sum((e) => e.crystal_widths)} gave a width; ${sum((e) => e.unclassed_lengths)} lengths stayed unclassed. The full audit, every crystal length and every join: \`proposals/DATA-STORY-POCKET-SIZES-2026-10-22.md\`.`);
+  const prot = Object.entries(targets.scenarios).flatMap(([scn, s]) => Object.entries(s.species).filter(([, v]) => isProt(v.role)).map(([k, v]) => [scn, k, v]));
   const basis = {};
   for (const [, , v] of prot) { const b = v.size.basis === 'crystal' ? `crystal (${v.size.confidence})` : v.size.basis; basis[b] = (basis[b] || 0) + 1; }
-  md.push(`Protagonist size targets (${prot.length}): ${Object.entries(basis).sort().map(([b, c]) => `${b} ${c}`).join(', ')}.`);
+  md.push(`Protagonist size targets (${prot.length}): ${Object.entries(basis).sort().map(([b, cnt]) => `${b} ${cnt}`).join(', ')}.`);
   md.push('');
   md.push('| scenario | primary protagonist | crystal lengths: n, median (q25–q75) mm | specimen dimensions: n, median (q25–q75) mm | target |');
   md.push('|---|---|---|---|---|');
@@ -400,10 +456,8 @@ const sections = {};
   sections['size-evidence'] = md.join('\n');
 }
 {
-  const md = [];
-  const rules = targets.rules;
-  md.push(`Occurrence bands by literature class: ${Object.entries(rules.occurrence_bands).map(([c, b]) => `${c} ${pct(b[0])}–${pct(b[1])} %`).join(', ')}; any other class leaves the band unresolved. Size targets: at least ${rules.size_min_samples} specimens; confidence low below ${rules.size_medium_confidence}, medium below ${rules.size_high_confidence}, high from ${rules.size_high_confidence}; a specimen proxy is always low.`);
-  sections.rules = md.join('\n');
+  const R = targets.rules;
+  sections.rules = `Occurrence bands by literature class: ${Object.entries(R.occurrence_bands).map(([cls, b]) => `${cls} ${pct(b[0])}–${pct(b[1])} %`).join(', ')}; any other class leaves the band unresolved. Size targets: at least ${R.size_min_samples} specimens; confidence low below ${R.size_medium_confidence}, medium below ${R.size_high_confidence}, high from ${R.size_high_confidence}; a specimen proxy is always low.`;
 }
 
 const md = ['# Story-pocket scoreboard', '', `Targets: \`${path.relative(ROOT, TARGETS).replace(/\\/g, '/')}\` (${targets.rules.status}). Census: ${runs.length} runs. Cavities: ${path.relative(ROOT, CAV).replace(/\\/g, '/')} (${cav.seeds_mode} seeds).`, ''];
@@ -416,21 +470,10 @@ fs.writeFileSync(path.join(OUT, 'showcase.json'), JSON.stringify({ sections: Obj
 const spliceArg = (flag) => { const i = process.argv.indexOf(flag); return i > 0 ? process.argv[i + 1] : null; };
 const spliceFile = spliceArg('--splice') || spliceArg('--check-splice');
 if (spliceFile) {
-  const file = path.resolve(spliceFile);
-  const text = fs.readFileSync(file, 'utf8');
-  const seen = new Set();
-  const next = text.replace(/<!-- generated:([a-z-]+) -->\n[\s\S]*?<!-- \/generated:\1 -->/g, (all, key) => {
-    if (!sections[key]) throw new Error(`${spliceFile}: no section named ${key}`);
-    seen.add(key);
-    return `<!-- generated:${key} -->\n${sections[key]}\n<!-- /generated:${key} -->`;
-  });
-  if (process.argv.includes('--check-splice')) {
-    if (next !== text) { console.error(`${spliceFile}: generated blocks differ from this run (${[...seen].join(', ')})`); process.exit(1); }
-    console.log(`${spliceFile}: ${seen.size} generated blocks match (${[...seen].join(', ')})`);
-  } else {
-    fs.writeFileSync(file, next);
-    console.log(`${spliceFile}: spliced ${seen.size} blocks (${[...seen].join(', ')})`);
-  }
+  const check = process.argv.includes('--check-splice');
+  const { changed, names } = spliceGenerated(path.resolve(spliceFile), sections, { check, owner: 'scoreboard' });
+  if (check && changed.length) { console.error(`${spliceFile}: generated blocks differ from this run: ${changed.join(', ')}`); process.exit(1); }
+  console.log(`${spliceFile}: ${check ? 'all' : 'spliced'} ${names.length} scoreboard blocks${check ? ' match' : ''} (${check ? names.join(', ') : changed.join(', ') || 'none changed'})`);
 } else {
   console.log(md.join('\n'));
 }

@@ -23,11 +23,11 @@
   "occurrence_bands": {
    "AB": [
     0.5,
-    1
+    0.95
    ],
    "CO": [
     0.3,
-    1
+    0.9
    ],
    "UN": [
     0.1,
@@ -42,14 +42,17 @@
     0.15
    ]
   },
-  "occurrence_bands_basis": "The literature's abundance class for the deposit (proposals/DATA-LOCALITY-ABUNDANCE-2026-10-21.json, literature), read as the share of story pockets the species occurs in: abundant at least half, common at least 30 %, uncommon 10–60 %, rare 2–30 %, very rare at most 15 %. The numbers are a design choice, not measured. A form suffix (-crust, -coating, -oxidized) keeps the class. doc (documented without an abundance word), ND, ND?, Q and no class leave the band unresolved. Photograph and listing shares are never used: they measure collector salience, not geological frequency.",
+  "occurrence_bands_basis": "The literature's abundance class for the deposit (proposals/DATA-LOCALITY-ABUNDANCE-2026-10-21.json, literature), read as the share of story pockets the species occurs in: abundant 50–95 %, common 30–90 %, uncommon 10–60 %, rare 2–30 %, very rare at most 15 %. No class reaches 100 %: signature minerals should be \"common, not guaranteed\" (the boss, 2026-10-22), and the supporting cast \"usually present\". The numbers are a design choice, not measured. With 21 seeds one species in every seed is within noise of a 90–95 % ceiling, so the scoreboard also tests the fleet: how many species occur in every seed, against the chance of that if each occurred at its ceiling. A form suffix (-crust, -coating, -oxidized) keeps the class. doc (documented without an abundance word), ND, ND?, Q and no class leave the band unresolved. Photograph and listing shares are never used: they measure collector salience, not geological frequency.",
+  "visible_mm": 1,
+  "visible_basis": "The locality review's \"visible\" (a crystal of at least 1 mm not flagged as enclosed), kept as a reporting convention: the clutter share and the \"dust\" flag use it. It decides no verdict and is not a size target.",
   "size_min_samples": 5,
   "size_medium_confidence": 10,
   "size_high_confidence": 30,
-  "size_basis": "Photographed lengths (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json, classed by tools/story-pocket-size-evidence.mjs), one value per photograph: its largest stated crystal of the species. With at least size_min_samples photographs, a crystal target: confidence low below size_medium_confidence, medium below size_high_confidence, high from it. Otherwise the photographs' specimen dimensions, if at least size_min_samples, as a proxy: an upper bound on the crystal, confidence low. Otherwise unknown. There is no default size. Materials collected as pieces (tiger's eye, chrysoprase, chalcedony, jasper) have piece sizes only, so at best a proxy.",
-  "size_check": "Per run, the species' largest crystal not flagged as enclosed (census max_exp_mm) against the target: the median is the characteristic crystal and the lower quartile (q25) the showcase threshold. Over the runs where the species occurs in a cavity that fits its median, MEETS when at least half reach q25, OVERSIZE when their median passes q90, BELOW otherwise. A proxy is an upper bound, so reaching it is conclusive and falling short is not (BELOW PROXY).",
-  "eligibility": "A cavity fits a species' characteristic crystal when its longest interior span (the longest chord between two wall vertices, tools/story-pocket-cavities.mjs) is at least the target's median. A pocket is SMALL when it cannot fit the primary protagonist's characteristic crystal: it may lack a showcase and is left out of the story frequency. The locality's target is never shrunk to fit the cavity. Under a proxy, a cavity smaller than the proxy median is unclassed, not small.",
-  "story_frequency_rule": "A run carries the story when an intended protagonist (the primary or an alternate) occurs and its largest unflagged crystal reaches its target's q25. The scenario should carry it in at least the largest lower occurrence bound among its protagonists that have an engine and a band: the most common protagonist should usually tell the story. Unresolved when no such protagonist exists.",
+  "size_basis": "Photographed lengths (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json, classed by tools/story-pocket-size-evidence.mjs). Photographs of one specimen count once: identical captions, or the same length in three dimensions, or in two dimensions uploaded together. Each specimen gives one value per kind: its largest stated crystal of the species. With at least size_min_samples specimens, a crystal target: confidence low below size_medium_confidence, medium below size_high_confidence, high from it. Otherwise the specimens' dimensions, if at least size_min_samples, as a proxy, confidence low: a specimen is at least as long as its own crystals, so the proxy overstates the crystal — reaching it is strong evidence (not proof: the photographs that state crystal lengths and those that state specimen sizes are different subsets), falling short of it is none. Otherwise unknown. There is no default size. Materials collected as pieces (tiger's eye, chrysoprase, chalcedony, jasper) have piece sizes only, so at best a proxy.",
+  "size_check": "Per run, the species' largest crystal not flagged as enclosed (census max_exp_mm). The record's median is the characteristic crystal, its quartiles the range: a crystal in q25–q90 is at the record's display scale; past q90 it is oversize. Over the runs where the species occurs in a cavity that holds its median, the median of those crystals against the record: BELOW (< q25), MEETS (q25–q75, around the record's median), LARGE (q75–q90), OVERSIZE (> q90). Against a proxy: BELOW PROXY (< q25, not a verdict), REACHES PROXY (q25–q90; oversize cannot be tested against a proxy), OVERSIZE (> q90). A crystal longer than the cavity's span is left out and flagged: the starting cavity cannot hold it.",
+  "eligibility": "A cavity holds a species' characteristic crystal when its longest interior span (the longest chord between two wall vertices, tools/story-pocket-cavities.mjs) is at least the target's median. A pocket is SMALL when it cannot hold the primary protagonist's characteristic crystal: it may lack a showcase and is left out of the story frequency (its stories are reported apart). The locality's target is never shrunk to fit the cavity. A pocket is UNCLASSED when this cannot be told (the primary's size is unknown, or a proxy longer than the cavity): a run without a story there may be a small pocket, so it stays open rather than counting against the story.",
+  "story_frequency_rule": "A run carries the story when an intended protagonist (the primary or an alternate) occurs with its largest unflagged crystal in its record's display range, q25–q90, and no longer than the cavity. The scenario should carry it in at least the largest lower occurrence bound among its protagonists that have an engine and a band: the most common protagonist should usually tell the story. Unresolved when no such protagonist exists, or when runs whose protagonist has no known crystal target, or whose pocket is unclassed, could still carry it.",
+  "variety": "A scenario should give a distribution of pockets, not one assemblage every run (the boss, 2026-10-22). The scoreboard reports, per scenario, the distinct assemblages (sets of surviving species) across its seeds, the protagonists present in every seed, and how much each protagonist's largest crystal varies (interquartile range over median, beside the record's); and, for the fleet, the chance that every species seen in all its seeds would be if each occurred at its band's ceiling.",
   "roles": "From the record, gated by the literature (deriveRoles, tools/story-pocket-lib.mjs): primary = the most-wanted species the literature does not contradict (ND, ND?, Q) or call rare (RA, VR); alternate = every other such wanted species; showpiece = a wanted species the literature calls rare; unsupported = a wanted species the literature contradicts (listed, not targeted); companion = a species the literature calls abundant or common that the record does not want (the supporting cast: it should occur, not be the star). Species the comparison sets aside as outside the scenario's scope have no role.",
   "companions_and_showpieces": "Companions are scored on occurrence against their band and on not being the star; showpieces on occurrence against their band and, where a size target exists, on how often they reach it. Neither carries the story."
  },
@@ -93,7 +96,7 @@
      },
      "occurrence_band": [
       0.5,
-      1
+      0.95
      ],
      "band_basis": "literature class AB (PF07; status V) under rules.occurrence_bands",
      "size": {
@@ -106,11 +109,14 @@
       },
       "specimen": {
        "n": 1,
-       "median": 82,
+       "min": 82,
        "q25": 82,
-       "q75": 82
+       "median": 82,
+       "q75": 82,
+       "max": 82
       },
-      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 1 photograph(s) of Amethyst at amethyst_geode with a stated length; 0 crystal, 1 specimen, 0 aggregate, 0 picture-width values"
+      "specimens": 1,
+      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 1 photograph(s) of Amethyst at amethyst_geode with a stated length, 1 specimen(s); 0 with a crystal length, 1 with specimen dimensions, 0 aggregate, 0 picture width"
      }
     },
     "chalcedony": {
@@ -124,7 +130,7 @@
      },
      "occurrence_band": [
       0.5,
-      1
+      0.95
      ],
      "band_basis": "literature class AB (PF07; status V) under rules.occurrence_bands",
      "size": {
@@ -145,7 +151,7 @@
      },
      "occurrence_band": [
       0.3,
-      1
+      0.9
      ],
      "band_basis": "literature class CO (D19; status V) under rules.occurrence_bands",
      "size": {
@@ -158,11 +164,14 @@
       },
       "specimen": {
        "n": 2,
-       "median": 96.5,
+       "min": 33,
        "q25": 64.75,
-       "q75": 128.25
+       "median": 96.5,
+       "q75": 128.25,
+       "max": 160
       },
-      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 2 photograph(s) of Calcite at amethyst_geode with a stated length; 0 crystal, 2 specimen, 0 aggregate, 0 picture-width values"
+      "specimens": 2,
+      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 2 photograph(s) of Calcite at amethyst_geode with a stated length, 2 specimen(s); 0 with a crystal length, 2 with specimen dimensions, 0 aggregate, 0 picture width"
      }
     },
     "x:celadonite": {
@@ -176,7 +185,7 @@
      },
      "occurrence_band": [
       0.5,
-      1
+      0.95
      ],
      "band_basis": "literature class AB (D19,PF07; status V) under rules.occurrence_bands",
      "size": {
@@ -207,7 +216,7 @@
      },
      "occurrence_band": [
       0.3,
-      1
+      0.9
      ],
      "band_basis": "literature class CO (P28; status V) under rules.occurrence_bands",
      "size": {
@@ -221,18 +230,21 @@
       "confidence": "low",
       "crystal_n": 0,
       "specimen_n": 17,
-      "photographs_with_length": 17,
+      "photographs_with_length": 18,
       "crystal": {
        "n": 0
       },
       "specimen": {
        "n": 17,
-       "median": 38.5,
+       "min": 13,
        "q25": 21,
-       "q75": 57
+       "median": 38.5,
+       "q75": 57,
+       "max": 75
       },
       "piece_material": true,
-      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 17 photograph(s) of Falcon's Eye / Tigers Eye at asbestos_hills with a stated length; 0 crystal, 17 specimen, 0 aggregate, 0 picture-width values"
+      "specimens": 17,
+      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 18 photograph(s) of Falcon's Eye / Tigers Eye at asbestos_hills with a stated length, 17 specimen(s); 0 with a crystal length, 17 with specimen dimensions, 0 aggregate, 0 picture width"
      }
     },
     "crocidolite": {
@@ -246,7 +258,7 @@
      },
      "occurrence_band": [
       0.5,
-      1
+      0.95
      ],
      "band_basis": "literature class AB (P28; status V) under rules.occurrence_bands",
      "size": {
@@ -260,7 +272,8 @@
       "specimen": {
        "n": 0
       },
-      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 1 photograph(s) of Crocidolite at asbestos_hills with a stated length; 0 crystal, 0 specimen, 0 aggregate, 1 picture-width values"
+      "specimens": 1,
+      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 1 photograph(s) of Crocidolite at asbestos_hills with a stated length, 1 specimen(s); 0 with a crystal length, 0 with specimen dimensions, 0 aggregate, 1 picture width"
      }
     },
     "x:jasper": {
@@ -280,12 +293,15 @@
       },
       "specimen": {
        "n": 1,
-       "median": 112,
+       "min": 112,
        "q25": 112,
-       "q75": 112
+       "median": 112,
+       "q75": 112,
+       "max": 112
       },
       "piece_material": true,
-      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 1 photograph(s) of Jasper at asbestos_hills with a stated length; 0 crystal, 1 specimen, 0 aggregate, 0 picture-width values"
+      "specimens": 1,
+      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 1 photograph(s) of Jasper at asbestos_hills with a stated length, 1 specimen(s); 0 with a crystal length, 1 with specimen dimensions, 0 aggregate, 0 picture width"
      }
     },
     "quartz": {
@@ -299,7 +315,7 @@
      },
      "occurrence_band": [
       0.5,
-      1
+      0.95
      ],
      "band_basis": "literature class AB (P28; status V) under rules.occurrence_bands",
      "size": {
@@ -320,7 +336,7 @@
      },
      "occurrence_band": [
       0.5,
-      1
+      0.95
      ],
      "band_basis": "literature class AB (B80; status V) under rules.occurrence_bands",
      "size": {
@@ -341,7 +357,7 @@
      },
      "occurrence_band": [
       0.5,
-      1
+      0.95
      ],
      "band_basis": "literature class AB (P28; status V) under rules.occurrence_bands",
      "size": {
@@ -362,7 +378,7 @@
      },
      "occurrence_band": [
       0.5,
-      1
+      0.95
      ],
      "band_basis": "literature class AB (P28; status V) under rules.occurrence_bands",
      "size": {
@@ -393,7 +409,7 @@
      },
      "occurrence_band": [
       0.3,
-      1
+      0.9
      ],
      "band_basis": "literature class CO (P28; status V) under rules.occurrence_bands",
      "size": {
@@ -407,18 +423,21 @@
       "confidence": "low",
       "crystal_n": 0,
       "specimen_n": 17,
-      "photographs_with_length": 17,
+      "photographs_with_length": 18,
       "crystal": {
        "n": 0
       },
       "specimen": {
        "n": 17,
-       "median": 38.5,
+       "min": 13,
        "q25": 21,
-       "q75": 57
+       "median": 38.5,
+       "q75": 57,
+       "max": 75
       },
       "piece_material": true,
-      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 17 photograph(s) of Falcon's Eye / Tigers Eye at asbestos_hills with a stated length; 0 crystal, 17 specimen, 0 aggregate, 0 picture-width values"
+      "specimens": 17,
+      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 18 photograph(s) of Falcon's Eye / Tigers Eye at asbestos_hills with a stated length, 17 specimen(s); 0 with a crystal length, 17 with specimen dimensions, 0 aggregate, 0 picture width"
      }
     },
     "crocidolite": {
@@ -432,7 +451,7 @@
      },
      "occurrence_band": [
       0.5,
-      1
+      0.95
      ],
      "band_basis": "literature class AB (P28; status V) under rules.occurrence_bands",
      "size": {
@@ -446,7 +465,8 @@
       "specimen": {
        "n": 0
       },
-      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 1 photograph(s) of Crocidolite at asbestos_hills with a stated length; 0 crystal, 0 specimen, 0 aggregate, 1 picture-width values"
+      "specimens": 1,
+      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 1 photograph(s) of Crocidolite at asbestos_hills with a stated length, 1 specimen(s); 0 with a crystal length, 0 with specimen dimensions, 0 aggregate, 1 picture width"
      }
     },
     "x:jasper": {
@@ -466,12 +486,15 @@
       },
       "specimen": {
        "n": 1,
-       "median": 112,
+       "min": 112,
        "q25": 112,
-       "q75": 112
+       "median": 112,
+       "q75": 112,
+       "max": 112
       },
       "piece_material": true,
-      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 1 photograph(s) of Jasper at asbestos_hills with a stated length; 0 crystal, 1 specimen, 0 aggregate, 0 picture-width values"
+      "specimens": 1,
+      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 1 photograph(s) of Jasper at asbestos_hills with a stated length, 1 specimen(s); 0 with a crystal length, 1 with specimen dimensions, 0 aggregate, 0 picture width"
      }
     },
     "quartz": {
@@ -485,7 +508,7 @@
      },
      "occurrence_band": [
       0.5,
-      1
+      0.95
      ],
      "band_basis": "literature class AB (P28; status V) under rules.occurrence_bands",
      "size": {
@@ -506,7 +529,7 @@
      },
      "occurrence_band": [
       0.5,
-      1
+      0.95
      ],
      "band_basis": "literature class AB (B80; status V) under rules.occurrence_bands",
      "size": {
@@ -527,7 +550,7 @@
      },
      "occurrence_band": [
       0.5,
-      1
+      0.95
      ],
      "band_basis": "literature class AB (P28; status V) under rules.occurrence_bands",
      "size": {
@@ -548,7 +571,7 @@
      },
      "occurrence_band": [
       0.5,
-      1
+      0.95
      ],
      "band_basis": "literature class AB (P28; status V) under rules.occurrence_bands",
      "size": {
@@ -589,17 +612,22 @@
       "photographs_with_length": 13,
       "crystal": {
        "n": 1,
-       "median": 21,
+       "min": 21,
        "q25": 21,
-       "q75": 21
+       "median": 21,
+       "q75": 21,
+       "max": 21
       },
       "specimen": {
        "n": 12,
-       "median": 61,
+       "min": 37,
        "q25": 50.75,
-       "q75": 99
+       "median": 61,
+       "q75": 99,
+       "max": 200
       },
-      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 13 photograph(s) of Malachite at bisbee with a stated length; 1 crystal, 12 specimen, 0 aggregate, 1 picture-width values"
+      "specimens": 13,
+      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 13 photograph(s) of Malachite at bisbee with a stated length, 13 specimen(s); 1 with a crystal length, 12 with specimen dimensions, 0 aggregate, 1 picture width"
      }
     },
     "azurite": {
@@ -611,29 +639,34 @@
      "band_basis": "unresolved: literature class none",
      "size": {
       "basis": "specimen-proxy",
-      "n": 16,
-      "q10": 31.5,
-      "q25": 39.75,
-      "median": 53.5,
-      "q75": 96.75,
-      "q90": 115,
+      "n": 15,
+      "q10": 30.2,
+      "q25": 39.5,
+      "median": 54,
+      "q75": 99.5,
+      "q90": 116,
       "confidence": "low",
       "crystal_n": 1,
-      "specimen_n": 16,
+      "specimen_n": 15,
       "photographs_with_length": 20,
       "crystal": {
        "n": 1,
-       "median": 10,
+       "min": 10,
        "q25": 10,
-       "q75": 10
+       "median": 10,
+       "q75": 10,
+       "max": 10
       },
       "specimen": {
-       "n": 16,
-       "median": 53.5,
-       "q25": 39.75,
-       "q75": 96.75
+       "n": 15,
+       "min": 24,
+       "q25": 39.5,
+       "median": 54,
+       "q75": 99.5,
+       "max": 145
       },
-      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 20 photograph(s) of Azurite at bisbee with a stated length; 1 crystal, 16 specimen, 0 aggregate, 4 picture-width values"
+      "specimens": 19,
+      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 20 photograph(s) of Azurite at bisbee with a stated length, 19 specimen(s); 1 with a crystal length, 15 with specimen dimensions, 0 aggregate, 4 picture width"
      }
     },
     "native_copper": {
@@ -660,11 +693,14 @@
       },
       "specimen": {
        "n": 22,
-       "median": 54,
+       "min": 22,
        "q25": 31,
-       "q75": 74.75
+       "median": 54,
+       "q75": 74.75,
+       "max": 500
       },
-      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 23 photograph(s) of Copper at bisbee with a stated length; 0 crystal, 22 specimen, 0 aggregate, 1 picture-width values"
+      "specimens": 23,
+      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 23 photograph(s) of Copper at bisbee with a stated length, 23 specimen(s); 0 with a crystal length, 22 with specimen dimensions, 0 aggregate, 1 picture width"
      }
     },
     "cuprite": {
@@ -685,17 +721,20 @@
       "confidence": "low",
       "crystal_n": 0,
       "specimen_n": 10,
-      "photographs_with_length": 18,
+      "photographs_with_length": 21,
       "crystal": {
        "n": 0
       },
       "specimen": {
        "n": 10,
-       "median": 32,
+       "min": 2.71,
        "q25": 11.93,
-       "q75": 49.5
+       "median": 32,
+       "q75": 49.5,
+       "max": 68
       },
-      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 18 photograph(s) of Chalcotrichite / Cuprite at bisbee with a stated length; 0 crystal, 10 specimen, 0 aggregate, 8 picture-width values"
+      "specimens": 18,
+      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 21 photograph(s) of Chalcotrichite / Cuprite at bisbee with a stated length, 18 specimen(s); 0 with a crystal length, 10 with specimen dimensions, 0 aggregate, 8 picture width"
      }
     },
     "calcite": {
@@ -722,11 +761,14 @@
       },
       "specimen": {
        "n": 9,
-       "median": 59,
+       "min": 26,
        "q25": 33,
-       "q75": 114
+       "median": 59,
+       "q75": 114,
+       "max": 250
       },
-      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 10 photograph(s) of Calcite at bisbee with a stated length; 0 crystal, 9 specimen, 0 aggregate, 1 picture-width values"
+      "specimens": 10,
+      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 10 photograph(s) of Calcite at bisbee with a stated length, 10 specimen(s); 0 with a crystal length, 9 with specimen dimensions, 0 aggregate, 1 picture width"
      }
     }
    },
@@ -751,7 +793,7 @@
      },
      "occurrence_band": [
       0.5,
-      1
+      0.95
      ],
      "band_basis": "literature class AB (T79; status V) under rules.occurrence_bands",
      "size": {
@@ -764,11 +806,14 @@
       },
       "specimen": {
        "n": 3,
-       "median": 70,
+       "min": 41,
        "q25": 55.5,
-       "q75": 84
+       "median": 70,
+       "q75": 84,
+       "max": 98
       },
-      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 3 photograph(s) of Chiastolite at chiastolite_hornfels with a stated length; 0 crystal, 3 specimen, 0 aggregate, 0 picture-width values"
+      "specimens": 3,
+      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 3 photograph(s) of Chiastolite at chiastolite_hornfels with a stated length, 3 specimen(s); 0 with a crystal length, 3 with specimen dimensions, 0 aggregate, 0 picture width"
      }
     }
    },
@@ -792,17 +837,20 @@
       "basis": "unknown",
       "crystal_n": 0,
       "specimen_n": 2,
-      "photographs_with_length": 5,
+      "photographs_with_length": 9,
       "crystal": {
        "n": 0
       },
       "specimen": {
        "n": 2,
-       "median": 45,
+       "min": 45,
        "q25": 45,
-       "q75": 45
+       "median": 45,
+       "q75": 45,
+       "max": 45
       },
-      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 5 photograph(s) of Pascoite at colorado_plateau with a stated length; 0 crystal, 2 specimen, 0 aggregate, 3 picture-width values"
+      "specimens": 5,
+      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 9 photograph(s) of Pascoite at colorado_plateau with a stated length, 5 specimen(s); 0 with a crystal length, 2 with specimen dimensions, 0 aggregate, 3 picture width"
      }
     },
     "ma:hughesite": {
@@ -816,14 +864,15 @@
       "basis": "unknown",
       "crystal_n": 0,
       "specimen_n": 0,
-      "photographs_with_length": 1,
+      "photographs_with_length": 6,
       "crystal": {
        "n": 0
       },
       "specimen": {
        "n": 0
       },
-      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 1 photograph(s) of Hughesite at colorado_plateau with a stated length; 0 crystal, 0 specimen, 0 aggregate, 1 picture-width values"
+      "specimens": 1,
+      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 6 photograph(s) of Hughesite at colorado_plateau with a stated length, 1 specimen(s); 0 with a crystal length, 0 with specimen dimensions, 0 aggregate, 1 picture width"
      }
     },
     "ma:dickthomssenite": {
@@ -843,11 +892,14 @@
       },
       "specimen": {
        "n": 2,
-       "median": 1.055,
+       "min": 0.96,
        "q25": 1.007,
-       "q75": 1.103
+       "median": 1.055,
+       "q75": 1.103,
+       "max": 1.15
       },
-      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 6 photograph(s) of Dickthomssenite at colorado_plateau with a stated length; 0 crystal, 2 specimen, 0 aggregate, 4 picture-width values"
+      "specimens": 6,
+      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 6 photograph(s) of Dickthomssenite at colorado_plateau with a stated length, 6 specimen(s); 0 with a crystal length, 2 with specimen dimensions, 0 aggregate, 4 picture width"
      }
     },
     "ma:lasalite": {
@@ -868,7 +920,8 @@
       "specimen": {
        "n": 0
       },
-      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 4 photograph(s) of Lasalite at colorado_plateau with a stated length; 0 crystal, 0 specimen, 0 aggregate, 4 picture-width values"
+      "specimens": 4,
+      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 4 photograph(s) of Lasalite at colorado_plateau with a stated length, 4 specimen(s); 0 with a crystal length, 0 with specimen dimensions, 0 aggregate, 4 picture width"
      }
     },
     "ma:magnesiopascoite": {
@@ -882,14 +935,15 @@
       "basis": "unknown",
       "crystal_n": 0,
       "specimen_n": 0,
-      "photographs_with_length": 4,
+      "photographs_with_length": 6,
       "crystal": {
        "n": 0
       },
       "specimen": {
        "n": 0
       },
-      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 4 photograph(s) of Magnesiopascoite at colorado_plateau with a stated length; 0 crystal, 0 specimen, 0 aggregate, 4 picture-width values"
+      "specimens": 4,
+      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 6 photograph(s) of Magnesiopascoite at colorado_plateau with a stated length, 4 specimen(s); 0 with a crystal length, 0 with specimen dimensions, 0 aggregate, 4 picture width"
      }
     },
     "tyuyamunite": {
@@ -903,7 +957,7 @@
      },
      "occurrence_band": [
       0.3,
-      1
+      0.9
      ],
      "band_basis": "literature class CO (WT54; status V) under rules.occurrence_bands",
      "size": {
@@ -924,7 +978,7 @@
      },
      "occurrence_band": [
       0.5,
-      1
+      0.95
      ],
      "band_basis": "literature class AB (WT54; status V) under rules.occurrence_bands",
      "size": {
@@ -945,7 +999,7 @@
      },
      "occurrence_band": [
       0.3,
-      1
+      0.9
      ],
      "band_basis": "literature class CO (WT54; status V) under rules.occurrence_bands",
      "size": {
@@ -966,7 +1020,7 @@
      },
      "occurrence_band": [
       0.3,
-      1
+      0.9
      ],
      "band_basis": "literature class CO (WT54; status V) under rules.occurrence_bands",
      "size": {
@@ -997,7 +1051,7 @@
      },
      "occurrence_band": [
       0.5,
-      1
+      0.95
      ],
      "band_basis": "literature class AB (M72,H; status V) under rules.occurrence_bands",
      "size": {
@@ -1011,20 +1065,25 @@
       "confidence": "low",
       "crystal_n": 5,
       "specimen_n": 14,
-      "photographs_with_length": 25,
+      "photographs_with_length": 26,
       "crystal": {
        "n": 5,
-       "median": 16,
+       "min": 7,
        "q25": 11,
-       "q75": 31
+       "median": 16,
+       "q75": 31,
+       "max": 80
       },
       "specimen": {
        "n": 14,
-       "median": 41.5,
+       "min": 15,
        "q25": 30.75,
-       "q75": 58.25
+       "median": 41.5,
+       "q75": 58.25,
+       "max": 130
       },
-      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 25 photograph(s) of Herkimer Quartz / Quartz / Rock Crystal / Smoky Quartz at herkimer with a stated length; 5 crystal, 14 specimen, 0 aggregate, 6 picture-width values"
+      "specimens": 25,
+      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 26 photograph(s) of Herkimer Quartz / Quartz / Rock Crystal / Smoky Quartz at herkimer with a stated length, 25 specimen(s); 5 with a crystal length, 14 with specimen dimensions, 0 aggregate, 6 picture width"
      }
     },
     "x:bitumen": {
@@ -1038,7 +1097,7 @@
      },
      "occurrence_band": [
       0.5,
-      1
+      0.95
      ],
      "band_basis": "literature class AB (M72,H; status V) under rules.occurrence_bands",
      "size": {
@@ -1059,7 +1118,7 @@
      },
      "occurrence_band": [
       0.5,
-      1
+      0.95
      ],
      "band_basis": "literature class AB (H; status V) under rules.occurrence_bands",
      "size": {
@@ -1080,7 +1139,7 @@
      },
      "occurrence_band": [
       0.3,
-      1
+      0.9
      ],
      "band_basis": "literature class CO (H; status V) under rules.occurrence_bands",
      "size": {
@@ -1111,34 +1170,39 @@
      },
      "occurrence_band": [
       0.3,
-      1
+      0.9
      ],
      "band_basis": "literature class CO (S74,O22; status V) under rules.occurrence_bands",
      "size": {
       "basis": "crystal",
-      "n": 7,
-      "q10": 9.6,
-      "q25": 15,
-      "median": 23,
-      "q75": 30,
-      "q90": 37.2,
+      "n": 8,
+      "q10": 9.7,
+      "q25": 17.5,
+      "median": 26.5,
+      "q75": 34.5,
+      "q90": 84.6,
       "confidence": "low",
-      "crystal_n": 7,
-      "specimen_n": 92,
-      "photographs_with_length": 117,
+      "crystal_n": 8,
+      "specimen_n": 88,
+      "photographs_with_length": 120,
       "crystal": {
-       "n": 7,
-       "median": 23,
-       "q25": 15,
-       "q75": 30
+       "n": 8,
+       "min": 9,
+       "q25": 17.5,
+       "median": 26.5,
+       "q75": 34.5,
+       "max": 170
       },
       "specimen": {
-       "n": 92,
-       "median": 80.5,
-       "q25": 52.75,
-       "q75": 120
+       "n": 88,
+       "min": 16,
+       "q25": 52,
+       "median": 80,
+       "q75": 110.5,
+       "max": 500
       },
-      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 117 photograph(s) of Apophyllit-Gruppe / Fluorapophyllite-(K) / Fluorapophyllite-(Na) / Hydroxyapophyllite-(K) at deccan with a stated length; 7 crystal, 92 specimen, 0 aggregate, 20 picture-width values"
+      "specimens": 114,
+      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 120 photograph(s) of Apophyllit-Gruppe / Fluorapophyllite-(K) / Fluorapophyllite-(Na) / Hydroxyapophyllite-(K) at deccan with a stated length, 114 specimen(s); 8 with a crystal length, 88 with specimen dimensions, 0 aggregate, 20 picture width"
      }
     },
     "stilbite": {
@@ -1152,34 +1216,39 @@
      },
      "occurrence_band": [
       0.5,
-      1
+      0.95
      ],
      "band_basis": "literature class AB (S74; status V) under rules.occurrence_bands",
      "size": {
       "basis": "specimen-proxy",
-      "n": 25,
+      "n": 24,
       "q10": 40,
-      "q25": 60,
+      "q25": 56.25,
       "median": 73,
-      "q75": 93,
-      "q90": 119.6,
+      "q75": 94,
+      "q90": 119.7,
       "confidence": "low",
       "crystal_n": 2,
-      "specimen_n": 25,
+      "specimen_n": 24,
       "photographs_with_length": 35,
       "crystal": {
        "n": 2,
-       "median": 51,
+       "min": 40,
        "q25": 45.5,
-       "q75": 56.5
+       "median": 51,
+       "q75": 56.5,
+       "max": 62
       },
       "specimen": {
-       "n": 25,
+       "n": 24,
+       "min": 30,
+       "q25": 56.25,
        "median": 73,
-       "q25": 60,
-       "q75": 93
+       "q75": 94,
+       "max": 150
       },
-      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 35 photograph(s) of Stilbite series / Stilbite-Ca at deccan with a stated length; 2 crystal, 25 specimen, 1 aggregate, 8 picture-width values"
+      "specimens": 32,
+      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 35 photograph(s) of Stilbite series / Stilbite-Ca at deccan with a stated length, 32 specimen(s); 2 with a crystal length, 24 with specimen dimensions, 1 aggregate, 8 picture width"
      }
     },
     "heulandite": {
@@ -1193,34 +1262,39 @@
      },
      "occurrence_band": [
       0.5,
-      1
+      0.95
      ],
      "band_basis": "literature class AB (S74; status V) under rules.occurrence_bands",
      "size": {
       "basis": "specimen-proxy",
-      "n": 38,
-      "q10": 44.1,
-      "q25": 55.5,
-      "median": 71.5,
+      "n": 37,
+      "q10": 43.8,
+      "q25": 55,
+      "median": 71,
       "q75": 100,
-      "q90": 155,
+      "q90": 160,
       "confidence": "low",
       "crystal_n": 3,
-      "specimen_n": 38,
-      "photographs_with_length": 43,
+      "specimen_n": 37,
+      "photographs_with_length": 44,
       "crystal": {
        "n": 3,
-       "median": 40,
+       "min": 35,
        "q25": 37.5,
-       "q75": 45
+       "median": 40,
+       "q75": 45,
+       "max": 50
       },
       "specimen": {
-       "n": 38,
-       "median": 71.5,
-       "q25": 55.5,
-       "q75": 100
+       "n": 37,
+       "min": 40,
+       "q25": 55,
+       "median": 71,
+       "q75": 100,
+       "max": 250
       },
-      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 43 photograph(s) of Heulandite series / Heulandite-Ca at deccan with a stated length; 3 crystal, 38 specimen, 0 aggregate, 4 picture-width values"
+      "specimens": 42,
+      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 44 photograph(s) of Heulandite series / Heulandite-Ca at deccan with a stated length, 42 specimen(s); 3 with a crystal length, 37 with specimen dimensions, 0 aggregate, 4 picture width"
      }
     },
     "x:cavansite": {
@@ -1241,20 +1315,25 @@
       "confidence": "low",
       "crystal_n": 2,
       "specimen_n": 28,
-      "photographs_with_length": 53,
+      "photographs_with_length": 55,
       "crystal": {
        "n": 2,
-       "median": 8,
+       "min": 8,
        "q25": 8,
-       "q75": 8
+       "median": 8,
+       "q75": 8,
+       "max": 8
       },
       "specimen": {
        "n": 28,
-       "median": 59,
+       "min": 5.14,
        "q25": 47.25,
-       "q75": 80
+       "median": 59,
+       "q75": 80,
+       "max": 160
       },
-      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 53 photograph(s) of Cavansite at deccan with a stated length; 2 crystal, 28 specimen, 7 aggregate, 16 picture-width values"
+      "specimens": 53,
+      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 55 photograph(s) of Cavansite at deccan with a stated length, 53 specimen(s); 2 with a crystal length, 28 with specimen dimensions, 7 aggregate, 16 picture width"
      }
     },
     "chalcedony": {
@@ -1268,7 +1347,7 @@
      },
      "occurrence_band": [
       0.5,
-      1
+      0.95
      ],
      "band_basis": "literature class AB (S74; status V) under rules.occurrence_bands",
      "size": {
@@ -1288,12 +1367,15 @@
       },
       "specimen": {
        "n": 13,
-       "median": 100,
+       "min": 25,
        "q25": 65,
-       "q75": 130
+       "median": 100,
+       "q75": 130,
+       "max": 170
       },
       "piece_material": true,
-      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 14 photograph(s) of Chalcedony at deccan with a stated length; 0 crystal, 13 specimen, 0 aggregate, 1 picture-width values"
+      "specimens": 14,
+      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 14 photograph(s) of Chalcedony at deccan with a stated length, 14 specimen(s); 0 with a crystal length, 13 with specimen dimensions, 0 aggregate, 1 picture width"
      }
     },
     "calcite": {
@@ -1307,7 +1389,7 @@
      },
      "occurrence_band": [
       0.3,
-      1
+      0.9
      ],
      "band_basis": "literature class CO (S74,O22; status V) under rules.occurrence_bands",
      "size": {
@@ -1324,17 +1406,22 @@
       "photographs_with_length": 36,
       "crystal": {
        "n": 6,
-       "median": 16.5,
+       "min": 6,
        "q25": 7.25,
-       "q75": 28
+       "median": 16.5,
+       "q75": 28,
+       "max": 60
       },
       "specimen": {
        "n": 30,
-       "median": 81,
+       "min": 30,
        "q25": 56.25,
-       "q75": 108.25
+       "median": 81,
+       "q75": 108.25,
+       "max": 155
       },
-      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 36 photograph(s) of Calcite / Calcite group at deccan with a stated length; 6 crystal, 30 specimen, 0 aggregate, 1 picture-width values"
+      "specimens": 36,
+      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 36 photograph(s) of Calcite / Calcite group at deccan with a stated length, 36 specimen(s); 6 with a crystal length, 30 with specimen dimensions, 0 aggregate, 1 picture width"
      }
     },
     "scolecite": {
@@ -1348,7 +1435,7 @@
      },
      "occurrence_band": [
       0.3,
-      1
+      0.9
      ],
      "band_basis": "literature class CO (S74; status V) under rules.occurrence_bands",
      "size": {
@@ -1369,7 +1456,7 @@
      },
      "occurrence_band": [
       0.3,
-      1
+      0.9
      ],
      "band_basis": "literature class CO (S74; status V) under rules.occurrence_bands",
      "size": {
@@ -1390,7 +1477,7 @@
      },
      "occurrence_band": [
       0.5,
-      1
+      0.95
      ],
      "band_basis": "literature class AB (S74; status V) under rules.occurrence_bands",
      "size": {
@@ -1411,7 +1498,7 @@
      },
      "occurrence_band": [
       0.3,
-      1
+      0.9
      ],
      "band_basis": "literature class CO (S74; status V) under rules.occurrence_bands",
      "size": {
@@ -1432,7 +1519,7 @@
      },
      "occurrence_band": [
       0.3,
-      1
+      0.9
      ],
      "band_basis": "literature class CO (S74; status V) under rules.occurrence_bands",
      "size": {
@@ -1453,7 +1540,7 @@
      },
      "occurrence_band": [
       0.3,
-      1
+      0.9
      ],
      "band_basis": "literature class CO (S74,O22; status V) under rules.occurrence_bands",
      "size": {
@@ -1474,7 +1561,7 @@
      },
      "occurrence_band": [
       0.3,
-      1
+      0.9
      ],
      "band_basis": "literature class CO (S74; status V) under rules.occurrence_bands",
      "size": {
@@ -1505,7 +1592,7 @@
      },
      "occurrence_band": [
       0.3,
-      1
+      0.9
      ],
      "band_basis": "literature class CO (G86,PM20; status V) under rules.occurrence_bands",
      "size": {
@@ -1519,20 +1606,25 @@
       "confidence": "low",
       "crystal_n": 4,
       "specimen_n": 50,
-      "photographs_with_length": 57,
+      "photographs_with_length": 59,
       "crystal": {
        "n": 4,
-       "median": 36,
+       "min": 20,
        "q25": 29,
-       "q75": 42
+       "median": 36,
+       "q75": 42,
+       "max": 48
       },
       "specimen": {
        "n": 50,
-       "median": 75.5,
+       "min": 28,
        "q25": 56.25,
-       "q75": 95.75
+       "median": 75.5,
+       "q75": 95.75,
+       "max": 500
       },
-      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 57 photograph(s) of Fluorite at elmwood with a stated length; 4 crystal, 50 specimen, 0 aggregate, 6 picture-width values"
+      "specimens": 57,
+      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 59 photograph(s) of Fluorite at elmwood with a stated length, 57 specimen(s); 4 with a crystal length, 50 with specimen dimensions, 0 aggregate, 6 picture width"
      }
     },
     "calcite": {
@@ -1546,34 +1638,39 @@
      },
      "occurrence_band": [
       0.5,
-      1
+      0.95
      ],
      "band_basis": "literature class AB (L10,G86; status V) under rules.occurrence_bands",
      "size": {
       "basis": "specimen-proxy",
-      "n": 38,
-      "q10": 50.5,
+      "n": 37,
+      "q10": 50,
       "q25": 80,
       "median": 120,
-      "q75": 157.5,
-      "q90": 215,
+      "q75": 160,
+      "q90": 220,
       "confidence": "low",
-      "crystal_n": 2,
-      "specimen_n": 38,
+      "crystal_n": 3,
+      "specimen_n": 37,
       "photographs_with_length": 41,
       "crystal": {
-       "n": 2,
-       "median": 56.5,
-       "q25": 53.25,
-       "q75": 59.75
+       "n": 3,
+       "min": 50,
+       "q25": 56.5,
+       "median": 63,
+       "q75": 89,
+       "max": 115
       },
       "specimen": {
-       "n": 38,
-       "median": 120,
+       "n": 37,
+       "min": 38,
        "q25": 80,
-       "q75": 157.5
+       "median": 120,
+       "q75": 160,
+       "max": 480
       },
-      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 41 photograph(s) of Calcite at elmwood with a stated length; 2 crystal, 38 specimen, 0 aggregate, 1 picture-width values"
+      "specimens": 41,
+      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 41 photograph(s) of Calcite at elmwood with a stated length, 41 specimen(s); 3 with a crystal length, 37 with specimen dimensions, 0 aggregate, 1 picture width"
      }
     },
     "sphalerite": {
@@ -1587,31 +1684,34 @@
      },
      "occurrence_band": [
       0.5,
-      1
+      0.95
      ],
      "band_basis": "literature class AB (G86; status V) under rules.occurrence_bands",
      "size": {
       "basis": "specimen-proxy",
-      "n": 18,
-      "q10": 29.6,
-      "q25": 53,
-      "median": 69.5,
-      "q75": 87.5,
-      "q90": 139,
+      "n": 17,
+      "q10": 27.8,
+      "q25": 50,
+      "median": 65,
+      "q75": 90,
+      "q90": 142,
       "confidence": "low",
       "crystal_n": 0,
-      "specimen_n": 18,
+      "specimen_n": 17,
       "photographs_with_length": 22,
       "crystal": {
        "n": 0
       },
       "specimen": {
-       "n": 18,
-       "median": 69.5,
-       "q25": 53,
-       "q75": 87.5
+       "n": 17,
+       "min": 2.3,
+       "q25": 50,
+       "median": 65,
+       "q75": 90,
+       "max": 170
       },
-      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 22 photograph(s) of Sphalerite at elmwood with a stated length; 0 crystal, 18 specimen, 0 aggregate, 6 picture-width values"
+      "specimens": 21,
+      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 22 photograph(s) of Sphalerite at elmwood with a stated length, 21 specimen(s); 0 with a crystal length, 17 with specimen dimensions, 0 aggregate, 6 picture width"
      }
     },
     "barite": {
@@ -1625,7 +1725,7 @@
      },
      "occurrence_band": [
       0.3,
-      1
+      0.9
      ],
      "band_basis": "literature class CO (G86,PM20; status V) under rules.occurrence_bands",
      "size": {
@@ -1646,7 +1746,7 @@
      },
      "occurrence_band": [
       0.3,
-      1
+      0.9
      ],
      "band_basis": "literature class CO (G86; status V) under rules.occurrence_bands",
      "size": {
@@ -1679,7 +1779,7 @@
      },
      "occurrence_band": [
       0.5,
-      1
+      0.95
      ],
      "band_basis": "literature class AB (LR04; status V) under rules.occurrence_bands",
      "size": {
@@ -1693,20 +1793,25 @@
       "confidence": "low",
       "crystal_n": 3,
       "specimen_n": 9,
-      "photographs_with_length": 26,
+      "photographs_with_length": 27,
       "crystal": {
        "n": 3,
-       "median": 2,
+       "min": 1.8,
        "q25": 1.9,
-       "q75": 2.25
+       "median": 2,
+       "q75": 2.25,
+       "max": 2.5
       },
       "specimen": {
        "n": 9,
-       "median": 66,
+       "min": 37,
        "q25": 49,
-       "q75": 96
+       "median": 66,
+       "q75": 96,
+       "max": 105
       },
-      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 26 photograph(s) of Calaverite at cripple_creek with a stated length; 3 crystal, 9 specimen, 0 aggregate, 13 picture-width values"
+      "specimens": 26,
+      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 27 photograph(s) of Calaverite at cripple_creek with a stated length, 26 specimen(s); 3 with a crystal length, 9 with specimen dimensions, 0 aggregate, 13 picture width"
      }
     },
     "fluorite": {
@@ -1720,7 +1825,7 @@
      },
      "occurrence_band": [
       0.5,
-      1
+      0.95
      ],
      "band_basis": "literature class AB (LR04; status V) under rules.occurrence_bands",
      "size": {
@@ -1740,11 +1845,14 @@
       },
       "specimen": {
        "n": 5,
-       "median": 57,
+       "min": 20,
        "q25": 57,
-       "q75": 130
+       "median": 57,
+       "q75": 130,
+       "max": 146
       },
-      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 5 photograph(s) of Fluorite at cripple_creek with a stated length; 0 crystal, 5 specimen, 0 aggregate, 0 picture-width values"
+      "specimens": 5,
+      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 5 photograph(s) of Fluorite at cripple_creek with a stated length, 5 specimen(s); 0 with a crystal length, 5 with specimen dimensions, 0 aggregate, 0 picture width"
      }
     },
     "sylvanite": {
@@ -1758,7 +1866,7 @@
      },
      "occurrence_band": [
       0.3,
-      1
+      0.9
      ],
      "band_basis": "literature class CO (LR04; status V) under rules.occurrence_bands",
      "size": {
@@ -1771,11 +1879,14 @@
       },
       "specimen": {
        "n": 2,
-       "median": 60.5,
+       "min": 42,
        "q25": 51.25,
-       "q75": 69.75
+       "median": 60.5,
+       "q75": 69.75,
+       "max": 79
       },
-      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 8 photograph(s) of Sylvanite at cripple_creek with a stated length; 0 crystal, 2 specimen, 0 aggregate, 6 picture-width values"
+      "specimens": 8,
+      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 8 photograph(s) of Sylvanite at cripple_creek with a stated length, 8 specimen(s); 0 with a crystal length, 2 with specimen dimensions, 0 aggregate, 6 picture width"
      }
     },
     "quartz": {
@@ -1789,7 +1900,7 @@
      },
      "occurrence_band": [
       0.5,
-      1
+      0.95
      ],
      "band_basis": "literature class AB (LR04; status V) under rules.occurrence_bands",
      "size": {
@@ -1802,11 +1913,14 @@
       },
       "specimen": {
        "n": 1,
-       "median": 80,
+       "min": 80,
        "q25": 80,
-       "q75": 80
+       "median": 80,
+       "q75": 80,
+       "max": 80
       },
-      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 1 photograph(s) of Amethyst at cripple_creek with a stated length; 0 crystal, 1 specimen, 0 aggregate, 0 picture-width values"
+      "specimens": 1,
+      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 1 photograph(s) of Amethyst at cripple_creek with a stated length, 1 specimen(s); 0 with a crystal length, 1 with specimen dimensions, 0 aggregate, 0 picture width"
      }
     },
     "pyrite": {
@@ -1820,7 +1934,7 @@
      },
      "occurrence_band": [
       0.3,
-      1
+      0.9
      ],
      "band_basis": "literature class CO (LR04; status V) under rules.occurrence_bands",
      "size": {
@@ -1841,7 +1955,7 @@
      },
      "occurrence_band": [
       0.3,
-      1
+      0.9
      ],
      "band_basis": "literature class CO (LR04; status V) under rules.occurrence_bands",
      "size": {
@@ -1862,7 +1976,7 @@
      },
      "occurrence_band": [
       0.5,
-      1
+      0.95
      ],
      "band_basis": "literature class AB (LR04; status V) under rules.occurrence_bands",
      "size": {
@@ -1893,31 +2007,34 @@
      },
      "occurrence_band": [
       0.5,
-      1
+      0.95
      ],
      "band_basis": "literature class AB (P85; status V) under rules.occurrence_bands",
      "size": {
       "basis": "specimen-proxy",
-      "n": 47,
-      "q10": 29.6,
-      "q25": 35.5,
+      "n": 46,
+      "q10": 29.5,
+      "q25": 35.25,
       "median": 52,
-      "q75": 75,
-      "q90": 105.2,
+      "q75": 73.5,
+      "q90": 95.5,
       "confidence": "low",
       "crystal_n": 0,
-      "specimen_n": 47,
+      "specimen_n": 46,
       "photographs_with_length": 50,
       "crystal": {
        "n": 0
       },
       "specimen": {
-       "n": 47,
+       "n": 46,
+       "min": 17,
+       "q25": 35.25,
        "median": 52,
-       "q25": 35.5,
-       "q75": 75
+       "q75": 73.5,
+       "max": 265
       },
-      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 50 photograph(s) of Elbaite / Indicolite / Rubellite / Schorl / Tourmaline supergroup / Verdelite at cruzeiro with a stated length; 0 crystal, 47 specimen, 0 aggregate, 3 picture-width values"
+      "specimens": 50,
+      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 50 photograph(s) of Elbaite / Indicolite / Rubellite / Schorl / Tourmaline supergroup / Verdelite at cruzeiro with a stated length, 50 specimen(s); 0 with a crystal length, 46 with specimen dimensions, 0 aggregate, 3 picture width"
      }
     },
     "quartz": {
@@ -1931,7 +2048,7 @@
      },
      "occurrence_band": [
       0.5,
-      1
+      0.95
      ],
      "band_basis": "literature class AB (P85; status V) under rules.occurrence_bands",
      "size": {
@@ -1944,11 +2061,14 @@
       },
       "specimen": {
        "n": 3,
-       "median": 105,
+       "min": 75,
        "q25": 90,
-       "q75": 132.5
+       "median": 105,
+       "q75": 132.5,
+       "max": 160
       },
-      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 3 photograph(s) of Quartz at cruzeiro with a stated length; 0 crystal, 3 specimen, 0 aggregate, 0 picture-width values"
+      "specimens": 3,
+      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 3 photograph(s) of Quartz at cruzeiro with a stated length, 3 specimen(s); 0 with a crystal length, 3 with specimen dimensions, 0 aggregate, 0 picture width"
      }
     },
     "lepidolite": {
@@ -1962,7 +2082,7 @@
      },
      "occurrence_band": [
       0.3,
-      1
+      0.9
      ],
      "band_basis": "literature class CO (P85; status V) under rules.occurrence_bands",
      "size": {
@@ -1983,7 +2103,7 @@
      },
      "occurrence_band": [
       0.3,
-      1
+      0.9
      ],
      "band_basis": "literature class CO (P85; status V) under rules.occurrence_bands",
      "size": {
@@ -2004,7 +2124,7 @@
      },
      "occurrence_band": [
       0.5,
-      1
+      0.95
      ],
      "band_basis": "literature class AB (P85; status V) under rules.occurrence_bands",
      "size": {
@@ -2025,7 +2145,7 @@
      },
      "occurrence_band": [
       0.5,
-      1
+      0.95
      ],
      "band_basis": "literature class AB (P85; status V) under rules.occurrence_bands",
      "size": {
@@ -2057,7 +2177,7 @@
      },
      "occurrence_band": [
       0.5,
-      1
+      0.95
      ],
      "band_basis": "literature class AB (FWS02; status V) under rules.occurrence_bands",
      "size": {
@@ -2070,11 +2190,14 @@
       },
       "specimen": {
        "n": 2,
-       "median": 106.5,
+       "min": 73,
        "q25": 89.75,
-       "q75": 123.25
+       "median": 106.5,
+       "q75": 123.25,
+       "max": 140
       },
-      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 2 photograph(s) of Gypsum at great_salt_plains with a stated length; 0 crystal, 2 specimen, 0 aggregate, 0 picture-width values"
+      "specimens": 2,
+      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 2 photograph(s) of Gypsum at great_salt_plains with a stated length, 2 specimen(s); 0 with a crystal length, 2 with specimen dimensions, 0 aggregate, 0 picture width"
      }
     },
     "halite": {
@@ -2088,7 +2211,7 @@
      },
      "occurrence_band": [
       0.5,
-      1
+      0.95
      ],
      "band_basis": "literature class AB-crust (CS12; status V) under rules.occurrence_bands",
      "size": {
@@ -2119,34 +2242,39 @@
      },
      "occurrence_band": [
       0.5,
-      1
+      0.95
      ],
      "band_basis": "literature class AB (K19; status V) under rules.occurrence_bands",
      "size": {
       "basis": "crystal",
-      "n": 23,
+      "n": 27,
       "q10": 23,
       "q25": 25,
-      "median": 28,
-      "q75": 40,
-      "q90": 53.2,
+      "median": 30,
+      "q75": 41.5,
+      "q90": 57.4,
       "confidence": "medium",
-      "crystal_n": 23,
-      "specimen_n": 35,
-      "photographs_with_length": 65,
+      "crystal_n": 27,
+      "specimen_n": 32,
+      "photographs_with_length": 70,
       "crystal": {
-       "n": 23,
-       "median": 28,
+       "n": 27,
+       "min": 22,
        "q25": 25,
-       "q75": 40
+       "median": 30,
+       "q75": 41.5,
+       "max": 70
       },
       "specimen": {
-       "n": 35,
-       "median": 75,
-       "q25": 52.5,
-       "q75": 105
+       "n": 32,
+       "min": 35,
+       "q25": 58.75,
+       "median": 77.5,
+       "q75": 112.5,
+       "max": 210
       },
-      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 65 photograph(s) of Amethyst / Fadenquartz / Morion / Phantom quartz / Quartz / Rock Crystal / Sceptre Quartz / Smoky Quartz / Twisted Quartz at grimsel with a stated length; 23 crystal, 35 specimen, 1 aggregate, 4 picture-width values"
+      "specimens": 65,
+      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 70 photograph(s) of Amethyst / Fadenquartz / Morion / Phantom quartz / Quartz / Rock Crystal / Sceptre Quartz / Smoky Quartz / Twisted Quartz at grimsel with a stated length, 65 specimen(s); 27 with a crystal length, 32 with specimen dimensions, 1 aggregate, 4 picture width"
      }
     },
     "fluorite": {
@@ -2160,34 +2288,39 @@
      },
      "occurrence_band": [
       0.3,
-      1
+      0.9
      ],
      "band_basis": "literature class CO (K19; status V) under rules.occurrence_bands",
      "size": {
       "basis": "crystal",
-      "n": 7,
-      "q10": 10.6,
-      "q25": 11.5,
+      "n": 9,
+      "q10": 9.8,
+      "q25": 11,
       "median": 12,
-      "q75": 19,
-      "q90": 26,
+      "q75": 20,
+      "q90": 24,
       "confidence": "low",
-      "crystal_n": 7,
-      "specimen_n": 23,
-      "photographs_with_length": 33,
+      "crystal_n": 9,
+      "specimen_n": 21,
+      "photographs_with_length": 36,
       "crystal": {
-       "n": 7,
+       "n": 9,
+       "min": 9,
+       "q25": 11,
        "median": 12,
-       "q25": 11.5,
-       "q75": 19
+       "q75": 20,
+       "max": 32
       },
       "specimen": {
-       "n": 23,
-       "median": 50,
-       "q25": 27,
-       "q75": 83
+       "n": 21,
+       "min": 12,
+       "q25": 45,
+       "median": 57,
+       "q75": 86,
+       "max": 285
       },
-      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 33 photograph(s) of Fluorite / Pink fluorite at grimsel with a stated length; 7 crystal, 23 specimen, 1 aggregate, 2 picture-width values"
+      "specimens": 33,
+      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 36 photograph(s) of Fluorite / Pink fluorite at grimsel with a stated length, 33 specimen(s); 9 with a crystal length, 21 with specimen dimensions, 1 aggregate, 2 picture width"
      }
     },
     "hematite": {
@@ -2201,7 +2334,7 @@
      },
      "occurrence_band": [
       0.3,
-      1
+      0.9
      ],
      "band_basis": "literature class CO (K19; status S) under rules.occurrence_bands",
      "size": {
@@ -2222,7 +2355,7 @@
      },
      "occurrence_band": [
       0.3,
-      1
+      0.9
      ],
      "band_basis": "literature class CO (K19; status V) under rules.occurrence_bands",
      "size": {
@@ -2243,7 +2376,7 @@
      },
      "occurrence_band": [
       0.5,
-      1
+      0.95
      ],
      "band_basis": "literature class AB (K19; status V) under rules.occurrence_bands",
      "size": {
@@ -2264,7 +2397,7 @@
      },
      "occurrence_band": [
       0.3,
-      1
+      0.9
      ],
      "band_basis": "literature class CO (K19; status V) under rules.occurrence_bands",
      "size": {
@@ -2295,7 +2428,7 @@
      },
      "occurrence_band": [
       0.5,
-      1
+      0.95
      ],
      "band_basis": "literature class AB (NWJ07,AMS04; status V) under rules.occurrence_bands",
      "size": {
@@ -2312,17 +2445,22 @@
       "photographs_with_length": 71,
       "crystal": {
        "n": 6,
-       "median": 12,
+       "min": 3,
        "q25": 7.5,
-       "q75": 16.5
+       "median": 12,
+       "q75": 16.5,
+       "max": 19
       },
       "specimen": {
        "n": 55,
-       "median": 45,
+       "min": 0.4,
        "q25": 30.5,
-       "q75": 66.5
+       "median": 45,
+       "q75": 66.5,
+       "max": 148
       },
-      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 71 photograph(s) of Chrome-bearing Grossular / Demantoid / Grossular / Hessonite at jeffrey_mine with a stated length; 6 crystal, 55 specimen, 0 aggregate, 11 picture-width values"
+      "specimens": 71,
+      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 71 photograph(s) of Chrome-bearing Grossular / Demantoid / Grossular / Hessonite at jeffrey_mine with a stated length, 71 specimen(s); 6 with a crystal length, 55 with specimen dimensions, 0 aggregate, 11 picture width"
      }
     },
     "vesuvianite": {
@@ -2336,7 +2474,7 @@
      },
      "occurrence_band": [
       0.3,
-      1
+      0.9
      ],
      "band_basis": "literature class CO (AMS04; status V) under rules.occurrence_bands",
      "size": {
@@ -2356,11 +2494,14 @@
       },
       "specimen": {
        "n": 17,
-       "median": 40,
+       "min": 26,
        "q25": 30,
-       "q75": 51
+       "median": 40,
+       "q75": 51,
+       "max": 126
       },
-      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 21 photograph(s) of Vesuvianite / Vesuvianite group at jeffrey_mine with a stated length; 0 crystal, 17 specimen, 0 aggregate, 4 picture-width values"
+      "specimens": 21,
+      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 21 photograph(s) of Vesuvianite / Vesuvianite group at jeffrey_mine with a stated length, 21 specimen(s); 0 with a crystal length, 17 with specimen dimensions, 0 aggregate, 4 picture width"
      }
     },
     "diopside": {
@@ -2374,7 +2515,7 @@
      },
      "occurrence_band": [
       0.5,
-      1
+      0.95
      ],
      "band_basis": "literature class AB (NWJ07; status V) under rules.occurrence_bands",
      "size": {
@@ -2394,11 +2535,14 @@
       },
       "specimen": {
        "n": 9,
-       "median": 94,
+       "min": 10,
        "q25": 54,
-       "q75": 95
+       "median": 94,
+       "q75": 95,
+       "max": 127
       },
-      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 10 photograph(s) of Diopside at jeffrey_mine with a stated length; 0 crystal, 9 specimen, 0 aggregate, 1 picture-width values"
+      "specimens": 10,
+      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 10 photograph(s) of Diopside at jeffrey_mine with a stated length, 10 specimen(s); 0 with a crystal length, 9 with specimen dimensions, 0 aggregate, 1 picture width"
      }
     },
     "pectolite": {
@@ -2432,11 +2576,14 @@
       },
       "specimen": {
        "n": 14,
-       "median": 64.5,
+       "min": 41,
        "q25": 48.75,
-       "q75": 79.75
+       "median": 64.5,
+       "q75": 79.75,
+       "max": 119
       },
-      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 14 photograph(s) of Pectolite at jeffrey_mine with a stated length; 0 crystal, 14 specimen, 0 aggregate, 0 picture-width values"
+      "specimens": 14,
+      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 14 photograph(s) of Pectolite at jeffrey_mine with a stated length, 14 specimen(s); 0 with a crystal length, 14 with specimen dimensions, 0 aggregate, 0 picture width"
      }
     }
    },
@@ -2460,34 +2607,39 @@
      },
      "occurrence_band": [
       0.3,
-      1
+      0.9
      ],
      "band_basis": "literature class CO (KK92; status V) under rules.occurrence_bands",
      "size": {
       "basis": "crystal",
-      "n": 9,
+      "n": 8,
       "q10": 5,
       "q25": 5,
       "median": 6,
-      "q75": 6,
-      "q90": 11.4,
+      "q75": 7.25,
+      "q90": 11.6,
       "confidence": "low",
-      "crystal_n": 9,
-      "specimen_n": 42,
-      "photographs_with_length": 53,
+      "crystal_n": 8,
+      "specimen_n": 41,
+      "photographs_with_length": 59,
       "crystal": {
-       "n": 9,
-       "median": 6,
+       "n": 8,
+       "min": 5,
        "q25": 5,
-       "q75": 6
+       "median": 6,
+       "q75": 7.25,
+       "max": 13
       },
       "specimen": {
-       "n": 42,
-       "median": 15.5,
-       "q25": 11.125,
-       "q75": 42.5
+       "n": 41,
+       "min": 5,
+       "q25": 11,
+       "median": 16,
+       "q75": 43,
+       "max": 250
       },
-      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 53 photograph(s) of Spinel at mogok with a stated length; 9 crystal, 42 specimen, 0 aggregate, 4 picture-width values"
+      "specimens": 50,
+      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 59 photograph(s) of Spinel at mogok with a stated length, 50 specimen(s); 8 with a crystal length, 41 with specimen dimensions, 0 aggregate, 4 picture width"
      }
     },
     "ruby": {
@@ -2501,7 +2653,7 @@
      },
      "occurrence_band": [
       0.3,
-      1
+      0.9
      ],
      "band_basis": "literature class CO (KK92; status V) under rules.occurrence_bands",
      "size": {
@@ -2518,17 +2670,22 @@
       "photographs_with_length": 7,
       "crystal": {
        "n": 1,
-       "median": 43,
+       "min": 43,
        "q25": 43,
-       "q75": 43
+       "median": 43,
+       "q75": 43,
+       "max": 43
       },
       "specimen": {
        "n": 6,
-       "median": 34.5,
+       "min": 22,
        "q25": 24.75,
-       "q75": 57.75
+       "median": 34.5,
+       "q75": 57.75,
+       "max": 80
       },
-      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 7 photograph(s) of Ruby at mogok with a stated length; 1 crystal, 6 specimen, 0 aggregate, 0 picture-width values"
+      "specimens": 7,
+      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 7 photograph(s) of Ruby at mogok with a stated length, 7 specimen(s); 1 with a crystal length, 6 with specimen dimensions, 0 aggregate, 0 picture width"
      }
     },
     "x:painite": {
@@ -2549,20 +2706,25 @@
       "confidence": "low",
       "crystal_n": 1,
       "specimen_n": 20,
-      "photographs_with_length": 21,
+      "photographs_with_length": 23,
       "crystal": {
        "n": 1,
-       "median": 6,
+       "min": 6,
        "q25": 6,
-       "q75": 6
+       "median": 6,
+       "q75": 6,
+       "max": 6
       },
       "specimen": {
        "n": 20,
-       "median": 26,
+       "min": 6,
        "q25": 9,
-       "q75": 37.25
+       "median": 26,
+       "q75": 37.25,
+       "max": 55
       },
-      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 21 photograph(s) of Painite at mogok with a stated length; 1 crystal, 20 specimen, 0 aggregate, 0 picture-width values"
+      "specimens": 21,
+      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 23 photograph(s) of Painite at mogok with a stated length, 21 specimen(s); 1 with a crystal length, 20 with specimen dimensions, 0 aggregate, 0 picture width"
      }
     },
     "sapphire": {
@@ -2582,11 +2744,14 @@
       },
       "specimen": {
        "n": 1,
-       "median": 10,
+       "min": 10,
        "q25": 10,
-       "q75": 10
+       "median": 10,
+       "q75": 10,
+       "max": 10
       },
-      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 1 photograph(s) of Sapphire at mogok with a stated length; 0 crystal, 1 specimen, 0 aggregate, 0 picture-width values"
+      "specimens": 1,
+      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 1 photograph(s) of Sapphire at mogok with a stated length, 1 specimen(s); 0 with a crystal length, 1 with specimen dimensions, 0 aggregate, 0 picture width"
      }
     },
     "tourmaline": {
@@ -2613,11 +2778,14 @@
       },
       "specimen": {
        "n": 9,
-       "median": 30,
+       "min": 16,
        "q25": 24,
-       "q75": 35
+       "median": 30,
+       "q75": 35,
+       "max": 67
       },
-      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 9 photograph(s) of Elbaite / Tourmaline supergroup / Uvite at mogok with a stated length; 0 crystal, 9 specimen, 0 aggregate, 0 picture-width values"
+      "specimens": 9,
+      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 9 photograph(s) of Elbaite / Tourmaline supergroup / Uvite at mogok with a stated length, 9 specimen(s); 0 with a crystal length, 9 with specimen dimensions, 0 aggregate, 0 picture width"
      }
     },
     "calcite": {
@@ -2631,7 +2799,7 @@
      },
      "occurrence_band": [
       0.5,
-      1
+      0.95
      ],
      "band_basis": "literature class AB (KK92; status V) under rules.occurrence_bands",
      "size": {
@@ -2662,7 +2830,7 @@
      },
      "occurrence_band": [
       0.5,
-      1
+      0.95
      ],
      "band_basis": "literature class AB (L10,R35; status V) under rules.occurrence_bands",
      "size": {
@@ -2676,20 +2844,25 @@
       "confidence": "low",
       "crystal_n": 2,
       "specimen_n": 17,
-      "photographs_with_length": 18,
+      "photographs_with_length": 19,
       "crystal": {
        "n": 2,
-       "median": 21,
+       "min": 12,
        "q25": 16.5,
-       "q75": 25.5
+       "median": 21,
+       "q75": 25.5,
+       "max": 30
       },
       "specimen": {
        "n": 17,
-       "median": 63,
+       "min": 23,
        "q25": 50,
-       "q75": 100
+       "median": 63,
+       "q75": 100,
+       "max": 148
       },
-      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 18 photograph(s) of Galena at tri_state_picher with a stated length; 2 crystal, 17 specimen, 0 aggregate, 0 picture-width values"
+      "specimens": 18,
+      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 19 photograph(s) of Galena at tri_state_picher with a stated length, 18 specimen(s); 2 with a crystal length, 17 with specimen dimensions, 0 aggregate, 0 picture width"
      }
     },
     "sphalerite": {
@@ -2703,7 +2876,7 @@
      },
      "occurrence_band": [
       0.5,
-      1
+      0.95
      ],
      "band_basis": "literature class AB (KGS01,L10; status V) under rules.occurrence_bands",
      "size": {
@@ -2723,11 +2896,14 @@
       },
       "specimen": {
        "n": 9,
-       "median": 71,
+       "min": 39,
        "q25": 50,
-       "q75": 80
+       "median": 71,
+       "q75": 80,
+       "max": 155
       },
-      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 10 photograph(s) of Sphalerite at tri_state_picher with a stated length; 0 crystal, 9 specimen, 0 aggregate, 1 picture-width values"
+      "specimens": 10,
+      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 10 photograph(s) of Sphalerite at tri_state_picher with a stated length, 10 specimen(s); 0 with a crystal length, 9 with specimen dimensions, 0 aggregate, 1 picture width"
      }
     },
     "calcite": {
@@ -2741,7 +2917,7 @@
      },
      "occurrence_band": [
       0.5,
-      1
+      0.95
      ],
      "band_basis": "literature class AB (L10,R35; status V) under rules.occurrence_bands",
      "size": {
@@ -2754,11 +2930,14 @@
       },
       "specimen": {
        "n": 4,
-       "median": 67.5,
+       "min": 37,
        "q25": 54.25,
-       "q75": 91.25
+       "median": 67.5,
+       "q75": 91.25,
+       "max": 140
       },
-      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 4 photograph(s) of Calcite at tri_state_picher with a stated length; 0 crystal, 4 specimen, 0 aggregate, 0 picture-width values"
+      "specimens": 4,
+      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 4 photograph(s) of Calcite at tri_state_picher with a stated length, 4 specimen(s); 0 with a crystal length, 4 with specimen dimensions, 0 aggregate, 0 picture width"
      }
     },
     "chalcopyrite": {
@@ -2782,11 +2961,14 @@
       },
       "specimen": {
        "n": 2,
-       "median": 130.5,
+       "min": 111,
        "q25": 120.75,
-       "q75": 140.25
+       "median": 130.5,
+       "q75": 140.25,
+       "max": 150
       },
-      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 3 photograph(s) of Chalcopyrite at tri_state_picher with a stated length; 0 crystal, 2 specimen, 0 aggregate, 1 picture-width values"
+      "specimens": 3,
+      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 3 photograph(s) of Chalcopyrite at tri_state_picher with a stated length, 3 specimen(s); 0 with a crystal length, 2 with specimen dimensions, 0 aggregate, 1 picture width"
      }
     },
     "dolomite": {
@@ -2800,7 +2982,7 @@
      },
      "occurrence_band": [
       0.5,
-      1
+      0.95
      ],
      "band_basis": "literature class AB (L10; status V) under rules.occurrence_bands",
      "size": {
@@ -2810,17 +2992,22 @@
       "photographs_with_length": 2,
       "crystal": {
        "n": 1,
-       "median": 25,
+       "min": 25,
        "q25": 25,
-       "q75": 25
+       "median": 25,
+       "q75": 25,
+       "max": 25
       },
       "specimen": {
        "n": 1,
-       "median": 114,
+       "min": 114,
        "q25": 114,
-       "q75": 114
+       "median": 114,
+       "q75": 114,
+       "max": 114
       },
-      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 2 photograph(s) of Dolomite at tri_state_picher with a stated length; 1 crystal, 1 specimen, 0 aggregate, 0 picture-width values"
+      "specimens": 2,
+      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 2 photograph(s) of Dolomite at tri_state_picher with a stated length, 2 specimen(s); 1 with a crystal length, 1 with specimen dimensions, 0 aggregate, 0 picture width"
      }
     },
     "marcasite": {
@@ -2834,7 +3021,7 @@
      },
      "occurrence_band": [
       0.3,
-      1
+      0.9
      ],
      "band_basis": "literature class CO (L10; status V) under rules.occurrence_bands",
      "size": {
@@ -2855,7 +3042,7 @@
      },
      "occurrence_band": [
       0.3,
-      1
+      0.9
      ],
      "band_basis": "literature class CO (L10; status V) under rules.occurrence_bands",
      "size": {
@@ -2892,34 +3079,39 @@
      },
      "occurrence_band": [
       0.5,
-      1
+      0.95
      ],
      "band_basis": "literature class AB (GR07; status V) under rules.occurrence_bands",
      "size": {
       "basis": "specimen-proxy",
-      "n": 18,
-      "q10": 71.4,
-      "q25": 83.5,
-      "median": 123,
-      "q75": 222,
-      "q90": 245,
+      "n": 15,
+      "q10": 70.8,
+      "q25": 76.5,
+      "median": 121,
+      "q75": 185,
+      "q90": 260,
       "confidence": "low",
-      "crystal_n": 2,
-      "specimen_n": 18,
+      "crystal_n": 4,
+      "specimen_n": 15,
       "photographs_with_length": 21,
       "crystal": {
-       "n": 2,
-       "median": 47,
-       "q25": 45.5,
-       "q75": 48.5
+       "n": 4,
+       "min": 44,
+       "q25": 48.5,
+       "median": 85,
+       "q75": 146.5,
+       "max": 226
       },
       "specimen": {
-       "n": 18,
-       "median": 123,
-       "q25": 83.5,
-       "q75": 222
+       "n": 15,
+       "min": 62,
+       "q25": 76.5,
+       "median": 121,
+       "q75": 185,
+       "max": 400
       },
-      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 21 photograph(s) of Gypsum / Selenite (Gypsum) at naica with a stated length; 2 crystal, 18 specimen, 0 aggregate, 2 picture-width values"
+      "specimens": 20,
+      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 21 photograph(s) of Gypsum / Selenite (Gypsum) at naica with a stated length, 20 specimen(s); 4 with a crystal length, 15 with specimen dimensions, 0 aggregate, 2 picture width"
      }
     },
     "anhydrite": {
@@ -2933,7 +3125,7 @@
      },
      "occurrence_band": [
       0.3,
-      1
+      0.9
      ],
      "band_basis": "literature class CO (GR07; status V) under rules.occurrence_bands",
      "size": {
@@ -2950,17 +3142,22 @@
       "photographs_with_length": 11,
       "crystal": {
        "n": 1,
-       "median": 83,
+       "min": 83,
        "q25": 83,
-       "q75": 83
+       "median": 83,
+       "q75": 83,
+       "max": 83
       },
       "specimen": {
        "n": 10,
-       "median": 110.5,
+       "min": 40,
        "q25": 65.5,
-       "q75": 136
+       "median": 110.5,
+       "q75": 136,
+       "max": 150
       },
-      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 11 photograph(s) of Anhydrite at naica with a stated length; 1 crystal, 10 specimen, 0 aggregate, 0 picture-width values"
+      "specimens": 11,
+      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 11 photograph(s) of Anhydrite at naica with a stated length, 11 specimen(s); 1 with a crystal length, 10 with specimen dimensions, 0 aggregate, 0 picture width"
      }
     }
    },
@@ -2984,34 +3181,39 @@
      },
      "occurrence_band": [
       0.3,
-      1
+      0.9
      ],
      "band_basis": "literature class CO (K83,S96; status V) under rules.occurrence_bands",
      "size": {
-      "basis": "crystal",
-      "n": 5,
-      "q10": 13.6,
-      "q25": 16,
-      "median": 16,
-      "q75": 18,
-      "q90": 28.8,
+      "basis": "specimen-proxy",
+      "n": 16,
+      "q10": 24.5,
+      "q25": 32.5,
+      "median": 43,
+      "q75": 51.5,
+      "q90": 63.5,
       "confidence": "low",
-      "crystal_n": 5,
+      "crystal_n": 4,
       "specimen_n": 16,
       "photographs_with_length": 23,
       "crystal": {
-       "n": 5,
-       "median": 16,
-       "q25": 16,
-       "q75": 18
+       "n": 4,
+       "min": 12,
+       "q25": 15,
+       "median": 17,
+       "q75": 22.5,
+       "max": 36
       },
       "specimen": {
        "n": 16,
-       "median": 42,
-       "q25": 30.5,
-       "q75": 50.25
+       "min": 15,
+       "q25": 32.5,
+       "median": 43,
+       "q75": 51.5,
+       "max": 140
       },
-      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 23 photograph(s) of Topaz at ouro_preto with a stated length; 5 crystal, 16 specimen, 0 aggregate, 2 picture-width values"
+      "specimens": 22,
+      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 23 photograph(s) of Topaz at ouro_preto with a stated length, 22 specimen(s); 4 with a crystal length, 16 with specimen dimensions, 0 aggregate, 2 picture width"
      }
     },
     "hematite": {
@@ -3025,7 +3227,7 @@
      },
      "occurrence_band": [
       0.3,
-      1
+      0.9
      ],
      "band_basis": "literature class CO (S96; status V) under rules.occurrence_bands",
      "size": {
@@ -3045,11 +3247,14 @@
       },
       "specimen": {
        "n": 11,
-       "median": 49,
+       "min": 30,
        "q25": 44,
-       "q75": 62
+       "median": 49,
+       "q75": 62,
+       "max": 112
       },
-      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 11 photograph(s) of Hematite / Iron rose at ouro_preto with a stated length; 0 crystal, 11 specimen, 0 aggregate, 0 picture-width values"
+      "specimens": 11,
+      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 11 photograph(s) of Hematite / Iron rose at ouro_preto with a stated length, 11 specimen(s); 0 with a crystal length, 11 with specimen dimensions, 0 aggregate, 0 picture width"
      }
     },
     "x:euclase": {
@@ -3076,11 +3281,14 @@
       },
       "specimen": {
        "n": 4,
-       "median": 40,
+       "min": 13,
        "q25": 20.5,
-       "q75": 85.25
+       "median": 40,
+       "q75": 85.25,
+       "max": 170
       },
-      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 4 photograph(s) of Euclase at ouro_preto with a stated length; 0 crystal, 4 specimen, 0 aggregate, 0 picture-width values"
+      "specimens": 4,
+      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 4 photograph(s) of Euclase at ouro_preto with a stated length, 4 specimen(s); 0 with a crystal length, 4 with specimen dimensions, 0 aggregate, 0 picture width"
      }
     },
     "quartz": {
@@ -3094,7 +3302,7 @@
      },
      "occurrence_band": [
       0.5,
-      1
+      0.95
      ],
      "band_basis": "literature class AB (K83,S96; status V) under rules.occurrence_bands",
      "size": {
@@ -3125,7 +3333,7 @@
      },
      "occurrence_band": [
       0.5,
-      1
+      0.95
      ],
      "band_basis": "literature class AB (P05; status V) under rules.occurrence_bands",
      "size": {
@@ -3138,11 +3346,14 @@
       },
       "specimen": {
        "n": 2,
-       "median": 53,
+       "min": 32,
        "q25": 42.5,
-       "q75": 63.5
+       "median": 53,
+       "q75": 63.5,
+       "max": 74
       },
-      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 3 photograph(s) of Pyrite at bingham with a stated length; 0 crystal, 2 specimen, 0 aggregate, 1 picture-width values"
+      "specimens": 3,
+      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 3 photograph(s) of Pyrite at bingham with a stated length, 3 specimen(s); 0 with a crystal length, 2 with specimen dimensions, 0 aggregate, 1 picture width"
      }
     },
     "tetrahedrite": {
@@ -3156,7 +3367,7 @@
      },
      "occurrence_band": [
       0.3,
-      1
+      0.9
      ],
      "band_basis": "literature class CO (P05; status V) under rules.occurrence_bands",
      "size": {
@@ -3169,11 +3380,14 @@
       },
       "specimen": {
        "n": 1,
-       "median": 82,
+       "min": 82,
        "q25": 82,
-       "q75": 82
+       "median": 82,
+       "q75": 82,
+       "max": 82
       },
-      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 3 photograph(s) of Tetrahedrite series at bingham with a stated length; 0 crystal, 1 specimen, 0 aggregate, 2 picture-width values"
+      "specimens": 3,
+      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 3 photograph(s) of Tetrahedrite series at bingham with a stated length, 3 specimen(s); 0 with a crystal length, 1 with specimen dimensions, 0 aggregate, 2 picture width"
      }
     },
     "ma:faustite": {
@@ -3194,7 +3408,8 @@
       "specimen": {
        "n": 0
       },
-      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 5 photograph(s) of Faustite at bingham with a stated length; 0 crystal, 0 specimen, 0 aggregate, 5 picture-width values"
+      "specimens": 5,
+      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 5 photograph(s) of Faustite at bingham with a stated length, 5 specimen(s); 0 with a crystal length, 0 with specimen dimensions, 0 aggregate, 5 picture width"
      }
     },
     "galena": {
@@ -3208,7 +3423,7 @@
      },
      "occurrence_band": [
       0.3,
-      1
+      0.9
      ],
      "band_basis": "literature class CO (P05; status V) under rules.occurrence_bands",
      "size": {
@@ -3221,11 +3436,14 @@
       },
       "specimen": {
        "n": 2,
-       "median": 81,
+       "min": 35,
        "q25": 58,
-       "q75": 104
+       "median": 81,
+       "q75": 104,
+       "max": 127
       },
-      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 2 photograph(s) of Galena at bingham with a stated length; 0 crystal, 2 specimen, 0 aggregate, 0 picture-width values"
+      "specimens": 2,
+      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 2 photograph(s) of Galena at bingham with a stated length, 2 specimen(s); 0 with a crystal length, 2 with specimen dimensions, 0 aggregate, 0 picture width"
      }
     },
     "x:wavellite": {
@@ -3246,7 +3464,8 @@
       "specimen": {
        "n": 0
       },
-      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 1 photograph(s) of Wavellite at bingham with a stated length; 0 crystal, 0 specimen, 0 aggregate, 1 picture-width values"
+      "specimens": 1,
+      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 1 photograph(s) of Wavellite at bingham with a stated length, 1 specimen(s); 0 with a crystal length, 0 with specimen dimensions, 0 aggregate, 1 picture width"
      }
     },
     "x:okenite": {
@@ -3266,11 +3485,14 @@
       },
       "specimen": {
        "n": 2,
-       "median": 56,
+       "min": 42,
        "q25": 49,
-       "q75": 63
+       "median": 56,
+       "q75": 63,
+       "max": 70
       },
-      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 3 photograph(s) of Okenite at bingham with a stated length; 0 crystal, 2 specimen, 0 aggregate, 1 picture-width values"
+      "specimens": 3,
+      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 3 photograph(s) of Okenite at bingham with a stated length, 3 specimen(s); 0 with a crystal length, 2 with specimen dimensions, 0 aggregate, 1 picture width"
      }
     },
     "quartz": {
@@ -3284,7 +3506,7 @@
      },
      "occurrence_band": [
       0.5,
-      1
+      0.95
      ],
      "band_basis": "literature class AB (P05; status V) under rules.occurrence_bands",
      "size": {
@@ -3305,7 +3527,7 @@
      },
      "occurrence_band": [
       0.3,
-      1
+      0.9
      ],
      "band_basis": "literature class CO (P05; status V) under rules.occurrence_bands",
      "size": {
@@ -3326,7 +3548,7 @@
      },
      "occurrence_band": [
       0.5,
-      1
+      0.95
      ],
      "band_basis": "literature class AB (P05; status V) under rules.occurrence_bands",
      "size": {
@@ -3347,7 +3569,7 @@
      },
      "occurrence_band": [
       0.5,
-      1
+      0.95
      ],
      "band_basis": "literature class AB (P05; status V) under rules.occurrence_bands",
      "size": {
@@ -3378,7 +3600,7 @@
      },
      "occurrence_band": [
       0.5,
-      1
+      0.95
      ],
      "band_basis": "literature class AB (GCR36,NPA10; status V) under rules.occurrence_bands",
      "size": {
@@ -3391,21 +3613,26 @@
       "q90": 62.4,
       "confidence": "medium",
       "crystal_n": 17,
-      "specimen_n": 84,
-      "photographs_with_length": 102,
+      "specimen_n": 83,
+      "photographs_with_length": 103,
       "crystal": {
        "n": 17,
-       "median": 17,
+       "min": 9,
        "q25": 15,
-       "q75": 40
+       "median": 17,
+       "q75": 40,
+       "max": 75
       },
       "specimen": {
-       "n": 84,
-       "median": 92.5,
+       "n": 83,
+       "min": 25,
        "q25": 60,
-       "q75": 130
+       "median": 90,
+       "q75": 130,
+       "max": 400
       },
-      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 102 photograph(s) of Fluorite at north_pennines with a stated length; 17 crystal, 84 specimen, 0 aggregate, 15 picture-width values"
+      "specimens": 101,
+      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 103 photograph(s) of Fluorite at north_pennines with a stated length, 101 specimen(s); 17 with a crystal length, 83 with specimen dimensions, 0 aggregate, 15 picture width"
      }
     },
     "galena": {
@@ -3419,7 +3646,7 @@
      },
      "occurrence_band": [
       0.5,
-      1
+      0.95
      ],
      "band_basis": "literature class AB (GCR36; status V) under rules.occurrence_bands",
      "size": {
@@ -3436,17 +3663,22 @@
       "photographs_with_length": 24,
       "crystal": {
        "n": 5,
-       "median": 20,
+       "min": 14,
        "q25": 18,
-       "q75": 20
+       "median": 20,
+       "q75": 20,
+       "max": 32
       },
       "specimen": {
        "n": 16,
-       "median": 77.5,
+       "min": 4,
        "q25": 51.5,
-       "q75": 95.5
+       "median": 77.5,
+       "q75": 95.5,
+       "max": 190
       },
-      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 24 photograph(s) of Galena at north_pennines with a stated length; 5 crystal, 16 specimen, 0 aggregate, 6 picture-width values"
+      "specimens": 24,
+      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 24 photograph(s) of Galena at north_pennines with a stated length, 24 specimen(s); 5 with a crystal length, 16 with specimen dimensions, 0 aggregate, 6 picture width"
      }
     },
     "quartz": {
@@ -3460,7 +3692,7 @@
      },
      "occurrence_band": [
       0.5,
-      1
+      0.95
      ],
      "band_basis": "literature class AB (GCR36; status V) under rules.occurrence_bands",
      "size": {
@@ -3470,17 +3702,22 @@
       "photographs_with_length": 5,
       "crystal": {
        "n": 1,
-       "median": 25,
+       "min": 25,
        "q25": 25,
-       "q75": 25
+       "median": 25,
+       "q75": 25,
+       "max": 25
       },
       "specimen": {
        "n": 3,
-       "median": 155,
+       "min": 127,
        "q25": 141,
-       "q75": 207.5
+       "median": 155,
+       "q75": 207.5,
+       "max": 260
       },
-      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 5 photograph(s) of Quartz at north_pennines with a stated length; 1 crystal, 3 specimen, 0 aggregate, 1 picture-width values"
+      "specimens": 5,
+      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 5 photograph(s) of Quartz at north_pennines with a stated length, 5 specimen(s); 1 with a crystal length, 3 with specimen dimensions, 0 aggregate, 1 picture width"
      }
     },
     "calcite": {
@@ -3494,7 +3731,7 @@
      },
      "occurrence_band": [
       0.3,
-      1
+      0.9
      ],
      "band_basis": "literature class CO (DGA04; status V) under rules.occurrence_bands",
      "size": {
@@ -3511,17 +3748,22 @@
       "photographs_with_length": 23,
       "crystal": {
        "n": 3,
-       "median": 34,
+       "min": 32,
        "q25": 33,
-       "q75": 39.5
+       "median": 34,
+       "q75": 39.5,
+       "max": 45
       },
       "specimen": {
        "n": 17,
-       "median": 88,
+       "min": 10,
        "q25": 60,
-       "q75": 160
+       "median": 88,
+       "q75": 160,
+       "max": 220
       },
-      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 23 photograph(s) of Calcite / Cobaltocalcite at north_pennines with a stated length; 3 crystal, 17 specimen, 0 aggregate, 7 picture-width values"
+      "specimens": 23,
+      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 23 photograph(s) of Calcite / Cobaltocalcite at north_pennines with a stated length, 23 specimen(s); 3 with a crystal length, 17 with specimen dimensions, 0 aggregate, 7 picture width"
      }
     },
     "sphalerite": {
@@ -3535,7 +3777,7 @@
      },
      "occurrence_band": [
       0.3,
-      1
+      0.9
      ],
      "band_basis": "literature class CO (GCR36; status V) under rules.occurrence_bands",
      "size": {
@@ -3556,7 +3798,7 @@
      },
      "occurrence_band": [
       0.3,
-      1
+      0.9
      ],
      "band_basis": "literature class CO (GCR36,DGA04; status V) under rules.occurrence_bands",
      "size": {
@@ -3577,7 +3819,7 @@
      },
      "occurrence_band": [
       0.3,
-      1
+      0.9
      ],
      "band_basis": "literature class CO (GCR36; status V) under rules.occurrence_bands",
      "size": {
@@ -3598,7 +3840,7 @@
      },
      "occurrence_band": [
       0.3,
-      1
+      0.9
      ],
      "band_basis": "literature class CO (GCR36,NPA10; status V) under rules.occurrence_bands",
      "size": {
@@ -3619,7 +3861,7 @@
      },
      "occurrence_band": [
       0.3,
-      1
+      0.9
      ],
      "band_basis": "literature class CO (GCR36; status V) under rules.occurrence_bands",
      "size": {
@@ -3650,34 +3892,39 @@
      },
      "occurrence_band": [
       0.3,
-      1
+      0.9
      ],
      "band_basis": "literature class CO (R87; status V) under rules.occurrence_bands",
      "size": {
       "basis": "specimen-proxy",
-      "n": 37,
-      "q10": 42.6,
-      "q25": 60,
-      "median": 71,
-      "q75": 98,
-      "q90": 104,
+      "n": 35,
+      "q10": 42.4,
+      "q25": 57.5,
+      "median": 75,
+      "q75": 99,
+      "q90": 105,
       "confidence": "low",
       "crystal_n": 3,
-      "specimen_n": 37,
+      "specimen_n": 35,
       "photographs_with_length": 42,
       "crystal": {
        "n": 3,
-       "median": 75,
+       "min": 50,
        "q25": 62.5,
-       "q75": 97.5
+       "median": 75,
+       "q75": 97.5,
+       "max": 120
       },
       "specimen": {
-       "n": 37,
-       "median": 71,
-       "q25": 60,
-       "q75": 98
+       "n": 35,
+       "min": 37,
+       "q25": 57.5,
+       "median": 75,
+       "q75": 99,
+       "max": 165
       },
-      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 42 photograph(s) of Calcite at viburnum with a stated length; 3 crystal, 37 specimen, 0 aggregate, 3 picture-width values"
+      "specimens": 40,
+      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 42 photograph(s) of Calcite at viburnum with a stated length, 40 specimen(s); 3 with a crystal length, 35 with specimen dimensions, 0 aggregate, 3 picture width"
      }
     },
     "galena": {
@@ -3691,7 +3938,7 @@
      },
      "occurrence_band": [
       0.5,
-      1
+      0.95
      ],
      "band_basis": "literature class AB (L10; status V) under rules.occurrence_bands",
      "size": {
@@ -3708,17 +3955,22 @@
       "photographs_with_length": 33,
       "crystal": {
        "n": 4,
-       "median": 52.5,
+       "min": 40,
        "q25": 40,
-       "q75": 67.5
+       "median": 52.5,
+       "q75": 67.5,
+       "max": 75
       },
       "specimen": {
        "n": 29,
-       "median": 50,
+       "min": 28,
        "q25": 37,
-       "q75": 65
+       "median": 50,
+       "q75": 65,
+       "max": 130
       },
-      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 33 photograph(s) of Galena at viburnum with a stated length; 4 crystal, 29 specimen, 0 aggregate, 2 picture-width values"
+      "specimens": 33,
+      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 33 photograph(s) of Galena at viburnum with a stated length, 33 specimen(s); 4 with a crystal length, 29 with specimen dimensions, 0 aggregate, 2 picture width"
      }
     },
     "chalcopyrite": {
@@ -3732,7 +3984,7 @@
      },
      "occurrence_band": [
       0.3,
-      1
+      0.9
      ],
      "band_basis": "literature class CO (L10; status V) under rules.occurrence_bands",
      "size": {
@@ -3745,11 +3997,14 @@
       },
       "specimen": {
        "n": 4,
-       "median": 61,
+       "min": 35,
        "q25": 40.25,
-       "q75": 80
+       "median": 61,
+       "q75": 80,
+       "max": 80
       },
-      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 11 photograph(s) of Chalcopyrite at viburnum with a stated length; 0 crystal, 4 specimen, 0 aggregate, 7 picture-width values"
+      "specimens": 11,
+      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 11 photograph(s) of Chalcopyrite at viburnum with a stated length, 11 specimen(s); 0 with a crystal length, 4 with specimen dimensions, 0 aggregate, 7 picture width"
      }
     },
     "dolomite": {
@@ -3763,7 +4018,7 @@
      },
      "occurrence_band": [
       0.5,
-      1
+      0.95
      ],
      "band_basis": "literature class AB (R87; status V) under rules.occurrence_bands",
      "size": {
@@ -3777,7 +4032,8 @@
       "specimen": {
        "n": 0
       },
-      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 1 photograph(s) of Dolomite at viburnum with a stated length; 0 crystal, 0 specimen, 0 aggregate, 1 picture-width values"
+      "specimens": 1,
+      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 1 photograph(s) of Dolomite at viburnum with a stated length, 1 specimen(s); 0 with a crystal length, 0 with specimen dimensions, 0 aggregate, 1 picture width"
      }
     },
     "marcasite": {
@@ -3791,7 +4047,7 @@
      },
      "occurrence_band": [
       0.3,
-      1
+      0.9
      ],
      "band_basis": "literature class CO (R87; status S) under rules.occurrence_bands",
      "size": {
@@ -3812,7 +4068,7 @@
      },
      "occurrence_band": [
       0.3,
-      1
+      0.9
      ],
      "band_basis": "literature class CO (R87; status S) under rules.occurrence_bands",
      "size": {
@@ -3843,7 +4099,7 @@
      },
      "occurrence_band": [
       0.5,
-      1
+      0.95
      ],
      "band_basis": "literature class AB (GCR36; status V) under rules.occurrence_bands",
      "size": {
@@ -3853,17 +4109,22 @@
       "photographs_with_length": 9,
       "crystal": {
        "n": 1,
-       "median": 10,
+       "min": 10,
        "q25": 10,
-       "q75": 10
+       "median": 10,
+       "q75": 10,
+       "max": 10
       },
       "specimen": {
        "n": 2,
-       "median": 81,
+       "min": 80,
        "q25": 80.5,
-       "q75": 81.5
+       "median": 81,
+       "q75": 81.5,
+       "max": 82
       },
-      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 9 photograph(s) of Pyromorphite at roughton_gill with a stated length; 1 crystal, 2 specimen, 0 aggregate, 6 picture-width values"
+      "specimens": 9,
+      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 9 photograph(s) of Pyromorphite at roughton_gill with a stated length, 9 specimen(s); 1 with a crystal length, 2 with specimen dimensions, 0 aggregate, 6 picture width"
      }
     },
     "mimetite": {
@@ -3877,7 +4138,7 @@
      },
      "occurrence_band": [
       0.3,
-      1
+      0.9
      ],
      "band_basis": "literature class CO (GCR36; status V) under rules.occurrence_bands",
      "size": {
@@ -3887,17 +4148,22 @@
       "photographs_with_length": 4,
       "crystal": {
        "n": 1,
-       "median": 2,
+       "min": 2,
        "q25": 2,
-       "q75": 2
+       "median": 2,
+       "q75": 2,
+       "max": 2
       },
       "specimen": {
        "n": 1,
-       "median": 90,
+       "min": 90,
        "q25": 90,
-       "q75": 90
+       "median": 90,
+       "q75": 90,
+       "max": 90
       },
-      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 4 photograph(s) of Mimetite at roughton_gill with a stated length; 1 crystal, 1 specimen, 0 aggregate, 3 picture-width values"
+      "specimens": 4,
+      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 4 photograph(s) of Mimetite at roughton_gill with a stated length, 4 specimen(s); 1 with a crystal length, 1 with specimen dimensions, 0 aggregate, 3 picture width"
      }
     },
     "quartz": {
@@ -3911,7 +4177,7 @@
      },
      "occurrence_band": [
       0.5,
-      1
+      0.95
      ],
      "band_basis": "literature class AB (GCR36; status V) under rules.occurrence_bands",
      "size": {
@@ -3932,7 +4198,7 @@
      },
      "occurrence_band": [
       0.3,
-      1
+      0.9
      ],
      "band_basis": "literature class CO (GCR36; status V) under rules.occurrence_bands",
      "size": {
@@ -3945,11 +4211,14 @@
       },
       "specimen": {
        "n": 3,
-       "median": 93,
+       "min": 37,
        "q25": 65,
-       "q75": 101.5
+       "median": 93,
+       "q75": 101.5,
+       "max": 110
       },
-      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 7 photograph(s) of Hemimorphite at roughton_gill with a stated length; 0 crystal, 3 specimen, 0 aggregate, 4 picture-width values"
+      "specimens": 7,
+      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 7 photograph(s) of Hemimorphite at roughton_gill with a stated length, 7 specimen(s); 0 with a crystal length, 3 with specimen dimensions, 0 aggregate, 4 picture width"
      }
     },
     "cerussite": {
@@ -3963,7 +4232,7 @@
      },
      "occurrence_band": [
       0.5,
-      1
+      0.95
      ],
      "band_basis": "literature class AB (GCR36; status V) under rules.occurrence_bands",
      "size": {
@@ -3984,7 +4253,7 @@
      },
      "occurrence_band": [
       0.3,
-      1
+      0.9
      ],
      "band_basis": "literature class CO (GCR36; status V) under rules.occurrence_bands",
      "size": {
@@ -4005,7 +4274,7 @@
      },
      "occurrence_band": [
       0.3,
-      1
+      0.9
      ],
      "band_basis": "literature class CO (GCR36; status V) under rules.occurrence_bands",
      "size": {
@@ -4026,7 +4295,7 @@
      },
      "occurrence_band": [
       0.5,
-      1
+      0.95
      ],
      "band_basis": "literature class AB (GCR36; status V) under rules.occurrence_bands",
      "size": {
@@ -4047,7 +4316,7 @@
      },
      "occurrence_band": [
       0.5,
-      1
+      0.95
      ],
      "band_basis": "literature class AB (GCR36; status V) under rules.occurrence_bands",
      "size": {
@@ -4068,7 +4337,7 @@
      },
      "occurrence_band": [
       0.3,
-      1
+      0.9
      ],
      "band_basis": "literature class CO (GCR36; status V) under rules.occurrence_bands",
      "size": {
@@ -4099,7 +4368,7 @@
      },
      "occurrence_band": [
       0.3,
-      1
+      0.9
      ],
      "band_basis": "literature class CO (mindat snippet; status S) under rules.occurrence_bands",
      "size": {
@@ -4113,20 +4382,25 @@
       "confidence": "low",
       "crystal_n": 2,
       "specimen_n": 9,
-      "photographs_with_length": 37,
+      "photographs_with_length": 50,
       "crystal": {
        "n": 2,
-       "median": 22,
+       "min": 4,
        "q25": 13,
-       "q75": 31
+       "median": 22,
+       "q75": 31,
+       "max": 40
       },
       "specimen": {
        "n": 9,
-       "median": 70,
+       "min": 35,
        "q25": 60,
-       "q75": 100
+       "median": 70,
+       "q75": 100,
+       "max": 600
       },
-      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 37 photograph(s) of Erythrite at schneeberg with a stated length; 2 crystal, 9 specimen, 3 aggregate, 25 picture-width values"
+      "specimens": 37,
+      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 50 photograph(s) of Erythrite at schneeberg with a stated length, 37 specimen(s); 2 with a crystal length, 9 with specimen dimensions, 3 aggregate, 25 picture width"
      }
     },
     "native_silver": {
@@ -4140,7 +4414,7 @@
      },
      "occurrence_band": [
       0.3,
-      1
+      0.9
      ],
      "band_basis": "literature class CO (MRE; status V) under rules.occurrence_bands",
      "size": {
@@ -4161,7 +4435,7 @@
      },
      "occurrence_band": [
       0.5,
-      1
+      0.95
      ],
      "band_basis": "literature class AB (B14; status V) under rules.occurrence_bands",
      "size": {
@@ -4182,7 +4456,7 @@
      },
      "occurrence_band": [
       0.5,
-      1
+      0.95
      ],
      "band_basis": "literature class AB (WH,MRE; status V) under rules.occurrence_bands",
      "size": {
@@ -4203,7 +4477,7 @@
      },
      "occurrence_band": [
       0.3,
-      1
+      0.9
      ],
      "band_basis": "literature class CO (B14; status V) under rules.occurrence_bands",
      "size": {
@@ -4234,7 +4508,7 @@
      },
      "occurrence_band": [
       0.5,
-      1
+      0.95
      ],
      "band_basis": "literature class AB (S79; status V) under rules.occurrence_bands",
      "size": {
@@ -4254,11 +4528,14 @@
       },
       "specimen": {
        "n": 12,
-       "median": 101.5,
+       "min": 45,
        "q25": 84.5,
-       "q75": 187.5
+       "median": 101.5,
+       "q75": 187.5,
+       "max": 550
       },
-      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 12 photograph(s) of Halite at searles_lake with a stated length; 0 crystal, 12 specimen, 0 aggregate, 0 picture-width values"
+      "specimens": 12,
+      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 12 photograph(s) of Halite at searles_lake with a stated length, 12 specimen(s); 0 with a crystal length, 12 with specimen dimensions, 0 aggregate, 0 picture width"
      }
     },
     "x:hanksite": {
@@ -4272,7 +4549,7 @@
      },
      "occurrence_band": [
       0.5,
-      1
+      0.95
      ],
      "band_basis": "literature class AB (S79; status V) under rules.occurrence_bands",
      "size": {
@@ -4292,11 +4569,14 @@
       },
       "specimen": {
        "n": 11,
-       "median": 59,
+       "min": 39,
        "q25": 49,
-       "q75": 82.5
+       "median": 59,
+       "q75": 82.5,
+       "max": 111
       },
-      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 13 photograph(s) of Hanksite at searles_lake with a stated length; 0 crystal, 11 specimen, 0 aggregate, 2 picture-width values"
+      "specimens": 13,
+      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 13 photograph(s) of Hanksite at searles_lake with a stated length, 13 specimen(s); 0 with a crystal length, 11 with specimen dimensions, 0 aggregate, 2 picture width"
      }
     },
     "x:trona": {
@@ -4310,7 +4590,7 @@
      },
      "occurrence_band": [
       0.5,
-      1
+      0.95
      ],
      "band_basis": "literature class AB (S79; status V) under rules.occurrence_bands",
      "size": {
@@ -4323,11 +4603,14 @@
       },
       "specimen": {
        "n": 1,
-       "median": 40,
+       "min": 40,
        "q25": 40,
-       "q75": 40
+       "median": 40,
+       "q75": 40,
+       "max": 40
       },
-      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 1 photograph(s) of Trona at searles_lake with a stated length; 0 crystal, 1 specimen, 0 aggregate, 0 picture-width values"
+      "specimens": 1,
+      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 1 photograph(s) of Trona at searles_lake with a stated length, 1 specimen(s); 0 with a crystal length, 1 with specimen dimensions, 0 aggregate, 0 picture width"
      }
     },
     "x:sulfohalite": {
@@ -4351,17 +4634,22 @@
       "photographs_with_length": 3,
       "crystal": {
        "n": 1,
-       "median": 25,
+       "min": 25,
        "q25": 25,
-       "q75": 25
+       "median": 25,
+       "q75": 25,
+       "max": 25
       },
       "specimen": {
        "n": 1,
-       "median": 16,
+       "min": 16,
        "q25": 16,
-       "q75": 16
+       "median": 16,
+       "q75": 16,
+       "max": 16
       },
-      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 3 photograph(s) of Sulphohalite at searles_lake with a stated length; 1 crystal, 1 specimen, 0 aggregate, 1 picture-width values"
+      "specimens": 3,
+      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 3 photograph(s) of Sulphohalite at searles_lake with a stated length, 3 specimen(s); 1 with a crystal length, 1 with specimen dimensions, 0 aggregate, 1 picture width"
      }
     },
     "x:burkeite": {
@@ -4388,11 +4676,14 @@
       },
       "specimen": {
        "n": 1,
-       "median": 55,
+       "min": 55,
        "q25": 55,
-       "q75": 55
+       "median": 55,
+       "q75": 55,
+       "max": 55
       },
-      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 4 photograph(s) of Burkeite at searles_lake with a stated length; 0 crystal, 1 specimen, 0 aggregate, 3 picture-width values"
+      "specimens": 4,
+      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 4 photograph(s) of Burkeite at searles_lake with a stated length, 4 specimen(s); 0 with a crystal length, 1 with specimen dimensions, 0 aggregate, 3 picture width"
      }
     },
     "x:gaylussite": {
@@ -4406,7 +4697,7 @@
      },
      "occurrence_band": [
       0.3,
-      1
+      0.9
      ],
      "band_basis": "literature class CO (SH64; status S) under rules.occurrence_bands",
      "size": {
@@ -4427,7 +4718,7 @@
      },
      "occurrence_band": [
       0.3,
-      1
+      0.9
      ],
      "band_basis": "literature class CO (S79; status V) under rules.occurrence_bands",
      "size": {
@@ -4458,34 +4749,39 @@
      },
      "occurrence_band": [
       0.5,
-      1
+      0.95
      ],
      "band_basis": "literature class AB (L98,HL18; status V) under rules.occurrence_bands",
      "size": {
       "basis": "crystal",
-      "n": 10,
-      "q10": 27.6,
-      "q25": 29.5,
-      "median": 35.5,
-      "q75": 67.5,
-      "q90": 122.7,
+      "n": 11,
+      "q10": 29,
+      "q25": 30,
+      "median": 36,
+      "q75": 60,
+      "q90": 120,
       "confidence": "medium",
-      "crystal_n": 10,
-      "specimen_n": 23,
+      "crystal_n": 11,
+      "specimen_n": 22,
       "photographs_with_length": 33,
       "crystal": {
-       "n": 10,
-       "median": 35.5,
-       "q25": 29.5,
-       "q75": 67.5
+       "n": 11,
+       "min": 15,
+       "q25": 30,
+       "median": 36,
+       "q75": 60,
+       "max": 147
       },
       "specimen": {
-       "n": 23,
-       "median": 43,
+       "n": 22,
+       "min": 30,
        "q25": 36,
-       "q75": 73.5
+       "median": 44.5,
+       "q75": 76.75,
+       "max": 380
       },
-      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 33 photograph(s) of Aquamarine at shigar with a stated length; 10 crystal, 23 specimen, 0 aggregate, 2 picture-width values"
+      "specimens": 33,
+      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 33 photograph(s) of Aquamarine at shigar with a stated length, 33 specimen(s); 11 with a crystal length, 22 with specimen dimensions, 0 aggregate, 2 picture width"
      }
     },
     "topaz": {
@@ -4499,7 +4795,7 @@
      },
      "occurrence_band": [
       0.3,
-      1
+      0.9
      ],
      "band_basis": "literature class CO (L98; status V) under rules.occurrence_bands",
      "size": {
@@ -4511,22 +4807,27 @@
       "q75": 53.25,
       "q90": 80,
       "confidence": "low",
-      "crystal_n": 4,
+      "crystal_n": 2,
       "specimen_n": 36,
       "photographs_with_length": 41,
       "crystal": {
-       "n": 4,
+       "n": 2,
+       "min": 13,
+       "q25": 14,
        "median": 15,
-       "q25": 12.5,
-       "q75": 18.25
+       "q75": 16,
+       "max": 17
       },
       "specimen": {
        "n": 36,
-       "median": 43.5,
+       "min": 12,
        "q25": 30,
-       "q75": 53.25
+       "median": 43.5,
+       "q75": 53.25,
+       "max": 170
       },
-      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 41 photograph(s) of Topaz at shigar with a stated length; 4 crystal, 36 specimen, 0 aggregate, 1 picture-width values"
+      "specimens": 41,
+      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 41 photograph(s) of Topaz at shigar with a stated length, 41 specimen(s); 2 with a crystal length, 36 with specimen dimensions, 0 aggregate, 1 picture width"
      }
     },
     "quartz": {
@@ -4540,7 +4841,7 @@
      },
      "occurrence_band": [
       0.5,
-      1
+      0.95
      ],
      "band_basis": "literature class AB (L98; status V) under rules.occurrence_bands",
      "size": {
@@ -4557,17 +4858,22 @@
       "photographs_with_length": 11,
       "crystal": {
        "n": 3,
-       "median": 24,
+       "min": 22,
        "q25": 23,
-       "q75": 52
+       "median": 24,
+       "q75": 52,
+       "max": 80
       },
       "specimen": {
        "n": 8,
-       "median": 82.5,
+       "min": 26,
        "q25": 74.75,
-       "q75": 119.75
+       "median": 82.5,
+       "q75": 119.75,
+       "max": 200
       },
-      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 11 photograph(s) of Blue Quartz / Quartz / Rock Crystal / Sceptre Quartz / Smoky Quartz at shigar with a stated length; 3 crystal, 8 specimen, 0 aggregate, 0 picture-width values"
+      "specimens": 11,
+      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 11 photograph(s) of Blue Quartz / Quartz / Rock Crystal / Sceptre Quartz / Smoky Quartz at shigar with a stated length, 11 specimen(s); 3 with a crystal length, 8 with specimen dimensions, 0 aggregate, 0 picture width"
      }
     },
     "tourmaline": {
@@ -4581,7 +4887,7 @@
      },
      "occurrence_band": [
       0.3,
-      1
+      0.9
      ],
      "band_basis": "literature class CO (L98,HL18; status V) under rules.occurrence_bands",
      "size": {
@@ -4594,11 +4900,14 @@
       },
       "specimen": {
        "n": 1,
-       "median": 80,
+       "min": 80,
        "q25": 80,
-       "q75": 80
+       "median": 80,
+       "q75": 80,
+       "max": 80
       },
-      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 1 photograph(s) of Elbaite at shigar with a stated length; 0 crystal, 1 specimen, 0 aggregate, 0 picture-width values"
+      "specimens": 1,
+      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 1 photograph(s) of Elbaite at shigar with a stated length, 1 specimen(s); 0 with a crystal length, 1 with specimen dimensions, 0 aggregate, 0 picture width"
      }
     },
     "x:garnet": {
@@ -4612,34 +4921,39 @@
      },
      "occurrence_band": [
       0.3,
-      1
+      0.9
      ],
      "band_basis": "literature class CO (L98; status V) under rules.occurrence_bands",
      "size": {
       "basis": "specimen-proxy",
-      "n": 12,
+      "n": 11,
       "q10": 27,
       "q25": 27,
       "median": 29,
-      "q75": 31,
-      "q90": 35.8,
+      "q75": 32,
+      "q90": 36,
       "confidence": "low",
       "crystal_n": 4,
-      "specimen_n": 12,
+      "specimen_n": 11,
       "photographs_with_length": 21,
       "crystal": {
        "n": 4,
-       "median": 7,
+       "min": 6,
        "q25": 6,
-       "q75": 9.75
+       "median": 7,
+       "q75": 9.75,
+       "max": 15
       },
       "specimen": {
-       "n": 12,
-       "median": 29,
+       "n": 11,
+       "min": 17,
        "q25": 27,
-       "q75": 31
+       "median": 29,
+       "q75": 32,
+       "max": 48
       },
-      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 21 photograph(s) of Andradite / Spessartine at shigar with a stated length; 4 crystal, 12 specimen, 0 aggregate, 6 picture-width values"
+      "specimens": 20,
+      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 21 photograph(s) of Andradite / Spessartine at shigar with a stated length, 20 specimen(s); 4 with a crystal length, 11 with specimen dimensions, 0 aggregate, 6 picture width"
      }
     },
     "x:muscovite": {
@@ -4653,7 +4967,7 @@
      },
      "occurrence_band": [
       0.3,
-      1
+      0.9
      ],
      "band_basis": "literature class CO (HL18; status V) under rules.occurrence_bands",
      "size": {
@@ -4674,7 +4988,7 @@
      },
      "occurrence_band": [
       0.3,
-      1
+      0.9
      ],
      "band_basis": "literature class CO (HL18; status V) under rules.occurrence_bands",
      "size": {
@@ -4695,7 +5009,7 @@
      },
      "occurrence_band": [
       0.5,
-      1
+      0.95
      ],
      "band_basis": "literature class AB (L98; status V) under rules.occurrence_bands",
      "size": {
@@ -4716,7 +5030,7 @@
      },
      "occurrence_band": [
       0.3,
-      1
+      0.9
      ],
      "band_basis": "literature class CO (L98; status V) under rules.occurrence_bands",
      "size": {
@@ -4737,7 +5051,7 @@
      },
      "occurrence_band": [
       0.3,
-      1
+      0.9
      ],
      "band_basis": "literature class CO (L98; status V) under rules.occurrence_bands",
      "size": {
@@ -4768,31 +5082,34 @@
      },
      "occurrence_band": [
       0.5,
-      1
+      0.95
      ],
      "band_basis": "literature class AB (R2025; status V) under rules.occurrence_bands",
      "size": {
       "basis": "specimen-proxy",
-      "n": 22,
-      "q10": 18.941,
-      "q25": 45.75,
+      "n": 21,
+      "q10": 17.49,
+      "q25": 40,
       "median": 85,
-      "q75": 120.25,
-      "q90": 176,
+      "q75": 122,
+      "q90": 180,
       "confidence": "low",
       "crystal_n": 0,
-      "specimen_n": 22,
+      "specimen_n": 21,
       "photographs_with_length": 26,
       "crystal": {
        "n": 0
       },
       "specimen": {
-       "n": 22,
+       "n": 21,
+       "min": 8.5,
+       "q25": 40,
        "median": 85,
-       "q25": 45.75,
-       "q75": 120.25
+       "q75": 122,
+       "max": 320
       },
-      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 26 photograph(s) of Sulphur at sicily with a stated length; 0 crystal, 22 specimen, 0 aggregate, 4 picture-width values"
+      "specimens": 25,
+      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 26 photograph(s) of Sulphur at sicily with a stated length, 25 specimen(s); 0 with a crystal length, 21 with specimen dimensions, 0 aggregate, 4 picture width"
      }
     },
     "aragonite": {
@@ -4806,7 +5123,7 @@
      },
      "occurrence_band": [
       0.3,
-      1
+      0.9
      ],
      "band_basis": "literature class CO (V1897; status V) under rules.occurrence_bands",
      "size": {
@@ -4823,17 +5140,22 @@
       "photographs_with_length": 11,
       "crystal": {
        "n": 2,
-       "median": 35,
+       "min": 30,
        "q25": 32.5,
-       "q75": 37.5
+       "median": 35,
+       "q75": 37.5,
+       "max": 40
       },
       "specimen": {
        "n": 9,
-       "median": 111,
+       "min": 5,
        "q25": 94,
-       "q75": 117
+       "median": 111,
+       "q75": 117,
+       "max": 300
       },
-      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 11 photograph(s) of Aragonite at sicily with a stated length; 2 crystal, 9 specimen, 0 aggregate, 1 picture-width values"
+      "specimens": 11,
+      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 11 photograph(s) of Aragonite at sicily with a stated length, 11 specimen(s); 2 with a crystal length, 9 with specimen dimensions, 0 aggregate, 1 picture width"
      }
     },
     "celestine": {
@@ -4847,7 +5169,7 @@
      },
      "occurrence_band": [
       0.3,
-      1
+      0.9
      ],
      "band_basis": "literature class CO (V1897; status V) under rules.occurrence_bands",
      "size": {
@@ -4867,11 +5189,14 @@
       },
       "specimen": {
        "n": 15,
-       "median": 80,
+       "min": 12.2,
        "q25": 55,
-       "q75": 101.5
+       "median": 80,
+       "q75": 101.5,
+       "max": 236
       },
-      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 18 photograph(s) of Celestine at sicily with a stated length; 0 crystal, 15 specimen, 0 aggregate, 2 picture-width values"
+      "specimens": 18,
+      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 18 photograph(s) of Celestine at sicily with a stated length, 18 specimen(s); 0 with a crystal length, 15 with specimen dimensions, 0 aggregate, 2 picture width"
      }
     },
     "calcite": {
@@ -4885,7 +5210,7 @@
      },
      "occurrence_band": [
       0.5,
-      1
+      0.95
      ],
      "band_basis": "literature class AB (R2025; status V) under rules.occurrence_bands",
      "size": {
@@ -4898,11 +5223,14 @@
       },
       "specimen": {
        "n": 4,
-       "median": 85,
+       "min": 40,
        "q25": 70,
-       "q75": 102.5
+       "median": 85,
+       "q75": 102.5,
+       "max": 140
       },
-      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 5 photograph(s) of Calcite at sicily with a stated length; 0 crystal, 4 specimen, 0 aggregate, 1 picture-width values"
+      "specimens": 5,
+      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 5 photograph(s) of Calcite at sicily with a stated length, 5 specimen(s); 0 with a crystal length, 4 with specimen dimensions, 0 aggregate, 1 picture width"
      }
     },
     "selenite": {
@@ -4916,7 +5244,7 @@
      },
      "occurrence_band": [
       0.5,
-      1
+      0.95
      ],
      "band_basis": "literature class AB (R2025; status S) under rules.occurrence_bands",
      "size": {
@@ -4948,7 +5276,7 @@
      },
      "occurrence_band": [
       0.5,
-      1
+      0.95
      ],
      "band_basis": "literature class AB (R40; status V) under rules.occurrence_bands",
      "size": {
@@ -4969,7 +5297,7 @@
      },
      "occurrence_band": [
       0.5,
-      1
+      0.95
      ],
      "band_basis": "literature class AB (R40; status V) under rules.occurrence_bands",
      "size": {
@@ -4990,7 +5318,7 @@
      },
      "occurrence_band": [
       0.3,
-      1
+      0.9
      ],
      "band_basis": "literature class CO (MRDS; status S) under rules.occurrence_bands",
      "size": {
@@ -5011,7 +5339,7 @@
      },
      "occurrence_band": [
       0.5,
-      1
+      0.95
      ],
      "band_basis": "literature class AB (R40; status V) under rules.occurrence_bands",
      "size": {
@@ -5042,7 +5370,7 @@
      },
      "occurrence_band": [
       0.5,
-      1
+      0.95
      ],
      "band_basis": "literature class AB (G24; status V) under rules.occurrence_bands",
      "size": {
@@ -5059,17 +5387,22 @@
       "photographs_with_length": 17,
       "crystal": {
        "n": 1,
-       "median": 20,
+       "min": 20,
        "q25": 20,
-       "q75": 20
+       "median": 20,
+       "q75": 20,
+       "max": 20
       },
       "specimen": {
        "n": 17,
-       "median": 44,
+       "min": 24,
        "q25": 30,
-       "q75": 57
+       "median": 44,
+       "q75": 57,
+       "max": 95
       },
-      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 17 photograph(s) of Rhodochrosite at sunnyside with a stated length; 1 crystal, 17 specimen, 0 aggregate, 0 picture-width values"
+      "specimens": 17,
+      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 17 photograph(s) of Rhodochrosite at sunnyside with a stated length, 17 specimen(s); 1 with a crystal length, 17 with specimen dimensions, 0 aggregate, 0 picture width"
      }
     },
     "fluorite": {
@@ -5083,7 +5416,7 @@
      },
      "occurrence_band": [
       0.3,
-      1
+      0.9
      ],
      "band_basis": "literature class CO (B33,G24; status V) under rules.occurrence_bands",
      "size": {
@@ -5100,17 +5433,22 @@
       "photographs_with_length": 15,
       "crystal": {
        "n": 1,
-       "median": 80,
+       "min": 80,
        "q25": 80,
-       "q75": 80
+       "median": 80,
+       "q75": 80,
+       "max": 80
       },
       "specimen": {
        "n": 15,
-       "median": 89,
+       "min": 30,
        "q25": 43,
-       "q75": 126
+       "median": 89,
+       "q75": 126,
+       "max": 300
       },
-      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 15 photograph(s) of Fluorite at sunnyside with a stated length; 1 crystal, 15 specimen, 0 aggregate, 0 picture-width values"
+      "specimens": 15,
+      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 15 photograph(s) of Fluorite at sunnyside with a stated length, 15 specimen(s); 1 with a crystal length, 15 with specimen dimensions, 0 aggregate, 0 picture width"
      }
     },
     "quartz": {
@@ -5124,7 +5462,7 @@
      },
      "occurrence_band": [
       0.5,
-      1
+      0.95
      ],
      "band_basis": "literature class AB (B33,G24; status V) under rules.occurrence_bands",
      "size": {
@@ -5137,11 +5475,14 @@
       },
       "specimen": {
        "n": 3,
-       "median": 64,
+       "min": 60,
        "q25": 62,
-       "q75": 74.5
+       "median": 64,
+       "q75": 74.5,
+       "max": 85
       },
-      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 3 photograph(s) of Quartz at sunnyside with a stated length; 0 crystal, 3 specimen, 0 aggregate, 0 picture-width values"
+      "specimens": 3,
+      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 3 photograph(s) of Quartz at sunnyside with a stated length, 3 specimen(s); 0 with a crystal length, 3 with specimen dimensions, 0 aggregate, 0 picture width"
      }
     },
     "native_gold": {
@@ -5155,7 +5496,7 @@
      },
      "occurrence_band": [
       0.3,
-      1
+      0.9
      ],
      "band_basis": "literature class CO (G24; status V) under rules.occurrence_bands",
      "size": {
@@ -5168,11 +5509,14 @@
       },
       "specimen": {
        "n": 1,
-       "median": 40,
+       "min": 40,
        "q25": 40,
-       "q75": 40
+       "median": 40,
+       "q75": 40,
+       "max": 40
       },
-      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 2 photograph(s) of Gold at sunnyside with a stated length; 0 crystal, 1 specimen, 0 aggregate, 1 picture-width values"
+      "specimens": 2,
+      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 2 photograph(s) of Gold at sunnyside with a stated length, 2 specimen(s); 0 with a crystal length, 1 with specimen dimensions, 0 aggregate, 1 picture width"
      }
     },
     "pyrite": {
@@ -5186,7 +5530,7 @@
      },
      "occurrence_band": [
       0.3,
-      1
+      0.9
      ],
      "band_basis": "literature class CO (G24; status V) under rules.occurrence_bands",
      "size": {
@@ -5207,7 +5551,7 @@
      },
      "occurrence_band": [
       0.5,
-      1
+      0.95
      ],
      "band_basis": "literature class AB (G24; status V) under rules.occurrence_bands",
      "size": {
@@ -5228,7 +5572,7 @@
      },
      "occurrence_band": [
       0.3,
-      1
+      0.9
      ],
      "band_basis": "literature class CO (G24; status V) under rules.occurrence_bands",
      "size": {
@@ -5249,7 +5593,7 @@
      },
      "occurrence_band": [
       0.5,
-      1
+      0.95
      ],
      "band_basis": "literature class AB (B33,G24; status V) under rules.occurrence_bands",
      "size": {
@@ -5270,7 +5614,7 @@
      },
      "occurrence_band": [
       0.5,
-      1
+      0.95
      ],
      "band_basis": "literature class AB (G24; status V) under rules.occurrence_bands",
      "size": {
@@ -5303,7 +5647,7 @@
      },
      "occurrence_band": [
       0.5,
-      1
+      0.95
      ],
      "band_basis": "literature class AB (TMN; status V) under rules.occurrence_bands",
      "size": {
@@ -5317,20 +5661,25 @@
       "confidence": "low",
       "crystal_n": 3,
       "specimen_n": 29,
-      "photographs_with_length": 55,
+      "photographs_with_length": 58,
       "crystal": {
        "n": 3,
-       "median": 5,
+       "min": 5,
        "q25": 5,
-       "q75": 7
+       "median": 5,
+       "q75": 7,
+       "max": 9
       },
       "specimen": {
        "n": 29,
-       "median": 70,
+       "min": 10,
        "q25": 45,
-       "q75": 100
+       "median": 70,
+       "q75": 100,
+       "max": 180
       },
-      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 55 photograph(s) of Cobaltoan Smithsonite / Cuprian Smithsonite / Smithsonite at tsumeb with a stated length; 3 crystal, 29 specimen, 0 aggregate, 23 picture-width values"
+      "specimens": 55,
+      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 58 photograph(s) of Cobaltoan Smithsonite / Cuprian Smithsonite / Smithsonite at tsumeb with a stated length, 55 specimen(s); 3 with a crystal length, 29 with specimen dimensions, 0 aggregate, 23 picture width"
      }
     },
     "cerussite": {
@@ -5344,7 +5693,7 @@
      },
      "occurrence_band": [
       0.5,
-      1
+      0.95
      ],
      "band_basis": "literature class AB (TMN; status V) under rules.occurrence_bands",
      "size": {
@@ -5358,20 +5707,25 @@
       "confidence": "low",
       "crystal_n": 5,
       "specimen_n": 40,
-      "photographs_with_length": 55,
+      "photographs_with_length": 58,
       "crystal": {
        "n": 5,
-       "median": 28,
+       "min": 3,
        "q25": 23,
-       "q75": 30
+       "median": 28,
+       "q75": 30,
+       "max": 40
       },
       "specimen": {
        "n": 40,
-       "median": 39,
+       "min": 14,
        "q25": 30,
-       "q75": 74.25
+       "median": 39,
+       "q75": 74.25,
+       "max": 100
       },
-      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 55 photograph(s) of Cerussite at tsumeb with a stated length; 5 crystal, 40 specimen, 0 aggregate, 12 picture-width values"
+      "specimens": 55,
+      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 58 photograph(s) of Cerussite at tsumeb with a stated length, 55 specimen(s); 5 with a crystal length, 40 with specimen dimensions, 0 aggregate, 12 picture width"
      }
     },
     "calcite": {
@@ -5385,34 +5739,39 @@
      },
      "occurrence_band": [
       0.5,
-      1
+      0.95
      ],
      "band_basis": "literature class AB (TMN; status V) under rules.occurrence_bands",
      "size": {
       "basis": "specimen-proxy",
-      "n": 46,
-      "q10": 32.5,
+      "n": 45,
+      "q10": 32,
       "q25": 45,
-      "median": 71.5,
-      "q75": 99.25,
-      "q90": 125,
+      "median": 73,
+      "q75": 100,
+      "q90": 127,
       "confidence": "low",
       "crystal_n": 1,
-      "specimen_n": 46,
-      "photographs_with_length": 56,
+      "specimen_n": 45,
+      "photographs_with_length": 57,
       "crystal": {
        "n": 1,
-       "median": 10,
+       "min": 10,
        "q25": 10,
-       "q75": 10
+       "median": 10,
+       "q75": 10,
+       "max": 10
       },
       "specimen": {
-       "n": 46,
-       "median": 71.5,
+       "n": 45,
+       "min": 1.47,
        "q25": 45,
-       "q75": 99.25
+       "median": 73,
+       "q75": 100,
+       "max": 1400
       },
-      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 56 photograph(s) of Calcite / Cobaltocalcite at tsumeb with a stated length; 1 crystal, 46 specimen, 0 aggregate, 9 picture-width values"
+      "specimens": 55,
+      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 57 photograph(s) of Calcite / Cobaltocalcite at tsumeb with a stated length, 55 specimen(s); 1 with a crystal length, 45 with specimen dimensions, 0 aggregate, 9 picture width"
      }
     },
     "azurite": {
@@ -5426,7 +5785,7 @@
      },
      "occurrence_band": [
       0.5,
-      1
+      0.95
      ],
      "band_basis": "literature class AB (TMN; status V) under rules.occurrence_bands",
      "size": {
@@ -5440,20 +5799,25 @@
       "confidence": "low",
       "crystal_n": 3,
       "specimen_n": 40,
-      "photographs_with_length": 54,
+      "photographs_with_length": 56,
       "crystal": {
        "n": 3,
-       "median": 15,
+       "min": 5,
        "q25": 10,
-       "q75": 20
+       "median": 15,
+       "q75": 20,
+       "max": 25
       },
       "specimen": {
        "n": 40,
-       "median": 45,
+       "min": 3.83,
        "q25": 31.75,
-       "q75": 70
+       "median": 45,
+       "q75": 70,
+       "max": 120
       },
-      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 54 photograph(s) of Azurite at tsumeb with a stated length; 3 crystal, 40 specimen, 0 aggregate, 11 picture-width values"
+      "specimens": 54,
+      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 56 photograph(s) of Azurite at tsumeb with a stated length, 54 specimen(s); 3 with a crystal length, 40 with specimen dimensions, 0 aggregate, 11 picture width"
      }
     },
     "malachite": {
@@ -5467,7 +5831,7 @@
      },
      "occurrence_band": [
       0.5,
-      1
+      0.95
      ],
      "band_basis": "literature class AB (TMN; status V) under rules.occurrence_bands",
      "size": {
@@ -5484,17 +5848,22 @@
       "photographs_with_length": 39,
       "crystal": {
        "n": 3,
-       "median": 15,
+       "min": 6,
        "q25": 10.5,
-       "q75": 19.5
+       "median": 15,
+       "q75": 19.5,
+       "max": 24
       },
       "specimen": {
        "n": 25,
-       "median": 60,
+       "min": 4.2,
        "q25": 30,
-       "q75": 91
+       "median": 60,
+       "q75": 91,
+       "max": 125
       },
-      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 39 photograph(s) of Malachite at tsumeb with a stated length; 3 crystal, 25 specimen, 0 aggregate, 11 picture-width values"
+      "specimens": 39,
+      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 39 photograph(s) of Malachite at tsumeb with a stated length, 39 specimen(s); 3 with a crystal length, 25 with specimen dimensions, 0 aggregate, 11 picture width"
      }
     },
     "mimetite": {
@@ -5508,7 +5877,7 @@
      },
      "occurrence_band": [
       0.3,
-      1
+      0.9
      ],
      "band_basis": "literature class CO (TMN; status V) under rules.occurrence_bands",
      "size": {
@@ -5522,20 +5891,25 @@
       "confidence": "low",
       "crystal_n": 1,
       "specimen_n": 27,
-      "photographs_with_length": 50,
+      "photographs_with_length": 54,
       "crystal": {
        "n": 1,
-       "median": 20,
+       "min": 20,
        "q25": 20,
-       "q75": 20
+       "median": 20,
+       "q75": 20,
+       "max": 20
       },
       "specimen": {
        "n": 27,
-       "median": 55,
+       "min": 20,
        "q25": 38.5,
-       "q75": 90
+       "median": 55,
+       "q75": 90,
+       "max": 160
       },
-      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 50 photograph(s) of Mimetite at tsumeb with a stated length; 1 crystal, 27 specimen, 0 aggregate, 22 picture-width values"
+      "specimens": 50,
+      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 54 photograph(s) of Mimetite at tsumeb with a stated length, 50 specimen(s); 1 with a crystal length, 27 with specimen dimensions, 0 aggregate, 22 picture width"
      }
     },
     "cuprite": {
@@ -5549,7 +5923,7 @@
      },
      "occurrence_band": [
       0.3,
-      1
+      0.9
      ],
      "band_basis": "literature class CO (TMN; status S) under rules.occurrence_bands",
      "size": {
@@ -5570,7 +5944,7 @@
      },
      "occurrence_band": [
       0.3,
-      1
+      0.9
      ],
      "band_basis": "literature class CO (TMN; status V) under rules.occurrence_bands",
      "size": {
@@ -5591,7 +5965,7 @@
      },
      "occurrence_band": [
       0.5,
-      1
+      0.95
      ],
      "band_basis": "literature class AB (TMN; status V) under rules.occurrence_bands",
      "size": {
@@ -5612,7 +5986,7 @@
      },
      "occurrence_band": [
       0.3,
-      1
+      0.9
      ],
      "band_basis": "literature class CO (TMN; status S) under rules.occurrence_bands",
      "size": {
@@ -5633,7 +6007,7 @@
      },
      "occurrence_band": [
       0.3,
-      1
+      0.9
      ],
      "band_basis": "literature class CO (TMN; status V) under rules.occurrence_bands",
      "size": {
@@ -5654,7 +6028,7 @@
      },
      "occurrence_band": [
       0.3,
-      1
+      0.9
      ],
      "band_basis": "literature class CO (TMN; status S) under rules.occurrence_bands",
      "size": {
@@ -5705,17 +6079,22 @@
       "photographs_with_length": 11,
       "crystal": {
        "n": 2,
-       "median": 34,
+       "min": 18,
        "q25": 26,
-       "q75": 42
+       "median": 34,
+       "q75": 42,
+       "max": 50
       },
       "specimen": {
        "n": 10,
-       "median": 47,
+       "min": 21,
        "q25": 34,
-       "q75": 53.75
+       "median": 47,
+       "q75": 53.75,
+       "max": 75
       },
-      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 11 photograph(s) of Titanite at tormiq with a stated length; 2 crystal, 10 specimen, 0 aggregate, 0 picture-width values"
+      "specimens": 11,
+      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 11 photograph(s) of Titanite at tormiq with a stated length, 11 specimen(s); 2 with a crystal length, 10 with specimen dimensions, 0 aggregate, 0 picture width"
      }
     },
     "epidote": {
@@ -5729,7 +6108,7 @@
      },
      "occurrence_band": [
       0.5,
-      1
+      0.95
      ],
      "band_basis": "literature class AB (dealer/mindat snippets; status S) under rules.occurrence_bands",
      "size": {
@@ -5746,17 +6125,22 @@
       "photographs_with_length": 6,
       "crystal": {
        "n": 1,
-       "median": 20,
+       "min": 20,
        "q25": 20,
-       "q75": 20
+       "median": 20,
+       "q75": 20,
+       "max": 20
       },
       "specimen": {
        "n": 5,
-       "median": 45,
+       "min": 34,
        "q25": 40,
-       "q75": 67
+       "median": 45,
+       "q75": 67,
+       "max": 74
       },
-      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 6 photograph(s) of Epidote / Epidote group at tormiq with a stated length; 1 crystal, 5 specimen, 0 aggregate, 0 picture-width values"
+      "specimens": 6,
+      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 6 photograph(s) of Epidote / Epidote group at tormiq with a stated length, 6 specimen(s); 1 with a crystal length, 5 with specimen dimensions, 0 aggregate, 0 picture width"
      }
     },
     "quartz": {
@@ -5797,11 +6181,14 @@
       },
       "specimen": {
        "n": 7,
-       "median": 74,
+       "min": 38,
        "q25": 48,
-       "q75": 90.5
+       "median": 74,
+       "q75": 90.5,
+       "max": 115
       },
-      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 7 photograph(s) of Clinozoisite at tormiq with a stated length; 0 crystal, 7 specimen, 0 aggregate, 0 picture-width values"
+      "specimens": 7,
+      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 7 photograph(s) of Clinozoisite at tormiq with a stated length, 7 specimen(s); 0 with a crystal length, 7 with specimen dimensions, 0 aggregate, 0 picture width"
      }
     },
     "x:ilmenite": {
@@ -5828,11 +6215,14 @@
       },
       "specimen": {
        "n": 6,
-       "median": 57.5,
+       "min": 30,
        "q25": 52.75,
-       "q75": 65.25
+       "median": 57.5,
+       "q75": 65.25,
+       "max": 67
       },
-      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 7 photograph(s) of Ilmenite at tormiq with a stated length; 0 crystal, 6 specimen, 0 aggregate, 1 picture-width values"
+      "specimens": 7,
+      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 7 photograph(s) of Ilmenite at tormiq with a stated length, 7 specimen(s); 0 with a crystal length, 6 with specimen dimensions, 0 aggregate, 1 picture width"
      }
     },
     "hematite": {
@@ -5860,7 +6250,7 @@
      },
      "occurrence_band": [
       0.3,
-      1
+      0.9
      ],
      "band_basis": "literature class CO (low-reliability wiki; status S) under rules.occurrence_bands",
      "size": {
@@ -5891,7 +6281,7 @@
      },
      "occurrence_band": [
       0.3,
-      1
+      0.9
      ],
      "band_basis": "literature class CO (E11,GIA14; status V) under rules.occurrence_bands",
      "size": {
@@ -5911,12 +6301,15 @@
       },
       "specimen": {
        "n": 8,
-       "median": 89,
+       "min": 21,
        "q25": 62.75,
-       "q75": 100.5
+       "median": 89,
+       "q75": 100.5,
+       "max": 115
       },
       "piece_material": true,
-      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 10 photograph(s) of Chrysoprase at marlborough with a stated length; 0 crystal, 8 specimen, 0 aggregate, 2 picture-width values"
+      "specimens": 10,
+      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 10 photograph(s) of Chrysoprase at marlborough with a stated length, 10 specimen(s); 0 with a crystal length, 8 with specimen dimensions, 0 aggregate, 2 picture width"
      }
     },
     "chalcedony": {
@@ -5930,7 +6323,7 @@
      },
      "occurrence_band": [
       0.5,
-      1
+      0.95
      ],
      "band_basis": "literature class AB (E11; status V) under rules.occurrence_bands",
      "size": {
@@ -5951,7 +6344,7 @@
      },
      "occurrence_band": [
       0.5,
-      1
+      0.95
      ],
      "band_basis": "literature class AB (E11; status V) under rules.occurrence_bands",
      "size": {
@@ -5982,7 +6375,7 @@
      },
      "occurrence_band": [
       0.5,
-      1
+      0.95
      ],
      "band_basis": "literature class AB (P1868; status V) under rules.occurrence_bands",
      "size": {
@@ -5996,17 +6389,20 @@
       "confidence": "low",
       "crystal_n": 0,
       "specimen_n": 8,
-      "photographs_with_length": 32,
+      "photographs_with_length": 39,
       "crystal": {
        "n": 0
       },
       "specimen": {
        "n": 8,
-       "median": 45,
+       "min": 6,
        "q25": 35.25,
-       "q75": 55
+       "median": 45,
+       "q75": 55,
+       "max": 100
       },
-      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 32 photograph(s) of Erythrite at wittichen with a stated length; 0 crystal, 8 specimen, 0 aggregate, 24 picture-width values"
+      "specimens": 32,
+      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 39 photograph(s) of Erythrite at wittichen with a stated length, 32 specimen(s); 0 with a crystal length, 8 with specimen dimensions, 0 aggregate, 24 picture width"
      }
     },
     "zeunerite": {
@@ -6020,20 +6416,25 @@
       "basis": "unknown",
       "crystal_n": 1,
       "specimen_n": 4,
-      "photographs_with_length": 34,
+      "photographs_with_length": 53,
       "crystal": {
        "n": 1,
-       "median": 1.3,
+       "min": 1.3,
        "q25": 1.3,
-       "q75": 1.3
+       "median": 1.3,
+       "q75": 1.3,
+       "max": 1.3
       },
       "specimen": {
        "n": 4,
-       "median": 1.145,
+       "min": 0.87,
        "q25": 0.953,
-       "q75": 1.4
+       "median": 1.145,
+       "q75": 1.4,
+       "max": 1.67
       },
-      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 34 photograph(s) of Zeunerite at wittichen with a stated length; 1 crystal, 4 specimen, 0 aggregate, 29 picture-width values"
+      "specimens": 34,
+      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 53 photograph(s) of Zeunerite at wittichen with a stated length, 34 specimen(s); 1 with a crystal length, 4 with specimen dimensions, 0 aggregate, 29 picture width"
      }
     },
     "ma:heinrichite": {
@@ -6047,20 +6448,25 @@
       "basis": "unknown",
       "crystal_n": 1,
       "specimen_n": 3,
-      "photographs_with_length": 34,
+      "photographs_with_length": 51,
       "crystal": {
        "n": 1,
-       "median": 1.4,
+       "min": 1.4,
        "q25": 1.4,
-       "q75": 1.4
+       "median": 1.4,
+       "q75": 1.4,
+       "max": 1.4
       },
       "specimen": {
        "n": 3,
-       "median": 60,
+       "min": 1,
        "q25": 30.5,
-       "q75": 60
+       "median": 60,
+       "q75": 60,
+       "max": 60
       },
-      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 34 photograph(s) of Heinrichite at wittichen with a stated length; 1 crystal, 3 specimen, 0 aggregate, 30 picture-width values"
+      "specimens": 34,
+      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 51 photograph(s) of Heinrichite at wittichen with a stated length, 34 specimen(s); 1 with a crystal length, 3 with specimen dimensions, 0 aggregate, 30 picture width"
      }
     },
     "fluorite": {
@@ -6074,34 +6480,39 @@
      },
      "occurrence_band": [
       0.3,
-      1
+      0.9
      ],
      "band_basis": "literature class CO (P1868; status V) under rules.occurrence_bands",
      "size": {
       "basis": "specimen-proxy",
-      "n": 19,
-      "q10": 44,
+      "n": 18,
+      "q10": 43.5,
       "q25": 50,
-      "median": 60,
-      "q75": 72.5,
+      "median": 56.5,
+      "q75": 73.75,
       "q90": 80,
       "confidence": "low",
       "crystal_n": 2,
-      "specimen_n": 19,
+      "specimen_n": 18,
       "photographs_with_length": 24,
       "crystal": {
        "n": 2,
-       "median": 16.5,
+       "min": 8,
        "q25": 12.25,
-       "q75": 20.75
+       "median": 16.5,
+       "q75": 20.75,
+       "max": 25
       },
       "specimen": {
-       "n": 19,
-       "median": 60,
+       "n": 18,
+       "min": 35,
        "q25": 50,
-       "q75": 72.5
+       "median": 56.5,
+       "q75": 73.75,
+       "max": 80
       },
-      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 24 photograph(s) of Fluorite at wittichen with a stated length; 2 crystal, 19 specimen, 0 aggregate, 4 picture-width values"
+      "specimens": 23,
+      "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 24 photograph(s) of Fluorite at wittichen with a stated length, 23 specimen(s); 2 with a crystal length, 18 with specimen dimensions, 0 aggregate, 4 picture width"
      }
     },
     "native_silver": {
@@ -6115,7 +6526,7 @@
      },
      "occurrence_band": [
       0.5,
-      1
+      0.95
      ],
      "band_basis": "literature class AB (P1868; status V) under rules.occurrence_bands",
      "size": {
@@ -6136,7 +6547,7 @@
      },
      "occurrence_band": [
       0.5,
-      1
+      0.95
      ],
      "band_basis": "literature class AB (P1868; status V) under rules.occurrence_bands",
      "size": {
@@ -6157,7 +6568,7 @@
      },
      "occurrence_band": [
       0.5,
-      1
+      0.95
      ],
      "band_basis": "literature class AB (P1868; status V) under rules.occurrence_bands",
      "size": {
@@ -6178,7 +6589,7 @@
      },
      "occurrence_band": [
       0.5,
-      1
+      0.95
      ],
      "band_basis": "literature class AB (P1868; status V) under rules.occurrence_bands",
      "size": {
@@ -6199,7 +6610,7 @@
      },
      "occurrence_band": [
       0.3,
-      1
+      0.9
      ],
      "band_basis": "literature class CO (P1868; status V) under rules.occurrence_bands",
      "size": {
