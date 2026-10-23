@@ -17,6 +17,7 @@ import {
 } from './browser-workflow.mjs';
 import { cleanupOwnedBrowserResources, terminateExactBrowserProcess } from './benchmark-browser-cleanup.mjs';
 import { findOwnedBrowserExecutable, ownedBrowserExecutableIdentity } from './owned-browser-runtime.mjs';
+import {PROBE_STARTUP_TIMEOUT_MS,probeBrowserFileVersion,readProbeStartupEvidence,observeLateProbeStartup} from './benchmark-browser-startup.mjs';
 
 if (process.platform !== 'win32') throw new Error('This real-browser ownership probe requires Windows');
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -28,6 +29,7 @@ const sourceFiles = [
   '.github/workflows/ci.yml',
   'tools/benchmark-browser-cleanup-probe.mjs', 'tools/benchmark-browser-detached-launcher.mjs',
   'tools/browser-workflow.mjs', 'tools/benchmark-browser-cleanup.mjs', 'tools/owned-browser-runtime.mjs',
+  'tools/benchmark-browser-startup.mjs',
 ];
 const record = {
   schema: 'vugg-benchmark-browser-cleanup-probe-v1', runId,
@@ -38,6 +40,8 @@ const record = {
   head: execFileSync('git', ['rev-parse', 'HEAD'], {cwd: root, encoding: 'utf8'}).trim(),
   inputs: Object.fromEntries(sourceFiles.map(file => [file, createHash('sha256').update(readFileSync(path.join(root, file))).digest('hex')])),
   browser_executable: ownedBrowserExecutableIdentity(findOwnedBrowserExecutable()), cases: [],
+  browser_file_version:probeBrowserFileVersion(findOwnedBrowserExecutable()),
+  runner:{os:process.env.RUNNER_OS??os.type(),image:process.env.ImageOS??null,image_version:process.env.ImageVersion??null},
 };
 assert.equal(record.browser_executable.executable_name, 'chrome.exe', 'The durable CI probe requires real Chrome');
 record.driver = (await windowsProcessTree()).find(row => row.pid === process.pid);
@@ -49,7 +53,21 @@ for (const file of sourceFiles) {
 }
 const save = () => writeFile(path.join(output, 'result.json'), JSON.stringify(record, null, 2) + '\n');
 await writeFile(path.join(outputRoot, 'latest.json'), JSON.stringify({runId, output}) + '\n');
+await save();
+assert.equal(record.browser_file_version.status,'recorded','Native Chrome file/product version must be recorded before the probe');
 const same = (a, b) => a.pid === b.pid && a.start_ticks === b.start_ticks && a.executable_path === b.executable_path;
+
+async function startupEvidence(profile){
+  const evidence=readProbeStartupEvidence(profile);
+  if(Number.isSafeInteger(evidence.launch.spawned_pid)){
+    try{
+      const row=(await windowsProcessTree()).find(r=>r.pid===evidence.launch.spawned_pid);
+      evidence.reported_pid_observation=row?{present:true,pid:row.pid,start_ticks:row.start_ticks,executable_path:row.executable_path}
+        :{present:false,pid:evidence.launch.spawned_pid};
+    }catch(error){evidence.reported_pid_observation={status:'unavailable',error:formatErrorTree(error)};}
+  }
+  return evidence;
+}
 
 async function listening(port) {
   return new Promise((resolve, reject) => {
@@ -74,7 +92,7 @@ for (const mode of ['recovery', 'forced', 'unknown-owner', 'reused-owner-pid', '
   await writeFile(path.join(profile, 'probe-owner.json'), JSON.stringify({runId}));
   const result = {mode, profile, receipts: [], started_utc: new Date().toISOString(), expiry_seconds: 90};
   record.cases.push(result);
-  let browser, client, timer, server, devtools, rootReceipt, canary;
+  let browser, client, timer, server, devtools, rootReceipt, canary,launchStarted,devtoolsStarted;
   const collectRows = async () => {
     const rows = await windowsProcessTree();
     if (rootReceipt && rows.some(row => same(row, rootReceipt))) {
@@ -94,15 +112,23 @@ for (const mode of ['recovery', 'forced', 'unknown-owner', 'reused-owner-pid', '
     const health = await fetch(`http://127.0.0.1:${result.server_port}/`, {signal: AbortSignal.timeout(2_000)});
     assert.equal(health.headers.get('x-vugg-probe-run'), runId);
     await health.text();
+    launchStarted=performance.now();
     browser = spawnOwned(process.execPath, [path.join(root, 'tools', 'benchmark-browser-detached-launcher.mjs'), profile, runId],
       {stdio: ['ignore', 'pipe', 'pipe'], windowsHide: true});
     let launchOutput = '';
     browser.stdout.on('data', chunk => {launchOutput += chunk;});
-    browser.stderr.on('data', () => {});
+    let launcherStderr='';
+    browser.stderr.on('data', chunk => {launcherStderr=(launcherStderr+chunk).slice(-8192);result.launcher_stderr=launcherStderr;});
     assert.equal(await waitForOwnedExit(browser, 10_000), true);
     assert.equal(browser.exitCode, 0);
     result.launcher = {pid: browser.pid, exit_code: browser.exitCode, output: launchOutput.trim()};
-    devtools = await waitForDevToolsReceipt(profile, browser, 10_000);
+    result.launcher_elapsed_ms=performance.now()-launchStarted;
+    result.startup_budget_ms=PROBE_STARTUP_TIMEOUT_MS;devtoolsStarted=performance.now();
+    devtools = await waitForDevToolsReceipt(profile, browser, PROBE_STARTUP_TIMEOUT_MS);
+    result.devtools_wait_elapsed_ms=performance.now()-devtoolsStarted;
+    result.startup_evidence=await startupEvidence(profile);
+    assert.equal(result.startup_evidence.stderr.status,'recorded','The detached browser must retain its stderr file');
+    assert.deepEqual(result.startup_evidence.launch.executable_identity,record.browser_executable,'Launcher binary changed between initial identity and spawn');
     result.devtools = devtools;
     const version = await (await fetch(`http://127.0.0.1:${devtools.port}/json/version`, {signal: AbortSignal.timeout(2_000)})).json();
     assertOwnedDevToolsVersion(version, devtools);
@@ -129,7 +155,8 @@ for (const mode of ['recovery', 'forced', 'unknown-owner', 'reused-owner-pid', '
         {stdio: 'ignore', windowsHide: true});
       assert.equal(await waitForOwnedExit(canary.browser, 10_000), true);
       assert.equal(canary.browser.exitCode, 0);
-      canary.devtools = await waitForDevToolsReceipt(canaryProfile, canary.browser, 10_000);
+      canary.devtools = await waitForDevToolsReceipt(canaryProfile, canary.browser, PROBE_STARTUP_TIMEOUT_MS);
+      result.canary.startup_evidence=await startupEvidence(canaryProfile);
       canary.owned = await captureOwnedBrowserProcessReceiptsForPort(canary.devtools.port, {devtoolsReceipt: canary.devtools});
       Object.assign(result.canary, {devtools: canary.devtools, receipts: canary.owned.receipts});
       await save();
@@ -214,7 +241,30 @@ for (const mode of ['recovery', 'forced', 'unknown-owner', 'reused-owner-pid', '
     }
     result.status = 'passed';
   } catch (error) {
-    result.status = 'failed'; result.error = error.stack; failed = true;
+    result.status = 'failed'; result.error = formatErrorTree(error); failed = true;
+    if(devtoolsStarted!==undefined&&result.devtools_wait_elapsed_ms===undefined)result.devtools_wait_elapsed_ms=performance.now()-devtoolsStarted;
+    if(!devtools&&devtoolsStarted!==undefined){
+      // Preserve the failed 10-second verdict. A separate bounded observation
+      // distinguishes late readiness from no readiness, and may permit safe
+      // harness cleanup only after the full existing nonce/native proof.
+      result.late_startup=await observeLateProbeStartup(ms=>waitForDevToolsReceipt(profile,browser,ms));
+      if(result.late_startup.status==='late-receipt-observed'){
+        try{
+          const late=result.late_startup.receipt;
+          const version=await(await fetch(`http://127.0.0.1:${late.port}/json/version`,{signal:AbortSignal.timeout(2_000)})).json();
+          assertOwnedDevToolsVersion(version,late);
+          const owned=await captureOwnedBrowserProcessReceiptsForPort(late.port,{devtoolsReceipt:late});
+          devtools=late;rootReceipt=owned.rootReceipt;result.receipts=owned.receipts;
+          result.late_startup.authenticated_product=version.Browser;
+          result.late_startup.native_owner=rootReceipt;result.late_startup.native_listener_bind_ticks=owned.listenerStartTicks;
+          client=new CdpClient(late.webSocketDebuggerUrl);await client.open();
+        }catch(lateError){result.late_startup.authentication_error=formatErrorTree(lateError);}
+      }
+    }
+    const failureEvidence=await startupEvidence(profile);
+    if(result.startup_evidence)result.failure_startup_evidence=failureEvidence;
+    else result.startup_evidence=failureEvidence;
+    if(canary&&!result.canary.startup_evidence)result.canary.startup_evidence=await startupEvidence(canary.profile);
   } finally {
     clearTimeout(timer);
     // Independent harness cleanup also closes deliberately untouched negative
