@@ -183,7 +183,7 @@ leads, as before. Species the comparison sets aside as outside a scenario's scop
 bands by literature class:
 
 <!-- generated:rules -->
-Occurrence bands by literature class: AB 50–95 %, CO 30–90 %, UN 10–60 %, RA 2–30 %, VR 0–15 %; any other class leaves the band unresolved. Size targets: at least 5 specimens; confidence low below 10, medium below 30, high from 30, one step lower when one series holds more than half the lengths (a series: one wording, each upload less than 365 days after the one before); a specimen proxy is always low. Specimen lengths under 10 mm are set aside; photographs of one specimen are joined when uploaded within 1,000,000 s (11.6 days) of each other. Display range: the record's q25–q90; a fresh crystal from the record's population lands in it with probability 0.65 × (n − 1) / (n + 1) for a record of n. Story frequency: the largest band floor × that coverage among a scenario's protagonists that can carry a story run — an engine, a band, and a size target whose display range starts within the cavity's span (q25 ≤ span) — crystal targets first, a proxy only where no crystal target can. Noise: the Wilson interval at z 1.96. Clutter: under 10 % of the visible crystals. The star: a wanted species in at least 50 % of the runs.
+Occurrence bands by literature class: AB 50–95 %, CO 30–90 %, UN 10–60 %, RA 2–30 %, VR 0–15 %; any other class leaves the band unresolved. Size targets: at least 5 specimens; confidence low below 10, medium below 30, high from 30, one step lower when one series holds more than half the lengths (a series: one wording, each upload less than 365 days after the one before; a wording ending in "größe", "grösse", "groesse", "size", "maße", "masse", "abmessungen", "dimension", "dimensions", or a bare length, only among photographs uploaded together); a specimen proxy is always low. Specimen lengths under 10 mm are set aside; photographs of one specimen are joined when uploaded within 1,000,000 s (11.6 days) of each other. Display range: the record's q25–q90; a fresh crystal from the record's population lands in it with probability 0.65 × (n − 1) / (n + 1) for a record of n. Story frequency: the largest band floor × that coverage among a scenario's protagonists that can carry a story run — an engine, a band, and a size target whose display range starts within the cavity's span (q25 ≤ span) — crystal targets first, a proxy only where no crystal target can. Noise: the Wilson interval at z 1.96 — of the rate, for occurrence and the story; for a size verdict, of the share of runs on the target window's side of its near edge, against one half. Clutter: under 10 % of the visible crystals. The star: a wanted species in at least 50 % of the runs.
 <!-- /generated:rules -->
 
 No band reaches 100 %. With 21 seeds, a single species in every seed is within noise of a 90–95 %
@@ -220,16 +220,19 @@ that do give the specimen.
   - Photographs of one specimen count once. They are joined when uploaded together — the image ids read
     as upload times in seconds, and the window is 1,000,000 s, about 11.6 days — with the same caption
     (identical once a word cut at the stretch's start, punctuation and "mit", "und", "auf" are dropped)
-    or the same multi-dimension length of a crystal, an aggregate or the specimen; a picture's size joins
-    nothing. Uploaded apart, only the same length in three dimensions, one of them written with a decimal
+    or the same multi-dimension length of a crystal, an aggregate or the specimen. A picture's size
+    identifies no specimen: a caption that states nothing else ("Erythrit, BB 4,5 mm") joins nothing,
+    since a micromounter photographs many specimens at one magnification, and neither does a shared
+    picture size. Uploaded apart, only the same length in three dimensions, one of them written with a decimal
     ("5x5x4,8mm", "15,9 x 10 x 4,7 cm"), joins them. Captions naming
     different finds never join, nor two that each name a mineral the other does not ("mit etwas
     Limonit" against "mit etwas Hämatit": two specimens of one lot).
   - Lengths in one wording once the numbers are taken out, uploaded in one stretch — each less than a
     year after the one before — are one series: likely one contributor's lot or find, not independent
     samples. The capture has no uploader names, so the stretch stands in for the contributor. A
-    standard caption field such as "Größe: N mm" is everyone's wording, so only photographs uploaded
-    together (within the join window) make a series of it. The same rule applies to specimen lengths,
+    standard caption field such as "Größe: N mm" (a wording that ends in one of the size words the
+    targets file lists) is everyone's wording, and so is a bare length with no words around it: only
+    photographs uploaded together (within the join window) make a series of either. The same rule applies to specimen lengths,
     and §2.6 re-scores proxies too. A crystal target
     whose largest series holds more than half its lengths is one step less confident, and the scoreboard
     tests the verdict without that series (§2.6).
@@ -253,6 +256,14 @@ that do give the specimen.
   against a proxy) or OVERSIZE. A simulated crystal larger than every photographed crystal length of
   its species, where a few exist, is flagged.
 
+  A miss is "noise" when the runs cannot tell their median from the target's window: the 95 % interval
+  of the share of runs on the window's side of its near edge (at least the lower quartile for BELOW; at
+  most the upper quartile for LARGE or OVERSIZE, the 90th percentile for a proxy's OVERSIZE) still
+  reaches one half. Without it, a fleet drawn from the record's own population would miss the middle
+  half of a five-crystal record about two times in five (the tests draw such fleets). With it, the check
+  is weak where the runs are few and the spread wide: at 21 runs, a fleet at half the record's scale is
+  within noise nearly half the time, one at a third rarely, one at a tenth never.
+
 **Pockets.** A cavity can hold a species' characteristic crystal when its span — the longest distance
 between two wall vertices (`tools/story-pocket-cavities.mjs`) — is at least the target's median. The
 span is an upper bound on the longest crystal the cavity holds: in a cavity that is not convex, the
@@ -269,8 +280,18 @@ record's display scale. A scenario should carry it in at least *floor × coverag
 for the protagonist that can carry a story run with the largest such product. A protagonist can carry
 one when it has an engine, a band and a size target whose display range starts within the scenario's
 cavity span: its lower quartile no longer than the span, the same test a run's YES needs. Crystal
-targets come first. A proxy sets the frequency only where no crystal target can carry a story run, as a
-size target prefers crystal lengths.
+targets come first. A proxy sets the frequency only where no crystal target can carry a story run, since
+a proxy's product is a bar and a crystal target's an expected rate. That has consequences the boss
+should weigh:
+- any protagonist's crystal target displaces every proxy, the primary's too: an alternate's small
+  record can set the frequency below the bar the primary's proxy would set;
+- a low band or a small record then sets a low frequency, possibly one that 21 seeds cannot fail beyond
+  noise; an uncommon alternate with five crystal lengths would set 0.1 × 0.43 = 0.043;
+- where crystal targets set it, a STORY (PROXY) is judged against their expected rate, not a proxy's
+  bar.
+
+The seventh line under §2's table lists the frequencies this moves and any verdict that moves with them,
+and §2.6 shows every verdict with proxies setting it too.
 - the floor is its band's lower bound;
 - the coverage is the chance that a crystal drawn from its record's population lands in the display
   range of a record its size: 0.65 × (n − 1) / (n + 1), so 0.43 for a record of five crystals and 0.58
@@ -286,7 +307,8 @@ What the product means depends on the target:
   holds the whole range and in one that cuts it at the median.
 - *For a specimen proxy* it is a bar for STORY (PROXY): the rate at which crystals as large as the
   photographed specimens would reach the proxy's range. It is not an expected rate, since the proxy
-  overstates the crystal. Most frequencies today are bars of this kind, and the targets file says which.
+  overstates the crystal. It applies only where no crystal target can set the frequency. Most
+  frequencies today are bars of this kind, and the targets file says which.
 
 What the cavity does, and does not do:
 - *It never cuts the coverage.* Runs whose crystal is longer than the cavity stay open, so a cavity
@@ -307,9 +329,12 @@ It asks for no protagonist in every seed, and no size spread narrower than the r
   targets. Round 6 showed that the cavity's part had to be stated rather than denied, and that a proxy's
   bar was gating STORY on crystal targets; hence crystal targets first.
 - *What it does not check.* The story verdict checks the frequency alone. WP1's whole target also needs
-  every protagonist within its band, the protagonist that carries the story at the record's size (its
-  typical crystal within the record's middle half, rule 4), and none oversize. The scoreboard reports
-  that too, under the WP1 table. With 21 seeds the check is weak: a protagonist in 7 seeds is within
+  every protagonist within its band, and every protagonist at the record's size wherever it occurs in a
+  pocket that can hold it (its typical crystal within the record's middle half, or reaching its proxy;
+  rule 4), whether or not it carries story runs. A band or size miss within noise counts as within;
+  short of a proxy, or a size the cavity cannot judge, leaves it open. Judging only the protagonists
+  that carry story runs, as round 6 did, let one kept below display scale escape the size test that one
+  grown to it faces (round 7). The scoreboard reports the whole target under the WP1 table. With 21 seeds the check is weak: a protagonist in 7 seeds is within
   noise of a 50 % floor, and where the frequency falls below 0.155 even a fleet that never tells the
   story is within noise (the fifth line under §2's table).
 
@@ -336,10 +361,14 @@ flags only; it decides no verdict.
 - eligibility at the median;
 - the story-frequency rule (the band floor × the display range's coverage of a record the target's
   size, crystal targets first), the cavity test for setters (the range's start, not the median), and
-  the 95 % interval that marks noise;
-- the rule for joining photographs of one specimen, with its 11.6-day window;
+  the 95 % interval that marks noise, for occurrence, the story and the size verdict;
+- WP1's whole target: the story, the bands, and every protagonist at the record's size wherever its size
+  can be judged;
+- the rule for joining photographs of one specimen, with its 11.6-day window, and a caption that states
+  only a picture's size joining nothing;
 - the 10 mm floor on specimen lengths, and the series rule (one wording, uploads less than a year
-  apart) that lowers a dominant series' confidence;
+  apart; a standard caption field or a bare length only uploaded together) that lowers a dominant
+  series' confidence;
 - WP2's and WP3's targets: the star a wanted species in at least half the runs, clutter under 10 % of
   the visible crystals;
 - the caption parser's rules. Every crystal length the parser used, and every join, is listed in
@@ -410,11 +439,13 @@ Status (33 locality scenarios, 861 census runs, 21 seeds each): STORY 1, STORY (
 | tn457_barite_pulses (north_pennines) | OUT OF SCOPE | OUT OF SCOPE | 31 | — | — | — | — | — | — |
 
 UNRESOLVED (26), by what leaves it open: short of a specimen proxy + no size target — asbestos_hills_crack_seal, asbestos_hills_surficial_alteration, epithermal_telluride, gem_pegmatite, mvt, shigar_pegmatite, sunnyside_american_tunnel, tormiq_alpine_cleft; short of a specimen proxy — deccan_zeolite, elmwood, jeffrey_mine, ouro_preto, reactive_wall, schneeberg, wittichen; no story frequency + no size target — amethyst_geode, chiastolite_hornfels, great_salt_plains, porphyry, roughten_gill, sulphur_bank; no story frequency + short of a specimen proxy — naica_geothermal, searles_lake, ultramafic_supergene; no story frequency + short of a specimen proxy + longer than the cavity — bisbee; no story frequency + short of a specimen proxy + no size target — sicily_solfifera. A specimen proxy overstates the crystal, so a crystal short of it is not a verdict; a protagonist with no size target has none to miss; in an unclassed pocket a run without a story may be a small pocket.
-The cavity decides who can set the story frequency. These protagonists have an engine, a band and a size target, but their display range starts beyond the cavity's span, so they cannot carry a story run there and do not set it; the frequency falls to the next setter, or to none: calcite at elmwood (alternate, display range from 80 mm, span 66); fluorite at epithermal_telluride (alternate, display range from 57.0 mm, span 56.5); selenite at naica_geothermal (primary, display range from 77 mm, span 60); anhydrite at naica_geothermal (alternate, display range from 66 mm, span 60); calcite at reactive_wall (primary, display range from 58 mm, span 55); halite at searles_lake (primary, display range from 85 mm, span 48); native sulfur at sicily_solfifera (primary, display range from 57 mm, span 38); aragonite at sicily_solfifera (alternate, display range from 99 mm, span 38); celestine at sicily_solfifera (alternate, display range from 55 mm, span 38); chrysoprase at ultramafic_supergene (primary, display range from 63 mm, span 59). The coverage itself is never cut to fit the cavity.
+The cavity decides who can set the story frequency. These protagonists have an engine, a band and a size target, but their display range starts beyond the cavity's span, so they cannot carry a story run there and do not set it: at elmwood, calcite (alternate, display range from 80 mm, span 66) — the frequency is 0.2868, against 0.3079 with no cavity test; at epithermal_telluride, fluorite (alternate, display range from 57.0 mm, span 56.5) — the frequency is 0.26 either way; at naica_geothermal, selenite (primary, display range from 77 mm, span 60) and anhydrite (alternate, display range from 66 mm, span 60) — no frequency is left; at reactive_wall, calcite (primary, display range from 58 mm, span 55) — the frequency is 0.3033 either way; at searles_lake, halite (primary, display range from 85 mm, span 48) — no frequency is left; at sicily_solfifera, native sulfur (primary, display range from 57 mm, span 38) and aragonite (alternate, display range from 99 mm, span 38) and celestine (alternate, display range from 55 mm, span 38) — no frequency is left; at ultramafic_supergene, chrysoprase (primary, display range from 63 mm, span 59) — no frequency is left. The coverage itself is never cut to fit the cavity.
 No run can carry the story in its scenario's current cavity, whatever grows, in 10 of 32 scored scenarios. The display range of every protagonist with a size target starts beyond the cavity's span — on crystal targets: none; on specimen proxies, which overstate the crystal: naica_geothermal, searles_lake, ultramafic_supergene; and the other protagonists have no size target: sicily_solfifera. No protagonist with an engine has a size target: amethyst_geode, chiastolite_hornfels, great_salt_plains, porphyry, roughten_gill, sulphur_bank. A crystal target beyond the span waits on bigger pockets (WP9); a proxy on bigger pockets or on crystal lengths that bring it within (WP0); a missing target on crystal lengths.
 Where the captions give a few crystal lengths but too few for a target (25 protagonists), every photographed crystal is longer than every simulated one, enclosed crystals included, in 20: azurite at bisbee (1 length 10 mm; simulated at most 0.8); stilbite at deccan_zeolite (2 lengths 40–62 mm; simulated at most 1.0); heulandite at deccan_zeolite (3 lengths 35–50 mm; simulated at most 3.6); fluorite at elmwood (4 lengths 20–48 mm; simulated at most 10); calcite at elmwood (3 lengths 50–115 mm; simulated at most 15); galena at mvt (2 lengths 12.0–30 mm; simulated at most 11.8); selenite at naica_geothermal (4 lengths 44–226 mm; simulated at most 2.9); topaz at ouro_preto (4 lengths 12–36 mm; simulated at most 5.9); galena at reactive_wall (3 lengths 40–65 mm; simulated at most 4.1); pyromorphite at roughten_gill (1 length 10 mm; simulated at most 6.2); mimetite at roughten_gill (1 length 2.0 mm; simulated at most 0.1); erythrite at schneeberg (2 lengths 4.0–40 mm; simulated at most 0.8); topaz at shigar_pegmatite (2 lengths 13–17 mm; simulated at most 0.7); quartz at shigar_pegmatite (3 lengths 22–80 mm; simulated at most 13); rhodochrosite at sunnyside_american_tunnel (1 length 20 mm; simulated at most 5.2); fluorite at sunnyside_american_tunnel (1 length 80 mm; simulated at most 1.3); smithsonite at supergene_oxidation (4 lengths 5.0–10 mm; simulated at most 3.0); azurite at supergene_oxidation (3 lengths 5.0–25 mm; simulated at most 3.4); mimetite at supergene_oxidation (1 length 20 mm; simulated at most 3.8); titanite at tormiq_alpine_cleft (2 lengths 18–50 mm; simulated at most 5.3); not so for malachite at bisbee, calaverite at epithermal_telluride, calcite at reactivated_fluorite_vein, malachite at supergene_oxidation, epidote at tormiq_alpine_cleft. Too few to set a target, they lean against the simulator; they do not clear it.
-Story checks that 21 seeds cannot fail beyond noise — a frequency at or below 0.155, the top of the interval for 0 of them, where even a fleet that never tells the story is within noise: deccan_zeolite (0.1517), marble_contact_metamorphism (0.1393), schneeberg (0.1517). Where no protagonist with an engine occurs in any seed, the verdict carries no noise mark: the seeds repeat one pocket, and chance explains nothing.
+Story checks that 21 seeds cannot fail beyond noise — a frequency at or below 0.155, the top of the interval for 0 of them, where even a fleet that never tells the story is within noise: deccan_zeolite (0.1517), marble_contact_metamorphism (0.1393), schneeberg (0.1517). Where no protagonist with an engine forms in any seed, the verdict carries no noise mark: the mark says chance in which runs carry the story could explain the shortfall, and no run grew a protagonist to carry it.
 Simulated crystals larger than every photographed crystal of their species, where the record gives a few lengths beside a proxy: malachite at bisbee, calaverite at epithermal_telluride, calcite at reactivated_fluorite_vein, malachite at supergene_oxidation, epidote at tormiq_alpine_cleft. Crystals longer than the starting cavity's span: malachite at bisbee (15/21), thenardite at searles_lake (14/21), tincalconite at searles_lake (1/21), calcite at sunnyside_american_tunnel (21/21).
+Crystal targets first moves the story frequency where a crystal target sets it over a proxy that would set a higher one — the primary's too (with proxies competing → as registered): deccan_zeolite (0.3079 → 0.1517: apophyllite, primary, over the proxies of stilbite (alternate), heulandite (alternate), chalcedony (alternate)); jeffrey_mine (0.26 → 0.2321: grossular, primary, over the proxies of vesuvianite (alternate), diopside (alternate), pectolite (alternate)); supergene_oxidation (0.3109 → 0.2167: cerussite, alternate, over the proxies of smithsonite (primary), calcite (alternate), azurite (alternate), malachite (alternate), mimetite (alternate)). There a STORY (PROXY) is judged against the crystal target's expected rate, not a proxy's bar. Verdicts that move with it: none.
+Frequency setters whose characteristic crystal the cavity cannot be shown to hold (span under the target's median): sphalerite at elmwood (proxy median 70 mm, span 66); calaverite at epithermal_telluride (proxy median 66 mm, span 57); galena at mvt (proxy median 80 mm, span 64). Their range starts within the span, so they can carry story runs, but their own size cannot be judged in this cavity, so WP1's whole target cannot be met there until the pocket grows (WP9) or the evidence brings the target within it (WP0).
 Pocket classes against the primary protagonist's characteristic crystal: STORY-SCALE 15, SMALL 0, UNCLASSED 17 of 32 scored scenarios; runs in small pockets 0 (0 of them with a story, reported apart). Every scenario grows in one cavity in all its seeds (861 constructions checked, none differ), so a scenario's fleet holds a single pocket class: no scenario yet has both small pockets and story-scale ones.
 <!-- /generated:verdicts -->
 
@@ -422,12 +453,13 @@ Pocket classes against the primary protagonist's characteristic crystal: STORY-S
 - **One scenario tells its story, on thin ground.** The reactivated North Pennines vein grows fluorite at
   the record's display scale in every seed. But half of its fluorite crystal lengths are one series (one
   wording, uploaded over a few months), and without them the target rises past every simulated
-  fluorite (§2.6). It also misses WP1's whole target, since its quartz never forms (the line under the
-  WP1 table). And it is the fleet the contract rules out: fluorite in every seed at one size, in one
+  fluorite (§2.6). It also misses WP1's whole target: its quartz never forms, and its galena grows
+  below the record's middle half (the line under the WP1 table). And it is the fleet the contract rules out: fluorite in every seed at one size, in one
   cavity (§2.5).
 - **One tells it on a specimen proxy, and that verdict is the most fragile.** Tsumeb's malachite reaches
-  its proxy in just over the story frequency's share of the runs. It turns on three rules that await the
-  boss: the floor under specimen lengths, the minimum sample, and the story-frequency rule (§2.6). At a
+  its proxy in more of the runs than the story frequency asks, a frequency its alternate cerussite's
+  crystal target sets, below the bar the proxies would set (crystal targets first: the seventh line).
+  It turns on three rules that await the boss: the floor under specimen lengths, the minimum sample, and the story-frequency rule (§2.6). At a
   minimum of four, its four photographed crystal lengths become the target, and every simulated
   malachite is longer than them. A proxy reached is strong evidence, not proof.
 - **Three tell none:**
@@ -436,7 +468,9 @@ Pocket classes against the primary protagonist's characteristic crystal: STORY-S
   - Grimsel's quartz grows to a fraction of its photographed crystals, and its fluorite is dust.
   - Mogok grows no ruby, and it has no spinel engine. Its verdict is the weakest of the three: its
     frequency comes from a ruby proxy of six specimens, four of them one caption series (§2.6), and it
-    is low enough that no fleet could fail it beyond noise (the fifth line).
+    is low enough that 21 seeds cannot fail it beyond noise (the fifth line). Its NO STORY carries no
+    noise mark only because no protagonist with an engine forms in any seed: the verdict rests on the
+    ruby never forming, not on a count.
 - **Most are UNRESOLVED: the evidence is too thin for a verdict.** The first line under the table sorts
   them by what leaves them open. A specimen proxy can support a crystal size, not refute one, and a
   species with no size target has none to miss.
@@ -619,7 +653,7 @@ What the pockets show:
 ### 2.4 The size evidence
 
 <!-- generated:size-evidence -->
-Capture: 82 Mineralienatlas pages; 2217 photographs with a stated length, 2100 specimens once the photographs of one specimen are joined (100 by identical captions, 17 by the same dimensions). Specimens with a length of each kind: crystal 185, aggregate 14, specimen 1453, picture width 456. Crystal lengths set aside: 10 named another mineral, 1 were about another mineral, 7 gave a width; 9 lengths stayed unclassed. The full audit, every crystal length and every join: `proposals/DATA-STORY-POCKET-SIZES-2026-10-22.md`.
+Capture: 82 Mineralienatlas pages; 2217 photographs with a stated length, 2167 specimens once the photographs of one specimen are joined (33 by identical captions, 17 by the same dimensions). Specimens with a length of each kind: crystal 185, aggregate 14, specimen 1453, picture width 523. Crystal lengths set aside: 10 named another mineral, 1 were about another mineral, 7 gave a width; 9 lengths stayed unclassed. The full audit, every crystal length and every join: `proposals/DATA-STORY-POCKET-SIZES-2026-10-22.md`.
 Protagonist size targets (112): crystal (low) 10, crystal (medium) 1, specimen-proxy 55, unknown 46.
 
 | scenario | primary protagonist | crystal lengths: n, median (q25–q75) mm | specimen dimensions: n, median (q25–q75) mm | target |
@@ -717,7 +751,7 @@ the targets, and WP9 takes it up.
 ### 2.6 How firm the verdicts are
 
 <!-- generated:robustness -->
-For every protagonist with a crystal target, and every specimen proxy with a series or at the minimum sample: the share of its lengths in its largest series (one wording, each upload less than 365 days after the one before: likely one contributor's lot or find), the verdict with that series left out, and — where the target has exactly the minimum of 5 lengths — the verdict with one length fewer (a crystal target falls back to its proxy, a proxy to unknown). Each verdict is scored against the story frequency rebuilt by the same rule.
+For every protagonist with a crystal target, and every specimen proxy with a series or at the minimum sample: the share of its lengths in its largest series (one wording, each upload less than 365 days after the one before — a standard caption field or a bare length only among photographs uploaded together: likely one contributor's lot or find), the verdict with that series left out, and — where the target has exactly the minimum of 5 lengths — the verdict with one length fewer (a crystal target falls back to its proxy, a proxy to unknown). Each verdict is scored against the story frequency rebuilt by the same rule.
 
 | scenario | verdict | protagonist: target (basis, n, confidence) | largest series | without it: n, q25 → verdict | at the minimum, one length fewer → verdict |
 |---|---|---|---|---|---|
@@ -729,7 +763,7 @@ For every protagonist with a crystal target, and every specimen proxy with a ser
 | supergene_oxidation | STORY (PROXY) | calcite (proxy, n 45, low) | 8 of 45 | 37, 52 mm → STORY (PROXY) | — |
 | supergene_oxidation | STORY (PROXY) | azurite (proxy, n 39, low) | 5 of 39 | 34, 32 mm → STORY (PROXY) | — |
 | supergene_oxidation | STORY (PROXY) | malachite (proxy, n 22, low) | 7 of 22 | 15, 33 mm → STORY (PROXY) | — |
-| supergene_oxidation | STORY (PROXY) | mimetite (proxy, n 27, low) | 7 of 27 | 20, 37 mm → STORY (PROXY) | — |
+| supergene_oxidation | STORY (PROXY) | mimetite (proxy, n 27, low) | 5 of 27 | 22, 38 mm → STORY (PROXY) | — |
 | cooling | NO STORY | quartz (crystal, n 5, low) | — | — | UNRESOLVED |
 | grimsel_alpine_cleft | NO STORY | quartz (crystal, n 25, low) | 18 of 25 | 7, 31 mm → NO STORY | — |
 | grimsel_alpine_cleft | NO STORY | fluorite (crystal, n 9, low) | 2 of 9 | 7, 12 mm → NO STORY | — |
@@ -976,7 +1010,7 @@ without crystal lengths.
 | wittichen | heinrichite | alternate | no engine | size unknown (crystal n 1, specimen n 1) | — | — | — | — | — |
 | wittichen | zeunerite | alternate | 0/21 (no band) UNRESOLVED | size unknown (crystal n 1, specimen n 0) | — | — | — | — | UNKNOWN |
 
-WP1's whole target — the story frequency met; every protagonist with an engine within its band (a miss within noise counts as within); each protagonist that carries story runs at the record's size (its typical crystal within the record's middle half, or reaching its proxy); none oversize — is met by 0 of 32 scored scenarios. Where the story verdict passes but the whole target does not: reactivated_fluorite_vein (quartz below its band); supergene_oxidation (calcite below its band; open: malachite short of its proxy).
+WP1's whole target — the story frequency met; every protagonist with an engine within its band; every protagonist with an engine at the record's size wherever it occurs in a pocket that can hold it (its typical crystal within the record's middle half, or reaching its proxy), whether or not it carries story runs; a band or size miss within noise counts as within, and a protagonist short of its proxy, or whose size the cavity cannot judge, leaves it open — is met by 0 of 32 scored scenarios. Where the story verdict passes but the whole target does not: reactivated_fluorite_vein (galena below the record's middle half; quartz below its band; open: calcite short of its proxy); supergene_oxidation (cerussite below the record's middle half; calcite below its band; open: smithsonite eligibility unknown; open: azurite short of its proxy; open: malachite short of its proxy; open: mimetite short of its proxy). "(noise)" after a size verdict: the runs cannot tell their median from the target's window.
 
 Protagonist size targets (112 primary and alternate slots): crystal (low) 10, crystal (medium) 1, specimen-proxy 55, unknown 46. Size verdicts of protagonists with an engine: UNKNOWN 33, BELOW PROXY 22, ELIGIBILITY UNKNOWN 17, NEVER OCCURS 11, BELOW 8, MEETS 1. "spread" = the interquartile range over the median, of the simulated largest crystal across the seeds and of the record's.
 <!-- /generated:protagonists -->
@@ -1009,13 +1043,17 @@ rate. Quartz grows in 19 scenarios, so a global quartz rate would move all of th
   scale.
 - Each protagonist with an engine occurs within its band (a miss that 21 seeds cannot tell from the band
   counts as within).
-- Each protagonist that carries story runs is at the record's size: its typical crystal lies within the
-  record's middle half (MEETS, rule 4), or reaches its proxy where only a proxy exists. Too small fails as
-  too large does; a carrier short of its proxy is open, since a proxy cannot refute.
-- None is OVERSIZE.
+- Each protagonist with an engine is at the record's size wherever it occurs in a pocket that can hold
+  it, whether or not it carries story runs: its typical crystal lies within the record's middle half
+  (MEETS, rule 4), or reaches its proxy where only a proxy exists. Too small fails as too large and
+  oversize do; a miss the runs cannot tell from the window counts as within. Short of a proxy is open,
+  since a proxy cannot refute, and so is a size the cavity cannot judge. A protagonist that never occurs
+  answers to its band, and one with no size target has none to meet.
 
 The story verdict checks the first bullet alone; the line under the WP1 table reports which scenarios
-meet all four. A target changes only by a reviewed rewrite of its rules or its evidence, never to fit an
+meet all three. Every protagonist is judged, not only those that carry story runs: otherwise one kept
+below display scale would escape the size test that one grown to it faces, and WP1 would reward keeping
+it small (round 7). A target changes only by a reviewed rewrite of its rules or its evidence, never to fit an
 output.
 
 **Cases that need a decision first.**
@@ -1370,12 +1408,15 @@ leftover components rise. Try it on `gem_pegmatite` against WP1's target before 
      observed crystal size as the central showcase target, with a range/quantiles rather than a single
      cutoff"), eligibility, the story frequency (the band floor × the display range's coverage of a
      record the target's size, among protagonists that can carry a story run in the cavity — an
-     expected rate for a crystal target, a bar for a proxy), the 95 % interval that marks noise, WP1's
-     whole target (with the carrier's typical crystal within the record's middle half), and WP2's and
-     WP3's targets for the star and the clutter;
-   - the evidence rules (§1.3) — joining photographs of one specimen and the upload window, the 10 mm
-     floor under specimen lengths, and the series rule (one wording, uploads less than a year apart)
-     that lowers a target's confidence. §2.6 shows the verdicts each one moves;
+     expected rate for a crystal target, a bar for a proxy), its two choices (crystal targets first,
+     with the consequences §1.3 lists, and the cavity test for setters at the range's start, not the
+     median), the 95 % interval that marks noise in occurrence, the story and the size verdict, WP1's
+     whole target (every protagonist's typical crystal within the record's middle half wherever it
+     occurs in a pocket that can hold it), and WP2's and WP3's targets for the star and the clutter;
+   - the evidence rules (§1.3) — joining photographs of one specimen and the upload window (a caption
+     that states only a picture's size joins nothing), the 10 mm floor under specimen lengths, and the
+     series rule (one wording, uploads less than a year apart; a standard caption field or a bare length
+     only uploaded together) that lowers a target's confidence. §2.6 shows the verdicts each one moves;
    - Naica's scale and the per-seed ranges (WP9);
    - the enclosure rule (WP4);
    - the rarity tier (WP6);
@@ -1444,17 +1485,19 @@ Every step uses:
     gives the crystal or the field. A real specimen that small is set aside with them.
 - **One specimen, one sample — by a heuristic.** Photographs are joined when they were uploaded
   together and their captions are the same (once a cut word, punctuation and "mit", "und", "auf" are
-  dropped) or state the same multi-dimension size of a crystal, an aggregate or the specimen (a
-  picture's size joins nothing); uploaded apart, only a
-  three-dimension size written with a decimal joins them. Never across two named finds, or two captions
-  that each name a mineral the other does not (§1.3).
+  dropped) or state the same multi-dimension size of a crystal, an aggregate or the specimen; uploaded
+  apart, only a three-dimension size written with a decimal joins them. A picture's size joins nothing:
+  neither a shared one nor a caption that states nothing else, since a micromounter photographs many
+  specimens at one magnification. Never across two named finds, or two captions that each name a
+  mineral the other does not (§1.3).
   - "Uploaded together" reads the image id as an upload time in seconds. That is inferred from the ids'
     range, which runs from 2004 to just before the capture; the site does not document it.
   - Two specimens with an identical caption uploaded the same week would be joined. A re-photographed
-    specimen with a new caption, uploaded apart and with no measured size, would not.
+    specimen with a new caption, uploaded apart and with no measured size, would not, nor would one
+    photographed twice under a caption that states only the picture's size; no length comes from those.
 - **One contributor can make most of a sample.** A run of captions in one wording ("Fluorit-XX max. N
   mm"), uploaded within months, is likely one collector's lot or one find; a standard caption field
-  ("Größe: N mm") counts as a series only when uploaded together. Where one such series holds
+  ("Größe: N mm") or a bare length counts as a series only when uploaded together. Where one such series holds
   more than half of a crystal target's lengths, the target's confidence drops a step, and §2.6 re-scores
   the verdict without it. The capture has no uploader names, so the series is a proxy for the
   contributor: two contributors who share a wording in the same year would be one series, and one who
@@ -1466,8 +1509,9 @@ Every step uses:
   minimum sample moves more verdicts than any other rule. With 21 runs, an occurrence rate is uncertain
   by about ±20 points, and the scoreboard marks such shortfalls "noise". The story check is weak for the
   same reason. A fleet at exactly its expected story rate falls short about half the time, and a
-  protagonist in 7 of 21 seeds is within noise of a 50 % floor. More seeds per scenario would sharpen
-  both.
+  protagonist in 7 of 21 seeds is within noise of a 50 % floor. The size check too: its noise, which
+  keeps a fleet drawn from the record from failing it, also lets a fleet at half the record's scale
+  through nearly half the time (§1.3). More seeds per scenario would sharpen all three.
 - **The bands are a design mapping** from the literature's classes, not measurements.
 - **One cavity per scenario, as it starts.** The census does not keep the final wall, so a cavity widened
   by dissolution is not seen. Its span is the longest chord between two wall vertices, not checked to

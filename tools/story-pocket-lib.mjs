@@ -338,18 +338,21 @@ export function seriesKey(before, after) {
  * The largest series among a species' crystal lengths: lengths in one wording (seriesKey) whose
  * specimens were uploaded in one stretch, each less than gap seconds after the one before (image ids
  * read as upload times). A run of one wording over weeks or months is likely one contributor's lot or
- * find; a standard caption field (isFieldLabel) is everyone's, so only photographs uploaded together
- * (fieldGap) make a series of it. The capture has no uploader names, so the stretch stands in for the
- * contributor.
+ * find; a standard caption field or a bare length (isFieldLabel) is everyone's, so only photographs
+ * uploaded together (fieldGap) make a series of it. The capture has no uploader names, so the stretch
+ * stands in for the contributor.
  *   items: [{ value, key, t }] → { largest, of, template, first, last, rest: [the other values] }, or
  *   null for no items; ties go to the wording first alphabetically, then the earlier stretch
  */
 export const SERIES_GAP = 365 * 86400;
-// A standard caption field ("Größe: #", "Size #", "Kristallgröße: ca. #") is many contributors' wording:
-// only photographs uploaded together (fieldGap) make a series of it; an unusual wording chains uploads
-// less than gap apart.
-const FIELD_LABEL = /(?:größe|grösse|groesse|size|maße|masse|abmessungen|dimensions?)[:=.]?(?:ca\.?|etwa)?$/iu;
-export const isFieldLabel = (key) => FIELD_LABEL.test(String(key).slice(0, String(key).lastIndexOf('#')));
+// Many contributors' wording: a standard caption field ("Größe: #", "Size #", "Kristallgröße: ca. #": a
+// key ending in one of FIELD_LABELS, then an optional ":", "=" or "." and "ca." or "etwa"), or a bare length
+// with no words around it (the key "#"). Only photographs uploaded together (fieldGap) make a series of
+// one; an unusual wording chains uploads less than gap apart. The targets file registers the list
+// (rules.series_field_labels).
+export const FIELD_LABELS = ['größe', 'grösse', 'groesse', 'size', 'maße', 'masse', 'abmessungen', 'dimension', 'dimensions'];
+const FIELD_LABEL = new RegExp(String.raw`(?:${FIELD_LABELS.join('|')})[:=.]?(?:ca\.?|etwa)?$`, 'iu');
+export const isFieldLabel = (key) => String(key) === '#' || FIELD_LABEL.test(String(key).slice(0, String(key).lastIndexOf('#')));
 export function largestSeries(items, gap = SERIES_GAP, { fieldGap = gap } = {}) {
   if (!items.length) return null;
   const byKey = {};
@@ -409,13 +412,15 @@ export function photoSizes(windows, lead, { keyOf = (x) => x, same = (a, b) => a
  * species are joined when they were uploaded together (image ids, which read as upload times in
  * seconds, within UPLOADED_TOGETHER) and either their caption stretches are the same (identical once a
  * word cut at the stretch's start, punctuation and the words "mit", "und", "auf" are dropped) or they
- * state the same multi-dimension length of a crystal, an aggregate or the specimen ("16 mm x 12 mm"; a
- * picture's size identifies no specimen). Uploaded apart, only a measured size joins
+ * state the same multi-dimension length of a crystal, an aggregate or the specimen ("16 mm x 12 mm"). A
+ * picture's size identifies no specimen: a caption that states nothing else ("Erythrit, BB 4,5 mm")
+ * joins nothing, since a micromounter photographs many specimens at one magnification, and neither
+ * does a shared picture size. Uploaded apart, only a measured size joins
  * them: the same length in three dimensions, one of them written with a decimal ("5x5x4,8mm",
  * "15,9 x 10 x 4,7 cm"). Never when their captions name different finds ("Fundort: Grove …" against
  * "Fundort: Blackdene …"), or when each names a mineral the other does not ("mit etwas Limonit"
- * against "mit etwas Hämatit": two specimens of one lot). A generic caption ("Zeunerit xx, BB 4,5 mm")
- * or a round size ("4 x 3 x 2 cm") repeated years apart is more likely two specimens.
+ * against "mit etwas Hämatit": two specimens of one lot). A round size ("4 x 3 x 2 cm") repeated years
+ * apart is more likely two specimens.
  *   photos: [{ id, key, windows, lead? }] → { groups: [{ key, photos: [...] }], joined: { caption, dims },
  *   links: [{ a, b, why, dims }] } — every join, for audit; window: "uploaded together", in seconds
  */
@@ -446,12 +451,14 @@ export function groupSpecimens(photos, { window = UPLOADED_TOGETHER } = {}) {
     if (ra !== rb) { parent.set(rb, ra); joined[why]++; links.push({ a, b, why, dims }); }
   };
   for (const p of photos) {
+    const statements = p.windows.flatMap((w) => parseSizeStatements(w));
+    const pictureOnly = statements.length > 0 && statements.every((s) => s.kind === 'fov');
     const cap = `caption\u0000${p.key}\u0000${p.windows.map(captionCore).join('\u0000')}`;
     const earlierCap = seen.get(cap) || [];
-    const capMatch = earlierCap.find((id) => together(id, p.id) && compatible(id, p.id));
+    const capMatch = pictureOnly ? null : earlierCap.find((id) => together(id, p.id) && compatible(id, p.id));
     if (capMatch != null) join(capMatch, p.id, 'caption', null);
     seen.set(cap, [...earlierCap, p.id]);
-    const stated = p.windows.flatMap((w) => parseSizeStatements(w)).filter((s) => s.dims && (s.kind === 'crystal' || s.kind === 'aggregate' || s.kind === 'specimen'));
+    const stated = statements.filter((s) => s.dims && (s.kind === 'crystal' || s.kind === 'aggregate' || s.kind === 'specimen'));
     for (const d of new Set(stated.map((s) => s.dims.join('x')))) {
       const sig = `dims\u0000${p.key}\u0000${d}`;
       const earlier = seen.get(sig) || [];
@@ -609,10 +616,14 @@ export function pocketClass(spanMm, primaryTarget) {
  *                   OVERSIZE (> q90);
  *   proxy           BELOW PROXY (< q25: not a verdict, the proxy overstates the crystal), REACHES
  *                   PROXY (q25–q90: oversize cannot be tested against a proxy), OVERSIZE (> q90).
+ * A miss is noise when the runs cannot tell their median from the target's window: the Wilson interval
+ * (z) of the share of eligible runs on the window's side of its near edge — at least q25 for BELOW; at
+ * most q75 for LARGE or OVERSIZE, q90 for a proxy's OVERSIZE — still reaches one half (a sign test).
+ * BELOW PROXY is no verdict, so it has no noise.
  * share = eligible runs whose crystal lies in the record's display range, q25–q90.
  *   runs: [{ occurs, size, span }]
  */
-export function assessSize(runs, target) {
+export function assessSize(runs, target, z = 1.96) {
   if (!target || target.basis === 'unknown') return { verdict: 'UNKNOWN' };
   const occurring = runs.filter((r) => r.occurs);
   if (!occurring.length) return { verdict: 'NEVER OCCURS', occurring: 0, eligible: 0 };
@@ -629,7 +640,10 @@ export function assessSize(runs, target) {
   const verdict = target.basis === 'crystal'
     ? (m < target.q25 ? 'BELOW' : m <= target.q75 ? 'MEETS' : m <= target.q90 ? 'LARGE' : 'OVERSIZE')
     : (m < target.q25 ? 'BELOW PROXY' : m <= target.q90 ? 'REACHES PROXY' : 'OVERSIZE');
-  return { verdict, share: inRange / eligible.length, inRange, eligible: eligible.length, occurring: occurring.length, beyond, sizes };
+  const reaches = (inside) => wilson(eligible.filter((r) => inside(r.size)).length, eligible.length, z)[1] >= 0.5;
+  const edge = target.basis === 'crystal' ? target.q75 : target.q90;
+  const noise = verdict === 'BELOW' ? reaches((s) => s >= target.q25) : verdict === 'LARGE' || verdict === 'OVERSIZE' ? reaches((s) => s <= edge) : null;
+  return { verdict, ...(noise == null ? {} : { noise }), share: inRange / eligible.length, inRange, eligible: eligible.length, occurring: occurring.length, beyond, sizes };
 }
 
 /**
@@ -638,12 +652,10 @@ export function assessSize(runs, target) {
  * proxy range was reached). POSSIBLE when a protagonist occurs whose crystal target is not known —
  * no target, or short of a proxy — or whose crystal is longer than the cavity's span, which the
  * starting cavity cannot hold (`beyond`). NO otherwise; `oversize` marks a crystal past q90.
- * `atScale` lists every protagonist at display scale in the run, whichever is credited (`by`).
  *   run: { span, species: { k: { occurs, size } } }; protagonists: [{ k, target }]
  */
 export function runStory(run, protagonists) {
   let crystal = null, proxy = null, possible = false, oversize = false, beyond = false;
-  const atScale = [];
   for (const { k, target } of protagonists) {
     const s = run.species[k];
     if (!s?.occurs) continue;
@@ -651,14 +663,13 @@ export function runStory(run, protagonists) {
     if (run.span != null && s.size > run.span) { beyond = true; possible = true; continue; }
     if (s.size > target.q90) { oversize = true; continue; }
     if (s.size >= target.q25) {
-      atScale.push(k);
       if (target.basis === 'crystal') crystal ??= k;
       else proxy ??= k;
     } else if (target.basis !== 'crystal') possible = true;
   }
-  if (crystal) return { story: 'YES', basis: 'crystal', by: crystal, oversize, beyond, atScale };
-  if (proxy) return { story: 'YES', basis: 'specimen-proxy', by: proxy, oversize, beyond, atScale };
-  return { story: possible ? 'POSSIBLE' : 'NO', oversize, beyond, atScale };
+  if (crystal) return { story: 'YES', basis: 'crystal', by: crystal, oversize, beyond };
+  if (proxy) return { story: 'YES', basis: 'specimen-proxy', by: proxy, oversize, beyond };
+  return { story: possible ? 'POSSIBLE' : 'NO', oversize, beyond };
 }
 
 /**
@@ -671,7 +682,7 @@ export function runStory(run, protagonists) {
 export function scoreStory(runs, species) {
   const protagonists = protagonistsOf(species);
   const primary = Object.values(species).find((v) => v.role === 'primary');
-  const c = { runs: runs.length, scored: 0, small: 0, small_yes: 0, yes_crystal: 0, yes_proxy: 0, possible: 0, unclassified: 0, oversize: 0, beyond: 0, by: {}, at_scale: {}, pockets: {} };
+  const c = { runs: runs.length, scored: 0, small: 0, small_yes: 0, yes_crystal: 0, yes_proxy: 0, possible: 0, unclassified: 0, oversize: 0, beyond: 0, by: {}, pockets: {} };
   for (const run of runs) {
     const pocket = pocketClass(run.span, primary?.size);
     c.pockets[pocket] = (c.pockets[pocket] || 0) + 1;
@@ -680,7 +691,6 @@ export function scoreStory(runs, species) {
     if (s.beyond) c.beyond++;
     if (pocket === 'SMALL') { c.small++; if (s.story === 'YES') c.small_yes++; continue; }
     c.scored++;
-    for (const k of s.atScale) c.at_scale[k] = (c.at_scale[k] || 0) + 1;
     if (s.story === 'YES') { if (s.basis === 'crystal') c.yes_crystal++; else c.yes_proxy++; c.by[s.by] = (c.by[s.by] || 0) + 1; }
     else if (s.story === 'POSSIBLE') c.possible++;
     else if (pocket === 'UNCLASSED') c.unclassified++;
@@ -721,8 +731,10 @@ export function displayCoverage(n, range) {
  * carry a story run with the largest such product. A protagonist can carry one when it has an engine, a
  * band and a size target whose display range starts within the cavity's span (room) — the test a run's
  * YES itself needs (q25 ≤ span; by: 'median' is the eligibility test, for comparison). Crystal targets
- * come first: a proxy sets the frequency only where no crystal target can carry a story run, as a size
- * target prefers crystal lengths.
+ * come first: a proxy sets the frequency only where no crystal target can carry a story run, since a
+ * proxy's product is a bar and a crystal target's an expected rate. So any protagonist's crystal target
+ * displaces every proxy, the primary's too, and a low band or a small record sets a low frequency (an
+ * uncommon alternate with five lengths: 0.1 × 0.43 = 0.043).
  * For a crystal target it is the expected story rate of a fleet whose protagonist occurs at its band's
  * floor with crystals drawn from its record's population: with 21 seeds such a fleet falls short about
  * half the time, and the verdict marks a shortfall its interval cannot tell from the frequency "noise".
@@ -788,8 +800,8 @@ export function scenarioVerdict(runs, species, frequency, { z = 1.96 } = {}) {
   const sized = withEngine.filter((p) => p.target && p.target.basis !== 'unknown');
   const cannot = !withEngine.length || sized.some((p) => p.target.q25 <= room) ? null
     : { cavity: sized.map((p) => p.k), evidence: withEngine.filter((p) => !sized.includes(p)).map((p) => p.k) };
-  // Noise is chance in which runs carry the story; where no protagonist with an engine ever occurs, the
-  // seeds repeat one pocket (§2.5 of the proposal) and chance explains nothing.
+  // The noise mark says chance in which runs carry the story could explain the shortfall; where no
+  // protagonist with an engine forms in any seed, no run grew one to carry it, so there is no mark.
   const occurs = withEngine.some((p) => runs.some((r) => r.species[p.k]?.occurs));
   return {
     counts: c, verdict: withEngine.length ? story.verdict : 'NO ENGINE', why: story.why ?? null, noise: !!story.noise && occurs,
@@ -798,30 +810,53 @@ export function scenarioVerdict(runs, species, frequency, { z = 1.96 } = {}) {
 }
 
 /**
+ * Can a fleet of `runs` fail this story frequency beyond noise at all? Not when the frequency is at or
+ * below the top of the interval for 0 runs: storyVerdict marks even a fleet that never tells the story
+ * "noise" there.
+ */
+export const cannotFailBeyondNoise = (frequency, runs, z = 1.96) => frequency != null && frequency <= wilson(0, runs, z)[1];
+
+/**
  * WP1's whole pre-registered target for a scenario: the story frequency met (STORY or STORY (PROXY));
  * every protagonist with an engine and a band within it (a miss its interval cannot tell from the band
- * counts as within); each protagonist that carries story runs at the record's size — its typical crystal
- * within the record's middle half (MEETS; contract rule 4), or reaching its proxy (REACHES PROXY: a proxy
- * cannot test more); none OVERSIZE. The story verdict checks the first alone. A carrier short of its
- * proxy is open, not failed: a proxy cannot refute.
+ * counts as within); and every protagonist with an engine at the record's size wherever it occurs in a
+ * pocket that can hold it (contract rule 4) — its typical crystal within the record's middle half
+ * (MEETS), or reaching its proxy (REACHES PROXY: a proxy cannot test more), a miss its runs cannot tell
+ * from that (assessSize's noise) counting as within. Too small fails as too large and oversize do. A
+ * protagonist that never occurs is judged by its band alone, and one with no size target has none to
+ * meet. Open, not failed: short of a proxy (a proxy cannot refute), or a size this cavity cannot judge
+ * (no pocket holds the median, or every eligible crystal is longer than the cavity). Every protagonist
+ * is judged, not only those that carry story runs: otherwise one kept below display scale would escape
+ * the size test that one grown to it faces.
  *   verdict: the scenario's story verdict; protagonists: [{ k, engine, occurrence: { verdict, noise },
- *   size: { verdict } }]; carriers: the protagonists that carried story runs
- *   → { met, fails: [...], open: [...] }
+ *   size: { verdict, noise } }] → { met, fails: [...], open: [...] }
  */
-export function wp1Target(verdict, protagonists, carriers = []) {
+export function wp1Target(verdict, protagonists) {
   const fails = [], open = [];
   if (verdict !== 'STORY' && verdict !== 'STORY (PROXY)') fails.push(`story ${verdict}`);
   for (const p of protagonists) {
     if (!p.engine) continue;
     const o = p.occurrence, v = p.size?.verdict;
     if ((o?.verdict === 'LOW' || o?.verdict === 'HIGH') && !o.noise) fails.push(`${p.k} ${o.verdict === 'LOW' ? 'below' : 'above'} its band`);
+    if (v === 'MEETS' || v === 'REACHES PROXY' || v === 'NEVER OCCURS' || v === 'UNKNOWN' || p.size?.noise) continue;
     if (v === 'OVERSIZE') fails.push(`${p.k} oversize`);
-    else if (carriers.includes(p.k)) {
-      if (v === 'BELOW' || v === 'LARGE') fails.push(`${p.k} ${v === 'BELOW' ? 'below' : 'above'} the record's middle half`);
-      else if (v !== 'MEETS' && v !== 'REACHES PROXY') open.push(`${p.k} ${v === 'BELOW PROXY' ? 'short of its proxy' : (v || 'unsized').toLowerCase()}`);
-    }
+    else if (v === 'BELOW' || v === 'LARGE') fails.push(`${p.k} ${v === 'BELOW' ? 'below' : 'above'} the record's middle half`);
+    else open.push(`${p.k} ${v === 'BELOW PROXY' ? 'short of its proxy' : (v || 'unsized').toLowerCase()}`);
   }
   return { met: !fails.length && !open.length, fails, open };
+}
+/**
+ * WP1's whole target from a scenario's runs: each protagonist's occurrence against its band and its size
+ * (assessSize) over the runs, then wp1Target. The scoreboard calls this, so the tests reach its wiring.
+ *   runs: [{ span, species: { k: { occurs, size } } }]; species: the sidecar's entries; verdict: the
+ *   scenario's story verdict; z: rules.noise_z
+ */
+export function scenarioWp1(runs, species, verdict, { z = 1.96 } = {}) {
+  const protagonists = Object.entries(species).filter(([, v]) => v.role === 'primary' || v.role === 'alternate').map(([k, v]) => {
+    const per = runs.map((r) => ({ occurs: !!r.species[k]?.occurs, size: r.species[k]?.size ?? 0, span: r.span }));
+    return { k, engine: !!v.engine, occurrence: assessOccurrence(per.filter((x) => x.occurs).length, runs.length, v.occurrence_band, z), size: assessSize(per, v.size, z) };
+  });
+  return wp1Target(verdict, protagonists);
 }
 
 // ------------------------------------------------------------------ 5. how much the fleet varies
@@ -879,6 +914,8 @@ export function validateSidecar(sc) {
     for (const [cls, b] of Object.entries(R.occurrence_bands || {})) band(b, `rules.occurrence_bands.${cls}`);
     if (!Number.isInteger(R.size_min_samples) || R.size_min_samples < 1) bad.push('rules.size_min_samples must be a positive integer');
     if (!Number.isInteger(R.size_high_confidence) || R.size_high_confidence < R.size_min_samples) bad.push('rules.size_high_confidence must be an integer ≥ size_min_samples');
+    if (!Number.isInteger(R.size_medium_confidence) || R.size_medium_confidence < R.size_min_samples || R.size_medium_confidence > R.size_high_confidence) bad.push('rules.size_medium_confidence must be an integer from size_min_samples to size_high_confidence');
+    if (!Array.isArray(R.series_field_labels) || !R.series_field_labels.length || R.series_field_labels.some((x) => typeof x !== 'string' || !x)) bad.push('rules.series_field_labels must be a list of words');
     const ranged = { visible_mm: [0, Infinity, true], specimen_min_mm: [0, Infinity], uploaded_together_s: [0, Infinity, true], series_gap_s: [0, Infinity, true], clutter_limit: [0, 1], star_wanted_share: [0, 1], noise_z: [0, Infinity, true] };
     for (const [key, [lo, hi, open]] of Object.entries(ranged)) if (!isNum(R[key]) || R[key] < lo || (open && R[key] === lo) || R[key] > hi) bad.push(`rules.${key} is missing or out of range`);
     const D = R.display_range;

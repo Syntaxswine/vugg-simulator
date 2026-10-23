@@ -52,7 +52,7 @@ import path from 'node:path';
 import crypto from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import {
-  assessOccurrence, assessSize, scenarioVerdict, scenarioFrequency, wp1Target, wilson, pocketClass, fits, summarize,
+  assessOccurrence, assessSize, scenarioVerdict, scenarioFrequency, scenarioWp1, cannotFailBeyondNoise, wilson, pocketClass, fits, summarize,
   validateSidecar, protagonistsOf, assemblageVariety, everySeedChance, relativeSpread,
 } from './story-pocket-lib.mjs';
 import { buildSizeEvidence } from './story-pocket-size-evidence.mjs';
@@ -189,7 +189,7 @@ for (const [scn, T] of Object.entries(targets.scenarios).sort(([a], [b]) => a.lo
       // Dust: no crystal reaches the review's visible size; hidden: some does, but only ones flagged as enclosed.
       dust: occ.length > 0 && Math.max(...occ.map((x) => x.all)) < VISIBLE,
       hidden: occ.length > 0 && Math.max(...occ.map((x) => x.all)) >= VISIBLE && Math.max(...occ.map((x) => x.size)) < VISIBLE,
-      size: assessSize(per, t),
+      size: assessSize(per, t, Z),
     };
     if (v.engine && v.occurrence_band) {
       expectedEvery += v.occurrence_band[1] ** n;
@@ -207,7 +207,15 @@ for (const [scn, T] of Object.entries(targets.scenarios).sort(([a], [b]) => a.lo
   o.story = { ...V.counts, frequency: T.story_frequency, frequency_basis: T.story_frequency_basis, verdict: V.verdict, why: V.why, noise: V.noise, rate: V.rate, ci: V.ci };
   o.open = V.open;
   o.cannot = V.cannot;
-  o.dropped_setters = scenarioFrequency(T.species, DR, span)?.dropped ?? [];
+  // What the cavity and crystal-first do to the frequency: the setter, and the frequency without the
+  // cavity test and with proxies competing.
+  const sf = scenarioFrequency(T.species, DR, span);
+  o.dropped_setters = sf?.dropped ?? [];
+  o.setter = sf?.k ?? null;
+  o.frequency_without_cavity = scenarioFrequency(T.species, DR, Infinity)?.frequency ?? null;
+  o.frequency_proxies_too = scenarioFrequency(T.species, DR, span, { crystalFirst: false })?.frequency ?? null;
+  o.passed_over = sf?.passedOver ?? [];
+  o.verdict_proxies_too = scenarioVerdict(runsIn, T.species, o.frequency_proxies_too, { z: Z }).verdict;
   // Robustness: would the verdict hold without a crystal target's largest series (one contributor's
   // photographs), or, where the target has exactly the minimum sample, with its proxy instead?
   const minN = targets.rules.size_min_samples;
@@ -266,7 +274,7 @@ for (const [scn, T] of Object.entries(targets.scenarios).sort(([a], [b]) => a.lo
   for (const r of rs) for (const [m, v] of Object.entries(r.species)) if ((v.max_mm ?? 0) > span) o.longer_than_cavity[m] = (o.longer_than_cavity[m] || 0) + 1;
   // The verdict, and WP1's whole target.
   o.verdict = V.verdict;
-  o.wp1 = wp1Target(V.verdict, Object.entries(o.species).filter(([, v]) => isProt(v.role)).map(([k, v]) => ({ k, engine: v.engine, occurrence: v.occurrence, size: v.size })), Object.keys(V.counts.at_scale));
+  o.wp1 = scenarioWp1(runsIn, T.species, V.verdict, { z: Z });
   if (V.verdict === 'NO ENGINE') o.why = `no protagonist has an engine (${protagonistsOf(T.species).map(({ k }) => name(k)).join(', ')})`;
   else if (V.verdict === 'SMALL POCKETS ONLY') o.why = `the cavity's longest span, ${mm(span)} mm, is shorter than ${name(primary)}'s characteristic crystal, ${mm(primaryT.median)} mm (${primaryT.basis}, n ${primaryT.n})`;
   else o.why = V.why;
@@ -275,7 +283,7 @@ for (const [scn, T] of Object.entries(targets.scenarios).sort(([a], [b]) => a.lo
   for (const [k, s] of Object.entries(o.species)) {
     if (!s.engine) continue;
     if ((s.occurrence.verdict === 'LOW' || s.occurrence.verdict === 'HIGH') && !s.occurrence.noise) o.flags.push(`${name(k)} (${s.role}) ${s.occurrence.k}/${n} ${s.occurrence.verdict === 'LOW' ? 'below' : 'above'} band`);
-    if (s.size.verdict === 'OVERSIZE' || s.size.verdict === 'LARGE') o.flags.push(`${name(k)} ${s.size.verdict.toLowerCase()} (median ${mm(s.size.sizes.median)} mm; record q75 ${mm(s.target.q75)}, q90 ${mm(s.target.q90)})`);
+    if ((s.size.verdict === 'OVERSIZE' || s.size.verdict === 'LARGE') && !s.size.noise) o.flags.push(`${name(k)} ${s.size.verdict.toLowerCase()} (median ${mm(s.size.sizes.median)} mm; record q75 ${mm(s.target.q75)}, q90 ${mm(s.target.q90)})`);
     const cs = s.target.crystal;
     if (s.target.basis === 'specimen-proxy' && cs?.n && s.when_occurring.n && s.when_occurring.median > cs.max) o.flags.push(`${name(k)} larger than every photographed crystal (median ${mm(s.when_occurring.median)} mm; ${cs.n} crystal length${cs.n > 1 ? 's' : ''}, largest ${mm(cs.max)})`);
     if (isProt(s.role) && s.dust) o.flags.push(`${name(k)} dust (< ${VISIBLE} mm)`);
@@ -355,8 +363,12 @@ const sections = {};
     const { cavity, evidence } = o.cannot;
     cause[!cavity.length ? 'evidence' : evidence.length ? 'both' : cavity.every((k) => targets.scenarios[scn].species[k].size.basis === 'crystal') ? 'crystal' : 'proxy'].push(scn);
   }
-  const droppedAll = Object.entries(out).flatMap(([scn, o]) => (o.dropped_setters || []).map((d) => `${name(d.k)} at ${scn} (${T_role(scn, d.k)}, display range from ${mmPair(d.from, o.cavity.span_mm)[0]} mm, span ${mmPair(d.from, o.cavity.span_mm)[1]})`));
-  md.push(`The cavity decides who can set the story frequency. These protagonists have an engine, a band and a size target, but their display range starts beyond the cavity's span, so they cannot carry a story run there and do not set it; the frequency falls to the next setter, or to none: ${droppedAll.join('; ') || 'none'}. The coverage itself is never cut to fit the cavity.`);
+  // What dropping them does: no frequency left, none changed (they would not have set it), or a move.
+  const effect = (o) => (o.story.frequency == null ? 'no frequency is left'
+    : o.frequency_without_cavity === o.story.frequency ? `the frequency is ${o.story.frequency} either way`
+    : `the frequency is ${o.story.frequency}, against ${o.frequency_without_cavity} with no cavity test`);
+  const droppedAll = Object.entries(out).filter(([, o]) => o.dropped_setters?.length).map(([scn, o]) => `at ${scn}, ${o.dropped_setters.map((d) => `${name(d.k)} (${T_role(scn, d.k)}, display range from ${mmPair(d.from, o.cavity.span_mm)[0]} mm, span ${mmPair(d.from, o.cavity.span_mm)[1]})`).join(' and ')} — ${effect(o)}`);
+  md.push(`The cavity decides who can set the story frequency. These protagonists have an engine, a band and a size target, but their display range starts beyond the cavity's span, so they cannot carry a story run there and do not set it: ${droppedAll.join('; ') || 'none'}. The coverage itself is never cut to fit the cavity.`);
   md.push(`No run can carry the story in its scenario's current cavity, whatever grows, in ${cannot.length} of ${scored.length} scored scenarios. The display range of every protagonist with a size target starts beyond the cavity's span — on crystal targets: ${cause.crystal.join(', ') || 'none'}; on specimen proxies, which overstate the crystal: ${cause.proxy.join(', ') || 'none'}; and the other protagonists have no size target: ${cause.both.join(', ') || 'none'}. No protagonist with an engine has a size target: ${cause.evidence.join(', ') || 'none'}. A crystal target beyond the span waits on bigger pockets (WP9); a proxy on bigger pockets or on crystal lengths that bring it within (WP0); a missing target on crystal lengths.`);
   const partial = Object.entries(out).flatMap(([scn, o]) => (o.partial || []).map((p) => [scn, p]));
   const longer = partial.filter(([, p]) => p.crystal.min > p.simMax);
@@ -365,18 +377,26 @@ const sections = {};
   const pockets = {};
   for (const o of scored) pockets[o.pocket] = (pockets[o.pocket] || 0) + 1;
   const smallRuns = scored.reduce((s, o) => s + (o.story?.small ?? 0), 0);
-  const zeroTop = wilson(0, runs.length / Object.keys(runsBy).length, Z)[1];
-  const powerless = scored.filter((o) => o.story?.frequency != null && o.story.frequency <= zeroTop);
-  md.push(`Story checks that ${Math.round(runs.length / Object.keys(runsBy).length)} seeds cannot fail beyond noise — a frequency at or below ${zeroTop.toFixed(3)}, the top of the interval for 0 of them, where even a fleet that never tells the story is within noise: ${Object.entries(out).filter(([, o]) => powerless.includes(o)).map(([scn, o]) => `${scn} (${o.story.frequency})`).join(', ') || 'none'}. Where no protagonist with an engine occurs in any seed, the verdict carries no noise mark: the seeds repeat one pocket, and chance explains nothing.`);
+  const seeds = runs.length / Object.keys(runsBy).length;
+  const zeroTop = wilson(0, seeds, Z)[1];
+  const powerless = scored.filter((o) => cannotFailBeyondNoise(o.story?.frequency, seeds, Z));
+  md.push(`Story checks that ${Math.round(seeds)} seeds cannot fail beyond noise — a frequency at or below ${zeroTop.toFixed(3)}, the top of the interval for 0 of them, where even a fleet that never tells the story is within noise: ${Object.entries(out).filter(([, o]) => powerless.includes(o)).map(([scn, o]) => `${scn} (${o.story.frequency})`).join(', ') || 'none'}. Where no protagonist with an engine forms in any seed, the verdict carries no noise mark: the mark says chance in which runs carry the story could explain the shortfall, and no run grew a protagonist to carry it.`);
   const larger = Object.entries(out).flatMap(([scn, o]) => (o.flags || []).filter((x) => x.includes('larger than every photographed crystal')).map((x) => `${x.replace(/ larger than every photographed crystal.*$/, '')} at ${scn}`));
   const longerThan = Object.entries(out).flatMap(([scn, o]) => Object.entries(o.longer_than_cavity || {}).map(([m, cnt]) => `${name(m)} at ${scn} (${cnt}/${o.runs})`));
   md.push(`Simulated crystals larger than every photographed crystal of their species, where the record gives a few lengths beside a proxy: ${larger.join(', ') || 'none'}. Crystals longer than the starting cavity's span: ${longerThan.join(', ') || 'none'}.`);
+  // Crystal targets first: where it moves the frequency, and whether any verdict moves with it.
+  const firsts = Object.entries(out).filter(([, o]) => o.story && o.story.frequency != null && o.frequency_proxies_too != null && o.frequency_proxies_too !== o.story.frequency);
+  const firstMoves = firsts.filter(([, o]) => o.verdict_proxies_too !== o.verdict);
+  md.push(`Crystal targets first moves the story frequency where a crystal target sets it over a proxy that would set a higher one — the primary's too (with proxies competing → as registered): ${firsts.map(([scn, o]) => `${scn} (${o.frequency_proxies_too} → ${o.story.frequency}: ${name(o.setter)}, ${T_role(scn, o.setter)}, over the proxies of ${o.passed_over.map((k) => `${name(k)} (${T_role(scn, k)})`).join(', ')})`).join('; ') || 'none'}. There a STORY (PROXY) is judged against the crystal target's expected rate, not a proxy's bar. Verdicts that move with it: ${firstMoves.map(([scn, o]) => `${scn} (${o.verdict_proxies_too} → ${o.verdict})`).join(', ') || 'none'}.`);
+  // Frequency setters whose own median the cavity cannot be shown to hold: their size cannot be judged here.
+  const unheld = Object.entries(out).filter(([scn, o]) => o.setter && fits(o.cavity.span_mm, targets.scenarios[scn].species[o.setter].size) !== true);
+  md.push(`Frequency setters whose characteristic crystal the cavity cannot be shown to hold (span under the target's median): ${unheld.map(([scn, o]) => { const t = targets.scenarios[scn].species[o.setter].size; const [a, b] = mmPair(t.median, o.cavity.span_mm); return `${name(o.setter)} at ${scn} (${t.basis === 'crystal' ? 'crystal' : 'proxy'} median ${a} mm, span ${b})`; }).join('; ') || 'none'}. Their range starts within the span, so they can carry story runs, but their own size cannot be judged in this cavity, so WP1's whole target cannot be met there until the pocket grows (WP9) or the evidence brings the target within it (WP0).`);
   md.push(`Pocket classes against the primary protagonist's characteristic crystal: ${['STORY-SCALE', 'SMALL', 'UNCLASSED'].map((p) => `${p} ${pockets[p] || 0}`).join(', ')} of ${scored.length} scored scenarios; runs in small pockets ${smallRuns} (${scored.reduce((s, o) => s + (o.story?.small_yes ?? 0), 0)} of them with a story, reported apart). Every scenario grows in one cavity in all its seeds (${Object.values(cav.scenarios).reduce((s, v) => s + v.seeds_checked.length, 0)} constructions checked, ${Object.values(cav.scenarios).every((v) => v.identical_across_seeds) ? 'none differ' : 'SOME DIFFER'}), so a scenario's fleet holds a single pocket class: no scenario yet has both small pockets and story-scale ones.`);
   sections.verdicts = md.join('\n');
 }
 {
   const md = [];
-  md.push(`For every protagonist with a crystal target, and every specimen proxy with a series or at the minimum sample: the share of its lengths in its largest series (one wording, each upload less than ${Math.round(targets.rules.series_gap_s / 86400)} days after the one before: likely one contributor's lot or find), the verdict with that series left out, and — where the target has exactly the minimum of ${targets.rules.size_min_samples} lengths — the verdict with one length fewer (a crystal target falls back to its proxy, a proxy to unknown). Each verdict is scored against the story frequency rebuilt by the same rule.`);
+  md.push(`For every protagonist with a crystal target, and every specimen proxy with a series or at the minimum sample: the share of its lengths in its largest series (one wording, each upload less than ${Math.round(targets.rules.series_gap_s / 86400)} days after the one before — a standard caption field or a bare length only among photographs uploaded together: likely one contributor's lot or find), the verdict with that series left out, and — where the target has exactly the minimum of ${targets.rules.size_min_samples} lengths — the verdict with one length fewer (a crystal target falls back to its proxy, a proxy to unknown). Each verdict is scored against the story frequency rebuilt by the same rule.`);
   md.push('');
   md.push('| scenario | verdict | protagonist: target (basis, n, confidence) | largest series | without it: n, q25 → verdict | at the minimum, one length fewer → verdict |');
   md.push('|---|---|---|---|---|---|');
@@ -458,19 +478,19 @@ const sections = {};
     const spread = s.engine && w.n ? `${s.spread.sim == null ? 'not visible' : `${pct(s.spread.sim)} %`} / ${s.spread.record == null ? '—' : `${pct(s.spread.record)} %`}` : '—';
     const fit = s.target.basis === 'unknown' ? '—' : s.target.fits === true ? 'yes' : s.target.fits === false ? 'no' : 'unknown';
     const elig = s.size.eligible ? `${s.size.inRange}/${s.size.eligible} (${pct(s.size.share)} %)` : '—';
-    md.push(`| ${scn} | ${name(k)} | ${s.role} | ${occ} | ${targetText(s.target)} | ${cond} | ${spread} | ${fit} | ${elig} | ${s.engine ? s.size.verdict : '—'} |`);
+    md.push(`| ${scn} | ${name(k)} | ${s.role} | ${occ} | ${targetText(s.target)} | ${cond} | ${spread} | ${fit} | ${elig} | ${s.engine ? `${s.size.verdict}${s.size.noise ? ' (noise)' : ''}` : '—'} |`);
   }
   const prot = rows.filter(([, , s]) => isProt(s.role));
   const basis = {};
   for (const [, , s] of prot) { const b = s.target.basis === 'crystal' ? `crystal (${s.target.confidence})` : s.target.basis; basis[b] = (basis[b] || 0) + 1; }
   const verdicts = {};
-  for (const [, , s] of prot) if (s.engine) verdicts[s.size.verdict] = (verdicts[s.size.verdict] || 0) + 1;
+  for (const [, , s] of prot) if (s.engine) { const v = `${s.size.verdict}${s.size.noise ? ' (noise)' : ''}`; verdicts[v] = (verdicts[v] || 0) + 1; }
   md.push('');
   const scoredWp1 = sorted.filter(([, o]) => o.wp1);
   const metWp1 = scoredWp1.filter(([, o]) => o.wp1.met).map(([scn]) => scn);
   const clean = (x) => x.replace(/^(x:|ma:)/, '').replace(/_/g, ' ');
   const storyNotWp1 = scoredWp1.filter(([, o]) => !o.wp1.met && (o.verdict === 'STORY' || o.verdict === 'STORY (PROXY)')).map(([scn, o]) => `${scn} (${[...o.wp1.fails.map(clean), ...o.wp1.open.map((x) => `open: ${clean(x)}`)].join('; ')})`);
-  md.push(`WP1's whole target — the story frequency met; every protagonist with an engine within its band (a miss within noise counts as within); each protagonist that carries story runs at the record's size (its typical crystal within the record's middle half, or reaching its proxy); none oversize — is met by ${metWp1.length} of ${scoredWp1.length} scored scenarios${metWp1.length ? `: ${metWp1.join(', ')}` : ''}. Where the story verdict passes but the whole target does not: ${storyNotWp1.join('; ') || 'none'}.`);
+  md.push(`WP1's whole target — the story frequency met; every protagonist with an engine within its band; every protagonist with an engine at the record's size wherever it occurs in a pocket that can hold it (its typical crystal within the record's middle half, or reaching its proxy), whether or not it carries story runs; a band or size miss within noise counts as within, and a protagonist short of its proxy, or whose size the cavity cannot judge, leaves it open — is met by ${metWp1.length} of ${scoredWp1.length} scored scenarios${metWp1.length ? `: ${metWp1.join(', ')}` : ''}. Where the story verdict passes but the whole target does not: ${storyNotWp1.join('; ') || 'none'}. "(noise)" after a size verdict: the runs cannot tell their median from the target's window.`);
   md.push('');
   md.push(`Protagonist size targets (${prot.length} primary and alternate slots): ${Object.entries(basis).sort().map(([b, cnt]) => `${b} ${cnt}`).join(', ')}. Size verdicts of protagonists with an engine: ${Object.entries(verdicts).sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0])).map(([x, cnt]) => `${x} ${cnt}`).join(', ')}. "spread" = the interquartile range over the median, of the simulated largest crystal across the seeds and of the record's.`);
   sections.protagonists = md.join('\n');
@@ -591,7 +611,7 @@ const sections = {};
 }
 {
   const R = targets.rules;
-  sections.rules = `Occurrence bands by literature class: ${Object.entries(R.occurrence_bands).map(([cls, b]) => `${cls} ${pct(b[0])}–${pct(b[1])} %`).join(', ')}; any other class leaves the band unresolved. Size targets: at least ${R.size_min_samples} specimens; confidence low below ${R.size_medium_confidence}, medium below ${R.size_high_confidence}, high from ${R.size_high_confidence}, one step lower when one series holds more than half the lengths (a series: one wording, each upload less than ${Math.round(R.series_gap_s / 86400)} days after the one before); a specimen proxy is always low. Specimen lengths under ${R.specimen_min_mm} mm are set aside; photographs of one specimen are joined when uploaded within ${R.uploaded_together_s.toLocaleString('en-US')} s (${(R.uploaded_together_s / 86400).toFixed(1)} days) of each other. Display range: the record's q${Math.round(100 * R.display_range[0])}–q${Math.round(100 * R.display_range[1])}; a fresh crystal from the record's population lands in it with probability ${(R.display_range[1] - R.display_range[0]).toFixed(2)} × (n − 1) / (n + 1) for a record of n. Story frequency: the largest band floor × that coverage among a scenario's protagonists that can carry a story run — an engine, a band, and a size target whose display range starts within the cavity's span (q25 ≤ span) — crystal targets first, a proxy only where no crystal target can. Noise: the Wilson interval at z ${R.noise_z}. Clutter: under ${pct(R.clutter_limit)} % of the visible crystals. The star: a wanted species in at least ${pct(R.star_wanted_share)} % of the runs.`;
+  sections.rules = `Occurrence bands by literature class: ${Object.entries(R.occurrence_bands).map(([cls, b]) => `${cls} ${pct(b[0])}–${pct(b[1])} %`).join(', ')}; any other class leaves the band unresolved. Size targets: at least ${R.size_min_samples} specimens; confidence low below ${R.size_medium_confidence}, medium below ${R.size_high_confidence}, high from ${R.size_high_confidence}, one step lower when one series holds more than half the lengths (a series: one wording, each upload less than ${Math.round(R.series_gap_s / 86400)} days after the one before; a wording ending in ${R.series_field_labels.map((w) => `"${w}"`).join(', ')}, or a bare length, only among photographs uploaded together); a specimen proxy is always low. Specimen lengths under ${R.specimen_min_mm} mm are set aside; photographs of one specimen are joined when uploaded within ${R.uploaded_together_s.toLocaleString('en-US')} s (${(R.uploaded_together_s / 86400).toFixed(1)} days) of each other. Display range: the record's q${Math.round(100 * R.display_range[0])}–q${Math.round(100 * R.display_range[1])}; a fresh crystal from the record's population lands in it with probability ${(R.display_range[1] - R.display_range[0]).toFixed(2)} × (n − 1) / (n + 1) for a record of n. Story frequency: the largest band floor × that coverage among a scenario's protagonists that can carry a story run — an engine, a band, and a size target whose display range starts within the cavity's span (q25 ≤ span) — crystal targets first, a proxy only where no crystal target can. Noise: the Wilson interval at z ${R.noise_z} — of the rate, for occurrence and the story; for a size verdict, of the share of runs on the target window's side of its near edge, against one half. Clutter: under ${pct(R.clutter_limit)} % of the visible crystals. The star: a wanted species in at least ${pct(R.star_wanted_share)} % of the runs.`;
 }
 
 const md = ['# Story-pocket scoreboard', '', `Targets: \`${path.relative(ROOT, TARGETS).replace(/\\/g, '/')}\` (${targets.rules.status}). Census: ${runs.length} runs. Cavities: ${path.relative(ROOT, CAV).replace(/\\/g, '/')} (${cav.seeds_mode} seeds).`, ''];
