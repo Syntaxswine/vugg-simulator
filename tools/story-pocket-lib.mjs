@@ -70,13 +70,15 @@ const PREDICATE = new RegExp(String.raw`([${L}]+)\s+(?:hat|hatte|besitzt)\s+eine
 // Captions are cut 30 characters before a length, so a clause can start mid-word: "…stall hat eine
 // Größe von etwa 43 mm" is "Kristall".
 const FRAGMENT = new RegExp(String.raw`^(?:ristall|istall|stall)(?:e|en|es|s|n)?(?!${L})`, 'iu');
+// The same for a rosette cut to "…ette": "ette von cyanblauer Farbe und 16 mm Durchmesser" (cavansite).
+const AGG_FRAGMENT = new RegExp(String.raw`^(?:o?s)?etten?(?!${L})`, 'iu');
 // Cues right after a length bind tighter than any before it.
 const AFTER_IGNORE = /^\s*(?:macro|makro|objektiv|lens\b|f\/\d|mächtig)/iu;
 // "45 mm Durchmesser": a diameter, read as a width (of a column or a specimen), not a length — except of a
 // tabular crystal ("tafelige Kristalle bis 2 mm Durchmesser") or a rounded aggregate ("Eisenrosen von bis
 // zu 19 mm Durchmesser"), whose diameter is its size.
 const AFTER_DIAMETER = /^\s*(?:durchmesser|diameter|ø)/iu;
-const DIAMETER_IS_SIZE = /tafel|plättch|tabular|rose|rosette|kugel|sphär|sphere|scheibe|disc|disk/iu;
+const DIAMETER_IS_SIZE = new RegExp(String.raw`tafel|plättch|tabular|rose|rosette|kugel|sphär|sphere|scheibe|disc|disk|^\s*(?:o?s)?etten?(?!${L})`, 'iu');
 const AFTER_FOV = new RegExp(String.raw`^\s*(?:bildbreite|bildbr|bildhöhe|bb\b|breite[rns]?\s+aus|aus?schnitt)`, 'iu');
 const AFTER_CRYSTAL = new RegExp(String.raw`^\s*(?:kl\b|kantenl|kristall(?!${L}*${NOT_ONE_CRYSTAL})|crystal\b|(?:hohe|lange|große|grosse)[rns]?\s+kristal(?!${L}*${NOT_ONE_CRYSTAL}))`, 'iu');
 // "N mm großer/große/großes <noun>" (or hoher, langer, breiter, dicker): an attributive adjective, so
@@ -173,6 +175,8 @@ function nearestCue(before, cutStart) {
   for (const kind of CUE_ORDER) for (const m of before.matchAll(CUES[kind])) found.push({ kind, start: m.index, end: m.index + m[0].length, text: m[0] });
   const frag = cutStart ? before.match(FRAGMENT) : null;
   if (frag) found.push({ kind: 'crystal', start: 0, end: frag[0].length, text: frag[0] });
+  const aggFrag = cutStart ? before.match(AGG_FRAGMENT) : null;
+  if (aggFrag) found.push({ kind: 'aggregate', start: 0, end: aggFrag[0].length, text: aggFrag[0] });
   found.sort((a, b) => b.end - a.end || CUE_ORDER.indexOf(a.kind) - CUE_ORDER.indexOf(b.kind));
   for (const c of found) {
     if (before.length - c.end > GAP) break;
@@ -291,6 +295,9 @@ export function parseSizeStatements(raw) {
       kind = cue.kind; why = cue.text;
       if (kind === 'crystal' || kind === 'aggregate') named = cueMineral(before, cue);
     } else { kind = 'specimen'; why = '(no cue)'; }
+    // A picture has a width and a height, not a depth: a size in three dimensions is never the picture's
+    // ("Stilbit 40x35x20 mm Ausschnitt" is a detail of a 40 mm specimen).
+    if (kind === 'fov' && dims && dims.length >= 3) { kind = 'specimen'; why = `${why} (three dimensions: no picture)`; }
     // A title that names one crystal makes its "Größe" that crystal's — of the mineral the title names,
     // if any; not when the title pairs two minerals ("Elbait-Kristall und Albit").
     const title = prevClause != null && clauses.length === 2 && cutStart ? prevClause.replace(CUT_COMPOUND, '') : prevClause;
@@ -331,22 +338,29 @@ export function seriesKey(before, after) {
  * The largest series among a species' crystal lengths: lengths in one wording (seriesKey) whose
  * specimens were uploaded in one stretch, each less than gap seconds after the one before (image ids
  * read as upload times). A run of one wording over weeks or months is likely one contributor's lot or
- * find; a standard wording recurring years apart is many contributors'. The capture has no uploader
- * names, so the stretch stands in for the contributor.
+ * find; a standard caption field (isFieldLabel) is everyone's, so only photographs uploaded together
+ * (fieldGap) make a series of it. The capture has no uploader names, so the stretch stands in for the
+ * contributor.
  *   items: [{ value, key, t }] → { largest, of, template, first, last, rest: [the other values] }, or
  *   null for no items; ties go to the wording first alphabetically, then the earlier stretch
  */
 export const SERIES_GAP = 365 * 86400;
-export function largestSeries(items, gap = SERIES_GAP) {
+// A standard caption field ("Größe: #", "Size #", "Kristallgröße: ca. #") is many contributors' wording:
+// only photographs uploaded together (fieldGap) make a series of it; an unusual wording chains uploads
+// less than gap apart.
+const FIELD_LABEL = /(?:größe|grösse|groesse|size|maße|masse|abmessungen|dimensions?)[:=.]?(?:ca\.?|etwa)?$/iu;
+export const isFieldLabel = (key) => FIELD_LABEL.test(String(key).slice(0, String(key).lastIndexOf('#')));
+export function largestSeries(items, gap = SERIES_GAP, { fieldGap = gap } = {}) {
   if (!items.length) return null;
   const byKey = {};
   for (const it of items) (byKey[it.key] ||= []).push(it);
   const runs = [];
   for (const [key, list] of Object.entries(byKey)) {
     list.sort((a, b) => a.t - b.t);
+    const g = isFieldLabel(key) ? fieldGap : gap;
     let run = [list[0]];
     for (let i = 1; i < list.length; i++) {
-      if (list[i].t - list[i - 1].t < gap) run.push(list[i]);
+      if (list[i].t - list[i - 1].t < g) run.push(list[i]);
       else { runs.push({ key, members: run }); run = [list[i]]; }
     }
     runs.push({ key, members: run });
@@ -624,10 +638,12 @@ export function assessSize(runs, target) {
  * proxy range was reached). POSSIBLE when a protagonist occurs whose crystal target is not known —
  * no target, or short of a proxy — or whose crystal is longer than the cavity's span, which the
  * starting cavity cannot hold (`beyond`). NO otherwise; `oversize` marks a crystal past q90.
+ * `atScale` lists every protagonist at display scale in the run, whichever is credited (`by`).
  *   run: { span, species: { k: { occurs, size } } }; protagonists: [{ k, target }]
  */
 export function runStory(run, protagonists) {
   let crystal = null, proxy = null, possible = false, oversize = false, beyond = false;
+  const atScale = [];
   for (const { k, target } of protagonists) {
     const s = run.species[k];
     if (!s?.occurs) continue;
@@ -635,13 +651,14 @@ export function runStory(run, protagonists) {
     if (run.span != null && s.size > run.span) { beyond = true; possible = true; continue; }
     if (s.size > target.q90) { oversize = true; continue; }
     if (s.size >= target.q25) {
+      atScale.push(k);
       if (target.basis === 'crystal') crystal ??= k;
       else proxy ??= k;
     } else if (target.basis !== 'crystal') possible = true;
   }
-  if (crystal) return { story: 'YES', basis: 'crystal', by: crystal, oversize, beyond };
-  if (proxy) return { story: 'YES', basis: 'specimen-proxy', by: proxy, oversize, beyond };
-  return { story: possible ? 'POSSIBLE' : 'NO', oversize, beyond };
+  if (crystal) return { story: 'YES', basis: 'crystal', by: crystal, oversize, beyond, atScale };
+  if (proxy) return { story: 'YES', basis: 'specimen-proxy', by: proxy, oversize, beyond, atScale };
+  return { story: possible ? 'POSSIBLE' : 'NO', oversize, beyond, atScale };
 }
 
 /**
@@ -654,7 +671,7 @@ export function runStory(run, protagonists) {
 export function scoreStory(runs, species) {
   const protagonists = protagonistsOf(species);
   const primary = Object.values(species).find((v) => v.role === 'primary');
-  const c = { runs: runs.length, scored: 0, small: 0, small_yes: 0, yes_crystal: 0, yes_proxy: 0, possible: 0, unclassified: 0, oversize: 0, beyond: 0, by: {}, pockets: {} };
+  const c = { runs: runs.length, scored: 0, small: 0, small_yes: 0, yes_crystal: 0, yes_proxy: 0, possible: 0, unclassified: 0, oversize: 0, beyond: 0, by: {}, at_scale: {}, pockets: {} };
   for (const run of runs) {
     const pocket = pocketClass(run.span, primary?.size);
     c.pockets[pocket] = (c.pockets[pocket] || 0) + 1;
@@ -663,6 +680,7 @@ export function scoreStory(runs, species) {
     if (s.beyond) c.beyond++;
     if (pocket === 'SMALL') { c.small++; if (s.story === 'YES') c.small_yes++; continue; }
     c.scored++;
+    for (const k of s.atScale) c.at_scale[k] = (c.at_scale[k] || 0) + 1;
     if (s.story === 'YES') { if (s.basis === 'crystal') c.yes_crystal++; else c.yes_proxy++; c.by[s.by] = (c.by[s.by] || 0) + 1; }
     else if (s.story === 'POSSIBLE') c.possible++;
     else if (pocket === 'UNCLASSED') c.unclassified++;
@@ -681,7 +699,7 @@ export function storyVerdict({ runs, yes, yesCrystal, open, frequency, z = 1.96 
   if (!runs) return { verdict: 'SMALL POCKETS ONLY' };
   const rate = yes / runs;
   const ci = wilson(yes, runs, z);
-  if (frequency == null) return { verdict: 'UNRESOLVED', why: 'no story frequency: no protagonist with an engine, an occurrence band and a size target can carry a story run', rate, ci };
+  if (frequency == null) return { verdict: 'UNRESOLVED', why: 'no story frequency: no protagonist with an engine, an occurrence band and a size target whose display range starts within the cavity can carry a story run', rate, ci };
   if (rate >= frequency) return { verdict: yesCrystal / runs >= frequency ? 'STORY' : 'STORY (PROXY)', rate, ci };
   if ((yes + open) / runs >= frequency) return { verdict: 'UNRESOLVED', why: 'runs whose protagonist has no known crystal target, or whose pocket is unclassed, could carry it', rate, ci };
   return { verdict: yes ? 'THIN STORY' : 'NO STORY', noise: wilson(yes + open, runs, z)[1] >= frequency, rate, ci };
@@ -700,32 +718,47 @@ export function displayCoverage(n, range) {
 
 /**
  * The story frequency a scenario's targets imply: floor × displayCoverage(n) for the protagonist that can
- * carry a story run — an engine, a band, a size target, and a display range that starts within the
- * cavity's span (room) — with the largest such product. For a crystal target it is the expected story
- * rate of a fleet whose protagonist occurs at its band's floor with crystals drawn from its record's
- * population: with 21 seeds such a fleet falls short about half the time, and the verdict marks a
- * shortfall its interval cannot tell from the frequency "noise". For a specimen proxy it is a bar for
- * STORY (PROXY), the rate at which crystals as large as the photographed specimens would reach the
- * proxy's range — not an expected rate, since the proxy overstates the crystal. Runs whose crystal is
- * longer than the cavity stay open, so a cavity shorter than the range's top leaves a verdict open
- * rather than failing it; the frequency is never lowered to fit the cavity.
+ * carry a story run with the largest such product. A protagonist can carry one when it has an engine, a
+ * band and a size target whose display range starts within the cavity's span (room) — the test a run's
+ * YES itself needs (q25 ≤ span; by: 'median' is the eligibility test, for comparison). Crystal targets
+ * come first: a proxy sets the frequency only where no crystal target can carry a story run, as a size
+ * target prefers crystal lengths.
+ * For a crystal target it is the expected story rate of a fleet whose protagonist occurs at its band's
+ * floor with crystals drawn from its record's population: with 21 seeds such a fleet falls short about
+ * half the time, and the verdict marks a shortfall its interval cannot tell from the frequency "noise".
+ * For a specimen proxy it is a bar for STORY (PROXY), the rate at which crystals as large as the
+ * photographed specimens would reach the proxy's range — not an expected rate, since the proxy
+ * overstates the crystal.
+ * The coverage is never cut to the cavity (runs longer than it stay open), but the cavity decides who can
+ * carry a story run, so dropping a protagonist whose range starts beyond it can lower the frequency or
+ * remove it: `dropped` names them.
  *   protagonists: [{ k, engine, band, target }]; range: rules.display_range; room: the largest span
- *   → { frequency, k, floor, coverage, n, basis }, or null when none can carry a story run; ties go to
- *   the first
+ *   → null when no protagonist has an engine, a band and a size target; else { frequency (null when the
+ *   cavity drops them all), k, floor, coverage, n, basis, dropped: [{ k, from }], passedOver: [k] (proxies
+ *   a crystal target set aside) }; ties go to the first
  */
-export function storyFrequency(protagonists, range, room = Infinity) {
-  let best = null;
+export function storyFrequency(protagonists, range, room = Infinity, { crystalFirst = true, by = 'q25' } = {}) {
+  const able = [], dropped = [];
   for (const p of protagonists) {
-    if (!p.engine || !p.band || !p.target || p.target.basis === 'unknown' || !(p.target.q25 <= room)) continue;
+    if (!p.engine || !p.band || !p.target || p.target.basis === 'unknown') continue;
+    const from = by === 'median' ? p.target.median : p.target.q25;
+    if (from <= room) able.push(p); else dropped.push({ k: p.k, from });
+  }
+  if (!able.length && !dropped.length) return null;
+  const pool = crystalFirst && able.some((p) => p.target.basis === 'crystal') ? able.filter((p) => p.target.basis === 'crystal') : able;
+  let best = null;
+  for (const p of pool) {
     const coverage = displayCoverage(p.target.n, range);
     if (!best || p.band[0] * coverage > best.rate) best = { k: p.k, floor: p.band[0], coverage, n: p.target.n, basis: p.target.basis, rate: p.band[0] * coverage };
   }
-  return best && { frequency: +best.rate.toFixed(4), k: best.k, floor: best.floor, coverage: +best.coverage.toFixed(4), n: best.n, basis: best.basis };
+  const passedOver = able.filter((p) => !pool.includes(p)).map((p) => p.k);
+  if (!best) return { frequency: null, dropped, passedOver };
+  return { frequency: +best.rate.toFixed(4), k: best.k, floor: best.floor, coverage: +best.coverage.toFixed(4), n: best.n, basis: best.basis, dropped, passedOver };
 }
 /** storyFrequency over a scenario's sidecar entries: its primary and alternates. */
-export const scenarioFrequency = (species, range, room) => storyFrequency(Object.entries(species)
+export const scenarioFrequency = (species, range, room, options) => storyFrequency(Object.entries(species)
   .filter(([, v]) => v.role === 'primary' || v.role === 'alternate')
-  .map(([k, v]) => ({ k, engine: !!v.engine, band: v.occurrence_band, target: v.size })), range, room);
+  .map(([k, v]) => ({ k, engine: !!v.engine, band: v.occurrence_band, target: v.size })), range, room, options);
 
 /**
  * A scenario's verdict from its runs and its targets: NO ENGINE when no protagonist has an engine;

@@ -174,8 +174,8 @@ export function buildSizeEvidence(root = ROOT, { specimenMinMm = SPECIMEN_MIN_MM
     audit[loc] = {};
     for (const [k, a] of Object.entries(acc).sort(([x], [y]) => x.localeCompare(y))) {
       // The largest series: lengths in one wording, uploaded in one stretch (likely one contributor's).
-      const series = largestSeries(a.crystalSeries, seriesGap);
-      const specimenSeries = largestSeries(a.specimenSeries, seriesGap);
+      const series = largestSeries(a.crystalSeries, seriesGap, { fieldGap: uploadedTogether });
+      const specimenSeries = largestSeries(a.specimenSeries, seriesGap, { fieldGap: uploadedTogether });
       const seriesOf = (x) => (x ? { largest: x.largest, of: x.of, template: x.template, days: Math.round((x.last - x.first) / 86400) } : null);
       out[loc][k] = {
         names: [...a.names].sort(),
@@ -226,7 +226,7 @@ export function renderSizeEvidenceMd(ev) {
   md.push(`- A photograph counts once. Photographs of one specimen count once: uploaded together (image ids, which read as upload times in seconds, within ${UPLOADED_TOGETHER.toLocaleString('en-US')}) with the same caption stretches (identical once a word cut at the stretch\'s start, punctuation and "mit", "und", "auf" are dropped) or the same multi-dimension length of a crystal, an aggregate or the specimen; or, uploaded apart, the same length in three dimensions, one written with a decimal; never with captions that name different finds, or that each name a mineral the other does not. The joins are listed at the end.`);
   md.push(`- Each cell: specimens with a length of that kind: median (q25–q75). A specimen contributes its largest length of each kind. Specimen lengths under ${SPECIMEN_MIN_MM} mm are set aside (micromount captions give the crystal or the field as "Größe").`);
   md.push('- "crystal" = a crystal of the photograph\'s first-listed mineral; "aggregate" = a named aggregate (sphere, rosette, sheaf); "specimen" = the whole specimen; "width" = the picture\'s width. A crystal length is set aside when it names another mineral, or names none while its line or title is about another mineral. A crystal\'s width or thickness is not a length and is not used. Piece materials (*) count every length as a piece (specimen).');
-  md.push(`- "largest series": lengths of one kind (crystal or specimen) in one wording once the numbers are taken out ("Etwa # mm x # mm großer…") whose specimens were uploaded in one stretch, each less than ${Math.round(SERIES_GAP / 86400)} days after the one before — likely one contributor's lot or find, so not independent samples; then the days from its first upload to its last.`);
+  md.push(`- "largest series": lengths of one kind (crystal or specimen) in one wording once the numbers are taken out ("Etwa # mm x # mm großer…") whose specimens were uploaded in one stretch, each less than ${Math.round(SERIES_GAP / 86400)} days after the one before — likely one contributor's lot or find, so not independent samples; a standard caption field ("Größe: #", "Kristallgröße: #") is everyone's wording, so only photographs uploaded together (within ${UPLOADED_TOGETHER.toLocaleString('en-US')} s) make a series of it. Then the days from its first upload to its last.`);
   md.push('');
   md.push(`| locality | species (archive names) | photographs: archive / read / with a length → specimens | crystal | largest series of the crystal lengths | aggregate | specimen | largest series of the specimen lengths | specimen lengths under ${SPECIMEN_MIN_MM} mm, set aside | picture width | set aside: crystal lengths of another mineral / about another / widths (a crystal's or a specimen's) | unclassed |`);
   md.push('|---|---|---|---|---|---|---|---|---:|---|---|---:|');

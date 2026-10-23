@@ -538,8 +538,116 @@ WP1's whole target is met by none.
 | S4 | "No verdict holds under every check" is false | "No decided verdict (STORY, STORY (PROXY), NO STORY) holds under every check"; most UNRESOLVED verdicts hold, being open already. | — |
 | S5 | 16 surviving mutants | Tests for each named survivor: WP1 fails a HIGH occurrence beyond noise and a THIN STORY, and a LARGE carrier; `validateSidecar` rejects a bad `star_wanted_share`, `visible_mm`, `uploaded_together_s` and `specimen_min_mm`; a size measured with a decimal point joins as one with a comma does; "und" and "auf" are dropped from captions; a mineral cut at a stretch's end counts in the minerals rule; "Ø" and "diameter" are diameters; the cut-word fallback reads five letters ("Rauch") but not four ("Topa"). The fleet test's bound is 8 %, with room above the reviewer's 5.1 % at n 6. | 95 tests. 12 mutants on this round's code, all killed (one after a test that a proxy target records its series). |
 | S6 | the join description is stale | The appendix and §5 describe the rules as they are: the same caption once a cut word, punctuation and "mit", "und", "auf" are dropped; a size written with a decimal; never across two finds, or two captions that each name a mineral the other does not. | — |
-| S7 | a shared picture size joins two specimens | Size joins come only from a crystal, aggregate or specimen statement; a picture's size identifies no specimen (a test). | The 17 size joins are unchanged. |
+| S7 | a shared picture size joins two specimens | Size joins come only from a crystal, aggregate or specimen statement; a picture's size identifies no specimen (a test). | The 17 size joins are unchanged. *[Corrected in round 6: this was false. The filter dropped two Deccan stilbite joins whose "Ausschnitt" after a three-dimension size had been misread as a picture width, leaving 15 joins and 2,102 specimens. Round 6 reads a three-dimension size as never a picture's, which restores the 17 joins and 2,100 specimens.]* |
 | S8 | minor | Robustness verdicts rebuild the frequency (S2). A diameter after a tabular or rounded form is its size ("tafelige Kristalle bis 2 mm Durchmesser", "Eisenrosen … 19 mm Durchmesser"; tests); §5 names the rule's limit. The "limonit" stem (round 4) is what lets the minerals rule split the Wittichen pair; round 4's response omitted it. | No target changes. |
 
 Result: STORY 1, STORY (PROXY) 1, NO STORY 3, UNRESOLVED 26, NO ENGINE 1, OUT OF SCOPE 1 (unchanged).
 WP1's whole target is met by none. Five rounds have run: the standing rule stops here, and a sixth needs the boss's word.
+
+## Round 6 (boss-approved) — 8.5/10 (on c32ed5cc)
+
+The boss approved a sixth round on 2026-10-23, after the standing five.
+
+### The report
+
+> I worked read-only. `git status` is clean. Every `.local-evidence` file is byte-identical after my runs, except the row `npm test` adds to the test-quarry ledger. I ran mutants on a scratch replica (`scratchpad\review6\mut`). Its vitest stand-in reproduces 95/95 tests, the targets check and all 13 blocks.
+>
+> **MUST-FIX**
+>
+> 1. **The cavity rule for frequency setters changes frequencies without saying so, and the prose says it never does.**
+>    - Where:
+>      - PROPOSAL:283–285 and `story-pocket-targets.mjs:74` (also in the committed sidecar's `story_frequency_rule`) both say "the frequency is never lowered to fit the cavity". `story-pocket-lib.mjs:710–711` says the same.
+>      - The rule itself is at `lib:719`.
+>      - The basis string (`targets.mjs:173`) names only the protagonist that won.
+>      - The rules block (`showcase-scoreboard.mjs:580` → PROPOSAL:183) and the list of design numbers (PROPOSAL:313–322) leave the cavity condition out.
+>    - Evidence:
+>      - The cavity lowered Elmwood's frequency from 0.3079 to 0.2868: calcite's range starts at 80 mm against a 66.0 mm span, so sphalerite sets it. This is the response table's own example. Four scenarios lost their frequency altogether.
+>      - Three protagonists are dropped as setters with no trace in any generated output: Elmwood's calcite, Cripple Creek's fluorite (57 vs 56.5 mm), and reactive_wall's **primary**, calcite (57.5 vs 55.2 mm). The `cannot` flag fires only when every protagonist is dropped.
+>      - The setter test uses q25, while eligibility everywhere else is the median. So 5 of 20 frequencies come from a protagonist whose median specimen the cavity cannot hold, and whose own size verdict is ELIGIBILITY UNKNOWN:
+>        - Deccan heulandite 71 mm in a 66.4 mm span;
+>        - Elmwood sphalerite 69.5 in 66.0;
+>        - Cripple Creek calaverite 66 in 56.5;
+>        - mvt galena 80 in 63.8;
+>        - Tsumeb calcite 73 in 64.8.
+>      - With a median test the frequencies become: Deccan 0.308 → 0.152; Tsumeb 0.311 → 0.309; Elmwood, Cripple Creek and mvt → none. I re-scored all 32 scenarios with no cavity test and with a median test: no verdict moves under either.
+>    - No size target is shrunk, so the contract holds to the letter. But the cavity now moves the bar, and the boss's "never silently rescale" is about exactly that being visible.
+>    - Fix:
+>      - State what is true: the coverage is never cut to the span, but the cavity removes setters whose range starts beyond it, which can lower the frequency or remove it.
+>      - Name the removed protagonists in each basis and in a generated line or flag.
+>      - Register the q25 choice among the design numbers and in the rules block, or align it with the median. Add a §2.6 row either way.
+>
+> 2. **WP1's size rule depends on the order of species in the sidecar.**
+>    - Where: `scoreboard:267` passes `Object.keys(V.counts.by)` as the carriers. `by` credits one protagonist per run: the first crystal target, else the first proxy (`lib:637–643`).
+>    - Evidence, on the committed North Pennines targets:
+>      - Fleet: fluorite 17 mm in 21/21 runs (MEETS); galena 25 mm in 21/21 (LARGE, since q75 is 20 and q90 27.2, and at display scale in every run); quartz in 11/21; calcite 40 mm in 15/21.
+>      - The verdict is STORY. In the sidecar's order WP1 is **met**. Put galena first and WP1 **fails**: "galena above the record's middle half". The fleet is the same.
+>      - Two protagonists grown to size is the state WP1 tuning aims for.
+>    - Fix: a carrier is every protagonist at display scale (q25–q90, within the span) in some scored run. Add a test in both orders.
+>
+> **SHOULD-FIX**
+>
+> 1. **A proxy bar also decides STORY on crystal targets** (`lib:685`; label at `targets.mjs:173`).
+>    - At Deccan, Jeffrey and Tsumeb the frequency (0.308 / 0.26 / 0.311) comes from a proxy. It is above every crystal target's expected rate there: apophyllite 0.152, grossular 0.232, cerussite 0.217.
+>    - A crystal-target protagonist exactly at its record reaches STORY in 3 %, 36 % and 15 % of 21-seed fleets (binomial). Where a crystal target sets the frequency, it is 41–49 %.
+>    - That is round 4's must-fix again, in mixed scenarios. The label "a bar for STORY (PROXY)" understates what the number gates.
+>    - Fix: judge STORY against the largest crystal-set frequency, or say plainly that the bar applies to both.
+>
+> 2. **Specimen series chain the site's standard field across years** (round 5's should-fix 2).
+>    - 15 of 87 series span more than a year, all of them `Größe:#` specimen series:
+>      - Deccan apophyllite 37 of 88 over 1,682 days;
+>      - North Pennines fluorite 41 of 84 over 1,427 days;
+>      - North Pennines galena 9 of 15 over 1,136 days;
+>      - Sicily celestine 10 of 15 over 907 days.
+>    - They are labelled "likely one contributor's lot or find" (`scoreboard:375`, appendix:8). That contradicts PROPOSAL:226–227 ("Größe: N mm", recurring years apart, counts as many contributors) and the basis for `series_gap_s`.
+>    - No verdict moves: Mogok's ruby series, the one that flips a verdict, spans a single day.
+>    - Fix: exclude bare field labels from series keys, or cap a series' total span.
+>
+> 3. **Round 5's should-fix 7 response is false, and a parser error sits behind it.**
+>    - REVIEW:541 says "The 17 size joins are unchanged". The generated blocks say 15, and specimens went from 2,100 to 2,102.
+>    - The two lost joins are both Deccan stilbite, each pair uploaded minutes apart:
+>      - 1651866866 + 1651866721 ("Stilbit 40x35x20 mm Ausschnitt" / "…Indien");
+>      - 1651866343 + 1651866225 (60x40x30 mm).
+>    - Cause: `AFTER_FOV` (`lib:80`) reads "Ausschnitt" after a three-dimension size as a picture width. These are the only two three-dimension "picture widths" in the capture. The new kind filter (`lib:440`) then refuses to join them.
+>    - No target moves. Fix: a three-dimension length is never a picture width; correct the response table.
+>
+> 4. **Registered texts are out of date.**
+>    - `noise_basis` (`targets.mjs:76`) does not describe the rule the code applies. The code takes the interval of yes + open runs (`lib:687`) and drops the noise mark when no protagonist with an engine occurs (`lib:758–762`). The stated reason for the second, "the seeds repeat one pocket", is not the condition coded.
+>    - `rules.series` (`:66`) still says "Crystal lengths".
+>    - `specimen_joins` (`:65`) and PROPOSAL:217–220 do not mention that a picture's size joins nothing.
+>    - PROPOSAL:155 says the targets come from "three inputs". `cavities.json` is now a fourth, and the sidecar records it without a hash.
+>    - The `why` at `lib:684` does not mention the cavity for Naica, Searles, Sicily and Marlborough.
+>
+> 5. **Minor.**
+>    - PROPOSAL:801–802 says "Grimsel's comes closest". The generated block shows Grimsel and the North Pennines each flip under exactly one check.
+>    - The diameter exception misses cut words: 1266588159 ("…ette … 16 mm Durchmesser", a cavansite rosette) and 1207917945 are read as widths.
+>    - Untested: the "aggregate" kind in size joins (`lib:440`), and 9 of the 11 alternatives in `DIAMETER_IS_SIZE`. My mutants of both survive every test and check.
+>
+> **Verified and found correct**
+>
+> - **Guardrails:** nothing under js/ or data/ changed in f49c1804~..c32ed5cc. The comparison tool last changed in afbe687f, an ancestor of the tranche. Re-running it gives a byte-identical `compare.json` (8419de06…) and `compare.md`. No simulation was run.
+> - **Checks:** the targets match a rebuild; 13/13 scoreboard and 2/2 substrate blocks match; the appendix reproduces byte for byte; 95/95 tests pass.
+> - **Round 5's must-fix 1** is in place: the setter rule, `cavity_span_mm`, the span guard and the basis labels. There are 4 crystal-set and 16 proxy-set frequencies; Naica, Searles, Sicily and Marlborough have none. But see MUST-FIX 1.
+> - **The noise fix is right.** I replicated the cut-cavity fleet (4,000 trials per sample size). Beyond-noise failures are 6.8–10.4 % when only yes runs count (which confirms the 10.5 %), and 0.1–0.3 % with yes + open.
+> - **Round 5's must-fix 2** is in place and tested: BELOW and LARGE fail, REACHES PROXY passes, BELOW PROXY is open. But see MUST-FIX 2.
+> - **Round 5's should-fixes:** 1, 3, 4, 6 and 8 hold. 2 holds for Mogok's ruby (4 of 6 within a day). 5: every named survivor now has a test. 7's rule is correct, but its claim is false.
+> - **Mutants:** 26 of mine on round 5's code; 19 killed. The survivors are equivalent on the current data, a guard, two exact-equality boundaries, or the gaps in should-fix 5.
+> - **Parser:** round 5 changed exactly 2 of 2,261 caption stretches, both the intended diameter cases. Every row behind the 11 crystal targets parses cleanly. In a seeded sample of 60 of the 958 proxy specimen lengths I found no clear error (one is ambiguous, a Searles hanksite with no engine). All 48 joins that carry a length are plausible.
+> - **Earlier rounds still hold:** no size floor; the unclassed rule decides nothing; the Ouro Preto duplicate is joined; Bisbee's runs longer than the cavity stay open; the 10^-29 bound; Tsumeb's sensitivities.
+> - **Acceptance items:** all present. The proposal is honest about distributions (one assemblage in 21 of 32 scenarios; size spread 2 % against 75 %), about small pockets, and about the 50 mm case (Naica's row at a minimum of 4).
+>
+> **Ready for the boss?** Not yet, but close. First fix MUST-FIX 1 (wording, a generated list of the protagonists the cavity drops, and the q25 choice registered) and MUST-FIX 2 (carriers taken from every protagonist at display scale, with a test), and correct the should-fix 7 claim. The other should-fixes can go to the boss as known limits.
+
+### The response
+
+| # | finding | what changed | evidence |
+|---|---|---|---|
+| M1 | the cavity moves the frequency while the prose says it never does | The prose, the rule, the lib's docstring and the rules block now say what is true. The coverage is never cut to the cavity: runs longer than it stay open, and no size target is shrunk. But the cavity decides who can carry a story run, so dropping a protagonist whose range starts beyond the span can lower the frequency or remove it. Every basis names the protagonists dropped, with where their range starts. A new generated line under the verdicts table lists them all, `storyFrequency` returns them (`dropped`), and the scoreboard keeps them per scenario. The setter test is the range's start (q25 ≤ span), the test a run's YES needs. It is registered in the rule, the rules block and the design numbers. §2.6 gains rows for the median test (the eligibility test), for no cavity test, and for round 5's all-setters rule. | Dropped and listed: Elmwood's calcite (from 80 mm, span 66), Cripple Creek's fluorite (57.0 against 56.5), reactive_wall's primary calcite (57.5 against 55.2), and every protagonist at Naica, Searles, Sicily and Marlborough. The median test, no cavity test, and proxies competing each change no verdict. |
+| M2 | WP1's size rule depends on the sidecar's order | The carriers are every protagonist at display scale (q25–q90, within the span) in some scored run. `runStory` returns `atScale` beside the one it credits, and `scoreStory` counts each protagonist's runs at scale (`at_scale`). | The reviewer's North Pennines fleet (fluorite 17 mm MEETS, galena 25 mm LARGE, both at scale in every run) fails WP1 on galena in both orders (a test). The committed result is unchanged: met by 0 of 32. |
+| S1 | a proxy's bar also gates STORY on crystal targets | Crystal targets come first. A proxy sets the frequency only where no crystal target can carry a story run, as a size target prefers crystal lengths. Each basis names the proxies set aside (`passedOver`). §2.6 shows round 5's all-setters rule. | Deccan 0.308 → 0.152 (apophyllite), Jeffrey 0.26 → 0.232 (grossular), Tsumeb 0.311 → 0.217 (cerussite). 7 crystal-set frequencies, 13 proxy bars, 12 scenarios with none. No verdict moves. Deccan's check now joins those that 21 seeds cannot fail beyond noise (0.152): generated, not hidden. |
+| S2 | specimen series chain the site's standard field across years | A standard caption field ("Größe: #", "Kristallgröße: #", "Size #": `isFieldLabel`) is everyone's wording. Only photographs uploaded together (within the join window) make a series of it. An unusual wording keeps the one-year chain. | No series spans more than a year now (15 of 87 did). Deccan apophyllite's largest specimen series is 6 of 88 within 4 days (it was 37 over 1,682), the North Pennines fluorite's 11 of 84 within 27 days. Mogok's ruby (four within a day) and the unusual-wording series stand. |
+| S3 | round 5's should-fix 7 response was false; a parser error behind it | A size in three dimensions is never a picture's width ("Stilbit 40x35x20 mm Ausschnitt" is a detail of a 40 mm specimen; a test). Round 5's response row carries a dated correction. | 17 size joins and 2,100 specimens again; the two Deccan stilbite pairs are rejoined. |
+| S4 | registered texts out of date | `noise_basis` describes the coded rule (the interval of yes + open runs; no mark where no protagonist with an engine occurs, because chance in which runs carry the story then explains nothing). `rules.series` covers lengths of either kind and the field-label rule. `specimen_joins` and §1.3 say a picture's size joins nothing. §1.3 lists the four inputs, and says the cavities are checked by span, not by hash, since the cavity file records its own run time. The no-frequency `why` names the cavity. | — |
+| S5 | minor | §2.6 now says Grimsel's and the North Pennines' verdicts come closest, each moving under one check. A rosette cut to "…ette" at the stretch's start is an aggregate whose diameter is its size (1266588159: 16 mm). The other cut caption (1207917945, "n cyanblauer Farbe und bis zu 11 mm Durchmesser") gives no word to read and stays a width; §5 names it. Tests cover the aggregate kind in size joins and all eleven diameter-is-size forms. | 12 mutants on this round's code, all killed. 101 tests. |
+
+Result: STORY 1, STORY (PROXY) 1, NO STORY 3, UNRESOLVED 26, NO ENGINE 1, OUT OF SCOPE 1 (unchanged).
+WP1's whole target is met by none. Six rounds have run (five under the standing rule, and a sixth the boss approved); a seventh needs the boss's word.
