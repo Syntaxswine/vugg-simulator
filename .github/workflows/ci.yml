@@ -47,7 +47,7 @@ jobs:
       # These cleanup regressions protect the engineering benchmarks. Ordinary
       # calibration CI does not otherwise execute their focused test files.
       - name: Browser ownership and cleanup regressions
-        run: npm test -- --file tests-js/browser-workflow-cleanup.test.ts --file tests-js/benchmark-browser-cleanup.test.ts
+        run: npm test -- --file tests-js/browser-workflow-cleanup.test.ts --file tests-js/benchmark-browser-cleanup.test.ts --file tests-js/browser-startup-evidence.test.ts
 
       - name: Detached Chrome ownership and cleanup probe
         timeout-minutes: 8

@@ -1,0 +1,263 @@
+{
+  "schema": "canonical-chrome-startup-local-v1",
+  "base": "f3d1384af266cd6a08a9b24491442204523e2213",
+  "runtime": {
+    "schema": "vugg-evidence-node-runtime-v1",
+    "node": "24.15.0",
+    "v8": "13.6.233.17-node.48",
+    "platform": "win32",
+    "arch": "x64",
+    "icu": "78.2",
+    "locale": "en-US"
+  },
+  "sourceHashes": {
+    "tools/benchmark-browser-startup.mjs": "6736d70ab147ba846c91bee3a199e999fa8777f8f77a04cf98e646907497ccbb",
+    "tools/benchmark-browser-detached-launcher.mjs": "ee1c741cdf894b5a077c55994d9bb93a6ec8ba665f030feb2d87c90b0361aee1",
+    "tools/benchmark-browser-cleanup-probe.mjs": "883b71c8991ddb8aa2d0f0f6a49ac49d2224d47ee184c3ee4a97fb37dd48de67",
+    "tests-js/browser-startup-evidence.test.ts": "09b5649965d1eaf90084aa32fe683e7ab4f97551ff3e1cdcfd31bff5a9d03bf7",
+    ".github/workflows/ci.yml": "e84edc1d9a369b8f60adb4ddc02d75a93c6bbdf92a9dfd63d5c4dcd003d31138"
+  },
+  "focusedTests": {
+    "startup": 20,
+    "workflowCleanup": 21,
+    "benchmarkCleanup": 21,
+    "passed": 62,
+    "failed": 0
+  },
+  "stages": [
+    {
+      "name": "check",
+      "commands": [
+        {
+          "finished_utc": "2026-10-23T16:04:32.4687170Z",
+          "started_utc": "2026-10-23T16:04:17.6262326Z",
+          "arguments": [
+            "test",
+            "--",
+            "--file",
+            "tests-js/browser-startup-evidence.test.ts",
+            "--file",
+            "tests-js/browser-workflow-cleanup.test.ts",
+            "--file",
+            "tests-js/benchmark-browser-cleanup.test.ts"
+          ],
+          "exit_code": 0,
+          "executable": "npm.cmd"
+        },
+        {
+          "finished_utc": "2026-10-23T16:04:35.6515714Z",
+          "started_utc": "2026-10-23T16:04:32.4717205Z",
+          "arguments": [
+            "run",
+            "typecheck"
+          ],
+          "exit_code": 0,
+          "executable": "npm.cmd"
+        },
+        {
+          "finished_utc": "2026-10-23T16:04:40.5510485Z",
+          "started_utc": "2026-10-23T16:04:35.6515714Z",
+          "arguments": [
+            "run",
+            "build:check"
+          ],
+          "exit_code": 0,
+          "executable": "npm.cmd"
+        },
+        {
+          "finished_utc": "2026-10-23T16:04:42.9993554Z",
+          "started_utc": "2026-10-23T16:04:40.5520492Z",
+          "arguments": [
+            "run",
+            "audit:science"
+          ],
+          "exit_code": 0,
+          "executable": "npm.cmd"
+        },
+        {
+          "finished_utc": "2026-10-23T16:04:46.2482448Z",
+          "started_utc": "2026-10-23T16:04:42.9993554Z",
+          "arguments": [
+            "run",
+            "audit:evidence"
+          ],
+          "exit_code": 0,
+          "executable": "npm.cmd"
+        },
+        {
+          "finished_utc": "2026-10-23T16:04:47.9660697Z",
+          "started_utc": "2026-10-23T16:04:46.2482448Z",
+          "arguments": [
+            "run",
+            "audit:release"
+          ],
+          "exit_code": 0,
+          "executable": "npm.cmd"
+        }
+      ],
+      "exit_code": 0,
+      "started_utc": "2026-10-23T16:04:17.4995696Z",
+      "finished_utc": "2026-10-23T16:04:47.9660697Z",
+      "logSha256": "e63063cdab8355ee2d9ab335fc6916a5552ec1d537ea1027069d2e01d5463b84"
+    },
+    {
+      "name": "probe",
+      "commands": [
+        {
+          "finished_utc": "2026-10-23T16:06:34.6380339Z",
+          "started_utc": "2026-10-23T16:05:20.3318159Z",
+          "arguments": [
+            "tools/benchmark-browser-cleanup-probe.mjs"
+          ],
+          "exit_code": 0,
+          "executable": "node"
+        }
+      ],
+      "exit_code": 0,
+      "started_utc": "2026-10-23T16:05:20.2052781Z",
+      "finished_utc": "2026-10-23T16:06:34.6456215Z",
+      "logSha256": "df486fca1ec7a050a5fa996f47c27bba64ec0bdd42c87bf20626a8d884bb53e0"
+    }
+  ],
+  "browser": {
+    "identity": {
+      "executable_name": "chrome.exe",
+      "executable_sha256": "9ca2beaa7a9fd1109f01e562788c22e045a01cec0f6015ade689325af7f8a521"
+    },
+    "version": {
+      "status": "recorded",
+      "file_version": "155.0.8059.41",
+      "product_version": "155.0.8059.41"
+    },
+    "runner": {
+      "os": "Windows_NT",
+      "image": null,
+      "image_version": null
+    }
+  },
+  "cases": [
+    {
+      "mode": "recovery",
+      "status": "passed",
+      "readinessWaitMs": 189.39480000000003,
+      "acceptanceBudgetMs": 10000,
+      "startupStderr": {
+        "bytes": 100,
+        "truncated": false,
+        "sha256": "1434344ac7bd96ee4ce8068764c94cf84b2343d0fe511a28c84d0c1ef2a38990"
+      },
+      "product": "Chrome/155.0.8059.41",
+      "cleanup": {
+        "owned_lifetimes_ended": true,
+        "devtools_port_released": true,
+        "server_closed": true,
+        "profile_removed": true
+      }
+    },
+    {
+      "mode": "forced",
+      "status": "passed",
+      "readinessWaitMs": 191.85069999999905,
+      "acceptanceBudgetMs": 10000,
+      "startupStderr": {
+        "bytes": 100,
+        "truncated": false,
+        "sha256": "5c6281d088f381c402a449d36b8d864e954376562a2426a01330858be006ab65"
+      },
+      "product": "Chrome/155.0.8059.41",
+      "cleanup": {
+        "owned_lifetimes_ended": true,
+        "devtools_port_released": true,
+        "server_closed": true,
+        "profile_removed": true
+      }
+    },
+    {
+      "mode": "unknown-owner",
+      "status": "passed",
+      "readinessWaitMs": 191.13640000000305,
+      "acceptanceBudgetMs": 10000,
+      "startupStderr": {
+        "bytes": 100,
+        "truncated": false,
+        "sha256": "0f3a6db0cb48c41953e80bfd3acd214fabd8a6b29f1899cfcb24d08fc233d19d"
+      },
+      "product": "Chrome/155.0.8059.41",
+      "cleanup": {
+        "owned_lifetimes_ended": true,
+        "devtools_port_released": true,
+        "server_closed": true,
+        "profile_removed": true
+      }
+    },
+    {
+      "mode": "reused-owner-pid",
+      "status": "passed",
+      "readinessWaitMs": 189.7355000000025,
+      "acceptanceBudgetMs": 10000,
+      "startupStderr": {
+        "bytes": 100,
+        "truncated": false,
+        "sha256": "6c904c4ddf5334f696a79d94258d9cb9d8b683d4ac9f62cb0c1c0462e9ce5d92"
+      },
+      "product": "Chrome/155.0.8059.41",
+      "cleanup": {
+        "owned_lifetimes_ended": true,
+        "devtools_port_released": true,
+        "server_closed": true,
+        "profile_removed": true
+      }
+    },
+    {
+      "mode": "reused-before-handle",
+      "status": "passed",
+      "readinessWaitMs": 182.45829999999842,
+      "acceptanceBudgetMs": 10000,
+      "startupStderr": {
+        "bytes": 100,
+        "truncated": false,
+        "sha256": "2bd123d989500b6e9b1bfea773297b55009ea5c6abfff2a31045d60611993d3e"
+      },
+      "product": "Chrome/155.0.8059.41",
+      "cleanup": {
+        "owned_lifetimes_ended": true,
+        "devtools_port_released": true,
+        "server_closed": true,
+        "profile_removed": true
+      }
+    },
+    {
+      "mode": "endpoint-still-alive",
+      "status": "passed",
+      "readinessWaitMs": 187.11440000000584,
+      "acceptanceBudgetMs": 10000,
+      "startupStderr": {
+        "bytes": 100,
+        "truncated": false,
+        "sha256": "3fd293e4d760586bb2070d5d467930a847c4a37a005b4508670c320f2468c0c9"
+      },
+      "product": "Chrome/155.0.8059.41",
+      "cleanup": {
+        "owned_lifetimes_ended": true,
+        "devtools_port_released": true,
+        "server_closed": true,
+        "profile_removed": true
+      }
+    }
+  ],
+  "unchanged": {
+    "runtimeScienceDataArchivesReleaseBundle": true,
+    "scientificReceipts": "Existing commissioned identities authenticate; no rebake"
+  },
+  "limits": [
+    "Local Chrome executable hash differs from the failing current CI binary.",
+    "The cause of the two old failures remains unproved; new telemetry is required.",
+    "A diagnostic-only late receipt never converts a missed primary budget to a pass.",
+    "New promotion head requires fresh canonical exact-head review; no canonical merge performed."
+  ],
+  "reviewQueue": [
+    27,
+    28,
+    26
+  ]
+}
