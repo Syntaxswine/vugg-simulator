@@ -1,9 +1,44 @@
 # Canonical Chrome startup diagnostics
 
+## Superseded for canonical integration
+
+While this independent diagnostic patch was being prepared, StonePhilosopher
+merged [canonical PR #12](https://github.com/StonePhilosopher/vugg-simulator/pull/12)
+at `2026-10-23T16:03:59Z` (12:03:59 PM New York). Its exact head
+`cdb3399cb3c32567d516cb68b7e3c9c60f4451b9` adds a **30-second** real-browser
+startup receipt wait on top of `f3d1384a`; the native ownership proof is unchanged.
+Canonical main is `b764b9d087b774422ca4dedcfe71da552cfad87b`. PR CI
+`39982580879` and both main workflows `39983635012` / `39983635612` passed.
+The owner-side merge also marked #11 merged, with its original pinned
+`f3d1384a` included by ancestry. The original failed #11 runs remain failures;
+they are not reclassified as green.
+
+This fork's separate [PR #33](https://github.com/Syntaxswine/vugg-simulator/pull/33)
+was tested at `439f3578e799851b656ba90869ce421b183d8ee5` and merged only into
+the fork's historical promotion branch as `896df5bf745475a95e1e8f9106955dd6b8201f3d`.
+It was **not** merged into canonical or Syntaxswine main. Its retained
+10-second acceptance setting must **not** overwrite the owner's 30-second fix.
+Do not promote this patch wholesale. Any future selective reuse of its version,
+stderr or timing diagnostics must start from the owner-repaired baseline and
+preserve that operational bound. No further canonical repair is requested here.
+
+The historical investigation and local evidence below are retained for custody.
+Fork CI `39984402214` passed on the originally failing executable hash
+`480f275b…`, identified as Chrome 156.0.8078.48 on image `20261021.278.1`:
+all 62 focused tests, six real-browser cases, audits and sentinel passed.
+The first readiness wait was 6278 ms; subsequent waits were 160–206 ms.
+This supports investigating cold-start cost; it does not prove the cause of the
+old timeouts. Artifact `12515046916` was downloaded and verified, including ZIP
+SHA-256 `0916f48f528c6d615076c2b9869bf938322a84a4aafbaf0078ae5e7afd3bce9d`
+and source snapshots matching `439f3578`.
+
+## Original bounded investigation
+
 Repair base: `f3d1384af266cd6a08a9b24491442204523e2213`.
 Canonical [PR #11 changes-requested review](https://github.com/StonePhilosopher/vugg-simulator/pull/11#pullrequestreview-5629930756)
-supersedes its earlier exact-head approval. It is a startup compatibility hold,
-not merely a workflow-admission hold. Canonical merge remains withheld.
+superseded its earlier exact-head approval at the start of this investigation.
+That was a startup compatibility hold, not merely a workflow-admission hold.
+The later owner-side integration above has now closed the canonical gate.
 
 ## Evidence and limits
 
@@ -81,7 +116,7 @@ Local dependencies reuse the identical lockfile's installed packages via an
 ignored junction; GitHub CI performs its own clean `npm ci`.
 
 The source promotion branch is separate from Syntaxswine main, preserving the
-already-delivered calcite/quartz layers. Updating it creates a new canonical
-review boundary; this patch does not authorize or perform a canonical merge.
+already-delivered calcite/quartz layers. This patch did not authorize or perform
+a canonical merge and is now superseded for canonical integration as noted above.
 The ordinary review queue remains **#27 → #28 → #26**. Already-present older
 renderer tranches are not reintroduced or queued again.
