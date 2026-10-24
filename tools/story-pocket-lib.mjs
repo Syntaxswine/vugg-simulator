@@ -347,12 +347,13 @@ export function seriesKey(before, after) {
 export const SERIES_GAP = 365 * 86400;
 // Many contributors' wording: a standard caption field ("Größe: #", "Size #", "Kristallgröße: ca. #": a
 // key ending in one of FIELD_LABELS, then an optional ":", "=" or "." and "ca." or "etwa"), or a bare length
-// with no words around it (the key "#"). Only photographs uploaded together (fieldGap) make a series of
-// one; an unusual wording chains uploads less than gap apart. The targets file registers the list
-// (rules.series_field_labels).
+// with no words around it (a key with no letters: "#", "#."). Only photographs uploaded together
+// (fieldGap) make a series of one; an unusual wording chains uploads less than gap apart. The targets file
+// registers the list (rules.series_field_labels).
 export const FIELD_LABELS = ['größe', 'grösse', 'groesse', 'size', 'maße', 'masse', 'abmessungen', 'dimension', 'dimensions'];
 const FIELD_LABEL = new RegExp(String.raw`(?:${FIELD_LABELS.join('|')})[:=.]?(?:ca\.?|etwa)?$`, 'iu');
-export const isFieldLabel = (key) => String(key) === '#' || FIELD_LABEL.test(String(key).slice(0, String(key).lastIndexOf('#')));
+const LETTER = new RegExp(L, 'u');
+export const isFieldLabel = (key) => !LETTER.test(String(key)) || FIELD_LABEL.test(String(key).slice(0, String(key).lastIndexOf('#')));
 export function largestSeries(items, gap = SERIES_GAP, { fieldGap = gap } = {}) {
   if (!items.length) return null;
   const byKey = {};
@@ -619,7 +620,10 @@ export function pocketClass(spanMm, primaryTarget) {
  * A miss is noise when the runs cannot tell their median from the target's window: the Wilson interval
  * (z) of the share of eligible runs on the window's side of its near edge — at least q25 for BELOW; at
  * most q75 for LARGE or OVERSIZE, q90 for a proxy's OVERSIZE — still reaches one half (a sign test).
- * BELOW PROXY is no verdict, so it has no noise.
+ * BELOW PROXY is no verdict, so it has no noise. `few`: the eligible runs are too few for any miss to be
+ * told from the window — even none of them past its edge would be noise (k ≤ z², 3 at z 1.96) — so they
+ * can neither fail the size nor confirm it. The interval models the runs' noise only, not the record's:
+ * the window is the record's own middle half, itself uncertain for a small record.
  * share = eligible runs whose crystal lies in the record's display range, q25–q90.
  *   runs: [{ occurs, size, span }]
  */
@@ -643,7 +647,8 @@ export function assessSize(runs, target, z = 1.96) {
   const reaches = (inside) => wilson(eligible.filter((r) => inside(r.size)).length, eligible.length, z)[1] >= 0.5;
   const edge = target.basis === 'crystal' ? target.q75 : target.q90;
   const noise = verdict === 'BELOW' ? reaches((s) => s >= target.q25) : verdict === 'LARGE' || verdict === 'OVERSIZE' ? reaches((s) => s <= edge) : null;
-  return { verdict, ...(noise == null ? {} : { noise }), share: inRange / eligible.length, inRange, eligible: eligible.length, occurring: occurring.length, beyond, sizes };
+  const few = wilson(0, eligible.length, z)[1] >= 0.5;
+  return { verdict, ...(noise == null ? {} : { noise }), ...(few ? { few } : {}), share: inRange / eligible.length, inRange, eligible: eligible.length, occurring: occurring.length, beyond, sizes };
 }
 
 /**
@@ -817,31 +822,44 @@ export function scenarioVerdict(runs, species, frequency, { z = 1.96 } = {}) {
 export const cannotFailBeyondNoise = (frequency, runs, z = 1.96) => frequency != null && frequency <= wilson(0, runs, z)[1];
 
 /**
- * WP1's whole pre-registered target for a scenario: the story frequency met (STORY or STORY (PROXY));
- * every protagonist with an engine and a band within it (a miss its interval cannot tell from the band
- * counts as within); and every protagonist with an engine at the record's size wherever it occurs in a
- * pocket that can hold it (contract rule 4) — its typical crystal within the record's middle half
- * (MEETS), or reaching its proxy (REACHES PROXY: a proxy cannot test more), a miss its runs cannot tell
- * from that (assessSize's noise) counting as within. Too small fails as too large and oversize do. A
- * protagonist that never occurs is judged by its band alone, and one with no size target has none to
- * meet. Open, not failed: short of a proxy (a proxy cannot refute), or a size this cavity cannot judge
- * (no pocket holds the median, or every eligible crystal is longer than the cavity). Every protagonist
- * is judged, not only those that carry story runs: otherwise one kept below display scale would escape
- * the size test that one grown to it faces.
+ * WP1's whole pre-registered target for a scenario: the story frequency met (STORY or STORY (PROXY)), and
+ * for every protagonist with an engine:
+ *   its band — a miss its interval cannot tell from the band counts as within (21 seeds cannot tell
+ *     "common" from "guaranteed"; §2.5 of the proposal tests the fleet for that);
+ *   its size wherever it occurs in a pocket that can hold it (contract rule 4) — its typical crystal
+ *     within the record's middle half (MEETS), or reaching its proxy (REACHES PROXY: a proxy cannot test
+ *     more). A miss fails, too small as too large and oversize do.
+ * WP1 is met only on what it could judge, so these leave it open, not met and not failed:
+ *   a size miss the runs cannot tell from the window (assessSize's noise), and eligible runs too few to
+ *     tell any miss (assessSize's few) — runs that could not fail a size cannot confirm it either;
+ *   short of a proxy (a proxy cannot refute), or a size this cavity cannot judge (no pocket holds the
+ *     median, or every eligible crystal is longer than the cavity);
+ *   a protagonist that never occurs where its band cannot fail that (no band, or a floor 0 of the runs
+ *     is within noise of), or that occurs with neither a band nor a size target: nothing judges it.
+ * So a protagonist kept small, rare or absent never makes the target met: its size fails or stays open,
+ * and its absence fails its band or stays open. A protagonist with a band but no size target is judged
+ * by its band alone.
  *   verdict: the scenario's story verdict; protagonists: [{ k, engine, occurrence: { verdict, noise },
- *   size: { verdict, noise } }] → { met, fails: [...], open: [...] }
+ *   size: { verdict, noise, few, eligible } }] → { met, fails: [...], open: [...] }
  */
 export function wp1Target(verdict, protagonists) {
   const fails = [], open = [];
   if (verdict !== 'STORY' && verdict !== 'STORY (PROXY)') fails.push(`story ${verdict}`);
   for (const p of protagonists) {
     if (!p.engine) continue;
-    const o = p.occurrence, v = p.size?.verdict;
-    if ((o?.verdict === 'LOW' || o?.verdict === 'HIGH') && !o.noise) fails.push(`${p.k} ${o.verdict === 'LOW' ? 'below' : 'above'} its band`);
-    if (v === 'MEETS' || v === 'REACHES PROXY' || v === 'NEVER OCCURS' || v === 'UNKNOWN' || p.size?.noise) continue;
+    const o = p.occurrence ?? {}, s = p.size ?? {}, v = s.verdict ?? 'UNKNOWN';
+    const banded = o.verdict === 'IN' || o.verdict === 'LOW' || o.verdict === 'HIGH';
+    const bandFails = (o.verdict === 'LOW' || o.verdict === 'HIGH') && !o.noise;
+    if (bandFails) fails.push(`${p.k} ${o.verdict === 'LOW' ? 'below' : 'above'} its band`);
+    // Never occurring is the band's to judge, whatever the size target: one with no size target reads UNKNOWN.
+    if (o.k === 0 || v === 'NEVER OCCURS') { if (!bandFails) open.push(`${p.k} never occurs, and ${banded ? 'its band cannot tell that from its floor' : 'it has no band to judge that by'}`); continue; }
+    if (v === 'UNKNOWN') { if (!banded) open.push(`${p.k} has neither a band nor a size target to judge it by`); continue; }
+    if (s.few) { open.push(`${p.k} too few eligible runs (${s.eligible}) to judge its size`); continue; }
+    if (v === 'MEETS' || v === 'REACHES PROXY') continue;
+    if (s.noise) { open.push(`${p.k} ${v === 'BELOW' ? "below the record's middle half" : v === 'LARGE' ? "above the record's middle half" : 'oversize'}, within noise`); continue; }
     if (v === 'OVERSIZE') fails.push(`${p.k} oversize`);
     else if (v === 'BELOW' || v === 'LARGE') fails.push(`${p.k} ${v === 'BELOW' ? 'below' : 'above'} the record's middle half`);
-    else open.push(`${p.k} ${v === 'BELOW PROXY' ? 'short of its proxy' : (v || 'unsized').toLowerCase()}`);
+    else open.push(`${p.k} ${v === 'BELOW PROXY' ? 'short of its proxy' : v.toLowerCase()}`);
   }
   return { met: !fails.length && !open.length, fails, open };
 }
