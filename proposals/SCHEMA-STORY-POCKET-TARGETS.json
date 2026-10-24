@@ -1,0 +1,157 @@
+{
+ "$schema": "https://json-schema.org/draft/2020-12/schema",
+ "$id": "vugg-story-pocket-targets-v1",
+ "title": "Story-pocket targets (pre-registered)",
+ "description": "The sidecar tools/showcase-scoreboard.mjs scores each locality scenario against: per species a role, an occurrence band and a size target, per scenario a story frequency. Written by tools/story-pocket-targets.mjs --write; checked at load by validateSidecar (tools/story-pocket-lib.mjs), which enforces the cross-field rules this schema cannot express (exactly one primary per scored scenario; quantiles in order; a band and a size target each carry their basis or provenance). Every object is closed (additionalProperties false), so a new field must be documented here; tests-js/story-pocket-scoreboard.test.ts validates the committed sidecar against this schema.",
+ "type": "object",
+ "required": ["schema", "rules", "scenarios"],
+ "additionalProperties": false,
+ "properties": {
+  "schema": { "const": "vugg-story-pocket-targets-v1" },
+  "generated_by": { "type": "string" },
+  "about": { "type": "string" },
+  "inputs": {
+   "type": "object",
+   "description": "The files the targets were built from, with hashes where they are not committed.",
+   "additionalProperties": false,
+   "properties": {
+    "record_and_literature_classes": { "type": "object", "required": ["file", "sha256"], "properties": { "file": { "type": "string" }, "made_by": { "type": "string" }, "sha256": { "type": "string" } }, "additionalProperties": false },
+    "literature_sources": { "type": "string" },
+    "size_capture": { "type": "object", "required": ["file", "sha256", "extractor_sha256"], "properties": { "file": { "type": "string" }, "sha256": { "type": "string" }, "extractor_sha256": { "type": "string" } }, "additionalProperties": false },
+    "cavities": { "type": "object", "required": ["file", "sim_version"], "properties": { "file": { "type": "string" }, "made_by": { "type": "string" }, "sim_version": { "type": "integer" } }, "additionalProperties": false, "description": "Each scenario's cavity span (the authored wall, read before any run); the scoreboard refuses a cavities.json whose spans differ from cavity_span_mm." }
+   }
+  },
+  "rules": {
+   "type": "object",
+   "description": "The design rules (proposed; awaiting the boss). Each number has a basis field beside it.",
+   "required": ["wanted_share", "occurrence_bands", "visible_mm", "size_min_samples", "size_medium_confidence", "size_high_confidence", "specimen_min_mm", "uploaded_together_s", "series_field_labels", "series_gap_s", "display_range", "clutter_limit", "star_wanted_share", "noise_z"],
+   "additionalProperties": false,
+   "properties": {
+    "status": { "type": "string" },
+    "wanted_share": { "type": "number", "exclusiveMinimum": 0, "exclusiveMaximum": 1 },
+    "wanted_share_basis": { "type": "string" },
+    "occurrence": { "type": "string", "description": "What counts as the species occurring in a run." },
+    "occurrence_bands": {
+     "type": "object",
+     "description": "Literature abundance class → [lowest, highest] share of story pockets the species occurs in.",
+     "additionalProperties": { "$ref": "#/$defs/band" }
+    },
+    "occurrence_bands_basis": { "type": "string" },
+    "visible_mm": { "type": "number", "description": "The review's 'visible' size, a reporting convention (clutter, the dust flag); it decides no verdict." },
+    "visible_basis": { "type": "string" },
+    "size_min_samples": { "type": "integer", "minimum": 1 },
+    "size_medium_confidence": { "type": "integer", "minimum": 1 },
+    "size_high_confidence": { "type": "integer", "minimum": 1 },
+    "specimen_min_mm": { "type": "number", "minimum": 0, "description": "Specimen lengths below it are set aside (micromount captions)." },
+    "specimen_min_basis": { "type": "string" },
+    "uploaded_together_s": { "type": "number", "exclusiveMinimum": 0, "description": "Photographs whose image ids (read as upload seconds) differ by less than this were uploaded together." },
+    "uploaded_together_basis": { "type": "string", "description": "Generated from the capture's image ids." },
+    "specimen_joins": { "type": "string" },
+    "series": { "type": "string" },
+    "series_field_labels": { "type": "array", "minItems": 1, "items": { "type": "string" }, "description": "A wording ending in one of these size words (then an optional \":\", \"=\" or \".\" and \"ca.\" or \"etwa\"), or a bare length, is many contributors' wording: only photographs uploaded together make a series of it." },
+    "series_field_labels_basis": { "type": "string" },
+    "series_gap_s": { "type": "number", "exclusiveMinimum": 0, "description": "A series' uploads follow each other by less than this." },
+    "series_gap_basis": { "type": "string" },
+    "size_basis": { "type": "string" },
+    "display_range": { "$ref": "#/$defs/band", "description": "The record's quantiles that bound its display scale; the scoreboard requires [0.25, 0.9]." },
+    "display_range_basis": { "type": "string" },
+    "size_check": { "type": "string" },
+    "eligibility": { "type": "string" },
+    "story_frequency_rule": { "type": "string" },
+    "clutter_limit": { "type": "number", "minimum": 0, "maximum": 1 },
+    "clutter_basis": { "type": "string" },
+    "star_wanted_share": { "type": "number", "minimum": 0, "maximum": 1 },
+    "star_basis": { "type": "string" },
+    "noise_z": { "type": "number", "exclusiveMinimum": 0, "description": "The Wilson interval's z for 'noise' (1.96 = 95 %)." },
+    "noise_basis": { "type": "string" },
+    "variety": { "type": "string" },
+    "roles": { "type": "string" },
+    "companions_and_showpieces": { "type": "string" }
+   }
+  },
+  "named_signatures": {
+   "type": "object",
+   "description": "Where no source votes: the collectibles the sources name, with the reason.",
+   "additionalProperties": { "type": "object", "required": ["species", "why"], "additionalProperties": false, "properties": { "species": { "type": "array", "items": { "type": "string" } }, "why": { "type": "string" } } }
+  },
+  "overrides": {
+   "type": "object",
+   "description": "Hand decisions per scenario and species, each with its reason (why).",
+   "additionalProperties": { "type": "object", "additionalProperties": { "type": "object", "required": ["why"] } }
+  },
+  "scenarios": {
+   "type": "object",
+   "additionalProperties": { "$ref": "#/$defs/scenario" }
+  }
+ },
+ "$defs": {
+  "band": { "type": "array", "prefixItems": [ { "type": "number", "minimum": 0, "maximum": 1 }, { "type": "number", "minimum": 0, "maximum": 1 } ], "minItems": 2, "maxItems": 2 },
+  "summary": {
+   "type": "object",
+   "description": "A sample's count and quantiles (n alone when empty).",
+   "required": ["n"],
+   "additionalProperties": false,
+   "properties": { "n": { "type": "integer", "minimum": 0 }, "min": { "type": "number" }, "q10": { "type": "number" }, "q25": { "type": "number" }, "median": { "type": "number" }, "q75": { "type": "number" }, "q90": { "type": "number" }, "max": { "type": "number" } }
+  },
+  "scenario": {
+   "type": "object",
+   "required": ["locality", "species"],
+   "additionalProperties": false,
+   "properties": {
+    "locality": { "type": "string" },
+    "out_of_scope": { "type": ["string", "null"], "description": "Why the whole scenario is not scored, or null." },
+    "record": { "enum": ["votes", "thin: named signatures"] },
+    "named_signature_basis": { "type": "string" },
+    "set_aside": { "type": "object", "description": "Species outside the scenario's scope, with the reason; they get no role.", "additionalProperties": { "type": "string" } },
+    "cavity_span_mm": { "type": "number", "exclusiveMinimum": 0, "description": "The scenario's cavity span the story frequency was built for: a protagonist whose display range starts beyond it cannot carry a story run." },
+    "story_frequency": { "type": ["number", "null"], "minimum": 0, "maximum": 1 },
+    "story_frequency_basis": { "type": "string" },
+    "species": { "type": "object", "additionalProperties": { "$ref": "#/$defs/species" } }
+   }
+  },
+  "species": {
+   "type": "object",
+   "required": ["role", "engine", "occurrence_band", "band_basis", "size"],
+   "additionalProperties": false,
+   "properties": {
+    "role": { "enum": ["primary", "alternate", "showpiece", "unsupported", "companion"] },
+    "engine": { "type": "boolean", "description": "Whether the simulator has an engine for it (data/minerals.json)." },
+    "record_share": { "type": ["number", "null"], "description": "Its share of the locality's record (photographs and listings); null where the record is thin." },
+    "literature": { "type": ["object", "null"], "additionalProperties": false, "properties": { "class": { "type": "string" }, "sources": { "type": ["string", "null"] }, "status": { "type": ["string", "null"] } } },
+    "occurrence_band": { "oneOf": [ { "$ref": "#/$defs/band" }, { "type": "null" } ] },
+    "band_basis": { "type": "string" },
+    "size": { "$ref": "#/$defs/size" },
+    "override": { "type": "string", "description": "The reason, where a hand decision replaced the rule." }
+   }
+  },
+  "size": {
+   "type": "object",
+   "required": ["basis", "provenance"],
+   "additionalProperties": false,
+   "properties": {
+    "basis": { "enum": ["crystal", "specimen-proxy", "unknown"], "description": "crystal: photographed crystal lengths; specimen-proxy: photographed specimen dimensions, an upper bound on the crystal; unknown: too few of either." },
+    "n": { "type": "integer", "minimum": 1, "description": "Specimens behind the target." },
+    "q10": { "type": "number" }, "q25": { "type": "number" }, "median": { "type": "number" }, "q75": { "type": "number" }, "q90": { "type": "number" },
+    "confidence": { "enum": ["low", "medium", "high"] },
+    "crystal_n": { "type": "integer", "minimum": 0 },
+    "specimen_n": { "type": "integer", "minimum": 0 },
+    "series": {
+     "type": "object",
+     "description": "The largest series among the target's lengths, crystal or specimen as its basis is (rules.series): its size, the sample's, its wording and the days from its first upload to its last.",
+     "required": ["largest", "of", "template", "days"],
+     "additionalProperties": false,
+     "properties": { "largest": { "type": "integer", "minimum": 1 }, "of": { "type": "integer", "minimum": 1 }, "template": { "type": "string" }, "days": { "type": "integer", "minimum": 0 } }
+    },
+    "without_largest_series": { "$ref": "#/$defs/summary", "description": "The target's sample (crystal or specimen, as its basis is) without its largest series, where that series has two or more lengths." },
+    "photographs_with_length": { "type": "integer", "minimum": 0 },
+    "specimens": { "type": "integer", "minimum": 0, "description": "The photographs once those of one specimen are joined." },
+    "crystal": { "$ref": "#/$defs/summary", "description": "The crystal sample, also where it is too small to be the target." },
+    "specimen": { "$ref": "#/$defs/summary", "description": "The specimen sample." },
+    "piece_material": { "type": "boolean" },
+    "provenance": { "type": "string" }
+   },
+   "if": { "properties": { "basis": { "enum": ["crystal", "specimen-proxy"] } } },
+   "then": { "required": ["n", "q10", "q25", "median", "q75", "q90", "confidence"] }
+  }
+ }
+}
