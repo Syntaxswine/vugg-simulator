@@ -36,6 +36,10 @@ const EXPECTED_REJECTIONS = new Set<string>();
 // local-CI ceilings are intentionally enforceable, unlike the former finite-
 // number assertion, while retaining headroom for a cold JIT and loaded laptop.
 const TRANSACTION_BUDGET_MS = { 48: 150, 64: 250 } as const;
+// The warm-frame target is tight on purpose and keeps no headroom for a busy
+// host: with other work holding the box at about 65 % or more, all eight mvt
+// 48^3 observations can land over it. Kept at 70 ms (decided 2026-10-28): run
+// the cold CI on a quiet box, and re-run a failure there before loosening it.
 const STEADY_48_TRANSACTION_BUDGET_MS = 70;
 const CACHED_PATCH_FRAME_BUDGET_MS = 5;
 const EVOLVING_PATCH_STEP_BUDGET_MS = 100;
