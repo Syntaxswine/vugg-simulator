@@ -1,0 +1,4861 @@
+{
+ "schema": "vugg-locality-abundance-proxies-v1",
+ "captured": "2026-10-21",
+ "purpose": "Real-world abundance proxies for the locality-abundance review (proposals/REVIEW-LOCALITY-ABUNDANCE-2026-10-21.md): what each scenario's locality actually yields, as counts of photographs and of market listings, compared by tools/locality-abundance-compare.mjs against the simulator's multi-seed crystal inventory (tools/assemblage-census.mjs).",
+ "sources": {
+  "mineralienatlas": {
+   "what": "Photographs per mineral per locality, Mineralienatlas (Geolitho Stiftung), page LokationMineralBilder with recurse=1 (sub-localities included), summed over the listed location ids and over sub-localities.",
+   "url_template": "https://www.mineralienatlas.de/lexikon/index.php/LokationMineralBilder?lokationid={id}&recurse=1&polygon=1&rowstart=0&maxrows=1000",
+   "captured_with": "a real browser session (the site serves a JavaScript check to scripted clients; the review did not bypass it)",
+   "verification": "sha256 of the per-locality \"Name=count;\" strings (sorted locality keys, \"key\\npairs\\n\" concatenated) computed in the page and on disk both = b56cf6387e184017e21d37a933f3bfbaa04be05191c2ec68c3ffc4aca7cd5604",
+   "caveat": "Photo counts measure collector attention, not tonnage: rare species and type-locality species are over-photographed (the Uravan district's photos are almost all rare vanadates, not carnotite), and common gangue is under-photographed."
+  },
+  "ebay": {
+   "what": "Active listing titles on ebay.com in category 3213 (Rocks, Fossils & Minerals), up to 6 pages of 240 per query, deduplicated by item id across a locality's queries; titles classified by tools/market-title-dictionary.mjs. Provenance: JSON.stringify(MARKET_TITLE_DICTIONARY) — the 363 entries — hashes to 5d3556449edfb5f27d55d9f4d880f6e56c504084f15d80d08fa85ad03a61fd35 both in the page and from the file; the lapidary pattern was injected from the file's JSON; cleanTitle and titleFamily were re-typed identically in the page (not hash-checked). The file itself hashes differently because it also holds those functions and comments.",
+   "counting": "mention_families: a \"family\" is a title with digits, units and punctuation removed, so one seller relisting the same lot counts once; each family counts once for every species its title names. lead_families: the first species a title names. Lapidary families (cabochons, jewelry, slabs, spheres, carvings, tumbled) are excluded from both. \"x:\" keys are species the simulator has no engine for.",
+   "verification": "sha256 of the compact summary JSON computed in the page and on disk both = cbb9cb8beeb9c2814cbd5c8c4278b2a265ba25d707bbf1946ae2725ec4bdf497",
+   "caveat": "Sold-listing history needs an eBay login and was not used; active supply is a stock, not a flow. ebay.com under-represents European localities (Schneeberg, Wittichen, Grimsel), where Mineralienatlas carries the weight."
+  },
+  "literature": {
+   "what": "Published abundance statements per locality, gathered by three research passes and keyed to simulator species. class: AB abundant, CO common, UN uncommon, RA rare, VR very rare, ND not documented in the sources read (ND? = absence from a few sources only), Q questionable, doc = documented without an abundance word; suffixes -crust / -coating / -oxidized qualify the form.",
+   "status": "V = the source was opened and the wording seen (by the research pass, or \"read first-hand\" by the review itself where the source note says so); S = search snippet or low-reliability page; R = recalled. Only V and S are used as evidence in the review.",
+   "spot_checks": "Read first-hand by the review on 2026-10-21 — 20 statements in 7 sources, all matched the research passes: Smith 1979 USGS PP 1043 p. 59 (Table 14 values; \"Trona and halite are the major mineral components\"; \"Hanksite is the third most abundant mineral, borax the forth\"); Smith & Haines 1964 USGS Bull. 1181-P (p. P1 Upper Salt composition; p. P7 celestite sentence); Lindgren & Ransome 1904 USGS Bull. 254 pp. 20-21 (calaverite/sylvanite; native gold absent except by oxidation; gangue quartz, fluorite, dolomite; celestite never in large amount; secondary K-feldspar; 1 oz Ag to 10 oz Au); Peacock 1928 Am. Mineral. 13 p. 243 (Cape Belt crocidolite exclusively); Leach et al. 2010 USGS SIR 2010-5070-A (dominant MVT minerals, barite minor to absent, fluorite rare; Zn/(Zn+Pb) < 0.1 SE Missouri; Viburnum chalcopyrite; barite never reported SE Missouri; calcite common Central Tennessee); Harvard Tsumeb Mineral Notes TSNB311 (scorodite Very rare) and TSNB324 (smithsonite Very common, Pinch & Wilson 1977 quote); Koenigsberger 1919 (Aar-granite cleft types 1, 1-prime, 1-double-prime; diorite type 5). Review round 1 independently confirmed eight more: Teale 1979; García-Ruiz et al. 2007; Bastin 1914; Weeks & Thompson 1954; Sukheswala et al. 1974; Heaney & Fisher 2003; Eggleton et al. 2011; Proust & Fontaine 2007. In response to review round 5 (2026-10-21), read first-hand: Harvard Tsumeb Mineral Notes TSNB38 (azurite Very common; Keller 1977a ranks it fourth in the first oxidation zone) and TSNB107 (dioptase Very common overall, extremely rare or absent in the first oxidation zone).",
+   "mindat_note": "Mindat was not used as a data source (its pages are behind a Cloudflare human check). A few literature classes rest on search-snippet text from mindat; they carry status S."
+  }
+ },
+ "localities": {
+  "amethyst_geode": {
+   "name": "Ametista do Sul, Rio Grande do Sul, Brazil",
+   "scenarios": [
+    "amethyst_geode"
+   ],
+   "mineralienatlas": {
+    "location_ids": [
+     13283
+    ],
+    "photos": {
+     "Calcite": 3,
+     "Amethyst": 1,
+     "Cristobalite": 1,
+     "Gypsum": 1
+    }
+   },
+   "ebay": {
+    "queries": [
+     "ametista do sul"
+    ],
+    "listings": 64,
+    "families": 42,
+    "lapidary_families": 1,
+    "unclassified_families": 0,
+    "mention_families": {
+     "quartz": 39,
+     "chalcedony": 16,
+     "calcite": 11,
+     "goethite": 3,
+     "x:celadonite": 1
+    },
+    "lead_families": {
+     "quartz": 22,
+     "chalcedony": 14,
+     "calcite": 5
+    }
+   },
+   "literature": {
+    "sources": {
+     "D19": "Dias, Chaves, Juchem & Romano 2019, Pesquisas em Geociências 46(3) (abstract) — 'Calcita e celadonita, minerais comuns e abundantes associados à ametista do RS' [research pass, VERIFIED; the paper is on Minas Gerais material and the sentence describes the Rio Grande do Sul amethyst — review round 3]",
+     "PF07": "Proust & Fontaine 2007, Geological Magazine 144(4):731 (abstract) — geode walls layered celadonite, chalcedony, fine quartz, large amethyst [research pass, VERIFIED]"
+    },
+    "species": {
+     "quartz": {
+      "class": "AB",
+      "src": "PF07",
+      "status": "V"
+     },
+     "chalcedony": {
+      "class": "AB",
+      "src": "PF07",
+      "status": "V"
+     },
+     "calcite": {
+      "class": "CO",
+      "src": "D19",
+      "status": "V",
+      "note": "no sim crystal"
+     },
+     "x:celadonite": {
+      "class": "AB",
+      "src": "D19,PF07",
+      "status": "V",
+      "note": "no engine"
+     },
+     "selenite": {
+      "class": "RA",
+      "src": "Juchem et al. (Boletim IG-USP)",
+      "status": "V",
+      "note": "one dig in 200+"
+     }
+    }
+   }
+  },
+  "asbestos_hills": {
+   "name": "Asbestos Hills / Griqualand West – Prieska, Northern Cape, South Africa",
+   "scenarios": [
+    "asbestos_hills_crack_seal",
+    "asbestos_hills_surficial_alteration"
+   ],
+   "mineralienatlas": {
+    "location_ids": [
+     14644,
+     8856
+    ],
+    "photos": {
+     "Tigers Eye": 15,
+     "Falcon's Eye": 6,
+     "Agate": 2,
+     "Crocidolite": 1,
+     "Jasper": 1
+    }
+   },
+   "ebay": {
+    "queries": [
+     "griqualand",
+     "prieska",
+     "asbestos hills"
+    ],
+    "listings": 109,
+    "families": 46,
+    "lapidary_families": 0,
+    "unclassified_families": 19,
+    "mention_families": {
+     "tigers_eye": 23,
+     "x:jasper": 2,
+     "crocidolite": 2,
+     "quartz": 1,
+     "amosite": 1
+    },
+    "lead_families": {
+     "tigers_eye": 23,
+     "x:jasper": 2,
+     "crocidolite": 1,
+     "amosite": 1
+    }
+   },
+   "literature": {
+    "sources": {
+     "P28": "Peacock 1928, American Mineralogist 13:241, p. 243 — 'the Cape Belt, yielding crocidolite exclusively, is by far the largest'; amosite is mined in the Transvaal (Lydenburg/Pietersburg) belt [read first-hand 2026-10-21]",
+     "HF03": "Heaney & Fisher 2003, Geology 31:323 — 'no chalcedony is present in the South African specimens we examined' [research pass, VERIFIED]",
+     "B80": "Beukes 1980, S. Afr. J. Geol. 83:69 (abstract) — siderite and greenalite lutites [research pass, VERIFIED]"
+    },
+    "species": {
+     "crocidolite": {
+      "class": "AB",
+      "src": "P28",
+      "status": "V"
+     },
+     "tigers_eye": {
+      "class": "CO",
+      "src": "P28",
+      "status": "V"
+     },
+     "magnetite": {
+      "class": "AB",
+      "src": "P28",
+      "status": "V",
+      "note": "'an infallible associate of the asbestos seams'"
+     },
+     "hematite": {
+      "class": "AB",
+      "src": "P28",
+      "status": "V"
+     },
+     "quartz": {
+      "class": "AB",
+      "src": "P28",
+      "status": "V"
+     },
+     "siderite": {
+      "class": "AB",
+      "src": "B80",
+      "status": "V",
+      "note": "Kuruman facies"
+     },
+     "amosite": {
+      "class": "ND",
+      "src": "P28",
+      "status": "V",
+      "note": "Transvaal belt only"
+     },
+     "opal": {
+      "class": "ND",
+      "src": "HF03",
+      "status": "V"
+     }
+    }
+   }
+  },
+  "bisbee": {
+   "name": "Bisbee (Warren District), Cochise Co., Arizona",
+   "scenarios": [
+    "bisbee"
+   ],
+   "mineralienatlas": {
+    "location_ids": [
+     3229
+    ],
+    "photos": {
+     "Copper": 24,
+     "Azurite": 22,
+     "Malachite": 22,
+     "Cuprite": 20,
+     "Calcite": 13,
+     "Hetaerolite": 6,
+     "Aragonite": 3,
+     "Bornite": 3,
+     "Brochantite": 3,
+     "Cerussite": 3,
+     "Aurichalcite": 2,
+     "Chalcotrichite": 2,
+     "Chrysocolla": 2,
+     "Claringbullite": 2,
+     "Connellite": 2,
+     "Delafossite": 2,
+     "Eddavidite": 2,
+     "Hoganite": 2,
+     "Kiddcreekite": 2,
+     "Alunogen": 1,
+     "Antlerite": 1,
+     "Bogdanovite": 1,
+     "Carbonatecyanotrichite": 1,
+     "Chalcoalumite": 1,
+     "Chalcophanite": 1,
+     "Chalcopyrite": 1,
+     "Conichalcite": 1,
+     "Goethite": 1,
+     "Gold": 1,
+     "Graemite": 1,
+     "Kostovite": 1,
+     "Kuramite": 1,
+     "Leadhillite": 1,
+     "Murdochite": 1,
+     "Nekrasovite": 1,
+     "Paramelaconite": 1,
+     "Quartz": 1,
+     "Sengierite": 1,
+     "Shattuckite": 1,
+     "Sphärosiderite": 1,
+     "Tenorite": 1,
+     "Variscite": 1,
+     "Zincobotryogen": 1
+    }
+   },
+   "ebay": {
+    "queries": [
+     "bisbee"
+    ],
+    "listings": 955,
+    "families": 655,
+    "lapidary_families": 48,
+    "unclassified_families": 43,
+    "mention_families": {
+     "malachite": 189,
+     "azurite": 145,
+     "native_copper": 74,
+     "calcite": 68,
+     "turquoise": 61,
+     "cuprite": 50,
+     "chrysocolla": 28,
+     "aragonite": 19,
+     "quartz": 16,
+     "shattuckite": 15,
+     "bornite": 13,
+     "brochantite": 11,
+     "chalcocite": 8,
+     "aurichalcite": 8,
+     "chalcopyrite": 7,
+     "x:limonite": 6,
+     "goethite": 6,
+     "x:delafossite": 6,
+     "pyrite": 5,
+     "hematite": 5,
+     "cerussite": 5,
+     "native_gold": 5,
+     "x:connellite": 4,
+     "x:spangolite": 4,
+     "sphalerite": 3,
+     "vanadinite": 3,
+     "siderite": 3,
+     "native_silver": 3,
+     "x:fossil": 3,
+     "x:chlorargyrite": 2,
+     "x:tenorite": 2,
+     "scheelite": 2,
+     "selenite": 2,
+     "fluorite": 2,
+     "bismuthinite": 1,
+     "x:ilmenite": 1,
+     "rosasite": 1,
+     "x:variscite": 1,
+     "hemimorphite": 1,
+     "magnetite": 1,
+     "antlerite": 1,
+     "chalcedony": 1,
+     "willemite": 1,
+     "wulfenite": 1,
+     "opal": 1,
+     "galena": 1,
+     "native_bismuth": 1
+    },
+    "lead_families": {
+     "azurite": 120,
+     "malachite": 100,
+     "turquoise": 61,
+     "native_copper": 59,
+     "calcite": 50,
+     "cuprite": 28,
+     "chrysocolla": 22,
+     "aragonite": 17,
+     "shattuckite": 14,
+     "bornite": 8,
+     "brochantite": 6,
+     "chalcocite": 6,
+     "aurichalcite": 6,
+     "quartz": 5,
+     "x:delafossite": 5,
+     "pyrite": 4,
+     "cerussite": 4,
+     "x:connellite": 3,
+     "hematite": 3,
+     "native_gold": 3,
+     "goethite": 3,
+     "chalcopyrite": 3,
+     "vanadinite": 3,
+     "siderite": 3,
+     "x:fossil": 3,
+     "x:chlorargyrite": 2,
+     "x:limonite": 2,
+     "sphalerite": 2,
+     "x:spangolite": 2,
+     "scheelite": 2,
+     "fluorite": 2,
+     "native_silver": 2,
+     "bismuthinite": 1,
+     "x:tenorite": 1,
+     "rosasite": 1,
+     "x:variscite": 1,
+     "hemimorphite": 1,
+     "magnetite": 1,
+     "chalcedony": 1,
+     "willemite": 1,
+     "wulfenite": 1,
+     "selenite": 1,
+     "galena": 1
+    }
+   },
+   "literature": {
+    "sources": {
+     "G13": "D. Graeme, Bisbee Mining and Minerals website (2013): geology, species list (325+), galleries [research pass, VERIFIED-f]; no published abundance ranking found — Graeme's Mineralogical Record articles (1981, 1993, 2015) not accessible",
+     "HOM": "Handbook of Mineralogy — dioptase distribution does not list Bisbee; atacamite and lepidocrocite list Bisbee [research pass, VERIFIED]"
+    },
+    "species": {
+     "native_gold": {
+      "class": "UN",
+      "src": "G13",
+      "status": "V",
+      "note": "a by-product of copper ore; few specimens"
+     },
+     "dioptase": {
+      "class": "ND?",
+      "src": "HOM",
+      "status": "V",
+      "note": "the Handbook's distribution omits Bisbee, but the sheet says many other minor localities are known: an absence from one list, not a rarity statement (was RA; review round 5)"
+     },
+     "lepidocrocite": {
+      "class": "doc",
+      "src": "HOM",
+      "status": "V",
+      "note": "documented, abundance unknown"
+     },
+     "atacamite": {
+      "class": "doc",
+      "src": "HOM",
+      "status": "V",
+      "note": "documented, abundance unknown"
+     }
+    }
+   }
+  },
+  "chiastolite_hornfels": {
+   "name": "Bimbowrie Station, Olary, South Australia (+ chiastolite market-wide)",
+   "scenarios": [
+    "chiastolite_hornfels"
+   ],
+   "mineralienatlas": {
+    "location_ids": [
+     11016
+    ],
+    "photos": {
+     "Chiastolite": 3
+    }
+   },
+   "ebay": {
+    "queries": [
+     "bimbowrie",
+     "chiastolite"
+    ],
+    "market_wide": "The 'chiastolite' search finds chiastolite from any locality, so its titles are andalusite by construction and say nothing about Bimbowrie; the two queries were captured together, so the listings are shown but do not vote (review round 3). Bimbowrie's verdict rests on Teale 1979.",
+    "listings": 181,
+    "families": 129,
+    "lapidary_families": 63,
+    "unclassified_families": 6,
+    "mention_families": {
+     "andalusite": 57,
+     "quartz": 3,
+     "chalcedony": 2,
+     "tourmaline": 1,
+     "feldspar": 1
+    },
+    "lead_families": {
+     "andalusite": 56,
+     "quartz": 3,
+     "chalcedony": 1
+    }
+   },
+   "literature": {
+    "sources": {
+     "T79": "Teale 1979, Mineralogical Magazine 43:433-435 — a graphite-rich schist with chiastolitic andalusite to 14 cm; matrix quartz, muscovite, graphite; 'The phases plagioclase and paragonite were not detected' [research pass, VERIFIED]"
+    },
+    "species": {
+     "andalusite": {
+      "class": "AB",
+      "src": "T79",
+      "status": "V"
+     },
+     "albite": {
+      "class": "ND",
+      "src": "T79",
+      "status": "V"
+     },
+     "feldspar": {
+      "class": "ND",
+      "src": "T79",
+      "status": "V"
+     }
+    }
+   }
+  },
+  "colorado_plateau": {
+   "name": "Uravan Mining District, Montrose Co., Colorado",
+   "scenarios": [
+    "colorado_plateau"
+   ],
+   "mineralienatlas": {
+    "location_ids": [
+     65929
+    ],
+    "photos": {
+     "Pascoite": 9,
+     "Hughesite": 7,
+     "Dickthomssenite": 6,
+     "Lasalite": 6,
+     "Magnesiopascoite": 6,
+     "Hewettite": 4,
+     "Martyite": 3,
+     "Tyuyamunite": 3,
+     "Metahewettite": 2,
+     "Metamunirite": 2,
+     "Navajoite": 2,
+     "Postite": 2,
+     "Rakovanite": 2,
+     "Rossite": 2,
+     "Ammoniolasalite": 1,
+     "Ammoniomathesiusite": 1,
+     "Azurite": 1,
+     "Barnesite": 1,
+     "Calciodelrioite": 1,
+     "Calcite": 1,
+     "Carnotite": 1,
+     "Chalcomenite": 1,
+     "Corvusite": 1,
+     "Fernandinite": 1,
+     "Finchite": 1,
+     "Fulbrightite": 1,
+     "Hummerite": 1,
+     "Meitnerite": 1,
+     "Morrisonite": 1,
+     "Okieite": 1,
+     "Pandoraite-Ba": 1,
+     "Rauvite": 1,
+     "Schindlerite": 1,
+     "Sherwoodite": 1,
+     "Simplotite": 1,
+     "Trebiskyite": 1,
+     "Uroxite": 1,
+     "Vanarsite": 1,
+     "Wernerbaurite": 1
+    }
+   },
+   "ebay": {
+    "queries": [
+     "uravan",
+     "montrose county"
+    ],
+    "listings": 15,
+    "families": 10,
+    "lapidary_families": 0,
+    "unclassified_families": 0,
+    "mention_families": {
+     "x:hummerite": 4,
+     "x:pintadoite": 3,
+     "barite": 2,
+     "calcite": 2,
+     "x:pascoite": 1,
+     "chalcocite": 1,
+     "covellite": 1,
+     "native_silver": 1,
+     "siderite": 1,
+     "native_copper": 1,
+     "malachite": 1
+    },
+    "lead_families": {
+     "x:hummerite": 4,
+     "calcite": 2,
+     "x:pascoite": 1,
+     "chalcocite": 1,
+     "native_silver": 1,
+     "native_copper": 1
+    }
+   },
+   "literature": {
+    "sources": {
+     "WT54": "Weeks & Thompson 1954, USGS Bulletin 1009-B, pp. 19-23 — 'The most abundant uranium mineral was carnotite. The ore also contained a smaller amount of tyuyamunite.' [research pass, VERIFIED]",
+     "FH52": "Fischer & Hilpert 1952, USGS Bulletin 988-A [research pass, VERIFIED]"
+    },
+    "species": {
+     "carnotite": {
+      "class": "AB",
+      "src": "WT54",
+      "status": "V"
+     },
+     "tyuyamunite": {
+      "class": "CO",
+      "src": "WT54",
+      "status": "V",
+      "note": "'a smaller amount' than carnotite"
+     },
+     "opal": {
+      "class": "RA",
+      "src": "WT54",
+      "status": "V",
+      "note": "uraniferous opal mainly on outcrops of non-vanadium ore"
+     },
+     "uranophane": {
+      "class": "RA",
+      "src": "WT54",
+      "status": "V",
+      "note": "'small amounts' (this phrase is about uranophane, not opal)"
+     },
+     "x:corvusite": {
+      "class": "CO",
+      "src": "WT54",
+      "status": "V"
+     },
+     "x:roscoelite": {
+      "class": "CO",
+      "src": "WT54",
+      "status": "V",
+      "note": "with vanadium hydromica"
+     }
+    }
+   }
+  },
+  "herkimer": {
+   "name": "Herkimer County, New York (Middleville / Little Falls)",
+   "scenarios": [
+    "cooling"
+   ],
+   "mineralienatlas": {
+    "location_ids": [
+     6096
+    ],
+    "photos": {
+     "Herkimer Quartz": 16,
+     "Quartz": 10,
+     "Pyrobitumen": 1,
+     "Rock Crystal": 1,
+     "Smoky Quartz": 1
+    }
+   },
+   "ebay": {
+    "queries": [
+     "herkimer"
+    ],
+    "listings": 1314,
+    "families": 779,
+    "lapidary_families": 38,
+    "unclassified_families": 44,
+    "mention_families": {
+     "quartz": 686,
+     "x:bitumen": 33,
+     "calcite": 14,
+     "dolomite": 5,
+     "barite": 2,
+     "chalcedony": 2,
+     "apophyllite": 1,
+     "x:kyanite": 1,
+     "x:garnet": 1,
+     "hematite": 1,
+     "rutile": 1,
+     "azurite": 1
+    },
+    "lead_families": {
+     "quartz": 678,
+     "x:bitumen": 8,
+     "calcite": 4,
+     "chalcedony": 2,
+     "barite": 1,
+     "dolomite": 1,
+     "apophyllite": 1,
+     "hematite": 1,
+     "rutile": 1
+    }
+   },
+   "literature": {
+    "sources": {
+     "M72": "Muskatt 1972, NYSGA Guidebook trip J — anthraxolite often associated with the quartz [research pass, VERIFIED]",
+     "H": "Hoisington, herkimerhistory.com (self-published, expert) — dolomite rhombs 'the most common feature at every Herkimer deposit'; pyrite and marcasite the most common sulfides [research pass, VERIFIED]"
+    },
+    "species": {
+     "quartz": {
+      "class": "AB",
+      "src": "M72,H",
+      "status": "V"
+     },
+     "dolomite": {
+      "class": "AB",
+      "src": "H",
+      "status": "V",
+      "note": "no sim crystal"
+     },
+     "x:bitumen": {
+      "class": "AB",
+      "src": "M72,H",
+      "status": "V",
+      "note": "anthraxolite; no engine"
+     },
+     "calcite": {
+      "class": "doc",
+      "src": "H",
+      "status": "V",
+      "note": "three calcite events in the district sequence, with no abundance word against the other species (was CO; review round 4)"
+     },
+     "pyrite": {
+      "class": "CO",
+      "src": "H",
+      "status": "V"
+     }
+    }
+   }
+  },
+  "deccan": {
+   "name": "Deccan Traps zeolite quarries, Maharashtra, India",
+   "scenarios": [
+    "deccan_zeolite"
+   ],
+   "mineralienatlas": {
+    "location_ids": [
+     696
+    ],
+    "photos": {
+     "Apophyllit-Gruppe": 112,
+     "Cavansite": 94,
+     "Stilbite series": 85,
+     "Fluorapophyllite-(K)": 64,
+     "Heulandite series": 55,
+     "Calcite": 52,
+     "Okenite": 48,
+     "Gyrolite": 42,
+     "Scolecite": 41,
+     "Fluorite": 40,
+     "Pentagonite": 37,
+     "Mesolite": 36,
+     "Prehnite": 24,
+     "Quartz": 21,
+     "Laumontite": 17,
+     "Powellite": 17,
+     "Chalcedony": 16,
+     "Mordenite": 14,
+     "Stilbite-Ca": 13,
+     "Epistilbite": 12,
+     "Goosecreekite": 12,
+     "Stellerite": 10,
+     "Babingtonite": 9,
+     "Hydroxyapophyllite-(K)": 8,
+     "Thomsonite": 8,
+     "Amethyst": 6,
+     "Heulandite-Ca": 5,
+     "Yugawaralite": 5,
+     "Julgoldite-(Fe2+)": 4,
+     "Chabazite series": 3,
+     "Fluorapophyllite-(Na)": 3,
+     "Celadonite": 2,
+     "Natrolite": 2,
+     "Calcite group": 1,
+     "Goethite": 1,
+     "Jasper": 1,
+     "Julgoldite": 1,
+     "Nontronite": 1,
+     "Opal": 1
+    }
+   },
+   "ebay": {
+    "queries": [
+     "pune",
+     "nashik",
+     "jalgaon",
+     "poona",
+     "aurangabad",
+     "maharashtra",
+     "deccan"
+    ],
+    "listings": 2209,
+    "families": 1454,
+    "lapidary_families": 7,
+    "unclassified_families": 50,
+    "mention_families": {
+     "stilbite": 612,
+     "apophyllite": 599,
+     "chalcedony": 225,
+     "heulandite": 204,
+     "calcite": 123,
+     "scolecite": 97,
+     "quartz": 96,
+     "x:cavansite": 77,
+     "x:fossil": 77,
+     "x:okenite": 70,
+     "x:mordenite": 45,
+     "prehnite": 27,
+     "thomsonite": 27,
+     "x:gyrolite": 24,
+     "fluorite": 21,
+     "x:celadonite": 14,
+     "mesolite": 13,
+     "x:pentagonite": 10,
+     "x:stellerite": 10,
+     "powellite": 9,
+     "barite": 9,
+     "hematite": 7,
+     "x:chlorite": 6,
+     "x:natrolite": 4,
+     "x:laumontite": 4,
+     "x:babingtonite": 3,
+     "native_silver": 2,
+     "atacamite": 2,
+     "pyrite": 2,
+     "aragonite": 2,
+     "aquamarine": 1,
+     "stibnite": 1,
+     "chalcopyrite": 1,
+     "native_copper": 1,
+     "chabazite": 1,
+     "x:bitumen": 1,
+     "x:jasper": 1
+    },
+    "lead_families": {
+     "apophyllite": 492,
+     "stilbite": 277,
+     "heulandite": 96,
+     "x:cavansite": 75,
+     "calcite": 74,
+     "scolecite": 73,
+     "chalcedony": 66,
+     "x:okenite": 50,
+     "quartz": 31,
+     "thomsonite": 25,
+     "x:mordenite": 20,
+     "fluorite": 20,
+     "x:gyrolite": 17,
+     "prehnite": 10,
+     "mesolite": 10,
+     "powellite": 9,
+     "x:stellerite": 9,
+     "x:pentagonite": 7,
+     "barite": 6,
+     "hematite": 5,
+     "x:fossil": 4,
+     "x:celadonite": 4,
+     "x:natrolite": 3,
+     "native_silver": 2,
+     "atacamite": 2,
+     "pyrite": 2,
+     "x:laumontite": 2,
+     "x:babingtonite": 2,
+     "stibnite": 1,
+     "chabazite": 1,
+     "x:bitumen": 1,
+     "x:jasper": 1
+    }
+   },
+   "literature": {
+    "sources": {
+     "S74": "Sukheswala, Avasia & Gangopadhyay 1974, Mineralogical Magazine 39:658-671 — 'Heulandite and stilbite constitute the major bulk of the zeolites'; scolecite and mesolite fairly abundant (Nasik); apophyllite fairly widespread; gyrolite and okenite at many localities; chabazite rather rare [research pass, VERIFIED]",
+     "O22": "Ottens, Schuster & Benkó 2022, Minerals 12:444, Table 1 (Salsette/Mumbai) [research pass, VERIFIED]"
+    },
+    "species": {
+     "heulandite": {
+      "class": "AB",
+      "src": "S74",
+      "status": "V"
+     },
+     "stilbite": {
+      "class": "AB",
+      "src": "S74",
+      "status": "V"
+     },
+     "chalcedony": {
+      "class": "AB",
+      "src": "S74",
+      "status": "V"
+     },
+     "quartz": {
+      "class": "AB",
+      "src": "S74",
+      "status": "V"
+     },
+     "apophyllite": {
+      "class": "CO",
+      "src": "S74,O22",
+      "status": "V"
+     },
+     "scolecite": {
+      "class": "CO",
+      "src": "S74",
+      "status": "V"
+     },
+     "mesolite": {
+      "class": "CO",
+      "src": "S74",
+      "status": "V"
+     },
+     "calcite": {
+      "class": "CO",
+      "src": "S74,O22",
+      "status": "V"
+     },
+     "prehnite": {
+      "class": "CO",
+      "src": "S74,O22",
+      "status": "V",
+      "note": "Bombay"
+     },
+     "x:okenite": {
+      "class": "CO",
+      "src": "S74",
+      "status": "V",
+      "note": "no engine"
+     },
+     "x:gyrolite": {
+      "class": "CO",
+      "src": "S74",
+      "status": "V",
+      "note": "no engine"
+     },
+     "x:laumontite": {
+      "class": "CO",
+      "src": "S74",
+      "status": "V",
+      "note": "no engine"
+     },
+     "pectolite": {
+      "class": "ND",
+      "src": "S74,O22",
+      "status": "V"
+     },
+     "goethite": {
+      "class": "RA",
+      "src": "O22",
+      "status": "V",
+      "note": "Ottens et al. 2022 (p. 26) report goethite as crystals up to 2 mm near Sinnar/Mohadari (wording quoted by review round 4); absent from Sukheswala et al. 1974 (was ND)"
+     },
+     "albite": {
+      "class": "RA",
+      "src": "S74",
+      "status": "V",
+      "note": "albitized lava, not a cavity crystal"
+     }
+    }
+   }
+  },
+  "elmwood": {
+   "name": "Elmwood and Gordonsville mines, Smith Co., Tennessee",
+   "scenarios": [
+    "elmwood"
+   ],
+   "mineralienatlas": {
+    "location_ids": [
+     1420,
+     1421
+    ],
+    "photos": {
+     "Fluorite": 88,
+     "Calcite": 44,
+     "Sphalerite": 38,
+     "Galena": 11,
+     "Baryte": 6,
+     "Dolomite": 3,
+     "Bitumen": 2,
+     "Quartz": 1
+    }
+   },
+   "ebay": {
+    "queries": [
+     "elmwood mine",
+     "elmwood tennessee",
+     "gordonsville",
+     "elmwood"
+    ],
+    "listings": 589,
+    "families": 466,
+    "lapidary_families": 4,
+    "unclassified_families": 1,
+    "mention_families": {
+     "sphalerite": 249,
+     "calcite": 231,
+     "fluorite": 180,
+     "barite": 54,
+     "dolomite": 45,
+     "galena": 22,
+     "quartz": 21,
+     "marcasite": 2,
+     "x:bitumen": 2,
+     "x:mordenite": 2,
+     "pyrite": 2,
+     "x:fossil": 2,
+     "native_gold": 2,
+     "celestine": 1,
+     "siderite": 1,
+     "x:anatase": 1,
+     "strontianite": 1,
+     "chalcopyrite": 1,
+     "pyromorphite": 1,
+     "dioptase": 1,
+     "tourmaline": 1
+    },
+    "lead_families": {
+     "calcite": 187,
+     "fluorite": 160,
+     "sphalerite": 71,
+     "galena": 15,
+     "barite": 11,
+     "quartz": 7,
+     "dolomite": 2,
+     "x:mordenite": 2,
+     "x:fossil": 2,
+     "celestine": 1,
+     "marcasite": 1,
+     "strontianite": 1,
+     "native_gold": 1
+    }
+   },
+   "literature": {
+    "sources": {
+     "L10": "Leach et al. 2010, USGS SIR 2010-5070-A: 'Calcite is common in a few MVT districts (for example, Central Tennessee)' [read first-hand]",
+     "G86": "Gratz 1986, MS thesis, Univ. Tennessee (abstract), on the Gordonsville Mine of the same district — sphalerite the only Zn ore; gangue fluorite, barite, calcite, galena, minor dolomite and quartz; paragenesis early calcite → sphalerite → galena → fluorite → main calcite → barite → late calcite [research pass, VERIFIED-f]",
+     "PM20": "Prospector Minerals 2020, Minerals of Elmwood Mine (after Gaylord 1996) — four signature species calcite, fluorite, sphalerite, barite; barian celestine minor [research pass, VERIFIED-f]",
+     "J96": "Jensen 1996, Mineralogical Record 27(3):171-173, Occurrence of barian celestine at the Elmwood zinc deposit (title/ToC only) [research pass]"
+    },
+    "species": {
+     "calcite": {
+      "class": "AB",
+      "src": "L10,G86",
+      "status": "V"
+     },
+     "sphalerite": {
+      "class": "AB",
+      "src": "G86",
+      "status": "V"
+     },
+     "fluorite": {
+      "class": "CO",
+      "src": "G86,PM20",
+      "status": "V"
+     },
+     "barite": {
+      "class": "CO",
+      "src": "G86,PM20",
+      "status": "V"
+     },
+     "galena": {
+      "class": "CO",
+      "src": "G86",
+      "status": "V",
+      "note": "no sim crystal in any seed"
+     },
+     "dolomite": {
+      "class": "UN",
+      "src": "G86",
+      "status": "V"
+     },
+     "celestine": {
+      "class": "UN",
+      "src": "PM20",
+      "status": "V",
+      "note": "barian celestine, listed as a minor species by a dealer write-up (PM20, after Gaylord 1996); Jensen 1996 (MR 27:171) exists but only its title was seen"
+     },
+     "chalcedony": {
+      "class": "ND",
+      "src": "G86",
+      "status": "V",
+      "note": "minor quartz only"
+     }
+    }
+   }
+  },
+  "cripple_creek": {
+   "name": "Cripple Creek District, Teller Co., Colorado",
+   "scenarios": [
+    "epithermal_telluride"
+   ],
+   "mineralienatlas": {
+    "location_ids": [
+     6156
+    ],
+    "photos": {
+     "Calaverite": 27,
+     "Gold": 14,
+     "Fluorite": 9,
+     "Sylvanite": 8,
+     "Melonite": 4,
+     "Tellurium": 2,
+     "Amethyst": 1,
+     "Baryte": 1,
+     "Krennerite": 1,
+     "Petzite": 1,
+     "Stibnite": 1
+    }
+   },
+   "ebay": {
+    "queries": [
+     "cripple creek"
+    ],
+    "listings": 183,
+    "families": 137,
+    "lapidary_families": 31,
+    "unclassified_families": 1,
+    "mention_families": {
+     "calaverite": 40,
+     "native_gold": 25,
+     "fluorite": 19,
+     "quartz": 19,
+     "sylvanite": 11,
+     "turquoise": 10,
+     "x:laumontite": 9,
+     "chalcedony": 9,
+     "x:jasper": 5,
+     "barite": 4,
+     "native_silver": 3,
+     "x:fossil": 2,
+     "rhodochrosite": 1,
+     "calcite": 1,
+     "galena": 1,
+     "sphalerite": 1,
+     "native_tellurium": 1,
+     "x:kaolinite": 1,
+     "native_copper": 1,
+     "apatite": 1,
+     "x:petzite": 1,
+     "pyrite": 1
+    },
+    "lead_families": {
+     "calaverite": 38,
+     "native_gold": 12,
+     "fluorite": 11,
+     "turquoise": 10,
+     "quartz": 10,
+     "sylvanite": 9,
+     "x:jasper": 5,
+     "chalcedony": 5,
+     "rhodochrosite": 1,
+     "calcite": 1,
+     "galena": 1,
+     "native_tellurium": 1,
+     "x:petzite": 1
+    }
+   },
+   "literature": {
+    "sources": {
+     "LR04": "Lindgren & Ransome 1904, USGS Bulletin 254, pp. 20-21 [read first-hand 2026-10-21]: gold 'chiefly as calaverite, but partly also as the more argentiferous sylvanite'; 'Native gold appears to be absent from the telluride ores, except as it may be set free by the oxidation'; 'The usual gangue minerals of the ores are quartz, fluorite, and dolomite'; celestite 'never present in large amount, frequently occurs as little acicular crystals in the quartz vugs'; secondary K-feldspar (orthoclase or microcline) common; 'about 1 ounce of silver to 10 ounces of gold'",
+     "HOM": "Handbook of Mineralogy (tellurium, krennerite, hessite sheets) [research pass, VERIFIED]"
+    },
+    "species": {
+     "calaverite": {
+      "class": "AB",
+      "src": "LR04",
+      "status": "V"
+     },
+     "sylvanite": {
+      "class": "CO",
+      "src": "LR04",
+      "status": "V"
+     },
+     "quartz": {
+      "class": "AB",
+      "src": "LR04",
+      "status": "V",
+      "note": "gangue"
+     },
+     "fluorite": {
+      "class": "AB",
+      "src": "LR04",
+      "status": "V",
+      "note": "gangue; the sim grows none"
+     },
+     "dolomite": {
+      "class": "AB",
+      "src": "LR04",
+      "status": "V",
+      "note": "gangue; the sim grows none"
+     },
+     "feldspar": {
+      "class": "CO",
+      "src": "LR04",
+      "status": "V",
+      "note": "secondary orthoclase/microcline"
+     },
+     "pyrite": {
+      "class": "CO",
+      "src": "LR04",
+      "status": "V",
+      "note": "'of common occurrence in the fissures'"
+     },
+     "native_gold": {
+      "class": "CO-oxidized",
+      "src": "LR04",
+      "status": "V",
+      "note": "absent from telluride ore except by oxidation"
+     },
+     "native_silver": {
+      "class": "ND",
+      "src": "LR04",
+      "status": "V",
+      "note": "ores carry 'very little silver'"
+     },
+     "native_tellurium": {
+      "class": "RA",
+      "src": "HOM",
+      "status": "V"
+     },
+     "hessite": {
+      "class": "ND?",
+      "src": "HOM",
+      "status": "V",
+      "note": "the Handbook's US locality list omits Cripple Creek, but the sheet also cites other localities: an absence from one list, not a rarity statement (was RA; review round 5)"
+     },
+     "albite": {
+      "class": "ND",
+      "src": "LR04",
+      "status": "V",
+      "note": "the feldspar is potassic"
+     },
+     "celestine": {
+      "class": "UN",
+      "src": "LR04",
+      "status": "V"
+     },
+     "x:krennerite": {
+      "class": "UN",
+      "src": "HOM",
+      "status": "V",
+      "note": "'at several mines in Cripple Creek'"
+     }
+    }
+   }
+  },
+  "cruzeiro": {
+   "name": "Cruzeiro mine, São José da Safira, Minas Gerais, Brazil",
+   "scenarios": [
+    "gem_pegmatite"
+   ],
+   "mineralienatlas": {
+    "location_ids": [
+     14413
+    ],
+    "photos": {
+     "Elbaite": 28,
+     "Tourmaline supergroup": 15,
+     "Rubellite": 5,
+     "Quartz": 4,
+     "Muscovite": 2,
+     "Indicolite": 1,
+     "Schorl": 1,
+     "Torbernite": 1,
+     "Verdelite": 1
+    }
+   },
+   "ebay": {
+    "queries": [
+     "cruzeiro"
+    ],
+    "listings": 233,
+    "families": 120,
+    "lapidary_families": 0,
+    "unclassified_families": 0,
+    "mention_families": {
+     "tourmaline": 119,
+     "quartz": 13,
+     "lepidolite": 10,
+     "albite": 4,
+     "x:muscovite": 2,
+     "x:garnet": 1,
+     "native_gold": 1,
+     "calcite": 1,
+     "feldspar": 1,
+     "emerald": 1
+    },
+    "lead_families": {
+     "tourmaline": 115,
+     "quartz": 3,
+     "lepidolite": 1,
+     "native_gold": 1
+    }
+   },
+   "literature": {
+    "sources": {
+     "P85": "Proctor 1985, Gems & Gemology Summer 1985, Gem pegmatites of Minas Gerais: the tourmalines of the Governador Valadares district — pocket zone lepidolite, milky quartz, large microcline, albite; 'Pockets in this region frequently contain superb gem tourmaline crystals'; rarer: amblygonite, torbernite, columbite-tantalite, cassiterite [research pass, VERIFIED]"
+    },
+    "species": {
+     "tourmaline": {
+      "class": "AB",
+      "src": "P85",
+      "status": "V"
+     },
+     "quartz": {
+      "class": "AB",
+      "src": "P85",
+      "status": "V"
+     },
+     "albite": {
+      "class": "AB",
+      "src": "P85",
+      "status": "V"
+     },
+     "feldspar": {
+      "class": "AB",
+      "src": "P85",
+      "status": "V",
+      "note": "microcline; gem tourmaline sits with albite, not microcline"
+     },
+     "lepidolite": {
+      "class": "CO",
+      "src": "P85",
+      "status": "V"
+     },
+     "spodumene": {
+      "class": "UN",
+      "src": "P85",
+      "status": "V",
+      "note": "'occasionally'"
+     },
+     "cassiterite": {
+      "class": "RA",
+      "src": "P85",
+      "status": "V"
+     },
+     "x:muscovite": {
+      "class": "CO",
+      "src": "P85",
+      "status": "V",
+      "note": "pink muscovite; no engine"
+     }
+    }
+   }
+  },
+  "great_salt_plains": {
+   "name": "Great Salt Plains, Alfalfa Co., Oklahoma",
+   "scenarios": [
+    "great_salt_plains"
+   ],
+   "mineralienatlas": {
+    "location_ids": [
+     22484
+    ],
+    "photos": {
+     "Gypsum": 2
+    }
+   },
+   "ebay": {
+    "queries": [
+     "great salt plains",
+     "salt plains",
+     "jet oklahoma"
+    ],
+    "listings": 46,
+    "families": 13,
+    "lapidary_families": 0,
+    "unclassified_families": 0,
+    "mention_families": {
+     "selenite": 13
+    },
+    "lead_families": {
+     "selenite": 13
+    }
+   },
+   "literature": {
+    "sources": {
+     "FWS02": "US Fish & Wildlife Service 2002, Salt Plains NWR: Selenite Crystals (brochure, web archive) [research pass, VERIFIED by that pass]",
+     "CS12": "Caton & Schneegurt 2012, J. Basic Microbiology 52(1), doi:10.1002/jobm.201100175 [research pass, VERIFIED by that pass]"
+    },
+    "species": {
+     "selenite": {
+      "class": "AB",
+      "src": "FWS02",
+      "status": "V",
+      "note": "the collectible: single crystals, penetration twins and clusters to 38 lb"
+     },
+     "halite": {
+      "class": "AB-crust",
+      "src": "CS12",
+      "status": "V",
+      "note": "a thin surface crust 'of mainly NaCl'; no source describes collectible halite crystals"
+     }
+    }
+   }
+  },
+  "grimsel": {
+   "name": "Guttannen municipality incl. the Grimsel area, Bern, Switzerland",
+   "scenarios": [
+    "grimsel_alpine_cleft"
+   ],
+   "mineralienatlas": {
+    "location_ids": [
+     34129
+    ],
+    "photos": {
+     "Smoky Quartz": 56,
+     "Fluorite": 43,
+     "Pink fluorite": 19,
+     "Twisted Quartz": 13,
+     "Quartz": 10,
+     "Rock Crystal": 9,
+     "Sceptre Quartz": 6,
+     "Epidote": 4,
+     "Phantom quartz": 4,
+     "Rutile": 4,
+     "Anatase": 3,
+     "Iron rose": 3,
+     "Senaite": 3,
+     "Titanite": 3,
+     "Adularia": 2,
+     "Amethyst": 2,
+     "Grimselite": 2,
+     "Milarite": 2,
+     "Morion": 2,
+     "Zircon": 2,
+     "Actinolite": 1,
+     "Apatite group": 1,
+     "Asbestos": 1,
+     "Byssolite": 1,
+     "Chlorite group": 1,
+     "Fadenquartz": 1,
+     "Goethite": 1,
+     "Molybdenite": 1,
+     "Pyrrhotite": 1,
+     "Scheelite": 1,
+     "Schröckingerite": 1,
+     "Xenotime-(Y)": 1
+    }
+   },
+   "ebay": {
+    "queries": [
+     "grimsel"
+    ],
+    "listings": 5,
+    "families": 4,
+    "lapidary_families": 0,
+    "unclassified_families": 0,
+    "mention_families": {
+     "quartz": 3,
+     "fluorite": 1
+    },
+    "lead_families": {
+     "quartz": 3,
+     "fluorite": 1
+    }
+   },
+   "literature": {
+    "sources": {
+     "K19": "Koenigsberger 1919, Über alpine Minerallagerstätten, Zweiter Teil, Abh. Bayer. Akad. Wiss. 28(11) [read first-hand 2026-10-21]: frequent Aar-granite cleft types are '1′. Quarz, Chlorit, Calcit, Fluorit (Adular, Apatit, Epidot, Galenit, Pyrit)' at localities I-XX and '1″. Quarz, Chlorit (Adular, Apatit, Calcit)' at ~23 localities; bracketed minerals are minor associates; '5. Adular, Quarz, Sphen, Chlorit' is the diorite type"
+    },
+    "species": {
+     "quartz": {
+      "class": "AB",
+      "src": "K19",
+      "status": "V"
+     },
+     "x:chlorite": {
+      "class": "AB",
+      "src": "K19",
+      "status": "V",
+      "note": "in both frequent granite types; no engine"
+     },
+     "fluorite": {
+      "class": "CO",
+      "src": "K19",
+      "status": "V"
+     },
+     "calcite": {
+      "class": "CO",
+      "src": "K19",
+      "status": "V"
+     },
+     "feldspar": {
+      "class": "CO",
+      "src": "K19",
+      "status": "V",
+      "note": "adularia, as associate"
+     },
+     "hematite": {
+      "class": "CO",
+      "src": "K19",
+      "status": "S",
+      "note": "quartz-hematite type"
+     },
+     "epidote": {
+      "class": "UN",
+      "src": "K19",
+      "status": "V",
+      "note": "minor associate in granite; main phase only in epidotized granite (3 localities)"
+     },
+     "apatite": {
+      "class": "UN",
+      "src": "K19",
+      "status": "V",
+      "note": "minor associate"
+     },
+     "titanite": {
+      "class": "RA",
+      "src": "K19",
+      "status": "V",
+      "note": "the diorite/amphibolite type, not granite"
+     },
+     "apophyllite": {
+      "class": "RA",
+      "src": "K19",
+      "status": "S"
+     }
+    }
+   }
+  },
+  "jeffrey_mine": {
+   "name": "Jeffrey Mine, Val-des-Sources (Asbestos), Quebec",
+   "scenarios": [
+    "jeffrey_mine"
+   ],
+   "aliases": {
+    "x:garnet": {
+     "to": "grossular",
+     "why": "The Jeffrey Mine rodingite garnet sold as \"garnet\" is grossular (hessonite / raspberry grossular); the Mineralienatlas record has 92 grossular-family photos against 1 demantoid and 1 topazolite. A title naming both words counts twice — an upper bound on grossular's listing share."
+    }
+   },
+   "mineralienatlas": {
+    "location_ids": [
+     4927
+    ],
+    "photos": {
+     "Grossular": 77,
+     "Vesuvianite": 20,
+     "Pectolite": 14,
+     "Diopside": 12,
+     "Hessonite": 11,
+     "Chrome-bearing Grossular": 4,
+     "Prehnite": 4,
+     "Clinochlore": 3,
+     "Chrysotile": 2,
+     "Vesuvianite group": 2,
+     "Allanite group": 1,
+     "Alumovesuvianite": 1,
+     "Apophyllit-Gruppe": 1,
+     "Brucite": 1,
+     "Demantoid": 1,
+     "Heazlewoodite": 1,
+     "Okenite": 1,
+     "Topazolite": 1,
+     "Tremolite": 1
+    }
+   },
+   "ebay": {
+    "queries": [
+     "jeffrey mine",
+     "asbestos quebec",
+     "val-des-sources"
+    ],
+    "listings": 352,
+    "families": 264,
+    "lapidary_families": 2,
+    "unclassified_families": 2,
+    "mention_families": {
+     "grossular": 119,
+     "vesuvianite": 109,
+     "x:garnet": 96,
+     "diopside": 37,
+     "pectolite": 15,
+     "prehnite": 9,
+     "quartz": 5,
+     "apophyllite": 5,
+     "x:chlorite": 4,
+     "emerald": 3,
+     "albite": 2,
+     "aragonite": 2,
+     "x:zoisite": 2,
+     "x:clinozoisite": 1,
+     "wollastonite": 1,
+     "titanite": 1,
+     "x:serpentine": 1,
+     "pyromorphite": 1,
+     "scheelite": 1
+    },
+    "lead_families": {
+     "grossular": 100,
+     "vesuvianite": 97,
+     "x:garnet": 17,
+     "pectolite": 9,
+     "diopside": 9,
+     "prehnite": 8,
+     "apophyllite": 5,
+     "quartz": 4,
+     "emerald": 3,
+     "x:chlorite": 2,
+     "x:clinozoisite": 1,
+     "wollastonite": 1,
+     "titanite": 1,
+     "x:serpentine": 1,
+     "pyromorphite": 1,
+     "x:zoisite": 1
+    }
+   },
+   "literature": {
+    "sources": {
+     "NWJ07": "Normand & Williams-Jones 2007, Geochemical Transactions 8:11 — rodingite minerals grossular and hydrogrossular, clinopyroxene, zoisite, chlorite, prehnite, vesuvianite, wollastonite [research pass, VERIFIED]",
+     "AMS04": "Amabili, Miglioli & Spertini 2004, Mineralogical Record 35(2):123-135 — grossular in fractures and rodingites; vesuvianite in a large rodingite dike; diopside crystals rarely large [research pass, VERIFIED]"
+    },
+    "species": {
+     "grossular": {
+      "class": "AB",
+      "src": "NWJ07,AMS04",
+      "status": "V"
+     },
+     "diopside": {
+      "class": "AB",
+      "src": "NWJ07",
+      "status": "V"
+     },
+     "vesuvianite": {
+      "class": "CO",
+      "src": "AMS04",
+      "status": "V"
+     },
+     "prehnite": {
+      "class": "doc",
+      "src": "NWJ07",
+      "status": "V",
+      "note": "listed among the characteristic rodingite minerals, with no abundance word (was CO; review round 3)"
+     },
+     "pectolite": {
+      "class": "UN",
+      "src": "AMS04",
+      "status": "V"
+     },
+     "wollastonite": {
+      "class": "doc",
+      "src": "NWJ07",
+      "status": "V",
+      "note": "listed among the characteristic rodingite minerals, with no abundance word (was CO; review round 3)"
+     },
+     "x:chlorite": {
+      "class": "doc",
+      "src": "NWJ07",
+      "status": "V",
+      "note": "no engine; listed among the characteristic rodingite minerals, with no abundance word (was CO; review round 3)"
+     },
+     "x:zoisite": {
+      "class": "doc",
+      "src": "NWJ07",
+      "status": "V",
+      "note": "no engine; listed among the characteristic rodingite minerals, with no abundance word (was CO; review round 3)"
+     },
+     "awaruite": {
+      "class": "ND?",
+      "src": "—",
+      "status": "S",
+      "note": "not found by the research pass; absence weak"
+     },
+     "datolite": {
+      "class": "ND?",
+      "src": "—",
+      "status": "S",
+      "note": "not found by the research pass; absence weak"
+     }
+    }
+   }
+  },
+  "marlborough": {
+   "name": "Marlborough chrysoprase field, Queensland",
+   "scenarios": [
+    "ultramafic_supergene"
+   ],
+   "mineralienatlas": {
+    "location_ids": [
+     3795
+    ],
+    "photos": {
+     "Chrysoprase": 10
+    }
+   },
+   "ebay": {
+    "queries": [
+     "marlborough queensland",
+     "marlborough chrysoprase"
+    ],
+    "listings": 53,
+    "families": 31,
+    "lapidary_families": 6,
+    "unclassified_families": 0,
+    "mention_families": {
+     "chrysoprase": 24,
+     "chalcedony": 1
+    },
+    "lead_families": {
+     "chrysoprase": 24,
+     "chalcedony": 1
+    }
+   },
+   "literature": {
+    "sources": {
+     "E11": "Eggleton, Fitz Gerald & Foster 2011, Aust. J. Earth Sci. 58:767 (abstract) — saprolite 'hosting magnesite and chalcedony veins with rare chrysoprase' [research pass, VERIFIED]",
+     "GIA14": "Gems & Gemology Spring 2014, GNI — chrysoprase in veins two to eight inches thick [research pass, VERIFIED]"
+    },
+    "species": {
+     "chrysoprase": {
+      "class": "CO",
+      "src": "E11,GIA14",
+      "status": "V",
+      "note": "the economic product; 'rare' within the veins"
+     },
+     "chalcedony": {
+      "class": "AB",
+      "src": "E11",
+      "status": "V"
+     },
+     "x:magnesite": {
+      "class": "AB",
+      "src": "E11",
+      "status": "V",
+      "note": "the carbonate here; no engine"
+     },
+     "calcite": {
+      "class": "ND",
+      "src": "E11",
+      "status": "V"
+     },
+     "dolomite": {
+      "class": "ND",
+      "src": "E11",
+      "status": "V"
+     },
+     "opal": {
+      "class": "ND",
+      "src": "E11",
+      "status": "V"
+     }
+    }
+   }
+  },
+  "mogok": {
+   "name": "Mogok Township, Mandalay Division, Myanmar",
+   "scenarios": [
+    "marble_contact_metamorphism"
+   ],
+   "mineralienatlas": {
+    "location_ids": [
+     1664
+    ],
+    "photos": {
+     "Spinel": 59,
+     "Painite": 24,
+     "Ruby": 12,
+     "Phenakite": 7,
+     "Topaz": 6,
+     "Tourmaline supergroup": 6,
+     "Actinolite": 3,
+     "Amazonite": 3,
+     "Aquamarine": 3,
+     "Petalite": 3,
+     "Corundum": 2,
+     "Elbaite": 2,
+     "Goshenite": 2,
+     "Johachidolite": 2,
+     "Johnkoivulaite-(Cs)": 2,
+     "Magnesiotaaffeite-2N'2S": 2,
+     "Serendibite": 2,
+     "Zircon": 2,
+     "Agate": 1,
+     "Betafite (of Hogarth 1977)": 1,
+     "Brockite": 1,
+     "Enstatite": 1,
+     "Ferrohögbomite-2N2S": 1,
+     "Fluorapatite": 1,
+     "Fluorite": 1,
+     "Fluoro-edenite": 1,
+     "Forsterite": 1,
+     "Orthoclase": 1,
+     "Phlogopite": 1,
+     "Pollucite": 1,
+     "Poudretteite": 1,
+     "Sapphire": 1,
+     "Sinhalite": 1,
+     "Spodumene": 1,
+     "Thorite": 1,
+     "Thortveitite": 1,
+     "Uvite": 1,
+     "Xenotime-(Y)": 1,
+     "Zirconolite-3T": 1
+    }
+   },
+   "ebay": {
+    "queries": [
+     "mogok"
+    ],
+    "listings": 918,
+    "families": 234,
+    "lapidary_families": 29,
+    "unclassified_families": 42,
+    "mention_families": {
+     "x:spinel": 38,
+     "sapphire": 30,
+     "ruby": 29,
+     "tourmaline": 14,
+     "x:painite": 8,
+     "x:phenakite": 8,
+     "x:garnet": 8,
+     "quartz": 7,
+     "topaz": 6,
+     "x:sodalite": 3,
+     "aquamarine": 3,
+     "x:chondrodite": 2,
+     "x:pargasite": 2,
+     "calcite": 2,
+     "apatite": 2,
+     "corundum": 2,
+     "fluorite": 2,
+     "x:poudretteite": 1,
+     "x:davyne": 1,
+     "andalusite": 1,
+     "x:chrysoberyl": 1,
+     "x:zircon": 1,
+     "x:hambergite": 1,
+     "beryl": 1,
+     "rutile": 1,
+     "x:danburite": 1,
+     "x:olivine": 1,
+     "emerald": 1,
+     "tremolite": 1
+    },
+    "lead_families": {
+     "x:spinel": 38,
+     "sapphire": 28,
+     "ruby": 25,
+     "tourmaline": 13,
+     "x:painite": 8,
+     "x:phenakite": 8,
+     "x:garnet": 7,
+     "topaz": 6,
+     "quartz": 5,
+     "x:sodalite": 3,
+     "x:pargasite": 2,
+     "apatite": 2,
+     "corundum": 2,
+     "aquamarine": 2,
+     "fluorite": 2,
+     "x:poudretteite": 1,
+     "x:davyne": 1,
+     "andalusite": 1,
+     "x:chrysoberyl": 1,
+     "x:zircon": 1,
+     "x:hambergite": 1,
+     "beryl": 1,
+     "rutile": 1,
+     "x:danburite": 1,
+     "x:chondrodite": 1,
+     "x:olivine": 1,
+     "tremolite": 1
+    }
+   },
+   "literature": {
+    "sources": {
+     "KK92": "Kane & Kammerling 1992, Gems & Gemology Fall 1992 — rubies primarily in coarse marble; 'significant quantities of spinel are found at virtually all of the corundum mines' [research pass, VERIFIED]"
+    },
+    "species": {
+     "ruby": {
+      "class": "CO",
+      "src": "KK92",
+      "status": "V",
+      "note": "economic; trace in the marble"
+     },
+     "x:spinel": {
+      "class": "CO",
+      "src": "KK92",
+      "status": "V",
+      "note": "no engine"
+     },
+     "calcite": {
+      "class": "AB",
+      "src": "KK92",
+      "status": "V",
+      "note": "the host marble"
+     }
+    }
+   }
+  },
+  "tri_state_picher": {
+   "name": "Picher Field, Tri-State District (KS/OK/MO)",
+   "scenarios": [
+    "mvt"
+   ],
+   "mineralienatlas": {
+    "location_ids": [
+     2853
+    ],
+    "photos": {
+     "Galena": 25,
+     "Sphalerite": 13,
+     "Calcite": 4,
+     "Chalcopyrite": 3,
+     "Dolomite": 3,
+     "Marcasite": 2,
+     "Baryte": 1
+    }
+   },
+   "ebay": {
+    "queries": [
+     "picher",
+     "tristate",
+     "tri state",
+     "joplin",
+     "treece",
+     "baxter springs"
+    ],
+    "listings": 288,
+    "families": 265,
+    "lapidary_families": 4,
+    "unclassified_families": 7,
+    "mention_families": {
+     "sphalerite": 132,
+     "galena": 93,
+     "calcite": 75,
+     "chalcopyrite": 65,
+     "dolomite": 37,
+     "marcasite": 19,
+     "quartz": 14,
+     "pyrite": 13,
+     "x:jasper": 12,
+     "chalcedony": 5,
+     "barite": 4,
+     "fluorite": 2,
+     "tourmaline": 2,
+     "tetrahedrite": 1,
+     "smithsonite": 1,
+     "malachite": 1,
+     "hematite": 1,
+     "arsenopyrite": 1
+    },
+    "lead_families": {
+     "galena": 79,
+     "sphalerite": 74,
+     "calcite": 47,
+     "chalcopyrite": 27,
+     "marcasite": 9,
+     "chalcedony": 4,
+     "dolomite": 3,
+     "quartz": 3,
+     "x:jasper": 2,
+     "barite": 2,
+     "tourmaline": 2,
+     "smithsonite": 1,
+     "fluorite": 1
+    }
+   },
+   "literature": {
+    "sources": {
+     "L10": "Leach, Taylor, Fey, Diehl & Saltus 2010, A deposit model for Mississippi Valley-Type lead-zinc ores, USGS SIR 2010-5070-A [read first-hand 2026-10-21]: 'the dominant minerals are sphalerite, galena, pyrite, marcasite, dolomite, and calcite, whereas barite is typically minor to absent and fluorite is rare'",
+     "KGS01": "Brosius & Sawin 2001, Lead and Zinc Mining in Kansas, KGS Public Information Circular 17 — 23 million vs 4 million (US short) tons of zinc and lead concentrates, about 6:1 (p. 2); sphalerite about five times as abundant as galena (p. 3) [research pass, VERIFIED; confirmed by review round 3]",
+     "R35": "Ransome 1935, Am. Mineral. 20:799 — calcite scalenohedra 2-3 ft; large galena crystals common [research pass, VERIFIED]",
+     "HOM": "Handbook of Mineralogy, greenockite — chiefly earthy coatings; Joplin district on sphalerite [research pass, VERIFIED]"
+    },
+    "species": {
+     "sphalerite": {
+      "class": "AB",
+      "src": "KGS01,L10",
+      "status": "V",
+      "note": "zinc to lead concentrates about 6:1 (23 Mt to 4 Mt)"
+     },
+     "galena": {
+      "class": "AB",
+      "src": "L10,R35",
+      "status": "V"
+     },
+     "calcite": {
+      "class": "AB",
+      "src": "L10,R35",
+      "status": "V",
+      "note": "2-3 ft scalenohedra"
+     },
+     "dolomite": {
+      "class": "AB",
+      "src": "L10",
+      "status": "V",
+      "note": "no surviving sim crystal"
+     },
+     "chalcopyrite": {
+      "class": "doc",
+      "src": "KGS01,R35",
+      "status": "V",
+      "note": "Ransome 1935 names chalcopyrite in one cave specimen (p. 800, review round 5), and the KGS circular gives no chalcopyrite abundance; no sim crystal (was CO)"
+     },
+     "marcasite": {
+      "class": "CO",
+      "src": "L10",
+      "status": "V",
+      "note": "no sim crystal"
+     },
+     "pyrite": {
+      "class": "CO",
+      "src": "L10",
+      "status": "V"
+     },
+     "barite": {
+      "class": "UN",
+      "src": "L10",
+      "status": "V",
+      "note": "'typically minor to absent'"
+     },
+     "quartz": {
+      "class": "UN",
+      "src": "KGS OFR 83-2",
+      "status": "V",
+      "note": "'occasionally'"
+     },
+     "fluorite": {
+      "class": "RA",
+      "src": "L10",
+      "status": "V",
+      "note": "'fluorite is rare' (MVT model)"
+     },
+     "greenockite": {
+      "class": "RA-coating",
+      "src": "HOM",
+      "status": "V",
+      "note": "documented at Picher, but as earthy coatings on sphalerite, not crystals"
+     },
+     "anhydrite": {
+      "class": "ND",
+      "src": "L10,KGS01",
+      "status": "V",
+      "note": "absent from the boss's Picher mindat list (data/mindat-species-refs.json5)"
+     }
+    }
+   }
+  },
+  "naica": {
+   "name": "Naica, Saucillo, Chihuahua, Mexico",
+   "scenarios": [
+    "naica_geothermal"
+   ],
+   "mineralienatlas": {
+    "location_ids": [
+     913
+    ],
+    "photos": {
+     "Fluorite": 49,
+     "Gypsum": 18,
+     "Anhydrite": 11,
+     "Galena": 11,
+     "Sphalerite": 9,
+     "Calcite": 7,
+     "Pyrite": 5,
+     "Selenite (Gypsum)": 4,
+     "Andradite": 3,
+     "Baryte": 2,
+     "Chalcopyrite": 2,
+     "Quartz": 2,
+     "Amethyst": 1,
+     "Ankerite": 1,
+     "Arsenopyrite": 1,
+     "Dolomite": 1,
+     "Hemimorphite": 1,
+     "Jamesonite": 1,
+     "Manganese-bearing Calcite": 1,
+     "Pyrrhotite": 1,
+     "Sklodowskite": 1,
+     "Smithsonite": 1,
+     "Wollastonite-1A": 1
+    }
+   },
+   "ebay": {
+    "queries": [
+     "naica"
+    ],
+    "listings": 238,
+    "families": 210,
+    "lapidary_families": 3,
+    "unclassified_families": 1,
+    "mention_families": {
+     "fluorite": 77,
+     "selenite": 68,
+     "calcite": 51,
+     "galena": 37,
+     "sphalerite": 34,
+     "pyrite": 28,
+     "quartz": 21,
+     "anhydrite": 12,
+     "chalcopyrite": 10,
+     "dolomite": 7,
+     "x:pyrrhotite": 2,
+     "aurichalcite": 1,
+     "x:lazurite": 1,
+     "arsenopyrite": 1,
+     "x:jamesonite": 1,
+     "epidote": 1,
+     "barite": 1,
+     "aragonite": 1,
+     "x:fossil": 1,
+     "tourmaline": 1
+    },
+    "lead_families": {
+     "fluorite": 74,
+     "selenite": 67,
+     "calcite": 18,
+     "anhydrite": 12,
+     "sphalerite": 9,
+     "galena": 7,
+     "quartz": 6,
+     "dolomite": 3,
+     "pyrite": 3,
+     "chalcopyrite": 2,
+     "arsenopyrite": 1,
+     "x:jamesonite": 1,
+     "barite": 1,
+     "aragonite": 1,
+     "tourmaline": 1
+    }
+   },
+   "literature": {
+    "sources": {
+     "GR07": "García-Ruiz, Villasuso, Ayora, Canals & Otálora 2007, Bol. Soc. Geol. Mex. 59(1):63-70 — ore pyrite-pyrrhotite, sphalerite, galena, chalcopyrite; anhydrite below -240 m; the cave walls carry a crust of calcite and celestine; selenite to 11 m [research pass, VERIFIED]",
+     "RG18": "Rock & Gem 2018, De Colores: Naica — fluorite remarkably abundant [research pass, VERIFIED-f]"
+    },
+    "species": {
+     "selenite": {
+      "class": "AB",
+      "src": "GR07",
+      "status": "V",
+      "note": "the scenario's Cueva de los Cristales is sealed; the photographed and listed selenite comes from the mine and the Cave of Swords (showcaves.com, review round 6) — kept in scope as the cave's own mineral: the scope rule tests presence, not specimen provenance"
+     },
+     "celestine": {
+      "class": "UN-crust",
+      "src": "GR07",
+      "status": "V",
+      "note": "real, as a wall crust with calcite — not as six free crystals per cavity"
+     },
+     "fluorite": {
+      "class": "AB",
+      "src": "RG18",
+      "status": "V",
+      "note": "ore body, outside the cave-pool scope"
+     },
+     "anhydrite": {
+      "class": "CO",
+      "src": "GR07",
+      "status": "V"
+     },
+     "calcite": {
+      "class": "CO",
+      "src": "GR07",
+      "status": "V",
+      "note": "crust on the cave walls"
+     }
+    }
+   }
+  },
+  "north_pennines": {
+   "name": "North Pennines orefield (Weardale + Alston Moor), England",
+   "scenarios": [
+    "tn457_barite_pulses",
+    "reactivated_fluorite_vein"
+   ],
+   "mineralienatlas": {
+    "location_ids": [
+     1340,
+     1339
+    ],
+    "photos": {
+     "Fluorite": 220,
+     "Galena": 49,
+     "Calcite": 23,
+     "Sphalerite": 17,
+     "Quartz": 10,
+     "Witherite": 9,
+     "Barytocalcite": 8,
+     "Erythrite": 6,
+     "Siderite": 5,
+     "Ankerite": 4,
+     "Aragonite": 4,
+     "Gypsum": 4,
+     "Alstonite": 3,
+     "Chalcopyrite": 3,
+     "Dolomite": 3,
+     "Pyrite": 3,
+     "Baryte": 2,
+     "Cerussite": 2,
+     "Cobaltocalcite": 2,
+     "Hydrocerussite": 2,
+     "Pyrrhotite": 2,
+     "Serpierite": 2,
+     "Sulphur": 2,
+     "Anglesite": 1,
+     "Beudantite": 1,
+     "Brianyoungite": 1,
+     "Devilline": 1,
+     "Limonite": 1,
+     "Marmatite": 1
+    }
+   },
+   "ebay": {
+    "queries": [
+     "weardale",
+     "alston",
+     "north pennines"
+    ],
+    "listings": 471,
+    "families": 313,
+    "lapidary_families": 1,
+    "unclassified_families": 7,
+    "mention_families": {
+     "fluorite": 265,
+     "quartz": 48,
+     "galena": 26,
+     "calcite": 22,
+     "sphalerite": 9,
+     "siderite": 9,
+     "barite": 6,
+     "witherite": 6,
+     "x:barytocalcite": 3,
+     "chalcedony": 2,
+     "pyrite": 2,
+     "aragonite": 2,
+     "smithsonite": 2,
+     "cerussite": 1,
+     "molybdenite": 1,
+     "marcasite": 1,
+     "aquamarine": 1,
+     "chrysocolla": 1,
+     "x:fossil": 1,
+     "grossular": 1,
+     "x:garnet": 1,
+     "goethite": 1,
+     "hematite": 1,
+     "pyrolusite": 1,
+     "x:ankerite": 1,
+     "wolframite": 1,
+     "x:magnesite": 1,
+     "cassiterite": 1,
+     "dolomite": 1,
+     "x:alstonite": 1
+    },
+    "lead_families": {
+     "fluorite": 244,
+     "quartz": 21,
+     "calcite": 7,
+     "galena": 6,
+     "witherite": 6,
+     "sphalerite": 5,
+     "barite": 3,
+     "x:barytocalcite": 3,
+     "smithsonite": 2,
+     "cerussite": 1,
+     "molybdenite": 1,
+     "aquamarine": 1,
+     "x:fossil": 1,
+     "grossular": 1,
+     "aragonite": 1,
+     "wolframite": 1,
+     "pyrite": 1
+    }
+   },
+   "literature": {
+    "sources": {
+     "GCR36": "Young, ch. 3 in Bevins, Young, Mason, Manning & Symes 2010, Mineralization of England and Wales, GCR Series 36 (JNCC, Open Government Licence): 'the main sulphide ore minerals are galena and sphalerite'; gangue 'barite, locally with abundant witherite, and fluorite'; 'quartz is abundant in the Alston Block' [research pass, VERIFIED-f]",
+     "NPA10": "North Pennines AONB geodiversity audit 2010 — fluorite in the central zone, barium minerals outside it [research pass, VERIFIED-f] — the outer zone \"includes much of the Nent Valley\" (search text quoted by review round 6; the GeoGuide copy returned 502), so the Alston Moor page spans both zones",
+     "DGA04": "Lawrence, Vye & Young 2004, Durham Geodiversity Audit — witherite the most abundant Ba carbonate [research pass, VERIFIED-f]"
+    },
+    "species": {
+     "fluorite": {
+      "class": "AB",
+      "src": "GCR36,NPA10",
+      "status": "V",
+      "note": "central (fluorite) zone; defines the vein type the reactivated-vein scenario claims"
+     },
+     "galena": {
+      "class": "AB",
+      "src": "GCR36",
+      "status": "V"
+     },
+     "sphalerite": {
+      "class": "CO",
+      "src": "GCR36",
+      "status": "V"
+     },
+     "quartz": {
+      "class": "AB",
+      "src": "GCR36",
+      "status": "V"
+     },
+     "barite": {
+      "class": "CO",
+      "src": "GCR36,NPA10",
+      "status": "V",
+      "note": "outer (barium) zone; mutually exclusive with the fluorite zone"
+     },
+     "witherite": {
+      "class": "CO",
+      "src": "GCR36,DGA04",
+      "status": "V",
+      "note": "engine exists, dead fleet-wide"
+     },
+     "siderite": {
+      "class": "CO",
+      "src": "GCR36",
+      "status": "V"
+     },
+     "x:ankerite": {
+      "class": "CO",
+      "src": "GCR36",
+      "status": "V"
+     },
+     "calcite": {
+      "class": "CO",
+      "src": "DGA04",
+      "status": "V"
+     },
+     "greenockite": {
+      "class": "RA-coating",
+      "src": "GCR36",
+      "status": "V",
+      "note": "only as supergene greenockite after sphalerite at Willyhole"
+     },
+     "anhydrite": {
+      "class": "ND",
+      "src": "GCR36",
+      "status": "V"
+     },
+     "celestine": {
+      "class": "ND",
+      "src": "GCR36",
+      "status": "V"
+     },
+     "acanthite": {
+      "class": "ND",
+      "src": "GCR36",
+      "status": "V",
+      "note": "silver is carried in argentiferous galena"
+     },
+     "rhodochrosite": {
+      "class": "ND",
+      "src": "GCR36",
+      "status": "V"
+     }
+    }
+   }
+  },
+  "cumbria": {
+   "name": "Cumbria, England (county-level market reference; includes the West Cumbrian hematite field)",
+   "scenarios": [],
+   "mineralienatlas": null,
+   "ebay": {
+    "queries": [
+     "cumbria"
+    ],
+    "listings": 738,
+    "families": 636,
+    "lapidary_families": 0,
+    "unclassified_families": 10,
+    "mention_families": {
+     "hematite": 223,
+     "quartz": 193,
+     "calcite": 139,
+     "fluorite": 75,
+     "barite": 68,
+     "dolomite": 62,
+     "sphalerite": 57,
+     "mimetite": 49,
+     "pyromorphite": 34,
+     "galena": 25,
+     "pyrite": 14,
+     "aragonite": 11,
+     "chalcopyrite": 9,
+     "x:ankerite": 8,
+     "siderite": 7,
+     "witherite": 5,
+     "x:barytocalcite": 5,
+     "malachite": 4,
+     "cerussite": 4,
+     "scheelite": 4,
+     "x:alstonite": 3,
+     "plumbogummite": 2,
+     "smithsonite": 2,
+     "x:limonite": 2,
+     "hemimorphite": 2,
+     "marcasite": 2,
+     "selenite": 2,
+     "romanechite": 2,
+     "anhydrite": 2,
+     "x:fossil": 2,
+     "x:garnet": 1,
+     "caledonite": 1,
+     "tremolite": 1,
+     "x:zircon": 1,
+     "wolframite": 1,
+     "leadhillite": 1,
+     "mottramite": 1,
+     "x:epistilbite": 1,
+     "hydrozincite": 1,
+     "azurite": 1,
+     "cuprite": 1,
+     "bismuthinite": 1,
+     "anglesite": 1,
+     "goethite": 1,
+     "linarite": 1,
+     "x:anatase": 1,
+     "x:brookite": 1,
+     "feldspar": 1,
+     "bayldonite": 1,
+     "adamite": 1,
+     "chrysocolla": 1,
+     "x:pharmacosiderite": 1,
+     "arsenopyrite": 1
+    },
+    "lead_families": {
+     "quartz": 119,
+     "hematite": 109,
+     "calcite": 84,
+     "fluorite": 64,
+     "sphalerite": 48,
+     "mimetite": 45,
+     "barite": 44,
+     "pyromorphite": 32,
+     "aragonite": 11,
+     "galena": 9,
+     "dolomite": 7,
+     "witherite": 5,
+     "x:barytocalcite": 5,
+     "cerussite": 4,
+     "pyrite": 4,
+     "scheelite": 3,
+     "x:ankerite": 3,
+     "plumbogummite": 2,
+     "chalcopyrite": 2,
+     "selenite": 2,
+     "anhydrite": 2,
+     "x:fossil": 2,
+     "x:garnet": 1,
+     "smithsonite": 1,
+     "caledonite": 1,
+     "tremolite": 1,
+     "wolframite": 1,
+     "leadhillite": 1,
+     "mottramite": 1,
+     "x:epistilbite": 1,
+     "siderite": 1,
+     "azurite": 1,
+     "bismuthinite": 1,
+     "anglesite": 1,
+     "linarite": 1,
+     "x:anatase": 1,
+     "bayldonite": 1,
+     "adamite": 1,
+     "chrysocolla": 1,
+     "hemimorphite": 1,
+     "x:pharmacosiderite": 1,
+     "arsenopyrite": 1
+    }
+   },
+   "literature": {
+    "sources": {},
+    "species": {}
+   }
+  },
+  "ouro_preto": {
+   "name": "Ouro Preto, Minas Gerais, Brazil",
+   "scenarios": [
+    "ouro_preto"
+   ],
+   "mineralienatlas": {
+    "location_ids": [
+     80
+    ],
+    "photos": {
+     "Topaz": 23,
+     "Hematite": 10,
+     "Euclase": 4,
+     "Iron rose": 3,
+     "Gibbsite": 1,
+     "Gold": 1,
+     "Leucosphenite": 1,
+     "Malachite": 1,
+     "Rock Crystal": 1,
+     "Rutile": 1
+    }
+   },
+   "ebay": {
+    "queries": [
+     "ouro preto"
+    ],
+    "listings": 112,
+    "families": 85,
+    "lapidary_families": 3,
+    "unclassified_families": 0,
+    "mention_families": {
+     "topaz": 66,
+     "x:euclase": 7,
+     "hematite": 6,
+     "goethite": 2,
+     "native_gold": 1,
+     "quartz": 1,
+     "dolomite": 1
+    },
+    "lead_families": {
+     "topaz": 65,
+     "x:euclase": 7,
+     "hematite": 6,
+     "goethite": 2,
+     "native_gold": 1,
+     "quartz": 1
+    }
+   },
+   "literature": {
+    "sources": {
+     "K83": "Keller 1983, Gems & Gemology Spring 1983, The Capão topaz deposit — 'The potassium feldspar is now totally altered to kaolinite'; ~9 kg topaz from ~900 t ore per day [research pass, VERIFIED]",
+     "S96": "Sauer, Keller & McClure 1996, Gems & Gemology 32(4):232-241 — topaz with quartz, mica, specular hematite; sometimes rutile, rarely euclase [research pass, VERIFIED]"
+    },
+    "species": {
+     "quartz": {
+      "class": "AB",
+      "src": "K83,S96",
+      "status": "V"
+     },
+     "topaz": {
+      "class": "CO",
+      "src": "K83,S96",
+      "status": "V",
+      "note": "the economic crystal"
+     },
+     "hematite": {
+      "class": "CO",
+      "src": "S96",
+      "status": "V",
+      "note": "specular; no sim crystal"
+     },
+     "x:euclase": {
+      "class": "RA",
+      "src": "S96",
+      "status": "V"
+     },
+     "albite": {
+      "class": "ND",
+      "src": "K83",
+      "status": "V"
+     },
+     "feldspar": {
+      "class": "ND",
+      "src": "K83",
+      "status": "V",
+      "note": "altered to kaolinite"
+     }
+    }
+   }
+  },
+  "bingham": {
+   "name": "Bingham Canyon Mine, Salt Lake Co., Utah",
+   "scenarios": [
+    "porphyry"
+   ],
+   "mineralienatlas": {
+    "location_ids": [
+     6236
+    ],
+    "photos": {
+     "Faustite": 5,
+     "Okenite": 3,
+     "Pyrite": 3,
+     "Tetrahedrite series": 3,
+     "Wavellite": 3,
+     "Arseniosiderite": 2,
+     "Galena": 2,
+     "Molybdenite": 2,
+     "Albite": 1,
+     "Azurite": 1,
+     "Brochantite": 1,
+     "Copper": 1,
+     "Gypsum": 1,
+     "Quartz": 1,
+     "unidentified": 1
+    }
+   },
+   "ebay": {
+    "queries": [
+     "bingham canyon",
+     "bingham utah"
+    ],
+    "listings": 59,
+    "families": 35,
+    "lapidary_families": 0,
+    "unclassified_families": 3,
+    "mention_families": {
+     "pyrite": 14,
+     "calcite": 4,
+     "galena": 4,
+     "tetrahedrite": 4,
+     "quartz": 3,
+     "chalcopyrite": 3,
+     "x:vivianite": 2,
+     "enargite": 2,
+     "native_copper": 2,
+     "chalcocite": 2,
+     "sphalerite": 2,
+     "x:zircon": 1,
+     "vanadinite": 1,
+     "apophyllite": 1,
+     "apatite": 1,
+     "x:wavellite": 1,
+     "selenite": 1,
+     "fluorite": 1,
+     "magnetite": 1,
+     "turquoise": 1,
+     "molybdenite": 1
+    },
+    "lead_families": {
+     "pyrite": 11,
+     "calcite": 4,
+     "tetrahedrite": 3,
+     "x:vivianite": 2,
+     "enargite": 2,
+     "native_copper": 2,
+     "galena": 2,
+     "apophyllite": 1,
+     "apatite": 1,
+     "x:wavellite": 1,
+     "sphalerite": 1,
+     "fluorite": 1,
+     "chalcopyrite": 1
+    }
+   },
+   "literature": {
+    "sources": {
+     "P05": "Phillips, Harrison & Smith 2005, Geology of the Bingham Mining District, in Porter (ed.) Super Porphyry Cu & Au Deposits v.1:243-257 — main stage bornite, chalcocite, chalcopyrite, pyrite; molybdenite in quartz veins (sheeted quartz veins can exceed 50% of the rock); outer pyrite halo; peripheral Pb-Zn zone galena, sphalerite, pyrite, tennantite-tetrahedrite [research pass, VERIFIED by that pass; the chapter is paywalled, review round 2 could not confirm the >50 % figure, and the author has not read it first-hand]"
+    },
+    "species": {
+     "chalcopyrite": {
+      "class": "AB",
+      "src": "P05",
+      "status": "V"
+     },
+     "pyrite": {
+      "class": "AB",
+      "src": "P05",
+      "status": "V"
+     },
+     "quartz": {
+      "class": "AB",
+      "src": "P05",
+      "status": "V",
+      "note": "no sim crystal"
+     },
+     "bornite": {
+      "class": "AB",
+      "src": "P05",
+      "status": "V",
+      "note": "no sim crystal"
+     },
+     "molybdenite": {
+      "class": "CO",
+      "src": "P05",
+      "status": "V"
+     },
+     "galena": {
+      "class": "CO",
+      "src": "P05",
+      "status": "V"
+     },
+     "tetrahedrite": {
+      "class": "CO",
+      "src": "P05",
+      "status": "V"
+     },
+     "arsenopyrite": {
+      "class": "RA",
+      "src": "mindat snippet",
+      "status": "S"
+     },
+     "bismuthinite": {
+      "class": "RA",
+      "src": "mindat snippet",
+      "status": "S"
+     },
+     "ferrimolybdite": {
+      "class": "RA",
+      "src": "mindat snippet",
+      "status": "S"
+     },
+     "acanthite": {
+      "class": "ND",
+      "src": "P05",
+      "status": "V"
+     }
+    }
+   }
+  },
+  "viburnum": {
+   "name": "Sweetwater Mine and the Viburnum Trend, Reynolds/Iron Co., Missouri",
+   "scenarios": [
+    "reactive_wall"
+   ],
+   "mineralienatlas": {
+    "location_ids": [
+     1393
+    ],
+    "photos": {
+     "Calcite": 43,
+     "Galena": 36,
+     "Chalcopyrite": 12,
+     "Siegenite": 5,
+     "Marcasite": 3,
+     "Pyrite": 2,
+     "Blister Copper": 1,
+     "Dolomite": 1
+    }
+   },
+   "ebay": {
+    "queries": [
+     "viburnum",
+     "sweetwater mine",
+     "reynolds county"
+    ],
+    "listings": 680,
+    "families": 362,
+    "lapidary_families": 3,
+    "unclassified_families": 5,
+    "mention_families": {
+     "calcite": 193,
+     "galena": 135,
+     "chalcopyrite": 105,
+     "dolomite": 69,
+     "pyrite": 35,
+     "marcasite": 34,
+     "x:siegenite": 11,
+     "quartz": 8,
+     "sphalerite": 4,
+     "covellite": 3,
+     "x:searlesite": 1,
+     "native_silver": 1,
+     "anhydrite": 1,
+     "siderite": 1,
+     "turquoise": 1,
+     "wulfenite": 1
+    },
+    "lead_families": {
+     "calcite": 178,
+     "galena": 100,
+     "chalcopyrite": 31,
+     "pyrite": 17,
+     "marcasite": 12,
+     "x:siegenite": 8,
+     "covellite": 3,
+     "x:searlesite": 1,
+     "dolomite": 1,
+     "sphalerite": 1,
+     "siderite": 1,
+     "wulfenite": 1
+    }
+   },
+   "literature": {
+    "sources": {
+     "L10": "Leach et al. 2010, USGS SIR 2010-5070-A [read first-hand]: Zn/(Zn+Pb) 'is less than 0.1 for the Southeast Missouri district'; chalcopyrite 'the main source of byproduct copper' in the Viburnum Trend; 'Barite has never been reported in the Cambrian-hosted Southeast Missouri Lead districts'",
+     "R87": "Rowan 1987, USGS OFR 87-675 — 'the abundant hydrothermal gangue dolomite', most abundant in the southernmost mines Sweetwater and Fletcher; 'Calcite is predominantly a late stage mineral'; sphalerite crystals coarse enough for inclusions 'somewhat rare' [research pass, VERIFIED]"
+    },
+    "species": {
+     "galena": {
+      "class": "AB",
+      "src": "L10",
+      "status": "V",
+      "note": "a lead district"
+     },
+     "dolomite": {
+      "class": "AB",
+      "src": "R87",
+      "status": "V",
+      "note": "no sim crystal"
+     },
+     "calcite": {
+      "class": "CO",
+      "src": "R87",
+      "status": "V",
+      "note": "late; no sim crystal"
+     },
+     "chalcopyrite": {
+      "class": "CO",
+      "src": "L10",
+      "status": "V",
+      "note": "no sim crystal"
+     },
+     "sphalerite": {
+      "class": "UN",
+      "src": "L10,R87",
+      "status": "V",
+      "note": "Zn/(Zn+Pb) < 0.1; the sim gives it 82% of crystal volume"
+     },
+     "marcasite": {
+      "class": "CO",
+      "src": "R87",
+      "status": "S"
+     },
+     "pyrite": {
+      "class": "CO",
+      "src": "R87",
+      "status": "S"
+     },
+     "x:siegenite": {
+      "class": "UN",
+      "src": "L10",
+      "status": "V",
+      "note": "minor Co-Ni sulfide; no engine"
+     },
+     "anhydrite": {
+      "class": "ND",
+      "src": "L10,R87",
+      "status": "V"
+     }
+    }
+   }
+  },
+  "roughton_gill": {
+   "name": "Roughton Gill, Caldbeck Fells, Cumbria",
+   "scenarios": [
+    "roughten_gill"
+   ],
+   "mineralienatlas": {
+    "location_ids": [
+     6071
+    ],
+    "photos": {
+     "Pyromorphite": 12,
+     "Hemimorphite": 7,
+     "Caledonite": 4,
+     "Cerussite": 4,
+     "Linarite": 4,
+     "Mimetite": 4,
+     "Plumbogummite": 4,
+     "Leadhillite": 3,
+     "Baryte": 2,
+     "Corkite": 2,
+     "Rosasite": 2,
+     "Alunite supergroup": 1,
+     "Anglesite": 1,
+     "Brochantite": 1,
+     "Calcite": 1,
+     "Chalcopyrite": 1,
+     "Chrysocolla": 1,
+     "Cuprite": 1,
+     "Galena": 1,
+     "Goethite": 1,
+     "Hydrocerussite": 1,
+     "Hydrozincite": 1,
+     "Lepidocrocite": 1,
+     "Malachite": 1,
+     "Mattheddleite": 1,
+     "Mottramite": 1,
+     "Pharmacosiderite": 1,
+     "Phosphohedyphane": 1,
+     "Serpierite": 1,
+     "Smithsonite": 1,
+     "Sphalerite": 1,
+     "Susannite": 1
+    }
+   },
+   "ebay": {
+    "queries": [
+     "roughton gill",
+     "roughten gill",
+     "caldbeck"
+    ],
+    "listings": 101,
+    "families": 96,
+    "lapidary_families": 0,
+    "unclassified_families": 2,
+    "mention_families": {
+     "mimetite": 36,
+     "pyromorphite": 28,
+     "quartz": 23,
+     "calcite": 4,
+     "arsenopyrite": 4,
+     "scheelite": 4,
+     "cerussite": 3,
+     "plumbogummite": 2,
+     "hemimorphite": 2,
+     "linarite": 2,
+     "mottramite": 2,
+     "x:muscovite": 2,
+     "romanechite": 2,
+     "leadhillite": 1,
+     "caledonite": 1,
+     "vanadinite": 1,
+     "malachite": 1,
+     "barite": 1,
+     "galena": 1,
+     "x:agardite": 1,
+     "aurichalcite": 1,
+     "x:alstonite": 1,
+     "adamite": 1,
+     "x:ankerite": 1,
+     "pyrite": 1
+    },
+    "lead_families": {
+     "mimetite": 33,
+     "pyromorphite": 27,
+     "quartz": 13,
+     "scheelite": 3,
+     "arsenopyrite": 3,
+     "plumbogummite": 2,
+     "linarite": 2,
+     "cerussite": 2,
+     "leadhillite": 1,
+     "caledonite": 1,
+     "vanadinite": 1,
+     "hemimorphite": 1,
+     "galena": 1,
+     "mottramite": 1,
+     "x:agardite": 1,
+     "adamite": 1,
+     "x:muscovite": 1
+    }
+   },
+   "literature": {
+    "sources": {
+     "GCR36": "GCR Series 36, Roughtongill Mine site account (OGL): 'The main sulphide ores are, in order of abundance, galena, chalcopyrite and sphalerite'; 'Most abundant are supergene lead and copper minerals'; pyromorphite, cerussite and malachite 'are thought to have been worked commercially' [research pass, VERIFIED-f] — not re-opened by any review round: the JNCC volume is over the fetch limit and the GeoGuide copy returned HTTP 502 in rounds 3–5 and again in the round-5 response, and a search summary of that copy words the key sentences differently; the ten classes below rest on the research pass's reading"
+    },
+    "species": {
+     "pyromorphite": {
+      "class": "AB",
+      "src": "GCR36",
+      "status": "V"
+     },
+     "cerussite": {
+      "class": "AB",
+      "src": "GCR36",
+      "status": "V"
+     },
+     "malachite": {
+      "class": "AB",
+      "src": "GCR36",
+      "status": "V"
+     },
+     "mimetite": {
+      "class": "CO",
+      "src": "GCR36",
+      "status": "V"
+     },
+     "hemimorphite": {
+      "class": "CO",
+      "src": "GCR36",
+      "status": "V"
+     },
+     "smithsonite": {
+      "class": "CO",
+      "src": "GCR36",
+      "status": "V"
+     },
+     "plumbogummite": {
+      "class": "CO",
+      "src": "GCR36",
+      "status": "V"
+     },
+     "linarite": {
+      "class": "CO",
+      "src": "GCR36",
+      "status": "V",
+      "note": "no sim crystal"
+     },
+     "galena": {
+      "class": "AB",
+      "src": "GCR36",
+      "status": "V",
+      "note": "primary ore"
+     },
+     "quartz": {
+      "class": "AB",
+      "src": "GCR36",
+      "status": "V"
+     },
+     "mottramite": {
+      "class": "ND",
+      "src": "mindat snippet",
+      "status": "S",
+      "note": "Caldbeck mottramite references point to Brandy Gill, not Roughton Gill"
+     }
+    }
+   }
+  },
+  "schneeberg": {
+   "name": "Schneeberg district, Erzgebirge, Saxony",
+   "scenarios": [
+    "schneeberg"
+   ],
+   "mineralienatlas": {
+    "location_ids": [
+     561
+    ],
+    "photos": {
+     "Erythrite": 103,
+     "Pucherite": 47,
+     "Eulytine": 44,
+     "Silver": 44,
+     "Walpurgite": 41,
+     "Roselite": 37,
+     "Torbernite": 33,
+     "Bismuth": 29,
+     "Zeunerite": 29,
+     "Calcite": 28,
+     "Schumacherite": 23,
+     "Cobaltkoritnigite": 22,
+     "Skutterudite": 21,
+     "Bismutoferrite": 18,
+     "Nickelskutterudite": 16,
+     "Petitjeanite": 16,
+     "Quartz": 16,
+     "Neustädtelite": 15,
+     "Chalcedony": 14,
+     "Proustite": 14,
+     "Brendelite": 13,
+     "Galena": 13,
+     "Bismutite": 12,
+     "Acanthite": 11,
+     "Baryte": 11,
+     "Chlorargyrite": 11,
+     "Nickeline": 11,
+     "Parsonsite": 11,
+     "Preisingerite": 11,
+     "Atelestite": 10,
+     "Cobaltneustädtelite": 10,
+     "Safflorite": 10,
+     "Parasymplesite": 9,
+     "Pyromorphite": 9,
+     "Trögerite": 9,
+     "Uraninite": 9,
+     "Beyerite": 8,
+     "Cerussite": 8,
+     "Hematite": 8,
+     "Koechlinite": 8,
+     "Metarauchite": 8,
+     "Mixite": 8,
+     "unidentified": 8,
+     "Bariopharmacosiderite": 7,
+     "Fluorite": 7,
+     "Spherocobaltite": 7,
+     "Argentite": 6,
+     "Bismite": 6,
+     "Hinsdalite": 6,
+     "Köttigite": 6,
+     "Metatorbernite": 6,
+     "Pitchblende": 6,
+     "Romanèchite": 6,
+     "Wolframite": 6,
+     "Beudantite": 5,
+     "Carbonate-hydroxylapatite": 5,
+     "Hydronováčekite": 5,
+     "Hydroxylapatite": 5,
+     "Lithiophorite": 5,
+     "Nickellotharmeyerite": 5,
+     "Olivenite": 5,
+     "Rappoldite": 5,
+     "Arseniosiderite": 4,
+     "Asbolane": 4,
+     "Bismuthinite": 4,
+     "Chalcopyrite": 4,
+     "Chloanthite": 4,
+     "Cobaltaustinite": 4,
+     "Corkite": 4,
+     "Dolomite": 4,
+     "Emplectite": 4,
+     "Metazeunerite": 4,
+     "Mimetite": 4,
+     "Protasite": 4,
+     "Siderite": 4,
+     "Sillénite": 4,
+     "Stibnite": 4,
+     "Waylandite": 4,
+     "Adamite": 3,
+     "Arsenic": 3,
+     "Autunite": 3,
+     "Bassetite": 3,
+     "Coffinite": 3,
+     "Ferrilotharmeyerite": 3,
+     "Goethite": 3,
+     "Pharmacolite": 3,
+     "Pyrargyrite": 3,
+     "Smoky Quartz": 3,
+     "Stephanite": 3,
+     "Tsumcorite": 3,
+     "Uranospinite": 3,
+     "Aragonite": 2,
+     "Asselbornite": 2,
+     "Austinite": 2,
+     "Chenevixite": 2,
+     "Chernikovite": 2,
+     "Cobaltite": 2,
+     "Corundum": 2,
+     "Fluorapatite": 2,
+     "Garnet supergroup": 2,
+     "Pharmacosiderite": 2,
+     "Phurcalite": 2,
+     "Pyrite": 2,
+     "Realgar": 2,
+     "Russellite": 2,
+     "Schneebergite": 2,
+     "Scorodite": 2,
+     "Abernathyite": 1,
+     "Albite": 1,
+     "Amethyst": 1,
+     "Anatase": 1,
+     "Apatite group": 1,
+     "Argentopyrite": 1,
+     "Arsenolite": 1,
+     "Arsenopyrite": 1,
+     "Arsenovanmeersscheite": 1,
+     "Bornite": 1,
+     "Carnelian": 1,
+     "Chalcocite": 1,
+     "Chrysocolla": 1,
+     "Cobaltlotharmeyerite": 1,
+     "Cobaltoan Adamite": 1,
+     "Cobalttsumcorite": 1,
+     "Dreyerite": 1,
+     "Duftite": 1,
+     "Dussertite": 1,
+     "Eisenkiesel": 1,
+     "Francevillite": 1,
+     "Gypsum": 1,
+     "Heinrichite": 1,
+     "Ianbruceite": 1,
+     "Johannite": 1,
+     "Kintoreite": 1,
+     "Lavendulan": 1,
+     "Limonite": 1,
+     "Lotharmeyerite": 1,
+     "Manganese Oxides": 1,
+     "Manganese-bearing Calcite": 1,
+     "Molybdenite": 1,
+     "Morion": 1,
+     "Muscovite": 1,
+     "Namibite": 1,
+     "Nováčekite series": 1,
+     "Pararammelsbergite": 1,
+     "Picropharmacolite": 1,
+     "Polybasite": 1,
+     "Prehnite": 1,
+     "Pseudomalachite": 1,
+     "Quartz-beta": 1,
+     "Rammelsbergite": 1,
+     "Rhagite": 1,
+     "Rhodochrosite": 1,
+     "Rock Crystal": 1,
+     "Rösslerite": 1,
+     "Rutile": 1,
+     "Saléeite": 1,
+     "Saponite": 1,
+     "Segnitite": 1,
+     "Skutterudite subgroup": 1,
+     "Sternbergite": 1,
+     "Strengite": 1,
+     "Talc": 1,
+     "Wad": 1,
+     "Weilite": 1,
+     "Xanthoconite": 1
+    }
+   },
+   "ebay": {
+    "queries": [
+     "schneeberg"
+    ],
+    "listings": 15,
+    "families": 12,
+    "lapidary_families": 0,
+    "unclassified_families": 2,
+    "mention_families": {
+     "x:schneebergite": 2,
+     "calcite": 2,
+     "native_bismuth": 2,
+     "x:pucherite": 1,
+     "proustite": 1,
+     "siderite": 1,
+     "x:bismutite": 1,
+     "skutterudite": 1,
+     "erythrite": 1,
+     "diopside": 1
+    },
+    "lead_families": {
+     "x:schneebergite": 2,
+     "x:pucherite": 1,
+     "proustite": 1,
+     "x:bismutite": 1,
+     "skutterudite": 1,
+     "native_bismuth": 1,
+     "erythrite": 1,
+     "calcite": 1,
+     "diopside": 1
+    }
+   },
+   "literature": {
+    "sources": {
+     "B14": "Bastin 1914, USGS Professional Paper 90-A, pp. 2-3 (cobalt-silver vein type; 'pitchblende is a characteristic though not an abundant accompaniment') [research pass, VERIFIED]",
+     "WH": "showcaves.com, Fundgrube Weisser Hirsch (popular) — Walpurgis lode 'weathered uraninite and pure bismuth' [research pass, VERIFIED]",
+     "MRE": "Montanregion Erzgebirge World Heritage page — Schneeberg the world's leading cobalt district, 16th-19th c. [research pass, VERIFIED]"
+    },
+    "species": {
+     "native_bismuth": {
+      "class": "AB",
+      "src": "WH,MRE",
+      "status": "V",
+      "note": "a principal ore"
+     },
+     "skutterudite": {
+      "class": "AB",
+      "src": "B14",
+      "status": "V",
+      "note": "cobalt ore (smaltite/chloanthite)"
+     },
+     "nickeline": {
+      "class": "CO",
+      "src": "B14",
+      "status": "V"
+     },
+     "native_silver": {
+      "class": "CO",
+      "src": "MRE",
+      "status": "V"
+     },
+     "erythrite": {
+      "class": "CO",
+      "src": "mindat snippet",
+      "status": "S",
+      "note": "type locality; 103 Mineralienatlas photos, the most of any species"
+     },
+     "uraninite": {
+      "class": "UN",
+      "src": "B14",
+      "status": "V"
+     },
+     "cassiterite": {
+      "class": "ND",
+      "src": "B14",
+      "status": "V",
+      "note": "Bastin's 'The tin ores are confined to the granite and its immediate vicinity' describes the western Erzgebirge tin type generally — a different vein type from Schneeberg's cobalt-silver veins"
+     },
+     "topaz": {
+      "class": "ND",
+      "src": "B14",
+      "status": "S"
+     },
+     "spodumene": {
+      "class": "ND",
+      "src": "—",
+      "status": "R"
+     },
+     "morganite": {
+      "class": "ND",
+      "src": "—",
+      "status": "R"
+     },
+     "turquoise": {
+      "class": "ND",
+      "src": "—",
+      "status": "R"
+     }
+    }
+   }
+  },
+  "searles_lake": {
+   "name": "Searles Lake, San Bernardino Co., California",
+   "scenarios": [
+    "searles_lake"
+   ],
+   "mineralienatlas": {
+    "location_ids": [
+     1377
+    ],
+    "photos": {
+     "Halite": 13,
+     "Hanksite": 13,
+     "Burkeite": 4,
+     "Gaylussite": 3,
+     "Northupite": 3,
+     "Pirssonite": 3,
+     "Sulphohalite": 3,
+     "Aphthitalite": 1,
+     "Borax": 1,
+     "Galeite": 1,
+     "Nahcolite": 1,
+     "Trona": 1,
+     "Tychite": 1
+    }
+   },
+   "ebay": {
+    "queries": [
+     "searles",
+     "trona california"
+    ],
+    "listings": 211,
+    "families": 118,
+    "lapidary_families": 0,
+    "unclassified_families": 5,
+    "mention_families": {
+     "halite": 66,
+     "x:hanksite": 24,
+     "x:trona": 17,
+     "x:sulfohalite": 9,
+     "x:gaylussite": 4,
+     "x:pirssonite": 4,
+     "x:burkeite": 3,
+     "borax": 2,
+     "x:coloradoite": 1,
+     "thenardite": 1,
+     "feldspar": 1,
+     "loellingite": 1,
+     "quartz": 1
+    },
+    "lead_families": {
+     "halite": 66,
+     "x:hanksite": 23,
+     "x:sulfohalite": 8,
+     "x:gaylussite": 4,
+     "x:pirssonite": 4,
+     "x:trona": 2,
+     "x:coloradoite": 1,
+     "thenardite": 1,
+     "feldspar": 1,
+     "loellingite": 1,
+     "quartz": 1,
+     "x:burkeite": 1
+    }
+   },
+   "literature": {
+    "sources": {
+     "SH64": "Smith & Haines 1964, USGS Bulletin 1181-P (https://pubs.usgs.gov/bul/1181p/report.pdf) — p. P7: celestite, colemanite, realgar, cerargyrite, embolite and gold 'almost certainly do not occur within the deposit in normally detectable quantities' [read first-hand 2026-10-21]",
+     "S79": "Smith 1979, USGS Professional Paper 1043, p. 59, Table 14 — Upper Salt weighted volume %: halite 43, trona 34, hanksite 17, borax 3.1, mud 2.0, burkeite 0.3, pirssonite 0.2, thenardite 0.1, aphthitalite 0.03, sulfohalite 0.01 [read first-hand 2026-10-21]"
+    },
+    "species": {
+     "halite": {
+      "class": "AB",
+      "src": "S79",
+      "status": "V",
+      "note": "43 vol% of the Upper Salt"
+     },
+     "x:trona": {
+      "class": "AB",
+      "src": "S79",
+      "status": "V",
+      "note": "34 vol%; no engine"
+     },
+     "x:hanksite": {
+      "class": "AB",
+      "src": "S79",
+      "status": "V",
+      "note": "17 vol%, 'the third most abundant mineral'; no engine"
+     },
+     "borax": {
+      "class": "CO",
+      "src": "S79",
+      "status": "V",
+      "note": "3.1 vol%, 'borax the forth'"
+     },
+     "thenardite": {
+      "class": "UN",
+      "src": "S79",
+      "status": "V",
+      "note": "0.1 vol%"
+     },
+     "x:burkeite": {
+      "class": "UN",
+      "src": "S79",
+      "status": "V",
+      "note": "0.3 vol% (Upper Salt); up to 29% in Lower Salt unit S-4"
+     },
+     "x:pirssonite": {
+      "class": "UN",
+      "src": "S79",
+      "status": "V",
+      "note": "0.2 vol%"
+     },
+     "x:sulfohalite": {
+      "class": "RA",
+      "src": "S79",
+      "status": "V",
+      "note": "0.01 vol%"
+     },
+     "x:gaylussite": {
+      "class": "CO",
+      "src": "SH64",
+      "status": "S",
+      "note": "research pass: 'one of the common minerals' (mud layers)"
+     },
+     "celestine": {
+      "class": "ND",
+      "src": "SH64",
+      "status": "V",
+      "note": "'almost certainly do not occur within the deposit in normally detectable quantities'"
+     },
+     "mirabilite": {
+      "class": "RA",
+      "src": "SH64",
+      "status": "S",
+      "note": "research pass: beds known only from a zone 10-30 ft below the top of the Bottom Mud"
+     },
+     "tincalconite": {
+      "class": "RA",
+      "src": "SH64",
+      "status": "V",
+      "note": "'Primary crystals of tincalconite have been reported only twice from Searles Lake'; the rind on borax forms after the borax is exposed to dry air, i.e. after recovery (wording confirmed by review round 3; the earlier note's 'common only as an alteration rind on borax' was the research pass's paraphrase)"
+     },
+     "calcite": {
+      "class": "RA",
+      "src": "SH64",
+      "status": "V",
+      "note": "'much less common than aragonite' (wording confirmed by review round 3)"
+     }
+    }
+   }
+  },
+  "shigar": {
+   "name": "Shigar Valley, Skardu, Gilgit-Baltistan, Pakistan",
+   "scenarios": [
+    "shigar_pegmatite"
+   ],
+   "mineralienatlas": {
+    "location_ids": [
+     6502
+    ],
+    "photos": {
+     "Aquamarine": 49,
+     "Topaz": 45,
+     "Spessartine": 24,
+     "Epidote": 22,
+     "Clinozoisite": 18,
+     "Beryl": 15,
+     "Vesuvianite": 12,
+     "Quartz": 10,
+     "Titanite": 10,
+     "Zoisite": 10,
+     "Actinolite": 5,
+     "Diopside": 5,
+     "Rutile": 5,
+     "Smoky Quartz": 5,
+     "Albite": 4,
+     "Chromian Diopside": 4,
+     "Cleavelandite": 4,
+     "Fluorite": 4,
+     "Adularia": 3,
+     "Byssolite": 3,
+     "Calcite": 3,
+     "Orthoclase": 3,
+     "Schorl": 3,
+     "Fluornatromicrolite": 2,
+     "Grossular": 2,
+     "Herderite": 2,
+     "Hydroxylherderite": 2,
+     "Lepidolite": 2,
+     "Microcline": 2,
+     "Muscovite": 2,
+     "Tantalite-(Mn)": 2,
+     "Andradite": 1,
+     "Apatite group": 1,
+     "Axinite-(Fe)": 1,
+     "Beryllonite": 1,
+     "Blue Quartz": 1,
+     "Elbaite": 1,
+     "Ferro-actinolite": 1,
+     "Fluorapatite": 1,
+     "Goshenite": 1,
+     "Indicolite": 1,
+     "Morganite": 1,
+     "Pollucite": 1,
+     "Rock Crystal": 1,
+     "Sagenite": 1,
+     "Sceptre Quartz": 1,
+     "Tourmaline supergroup": 1,
+     "Triplite": 1,
+     "Zircon": 1
+    }
+   },
+   "ebay": {
+    "queries": [
+     "shigar"
+    ],
+    "listings": 1408,
+    "families": 926,
+    "lapidary_families": 4,
+    "unclassified_families": 17,
+    "mention_families": {
+     "aquamarine": 509,
+     "tourmaline": 170,
+     "quartz": 145,
+     "x:muscovite": 109,
+     "albite": 77,
+     "x:garnet": 69,
+     "topaz": 65,
+     "feldspar": 49,
+     "beryl": 38,
+     "apatite": 36,
+     "fluorite": 20,
+     "x:phenakite": 15,
+     "hematite": 13,
+     "epidote": 12,
+     "rutile": 11,
+     "morganite": 9,
+     "x:beryllonite": 7,
+     "x:chlorite": 5,
+     "vesuvianite": 5,
+     "calcite": 5,
+     "titanite": 4,
+     "x:zoisite": 4,
+     "x:microlite": 4,
+     "spodumene": 3,
+     "x:columbite": 3,
+     "x:axinite": 3,
+     "grossular": 3,
+     "x:clinozoisite": 3,
+     "x:herderite": 3,
+     "diopside": 3,
+     "siderite": 2,
+     "x:ilmenite": 1,
+     "actinolite": 1,
+     "lepidolite": 1,
+     "x:hedenbergite": 1,
+     "pyrite": 1,
+     "cassiterite": 1,
+     "x:brookite": 1,
+     "heliodor": 1,
+     "x:zircon": 1,
+     "x:vayrynenite": 1,
+     "rhodochrosite": 1
+    },
+    "lead_families": {
+     "aquamarine": 489,
+     "tourmaline": 81,
+     "topaz": 56,
+     "x:garnet": 55,
+     "quartz": 46,
+     "apatite": 30,
+     "beryl": 27,
+     "x:phenakite": 15,
+     "fluorite": 14,
+     "epidote": 10,
+     "hematite": 9,
+     "morganite": 8,
+     "rutile": 8,
+     "x:beryllonite": 7,
+     "vesuvianite": 5,
+     "x:zoisite": 4,
+     "x:muscovite": 4,
+     "spodumene": 3,
+     "titanite": 3,
+     "x:axinite": 3,
+     "grossular": 3,
+     "x:herderite": 3,
+     "diopside": 3,
+     "x:microlite": 3,
+     "calcite": 3,
+     "feldspar": 2,
+     "albite": 2,
+     "x:ilmenite": 1,
+     "x:hedenbergite": 1,
+     "x:chlorite": 1,
+     "pyrite": 1,
+     "cassiterite": 1,
+     "siderite": 1,
+     "x:zircon": 1,
+     "x:vayrynenite": 1,
+     "rhodochrosite": 1
+    }
+   },
+   "literature": {
+    "sources": {
+     "L98": "Laurs, Dilles, Wairrach, Kausar & Snee 1998, Canadian Mineralogist 36:1-47, Table 1 — Dassu pegmatites principal commodities: aquamarine, apatite, fluorite, morganite, quartz, schorl, spessartine-almandine, topaz [research pass, VERIFIED by that pass; the paper is on the Stak Nala pegmatites, and its Table 1 was not read first-hand by the author or by review round 2]",
+     "HL18": "Hu & Lu 2018, Gems & Gemology 54(1) GNI, Aquamarine from Pakistan — 'Albite, muscovite, and tourmaline (schorl) are commonly associated as matrix' [research pass, VERIFIED]"
+    },
+    "species": {
+     "aquamarine": {
+      "class": "AB",
+      "src": "L98,HL18",
+      "status": "V",
+      "note": "the signature product; the sim's beryl family never nucleates here"
+     },
+     "quartz": {
+      "class": "AB",
+      "src": "L98",
+      "status": "V"
+     },
+     "albite": {
+      "class": "CO",
+      "src": "HL18",
+      "status": "V",
+      "note": "Hu & Lu 2018: \"Albite, muscovite, and tourmaline (schorl) are commonly associated as matrix\" — Gilgit-Baltistan aquamarine generally; Laurs et al. 1998 Table 1 does not list albite among the commodities (was AB on both; review round 6)"
+     },
+     "feldspar": {
+      "class": "AB",
+      "src": "L98",
+      "status": "V"
+     },
+     "tourmaline": {
+      "class": "CO",
+      "src": "L98,HL18",
+      "status": "V"
+     },
+     "topaz": {
+      "class": "CO",
+      "src": "L98",
+      "status": "V"
+     },
+     "fluorite": {
+      "class": "CO",
+      "src": "L98",
+      "status": "V",
+      "note": "no sim crystal"
+     },
+     "apatite": {
+      "class": "CO",
+      "src": "L98",
+      "status": "V",
+      "note": "no sim crystal"
+     },
+     "x:garnet": {
+      "class": "CO",
+      "src": "L98",
+      "status": "V",
+      "note": "spessartine-almandine; no engine"
+     },
+     "x:muscovite": {
+      "class": "CO",
+      "src": "HL18",
+      "status": "V",
+      "note": "no engine"
+     }
+    }
+   }
+  },
+  "skardu": {
+   "name": "Skardu district, Gilgit-Baltistan (market reference)",
+   "scenarios": [],
+   "mineralienatlas": null,
+   "ebay": {
+    "queries": [
+     "skardu"
+    ],
+    "listings": 1368,
+    "families": 950,
+    "lapidary_families": 7,
+    "unclassified_families": 30,
+    "mention_families": {
+     "tourmaline": 186,
+     "aquamarine": 185,
+     "quartz": 183,
+     "topaz": 118,
+     "x:garnet": 95,
+     "x:muscovite": 73,
+     "feldspar": 59,
+     "albite": 50,
+     "apatite": 47,
+     "beryl": 22,
+     "x:zircon": 21,
+     "epidote": 19,
+     "x:herderite": 18,
+     "fluorite": 18,
+     "titanite": 17,
+     "morganite": 17,
+     "x:axinite": 17,
+     "rutile": 17,
+     "hematite": 12,
+     "calcite": 11,
+     "diopside": 9,
+     "heliodor": 7,
+     "x:vayrynenite": 7,
+     "x:pollucite": 6,
+     "x:beryllonite": 5,
+     "siderite": 5,
+     "magnetite": 5,
+     "rhodochrosite": 5,
+     "x:chlorite": 5,
+     "scheelite": 5,
+     "x:olivine": 5,
+     "x:columbite": 5,
+     "x:pargasite": 4,
+     "pyrite": 4,
+     "x:hambergite": 3,
+     "x:spinel": 3,
+     "x:zoisite": 3,
+     "lepidolite": 3,
+     "emerald": 3,
+     "x:kyanite": 3,
+     "aragonite": 2,
+     "crocidolite": 2,
+     "vesuvianite": 2,
+     "x:microlite": 2,
+     "ruby": 2,
+     "cassiterite": 2,
+     "grossular": 2,
+     "x:phenakite": 2,
+     "x:phlogopite": 2,
+     "x:clinozoisite": 1,
+     "x:ilmenite": 1,
+     "azurite": 1,
+     "malachite": 1,
+     "x:anatase": 1,
+     "actinolite": 1,
+     "selenite": 1,
+     "x:scapolite": 1
+    },
+    "lead_families": {
+     "aquamarine": 176,
+     "tourmaline": 137,
+     "topaz": 113,
+     "quartz": 89,
+     "x:garnet": 84,
+     "apatite": 40,
+     "x:zircon": 21,
+     "x:herderite": 18,
+     "titanite": 17,
+     "morganite": 17,
+     "beryl": 17,
+     "x:axinite": 17,
+     "epidote": 15,
+     "rutile": 15,
+     "fluorite": 14,
+     "diopside": 7,
+     "albite": 7,
+     "x:vayrynenite": 7,
+     "x:pollucite": 6,
+     "calcite": 6,
+     "hematite": 6,
+     "x:beryllonite": 5,
+     "rhodochrosite": 5,
+     "feldspar": 5,
+     "scheelite": 5,
+     "x:pargasite": 4,
+     "x:chlorite": 4,
+     "x:olivine": 4,
+     "x:hambergite": 3,
+     "x:spinel": 3,
+     "magnetite": 3,
+     "x:zoisite": 3,
+     "pyrite": 3,
+     "siderite": 3,
+     "x:columbite": 3,
+     "emerald": 3,
+     "heliodor": 2,
+     "aragonite": 2,
+     "crocidolite": 2,
+     "vesuvianite": 2,
+     "x:muscovite": 2,
+     "x:microlite": 2,
+     "ruby": 2,
+     "cassiterite": 2,
+     "grossular": 2,
+     "x:phenakite": 2,
+     "x:kyanite": 2,
+     "x:clinozoisite": 1,
+     "x:ilmenite": 1,
+     "azurite": 1,
+     "x:anatase": 1,
+     "selenite": 1,
+     "x:scapolite": 1
+    }
+   },
+   "literature": {
+    "sources": {},
+    "species": {}
+   }
+  },
+  "sicily": {
+   "name": "Sicilian sulfur field (Agrigento + Caltanissetta provinces)",
+   "scenarios": [
+    "sicily_solfifera"
+   ],
+   "mineralienatlas": {
+    "location_ids": [
+     3927,
+     10598
+    ],
+    "photos": {
+     "Sulphur": 68,
+     "Celestine": 20,
+     "Aragonite": 11,
+     "Calcite": 6,
+     "Alunite": 2,
+     "Gypsum": 2,
+     "Halite": 2,
+     "Amber": 1,
+     "Kalinite": 1,
+     "Melanophlogite": 1
+    }
+   },
+   "ebay": {
+    "queries": [
+     "sicily",
+     "agrigento",
+     "caltanissetta",
+     "cianciana",
+     "sicilia"
+    ],
+    "listings": 640,
+    "families": 141,
+    "lapidary_families": 4,
+    "unclassified_families": 14,
+    "mention_families": {
+     "native_sulfur": 93,
+     "aragonite": 39,
+     "celestine": 23,
+     "calcite": 15,
+     "selenite": 3,
+     "quartz": 2,
+     "fluorite": 2,
+     "hematite": 2,
+     "pyrite": 2,
+     "native_gold": 1,
+     "barite": 1
+    },
+    "lead_families": {
+     "native_sulfur": 67,
+     "celestine": 21,
+     "aragonite": 20,
+     "calcite": 7,
+     "fluorite": 2,
+     "pyrite": 2,
+     "selenite": 2,
+     "hematite": 1,
+     "native_gold": 1
+    }
+   },
+   "literature": {
+    "sources": {
+     "V1897": "Viola 1897, Z. Kryst. 28:225 — 'die bekannten grossen Aragonitkrystalle, verwachsen mit Cölestin und mit schönen Schwefelkrystallen' [research pass, VERIFIED by that pass]",
+     "R2025": "Rouwendaal et al. 2025, Geobiology 23(2):e70015 — sulfur dispersed in calcite cement; celestine 'occasionally' fills pores (Monte Palco) [research pass, VERIFIED]",
+     "UNICT": "University of Catania DREAMIN museum sheet — celestite 'among the most beautiful and sought by collectors' [research pass, VERIFIED]"
+    },
+    "species": {
+     "native_sulfur": {
+      "class": "AB",
+      "src": "R2025",
+      "status": "V"
+     },
+     "celestine": {
+      "class": "CO",
+      "src": "V1897",
+      "status": "V",
+      "note": "classic but 'occasionally' at Monte Palco"
+     },
+     "aragonite": {
+      "class": "CO",
+      "src": "V1897",
+      "status": "V",
+      "note": "'the well-known large aragonite crystals' — the sim has no Sicilian aragonite"
+     },
+     "selenite": {
+      "class": "AB",
+      "src": "R2025",
+      "status": "S",
+      "note": "host Messinian gypsum; selenite to 30 cm (Lugli et al. 2016)"
+     },
+     "calcite": {
+      "class": "AB",
+      "src": "R2025",
+      "status": "V",
+      "note": "matrix/cement"
+     },
+     "strontianite": {
+      "class": "RA",
+      "src": "dealer listings",
+      "status": "S",
+      "note": "no scientific record found by the research pass"
+     }
+    }
+   }
+  },
+  "sulphur_bank": {
+   "name": "Sulphur Bank Mine, Clear Lake Oaks, Lake Co., California",
+   "scenarios": [
+    "sulphur_bank"
+   ],
+   "mineralienatlas": {
+    "location_ids": [
+     12886
+    ],
+    "photos": {
+     "Metacinnabar": 1,
+     "Stibnite": 1
+    }
+   },
+   "ebay": {
+    "queries": [
+     "sulphur bank",
+     "sulfur bank"
+    ],
+    "listings": 2,
+    "families": 2,
+    "lapidary_families": 0,
+    "unclassified_families": 1,
+    "mention_families": {
+     "native_sulfur": 1
+    },
+    "lead_families": {
+     "native_sulfur": 1
+    }
+   },
+   "literature": {
+    "sources": {
+     "R40": "Ross 1940, USGS Bulletin 922-L, pp. 338-351 [research pass, VERIFIED by that pass]",
+     "J24": "Johnson et al. 2024, USGS data release doi:10.5066/P9EQFOXX [research pass, VERIFIED]",
+     "MA": "Mineralienatlas locality 12886: one metacinnabar and one stibnite photograph"
+    },
+    "species": {
+     "cinnabar": {
+      "class": "AB",
+      "src": "R40",
+      "status": "V",
+      "note": "'the most abundant metallic mineral in both districts' (p. 338) — a claim for two districts together, not Sulphur Bank alone (review round 2)"
+     },
+     "native_sulfur": {
+      "class": "AB",
+      "src": "R40",
+      "status": "V",
+      "note": "the quarry was opened as a sulfur mine"
+     },
+     "opal": {
+      "class": "AB",
+      "src": "R40",
+      "status": "V",
+      "note": "'the upper-central part of the basalt flow ... almost completely replaced by opal' — the scenario lists opal as aspirational"
+     },
+     "marcasite": {
+      "class": "UN",
+      "src": "J24",
+      "status": "V"
+     },
+     "pyrite": {
+      "class": "CO",
+      "src": "MRDS",
+      "status": "S"
+     },
+     "metacinnabar": {
+      "class": "RA",
+      "src": "MA",
+      "status": "V",
+      "note": "the research pass found no record in R40/J24; the Mineralienatlas photo documents it — presence licensed, abundance unknown"
+     },
+     "orpiment": {
+      "class": "ND?",
+      "src": "R40,J24",
+      "status": "S",
+      "note": "not in the three sources the pass read; absence from three sources is not proof — the scenario expects it"
+     },
+     "pararealgar": {
+      "class": "ND?",
+      "src": "R40,J24",
+      "status": "S",
+      "note": "as orpiment"
+     }
+    }
+   }
+  },
+  "sunnyside": {
+   "name": "Sunnyside Mine + American Tunnel, Silverton District, San Juan Co., Colorado",
+   "scenarios": [
+    "sunnyside_american_tunnel"
+   ],
+   "mineralienatlas": {
+    "location_ids": [
+     5416,
+     15343
+    ],
+    "photos": {
+     "Rhodochrosite": 23,
+     "Fluorite": 15,
+     "Quartz": 3,
+     "Gold": 2,
+     "Pyroxmangite": 2,
+     "Chalcopyrite": 1,
+     "Hessite": 1,
+     "Hübnerite": 1,
+     "Pyrite": 1,
+     "Rhodonite": 1,
+     "Selenite (Gypsum)": 1
+    }
+   },
+   "ebay": {
+    "queries": [
+     "sunnyside",
+     "american tunnel",
+     "silverton colorado"
+    ],
+    "listings": 172,
+    "families": 131,
+    "lapidary_families": 5,
+    "unclassified_families": 1,
+    "mention_families": {
+     "quartz": 60,
+     "rhodochrosite": 59,
+     "fluorite": 24,
+     "native_gold": 16,
+     "sphalerite": 9,
+     "wolframite": 9,
+     "pyrite": 7,
+     "calcite": 6,
+     "galena": 5,
+     "chalcopyrite": 4,
+     "x:rhodonite": 2,
+     "native_silver": 2,
+     "barite": 2,
+     "x:fossil": 1,
+     "brochantite": 1,
+     "scheelite": 1,
+     "sylvanite": 1,
+     "selenite": 1,
+     "bornite": 1,
+     "native_copper": 1,
+     "epidote": 1,
+     "x:polybasite": 1,
+     "x:vivianite": 1,
+     "anhydrite": 1,
+     "cerussite": 1
+    },
+    "lead_families": {
+     "rhodochrosite": 57,
+     "fluorite": 14,
+     "native_gold": 13,
+     "quartz": 13,
+     "wolframite": 9,
+     "sphalerite": 4,
+     "calcite": 2,
+     "x:fossil": 1,
+     "brochantite": 1,
+     "galena": 1,
+     "sylvanite": 1,
+     "selenite": 1,
+     "bornite": 1,
+     "epidote": 1,
+     "native_silver": 1,
+     "x:polybasite": 1,
+     "barite": 1,
+     "chalcopyrite": 1,
+     "x:rhodonite": 1,
+     "cerussite": 1
+    }
+   },
+   "literature": {
+    "sources": {
+     "B33": "Burbank 1933, Am. Mineral. 18:513 — quartz-pyrite, then sphalerite, galena, chalcopyrite, a little tetrahedrite; later rhodonite; free gold in quartz; calcite, fluorite, rhodochrosite, huebnerite [research pass, VERIFIED]",
+     "G24": "Guzman, Monecke & Reynolds 2024, Mineralium Deposita, doi:10.1007/s00126-024-01341-9 — sphalerite and galena the most abundant ore minerals; manganese ore about half the Washington vein; no argentite or acanthite named, but 'Aikinite, bornite, and tetrahedrite are locally abundant' (wording quoted by review round 2; the research pass had reported no silver mineral named) [research pass, VERIFIED]"
+    },
+    "species": {
+     "galena": {
+      "class": "AB",
+      "src": "G24",
+      "status": "V"
+     },
+     "sphalerite": {
+      "class": "AB",
+      "src": "G24",
+      "status": "V"
+     },
+     "quartz": {
+      "class": "AB",
+      "src": "B33,G24",
+      "status": "V"
+     },
+     "rhodochrosite": {
+      "class": "AB",
+      "src": "G24",
+      "status": "V",
+      "note": "the Washington-vein specimens"
+     },
+     "fluorite": {
+      "class": "CO",
+      "src": "B33,G24",
+      "status": "V",
+      "note": "CO rests on Guzman et al. 2024; Burbank 1933 says only that fluorite has 'also been recognized' (p. 518, review round 5)"
+     },
+     "native_gold": {
+      "class": "CO",
+      "src": "G24",
+      "status": "V"
+     },
+     "chalcopyrite": {
+      "class": "CO",
+      "src": "G24",
+      "status": "V"
+     },
+     "pyrite": {
+      "class": "CO",
+      "src": "G24",
+      "status": "V"
+     },
+     "wolframite": {
+      "class": "UN",
+      "src": "B33",
+      "status": "V",
+      "note": "huebnerite; no sim crystal"
+     },
+     "x:rhodonite": {
+      "class": "AB",
+      "src": "B33,G24",
+      "status": "V",
+      "note": "massive; no engine. Manganese ore (rhodonite or pyroxmangite, rhodochrosite, quartz) is about half the Washington vein's volume (G24)"
+     },
+     "calaverite": {
+      "class": "RA",
+      "src": "G24",
+      "status": "V"
+     },
+     "argentite": {
+      "class": "ND",
+      "src": "B33,G24",
+      "status": "V",
+      "note": "neither source names argentite or acanthite, despite 14.9 Moz Ag produced; tetrahedrite is named ('a little', Burbank 1933; 'locally abundant', Guzman et al. 2024)"
+     },
+     "native_silver": {
+      "class": "ND",
+      "src": "B33,G24",
+      "status": "V"
+     },
+     "arsenopyrite": {
+      "class": "ND",
+      "src": "B33,G24",
+      "status": "V"
+     }
+    }
+   }
+  },
+  "tormiq": {
+   "name": "Tormiq Valley, Haramosh, Gilgit-Baltistan",
+   "scenarios": [
+    "tormiq_alpine_cleft"
+   ],
+   "mineralienatlas": {
+    "location_ids": [
+     5699
+    ],
+    "photos": {
+     "Titanite": 12,
+     "Epidote": 8,
+     "Clinozoisite": 7,
+     "Ilmenite": 7,
+     "Chromian Diopside": 2,
+     "Epidote group": 2,
+     "Orthoclase": 2,
+     "Albite": 1,
+     "Andradite": 1,
+     "Augite": 1,
+     "Calcite": 1,
+     "Diopside": 1,
+     "Fluorite": 1,
+     "Hedenbergite": 1,
+     "Rutile": 1,
+     "Siderite": 1
+    }
+   },
+   "ebay": {
+    "queries": [
+     "tormiq"
+    ],
+    "listings": 95,
+    "families": 90,
+    "lapidary_families": 0,
+    "unclassified_families": 0,
+    "mention_families": {
+     "quartz": 28,
+     "titanite": 22,
+     "hematite": 18,
+     "epidote": 16,
+     "apatite": 8,
+     "rutile": 6,
+     "albite": 6,
+     "crocidolite": 3,
+     "feldspar": 3,
+     "calcite": 3,
+     "x:muscovite": 3,
+     "x:chlorite": 2,
+     "x:hedenbergite": 2,
+     "actinolite": 2,
+     "x:axinite": 2,
+     "x:ilmenite": 1,
+     "tourmaline": 1,
+     "dolomite": 1,
+     "x:clinozoisite": 1,
+     "beryl": 1
+    },
+    "lead_families": {
+     "quartz": 20,
+     "titanite": 19,
+     "hematite": 17,
+     "epidote": 12,
+     "apatite": 8,
+     "crocidolite": 3,
+     "rutile": 3,
+     "x:hedenbergite": 2,
+     "x:axinite": 2,
+     "calcite": 1,
+     "x:clinozoisite": 1,
+     "beryl": 1,
+     "x:muscovite": 1
+    }
+   },
+   "literature": {
+    "sources": {
+     "K19": "Koenigsberger 1919 type 10 'Quarz, Epidot, Amianth, Sphen (Calcit, Adular, Apatit, Hämatit)' in epidotized amphibolite — the closest published analogue; no peer-reviewed Tormiq list found [research pass]"
+    },
+    "species": {
+     "epidote": {
+      "class": "AB",
+      "src": "dealer/mindat snippets",
+      "status": "S"
+     },
+     "actinolite": {
+      "class": "CO",
+      "src": "low-reliability wiki",
+      "status": "S",
+      "note": "byssolite"
+     },
+     "titanite": {
+      "class": "doc",
+      "src": "dealer snippets",
+      "status": "S"
+     }
+    }
+   }
+  },
+  "haramosh": {
+   "name": "Haramosh (market reference; pegmatite-dominated)",
+   "scenarios": [],
+   "mineralienatlas": null,
+   "ebay": {
+    "queries": [
+     "haramosh"
+    ],
+    "listings": 107,
+    "families": 73,
+    "lapidary_families": 0,
+    "unclassified_families": 0,
+    "mention_families": {
+     "aquamarine": 33,
+     "tourmaline": 22,
+     "albite": 12,
+     "quartz": 11,
+     "x:muscovite": 9,
+     "epidote": 5,
+     "titanite": 5,
+     "beryl": 4,
+     "x:garnet": 3,
+     "apatite": 2,
+     "feldspar": 2,
+     "x:chlorite": 1,
+     "topaz": 1,
+     "x:hambergite": 1,
+     "emerald": 1,
+     "x:vayrynenite": 1
+    },
+    "lead_families": {
+     "aquamarine": 31,
+     "tourmaline": 19,
+     "epidote": 5,
+     "titanite": 5,
+     "beryl": 3,
+     "apatite": 2,
+     "x:garnet": 2,
+     "quartz": 2,
+     "topaz": 1,
+     "x:hambergite": 1,
+     "emerald": 1,
+     "x:vayrynenite": 1
+    }
+   },
+   "literature": {
+    "sources": {},
+    "species": {}
+   }
+  },
+  "tsumeb": {
+   "name": "Tsumeb Mine, Oshikoto, Namibia",
+   "scenarios": [
+    "supergene_oxidation"
+   ],
+   "mineralienatlas": {
+    "location_ids": [
+     969
+    ],
+    "photos": {
+     "Smithsonite": 110,
+     "Cerussite": 96,
+     "Azurite": 89,
+     "Dioptase": 75,
+     "Mimetite": 66,
+     "Cuprite": 58,
+     "Calcite": 56,
+     "Wulfenite": 54,
+     "Malachite": 50,
+     "Copper": 39,
+     "Duftite": 29,
+     "Mottramite": 26,
+     "Tennantite series": 23,
+     "Ludlockite": 20,
+     "Willemite": 19,
+     "Descloizite": 15,
+     "Leiteite": 15,
+     "Chalcocite": 13,
+     "Anglesite": 12,
+     "Bayldonite": 12,
+     "Aragonite": 11,
+     "Arsentsumebite": 11,
+     "Cuprian Adamite": 11,
+     "Dolomite": 10,
+     "Tsumcorite": 8,
+     "Adamite": 7,
+     "Beudantite": 7,
+     "Galena": 7,
+     "Germanite": 7,
+     "Hydrocerussite": 7,
+     "Olivenite": 7,
+     "Plumboan Aragonite": 7,
+     "Minrecordite": 6,
+     "Scorodite": 6,
+     "Chalcotrichite": 5,
+     "Eugenite": 5,
+     "Goethite": 5,
+     "Quartz": 5,
+     "Söhngeite": 5,
+     "Jamesite": 4,
+     "Lukrahnite": 4,
+     "Silver": 4,
+     "Tsumebite": 4,
+     "Biehlite": 3,
+     "Carminite": 3,
+     "Cobaltoan Smithsonite": 3,
+     "Conichalcite": 3,
+     "Cuprian Smithsonite": 3,
+     "Gallite": 3,
+     "Greenockite": 3,
+     "Keyite": 3,
+     "Leadhillite": 3,
+     "Otavite": 3,
+     "Plancheite": 3,
+     "Rosasite": 3,
+     "Schneiderhöhnite": 3,
+     "Schulténite": 3,
+     "Siderite": 3,
+     "Stottite": 3,
+     "Andyrobertsite": 2,
+     "Antlerite": 2,
+     "Baryte": 2,
+     "Betpakdalite-CaMg": 2,
+     "Briartite": 2,
+     "Brochantite": 2,
+     "Brunogeierite": 2,
+     "Calcioandyrobertsite-1M": 2,
+     "Chalcanthite": 2,
+     "Covellite": 2,
+     "Dundasite": 2,
+     "Ferrilotharmeyerite": 2,
+     "Fleischerite": 2,
+     "Gartrellite": 2,
+     "Gerdtremmelite": 2,
+     "Gypsum": 2,
+     "Linarite": 2,
+     "Melanotekite": 2,
+     "Molybdofornacite": 2,
+     "Posnjakite": 2,
+     "Pyrite": 2,
+     "Renierite": 2,
+     "Schaurteite": 2,
+     "Sidpietersite": 2,
+     "Stranskiite": 2,
+     "Troostite": 2,
+     "unidentified": 2,
+     "Yancowinnaite": 2,
+     "Adularia": 1,
+     "Agardite-(Ce)": 1,
+     "Alamosite": 1,
+     "Albite": 1,
+     "Amethyst": 1,
+     "Apatite group": 1,
+     "Arsenbrackebuschite": 1,
+     "Arsendescloizite": 1,
+     "Aurichalcite": 1,
+     "Austinite": 1,
+     "Bartelkeite": 1,
+     "Betpakdalite": 1,
+     "Betpakdalite-CaCa": 1,
+     "Bornite": 1,
+     "Cadsulfohite": 1,
+     "Calvertite": 1,
+     "Chalcopyrite": 1,
+     "Chrysocolla": 1,
+     "Cobaltoan Dolomite": 1,
+     "Cobaltocalcite": 1,
+     "Conichalcite-Duftite Series": 1,
+     "Coronadite": 1,
+     "Devilline": 1,
+     "Edwardsite": 1,
+     "Ekatite": 1,
+     "Erikapohlite": 1,
+     "Fahleite": 1,
+     "Fraipontite": 1,
+     "Furutobeite": 1,
+     "Gaitite": 1,
+     "Heterogenite": 1,
+     "Heterogenite-2H": 1,
+     "Hidalgoite": 1,
+     "Hydroxylpyromorphite": 1,
+     "Hydrozincite": 1,
+     "Jarosite": 1,
+     "Kegelite": 1,
+     "Krieselite": 1,
+     "Lavendulan": 1,
+     "Lazaridisite": 1,
+     "Lepidocrocite": 1,
+     "Mathewrogersite": 1,
+     "Molybdenite": 1,
+     "Niedermayrite": 1,
+     "Ojuelaite": 1,
+     "Otjisumeite": 1,
+     "Ovamboite": 1,
+     "Plumbojarosite": 1,
+     "Pyromorphite": 1,
+     "Reinerite": 1,
+     "Serpierite": 1,
+     "Sewardite": 1,
+     "Sphalerite": 1,
+     "Stibioclaudetit": 1,
+     "Stibnite": 1,
+     "Tenorite": 1,
+     "Tsumgallite": 1,
+     "Vanackerite": 1,
+     "Vanadinite": 1,
+     "Velikite": 1,
+     "W-bearing Wulfenite": 1,
+     "Warikahnite": 1,
+     "Wilhelmkleinite": 1,
+     "Zincgartrellite": 1,
+     "Zincolivenite": 1,
+     "Zincostottite": 1
+    }
+   },
+   "ebay": {
+    "queries": [
+     "tsumeb"
+    ],
+    "listings": 1252,
+    "families": 987,
+    "lapidary_families": 16,
+    "unclassified_families": 36,
+    "mention_families": {
+     "calcite": 182,
+     "smithsonite": 153,
+     "cerussite": 143,
+     "malachite": 138,
+     "azurite": 138,
+     "dioptase": 96,
+     "mimetite": 79,
+     "dolomite": 74,
+     "duftite": 63,
+     "cuprite": 45,
+     "wulfenite": 44,
+     "quartz": 38,
+     "mottramite": 35,
+     "native_copper": 30,
+     "willemite": 29,
+     "tennantite": 26,
+     "galena": 23,
+     "rosasite": 17,
+     "chalcocite": 12,
+     "hematite": 11,
+     "conichalcite": 10,
+     "aragonite": 10,
+     "anglesite": 9,
+     "adamite": 8,
+     "olivenite": 8,
+     "descloizite": 7,
+     "pyrite": 6,
+     "x:tsumcorite": 5,
+     "x:leiteite": 4,
+     "x:ludlockite": 3,
+     "bayldonite": 3,
+     "goethite": 3,
+     "x:plancheite": 3,
+     "x:beudantite": 3,
+     "chalcanthite": 2,
+     "bornite": 2,
+     "x:hydrocerussite": 2,
+     "enargite": 2,
+     "pyromorphite": 2,
+     "x:limonite": 2,
+     "sphalerite": 2,
+     "linarite": 2,
+     "x:djurleite": 2,
+     "siderite": 1,
+     "scorodite": 1,
+     "x:tsumebite": 1,
+     "x:otavite": 1,
+     "jarosite": 1,
+     "greenockite": 1,
+     "emerald": 1,
+     "x:germanite": 1,
+     "brochantite": 1,
+     "hemimorphite": 1,
+     "tetrahedrite": 1,
+     "chrysocolla": 1
+    },
+    "lead_families": {
+     "smithsonite": 131,
+     "cerussite": 108,
+     "calcite": 104,
+     "azurite": 94,
+     "dioptase": 87,
+     "malachite": 82,
+     "mimetite": 55,
+     "wulfenite": 33,
+     "dolomite": 26,
+     "cuprite": 26,
+     "willemite": 23,
+     "duftite": 20,
+     "mottramite": 16,
+     "native_copper": 12,
+     "quartz": 9,
+     "aragonite": 9,
+     "tennantite": 8,
+     "galena": 8,
+     "conichalcite": 7,
+     "rosasite": 7,
+     "adamite": 7,
+     "olivenite": 6,
+     "anglesite": 6,
+     "descloizite": 5,
+     "chalcocite": 4,
+     "x:leiteite": 4,
+     "pyrite": 4,
+     "x:tsumcorite": 4,
+     "x:ludlockite": 3,
+     "chalcanthite": 2,
+     "bornite": 2,
+     "x:hydrocerussite": 2,
+     "hematite": 2,
+     "pyromorphite": 2,
+     "x:beudantite": 2,
+     "x:djurleite": 2,
+     "scorodite": 1,
+     "bayldonite": 1,
+     "x:otavite": 1,
+     "enargite": 1,
+     "goethite": 1,
+     "x:plancheite": 1,
+     "greenockite": 1,
+     "x:germanite": 1,
+     "brochantite": 1,
+     "hemimorphite": 1,
+     "tetrahedrite": 1,
+     "linarite": 1,
+     "chrysocolla": 1
+    }
+   },
+   "literature": {
+    "sources": {
+     "TMN": "Southwood, Alonso-Perez, Sanders & Keutsch, Tsumeb Mineral Notes (Harvard, tmn.fas.harvard.edu), a specimen-availability scale (Very common / Common / Somewhat rare / Very rare / Extremely rare / Questionable). Spot-checked first-hand 2026-10-21: scorodite (TSNB311) 'Very rare'; smithsonite (TSNB324) 'Very common', with Pinch & Wilson 1977 quoted: 'Smithsonite is the most abundant secondary mineral at Tsumeb.' Read first-hand in response to review round 5: azurite (TSNB38) 'Very common'; dioptase (TSNB107) 'Very common', but 'extremely rare (or possibly even absent) in the first oxidation zone'. Review rounds 4 and 5 confirmed eight more ratings."
+    },
+    "species": {
+     "smithsonite": {
+      "class": "AB",
+      "src": "TMN",
+      "status": "V",
+      "note": "Very common"
+     },
+     "cerussite": {
+      "class": "AB",
+      "src": "TMN",
+      "status": "V",
+      "note": "Very common (TSNB74; confirmed by review round 4)"
+     },
+     "malachite": {
+      "class": "AB",
+      "src": "TMN",
+      "status": "V",
+      "note": "Very common (TSNB225, \"by far the most commonly encountered secondary copper mineral\"; confirmed by review round 5)"
+     },
+     "azurite": {
+      "class": "AB",
+      "src": "TMN",
+      "status": "V",
+      "note": "Very common (TSNB38, read first-hand; Keller 1977a ranks it the fourth most abundant supergene mineral of the first oxidation zone)"
+     },
+     "calcite": {
+      "class": "AB",
+      "src": "TMN",
+      "status": "V",
+      "note": "Very common (TSNB66; confirmed by review round 5); \"Collectable calcites were commonly encountered at depth\", \"somewhat less common in the upper levels\" (review round 6) — present in the first oxidation zone, so it stays in the scenario's scope; no sim crystal"
+     },
+     "dioptase": {
+      "class": "AB",
+      "src": "TMN",
+      "status": "V",
+      "note": "Very common overall (TSNB107, read first-hand), but \"extremely rare (or possibly even absent) in the first oxidation zone\" that the scenario models; abundant in the second and third zones, so set aside as outside the scenario's scope (review round 5)"
+     },
+     "duftite": {
+      "class": "AB",
+      "src": "TMN",
+      "status": "V",
+      "note": "Very common (TSNB111; confirmed by review round 5)"
+     },
+     "anglesite": {
+      "class": "CO",
+      "src": "TMN",
+      "status": "V",
+      "note": "Common (TSNB12; confirmed by review round 5)"
+     },
+     "cuprite": {
+      "class": "CO",
+      "src": "TMN",
+      "status": "S"
+     },
+     "mimetite": {
+      "class": "CO",
+      "src": "TMN",
+      "status": "V",
+      "note": "Common (TSNB241), found in all three oxidation zones (confirmed by review round 6)"
+     },
+     "wulfenite": {
+      "class": "CO",
+      "src": "TMN",
+      "status": "V",
+      "note": "Common (TSNB375); \"By far the best Tsumeb wulfenite specimens were recovered from the second oxidation zone\" (confirmed by review round 6)"
+     },
+     "conichalcite": {
+      "class": "CO",
+      "src": "TMN",
+      "status": "S"
+     },
+     "mottramite": {
+      "class": "CO",
+      "src": "TMN",
+      "status": "S",
+      "note": "no sim crystal"
+     },
+     "scorodite": {
+      "class": "RA",
+      "src": "TMN",
+      "status": "V",
+      "note": "Very rare"
+     },
+     "stolzite": {
+      "class": "RA",
+      "src": "TMN",
+      "status": "S",
+      "note": "Very rare"
+     },
+     "descloizite": {
+      "class": "RA",
+      "src": "TMN",
+      "status": "V",
+      "note": "Very rare (TSNB104; confirmed by review round 4)"
+     },
+     "pyromorphite": {
+      "class": "VR",
+      "src": "TMN",
+      "status": "V",
+      "note": "Extremely rare (TSNB293; confirmed by review round 4)"
+     },
+     "vanadinite": {
+      "class": "VR",
+      "src": "TMN",
+      "status": "S",
+      "note": "Extremely rare"
+     },
+     "powellite": {
+      "class": "VR",
+      "src": "TMN",
+      "status": "V",
+      "note": "Extremely rare (TSNB286; confirmed by review round 5)"
+     },
+     "plumbogummite": {
+      "class": "VR",
+      "src": "TMN",
+      "status": "S",
+      "note": "Extremely rare"
+     },
+     "jarosite": {
+      "class": "Q",
+      "src": "TMN",
+      "status": "V",
+      "note": "Questionable (TSNB185): \"there is no record of jarosite in the peer-reviewed literature\" (confirmed by review round 6)"
+     },
+     "ferrimolybdite": {
+      "class": "ND",
+      "src": "TMN",
+      "status": "V",
+      "note": "no species entry: TSNB130 (ferrilotharmeyerite) is followed directly by TSNB131 (fleischerite) in the alphabetical numbering (confirmed by review round 6)"
+     },
+     "raspite": {
+      "class": "ND",
+      "src": "TMN",
+      "status": "S",
+      "note": "no species entry"
+     }
+    }
+   }
+  },
+  "wittichen": {
+   "name": "Wittichen, Black Forest, Baden-Württemberg",
+   "scenarios": [
+    "wittichen"
+   ],
+   "mineralienatlas": {
+    "location_ids": [
+     241
+    ],
+    "photos": {
+     "Erythrite": 142,
+     "Zeunerite": 61,
+     "Heinrichite": 59,
+     "Fluorite": 47,
+     "Atelestite": 45,
+     "Walpurgite": 42,
+     "Mixite": 36,
+     "Silver": 36,
+     "Bismutite": 23,
+     "Arseniosiderite": 22,
+     "Cobaltkoritnigite": 19,
+     "Picropharmacolite": 19,
+     "Bariopharmacosiderite": 17,
+     "Bismuthinite": 16,
+     "Baryte": 15,
+     "Safflorite": 15,
+     "Uraninite": 15,
+     "Lavendulan": 14,
+     "Bismuth": 13,
+     "Parasymplesite": 13,
+     "Skutterudite": 13,
+     "Hematite": 12,
+     "Arsenolite": 10,
+     "Wittichenite": 10,
+     "Emplectite": 9,
+     "Hydronováčekite": 9,
+     "Malachite": 9,
+     "Metazeunerite": 9,
+     "Calcite": 8,
+     "Anatase": 7,
+     "Chalcopyrite": 7,
+     "Pitchblende": 7,
+     "Preisingerite": 6,
+     "Uranospinite": 6,
+     "Acanthite": 5,
+     "Proustite": 5,
+     "Moorhouseite": 4,
+     "Pharmacolite": 4,
+     "Uranophane": 4,
+     "Aragonite": 3,
+     "Azurite": 3,
+     "Bismutoferrite": 3,
+     "Chlorargyrite": 3,
+     "Chrysocolla": 3,
+     "Cobaltocalcite": 3,
+     "Goethite": 3,
+     "Nickeline": 3,
+     "Olivenite": 3,
+     "Pyrite": 3,
+     "Quartz": 3,
+     "Sainfeldite": 3,
+     "unidentified": 3,
+     "Arsenic": 2,
+     "Chalcanthite": 2,
+     "Coffinite": 2,
+     "Conichalcite": 2,
+     "Copper": 2,
+     "Ferrisymplesite": 2,
+     "Galena": 2,
+     "Heterogenite": 2,
+     "Metanováčekite": 2,
+     "Mimetite": 2,
+     "Nováčekite series": 2,
+     "Rooseveltite": 2,
+     "Seelite": 2,
+     "Tennantite-(Zn)": 2,
+     "Xanthoconite": 2,
+     "Acanthite (Argentite) group": 1,
+     "Alacránite": 1,
+     "Ankerite": 1,
+     "Annabergite": 1,
+     "Argentite": 1,
+     "Arsenuranospathite": 1,
+     "Asbolane": 1,
+     "Chalcedony": 1,
+     "Chalcotrichite": 1,
+     "Covellite": 1,
+     "Cuprite": 1,
+     "Dolomite": 1,
+     "Enargite": 1,
+     "Eulytine": 1,
+     "Ferrarisite": 1,
+     "Hallimondite": 1,
+     "Heterogenite-2H": 1,
+     "Hexahydrite": 1,
+     "Hörnesite": 1,
+     "Langite": 1,
+     "Laumontite": 1,
+     "Lautite": 1,
+     "Machatschkiite": 1,
+     "Manganohörnesite": 1,
+     "Medenbachite": 1,
+     "Metakahlerite": 1,
+     "Metatorbernite": 1,
+     "Monohydrocalcite": 1,
+     "Orpiment": 1,
+     "Orthowalpurgite": 1,
+     "Phaunouxite": 1,
+     "Pradetite": 1,
+     "Rauenthalite": 1,
+     "Realgar": 1,
+     "Richelsdorfite": 1,
+     "Roselite": 1,
+     "Scorodite": 1,
+     "Segnitite": 1,
+     "Siderite": 1,
+     "Siderogel": 1,
+     "Torbernite": 1,
+     "Vivianite": 1,
+     "Wölsendorfite": 1
+    }
+   },
+   "ebay": {
+    "queries": [
+     "wittichen"
+    ],
+    "listings": 7,
+    "families": 6,
+    "lapidary_families": 0,
+    "unclassified_families": 1,
+    "mention_families": {
+     "x:koritnigite": 1,
+     "x:kahlerite": 1,
+     "safflorite": 1,
+     "skutterudite": 1,
+     "erythrite": 1,
+     "x:bismutite": 1
+    },
+    "lead_families": {
+     "x:koritnigite": 1,
+     "x:kahlerite": 1,
+     "safflorite": 1,
+     "skutterudite": 1,
+     "x:bismutite": 1
+    }
+   },
+   "literature": {
+    "sources": {
+     "P1868": "Petersen 1868, Annalen der Physik und Chemie 134:64ff (ore list after Vogelgesang) — vein fill 'überwiegend aus ... blättrigem Baryt'; predominant: Speiskobalt (skutterudite/safflorite), earthy cobalt, native silver; less widespread: native bismuth, wittichenite, native arsenic, nickeline, proustite, acanthite, hematite; rarities: cobaltite, bismuthinite, tetrahedrite, stephanite, galena, chalcopyrite; erythrite 'sehr häufig', pharmacolite 'nicht selten' [research pass, VERIFIED by that pass]",
+     "S12": "Staude et al. 2012, Mineralium Deposita 47:251 (abstract) [research pass, VERIFIED]"
+    },
+    "species": {
+     "barite": {
+      "class": "AB",
+      "src": "P1868",
+      "status": "V"
+     },
+     "skutterudite": {
+      "class": "AB",
+      "src": "P1868",
+      "status": "V"
+     },
+     "safflorite": {
+      "class": "AB",
+      "src": "P1868",
+      "status": "V"
+     },
+     "native_silver": {
+      "class": "AB",
+      "src": "P1868",
+      "status": "V"
+     },
+     "erythrite": {
+      "class": "AB",
+      "src": "P1868",
+      "status": "V"
+     },
+     "pharmacolite": {
+      "class": "CO",
+      "src": "P1868",
+      "status": "V",
+      "note": "type locality"
+     },
+     "native_bismuth": {
+      "class": "UN",
+      "src": "P1868",
+      "status": "V"
+     },
+     "native_arsenic": {
+      "class": "UN",
+      "src": "P1868",
+      "status": "V"
+     },
+     "nickeline": {
+      "class": "UN",
+      "src": "P1868",
+      "status": "V"
+     },
+     "proustite": {
+      "class": "UN",
+      "src": "P1868",
+      "status": "V"
+     },
+     "fluorite": {
+      "class": "CO",
+      "src": "P1868",
+      "status": "V",
+      "note": "'Quarz und Flussspath als Begleiter'"
+     },
+     "annabergite": {
+      "class": "RA",
+      "src": "P1868",
+      "status": "V"
+     },
+     "haidingerite": {
+      "class": "RA",
+      "src": "mindat snippet",
+      "status": "S"
+     },
+     "anhydrite": {
+      "class": "ND",
+      "src": "P1868,S12",
+      "status": "V"
+     },
+     "chalcedony": {
+      "class": "ND",
+      "src": "P1868",
+      "status": "V",
+      "note": "quartz only"
+     }
+    }
+   }
+  }
+ }
+}
