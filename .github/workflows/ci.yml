@@ -58,10 +58,11 @@ jobs:
 
       - name: Finite reservoirs, MVT reference preflight, and shared prehistory control
         run: |
-          npm test -- --file tests-js/finite-reservoir-authority.test.ts --file tests-js/physical-reservoir-mapping.test.ts --file tests-js/reservoir-reference-preflight.test.ts --file tests-js/mvt-prehistory.test.ts
+          npm test -- --file tests-js/finite-reservoir-authority.test.ts --file tests-js/physical-reservoir-mapping.test.ts --file tests-js/reservoir-reference-preflight.test.ts --file tests-js/mvt-prehistory.test.ts --file tests-js/mvt-fluid-source.test.ts
           python --version
           python pilots/reservoir-reference-preflight/reference.py
           python pilots/mvt-prehistory/reference.py
+          python pilots/mvt-fluid-source/reference.py
 
       - name: Cation commissioning identity guards
         run: npm test -- --file tests-js/cation-sink-audit.test.ts

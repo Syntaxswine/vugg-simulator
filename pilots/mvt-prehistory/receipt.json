@@ -35,7 +35,7 @@
     "pilots/mvt-prehistory/receipt.mjs": "9308cbd43791f9d7a8bdf0768c65eff7e5cd5daf375da88486d50e42d5229f9d",
     "pilots/mvt-prehistory/reference.py": "57c2a3da29d2e786b8788d0b7415ea539ddb619c418032d38f04b7a586ee84f7",
     "tests-js/mvt-prehistory.test.ts": "44d099ea6d942afb32e8dd827d6e379120af4ac56146f83481670063c89bc235",
-    ".github/workflows/ci.yml": "158d98b9260570c33dda17359d284906868b53fe8f0da0d6d99ee07457436164"
+    ".github/workflows/ci.yml": "7a9c48cc975b29b3975e8da524162e3f38eb33f310d0d25062029e1666ae0aab"
   },
   "scope": "authored mixed-host causal conservation control plus actual-MVT source-gap audit; no growth fleet, EOS, speciation or geological calibration",
   "causes": {

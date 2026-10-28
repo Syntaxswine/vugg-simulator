@@ -1,0 +1,838 @@
+{
+  "schema": "vugg-mvt-fluid-observation-receipt-v1",
+  "base": "cb1965fcb686ca852a9771303f6bbb1c0b8b3035",
+  "runtime": {
+    "schema": "vugg-evidence-node-runtime-v1",
+    "node": "24.15.0",
+    "v8": "13.6.233.17-node.48",
+    "platform": "win32",
+    "arch": "x64",
+    "icu": "78.2",
+    "locale": "en-US"
+  },
+  "productionExecutionDigest": "d2171e7e44e1e0b53aa70761511684b68c03a88020bce45f75625ef71b03c93e",
+  "registeredProducerContractsUnchanged": true,
+  "productionSourceHashes": {
+    "data/scenarios.json5": "4b7bc4d31446196af9c1e454c21b54d5db713f558b7a382db4a6fcb3c5c18b59",
+    "js/19-mineral-stoichiometry.ts": "2d3e5414d486dc9759005cfb439f8eaebe865b65b0dd9bf21a8e149c74ca4c64",
+    "js/20-chemistry-fluid.ts": "ef9c8ec76c98a9d7322273e4573de5b1408cfa44339b2a50adcf5f11e2a69da6",
+    "js/20b-chemistry-carbonate-system.ts": "075fcdf19e03893df19997e1bee05eed220cea03d43f88e0ad0162e87d095012",
+    "js/22-geometry-wall.ts": "162f3c91181689141d1b4ee1690c13ba47185a72b005cf380fce7170b9b707a9",
+    "js/22a-geometry-cavity-evolution.ts": "27090b3fdcddf58cb101f724606b312a2f1a28d3ba52e592bf7915b9eec5549b",
+    "js/24-geometry-voxel-grid.ts": "f17314ef72446175aa3c8da183a1e53d3e0e8942bcf866e43bf01ec745c04a72",
+    "js/24e-local-conserved-state.ts": "3ea7549f4cf71536fa4a5161e5a19a0664a37467badcc46f9808373a956663f6",
+    "js/27-geometry-crystal.ts": "f82d36decad0613b5238dd40168c44ce0eb3533c7664240a45b3f99e23e2b729",
+    "js/85c-simulator-state.ts": "050557ebf44fbfa6724a7d9e006d6885e9894cb60c863a36dd091d1426ce6a37",
+    "pilots/calcite/volume-contract.js": "0aa9f8f83533d09c8d273034ab667674025f291dfafd1b99eba982e81f6159bb",
+    "pilots/finite-reservoir-authority/contract.mjs": "392195155899ea4d8dff859dfba9058beffa46063e8ca53dae33260a616c19f1",
+    "pilots/finite-reservoir-authority/audit.mjs": "cbb9f881ec43b7c3fa05b8e7bdbc1b94fcbec69a6839830e38cd2f8d018c7e4b"
+  },
+  "sourceHashes": {
+    "pilots/mvt-fluid-source/source.json": "ebf9b7e7c465e9d6519db62138b7eafe7e6c55ddbb55261cf7fe64f5986afc06",
+    "pilots/mvt-fluid-source/observations.mjs": "6d003c62a175f5b4035d6d82d187602f28980493b41741a1c0759b058f2d983e",
+    "pilots/mvt-fluid-source/receipt.mjs": "17a41270427924b7d34b76f92ab80fc50ff5392ff67da4406e399fb6c7e1b1e2",
+    "pilots/mvt-fluid-source/reference.py": "b9da6ef9de82ee03c833b288d80dc93de9e4048b86604e531bf59fdba1c6c481",
+    "pilots/mvt-fluid-source/source-check.json": "869841afba83c5e70980cdc1503ce8c0b4cc6bbfe2f17571a007041cc7a7017b",
+    "tests-js/mvt-fluid-source.test.ts": "b11c603b5c2c8b441e0254aaa9e55efea049a3d2ecedd03d3ea50439238b4727",
+    ".github/workflows/ci.yml": "7a9c48cc975b29b3975e8da524162e3f38eb33f310d0d25062029e1666ae0aab"
+  },
+  "primarySource": {
+    "id": "stoffell-2008",
+    "citation": "Stoffell, Appold, Wilkinson, McClean and Jeffries (2008), Economic Geology 103(7), 1411-1435",
+    "doi": "10.2113/gsecongeo.103.7.1411",
+    "url": "https://eps.mcgill.ca/~courses/c561/Stoffell%20et%20al.%202008.pdf",
+    "pdfSha256": "f32d39f552e22b76d6343bddc7000c5161bec6e20d9bd105e3680be2d9c86709",
+    "table": 2,
+    "locationTable": 1,
+    "methodPrintedPages": [
+      1415,
+      1416
+    ],
+    "footnotePrintedPage": 1422,
+    "reportedUnit": "reported_ppm",
+    "basisQualification": "Preserve the paper's ppm reporting basis; no certification as mg per kg solvent or as a complete fluid analysis.",
+    "chlorideNormalization": {
+      "internalStandard": "Cl",
+      "basis": "ice melting interpreted in NaCl-H2O; estimated Cl normalizes LA-ICP-MS concentrations",
+      "reportedApproximationPercent": [
+        5,
+        10
+      ],
+      "uncertaintyMeaning": "method statement about salinity approximation, not a hard bound, sigma, or independent per-element uncertainty"
+    },
+    "sizeMeaning": "two observed orthogonal inclusion dimensions; neither released-fluid volume nor vug water amount",
+    "salinityMeaning": "wt percent NaCl equivalent from microthermometry and the stated Bodnar (1993) relation; not actual NaCl mass fraction",
+    "temperatureMeaning": "liquid-vapor homogenization temperature, not an assigned trapping temperature or production clock",
+    "selection": "Three individual Tri-State rows chosen to exercise quantified, censored, blank and host-interference evidence; not a representative statistical sample or a pair of commissioned endmembers."
+  },
+  "columns": [
+    "Li",
+    "Na",
+    "Mg",
+    "Cl",
+    "K",
+    "Ca",
+    "Mn",
+    "Cu",
+    "Zn",
+    "Br",
+    "Sr",
+    "Ba",
+    "Pb"
+  ],
+  "observations": [
+    {
+      "id": "TSCV-1-1-A-1",
+      "recordDigest": "a6e39b588113ebb9fe9c96b4fb5f908f9c1136750e12ba69f63ca40b8f349bb1",
+      "locator": {
+        "table": 2,
+        "pdfPage": 10,
+        "printedPage": 1420,
+        "sample": "TSCV 1-1 A",
+        "inclusion": 1,
+        "host": "quartz",
+        "location": "Oronogo-Duenweg trend near Carterville, MO; sample TSCV 1 in Table 1",
+        "hostDescription": "coarse crystalline quartz; source heading retained in the table"
+      },
+      "microthermometry": {
+        "homogenization": {
+          "value": 122.2,
+          "unit": "C",
+          "authority": "measured-homogenization",
+          "trappingTemperatureC": null
+        },
+        "salinity": {
+          "value": 22.6,
+          "unit": "wt_percent_NaCl_equivalent",
+          "authority": "microthermometry-model-derived",
+          "actualNaClMassFraction": null
+        },
+        "observedSize": {
+          "value": [
+            140,
+            29
+          ],
+          "unit": "um_in_two_observed_dimensions",
+          "fluidVolumeMm3": null
+        }
+      },
+      "elements": {
+        "Li": {
+          "raw": "<4.4E+01",
+          "status": "reported-upper-limit",
+          "value": null,
+          "reportedUpperLimit": 44,
+          "unit": "reported_ppm"
+        },
+        "Na": {
+          "raw": "8.1E+04",
+          "status": "reported-normalized-estimate",
+          "value": 81000,
+          "reportedUpperLimit": null,
+          "unit": "reported_ppm"
+        },
+        "Mg": {
+          "raw": "1.2E+03",
+          "status": "reported-normalized-estimate",
+          "value": 1200,
+          "reportedUpperLimit": null,
+          "unit": "reported_ppm"
+        },
+        "Cl": {
+          "raw": "1.4E+05",
+          "status": "derived-internal-standard",
+          "value": 140000,
+          "reportedUpperLimit": null,
+          "unit": "reported_ppm"
+        },
+        "K": {
+          "raw": "1.6E+03",
+          "status": "reported-normalized-estimate",
+          "value": 1600,
+          "reportedUpperLimit": null,
+          "unit": "reported_ppm"
+        },
+        "Ca": {
+          "raw": "1.4E+04",
+          "status": "reported-normalized-estimate",
+          "value": 14000,
+          "reportedUpperLimit": null,
+          "unit": "reported_ppm"
+        },
+        "Mn": {
+          "raw": "4.5E+00",
+          "status": "reported-normalized-estimate",
+          "value": 4.5,
+          "reportedUpperLimit": null,
+          "unit": "reported_ppm"
+        },
+        "Cu": {
+          "raw": "<2.6E+00",
+          "status": "reported-upper-limit",
+          "value": null,
+          "reportedUpperLimit": 2.6,
+          "unit": "reported_ppm"
+        },
+        "Zn": {
+          "raw": "1.5E+00",
+          "status": "reported-normalized-estimate",
+          "value": 1.5,
+          "reportedUpperLimit": null,
+          "unit": "reported_ppm"
+        },
+        "Br": {
+          "raw": "<9.3E+02",
+          "status": "reported-upper-limit",
+          "value": null,
+          "reportedUpperLimit": 930,
+          "unit": "reported_ppm"
+        },
+        "Sr": {
+          "raw": "2.5E+02",
+          "status": "reported-normalized-estimate",
+          "value": 250,
+          "reportedUpperLimit": null,
+          "unit": "reported_ppm"
+        },
+        "Ba": {
+          "raw": "2.6E+01",
+          "status": "reported-normalized-estimate",
+          "value": 26,
+          "reportedUpperLimit": null,
+          "unit": "reported_ppm"
+        },
+        "Pb": {
+          "raw": "6.8E-01",
+          "status": "reported-normalized-estimate",
+          "value": 0.68,
+          "reportedUpperLimit": null,
+          "unit": "reported_ppm"
+        }
+      },
+      "requiredAnalysisSupport": {
+        "calciumMol": {
+          "element": "Ca",
+          "status": "reported-normalized-estimate",
+          "absoluteMoles": null
+        },
+        "dicMolC": {
+          "element": null,
+          "status": "not-reported-in-source-table",
+          "absoluteMoles": null
+        },
+        "ironMol": {
+          "element": "Fe",
+          "status": "not-reported-in-source-table",
+          "absoluteMoles": null
+        },
+        "zincMol": {
+          "element": "Zn",
+          "status": "reported-normalized-estimate",
+          "absoluteMoles": null
+        },
+        "leadMol": {
+          "element": "Pb",
+          "status": "reported-normalized-estimate",
+          "absoluteMoles": null
+        },
+        "sulfateMol": {
+          "element": null,
+          "status": "not-reported-in-source-table",
+          "absoluteMoles": null
+        },
+        "reducedSulfurMol": {
+          "element": null,
+          "status": "not-reported-in-source-table",
+          "absoluteMoles": null
+        },
+        "oxygenMol": {
+          "element": null,
+          "status": "not-reported-in-source-table",
+          "absoluteMoles": null
+        },
+        "sodiumMol": {
+          "element": "Na",
+          "status": "reported-normalized-estimate",
+          "absoluteMoles": null
+        },
+        "chlorideMol": {
+          "element": "Cl",
+          "status": "derived-internal-standard",
+          "absoluteMoles": null
+        },
+        "alkalinityEq": {
+          "element": null,
+          "status": "not-reported-in-source-table",
+          "absoluteMoles": null
+        }
+      },
+      "missingRequiredComponents": [
+        "dicMolC",
+        "ironMol",
+        "sulfateMol",
+        "reducedSulfurMol",
+        "oxygenMol",
+        "alkalinityEq"
+      ],
+      "missingAuthority": [
+        "finite named source parcel amount and causal admission history",
+        "commissioned absolute concentration basis and solvent mass fraction",
+        "solvent/solution-volume relation and mixed-fluid constitutive law at stated T/P",
+        "DIC, alkalinity, Fe, sulfur species and O2 for the required conserved state",
+        "physical trapping state, connectivity/sealing and wet-cell/access allocation"
+      ],
+      "waterKg": null,
+      "absoluteComponentMoles": null,
+      "prehistorySourceEligible": false,
+      "productionMappingAllowed": false
+    },
+    {
+      "id": "TSPC-1-1-A-1",
+      "recordDigest": "442b9c43357bf80cd50203932e17b064646ee12480b632ad546dd7e2973ff9a9",
+      "locator": {
+        "table": 2,
+        "pdfPage": 10,
+        "printedPage": 1420,
+        "sample": "TSPC 1-1 A",
+        "inclusion": 1,
+        "host": "quartz",
+        "location": "South Picher field near Picher, OK; sample TSPC 1 in Table 1",
+        "hostDescription": "medium-coarse crystalline quartz"
+      },
+      "microthermometry": {
+        "homogenization": {
+          "value": 51,
+          "unit": "C",
+          "authority": "measured-homogenization",
+          "trappingTemperatureC": null
+        },
+        "salinity": {
+          "value": 16,
+          "unit": "wt_percent_NaCl_equivalent",
+          "authority": "microthermometry-model-derived",
+          "actualNaClMassFraction": null
+        },
+        "observedSize": {
+          "value": [
+            74,
+            45
+          ],
+          "unit": "um_in_two_observed_dimensions",
+          "fluidVolumeMm3": null
+        }
+      },
+      "elements": {
+        "Li": {
+          "raw": "3.1E+01",
+          "status": "reported-normalized-estimate",
+          "value": 31,
+          "reportedUpperLimit": null,
+          "unit": "reported_ppm"
+        },
+        "Na": {
+          "raw": "5.5E+04",
+          "status": "reported-normalized-estimate",
+          "value": 55000,
+          "reportedUpperLimit": null,
+          "unit": "reported_ppm"
+        },
+        "Mg": {
+          "raw": "8.0E+02",
+          "status": "reported-normalized-estimate",
+          "value": 800,
+          "reportedUpperLimit": null,
+          "unit": "reported_ppm"
+        },
+        "Cl": {
+          "raw": "9.7E+04",
+          "status": "derived-internal-standard",
+          "value": 97000,
+          "reportedUpperLimit": null,
+          "unit": "reported_ppm"
+        },
+        "K": {
+          "raw": "",
+          "status": "not-reported",
+          "value": null,
+          "reportedUpperLimit": null,
+          "unit": "reported_ppm"
+        },
+        "Ca": {
+          "raw": "1.2E+04",
+          "status": "reported-normalized-estimate",
+          "value": 12000,
+          "reportedUpperLimit": null,
+          "unit": "reported_ppm"
+        },
+        "Mn": {
+          "raw": "<1.5E+01",
+          "status": "reported-upper-limit",
+          "value": null,
+          "reportedUpperLimit": 15,
+          "unit": "reported_ppm"
+        },
+        "Cu": {
+          "raw": "<2.2E+00",
+          "status": "reported-upper-limit",
+          "value": null,
+          "reportedUpperLimit": 2.2,
+          "unit": "reported_ppm"
+        },
+        "Zn": {
+          "raw": "<1.1E+00",
+          "status": "reported-upper-limit",
+          "value": null,
+          "reportedUpperLimit": 1.1,
+          "unit": "reported_ppm"
+        },
+        "Br": {
+          "raw": "<1.4E+03",
+          "status": "reported-upper-limit",
+          "value": null,
+          "reportedUpperLimit": 1400,
+          "unit": "reported_ppm"
+        },
+        "Sr": {
+          "raw": "3.3E+02",
+          "status": "reported-normalized-estimate",
+          "value": 330,
+          "reportedUpperLimit": null,
+          "unit": "reported_ppm"
+        },
+        "Ba": {
+          "raw": "7.3E+00",
+          "status": "reported-normalized-estimate",
+          "value": 7.3,
+          "reportedUpperLimit": null,
+          "unit": "reported_ppm"
+        },
+        "Pb": {
+          "raw": "<8.4E-01",
+          "status": "reported-upper-limit",
+          "value": null,
+          "reportedUpperLimit": 0.84,
+          "unit": "reported_ppm"
+        }
+      },
+      "requiredAnalysisSupport": {
+        "calciumMol": {
+          "element": "Ca",
+          "status": "reported-normalized-estimate",
+          "absoluteMoles": null
+        },
+        "dicMolC": {
+          "element": null,
+          "status": "not-reported-in-source-table",
+          "absoluteMoles": null
+        },
+        "ironMol": {
+          "element": "Fe",
+          "status": "not-reported-in-source-table",
+          "absoluteMoles": null
+        },
+        "zincMol": {
+          "element": "Zn",
+          "status": "reported-upper-limit",
+          "absoluteMoles": null
+        },
+        "leadMol": {
+          "element": "Pb",
+          "status": "reported-upper-limit",
+          "absoluteMoles": null
+        },
+        "sulfateMol": {
+          "element": null,
+          "status": "not-reported-in-source-table",
+          "absoluteMoles": null
+        },
+        "reducedSulfurMol": {
+          "element": null,
+          "status": "not-reported-in-source-table",
+          "absoluteMoles": null
+        },
+        "oxygenMol": {
+          "element": null,
+          "status": "not-reported-in-source-table",
+          "absoluteMoles": null
+        },
+        "sodiumMol": {
+          "element": "Na",
+          "status": "reported-normalized-estimate",
+          "absoluteMoles": null
+        },
+        "chlorideMol": {
+          "element": "Cl",
+          "status": "derived-internal-standard",
+          "absoluteMoles": null
+        },
+        "alkalinityEq": {
+          "element": null,
+          "status": "not-reported-in-source-table",
+          "absoluteMoles": null
+        }
+      },
+      "missingRequiredComponents": [
+        "dicMolC",
+        "ironMol",
+        "zincMol",
+        "leadMol",
+        "sulfateMol",
+        "reducedSulfurMol",
+        "oxygenMol",
+        "alkalinityEq"
+      ],
+      "missingAuthority": [
+        "finite named source parcel amount and causal admission history",
+        "commissioned absolute concentration basis and solvent mass fraction",
+        "solvent/solution-volume relation and mixed-fluid constitutive law at stated T/P",
+        "DIC, alkalinity, Fe, sulfur species and O2 for the required conserved state",
+        "physical trapping state, connectivity/sealing and wet-cell/access allocation"
+      ],
+      "waterKg": null,
+      "absoluteComponentMoles": null,
+      "prehistorySourceEligible": false,
+      "productionMappingAllowed": false
+    },
+    {
+      "id": "TSBS-4-6-A-3",
+      "recordDigest": "9f90f0ae255924e7db8cc64cd51b939fc8dd9d3897f224c2c5f3c55110288f23",
+      "locator": {
+        "table": 2,
+        "pdfPage": 11,
+        "printedPage": 1421,
+        "sample": "TSBS 4-6 A",
+        "inclusion": 3,
+        "host": "sphalerite",
+        "location": "Northeast Picher field near Baxter Springs, KS; sample TSBS 4 in Table 1",
+        "hostDescription": "coarse-grained pale yellow sphalerite"
+      },
+      "microthermometry": {
+        "homogenization": {
+          "value": 103.8,
+          "unit": "C",
+          "authority": "measured-homogenization",
+          "trappingTemperatureC": null
+        },
+        "salinity": {
+          "value": 21.3,
+          "unit": "wt_percent_NaCl_equivalent",
+          "authority": "microthermometry-model-derived",
+          "actualNaClMassFraction": null
+        },
+        "observedSize": {
+          "value": [
+            18,
+            15
+          ],
+          "unit": "um_in_two_observed_dimensions",
+          "fluidVolumeMm3": null
+        }
+      },
+      "elements": {
+        "Li": {
+          "raw": "<2.4E+01",
+          "status": "reported-upper-limit",
+          "value": null,
+          "reportedUpperLimit": 24,
+          "unit": "reported_ppm"
+        },
+        "Na": {
+          "raw": "7.5E+04",
+          "status": "reported-normalized-estimate",
+          "value": 75000,
+          "reportedUpperLimit": null,
+          "unit": "reported_ppm"
+        },
+        "Mg": {
+          "raw": "1.3E+03",
+          "status": "reported-normalized-estimate",
+          "value": 1300,
+          "reportedUpperLimit": null,
+          "unit": "reported_ppm"
+        },
+        "Cl": {
+          "raw": "1.3E+05",
+          "status": "derived-internal-standard",
+          "value": 130000,
+          "reportedUpperLimit": null,
+          "unit": "reported_ppm"
+        },
+        "K": {
+          "raw": "",
+          "status": "not-reported",
+          "value": null,
+          "reportedUpperLimit": null,
+          "unit": "reported_ppm"
+        },
+        "Ca": {
+          "raw": "1.5E+04",
+          "status": "reported-normalized-estimate",
+          "value": 15000,
+          "reportedUpperLimit": null,
+          "unit": "reported_ppm"
+        },
+        "Mn": {
+          "raw": "<2.8E+01",
+          "status": "reported-upper-limit",
+          "value": null,
+          "reportedUpperLimit": 28,
+          "unit": "reported_ppm"
+        },
+        "Cu": {
+          "raw": "",
+          "status": "not-reported-host-interference",
+          "value": null,
+          "reportedUpperLimit": null,
+          "unit": "reported_ppm"
+        },
+        "Zn": {
+          "raw": "",
+          "status": "not-reported-host-interference",
+          "value": null,
+          "reportedUpperLimit": null,
+          "unit": "reported_ppm"
+        },
+        "Br": {
+          "raw": "<9.2E+03",
+          "status": "reported-upper-limit",
+          "value": null,
+          "reportedUpperLimit": 9200,
+          "unit": "reported_ppm"
+        },
+        "Sr": {
+          "raw": "5.5E+02",
+          "status": "reported-normalized-estimate",
+          "value": 550,
+          "reportedUpperLimit": null,
+          "unit": "reported_ppm"
+        },
+        "Ba": {
+          "raw": "1.1E+01",
+          "status": "reported-normalized-estimate",
+          "value": 11,
+          "reportedUpperLimit": null,
+          "unit": "reported_ppm"
+        },
+        "Pb": {
+          "raw": "9.5E+01",
+          "status": "reported-normalized-estimate",
+          "value": 95,
+          "reportedUpperLimit": null,
+          "unit": "reported_ppm"
+        }
+      },
+      "requiredAnalysisSupport": {
+        "calciumMol": {
+          "element": "Ca",
+          "status": "reported-normalized-estimate",
+          "absoluteMoles": null
+        },
+        "dicMolC": {
+          "element": null,
+          "status": "not-reported-in-source-table",
+          "absoluteMoles": null
+        },
+        "ironMol": {
+          "element": "Fe",
+          "status": "not-reported-in-source-table",
+          "absoluteMoles": null
+        },
+        "zincMol": {
+          "element": "Zn",
+          "status": "not-reported-host-interference",
+          "absoluteMoles": null
+        },
+        "leadMol": {
+          "element": "Pb",
+          "status": "reported-normalized-estimate",
+          "absoluteMoles": null
+        },
+        "sulfateMol": {
+          "element": null,
+          "status": "not-reported-in-source-table",
+          "absoluteMoles": null
+        },
+        "reducedSulfurMol": {
+          "element": null,
+          "status": "not-reported-in-source-table",
+          "absoluteMoles": null
+        },
+        "oxygenMol": {
+          "element": null,
+          "status": "not-reported-in-source-table",
+          "absoluteMoles": null
+        },
+        "sodiumMol": {
+          "element": "Na",
+          "status": "reported-normalized-estimate",
+          "absoluteMoles": null
+        },
+        "chlorideMol": {
+          "element": "Cl",
+          "status": "derived-internal-standard",
+          "absoluteMoles": null
+        },
+        "alkalinityEq": {
+          "element": null,
+          "status": "not-reported-in-source-table",
+          "absoluteMoles": null
+        }
+      },
+      "missingRequiredComponents": [
+        "dicMolC",
+        "ironMol",
+        "zincMol",
+        "sulfateMol",
+        "reducedSulfurMol",
+        "oxygenMol",
+        "alkalinityEq"
+      ],
+      "missingAuthority": [
+        "finite named source parcel amount and causal admission history",
+        "commissioned absolute concentration basis and solvent mass fraction",
+        "solvent/solution-volume relation and mixed-fluid constitutive law at stated T/P",
+        "DIC, alkalinity, Fe, sulfur species and O2 for the required conserved state",
+        "physical trapping state, connectivity/sealing and wet-cell/access allocation"
+      ],
+      "waterKg": null,
+      "absoluteComponentMoles": null,
+      "prehistorySourceEligible": false,
+      "productionMappingAllowed": false
+    }
+  ],
+  "cellStatusCounts": {
+    "reported-upper-limit": 11,
+    "reported-normalized-estimate": 21,
+    "derived-internal-standard": 3,
+    "not-reported": 2,
+    "not-reported-host-interference": 2
+  },
+  "ratios": [
+    {
+      "schema": "vugg-reported-inclusion-mass-ratio-v1",
+      "observationId": "TSCV-1-1-A-1",
+      "observationDigest": "a6e39b588113ebb9fe9c96b4fb5f908f9c1136750e12ba69f63ca40b8f349bb1",
+      "numerator": "Ca",
+      "denominator": "Na",
+      "unit": "reported_mass_ratio",
+      "commonNormalization": "same-inclusion Cl scale cancels; sensitivity, censoring and rounding uncertainties remain",
+      "uncertainty": null,
+      "status": "ratio-of-reported-estimates",
+      "value": 0.1728395061728395,
+      "reportedUpperLimit": null
+    },
+    {
+      "schema": "vugg-reported-inclusion-mass-ratio-v1",
+      "observationId": "TSCV-1-1-A-1",
+      "observationDigest": "a6e39b588113ebb9fe9c96b4fb5f908f9c1136750e12ba69f63ca40b8f349bb1",
+      "numerator": "Zn",
+      "denominator": "Pb",
+      "unit": "reported_mass_ratio",
+      "commonNormalization": "same-inclusion Cl scale cancels; sensitivity, censoring and rounding uncertainties remain",
+      "uncertainty": null,
+      "status": "ratio-of-reported-estimates",
+      "value": 2.205882352941176,
+      "reportedUpperLimit": null
+    },
+    {
+      "schema": "vugg-reported-inclusion-mass-ratio-v1",
+      "observationId": "TSCV-1-1-A-1",
+      "observationDigest": "a6e39b588113ebb9fe9c96b4fb5f908f9c1136750e12ba69f63ca40b8f349bb1",
+      "numerator": "Cu",
+      "denominator": "Pb",
+      "unit": "reported_mass_ratio",
+      "commonNormalization": "same-inclusion Cl scale cancels; sensitivity, censoring and rounding uncertainties remain",
+      "uncertainty": null,
+      "status": "reported-upper-limit",
+      "value": null,
+      "reportedUpperLimit": 3.8235294117647056
+    },
+    {
+      "schema": "vugg-reported-inclusion-mass-ratio-v1",
+      "observationId": "TSPC-1-1-A-1",
+      "observationDigest": "442b9c43357bf80cd50203932e17b064646ee12480b632ad546dd7e2973ff9a9",
+      "numerator": "Ca",
+      "denominator": "Na",
+      "unit": "reported_mass_ratio",
+      "commonNormalization": "same-inclusion Cl scale cancels; sensitivity, censoring and rounding uncertainties remain",
+      "uncertainty": null,
+      "status": "ratio-of-reported-estimates",
+      "value": 0.21818181818181817,
+      "reportedUpperLimit": null
+    },
+    {
+      "schema": "vugg-reported-inclusion-mass-ratio-v1",
+      "observationId": "TSPC-1-1-A-1",
+      "observationDigest": "442b9c43357bf80cd50203932e17b064646ee12480b632ad546dd7e2973ff9a9",
+      "numerator": "Zn",
+      "denominator": "Pb",
+      "unit": "reported_mass_ratio",
+      "commonNormalization": "same-inclusion Cl scale cancels; sensitivity, censoring and rounding uncertainties remain",
+      "uncertainty": null,
+      "status": "unresolved",
+      "value": null,
+      "reportedUpperLimit": null,
+      "reason": "denominator is unreported, censored or zero"
+    },
+    {
+      "schema": "vugg-reported-inclusion-mass-ratio-v1",
+      "observationId": "TSPC-1-1-A-1",
+      "observationDigest": "442b9c43357bf80cd50203932e17b064646ee12480b632ad546dd7e2973ff9a9",
+      "numerator": "Cu",
+      "denominator": "Pb",
+      "unit": "reported_mass_ratio",
+      "commonNormalization": "same-inclusion Cl scale cancels; sensitivity, censoring and rounding uncertainties remain",
+      "uncertainty": null,
+      "status": "unresolved",
+      "value": null,
+      "reportedUpperLimit": null,
+      "reason": "denominator is unreported, censored or zero"
+    },
+    {
+      "schema": "vugg-reported-inclusion-mass-ratio-v1",
+      "observationId": "TSBS-4-6-A-3",
+      "observationDigest": "9f90f0ae255924e7db8cc64cd51b939fc8dd9d3897f224c2c5f3c55110288f23",
+      "numerator": "Ca",
+      "denominator": "Na",
+      "unit": "reported_mass_ratio",
+      "commonNormalization": "same-inclusion Cl scale cancels; sensitivity, censoring and rounding uncertainties remain",
+      "uncertainty": null,
+      "status": "ratio-of-reported-estimates",
+      "value": 0.2,
+      "reportedUpperLimit": null
+    },
+    {
+      "schema": "vugg-reported-inclusion-mass-ratio-v1",
+      "observationId": "TSBS-4-6-A-3",
+      "observationDigest": "9f90f0ae255924e7db8cc64cd51b939fc8dd9d3897f224c2c5f3c55110288f23",
+      "numerator": "Zn",
+      "denominator": "Pb",
+      "unit": "reported_mass_ratio",
+      "commonNormalization": "same-inclusion Cl scale cancels; sensitivity, censoring and rounding uncertainties remain",
+      "uncertainty": null,
+      "status": "unresolved",
+      "value": null,
+      "reportedUpperLimit": null,
+      "reason": "numerator is unreported"
+    },
+    {
+      "schema": "vugg-reported-inclusion-mass-ratio-v1",
+      "observationId": "TSBS-4-6-A-3",
+      "observationDigest": "9f90f0ae255924e7db8cc64cd51b939fc8dd9d3897f224c2c5f3c55110288f23",
+      "numerator": "Cu",
+      "denominator": "Pb",
+      "unit": "reported_mass_ratio",
+      "commonNormalization": "same-inclusion Cl scale cancels; sensitivity, censoring and rounding uncertainties remain",
+      "uncertainty": null,
+      "status": "unresolved",
+      "value": null,
+      "reportedUpperLimit": null,
+      "reason": "numerator is unreported"
+    }
+  ],
+  "sourceVerification": "Retained SHA-pinned PDF inspected locally and numerical row sequence re-extracted; CI replays the retained source-check packet and arithmetic, not a fresh PDF download. Blank column placement was visually checked.",
+  "scope": "three individual source constraints; no averaged/composite endmember, fluid EOS, physical inventory, scenario or production change",
+  "productionMappingAllowed": false,
+  "productionReactions": false,
+  "transport": false
+}

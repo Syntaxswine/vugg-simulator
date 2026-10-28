@@ -1,0 +1,71 @@
+{
+  "schema": "vugg-mvt-fluid-observations-v1",
+  "source": {
+    "id": "stoffell-2008",
+    "citation": "Stoffell, Appold, Wilkinson, McClean and Jeffries (2008), Economic Geology 103(7), 1411-1435",
+    "doi": "10.2113/gsecongeo.103.7.1411",
+    "url": "https://eps.mcgill.ca/~courses/c561/Stoffell%20et%20al.%202008.pdf",
+    "pdfSha256": "f32d39f552e22b76d6343bddc7000c5161bec6e20d9bd105e3680be2d9c86709",
+    "table": 2,
+    "locationTable": 1,
+    "methodPrintedPages": [1415, 1416],
+    "footnotePrintedPage": 1422,
+    "reportedUnit": "reported_ppm",
+    "basisQualification": "Preserve the paper's ppm reporting basis; no certification as mg per kg solvent or as a complete fluid analysis.",
+    "chlorideNormalization": {
+      "internalStandard": "Cl",
+      "basis": "ice melting interpreted in NaCl-H2O; estimated Cl normalizes LA-ICP-MS concentrations",
+      "reportedApproximationPercent": [5, 10],
+      "uncertaintyMeaning": "method statement about salinity approximation, not a hard bound, sigma, or independent per-element uncertainty"
+    },
+    "sizeMeaning": "two observed orthogonal inclusion dimensions; neither released-fluid volume nor vug water amount",
+    "salinityMeaning": "wt percent NaCl equivalent from microthermometry and the stated Bodnar (1993) relation; not actual NaCl mass fraction",
+    "temperatureMeaning": "liquid-vapor homogenization temperature, not an assigned trapping temperature or production clock",
+    "selection": "Three individual Tri-State rows chosen to exercise quantified, censored, blank and host-interference evidence; not a representative statistical sample or a pair of commissioned endmembers."
+  },
+  "columns": ["Li", "Na", "Mg", "Cl", "K", "Ca", "Mn", "Cu", "Zn", "Br", "Sr", "Ba", "Pb"],
+  "observations": [
+    {
+      "id": "TSCV-1-1-A-1",
+      "sample": "TSCV 1-1 A",
+      "inclusion": 1,
+      "host": "quartz",
+      "location": "Oronogo-Duenweg trend near Carterville, MO; sample TSCV 1 in Table 1",
+      "hostDescription": "coarse crystalline quartz; source heading retained in the table",
+      "pdfPage": 10,
+      "printedPage": 1420,
+      "observedSizeUm": [140, 29],
+      "homogenizationC": "122.2",
+      "salinityNaClEquivalentWtPercent": "22.6",
+      "cells": ["<4.4E+01", "8.1E+04", "1.2E+03", "1.4E+05", "1.6E+03", "1.4E+04", "4.5E+00", "<2.6E+00", "1.5E+00", "<9.3E+02", "2.5E+02", "2.6E+01", "6.8E-01"]
+    },
+    {
+      "id": "TSPC-1-1-A-1",
+      "sample": "TSPC 1-1 A",
+      "inclusion": 1,
+      "host": "quartz",
+      "location": "South Picher field near Picher, OK; sample TSPC 1 in Table 1",
+      "hostDescription": "medium-coarse crystalline quartz",
+      "pdfPage": 10,
+      "printedPage": 1420,
+      "observedSizeUm": [74, 45],
+      "homogenizationC": "51.0",
+      "salinityNaClEquivalentWtPercent": "16.0",
+      "cells": ["3.1E+01", "5.5E+04", "8.0E+02", "9.7E+04", "", "1.2E+04", "<1.5E+01", "<2.2E+00", "<1.1E+00", "<1.4E+03", "3.3E+02", "7.3E+00", "<8.4E-01"]
+    },
+    {
+      "id": "TSBS-4-6-A-3",
+      "sample": "TSBS 4-6 A",
+      "inclusion": 3,
+      "host": "sphalerite",
+      "location": "Northeast Picher field near Baxter Springs, KS; sample TSBS 4 in Table 1",
+      "hostDescription": "coarse-grained pale yellow sphalerite",
+      "pdfPage": 11,
+      "printedPage": 1421,
+      "observedSizeUm": [18, 15],
+      "homogenizationC": "103.8",
+      "salinityNaClEquivalentWtPercent": "21.3",
+      "cells": ["<2.4E+01", "7.5E+04", "1.3E+03", "1.3E+05", "", "1.5E+04", "<2.8E+01", "", "", "<9.2E+03", "5.5E+02", "1.1E+01", "9.5E+01"]
+    }
+  ]
+}
