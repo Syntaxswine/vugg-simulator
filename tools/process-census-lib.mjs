@@ -11,6 +11,16 @@ export const CENSUS_SCHEMA = 'vugg-process-preflight-v1';
 export const QUERY_TIMEOUT_MS = 15000;
 const RUNTIME_NAMES = new Set(['node', 'nodejs', 'bun', 'deno', 'esbuild']);
 const WORK_COMMAND = /(?:^|[\\/\s"'=])(vitest(?:\.(?:mjs|cjs|js))?|vite(?:\.(?:mjs|cjs|js))?|test-workflow\.mjs|cold-ci\.mjs|build-all\.mjs)(?=$|[\\/\s"'])/i;
+// The nightly sweep runs from its own repository, so a bare sweep.mjs elsewhere
+// is not it. Its scheduled task runs the full path.
+const CANARY_COMMAND = /(?:^|[\\/\s"'=])vugg-canary[\\/]+src[\\/]+sweep\.mjs(?=$|[\s"'])/i;
+export const CANARY_WORK_KIND = 'vugg-canary-sweep';
+
+function workKind(command) {
+  if (CANARY_COMMAND.test(command)) return CANARY_WORK_KIND;
+  const work = WORK_COMMAND.exec(command);
+  return work ? work[1].toLowerCase().replace(/\.(?:mjs|cjs|js)$/, '') : null;
+}
 
 // Keep shell intermediates: filtering to node.exe breaks cmd/PowerShell/npm
 // parent chains. Raw command lines are used only for bounded classification;
@@ -72,12 +82,11 @@ export function parseWindowsProcessSnapshot(text, { observedAt = new Date().toIS
     seen.add(row.pid);
     const runtime = RUNTIME_NAMES.has(row.name.toLowerCase().replace(/\.exe$/, ''));
     const commandKnown = typeof row.command === 'string' && row.command.trim().length > 0;
-    const work = runtime && commandKnown ? WORK_COMMAND.exec(row.command) : null;
     processes.push({
       pid: row.pid, ppid: row.ppid, name: row.name,
       started_at: timestamp(row.started_at, observedMs), javascript_runtime: runtime,
       command_known: commandKnown,
-      work_kind: work ? work[1].toLowerCase().replace(/\.(?:mjs|cjs|js)$/, '') : null,
+      work_kind: runtime && commandKnown ? workKind(row.command) : null,
       checkout_hint: runtime && commandKnown ? checkoutHint(row.command, root) : 'unresolved',
     });
   }

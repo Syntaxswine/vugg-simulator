@@ -31,6 +31,9 @@ import {
 import {
   CHIP_SELECTION_EXIT_CODE, ChipSelectionRequiredError, planChipCheck, requireChipSelection,
 } from './test-chip-check.mjs';
+import {
+  QUIET_BOX_REFUSED_EXIT_CODE, QuietBoxRefusedError, REFUSE_BUSY_FLAG, quietBoxGate, startLoadRecorder,
+} from './quiet-box-lib.mjs';
 
 const ROOT = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const VITEST = path.join(ROOT, 'node_modules', 'vitest', 'vitest.mjs');
@@ -170,10 +173,13 @@ export function testInvocationReportPath(invocationId, root = ROOT) {
   return path.join(root, '.local-evidence', 'test-workflow-invocations', `${invocationId}.json`);
 }
 
-export function writeTestInvocationResult({ invocationId, status, outcome, completion = null }, root = ROOT) {
+export function writeTestInvocationResult({
+  invocationId, status, outcome, completion = null, failedBatch = null,
+}, root = ROOT) {
   if (!invocationId) return;
   writeJsonAtomic(testInvocationReportPath(invocationId, root), {
     schema: TEST_INVOCATION_SCHEMA, invocation_id: invocationId, status, outcome, completion,
+    failed_batch: failedBatch,
   });
 }
 
@@ -187,6 +193,7 @@ export function makeTestCheckpoint({ identity, completedFiles = [], batches = []
     batches: batches.map(batch => ({
       files: [...batch.files],
       peak_rss_bytes: batch.peak_rss_bytes,
+      box_load: batch.box_load ?? null,
     })),
   };
 }
@@ -453,6 +460,7 @@ export function parseArgs(argv) {
   let batchSize = DEFAULT_TEST_BATCH_SIZE;
   let startIndex = 0;
   let fresh = false;
+  let refuseBusy = false;
   let chipBase = null;
   const selectedFiles = [];
   for (let index = 0; index < argv.length; index++) {
@@ -461,13 +469,17 @@ export function parseArgs(argv) {
     else if (arg === '--start-index') startIndex = Number(argv[++index]);
     else if (arg === '--file') selectedFiles.push(String(argv[++index] || '').replaceAll('\\', '/'));
     else if (arg === '--fresh') fresh = true;
+    else if (arg === REFUSE_BUSY_FLAG) refuseBusy = true;
     else if (arg === '--chip-base') {
       if (chipBase !== null) throw new Error('--chip-base may only be specified once');
       chipBase = argv[++index];
       if (!chipBase || chipBase.startsWith('-')) throw new Error('--chip-base requires a Git commit reference');
     }
-    else if (arg === '--help') return { help: true, batchSize, startIndex, selectedFiles, fresh, chipBase };
+    else if (arg === '--help') return { help: true, batchSize, startIndex, selectedFiles, fresh, refuseBusy, chipBase };
     else throw new Error(`unknown argument: ${arg}`);
+  }
+  if (refuseBusy && (selectedFiles.length || chipBase !== null)) {
+    throw new Error(`${REFUSE_BUSY_FLAG} applies only to full or resumed runs; --file and --chip-base runs never read the box`);
   }
   if (!Number.isInteger(startIndex) || startIndex < 0) {
     throw new Error(`start index must be a non-negative integer, received ${startIndex}`);
@@ -480,8 +492,11 @@ export function parseArgs(argv) {
       || argv.includes('--batch-size'))) {
     throw new Error('--chip-base cannot be combined with --file, --start-index, --fresh, or --batch-size');
   }
-  return { help: false, batchSize, startIndex, selectedFiles, fresh, chipBase };
+  return { help: false, batchSize, startIndex, selectedFiles, fresh, refuseBusy, chipBase };
 }
+
+const loadText = load => load?.mean_pct == null ? 'box load not read'
+  : `box ${load.mean_pct} % mean, ${load.max_pct} % peak`;
 
 export async function runTestWorkflow({
   batchSize = DEFAULT_TEST_BATCH_SIZE,
@@ -490,6 +505,7 @@ export async function runTestWorkflow({
   assertStable = null,
   onBatchPass = null,
   onFailure = null,
+  loadRecorder = startLoadRecorder,
 } = {}) {
   const batches = partitionTests(files, batchSize);
   console.log(`[test-workflow] ${files.length} files in ${batches.length} sequential batch(es) of at most ${batchSize}`);
@@ -500,43 +516,53 @@ export async function runTestWorkflow({
     const last = path.basename(batch[batch.length - 1]);
     console.log(`\n[test-workflow] batch ${index + 1}/${batches.length}: ${first} .. ${last}`);
     const started = performance.now();
-    const result = await batchRunner({ batch });
+    // Whole-box load while this batch ran, this run's own child included. It
+    // only annotates the record: a failed reading is null, never a failure.
+    const recorder = loadRecorder ? loadRecorder() : null;
+    let result;
+    let boxLoad = null;
+    try { result = await batchRunner({ batch }); }
+    finally { boxLoad = recorder ? recorder.stop() : null; }
     const elapsedMs = Number((performance.now() - started).toFixed(1));
     const peakMb = Math.ceil(result.peakRssBytes / 1024 / 1024);
+    const failed = async (outcome, status) => {
+      if (boxLoad?.buckets_pct?.length) {
+        console.error(`[test-workflow] box load by ${boxLoad.bucket_ms / 1000} s while this batch ran: ${boxLoad.buckets_pct.map(value => value ?? '?').join(' ')} %`);
+      }
+      if (onFailure) await onFailure({ outcome, status, batch: [...batch], boxLoad });
+      return status;
+    };
     if (result.terminationError) {
-      console.error(`[test-workflow] FAIL [termination-failed]: ${result.terminationError.message}`);
-      if (onFailure) await onFailure({ outcome: 'termination-failed', status: 1 });
-      return 1;
+      console.error(`[test-workflow] FAIL [termination-failed]: ${result.terminationError.message} (${loadText(boxLoad)})`);
+      return failed('termination-failed', 1);
     }
     if (result.exceededRssBytes != null) {
       const exceededMb = Math.ceil(result.exceededRssBytes / 1024 / 1024);
-      console.error(`[test-workflow] FAIL [rss-limit-exceeded]: batch ${index + 1}/${batches.length} reached ${exceededMb} MB RSS (limit 2048 MB) and was terminated`);
-      if (onFailure) await onFailure({ outcome: 'rss-limit-exceeded', status: 1 });
-      return 1;
+      console.error(`[test-workflow] FAIL [rss-limit-exceeded]: batch ${index + 1}/${batches.length} reached ${exceededMb} MB RSS (limit 2048 MB) and was terminated (${loadText(boxLoad)})`);
+      return failed('rss-limit-exceeded', 1);
     }
     if (result.monitorError) {
-      console.error(`[test-workflow] INCONCLUSIVE [monitor-unavailable]: RSS watchdog unavailable in batch ${index + 1}/${batches.length}: ${result.monitorError.message}`);
+      console.error(`[test-workflow] INCONCLUSIVE [monitor-unavailable]: RSS watchdog unavailable in batch ${index + 1}/${batches.length}: ${result.monitorError.message} (${loadText(boxLoad)})`);
       console.error('[test-workflow] Batch stopped without a trustworthy monitored result; no PASS or cost measurement recorded. Restore RSS monitoring and rerun this batch.');
-      if (onFailure) await onFailure({ outcome: 'monitor-unavailable', status: MONITOR_UNAVAILABLE_EXIT_CODE });
-      return MONITOR_UNAVAILABLE_EXIT_CODE;
+      return failed('monitor-unavailable', MONITOR_UNAVAILABLE_EXIT_CODE);
     }
     if (result.status !== 0) {
-      console.error(`[test-workflow] FAIL [test-process-failed] in batch ${index + 1}/${batches.length} (peak ${peakMb} MB RSS)`);
-      if (onFailure) await onFailure({ outcome: 'test-process-failed', status: result.status ?? 1 });
-      return result.status ?? 1;
+      console.error(`[test-workflow] FAIL [test-process-failed] in batch ${index + 1}/${batches.length} (peak ${peakMb} MB RSS, ${elapsedMs} ms, ${loadText(boxLoad)})`);
+      return failed('test-process-failed', result.status ?? 1);
     }
     if (assertStable) await assertStable({
       batch: [...batch],
       batchIndex: index,
       batchCount: batches.length,
     });
-    console.log(`[test-workflow] batch ${index + 1}/${batches.length} PASS (peak ${peakMb} MB RSS, ${elapsedMs} ms)`);
+    console.log(`[test-workflow] batch ${index + 1}/${batches.length} PASS (peak ${peakMb} MB RSS, ${elapsedMs} ms, ${loadText(boxLoad)})`);
     if (onBatchPass) await onBatchPass({
       batch: [...batch],
       batchIndex: index,
       batchCount: batches.length,
       peakRssBytes: result.peakRssBytes,
       elapsedMs,
+      boxLoad,
     });
   }
   console.log(`\n[test-workflow] COMPLETE: ${files.length} files across ${batches.length} memory-bounded batches`);
@@ -555,8 +581,9 @@ if (invokedDirectly) {
     }
     const args = parseArgs(process.argv.slice(2));
     if (args.help) {
-      console.log('node tools/test-workflow.mjs [--fresh] [--batch-size N] [--start-index N] [--file tests-js/name.test.ts ...]');
+      console.log(`node tools/test-workflow.mjs [--fresh] [--batch-size N] [--start-index N] [${REFUSE_BUSY_FLAG}] [--file tests-js/name.test.ts ...]`);
       console.log('npm test -- --chip-base REF selects authored tooling tests; never a full-suite verdict.');
+      console.log(`Full and resumed runs first read the box for 30 s and warn when it is busy; ${REFUSE_BUSY_FLAG} does not start on a busy box.`);
       console.log('Passing batches append a measurement-only cost ledger at .local-evidence/test-quarry-cost-ledger-v1.json');
       console.log('That ledger does not change science, baselines, receipts, or batch order.');
     } else {
@@ -571,6 +598,9 @@ if (invokedDirectly) {
         if (!allFiles.includes(file)) throw new Error(`selected test file is not registered: ${file}`);
       }
       const automaticCheckpoint = !chipPlan && !args.selectedFiles.length && args.startIndex === 0;
+      // Before anything is deleted or written, so a run refused under
+      // --refuse-busy leaves the checkpoint and the quarry ledger as they were.
+      await quietBoxGate({ longRun: !chipPlan && !args.selectedFiles.length, refuse: args.refuseBusy });
       const identity = automaticCheckpoint || chipPlan ? testWorkflowIdentity() : null;
       if (chipPlan) {
         // Close the selection/identity race before launching any child. Later
@@ -615,21 +645,25 @@ if (invokedDirectly) {
         }));
       }
       let failureOutcome = null;
+      let failedBatch = null;
       let completion = null;
       const status = files.length ? await runTestWorkflow({
         batchSize: args.batchSize,
         files,
-        onFailure: ({ outcome }) => { failureOutcome = outcome; },
+        onFailure: ({ outcome, batch, boxLoad }) => {
+          failureOutcome = outcome;
+          failedBatch = { files: batch, box_load: boxLoad };
+        },
         assertStable: identity
           ? () => assertTestWorkflowIdentityUnchanged(identity)
           : null,
-        onBatchPass: ({ batch, peakRssBytes, elapsedMs }) => {
+        onBatchPass: ({ batch, peakRssBytes, elapsedMs, boxLoad }) => {
           appendQuarryMeasurements({
             files: batch, elapsedMs, peakRssBytes,
           });
           if (!automaticCheckpoint) return;
           completedFiles.push(...batch);
-          completedBatches.push({ files: batch, peak_rss_bytes: peakRssBytes });
+          completedBatches.push({ files: batch, peak_rss_bytes: peakRssBytes, box_load: boxLoad });
           writeJsonAtomic(TEST_CHECKPOINT_PATH, makeTestCheckpoint({
             identity, completedFiles, batches: completedBatches,
           }));
@@ -657,13 +691,16 @@ if (invokedDirectly) {
         }
       }
       writeTestInvocationResult({
-        invocationId, status, outcome: failureOutcome || 'completed', completion,
+        invocationId, status, outcome: failureOutcome || 'completed', completion, failedBatch,
       });
       process.exitCode = status;
     }
   } catch (error) {
-    console.error(`[test-workflow] ${error instanceof ChipSelectionRequiredError ? 'NO CHIP VERDICT' : 'FAIL'}: ${error.message}`);
-    process.exitCode = error instanceof ChipSelectionRequiredError ? CHIP_SELECTION_EXIT_CODE : 1;
-    writeTestInvocationResult({ invocationId, status: process.exitCode, outcome: 'workflow-error' });
+    const refused = error instanceof QuietBoxRefusedError;
+    const chip = error instanceof ChipSelectionRequiredError;
+    console.error(`[test-workflow] ${refused ? 'NOT STARTED' : chip ? 'NO CHIP VERDICT' : 'FAIL'}: ${error.message}`);
+    process.exitCode = refused ? QUIET_BOX_REFUSED_EXIT_CODE : chip ? CHIP_SELECTION_EXIT_CODE : 1;
+    writeTestInvocationResult({ invocationId, status: process.exitCode,
+      outcome: refused ? 'quiet-box-refused' : 'workflow-error' });
   }
 }
