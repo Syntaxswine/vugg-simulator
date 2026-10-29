@@ -1,3 +1,4 @@
+import { spawnSync } from 'node:child_process';
 import { EventEmitter } from 'node:events';
 import fs from 'node:fs';
 import os from 'node:os';
@@ -9,6 +10,7 @@ import {
   MAX_BATCH_RSS_BYTES,
   MAX_CONSECUTIVE_RSS_FAILURES,
   MONITOR_UNAVAILABLE_EXIT_CODE,
+  TEST_INVOCATION_ENV,
   TEST_CHECKPOINT_SCHEMA,
   TEST_CHECKPOINT_TRUST,
   assertTestWorkflowIdentityUnchanged,
@@ -48,6 +50,7 @@ describe('memory-bounded full-test workflow', () => {
       startIndex: 115,
       selectedFiles: [],
       fresh: false,
+      busyOk: false,
       chipBase: null,
     });
     expect(parseArgs(['--file', 'tests-js/a.test.ts', '--file', 'tests-js/b.test.ts']))
@@ -57,9 +60,15 @@ describe('memory-bounded full-test workflow', () => {
         startIndex: 0,
         selectedFiles: ['tests-js/a.test.ts', 'tests-js/b.test.ts'],
         fresh: false,
+        busyOk: false,
         chipBase: null,
       });
     expect(parseArgs(['--fresh'])).toMatchObject({ fresh: true });
+    expect(parseArgs(['--fresh', '--busy-ok'])).toMatchObject({ fresh: true, busyOk: true });
+    expect(parseArgs(['--start-index', '3', '--busy-ok'])).toMatchObject({ startIndex: 3, busyOk: true });
+    // Selected and chip runs never read the box, so an override there would be a silent no-op.
+    expect(() => parseArgs(['--busy-ok', '--file', 'tests-js/a.test.ts'])).toThrow('only to full or resumed runs');
+    expect(() => parseArgs(['--chip-base', 'origin/main', '--busy-ok'])).toThrow('only to full or resumed runs');
     expect(() => parseArgs(['--start-index', '-1'])).toThrow('non-negative integer');
     expect(() => parseArgs(['--start-index', '1.5'])).toThrow('non-negative integer');
     expect(() => parseArgs(['--start-index', '1', '--file', 'tests-js/a.test.ts']))
@@ -319,10 +328,17 @@ describe('memory-bounded full-test workflow', () => {
   ])('reports the typed failure to wrappers without advancing progress (%j)', async (result, outcome, status) => {
     const onFailure = vi.fn();
     const onBatchPass = vi.fn();
+    const boxLoad = { mean_pct: 61.5, max_pct: 88, bucket_ms: 30000, buckets_pct: [35, 88] };
     const batchRunner = vi.fn(async () => ({ peakRssBytes: 100, ...result }));
-    expect(await runTestWorkflow({ files: ['tests-js/a.test.ts'], batchRunner, onFailure, onBatchPass })).toBe(status);
-    expect(onFailure).toHaveBeenCalledExactlyOnceWith({ outcome, status });
-    expect(onBatchPass).not.toHaveBeenCalled();
+    const errorLog = vi.spyOn(console, 'error').mockImplementation(() => {});
+    try {
+      expect(await runTestWorkflow({ files: ['tests-js/a.test.ts'], batchRunner, onFailure, onBatchPass,
+        loadRecorder: () => ({ stop: () => boxLoad }) })).toBe(status);
+      expect(onFailure).toHaveBeenCalledExactlyOnceWith({ outcome, status, batch: ['tests-js/a.test.ts'], boxLoad });
+      expect(onBatchPass).not.toHaveBeenCalled();
+      // A failure prints the load as it ran, so contention can be told from a regression.
+      expect(errorLog.mock.calls.flat().join('\n')).toContain('box load by 30 s while this batch ran: 35 88 %');
+    } finally { errorLog.mockRestore(); }
   });
 
   it.each([
@@ -463,4 +479,116 @@ describe('memory-bounded full-test workflow', () => {
     expect(status).toBe(0);
     expect(onBatchPass.mock.calls[0][0].elapsedMs).toBeGreaterThan(0);
   });
+
+  it('annotates each passing batch with the box load it ran under', async () => {
+    const loads = [{ mean_pct: 12, max_pct: 30, bucket_ms: 30000, buckets_pct: [30] },
+      { mean_pct: null, max_pct: null, bucket_ms: 30000, buckets_pct: [null] }];
+    const onBatchPass = vi.fn();
+    const log = vi.spyOn(console, 'log').mockImplementation(() => {});
+    try {
+      const status = await runTestWorkflow({
+        files: ['tests-js/a.test.ts', 'tests-js/b.test.ts'], onBatchPass,
+        batchRunner: async () => ({ status: 0, peakRssBytes: 100 }),
+        loadRecorder: () => { const load = loads.shift(); return { stop: () => load }; },
+      });
+      // An unread load is a note on the record, never a failed batch.
+      expect(status).toBe(0);
+      expect(onBatchPass.mock.calls.map(call => call[0].boxLoad)).toEqual([
+        { mean_pct: 12, max_pct: 30, bucket_ms: 30000, buckets_pct: [30] },
+        { mean_pct: null, max_pct: null, bucket_ms: 30000, buckets_pct: [null] },
+      ]);
+      const lines = log.mock.calls.flat().join('\n');
+      expect(lines).toContain('batch 1/2 PASS (peak 1 MB RSS');
+      expect(lines).toContain('box 12 % mean, 30 % peak)');
+      expect(lines).toContain('batch 2/2 PASS (peak 1 MB RSS');
+      expect(lines).toContain('box load not read)');
+    } finally { log.mockRestore(); }
+  });
+
+  it('stops the load recorder even when a batch cannot launch', async () => {
+    const stop = vi.fn(() => null);
+    await expect(runTestWorkflow({ files: ['tests-js/a.test.ts'], loadRecorder: () => ({ stop }),
+      batchRunner: async () => { throw new Error('spawn denied'); } })).rejects.toThrow('spawn denied');
+    expect(stop).toHaveBeenCalledTimes(1);
+  });
+
+  it('keeps each batch load in checkpoint and completion records', () => {
+    const boxLoad = { mean_pct: 9, max_pct: 9, bucket_ms: 30000, buckets_pct: [] };
+    const identity = { sha256: 'a'.repeat(64) };
+    const batches = [{ files: ['tests-js/a.test.ts'], peak_rss_bytes: 1, box_load: boxLoad },
+      { files: ['tests-js/b.test.ts'], peak_rss_bytes: 2 }];
+    const checkpoint = makeTestCheckpoint({ identity, completedFiles: ['tests-js/a.test.ts', 'tests-js/b.test.ts'], batches });
+    expect(checkpoint.batches.map(batch => batch.box_load)).toEqual([boxLoad, null]);
+    expect(makeTestCompletionReport({ identity, completedFiles: ['tests-js/a.test.ts', 'tests-js/b.test.ts'],
+      batches, uninterrupted: true }).batches[0].box_load).toEqual(boxLoad);
+  });
+});
+
+describe('quiet-box refusal at the real runner entry point (tiny fixture)', () => {
+  // The real coordinator with its real arguments, checkpoint, ledger and
+  // invocation result; only the box reading is replaced, by a gate that
+  // refuses every long run, and Vitest by a fake that announces itself.
+  function fixture(run: (root: string, runner: (args: string[]) => any) => void) {
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), 'vugg-quiet-refusal-'));
+    try {
+      fs.mkdirSync(path.join(root, 'tools'));
+      for (const file of ['test-workflow.mjs', 'test-quarry-ledger.mjs', 'locality-frequency-contract.mjs',
+        'test-chip-check.mjs', 'process-census-lib.mjs']) {
+        fs.copyFileSync(path.join(process.cwd(), 'tools', file), path.join(root, 'tools', file));
+      }
+      fs.copyFileSync(path.join(process.cwd(), 'tools', 'quiet-box-lib.mjs'), path.join(root, 'tools', 'quiet-box-real.mjs'));
+      fs.writeFileSync(path.join(root, 'tools', 'quiet-box-lib.mjs'), `
+        export * from './quiet-box-real.mjs';
+        import { QuietBoxRefusedError } from './quiet-box-real.mjs';
+        export async function quietBoxGate({ longRun, busyOk }) {
+          if (!longRun || busyOk) return null;
+          throw new QuietBoxRefusedError({ reasons: ['fixture box at 80 %'] });
+        }
+      `);
+      fs.mkdirSync(path.join(root, 'tests-js'));
+      for (const file of ['a', 'b']) fs.writeFileSync(path.join(root, 'tests-js', `${file}.test.ts`), '// fixture');
+      fs.mkdirSync(path.join(root, 'node_modules', 'vitest'), { recursive: true });
+      fs.writeFileSync(path.join(root, 'node_modules', 'vitest', 'vitest.mjs'), `
+        console.log('fixture executed ' + process.argv.filter(arg => arg.startsWith('tests-js/')).join(','));
+      `);
+      const env = { ...process.env, [TEST_INVOCATION_ENV]: '00000000-0000-4000-8000-000000000003' };
+      delete env.VUGG_QUIET_BOX_PREFLIGHT;
+      run(root, args => spawnSync(process.execPath, ['tools/test-workflow.mjs', ...args], {
+        cwd: root, encoding: 'utf8', windowsHide: true, timeout: 15000, env,
+      }));
+    } finally { fs.rmSync(root, { recursive: true, force: true }); }
+  }
+
+  it('does not start a fresh run on a busy box, and deletes nothing it would have reset', () => fixture((root, runner) => {
+    const checkpoint = path.join(root, '.local-evidence', 'test-workflow-checkpoint-v2.json');
+    const ledger = path.join(root, '.local-evidence', 'test-quarry-cost-ledger-v1.json');
+    fs.mkdirSync(path.dirname(checkpoint), { recursive: true });
+    fs.writeFileSync(checkpoint, 'earlier checkpoint bytes');
+    fs.writeFileSync(ledger, 'earlier ledger bytes');
+    const child = runner(['--fresh']);
+    expect(child.error).toBeUndefined();
+    expect(child.status).toBe(3);
+    expect(child.stderr).toContain('[test-workflow] NOT STARTED: the box is busy: fixture box at 80 %');
+    expect(child.stdout).not.toContain('fixture executed');
+    expect(fs.readFileSync(checkpoint, 'utf8')).toBe('earlier checkpoint bytes');
+    expect(fs.readFileSync(ledger, 'utf8')).toBe('earlier ledger bytes');
+    const result = JSON.parse(fs.readFileSync(
+      path.join(root, '.local-evidence', 'test-workflow-invocations', '00000000-0000-4000-8000-000000000003.json'), 'utf8'));
+    expect(result).toMatchObject({ status: 3, outcome: 'quiet-box-refused', completion: null });
+  }));
+
+  it('also guards a manual resume, but never a selected-file run', () => fixture((_root, runner) => {
+    expect(runner(['--start-index', '1']).status).toBe(3);
+    const selected = runner(['--file', 'tests-js/a.test.ts']);
+    expect(selected.status).toBe(0);
+    expect(selected.stdout).toContain('fixture executed tests-js/a.test.ts');
+  }));
+
+  it('hands --busy-ok to the gate and then runs every file', () => fixture((_root, runner) => {
+    const child = runner(['--fresh', '--busy-ok']);
+    expect(child.status).toBe(0);
+    expect(child.stdout).toContain('fixture executed tests-js/a.test.ts');
+    expect(child.stdout).toContain('fixture executed tests-js/b.test.ts');
+    expect(child.stdout).toContain('UNINTERRUPTED PASS: 2 files');
+  }));
 });

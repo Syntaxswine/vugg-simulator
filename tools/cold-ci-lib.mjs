@@ -8,6 +8,9 @@ import {
   TEST_CHECKPOINT_SCHEMA, TEST_INVOCATION_ENV, TEST_INVOCATION_SCHEMA, TEST_RESULT_TRUST,
   collectTestFiles, testInvocationReportPath, testWorkflowIdentity, writeJsonAtomic,
 } from './test-workflow.mjs';
+import {
+  BUSY_OK_FLAG, QUIET_BOX_ENV, QUIET_BOX_REFUSED_EXIT_CODE, QuietBoxRefusedError, quietBoxGate,
+} from './quiet-box-lib.mjs';
 
 const ROOT = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 export const COLD_CI_SCHEMA = 'vugg-cold-ci-stamp-v2';
@@ -104,11 +107,11 @@ export function coldCiStampProblems({ stamp, state, identity, allFiles }) {
 export function runColdCi({
   root = ROOT, argv = process.argv.slice(2), spawn = spawnSync,
   gitState = () => readGitState(root), identify = () => testWorkflowIdentity({ root }),
-  discover = () => collectTestFiles(), newId = () => crypto.randomUUID(),
+  discover = () => collectTestFiles(), newId = () => crypto.randomUUID(), quietBox = null,
 } = {}) {
   const stampPath = path.join(root, '.ci-stamp.json');
-  if (argv.length && !(argv.length === 1 && argv[0] === '--check')) {
-    console.error('Usage: node tools/cold-ci.mjs [--check]');
+  if (argv.length && !(argv.length === 1 && (argv[0] === '--check' || argv[0] === BUSY_OK_FLAG))) {
+    console.error(`Usage: node tools/cold-ci.mjs [--check | ${BUSY_OK_FLAG}]`);
     return 1;
   }
   if (argv[0] === '--check') {
@@ -130,7 +133,8 @@ export function runColdCi({
   const started = Date.now();
   const stamp = { schema: COLD_CI_SCHEMA, trust: COLD_CI_TRUST,
     startedAt: new Date(started).toISOString(), verdict: 'running', full_suite_pass: false,
-    exitCode: null, node: process.version, platform: `${process.platform}-${process.arch}` };
+    exitCode: null, node: process.version, platform: `${process.platform}-${process.arch}`,
+    quiet_box: quietBox };
   try {
     // Invalidate a previous GREEN before launching anything, including when
     // this run is interrupted or fails before reaching the test runner.
@@ -143,8 +147,9 @@ export function runColdCi({
     console.log(`[cold-ci] running full guard on ${before.commit.slice(0, 7)}${before.dirty ? ' (DIRTY tree)' : ''}…`);
     let child;
     try {
+      // This invocation owns the quiet-box read; the runner skips a second one.
       child = spawn('npm', ['run', 'ci'], { cwd: root, stdio: 'inherit', shell: true,
-        windowsHide: true, env: { ...process.env, [TEST_INVOCATION_ENV]: invocationId } });
+        windowsHide: true, env: { ...process.env, [TEST_INVOCATION_ENV]: invocationId, [QUIET_BOX_ENV]: 'cold-ci' } });
     } catch (error) { child = { status: null, error }; }
     const result = readJson(resultPath);
     let after, identity, allFiles, inspectionError;
@@ -174,4 +179,28 @@ export function runColdCi({
     catch { /* The original write error is already reported; do not claim a stamp. */ }
     return 1;
   }
+}
+
+// The quiet-box read is asynchronous, so it runs here, ahead of the synchronous
+// verdict path. A launch that does not start leaves .ci-stamp.json as it was:
+// a busy box says nothing about the tree, and an earlier GREEN stays valid.
+export async function runColdCiCommand({
+  argv = process.argv.slice(2), env = process.env, preflight, log, ...options
+} = {}) {
+  const launch = !argv.length || (argv.length === 1 && argv[0] === BUSY_OK_FLAG);
+  let quietBox = null;
+  if (launch) {
+    try {
+      quietBox = await quietBoxGate({ longRun: true, busyOk: argv[0] === BUSY_OK_FLAG, env,
+        retry: `rerun with node tools/cold-ci.mjs ${BUSY_OK_FLAG}`, preflight, log });
+    } catch (error) {
+      if (error instanceof QuietBoxRefusedError) {
+        console.error('[cold-ci] NOT STARTED: the box is busy; .ci-stamp.json is unchanged');
+        return QUIET_BOX_REFUSED_EXIT_CODE;
+      }
+      console.error(`[cold-ci] cannot start: ${error.message}; .ci-stamp.json is unchanged`);
+      return 1;
+    }
+  }
+  return runColdCi({ ...options, argv, quietBox });
 }
