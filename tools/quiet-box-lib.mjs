@@ -12,11 +12,13 @@ const execFileAsync = promisify(execFile);
 export const QUIET_BOX_SCHEMA = 'vugg-quiet-box-preflight-v1';
 export const QUIET_BOX_TRUST = 'one-launch-observation-not-a-reservation';
 export const QUIET_BOX_REFUSED_EXIT_CODE = 3;
-export const BUSY_OK_FLAG = '--busy-ok';
+// A busy box is a warning by default (the owner's choice, 2026-10-29): the run
+// starts and the reasons go in the record. This flag makes it refuse instead.
+export const REFUSE_BUSY_FLAG = '--refuse-busy';
 // cold-ci sets `cold-ci` for its child, which then skips a second look; an
-// operator sets `busy-ok` where no flag reaches the runner (`npm run ci`).
+// operator sets `refuse` where no flag reaches the runner (`npm run ci`).
 export const QUIET_BOX_ENV = 'VUGG_QUIET_BOX_PREFLIGHT';
-export const QUIET_BOX_ENV_VALUES = Object.freeze(['cold-ci', 'busy-ok']);
+export const QUIET_BOX_ENV_VALUES = Object.freeze(['cold-ci', 'refuse']);
 export const QUIET_BOX_WINDOW_MS = 30000;
 // Whole-box CPU over the window, all logical CPUs (it matched Windows' "%
 // Processor Time" within 0.3 points). On the commissioning box, runs recorded
@@ -145,11 +147,12 @@ export async function captureCanarySchedule({ platform = process.platform, exec 
 
 const hours = milliseconds => `${(milliseconds / 3600000).toFixed(1)} h`;
 
-// Refusal needs positive evidence of a busy box. A signal that cannot be
-// observed is listed as an issue and never blocks the run on its own, but the
-// verdict says so: `quiet` only when all three signals were read.
+// `busy` needs positive evidence. A signal that cannot be observed is listed as
+// an issue and never makes the box busy on its own, but the verdict says so:
+// `quiet` only when all three signals were read. Only the refuse policy turns
+// `busy` into a refusal; the default warns.
 export function assessQuietBox({
-  load, census, schedule, now = Date.now(), busyOk = false,
+  load, census, schedule, now = Date.now(), refuse = false,
   maxLoadPct = QUIET_BOX_MAX_LOAD_PCT, horizonMs = FULL_RUN_HORIZON_MS,
 } = {}) {
   const reasons = [];
@@ -187,24 +190,25 @@ export function assessQuietBox({
   const allRead = read.load && read.processes && read.schedule;
   return {
     schema: QUIET_BOX_SCHEMA, trust: QUIET_BOX_TRUST, observed_at: new Date(now).toISOString(),
-    verdict: busy ? (busyOk ? 'busy-override' : 'busy') : allRead ? 'quiet' : 'unknown', refused: busy && !busyOk,
+    verdict: busy ? 'busy' : allRead ? 'quiet' : 'unknown',
+    policy: refuse ? 'refuse' : 'warn', refused: busy && refuse,
     max_load_pct: maxLoadPct, horizon_ms: horizonMs, read, reasons, issues, observed,
     load: load ?? null,
     canary_tasks: read.schedule ? schedule.tasks : [],
   };
 }
 
-export function formatQuietBoxReport(report, { retry = 'rerun with --busy-ok' } = {}) {
+export function formatQuietBoxReport(report) {
   const lines = [];
   const load = report.load?.status === 'available' ? `box load ${report.load.load_pct} % over ${report.load.window_ms / 1000} s` : 'box load not read';
   if (report.verdict === 'quiet') {
     lines.push(`[quiet-box] QUIET: ${load}; no canary sweep running or due within ${hours(report.horizon_ms)}`);
   } else if (report.verdict === 'unknown') {
     lines.push(`[quiet-box] PARTLY READ: ${load}; nothing read says busy, so the run starts:`);
-  } else if (report.verdict === 'busy') {
-    lines.push(`[quiet-box] BUSY. Wait for a quiet box, or ${retry} (or set ${QUIET_BOX_ENV}=busy-ok) to run anyway:`);
+  } else if (report.refused) {
+    lines.push(`[quiet-box] BUSY, not started (refusal is on). Wait for a quiet box, or drop ${REFUSE_BUSY_FLAG} and ${QUIET_BOX_ENV}=refuse to start with a warning:`);
   } else {
-    lines.push('[quiet-box] BUSY, running anyway on the override; this run shares the box:');
+    lines.push(`[quiet-box] BUSY, starting anyway: a warning, kept in the record. This run shares the box; ${REFUSE_BUSY_FLAG} (or ${QUIET_BOX_ENV}=refuse) waits for a quiet one instead:`);
   }
   for (const reason of report.reasons) lines.push(`[quiet-box]   - ${reason}`);
   for (const work of report.observed) lines.push(`[quiet-box]   other recognized work (not refused): ${work}`);
@@ -213,7 +217,7 @@ export function formatQuietBoxReport(report, { retry = 'rerun with --busy-ok' } 
 }
 
 export async function runQuietBoxPreflight({
-  busyOk = false, retry, root = ROOT, selfPid = process.pid, now = Date.now,
+  refuse = false, root = ROOT, selfPid = process.pid, now = Date.now,
   sampleLoad = () => sampleBoxLoad(),
   observeProcesses = async () => assessProcessSnapshot(await captureProcessSnapshot({ root }), { selfPid }),
   observeSchedule = () => captureCanarySchedule(),
@@ -234,14 +238,15 @@ export async function runQuietBoxPreflight({
     settle(observeProcesses, 'process-query-failed'),
     settle(observeSchedule, 'schedule-query-failed'),
   ]);
-  const report = assessQuietBox({ load, census, schedule, now: now(), busyOk });
+  const report = assessQuietBox({ load, census, schedule, now: now(), refuse });
   try { persist(report); }
   catch { report.issues.push('preflight report not saved'); }
-  for (const line of formatQuietBoxReport(report, { retry })) log(line);
+  for (const line of formatQuietBoxReport(report)) log(line);
   return report;
 }
 
 // A read-only look for operators: exit 0 quiet, 3 busy, 2 when it cannot run.
+// It answers the question whatever policy a run would use.
 export async function runQuietBoxCommand({
   argv = process.argv.slice(2), preflight = options => runQuietBoxPreflight(options),
   log = console.log, error = console.error,
@@ -251,10 +256,10 @@ export async function runQuietBoxCommand({
   if (argv.length > 1 || argv.some(arg => arg !== '--json')) { error(usage); return 2; }
   const json = argv[0] === '--json';
   let report;
-  try { report = await preflight({ retry: `start the run with ${BUSY_OK_FLAG}`, log: json ? () => {} : log }); }
+  try { report = await preflight({ log: json ? () => {} : log }); }
   catch (failure) { error(`[quiet-box] cannot read the box: ${failure.message}`); return 2; }
   if (json) log(JSON.stringify(report, null, 2));
-  return report.refused ? QUIET_BOX_REFUSED_EXIT_CODE : 0;
+  return report.verdict === 'busy' ? QUIET_BOX_REFUSED_EXIT_CODE : 0;
 }
 
 export class QuietBoxRefusedError extends Error {
@@ -265,10 +270,11 @@ export class QuietBoxRefusedError extends Error {
   }
 }
 
-// One gate for both entry points. A preflight that crashes is reported and the
-// run starts: only positive evidence of a busy box may stop a launch.
+// One gate for both entry points. By default it reads and warns; it stops a
+// launch only under the refuse policy, and only on positive evidence. A
+// preflight that crashes is reported and the run starts.
 export async function quietBoxGate({
-  longRun, busyOk = false, env = process.env, retry,
+  longRun, refuse = false, env = process.env,
   preflight = options => runQuietBoxPreflight(options), log = console.log,
 } = {}) {
   const mode = env[QUIET_BOX_ENV];
@@ -281,7 +287,7 @@ export async function quietBoxGate({
     return null;
   }
   let report;
-  try { report = await preflight({ busyOk: busyOk || mode === 'busy-ok', retry }); }
+  try { report = await preflight({ refuse: refuse || mode === 'refuse' }); }
   catch (error) {
     log(`[quiet-box] preflight failed (${error.message}); starting without it`);
     return null;

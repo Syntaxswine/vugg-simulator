@@ -36,15 +36,20 @@ the box a second time. The reading has three parts:
 2. **The process census.** It now also recognizes a vugg-canary sweep started
    by its full path (`…vugg-canary/src/sweep.mjs`, as the nightly task runs
    it). A running sweep is busy. Other recognized work outside the caller tree
-   (another checkout's Vitest, a dev server) is listed but not refused; the
-   load reading decides whether it matters.
+   (another checkout's Vitest, a dev server) is listed but does not make the
+   box busy; the load reading decides whether it matters.
 3. **Scheduled tasks whose action mentions `vugg-canary`.** A running task is
    busy. So is one whose next start is overdue or inside 3.5 h, the length of a
    full run with margin. Disabled tasks and tasks with no next start do not
    count.
 
-A busy box exits 3 and lists every reason, then both ways out: `--busy-ok`, and
-`VUGG_QUIET_BOX_PREFLIGHT=busy-ok`, which also reaches `npm run ci`. A refusal
+**A busy box is a warning by default.** The run starts, prints every reason,
+and keeps them (`quiet_box.verdict: busy`, `policy: warn` in the stamp). The
+first version of this branch refused by default; on review the owner chose
+warning by default with refusal opt-in (2026-10-29).
+
+**Refusal is opt-in:** `--refuse-busy`, or `VUGG_QUIET_BOX_PREFLIGHT=refuse`,
+which also reaches `npm run ci`. A busy box then exits 3, and the refusal
 loses nothing:
 
 - Cold CI leaves `.ci-stamp.json` byte for byte, so an earlier GREEN stays
@@ -53,12 +58,11 @@ loses nothing:
   `--fresh`, whose deletions now come after the reading.
 - With an invocation id, the runner writes outcome `quiet-box-refused`.
 
-An override runs and keeps the reasons (`quiet_box.verdict: busy-override` in
-the stamp). A signal that cannot be read goes under `issues` and never refuses
+The retired `--busy-ok` flag and `busy-ok` value are errors, not silent no-ops.
+A signal that cannot be read goes under `issues` and never makes the box busy
 on its own. The verdict is then `unknown` ("PARTLY READ"), never `quiet`,
 which needs all three readings, including a census that classified every
-process. A preflight that throws lets the run start. Only positive evidence of
-a busy box stops a launch.
+process. A preflight that throws lets the run start, whatever the policy.
 
 The record:
 
@@ -107,9 +111,16 @@ quiet, 3 busy, 2 when it cannot run.
   holding these tools and a two-file fake suite, so nothing heavy could start.
   - 12:01 (box at 19 %): QUIET. The child skipped a second reading, both files
     ran, and the stamp came out GREEN with `quiet_box` and per-batch loads of
-    8.8 % and 9.1 %.
-  - 12:04, under a 4-thread burn: BUSY at 43.2 %, exit 3, and the earlier stamp
-    was unchanged byte for byte.
+    8.8 % and 9.1 %. A quiet box starts under either policy.
+  - 12:04, under a 4-thread burn, with the first version's refusing default:
+    BUSY at 43.2 %, exit 3, and the earlier stamp was unchanged byte for byte.
+  - After the switch to warning by default:
+    - 12:33, the default, under the same burn plus about 65 % of other work that
+      arrived during the window: BUSY at 89.5 %, a warning. The run started and
+      went GREEN; the stamp keeps the busy verdict and its reason, and the
+      batch loads were 58.2 % and 50.7 %.
+    - 12:34, `--refuse-busy`: BUSY at 46.7 %, exit 3, and the earlier stamp was
+      unchanged byte for byte.
 
 ## Boundaries
 
@@ -125,38 +136,41 @@ quiet, 3 busy, 2 when it cannot run.
 - The census misses a canary sweep started by a relative path
   (`node src/sweep.mjs` inside vugg-canary). Its scheduled task and its load
   are still seen.
-- Recognized but idle work, such as a dev server, does not refuse.
+- Recognized but idle work, such as a dev server, does not make the box busy.
 - Off Windows, the load reading works; the census and the task query report
-  unavailable, which lists issues and refuses nothing.
+  unavailable, which lists issues and marks nothing busy.
 
 ## Validation
 
 `npm test -- --chip-base origin/main` selects seven files: the new quiet-box
 tests, the runner, cold CI, the census, the lease, the selector and the ledger.
-It passes 365 tests in seven batches, with one worker and the RSS guard. Each
-batch line now carries its load: 34-63 % during this run, from other work on
-the box. Seventeen seeded defects were each caught by the test
+It passes 366 tests in seven batches, with one worker and the RSS guard. Each
+batch line now carries its load: 30-86 % during the final run, from other work
+on the box. Twenty seeded defects were each caught by the test
 written for them, and every source byte was restored (checked by SHA-256):
 
 1. The gate moved after the `--fresh` deletions. The refusal test finds the
    checkpoint and ledger gone.
-2. An unread load refuses.
+2. An unread load makes the box busy.
 3. `>= 25 %` weakened to `> 25 %`.
 4. The horizon reduced to "overdue only".
-5. The decision ignores `--busy-ok`.
-6. Any `VUGG_QUIET_BOX_PREFLIGHT` value skips the reading.
-7. A crashing preflight blocks the run.
-8. The recorder's timer setup is left unguarded.
-9. The recorder counts the trailing partial bucket.
-10. Cold CI starts despite a refusal.
-11. Cold CI's child reads the box again. The real-runner wiring tests then
+5. The default refuses a busy box.
+6. The refuse policy never refuses.
+7. The gate ignores `VUGG_QUIET_BOX_PREFLIGHT=refuse`.
+8. Cold CI refuses by default.
+9. Any `VUGG_QUIET_BOX_PREFLIGHT` value skips the reading.
+10. A crashing preflight blocks the run.
+11. The recorder's timer setup is left unguarded.
+12. The recorder counts the trailing partial bucket.
+13. Cold CI starts despite a refusal.
+14. Cold CI's child reads the box again. The real-runner wiring tests then
     time out on a real 30 s reading.
-12. The runner drops `--busy-ok`.
-13. The invocation result leaves out the failed batch.
-14. The checkpoint drops `box_load`.
-15. The census no longer recognizes the canary sweep.
-16. An unread signal is called quiet.
-17. A census with unclassified processes counts as fully read.
+15. The runner drops `--refuse-busy`.
+16. The invocation result leaves out the failed batch.
+17. The checkpoint drops `box_load`.
+18. The census no longer recognizes the canary sweep.
+19. An unread signal is called quiet.
+20. A census with unclassified processes counts as fully read.
 
 `npm run typecheck`, `build:check`, `audit:runtime`, `audit:science`,
 `audit:release` and `audit:evidence` (128 artifacts, exact execution +

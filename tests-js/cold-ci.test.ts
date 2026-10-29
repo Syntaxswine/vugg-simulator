@@ -220,26 +220,39 @@ describe('cold-CI invocation and reusable local stamp', () => {
 });
 
 describe('cold-CI quiet-box launch check', () => {
-  const box = (pct: number, busyOk = false) => assessQuietBox({
+  const box = (pct: number, refuse = false) => assessQuietBox({
     load: { status: 'available', load_pct: pct, window_ms: 30000, logical_cpus: 16 },
     census: { status: 'no-observed-work', blockers: [], issues: [] },
-    schedule: { status: 'available', tasks: [] }, busyOk,
+    schedule: { status: 'available', tasks: [] }, refuse,
   });
   // env is only what the gate reads; runColdCi still hands the child process.env.
   const command = (f: any, overrides: any = {}) => runColdCiCommand({ ...f.options, env: {}, log: () => {}, ...overrides });
   const quietErrors = () => vi.spyOn(console, 'error').mockImplementation(() => {});
 
-  it('does not start on a busy box and leaves an earlier stamp byte for byte', () => fixture(async f => {
+  it('warns on a busy box by default: it starts and keeps the reasons in the stamp', () => fixture(async f => {
+    const preflight = vi.fn(async ({ refuse }: any) => box(80, refuse));
+    const spawn = vi.fn(() => { f.writeResult(); return { status: 0 }; });
+    expect(await command(f, { spawn, preflight })).toBe(0);
+    expect(preflight).toHaveBeenCalledExactlyOnceWith({ refuse: false });
+    expect(spawn).toHaveBeenCalledTimes(1);
+    expect(f.readStamp()).toMatchObject({ verdict: 'green', quiet_box: { verdict: 'busy', policy: 'warn', refused: false,
+      reasons: ['box load 80 % over 30 s (quiet is below 25 %)'] } });
+  }));
+
+  it.each([
+    ['--refuse-busy', ['--refuse-busy'], {}],
+    ['the env policy', [], { [QUIET_BOX_ENV]: 'refuse' }],
+  ])('under %s, does not start on a busy box and leaves an earlier stamp byte for byte', (_label, argv, env) => fixture(async f => {
     writeJsonAtomic(f.stampPath, { verdict: 'green', commit: clean.commit });
     const before = fs.readFileSync(f.stampPath, 'utf8');
     const spawn = vi.fn();
-    const preflight = vi.fn(async () => box(80));
+    const preflight = vi.fn(async ({ refuse }: any) => box(80, refuse));
     const errors = quietErrors();
     try {
-      expect(await command(f, { spawn, preflight })).toBe(3);
+      expect(await command(f, { argv, env, spawn, preflight })).toBe(3);
       expect(errors.mock.calls.flat().join('\n')).toContain('[cold-ci] NOT STARTED: the box is busy; .ci-stamp.json is unchanged');
     } finally { errors.mockRestore(); }
-    expect(preflight).toHaveBeenCalledExactlyOnceWith({ busyOk: false, retry: 'rerun with node tools/cold-ci.mjs --busy-ok' });
+    expect(preflight).toHaveBeenCalledExactlyOnceWith({ refuse: true });
     expect(spawn).not.toHaveBeenCalled();
     expect(fs.readFileSync(f.stampPath, 'utf8')).toBe(before);
   }));
@@ -251,18 +264,11 @@ describe('cold-CI quiet-box launch check', () => {
       f.writeResult();
       return { status: 0 };
     });
-    expect(await command(f, { spawn, preflight: async () => box(10) })).toBe(0);
+    // A quiet box starts under the refuse policy as well.
+    expect(await command(f, { argv: ['--refuse-busy'], spawn, preflight: async ({ refuse }: any) => box(10, refuse) })).toBe(0);
     expect(spawn).toHaveBeenCalledTimes(1);
-    expect(f.readStamp()).toMatchObject({ verdict: 'green', quiet_box: { verdict: 'quiet', load: { load_pct: 10 } } });
-  }));
-
-  it('runs a busy box on --busy-ok and keeps the reasons in the stamp', () => fixture(async f => {
-    const preflight = vi.fn(async ({ busyOk }: any) => box(80, busyOk));
-    const spawn = vi.fn(() => { f.writeResult(); return { status: 0 }; });
-    expect(await command(f, { argv: ['--busy-ok'], spawn, preflight })).toBe(0);
-    expect(preflight).toHaveBeenCalledWith(expect.objectContaining({ busyOk: true }));
-    expect(f.readStamp()).toMatchObject({ verdict: 'green', quiet_box: { verdict: 'busy-override',
-      reasons: ['box load 80 % over 30 s (quiet is below 25 %)'] } });
+    expect(f.readStamp()).toMatchObject({ verdict: 'green',
+      quiet_box: { verdict: 'quiet', policy: 'refuse', load: { load_pct: 10 } } });
   }));
 
   it('starts when the reading itself fails, with no quiet-box claim in the stamp', () => fixture(async f => {
@@ -277,7 +283,9 @@ describe('cold-CI quiet-box launch check', () => {
     const errors = quietErrors();
     try {
       expect(await command(f, { argv: ['--check'], spawn, preflight })).toBe(1);
-      expect(await command(f, { argv: ['--busy-ok', '--check'], spawn, preflight })).toBe(1);
+      expect(await command(f, { argv: ['--refuse-busy', '--check'], spawn, preflight })).toBe(1);
+      // The retired override flag is now an unknown argument, not a silent no-op.
+      expect(await command(f, { argv: ['--busy-ok'], spawn, preflight })).toBe(1);
       expect(await command(f, { spawn, preflight, env: { [QUIET_BOX_ENV]: 'maybe' } })).toBe(1);
       expect(errors.mock.calls.flat().join('\n')).toContain(`[cold-ci] cannot start: ${QUIET_BOX_ENV} must be one of`);
     } finally { errors.mockRestore(); }

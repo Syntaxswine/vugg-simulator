@@ -50,7 +50,7 @@ describe('memory-bounded full-test workflow', () => {
       startIndex: 115,
       selectedFiles: [],
       fresh: false,
-      busyOk: false,
+      refuseBusy: false,
       chipBase: null,
     });
     expect(parseArgs(['--file', 'tests-js/a.test.ts', '--file', 'tests-js/b.test.ts']))
@@ -60,15 +60,16 @@ describe('memory-bounded full-test workflow', () => {
         startIndex: 0,
         selectedFiles: ['tests-js/a.test.ts', 'tests-js/b.test.ts'],
         fresh: false,
-        busyOk: false,
+        refuseBusy: false,
         chipBase: null,
       });
     expect(parseArgs(['--fresh'])).toMatchObject({ fresh: true });
-    expect(parseArgs(['--fresh', '--busy-ok'])).toMatchObject({ fresh: true, busyOk: true });
-    expect(parseArgs(['--start-index', '3', '--busy-ok'])).toMatchObject({ startIndex: 3, busyOk: true });
-    // Selected and chip runs never read the box, so an override there would be a silent no-op.
-    expect(() => parseArgs(['--busy-ok', '--file', 'tests-js/a.test.ts'])).toThrow('only to full or resumed runs');
-    expect(() => parseArgs(['--chip-base', 'origin/main', '--busy-ok'])).toThrow('only to full or resumed runs');
+    expect(parseArgs(['--fresh', '--refuse-busy'])).toMatchObject({ fresh: true, refuseBusy: true });
+    expect(parseArgs(['--start-index', '3', '--refuse-busy'])).toMatchObject({ startIndex: 3, refuseBusy: true });
+    // Selected and chip runs never read the box, so the flag there would be a silent no-op.
+    expect(() => parseArgs(['--refuse-busy', '--file', 'tests-js/a.test.ts'])).toThrow('only to full or resumed runs');
+    expect(() => parseArgs(['--chip-base', 'origin/main', '--refuse-busy'])).toThrow('only to full or resumed runs');
+    expect(() => parseArgs(['--busy-ok'])).toThrow('unknown argument: --busy-ok');
     expect(() => parseArgs(['--start-index', '-1'])).toThrow('non-negative integer');
     expect(() => parseArgs(['--start-index', '1.5'])).toThrow('non-negative integer');
     expect(() => parseArgs(['--start-index', '1', '--file', 'tests-js/a.test.ts']))
@@ -524,11 +525,11 @@ describe('memory-bounded full-test workflow', () => {
   });
 });
 
-describe('quiet-box refusal at the real runner entry point (tiny fixture)', () => {
+describe('a busy box at the real runner entry point (tiny fixture)', () => {
   // The real coordinator with its real arguments, checkpoint, ledger and
-  // invocation result; only the box reading is replaced, by a gate that
-  // refuses every long run, and Vitest by a fake that announces itself.
-  function fixture(run: (root: string, runner: (args: string[]) => any) => void) {
+  // invocation result, and the real gate and policy. Only the box reading is
+  // fixed, at a busy 80 %, and Vitest is a fake that announces itself.
+  function fixture(run: (root: string, runner: (args: string[], extraEnv?: any) => any) => void) {
     const root = fs.mkdtempSync(path.join(os.tmpdir(), 'vugg-quiet-refusal-'));
     try {
       fs.mkdirSync(path.join(root, 'tools'));
@@ -539,10 +540,16 @@ describe('quiet-box refusal at the real runner entry point (tiny fixture)', () =
       fs.copyFileSync(path.join(process.cwd(), 'tools', 'quiet-box-lib.mjs'), path.join(root, 'tools', 'quiet-box-real.mjs'));
       fs.writeFileSync(path.join(root, 'tools', 'quiet-box-lib.mjs'), `
         export * from './quiet-box-real.mjs';
-        import { QuietBoxRefusedError } from './quiet-box-real.mjs';
-        export async function quietBoxGate({ longRun, busyOk }) {
-          if (!longRun || busyOk) return null;
-          throw new QuietBoxRefusedError({ reasons: ['fixture box at 80 %'] });
+        import { assessQuietBox, formatQuietBoxReport, quietBoxGate as realGate } from './quiet-box-real.mjs';
+        export function quietBoxGate(options) {
+          return realGate({ ...options, preflight: async ({ refuse }) => {
+            const report = assessQuietBox({ refuse,
+              load: { status: 'available', load_pct: 80, window_ms: 30000, logical_cpus: 16 },
+              census: { status: 'no-observed-work', blockers: [], issues: [] },
+              schedule: { status: 'available', tasks: [] } });
+            for (const line of formatQuietBoxReport(report)) console.log(line);
+            return report;
+          } });
         }
       `);
       fs.mkdirSync(path.join(root, 'tests-js'));
@@ -553,22 +560,33 @@ describe('quiet-box refusal at the real runner entry point (tiny fixture)', () =
       `);
       const env = { ...process.env, [TEST_INVOCATION_ENV]: '00000000-0000-4000-8000-000000000003' };
       delete env.VUGG_QUIET_BOX_PREFLIGHT;
-      run(root, args => spawnSync(process.execPath, ['tools/test-workflow.mjs', ...args], {
-        cwd: root, encoding: 'utf8', windowsHide: true, timeout: 15000, env,
+      run(root, (args, extraEnv = {}) => spawnSync(process.execPath, ['tools/test-workflow.mjs', ...args], {
+        cwd: root, encoding: 'utf8', windowsHide: true, timeout: 15000, env: { ...env, ...extraEnv },
       }));
     } finally { fs.rmSync(root, { recursive: true, force: true }); }
   }
 
-  it('does not start a fresh run on a busy box, and deletes nothing it would have reset', () => fixture((root, runner) => {
+  it('warns by default and runs every file, recording the reading on the way', () => fixture((_root, runner) => {
+    const child = runner(['--fresh']);
+    expect(child.status).toBe(0);
+    expect(child.stdout).toContain('[quiet-box] BUSY, starting anyway: a warning, kept in the record.');
+    expect(child.stdout).toContain('box load 80 % over 30 s');
+    expect(child.stdout).toContain('fixture executed tests-js/a.test.ts');
+    expect(child.stdout).toContain('fixture executed tests-js/b.test.ts');
+    expect(child.stdout).toContain('UNINTERRUPTED PASS: 2 files');
+  }));
+
+  it('under --refuse-busy, does not start a fresh run and deletes nothing it would have reset', () => fixture((root, runner) => {
     const checkpoint = path.join(root, '.local-evidence', 'test-workflow-checkpoint-v2.json');
     const ledger = path.join(root, '.local-evidence', 'test-quarry-cost-ledger-v1.json');
     fs.mkdirSync(path.dirname(checkpoint), { recursive: true });
     fs.writeFileSync(checkpoint, 'earlier checkpoint bytes');
     fs.writeFileSync(ledger, 'earlier ledger bytes');
-    const child = runner(['--fresh']);
+    const child = runner(['--fresh', '--refuse-busy']);
     expect(child.error).toBeUndefined();
     expect(child.status).toBe(3);
-    expect(child.stderr).toContain('[test-workflow] NOT STARTED: the box is busy: fixture box at 80 %');
+    expect(child.stdout).toContain('[quiet-box] BUSY, not started (refusal is on).');
+    expect(child.stderr).toContain('[test-workflow] NOT STARTED: the box is busy: box load 80 % over 30 s (quiet is below 25 %)');
     expect(child.stdout).not.toContain('fixture executed');
     expect(fs.readFileSync(checkpoint, 'utf8')).toBe('earlier checkpoint bytes');
     expect(fs.readFileSync(ledger, 'utf8')).toBe('earlier ledger bytes');
@@ -577,18 +595,12 @@ describe('quiet-box refusal at the real runner entry point (tiny fixture)', () =
     expect(result).toMatchObject({ status: 3, outcome: 'quiet-box-refused', completion: null });
   }));
 
-  it('also guards a manual resume, but never a selected-file run', () => fixture((_root, runner) => {
-    expect(runner(['--start-index', '1']).status).toBe(3);
-    const selected = runner(['--file', 'tests-js/a.test.ts']);
+  it('refuses a manual resume under the env policy too, but never reads the box for a selected file', () => fixture((_root, runner) => {
+    const refuse = { VUGG_QUIET_BOX_PREFLIGHT: 'refuse' };
+    expect(runner(['--start-index', '1'], refuse).status).toBe(3);
+    const selected = runner(['--file', 'tests-js/a.test.ts'], refuse);
     expect(selected.status).toBe(0);
+    expect(selected.stdout).not.toContain('[quiet-box]');
     expect(selected.stdout).toContain('fixture executed tests-js/a.test.ts');
-  }));
-
-  it('hands --busy-ok to the gate and then runs every file', () => fixture((_root, runner) => {
-    const child = runner(['--fresh', '--busy-ok']);
-    expect(child.status).toBe(0);
-    expect(child.stdout).toContain('fixture executed tests-js/a.test.ts');
-    expect(child.stdout).toContain('fixture executed tests-js/b.test.ts');
-    expect(child.stdout).toContain('UNINTERRUPTED PASS: 2 files');
   }));
 });

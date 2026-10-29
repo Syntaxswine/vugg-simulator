@@ -3,7 +3,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { describe, expect, it, vi } from 'vitest';
 import {
-  BUSY_OK_FLAG, FULL_RUN_HORIZON_MS, LOAD_BUCKET_MS, QUIET_BOX_ENV, QUIET_BOX_MAX_LOAD_PCT,
+  FULL_RUN_HORIZON_MS, LOAD_BUCKET_MS, QUIET_BOX_ENV, QUIET_BOX_MAX_LOAD_PCT, REFUSE_BUSY_FLAG,
   QUIET_BOX_REFUSED_EXIT_CODE, QUIET_BOX_REPORT_NAME, QUIET_BOX_SCHEMA, QuietBoxRefusedError,
   SCHEDULE_QUERY_TIMEOUT_MS, WINDOWS_CANARY_TASK_QUERY, assessQuietBox, captureCanarySchedule,
   cpuTimes, formatQuietBoxReport, loadPercent, parseCanaryTasks, quietBoxGate, runQuietBoxCommand,
@@ -171,24 +171,26 @@ const assess = (overrides: any = {}) => assessQuietBox({
 
 describe('quiet-box decision', () => {
   it('calls a quiet box quiet and keeps what it read', () => {
-    expect(assess()).toMatchObject({ schema: QUIET_BOX_SCHEMA, verdict: 'quiet', refused: false,
+    expect(assess()).toMatchObject({ schema: QUIET_BOX_SCHEMA, verdict: 'quiet', policy: 'warn', refused: false,
       read: { load: true, processes: true, schedule: true },
       reasons: [], issues: [], observed: [], load: load(10), observed_at: new Date(NOW).toISOString(),
       max_load_pct: QUIET_BOX_MAX_LOAD_PCT, horizon_ms: FULL_RUN_HORIZON_MS });
   });
 
   it.each([[0, 'quiet'], [QUIET_BOX_MAX_LOAD_PCT - 0.1, 'quiet'], [QUIET_BOX_MAX_LOAD_PCT, 'busy'], [100, 'busy']])(
-    'judges a %d %% box %s', (pct, verdict) => {
+    'judges a %d %% box %s, and refuses it only under the refuse policy', (pct, verdict) => {
       const report = assess({ load: load(pct) });
       expect(report.verdict).toBe(verdict);
-      expect(report.refused).toBe(verdict === 'busy');
+      expect(report.refused).toBe(false);
+      expect(assess({ load: load(pct), refuse: true }).refused).toBe(verdict === 'busy');
       if (verdict === 'busy') expect(report.reasons).toEqual([`box load ${pct} % over 30 s (quiet is below ${QUIET_BOX_MAX_LOAD_PCT} %)`]);
     },
   );
 
-  it('refuses while a canary sweep runs, whether seen as a process or as its running task', () => {
+  it('calls the box busy while a canary sweep runs, seen as a process or as its running task', () => {
     const seen = assess({ census: census([canary]) });
-    expect(seen).toMatchObject({ verdict: 'busy', refused: true });
+    expect(seen).toMatchObject({ verdict: 'busy', refused: false });
+    expect(assess({ census: census([canary]), refuse: true })).toMatchObject({ verdict: 'busy', refused: true });
     expect(seen.reasons).toEqual([`vugg-canary sweep running (pid 70796, started ${canary.started_at})`]);
     expect(assess({ schedule: schedule(task('Running', 23 * HOUR)) }).reasons)
       .toEqual(['scheduled task vugg-canary-nightly is running']);
@@ -204,7 +206,8 @@ describe('quiet-box decision', () => {
     ['with no next start', 'Ready', null, false],
   ])('treats a canary start %s accordingly', (_label, state, inMs, busy) => {
     const report = assess({ schedule: schedule(task(state, inMs as any)) });
-    expect(report.refused).toBe(busy);
+    expect(report.verdict === 'busy').toBe(busy);
+    expect(assess({ schedule: schedule(task(state, inMs as any)), refuse: true }).refused).toBe(busy);
     if (busy) expect(report.reasons[0]).toMatch(/^scheduled task vugg-canary-nightly starts (in \d+\.\d h|now \(overdue\)), inside a full run \(3\.5 h\)$/);
   });
 
@@ -218,6 +221,7 @@ describe('quiet-box decision', () => {
       load: { status: 'unavailable', reason: 'cpu-times-unavailable', window_ms: 30000 },
       census: { status: 'unknown', blockers: [], issues: ['process-query-failed'] },
       schedule: { status: 'unavailable', reason: 'schedule-query-failed', tasks: [] },
+      refuse: true,
     });
     expect(report).toMatchObject({ verdict: 'unknown', refused: false, reasons: [],
       read: { load: false, processes: false, schedule: false } });
@@ -233,23 +237,25 @@ describe('quiet-box decision', () => {
       issues: ['process census busy (pid 9: command-unavailable)'] });
   });
 
-  it('still refuses on positive evidence when another signal is missing', () => {
-    expect(assess({ load: { status: 'unavailable', reason: 'x', window_ms: 1 }, census: census([canary]) }))
+  it('still calls the box busy on positive evidence when another signal is missing', () => {
+    expect(assess({ load: { status: 'unavailable', reason: 'x', window_ms: 1 }, census: census([canary]), refuse: true }))
       .toMatchObject({ verdict: 'busy', refused: true });
   });
 
-  it('lists every reason, and the override keeps them while letting the run start', () => {
+  it('lists every reason; the default warns and the refuse policy refuses', () => {
     const busy = { load: load(80), census: census([canary]), schedule: schedule(task('Running', HOUR)) };
+    expect(assess(busy)).toMatchObject({ verdict: 'busy', policy: 'warn', refused: false });
     expect(assess(busy).reasons).toHaveLength(3);
-    expect(assess({ ...busy, busyOk: true })).toMatchObject({ verdict: 'busy-override', refused: false });
-    expect(assess({ ...busy, busyOk: true }).reasons).toHaveLength(3);
+    expect(assess({ ...busy, refuse: true })).toMatchObject({ verdict: 'busy', policy: 'refuse', refused: true });
+    expect(assess({ ...busy, refuse: true }).reasons).toHaveLength(3);
   });
 
-  it('tells the operator the way out of a refusal', () => {
-    const lines = formatQuietBoxReport(assess({ load: load(80) }), { retry: 'rerun with npm test -- --busy-ok' });
-    expect(lines[0]).toBe(`[quiet-box] BUSY. Wait for a quiet box, or rerun with npm test -- --busy-ok (or set ${QUIET_BOX_ENV}=busy-ok) to run anyway:`);
-    expect(lines[1]).toContain('box load 80 %');
-    expect(formatQuietBoxReport(assess({ load: load(80), busyOk: true }))[0]).toContain('running anyway');
+  it('says what it did and how to change it', () => {
+    const warned = formatQuietBoxReport(assess({ load: load(80) }));
+    expect(warned[0]).toBe(`[quiet-box] BUSY, starting anyway: a warning, kept in the record. This run shares the box; ${REFUSE_BUSY_FLAG} (or ${QUIET_BOX_ENV}=refuse) waits for a quiet one instead:`);
+    expect(warned[1]).toContain('box load 80 %');
+    expect(formatQuietBoxReport(assess({ load: load(80), refuse: true }))[0]).toBe(
+      `[quiet-box] BUSY, not started (refusal is on). Wait for a quiet box, or drop ${REFUSE_BUSY_FLAG} and ${QUIET_BOX_ENV}=refuse to start with a warning:`);
     expect(formatQuietBoxReport(assess())).toEqual(['[quiet-box] QUIET: box load 10 % over 30 s; no canary sweep running or due within 3.5 h']);
     // QUIET claims only what was read.
     expect(formatQuietBoxReport(assess({ schedule: { status: 'unavailable', reason: 'denied', tasks: [] } }))).toEqual([
@@ -291,16 +297,21 @@ describe('preflight, gate and command', () => {
     expect(await quietBoxGate({ longRun: true, env: { [QUIET_BOX_ENV]: 'cold-ci' }, preflight, log: () => {} })).toBeNull();
     expect(preflight).not.toHaveBeenCalled();
     expect(await quietBoxGate({ longRun: true, env: {}, preflight })).toMatchObject({ verdict: 'quiet' });
-    expect(preflight).toHaveBeenCalledWith({ busyOk: false, retry: undefined });
+    expect(preflight).toHaveBeenCalledWith({ refuse: false });
   });
 
-  it('refuses a busy box with the report attached, and honours either override', async () => {
-    const refusal = quietBoxGate({ longRun: true, env: {}, preflight: async () => busy() });
-    await expect(refusal).rejects.toBeInstanceOf(QuietBoxRefusedError);
-    await expect(refusal).rejects.toMatchObject({ report: { verdict: 'busy' } });
-    const preflight = vi.fn(async ({ busyOk }: any) => assess({ load: load(80), busyOk }));
-    expect(await quietBoxGate({ longRun: true, busyOk: true, env: {}, preflight })).toMatchObject({ verdict: 'busy-override' });
-    expect(await quietBoxGate({ longRun: true, env: { [QUIET_BOX_ENV]: 'busy-ok' }, preflight })).toMatchObject({ verdict: 'busy-override' });
+  it('warns on a busy box by default, and refuses only when asked, by flag or by env', async () => {
+    const preflight = vi.fn(async ({ refuse }: any) => assess({ load: load(80), refuse }));
+    expect(await quietBoxGate({ longRun: true, env: {}, preflight }))
+      .toMatchObject({ verdict: 'busy', policy: 'warn', refused: false });
+    const byFlag = quietBoxGate({ longRun: true, refuse: true, env: {}, preflight });
+    await expect(byFlag).rejects.toBeInstanceOf(QuietBoxRefusedError);
+    await expect(byFlag).rejects.toMatchObject({ report: { verdict: 'busy', policy: 'refuse' } });
+    await expect(quietBoxGate({ longRun: true, env: { [QUIET_BOX_ENV]: 'refuse' }, preflight }))
+      .rejects.toBeInstanceOf(QuietBoxRefusedError);
+    // A quiet box starts under either policy.
+    expect(await quietBoxGate({ longRun: true, refuse: true, env: {}, preflight: async ({ refuse }: any) => assess({ refuse }) }))
+      .toMatchObject({ verdict: 'quiet', refused: false });
   });
 
   it('starts the run when the preflight itself fails, and rejects an unknown override', async () => {
@@ -308,18 +319,21 @@ describe('preflight, gate and command', () => {
     expect(await quietBoxGate({ longRun: true, env: {}, log, preflight: async () => { throw new Error('boom'); } })).toBeNull();
     expect(log).toHaveBeenCalledWith('[quiet-box] preflight failed (boom); starting without it');
     const preflight = vi.fn();
-    await expect(quietBoxGate({ longRun: false, env: { [QUIET_BOX_ENV]: 'yes' }, preflight })).rejects.toThrow(QUIET_BOX_ENV);
+    // `busy-ok` was the override while refusal was the default; it is no longer a value.
+    for (const value of ['yes', 'busy-ok']) {
+      await expect(quietBoxGate({ longRun: false, env: { [QUIET_BOX_ENV]: value }, preflight })).rejects.toThrow(QUIET_BOX_ENV);
+    }
     expect(preflight).not.toHaveBeenCalled();
   });
 
-  it('answers operators with exit 0 quiet, 3 busy and 2 when it cannot run', async () => {
+  it('answers operators with exit 0 quiet, 3 busy and 2 when it cannot run, whatever a run would do', async () => {
     const quiet0 = await runQuietBoxCommand({ argv: [], preflight: async () => quiet(), log: () => {}, error: () => {} });
     const busy3 = await runQuietBoxCommand({ argv: [], preflight: async () => busy(), log: () => {}, error: () => {} });
     expect([quiet0, busy3]).toEqual([0, QUIET_BOX_REFUSED_EXIT_CODE]);
     const log = vi.fn();
     expect(await runQuietBoxCommand({ argv: ['--json'], preflight: async () => busy(), log, error: () => {} })).toBe(3);
     expect(JSON.parse(log.mock.calls.at(-1)[0])).toMatchObject({ verdict: 'busy' });
-    for (const argv of [['--busy'], ['--json', '--json'], [BUSY_OK_FLAG]]) {
+    for (const argv of [['--busy'], ['--json', '--json'], [REFUSE_BUSY_FLAG]]) {
       expect(await runQuietBoxCommand({ argv, preflight: async () => quiet(), log: () => {}, error: () => {} })).toBe(2);
     }
     expect(await runQuietBoxCommand({ argv: [], preflight: async () => { throw new Error('x'); }, log: () => {}, error: () => {} })).toBe(2);

@@ -32,7 +32,7 @@ import {
   CHIP_SELECTION_EXIT_CODE, ChipSelectionRequiredError, planChipCheck, requireChipSelection,
 } from './test-chip-check.mjs';
 import {
-  BUSY_OK_FLAG, QUIET_BOX_REFUSED_EXIT_CODE, QuietBoxRefusedError, quietBoxGate, startLoadRecorder,
+  QUIET_BOX_REFUSED_EXIT_CODE, QuietBoxRefusedError, REFUSE_BUSY_FLAG, quietBoxGate, startLoadRecorder,
 } from './quiet-box-lib.mjs';
 
 const ROOT = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
@@ -460,7 +460,7 @@ export function parseArgs(argv) {
   let batchSize = DEFAULT_TEST_BATCH_SIZE;
   let startIndex = 0;
   let fresh = false;
-  let busyOk = false;
+  let refuseBusy = false;
   let chipBase = null;
   const selectedFiles = [];
   for (let index = 0; index < argv.length; index++) {
@@ -469,17 +469,17 @@ export function parseArgs(argv) {
     else if (arg === '--start-index') startIndex = Number(argv[++index]);
     else if (arg === '--file') selectedFiles.push(String(argv[++index] || '').replaceAll('\\', '/'));
     else if (arg === '--fresh') fresh = true;
-    else if (arg === BUSY_OK_FLAG) busyOk = true;
+    else if (arg === REFUSE_BUSY_FLAG) refuseBusy = true;
     else if (arg === '--chip-base') {
       if (chipBase !== null) throw new Error('--chip-base may only be specified once');
       chipBase = argv[++index];
       if (!chipBase || chipBase.startsWith('-')) throw new Error('--chip-base requires a Git commit reference');
     }
-    else if (arg === '--help') return { help: true, batchSize, startIndex, selectedFiles, fresh, busyOk, chipBase };
+    else if (arg === '--help') return { help: true, batchSize, startIndex, selectedFiles, fresh, refuseBusy, chipBase };
     else throw new Error(`unknown argument: ${arg}`);
   }
-  if (busyOk && (selectedFiles.length || chipBase !== null)) {
-    throw new Error(`${BUSY_OK_FLAG} applies only to full or resumed runs; --file and --chip-base runs never read the box`);
+  if (refuseBusy && (selectedFiles.length || chipBase !== null)) {
+    throw new Error(`${REFUSE_BUSY_FLAG} applies only to full or resumed runs; --file and --chip-base runs never read the box`);
   }
   if (!Number.isInteger(startIndex) || startIndex < 0) {
     throw new Error(`start index must be a non-negative integer, received ${startIndex}`);
@@ -492,7 +492,7 @@ export function parseArgs(argv) {
       || argv.includes('--batch-size'))) {
     throw new Error('--chip-base cannot be combined with --file, --start-index, --fresh, or --batch-size');
   }
-  return { help: false, batchSize, startIndex, selectedFiles, fresh, busyOk, chipBase };
+  return { help: false, batchSize, startIndex, selectedFiles, fresh, refuseBusy, chipBase };
 }
 
 const loadText = load => load?.mean_pct == null ? 'box load not read'
@@ -581,9 +581,9 @@ if (invokedDirectly) {
     }
     const args = parseArgs(process.argv.slice(2));
     if (args.help) {
-      console.log(`node tools/test-workflow.mjs [--fresh] [--batch-size N] [--start-index N] [${BUSY_OK_FLAG}] [--file tests-js/name.test.ts ...]`);
+      console.log(`node tools/test-workflow.mjs [--fresh] [--batch-size N] [--start-index N] [${REFUSE_BUSY_FLAG}] [--file tests-js/name.test.ts ...]`);
       console.log('npm test -- --chip-base REF selects authored tooling tests; never a full-suite verdict.');
-      console.log(`Full and resumed runs first read the box for 30 s and do not start on a busy one; ${BUSY_OK_FLAG} runs anyway.`);
+      console.log(`Full and resumed runs first read the box for 30 s and warn when it is busy; ${REFUSE_BUSY_FLAG} does not start on a busy box.`);
       console.log('Passing batches append a measurement-only cost ledger at .local-evidence/test-quarry-cost-ledger-v1.json');
       console.log('That ledger does not change science, baselines, receipts, or batch order.');
     } else {
@@ -598,12 +598,9 @@ if (invokedDirectly) {
         if (!allFiles.includes(file)) throw new Error(`selected test file is not registered: ${file}`);
       }
       const automaticCheckpoint = !chipPlan && !args.selectedFiles.length && args.startIndex === 0;
-      // Before anything is deleted or written, so a run that does not start
-      // leaves the checkpoint and the quarry ledger exactly as they were.
-      await quietBoxGate({
-        longRun: !chipPlan && !args.selectedFiles.length, busyOk: args.busyOk,
-        retry: `rerun with npm test -- ${[...process.argv.slice(2), BUSY_OK_FLAG].join(' ')}`,
-      });
+      // Before anything is deleted or written, so a run refused under
+      // --refuse-busy leaves the checkpoint and the quarry ledger as they were.
+      await quietBoxGate({ longRun: !chipPlan && !args.selectedFiles.length, refuse: args.refuseBusy });
       const identity = automaticCheckpoint || chipPlan ? testWorkflowIdentity() : null;
       if (chipPlan) {
         // Close the selection/identity race before launching any child. Later

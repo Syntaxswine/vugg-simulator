@@ -9,7 +9,7 @@ import {
   collectTestFiles, testInvocationReportPath, testWorkflowIdentity, writeJsonAtomic,
 } from './test-workflow.mjs';
 import {
-  BUSY_OK_FLAG, QUIET_BOX_ENV, QUIET_BOX_REFUSED_EXIT_CODE, QuietBoxRefusedError, quietBoxGate,
+  QUIET_BOX_ENV, QUIET_BOX_REFUSED_EXIT_CODE, QuietBoxRefusedError, REFUSE_BUSY_FLAG, quietBoxGate,
 } from './quiet-box-lib.mjs';
 
 const ROOT = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
@@ -110,8 +110,8 @@ export function runColdCi({
   discover = () => collectTestFiles(), newId = () => crypto.randomUUID(), quietBox = null,
 } = {}) {
   const stampPath = path.join(root, '.ci-stamp.json');
-  if (argv.length && !(argv.length === 1 && (argv[0] === '--check' || argv[0] === BUSY_OK_FLAG))) {
-    console.error(`Usage: node tools/cold-ci.mjs [--check | ${BUSY_OK_FLAG}]`);
+  if (argv.length && !(argv.length === 1 && (argv[0] === '--check' || argv[0] === REFUSE_BUSY_FLAG))) {
+    console.error(`Usage: node tools/cold-ci.mjs [--check | ${REFUSE_BUSY_FLAG}]`);
     return 1;
   }
   if (argv[0] === '--check') {
@@ -182,17 +182,17 @@ export function runColdCi({
 }
 
 // The quiet-box read is asynchronous, so it runs here, ahead of the synchronous
-// verdict path. A launch that does not start leaves .ci-stamp.json as it was:
-// a busy box says nothing about the tree, and an earlier GREEN stays valid.
+// verdict path. A busy box warns and the run starts, with the reading in the
+// stamp. Under --refuse-busy it does not start, and .ci-stamp.json stays as it
+// was: a busy box says nothing about the tree, and an earlier GREEN stays valid.
 export async function runColdCiCommand({
   argv = process.argv.slice(2), env = process.env, preflight, log, ...options
 } = {}) {
-  const launch = !argv.length || (argv.length === 1 && argv[0] === BUSY_OK_FLAG);
+  const launch = !argv.length || (argv.length === 1 && argv[0] === REFUSE_BUSY_FLAG);
   let quietBox = null;
   if (launch) {
     try {
-      quietBox = await quietBoxGate({ longRun: true, busyOk: argv[0] === BUSY_OK_FLAG, env,
-        retry: `rerun with node tools/cold-ci.mjs ${BUSY_OK_FLAG}`, preflight, log });
+      quietBox = await quietBoxGate({ longRun: true, refuse: argv[0] === REFUSE_BUSY_FLAG, env, preflight, log });
     } catch (error) {
       if (error instanceof QuietBoxRefusedError) {
         console.error('[cold-ci] NOT STARTED: the box is busy; .ci-stamp.json is unchanged');

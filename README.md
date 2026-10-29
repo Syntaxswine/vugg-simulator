@@ -93,19 +93,20 @@ API grants no ownership of other processes, termination authority, or green CI
 verdict. It has no watcher, heartbeat timer, telemetry collector, or retained
 helper process.
 
-Full and resumed runs read the box first: cold CI runs on a quiet box (the
-owner's decision, 2026-10-28). `npm test` without `--file` or `--chip-base`, and
+Full and resumed runs read the box first. Cold CI belongs on a quiet box (the
+owner's rule, 2026-10-28), so `npm test` without `--file` or `--chip-base`, and
 `node tools/cold-ci.mjs`, take one 30-second reading before anything is deleted,
-written, or launched. They do not start (exit 3) when the box is busy: whole-box
-CPU load at or above 25 %, a vugg-canary sweep running (its process or its
-scheduled task), or that task due to start within 3.5 h, a full run with margin.
-A refused start leaves `.ci-stamp.json`, the checkpoint, and the cost ledger
-exactly as they were. `--busy-ok`, or `VUGG_QUIET_BOX_PREFLIGHT=busy-ok` (which
-also reaches `npm run ci`), runs anyway and keeps the reasons in the record. A
-signal that cannot be read (CPU times, the census, the task query) is listed and
-never refuses on its own; the reading is then reported as partly read, never as
-quiet. `node tools/quiet-box.mjs [--json]` reads the box and
-starts nothing: exit 0 quiet, 3 busy, 2 when it cannot run.
+written, or launched. The box is busy when whole-box CPU load is at or above
+25 %, a vugg-canary sweep is running (its process or its scheduled task), or
+that task is due to start within 3.5 h, a full run with margin. A busy box is a
+warning by default (the owner's choice, 2026-10-29): the run starts, and the
+reasons go in the record. `--refuse-busy`, or `VUGG_QUIET_BOX_PREFLIGHT=refuse`
+(which also reaches `npm run ci`), makes a busy box refuse instead (exit 3). A
+refused start leaves `.ci-stamp.json`, the checkpoint, and the cost ledger
+exactly as they were. A signal that cannot be read (CPU times, the census, the
+task query) is listed and never makes the box busy on its own; the reading is
+then reported as partly read, never as quiet. `node tools/quiet-box.mjs [--json]`
+reads the box and starts nothing: exit 0 quiet, 3 busy, 2 when it cannot run.
 
 The reading is one launch observation, not a reservation; it cannot stop load
 that arrives later. So every batch also records the box load it ran under: the
@@ -113,8 +114,8 @@ whole-box mean and each full 30-second bucket, this run's own child included.
 The load appears on the batch's result line, in the checkpoint and completion
 batch records, and, for a failed batch, in the invocation result that cold CI
 stamps; read a timeout against it before debugging the change. Other recognized
-work the census sees (another checkout's Vitest, a dev server) is listed but not
-refused, because its load is what counts. The last reading is saved under
+work the census sees (another checkout's Vitest, a dev server) is listed but does
+not make the box busy, because its load is what counts. The last reading is saved under
 `.local-evidence/quiet-box-preflight-v1.json`. The preflight does not acquire the
 lease, attribute load to processes, or change any verdict.
 
