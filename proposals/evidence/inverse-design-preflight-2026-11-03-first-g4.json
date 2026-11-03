@@ -1,0 +1,1234 @@
+{
+  "what": "The same batch as first analysed (2026-11-03, 12:50-13:31 local), superseded: G4 was a 4-bin variance decomposition of the 64-point sample, smoothness was weighted by layer thickness, and G1 read the mean fluid of the host cells. Kept as the record of the replaced gate; the proposal tells the story.",
+  "simulator": "built checkout of main e86ba58a (SIM 286)",
+  "run": {
+    "repo": "built checkout of main e86ba58a (SIM 286)",
+    "node": "v24.15.0",
+    "platform": "win32 x64",
+    "started": "2026-11-03T17:50:40.983Z",
+    "gate": {
+      "N": 64,
+      "N_REPEAT": 16,
+      "SEED_A": 101,
+      "SEED_B": 102,
+      "TAU": 0.5,
+      "SURVIVE_FRACTION": 0.1,
+      "SURVIVE_GROWTH": 0.5,
+      "MIN_SURVIVING": 3,
+      "MAX_S1": 0.6,
+      "MIN_S1": 0.05,
+      "MIN_MATTER": 3,
+      "MIN_INTERACTION": 0.1,
+      "MAX_NOISE": 0.5,
+      "MAX_HIT_RATE": 0.1,
+      "BINS": 4
+    },
+    "finished": "2026-11-03T18:30:52.268Z",
+    "cpu_seconds": 2366.6,
+    "runs": 476
+  },
+  "candidates": [
+    {
+      "id": "searles-halite-repaired",
+      "role": "negative control (the Stage A target)",
+      "scenario": "searles_lake",
+      "mineral": "halite",
+      "L_min": 0.5,
+      "L_target": 2,
+      "tau": 0.5,
+      "authored": {
+        "salinity": 180,
+        "concentration": 1,
+        "T": 18,
+        "pH": 9.5,
+        "competitors": 1,
+        "hold": 30
+      },
+      "authored_score": 0,
+      "authored_largest_free_mm": 4.373,
+      "traced_at": "22 host cell(s) of the authored run",
+      "survival": [
+        {
+          "input": "salinity",
+          "survives": true,
+          "growth_alive": 1,
+          "fields": [
+            {
+              "field": "salinity",
+              "growth_alive": 1,
+              "first_dead_step": null,
+              "alive_at_end": true,
+              "cuts": []
+            }
+          ],
+          "score_low": 0,
+          "score_high": 0
+        },
+        {
+          "input": "concentration",
+          "survives": false,
+          "growth_alive": 0.09942813219765488,
+          "fields": [
+            {
+              "field": "concentration",
+              "growth_alive": 0.09942813219765488,
+              "first_dead_step": 75,
+              "alive_at_end": false,
+              "cuts": [
+                {
+                  "step": 75,
+                  "kept": 0,
+                  "events": [
+                    "searles_fresh_pulse"
+                  ]
+                }
+              ]
+            }
+          ],
+          "score_low": 0,
+          "score_high": 0
+        },
+        {
+          "input": "T",
+          "survives": false,
+          "growth_alive": 0.1671188114635114,
+          "fields": [
+            {
+              "field": "T",
+              "growth_alive": 0.1671188114635114,
+              "first_dead_step": 30,
+              "alive_at_end": false,
+              "cuts": [
+                {
+                  "step": 30,
+                  "kept": 0,
+                  "events": [
+                    "searles_winter_freeze"
+                  ]
+                },
+                {
+                  "step": 60,
+                  "kept": 0.029,
+                  "events": [
+                    "searles_summer_bake"
+                  ]
+                },
+                {
+                  "step": 61,
+                  "kept": 0.098,
+                  "events": []
+                },
+                {
+                  "step": 64,
+                  "kept": 0.326,
+                  "events": []
+                },
+                {
+                  "step": 68,
+                  "kept": 0.084,
+                  "events": []
+                },
+                {
+                  "step": 76,
+                  "kept": 0,
+                  "events": []
+                }
+              ]
+            }
+          ],
+          "score_low": 0,
+          "score_high": 0
+        },
+        {
+          "input": "pH",
+          "survives": false,
+          "growth_alive": 0,
+          "fields": [
+            {
+              "field": "pH",
+              "growth_alive": 0,
+              "first_dead_step": 30,
+              "alive_at_end": false,
+              "cuts": [
+                {
+                  "step": 30,
+                  "kept": 0,
+                  "events": [
+                    "searles_winter_freeze"
+                  ]
+                }
+              ]
+            }
+          ],
+          "score_low": 0,
+          "score_high": 0
+        },
+        {
+          "input": "competitors",
+          "survives": true,
+          "growth_alive": 1,
+          "fields": [
+            {
+              "field": "Ca",
+              "growth_alive": 1,
+              "first_dead_step": null,
+              "alive_at_end": true,
+              "cuts": []
+            },
+            {
+              "field": "S",
+              "growth_alive": 1,
+              "first_dead_step": null,
+              "alive_at_end": true,
+              "cuts": []
+            },
+            {
+              "field": "B",
+              "growth_alive": 1,
+              "first_dead_step": null,
+              "alive_at_end": true,
+              "cuts": [
+                {
+                  "step": 30,
+                  "kept": 0.4,
+                  "events": [
+                    "searles_winter_freeze"
+                  ]
+                }
+              ]
+            },
+            {
+              "field": "Mg",
+              "growth_alive": 1,
+              "first_dead_step": null,
+              "alive_at_end": true,
+              "cuts": []
+            },
+            {
+              "field": "Sr",
+              "growth_alive": 1,
+              "first_dead_step": null,
+              "alive_at_end": true,
+              "cuts": []
+            }
+          ],
+          "score_low": 0,
+          "score_high": 0
+        },
+        {
+          "input": "hold",
+          "kind": "schedule",
+          "survives": true,
+          "growth_alive": 1
+        }
+      ],
+      "sample": {
+        "n": 64,
+        "seeds": [
+          101,
+          102
+        ],
+        "score_mean": 0.0338,
+        "score_max": 0.561,
+        "errors": 0,
+        "nonzero": 8,
+        "hits_seedA": 2,
+        "hit_rate": 0.031,
+        "confirmed_hits": 2,
+        "variance": 0.01317,
+        "noise_share": 0.01,
+        "first_order": {
+          "salinity": 0.042,
+          "concentration": 0,
+          "T": 0,
+          "pH": 0,
+          "competitors": 0.055,
+          "hold": 0.08
+        },
+        "interaction_share": 0.814,
+        "inputs_matter": 2,
+        "max_first_order": 0.08
+      },
+      "top": [
+        {
+          "i": 28,
+          "score": 0.561,
+          "best_L": 1.088,
+          "smooth": 1,
+          "values": {
+            "salinity": 153.8,
+            "concentration": 1.025,
+            "T": 11.44,
+            "pH": 8.047,
+            "competitors": 1.148,
+            "hold": 62.5
+          },
+          "at_bound": []
+        },
+        {
+          "i": 40,
+          "score": 0.559,
+          "best_L": 1.086,
+          "smooth": 1,
+          "values": {
+            "salinity": 148.1,
+            "concentration": 0.8625,
+            "T": 13.84,
+            "pH": 9.961,
+            "competitors": 1.129,
+            "hold": 78.75
+          },
+          "at_bound": [
+            "pH"
+          ]
+        },
+        {
+          "i": 23,
+          "score": 0.367,
+          "best_L": 0.831,
+          "smooth": 1,
+          "values": {
+            "salinity": 146.3,
+            "concentration": 1.475,
+            "T": 10.06,
+            "pH": 8.828,
+            "competitors": 0.7578,
+            "hold": 67.5
+          },
+          "at_bound": []
+        },
+        {
+          "i": 60,
+          "score": 0.345,
+          "best_L": 0.806,
+          "smooth": 1,
+          "values": {
+            "salinity": 151.9,
+            "concentration": 0.8375,
+            "T": 21.41,
+            "pH": 9.258,
+            "competitors": 1.012,
+            "hold": 51.25
+          },
+          "at_bound": [
+            "concentration"
+          ]
+        },
+        {
+          "i": 55,
+          "score": 0.15,
+          "best_L": 0.615,
+          "smooth": 1,
+          "values": {
+            "salinity": 144.4,
+            "concentration": 1.288,
+            "T": 22.78,
+            "pH": 7.539,
+            "competitors": 0.6211,
+            "hold": 56.25
+          },
+          "at_bound": [
+            "pH"
+          ]
+        }
+      ],
+      "gates": {
+        "G0_platform": true,
+        "G1_survival": true,
+        "G2_coverage": true,
+        "G3_exists": true,
+        "G4_structure": false,
+        "G5_rarity": true
+      },
+      "verdict": "FAIL",
+      "cpu_seconds": 924.4,
+      "runs": 94,
+      "wall_seconds": 932
+    },
+    {
+      "id": "dripstone-calcite",
+      "role": "candidate",
+      "scenario": "zoned_dripstone_cave",
+      "mineral": "calcite",
+      "L_min": 0.583,
+      "L_target": 2.332,
+      "tau": 0.5,
+      "authored": {
+        "Ca": 1,
+        "CO3": 1,
+        "Mg": 1,
+        "T": 18,
+        "pH": 8.4
+      },
+      "authored_score": 0,
+      "authored_largest_free_mm": 0.561,
+      "traced_at": "10 host cell(s) of the authored run",
+      "survival": [
+        {
+          "input": "Ca",
+          "survives": true,
+          "growth_alive": 1,
+          "fields": [
+            {
+              "field": "Ca",
+              "growth_alive": 1,
+              "first_dead_step": null,
+              "alive_at_end": true,
+              "cuts": []
+            }
+          ],
+          "score_low": 0,
+          "score_high": 0
+        },
+        {
+          "input": "CO3",
+          "survives": true,
+          "growth_alive": 1,
+          "fields": [
+            {
+              "field": "CO3",
+              "growth_alive": 1,
+              "first_dead_step": null,
+              "alive_at_end": true,
+              "cuts": []
+            }
+          ],
+          "score_low": 0,
+          "score_high": 0
+        },
+        {
+          "input": "Mg",
+          "survives": true,
+          "growth_alive": 1,
+          "fields": [
+            {
+              "field": "Mg",
+              "growth_alive": 1,
+              "first_dead_step": null,
+              "alive_at_end": true,
+              "cuts": []
+            }
+          ],
+          "score_low": 0,
+          "score_high": 0
+        },
+        {
+          "input": "T",
+          "survives": true,
+          "growth_alive": 1,
+          "fields": [
+            {
+              "field": "T",
+              "growth_alive": 1,
+              "first_dead_step": null,
+              "alive_at_end": true,
+              "cuts": []
+            }
+          ],
+          "score_low": 0,
+          "score_high": 0
+        },
+        {
+          "input": "pH",
+          "survives": true,
+          "growth_alive": 1,
+          "fields": [
+            {
+              "field": "pH",
+              "growth_alive": 1,
+              "first_dead_step": null,
+              "alive_at_end": true,
+              "cuts": []
+            }
+          ],
+          "score_low": 0.9075341668294897,
+          "score_high": 0
+        }
+      ],
+      "sample": {
+        "n": 64,
+        "seeds": [
+          101,
+          102
+        ],
+        "score_mean": 0.1384,
+        "score_max": 0.876,
+        "errors": 0,
+        "nonzero": 16,
+        "hits_seedA": 10,
+        "hit_rate": 0.156,
+        "confirmed_hits": 10,
+        "variance": 0.0771,
+        "noise_share": 0.01,
+        "first_order": {
+          "Ca": 0,
+          "CO3": 0,
+          "Mg": 0,
+          "T": 0,
+          "pH": 0.728
+        },
+        "interaction_share": 0.261,
+        "inputs_matter": 1,
+        "max_first_order": 0.728
+      },
+      "top": [
+        {
+          "i": 39,
+          "score": 0.876,
+          "best_L": 6.327,
+          "smooth": 0.88,
+          "values": {
+            "Ca": 0.6345,
+            "CO3": 1.719,
+            "Mg": 1.576,
+            "T": 19.55,
+            "pH": 7.431
+          },
+          "at_bound": [
+            "pH"
+          ]
+        },
+        {
+          "i": 19,
+          "score": 0.852,
+          "best_L": 4.508,
+          "smooth": 0.85,
+          "values": {
+            "Ca": 0.8052,
+            "CO3": 1.354,
+            "Mg": 1.354,
+            "T": 17.16,
+            "pH": 7.463
+          },
+          "at_bound": [
+            "pH"
+          ]
+        },
+        {
+          "i": 52,
+          "score": 0.832,
+          "best_L": 2.682,
+          "smooth": 0.83,
+          "values": {
+            "Ca": 0.9371,
+            "CO3": 0.8229,
+            "Mg": 0.8974,
+            "T": 20.39,
+            "pH": 7.494
+          },
+          "at_bound": [
+            "pH"
+          ]
+        },
+        {
+          "i": 9,
+          "score": 0.81,
+          "best_L": 3.374,
+          "smooth": 0.81,
+          "values": {
+            "Ca": 1.297,
+            "CO3": 1.542,
+            "Mg": 0.917,
+            "T": 21.94,
+            "pH": 7.525
+          },
+          "at_bound": []
+        },
+        {
+          "i": 26,
+          "score": 0.739,
+          "best_L": 2.409,
+          "smooth": 0.74,
+          "values": {
+            "Ca": 1.756,
+            "CO3": 0.8781,
+            "Mg": 1.477,
+            "T": 18.84,
+            "pH": 7.588
+          },
+          "at_bound": []
+        }
+      ],
+      "gates": {
+        "G0_platform": true,
+        "G1_survival": true,
+        "G2_coverage": true,
+        "G3_exists": true,
+        "G4_structure": false,
+        "G5_rarity": false
+      },
+      "verdict": "FAIL",
+      "cpu_seconds": 358.6,
+      "runs": 99,
+      "wall_seconds": 368
+    },
+    {
+      "id": "stalactite-calcite",
+      "role": "candidate",
+      "scenario": "stalactite_demo",
+      "mineral": "calcite",
+      "L_min": 0.769,
+      "L_target": 3.076,
+      "tau": 0.5,
+      "authored": {
+        "Ca": 1,
+        "CO3": 1,
+        "Mg": 1,
+        "T": 15,
+        "pH": 8.3
+      },
+      "authored_score": 0,
+      "authored_largest_free_mm": 0.69,
+      "traced_at": "6 host cell(s) of the authored run",
+      "survival": [
+        {
+          "input": "Ca",
+          "survives": false,
+          "growth_alive": 0,
+          "fields": [
+            {
+              "field": "Ca",
+              "growth_alive": 0,
+              "first_dead_step": 0,
+              "alive_at_end": false,
+              "cuts": []
+            }
+          ],
+          "score_low": 0,
+          "score_high": 0
+        },
+        {
+          "input": "CO3",
+          "survives": false,
+          "growth_alive": 0,
+          "fields": [
+            {
+              "field": "CO3",
+              "growth_alive": 0,
+              "first_dead_step": 0,
+              "alive_at_end": false,
+              "cuts": []
+            }
+          ],
+          "score_low": 0,
+          "score_high": 0
+        },
+        {
+          "input": "Mg",
+          "survives": true,
+          "growth_alive": 1,
+          "fields": [
+            {
+              "field": "Mg",
+              "growth_alive": 1,
+              "first_dead_step": null,
+              "alive_at_end": true,
+              "cuts": []
+            }
+          ],
+          "score_low": 0,
+          "score_high": 0
+        },
+        {
+          "input": "T",
+          "survives": true,
+          "growth_alive": 1,
+          "fields": [
+            {
+              "field": "T",
+              "growth_alive": 1,
+              "first_dead_step": null,
+              "alive_at_end": true,
+              "cuts": []
+            }
+          ],
+          "score_low": 0,
+          "score_high": 0
+        },
+        {
+          "input": "pH",
+          "survives": true,
+          "growth_alive": 1,
+          "fields": [
+            {
+              "field": "pH",
+              "growth_alive": 1,
+              "first_dead_step": null,
+              "alive_at_end": true,
+              "cuts": []
+            }
+          ],
+          "score_low": 0.8732813845776419,
+          "score_high": 0
+        }
+      ],
+      "sample": {
+        "n": 64,
+        "seeds": [
+          101,
+          102
+        ],
+        "score_mean": 0.1357,
+        "score_max": 0.886,
+        "errors": 0,
+        "nonzero": 14,
+        "hits_seedA": 10,
+        "hit_rate": 0.156,
+        "confirmed_hits": 10,
+        "variance": 0.07686,
+        "noise_share": 0.011,
+        "first_order": {
+          "Ca": 0,
+          "CO3": 0,
+          "Mg": 0,
+          "T": 0,
+          "pH": 0.705
+        },
+        "interaction_share": 0.284,
+        "inputs_matter": 1,
+        "max_first_order": 0.705
+      },
+      "top": [
+        {
+          "i": 0,
+          "score": 0.886,
+          "best_L": 4.861,
+          "smooth": 0.89,
+          "values": {
+            "Ca": 0.5,
+            "CO3": 0.5,
+            "Mg": 0.5,
+            "T": 11.25,
+            "pH": 7.3
+          },
+          "at_bound": [
+            "Ca",
+            "CO3",
+            "Mg",
+            "T",
+            "pH"
+          ]
+        },
+        {
+          "i": 39,
+          "score": 0.861,
+          "best_L": 4.849,
+          "smooth": 0.86,
+          "values": {
+            "Ca": 0.6345,
+            "CO3": 1.719,
+            "Mg": 1.576,
+            "T": 16.29,
+            "pH": 7.331
+          },
+          "at_bound": [
+            "pH"
+          ]
+        },
+        {
+          "i": 19,
+          "score": 0.841,
+          "best_L": 4.407,
+          "smooth": 0.84,
+          "values": {
+            "Ca": 0.8052,
+            "CO3": 1.354,
+            "Mg": 1.354,
+            "T": 14.3,
+            "pH": 7.362
+          },
+          "at_bound": [
+            "pH"
+          ]
+        },
+        {
+          "i": 52,
+          "score": 0.816,
+          "best_L": 4.207,
+          "smooth": 0.82,
+          "values": {
+            "Ca": 0.9371,
+            "CO3": 0.8229,
+            "Mg": 0.8974,
+            "T": 16.99,
+            "pH": 7.394
+          },
+          "at_bound": [
+            "pH"
+          ]
+        },
+        {
+          "i": 9,
+          "score": 0.781,
+          "best_L": 3.841,
+          "smooth": 0.78,
+          "values": {
+            "Ca": 1.297,
+            "CO3": 1.542,
+            "Mg": 0.917,
+            "T": 18.28,
+            "pH": 7.425
+          },
+          "at_bound": []
+        }
+      ],
+      "gates": {
+        "G0_platform": true,
+        "G1_survival": true,
+        "G2_coverage": true,
+        "G3_exists": true,
+        "G4_structure": false,
+        "G5_rarity": false
+      },
+      "verdict": "FAIL",
+      "cpu_seconds": 167.9,
+      "runs": 99,
+      "wall_seconds": 178
+    },
+    {
+      "id": "mvt-fluorite",
+      "role": "candidate",
+      "scenario": "mvt",
+      "mineral": "fluorite",
+      "L_min": 13.138,
+      "L_target": 52.552,
+      "tau": 0.5,
+      "authored": {
+        "Ca": 1,
+        "F": 1,
+        "CO3": 1,
+        "T": 180,
+        "pH": 7.2
+      },
+      "authored_score": 0,
+      "authored_largest_free_mm": 11.995,
+      "traced_at": "1 host cell(s) of the authored run",
+      "survival": [
+        {
+          "input": "Ca",
+          "survives": true,
+          "growth_alive": 1,
+          "fields": [
+            {
+              "field": "Ca",
+              "growth_alive": 1,
+              "first_dead_step": null,
+              "alive_at_end": true,
+              "cuts": []
+            }
+          ],
+          "score_low": 0,
+          "score_high": 0
+        },
+        {
+          "input": "F",
+          "survives": true,
+          "growth_alive": 1,
+          "fields": [
+            {
+              "field": "F",
+              "growth_alive": 1,
+              "first_dead_step": null,
+              "alive_at_end": true,
+              "cuts": []
+            }
+          ],
+          "score_low": 0,
+          "score_high": 0.005239684096171964
+        },
+        {
+          "input": "CO3",
+          "survives": true,
+          "growth_alive": 1,
+          "fields": [
+            {
+              "field": "CO3",
+              "growth_alive": 1,
+              "first_dead_step": null,
+              "alive_at_end": true,
+              "cuts": []
+            }
+          ],
+          "score_low": 0,
+          "score_high": 0
+        },
+        {
+          "input": "T",
+          "survives": true,
+          "growth_alive": 1,
+          "fields": [
+            {
+              "field": "T",
+              "growth_alive": 1,
+              "first_dead_step": null,
+              "alive_at_end": true,
+              "cuts": [
+                {
+                  "step": 36,
+                  "kept": 0.428,
+                  "events": []
+                },
+                {
+                  "step": 40,
+                  "kept": 0.433,
+                  "events": []
+                }
+              ]
+            }
+          ],
+          "score_low": 0,
+          "score_high": 0.004375562817987841
+        },
+        {
+          "input": "pH",
+          "survives": true,
+          "growth_alive": 1,
+          "fields": [
+            {
+              "field": "pH",
+              "growth_alive": 1,
+              "first_dead_step": null,
+              "alive_at_end": true,
+              "cuts": []
+            }
+          ],
+          "score_low": 0,
+          "score_high": 0
+        }
+      ],
+      "sample": {
+        "n": 64,
+        "seeds": [
+          101,
+          102
+        ],
+        "score_mean": 0.0069,
+        "score_max": 0.075,
+        "errors": 0,
+        "nonzero": 19,
+        "hits_seedA": 0,
+        "hit_rate": 0,
+        "confirmed_hits": 0,
+        "variance": 0.0002269,
+        "noise_share": 0.21,
+        "first_order": {
+          "Ca": 0.271,
+          "F": 0,
+          "CO3": 0,
+          "T": 0.073,
+          "pH": 0.008
+        },
+        "interaction_share": 0.437,
+        "inputs_matter": 2,
+        "max_first_order": 0.271
+      },
+      "top": [
+        {
+          "i": 10,
+          "score": 0.075,
+          "best_L": 17.912,
+          "smooth": 0.33,
+          "values": {
+            "Ca": 1.834,
+            "F": 0.5453,
+            "CO3": 1.297,
+            "T": 151.9,
+            "pH": 6.825
+          },
+          "at_bound": []
+        },
+        {
+          "i": 58,
+          "score": 0.06,
+          "best_L": 17.079,
+          "smooth": 0.31,
+          "values": {
+            "Ca": 1.719,
+            "F": 0.6345,
+            "CO3": 0.9786,
+            "T": 142,
+            "pH": 6.669
+          },
+          "at_bound": []
+        },
+        {
+          "i": 61,
+          "score": 0.041,
+          "best_L": 15.441,
+          "smooth": 0.35,
+          "values": {
+            "Ca": 1.445,
+            "F": 1.067,
+            "CO3": 0.5819,
+            "T": 153.3,
+            "pH": 6.419
+          },
+          "at_bound": []
+        },
+        {
+          "i": 50,
+          "score": 0.04,
+          "best_L": 17.872,
+          "smooth": 0.18,
+          "values": {
+            "Ca": 1.576,
+            "F": 0.9786,
+            "CO3": 1.067,
+            "T": 170.2,
+            "pH": 7.544
+          },
+          "at_bound": []
+        },
+        {
+          "i": 13,
+          "score": 0.037,
+          "best_L": 18.208,
+          "smooth": 0.16,
+          "values": {
+            "Ca": 1.542,
+            "F": 1.297,
+            "CO3": 1.542,
+            "T": 140.6,
+            "pH": 7.075
+          },
+          "at_bound": []
+        }
+      ],
+      "gates": {
+        "G0_platform": true,
+        "G1_survival": true,
+        "G2_coverage": true,
+        "G3_exists": false,
+        "G4_structure": false,
+        "G5_rarity": true
+      },
+      "verdict": "FAIL",
+      "cpu_seconds": 466.5,
+      "runs": 92,
+      "wall_seconds": 477
+    },
+    {
+      "id": "epithermal-gold",
+      "role": "candidate",
+      "scenario": "epithermal_telluride",
+      "mineral": "native_gold",
+      "L_min": 3.088,
+      "L_target": 12.352,
+      "tau": 0.5,
+      "authored": {
+        "Au": 1,
+        "S": 1,
+        "Te": 1,
+        "T": 280,
+        "pH": 6.5
+      },
+      "authored_score": 0,
+      "authored_largest_free_mm": 3.109,
+      "traced_at": "4 host cell(s) of the authored run",
+      "survival": [
+        {
+          "input": "Au",
+          "survives": true,
+          "growth_alive": 1,
+          "fields": [
+            {
+              "field": "Au",
+              "growth_alive": 1,
+              "first_dead_step": null,
+              "alive_at_end": true,
+              "cuts": []
+            }
+          ],
+          "score_low": 0,
+          "score_high": 0
+        },
+        {
+          "input": "S",
+          "survives": true,
+          "growth_alive": 1,
+          "fields": [
+            {
+              "field": "S",
+              "growth_alive": 1,
+              "first_dead_step": null,
+              "alive_at_end": true,
+              "cuts": []
+            }
+          ],
+          "score_low": 0,
+          "score_high": 0
+        },
+        {
+          "input": "Te",
+          "survives": true,
+          "growth_alive": 1,
+          "fields": [
+            {
+              "field": "Te",
+              "growth_alive": 1,
+              "first_dead_step": null,
+              "alive_at_end": true,
+              "cuts": []
+            }
+          ],
+          "score_low": 0,
+          "score_high": 0
+        },
+        {
+          "input": "T",
+          "survives": true,
+          "growth_alive": 1,
+          "fields": [
+            {
+              "field": "T",
+              "growth_alive": 1,
+              "first_dead_step": null,
+              "alive_at_end": true,
+              "cuts": [
+                {
+                  "step": 178,
+                  "kept": 0.453,
+                  "events": []
+                }
+              ]
+            }
+          ],
+          "score_low": 0,
+          "score_high": 0
+        },
+        {
+          "input": "pH",
+          "survives": true,
+          "growth_alive": 1,
+          "fields": [
+            {
+              "field": "pH",
+              "growth_alive": 1,
+              "first_dead_step": null,
+              "alive_at_end": true,
+              "cuts": []
+            }
+          ],
+          "score_low": 0,
+          "score_high": 0
+        }
+      ],
+      "sample": {
+        "n": 64,
+        "seeds": [
+          101,
+          102
+        ],
+        "score_mean": 0,
+        "score_max": 0,
+        "errors": 0,
+        "nonzero": 0,
+        "hits_seedA": 0,
+        "hit_rate": 0,
+        "confirmed_hits": 0,
+        "variance": 0,
+        "noise_share": null,
+        "first_order": {
+          "Au": 0,
+          "S": 0,
+          "Te": 0,
+          "T": 0,
+          "pH": 0
+        },
+        "interaction_share": null,
+        "inputs_matter": 0,
+        "max_first_order": 0
+      },
+      "top": [
+        {
+          "i": 0,
+          "score": 0,
+          "best_L": 3.161,
+          "smooth": 0,
+          "values": {
+            "Au": 0.5,
+            "S": 0.5,
+            "Te": 0.5,
+            "T": 210,
+            "pH": 5.5
+          },
+          "at_bound": [
+            "Au",
+            "S",
+            "Te",
+            "T",
+            "pH"
+          ]
+        },
+        {
+          "i": 1,
+          "score": 0,
+          "best_L": 3.109,
+          "smooth": 0,
+          "values": {
+            "Au": 1,
+            "S": 1,
+            "Te": 1,
+            "T": 280,
+            "pH": 6.5
+          },
+          "at_bound": []
+        },
+        {
+          "i": 2,
+          "score": 0,
+          "best_L": 3.091,
+          "smooth": 0,
+          "values": {
+            "Au": 1.414,
+            "S": 0.7071,
+            "Te": 0.7071,
+            "T": 245,
+            "pH": 7
+          },
+          "at_bound": []
+        },
+        {
+          "i": 3,
+          "score": 0,
+          "best_L": 0,
+          "smooth": 0,
+          "values": {
+            "Au": 0.7071,
+            "S": 1.414,
+            "Te": 1.414,
+            "T": 315,
+            "pH": 6
+          },
+          "at_bound": []
+        },
+        {
+          "i": 4,
+          "score": 0,
+          "best_L": 3.127,
+          "smooth": 0,
+          "values": {
+            "Au": 0.8409,
+            "S": 0.8409,
+            "Te": 1.189,
+            "T": 332.5,
+            "pH": 6.25
+          },
+          "at_bound": []
+        }
+      ],
+      "gates": {
+        "G0_platform": true,
+        "G1_survival": true,
+        "G2_coverage": true,
+        "G3_exists": false,
+        "G4_structure": false,
+        "G5_rarity": true
+      },
+      "verdict": "FAIL",
+      "cpu_seconds": 449.2,
+      "runs": 92,
+      "wall_seconds": 456
+    }
+  ]
+}
