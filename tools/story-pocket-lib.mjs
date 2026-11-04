@@ -638,44 +638,45 @@ const lengthAndSpanAgree = (size, span, t) => !(span != null && size > span) || 
  * `display`: what WP1's oversize test reads (wp1Target). Each occurrence votes by the part it plays: a crystal
  * in the display range within q90, one past it past q90, and an accessory (a crystal target's crystal below the
  * range) not at all — this proposal's application of the boss's answer that an accessory is not held to
- * showcase size, so it neither passes the test nor offsets a giant. A crystal whose part the evidence cannot
- * settle is read both ways: one the cavity hides (longer than its span, the two on different sides of the
- * range) at its own length and at the span (in the range there, or below it, an accessory); one short of a
- * specimen proxy, which a proxy cannot refute, as at display scale and as an accessory; and one in a pocket
- * that may not count (SMALL, or UNCLASSED: the boss's small pockets leave the story's count) as counted and as
- * left out. `least` reads each the way least likely to make the typical crystal oversize, `most` the way most
+ * showcase size, so it neither passes the test nor offsets a giant. Which pockets vote is read two ways, each
+ * whole: `every` pocket, as a cavity that hid nothing would count them, and only the `eligible` ones, which hold
+ * the target's characteristic crystal (span at least its median: the boss's rule that size is checked in pockets
+ * physically eligible for it). Within each, a crystal whose part the evidence cannot settle is read both ways:
+ * one the cavity hides (longer than its span, the two on different sides of the range) at its own length and at
+ * the span — in the range there, or below it, where a crystal target's is an accessory and a proxy's is short of
+ * it — and one short of a specimen proxy, which a proxy cannot refute, as at display scale and as an accessory.
+ * In each, `least` reads them the way least likely to make the typical crystal oversize and `most` the way most
  * likely, and every other reading lies between them: { n, within (at or below q90), median, past (the exact
- * median past q90) }. `unsettled` counts the crystals the two read differently.
- *   runs: [{ occurs, size, span, pocket? }] — pocket: pocketClass against the primary (scenarioWp1 gives it)
+ * median past q90) }. `unsettled` counts the voting crystals the readings differ on.
+ *   runs: [{ occurs, size, span }]
  */
 export function assessSize(runs, target, z = 1.96) {
   if (!target || target.basis === 'unknown') return { verdict: 'UNKNOWN' };
   const occurring = runs.filter((r) => r.occurs);
   if (!occurring.length) return { verdict: 'NEVER OCCURS', occurring: 0, eligible: 0 };
-  const least = [], most = [];
-  let unsettled = 0;
-  for (const r of occurring) {
-    let fav = null, against = null; // its vote in each reading: a length, or none
-    if (r.size < target.q25) {
-      if (target.basis === 'crystal') continue; // an accessory
-      fav = r.size; // short of a proxy
-    } else if (lengthAndSpanAgree(r.size, r.span, target)) fav = against = r.size;
-    else if (rangeSide(r.span, target) === 1) { fav = r.span; against = r.size; } // past on its length, in the range on the span
-    else if (r.size <= target.q90) fav = r.size; // in the range on its length, an accessory on the span
-    else against = r.size; // past on its length, an accessory on the span
-    if (r.pocket === 'SMALL' || r.pocket === 'UNCLASSED') {
-      if (fav > target.q90) fav = null;
-      if (against != null && against <= target.q90) against = null;
-    }
-    if (fav !== against) unsettled++;
-    if (fav != null) least.push(fav);
-    if (against != null) most.push(against);
-  }
+  const proxy = target.basis !== 'crystal', holds = (r) => fits(r.span, target) === true;
   const reading = (v) => {
     const median = v.length ? quantile([...v].sort((a, b) => a - b), 0.5) : null;
     return { n: v.length, within: v.filter((x) => x <= target.q90).length, median, past: median != null && median > target.q90 };
   };
-  const display = { least: reading(least), most: reading(most), unsettled };
+  const read = (rs) => {
+    const least = [], most = [];
+    for (const r of rs) {
+      let fav = null, against = null; // its vote in each reading: a length, or none
+      if (r.size < target.q25) {
+        if (!proxy) continue; // an accessory
+        fav = r.size; // short of a proxy
+      } else if (lengthAndSpanAgree(r.size, r.span, target)) fav = against = r.size;
+      else if (rangeSide(r.span, target) === 1) { fav = r.span; against = r.size; } // past on its length, in the range on the span
+      else if (r.size <= target.q90) fav = r.size; // in the range on its length, below it on the span
+      else { if (proxy) fav = r.span; against = r.size; } // past on its length, below the range on the span
+      if (fav != null) least.push(fav);
+      if (against != null) most.push(against);
+    }
+    return { least: reading(least), most: reading(most) };
+  };
+  const unsettled = occurring.filter((r) => (proxy || r.size >= target.q25) && (!holds(r) || r.size < target.q25 || !lengthAndSpanAgree(r.size, r.span, target))).length;
+  const display = { every: read(occurring), eligible: read(occurring.filter(holds)), unsettled };
   const fitting = occurring.filter((r) => fits(r.span, target) === true);
   const beyond = fitting.filter((r) => !lengthAndSpanAgree(r.size, r.span, target)).length;
   const eligible = fitting.filter((r) => lengthAndSpanAgree(r.size, r.span, target));
@@ -685,7 +686,7 @@ export function assessSize(runs, target, z = 1.96) {
   }
   const inRange = eligible.filter((r) => r.size >= target.q25 && r.size <= target.q90).length;
   const sizes = summarize(eligible.map((r) => r.size));
-  const m = sizes.median;
+  const m = quantile(eligible.map((r) => r.size).sort((a, b) => a - b), 0.5); // exact: `sizes` is rounded for the report
   const verdict = target.basis === 'crystal'
     ? (m < target.q25 ? 'BELOW' : m <= target.q75 ? 'MEETS' : m <= target.q90 ? 'LARGE' : 'OVERSIZE')
     : (m < target.q25 ? 'BELOW PROXY' : m <= target.q90 ? 'REACHES PROXY' : 'OVERSIZE');
@@ -916,14 +917,15 @@ export function carrierShare(band, target, range, room = Infinity) {
  *     §2.5 of the proposal tests the fleet for that);
  *   no protagonist with an engine oversize: each crystal votes by the part it plays — in the range within,
  *     past it past, an accessory not at all (this proposal's application of the boss's answer: it neither
- *     passes the test nor offsets a giant) — and one whose part the evidence cannot settle (hidden by the
- *     cavity, short of a specimen proxy, or in a pocket that may not count) is read both ways (assessSize's
- *     `display`). Where every reading puts the typical voter past q90 and the runs can tell it — the interval
- *     of those within q90 stays below one half, which 3 such runs or fewer never can — it fails; where any
- *     reading puts it past q90 but not every one beyond noise, the target is open: an indistinguishable size
- *     miss is never a pass. A cavity that hid nothing, with no small pocket, reads every crystal one of those
- *     ways, and so does the boss's small-pocket rule, so the size test fails a fleet only where both would
- *     fail it and passes one only where both would pass it;
+ *     passes the test nor offsets a giant). Every pocket votes in one reading, and only those that hold its
+ *     characteristic crystal in the other (the boss's size rule), and in each a crystal whose part the
+ *     evidence cannot settle (hidden by the cavity, or short of a specimen proxy) is read both ways
+ *     (assessSize's `display`). Where every reading puts the typical voter past q90 and the runs can tell it —
+ *     the interval of those within q90 stays below one half, which 3 such runs or fewer never can — it fails;
+ *     where any reading puts it past q90 but not every one beyond noise, the target is open: an
+ *     indistinguishable size miss is never a pass. A cavity that hid nothing reads every crystal one of those
+ *     ways, and the boss's size rule reads the eligible pockets one of them, so the size test fails a fleet
+ *     only where both would fail it and passes one only where both would pass it;
  *   every protagonist with an engine carrying the story at its own scale in at least its carrier share
  *     (carrierShare) of the scored runs — the boss's obligation, the one test of "if it never does". Short
  *     of it beyond noise fails: even counting every run it could still carry (short of a proxy, longer than
@@ -935,7 +937,7 @@ export function carrierShare(band, target, range, room = Infinity) {
  * Met only on what it could judge, so these leave it open, not met and not failed: a protagonist that could
  * still reach its share — runs short of a proxy (a proxy cannot refute, so reaching it is strong evidence
  * and falling short is none), longer than the cavity, or in unclassed pockets that may not count; a
- * shortfall within noise; an oversize within noise, or one the cavity may hide; no size target (pending WP0);
+ * shortfall within noise; an oversize within noise, or one the evidence cannot settle; no size target (pending WP0);
  * a display range beyond the cavity (pending WP9); no band to set its share; and a protagonist that never
  * occurs where its band cannot fail that. So a protagonist kept small, rare, oversize or absent never makes
  * the target met.
@@ -962,12 +964,16 @@ export function wp1Target(story, protagonists, { scored = 0, z = 1.96 } = {}) {
     // Never occurring is the band's to judge, whatever the size target.
     if (o.k === 0) { if (!bandFails) open.push(`${p.k} never occurs, and ${banded ? 'its band cannot tell that from its floor' : 'it has no band to judge that by'}`); continue; }
     const d = p.size?.display;
-    if (d?.most.past) {
-      const { least, most, unsettled } = d;
+    if (d && (d.every.most.past || d.eligible.most.past)) {
+      const { every, eligible, unsettled } = d;
       const of = (r) => `past its display range in ${r.n - r.within} of the ${r.n} runs that vote`;
-      // An interval below one half even in its favour puts that reading's median past q90 too, and every other's.
-      if (wilson(least.within, least.n, z)[1] < 0.5) { fails.push(`${p.k} oversize: ${of(least)}${unsettled ? `, with the ${unsettled} that could be read either way read in its favour` : ''}`); continue; }
-      open.push(unsettled ? `${p.k} may be oversize: ${of(most)}, with the ${unsettled} that could be read either way read against it` : `${p.k} oversize within noise: ${of(most)}`);
+      // The reading most in its favour; an interval below one half there puts every reading's median past q90. With
+      // every span known it is the reading of every pocket (the pockets it adds give only votes within the range, or
+      // none); a span not known leaves its crystal out of the other, which may then be the more favourable.
+      const upper = (r) => wilson(r.within, r.n, z)[1], favour = upper(every.least) >= upper(eligible.least) ? every.least : eligible.least;
+      if (upper(favour) < 0.5) { fails.push(`${p.k} oversize: ${of(favour)}${unsettled ? `, with the ${unsettled} that could be read either way read in its favour` : ''}`); continue; }
+      const against = every.most.past ? every.most : eligible.most;
+      open.push(unsettled ? `${p.k} may be oversize: ${of(against)}, with the ${unsettled} that could be read either way read against it` : `${p.k} oversize within noise: ${of(against)}`);
     }
     if (!scored) continue;
     if (p.why === 'no size target') { open.push(`${p.k} has no size target to show it carrying the story`); continue; }
@@ -1026,12 +1032,11 @@ export function scenarioWp1(runs, species, story, { range = [0.25, 0.9], z = 1.9
   const c = story?.counts ?? scoreStory(runs, species);
   const spans = runs.map((r) => r.span).filter((x) => x != null);
   const room = spans.length ? Math.max(...spans) : Infinity;
-  const primary = Object.values(species).find((v) => v.role === 'primary');
   const protagonists = Object.entries(species).filter(([, v]) => v.role === 'primary' || v.role === 'alternate').map(([k, v]) => {
     const cs = carrierShare(v.occurrence_band, v.size, range, room);
     if (v.carrier_share !== undefined && v.carrier_share !== cs.share) throw new Error(`${k}: the sidecar's carrier_share ${v.carrier_share} is not the rule's ${cs.share}`);
     const occurs = runs.filter((r) => r.species[k]?.occurs).length;
-    const size = assessSize(runs.map((r) => ({ occurs: !!r.species[k]?.occurs, size: r.species[k]?.size ?? 0, span: r.span, pocket: pocketClass(r.span, primary?.size) })), v.size, z);
+    const size = assessSize(runs.map((r) => ({ occurs: !!r.species[k]?.occurs, size: r.species[k]?.size ?? 0, span: r.span })), v.size, z);
     return { k, engine: !!v.engine, occurrence: assessOccurrence(occurs, runs.length, v.occurrence_band, z), size, carry: c.carry?.[k], share: cs.share, why: cs.why };
   });
   return wp1Target(story, protagonists, { scored: c.scored, z });
