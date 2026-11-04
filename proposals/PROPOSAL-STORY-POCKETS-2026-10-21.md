@@ -1602,7 +1602,10 @@ leftover components rise. Try it on `gem_pegmatite` against WP1's target before 
        it). The other way, judging such a crystal on its length alone, would drop this proposal's premise
        that the span could be the one to judge;
      - in applying the boss's accessory answer to the oversize test: only crystals at or past the display
-       range's start vote, so an accessory neither passes the test nor offsets a giant (round 14: dust had
+       range's start vote, so an accessory neither passes the test nor offsets a giant (and a crystal short
+       of a specimen proxy's range, which may yet carry, has no vote either: it is no evidence of where the
+       protagonist's crystals at display scale fall, while one past the proxy's 90th percentile is longer
+       than nine specimens in ten and does vote) (round 14: dust had
        turned five carriers and ten giants from open to met, and growing dust in place of absence had
        improved the outcome in 20 to 37 moves per cavity). The cost: a five-crystal record's 90th
        percentile can sit low in its own population, and with the dust no longer voting the crystals at
