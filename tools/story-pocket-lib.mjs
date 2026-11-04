@@ -639,12 +639,16 @@ const lengthAndSpanAgree = (size, span, t) => !(span != null && size > span) || 
  * in the display range within q90, one past it past q90, and an accessory (a crystal target's crystal below the
  * range) not at all — this proposal's application of the boss's answer that an accessory is not held to
  * showcase size, so it neither passes the test nor offsets a giant. Which pockets vote is read two ways, each
- * whole: `every` pocket, as a cavity that hid nothing would count them, and only the `eligible` ones, which hold
- * the target's characteristic crystal (span at least its median: the boss's rule that size is checked in pockets
- * physically eligible for it). Within each, a crystal whose part the evidence cannot settle is read both ways:
- * one the cavity hides (longer than its span, the two on different sides of the range) at its own length and at
- * the span — in the range there, or below it, where a crystal target's is an accessory and a proxy's is short of
- * it — and one short of a specimen proxy, which a proxy cannot refute, as at display scale and as an accessory.
+ * whole: `every` pocket, as a cavity that hid nothing would count them (this proposal's hedge on the boss's
+ * rule, §4), and only the `eligible` ones, which hold the target's characteristic crystal (span at least its
+ * median: the boss's rule that size is checked in pockets physically eligible for it). Within each, a crystal
+ * whose part the evidence cannot settle is read both ways: one the cavity hides (longer than its span, the two on
+ * different sides of the range) at its own length and at the span — in the range there, or below it, where a
+ * crystal target's is an accessory and a proxy's is short of it — and one short of a specimen proxy, which a
+ * proxy cannot refute, as at display scale and as an accessory. A crystal target's crystal in a pocket too small
+ * for its characteristic crystal is read at its own length, as a cavity that hid nothing would read it: at the
+ * span it would vote within, in a pocket the boss's rule leaves out (round 17). A proxy's pocket short of its
+ * median keeps both readings: the protagonist's own crystal, smaller than the proxy, may fit it.
  * In each, `least` reads them the way least likely to make the typical crystal oversize and `most` the way most
  * likely, and every other reading lies between them: { n, within (at or below q90), median, past (the exact
  * median past q90) }. `unsettled` counts the voting crystals the readings differ on.
@@ -666,7 +670,7 @@ export function assessSize(runs, target, z = 1.96) {
       if (r.size < target.q25) {
         if (!proxy) continue; // an accessory
         fav = r.size; // short of a proxy
-      } else if (lengthAndSpanAgree(r.size, r.span, target)) fav = against = r.size;
+      } else if (lengthAndSpanAgree(r.size, r.span, target) || (!proxy && fits(r.span, target) === false)) fav = against = r.size; // settled, or in a pocket too small for a crystal target's median
       else if (rangeSide(r.span, target) === 1) { fav = r.span; against = r.size; } // past on its length, in the range on the span
       else if (r.size <= target.q90) fav = r.size; // in the range on its length, below it on the span
       else { if (proxy) fav = r.span; against = r.size; } // past on its length, below the range on the span
@@ -917,15 +921,18 @@ export function carrierShare(band, target, range, room = Infinity) {
  *     §2.5 of the proposal tests the fleet for that);
  *   no protagonist with an engine oversize: each crystal votes by the part it plays — in the range within,
  *     past it past, an accessory not at all (this proposal's application of the boss's answer: it neither
- *     passes the test nor offsets a giant). Every pocket votes in one reading, and only those that hold its
- *     characteristic crystal in the other (the boss's size rule), and in each a crystal whose part the
- *     evidence cannot settle (hidden by the cavity, or short of a specimen proxy) is read both ways
- *     (assessSize's `display`). Where every reading puts the typical voter past q90 and the runs can tell it —
+ *     passes the test nor offsets a giant). Only the pockets that hold its characteristic crystal vote in
+ *     one reading (the boss's size rule), and every pocket in the other (this proposal's hedge on it, where a
+ *     crystal target's crystal in a pocket too small for it is read at its own length); in each a crystal
+ *     whose part the evidence cannot settle (hidden by the cavity, or short of a specimen proxy) is read both
+ *     ways (assessSize's `display`). Where every reading puts the typical voter past q90 and the runs can tell it —
  *     the interval of those within q90 stays below one half, which 3 such runs or fewer never can — it fails;
  *     where any reading puts it past q90 but not every one beyond noise, the target is open: an
  *     indistinguishable size miss is never a pass. A cavity that hid nothing reads every crystal one of those
  *     ways, and the boss's size rule reads the eligible pockets one of them, so the size test fails a fleet
- *     only where both would fail it and passes one only where both would pass it;
+ *     only where both would fail it and passes one only where both would pass it, wherever every pocket's
+ *     eligibility is settled (every span known; no proxy with pockets of more than one span short of its
+ *     median);
  *   every protagonist with an engine carrying the story at its own scale in at least its carrier share
  *     (carrierShare) of the scored runs — the boss's obligation, the one test of "if it never does". Short
  *     of it beyond noise fails: even counting every run it could still carry (short of a proxy, longer than
@@ -937,7 +944,7 @@ export function carrierShare(band, target, range, room = Infinity) {
  * Met only on what it could judge, so these leave it open, not met and not failed: a protagonist that could
  * still reach its share — runs short of a proxy (a proxy cannot refute, so reaching it is strong evidence
  * and falling short is none), longer than the cavity, or in unclassed pockets that may not count; a
- * shortfall within noise; an oversize within noise, or one the evidence cannot settle; no size target (pending WP0);
+ * shortfall within noise; an oversize within noise, or one only some reading puts past the range; no size target (pending WP0);
  * a display range beyond the cavity (pending WP9); no band to set its share; and a protagonist that never
  * occurs where its band cannot fail that. So a protagonist kept small, rare, oversize or absent never makes
  * the target met.
@@ -967,13 +974,15 @@ export function wp1Target(story, protagonists, { scored = 0, z = 1.96 } = {}) {
     if (d && (d.every.most.past || d.eligible.most.past)) {
       const { every, eligible, unsettled } = d;
       const of = (r) => `past its display range in ${r.n - r.within} of the ${r.n} runs that vote`;
-      // The reading most in its favour; an interval below one half there puts every reading's median past q90. With
-      // every span known it is the reading of every pocket (the pockets it adds give only votes within the range, or
-      // none); a span not known leaves its crystal out of the other, which may then be the more favourable.
+      // The reading most in its favour; an interval below one half there puts every reading's median past q90. Either
+      // can be: the pockets the every reading adds hold crystals within the range, or a crystal target's giants at
+      // their own length (round 17).
       const upper = (r) => wilson(r.within, r.n, z)[1], favour = upper(every.least) >= upper(eligible.least) ? every.least : eligible.least;
-      if (upper(favour) < 0.5) { fails.push(`${p.k} oversize: ${of(favour)}${unsettled ? `, with the ${unsettled} that could be read either way read in its favour` : ''}`); continue; }
+      const inFavour = unsettled ? `, with the ${unsettled} that could be read either way read in its favour` : '';
+      if (upper(favour) < 0.5) { fails.push(`${p.k} oversize: ${of(favour)}${inFavour}`); continue; }
+      // Past in every reading, it is open on the runs' noise alone; past in only some, it may be oversize.
       const against = every.most.past ? every.most : eligible.most;
-      open.push(unsettled ? `${p.k} may be oversize: ${of(against)}, with the ${unsettled} that could be read either way read against it` : `${p.k} oversize within noise: ${of(against)}`);
+      open.push(every.least.past && eligible.least.past ? `${p.k} oversize within noise: ${of(favour)}${inFavour}` : `${p.k} may be oversize: ${of(against)}, with the ${unsettled} that could be read either way read against it`);
     }
     if (!scored) continue;
     if (p.why === 'no size target') { open.push(`${p.k} has no size target to show it carrying the story`); continue; }
@@ -1002,7 +1011,7 @@ export const WP1_OPENS = [
   ['the story unresolved or short within noise', /^story /], ['a protagonist that could still reach its share (runs short of a proxy or longer than the cavity that could carry it, unclassed pockets that may be small)', / it could still reach its share /],
   ['a carrier share missed within noise', /short of its share .* within noise$/], ['a band missed below its floor within noise', /below its band, within noise$/],
   ['an oversize within noise', / oversize within noise: /],
-  ['a typical crystal that may be oversize (past its display range in some reading of the crystals that could be read either way)', / may be oversize: /, true],
+  ['a typical crystal that may be oversize (past its display range in some reading — of which pockets vote, or of the crystals that could be read either way — but not in every one)', / may be oversize: /, true],
   ['no size target to show it carrying', /no size target to show it carrying/], ['a display range beyond the cavity', /cannot carry the story in this cavity/],
   ['no band to set its share', /has no band to set its share/, true], ['never occurring where its band cannot fail that', /never occurs, and /, true],
 ];
@@ -1010,7 +1019,7 @@ export const NEVER_CARRY = [
   ['fail', 'short of its carrier share beyond noise', / below its share /],
   ['fail', 'oversize', / oversize: /],
   ['open', 'oversize within noise', / oversize within noise: /],
-  ['open', 'possibly oversize — past its display range in some reading of the crystals that could be read either way', / may be oversize: /],
+  ['open', 'possibly oversize — past its display range in some reading of which pockets vote or of the crystals that could be read either way, not in every one', / may be oversize: /],
   ['open', 'short of a specimen proxy, which is no failure, so crystal lengths decide (WP0)', / short of its proxy/],
   ['open', 'longer than a cavity whose span is short of its q90 (WP9)', / longer than the cavity/],
   ['open', 'a display range that starts beyond the cavity, which cannot hold it at its scale (WP9)', /cannot carry the story in this cavity/],

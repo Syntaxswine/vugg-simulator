@@ -1810,3 +1810,123 @@ The fail gate takes the more favourable reading. Where every span is known, that
 Mutation testing: 25 mutants on round 16's code, all killed by the tests, the splice check or the targets check. They covered the two pocket readings (every pocket counted as eligible, only the eligible pockets in both, a pocket that cannot be told counted as eligible), the fail's reading (the eligible pockets only, every pocket only, the less favourable reading, at one half itself), the open gate (either reading alone, the label quoting the other), the crystal readings (the hidden proxy below its range with no vote, a hidden crystal read at its length both ways, one in the range on its length voting against too, a proxy short with no vote or voting against, the accessory gate at q10), the medians (the display median rounded, a median at q90 past, the reported verdict rounded), the unsettled count (ineligible pockets left out, a crystal target's accessories counted), two labels, the sixth line and the rule text. The every-pocket-only fail survived until the unknown-span test was added.
 
 Result: STORY 1, STORY (PROXY) 1, NO STORY 3, UNRESOLVED 26, NO ENGINE 1, OUT OF SCOPE 1 (unchanged). WP1's whole target is met by none: it fails at 16 scored scenarios (by cause: the story 4, a band 15, a carrier share 5, oversize 0) and is open at 16. No protagonist has a size entry. Tests 131 (was 130).
+
+## Round 17 — 8/10 (on 3b201c9e)
+
+One reviewer, under the standing rule (no cap on rounds; stop at 9/10 or when nothing must be fixed).
+
+### The report
+
+> Round 16's two must-fixes are fixed and hold on the committed targets. But the new "every pocket" reading reads a giant hidden in a pocket that cannot hold the median at the span. Neither anchor reads it that way, and with every span known that reading always decides the fail. I edited nothing in the repository. Scratch files are only in `review17\`.
+>
+> **MUST-FIX**
+>
+> 1. **Pockets just short of the median switch off the oversize fail. The stated cost names the wrong mechanism.**
+>    - **Where:**
+>      - lib:670 (the hidden crystal read at the span), applied to every pocket at lib:679, chosen at lib:973.
+>      - test.ts:464 pins this reading.
+>      - The cost is stated at PROPOSAL:1619–1622 as "carriers there can turn a fail into open". Also §1.3:314–326 and size_check.
+>    - **Evidence (committed targets):**
+>      - **Tsumeb cerussite**, 40 mm in all 21 runs (q90 36). In its 64.77 mm cavity it fails. With 7 of the 21 runs in 25 mm pockets (short of its 28 mm median; §1.3:296 calls SMALL conclusive) it is **open**: "may be oversize: past its display range in 21 of the 21 runs that vote". Every crystal is a giant. The boss's rule (14 of 14 past) and a cavity that hid nothing (21 of 21) both fail it.
+>      - **Deccan calcite**, all 21 at 60 mm with 7 in 20 mm pockets: open.
+>      - **NP galena**, lognormal fleets, 2,000 each, with 7 of 21 runs in 19 mm pockets:
+>
+>        | median | both anchors fail | code fails |
+>        |---|---|---|
+>        | 30 mm | 22 % | 0.0 % |
+>        | 40 mm | 61 % | 0.6 % |
+>        | 50 mm | 88 % | 0.3 % |
+>
+>        With only 3 such runs at 40 mm: both anchors fail 77 %, the code 41 %.
+>    - **Why it is wrong:**
+>      - "Every pocket, as a cavity that hid nothing would count them" — but a cavity that hid nothing reads the crystal at its own length.
+>      - The boss's rule leaves the pocket out.
+>      - Only the incoherent combination votes within: the pocket counts, and the crystal is cut to a span that cannot hold the median.
+>      - This is a fourth cavity route. Giants there count as carriers, not just carriers.
+>    - **Fix:** for a crystal target in a pocket where `fits(span) === false`, read the crystal at its own length in both readings. Add `|| (!proxy && fits(r.span, target) === false)` to the `lengthAndSpanAgree` branch. On a scratch copy:
+>      - 130/131 tests pass; only test.ts:464 fails, and it pins the defect.
+>      - The code then fails exactly where both anchors fail in all 12 sweep configurations (0.0 % held open).
+>      - The stated cases keep their outcomes: Deccan calcite and stilbite, Herkimer, Naica, and both Tsumeb cases.
+>      - Census verdicts cannot move (one span per scenario).
+>
+>      Proxies can keep the at-span reading: below the proxy's median their eligibility is genuinely unknown. Alternatively, keep the current reading, and state this cost with these figures and put it to the boss.
+>
+> **SHOULD-FIX**
+>
+> 1. **The hedge's attribution, and a false claim in the response.**
+>    - The rounds file (line 1803) says "§1.3 and §4 now say … hedge … and give its cost". Only §4 does: "hedge" appears once in the tree, at PROPOSAL:1620.
+>    - §1.3, size_check (targets JSON:81 / targets.mjs:75) and carrier_obligation present the every-pocket reading beside the boss's rule with no attribution.
+>    - §1.3:317 cites round 15's "carriers in small pockets had offset giants" in the past tense. §4 says they still turn a fail into open.
+>    - Rule 4 (PROPOSAL:125) and the generated WP1 line (:1172, scoreboard:531) fold the pocket hedge into "what the evidence cannot settle", which is round 16's S1 again.
+>    - **Fix:** attribute the hedge in all of these places.
+>
+> 2. **"Such a crystal in place of absence never makes the target met" (PROPOSAL:451–455) is false.**
+>    - Crystal target, q25 10, median 20, q90 40. Four carriers in 100 mm pockets, and 7 giants of 50 mm hidden in 15 mm pockets.
+>    - With 2 carriers of 12 mm in those pockets the target is open. One more carrier in place of an absence makes it **MET** (band IN at 13 and at 14 of 21).
+>    - The sweep (test.ts:1218–1226) has no giant in a small pocket. Scope the claim to that case, or restate it.
+>
+> 3. **The bound claims hold only where eligibility is settled** (§1.3:323–325, size_check, §4:1616–1618). Both cases are latent.
+>    - **Proxy, mixed spans** (q25 50, median 70, q90 115): 3 carriers in 200 mm pockets, 4 × 300 mm hidden in 65 mm pockets, 5 × 55 mm in 60 mm pockets. Result: **MET**. If the crystal's own median is 62 mm, the boss's rule counts the 65 mm pockets, and that reading's median is 300, past q90.
+>    - **Unknown spans, fail side:** 10 giants in 100 mm pockets and 11 in pockets of unknown span → **FAILED**. Yet a reading where the unknown pockets hold the median and hide the giants gives 11 of 21 within.
+>    - **Unknown spans, pass side:** 3 eligible carriers, 4 unknown-span giants and 5 small-pocket carriers → passes. The boss's rule with the unknown pockets counted is past.
+>    - State the scope.
+>
+> 4. **In mixed cavities the hidden-crystal cost covers the whole fleet.** Seven galena runs in eligible 25 mm pockets (short of q90): the code and the boss's rule fail 0.3 %, a cavity that hid nothing 40 / 85 / 98 %. §1.3:320 says "never fail … there", and the sixth line (scoreboard:403) tests only the scenario's single span. State this for WP9.
+>
+> 5. **Labels.**
+>    - "may be oversize" is chosen by `unsettled > 0` (lib:976), not by whether every reading is past. A fleet with 2 carriers and 4 giants plus 1 small-pocket carrier is past in every reading and open only on noise, yet labelled "may be".
+>    - The WP1_OPENS and NEVER_CARRY labels (lib:1005, :1013) still mention only crystal readings, not pocket readings.
+>
+> 6. **Figures and nits.**
+>    - PROPOSAL:427 says the sd 0.3 galena fleet is met in 99 %. 30,000 fleets give 97.9 %.
+>    - PROPOSAL:469 says the tests pin 210 seeds for records of seventeen. They do not.
+>    - The "copies" of Deccan at test.ts:1193/1272 differ from the committed targets: apophyllite's q90 is 40 (committed 84.6), and the apophyllite and stilbite bands are swapped. The §4 cases still hold on the committed targets.
+>    - The commit message has a typo: "only differs only".
+>
+> **Verified and correct**
+> - **State:**
+>   - The tree was clean at 3b201c9e before and after, and the .local-evidence hashes are unchanged.
+>   - Nothing under js/ or data/ changed in the nineteen commits.
+>   - The comparison tool was last changed in afbe687f, and it runs.
+> - **Checks:**
+>   - The size evidence runs, and the targets match a rebuild.
+>   - All 13/13 scoreboard and 2/2 substrate splice blocks match.
+>   - Tests pass 131/131, and my scratch mirror also gets 131/131.
+> - **Round-16 responses, rerun on the committed targets:**
+>   - Cerussite 21 × 40 mm fails. Smithsonite (20 carriers + 1 × 500 mm) is met.
+>   - Naica is open ("11 of 11 … 5").
+>   - NP galena at 27.2004 mm is reported OVERSIZE.
+>   - Deccan calcite and stilbite are open; with only the eligible pockets voting, calcite fails and stilbite is met.
+>   - Herkimer is open.
+>   - S2 and S3 hold.
+> - **Figures reproduce:**
+>   - Galena sweep: median rule fails 39–40 / 84 / 98 %; lower third fails 3.6 / 26 / 56–58 %; met 4 / 0.1 / 0 %.
+>   - Correct fleets at 21 seeds fail 6.2 % (five crystals), 4.5 % (six) and 0.5 % (seventeen).
+> - **Bounds:** with every span known, the every-pocket reading is always the more favourable for the fail (proved). Nothing with more giants than carriers in the eligible pockets is met.
+> - **Mutants:** 30 on the new code, 27 killed. The survivors:
+>   - two are cosmetic or equivalent;
+>   - the third is a pre-existing gap: the reported verdict's median over `fitting` survives, because no test mixes eligible and beyond runs.
+> - **Parser and joins:** 18 random crystal lengths are all correct. The longest-gap joins (Mogok 5×5×4.8 mm, Deccan 159×100×47 mm) follow the registered three-dimension rule and look like one specimen.
+> - **Earlier routes:** the cavity, dust, proxy, unclassed and rounding routes stay closed.
+>
+> **Ready for the boss?** Not yet. Fix MUST-FIX 1 (one line, plus test.ts:464), or state its cost with these figures and put it to the boss. Correct the response's §1.3 claim and the hedge's attribution. The rest is text.
+
+### The response
+
+The score rose (7.5 → 8). I took the reviewer's fix for the must-fix: in a pocket too small for a crystal target's characteristic crystal, that crystal is read at its own length in both readings. A cavity that hid nothing reads it so, and the boss's rule leaves the pocket out, so the at-span reading was the incoherent combination the reviewer named. A proxy's pocket short of its median keeps both readings, because the protagonist's own crystal, smaller than the proxy, may fit it.
+
+| # | finding | what changed | evidence |
+|---|---|---|---|
+| M1 | pockets just short of a crystal target's median switched off the oversize fail: a giant hidden there voted within | `assessSize` reads a crystal target's crystal in a pocket where `fits` is false at its own length in both readings (the reviewer's one-line fix). test.ts:464 and :466 now pin that reading. The round-16 response argued that with every span known the every reading is always the more favourable for the fail. That no longer holds: the pockets it adds can now hold giants at their length, so the fail's choice of the more favourable reading now matters. The lib's comment says so. | Committed targets. Tsumeb's cerussite at 40 mm in every run, 7 runs in 25 mm pockets: open before, now failed ("14 of the 14 runs that vote, with the 7 … read in its favour"). Deccan's calcite at 60 mm, 7 runs in 20 mm pockets: open before, now failed. NP galena, lognormal sd 0.6, 2,000 fleets per cell, k of 21 runs in 19 mm pockets, k = 0 / 3 / 7 / 10 at medians of 30 / 40 / 50 mm: the size test now fails exactly the fleets both anchors fail in all 12 cells. At k = 7 it had failed 0.1 / 0.3 / 0.4 %, where both anchors fail 22 / 63 / 89 %. A test pins k = 3 and 7 at 40 mm (300 fleets each). Giants confined to such pockets, with carriers in the cavity, are held open and never failed; that is pinned too, and the every-reading-only mutant now dies there. Random search over 40,000 protagonists (two seeds, mixed known spans) found no fail where either anchor does not fail, and no pass where either does not pass. Census verdicts are unchanged (one span per scenario). |
+| S1 | the hedge's attribution, and a false claim in the round-16 response | Rule 4, §1.3, WP1's bullets and target, `size_check`, `carrier_obligation`, the lib's comments and the generated WP1 line now name every-pocket counting as this proposal's hedge on the boss's rule, and list "which pockets vote" apart from "the crystals the evidence cannot settle". §1.3 gives the hedge's cost: carriers there can turn a fail into open, never into met. It restates round 15's case as what it was: those carriers had turned a fleet of giants into met. The round-16 response said "§1.3 and §4 now say … hedge … and give its cost", but only §4 did. That response stays as written; this note corrects it. | — |
+| S2 | "such a crystal in place of absence never makes the target met" was false | The claim is now scoped to what the tests sweep: carriers in the small pockets, or crystals short of a proxy. The text also states the reviewer's case and why it is met. One more small-pocket carrier ties the giants there, and with no giant in the pockets that hold the crystal, both anchors would pass the fleet. | Rerun: 4 carriers in 100 mm pockets, with 7 giants and 2 carriers in 15 mm ones, is open. With 3 carriers there it is met. |
+| S3 | the bounds hold only where eligibility is settled | §1.3, §4, `size_check` and the lib now give the bound claims' scope. They hold where every span is known and no proxy has pockets of more than one span short of its median, which is every scenario today. A span not known, or a proxy's own crystal median (which only the proxy bounds), could make some pockets eligible and not others. | All three of the reviewer's cases are latent. |
+| S4 | in mixed cavities the hidden-crystal cost covers the whole fleet | §1.3 and §4 state this for WP9. The sixth line is described as judged on the scenario's one span; WP9 would judge each run's. | NP galena with 7 of 21 runs in 25 mm pockets, which hold its median but not its q90: the size test and the boss's rule fail 0.1 / 0.3 / 0.4 % of fleets at 30 / 40 / 50 mm, and a cavity that hid nothing fails 41 / 85 / 98 % (2,000 fleets each). |
+| S5 | labels | "Oversize within noise" now means past the range in every reading; "may be oversize" means past it in some reading but not in every one. The cause labels name both kinds of reading. The reviewer's case is labelled within noise, and a test pins it. Two expectations moved: a synthetic display past in every reading, and Naica's selenite. The selenite's 6 giants are its typical crystal in every reading, so it is now an oversize within noise ("6 of the 11 runs that vote, with the 5 … read in its favour"). | — |
+| S6 | figures and nits | §1.3's sd 0.3 galena is met in 98 % of 30,000 fleets (99 % had been stated), and the test comment now agrees. §1.3 says which rows the tests pin: 21 seeds for records of five and seventeen, 210 seeds for five. The tests' "copies" of Deccan, Tsumeb and Naica now match the committed targets exactly, including bands and story frequencies. Under the committed bands the stilbite sweep's same-band check uses AB, and one share message reads 0.299. The North Pennines fixtures take the committed q10s. The commit message's "only differs only" stays in the history. | — |
+
+The reviewer's surviving mutant, the reported verdict's median taken over every fitting run, now dies: a test mixes eligible runs with runs the cavity hides.
+
+Mutation testing: 33 mutants on round 16's and round 17's code, all killed by the tests, the splice check or the targets check (31 at first: which reading the may-be label quotes when both are past, and a proxy's crystal in its range hidden below the proxy's, were unpinned; two cases now pin them). They covered round 17's reading (reverted, extended to proxies, in its favour only), the label (within noise only where nothing is unsettled, where the every reading alone or either reading is past, quoting the reading against it), the two pocket readings, the fail's reading (eligible only, every only, the less favourable, at one half itself), the open gate, the crystal readings, the medians (the display median rounded, a median at q90 past, the reported verdict rounded or over every fitting run), the unsettled count, two labels, the sixth line and the rule text.
+
+Result: STORY 1, STORY (PROXY) 1, NO STORY 3, UNRESOLVED 26, NO ENGINE 1, OUT OF SCOPE 1 (unchanged). WP1's whole target is met by none: it fails at 16 scored scenarios (by cause: the story 4, a band 15, a carrier share 5, oversize 0) and is open at 16. No protagonist has a size entry. Tests 132 (was 131).
