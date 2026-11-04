@@ -1243,3 +1243,119 @@ One reviewer, under the standing rule (no cap on rounds; stop at 9/10 or when no
 Mutation testing: 19 mutants on this round's code — the agreement rule (rounds 8, 9 and 10's versions of it among them) and its side boundaries, assessSize's eligibility and beyond count, runStory's use of it, the oversize-within-noise rule four ways, "met" over the counted runs, and the scoreboard's and targets' new text — 18 killed: 14 by the tests, 3 by the splice check, 1 by the targets check. The survivor, the scoreboard counting a protagonist as held open by the limit alone when any of its entries is within noise, gives the same text on the census: no protagonist with an unfailable share pairs a share within noise with another entry.
 
 Result: STORY 1, STORY (PROXY) 1, NO STORY 3, UNRESOLVED 26, NO ENGINE 1, OUT OF SCOPE 1 (unchanged; Bisbee's malachite now carries 15 runs, and Bisbee stays UNRESOLVED). WP1's whole target is met by none: failed at 16 scored scenarios (by cause: the story 4, a band 15, a carrier share 5, oversize 0), open at 16. Tests 122 (was 121).
+
+## Round 12 — 7.5/10 (on 187f5c92)
+
+One reviewer, under the standing rule (no cap on rounds; stop at 9/10 or when nothing must be fixed).
+
+### The report
+
+> 187f5c92's fixes are correct as far as they go, and the tests pin them well. But M1's central claim fails by the cavity path, and §4 costs its third option as a different test from the one it names.
+>
+> **MUST-FIX**
+>
+> 1. **A protagonist grown past a cavity that is short of its q90 is MET even when most of its crystals are giants.** This is the same indistinguishable-size pass that M1 closed, reached by another route.
+>    - **Where:**
+>      - `story-pocket-lib.mjs:645–647`: `assessSize` leaves `beyond` runs out of the size verdict. Since `fits` requires span ≥ median, every such run has its length past q90, so the exclusion only ever biases the verdict toward MEETS.
+>      - `lib:924–929`: `wp1Target` never sees those runs.
+>    - **Claims this breaks:**
+>      - PROPOSAL:407–412: "none with most occurrences past the range is met"; "kept … oversize never makes the target met".
+>      - PROPOSAL:1153–1154 and 1169–1170.
+>      - `lib:901`.
+>      - The sixth line (`scoreboard:404`, "left open").
+>    - **Evidence** (committed lib, real targets):
+>      - Herkimer's quartz (n 5, q90 60.4, span 59.94): 5 runs at 16 mm and 16 at 1,000 mm give STORY, size MEETS (5 eligible, 16 beyond), and **WP1 MET**. The same fleet in the 92 mm cavity fails as oversize.
+>      - Of the 2,024 splits into carrier / 1 m / dust / absent, **91 are MET with most occurrences giants**; with span > q90 there are 0. The NP galena in a 25 mm cavity gives the same 91.
+>      - Sweep (lognormal sd 0.6, 2,000 fleets) in Herkimer's own cavity:
+>        - median 80 mm (68 % of runs past q90): met 84 %, failed 0 %;
+>        - median 120 mm: met 12 %, failed 0 %.
+>      - The same fleets in a cavity past q90: met 4 % / failed 49 % at 80 mm, failed 99 % at 120 mm.
+>    - The proposal's own premise is that "its length or the span could be the one to judge". These sizes are therefore indistinguishable, and the boss said such a miss is never a pass.
+>    - Reachable for the 30 protagonists the sixth line lists, Herkimer (WP1's first target) among them. Round 11's S2 saw only the all-giant case, which is open.
+>    - **Fix:** where eligible − within + beyond > (eligible + beyond)/2, leave WP1 open ("oversize unknown").
+>      - My scratch variant: mostly-giant met splits fall 91 → 0; Herkimer at 80 mm is met 4.5 % (the rest open); 16–30 mm fleets are unchanged; the census is unchanged.
+>      - All 122 tests still pass under it, so nothing pins this either way. Add the split property on Herkimer's real cavity and restate the claims.
+>
+> 2. **§4's cost for the third option describes a different test from the one it names** (PROPOSAL:1572–1577; REVIEW:1236; the commit message).
+>    - **The named test:** "as round 10 repaired" is P(none of m in range) from `recordCoverage` (beta-binomial).
+>      - Against five crystals it can first judge at **m = 13** (n 8: m = 8).
+>      - It fails a correct protagonist **≤ 2.5 %** by construction: 2.47 % in the model, 1.7 % simulated on a lognormal.
+>      - It fails both Deccan protagonists (p 0.11 % and 0.92 % at m = 21).
+>    - **What the stated figures fit:** "about 8 % … at the fewest such runs it can judge (6)" is the round-9 reviewer's Wilson variant. The top for 0 of 6 is 0.390 < 0.433, and its simulated false-fail rate at 6 runs is 7.8 %.
+>    - So the repaired option, the one round 11 asked to see costed, is made to look three to five times worse than it is.
+>    - **Options 2 and 3 are costed on different noise models.** (1−s)²¹ counts the runs' noise only. Counting the record's noise, as option 3's figure does, gives:
+>      - Deccan apophyllite 4.6 % (stated 3.2);
+>      - Deccan calcite 9.6 % (stated 5.4);
+>      - Jeffrey pectolite 30 % (stated 30).
+>    - Minor: 3.2 % is the figure for 0.1517; 0.15 gives 3.3 %.
+>    - **Fix:** cost the named test correctly, put options 2 and 3 on one model (or state both), and correct REVIEW:1236.
+>
+> **SHOULD-FIX**
+>
+> 1. **The registered rule texts contradict S1's third agreement.**
+>    - `story-pocket-targets.mjs:77` → targets JSON:83 (`story_frequency_rule`):
+>      - a story run's crystal must be in range "and no longer than the cavity";
+>      - "runs whose crystal is longer than it stay open" (also PROPOSAL:346).
+>    - `:78` → JSON:84 (`carrier_obligation`):
+>      - a carrier's crystal is "within the cavity";
+>      - the runs it could still carry are "longer than a cavity whose span is short of its q90" (also PROPOSAL:375–376, 400–401, 1163).
+>    - Bisbee's malachite carries 15 runs against the registered text. The targets check cannot catch this, because the text is the tool's own.
+>
+> 2. **PROPOSAL:305–307 is false since S1.** "a crystal grown past the cavity is always such a run": one grown past the span but within q90 carries the story. Bisbee is exactly that case (q90 138, span 61).
+>    - PROPOSAL:303–304 also types a census result outside the markers ("now carries in 15 runs"), against round 11's S5.
+>
+> 3. **PROPOSAL:1562–1564 slightly overstates the boss's part.** "On the boss's own two answers it would fail" holds for Deccan's calcite, an alternate. For the apophyllite, the primary, it rests on this proposal's choice to hold the primary to the obligation.
+>
+> 4. **`scoreboard:425`'s label "a share the scored runs cannot tell from none carried" catches more than it says.** It matches any never-carrier short within noise, including one held there by beyond or short runs (for example 0 carried, 1 beyond, against 0.2167). No census case today.
+>
+> 5. **Test gap:** the 2,024-split property uses span 91.93 only (`test.ts:964–982`).
+>
+> **Verified correct**
+>
+> - **Read-only:** HEAD is 187f5c92 and the tree is clean.
+>   - Only the test-quarry ledger changed; every other `.local-evidence` hash is unchanged.
+>   - `compare.json` 8419de06… reproduced; the comparison tool last changed in afbe687f (an ancestor).
+>   - Nothing under js/ or data/ changed in f49c1804~..187f5c92.
+>   - A scratch `node_modules` junction I used for the mutation harness was removed (link only).
+> - **Checks:** the size evidence runs; the targets match a rebuild; 13/13 scoreboard and 2/2 substrate blocks match; 122/122 tests pass, also on my scratch harness.
+> - **M1 holds in its own terms:**
+>   - the three met cases are now open;
+>   - 802 met and 0 mostly-past of 2,024 in the 92 mm cavity;
+>   - no carrier→X move improves in any cavity.
+>   - Correct fleets at 21 seeds are met 72.8–72.9 / 56.2–56.9 % (stated 72.5 / 56.8) and failed 0.2–0.3 / 2.6 %.
+>   - The floors are unaffected by M1 (same seeds as 454adb7a's lib).
+>   - The 210- and 1,000-seed rows reproduce within noise (for example 66 / 15 and 69 / 23 % against five crystals).
+>   - Galena sweep: met 23 / 6 / 0.8 %; failed 13 / 38 / 73 / 96 / 99.8 / 100 %.
+> - **M2:** the attribution is fixed in §4, the eighth line and `rules.carrier_obligation`. Option 1's 22 / 26 / 65 seeds are exact.
+> - **S1:** the code is right. Inside `assessSize` only two of the three agreements can occur, so `size_check`'s text is right.
+> - **S2:** the list of 30 is right as "never judged oversize".
+> - **S3:** the split is right (Deccan's two are held open by the limit; Grimsel fluorite 0.156 against 0.1546).
+> - **S4:** the tests are present. **S5:** the removals are done.
+> - **Mutants:** 21 of my own on the lib — the agreement rule five ways, `rangeSide`'s boundaries, the oversize rule four ways, the share's denominators, could-runs, band and story noise, unclassed `beyond`, `fits`, `carrierShare`, `few`. 19 killed. The two survivors are equivalent (`<` → `<=` 0.5) or affect only a reported count (`beyond` taken over every occurring run).
+> - **Earlier rounds hold:**
+>   - no size floor;
+>   - unclassed runs stay out of the count;
+>   - one giant does not rescue dust where span > q90;
+>   - the appendix rebuilds byte for byte; 50 joins (33 by caption, 17 by dimensions); 2,167 specimens;
+>   - spot-checked crystal rows behind Herkimer, Deccan's calcite and apophyllite, and NP galena: clean.
+> - **Acceptance items:** present and honest, except as above.
+>
+> **Ready for the boss?** Not yet. First make crystals longer than a cavity short of q90 hold WP1 open wherever they could make it oversize (MUST-FIX 1), and cost §4's third option as the test it names (MUST-FIX 2). The should-fixes are text.
+
+### The response
+
+| # | finding | what changed | evidence |
+|---|---|---|---|
+| M1 | a protagonist grown past a cavity short of its q90 was met though most of its crystals were giants | `wp1Target` leaves WP1 open ("may be oversize") where the runs the size verdict leaves out for the cavity (past the range on their length, in it on the span) and the eligible runs past q90 are at least half of the two together. At least half, not the reviewer's more than half: at exactly half the typical crystal may lie between one in the range and one past it, which the oversize test already leaves open on the eligible side. My first version took more than half and still met 20 splits with exactly half giants (6 carriers and 6 giants among them); found before this commit, it is now a mutant the tests kill. A judged OVERSIZE stays the oversize test's alone. Restated: §2.3's pockets bullet, WP1's bullets and target, `size_check` and `carrier_obligation`, the sixth line under §2's table ("can never fail them as oversize", and where such runs are at least as many as the ones judged, open), the generated WP1 line; "may be oversize" is a cause in the open causes and in the never-carry groups. | Herkimer's quartz (the committed target, q90 60.4 mm) in its own 59.94 mm cavity: 5 runs at 16 mm and 16 at 1 m are open (may be oversize, 16 of 21 runs), where they had been met; in a 92 mm cavity they fail as oversize. Of the 2,024 splits of 21 runs into carriers, 1 m giants, dust and absence, 802 are met and none with at least half giants (the reviewer counted 91 met with most occurrences giants); they are exactly the splits met in the 92 mm cavity, the short cavity fails none that one does not, and it leaves open 315 of that one's 414 failures. No move away from carrying improves the outcome. All of this is a test now. Sweep of 2,000 lognormal fleets (sd 0.6) in Herkimer's cavity, met at medians of 16 / 30 / 50 / 80 / 120 mm: 100 / 100 / 88.3 / 4.5 / 0 %, the same as in the 92 mm cavity; failed 0 % at every median (the 92 mm cavity fails 46 % at 80 mm and 99 % at 120). The census is unchanged: no protagonist is may-be-oversize in the 861 runs. |
+| M2 | §4 costed its third option as a different test, and options 2 and 3 on different noise models | §4 now costs the named test, round 10's repaired one (the chance that none of m runs lands in the display range, a beta-binomial on the record's coverage): it fails a correct protagonist in at most 2.5 % of fleets (about 1.7 % simulated); it can first judge at 13 such runs against a five-crystal record, 8 against eight, 5 against seventeen; and it would fail both of Deccan's protagonists (0.92 % and 0.11 % at 21 runs). Option 2 is costed on both models: on the runs' noise, (1 − s)²¹ is 3.2 % at a share of 0.152 (the reviewer's minor: 0.15 gives 3.3), 5.4 % at 0.13, 30 % at 0.056; with the record's noise as well, about 5, 9 and 30 %. Round 11's response (M2) cited the wrong test's cost; corrected in the note below. | `fix12/option-costs.mjs`, 40,000 fleets each. Option 2 with the record's noise: modelled 5.8 / 11.1 / 30.7 %, simulated 4.8 / 9.3 / 30.0 %. Option 3, records of 5 / 8 / 17: it first judges at m = 13 / 8 / 5, failing a correct protagonist there in 2.47 / 2.15 / 2.44 % modelled and 1.66 / 1.55 / 2.33 % simulated. |
+| S1 | the registered rule texts contradicted the third agreement | `story_frequency_rule`: a run carries the story when a protagonist's crystal is in its display range "on its own length, and, where it is longer than the cavity, on the span as well"; a crystal longer than the cavity "is judged only where its length and the span fall on the same side of the display range". `carrier_obligation`: the carrier's crystal is in its display range "on its length, and on the span too where it is longer than the cavity"; the runs it could still carry are those "longer than the cavity where its length and the span fall on different sides of the display range". `size_check` names all three agreements. | Bisbee's malachite now carries under the registered text as it does under the code. |
+| S2 | §2.3 said a crystal grown past the cavity is always a could-carry run, and typed a census count outside the markers | Rewritten: such a crystal either stays within the 90th percentile, and carries, or passes it and is a run the protagonist could still carry. The typed "15 runs" is removed. | — |
+| S3 | §4 said "on the boss's own two answers it would fail" of the primary too | §4: for an alternate the boss's two answers fail it; for a primary they do only together with this proposal's choice to hold the primary to the obligation. | — |
+| S4 | the never-carry label "a share the scored runs cannot tell from none carried" caught more than it said | Relabelled "short of its share within noise". | — |
+| S5 | the split property used a cavity past q90 only | Added on Herkimer's real target in its own cavity (above). Round 11's property is strengthened to "none with at least half past the range is met", which holds because the oversize test leaves exactly half open. A unit test pins the may-be rule: 16 of 21 and 10 of 20 are open, 10 of 21 is met; eligible runs past q90 count with the left-out ones; a judged OVERSIZE stands alone; a protagonist with none judged is still open; the share is judged beside it. | — |
+
+Note on round 11's response (M2): its cost for the third option, "about 8 % … at the fewest such runs it can judge" (six), belongs to the round-9 reviewer's Wilson variant, not to the test round 10 repaired. The repaired test's cost is the one above. Round 11's text stays as it was written.
+
+Mutation testing: 13 mutants on round 12's code, 11 killed: the may-be rule nine ways by the tests (among them more than half, my first version), the listed causes by the splice check, and the registered rule text by the targets check. The two survivors break or drop the may-be label in the scoreboard's open causes and never-carry groups; no protagonist is may-be-oversize in the census, so their output is identical.
+
+Result: STORY 1, STORY (PROXY) 1, NO STORY 3, UNRESOLVED 26, NO ENGINE 1, OUT OF SCOPE 1 (unchanged). WP1's whole target is met by none: it fails at 16 scored scenarios (by cause: the story 4, a band 15, a carrier share 5, oversize 0) and is open at 16. No protagonist is may-be-oversize. Tests 124 (was 122).

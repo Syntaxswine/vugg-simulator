@@ -884,7 +884,12 @@ export function carrierShare(band, target, range, room = Infinity) {
  *   no protagonist with an engine oversize: its typical crystal past its display range (assessSize's
  *     OVERSIZE) fails where the runs can tell it is — the interval of its eligible runs within q90 stays
  *     below one half — and leaves the target open where they cannot (with 3 eligible runs or fewer they
- *     never can, as assessSize's `few` says): an indistinguishable size miss is never a pass;
+ *     never can, as assessSize's `few` says): an indistinguishable size miss is never a pass. So does a
+ *     typical crystal that may be past the range: the size verdict leaves out the runs longer than a cavity
+ *     whose span is short of q90 (`beyond`: past the range on their length, in it on the span), and where
+ *     those and the eligible runs past q90 are at least half of all of them, the target is open — at
+ *     exactly half the typical crystal may lie between one in the range and one past it, as the oversize
+ *     test leaves it open when half of the eligible runs are past q90;
  *   every protagonist with an engine carrying the story at its own scale in at least its carrier share
  *     (carrierShare) of the scored runs — the boss's obligation, the one test of "if it never does". Short
  *     of it beyond noise fails: even counting every run it could still carry (short of a proxy, longer than
@@ -896,9 +901,10 @@ export function carrierShare(band, target, range, room = Infinity) {
  * Met only on what it could judge, so these leave it open, not met and not failed: a protagonist that could
  * still reach its share — runs short of a proxy (a proxy cannot refute, so reaching it is strong evidence
  * and falling short is none), longer than the cavity, or in unclassed pockets that may not count; a
- * shortfall within noise; an oversize within noise; no size target (pending WP0); a display range beyond
- * the cavity (pending WP9); no band to set its share; and a protagonist that never occurs where its band
- * cannot fail that. So a protagonist kept small, rare, oversize or absent never makes the target met.
+ * shortfall within noise; an oversize within noise, or one the cavity may hide; no size target (pending WP0);
+ * a display range beyond the cavity (pending WP9); no band to set its share; and a protagonist that never
+ * occurs where its band cannot fail that. So a protagonist kept small, rare, oversize or absent never makes
+ * the target met.
  *   story: scenarioVerdict's result ({ verdict, noise }); protagonists: [{ k, engine, occurrence:
  *   { verdict, noise, k }, size: assessSize's result, carry: scoreStory's carry[k], share, why }];
  *   scored: the runs scored; z: the noise interval's
@@ -926,6 +932,10 @@ export function wp1Target(story, protagonists, { scored = 0, z = 1.96 } = {}) {
       const past = `past its display range in ${sz.eligible - sz.within} of ${sz.eligible} eligible runs`;
       if (wilson(sz.within, sz.eligible, z)[1] < 0.5) { fails.push(`${p.k} oversize: ${past}`); continue; }
       open.push(`${p.k} oversize within noise: ${past}`);
+    } else if (sz?.beyond) {
+      // Runs longer than a cavity short of q90 may be past the range: if they could make the typical crystal so.
+      const pastOrBeyond = sz.eligible - (sz.within ?? 0) + sz.beyond, all = sz.eligible + sz.beyond;
+      if (2 * pastOrBeyond >= all) open.push(`${p.k} may be oversize: past its display range, or longer than a cavity short of it, in ${pastOrBeyond} of ${all} runs`);
     }
     if (!scored) continue;
     if (p.why === 'no size target') { open.push(`${p.k} has no size target to show it carrying the story`); continue; }
