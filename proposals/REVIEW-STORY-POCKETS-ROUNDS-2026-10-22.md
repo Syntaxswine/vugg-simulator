@@ -2105,3 +2105,94 @@ The score fell (8.5 → 8). Both must-fixes are in code older than round 18, and
 Mutation testing: 42 mutants on rounds 16–19's code, 40 killed by the tests, the splice check or the targets check. They covered round 19's could-carry rule (reverted; a proxy's crystal treated as a crystal target's; a crystal exactly at q90 counted past it; the span in the range no longer enough), the messages and `held` (held over every occurring run; never, or always, the same runs; the same runs named as pockets; the second count naming its runs; no word for runs with no crystal at display scale; the empty test on the other reading; never saying no pocket holds the median; the empty eligible reading quoted anyway; never one count; readings alike on their voters alone; either reading quoted first; the way each count reads left out), and rounds 16–18's readings, label, gates, crystal readings, medians, cause label, sixth line and rule text. Both survivors are equivalent. One is round 18's (one count where only the favourable readings agree). The other is the reviewer's (`least.n` → `most.n`): a reading's favourable count holds every crystal its other count does, and a reading of only proxy shorts is never the one quoted. A clause that could never decide anything (`|| !d.held` where a fail needs the eligible pockets' reading) was cut rather than kept.
 
 Result: STORY 1, STORY (PROXY) 1, NO STORY 3, UNRESOLVED 26, NO ENGINE 1, OUT OF SCOPE 1 (unchanged). WP1's whole target is met by none: it fails at 16 scored scenarios (by cause: the story 4, a band 15, a carrier share 5, oversize 0) and is open at 16. No protagonist has a size entry. Tests 134 (was 133).
+
+## Round 20 — 8.5/10 (on ba0cb2e2)
+
+One reviewer, under the standing rule (no cap on rounds; stop at 9/10 or when nothing must be fixed).
+
+### The report
+
+> ba0cb2e2's code is correct, and I found no new oversize or could-carry route. What remains is text: one false claim in the option §4 puts to the boss, and several smaller wording and test gaps. I edited nothing in the repository. The tree is clean at ba0cb2e2, and the .local-evidence hashes are the same before and after. Scratch files are in `review20\`.
+>
+> **MUST-FIX**
+>
+> 1. **§4 describes "the other way" for a proxy wrongly, and its exactness claim is false as worded.**
+>    - **Where:** PROPOSAL:1684–1688; the same wording is in REVIEW:2099 and the commit message.
+>    - **The claim:** "reading a crystal hidden in such a pocket [short of its median] at its own length, as for a crystal target — would make its size test the two anchors exactly".
+>    - **Why it fails:** that narrow reading still reads giants hidden in pockets that hold the median but not q90 at the span. It then counts them beside the pockets short of the median, read at length. That is round 18's mix across pockets, now for proxies.
+>    - **Evidence (stilbite copy):** 5 × 1000 mm in 100 mm pockets, 15 × 1000 mm in 300 mm, and 3 × 60 mm in 65 mm pockets.
+>      - Both anchors fail it: a cavity that hid nothing has 3 of 23 within; the boss's rule has 5 of 20.
+>      - The narrow other way holds it open (8 of 23, top 0.551).
+>      - In lognormal sweeps it holds open 7 of 175 and 3 of 597 such fleets that both anchors fail (`otherway2.mjs`).
+>    - **The exact version:** reading every one of a proxy's crystals at its own length in the every-pocket reading (`whole` for proxies, as the crystal-target rule does) is exact. It had 0 violations in 60,000 of the tests' random proxy protagonists and passes the case above.
+>    - **The tests cannot catch this:** the tests' own generator also finds 0 violations for the narrow version. A future "exact" test built on it would pass a non-exact implementation.
+>    - **Fix:** reword the option to the whole version, or drop "exactly". If the boss adopts it, test with pockets between the median and q90 plus carriers in pockets short of the median.
+>
+> **SHOULD-FIX**
+>
+> 1. **The registered "could still carry" text no longer matches the code for proxies.**
+>    - ba0cb2e2 added "and one of them is in it/the range". That excludes a proxy's crystal short of the proxy on the span and past q90 on its length.
+>    - The code counts that crystal as `beyond`, a run it could still carry (lib:731; test `one(45, 1000, st)` gives POSSIBLE).
+>    - Affected texts: `carrier_obligation` (targets.mjs:78, JSON:84), PROPOSAL:432–433, 474–475, 1258, and §4:1656–1659.
+>    - §1.3:310–311 states the proxy case correctly.
+>    - Also, §1.3:312–315 says a crystal past the cavity but within q90 "could still carry" where the span is below q25. That is wrong for a crystal target whose length also stays below q25: it is an accessory.
+>
+> 2. **The proxy-shield statement is incomplete.**
+>    - **State the mechanism, not only the 45 mm sweep:** 7 of 21 runs (a third) in any pocket short of the median make the fail unreachable, at any crystal size and pocket size. Stilbite at 10× its median in 1 mm pockets fails 0 %, where both anchors fail 100 %.
+>    - **The label:** these fleets are labelled "oversize within noise", yet the message itself shows the boss's rule failing them beyond noise ("14 of the 14"). Round 18 called that label false for crystal targets. Either relabel them "may be oversize", or say the noise there is the hedge's.
+>    - **A misattribution survives:** test.ts:1378 still calls the at-span reading "the boss's reading of a crystal the cavity hides" (round 19's S2).
+>
+> 3. **Two non-equivalent message mutants survive all 134 tests.**
+>    - `held: runs.filter(holds)` (lib:685). Galena as 10 giants in 19 mm pockets, absent from 11 runs in 91.93 mm pockets, then prints "none at its display scale in the 11 runs in pockets that hold its median". It never occurs there.
+>    - `same` on the `most` readings (lib:992). A proxy with 14 × 1000 @ 300 mm and 7 × 40 @ 45 mm then prints "at their own length … and in 14 of the 14", though the two readings count different runs.
+>    - Add both cases as tests (`survivors.mjs`).
+>
+> 4. **Nit:** with unknown spans, "; none of its pockets holds its median" (test.ts:1290) asserts something that is unknown. Better: "no pocket is known to hold its median".
+>
+> **The proxy shield, judged**
+>
+> Keeping it, stated and put to the boss, is acceptable: below a proxy's median, eligibility really is unknown. But I lean toward the corrected other way as the default:
+> - The shield comes only from stacking two of this proposal's own hedges: counting pockets short of the median as eligible, and the at-span premise.
+> - The boss's OPEN answer covers misses the runs cannot tell. Here both anchors tell them beyond noise.
+> - A proxy is an upper bound on the crystal, so a crystal past its q90 is oversize all the more.
+> - Reading a 1 m crystal at 45 mm runs against the spirit of "never silently rescale".
+> - 55 of the 112 protagonist slots are proxies, and 22 proxy medians already exceed their scenario's span.
+>
+> None of this blocks; it is the boss's call.
+>
+> **Verified and correct**
+>
+> - **Checks:** the size evidence runs; targets `--check` matches a rebuild; 13/13 scoreboard and 2/2 substrate splice blocks match; tests pass 134/134 (my scratch harness also 134/134). The comparison tool is unchanged since afbe687f and its output is byte-identical. Nothing under js/ or data/ changed in the 22 commits.
+> - **Census:** the round-18 lib (dfd7758c) and the round-19 lib give identical verdicts, counts and WP1 results in all 32 scored scenarios. No census run has round-19 M2's geometry; the only hidden protagonist is Bisbee's malachite, a proxy. WP1 is met 0/32, failed 16, open 16, as stated.
+> - **M2 fix, complete in every geometry:**
+>   - Crystal target, crystal longer than its pocket: carrier when the span and length are both in range; `beyond` when exactly one is; oversize or accessory when neither is (this pair is the only change).
+>   - Proxy and unknown spans: unchanged.
+>   - The fix makes nothing more lenient, including in unclassed pockets.
+>   - NP galena and Tsumeb cerussite move from open to failed (top of the interval 0.2153 against 0.2167).
+> - **Shield figures reproduce exactly:** 0.0/0.0 against 14.4/85.3; 70.0/26.5 against 86.5/91.3; 64.6 mm pockets the same; smithsonite within 0.2 points; selenite 0 against 37.5; 0 at the proxy's own median.
+> - **Correct-fleet table, independent seed (4,000 fleets):** 71.6/0.6, 49.5/6.1, 60.5/2.2 and 8.8/11.8 %, against the stated 71/0.3, 49/6.8, 61/2.1 and 9/12.
+> - **Messages:** 38,947 random oversize messages, checked against their readings, have 0 problems: the counts, the side words, `held`, both new clauses and the labels.
+> - **Round-19 responses hold:** S1–S3 and M1's attribution, and the round-18 sizing correction. Both claimed-equivalent survivors (one count on the least readings only; `least.n` to `most.n`) are equivalent; I checked the proofs.
+> - **Mutants:** 28 of my own. 22 killed; 3 equivalent; 1 artificial (could-carry below q25/2); the 2 above survive.
+> - **Earlier routes stay closed:** rounds 11–19 (cavity, dust, proxy short, unclassed, hidden proxy, too-small pockets, cross-pocket mix), rerun on the committed targets.
+> - **Parser and joins:** 28 random crystal rows and 16 joined captions, checked against the raw capture, are correct. One ambiguous row is cavansite, which has no engine. The apparent under-joins are transitive joins, different finds, or round sizes the rule deliberately leaves apart.
+> - **Thresholds and attribution:** no new hidden threshold. Choices are attributed correctly apart from the test comment above.
+> - **Acceptance items:** all present and honest.
+>
+> **Ready for the boss?** Not yet. Correct §4's other-way sentence (MUST-FIX 1, one sentence). The should-fixes are wording and two tests.
+
+### The response
+
+The score rose (8 → 8.5), and the reviewer found the code correct, with no new route. I corrected §4's other way and took the should-fixes.
+
+| # | finding | what changed | evidence |
+|---|---|---|---|
+| M1 | §4's other way for a proxy was worded as the narrow reading, which is not exact | §4 now offers the whole version: every one of a proxy's crystals is read at its own length in the every-pocket reading, as a crystal target's are. That version is exact. §4 also says why the narrow version is not: it mixes readings across pockets, as round 18 found for crystal targets. It names the test that adopting the whole version would need: pockets between the median and q90, beside carriers in pockets short of the median. The round-19 response and its commit message described the narrow version. This response corrects them; the archive and the history stay unedited. | **Reviewer's case** (stilbite: 5 × 1 m in 100 mm pockets, 15 × 1 m in 300 mm, 3 × 60 mm in 65 mm): both anchors fail it. On scratch libs, the narrow version holds it open and the whole version fails it. **Random search**, 30,000 proxy protagonists: the whole version differs from the two anchors in none, the narrow version in 9, and today's reading in 324; none falls outside the anchors' bounds. **Sweep:** the whole version fails 14.4 / 85.3 %, exactly what both anchors fail. |
+| S1 | the could-carry text did not match the code for a proxy | "and one of them is in the range" now reads "and either could carry it (in the range, or, a proxy's, short of the proxy)". This is changed in `carrier_obligation`, WP1's share bullet and target, §1.3's open list and §4. §1.3's bullet on a crystal longer than the cavity is restated. Its sentence on a crystal past the cavity but within q90 was wrong for a crystal target whose length also stays below q25. It is cut, since the general rule now covers that case. | — |
+| S2 | the shield statement was incomplete, the label hid whose noise it was, and a test comment misattributed the at-span reading | **Mechanism:** §1.3, WP9, §4, `size_check` and the lib now say that with a third of its runs in pockets short of its median (7 of 21), the reading most in its favour cannot fall below one half, whatever the size of the crystals or the pockets. **Origin:** §4 says the shield stacks two of this proposal's own hedges where both anchors tell the fleets beyond noise, and that the boss's OPEN answer covers only misses the runs cannot tell. **Label:** an oversize within noise now names the reading that alone would fail it beyond noise ("; beyond noise in the pockets that hold its median"), and WP1's bullet says so. **Attribution:** the test comment now attributes the at-span reading to this proposal's premise. **Default kept:** §4 puts the choice to the boss, which the reviewer accepts. | Stilbite at ten times its proxy's median, 7 runs in 1 mm pockets: failed in none of 2,000 fleets, where both anchors fail all of them. With 6 such runs: 98 % failed. Tests pin the 1 mm case and the label. |
+| S3 | two message mutants survived | Two tests now pin the cases. The galena absent from the pockets that hold its median must read "; none of its pockets is known to hold its median", which `held` taken over all runs would miss. A proxy whose readings against it count alike, though its favourable readings do not, must name its pockets, which `same` taken on the readings against it would miss. | Both mutants now die. |
+| S4 | "none of its pockets holds its median" asserted something unknown | It now reads "none of its pockets is known to hold its median". | — |
+
+Mutation testing: 47 mutants on rounds 16–20's code, 45 killed by the tests, the splice check or the targets check. They covered the new within-noise clause (dropped, naming the other reading, at one half itself), the round-20 reviewer's two message mutants, round 19's could-carry rule, the messages and `held`, rounds 16–18's readings, label and gates, the crystal readings, the medians, the cause label, the sixth line and the rule text. The clause's one-half boundary was unpinned at first; a case now pins it, as the fail gate's is pinned (a reading whose interval tops at exactly one half is not beyond noise). The two survivors are the equivalent ones from rounds 18 and 19.
+
+Result: STORY 1, STORY (PROXY) 1, NO STORY 3, UNRESOLVED 26, NO ENGINE 1, OUT OF SCOPE 1 (unchanged). WP1's whole target is met by none: it fails at 16 scored scenarios (by cause: the story 4, a band 15, a carrier share 5, oversize 0) and is open at 16. No protagonist has a size entry. No generated block changed. Tests 134 (unchanged; the new cases sit in existing tests).

@@ -304,15 +304,12 @@ chord can cross the wall. So SMALL is conclusive and STORY-SCALE is generous.
   judged by them — past it when the span itself is past the record's 90th percentile (round 9: crystals
   grown past the cavity had rescued an oversize fleet), below it when its length is itself below the lower
   quartile (round 10), and in it, carrying the story, when the span reaches the lower quartile and its length
-  stays within the 90th percentile (round 11). Where they fall on different sides and one of them is in the
-  range, it neither carries the story nor counts against it: a run the protagonist could still carry,
-  weighing as one carried run would in the noise of its share. A crystal target's crystal below the range on
-  the span and past it on its length carries on neither — an accessory at the span, oversize at its length —
-  so it is a run that does not carry (round 19: it had been one it could still carry); a proxy's, short of
-  the proxy on the span, could still carry. Where a protagonist's 90th percentile is itself past the span, a
-  crystal grown past the cavity that stays within that percentile carries where the span reaches the lower
-  quartile and could still carry where it does not; one that passes it could still carry where the span is
-  in the range, and, a crystal target's, carries on neither where the span is below it.
+  stays within the 90th percentile (round 11). Where they fall on different sides and either could carry it —
+  in the range, or, a proxy's, short of the proxy, which a proxy cannot refute — it neither carries the story
+  nor counts against it: a run the protagonist could still carry, weighing as one carried run would in the
+  noise of its share. A crystal target's crystal below the range on the span and past it on its length
+  carries on neither — an accessory at the span, oversize at its length — so it is a run that does not carry
+  (round 19: it had been one it could still carry).
 - WP1's oversize test reads each crystal by the part it plays: one in the display range votes within the
   90th percentile, one past it votes past it, and an accessory has no vote. Which pockets vote is read two
   ways, each whole, whatever the story makes of the pocket. The boss's rule that size is checked in pockets
@@ -353,7 +350,7 @@ chord can cross the wall. So SMALL is conclusive and STORY-SCALE is generous.
   fails 41, 85 and 98 % — and pockets short of the median take their giants out of the boss's count — at
   40 mm the galena fails in 85 % of fleets with none of them, and in 77, 63 and 52 % with 3, 7 and 10 runs
   in 19 mm pockets (2,000 fleets each) — and every pocket short of a proxy's median shields it, its
-  every-pocket reading taking a crystal hidden there at the span: Deccan's stilbite at two and three times its proxy's median, with 7 of 21 runs in 45 mm pockets, is failed in none of 2,000 fleets, where a cavity that hid nothing and the boss's rule at the proxy's median both fail 14 and 85 %, and with 3 and 5 such runs, at
+  every-pocket reading taking a crystal hidden there at the span — with a third of its runs in such pockets (7 of 21) the interval in the reading most in its favour cannot fall below one half, whatever the crystals' size or the pockets' (round 20: at ten times its proxy's median, Deccan's stilbite with 7 runs in 1 mm pockets fails in none of 2,000 fleets, where both readings fail all of them). Deccan's stilbite at two and three times its proxy's median, with 7 of 21 runs in 45 mm pockets, is failed in none of 2,000 fleets, where a cavity that hid nothing and the boss's rule at the proxy's median both fail 14 and 85 %, and with 3 and 5 such runs, at
   three times, in 70.0 and 26.5 % against 86.5 and 91.3 % (Tsumeb's smithsonite gives the same, Naica's
   selenite none against 37.5 % at three times). In one cavity that holds each protagonist's characteristic crystal
   both readings count the same pockets, and the whole target is met exactly where a cavity that hid
@@ -429,8 +426,8 @@ It asks for no protagonist in every seed, and no size spread narrower than the r
     boss named the alternates; the primary is held to the same, a choice of this rule. Short of it beyond
     noise it fails, not functioning as a protagonist in this fleet — a candidate for growth or for
     downgrading to a companion. Counting every run it could still carry (short of a proxy, or longer than
-    the cavity where its length and the span disagree and one of them is in the range) and leaving out every
-    run in an unclassed pocket —
+    the cavity where its length and the span disagree and either could carry it) and leaving out every run
+    in an unclassed pocket —
     which carries the story in no pocket class, but may be a small pocket and so may not count — the 95 %
     interval of its carrying stays below its share. This is the one test of the boss's "if it never does":
     a protagonist below its display range in every run fails it wherever its share is one the runs can fail
@@ -449,8 +446,9 @@ It asks for no protagonist in every seed, and no size spread narrower than the r
     protagonist whose typical voting crystal is past its display range fails where every reading puts it
     there and the runs can tell it — the interval of those within the record's 90th percentile stays below
     one half — and the target is open where some reading puts it there but not every one beyond noise,
-    since an indistinguishable size miss is never a
-    pass (the boss's first answer; round 11 found such an oversize counted as met; rounds 12 and 13, giants
+    since an indistinguishable size miss is never a pass. Past it in every reading, the entry is an oversize
+    within noise, and names the reading that alone would fail it beyond noise, if one would (round 20); past it
+    in only some, a possible oversize (the boss's first answer; round 11 found such an oversize counted as met; rounds 12 and 13, giants
     hidden by cavities short of the 90th percentile and of the median: Herkimer's quartz, 16 runs at a metre
     and 5 at 16 mm in its own 59.9 mm cavity, and the North Pennines galena, 16 at a metre and 5 at 19 mm in
     an 18.5 mm cavity). Round 9: a6612fa1 had stopped failing a protagonist grown far past its record. The
@@ -471,8 +469,8 @@ It asks for no protagonist in every seed, and no size spread narrower than the r
     leaves the target open, not failed (the sixth line under §2's table names such crystals).
 
   It is met only on what it could judge, so these leave it open, not met and not failed: a protagonist
-  whose runs short of a proxy, or longer than the cavity where its length and the span disagree and one of
-  them is in the range, could still make up its share, or whose runs in unclassed pockets, left out, would leave it enough; a shortfall within
+  whose runs short of a proxy, or longer than the cavity where its length and the span disagree and either
+  could carry it, could still make up its share, or whose runs in unclassed pockets, left out, would leave it enough; a shortfall within
   noise; an oversize within noise, or one only some reading puts past the range; a rate below its band
   within noise; no size target (WP0); a display range that starts beyond the cavity
   (WP9); no band, so no share can be set, whatever it carries (round 9: one carried run had met it, where a
@@ -1255,7 +1253,7 @@ rate. Quartz grows in 19 scenarios, so a global quartz rate would move all of th
 
 The whole target is met only on what it could judge. Runs short of a proxy (a proxy is not a size it must
 reach: reaching it is strong evidence, falling short none) or longer than the cavity where the crystal's
-length and the span disagree and one of them is in the range, that could still make up a share, and runs in unclassed pockets that may not
+length and the span disagree and either could carry it, that could still make up a share, and runs in unclassed pockets that may not
 count; a shortfall within noise; an oversize within noise, or one only some reading puts past the range; a
 rate below the band within noise; no size
 target; a display range beyond the cavity; no band to set a share; a protagonist that never occurs where
@@ -1600,7 +1598,7 @@ leftover components rise. Try it on `gem_pegmatite` against WP1's target before 
   medians of 30 to 50 mm, where a cavity that hid nothing fails 41, 85 and 98 %. Pockets short of a crystal
   target's median take their giants out of the boss's count: at 40 mm the galena fails in 85 % of fleets
   with none of them, and in 77, 63 and 52 % with 3, 7 and 10 runs in 19 mm pockets. And every pocket short
-  of a proxy's median shields it: Deccan's stilbite at two and three times its proxy's median, with 7 of 21 runs in 45 mm pockets, is failed in none of 2,000 fleets, where a cavity that hid nothing and the boss's rule at the proxy's median both fail 14 and 85 % (2,000 fleets each). The sixth line under §2's table, judged on each scenario's one span today,
+  of a proxy's median shields it — with a third of its runs in such pockets (7 of 21) the interval in the reading most in its favour cannot fall below one half, whatever the crystals' size or the pockets': Deccan's stilbite at two and three times its proxy's median, with 7 of 21 runs in 45 mm pockets, is failed in none of 2,000 fleets, where a cavity that hid nothing and the boss's rule at the proxy's median both fail 14 and 85 % (2,000 fleets each). The sixth line under §2's table, judged on each scenario's one span today,
   would then judge each run's.
 
 **The decisions it needs.**
@@ -1654,9 +1652,10 @@ leftover components rise. Try it on `gem_pegmatite` against WP1's target before 
      - no band, so no share: open whatever it carries (round 9; it had met on one carried run);
      - a rate below the band within noise leaving WP1 open, one above it counting as within;
      - judging a crystal longer than the cavity by its length and the span where they fall on the same
-       side of the display range (past it, below it, or in it, carrying the story), and otherwise, where one
-       of them is in the range, counting it as a run the protagonist could still carry (a crystal target's
-       below the range on the span and past it on its length carries on neither; round 19);
+       side of the display range (past it, below it, or in it, carrying the story), and otherwise, where
+       either could carry it (in the range, or, a proxy's, short of the proxy), counting it as a run the
+       protagonist could still carry (a crystal target's below the range on the span and past it on its
+       length carries on neither; round 19);
      - WP1's oversize test reading such a crystal both ways — at its own length and at the span — and
        likewise a crystal short of a specimen proxy (as at display scale and as an accessory); and reading
        two ways which pockets vote, each whole: only those that hold the protagonist's characteristic
@@ -1681,11 +1680,21 @@ leftover components rise. Try it on `gem_pegmatite` against WP1's target before 
        that holds the median beside them, which held open 43 of 2,000 such fleets with 5 runs in 19 mm pockets
        and 2 in 25 mm; it now fails exactly those. A proxy's pockets short of its median are counted as the
        boss's rule would count them were its own crystal, which the proxy only bounds, to fit them, so a giant
-       hidden there is read at the span and every such pocket shields it (round 19): Deccan's stilbite at two and three times its proxy's median, with 7 of 21 runs in 45 mm pockets, is failed in none of 2,000 fleets, where a cavity that hid nothing and the boss's rule at the proxy's median both fail 14 and 85 %. The other way
-       for a proxy — reading a crystal hidden in such a pocket at its own length, as for a crystal target —
-       would make its size test the two anchors exactly and fail those fleets; its cost is that it would fail
-       them even where the protagonist's own crystal fits the pockets and the span is the one to judge, which
-       the proxy cannot rule out (at the proxy's own median it fails none of them either way). The other way
+       hidden there is read at the span and every such pocket shields it (round 19): with a third of its runs in such pockets (7 of 21) the interval in the reading most in its favour cannot fall below one half, whatever the crystals' size or the pockets' — Deccan's
+       stilbite at ten times its proxy's median with 7 runs in 1 mm pockets is failed in none of 2,000 fleets,
+       where both anchors fail all of them, and at two and three times it with 7 runs in 45 mm pockets in
+       none, where both fail 14 and 85 %. The shield stacks two of this proposal's own hedges — counting a
+       pocket short of the proxy's median as one that may hold the protagonist's crystal, and the premise that
+       the span could be the one to judge — where both anchors tell those fleets beyond noise; the boss's OPEN
+       answer covers misses the runs cannot tell. The other way for a proxy — reading every one of its
+       crystals at its own length in the every-pocket reading, as for a crystal target — makes its size test
+       the two anchors exactly (none of 30,000 random proxy protagonists differs) and fails those fleets.
+       Reading only a crystal hidden in a pocket short of the median at its own length would not be exact: it
+       mixes readings across pockets, as round 18 found for crystal targets (round 20). Its cost is that it
+       fails those fleets even where the protagonist's own crystal fits the pockets and the span is the one to
+       judge, which the proxy, only an upper bound, cannot rule out (at the proxy's own median it fails none
+       of them either way); adopting it would want a test with pockets between the median and the 90th
+       percentile beside carriers in pockets short of the median. The other way
        for every pocket, only the eligible pockets voting, is
        round 13's rule: it fails such fleets but lets giants confined to pockets too small for the
        characteristic crystal go unjudged — Deccan's stilbite, 14 at 500 mm and 7 carriers in its own

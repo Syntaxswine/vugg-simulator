@@ -1085,7 +1085,7 @@ describe('WP1\'s whole target', () => {
     // Each run's own cavity: a crystal longer than it could still carry (open), and at its own length the typical
     // one may be oversize (round 13: the size verdict judges none in a cavity short of the median); a range beyond
     // it cannot.
-    expect(scenarioWp1(atScale.map((r) => ({ ...r, span: 18.5, species: { ...r.species, galena: { occurs: true, size: 30 } } })), { galena: species.galena }, { verdict: 'STORY' }).open).toEqual(['galena may be oversize: past its display range in 21 of the 21 runs that vote; none of its pockets holds its median', 'galena carries the story in 0 of 21 scored runs; it could still reach its share 0.2167 if its 21 runs longer than the cavity carry it']);
+    expect(scenarioWp1(atScale.map((r) => ({ ...r, span: 18.5, species: { ...r.species, galena: { occurs: true, size: 30 } } })), { galena: species.galena }, { verdict: 'STORY' }).open).toEqual(['galena may be oversize: past its display range in 21 of the 21 runs that vote; none of its pockets is known to hold its median', 'galena carries the story in 0 of 21 scored runs; it could still reach its share 0.2167 if its 21 runs longer than the cavity carry it']);
     // In the range on its length and on the span alike, a crystal longer than the cavity carries (round 11).
     expect(scenarioWp1(atScale.map((r) => ({ ...r, span: 18.5 })), { galena: species.galena }, { verdict: 'STORY' })).toEqual({ met: true, fails: [], open: [] });
     expect(scenarioWp1(atScale.map((r) => ({ ...r, span: 17 })), { galena: species.galena }, { verdict: 'STORY' }).open).toEqual(['galena cannot carry the story in this cavity: its display range starts beyond the span']);
@@ -1200,7 +1200,7 @@ describe('WP1\'s whole target', () => {
     // judges none; open there and in 25 mm, failed in 91.93 mm.
     const r13 = (span: number) => npWp1(npRuns((i) => ({ occurs: true, size: i < 5 ? 19 : 1000 })).map((r) => ({ ...r, span })), species);
     const mayBe = (past: number, rest: string) => `galena may be oversize: past its display range in ${past} of the 21 runs that vote${rest}`;
-    expect(r13(18.5)).toEqual({ met: false, fails: [], open: [mayBe(16, '; none of its pockets holds its median')] });
+    expect(r13(18.5)).toEqual({ met: false, fails: [], open: [mayBe(16, '; none of its pockets is known to hold its median')] });
     expect(r13(25)).toEqual({ met: false, fails: [], open: [mayBe(16, ' at their own length, and in 0 of the 21, read in its favour')] });
     expect(r13(91.93).fails).toEqual(['galena oversize: past its display range in 16 of the 21 runs that vote']);
     // Half of them just past q90 (6 at 20 mm, 6 at 28): the median, 24 mm, is in the range, so it is met in every
@@ -1258,6 +1258,8 @@ describe('WP1\'s whole target', () => {
     // An interval that tops at exactly one half is no fail (wilson(288, 625) is 0.5).
     expect(wilson(288, 625)[1]).toBe(0.5);
     expect(w('STORY', [p('g', { verdict: 'IN' }, { carried: 10 }, 0.2167, null, true, { size: shown(reading(288, 625)) })]).fails).toEqual([]);
+    // Nor is it beyond noise where it names the reading that would fail an oversize within noise (round 20).
+    expect(w('STORY', [p('g', { verdict: 'IN' }, { carried: 10 }, 0.2167, null, true, { size: shown(reading(288, 625), reading(288, 625), { least: reading(10, 21), most: reading(10, 21) }) })]).open).toEqual(['g oversize within noise: past its display range in 337 of the 625 runs that vote in every pocket, and in 11 of the 21 runs that vote in the pockets that hold its median']);
   });
   it('which pockets vote is read two ways, each whole — every pocket, and only those that hold the protagonist\'s characteristic crystal — whatever the story makes of the pocket (round 16)', () => {
     // Copies of Tsumeb's targets: smithsonite the primary, a specimen proxy whose median (70 mm) its 64.77 mm cavity
@@ -1281,13 +1283,13 @@ describe('WP1\'s whole target', () => {
     const nRuns = Array.from({ length: 21 }, (_, i) => ({ span: i >= 6 && i < 11 ? 60 : 400, species: { selenite: i < 6 ? { occurs: true, size: 400 } : i < 11 ? { occurs: true, size: 300 } : { occurs: false, size: 0 } } }));
     const nx = scenarioWp1(nRuns, naica, scenarioVerdict(nRuns, naica, null));
     expect(nx.fails).toEqual([]);
-    expect(nx.open).toContain('selenite oversize within noise: past its display range in 6 of the 11 runs that vote in every pocket, read in its favour, and in 6 of the 6 runs that vote in the pockets that hold its median');
+    expect(nx.open).toContain('selenite oversize within noise: past its display range in 6 of the 11 runs that vote in every pocket, read in its favour, and in 6 of the 6 runs that vote in the pockets that hold its median; beyond noise in the pockets that hold its median');
     // A span not known cannot tell whether the pocket holds the characteristic crystal, so the boss's rule cannot
     // judge it: the North Pennines galena, 16 of 21 at 40 mm, fails in its 91.93 mm cavity and is open with every
     // span unknown, where only the reading of every pocket puts it past.
     const gx = (span: number | null) => npWp1(npRuns((i) => ({ occurs: true, size: i < 5 ? 20 : 40 })).map((r) => ({ ...r, span })), np(['fluorite', 'galena']));
     expect(gx(91.93).fails).toEqual(['galena oversize: past its display range in 16 of the 21 runs that vote']);
-    expect(gx(null)).toEqual({ met: false, fails: [], open: ['galena may be oversize: past its display range in 16 of the 21 runs that vote; none of its pockets holds its median'] });
+    expect(gx(null)).toEqual({ met: false, fails: [], open: ['galena may be oversize: past its display range in 16 of the 21 runs that vote; none of its pockets is known to hold its median'] });
   });
   it('a crystal target\'s crystal in a pocket too small for its characteristic crystal is read at its own length, so such pockets cannot switch the oversize fail off (round 17)', () => {
     // Copies of Tsumeb's committed targets: smithsonite the primary, a specimen proxy; cerussite a crystal target,
@@ -1375,8 +1377,8 @@ describe('WP1\'s whole target', () => {
     const x = npWp1(npRuns((i) => ({ occurs: true, size: i < 14 ? 8.6 : 40 })).map((r, i) => ({ ...r, span: i < 14 ? 91.93 : 17.5 })), species);
     expect(x.fails).toEqual(['galena carries the story in 0 of 21 scored runs, below its share 0.2167']);
     expect(x.open).toContain('galena may be oversize: past its display range in 7 of the 7 runs that vote in every pocket, and none at its display scale in the 14 runs in pockets that hold its median');
-    // A proxy's pockets short of its median shield it: every-pocket reading counts them with the boss's reading
-    // of a crystal the cavity hides, since the protagonist's own crystal may fit them. Deccan's stilbite at 1 m in
+    // A proxy's pockets short of its median shield it: its every-pocket reading counts them, since the
+    // protagonist's own crystal may fit them, and reads a crystal hidden there at the span (this proposal's premise). Deccan's stilbite at 1 m in
     // every run fails in a 300 mm cavity, and with 7 runs in 45 mm pockets is open — and at three times its proxy's
     // median, lognormal fleets of sd 0.6 with 7 runs in such pockets are never failed, where a cavity that hid
     // nothing and the boss's rule at the proxy's median both fail 85 % of 2,000 (§4 puts the other way to the boss).
@@ -1385,7 +1387,20 @@ describe('WP1\'s whole target', () => {
     const dRuns = (small: number) => Array.from({ length: 21 }, (_, i) => ({ span: i < small ? 45 : 300, species: { apophyllite: { occurs: true, size: 26.5 }, stilbite: { occurs: true, size: 1000 } } }));
     const dW = (runs: any) => scenarioWp1(runs, dS, scenarioVerdict(runs, dS, 0.1517));
     expect(dW(dRuns(0)).fails).toContain('stilbite oversize: past its display range in 21 of the 21 runs that vote');
-    expect(dW(dRuns(7)).open).toContain('stilbite oversize within noise: past its display range in 14 of the 21 runs that vote in every pocket, read in its favour, and in 14 of the 14 runs that vote in the pockets that hold its median');
+    // Open within noise only as every pocket reads it: the boss's rule fails it beyond noise, and the label says so.
+    expect(dW(dRuns(7)).open).toContain('stilbite oversize within noise: past its display range in 14 of the 21 runs that vote in every pocket, read in its favour, and in 14 of the 14 runs that vote in the pockets that hold its median; beyond noise in the pockets that hold its median');
+    // A third of its runs in such pockets puts the fail out of reach whatever the size: at ten times its median, 7
+    // runs in 1 mm pockets.
+    const far = Array.from({ length: 21 }, (_, i) => ({ span: i < 7 ? 1 : 300, species: { apophyllite: { occurs: true, size: 26.5 }, stilbite: { occurs: true, size: 730 } } }));
+    expect(dW(far).fails.filter((y: string) => y.startsWith('stilbite oversize'))).toEqual([]);
+    // Where the two readings count different runs the counts name their pockets, though the readings against it
+    // count alike (14 giants in its cavity; 7 crystals short of the proxy in 45 mm pockets vote in its favour only).
+    const shortRuns = Array.from({ length: 21 }, (_, i) => ({ span: i < 7 ? 45 : 300, species: { apophyllite: { occurs: true, size: 26.5 }, stilbite: { occurs: true, size: i < 7 ? 40 : 1000 } } }));
+    expect(dW(shortRuns).open).toContain('stilbite oversize within noise: past its display range in 14 of the 21 runs that vote in every pocket, read in its favour, and in 14 of the 14 runs that vote in the pockets that hold its median; beyond noise in the pockets that hold its median');
+    // A protagonist that never occurs where a pocket holds its median: `held` counts its runs there, not the
+    // scenario's — the galena with 10 giants in 19 mm pockets and absent from 11 runs in its 91.93 mm cavity.
+    const gAbsent = npWp1(npRuns((i) => (i < 10 ? { occurs: true, size: 40 } : { occurs: false, size: 0 })).map((r, i) => ({ ...r, span: i < 10 ? 19 : 91.93 })), np(['fluorite', 'galena']));
+    expect(gAbsent.open).toContain('galena may be oversize: past its display range in 10 of the 10 runs that vote; none of its pockets is known to hold its median');
     const upper = (y: any) => wilson(y.within, y.n)[1];
     const decide = (d: any) => (!d || (!d.every.most.past && !d.eligible.most.past) ? 'pass' : Math.max(upper(d.every.least), upper(d.eligible.least)) < 0.5 ? 'fail' : 'open');
     const fleets = (target: any, median: number, small: number, k: number) => {
@@ -1418,7 +1433,7 @@ describe('WP1\'s whole target', () => {
     const dW = (span: number) => { const runs = Array.from({ length: 21 }, (_, i) => ({ span, species: { apophyllite: { occurs: true, size: 26 }, stilbite: { occurs: true, size: i < 14 ? 500 : 60 } } })); return scenarioWp1(runs, deccan, scenarioVerdict(runs, deccan, 0.1517)); };
     // In its own cavity, short of its median, every crystal is read both ways (round 16: the pocket votes in one
     // reading only); in an 80 mm one, which holds the median, only the 14 hidden ones.
-    expect(dW(66.41)).toEqual({ met: false, fails: [], open: [mayBe('stilbite', '; none of its pockets holds its median')] });
+    expect(dW(66.41)).toEqual({ met: false, fails: [], open: [mayBe('stilbite', '; none of its pockets is known to hold its median')] });
     expect(dW(80)).toEqual({ met: false, fails: [], open: [mayBe('stilbite', '')] });
     expect(dW(130)).toEqual({ met: false, fails: [], open: ['stilbite oversize within noise: past its display range in 14 of the 21 runs that vote'] });
     // The primary itself a proxy whose median the cavity cannot hold: its pockets are unclassed, and it is read the
@@ -1427,7 +1442,7 @@ describe('WP1\'s whole target', () => {
     const sup: any = { smithsonite: { role: 'primary', engine: true, occurrence_band: BANDS.AB, size: sm } };
     const sRuns = Array.from({ length: 21 }, (_, i) => ({ span: 64.77, species: { smithsonite: { occurs: true, size: i < 14 ? 500 : 55 } } }));
     expect(pocketClass(64.77, sm)).toBe('UNCLASSED');
-    expect(scenarioWp1(sRuns, sup, scenarioVerdict(sRuns, sup, 0.2167))).toEqual({ met: false, fails: [], open: [mayBe('smithsonite', '; none of its pockets holds its median')] });
+    expect(scenarioWp1(sRuns, sup, scenarioVerdict(sRuns, sup, 0.2167))).toEqual({ met: false, fails: [], open: [mayBe('smithsonite', '; none of its pockets is known to hold its median')] });
   });
   it('WP1 goes from failed to met as a protagonist grows toward its record, and back to failed past it (rounds 7–9: the reviewers\' sweeps)', () => {
     const species = np(['fluorite', 'galena']);

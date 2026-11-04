@@ -650,7 +650,8 @@ const lengthAndSpanAgree = (size, span, t) => !(span != null && size > span) || 
  * beside one). A proxy's every pocket is read as the eligible ones are, with every pocket short of its median
  * counted, since the protagonist's own crystal, smaller than the proxy, may fit it: there a crystal it hides is
  * read at the span too — in the range, or below it and so short of the proxy — so every such pocket shields the
- * proxy from the fail (round 19; the proposal's §4 states the cost and the other way).
+ * proxy from the fail: with a third of its runs in them, the interval of the reading most in its favour cannot
+ * fall below one half (rounds 19 and 20; the proposal's §4 states the cost and the other way).
  * In each, `least` reads them the way least likely to make the typical crystal oversize and `most` the way most
  * likely, and every other reading lies between them: { n, within (at or below q90), median, past (the exact
  * median past q90) }. `held` counts its runs in pockets that hold its median.
@@ -996,13 +997,16 @@ export function wp1Target(story, protagonists, { scored = 0, z = 1.96 } = {}) {
         return `${r.n - r.within} of the ${r.n}${bare ? '' : ` runs that vote${name(key)}`}${alike(R.least, R.most) ? '' : side === 'least' ? ', read in its favour' : ', read against it'}`;
       };
       const then = (key, side, first) => (d[key][side].n ? `in ${count(key, side, same || key === first)}` : `none at its display scale in the ${d.held} runs in pockets that hold its median`);
-      const tail = d.held ? '' : '; none of its pockets holds its median';
+      const tail = d.held ? '' : '; none of its pockets is known to hold its median';
       // (A fail or an oversize within noise needs the eligible pockets' reading, so some pocket holds its median.)
       const both = (side) => (one ? count('every', side) : `${count('every', side)}, and ${then('eligible', side, 'every')}`);
       if (upper(favour) < 0.5) { fails.push(`${p.k} oversize: past its display range in ${both('least')}`); continue; }
       // Past in every reading, it is open on the runs' noise alone; past in only some, it may be oversize.
-      if (every.least.past && eligible.least.past) open.push(`${p.k} oversize within noise: past its display range in ${both('least')}`);
-      else {
+      if (every.least.past && eligible.least.past) {
+        // Where one reading alone would fail it beyond noise, the noise is the other's: say which fails it.
+        const beyond = one ? [] : ['every', 'eligible'].filter((key) => upper(d[key].least) < 0.5);
+        open.push(`${p.k} oversize within noise: past its display range in ${both('least')}${beyond.length ? `; beyond noise${name(beyond[0])}` : ''}`);
+      } else {
         const against = every.most.past ? 'every' : 'eligible', short = every.least.past ? 'eligible' : 'every';
         open.push(`${p.k} may be oversize: past its display range in ${count(against, 'most')}${short === 'eligible' && !d.held ? '' : `, and ${then(short, 'least', against)}`}${tail}`);
       }
