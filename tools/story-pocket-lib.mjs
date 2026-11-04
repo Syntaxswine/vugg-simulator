@@ -502,6 +502,60 @@ export function wilson(k, n, z = 1.96) {
   const half = (z * Math.sqrt(p * (1 - p) / n + z2 / (4 * n * n))) / (1 + z2 / n);
   return [Math.max(0, centre - half), Math.min(1, centre + half)];
 }
+/** The normal distribution's one-sided tail beyond z: 0.025 at z 1.96 (erfc to a fractional error under 1.2e-7). */
+export function upperTail(z) {
+  const x = Math.abs(z) / Math.SQRT2, t = 1 / (1 + 0.5 * x);
+  const erfc = t * Math.exp(-x * x - 1.26551223 + t * (1.00002368 + t * (0.37409196 + t * (0.09678418 + t * (-0.18628806 + t * (0.27886807 + t * (-1.13520398 + t * (1.48851587 + t * (-0.82215223 + t * 0.17087277)))))))));
+  return z >= 0 ? erfc / 2 : 1 - erfc / 2;
+}
+const LANCZOS = [0.99999999999980993, 676.5203681218851, -1259.1392167224028, 771.32342877765313, -176.61502916214059, 12.507343278686905, -0.13857109526572012, 9.9843695780195716e-6, 1.5056327351493116e-7];
+/** ln Γ(x) for x > 0 (Lanczos, g 7). */
+export function lnGamma(x) {
+  if (x < 0.5) return Math.log(Math.PI / Math.sin(Math.PI * x)) - lnGamma(1 - x);
+  x -= 1;
+  let a = LANCZOS[0];
+  const t = x + 7.5;
+  for (let i = 1; i < 9; i++) a += LANCZOS[i] / (x + i);
+  return 0.5 * Math.log(2 * Math.PI) + (x + 0.5) * Math.log(t) - t + Math.log(a);
+}
+const lnBeta = (a, b) => lnGamma(a) + lnGamma(b) - lnGamma(a + b);
+const lnChoose = (m, j) => lnGamma(m + 1) - lnGamma(j + 1) - lnGamma(m - j + 1);
+/** P(K ≤ k) for K beta-binomial: m trials whose chance is itself Beta(a, b). */
+export function betaBinomialCdf(k, m, a, b) {
+  if (k >= m) return 1;
+  let s = 0;
+  for (let j = 0; j <= k; j++) s += Math.exp(lnChoose(m, j) + lnBeta(j + a, m - j + b) - lnBeta(a, b));
+  return Math.min(1, s);
+}
+/**
+ * Where a record's quantile sits in its own population. A record of n lengths puts its R-7 quantile p at
+ * order statistic h = 1 + p (n − 1), and the share of the population below an order statistic h of n is
+ * Beta(h, n + 1 − h) — exact for a whole h, and for the interpolated quantiles the tests check it on
+ * lognormal records, where it errs toward chance (so a test built on it fails a correct fleet no more often
+ * than it says). So the share of the population inside a record's range [lo, hi] is
+ * Beta((hi − lo)(n − 1), n + 1 − (hi − lo)(n − 1)), whose mean is displayCoverage(n, range). This is the
+ * record's own noise: a five-crystal record's display range can hold a tenth of its population or most of
+ * it, and a fleet of correct crystals misses a narrow one by chance.
+ *   → [a, b] of the Beta
+ */
+export const recordQuantile = (n, p) => { const h = 1 + p * (n - 1); return [h, n + 1 - h]; };
+export const recordCoverage = (n, range) => { const a = (range[1] - range[0]) * (n - 1); return [a, n + 1 - a]; };
+/**
+ * The chance that a correct fleet carries the story in x or fewer of N runs: the protagonist occurs in
+ * each run with its band's floor, and its crystals come from its record's population, so each occurrence
+ * lands in the display range with the record's coverage (recordCoverage) — the fleet's noise and the
+ * record's together.
+ */
+export function carrierTail(x, N, floor, n, range) {
+  if (x >= N) return 1;
+  const [a, b] = recordCoverage(n, range);
+  let s = 0;
+  for (let M = 0; M <= N; M++) {
+    const w = floor <= 0 ? +(M === 0) : floor >= 1 ? +(M === N) : Math.exp(lnChoose(N, M) + M * Math.log(floor) + (N - M) * Math.log(1 - floor));
+    if (w) s += w * betaBinomialCdf(x, M, a, b);
+  }
+  return Math.min(1, s);
+}
 /** The interquartile range relative to the median: how much a size varies (null without a median). */
 export const relativeSpread = (s) => (s?.n && s.median > 0 ? (s.q75 - s.q25) / s.median : null);
 
@@ -611,7 +665,8 @@ export function pocketClass(spanMm, primaryTarget) {
 /**
  * Size, conditional on occurrence and on the pocket holding the characteristic crystal: over the runs
  * where the species survives in a cavity that fits its median — leaving out any whose crystal is
- * longer than the cavity's span, which the starting cavity cannot hold (`beyond`) — the median
+ * longer than the cavity's span, which the starting cavity cannot hold (`beyond`), unless the span itself
+ * is past q90, where its length and the span agree it is past the display range — the median
  * largest unflagged crystal against the record:
  *   crystal target  BELOW (< q25), MEETS (q25–q75, around the record's median), LARGE (q75–q90),
  *                   OVERSIZE (> q90);
@@ -624,7 +679,8 @@ export function pocketClass(spanMm, primaryTarget) {
  * told from the window — even none of them past its edge would be noise (k ≤ z², 3 at z 1.96) — so they
  * can neither fail the size nor confirm it. The interval models the runs' noise only, not the record's:
  * the window is the record's own middle half, itself uncertain for a small record.
- * share = eligible runs whose crystal lies in the record's display range, q25–q90.
+ * share = eligible runs whose crystal lies in the record's display range, q25–q90; `within` = eligible runs
+ * at or below q90, which WP1's oversize test counts.
  *   runs: [{ occurs, size, span }]
  */
 export function assessSize(runs, target, z = 1.96) {
@@ -632,8 +688,9 @@ export function assessSize(runs, target, z = 1.96) {
   const occurring = runs.filter((r) => r.occurs);
   if (!occurring.length) return { verdict: 'NEVER OCCURS', occurring: 0, eligible: 0 };
   const fitting = occurring.filter((r) => fits(r.span, target) === true);
-  const beyond = fitting.filter((r) => r.size > r.span).length;
-  const eligible = fitting.filter((r) => !(r.size > r.span));
+  const pastRange = (r) => r.size > r.span && r.span > target.q90;
+  const beyond = fitting.filter((r) => r.size > r.span && !pastRange(r)).length;
+  const eligible = fitting.filter((r) => !(r.size > r.span) || pastRange(r));
   if (!eligible.length) {
     const verdict = fitting.length ? 'LONGER THAN THE CAVITY' : target.basis === 'crystal' ? 'NO ELIGIBLE POCKET' : 'ELIGIBILITY UNKNOWN';
     return { verdict, occurring: occurring.length, eligible: 0, beyond };
@@ -648,7 +705,8 @@ export function assessSize(runs, target, z = 1.96) {
   const edge = target.basis === 'crystal' ? target.q75 : target.q90;
   const noise = verdict === 'BELOW' ? reaches((s) => s >= target.q25) : verdict === 'LARGE' || verdict === 'OVERSIZE' ? reaches((s) => s <= edge) : null;
   const few = wilson(0, eligible.length, z)[1] >= 0.5;
-  return { verdict, ...(noise == null ? {} : { noise }), ...(few ? { few } : {}), share: inRange / eligible.length, inRange, eligible: eligible.length, occurring: occurring.length, beyond, sizes };
+  const within = eligible.filter((r) => r.size <= target.q90).length;
+  return { verdict, ...(noise == null ? {} : { noise }), ...(few ? { few } : {}), share: inRange / eligible.length, inRange, within, eligible: eligible.length, occurring: occurring.length, beyond, sizes };
 }
 
 /**
@@ -656,7 +714,9 @@ export function assessSize(runs, target, z = 1.96) {
  * crystal in its record's display range, q25–q90 (basis 'crystal', or 'specimen-proxy' when only a
  * proxy range was reached). POSSIBLE when a protagonist occurs whose crystal target is not known —
  * no target, or short of a proxy — or whose crystal is longer than the cavity's span, which the
- * starting cavity cannot hold (`beyond`). NO otherwise; `oversize` marks a crystal past q90.
+ * starting cavity cannot hold (`beyond`): its length or the span could be the one to judge, so it is open,
+ * unless the span itself is past q90, where both put it past the display range. NO otherwise; `oversize`
+ * marks a crystal past q90.
  * `each` gives every protagonist's part in the run, its realized role: 'carrier' (at its own display
  * scale), 'accessory' (present, a crystal target's crystal below its display range), 'short' (below a
  * proxy's range: a proxy cannot refute), 'beyond' (longer than the cavity), 'oversize', 'unsized' (no
@@ -670,7 +730,7 @@ export function runStory(run, protagonists) {
     const s = run.species[k];
     if (!s?.occurs) { each[k] = 'absent'; continue; }
     if (!target || target.basis === 'unknown') { possible = true; each[k] = 'unsized'; continue; }
-    if (run.span != null && s.size > run.span) { beyond = true; possible = true; each[k] = 'beyond'; continue; }
+    if (run.span != null && s.size > run.span && !(run.span > target.q90)) { beyond = true; possible = true; each[k] = 'beyond'; continue; }
     if (s.size > target.q90) { oversize = true; each[k] = 'oversize'; continue; }
     if (s.size >= target.q25) {
       each[k] = 'carrier';
@@ -689,10 +749,12 @@ export function runStory(run, protagonists) {
  * classed against the primary's characteristic crystal. SMALL pockets leave the count (their stories
  * are reported apart); in an UNCLASSED pocket a run without a story may be a small pocket, so it
  * stays open (`unclassified`) rather than counting against the story.
- * `carry`, per protagonist over the scored runs, its realized roles (runStory's `each`): `carried`, and
- * `accessory`, `short`, `beyond`, `oversize`, `unsized`, `absent`. The runs it could still be found to
- * carry are those `short` of a proxy (a proxy cannot refute), `beyond` the cavity, `unsized` (no size
- * target), and the rest of those in an `unclassed` pocket, which may be small.
+ * `carry`, per protagonist over the scored runs, its realized roles (runStory's `each`), one count per run:
+ * `carried`, `accessory`, `short`, `beyond`, `oversize`, `unsized`, `absent`, and `unclassed` — a run in an
+ * unclassed pocket where it is an accessory, oversize or absent, which may be a small pocket and so may
+ * not count at all. The runs it could still be found to carry are those `short` of a proxy (a proxy cannot
+ * refute), `beyond` the cavity, `unsized` (no size target) and `unclassed`; the runs that show it not
+ * carrying are the `accessory` and `oversize` ones.
  *   runs: [{ span, species: { k: { occurs, size } } }]; species: the sidecar's entries for the scenario
  */
 export function scoreStory(runs, species) {
@@ -710,9 +772,9 @@ export function scoreStory(runs, species) {
     c.scored++;
     for (const [k, part] of Object.entries(s.each)) {
       const t = c.carry[k];
-      if (part === 'carrier') { t.carried++; continue; }
-      t[part]++;
-      if (pocket === 'UNCLASSED' && part !== 'short' && part !== 'beyond' && part !== 'unsized') t.unclassed++;
+      if (part === 'carrier') t.carried++;
+      else if (pocket === 'UNCLASSED' && (part === 'accessory' || part === 'oversize' || part === 'absent')) t.unclassed++;
+      else t[part]++;
     }
     if (s.story === 'YES') { if (s.basis === 'crystal') c.yes_crystal++; else c.yes_proxy++; c.by[s.by] = (c.by[s.by] || 0) + 1; }
     else if (s.story === 'POSSIBLE') c.possible++;
@@ -855,31 +917,55 @@ export function carrierShare(band, target, range, room = Infinity) {
 }
 
 /**
+ * The chance that a correct protagonist — its crystals from its record's population — would show what a
+ * protagonist that never carried the story shows in its m judged occurrences (runs where it is an accessory
+ * or oversize, in a classed pocket): every one below its display range (each crystal below the record's
+ * q25); or, when some are below it and some past it, none in it. Null when every one is past it: the
+ * oversize test judges that.
+ *   carry: scoreStory's carry[k]; n: the record's size; range: rules.display_range
+ */
+export function neverCarriesTail(carry, n, range) {
+  const m = (carry.accessory ?? 0) + (carry.oversize ?? 0);
+  if (!m || !carry.accessory) return null;
+  if (!carry.oversize) { const [a, b] = recordQuantile(n, range[0]); return Math.exp(lnBeta(a + m, b) - lnBeta(a, b)); }
+  return betaBinomialCdf(0, m, ...recordCoverage(n, range));
+}
+
+/**
  * WP1's whole pre-registered target for a scenario (the boss's answers of 2026-11-03): does the fleet give
  * enough valid story carriers, and does each claimed protagonist carry some pockets? Each protagonist is a
  * candidate role; in each run it is the story's carrier (at its own display scale), an accessory, or
  * absent (runStory's `each`). An accessory is not held to showcase size, and a specimen proxy is not a
- * crystal size the protagonist must reach. Size verdicts over all occurrences (assessSize) are reported,
- * not required.
+ * crystal size the protagonist must reach.
  *   the story — STORY or STORY (PROXY); a shortfall beyond noise (or NO ENGINE) fails, one the runs
  *     cannot tell from the frequency, an UNRESOLVED story or small pockets only leave it open;
- *   every protagonist with an engine within its band — a miss within noise counts as within (21 seeds
- *     cannot tell "common" from "guaranteed"; §2.5 of the proposal tests the fleet for that);
+ *   every protagonist with an engine within its band — below it beyond noise fails and within noise leaves
+ *     it open; above it within noise counts as within (21 seeds cannot tell "common" from "guaranteed";
+ *     §2.5 of the proposal tests the fleet for that);
+ *   no protagonist with an engine oversize: its typical crystal past its display range (assessSize's
+ *     OVERSIZE) where a correct fleet would show so few eligible runs within q90 less often than the noise
+ *     level (upperTail(z), 2.5 % at z 1.96);
  *   every protagonist with an engine carrying the story at its own scale in at least its carrier share
- *     (carrierShare) of the scored runs. Short of it beyond noise fails: it is not functioning as a
- *     protagonist in this fleet.
+ *     (carrierShare) of the scored runs. It fails when it never carries the story where a correct one would
+ *     have (neverCarriesTail below the noise level), or when even the runs it could still carry leave it
+ *     short of its share where a correct fleet at its band's floor would carry more (carrierTail).
+ * Each test's noise is the fleet's and the record's together (recordQuantile, recordCoverage): a correct
+ * fleet fails each in at most the noise level of fleets, at any record size and any number of runs.
  * Met only on what it could judge, so these leave it open, not met and not failed: a protagonist that
  * could still be found to carry its share — runs short of a proxy (a proxy cannot refute, so reaching it
  * is strong evidence and falling short is none), longer than the cavity, or in an unclassed pocket; a
  * shortfall within noise; no size target (pending WP0); a display range beyond the cavity (pending WP9);
- * no band to set its share and no run carried; and a protagonist that never occurs where its band cannot
- * fail that. So a protagonist kept small, rare or absent never makes the target met.
+ * no band to set its share; and a protagonist that never occurs where its band cannot fail that. So a
+ * protagonist kept small, rare or absent never makes the target met.
  *   story: scenarioVerdict's result ({ verdict, noise }); protagonists: [{ k, engine, occurrence:
- *   { verdict, noise, k }, carry: scoreStory's carry[k], share, why }]; scored: the runs scored; z: noise
+ *   { verdict, noise, k }, size: assessSize's result, carry: scoreStory's carry[k], share, why, n: the
+ *   record's size, floor: the band's }]; scored: the runs scored; z: the noise level; range:
+ *   rules.display_range
  *   → { met, fails: [...], open: [...] }
  */
-export function wp1Target(story, protagonists, { scored = 0, z = 1.96 } = {}) {
+export function wp1Target(story, protagonists, { scored = 0, z = 1.96, range = [0.25, 0.9] } = {}) {
   const fails = [], open = [];
+  const alpha = upperTail(z);
   const sv = story?.verdict;
   if (sv !== 'STORY' && sv !== 'STORY (PROXY)') {
     const noisy = (sv === 'THIN STORY' || sv === 'NO STORY') && story.noise;
@@ -892,28 +978,40 @@ export function wp1Target(story, protagonists, { scored = 0, z = 1.96 } = {}) {
     const banded = o.verdict === 'IN' || o.verdict === 'LOW' || o.verdict === 'HIGH';
     const bandFails = (o.verdict === 'LOW' || o.verdict === 'HIGH') && !o.noise;
     if (bandFails) fails.push(`${p.k} ${o.verdict === 'LOW' ? 'below' : 'above'} its band`);
+    else if (o.verdict === 'LOW' && o.k > 0) open.push(`${p.k} below its band, within noise`);
     // Never occurring is the band's to judge, whatever the size target.
     if (o.k === 0) { if (!bandFails) open.push(`${p.k} never occurs, and ${banded ? 'its band cannot tell that from its floor' : 'it has no band to judge that by'}`); continue; }
+    const sz = p.size;
+    if (sz?.verdict === 'OVERSIZE' && betaBinomialCdf(sz.within, sz.eligible, ...recordQuantile(p.n, range[1])) < alpha) {
+      fails.push(`${p.k} oversize: past its display range in ${sz.eligible - sz.within} of ${sz.eligible} eligible runs`);
+      continue;
+    }
     if (!scored) continue;
     if (p.why === 'no size target') { open.push(`${p.k} has no size target to show it carrying the story`); continue; }
     if (p.why === 'display range beyond the cavity') { open.push(`${p.k} cannot carry the story in this cavity: its display range starts beyond the span`); continue; }
     const t = p.carry ?? {};
     const carried = t.carried ?? 0;
-    if (p.share == null) { if (!carried) open.push(`${p.k} never carries the story, and has no band to set its share`); continue; }
+    if (!carried && !t.short && !t.beyond) {
+      const never = neverCarriesTail(t, p.n, range);
+      const m = (t.accessory ?? 0) + (t.oversize ?? 0);
+      if (never != null && never < alpha) { fails.push(`${p.k} never carries the story: ${t.oversize ? `in its display range in none of the ${m}` : `below its display range in all ${m}`} judged runs it occurs in`); continue; }
+    }
+    if (p.share == null) { open.push(`${p.k} has no band to set its share`); continue; }
     if (carried / scored >= p.share) continue;
     const could = [['short', 'short of its proxy'], ['beyond', 'longer than the cavity'], ['unclassed', 'in an unclassed pocket']].filter(([key]) => t[key]);
     const couldRuns = could.reduce((s, [key]) => s + t[key], 0);
     const of = `carries the story in ${carried} of ${scored} scored runs`;
     if ((carried + couldRuns) / scored >= p.share) open.push(`${p.k} ${of}, and could in ${could.map(([key, why]) => `${t[key]} ${why}`).join(', ')}`);
-    else if (wilson(carried + couldRuns, scored, z)[1] >= p.share) open.push(`${p.k} ${of}, short of its share ${p.share} within noise`);
+    else if (carrierTail(carried + couldRuns, scored, p.floor, p.n, range) >= alpha) open.push(`${p.k} ${of}, short of its share ${p.share} within noise`);
     else fails.push(`${p.k} ${of}, below its share ${p.share}`);
   }
   return { met: !fails.length && !open.length, fails, open };
 }
 /**
  * WP1's whole target from a scenario's runs and its story verdict: each protagonist's occurrence against
- * its band, and its carrying (scoreStory's carry) against its carrier share — the sidecar's carrier_share
- * where present, which must equal carrierShare's. The scoreboard calls this, so the tests reach its wiring.
+ * its band, its size over every occurrence (assessSize, for the oversize test), and its carrying
+ * (scoreStory's carry) against its carrier share — the sidecar's carrier_share where present, which must
+ * equal carrierShare's. The scoreboard calls this, so the tests reach its wiring.
  *   runs: [{ span, species: { k: { occurs, size } } }]; species: the sidecar's entries; story:
  *   scenarioVerdict(runs, species, …); range: rules.display_range; z: rules.noise_z
  */
@@ -925,9 +1023,10 @@ export function scenarioWp1(runs, species, story, { range = [0.25, 0.9], z = 1.9
     const cs = carrierShare(v.occurrence_band, v.size, range, room);
     if (v.carrier_share !== undefined && v.carrier_share !== cs.share) throw new Error(`${k}: the sidecar's carrier_share ${v.carrier_share} is not the rule's ${cs.share}`);
     const occurs = runs.filter((r) => r.species[k]?.occurs).length;
-    return { k, engine: !!v.engine, occurrence: assessOccurrence(occurs, runs.length, v.occurrence_band, z), carry: c.carry?.[k], share: cs.share, why: cs.why };
+    const size = assessSize(runs.map((r) => ({ occurs: !!r.species[k]?.occurs, size: r.species[k]?.size ?? 0, span: r.span })), v.size, z);
+    return { k, engine: !!v.engine, occurrence: assessOccurrence(occurs, runs.length, v.occurrence_band, z), size, carry: c.carry?.[k], share: cs.share, why: cs.why, n: v.size?.n, floor: v.occurrence_band?.[0] };
   });
-  return wp1Target(story, protagonists, { scored: c.scored, z });
+  return wp1Target(story, protagonists, { scored: c.scored, z, range });
 }
 
 // ------------------------------------------------------------------ 5. how much the fleet varies
