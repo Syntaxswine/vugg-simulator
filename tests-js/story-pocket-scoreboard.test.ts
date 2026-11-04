@@ -115,6 +115,32 @@ describe('caption sizes (Mineralienatlas wording)', () => {
     expect(kinds('calcite crystals to 45 mm diameter; F')).toEqual([['width', 45]]);
     expect(kinds('be tafelige Kristalle bis ca. 2 mm Durchmesser, auf Quarz')).toEqual([['crystal', 2]]);
     expect(kinds('ichen "Eisenrosen" von bis zu 19 mm Durchmesser. F')).toEqual([['aggregate', 19]]);
+    // Round 23: the word first governs its own measure only — not past another measure or a sentence's end (it
+    // had reached every measure to the clause's end) — through "des", "der", "eines", "einer" or "of", or as a
+    // label with only a qualifier between; compounds and short forms are the word too.
+    expect(kinds('Durchmesser der Druse 8 cm mit Kristallen bis 2 cm')).toEqual([['width', 80], ['crystal', 20]]);
+    expect(kinds('Durchmesser der Stufe unbekannt. Kristalle bis 12 mm')).toEqual([['crystal', 12]]);
+    expect(kinds('Durchmesser des größten Kristalls 12 mm. Stufe 5 x 4 cm')).toEqual([['width', 12], ['specimen', 50]]);
+    expect(kinds('Durchmesser des größten Kristalls ca. 12 mm')).toEqual([['width', 12]]);
+    expect(kinds('Durchmesser eines Kristalls 12 mm')).toEqual([['width', 12]]);
+    expect(kinds('diameter of the largest crystal 12 mm')).toEqual([['width', 12]]);
+    expect(kinds('Fluorit; Kristalldurchmesser ca. 12 mm')).toEqual([['width', 12]]);
+    expect(kinds('Fluorit; Durchm. des größten Kristalls 12 mm')).toEqual([['width', 12]]);
+    expect(kinds('Fluorit; Kristall Ø 12 mm')).toEqual([['width', 12]]);
+    expect(kinds('ashtra, Indien - Größe: Stufe 5 x 4 cm , Cavansit 1,8 cm Durchm. ;')).toEqual([['specimen', 50], ['width', 18]]);
+    // A diameter after one measure governs nothing after it; "einen Durchmesser von" is left to its subject.
+    expect(kinds('Kugel mit 3 cm Durchmesser und Kristallen bis 5 mm')).toEqual([['aggregate', 30], ['crystal', 5]]);
+    expect(kinds('gel hat einen Durchmesser von 16 cm. In der Druse ')).toEqual([['specimen', 160]]);
+    // Cut at the caption's start, the word's tail ("messer", "esser") — in the first clause only.
+    expect(kinds('messer des größten Kristalls 12 mm')).toEqual([['width', 12]]);
+    expect(kinds('esser des größten Kristalls 12 mm')).toEqual([['width', 12]]);
+    expect(kinds('uorit; Messer des Finders als Maßstab neben dem Kristall 12 mm')).toEqual([['crystal', 12]]);
+    // A width or thickness word first, governing a crystal, gives its width — a tabular crystal's thickness too;
+    // governing an aggregate or the specimen, it leaves the noun's reading.
+    expect(kinds('Fluorit; Breite des größten Kristalls 12 mm')).toEqual([['width', 12]]);
+    expect(kinds('Dicke der tafeligen Kristalle 2 mm')).toEqual([['width', 2]]);
+    expect(kinds(' Breite des Fluoritaggregates 5 cm ;')).toEqual([['aggregate', 50]]);
+    expect(kinds('Breite der Stufe 8 cm')).toEqual([['specimen', 80]]);
   });
   it('a size in three dimensions is never the picture\'s ("Ausschnitt" after it marks a detail of the specimen)', () => {
     expect(kinds('Stilbit ; Stilbit 40x35x20 mm Ausschnitt Ind')).toEqual([['specimen', 40]]);
@@ -491,8 +517,9 @@ describe('size, conditional on occurrence and on the pocket', () => {
     expect(assessSize([run(true, 300, 40)], proxyT).display).toEqual(both(r(1, 1, 40, false), r(1, 0, 300, true), 0, none));
     // A proxy's crystal in the range on its length (100 mm), hidden by a cavity below the proxy's range: within in
     // its favour, at the span short of the proxy, and within against it at its own length, as the reading against it
-    // takes every crystal the cavity hides (round 22: it had had no vote there while the 300 mm giant kept its own).
-    expect(assessSize([run(true, 100, 40), run(true, 300, 40)], proxyT).display).toEqual(both(r(2, 2, 70, false), r(2, 1, 200, true), 0, none));
+    // takes every crystal the cavity hides (round 22: it had had no vote there while the 300 mm giant kept its own;
+    // round 23: it had then been read at its length in its favour too, a median of 70, not the span's 40).
+    expect(assessSize([run(true, 100, 40), run(true, 300, 40)], proxyT).display).toEqual(both(r(2, 2, 40, false), r(2, 1, 200, true), 0, none));
     // A crystal target's crystal between q10 and q25 is an accessory too; a median exactly at q90 is not past it,
     // and one past it by less than a summary's rounding is (round 15) — the reported verdict too (round 16).
     expect(assessSize([run(true, 13), run(true, 14.9)], crystalT).display.every.most).toEqual(r(0, 0, null, false));
@@ -1052,24 +1079,30 @@ describe('WP1\'s whole target', () => {
       // Absent, it fails its abundant band.
       expect(npWp1(npRuns(() => ({ occurs: false, size: 0 })), species).fails, at).toEqual(['galena below its band']);
     }
-    // Grimsel: quartz carries the story; fluorite (common band, crystal target) in k of 21 runs.
+    // Grimsel: quartz carries the story; fluorite (common band, crystal target) in k of 21 runs. Copies of the
+    // committed targets (round 23: the fluorite's had stayed the record before round 22, kept below for its edge).
     const qz = { basis: 'crystal', n: 25, q10: 23, q25: 25, median: 29, q75: 40, q90: 51.4, confidence: 'low' };
-    const gf = { basis: 'crystal', n: 9, q10: 9.8, q25: 11, median: 12, q75: 20, q90: 24, confidence: 'low' };
-    const grimsel: any = { quartz: { role: 'primary', engine: true, occurrence_band: BANDS.AB, size: qz }, fluorite: { role: 'alternate', engine: true, occurrence_band: BANDS.CO, size: gf } };
-    const outcome = (size: number, k: number) => {
+    const gf = { basis: 'crystal', n: 8, q10: 9.7, q25: 10.75, median: 14, q75: 20.5, q90: 25, confidence: 'low' };
+    const outcome = (fluorite: any, size: number, k: number) => {
+      const grimsel: any = { quartz: { role: 'primary', engine: true, occurrence_band: BANDS.AB, size: qz }, fluorite: { role: 'alternate', engine: true, occurrence_band: BANDS.CO, size: fluorite } };
       const runs = Array.from({ length: 21 }, (_, i) => ({ span: 195.24, species: { quartz: { occurs: true, size: 29 }, fluorite: { occurs: i < k, size: i < k ? size : 0 } } }));
       const r = scenarioWp1(runs, grimsel, scenarioVerdict(runs, grimsel, 0.3));
       return r.met ? 'met' : r.fails.length ? 'fail' : 'open';
     };
-    // Its share is 0.3 × 0.52 = 0.156, just past the 0.155 that none of 21 is within noise of. At its median it
-    // is met from 7 runs, where it is within its band; in 3 to 6, below the floor within noise, it is open
-    // (round 9: round 8 met it from 4, laundering rarity), and in 0 to 2 below the floor beyond noise. As dust,
-    // or past 24 mm (120: oversize from 4 eligible runs, below its share in 3), it carries none and fails.
+    // Its share is 0.3 × 0.506 = 0.1517, under the 0.155 that none of 21 is within noise of. At its median it is
+    // met from 7 runs, where it is within its band; in 3 to 6, below the floor within noise, it is open (round 9:
+    // round 8 met it from 4, laundering rarity), and in 0 to 2 below the floor beyond noise. Past 25 mm (120) it
+    // is oversize from 4 eligible runs, and open in 3, too few to tell. As dust it never carries, and from 3 runs
+    // the limit alone holds that open: none of 21 carrying is within noise of its share.
     for (const k of [0, 1, 2, 3, 4, 5, 6, 7, 21]) {
-      expect(outcome(0.5, k), `dust in ${k}`).toBe('fail');
-      expect(outcome(120, k), `120 mm in ${k}`).toBe('fail');
-      expect(outcome(12, k), `at its median in ${k}`).toBe(k >= 7 ? 'met' : k >= 3 ? 'open' : 'fail');
+      expect(outcome(gf, 0.5, k), `dust in ${k}`).toBe(k >= 3 ? 'open' : 'fail');
+      expect(outcome(gf, 120, k), `120 mm in ${k}`).toBe(k === 3 ? 'open' : 'fail');
+      expect(outcome(gf, 14, k), `at its median in ${k}`).toBe(k >= 7 ? 'met' : k >= 3 ? 'open' : 'fail');
     }
+    // The edge: before round 22 read "Durchmesser des größten Kristalls 12 mm" as a width, the record held nine
+    // lengths (median 12) and its share, 0.3 × 0.52 = 0.156, was just past the limit — as dust it failed in any count.
+    const gf9 = { basis: 'crystal', n: 9, q10: 9.8, q25: 11, median: 12, q75: 20, q90: 24, confidence: 'low' };
+    for (const k of [0, 3, 7, 21]) expect(outcome(gf9, 0.5, k), `dust in ${k}, nine lengths`).toBe('fail');
     // Tormiq: titanite (no band, a proxy) at 5 mm, never formed, or at its proxy: open, never met — with no band
     // its share cannot be set (round 9).
     const ti = { basis: 'specimen-proxy', n: 10, q10: 21, q25: 34, median: 47, q75: 53.75, q90: 61.5, confidence: 'low' };
@@ -1438,7 +1471,13 @@ describe('WP1\'s whole target', () => {
     // 15's hold back for a proxy); round 21's case — 7 carriers in 300 mm pockets, 6 at 100 mm in 45 mm and 8 at
     // 200 mm in 60 mm — is met.
     const list = (spec: [number, number, number][]) => spec.flatMap(([k, size, span]) => Array.from({ length: k }, () => ({ span, species: { apophyllite: { occurs: true, size: 26.5 }, stilbite: { occurs: true, size } } })));
-    expect(dW(list([[20, 100, 45], [1, 1000, 60]])).open.filter((y: string) => y.startsWith('stilbite may be oversize'))).toEqual([]);
+    const single = dW(list([[20, 100, 45], [1, 1000, 60]]));
+    expect([...single.fails, ...single.open].filter((y: string) => y.startsWith('stilbite') && y.includes('oversize'))).toEqual([]);
+    // Round 23: in its favour a carrier hidden by a pocket below the proxy's range is read at the span — 10 at 118 mm
+    // in 40 mm pockets beside 10 at 140 mm in 300 mm ones put the every-pocket median at 90 mm, not past (read at its
+    // length, 129, it had been "oversize within noise"); and two readings with one count but medians on either side
+    // of q90 keep their labels.
+    expect(dW(list([[10, 118, 40], [10, 140, 300]])).open).toContain('stilbite may be oversize: past its display range in 10 of the 20 runs that vote in every pocket, read against it, and in 10 of the 20, read in its favour');
     expect(dW(list([[7, 100, 300], [6, 100, 45], [8, 200, 60]])).met).toBe(true);
     const shield = fleets(st, 219, 45, 7);
     expect(shield.here).toBe(0);

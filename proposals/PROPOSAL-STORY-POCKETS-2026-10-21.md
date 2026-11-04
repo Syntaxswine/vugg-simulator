@@ -325,7 +325,9 @@ chord can cross the wall. So SMALL is conclusive and STORY-SCALE is generous.
   both readings fail 63 % — then in one that holds it beside such pockets, which held open 43 of 2,000
   fleets both readings fail). A proxy's are read as the boss's rule would read them with every pocket short
   of its median counted, since the protagonist's own crystal, smaller than the proxy, may fit it: a crystal
-  hidden there is read both ways too, so that reading is no cavity that hid nothing. Counting every pocket
+  hidden there is read both ways too, at the span in its favour and at its own length against it, so only the
+  reading in its favour is no cavity that hid nothing (round 23: one in its range on its length had been read
+  at its length both ways). Counting every pocket
   is this proposal's hedge on the boss's rule (§4). For a crystal target it keeps giants in pockets too
   small for the characteristic crystal from going unjudged (round 13), at a cost — carriers there can still
   turn a fail into open, never into met (round 15 found them turning a fleet of giants into met; round 16
@@ -350,7 +352,7 @@ chord can cross the wall. So SMALL is conclusive and STORY-SCALE is generous.
   fails 41, 85 and 98 % — and pockets short of the median take their giants out of the boss's count — at
   40 mm the galena fails in 85 % of fleets with none of them, and in 77, 63 and 52 % with 3, 7 and 10 runs
   in 19 mm pockets (2,000 fleets each) — and every pocket short of a proxy's median shields it, its
-  every-pocket reading taking a crystal hidden there at the span — with 7 of 21 runs in such pockets the interval in the reading most in its favour cannot fall below one half, whatever the crystals' size or the pockets' (a share that rises toward one half with more runs: 43 % of 210; round 20: at ten times its proxy's median, Deccan's stilbite with 7 runs in 1 mm pockets fails in none of 2,000 fleets, where both anchors fail all of them). Read against the protagonist, every crystal the cavity hides is taken at its own length, so the reading passes exactly where both anchors pass (round 22: a crystal in its range on its length, short of the proxy at the span, had had no vote against it while a giant kept its own, holding open fleets both anchors pass; §4). Deccan's stilbite at two and three times its proxy's median, with 7 of 21 runs in 45 mm pockets, is failed in none of 2,000 fleets, where a cavity that hid nothing and the boss's rule at the proxy's median both fail 14 and 85 %, and with 3 and 5 such runs, at
+  every-pocket reading in its favour taking a crystal hidden there at the span — with 7 of 21 runs in such pockets the interval in the reading most in its favour cannot fall below one half, whatever the crystals' size or the pockets' (a share that rises toward one half with more runs: 43 % of 210; round 20: at ten times its proxy's median, Deccan's stilbite with 7 runs in 1 mm pockets fails in none of 2,000 fleets, where both anchors fail all of them). Read against the protagonist, every crystal the cavity hides is taken at its own length, so the test passes exactly where both anchors pass (round 22: a crystal in its range on its length, short of the proxy at the span, had had no vote against it while a giant kept its own, holding open fleets both anchors pass; §4). Deccan's stilbite at two and three times its proxy's median, with 7 of 21 runs in 45 mm pockets, is failed in none of 2,000 fleets, where a cavity that hid nothing and the boss's rule at the proxy's median both fail 14 and 85 %, and with 3 and 5 such runs, at
   three times, in 70.0 and 26.5 % against 86.5 and 91.3 % (Tsumeb's smithsonite gives the same, Naica's
   selenite none against 37.5 % at three times). In one cavity that holds each protagonist's characteristic crystal
   both readings count the same pockets, and the whole target is met exactly where a cavity that hid
@@ -849,7 +851,7 @@ What the pockets show:
 ### 2.4 The size evidence
 
 <!-- generated:size-evidence -->
-Capture: 82 Mineralienatlas pages; 2217 photographs with a stated length, 2167 specimens once the photographs of one specimen are joined (33 by identical captions, 17 by the same dimensions). Specimens with a length of each kind: crystal 184, aggregate 14, specimen 1453, picture width 523. Crystal lengths set aside: 10 named another mineral, 1 were about another mineral, 8 gave a width; 9 lengths stayed unclassed. The full audit, every crystal length and every join: `proposals/DATA-STORY-POCKET-SIZES-2026-10-22.md`.
+Capture: 82 Mineralienatlas pages; 2217 photographs with a stated length, 2167 specimens once the photographs of one specimen are joined (33 by identical captions, 17 by the same dimensions). Specimens with a length of each kind: crystal 184, aggregate 14, specimen 1453, picture width 523. Crystal lengths set aside: 10 named another mineral, 1 were about another mineral, 9 gave a width; 9 lengths stayed unclassed. The full audit, every crystal length and every join: `proposals/DATA-STORY-POCKET-SIZES-2026-10-22.md`.
 Protagonist size targets (112): crystal (low) 10, crystal (medium) 1, specimen-proxy 55, unknown 46.
 
 | scenario | primary protagonist | crystal lengths: n, median (q25–q75) mm | specimen dimensions: n, median (q25–q75) mm | target |
@@ -1697,7 +1699,7 @@ leftover components rise. Try it on `gem_pegmatite` against WP1's target before 
        test with pockets between the median and the 90th percentile beside carriers in pockets short of the
        median. Reading only a crystal hidden in a pocket
        short of the median at its own length would not be exact: it mixes readings across pockets, as round 18
-       found for crystal targets (round 20). Rounds 20 to 22 of the review leaned toward the whole reading as
+       found for crystal targets (round 20). Rounds 20 and 21 of the review leaned toward the whole reading as
        the default; this proposal keeps the hedge, stated, for the boss to choose. The other way
        for every pocket, only the eligible pockets voting, is
        round 13's rule: it fails such fleets but lets giants confined to pockets too small for the
@@ -1862,10 +1864,22 @@ Every step uses:
     of 60 specimen lengths behind the proxies: 2 of the 60 (3 %) were wrong. Round 4 sampled 70 more: 1
     (1.5 %). Rounds 3–5 read every crystal row behind the targets again and found them clean. The cases
     the rounds found are fixed and are now tests.
-  - A diameter after a number is read as a width, except after a tabular or rounded form ("tafelige
-    Kristalle", "Eisenrosen", a rosette cut to "…ette"), whose diameter is its size. A stretch cut before
-    any such word ("n cyanblauer Farbe und bis zu 11 mm Durchmesser", a cavansite) keeps the width
-    reading; another wording that gives a length as a diameter would also be lost from the lengths.
+  - A diameter is read as a width, after its number or before it, except of a tabular or rounded form
+    ("tafelige Kristalle", "Eisenrosen", a rosette cut to "…ette"), whose diameter is its size. Before its
+    number the word governs its own measure only (rounds 22 and 23): through "des", "der", "eines", "einer"
+    or "of" with no other measure, clause or sentence before the number ("Durchmesser des größten Kristalls
+    12 mm", or cut at the caption's start, "hmesser des …"), or as a label with only a qualifier between
+    ("Kristalldurchmesser ca. 12 mm", "Ø 12 mm"); "einen Durchmesser von 16 cm" is left to its subject. A
+    width or thickness word first governs a crystal the same way ("Breite des größten Kristalls 12 mm");
+    before an aggregate or the specimen it leaves the noun's reading. A stretch cut before any such word
+    ("n cyanblauer Farbe und bis zu 11 mm Durchmesser", a cavansite) keeps the width reading; another
+    wording that gives a length as a diameter would also be lost from the lengths.
+  - For an equant crystal a diameter is close to its size, but one rule reads every diameter. The capture
+    holds two such: Grimsel's pink fluorite, "Durchmesser des größten Kristalls 12 mm", and Viburnum's
+    galena, "Galenit-xx bis 7,5 cm Durchmesser". Read as a length, the first would give Grimsel's fluorite
+    nine lengths (median 12 mm) and a carrier share of 0.156, just above the 0.155 that 21 runs cannot fail,
+    so as dust in every run it would fail its share, where today the limit alone holds it open (§4); the
+    second would give Viburnum's galena a fourth crystal length, still short of the five a target needs.
   - A size in three dimensions is never a picture's width, whatever word follows it ("40x35x20 mm
     Ausschnitt" is a detail of a 40 mm specimen).
   - Every crystal length it uses, and every join, is listed in `DATA-STORY-POCKET-SIZES-2026-10-22.md`.

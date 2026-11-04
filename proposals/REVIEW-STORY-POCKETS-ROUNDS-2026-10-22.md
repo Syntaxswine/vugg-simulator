@@ -2397,3 +2397,107 @@ The score held at 8.5 for a third round. The reviewer found that the pass-side c
 Mutation testing: 55 mutants on rounds 16–22's code, 53 killed by the tests, the splice check or the targets check. Round 22's: the reading against a proxy's hidden in-range crystal reverted (round 21's mix), the diameter word first not read, a cut diameter word not read, a tabular crystal's diameter first read as a width, and the size verdict's noise edge excluding a crystal at it — all killed. The two survivors are the equivalent ones from rounds 18 and 19.
 
 Result: STORY 1, STORY (PROXY) 1, NO STORY 3, UNRESOLVED 26, NO ENGINE 1, OUT OF SCOPE 1 (unchanged). WP1's whole target is met by none: it fails at 16 scored scenarios (by cause: the story 4, a band 15, a carrier share 4, oversize 0) and is open at 16. No protagonist has a size entry. Tests 134 (unchanged; the new cases sit in existing tests).
+
+## Round 23 — 9/10 (on a76b0b8b)
+
+One reviewer, under the standing rule (no cap on rounds; stop at 9/10 or when nothing must be fixed). This round reached 9/10.
+
+### The report
+
+> a76b0b8b is correct. Its M1 line makes a proxy's pass exactly the two anchors' pass, and every stated figure reproduces. I found no new oversize route, and no earlier round's route has reopened. Nothing is must-fix. Four should-fixes remain, all from the edits around the round-22 changes; none of them moves a verdict.
+>
+> I edited nothing in the repository. HEAD is a76b0b8b and the tree is clean. The 14 .local-evidence hashes are the same before and after (the allowed `npm test` appended to its own gitignored ledger). My scratch files are in `review23\`.
+>
+> **MUST-FIX**
+>
+> None.
+>
+> **SHOULD-FIX**
+>
+> 1. **A Grimsel target copy in the tests is stale** (test.ts:1055–1072).
+>    - `gf` is still the pre-round-22 record (n 9, q25 11, median 12, q90 24). The comment says "Its share is 0.3 × 0.52 = 0.156, just past the 0.155 … As dust … it carries none and fails."
+>    - The committed target is n 8 with share 0.1517, under the 0.1546 limit. With that copy, dust in 3, 7 or 21 runs comes out OPEN ("short of its share 0.1517 within noise"), not failed (`a4-grimsel.mjs`). That is what the generated eighth line says: "The limit alone holds open … fluorite at grimsel_alpine_cleft".
+>    - The test is titled "on the North Pennines, Grimsel and Tormiq targets", so it now pins the opposite of the scoreboard on exactly the case round 22 changed. Round 22 had certified the test copies exact.
+>    - **Fix:** copy the committed target and update the expectations, or label the n-9 copy as the pre-round-22 record kept to show the knife-edge.
+>
+> 2. **The diameter-first parser rule overreaches, misses its siblings, is half pinned, and is not registered** (lib:84–85, :278–281; PROPOSAL:1865–1868).
+>    - **Overreach.** The scope `[^;,]*$` runs to the end of the clause, across sentence ends and other measures. Each of these was read correctly before round 22:
+>      - "Durchmesser der Stufe 8 cm. Kristalle bis 12 mm": the 12 mm crystal becomes a width (was crystal 12).
+>      - "Durchmesser des größten Kristalls 12 mm. Stufe 5 x 4 cm": the 50 mm specimen becomes a width.
+>      - "Durchmesser der Druse 8 cm mit Kristallen bis 2 cm": the 20 mm crystal becomes a width.
+>    - No caption in today's capture is hit: only 1489477717 changes, and correctly. But WP0 will add captions.
+>    - **Misses.** The same defect remains for a width or thickness word first ("Breite des größten Kristalls 12 mm" → crystal 12), for "Kristalldurchmesser 12 mm", for "Durchm.", and for a cut past "messer" ("esser des …" → crystal 12).
+>    - **Pinning.** 6 of my parser mutants survive all 134 tests:
+>      - the scope stopped at a digit;
+>      - "of" dropped;
+>      - "eines|einer" dropped;
+>      - German word only ("diameter of …" is untested);
+>      - the cut form allowed on any clause;
+>      - the cut form requiring a letter before "messer".
+>    - **Registration.** §5 still describes only "a diameter after a number". The rule that moved a target is not in the proposal.
+>    - **Basis.** The rule reads a diameter as a column's width. Grimsel's pink fluorite is cubic (octahedral), and there a diameter is close to the crystal's size. This one caption moves a never-carrying alternate from failed (n 9, share 0.156) to open (n 8, 0.1517). Round 22 offered "fix the rule, or state the case beside the knife-edge"; it should be stated.
+>    - **Fix:** end the governed stretch at the next measure or sentence end; add tests for the scope, "diameter of" and "eines"; add one line to §5.
+>
+> 3. **`least` is not the span reading it is now documented as, in one geometry** (lib:688, :656–666; targets.mjs:75; PROPOSAL:326–328, :353).
+>    - **What the code does.** Take a proxy's crystal that is in its range on its length but hidden by a pocket below q25. It is now read at its length both ways (`fav = against = r.size`).
+>    - **What the texts say.** §1.3 says it is "read both ways too", and `size_check` and the lib say "read at the span too". The lib calls `least` "the span judging every crystal the cavity hides".
+>    - **Effect.** The counts within q90 are unchanged, so no fail or pass moves. But `least.past` can be true where the span reading's median is not. "Oversize within noise" (defined as past in every reading) is then reported where "may be oversize" is the true entry.
+>      - Example: the committed stilbite proxy, 10 runs at 118 mm in 40 mm pockets and 10 at 140 mm in 300 mm pockets. The output is "stilbite oversize within noise: … 10 of the 20 … beyond noise in the pockets that hold its median". The every-pocket span reading's median is 90 mm, under q90 of 119.7.
+>      - Among 30,000 random proxies at each of seeds 47 and 5, this happens in 8 and 15 of about 2,100 within-noise entries.
+>    - **Fix:** set `{ fav = r.span; against = r.size; }`, and have `alike` (lib:1000) compare `past` too, so the messages keep their reading labels. Only test.ts:495 moves (70 → 40). The departures stay at 106 and 103, with none on the pass side. Rewording the texts instead would also do.
+>    - **Also:** "every reading that answers that question one way … lies between them" is false for `most`. The span reading with short crystals as accessories can put the typical voter past q90 where `most` does not: 10 × 118 in 40 mm + 10 × 140 in 300 mm + 1 × 60 in 300 mm gives `most` 118 and that reading 140. The pass is still exact, because every past vote in such a reading comes from an eligible pocket, so the boss's reading bounds it. Say that instead.
+>    - **Also:** "the reading passes exactly where the two anchors pass" (size_check, lib:661, PROPOSAL:353). The every-pocket reading alone passes where the cavity that hid nothing passes. It is the test as a whole that passes exactly where both anchors pass.
+>
+> 4. **Nits.**
+>    - PROPOSAL:1700 says "Rounds 20 to 22 … leaned toward the whole reading". Round 22 stated no lean; its fix kept the hedge, with the shield as its one cost. It should say rounds 20 and 21.
+>    - test.ts:1441 filters only "may be oversize" entries. It should assert that there is no stilbite oversize entry of any kind (my run shows none).
+>
+> **Verified and correct**
+>
+> - **Checks.**
+>   - The size-evidence tool runs, and targets `--check` matches a rebuild.
+>   - All splice blocks match: 13/13 scoreboard, 2/2 substrate.
+>   - Tests pass 134/134 under vitest and in my stand-in harness.
+>   - The comparison tool is unchanged since afbe687f, and its output is byte-identical.
+>   - A plain scoreboard run reproduces showcase.* byte-for-byte.
+>   - Nothing under js/ or data/ changed in f49c1804^..HEAD.
+> - **M1 holds** (`a1b-random.mjs`).
+>   - Before the fix: 322 = 216 + 106 and 359 = 256 + 103. Now: 106 and 103, all on the fail side.
+>   - Outside the anchors' bounds: 0. The whole version departs in 0.
+>   - 90,000 more random protagonists also pass on the pass side and stay inside the bounds, with crystal targets exact: mixed bases, 15 % unknown spans, ties at q25, the median and q90, 1–60 runs, three seeds.
+>   - The pass side can be proved: the every-pocket `most` is exactly the reading of a cavity that hid nothing, and `eligible` is exactly the boss's reading.
+> - **Stilbite figures reproduce.**
+>   - At its proxy median, 89.3 % pass, the anchors' own figure.
+>   - At 2×, 3× and 10× it fails 0, against 14.4, 85.3 and 100 % for the whole version.
+>   - With 3 and 5 runs at 3×: 70.0 / 26.5 % against 86.5 / 91.3 %.
+>   - The single giant has no entry; round 21's case is met; a giant in a 300 mm pocket is open under both versions, so round 22's correction of round 21's response holds.
+> - **S2.**
+>   - Exactly one caption changes.
+>   - Grimsel's fluorite quantiles check by hand from 9, 10, 11, 12, 16, 20, 22, 32: 10.75 / 14 / 20.5 / 25. The share is 0.1517.
+>   - WP1 by cause: share failures 5 → 4, within noise 2 → 3.
+>   - The nearest share above the limit is 0.1625.
+>   - All prose is updated except test.ts.
+> - **S3 and S4.**
+>   - "Eleven expectations in four tests" reproduces with a soft-expect harness.
+>   - The noise-edge mutant is now killed.
+> - **Mutants.** I ran 22 mutants of my own. Every logic mutant dies: round 21's mix, the in-favour readings at length, the whole version, both short-of-proxy ways, the noise edge, the fail gate, the favour choice and both pass gates. The survivors are the parser mutants in should-fix 2.
+> - **Earlier routes stay closed.** The galena WP9 sweeps reproduce: 0.1 / 0.3 / 0.4 % against 40.9 / 84.9 / 98.3 %, and 85 / 77 / 63 / 52 %. The crystal targets match both anchors exactly.
+> - **Parser and joins.** I spot-checked 17 joined photographs against the capture; all are correct. I read the ~100 lengths behind the ten crystal targets with an engine; nothing is misread apart from the basis question in should-fix 2.
+> - **Acceptance and guardrails.** Every acceptance item is present. The hedge's one cost, the shield, is stated everywhere it is described, and attributions are right apart from nit 1.
+>
+> **Ready for the boss?** Yes, once should-fixes 1–3 are in. They are small, none moves a verdict, and the design is sound and faithful to the boss's decisions.
+
+### The response
+
+Round 23 reached the target: 9/10, with nothing must-fix, so under the standing rule the rounds stop here. The reviewer judged the tranche ready for the boss once the three should-fixes were in. I took them and the nits. No further round has reviewed these fixes.
+
+| # | finding | what changed | evidence |
+|---|---|---|---|
+| S1 | a Grimsel target copy in the tests was still the record from before round 22 | The test now copies the committed target (eight lengths, median 14 mm, share 0.1517) and pins what the scoreboard says. **As dust:** open from 3 runs, held by the 21-run limit alone ("short of its share 0.1517 within noise"). **At 120 mm:** oversize from 4 runs, open in 3. **At its median:** met from 7. **The edge:** the nine-length record is kept beside it; its share of 0.156 fails dust in any count. | Reproduced: with the committed copy, dust in 3, 7 or 21 runs is open, as the generated eighth line says. |
+| S2 | the diameter-first rule overreached, missed its siblings, was half pinned and was not registered | **Scope:** the word first now governs only its own measure. It reaches the number through "des", "der", "eines", "einer" or "of" with no other measure, clause or sentence before it, or stands as a label with only a qualifier between ("Kristalldurchmesser ca. 12 mm", "Ø 12 mm"). The reviewer's three overreach captions read as they did before round 22. **Siblings:** a compound ("Kristalldurchmesser") or short form ("Durchm.") counts as the word, before or after its measure. A caption cut to "esser des …" reads like "hmesser des …". A width or thickness word first, governing a crystal ("Breite des größten Kristalls 12 mm"), gives that crystal's width; before an aggregate or the specimen it leaves the noun's reading. "Einen Durchmesser von 16 cm" stays with its subject. **Registration:** §5 states the rule. **Basis:** §5 says one rule reads every diameter, though an equant crystal's diameter is close to its size, and names the capture's two such captions. Read as a length, Grimsel's fluorite would get nine lengths and a share of 0.156, failed as dust; Viburnum's galena would get a fourth length, still short of five. **Tests:** 19 parser cases, including the six forms the reviewer's mutants found unpinned. | **Capture census** (all 2,261 caption stretches, the new parser against a76b0b8b's): one stretch changes. "Cavansit 1,8 cm Durchm." (Deccan) goes from a second specimen length (18 mm, under the specimen's 50) to a width. The appendix's widths cell for it goes 1 → 2, and §2.4's count of crystal lengths that gave a width goes 8 → 9. No target and no verdict moves. |
+| S3 | in one geometry, `least` was not the span reading it was documented as | **Code:** in `assessSize`, one branch now covers what three did: every crystal the cavity hides is read at the span in the protagonist's favour and at its own length against it. Since round 22, a proxy's crystal in its range on its length but hidden by a pocket below the proxy's lower quartile had been read at its length both ways. `alike` now also compares whether the median is past, so two readings with one count but medians on either side of q90 keep their labels. **Texts:** the lib's doc now states three things. What `least` and `most` read. That no reading's interval of its share within reaches higher than `least`'s. That a reading past where `most` is not has every past vote in a pocket that holds the median, so the boss's reading is past there too. In `size_check`, §1.3 and the lib, "the reading passes" becomes "the test passes". §1.3 says how a hidden crystal is read both ways. | **The reviewer's case** (10 stilbites at 118 mm in 40 mm pockets, 10 at 140 mm in 300 mm): it had been "oversize within noise"; it is now "may be oversize … in 10 of the 20 runs that vote in every pocket, read against it, and in 10 of the 20, read in its favour". **Tests:** that case is pinned. One expectation moves: the reading of a hidden in-range proxy crystal, whose median in its favour goes 70 → 40. **The fail bound:** dropping a within vote, or turning one past, never raises the Wilson upper bound (80,200 pairs, n up to 400), so `least` bounds every reading's fail. **Re-measured:** among 30,000 random proxy protagonists at each of seeds 47 and 5, 8 and 15 fleets move from "oversize within noise" to "may be oversize" (the reviewer's figure), and nothing else moves. The departures from the anchors stay at 106 and 103, all on the fail side (the shield), and none is outside the anchors' bounds. Deccan's stilbite figures are unchanged: 89.3 % pass at its proxy median; none failed at two, three and ten times; 70.0 and 26.5 % with 3 and 5 runs at three times. The census is unchanged. |
+| S4 | nits | §4 now says rounds 20 and 21 leaned toward the whole version; round 22 stated no lean. The single-giant test asserts that there is no stilbite oversize entry of any kind. | — |
+
+Mutation testing: 76 mutants on rounds 16–23's code, 74 killed by the tests, the splice check or the targets check. All 24 of round 23's are killed: five on the hidden crystal's readings (round 22's and round 21's back, at the span against it, at its length both ways, no vote in its favour), `alike` ignoring the median's side, and 18 on the parser, among them the six forms the reviewer's mutants found unpinned (the scope past another measure, "of", "eines" and "einer", the German word only, the cut form on any clause, the cut form needing a letter before "messer"). The two survivors are the equivalent ones from rounds 18 and 19.
+
+Result: STORY 1, STORY (PROXY) 1, NO STORY 3, UNRESOLVED 26, NO ENGINE 1, OUT OF SCOPE 1 (unchanged). WP1's whole target is met by none: it fails at 16 scored scenarios (by cause: the story 4, a band 15, a carrier share 4, oversize 0) and is open at 16. No protagonist has a size entry. One generated figure moved: §2.4's count of crystal lengths that gave a width, 8 → 9. Tests 134 (unchanged; the new cases sit in existing tests).
