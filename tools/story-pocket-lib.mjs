@@ -650,8 +650,10 @@ const lengthAndSpanAgree = (size, span, t) => !(span != null && size > span) || 
  * beside one). A proxy's every pocket is read as the eligible ones are, with every pocket short of its median
  * counted, since the protagonist's own crystal, smaller than the proxy, may fit it: there a crystal it hides is
  * read at the span too — in the range, or below it and so short of the proxy — so every such pocket shields the
- * proxy from the fail: with a third of its runs in them, the interval of the reading most in its favour cannot
- * fall below one half (rounds 19 and 20; the proposal's §4 states the cost and the other way).
+ * proxy from the fail: with 7 of 21 runs in them (a share rising toward one half with more runs), the interval of
+ * the reading most in its favour cannot fall below one half. And a crystal in the range on its length, short of
+ * the proxy at the span, has no vote against it there, so the reading also holds open fleets the two anchors pass
+ * (rounds 19–21; the proposal's §4 states both costs and the other way).
  * In each, `least` reads them the way least likely to make the typical crystal oversize and `most` the way most
  * likely, and every other reading lies between them: { n, within (at or below q90), median, past (the exact
  * median past q90) }. `held` counts its runs in pockets that hold its median.
@@ -796,7 +798,7 @@ export function storyVerdict({ runs, yes, yesCrystal, open, frequency, z = 1.96 
   const ci = wilson(yes, runs, z);
   if (frequency == null) return { verdict: 'UNRESOLVED', why: 'no story frequency: no protagonist with an engine, an occurrence band and a size target whose display range starts within the cavity can carry a story run', rate, ci };
   if (rate >= frequency) return { verdict: yesCrystal / runs >= frequency ? 'STORY' : 'STORY (PROXY)', rate, ci };
-  if ((yes + open) / runs >= frequency) return { verdict: 'UNRESOLVED', why: 'runs whose protagonist has no known crystal target, or whose pocket is unclassed, could carry it', rate, ci };
+  if ((yes + open) / runs >= frequency) return { verdict: 'UNRESOLVED', why: 'runs whose protagonist has no known crystal target, or whose crystal is longer than the cavity, or whose pocket is unclassed, could carry it', rate, ci };
   return { verdict: yes ? 'THIN STORY' : 'NO STORY', noise: wilson(yes + open, runs, z)[1] >= frequency, rate, ci };
 }
 
@@ -1004,7 +1006,7 @@ export function wp1Target(story, protagonists, { scored = 0, z = 1.96 } = {}) {
       // Past in every reading, it is open on the runs' noise alone; past in only some, it may be oversize.
       if (every.least.past && eligible.least.past) {
         // Where one reading alone would fail it beyond noise, the noise is the other's: say which fails it.
-        const beyond = one ? [] : ['every', 'eligible'].filter((key) => upper(d[key].least) < 0.5);
+        const beyond = ['every', 'eligible'].filter((key) => upper(d[key].least) < 0.5);
         open.push(`${p.k} oversize within noise: past its display range in ${both('least')}${beyond.length ? `; beyond noise${name(beyond[0])}` : ''}`);
       } else {
         const against = every.most.past ? 'every' : 'eligible', short = every.least.past ? 'eligible' : 'every';

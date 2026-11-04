@@ -350,7 +350,7 @@ chord can cross the wall. So SMALL is conclusive and STORY-SCALE is generous.
   fails 41, 85 and 98 % — and pockets short of the median take their giants out of the boss's count — at
   40 mm the galena fails in 85 % of fleets with none of them, and in 77, 63 and 52 % with 3, 7 and 10 runs
   in 19 mm pockets (2,000 fleets each) — and every pocket short of a proxy's median shields it, its
-  every-pocket reading taking a crystal hidden there at the span — with a third of its runs in such pockets (7 of 21) the interval in the reading most in its favour cannot fall below one half, whatever the crystals' size or the pockets' (round 20: at ten times its proxy's median, Deccan's stilbite with 7 runs in 1 mm pockets fails in none of 2,000 fleets, where both readings fail all of them). Deccan's stilbite at two and three times its proxy's median, with 7 of 21 runs in 45 mm pockets, is failed in none of 2,000 fleets, where a cavity that hid nothing and the boss's rule at the proxy's median both fail 14 and 85 %, and with 3 and 5 such runs, at
+  every-pocket reading taking a crystal hidden there at the span — with 7 of 21 runs in such pockets the interval in the reading most in its favour cannot fall below one half, whatever the crystals' size or the pockets' (a share that rises toward one half with more runs: 43 % of 210; round 20: at ten times its proxy's median, Deccan's stilbite with 7 runs in 1 mm pockets fails in none of 2,000 fleets, where both anchors fail all of them); and, at the span short of the proxy, a crystal in its range on its length hidden by a pocket below the proxy's lower quartile has no vote against it, so the same reading also holds open fleets both anchors pass (round 21: 10.8 % of the stilbite's fleets at its proxy's median with 7 runs in 45 mm pockets; §4). Deccan's stilbite at two and three times its proxy's median, with 7 of 21 runs in 45 mm pockets, is failed in none of 2,000 fleets, where a cavity that hid nothing and the boss's rule at the proxy's median both fail 14 and 85 %, and with 3 and 5 such runs, at
   three times, in 70.0 and 26.5 % against 86.5 and 91.3 % (Tsumeb's smithsonite gives the same, Naica's
   selenite none against 37.5 % at three times). In one cavity that holds each protagonist's characteristic crystal
   both readings count the same pockets, and the whole target is met exactly where a cavity that hid
@@ -1598,7 +1598,7 @@ leftover components rise. Try it on `gem_pegmatite` against WP1's target before 
   medians of 30 to 50 mm, where a cavity that hid nothing fails 41, 85 and 98 %. Pockets short of a crystal
   target's median take their giants out of the boss's count: at 40 mm the galena fails in 85 % of fleets
   with none of them, and in 77, 63 and 52 % with 3, 7 and 10 runs in 19 mm pockets. And every pocket short
-  of a proxy's median shields it — with a third of its runs in such pockets (7 of 21) the interval in the reading most in its favour cannot fall below one half, whatever the crystals' size or the pockets': Deccan's stilbite at two and three times its proxy's median, with 7 of 21 runs in 45 mm pockets, is failed in none of 2,000 fleets, where a cavity that hid nothing and the boss's rule at the proxy's median both fail 14 and 85 % (2,000 fleets each). The sixth line under §2's table, judged on each scenario's one span today,
+  of a proxy's median shields it — with 7 of 21 runs in such pockets (a share rising toward one half with more runs) the interval in the reading most in its favour cannot fall below one half, whatever the crystals' size or the pockets': Deccan's stilbite at two and three times its proxy's median, with 7 of 21 runs in 45 mm pockets, is failed in none of 2,000 fleets, where a cavity that hid nothing and the boss's rule at the proxy's median both fail 14 and 85 % (2,000 fleets each). The sixth line under §2's table, judged on each scenario's one span today,
   would then judge each run's.
 
 **The decisions it needs.**
@@ -1680,21 +1680,24 @@ leftover components rise. Try it on `gem_pegmatite` against WP1's target before 
        that holds the median beside them, which held open 43 of 2,000 such fleets with 5 runs in 19 mm pockets
        and 2 in 25 mm; it now fails exactly those. A proxy's pockets short of its median are counted as the
        boss's rule would count them were its own crystal, which the proxy only bounds, to fit them, so a giant
-       hidden there is read at the span and every such pocket shields it (round 19): with a third of its runs in such pockets (7 of 21) the interval in the reading most in its favour cannot fall below one half, whatever the crystals' size or the pockets' — Deccan's
+       hidden there is read at the span and every such pocket shields it (round 19): with a third of its 21 runs in such pockets (7 of 21; 1 of 7, 13 of 36, 43 % of 210, 47 % of 1,000) the interval in the reading most in its favour cannot fall below one half, whatever the crystals' size or the pockets' — Deccan's
        stilbite at ten times its proxy's median with 7 runs in 1 mm pockets is failed in none of 2,000 fleets,
        where both anchors fail all of them, and at two and three times it with 7 runs in 45 mm pockets in
-       none, where both fail 14 and 85 %. The shield stacks two of this proposal's own hedges — counting a
-       pocket short of the proxy's median as one that may hold the protagonist's crystal, and the premise that
-       the span could be the one to judge — where both anchors tell those fleets beyond noise; the boss's OPEN
-       answer covers misses the runs cannot tell. The other way for a proxy — reading every one of its
-       crystals at its own length in the every-pocket reading, as for a crystal target — makes its size test
-       the two anchors exactly (none of 30,000 random proxy protagonists differs) and fails those fleets.
-       Reading only a crystal hidden in a pocket short of the median at its own length would not be exact: it
-       mixes readings across pockets, as round 18 found for crystal targets (round 20). Its cost is that it
-       fails those fleets even where the protagonist's own crystal fits the pockets and the span is the one to
-       judge, which the proxy, only an upper bound, cannot rule out (at the proxy's own median it fails none
-       of them either way); adopting it would want a test with pockets between the median and the 90th
-       percentile beside carriers in pockets short of the median. The other way
+       none, where both fail 14 and 85 %. It also holds open fleets that both anchors pass: a proxy's crystal in its range on its length but hidden by a pocket below the proxy's lower quartile is short of the proxy at the span, so it has no vote against the protagonist there, while a giant keeps its vote — Deccan's stilbite at its proxy's median with 7 of 21 runs in 45 mm pockets passes the size test in 78.5 % of 2,000 fleets, against 89.3 % for both anchors, holding 10.8 % open where both pass (WP1 is met in 49.6 against 50.5 %, the share's could-carry rule holding most of them open anyway), and two thirds of its departures from the anchors among random proxy protagonists are of this kind (216 of 322 in 30,000) (round 21). The hedge stacks two of this proposal's own
+       hedges — counting a pocket short of the proxy's median as one that may hold the protagonist's crystal,
+       and the premise that the span could be the one to judge — where both anchors tell those fleets, the
+       boss's OPEN answer covering misses the runs cannot tell. The other way for a proxy is to read every one
+       of its crystals at its own length in the every-pocket reading, as for a crystal target. With every span
+       known its size test is then the two anchors exactly (none of 60,000 random proxy protagonists differs):
+       it fails the fleets the shield holds open and passes the ones held open where both anchors pass. Its
+       cost: it fails a fleet even where the protagonist's own crystal fits the pockets short of the proxy's
+       median and the span is the one to judge, which the proxy, only an upper bound, cannot rule out (at the
+       proxy's own median it fails none of the fleets above). Adopting it would flip the tests that pin the
+       shield and Naica's selenite, and would want one with pockets between the median and the 90th
+       percentile beside carriers in pockets short of the median. Reading only a crystal hidden in a pocket
+       short of the median at its own length would not be exact: it mixes readings across pockets, as round 18
+       found for crystal targets (round 20). Rounds 20 and 21 of the review leaned toward the whole reading as
+       the default; this proposal keeps the hedge, stated, for the boss to choose. The other way
        for every pocket, only the eligible pockets voting, is
        round 13's rule: it fails such fleets but lets giants confined to pockets too small for the
        characteristic crystal go unjudged — Deccan's stilbite, 14 at 500 mm and 7 carriers in its own

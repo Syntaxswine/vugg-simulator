@@ -2196,3 +2196,110 @@ The score rose (8 → 8.5), and the reviewer found the code correct, with no new
 Mutation testing: 47 mutants on rounds 16–20's code, 45 killed by the tests, the splice check or the targets check. They covered the new within-noise clause (dropped, naming the other reading, at one half itself), the round-20 reviewer's two message mutants, round 19's could-carry rule, the messages and `held`, rounds 16–18's readings, label and gates, the crystal readings, the medians, the cause label, the sixth line and the rule text. The clause's one-half boundary was unpinned at first; a case now pins it, as the fail gate's is pinned (a reading whose interval tops at exactly one half is not beyond noise). The two survivors are the equivalent ones from rounds 18 and 19.
 
 Result: STORY 1, STORY (PROXY) 1, NO STORY 3, UNRESOLVED 26, NO ENGINE 1, OUT OF SCOPE 1 (unchanged). WP1's whole target is met by none: it fails at 16 scored scenarios (by cause: the story 4, a band 15, a carrier share 5, oversize 0) and is open at 16. No protagonist has a size entry. No generated block changed. Tests 134 (unchanged; the new cases sit in existing tests).
+
+## Round 21 — 8.5/10 (on 35fe4e1f)
+
+One reviewer, under the standing rule (no cap on rounds; stop at 9/10 or when nothing must be fixed).
+
+### The report
+
+> 35fe4e1f's code is correct and every round-20 response holds. I found no new route that fails or meets a fleet wrongly. There is one must-fix, in the text the boss decides from: §4 describes only one of the two ways a proxy's default reading departs from the two anchors.
+>
+> I edited nothing in the repository. The tree is clean at 35fe4e1f and the .local-evidence hashes are the same before and after. Scratch files are in `review21\`.
+>
+> **MUST-FIX**
+>
+> 1. **The proxy hedge also holds open fleets that both anchors pass, and §4 never says so.**
+>    - **Where (code):** lib:679. A proxy's crystal that is in its range on its length, but hidden by a pocket below the proxy's q25, gets no vote against it (at the span it is short of the proxy, so it counts as an accessory). A giant in such a pocket keeps its past vote (lib:677, :680).
+>    - **Where (texts):** §4 PROPOSAL:1681–1697 costs the default by the shield alone and says the whole version "fails those fleets". The same one-sided account is in §1.3:333–335, WP9:1600–1601, `size_check` (targets.mjs:75), lib:650–654 and REVIEW:2190 ("today's reading in 324").
+>    - **Random proxies** (the tests' generator, 30,000 each, seeds 47 and 5): the default departs from both anchors in 322 and 359 cases. Of those, 216 and 256 — about two-thirds — are open where both anchors pass. The whole version departs in none. (`e7-passside.mjs`)
+>    - **Sweep** (`e8-passsweep.mjs`, `e9-wp1met.mjs`): Deccan's stilbite copy at its proxy median, sd 0.6, 2,000 fleets, 7 of 21 runs in 45 mm pockets.
+>      - The size test passes 78.5 % of fleets under the default and 89.3 % under the whole version.
+>      - 10.8 % of fleets are held open where both anchors pass.
+>      - WP1 is met in 49.6 % against 50.5 %; the share's could-carry rule holds most of those fleets open anyway.
+>    - **Concrete case** (`e10-case.mjs`): 7 carriers at 100 mm in 300 mm pockets, 6 at 100 mm in 45 mm pockets, 8 at 200 mm in 60 mm pockets, with apophyllite carrying.
+>      - Both anchors pass.
+>      - The default leaves WP1 open: "stilbite may be oversize: past its display range in 8 of the 15 runs that vote in every pocket, read against it, and in 0 of the 21, read in its favour".
+>      - The whole version meets it.
+>    - **Single giant:** 20 carriers hidden in 45 mm pockets plus one 1 m crystal gives "may be oversize: … 1 of the 1 runs that vote, read against it". That is the single-giant hold §4 lists as round 16's finding.
+>    - **Fix:** state this beside the shield in §4, and briefly in §1.3, `size_check` and the lib, with these figures. Say the whole version passes these fleets as well. While editing, make "Its cost is…" (PROPOSAL:1693) and "adopting it" name the whole version; as written they follow the sentence about the narrow version.
+>
+> **SHOULD-FIX**
+>
+> 1. **§1.3 misnames what fails.** PROPOSAL:353 says "where both readings fail all of them". The every-pocket reading is the one that fails none — that is the shield. §4:1685 has it right: "both anchors".
+> 2. **"A third" is stated without its run count** (lib:653; `size_check`, targets.mjs:75).
+>    - It holds only up to about 35 runs: 12 of 36 tops at 0.497.
+>    - At 210 runs a third tops at 0.40, and the shield needs 43 %; at 1,000 runs it needs 47 %. `noise_basis` itself discusses those fleet sizes.
+>    - Anchor it with "(7 of 21)", as the proposal does, or say the share needed rises toward one half.
+>    - At fewer occurrences, fewer pockets shield: 1 of 7 is enough.
+> 3. **The new clause is only half pinned.**
+>    - Every test names the eligible reading (test.ts:1286, 1391, 1399).
+>    - Two mutants survive all 134 tests: `['every','eligible']` → `['eligible']`, and hard-coding " in the pockets that hold its median".
+>    - Both other branches are reachable (`e5-clause.mjs`):
+>      - galena, 11 crystals at 40 mm in 300 mm pockets and 10 in 25 mm pockets → "…; beyond noise at their own length";
+>      - 8 in 19 mm, 7 in 300 mm and 6 in 25 mm → "…; beyond noise in every pocket".
+>    - `d.held ?` → `d.held > 1 ?` (lib:1000) also survives.
+>    - Pin all three.
+> 4. **Nits:**
+>    - `one ? [] :` at lib:1007 is dead code (an equivalent mutant).
+>    - The whole version's exactness claim should carry "with every span known", as the crystal-target claim does.
+>    - §4 should say that adopting the whole version flips the Naica and shield tests (test.ts:1286, 1391, 1395, 1399).
+>    - `story_frequency_rule` (targets.mjs:77) and `storyVerdict`'s `why` (lib:799) omit crystals longer than the cavity as a cause of UNRESOLVED; the §2 legend includes them.
+>
+> **Verified and correct**
+>
+> - **Checks:**
+>   - The size evidence runs, and targets `--check` matches a rebuild.
+>   - Splice blocks match: 13/13 scoreboard, 2/2 substrate.
+>   - The comparison tool is unchanged since afbe687f and its output is byte-identical.
+>   - Tests pass 134/134 under vitest, and 134/134 in my own harness on a scratch copy of the lib.
+>   - Nothing under js/ or data/ changed in f49c1804^..HEAD.
+> - **M1:** the whole version reproduces.
+>   - It fails 14.4 / 85.3 %, exactly what both anchors fail.
+>   - It differs from the anchors in 0 of 60,000 random proxies, including unknown spans, ties and 1–3 spans per fleet.
+>   - The narrow version differs in 10 and 5 (stated: 9); today's reading in 332 and 312 (stated: 324).
+> - **S1:** I enumerated every length/span disagreement. `carrier_obligation`, WP1's texts, §1.3 and §4 match `runStory`.
+> - **S2:** every figure reproduces exactly (seed 29).
+>   - 7 of 21 tops at 0.546; 6 of 21 at 0.4996.
+>   - At 10× in 1 mm pockets: 0 % against 100 %; with 6 runs, 98 %.
+>   - With 3 and 5 runs: 70.0 / 26.5 % against 86.5 / 91.3 %.
+>   - Smithsonite 0 % against 85.3 %; selenite 0 % against 37.5 %; at the proxy's own median, 0 % either way.
+>   - The at-span reading is now attributed to this proposal.
+> - **S3 and S4:** both of round 20's surviving mutants now die, and S4's wording is in.
+> - **The new clause:**
+>   - It names the right reading in all 1,472 random within-noise entries.
+>   - Its boundary at one half is pinned.
+> - **Exactness and bounds:**
+>   - Crystal targets match both anchors exactly in 29,872 random protagonists (unknown spans, ties, mixed spans).
+>   - Proxies never fall outside the anchors' bounds in 30,128.
+> - **Mutants:** 46 of my own, 37 killed.
+>   - All logic mutants die.
+>   - 4 survivors are equivalent, including rounds 18's and 19's.
+>   - 2 sit at exact Wilson equality on the old band and share noise gates.
+>   - The other 3 are the message mutants in SHOULD-FIX 3.
+> - **Earlier routes:** rounds 11–19's routes stay closed.
+> - **Census:** verdicts are unchanged. WP1 is met 0/32, failed 16, open 16, with no oversize entry.
+> - **Parser and joins:**
+>   - 36 random crystal and aggregate rows checked against the raw capture: 35 are clean.
+>   - One is ambiguous: "Er hat eine Größe…", credited to fluorite by the documented first-listed-mineral rule.
+>   - 7 joins checked: all correct.
+> - **Acceptance items:** all present and honest. Attributions are correct apart from the omission in MUST-FIX 1.
+> - **The default:** keeping the shield as a stated choice is acceptable. With both of its costs stated, though, the whole version removes both departures, and I lean, as round 20 did, toward making it the default. That is the boss's call.
+>
+> **Ready for the boss?** Not yet. §4 must state the pass-side cost of the default, and §1.3's "both readings" must be fixed — both text only. The rest is tests and wording.
+
+### The response
+
+The score held at 8.5. Again the reviewer found the code correct, with no new route. I stated the hedge's second cost and took the should-fixes. Two reviewers in a row have leaned toward making the whole version the default for a proxy. I kept the hedge as the default, with both of its costs now stated beside the other way. Both reviewers found keeping it acceptable once stated, and the choice is the boss's. §4 now says the review leaned the other way.
+
+| # | finding | what changed | evidence |
+|---|---|---|---|
+| M1 | the proxy hedge also holds open fleets that both anchors pass, and §4 never said so | **What the hedge does:** a proxy's crystal can be in its range on its length but hidden by a pocket below the proxy's lower quartile. At the span it is short of the proxy, so it gets no vote against the protagonist there, while a giant keeps its vote. §4, §1.3, `size_check` and the lib now state this pass-side cost beside the shield. **The whole version:** §4 says it passes those fleets, just as it fails the shielded ones. **§4's wording:** "its cost" and "adopting it" now name the whole version. Its exactness claim now carries "where every span is known", and §4 names the tests that adopting it would flip. **Correction:** the round-20 response's "today's reading in 324" counted both kinds of departure as one; this response splits them. | Reproduced on the working tree and on a scratch whole-version lib. **Random proxies** (30,000 each, seeds 47 and 5): the default departs from the anchors in 322 and 359 fleets. Of these, 216 and 256 are held open where both anchors pass, and 106 and 103 where both fail. The whole version departs in none. **Deccan's stilbite** at its proxy's median, 7 of 21 runs in 45 mm pockets, 2,000 fleets: the size test passes 78.5 % under the default and 89.3 % under the whole version, so 10.8 % are held open where both anchors pass. WP1 is met in 49.6 against 50.5 %. **The reviewer's concrete case** (7 carriers at 100 mm in 300 mm pockets, 6 at 100 mm in 45 mm, 8 at 200 mm in 60 mm) is open under the default and met under the whole version. **The single-giant case** is held open under both: in the whole version's boss reading, the giant is the one eligible voter. |
+| S1 | §1.3 named the wrong readings | "where both readings fail all of them" now reads "where both anchors fail all of them". | — |
+| S2 | "a third" was given without its run count | The texts now give 7 of 21 and say the share needed rises toward one half with more runs. §4 also gives 1 of 7, 13 of 36, 43 % of 210 and 47 % of 1,000. | Computed from the Wilson interval at z 1.96. |
+| S3 | the new clause was only half pinned | Tests now pin both other readings. The galena at 40 mm with 11 runs in 300 mm pockets and 10 in 25 mm gives "; beyond noise at their own length". 8 runs in 19 mm, 7 in 300 mm and 6 in 25 mm give "; beyond noise in every pocket". A further test pins that one run in a median-holding pocket is enough to name it. | The reviewer's three surviving mutants now die. |
+| S4 | nits | The dead `one ? [] :` is cut. §4's exactness claim says "with every span known". §4 says adopting the whole version would flip the tests that pin the shield and Naica's selenite. `story_frequency_rule` and `storyVerdict`'s reason now list a crystal longer than the cavity among UNRESOLVED's causes. | — |
+
+Mutation testing: 50 mutants on rounds 16–21's code, 48 killed by the tests, the splice check or the targets check, among them the round-21 reviewer's three message mutants (the clause looking at the eligible reading only; the clause always naming the eligible pockets; a single run in a median-holding pocket not enough to name it). The two survivors are the equivalent ones from rounds 18 and 19.
+
+Result: STORY 1, STORY (PROXY) 1, NO STORY 3, UNRESOLVED 26, NO ENGINE 1, OUT OF SCOPE 1 (unchanged). WP1's whole target is met by none: it fails at 16 scored scenarios (by cause: the story 4, a band 15, a carrier share 5, oversize 0) and is open at 16. No protagonist has a size entry. No generated block changed. Tests 134 (unchanged; the new cases sit in existing tests).

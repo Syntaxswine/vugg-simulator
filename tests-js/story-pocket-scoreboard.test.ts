@@ -1401,6 +1401,17 @@ describe('WP1\'s whole target', () => {
     // scenario's — the galena with 10 giants in 19 mm pockets and absent from 11 runs in its 91.93 mm cavity.
     const gAbsent = npWp1(npRuns((i) => (i < 10 ? { occurs: true, size: 40 } : { occurs: false, size: 0 })).map((r, i) => ({ ...r, span: i < 10 ? 19 : 91.93 })), np(['fluorite', 'galena']));
     expect(gAbsent.open).toContain('galena may be oversize: past its display range in 10 of the 10 runs that vote; none of its pockets is known to hold its median');
+    // One run in a pocket that holds its median is enough to name it (round 21: `held` past one had survived).
+    const gOne = npWp1(npRuns((i) => (i === 0 ? { occurs: true, size: 20 } : i < 11 ? { occurs: true, size: 40 } : { occurs: false, size: 0 })).map((r, i) => ({ ...r, span: i === 0 || i > 10 ? 91.93 : 19 })), np(['fluorite', 'galena']));
+    expect(gOne.open).toContain('galena may be oversize: past its display range in 10 of the 11 runs that vote in every pocket, and in 0 of the 1 runs that vote in the pockets that hold its median');
+    // The within-noise clause names whichever reading alone would fail it (round 21: only the eligible pockets'
+    // had been pinned). The galena at 40 mm, 11 runs in 300 mm pockets and 10 in 25 mm ones, which hold its median
+    // but hide the crystal: at their own length it fails beyond noise.
+    const gLength = npWp1(npRuns(() => ({ occurs: true, size: 40 })).map((r, i) => ({ ...r, span: i < 11 ? 300 : 25 })), np(['fluorite', 'galena']));
+    expect(gLength.open).toContain('galena oversize within noise: past its display range in 21 of the 21 runs that vote at their own length, and in 11 of the 21, read in its favour; beyond noise at their own length');
+    // 8 runs in 19 mm pockets, 7 in 300 mm and 6 in 25 mm: in every pocket it fails beyond noise.
+    const gEvery = npWp1(npRuns(() => ({ occurs: true, size: 40 })).map((r, i) => ({ ...r, span: i < 8 ? 19 : i < 15 ? 300 : 25 })), np(['fluorite', 'galena']));
+    expect(gEvery.open).toContain('galena oversize within noise: past its display range in 21 of the 21 runs that vote in every pocket, and in 7 of the 13 runs that vote in the pockets that hold its median, read in its favour; beyond noise in every pocket');
     const upper = (y: any) => wilson(y.within, y.n)[1];
     const decide = (d: any) => (!d || (!d.every.most.past && !d.eligible.most.past) ? 'pass' : Math.max(upper(d.every.least), upper(d.eligible.least)) < 0.5 ? 'fail' : 'open');
     const fleets = (target: any, median: number, small: number, k: number) => {
