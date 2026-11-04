@@ -847,3 +847,45 @@ The boss approved an eighth round on 2026-10-23.
 
 Result: STORY 1, STORY (PROXY) 1, NO STORY 3, UNRESOLVED 26, NO ENGINE 1, OUT OF SCOPE 1 (unchanged).
 WP1's whole target is met by none. Eight rounds have run (five under the standing rule, then a sixth, a seventh and an eighth the boss approved); a ninth needs the boss's word.
+
+## The boss's decisions of 2026-11-03 (Rock Bot's review of 940ee35c)
+
+After round 8 the boss held the reviews at eight rounds and forwarded Rock Bot's review of the head,
+940ee35c, as the answer to the three questions §4 then asked. It is kept as written.
+
+> I took it apart at the exact head 940ee35c. The PR is still open, clean, and mergeable, and round 8 fixed a real loophole—but it also exposed a deeper contradiction in WP1.
+>
+> **My decisions**
+>
+> **An indistinguishable size miss stays OPEN.** Do not count it as a pass. Round 7 showed why: uncertainty began laundering rare, absent, or barely sampled protagonists into success. "The runs cannot distinguish this from the target" means inconclusive, not met. Round 8 is right here.
+>
+> **No: a specimen proxy must not become a required crystal size.** A specimen dimension is only an upper bound on its crystals. Requiring a crystal to reach the specimen's q25/median turns weak evidence into an artificially severe target. If only specimen sizes are known:
+> - reaching the proxy is strong positive evidence;
+> - falling short is not failure;
+> - WP1's crystal-size obligation remains open pending WP0 crystal-length evidence.
+>
+> So North Pennines calcite should not have to grow to a 64 mm specimen dimension merely because its photographed crystals lack a sufficient sample.
+>
+> **No: an alternate appearing as an accessory is not held to showcase size in that occurrence.** This is where the current rule conflicts with the proposal's own contract: "one protagonist, not every signature." Size should be role-conditioned per run:
+> - the crystal carrying that pocket's story must be at showcase scale;
+> - other protagonists may occur as accessories without also becoming showcases;
+> - but an alleged alternate protagonist must carry the story at its own scale in some pre-registered share of the fleet. If it never does, it is not functioning as an alternate and should fail that role or be downgraded to companion—not force every accessory occurrence to become enormous.
+>
+> **The clean conceptual repair.** Separate:
+> - candidate role: primary / alternate / companion / showpiece;
+> - realized role per pocket: story carrier / accessory / absent.
+>
+> Then WP1 asks whether the fleet produces enough valid story carriers and whether each claimed alternate actually carries some pockets—not whether every named protagonist has showcase-sized median growth across all occurrences.
+>
+> So my boss answer is: OPEN / NO / NO, with an alternate-carrier obligation.
+
+### What changed
+
+| decision | what changed | evidence |
+|---|---|---|
+| OPEN | Kept, in the new form: a protagonist whose carrying falls short of its share within noise (the runs it carries or could carry, against its share) leaves WP1 open; so does a story short within noise or UNRESOLVED, which before failed it. | — |
+| NO (proxy) | A protagonist known only by a specimen proxy carries the story in a run when it reaches the proxy's range (strong evidence). Runs short of it are runs it could still be found to carry: they leave the obligation open, never failed, pending crystal lengths. | The North Pennines calcite at 39 mm: open ("could in 21 short of its proxy"), no longer a size it must reach. |
+| NO (accessory), with the obligation | `runStory` gives each protagonist's realized role in the run (carrier, accessory, short of a proxy, longer than the cavity, oversize, unsized, absent; several can carry one run), and `scoreStory` counts them over the scored runs. WP1 no longer judges any protagonist's median over every occurrence: each protagonist with an engine must carry the story at its own display scale in at least its **carrier share** of the scored runs — its band's floor × the display range's coverage of a record its size, the product the story frequency already takes the largest of. The targets file records each share (`carrier_share`, with its basis; `rules.carrier_obligation`), and the scoreboard refuses one that is not the rule's. Short of it beyond noise fails; a generated line lists the protagonists that occur but never carry, the candidates for growth or for downgrading to a companion. Open, not failed: no size target (WP0), a display range beyond the cavity (WP9), no band to set a share with no run carried, and a protagonist that never occurs where its band cannot fail that. The size verdicts over every occurrence are still reported, beside each protagonist's carrying and share (a new column). | North Pennines galena dust in 14 runs and at its scale in 7: met (round 8 failed it on its median). As simulated (8.6 mm, never at its scale): failed, 0 of 21 against its share of 0.2167. A correct fleet (mid-band, crystals from the records' populations) is met 74 % of the time against seventeen-crystal records and 62 % against five, failed 0.3 % and 1.1 % (round 8's rule: 65 % and 30 % met, 2 % and 14 % failed). Committed: still met by 0 of 32. |
+| Choices of this change, for the boss to confirm | The share itself (floor × coverage); holding the primary to the obligation as well as the alternates (the boss named the alternates); and, per scenario, growing or downgrading a protagonist that never carries. Listed in §4. | — |
+
+Tests 119 (was 114); 28 mutants on the new code, 27 killed, the survivor a recomputation that gives the same counts.

@@ -80,9 +80,10 @@
   "display_range_basis": "The record's quantiles that bound its display scale: a crystal from the record's lower quartile to its 90th percentile is at the scale the record shows; past the 90th it is oversize. A fresh crystal from the record's population lands inside the range of a record of n crystals with probability 0.65 × (n − 1) / (n + 1) (displayCoverage: exact for a uniform population, within about 0.03 and on the low side for lognormal ones): 0.43 at n = 5, 0.58 at n = 17. That coverage enters the story frequency (story_frequency_rule). The scoreboard reads the targets' q25 and q90 and refuses another range.",
   "size_check": "Per run, the species' largest crystal not flagged as enclosed (census max_exp_mm). The record's median is the characteristic crystal, its quartiles the range: a crystal in the display range (q25–q90) is at the record's display scale; past q90 it is oversize. Over the runs where the species occurs in a cavity that holds its median, the median of those crystals against the record: BELOW (< q25), MEETS (q25–q75, around the record's median), LARGE (q75–q90), OVERSIZE (> q90). Against a proxy: BELOW PROXY (< q25, not a verdict), REACHES PROXY (q25–q90; oversize cannot be tested against a proxy), OVERSIZE (> q90). A miss is noise when the runs cannot tell their median from the target's window: the Wilson interval (noise_z) of the share of those runs on the window's side of its near edge (at least q25 for BELOW; at most q75 for LARGE or OVERSIZE, q90 for a proxy's OVERSIZE) still reaches one half. With noise_z² eligible runs or fewer (3 at z 1.96) no miss could be told from the window at all: too few runs to judge. The interval models the runs' noise only. The window is the record's own middle half, itself uncertain: it misses its population's median in about 38 % of five-crystal records, 19 % of eight and 5 % of seventeen, so a correct fleet can miss a small record's window — more often, not less, with more runs. A crystal longer than the cavity's span is left out and flagged: the starting cavity cannot hold it.",
   "eligibility": "A cavity can hold a species' characteristic crystal when its span — the longest distance between two wall vertices (tools/story-pocket-cavities.mjs) — is at least the target's median. The span is an upper bound on the longest crystal the cavity holds (in a cavity that is not convex the chord can cross the wall), so SMALL is conclusive and STORY-SCALE is generous. A pocket is SMALL when it cannot hold the primary protagonist's characteristic crystal: it may lack a showcase and is left out of the story frequency (its stories are reported apart). The locality's target is never shrunk to fit the cavity. A pocket is UNCLASSED when this cannot be told (the primary's size is unknown, or a proxy longer than the cavity): a run without a story there may be a small pocket, so it stays open rather than counting against the story.",
-  "story_frequency_rule": "A run carries the story when an intended protagonist (the primary or an alternate) occurs with its largest unflagged crystal in its record's display range and no longer than the cavity. The scenario should carry it in at least floor × coverage of its scored runs, for the protagonist that can carry a story run with the largest such product: floor = its band's lower bound; coverage = the chance that a crystal drawn from its record's population lands in the display range of a record of its size (display_range_basis). A protagonist can carry a story run when it has an engine, a band and a size target whose display range starts within the scenario's cavity span (q25 ≤ cavity_span_mm: the same test a run's YES needs; the size verdict's eligibility uses the median instead, and the scoreboard shows the verdicts under that test too). One with no size target, or a range that starts beyond the span, does not set the frequency. Crystal targets come first: a proxy sets the frequency only where no crystal target can carry a story run, since a proxy's product is a bar and a crystal target's an expected rate. So any protagonist's crystal target displaces every proxy, the primary's too; a low band or a small record then sets a low frequency (an uncommon alternate with five crystal lengths would set 0.1 × 0.43 = 0.043), possibly one 21 seeds cannot fail beyond noise; and where crystal targets set it, STORY (PROXY) is judged against their expected rate, not a proxy's bar. The scoreboard lists the frequencies this moves and shows the verdicts with proxies setting it too. For a crystal target the frequency is the expected story rate of a fleet whose protagonist occurs at its band's floor with crystals drawn from the record: an expectation, not a guarantee — with 21 seeds such a fleet falls short about half the time, and the verdict marks a shortfall its interval cannot tell from the frequency \"noise\" (noise_z). For a specimen proxy it is a bar for STORY (PROXY), the rate at which crystals as large as the photographed specimens would reach the proxy's range — not an expected rate, since the proxy overstates the crystal. The coverage is never cut to the cavity: runs whose crystal is longer than it stay open, so a cavity shorter than the range's top leaves the verdict open rather than failing it. But the cavity does decide which protagonists can carry a story run, so dropping one whose range starts beyond the span can lower the frequency (Elmwood) or remove it; each basis names the protagonists dropped, and the scoreboard lists them. It asks for no protagonist in every seed or size spread narrower than the record's. Unresolved when no protagonist can carry a story run, or when runs whose protagonist has no known crystal target, or whose pocket is unclassed, could still carry it. The story verdict checks this alone. WP1's whole target also needs every protagonist with an engine within its band (a miss within noise counting as within), and at the record's size wherever it occurs in a pocket that can hold it: its typical crystal within the record's middle half, or reaching its proxy; every protagonist, not only those that carry story runs. It is met only on what it could judge: a size miss the runs cannot tell from the window (size_check), eligible runs too few to tell any miss, short of a proxy, a size the cavity cannot judge, and a protagonist nothing judges (never occurring where its band cannot fail that, or occurring with neither a band nor a size target) leave it open, not met. So a protagonist kept small, rare or absent never makes it met. The scoreboard reports both.",
+  "story_frequency_rule": "A run carries the story when an intended protagonist (the primary or an alternate) occurs with its largest unflagged crystal in its record's display range and no longer than the cavity. The scenario should carry it in at least floor × coverage of its scored runs, for the protagonist that can carry a story run with the largest such product: floor = its band's lower bound; coverage = the chance that a crystal drawn from its record's population lands in the display range of a record of its size (display_range_basis). A protagonist can carry a story run when it has an engine, a band and a size target whose display range starts within the scenario's cavity span (q25 ≤ cavity_span_mm: the same test a run's YES needs; the size verdict's eligibility uses the median instead, and the scoreboard shows the verdicts under that test too). One with no size target, or a range that starts beyond the span, does not set the frequency. Crystal targets come first: a proxy sets the frequency only where no crystal target can carry a story run, since a proxy's product is a bar and a crystal target's an expected rate. So any protagonist's crystal target displaces every proxy, the primary's too; a low band or a small record then sets a low frequency (an uncommon alternate with five crystal lengths would set 0.1 × 0.43 = 0.043), possibly one 21 seeds cannot fail beyond noise; and where crystal targets set it, STORY (PROXY) is judged against their expected rate, not a proxy's bar. The scoreboard lists the frequencies this moves and shows the verdicts with proxies setting it too. For a crystal target the frequency is the expected story rate of a fleet whose protagonist occurs at its band's floor with crystals drawn from the record: an expectation, not a guarantee — with 21 seeds such a fleet falls short about half the time, and the verdict marks a shortfall its interval cannot tell from the frequency \"noise\" (noise_z). For a specimen proxy it is a bar for STORY (PROXY), the rate at which crystals as large as the photographed specimens would reach the proxy's range — not an expected rate, since the proxy overstates the crystal. The coverage is never cut to the cavity: runs whose crystal is longer than it stay open, so a cavity shorter than the range's top leaves the verdict open rather than failing it. But the cavity does decide which protagonists can carry a story run, so dropping one whose range starts beyond the span can lower the frequency (Elmwood) or remove it; each basis names the protagonists dropped, and the scoreboard lists them. It asks for no protagonist in every seed or size spread narrower than the record's. Unresolved when no protagonist can carry a story run, or when runs whose protagonist has no known crystal target, or whose pocket is unclassed, could still carry it. The story verdict checks this alone. WP1's whole target also needs every protagonist with an engine within its band (a miss within noise counting as within) and carrying the story at its own scale in at least its carrier share of the scored runs (carrier_obligation). The scoreboard reports both.",
+  "carrier_obligation": "The boss's answers of 2026-11-03 (Rock Bot's review, forwarded by the boss): a size miss the runs cannot tell from the target stays open; a specimen proxy is not a crystal size a protagonist must reach (reaching it is strong evidence, falling short is none: the obligation stays open pending crystal lengths, WP0); and an alternate that is an accessory in another protagonist's pocket is not held to showcase size there. So size is judged by role, run by run: in each scored run a protagonist is the story's carrier (its largest unflagged crystal in its own display range, q25–q90, within the cavity), an accessory, or absent. WP1 asks whether the fleet gives enough valid carriers (the story frequency) and whether each claimed protagonist carries some pockets: each protagonist with an engine must carry the story in at least its carrier_share of the scored runs — its band's floor × the display range's coverage of a record its size, the product story_frequency_rule takes the largest of (the boss named the alternates; the primary is held to the same, a choice of this rule). Short of it beyond noise_z fails: the protagonist is not functioning as one in this fleet, a candidate for growth (WP1) or for downgrading to companion (a decision). Open, not failed: runs where it could still be found to carry (short of a proxy, longer than the cavity, or in an unclassed pocket) that would make up the share, a shortfall within noise, no size target, a display range beyond the cavity, and no band (no share) with no run carried. A protagonist with no band but a size target meets it by carrying at least one scored run. Size verdicts over all occurrences (size_check) are reported, not required.",
   "noise_z": 1.96,
-  "noise_basis": "The Wilson score interval at z 1.96 (95 %). An occurrence rate outside its band is \"noise\" when its interval still reaches the band. A size verdict's miss is noise when the interval of the share of eligible runs on the target window's side of its near edge still reaches one half (size_check): the runs cannot tell their median from the window. A story shortfall is noise when the interval of the runs that carry or could carry the story (yes + open: an open run might have carried it) still reaches the frequency — except where no protagonist with an engine forms in any seed: the mark says chance in which runs carry the story could explain the shortfall, and no run grew a protagonist to carry it, so there is no mark. 21 runs cannot tell a noise miss from the target. Noise marks a verdict; it does not change it. WP1's target counts a band miss within noise as within (21 seeds cannot tell common from guaranteed; the fleet is tested for that apart), and leaves a size miss within noise open, since runs that cannot fail a size cannot confirm it either.",
+  "noise_basis": "The Wilson score interval at z 1.96 (95 %). An occurrence rate outside its band is \"noise\" when its interval still reaches the band. A size verdict's miss is noise when the interval of the share of eligible runs on the target window's side of its near edge still reaches one half (size_check): the runs cannot tell their median from the window. A story shortfall is noise when the interval of the runs that carry or could carry the story (yes + open: an open run might have carried it) still reaches the frequency — except where no protagonist with an engine forms in any seed: the mark says chance in which runs carry the story could explain the shortfall, and no run grew a protagonist to carry it, so there is no mark. 21 runs cannot tell a noise miss from the target. Noise marks a verdict; it does not change it. WP1's target counts a band miss within noise as within (21 seeds cannot tell common from guaranteed; the fleet is tested for that apart), and leaves a story shortfall or a carrier-share shortfall within noise open, since runs that cannot fail a target cannot confirm it either. A protagonist's carrier share is tested by the same interval: the runs it carries or could carry, against its share.",
   "clutter_limit": 0.1,
   "clutter_basis": "WP3's target: visible clutter (crystals of species with no photograph, no listing and no literature at the locality) under 10 % of a scenario's visible crystals. The scoreboard flags a scenario at or above it and lists it in the clutter table.",
   "star_wanted_share": 0.5,
@@ -155,7 +156,9 @@
       },
       "specimens": 1,
       "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 1 photograph(s) of Amethyst at amethyst_geode with a stated length, 1 specimen(s); 0 with a crystal length, 1 with specimen dimensions, 0 aggregate, 0 picture width"
-     }
+     },
+     "carrier_share": null,
+     "carrier_share_basis": "none: no size target, so its carrying waits on crystal or specimen lengths (WP0)"
     },
     "chalcedony": {
      "role": "alternate",
@@ -176,7 +179,9 @@
       "crystal_n": 0,
       "specimen_n": 0,
       "provenance": "no photograph of this species with a stated length in the capture (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json)"
-     }
+     },
+     "carrier_share": null,
+     "carrier_share_basis": "none: no size target, so its carrying waits on crystal or specimen lengths (WP0)"
     },
     "calcite": {
      "role": "alternate",
@@ -212,7 +217,9 @@
       },
       "specimens": 2,
       "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 2 photograph(s) of Calcite at amethyst_geode with a stated length, 2 specimen(s); 0 with a crystal length, 2 with specimen dimensions, 0 aggregate, 0 picture width"
-     }
+     },
+     "carrier_share": null,
+     "carrier_share_basis": "none: no size target, so its carrying waits on crystal or specimen lengths (WP0)"
     },
     "x:celadonite": {
      "role": "companion",
@@ -304,7 +311,9 @@
       "piece_material": true,
       "specimens": 17,
       "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 18 photograph(s) of Falcon's Eye / Tigers Eye at asbestos_hills with a stated length, 17 specimen(s); 0 with a crystal length, 17 with specimen dimensions, 0 aggregate, 0 picture width"
-     }
+     },
+     "carrier_share": 0.1733,
+     "carrier_share_basis": "rules.carrier_obligation: band floor 0.3 × display coverage 0.5778 of a specimen-proxy record of 17 = 0.1733"
     },
     "crocidolite": {
      "role": "alternate",
@@ -333,7 +342,9 @@
       },
       "specimens": 1,
       "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 1 photograph(s) of Crocidolite at asbestos_hills with a stated length, 1 specimen(s); 0 with a crystal length, 0 with specimen dimensions, 0 aggregate, 1 picture width"
-     }
+     },
+     "carrier_share": null,
+     "carrier_share_basis": "none: no size target, so its carrying waits on crystal or specimen lengths (WP0)"
     },
     "x:jasper": {
      "role": "alternate",
@@ -363,7 +374,9 @@
       "piece_material": true,
       "specimens": 1,
       "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 1 photograph(s) of Jasper at asbestos_hills with a stated length, 1 specimen(s); 0 with a crystal length, 1 with specimen dimensions, 0 aggregate, 0 picture width"
-     }
+     },
+     "carrier_share": null,
+     "carrier_share_basis": "none: no size target, so its carrying waits on crystal or specimen lengths (WP0)"
     },
     "quartz": {
      "role": "companion",
@@ -518,7 +531,9 @@
       "piece_material": true,
       "specimens": 17,
       "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 18 photograph(s) of Falcon's Eye / Tigers Eye at asbestos_hills with a stated length, 17 specimen(s); 0 with a crystal length, 17 with specimen dimensions, 0 aggregate, 0 picture width"
-     }
+     },
+     "carrier_share": 0.1733,
+     "carrier_share_basis": "rules.carrier_obligation: band floor 0.3 × display coverage 0.5778 of a specimen-proxy record of 17 = 0.1733"
     },
     "crocidolite": {
      "role": "alternate",
@@ -547,7 +562,9 @@
       },
       "specimens": 1,
       "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 1 photograph(s) of Crocidolite at asbestos_hills with a stated length, 1 specimen(s); 0 with a crystal length, 0 with specimen dimensions, 0 aggregate, 1 picture width"
-     }
+     },
+     "carrier_share": null,
+     "carrier_share_basis": "none: no size target, so its carrying waits on crystal or specimen lengths (WP0)"
     },
     "x:jasper": {
      "role": "alternate",
@@ -577,7 +594,9 @@
       "piece_material": true,
       "specimens": 1,
       "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 1 photograph(s) of Jasper at asbestos_hills with a stated length, 1 specimen(s); 0 with a crystal length, 1 with specimen dimensions, 0 aggregate, 0 picture width"
-     }
+     },
+     "carrier_share": null,
+     "carrier_share_basis": "none: no size target, so its carrying waits on crystal or specimen lengths (WP0)"
     },
     "quartz": {
      "role": "companion",
@@ -731,7 +750,9 @@
       },
       "specimens": 13,
       "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 13 photograph(s) of Malachite at bisbee with a stated length, 13 specimen(s); 1 with a crystal length, 12 with specimen dimensions, 0 aggregate, 1 picture width"
-     }
+     },
+     "carrier_share": null,
+     "carrier_share_basis": "none: no band; it must carry at least one scored run"
     },
     "azurite": {
      "role": "alternate",
@@ -790,7 +811,9 @@
       },
       "specimens": 19,
       "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 20 photograph(s) of Azurite at bisbee with a stated length, 19 specimen(s); 1 with a crystal length, 15 with specimen dimensions, 0 aggregate, 4 picture width"
-     }
+     },
+     "carrier_share": null,
+     "carrier_share_basis": "none: no band; it must carry at least one scored run"
     },
     "native_copper": {
      "role": "alternate",
@@ -842,7 +865,9 @@
       },
       "specimens": 23,
       "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 23 photograph(s) of Copper at bisbee with a stated length, 23 specimen(s); 0 with a crystal length, 22 with specimen dimensions, 0 aggregate, 1 picture width"
-     }
+     },
+     "carrier_share": null,
+     "carrier_share_basis": "none: no band; it must carry at least one scored run"
     },
     "cuprite": {
      "role": "alternate",
@@ -894,7 +919,9 @@
       },
       "specimens": 21,
       "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 21 photograph(s) of Chalcotrichite / Cuprite at bisbee with a stated length, 21 specimen(s); 0 with a crystal length, 7 with specimen dimensions, 0 aggregate, 11 picture width"
-     }
+     },
+     "carrier_share": null,
+     "carrier_share_basis": "none: no band; it must carry at least one scored run"
     },
     "calcite": {
      "role": "alternate",
@@ -946,7 +973,9 @@
       },
       "specimens": 10,
       "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 10 photograph(s) of Calcite at bisbee with a stated length, 10 specimen(s); 0 with a crystal length, 9 with specimen dimensions, 0 aggregate, 1 picture width"
-     }
+     },
+     "carrier_share": null,
+     "carrier_share_basis": "none: no band; it must carry at least one scored run"
     }
    },
    "cavity_span_mm": 60.54,
@@ -994,7 +1023,9 @@
       },
       "specimens": 3,
       "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 3 photograph(s) of Chiastolite at chiastolite_hornfels with a stated length, 3 specimen(s); 0 with a crystal length, 3 with specimen dimensions, 0 aggregate, 0 picture width"
-     }
+     },
+     "carrier_share": null,
+     "carrier_share_basis": "none: no size target, so its carrying waits on crystal or specimen lengths (WP0)"
     }
    },
    "cavity_span_mm": 43.32,
@@ -1034,7 +1065,9 @@
       },
       "specimens": 9,
       "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 9 photograph(s) of Pascoite at colorado_plateau with a stated length, 9 specimen(s); 0 with a crystal length, 2 with specimen dimensions, 0 aggregate, 7 picture width"
-     }
+     },
+     "carrier_share": null,
+     "carrier_share_basis": "none: no size target, so its carrying waits on crystal or specimen lengths (WP0)"
     },
     "ma:hughesite": {
      "role": "alternate",
@@ -1056,7 +1089,9 @@
       },
       "specimens": 6,
       "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 6 photograph(s) of Hughesite at colorado_plateau with a stated length, 6 specimen(s); 0 with a crystal length, 0 with specimen dimensions, 0 aggregate, 6 picture width"
-     }
+     },
+     "carrier_share": null,
+     "carrier_share_basis": "none: no size target, so its carrying waits on crystal or specimen lengths (WP0)"
     },
     "ma:dickthomssenite": {
      "role": "alternate",
@@ -1078,7 +1113,9 @@
       },
       "specimens": 6,
       "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 6 photograph(s) of Dickthomssenite at colorado_plateau with a stated length, 6 specimen(s); 0 with a crystal length, 0 with specimen dimensions, 0 aggregate, 4 picture width"
-     }
+     },
+     "carrier_share": null,
+     "carrier_share_basis": "none: no size target, so its carrying waits on crystal or specimen lengths (WP0)"
     },
     "ma:lasalite": {
      "role": "alternate",
@@ -1100,7 +1137,9 @@
       },
       "specimens": 4,
       "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 4 photograph(s) of Lasalite at colorado_plateau with a stated length, 4 specimen(s); 0 with a crystal length, 0 with specimen dimensions, 0 aggregate, 4 picture width"
-     }
+     },
+     "carrier_share": null,
+     "carrier_share_basis": "none: no size target, so its carrying waits on crystal or specimen lengths (WP0)"
     },
     "ma:magnesiopascoite": {
      "role": "alternate",
@@ -1122,7 +1161,9 @@
       },
       "specimens": 6,
       "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 6 photograph(s) of Magnesiopascoite at colorado_plateau with a stated length, 6 specimen(s); 0 with a crystal length, 0 with specimen dimensions, 0 aggregate, 6 picture width"
-     }
+     },
+     "carrier_share": null,
+     "carrier_share_basis": "none: no size target, so its carrying waits on crystal or specimen lengths (WP0)"
     },
     "tyuyamunite": {
      "role": "companion",
@@ -1273,7 +1314,9 @@
       },
       "specimens": 25,
       "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 26 photograph(s) of Herkimer Quartz / Quartz / Rock Crystal / Smoky Quartz at herkimer with a stated length, 25 specimen(s); 5 with a crystal length, 14 with specimen dimensions, 0 aggregate, 6 picture width"
-     }
+     },
+     "carrier_share": 0.2167,
+     "carrier_share_basis": "rules.carrier_obligation: band floor 0.5 × display coverage 0.4333 of a crystal record of 5 = 0.2167"
     },
     "x:bitumen": {
      "role": "companion",
@@ -1403,7 +1446,9 @@
       },
       "specimens": 116,
       "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 120 photograph(s) of Apophyllit-Gruppe / Fluorapophyllite-(K) / Fluorapophyllite-(Na) / Hydroxyapophyllite-(K) at deccan with a stated length, 116 specimen(s); 8 with a crystal length, 88 with specimen dimensions, 0 aggregate, 22 picture width"
-     }
+     },
+     "carrier_share": 0.1517,
+     "carrier_share_basis": "rules.carrier_obligation: band floor 0.3 × display coverage 0.5056 of a crystal record of 8 = 0.1517"
     },
     "stilbite": {
      "role": "alternate",
@@ -1469,7 +1514,9 @@
       },
       "specimens": 32,
       "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 35 photograph(s) of Stilbite series / Stilbite-Ca at deccan with a stated length, 32 specimen(s); 2 with a crystal length, 24 with specimen dimensions, 1 aggregate, 6 picture width"
-     }
+     },
+     "carrier_share": 0.299,
+     "carrier_share_basis": "rules.carrier_obligation: band floor 0.5 × display coverage 0.598 of a specimen-proxy record of 24 = 0.299"
     },
     "heulandite": {
      "role": "alternate",
@@ -1535,7 +1582,9 @@
       },
       "specimens": 42,
       "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 44 photograph(s) of Heulandite series / Heulandite-Ca at deccan with a stated length, 42 specimen(s); 3 with a crystal length, 37 with specimen dimensions, 0 aggregate, 4 picture width"
-     }
+     },
+     "carrier_share": 0.3079,
+     "carrier_share_basis": "rules.carrier_obligation: band floor 0.5 × display coverage 0.6158 of a specimen-proxy record of 37 = 0.3079"
     },
     "x:cavansite": {
      "role": "alternate",
@@ -1594,7 +1643,9 @@
       },
       "specimens": 53,
       "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 55 photograph(s) of Cavansite at deccan with a stated length, 53 specimen(s); 2 with a crystal length, 27 with specimen dimensions, 8 aggregate, 16 picture width"
-     }
+     },
+     "carrier_share": null,
+     "carrier_share_basis": "none: no band; it must carry at least one scored run"
     },
     "chalcedony": {
      "role": "alternate",
@@ -1654,7 +1705,9 @@
       "piece_material": true,
       "specimens": 14,
       "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 14 photograph(s) of Chalcedony at deccan with a stated length, 14 specimen(s); 0 with a crystal length, 13 with specimen dimensions, 0 aggregate, 1 picture width"
-     }
+     },
+     "carrier_share": 0.2786,
+     "carrier_share_basis": "rules.carrier_obligation: band floor 0.5 × display coverage 0.5571 of a specimen-proxy record of 13 = 0.2786"
     },
     "calcite": {
      "role": "alternate",
@@ -1720,7 +1773,9 @@
       },
       "specimens": 35,
       "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 36 photograph(s) of Calcite / Calcite group at deccan with a stated length, 35 specimen(s); 5 with a crystal length, 30 with specimen dimensions, 0 aggregate, 1 picture width"
-     }
+     },
+     "carrier_share": 0.13,
+     "carrier_share_basis": "rules.carrier_obligation: band floor 0.3 × display coverage 0.4333 of a crystal record of 5 = 0.13"
     },
     "scolecite": {
      "role": "companion",
@@ -1944,7 +1999,9 @@
       },
       "specimens": 57,
       "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 59 photograph(s) of Fluorite at elmwood with a stated length, 57 specimen(s); 4 with a crystal length, 50 with specimen dimensions, 0 aggregate, 6 picture width"
-     }
+     },
+     "carrier_share": 0.1874,
+     "carrier_share_basis": "rules.carrier_obligation: band floor 0.3 × display coverage 0.6245 of a specimen-proxy record of 50 = 0.1874"
     },
     "calcite": {
      "role": "alternate",
@@ -2010,7 +2067,9 @@
       },
       "specimens": 41,
       "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 41 photograph(s) of Calcite at elmwood with a stated length, 41 specimen(s); 3 with a crystal length, 37 with specimen dimensions, 0 aggregate, 1 picture width"
-     }
+     },
+     "carrier_share": null,
+     "carrier_share_basis": "none: its display range starts at 80 mm, beyond the cavity's 66.01 mm span (WP9)"
     },
     "sphalerite": {
      "role": "alternate",
@@ -2069,7 +2128,9 @@
       },
       "specimens": 21,
       "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 22 photograph(s) of Sphalerite at elmwood with a stated length, 21 specimen(s); 0 with a crystal length, 16 with specimen dimensions, 0 aggregate, 6 picture width"
-     }
+     },
+     "carrier_share": 0.2868,
+     "carrier_share_basis": "rules.carrier_obligation: band floor 0.5 × display coverage 0.5735 of a specimen-proxy record of 16 = 0.2868"
     },
     "barite": {
      "role": "companion",
@@ -2190,7 +2251,9 @@
       },
       "specimens": 26,
       "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 27 photograph(s) of Calaverite at cripple_creek with a stated length, 26 specimen(s); 3 with a crystal length, 9 with specimen dimensions, 0 aggregate, 13 picture width"
-     }
+     },
+     "carrier_share": 0.26,
+     "carrier_share_basis": "rules.carrier_obligation: band floor 0.5 × display coverage 0.52 of a specimen-proxy record of 9 = 0.26"
     },
     "fluorite": {
      "role": "alternate",
@@ -2249,7 +2312,9 @@
       },
       "specimens": 5,
       "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 5 photograph(s) of Fluorite at cripple_creek with a stated length, 5 specimen(s); 0 with a crystal length, 5 with specimen dimensions, 0 aggregate, 0 picture width"
-     }
+     },
+     "carrier_share": null,
+     "carrier_share_basis": "none: its display range starts at 57 mm, beyond the cavity's 56.52 mm span (WP9)"
     },
     "sylvanite": {
      "role": "alternate",
@@ -2285,7 +2350,9 @@
       },
       "specimens": 8,
       "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 8 photograph(s) of Sylvanite at cripple_creek with a stated length, 8 specimen(s); 0 with a crystal length, 2 with specimen dimensions, 0 aggregate, 6 picture width"
-     }
+     },
+     "carrier_share": null,
+     "carrier_share_basis": "none: no size target, so its carrying waits on crystal or specimen lengths (WP0)"
     },
     "quartz": {
      "role": "alternate",
@@ -2321,7 +2388,9 @@
       },
       "specimens": 1,
       "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 1 photograph(s) of Amethyst at cripple_creek with a stated length, 1 specimen(s); 0 with a crystal length, 1 with specimen dimensions, 0 aggregate, 0 picture width"
-     }
+     },
+     "carrier_share": null,
+     "carrier_share_basis": "none: no size target, so its carrying waits on crystal or specimen lengths (WP0)"
     },
     "pyrite": {
      "role": "companion",
@@ -2454,7 +2523,9 @@
       },
       "specimens": 50,
       "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 50 photograph(s) of Elbaite / Indicolite / Rubellite / Schorl / Tourmaline supergroup / Verdelite at cruzeiro with a stated length, 50 specimen(s); 0 with a crystal length, 46 with specimen dimensions, 0 aggregate, 3 picture width"
-     }
+     },
+     "carrier_share": 0.3112,
+     "carrier_share_basis": "rules.carrier_obligation: band floor 0.5 × display coverage 0.6223 of a specimen-proxy record of 46 = 0.3112"
     },
     "quartz": {
      "role": "alternate",
@@ -2490,7 +2561,9 @@
       },
       "specimens": 3,
       "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 3 photograph(s) of Quartz at cruzeiro with a stated length, 3 specimen(s); 0 with a crystal length, 3 with specimen dimensions, 0 aggregate, 0 picture width"
-     }
+     },
+     "carrier_share": null,
+     "carrier_share_basis": "none: no size target, so its carrying waits on crystal or specimen lengths (WP0)"
     },
     "lepidolite": {
      "role": "companion",
@@ -2622,7 +2695,9 @@
       },
       "specimens": 2,
       "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 2 photograph(s) of Gypsum at great_salt_plains with a stated length, 2 specimen(s); 0 with a crystal length, 2 with specimen dimensions, 0 aggregate, 0 picture width"
-     }
+     },
+     "carrier_share": null,
+     "carrier_share_basis": "none: no size target, so its carrying waits on crystal or specimen lengths (WP0)"
     },
     "halite": {
      "role": "companion",
@@ -2720,7 +2795,9 @@
       },
       "specimens": 65,
       "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 70 photograph(s) of Amethyst / Fadenquartz / Morion / Phantom quartz / Quartz / Rock Crystal / Sceptre Quartz / Smoky Quartz / Twisted Quartz at grimsel with a stated length, 65 specimen(s); 25 with a crystal length, 33 with specimen dimensions, 1 aggregate, 4 picture width"
-     }
+     },
+     "carrier_share": 0.3,
+     "carrier_share_basis": "rules.carrier_obligation: band floor 0.5 × display coverage 0.6 of a crystal record of 25 = 0.3"
     },
     "fluorite": {
      "role": "alternate",
@@ -2786,7 +2863,9 @@
       },
       "specimens": 33,
       "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 36 photograph(s) of Fluorite / Pink fluorite at grimsel with a stated length, 33 specimen(s); 9 with a crystal length, 21 with specimen dimensions, 1 aggregate, 2 picture width"
-     }
+     },
+     "carrier_share": 0.156,
+     "carrier_share_basis": "rules.carrier_obligation: band floor 0.3 × display coverage 0.52 of a crystal record of 9 = 0.156"
     },
     "hematite": {
      "role": "companion",
@@ -2937,7 +3016,9 @@
       },
       "specimens": 71,
       "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 71 photograph(s) of Chrome-bearing Grossular / Demantoid / Grossular / Hessonite at jeffrey_mine with a stated length, 71 specimen(s); 6 with a crystal length, 50 with specimen dimensions, 0 aggregate, 11 picture width"
-     }
+     },
+     "carrier_share": 0.2321,
+     "carrier_share_basis": "rules.carrier_obligation: band floor 0.5 × display coverage 0.4643 of a crystal record of 6 = 0.2321"
     },
     "vesuvianite": {
      "role": "alternate",
@@ -2996,7 +3077,9 @@
       },
       "specimens": 21,
       "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 21 photograph(s) of Vesuvianite / Vesuvianite group at jeffrey_mine with a stated length, 21 specimen(s); 0 with a crystal length, 17 with specimen dimensions, 0 aggregate, 4 picture width"
-     }
+     },
+     "carrier_share": 0.1733,
+     "carrier_share_basis": "rules.carrier_obligation: band floor 0.3 × display coverage 0.5778 of a specimen-proxy record of 17 = 0.1733"
     },
     "diopside": {
      "role": "alternate",
@@ -3055,7 +3138,9 @@
       },
       "specimens": 10,
       "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 10 photograph(s) of Diopside at jeffrey_mine with a stated length, 10 specimen(s); 0 with a crystal length, 9 with specimen dimensions, 0 aggregate, 1 picture width"
-     }
+     },
+     "carrier_share": 0.26,
+     "carrier_share_basis": "rules.carrier_obligation: band floor 0.5 × display coverage 0.52 of a specimen-proxy record of 9 = 0.26"
     },
     "pectolite": {
      "role": "alternate",
@@ -3107,7 +3192,9 @@
       },
       "specimens": 14,
       "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 14 photograph(s) of Pectolite at jeffrey_mine with a stated length, 14 specimen(s); 0 with a crystal length, 14 with specimen dimensions, 0 aggregate, 0 picture width"
-     }
+     },
+     "carrier_share": 0.0563,
+     "carrier_share_basis": "rules.carrier_obligation: band floor 0.1 × display coverage 0.5633 of a specimen-proxy record of 14 = 0.0563"
     }
    },
    "cavity_span_mm": 122.42,
@@ -3174,7 +3261,9 @@
       },
       "specimens": 52,
       "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 59 photograph(s) of Spinel at mogok with a stated length, 52 specimen(s); 9 with a crystal length, 36 with specimen dimensions, 0 aggregate, 4 picture width"
-     }
+     },
+     "carrier_share": 0.156,
+     "carrier_share_basis": "rules.carrier_obligation: band floor 0.3 × display coverage 0.52 of a crystal record of 9 = 0.156"
     },
     "ruby": {
      "role": "alternate",
@@ -3240,7 +3329,9 @@
       },
       "specimens": 7,
       "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 7 photograph(s) of Ruby at mogok with a stated length, 7 specimen(s); 1 with a crystal length, 6 with specimen dimensions, 0 aggregate, 0 picture width"
-     }
+     },
+     "carrier_share": 0.1393,
+     "carrier_share_basis": "rules.carrier_obligation: band floor 0.3 × display coverage 0.4643 of a specimen-proxy record of 6 = 0.1393"
     },
     "x:painite": {
      "role": "alternate",
@@ -3299,7 +3390,9 @@
       },
       "specimens": 21,
       "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 23 photograph(s) of Painite at mogok with a stated length, 21 specimen(s); 1 with a crystal length, 14 with specimen dimensions, 0 aggregate, 0 picture width"
-     }
+     },
+     "carrier_share": null,
+     "carrier_share_basis": "none: no band; it must carry at least one scored run"
     },
     "sapphire": {
      "role": "alternate",
@@ -3328,7 +3421,9 @@
       },
       "specimens": 1,
       "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 1 photograph(s) of Sapphire at mogok with a stated length, 1 specimen(s); 0 with a crystal length, 1 with specimen dimensions, 0 aggregate, 0 picture width"
-     }
+     },
+     "carrier_share": null,
+     "carrier_share_basis": "none: no size target, so its carrying waits on crystal or specimen lengths (WP0)"
     },
     "tourmaline": {
      "role": "alternate",
@@ -3380,7 +3475,9 @@
       },
       "specimens": 9,
       "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 9 photograph(s) of Elbaite / Tourmaline supergroup / Uvite at mogok with a stated length, 9 specimen(s); 0 with a crystal length, 9 with specimen dimensions, 0 aggregate, 0 picture width"
-     }
+     },
+     "carrier_share": null,
+     "carrier_share_basis": "none: no band; it must carry at least one scored run"
     },
     "calcite": {
      "role": "companion",
@@ -3478,7 +3575,9 @@
       },
       "specimens": 19,
       "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 19 photograph(s) of Galena at tri_state_picher with a stated length, 19 specimen(s); 2 with a crystal length, 18 with specimen dimensions, 0 aggregate, 0 picture width"
-     }
+     },
+     "carrier_share": 0.2908,
+     "carrier_share_basis": "rules.carrier_obligation: band floor 0.5 × display coverage 0.5816 of a specimen-proxy record of 18 = 0.2908"
     },
     "sphalerite": {
      "role": "alternate",
@@ -3537,7 +3636,9 @@
       },
       "specimens": 10,
       "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 10 photograph(s) of Sphalerite at tri_state_picher with a stated length, 10 specimen(s); 0 with a crystal length, 9 with specimen dimensions, 0 aggregate, 1 picture width"
-     }
+     },
+     "carrier_share": 0.26,
+     "carrier_share_basis": "rules.carrier_obligation: band floor 0.5 × display coverage 0.52 of a specimen-proxy record of 9 = 0.26"
     },
     "calcite": {
      "role": "alternate",
@@ -3573,7 +3674,9 @@
       },
       "specimens": 4,
       "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 4 photograph(s) of Calcite at tri_state_picher with a stated length, 4 specimen(s); 0 with a crystal length, 4 with specimen dimensions, 0 aggregate, 0 picture width"
-     }
+     },
+     "carrier_share": null,
+     "carrier_share_basis": "none: no size target, so its carrying waits on crystal or specimen lengths (WP0)"
     },
     "chalcopyrite": {
      "role": "alternate",
@@ -3606,7 +3709,9 @@
       },
       "specimens": 3,
       "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 3 photograph(s) of Chalcopyrite at tri_state_picher with a stated length, 3 specimen(s); 0 with a crystal length, 2 with specimen dimensions, 0 aggregate, 1 picture width"
-     }
+     },
+     "carrier_share": null,
+     "carrier_share_basis": "none: no size target, so its carrying waits on crystal or specimen lengths (WP0)"
     },
     "dolomite": {
      "role": "alternate",
@@ -3649,7 +3754,9 @@
       },
       "specimens": 2,
       "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 2 photograph(s) of Dolomite at tri_state_picher with a stated length, 2 specimen(s); 1 with a crystal length, 1 with specimen dimensions, 0 aggregate, 0 picture width"
-     }
+     },
+     "carrier_share": null,
+     "carrier_share_basis": "none: no size target, so its carrying waits on crystal or specimen lengths (WP0)"
     },
     "marcasite": {
      "role": "companion",
@@ -3774,7 +3881,9 @@
       },
       "specimens": 20,
       "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 21 photograph(s) of Gypsum / Selenite (Gypsum) at naica with a stated length, 20 specimen(s); 4 with a crystal length, 15 with specimen dimensions, 0 aggregate, 2 picture width"
-     }
+     },
+     "carrier_share": null,
+     "carrier_share_basis": "none: its display range starts at 76.5 mm, beyond the cavity's 60.15 mm span (WP9)"
     },
     "anhydrite": {
      "role": "alternate",
@@ -3840,7 +3949,9 @@
       },
       "specimens": 11,
       "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 11 photograph(s) of Anhydrite at naica with a stated length, 11 specimen(s); 1 with a crystal length, 10 with specimen dimensions, 0 aggregate, 0 picture width"
-     }
+     },
+     "carrier_share": null,
+     "carrier_share_basis": "none: its display range starts at 65.5 mm, beyond the cavity's 60.15 mm span (WP9)"
     }
    },
    "cavity_span_mm": 60.15,
@@ -3917,7 +4028,9 @@
       },
       "specimens": 22,
       "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 23 photograph(s) of Topaz at ouro_preto with a stated length, 22 specimen(s); 4 with a crystal length, 16 with specimen dimensions, 0 aggregate, 2 picture width"
-     }
+     },
+     "carrier_share": 0.1721,
+     "carrier_share_basis": "rules.carrier_obligation: band floor 0.3 × display coverage 0.5735 of a specimen-proxy record of 16 = 0.1721"
     },
     "hematite": {
      "role": "alternate",
@@ -3976,7 +4089,9 @@
       },
       "specimens": 11,
       "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 11 photograph(s) of Hematite / Iron rose at ouro_preto with a stated length, 11 specimen(s); 0 with a crystal length, 11 with specimen dimensions, 0 aggregate, 0 picture width"
-     }
+     },
+     "carrier_share": 0.1625,
+     "carrier_share_basis": "rules.carrier_obligation: band floor 0.3 × display coverage 0.5417 of a specimen-proxy record of 11 = 0.1625"
     },
     "x:euclase": {
      "role": "showpiece",
@@ -4080,7 +4195,9 @@
       },
       "specimens": 3,
       "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 3 photograph(s) of Pyrite at bingham with a stated length, 3 specimen(s); 0 with a crystal length, 2 with specimen dimensions, 0 aggregate, 1 picture width"
-     }
+     },
+     "carrier_share": null,
+     "carrier_share_basis": "none: no size target, so its carrying waits on crystal or specimen lengths (WP0)"
     },
     "tetrahedrite": {
      "role": "alternate",
@@ -4116,7 +4233,9 @@
       },
       "specimens": 3,
       "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 3 photograph(s) of Tetrahedrite series at bingham with a stated length, 3 specimen(s); 0 with a crystal length, 1 with specimen dimensions, 0 aggregate, 2 picture width"
-     }
+     },
+     "carrier_share": null,
+     "carrier_share_basis": "none: no size target, so its carrying waits on crystal or specimen lengths (WP0)"
     },
     "ma:faustite": {
      "role": "alternate",
@@ -4138,7 +4257,9 @@
       },
       "specimens": 5,
       "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 5 photograph(s) of Faustite at bingham with a stated length, 5 specimen(s); 0 with a crystal length, 0 with specimen dimensions, 0 aggregate, 5 picture width"
-     }
+     },
+     "carrier_share": null,
+     "carrier_share_basis": "none: no size target, so its carrying waits on crystal or specimen lengths (WP0)"
     },
     "galena": {
      "role": "alternate",
@@ -4174,7 +4295,9 @@
       },
       "specimens": 2,
       "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 2 photograph(s) of Galena at bingham with a stated length, 2 specimen(s); 0 with a crystal length, 2 with specimen dimensions, 0 aggregate, 0 picture width"
-     }
+     },
+     "carrier_share": null,
+     "carrier_share_basis": "none: no size target, so its carrying waits on crystal or specimen lengths (WP0)"
     },
     "x:wavellite": {
      "role": "alternate",
@@ -4196,7 +4319,9 @@
       },
       "specimens": 1,
       "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 1 photograph(s) of Wavellite at bingham with a stated length, 1 specimen(s); 0 with a crystal length, 0 with specimen dimensions, 0 aggregate, 1 picture width"
-     }
+     },
+     "carrier_share": null,
+     "carrier_share_basis": "none: no size target, so its carrying waits on crystal or specimen lengths (WP0)"
     },
     "x:okenite": {
      "role": "alternate",
@@ -4225,7 +4350,9 @@
       },
       "specimens": 3,
       "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 3 photograph(s) of Okenite at bingham with a stated length, 3 specimen(s); 0 with a crystal length, 2 with specimen dimensions, 0 aggregate, 1 picture width"
-     }
+     },
+     "carrier_share": null,
+     "carrier_share_basis": "none: no size target, so its carrying waits on crystal or specimen lengths (WP0)"
     },
     "quartz": {
      "role": "companion",
@@ -4386,7 +4513,9 @@
       },
       "specimens": 102,
       "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 103 photograph(s) of Fluorite at north_pennines with a stated length, 102 specimen(s); 17 with a crystal length, 84 with specimen dimensions, 0 aggregate, 15 picture width"
-     }
+     },
+     "carrier_share": 0.2889,
+     "carrier_share_basis": "rules.carrier_obligation: band floor 0.5 × display coverage 0.5778 of a crystal record of 17 = 0.2889"
     },
     "galena": {
      "role": "alternate",
@@ -4452,7 +4581,9 @@
       },
       "specimens": 24,
       "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 24 photograph(s) of Galena at north_pennines with a stated length, 24 specimen(s); 5 with a crystal length, 15 with specimen dimensions, 0 aggregate, 6 picture width"
-     }
+     },
+     "carrier_share": 0.2167,
+     "carrier_share_basis": "rules.carrier_obligation: band floor 0.5 × display coverage 0.4333 of a crystal record of 5 = 0.2167"
     },
     "quartz": {
      "role": "alternate",
@@ -4495,7 +4626,9 @@
       },
       "specimens": 5,
       "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 5 photograph(s) of Quartz at north_pennines with a stated length, 5 specimen(s); 1 with a crystal length, 3 with specimen dimensions, 0 aggregate, 1 picture width"
-     }
+     },
+     "carrier_share": null,
+     "carrier_share_basis": "none: no size target, so its carrying waits on crystal or specimen lengths (WP0)"
     },
     "calcite": {
      "role": "alternate",
@@ -4561,7 +4694,9 @@
       },
       "specimens": 23,
       "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 23 photograph(s) of Calcite / Cobaltocalcite at north_pennines with a stated length, 23 specimen(s); 2 with a crystal length, 16 with specimen dimensions, 0 aggregate, 7 picture width"
-     }
+     },
+     "carrier_share": 0.1721,
+     "carrier_share_basis": "rules.carrier_obligation: band floor 0.3 × display coverage 0.5735 of a specimen-proxy record of 16 = 0.1721"
     },
     "sphalerite": {
      "role": "companion",
@@ -4743,7 +4878,9 @@
       },
       "specimens": 40,
       "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 42 photograph(s) of Calcite at viburnum with a stated length, 40 specimen(s); 3 with a crystal length, 35 with specimen dimensions, 0 aggregate, 3 picture width"
-     }
+     },
+     "carrier_share": null,
+     "carrier_share_basis": "none: its display range starts at 57.5 mm, beyond the cavity's 55.21 mm span (WP9)"
     },
     "galena": {
      "role": "alternate",
@@ -4809,7 +4946,9 @@
       },
       "specimens": 33,
       "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 33 photograph(s) of Galena at viburnum with a stated length, 33 specimen(s); 3 with a crystal length, 29 with specimen dimensions, 0 aggregate, 2 picture width"
-     }
+     },
+     "carrier_share": 0.3033,
+     "carrier_share_basis": "rules.carrier_obligation: band floor 0.5 × display coverage 0.6067 of a specimen-proxy record of 29 = 0.3033"
     },
     "chalcopyrite": {
      "role": "alternate",
@@ -4845,7 +4984,9 @@
       },
       "specimens": 11,
       "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 11 photograph(s) of Chalcopyrite at viburnum with a stated length, 11 specimen(s); 0 with a crystal length, 4 with specimen dimensions, 0 aggregate, 7 picture width"
-     }
+     },
+     "carrier_share": null,
+     "carrier_share_basis": "none: no size target, so its carrying waits on crystal or specimen lengths (WP0)"
     },
     "dolomite": {
      "role": "alternate",
@@ -4874,7 +5015,9 @@
       },
       "specimens": 1,
       "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 1 photograph(s) of Dolomite at viburnum with a stated length, 1 specimen(s); 0 with a crystal length, 0 with specimen dimensions, 0 aggregate, 1 picture width"
-     }
+     },
+     "carrier_share": null,
+     "carrier_share_basis": "none: no size target, so its carrying waits on crystal or specimen lengths (WP0)"
     },
     "marcasite": {
      "role": "companion",
@@ -4970,7 +5113,9 @@
       },
       "specimens": 9,
       "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 9 photograph(s) of Pyromorphite at roughton_gill with a stated length, 9 specimen(s); 1 with a crystal length, 2 with specimen dimensions, 0 aggregate, 6 picture width"
-     }
+     },
+     "carrier_share": null,
+     "carrier_share_basis": "none: no size target, so its carrying waits on crystal or specimen lengths (WP0)"
     },
     "mimetite": {
      "role": "alternate",
@@ -5013,7 +5158,9 @@
       },
       "specimens": 4,
       "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 4 photograph(s) of Mimetite at roughton_gill with a stated length, 4 specimen(s); 1 with a crystal length, 1 with specimen dimensions, 0 aggregate, 3 picture width"
-     }
+     },
+     "carrier_share": null,
+     "carrier_share_basis": "none: no size target, so its carrying waits on crystal or specimen lengths (WP0)"
     },
     "quartz": {
      "role": "alternate",
@@ -5034,7 +5181,9 @@
       "crystal_n": 0,
       "specimen_n": 0,
       "provenance": "no photograph of this species with a stated length in the capture (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json)"
-     }
+     },
+     "carrier_share": null,
+     "carrier_share_basis": "none: no size target, so its carrying waits on crystal or specimen lengths (WP0)"
     },
     "hemimorphite": {
      "role": "alternate",
@@ -5070,7 +5219,9 @@
       },
       "specimens": 7,
       "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 7 photograph(s) of Hemimorphite at roughton_gill with a stated length, 7 specimen(s); 0 with a crystal length, 3 with specimen dimensions, 0 aggregate, 4 picture width"
-     }
+     },
+     "carrier_share": null,
+     "carrier_share_basis": "none: no size target, so its carrying waits on crystal or specimen lengths (WP0)"
     },
     "cerussite": {
      "role": "companion",
@@ -5273,7 +5424,9 @@
       },
       "specimens": 50,
       "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 50 photograph(s) of Erythrite at schneeberg with a stated length, 50 specimen(s); 2 with a crystal length, 8 with specimen dimensions, 3 aggregate, 38 picture width"
-     }
+     },
+     "carrier_share": 0.1517,
+     "carrier_share_basis": "rules.carrier_obligation: band floor 0.3 × display coverage 0.5056 of a specimen-proxy record of 8 = 0.1517"
     },
     "native_silver": {
      "role": "companion",
@@ -5427,7 +5580,9 @@
       },
       "specimens": 12,
       "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 12 photograph(s) of Halite at searles_lake with a stated length, 12 specimen(s); 0 with a crystal length, 12 with specimen dimensions, 0 aggregate, 0 picture width"
-     }
+     },
+     "carrier_share": null,
+     "carrier_share_basis": "none: its display range starts at 84.5 mm, beyond the cavity's 47.81 mm span (WP9)"
     },
     "x:hanksite": {
      "role": "alternate",
@@ -5486,7 +5641,9 @@
       },
       "specimens": 13,
       "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 13 photograph(s) of Hanksite at searles_lake with a stated length, 13 specimen(s); 0 with a crystal length, 11 with specimen dimensions, 0 aggregate, 2 picture width"
-     }
+     },
+     "carrier_share": null,
+     "carrier_share_basis": "none: its display range starts at 49 mm, beyond the cavity's 47.81 mm span (WP9)"
     },
     "x:trona": {
      "role": "alternate",
@@ -5522,7 +5679,9 @@
       },
       "specimens": 1,
       "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 1 photograph(s) of Trona at searles_lake with a stated length, 1 specimen(s); 0 with a crystal length, 1 with specimen dimensions, 0 aggregate, 0 picture width"
-     }
+     },
+     "carrier_share": null,
+     "carrier_share_basis": "none: no size target, so its carrying waits on crystal or specimen lengths (WP0)"
     },
     "x:sulfohalite": {
      "role": "showpiece",
@@ -5601,7 +5760,9 @@
       },
       "specimens": 4,
       "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 4 photograph(s) of Burkeite at searles_lake with a stated length, 4 specimen(s); 0 with a crystal length, 1 with specimen dimensions, 0 aggregate, 3 picture width"
-     }
+     },
+     "carrier_share": null,
+     "carrier_share_basis": "none: no size target, so its carrying waits on crystal or specimen lengths (WP0)"
     },
     "x:gaylussite": {
      "role": "companion",
@@ -5720,7 +5881,9 @@
       },
       "specimens": 33,
       "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 33 photograph(s) of Aquamarine at shigar with a stated length, 33 specimen(s); 11 with a crystal length, 22 with specimen dimensions, 0 aggregate, 2 picture width"
-     }
+     },
+     "carrier_share": 0.2708,
+     "carrier_share_basis": "rules.carrier_obligation: band floor 0.5 × display coverage 0.5417 of a crystal record of 11 = 0.2708"
     },
     "topaz": {
      "role": "alternate",
@@ -5786,7 +5949,9 @@
       },
       "specimens": 41,
       "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 41 photograph(s) of Topaz at shigar with a stated length, 41 specimen(s); 2 with a crystal length, 36 with specimen dimensions, 0 aggregate, 1 picture width"
-     }
+     },
+     "carrier_share": 0.1845,
+     "carrier_share_basis": "rules.carrier_obligation: band floor 0.3 × display coverage 0.6149 of a specimen-proxy record of 36 = 0.1845"
     },
     "quartz": {
      "role": "alternate",
@@ -5852,7 +6017,9 @@
       },
       "specimens": 11,
       "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 11 photograph(s) of Blue Quartz / Quartz / Rock Crystal / Sceptre Quartz / Smoky Quartz at shigar with a stated length, 11 specimen(s); 3 with a crystal length, 8 with specimen dimensions, 0 aggregate, 0 picture width"
-     }
+     },
+     "carrier_share": 0.2528,
+     "carrier_share_basis": "rules.carrier_obligation: band floor 0.5 × display coverage 0.5056 of a specimen-proxy record of 8 = 0.2528"
     },
     "tourmaline": {
      "role": "alternate",
@@ -5888,7 +6055,9 @@
       },
       "specimens": 1,
       "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 1 photograph(s) of Elbaite at shigar with a stated length, 1 specimen(s); 0 with a crystal length, 1 with specimen dimensions, 0 aggregate, 0 picture width"
-     }
+     },
+     "carrier_share": null,
+     "carrier_share_basis": "none: no size target, so its carrying waits on crystal or specimen lengths (WP0)"
     },
     "x:garnet": {
      "role": "alternate",
@@ -5954,7 +6123,9 @@
       },
       "specimens": 20,
       "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 21 photograph(s) of Andradite / Spessartine at shigar with a stated length, 20 specimen(s); 4 with a crystal length, 11 with specimen dimensions, 0 aggregate, 6 picture width"
-     }
+     },
+     "carrier_share": 0.1625,
+     "carrier_share_basis": "rules.carrier_obligation: band floor 0.3 × display coverage 0.5417 of a specimen-proxy record of 11 = 0.1625"
     },
     "x:muscovite": {
      "role": "companion",
@@ -6129,7 +6300,9 @@
       },
       "specimens": 25,
       "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 26 photograph(s) of Sulphur at sicily with a stated length, 25 specimen(s); 0 with a crystal length, 20 with specimen dimensions, 0 aggregate, 4 picture width"
-     }
+     },
+     "carrier_share": null,
+     "carrier_share_basis": "none: its display range starts at 57.3 mm, beyond the cavity's 38.45 mm span (WP9)"
     },
     "aragonite": {
      "role": "alternate",
@@ -6195,7 +6368,9 @@
       },
       "specimens": 11,
       "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 11 photograph(s) of Aragonite at sicily with a stated length, 11 specimen(s); 2 with a crystal length, 8 with specimen dimensions, 0 aggregate, 1 picture width"
-     }
+     },
+     "carrier_share": null,
+     "carrier_share_basis": "none: its display range starts at 98.5 mm, beyond the cavity's 38.45 mm span (WP9)"
     },
     "celestine": {
      "role": "alternate",
@@ -6254,7 +6429,9 @@
       },
       "specimens": 18,
       "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 18 photograph(s) of Celestine at sicily with a stated length, 18 specimen(s); 0 with a crystal length, 15 with specimen dimensions, 0 aggregate, 2 picture width"
-     }
+     },
+     "carrier_share": null,
+     "carrier_share_basis": "none: its display range starts at 55 mm, beyond the cavity's 38.45 mm span (WP9)"
     },
     "calcite": {
      "role": "alternate",
@@ -6290,7 +6467,9 @@
       },
       "specimens": 5,
       "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 5 photograph(s) of Calcite at sicily with a stated length, 5 specimen(s); 0 with a crystal length, 4 with specimen dimensions, 0 aggregate, 1 picture width"
-     }
+     },
+     "carrier_share": null,
+     "carrier_share_basis": "none: no size target, so its carrying waits on crystal or specimen lengths (WP0)"
     },
     "selenite": {
      "role": "companion",
@@ -6344,7 +6523,9 @@
       "crystal_n": 0,
       "specimen_n": 0,
       "provenance": "no photograph of this species with a stated length in the capture (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json)"
-     }
+     },
+     "carrier_share": null,
+     "carrier_share_basis": "none: no size target, so its carrying waits on crystal or specimen lengths (WP0)"
     },
     "native_sulfur": {
      "role": "alternate",
@@ -6365,7 +6546,9 @@
       "crystal_n": 0,
       "specimen_n": 0,
       "provenance": "no photograph of this species with a stated length in the capture (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json)"
-     }
+     },
+     "carrier_share": null,
+     "carrier_share_basis": "none: no size target, so its carrying waits on crystal or specimen lengths (WP0)"
     },
     "pyrite": {
      "role": "companion",
@@ -6484,7 +6667,9 @@
       },
       "specimens": 17,
       "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 17 photograph(s) of Rhodochrosite at sunnyside with a stated length, 17 specimen(s); 1 with a crystal length, 17 with specimen dimensions, 0 aggregate, 0 picture width"
-     }
+     },
+     "carrier_share": 0.2889,
+     "carrier_share_basis": "rules.carrier_obligation: band floor 0.5 × display coverage 0.5778 of a specimen-proxy record of 17 = 0.2889"
     },
     "fluorite": {
      "role": "alternate",
@@ -6550,7 +6735,9 @@
       },
       "specimens": 15,
       "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 15 photograph(s) of Fluorite at sunnyside with a stated length, 15 specimen(s); 1 with a crystal length, 15 with specimen dimensions, 0 aggregate, 0 picture width"
-     }
+     },
+     "carrier_share": 0.1706,
+     "carrier_share_basis": "rules.carrier_obligation: band floor 0.3 × display coverage 0.5687 of a specimen-proxy record of 15 = 0.1706"
     },
     "quartz": {
      "role": "alternate",
@@ -6586,7 +6773,9 @@
       },
       "specimens": 3,
       "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 3 photograph(s) of Quartz at sunnyside with a stated length, 3 specimen(s); 0 with a crystal length, 3 with specimen dimensions, 0 aggregate, 0 picture width"
-     }
+     },
+     "carrier_share": null,
+     "carrier_share_basis": "none: no size target, so its carrying waits on crystal or specimen lengths (WP0)"
     },
     "native_gold": {
      "role": "alternate",
@@ -6622,7 +6811,9 @@
       },
       "specimens": 2,
       "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 2 photograph(s) of Gold at sunnyside with a stated length, 2 specimen(s); 0 with a crystal length, 1 with specimen dimensions, 0 aggregate, 1 picture width"
-     }
+     },
+     "carrier_share": null,
+     "carrier_share_basis": "none: no size target, so its carrying waits on crystal or specimen lengths (WP0)"
     },
     "pyrite": {
      "role": "companion",
@@ -6806,7 +6997,9 @@
       },
       "specimens": 58,
       "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 58 photograph(s) of Cobaltoan Smithsonite / Cuprian Smithsonite / Smithsonite at tsumeb with a stated length, 58 specimen(s); 4 with a crystal length, 28 with specimen dimensions, 0 aggregate, 26 picture width"
-     }
+     },
+     "carrier_share": 0.3026,
+     "carrier_share_basis": "rules.carrier_obligation: band floor 0.5 × display coverage 0.6052 of a specimen-proxy record of 28 = 0.3026"
     },
     "cerussite": {
      "role": "alternate",
@@ -6862,7 +7055,9 @@
       },
       "specimens": 55,
       "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 58 photograph(s) of Cerussite at tsumeb with a stated length, 55 specimen(s); 5 with a crystal length, 40 with specimen dimensions, 0 aggregate, 12 picture width"
-     }
+     },
+     "carrier_share": 0.2167,
+     "carrier_share_basis": "rules.carrier_obligation: band floor 0.5 × display coverage 0.4333 of a crystal record of 5 = 0.2167"
     },
     "calcite": {
      "role": "alternate",
@@ -6928,7 +7123,9 @@
       },
       "specimens": 56,
       "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 57 photograph(s) of Calcite / Cobaltocalcite at tsumeb with a stated length, 56 specimen(s); 1 with a crystal length, 45 with specimen dimensions, 0 aggregate, 9 picture width"
-     }
+     },
+     "carrier_share": 0.3109,
+     "carrier_share_basis": "rules.carrier_obligation: band floor 0.5 × display coverage 0.6217 of a specimen-proxy record of 45 = 0.3109"
     },
     "azurite": {
      "role": "alternate",
@@ -6994,7 +7191,9 @@
       },
       "specimens": 54,
       "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 56 photograph(s) of Azurite at tsumeb with a stated length, 54 specimen(s); 3 with a crystal length, 39 with specimen dimensions, 0 aggregate, 11 picture width"
-     }
+     },
+     "carrier_share": 0.3087,
+     "carrier_share_basis": "rules.carrier_obligation: band floor 0.5 × display coverage 0.6175 of a specimen-proxy record of 39 = 0.3087"
     },
     "malachite": {
      "role": "alternate",
@@ -7060,7 +7259,9 @@
       },
       "specimens": 39,
       "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 39 photograph(s) of Malachite at tsumeb with a stated length, 39 specimen(s); 4 with a crystal length, 22 with specimen dimensions, 0 aggregate, 11 picture width"
-     }
+     },
+     "carrier_share": 0.2967,
+     "carrier_share_basis": "rules.carrier_obligation: band floor 0.5 × display coverage 0.5935 of a specimen-proxy record of 22 = 0.2967"
     },
     "mimetite": {
      "role": "alternate",
@@ -7126,7 +7327,9 @@
       },
       "specimens": 53,
       "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 54 photograph(s) of Mimetite at tsumeb with a stated length, 53 specimen(s); 1 with a crystal length, 27 with specimen dimensions, 0 aggregate, 25 picture width"
-     }
+     },
+     "carrier_share": 0.1811,
+     "carrier_share_basis": "rules.carrier_obligation: band floor 0.3 × display coverage 0.6036 of a specimen-proxy record of 27 = 0.1811"
     },
     "cuprite": {
      "role": "companion",
@@ -7332,7 +7535,9 @@
       },
       "specimens": 11,
       "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 11 photograph(s) of Titanite at tormiq with a stated length, 11 specimen(s); 2 with a crystal length, 10 with specimen dimensions, 0 aggregate, 0 picture width"
-     }
+     },
+     "carrier_share": null,
+     "carrier_share_basis": "none: no band; it must carry at least one scored run"
     },
     "epidote": {
      "role": "alternate",
@@ -7398,7 +7603,9 @@
       },
       "specimens": 6,
       "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 6 photograph(s) of Epidote / Epidote group at tormiq with a stated length, 6 specimen(s); 1 with a crystal length, 5 with specimen dimensions, 0 aggregate, 0 picture width"
-     }
+     },
+     "carrier_share": 0.2167,
+     "carrier_share_basis": "rules.carrier_obligation: band floor 0.5 × display coverage 0.4333 of a specimen-proxy record of 5 = 0.2167"
     },
     "quartz": {
      "role": "alternate",
@@ -7412,7 +7619,9 @@
       "crystal_n": 0,
       "specimen_n": 0,
       "provenance": "no photograph of this species with a stated length in the capture (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json)"
-     }
+     },
+     "carrier_share": null,
+     "carrier_share_basis": "none: no size target, so its carrying waits on crystal or specimen lengths (WP0)"
     },
     "x:clinozoisite": {
      "role": "alternate",
@@ -7457,7 +7666,9 @@
       },
       "specimens": 7,
       "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 7 photograph(s) of Clinozoisite at tormiq with a stated length, 7 specimen(s); 0 with a crystal length, 7 with specimen dimensions, 0 aggregate, 0 picture width"
-     }
+     },
+     "carrier_share": null,
+     "carrier_share_basis": "none: no band; it must carry at least one scored run"
     },
     "x:ilmenite": {
      "role": "alternate",
@@ -7509,7 +7720,9 @@
       },
       "specimens": 7,
       "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 7 photograph(s) of Ilmenite at tormiq with a stated length, 7 specimen(s); 0 with a crystal length, 6 with specimen dimensions, 0 aggregate, 1 picture width"
-     }
+     },
+     "carrier_share": null,
+     "carrier_share_basis": "none: no band; it must carry at least one scored run"
     },
     "hematite": {
      "role": "alternate",
@@ -7523,7 +7736,9 @@
       "crystal_n": 0,
       "specimen_n": 0,
       "provenance": "no photograph of this species with a stated length in the capture (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json)"
-     }
+     },
+     "carrier_share": null,
+     "carrier_share_basis": "none: no size target, so its carrying waits on crystal or specimen lengths (WP0)"
     },
     "actinolite": {
      "role": "companion",
@@ -7615,7 +7830,9 @@
       "piece_material": true,
       "specimens": 10,
       "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 10 photograph(s) of Chrysoprase at marlborough with a stated length, 10 specimen(s); 0 with a crystal length, 8 with specimen dimensions, 0 aggregate, 2 picture width"
-     }
+     },
+     "carrier_share": null,
+     "carrier_share_basis": "none: its display range starts at 62.8 mm, beyond the cavity's 58.67 mm span (WP9)"
     },
     "chalcedony": {
      "role": "companion",
@@ -7727,7 +7944,9 @@
       },
       "specimens": 39,
       "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 39 photograph(s) of Erythrite at wittichen with a stated length, 39 specimen(s); 0 with a crystal length, 7 with specimen dimensions, 0 aggregate, 31 picture width"
-     }
+     },
+     "carrier_share": 0.2438,
+     "carrier_share_basis": "rules.carrier_obligation: band floor 0.5 × display coverage 0.4875 of a specimen-proxy record of 7 = 0.2438"
     },
     "zeunerite": {
      "role": "alternate",
@@ -7756,7 +7975,9 @@
       },
       "specimens": 53,
       "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 53 photograph(s) of Zeunerite at wittichen with a stated length, 53 specimen(s); 1 with a crystal length, 0 with specimen dimensions, 0 aggregate, 48 picture width"
-     }
+     },
+     "carrier_share": null,
+     "carrier_share_basis": "none: no size target, so its carrying waits on crystal or specimen lengths (WP0)"
     },
     "ma:heinrichite": {
      "role": "alternate",
@@ -7792,7 +8013,9 @@
       },
       "specimens": 51,
       "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 51 photograph(s) of Heinrichite at wittichen with a stated length, 51 specimen(s); 1 with a crystal length, 1 with specimen dimensions, 0 aggregate, 47 picture width"
-     }
+     },
+     "carrier_share": null,
+     "carrier_share_basis": "none: no size target, so its carrying waits on crystal or specimen lengths (WP0)"
     },
     "fluorite": {
      "role": "alternate",
@@ -7858,7 +8081,9 @@
       },
       "specimens": 24,
       "provenance": "Mineralienatlas captions (proposals/DATA-STORY-POCKET-SIZES-CAPTURE-2026-10-22.json): 24 photograph(s) of Fluorite at wittichen with a stated length, 24 specimen(s); 2 with a crystal length, 19 with specimen dimensions, 0 aggregate, 4 picture width"
-     }
+     },
+     "carrier_share": 0.1755,
+     "carrier_share_basis": "rules.carrier_obligation: band floor 0.3 × display coverage 0.585 of a specimen-proxy record of 19 = 0.1755"
     },
     "native_silver": {
      "role": "companion",

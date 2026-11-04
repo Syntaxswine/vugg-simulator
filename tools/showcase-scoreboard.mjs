@@ -274,7 +274,7 @@ for (const [scn, T] of Object.entries(targets.scenarios).sort(([a], [b]) => a.lo
   for (const r of rs) for (const [m, v] of Object.entries(r.species)) if ((v.max_mm ?? 0) > span) o.longer_than_cavity[m] = (o.longer_than_cavity[m] || 0) + 1;
   // The verdict, and WP1's whole target.
   o.verdict = V.verdict;
-  o.wp1 = scenarioWp1(runsIn, T.species, V.verdict, { z: Z });
+  o.wp1 = scenarioWp1(runsIn, T.species, V, { range: DR, z: Z });
   if (V.verdict === 'NO ENGINE') o.why = `no protagonist has an engine (${protagonistsOf(T.species).map(({ k }) => name(k)).join(', ')})`;
   else if (V.verdict === 'SMALL POCKETS ONLY') o.why = `the cavity's longest span, ${mm(span)} mm, is shorter than ${name(primary)}'s characteristic crystal, ${mm(primaryT.median)} mm (${primaryT.basis}, n ${primaryT.n})`;
   else o.why = V.why;
@@ -390,11 +390,15 @@ const sections = {};
   const firsts = Object.entries(out).filter(([, o]) => o.story && o.story.frequency != null && o.frequency_proxies_too != null && o.frequency_proxies_too !== o.story.frequency);
   const firstMoves = firsts.filter(([, o]) => o.verdict_proxies_too !== o.verdict);
   md.push(`Crystal targets first moves the story frequency where a crystal target sets it over a proxy that would set a higher one — the primary's too (with proxies competing → as registered): ${firsts.map(([scn, o]) => `${scn} (${o.frequency_proxies_too} → ${o.story.frequency}: ${name(o.setter)}, ${T_role(scn, o.setter)}, over the proxies of ${o.passed_over.map((k) => `${name(k)} (${T_role(scn, k)})`).join(', ')})`).join('; ') || 'none'}. There a STORY (PROXY) is judged against the crystal target's expected rate, not a proxy's bar. Verdicts that move with it: ${firstMoves.map(([scn, o]) => `${scn} (${o.verdict_proxies_too} → ${o.verdict})`).join(', ') || 'none'}.`);
-  // Protagonists that occur but whose size this cavity cannot judge: each holds WP1's whole target open.
-  const UNJUDGED = ['ELIGIBILITY UNKNOWN', 'NO ELIGIBLE POCKET', 'LONGER THAN THE CAVITY'];
-  const unheld = Object.entries(out).map(([scn, o]) => [scn, o, Object.entries(o.species || {}).filter(([, s]) => isProt(s.role) && s.engine && UNJUDGED.includes(s.size.verdict))]).filter(([, , l]) => l.length);
-  const unheldText = unheld.map(([scn, o, l]) => `${scn} (span ${o.cavity.span_mm.toFixed(1)} mm): ${l.map(([k, s]) => `${name(k)} (${s.size.verdict === 'LONGER THAN THE CAVITY' ? 'every eligible crystal longer than the cavity' : `${s.target.basis === 'crystal' ? 'crystal' : 'proxy'} median ${mm(s.target.median)} mm`})`).join(', ')}`);
-  md.push(`Protagonists that occur but whose size this cavity cannot judge — its span is under the target's median (ELIGIBILITY UNKNOWN against a proxy, NO ELIGIBLE POCKET against a crystal target), or every eligible crystal is longer than the cavity — ${unheld.reduce((s, [, , l]) => s + l.length, 0)} at ${unheld.length} scenarios: ${unheldText.join('; ') || 'none'}. Each holds WP1's whole target open there until the pocket grows (WP9) or the evidence brings the target within the span (WP0).`);
+  // Protagonists that occur but never carry the story at their own display scale: in this fleet they are
+  // accessories only, so not functioning as protagonists (the carrier obligation).
+  const PARTS = [['accessory', 'below its display range'], ['short', 'short of its proxy'], ['beyond', 'longer than the cavity'], ['oversize', 'oversize']];
+  const neverCarry = Object.entries(out).flatMap(([scn, o]) => Object.entries(o.species || {})
+    .filter(([k, s]) => isProt(s.role) && s.engine && s.target.basis !== 'unknown' && s.occurrence.k > 0 && o.story?.carry?.[k] && !o.story.carry[k].carried)
+    .map(([k, s]) => [scn, k, s, o]));
+  const neverText = (l) => l.map(([scn, k, s, o]) => `${name(k)} at ${scn} (${s.role}, ${s.occurrence.k}/${o.runs}: ${PARTS.filter(([p]) => o.story.carry[k][p]).map(([p, why]) => `${why} ${o.story.carry[k][p]}`).join(', ')})`).join('; ') || 'none';
+  const failsShare = (scn, k) => out[scn].wp1.fails.some((x) => x.startsWith(`${k} carries the story`));
+  md.push(`Protagonists with a size target that occur but never carry the story at their own display scale — accessories in every run, so not functioning as protagonists in this fleet (${neverCarry.length}): their carrier share is missed beyond noise, failing WP1's whole target — ${neverText(neverCarry.filter(([scn, k]) => failsShare(scn, k)))}; or it is left open (short of a proxy, an unclassed pocket, a share within noise) — ${neverText(neverCarry.filter(([scn, k]) => !failsShare(scn, k)))}. Each waits on growth to its scale (WP1), on crystal lengths (WP0), or on a decision to downgrade it to a companion where it is an accessory at the place.`);
   md.push(`Pocket classes against the primary protagonist's characteristic crystal: ${['STORY-SCALE', 'SMALL', 'UNCLASSED'].map((p) => `${p} ${pockets[p] || 0}`).join(', ')} of ${scored.length} scored scenarios; runs in small pockets ${smallRuns} (${scored.reduce((s, o) => s + (o.story?.small_yes ?? 0), 0)} of them with a story, reported apart). Every scenario grows in one cavity in all its seeds (${Object.values(cav.scenarios).reduce((s, v) => s + v.seeds_checked.length, 0)} constructions checked, ${Object.values(cav.scenarios).every((v) => v.identical_across_seeds) ? 'none differ' : 'SOME DIFFER'}), so a scenario's fleet holds a single pocket class: no scenario yet has both small pockets and story-scale ones.`);
   sections.verdicts = md.join('\n');
 }
@@ -470,8 +474,8 @@ const sections = {};
 }
 {
   const md = [];
-  md.push('| scenario | species | role | occurs (band) | size target | largest unflagged when it occurs: median (q25–q75) | spread: sim / record | holds it | eligible runs in q25–q90 | size verdict |');
-  md.push('|---|---|---|---|---|---|---|---|---|---|');
+  md.push('| scenario | species | role | occurs (band) | size target | largest unflagged when it occurs: median (q25–q75) | spread: sim / record | holds it | eligible runs in q25–q90 | size verdict | carries the story: scored runs (its share) |');
+  md.push('|---|---|---|---|---|---|---|---|---|---|---|');
   const rows = [];
   for (const [scn, o] of sorted) if (o.species) for (const [k, s] of Object.entries(o.species)) if (s.role !== 'companion') rows.push([scn, k, s]);
   const roleOrder = ['primary', 'alternate', 'showpiece', 'unsupported'];
@@ -482,7 +486,10 @@ const sections = {};
     const spread = s.engine && w.n ? `${s.spread.sim == null ? 'not visible' : `${pct(s.spread.sim)} %`} / ${s.spread.record == null ? '—' : `${pct(s.spread.record)} %`}` : '—';
     const fit = s.target.basis === 'unknown' ? '—' : s.target.fits === true ? 'yes' : s.target.fits === false ? 'no' : 'unknown';
     const elig = s.size.eligible ? `${s.size.inRange}/${s.size.eligible} (${pct(s.size.share)} %)` : '—';
-    md.push(`| ${scn} | ${name(k)} | ${s.role} | ${occ} | ${targetText(s.target)} | ${cond} | ${spread} | ${fit} | ${elig} | ${s.engine ? sizeText(s.size) : '—'} |`);
+    const carry = out[scn].story?.carry?.[k];
+    const share = targets.scenarios[scn].species[k].carrier_share;
+    const carries = s.engine && carry ? `${carry.carried}/${out[scn].story.scored} (${share == null ? 'no share' : `${pct(share)} %`})` : '—';
+    md.push(`| ${scn} | ${name(k)} | ${s.role} | ${occ} | ${targetText(s.target)} | ${cond} | ${spread} | ${fit} | ${elig} | ${s.engine ? sizeText(s.size) : '—'} | ${carries} |`);
   }
   const prot = rows.filter(([, , s]) => isProt(s.role));
   const basis = {};
@@ -494,17 +501,19 @@ const sections = {};
   const metWp1 = scoredWp1.filter(([, o]) => o.wp1.met).map(([scn]) => scn);
   const clean = (x) => x.replace(/^(x:|ma:)/, '').replace(/_/g, ' ');
   const storyNotWp1 = scoredWp1.filter(([, o]) => !o.wp1.met && (o.verdict === 'STORY' || o.verdict === 'STORY (PROXY)')).map(([scn, o]) => `${scn} (${[...o.wp1.fails.map(clean), ...o.wp1.open.map((x) => `open: ${clean(x)}`)].join('; ')})`);
-  // What holds WP1 open, by cause, across every scored scenario (wp1Target's own wording).
+  // What fails WP1 and what holds it open, by cause, across every scored scenario (wp1Target's own wording).
+  const FAILS = [['the story', /^story /], ['a band', / its band$/], ['a carrier share', / below its share /]];
   const CAUSES = [
-    ['short of its proxy', /short of its proxy$/], ['a size this cavity cannot judge (the eighth line under §2\'s table)', /(eligibility unknown|no eligible pocket|longer than the cavity)$/],
-    ['never occurring where its band cannot fail that', /never occurs, and /], ['neither a band nor a size target', /neither a band nor a size target/],
-    ['too few eligible runs to judge its size', /too few eligible runs/], ['a size miss the runs cannot tell from the window', /, within noise$/],
+    ['the story unresolved or short within noise', /^story /], ['a protagonist that could still carry its share (short of a proxy, longer than the cavity, an unclassed pocket)', / and could in /],
+    ['a carrier share missed within noise', /short of its share .* within noise$/], ['no size target to show it carrying', /no size target to show it carrying/],
+    ['a display range beyond the cavity', /cannot carry the story in this cavity/], ['no band to set its share, and no run carried', /no band to set its share/],
+    ['never occurring where its band cannot fail that', /never occurs, and /],
   ];
+  const byCause = (list, kinds, listed = new Set()) => kinds.map(([label, re], i) => { const hit = list.filter(([, x]) => re.test(x)); return `${label} ${hit.length}${listed.has(i) && hit.length ? ` (${hit.map(([scn, x]) => `${clean(x.split(' ')[0])} at ${scn}`).join(', ')})` : ''}`; });
   const opens = scoredWp1.flatMap(([scn, o]) => o.wp1.open.map((x) => [scn, x]));
-  const listed = new Set([2, 3]);
-  const causeText = CAUSES.map(([label, re], i) => { const hit = opens.filter(([, x]) => re.test(x)); return `${label} ${hit.length}${listed.has(i) && hit.length ? ` (${hit.map(([scn, x]) => `${clean(x.split(' ')[0])} at ${scn}`).join(', ')})` : ''}`; });
-  const other = opens.filter(([, x]) => !CAUSES.some(([, re]) => re.test(x)));
-  md.push(`WP1's whole target — the story frequency met; every protagonist with an engine within its band (a miss within noise counts as within); and every protagonist with an engine at the record's size wherever it occurs in a pocket that can hold it (its typical crystal within the record's middle half, or reaching its proxy), whether or not it carries story runs — is met by ${metWp1.length} of ${scoredWp1.length} scored scenarios${metWp1.length ? `: ${metWp1.join(', ')}` : ''}. It is met only on what it could judge, so these leave it open rather than failing it; across the scored scenarios: ${causeText.join('; ')}${other.length ? `; other ${other.length}` : ''}. Where the story verdict passes but the whole target does not: ${storyNotWp1.join('; ') || 'none'}. After a size verdict, "(noise)": the runs cannot tell their median from the target's window; "(too few runs)": so few eligible runs that no miss could be told from it.`);
+  const failed = scoredWp1.flatMap(([scn, o]) => o.wp1.fails.map((x) => [scn, x]));
+  const other = [...opens.filter(([, x]) => !CAUSES.some(([, re]) => re.test(x))), ...failed.filter(([, x]) => !FAILS.some(([, re]) => re.test(x)))];
+  md.push(`WP1's whole target (the boss's answers of 2026-11-03) — the story frequency met; every protagonist with an engine within its band (a miss within noise counts as within); and every protagonist with an engine carrying the story at its own display scale in at least its carrier share of the scored runs (the last column), its accessory occurrences not held to showcase size — is met by ${metWp1.length} of ${scoredWp1.length} scored scenarios${metWp1.length ? `: ${metWp1.join(', ')}` : ''}. What fails it, across the scored scenarios: ${byCause(failed, FAILS).join('; ')}. What leaves it open, met only on what it could judge: ${byCause(opens, CAUSES, new Set([5, 6])).join('; ')}${other.length ? `; other ${other.length}` : ''}. Where the story verdict passes but the whole target does not: ${storyNotWp1.join('; ') || 'none'}. Size verdicts over every occurrence are reported, not required; after one, "(noise)": the runs cannot tell their median from the target's window; "(too few runs)": so few eligible runs that no miss could be told from it.`);
   md.push('');
   md.push(`Protagonist size targets (${prot.length} primary and alternate slots): ${Object.entries(basis).sort().map(([b, cnt]) => `${b} ${cnt}`).join(', ')}. Size verdicts of protagonists with an engine: ${Object.entries(verdicts).sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0])).map(([x, cnt]) => `${x} ${cnt}`).join(', ')}. "spread" = the interquartile range over the median, of the simulated largest crystal across the seeds and of the record's.`);
   sections.protagonists = md.join('\n');

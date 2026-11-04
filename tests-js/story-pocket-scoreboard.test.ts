@@ -10,7 +10,7 @@ import { fileURLToPath } from 'node:url';
 import {
   parseSizeStatements, photoSizes, groupSpecimens, mineralOfWord, summarize, quantile, relativeSpread, deriveRoles,
   protagonistsOf, bandFor, baseClass, sizeTarget, assessOccurrence, fits, pocketClass, assessSize, runStory, scoreStory,
-  storyVerdict, storyFrequency, scenarioFrequency, displayCoverage, scenarioVerdict, wp1Target, scenarioWp1, cannotFailBeyondNoise,
+  storyVerdict, storyFrequency, scenarioFrequency, displayCoverage, scenarioVerdict, wp1Target, scenarioWp1, carrierShare, cannotFailBeyondNoise,
   assemblageVariety, everySeedChance, validateSidecar, wilson, largestSeries, isFieldLabel, FIELD_LABELS, UPLOADED_TOGETHER, SERIES_GAP,
 } from '../tools/story-pocket-lib.mjs';
 import { buildSizeEvidence, renderSizeEvidenceMd, APPENDIX_FILE } from '../tools/story-pocket-size-evidence.mjs';
@@ -579,8 +579,14 @@ describe('the story, run by run', () => {
   it('the run\'s flags do not depend on the order of the protagonists', () => {
     const order1 = runStory(at({ fluorite: sp(true, 16), calcite: sp(true, 200) }), prot);
     const order2 = runStory(at({ fluorite: sp(true, 16), calcite: sp(true, 200) }), [prot[1], prot[0], prot[2]]);
-    expect(order1).toEqual({ story: 'YES', basis: 'crystal', by: 'fluorite', oversize: true, beyond: false });
+    expect(order1).toEqual({ story: 'YES', basis: 'crystal', by: 'fluorite', oversize: true, beyond: false, each: { fluorite: 'carrier', calcite: 'oversize', sphalerite: 'absent' } });
     expect(order2).toEqual(order1);
+  });
+  it('each protagonist\'s part in the run: carrier, accessory, short of a proxy, longer than the cavity, oversize, unsized or absent; several can carry one run', () => {
+    expect(runStory(at({ fluorite: sp(true, 16), calcite: sp(true, 60), sphalerite: sp(true, 3) }), prot).each).toEqual({ fluorite: 'carrier', calcite: 'carrier', sphalerite: 'unsized' });
+    expect(runStory(at({ fluorite: sp(true, 4), calcite: sp(true, 30) }), prot).each).toEqual({ fluorite: 'accessory', calcite: 'short', sphalerite: 'absent' });
+    expect(runStory(at({ fluorite: sp(true, 30), calcite: sp(true, 150) }, 25), prot).each).toEqual({ fluorite: 'beyond', calcite: 'beyond', sphalerite: 'absent' });
+    expect(runStory(at({ fluorite: sp(true, 60) }), prot).each.fluorite).toBe('oversize');
   });
   it('no size floor: a protagonist of unknown size, or short of a proxy, keeps the run open even as dust', () => {
     expect(runStory(at({ sphalerite: sp(true, 0.4) }), prot).story).toBe('POSSIBLE');
@@ -609,6 +615,21 @@ describe('the story of a scenario', () => {
     expect(asShowpiece).toMatchObject({ yes_crystal: 0, scored: 1 });
     const asAlternate = scoreStory(runs, { ...base, euclase: { role: 'alternate', engine: true, size: crystalT } });
     expect(asAlternate).toMatchObject({ yes_crystal: 1, by: { euclase: 1 } });
+  });
+  it('counts each protagonist\'s carrying over the scored runs; in an unclassed pocket its other runs could still carry, counted once', () => {
+    const species = { fluorite: { role: 'primary', engine: true, size: crystalT }, calcite: { role: 'alternate', engine: true, size: proxyT } };
+    const c = scoreStory([run(300, { fluorite: sp(true, 16), calcite: sp(true, 30) }), run(300, { fluorite: sp(true, 4), calcite: sp(true, 60) }), run(300, { fluorite: sp(false, 0), calcite: sp(true, 140) })], species);
+    expect(c.carry).toEqual({ fluorite: { carried: 1, accessory: 1, short: 0, beyond: 0, oversize: 0, unsized: 0, absent: 1, unclassed: 0 }, calcite: { carried: 1, accessory: 0, short: 1, beyond: 0, oversize: 1, unsized: 0, absent: 0, unclassed: 0 } });
+    // The primary of unknown size leaves every pocket unclassed: a run counts once, as short or as unclassed.
+    const unclassed = { quartz: { role: 'primary', engine: true, size: unknownT }, calcite: { role: 'alternate', engine: true, size: proxyT } };
+    const u = scoreStory([run(300, { quartz: sp(true, 2), calcite: sp(true, 30) }), run(300, { quartz: sp(true, 2), calcite: sp(false, 0) })], unclassed);
+    expect(u.carry.calcite).toMatchObject({ carried: 0, short: 1, absent: 1, unclassed: 1 });
+    expect(u.carry.quartz).toMatchObject({ unsized: 2, unclassed: 0 });
+    // Small pockets leave the count, carrying included: a crystal at its scale in a pocket too small for its
+    // median is a small pocket's story, reported apart.
+    const small = scoreStory([run(16, { fluorite: sp(true, 15) })], { fluorite: { role: 'primary', engine: true, size: crystalT } });
+    expect(small).toMatchObject({ small: 1, small_yes: 1, scored: 0 });
+    expect(small.carry.fluorite).toMatchObject({ carried: 0, accessory: 0 });
   });
   it('small pockets leave the count; their stories are reported apart', () => {
     const species = { fluorite: { role: 'primary', engine: true, size: crystalT }, calcite: { role: 'alternate', engine: true, size: { ...crystalT, median: 5, q10: 2, q25: 3, q75: 8, q90: 10 } } };
@@ -707,171 +728,179 @@ describe('the story of a scenario', () => {
 });
 
 describe('WP1\'s whole target', () => {
-  const p = (k: string, occurrence: any, size: any = { verdict: 'MEETS' }, engine = true) => ({ k, engine, occurrence, size });
-  it('the story, every protagonist in its band (a miss within noise counts as within), none oversize', () => {
-    expect(wp1Target('STORY', [p('a', { verdict: 'IN' }), p('b', { verdict: 'HIGH', noise: true })])).toEqual({ met: true, fails: [], open: [] });
-    expect(wp1Target('STORY', [p('a', { verdict: 'IN' }), p('q', { verdict: 'LOW', noise: false })])).toEqual({ met: false, fails: ['q below its band'], open: [] });
-    expect(wp1Target('STORY (PROXY)', [p('a', { verdict: 'IN' }, { verdict: 'OVERSIZE' })]).fails).toEqual(['a oversize']);
-    expect(wp1Target('UNRESOLVED', [p('a', { verdict: 'IN' }), p('x', { verdict: 'LOW' }, {}, false)]).fails).toEqual(['story UNRESOLVED']);
-    expect(wp1Target('THIN STORY', [p('a', { verdict: 'IN' })]).fails).toEqual(['story THIN STORY']);
-    expect(wp1Target('STORY', [p('a', { verdict: 'HIGH', noise: false })]).fails).toEqual(['a above its band']);
+  // A protagonist as wp1Target sees it: its band's verdict, its carrying over the scored runs, its share.
+  const p = (k: string, occurrence: any, carry: any = { carried: 10 }, share: number | null = 0.3, why: string | null = null, engine = true) => ({ k, engine, occurrence: { k: 5, ...occurrence }, carry, share, why });
+  const w = (story: any, prots: any[], scored = 21) => wp1Target(typeof story === 'string' ? { verdict: story } : story, prots, { scored });
+  it('the story: STORY or STORY (PROXY) passes; a shortfall beyond noise fails; one within noise, UNRESOLVED or small pockets only leave it open', () => {
+    expect(w('STORY', [p('a', { verdict: 'IN' })])).toEqual({ met: true, fails: [], open: [] });
+    expect(w('STORY (PROXY)', [p('a', { verdict: 'IN' })]).met).toBe(true);
+    expect(w({ verdict: 'THIN STORY', noise: false }, [])).toEqual({ met: false, fails: ['story THIN STORY'], open: [] });
+    expect(w({ verdict: 'NO STORY', noise: true }, [])).toEqual({ met: false, fails: [], open: ['story NO STORY, within noise'] });
+    expect(w('UNRESOLVED', []).open).toEqual(['story UNRESOLVED']);
+    expect(w('SMALL POCKETS ONLY', []).open).toEqual(['story SMALL POCKETS ONLY']);
+    expect(w('NO ENGINE', []).fails).toEqual(['story NO ENGINE']);
   });
-  it('every protagonist that occurs is judged at the record\'s size, whether or not it carries story runs: too small fails as too large does (contract rule 4)', () => {
-    expect(wp1Target('STORY', [p('f', { verdict: 'IN' }, { verdict: 'MEETS' })])).toEqual({ met: true, fails: [], open: [] });
-    expect(wp1Target('STORY', [p('f', { verdict: 'IN' }, { verdict: 'BELOW', noise: false })]).fails).toEqual(["f below the record's middle half"]);
-    expect(wp1Target('STORY', [p('f', { verdict: 'IN' }, { verdict: 'LARGE', noise: false })]).fails).toEqual(["f above the record's middle half"]);
-    expect(wp1Target('STORY', [p('f', { verdict: 'IN' }, { verdict: 'OVERSIZE', noise: false })]).fails).toEqual(['f oversize']);
-    // A second protagonist below the record fails the target too, though it never carried a story run.
-    expect(wp1Target('STORY', [p('f', { verdict: 'IN' }, { verdict: 'MEETS' }), p('g', { verdict: 'IN' }, { verdict: 'BELOW', noise: false })]).fails).toEqual(["g below the record's middle half"]);
-    // A proxy reached passes; short of one is open, not failed, and so is a size this cavity cannot judge.
-    expect(wp1Target('STORY (PROXY)', [p('m', { verdict: 'IN' }, { verdict: 'REACHES PROXY' })]).met).toBe(true);
-    expect(wp1Target('STORY (PROXY)', [p('m', { verdict: 'IN' }, { verdict: 'BELOW PROXY' })])).toEqual({ met: false, fails: [], open: ['m short of its proxy'] });
-    for (const [v, text] of [['ELIGIBILITY UNKNOWN', 'eligibility unknown'], ['NO ELIGIBLE POCKET', 'no eligible pocket'], ['LONGER THAN THE CAVITY', 'longer than the cavity']]) {
-      expect(wp1Target('STORY', [p('m', { verdict: 'IN' }, { verdict: v })])).toEqual({ met: false, fails: [], open: [`m ${text}`] });
+  it('every protagonist in its band: a miss within noise counts as within; one with no engine is not judged', () => {
+    expect(w('STORY', [p('a', { verdict: 'IN' }), p('b', { verdict: 'HIGH', noise: true })]).met).toBe(true);
+    expect(w('STORY', [p('q', { verdict: 'LOW', noise: false })]).fails).toEqual(['q below its band']);
+    expect(w('STORY', [p('a', { verdict: 'HIGH', noise: false })]).fails).toEqual(['a above its band']);
+    expect(w('STORY', [p('x', { verdict: 'LOW', noise: false }, { carried: 0 }, 0.3, null, false)])).toEqual({ met: true, fails: [], open: [] });
+  });
+  it('every protagonist carries the story at its own scale in its carrier share of the scored runs: below it beyond noise fails, within noise or with runs that could still carry stays open', () => {
+    // 7 of 21 carried against 0.3: met; 0 of 21: failed (the interval for 0 of 21 tops at 0.155).
+    expect(w('STORY', [p('g', { verdict: 'IN' }, { carried: 7 })]).met).toBe(true);
+    expect(w('STORY', [p('g', { verdict: 'IN' }, { carried: 0 })]).fails).toEqual(['g carries the story in 0 of 21 scored runs, below its share 0.3']);
+    // 3 of 21 against 0.3: short, but within noise.
+    expect(w('STORY', [p('g', { verdict: 'IN' }, { carried: 3 })])).toEqual({ met: false, fails: [], open: ['g carries the story in 3 of 21 scored runs, short of its share 0.3 within noise'] });
+    // Runs that could still be found to carry (short of a proxy, longer than the cavity, an unclassed pocket).
+    expect(w('STORY', [p('m', { verdict: 'IN' }, { carried: 0, short: 21 })]).open).toEqual(['m carries the story in 0 of 21 scored runs, and could in 21 short of its proxy']);
+    expect(w('STORY', [p('m', { verdict: 'IN' }, { carried: 2, beyond: 3, unclassed: 4 })]).open).toEqual(['m carries the story in 2 of 21 scored runs, and could in 3 longer than the cavity, 4 in an unclassed pocket']);
+    // The interval counts the runs that could carry too: 0 carried and 3 could against 0.3 stays within noise.
+    expect(w('STORY', [p('m', { verdict: 'IN' }, { carried: 0, short: 3 })]).open).toEqual(['m carries the story in 0 of 21 scored runs, short of its share 0.3 within noise']);
+  });
+  it('what cannot be judged leaves it open: no size target, a range beyond the cavity, no band and no run carried, a protagonist that never occurs where its band cannot fail that', () => {
+    expect(w('STORY', [p('u', { verdict: 'IN' }, { carried: 0 }, null, 'no size target')]).open).toEqual(['u has no size target to show it carrying the story']);
+    expect(w('STORY', [p('s', { verdict: 'IN' }, { carried: 0 }, null, 'display range beyond the cavity')]).open).toEqual(['s cannot carry the story in this cavity: its display range starts beyond the span']);
+    expect(w('STORY', [p('t', { verdict: 'UNRESOLVED' }, { carried: 0 }, null, 'no band')]).open).toEqual(['t never carries the story, and has no band to set its share']);
+    // With no band, one carried run shows it functioning.
+    expect(w('STORY', [p('t', { verdict: 'UNRESOLVED' }, { carried: 1 }, null, 'no band')]).met).toBe(true);
+    expect(w('STORY', [p('n', { verdict: 'LOW', noise: false, k: 0 }, { carried: 0 })])).toEqual({ met: false, fails: ['n below its band'], open: [] });
+    expect(w('STORY', [p('n', { verdict: 'LOW', noise: true, k: 0 }, { carried: 0 })]).open).toEqual(['n never occurs, and its band cannot tell that from its floor']);
+    expect(w('STORY', [p('n', { verdict: 'UNRESOLVED', k: 0 }, { carried: 0 }, null, 'no band')]).open).toEqual(['n never occurs, and it has no band to judge that by']);
+  });
+  it('the carrier share is the band floor × the display coverage of a record its size, unless no size target, a range beyond the cavity or no band', () => {
+    expect(carrierShare(BANDS.AB, { basis: 'crystal', n: 5, q25: 18 }, [0.25, 0.9], 91.93)).toEqual({ share: 0.2167, why: null });
+    expect(carrierShare(BANDS.CO, { basis: 'specimen-proxy', n: 16, q25: 64 }, [0.25, 0.9], 91.93)).toEqual({ share: +(0.3 * displayCoverage(16, [0.25, 0.9])).toFixed(4), why: null });
+    expect(carrierShare(BANDS.AB, unknownT, [0.25, 0.9])).toEqual({ share: null, why: 'no size target' });
+    expect(carrierShare(BANDS.AB, { basis: 'crystal', n: 5, q25: 80 }, [0.25, 0.9], 66)).toEqual({ share: null, why: 'display range beyond the cavity' });
+    expect(carrierShare(null, { basis: 'crystal', n: 5, q25: 18 }, [0.25, 0.9], 91.93)).toEqual({ share: null, why: 'no band' });
+    // A range that starts exactly at the span can be carried (a crystal as long as the span fits); with no
+    // size target, that is the reason, whatever the band.
+    expect(carrierShare(BANDS.AB, { basis: 'crystal', n: 5, q25: 18 }, [0.25, 0.9], 18).share).toBe(0.2167);
+    expect(carrierShare(null, unknownT, [0.25, 0.9])).toEqual({ share: null, why: 'no size target' });
+  });
+  it('a share met exactly is met; with no scored runs only the story speaks', () => {
+    expect(w('STORY', [p('g', { verdict: 'IN' }, { carried: 6 }, 6 / 21)]).met).toBe(true);
+    expect(w('SMALL POCKETS ONLY', [p('g', { verdict: 'IN' }, { carried: 0 })], 0)).toEqual({ met: false, fails: [], open: ['story SMALL POCKETS ONLY'] });
+  });
+  // The North Pennines targets (fluorite primary, galena an alternate, calcite an alternate known by proxy).
+  const fl = { basis: 'crystal', n: 17, q10: 13, q25: 15, median: 17, q75: 40, q90: 62.4, confidence: 'low' };
+  const ga = { basis: 'crystal', n: 5, q10: 15, q25: 18, median: 20, q75: 20, q90: 27.2, confidence: 'low' };
+  const ca = { basis: 'specimen-proxy', n: 16, q10: 45, q25: 63.75, median: 88, q75: 162.5, q90: 185, confidence: 'low' };
+  const np = (order = ['fluorite', 'galena', 'calcite']): any => Object.fromEntries(order.map((k) => [k, { role: k === 'fluorite' ? 'primary' : 'alternate', engine: true, occurrence_band: k === 'calcite' ? BANDS.CO : BANDS.AB, size: { fluorite: fl, galena: ga, calcite: ca }[k] }]));
+  const npRuns = (galena: (i: number) => any, calcite: (i: number) => any = () => ({ occurs: true, size: 70 })) => Array.from({ length: 21 }, (_, i) => ({ span: 91.93, species: { fluorite: { occurs: true, size: 17 }, galena: galena(i), calcite: calcite(i) } }));
+  const npWp1 = (runs: any, species = np()) => scenarioWp1(runs, species, scenarioVerdict(runs, species, 0.2889));
+  it('the boss\'s answers of 2026-11-03: an accessory is not held to showcase size, and a specimen proxy is not a size the protagonist must reach', () => {
+    // Galena carries the story at its scale in 7 of 21 runs and is a dust accessory in the rest: met (round 8,
+    // judging its median over every occurrence, failed it).
+    expect(npWp1(npRuns((i) => ({ occurs: true, size: i < 7 ? 19 : 0.5 })))).toEqual({ met: true, fails: [], open: [] });
+    // Calcite, known only by a specimen proxy, at 39 mm in every run — beyond every photographed calcite
+    // crystal there, short of its proxy's 64 mm: open pending crystal lengths, not failed.
+    const at39 = npWp1(npRuns(() => ({ occurs: true, size: 19 }), () => ({ occurs: true, size: 39 })));
+    expect(at39).toEqual({ met: false, fails: [], open: ['calcite carries the story in 0 of 21 scored runs, and could in 21 short of its proxy'] });
+    // Reaching its proxy's range in its share of the runs is strong evidence: met.
+    expect(npWp1(npRuns(() => ({ occurs: true, size: 19 }), (i) => ({ occurs: true, size: i < 7 ? 70 : 39 }))).met).toBe(true);
+  });
+  it('keeping a protagonist small, rare or absent never makes the target met, in either species order (rounds 7 and 8, on the North Pennines, Grimsel and Tormiq targets)', () => {
+    for (const order of [['fluorite', 'galena', 'calcite'], ['galena', 'calcite', 'fluorite']]) {
+      const species = np(order), at = order.join(', ');
+      // Galena as simulated (8.6 mm, never at its scale) fails; one run at 19 mm stays short beyond noise.
+      expect(npWp1(npRuns(() => ({ occurs: true, size: 8.6 })), species).fails, at).toEqual(['galena carries the story in 0 of 21 scored runs, below its share 0.2167']);
+      expect(npWp1(npRuns((i) => ({ occurs: true, size: i === 0 ? 19 : 8.6 })), species).met, at).toBe(false);
+      // Oversize in every run, it carries none either.
+      expect(npWp1(npRuns(() => ({ occurs: true, size: 40 })), species).fails, at).toEqual(['galena carries the story in 0 of 21 scored runs, below its share 0.2167']);
+      // Absent, it fails its abundant band.
+      expect(npWp1(npRuns(() => ({ occurs: false, size: 0 })), species).fails, at).toEqual(['galena below its band']);
     }
-    // A protagonist with a band but no size target answers to its band alone; one with no engine is not judged.
-    expect(wp1Target('STORY', [p('u', { verdict: 'IN', k: 5 }, { verdict: 'UNKNOWN' }), p('x', { verdict: 'LOW' }, { verdict: 'BELOW' }, false)])).toEqual({ met: true, fails: [], open: [] });
-  });
-  it('the whole target is met only on what it could judge: a size miss within noise, too few runs and a protagonist nothing judges leave it open (round 8)', () => {
-    const open1 = (prot: any) => wp1Target('STORY', [prot]);
-    // A size miss the runs cannot tell from the window: open, not within.
-    expect(open1(p('f', { verdict: 'IN' }, { verdict: 'BELOW', noise: true }))).toEqual({ met: false, fails: [], open: ["f below the record's middle half, within noise"] });
-    expect(open1(p('f', { verdict: 'IN' }, { verdict: 'LARGE', noise: true })).open).toEqual(["f above the record's middle half, within noise"]);
-    expect(open1(p('f', { verdict: 'IN' }, { verdict: 'OVERSIZE', noise: true })).open).toEqual(['f oversize, within noise']);
-    // Runs too few to fail a size cannot confirm it either, whatever their median.
-    expect(open1(p('f', { verdict: 'IN' }, { verdict: 'MEETS', few: true, eligible: 3 }))).toEqual({ met: false, fails: [], open: ['f too few eligible runs (3) to judge its size'] });
-    expect(open1(p('f', { verdict: 'IN' }, { verdict: 'BELOW', noise: true, few: true, eligible: 2 })).open).toEqual(['f too few eligible runs (2) to judge its size']);
-    // Never occurring: failed where the band can tell, open where it cannot (no band, or a floor 0 runs is
-    // within noise of), whether or not a size target exists.
-    expect(open1(p('n', { verdict: 'LOW', noise: false, k: 0 }, { verdict: 'NEVER OCCURS' }))).toEqual({ met: false, fails: ['n below its band'], open: [] });
-    expect(open1(p('n', { verdict: 'LOW', noise: true, k: 0 }, { verdict: 'NEVER OCCURS' }))).toEqual({ met: false, fails: [], open: ['n never occurs, and its band cannot tell that from its floor'] });
-    expect(open1(p('n', { verdict: 'UNRESOLVED', k: 0 }, { verdict: 'NEVER OCCURS' })).open).toEqual(['n never occurs, and it has no band to judge that by']);
-    expect(open1(p('n', { verdict: 'LOW', noise: true, k: 0 }, { verdict: 'UNKNOWN' })).open).toEqual(['n never occurs, and its band cannot tell that from its floor']);
-    // Occurring with neither a band nor a size target: nothing judges it.
-    expect(open1(p('q', { verdict: 'UNRESOLVED', k: 20 }, { verdict: 'UNKNOWN' })).open).toEqual(['q has neither a band nor a size target to judge it by']);
-  });
-  it('keeping a protagonist below display scale never makes the target met: one never at scale is judged as one at scale is, in either order (round 7, on the North Pennines targets)', () => {
-    const fl = { basis: 'crystal', n: 17, q10: 13, q25: 15, median: 17, q75: 40, q90: 62.4, confidence: 'low' };
-    const ga = { basis: 'crystal', n: 5, q10: 15, q25: 18, median: 20, q75: 20, q90: 27.2, confidence: 'low' };
-    const fleet = (galena: (i: number) => number) => Array.from({ length: 21 }, (_, i) => ({ span: 91.93, species: { fluorite: { occurs: true, size: 17 }, galena: { occurs: true, size: galena(i) } } }));
-    for (const order of [['fluorite', 'galena'], ['galena', 'fluorite']]) {
-      const species: any = Object.fromEntries(order.map((k) => [k, { role: k === order[0] ? 'primary' : 'alternate', engine: true, occurrence_band: BANDS.AB, size: k === 'fluorite' ? fl : ga }]));
-      const wp1 = (runs: any) => scenarioWp1(runs, species, scenarioVerdict(runs, species, 0.2889).verdict);
-      const at = order.join(' first, then ');
-      // Galena as simulated (8.6 mm, never at display scale) fails; one run at 19 mm changes nothing.
-      expect(wp1(fleet(() => 8.6)).fails, at).toEqual(["galena below the record's middle half"]);
-      expect(wp1(fleet((i) => (i === 0 ? 19 : 8.6))).fails, at).toEqual(["galena below the record's middle half"]);
-      // At the record's median the whole target is met; well past its 90th percentile it fails again.
-      expect(wp1(fleet(() => 20)), at).toEqual({ met: true, fails: [], open: [] });
-      expect(wp1(fleet(() => 40)).fails, at).toEqual(['galena oversize']);
-      // Runs on both sides of the window but never in it (13 at 10 mm, 8 at 30 mm): open, not met.
-      expect(wp1(fleet((i) => (i < 13 ? 10 : 30))), at).toEqual({ met: false, fails: [], open: ["galena below the record's middle half, within noise"] });
-    }
-  });
-  it('keeping a protagonist rare or absent never makes the target met either (round 8, on the Grimsel and Tormiq targets)', () => {
-    // Grimsel: quartz carries the story at its median; fluorite (common band, crystal target) in k of 21 runs.
+    // Grimsel: quartz carries the story; fluorite (common band, crystal target) in k of 21 runs.
     const qz = { basis: 'crystal', n: 25, q10: 23, q25: 25, median: 29, q75: 40, q90: 51.4, confidence: 'low' };
-    const fl = { basis: 'crystal', n: 9, q10: 9.8, q25: 11, median: 12, q75: 20, q90: 24, confidence: 'low' };
-    const grimsel: any = { quartz: { role: 'primary', engine: true, occurrence_band: BANDS.AB, size: qz }, fluorite: { role: 'alternate', engine: true, occurrence_band: BANDS.CO, size: fl } };
-    const outcome = (fluorite: number, k: number) => {
-      const runs = Array.from({ length: 21 }, (_, i) => ({ span: 195.24, species: { quartz: { occurs: true, size: 29 }, fluorite: { occurs: i < k, size: i < k ? fluorite : 0 } } }));
-      const w = scenarioWp1(runs, grimsel, scenarioVerdict(runs, grimsel, 0.3).verdict);
-      return w.met ? 'met' : w.fails.length ? 'fail' : 'open';
+    const gf = { basis: 'crystal', n: 9, q10: 9.8, q25: 11, median: 12, q75: 20, q90: 24, confidence: 'low' };
+    const grimsel: any = { quartz: { role: 'primary', engine: true, occurrence_band: BANDS.AB, size: qz }, fluorite: { role: 'alternate', engine: true, occurrence_band: BANDS.CO, size: gf } };
+    const outcome = (size: number, k: number) => {
+      const runs = Array.from({ length: 21 }, (_, i) => ({ span: 195.24, species: { quartz: { occurs: true, size: 29 }, fluorite: { occurs: i < k, size: i < k ? size : 0 } } }));
+      const r = scenarioWp1(runs, grimsel, scenarioVerdict(runs, grimsel, 0.3));
+      return r.met ? 'met' : r.fails.length ? 'fail' : 'open';
     };
+    // Its share is 0.3 × 0.52 = 0.156: four runs at its scale make it; three are short within noise.
     for (const k of [0, 1, 2, 3, 4, 5, 7, 21]) {
-      // As dust or at five times its 90th percentile, fluorite never lets the target be met, however rare.
       expect(outcome(0.5, k), `dust in ${k}`).not.toBe('met');
       expect(outcome(120, k), `120 mm in ${k}`).not.toBe('met');
-      // At its median it does, once there are runs enough to judge it (four or more) and its band allows the count.
-      expect(outcome(12, k), `median in ${k}`).toBe(k >= 4 ? 'met' : k === 3 ? 'open' : 'fail');
+      expect(outcome(12, k), `at its median in ${k}`).toBe(k >= 4 ? 'met' : k === 3 ? 'open' : 'fail');
     }
-    // Tormiq: titanite (no band, a proxy) at 5 mm, never formed, or reaching its proxy; epidote at its proxy.
+    // Tormiq: titanite (no band, a proxy) at 5 mm or never formed: open, never met; at its proxy: met.
     const ti = { basis: 'specimen-proxy', n: 10, q10: 21, q25: 34, median: 47, q75: 53.75, q90: 61.5, confidence: 'low' };
     const ep = { basis: 'specimen-proxy', n: 5, q10: 36.4, q25: 40, median: 45, q75: 67, q90: 71.2, confidence: 'low' };
     const tormiq: any = { titanite: { role: 'primary', engine: true, occurrence_band: null, size: ti }, epidote: { role: 'alternate', engine: true, occurrence_band: BANDS.AB, size: ep } };
-    const tor = (titanite: any) => scenarioWp1(Array.from({ length: 21 }, () => ({ span: 194.96, species: { titanite, epidote: { occurs: true, size: 45 } } })), tormiq, 'STORY');
-    expect(tor({ occurs: true, size: 5 })).toEqual({ met: false, fails: [], open: ['titanite short of its proxy'] });
+    const tor = (titanite: any) => scenarioWp1(Array.from({ length: 21 }, () => ({ span: 194.96, species: { titanite, epidote: { occurs: true, size: 45 } } })), tormiq, { verdict: 'STORY' });
+    expect(tor({ occurs: true, size: 5 })).toEqual({ met: false, fails: [], open: ['titanite never carries the story, and has no band to set its share'] });
     expect(tor({ occurs: false, size: 0 })).toEqual({ met: false, fails: [], open: ['titanite never occurs, and it has no band to judge that by'] });
     expect(tor({ occurs: true, size: 47 })).toEqual({ met: true, fails: [], open: [] });
   });
-  it('scenarioWp1 judges the primary and the alternates only, at the noise interval it is given, over the runs\' own cavities and count', () => {
-    const fl = { basis: 'crystal', n: 17, q10: 13, q25: 15, median: 17, q75: 40, q90: 62.4, confidence: 'low' };
-    const ga = { basis: 'crystal', n: 5, q10: 15, q25: 18, median: 20, q75: 20, q90: 27.2, confidence: 'low' };
-    const species: any = { fluorite: { role: 'primary', engine: true, occurrence_band: BANDS.AB, size: fl }, galena: { role: 'alternate', engine: true, occurrence_band: BANDS.AB, size: ga } };
-    // Galena at scale in 8 of 21 runs, at 10 mm in the rest: below the window, within noise at z 1.96.
-    const runs = Array.from({ length: 21 }, (_, i) => ({ span: 91.93, species: { fluorite: { occurs: true, size: 17 }, galena: { occurs: true, size: i < 8 ? 19 : 10 }, euclase: { occurs: true, size: 1 }, barite: { occurs: true, size: 1 } } }));
-    expect(scenarioWp1(runs, species, 'STORY')).toEqual({ met: false, fails: [], open: ["galena below the record's middle half, within noise"] });
-    // At z 1 neither the every-seed occurrence nor galena's size is within noise any longer.
-    expect(scenarioWp1(runs, species, 'STORY', { z: 1 }).fails).toEqual(['fluorite above its band', 'galena above its band', "galena below the record's middle half"]);
-    // A showpiece, a companion or an unsupported wish is no protagonist: its size is not WP1's.
+  it('scenarioWp1 judges the primary and the alternates only, at the noise interval it is given, over the runs\' own cavities and count, against the sidecar\'s carrier share', () => {
+    const species = np(['fluorite', 'galena']);
+    // Galena at its scale in 2 of 21 runs: short of its share 0.2167, within noise at z 1.96.
+    const runs = Array.from({ length: 21 }, (_, i) => ({ span: 91.93, species: { fluorite: { occurs: true, size: 17 }, galena: { occurs: true, size: i < 2 ? 19 : 10 }, euclase: { occurs: true, size: 1 }, barite: { occurs: true, size: 1 } } }));
+    expect(scenarioWp1(runs, species, { verdict: 'STORY' })).toEqual({ met: false, fails: [], open: ['galena carries the story in 2 of 21 scored runs, short of its share 0.2167 within noise'] });
+    // At z 1 neither the every-seed occurrence nor galena's shortfall is within noise.
+    expect(scenarioWp1(runs, species, { verdict: 'STORY' }, { z: 1 }).fails).toEqual(['fluorite above its band', 'galena above its band', 'galena carries the story in 2 of 21 scored runs, below its share 0.2167']);
+    // A showpiece, a companion or an unsupported wish is no protagonist: it carries no obligation.
     const atScale = runs.map((r) => ({ ...r, species: { ...r.species, galena: { occurs: true, size: 19 }, hessite: { occurs: true, size: 1 } } }));
     const cast: any = { ...species, euclase: { role: 'showpiece', engine: true, occurrence_band: BANDS.RA, size: ga }, barite: { role: 'companion', engine: true, occurrence_band: BANDS.CO, size: ga }, hessite: { role: 'unsupported', engine: true, occurrence_band: null, size: ga } };
-    expect(scenarioWp1(atScale, cast, 'STORY')).toEqual({ met: true, fails: [], open: [] });
-    // Each run's own cavity: one too small to hold galena's median, or a crystal longer than the cavity.
-    expect(scenarioWp1(atScale.map((r) => ({ ...r, span: 19 })), species, 'STORY').open).toEqual(['galena no eligible pocket']);
-    expect(scenarioWp1(atScale.map((r) => ({ ...r, span: 20, species: { ...r.species, galena: { occurs: true, size: 25 } } })), species, 'STORY').open).toEqual(['galena longer than the cavity']);
+    expect(scenarioWp1(atScale, cast, { verdict: 'STORY' })).toEqual({ met: true, fails: [], open: [] });
+    // Each run's own cavity: a crystal longer than it could still carry (open); a range beyond it cannot.
+    expect(scenarioWp1(atScale.map((r) => ({ ...r, span: 18.5 })), { galena: species.galena }, { verdict: 'STORY' }).open).toEqual(['galena carries the story in 0 of 21 scored runs, and could in 21 longer than the cavity']);
+    expect(scenarioWp1(atScale.map((r) => ({ ...r, span: 17 })), { galena: species.galena }, { verdict: 'STORY' }).open).toEqual(['galena cannot carry the story in this cavity: its display range starts beyond the span']);
     // The band's denominator is every run: 10 of 60 is below the abundant floor beyond noise.
     const sixty = Array.from({ length: 60 }, (_, i) => ({ span: 91.93, species: { fluorite: { occurs: true, size: 17 }, galena: { occurs: i < 10, size: i < 10 ? 19 : 0 } } }));
-    expect(scenarioWp1(sixty, species, 'STORY').fails).toEqual(['galena below its band']);
+    expect(scenarioWp1(sixty, species, { verdict: 'STORY' }).fails).toEqual(['galena below its band']);
+    // A sidecar share that is not the rule's is refused.
+    expect(() => scenarioWp1(runs, { ...species, galena: { ...species.galena, carrier_share: 0.1 } }, { verdict: 'STORY' })).toThrow(/carrier_share/);
+    expect(scenarioWp1(atScale, { ...species, galena: { ...species.galena, carrier_share: 0.2167 } }, { verdict: 'STORY' }).met).toBe(true);
   });
-  it('WP1 grows from failed to met as a protagonist grows toward its record, and back past it (rounds 7 and 8: the reviewer\'s sweep)', () => {
-    const fl = { basis: 'crystal', n: 17, q10: 13, q25: 15, median: 17, q75: 40, q90: 62.4, confidence: 'low' };
-    const ga = { basis: 'crystal', n: 5, q10: 15, q25: 18, median: 20, q75: 20, q90: 27.2, confidence: 'low' };
-    const species: any = { fluorite: { role: 'primary', engine: true, occurrence_band: BANDS.AB, size: fl }, galena: { role: 'alternate', engine: true, occurrence_band: BANDS.AB, size: ga } };
+  it('WP1 goes from failed to met as a protagonist grows toward its record, and back past it (rounds 7 and 8: the reviewer\'s sweep)', () => {
+    const species = np(['fluorite', 'galena']);
     const r = rng(29), draw = lognormal(r);
     const shares = (median: number) => {
       const c = { met: 0, open: 0, fail: 0 };
       for (let t = 0; t < 300; t++) {
         const runs = Array.from({ length: 21 }, () => ({ span: 91.93, species: { fluorite: { occurs: true, size: 17 }, galena: { occurs: true, size: (draw() * median) / 20 } } }));
-        const w = scenarioWp1(runs, species, scenarioVerdict(runs, species, 0.2889).verdict);
-        c[w.met ? 'met' : w.fails.length ? 'fail' : 'open']++;
+        const x = scenarioWp1(runs, species, scenarioVerdict(runs, species, 0.2889));
+        c[x.met ? 'met' : x.fails.length ? 'fail' : 'open']++;
       }
       return { met: c.met / 300, fail: c.fail / 300 };
     };
     const [s2, s6, s20, s60] = [2, 6, 20, 60].map(shares);
-    // Galena's window is 18–20 mm (a five-crystal record): at its median about a quarter of fleets meet it
-    // and the rest are mostly open, rarely failed; far below or past it, failed.
-    expect(s2).toEqual({ met: 0, fail: 1 });
-    expect(s6).toEqual({ met: 0, fail: 1 });
-    expect(s20.met).toBeGreaterThan(0.12);
-    expect(s20.fail).toBeLessThan(0.15);
-    expect(s60.met).toBe(0);
-    expect(s60.fail).toBeGreaterThan(0.95);
+    expect(s2.met).toBe(0);
+    expect(s2.fail).toBeGreaterThan(0.95);
+    expect(s6.met).toBeLessThan(0.02);
+    expect(s20.met).toBeGreaterThan(0.4);
+    expect(s20.fail).toBeLessThan(0.1);
+    expect(s60.met).toBeLessThan(0.05);
   });
-  it('a correct fleet is rarely failed: met about two times in three against seventeen-crystal records, a third of the time against five, open most of the rest (round 8: the jointly-satisfiable check)', () => {
+  it('a correct fleet is rarely failed and mostly met: both protagonists mid-band with crystals from their records (the jointly-satisfiable check)', () => {
     const r = rng(31), draw = lognormal(r);
-    const fleet = (n: number) => {
+    const fleet = (n: number, pa: number, pb: number) => {
       const c = { met: 0, open: 0, fail: 0 };
       for (let t = 0; t < 500; t++) {
-        // Two protagonists in the middle of their bands (abundant 72 %, common 60 %), crystals from one population.
         const species: any = { a: { role: 'primary', engine: true, occurrence_band: BANDS.AB, size: crystalTarget(Array.from({ length: n }, draw)) }, b: { role: 'alternate', engine: true, occurrence_band: BANDS.CO, size: crystalTarget(Array.from({ length: n }, draw)) } };
         const f = storyFrequency([{ k: 'a', engine: true, band: BANDS.AB, target: species.a.size }, { k: 'b', engine: true, band: BANDS.CO, target: species.b.size }], [0.25, 0.9])!.frequency;
-        const runs = Array.from({ length: 21 }, () => ({ span: 1e6, species: { a: r() < 0.72 ? { occurs: true, size: draw() } : { occurs: false, size: 0 }, b: r() < 0.6 ? { occurs: true, size: draw() } : { occurs: false, size: 0 } } }));
-        const w = scenarioWp1(runs, species, scenarioVerdict(runs, species, f).verdict);
-        c[w.met ? 'met' : w.fails.length ? 'fail' : 'open']++;
+        const runs = Array.from({ length: 21 }, () => ({ span: 1e6, species: { a: r() < pa ? { occurs: true, size: draw() } : { occurs: false, size: 0 }, b: r() < pb ? { occurs: true, size: draw() } : { occurs: false, size: 0 } } }));
+        const x = scenarioWp1(runs, species, scenarioVerdict(runs, species, f));
+        c[x.met ? 'met' : x.fails.length ? 'fail' : 'open']++;
       }
       return { met: c.met / 500, open: c.open / 500, fail: c.fail / 500 };
     };
-    const [n17, n5] = [fleet(17), fleet(5)];
-    // About 65 % met, 33 % open, 2 % failed at seventeen; 30 %, 55 %, 14 % at five (a 1,000-trial run).
-    expect(n17.met).toBeGreaterThan(0.55);
-    expect(n17.met).toBeLessThan(0.75);
-    expect(n17.fail).toBeLessThan(0.07);
-    expect(n5.met).toBeGreaterThan(0.2);
-    expect(n5.met).toBeLessThan(0.42);
-    expect(n5.fail).toBeLessThan(0.22);
-    expect(n5.open).toBeGreaterThan(n5.met);
-  });
-  it('on the North Pennines fluorite target, 5 of 21 runs at 18 mm tell the story, but the whole target fails if the rest run at 10 mm, as it fails at 70 mm', () => {
-    const t = { basis: 'crystal', n: 17, q10: 13, q25: 15, median: 17, q75: 21, q90: 25, confidence: 'low' };
-    const species = { fluorite: { role: 'primary', engine: true, occurrence_band: BANDS.CO, size: t } };
-    const fleet = (big: number) => Array.from({ length: 21 }, (_, i) => ({ span: 300, species: { fluorite: { occurs: true, size: i < 5 ? 18 : big } } }));
-    for (const [big, fail] of [[10, "fluorite below the record's middle half"], [70, 'fluorite oversize']] as const) {
-      const runs = fleet(big);
-      const V = scenarioVerdict(runs, species, 0.2);
-      expect(V.verdict).toBe('STORY');
-      expect(scenarioWp1(runs, species, V.verdict).fails).toContain(fail);
-    }
+    const MID = fleet(17, 0.72, 0.6), MID5 = fleet(5, 0.72, 0.6), FLOOR = fleet(17, 0.5, 0.3);
+    // In a 4,000-trial run: met 74 %, open 26 %, failed 0.3 % against records of seventeen; 62, 37, 1.1 %
+    // against five.
+    expect(MID.met).toBeGreaterThan(0.65);
+    expect(MID.fail).toBeLessThan(0.03);
+    expect(MID5.met).toBeGreaterThan(0.5);
+    expect(MID5.fail).toBeLessThan(0.05);
+    // At the bands' floors each protagonist carries about its share, and the story about its frequency:
+    // met 22 %, open 69 %, failed 9 %.
+    expect(FLOOR.met).toBeGreaterThan(0.12);
+    expect(FLOOR.fail).toBeLessThan(0.2);
   });
 });
 
@@ -992,7 +1021,7 @@ describe('the sidecar\'s validation', () => {
     rules: { wanted_share: 0.05, occurrence_bands: { AB: [0.5, 0.95] }, size_min_samples: 5, size_medium_confidence: 10, size_high_confidence: 30, visible_mm: 1, specimen_min_mm: 10,
       uploaded_together_s: 1e6, series_field_labels: ['größe'], series_gap_s: 3.15e7, display_range: [0.25, 0.9], clutter_limit: 0.1, star_wanted_share: 0.5, noise_z: 1.96 },
     scenarios: { s: { locality: 'l', story_frequency: 0.5, story_frequency_basis: 'rule',
-      species: { q: { role: 'primary', occurrence_band: [0.5, 0.95], band_basis: 'AB', size: { ...crystalT, provenance: 'captions' } } } } },
+      species: { q: { role: 'primary', occurrence_band: [0.5, 0.95], band_basis: 'AB', size: { ...crystalT, provenance: 'captions' }, carrier_share: 0.2889 } } } },
   });
   const problems = (mutate: (x: any) => void) => { const x: any = good(); mutate(x); return validateSidecar(x).join('\n'); };
   it('a good sidecar has no problems', () => expect(validateSidecar(good())).toEqual([]));
@@ -1021,6 +1050,8 @@ describe('the sidecar\'s validation', () => {
     expect(problems((x) => { x.scenarios.s.species.q.size.n = 1.5; })).toMatch(/size\.n/);
     expect(problems((x) => { delete x.scenarios.s.species.q.size.provenance; })).toMatch(/provenance/);
     expect(problems((x) => { delete x.scenarios.s.story_frequency_basis; })).toMatch(/story_frequency needs its basis/);
+    expect(problems((x) => { delete x.scenarios.s.species.q.carrier_share; })).toMatch(/carrier_share/);
+    expect(problems((x) => { x.scenarios.s.species.q.carrier_share = 1.2; })).toMatch(/carrier_share must be within/);
     expect(problems((x) => { x.scenarios.s.story_frequency = 2; })).toMatch(/story_frequency must be within/);
   });
 });
@@ -1058,6 +1089,16 @@ describe('the committed targets, capture and appendix', () => {
       expect(s.story_frequency).toBe(sf ? sf.frequency : null);
       if (sf?.frequency != null) expect(s.story_frequency_basis).toMatch(sf.basis === 'crystal' ? /an expected story rate/ : /a bar for STORY \(PROXY\), not an expected rate/);
       for (const d of sf?.dropped ?? []) expect(s.story_frequency_basis).toContain(d.k);
+    }
+  });
+  it('every protagonist\'s carrier share is the rule\'s: its band floor × the display coverage of a record its size, null where none can be set', () => {
+    for (const s of Object.values(sc.scenarios) as any[]) {
+      if (s.out_of_scope) continue;
+      for (const v of Object.values(s.species) as any[]) {
+        if (v.role !== 'primary' && v.role !== 'alternate') { expect(v.carrier_share).toBeUndefined(); continue; }
+        expect(v.carrier_share).toBe(carrierShare(v.occurrence_band, v.size, sc.rules.display_range, s.cavity_span_mm).share);
+        expect(v.carrier_share_basis).toMatch(v.carrier_share == null ? /^none: / : /^rules\.carrier_obligation: /);
+      }
     }
   });
   it('every band is the literature class\'s, and no band comes from anywhere else', () => {

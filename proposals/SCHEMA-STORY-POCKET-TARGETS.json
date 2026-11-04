@@ -58,6 +58,7 @@
     "size_check": { "type": "string" },
     "eligibility": { "type": "string" },
     "story_frequency_rule": { "type": "string" },
+    "carrier_obligation": { "type": "string" },
     "clutter_limit": { "type": "number", "minimum": 0, "maximum": 1 },
     "clutter_basis": { "type": "string" },
     "star_wanted_share": { "type": "number", "minimum": 0, "maximum": 1 },
@@ -121,6 +122,8 @@
     "occurrence_band": { "oneOf": [ { "$ref": "#/$defs/band" }, { "type": "null" } ] },
     "band_basis": { "type": "string" },
     "size": { "$ref": "#/$defs/size" },
+    "carrier_share": { "type": ["number", "null"], "minimum": 0, "maximum": 1, "description": "For a primary or alternate: the share of the scored runs it should carry the story in at its own display scale (rules.carrier_obligation), or null where it cannot be set." },
+    "carrier_share_basis": { "type": "string" },
     "override": { "type": "string", "description": "The reason, where a hand decision replaced the rule." }
    }
   },
