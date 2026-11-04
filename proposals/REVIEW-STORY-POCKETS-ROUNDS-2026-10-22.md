@@ -1132,3 +1132,114 @@ runs' noise — and states what that costs and puts it to the boss.
 Mutation testing: 34 mutants on this round's code — the cavity rule both ways, the one-count-per-run carrying, the scenario's "short of a specimen proxy" reason, the band's two sides within noise, the oversize test and its z, the share's counted runs, could-runs and interval, the wiring, the scoreboard's lines and the targets' text — 34 killed: 30 by the tests, 3 by the splice check, 1 by the targets check. Two (z in the oversize test; the share's interval over the counted runs) survived the first run and are killed by two tests added for them. Among the killed are a6612fa1's rules this round replaced: unclassed runs as runs a protagonist could carry, and a protagonist with no band met on one carried run.
 
 Result: STORY 1, STORY (PROXY) 1, NO STORY 3, UNRESOLVED 26, NO ENGINE 1, OUT OF SCOPE 1 (unchanged). WP1's whole target is met by none: failed at 16 scored scenarios (by cause: the story 4, a band 15, a carrier share 5, oversize 0), open at 16 — a6612fa1's outcome, now with an oversize fail, the cavity rules both ways and unclassed runs out of the count. Tests 121 (was 122: the never-carries and record-noise tests went with their code; a test of "if it never does" as the share's own came in).
+
+## Round 11 — 8/10 (on 454adb7a)
+
+One reviewer, under the standing rule (no cap on rounds; stop at 9/10 or when nothing must be fixed).
+
+### The report
+
+> Cutting round 9's machinery was the right call. In 454adb7a the mirror rule is right, leaving unclassed runs out of the share is a sound lenient bound, and every round-10 response holds. Two things must change before the boss reads it:
+> - a size miss the runs cannot tell from the target still counts as a pass when it is OVERSIZE;
+> - §4 says the boss's own answers conflict, but the conflict comes from this proposal's extension of one of them.
+>
+> **MUST-FIX**
+>
+> 1. **An OVERSIZE verdict within noise, or with too few runs, counts as met.** This breaks the boss's first decision ("An indistinguishable size miss stays OPEN. Do not count it as a pass").
+>    - **Where:** `story-pocket-lib.mjs:917–927`. An OVERSIZE that does not fail drops through to `carried/scored >= share → continue`.
+>    - **Where it is registered:** only in `story-pocket-targets.mjs:75` ("the other verdicts and their noise marks are reported, not required"). It is absent from §4's list of choices.
+>    - **Prose that contradicts it:** PROPOSAL:400 says "oversize, it fails", and `rules.noise_basis` says "runs that cannot fail a target cannot confirm it either".
+>    - **Evidence** (the tests' North Pennines targets, committed lib):
+>      - galena 9 runs × 20 mm + 12 × 40 mm → MET, size verdict OVERSIZE (noise);
+>      - 5 × 20 mm + 13 × 1,000 mm (37× its q90, 11× the 92 mm span) + 3 absent → MET;
+>      - an uncommon-band galena at 1 × 20 mm + 2 × 60 mm → MET (OVERSIZE, too few runs);
+>      - over all 2,024 ways to split 21 runs into carrier / 40 mm / dust / absent, 908 are MET, and 86 of those have most occurrences past q90;
+>      - galena sweep: 33 % of fleets at 35 mm and 19 % at 40 mm are MET through OVERSIZE (noise).
+>    - **Fix:** leave WP1 open ("oversize within noise") when the verdict is OVERSIZE but not beyond noise. On a scratch copy:
+>      - all 121 tests still pass, because no test pins either outcome;
+>      - MET splits with most occurrences past q90 fall to 0;
+>      - correct fleets at 21 seeds lose 0.5 pp of "met" against 17-crystal records and 4.3 pp against 5.
+>    - Add tests, list the rule in §4, and restate the met column of §1.3's table.
+>
+> 2. **§4 presents the small-share problem as "the conflict between two of the boss's answers" (PROPOSAL:1543–1552).** The same wording is in the generated eighth line (scoreboard:419 → PROPOSAL:544) and in `rules.carrier_obligation` (`story-pocket-targets.mjs:78`).
+>    - **The quote is not the boss's words.** "a miss the runs cannot tell from the target stays open" drops the word "size". The boss answered round 8's question about a size miss, open versus counted as within (940ee35c §4).
+>    - **Extending OPEN to carrying counts is this proposal's choice.** §4 already says so for the story choice.
+>    - **Deccan's apophyllite and calcite have no indistinguishable size miss.** Both are BELOW with no noise mark: 21 of 21 runs at ≤ 1.7 mm against q25s of 17.5 and 11. On the boss's own words, both answers point to failing them.
+>    - **The options are costed unevenly:**
+>      - "fail any that never carries" omits how often it fails a correct protagonist, (1−s)^21: 3.2 % at 0.1517, 5.4 % at 0.13, 30 % at 0.0563;
+>      - round 9's never test is shown only by its two defects, not with the repair round 10 gave (one statistic for any mix, judged only on runs no other protagonist carries).
+>    - **Fix:** attribute the extension to the proposal, state that Deccan's size misses are beyond noise, and cost every option, the repaired one included.
+>
+> **SHOULD-FIX**
+>
+> 1. **The cavity rule judges only two of the three cases where the crystal's length and the span agree.** PROPOSAL:299 says "Where the two agree it is judged by them", but a crystal and a span both inside q25–q90 stay 'beyond' (open) at `lib:680`.
+>    - **Census:** Bisbee's malachite (about 65 mm in the 60.54 mm cavity; proxy range 50.75–138) is reported in 15 runs as "longer than the cavity" and as never carrying.
+>    - Four tests pin the current behaviour.
+>    - **Fix:** count it as carrying when q25 ≤ span and length ≤ q90, or restate the rule as the two named cases.
+>
+> 2. **A giant past a cavity whose span is short of q90 escapes the oversize fail entirely** (`lib:680`, `637–639`).
+>    - Real targets at 1 m in all 21 runs: Herkimer's quartz (span 59.94 against q90 60.4) and Deccan's apophyllite are open.
+>    - The same giants at the North Pennines galena, Jeffrey's grossular and Tsumeb's cerussite fail.
+>    - Herkimer is WP1's first target, so an overshoot there cannot fail.
+>    - **Fix:** state this, and generate the list of protagonists it affects.
+>
+> 3. **The list of shares 21 seeds cannot fail overclaims** (scoreboard:388–391 and 419).
+>    - Of its five, the 0.155 limit decides only Deccan's two:
+>      - Mogok's ruby (never occurs) and Jeffrey's pectolite (21 of 21) already fail on their bands;
+>      - pectolite and Schneeberg's erythrite are held open by the proxy rule (the boss's NO).
+>    - The list uses scored runs, not the counted runs the test uses; runs in unclassed pockets raise the limit.
+>    - Grimsel's fluorite fails at a share of 0.156 against a limit of 0.1546. That knife-edge is worth stating.
+>
+> 4. **Test gaps.** I ran 27 mutants of my own: 22 killed, 4 equivalent, 1 real survivor.
+>    - The survivor: judging "met" on scored − unclassed. Under it, 3 carried, 8 accessory and 10 unclassed runs against a share of 0.2 becomes MET instead of open.
+>    - Nothing tests what an OVERSIZE within noise does.
+>
+> 5. **Hand-typed results outside the generated markers,** all correct today:
+>    - §4: "five today" with the names, "16 are open", and "1.6 and 1.7 mm … 27 and 22";
+>    - §1.3: "five of them today".
+>
+>    This goes against the "No result is typed by hand" rule and round 10's S7 response.
+>
+> **Verified correct**
+> - **Read-only:** HEAD is 454adb7a and the tree is clean; only the test-quarry ledger changed.
+> - **Guardrails:** nothing under js/ or data/ changed in any of the twelve commits. The comparison tool is unchanged since afbe687f, and compare.json 8419de06… reproduced.
+> - **Checks:** the targets match a rebuild; 13/13 scoreboard and 2/2 substrate blocks match; 121/121 tests pass, also on my scratch harness.
+> - **The stated figures reproduce** (6,000 / 3,000 / 1,500 fleets at 21 / 210 / 1,000 seeds; percentages of fleets failed):
+>
+>   | correct fleet | records of | 21 seeds | 210 | 1,000 |
+>   |---|---|---|---|---|
+>   | mid-band | 17 | 0.3 % | 1.3 % | 3.1 % |
+>   | mid-band | 5 | 2.5 % | 16.1 % | 24.9 % |
+>   | at the floors | 17 | 10.0 % | 25.2 % | 47.8 % |
+>   | at the floors | 5 | 9.7 % | 42.1 % | 58.5 % |
+>
+>   - one protagonist at 210 seeds against five crystals: 11.6 % failed mid-band, 27.3 % at the floor;
+>   - galena sweep: failed 12.1 / 40.8 / 71.4 / 97.3 / 99.8 / 100 % at 30 / 35 / 40 / 50 / 60 / 80+ mm;
+>   - band tests make up 65–70 % of the failures at the floors, matching "two thirds".
+> - **Census WP1:** met 0, failed 16 (story 4, band 15, share 5, oversize 0), open 16.
+> - **Round-10 responses hold:**
+>   - M1: one giant no longer rescues dust. Dust in 21 runs fails; so do 20 dust + one 40 mm and 11 dust + one 40 mm + 9 absent. One run longer than the cavity weighs as one carried run, within noise.
+>   - M2: the record-noise machinery is cut, with no stale traces.
+>   - S2, S3, S5, S6 and S7 behave as stated; S6's mirror is correct.
+> - **Unclassed runs:** leaving them out of the share is a sound lenient bound, and a protagonist cannot escape through its own growth.
+> - **Perverse incentives:** across the 2,024 splits, no move away from carrying improves WP1. The only improving moves are absent → present, through the band, which is by design.
+> - **Evidence:** the appendix and capture are unchanged since 9e20f967. I spot-checked the crystal rows behind the North Pennines fluorite and galena, Herkimer, Deccan, Jeffrey and Tsumeb targets, and five joins against the raw capture: clean.
+> - **Acceptance items:** all present and honest.
+>
+> **Ready for the boss?** Not yet: first make an indistinguishable OVERSIZE leave WP1 open (MUST-FIX 1), and re-attribute and cost §4's conflict (MUST-FIX 2). The should-fixes can go to the boss as stated limits.
+
+### The response
+
+| # | finding | what changed | evidence |
+|---|---|---|---|
+| M1 | an OVERSIZE within noise, or with too few runs, counted as met | An OVERSIZE the runs cannot tell from the display range's top now leaves WP1 open ("oversize within noise") — the boss's first answer, an indistinguishable size miss is never a pass, applied to it. The share is still tested and can still fail the protagonist. §4 records it under the boss's decided answers, since it is the boss's rule, not a choice of this proposal. | Round 11's cases on the North Pennines targets: 9 runs at 20 mm and 12 at 40 — open; 5 at 20, 13 at 1,000 and 3 absent — open; an uncommon band at 1 × 20 and 2 × 60 — open. Of every split of 21 runs into carriers, 40 mm crystals, dust and absence (2,024), 802 are met and none with most occurrences past the range (was 86 of 908), and no move away from carrying improves the outcome — a test now. Correct fleets at 21 seeds are met 72.5 and 56.8 % against records of 17 and 5 (was 73.1 and 61.9), failed as before; §1.3's table is restated. The galena sweep is met 22 % at 30 mm, 5 % at 35 and 0.7 % at 40 (was 56, 37 and 19), failed as before. |
+| M2 | §4 credited the small-share conflict to the boss and costed its options unevenly | Re-attributed in §4, the generated eighth line and `rules.carrier_obligation`: the boss's OPEN was given for a size miss the runs cannot tell from the target, and leaving a carrying count within noise open is this proposal's extension of it — that is where a share of 0.155 or less meets "if it never does". Where the limit alone holds a protagonist open, its size miss is beyond noise (BELOW, no noise mark), so on the boss's own two answers it would fail. Each option is costed: leave it open (none carried turns beyond noise at 22, 26 and 65 seeds for shares of 0.15, 0.13 and 0.056); fail any protagonist that never carries (a correct one carrying exactly its share fails in (1 − s)²¹ of fleets: 3.2, 5.4 and 30 %); or judge "never" on the runs where it occurs and no other protagonist carries the pocket, as round 10 repaired it (it needs a model the boss's answers do not give, and fails a correct protagonist in about 8 % of fleets at the fewest such runs it can judge against a five-crystal record, under 1 % by 21). | — |
+| S1 | the cavity rule judged two of the three cases where length and span agree | All three now (`lengthAndSpanAgree`): past, below or in the display range on its length and the span alike, and in it the crystal carries the story. | Bisbee's malachite, about 65 mm in its 60.54 mm cavity (proxy range 50.75–138), carries the story in 15 runs, on its proxy, with 6 more open. Bisbee's verdict stays UNRESOLVED (it has no story frequency); the never-carry line drops it (45). |
+| S2 | a giant past a cavity short of its q90 escapes the oversize fail | Stated in §1.3 and §4, and generated: the sixth line under §2's table lists every protagonist whose 90th percentile is past its cavity's span, where WP1 can never judge it oversize. | Herkimer's quartz (q90 60.4 mm, span 59.9) is among them. |
+| S3 | the list of unfailable shares overclaimed | Generated over the runs each share is judged on (the scored runs less those in unclassed pockets), split into those the limit alone holds open (Deccan's apophyllite and calcite) and those other rules decide, each with what decides it, with the nearest share above the limit (Grimsel's fluorite, 0.156 against 0.1546, which fails). | — |
+| S4 | test gaps | Tests: an OVERSIZE within noise and one with too few runs (both open); the share failing beside an oversize within noise; met only over every scored run (round 11's surviving mutant: 3 carried, 8 accessories and 10 unclassed runs against 0.2 are open, not met); round 11's met cases on the North Pennines targets; and the 2,024-split property. | — |
+| S5 | hand-typed results outside the markers | Removed from §1.3 and §4: the count and names of the unfailable shares, the count of open scenarios and Deccan's sizes. The generated lines and tables carry them. | — |
+
+Mutation testing: 19 mutants on this round's code — the agreement rule (rounds 8, 9 and 10's versions of it among them) and its side boundaries, assessSize's eligibility and beyond count, runStory's use of it, the oversize-within-noise rule four ways, "met" over the counted runs, and the scoreboard's and targets' new text — 18 killed: 14 by the tests, 3 by the splice check, 1 by the targets check. The survivor, the scoreboard counting a protagonist as held open by the limit alone when any of its entries is within noise, gives the same text on the census: no protagonist with an unfailable share pairs a share within noise with another entry.
+
+Result: STORY 1, STORY (PROXY) 1, NO STORY 3, UNRESOLVED 26, NO ENGINE 1, OUT OF SCOPE 1 (unchanged; Bisbee's malachite now carries 15 runs, and Bisbee stays UNRESOLVED). WP1's whole target is met by none: failed at 16 scored scenarios (by cause: the story 4, a band 15, a carrier share 5, oversize 0), open at 16. Tests 122 (was 121).
